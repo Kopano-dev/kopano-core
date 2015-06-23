@@ -1041,6 +1041,16 @@ HRESULT	Util::HrCopyEntryId(ULONG ulSize, const ENTRYID *lpSrc,
 	       (LPBYTE *)lppDest, lpBase);
 }
 
+/*
+ * The full checks need to be done. One cannot take a shortcut à la
+ * "result = (a - b)", as this can lead to underflow and falsify the result.
+ * (Consider: short a=-16385, b=16385;)
+ */
+template<typename T> static int twcmp(T a, T b)
+{
+	return (a < b) ? -1 : (a == b) ? 0 : 1;
+}
+
 /**
  * Compare two SBinary values.
  * A shorter binary value always compares less to a longer binary value. So only
@@ -1061,7 +1071,7 @@ int Util::CompareSBinary(const SBinary &sbin1, const SBinary &sbin2)
 	if (sbin1.lpb && sbin2.lpb && sbin1.cb > 0 && sbin1.cb == sbin2.cb)
 		return memcmp(sbin1.lpb, sbin2.lpb, sbin1.cb);
 	else
-		return sbin1.cb - sbin2.cb;
+		return twcmp(sbin1.cb, sbin2.cb);
 }
 
 /** 
@@ -1105,33 +1115,23 @@ HRESULT Util::CompareProp(const SPropValue *lpProp1, const SPropValue *lpProp2,
 
 	switch(PROP_TYPE(lpProp1->ulPropTag)) {
 	case PT_I2:
-		nCompareResult = lpProp1->Value.i - lpProp2->Value.i;
+		nCompareResult = twcmp(lpProp1->Value.i, lpProp2->Value.i);
 		break;
 	case PT_LONG:
-		nCompareResult = lpProp1->Value.ul - lpProp2->Value.ul;
+		nCompareResult = twcmp(lpProp1->Value.ul, lpProp2->Value.ul);
 		break;
 	case PT_R4:
-		if(lpProp1->Value.flt == lpProp2->Value.flt)
-			nCompareResult = 0;
-		else if(lpProp1->Value.flt < lpProp2->Value.flt)
-			nCompareResult = -1;
-		else
-			nCompareResult = 1;
+		nCompareResult = twcmp(lpProp1->Value.flt, lpProp2->Value.flt);
 		break;
 	case PT_BOOLEAN:
-		nCompareResult = lpProp1->Value.b - lpProp2->Value.b;
+		nCompareResult = twcmp(lpProp1->Value.b, lpProp2->Value.b);
 		break;
 	case PT_DOUBLE:
 	case PT_APPTIME:
-		if(lpProp1->Value.dbl == lpProp2->Value.dbl)
-			nCompareResult = 0;
-		else if(lpProp1->Value.dbl < lpProp2->Value.dbl)
-			nCompareResult = -1;
-		else
-			nCompareResult = 1;
+		nCompareResult = twcmp(lpProp1->Value.dbl, lpProp2->Value.dbl);
 		break;
 	case PT_I8:
-		nCompareResult = (int)(lpProp1->Value.li.QuadPart - lpProp2->Value.li.QuadPart);
+		nCompareResult = twcmp(lpProp1->Value.li.QuadPart, lpProp2->Value.li.QuadPart);
 		break;
 	case PT_UNICODE:
 		if (lpProp1->Value.lpszW && lpProp2->Value.lpszW)
@@ -1153,10 +1153,10 @@ HRESULT Util::CompareProp(const SPropValue *lpProp1, const SPropValue *lpProp2,
 		break;
 	case PT_SYSTIME:
 	case PT_CURRENCY:
-		if(lpProp1->Value.cur.Hi == lpProp2->Value.cur.Hi)
-			nCompareResult = lpProp1->Value.cur.Lo - lpProp2->Value.cur.Lo;
+		if (lpProp1->Value.cur.Hi == lpProp2->Value.cur.Hi)
+			nCompareResult = twcmp(lpProp1->Value.cur.Lo, lpProp2->Value.cur.Lo);
 		else
-			nCompareResult = lpProp1->Value.cur.Hi - lpProp2->Value.cur.Hi;
+			nCompareResult = twcmp(lpProp1->Value.cur.Hi, lpProp2->Value.cur.Hi);
 		break;
 	case PT_BINARY:
 		nCompareResult = CompareSBinary(lpProp1->Value.bin, lpProp2->Value.bin);
@@ -1168,62 +1168,62 @@ HRESULT Util::CompareProp(const SPropValue *lpProp1, const SPropValue *lpProp2,
 	case PT_MV_I2:
 		if (lpProp1->Value.MVi.cValues == lpProp2->Value.MVi.cValues) {
 			for (i = 0; i < lpProp1->Value.MVi.cValues; ++i) {
-				nCompareResult = lpProp1->Value.MVi.lpi[i] - lpProp2->Value.MVi.lpi[i];
+				nCompareResult = twcmp(lpProp1->Value.MVi.lpi[i], lpProp2->Value.MVi.lpi[i]);
 				if(nCompareResult != 0)
 					break;
 			}
 		} else
-			nCompareResult = lpProp1->Value.MVi.cValues - lpProp2->Value.MVi.cValues;
+			nCompareResult = twcmp(lpProp1->Value.MVi.cValues, lpProp2->Value.MVi.cValues);
 		break;
 	case PT_MV_LONG:
 		if (lpProp1->Value.MVl.cValues == lpProp2->Value.MVl.cValues) {
 			for (i = 0; i < lpProp1->Value.MVl.cValues; ++i) {
-				nCompareResult = lpProp1->Value.MVl.lpl[i] - lpProp2->Value.MVl.lpl[i];
+				nCompareResult = twcmp(lpProp1->Value.MVl.lpl[i], lpProp2->Value.MVl.lpl[i]);
 				if(nCompareResult != 0)
 					break;
 			}
 		} else
-			nCompareResult = lpProp1->Value.MVl.cValues - lpProp2->Value.MVl.cValues;
+			nCompareResult = twcmp(lpProp1->Value.MVl.cValues, lpProp2->Value.MVl.cValues);
 		break;
 	case PT_MV_R4:
 		if (lpProp1->Value.MVflt.cValues == lpProp2->Value.MVflt.cValues) {
 			for (i = 0; i < lpProp1->Value.MVflt.cValues; ++i) {
-				nCompareResult = lpProp1->Value.MVflt.lpflt[i] - lpProp2->Value.MVflt.lpflt[i];
+				nCompareResult = twcmp(lpProp1->Value.MVflt.lpflt[i], lpProp2->Value.MVflt.lpflt[i]);
 				if(nCompareResult != 0)
 					break;
 			}
 		} else
-			nCompareResult = lpProp1->Value.MVflt.cValues - lpProp2->Value.MVflt.cValues;
+			nCompareResult = twcmp(lpProp1->Value.MVflt.cValues, lpProp2->Value.MVflt.cValues);
 		break;
 	case PT_MV_DOUBLE:
 	case PT_MV_APPTIME:
 		if (lpProp1->Value.MVdbl.cValues == lpProp2->Value.MVdbl.cValues) {
 			for (i = 0; i < lpProp1->Value.MVdbl.cValues; ++i) {
-				nCompareResult = lpProp1->Value.MVdbl.lpdbl[i] - lpProp2->Value.MVdbl.lpdbl[i];
+				nCompareResult = twcmp(lpProp1->Value.MVdbl.lpdbl[i], lpProp2->Value.MVdbl.lpdbl[i]);
 				if(nCompareResult != 0)
 					break;
 			}
 		} else
-			nCompareResult = lpProp1->Value.MVdbl.cValues - lpProp2->Value.MVdbl.cValues;
+			nCompareResult = twcmp(lpProp1->Value.MVdbl.cValues, lpProp2->Value.MVdbl.cValues);
 		break;
 	case PT_MV_I8:
 		if (lpProp1->Value.MVli.cValues == lpProp2->Value.MVli.cValues) {
 			for (i = 0; i < lpProp1->Value.MVli.cValues; ++i) {
-				nCompareResult = (int)(lpProp1->Value.MVli.lpli[i].QuadPart - lpProp2->Value.MVli.lpli[i].QuadPart);
+				nCompareResult = twcmp(lpProp1->Value.MVli.lpli[i].QuadPart, lpProp2->Value.MVli.lpli[i].QuadPart);
 				if(nCompareResult != 0)
 					break;
 			}
 		} else
-			nCompareResult = lpProp1->Value.MVli.cValues - lpProp2->Value.MVli.cValues;
+			nCompareResult = twcmp(lpProp1->Value.MVli.cValues, lpProp2->Value.MVli.cValues);
 		break;
 	case PT_MV_SYSTIME:
 	case PT_MV_CURRENCY:
 		if (lpProp1->Value.MVcur.cValues == lpProp2->Value.MVcur.cValues) {
 			for (i = 0; i < lpProp1->Value.MVcur.cValues; ++i) {
 				if(lpProp1->Value.MVcur.lpcur[i].Hi == lpProp2->Value.MVcur.lpcur[i].Hi)
-					nCompareResult = lpProp1->Value.MVcur.lpcur[i].Lo - lpProp2->Value.MVcur.lpcur[i].Lo;
+					nCompareResult = twcmp(lpProp1->Value.MVcur.lpcur[i].Lo, lpProp2->Value.MVcur.lpcur[i].Lo);
 				else
-					nCompareResult = lpProp1->Value.MVcur.lpcur[i].Hi - lpProp2->Value.MVcur.lpcur[i].Hi;
+					nCompareResult = twcmp(lpProp1->Value.MVcur.lpcur[i].Hi, lpProp2->Value.MVcur.lpcur[i].Hi);
 
 				if(nCompareResult != 0)
 					break;
@@ -1235,7 +1235,7 @@ HRESULT Util::CompareProp(const SPropValue *lpProp1, const SPropValue *lpProp2,
 		if (lpProp1->Value.MVguid.cValues == lpProp2->Value.MVguid.cValues) {
 			nCompareResult = memcmp(lpProp1->Value.MVguid.lpguid, lpProp2->Value.MVguid.lpguid, sizeof(GUID)*lpProp1->Value.MVguid.cValues);
 		} else {
-			nCompareResult = lpProp1->Value.MVguid.cValues - lpProp2->Value.MVguid.cValues;
+			nCompareResult = twcmp(lpProp1->Value.MVguid.cValues, lpProp2->Value.MVguid.cValues);
 		}
 		break;
 	case PT_MV_BINARY:
@@ -1246,7 +1246,7 @@ HRESULT Util::CompareProp(const SPropValue *lpProp1, const SPropValue *lpProp2,
 					break;
 			}
 		} else
-			nCompareResult = lpProp1->Value.MVbin.cValues - lpProp2->Value.MVbin.cValues;
+			nCompareResult = twcmp(lpProp1->Value.MVbin.cValues, lpProp2->Value.MVbin.cValues);
 		break;
 	case PT_MV_UNICODE:
 		if (lpProp1->Value.MVszW.cValues == lpProp2->Value.MVszW.cValues) {
@@ -1260,7 +1260,7 @@ HRESULT Util::CompareProp(const SPropValue *lpProp1, const SPropValue *lpProp2,
 					break;
 			}
 		} else
-			nCompareResult = lpProp1->Value.MVszA.cValues - lpProp2->Value.MVszA.cValues;
+			nCompareResult = twcmp(lpProp1->Value.MVszA.cValues, lpProp2->Value.MVszA.cValues);
 		break;
 	case PT_MV_STRING8:
 		if (lpProp1->Value.MVszA.cValues == lpProp2->Value.MVszA.cValues) {
@@ -1274,7 +1274,7 @@ HRESULT Util::CompareProp(const SPropValue *lpProp1, const SPropValue *lpProp2,
 					break;
 			}
 		} else
-			nCompareResult = lpProp1->Value.MVszA.cValues - lpProp2->Value.MVszA.cValues;
+			nCompareResult = twcmp(lpProp1->Value.MVszA.cValues, lpProp2->Value.MVszA.cValues);
 		break;
 	default:
 		hr = MAPI_E_INVALID_TYPE;

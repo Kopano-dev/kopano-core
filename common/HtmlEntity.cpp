@@ -537,7 +537,7 @@ static int compareHTMLEntityToName(const void *m1, const void *m2)
 {
 	const HTMLEntityToName_t *e1 = static_cast<const HTMLEntityToName_t *>(m1);
 	const HTMLEntityToName_t *e2 = static_cast<const HTMLEntityToName_t *>(m2);
-	return (e1->c - e2->c);
+	return (e1->c < e2->c) ? -1 : (e1->c == e2->c) ? 0 : 1;
 }
 
 WCHAR CHtmlEntity::toChar( const WCHAR *name )
