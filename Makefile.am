@@ -30,7 +30,8 @@ AM_CPPFLAGS = ${ZCPPFLAGS} ${DEBUGFLAGS} -DLDAP_THREAD_SAFE \
 	-I${top_srcdir}/ECtools/archiver \
 	${CRYPTO_CFLAGS} ${curl_CFLAGS} ${GSOAP_CFLAGS} ${ICAL_CFLAGS} \
 	${KRB5_CFLAGS} ${LDAP_FLAGS} ${MYSQL_INCLUDES} ${SSL_CFLAGS} \
-	${s3_CFLAGS} ${TCMALLOC_CFLAGS} ${VMIME_CFLAGS} ${XML2_CFLAGS}
+	${s3_CFLAGS} ${TCMALLOC_CFLAGS} ${tidy_CPPFLAGS} \
+	${VMIME_CFLAGS} ${XML2_CFLAGS}
 AM_CXXFLAGS = ${ZCXXFLAGS} -Wno-sign-compare -fvisibility=hidden \
 	-fvisibility-inlines-hidden
 
@@ -47,7 +48,7 @@ dist_sbin_SCRIPTS = ECtools/utils/kopano-mailbox-permissions \
 	ECtools/archiver/scripts/kopano-archiver-aclset \
 	ECtools/archiver/scripts/kopano-archiver-aclsync \
 	ECtools/archiver/scripts/kopano-archiver-restore
-noinst_PROGRAMS = kopano-cfgchecker
+noinst_PROGRAMS = kopano-cfgchecker rosie-test
 check_PROGRAMS = cov-scope
 pkglibexec_PROGRAMS = mapitime
 
@@ -59,11 +60,15 @@ pkglibexec_PROGRAMS = mapitime
 # so the order of lib_LTLIBRARIES is important! Dependant libs go to the right.
 # (Order was previously implied by the SUBDIRS variable.)
 #
+if HAVE_TIDY
+COND_libkcrosie_la = libkcrosie.la
+COND_libkcrosie_ldd = libkcrosie.ldd
+endif
 lib_LTLIBRARIES = \
 	libkcutil.la libkcmapi.la libkcssl.la libmapi.la libkchl.la \
 	libkcfreebusy.la libkcsync.la libkcsoap.la libkcserver.la \
 	libkcicalmapi.la libkcinetmapi.la \
-	libkcarchiver.la libkcarchivercore.la
+	libkcarchiver.la libkcarchivercore.la ${COND_libkcrosie_la}
 noinst_DATA = \
 	kopano-archiver.ldx kopano-cfgchecker.ldx kopano-dagent.ldx \
 	kopano-gateway.ldx kopano-ical.ldx kopano-monitor.ldx \
@@ -71,8 +76,8 @@ noinst_DATA = \
 	kopano-stats.ldx \
 	libkcarchiver.ldd libkcarchivercore.ldd libkcclient.ldd \
 	libkccontacts.ldd libkcfreebusy.ldd libkchl.ldd libkcicalmapi.ldd \
-	libkcinetmapi.ldd libkcmapi.ldd libkcserver.ldd \
-	libkcssl.ldd libkcsync.ldd libkcutil.ldd libmapi.ldd
+	libkcinetmapi.ldd libkcmapi.ldd ${COND_libkcrosie_ldd} \
+	libkcserver.ldd libkcssl.ldd libkcsync.ldd libkcutil.ldd libmapi.ldd
 # Undefined references
 #noinst_DATA += libkcsoap.ldd
 pkglib_LTLIBRARIES = libkcclient.la libkccontacts.la
@@ -587,6 +592,15 @@ common/libkcmapi.sym: ${top_builddir}/config.status
 
 
 #
+# libkcrosie
+#
+include_HEADERS = librosie/librosie.h
+libkcrosie_la_SOURCES = librosie/librosie.cpp
+libkcrosie_la_LIBADD  = -ltidy
+libkcrosie_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined -version-info 0:0:0
+
+
+#
 # libkcsoap
 #
 libkcsoap_la_SOURCES = \
@@ -813,6 +827,8 @@ cov_scope_SOURCES = common/cov-scope.cpp
 mapitime_SOURCES = ECtools/mapitime.cpp
 mapitime_LDADD = -lrt libmapi.la libkcmapi.la libkcutil.la \
 	${curl_LIBS} ${icu_uc_LIBS}
+rosie_test_SOURCES = librosie/test.cpp
+rosie_test_LDADD = libkcrosie.la
 
 
 #

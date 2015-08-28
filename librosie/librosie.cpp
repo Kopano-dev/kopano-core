@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <tidy.h>
 #include <tidybuffio.h>
+#include "librosie.h"
 
 std::set<std::string> htmlTagsWhitelists;
 std::map<std::string, std::set<std::string> > htmlAttributesWhitelists;
