@@ -672,6 +672,9 @@ BOOST_REQUIRE([1.35])
 BOOST_SMART_PTR
 BOOST_FILESYSTEM([mt])
 
+AC_CHECK_HEADERS([tidy.h])
+AM_CONDITIONAL([HAVE_TIDY], [test "x$ac_cv_header_tidy_h" = "xyes"])
+
 dnl The "Locale" class is in icu-uc.
 dnl The "CollationKey" class is in icu-i18n.
 req_icu_uc="icu-uc"

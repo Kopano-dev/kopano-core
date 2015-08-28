@@ -60,11 +60,15 @@ pkglibexec_PROGRAMS = mapitime
 # (Order was previously implied by the SUBDIRS variable.)
 #
 noinst_LTLIBRARIES = libm4lcommon.la
+if HAVE_TIDY
+COND_libkcrosie_la = libkcrosie.la
+COND_libkcrosie_ldd = libkcrosie.ldd
+endif
 lib_LTLIBRARIES = \
 	libkcutil.la libkcmapi.la libkcssl.la libmapi.la libkchl.la \
 	libkcfreebusy.la libkcsync.la libkcsoap.la libkcserver.la \
 	libkcicalmapi.la libkcinetmapi.la \
-	libkcarchiver.la libkcarchivercore.la
+	libkcarchiver.la libkcarchivercore.la ${COND_libkcrosie_la}
 noinst_DATA = \
 	kopano-archiver.ldx kopano-cfgchecker.ldx kopano-dagent.ldx \
 	kopano-gateway.ldx kopano-ical.ldx kopano-monitor.ldx \
@@ -72,8 +76,8 @@ noinst_DATA = \
 	kopano-stats.ldx \
 	libkcarchiver.ldd libkcarchivercore.ldd libkcclient.ldd \
 	libkccontacts.ldd libkcfreebusy.ldd libkchl.ldd libkcicalmapi.ldd \
-	libkcinetmapi.ldd libkcmapi.ldd libkcserver.ldd \
-	libkcssl.ldd libkcsync.ldd libkcutil.ldd libmapi.ldd
+	libkcinetmapi.ldd libkcmapi.ldd ${COND_libkcrosie_ldd} \
+	libkcserver.ldd libkcssl.ldd libkcsync.ldd libkcutil.ldd libmapi.ldd
 # Undefined references
 #noinst_DATA += libkcsoap.ldd
 pkglib_LTLIBRARIES = libkcclient.la libkccontacts.la
@@ -583,6 +587,17 @@ libkcmapi_la_LIBADD = libkcutil.la -lpthread
 libkcmapi_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	-Wl,--version-script=${default_sym}
 EXTRA_libkcmapi_la_DEPENDENCIES = ${default_sym}
+
+
+#
+# libkcrosie
+#
+include_HEADERS = librosie/librosie.h
+libkcrosie_la_SOURCES = librosie/librosie.cpp
+libkcrosie_la_LIBADD  = -ltidy
+libkcrosie_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
+	-version-info 0:0:0 -Wl,--version-script=${default_sym}
+EXTRA_libkcrosie_la_DEPENDENCIES = ${default_sym}
 
 
 #
