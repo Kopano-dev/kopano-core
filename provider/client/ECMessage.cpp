@@ -43,6 +43,7 @@
 
 #include <charset/utf32string.h>
 #include <kopano/charset/convert.h>
+#include <librosie.h>
 
 using namespace std;
 
@@ -93,6 +94,7 @@ ECMessage::ECMessage(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFl
 
 	// Workaround for support html in outlook 2000/xp need SetPropHandler
 	this->HrAddPropHandlers(PR_HTML,					GetPropHandler		 ,SetPropHandler,			(void*) this, FALSE, FALSE);
+	this->HrAddPropHandlers(PR_EC_BODY_FILTERED, GetPropHandler, SetPropHandler, static_cast<void *>(this), false, false);
 
 	// The property 0x10970003 is set by outlook when browsing in the 'unread mail' searchfolder. It is used to make sure
 	// that a message that you just read is not removed directly from view. It is set for each message which should be in the view
@@ -2405,6 +2407,52 @@ HRESULT	ECMessage::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ulFla
 		lpsPropValue->ulPropTag = PR_MESSAGE_RECIPIENTS;
 		lpsPropValue->Value.x = 1;
 		break;
+	case PROP_ID(PR_EC_BODY_FILTERED): {
+		// does it already exist? (eg inserted by dagent/gateway)
+		hr = lpMessage->GetSyncedBodyProp(PR_EC_BODY_FILTERED, ulFlags, lpBase, lpsPropValue);
+		if (hr == hrSuccess) // yes, then use that
+			break;
+
+		// else generate it on the fly
+		LPSPropValue lpsTempProp;
+		hr = MAPIAllocateBuffer(sizeof(SPropValue), reinterpret_cast<void **>(&lpsTempProp));
+		if (hr != hrSuccess)
+			break;
+
+		hr = lpMessage->GetSyncedBodyProp(PR_HTML, ulFlags, lpsTempProp, lpsTempProp);
+		if (hr != hrSuccess) {
+			ECFreeBuffer(lpsTempProp);
+			hr = MAPI_E_NOT_FOUND;
+			break;
+		}
+
+		std::string in(lpsTempProp->Value.lpszA);
+		std::string result;
+		std::vector<std::string> errors;
+		bool rc = rosie_clean_html(in, &result, &errors);
+
+		// FIXME emit error somewhere somehow
+		if (rc) {
+			ULONG ulSize = result.size();
+
+			hr = ECAllocateMore(ulSize + 1, lpBase, reinterpret_cast<void **>(&lpsPropValue->Value.lpszA));
+			if (hr == hrSuccess) {
+				memcpy(lpsPropValue->Value.lpszA, result.c_str(), ulSize);
+				lpsPropValue->Value.lpszA[ulSize] = '\0';
+				// FIXME store in database if that is what the SysOp wants
+			} else {
+				ulSize = 0;
+			}
+			lpsPropValue->Value.bin.cb = ulSize;
+		}
+		ECFreeBuffer(lpsTempProp);
+
+		if (rc == 0 || hr != hrSuccess) {
+			hr = MAPI_E_NOT_FOUND;
+			break;
+		}
+		break;
+	}
 	case PROP_ID(PR_BODY):
 	case PROP_ID(PR_RTF_COMPRESSED):
 	case PROP_ID(PR_HTML):

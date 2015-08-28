@@ -37,6 +37,9 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/join.hpp>
 
+#include <kopano/ECDebug.h>
+#include <librosie.h>
+
 // vmime
 #include <vmime/vmime.hpp>
 #include <vmime/platforms/posix/posixHandler.hpp>
@@ -88,6 +91,7 @@ VMIMEToMAPI::VMIMEToMAPI()
 	m_dopt.use_received_date = false; // use Date header
 	m_lpAdrBook = NULL;
 	m_lpDefaultDir = NULL;
+	m_dopt.html_safety_filter = false;
 }
 
 /**
@@ -2263,6 +2267,45 @@ exit:
 	return hr;
 }
 
+bool VMIMEToMAPI::filter_html(IMessage *msg, IStream *stream, ULONG flags,
+    const std::string &html)
+{
+	std::string clean_html;
+	std::vector<std::string> error;
+	HRESULT ret;
+
+	bool clean_ok = rosie_clean_html(html, &clean_html, &error);
+	for (size_t i = 0; i < error.size(); ++i)
+		ec_log_debug("HTML clean: %s", error[i].c_str());
+	if (!clean_ok)
+		return false;
+
+	ret = msg->OpenProperty(PR_EC_BODY_FILTERED, &IID_IStream,
+	      STGM_TRANSACTED, flags, reinterpret_cast<LPUNKNOWN *>(&stream));
+	if (ret != hrSuccess) {
+		ec_log_warn("OpenProperty(PR_EC_BODY_FILTERED) failed: %s (%x)",
+			GetMAPIErrorDescription(ret).c_str(), ret);
+		return false;
+	}
+
+	ULONG written = 0;
+	ret = stream->Write(clean_html.c_str(), clean_html.length(), &written);
+	if (ret != hrSuccess) {
+		/* check cbWritten too? */
+		ec_log_warn("Write(PR_EC_BODY_FILTERED) failed: %s (%x)",
+			GetMAPIErrorDescription(ret).c_str(), ret);
+		return false;
+	}
+
+	ret = stream->Commit(0);
+	if (ret != hrSuccess) {
+		ec_log_warn("Commit(PR_EC_BODY_FILTERED) failed: %s (%x)",
+			GetMAPIErrorDescription(ret).c_str(), ret);
+		return false;
+	}
+	return true;
+}
+
 /**
  * Converts a html body to the MAPI PR_HTML property using
  * streams. Clients syncs this to PR_BODY and PR_RTF_COMPRESSED
@@ -2515,6 +2558,8 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::shared_ptr<vmime::header> vmHeade
 		m_mailState.strHTMLBody.append(strHTML);
 	else
 		swap(strHTML, m_mailState.strHTMLBody);
+	if (m_dopt.html_safety_filter)
+		filter_html(lpMessage, lpHTMLStream, ulFlags, strHTML);
 
 exit:
 	if (lpHTMLStream)
@@ -3849,6 +3894,7 @@ void imopt_default_delivery_options(delivery_options *dopt) {
 	dopt->user_entryid = NULL;
 	dopt->parse_smime_signed = false;
 	dopt->ascii_upgrade = nullptr;
+	dopt->html_safety_filter = false;
 }
 
 /**

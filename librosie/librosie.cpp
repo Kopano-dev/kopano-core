@@ -9,7 +9,7 @@
 #include <pthread.h>
 #include <tidy.h>
 #include <tidybuffio.h>
-#include "platform.h"
+#include <kopano/platform.h>
 #include "librosie.h"
 
 typedef std::map<std::string, std::set<std::string> > attr_map_type;

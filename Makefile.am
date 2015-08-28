@@ -28,6 +28,7 @@ AM_CPPFLAGS = ${ZCPPFLAGS} ${DEBUGFLAGS} -DLDAP_THREAD_SAFE \
 	-I${top_srcdir}/libfreebusy \
 	-I${top_srcdir}/libicalmapi \
 	-I${top_srcdir}/ECtools/archiver \
+	-I${top_srcdir}/librosie \
 	${BOOST_CPPFLAGS} ${CRYPTO_CFLAGS} ${GSOAP_CFLAGS} ${ICAL_CFLAGS} \
 	${KRB5_CFLAGS} ${LDAP_FLAGS} ${MYSQL_INCLUDES} ${SSL_CFLAGS} \
 	${s3_CFLAGS} ${TCMALLOC_CFLAGS} ${VMIME_CFLAGS} ${XML2_CFLAGS}
@@ -384,7 +385,7 @@ libkcclient_la_SOURCES = \
 	provider/soap/soapClient.cpp
 libkcclient_la_LIBADD = \
 	libkcmapi.la libkcssl.la libkcutil.la libkcfreebusy.la libkcsync.la \
-	libmapi.la libkcsoap.la -lstdc++ \
+	libmapi.la ${COND_libkcrosie_la} libkcsoap.la -lstdc++ \
 	${GSOAP_LIBS} ${ICU_LIBS} ${SSL_LIBS} ${UUID_LIBS}
 libkcclient_la_LDFLAGS = ${AM_LDFLAGS} -avoid-version -module \
 	-Wl,--version-script=provider/provider.sym
@@ -491,7 +492,7 @@ libkcinetmapi_la_SOURCES = \
 # resulting in a crash in __cxa_finalize during unload of mapi.so
 libkcinetmapi_la_LIBADD = \
 	libmapi.la libkcmapi.la libkcutil.la libkcicalmapi.la \
-	${VMIME_LIBS} ${XML2_LIBS}
+	${COND_libkcrosie_la} ${VMIME_LIBS} ${XML2_LIBS}
 libkcinetmapi_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	-version-info 0:0:0 -Wl,-z -Wl,now -Wl,--version-script=${default_sym}
 EXTRA_libkcinetmapi_la_DEPENDENCIES = ${default_sym}

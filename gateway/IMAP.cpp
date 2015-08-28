@@ -92,6 +92,7 @@ IMAP::IMAP(const char *szServerPath, ECChannel *lpChannel, ECLogger *lpLogger,
 
 	imopt_default_delivery_options(&dopt);
 	dopt.add_imap_data = parseBool(lpConfig->GetSetting("imap_store_rfc822"));
+	dopt.html_safety_filter = strcasecmp(lpConfig->GetSetting("html_safety_filter"), "yes") == 0;
 
 	bOnlyMailFolders = parseBool(lpConfig->GetSetting("imap_only_mailfolders"));
 	bShowPublicFolder = parseBool(lpConfig->GetSetting("imap_public_folders"));

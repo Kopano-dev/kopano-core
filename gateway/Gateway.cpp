@@ -310,6 +310,7 @@ int main(int argc, char *argv[]) {
 		{ "log_timestamp", "1" },
 		{ "log_buffer_size", "0" },
 		{ "tmp_path", "/tmp" },
+		{ "html_safety_filter", "no" },
 		{ NULL, NULL },
 	};
 	enum {
