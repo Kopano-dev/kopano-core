@@ -317,6 +317,7 @@ int main(int argc, char *argv[]) {
 		{ "log_buffer_size", "0" },
 		{ "tmp_path", "/tmp" },
 		{"bypass_auth", "no"},
+		{"html_safety_filter", "no"},
 		{ NULL, NULL },
 	};
 	enum {
