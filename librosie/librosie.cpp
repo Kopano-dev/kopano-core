@@ -181,28 +181,28 @@ static std::string format(const char *const fmt, ...)
         return result;
 }
 
-static bool rosie_accept_tag(const char *const tag)
+static bool rosie_reject_tag(const char *const tag)
 {
 #ifdef _DEBUG
 	if (rosie_good_tags.find(tag) == rosie_good_tags.end())
 		fprintf(stderr, "%s ", tag);
 #endif
 
-	return rosie_good_tags.find(tag) != rosie_good_tags.end();
+	return rosie_good_tags.find(tag) == rosie_good_tags.end();
 }
 
-static bool rosie_accept_attr(const char *tag, const char *const attr)
+static bool rosie_reject_attr(const char *tag, const char *const attr)
 {
 	attr_map_type::iterator it = rosie_good_attrs.find(tag);
 
 	if (it == rosie_good_attrs.end())
-		return false;
+		return true;
 #ifdef _DEBUG
 	if (it->second.find(attr) == it->second.end())
 		fprintf(stderr, "%s(%s) ", tag, attr);
 #endif
 
-	return it->second.find(attr) != it->second.end();
+	return it->second.find(attr) == it->second.end();
 }
 
 static void rosie_strip_attrs(TidyDoc tdoc, TidyNode tnod)
@@ -212,7 +212,7 @@ static void rosie_strip_attrs(TidyDoc tdoc, TidyNode tnod)
 	for (TidyAttr attribute = tidyAttrFirst(tnod); attribute != NULL; ) {
 		ctmbstr aname = tidyAttrName(attribute);
 
-		if (aname != NULL && !rosie_accept_attr(tname, aname)) {
+		if (aname != NULL && rosie_reject_attr(tname, aname)) {
 			TidyAttr next = tidyAttrNext(attribute);
 			tidyAttrDiscard(tdoc, tnod, attribute);
 			attribute = next;
@@ -227,7 +227,7 @@ static bool rosie_strip_nodes(TidyDoc tdoc, TidyNode tnod)
 	for (TidyNode child = tidyGetChild(tnod); child != NULL; ) {
 		ctmbstr name = tidyNodeGetName(child);
 
-		if (name != NULL && !rosie_accept_tag(name)) {
+		if (name != NULL && rosie_reject_tag(name)) {
 			child = tidyDiscardElement(tdoc, child);
 		} else {
 			rosie_strip_attrs(tdoc, tnod);
