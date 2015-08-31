@@ -14,13 +14,13 @@
 
 typedef std::map<std::string, std::set<std::string> > attr_map_type;
 
-static std::set<std::string> htmlTagsWhitelists;
-static attr_map_type htmlAttributesWhitelists;
+static std::set<std::string> rosie_good_tags;
+static attr_map_type rosie_good_attrs;
 
-static pthread_mutex_t init_lock = PTHREAD_MUTEX_INITIALIZER;
-static bool initted = false;
+static pthread_mutex_t rosie_initlock = PTHREAD_MUTEX_INITIALIZER;
+static bool rosie_inited = false;
 
-static void InitLibRosie()
+static void rosie_init(void)
 {
 	static const char *const tags[] = {
 		"a",
@@ -101,7 +101,7 @@ static void InitLibRosie()
 	};
 
 	for (size_t i = 0; i < ARRAY_SIZE(tags); ++i)
-		htmlTagsWhitelists.insert(tags[i]);
+		rosie_good_tags.insert(tags[i]);
 
 	struct tag_pair {
 		const char *tag, *attribute;
@@ -150,19 +150,20 @@ static void InitLibRosie()
 	};
 
 	for (size_t i = 0; i < ARRAY_SIZE(attributes); ++i) {
-		attr_map_type::iterator it = htmlAttributesWhitelists.find(attributes[i].tag);
+		attr_map_type::iterator it = rosie_good_attrs.find(attributes[i].tag);
 
-		if (it != htmlAttributesWhitelists.end()) {
+		if (it != rosie_good_attrs.end()) {
 			it->second.insert(attributes[i].attribute);
 		} else {
 			std::set<std::string> attrs;
 			attrs.insert(attributes[i].attribute);
 
-			htmlAttributesWhitelists.insert(std::pair<std::string, std::set<std::string> >(attributes[i].tag, attrs));
+			rosie_good_attrs.insert(std::pair<std::string, std::set<std::string> >(attributes[i].tag, attrs));
 		}
 	}
 }
 
+/* Same as common/stringutil.cpp, consider merging. */
 static std::string format(const char *const fmt, ...)
 {
         char *buffer = NULL;
@@ -180,21 +181,21 @@ static std::string format(const char *const fmt, ...)
         return result;
 }
 
-static bool IsInHtmlTagWhitelist(const char *const tag)
+static bool rosie_accept_tag(const char *const tag)
 {
 #ifdef _DEBUG
-	if (htmlTagsWhitelists.find(tag) == htmlTagsWhitelists.end())
+	if (rosie_good_tags.find(tag) == rosie_good_tags.end())
 		fprintf(stderr, "%s ", tag);
 #endif
 
-	return htmlTagsWhitelists.find(tag) != htmlTagsWhitelists.end();
+	return rosie_good_tags.find(tag) != rosie_good_tags.end();
 }
 
-static bool IsInHtmlAttributeWhitelist(const char *tag, const char *const attr)
+static bool rosie_accept_attr(const char *tag, const char *const attr)
 {
-	attr_map_type::iterator it = htmlAttributesWhitelists.find(tag);
+	attr_map_type::iterator it = rosie_good_attrs.find(tag);
 
-	if (it == htmlAttributesWhitelists.end())
+	if (it == rosie_good_attrs.end())
 		return false;
 #ifdef _DEBUG
 	if (it->second.find(attr) == it->second.end())
@@ -204,15 +205,14 @@ static bool IsInHtmlAttributeWhitelist(const char *tag, const char *const attr)
 	return it->second.find(attr) != it->second.end();
 }
 
-static void CleanAttributes(TidyDoc tdoc, TidyNode tnod)
+static void rosie_strip_attrs(TidyDoc tdoc, TidyNode tnod)
 {
 	ctmbstr tname = tidyNodeGetName(tnod);
 
 	for (TidyAttr attribute = tidyAttrFirst(tnod); attribute != NULL; ) {
 		ctmbstr aname = tidyAttrName(attribute);
 
-		if (aname != NULL &&
-		    !IsInHtmlAttributeWhitelist(tname, aname)) {
+		if (aname != NULL && !rosie_accept_attr(tname, aname)) {
 			TidyAttr next = tidyAttrNext(attribute);
 			tidyAttrDiscard(tdoc, tnod, attribute);
 			attribute = next;
@@ -222,17 +222,16 @@ static void CleanAttributes(TidyDoc tdoc, TidyNode tnod)
 	}
 }
 
-static bool BadHTMLCleaner(TidyDoc tdoc, TidyNode tnod)
+static bool rosie_strip_nodes(TidyDoc tdoc, TidyNode tnod)
 {
 	for (TidyNode child = tidyGetChild(tnod); child != NULL; ) {
 		ctmbstr name = tidyNodeGetName(child);
 
-		if (name != NULL && !IsInHtmlTagWhitelist(name)) {
+		if (name != NULL && !rosie_accept_tag(name)) {
 			child = tidyDiscardElement(tdoc, child);
 		} else {
-			CleanAttributes(tdoc, tnod);
-
-			BadHTMLCleaner(tdoc, child);
+			rosie_strip_attrs(tdoc, tnod);
+			rosie_strip_nodes(tdoc, child);
 			child = tidyGetNext(child);
 		}
 	}
@@ -240,20 +239,20 @@ static bool BadHTMLCleaner(TidyDoc tdoc, TidyNode tnod)
 	return true;
 }
 
-static bool RemoveBadHtml(TidyDoc tdoc)
+static bool rosie_strip_nodes(TidyDoc tdoc)
 {
-	return BadHTMLCleaner(tdoc, tidyGetRoot(tdoc));
+	return rosie_strip_nodes(tdoc, tidyGetRoot(tdoc));
 }
 
-bool CleanHtml(const std::string &in, std::string *const out,
+bool rosie_clean_html(const std::string &in, std::string *const out,
     std::vector<std::string> *const errors)
 {
-	pthread_mutex_lock(&init_lock);
-	if (!initted) {
-		initted = true;
-		InitLibRosie();
+	pthread_mutex_lock(&rosie_initlock);
+	if (!rosie_inited) {
+		rosie_inited = true;
+		rosie_init();
 	}
-	pthread_mutex_unlock(&init_lock);
+	pthread_mutex_unlock(&rosie_initlock);
 
 	TidyBuffer output;
 	TidyBuffer errbuf;
@@ -284,7 +283,7 @@ bool CleanHtml(const std::string &in, std::string *const out,
 		errors->push_back(format("tidyCleanAndRepair(%d) ", rc));
 
 	if (rc >= 0)
-		rc = RemoveBadHtml(tdoc) ? 0 : -1;
+		rc = rosie_strip_nodes(tdoc) ? 0 : -1;
 	if (rc != 0 && errors != NULL)
 		errors->push_back(format("RemoveBadHtml(%d) ", rc));
 
@@ -305,11 +304,13 @@ bool CleanHtml(const std::string &in, std::string *const out,
 		out->assign(reinterpret_cast<const char *>(output.bp));
 
 		if (rc == 1)
-			errors->push_back(format("CleanHtml(): libtidy warning: %s",
+			errors->push_back(format("%s: libtidy warning: %s",
+				__PRETTY_FUNCTION__,
 				reinterpret_cast<const char *>(errbuf.bp)));
 	}
 	else {
-		errors->push_back(format("CleanHtml(): libtidy failed: %s",
+		errors->push_back(format("%s: libtidy failed: %s",
+			__PRETTY_FUNCTION__,
 			reinterpret_cast<const char *>(errbuf.bp)));
 	}
 

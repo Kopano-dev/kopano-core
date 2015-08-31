@@ -3,7 +3,12 @@
 
 #include <string>
 #include <vector>
+#include <kopano/zcdefs.h>
 
-bool CleanHtml(const std::string & in, std::string *const out, std::vector<std::string> *const errors);
+extern "C" {
+
+extern _kc_export bool rosie_clean_html(const std::string &in, std::string *out, std::vector<std::string> *errors);
+
+} /* extern "C" */
 
 #endif /* LIBROSIE_H */

@@ -1,0 +1,7 @@
+LIBROSIE_0 {
+	global:
+	rosie_clean_html;
+
+	local:
+	*;
+};
