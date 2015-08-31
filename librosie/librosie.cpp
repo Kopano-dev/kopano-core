@@ -5,15 +5,20 @@
 #include <set>
 #include <string>
 #include <vector>
-#include <stdio.h>
+#include <cstdio>
+#include <pthread.h>
 #include <tidy.h>
 #include <tidybuffio.h>
+#include "platform.h"
+#include "librosie.h"
 
-std::set<std::string> htmlTagsWhitelists;
-std::map<std::string, std::set<std::string> > htmlAttributesWhitelists;
+typedef std::map<std::string, std::set<std::string> > attr_map_type;
 
-pthread_mutex_t init_lock = PTHREAD_MUTEX_INITIALIZER;
-bool initted = false;
+static std::set<std::string> htmlTagsWhitelists;
+static attr_map_type htmlAttributesWhitelists;
+
+static pthread_mutex_t init_lock = PTHREAD_MUTEX_INITIALIZER;
+static bool initted = false;
 
 static void InitLibRosie()
 {
@@ -93,17 +98,16 @@ static void InitLibRosie()
 		"ul",
 		"var",
 		"wbr",
-		NULL,
 	};
 
-	for (int i = 0; tags[i] != NULL; ++i)
+	for (size_t i = 0; i < ARRAY_SIZE(tags); ++i)
 		htmlTagsWhitelists.insert(tags[i]);
 
-	typedef struct {
+	struct tag_pair {
 		const char *tag, *attribute;
-	} tag_pair_t;
+	};
 
-	static const tag_pair_t attributes[] = {
+	static const struct tag_pair attributes[] = {
 		{"a", "class"},
 		{"a", "href"},
 		{"a", "name"},
@@ -143,11 +147,10 @@ static void InitLibRosie()
 		{"tr", "height"},
 		{"tr", "valign"},
 		{"tr", "width"},
-		{NULL},
 	};
 
-	for (int i = 0; attributes[i].tag != NULL; ++i) {
-		std::map<std::string, std::set<std::string> >::iterator it = htmlAttributesWhitelists.find(attributes[i].tag);
+	for (size_t i = 0; i < ARRAY_SIZE(attributes); ++i) {
+		attr_map_type::iterator it = htmlAttributesWhitelists.find(attributes[i].tag);
 
 		if (it != htmlAttributesWhitelists.end()) {
 			it->second.insert(attributes[i].attribute);
@@ -189,7 +192,7 @@ static bool IsInHtmlTagWhitelist(const char *const tag)
 
 static bool IsInHtmlAttributeWhitelist(const char *tag, const char *const attr)
 {
-	std::map<std::string, std::set<std::string> >::iterator it = htmlAttributesWhitelists.find(tag);
+	attr_map_type::iterator it = htmlAttributesWhitelists.find(tag);
 
 	if (it == htmlAttributesWhitelists.end())
 		return false;
@@ -252,11 +255,13 @@ bool CleanHtml(const std::string &in, std::string *const out,
 	}
 	pthread_mutex_unlock(&init_lock);
 
-	TidyBuffer output = {0};
-	TidyBuffer errbuf = {0};
+	TidyBuffer output;
+	TidyBuffer errbuf;
 	int rc = -1;
 
 	out->clear();
+	tidyBufInit(&output);
+	tidyBufInit(&errbuf);
 
 	TidyDoc tdoc = tidyCreate();
 
@@ -297,13 +302,15 @@ bool CleanHtml(const std::string &in, std::string *const out,
 
 	if (rc == 0 || rc == 1) {
 		/* rc==1: warnings emitted */
-		out->assign((const char *)output.bp);
+		out->assign(reinterpret_cast<const char *>(output.bp));
 
 		if (rc == 1)
-			errors->push_back(format("CleanHtml(): libtidy warning: %s", (const char *)errbuf.bp));
+			errors->push_back(format("CleanHtml(): libtidy warning: %s",
+				reinterpret_cast<const char *>(errbuf.bp)));
 	}
 	else {
-		errors->push_back(format("CleanHtml(): libtidy failed: %s", (const char *)errbuf.bp));
+		errors->push_back(format("CleanHtml(): libtidy failed: %s",
+			reinterpret_cast<const char *>(errbuf.bp)));
 	}
 
 	if (rc >= 0)
