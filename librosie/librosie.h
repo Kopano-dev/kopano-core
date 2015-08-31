@@ -5,6 +5,10 @@
 #include <string>
 #include <vector>
 
-extern _kc_export bool CleanHtml(const std::string & in, std::string *const out, std::vector<std::string> *const errors);
+namespace KC {
+
+extern _kc_export bool rosie_clean_html(const std::string &in, std::string *out, std::vector<std::string> *err);
+
+}
 
 #endif /* LIBROSIE_H */

@@ -597,7 +597,9 @@ common/libkcmapi.sym: ${top_builddir}/config.status
 include_HEADERS = librosie/librosie.h
 libkcrosie_la_SOURCES = librosie/librosie.cpp
 libkcrosie_la_LIBADD  = -ltidy
-libkcrosie_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined -version-info 0:0:0
+libkcrosie_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined -version-info 0:0:0 \
+	-Wl,--version-script=${default_sym}
+EXTRA_libkcrosie_la_DEPENDENCIES = ${default_sym}
 
 
 #
