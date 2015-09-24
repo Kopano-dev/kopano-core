@@ -20,6 +20,7 @@
 #include <memory>
 #include <type_traits>
 #include <climits>
+#include <poll.h>
 #include "mapidefs.h"
 #include <mapix.h>
 #include <kopano/MAPIErrors.h>
@@ -412,32 +413,29 @@ static HRESULT HrSetupListeners(int *lpulNormal, int *lpulSecure)
 static HRESULT HrProcessConnections(int ulNormalSocket, int ulSecureSocket)
 {
 	HRESULT hr = hrSuccess;
-	fd_set readfds = {{0}};
-	int err = 0;
+	struct pollfd pollfd[2];
 	bool bUseSSL;
-	struct timeval timeout = {0};
 	ECChannel *lpChannel = NULL;
-	int nCloseFDs = 0;
-	int pCloseFDs[2] = {0};
+	int nCloseFDs = 0, pCloseFDs[2] = {0}, pfd_normal = -1, pfd_secure = -1;
 
-	if (ulNormalSocket)
-		pCloseFDs[nCloseFDs++] = ulNormalSocket;
-	if (ulSecureSocket)
-		pCloseFDs[nCloseFDs++] = ulSecureSocket;
+	if (ulNormalSocket) {
+		pCloseFDs[nCloseFDs] = pollfd[nCloseFDs].fd = ulNormalSocket;
+		pfd_normal = nCloseFDs++;
+	}
+	if (ulSecureSocket) {
+		pCloseFDs[nCloseFDs] = pollfd[nCloseFDs].fd = ulSecureSocket;
+		pfd_secure = nCloseFDs++;
+	}
+	for (size_t i = 0; i < nCloseFDs; ++i)
+		pollfd[i].events = POLLIN | POLLRDHUP;
 
 	// main program loop
 	while (!g_bQuit) {
-		FD_ZERO(&readfds);
-		if (ulNormalSocket)
-			FD_SET(ulNormalSocket, &readfds);
-		if (ulSecureSocket)
-			FD_SET(ulSecureSocket, &readfds);
-
-		timeout.tv_sec = 10;
-		timeout.tv_usec = 0;
+		for (size_t i = 0; i < nCloseFDs; ++i)
+			pollfd[i].revents = 0;
 
 		// Check whether there are incoming connections.
-		err = select(max(ulNormalSocket, ulSecureSocket) + 1, &readfds, NULL, NULL, &timeout);
+		int err = poll(pollfd, nCloseFDs, 10 * 1000);
 		if (err < 0) {
 			if (errno != EINTR) {
 				ec_log_crit("An unknown socket error has occurred.");
@@ -455,7 +453,7 @@ static HRESULT HrProcessConnections(int ulNormalSocket, int ulSecureSocket)
 		}
 
 		// Check if a normal connection is waiting.
-		if (ulNormalSocket && FD_ISSET(ulNormalSocket, &readfds)) {
+		if (pfd_normal >= 0 && pollfd[pfd_normal].revents & (POLLIN | POLLRDHUP)) {
 			ec_log_info("Connection waiting on port %d.", atoi(g_lpConfig->GetSetting("ical_port")));
 			bUseSSL = false;
 			hr = HrAccept(ulNormalSocket, &lpChannel);
@@ -464,7 +462,7 @@ static HRESULT HrProcessConnections(int ulNormalSocket, int ulSecureSocket)
 				continue;
 			}
 		// Check if a secure connection is waiting.
-		} else if (ulSecureSocket && FD_ISSET(ulSecureSocket, &readfds)) {
+		} else if (pfd_secure >= 0 && pollfd[pfd_secure].revents & (POLLIN | POLLRDHUP)) {
 			ec_log_info("Connection waiting on secure port %d.", atoi(g_lpConfig->GetSetting("icals_port")));
 			bUseSSL = true;
 			hr = HrAccept(ulSecureSocket, &lpChannel);
