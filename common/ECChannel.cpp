@@ -22,8 +22,8 @@
 #include <kopano/stringutil.h>
 #include <csignal>
 #include <netdb.h>
+#include <poll.h>
 #include <sys/types.h>
-#include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/un.h>
@@ -486,19 +486,11 @@ HRESULT ECChannel::HrReadBytes(std::string * strBuffer, ULONG ulByteCount) {
 }
 
 HRESULT ECChannel::HrSelect(int seconds) {
-	fd_set fds;
-	int res = 0;
-	struct timeval timeout = { seconds, 0 };
+	struct pollfd pollfd = {fd, POLLIN | POLLRDHUP, 0};
 
-	if(fd >= FD_SETSIZE)
-	    return MAPI_E_NOT_ENOUGH_MEMORY;
 	if(lpSSL && SSL_pending(lpSSL))
 		return hrSuccess;
-
-	FD_ZERO(&fds);
-	FD_SET(fd, &fds);
-
-	res = select(fd + 1, &fds, NULL, NULL, &timeout);
+	int res = poll(&pollfd, 1, seconds * 1000);
 	if (res == -1) {
 		if (errno == EINTR)
 			/*
