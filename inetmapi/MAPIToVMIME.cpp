@@ -453,6 +453,9 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 				vmMIMEType = lpMIMETag->Value.lpszA;
 			}
 
+			static const char absent_note[] = "Attachment is missing.";
+			vmime::mediaType note_type("text/plain");
+
 			// inline attachments: Only make attachments inline if they are hidden and have a content-id or content-location.
 			if ((!strContentId.empty() || !strContentLocation.empty()) && bHidden &&
 				lpVMMessageBuilder->getTextPart()->getType() == vmime::mediaType(vmime::mediaTypes::TEXT, vmime::mediaTypes::TEXT_HTML))
@@ -464,7 +467,7 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 				if (inputDataStream != nullptr)
 					textPart.addObject(vmime::make_shared<vmime::streamContentHandler>(inputDataStream, 0), vmime::encoding("base64"), vmMIMEType, strContentId, string(), strContentLocation);
 				else
-					textPart.addObject(vmime::make_shared<vmime::emptyContentHandler>(), vmime::encoding("base64"), vmMIMEType, strContentId, std::string(), strContentLocation);
+					textPart.addObject(vmime::make_shared<vmime::stringContentHandler>(absent_note), vmime::encoding("base64"), note_type, strContentId, std::string(), strContentLocation);
 			} else if (inputDataStream != nullptr) {
 				vmMapiAttach = vmime::make_shared<mapiAttachment>(vmime::make_shared<vmime::streamContentHandler>(inputDataStream, 0),
 															 bSendBinary ? vmime::encoding("base64") : vmime::encoding("quoted-printable"),
@@ -474,9 +477,9 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 				// add to message (copies pointer, not data)
 				lpVMMessageBuilder->appendAttachment(vmMapiAttach); 
 			} else {
-				vmMapiAttach = vmime::make_shared<mapiAttachment>(vmime::make_shared<vmime::emptyContentHandler>(),
+				vmMapiAttach = vmime::make_shared<mapiAttachment>(vmime::make_shared<vmime::stringContentHandler>(absent_note),
 				               bSendBinary ? vmime::encoding("base64") : vmime::encoding("quoted-printable"),
-				               vmMIMEType, strContentId,
+				               note_type, strContentId,
 				               vmime::word(m_converter.convert_to<std::string>(m_strCharset.c_str(), szFilename, rawsize(szFilename), CHARSET_WCHAR), m_vmCharset));
 				lpVMMessageBuilder->appendAttachment(vmMapiAttach);
 			}
