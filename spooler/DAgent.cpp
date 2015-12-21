@@ -1500,9 +1500,9 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 		PR_EC_OUTOFOFFICE_SUBJECT_W,
 		PR_EC_OUTOFOFFICE_FROM, PR_EC_OUTOFOFFICE_UNTIL,
 	}};
-	SizedSPropTagArray(4, sptaMessageProps) = {4, {
+	SizedSPropTagArray(5, sptaMessageProps) = {5, {
 		PR_TRANSPORT_MESSAGE_HEADERS_A, PR_MESSAGE_TO_ME,
-		PR_MESSAGE_CC_ME, PR_SUBJECT_W,
+		PR_MESSAGE_CC_ME, PR_SUBJECT_W, PR_EC_MESSAGE_BCC_ME,
 	}};
 	LPSPropValue	lpStoreProps = NULL;
 	LPSPropValue	lpMessageProps = NULL;
@@ -1517,9 +1517,9 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 	string  unquoted, quoted;
 	string  command = strBaseCommand;	
 	// Environment
-	const char *env[4];
+	const char *env[5];
 	std::string strToMe;
-	std::string strCcMe;
+	std::string strCcMe, strBccMe;
 	std::string strTmpFile;
 	std::string strTmpFileEnv;
 
@@ -1727,11 +1727,13 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 	// Set MESSAGE_TO_ME and MESSAGE_CC_ME in environment
 	strToMe = (std::string)"MESSAGE_TO_ME=" + (lpMessageProps[1].ulPropTag == PR_MESSAGE_TO_ME && lpMessageProps[1].Value.b ? "1" : "0");
 	strCcMe = (std::string)"MESSAGE_CC_ME=" + (lpMessageProps[2].ulPropTag == PR_MESSAGE_CC_ME && lpMessageProps[2].Value.b ? "1" : "0");
+	strBccMe = std::string("MESSAGE_BCC_ME=") + (lpMessageProps[4].ulPropTag == PR_EC_MESSAGE_BCC_ME && lpMessageProps[4].Value.b ? "1" : "0");
 	env[0] = strToMe.c_str();
 	env[1] = strCcMe.c_str();
 	strTmpFileEnv = "MAILHEADERS=" + strTmpFile;
 	env[2] = strTmpFileEnv.c_str();
-	env[3] = NULL;
+	env[3] = strBccMe.c_str();
+	env[4] = NULL;
 
 	g_lpLogger->Log(EC_LOGLEVEL_INFO, "Starting autoresponder for out-of-office message");
 	command += " 2>&1";
@@ -1946,10 +1948,10 @@ static HRESULT HrOverrideRecipProps(IMessage *lpMessage, ECRecipient *lpRecip)
 	LPMAPITABLE lpRecipTable = NULL;
 	LPSRestriction lpRestrictRecipient = NULL;
 	LPSRowSet lpsRows = NULL;
-	SPropValue sPropRecip[3];
+	SPropValue sPropRecip[4];
 	SPropValue sCmp[2];
 	bool bToMe = false;
-	bool bCcMe = false;
+	bool bCcMe = false, bBccMe = false;
 	bool bRecipMe = false;
 
 	SizedSPropTagArray(2, sptaColumns) = {
@@ -1995,6 +1997,7 @@ static HRESULT HrOverrideRecipProps(IMessage *lpMessage, ECRecipient *lpRecip)
 			if (lpProp) {
 				bToMe = (lpProp->Value.ul == MAPI_TO);
 				bCcMe = (lpProp->Value.ul == MAPI_CC);
+				bBccMe = lpProp->Value.ul == MAPI_BCC;
 			}
 		}
 	} else {
@@ -2012,8 +2015,10 @@ static HRESULT HrOverrideRecipProps(IMessage *lpMessage, ECRecipient *lpRecip)
 	sPropRecip[1].Value.b = bToMe;
 	sPropRecip[2].ulPropTag = PR_MESSAGE_CC_ME;
 	sPropRecip[2].Value.b = bCcMe;
+	sPropRecip[3].ulPropTag = PR_EC_MESSAGE_BCC_ME;
+	sPropRecip[3].Value.b = bBccMe;
 
-	hr = lpMessage->SetProps(3, sPropRecip, NULL);
+	hr = lpMessage->SetProps(4, sPropRecip, NULL);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "HrOverrideRecipProps(): SetProps failed %x", hr);
 		goto exit;
