@@ -185,12 +185,12 @@ static std::string format(const char *const fmt, ...)
 
 static bool rosie_reject_tag(const char *const tag)
 {
+	bool r = rosie_good_tags.find(tag) == rosie_good_tags.end();
 #ifdef _DEBUG
-	if (rosie_good_tags.find(tag) == rosie_good_tags.end())
+	if (r)
 		fprintf(stderr, "%s ", tag);
 #endif
-
-	return rosie_good_tags.find(tag) == rosie_good_tags.end();
+	return r;
 }
 
 static bool rosie_reject_attr(const char *tag, const char *const attr)
@@ -199,12 +199,13 @@ static bool rosie_reject_attr(const char *tag, const char *const attr)
 
 	if (it == rosie_good_attrs.end())
 		return true;
+
+	bool r = it->second.find(attr) == it->second.end();
 #ifdef _DEBUG
-	if (it->second.find(attr) == it->second.end())
+	if (r)
 		fprintf(stderr, "%s(%s) ", tag, attr);
 #endif
-
-	return it->second.find(attr) == it->second.end();
+	return r;
 }
 
 static void rosie_strip_attrs(TidyDoc tdoc, TidyNode tnod)
