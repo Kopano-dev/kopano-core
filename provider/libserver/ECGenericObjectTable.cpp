@@ -68,7 +68,7 @@
        
 #include "ECSession.h"
 
-struct sortOrderArray sDefaultSortOrder = {0,0};
+struct sortOrderArray sDefaultSortOrder{__gszeroinit};
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

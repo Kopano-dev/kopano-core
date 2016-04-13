@@ -34,4 +34,10 @@
 #	define _zcp_override
 #endif
 
+/*
+ * This is a marker for structs where we expect gsoap 2.8.30 or ourselves to
+ * actually zero it.
+ */
+#define __gszeroinit
+
 #endif /* ZCOMMON_DEFS_H */

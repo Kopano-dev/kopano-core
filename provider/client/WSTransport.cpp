@@ -1019,7 +1019,7 @@ HRESULT WSTransport::HrSubscribe(ULONG cbKey, LPBYTE lpKey, ULONG ulConnection, 
 {
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
-	notifySubscribe notSubscribe = {0};
+	notifySubscribe notSubscribe{__gszeroinit};
 
 	LockSoap();
 
@@ -1046,7 +1046,7 @@ HRESULT WSTransport::HrSubscribe(ULONG ulSyncId, ULONG ulChangeId, ULONG ulConne
 {
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
-	notifySubscribe notSubscribe = {0};
+	notifySubscribe notSubscribe{__gszeroinit};
 
 	LockSoap();
 
@@ -1073,7 +1073,7 @@ HRESULT WSTransport::HrSubscribeMulti(const ECLISTSYNCADVISE &lstSyncAdvises, UL
 {
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
-	notifySubscribeArray notSubscribeArray = {0};
+	notifySubscribeArray notSubscribeArray{__gszeroinit};
 	ECLISTSYNCADVISE::const_iterator iSyncAdvise;
 	unsigned	i = 0;
 	
@@ -1183,7 +1183,7 @@ HRESULT WSTransport::HrExportMessageChangesAsStream(ULONG ulFlags, ULONG ulPropT
 	sourceKeyPairArrayPtr ptrsSourceKeyPairs;
 	WSMessageStreamExporterPtr ptrStreamExporter;
 	propTagArray sPropTags = {0, 0};
-	exportMessageChangesAsStreamResponse sResponse = {{0}};
+	exportMessageChangesAsStreamResponse sResponse{__gszeroinit};
 
 	if (lpChanges == NULL || lpsProps == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
@@ -1877,7 +1877,7 @@ HRESULT WSTransport::HrCreateUser(ECUSER *lpECUser, ULONG ulFlags,
 {
 	HRESULT	hr = hrSuccess;
 	ECRESULT er = erSuccess;
-	struct user	sUser = {0};
+	struct user sUser{__gszeroinit};
 	struct setUserResponse sResponse;
 	convert_context converter;
 
@@ -1997,7 +1997,7 @@ HRESULT WSTransport::HrSetUser(ECUSER *lpECUser, ULONG ulFlags)
 {
 	HRESULT	hr = hrSuccess;
 	ECRESULT er = erSuccess;
-	struct user	sUser = {0};
+	struct user sUser{__gszeroinit};
 	unsigned int result = 0;
 	convert_context	converter;
 
@@ -2305,7 +2305,7 @@ HRESULT WSTransport::HrCreateGroup(ECGROUP *lpECGroup, ULONG ulFlags,
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
-	struct group sGroup = {0};
+	struct group sGroup{__gszeroinit};
 	struct setGroupResponse sResponse;
 	convert_context converter;
 
@@ -2363,8 +2363,7 @@ HRESULT WSTransport::HrSetGroup(ECGROUP *lpECGroup, ULONG ulFlags)
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
 	convert_context converter;
-
-	struct group	sGroup = {0};
+	struct group sGroup{__gszeroinit};
 
 	LockSoap();
 
@@ -2993,7 +2992,7 @@ HRESULT WSTransport::HrCreateCompany(ECCOMPANY *lpECCompany, ULONG ulFlags,
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
-	struct company sCompany = {0};
+	struct company sCompany{__gszeroinit};
 	struct setCompanyResponse sResponse;
 	convert_context	converter;
 
@@ -3078,7 +3077,7 @@ HRESULT WSTransport::HrSetCompany(ECCOMPANY *lpECCompany, ULONG ulFlags)
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
-	struct company sCompany = {0};
+	struct company sCompany{__gszeroinit};
 	convert_context converter;
 
 	LockSoap();
@@ -4107,7 +4106,7 @@ HRESULT WSTransport::HrResolvePseudoUrl(const char *lpszPseudoUrl, char **lppszS
 {
 	ECRESULT						er = erSuccess;
 	HRESULT							hr = hrSuccess;
-	struct resolvePseudoUrlResponse	sResponse = {0};
+	struct resolvePseudoUrlResponse sResponse{__gszeroinit};
 	char							*lpszServerPath = NULL;
 	unsigned int					ulLen = 0;
 	ECsResolveResult				*lpCachedResult = NULL;
@@ -4179,7 +4178,7 @@ HRESULT WSTransport::HrGetServerDetails(ECSVRNAMELIST *lpServerNameList,
 {
 	ECRESULT						er = erSuccess;
 	HRESULT							hr = hrSuccess;
-	struct getServerDetailsResponse	sResponse = {{0}};
+	struct getServerDetailsResponse sResponse{__gszeroinit};
 	struct mv_string8				*lpsSvrNameList = NULL;
 
 	LockSoap();
@@ -4374,7 +4373,7 @@ HRESULT WSTransport::HrGetSyncStates(const ECLISTSYNCID &lstSyncId, ECLISTSYNCST
 	HRESULT							hr = hrSuccess;
 	ECRESULT						er = erSuccess;
 	mv_long							ulaSyncId = {0};
-	getSyncStatesReponse			sResponse = {{0}};
+	getSyncStatesReponse sResponse{__gszeroinit};
 	ECLISTSYNCID::const_iterator	iSyncId;
 	SSyncState						sSyncState = {0};
 
@@ -4898,7 +4897,7 @@ HRESULT WSTransport::HrResetFolderCount(ULONG cbEntryId, LPENTRYID lpEntryId, UL
 	HRESULT hr = hrSuccess;
     ECRESULT er = erSuccess;
 	entryId eidFolder;
-	resetFolderCountResponse sResponse = {0};
+	resetFolderCountResponse sResponse{__gszeroinit};
 
 	LockSoap();
 

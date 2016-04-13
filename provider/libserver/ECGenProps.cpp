@@ -415,10 +415,10 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECODStore *lpODS
 	unsigned int	ulFlags = 0;
 	unsigned int	ulUserId = 0;
 	char*			lpStoreName = NULL;
-	struct propVal	sPropVal = {0};
+	struct propVal sPropVal{__gszeroinit};
 
-	struct propValArray sPropValArray = {0, 0};
-	struct propTagArray sPropTagArray = {0, 0};
+	struct propValArray sPropValArray{__gszeroinit};
+	struct propTagArray sPropTagArray{__gszeroinit};
 
 	switch(PROP_ID(ulPropTag)) {
 		case PROP_ID(PR_LONGTERM_ENTRYID_FROM_TABLE):
@@ -906,8 +906,8 @@ ECRESULT ECGenProps::GetStoreName(struct soap *soap, ECSession* lpSession, unsig
 	ECRESULT			er = erSuccess;
 	unsigned int		ulUserId = 0;
 	unsigned int	    ulCompanyId = 0;
-	struct propValArray sPropValArray = {0, 0};
-	struct propTagArray sPropTagArray = {0, 0};
+	struct propValArray sPropValArray{__gszeroinit};
+	struct propTagArray sPropTagArray{__gszeroinit};
 
 	string				strFormat;
 	char*				lpStoreName = NULL;

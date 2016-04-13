@@ -588,7 +588,7 @@ HRESULT WSMAPIPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 	HRESULT hr = hrSuccess;
 	struct loadObjectResponse sResponse;
 	MAPIOBJECT *lpsMapiObject = NULL;
-	struct notifySubscribe sNotSubscribe = {0};
+	struct notifySubscribe sNotSubscribe{__gszeroinit};
 
 	if (m_ulConnection) {
 		// Register notification

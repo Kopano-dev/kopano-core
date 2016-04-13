@@ -106,7 +106,7 @@ HRESULT WSMessageStreamImporter::Create(ULONG ulFlags, ULONG ulSyncId, ULONG cbE
 	HRESULT hr = hrSuccess;
 	entryId sEntryId = {0};
 	entryId sFolderEntryId = {0};
-	propVal sConflictItems = {0};
+	struct propVal sConflictItems{__gszeroinit};
 	WSMessageStreamImporterPtr ptrStreamImporter;
 	ECSyncSettings* lpSyncSettings = NULL;
 
@@ -215,7 +215,7 @@ WSMessageStreamImporter::~WSMessageStreamImporter()
 void WSMessageStreamImporter::run()
 {
 	unsigned int ulResult = 0;
-	xsd__Binary	sStreamData = {{0}};
+	struct xsd__Binary sStreamData{__gszeroinit};
 
 	struct soap *lpSoap = m_ptrTransport->m_lpCmd->soap;
 	propVal *lpsConflictItems = NULL;

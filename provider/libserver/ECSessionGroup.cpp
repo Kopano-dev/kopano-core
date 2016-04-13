@@ -214,7 +214,7 @@ ECRESULT ECSessionGroup::AddAdvise(ECSESSIONID ulSessionId, unsigned int ulConne
 ECRESULT ECSessionGroup::AddChangeAdvise(ECSESSIONID ulSessionId, unsigned int ulConnection, notifySyncState *lpSyncState)
 {
 	ECRESULT			er = erSuccess;
-	changeSubscribeItem sSubscribeItem = {ulSessionId, ulConnection, {0}};
+	changeSubscribeItem sSubscribeItem = {ulSessionId, ulConnection};
 
 	if (lpSyncState == NULL) {
 		er = KCERR_INVALID_PARAMETER;
@@ -383,8 +383,8 @@ ECRESULT ECSessionGroup::AddNotificationTable(ECSESSIONID ulSessionId, unsigned 
 ECRESULT ECSessionGroup::AddChangeNotification(const std::set<unsigned int> &syncIds, unsigned int ulChangeId, unsigned int ulChangeType)
 {
 	ECRESULT		er = erSuccess;
-	notification	notifyItem = {0};
-	notificationICS	ics = {0};
+	notification notifyItem{__gszeroinit};
+	notificationICS ics{__gszeroinit};
 	entryId			syncStateBin = {0};
 	notifySyncState	syncState = {0, ulChangeId};
 	SESSIONINFOMAP::const_iterator iterSessions;
@@ -442,8 +442,8 @@ ECRESULT ECSessionGroup::AddChangeNotification(const std::set<unsigned int> &syn
 ECRESULT ECSessionGroup::AddChangeNotification(ECSESSIONID ulSessionId, unsigned int ulConnection, unsigned int ulSyncId, unsigned long ulChangeId)
 {
 	ECRESULT		er = erSuccess;
-	notification	notifyItem = {0};
-	notificationICS	ics = {0};
+	notification notifyItem{__gszeroinit};
+	notificationICS ics{__gszeroinit};
 	entryId			syncStateBin = {0};
 
 	notifySyncState	syncState = { ulSyncId, static_cast<unsigned int>(ulChangeId) };
