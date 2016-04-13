@@ -210,7 +210,16 @@ SOAP_FMAC3 struct searchCriteria52X * SOAP_FMAC4 soap_in_searchCriteria52X(struc
 			return NULL;
 	}
 	else
-	{	a = (struct searchCriteria52X *)soap_id_forward(soap, soap->href, (void**)a, 0, SOAP_TYPE_searchCriteria, 0, sizeof(struct searchCriteria52X), 0, NULL);
+	{
+#if GSOAP_VERSION >= 20824
+		a = static_cast<struct searchCriteria52X *>(soap_id_forward(soap,
+		    soap->href, reinterpret_cast<void **>(a), 0,
+		    SOAP_TYPE_searchCriteria, 0, sizeof(*a), 0, NULL, NULL));
+#else
+		a = static_cast<struct searchCriteria52X *>(soap_id_forward(soap,
+		    soap->href, reinterpret_cast<void **>(a), 0,
+		    SOAP_TYPE_searchCriteria, 0, sizeof(*a), 0, NULL));
+#endif
 		if (soap->body && soap_element_end_in(soap, tag))
 			return NULL;
 	}
@@ -231,7 +240,16 @@ SOAP_FMAC3 struct entryList52X ** SOAP_FMAC4 soap_in_PointerToentryList52X(struc
 			return NULL;
 	}
 	else
-	{	a = (struct entryList52X **)soap_id_lookup(soap, soap->href, (void**)a, SOAP_TYPE_entryList, sizeof(struct entryList52X), 0);
+	{
+#if GSOAP_VERSION >= 20824
+		a = static_cast<struct entryList52X **>(soap_id_lookup(soap,
+		    soap->href, reinterpret_cast<void **>(a),
+		    SOAP_TYPE_entryList, sizeof(*a), 0, NULL));
+#else
+		a = static_cast<struct entryList52X **>(soap_id_lookup(soap,
+		    soap->href, reinterpret_cast<void **>(a),
+		    SOAP_TYPE_entryList, sizeof(*a), 0));
+#endif
 		if (soap->body && soap_element_end_in(soap, tag))
 			return NULL;
 	}
@@ -281,7 +299,16 @@ SOAP_FMAC3 struct entryList52X * SOAP_FMAC4 soap_in_entryList52X(struct soap *so
 			return NULL;
 	}
 	else
-	{	a = (struct entryList52X *)soap_id_forward(soap, soap->href, (void**)a, 0, SOAP_TYPE_entryList, 0, sizeof(struct entryList52X), 0, NULL);
+	{
+#if GSOAP_VERSION >= 20824
+		a = static_cast<struct entryList52X *>(soap_id_forward(soap,
+		    soap->href, reinterpret_cast<void **>(a), 0,
+		    SOAP_TYPE_entryList, 0, sizeof(*a), 0, NULL, NULL));
+#else
+		a = static_cast<struct entryList52X *>(soap_id_forward(soap,
+		    soap->href, reinterpret_cast<void **>(a), 0,
+		    SOAP_TYPE_entryList, 0, sizeof(*a), 0, NULL));
+#endif
 		if (soap->body && soap_element_end_in(soap, tag))
 			return NULL;
 	}
