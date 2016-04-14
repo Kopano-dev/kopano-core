@@ -85,6 +85,17 @@ ZCXXFLAGS="-Wall -Wmissing-declarations -Wno-write-strings"
 LFS_CFLAGS=`getconf LFS_CFLAGS`
 ZCPPFLAGS="$ZCPPFLAGS $LFS_CFLAGS"
 
+AC_MSG_CHECKING([for C++2011 support])
+cxxmode=""
+for i in "c++11" "c++0x"; do
+	CXXFLAGS="$CXXFLAGS_system -std=$i"
+	AC_COMPILE_IFELSE([AC_LANG_SOURCE([])], [cxxmode="$i"])
+	AS_IF([test -n "$cxxmode"], [break])
+done
+CXXFLAGS="$CXXFLAGS_system"
+ZCXXFLAGS="$ZCXXFLAGS -std=$cxxmode"
+AC_MSG_RESULT([$cxxmode])
+
 # disable variadic-macros: too much warning: anonymous variadic macros were introduced in C99, only on new compilers
 AC_MSG_CHECKING([whether C++ compiler understands -Wno-variadic-macros option])
 if ( echo 'int main() {}' | $CXX -Wno-variadic-macros -E - >/dev/null 2>&1 ); then
