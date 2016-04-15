@@ -88,6 +88,7 @@ private:
 	vmime::text getVmimeTextFromWide(const std::wstring& strwInput, bool bWrapInWord = true);
 
 	bool is_voting_request(IMessage *lpMessage);
+	bool has_reminder(IMessage *);
 };
 
 #endif
