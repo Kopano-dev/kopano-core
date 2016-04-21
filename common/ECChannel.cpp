@@ -747,11 +747,11 @@ int zcp_peeraddr_is_local(const struct sockaddr *peer_sockaddr,
 			/* RTM_GETROUTE won't report RTN_LOCAL for ::ffff:127.0.0.1 */
 			req.rth.rtm_family = AF_INET;
 			rta->rta_len = RTA_LENGTH(sizeof(struct in_addr));
-			req.nh.nlmsg_len = NLMSG_ALIGN(req.nh.nlmsg_len) + RTA_LENGTH(rta->rta_len);
+			req.nh.nlmsg_len = NLMSG_ALIGN(req.nh.nlmsg_len) + rta->rta_len;
 			memcpy(RTA_DATA(rta), &ad.s6_addr[12], 4);
 		} else {
 			rta->rta_len = RTA_LENGTH(sizeof(ad));
-			req.nh.nlmsg_len = NLMSG_ALIGN(req.nh.nlmsg_len) + RTA_LENGTH(rta->rta_len);
+			req.nh.nlmsg_len = NLMSG_ALIGN(req.nh.nlmsg_len) + rta->rta_len;
 			memcpy(RTA_DATA(rta), &ad, sizeof(ad));
 		}
 	} else if (peer_sockaddr->sa_family == AF_INET) {
