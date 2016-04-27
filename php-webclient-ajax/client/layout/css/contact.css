@@ -1,0 +1,25 @@
+/* css for detailed contacts */
+input.combobutton_main {
+	width: 83%;
+	font-size: 8pt;
+}
+
+button.combobutton_menu {
+	font-size: 8pt;
+	padding: 0px;
+	vertical-align: top;
+	position: absolute;
+	width: 20px;
+	height: 20px;
+}
+
+button.combobutton_menu img {
+	margin: -1px;
+}
+
+.propertywidth {
+	/* this will overwrite default style specified in dialog.css */
+	width: 115px;
+	padding-right: 5px;
+}
+/* end for detailed contacts */

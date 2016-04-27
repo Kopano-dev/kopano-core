@@ -1,0 +1,95 @@
+#!/usr/bin/perl -w
+
+use strict;
+use DBI;
+
+my $L1 = 10;
+my $L2 = 20;
+
+sub do_error($) {
+   exit(1);
+}
+
+sub readconfig($) {
+	my ($fn) = @_;
+	my %options;
+
+	open(CFG, $fn) or die("unable to open ".$fn." config file");
+	while (<CFG>) {
+		if ($_ =~ /^\s*[#!]/) {
+			next;
+		}
+		if ($_ =~ /^\s*(\S+)\s*=\s*([^\r]+)\r?$/) {
+			my $idx = $1;
+			my $val = $2;
+			chomp($val);
+			$val =~ s/\s+$//;
+			$options{$idx} = $val;
+		}
+	}
+	close(CFG);
+	return %options;
+}
+
+# TODO: parse config, and use settings
+if(scalar(@ARGV) < 1) {
+	print "Usage: $0 <server.cfg>\n";
+	exit(1);
+}
+
+my $servercfg = $ARGV[0];
+$servercfg = "/etc/kopano/server.cfg" if (!defined($servercfg));
+my %serveropt = readconfig($servercfg);
+
+my $basepath = $serveropt{attachment_path};
+
+my $db = DBI->connect("dbi:mysql:database=".$serveropt{mysql_database}.";host=".$serveropt{mysql_host}, $serveropt{mysql_user}, $serveropt{mysql_password})
+	or die "Database error: ".$DBI::errstr;
+
+my $res; 
+my $sth;
+my $rows;
+my @row;
+
+if (!defined($db)) {
+	print "did not connect to mysql\n";
+	exit(1);
+}
+
+print "Finding all orphaned attachments...\n";
+$sth = $db->prepare("SELECT DISTINCT(instanceid) FROM singleinstances LEFT JOIN hierarchy ON hierarchyid=hierarchy.id WHERE hierarchy.id IS NULL;");
+$sth->execute() || die $DBI::errstr;;
+
+if ($sth->rows == 0) {
+	print "No orphaned attachments found.\n";
+	exit(0);
+}
+
+if ($serveropt{attachment_storage} eq "files") {
+	print "Processing ".$sth->rows." orphaned attachments\n";
+
+	while(@row = $sth->fetchrow_array()) {
+		my $filename = $basepath."/".($row[0] % $L1)."/".(($row[0] / $L1) % $L2)."/".$row[0];
+
+		# can be either with or without compression
+		system("rm -f ".$filename." ".$filename.".gz");
+	}
+}
+
+$res = $db->do("begin;");
+if(!$res) {
+  do_error(1);
+}
+
+print "Cleaning singleinstances...\n";
+$sth = $db->prepare("DELETE singleinstances.* FROM singleinstances LEFT JOIN hierarchy ON hierarchyid=hierarchy.id WHERE hierarchy.id IS NULL;");
+$sth->execute() || die $DBI::errstr;;
+
+print "Cleaning lob...\n";
+$sth = $db->prepare("DELETE lob.* FROM lob LEFT JOIN singleinstances ON lob.instanceid = singleinstances.instanceid WHERE singleinstances.instanceid IS NULL;");
+$sth->execute() || die $DBI::errstr;;
+
+print "Flush database changes to disk...\n";
+$db->do("commit;");
+
+print "Done.\n";

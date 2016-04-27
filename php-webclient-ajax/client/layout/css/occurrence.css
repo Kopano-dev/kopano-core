@@ -1,0 +1,13 @@
+/**
+* open occurrence dialog
+*/
+
+#taskrecurr li, #taskrequest li {
+	list-style: none;
+	padding-bottom: 5px;
+	padding-right: 25px;
+}
+
+li {
+	list-style: none;
+}

@@ -1,0 +1,62 @@
+#!/bin/bash
+
+# Kopano script which is executed to convert an attachment to plain text.
+
+# Description:
+# This script accepts attachment data through the standard input
+# and sends the parsed information as plain-text back through standard output.
+
+# Argument validation:
+#	$1:	content-type of the second argument
+#		valid values are "ext" (for file extension)
+#		and "mime" (for mime-type).
+#
+#	$2: File extension or mime-type of the data passed
+#		through the standard input.
+TYPE=$1
+ARG=$2
+
+# Both arguments are mandatory
+if [ -z "$TYPE" -o -z "$ARG" ]; then
+	exit 1
+fi
+
+# For file extension we should strip the prefixed '.'
+# For mime-type we must escape the '/' character
+if [ "${TYPE}" == "ext" ]; then
+	ARG=`echo $ARG | tr '[:upper:]' '[:lower:]'`
+	ARG="${ARG##*.}"
+elif [ "${TYPE}" == "mime" ]; then
+	ARG=${ARG/\//\\\/}
+else
+	exit 1
+fi
+
+# Some attachment parsers do not support input from standard input.
+# For these parsers we provide a temporary directory in which all
+# temp files can be stored.
+# To make sure `mktemp` and `tempfile` will automatically place
+# file in this directory if we properly export the TMPDIR variable.
+TMPBASE="`mktemp -d`"
+if [ -z ${TMPBASE} -o $? != 0 ]; then
+	exit 1
+fi
+export TMPDIR=${TMPBASE}
+
+# This might be a bit nasty, but PATH must be prefixed with the location
+# of this script. The reason is that we provide additional scripts to help
+# with parsing.
+export SCRIPTPATH="`dirname $0`"
+export PATH="${SCRIPTPATH}:${PATH}"
+
+# Use awk to obtain and execute the command for this attachment
+CMD="`awk -F'\`' '/^([^#]*;)*'${ARG}'[ \t;]+([^#]*;)*/ { print \$2 }' ${SCRIPTPATH}/attachments_parser.db | head -n 1`"
+eval "${CMD}"
+RV=$?
+
+# Clean up temporary directory including all files generated during parsing.
+if [ -d ${TMPBASE} ]; then
+	rm -rf ${TMPBASE}
+fi
+
+exit $RV

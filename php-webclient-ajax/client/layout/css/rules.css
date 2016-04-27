@@ -1,0 +1,16 @@
+div#ruleslist #rules {
+	overflow:hidden;
+	margin-bottom:10px;
+	
+	background:#FFFFFF;
+	border:1px solid #A5ACB2;
+	
+}
+
+#rulebuttons {	
+	padding: 10px;
+}
+
+.rulebutton {
+	width: 100px;
+}

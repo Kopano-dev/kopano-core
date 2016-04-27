@@ -1,0 +1,45 @@
+/**
+* Add to favorites dialog 
+*
+*/
+
+fieldset {
+	border: 1;
+	text-align: left;
+	padding: 0;
+	margin:0;
+	padding-top: 10px;
+}
+
+fieldset legend {
+	display: none;
+}
+
+ul {
+	padding-top: 0;
+	padding-bottom: 0;
+	margin: 0;
+}
+
+li {
+	list-style: none;
+	padding-bottom: 5px;
+}
+
+input#foldername {
+	width: 150px;
+}
+
+input#favoritename {
+	width: 150px;
+}
+
+select {
+	width: 150px;
+}
+
+.buttons {
+	width:100%;
+	text-align:right;
+	padding-top:5px;
+}

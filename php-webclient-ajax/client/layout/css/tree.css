@@ -1,0 +1,187 @@
+.branch {
+	display: none;
+	margin-left: 16px;
+}
+
+.folderstate {
+	position:absolute;
+	top:2px;
+	left:2px;
+	width:11px;
+	height:12px;
+
+	background-repeat: no-repeat;
+	background-position: center center;
+}
+
+.folderstate_open {
+	background-image: url(../img/folder_open.gif);
+}
+
+.folderstate_close {
+	background-image: url(../img/folder_close.gif);
+}
+
+.folder {
+	position:relative;
+	height:17px;
+	padding-top:1px;
+	cursor:default;
+	white-space:nowrap;
+}
+
+.folder_title {
+	background: #FFFFFF;
+	color: #000000;
+	border: 1px solid #FFFFFF;
+}
+
+.folder_title_selected {
+	background: #0A246A;
+	color: #FFFFFF;
+	border: 1px solid #0A246A;
+}
+
+.dragover {
+	background: #0A246A;
+	color: #FFFFFF;
+}
+
+.dragover_not_allowed {
+	background: #FF0000;
+	color: #FFFFFF;
+	cursor: no-drop;
+}
+
+.folder_title_context {
+	background: #D9D9D9;
+}
+
+.default_button {
+	cursor: pointer;
+
+	position:relative;
+	background-image: url(../img/fill_folder_off.gif);
+	background-repeat: repeat-x;
+	display: block;
+	width: 100%;
+	height: 25px;
+	margin: 0px;
+	padding-top: 4px;
+	
+	font-size: 8pt;
+	font-weight: bold;
+}
+
+.default_button_over {
+	background-image: url(../img/fill_folder_on.gif);
+}
+
+.default_buttons_top {
+	overflow: hidden;
+	background-image: url(../img/folder_select_scroll.gif);
+	background-repeat: no-repeat;
+	background-position: top center;
+	margin: 0px;
+	padding: 0px;
+	height:7px;
+	cursor: row-resize;
+}
+
+.folder_icon {
+	position:absolute;
+	top:0px;
+	left:14px;
+	padding-top:3px;
+	padding-left:19px;
+	padding-bottom: 3px;
+	
+	background-repeat: no-repeat;
+	background-position: 2px 1px;
+}
+.default_button_icon {
+	cursor: pointer;
+	
+	padding-top:3px;
+	padding-left:22px;
+	
+	background-repeat: no-repeat;
+	background-position: 5px 1px;
+}
+
+/* create folder/ copy-move folder dialog */
+dl.folderdialog dt {
+	font-weight: bold;
+	margin-bottom: 2px;
+}
+
+dl.folderdialog dd {
+	margin-left: 15px;
+	margin-bottom: 0px;
+}
+
+dl.folderdialog dd input {
+	width: 260px;
+	border: 1px solid #000;
+	padding-left: 2px;
+}
+
+dl.folderdialog dd select {
+	width: 260px;
+	border: 1px solid #000;
+}
+
+dl.folderdialog dd.dialog_hierarchy {
+	width: 260px;
+	height: 170px; 
+	overflow: auto; 
+	background: #fff;
+	border: 1px solid #000;
+	position: relative;
+}
+
+div#subfolders {
+	margin-left: 10px;
+	display: none;
+	visibility: hidden;
+}
+
+/* extra features for special nodes */
+span.unread_count {
+	padding-left: 5px;
+	font-weight: bold;
+	color: #11f;
+}
+
+span.selectedfolder_unread_count {
+	color: #fff;
+}
+
+span.total_count {
+	padding-left: 5px;
+	font-weight: bold;
+	color: #008000;
+}
+span.folder_highlight {
+	font-weight: bold;
+}
+
+.folder .folder_select {
+	border: none;
+	width: 15px;
+	left: 15px;
+	position: absolute;
+	top: 0px;
+}
+
+.folder_icon_multiple {
+	position: absolute;
+	top: 0px;
+	left: 32px;
+	padding-top: 3px;
+	padding-left: 19px;
+	padding-bottom: 3px;
+	
+	background-repeat: no-repeat;
+	background-position: 2px 1px;
+}

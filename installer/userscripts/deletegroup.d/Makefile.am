@@ -1,0 +1,1 @@
+bindir = $(USERSCRIPTDIR)/deletegroup.d

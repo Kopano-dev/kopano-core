@@ -1,0 +1,741 @@
+html {
+	height: 100%;
+}
+
+body.dialog {
+	background:#c5d5fc;
+	overflow: hidden;
+	margin: 0px;
+	padding: 0px;
+	font-family: Arial, sans-serif;
+	color:#000000;
+	font-size: 8pt;
+	width: 100%;
+	height: 100%;
+}
+
+iframe {
+	background: #fff;
+}
+
+div#dialog_content {
+	margin: 10px 5px 5px 5px;
+}
+
+.properties {
+	width:100%;
+	margin-bottom:4px;
+	padding-bottom:4px;
+	border-bottom:1px solid #A5ACB2;
+}
+
+.propertynormal {
+	cursor:default;
+}
+
+#contactphoto {
+	height:86px;
+}
+
+.default_contact_photo {
+	background-repeat:no-repeat;
+	background-image: url(../img/default_contact_image.gif);
+	background-position: 0px center;
+}
+
+.propertybold {
+	cursor:default;
+	font-weight:bold;
+}
+
+.propertywidth {
+	width:95px;
+	padding-right:5px;
+}
+
+.propertytitle {
+	width:100%;
+	border-bottom:1px solid #A5ACB2;
+	font-weight:bold;
+	padding-bottom:3px;
+	margin-bottom:2px;
+}
+
+input.button {
+	width:100%;
+	font-size:8pt;
+}
+
+button.button {
+	width: 100%;
+	font-size: 8pt;
+}
+
+input.buttonsize {
+	width:85px;
+	font-size:8pt;
+	margin-right:5px;
+}
+
+select.field, 
+input.field,
+textarea.field {
+	width: 98%;
+	height: 14px;
+	border: 1px solid #A5ACB2;
+	padding: 2px;
+	font: 8pt Arial;
+}
+
+textarea.field {
+	overflow-x: hidden;
+	overflow-y: auto;
+}
+
+select.field {
+	height: inherit;
+	height: 22px;
+}
+
+input.fieldsize {
+	height:14px;
+	font-size:8pt;
+	border:1px solid #A5ACB2;
+	padding:2px;
+}
+
+select.combobox {
+	font-size:8pt;
+}
+
+select.comboboxwidth {
+	width:150px;
+	font-size:8pt;
+}
+
+#attachments {
+	padding:0 2px;
+	width:100%;
+	padding-right:2px;
+	overflow-y:auto;
+	overflow-x:hidden;
+}
+
+.properties #attachments {
+	background-color:#DFE5FF;
+}
+
+#itemattachments {
+	width:98%;
+	padding:2px;
+	overflow-x:hidden;
+	overflow-y:auto;
+	background:#E5E6E6;
+	border:1px solid #A5ACB2;
+}
+
+#html_body, #disabled_html_body {
+	width:99%;
+	border:1px solid #A5ACB2;
+/*	font-family: monospace;*/
+	color:#000000;
+	font-size:8pt;
+}
+
+.emailheader {
+	padding-top:5px;
+}
+
+#extrainfo, #disabled_extrainfo {
+	width:98%;
+	padding:2px;
+	margin-bottom:2px;
+	display: none;
+	background:#9B9AB3;
+	color:#000000;
+	vertical-align: middle;
+}
+
+#extrainfo p, #disabled_extrainfo p {
+	padding: 0px;
+	margin: 0;
+}
+
+#conflict {
+	width:98%;
+	padding:2px;
+	margin-bottom:2px;
+	display: none;
+	background:#9B9AB3;
+	color:#000000;
+	vertical-align: middle;
+}
+
+#conflict p {
+	padding: 2px;
+	margin: 0;
+}
+
+#meetingrequest {
+	margin-top:5px;
+	display:none;
+	border-top:1px solid #A5ACB2;
+}
+
+#meetingrequest_buttons {
+	margin-bottom:5px;
+	display:none;
+	height:20px;
+}
+
+.meetingrequest_button {
+	background-color:white;
+  	background-repeat:no-repeat;
+  	background-position:1px 1px;
+  	border:1px solid #444;
+  	padding-left:16px;
+  	margin-right:3px;
+}
+
+.confirmbuttons {
+	width:100%;
+	text-align:center;
+	padding-top:5px;
+}
+
+.closebutton {
+	width:98%;
+	text-align:right;
+}
+
+.recipient {
+	background-color:#DFE5FF;
+	padding:0 2px;
+	width:100%;
+	overflow-x:hidden;
+	overflow-y:auto;
+}
+
+/* Attachment Window */
+div#attachments a{
+  margin: 0;
+  padding: 0;
+}
+
+div#attachments fieldset {
+  padding: 5px;
+  margin-left: 10px;
+  margin-right: 10px;
+  margin-bottom: 5px;
+  margin-top: 0px;
+  border:1px solid #808080;
+}
+
+div#attachments fieldset legend {
+  color: #000000;
+}
+
+div#attachments select#filelist {
+  width: 100%;
+}
+
+div#attachments input.button_delete {
+  right: 25px;
+  padding: 0;
+  height: 20px;
+  width: 100px;
+  font-size: 8pt;
+}
+
+div#attachments input.button_save {
+  right: 25px;
+  margin-top: 15px; 
+  padding: 0;
+  height: 20px;
+  width: 100px;
+  font-size: 8pt;
+}
+
+div#attachments input#attachment { /* file input */
+  height: 20px;
+  font-size: 8pt;
+  padding:2px;
+}
+
+div#attachments label {
+  font-size: 8pt;
+  margin-right: 25px;
+}
+
+/* background image doesn't work with IE, but it's a nice feature for the real browsers :) */
+div#attachments select#filelist option{
+  padding-left: 17px;
+  background-repeat: no-repeat;
+  height: 17px;
+  font-size: 14px;
+}
+div#attachments select#filelist option.attachmentsourcetype_default {
+	background-image: url(../img/icon_file.gif);
+}
+div#attachments select#filelist option.nofile{
+  color: #ccc;
+  background-image: url(../img/icon_blank.gif);
+}
+
+div#attachments dl dt {
+  display: inline;
+}
+
+div#attachments dl dd {
+  display: inline;
+}
+
+div#attachments div#buttons {
+  margin-top: 5px;
+  margin-right: 20px;
+  text-align: right;
+  height: 25px;
+}
+div#attachments div#buttons button {
+  height: 20px;
+  width: 100px;
+  font-size: 8pt;
+}
+
+div#attachments p#helptext {
+  margin-top: 15px;
+  margin-left: 80px;
+  
+  font-size: 8pt;
+  color: #444;
+  width: 300px;
+  line-height: 1;
+}
+
+.filesize_block {
+	margin-left: 0px;
+}
+div#attachments .filelist{
+  display: table-cell;
+  float: left;
+  width: 65%;
+  margin-right: 10px;
+}
+
+div#attachments .attach_buttons{
+  display: table-cell;
+  width: 100px;
+}
+/* Address Book */
+div#addressbook {
+	margin-top:10px;
+}
+
+div#addressbook #search{
+	margin-bottom:10px;
+}
+
+div#addressbook .column_seperator {
+	background-image: url(../img/seperator.gif);
+	background-repeat: no-repeat;
+	background-position: 0px center;
+}
+
+div#addressbook #items {
+	width:100%;
+	overflow:hidden;
+	margin-bottom:10px;
+	position: relative;
+	background:#FFFFFF;
+}
+
+div#addressbook .group {
+	font-weight:bold;
+}
+
+div#addressbook .groupuser {
+	display:none;
+}
+
+div#addressbook .groupstate {
+	width:15px;
+	height:12px;
+	padding-left:1px;
+	background-repeat: no-repeat;
+	background-position: center center;
+}
+
+div#addressbook .group_open {
+	background-image: url(../img/folder_open.gif);
+}
+
+div#addressbook .group_close {
+	background-image: url(../img/folder_close.gif);
+}
+
+div#compose_email_from_address_container div#email_address_list {
+	width: 300px;
+	float: left;
+}
+div#compose_email_from_address_container div#action_buttons {
+	width: 40px;
+	float: left;
+	padding: 5px;
+}
+div#compose_email_from_address_container #compose_email_from_address {
+	width: 300px;
+}
+div#compose_email_from_address_container div#action_buttons input {
+	margin: 2px;
+}
+div#compose_email_from_address_container label {
+	display: block;
+	width: 150px;
+}
+
+
+
+/* Task */
+div.searchbutton {
+	width:18px;
+	margin-left:5px;
+	margin-right:5px;
+	padding-bottom:2px;
+	padding-right:2px;
+	
+	background-image: url(../img/icon_search.gif);
+	background-repeat: no-repeat;
+	background-position: 2px center;
+	border:1px solid #c5d5fc;
+}
+
+div.searchbuttonover {
+	border:1px solid #4B4B6F;
+	background-color:#FFF4CC;
+}
+
+div.datepicker {
+	width:18px;
+	height:16px;
+	background-image: url(../img/icon_datepicker.gif);
+	background-repeat: no-repeat;
+	background-position: 2px center;
+}
+
+div.spinner_up {
+	width:18px;
+	height:10px;
+	background-image: url(../img/icon_spinner_up.gif);
+	background-repeat: no-repeat;
+	background-position: 2px center;
+	font-size:1pt;
+}
+div.spinner_down {
+	width:18px;
+	height:10px;
+	background-image: url(../img/icon_spinner_down.gif);
+	background-repeat: no-repeat;
+	background-position: 2px center;
+	font-size:1pt;
+}
+
+div#taskrequest_recipient {
+	display:none;
+}
+
+div#taskrequest_settings {
+	display:none;
+}
+
+div#recurtext {
+	width:98%;
+	padding:2px;
+	margin-bottom:2px;
+	display: none;
+	background:#9B9AB3;
+	color:#000000;
+	vertical-align: middle;
+	margin: 0 0 2;
+}
+/* Sticky Note */
+div.stickynote_color {
+	position:absolute;
+	top:27px;
+	right:5px;
+	z-index: 10;
+}
+
+textarea.stickynote_yellow {
+	background:#FFFFCC;
+}
+textarea.stickynote_blue {
+	background:#A6CAF0;
+}
+textarea.stickynote_green {
+	background:#CCFFCC;
+}
+textarea.stickynote_pink {
+	background:#FFCCCC;
+}
+textarea.stickynote_white {
+	background:#FFFFFF;
+}
+
+/* Contacts */
+.contact_left {
+	width:45%;
+	float:left;
+}
+
+.contact_right {
+	position:absolute;
+	left:50%;
+	width:45%;
+}
+
+.contact_fieldset {
+	width:100%;
+	margin-top:5px;
+	border-left:0px;
+	border-right:0px;
+	border-bottom:0px;
+}
+
+.contact_address_street {
+	width:98%;
+	height:42px;
+	padding:2px;
+	border:1px solid #A5ACB2;
+/*	font-family: Arial, sans-serif;*/
+	color:#000000;
+	font-size:8pt;	
+}
+
+#categoriesbar {
+	position:absolute;
+	left:5px;
+	bottom:2px;
+	padding-top:3px;
+	border-top:1px solid #A5ACB2;
+	width: 97%;
+}
+
+/* Customize Today*/
+.customizetoday_fieldset {
+	width:100%;
+	margin-top:5px;
+	border-left:0px;
+	border-right:0px;
+	border-bottom:0px;
+}
+
+/* Appointment */
+div#meetingrequest_recipient {
+	display:none;
+}
+
+div#meetingrequest_responses {
+	width:100%;
+	height:17px;
+	margin-top:5px;
+	margin-bottom:5px;
+	display:none;
+	border:1px solid #A5ACB2;
+}
+
+/* Field Chooser */
+#fieldchooser {
+	width:100%;
+	margin-bottom:10px;
+}
+
+#fieldchooser .add {
+	background-image: url(../img/icon_next.gif);
+	background-repeat: no-repeat;
+	background-position: 73px center;
+	
+	margin-bottom:8px;
+}
+
+#fieldchooser .delete {
+	background-image: url(../img/icon_previous.gif);
+	background-repeat: no-repeat;
+	background-position: 3px center;	
+}
+
+/* Category List */
+#categorylist {
+	width:100%;
+	margin-bottom:5px;
+}
+
+#categorylist .selected_categories {
+	margin-bottom:10px;
+}
+
+#categorylist textarea {
+	width:98%;
+	height:50px;
+	padding:1px;
+	border:1px solid #A5ACB2;
+	font-family: Arial, sans-serif;
+	color:#000000;
+	font-size:8pt;	
+}
+
+#categorylist input {
+	position:absolute;
+	right:0px;
+} 
+
+#categorylist #available_categories {
+	width:240px;
+	font-size:8pt;
+}
+
+#menubar #menubar_left {
+	width: 850px;
+}
+
+
+
+#usergroup div.usergroup_container {
+}
+#usergroup div.usergroupslist {
+	width: 250px;
+	float: left;
+}
+#usergroup select.usergroupslist{
+	width: 250px;
+	height: 300px;
+}
+#usergroup span.usergroup_dialog_list_header {
+	font-weight: bold;
+	font-size: 14px;
+	padding: 2px;
+}
+#usergroup div.usergroup_content {
+	width: 250px;
+	height: 300px;
+	float: left;
+	margin-left: 20px;
+}
+#usergroup div.usergroup_options {
+	width: 20px;
+	height: 300px;
+	float: left;
+	margin-top: 15px;
+}
+
+#usergroup div.usergroup_footer_container {
+	padding-top: 20px;
+	clear: both;
+}
+
+/* new css for restore items project */
+.restore_option_button {
+	position:absolute;
+	top:27px;
+	right:25px;
+	z-index:1;
+}
+
+.restoreItemTable{
+	height:380px;
+	width:100%;
+	border:solid 1px #A5ACB2;
+}
+
+.icon_restore_item, .icon_restoreall{
+	background-image: url(../img/copy.gif);
+}
+.icon_purge{
+	background-image: url(../img/delete.gif);
+}
+.icon_deleteall{
+	background-image: url(../img/delete.gif);
+}
+
+#restoreitems_status{
+	height:20px;
+	text-align:right;
+	margin-top:5px;
+}
+
+.tracking_container {
+	height:450px;
+	overflow:hidden;
+	width:100%;
+}
+.trackingtabtable{
+	height:425px;
+	overflow:hidden;
+	position:relative;
+	width:100%;
+	background-color: #FFFFFF;
+	border-left:1px solid #e5f5fc;
+	border-top:0px solid;
+	border-right:1px solid #a5b5fc;
+	border-bottom:1px solid #a5b5fc;
+}
+/*end here*/
+
+/* Flag Selector dialog */
+.label_red {
+	background-color: #FF0000;
+}
+
+.label_blue {
+	background-color: #0000FF;
+}
+
+.label_yellow {
+	background-color: #FFFF00;
+}
+
+.label_green {
+	background-color: #00FF00;
+}
+
+.label_orange {
+	background-color: #FFA200;
+}
+
+.label_purple {
+	background-color: #AE00FF;
+}
+
+/** Fix cursor over add signature menu **/
+.icon_addsignature {
+	cursor: default;
+}
+.fixed_table_layout {
+	table-layout:fixed;
+}
+
+/** Clear div class **/
+.clear{
+	clear:both;
+}
+
+.disabledfield {
+	background-color: #DFE5FF;
+	height: 14px;
+	padding: 2px;
+}
+
+.disabledproperty {
+	padding-left: 10px;
+	width:75px;
+}
+
+#swfupload-control, #normal-upload-control {
+	visibility: hidden;
+	display: none;
+}
+
+.upload_size_message {
+	display:inline;
+	padding-bottom:15px;
+	vertical-align:middle;
+}

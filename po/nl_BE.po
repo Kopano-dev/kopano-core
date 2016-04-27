@@ -1,0 +1,729 @@
+# foo <foo@bar.foobar>, 2005.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PHP-Langadmin 1.0\n"
+"POT-Creation-Date: 2009-06-10 13:50:50+0200\n"
+"PO-Revision-Date: 2009-06-10 13:50:50+0200\n"
+"Last-Translator: PHP-Langadmin automatic translator <foo@bar.foobar>\n"
+"Language-Team: nl_NL <nl@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=iso-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Configure synchronization"
+msgstr "Synchronisatie instellen"
+
+msgid "Time between synchronizations:"
+msgstr "Tijd tussen synchronisaties:"
+
+msgid "1 minute"
+msgstr "1 minuut"
+
+msgid "5 minutes"
+msgstr "5 minuten"
+
+msgid "15 minutes"
+msgstr "1 kwartier"
+
+msgid "1 half hour"
+msgstr "1 half uur"
+
+msgid "1 hour"
+msgstr "1 uur"
+
+msgid "Also start synchronization when:"
+msgstr "Start ook synchronisatie als:"
+
+msgid "None"
+msgstr "Geen"
+
+msgid "Receive mail"
+msgstr "Mail ontvangen"
+
+msgid "Any change"
+msgstr "Elke verandering"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Cancel"
+msgstr "Annuleren"
+
+msgid "Error saving synchronization settings"
+msgstr "Fout bij het opslaan van de synchronisatie instellingen"
+
+msgid "Multiple Delegates"
+msgstr "Meerdere Gemachtigden"
+
+msgid "<Unknown>"
+msgstr "<Onbekend>"
+
+msgid "Delegate permissions"
+msgstr "Gemachtigde machtigingen"
+
+msgid "This delegate has the following permissions"
+msgstr "De gemachtigde heeft de volgende machtigingen"
+
+msgid "Calendar"
+msgstr "Agenda"
+
+msgid "Tasks"
+msgstr "Taken"
+
+msgid "Inbox"
+msgstr "Postvak IN"
+
+msgid "Contacts"
+msgstr "Contactpersonen"
+
+msgid "Notes"
+msgstr "Notities"
+
+msgid "Journal"
+msgstr "Logboek"
+
+msgid "Delegate receives copies of meeting-related messages sent to me"
+msgstr "Zend mij de gemachtigde ontvangen kopies van vergader-gerelateerde berichten"
+
+msgid "Automatically send a message to delegate summarizing these permissions"
+msgstr "Automatisch een bericht verzenden om deze rechten te machtigen"
+
+msgid "Delegate can see my private items"
+msgstr "Gemachtigden kunnen mijn privé items zien."
+
+msgid "Only read"
+msgstr "Alleen lezen"
+
+msgid "Secretary"
+msgstr "Secretaresse"
+
+msgid "Owner"
+msgstr "Eigenaar"
+
+msgid "Synchronization Status"
+msgstr "Synchronisatie Status"
+
+msgid "Hide"
+msgstr "Verbergen"
+
+msgid "Close"
+msgstr "Sluiten"
+
+msgid "Connection error"
+msgstr "Verbindingsfout"
+
+msgid "synchronization done"
+msgstr "synchronisatie klaar"
+
+msgid "Synchronizing folders ..."
+msgstr "synchroniseren mappen ..."
+
+msgid "Looking for changes ..."
+msgstr "Kijken voor veranderingen ..."
+
+msgid "Synchronizing messages ..."
+msgstr "synchroniseren berichten ..."
+
+msgid "Logging in ..."
+msgstr "Aan het inloggen ..."
+
+msgid "Synchronizing ..."
+msgstr "Synchroniseren ..."
+
+msgid "Synchronize"
+msgstr "Synchronisatie"
+
+msgid "Start Kopano offline synchronization"
+msgstr "Start de Kopano offline synchronisatie"
+
+msgid "Configure"
+msgstr "Instellingen"
+
+msgid "Configure Kopano offline synchronization"
+msgstr "Kopano offline synchronisatie instellen"
+
+msgid "Global Address Book"
+msgstr "Blobal Address Book"
+
+msgid "Add..."
+msgstr "Toevoegen..."
+
+msgid "Remove..."
+msgstr "Verwijderen..."
+
+msgid "Permissions..."
+msgstr "Machtigingen..."
+
+msgid "Delegates can send items on your behalf. To grant permission to others to access your folders without also giving them send-on-behalf-of privileges, go to properties for each folder and change the options on the Permissions tab."
+msgstr "Gemachtigten kunnen items versturen vanuit uw naam. Om rechten te geven aan anderen zonder de verstuur namens rechten in te stellen, open de map eigenschappen en wijzig de opties in de rechten tab."
+
+msgid "Kopano is not availible. Either there are network problems or Kopano is down for maintenance."
+msgstr ""
+
+msgid "Could not initialize delegation window\nPlease contact your administrator."
+msgstr ""
+
+msgid "Saving changes failed"
+msgstr "Wijzigingen opslaan is niet gelukt"
+
+msgid "Add to favorite folder"
+msgstr "Toevoegen aan de favoriete map"
+
+msgid "Favorite folder name"
+msgstr "Favoriete map naam"
+
+msgid "Public folder name"
+msgstr "Public folder naam"
+
+msgid "Subfolders"
+msgstr "submappen"
+
+msgid "Add subfolders of this folder"
+msgstr "Submappen toevoegen aan deze map"
+
+msgid "Add all subfolders"
+msgstr "Aan alle submappen toevoegen"
+
+msgid "Add immediate subfolders only"
+msgstr "Alleen directe submappen toevoegen"
+
+msgid "Unable to get folder data"
+msgstr "Mappendata is niet te verkrijgen"
+
+msgid "Shortcut"
+msgstr "Snelkoppeling"
+
+msgid "Shortcut folder"
+msgstr "Snelkoppeling naar map"
+
+msgid "Unable to add folder to favorites"
+msgstr "Toevoegen aan favorieten niet mogelijk"
+
+msgid "Unable to get MAPI information"
+msgstr "Kan geen MAPI informatie verkrijgen"
+
+msgid "Error"
+msgstr "Foutmelding"
+
+msgid "Unable to get Folder information"
+msgstr "Map informatie verkrijgen is niet mogelijk"
+
+msgid "Kopano Favorites"
+msgstr "Kopano Favorieten"
+
+msgid "Kopano Delegates"
+msgstr "Kopano Gemachtigden"
+
+msgid "Adding local folders"
+msgstr "Toevoegen lokale folders"
+
+msgid "Adding remote folders"
+msgstr "Toevoegen remote folders"
+
+msgid "Removing local folders"
+msgstr "Verwijderen lokale folders"
+
+msgid "Removing remote folders"
+msgstr "Verwijderen remote folders"
+
+msgid "Modifying local messages"
+msgstr "Bijwerken lokale berichten"
+
+msgid "Modifying remote messages"
+msgstr "Bijwerken remote berichten"
+
+msgid "Reading stores"
+msgstr "Inlezen stores"
+
+msgid "Done"
+msgstr "Klaar"
+
+msgid "Starting Synchronisation"
+msgstr "Starten synchronisatie"
+
+msgid "End of Session"
+msgstr "Einde van de Sessie"
+
+msgid "Connection lost"
+msgstr "Verbinding verbroken"
+
+msgid "Access denied"
+msgstr "Toegang geweigerd"
+
+msgid "Unable to move or copy folders. Can't copy folder. A top-level can't be copied to one of its subfolders. Or, you may not have appropriate permissions for the folder. To check your permissions for the folder, right-click the folder, and then click Properties on the shortcut menu."
+msgstr "Kon de mappen niet verplaatsen of verwijderen. Een top-level object kan niet worden gekopieerd naar een van zijn submappen. Of u heeft niet genoeg rechten voor de map. Om uw rechten te controleren, rechts-click op de map, en selecteer eigenschappen van het menu."
+
+msgid "The message store has reached its maximum size. To reduce the amount of data in this message store, select some items that you no longer need, and permanently (SHIFT + DEL) delete them."
+msgstr "Uw berichtenarchief heeft zijn maximumgrootte bereikt. Om de omvang van de data in het archief te verminderen dient u items te selecteren die u niet langer nodig heeft, en ze permanent (SHIFT + DEL) te verwijderen."
+
+msgid "The user canceled the operation, typically by clicking the Cancel button in a dialog box."
+msgstr "De gebruiker heeft de operatie geannuleerd, meestal door op annuleren te klikken in een dialoog venster."
+
+msgid "A logon session could not be established."
+msgstr "Er kon geen login sessie tot stand komen."
+
+msgid "The name of the folder being moved or copied is the same as that of a subfolder in the destination folder. The message store provider requires that folder names be unique. The operation stops without completing."
+msgstr "De naam van de map die u verplaatst of kopieert bestaat reeds in de doelmap. Mapnamen moeten uniek zijn. De actie wordt onderbroken."
+
+msgid "The operation succeeded, but not all entries were successfully processed, copied, deleted or moved"
+msgstr "De actie is voltooid, maar niet alle items konden worden gekopieerd, verwijderd of verplaatst."
+
+msgid "The provider does not have enough information to complete the logon. Or, the service provider has not been configured."
+msgstr "De MAPI provider heeft niet genoeg informatie om uw aanlog af te ronden. Of, de MAPI service provider is niet geconfigureerd."
+
+msgid "One of the providers cannot log on, but this error should not disable the other services."
+msgstr "Een van de MAPI provider kan niet aanloggen, maar deze fout zou andere services niet moeten uitschakelen."
+
+msgid "General"
+msgstr "Algemeen"
+
+msgid "Display Name:"
+msgstr "Weergave Naam:"
+
+msgid "Alias Name:"
+msgstr "Alias Naam:"
+
+msgid "Email Address:"
+msgstr "email adres:"
+
+msgid "Address Type:"
+msgstr "Adrestype:"
+
+msgid "Trying to connect to"
+msgstr "Bezig proberen verbinding te maken met"
+
+msgid "Username"
+msgstr "Gebruikersnaam"
+
+msgid "Password"
+msgstr "Wachtwoord"
+
+msgid "Sync Issues"
+msgstr "Sync problemen"
+
+msgid "Conflicts"
+msgstr "Problemen"
+
+msgid "Local Failures"
+msgstr "Local Failures"
+
+msgid "Server Failures"
+msgstr "Server Failures"
+
+msgid "Not read:"
+msgstr "Ongelezen:"
+
+msgid "was not read because it expired before reading at time"
+msgstr "was niet gelezen omdat het is verlopen voordat het gelezen werd"
+
+msgid "Read:"
+msgstr "Gelezen:"
+
+msgid "was read on"
+msgstr "was gelezen op"
+
+msgid "Your message"
+msgstr "Uw bericht"
+
+msgid "To:"
+msgstr "Aan:"
+
+msgid "Cc:"
+msgstr "Cc:"
+
+msgid "Subject:"
+msgstr "Onderwerp:"
+
+msgid "Sent on:"
+msgstr "Verzonden op:"
+
+msgid "Server settings"
+msgstr "Server instellingen"
+
+msgid "Server"
+msgstr "Server"
+
+msgid "Port"
+msgstr "Poort"
+
+msgid "Enable encryption (HTTPS)"
+msgstr "Encryptie inschakelen (HTTPS)"
+
+msgid "Connection"
+msgstr "Verbinding"
+
+msgid "Connection type"
+msgstr "Verbindings soort"
+
+msgid "Online"
+msgstr "Online"
+
+msgid "Cached Kopano Mode"
+msgstr "Cached Kopano Modus"
+
+msgid "Detect at startup"
+msgstr "Detecteren bij opstarten"
+
+msgid "Kopano does not support offline or cached mode for Outlook XP and Outlook 2002. If you wish to use offline functionality of Kopano, please use Outlook 2000, 2003, 2007 or later."
+msgstr "Kopano heeft geen ondersteuning voor het gebruik van offline mappen voor Outlook XP en Outlook 2002. Als u offline mappen wilt gebruiken, gebruik dan Outlook 2000, 2003, 2007 of later."
+
+msgid "Kopano Offline"
+msgstr "Kopano zonder verbinding"
+
+msgid "Favorites"
+msgstr "Favorieten"
+
+msgid "Public Folders"
+msgstr "Publieke Mappen"
+
+msgid "Unable to work online! The first time you need a network connection. Retry if you have the network connection."
+msgstr "Kan niet online werken! De eerste keer moet er netwerk verbinding zijn. Probeer nog een keer als er netwerk verbinding is."
+
+msgid "First Folder Sync..."
+msgstr "Eerste Mappen Sync..."
+
+msgid "Sync folder items"
+msgstr "Sync map items"
+
+msgid "Unknown username"
+msgstr "Onbekende gebruiker"
+
+msgid "Connecting to the server..."
+msgstr "Verbinding maken met de server..."
+
+msgid "Unable to reach the server.\nDo you want to save the settings or cancel and re-enter the settings?"
+msgstr "Er kon geen verbinding worden gemaakt met de server. Wilt u de instellingen opslaan of deze annuleren en de instellingen nogmaals instellen?"
+
+msgid "Cannot start Kopano client because you are over the license limit. To continue, you must purchase additional client licenses from Kopano."
+msgstr "Kan Kopano client niet starten omdat de licentie over het limiet is. Om door te gaan moet u een bijkomende client licentie aanschaffen."
+
+msgid "Kopano license"
+msgstr "Kopano licentie"
+
+msgid "Incorrect username and/or password."
+msgstr "Foute gebruikersnaam en/of wachtwoord."
+
+msgid "Incorrect servername and/or port\nCheck if the server is running."
+msgstr "Foute servernaam en/of poort Controleer of de server draait."
+
+msgid "Incorrect Kopano version."
+msgstr "Foute Kopano versie"
+
+msgid "An unknown failure has occurred.\nPlease contact your administrator."
+msgstr "Er is een onbekende fout opgetreden. Neem contact op met uw systeem beheerder."
+
+msgid "You should restart Outlook for the changes to take effect."
+msgstr "U moet Outlook herstarten voordat de veranderingen effect hebben."
+
+msgid "Unable to connect to the online server. If you continue, no new connections will be attempted until you disable the 'Work offline' option in the 'File' menu."
+msgstr "Verbinding maken met de online server is niet gelukt. 'offline werken' moet in het menu 'Bestand' moet uitgeschakeld worden voordat de verbinding nogmaals wordt geprobeerd."
+
+msgid "Unable to work online! Do you want to switch to offline mode?"
+msgstr "Kan niet online werken! Wilt u naar offline mode omschakelen?"
+
+msgid "Advanced"
+msgstr "Geavanceerd"
+
+msgid "Proxy"
+msgstr "Proxy"
+
+msgid "Use proxyserver"
+msgstr "Gebruik proxy server"
+
+msgid "Proxy server"
+msgstr "Proxy server"
+
+msgid "Use compression"
+msgstr "Gebruik compressie"
+
+msgid "Seconds Until Server Connection timeout"
+msgstr "Aantal seconden voor een verbinding time-out"
+
+msgid "MailBox"
+msgstr "Mailbox"
+
+msgid "Add"
+msgstr "Toevoegen"
+
+msgid "Name..."
+msgstr "Naam..."
+
+msgid "Remove"
+msgstr "Verwijderen"
+
+msgid "User could not be resolved."
+msgstr "Gebruiker niet gevonden"
+
+msgid "User already exists."
+msgstr "Gebruiker is al aanwezig."
+
+msgid "Outbox"
+msgstr "Postvak UIT"
+
+msgid "Deleted Items"
+msgstr "Verwijderde items"
+
+msgid "Sent Items"
+msgstr "Verzonden items"
+
+msgid "Drafts"
+msgstr "Concepten"
+
+msgid "Junk E-mail"
+msgstr "Ongewenste E-mail"
+
+msgid "RSS Feeds"
+msgstr "RSS-kanalen"
+
+msgid "RSS Feed comment"
+msgstr "Commentaar bij RSS-kanaal"
+
+msgid "Inbox -"
+msgstr "Postvak -"
+
+msgid "Entire Inbox (Permanent)"
+msgstr "Gehele Postvak (permanent)"
+
+msgid "Calendar (Temporary)"
+msgstr "Agenda (tijdelijk)"
+
+msgid "Notes (Temporary)"
+msgstr "Notities (tijdelijk)"
+
+msgid "Tasks (Temporary)"
+msgstr "Taken (tijdelijk)"
+
+msgid "Contacts (Temporary)"
+msgstr "Contactpersonen (tijdelijk)"
+
+msgid "Inbox (Temporary)"
+msgstr "Postvak IN (tijdelijk)"
+
+msgid "Select a folder type or cancel."
+msgstr "Selecteer een folder type of annuleer."
+
+msgid "Folder of other user"
+msgstr "Map van andere gebruiker"
+
+msgid "Foldertype"
+msgstr "Maptype"
+
+msgid "Ok"
+msgstr "Ok"
+
+msgid "Recover Deleted Items"
+msgstr "Verwijderde Items Herstellen"
+
+msgid "Delete"
+msgstr "Verwijderen"
+
+msgid "Restore"
+msgstr "Terugzetten"
+
+msgid "Messages"
+msgstr "Berichten"
+
+msgid "Folders"
+msgstr "Mappen"
+
+msgid "Loading..."
+msgstr "laden..."
+
+msgid "Subject"
+msgstr "Onderwerp"
+
+msgid "Deleted On"
+msgstr "Verwijderd op"
+
+msgid "From"
+msgstr "Van"
+
+msgid "Received"
+msgstr "Ontvangen"
+
+msgid "<Unkwown Subject>"
+msgstr "<Onbekend onderwerp>"
+
+msgid "Foldername"
+msgstr "Mapnaam"
+
+msgid "Itemcount"
+msgstr "Aantal"
+
+msgid "<Unknown foldername>"
+msgstr "<Onbekende map naam>"
+
+msgid "item"
+msgstr "item"
+
+msgid "items"
+msgstr "items"
+
+msgid "folder"
+msgstr "map"
+
+msgid "folders"
+msgstr "mappen"
+
+msgid "Restore items..."
+msgstr "Herstel items..."
+
+msgid "Restoring items"
+msgstr "Items herstellen"
+
+msgid "Unknown error"
+msgstr "Onbekende fout"
+
+msgid "The selected items will be permanently deleted from this folder.\nIf you continue, you will not be able to recover these items."
+msgstr "De geselecteerde items in deze folder worden permanent verwijderd.\n Als u doorgaat, kunt u de items niet meer terug halen."
+
+msgid "Remove items..."
+msgstr "Verwijder items..."
+
+msgid "Removing items"
+msgstr "Items verwijderen"
+
+msgid "The call succeeded, not all of the entries were successfully deleted."
+msgstr "Het verwijderen van de items is niet volledig uitgevoerd."
+
+msgid "The folder and/or messages can not be deleted."
+msgstr "De folder en/of berichten kunnen niet worden verwijderd."
+
+msgid "Out of Office currently on. Would you like to turn it off?"
+msgstr "De instelling Afwezig is ingeschakeld, Wilt u deze uitschakelen?"
+
+msgid "Out Of Office Turned On"
+msgstr "De instelling Afwezig is ingeschakeld"
+
+msgid "Permissions"
+msgstr "Machtigingen"
+
+msgid "Unable to open MAPI session."
+msgstr "Kan geen MAPI sessie openen."
+
+msgid "You are currently offline. To use this command, connect to the Kopano online server."
+msgstr "U bent nu offline. Maak verbinding met de online Kopano server om dit commando te gebruiken."
+
+msgid "Unable to open default store in MAPI session."
+msgstr "Kan de standaard store van de MAPI sessie niet openen."
+
+msgid "You can only use this function with Kopano profiles."
+msgstr "U kunt deze functie alleen met Kopano profielen gebruiken."
+
+msgid "Unable to open this store."
+msgstr "Kan de store niet openen."
+
+msgid "You have insufficient permissions to open this store."
+msgstr "U heeft onvoldoende rechten om deze store te openen."
+
+msgid "Access Denied"
+msgstr "Toegang geweigerd"
+
+msgid "Open Shared Folders..."
+msgstr "Open Gedeelde Mappen..."
+
+msgid "Open another user's Outlook Sharing Folders (Calendar, E-mail, etc)"
+msgstr "Open de mappen van een andere Outlook Sharing gebruiker (Agenda, E-mail, etc)"
+
+msgid "Recover Deleted Items..."
+msgstr "Verwijderde Items Herstellen..."
+
+msgid "Out of Office Assistant..."
+msgstr "Wizard Afwezigheid..."
+
+msgid "Add to Kopano Favorites Folder"
+msgstr "Voeg toe aan Kopano Favorieten Folder"
+
+msgid "Unable to get shortcut folder."
+msgstr "Kan de snelkoppeling van de map niet verkrijgen"
+
+msgid "I am currently Out of the Office"
+msgstr "Ik ben afwezig"
+
+msgid "Out of Office Assistant"
+msgstr "Wizard Afwezigheid"
+
+msgid "I am currently In the Office"
+msgstr "Ik ben aanwezig"
+
+msgid "AutoReply only once to each sender with the following text:"
+msgstr "Eén keer aan elke afzender automatische een antwoord verzenden met de volgende tekst:"
+
+msgid "&Save"
+msgstr ""
+
+msgid "Full control"
+msgstr "Volledig beheer"
+
+msgid "No rights"
+msgstr "Geen rechten"
+
+msgid "You have insufficient permissions to set permissions"
+msgstr "U heeft onvoldoende rechten om permissies aan te passen"
+
+msgid "Unable to set permissions."
+msgstr "Kan de machtiging niet wijzigen."
+
+msgid "Name"
+msgstr "Naam"
+
+msgid "Permission Level"
+msgstr "Toegangsniveau"
+
+msgid "A&dd"
+msgstr "T&oevoegen"
+
+msgid "Remo&ve"
+msgstr "&Verwijderen"
+
+msgid "&Properties"
+msgstr "&Eigenschappen"
+
+msgid "Profile"
+msgstr "Profiel"
+
+msgid "&Create items"
+msgstr "Items &maken"
+
+msgid "Read &items"
+msgstr "Items &lezen"
+
+msgid "Create &subfolders"
+msgstr "&Submappen maken"
+
+msgid "Folder pe&rmissions"
+msgstr "Map &toegang"
+
+msgid "Folder visi&ble"
+msgstr "M&ap weergeven"
+
+msgid "F&older contact"
+msgstr "Map&contactpersoon"
+
+msgid "&Edit items"
+msgstr "Items be&werken"
+
+msgid "De&lete items"
+msgstr "Items verwij&deren"
+
+msgid "Own"
+msgstr "Eigen"
+
+msgid "All"
+msgstr "Alle"
+
+msgid "<Unknown user or group>"
+msgstr "<Onbekende gebruiker of groep>"
+
+msgid "Other"
+msgstr "Aangepast"
+
+msgid "Add to favorites"
+msgstr "Aan favorieten toevoegen"
+
+msgid "test"
+msgstr "test"
+
+	

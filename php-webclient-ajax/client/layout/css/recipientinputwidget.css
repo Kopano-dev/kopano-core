@@ -1,0 +1,59 @@
+/* Recipient Input Widget */
+div.recipientinputwidget { background-color: #FFF; padding: 4px 0px; position: relative;border: 1px solid #000;}
+div.recipientinputwidget .recipientcontainer, 
+div.recipientinputwidget .recipientinputcontainer { 
+	white-space: nowrap; 
+}
+div.recipientinputwidget ul.recipientcontainer {
+	padding-left: 0px;
+	margin-top: 0px;
+	margin-left: 0px;
+}
+div.recipientinputwidget ul.recipientcontainer li{
+	display: inline;
+	list-style-type: none;
+}
+div.recipientinputwidget .recipientblock { 
+	height: 18px; 
+	white-space: nowrap; 
+	padding: 1px 2px;
+	margin: 2px;
+}
+.icon_recipientblock_close {
+	background-image:url(recipwidget_icon_recipientblock_close.gif);
+	background-position: 1px center;
+	padding-top:0px;
+	padding-left:11px;
+	cursor:pointer;
+	margin: 0px;
+}
+.icon_recipientblock_multipleoptions {
+	background-image:url(recipwidget_icon_recipientblock_downarrow.gif);
+	background-position: 1px center;
+	padding-top:0px;
+	padding-left:11px;
+	cursor:pointer;
+}
+.icon_recipientblock_edit {
+	background-image:url(recipwidget_icon_recipientblock_edit.gif);
+	background-position: 1px center;
+	padding-top:0px;
+	padding-left:11px;
+	cursor:pointer;
+}
+div.recipientinputwidget .status_pending {background-color: #FFF; border: 1px solid #B8CDFB}
+div.recipientinputwidget .status_invalid {background-image: url(recipwidget_bg_recipientblock_invalid.gif);border: 1px solid #F2CBCB}
+div.recipientinputwidget .status_resolved {background-color: #E6EDFD; border: 1px solid #B8CDFB}
+div.recipientinputwidget .status_multiresolveoptions {background-color: #FFF; border: 1px solid #B8CDFB}
+div.recipientinputwidget .selected .recipientblock_displayname { text-decoration: underline; }
+div.recipientinputwidget input {
+	position: relative;
+	border: 0px solid #FFF;
+	background-color: #FFF;
+	margin-top: -2px;
+	margin-left: 2px;
+	font-size: 8pt;
+	height: 14px;
+	white-space: nowrap; 
+	width: 200px;
+}

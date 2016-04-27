@@ -1,0 +1,23 @@
+div.suggestlayer {
+	position: absolute;
+	top: -9999px;
+	left: -9999px;
+	z-index: 999;
+	background-color: #FFF;
+	border: 1px solid #000;
+	overflow: hidden; /* Needed to prevent the list items from breaking out of the div */
+}
+div.suggestlayer ul.suggestlayer_list {
+	padding: 0px;
+	margin: 0px;
+}
+div.suggestlayer ul.suggestlayer_list li {
+	list-style-type: none;
+	padding: 2px 5px;
+	cursor: pointer;
+	width: 100%;
+}
+
+div.suggestlayer ul.suggestlayer_list li.suggestlayer_item_selected {
+	background-color: #7DA1DF;
+}

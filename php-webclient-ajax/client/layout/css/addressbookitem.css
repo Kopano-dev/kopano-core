@@ -1,0 +1,96 @@
+.addressbookitem {
+	height: 300px;
+}
+
+.addressbookitem_fieldset {
+	width:630px;
+	margin-top:5px;
+}
+.addressbookitem_fieldset.hideborder {
+	border-width: 0px;
+}
+
+.addressbookitem .headertitle {
+	margin-top: 10px;
+}
+
+.abitem_label {
+	width: 110px;
+
+	/* Making the labels appear in the middle, but the address in the middle of the top line */
+	vertical-align: top;
+	padding-top: 5px;
+}
+.abitem_value .abitem_field {
+	width: 190px;
+}
+
+/* Set styling for input fields, select boxes and textarea */
+.addressbookitem select.abitem_field,
+.addressbookitem textarea.abitem_field,
+.addressbookitem input.abitem_field
+{
+	border: 1px solid #A5ACB2;
+	font: 8pt Arial;
+	padding: 2px;
+}
+.addressbookitem input.abitem_field {
+	height: 14px;
+}
+.addressbookitem select.abitem_field {
+	height: 22px;
+	width: 196px;
+}
+
+/* Make the first row with the given_name and initials fit */
+.abitem_value.given_name, 
+.abitem_value.given_name input {	/* Size the TD and input field */
+	width: 75px;
+}
+.abitem_label.initials {	/* Eliminate the hard width of the parent assignment and make it stretchable */
+	width: inherit;
+}
+.abitem_value.initials, 
+.abitem_value.initials input {	/* Size the TD and input field */
+	width: 40px
+}
+
+/* Set custom height for street_address textarea */
+.addressbookitem textarea.abitem_field#street_address {
+	height: 45px;
+}
+
+/* Set custom height and width for comment textarea in mailuser dialog */
+.addressbookitem.abitem_mailuser textarea.abitem_field#comment {
+	height: 90px;
+	width: 630px;
+}
+
+
+/** distlist specific styles **/
+.addressbookitem_left {
+	float: left;
+	width: 315px;
+	height: 120px;
+}
+.addressbookitem_right {
+	float: left;
+	width: 315px;
+	height: 120px;
+}
+.addressbookitem_bottom {
+	float: left;
+	width: 630px;
+	height: 120px;
+}
+
+.addressbookitem_left .abitem_distlist_fields {
+	margin-top: 14px;
+}
+.addressbookitem.abitem_distlist .headertitle {
+	margin-top: inherit;
+}
+.addressbookitem.abitem_distlist textarea.abitem_field#comment {
+	height: 90px;
+	width: 310px;
+}

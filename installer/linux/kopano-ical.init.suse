@@ -1,0 +1,73 @@
+#! /bin/sh
+#
+### BEGIN INIT INFO
+# Provides:          kopano-ical
+# Required-Start:    $syslog $network $remote_fs
+# Required-Stop:     $syslog $network $remote_fs
+# Should-Start:      kopano-server
+# Should-Stop:       kopano-server
+# Default-Start:     2 3 5
+# Default-Stop:      0 1 6
+# X-UnitedLinux-Default-Enabled:   yes
+# Short-Description: Kopano Core iCal Gateway
+### END INIT INFO
+
+. /etc/rc.status
+rc_reset
+
+ICALCONFIG=/etc/kopano/ical.cfg
+ICALPROGRAM=/usr/sbin/kopano-ical
+
+# Sanity checks.
+#[ -f $CALDAVCONFIG ] || exit 0
+[ -x $ICALPROGRAM ] || exit 0
+
+ICALCONFIG_OPT=""
+[ ! -z $ICALCONFIG -a -f $ICALCONFIG ] && ICALCONFIG_OPT="-c $ICALCONFIG"
+
+[ -f /etc/sysconfig/kopano ] && . /etc/sysconfig/kopano
+if [ -z "$KOPANO_LOCALE" ]; then
+	KOPANO_LOCALE="C"
+fi
+
+ical=`basename $ICALPROGRAM`
+
+case "$1" in
+    start)
+		echo -n "Starting ical "
+		install -dm0775 -o kopano -g kopano /var/run/kopano
+		export LC_ALL=$KOPANO_LOCALE
+		export LANG=$KOPANO_LOCALE
+		$ICALPROGRAM $ICALCONFIG_OPT
+		rc_status -v
+		unset LC_ALL LANG
+		;;
+
+    stop)
+		echo -n "Stopping ical "
+		killproc $ical
+		rc_status -v
+		;;
+
+    restart)
+		$0 stop
+		$0 start
+		;;
+
+    reload)
+		echo -n "Restarting ical "
+		killproc $ical -SIGHUP
+		rc_status -v
+		;;
+
+    status)
+		echo -n "Checking for ical "
+		checkproc $ical
+		rc_status -v
+		;;
+
+    *)
+		;;
+esac
+
+rc_exit

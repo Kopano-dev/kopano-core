@@ -1,0 +1,68 @@
+/* For use for the tabbar */
+
+#tabbar {
+  float:left;
+  width:100%;
+  background:#c5d5fc url(../img/tabbar_background.gif) repeat-x bottom;
+  font-size:93%;
+  line-height:normal;
+  margin-bottom: 5px;
+}
+#tabbar ul {
+  margin:0;
+  padding: 0 10px 0;
+  list-style:none;
+}
+
+#tabbar li {
+  float:left;
+  margin:0;
+  background:url(../img/tab_left.gif) no-repeat left top;
+  padding: 0 0 0 2px;
+  cursor: pointer;
+}
+
+#tabbar li span {
+  display:block;
+  background:url(../img/tab_right.gif) no-repeat right top;
+  padding:5px 15px 4px 6px;
+}
+
+#tabbar li.selectedtab {
+  background-image:url(../img/tab_left_sel.gif);
+}
+
+#tabbar li.selectedtab span {
+  background-image:url(../img/tab_right_sel.gif);
+  padding-bottom:5px;
+}
+
+#tabbar li.hover { 
+  background-image:url(../img/tab_left_act.gif);
+}
+
+#tabbar li.hover span {
+  background-image:url(../img/tab_right_act.gif);
+}
+
+#tabbar li.no_tabs {
+  visibility: hidden;
+}
+
+div.tabpage {
+  margin: 0;
+  padding: 0;
+  display: none;
+}
+div.tabpage.selectedtabpage {
+  display: block;
+}
+
+br.tabbar_end {
+  display: block;
+  clear: both;
+}
+
+.tab_hide {
+  display: none;
+}

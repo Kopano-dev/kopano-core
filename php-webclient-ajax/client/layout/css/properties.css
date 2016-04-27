@@ -1,0 +1,57 @@
+.folder_big_icon {
+	background-repeat:no-repeat;
+	background-position: center center;
+	height: 30px;
+}
+
+#description {
+	height: 60px;
+	width: 300px;
+}
+
+#display_name {
+	font-size: 20px;
+}
+
+table tr td {
+	vertical-align: top;
+}
+
+hr {
+	border: 0;
+	border-bottom: 1px solid #A5ACB2;
+	color: #A5ACB2;
+	background-color: #A5ACB2;
+	height: 1px;
+}
+
+.confirmbuttons {
+	position: absolute;
+	text-align: right;
+	bottom: 10px;
+	padding: 0;
+	margin: 0px;
+	right: 10px;
+}
+
+div#permissions table {
+	width: 100%;
+}
+
+div#permissions div.level_list select{
+	width: 100%;
+	height: 75px;
+}
+
+div#permissions div.action_buttons {
+	text-align: right;
+	padding-top: 2px;
+	padding-bottom: 2px;
+}
+
+div#permissions fieldset ul {
+	margin-left: 0;
+	padding-left: 0;
+	list-style: none;
+}
+

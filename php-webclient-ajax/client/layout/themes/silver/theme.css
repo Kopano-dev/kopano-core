@@ -1,0 +1,431 @@
+/* 
+Theme:	Silver
+*/
+
+
+body {
+	background-color: #dddddd;
+}
+
+/* default layout */
+.zarafa_logo {
+	background-image: url(img/zarafa_top_logo.gif);
+}
+
+div.title {
+	background-color: #000;
+	background-image: url(img/fill_header.gif);
+}
+
+.zarafa_background {
+	background-image: url(img/zarafa_top_01.gif);
+}
+
+#top {
+	background:#ccc;
+}
+
+.subtitle {
+	background-image: url(img/fill_header2.gif);
+}
+
+.subtitle_zarafa_background {
+	background-image: url(img/zarafa_top_03.gif);
+}
+
+.zarafa_subtitle {
+    background-image: url(img/fill_folder_off.gif);
+	border-bottom: 1px solid #777777;
+}
+
+#footer {
+	background-image: url(img/fill_footer.gif);
+	border-color: #000;
+}
+
+#footer #numberitems {
+	background-image: url(img/zarafa_footer.gif);
+}
+
+#footer #loggedon {
+	background-image: url(img/fill_footer.gif);
+	border-color: #000;
+}
+
+#footer #loggedon a {
+	color: #555555;
+}
+
+.quota_bar {
+	border-color: #000;
+}
+
+span.settingsbutton, span.loggoutbutton {
+	color: #555555;
+}
+
+/* folder list */
+.default_buttons_top {
+	background-image: url(img/folder_select_scroll.gif);
+}
+
+#buttons {
+	background-image: url(img/folder_select_scrollback.gif);
+	color: #000;
+}
+
+.folder_title {
+	background-color: #fff;
+	color: #000000;
+	border-color: #fff;
+}
+
+.folder_title_selected {
+	background: #686868;
+	color: #eee;
+	border-color: #686868;
+}
+
+.dragover {
+	background: #868686;
+	color: #eee;
+}
+
+.folder_title_context {
+	background: #868686;
+}
+.default_button {
+	background-image: url(img/fill_folder_off.gif);
+}
+.default_button_over {
+	background-image: url(img/fill_folder_on.gif);
+}
+
+/* list view */
+.columns {
+	border-bottom: 1px solid #777777;
+}
+
+#columnbackground {
+    background-image: url(img/fill_folder_off.gif);
+	border-top: 1px solid white;
+	border-bottom: 1px solid #777777;
+}
+.columnbackground {
+    background-image: url(img/fill_folder_off.gif);
+	border-top: 1px solid white;
+	border-bottom: 1px solid #777777;
+}
+.columns .column_seperator {
+	background-image: url(img/seperator.gif);
+}
+
+.row {
+	background:#fff;
+	color: #000000;
+}
+
+.rowselected {
+	background: #686868;
+	color: #eee;
+}
+
+
+/* Menu (also contextmenu) */
+#menubar {
+	border-color: #000;
+    background-image: url(img/fill_folder_off.gif);
+    background-repeat: repeat-x;
+}
+
+#menubar #menubar_right {
+	background-image: url(img/fill_folder_off.gif);
+}
+
+#defaultmenu {
+	background-color: #ccc;
+	border-color: #000;
+	border-top-color: #ccc;
+}
+
+#contextmenu {
+	background-color: #ccc;
+	border-color: #000;
+}
+
+.menuitem {
+	border-color: #ccc;
+}
+
+.menuitemover {
+	background-color:#686868;
+	border-color: #868686;
+}
+
+.menubuttonover {
+	background-color: #eee;
+	border-color: #000;
+}
+
+.menubuttonselected {
+	background-color: #aaa;
+	border-color: #000;
+}
+
+.icon_seperator {
+	background-image: url(img/seperator.gif);
+}
+
+.icon_menuitemseperator {
+	background-image: url(img/menuitem_seperator.gif);
+}
+
+.rowcontextmenu {  /* the row which is selected by the current context menu */
+	background: #868686;
+}
+
+
+/* ComboBox (used for paging) */
+.combobox {
+	background-color:#FFFFFF;
+	color:#000000;
+}
+
+.combobox .selected {
+	border-color: #000;
+}
+
+.combobox .arrow {
+	border-color: #000;
+}
+
+.combobox .arrowover {
+	background-color:#ccc;
+}
+
+.combobox_options {
+	background-color:#fff;
+	border-color: #000;
+}
+
+.combobox_options .optionover {
+	background-color:#ccc;
+}
+
+.disabled {
+	background-color: #E5E6E6;
+}
+
+/* contacts */
+.alfabet {
+	background-color:#ccc;
+	border-left-color: #000;
+}
+
+.alfabet .character {
+	border-bottom-color: #000;
+	color:#000;
+}
+
+.alfabet .characterover {
+	background-color:#eee;
+}
+
+.contact {
+	background-color:#aaa;
+	color:#000;
+	border-color: #000;
+}
+
+.contact .fileas {
+	background-color:#aaa;
+	color:#000;
+	border-bottom-color: #000;
+}
+
+.contactselected {
+	background-color:#444;
+	color:#fff;
+}
+
+.contactcontextmenu {
+	background-color: #D9D9D9;
+}
+
+.contact .address {
+	background-color:#FFFFFF;
+	color:#000000;
+	border-top-color: #595959;
+}
+
+.contact .data {
+	background-color:#FFFFFF;
+	color:#000000;
+}
+
+.contact_seperator {
+	background-color:#4a4a4a;
+	border-color: white;
+}
+/* dialogs */
+body.dialog {
+	background-color: #ccc;
+}
+
+.propertytitle {
+	border-bottom-color: #000;
+}
+
+/* tabbar */
+#tabbar {
+	background-color: #ccc;
+}
+#tabbar li {
+	background-image: url(img/tab_left.gif);
+}
+#tabbar li span {
+	background-image: url(img/tab_right.gif);
+}
+
+#tabbar li.selectedtab {
+	background-image: url(img/tab_left_sel.gif);
+}
+
+#tabbar li.selectedtab span {
+	background-image: url(img/tab_right_sel.gif);
+}
+
+#tabbar li.hover { 
+	background-image: url(img/tab_left_act.gif);
+}
+
+#tabbar li.hover span {
+	background-image: url(img/tab_right_act.gif);
+}
+
+/* datepicker (layout element) */
+#datepicker {
+	background:#FFFFFF;
+	border-left-color: #000;
+}
+
+#datepicker .month {
+	border-bottom-color: #000;
+}
+
+/*
+#datepicker .previousmonth {
+	background-image:url(img/icon_previous.gif);
+}
+
+#datepicker .nextmonth {
+	background-image:url(img/icon_next.gif);
+}
+*/
+
+#datepicker .monthselected {
+	background:#ccc;
+	border-bottom-color: #000;
+}
+
+#datepicker .month .dayname {
+	border-bottom: #000;
+}
+
+#datepicker .month .calendartoday {
+	border-color: #000;
+	background:#ccc;
+}
+
+/* loader */
+#zarafa_loader {
+	background-image: url(img/loader.gif);
+}
+
+
+div.listview_topbar {
+	background: #ccc;
+	border-color: #000;
+}
+
+.layoutelement {
+	border-left: 1px solid #EEEEEE;
+	border-right: 1px solid #999999;
+	border-top: 1px solid #EEEEEE;
+	border-bottom: 1px solid #999999;
+
+}
+
+#calendar .timeline {
+	background: #cccccc;
+}
+
+#calendar .header {
+	background: #cccccc;
+}
+
+#calendar .time {
+	border-bottom: 1px solid #888888;
+}
+
+div#shared_folder {
+	border-top: 1px solid #ccc;
+}
+
+div#shared_folder a {
+	color: #555;
+}
+
+span.unread_count {
+	color: #000;
+}
+span.unread_count {
+	color: #000;
+}
+
+div.searchbutton {
+	background-image: url(img/icon_search.gif);
+	border:1px solid #ccc;
+}
+
+div.searchbuttonover {
+	border:1px solid #000;
+	background-color:#eee;
+}
+
+.previewpane #meetingrequest {
+	border-color: white;
+	background: #dddddd;
+}
+
+
+/** Multi User Calendar **/
+table.multiusercalendar td {
+	background-color: #CCCCCC;
+}
+
+.insertcolumn {
+	background:#DDDDDD none repeat scroll 0%;
+	border-bottom:1px ridge #777777;
+}
+
+/** Advanced Find **/
+#advanced_find_view_resizebar {
+	background-image: url(img/folder_select_scrollback.gif);
+}
+
+.search_running {
+	background-image: url(img/icon_search_indicator.gif);
+}
+
+.recipient {
+	background-color:#DDDDDD;
+}
+
+.properties #attachments {
+	background-color:#DDDDDD;
+}
+
+.disabledfield {
+	background-color: #E0DFE3;
+}

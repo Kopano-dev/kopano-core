@@ -1,0 +1,101 @@
+#!/usr/bin/perl -w
+
+use strict;
+use DBI;
+
+sub do_error($) {
+#  exit(1);
+}
+
+if(@ARGV != 4) {
+	print "Usage: $0 <mysqluser> <mysqlpass> <mysqldb> <db-hostname>\n";
+	exit(1);
+}
+
+my ($user,$pass,$dbname,$dbhost) = @ARGV;
+
+my $db = DBI->connect("dbi:mysql:$dbname;host=$dbhost", $user, $pass);
+
+if (!defined($db)) {
+	print "did not connect to mysql\n";
+	exit(1);
+}
+
+sub getsize {
+    my ($hierarchyid) = @_;
+    
+    my $sth = $db->prepare("SELECT hierarchy.id, properties.val_ulong, hierarchy.type FROM hierarchy LEFT JOIN properties ON properties.hierarchyid=hierarchy.id AND properties.tag=0x0e08 AND properties.type=0x0003 WHERE hierarchy.parent=". $hierarchyid . " AND hierarchy.flags & 0x400 = 0");
+
+    $sth->execute();
+    
+    my @row;
+    
+    my $totalsize = 0;
+
+    while(@row = $sth->fetchrow_array()) {
+        if($row[2] == 5 && defined($row[1])) {
+            $totalsize += $row[1];
+        } elsif($row[2] == 3) {
+            $totalsize += getsize($row[0]);
+        }
+    }
+    
+    return $totalsize;
+}
+
+my $res; 
+my $sth;
+my $rows;
+
+$res = $db->do("set character_set_client=utf8;");
+if(!$res) {
+  do_error(1);
+}
+$res = $db->do("set character_set_connection=utf8;");
+if(!$res) {
+  do_error(1);
+}
+$res = $db->do("set character_set_results=utf8;");
+
+if(!$res) {
+  do_error(1);
+}
+
+my @row;
+
+@row = $db->selectrow_array("SELECT major FROM versions ORDER BY databaserevision DESC LIMIT 1")
+	or die $DBI::errstr;
+
+if (scalar(@row) == 0) {
+	print "Unable to determain version of database\n";
+	exit(1);
+}
+my $version = $row[0];
+
+print "Calculating store sizes..\n";
+
+
+# Add PR_SEARCH_KEY for all objects
+$sth = $db->prepare("SELECT hierarchy_id, users.id, user_name, val_longint FROM stores JOIN users ON users.id = stores.user_id JOIN properties ON hierarchy_id=properties.hierarchyid WHERE properties.tag=0x0e08 AND properties.type=0x0014 order by val_longint");
+if(!$sth) {
+  do_error(1);
+}
+$sth->execute();
+
+while(@row = $sth->fetchrow_array()) {
+	my $size = getsize($row[0]);
+    
+	if($row[3] == $size) {
+	print "Size of store for user " . $row[1] ."(".$row[2].") is correct at " . $size . "\n";
+	} else {
+	print "Size of store for user " . $row[1] ."(".$row[2].") was ".$row[3].", now is " . $size . "\n";
+	$db->do("DELETE FROM properties WHERE hierarchyid = " . $row[0] . " AND tag=0x0e08 AND (type=0x0003 OR type=0x0014)");
+		if ($version < 7) {
+			$db->do("INSERT INTO properties (storeid, hierarchyid, tag, type, val_longint) VALUES(" . $row[0]. ", " . $row[0] . ", 0x0e08, 0x0014, $size)");
+		} else {
+			$db->do("INSERT INTO properties (hierarchyid, tag, type, val_longint) VALUES(" . $row[0] . ", 0x0e08, 0x0014, $size)");
+		}
+	}
+}
+
+print "done.\n";

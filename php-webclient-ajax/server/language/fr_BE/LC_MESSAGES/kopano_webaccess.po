@@ -1,0 +1,2448 @@
+# foo <foo@bar.foobar>, 2005.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PHP-Langadmin 1.0\n"
+"POT-Creation-Date: 2008-12-16 16:16:31+0100\n"
+"PO-Revision-Date: 2008-12-16 16:16:31+0100\n"
+"Last-Translator: PHP-Langadmin automatic translator <foo@bar.foobar>\n"
+"Language-Team: fr_FR <fr@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid " attendee accepted, "
+msgstr "participant a accepté,"
+
+msgid " declined."
+msgstr "participant a refusé."
+
+msgid " tentatively accepted, "
+msgstr "provisoirement accepté,"
+
+msgid "%d days"
+msgstr "%d jours"
+
+msgid "%d hours"
+msgstr "%d heures"
+
+msgid "%d minutes"
+msgstr "%d minutes"
+
+msgid "%d reminders are selected"
+msgstr "%d rappels sont sélectionnés"
+
+msgid "%d weeks"
+msgstr "%d semaines"
+
+msgid "%d-%m-%Y"
+msgstr "%d-%m-%Y"
+
+msgid "%d-%m-%Y %H:%M"
+msgstr "%d-%m-%Y %H:%M"
+
+msgid "%H:%M"
+msgstr "%H:%M"
+
+msgid "%m-%d-%Y %H:%M"
+msgstr "%d-%m-%Y %H:%M"
+
+msgid "%s overdue"
+msgstr "%s en retard"
+
+msgid "(none)"
+msgstr "(aucun)"
+
+msgid "(Shift-)Click or drag to change value"
+msgstr "(Maj-)Cliquer ou glisser pour changer la valeur"
+
+msgid "1 day"
+msgstr "1 jour"
+
+msgid "1 hour"
+msgstr "1 heure"
+
+msgid "1 week"
+msgstr "1 semaine"
+
+msgid "7 Days"
+msgstr "7 Jours"
+
+msgid "Accept"
+msgstr "Accepter"
+
+msgid "Accepted"
+msgstr "Accepté"
+
+msgid "Actual Work"
+msgstr "Travail en cours"
+
+msgid "Add a name"
+msgstr "Ajouter un nom"
+
+msgid "Add new user"
+msgstr "Ajouter un nouvel utilisateur"
+
+msgid "Add to Contacts"
+msgstr "Ajouter aux contacts"
+
+msgid "Add to favorite folder"
+msgstr "Ajouter au dossier favori"
+
+msgid "Add User"
+msgstr "Ajouter un utilisateur"
+
+msgid "Address Cards"
+msgstr "Fiches d'adresses"
+
+msgid "All Attendees"
+msgstr "Tous les participants"
+
+msgid "All day event"
+msgstr "Evènement couvrant toute la journée"
+
+msgid "All folders"
+msgstr "Tous les dossiers"
+
+msgid "All text fields"
+msgstr "Toutes les zones de texte"
+
+msgid "and"
+msgstr "et"
+
+msgid "Appointment"
+msgstr "Rendez-vous"
+
+msgid "Apr"
+msgstr "avr."
+
+msgid "April"
+msgstr "avril"
+
+msgid "Are you sure that you want to permanently delete the selected item(s)?"
+msgstr "Etes-vous sûre de vouloir supprimer définitivement le ou les élément(s) sélectionné(s) ?"
+
+msgid "Are you sure you want to delete"
+msgstr "Êtes-vous certain de vouloir supprimer"
+
+msgid "Are you sure you want to empty %s?"
+msgstr "Êtes-vous certain de vouloir vider %s ?"
+
+msgid "Attachments"
+msgstr "Pièces jointes"
+
+msgid "Attendance"
+msgstr "Participation"
+
+msgid "attendee proposed a new time for this meeting. Click the Scheduling tab for details."
+msgstr "participant a proposé une nouvelle heure de rendez-vous pour cette réunion. Veuillez cliquer sur l'onglet Horaire pour plus de détail."
+
+msgid "attendees proposed a new time for this meeting. Click the Scheduling tab for details."
+msgstr "participants ont proposé une nouvelle heure de rendez-vous pour cette réunion. Veuillez cliquer sur l'onglet Horaire pour plus de détail."
+
+msgid "Aug"
+msgstr "août"
+
+msgid "August"
+msgstr "août"
+
+msgid "B"
+msgstr "o"
+
+msgid "BCC"
+msgstr "Cci"
+
+msgid "Billing information"
+msgstr "Information de facturation"
+
+msgid "Body"
+msgstr "Contenu"
+
+msgid "Business"
+msgstr "Professionnel"
+
+msgid "Business Address"
+msgstr "Adresse professionnelle"
+
+msgid "Business Fax"
+msgstr "Fax professionnel"
+
+msgid "Calendar"
+msgstr "Agenda"
+
+msgid "Cards"
+msgstr "Fiches"
+
+msgid "Categories"
+msgstr "Catégorie"
+
+msgid "CC"
+msgstr "Cc"
+
+msgid "Click here to add a new item"
+msgstr "Veuillez cliquer ici pour ajouter un nouvel élément"
+
+msgid "Close"
+msgstr "Fermer"
+
+msgid "Close store"
+msgstr "Fermer la base de stockage"
+
+msgid "Comment"
+msgstr "Commentaire"
+
+msgid "Company"
+msgstr "Société"
+
+msgid "Complete"
+msgstr "Compléter"
+
+msgid "Conflicts"
+msgstr "Conflits"
+
+msgid "Contact"
+msgstr "Contact"
+
+msgid "Copy/Move"
+msgstr "Copier/Déplacer"
+
+msgid "Copy/Move Folder"
+msgstr "Copier/Déplacer Dossier"
+
+msgid "Copy/Move Message"
+msgstr "Copier/Déplacer Message"
+
+msgid "Could not find Contact '%s'. It may have been deleted or moved from its original location. Would you like to remove it from this list?"
+msgstr "Impossible de trouver le contact '%s'. Il peut avoir été effacé ou déplacé de son emplacement original. Voulez-vous le supprimer de la liste ?"
+
+msgid "Create E-Mail"
+msgstr "Créer un courrier électronique"
+
+msgid "Creation Time"
+msgstr "Heure de création"
+
+msgid "Current Meeting Time"
+msgstr "Horaire de la réunion"
+
+msgid "Date completed"
+msgstr "Terminé"
+
+msgid "Date picker"
+msgstr "Aide au choix de date"
+
+msgid "Day"
+msgstr "Jour"
+
+msgid "day"
+msgstr "jour"
+
+msgid "days"
+msgstr "jours"
+
+msgid "Dec"
+msgstr "déc."
+
+msgid "December"
+msgstr "décembre"
+
+msgid "Decline"
+msgstr "Refuser"
+
+msgid "Declined"
+msgstr "Refusé"
+
+msgid "Delete"
+msgstr "Supprimer"
+
+msgid "Delete Flag"
+msgstr "Effacer l'indicateur"
+
+msgid "Delete Folder"
+msgstr "Effacer un dossier"
+
+msgid "Delete this column"
+msgstr "Supprimer cette colonne"
+
+msgid "Deleted on"
+msgstr "Supprimé le"
+
+msgid "Display %s first"
+msgstr "Afficher %s en premier"
+
+msgid "Display Name"
+msgstr "Afficher nom"
+
+msgid "Distributionlist"
+msgstr "Liste de distribution"
+
+msgid "Do you wish to notify the sender?"
+msgstr "Souhaitez-vous informer l'expéditeur ?"
+
+msgid "Drag to move"
+msgstr "Déplacer avec la souris"
+
+msgid "Duration"
+msgstr "Durée"
+
+msgid "E-mail"
+msgstr "Adresse électronique"
+
+msgid "Edit e-mail rules"
+msgstr "Modifier les règles de courrier"
+
+msgid "effective"
+msgstr "en vigueur"
+
+msgid "Email"
+msgstr "Courrier électronique"
+
+msgid "Email Message"
+msgstr "Message électronique"
+
+msgid "Empty folder"
+msgstr "Vider le dossier"
+
+msgid "End Date"
+msgstr "Date de fin"
+
+msgid "End time"
+msgstr "Termine à"
+
+msgid "Enddate"
+msgstr "Date de fin"
+
+msgid "Enter a group name"
+msgstr "Entrer un nom de groupe"
+
+msgid "Expelled"
+msgstr "Rejeté(e)"
+
+msgid "Feb"
+msgstr "fév."
+
+msgid "February"
+msgstr "février"
+
+msgid "Field Chooser"
+msgstr "Choix des Champs"
+
+msgid "Fill in the Subject"
+msgstr "Saisir le sujet"
+
+msgid "First Name"
+msgstr "Prénom"
+
+msgid "First page"
+msgstr "Première page"
+
+msgid "Flag Complete"
+msgstr "Indicateur complet"
+
+msgid "Folder"
+msgstr "Dossier"
+
+msgid "Folder containing"
+msgstr "Dossier contenant"
+
+msgid "Folder list"
+msgstr "Liste des dossiers"
+
+msgid "for"
+msgstr "pour"
+
+msgid "for %d occurrences"
+msgstr "pour %d occurrences"
+
+msgid "for 1 occurrence"
+msgstr "pour 1 occurrence"
+
+msgid "Forward"
+msgstr "Transmettre"
+
+msgid "Fri"
+msgstr "ven."
+
+msgid "Friday"
+msgstr "vendredi"
+
+msgid "From"
+msgstr "De"
+
+msgid "from"
+msgstr "de"
+
+msgid "Full control"
+msgstr "Contrôle total"
+
+msgid "Full Name"
+msgstr "Nom et Prénom"
+
+msgid "FW"
+msgstr "TR"
+
+msgid "Go to the next page"
+msgstr "Aller à la page suivante"
+
+msgid "Go to the previous page"
+msgstr "Aller à la page précédente"
+
+msgid "Go Today"
+msgstr "Aller à la page d'aujourd'hui"
+
+msgid "has accepted"
+msgstr "a accepté"
+
+msgid "has declined"
+msgstr "a décliné"
+
+msgid "has tentatively accepted"
+msgstr "a provisoirement accepté"
+
+msgid "High"
+msgstr "Haute"
+
+msgid "High priority"
+msgstr "Haute priorité"
+
+msgid "hold for menu"
+msgstr "appuyer pour obtenir le menu"
+
+msgid "Home"
+msgstr "Domicile"
+
+msgid "Home address"
+msgstr "Adresse du domicile"
+
+msgid "hour"
+msgstr "heure"
+
+msgid "hours"
+msgstr "heures"
+
+msgid "HTTP Error"
+msgstr "Erreur HTTP"
+
+msgid "Icon"
+msgstr "Icône"
+
+msgid "Icon View"
+msgstr "Affichage de l'icône"
+
+msgid "IM Address"
+msgstr "Adresse de Messagerie Instantanée"
+
+msgid "In Progress"
+msgstr "En cours"
+
+msgid "Items"
+msgstr "Éléments"
+
+msgid "items"
+msgstr "éléments"
+
+msgid "Jan"
+msgstr "jan."
+
+msgid "January"
+msgstr "janvier"
+
+msgid "Job Title"
+msgstr "Titre"
+
+msgid "Journal"
+msgstr "Journal"
+
+msgid "Jul"
+msgstr "juil."
+
+msgid "July"
+msgstr "juillet"
+
+msgid "Jun"
+msgstr "juin"
+
+msgid "June"
+msgstr "juin"
+
+msgid "kb"
+msgstr "ko"
+
+msgid "Last Name"
+msgstr "Nom de Famille"
+
+msgid "Last page"
+msgstr "Dernière page"
+
+msgid "List"
+msgstr "Liste"
+
+msgid "List View"
+msgstr "Affichage de la liste"
+
+msgid "Load Group"
+msgstr "Charger un groupe"
+
+msgid "Load group"
+msgstr "Charger un groupe"
+
+msgid "Load previous day"
+msgstr "Charger le jour précédent"
+
+msgid "Load previous period"
+msgstr "Charger la période précédente"
+
+msgid "Loading"
+msgstr "Chargement"
+
+msgid "Location"
+msgstr "Emplacement"
+
+msgid "log out"
+msgstr "déconnexion"
+
+msgid "Low"
+msgstr "Faible"
+
+msgid "Low priority"
+msgstr "Basse priorité"
+
+msgid "Mail and Post"
+msgstr "Courrier"
+
+msgid "Mar"
+msgstr "mars"
+
+msgid "March"
+msgstr "mars"
+
+msgid "Mark All Messages Read"
+msgstr "Marquer tous les messages comme lus"
+
+msgid "Mark Read"
+msgstr "Marquer comme lu(s)"
+
+msgid "Mark Unread"
+msgstr "Marquer comme non-lu(s)"
+
+msgid "May"
+msgstr "mai"
+
+msgid "MB"
+msgstr "Mo"
+
+msgid "Meeting"
+msgstr "Réunion"
+
+msgid "Meeting was not scheduled."
+msgstr "La réunion n'a pas été planifiée"
+
+msgid "Meetingrequest"
+msgstr "Demande de réunion"
+
+msgid "Middle Name"
+msgstr "Second prénom"
+
+msgid "Mileage"
+msgstr "Parcours"
+
+msgid "minute"
+msgstr "minute"
+
+msgid "minutes"
+msgstr "minutes"
+
+msgid "Mobile"
+msgstr "Téléphone portable"
+
+msgid "Modified"
+msgstr "Modifié"
+
+msgid "Mon"
+msgstr "lun."
+
+msgid "Monday"
+msgstr "lundi"
+
+msgid "Month"
+msgstr "Mois"
+
+msgid "month"
+msgstr "mois"
+
+msgid "months"
+msgstr "mois"
+
+msgid "Move to Junk Folder"
+msgstr "Déplacer vers le dossier Junk"
+
+msgid "Multi User Calendar"
+msgstr "L'agenda multi-utilisateurs"
+
+msgid "Name"
+msgstr "Nom"
+
+msgid "New"
+msgstr "Nouveau"
+
+msgid "new"
+msgstr "nouveau"
+
+msgid "New Folder"
+msgstr "Nouveau Dossier"
+
+msgid "Next Day"
+msgstr "Jour suivant"
+
+msgid "Next day"
+msgstr "Jour suivant"
+
+msgid "Next month"
+msgstr "Mois suivant"
+
+msgid "Next Period"
+msgstr "Période suivante"
+
+msgid "Next week"
+msgstr "Semaine suivante"
+
+msgid "Next year"
+msgstr "Année suivante"
+
+msgid "No Response"
+msgstr "Sans réponse"
+
+msgid "No rights"
+msgstr "Pas les droits"
+
+msgid "No signature"
+msgstr "Pas de signature"
+
+msgid "None"
+msgstr "Aucun"
+
+msgid "none"
+msgstr "aucun"
+
+msgid "Normal"
+msgstr "Normale"
+
+msgid "Normal priority"
+msgstr "Priorité moyenne"
+
+msgid "Not logged on"
+msgstr "Session non ouverte"
+
+msgid "Not Responded"
+msgstr "n'a pas répondu"
+
+msgid "Note"
+msgstr "Note"
+
+msgid "Nov"
+msgstr "nov."
+
+msgid "November"
+msgstr "novembre"
+
+msgid "now"
+msgstr "maintenant"
+
+msgid "Occurs every"
+msgstr "Survient tous les"
+
+msgid "Oct"
+msgstr "oct."
+
+msgid "October"
+msgstr "octobre"
+
+msgid "of"
+msgstr "de"
+
+msgid "on behalf of"
+msgstr "de la part de"
+
+msgid "Only read"
+msgstr "Lecture seule"
+
+msgid "Open"
+msgstr "Ouvrir"
+
+msgid "Open Multi User Calendar"
+msgstr "Ouvrir l'agenda multi-utilisateurs"
+
+msgid "Open shared folders"
+msgstr "Ouvrir les dossiers partagés"
+
+msgid "Optional"
+msgstr "Optionnel"
+
+msgid "Optional Attendee"
+msgstr "Participant facultatif"
+
+msgid "Options"
+msgstr "Options"
+
+msgid "Organizer"
+msgstr "Organisateur"
+
+msgid "Original message"
+msgstr "Message d'origine"
+
+msgid "Other"
+msgstr "Autre"
+
+msgid "Owner"
+msgstr "Propriétaire"
+
+msgid "Page"
+msgstr "Page"
+
+msgid "Percent Complete"
+msgstr "Pourcentage de Complétion"
+
+msgid "Phone"
+msgstr "Téléphone"
+
+msgid "Please input a valid email address!"
+msgstr "Veuillez saisir un adresse électronique valide!"
+
+msgid "Please select a folder to copy the item to"
+msgstr "Veuillez sélectionner le dossier vers lequel vous désirez copier l'élément"
+
+msgid "Please select a folder to move the item to"
+msgstr "Veuillez sélectionner le dossier vers lequel vous désirez déplacer l'élément"
+
+msgid "Please select a row first to delete"
+msgstr "Veuillez d'abord sélectionner une colonne à supprimer"
+
+msgid "Please select a row first to restore"
+msgstr "Veuillez d'abord sélectionner une colonne à restaurer"
+
+msgid "Please select an appropriate action for this rule"
+msgstr "Veuillez sélectionner une action adéquate pour cette règle"
+
+msgid "Please specify a forwarding address"
+msgstr "Veuillez spécifier une adresse de réexpédition"
+
+msgid "Please treat this as Confidential"
+msgstr "Veuillez traiter ceci comme confidentiel"
+
+msgid "Please treat this as Personal"
+msgstr "Veuillez traiter ceci comme personnel"
+
+msgid "Please treat this as Private"
+msgstr "Veuillez traiter ceci comme privé"
+
+msgid "Prev month"
+msgstr "Mois précédent"
+
+msgid "Prev year"
+msgstr "Année précédente"
+
+msgid "Previewpane bottom"
+msgstr "Volet d'aperçu en bas"
+
+msgid "Previewpane off"
+msgstr "Fermer le volet d'aperçu"
+
+msgid "Previewpane right"
+msgstr "Volet d'aperçu à droite"
+
+msgid "Previous Day"
+msgstr "Jour précédent"
+
+msgid "Previous day"
+msgstr "Jour précédent"
+
+msgid "Previous Period"
+msgstr "Période précédente"
+
+msgid "Previous week"
+msgstr "Semaine précédente"
+
+msgid "Print"
+msgstr "Imprimer"
+
+msgid "Properties"
+msgstr "Propriétés"
+
+msgid "Propose New Time"
+msgstr "Proposer un nouvel horaire"
+
+msgid "Propose new time"
+msgstr "Proposer un nouvel horaire"
+
+msgid "proposed a new time for this meeting"
+msgstr "a proposé un nouvel horaire pour cette réunion"
+
+msgid "Proposed by"
+msgstr "Proposé par"
+
+msgid "Proposed end date and time"
+msgstr "a proposé une date et horaire de fin de réunion"
+
+msgid "Proposed start date and time"
+msgstr "a proposé une date et horaire de début de réunion"
+
+msgid "Quick Search"
+msgstr "Recherche rapide"
+
+msgid "Quota"
+msgstr "Quota"
+
+msgid "RE"
+msgstr "RE"
+
+msgid "Recurrence Pattern"
+msgstr "Mode de périodicité"
+
+msgid "Red"
+msgstr "Rouge"
+
+msgid "Red Flag"
+msgstr "Indicateur rouge"
+
+msgid "Reload"
+msgstr "Recharger"
+
+msgid "Remove from calendar"
+msgstr "Supprimer de l'agenda"
+
+msgid "Remove user"
+msgstr "Retirer un utilisateur"
+
+msgid "Rename Folder"
+msgstr "Renommer le Dossier"
+
+msgid "Reply"
+msgstr "Répondre"
+
+msgid "Reply All"
+msgstr "Répondre à tous"
+
+msgid "Required"
+msgstr "Obligatoire"
+
+msgid "Required Attendee"
+msgstr "Participant requis"
+
+msgid "Resource"
+msgstr "ressource"
+
+msgid "Resource (Room or Equipment)"
+msgstr "Ressource (salle ou équipement)"
+
+msgid "Resources have been planned."
+msgstr "Les ressources ont été planifées."
+
+msgid "Response"
+msgstr "Réponse"
+
+msgid "Restore deleted Items"
+msgstr "Restaurer des élément supprimés"
+
+msgid "Restore Items"
+msgstr "Restaurer les éléments"
+
+msgid "Rules"
+msgstr "Règles"
+
+msgid "Sat"
+msgstr "sam."
+
+msgid "Saturday"
+msgstr "samedi"
+
+msgid "Search"
+msgstr "Rechercher"
+
+msgid "Secretary"
+msgstr "Secrétaire"
+
+msgid "Select"
+msgstr "Sélectionner"
+
+msgid "Select date"
+msgstr "Sélectionner une date"
+
+msgid "Send mail (%s)"
+msgstr "Envoyer le message (%s)"
+
+msgid "Sender"
+msgstr "Expéditeur"
+
+msgid "Sent"
+msgstr "Envoyé"
+
+msgid "Sent only to me"
+msgstr "Envoyé uniquement à moi-même"
+
+msgid "Sent to"
+msgstr "Envoyé à"
+
+msgid "Sep"
+msgstr "sept."
+
+msgid "September"
+msgstr "septembre"
+
+msgid "settings"
+msgstr "paramètres"
+
+msgid "Size"
+msgstr "Taille"
+
+msgid "Sort Ascending"
+msgstr "Tri Ascendant"
+
+msgid "Sort Descending"
+msgstr "Tri Descendant"
+
+msgid "Start Date"
+msgstr "Date de début"
+
+msgid "Start time"
+msgstr "Commence à"
+
+msgid "Startdate"
+msgstr "Date de début"
+
+msgid "Startdate: %s"
+msgstr "Date de début: %s"
+
+msgid "Status"
+msgstr "État"
+
+msgid "Subfolders"
+msgstr "Sous-dossiers"
+
+msgid "Subject"
+msgstr "Sujet"
+
+msgid "Subject or Sender"
+msgstr "Sujet ou Expéditeur"
+
+msgid "Sun"
+msgstr "dim."
+
+msgid "Sunday"
+msgstr "dimanche"
+
+msgid "Task"
+msgstr "Tâche"
+
+msgid "Tentative"
+msgstr "Provisoire"
+
+msgid "The operation is completed, but not all items could be copied, deleted or moved."
+msgstr "L'opération est achevé, mais tous les éléments n'ont pas été correctement copiés, effacés ou déplacés"
+
+msgid "The sender of this message has asked to be notified when you read this message."
+msgstr "L'expéditeur de ce message a demandé à  être informé quand vous le lirez."
+
+msgid "There are %s more items"
+msgstr "Il y a %s éléments en plus"
+
+msgid "There are %s unread messages in your inbox"
+msgstr "Il y a %s message(s) non lu(s) dans votre boîte de réception"
+
+msgid "There are no contacts to be shown in this view. Click in the right of this screen to view the contacts by letter."
+msgstr "Il n'y a aucun contact à afficher dans cette fenêtre. Veuillez cliquer sur le côté droit de l'écran afin de visualiser les contacts par lettre."
+
+msgid "There is one more item"
+msgstr "Il n'y a aucun autre élément"
+
+msgid "This message was sent with High importance"
+msgstr "Ce message a été envoyé avec une Haute priorité"
+
+msgid "This message was sent with Low importance"
+msgstr "Ce message a été envoyé avec une Basse priorité"
+
+msgid "This shared folder is already open."
+msgstr "Ce dossier partagé est déjà ouvert."
+
+msgid "This shared folder is your own folder."
+msgstr "Cet dossier partagé est votre propre dossier."
+
+msgid "Thu"
+msgstr "jeu."
+
+msgid "Thursday"
+msgstr "jeudi"
+
+msgid "Time"
+msgstr "Heure"
+
+msgid "To"
+msgstr "À"
+
+msgid "to"
+msgstr "à"
+
+msgid "To or cc"
+msgstr "À ou cc"
+
+msgid "Today"
+msgstr "Aujourd'hui"
+
+msgid "today"
+msgstr "aujourd'hui"
+
+msgid "Total %s recoverable items"
+msgstr "%s éléments récupérables au total"
+
+msgid "Total Work"
+msgstr "Travail total"
+
+msgid "Tue"
+msgstr "mar."
+
+msgid "Tuesday"
+msgstr "mardi"
+
+msgid "Unable to directly book a resource for this meeting."
+msgstr "Impossible de réserver directement une ressource pour cette réunion."
+
+msgid "Unable to load a rule condition"
+msgstr "Échec lors du chargement d'une condition de règle"
+
+msgid "Unable to show a rule with more than one action"
+msgstr "Échec lors de l'affichage d'une règle comportant plus d'une action"
+
+msgid "Unable to show the rule action"
+msgstr "Échec lors de l'affichage de l'action d'une règle"
+
+msgid "Unable to show the rule condition"
+msgstr "Échec lors de l'affichage de la condition d'une règle"
+
+msgid "unknown"
+msgstr "inconnu"
+
+msgid "Unknown Error"
+msgstr "Erreur inconnue"
+
+msgid "Unknown user/group"
+msgstr "Utilisateur/groupe inconnu"
+
+msgid "until"
+msgstr "jusque"
+
+msgid "Untitled Attachment"
+msgstr "Pièces jointe sans titre"
+
+msgid "Update"
+msgstr "Mise à jour"
+
+msgid "User already exists"
+msgstr "L'utilisateur existe déjà"
+
+msgid "Wait for other person"
+msgstr "Attendre pour d'autres personnes"
+
+msgid "Web Page"
+msgstr "Page d'accueil"
+
+msgid "Wed"
+msgstr "mer."
+
+msgid "Wednesday"
+msgstr "mercredi"
+
+msgid "Week"
+msgstr "Semaine"
+
+msgid "week"
+msgstr "semaine"
+
+msgid "weeks"
+msgstr "semaines"
+
+msgid "wk"
+msgstr "sem."
+
+msgid "workday"
+msgstr "jour ouvrable"
+
+msgid "Workweek"
+msgstr "Semaine de travail"
+
+msgid "Would you like to delete all items permanently, after that you will not be able to restore them anyway?"
+msgstr "Désirez-vous supprimer tous les éléments de manière permanente et définitive? Après cette opération, vous n'aurez plus aucune possibilité de les restaurer."
+
+msgid "Would you like to delete selected items permanently, after that you will not be able to restore them anyway?"
+msgstr "Désirez-vous supprimer les éléments sélectionnés de manière permanente et définitive? Après cette opération, vous n'aurez plus aucune possibilité de les restaurer."
+
+msgid "Would you like to restore all items?"
+msgstr "Désirez-vous restaurer tous les éléments?"
+
+msgid "Would you like to restore selected items?"
+msgstr "Désirez-vous restaurer les éléments sélectionnés?"
+
+msgid "Would you like to send an update to the attendees regarding changes to this meeting?"
+msgstr "Voulez vous envoyer une mise à  jour aux participants de la réunion concernant les changements ?"
+
+msgid "year"
+msgstr "année"
+
+msgid "years"
+msgstr "années"
+
+msgid "you are logged on as"
+msgstr "vous êtes connecté en tant que"
+
+msgid "You are using a pop-up blocker. You must disable the pop-up blocker before you can use this function of the WebAccess"
+msgstr "Vous utilisez un pop-up blocker. Vous devez désactiver le pop-up blocker avant de pouvoir utiliser cette fonction du WebAccess."
+
+msgid "You don't have permission to create an entry in this folder."
+msgstr "Vous n'avez pas la permission de créer une entrée dans ce dossier."
+
+msgid "You don't have permission to view this user's calendar."
+msgstr "Vous n'avez pas la permission de visualiser l'agenda de cet utilisateur."
+
+msgid "You forwarded this message"
+msgstr "Vous avez transmis ce message"
+
+msgid "You forwarded this message on %s"
+msgstr "Vous avez transmis ce message le %s"
+
+msgid "You forwarded this message on {time}"
+msgstr "Vous avez transmis ce message à {time}"
+
+msgid "You have a new message in your inbox"
+msgstr "Il y a un nouveau message dans votre boîte de réception"
+
+msgid "You must specify a username!"
+msgstr "Vous devez spécifier un nom d'utilisateur!"
+
+msgid "You must specify a valid date and/or time. Check your entries in this dialog box to make sure they represent a valid date and/or time."
+msgstr "Vous devez spécifier une date et/ou heure valide. Veuillez vérifier votre saisie."
+
+msgid "You replied this message"
+msgstr "Vous avez répondu à ce message"
+
+msgid "You replied this message on %s"
+msgstr "Vous avez répondu à ce message le %s"
+
+msgid "You replied this message on {time}"
+msgstr "Vous avez répondu à ce message à {time}"
+
+msgid "You replied this message to all"
+msgstr "Vous avez répondu à ce message à tous"
+
+msgid "You replied this message to all on %s"
+msgstr "Vous avez répondu à ce message à tous le %s"
+
+msgid "You replied this message to all on {time}"
+msgstr "Vous avez répondu à ce message à tous à {time}"
+
+msgid "Zoom"
+msgstr "Zoom"
+
+msgid "You marked \\\"%s\\\" as a resource. You cannot schedule a meeting with \\\"%s\\\" because you do not have the appropiate permissions for that account. Either enter the name as a required or optional attendee or talk to your administrator about giving you permission to schedule \\\"%s\\\"."
+msgstr "Vous avez inscrit \\\"%s\\\" en tant que ressource. Vous ne pouvez pas organiser de réunion avec \\\"%s\\\" parce que vous ne possédez pas les permissions nécessaires pour ce compte. Vous devez soit entrer le nom en tant que participant requis ou en tant que participant optionnel, soit contacter votre administrateur afin qu'il vous accorde l'autorisation de gérer l'emploi du temps de \\\"%s\\\"."
+
+msgid "\\\"%s\\\" has declined your meeting because \\\"%s\\\" does not automatically accept meeting requests. "
+msgstr "\\\"%s\\\" a décliné votre demande de réunion car \\\"%s\\\" n'accepte pas automatiquement les demandes de réunion."
+
+msgid "\\\"%s\\\" has declined your meeting because it is recurring. You must book each meeting separetly with this recurrence."
+msgstr "\\\"%s\\\" a décliné votre demande de réunion car elle est récurrante. Vous devez réservez chaque réunion séparément."
+
+msgid "\\\"%s\\\" is already booked for this specified time. You must use another time or find another resource."
+msgstr "\\\"%s\\\" est indisponible à cette heure spécifique. Vous devez changer l'heure du rendez-vous ou chercher une autre ressource."
+
+msgid "Please logon"
+msgstr "Veuillez ouvrir une session"
+
+msgid "Logon failed, please check your name/password."
+msgstr "Échec de la session, veuillez vérifier votre nom/mot de passe."
+
+msgid "Can't connect to the zarafa server."
+msgstr "Impossible de se connecter au server Zarafa"
+
+msgid "You have been automatically logged out"
+msgstr "Vous avez été déconnecté automatiquement"
+
+msgid "Password"
+msgstr "Mot de passe"
+
+msgid "Language"
+msgstr "Langue"
+
+msgid "Last used language"
+msgstr "Langue précédemment utilisée"
+
+msgid "Logon"
+msgstr "Ouverture de session"
+
+msgid "Save"
+msgstr "Enregistrer"
+
+msgid "Not implemented"
+msgstr "non mis en oeuvre"
+
+msgid "This type of message is not yet implemented."
+msgstr "Ce type de message n'a pas encore été mis en oeuvre"
+
+msgid "Close window"
+msgstr "Fermer le fenêtre"
+
+msgid "General"
+msgstr "Général"
+
+msgid "Details"
+msgstr "Détails"
+
+msgid "Function"
+msgstr "Fonction"
+
+msgid "File as"
+msgstr "Classé sous"
+
+msgid "Phone numbers"
+msgstr "Numéros de téléphone"
+
+msgid "Addresses"
+msgstr "Adresses"
+
+msgid "Use this address for mailing"
+msgstr "Utiliser cette adresse pour le courrier"
+
+msgid "Webpage"
+msgstr "Page Web"
+
+msgid "IM - Address"
+msgstr "Adresse de Messagerie Instantanée"
+
+msgid "Additional Information"
+msgstr "Informations supplémentaires"
+
+msgid "Contacts"
+msgstr "Contacts"
+
+msgid "Private"
+msgstr "Privé"
+
+msgid "Department"
+msgstr "Service"
+
+msgid "Manager Name"
+msgstr "Nom du responsable"
+
+msgid "Office"
+msgstr "Bureau"
+
+msgid "Assistant Name"
+msgstr "Nom de l'assistant"
+
+msgid "Profession"
+msgstr "Profession"
+
+msgid "Nickname"
+msgstr "Surnom"
+
+msgid "Partner Name"
+msgstr "Nom du partenaire"
+
+msgid "Title"
+msgstr "Titre"
+
+msgid "Birthday"
+msgstr "Anniversaire"
+
+msgid "Suffix"
+msgstr "Suffixe"
+
+msgid "Special Date"
+msgstr "Date spéciale"
+
+msgid "Add Attachments"
+msgstr "Inclure une pièce jointe"
+
+msgid "New Message for Contact"
+msgstr "Nouveau message pour le Contact"
+
+msgid "Permissions"
+msgstr "Permissions"
+
+msgid "Type"
+msgstr "Type"
+
+msgid "Description"
+msgstr "Description"
+
+msgid "Unread"
+msgstr "Non lu(s)"
+
+msgid "Folder Size"
+msgstr "Taille du dossier"
+
+msgid "Add"
+msgstr "Ajouter"
+
+msgid "Remove"
+msgstr "Enlever"
+
+msgid "Profile"
+msgstr "Profil"
+
+msgid "Create items"
+msgstr "Créer des éléments"
+
+msgid "Folder permissions"
+msgstr "Les permissions du dossier"
+
+msgid "Read items"
+msgstr "Lire les éléments"
+
+msgid "Folder visible"
+msgstr "Dossier visible"
+
+msgid "Create subfolders"
+msgstr "Créer des sous-dossiers"
+
+msgid "Edit items"
+msgstr "Editer les éléments"
+
+msgid "Own"
+msgstr "Posséder"
+
+msgid "All"
+msgstr "Tout"
+
+msgid "Delete items"
+msgstr "Supprimer les éléments"
+
+msgid "Recurring appointment"
+msgstr "Rendez-vous récurrent"
+
+msgid "This is a recurring appointment. Do you want to open only this occurrence or the series?"
+msgstr "Ceci est un rendez-vous récurrent. Voulez-vous ouvrir uniquement cette occurrence ou la série ?"
+
+msgid "Open this occurrence"
+msgstr "Ouvrir cette occurrence"
+
+msgid "Open the series"
+msgstr "Ouvrir la série"
+
+msgid "Due Date"
+msgstr "Date butoir"
+
+msgid "Not Started"
+msgstr "Non commencé(e)"
+
+msgid "Priority"
+msgstr "Priorité"
+
+msgid "Reminder"
+msgstr "Rappel"
+
+msgid "Keep copy of task in task list"
+msgstr "Garder une copie de la tâche dans la liste des tâches"
+
+msgid "Send me a status rapport when task is completed"
+msgstr "Envoyez-moi un rapport quand la tâche est effectuée"
+
+msgid "Total work"
+msgstr "Travail total"
+
+msgid "Actual work"
+msgstr "Travail en-cours"
+
+msgid "Companies"
+msgstr "Sociétés"
+
+msgid "Mark Complete"
+msgstr "Marquer Terminé"
+
+msgid "Reminders"
+msgstr "Rappels"
+
+msgid "Dismiss All"
+msgstr "Tout rejeter"
+
+msgid "Open Item"
+msgstr "Ouvrir l'élément"
+
+msgid "Dismiss"
+msgstr "Rejeter"
+
+msgid "Click Snooze to be reminded again in:"
+msgstr "Veuillez cliquer sur Repos afin d'être relancer dans:"
+
+msgid "Snooze"
+msgstr "Repos"
+
+msgid "Scheduling"
+msgstr "Planification"
+
+msgid "Tracking"
+msgstr "Suivi"
+
+msgid "Organiser"
+msgstr "Organiseur"
+
+msgid "Label"
+msgstr "Etiquette"
+
+msgid "Important"
+msgstr "Important"
+
+msgid "Work"
+msgstr "Travail"
+
+msgid "Personal"
+msgstr "Personnel"
+
+msgid "Holiday"
+msgstr "Congé"
+
+msgid "Travel Required"
+msgstr "Déplacement requis"
+
+msgid "Prepare Required"
+msgstr "Nécessite une préparation"
+
+msgid "Phone Interview"
+msgstr "Appel téléphonique"
+
+msgid "All Day Event"
+msgstr "Journée entière"
+
+msgid "Recurrence"
+msgstr "Périodicité"
+
+msgid "Busy Status"
+msgstr "État de disponibilité"
+
+msgid "Free"
+msgstr "Libre"
+
+msgid "Busy"
+msgstr "Occupé"
+
+msgid "Out of Office"
+msgstr "Absent(e) du bureau"
+
+msgid "The following responses to this meeting have been received:"
+msgstr "Les réponses qui ont été reçues au sujet de cette réunion sont les suivantes:"
+
+msgid "Send"
+msgstr "Envoyer"
+
+msgid "Invite Attendees"
+msgstr "Inviter des participants"
+
+msgid "Cancel Invitation"
+msgstr "Annuler l'Invitation"
+
+msgid "Restore"
+msgstr "Restaurer"
+
+msgid "Restore the selected items"
+msgstr "Restaurer les éléments sélectionnés"
+
+msgid "Restore All"
+msgstr "Tout Restaurer"
+
+msgid "Restore all"
+msgstr "Tout restaurer"
+
+msgid "Permanent Delete"
+msgstr ""
+
+msgid "Permanent delete selected items"
+msgstr "Supprimer les éléments sélectionnés de manière permanente et définitive"
+
+msgid "Delete All"
+msgstr ""
+
+msgid "Permanent delete All"
+msgstr "Tout supprimer de manière permanente et définitive"
+
+msgid "Color"
+msgstr "Couleur"
+
+msgid "Blue"
+msgstr "Bleu"
+
+msgid "Green"
+msgstr "Vert"
+
+msgid "Pink"
+msgstr "Rose"
+
+msgid "Yellow"
+msgstr "Jaune"
+
+msgid "White"
+msgstr "Blanc"
+
+msgid "You can lose changes when you continue."
+msgstr "Vous pouvez perdre vos modifications si vous continuez."
+
+msgid "Send new Mail"
+msgstr "Envoyer le nouveau courrier"
+
+msgid "Add Signature"
+msgstr "Ajouter une signature"
+
+msgid "Check Names"
+msgstr "Vérifier les noms"
+
+msgid "Priority: High"
+msgstr "Priorité: Haute"
+
+msgid "Priority: Low"
+msgstr "Priorité: Faible"
+
+msgid "Read Mail"
+msgstr "Lire le courrier"
+
+msgid "When"
+msgstr ""
+
+msgid "Proposed"
+msgstr ""
+
+msgid "Not Current"
+msgstr ""
+
+msgid "Flag"
+msgstr "Indicateur"
+
+msgid "Distribution List"
+msgstr "Liste de distribution"
+
+msgid "Members"
+msgstr "Membres"
+
+msgid "Notes"
+msgstr "Notes"
+
+msgid "Select Members"
+msgstr "Sélectionner les membres"
+
+msgid "Add new"
+msgstr "Ajouter nouveau"
+
+msgid "AutoPick"
+msgstr "Choix automatique"
+
+msgid "Out of office"
+msgstr "Absent(e) du bureau"
+
+msgid "No Information"
+msgstr "Pas d'Information"
+
+msgid "Settings"
+msgstr "Paramètres"
+
+msgid "Save settings"
+msgstr "Enregistrer les paramètres"
+
+msgid "Don't save settings"
+msgstr "Ne pas enregistrer les paramètres"
+
+msgid "Compose mail"
+msgstr "Composer un message"
+
+msgid "Reply-to address"
+msgstr "Adresse de réponse"
+
+msgid "Compose mail in this format"
+msgstr "Composer le message dans ce format"
+
+msgid "HTML"
+msgstr "HTML"
+
+msgid "Plain text"
+msgstr "Texte non formaté"
+
+msgid "Close original message on reply or forward"
+msgstr "Fermer le message d'origine une fois la réponse ou la transmission effectuée"
+
+msgid "Always request a read receipt"
+msgstr ""
+
+msgid "AutoSave unsent every:"
+msgstr ""
+
+msgid "Cursor position when replying"
+msgstr ""
+
+msgid "Start of body"
+msgstr ""
+
+msgid "End of body"
+msgstr ""
+
+msgid "From Email Addresses"
+msgstr "l'adresse de l'expéditeur"
+
+msgid "Set FROM email addresses"
+msgstr "Spécifiez l'adresse de l'expéditeur"
+
+msgid "Add address"
+msgstr "Ajouter une adresse"
+
+msgid "Remove address"
+msgstr "Enlever une adresse"
+
+msgid "Signature"
+msgstr "Signature"
+
+msgid "Edit signatures"
+msgstr ""
+
+msgid "Addressbook"
+msgstr "Carnet d'adresses"
+
+msgid "Default selected folder/addressbook"
+msgstr "Dossier/carnet d'adresses choisi par défaut"
+
+msgid "Out of Office Assistant"
+msgstr "Assistant de mode 'Absent'"
+
+msgid "I am currently In the Office"
+msgstr "Je suis actuellement au bureau"
+
+msgid "I am currently Out of the Office"
+msgstr "Je suis actuellement hors du bureau"
+
+msgid "AutoReply only once to each sender with the following text"
+msgstr "Réponse automatique seulement une fois à chaque expéditeur avec le texte suivant"
+
+msgid "Preferences"
+msgstr "Préférences"
+
+msgid "Color theme"
+msgstr "Thème de couleur"
+
+msgid "Automatic logout"
+msgstr "Déconnection automatique"
+
+msgid "Never"
+msgstr "Jamais"
+
+msgid "After %s minutes"
+msgstr "Aprés %s minutes"
+
+msgid "Folder Options"
+msgstr "Options des Dossiers"
+
+msgid "Startup folder"
+msgstr "Dossier de départ"
+
+msgid "Inbox"
+msgstr "Boîte de réception"
+
+msgid "Last opened folder"
+msgstr "Dossier ouvert en dernier"
+
+msgid "Number of items to display per page"
+msgstr "Nombre d'éléments à montrer par page"
+
+msgid "Reading pane visible"
+msgstr "Zone de lecture visible"
+
+msgid "Right"
+msgstr "Droit"
+
+msgid "Bottom"
+msgstr "Inférieur"
+
+msgid "Off"
+msgstr "Désactivé"
+
+msgid "Incoming Mail"
+msgstr "Courrier Entrant"
+
+msgid "New mail check timeout"
+msgstr "Temps d'attente maximal de vérification de nouveaux messages"
+
+msgid "seconds"
+msgstr "secondes"
+
+msgid "Server default"
+msgstr "Configuration du serveur"
+
+msgid "How to respond to requests for read receipts"
+msgstr "Comment répondre aux demandes d'accusés de lecture"
+
+msgid "Always send a response"
+msgstr "Toujours envoyer une réponse"
+
+msgid "Never send a response"
+msgstr "Ne jamais envoyer une réponse"
+
+msgid "Ask me before sending a response"
+msgstr "Me demander avant d'envoyer une réponse"
+
+msgid "Calendar View"
+msgstr "Affichage de l'agenda"
+
+msgid "Start of workday"
+msgstr "Début de la journée de travail"
+
+msgid "End of workday"
+msgstr "Fin de la journée de travail"
+
+msgid "Vertical size"
+msgstr "Taille verticale"
+
+msgid "Small"
+msgstr "Petit(e)"
+
+msgid "Medium"
+msgstr "Moyen(ne)"
+
+msgid "Large"
+msgstr "Large"
+
+msgid "Multi User Calendar View"
+msgstr "Afficher l'agenda multi-utilisateurs"
+
+msgid "Number of days displayed"
+msgstr "Nombre de jours affichés"
+
+msgid "Number of days loaded"
+msgstr "Nombre de jours chargés"
+
+msgid "Input"
+msgstr "Entrée"
+
+msgid "Item belongs to these categories"
+msgstr "L'élément appartient à ces catégories"
+
+msgid "Available categories"
+msgstr "Catégories disponibles"
+
+msgid "Competition"
+msgstr "Concours"
+
+msgid "Favorites"
+msgstr "Favoris"
+
+msgid "Gifts"
+msgstr "Cadeaux"
+
+msgid "Goals/Objectives"
+msgstr "Buts/Objectifs"
+
+msgid "Holiday Cards"
+msgstr "Fiches de Congé"
+
+msgid "Hot Contacts"
+msgstr "Contacts privilégiés"
+
+msgid "Ideas"
+msgstr "Idées"
+
+msgid "International"
+msgstr "International"
+
+msgid "Key Customer"
+msgstr "Client Important"
+
+msgid "Miscellaneous"
+msgstr "Divers"
+
+msgid "Phone Calls"
+msgstr "Appels téléphoniques"
+
+msgid "Strategies"
+msgstr "Stratégies"
+
+msgid "Suppliers"
+msgstr "Fournisseurs"
+
+msgid "Time & Expenses"
+msgstr "Heure & Dépenses"
+
+msgid "VIP"
+msgstr "VIP"
+
+msgid "Waiting"
+msgstr "En attente"
+
+msgid "Add selected categories"
+msgstr "Ajouter les catégories selectionnées"
+
+msgid "Mail Options"
+msgstr "Options du (des) message(s)"
+
+msgid "Message Settings"
+msgstr "Paramètres du (des) message(s)"
+
+msgid "Importance"
+msgstr "Priorité"
+
+msgid "Sensitivity"
+msgstr "Sensibilité"
+
+msgid "Confidential"
+msgstr "Confidentiel"
+
+msgid "Tracking Options"
+msgstr "Options de suivi"
+
+msgid "Request a read receipt for this message"
+msgstr "Demander un accusé de lecture pour ce message"
+
+msgid "New folder"
+msgstr "Nouveau dossier"
+
+msgid "New foldername"
+msgstr "Nouveau nom de dossier"
+
+msgid "Folder contains"
+msgstr "Contenu du dossier"
+
+msgid "E-Mail"
+msgstr "Courrier électronique"
+
+msgid "Select where to place the new folder"
+msgstr "Sélectionnez l'emplacement où vous voulez mettre ce dossier"
+
+msgid "Copy/Move folder"
+msgstr "Copier/Déplacer le dossier"
+
+msgid "Destination folder"
+msgstr "Dossier de destination"
+
+msgid "Copy"
+msgstr "Copier"
+
+msgid "Move"
+msgstr "Déplacer"
+
+msgid "Cancel"
+msgstr "Annuler"
+
+msgid "Print preview"
+msgstr "Aperçu de l'impression"
+
+msgid "Close preview"
+msgstr "Fermer l'aperçu"
+
+msgid "Address Book"
+msgstr "Carnet d'Adresses"
+
+msgid "Type Name"
+msgstr "Nouveau nom"
+
+msgid "Show names from the"
+msgstr "Voir les noms de"
+
+msgid "Open Shared Folders"
+msgstr "Ouvrir les dossiers partagés"
+
+msgid "Folder type"
+msgstr "Type de dossier"
+
+msgid "Tasks"
+msgstr "Tâches"
+
+msgid "Add/Edit rule"
+msgstr "Ajouter/Modifier une règle"
+
+msgid "Rule"
+msgstr "Règle"
+
+msgid "Rule name"
+msgstr "Nom de la règle"
+
+msgid "With the following properties"
+msgstr "Avec les propriétés suivantes"
+
+msgid "From field contains"
+msgstr "Le champ expéditeur contient"
+
+msgid "Subject contains"
+msgstr "Le sujet contient"
+
+msgid "Contact or distributionlist"
+msgstr "Contact ou liste de distribution"
+
+msgid "Perform the following action"
+msgstr "Effectuer l'action suivante"
+
+msgid "Move to "
+msgstr "Déplacer vers"
+
+msgid "folder"
+msgstr "dossier"
+
+msgid "Copy to "
+msgstr "Copier vers"
+
+msgid "Delete the message"
+msgstr "Supprimer le message"
+
+msgid "Forward to"
+msgstr "Transmettre à"
+
+msgid "Message Options"
+msgstr "Options de Message"
+
+msgid "Internet headers"
+msgstr "En-tête Internet"
+
+msgid "Color of Flag"
+msgstr "Couleur de l'indicateur"
+
+msgid "Orange"
+msgstr "Orange"
+
+msgid "Purple"
+msgstr "Violet"
+
+msgid "Add attachments"
+msgstr "Inclure une (des) pièce(s) jointe(s)"
+
+msgid "Filename"
+msgstr "Nom du fichier"
+
+msgid "max filesize"
+msgstr "taille maximale du fichier"
+
+msgid "Files currently attached"
+msgstr "Pièces jointes existantes"
+
+msgid "Delete selected file"
+msgstr "Effacer le dossier selectionné"
+
+msgid "Download"
+msgstr "Télécharger"
+
+msgid "Download selected file"
+msgstr "Télécharger le fichier selectionné"
+
+msgid "The following rules have been defined:"
+msgstr "Les règles suivantes ont été définies:"
+
+msgid "Edit"
+msgstr "Modifier"
+
+msgid "Up"
+msgstr "Monter"
+
+msgid "Down"
+msgstr "Descendre"
+
+msgid "Select folder"
+msgstr "Sélectionner un dossier"
+
+msgid "Please select a folder"
+msgstr "Veuillez sélectionner un dossier"
+
+msgid "Copy/Move messages"
+msgstr "Copier/Déplacer les messages"
+
+msgid "There are %s messages selected"
+msgstr "Il y a %s messages sélectionnés"
+
+msgid "There is one message selected"
+msgstr "Il y a une message sélectionné"
+
+msgid "Copy/move selected messages to"
+msgstr "Copier/déplacer les éléments sélectionnés vers"
+
+msgid "Available fields"
+msgstr "Champs disponibles"
+
+msgid "Selected fields"
+msgstr "Sélectionner les champs"
+
+msgid "Signatures"
+msgstr ""
+
+msgid "Rename"
+msgstr "Renommer"
+
+msgid "Signature for new messages"
+msgstr "Signature pour messages nouveaux"
+
+msgid "Signature for replies and forwards"
+msgstr "Signature pour la réponse ou la transmission effectuée"
+
+msgid "Confirm Delete"
+msgstr "Confirmer la suppression"
+
+msgid "Do you want to delete all occurrences of this recurring appointment or just this one?"
+msgstr "Désirez-vous supprimer toutes les occurrences de ce rendez-vous périodique ou uniquement celle-là?"
+
+msgid "Delete this occurrence"
+msgstr "Effacer cette occurrence"
+
+msgid "Delete the series"
+msgstr "Supprimer la série"
+
+msgid "Modify folder"
+msgstr "Modifier un dossier"
+
+msgid "Appointment Recurrence"
+msgstr "Récurrence de rendez-vous"
+
+msgid "Start"
+msgstr "Début"
+
+msgid "End By"
+msgstr "Se termine le/à"
+
+msgid "Appointment time"
+msgstr "Heure du rendez-vous"
+
+msgid "Recurrence pattern"
+msgstr "Mode de périodicité"
+
+msgid "Daily"
+msgstr "Quotidien"
+
+msgid "Weekly"
+msgstr "Hebdomadaire"
+
+msgid "Monthly"
+msgstr "Mensuel(le)"
+
+msgid "Yearly"
+msgstr "Annuel(le)"
+
+msgid "Every"
+msgstr "Chaque"
+
+msgid "day(s)"
+msgstr "jour(s)"
+
+msgid "weekday"
+msgstr "jour de la semaine"
+
+msgid "week(s) on"
+msgstr "semaine(s) en"
+
+msgid "of every "
+msgstr "de chaque"
+
+msgid "month(s)"
+msgstr "mois"
+
+msgid "The"
+msgstr "Le"
+
+msgid "1st"
+msgstr "premier"
+
+msgid "2nd"
+msgstr "deuxième"
+
+msgid "3rd"
+msgstr "troisième"
+
+msgid "4th"
+msgstr "quatrième"
+
+msgid "last"
+msgstr "dernier"
+
+msgid "Weekday"
+msgstr "Jour de semaine"
+
+msgid "Weekend day"
+msgstr "Jour de Week-end"
+
+msgid "of every"
+msgstr "de chaque"
+
+msgid "Month(s)"
+msgstr "Mois"
+
+msgid "Range of recurrence"
+msgstr "Plage de récurrence"
+
+msgid "No end date"
+msgstr "Pas de date de fin"
+
+msgid "End after"
+msgstr "Se termine après"
+
+msgid "occurrences"
+msgstr "occurrences"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Remove Recurrence"
+msgstr "Supprimer la périodicité"
+
+msgid "Folder Name"
+msgstr "Nom du dossier"
+
+msgid "Size (without subfolders)"
+msgstr "Taille (sans les sous-répertoires)"
+
+msgid "Total size (including subfolders)"
+msgstr "Taille totale (avec les sous-répertoires)"
+
+msgid "User group"
+msgstr "Groupe d'utilisateurs"
+
+msgid "Groups"
+msgstr "Groupes"
+
+msgid "Add Group"
+msgstr "Ajouter le groupe"
+
+msgid "Remove Group"
+msgstr "Retirer le groupe"
+
+msgid "Users"
+msgstr "Utilisateurs"
+
+msgid "Remove User"
+msgstr "Retirer l'utilisateur"
+
+msgid "The Webaccess"
+msgstr "Le WebAccess"
+
+msgid "found more than one"
+msgstr "a trouvé plus d'un(e)"
+
+msgid "Select the address to use"
+msgstr "Sélectionner l'adresse à utiliser"
+
+msgid "New e-mail address"
+msgstr "Nouvelle adresse électronique"
+
+msgid "Email Address"
+msgstr "Adresse Électronique"
+
+msgid "Ok"
+msgstr "Ok"
+
+msgid "Button"
+msgstr "Bouton"
+
+msgid "Organizor"
+msgstr "Organisateur"
+
+msgid "Updated:"
+msgstr ""
+
+msgid "Your message did not reach some or all of the intended recipients"
+msgstr "Votre message n'a pas atteint certains ou tous les destinataires"
+
+msgid "The following recipient(s) could not be reached"
+msgstr "Le(s) destinataire(s) suivant(s) ne peuvent pas être atteint(s)"
+
+msgid "Untitled rule"
+msgstr "Règle sans titre"
+
+msgid "Canceled: "
+msgstr "Annulé:"
+
+msgid "GB"
+msgstr "Go"
+
+msgid "KB"
+msgstr "Ko"
+
+msgid "Sort On Priority"
+msgstr "Tri Par Priorité"
+
+msgid "Sort On Icon"
+msgstr "Tri Par Icône"
+
+msgid "Sort On Attachments"
+msgstr "Tri Par Pièces Jointes"
+
+msgid "Sort On Subject"
+msgstr "Tri Par Sujet"
+
+msgid "Sort On Size"
+msgstr "Tri Par Taille"
+
+msgid "Flag Status"
+msgstr "État de l'indicateur"
+
+msgid "Sort On Flag Status"
+msgstr "Tri par état de l'indicateur"
+
+msgid "Sort On Categories"
+msgstr "Tri Par Catégories"
+
+msgid "Sort On Sender"
+msgstr "Tri Par Expéditeur"
+
+msgid "Received"
+msgstr "Reçu"
+
+msgid "Sort On Received Date"
+msgstr "Tri Par Date de Réception"
+
+msgid "Sort On Recipient"
+msgstr "Tri Par Destinataire"
+
+msgid "Sort On Sent Date"
+msgstr "Tri Par Date D'envoi"
+
+msgid "Unable to display the store. Access denied"
+msgstr "Impossible d'afficher la base. Accès refusé"
+
+msgid "Icon Index"
+msgstr "Index d'icône"
+
+msgid "Sort on Icon Index"
+msgstr "Tri Par Index d'icône"
+
+msgid "Sort on Subject"
+msgstr "Tri Par Sujet"
+
+msgid "Sort on Startdate"
+msgstr "Tri par Date de Début"
+
+msgid "Sort on Enddate"
+msgstr "Tri par Date de Fin"
+
+msgid "Recurring"
+msgstr "Périodicité"
+
+msgid "Sort on Recurring"
+msgstr "Tri par Périodicité"
+
+msgid "Sort on Busy Status"
+msgstr "Tri par état de disponibilité"
+
+msgid "Private Appointment"
+msgstr "Rendez-vous privé"
+
+msgid "Sort on rule name"
+msgstr "Tri par nom de règle"
+
+msgid "Rule enabled"
+msgstr "Règle activée"
+
+msgid "Sort on rule enabled"
+msgstr "Tri par règle activée"
+
+msgid "Id"
+msgstr "Id"
+
+msgid "Sort on Id"
+msgstr "Tri par Id"
+
+msgid "Sort on Enabled"
+msgstr "Tri par Activé"
+
+msgid "Sort on Name"
+msgstr "Tri par Nom"
+
+msgid "Unable to set the permission on folder."
+msgstr ""
+
+msgid "Modification"
+msgstr "Modification"
+
+msgid "Sort On Modification Date"
+msgstr "Tri Par Date De Modification"
+
+msgid "In Folder"
+msgstr "Dans le dossier"
+
+msgid "Sort Folder"
+msgstr "Trier le dossier"
+
+msgid "File As"
+msgstr "Classé sous"
+
+msgid "Sort On File As"
+msgstr "Tri Par Classement"
+
+msgid "Sort On Display Name"
+msgstr "Tri Par Nom Affiché"
+
+msgid "Email Address 1"
+msgstr "Adresse Électronique 1"
+
+msgid "Sort On Email Address 1"
+msgstr "Tri Par Adresse Électronique 1"
+
+msgid "Email Address 2"
+msgstr "Adresse Électronique 2"
+
+msgid "Sort On Email Address 2"
+msgstr "Tri Par Adresse Électronique 2"
+
+msgid "Email Address 3"
+msgstr "Adresse Électronique 3"
+
+msgid "Sort On Email Address 3"
+msgstr "Tri Par Adresse Électronique 3"
+
+msgid "Home Telephonenumber"
+msgstr "Numéro de Téléphone Privé"
+
+msgid "Sort On Home Telephonenumber"
+msgstr "Tri Par Numéro de Téléphone Privé"
+
+msgid "Cellular Telephonenumber"
+msgstr "Numéro de Téléphone Portable"
+
+msgid "Sort On Cellular Telephonenumber"
+msgstr "Tri Par Numéro de Téléphone Portable"
+
+msgid "Sort on Icon"
+msgstr "Tri Par Icône"
+
+msgid "Sort on File As"
+msgstr "Tri Par Classement"
+
+msgid "Sort on Display Name"
+msgstr "Tri Par Nom Affiché"
+
+msgid "Sort on Email Address"
+msgstr "Tri Par Adresse Électronique"
+
+msgid "Sort On Body"
+msgstr "Tri Par Contenu"
+
+msgid "Created"
+msgstr "Date de Création"
+
+msgid "Sort On Created"
+msgstr "Tri Par Date de Création"
+
+msgid "Multi-user calendar is not available with your license"
+msgstr ""
+
+msgid "Sort on subject"
+msgstr "Tri par sujet"
+
+msgid "Due in"
+msgstr "Échéance"
+
+msgid "Sort on Due in"
+msgstr "Tri par échéance"
+
+msgid "Sort On Complete"
+msgstr "Tri Par Complétion"
+
+msgid "Sort On Due Date"
+msgstr "Tri Par Date Butoir"
+
+msgid "Sort On Owner"
+msgstr "Tri Par Propriétaire"
+
+msgid "% Completed"
+msgstr "% Complété"
+
+msgid "Sort On Percent Completed"
+msgstr "Tri Par Pourcentage de Complétion"
+
+msgid "0%"
+msgstr "0%"
+
+msgid "Please search for a name"
+msgstr "Veuillez rechercher un nom"
+
+msgid "Loading..."
+msgstr ""
+
+msgid "Precent complete must be a number between 0 and 100"
+msgstr ""
+
+msgid "No signatures"
+msgstr ""
+
+msgid "Please fill in field \"%s\""
+msgstr "S'il vous plaît, remplissez le champ \"%s\""
+
+msgid "Subfolder"
+msgstr "Sous-répertoire"
+
+msgid "Total Size"
+msgstr "Taille totale"
+
+msgid "Please select a contact"
+msgstr ""
+
+msgid "The signature has been changed. Do you want to save the changes?"
+msgstr ""
+
+msgid "Enter the signature name"
+msgstr ""
+
+msgid "Enter new signature name"
+msgstr ""
+
+msgid "Default Signature"
+msgstr ""
+
+msgid "Start date and End date for range of recurrence can not be same."
+msgstr "La date du début et la date de la fin d'une série de récurrences ne peuvent être identiques."
+
+msgid "%a %x %X"
+msgstr ""
+
+msgid "%a %x"
+msgstr ""
+
+msgid "%a %d %h"
+msgstr ""
+
+msgid "%d %B %Y"
+msgstr ""
+
+msgid "%A"
+msgstr ""
+
+msgid "%H%M%S"
+msgstr ""
+
+msgid "More items..."
+msgstr ""
+
+msgid "%A %d %B"
+msgstr ""
+
+msgid "All Day"
+msgstr ""
+
+msgid "%d %B"
+msgstr ""
+
+msgid "%B %Y"
+msgstr ""
+
+msgid "%d/%m/%Y %H:%M"
+msgstr ""
+
+msgid "You marked \"%s\" as a resource. You cannot schedule a meeting with \"%s\" because you do not have the appropiate permissions for that account. Either enter the name as a required or optional attendee or talk to your administrator about giving you permission to schedule \"%s\"."
+msgstr "Vous avez inscrit \"%s\" en tant que ressource. Vous ne pouvez pas organiser de réunion avec \"%s\" parce que vous ne possédez pas les permissions appropriées pour ce compte. Vous devez soit saisir le nom en tant que participant requis ou en tant que participant optionnel, soit contacter votre administrateur afin qu'il vous accorde l'autorisation de gérer l'emploi du temps de \"%s\"."
+
+msgid "\"%s\" has declined your meeting because \"%s\" does not automatically accept meeting requests. "
+msgstr "\"%s\" a refusé cette réunion car \"%s\" n'accepte pas automatiquement les demandes de réunion."
+
+msgid "\"%s\" has declined your meeting because it is recurring. You must book each meeting separetly with this recurrence."
+msgstr "\"%s\" a refusé votre réunion car elle est récurrente. Vous devez réserver chaque réunion séparément avec cette ressource."
+
+msgid "\"%s\" is already booked for this specified time. You must use another time or find another resource."
+msgstr "\"%s\" est déjà réservé à cet horaire. Vous choisir un autre moment ou trouver une autre ressource."
+
+msgid "This meeting request was updated after this message was sent. You Should open a later update or open the item on the calendar."
+msgstr ""
+
+msgid "GMT"
+msgstr ""
+
+msgid "You will lose the modified data. Do you want to continue?"
+msgstr ""
+
+msgid "This meeting request is out-of-date and will now be deleted."
+msgstr ""
+
+msgid "Add to favorites folder"
+msgstr ""
+
+	

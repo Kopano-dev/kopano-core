@@ -1,0 +1,137 @@
+#!/usr/bin/perl -w
+
+use strict;
+use DBI;
+
+my $L1 = 10;
+my $L2 = 20;
+
+sub do_error($) {
+   exit(1);
+}
+
+sub readable {
+	my $size = shift;
+	my @add = qw( B KB MB GB TB );
+	my $i ;
+	for ($i = 0; $i < 5;$i++) { 
+		if ( int($size / 1024) > 0 ) {
+			$size = $size / 1024;
+		} else {
+			$size = 0.01*int(0.5+ $size/0.01) . " " . $add[$i];
+			last;
+		}
+	}
+	return $size;
+}
+
+if(scalar(@ARGV) < 4) {
+	print "Usage: $0 <mysqluser> <mysqlpass> <mysqldb> <destination path> [delete]\n";
+	printf"   if [delete] is given, attachments will be removed from the database, to free storage\n";
+	exit(1);
+}
+
+my ($user,$pass,$dbname,$basepath,$delete) = @ARGV;
+
+my $db = DBI->connect("dbi:mysql:$dbname", $user, $pass);
+
+my $res; 
+my $sth;
+my $rows;
+my @row;
+
+if (!defined($db)) {
+	print "did not connect to mysql\n";
+	exit(1);
+}
+
+$res = $db->do("set character_set_client=utf8;");
+if(!$res) {
+  do_error(1);
+}
+$res = $db->do("set character_set_connection=utf8;");
+if(!$res) {
+  do_error(1);
+}
+$res = $db->do("set character_set_results=utf8;");
+if(!$res) {
+  do_error(1);
+}
+$res = $db->do("begin;");
+if(!$res) {
+  do_error(1);
+}
+
+$sth = $db->prepare("SHOW TABLE STATUS WHERE name = 'lob'");
+$sth->execute() || die $DBI::errstr;
+if ($sth->rows == 0) {
+	print "Can't get attachment size.\n";
+	exit(0);
+}
+
+@row = $sth->fetchrow_array();
+if (! defined ( $row[0] ) ) {
+	print "Table status failed.\n";
+	exit(0);
+}
+my $dbsize = $row[6];
+print "The size of all attachments in the database is: ". $dbsize." Bytes (". readable($dbsize) . ")\n";
+
+my $free = `df -P -B1 $basepath | tail -1 | awk '{print \$4}'`;
+chomp($free);
+print "Available space is: " .  $free . " Bytes (" . readable($free) . ")\n";
+
+if ( $dbsize >= $free ) {
+	print "Not enough space left on device.\n";
+	exit(0);
+}
+
+
+print "Finding all attachments...\n";
+$sth = $db->prepare("SELECT distinct(instanceid) FROM lob");
+$sth->execute() || die $DBI::errstr;;
+
+if ($sth->rows == 0) {
+	print "No attachments found.\n";
+	exit(0);
+}
+
+print "Processing ".$sth->rows." attachments\n";
+
+while(@row = $sth->fetchrow_array()) {
+	my @data;
+	my $path = $basepath."/".($row[0] % $L1)."/".(($row[0] / $L1) % $L2);
+	my $filename = $path."/".$row[0];
+
+	system("mkdir -p ".$path) == 0 or die("Unable to create attachment directories");
+
+	if ( -s $filename ) {
+		next;
+	}
+	open(AFILE, ">".$filename) or die("Unable to open new attachment file");
+
+	my $sth2 = $db->prepare("SELECT val_binary FROM lob WHERE instanceid=".$row[0]." ORDER BY chunkid");
+	$res = $sth2->execute();
+	if(!$res) {
+		print "  Unable to extract attachment ".$row[0]."\n";
+		next;
+	}
+
+	while (@data = $sth2->fetchrow_array()) {
+		print AFILE $data[0] or die("Not all data could be retrieved from attachment ".$row[0]);
+	}
+	close(AFILE);
+}
+
+print "Done.\n";
+
+if (defined($delete) && $delete) {
+	print "Deleting attachments from database...\n";
+	$sth = $db->prepare("DELETE FROM lob");
+	$sth->execute() || die $DBI::errstr;
+	print "Done.\n";
+}
+
+print "Remember to correct the ownership of the files for kopano to access, when Kopano is not running as root\n";
+
+$db->do("commit;");

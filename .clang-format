@@ -1,0 +1,25 @@
+# clang-format (3.5) is not yet capable of doing LKCS to the full extent,
+# so the style implemented by this config file is non-normative, but perhaps
+# still useful if there are a lot of "accidents" in a file.
+#
+# [LKCS] https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/Documentation/CodingStyle
+
+BasedOnStyle: LLVM
+Standard: Cpp03
+IndentWidth: 8
+UseTab: ForIndentation
+BreakBeforeBraces: Linux
+AllowShortIfStatementsOnASingleLine: false
+IndentCaseLabels: false
+ColumnLimit: 0
+PenaltyExcessCharacter: 2
+PenaltyBreakString: 1000
+PenaltyReturnTypeOnItsOwnLine: 0
+AccessModifierOffset: 0
+AllowShortFunctionsOnASingleLine: None
+ConstructorInitializerAllOnOneLineOrOnePerLine: false
+# not supported before 3.6
+#AlignAfterOpenBracket: false
+# not supported before 3.8
+#BreakBeforeBraces: WebKit
+ContinuationIndentWidth: 8

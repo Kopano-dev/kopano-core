@@ -1,0 +1,110 @@
+#!/bin/bash
+#
+# kopano-search Kopano Core Search Indexer
+#
+# chkconfig: 345 86 24
+# processname: /usr/sbin/kopano-search
+# config: /etc/kopano/search.cfg
+# pidfile: /var/run/kopano/search.pid
+
+### BEGIN INIT INFO
+# Provides: kopano-search
+# Required-Start: $local_fs $network $remote_fs $syslog
+# Required-Stop: $local_fs $network $remote_fs $syslog
+# Should-Start: kopano-server
+# Should-Stop: kopano-server
+# Short-Description: Kopano Core Search Indexer
+### END INIT INFO
+
+SEARCHCONFIG=/etc/kopano/search.cfg
+SEARCHPROGRAM=/usr/sbin/kopano-search
+
+# Sanity checks.
+[ -x $SEARCHPROGRAM ] || exit 0
+
+SEARCHCONFIG_OPT=""
+[ ! -z $SEARCHCONFIG -a -f $SEARCHCONFIG ] && SEARCHCONFIG_OPT="-c $SEARCHCONFIG"
+
+[ -f /etc/sysconfig/kopano ] && . /etc/sysconfig/kopano
+if [ -z "$KOPANO_LOCALE" ]; then
+	KOPANO_LOCALE="C"
+fi
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+RETVAL=0
+search=`basename $SEARCHPROGRAM`
+lockfile=/var/lock/subsys/$search
+pidfile=/var/run/kopano/search.pid
+
+start() {
+	# Start in background, always succeeds
+	echo -n $"Starting $search: "
+	install -dm0775 -o kopano -g kopano /var/run/kopano
+	export LC_ALL=$KOPANO_LOCALE
+	export LANG=$KOPANO_LOCALE
+	daemon $SEARCHPROGRAM $SEARCHCONFIG_OPT
+	RETVAL=$?
+	unset LC_ALL LANG
+	echo
+	[ $RETVAL -eq 0 ] && touch $lockfile
+
+	return $RETVAL
+}
+
+stop() {
+	echo -n $"Stopping $search: "
+	killproc $SEARCHPROGRAM
+	RETVAL=$?
+	echo
+	[ $RETVAL -eq 0 ] && rm -f $lockfile $pidfile
+
+	return $RETVAL
+}
+
+restart() {
+	stop
+	start
+}
+
+reload() {
+	echo -n $"Restarting $search: "
+	killproc $SEARCHPROGRAM -SIGHUP
+	RETVAL=$?
+	echo
+
+	return $RETVAL
+}
+
+# See how we were called.
+case "$1" in
+    start)
+		start
+		;;
+    stop)
+		stop
+		;;
+    status)
+		status $search
+		RETVAL=$?
+		;;
+    restart|force-reload)
+		restart
+		;;
+    condrestart|try-restart)
+		if [ -f ${pidfile} ]; then
+			stop
+			start
+		fi
+		;;
+    reload)
+		reload
+		;;
+    *)
+		echo $"Usage: $search {start|stop|status|reload|restart|condrestart|force-reload|try-restart}"
+		RETVAL=1
+		;;
+esac
+
+exit $RETVAL

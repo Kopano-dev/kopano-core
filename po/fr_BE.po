@@ -1,0 +1,729 @@
+# foo <foo@bar.foobar>, 2005.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PHP-Langadmin 1.0\n"
+"POT-Creation-Date: 2009-06-10 13:51:04+0200\n"
+"PO-Revision-Date: 2009-06-10 13:51:04+0200\n"
+"Last-Translator: PHP-Langadmin automatic translator <foo@bar.foobar>\n"
+"Language-Team: fr_FR <fr@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=iso-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Configure synchronization"
+msgstr "Configurer la synchronisation"
+
+msgid "Time between synchronizations:"
+msgstr "Délai entre les synchronisations:"
+
+msgid "1 minute"
+msgstr "1 minute"
+
+msgid "5 minutes"
+msgstr "5 minutes"
+
+msgid "15 minutes"
+msgstr "15 minutes"
+
+msgid "1 half hour"
+msgstr "1 demi-heure"
+
+msgid "1 hour"
+msgstr "1 heure"
+
+msgid "Also start synchronization when:"
+msgstr "Démarrer également la synchronisation lorsque:"
+
+msgid "None"
+msgstr "Aucun"
+
+msgid "Receive mail"
+msgstr "Réception de courrier"
+
+msgid "Any change"
+msgstr "N'importe quelle modification"
+
+msgid "OK"
+msgstr "Confirmer"
+
+msgid "Cancel"
+msgstr "Annuler"
+
+msgid "Error saving synchronization settings"
+msgstr "Erreur lors de l'enregistrement des paramètres de synchronisation"
+
+msgid "Multiple Delegates"
+msgstr "Mandataires multiples"
+
+msgid "<Unknown>"
+msgstr "<Inconnu>"
+
+msgid "Delegate permissions"
+msgstr "Permissions du mandataire"
+
+msgid "This delegate has the following permissions"
+msgstr "Ce mandataire possède les permissions suivantes"
+
+msgid "Calendar"
+msgstr "Calendrier"
+
+msgid "Tasks"
+msgstr "Tâches"
+
+msgid "Inbox"
+msgstr "Boîte de réception"
+
+msgid "Contacts"
+msgstr "Contacts"
+
+msgid "Notes"
+msgstr "Notes"
+
+msgid "Journal"
+msgstr "Journal"
+
+msgid "Delegate receives copies of meeting-related messages sent to me"
+msgstr "Ce mandataire reçoit les copies des messages de réunions qui me sont envoyés"
+
+msgid "Automatically send a message to delegate summarizing these permissions"
+msgstr "Envoi automatique au mandataire d'un message récapitulant ces permissions"
+
+msgid "Delegate can see my private items"
+msgstr "Ce mandataire peut voir mes éléments privés"
+
+msgid "Only read"
+msgstr "Seulement en lecture"
+
+msgid "Secretary"
+msgstr "Secrétaire"
+
+msgid "Owner"
+msgstr "Propriétaire"
+
+msgid "Synchronization Status"
+msgstr "Statut de la synchronisation"
+
+msgid "Hide"
+msgstr "Cacher"
+
+msgid "Close"
+msgstr "Fermer"
+
+msgid "Connection error"
+msgstr "Erreur de connexion"
+
+msgid "synchronization done"
+msgstr "synchronisation effectuée"
+
+msgid "Synchronizing folders ..."
+msgstr "Synchronisation des dossiers en cours ..."
+
+msgid "Looking for changes ..."
+msgstr "Recherche des modifications en cours ..."
+
+msgid "Synchronizing messages ..."
+msgstr "Synchronisation des messages en cours ..."
+
+msgid "Logging in ..."
+msgstr "Ouverture de session en cours ..."
+
+msgid "Synchronizing ..."
+msgstr "Synchronisation en cours ..."
+
+msgid "Synchronize"
+msgstr "Synchroniser"
+
+msgid "Start Kopano offline synchronization"
+msgstr "Démarrer la synchronisation Kopano hors-connexion"
+
+msgid "Configure"
+msgstr "Configurer"
+
+msgid "Configure Kopano offline synchronization"
+msgstr "Configurer la synchronisation Kopano hors-connexion"
+
+msgid "Global Address Book"
+msgstr "Carnet d'adresses global"
+
+msgid "Add..."
+msgstr "Ajouter..."
+
+msgid "Remove..."
+msgstr "Supprimer..."
+
+msgid "Permissions..."
+msgstr "Permissions..."
+
+msgid "Delegates can send items on your behalf. To grant permission to others to access your folders without also giving them send-on-behalf-of privileges, go to properties for each folder and change the options on the Permissions tab."
+msgstr "Vous pouvez permettre à vos mandataires d'envoyer des éléments en votre nom. Afin de permettre à vos autres collègues d'accéder à vos dossiers sans toutefois leur donner également le privilège envoyer-au-nom-de, veuillez modifier les options de l'onglet Permissions dans les propriétés de chaque dossier."
+
+msgid "Kopano is not availible. Either there are network problems or Kopano is down for maintenance."
+msgstr ""
+
+msgid "Could not initialize delegation window\nPlease contact your administrator."
+msgstr ""
+
+msgid "Saving changes failed"
+msgstr "La sauvegarde des modifications a échoué"
+
+msgid "Add to favorite folder"
+msgstr "Ajouter au dossier favori"
+
+msgid "Favorite folder name"
+msgstr "Nom du dossier favori"
+
+msgid "Public folder name"
+msgstr "Nom du dossier public"
+
+msgid "Subfolders"
+msgstr "Sous-répertoire"
+
+msgid "Add subfolders of this folder"
+msgstr "Ajouter les sous-répertoires de ce dossier"
+
+msgid "Add all subfolders"
+msgstr "Ajouter tous les sous-répertoires"
+
+msgid "Add immediate subfolders only"
+msgstr "Ajouter seulement les sous-répertoires immédiats"
+
+msgid "Unable to get folder data"
+msgstr "Impossible d'obtenir les données du dossier"
+
+msgid "Shortcut"
+msgstr "Raccourci"
+
+msgid "Shortcut folder"
+msgstr "Dossier de raccourci"
+
+msgid "Unable to add folder to favorites"
+msgstr "Impossible d'ajouter des dossiers à vos favoris"
+
+msgid "Unable to get MAPI information"
+msgstr "Impossible d'obtenir l'information MAPI"
+
+msgid "Error"
+msgstr "Erreur"
+
+msgid "Unable to get Folder information"
+msgstr "Impossible d'obtenir l'information du dossier"
+
+msgid "Kopano Favorites"
+msgstr "Favoris Kopano"
+
+msgid "Kopano Delegates"
+msgstr "Mandataires Kopano"
+
+msgid "Adding local folders"
+msgstr "Ajout de dossiers locaux"
+
+msgid "Adding remote folders"
+msgstr "Ajout de dossiers à distance"
+
+msgid "Removing local folders"
+msgstr "Suppression de dossiers locaux"
+
+msgid "Removing remote folders"
+msgstr "Suppression de  dossiers à distance"
+
+msgid "Modifying local messages"
+msgstr "Modification de messages locaux"
+
+msgid "Modifying remote messages"
+msgstr "Modification de messages à distance"
+
+msgid "Reading stores"
+msgstr "Lecture des bases de données"
+
+msgid "Done"
+msgstr "Terminé"
+
+msgid "Starting Synchronisation"
+msgstr "Début de la synchronisation"
+
+msgid "End of Session"
+msgstr "Fin de session"
+
+msgid "Connection lost"
+msgstr "Connexion perdue"
+
+msgid "Access denied"
+msgstr "Accès refusé"
+
+msgid "Unable to move or copy folders. Can't copy folder. A top-level can't be copied to one of its subfolders. Or, you may not have appropriate permissions for the folder. To check your permissions for the folder, right-click the folder, and then click Properties on the shortcut menu."
+msgstr "Impossible de déplacer ou de copier les dossiers. Un dossier racine ne peut être copié dans un de ses sous-dossiers. Ou bien, vous ne disposez pas des permissions appropriées au dossier. Pour vérifier vos permissions, veuillez effectuer un clic droit sur le dossier, et sélectionnez l'entrée propriété."
+
+msgid "The message store has reached its maximum size. To reduce the amount of data in this message store, select some items that you no longer need, and permanently (SHIFT + DEL) delete them."
+msgstr "La base de stockage des messages a atteint sa taille maximale. Pour réduire la quantité de données contenues dans cette base de stockage, veuillez sélectionner certains éléments dont vous n'avez plus besoin et effacez-les de manière permanente (SHIFT + SUPP)."
+
+msgid "The user canceled the operation, typically by clicking the Cancel button in a dialog box."
+msgstr "L'utilisateur a annulé l'opération, typiquement en cliquant sur le bouton Annuler dans une boîte de dialogue."
+
+msgid "A logon session could not be established."
+msgstr "L'ouverture de session n'a pas pu être établie."
+
+msgid "The name of the folder being moved or copied is the same as that of a subfolder in the destination folder. The message store provider requires that folder names be unique. The operation stops without completing."
+msgstr "Le nom du dossier en cours de déplacement ou copie est le même qu'un sous-dossier dans le dossier de destination. Le fournisseur de la base de messages exige que les noms de dossier soient uniques. L'opération va s'interrompre sans aboutir."
+
+msgid "The operation succeeded, but not all entries were successfully processed, copied, deleted or moved"
+msgstr "L'opération a réussi, mais toutes les saisies n'ont pas été correctement effectuées, copiées, effacées ou déplacées"
+
+msgid "The provider does not have enough information to complete the logon. Or, the service provider has not been configured."
+msgstr "Le fournisseur n'a pas assez d'informations pour ouvrir la session ou le fournisseur de services n'a pas été configuré."
+
+msgid "One of the providers cannot log on, but this error should not disable the other services."
+msgstr "Un des fournisseurs n'a pas pu ouvrir de session mais cette erreur ne devrait pas désactiver les autres services."
+
+msgid "General"
+msgstr "Général"
+
+msgid "Display Name:"
+msgstr "Nom d'Affichage :"
+
+msgid "Alias Name:"
+msgstr "Nom de l'alias:"
+
+msgid "Email Address:"
+msgstr "Adresse électronique"
+
+msgid "Address Type:"
+msgstr "Type d'Adresse :"
+
+msgid "Trying to connect to"
+msgstr "Tentative de connexion à"
+
+msgid "Username"
+msgstr "Nom de l'utilisateur"
+
+msgid "Password"
+msgstr "Mot de passe"
+
+msgid "Sync Issues"
+msgstr "Erreur de synchronisation"
+
+msgid "Conflicts"
+msgstr "Conflits"
+
+msgid "Local Failures"
+msgstr "Défaillances locales"
+
+msgid "Server Failures"
+msgstr "Défaillance du serveur"
+
+msgid "Not read:"
+msgstr "Non lu(s) :"
+
+msgid "was not read because it expired before reading at time"
+msgstr "non lu(s) à cause du délai d'expiration"
+
+msgid "Read:"
+msgstr "Lu(s) :"
+
+msgid "was read on"
+msgstr "a été lu le"
+
+msgid "Your message"
+msgstr "Votre Message"
+
+msgid "To:"
+msgstr "À :"
+
+msgid "Cc:"
+msgstr "Cc :"
+
+msgid "Subject:"
+msgstr "Sujet:"
+
+msgid "Sent on:"
+msgstr "Envoyé le :"
+
+msgid "Server settings"
+msgstr "Paramètres du serveur"
+
+msgid "Server"
+msgstr "Serveur"
+
+msgid "Port"
+msgstr "Port"
+
+msgid "Enable encryption (HTTPS)"
+msgstr "Activer le chiffrement (HTTPS)"
+
+msgid "Connection"
+msgstr "Connexion"
+
+msgid "Connection type"
+msgstr "Type de connexion"
+
+msgid "Online"
+msgstr "En ligne"
+
+msgid "Cached Kopano Mode"
+msgstr "Mode de mise en cache Kopano"
+
+msgid "Detect at startup"
+msgstr "Détectez au démarrage"
+
+msgid "Kopano does not support offline or cached mode for Outlook XP and Outlook 2002. If you wish to use offline functionality of Kopano, please use Outlook 2000, 2003, 2007 or later."
+msgstr "Kopano ne supporte pas le mode cache et le mode hors-connexion pour Outlook XP et Outlook 2002.\nSi vous souhaitez utiliser les fonctionnalités hors-connexion de Kopano, vous devez utiliser les versions Outlook 2000, 2003, 2007 ou supérieures"
+
+msgid "Kopano Offline"
+msgstr "Kopano hors-ligne"
+
+msgid "Favorites"
+msgstr "Favoris"
+
+msgid "Public Folders"
+msgstr "Dossiers publics"
+
+msgid "Unable to work online! The first time you need a network connection. Retry if you have the network connection."
+msgstr "Impossible de travailler en ligne! La première fois, vous nécessitez une connexion au réseau. Réessayez si vous avez une connexion réseau."
+
+msgid "First Folder Sync..."
+msgstr "Synchronisation du premier dossier ..."
+
+msgid "Sync folder items"
+msgstr "Synchroniser les éléments du dossier"
+
+msgid "Unknown username"
+msgstr "Nom d'utilisateur inconnu"
+
+msgid "Connecting to the server..."
+msgstr "Connexion au serveur..."
+
+msgid "Unable to reach the server.\nDo you want to save the settings or cancel and re-enter the settings?"
+msgstr "Impossible de se connecter au serveur.\nDésirez-vous conserver les paramètre ou annuler et renouveler la saisie des paramètres?"
+
+msgid "Cannot start Kopano client because you are over the license limit. To continue, you must purchase additional client licenses from Kopano."
+msgstr "Impossible de démarrer le client Kopano car vous avez dépassé la limite accordée à votre licence. Pour continuer, vous devez acquérir une licence pour client supplémentaire  auprès de Kopano."
+
+msgid "Kopano license"
+msgstr "Licence Kopano"
+
+msgid "Incorrect username and/or password."
+msgstr "Nom d'utilisateur et/ou mot de passe incorrect."
+
+msgid "Incorrect servername and/or port\nCheck if the server is running."
+msgstr "Nom de serveur et/ou port incorrect. Vérifiez si le serveur fonctionne."
+
+msgid "Incorrect Kopano version."
+msgstr "Version Kopano incorrecte."
+
+msgid "An unknown failure has occurred.\nPlease contact your administrator."
+msgstr "Une erreur inconnue s'est produite. Contactez votre administrateur s'il vous plaît."
+
+msgid "You should restart Outlook for the changes to take effect."
+msgstr "Vous devez redémarrer Outlook afin que les modifications soient prises en compte."
+
+msgid "Unable to connect to the online server. If you continue, no new connections will be attempted until you disable the 'Work offline' option in the 'File' menu."
+msgstr "Impossible de se connecter au serveur en ligne. Si vous continuez, aucune nouvelle connexion ne pourra s'effectuer tant que vous n'aurez pas désactivé l'option 'Travailler hors-connexion' du menu 'Fichier'"
+
+msgid "Unable to work online! Do you want to switch to offline mode?"
+msgstr "Impossible de travailler en ligne! Voulez-vous passer en mode hors-connexion ?"
+
+msgid "Advanced"
+msgstr "Avancé"
+
+msgid "Proxy"
+msgstr "Proxy"
+
+msgid "Use proxyserver"
+msgstr "Utiliser le serveur proxy"
+
+msgid "Proxy server"
+msgstr "Serveur Proxy"
+
+msgid "Use compression"
+msgstr "Utiliser la compression"
+
+msgid "Seconds Until Server Connection timeout"
+msgstr "Secondes jusqu'à la fin du délai d'attente du serveur"
+
+msgid "MailBox"
+msgstr "Boîte aux lettres"
+
+msgid "Add"
+msgstr "Ajouter"
+
+msgid "Name..."
+msgstr "Nom..."
+
+msgid "Remove"
+msgstr "Retirer"
+
+msgid "User could not be resolved."
+msgstr "La résolution de l'utilisateur a échoué"
+
+msgid "User already exists."
+msgstr "L'utilisateur existe déjà."
+
+msgid "Outbox"
+msgstr "Boîte d'envoi"
+
+msgid "Deleted Items"
+msgstr "Eléments effacés"
+
+msgid "Sent Items"
+msgstr "Eléments envoyés"
+
+msgid "Drafts"
+msgstr "Brouillons"
+
+msgid "Junk E-mail"
+msgstr "Courrier indésirable"
+
+msgid "RSS Feeds"
+msgstr "Flux RSS"
+
+msgid "RSS Feed comment"
+msgstr "Commentaire de flux RSS"
+
+msgid "Inbox -"
+msgstr "Boîte de réception -"
+
+msgid "Entire Inbox (Permanent)"
+msgstr "Boîte de réception entière (Permanent)"
+
+msgid "Calendar (Temporary)"
+msgstr "Agenda (Temporaire)"
+
+msgid "Notes (Temporary)"
+msgstr "Notes (Temporaire)"
+
+msgid "Tasks (Temporary)"
+msgstr "Tâches  (Temporaire)"
+
+msgid "Contacts (Temporary)"
+msgstr "Contacts (Temporaire)"
+
+msgid "Inbox (Temporary)"
+msgstr "Boîte de réception (Temporaire)"
+
+msgid "Select a folder type or cancel."
+msgstr "Sélectionner un type de dossier ou annuler."
+
+msgid "Folder of other user"
+msgstr "Dossier d'un autre utilisateur"
+
+msgid "Foldertype"
+msgstr "Type de dossier"
+
+msgid "Ok"
+msgstr "Ok"
+
+msgid "Recover Deleted Items"
+msgstr "Récupérer les éléments supprimés"
+
+msgid "Delete"
+msgstr "Supprimer"
+
+msgid "Restore"
+msgstr "Restaurer"
+
+msgid "Messages"
+msgstr "Messages"
+
+msgid "Folders"
+msgstr "Dossiers"
+
+msgid "Loading..."
+msgstr "Chargement..."
+
+msgid "Subject"
+msgstr "Sujet"
+
+msgid "Deleted On"
+msgstr "Supprimé le"
+
+msgid "From"
+msgstr "De"
+
+msgid "Received"
+msgstr "Reçu"
+
+msgid "<Unkwown Subject>"
+msgstr "<Sujet inconnu>"
+
+msgid "Foldername"
+msgstr "Nom du dossier"
+
+msgid "Itemcount"
+msgstr "Nombre d'éléments"
+
+msgid "<Unknown foldername>"
+msgstr "<Nom de dossier inconnu>"
+
+msgid "item"
+msgstr "élément"
+
+msgid "items"
+msgstr "éléments"
+
+msgid "folder"
+msgstr "dossier"
+
+msgid "folders"
+msgstr "dossiers"
+
+msgid "Restore items..."
+msgstr "Restaurer des éléments..."
+
+msgid "Restoring items"
+msgstr "Restauration des éléments"
+
+msgid "Unknown error"
+msgstr "Erreur inconnue"
+
+msgid "The selected items will be permanently deleted from this folder.\nIf you continue, you will not be able to recover these items."
+msgstr "Attention! Les éléments sélectionnés vont être définitivement supprimés de ce dossier. Si vous continuez, vous ne serez plus en mesure de récupérer ces éléments."
+
+msgid "Remove items..."
+msgstr "Déplacer des éléments..."
+
+msgid "Removing items"
+msgstr "Déplacement des éléments"
+
+msgid "The call succeeded, not all of the entries were successfully deleted."
+msgstr "L'appel a réussi, certaines entrées n'ont pas pu être supprimées avec succès."
+
+msgid "The folder and/or messages can not be deleted."
+msgstr "Le dossier et/ou les messages ne peuvent être effacés."
+
+msgid "Out of Office currently on. Would you like to turn it off?"
+msgstr "Mode 'Absent' activé. Voulez-vous le désactiver ?"
+
+msgid "Out Of Office Turned On"
+msgstr "Mode 'Absent' activé"
+
+msgid "Permissions"
+msgstr "Permissions"
+
+msgid "Unable to open MAPI session."
+msgstr "Impossible d'ouvrir une session MAPI"
+
+msgid "You are currently offline. To use this command, connect to the Kopano online server."
+msgstr "Vous êtez hors-connexion en ce moment. Pour utiliser cette commande, connectez-vous au serveur Kopano en ligne."
+
+msgid "Unable to open default store in MAPI session."
+msgstr "Impossible d'ouvrir la base de stockage par défaut dans la session MAPI"
+
+msgid "You can only use this function with Kopano profiles."
+msgstr "Vous pouvez utiliser uniquement cette fonction avec les profils Kopano"
+
+msgid "Unable to open this store."
+msgstr "Impossible d'ouvrir cette base de stockage."
+
+msgid "You have insufficient permissions to open this store."
+msgstr "Vous ne disposez pas des permissions suffisantes pour ouvrir cette base de stockage."
+
+msgid "Access Denied"
+msgstr "Accès interdit"
+
+msgid "Open Shared Folders..."
+msgstr "Ouvrir les dossiers partagés"
+
+msgid "Open another user's Outlook Sharing Folders (Calendar, E-mail, etc)"
+msgstr "Ouvrir un autre dossier Outlook partagé (Agenda, Courrier électronique, etc )"
+
+msgid "Recover Deleted Items..."
+msgstr "Récupérer les éléments supprimés…"
+
+msgid "Out of Office Assistant..."
+msgstr "Assistant de mode 'Absent' ..."
+
+msgid "Add to Kopano Favorites Folder"
+msgstr "Ajouter au dossier des favoris Kopano"
+
+msgid "Unable to get shortcut folder."
+msgstr "Impossible d'obtenir le dossier de raccourci"
+
+msgid "I am currently Out of the Office"
+msgstr "Je suis actuellement absent(e)"
+
+msgid "Out of Office Assistant"
+msgstr "Assistant de mode 'Absent'"
+
+msgid "I am currently In the Office"
+msgstr "Je suis actuellement présent(e)"
+
+msgid "AutoReply only once to each sender with the following text:"
+msgstr "Réponse automatique unique pour chaque expéditeur, avec le texte suivant:"
+
+msgid "&Save"
+msgstr ""
+
+msgid "Full control"
+msgstr "Contrôle complet"
+
+msgid "No rights"
+msgstr "Aucun droit"
+
+msgid "You have insufficient permissions to set permissions"
+msgstr "Vous ne possédez pas les permissions nécessaires vous permettant de définir les droits d'accès"
+
+msgid "Unable to set permissions."
+msgstr "Impossible de définir les permissions."
+
+msgid "Name"
+msgstr "Nom"
+
+msgid "Permission Level"
+msgstr "Niveau de permission"
+
+msgid "A&dd"
+msgstr "A&jouter"
+
+msgid "Remo&ve"
+msgstr "Enle&ver"
+
+msgid "&Properties"
+msgstr "&Propriétés"
+
+msgid "Profile"
+msgstr "Profil"
+
+msgid "&Create items"
+msgstr "&Créer des éléments"
+
+msgid "Read &items"
+msgstr "Eléments &lus"
+
+msgid "Create &subfolders"
+msgstr "Créer &sous-répertoires"
+
+msgid "Folder pe&rmissions"
+msgstr "Pe&rmissions du dossier"
+
+msgid "Folder visi&ble"
+msgstr "Dossier visi&ble"
+
+msgid "F&older contact"
+msgstr "&Dossier contact"
+
+msgid "&Edit items"
+msgstr "&Modifier des éléments"
+
+msgid "De&lete items"
+msgstr "&Effacer des éléments"
+
+msgid "Own"
+msgstr "Propre"
+
+msgid "All"
+msgstr "Tous"
+
+msgid "<Unknown user or group>"
+msgstr "<Utilisateur ou groupe inconnu>"
+
+msgid "Other"
+msgstr "Autre"
+
+msgid "Add to favorites"
+msgstr "Ajouter aux favoris"
+
+msgid "test"
+msgstr "test"
+
+	

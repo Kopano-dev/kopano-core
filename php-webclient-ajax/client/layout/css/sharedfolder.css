@@ -1,0 +1,12 @@
+/**
+* open shared folders dialog 
+*/
+input#username {
+	width: 150px;
+}
+
+select {
+	width: 150px;
+	margin-top: 10px;
+	margin-bottom: 10px;
+}

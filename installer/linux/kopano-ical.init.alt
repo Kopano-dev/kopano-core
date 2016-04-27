@@ -1,0 +1,104 @@
+#!/bin/bash
+#
+# kopano-ical Kopano Core iCal Gateway
+#
+# chkconfig: 345 86 24
+# processname: /usr/sbin/kopano-ical
+# config: /etc/kopano/ical.cfg
+# pidfile: /var/run/kopano/ical.pid
+
+### BEGIN INIT INFO
+# Provides: kopano-ical
+# Required-Start: $local_fs $network $remote_fs $syslog
+# Required-Stop: $local_fs $network $remote_fs $syslog
+# Should-Start: kopano-server
+# Should-Stop: kopano-server
+# Short-Description: Kopano Core iCal Gateway
+### END INIT INFO
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+ICALCONFIG=/etc/kopano/ical.cfg
+ICALPROGRAM=/usr/sbin/kopano-ical
+ical=`basename $ICALPROGRAM`
+LOCKFILE=/var/lock/subsys/$ical
+PIDFILE=/var/run/kopano/ical.pid
+RETVAL=0
+
+# Sanity checks.
+[ -x $ICALPROGRAM ] || exit 0
+
+ICALCONFIG_OPT=""
+[ ! -z $ICALCONFIG -a -f $ICALCONFIG ] && ICALCONFIG_OPT="-c $ICALCONFIG"
+
+[ -f /etc/sysconfig/kopano ] && . /etc/sysconfig/kopano
+if [ -z "$KOPANO_LOCALE" ]; then
+	KOPANO_LOCALE="C"
+fi
+
+start() {
+	install -dm0775 -o kopano -g kopano /var/run/kopano
+	start_daemon --pidfile "$PIDFILE" --lockfile "$LOCKFILE" $ical
+	RETVAL=$?
+
+	return $RETVAL
+}
+
+stop() {
+	stop_daemon --pidfile "$PIDFILE" --lockfile "$LOCKFILE" $ical
+	return $?
+}
+
+restart() {
+	stop
+	start
+}
+
+reload() {
+	msg_reloading $ical
+	stop_daemon --pidfile "$PIDFILE" -HUP -- $ical
+	RETVAL=$?
+
+	return $RETVAL
+}
+
+# See how we were called.
+case "$1" in
+    start)
+		start
+		;;
+    stop)
+		stop
+		;;
+    reload)
+		reload
+		;;
+    restart|force-reload)
+		restart
+		;;
+    condstop)
+		if [ -e "$LOCKFILE" ]; then
+		stop
+		fi
+		;;
+    condrestart|try-restart)
+		if [ -e "$LOCKFILE" ]; then
+		restart
+		fi
+		;;
+    condreload)
+		if [ -e "$LOCKFILE" ]; then
+		reload
+		fi
+		;;
+    status)
+		status --pidfile "$PIDFILE" $ical
+		RETVAL=$?
+		;;
+    *)
+		msg_usage "${0##*/} {start|stop|reload|restart|condstop|condrestart|condreload|status}"
+		RETVAL=1
+esac
+
+exit $RETVAL

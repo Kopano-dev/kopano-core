@@ -1,0 +1,108 @@
+#!/bin/bash
+#
+# kopano-dagent Kopano Core Delivery Agent
+#
+# chkconfig: - 86 24
+# processname: /usr/sbin/kopano-dagent
+# config: /etc/kopano/dagent.cfg
+# pidfile: /var/run/kopano/dagent.pid
+
+### BEGIN INIT INFO
+# Provides: kopano-dagent
+# Required-Start: $local_fs $network $remote_fs $syslog
+# Required-Stop: $local_fs $network $remote_fs $syslog
+# Should-Start: kopano-server
+# Should-Stop: kopano-server
+# Short-Description: Kopano Core Delivery Agent
+### END INIT INFO
+
+# Do not load RH compatibility interface
+WITHOUT_RC_COMPAT=1
+
+# Source function library
+. /etc/init.d/functions
+
+DAGENTCONFIG=/etc/kopano/dagent.cfg
+DAGENTPROGRAM=/usr/sbin/kopano-dagent
+dagent=`basename $DAGENTPROGRAM`
+PIDFILE=/var/run/kopano/dagent.pid
+LOCKFILE=/var/lock/subsys/$dagent
+RETVAL=0
+
+# Sanity checks.
+[ -x $DAGENTPROGRAM ] || exit 0
+
+# the -d option is required to run LMTP mode deamonized
+DAGENTCONFIG_OPT="-d"
+[ ! -z $DAGENTCONFIG -a -f $DAGENTCONFIG ] && DAGENTCONFIG_OPT="$DAGENTCONFIG_OPT -c $DAGENTCONFIG"
+
+[ -f /etc/sysconfig/kopano ] && . /etc/sysconfig/kopano
+if [ -z "$KOPANO_LOCALE" ]; then
+	KOPANO_LOCALE="C"
+fi
+
+start() {
+	install -dm0775 -o kopano -g kopano /var/run/kopano
+	start_daemon --pidfile "$PIDFILE" --lockfile "$LOCKFILE" $dagent $DAGENTCONFIG_OPT
+	RETVAL=$?
+	
+	return $RETVAL
+}
+
+stop() {
+	stop_daemon --pidfile "$PIDFILE" --lockfile "$LOCKFILE" $dagent
+	return $?
+}
+
+restart() {
+	stop
+	start
+}
+
+reload() {
+	msg_reloading $dagent
+	stop_daemon --pidfile "$PIDFILE" -HUP $dagent
+	RETVAL=$?
+
+	return $RETVAL
+}
+
+# See how we were called.
+case "$1" in
+    start)
+		start
+		;;
+    stop)
+		stop
+		;;
+    reload)
+		reload
+		;;
+    restart|force-reload)
+		restart
+		;;
+    condstop)
+		if [ -e "$LOCKFILE" ]; then
+		stop
+		fi
+		;;
+    condrestart)
+		if [ -e "$LOCKFILE" ]; then
+		restart
+		fi
+		;;
+    condreload)
+		if [ -e "$LOCKFILE" ]; then
+		reload
+		fi
+		;;
+    status)
+		status --pidfile "$PIDFILE" $dagent
+		RETVAL=$?
+		;;
+    *)
+		msg_usage "${0##*/} {start|stop|reload|restart|condstop|condrestart|condreload|status}"
+		RETVAL=1
+esac
+
+exit $RETVAL

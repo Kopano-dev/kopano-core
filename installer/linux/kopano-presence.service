@@ -1,0 +1,10 @@
+[Unit]
+Description=Kopano Core Presence Daemon
+
+[Service]
+Type=simple
+Environment=LC_ALL=C LANG=C
+ExecStart=/usr/sbin/kopano-presence -F
+
+[Install]
+WantedBy=multi-user.target

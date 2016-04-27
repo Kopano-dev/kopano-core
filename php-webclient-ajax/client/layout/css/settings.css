@@ -1,0 +1,72 @@
+fieldset {
+	border: none;
+	border-top:1px solid #808080;
+	padding-left: 5px;
+	margin-bottom: 0px;
+	padding-bottom: 5px;
+	font-weight: bold;
+}
+
+legend {
+  color: #000000;
+}
+
+input.text {
+	width: 100%;
+}
+
+input.checkbox {
+	margin-right: 10px;
+}
+
+select {
+	width: 100%;
+}
+
+textarea {
+	width: 100%;
+}
+
+table {
+	width: 100%;
+}
+
+th {
+	text-align: left;
+	vertical-align: top;
+	font-weight: normal;
+}
+
+td {
+	vertical-align: top;
+	text-align: right;
+}
+
+table.options td {
+	width: 45%;
+}
+
+table.textinput td {
+	width: 75%;
+}
+
+table.shortcuts td {
+	width: 50%;
+	vertical-align: top;
+	text-align: left;
+}
+
+table.shortcuts th {
+	width: 50%;
+	text-align: right;
+	vertical-align: top;
+	font-weight: normal;
+}
+
+table.shortcuts tr {
+	font-weight: normal;
+}
+
+div.tabpage {
+	overflow-y: auto;
+}

@@ -1,0 +1,13 @@
+## Path:        Network/Mail/Kopano
+## Description: Kopano service locale
+## Type:        string
+## Default:     "C"
+#
+# Locale setting for all Kopano services
+#
+KOPANO_LOCALE="C"
+
+#
+# Locale setting for Kopano userscripts
+#
+KOPANO_USERSCRIPT_LOCALE="C"

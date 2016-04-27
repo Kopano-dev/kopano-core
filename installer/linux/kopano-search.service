@@ -1,0 +1,11 @@
+[Unit]
+Description=Kopano Core Search Engine
+Documentation=man:kopano-search(8) man:kopano-search.cfg(5)
+
+[Service]
+Type=simple
+Environment=LC_ALL=C LANG=C
+ExecStart=/usr/sbin/kopano-search -F
+
+[Install]
+WantedBy=multi-user.target

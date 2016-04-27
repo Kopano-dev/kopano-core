@@ -1,0 +1,830 @@
+/**
+* This file contains all icons used with the Zarafa WebAccess
+*/
+
+.icon_cal {
+	background-image: url(../img/calbtn.gif);
+	height:17px;
+}
+
+.icon_norepeat{
+	background-repeat: no-repeat;
+}
+
+.icon_appointment {
+	background-image: url(../img/icon_calendar.gif);
+}
+
+.icon_task {
+	background-image: url(../img/icon_task.gif);
+}
+
+.icon_contact {
+	background-image: url(../img/icon_contact.gif);
+}
+
+.icon_room {
+	background-image: url(../img/icon_room.gif);
+}
+
+.icon_equipment {
+	background-image: url(../img/icon_equipment.gif);
+}
+
+.icon_gab_contact {
+	background-image: url(../img/icon_gab_contact.gif);
+}
+
+.icon_contact_cards {
+	background-image: url(../img/icon_contact.gif);
+}
+
+.icon_contact_list {
+	background-image: url(../img/icon_contact.gif);
+}
+
+.icon_distlist {
+	background-image: url(../img/icon_group.gif);
+}
+
+.icon_distributionlist {
+	background-image: url(../img/icon_group.gif);
+}
+
+.icon_meetingrequest {
+	background-image: url(../img/icon_meetingrequest.gif);
+}
+
+.icon_meeting_recurring {
+	background-image: url(../img/icon_meeting_recurring.gif);
+}
+
+.icon_appointment_recurring {
+	background-image: url(../img/icon_appointment_recurring.gif);
+}
+
+.icon_meetingrequest_pos {
+	background-image: url(../img/icon_meetingrequest_accept.gif);
+}
+
+.icon_meetingrequest_tent {
+	background-image: url(../img/icon_meetingrequest_tentative.gif);
+}
+
+.icon_meetingrequest_neg {
+	background-image: url(../img/icon_meetingrequest_decline.gif);
+}
+
+.icon_meetingrequest_canceled {
+	background-image: url(../img/icon_meetingrequest_decline.gif);
+}
+
+.icon_removefromcalendar {
+	background-image: url(../img/icon_meetingrequest_decline.gif);
+}
+
+.icon_reminder {
+	background-image: url(../img/icon_reminder.gif);
+	}
+
+.icon_recurring {
+	background-image: url(../img/icon_recurring.gif);
+}
+
+.icon_folder {
+	background-image: url(../img/icon_folder.gif);
+}
+
+.icon_open {
+	background-image: url(../img/icon_open.gif);
+}
+
+.icon_reload {
+	background-image: url(../img/icon_reload.gif);
+}
+
+.icon_newfolder {
+	background-image: url(../img/icon_newfolder.gif);
+}
+
+.icon_renamefolder {
+	background-image: url(../img/icon_renamefolder.gif);
+}
+
+.icon_deletefolder {
+	background-image: url(../img/icon_delete_folder.gif);
+}
+
+.icon_emptyfolder {
+	background-image: url(../img/icon_empty_trash.gif);
+}
+
+.icon_closestore {
+	background-image: url(../img/icon_close_store.gif);
+}
+
+.icon_stickynote {
+	background-image: url(../img/icon_stickynote_yellow.gif);
+}
+
+.icon_stickynote_yellow {
+	background-image: url(../img/icon_stickynote_yellow.gif);
+}
+
+.icon_stickynote_pink {
+	background-image: url(../img/icon_stickynote_pink.gif);
+}
+
+.icon_stickynote_green {
+	background-image: url(../img/icon_stickynote_green.gif);
+}
+
+.icon_stickynote_blue {
+	background-image: url(../img/icon_stickynote_blue.gif);
+}
+
+.icon_stickynote_white {
+	background-image: url(../img/icon_stickynote_white.gif);
+}
+
+.large_view {
+	background-image: url(../img/icon_stickynote_yellow_large.gif);
+}
+
+.icon_stickynote_yellow_large {
+	background-image: url(../img/icon_stickynote_yellow_large.gif);
+}
+
+.icon_stickynote_green_large {
+	background-image: url(../img/icon_stickynote_green_large.gif);
+}
+
+.icon_stickynote_blue_large {
+	background-image: url(../img/icon_stickynote_blue_large.gif);
+}
+
+.icon_stickynote_pink_large {
+	background-image: url(../img/icon_stickynote_pink_large.gif);
+}
+
+.icon_stickynote_white_large {
+	background-image: url(../img/icon_stickynote_white_large.gif);
+}
+
+.icon_mail {
+	background-image: url(../img/icon_mail.gif);
+}
+
+.icon_markread {
+	background-image: url(../img/icon_mail.gif);
+}
+
+.icon_newmail {
+	background-image: url(../img/icon_newmail.gif);
+}
+
+.icon_markunread {
+	background-image: url(../img/icon_newmail.gif);
+}
+
+.icon_mail_replied {
+	background-image: url(../img/icon_mail_replied.gif);
+}
+
+.icon_mail_replied_unread {
+	background-image: url(../img/icon_newmail_replied.gif);
+}
+
+.icon_mail_forwarded {
+	background-image: url(../img/icon_mail_forwarded.gif);
+}
+
+.icon_mail_forwarded_unread {
+	background-image: url(../img/icon_newmail_forwarded.gif);
+}
+
+.icon_report_accept {
+	background-image: url(../img/report_accept.gif);
+}
+
+.icon_report_decline {
+	background-image: url(../img/report_decline.gif);
+}
+
+.icon_report_ndr {
+	background-image: url(../img/report_ndr.gif);
+}
+
+.icon_createmail {
+	background-image: url(../img/icon_createmail.gif);
+}
+
+.icon_edit{
+	background-image: url(../img/icon_editmail.gif);
+}
+
+.icon_delete {
+	background-image: url(../img/delete.gif);
+}
+
+.icon_junk {
+	background-image: url(../img/icon_junk.gif);
+}
+
+.icon_refresh {
+	background-image: url(../img/refresh_white.gif);
+}
+
+.icon_refresh_calendar {
+	background-image: url(../img/refresh_calendar.png);
+}
+
+.icon_send_receive {
+	background-image: url(../img/send_receive.png);
+}
+
+.icon_print {
+	background-image: url(../img/print.gif);
+}
+
+.icon_addressbook {
+	background-image: url(../img/addressbook.gif);
+}
+
+.icon_copy {
+	background-image: url(../img/copy.gif);
+}
+
+.icon_reply {
+	background-image: url(../img/reply.gif);
+}
+
+.icon_replyall {
+	background-image: url(../img/reply.gif);
+}
+
+.icon_forward, .icon_forward_items {
+	background-image: url(../img/forward.gif);
+}
+
+.icon_icon_index, .icon_folder_icon_index {
+	background-image: url(../img/icon_index.gif);
+}
+
+.icon_display_type {
+	/* same icon of icon_index is used for GAB display_type column */
+	background-image: url(../img/icon_index.gif);
+}
+
+.icon_hasattach {
+	background-image: url(../img/hasattach.gif);
+}
+
+.icon_importance {
+	background-image: url(../img/importance.gif);
+}
+
+.icon_importance_low {
+	background-image: url(../img/importance_low.gif);
+}
+
+.icon_importance_high {
+	background-image: url(../img/importance_high.gif);
+}
+
+.icon_flag_status {
+	background-image: url(../img/icon_flag_status.gif);
+}
+
+.icon_flag_icon {
+	background-image: url(../img/icon_flag_status.gif);
+}
+
+.icon_flag_status_red {
+	background-image: url(../img/icon_flag_status_red.gif);
+}
+
+.icon_flag_icon_red {
+	background-image: url(../img/icon_flag_icon_red.gif);
+}
+
+.icon_flag_icon_blue {
+	background-image: url(../img/icon_flag_icon_blue.gif);
+}
+
+.icon_flag_icon_yellow {
+	background-image: url(../img/icon_flag_icon_yellow.gif);
+}
+
+.icon_flag_icon_green {
+	background-image: url(../img/icon_flag_icon_green.gif);
+}
+
+.icon_flag_icon_orange {
+	background-image: url(../img/icon_flag_icon_orange.gif);
+}
+
+.icon_flag_icon_purple {
+	background-image: url(../img/icon_flag_icon_purple.gif);
+}
+
+.icon_flag {
+	background-color: #ffffff;
+	background-image: url(../img/icon_flag.gif);
+}
+
+.icon_flag_over {
+	background-color: #C1BAC2;
+	background-image: url(../img/icon_flag_over.gif);
+}
+
+.icon_flag_complete {
+	background-color: #ffffff;
+	background-image: url(../img/icon_flag_complete.gif);
+}
+
+.icon_flag_status_complete {
+	background-image: url(../img/icon_flag_status_complete.gif);
+}
+
+.icon_flag_complete_over {
+	background-color: #C1BAC2;
+	background-image: url(../img/icon_flag_complete_over.gif);
+}
+
+.icon_flag_purple {
+	background-color: #AE00FF;
+	background-image: url(../img/icon_flag_purple.gif);
+}
+
+.icon_flag_purple_over {
+	background-color: #C1BAC2;
+	background-image: url(../img/icon_flag_purple_over.gif);
+}
+
+.icon_flag_none {
+	background-image: url(../img/icon_flag_none.gif);
+}
+
+.icon_flag_none_over {
+	background-color: #C1BAC2;
+	background-image: url(../img/icon_flag_none_over.gif);
+}
+
+.icon_flag_orange {
+	background-color: #FFA200;
+	background-image: url(../img/icon_flag_orange.gif);
+}
+
+.icon_flag_orange_over {
+	background-color: #C1BAC2;
+	background-image: url(../img/icon_flag_orange_over.gif);
+}
+
+.icon_flag_green {
+	background-color: #00FF00;
+	background-image: url(../img/icon_flag_green.gif);
+}
+
+.icon_flag_green_over {
+	background-color: #C1BAC2;
+	background-image: url(../img/icon_flag_green_over.gif);
+}
+
+.icon_flag_yellow {
+	background-color: #FFFF00;
+	background-image: url(../img/icon_flag_yellow.gif);
+}
+
+.icon_flag_yellow_over {
+	background-color: #C1BAC2;
+	background-image: url(../img/icon_flag_yellow_over.gif);
+}
+
+.icon_flag_blue {
+	background-color: #0000FF;
+	background-image: url(../img/icon_flag_blue.gif);
+}
+
+.icon_flag_blue_over {
+	background-color: #C1BAC2;
+	background-image: url(../img/icon_flag_blue_over.gif);
+}
+
+.icon_flag_red {
+	background-color: #ff0000;
+	background-image: url(../img/icon_flag_red.gif);
+}
+
+.icon_flag_red_over {
+	background-color: #C1BAC2;
+	background-image: url(../img/icon_flag_red_over.gif);
+}
+
+.icon_complete {
+	background-image: url(../img/icon_complete.gif);
+}
+
+.icon_sort_ascending {
+	background-image: url(../img/icon_sort_ascending.gif);
+}
+
+.icon_sort_descending {
+	background-image: url(../img/icon_sort_descending.gif);
+}
+
+.icon_columndelete {
+	background-image: url(../img/icon_columndelete.gif);
+}
+
+.icon_fieldchooser {
+	background-image: url(../img/icon_fieldchooser.gif);
+}
+.icon_close {
+	background-image: url(../img/icon_close.gif);
+}
+
+.icon_today {
+	background-image: url(../img/icon_today.gif);
+}
+
+.icon_day {
+	background-image: url(../img/icon_day.gif);
+}
+
+.icon_workweek {
+	background-image: url(../img/icon_workweek.gif);
+}
+
+.icon_7days {
+	background-image: url(../img/icon_week.gif);
+}
+
+.icon_week {
+	background-image: url(../img/icon_week.gif);
+}
+
+.icon_month {
+	background-image: url(../img/icon_month.gif);
+}
+/* icon to display table view  option in menu bar*/
+.icon_table {
+	background-image: url(../img/icon_list.gif);
+}
+
+.icon_stickynote_icon {
+	background-image: url(../img/icon_stickynote_yellow.gif);
+}
+
+.icon_stickynote_list {
+	background-image: url(../img/icon_stickynote_yellow.gif);
+}
+
+.icon_accept {
+	background-image: url(../img/icon_meeting_accept.gif);
+}
+
+.icon_decline {
+  background-image: url(../img/icon_meeting_decline.gif);
+}
+
+.icon_tentative {
+  background-image: url(../img/icon_meeting_tentative.gif);
+}
+
+.icon_proposenewtime {
+  background-image: url(../img/icon_today.gif);
+}
+
+.icon_save, .icon_save_email {
+	background-image: url(../img/icon_save.png);
+}
+.icon_send {
+	background-image: url(../img/icon_send.gif);
+}
+.icon_attachment {
+	background-image: url(../img/icon_attachments.gif);
+}
+.icon_addsignature {
+	background-image: url(../img/icon_addsignature.gif);
+}
+.icon_checknames {
+	background-image: url(../img/icon_checknames.gif);
+}
+.icon_priority_high {
+	background-image: url(../img/icon_priority_high.gif);
+}
+.icon_priority_low {
+	background-image: url(../img/icon_priority_low.gif);
+}
+.icon_options {
+	background-image: url(../img/icon_options.gif);
+}
+.icon_flag_status_red {
+	background-image: url(../img/icon_flag_status_red.gif);
+}
+.icon_previous_item {
+	background-image: url(../img/icon_previous_item.gif);
+}
+.icon_next_item {
+	background-image: url(../img/icon_next_item.gif);
+}
+.icon_company {
+	background-image: url(../img/icon_company.gif);
+}
+.icon_group {
+	background-image: url(../img/icon_group.gif);
+}
+.icon_user {
+	background-image: url(../img/icon_user.gif);
+}
+.icon_recurrence {
+	background-image: url(../img/icon_recurrence.gif);
+}
+.icon_assigntask {
+	background-image: url(../img/icon_asign_task.gif);
+}
+.icon_cancelassigntask {
+	background-image: url(../img/icon_cancel_asign_task.gif);
+}
+.icon_taskcomplete {
+	background-image: url(../img/icon_task_complete.gif);
+}
+.icon_newmessagecontact {
+	background-image: url(../img/icon_newmessagecontact.gif);
+}
+.icon_inviteattendees {
+	background-image: url(../img/icon_meetingrequest.gif);
+}
+.icon_cancelinviteattendees {
+	background-image: url(../img/icon_meetingrequest_decline.gif);
+}
+.icon_search {
+	background-image: url(../img/icon_search.gif);
+}
+
+.icon_insert {
+	background-image: url(../img/icon_insert.gif);
+}
+
+.icon_remove {
+	background-image: url(../img/icon_remove.gif);
+}
+
+.icon_rules {
+	background-image: url(../img/icon_rules.gif);
+}
+
+.icon_previewpane_off {
+	background-image: url(../img/icon_preview_off.gif);
+}
+
+.icon_previewpane_right {
+	background-image: url(../img/icon_preview_right.gif);
+}
+
+.icon_previewpane_bottom {
+	background-image: url(../img/icon_preview_bottom.gif);
+}
+
+/* Folder Icons */
+
+.folder_icon_store {
+	background-image: url(../img/icon_store.gif);
+}
+
+.folder_icon_calendar {
+	background-image: url(../img/icon_calendar.gif);
+}
+
+.folder_icon_appointment {
+	background-image: url(../img/icon_calendar.gif);
+}
+
+.folder_icon_task {
+	background-image: url(../img/icon_task.gif);
+}
+
+.folder_icon_contact {
+	background-image: url(../img/icon_contact.gif);
+}
+
+.folder_icon_note {
+	background-image: url(../img/icon_stickynote_yellow.gif);
+}
+
+.folder_icon_stickynote {
+	background-image: url(../img/icon_stickynote_yellow.gif);
+}
+
+.folder_icon_mail {
+	background-image: url(../img/icon_mailfolder.gif);
+}
+
+.folder_icon_inbox {
+	background-image: url(../img/icon_inbox.gif);
+}
+
+.folder_icon_outbox {
+	background-image: url(../img/icon_outbox.gif);
+}
+
+.folder_icon_drafts {
+	background-image: url(../img/icon_drafts.gif);
+}
+
+.folder_icon_junk {
+	background-image: url(../img/icon_junk.gif);
+}
+
+.folder_icon_journal {
+	background-image: url(../img/icon_journal.gif);
+}
+
+.folder_icon_wastebasket {
+	background-image: url(../img/icon_wastebasket.gif);
+}
+
+.folder_icon_sent {
+	background-image: url(../img/icon_sent.gif);
+}
+
+.folder_icon_folder {
+	background-image: url(../img/icon_mailfolder.gif);
+}
+
+.folder_icon_publicfolders {
+	background-image: url(../img/icon_mailfolder.gif);
+}
+
+.folder_icon_favorites {
+	background-image: url(../img/icon_mailfolder.gif);
+}
+
+.folder_icon_syncissues {
+	background-image: url(../img/icon_mailfolder.gif);
+}
+
+.folder_icon_conflicts {
+	background-image: url(../img/icon_conflicts.gif);
+}
+
+.folder_icon_localfailures {
+	background-image: url(../img/icon_conflicts.gif);
+}
+
+.folder_icon_serverfailures {
+	background-image: url(../img/icon_conflicts.gif);
+}
+
+/* Large Folder Icons */
+
+.folder_big_icon_folder {
+	background-image:url(../img/folder_big_default.gif);
+}
+
+.folder_big_icon_appointment {
+	background-image:url(../img/folder_big_appointment.gif);
+}
+
+.folder_big_icon_contact {
+	background-image:url(../img/folder_big_contact.gif);
+}
+
+.folder_big_icon_journal {
+	background-image:url(../img/folder_big_journal.gif);
+}
+
+.folder_big_icon_task {
+	background-image:url(../img/folder_big_task.gif);
+}
+
+.folder_big_icon_stickynote {
+	background-image:url(../img/folder_big_stickynote.gif);
+}
+
+
+
+
+.icon_loadgroup {
+	background-image: url(../img/icon_group.gif);
+}
+.icon_adduser {
+	background-image: url(../img/icon_user.gif);
+}
+.icon_removeuser {
+	background-image: url(../img/icon_delete_user.gif);
+}
+
+.icon_prevperiod {
+	background-image: url(../img/icon_previous_period.gif);
+}
+.icon_prevday {
+	background-image: url(../img/icon_previous.gif);
+}
+
+.icon_nextday {
+	background-image: url(../img/icon_next.gif);
+}
+.icon_nextperiod {
+	background-image: url(../img/icon_next_period.gif);
+}
+.icon_no_access {
+	background-image: url(../img/icon_priority_high.gif);
+}
+.icon_no_creation_rights {
+	background-image: url(../img/icon_close.gif);
+	padding-top: 2px;
+}
+
+.icon_restoreitem{
+	background-image: url(../img/copy.gif);
+}
+
+.icon_not_current{
+	background-image: url(../img/icon_not_current.gif);
+}
+
+.icon_insert_inline{
+	background-image: url(../img/icon_inline.gif);
+}
+
+.icon_selected {
+	background-image: url(../img/menuitem_selected.gif);
+}
+
+.icon_resizebar_horizontal {
+	background-image:url(../img/resize_horizontal.gif);
+	background-position:center;
+	padding:0px;
+}
+
+.icon_resizebar_vertical {
+	background-image:url(../img/resize_vertical.gif);
+	background-position:center;
+	padding:0px;
+}
+
+.icon_advanced_find {
+	background-image: url(../img/icon_advanced_find.gif);
+}
+
+.icon_meetingrequest_cancelled {
+	background-image: url(../img/icon_meetingrequest_cancel.gif);
+}
+
+.icon_meetingrequest_outofdate {
+	background-image: url(../img/icon_meetingrequest_outofdate.gif);
+}
+
+.icon_read_receipt_button {
+	background-image: url(../img/icon_read_receipt_button.png);
+}
+
+.icon_accept_proposal {
+	background-image: url(../img/icon_accept_proposal.gif);
+}
+
+.icon_view_all_proposals {
+	background-image: url(../img/icon_view_all_proposals.gif);
+}
+
+.icon_attach_item{
+	background-image: url(../img/icon_attach_item.gif);
+}
+
+.icon_zarafadnd_message_icon {
+	background-image: url(../img/icon_drag_single.gif);
+}
+
+.icon_task_recurring {
+	background-image: url(../img/icon_task_recurring.gif);
+}
+
+.icon_return_tasklist {
+	padding-left: 0px;
+}
+
+.icon_taskrequest {
+	background-image: url(../img/icon_taskrequest.gif);
+}
+
+.icon_taskrequest_decline {
+	background-image: url(../img/icon_cancel_asign_task.gif);
+}
+
+.icon_taskrequest_accepted {
+	background-image: url(../img/icon_taskrequest_accepted.gif);
+}
+
+.icon_taskrequest_assignercopy {
+	background-image: url(../img/icon_asign_task.gif);
+}
+
+.icon_taskrequest_assigneecopy {
+	background-image: url(../img/icon_taskrequest_assignee.gif);
+}
+
+.icon_stubbed {
+	background-image: url(../img/icon_stubbed.gif);
+}

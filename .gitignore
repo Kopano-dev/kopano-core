@@ -1,0 +1,157 @@
+.deps/
+.libs/
+Makefile
+Makefile.in
+*.la
+*.ldd
+*.ldx
+*.lo
+*.mo
+*.o
+.dirstamp
+stamp-h1
+stamp-h2
+@
+
+# /
+/aclocal.m4
+/autom4te.cache/
+/build-arch-stamp
+/build-indep-stamp
+/compile
+/config.log
+/config.status
+/config.cache
+/configure
+/libtool
+/python-config
+/specialbuild
+/version
+
+/default.sym
+
+/ECtools/kopano-admin
+/ECtools/kopano-archiver
+/ECtools/kopano-cfgchecker
+/ECtools/kopano-fsck
+/ECtools/kopano-monitor
+/ECtools/kopano-passwd
+/ECtools/kopano-stats
+/ECtools/backup/build/
+/ECtools/presence/build/
+/ECtools/search/build/
+
+# /autoconf/
+/autoconf/ltsugar.m4
+/autoconf/libtool.m4
+/autoconf/ltversion.m4
+/autoconf/depcomp
+/autoconf/missing
+/autoconf/lt~obsolete.m4
+/autoconf/config.guess
+/autoconf/ltoptions.m4
+/autoconf/ltmain.sh
+/autoconf/config.sub
+/autoconf/install-sh
+/autoconf/ylwrap
+/autoconf/compile
+
+# /caldav/
+/caldav/kopano-ical
+
+# /common/
+/common/config.h*
+/common/ecversion.h
+/common/include/kopano/ecversion.h
+/common/include/kopano/zconfig.h
+/common/kopano.pc
+
+# /doc/
+/doc/*.[0-9]
+
+## /doc/php-ext/
+#/doc/php-ext/*html
+#
+# /gateway/
+/gateway/kopano-gateway
+
+# /installer/
+/installer/kopano.ldif
+
+# /installer/linux/
+/installer/linux/ldap.openldap.cfg
+/installer/linux/ldap.active-directory.cfg
+
+# /installer/userscripts/
+/installer/userscripts/creategroup
+/installer/userscripts/createuser
+/installer/userscripts/deletegroup
+/installer/userscripts/deleteuser
+/installer/userscripts/createcompany
+/installer/userscripts/deletecompany
+
+# /php-webclient-ajax/
+/php-webclient-ajax/debug.txt
+/php-webclient-ajax/errors.txt
+/php-webclient-ajax/debug_xml
+/php-webclient-ajax/tmp
+/php-webclient-ajax/config.php
+
+## /provider/ECProps/
+#/provider/ECProps/Debug
+#
+## /provider/client/
+#/provider/client/Debug
+#/provider/client/Release
+#
+## /provider/plugins/
+#/provider/plugins/plugintest
+#
+# /provider/server/
+/provider/server/kopano-server
+
+# /provider/soap/
+/provider/soap/*res.xml
+/provider/soap/*req.xml
+/provider/soap/ns.xsd
+/provider/soap/KCmd.wsdl
+/provider/soap/KCmd.nsmap
+/provider/soap/soapClient.cpp
+/provider/soap/soapServer.cpp
+/provider/soap/soapStub.h
+/provider/soap/soapC.cpp
+/provider/soap/soapH.h
+/provider/soap/soapClientLib.cpp
+/provider/soap/soapServerLib.cpp
+/provider/soap/soapKCmdProxy.h
+/provider/soap/soapKCmdObject.h
+
+# /spooler/
+/spooler/kopano-spooler
+/spooler/kopano-dagent
+/spooler/PythonSWIGRuntime.h
+
+# /swig/python/
+/swig/python/build/
+/swig/python/MAPICore.py
+/swig/python/mapi_wrap.cxx
+/swig/python/mapi_wrap.h
+/swig/python/inetmapi.py
+/swig/python/inetmapi_wrap.cxx
+/swig/python/icalmapi.py
+/swig/python/icalmapi_wrap.cxx
+/swig/python/libcommon.py
+/swig/python/libcommon_wrap.cxx
+/swig/python/archiver.py
+/swig/python/archiver_wrap.cxx
+/swig/python/licenseclient.py
+/swig/python/licenseclient_wrap.cxx
+/swig/python/libfreebusy.py
+/swig/python/libfreebusy_wrap.cxx
+/swig/python/RecurrenceState.py
+/swig/python/RecurrenceState_wrap.cxx
+/swig/python/kopano/build/
+
+# Ignore Python compiled files
+*.pyc
+*.pyo

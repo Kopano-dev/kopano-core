@@ -1,0 +1,2 @@
+all:provider/soap/stdsoap2.cpp
+all:provider/tools/soapcpp2/symbol2.c

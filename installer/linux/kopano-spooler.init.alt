@@ -1,0 +1,104 @@
+#!/bin/bash
+#
+# kopano-spooler Kopano Core Spooler Daemon
+#
+# chkconfig: 345 86 24
+# processname: /usr/sbin/kopano-spooler
+# config: /etc/kopano/spooler.cfg
+# pidfile: /var/run/kopano/spooler.pid
+
+### BEGIN INIT INFO
+# Provides: kopano-spooler
+# Required-Start: $local_fs $network $remote_fs $syslog
+# Required-Stop: $local_fs $network $remote_fs $syslog
+# Should-Start: kopano-server
+# Should-Stop: kopano-server
+# Short-Description: Kopano Core Spooler Daemon
+### END INIT INFO
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+SPOOLERCONFIG=/etc/kopano/spooler.cfg
+SPOOLERPROGRAM=/usr/sbin/kopano-spooler
+spooler=`basename $SPOOLERPROGRAM`
+LOCKFILE=/var/lock/subsys/$spooler
+PIDFILE=/var/run/kopano/spooler.pid
+RETVAL=0
+
+# Sanity checks.
+[ -x $SPOOLERPROGRAM ] || exit 0
+
+SPOOLERCONFIG_OPT=""
+[ ! -z $SPOOLERCONFIG -a -f $SPOOLERCONFIG ] && SPOOLERCONFIG_OPT="-c $SPOOLERCONFIG"
+
+[ -f /etc/sysconfig/kopano ] && . /etc/sysconfig/kopano
+if [ -z "$KOPANO_LOCALE" ]; then
+	KOPANO_LOCALE="C"
+fi
+
+start() {
+	install -dm0775 -o kopano -g kopano /var/run/kopano
+	start_daemon --pidfile "$PIDFILE" --lockfile "$LOCKFILE" $spooler
+	RETVAL=$?
+
+	return $RETVAL
+}
+
+stop() {
+	stop_daemon --pidfile "$PIDFILE" --lockfile "$LOCKFILE" $spooler
+	return $?
+}
+
+restart() {
+	stop
+	start
+}
+
+reload() {
+	msg_reloading $spooler
+	stop_daemon --pidfile "$PIDFILE" -HUP -- $spooler
+	RETVAL=$?
+
+	return $RETVAL
+}
+
+# See how we were called.
+case "$1" in
+    start)
+		start
+		;;
+    stop)
+		stop
+		;;
+    reload)
+		reload
+		;;
+    restart|force-reload)
+		restart
+		;;
+    condstop)
+		if [ -e "$LOCKFILE" ]; then
+		stop
+		fi
+		;;
+    condrestart|try-restart)
+		if [ -e "$LOCKFILE" ]; then
+		restart
+		fi
+		;;
+    condreload)
+		if [ -e "$LOCKFILE" ]; then
+		reload
+		fi
+		;;
+    status)
+		status --pidfile "$PIDFILE" $spooler
+		RETVAL=$?
+		;;
+    *)
+		msg_usage "${0##*/} {start|stop|reload|restart|condstop|condrestart|condreload|status}"
+		RETVAL=1
+esac
+
+exit $RETVAL

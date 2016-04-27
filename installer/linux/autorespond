@@ -1,0 +1,30 @@
+# -*- Mode: sh -*-
+###########################################
+# Autoresponder settings
+###########################################
+
+# Autorespond if we were only in the Cc of a message 
+AUTORESPOND_CC=0
+
+# Autorespond if we were not in the message at all
+AUTORESPOND_NORECIP=0
+
+# Only send reply to same e-mail address once per 24 hours
+TIMELIMIT=$[24*60*60]
+
+BASE_PATH=/var/lib/kopano/autorespond
+
+# File which contains where vacation message was sent
+SENDDB=$BASE_PATH/vacation-$USER.db
+
+# Tempfile containing message that will be send
+SENDDBTMP=$BASE_PATH/vacation-$USER-$$.tmp
+
+# Customize your actual mail command, normally sendmail
+# Input to this command is the message to send
+SENDMAILCMD=/usr/sbin/sendmail
+
+# Additional parameters for the $SENDMAILCMD
+# The last parameter added to the $SENDMAILCMD is $FROM,
+# so take that into account for the $SENDMAILPARAMS
+SENDMAILPARAMS="-t -f"

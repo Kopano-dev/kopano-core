@@ -1,0 +1,1 @@
+bindir = $(USERSCRIPTDIR)/creategroup.d

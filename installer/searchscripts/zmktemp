@@ -1,0 +1,15 @@
+#!/bin/bash
+#
+# Generate Kopano temporary file
+#
+# attachments_parser will have provided the ${TMPDIR}
+# which means that we will generate the following temporary
+# file directly in a subfolder which will be cleaned up by
+# attachments_parser. 
+TMPFILE="`mktemp`"
+
+# Write data from standard input directly into temporary file.
+cat > ${TMPFILE}
+
+# Caller needs to be informed on where the data went to.
+echo ${TMPFILE}

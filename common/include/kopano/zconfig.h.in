@@ -1,0 +1,9 @@
+/*
+ *	zconfig.h.in is the template to zconfig.h, which is used to
+ *	convey a carefully selected subset of config.h macros to
+ *	downstream packages which do not conflict. In particular,
+ *	there must be no HAVE_ macros in here. Make sure everything
+ *	that ends up in here has a prefix like ZCP_.
+ */
+
+#undef ZCP_USES_ICU

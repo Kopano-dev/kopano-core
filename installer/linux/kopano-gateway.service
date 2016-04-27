@@ -1,0 +1,11 @@
+[Unit]
+Description=Kopano Core IMAP/POP3 Gateway
+Documentation=man:kopano-gateway(8) man:kopano-gateway.cfg(5)
+
+[Service]
+Type=simple
+Environment=LC_ALL=C LANG=C
+ExecStart=/usr/sbin/kopano-gateway -F -c /etc/kopano/gateway.cfg
+
+[Install]
+WantedBy=multi-user.target

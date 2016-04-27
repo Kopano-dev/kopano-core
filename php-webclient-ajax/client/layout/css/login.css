@@ -1,0 +1,100 @@
+body.login {
+	background:#ffffff;
+	margin: 0px;
+	font-family: Arial;
+	color:#000000;
+	font-size: 8pt;
+	height: 100%;
+	width: 100%;
+	position: absolute;
+}
+table#layout {
+	height: 100%;
+	width: 100%;
+}
+table#layout tr td {
+	vertical-align: middle;
+	text-align: center;
+}
+div#login_main {
+	width: 550px;
+	height: 470px;
+	border: 0px;
+	background: #fff url(../img/login.jpg) no-repeat;
+	margin-left: auto;
+	margin-right: auto;
+	position: relative;
+	text-align: left;
+}
+			
+			
+div#login_main span#version {
+	position: absolute;
+	bottom: -1px;
+	right: 5px;
+	color: #777;
+	font-family: Arial;
+	font-size: 8pt;
+}
+
+div#login_data {
+	position: absolute;
+	top: 130px;
+	left: 110px;
+	height: 190px;
+	width: 400px;
+	
+	padding-left: 25px;
+}
+
+div#login_data p {
+	margin: 0;
+	margin-top: 15px;
+	margin-left: 15px;
+}
+div#login_data p.error {
+	margin: 0;
+	margin-left: 15px;
+	color: #f00;
+}
+
+div#login_data table#form_fields {
+	margin: 0;
+	margin-top: 5px;
+	margin-left: 15px;
+		
+	width: 275px;
+}
+
+div#login_data table#form_fields tr th {
+	font-weight: normal;
+	text-align: left;
+	margin: 0;
+	width: 68px;
+}
+
+div#login_data table#form_fields tr td {
+	width: 206px;
+	padding: 0;
+	margin: 0;
+	text-align: left;
+}
+div#login_data table#form_fields tr td .inputelement {
+	border: 1px solid #ddd;
+	width: 200px;
+	margin: 0;
+	padding-left: 2px;
+	height: 16px;
+	font-size: 11px;
+}
+
+div#login_data table#form_fields tr td select.inputelement {
+	width: 100%;
+	height: 18px;
+}
+
+div#login_data table#form_fields tr td input#submitbutton {
+	font-size: 11px;
+	height: 20px;
+	width: auto;
+}

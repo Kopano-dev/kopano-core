@@ -1,0 +1,23 @@
+#reminderinfo {
+	height: 50px;
+}
+
+#remindertable {
+	height: 120px;
+}
+
+table#remindercontrols {
+	width: 100%;
+}
+
+table#remindercontrols td {
+	width: 25%;
+}
+
+table#remindercontrols td input {
+	width: 100%;
+}
+
+table#remindercontrols td select {
+	width: 100%;
+}

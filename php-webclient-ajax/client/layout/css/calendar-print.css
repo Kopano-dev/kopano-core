@@ -1,0 +1,501 @@
+/* css for header table */
+div#dialog_content {
+	background-color: #FFFFFF;
+}
+
+#print_header {
+	width: 99%;
+	border: 1px solid #000000;
+	overflow: hidden;
+}
+
+#print_header .headercell {
+	width: 99%;
+	padding: 0px;
+	border-spacing: 0px;
+}
+
+#print_header .left_cell {
+	width: 50%;
+	text-align: left;
+	vertical-align: top;
+	font-family: Arial;
+	font-size: 16px;
+}
+
+#print_header .right_cell {
+	width: 25%;
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+#print_header .middle_cell {
+	width: 25%;
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+#print_header .headerrow {
+	width: 99%;
+	vertical-align: top;
+	height: 130px;
+}
+
+/* css for footer table */
+#print_footer {
+	margin-top: 3px;
+}
+
+#print_footer .footertbl {
+	width: 100%;
+	font-size: 12px;
+	border: 1px solid #000000;
+}
+
+#print_footer .footerrow {
+	width: 99%;
+}
+
+#print_footer .left_footer_cell {
+	text-align: left;
+	width: 40%;
+}
+
+#print_footer .middle_footer_cell {
+	text-align: center;
+	width: 20%;
+}
+
+#print_footer .right_footer_cell {
+	text-align: right;
+	width: 40%;
+}
+
+/* css for main printing area */
+#print_calendar {
+	width: 99%;
+	border: 1px solid #000000;
+	overflow: hidden;
+	margin-top: 3px;
+	
+	color: #000000;
+	font-family: Arial;
+	font-size: 11px;
+	font-size-adjust: none;
+	font-style: normal;
+	font-variant: normal;
+	font-weight: normal;
+	line-height: normal;
+}
+
+#week_number {
+	padding-left: 10px;
+}
+
+#print_calendar .header {
+	position: relative;
+	width: 100%;
+	height: 34px;
+}
+
+#print_calendar .header .timelinetop {
+	position: absolute;
+	width: 50px;
+	top: 0px;
+	left: 0px;
+	height: 33px;
+	border-right: 1px solid #000000;
+}
+
+#print_calendar .header .alldayevent {
+	position: relative;
+	width: 100%;
+	left: 50px;
+	height: 17px;
+	bottom: 0px;
+}
+
+#print_calendar .header .alldayevent .allcontainer {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	margin-top: 3px;
+}
+
+#print_calendar .header .alldayevent .allday_appointment {
+	position: absolute;
+	border: 1px solid #000000;
+	text-align: center;
+	overflow: hidden;
+	vertical-align: top;
+	margin: 0px;
+	margin-top: 2px;
+	z-index: 2;
+}
+
+#print_calendar .header .alldayevent .allday_appointment_back {
+	position: absolute;
+	border: 1px solid #000000;
+	margin: 0px;
+	margin-top: 2px;
+	z-index: 1;
+}
+
+#print_calendar .date {
+	position: absolute;
+	top: 0px;
+	left: 50px;
+	width: 100px;
+	height: 17px;
+	text-align: center;
+	border-right: 1px solid #000000;
+	border-bottom: 1px solid #000000;
+}
+
+#print_calendar #days {
+	position: relative;
+	width: 100%;
+	height: 340px;
+	overflow-x: hidden;
+	overflow-y: auto;
+	border-top: 1px solid #000000;
+}
+
+#print_calendar .timeline {
+	position: absolute;
+	width: 50px;
+	top: 0px;
+	left: 0px;
+	border-right: 1px solid #000000;
+}
+
+#print_calendar .time {
+	width: 100%;
+	text-align: right;
+	vertical-align: top;	
+	font-size: 16px;
+	border-bottom: 1px solid #000000;
+	margin-top: 3px;
+	font-weight: bold;
+}
+
+#print_calendar .time sup {
+	padding-left: 3px;
+	font-weight: normal;
+}
+
+#print_calendar .day {
+	position: absolute;
+	width: 100px;
+	top: 0px;
+	left: 50px;
+}
+
+/* appointment related css */
+#print_calendar .appointment {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	overflow: hidden;
+	text-align: left;
+	vertical-align: top;
+	padding: 2px;
+	padding-left: 9px;
+	margin: 0px;
+	z-index: 2;
+
+	border-style: solid;
+	border-width: 1px;
+	border-left-width: 1px;
+	border-color: #000000;
+}
+
+#print_calendar .appointment_back {
+	position: absolute;
+	z-index: 1;
+	top: 0px;
+	left: 0px;
+	margin: 0px;
+
+	border-style: solid;
+	border-width: 1px;
+	border-left-width: 5px;
+	border-color: #FFFFFF;
+}
+
+
+#print_calendar .appointment.busy {
+	border-left: 5px solid #0402fc;
+}
+
+#print_calendar .appointment.outofoffice {
+	border-left: 5px solid #800080;
+}
+
+#print_calendar .appointment.free {
+	border-left: 5px solid #969696;
+}
+
+#print_calendar .appointment.tentative {
+	border-left: 5px dotted #0402fc;
+}
+
+#print_calendar .dayheader {
+	background: #CCCCCC;
+	width: 100%;
+}
+
+#print_calendar .daytbl {
+	width: 100%;
+}
+
+#print_calendar .time_cell {
+	width: 20%;
+}
+
+.half_hour_cell {
+	font-size: 0px;
+	margin-left: 5px;
+	border-top: 1px solid #FFFFFF;
+	border-left: 1px solid #000000;
+	border-bottom: 1px solid #000000;
+	border-right: 1px solid #000000;
+}
+
+/* css for month view */
+#print_calendar .month {
+	width: 100%;
+	height: 100%;
+	padding: 0px;
+	margin: 0px;
+}
+
+#print_calendar .month .month_header {
+	width: 100%;
+	float: left;
+	overflow: hidden;
+	white-space: nowrap;
+	clear: both;
+}
+
+#print_calendar .month .month_header .month_header_week_nr,
+#print_calendar .month .month_header .month_header_day {
+	text-align: center;
+	padding: 0px;
+	margin: 0px;
+	border-left: 1px solid #000000;
+	float: left;
+	overflow: hidden;
+}
+
+#print_calendar .month {
+	padding: 0px;
+	margin: 0px;
+	overflow: hidden;
+	clear: both;
+	width: 100%;
+	position: relative;
+}
+
+#print_calendar .month .week .month_day, .month_week_nr {
+	padding: 0px;
+	margin: 0px;
+	border-top: 1px solid #000000;
+	border-left: 1px solid #000000;
+	float: left;
+	height: 100%;
+	overflow: hidden;
+	position: relative;
+}
+
+#print_calendar .month .week .month_day.today {
+	background: #FFFFFF;
+}
+
+#print_calendar .month .week .month_day span.day_number {
+	margin-right: 3px;
+	display: block;
+	text-align: right;
+}
+
+#print_calendar .month .week .month_week_nr {
+	text-align: center;
+}
+
+#print_calendar .month .week .month_other {
+	z-index: 2;
+	position: relative;
+}
+
+#print_calendar .month .week .month_other_back {
+	position: absolute;
+	z-index: 1;
+}
+
+#print_calendar .month .week .month_day .event_item {
+	overflow: hidden;
+	white-space: nowrap;
+	position: relative;
+	z-index: 2;
+}
+
+#print_calendar .month .week .month_day .event_item_back {
+	position: absolute;
+	z-index: 1;
+}
+
+#print_calendar .month .week .month_day .event_day_item {
+	border: 1px solid #000000;
+	text-align: center;
+	position: relative;
+	z-index: 2;
+}
+
+#print_calendar .month .week .month_day .event_day_item_back {
+	border: 1px solid #FFFFFF;
+	position: absolute;
+	z-index: 1;
+}
+
+#print_calendar .month .week div.more_items {
+	display: block;
+	margin: 0;
+	padding: 0;
+	margin-left: 1px;
+	height: 14px;
+}
+
+/* css for list view */
+#print_calendar .list {
+	padding: 0px;
+	margin-top: 1px;
+	overflow-y: auto;
+	overflow-x: hidden;
+	width: 100%;
+	position: relative;
+}
+
+#print_calendar .list_view {
+	float: left;
+	overflow: hidden;
+	width: 99%;
+	padding-left: 2px;
+	position: relative;
+}
+
+#print_calendar .list_view .day_header {
+	display: block;
+	border: 1px solid #000000;
+	font-family: Arial;
+	font-size: 13px;
+	padding-left: 5px;
+	margin: 2px;
+	z-index: 2;
+	position: relative;
+}
+
+/* css for week view */
+#print_calendar .week_view {
+	float: left;
+	overflow: hidden;
+	position: relative;
+}
+
+#print_calendar .week_view span.day_header {
+	display: block;
+	text-align: right;
+	border-top: 1px solid #000000;
+	border-bottom: 1px solid #000000;
+	margin: 1px;
+}
+
+#print_calendar .day_monday {
+	border-right: 1px solid #000000;
+}
+
+#print_calendar .day_tuesday {
+	border-right: 1px solid #000000;
+}
+
+#print_calendar .day_wednesday {
+	border-right: 1px solid #000000;
+}
+
+#print_calendar .event {
+	width: 99%;
+	float: none;
+	white-space: nowrap;
+	position: relative;
+	z-index: 2;
+}
+
+#print_calendar .event_back {
+	width: 99%;
+	position: absolute;
+	z-index: 1;
+}
+
+#print_calendar .event_day_item {
+	border: 1px solid #000000;
+	text-align: center;
+}
+
+#print_calendar .event_day_item_back {
+	
+}
+
+#print_calendar .event span.event_time {
+	padding-left: 5px;
+	padding-right: 5px;
+}
+
+#print_calendar .spacer_list {
+	padding-right: 10px;
+	padding-left: 10px;
+}
+
+/* datepicker css */
+#datepicker .month {
+	width: 100%;
+	height: 130px;
+}
+
+#datepicker .month .dayname {
+	height: 17px;
+	width: 28px;
+	text-align: center;
+	border-bottom: 1px solid #000000;
+	font-size: 11px;
+}
+
+#datepicker .month .calendarday {
+	height: 15px;
+	width: 28px;
+	text-align: center;
+	font-size: 11px;
+}
+
+#datepicker .monthselected {
+	text-align: center;
+	height: 17px;
+	font-weight: bold;
+	font-size: 12px;
+}
+
+#datepicker {
+	color: #000000;
+	font-family: Arial;
+	font-size-adjust: none;
+	font-style: normal;
+	font-variant: normal;
+	font-weight: normal;
+	line-height: normal;
+}
+
+img {
+	padding-right: 2px;
+}
+
+iframe {
+	visibility: hidden;
+}

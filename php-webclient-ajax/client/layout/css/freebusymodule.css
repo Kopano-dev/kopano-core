@@ -1,0 +1,321 @@
+.freebusy_container {
+	position: relative;
+	width: 100%;
+	height: 450px;
+	overflow: auto;
+}
+#fbleft {
+	margin-right: 0px;
+	width: 160px;
+}
+.screen_out {
+	overflow: auto;
+	width: 600px;
+	background-color: #FFFFD5;
+	position:absolute;
+	left: 160px;
+	top: 0px;
+}
+.screen_in {
+	background-color: #FFFFD5;
+	position:relative;
+}
+#picker {
+	position: absolute;
+	background-color: #FFFFFF;
+	top: 32px;
+	opacity: 0.60;
+	filter: alpha(opacity=60);
+}
+#picker_left {
+	position: absolute;
+	background-color: #8CBC76;
+	width: 4px;
+	top: 32px;
+	z-index: 1;
+}
+#picker_right {
+	position: absolute;
+	background-color: #E17575;
+	width: 4px;
+	top: 32px;
+	z-index: 1;
+}
+
+#fblegend {
+	width: 599px;
+	text-align: center;
+	position:absolute;
+}
+#fbbottom {
+	left: 0px;
+	border-bottom:1px solid #A5ACB2;
+}
+#autpic {
+	float: left;
+	text-align: center;
+	width: 160px;
+}
+
+#fbstartdate,
+#fballday {
+	float: left;
+}
+
+#fbenddate{
+	clear: both;
+	padding-left:160px;
+}
+.left_header {
+	height: 31px;
+}
+.col_hour{
+	float: left;
+	width: 24px;
+	border-right-width: 1px;
+	border-right-style: solid;
+	border-right-color: #F6DBA2;
+}
+.last_hour, .day_header{
+	border-right-width: 1px;
+	border-right-style: solid;
+	border-right-color: #BFAC83;
+}
+.hour_number {
+	padding-left: 5px;
+	background-color: #E0DFE3;
+	display: block;
+	text-align: left;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+	border-bottom-color: #F6DBA2;
+}
+.day_header {
+	background-color: #E0DFE3;
+	float: left;
+	text-align: center;
+	width: 599px;
+	height: 15px;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+	border-bottom-color: #F6DBA2;
+	overflow: hidden;
+}
+.hour_header_1 {
+	float: left;
+	width: 600px;
+	text-align: center;
+	height: 16px;
+	background: url(../img/hour_header_1.png);
+}
+.hour_header_2 {
+	float: left;
+	width: 300px;
+	text-align: center;
+	height: 16px;
+	background: url(../img/hour_header_2.png);
+}
+.hour_header_3 {
+	float: left;
+	width: 200px;
+	text-align: center;
+	height: 16px;
+	background: url(../img/hour_header_3.png);
+}
+.hour_header_4 {
+	float: left;
+	width: 150px;
+	text-align: center;
+	height: 16px;
+	background: url(../img/hour_header_4.png);
+}
+.hour_header_6 {
+	float: left;
+	width: 100px;
+	text-align: center;
+	height: 16px;
+	background: url(../img/hour_header_6.png);
+}
+.hour_header_8 {
+	float: left;
+	width: 75px;
+	text-align: center;
+	height: 16px;
+	background: url(../img/hour_header_8.png);
+}
+.hour_grid {
+	background: url(../img/grid.png);
+	width: 100%;
+	height: 75px;
+	float: left;
+}
+.name_list_item {
+	height: 18px;
+	cursor: default;
+}
+.name_list_item_fullname {
+	white-space: nowrap;
+}
+.busy_item {
+	position: absolute;
+	height: 14px;
+	padding: 0px;
+	margin: 0px;
+}
+.fb_busy {
+	background-color: #3333FF;
+	background-image: none;
+}
+.fb_tentative {
+	background-color: #3333FF;
+	background-image: url(../img/appointment_tentative.gif);
+	background-repeat: repeat;
+}
+.fb_outoffice {
+	background-color: #880088;
+	background-image: none;
+}
+.fb_free {
+	background-color: #FFFFFF;
+	background-image: none;
+}
+.fb_noinfo{
+	background-color: #FFFFFF;
+	background-image: url(../img/appointment_unknown.gif);
+  background-repeat: repeat;
+}
+
+.odd_back {
+	position: absolute;
+	background-color: #EFEFC5;
+	padding: 0px;
+	margin: 0px;
+	height: 18px;
+	z-index: -1;
+	left: 0px;
+	border-top-width: 1px;
+	border-top-style: solid;
+	border-top-color: #F6DBA2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+	border-bottom-color: #F6DBA2;
+}
+
+input.idle{
+  width: 145px;
+  height: auto;
+  border: 0px solid #000;
+  margin: 0;
+  padding: 2px;
+  display: block;
+  line-height: 1;
+	font-size: 8pt;
+  color: #ccc;
+}
+
+input.seleted{
+  width: 145px;
+  height: auto;
+  border: 0px solid #000;
+  margin: 0;
+  padding: 2px;
+  display: block;
+  color: #000;
+  line-height: 1;
+	font-size: 8pt;
+}
+
+.name_list div{
+	border-top-width: 1px;
+	border-top-style: solid;
+	border-top-color: #A5ACB2;
+}
+#fblegend .fb_state {
+  float: left;
+  margin-top: 5px;
+  margin-left: 5px;
+  width: 10px;
+  height: 10px;
+  border: 1px solid #000;
+}
+#fblegend .legend_text {
+  float: left;
+  margin-top: 5px;
+  margin-left: 5px;
+}
+span.legend_busy {
+  background-color: #33f;
+  background-image: none;
+}
+span.legend_tentative {
+  background-color:#ccf;
+  background-image: url(../img/appointment_tentative.gif);
+  background-repeat: repeat;
+}
+span.legend_outofoffice {
+  background-color:#808;
+  background-image: none;
+}
+span.legend_free {
+  background-color: #fff;
+  background-image: none;
+}
+span.legend_unknown {
+  background-color: #999;
+  background-image: url(../img/appointment_unknown.gif);
+  width: 600px;
+  background-repeat: repeat;
+}
+span.legend_allbusy {
+  background-color: #11f;
+  background-image: none;
+}
+
+
+span.meetingrequest_recipienttype {
+
+}
+.icon_meetingrequest_organizer {
+	background-image: url(../img/icon_meetingrequest_organizer.gif);
+}
+.icon_meetingrequest_requiredattendee {
+	background-image: url(../img/icon_meetingrequest_requiredattendee.gif);
+	background-color: #FFF;
+	border: 1px solid #000;
+}
+.icon_meetingrequest_optionalattendee {
+	background-image: url(../img/icon_meetingrequest_optionalattendee.gif);
+	background-color: #FFF;
+	border: 1px solid #000;
+}
+.icon_meetingrequest_resource {
+	background-image: url(../img/icon_meetingrequest_resource.gif);
+	background-color: #FFF;
+	border: 1px solid #000;
+}
+.meetingrequest_dropdownarrow {
+	background-image: url(../img/dropdownarrow.gif);
+	height: 14px;
+	padding-left: 12px;
+}
+div.meetingrequest_recipienttype_selectionlist {
+	position: absolute;
+	background-color: #FFF;
+	border: 1px solid #000;
+	height: 45px;
+}
+div.meetingrequest_recipienttype_selectionlist ul {
+	margin: 0px;
+	padding: 0px;
+	padding-right: 2px;
+}
+div.meetingrequest_recipienttype_selectionlist ul li {
+	list-style-type: none;
+	margin: 0px;
+	border: 0px;
+	cursor: default;
+}
+div.meetingrequest_recipienttype_selectionlist ul li.selected {
+	background-color: #0A246A;
+	color: #FFF;
+}

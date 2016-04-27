@@ -1,0 +1,43 @@
+fieldset {
+	border:1px solid #808080;
+	padding: 5px;
+}
+
+legend {
+  color: #000000;
+}
+
+fieldset#pattern {
+	position: relative;
+	height: 120px;
+}
+
+div.right_border {
+	border-right:1px solid #808080;
+	margin-right: 3px;
+	position: absolute;
+	width: 100px;
+	height: 98px;
+}
+
+div.pattern_type {
+	position: absolute;
+	left: 90px;
+	padding-left: 15px;
+}
+
+div#weekly {
+	left: 95px;
+}
+
+div.dialog_buttons {
+	text-align: center;
+}
+
+div#daily_regen_container, div#weekly_regen_container {
+	margin-top: 3px;
+}
+
+.hideField {
+	display:none;
+}

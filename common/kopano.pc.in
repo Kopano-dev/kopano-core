@@ -1,0 +1,11 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: kopano
+Description: Kopano development
+Version: @PACKAGE_VERSION@
+Requires:
+Libs: -L${libdir} -lmapi
+Cflags: -I${includedir} -I${includedir}/mapi4linux -DUNICODE @icu_uc_CFLAGS@ @icu_i18n_CFLAGS@

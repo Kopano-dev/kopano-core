@@ -1,0 +1,44 @@
+kopano-backup is a MAPI-level backup/restore tool. it has three parts.
+
+BACKUP
+-kopano-backup can sync complete users/stores to disk, to be restored at a later time (-u, -S)
+-it can sync multiple stores in parallel (for performance reasons, not folders; -w)
+-it uses ICS to incrementally sync the respective MAPI items
+-there is an option to sync only certain folders (-f, --recursive)
+-it uses python-kopano to serialize items (item.dumps())
+-the on-disk layout is basically a per-store (user) hierarchical directory tree,
+ with one directory for each MAPI folder
+-for each MAPI folder, the following files are maintained:
+  'items': key-value store containing serialized version of every item in the folder
+  'index': key-value store containinfg subjects and dates for every item (for performance)
+  'state': ICS state
+  'path': folder path, for example 'Inbox/subfolder'
+  'meta': contains rules, acls, delegates for this folder
+  'folder': contains folder properties
+-for each user/store, the properties are also stored globally as 'user'/'store'
+-only a certain period may be backed up (-b, -e), though this may give weird effects when
+ combining with incremental backup
+-there are certain options to skip e.g. attachments, junk mail, deleted items..
+
+RESTORE
+-kopano-backup --restore can restore complete users/stores back from disk
+-the single argument given is the name of the directory which should be restored
+-the user/account to restore to is taken from the directory name (-u can be used to specify otherwise)
+-a 'restore root' can be specified, where to restore everything under (--restore-root, e.g. "dump/user3")
+-there is an option to sync only certain folders (-f, --recursive)
+-there is an option to restore only certain items, by sourcekey (--sourcekey; see STATS/INDEX below)
+-it maintains original sourcekeys (PR_EC_BACKUP_SOURCE_KEY)
+-if it detects a duplicate sourcekey, it will complain and not restore the respective item
+-there is an option to specify a certain time period
+-there are certain options to skip e.g. attachments, junk mail, deleted items..
+-it should be mostly possible to restore on a different server, though this may result in minor data loss
+-it is not parallelized at this point, but could be in the future
+-when restoring items, they get a new sourcekey. but we'd like to check for duplicates, so we restore the
+ original sourcekey as PR_EC_BACKUP_SOURCEKEY
+
+STATS/INDEX
+-kopano-backup --stats gives a high-level summary of the contents of a backup directory
+-kopano-backup --index shows all items contained in the backup directory, including folder path, subject and date
+-the output format in both cases is CSV, which can be imported and inspected in e.g. LibreOffice
+-there is an option to specify a certain time period
+-to search for a specific subject, of course grep may be used.

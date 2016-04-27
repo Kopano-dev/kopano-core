@@ -1,0 +1,604 @@
+/**
+ * Theme: Outlook 2010
+ * Creator : Abhinav (a.sharma@zarafa.com)
+ * Creator : Saket (s.patel@zarafa.com)
+ */
+
+
+body {
+	background-color: #dddddd;
+}
+
+/* default layout */
+.zarafa_logo {
+	background-image: url(img/zarafa_top_logo.gif);
+}
+
+div.title {
+	background-color: #000;
+	background-image: url(img/fill_header.gif);
+}
+
+.title {
+	color: #000000;
+}
+
+.zarafa_background {
+	background-image: url(img/zarafa_top_01.gif);
+}
+
+#top {
+	background:#ccc;
+}
+
+.subtitle {
+	background-image: url(img/fill_header2.gif);
+}
+
+.subtitle_zarafa_background {
+	background-image: url(img/zarafa_top_03.gif);
+}
+
+.zarafa_subtitle {
+	background: #F3F3F3;
+	border-bottom: 1px solid #777777;
+}
+
+#footer {
+	background-image: url(img/fill_footer.gif);
+	border-color: #000;
+}
+
+#footer #numberitems {
+	background-image: url(img/zarafa_footer.gif);
+}
+
+#footer #loggedon {
+	background-image: url(img/fill_footer.gif);
+	border-color: #000;
+}
+
+#footer #loggedon a {
+	color: #555555;
+}
+
+.quota_bar {
+	border-color: #000;
+}
+
+span.settingsbutton, span.loggoutbutton {
+	color: #555555;
+}
+
+/* folder list */
+.default_buttons_top {
+	background-image: url(img/folder_select_scroll.gif);
+}
+
+#buttons {
+	background-image: url(img/folder_select_scrollback.gif);
+	color: #000;
+}
+
+.folder_title {
+	background-color: #fff;
+	color: #000000;
+	border-color: #fff;
+}
+
+.folder_title_selected {
+	background: #FFEFB2;
+	color: #000000;
+	border-color: #FFEFB2;
+}
+
+.dragover {
+	background: #868686;
+	color: #eee;
+}
+
+.folder_title_context {
+	background: #868686;
+}
+.default_button {
+	 background-image: url(img/fill_header.gif);
+}
+.default_button_over {
+	background: #FFEFB2;
+}
+
+/* list view */
+.columns {
+	border-bottom: 1px solid #777777;
+}
+
+#columnbackground {
+	background: #F3F3F3;
+	border-top: 1px solid white;
+	border-bottom: 1px solid #777777;
+}
+.columnbackground {
+	background: #F3F3F3;
+	border-top: 1px solid white;
+	border-bottom: 1px solid #777777;
+}
+.columns .column_seperator {
+	background-image: url(img/seperator.gif);
+}
+
+.row {
+	background:#FFFFFF;
+	color: #000000;
+}
+
+.rowselected {
+	background: #FFEFB2;
+}
+
+/* the row which is selected by the current context menu */
+.rowcontextmenu {  
+	background: #FFEFB2;
+}
+
+/* Menu (also contextmenu) */
+#menubar {
+	border-color: #000;
+	background: #F3F3F3;
+}
+
+#menubar #menubar_right {
+	background: #F3F3F3;
+}
+
+#defaultmenu {
+	background-color: #F3F3F3;
+	border-color: #000;
+	border-top-color: #ccc;
+}
+
+#contextmenu, .importancemenu {
+	background: #F3F3F3;
+	border-color: #000;
+}
+
+.menuitem {
+	border-color: #F3F3F3;
+}
+
+.menuitemover {
+	background-color: #FFEFB2;
+	border-color: #FFEFB2;
+}
+
+.menubuttonover {
+	background-color: #eee;
+	border-color: #000;
+}
+
+.menubuttonselected {
+	background-color: #aaa;
+	border-color: #000;
+}
+
+.icon_seperator {
+	background-image: url(img/seperator.gif);
+}
+
+.icon_menuitemseperator {
+	background-image: url(img/menuitem_seperator.gif);
+}
+
+/* ComboBox (used for paging) */
+.combobox {
+	background-color:#FFFFFF;
+	color:#000000;
+}
+
+.combobox .selected {
+	border-color: #000;
+}
+
+.combobox .arrow {
+	border-color: #000;
+}
+
+.combobox .arrowover {
+	background-color:#ccc;
+}
+
+.combobox_options {
+	background-color:#fff;
+	border-color: #000;
+}
+
+.combobox_options .optionover {
+	background-color:#ccc;
+}
+
+/* contacts */
+.alfabet {
+	background-color:#ccc;
+	border-left-color: #000;
+}
+
+.alfabet .character {
+	border-bottom-color: #000;
+	color:#000;
+}
+
+.alfabet .characterover {
+	background-color:#eee;
+}
+
+.contact {
+	background:transparent url(img/contactheaderback.jpg) repeat scroll 0 0;
+	border:1px solid #666666;
+	color:#000;
+}
+
+.contact .fileas {
+	background-color:#aaa;
+	color:#000;
+	border-bottom-color: #000;
+}
+
+.contactselected {
+	background:#444;
+	color:#fff;
+}
+
+.contactcontextmenu {
+	background-color: #D9D9D9;
+}
+
+.contact .address {
+	background-color:#FFFFFF;
+	color:#000000;
+	border-top-color: #595959;
+}
+
+.contact .data {
+	background-color:#FFFFFF;
+	color:#000000;
+}
+
+.contact_seperator {
+	background-color:#4a4a4a;
+	border-color: white;
+}
+/* dialogs */
+body.dialog {
+	background-color: #eeeeee;
+}
+
+.propertytitle {
+	border-bottom-color: #000;
+}
+
+/* tabbar */
+#tabbar {
+	background-color: #ccc;
+}
+#tabbar li {
+	background-image: url(img/tab_left.gif);
+}
+#tabbar li span {
+	background-image: url(img/tab_right.gif);
+}
+
+#tabbar li.hover {
+	background-image: url(img/tab_left_sel.gif);
+}
+
+#tabbar li.hover span {
+	background-image: url(img/tab_right_sel.gif);
+}
+
+#tabbar li.selectedtab  { 
+	background-image: url(img/tab_left_act.gif);
+}
+
+#tabbar li.selectedtab span {
+	background-image: url(img/tab_right_act.gif);
+}
+
+/* datepicker (layout element) */
+#datepicker {
+	background:#FFFFFF;
+	border-left-color: #000;
+}
+
+#datepicker .month {
+	border-bottom-color: #000;
+}
+
+#datepicker .monthselected {
+	background:#ccc;
+	border-bottom-color: #000;
+}
+
+#datepicker .month .dayname {
+	border-bottom: #000;
+}
+
+#datepicker .month .calendartoday {
+	border-color: #000;
+	background:#ccc;
+}
+
+/* loader */
+#zarafa_loader {
+	background-image: url(img/loader.gif);
+}
+
+
+div.listview_topbar {
+	background: #ddd;
+	border-color: #000;
+}
+
+.layoutelement {
+	border-left: 1px solid #EEEEEE;
+	border-right: 1px solid #999999;
+	border-top: 1px solid #EEEEEE;
+	border-bottom: 1px solid #999999;
+
+}
+
+#calendar .timeline {
+	background: #cccccc;
+}
+
+#calendar .header {
+	background: #cccccc;
+}
+
+#calendar .time {
+	border-bottom: 1px solid #888888;
+}
+
+div#shared_folder {
+	border-top: 1px solid #ccc;
+}
+
+div#shared_folder a {
+	color: #555;
+}
+
+span.unread_count {
+	color: #2D5AB6;
+}
+span.unread_count {
+	color: #000;
+}
+
+div.searchbutton {
+	background-image: url(img/icon_search.gif);
+	border:1px solid #ccc;
+}
+
+div.searchbuttonover {
+	border:1px solid #000;
+	background-color:#eee;
+}
+
+.previewpane #meetingrequest {
+	border-color: white;
+	background: #dddddd;
+}
+
+
+/** Multi User Calendar **/
+table.multiusercalendar td {
+	background-color: #CCCCCC;
+}
+
+.insertcolumn {
+	background:#DDDDDD none repeat scroll 0%;
+	border-bottom:1px ridge #777777;
+}
+
+
+/***** CALENDAR VIEWS (ALL VIEWS) *******/
+div.month .week .month_day {
+	background:transparent none repeat scroll 0%;
+}
+
+div.month .week .month_day span.day_number {
+	color:#000;
+	display:block;
+	padding-right:1px;
+	margin-right:0px;
+	text-align:right;
+	text-decoration:none;
+	font-weight:bold;
+	background: url(img/dayheaderback.jpg) repeat;
+	border:solid 1px #AAAAAA;
+}
+div.month .week .month_day.today {
+	background:#FFF none repeat scroll 0% 50%;
+}
+div.month .week .month_day.today span.day_number{
+	background:#fff url(img/activateddayheaderback.jpg) repeat;
+	border:solid 1px #EE9311;
+}
+div.month .week .month_day, .month_week_nr {
+	border-left:1px solid #8B8B8B;
+	border-top:1px solid #8B8B8B;
+}
+div.month .week .month_day .event_day_item , div.event_day_item {
+	background:transparent url(img/appointment_month.jpg) repeat;
+	border:1px solid #8B8B8B;
+	margin:1px 3px 1px 3px;
+	text-align:center;
+}
+#calendar .header .alldayevent .allday_appointment{
+	border:1px solid #666666;
+	margin:1px 3px 1px 3px;
+	text-align:center;
+}
+div.month .week .month_other {
+	background:#ccc none repeat scroll 0%;
+}
+
+#calendar .toplight {
+	background:#FFFFFF none repeat scroll 0%;
+	border-bottom:1px solid #FFFFFF;
+	border-top:1px solid #AAAAAA;
+	font-size:0pt;
+}
+#calendar .bottomlight {
+	background:#fff none repeat scroll 0% 50%;
+	border-bottom:1px solid #DDDDDD;
+	border-top:1px solid #DDDDDD;
+	font-size:0pt;
+}
+#calendar .topdark {
+	background:#DFDFDF none repeat scroll 0%;
+	border-bottom:1px solid #DFDFDF;
+	border-top:1px solid #AAAAAA;
+	font-size:0pt;
+}
+#calendar .bottomdark {
+	background:#DFDFDF none repeat scroll 0% 50%;
+	border-bottom:1px solid #DDDDDD;
+	border-top:1px solid #DDDDDD;
+	font-size:0pt;
+}
+#calendar .day {
+	border-left:1px solid #AAA;
+	left:50px;
+	position:absolute;
+	top:0px;
+}
+#calendar .date {
+	background:transparent url(img/dayheaderback.jpg) repeat scroll 0%;
+	border-left:1px solid #AAA;
+}
+#calendar .time, #calendar .header .timelinetop {
+	border-bottom:1px solid #cccccc;
+}
+#calendar .timeline, #calendar .header {
+	background:#F3F3F3 none repeat scroll 0%;
+}
+
+div.week_view {
+	background-color:#FFFFFF;
+}
+div.week_view span.day_header {
+	background:transparent url(img/dayheaderback.jpg) repeat scroll 0%;
+	border-bottom:1px solid #9D9DA1;
+	border-top:1px solid #666666;
+	font-weight:bold;
+	padding-top:3px;
+	padding-right:3px;
+	height:18px;
+}
+.prev_button {
+	background-image:url(img/icon_previous.gif);
+}
+.next_button {
+	background-image:url(img/icon_next.gif);
+}
+
+#calendar .appointment {
+	border:1px solid #aaaaaa;
+}
+#calendar .appointment.busy {
+	border:1px solid #aaaaaa;
+	border-left:1px solid #0402FC;
+}
+#calendar .appointment.selected {
+	background-color:#FFFFFF;
+	border:3px solid #333;	
+}
+
+#calendar .selection {
+	background:#4F4F4F;
+	background-position:left top;
+	border:solid 1px #0F0F0F;
+}
+input#quickappointment {
+	border: 5px solid #333333;
+}
+textarea#quickappointment, div#quickappointment {
+	border: 3px solid #333333;
+}
+textarea#quickappointment, 
+div#quickappointment, 
+input#quickappointment, 
+#calendar .appointment.selected, 
+#calendar .appointment.busy, 
+#calendar .appointment {
+	-moz-border-radius: 10px;
+	-webkit-border-radius: 10px;
+}
+
+div.month .week .month_day .event_day_item , div.event_day_item, 
+#calendar .header .alldayevent .allday_appointment{
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+}
+
+.allDayTimeLineSelected{
+	background:#666666;
+	border-left:solid 1px #666666;
+}
+/***** END HERE : CALENDAR VIEWS (ALL VIEWS) *******/
+.zarafa_background , #footer #numberitems {
+	background:transparent;
+}
+
+/**** TODAY VIEW ****/
+#todayview div.heading {
+	background-color:#aaaaaa;
+}
+
+.TB_Toolbar {
+	background-color:#DDDDDD;
+}
+
+div.large_viewselected span {
+	background-color:#666666;
+	color:#FFFFFF;
+}
+
+#tabbar {
+	background-color:#eeeeee;
+}
+
+.page_title {
+	color:#000000;
+}
+
+.first {
+	background-image: url(../../img/icon_page_navigation_grey.gif);
+}
+
+.prev {
+	background-image: url(../../img/icon_page_navigation_grey.gif);
+}
+
+.next {
+	background-image: url(../../img/icon_page_navigation_grey.gif);
+}
+
+.last {
+	background-image: url(../../img/icon_page_navigation_grey.gif);
+}
+
+.recipient {
+	background-color:#FFFFFF;
+}
+
+.properties #attachments {
+	background-color:#FFFFFF;
+}
+
+.disabledfield {
+	background-color: #E0DFE3;
+}
+
+span.selectedfolder_unread_count {
+	color: #000;
+}

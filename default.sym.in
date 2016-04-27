@@ -1,0 +1,4 @@
+EC_@PACKAGE_VERSION@ {
+global:
+	*;
+};

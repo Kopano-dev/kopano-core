@@ -1,0 +1,2 @@
+# it does not fix everything either, so at best is a recommendation
+-A4 -t4 -xn -xc -xk -xG -p -H -k3 -W3 -xC80 -xL

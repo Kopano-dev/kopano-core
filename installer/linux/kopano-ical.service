@@ -1,0 +1,11 @@
+[Unit]
+Description=Kopano Core iCal/CalDAV Gateway
+Documentation=man:kopano-ical(8) man:kopano-ical.cfg(5)
+
+[Service]
+Type=simple
+Environment=LC_ALL=C LANG=C
+ExecStart=/usr/sbin/kopano-ical -F -c /etc/kopano/ical.cfg
+
+[Install]
+WantedBy=multi-user.target

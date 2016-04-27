@@ -1,0 +1,60 @@
+fieldset {
+	border: none;
+	border-top:1px solid #808080;
+	padding-left: 5px;
+	margin-bottom: 5px;
+	font-weight: bold;
+}
+
+legend {
+  color: #000000;
+}
+
+input.text {
+	width: 100%;
+}
+
+input.checkbox {
+	margin-right: 10px;
+}
+
+select {
+	width: 100%;
+}
+
+textarea {
+	width: 100%;
+}
+
+table, .inputwidth {
+	width: 100%;
+}
+
+th {
+	text-align: left;
+	vertical-align: top;
+	font-weight: normal;
+}
+
+td {
+	vertical-align: top;
+	text-align: left;
+	width: 45%;
+}
+
+.addressbookbutton {
+	width: 22px;
+	height: 22px;
+	background: url(../img/icon_contact.gif);
+	background-repeat: no-repeat;
+	background-position: center center;
+}
+
+.buttonspace {
+	width: 19px;
+	vertical-align: center;
+}
+
+a {
+	color: #000000;
+}

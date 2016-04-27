@@ -1,0 +1,8 @@
+# -*- Makefile -*-
+
+.la.ldd:
+	${AM_V_GEN}${top_srcdir}/lddcheck $< $@
+
+# There is no good POSIX syntax for the following one.. resort to GNUmake
+%.ldx: %
+	${AM_V_GEN}${top_srcdir}/lddcheck $< $@

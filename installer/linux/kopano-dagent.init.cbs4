@@ -1,0 +1,67 @@
+#! /bin/sh
+
+. /etc/init.d/akfunctions
+
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+DAEMON=/usr/sbin/kopano-dagent
+CONFIG=/etc/kopano/dagent.cfg
+
+#     .........1.........2.........3.........4.........5........!
+NAME="Dagent"
+DESC="LMTP Delivery agent"
+
+#set -e
+
+# exit from init script when disabled, shift away "force" when present
+exit_if_disabled START_KOPANO_DAGENT "$@" || shift
+
+if [ ! -x $DAEMON ] 
+then
+    echo -n "$DESC :" 
+    eval $rc_not_installed
+fi
+
+case "$1" in
+  start)
+  	console_start "$DESC "
+	lcd_start $NAME
+	install -dm0775 -o kopano -g kopano /var/run/kopano
+	startproc $DAEMON -d -c $CONFIG
+	rc_exit $?
+	;;
+
+  stop)
+	console_stop "$DESC: "
+	lcd_stop $NAME
+	checkproc $DAEMON || rc_exit 0
+	killproc $DAEMON stop > /dev/null 2>&1
+	rc_exit $?
+	;;
+
+  status)
+  	/sbin/checkproc $DAEMON 2>/dev/null
+	result=$?
+	console_check $result $DESC
+	rc_exit $result
+	;;
+
+  restart)
+  	$0 stop
+	$0 start
+	rc_exit $?
+	;;
+
+  reload|force-reload)
+	killall -SIGHUP $DAEMON > /dev/null 2>&1
+	rc_exit $?
+	;;
+
+  *)
+	echo "Usage: $0 {start|stop|status|restart|reload|force-reload}" >&2
+	rc_exit 101
+	;;
+esac
+
+
+

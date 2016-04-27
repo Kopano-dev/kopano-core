@@ -1,0 +1,92 @@
+/var/log/kopano/archiver.log {
+        weekly
+        missingok
+        rotate 52
+        compress
+        delaycompress
+        notifempty
+}
+
+/var/log/kopano/dagent.log {
+        weekly
+        missingok
+        rotate 52
+        compress
+        delaycompress
+        notifempty
+        postrotate
+			killall -HUP kopano-dagent 2> /dev/null || true
+        endscript
+}
+
+/var/log/kopano/gateway.log {
+        weekly
+        missingok
+        rotate 52
+        compress
+        delaycompress
+        notifempty
+        postrotate
+			killall -HUP kopano-gateway 2> /dev/null || true
+        endscript
+}
+
+/var/log/kopano/ical.log {
+        weekly
+        missingok
+        rotate 52
+        compress
+        delaycompress
+        notifempty
+        postrotate
+			killall -HUP kopano-ical 2> /dev/null || true
+        endscript
+}
+
+/var/log/kopano/search.log {
+        weekly
+        missingok
+        rotate 52
+        compress
+        delaycompress
+        notifempty
+        postrotate
+			killall -HUP kopano-search 2> /dev/null || true
+        endscript
+}
+
+/var/log/kopano/monitor.log {
+        weekly
+        missingok
+        rotate 52
+        compress
+        delaycompress
+        notifempty
+        postrotate
+			killall -HUP kopano-monitor 2> /dev/null || true
+        endscript
+}
+
+/var/log/kopano/server.log /var/log/kopano/audit.log {
+        weekly
+        missingok
+        rotate 52
+        compress
+        delaycompress
+        notifempty
+        postrotate
+			killall -HUP kopano-server 2> /dev/null || true
+        endscript
+}
+
+/var/log/kopano/spooler.log {
+        weekly
+        missingok
+        rotate 52
+        compress
+        delaycompress
+        notifempty
+        postrotate
+			killall -HUP kopano-spooler 2> /dev/null || true
+        endscript
+}

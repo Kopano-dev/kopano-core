@@ -1,0 +1,42 @@
+.search_criteria_fieldset {
+	border: 1px solid #A5ACB2;
+	margin: 5px;
+	width: 96%;
+}
+
+.time_selection_values {
+	width: 69%;
+	margin-left: 5px;
+}
+
+.time_selection_property {
+	width: 29%;
+}
+
+input.size_value {
+	width: 100px;
+}
+
+/**
+ * override default css
+ * just to make search criteria widget beautiful
+ */
+#tabbar {
+	margin-bottom: 0px;
+}
+
+div.tabpage.selectedtabpage {
+	padding-top: 4px;
+	padding-bottom: 4px;
+	border-left: 1px solid #A5ACB2;
+	border-right: 1px solid #A5ACB2;
+	border-bottom: 1px solid #A5ACB2;
+}
+
+.labelwidth {
+	width: 125px;
+}
+
+.inputwidth {
+	width: 99%;
+}

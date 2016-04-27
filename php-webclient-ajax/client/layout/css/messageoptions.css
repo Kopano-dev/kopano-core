@@ -1,0 +1,14 @@
+
+
+tr.internet_headers td.propertynormal {
+	vertical-align: top;
+	min-width: 95px;
+}
+
+tr.internet_headers td div {
+	white-space: nowrap; 
+	font-family: monospace; 
+	height: 160px; 
+	overflow: scroll; 
+	border: 1px solid #A5ACB2;
+}

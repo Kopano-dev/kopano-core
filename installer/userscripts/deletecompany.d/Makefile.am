@@ -1,0 +1,1 @@
+bindir = $(USERSCRIPTDIR)/deletecompany.d

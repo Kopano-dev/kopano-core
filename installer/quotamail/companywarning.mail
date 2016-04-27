@@ -1,0 +1,11 @@
+Subject: Quota of company ${KOPANO_QUOTA_COMPANY} has been exceeded
+
+The size of the public store for company ${KOPANO_QUOTA_COMPANY} has exceeded
+the size limits set by the administrator.
+The public store size is ${KOPANO_QUOTA_STORE_SIZE}.
+
+Mailbox size limit:
+	* Warninglevel (${KOPANO_QUOTA_WARN_SIZE})
+		- When this limit is exceeded this warning message will be sent
+
+See client Help for more information.

@@ -1,0 +1,104 @@
+#!/bin/bash
+#
+# kopano-monitor Kopano Core Quota Monitor
+#
+# chkconfig: 345 86 24
+# processname: /usr/sbin/kopano-monitor
+# config: /etc/kopano/monitor.cfg
+# pidfile: /var/run/kopano/monitor.pid
+
+### BEGIN INIT INFO
+# Provides: kopano-monitor
+# Required-Start: $local_fs $network $remote_fs $syslog
+# Required-Stop: $local_fs $network $remote_fs $syslog
+# Should-Start: kopano-server
+# Should-Stop: kopano-server
+# Short-Description: Kopano Core Quota Monitor
+### END INIT INFO
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+MONITORCONFIG=/etc/kopano/monitor.cfg
+MONITORPROGRAM=/usr/sbin/kopano-monitor
+monitor=`basename $MONITORPROGRAM`
+LOCKFILE=/var/lock/subsys/$monitor
+PIDFILE=/var/run/kopano/monitor.pid
+RETVAL=0
+
+# Sanity checks.
+[ -x $MONITORPROGRAM ] || exit 0
+
+MONITORCONFIG_OPT=""
+[ ! -z $MONITORCONFIG -a -f $MONITORCONFIG ] && MONITORCONFIG_OPT="-c $MONITORCONFIG"
+
+[ -f /etc/sysconfig/kopano ] && . /etc/sysconfig/kopano
+if [ -z "$KOPANO_LOCALE" ]; then
+	KOPANO_LOCALE="C"
+fi
+
+start() {
+	install -dm0775 -o kopano -g kopano /var/run/kopano
+	start_daemon --pidfile "$PIDFILE" --lockfile "$LOCKFILE" $monitor
+	RETVAL=$?
+
+	return $RETVAL
+}
+
+stop() {
+	stop_daemon --pidfile "$PIDFILE" --lockfile "$LOCKFILE" $monitor
+	return $?
+}
+
+restart() {
+	stop
+	start
+}
+
+reload() {
+	msg_reloading $monitor
+	stop_daemon --pidfile "$PIDFILE" -HUP -- $monitor
+	RETVAL=$?
+
+	return $RETVAL
+}
+
+# See how we were called.
+case "$1" in
+    start)
+		start
+		;;
+    stop)
+		stop
+		;;
+    reload)
+		reload
+		;;
+    restart|force-reload)
+		restart
+		;;
+    condstop)
+		if [ -e "$LOCKFILE" ]; then
+		stop
+		fi
+		;;
+    condrestart|try-restart)
+		if [ -e "$LOCKFILE" ]; then
+	        restart
+		fi
+		;;
+    condreload)
+		if [ -e "$LOCKFILE" ]; then
+		reload
+		fi
+		;;
+    status)
+		status --pidfile "$PIDFILE" $monitor
+		RETVAL=$?
+		;;
+    *)
+		msg_usage "${0##*/} {start|stop|reload|restart|condstop|condrestart|condreload|status}"
+		RETVAL=1
+esac
+
+exit $RETVAL

@@ -1,0 +1,19 @@
+#! /bin/sh
+
+# Script that is executed whenever a new group is deleted from
+# the external user source, such as an Active Directory tree or
+# /etc/passwd.
+
+# This script executes all scripts in @USERSCRIPTDIR@/deletegroup.d
+# using find.  The environment variable KOPANO_GROUP is set, but
+# beware that this string can contain any characters, so take heed to
+# correct quoting.
+
+if [ -f @sysconfdir@/sysconfig/kopano ]; then
+  . @sysconfdir@/sysconfig/kopano
+elif [ -f @sysconfdir@/default/kopano ]; then
+  . @sysconfdir@/default/kopano
+fi
+
+KOPANO_GROUP_SCRIPTS=@USERSCRIPTDIR@/deletegroup.d
+. @USERSCRIPTDIR@/groups_common.sh

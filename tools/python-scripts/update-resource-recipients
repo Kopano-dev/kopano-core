@@ -1,0 +1,51 @@
+#!/usr/bin/env python
+
+from MAPI.Util import *
+import os, sys
+import locale
+
+def GetSelfRecipient(session):
+    ab = session.OpenAddressBook(0, None, 0)
+    identity = session.QueryIdentity()
+    user = ab.OpenEntry(identity, None, 0)
+    props = user.GetProps([PR_ACCOUNT, PR_ADDRTYPE, PR_DISPLAY_NAME, PR_DISPLAY_TYPE, PR_DISPLAY_TYPE_EX,
+                           PR_EMAIL_ADDRESS, PR_ENTRYID, PR_OBJECT_TYPE, PR_SEARCH_KEY, PR_SMTP_ADDRESS], 0)
+    props += [SPropValue(PR_RECIPIENT_ENTRYID, PpropFindProp(props, PR_ENTRYID).Value),
+              SPropValue(PR_RECIPIENT_FLAGS, 256 | 1),
+              SPropValue(PR_RECIPIENT_TRACKSTATUS, 0),
+              SPropValue(PR_RECIPIENT_TYPE, MAPI_BCC)]
+    return props
+
+def AddRecipientToAppointments(calendar, recip):
+    ctable = calendar.GetContentsTable(MAPI_DEFERRED_ERRORS)
+    ctable.SetColumns([PR_ENTRYID], TBL_BATCH)
+    res = SNotRestriction(SSubRestriction(PR_MESSAGE_RECIPIENTS,
+                          SPropertyRestriction(RELOP_EQ, PR_SEARCH_KEY, PpropFindProp(recip, PR_SEARCH_KEY))
+                         ))
+    ctable.Restrict(res, TBL_BATCH)
+    rows = ctable.QueryRows(-1, 0)
+    print "Updating %d items" % len(rows)
+    for row in rows:
+        msg = calendar.OpenEntry(row[0].Value, None, MAPI_BEST_ACCESS)
+        msg.ModifyRecipients(MODRECIP_ADD, [recip])
+        msg.SaveChanges(0)
+    print "Done"
+
+def main(argv = None):
+    if argv is None:
+        argv = sys.argv
+    if len(argv) < 2:
+        print "Usage: %s <username>" % argv[0]
+        return 1
+    session = OpenECSession(argv[1], "", os.getenv("KOPANO_SOCKET", "default:"))
+    store = GetDefaultStore(session)
+    root = store.OpenEntry(None, None, 0)
+    ceid = root.GetProps([PR_IPM_APPOINTMENT_ENTRYID], 0)[0]
+    calendar = store.OpenEntry(ceid.Value, None, MAPI_BEST_ACCESS)
+    recip = GetSelfRecipient(session)
+    AddRecipientToAppointments(calendar, recip)
+    return 0
+
+if __name__ == '__main__':
+    locale.setlocale(locale.LC_ALL, '')
+    sys.exit(main())

@@ -1,0 +1,11 @@
+div #responseBody{
+	padding-left:25px;
+}
+
+div #confirmDelete {
+	display: none;
+}
+
+.delete_info_bar {
+	margin-bottom: 15px;
+}

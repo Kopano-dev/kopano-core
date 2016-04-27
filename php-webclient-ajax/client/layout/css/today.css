@@ -1,0 +1,184 @@
+/* for todayview's main div */
+#todayview {
+	overflow-x: hidden;
+	overflow-y: scroll;
+	position: relative;
+}
+
+/* customize webasccess today button */
+span.button {
+	font-size: 11px;
+	position: absolute;
+	right: 5px;
+	top: 2px;
+}
+
+.buttonborder {
+	text-decoration: none;
+	padding:2px;
+	color: #000000;
+}
+
+.buttonborder:hover {
+	background-color: rgb(255,244,204);
+	border: 1px solid black;
+	cursor: pointer;
+}
+
+/* div which contain the calendar and task column */
+#todayview div.floatdiv {
+	margin-top: 10px;    
+	float: left;
+    border-right: 1px solid #C8C8C8;
+	position: relative;
+}
+
+/* div which contain the folders list column */
+#todayview div.message {
+	margin-top: 10px;
+	float: left;
+	position: relative;
+}
+
+/* for calendar, task and message heading */
+#todayview div.heading {
+	font-size: 10pt;
+	font-weight: bold;
+	background-color: rgb(200, 215, 252);
+	margin: 0px 10px 0px 10px;
+	padding:2px 0px 2px 5px;
+	cursor: pointer;
+	position: relative;
+}
+
+#todayview div.heading a {
+	text-decoration: none;
+    color:#000000;
+}
+
+#todayview div.heading a:hover {
+	text-decoration: underline;
+}
+
+/* contain appointment,tasks and folders list */
+#todayview div.main {
+	margin: 10px 10px 0px 10px;
+}
+
+#todayview div.appointmentmain {
+	margin: 10px 10px 0px 0px;
+}
+#todayview div.appointmentmain div.header {
+	border-bottom:1px solid #C8C8C8;
+	font-size:9pt;
+	font-weight:bold;
+	margin-left: 10px;
+	margin-top: 10px;
+}
+#todayview div.appointmentmain div.container {
+	padding-top:5px;
+}
+#todayview div.align, #todayview table.align{
+	width: 100%;
+	font-size: 8pt;
+}
+#todayview div.hide {
+	display:none;
+}
+
+/* for each appointment,task and folder */
+
+
+#todayview a:hover {
+	text-decoration: underline;
+	cursor: pointer;
+}
+.trtextover, .trtextover td {
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+/* for calendar column */
+#todayview table{
+	table-layout:fixed;
+}
+#todayview tr{
+	cursor:pointer
+}
+
+#todayview tr.height {
+	height: 20px;
+}
+
+#todayview td.timing {
+	font-size: 8pt;
+	width: 107px;
+}
+
+#todayview td.nextappointment {
+	width: 15px;
+	background-image:url(../img/next_appointment.gif);
+	background-repeat:no-repeat;
+}
+#todayview td.appointment {
+	width: 15px;
+}
+.appointmentmain td.data{
+	width:66%;
+	overflow:hidden;
+	text-overflow: ellipsis; 
+}
+.appointmentmain td.time{
+	width:30%;
+	vertical-align:top;
+}
+.alldayevent {
+	color: #008B8B;
+	text-decoration:none;
+}
+
+
+/* for tasks column */
+#todayview td.checkbox {
+	width: 25px;
+}
+
+#todayview td.priority {
+	width: 8px;
+}
+
+#todayview a.underlineoverdue {
+	color: red;
+}
+
+#todayview a.completed {
+	text-decoration: line-through;
+	color: #808080;
+}
+
+#task td.data {
+	overflow:hidden;
+	text-overflow: ellipsis;
+}
+
+/* for message column */
+.todayfolderdisplayname {
+	position: static;
+	border-bottom: 1px solid #C8C8C8;
+}
+
+#todayview td.messagecount{
+	border-bottom: 1px solid #C8C8C8;
+	text-align: right;
+	font-weight: bold;
+}
+
+#todayview td.messagecountzero {
+	border-bottom: 1px solid #C8C8C8;
+	text-align: right;
+}
+
+#todayview .todaylayoutelement {
+	position: relative;
+	margin-bottom: 10px;
+}

@@ -1,0 +1,70 @@
+#attach_item_targetfolder{
+	float:left;
+	height: 150px;
+	overflow:auto;
+	padding: 10px;
+	background: #fff;
+	border: 1px solid #000;
+	width:75%;
+}
+
+#action_buttons{
+	float:right;
+	width:20%;
+	height: 150px;
+}
+
+#action_buttons div{
+	padding-bottom:10px;
+	padding-left:10px;
+}
+
+#action_buttons #select{
+	padding:1px;
+	margin:1px;
+}
+
+.select_label{
+	float:left;
+	padding-top:10px;
+	padding-bottom:3px;
+	font-weight:bold;
+}
+
+.table_layout{
+	position: absolute;
+	height:200px;
+}
+
+#attach_item_paging{
+	float:right;
+	padding-top:5px;
+}
+
+#attach_item_paging .page{
+	position:relative;
+}
+
+.page_title {
+	color:#000000;
+}
+
+.first {
+	background-image: url(../img/icon_page_navigation_grey.gif);
+	background-position: 0px 3px;
+}
+
+.prev {
+	background-image: url(../img/icon_page_navigation_grey.gif);
+	background-position: 6px -15px;
+}
+
+.next {
+	background-image: url(../img/icon_page_navigation_grey.gif);
+	background-position: 0px -33px;
+}
+
+.last {
+	background-image: url(../img/icon_page_navigation_grey.gif);
+	background-position: 0px -51px;
+}
