@@ -193,11 +193,4 @@ libkcarchivercore_la_LIBADD = \
 EXTRA_libkcarchivercore_la_DEPENDENCIES = \
 	${top_builddir}/default.sym
 
-
-install-exec-hook:
-	${MKDIR_P} ${DESTDIR}${pkglibdir}
-	ln -fs ${libdir}/libkcarchiver.so ${DESTDIR}${pkglibdir}/libarchiver.so
-	ln -fs ${libdir}/libkcarchivercore.so ${DESTDIR}${pkglibdir}/libarchiver-core.so
-
-
 include ../global.am

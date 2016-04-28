@@ -89,15 +89,6 @@ EXTRA_libkcservice_la_DEPENDENCIES = ${top_builddir}/default.sym
 check_PROGRAMS = cov-scope
 cov_scope_SOURCES = cov-scope.cpp
 
-
-# Create historic symlinks (e.g. older snapshots of zstatsd use it) for build
-install-exec-hook:
-	${MKDIR_P} ${DESTDIR}${pkglibdir}
-	ln -fs ${libdir}/libkcutil.so ${DESTDIR}${pkglibdir}/libcommon_util.so
-	ln -fs ${libdir}/libkcmapi.so ${DESTDIR}${pkglibdir}/libcommon_mapi.so
-	ln -fs ${libdir}/libkcssl.so ${DESTDIR}${pkglibdir}/libcommon_ssl.so
-	ln -fs ${libdir}/libkcservice.so ${DESTDIR}${pkglibdir}/libcommon_service.so
-
 check-syntax:
 	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) \
 		-fsyntax-only -fmessage-length=0 ${CHK_SOURCES} -Wall -Wformat=2
