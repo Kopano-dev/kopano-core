@@ -809,6 +809,7 @@ AC_CONFIG_FILES([Makefile
 		swig/python/Makefile
 		swig/python/include/kopano/Makefile
 		swig/python/kopano/Makefile
+		swig/python/zarafa/Makefile
 		libsync/Makefile
 
 		common/kopano.pc
