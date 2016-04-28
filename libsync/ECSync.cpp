@@ -1824,20 +1824,26 @@ HRESULT ECSync::MessageSyncFolder(SBinary sEntryID){
 	HRESULT hrSync2 = hrSuccess;
 
 	hr = Logon();
-	if(hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Unable to login for folder sync: %08x.", hr);
+	if (hr != hrSuccess) {
+		ec_log_debug("Unable to login for folder sync: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
 
 	hr = m_lpOfflineContext->HrOpenFolder(&sEntryID, &lpOfflineFolder);
 	if(hr == MAPI_E_END_OF_SESSION){
 		hr = ReLogin();
-		if(hr != hrSuccess)
+		if (hr != hrSuccess) {
+			ec_log_info("Failed (re-)connecting: %s (%x)",
+				GetMAPIErrorMessage(hr), hr);
 			goto exit;
+		}
+
 		hr = m_lpOfflineContext->HrOpenFolder(&sEntryID, &lpOfflineFolder);
 	}
-	if(hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Unable to open offline folder for folder sync: %08x.", hr);
+	if (hr != hrSuccess) {
+		ec_log_debug("Unable to open offline folder for folder sync: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
 
@@ -1848,17 +1854,23 @@ HRESULT ECSync::MessageSyncFolder(SBinary sEntryID){
 	hr = m_lpOnlineContext->HrOpenFolder(&sEntryID, &lpOnlineFolder);
 	if(hr == MAPI_E_END_OF_SESSION){
 		hr = ReLogin();
-		if(hr != hrSuccess)
+		if (hr != hrSuccess) {
+			ec_log_info("Failed (re-)connecting: %s (%x)",
+				GetMAPIErrorMessage(hr), hr);
 			goto exit;
+		}
+
 		hr = m_lpOnlineContext->HrOpenFolder(&sEntryID, &lpOnlineFolder);
 	}
-	if(hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Unable to open online folder for folder sync: %08x.", hr);
+
+	if (hr != hrSuccess) {
+		ec_log_debug("Unable to open online folder for folder sync: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
 
 	hr = CheckExit();
-	if(hr!= hrSuccess)
+	if (hr != hrSuccess)
 		goto exit;
 
 	hr = m_lpOfflineContext->HrGetSyncStatusStream(lpOfflineFolder, &lpOfflineStream);
@@ -1868,11 +1880,12 @@ HRESULT ECSync::MessageSyncFolder(SBinary sEntryID){
 	}
 
 	if (hr == MAPI_E_NOT_FOUND) {
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Unable to open offline stream for folder sync: Probably the folder is already deleted");
+		ec_log_debug("Unable to open offline stream for folder sync: Probably the folder is already deleted");
 		hr = hrSuccess;
 		goto exit;
-	} else if(hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Unable to open offline stream for folder sync: %08x.", hr);
+	} else if (hr != hrSuccess) {
+		ec_log_debug("Unable to open offline stream for folder sync: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
 
@@ -1885,17 +1898,19 @@ HRESULT ECSync::MessageSyncFolder(SBinary sEntryID){
 		ulSyncOnlineFlags |= SYNC_NO_SOFT_DELETIONS;
 		hr = hrSuccess;
 	}
+
 	if (hr == MAPI_E_NOT_FOUND) {
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Unable to open online stream for folder sync: Probably the folder is already deleted");
+		ec_log_debug("Unable to open online stream for folder sync: Probably the folder is already deleted");
 		hr = hrSuccess;
 		goto exit;
-	} else if(hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Unable to open online stream for folder sync: %08x.", hr);
+	} else if (hr != hrSuccess) {
+		ec_log_debug("Unable to open online stream for folder sync: %s (%x)",
+			GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
 
 	hr = CheckExit();
-	if(hr!= hrSuccess)
+	if (hr != hrSuccess)
 		goto exit;
 
 	UpdateSyncStatus(EC_SYNC_OFFLINE_STORE, EC_SYNC_ONLINE_STORE);
@@ -1910,12 +1925,13 @@ HRESULT ECSync::MessageSyncFolder(SBinary sEntryID){
 	// Update the change tracking in ECSyncContext.
 	hr = m_lpOfflineContext->HrUpdateChangeId(lpOfflineStream);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Unable to update offline change id: %08x.", hr);
+		ec_log_debug("Unable to update offline change id: %s (%x)",
+			GetMAPIErrorDescription(hr), hr);
 		goto exit;
 	}
 
 	hr = CheckExit();
-	if(hr!= hrSuccess)
+	if (hr != hrSuccess)
 		goto exit;
 
 	UpdateSyncStatus(EC_SYNC_ONLINE_STORE, EC_SYNC_OFFLINE_STORE);
@@ -1930,27 +1946,36 @@ HRESULT ECSync::MessageSyncFolder(SBinary sEntryID){
 	// Update the change tracking in ECSyncContext.
 	hr = m_lpOnlineContext->HrUpdateChangeId(lpOnlineStream);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Unable to update online change id: %08x.", hr);
+		ec_log_debug("Unable to update online change id: %s (%x)",
+			GetMAPIErrorDescription(hr), hr);
 		goto exit;
 	}
 
-
 	if (m_eResyncReason == ResyncReasonRequested) {
-		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Server requested resync.");
+		ec_log_info("Server requested resync");
+
 		hr = ResyncFoldersBothWays(lpOnlineFolder, lpOfflineFolder);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
+			ec_log_info("ResyncFoldersBothWays failed: %s (%x)",
+				GetMAPIErrorDescription(hr), hr);
 			goto exit;
-	} else if (m_eResyncReason == ResyncReasonRelocated) {
-		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Resync required because of relocation.");
+		}
+	}
+	else if (m_eResyncReason == ResyncReasonRelocated) {
+		ec_log_info("Resync required because of relocation");
+
 		hr = ResyncFoldersOneWay(lpOnlineFolder, lpOfflineFolder);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
+			ec_log_info("ResyncFoldersOneWay failed: %s (%x)",
+				GetMAPIErrorDescription(hr), hr);
 			goto exit;
+		}
 	}
 
 exit:
 	UpdateSyncStatus(0, EC_SYNC_ONLINE_STORE | EC_SYNC_OFFLINE_STORE);
 
-	if ( hr != MAPI_E_NETWORK_ERROR && hr != MAPI_E_LOGON_FAILED && hr != MAPI_E_CANCEL && hr != MAPI_E_USER_CANCEL &&
+	if (hr != MAPI_E_NETWORK_ERROR && hr != MAPI_E_LOGON_FAILED && hr != MAPI_E_CANCEL && hr != MAPI_E_USER_CANCEL &&
 		hrSync1 != MAPI_E_NETWORK_ERROR && hrSync1 != MAPI_E_LOGON_FAILED &&
 		hrSync2 != MAPI_E_NETWORK_ERROR && hrSync2 != MAPI_E_LOGON_FAILED &&
 		(FAILED(hr) || FAILED(hrSync1) || FAILED(hrSync2)) && !m_bSupressErrorPopup)
@@ -1962,7 +1987,8 @@ exit:
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Prompting user for sync error, %08x, %08x, %08x.", hr, hrSync1, hrSync2);
 
 		hr = ReportError(strReportText.c_str());
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "User choice: %08x.", hr);
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "User choice: %08x", hr);
+
 		if (hr == MAPI_W_PARTIAL_COMPLETION) {
 			m_bSupressErrorPopup = true;
 			hr = hrSuccess;
@@ -1984,86 +2010,107 @@ exit:
 	return hr;
 }
 
-HRESULT ECSync::MessageSyncFolderOneWay(LPMAPIFOLDER lpFromFolder, LPMAPIFOLDER lpToFolder, LPSTREAM lpFromStream, LPSTREAM lpToStream, ULONG ulFlags){
-	HRESULT hr = hrSuccess;
-	HRESULT hrSync = hrSuccess;
+HRESULT ECSync::MessageSyncFolderOneWay(LPMAPIFOLDER lpFromFolder, LPMAPIFOLDER lpToFolder, LPSTREAM lpFromStream, LPSTREAM lpToStream, ULONG ulFlags)
+{
+	HRESULT	hr = hrSuccess, hrSync = hrSuccess;
 	std::wstring strFolderName = L"<Unknown>";
 	LPSPropValue lpDisplayName = NULL;;
 
-	IExchangeExportChanges* lpECChanges = NULL;
-	IExchangeImportContentsChanges* lpICChanges = NULL;
+	IExchangeExportChanges *lpECChanges = NULL;
+	IExchangeImportContentsChanges *lpICChanges = NULL;
 
-	ULONG ulStep = 0;
-	ULONG ulSteps = 0;
+	ULONG ulStep = 0, ulSteps = 0;
 
 	if ((ulFlags & ~(ECSync::resyncFrom)) != 0) {
 		hr = MAPI_E_UNKNOWN_FLAGS;
+		ec_log_debug("ECSync::MessageSyncFolderOneWay unknown flags: %d", ulFlags);
 		goto exit;
 	}
 
-	if(hrSuccess == HrGetOneProp(lpFromFolder, PR_DISPLAY_NAME_W, &lpDisplayName)){
+	if (hrSuccess == HrGetOneProp(lpFromFolder, PR_DISPLAY_NAME_W, &lpDisplayName))
 		strFolderName = lpDisplayName->Value.lpszW;
-	}
 
 	hr = lpFromFolder->OpenProperty(PR_CONTENTS_SYNCHRONIZER, &IID_IExchangeExportChanges, 0, 0, (LPUNKNOWN FAR *)&lpECChanges);
-	if(hr != hrSuccess)
+	if (hr != hrSuccess) {
+		ec_log_info("ECSync::MessageSyncFolderOneWay OpenProperty(from-folder) failed: %s (%x)",
+			GetMAPIErrorDescription(hr), hr);
 		goto exit;
+	}
 
 	hr = CheckExit();
-	if(hr!= hrSuccess)
+	if (hr!= hrSuccess)
 		goto exit;
 
 	hr = lpToFolder->OpenProperty(PR_COLLECTOR, &IID_IExchangeImportContentsChanges, 0, 0, (LPUNKNOWN FAR *)&lpICChanges);
-	if(hr != hrSuccess)
+	if (hr != hrSuccess) {
+		ec_log_info("ECSync::MessageSyncFolderOneWay OpenProperty(to-folder) failed: %s (%x)",
+			GetMAPIErrorDescription(hr), hr);
 		goto exit;
+	}
 
 	hr = CheckExit();
-	if(hr!= hrSuccess)
+	if (hr!= hrSuccess)
 		goto exit;
 
 	hr = HrConfigureImporter(lpICChanges, lpToStream);
-	if(hr != hrSuccess)
+	if (hr != hrSuccess) {
+		ec_log_info("ECSync::MessageSyncFolderOneWay HrConfigureImporter failed: %s (%x)",
+			GetMAPIErrorDescription(hr), hr);
 		goto exit;
+	}
 
 	hr = CheckExit();
-	if(hr!= hrSuccess)
+	if (hr!= hrSuccess)
 		goto exit;
 
 	hr = HrConfigureExporter(lpECChanges, lpFromStream, lpICChanges, (ulFlags == ECSync::resyncFrom ? SYNC_CATCHUP : 0));
-	if(hr != hrSuccess)
+	if (hr != hrSuccess) {
+		ec_log_info("ECSync::MessageSyncFolderOneWay HrConfigureExporter failed: %s (%x)",
+			GetMAPIErrorDescription(hr), hr);
 		goto exit;
+	}
 
-	do{
+	do {
 		hrSync = CheckExit();
-		if(hrSync != hrSuccess)
+		if (hrSync != hrSuccess)
 			break;
 
 		hrSync = lpECChanges->Synchronize(&ulSteps, &ulStep);
 		if (ulStep % 42 == 0 && (m_ulSyncFlags & SYNC_ASSOCIATED) == 0) {	// Don't update and save when syncing associated messages.
 			hr = lpECChanges->UpdateState(lpFromStream);
-			if(hr != hrSuccess)
+			if (hr != hrSuccess) {
+				ec_log_info("ECSync::MessageSyncFolderOneWay UpdateState(from) during sync failed: %s (%x)",
+					GetMAPIErrorDescription(hr), hr);
 				goto exit;
+			}
 
 			SaveSyncStatusStreams();	// Ignore errors
 		}
+
 		if (m_lpSyncProgressCallBack && (hrSync == hrSuccess || hrSync == SYNC_W_PROGRESS))
 			m_lpSyncProgressCallBack(m_lpSyncProgressCallBackObject, ulStep, ulSteps, 0.20 + ((double)(m_ulTotalStep + ulStep) / m_ulTotalSteps) * 0.80, strFolderName.c_str());
-	}while(hrSync == SYNC_W_PROGRESS);
+	} while(hrSync == SYNC_W_PROGRESS);
 
 	m_ulTotalStep += ulStep;
 	++m_ulTotalStep; // Folder itself counts as one step
 
-	if(m_lpSyncProgressCallBack && (hrSync == hrSuccess || hrSync == SYNC_W_PROGRESS))
+	if (m_lpSyncProgressCallBack && (hrSync == hrSuccess || hrSync == SYNC_W_PROGRESS))
 		m_lpSyncProgressCallBack(m_lpSyncProgressCallBackObject, ulStep, ulSteps, 0.20 + ((double)m_ulTotalStep / m_ulTotalSteps) * 0.80, strFolderName.c_str());
 
 	if ((m_ulSyncFlags & ~SYNC_BEST_BODY) != SYNC_ASSOCIATED) {
 		hr = lpICChanges->UpdateState(lpToStream);
-		if(hr != hrSuccess)
+		if (hr != hrSuccess) {
+			ec_log_info("ECSync::MessageSyncFolderOneWay UpdateState(to) failed: %s (%x)",
+				GetMAPIErrorDescription(hr), hr);
 			goto exit;
+		}
 
 		hr = lpECChanges->UpdateState(lpFromStream);
-		if(hr != hrSuccess)
+		if (hr != hrSuccess) {
+			ec_log_info("ECSync::MessageSyncFolderOneWay UpdateState(from) failed: %s (%x)",
+				GetMAPIErrorDescription(hr), hr);
 			goto exit;
+		}
 	}
 
 	// Return the error from Synchronize()
@@ -2071,11 +2118,13 @@ HRESULT ECSync::MessageSyncFolderOneWay(LPMAPIFOLDER lpFromFolder, LPMAPIFOLDER 
 
 exit:
 	SaveSyncStatusStreams();	// Ignore errors
+
 	MAPIFreeBuffer(lpDisplayName);
-	if(lpECChanges)
+
+	if (lpECChanges)
 		lpECChanges->Release();
 
-	if(lpICChanges)
+	if (lpICChanges)
 		lpICChanges->Release();
 
 	return hr;
@@ -2900,33 +2949,51 @@ HRESULT ECSync::ResyncFoldersBothWays(LPMAPIFOLDER lpOnlineFolder, LPMAPIFOLDER 
 	}
 
 	hr = CreateMessageList(lpOnlineFolder, &onlineResyncSet);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
+		ec_log_info("ECSync::ResyncFoldersBothWays: CreateMessageList failed: %s (%x)",
+			GetMAPIErrorDescription(hr), hr);
 		goto exit;
+	}
 
 	hr = FilterAndCreateMessageLists(lpOfflineFolder, &onlineResyncSet, &offlineResyncSet, false);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
+		ec_log_info("ECSync::ResyncFoldersBothWays: FilterAndCreateMessageLists failed: %s (%x)",
+			GetMAPIErrorDescription(hr), hr);
 		goto exit;
+	}
 
-	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Found %u messages online, that are absent offline", onlineResyncSet.Size());
+	ec_log_info("Found %u messages online, that are absent offline", onlineResyncSet.Size());
 	if (!onlineResyncSet.IsEmpty()) {
 		hr = m_lpOfflineContext->HrGetSyncStatusStream(lpOfflineFolder, &ptrStateStream);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
+			ec_log_info("ECSync::ResyncFoldersBothWays: m_lpOfflineContext->HrGetSyncStatusStream failed: %s (%x)",
+				GetMAPIErrorDescription(hr), hr);
 			goto exit;
+		}
 
 		hr = ResyncFromSet(lpOnlineFolder, lpOfflineFolder, ptrStateStream, onlineResyncSet);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
+			ec_log_info("ECSync::ResyncFoldersBothWays: ResyncFromSet failed: %s (%x)",
+				GetMAPIErrorDescription(hr), hr);
 			goto exit;
+		}
 	}
 
 	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Found %u messages offline, that are absent online", offlineResyncSet.Size());
 	if (!offlineResyncSet.IsEmpty()) {
 		hr = m_lpOnlineContext->HrGetSyncStatusStream(lpOnlineFolder, &ptrStateStream);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
+			ec_log_info("ECSync::ResyncFoldersBothWays: m_lpOnlineContext->HrGetSyncStatusStream(2) failed: %s (%x)",
+				GetMAPIErrorDescription(hr), hr);
 			goto exit;
+		}
 
 		hr = ResyncFromSet(lpOfflineFolder, lpOnlineFolder, ptrStateStream, offlineResyncSet);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
+			ec_log_info("ECSync::ResyncFoldersBothWays: ResyncFromSet failed: %s (%x)",
+				GetMAPIErrorDescription(hr), hr);
 			goto exit;
+		}
 	}
 
 exit:
@@ -2946,29 +3013,45 @@ HRESULT ECSync::ResyncFoldersOneWay(LPMAPIFOLDER lpOnlineFolder, LPMAPIFOLDER lp
 	}
 
 	hr = CreateMessageList(lpOnlineFolder, &addSet);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
+		ec_log_info("ECSync::ResyncFoldersBothWays: CreateMessageList failed: %s (%x)",
+			GetMAPIErrorDescription(hr), hr);
 		goto exit;
+	}
 
 	hr = FilterAddsAndCreateDeleteLists(lpOfflineFolder, &addSet, &ptrDelList);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
+		ec_log_info("ECSync::ResyncFoldersBothWays: FilterAddsAndCreateDeleteLists failed: %s (%x)",
+			GetMAPIErrorDescription(hr), hr);
 		goto exit;
+	}
 
 	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Found %u messages online, that are absent offline", addSet.Size());
 	if (!addSet.IsEmpty()) {
 		hr = m_lpOfflineContext->HrGetSyncStatusStream(lpOfflineFolder, &ptrStateStream);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
+			ec_log_info("ECSync::ResyncFoldersBothWays: m_lpOfflineContext->HrGetSyncStatusStream failed: %s (%x)",
+				GetMAPIErrorDescription(hr), hr);
 			goto exit;
+		}
 
 		hr = ResyncFromSet(lpOnlineFolder, lpOfflineFolder, ptrStateStream, addSet);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
+			ec_log_info("ECSync::ResyncFoldersBothWays: ResyncFromSet failed: %s (%x)",
+				GetMAPIErrorDescription(hr), hr);
 			goto exit;
+		}
 	}
 
 	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Found %u messages offline, that are absent online", ptrDelList->cValues);
+
 	if (ptrDelList->cValues) {
 		hr = lpOfflineFolder->DeleteMessages(ptrDelList, 0, NULL, DELETE_HARD_DELETE);
-		if (hr != hrSuccess)
+		if (hr != hrSuccess) {
+			ec_log_info("ECSync::ResyncFoldersBothWays: lpOfflineFolder->DeleteMessages failed: %s (%x)",
+				GetMAPIErrorDescription(hr), hr);
 			goto exit;
+		}
 	}
 
 exit:
@@ -2997,14 +3080,17 @@ HRESULT ECSync::CreateMessageList(LPMAPIFOLDER lpFolder, ECResyncSet *lpResyncSe
 	}
 
 	hr = lpFolder->GetContentsTable(0, &ptrContents);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
+		ec_log_info("ECSync::CreateMessageList GetContentsTable failed: %s (%x)",
+			GetMAPIErrorDescription(hr), hr);
 		goto exit;
+	}
 
 	hr = ptrContents->SetColumns((LPSPropTagArray)&sptaTableProps, TBL_BATCH);
 	if (hr != hrSuccess)
 		goto exit;
 
-	while (true) {
+	for(;;) {
 		hr = ptrContents->QueryRows(64, 0, &ptrRows);
 		if (hr != hrSuccess)
 			goto exit;
@@ -3017,10 +3103,12 @@ HRESULT ECSync::CreateMessageList(LPMAPIFOLDER lpFolder, ECResyncSet *lpResyncSe
 				m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Server returned object without a sourcekey. Skipping entry.");
 				continue;
 			}
+
 			if (ptrRows[i].lpProps[IDX_ENTRYID].ulPropTag != PR_ENTRYID) {
 				m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Server returned object without an entryid. Skipping entry.");
 				continue;
 			}
+
 			if (ptrRows[i].lpProps[IDX_LAST_MODIFICATION_TIME].ulPropTag != PR_LAST_MODIFICATION_TIME) {
 				m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Server returned object without a last modification time. Skipping entry.");
 				continue;
@@ -3084,14 +3172,17 @@ HRESULT ECSync::FilterAndCreateMessageLists(LPMAPIFOLDER lpFolder, ECResyncSet *
 	}
 
 	hr = lpFolder->GetContentsTable(0, &ptrContents);
-	if (hr != hrSuccess)
+	if (hr != hrSuccess) {
+		ec_log_info("ECSync::FilterAndCreateMessageLists GetContentsTable failed: %s (%x)",
+			GetMAPIErrorDescription(hr), hr);
 		goto exit;
+	}
 
 	hr = ptrContents->SetColumns((LPSPropTagArray)&sptaTableProps, TBL_BATCH);
 	if (hr != hrSuccess)
 		goto exit;
 
-	while (true) {
+	for(;;) {
 		hr = ptrContents->QueryRows(64, 0, &ptrRows);
 		if (hr != hrSuccess)
 			goto exit;
