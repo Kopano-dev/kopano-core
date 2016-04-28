@@ -56,9 +56,9 @@ sysconf_sysconfig_DATA = sysconfig.txt
 alt_sysconfig_path = ${sysconfdir}/sysconfig
 
 dist_doc_DATA = \
-	db-convert-4.1-to-4.2 db-convert-4.20-to-4.21 db-convert-4.20-to-innodb.sql db-calc-storesize db-convert-attachments-to-files \
-	createuser.dotforward db-convert-4.2x-to-5.00 ssl-certificates.sh db-upgrade-objectsid-to-objectguid.pl ldap-switch-sendas.pl \
-	audit-parse.pl kopano7-upgrade db-remove-orphaned-attachments \
+	db-calc-storesize db-convert-attachments-to-files \
+	createuser.dotforward ssl-certificates.sh ldap-switch-sendas.pl \
+	audit-parse.pl db-remove-orphaned-attachments \
 	${top_srcdir}/tools/python-scripts/optimize-imap.py ${top_srcdir}/tools/python-scripts/update-resource-recipients
 
 dist_pkgdata_DATA = ldap.m4
