@@ -8,7 +8,7 @@ COMMON_DBPLUGIN_FILES = DBBase.h DBBase.cpp
 
 
 pkglib_LTLIBRARIES = 
-noinst_DATA =
+noinst_DATA = .libs/ldapmsplugin.so
 
 if WITH_UNIX
 pkglib_LTLIBRARIES += unixplugin.la
@@ -32,6 +32,11 @@ ldapplugin_la_LIBADD = \
 	../libserver/libkcserver.la ${CRYPTO_LIBS} ${LDAP_LIBS}
 dist_pkgdata_DATA = ${ldapplugin_la_SOURCES}
 
+.libs/ldapmsplugin.so: ldapplugin.la
+	${AM_V_GEN}ln -fs ldapplugin.so .libs/ldapmsplugin.so
+
+install-exec-local:
+	ln -fs ldapplugin.so ${DESTDIR}${pkglibdir}/ldapmsplugin.so
 
 endif
 
