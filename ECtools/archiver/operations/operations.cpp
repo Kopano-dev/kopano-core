@@ -121,12 +121,9 @@ HRESULT ArchiveOperationBase::VerifyRestriction(LPMESSAGE lpMessage)
 
 	hr = GetRestriction(lpMessage, &ptrRestriction);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
-	hr = TestRestriction(ptrRestriction, lpMessage, createLocaleFromName(""));
-
-exit:
-	return hr;
+	return TestRestriction(ptrRestriction, lpMessage, createLocaleFromName(""));
 }
 
 /**
@@ -154,22 +151,19 @@ ArchiveOperationBaseEx::ArchiveOperationBaseEx(ECArchiverLogger *lpLogger, int u
  */
 HRESULT ArchiveOperationBaseEx::ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps, const LPSPropValue lpProps)
 {
-	HRESULT hr = hrSuccess;
+	HRESULT hr;
 	LPSPropValue lpFolderEntryId;
 	bool bReloadFolder = false;
 	ULONG ulType = 0;
 
 	ASSERT(lpFolder != NULL);
-	if (lpFolder == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpFolder == NULL)
+		return MAPI_E_INVALID_PARAMETER;
 	
 	lpFolderEntryId = PpropFindProp(lpProps, cProps, PR_PARENT_ENTRYID);
 	if (lpFolderEntryId == NULL) {
 		Logger()->Log(EC_LOGLEVEL_FATAL, "PR_PARENT_ENTRYID missing");
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
+		return MAPI_E_NOT_FOUND;
 	}
 	
 	if (!m_ptrCurFolderEntryId.is_null()) {
@@ -178,7 +172,7 @@ HRESULT ArchiveOperationBaseEx::ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps
 		hr = Util::CompareProp(m_ptrCurFolderEntryId, lpFolderEntryId, createLocaleFromName(""), &nResult);
 		if (hr != hrSuccess) {
 			Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to compare current and new entryid. (hr=%s)", stringify(hr, true).c_str());
-			goto exit;
+			return hr;
 		}
 		
 		if (nResult != 0) {
@@ -187,7 +181,7 @@ HRESULT ArchiveOperationBaseEx::ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps
 			hr = LeaveFolder();
 			if (hr != hrSuccess) {
 				Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to leave folder. (hr=%s)", stringify(hr, true).c_str());
-				goto exit;
+				return hr;
 			}
 				
 			bReloadFolder = true;
@@ -202,16 +196,15 @@ HRESULT ArchiveOperationBaseEx::ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps
 		hr = lpFolder->OpenEntry(lpFolderEntryId->Value.bin.cb, (LPENTRYID)lpFolderEntryId->Value.bin.lpb, &m_ptrCurFolder.iid, MAPI_BEST_ACCESS|fMapiDeferredErrors, &ulType, &m_ptrCurFolder);
 		if (hr != hrSuccess) {
 			Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to open folder. (hr=%s)", stringify(hr, true).c_str());
-			goto exit;
+			return hr;
 		}
 		
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), &m_ptrCurFolderEntryId);
 		if (hr != hrSuccess)
-			goto exit;
-		
+			return hr;
 		hr = Util::HrCopyProperty(m_ptrCurFolderEntryId, lpFolderEntryId, m_ptrCurFolderEntryId);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		if (HrGetOneProp(m_ptrCurFolder, PR_DISPLAY_NAME, &ptrPropValue) == hrSuccess)
 			Logger()->SetFolder(ptrPropValue->Value.LPSZ);
@@ -221,14 +214,10 @@ HRESULT ArchiveOperationBaseEx::ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps
 		hr = EnterFolder(m_ptrCurFolder);
 		if (hr != hrSuccess) {
 			Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to enter folder. (hr=%s)", stringify(hr, true).c_str());
-			goto exit;
+			return hr;
 		}
 	}
-	
-	hr = DoProcessEntry(cProps, lpProps);
-	
-exit:
-	return hr;
+	return DoProcessEntry(cProps, lpProps);
 }
 
 }} // namespaces 

@@ -496,7 +496,7 @@ int main(int argc, char *argv[])
         ArchiveManagePtr ptr;
         r = ptrArchiver->GetManage(strUser.c_str(), &ptr);
         if (r != Success)
-            goto exit;
+            return 1;
 
         filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver action: Attach archive %s in server %s using folder %s", lpszArchive, lpszArchiveServer, lpszFolder);
         r = ptr->AttachTo(lpszArchiveServer, toLPTST(lpszArchive, converter), toLPTST(lpszFolder, converter), ulAttachFlags);
@@ -509,7 +509,7 @@ int main(int argc, char *argv[])
         ArchiveManagePtr ptr;
         r = ptrArchiver->GetManage(strUser.c_str(), &ptr);
         if (r != Success)
-            goto exit;
+            return 1;
 
         if (mode == MODE_DETACH_IDX) {
             filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver action: Detach archive %u", ulArchive);
@@ -527,7 +527,7 @@ int main(int argc, char *argv[])
             ArchiveManagePtr ptr;
             r = ptrArchiver->GetManage(strUser.c_str(), &ptr);
             if (r != Success)
-                goto exit;
+                return 1;
 
             filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver action: Autoattach for user %ls, flags: %u", strUser.c_str(), ulAttachFlags);
             r = ptr->AutoAttach(ulAttachFlags);
@@ -543,7 +543,7 @@ int main(int argc, char *argv[])
         ArchiveManagePtr ptr;
         r = ptrArchiver->GetManage(strUser.c_str(), &ptr);
         if (r != Success)
-            goto exit;
+            return 1;
 
         filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver action: List archives");
         r = ptr->ListArchives(cout);
@@ -555,7 +555,7 @@ int main(int argc, char *argv[])
         ArchiveManagePtr ptr;
         r = ptrArchiver->GetManage(_T("SYSTEM"), &ptr);
         if (r != Success)
-            goto exit;
+            return 1;
 
         filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver action: List archive users");
         r = ptr->ListAttachedUsers(cout);
@@ -567,7 +567,7 @@ int main(int argc, char *argv[])
         ArchiveControlPtr ptr;
         r = ptrArchiver->GetControl(&ptr);
         if (r != Success)
-            goto exit;
+            return 1;
 
         if (strUser.size()) {
             filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver action: archive user %ls (autoattach: %s, flags %u)", strUser.c_str(), yesno(bAutoAttach), ulAttachFlags);
@@ -584,7 +584,7 @@ int main(int argc, char *argv[])
         ArchiveControlPtr ptr;
         r = ptrArchiver->GetControl(&ptr, bForceCleanup);
         if (r != Success)
-            goto exit;
+            return 1;
 
         if (strUser.size()) {
             filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver action: Cleanup user %ls ", strUser.c_str());
@@ -601,8 +601,6 @@ int main(int argc, char *argv[])
         filelogger->Log(EC_LOGLEVEL_DEBUG, "Archiver action: invalid");
         break;
     }
-
-exit:
-    return (r == Success ? 0 : 1);
+    return 0;
 }
 

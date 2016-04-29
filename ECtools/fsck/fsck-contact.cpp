@@ -174,20 +174,17 @@ exit:
 HRESULT FsckContact::ValidateItem(LPMESSAGE lpMessage,
     const std::string &strClass)
 {
-	HRESULT hr = hrSuccess;
+	HRESULT hr;
 
 	if (strClass != "IPM.Contact" && strClass != "IPM.DistList") {
 		std::cout << "Illegal class: \"" << strClass << "\"" << std::endl;
-		hr = E_INVALIDARG;
-		goto exit;
+		return E_INVALIDARG;
 	}
 
 	if (strClass == "IPM.Contact")
 		hr = ValidateContactNames(lpMessage);
 	// else: @todo distlist validation
 	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+		return hr;
+	return hrSuccess;
 }

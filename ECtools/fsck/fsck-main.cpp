@@ -78,7 +78,7 @@ exit:
 static HRESULT FixProperty(LPMESSAGE lpMessage, const std::string &strName,
     ULONG ulTag, __UPV Value)
 {
-	HRESULT hr = hrSuccess;
+	HRESULT hr;
 	SPropValue ErrorProp;
 
 	ErrorProp.ulPropTag = ulTag;
@@ -89,7 +89,7 @@ static HRESULT FixProperty(LPMESSAGE lpMessage, const std::string &strName,
 		hr = lpMessage->SetProps(1, &ErrorProp, NULL);
 		if (hr != hrSuccess) {
 			cout << "Failed to fix broken property." << endl;
-			goto exit;
+			return hr;
 		}
 
 		hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
@@ -99,8 +99,6 @@ static HRESULT FixProperty(LPMESSAGE lpMessage, const std::string &strName,
 		cout << "Invalid property tag: " << stringify(ulTag, true) << endl;
 		hr = MAPI_E_INVALID_PARAMETER;
 	}
-
-exit:
 	return hr;
 }
 

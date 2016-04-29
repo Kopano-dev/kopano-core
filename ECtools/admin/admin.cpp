@@ -918,7 +918,7 @@ static void print_user_settings(IMsgStore *lpStore, const ECUSER *lpECUser,
 static HRESULT print_archive_details(LPMAPISESSION lpSession,
     IECUnknown *lpECMsgStore, const char *lpszName)
 {
-	HRESULT hr = hrSuccess;
+	HRESULT hr;
 	ECServiceAdminPtr ptrServiceAdmin;
 	ULONG cbArchiveId = 0;
 	EntryIdPtr ptrArchiveId;
@@ -928,32 +928,30 @@ static HRESULT print_archive_details(LPMAPISESSION lpSession,
 	hr = lpECMsgStore->QueryInterface(IID_IECServiceAdmin, (void **)&ptrServiceAdmin);
 	if (hr != hrSuccess) {
 		cerr << "Unable to get admin interface." << endl;
-		goto exit;
+		return hr;
 	}
 
 	hr = ptrServiceAdmin->GetArchiveStoreEntryID((LPCTSTR)lpszName, NULL, 0, &cbArchiveId, &ptrArchiveId);
 	if (hr != hrSuccess) {
 		cerr << "No archive found for user '" << lpszName << "'." << endl;
-		goto exit;
+		return hr;
 	}
 
 	hr = lpSession->OpenMsgStore(0, cbArchiveId, ptrArchiveId, &ptrArchive.iid, 0, &ptrArchive);
 	if (hr != hrSuccess) {
 		cerr << "Unable to open archive." << endl;
-		goto exit;
+		return hr;
 	}
 
 	hr = HrGetOneProp(ptrArchive, PR_MESSAGE_SIZE_EXTENDED, &ptrArchiveSize);
 	if (hr != hrSuccess) {
 		cerr << "Unable to get archive store size." << endl;
-		goto exit;
+		return hr;
 	}
 
 	cout << "Current store size:\t";
 	cout << stringify_double((double)ptrArchiveSize->Value.li.QuadPart /1024.0 /1024.0, 2, true) << " MiB" << endl;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -1017,7 +1015,7 @@ static HRESULT GetOrphanStoreInfo(IECServiceAdmin *lpServiceAdmin,
     GUID *lpStoreGuid, const char *lpServerUrl, wstring &strUsername,
     wstring &strCompanyName, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
 {
-	HRESULT hr = hrSuccess;
+	HRESULT hr;
 	MAPITablePtr ptrTable;
 	SRowSetPtr ptrRowSet;
 	SPropValue sStoreGuid;
@@ -1035,12 +1033,10 @@ static HRESULT GetOrphanStoreInfo(IECServiceAdmin *lpServiceAdmin,
 
 	hr = lpServiceAdmin->OpenUserStoresTable(MAPI_UNICODE, &ptrTable);
 	if (hr != hrSuccess)
-		goto exit;
-
-
+		return hr;
 	hr = ptrTable->SortTable((LPSSortOrderSet)&tableSort, 0);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	sStoreGuid.ulPropTag = PR_EC_STOREGUID;
 	sStoreGuid.Value.bin.cb = sizeof(GUID);
@@ -1049,20 +1045,15 @@ static HRESULT GetOrphanStoreInfo(IECServiceAdmin *lpServiceAdmin,
 	resAnd.append(ECPropertyRestriction(RELOP_EQ, PR_EC_STOREGUID, &sStoreGuid));
 	hr = resAnd.CreateMAPIRestriction(&ptrRes);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = ptrTable->FindRow(ptrRes, BOOKMARK_BEGINNING, 0);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = ptrTable->QueryRows(1, 0, &ptrRowSet);
 	if (hr != hrSuccess)
-		goto exit;
-
-	if (ptrRowSet.empty()) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+		return hr;
+	if (ptrRowSet.empty())
+		return MAPI_E_NOT_FOUND;
 
 	lpsName = PpropFindProp(ptrRowSet[0].lpProps, ptrRowSet[0].cValues, PR_DISPLAY_NAME_W);
 	if (lpsName) {
@@ -1075,15 +1066,12 @@ static HRESULT GetOrphanStoreInfo(IECServiceAdmin *lpServiceAdmin,
 	}
 
 	lpsPropEntryId = PpropFindProp(ptrRowSet[0].lpProps, ptrRowSet[0].cValues, PR_STORE_ENTRYID);
-	if (!lpsPropEntryId) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+	if (lpsPropEntryId == NULL)
+		return MAPI_E_NOT_FOUND;
 
-	hr = CreateOrphanStoreEntryID(lpServerUrl,lpsPropEntryId->Value.bin.cb, (LPENTRYID)lpsPropEntryId->Value.bin.lpb, lpcbEntryID, lppEntryID);
-
-exit:
-	return hr;
+	return CreateOrphanStoreEntryID(lpServerUrl,lpsPropEntryId->Value.bin.cb,
+		reinterpret_cast<LPENTRYID>(lpsPropEntryId->Value.bin.lpb),
+		lpcbEntryID, lppEntryID);
 }
 
 /**
@@ -1770,16 +1758,12 @@ exit:
  */
 static HRESULT SyncUsers(IECServiceAdmin *lpServiceAdmin)
 {
-	HRESULT hr = hrSuccess;
+	HRESULT hr;
 
 	// we don't sync one company, since the complete cache is flushed in the server
 	hr = lpServiceAdmin->SyncUsers(0, NULL);
-	if (hr != hrSuccess) {
+	if (hr != hrSuccess)
 		cerr << "User/group synchronization failed, " << getMapiCodeString(hr) << endl;
-		goto exit;
-	}
-
-exit:
 	return hr;
 }
 
@@ -1847,7 +1831,7 @@ exit:
 static HRESULT ForceResyncFor(LPMAPISESSION lpSession, LPMDB lpAdminStore,
     const char *lpszAccount, const char *lpszHomeMDB)
 {
-	HRESULT hr = hrSuccess;
+	HRESULT hr;
 	ExchangeManageStorePtr ptrEMS;
 	ULONG cbEntryID = 0;
 	EntryIdPtr ptrEntryID;
@@ -1858,19 +1842,16 @@ static HRESULT ForceResyncFor(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 
 	hr = lpAdminStore->QueryInterface(ptrEMS.iid, &ptrEMS);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = ptrEMS->CreateStoreEntryID((LPTSTR)lpszHomeMDB, (LPTSTR)lpszAccount, 0, &cbEntryID, &ptrEntryID);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpSession->OpenMsgStore(0, cbEntryID, ptrEntryID, NULL, MDB_WRITE|MAPI_DEFERRED_ERRORS, &ptrUserStore);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = ptrUserStore->OpenEntry(0, NULL, &ptrRoot.iid, MAPI_MODIFY, &ulType, &ptrRoot);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	hr = HrGetOneProp(ptrRoot, PR_EC_RESYNC_ID, &ptrPropResyncID);
 	if (hr == MAPI_E_NOT_FOUND) {
@@ -1882,8 +1863,6 @@ static HRESULT ForceResyncFor(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 		++ptrPropResyncID->Value.ul;
 		hr = HrSetOneProp(ptrRoot, ptrPropResyncID);
 	}
-
-exit:
 	return hr;
 }
 
@@ -2033,7 +2012,7 @@ static HRESULT ForceResync(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 
 static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 {
-	HRESULT hr = hrSuccess;
+	HRESULT hr;
 	MAPITablePtr ptrSystemTable;
 	SPropValue sPropDisplayName;
 	SRestrictionPtr ptrRestriction;
@@ -2057,32 +2036,27 @@ static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 
 	hr = lpAdminStore->OpenProperty(PR_EC_STATSTABLE_SYSTEM, &ptrSystemTable.iid, 0, 0, &ptrSystemTable);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	sPropDisplayName.ulPropTag = PR_DISPLAY_NAME_A;
 	sPropDisplayName.Value.lpszA = const_cast<char *>("usercnt_");
 
 	hr = ECContentRestriction(FL_PREFIX, PR_DISPLAY_NAME_A, &sPropDisplayName, ECRestriction::Cheap).CreateMAPIRestriction(&ptrRestriction);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = ptrSystemTable->Restrict(ptrRestriction, TBL_BATCH);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = ptrSystemTable->SetColumns((LPSPropTagArray)&sptaStatsProps, TBL_BATCH);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = ptrSystemTable->QueryRows(0xffff, 0, &ptrRows);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// We expect at least the first 3
-	if (ptrRows.size() < 3) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+	if (ptrRows.size() < 3)
+		return MAPI_E_NOT_FOUND;
 
 	for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
 		const char *lpszDisplayName = ptrRows[i].lpProps[IDX_DISPLAY_NAME_A].Value.lpszA;
@@ -2101,10 +2075,10 @@ static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 			ulEquipment = atoui(ptrRows[i].lpProps[IDX_EC_STATS_SYSTEM_VALUE].Value.lpszA);
 	}
 
-	if (ulLicensedUsers == (ULONG)-1 || ulActiveUsers == (ULONG)-1 || ulNonActiveTotal == (ULONG)-1) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+	if (ulLicensedUsers == static_cast<ULONG>(-1) ||
+	    ulActiveUsers == static_cast<ULONG>(-1) ||
+	    ulNonActiveTotal == static_cast<ULONG>(-1))
+		return MAPI_E_NOT_FOUND;
 
 	if (ulNonActiveUsers != (ULONG)-1)
 		++ulExtraRows;
@@ -2176,9 +2150,7 @@ static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 	ct.SetColumn(2 + ulExtraRows, COL_AVAILABLE, string()); // add empty last column to make sure we print this row
 
 	ct.PrintTable();
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
@@ -2325,7 +2297,7 @@ struct lstr
 static HRESULT fillMVPropmap(ECUSER &sECUser, ULONG ulPropTag, int index,
     set<string, lstr> &sFeatures, void *lpBase)
 {
-	HRESULT hr = hrSuccess;
+	HRESULT hr;
 
 	sECUser.sMVPropmap.lpEntries[index].ulPropId = ulPropTag;
 	sECUser.sMVPropmap.lpEntries[index].cValues = sFeatures.size();
@@ -2335,7 +2307,7 @@ static HRESULT fillMVPropmap(ECUSER &sECUser, ULONG ulPropTag, int index,
 		hr = MAPIAllocateMore(sizeof(LPTSTR) * sFeatures.size(), lpBase, (void**)&sECUser.sMVPropmap.lpEntries[index].lpszValues);
 		if (hr != hrSuccess) {
 			cerr << "Memory error" << endl;
-			goto exit;
+			return hr;
 		}
 		int n;
 		set<string, lstr>::const_iterator i;
@@ -2343,9 +2315,7 @@ static HRESULT fillMVPropmap(ECUSER &sECUser, ULONG ulPropTag, int index,
 		for (i = sFeatures.begin(), n = 0; i != sFeatures.end(); ++i, ++n)
 			sECUser.sMVPropmap.lpEntries[index].lpszValues[n] = (TCHAR*)i->c_str();
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 static void missing_quota(int hard, int warn, int soft)

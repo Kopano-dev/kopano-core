@@ -256,26 +256,21 @@ exit:
 HRESULT FsckTask::ValidateItem(LPMESSAGE lpMessage,
     const std::string &strClass)
 {
-	HRESULT hr = hrSuccess;
+	HRESULT hr;
 
 	if (strClass != "IPM.Task") {
 		std::cout << "Illegal class: \"" << strClass << "\"" << std::endl;
-		hr = E_INVALIDARG;
-		goto exit;
+		return E_INVALIDARG;
 	}
 
 	hr = ValidateMinimalNamedFields(lpMessage);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = ValidateTimestamps(lpMessage);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = ValidateCompletion(lpMessage);
 	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+		return hr;
+	return hrSuccess;
 }

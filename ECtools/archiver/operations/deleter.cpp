@@ -56,26 +56,21 @@ HRESULT Deleter::LeaveFolder()
 
 HRESULT Deleter::DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps)
 {
-	HRESULT hr = hrSuccess;
 	LPSPropValue lpEntryId = NULL;
 
 	lpEntryId = PpropFindProp(lpProps, cProps, PR_ENTRYID);
 	if (lpEntryId == NULL) {
 		Logger()->Log(EC_LOGLEVEL_FATAL, "PR_ENTRYID missing");
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
+		return MAPI_E_NOT_FOUND;
 	}
-	
 	if (m_lstEntryIds.size() >= 50) {
-		hr = PurgeQueuedMessages();
+		HRESULT hr = PurgeQueuedMessages();
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	m_lstEntryIds.push_back(lpEntryId->Value.bin);
-	
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -84,21 +79,19 @@ exit:
  */
 HRESULT Deleter::PurgeQueuedMessages()
 {
-	HRESULT hr = hrSuccess;
+	HRESULT hr;
 	EntryListPtr ptrEntryList;
 	list<entryid_t>::const_iterator iEntryId;
 	ULONG ulIdx = 0;
 	
 	if (m_lstEntryIds.empty())
-		goto exit;
-	
+		return hrSuccess;
 	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &ptrEntryList);
 	if (hr != hrSuccess)
-		goto exit;
-	
+		return hr;
 	hr = MAPIAllocateMore(m_lstEntryIds.size() * sizeof(SBinary), ptrEntryList, (LPVOID*)&ptrEntryList->lpbin);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 		
 	ptrEntryList->cValues = m_lstEntryIds.size();
 	for (iEntryId = m_lstEntryIds.begin(); iEntryId != m_lstEntryIds.end(); ++iEntryId, ++ulIdx) {
@@ -109,13 +102,11 @@ HRESULT Deleter::PurgeQueuedMessages()
 	hr = CurrentFolder()->DeleteMessages(ptrEntryList, 0, NULL, 0);
 	if (hr != hrSuccess) {
 		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to delete %u messages. (hr=%s)", ptrEntryList->cValues, stringify(hr, true).c_str());
-		goto exit;
+		return hr;
 	}
 	
 	m_lstEntryIds.clear();
-	
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 }} // namespaces 

@@ -140,27 +140,25 @@ static void disclaimer(bool acceptDisclaimer)
 
 HRESULT allocNamedIdList(ULONG ulSize, LPMAPINAMEID **lpppNameArray)
 {
-	HRESULT hr = hrSuccess;
+	HRESULT hr;
 	LPMAPINAMEID *lppArray = NULL;
 	LPMAPINAMEID lpBuffer = NULL;
 
 	hr = MAPIAllocateBuffer(ulSize * sizeof(LPMAPINAMEID), (void**)&lppArray);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	hr = MAPIAllocateMore(ulSize * sizeof(MAPINAMEID), lppArray, (void**)&lpBuffer);
 	if (hr != hrSuccess) {
 		MAPIFreeBuffer(lppArray);
-		goto exit;
+		return hr;
 	}
 
 	for (ULONG i = 0; i < ulSize; ++i)
 		lppArray[i] = &lpBuffer[i];
 
 	*lpppNameArray = lppArray;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 void freeNamedIdList(LPMAPINAMEID *lppNameArray)
@@ -196,7 +194,7 @@ exit:
 HRESULT ReadNamedProperties(LPMESSAGE lpMessage, ULONG ulCount, LPMAPINAMEID *lppTag,
 			    LPSPropTagArray *lppPropertyTagArray, LPSPropValue *lppPropertyArray)
 {
-	HRESULT hr = hrSuccess;
+	HRESULT hr;
 	ULONG ulReadCount = 0;
 
 	hr = lpMessage->GetIDsFromNames(ulCount, lppTag, 0, lppPropertyTagArray);
@@ -207,18 +205,15 @@ HRESULT ReadNamedProperties(LPMESSAGE lpMessage, ULONG ulCount, LPMAPINAMEID *lp
 		 * this is required to make sure the called won't attempt
 		 * to access lppPropertyArray.
 		 */
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
 
 	hr = lpMessage->GetProps(*lppPropertyTagArray, 0, &ulReadCount, lppPropertyArray);
 	if (FAILED(hr)) {
 		cout << "Failed to obtain all properties." << endl;
-		goto exit;
+		return hr;
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 static HRESULT DetectFolderDetails(LPMAPIFOLDER lpFolder, string *lpName,

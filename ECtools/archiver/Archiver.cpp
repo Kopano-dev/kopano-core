@@ -88,23 +88,17 @@ const configsetting_t* Archiver::GetConfigDefaults()
 
 eResult Archiver::Create(auto_ptr_type *lpptrArchiver)
 {
-	eResult r = Success;
 	auto_ptr_type ptrArchiver;
 
-	if (lpptrArchiver == NULL) {
-		r = InvalidParameter;
-		goto exit;
-	}
+	if (lpptrArchiver == NULL)
+		return InvalidParameter;
 
 	try {
 		ptrArchiver.reset(new ArchiverImpl());
 	} catch (std::bad_alloc &) {
-		r = OutOfMemory;
-		goto exit;
+		return OutOfMemory;
 	}
 
 	*lpptrArchiver = ptrArchiver;
-
-exit:
-	return r;
+	return Success;
 }

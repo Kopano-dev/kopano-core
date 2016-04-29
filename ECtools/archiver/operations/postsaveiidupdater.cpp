@@ -31,7 +31,7 @@ TaskBase::TaskBase(const AttachPtr &ptrSourceAttach, const MessagePtr &ptrDestMs
 { }
 
 HRESULT TaskBase::Execute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper) {
-	HRESULT hr = hrSuccess;
+	HRESULT hr;
 	SPropValuePtr ptrSourceServerUID;
 	ULONG cbSourceInstanceID = 0;
 	EntryIdPtr ptrSourceInstanceID;
@@ -46,49 +46,36 @@ HRESULT TaskBase::Execute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper)
 	
 	hr = GetUniqueIDs(m_ptrSourceAttach, &ptrSourceServerUID, &cbSourceInstanceID, &ptrSourceInstanceID);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = m_ptrDestMsg->GetAttachmentTable(MAPI_DEFERRED_ERRORS, &ptrTable);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = ptrTable->SetColumns((LPSPropTagArray)&sptaTableProps, TBL_BATCH);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = ptrTable->SeekRow(BOOKMARK_BEGINNING, m_ulDestAttachIdx, NULL);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = ptrTable->QueryRows(1, 0, &ptrRows);
 	if (hr != hrSuccess)
-		goto exit;
-
-	if (ptrRows.empty()) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
+		return hr;
+	if (ptrRows.empty())
+		return MAPI_E_NOT_FOUND;
 	hr = m_ptrDestMsg->OpenAttach(ptrRows[0].lpProps[0].Value.ul, &ptrAttach.iid, 0, &ptrAttach);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = GetUniqueIDs(ptrAttach, &ptrDestServerUID, &cbDestInstanceID, &ptrDestInstanceID);
 	if (hr != hrSuccess)
-		goto exit;
-
-	hr = DoExecute(ulPropTag, ptrMapper, ptrSourceServerUID->Value.bin, cbSourceInstanceID, ptrSourceInstanceID, ptrDestServerUID->Value.bin, cbDestInstanceID, ptrDestInstanceID);
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+		return hr;
+	return DoExecute(ulPropTag, ptrMapper, ptrSourceServerUID->Value.bin,
+		cbSourceInstanceID, ptrSourceInstanceID,
+		ptrDestServerUID->Value.bin, cbDestInstanceID,
+		ptrDestInstanceID);
 }
 
 HRESULT TaskBase::GetUniqueIDs(IAttach *lpAttach, LPSPropValue *lppServerUID, ULONG *lpcbInstanceID, LPENTRYID *lppInstanceID)
 {
-	HRESULT hr = hrSuccess;
-	
+	HRESULT hr;
 	SPropValuePtr ptrServerUID;
 	ECSingleInstancePtr ptrInstance;
 	ULONG cbInstanceID = 0;
@@ -96,22 +83,18 @@ HRESULT TaskBase::GetUniqueIDs(IAttach *lpAttach, LPSPropValue *lppServerUID, UL
 
 	hr = HrGetOneProp(lpAttach, PR_EC_SERVER_UID, &ptrServerUID);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpAttach->QueryInterface(ptrInstance.iid, &ptrInstance);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = ptrInstance->GetSingleInstanceId(&cbInstanceID, &ptrInstanceID);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	*lppServerUID = ptrServerUID.release();
 	*lpcbInstanceID = cbInstanceID;
 	*lppInstanceID = ptrInstanceID.release();
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 

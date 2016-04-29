@@ -49,8 +49,6 @@ ArchiverImpl::~ArchiverImpl()
 
 eResult ArchiverImpl::Init(const char *lpszAppName, const char *lpszConfig, const configsetting_t *lpExtraSettings, unsigned int ulFlags)
 {
-	eResult r = Success;
-
 	MAPIINIT_0 sMapiInit = {MAPI_INIT_VERSION, MAPI_MULTITHREAD_NOTIFICATIONS};
 
 	if (lpExtraSettings == NULL)
@@ -61,15 +59,11 @@ eResult ArchiverImpl::Init(const char *lpszAppName, const char *lpszConfig, cons
 		m_lpsConfig = ECConfig::Create(m_lpDefaults);
 	}
 
-	if (!m_lpsConfig->LoadSettings(lpszConfig) && (ulFlags & RequireConfig)) {
-		r = FileNotFound;
-		goto exit;
-	}
+	if (!m_lpsConfig->LoadSettings(lpszConfig) && (ulFlags & RequireConfig))
+		return FileNotFound;
 	if (!m_lpsConfig->LoadSettings(lpszConfig)) {
-		if ((ulFlags & RequireConfig)) {
-			r = FileNotFound;
-			goto exit;
-		}
+		if ((ulFlags & RequireConfig))
+			return FileNotFound;
 	} else if (m_lpsConfig->HasErrors()) {
 		if (!(ulFlags & InhibitErrorLogging)) {
 			ECLogger *lpLogger = new ECLogger_File(EC_LOGLEVEL_FATAL, 0, "-", false);
@@ -78,8 +72,7 @@ eResult ArchiverImpl::Init(const char *lpszAppName, const char *lpszConfig, cons
 			lpLogger->Release();
 		}
 
-		r = InvalidConfig;
-		goto exit;
+		return InvalidConfig;
 	}
 
 	m_lpLogLogger = CreateLogger(m_lpsConfig, (char*)lpszAppName, "");
@@ -121,18 +114,12 @@ eResult ArchiverImpl::Init(const char *lpszAppName, const char *lpszConfig, cons
 	if (m_lpsConfig->HasWarnings())
 		LogConfigErrors(m_lpsConfig);
 
-	if (m_MAPI.Initialize(&sMapiInit) != hrSuccess) {
-		r = Failure;
-		goto exit;
-	}
+	if (m_MAPI.Initialize(&sMapiInit) != hrSuccess)
+		return Failure;
+	if (ArchiverSession::Create(m_lpsConfig, m_lpLogger, &m_ptrSession) != hrSuccess)
+		return Failure;
 
-	if (ArchiverSession::Create(m_lpsConfig, m_lpLogger, &m_ptrSession) != hrSuccess) {
-		r = Failure;
-		goto exit;
-	}
-
-exit:
-	return r;
+	return Success;
 }
 
 eResult ArchiverImpl::GetControl(ArchiveControlPtr *lpptrControl, bool bForceCleanup)
@@ -154,25 +141,23 @@ eResult ArchiverImpl::GetManage(const TCHAR *lpszUser, ArchiveManagePtr *lpptrMa
 
 eResult ArchiverImpl::AutoAttach(unsigned int ulFlags)
 {
-	HRESULT hr = hrSuccess;
+	HRESULT hr;
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiverImpl::AutoAttach() function entry");
 	ArchiveStateCollectorPtr ptrArchiveStateCollector;
 	ArchiveStateUpdaterPtr ptrArchiveStateUpdater;
 
-	if (ulFlags != ArchiveManage::Writable && ulFlags != ArchiveManage::ReadOnly && ulFlags != 0) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (ulFlags != ArchiveManage::Writable && ulFlags != ArchiveManage::ReadOnly && ulFlags != 0)
+		return MAPIErrorToArchiveError(MAPI_E_INVALID_PARAMETER);
 
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiverImpl::AutoAttach() about to create collector");
 	hr = ArchiveStateCollector::Create(m_ptrSession, m_lpLogger, &ptrArchiveStateCollector);
 	if (hr != hrSuccess)
-		goto exit;
+		return MAPIErrorToArchiveError(hr);
 
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiverImpl::AutoAttach() about to get state updater");
 	hr = ptrArchiveStateCollector->GetArchiveStateUpdater(&ptrArchiveStateUpdater);
 	if (hr != hrSuccess)
-		goto exit;
+		return MAPIErrorToArchiveError(hr);
 
 	if (ulFlags == 0) {
 		if (parseBool(m_lpsConfig->GetSetting("auto_attach_writable")))
@@ -182,10 +167,7 @@ eResult ArchiverImpl::AutoAttach(unsigned int ulFlags)
 	}
 
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiverImpl::AutoAttach() about to call update all");
-	hr = ptrArchiveStateUpdater->UpdateAll(ulFlags);
-
-exit:
-	return MAPIErrorToArchiveError(hr);
+	return MAPIErrorToArchiveError(ptrArchiveStateUpdater->UpdateAll(ulFlags));
 }
 
 ECConfig* ArchiverImpl::GetConfig() const

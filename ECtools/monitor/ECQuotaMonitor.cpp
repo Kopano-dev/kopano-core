@@ -566,7 +566,6 @@ exit:
  */
 HRESULT ECQuotaMonitor::CreateMailFromTemplate(TemplateVariables *lpVars, string *lpstrSubject, string *lpstrBody)
 {
-	HRESULT hr = hrSuccess;
 	string strTemplateConfig;
 	const char *lpszTemplate = NULL;
 	FILE *fp = NULL;
@@ -613,7 +612,7 @@ HRESULT ECQuotaMonitor::CreateMailFromTemplate(TemplateVariables *lpVars, string
 			break;
 		case QUOTA_OK:
 		default:
-			goto exit;
+			return hrSuccess;
 		}
 	}
 
@@ -622,8 +621,7 @@ HRESULT ECQuotaMonitor::CreateMailFromTemplate(TemplateVariables *lpVars, string
 	/* Start reading the template mail */
 	if((fp = fopen(lpszTemplate, "rt")) == NULL) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to open template email: %s", lpszTemplate);
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
+		return MAPI_E_NOT_FOUND;
 	}
 
 	while(!feof(fp)) {
@@ -687,9 +685,7 @@ HRESULT ECQuotaMonitor::CreateMailFromTemplate(TemplateVariables *lpVars, string
 
 	*lpstrSubject = strSubject;
 	*lpstrBody = strBody;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -1167,7 +1163,7 @@ exit:
  */
 HRESULT ECQuotaMonitor::OpenUserStore(LPTSTR szStoreName, objectclass_t objclass, LPMDB *lppStore)
 {
-	HRESULT hr = hrSuccess;
+	HRESULT hr;
 	ExchangeManageStorePtr ptrEMS;
 	ULONG cbUserStoreEntryID = 0;
 	EntryIdPtr ptrUserStoreEntryID;
@@ -1175,7 +1171,7 @@ HRESULT ECQuotaMonitor::OpenUserStore(LPTSTR szStoreName, objectclass_t objclass
 
 	hr = m_lpMDBAdmin->QueryInterface(IID_IExchangeManageStore, &ptrEMS);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	hr = ptrEMS->CreateStoreEntryID((LPTSTR)"", szStoreName, OPENSTORE_HOME_LOGON, &cbUserStoreEntryID, &ptrUserStoreEntryID);
 	if (hr != hrSuccess) {
@@ -1183,17 +1179,15 @@ HRESULT ECQuotaMonitor::OpenUserStore(LPTSTR szStoreName, objectclass_t objclass
 			m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_INFO, "Store of %s \"%s\" not found", (objclass == CONTAINER_COMPANY) ? "company" : "user", reinterpret_cast<const char *>(szStoreName));
 		else
 			m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get store entry id for \"%s\": %s (0x%08X)", reinterpret_cast<const char *>(szStoreName), GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = m_lpMAPIAdminSession->OpenMsgStore(0, cbUserStoreEntryID, ptrUserStoreEntryID, NULL, MDB_WRITE, lppStore);
 	if (hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open store for '%s', error code: 0x%08X", (LPSTR)szStoreName, hr);
-		goto exit;
+		return hr;
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -1207,7 +1201,7 @@ exit:
  */
 HRESULT ECQuotaMonitor::CheckQuotaInterval(LPMDB lpStore, LPMESSAGE *lppMessage, bool *lpbTimeout)
 {
-	HRESULT hr = hrSuccess;
+	HRESULT hr;
 	MessagePtr ptrMessage;
 	SPropValuePtr ptrProp;
 	const char *lpResendInterval = NULL;
@@ -1217,17 +1211,16 @@ HRESULT ECQuotaMonitor::CheckQuotaInterval(LPMDB lpStore, LPMESSAGE *lppMessage,
 
 	hr = GetConfigMessage(lpStore, QUOTA_CONFIG_MSG, &ptrMessage);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	hr = HrGetOneProp(ptrMessage, PR_EC_QUOTA_MAIL_TIME, &ptrProp);
 	if (hr == MAPI_E_NOT_FOUND) {
 		*lppMessage = ptrMessage.release();
 		*lpbTimeout = true;
-		hr = hrSuccess;
-		goto exit;
+		return hrSuccess;
 	}
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	/* Determine when the last warning mail was send, and if a new one should be send. */
 	lpResendInterval = m_lpThreadMonitor->lpConfig->GetSetting("mailquota_resend_interval");
@@ -1239,9 +1232,7 @@ HRESULT ECQuotaMonitor::CheckQuotaInterval(LPMDB lpStore, LPMESSAGE *lppMessage,
 
 	*lppMessage = ptrMessage.release();
 	*lpbTimeout = (ft > ftNextRun);
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -1255,7 +1246,7 @@ exit:
  */
 HRESULT ECQuotaMonitor::UpdateQuotaTimestamp(LPMESSAGE lpMessage)
 {
-	HRESULT hr = hrSuccess;
+	HRESULT hr;
 	SPropValue sPropTime;
 	FILETIME ft;
 
@@ -1266,16 +1257,13 @@ HRESULT ECQuotaMonitor::UpdateQuotaTimestamp(LPMESSAGE lpMessage)
 
 	hr = HrSetOneProp(lpMessage, &sPropTime);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
 	if (hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to save config message, error code: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**

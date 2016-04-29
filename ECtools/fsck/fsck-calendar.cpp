@@ -572,30 +572,24 @@ exit:
 HRESULT FsckCalendar::ValidateItem(LPMESSAGE lpMessage,
     const std::string &strClass)
 {
-	HRESULT hr = hrSuccess;
+	HRESULT hr;
 	bool bChanged = false;
 
 	if (strClass != "IPM.Appointment") {
 		std::cout << "Illegal class: \"" << strClass << "\"" << std::endl;
-		hr = E_INVALIDARG;
-		goto exit;
+		return E_INVALIDARG;
 	}
 
 	hr = ValidateMinimalNamedFields(lpMessage);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = ValidateTimestamps(lpMessage);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = ValidateRecurrence(lpMessage);
 	if (hr != hrSuccess)
-		goto exit;
-
-	hr = ValidateRecursiveDuplicateRecipients(lpMessage, bChanged);
-exit:
-	return hr;
+		return hr;
+	return ValidateRecursiveDuplicateRecipients(lpMessage, bChanged);
 }
 
 

@@ -76,14 +76,13 @@ namespace details {
 		ptrPropTagArray->aulPropTag[3] = PROP_ITEM_ENTRYIDS;
 
 		*lppPropTagArray = ptrPropTagArray.release();
-
 	exit:
 		return hr;
 	}
 
 	HRESULT MailboxDataCollector::CollectData(LPMAPITABLE lpStoreTable)
 	{
-		HRESULT hr = hrSuccess;
+		HRESULT hr;
 		SRowSetPtr ptrRows;
 
 		enum {IDX_ENTRYID, IDX_MAILBOX_OWNER_ENTRYID, IDX_STORE_ENTRYIDS, IDX_ITEM_ENTRYIDS, IDX_MAX};
@@ -91,7 +90,7 @@ namespace details {
 		while (true) {
 			hr = lpStoreTable->QueryRows(50, 0, &ptrRows);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			if (ptrRows.size() == 0)
 				break;
@@ -136,9 +135,7 @@ namespace details {
 				}
 			}
 		}
-
-	exit:
-		return hr;
+		return hrSuccess;
 	}
 
 }
@@ -152,20 +149,16 @@ namespace details {
  */
 HRESULT ArchiveStateCollector::Create(const ArchiverSessionPtr &ptrSession, ECLogger *lpLogger, ArchiveStateCollectorPtr *lpptrCollector)
 {
-	HRESULT hr = hrSuccess;
 	ArchiveStateCollectorPtr ptrCollector;
 	
 	try {
 		ptrCollector = ArchiveStateCollectorPtr(new ArchiveStateCollector(ptrSession, lpLogger));
 	} catch (const std::bad_alloc &) {
-		hr = MAPI_E_NOT_ENOUGH_MEMORY;
-		goto exit;
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	}
 
 	*lpptrCollector = ptrCollector;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -190,27 +183,25 @@ ArchiveStateCollector::~ArchiveStateCollector()
  */
 HRESULT ArchiveStateCollector::GetArchiveStateUpdater(ArchiveStateUpdaterPtr *lpptrUpdater)
 {
-	HRESULT hr = hrSuccess;
+	HRESULT hr;
 	details::MailboxDataCollector mdc(m_mapArchiveInfo, m_lpLogger);
 
 	hr = PopulateUserList();
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	hr = GetMailboxData(m_lpLogger, m_ptrSession->GetMAPISession(), m_ptrSession->GetSSLPath(), m_ptrSession->GetSSLPass(), false, &mdc);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Failed to get mailbox data. hr=0x%08x", hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = ArchiveStateUpdater::Create(m_ptrSession, m_lpLogger, m_mapArchiveInfo, lpptrUpdater);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	m_mapArchiveInfo.clear();
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -220,31 +211,28 @@ exit:
  */
 HRESULT ArchiveStateCollector::PopulateUserList()
 {
-	HRESULT hr = hrSuccess;
+	HRESULT hr;
 	ABContainerPtr ptrABContainer;
 
 	hr = m_ptrSession->GetGAL(&ptrABContainer);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = PopulateFromContainer(ptrABContainer);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	try {
 		for (ECABContainerIterator iter(ptrABContainer, 0); iter != ECABContainerIterator(); ++iter) {
 			hr = PopulateFromContainer(*iter);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 	} catch (const HrException &he) {
 		hr = he.hr();
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to iterate addressbook containers. (hr=0x%08x)", hr);
-		goto exit;
+		return hr;;
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -256,7 +244,7 @@ exit:
  */
 HRESULT ArchiveStateCollector::PopulateFromContainer(LPABCONT lpContainer)
 {
-	HRESULT hr = hrSuccess;
+	HRESULT hr;
 	SPropValue sPropObjType;
 	SPropValue sPropDispType;
 	SRestrictionPtr ptrRestriction;
@@ -282,24 +270,21 @@ HRESULT ArchiveStateCollector::PopulateFromContainer(LPABCONT lpContainer)
 
 	hr = resFilter.CreateMAPIRestriction(&ptrRestriction, ECRestriction::Cheap);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpContainer->GetContentsTable(0, &ptrTable);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = ptrTable->SetColumns((LPSPropTagArray)&sptaUserProps, TBL_BATCH);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = ptrTable->Restrict(ptrRestriction, TBL_BATCH);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	while (true) {
 		hr = ptrTable->QueryRows(50, 0, &ptrRows);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		if (ptrRows.size() == 0)
 			break;
@@ -335,7 +320,5 @@ HRESULT ArchiveStateCollector::PopulateFromContainer(LPABCONT lpContainer)
 			}
 		}
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
