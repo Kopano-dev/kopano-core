@@ -3222,7 +3222,7 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 	if(er != erSuccess)
 		goto exit;
 
-	// Object didn't exist locally, so no delete has occured
+	// Object didn't exist locally, so no delete has occurred
 	if (ulDeletedRows == 0) {
 		er = lpDatabase->Commit();
 		if (er != erSuccess)

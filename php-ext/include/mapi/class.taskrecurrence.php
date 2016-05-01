@@ -175,7 +175,7 @@
 					$this->action['startdate'] = $props[$this->proptags['startdate']] = $nextOccurrence[$this->proptags['startdate']];
 					$this->action['commonstart'] = $props[$this->proptags['commonstart']] = $nextOccurrence[$this->proptags['startdate']];
 
-					// If current task as been mark as 'Complete' then next occurrence should be uncomplete.
+					// If current task as been mark as 'Complete' then next occurrence should be incomplete.
 					if (isset($this->action['complete']) && $this->action['complete'] == 1) {
 						$this->action['status'] = $props[$this->proptags["status"]] = olTaskNotStarted;
 						$this->action['complete'] = $props[$this->proptags["complete"]] = false;

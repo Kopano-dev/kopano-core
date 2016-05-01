@@ -323,7 +323,7 @@ HRESULT ArchiveControlImpl::ProcessAll(bool bLocalOnly, fnProcess_t fnProcess)
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to process user '" TSTRING_PRINTF "'. (hr=0x%08x)", iUser->c_str(), hrTmp);
 			bHaveErrors = true;
 		} else if (hrTmp == MAPI_W_PARTIAL_COMPLETION) {
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Errors occured while processing user '" TSTRING_PRINTF "'.", iUser->c_str());
+			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Errors occurred while processing user '" TSTRING_PRINTF "'.", iUser->c_str());
 			bHaveErrors = true;
 		}
 	}

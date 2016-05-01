@@ -383,7 +383,7 @@ HRESULT Http::HrGetDepth(ULONG *ulDepth)
 }
 
 /** 
- * Checks the etag of a MAPI object agains If-(None)-Match headers
+ * Checks the etag of a MAPI object against If-(None)-Match headers
  * 
  * @param[in] lpProp Object to check etag (PR_LAST_MODIFICATION_TIME) to
  * 

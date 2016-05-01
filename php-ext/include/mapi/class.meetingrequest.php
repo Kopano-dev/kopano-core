@@ -840,7 +840,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 
 					if ($move) {
 						// All we have to do is open the default calendar,
-						// set the mesage class correctly to be an appointment item
+						// set the message class correctly to be an appointment item
 						// and move it to the calendar folder
 						$sourcefolder = $this->openParentFolder();
 
@@ -2358,7 +2358,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 				$this->includesResources = true;
 			}else{
 				/**
-				 * If no other errors occured and you have no access to the 
+				 * If no other errors occurred and you have no access to the 
 				 * folder of the resource, throw an error=1.
 				 */
 				if(!$this->errorSetResource){
@@ -2844,7 +2844,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 							$result = true;
 						}
 					} else {
-						// we are not able to find exception, could mean that a significant change has occured on series
+						// we are not able to find exception, could mean that a significant change has occurred on series
 						// and it deleted all exceptions, so compare with series
 						if ((isset($calendarItemProps[$this->proptags['updatecounter']]) && $props[$this->proptags['updatecounter']] < $calendarItemProps[$this->proptags['updatecounter']]) 
 							|| (isset($calendarItemProps[$this->proptags['owner_critical_change']]) && $props[$this->proptags['owner_critical_change']] < $calendarItemProps[$this->proptags['owner_critical_change']])) {

@@ -96,7 +96,7 @@ class BaseException extends Exception
 	}
 
 	/**
-	 * @return string returns file name and line number combined where exception occured.
+	 * @return string returns file name and line number combined where exception occurred.
 	 */
 	public function getFileLine()
 	{
@@ -136,7 +136,7 @@ class BaseException extends Exception
 	}
 
 	/**
-	 * @return string returns base path of the file where exception occured.
+	 * @return string returns base path of the file where exception occurred.
 	 */
 	public function getBaseFile()
 	{

@@ -552,7 +552,7 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 		// Wrapped entryid's:
 		// Flags: (ULONG) 0
 		// Provider: (GUID) 0xC091ADD3519DCF11A4A900AA0047FAA4
-		// Type: (BYTE) <value>, describes wrapped enrtyid
+		// Type: (BYTE) <value>, describes wrapped entryid
 		//  lower 4 bits:
 		//   0x00 = OneOff (use addressbook)
 		//   0x03 = Contact (use folder / session?)

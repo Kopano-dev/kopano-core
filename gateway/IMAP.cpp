@@ -3296,7 +3296,7 @@ HRESULT IMAP::HrGetFolderList(list<SFolder> &lstFolders) {
 
 	hr = HrGetOneProp(lpPublicStore, PR_IPM_PUBLIC_FOLDERS_ENTRYID, &lpPropVal);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_WARNING, "Public store is enabled in configuation, but Public Folders inside public store could not be found.");
+		lpLogger->Log(EC_LOGLEVEL_WARNING, "Public store is enabled in configuration, but Public Folders inside public store could not be found.");
 		hr = hrSuccess;
 		goto exit;
 	}
@@ -3304,7 +3304,7 @@ HRESULT IMAP::HrGetFolderList(list<SFolder> &lstFolders) {
 	// make public folder folders list
 	hr = HrGetSubTree(lstFolders, lpPropVal->Value.bin, PUBLIC_FOLDERS_NAME, --lstFolders.end());
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_WARNING, "Public store is enabled in configuation, but Public Folders inside public store could not be found.");
+		lpLogger->Log(EC_LOGLEVEL_WARNING, "Public store is enabled in configuration, but Public Folders inside public store could not be found.");
 		hr = hrSuccess;
 	}
 

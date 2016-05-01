@@ -604,7 +604,7 @@
 		<title>Config</title>
 
 		<para>Normally, no configuration file is used or required. The
-		following options can be set in the configuation file:</para>
+		following options can be set in the configuration file:</para>
 
 		<variablelist>
 		  <varlistentry>
@@ -2788,7 +2788,7 @@
 		checking is performed. This way, you can use any config file
 		from a kopano program, eg. kopano-spooler or kopano-dagent, to
 		load SSL settings.</para><para>The following options can be set in the
-		configuation file:</para>
+		configuration file:</para>
 
 		<variablelist>
 		  <varlistentry>
@@ -4801,7 +4801,7 @@
 					<para>Retrieve the users and groups information
 					from the Linux password files. User information
 					will be read the /etc/passwd file. Passwords will
-					be checked agains /etc/shadow. Group information
+					be checked against /etc/shadow. Group information
 					will read from /etc/group. Use the
 					<citerefentry><refentrytitle>kopano-admin</refentrytitle><manvolnum>8</manvolnum></citerefentry>
 					tool to set Kopano specific attributes on a
@@ -5542,7 +5542,7 @@
 			  <para>An object is defined by this attribute what type
 			  it is, eg. user, group, etc. Every object type should
 			  have a unique value in this attribute in order to define
-			  what which enrty is.</para>
+			  what which entry is.</para>
 			  <para>The value of this attribute must be specified in the
 			  ldap_*_type_attribute_value settings. Each of those settings
 			  may specify multiple values for the type attribute, separated
@@ -6615,7 +6615,7 @@
 		<title>User attributes</title>
 
 		<para>Not all Kopano attributes can be used from the system
-		files. The following attibutes are used from the system files:
+		files. The following attributes are used from the system files:
 		</para>
 
 		<variablelist>

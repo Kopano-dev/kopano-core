@@ -68,7 +68,7 @@ public:
 	 *					The company beneath which the name should be searched
 	 *					This objectid can be empty.
 	 * @return The object signature of the resolved object
-	 * @throw runtime_error When a Database error occured.
+	 * @throw runtime_error When a Database error occurred.
 	 * @throw objectnotfound When no object was found.
 	 * @throw toomanyobjects When more then one object was found.
 	 */
@@ -85,7 +85,7 @@ public:
 	 *					The objectid of the company to which the user belongs.
 	 *					This objectid can be empty.
 	 * @return The objectsignature of the authenticated user
-	 * @throw runtime_error When a Database error occured.
+	 * @throw runtime_error When a Database error occurred.
 	 * @throw login_error When no user was found or the password was incorrect.
 	 */
 	virtual objectsignature_t authenticateUser(const string &username, const string &password, const objectid_t &company);
@@ -128,7 +128,7 @@ public:
 	 *                  The objectid which should be updated
 	 * @param[in]   quotadetails
 	 *                  The quota information which should be written to the object
-	 * @throw runtime_error When a Database error occured.
+	 * @throw runtime_error When a Database error occurred.
 	 * @throw objectnotfound When the object was not found.
 	 */
 	virtual void setQuota(const objectid_t &id, const quotadetails_t &quotadetails);
@@ -177,7 +177,7 @@ public:
 	 *					The parent object.
 	 * @param[in]	childobject
 	 *					The child object.
-	 * @throw runtime_error When a Database error occured
+	 * @throw runtime_error When a Database error occurred
 	 * @throw objectnotfound When the parent does not exist.
 	 */
 	virtual void addSubObjectRelation(userobject_relation_t relation,

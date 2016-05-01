@@ -1359,7 +1359,7 @@ exit:
 		std::string msg;
 
 		if (er != erSuccess)
-			msg = format("An error occured (%x).", er);
+			msg = format("An error occurred (%x).", er);
 		else
 			msg = "An error occurred.";
 

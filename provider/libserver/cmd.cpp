@@ -8154,7 +8154,7 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 	strQuery = "SELECT id FROM hierarchy WHERE parent="+stringify(ulObjId);
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess) {
-		ec_log_err("CopyObject: failed retriving child items of mesage: %s (%x)", GetMAPIErrorMessage(er), er);
+		ec_log_err("CopyObject: failed retrieving child items of message: %s (%x)", GetMAPIErrorMessage(er), er);
 		goto exit;
 	}
 

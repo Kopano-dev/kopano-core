@@ -140,7 +140,7 @@ HRESULT WebDav::HrPropfind()
 	hr = RespStructToXml(&sDavMStatus, &strXml);
 	if (hr != hrSuccess)
 	{
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Unable to convert reponse to xml: 0x%08X", hr);
+		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Unable to convert response to xml: 0x%08X", hr);
 		goto exit;
 	}
 	
@@ -1392,7 +1392,7 @@ HRESULT WebDav::HrPropPatch()
 	hr = RespStructToXml(&sDavMStatus, &strXml);
 	if (hr != hrSuccess)
 	{
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Unable to convert reponse to xml: 0x%08X", hr);
+		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Unable to convert response to xml: 0x%08X", hr);
 		goto exit;
 	}
 

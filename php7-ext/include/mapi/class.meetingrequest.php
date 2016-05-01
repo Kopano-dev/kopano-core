@@ -840,7 +840,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 
 					if ($move) {
 						// All we have to do is open the default calendar,
-						// set the mesage class correctly to be an appointment item
+						// set the message class correctly to be an appointment item
 						// and move it to the calendar folder
 						$sourcefolder = $this->openParentFolder();
 
