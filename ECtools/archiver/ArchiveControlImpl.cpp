@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <memory>
 #include <new>          // std::bad_alloc
 #include <list>          // std::list
 #include "ArchiveControlImpl.h"
@@ -59,7 +60,7 @@ using namespace za::operations;
 HRESULT ArchiveControlImpl::Create(ArchiverSessionPtr ptrSession, ECConfig *lpConfig, ECLogger *lpLogger, bool bForceCleanup, ArchiveControlPtr *lpptrArchiveControl)
 {
 	HRESULT hr = hrSuccess;
-	std::auto_ptr<ArchiveControlImpl> ptrArchiveControl;
+	std::unique_ptr<ArchiveControlImpl> ptrArchiveControl;
 
 	try {
 		ptrArchiveControl.reset(new ArchiveControlImpl(ptrSession, lpConfig, lpLogger, bForceCleanup));
@@ -72,8 +73,7 @@ HRESULT ArchiveControlImpl::Create(ArchiverSessionPtr ptrSession, ECConfig *lpCo
 	if (hr != hrSuccess)
 		goto exit;
 
-	*lpptrArchiveControl = ptrArchiveControl;	// transfers ownership
-
+	*lpptrArchiveControl = std::move(ptrArchiveControl);
 exit:
 	return hr;
 }

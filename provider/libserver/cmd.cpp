@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <memory>
 #include <kopano/ECChannel.h>
 #include <kopano/MAPIErrors.h>
 
@@ -9894,7 +9895,7 @@ SOAP_ENTRY_START(readABProps, readPropsResponse->er, entryId sEntryId, struct re
 	unsigned int    	ulTypeId = 0;
 	ECDatabase*			lpDatabase = NULL;
 	objectid_t			sExternId;
-	auto_ptr<abprops_t>	lExtraProps;
+	std::unique_ptr<abprops_t> lExtraProps;
 	abprops_t::const_iterator iterProps;
 	unsigned int		*lpProps = NULL;
 	unsigned int		ulProps = 0;
@@ -11037,7 +11038,7 @@ static void *MTOMReadOpen(struct soap *soap, void *handle, const char *id,
 	lpStreamInfo->lpFifoBuffer = new ECFifoBuffer();
 
 	if (strncmp(id, "emcas-", 6) == 0) {
-		std::auto_ptr<task_type> ptrTask(new task_type(SerializeObject, lpStreamInfo));
+		std::unique_ptr<task_type> ptrTask(new task_type(SerializeObject, lpStreamInfo));
 		if (ptrTask->dispatchOn(lpStreamInfo->lpSessionInfo->lpThreadPool) == false) {
 			ec_log_err("Failed to dispatch serialization task for \"%s\"", id);
 			soap->error = SOAP_FATAL_ERROR;
@@ -11363,7 +11364,7 @@ static void *MTOMWriteOpen(struct soap *soap, void *handle,
 	// Just return the handle (needed for gsoap to operate properly
 	lpStreamInfo->lpFifoBuffer = new ECFifoBuffer();
 
-	std::auto_ptr<task_type> ptrTask(new task_type(DeserializeObject, lpStreamInfo));
+	std::unique_ptr<task_type> ptrTask(new task_type(DeserializeObject, lpStreamInfo));
 	if (ptrTask->dispatchOn(lpStreamInfo->lpSessionInfo->lpThreadPool) == false) {
 		ec_log_err("Failed to dispatch deserialization task");
 		lpStreamInfo->lpSessionInfo->er = KCERR_UNABLE_TO_COMPLETE;

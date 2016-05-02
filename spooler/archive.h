@@ -40,7 +40,7 @@ private:
 
 
 class Archive;
-typedef std::auto_ptr<Archive> ArchivePtr;
+typedef std::unique_ptr<Archive> ArchivePtr;
 
 class Archive {
 public:

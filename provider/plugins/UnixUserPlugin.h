@@ -19,6 +19,7 @@
 #ifndef UNIXUSERPLUGIN_H
 #define UNIXUSERPLUGIN_H
 
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <kopano/ECIConv.h>
@@ -114,7 +115,7 @@ public:
 	 * @return The list of object signatures of all objects which were found
 	 * @throw std::exception
 	 */
-	virtual auto_ptr<signatures_t> getAllObjects(const objectid_t &company, objectclass_t objclass);
+	virtual std::unique_ptr<signatures_t> getAllObjects(const objectid_t &company, objectclass_t objclass);
 
 	/**
 	 * Obtain the object details for the given object
@@ -127,7 +128,7 @@ public:
 	 * @return The objectdetails for the given objectid
 	 * @throw std::exception
 	 */
-	virtual auto_ptr<objectdetails_t> getObjectDetails(const objectid_t &objectid);
+	virtual std::unique_ptr<objectdetails_t> getObjectDetails(const objectid_t &objectid);
 
     /**
 	 * Obtain the object details for the given objects
@@ -140,7 +141,7 @@ public:
 	 * @return A map of objectid with the matching objectdetails
 	 * @throw std::exception
 	 */
-	virtual auto_ptr<map<objectid_t, objectdetails_t> > getObjectDetails(const list<objectid_t> &objectids);
+	virtual std::unique_ptr<std::map<objectid_t, objectdetails_t> > getObjectDetails(const std::list<objectid_t> &objectids);
 
     /**
 	 * Get all children for a parent for a given relation type.
@@ -156,7 +157,7 @@ public:
 	 * @return A list of object signatures of the children of the parent.
 	 * @throw std::exception
 	 */
-	virtual auto_ptr<signatures_t> getSubObjectsForObject(userobject_relation_t relation, const objectid_t &parentobject);
+	virtual std::unique_ptr<signatures_t> getSubObjectsForObject(userobject_relation_t relation, const objectid_t &parentobject);
 
     /**
 	 * Request all parents for a childobject for a given relation type.
@@ -172,7 +173,7 @@ public:
 	 * @return A list of object signatures of the parents of the child.
 	 * @throw std::exception
 	 */
-	virtual auto_ptr<signatures_t> getParentObjectsForObject(userobject_relation_t relation, const objectid_t &childobject);
+	virtual std::unique_ptr<signatures_t> getParentObjectsForObject(userobject_relation_t relation, const objectid_t &childobject);
 
 	/**
 	 * Search for all objects which match the given string,
@@ -189,7 +190,7 @@ public:
 	 * @return List of object signatures which match the given string
 	 * @throw objectnotfound When no object was found
 	 */
-	virtual auto_ptr<signatures_t> searchObject(const string &match, unsigned int ulFlags);
+	virtual std::unique_ptr<signatures_t> searchObject(const std::string &match, unsigned int ulFlags);
 
     /**
 	 * Obtain details for the public store
@@ -199,7 +200,7 @@ public:
 	 * @return The public store details
 	 * @throw notsupported Always when this function is called
 	 */
-	virtual auto_ptr<objectdetails_t> getPublicStoreDetails();
+	virtual std::unique_ptr<objectdetails_t> getPublicStoreDetails(void);
 
 	/**
 	 * Obtain the objectdetails for a server
@@ -211,7 +212,7 @@ public:
 	 * @return The server details
 	 * @throw notsupported Always when this function is called
 	 */
-	virtual auto_ptr<serverdetails_t> getServerDetails(const string &server);
+	virtual std::unique_ptr<serverdetails_t> getServerDetails(const std::string &server);
 	
 	/**
 	 * Obtain server list
@@ -219,7 +220,7 @@ public:
 	 * @return list of servers
 	 * @throw runtime_error LDAP query failure
 	 */
-	virtual auto_ptr<serverlist_t> getServers();
+	virtual std::unique_ptr<serverlist_t> getServers(void);
 
 	/**
 	 * Create object in plugin
@@ -430,7 +431,7 @@ private:
 	 *					match the name or email address otherwise a partial match is allowed.
 	 * @return List of objectsignatures
 	 */
-	auto_ptr<signatures_t> getAllUserObjects(const string &match = string(), unsigned int ulFlags = 0);
+	std::unique_ptr<signatures_t> getAllUserObjects(const std::string &match = std::string(), unsigned int ulFlags = 0);
 
 	/**
 	 * Create a list containing all groups which optionally match the search term.
@@ -442,7 +443,7 @@ private:
 	 *					match the name or email address otherwise a partial match is allowed.
 	 * @return List of objectsignatures
 	 */
-	auto_ptr<signatures_t> getAllGroupObjects(const string &match = string(), unsigned int ulFlags = 0);
+	std::unique_ptr<signatures_t> getAllGroupObjects(const std::string &match = std::string(), unsigned int ulFlags = 0);
 
 	/**
 	 * Copy object details from struct passwd to objectdetails
@@ -451,7 +452,7 @@ private:
 	 *					Pointer to struct pw from which the details must be collected
 	 * @return The objectdetails which were collected from pw
 	 */
-	auto_ptr<objectdetails_t> objectdetailsFromPwent(struct passwd *pw); // PAM part
+	std::unique_ptr<objectdetails_t> objectdetailsFromPwent(struct passwd *pw); // PAM part
 
 	/**
 	 * Copy object details from struct group to objectdetails
@@ -460,7 +461,7 @@ private:
 	 *					Pointer to struct group from which the details must be collected
 	 * @return The objectdetails which were collected from gr
 	 */
-	auto_ptr<objectdetails_t> objectdetailsFromGrent(struct group *gr);
+	std::unique_ptr<objectdetails_t> objectdetailsFromGrent(struct group *gr);
 
 	/**
 	 * Query the Database to obtain the signature for the objectid.

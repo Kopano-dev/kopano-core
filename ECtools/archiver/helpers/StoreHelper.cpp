@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <memory>
 #include <mapix.h>
 #include <mapiutil.h>
 #include <kopano/restrictionutil.h>
@@ -74,7 +75,7 @@ HRESULT StoreHelper::Create(MsgStorePtr &ptrMsgStore, StoreHelperPtr *lpptrStore
 	if (hr != hrSuccess)
 		return hr;
 	
-	*lpptrStoreHelper = ptrStoreHelper;	// transfers ownership
+	*lpptrStoreHelper = std::move(ptrStoreHelper);
 	return hrSuccess;
 }
 

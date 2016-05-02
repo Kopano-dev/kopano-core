@@ -59,7 +59,7 @@ inline UserEntry ArchiveManageImpl::MakeUserEntry(const std::string &strUser) {
 HRESULT ArchiveManageImpl::Create(ArchiverSessionPtr ptrSession, ECConfig *lpConfig, const TCHAR *lpszUser, ECLogger *lpLogger, ArchiveManagePtr *lpptrArchiveManage)
 {
 	HRESULT hr;
-	std::auto_ptr<ArchiveManageImpl> ptrArchiveManage;
+	std::unique_ptr<ArchiveManageImpl> ptrArchiveManage;
 
 	if (lpszUser == NULL)
 		return MAPI_E_INVALID_PARAMETER;
@@ -74,7 +74,7 @@ HRESULT ArchiveManageImpl::Create(ArchiverSessionPtr ptrSession, ECConfig *lpCon
 	if (hr != hrSuccess)
 		return hr;
 	
-	*lpptrArchiveManage = ptrArchiveManage;	// transfers ownership
+	*lpptrArchiveManage = std::move(ptrArchiveManage);
 	return hrSuccess;
 }
 

@@ -83,6 +83,6 @@ const std::string & TmpPath::getTempPath() const {
 
 TmpPath *TmpPath::getInstance()
 {
-        static std::auto_ptr<TmpPath> instance(new TmpPath);
+        static std::unique_ptr<TmpPath> instance(new TmpPath);
         return instance.get();
 }

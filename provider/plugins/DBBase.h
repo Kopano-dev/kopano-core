@@ -20,6 +20,7 @@
 #define __DBBASE_H
 
 #include "plugin.h"
+#include <memory>
 #include <stdexcept>
 #include <string>
 
@@ -167,7 +168,7 @@ public:
 	 * @return The list of object signatures of all objects which were found
 	 * @throw std::exception
 	 */
-	virtual auto_ptr<signatures_t> getAllObjects(const objectid_t &company, objectclass_t objclass);
+	virtual std::unique_ptr<signatures_t> getAllObjects(const objectid_t &company, objectclass_t objclass);
 
 	/**
 	 * Obtain the object details for the given object
@@ -179,7 +180,7 @@ public:
 	 * @return The objectdetails for the given objectid
 	 * @throw objectnotfound when the object was not found
 	 */
-	virtual auto_ptr<objectdetails_t> getObjectDetails(const objectid_t &objectid);
+	virtual std::unique_ptr<objectdetails_t> getObjectDetails(const objectid_t &objectid);
 
     /**
 	 * Obtain the object details for the given objects
@@ -192,7 +193,7 @@ public:
 	 * @return A map of objectid with the matching objectdetails
 	 * @throw runtime_error when SQL problems occur.
 	 */
-	virtual auto_ptr<map<objectid_t, objectdetails_t> > getObjectDetails(const list<objectid_t> &objectids);
+	virtual std::unique_ptr<std::map<objectid_t, objectdetails_t> > getObjectDetails(const std::list<objectid_t> &objectids);
 
 	/**
 	 * Get all children for a parent for a given relation type.
@@ -207,7 +208,7 @@ public:
 	 * @return A list of object signatures of the children of the parent.
 	 * @throw std::exception
 	 */
-	virtual auto_ptr<signatures_t> getSubObjectsForObject(userobject_relation_t relation, const objectid_t &parentobject);
+	virtual std::unique_ptr<signatures_t> getSubObjectsForObject(userobject_relation_t relation, const objectid_t &parentobject);
 
     /**
 	 * Request all parents for a childobject for a given relation type.
@@ -222,7 +223,7 @@ public:
 	 * @return A list of object signatures of the parents of the child.
 	 * @throw std::exception
 	 */
-	virtual auto_ptr<signatures_t> getParentObjectsForObject(userobject_relation_t relation, const objectid_t &childobject);
+	virtual std::unique_ptr<signatures_t> getParentObjectsForObject(userobject_relation_t relation, const objectid_t &childobject);
 
 	/**
 	 * Update an object with new details
@@ -304,7 +305,7 @@ public:
 	 * @return The quota details
 	 * @throw runtime_error when SQL problems occur
 	 */
-	virtual auto_ptr<quotadetails_t> getQuota(const objectid_t &id, bool bGetUserDefault);
+	virtual std::unique_ptr<quotadetails_t> getQuota(const objectid_t &id, bool bGetUserDefault);
 
 	/**
 	 * Update object with quota information
@@ -325,7 +326,7 @@ public:
 	 * @return	a empty list of properties
 	 * @throw runtime_error when SQL problems occur
 	 */
-	virtual auto_ptr<abprops_t> getExtraAddressbookProperties();
+	virtual std::unique_ptr<abprops_t> getExtraAddressbookProperties(void);
 	
 	virtual void removeAllObjects(objectid_t except);
 
@@ -345,7 +346,7 @@ private:
 	 * @return The list of object signatures which were returned by the SQL query
 	 * @throw runtime_error when SQL problems occur
 	 */
-	virtual auto_ptr<signatures_t> CreateSignatureList(const std::string &query);
+	virtual std::unique_ptr<signatures_t> CreateSignatureList(const std::string &query);
 
 	/**
 	 * Convert a string to MD5Hash
@@ -396,8 +397,7 @@ protected:
 	 * @return The list of object signatures which match the search term
 	 * @throw objectnotfound when no results have been found
 	 */
-	virtual auto_ptr<signatures_t> searchObjects(const string &match, const char *search_props[],
-												 const char *return_prop, unsigned int ulFlags);
+	virtual std::unique_ptr<signatures_t> searchObjects(const std::string &match, const char **search_props, const char *return_prop, unsigned int ulFlags);
 
 	/**
 	 * Update objectdetails with sendas information.

@@ -18,6 +18,7 @@
 #ifndef ARCHIVER_H_INCLUDED
 #define ARCHIVER_H_INCLUDED
 
+#include <memory>
 #include "ArchiveManage.h" // for ArchiveManagePtr
 
 class ECConfig;
@@ -31,7 +32,7 @@ struct configsetting_t;
 
 class Archiver {
 public:
-	typedef std::auto_ptr<Archiver>		auto_ptr_type;
+	typedef std::unique_ptr<Archiver> auto_ptr_type;
 
 	enum {
 		RequireConfig		= 0x00000001,

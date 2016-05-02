@@ -39,7 +39,7 @@ using namespace za::helpers;
 using namespace za::operations;
 using namespace std;
 
-typedef std::auto_ptr<Copier::Helper> HelperPtr;
+typedef std::unique_ptr<Copier::Helper> HelperPtr;
 
 #ifdef UNICODE
 typedef std::wostringstream tostringstream;

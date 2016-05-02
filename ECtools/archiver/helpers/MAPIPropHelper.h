@@ -31,7 +31,7 @@
 namespace za { namespace helpers {
 
 class MAPIPropHelper;
-typedef std::auto_ptr<MAPIPropHelper> MAPIPropHelperPtr;
+typedef std::unique_ptr<MAPIPropHelper> MAPIPropHelperPtr;
 
 class MessageState;
 

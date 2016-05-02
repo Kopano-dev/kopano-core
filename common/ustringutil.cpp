@@ -81,13 +81,9 @@ At some point we need to rewqrite these functions to do all the conversion on th
 #include "ustringutil/utfutil.h"
 
 typedef UTF32Iterator	WCharIterator;
-#if __cplusplus >= 201100L
 typedef std::unique_ptr<Collator> unique_ptr_Collator;
-#else
-typedef std::auto_ptr<Collator> unique_ptr_Collator;
-#endif
 
-#else
+#else /* ZCP_USES_ICU */
 #include <cstring>
 #include <kopano/charset/convert.h>
 #endif

@@ -19,6 +19,7 @@
 #ifndef DBUSERPLUGIN_H
 #define DBUSERPLUGIN_H
 
+#include <memory>
 #include <stdexcept>
 #include <string>
 
@@ -112,7 +113,7 @@ public:
 	 * @return List of object signatures which match the given string
 	 * @throw std::exception
 	 */
-	virtual auto_ptr<signatures_t> searchObject(const string &match, unsigned int ulFlags);
+	virtual std::unique_ptr<signatures_t> searchObject(const std::string &match, unsigned int ulFlags);
 
 	/**
 	 * Modify id of object in plugin
@@ -149,7 +150,7 @@ public:
 	 * @return The public store details
 	 * @throw notsupported Always when this function is called
 	 */
-	virtual auto_ptr<objectdetails_t> getPublicStoreDetails();
+	virtual std::unique_ptr<objectdetails_t> getPublicStoreDetails(void);
 
     /**
 	 * Obtain the objectdetails for a server
@@ -161,7 +162,7 @@ public:
 	 * @return The server details
 	 * @throw notsupported Always when this function is called
 	 */
-	virtual auto_ptr<serverdetails_t> getServerDetails(const string &server);
+	virtual std::unique_ptr<serverdetails_t> getServerDetails(const std::string &server);
 
 	/**
 	 * Obtain server list
@@ -169,7 +170,7 @@ public:
 	 * @return list of servers
 	 * @throw runtime_error LDAP query failure
 	 */
-	virtual auto_ptr<serverlist_t> getServers();
+	virtual std::unique_ptr<serverlist_t> getServers(void);
 
     /**
 	 * Add relation between child and parent. This can be used

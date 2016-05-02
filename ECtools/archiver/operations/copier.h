@@ -18,6 +18,7 @@
 #ifndef copier_INCLUDED
 #define copier_INCLUDED
 
+#include <memory>
 #include "operations.h"
 #include "postsaveaction.h"
 #include "transaction_fwd.h"
@@ -212,7 +213,7 @@ private:
 	DeleterPtr m_ptrDeleteOp;
 	StubberPtr m_ptrStubOp;
 
-	typedef std::auto_ptr<Helper> HelperPtr;
+	typedef std::unique_ptr<Helper> HelperPtr;
 	HelperPtr m_ptrHelper;
 
 	TransactionPtr m_ptrTransaction;

@@ -264,7 +264,8 @@ objectsignature_t DBUserPlugin::authenticateUser(const string &username, const s
 	throw login_error("Trying to authenticate failed: wrong username or password");
 }
 
-auto_ptr<signatures_t> DBUserPlugin::searchObject(const string &match, unsigned int ulFlags)
+std::unique_ptr<signatures_t>
+DBUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 {
 	const char *search_props[] =
 	{
@@ -329,17 +330,18 @@ void DBUserPlugin::setQuota(const objectid_t &objectid, const quotadetails_t &qu
 	DBPlugin::setQuota(objectid, quotadetails);
 }
 
-auto_ptr<objectdetails_t> DBUserPlugin::getPublicStoreDetails()
+std::unique_ptr<objectdetails_t> DBUserPlugin::getPublicStoreDetails(void)
 {
 	throw notsupported("public store details");
 }
 
-auto_ptr<serverdetails_t> DBUserPlugin::getServerDetails(const string &server)
+std::unique_ptr<serverdetails_t>
+DBUserPlugin::getServerDetails(const std::string &server)
 {
 	throw notsupported("server details");
 }
 
-auto_ptr<serverlist_t> DBUserPlugin::getServers()
+std::unique_ptr<serverlist_t> DBUserPlugin::getServers(void)
 {
 	throw notsupported("server list");
 }

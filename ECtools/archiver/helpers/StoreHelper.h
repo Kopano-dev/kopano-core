@@ -18,6 +18,7 @@
 #ifndef STOREHELPER_H_INCLUDED
 #define STOREHELPER_H_INCLUDED
 
+#include <memory>
 #include "MAPIPropHelper.h"
 
 class ECRestriction;
@@ -27,7 +28,7 @@ class ECOrRestriction;
 namespace za { namespace helpers {
 
 class StoreHelper;
-typedef std::auto_ptr<StoreHelper> StoreHelperPtr;
+typedef std::unique_ptr<StoreHelper> StoreHelperPtr;
 
 /**
  * The StoreHelper class provides some common utility functions that relate to IMsgStore

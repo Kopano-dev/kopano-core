@@ -38,7 +38,7 @@ enum eResult {
 class ArchiveControl 
 {
 public:
-	typedef std::auto_ptr<ArchiveControl>	auto_ptr_type;
+	typedef std::unique_ptr<ArchiveControl> auto_ptr_type;
 
 	virtual ~ArchiveControl() {};
 

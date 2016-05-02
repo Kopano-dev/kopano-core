@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <memory>
 #include <string>
 #include "Archiver.h"
 #include <kopano/ECConfig.h>
@@ -99,6 +100,6 @@ eResult Archiver::Create(auto_ptr_type *lpptrArchiver)
 		return OutOfMemory;
 	}
 
-	*lpptrArchiver = ptrArchiver;
+	*lpptrArchiver = std::move(ptrArchiver);
 	return Success;
 }

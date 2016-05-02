@@ -23,6 +23,7 @@
 
 #include <kopano/platform.h>
 #include <list>
+#include <memory>
 #include <mapix.h>
 #include <kopano/ArchiveControl.h>
 
@@ -50,7 +51,7 @@ public:
 		ReadOnly = 4
 	};
 
-	typedef std::auto_ptr<ArchiveManage>	auto_ptr_type;
+	typedef std::unique_ptr<ArchiveManage> auto_ptr_type;
 
 	virtual ~ArchiveManage() {};
 

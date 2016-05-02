@@ -29,10 +29,10 @@ LDAPCache::LDAPCache()
 
 	pthread_mutex_init(&m_hMutex, &m_hMutexAttrib);
 
-	m_lpCompanyCache = std::auto_ptr<dn_cache_t>(new dn_cache_t());
-	m_lpGroupCache = std::auto_ptr<dn_cache_t>(new dn_cache_t());
-	m_lpUserCache = std::auto_ptr<dn_cache_t>(new dn_cache_t());
-	m_lpAddressListCache = std::auto_ptr<dn_cache_t>(new dn_cache_t());
+	m_lpCompanyCache = std::unique_ptr<dn_cache_t>(new dn_cache_t());
+	m_lpGroupCache = std::unique_ptr<dn_cache_t>(new dn_cache_t());
+	m_lpUserCache = std::unique_ptr<dn_cache_t>(new dn_cache_t());
+	m_lpAddressListCache = std::unique_ptr<dn_cache_t>(new dn_cache_t());
 }
 
 LDAPCache::~LDAPCache()
@@ -77,17 +77,18 @@ bool LDAPCache::isObjectTypeCached(objectclass_t objclass)
 	return bCached;
 }
 
-void LDAPCache::setObjectDNCache(objectclass_t objclass, std::auto_ptr<dn_cache_t> lpCache)
+void LDAPCache::setObjectDNCache(objectclass_t objclass,
+    std::unique_ptr<dn_cache_t> lpCache)
 {
 	/*
 	 * Always merge caches rather then overwritting them.
 	 */
-	std::auto_ptr<dn_cache_t> lpTmp = getObjectDNCache(NULL, objclass);
+	std::unique_ptr<dn_cache_t> lpTmp = getObjectDNCache(NULL, objclass);
 	// cannot use insert() because it does not override existing entries
 	for (dn_cache_t::const_iterator i = lpCache->begin();
 	     i != lpCache->end(); ++i)
 		(*lpTmp)[i->first] = i->second;
-	lpCache = lpTmp;
+	lpCache = std::move(lpTmp);
 
 	pthread_mutex_lock(&m_hMutex);
 
@@ -98,19 +99,19 @@ void LDAPCache::setObjectDNCache(objectclass_t objclass, std::auto_ptr<dn_cache_
 	case NONACTIVE_ROOM:
 	case NONACTIVE_EQUIPMENT:
 	case NONACTIVE_CONTACT:
-		m_lpUserCache = lpCache;
+		m_lpUserCache = std::move(lpCache);
 		break;
 	case OBJECTCLASS_DISTLIST:
 	case DISTLIST_GROUP:
 	case DISTLIST_SECURITY:
 	case DISTLIST_DYNAMIC:
-		m_lpGroupCache = lpCache;
+		m_lpGroupCache = std::move(lpCache);
 		break;
 	case CONTAINER_COMPANY:
-		m_lpCompanyCache = lpCache;
+		m_lpCompanyCache = std::move(lpCache);
 		break;
 	case CONTAINER_ADDRESSLIST:
-		m_lpAddressListCache = lpCache;
+		m_lpAddressListCache = std::move(lpCache);
 		break;
 	default:
 		break;
@@ -119,9 +120,10 @@ void LDAPCache::setObjectDNCache(objectclass_t objclass, std::auto_ptr<dn_cache_
 	pthread_mutex_unlock(&m_hMutex);
 }
 
-std::auto_ptr<dn_cache_t> LDAPCache::getObjectDNCache(LDAPUserPlugin *lpPlugin, objectclass_t objclass)
+std::unique_ptr<dn_cache_t>
+LDAPCache::getObjectDNCache(LDAPUserPlugin *lpPlugin, objectclass_t objclass)
 {
-	std::auto_ptr<dn_cache_t> cache;
+	std::unique_ptr<dn_cache_t> cache;
 
 	pthread_mutex_lock(&m_hMutex);
 
@@ -159,7 +161,8 @@ std::auto_ptr<dn_cache_t> LDAPCache::getObjectDNCache(LDAPUserPlugin *lpPlugin, 
 	return cache;
 }
 
-objectid_t LDAPCache::getParentForDN(const std::auto_ptr<dn_cache_t> &lpCache, const std::string &dn)
+objectid_t LDAPCache::getParentForDN(const std::unique_ptr<dn_cache_t> &lpCache,
+    const std::string &dn)
 {
 	objectid_t entry;
 	std::string parent_dn;
@@ -183,9 +186,11 @@ exit:
 	return entry;
 }
 
-std::auto_ptr<dn_list_t> LDAPCache::getChildrenForDN(const std::auto_ptr<dn_cache_t> &lpCache, const std::string &dn)
+std::unique_ptr<dn_list_t>
+LDAPCache::getChildrenForDN(const std::unique_ptr<dn_cache_t> &lpCache,
+    const std::string &dn)
 {
-	std::auto_ptr<dn_list_t> list = std::auto_ptr<dn_list_t>(new dn_list_t());
+	std::unique_ptr<dn_list_t> list(new dn_list_t());
 
 	/* Find al DNs which are hierarchically below the given dn */
 	for (dn_cache_t::const_iterator iter = lpCache->begin();
@@ -199,13 +204,16 @@ std::auto_ptr<dn_list_t> LDAPCache::getChildrenForDN(const std::auto_ptr<dn_cach
 	return list;
 }
 
-std::string LDAPCache::getDNForObject(const std::auto_ptr<dn_cache_t> &lpCache, const objectid_t &externid)
+std::string
+LDAPCache::getDNForObject(const std::unique_ptr<dn_cache_t> &lpCache,
+    const objectid_t &externid)
 {
 	dn_cache_t::const_iterator it = lpCache->find(externid);
 	return it == lpCache->end() ? std::string() : it->second;
 }
 
-bool LDAPCache::isDNInList(const std::auto_ptr<dn_list_t> &lpList, const std::string &dn)
+bool LDAPCache::isDNInList(const std::unique_ptr<dn_list_t> &lpList,
+    const std::string &dn)
 {
 	/* We were given an DN, check if a parent of that dn is listed as filterd */
 	for (dn_list_t::const_iterator iter = lpList->begin();

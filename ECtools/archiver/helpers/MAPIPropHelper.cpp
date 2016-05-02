@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <memory>
 #include "MAPIPropHelper.h"
 
 #include "ArchiverSession.h"
@@ -57,7 +58,7 @@ HRESULT MAPIPropHelper::Create(MAPIPropPtr ptrMapiProp, MAPIPropHelperPtr *lpptr
 	if (hr != hrSuccess)
 		return hr;
 		
-	*lpptrMAPIPropHelper = ptrMAPIPropHelper;	// transfers ownership
+	*lpptrMAPIPropHelper = std::move(ptrMAPIPropHelper);
 	return hrSuccess;
 }
 

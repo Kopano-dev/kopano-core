@@ -22,6 +22,7 @@
 #include <kopano/mapiext.h>
 
 #include <map>
+#include <memory>
 #include <algorithm>
 
 #include "kcore.hpp"
@@ -363,7 +364,7 @@ ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const list<objectsig
 
 	// Extern details
 	list<objectid_t> lstExternIds;
-	auto_ptr<map<objectid_t, objectdetails_t> > lpExternDetails;
+	std::unique_ptr<map<objectid_t, objectdetails_t> > lpExternDetails;
 	std::map<objectid_t, objectdetails_t>::const_iterator iterExternDetails;
 
 	objectdetails_t details;
@@ -483,7 +484,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 	std::list<unsigned int>::const_iterator iterLocalIds;
 
 	// Extern ids
-	auto_ptr<signatures_t> lpExternSignatures;
+	std::unique_ptr<signatures_t> lpExternSignatures;
 	signatures_t::const_iterator iterExternSignatures;
 
 	// Extern -> Local
@@ -625,7 +626,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 		if (bIsSafeMode)
 			ec_log_info("user_safe_mode: skipping retrieve/sync users from LDAP");
 
-		lpExternSignatures = auto_ptr<signatures_t>(new signatures_t());;
+		lpExternSignatures = std::unique_ptr<signatures_t>(new signatures_t());
 		
 		// Dont sync, just use whatever is in the local user database
 		for (iterSignatureIdToLocal = mapSignatureIdToLocal.begin();
@@ -689,7 +690,7 @@ ECRESULT ECUserManagement::GetSubObjectsOfObjectAndSync(userobject_relation_t re
 	std::list<localobjectdetails_t>::iterator iterObjects;
 
 	// Extern ids
-	auto_ptr<signatures_t> lpSignatures;
+	std::unique_ptr<signatures_t> lpSignatures;
 	signatures_t::const_iterator iterSignatures;
 
 	// Extern -> Local
@@ -812,7 +813,7 @@ ECRESULT ECUserManagement::GetParentObjectsOfObjectAndSync(userobject_relation_t
 	std::list<localobjectdetails_t>::iterator iterObjects;
 
 	// Extern ids
-	auto_ptr<signatures_t> lpSignatures;
+	std::unique_ptr<signatures_t> lpSignatures;
 	signatures_t::const_iterator iterSignatures;
 
 	// Extern -> Local
@@ -1460,7 +1461,7 @@ exit:
 ECRESULT ECUserManagement::GetExternalObjectDetails(unsigned int ulId, objectdetails_t *lpDetails)
 {
 	ECRESULT er = erSuccess;
-	auto_ptr<objectdetails_t> details;
+	std::unique_ptr<objectdetails_t> details;
 	objectdetails_t detailscached;
 	objectid_t externid;
 	UserPlugin *lpPlugin = NULL;
@@ -1842,7 +1843,7 @@ ECRESULT ECUserManagement::SearchObjectAndSync(const char* szSearchString, unsig
 {
 	ECRESULT er = erSuccess;
 	objectsignature_t objectsignature;
-	auto_ptr<signatures_t> lpObjectsignatures;
+	std::unique_ptr<signatures_t> lpObjectsignatures;
 	signatures_t::const_iterator iterSignature;
 	unsigned int ulId = 0;
 	string strUsername;
@@ -2051,7 +2052,7 @@ ECRESULT ECUserManagement::QueryContentsRowData(struct soap *soap, ECObjectTable
 	list<objectid_t> lstObjects;
 	map<objectid_t, objectdetails_t> mapAllObjectDetails;
 
-	auto_ptr<map<objectid_t, objectdetails_t> > mapExternObjectDetails;
+	std::unique_ptr<map<objectid_t, objectdetails_t> > mapExternObjectDetails;
 	map<objectid_t, objectdetails_t>::iterator iterExternObjectDetails;
 
 	map<objectid_t, unsigned int> mapExternIdToRowId;
@@ -4817,7 +4818,7 @@ ECRESULT ECUserManagement::GetCachedUserCount(usercount_t *lpUserCount)
 ECRESULT ECUserManagement::GetPublicStoreDetails(objectdetails_t *lpDetails)
 {
 	ECRESULT er = erSuccess;
-	auto_ptr<objectdetails_t> details;
+	std::unique_ptr<objectdetails_t> details;
 	UserPlugin *lpPlugin = NULL;
 
 	/* We pretend that the Public store is a company. So request (and later store) it as such. */
@@ -4858,7 +4859,7 @@ exit:
 ECRESULT ECUserManagement::GetServerDetails(const std::string &strServer, serverdetails_t *lpDetails)
 {
 	ECRESULT er = erSuccess;
-	auto_ptr<serverdetails_t> details;
+	std::unique_ptr<serverdetails_t> details;
 	UserPlugin *lpPlugin = NULL;
 
 	// Try the cache first
@@ -4906,7 +4907,7 @@ exit:
 ECRESULT ECUserManagement::GetServerList(serverlist_t *lpServerList)
 {
 	ECRESULT er = erSuccess;
-	auto_ptr<serverlist_t> list;
+	std::unique_ptr<serverlist_t> list;
 	UserPlugin *lpPlugin = NULL;
 	
 	er = GetThreadLocalPlugin(m_lpPluginFactory, &lpPlugin);

@@ -286,8 +286,8 @@ objectsignature_t UnixUserPlugin::authenticateUser(const string &username, const
 	uid_t minuid = fromstring<const char *, uid_t>(m_config->GetSetting("min_user_uid"));
 	uid_t maxuid = fromstring<const char *, uid_t>(m_config->GetSetting("max_user_uid"));
 	vector<string> exceptuids = tokenize(m_config->GetSetting("except_user_uids"), " \t");
-	auto_ptr<struct crypt_data> cryptdata;
-	auto_ptr<objectdetails_t> ud;
+	std::unique_ptr<struct crypt_data> cryptdata;
+	std::unique_ptr<objectdetails_t> ud;
 	objectid_t objectid;
 	const char *crpw = NULL;
 
@@ -361,9 +361,11 @@ bool UnixUserPlugin::matchGroupObject(struct group *gr, const string &match, uns
 	return matched;
 }
 
-auto_ptr<signatures_t> UnixUserPlugin::getAllUserObjects(const string &match, unsigned int ulFlags)
+std::unique_ptr<signatures_t>
+UnixUserPlugin::getAllUserObjects(const std::string &match,
+    unsigned int ulFlags)
 {
-	auto_ptr<signatures_t> objectlist = auto_ptr<signatures_t>(new signatures_t());;
+	std::unique_ptr<signatures_t> objectlist(new signatures_t());
 	char buffer[PWBUFSIZE];
 	struct passwd pws, *pw = NULL;
 	uid_t minuid = fromstring<const char *, uid_t>(m_config->GetSetting("min_user_uid"));
@@ -403,9 +405,11 @@ auto_ptr<signatures_t> UnixUserPlugin::getAllUserObjects(const string &match, un
 	return objectlist;
 }
 
-auto_ptr<signatures_t> UnixUserPlugin::getAllGroupObjects(const string &match, unsigned int ulFlags)
+std::unique_ptr<signatures_t>
+UnixUserPlugin::getAllGroupObjects(const std::string &match,
+    unsigned int ulFlags)
 {
-	auto_ptr<signatures_t> objectlist = auto_ptr<signatures_t>(new signatures_t());;
+	std::unique_ptr<signatures_t> objectlist(new signatures_t());
 	char buffer[PWBUFSIZE];
 	struct group grs, *gr = NULL;
 	gid_t mingid = fromstring<const char *, gid_t>(m_config->GetSetting("min_group_gid"));
@@ -440,11 +444,13 @@ auto_ptr<signatures_t> UnixUserPlugin::getAllGroupObjects(const string &match, u
 	return objectlist;
 }
 
-auto_ptr<signatures_t> UnixUserPlugin::getAllObjects(const objectid_t &companyid, objectclass_t objclass)
+std::unique_ptr<signatures_t>
+UnixUserPlugin::getAllObjects(const objectid_t &companyid,
+    objectclass_t objclass)
 {
 	ECRESULT er = erSuccess;
-	auto_ptr<signatures_t> objectlist = auto_ptr<signatures_t>(new signatures_t());
-	auto_ptr<signatures_t> objects;
+	std::unique_ptr<signatures_t> objectlist(new signatures_t());
+	std::unique_ptr<signatures_t> objects;
 	signatures_t::const_iterator iterObjs;
 	map<objectclass_t, string> objectstrings;
 	std::map<objectclass_t, string>::const_iterator iterStrings;
@@ -585,11 +591,12 @@ exit:
 	return objectlist;
 }
 
-auto_ptr<objectdetails_t> UnixUserPlugin::getObjectDetails(const objectid_t &externid)
+std::unique_ptr<objectdetails_t>
+UnixUserPlugin::getObjectDetails(const objectid_t &externid)
 {
 	ECRESULT er = erSuccess;
 	char buffer[PWBUFSIZE];
-	auto_ptr<objectdetails_t> ud;
+	std::unique_ptr<objectdetails_t> ud;
 	struct passwd pws;
 	struct group grp;
 	DB_RESULT_AUTOFREE lpResult(m_lpDatabase);
@@ -673,9 +680,11 @@ void UnixUserPlugin::modifyObjectId(const objectid_t &oldId, const objectid_t &n
 	throw notimplemented("Modifying objectid is not supported when using the Unix user plugin.");
 }
 
-auto_ptr<signatures_t> UnixUserPlugin::getParentObjectsForObject(userobject_relation_t relation, const objectid_t &childid)
+std::unique_ptr<signatures_t>
+UnixUserPlugin::getParentObjectsForObject(userobject_relation_t relation,
+    const objectid_t &childid)
 {
-	auto_ptr<signatures_t> objectlist = auto_ptr<signatures_t>(new signatures_t());
+	std::unique_ptr<signatures_t> objectlist(new signatures_t());
 	char buffer[PWBUFSIZE];
 	struct passwd pws;
 	struct group grs, *gr = NULL;
@@ -734,9 +743,11 @@ auto_ptr<signatures_t> UnixUserPlugin::getParentObjectsForObject(userobject_rela
 	return objectlist;
 }
 
-auto_ptr<signatures_t> UnixUserPlugin::getSubObjectsForObject(userobject_relation_t relation, const objectid_t &parentid)
+std::unique_ptr<signatures_t>
+UnixUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
+    const objectid_t &parentid)
 {
-	auto_ptr<signatures_t> objectlist = auto_ptr<signatures_t>(new signatures_t());
+	std::unique_ptr<signatures_t> objectlist(new signatures_t());
 	char buffer[PWBUFSIZE];
 	struct passwd pws, *pw = NULL;
 	struct group grp;
@@ -813,12 +824,13 @@ void UnixUserPlugin::deleteSubObjectRelation(userobject_relation_t relation, con
 	DBPlugin::deleteSubObjectRelation(relation, id, member);
 }
 
-auto_ptr<signatures_t> UnixUserPlugin::searchObject(const string &match, unsigned int ulFlags)
+std::unique_ptr<signatures_t>
+UnixUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 {
 	char buffer[PWBUFSIZE];
 	struct passwd pws, *pw = NULL;
-	auto_ptr<signatures_t> objectlist = auto_ptr<signatures_t>(new signatures_t());
-	auto_ptr<signatures_t> objects;
+	std::unique_ptr<signatures_t> objectlist(new signatures_t());
+	std::unique_ptr<signatures_t> objects;
 
 	LOG_PLUGIN_DEBUG("%s %s flags:%x", __FUNCTION__, match.c_str(), ulFlags);
 
@@ -860,24 +872,27 @@ auto_ptr<signatures_t> UnixUserPlugin::searchObject(const string &match, unsigne
 	return objectlist;
 }
 
-auto_ptr<objectdetails_t> UnixUserPlugin::getPublicStoreDetails()
+std::unique_ptr<objectdetails_t> UnixUserPlugin::getPublicStoreDetails(void)
 {
 	throw notsupported("public store details");
 }
 
-auto_ptr<serverdetails_t> UnixUserPlugin::getServerDetails(const string &server)
+std::unique_ptr<serverdetails_t>
+UnixUserPlugin::getServerDetails(const std::string &server)
 {
 	throw notsupported("server details");
 }
 
-auto_ptr<serverlist_t> UnixUserPlugin::getServers()
+std::unique_ptr<serverlist_t> UnixUserPlugin::getServers(void)
 {
 	throw notsupported("server list");
 }
 
-auto_ptr<map<objectid_t, objectdetails_t> > UnixUserPlugin::getObjectDetails(const list<objectid_t> &objectids) {
-	auto_ptr<map<objectid_t, objectdetails_t> > mapdetails = auto_ptr<map<objectid_t, objectdetails_t> >(new map<objectid_t,objectdetails_t>);
-	auto_ptr<objectdetails_t> uDetails;
+std::unique_ptr<std::map<objectid_t, objectdetails_t> >
+UnixUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
+{
+	std::unique_ptr<std::map<objectid_t, objectdetails_t> > mapdetails(new map<objectid_t, objectdetails_t>());
+	std::unique_ptr<objectdetails_t> uDetails;
 	list<objectid_t>::const_iterator iterID;
 	objectdetails_t details;
 
@@ -904,8 +919,10 @@ auto_ptr<map<objectid_t, objectdetails_t> > UnixUserPlugin::getObjectDetails(con
 // private
 // -------------
 
-auto_ptr<objectdetails_t> UnixUserPlugin::objectdetailsFromPwent(struct passwd *pw) {
-	auto_ptr<objectdetails_t> ud = auto_ptr<objectdetails_t>(new objectdetails_t());
+std::unique_ptr<objectdetails_t>
+UnixUserPlugin::objectdetailsFromPwent(struct passwd *pw)
+{
+	std::unique_ptr<objectdetails_t> ud(new objectdetails_t());
 	string gecos;
 	size_t comma;
 
@@ -952,8 +969,10 @@ auto_ptr<objectdetails_t> UnixUserPlugin::objectdetailsFromPwent(struct passwd *
 	return ud;
 }
 
-auto_ptr<objectdetails_t> UnixUserPlugin::objectdetailsFromGrent(struct group *gr) {
-	auto_ptr<objectdetails_t> gd(new objectdetails_t(DISTLIST_SECURITY));
+std::unique_ptr<objectdetails_t>
+UnixUserPlugin::objectdetailsFromGrent(struct group *gr)
+{
+	std::unique_ptr<objectdetails_t> gd(new objectdetails_t(DISTLIST_SECURITY));
 
 	gd->SetPropString(OB_PROP_S_LOGIN, string(gr->gr_name));
 	gd->SetPropString(OB_PROP_S_FULLNAME, string(gr->gr_name));
