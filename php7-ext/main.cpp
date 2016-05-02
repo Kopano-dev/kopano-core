@@ -158,9 +158,11 @@ ZEND_END_ARG_INFO()
     } \
 }
 
-/* Only PHP >= 5.6 (or so) has the type of "resource_type_name" properly */
 #define ZEND_FETCH_RESOURCE_C(rsrc, rsrc_type, passed_id, default_id, resource_type_name, resource_type) \
-	ZEND_FETCH_RESOURCE((rsrc), rsrc_type, (passed_id), (default_id), const_cast<char *>(resource_type_name), (resource_type))
+        rsrc = (rsrc_type)zend_fetch_resource(Z_RES_P(*passed_id), resource_type_name, resource_type);
+
+#define ZEND_REGISTER_RESOURCE(return_value, lpMAPISession, le_mapi_session) \
+        RETVAL_RES(zend_register_resource(lpMAPISession, le_mapi_session));
 
 // A very, very nice PHP #define that causes link errors in MAPI when you have multiple
 // files referencing MAPI....
@@ -689,7 +691,7 @@ PHP_RSHUTDOWN_FUNCTION(mapi) {
 
 // This is called when our proxy object goes out of scope
 
-static void _php_free_mapi_session(zend_rsrc_list_entry *rsrc TSRMLS_DC)
+static void _php_free_mapi_session(zend_resource *rsrc TSRMLS_DC)
 {
 	PMEASURE_FUNC;
 
@@ -697,25 +699,25 @@ static void _php_free_mapi_session(zend_rsrc_list_entry *rsrc TSRMLS_DC)
 	if(lpSession) lpSession->Release();
 }
 
-static void _php_free_mapi_rowset(zend_rsrc_list_entry *rsrc TSRMLS_DC)
+static void _php_free_mapi_rowset(zend_resource *rsrc TSRMLS_DC)
 {
 	LPSRowSet pRowSet = (LPSRowSet)rsrc->ptr;
 	if (pRowSet) FreeProws(pRowSet);
 }
 
-static void _php_free_mapi_object(zend_rsrc_list_entry *rsrc TSRMLS_DC)
+static void _php_free_mapi_object(zend_resource *rsrc TSRMLS_DC)
 {
 	LPUNKNOWN lpUnknown = (LPUNKNOWN)rsrc->ptr;
 	if (lpUnknown) lpUnknown->Release();
 }
 
-static void _php_free_istream(zend_rsrc_list_entry *rsrc TSRMLS_DC)
+static void _php_free_istream(zend_resource *rsrc TSRMLS_DC)
 {
 	LPSTREAM pStream = (LPSTREAM)rsrc->ptr;
 	if (pStream) pStream->Release();
 }
 
-static void _php_free_fb_object(zend_rsrc_list_entry *rsrc TSRMLS_DC)
+static void _php_free_fb_object(zend_resource *rsrc TSRMLS_DC)
 {
 	LPUNKNOWN lpObj = (LPUNKNOWN)rsrc->ptr;
 	if (lpObj) lpObj->Release();
@@ -881,7 +883,7 @@ ZEND_FUNCTION(mapi_createoneoff)
 		goto exit;
 	}
 
-	RETVAL_STRINGL((char *)lpEntryID, cbEntryID, 1);
+	RETVAL_STRINGL((char *)lpEntryID, cbEntryID);
 
 exit:
 	// using RETVAL_* not RETURN_*, otherwise php will instantly return itself, and we won't be able to free...
@@ -924,9 +926,9 @@ ZEND_FUNCTION(mapi_parseoneoff)
 	strType = convert_to<utf8string>(wstrType);
 	strAddress = convert_to<utf8string>(wstrAddress);
 
-	add_assoc_string(return_value, "name", (char*)strDisplayName.c_str(), 1);
-	add_assoc_string(return_value, "type", (char*)strType.c_str(), 1);
-	add_assoc_string(return_value, "address", (char*)strAddress.c_str(), 1);
+	add_assoc_string(return_value, "name", (char*)strDisplayName.c_str());
+	add_assoc_string(return_value, "type", (char*)strType.c_str());
+	add_assoc_string(return_value, "address", (char*)strAddress.c_str());
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
@@ -975,7 +977,7 @@ ZEND_FUNCTION(mapi_logon_zarafa)
 	// local
 	ULONG		ulProfNum = rand_mt();
 	char		szProfName[MAX_PATH];
-	SPropValue	sPropOur[8];
+	SPropValue	sPropZarafa[8];
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -986,34 +988,34 @@ ZEND_FUNCTION(mapi_logon_zarafa)
 							&wa_version, &wa_version_len, &misc_version, &misc_version_len) == FAILURE) return;
 
 	if (!server) {
-		server = "http://localhost:236/";
+		server = "http://localhost:236/zarafa";
 		server_len = strlen(server);
 	}
 
 	{
 		snprintf(szProfName, MAX_PATH-1, "www-profile%010u", ulProfNum);
 
-		sPropOur[0].ulPropTag = PR_EC_PATH;
-		sPropOur[0].Value.lpszA = const_cast<char *>(server);
-		sPropOur[1].ulPropTag = PR_EC_USERNAME_A;
-		sPropOur[1].Value.lpszA = const_cast<char *>(username);
-		sPropOur[2].ulPropTag = PR_EC_USERPASSWORD_A;
-		sPropOur[2].Value.lpszA = const_cast<char *>(password);
-		sPropOur[3].ulPropTag = PR_EC_FLAGS;
-		sPropOur[3].Value.ul = ulFlags;
+		sPropZarafa[0].ulPropTag = PR_EC_PATH;
+		sPropZarafa[0].Value.lpszA = const_cast<char *>(server);
+		sPropZarafa[1].ulPropTag = PR_EC_USERNAME_A;
+		sPropZarafa[1].Value.lpszA = const_cast<char *>(username);
+		sPropZarafa[2].ulPropTag = PR_EC_USERPASSWORD_A;
+		sPropZarafa[2].Value.lpszA = const_cast<char *>(password);
+		sPropZarafa[3].ulPropTag = PR_EC_FLAGS;
+		sPropZarafa[3].Value.ul = ulFlags;
 
-		// unused if PR_EC_PATH is not https
-		sPropOur[4].ulPropTag = PR_EC_SSLKEY_FILE;
-		sPropOur[4].Value.lpszA = const_cast<char *>(sslcert);
-		sPropOur[5].ulPropTag = PR_EC_SSLKEY_PASS;
-		sPropOur[5].Value.lpszA = const_cast<char *>(sslpass);
+		// unused by zarafa if PR_EC_PATH isn't https
+		sPropZarafa[4].ulPropTag = PR_EC_SSLKEY_FILE;
+		sPropZarafa[4].Value.lpszA = const_cast<char *>(sslcert);
+		sPropZarafa[5].ulPropTag = PR_EC_SSLKEY_PASS;
+		sPropZarafa[5].Value.lpszA = const_cast<char *>(sslpass);
 
-		sPropOur[6].ulPropTag = PR_EC_STATS_SESSION_CLIENT_APPLICATION_VERSION;
-		sPropOur[6].Value.lpszA = const_cast<char *>(wa_version);
-		sPropOur[7].ulPropTag = PR_EC_STATS_SESSION_CLIENT_APPLICATION_MISC;
-		sPropOur[7].Value.lpszA = const_cast<char *>(misc_version);
+		sPropZarafa[6].ulPropTag = PR_EC_STATS_SESSION_CLIENT_APPLICATION_VERSION;
+		sPropZarafa[6].Value.lpszA = const_cast<char *>(wa_version);
+		sPropZarafa[7].ulPropTag = PR_EC_STATS_SESSION_CLIENT_APPLICATION_MISC;
+		sPropZarafa[7].Value.lpszA = const_cast<char *>(misc_version);
 
-		MAPI_G(hr) = mapi_util_createprof(szProfName, "ZARAFA6", 8, sPropOur);
+		MAPI_G(hr) = mapi_util_createprof(szProfName, "ZARAFA6", 8, sPropZarafa);
 
 		if(MAPI_G(hr) != hrSuccess) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "%s", mapi_util_getlasterror().c_str());
@@ -1072,7 +1074,7 @@ ZEND_FUNCTION(mapi_openentry)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|sl", &res, &lpEntryID, &cbEntryID, &ulFlags) == FAILURE) return;
 
-	ZEND_FETCH_RESOURCE_C(lpSession, IMAPISession *, &res, -1, name_mapi_session, le_mapi_session);
+        ZEND_FETCH_RESOURCE_C(lpSession, IMAPISession *, &res, -1, name_mapi_session, le_mapi_session);
 
 	MAPI_G(hr) = lpSession->OpenEntry(cbEntryID, lpEntryID, NULL, ulFlags, &ulObjType, &lpUnknown);
 	if (FAILED(MAPI_G(hr)))
@@ -1184,6 +1186,12 @@ ZEND_FUNCTION(mapi_ab_openentry) {
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|sl", &res, &lpEntryID, &cbEntryID, &ulFlags) == FAILURE) return;
 
+	if(Z_RES_P(res)->type != le_mapi_addrbook) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Resource is not a valid address book");
+		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
+		goto exit;
+	}
+
 	ZEND_FETCH_RESOURCE_C(lpAddrBook, LPADRBOOK, &res, -1, name_mapi_addrbook, le_mapi_addrbook);
 
 	MAPI_G(hr) = lpAddrBook->OpenEntry(cbEntryID, lpEntryID, NULL, ulFlags, &ulObjType, &lpUnknown);
@@ -1221,7 +1229,7 @@ ZEND_FUNCTION(mapi_ab_resolvename) {
 	zval		*res;
 	LPADRBOOK	lpAddrBook = NULL;
 	zval		*array;
-	zval		*rowset;
+	zval		rowset;
 	long		ulFlags = 0;
 	// return value
 
@@ -1244,8 +1252,7 @@ ZEND_FUNCTION(mapi_ab_resolvename) {
 	case hrSuccess:
 		// parse back lpAList and return as array
 		RowSettoPHPArray((LPSRowSet)lpAList, &rowset TSRMLS_CC); // binary compatible
-		RETVAL_ZVAL(rowset, 0, 0);
-		FREE_ZVAL(rowset);
+		RETVAL_ZVAL(&rowset, 0, 0);
 		break;
 	case MAPI_E_AMBIGUOUS_RECIP:
 	case MAPI_E_NOT_FOUND:
@@ -1284,7 +1291,7 @@ ZEND_FUNCTION(mapi_ab_getdefaultdir) {
 		goto exit;
 	}
 
-	RETVAL_STRINGL((char *)lpEntryID, cbEntryID, 1);
+	RETVAL_STRINGL((char *)lpEntryID, cbEntryID);
 exit:
 	MAPIFreeBuffer(lpEntryID);
 	LOG_END();
@@ -1433,7 +1440,7 @@ ZEND_FUNCTION(mapi_folder_gethierarchytable)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &res, &ulFlags) == FAILURE) return;
 
-	zend_list_find(res->value.lval, &type);
+	type = Z_RES_P(res)->type;
 
 	if(type == le_mapi_folder) {
 		ZEND_FETCH_RESOURCE_C(pFolder, LPMAPIFOLDER, &res, -1, name_mapi_folder, le_mapi_folder);
@@ -1485,7 +1492,7 @@ ZEND_FUNCTION(mapi_folder_getcontentstable)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &res, &ulFlags) == FAILURE) return;
 
-	zend_list_find(res->value.lval, &type);
+	type = Z_RES_P(res)->type;
 
 	if(type == le_mapi_folder) {
 		ZEND_FETCH_RESOURCE_C(pContainer, LPMAPICONTAINER, &res, -1, name_mapi_folder, le_mapi_folder);
@@ -1860,7 +1867,7 @@ ZEND_FUNCTION(mapi_msgstore_createentryid)
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
 
-	RETVAL_STRINGL((char *)lpEntryID, cbEntryID, 1);
+	RETVAL_STRINGL((char *)lpEntryID, cbEntryID);
 
 exit:
 	if (lpEMS)
@@ -1914,7 +1921,7 @@ ZEND_FUNCTION(mapi_msgstore_getarchiveentryid)
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
 
-	RETVAL_STRINGL((char *)ptrEntryID.get(), cbEntryID, 1);
+	RETVAL_STRINGL((char *)ptrEntryID.get(), cbEntryID);
 
 exit:
 	LOG_END();
@@ -2005,7 +2012,7 @@ ZEND_FUNCTION(mapi_msgstore_entryidfromsourcekey)
 	if(MAPI_G(hr) != hrSuccess)
 		goto exit;
 
-	RETVAL_STRINGL((char *)lpEntryId, cbEntryId, 1);
+	RETVAL_STRINGL((char *)lpEntryId, cbEntryId);
 
 exit:
 	MAPIFreeBuffer(lpEntryId);
@@ -2095,7 +2102,7 @@ ZEND_FUNCTION(mapi_sink_timedwait)
 	PMEASURE_FUNC;
 	LOG_BEGIN();
 	zval *resSink = NULL;
-	zval *notifications = NULL;
+	zval notifications;
 	long ulTime = 0;
 	MAPINotifSink *lpSink = NULL;
 	ULONG cNotifs = 0;
@@ -2118,8 +2125,7 @@ ZEND_FUNCTION(mapi_sink_timedwait)
 		goto exit;
 	}
 
-	RETVAL_ZVAL(notifications, 0, 0);
-	FREE_ZVAL(notifications);
+	RETVAL_ZVAL(&notifications, 0, 0);
 
 exit:
 	MAPIFreeBuffer(lpNotifs);
@@ -2141,7 +2147,7 @@ ZEND_FUNCTION(mapi_table_queryallrows)
 	zval			*res				= NULL;
 	zval			*tagArray			= NULL;
 	zval			*restrictionArray	= NULL;
-	zval			*rowset				= NULL;
+	zval			rowset;
 	LPMAPITABLE		lpTable				= NULL;
 	// return value
 	// locals
@@ -2192,8 +2198,7 @@ ZEND_FUNCTION(mapi_table_queryallrows)
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "The resulting rowset could not be converted to a PHP array");
 		goto exit;
 	}
-	RETVAL_ZVAL(rowset, 0, 0);
-	FREE_ZVAL(rowset);
+	RETVAL_ZVAL(&rowset, 0, 0);
 
 exit:
 	MAPIFreeBuffer(lpTagArray);
@@ -2221,7 +2226,7 @@ ZEND_FUNCTION(mapi_table_queryrows)
 	zval		*res	= NULL;
 	LPMAPITABLE	lpTable = NULL;
 	zval		*tagArray = NULL;
-	zval		*rowset = NULL;
+	zval		rowset;
 	LPSPropTagArray lpTagArray = NULL;
 	long		lRowCount = 0, start = 0;
 	// local
@@ -2272,8 +2277,7 @@ ZEND_FUNCTION(mapi_table_queryrows)
 		goto exit;
 	}
 
-	RETVAL_ZVAL(rowset, 0, 0);
-	FREE_ZVAL(rowset);
+	RETVAL_ZVAL(&rowset, 0, 0);
 
 exit:
 	MAPIFreeBuffer(lpTagArray);
@@ -2697,7 +2701,7 @@ ZEND_FUNCTION(mapi_msgstore_openmultistoretable)
 
 	MAPI_G(hr) = GetECObject(lpMDB, &lpUnknown TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano object");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not an zarafa object");
 		goto exit;
 	}
 
@@ -2949,7 +2953,7 @@ ZEND_FUNCTION(mapi_stream_read)
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
 
-	RETVAL_STRINGL(buf, actualRead, 1);
+	RETVAL_STRINGL(buf, actualRead);
 
 exit:
 	delete[] buf;
@@ -3173,7 +3177,7 @@ ZEND_FUNCTION(mapi_openpropertytostream)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl|ls", &res, &proptag, &flags, &guidStr, &guidLen) == FAILURE) return;
 
-	zend_list_find(res->value.lval, &type);
+	type = Z_RES_P(res)->type;
 
 	if(type == le_mapi_message) {
 		ZEND_FETCH_RESOURCE_C(lpMapiProp, LPMESSAGE, &res, -1, name_mapi_message, le_mapi_message);
@@ -3325,7 +3329,7 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 	// local
 	int hashTotal = 0, i = 0;
 	LPMAPINAMEID *lppNamePropId = NULL;
-	zval		**entry = NULL, **guidEntry = NULL;
+	zval		*entry = NULL, *guidEntry = NULL;
 	HashTable	*targetHash	= NULL,	*guidHash = NULL;
 	GUID guidOutlook = { 0x00062002, 0x0000, 0x0000, { 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46}};
 	int multibytebufferlen = 0;
@@ -3362,9 +3366,9 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 
 	for (i = 0; i < hashTotal; ++i) {
 		//	Gets the element that exist at the current pointer.
-		zend_hash_get_current_data(targetHash,(void **) &entry);
+		entry = zend_hash_get_current_data(targetHash);
 		if(guidHash)
-			zend_hash_get_current_data(guidHash, (void **) &guidEntry);
+			guidEntry = zend_hash_get_current_data(guidHash);
 
 		MAPI_G(hr) = MAPIAllocateMore(sizeof(MAPINAMEID),lppNamePropId,(void **) &lppNamePropId[i]);
 		if (MAPI_G(hr) != hrSuccess)
@@ -3374,40 +3378,40 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 		lppNamePropId[i]->lpguid = &guidOutlook;
 
 		if(guidHash) {
-			if (guidEntry[0]->type != IS_STRING || sizeof(GUID) != guidEntry[0]->value.str.len) {
+			if (Z_TYPE_P(guidEntry) != IS_STRING || sizeof(GUID) != guidEntry->value.str->len) {
 				php_error_docref(NULL TSRMLS_CC, E_WARNING, "The GUID with index number %d that is passed is not of the right length, cannot convert to GUID", i);
 			} else {
 				MAPI_G(hr) = MAPIAllocateMore(sizeof(GUID),lppNamePropId,(void **) &lppNamePropId[i]->lpguid);
 				if (MAPI_G(hr) != hrSuccess)
 					goto exit;
-				memcpy(lppNamePropId[i]->lpguid, guidEntry[0]->value.str.val, sizeof(GUID));
+				memcpy(lppNamePropId[i]->lpguid, guidEntry->value.str->val, sizeof(GUID));
 			}
 		}
 
-		switch(entry[0]->type)
+		switch(Z_TYPE_P(entry))
 		{
 			case IS_LONG:
 				lppNamePropId[i]->ulKind = MNID_ID;
-				lppNamePropId[i]->Kind.lID = entry[0]->value.lval;
+				lppNamePropId[i]->Kind.lID = entry->value.lval;
 			break;
 
 			case IS_STRING:
-				multibytebufferlen = mbstowcs(NULL, entry[0]->value.str.val, 0);
+				multibytebufferlen = mbstowcs(NULL, entry->value.str->val, 0);
 				MAPI_G(hr) = MAPIAllocateMore((multibytebufferlen+1)*sizeof(WCHAR), lppNamePropId,
 											  (void **)&lppNamePropId[i]->Kind.lpwstrName);
 				if (MAPI_G(hr) != hrSuccess)
 					goto exit;
-				mbstowcs(lppNamePropId[i]->Kind.lpwstrName, entry[0]->value.str.val, multibytebufferlen+1);
+				mbstowcs(lppNamePropId[i]->Kind.lpwstrName, entry->value.str->val, multibytebufferlen+1);
 				lppNamePropId[i]->ulKind = MNID_STRING;
 			break;
 
 			case IS_DOUBLE:
 				lppNamePropId[i]->ulKind = MNID_ID;
-				lppNamePropId[i]->Kind.lID = (LONG) entry[0]->value.dval;
+				lppNamePropId[i]->Kind.lID = (LONG) entry->value.dval;
 			break;
 
 			default:
-				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Entry is of an unknown type: %08X", entry[0]->type);
+				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Entry is of an unknown type: %08X", Z_TYPE_P(entry));
 			break;
 		}
 
@@ -3451,7 +3455,7 @@ ZEND_FUNCTION(mapi_setprops)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra", &res, &propValueArray) == FAILURE) return;
 
-	zend_list_find(res->value.lval, &type);
+	type = Z_RES_P(res)->type;
 
 	if(type == le_mapi_message) {
 		ZEND_FETCH_RESOURCE_C(lpMapiProp, LPMESSAGE, &res, -1, name_mapi_message, le_mapi_message);
@@ -3513,7 +3517,7 @@ ZEND_FUNCTION(mapi_copyto)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "raar|l", &srcres, &excludeiid, &excludeprops, &dstres, &flags) == FAILURE) return;
 
-	zend_list_find(srcres->value.lval, &type);
+	type = Z_RES_P(srcres)->type;
 
 	if(type == le_mapi_message) {
 		ZEND_FETCH_RESOURCE_C(lpSrcObj, LPMESSAGE, &srcres, -1, name_mapi_message, le_mapi_message);
@@ -3540,7 +3544,7 @@ ZEND_FUNCTION(mapi_copyto)
 		goto exit;
 	}
 
-	zend_list_find(dstres->value.lval, &type);
+	type = Z_RES_P(dstres)->type;
 
 	if(type == le_mapi_message) {
 		ZEND_FETCH_RESOURCE_C(lpDstObj, LPMESSAGE, &dstres, -1, name_mapi_message, le_mapi_message);
@@ -3590,8 +3594,8 @@ ZEND_FUNCTION(mapi_savechanges)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &res, &flags) == FAILURE) return;
 
-	if (res->type == IS_RESOURCE) {
-		zend_list_find(res->value.lval, &type);
+	if (Z_TYPE_P(res) == IS_RESOURCE) {
+		type = Z_RES_P(res)->type;
 
 		if(type == le_mapi_message) {
 			ZEND_FETCH_RESOURCE_C(lpMapiProp, LPMESSAGE, &res, -1, name_mapi_message, le_mapi_message);
@@ -3638,7 +3642,7 @@ ZEND_FUNCTION(mapi_deleteprops)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra", &res, &propTagArray) == FAILURE) return;
 
-	zend_list_find(res->value.lval, &type);
+	type = Z_RES_P(res)->type;
 
 	if(type == le_mapi_message) {
 		ZEND_FETCH_RESOURCE_C(lpMapiProp, LPMESSAGE, &res, -1, name_mapi_message, le_mapi_message);
@@ -3707,7 +3711,7 @@ ZEND_FUNCTION(mapi_openproperty)
 		if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rlsll", &res, &proptag, &guidStr, &guidLen, &interfaceflags, &flags) == FAILURE) return;
 	}
 
-	zend_list_find(res->value.lval, &type);
+	type = Z_RES_P(res)->type;
 
 	if(type == le_mapi_message) {
 		ZEND_FETCH_RESOURCE_C(lpMapiProp, LPMESSAGE, &res, -1, name_mapi_message, le_mapi_message);
@@ -3763,7 +3767,8 @@ ZEND_FUNCTION(mapi_openproperty)
 				goto exit;
 			}
 
-			RETVAL_STRINGL(data, cRead, 0);
+			RETVAL_STRINGL(data, cRead);
+                        efree(data);
 		} else {
 			ZEND_REGISTER_RESOURCE(return_value, lpUnk, le_istream);
 		}
@@ -3812,7 +3817,7 @@ ZEND_FUNCTION(mapi_getprops)
 	LPSPropValue lpPropValues = NULL;
 	LPSPropTagArray lpTagArray = NULL;
 	// return value
-	zval *zval_prop_value = NULL;
+	zval zval_prop_value;
 	// local
 	int type = -1; // list entry number of the resource.
 
@@ -3821,7 +3826,7 @@ ZEND_FUNCTION(mapi_getprops)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|a", &res, &tagArray) == FAILURE) return;
 
-	zend_list_find(res->value.lval, &type);
+	type = Z_RES_P(res)->type;
 
 	if(type == le_mapi_message) {
 		ZEND_FETCH_RESOURCE_C(lpMapiProp, LPMESSAGE, &res, -1, name_mapi_message, le_mapi_message);
@@ -3869,8 +3874,7 @@ ZEND_FUNCTION(mapi_getprops)
 		goto exit;
 	}
 
-	RETVAL_ZVAL(zval_prop_value, 0, 0);
-	FREE_ZVAL(zval_prop_value);
+	RETVAL_ZVAL(&zval_prop_value, 0, 0);
 
 exit:
 	MAPIFreeBuffer(lpPropValues);
@@ -3892,7 +3896,7 @@ ZEND_FUNCTION(mapi_getnamesfromids)
 	ULONG				cPropNames = 0;
 	LPMAPINAMEID		*pPropNames = NULL;
 	ULONG				count = 0;
-	zval *prop;
+	zval prop;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -3920,13 +3924,12 @@ ZEND_FUNCTION(mapi_getnamesfromids)
 		char buffer[20];
 		snprintf(buffer, 20, "%i", lpPropTags->aulPropTag[count]);
 
-		MAKE_STD_ZVAL(prop);
-		array_init(prop);
+		array_init(&prop);
 
-		add_assoc_stringl(prop, "guid", (char*)pPropNames[count]->lpguid, sizeof(GUID), 1);
+		add_assoc_stringl(&prop, "guid", (char*)pPropNames[count]->lpguid, sizeof(GUID));
 
 		if (pPropNames[count]->ulKind == MNID_ID) {
-			add_assoc_long(prop, "id", pPropNames[count]->Kind.lID);
+			add_assoc_long(&prop, "id", pPropNames[count]->Kind.lID);
 		} else {
 			int slen;
 			char *buffer;
@@ -3934,11 +3937,11 @@ ZEND_FUNCTION(mapi_getnamesfromids)
 			++slen;															// add terminator
 			buffer = new char[slen];										// alloc
 			wcstombs(buffer, pPropNames[count]->Kind.lpwstrName, slen);		// convert & terminate
-			add_assoc_string(prop, "name", buffer, 1);
+			add_assoc_string(&prop, "name", buffer);
 			delete [] buffer;
 		}
 
-		add_assoc_zval(return_value, buffer, prop);
+		add_assoc_zval(return_value, buffer, &prop);
 	}
 
 exit:
@@ -4012,7 +4015,7 @@ ZEND_FUNCTION(mapi_decompressrtf)
 		strUncompressed.append(htmlbuf, cbRead);
 	}
 
-	RETVAL_STRINGL((char *)strUncompressed.c_str(), strUncompressed.size(), 1);
+	RETVAL_STRINGL((char *)strUncompressed.c_str(), strUncompressed.size());
 
 exit:
 	if (deCompressedStream)
@@ -4062,8 +4065,8 @@ ZEND_FUNCTION(mapi_folder_getsearchcriteria) {
 	LOG_BEGIN();
 	// params
 	zval *res = NULL;
-	zval *restriction = NULL;
-	zval *folderlist = NULL;
+	zval restriction;
+	zval folderlist;
 	LPMAPIFOLDER lpFolder = NULL;
 	long ulFlags = 0;
 	// local
@@ -4092,8 +4095,8 @@ ZEND_FUNCTION(mapi_folder_getsearchcriteria) {
 
 	array_init(return_value);
 
-	add_assoc_zval(return_value, "restriction", restriction);
-	add_assoc_zval(return_value, "folderlist", folderlist);
+	add_assoc_zval(return_value, "restriction", &restriction);
+	add_assoc_zval(return_value, "folderlist", &folderlist);
 	add_assoc_long(return_value, "searchstate", ulSearchState);
 
 exit:
@@ -4289,7 +4292,7 @@ ZEND_FUNCTION(mapi_zarafa_createuser)
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not an zarafa store");
 		goto exit;
 	}
 
@@ -4362,7 +4365,7 @@ ZEND_FUNCTION(mapi_zarafa_setuser)
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not an zarafa store");
 		goto exit;
 	}
 
@@ -4428,7 +4431,7 @@ ZEND_FUNCTION(mapi_zarafa_deleteuser)
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not an zarafa store");
 		goto exit;
 	}
 
@@ -4489,7 +4492,7 @@ ZEND_FUNCTION(mapi_zarafa_createstore)
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not an zarafa store");
 		goto exit;
 	}
 
@@ -4520,9 +4523,9 @@ exit:
 }
 
 /**
-* Retrieve a list of users
+* Retrieve a list of users from zarafa
 * @param  logged on msgstore
-* @param  company entryid
+* @param  zarafa company entryid
 * @return array(username => array(fullname, emaladdress, userid, admin));
 */
 ZEND_FUNCTION(mapi_zarafa_getuserlist)
@@ -4531,7 +4534,7 @@ ZEND_FUNCTION(mapi_zarafa_getuserlist)
 	LOG_BEGIN();
 	// params
 	zval			*res = NULL;
-	zval*			zval_data_value = NULL;
+	zval			zval_data_value;
 	LPMDB			lpMsgStore = NULL;
 	LPENTRYID		lpCompanyId = NULL;
 	unsigned int		cbCompanyId = 0;
@@ -4553,7 +4556,7 @@ ZEND_FUNCTION(mapi_zarafa_getuserlist)
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not an zarafa store");
 		goto exit;
 	}
 
@@ -4569,17 +4572,16 @@ ZEND_FUNCTION(mapi_zarafa_getuserlist)
 
 	array_init(return_value);
 	for (i = 0; i < nUsers; ++i) {
-		MAKE_STD_ZVAL(zval_data_value);
-		array_init(zval_data_value);
+		array_init(&zval_data_value);
 
-		add_assoc_stringl(zval_data_value, "userid", (char*)lpUsers[i].sUserId.lpb, lpUsers[i].sUserId.cb, 1);
-		add_assoc_string(zval_data_value, "username", (char*)lpUsers[i].lpszUsername, 1);
-		add_assoc_string(zval_data_value, "fullname", (char*)lpUsers[i].lpszFullName, 1);
-		add_assoc_string(zval_data_value, "emailaddress", (char*)lpUsers[i].lpszMailAddress, 1);
-		add_assoc_long(zval_data_value, "admin", lpUsers[i].ulIsAdmin);
-		add_assoc_long(zval_data_value, "nonactive", (lpUsers[i].ulObjClass == ACTIVE_USER ? 0 : 1));
+		add_assoc_stringl(&zval_data_value, "userid", (char*)lpUsers[i].sUserId.lpb, lpUsers[i].sUserId.cb);
+		add_assoc_string(&zval_data_value, "username", (char*)lpUsers[i].lpszUsername);
+		add_assoc_string(&zval_data_value, "fullname", (char*)lpUsers[i].lpszFullName);
+		add_assoc_string(&zval_data_value, "emailaddress", (char*)lpUsers[i].lpszMailAddress);
+		add_assoc_long(&zval_data_value, "admin", lpUsers[i].ulIsAdmin);
+		add_assoc_long(&zval_data_value, "nonactive", (lpUsers[i].ulObjClass == ACTIVE_USER ? 0 : 1));
 
-		add_assoc_zval(return_value, (char*)lpUsers[i].lpszUsername, zval_data_value);
+		add_assoc_zval(return_value, (char*)lpUsers[i].lpszUsername, &zval_data_value);
 	}
 
 exit:
@@ -4591,7 +4593,7 @@ exit:
 }
 
 /**
- * Retrieve quota values of a users
+ * Retrieve quota values of a users from zarafa
  * @param  logged on msgstore
  * @param  user entryid to get quota information from
  * @return array(usedefault, isuserdefault, warnsize, softsize, hardsize);
@@ -4622,7 +4624,7 @@ ZEND_FUNCTION(mapi_zarafa_getquota)
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not an zarafa store");
 		goto exit;
 	}
 
@@ -4673,7 +4675,13 @@ ZEND_FUNCTION(mapi_zarafa_setquota)
 	IECServiceAdmin *lpServiceAdmin = NULL;
 	ECQUOTA *lpQuota = NULL;
 	HashTable		*data = NULL;
-	zval			**value = NULL;
+	zval			*value = NULL;
+
+        zend_string *str_usedefault = zend_string_init("usedefault", sizeof("usedefault")-1, 0);
+        zend_string *str_isuserdefault = zend_string_init("isuserdefault", sizeof("isuserdefault")-1, 0);
+        zend_string *str_warnsize = zend_string_init("warnsize", sizeof("warnsize")-1, 0);
+        zend_string *str_softsize = zend_string_init("softsize", sizeof("softsize")-1, 0);
+        zend_string *str_hardsize = zend_string_init("hardsize", sizeof("hardsize")-1, 0);
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -4685,7 +4693,7 @@ ZEND_FUNCTION(mapi_zarafa_setquota)
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not an zarafa store");
 		goto exit;
 	}
 
@@ -4700,29 +4708,29 @@ ZEND_FUNCTION(mapi_zarafa_setquota)
 	data = HASH_OF(array);
 	zend_hash_internal_pointer_reset(data);
 
-	if (zend_hash_find(data, "usedefault", sizeof("usedefault"), (void**)&value) == SUCCESS) {
+	if ((value = zend_hash_find(data, str_usedefault)) != NULL) {
 		convert_to_boolean_ex(value);
-		lpQuota->bUseDefaultQuota = Z_BVAL_PP(value);
+		lpQuota->bUseDefaultQuota = (Z_TYPE_P(value) == IS_TRUE);
 	}
 
-	if (zend_hash_find(data, "isuserdefault", sizeof("isuserdefault"), (void**)&value) == SUCCESS) {
+	if ((value = zend_hash_find(data, str_isuserdefault)) != NULL) {
 		convert_to_boolean_ex(value);
-		lpQuota->bIsUserDefaultQuota = Z_BVAL_PP(value);
+		lpQuota->bIsUserDefaultQuota = (Z_TYPE_P(value) == IS_TRUE);
 	}
 
-	if (zend_hash_find(data, "warnsize", sizeof("warnsize"), (void**)&value) == SUCCESS) {
+	if ((value = zend_hash_find(data, str_warnsize)) != NULL) {
 		convert_to_long_ex(value);
-		lpQuota->llWarnSize = Z_LVAL_PP(value);
+		lpQuota->llWarnSize = Z_LVAL_P(value);
 	}
 
-	if (zend_hash_find(data, "softsize", sizeof("softsize"), (void**)&value) == SUCCESS) {
+	if ((value = zend_hash_find(data, str_softsize)) != NULL) {
 		convert_to_long_ex(value);
-		lpQuota->llSoftSize = Z_LVAL_PP(value);
+		lpQuota->llSoftSize = Z_LVAL_P(value);
 	}
 
-	if (zend_hash_find(data, "hardsize", sizeof("hardsize"), (void**)&value) == SUCCESS) {
+	if ((value = zend_hash_find(data, str_hardsize)) != NULL) {
 		convert_to_long_ex(value);
-		lpQuota->llHardSize = Z_LVAL_PP(value);
+		lpQuota->llHardSize = Z_LVAL_P(value);
 	}
 
 	MAPI_G(hr) = lpServiceAdmin->SetQuota(cbUserId, lpUserId, lpQuota);
@@ -4735,13 +4743,18 @@ exit:
 	if (lpServiceAdmin)
 		lpServiceAdmin->Release();
 	MAPIFreeBuffer(lpQuota);
+        zend_string_release(str_usedefault);
+        zend_string_release(str_isuserdefault);
+        zend_string_release(str_warnsize);
+        zend_string_release(str_softsize);
+        zend_string_release(str_hardsize);
 	LOG_END();
 	THROW_ON_ERROR();
 }
 
 
 /**
-* Retrieve user information
+* Retrieve user information from zarafa
 * @param  logged on msgstore
 * @param  username
 * @return array(fullname, emailaddress, userid, admin);
@@ -4774,7 +4787,7 @@ ZEND_FUNCTION(mapi_zarafa_getuser_by_name)
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not an zarafa store");
 		goto exit;
 	}
 
@@ -4797,10 +4810,10 @@ ZEND_FUNCTION(mapi_zarafa_getuser_by_name)
 
 	array_init(return_value);
 
-	add_assoc_stringl(return_value, "userid", (char*)lpUsers->sUserId.lpb, lpUsers->sUserId.cb, 1);
-	add_assoc_string(return_value, "username", (char*)lpUsers->lpszUsername, 1);
-	add_assoc_string(return_value, "fullname", (char*)lpUsers->lpszFullName, 1);
-	add_assoc_string(return_value, "emailaddress", (char*)lpUsers->lpszMailAddress, 1);
+	add_assoc_stringl(return_value, "userid", (char*)lpUsers->sUserId.lpb, lpUsers->sUserId.cb);
+	add_assoc_string(return_value, "username", (char*)lpUsers->lpszUsername);
+	add_assoc_string(return_value, "fullname", (char*)lpUsers->lpszFullName);
+	add_assoc_string(return_value, "emailaddress", (char*)lpUsers->lpszMailAddress);
 	add_assoc_long(return_value, "admin", lpUsers->ulIsAdmin);
 
 exit:
@@ -4813,7 +4826,7 @@ exit:
 }
 
 /**
-* Retrieve user information
+* Retrieve user information from zarafa
 * @param  logged on msgstore
 * @param  userid
 * @return array(fullname, emailaddress, userid, admin);
@@ -4844,7 +4857,7 @@ ZEND_FUNCTION(mapi_zarafa_getuser_by_id)
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not an zarafa store");
 		goto exit;
 	}
 
@@ -4860,10 +4873,10 @@ ZEND_FUNCTION(mapi_zarafa_getuser_by_id)
 
 	array_init(return_value);
 
-	add_assoc_stringl(return_value, "userid", (char*)lpUsers->sUserId.lpb, lpUsers->sUserId.cb, 1);
-	add_assoc_string(return_value, "username", (char*)lpUsers->lpszUsername, 1);
-	add_assoc_string(return_value, "fullname", (char*)lpUsers->lpszFullName, 1);
-	add_assoc_string(return_value, "emailaddress", (char*)lpUsers->lpszMailAddress, 1);
+	add_assoc_stringl(return_value, "userid", (char*)lpUsers->sUserId.lpb, lpUsers->sUserId.cb);
+	add_assoc_string(return_value, "username", (char*)lpUsers->lpszUsername);
+	add_assoc_string(return_value, "fullname", (char*)lpUsers->lpszFullName);
+	add_assoc_string(return_value, "emailaddress", (char*)lpUsers->lpszMailAddress);
 	add_assoc_long(return_value, "admin", lpUsers->ulIsAdmin);
 
 exit:
@@ -4900,7 +4913,7 @@ ZEND_FUNCTION(mapi_zarafa_creategroup)
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not an zarafa store");
 		goto exit;
 	}
 
@@ -4916,7 +4929,7 @@ ZEND_FUNCTION(mapi_zarafa_creategroup)
 		goto exit;
 	}
 
-	RETVAL_STRINGL((char*)lpGroupId, cbGroupId, 1);
+	RETVAL_STRINGL((char*)lpGroupId, cbGroupId);
 
 exit:
 	MAPIFreeBuffer(lpGroupId);
@@ -4953,7 +4966,7 @@ ZEND_FUNCTION(mapi_zarafa_deletegroup)
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not an zarafa store");
 		goto exit;
 	}
 
@@ -5007,7 +5020,7 @@ ZEND_FUNCTION(mapi_zarafa_addgroupmember)
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a zarafa store");
 		goto exit;
 	}
 
@@ -5054,7 +5067,7 @@ ZEND_FUNCTION(mapi_zarafa_deletegroupmember)
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a zarafa store");
 		goto exit;
 	}
 
@@ -5103,7 +5116,7 @@ ZEND_FUNCTION(mapi_zarafa_setgroup)
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not an zarafa store");
 		goto exit;
 	}
 
@@ -5153,7 +5166,7 @@ ZEND_FUNCTION(mapi_zarafa_getgroup_by_id)
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not an zarafa store");
 		goto exit;
 	}
 
@@ -5166,8 +5179,8 @@ ZEND_FUNCTION(mapi_zarafa_getgroup_by_id)
 		goto exit;
 
 	array_init(return_value);
-	add_assoc_stringl(return_value, "groupid", (char*)lpGroupId, cbGroupId, 1);
-	add_assoc_string(return_value, "groupname", (char*)lpsGroup->lpszGroupname, 1);
+	add_assoc_stringl(return_value, "groupid", (char*)lpGroupId, cbGroupId);
+	add_assoc_string(return_value, "groupname", (char*)lpsGroup->lpszGroupname);
 
 exit:
 	MAPIFreeBuffer(lpsGroup);
@@ -5205,7 +5218,7 @@ ZEND_FUNCTION(mapi_zarafa_getgroup_by_name)
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not an zarafa store");
 		goto exit;
 	}
 
@@ -5224,8 +5237,8 @@ ZEND_FUNCTION(mapi_zarafa_getgroup_by_name)
 		goto exit;
 
 	array_init(return_value);
-	add_assoc_stringl(return_value, "groupid", (char*)lpGroupId, cbGroupId, 1);
-	add_assoc_string(return_value, "groupname", (char*)lpsGroup->lpszGroupname, 1);
+	add_assoc_stringl(return_value, "groupid", (char*)lpGroupId, cbGroupId);
+	add_assoc_string(return_value, "groupname", (char*)lpsGroup->lpszGroupname);
 
 exit:
 	MAPIFreeBuffer(lpGroupId);
@@ -5247,7 +5260,7 @@ ZEND_FUNCTION(mapi_zarafa_getgrouplist)
 	unsigned int	cbCompanyId = 0;
 	// return value
 	// locals
-	zval			*zval_data_value  = NULL;
+	zval			zval_data_value;
 	LPMDB			lpMsgStore = NULL;
 	IECUnknown		*lpUnknown = NULL;
 	IECServiceAdmin *lpServiceAdmin = NULL;
@@ -5264,7 +5277,7 @@ ZEND_FUNCTION(mapi_zarafa_getgrouplist)
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not an zarafa store");
 		goto exit;
 	}
 
@@ -5279,13 +5292,12 @@ ZEND_FUNCTION(mapi_zarafa_getgrouplist)
 
 	array_init(return_value);
 	for (i = 0; i < ulGroups; ++i) {
-		MAKE_STD_ZVAL(zval_data_value);
-		array_init(zval_data_value);
+		array_init(&zval_data_value);
 
-		add_assoc_stringl(zval_data_value, "groupid", (char*)lpsGroups[i].sGroupId.lpb, lpsGroups[i].sGroupId.cb, 1);
-		add_assoc_string(zval_data_value, "groupname", (char*)lpsGroups[i].lpszGroupname, 1);
+		add_assoc_stringl(&zval_data_value, "groupid", (char*)lpsGroups[i].sGroupId.lpb, lpsGroups[i].sGroupId.cb);
+		add_assoc_string(&zval_data_value, "groupname", (char*)lpsGroups[i].lpszGroupname);
 
-		add_assoc_zval(return_value, (char*)lpsGroups[i].lpszGroupname, zval_data_value);
+		add_assoc_zval(return_value, (char*)lpsGroups[i].lpszGroupname, &zval_data_value);
 	}
 
 exit:
@@ -5307,7 +5319,7 @@ ZEND_FUNCTION(mapi_zarafa_getgrouplistofuser)
 	unsigned int	cbUserId = 0;
 	// return value
 	// locals
-	zval			*zval_data_value  = NULL;
+	zval			zval_data_value;
 	LPMDB			lpMsgStore = NULL;
 	IECUnknown		*lpUnknown = NULL;
 	IECServiceAdmin *lpServiceAdmin = NULL;
@@ -5324,7 +5336,7 @@ ZEND_FUNCTION(mapi_zarafa_getgrouplistofuser)
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not an zarafa store");
 		goto exit;
 	}
 
@@ -5338,13 +5350,12 @@ ZEND_FUNCTION(mapi_zarafa_getgrouplistofuser)
 
 	array_init(return_value);
 	for (i = 0; i < ulGroups; ++i) {
-		MAKE_STD_ZVAL(zval_data_value);
-		array_init(zval_data_value);
+		array_init(&zval_data_value);
 
-		add_assoc_stringl(zval_data_value, "groupid", (char*)lpsGroups[i].sGroupId.lpb, lpsGroups[i].sGroupId.cb, 1);
-		add_assoc_string(zval_data_value, "groupname", (char*)lpsGroups[i].lpszGroupname, 1);
+		add_assoc_stringl(&zval_data_value, "groupid", (char*)lpsGroups[i].sGroupId.lpb, lpsGroups[i].sGroupId.cb);
+		add_assoc_string(&zval_data_value, "groupname", (char*)lpsGroups[i].lpszGroupname);
 
-		add_assoc_zval(return_value, (char*)lpsGroups[i].lpszGroupname, zval_data_value);
+		add_assoc_zval(return_value, (char*)lpsGroups[i].lpszGroupname, &zval_data_value);
 	}
 
 exit:
@@ -5366,7 +5377,7 @@ ZEND_FUNCTION(mapi_zarafa_getuserlistofgroup)
 	unsigned int	cbGroupId = 0;
 	// return value
 	// locals
-	zval			*zval_data_value  = NULL;
+	zval			zval_data_value;
 	LPMDB			lpMsgStore = NULL;
 	IECUnknown		*lpUnknown = NULL;
 	IECServiceAdmin *lpServiceAdmin = NULL;
@@ -5384,7 +5395,7 @@ ZEND_FUNCTION(mapi_zarafa_getuserlistofgroup)
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not an zarafa store");
 		goto exit;
 	}
 
@@ -5398,16 +5409,15 @@ ZEND_FUNCTION(mapi_zarafa_getuserlistofgroup)
 
 	array_init(return_value);
 	for (i = 0; i < ulUsers; ++i) {
-		MAKE_STD_ZVAL(zval_data_value);
-		array_init(zval_data_value);
+		array_init(&zval_data_value);
 
-		add_assoc_stringl(zval_data_value, "userid", (char*)lpsUsers[i].sUserId.lpb, lpsUsers[i].sUserId.cb, 1);
-		add_assoc_string(zval_data_value, "username", (char*)lpsUsers[i].lpszUsername, 1);
-		add_assoc_string(zval_data_value, "fullname", (char*)lpsUsers[i].lpszFullName, 1);
-		add_assoc_string(zval_data_value, "emailaddress", (char*)lpsUsers[i].lpszMailAddress, 1);
-		add_assoc_long(zval_data_value, "admin", lpsUsers[i].ulIsAdmin);
+		add_assoc_stringl(&zval_data_value, "userid", (char*)lpsUsers[i].sUserId.lpb, lpsUsers[i].sUserId.cb);
+		add_assoc_string(&zval_data_value, "username", (char*)lpsUsers[i].lpszUsername);
+		add_assoc_string(&zval_data_value, "fullname", (char*)lpsUsers[i].lpszFullName);
+		add_assoc_string(&zval_data_value, "emailaddress", (char*)lpsUsers[i].lpszMailAddress);
+		add_assoc_long(&zval_data_value, "admin", lpsUsers[i].ulIsAdmin);
 
-		add_assoc_zval(return_value, (char*)lpsUsers[i].lpszUsername, zval_data_value);
+		add_assoc_zval(return_value, (char*)lpsUsers[i].lpszUsername, &zval_data_value);
 	}
 
 exit:
@@ -5446,7 +5456,7 @@ ZEND_FUNCTION(mapi_zarafa_createcompany)
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not an zarafa store");
 		goto exit;
 	}
 
@@ -5460,7 +5470,7 @@ ZEND_FUNCTION(mapi_zarafa_createcompany)
 		goto exit;
 	}
 
-	RETVAL_STRINGL((char*)lpCompanyId, cbCompanyId, 1);
+	RETVAL_STRINGL((char*)lpCompanyId, cbCompanyId);
 
 exit:
 	MAPIFreeBuffer(lpCompanyId);
@@ -5498,7 +5508,7 @@ ZEND_FUNCTION(mapi_zarafa_deletecompany)
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 
 	if(MAPI_G(hr) != hrSuccess) {
-		 php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		 php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not an zarafa store");
 		 goto exit;
 	}
 
@@ -5552,7 +5562,7 @@ ZEND_FUNCTION(mapi_zarafa_getcompany_by_id)
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not an zarafa store");
 		goto exit;
 	}
 
@@ -5565,8 +5575,8 @@ ZEND_FUNCTION(mapi_zarafa_getcompany_by_id)
 		goto exit;
 
 	array_init(return_value);
-	add_assoc_stringl(return_value, "companyid", (char*)lpCompanyId, cbCompanyId, 1);
-	add_assoc_string(return_value, "companyname", (char*)lpsCompany->lpszCompanyname, 1);
+	add_assoc_stringl(return_value, "companyid", (char*)lpCompanyId, cbCompanyId);
+	add_assoc_string(return_value, "companyname", (char*)lpsCompany->lpszCompanyname);
 
 exit:
 	MAPIFreeBuffer(lpsCompany);
@@ -5605,7 +5615,7 @@ ZEND_FUNCTION(mapi_zarafa_getcompany_by_name)
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not an zarafa store");
 		goto exit;
 	}
 
@@ -5624,8 +5634,8 @@ ZEND_FUNCTION(mapi_zarafa_getcompany_by_name)
 		goto exit;
 
 	array_init(return_value);
-	add_assoc_stringl(return_value, "companyid", (char*)lpCompanyId, cbCompanyId, 1);
-	add_assoc_string(return_value, "companyname", (char*)lpsCompany->lpszCompanyname, 1);
+	add_assoc_stringl(return_value, "companyid", (char*)lpCompanyId, cbCompanyId);
+	add_assoc_string(return_value, "companyname", (char*)lpsCompany->lpszCompanyname);
 
 exit:
 	MAPIFreeBuffer(lpCompanyId);
@@ -5643,7 +5653,7 @@ ZEND_FUNCTION(mapi_zarafa_getcompanylist)
 	LOG_BEGIN();
 	// params
 	zval *res = NULL;
- 	zval *zval_data_value = NULL;
+ 	zval zval_data_value;
 	LPMDB lpMsgStore = NULL;
 	// return value
 	// local
@@ -5662,7 +5672,7 @@ ZEND_FUNCTION(mapi_zarafa_getcompanylist)
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not an zarafa store");
 		goto exit;
 	}
 
@@ -5676,12 +5686,11 @@ ZEND_FUNCTION(mapi_zarafa_getcompanylist)
 
 	array_init(return_value);
 	for (i = 0; i < nCompanies; ++i) {
-		MAKE_STD_ZVAL(zval_data_value);
-		array_init(zval_data_value);
+		array_init(&zval_data_value);
 
-		add_assoc_stringl(zval_data_value, "companyid", (char*)lpCompanies[i].sCompanyId.lpb, lpCompanies[i].sCompanyId.cb, 1);
-		add_assoc_string(zval_data_value, "companyname", (char*)lpCompanies[i].lpszCompanyname, 1);
-		add_assoc_zval(return_value, (char*)lpCompanies[i].lpszCompanyname, zval_data_value);
+		add_assoc_stringl(&zval_data_value, "companyid", (char*)lpCompanies[i].sCompanyId.lpb, lpCompanies[i].sCompanyId.cb);
+		add_assoc_string(&zval_data_value, "companyname", (char*)lpCompanies[i].lpszCompanyname);
+		add_assoc_zval(return_value, (char*)lpCompanies[i].lpszCompanyname, &zval_data_value);
 	}
 
 exit:
@@ -5717,7 +5726,7 @@ ZEND_FUNCTION(mapi_zarafa_add_company_remote_viewlist)
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if (MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a zarafa store");
 		goto exit;
 	}
 
@@ -5764,7 +5773,7 @@ ZEND_FUNCTION(mapi_zarafa_del_company_remote_viewlist)
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if (MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a zarafa store");
 		goto exit;
 	}
 
@@ -5795,7 +5804,7 @@ ZEND_FUNCTION(mapi_zarafa_get_remote_viewlist)
 	unsigned int	cbCompanyId = 0;
 
 	/* Locals */
-	zval			*zval_data_value  = NULL;
+	zval			zval_data_value;
 	IECUnknown		*lpUnknown = NULL;
 	IECServiceAdmin	*lpServiceAdmin = NULL;
 	IMsgStore		*lpMsgStore = NULL;
@@ -5812,7 +5821,7 @@ ZEND_FUNCTION(mapi_zarafa_get_remote_viewlist)
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if (MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a zarafa store");
 		goto exit;
 	}
 
@@ -5826,12 +5835,11 @@ ZEND_FUNCTION(mapi_zarafa_get_remote_viewlist)
 
 	array_init(return_value);
 	for (unsigned int i = 0; i < ulCompanies; ++i) {
-		MAKE_STD_ZVAL(zval_data_value);
-		array_init(zval_data_value);
+		array_init(&zval_data_value);
 
-		add_assoc_stringl(zval_data_value, "companyid", (char*)lpsCompanies[i].sCompanyId.lpb, lpsCompanies[i].sCompanyId.cb, 1);
-		add_assoc_string(zval_data_value, "companyname", (char*)lpsCompanies[i].lpszCompanyname, 1);
-		add_assoc_zval(return_value, (char*)lpsCompanies[i].lpszCompanyname, zval_data_value);
+		add_assoc_stringl(&zval_data_value, "companyid", (char*)lpsCompanies[i].sCompanyId.lpb, lpsCompanies[i].sCompanyId.cb);
+		add_assoc_string(&zval_data_value, "companyname", (char*)lpsCompanies[i].lpszCompanyname);
+		add_assoc_zval(return_value, (char*)lpsCompanies[i].lpszCompanyname, &zval_data_value);
 	}
 
 exit:
@@ -5868,7 +5876,7 @@ ZEND_FUNCTION(mapi_zarafa_add_user_remote_adminlist)
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if (MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a zarafa store");
 		goto exit;
 	}
 
@@ -5915,7 +5923,7 @@ ZEND_FUNCTION(mapi_zarafa_del_user_remote_adminlist)
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if (MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a zarafa store");
 		goto exit;
 	}
 
@@ -5946,7 +5954,7 @@ ZEND_FUNCTION(mapi_zarafa_get_remote_adminlist)
 	unsigned int	cbCompanyId = 0;
 
 	/* Locals */
-	zval			*zval_data_value  = NULL;
+	zval			zval_data_value;
 	IECUnknown		*lpUnknown = NULL;
 	IECServiceAdmin	*lpServiceAdmin = NULL;
 	IMsgStore		*lpMsgStore = NULL;
@@ -5963,7 +5971,7 @@ ZEND_FUNCTION(mapi_zarafa_get_remote_adminlist)
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if (MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a zarafa store");
 		goto exit;
 	}
 
@@ -5977,12 +5985,11 @@ ZEND_FUNCTION(mapi_zarafa_get_remote_adminlist)
 
 	array_init(return_value);
 	for (unsigned int i = 0; i < ulUsers; ++i) {
-		MAKE_STD_ZVAL(zval_data_value);
-		array_init(zval_data_value);
+		array_init(&zval_data_value);
 
-		add_assoc_stringl(zval_data_value, "userid", (char*)lpsUsers[i].sUserId.lpb, lpsUsers[i].sUserId.cb, 1);
-		add_assoc_string(zval_data_value, "username", (char*)lpsUsers[i].lpszUsername, 1);
-		add_assoc_zval(return_value, (char*)lpsUsers[i].lpszUsername, zval_data_value);
+		add_assoc_stringl(&zval_data_value, "userid", (char*)lpsUsers[i].sUserId.lpb, lpsUsers[i].sUserId.cb);
+		add_assoc_string(&zval_data_value, "username", (char*)lpsUsers[i].lpszUsername);
+		add_assoc_zval(return_value, (char*)lpsUsers[i].lpszUsername, &zval_data_value);
 	}
 
 exit:
@@ -6020,7 +6027,7 @@ ZEND_FUNCTION(mapi_zarafa_add_quota_recipient)
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if (MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a zarafa store");
 		goto exit;
 	}
 
@@ -6068,7 +6075,7 @@ ZEND_FUNCTION(mapi_zarafa_del_quota_recipient)
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if (MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a zarafa store");
 		goto exit;
 	}
 
@@ -6099,7 +6106,7 @@ ZEND_FUNCTION(mapi_zarafa_get_quota_recipientlist)
 	unsigned int	cbObjectId = 0;
 
 	/* Locals */
-	zval			*zval_data_value  = NULL;
+	zval			zval_data_value;
 	IECUnknown		*lpUnknown = NULL;
 	IECServiceAdmin	*lpServiceAdmin = NULL;
 	IMsgStore		*lpMsgStore = NULL;
@@ -6116,7 +6123,7 @@ ZEND_FUNCTION(mapi_zarafa_get_quota_recipientlist)
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if (MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano store");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a zarafa store");
 		goto exit;
 	}
 
@@ -6130,12 +6137,11 @@ ZEND_FUNCTION(mapi_zarafa_get_quota_recipientlist)
 
 	array_init(return_value);
 	for (unsigned int i = 0; i < ulUsers; ++i) {
-		MAKE_STD_ZVAL(zval_data_value);
-		array_init(zval_data_value);
+		array_init(&zval_data_value);
 
-		add_assoc_stringl(zval_data_value, "userid", (char*)lpsUsers[i].sUserId.lpb, lpsUsers[i].sUserId.cb, 1);
-		add_assoc_string(zval_data_value, "username", (char*)lpsUsers[i].lpszUsername, 1);
-		add_assoc_zval(return_value, (char*)lpsUsers[i].lpszUsername, zval_data_value);
+		add_assoc_stringl(&zval_data_value, "userid", (char*)lpsUsers[i].sUserId.lpb, lpsUsers[i].sUserId.cb);
+		add_assoc_string(&zval_data_value, "username", (char*)lpsUsers[i].lpszUsername);
+		add_assoc_zval(return_value, (char*)lpsUsers[i].lpszUsername, &zval_data_value);
 	}
 
 exit:
@@ -6227,7 +6233,7 @@ ZEND_FUNCTION(mapi_zarafa_getcapabilities)
 
 	array_init(return_value);
 	for (ULONG i = 0; i < ulCapas; ++i)
-		add_index_string(return_value, i, lpszCapas[i], 1);    
+		add_index_string(return_value, i, lpszCapas[i]);
 exit:
 	MAPIFreeBuffer(lpszCapas);
 	if(lpLicense)
@@ -6247,7 +6253,7 @@ ZEND_FUNCTION(mapi_zarafa_getpermissionrules)
 	long ulType;
 
 	// return value
-	zval *zval_data_value = NULL;
+	zval zval_data_value;
 	ULONG cPerms = 0;
 	ECPERMISSION *lpECPerms = NULL;
 
@@ -6262,7 +6268,7 @@ ZEND_FUNCTION(mapi_zarafa_getpermissionrules)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &res, &ulType) == FAILURE) return;
 
-	zend_list_find(res->value.lval, &type);
+	type = Z_RES_P(res)->type;
 
 	if(type == le_mapi_message) {
 		ZEND_FETCH_RESOURCE_C(lpMapiProp, LPMESSAGE, &res, -1, name_mapi_message, le_mapi_message);
@@ -6280,7 +6286,7 @@ ZEND_FUNCTION(mapi_zarafa_getpermissionrules)
 
 	MAPI_G(hr) = GetECObject(lpMapiProp, &lpUnknown TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano object");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not an zarafa object");
 		goto exit;
 	}
 
@@ -6296,15 +6302,14 @@ ZEND_FUNCTION(mapi_zarafa_getpermissionrules)
 
 	array_init(return_value);
 	for (i = 0; i < cPerms; ++i) {
-		MAKE_STD_ZVAL(zval_data_value);
-		array_init(zval_data_value);
+		array_init(&zval_data_value);
 
-		add_assoc_stringl(zval_data_value, "userid", (char*)lpECPerms[i].sUserId.lpb, lpECPerms[i].sUserId.cb, 1);
-		add_assoc_long(zval_data_value, "type", lpECPerms[i].ulType);
-		add_assoc_long(zval_data_value, "rights", lpECPerms[i].ulRights);
-		add_assoc_long(zval_data_value, "state", lpECPerms[i].ulState);
+		add_assoc_stringl(&zval_data_value, "userid", (char*)lpECPerms[i].sUserId.lpb, lpECPerms[i].sUserId.cb);
+		add_assoc_long(&zval_data_value, "type", lpECPerms[i].ulType);
+		add_assoc_long(&zval_data_value, "rights", lpECPerms[i].ulRights);
+		add_assoc_long(&zval_data_value, "state", lpECPerms[i].ulState);
 
-		add_index_zval(return_value, i, zval_data_value);
+		add_index_zval(return_value, i, &zval_data_value);
 	}
 
 exit:
@@ -6332,15 +6337,20 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 	ECPERMISSION *lpECPerms = NULL;
 	HashTable *target_hash = NULL;
 	ULONG i, j;
-	zval **entry = NULL, **value = NULL;
+	zval *entry = NULL, *value = NULL;
 	HashTable *data = NULL;
+
+	zend_string *str_userid = zend_string_init("userid", sizeof("userid")-1, 0);
+	zend_string *str_type = zend_string_init("type", sizeof("type")-1, 0);
+	zend_string *str_rights = zend_string_init("rights", sizeof("rights")-1, 0);
+	zend_string *str_state = zend_string_init("state", sizeof("state")-1, 0);
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ra", &res, &perms) == FAILURE) return;
 
-	zend_list_find(res->value.lval, &type);
+	type = Z_RES_P(res)->type;
 
 	if(type == le_mapi_message) {
 		ZEND_FETCH_RESOURCE_C(lpMapiProp, LPMESSAGE, &res, -1, name_mapi_message, le_mapi_message);
@@ -6358,7 +6368,7 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 
 	MAPI_G(hr) = GetECObject(lpMapiProp, &lpUnknown TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not a kopano object");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Specified object is not an zarafa object");
 		goto exit;
 	}
 
@@ -6375,7 +6385,6 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 
 	// The following code should be in typeconversion.cpp
 
-	zend_hash_internal_pointer_reset(target_hash);
 	cPerms = zend_hash_num_elements(target_hash);
 
 	MAPI_G(hr) = MAPIAllocateBuffer(sizeof(ECPERMISSION)*cPerms, (void**)&lpECPerms);
@@ -6383,44 +6392,43 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 		goto exit;
 	memset(lpECPerms, 0, sizeof(ECPERMISSION)*cPerms);
 	
-	for (j = 0, i = 0; i < cPerms; ++i) {
-		zend_hash_get_current_data(target_hash, (void **) &entry);
-
+	j = 0;
+	ZEND_HASH_FOREACH_VAL(target_hash, entry) {
 		// null pointer returned if perms was not array(array()).
-		data = HASH_OF(entry[0]);
+		data = HASH_OF(entry);
 		zend_hash_internal_pointer_reset(data);
 
-		if (zend_hash_find(data, "userid", sizeof("userid"), (void**)&value) == SUCCESS) {
+		if ((value = zend_hash_find(data, str_userid)) != NULL) {
 		    convert_to_string_ex(value);
-			lpECPerms[j].sUserId.cb = Z_STRLEN_PP(value);
-			lpECPerms[j].sUserId.lpb = (unsigned char*)Z_STRVAL_PP(value);
+			lpECPerms[j].sUserId.cb = Z_STRLEN_P(value);
+			lpECPerms[j].sUserId.lpb = (unsigned char*)Z_STRVAL_P(value);
 		} else {
 			continue;
 		}
 
-		if (zend_hash_find(data, "type", sizeof("type"), (void**)&value) == SUCCESS) {
+		if ((value = zend_hash_find(data, str_type)) != NULL) {
 		    convert_to_long_ex(value);
-			lpECPerms[j].ulType = Z_LVAL_PP(value);
+			lpECPerms[j].ulType = Z_LVAL_P(value);
 		} else {
 			continue;
 		}
 
-		if (zend_hash_find(data, "rights", sizeof("rights"), (void**)&value) == SUCCESS) {
+		if ((value = zend_hash_find(data, str_rights)) != NULL) {
 		    convert_to_long_ex(value);
-			lpECPerms[j].ulRights = Z_LVAL_PP(value);
+			lpECPerms[j].ulRights = Z_LVAL_P(value);
 		} else {
 			continue;
 		}
 
-		if (zend_hash_find(data, "state", sizeof("state"), (void**)&value) == SUCCESS) {
+		if ((value = zend_hash_find(data, str_state)) != NULL) {
 		    convert_to_long_ex(value);
-			lpECPerms[j].ulState = Z_LVAL_PP(value);
+			lpECPerms[j].ulState = Z_LVAL_P(value);
 		} else {
 			lpECPerms[j].ulState = RIGHT_NEW|RIGHT_AUTOUPDATE_DENIED;
 		}
 		++j;
-		zend_hash_move_forward(target_hash);
-	}
+
+	} ZEND_HASH_FOREACH_END();
 
 	MAPI_G(hr) = lpSecurity->SetPermissionRules(j, lpECPerms);
 	if (MAPI_G(hr) != hrSuccess)
@@ -6432,6 +6440,10 @@ exit:
 	if (lpSecurity)
 		lpSecurity->Release();
 	MAPIFreeBuffer(lpECPerms);
+	zend_string_release(str_userid);
+	zend_string_release(str_type);
+	zend_string_release(str_rights);
+	zend_string_release(str_state);
 	LOG_END();
 	THROW_ON_ERROR();
 }
@@ -6463,7 +6475,7 @@ ZEND_FUNCTION(mapi_freebusysupport_open)
 		ZEND_FETCH_RESOURCE_C(lpUserStore, LPMDB, &resStore, -1, name_mapi_msgstore, le_mapi_msgstore);
 	}
 
-	// Create the freebusy support object
+	// Create the zarafa freebusy support object
 	MAPI_G(hr) = ECFreeBusySupport::Create(&lpecFBSupport);
 	if( MAPI_G(hr) != hrSuccess)
 		goto exit;
@@ -6520,8 +6532,8 @@ ZEND_FUNCTION(mapi_freebusysupport_loaddata)
 	LOG_BEGIN();
 	HashTable*			target_hash = NULL;
 	ULONG				i, j;
-	zval**				entry = NULL;
-	int					rid = 0;
+	zval*				entry = NULL;
+	zend_resource *			rid = NULL;
 	FBUser*				lpUsers = NULL;
 	IFreeBusySupport*	lpFBSupport = NULL;
 	zval*				resFBSupport = NULL;
@@ -6543,7 +6555,6 @@ ZEND_FUNCTION(mapi_freebusysupport_loaddata)
 		goto exit;
 	}
 
-	zend_hash_internal_pointer_reset(target_hash);
 	cUsers = zend_hash_num_elements(target_hash);
 
 	MAPI_G(hr) = MAPIAllocateBuffer(sizeof(FBUser)*cUsers, (void**)&lpUsers);
@@ -6551,18 +6562,18 @@ ZEND_FUNCTION(mapi_freebusysupport_loaddata)
 		goto exit;
 
 	// Get the user entryid's
-	for (j = 0, i = 0; i < cUsers; ++i) {
-		if(zend_hash_get_current_data(target_hash, (void **) &entry) == FAILURE)
-		{
+	j = 0;
+	ZEND_HASH_FOREACH_VAL(target_hash, entry) {
+		if(!entry) {
 			MAPI_G(hr) = MAPI_E_INVALID_ENTRYID;
 			goto exit;
 		}
 
-		lpUsers[j].m_cbEid = Z_STRLEN_PP(entry);
-		lpUsers[j].m_lpEid = (LPENTRYID)Z_STRVAL_PP(entry);
+		lpUsers[j].m_cbEid = Z_STRLEN_P(entry);
+		lpUsers[j].m_lpEid = (LPENTRYID)Z_STRVAL_P(entry);
 		++j;
-		zend_hash_move_forward(target_hash);
-	}
+
+	} ZEND_HASH_FOREACH_END();
 
 	MAPI_G(hr) = MAPIAllocateBuffer(sizeof(IFreeBusyData*)*cUsers, (void**)&lppFBData);
 	if(MAPI_G(hr) != hrSuccess)
@@ -6578,10 +6589,10 @@ ZEND_FUNCTION(mapi_freebusysupport_loaddata)
 		if(lppFBData[i])
 		{
 			// Set resource relation
-			rid = ZEND_REGISTER_RESOURCE(NULL, lppFBData[i], le_freebusy_data);
+                        rid = zend_register_resource(lppFBData[i], le_freebusy_data);
 			// Add item to return list
 			add_next_index_resource(return_value, rid);
-		}else {
+		} else {
 			// Add empty item to return list
 			add_next_index_null(return_value);
 		}
@@ -6601,8 +6612,8 @@ ZEND_FUNCTION(mapi_freebusysupport_loadupdate)
 	LOG_BEGIN();
 	HashTable*			target_hash = NULL;
 	ULONG				i, j;
-	zval**				entry = NULL;
-	int					rid = 0;
+	zval*				entry = NULL;
+	zend_resource *			rid = NULL;
 	FBUser*				lpUsers = NULL;
 	IFreeBusySupport*	lpFBSupport = NULL;
 	zval*				resFBSupport = NULL;
@@ -6624,7 +6635,6 @@ ZEND_FUNCTION(mapi_freebusysupport_loadupdate)
 		goto exit;
 	}
 
-	zend_hash_internal_pointer_reset(target_hash);
 	cUsers = zend_hash_num_elements(target_hash);
 
 	MAPI_G(hr) = MAPIAllocateBuffer(sizeof(FBUser)*cUsers, (void**)&lpUsers);
@@ -6632,18 +6642,18 @@ ZEND_FUNCTION(mapi_freebusysupport_loadupdate)
 		goto exit;
 
 	// Get the user entryid's
-	for (j = 0, i = 0; i < cUsers; ++i) {
-		if(zend_hash_get_current_data(target_hash, (void **) &entry) == FAILURE)
-		{
+	j = 0;
+	ZEND_HASH_FOREACH_VAL(target_hash, entry) {
+		if(!entry) {
 			MAPI_G(hr) = MAPI_E_INVALID_ENTRYID;
 			goto exit;
 		}
 
-		lpUsers[j].m_cbEid = Z_STRLEN_PP(entry);
-		lpUsers[j].m_lpEid = (LPENTRYID)Z_STRVAL_PP(entry);
+		lpUsers[j].m_cbEid = Z_STRLEN_P(entry);
+		lpUsers[j].m_lpEid = (LPENTRYID)Z_STRVAL_P(entry);
 		++j;
-		zend_hash_move_forward(target_hash);
-	}
+
+	} ZEND_HASH_FOREACH_END();
 
 	MAPI_G(hr) = MAPIAllocateBuffer(sizeof(IFreeBusyUpdate*)*cUsers, (void**)&lppFBUpdate);
 	if(MAPI_G(hr) != hrSuccess)
@@ -6659,7 +6669,7 @@ ZEND_FUNCTION(mapi_freebusysupport_loadupdate)
 		if(lppFBUpdate[i])
 		{
 			// Set resource relation
-			rid = ZEND_REGISTER_RESOURCE(NULL, lppFBUpdate[i], le_freebusy_update);
+                        rid = zend_register_resource(lppFBUpdate[i], le_freebusy_update);
 			// Add item to return list
 			add_next_index_resource(return_value, rid);
 		}else {
@@ -6814,7 +6824,7 @@ ZEND_FUNCTION(mapi_freebusyenumblock_next)
 
 	time_t				ulUnixStart = 0;
 	time_t				ulUnixEnd = 0;
-	zval				*zval_data_value  = NULL;
+	zval				zval_data_value;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -6834,17 +6844,16 @@ ZEND_FUNCTION(mapi_freebusyenumblock_next)
 	array_init(return_value);
 
 	for (i = 0; i < cFetch; ++i) {
-		MAKE_STD_ZVAL(zval_data_value);
-		array_init(zval_data_value);
+		array_init(&zval_data_value);
 
 		RTimeToUnixTime(lpBlk[i].m_tmStart, &ulUnixStart);
 		RTimeToUnixTime(lpBlk[i].m_tmEnd, &ulUnixEnd);
 
-		add_assoc_long(zval_data_value, "start", ulUnixStart);
-		add_assoc_long(zval_data_value, "end", ulUnixEnd);
-		add_assoc_long(zval_data_value, "status", (LONG)lpBlk[i].m_fbstatus);
+		add_assoc_long(&zval_data_value, "start", ulUnixStart);
+		add_assoc_long(&zval_data_value, "end", ulUnixEnd);
+		add_assoc_long(&zval_data_value, "status", (LONG)lpBlk[i].m_fbstatus);
 
-		add_next_index_zval(return_value, zval_data_value);
+		add_next_index_zval(return_value, &zval_data_value);
 	}
 
 exit:
@@ -6925,9 +6934,13 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 	ULONG				cBlocks = 0;
 	HashTable*			target_hash = NULL;
 	ULONG				i;
-	zval**				entry = NULL;
-	zval**				value = NULL;
+	zval*				entry = NULL;
+	zval*				value = NULL;
 	HashTable*			data = NULL;
+
+	zend_string *str_start = zend_string_init("start", sizeof("start")-1, 0);
+	zend_string *str_end = zend_string_init("end", sizeof("end")-1, 0);
+	zend_string *str_status = zend_string_init("status", sizeof("status")-1, 0);
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -6942,44 +6955,40 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 		goto exit;
 	}
 
-	zend_hash_internal_pointer_reset(target_hash);
-	cBlocks = zend_hash_num_elements(target_hash);
-
 	MAPI_G(hr) = MAPIAllocateBuffer(sizeof(FBBlock_1)*cBlocks, (void**)&lpBlocks);
 	if(MAPI_G(hr) != hrSuccess)
 		goto exit;
 
-	for (i = 0; i < cBlocks; ++i) {
-		zend_hash_get_current_data(target_hash, (void **) &entry);
-
-		data = HASH_OF(entry[0]);
+        i = 0;
+        ZEND_HASH_FOREACH_VAL(target_hash, entry) {
+		data = HASH_OF(entry);
 		zend_hash_internal_pointer_reset(data);
 
-		if (zend_hash_find(data, "start", sizeof("start"), (void**)&value) == SUCCESS) {
-			UnixTimeToRTime(Z_LVAL_PP(value), &lpBlocks[i].m_tmStart);
+		if ((value = zend_hash_find(data, str_start)) != NULL) {
+			UnixTimeToRTime(Z_LVAL_P(value), &lpBlocks[i].m_tmStart);
 		} else {
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 			goto exit;
 		}
 
-		if (zend_hash_find(data, "end", sizeof("end"), (void**)&value) == SUCCESS) {
-			UnixTimeToRTime(Z_LVAL_PP(value), &lpBlocks[i].m_tmEnd);
+		if ((value = zend_hash_find(data, str_end)) != NULL ) {
+			UnixTimeToRTime(Z_LVAL_P(value), &lpBlocks[i].m_tmEnd);
 		} else {
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 			goto exit;
 		}
 
-		if (zend_hash_find(data, "status", sizeof("status"), (void**)&value) == SUCCESS) {
-			lpBlocks[i].m_fbstatus = (enum FBStatus)Z_LVAL_PP(value);
+		if ((value = zend_hash_find(data, str_status)) != NULL) {
+			lpBlocks[i].m_fbstatus = (enum FBStatus)Z_LVAL_P(value);
 		} else {
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 			goto exit;
 		}
+		++i;
 
-		zend_hash_move_forward(target_hash);
-	}
+        } ZEND_HASH_FOREACH_END();
 
-
+	cBlocks = zend_hash_num_elements(target_hash);
 	MAPI_G(hr) = lpFBUpdate->PublishFreeBusy(lpBlocks, cBlocks);
 	if(MAPI_G(hr) != hrSuccess)
 		goto exit;
@@ -6988,6 +6997,9 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 
 exit:
 	MAPIFreeBuffer(lpBlocks);
+	zend_string_release(str_start);
+	zend_string_release(str_end);
+	zend_string_release(str_status);
 	LOG_END();
 	THROW_ON_ERROR();
 }
@@ -7128,7 +7140,7 @@ ZEND_FUNCTION(mapi_exportchanges_config)
 	ZEND_FETCH_RESOURCE_C(lpExportChanges, IExchangeExportChanges *, &resExportChanges, -1, name_mapi_exportchanges, le_mapi_exportchanges);
 
 	if(Z_TYPE_P(resImportChanges) == IS_RESOURCE) {
-		zend_list_find(resImportChanges->value.lval, &type);
+		type = Z_RES_P(resImportChanges)->type;
 
 		if(type == le_mapi_importcontentschanges) {
 			ZEND_FETCH_RESOURCE_C(lpImportChanges, IUnknown *, &resImportChanges, -1, name_mapi_importcontentschanges, le_mapi_importcontentschanges);
@@ -7139,7 +7151,7 @@ ZEND_FUNCTION(mapi_exportchanges_config)
 			MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 			goto exit;
 		}
-	} else if(Z_TYPE_P(resImportChanges) == IS_BOOL && !resImportChanges->value.lval) {
+	} else if(Z_TYPE_P(resImportChanges) == IS_FALSE) {
 		lpImportChanges = NULL;
 	} else {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "The importer must be an actual importer resource, or FALSE");
@@ -7801,17 +7813,16 @@ ZEND_FUNCTION(mapi_enable_exceptions)
 {
 	PMEASURE_FUNC;
 	LOG_BEGIN();
-	ULONG			cbExClass = 0;
-	char *			szExClass = NULL;
-	zend_class_entry **ce = NULL;
+	zend_class_entry *ce = NULL;
+	zend_string *str_class;
 
 	RETVAL_FALSE;
 	
-    if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &szExClass, &cbExClass) == FAILURE) return;
+    if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "S", &str_class) == FAILURE) return;
     
-    if (zend_hash_find(CG(class_table), szExClass, cbExClass+1, (void **) &ce) == SUCCESS) {
+    if ((ce = *(zend_class_entry **)zend_hash_find(CG(class_table), str_class)) != NULL) {
         MAPI_G(exceptions_enabled) = true;
-        MAPI_G(exception_ce) = *ce;
+        MAPI_G(exception_ce) = ce;
         RETVAL_TRUE;
     }
     

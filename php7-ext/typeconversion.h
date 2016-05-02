@@ -63,12 +63,12 @@ HRESULT			PHPArraytoDeliveryOptions(zval *phpArray, delivery_options *lpDOPT);
  * All functions return a newly allocated ZVAL structure which must be FREE_ZVAL()'ed by the caller.
  */
  
-HRESULT			SBinaryArraytoPHPArray(SBinaryArray *lpBinaryArray, zval **ret TSRMLS_DC);
-HRESULT			PropTagArraytoPHPArray(ULONG cValues, LPSPropTagArray lpPropTagArray, zval **ret TSRMLS_DC);
-HRESULT			PropValueArraytoPHPArray(ULONG cValues, LPSPropValue pPropValueArray, zval **ret TSRMLS_DC);
-HRESULT 		SRestrictiontoPHPArray(LPSRestriction lpRes, int level, zval **ret TSRMLS_DC);
-HRESULT			RowSettoPHPArray(LPSRowSet lpRowSet, zval **ret TSRMLS_DC);
-HRESULT 		ReadStateArraytoPHPArray(ULONG cValues, LPREADSTATE lpReadStates, zval **ret TSRMLS_DC);
-HRESULT			NotificationstoPHPArray(ULONG cNotifs, LPNOTIFICATION lpNotifs, zval **ret TSRMLS_DC);
+HRESULT			SBinaryArraytoPHPArray(SBinaryArray *lpBinaryArray, zval *ret TSRMLS_DC);
+HRESULT			PropTagArraytoPHPArray(ULONG cValues, LPSPropTagArray lpPropTagArray, zval *ret TSRMLS_DC);
+HRESULT			PropValueArraytoPHPArray(ULONG cValues, LPSPropValue pPropValueArray, zval *ret TSRMLS_DC);
+HRESULT 		SRestrictiontoPHPArray(LPSRestriction lpRes, int level, zval *ret TSRMLS_DC);
+HRESULT			RowSettoPHPArray(LPSRowSet lpRowSet, zval *ret TSRMLS_DC);
+HRESULT 		ReadStateArraytoPHPArray(ULONG cValues, LPREADSTATE lpReadStates, zval *ret TSRMLS_DC);
+HRESULT			NotificationstoPHPArray(ULONG cNotifs, LPNOTIFICATION lpNotifs, zval *ret TSRMLS_DC);
 
 #endif
