@@ -266,11 +266,11 @@ LDAPUserPlugin::LDAPUserPlugin(pthread_mutex_t *pluginlock,
 		{ "ldap_user_type_attribute_value", "", CONFIGSETTING_NONEMPTY | CONFIGSETTING_RELOADABLE },
 		{ "ldap_group_type_attribute_value", "", CONFIGSETTING_NONEMPTY | CONFIGSETTING_RELOADABLE },
 		{ "ldap_contact_type_attribute_value", "", CONFIGSETTING_RELOADABLE },
-		{ "ldap_company_type_attribute_value", "", (m_bHosted ? CONFIGSETTING_NONEMPTY : 0) | CONFIGSETTING_RELOADABLE },
+		{ "ldap_company_type_attribute_value", "", static_cast<unsigned short>((m_bHosted ? CONFIGSETTING_NONEMPTY : 0) | CONFIGSETTING_RELOADABLE)},
 		{ "ldap_addresslist_type_attribute_value", "", CONFIGSETTING_RELOADABLE },
 		{ "ldap_dynamicgroup_type_attribute_value", "", CONFIGSETTING_RELOADABLE },
 #ifdef WITH_MULTISERVER
-		{ "ldap_server_type_attribute_value", "", (m_bDistributed ? CONFIGSETTING_NONEMPTY : 0) | CONFIGSETTING_RELOADABLE },
+		{ "ldap_server_type_attribute_value", "", static_cast<unsigned short>((m_bDistributed ? CONFIGSETTING_NONEMPTY : 0) | CONFIGSETTING_RELOADABLE)},
 #endif
 		{ "ldap_user_search_base","", CONFIGSETTING_UNUSED },
 		{ "ldap_user_search_filter","", CONFIGSETTING_RELOADABLE },
