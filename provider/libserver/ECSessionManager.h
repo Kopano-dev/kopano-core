@@ -42,7 +42,7 @@ class ECTPropsPurge;
 
 using namespace std;
 
-typedef hash_map<ECSESSIONGROUPID, ECSessionGroup*>::Type SESSIONGROUPMAP;
+typedef hash_map<ECSESSIONGROUPID, ECSessionGroup*>::Type EC_SESSIONGROUPMAP;
 typedef hash_map<ECSESSIONID, BTSession*>::Type SESSIONMAP;
 typedef hash_map<ECSESSIONID, unsigned int>::Type PERSISTENTBYSESSION;
 typedef hash_map<unsigned int, ECSESSIONID>::Type PERSISTENTBYCONNECTION;
@@ -187,7 +187,7 @@ protected:
 	ECRESULT			UpdateSubscribedTables(ECKeyTable::UpdateType ulType, TABLESUBSCRIPTION sSubscription, std::list<unsigned int> &lstChildId);
 	ECRESULT			SaveSourceKeyAutoIncrement(unsigned long long ullNewSourceKeyAutoIncrement);
 
-	SESSIONGROUPMAP		m_mapSessionGroups;		///< map of all the session groups
+	EC_SESSIONGROUPMAP m_mapSessionGroups; ///< map of all the session groups
 	SESSIONMAP			m_mapSessions;			///< map of all the sessions
 	
 	pthread_rwlock_t	m_hCacheRWLock;			///< locking of the sessionMap

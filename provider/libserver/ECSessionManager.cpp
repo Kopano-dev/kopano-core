@@ -283,14 +283,14 @@ ECRESULT ECSessionManager::GetSessionGroup(ECSESSIONGROUPID sessionGroupID, ECSe
 		lpSessionGroup = new ECSessionGroup(sessionGroupID, this);
 		g_lpStatsCollector->Increment(SCN_SESSIONGROUPS_CREATED);
 	} else {
-		SESSIONGROUPMAP::const_iterator iter = m_mapSessionGroups.find(sessionGroupID);
+		EC_SESSIONGROUPMAP::const_iterator iter = m_mapSessionGroups.find(sessionGroupID);
 		/* Check if the SessionGroup already exists on the server */
 		if (iter == m_mapSessionGroups.end()) {
 			// "upgrade" lock to insert new session
 			pthread_rwlock_unlock(&m_hGroupLock);
 			pthread_rwlock_wrlock(&m_hGroupLock);
 			lpSessionGroup = new ECSessionGroup(sessionGroupID, this);
-			m_mapSessionGroups.insert(SESSIONGROUPMAP::value_type(sessionGroupID, lpSessionGroup));
+			m_mapSessionGroups.insert(EC_SESSIONGROUPMAP::value_type(sessionGroupID, lpSessionGroup));
 			g_lpStatsCollector->Increment(SCN_SESSIONGROUPS_CREATED);
 		} else
 			lpSessionGroup = iter->second;
@@ -315,7 +315,7 @@ ECRESULT ECSessionManager::DeleteIfOrphaned(ECSessionGroup *lpGroup)
 		pthread_rwlock_wrlock(&m_hGroupLock);
 
     	/* Check if the SessionGroup actually exists, if it doesn't just return without error */
-	SESSIONGROUPMAP::const_iterator i = m_mapSessionGroups.find(id);
+	EC_SESSIONGROUPMAP::const_iterator i = m_mapSessionGroups.find(id);
     	if (i == m_mapSessionGroups.end()) {
     	    pthread_rwlock_unlock(&m_hGroupLock);
     	    goto exit;
@@ -799,7 +799,7 @@ ECRESULT ECSessionManager::RemoveSession(ECSESSIONID sessionID){
  */
 ECRESULT ECSessionManager::AddNotification(notification *notifyItem, unsigned int ulKey, unsigned int ulStore, unsigned int ulFolderId, unsigned int ulFlags) {
 	
-	SESSIONGROUPMAP::const_iterator	iIterator;
+	EC_SESSIONGROUPMAP::const_iterator iIterator;
 	std::multimap<unsigned int, ECSESSIONGROUPID>::const_iterator iterObjectSubscription;
 	std::set<ECSESSIONGROUPID> setGroups;
 	std::set<ECSESSIONGROUPID>::const_iterator iterGroups;
@@ -1275,7 +1275,7 @@ exit:
 ECRESULT ECSessionManager::NotificationChange(const set<unsigned int> &syncIds, unsigned int ulChangeId, unsigned int ulChangeType)
 {
 	ECRESULT					er = erSuccess;
-	SESSIONGROUPMAP::const_iterator iIterator;
+	EC_SESSIONGROUPMAP::const_iterator iIterator;
 	
 	pthread_rwlock_rdlock(&m_hGroupLock);
 
@@ -1335,7 +1335,7 @@ void ECSessionManager::GetStats(void(callback)(const std::string &, const std::s
 void ECSessionManager::GetStats(sSessionManagerStats &sStats)
 {
 	SESSIONMAP::const_iterator iIterator;
-	SESSIONGROUPMAP::const_iterator itersg;
+	EC_SESSIONGROUPMAP::const_iterator itersg;
 	list<ECSession*> vSessions;
 
 	memset(&sStats, 0, sizeof(sSessionManagerStats));
@@ -1352,7 +1352,7 @@ void ECSessionManager::GetStats(sSessionManagerStats &sStats)
 	pthread_rwlock_rdlock(&m_hGroupLock);
 	
 	sStats.group.ulItems = m_mapSessionGroups.size();
-	sStats.group.ullSize = MEMORY_USAGE_HASHMAP(sStats.group.ulItems, SESSIONGROUPMAP);
+	sStats.group.ullSize = MEMORY_USAGE_HASHMAP(sStats.group.ulItems, EC_SESSIONGROUPMAP);
 
 	for (itersg = m_mapSessionGroups.begin();
 	     itersg != m_mapSessionGroups.end(); ++itersg)
