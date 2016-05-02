@@ -159,7 +159,9 @@ ZEND_END_ARG_INFO()
 }
 
 #define ZEND_FETCH_RESOURCE_C(rsrc, rsrc_type, passed_id, default_id, resource_type_name, resource_type) \
-        rsrc = (rsrc_type)zend_fetch_resource(Z_RES_P(*passed_id), resource_type_name, resource_type);
+        rsrc = (rsrc_type)zend_fetch_resource(Z_RES_P(*passed_id), resource_type_name, resource_type); \
+        if (!rsrc) \
+        	RETURN_FALSE;
 
 #define ZEND_REGISTER_RESOURCE(return_value, lpMAPISession, le_mapi_session) \
         RETVAL_RES(zend_register_resource(lpMAPISession, le_mapi_session));
