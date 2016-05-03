@@ -86,7 +86,7 @@ public:
 	virtual ECRESULT GetUsername(std::string *lpstrUsername);
     virtual ECRESULT GetImpersonator(std::string *lpstrUsername);
 
-	virtual unsigned int GetObjectSize();
+	virtual size_t GetObjectSize(void);
 
 private:
 	ECRESULT GetGroupsForUser(unsigned int ulUserId, std::list<localobjectdetails_t> **lppGroups);

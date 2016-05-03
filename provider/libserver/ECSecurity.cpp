@@ -1579,9 +1579,9 @@ ECRESULT ECSecurity::GetImpersonator(std::string *lpstrImpersonator)
  *
  * @return Object size in bytes
  */
-unsigned int ECSecurity::GetObjectSize()
+size_t ECSecurity::GetObjectSize(void)
 {
-	unsigned int ulSize = sizeof(*this);
+	size_t ulSize = sizeof(*this);
 	unsigned int ulItems;
 
 	list<localobjectdetails_t>::iterator iter;

@@ -123,7 +123,7 @@ public:
 	void			SetClass(objectclass_t objclass);
 	objectclass_t	GetClass() const;
 
-	virtual unsigned int GetObjectSize();
+	virtual size_t GetObjectSize(void);
 
 	std::string ToStr(void) const;
 

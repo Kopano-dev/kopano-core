@@ -549,10 +549,10 @@ ECRESULT ECSessionGroup::releaseListeners()
  *
  * @return Object size in bytes
  */
-unsigned int ECSessionGroup::GetObjectSize()
+size_t ECSessionGroup::GetObjectSize(void)
 {
 	NOTIFICATIONLIST::const_iterator iterlNotify;
-	unsigned int ulSize = 0;
+	size_t ulSize = 0;
 	unsigned int ulItems;
 
 	pthread_mutex_lock(&m_hNotificationLock);

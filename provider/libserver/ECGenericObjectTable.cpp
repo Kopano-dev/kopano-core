@@ -3269,9 +3269,9 @@ ECRESULT ECGenericObjectTable::CheckPermissions(unsigned int ulObjId)
  *
  * @return Object size in bytes
  */
-unsigned int ECGenericObjectTable::GetObjectSize()
+size_t ECGenericObjectTable::GetObjectSize(void)
 {
-	unsigned int ulSize = sizeof(*this);
+	size_t ulSize = sizeof(*this);
 	ECCategoryMap::const_iterator iterCat;
 
 	pthread_mutex_lock(&m_hLock);
@@ -3509,9 +3509,9 @@ unsigned int ECCategory::GetCount() {
  *
  * @return Object size in bytes
  */
-unsigned int ECCategory::GetObjectSize(void) const
+size_t ECCategory::GetObjectSize(void) const
 {
-	unsigned int ulSize = 0;
+	size_t ulSize = 0;
 	unsigned int i;
 	
 	if (m_cProps > 0) {

@@ -38,8 +38,7 @@ public:
 	void SetConnection(unsigned int ulConnection);
 
 	void GetCopy(struct soap *, notification &) const;
-
-	unsigned int GetObjectSize(void) const;
+	size_t GetObjectSize(void) const;
 
 protected:
 	void Init();

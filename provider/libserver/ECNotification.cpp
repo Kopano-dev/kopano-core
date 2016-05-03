@@ -95,7 +95,7 @@ void ECNotification::GetCopy(struct soap *soap, notification &notification) cons
  *
  * @return Object size in bytes
  */
-unsigned int ECNotification::GetObjectSize(void) const
+size_t ECNotification::GetObjectSize(void) const
 {
 	return NotificationStructSize(m_lpsNotification);
 }

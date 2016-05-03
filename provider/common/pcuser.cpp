@@ -264,9 +264,9 @@ void objectdetails_t::MergeFrom(const objectdetails_t &from) {
  *
  * @return Memory usage of this object in bytes
  */
-unsigned int objectdetails_t::GetObjectSize()
+size_t objectdetails_t::GetObjectSize(void)
 {
-	unsigned int ulSize = sizeof(*this);
+	size_t ulSize = sizeof(*this);
 	property_map::const_iterator i;
 	property_mv_map::const_iterator mvi;
 	std::list<std::string>::const_iterator istr;

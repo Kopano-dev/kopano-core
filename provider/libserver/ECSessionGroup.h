@@ -112,7 +112,7 @@ public:
 	virtual ECRESULT AddChangeNotification(ECSESSIONID ulSessionId, unsigned int ulConnection, unsigned int ulSyncId, unsigned long ulChangeId);
 	virtual ECRESULT GetNotifyItems(struct soap *soap, ECSESSIONID ulSessionId, struct notifyResponse *notifications);
 
-	unsigned int GetObjectSize();
+	size_t GetObjectSize(void);
 
 private:
 	ECRESULT releaseListeners();
