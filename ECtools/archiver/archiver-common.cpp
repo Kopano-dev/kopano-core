@@ -84,8 +84,10 @@ entryid_t entryid_t::getUnwrapped() const
 
 int abentryid_t::compare(const abentryid_t &other) const
 {
-	if (size() != other.size())
-		return int(size()) - int(other.size());
+	if (size() < other.size())
+		return -1;
+	if (size() > other.size())
+		return 1;
 
 	if (size() <= 32) {
 		// Too small, just compare the whole thing

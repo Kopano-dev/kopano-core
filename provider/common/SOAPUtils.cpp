@@ -37,6 +37,12 @@ using namespace std;
 static const char THIS_FILE[] = __FILE__;
 #endif
 
+/* See m4lcommon/Util.cpp for twcmp */
+template<typename T> static int twcmp(T a, T b)
+{
+	return (a < b) ? -1 : (a == b) ? 0 : 1;
+}
+
 class MVPropProxy
 {
 public:
@@ -76,37 +82,38 @@ public:
 
 		switch (PROP_TYPE(m_lpMVProp->ulPropTag)) {
 			case PT_MV_I2:		
-				nCompareResult = m_lpMVProp->Value.mvi.__ptr[ulIndex] - lpProp->Value.i;
+				nCompareResult = twcmp(m_lpMVProp->Value.mvi.__ptr[ulIndex], lpProp->Value.i);
 				break;
 
 			case PT_MV_LONG:	
-				nCompareResult = m_lpMVProp->Value.mvl.__ptr[ulIndex] - lpProp->Value.ul;
+				nCompareResult = twcmp(m_lpMVProp->Value.mvl.__ptr[ulIndex], lpProp->Value.ul);
 				break;
 
 			case PT_MV_R4:		
-				nCompareResult = m_lpMVProp->Value.mvflt.__ptr[ulIndex] - lpProp->Value.flt;
+				nCompareResult = twcmp(m_lpMVProp->Value.mvflt.__ptr[ulIndex], lpProp->Value.flt);
 				break;
 
 			case PT_MV_DOUBLE:
 			case PT_MV_APPTIME:	
-				nCompareResult = m_lpMVProp->Value.mvdbl.__ptr[ulIndex] - lpProp->Value.dbl;
+				nCompareResult = twcmp(m_lpMVProp->Value.mvdbl.__ptr[ulIndex], lpProp->Value.dbl);
 				break;
 
 			case PT_MV_I8:		
-				nCompareResult = m_lpMVProp->Value.mvl.__ptr[ulIndex] - lpProp->Value.li;
+				/* promote LHS from unsigned int to int64_t */
+				nCompareResult = twcmp(static_cast<int64_t>(m_lpMVProp->Value.mvl.__ptr[ulIndex]), lpProp->Value.li);
 				break;
 
 			case PT_MV_SYSTIME:
 			case PT_MV_CURRENCY:
 				if (m_lpMVProp->Value.mvhilo.__ptr[ulIndex].hi == lpProp->Value.hilo->hi)
-					nCompareResult = m_lpMVProp->Value.mvhilo.__ptr[ulIndex].lo - lpProp->Value.hilo->lo;
+					nCompareResult = twcmp(m_lpMVProp->Value.mvhilo.__ptr[ulIndex].lo, lpProp->Value.hilo->lo);
 				else
-					nCompareResult = m_lpMVProp->Value.mvhilo.__ptr[ulIndex].hi - lpProp->Value.hilo->hi;
+					nCompareResult = twcmp(m_lpMVProp->Value.mvhilo.__ptr[ulIndex].hi, lpProp->Value.hilo->hi);
 				break;
 
 			case PT_MV_CLSID:
 			case PT_MV_BINARY:
-				nCompareResult = m_lpMVProp->Value.mvbin.__ptr[ulIndex].__size - lpProp->Value.bin->__size;
+				nCompareResult = twcmp(m_lpMVProp->Value.mvbin.__ptr[ulIndex].__size, lpProp->Value.bin->__size);
 				if (nCompareResult == 0)
 					nCompareResult = memcmp(m_lpMVProp->Value.mvbin.__ptr[ulIndex].__ptr, lpProp->Value.bin->__ptr, lpProp->Value.bin->__size);
 				break;
@@ -158,7 +165,7 @@ int CompareSortOrderArray(const struct sortOrderArray *lpsSortOrder1,
 		return -1; // not equal due to one of them being NULL
 
 	if(lpsSortOrder1->__size != lpsSortOrder2->__size)
-		return lpsSortOrder1->__size - lpsSortOrder2->__size;
+		return twcmp(lpsSortOrder1->__size, lpsSortOrder2->__size);
 
 	for (i = 0; i <lpsSortOrder1->__size; ++i) {
 		if(lpsSortOrder1->__ptr[i].ulPropTag != lpsSortOrder2->__ptr[i].ulPropTag)
@@ -388,10 +395,10 @@ static ECRESULT CompareABEID(const struct propVal *lpProp1,
 
 	if (peid1->ulVersion == peid2->ulVersion) {
 		if (lpProp1->Value.bin->__size != lpProp2->Value.bin->__size)
-			iResult = (int)(lpProp1->Value.bin->__size - lpProp2->Value.bin->__size);
+			iResult = twcmp(lpProp1->Value.bin->__size, lpProp2->Value.bin->__size);
 
 		else if (peid1->ulVersion == 0)
-			iResult = (int)(peid1->ulId - peid2->ulId);
+			iResult = twcmp(peid1->ulId, peid2->ulId);
 		
 		else
 			iResult = strcmp((const char *)peid1->szExId, (const char *)peid2->szExId);
@@ -463,7 +470,7 @@ ECRESULT CompareProp(const struct propVal *lpProp1,
 	// Perform a regular comparison
 	switch(PROP_TYPE(lpProp1->ulPropTag)) {
 	case PT_I2:
-		nCompareResult = lpProp1->Value.i - lpProp2->Value.i;
+		nCompareResult = twcmp(lpProp1->Value.i, lpProp2->Value.i);
 		break;
 	case PT_LONG:
 		if(lpProp1->Value.ul == lpProp2->Value.ul)
@@ -482,7 +489,7 @@ ECRESULT CompareProp(const struct propVal *lpProp1,
 			nCompareResult = 1;
 		break;
 	case PT_BOOLEAN:
-		nCompareResult = lpProp1->Value.b - lpProp2->Value.b;
+		nCompareResult = twcmp(lpProp1->Value.b, lpProp2->Value.b);
 		break;
 	case PT_DOUBLE:
 	case PT_APPTIME:
@@ -518,7 +525,7 @@ ECRESULT CompareProp(const struct propVal *lpProp1,
 		else if(lpProp1->Value.hilo->hi == lpProp2->Value.hilo->hi && lpProp1->Value.hilo->lo > lpProp2->Value.hilo->lo)
 			nCompareResult = 1;
 		else
-			nCompareResult = lpProp1->Value.hilo->hi - lpProp2->Value.hilo->hi;
+			nCompareResult = twcmp(lpProp1->Value.hilo->hi, lpProp2->Value.hilo->hi);
 		break;
 	case PT_BINARY:
 	case PT_CLSID:
@@ -527,18 +534,18 @@ ECRESULT CompareProp(const struct propVal *lpProp1,
 			lpProp1->Value.bin->__size == lpProp2->Value.bin->__size)
 			nCompareResult = memcmp(lpProp1->Value.bin->__ptr, lpProp2->Value.bin->__ptr, lpProp1->Value.bin->__size);
 		else
-			nCompareResult = lpProp1->Value.bin->__size - lpProp2->Value.bin->__size;
+			nCompareResult = twcmp(lpProp1->Value.bin->__size, lpProp2->Value.bin->__size);
 		break;
 
 	case PT_MV_I2:
 		if (lpProp1->Value.mvi.__size == lpProp2->Value.mvi.__size) {
 			for (i = 0; i < lpProp1->Value.mvi.__size; ++i) {
-				nCompareResult = lpProp1->Value.mvi.__ptr[i] - lpProp2->Value.mvi.__ptr[i];
+				nCompareResult = twcmp(lpProp1->Value.mvi.__ptr[i], lpProp2->Value.mvi.__ptr[i]);
 				if(nCompareResult != 0)
 					break;
 			}
 		} else
-			nCompareResult = lpProp1->Value.mvi.__size - lpProp2->Value.mvi.__size;
+			nCompareResult = twcmp(lpProp1->Value.mvi.__size, lpProp2->Value.mvi.__size);
 		break;
 	case PT_MV_LONG:
 		if (lpProp1->Value.mvl.__size == lpProp2->Value.mvl.__size) {
@@ -554,7 +561,7 @@ ECRESULT CompareProp(const struct propVal *lpProp1,
 					break;
 			}
 		} else
-			nCompareResult = lpProp1->Value.mvl.__size - lpProp2->Value.mvl.__size;
+			nCompareResult = twcmp(lpProp1->Value.mvl.__size, lpProp2->Value.mvl.__size);
 		break;
 	case PT_MV_R4:
 		if (lpProp1->Value.mvflt.__size == lpProp2->Value.mvflt.__size) {
@@ -570,7 +577,7 @@ ECRESULT CompareProp(const struct propVal *lpProp1,
 					break;
 			}
 		} else
-			nCompareResult = lpProp1->Value.mvflt.__size - lpProp2->Value.mvflt.__size;
+			nCompareResult = twcmp(lpProp1->Value.mvflt.__size, lpProp2->Value.mvflt.__size);
 		break;
 	case PT_MV_DOUBLE:
 	case PT_MV_APPTIME:
@@ -587,7 +594,7 @@ ECRESULT CompareProp(const struct propVal *lpProp1,
 					break;
 			}
 		} else
-			nCompareResult = lpProp1->Value.mvdbl.__size - lpProp2->Value.mvdbl.__size;
+			nCompareResult = twcmp(lpProp1->Value.mvdbl.__size, lpProp2->Value.mvdbl.__size);
 		break;
 	case PT_MV_I8:
 		if (lpProp1->Value.mvli.__size == lpProp2->Value.mvli.__size) {
@@ -602,7 +609,7 @@ ECRESULT CompareProp(const struct propVal *lpProp1,
 					break;
 			}
 		} else
-			nCompareResult = lpProp1->Value.mvli.__size - lpProp2->Value.mvli.__size;
+			nCompareResult = twcmp(lpProp1->Value.mvli.__size, lpProp2->Value.mvli.__size);
 		break;
 	case PT_MV_SYSTIME:
 	case PT_MV_CURRENCY:
@@ -613,7 +620,7 @@ ECRESULT CompareProp(const struct propVal *lpProp1,
 				else if(lpProp1->Value.mvhilo.__ptr[i].hi == lpProp2->Value.mvhilo.__ptr[i].hi && lpProp1->Value.mvhilo.__ptr[i].lo > lpProp2->Value.mvhilo.__ptr[i].lo)
 					nCompareResult = 1;
 				else
-					nCompareResult = lpProp1->Value.mvhilo.__ptr[i].hi - lpProp2->Value.mvhilo.__ptr[i].hi;
+					nCompareResult = twcmp(lpProp1->Value.mvhilo.__ptr[i].hi, lpProp2->Value.mvhilo.__ptr[i].hi);
 
 				if(nCompareResult != 0)
 					break;
@@ -627,16 +634,16 @@ ECRESULT CompareProp(const struct propVal *lpProp1,
 			for (i = 0; i < lpProp1->Value.mvbin.__size; ++i) {
 				if(lpProp1->Value.mvbin.__ptr[i].__ptr && lpProp2->Value.mvbin.__ptr[i].__ptr &&
 				   lpProp1->Value.mvbin.__ptr[i].__size && lpProp2->Value.mvbin.__ptr[i].__size &&
-				   lpProp1->Value.mvbin.__ptr[i].__size - lpProp2->Value.mvbin.__ptr[i].__size == 0)
+				   lpProp1->Value.mvbin.__ptr[i].__size == lpProp2->Value.mvbin.__ptr[i].__size)
 					nCompareResult = memcmp(lpProp1->Value.mvbin.__ptr[i].__ptr, lpProp2->Value.mvbin.__ptr[i].__ptr, lpProp1->Value.mvbin.__ptr[i].__size);
 				else
-					nCompareResult = lpProp1->Value.mvbin.__ptr[i].__size - lpProp2->Value.mvbin.__ptr[i].__size;
+					nCompareResult = twcmp(lpProp1->Value.mvbin.__ptr[i].__size, lpProp2->Value.mvbin.__ptr[i].__size);
 
 				if(nCompareResult != 0)
 					break;
 			}
 		} else
-			nCompareResult = lpProp1->Value.mvbin.__size - lpProp2->Value.mvbin.__size;
+			nCompareResult = twcmp(lpProp1->Value.mvbin.__size, lpProp2->Value.mvbin.__size);
 		break;
 	case PT_MV_STRING8:
 	case PT_MV_UNICODE:
@@ -651,7 +658,7 @@ ECRESULT CompareProp(const struct propVal *lpProp1,
 					break;
 			}
 		} else
-			nCompareResult = lpProp1->Value.mvszA.__size - lpProp2->Value.mvszA.__size;
+			nCompareResult = twcmp(lpProp1->Value.mvszA.__size, lpProp2->Value.mvszA.__size);
 		break;
 	default:
 		return KCERR_INVALID_PARAMETER;
