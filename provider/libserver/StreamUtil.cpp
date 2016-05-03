@@ -633,29 +633,29 @@ ECRESULT SerializePropVal(LPCSTREAMCAPS lpStreamCaps, const struct propVal &sPro
 		break;
 	case PT_MV_I2:
 		er = lpSink->Write(&sPropVal.Value.mvi.__size, sizeof(sPropVal.Value.mvi.__size), 1);
-		for (int x = 0; er == erSuccess && x < sPropVal.Value.mvi.__size; ++x)
+		for (gsoap_size_t x = 0; er == erSuccess && x < sPropVal.Value.mvi.__size; ++x)
 			er = lpSink->Write(&sPropVal.Value.mvi.__ptr[x], sizeof(sPropVal.Value.mvi.__ptr[x]), 1);
 		break;
 	case PT_MV_LONG:
 		er = lpSink->Write(&sPropVal.Value.mvl.__size, sizeof(sPropVal.Value.mvl.__size), 1);
-		for (int x = 0; er == erSuccess && x < sPropVal.Value.mvl.__size; ++x)
+		for (gsoap_size_t x = 0; er == erSuccess && x < sPropVal.Value.mvl.__size; ++x)
 			er = lpSink->Write(&sPropVal.Value.mvl.__ptr[x], sizeof(sPropVal.Value.mvl.__ptr[x]), 1);
 		break;
 	case PT_MV_R4:
 		er = lpSink->Write(&sPropVal.Value.mvflt.__size, sizeof(sPropVal.Value.mvflt.__size), 1);
-		for (int x = 0; er == erSuccess && x < sPropVal.Value.mvflt.__size; ++x)
+		for (gsoap_size_t x = 0; er == erSuccess && x < sPropVal.Value.mvflt.__size; ++x)
 			er = lpSink->Write(&sPropVal.Value.mvflt.__ptr[x], sizeof(sPropVal.Value.mvflt.__ptr[x]), 1);
 		break;
 	case PT_MV_DOUBLE:
 	case PT_MV_APPTIME:
 		er = lpSink->Write(&sPropVal.Value.mvdbl.__size, sizeof(sPropVal.Value.mvdbl.__size), 1);
-		for (int x = 0; er == erSuccess && x < sPropVal.Value.mvdbl.__size; ++x)
+		for (gsoap_size_t x = 0; er == erSuccess && x < sPropVal.Value.mvdbl.__size; ++x)
 			er = lpSink->Write(&sPropVal.Value.mvdbl.__ptr[x], sizeof(sPropVal.Value.mvdbl.__ptr[x]), 1);
 		break;
 	case PT_MV_CURRENCY:
 	case PT_MV_SYSTIME:
 		er = lpSink->Write(&sPropVal.Value.mvhilo.__size, sizeof(sPropVal.Value.mvhilo.__size), 1);
-		for (int x = 0; er == erSuccess && x < sPropVal.Value.mvhilo.__size; ++x) {
+		for (gsoap_size_t x = 0; er == erSuccess && x < sPropVal.Value.mvhilo.__size; ++x) {
 			er = lpSink->Write(&sPropVal.Value.mvhilo.__ptr[x].hi, sizeof(sPropVal.Value.mvhilo.__ptr[x].hi), 1);
 			if (er == erSuccess)
 				er = lpSink->Write(&sPropVal.Value.mvhilo.__ptr[x].lo, sizeof(sPropVal.Value.mvhilo.__ptr[x].lo), 1);
@@ -664,7 +664,7 @@ ECRESULT SerializePropVal(LPCSTREAMCAPS lpStreamCaps, const struct propVal &sPro
 	case PT_MV_BINARY:
 	case PT_MV_CLSID:
 		er = lpSink->Write(&sPropVal.Value.mvbin.__size, sizeof(sPropVal.Value.mvbin.__size), 1);
-		for (int x = 0; er == erSuccess && x < sPropVal.Value.mvbin.__size; ++x) {
+		for (gsoap_size_t x = 0; er == erSuccess && x < sPropVal.Value.mvbin.__size; ++x) {
 			er = lpSink->Write(&sPropVal.Value.mvbin.__ptr[x].__size, sizeof(sPropVal.Value.mvbin.__ptr[x].__size), 1);
 			if (er == erSuccess)
 				er = lpSink->Write(sPropVal.Value.mvbin.__ptr[x].__ptr, 1, sPropVal.Value.mvbin.__ptr[x].__size);
@@ -673,7 +673,7 @@ ECRESULT SerializePropVal(LPCSTREAMCAPS lpStreamCaps, const struct propVal &sPro
 	case PT_MV_STRING8:
 	case PT_MV_UNICODE:
 		er = lpSink->Write(&sPropVal.Value.mvszA.__size, sizeof(sPropVal.Value.mvszA.__size), 1);
-		for (int x = 0; er == erSuccess && x < sPropVal.Value.mvszA.__size; ++x) {
+		for (gsoap_size_t x = 0; er == erSuccess && x < sPropVal.Value.mvszA.__size; ++x) {
 			if (lpStreamCaps->bSupportUnicode) {
 				ulLen = (unsigned)strlen(sPropVal.Value.mvszA.__ptr[x]);
 				er = lpSink->Write(&ulLen, sizeof(ulLen), 1);
@@ -690,7 +690,7 @@ ECRESULT SerializePropVal(LPCSTREAMCAPS lpStreamCaps, const struct propVal &sPro
 		break;
 	case PT_MV_I8:
 		er = lpSink->Write(&sPropVal.Value.mvli.__size, sizeof(sPropVal.Value.mvli.__size), 1);
-		for (int x = 0; er == erSuccess && x < sPropVal.Value.mvli.__size; ++x)
+		for (gsoap_size_t x = 0; er == erSuccess && x < sPropVal.Value.mvli.__size; ++x)
 			er = lpSink->Write(&sPropVal.Value.mvli.__ptr[x], sizeof(sPropVal.Value.mvli.__ptr[x]), 1);
 		break;
 
@@ -1118,7 +1118,7 @@ static ECRESULT DeserializePropVal(struct soap *soap,
     propVal **lppsPropval, ECSerializer *lpSource)
 {
 	ECRESULT		er = erSuccess;
-	unsigned int	ulCount;
+	gsoap_size_t ulCount;
 	unsigned int	ulLen;
 	propVal			*lpsPropval = NULL;
 	unsigned char	b;
@@ -1245,7 +1245,7 @@ static ECRESULT DeserializePropVal(struct soap *soap,
 		if (er == erSuccess) {
 			lpsPropval->Value.mvhilo.__size = ulCount;
 			lpsPropval->Value.mvhilo.__ptr = s_alloc<hiloLong>(soap, ulCount);
-			for (unsigned int x = 0; er == erSuccess && x < ulCount; ++x) {
+			for (gsoap_size_t x = 0; er == erSuccess && x < ulCount; ++x) {
 				er = lpSource->Read(&lpsPropval->Value.mvhilo.__ptr[x].hi, sizeof(lpsPropval->Value.mvhilo.__ptr[x].hi), ulCount);
 				if (er == erSuccess)
 					er = lpSource->Read(&lpsPropval->Value.mvhilo.__ptr[x].lo, sizeof(lpsPropval->Value.mvhilo.__ptr[x].lo), ulCount);
@@ -1259,7 +1259,7 @@ static ECRESULT DeserializePropVal(struct soap *soap,
 		if (er == erSuccess) {
 			lpsPropval->Value.mvbin.__size = ulCount;
 			lpsPropval->Value.mvbin.__ptr = s_alloc<xsd__base64Binary>(soap, ulCount);
-			for (unsigned int x = 0; er == erSuccess && x < ulCount; ++x) {
+			for (gsoap_size_t x = 0; er == erSuccess && x < ulCount; ++x) {
 				er = lpSource->Read(&ulLen, sizeof(ulLen), 1);
 				if (er == erSuccess) {
 					lpsPropval->Value.mvbin.__ptr[x].__size = ulLen;
@@ -1276,7 +1276,7 @@ static ECRESULT DeserializePropVal(struct soap *soap,
 		if (er == erSuccess) {
 			lpsPropval->Value.mvszA.__size = ulCount;
 			lpsPropval->Value.mvszA.__ptr = s_alloc<char*>(soap, ulCount);
-			for (unsigned int x = 0; er == erSuccess && x < ulCount; ++x) {
+			for (gsoap_size_t x = 0; er == erSuccess && x < ulCount; ++x) {
 				er = lpSource->Read(&ulLen, sizeof(ulLen), 1);
 				if (er == erSuccess) {
 					if (lpStreamCaps->bSupportUnicode) {
@@ -1345,7 +1345,7 @@ ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtta
 	unsigned int	ulParentId = 0;
 	unsigned int	ulOwner = 0;
 	unsigned int	ulParentType = 0;
-	unsigned int	nMVItems = 0;
+	gsoap_size_t nMVItems = 0;
 	unsigned int	ulAffected = 0;
 	unsigned int	ulLen = 0;
 	propVal			*lpsPropval = NULL;
@@ -1468,7 +1468,7 @@ ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtta
 
 		if ((PROP_TYPE(lpsPropval->ulPropTag) & MV_FLAG) == MV_FLAG) {
 			nMVItems = GetMVItemCount(lpsPropval);
-			for (unsigned j = 0; j < nMVItems; ++j) {
+			for (gsoap_size_t j = 0; j < nMVItems; ++j) {
 				er = CopySOAPPropValToDatabaseMVPropVal(lpsPropval, j, strColName, strColData, lpDatabase);
 				if (er != erSuccess) {
 					er = erSuccess;

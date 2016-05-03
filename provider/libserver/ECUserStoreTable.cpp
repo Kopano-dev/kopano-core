@@ -59,7 +59,7 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis, struct soa
 	ECUserStoreTable *pThis = dynamic_cast<ECUserStoreTable*>(lpThis);
 	struct rowSet *lpsRowSet = NULL;
 	ECObjectTableList::const_iterator iterRowList;
-	int i, k;
+	gsoap_size_t i;
 	GUID sZeroGuid = {0};
 
 	if (!lpThis) {
@@ -90,7 +90,7 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis, struct soa
 
 	for (i = 0, iterRowList = lpRowList->begin();
 	     iterRowList != lpRowList->end(); ++iterRowList, ++i) {
-		for (k = 0; k < lpsPropTagArray->__size; ++k) {
+		for (gsoap_size_t k = 0; k < lpsPropTagArray->__size; ++k) {
 			lpsRowSet->__ptr[i].__ptr[k].ulPropTag = PROP_TAG(PT_ERROR, lpsPropTagArray->__ptr[k]);
 			lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_ul;
 			lpsRowSet->__ptr[i].__ptr[k].Value.ul = KCERR_NOT_FOUND;

@@ -939,7 +939,7 @@ ECRESULT ECGenProps::GetStoreName(struct soap *soap, ECSession* lpSession, unsig
 
         strFormat = string(lpSession->GetSessionManager()->GetConfig()->GetSetting("storename_format"));
 
-        for (int i = 0; i < sPropValArray.__size; ++i) {
+        for (gsoap_size_t i = 0; i < sPropValArray.__size; ++i) {
             string sub;
             size_t pos = 0;
 

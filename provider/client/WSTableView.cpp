@@ -183,7 +183,6 @@ HRESULT WSTableView::HrQueryColumns(ULONG ulFlags, LPSPropTagArray *lppsPropTags
 	HRESULT hr = hrSuccess;
 	struct tableQueryColumnsResponse sResponse;
 	LPSPropTagArray lpsPropTags = NULL;
-	int i = 0;
 	
 	LockSoap();
 
@@ -204,8 +203,7 @@ HRESULT WSTableView::HrQueryColumns(ULONG ulFlags, LPSPropTagArray *lppsPropTags
 
 	if(hr != hrSuccess)
 		goto exit;
-
-	for (i = 0; i < sResponse.sPropTagArray.__size; ++i)
+	for (gsoap_size_t i = 0; i < sResponse.sPropTagArray.__size; ++i)
 		lpsPropTags->aulPropTag[i] = sResponse.sPropTagArray.__ptr[i];
 
 	lpsPropTags->cValues = sResponse.sPropTagArray.__size;

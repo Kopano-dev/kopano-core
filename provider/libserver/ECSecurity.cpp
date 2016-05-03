@@ -241,7 +241,6 @@ exit:
 ECRESULT ECSecurity::GetObjectPermission(unsigned int ulObjId, unsigned int* lpulRights)
 {
 	ECRESULT		er = erSuccess;
-	unsigned int	i = 0;
 	std::list<localobjectdetails_t>::const_iterator iterGroups;
 	struct rightsArray *lpRights = NULL;
 	unsigned		ulCurObj = ulObjId;
@@ -259,14 +258,14 @@ ECRESULT ECSecurity::GetObjectPermission(unsigned int ulObjId, unsigned int* lpu
 		if(m_lpSession->GetSessionManager()->GetCacheManager()->GetACLs(ulCurObj, &lpRights) == erSuccess) {
 			// This object has ACL's, check if any of them are for this user
 
-			for (i = 0; i < lpRights->__size; ++i)
+			for (gsoap_size_t i = 0; i < lpRights->__size; ++i)
 				if(lpRights->__ptr[i].ulType == ACCESS_TYPE_GRANT && lpRights->__ptr[i].ulUserid == m_ulUserID) {
 					*lpulRights |= lpRights->__ptr[i].ulRights;
 					bFoundACL = true;
 				}
 
 			// Check for the company we are in and add the permissions
-			for (i = 0; i < lpRights->__size; ++i)
+			for (gsoap_size_t i = 0; i < lpRights->__size; ++i)
 				if (lpRights->__ptr[i].ulType == ACCESS_TYPE_GRANT && lpRights->__ptr[i].ulUserid == m_ulCompanyID) {
 					*lpulRights |= lpRights->__ptr[i].ulRights;
 					bFoundACL = true;
@@ -275,7 +274,7 @@ ECRESULT ECSecurity::GetObjectPermission(unsigned int ulObjId, unsigned int* lpu
 			// Also check for groups that we are in, and add those permissions
 			if(m_lpGroups || GetGroupsForUser(m_ulUserID, &m_lpGroups) == erSuccess)
 				for (iterGroups = m_lpGroups->begin(); iterGroups != m_lpGroups->end(); ++iterGroups)
-					for (i = 0; i < lpRights->__size; ++i)
+					for (gsoap_size_t i = 0; i < lpRights->__size; ++i)
 						if(lpRights->__ptr[i].ulType == ACCESS_TYPE_GRANT && lpRights->__ptr[i].ulUserid == iterGroups->ulId) {
 							*lpulRights |= lpRights->__ptr[i].ulRights;
 							bFoundACL = true;
@@ -709,7 +708,6 @@ exit:
 ECRESULT ECSecurity::SetRights(unsigned int objid, struct rightsArray *lpsRightsArray)
 {
 	ECRESULT			er = erSuccess;
-	unsigned int		i;
 	std::string			strQueryNew, strQueryDeniedNew;
 	std::string			strQueryModify, strQueryDeniedModify;
 	std::string			strQueryDelete, strQueryDeniedDelete;
@@ -732,7 +730,7 @@ ECRESULT ECSecurity::SetRights(unsigned int objid, struct rightsArray *lpsRights
 	// Invalidate cache for this object
 	m_lpSession->GetSessionManager()->GetCacheManager()->Update(fnevObjectModified, objid);
 
-	for (i = 0; i< lpsRightsArray->__size; ++i) {
+	for (gsoap_size_t i = 0; i < lpsRightsArray->__size; ++i) {
 		// FIXME: check for each object if it belongs to the store we're logged into (except for admin)
 
 		// Get the correct local id

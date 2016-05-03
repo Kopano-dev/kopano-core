@@ -218,10 +218,10 @@ exit:
 	return er;
 }
 
-ULONG GetMVItemCount(struct propVal *lpPropVal)
+gsoap_size_t GetMVItemCount(struct propVal *lpPropVal)
 {
 	ULONG type = PROP_TYPE(lpPropVal->ulPropTag);
-	ULONG ulSize = 0;
+	gsoap_size_t ulSize = 0;
 
 	switch(type) {
 		case PT_MV_I2:
@@ -528,7 +528,6 @@ std::string GetPropColOrder(unsigned int ulPropTag,
 ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LENGTHS lpLen, propVal *lpPropVal)
 {
 	ECRESULT er = erSuccess;
-	int i;
 	unsigned int ulLastPos;
 	std::string	strData;
 	unsigned int type = atoi(lpRow[FIELD_NR_TYPE]);
@@ -663,7 +662,7 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 		lpPropVal->Value.mvi.__size = atoi(lpRow[FIELD_NR_ID]);
 		lpPropVal->Value.mvi.__ptr = s_alloc<short int>(soap, lpPropVal->Value.mvi.__size);
 		ulLastPos = 0;
-		for (i = 0; i < lpPropVal->Value.mvi.__size; ++i) {
+		for (gsoap_size_t i = 0; i < lpPropVal->Value.mvi.__size; ++i) {
 			ParseMVProp(lpRow[FIELD_NR_ULONG], lpLen[FIELD_NR_ULONG], &ulLastPos, &strData);
 			lpPropVal->Value.mvi.__ptr[i] = (short)atoui((char *)strData.c_str());
 		}
@@ -678,7 +677,7 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 		lpPropVal->Value.mvl.__size = atoi(lpRow[FIELD_NR_ID]);
 		lpPropVal->Value.mvl.__ptr = s_alloc<unsigned int>(soap, lpPropVal->Value.mvl.__size);
 		ulLastPos = 0;
-		for (i = 0; i < lpPropVal->Value.mvl.__size; ++i) {
+		for (gsoap_size_t i = 0; i < lpPropVal->Value.mvl.__size; ++i) {
 			ParseMVProp(lpRow[FIELD_NR_ULONG], lpLen[FIELD_NR_ULONG], &ulLastPos, &strData);
 			lpPropVal->Value.mvl.__ptr[i] = atoui((char*)strData.c_str());
 		}
@@ -693,7 +692,7 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 		lpPropVal->Value.mvflt.__size = atoi(lpRow[FIELD_NR_ID]);
 		lpPropVal->Value.mvflt.__ptr = s_alloc<float>(soap, lpPropVal->Value.mvflt.__size);
 		ulLastPos = 0;
-		for (i = 0; i < lpPropVal->Value.mvflt.__size; ++i) {
+		for (gsoap_size_t i = 0; i < lpPropVal->Value.mvflt.__size; ++i) {
 			ParseMVProp(lpRow[FIELD_NR_DOUBLE], lpLen[FIELD_NR_DOUBLE], &ulLastPos, &strData);
 			lpPropVal->Value.mvflt.__ptr[i] = (float)strtod_l(strData.c_str(), NULL, loc);
 		}
@@ -709,7 +708,7 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 		lpPropVal->Value.mvdbl.__size = atoi(lpRow[FIELD_NR_ID]);
 		lpPropVal->Value.mvdbl.__ptr = s_alloc<double>(soap, lpPropVal->Value.mvdbl.__size);
 		ulLastPos = 0;
-		for (i = 0; i < lpPropVal->Value.mvdbl.__size; ++i) {
+		for (gsoap_size_t i = 0; i < lpPropVal->Value.mvdbl.__size; ++i) {
 			ParseMVProp(lpRow[FIELD_NR_DOUBLE], lpLen[FIELD_NR_DOUBLE], &ulLastPos, &strData);
 			lpPropVal->Value.mvdbl.__ptr[i] = strtod_l(strData.c_str(), NULL, loc);
 		}
@@ -725,13 +724,13 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 		lpPropVal->Value.mvhilo.__ptr = s_alloc<hiloLong>(soap, lpPropVal->Value.mvhilo.__size);
 		//Scan low
 		ulLastPos = 0;
-		for (i = 0; i < lpPropVal->Value.mvhilo.__size; ++i) {
+		for (gsoap_size_t i = 0; i < lpPropVal->Value.mvhilo.__size; ++i) {
 			ParseMVProp(lpRow[FIELD_NR_LO], lpLen[FIELD_NR_LO], &ulLastPos, &strData);
 			lpPropVal->Value.mvhilo.__ptr[i].lo = atoui((char*)strData.c_str());
 		}
 		//Scan high
 		ulLastPos = 0;
-		for (i = 0; i < lpPropVal->Value.mvhilo.__size; ++i) {
+		for (gsoap_size_t i = 0; i < lpPropVal->Value.mvhilo.__size; ++i) {
 			ParseMVProp(lpRow[FIELD_NR_HI], lpLen[FIELD_NR_HI], &ulLastPos, &strData);
 			lpPropVal->Value.mvhilo.__ptr[i].hi = atoi((char*)strData.c_str());
 		}
@@ -746,7 +745,7 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 		lpPropVal->Value.mvbin.__size = atoi(lpRow[FIELD_NR_ID]);
 		lpPropVal->Value.mvbin.__ptr = s_alloc<struct xsd__base64Binary>(soap, lpPropVal->Value.mvbin.__size);
 		ulLastPos = 0;
-		for (i = 0; i < lpPropVal->Value.mvbin.__size; ++i) {
+		for (gsoap_size_t i = 0; i < lpPropVal->Value.mvbin.__size; ++i) {
 			ParseMVProp(lpRow[FIELD_NR_BINARY], lpLen[FIELD_NR_BINARY], &ulLastPos, &strData);
 			lpPropVal->Value.mvbin.__ptr[i].__size = strData.size();
 			lpPropVal->Value.mvbin.__ptr[i].__ptr = s_alloc<unsigned char>(soap, lpPropVal->Value.mvbin.__ptr[i].__size);
@@ -763,7 +762,7 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 		lpPropVal->Value.mvszA.__size = atoi(lpRow[FIELD_NR_ID]);
 		lpPropVal->Value.mvszA.__ptr = s_alloc<char *>(soap, lpPropVal->Value.mvszA.__size);
 		ulLastPos = 0;
-		for (i = 0; i < lpPropVal->Value.mvszA.__size; ++i) {
+		for (gsoap_size_t i = 0; i < lpPropVal->Value.mvszA.__size; ++i) {
 			ParseMVProp(lpRow[FIELD_NR_STRING], lpLen[FIELD_NR_STRING], &ulLastPos, &strData);
 			lpPropVal->Value.mvszA.__ptr[i] = s_alloc<char>(soap, strData.size() + 1);
 			memcpy(lpPropVal->Value.mvszA.__ptr[i], strData.c_str(), strData.size() + 1);
@@ -780,7 +779,7 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 		lpPropVal->Value.mvli.__size = atoi(lpRow[FIELD_NR_ID]);
 		lpPropVal->Value.mvli.__ptr = s_alloc<LONG64>(soap, lpPropVal->Value.mvli.__size);
 		ulLastPos = 0;
-		for (i = 0; i < lpPropVal->Value.mvli.__size; ++i) {
+		for (gsoap_size_t i = 0; i < lpPropVal->Value.mvli.__size; ++i) {
 			ParseMVProp(lpRow[FIELD_NR_LONGINT], lpLen[FIELD_NR_LONGINT], &ulLastPos, &strData);
 			lpPropVal->Value.mvli.__ptr[i] = _atoi64(strData.c_str());
 		}

@@ -688,7 +688,7 @@ int ns__setClientUpdateStatus(struct soap *soap, struct clientUpdateStatusReques
 
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Client update: trackid: 0x%08X, Log files saved in '%s'", sClientUpdateStatus.ulTrackId, strFilePath.c_str());
 
-		int ulFile = 0;
+		gsoap_size_t ulFile = 0;
 		while (true) {
 
 			if (ulFile >= sClientUpdateStatus.sFiles.__size)

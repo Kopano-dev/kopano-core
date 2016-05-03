@@ -1106,7 +1106,7 @@ ECRESULT ECGetContentChangesHelper::MatchRestrictions(const std::vector<DB_ROW> 
 		goto exit;
 	}
 
-	for (int j = 0; j < lpRowSet->__size; ++j) {
+	for (gsoap_size_t j = 0; j < lpRowSet->__size; ++j) {
 		// @todo: Get a proper locale for the case insensitive comparisons inside MatchRowRestrict
 		er = ECGenericObjectTable::MatchRowRestrict(g_lpSessionManager->GetCacheManager(), &lpRowSet->__ptr[j], restrict, NULL, createLocaleFromName(""), &fMatch);
 		if(er != erSuccess)

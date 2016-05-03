@@ -441,7 +441,7 @@ void* ECNotifyMaster::NotifyWatch(void *pTmpNotifyMaster)
 		 * Loop through all notifications and sort them by connection number
 		 * with these mappings we can later send all notifications per connection to the appropriate client.
 		 */
-		for (ULONG item = 0; item < pNotifyArray->__size; ++item) {
+		for (gsoap_size_t item = 0; item < pNotifyArray->__size; ++item) {
 			ULONG ulConnection = pNotifyArray->__ptr[item].ulConnection;
 
 			// No need to do a find before an insert with a default object.

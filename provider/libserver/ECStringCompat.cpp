@@ -118,12 +118,12 @@ ECRESULT FixPropEncoding(struct soap *soap, const ECStringCompat &stringCompat, 
 		}
 	} else if (PROP_TYPE(lpProp->ulPropTag) == PT_MV_STRING8 || PROP_TYPE(lpProp->ulPropTag) == PT_MV_UNICODE) {
 		if (type == In) {
-			for (int i = 0; i < lpProp->Value.mvszA.__size; ++i)
+			for (gsoap_size_t i = 0; i < lpProp->Value.mvszA.__size; ++i)
 				lpProp->Value.mvszA.__ptr[i] = stringCompat.to_UTF8(soap, lpProp->Value.mvszA.__ptr[i]);
 			if (!bNoTagUpdate)
 				lpProp->ulPropTag = CHANGE_PROP_TYPE(lpProp->ulPropTag, PT_MV_UNICODE);
 		} else {
-			for (int i = 0; i < lpProp->Value.mvszA.__size; ++i)
+			for (gsoap_size_t i = 0; i < lpProp->Value.mvszA.__size; ++i)
 				lpProp->Value.mvszA.__ptr[i] = stringCompat.from_UTF8(soap, lpProp->Value.mvszA.__ptr[i]);
 			if (!bNoTagUpdate)
 				lpProp->ulPropTag = CHANGE_PROP_TYPE(lpProp->ulPropTag, stringCompat.string_prop_type() | MV_FLAG);
@@ -142,13 +142,13 @@ ECRESULT FixRestrictionEncoding(struct soap *soap, const ECStringCompat &stringC
 
 	switch (lpRestrict->ulType) {
 	case RES_AND:
-		for (ULONG i = 0; er == erSuccess && i < lpRestrict->lpAnd->__size; ++i)
+		for (gsoap_size_t i = 0; er == erSuccess && i < lpRestrict->lpAnd->__size; ++i)
 			er = FixRestrictionEncoding(soap, stringCompat, type, lpRestrict->lpAnd->__ptr[i]);
 		break;
 	case RES_BITMASK:
 		break;
 	case RES_COMMENT:
-		for (int i = 0; er == erSuccess && i < lpRestrict->lpComment->sProps.__size; ++i)
+		for (gsoap_size_t i = 0; er == erSuccess && i < lpRestrict->lpComment->sProps.__size; ++i)
 			er = FixPropEncoding(soap, stringCompat, type, &lpRestrict->lpComment->sProps.__ptr[i]);
 		if (er == erSuccess)
 			er = FixRestrictionEncoding(soap, stringCompat, type, lpRestrict->lpComment->lpResTable);
@@ -164,7 +164,7 @@ ECRESULT FixRestrictionEncoding(struct soap *soap, const ECStringCompat &stringC
 		er = FixRestrictionEncoding(soap, stringCompat, type, lpRestrict->lpNot->lpNot);
 		break;
 	case RES_OR:
-		for (ULONG i = 0; er == erSuccess && i < lpRestrict->lpOr->__size; ++i)
+		for (gsoap_size_t i = 0; er == erSuccess && i < lpRestrict->lpOr->__size; ++i)
 			er = FixRestrictionEncoding(soap, stringCompat, type, lpRestrict->lpOr->__ptr[i]);
 		break;
 	case RES_PROPERTY:
@@ -186,12 +186,9 @@ ECRESULT FixRowSetEncoding(struct soap *soap, const ECStringCompat &stringCompat
 {
 	ECRESULT er = erSuccess;
 
-	for (int i = 0; er == erSuccess && i < lpRowSet->__size; ++i) {
-		for (int j = 0; er == erSuccess && j < lpRowSet->__ptr[i].__size; ++j) {
+	for (gsoap_size_t i = 0; er == erSuccess && i < lpRowSet->__size; ++i)
+		for (gsoap_size_t j = 0; er == erSuccess && j < lpRowSet->__ptr[i].__size; ++j)
 			er = FixPropEncoding(soap, stringCompat, type, &lpRowSet->__ptr[i].__ptr[j], true);
-		}
-	}
-
 	return er;
 }
 
@@ -207,12 +204,12 @@ ECRESULT FixUserEncoding(struct soap *soap, const ECStringCompat &stringCompat, 
 		lpUser->lpszUsername = stringCompat.to_UTF8(soap, lpUser->lpszUsername);
 
 		if (lpUser->lpsPropmap)
-			for (unsigned i = 0; er == erSuccess && i < lpUser->lpsPropmap->__size; ++i)
+			for (gsoap_size_t i = 0; er == erSuccess && i < lpUser->lpsPropmap->__size; ++i)
 				lpUser->lpsPropmap->__ptr[i].lpszValue = stringCompat.to_UTF8(soap, lpUser->lpsPropmap->__ptr[i].lpszValue);
 
 		if (lpUser->lpsMVPropmap)
-			for (unsigned i = 0; er == erSuccess && i < lpUser->lpsMVPropmap->__size; ++i)
-				for (int j = 0; er == erSuccess && j < lpUser->lpsMVPropmap->__ptr[i].sValues.__size; ++j)
+			for (gsoap_size_t i = 0; er == erSuccess && i < lpUser->lpsMVPropmap->__size; ++i)
+				for (gsoap_size_t j = 0; er == erSuccess && j < lpUser->lpsMVPropmap->__ptr[i].sValues.__size; ++j)
 					lpUser->lpsMVPropmap->__ptr[i].sValues.__ptr[j] = stringCompat.to_UTF8(soap, lpUser->lpsMVPropmap->__ptr[i].sValues.__ptr[j]);
 	} else {
 		lpUser->lpszFullName = stringCompat.from_UTF8_cpy(soap, lpUser->lpszFullName);
@@ -222,12 +219,12 @@ ECRESULT FixUserEncoding(struct soap *soap, const ECStringCompat &stringCompat, 
 		lpUser->lpszUsername = stringCompat.from_UTF8_cpy(soap, lpUser->lpszUsername);
 
 		if (lpUser->lpsPropmap)
-			for (unsigned i = 0; er == erSuccess && i < lpUser->lpsPropmap->__size; ++i)
+			for (gsoap_size_t i = 0; er == erSuccess && i < lpUser->lpsPropmap->__size; ++i)
 				lpUser->lpsPropmap->__ptr[i].lpszValue = stringCompat.from_UTF8_cpy(soap, lpUser->lpsPropmap->__ptr[i].lpszValue);
 
 		if (lpUser->lpsMVPropmap)
-			for (unsigned i = 0; er == erSuccess && i < lpUser->lpsMVPropmap->__size; ++i)
-				for (int j = 0; er == erSuccess && j < lpUser->lpsMVPropmap->__ptr[i].sValues.__size; ++j)
+			for (gsoap_size_t i = 0; er == erSuccess && i < lpUser->lpsMVPropmap->__size; ++i)
+				for (gsoap_size_t j = 0; er == erSuccess && j < lpUser->lpsMVPropmap->__ptr[i].sValues.__size; ++j)
 					lpUser->lpsMVPropmap->__ptr[i].sValues.__ptr[j] = stringCompat.from_UTF8_cpy(soap, lpUser->lpsMVPropmap->__ptr[i].sValues.__ptr[j]);
 	}
 
@@ -244,12 +241,12 @@ ECRESULT FixGroupEncoding(struct soap *soap, const ECStringCompat &stringCompat,
 		lpGroup->lpszGroupname = stringCompat.to_UTF8(soap, lpGroup->lpszGroupname);
 
 		if (lpGroup->lpsPropmap)
-			for (unsigned i = 0; er == erSuccess && i < lpGroup->lpsPropmap->__size; ++i)
+			for (gsoap_size_t i = 0; er == erSuccess && i < lpGroup->lpsPropmap->__size; ++i)
 				lpGroup->lpsPropmap->__ptr[i].lpszValue = stringCompat.to_UTF8(soap, lpGroup->lpsPropmap->__ptr[i].lpszValue);
 
 		if (lpGroup->lpsMVPropmap)
-			for (unsigned i = 0; er == erSuccess && i < lpGroup->lpsMVPropmap->__size; ++i)
-				for (int j = 0; er == erSuccess && j < lpGroup->lpsMVPropmap->__ptr[i].sValues.__size; ++j)
+			for (gsoap_size_t i = 0; er == erSuccess && i < lpGroup->lpsMVPropmap->__size; ++i)
+				for (gsoap_size_t j = 0; er == erSuccess && j < lpGroup->lpsMVPropmap->__ptr[i].sValues.__size; ++j)
 					lpGroup->lpsMVPropmap->__ptr[i].sValues.__ptr[j] = stringCompat.to_UTF8(soap, lpGroup->lpsMVPropmap->__ptr[i].sValues.__ptr[j]);
 	} else {
 		lpGroup->lpszFullname = stringCompat.from_UTF8_cpy(soap, lpGroup->lpszFullname);
@@ -257,12 +254,12 @@ ECRESULT FixGroupEncoding(struct soap *soap, const ECStringCompat &stringCompat,
 		lpGroup->lpszGroupname = stringCompat.from_UTF8_cpy(soap, lpGroup->lpszGroupname);
 
 		if (lpGroup->lpsPropmap)
-			for (unsigned i = 0; er == erSuccess && i < lpGroup->lpsPropmap->__size; ++i)
+			for (gsoap_size_t i = 0; er == erSuccess && i < lpGroup->lpsPropmap->__size; ++i)
 				lpGroup->lpsPropmap->__ptr[i].lpszValue = stringCompat.from_UTF8_cpy(soap, lpGroup->lpsPropmap->__ptr[i].lpszValue);
 
 		if (lpGroup->lpsMVPropmap)
-			for (unsigned i = 0; er == erSuccess && i < lpGroup->lpsMVPropmap->__size; ++i)
-				for (int j = 0; er == erSuccess && j < lpGroup->lpsMVPropmap->__ptr[i].sValues.__size; ++j)
+			for (gsoap_size_t i = 0; er == erSuccess && i < lpGroup->lpsMVPropmap->__size; ++i)
+				for (gsoap_size_t j = 0; er == erSuccess && j < lpGroup->lpsMVPropmap->__ptr[i].sValues.__size; ++j)
 					lpGroup->lpsMVPropmap->__ptr[i].sValues.__ptr[j] = stringCompat.from_UTF8_cpy(soap, lpGroup->lpsMVPropmap->__ptr[i].sValues.__ptr[j]);
 	}
 
@@ -278,24 +275,24 @@ ECRESULT FixCompanyEncoding(struct soap *soap, const ECStringCompat &stringCompa
 		lpCompany->lpszServername = stringCompat.to_UTF8(soap, lpCompany->lpszServername);
 
 		if (lpCompany->lpsPropmap)
-			for (unsigned i = 0; er == erSuccess && i < lpCompany->lpsPropmap->__size; ++i)
+			for (gsoap_size_t i = 0; er == erSuccess && i < lpCompany->lpsPropmap->__size; ++i)
 				lpCompany->lpsPropmap->__ptr[i].lpszValue = stringCompat.to_UTF8(soap, lpCompany->lpsPropmap->__ptr[i].lpszValue);
 
 		if (lpCompany->lpsMVPropmap)
-			for (unsigned i = 0; er == erSuccess && i < lpCompany->lpsMVPropmap->__size; ++i)
-				for (int j = 0; er == erSuccess && j < lpCompany->lpsMVPropmap->__ptr[i].sValues.__size; ++j)
+			for (gsoap_size_t i = 0; er == erSuccess && i < lpCompany->lpsMVPropmap->__size; ++i)
+				for (gsoap_size_t j = 0; er == erSuccess && j < lpCompany->lpsMVPropmap->__ptr[i].sValues.__size; ++j)
 					lpCompany->lpsMVPropmap->__ptr[i].sValues.__ptr[j] = stringCompat.to_UTF8(soap, lpCompany->lpsMVPropmap->__ptr[i].sValues.__ptr[j]);
 	} else {
 		lpCompany->lpszCompanyname = stringCompat.from_UTF8_cpy(soap, lpCompany->lpszCompanyname);
 		lpCompany->lpszServername = stringCompat.from_UTF8_cpy(soap, lpCompany->lpszServername);
 
 		if (lpCompany->lpsPropmap)
-			for (unsigned i = 0; er == erSuccess && i < lpCompany->lpsPropmap->__size; ++i)
+			for (gsoap_size_t i = 0; er == erSuccess && i < lpCompany->lpsPropmap->__size; ++i)
 				lpCompany->lpsPropmap->__ptr[i].lpszValue = stringCompat.from_UTF8_cpy(soap, lpCompany->lpsPropmap->__ptr[i].lpszValue);
 
 		if (lpCompany->lpsMVPropmap)
-			for (unsigned i = 0; er == erSuccess && i < lpCompany->lpsMVPropmap->__size; ++i)
-				for (int j = 0; er == erSuccess && j < lpCompany->lpsMVPropmap->__ptr[i].sValues.__size; ++j)
+			for (gsoap_size_t i = 0; er == erSuccess && i < lpCompany->lpsMVPropmap->__size; ++i)
+				for (gsoap_size_t j = 0; er == erSuccess && j < lpCompany->lpsMVPropmap->__ptr[i].sValues.__size; ++j)
 					lpCompany->lpsMVPropmap->__ptr[i].sValues.__ptr[j] = stringCompat.from_UTF8_cpy(soap, lpCompany->lpsMVPropmap->__ptr[i].sValues.__ptr[j]);
 	}
 
@@ -306,7 +303,7 @@ ECRESULT FixNotificationsEncoding(struct soap *soap, const ECStringCompat &strin
 {
 	ECRESULT er = erSuccess;
 
-	for (unsigned i = 0; i < notifications->__size; ++i) {
+	for (gsoap_size_t i = 0; i < notifications->__size; ++i) {
 		switch (notifications->__ptr[i].ulEventType) {
 			case fnevNewMail:
 				notifications->__ptr[i].newmail->lpszMessageClass = stringCompat.from_UTF8(soap, notifications->__ptr[i].newmail->lpszMessageClass);
@@ -314,7 +311,7 @@ ECRESULT FixNotificationsEncoding(struct soap *soap, const ECStringCompat &strin
 
 			case fnevTableModified:
 				if (notifications->__ptr[i].tab->pRow)
-					for (int j = 0; er == erSuccess && j < notifications->__ptr[i].tab->pRow->__size; ++j)
+					for (gsoap_size_t j = 0; er == erSuccess && j < notifications->__ptr[i].tab->pRow->__size; ++j)
 						er = FixPropEncoding(soap, stringCompat, Out, notifications->__ptr[i].tab->pRow->__ptr + j, true);
 				break;
 

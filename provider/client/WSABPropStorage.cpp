@@ -92,7 +92,6 @@ HRESULT WSABPropStorage::HrReadProps(LPSPropTagArray *lppPropTags,ULONG *cValues
 {
 	HRESULT			hr = hrSuccess;
 	ECRESULT		er = hrSuccess;
-	int				i;
 	convert_context	converter;
 
 	struct readPropsResponse sResponse;
@@ -116,8 +115,7 @@ HRESULT WSABPropStorage::HrReadProps(LPSPropTagArray *lppPropTags,ULONG *cValues
 		goto exit;
 
 	(*lppPropTags)->cValues = sResponse.aPropTag.__size;
-
-	for (i = 0; i < sResponse.aPropTag.__size; ++i)
+	for (gsoap_size_t i = 0; i < sResponse.aPropTag.__size; ++i)
 		(*lppPropTags)->aulPropTag[i] = sResponse.aPropTag.__ptr[i];
 
 	// Convert the property values to a MAPI propvalarray
@@ -132,7 +130,7 @@ HRESULT WSABPropStorage::HrReadProps(LPSPropTagArray *lppPropTags,ULONG *cValues
 			goto exit;
 	}
 
-	for (i = 0; i < sResponse.aPropVal.__size; ++i) {
+	for (gsoap_size_t i = 0; i < sResponse.aPropVal.__size; ++i) {
 		hr = CopySOAPPropValToMAPIPropVal(&(*ppValues)[i],&sResponse.aPropVal.__ptr[i], *ppValues, &converter);
 
 		if(hr != hrSuccess)
@@ -268,7 +266,6 @@ HRESULT WSABPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 {
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = hrSuccess;
-	int			i;
 	MAPIOBJECT  *mo = NULL;
 	LPSPropValue lpProp = NULL;
 	struct readPropsResponse sResponse;
@@ -292,10 +289,10 @@ HRESULT WSABPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 	
 	ECAllocateBuffer(sizeof(SPropValue) * sResponse.aPropVal.__size, (void **)&lpProp);
 
-	for (i = 0; i < sResponse.aPropTag.__size; ++i)
+	for (gsoap_size_t i = 0; i < sResponse.aPropTag.__size; ++i)
 		mo->lstAvailable->push_back(sResponse.aPropTag.__ptr[i]);
 
-	for (i = 0; i < sResponse.aPropVal.__size; ++i) {
+	for (gsoap_size_t i = 0; i < sResponse.aPropVal.__size; ++i) {
 		hr = CopySOAPPropValToMAPIPropVal(lpProp, &sResponse.aPropVal.__ptr[i], lpProp, &converter);
 		if (hr != hrSuccess)
 			goto exit;

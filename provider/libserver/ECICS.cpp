@@ -1223,7 +1223,7 @@ ECRESULT GetSyncStates(struct soap *soap, ECSession *lpSession, mv_long ulaSyncI
 		goto exit;
 
 	strQuery = "SELECT id,change_id FROM syncs WHERE id IN (" + stringify(ulaSyncId.__ptr[0]);
-	for (int i = 1; i < ulaSyncId.__size; ++i)
+	for (gsoap_size_t i = 1; i < ulaSyncId.__size; ++i)
 		strQuery += "," + stringify(ulaSyncId.__ptr[i]);
 	strQuery += ")";
 

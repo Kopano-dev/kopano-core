@@ -54,7 +54,7 @@ static BOOL NormalizeRestrictionIsFalse(const struct restrictTable *lpRestrict)
     if(lpRestrict->ulType != RES_AND)
         goto exit;
         
-    for (unsigned int i = 0; i < lpRestrict->lpAnd->__size; ++i) {
+    for (gsoap_size_t i = 0; i < lpRestrict->lpAnd->__size; ++i) {
         if (lpRestrict->lpAnd->__ptr[i]->ulType == RES_EXIST)
             setExist.insert(lpRestrict->lpAnd->__ptr[i]->lpExist->ulPropTag);
         else if (lpRestrict->lpAnd->__ptr[i]->ulType == RES_NOT) {
@@ -96,7 +96,7 @@ static ECRESULT NormalizeRestrictionNestedAnd(struct restrictTable *lpRestrict)
     if(lpRestrict->ulType != RES_AND)
         goto exit;
         
-    for (unsigned int i = 0; i < lpRestrict->lpAnd->__size; ++i) {
+    for (gsoap_size_t i = 0; i < lpRestrict->lpAnd->__size; ++i) {
         if(lpRestrict->lpAnd->__ptr[i]->ulType == RES_AND) {
             // First, flatten our subchild
             er = NormalizeRestrictionNestedAnd(lpRestrict->lpAnd->__ptr[i]);
@@ -104,7 +104,7 @@ static ECRESULT NormalizeRestrictionNestedAnd(struct restrictTable *lpRestrict)
                 goto exit;
 
             // Now, get all the clauses from the child AND-clause and push them to this AND-clause
-            for (unsigned j = 0; j < lpRestrict->lpAnd->__ptr[i]->lpAnd->__size; ++j)
+            for (gsoap_size_t j = 0; j < lpRestrict->lpAnd->__ptr[i]->lpAnd->__size; ++j)
                 lstClauses.push_back(lpRestrict->lpAnd->__ptr[i]->lpAnd->__ptr[j]);
 
             delete [] lpRestrict->lpAnd->__ptr[i]->lpAnd->__ptr;
@@ -164,7 +164,7 @@ static ECRESULT NormalizeGetMultiSearch(struct restrictTable *lpRestrict,
     sMultiSearch.setFields.clear();
     
     if(lpRestrict->ulType == RES_OR) {
-        for (unsigned int i = 0; i < lpRestrict->lpOr->__size; ++i) {
+        for (gsoap_size_t i = 0; i < lpRestrict->lpOr->__size; ++i) {
             SIndexedTerm terms;
             
             if(NormalizeRestrictionIsFalse(lpRestrict->lpOr->__ptr[i]))
@@ -255,7 +255,7 @@ static ECRESULT NormalizeRestrictionMultiFieldSearch(
     lpMultiSearches->clear();
     
     if (lpRestrict->ulType == RES_AND) {
-        for(unsigned int i = 0; i < lpRestrict->lpAnd->__size;) {
+        for (gsoap_size_t i = 0; i < lpRestrict->lpAnd->__size;) {
             if(NormalizeGetMultiSearch(lpRestrict->lpAnd->__ptr[i], setExcludeProps, sMultiSearch) == erSuccess) {
                 lpMultiSearches->push_back(sMultiSearch);
 

@@ -162,8 +162,7 @@ ECRESULT ECSystemStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis, s
 	ECSystemStatsTable *lpThis = (ECSystemStatsTable *)lpGenericThis;
 	ECObjectTableList::const_iterator iterRowList;
 	std::map<unsigned int, statstrings>::const_iterator iterSD;
-
-	int i, k;
+	gsoap_size_t i;
 
 	lpsRowSet = s_alloc<rowSet>(soap);
 	lpsRowSet->__size = 0;
@@ -190,7 +189,7 @@ ECRESULT ECSystemStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis, s
 	     iterRowList != lpRowList->end(); ++iterRowList, ++i)
 	{
 		iterSD = lpThis->m_mapStatData.find(iterRowList->ulObjId);
-		for (k = 0; k < lpsPropTagArray->__size; ++k) {
+		for (gsoap_size_t k = 0; k < lpsPropTagArray->__size; ++k) {
 			if (iterSD == lpThis->m_mapStatData.end())
 				continue;		// broken .. should never happen
 
@@ -339,7 +338,7 @@ ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis, 
 	struct rowSet *lpsRowSet = NULL;
 	ECObjectTableList::const_iterator iterRowList;
 	ECSessionStatsTable *lpThis = (ECSessionStatsTable *)lpGenericThis;
-	int i, j, k;
+	gsoap_size_t i;
 	std::string strTemp;
 	std::map<unsigned int, sessiondata>::const_iterator iterSD;
 	std::list<BUSYSTATE>::const_iterator iterBS;
@@ -369,7 +368,8 @@ ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis, 
 	     iterRowList != lpRowList->end(); ++iterRowList, ++i)
 	{
 		iterSD = lpThis->m_mapSessionData.find(iterRowList->ulObjId);
-		for (k = 0; k < lpsPropTagArray->__size; ++k) {
+		for (gsoap_size_t k = 0; k < lpsPropTagArray->__size; ++k) {
+			gsoap_size_t j;
 			// default is error prop
 			lpsRowSet->__ptr[i].__ptr[k].ulPropTag = PROP_TAG(PROP_TYPE(PT_ERROR), PROP_ID(lpsPropTagArray->__ptr[k]));
 			lpsRowSet->__ptr[i].__ptr[k].Value.ul = KCERR_NOT_FOUND;
@@ -613,7 +613,7 @@ exit:
 ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList *lpRowList, struct propTagArray *lpsPropTagArray, void *lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
 {
 	ECRESULT er = erSuccess;
-	int i, k;
+	gsoap_size_t i;
 	struct rowSet *lpsRowSet = NULL;
 	ECObjectTableList::const_iterator iterRowList;
 	ECUserManagement *lpUserManagement = lpSession->GetUserManagement();
@@ -669,7 +669,7 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct soa
 		if (lpSession->GetSecurity()->GetUserSize(iterRowList->ulObjId, &llStoreSize) != erSuccess)
 			llStoreSize = 0;
 
-		for (k = 0; k < lpsPropTagArray->__size; ++k) {
+		for (gsoap_size_t k = 0; k < lpsPropTagArray->__size; ++k) {
 			// default is error prop
 			lpsRowSet->__ptr[i].__ptr[k].ulPropTag = PROP_TAG(PROP_TYPE(PT_ERROR), PROP_ID(lpsPropTagArray->__ptr[k]));
 			lpsRowSet->__ptr[i].__ptr[k].Value.ul = KCERR_NOT_FOUND;
@@ -861,7 +861,7 @@ exit:
 ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList* lpRowList, struct propTagArray *lpsPropTagArray, void* lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
 {
 	ECRESULT er = erSuccess;
-	int i, k;
+	gsoap_size_t i;
 	struct rowSet *lpsRowSet = NULL;
 	ECObjectTableList::const_iterator iterRowList;
 	ECUserManagement *lpUserManagement = lpSession->GetUserManagement();
@@ -916,7 +916,7 @@ ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct 
 		if (lpSession->GetSecurity()->GetUserSize(iterRowList->ulObjId, &llStoreSize) != erSuccess)
 			llStoreSize = 0;
 
-		for (k = 0; k < lpsPropTagArray->__size; ++k) {
+		for (gsoap_size_t k = 0; k < lpsPropTagArray->__size; ++k) {
 			// default is error prop
 			lpsRowSet->__ptr[i].__ptr[k].ulPropTag = PROP_TAG(PROP_TYPE(PT_ERROR), PROP_ID(lpsPropTagArray->__ptr[k]));
 			lpsRowSet->__ptr[i].__ptr[k].Value.ul = KCERR_NOT_FOUND;
@@ -1044,7 +1044,7 @@ exit:
 ECRESULT ECServerStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList* lpRowList, struct propTagArray *lpsPropTagArray, void* lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
 {
 	ECRESULT er = erSuccess;
-	int i, k;
+	gsoap_size_t i;
 	struct rowSet *lpsRowSet = NULL;
 	ECObjectTableList::const_iterator iterRowList;
 	ECUserManagement *lpUserManagement = lpSession->GetUserManagement();
@@ -1079,7 +1079,7 @@ ECRESULT ECServerStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
 		if(lpUserManagement->GetServerDetails(lpStats->m_mapServers[iterRowList->ulObjId], &details) != erSuccess)
 			details = serverdetails_t();
 		
-		for (k = 0; k < lpsPropTagArray->__size; ++k) {
+		for (gsoap_size_t k = 0; k < lpsPropTagArray->__size; ++k) {
 			// default is error prop
 			lpsRowSet->__ptr[i].__ptr[k].ulPropTag = PROP_TAG(PROP_TYPE(PT_ERROR), PROP_ID(lpsPropTagArray->__ptr[k]));
 			lpsRowSet->__ptr[i].__ptr[k].Value.ul = KCERR_NOT_FOUND;

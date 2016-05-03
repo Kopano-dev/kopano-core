@@ -67,6 +67,9 @@
 #define KOPANO_SYSTEM_USER		"SYSTEM"
 #define KOPANO_SYSTEM_USER_W	L"SYSTEM"
 
+/* This should match what is used in proto.h for __size */
+typedef int gsoap_size_t;
+
 /*
  * Platform independent functions
  */

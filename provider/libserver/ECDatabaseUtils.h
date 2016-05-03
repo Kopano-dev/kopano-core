@@ -76,7 +76,7 @@ ECRESULT	GetPropSize(DB_ROW lpRow, DB_LENGTHS lpLen, unsigned int *lpulSize);
 ECRESULT	CopySOAPPropValToDatabasePropVal(struct propVal *lpPropVal, unsigned int *ulColId, std::string &strColData, ECDatabase *lpMySQL, bool bTruncate);
 ECRESULT	CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LENGTHS lpLen, propVal *lpPropVal);
 
-ULONG GetMVItemCount(struct propVal *lpPropVal);
+gsoap_size_t GetMVItemCount(struct propVal *lpPropVal);
 ECRESULT CopySOAPPropValToDatabaseMVPropVal(struct propVal *lpPropVal, int nItem, std::string &strColName, std::string &strColData, ECDatabase *lpDatabase);
 
 ECRESULT ParseMVProp(const char *lpRowData, ULONG ulSize, unsigned int *lpulLastPos, std::string *lpstrData);

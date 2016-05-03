@@ -34,7 +34,6 @@ std::string RestrictionToString(const restrictTable *lpRestriction,
     unsigned int indent)
 {
 	std::string strResult;
-	unsigned int i = 0;
 	unsigned int j = 0;
 
 	if(lpRestriction == NULL)
@@ -47,7 +46,7 @@ std::string RestrictionToString(const restrictTable *lpRestriction,
 	{
 		case RES_OR:
 			strResult = "RES_OR:\n";
-			for (i = 0; i < lpRestriction->lpOr->__size; ++i) {
+			for (gsoap_size_t i = 0; i < lpRestriction->lpOr->__size; ++i) {
 				for (j = 0; j < indent + 1; ++j)
 					strResult += "  ";
 				strResult += "Restriction: "+ RestrictionToString(lpRestriction->lpOr->__ptr[i], indent+1)+"\n";
@@ -58,7 +57,7 @@ std::string RestrictionToString(const restrictTable *lpRestriction,
 			break;
 		case RES_AND:
 			strResult = "RES_AND:\n";
-			for (i = 0; i < lpRestriction->lpAnd->__size; ++i) {
+			for (gsoap_size_t i = 0; i < lpRestriction->lpAnd->__size; ++i) {
 				for (j = 0; j < indent + 1; ++j)
 					strResult += "  ";
 				strResult += "Restriction: " + RestrictionToString(lpRestriction->lpAnd->__ptr[i], indent+1);
@@ -312,12 +311,12 @@ std::string PropValueToString(const propVal *lpPropValue)
 			break;
 		case PT_MV_UNICODE:
 			strResult = "PT_MV_UNICODE[" + stringify(lpPropValue->Value.mvszA.__size) + "]" + "\n";
-			for (int i = 0; i < lpPropValue->Value.mvszA.__size; ++i)
+			for (gsoap_size_t i = 0; i < lpPropValue->Value.mvszA.__size; ++i)
 				strResult += std::string("\t") + lpPropValue->Value.mvszA.__ptr[i] + "\n";
 			break;
 		case PT_MV_STRING8:
 			strResult = "PT_MV_STRING8[" + stringify(lpPropValue->Value.mvszA.__size) + "]" + "\n";
-			for (int i = 0; i < lpPropValue->Value.mvszA.__size; ++i)
+			for (gsoap_size_t i = 0; i < lpPropValue->Value.mvszA.__size; ++i)
 				strResult += std::string("\t") + lpPropValue->Value.mvszA.__ptr[i] + "\n";
 			break;
 		case PT_MV_BINARY:

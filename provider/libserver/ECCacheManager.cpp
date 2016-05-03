@@ -1292,7 +1292,6 @@ ECRESULT ECCacheManager::SetACLs(unsigned int ulObjId,
     const struct rightsArray *lpRights)
 {
     ECsACLs sACLs;
-    unsigned int i;
     ECRESULT er = erSuccess;
 
 	LOG_USERCACHE_DEBUG("Set ACLs for objectid %d", ulObjId);
@@ -1300,7 +1299,7 @@ ECRESULT ECCacheManager::SetACLs(unsigned int ulObjId,
     sACLs.ulACLs = lpRights->__size;
     sACLs.aACL = new ECsACLs::ACL [lpRights->__size];
 
-    for (i = 0; i < lpRights->__size; ++i) {
+    for (gsoap_size_t i = 0; i < lpRights->__size; ++i) {
         sACLs.aACL[i].ulType = lpRights->__ptr[i].ulType;
         sACLs.aACL[i].ulMask = lpRights->__ptr[i].ulRights;
         sACLs.aACL[i].ulUserId = lpRights->__ptr[i].ulUserid;

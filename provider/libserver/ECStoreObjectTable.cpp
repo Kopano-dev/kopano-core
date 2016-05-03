@@ -308,8 +308,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
 ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList* lpRowList, struct propTagArray *lpsPropTagArray, void* lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit, bool bSubObjects)
 {
 	ECRESULT		er = erSuccess;
-	int	i = 0;
-	int	k = 0;
+	gsoap_size_t i = 0, k = 0;
 	unsigned int	ulFolderId;
 	unsigned int 	ulRowStoreId = 0;
 	GUID			sRowGuid;

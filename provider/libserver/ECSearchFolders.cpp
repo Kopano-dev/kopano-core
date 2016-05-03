@@ -749,7 +749,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 					iterObjectIDs = lstObjectIDs->begin();
 		
 					// Check if the item matches for each item
-					for (int i = 0; i < lpRowSet->__size; ++i, ++iterObjectIDs) {
+					for (gsoap_size_t i = 0; i < lpRowSet->__size; ++i, ++iterObjectIDs) {
 						bool fMatch;
 
 						// Match the restriction
@@ -1000,7 +1000,7 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase,
     // Loop through the results data                
     lCount=0;
     lUnreadCount=0;
-    for (int j = 0; j< lpRowSet->__size && (!lpbCancel || !*lpbCancel); ++j, ++iterRows) {
+    for (gsoap_size_t j = 0; j< lpRowSet->__size && (!lpbCancel || !*lpbCancel); ++j, ++iterRows) {
         if(ECGenericObjectTable::MatchRowRestrict(lpSession->GetSessionManager()->GetCacheManager(), &lpRowSet->__ptr[j], lpRestrict, lpSubResults, locale, &fMatch) != erSuccess)
             continue;
 

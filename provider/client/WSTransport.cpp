@@ -1326,7 +1326,6 @@ HRESULT WSTransport::HrGetNamesFromIDs(LPSPropTagArray lpsPropTags, LPMAPINAMEID
 	ECRESULT er = erSuccess;
 	struct getNamesFromIDsResponse sResponse;
 	struct propTagArray sPropTags;
-	unsigned int i=0;
 	LPMAPINAMEID *lppNames = NULL;
 	convert_context convertContext;
 
@@ -1348,7 +1347,7 @@ HRESULT WSTransport::HrGetNamesFromIDs(LPSPropTagArray lpsPropTags, LPMAPINAMEID
 	ECAllocateBuffer(sizeof(LPMAPINAMEID) * sResponse.lpsNames.__size, (void **) &lppNames);
 
 	// Loop through all the returned names, and put it into the return value
-	for (i = 0; i < sResponse.lpsNames.__size; ++i) {
+	for (gsoap_size_t i = 0; i < sResponse.lpsNames.__size; ++i) {
 		// Each MAPINAMEID must be allocated
 		ECAllocateMore(sizeof(MAPINAMEID), lppNames, (void **) &lppNames[i]);
 
@@ -1387,7 +1386,6 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags, ULONG cbStoreEntryID
 	HRESULT		hr = hrSuccess;
 	LPSRowSet	lpsRowSet = NULL;
 	ULONG		ulRowId = 0;
-	unsigned int i = 0;
 	int			nLen = 0;
 	entryId		sEntryId = {0}; // Do not free
 
@@ -1422,7 +1420,7 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags, ULONG cbStoreEntryID
 	memset(lpsRowSet, 0, CbNewSRowSet(sReceiveFolders.sFolderArray.__size));
 	lpsRowSet->cRows = sReceiveFolders.sFolderArray.__size;
 
-	for (i = 0; i < sReceiveFolders.sFolderArray.__size; ++i) {
+	for (gsoap_size_t i = 0; i < sReceiveFolders.sFolderArray.__size; ++i) {
 		ulRowId = i+1;
 
 		lpsRowSet->aRow[i].cValues = NUM_RFT_PROPS;
@@ -3547,7 +3545,7 @@ HRESULT WSTransport::HrGetPermissionRules(int ulType, ULONG cbEntryID,
 	END_SOAP_CALL
 
 	ECAllocateBuffer(sizeof(ECPERMISSION) * sRightResponse.pRightsArray->__size, (void**)&lpECPermissions);
-	for (unsigned int i = 0; i < sRightResponse.pRightsArray->__size; ++i) {
+	for (gsoap_size_t i = 0; i < sRightResponse.pRightsArray->__size; ++i) {
 		lpECPermissions[i].ulRights	= sRightResponse.pRightsArray->__ptr[i].ulRights;
 		lpECPermissions[i].ulState	= sRightResponse.pRightsArray->__ptr[i].ulState;
 		lpECPermissions[i].ulType	= sRightResponse.pRightsArray->__ptr[i].ulType;
@@ -3709,7 +3707,6 @@ HRESULT WSTransport::HrResolveNames(LPSPropTagArray lpPropTagArray, ULONG ulFlag
 	struct rowSet* lpsRowSet = NULL;
 	struct flagArray aFlags;
 	struct abResolveNamesResponse sResponse;
-	unsigned int i;
 	convert_context	converter;
 
 	LockSoap();
@@ -3737,7 +3734,7 @@ HRESULT WSTransport::HrResolveNames(LPSPropTagArray lpPropTagArray, ULONG ulFlag
 	ASSERT(sResponse.aFlags.__size == lpFlagList->cFlags);
 	ASSERT((ULONG)sResponse.sRowSet.__size == lpAdrList->cEntries);
 
-	for (i = 0; i < sResponse.aFlags.__size; ++i) {
+	for (gsoap_size_t i = 0; i < sResponse.aFlags.__size; ++i) {
 		// Set the resolved items
 		if(lpFlagList->ulFlag[i] == MAPI_UNRESOLVED && sResponse.aFlags.__ptr[i] == MAPI_RESOLVED)
 		{
@@ -4225,7 +4222,6 @@ HRESULT WSTransport::HrGetChanges(const std::string& sourcekey, ULONG ulSyncId, 
 	ECRESULT					er = erSuccess;
 	struct icsChangeResponse	sResponse;
 	ICSCHANGE *					lpChanges = NULL;
-	unsigned int 				i = 0;
 	struct xsd__base64Binary	sSourceKey;
 	struct restrictTable		*lpsSoapRestrict = NULL;
 	
@@ -4252,7 +4248,7 @@ HRESULT WSTransport::HrGetChanges(const std::string& sourcekey, ULONG ulSyncId, 
 
 	ECAllocateBuffer(sResponse.sChangesArray.__size * sizeof(ICSCHANGE), (void**)&lpChanges);
 
-	for (i = 0; i < sResponse.sChangesArray.__size; ++i) {
+	for (gsoap_size_t i = 0; i < sResponse.sChangesArray.__size; ++i) {
 		lpChanges[i].ulChangeId = sResponse.sChangesArray.__ptr[i].ulChangeId;
 		lpChanges[i].ulChangeType = sResponse.sChangesArray.__ptr[i].ulChangeType;
 		lpChanges[i].ulFlags = sResponse.sChangesArray.__ptr[i].ulFlags;
@@ -4402,7 +4398,7 @@ HRESULT WSTransport::HrGetSyncStates(const ECLISTSYNCID &lstSyncId, ECLISTSYNCST
 	}
 	END_SOAP_CALL
 
-	for (unsigned int i = 0; i < sResponse.sSyncStates.__size; ++i) {
+	for (gsoap_size_t i = 0; i < sResponse.sSyncStates.__size; ++i) {
 		sSyncState.ulSyncId = sResponse.sSyncStates.__ptr[i].ulSyncId;
 		sSyncState.ulChangeId = sResponse.sSyncStates.__ptr[i].ulChangeId;
 		lplstSyncState->push_back(sSyncState);
@@ -4578,7 +4574,7 @@ HRESULT WSTransport::HrLicenseCapa(unsigned int ulServiceType, char ***lppszCapa
     if(hr != hrSuccess)
         goto exit;
 
-    for (unsigned int i = 0; i < sResponse.sCapabilities.__size; ++i) {
+    for (gsoap_size_t i = 0; i < sResponse.sCapabilities.__size; ++i) {
         if ((hr = MAPIAllocateMore(strlen(sResponse.sCapabilities.__ptr[i])+1, lpszCapas, (void **) &lpszCapas[i])) != hrSuccess)
 		goto exit;
         strcpy(lpszCapas[i], sResponse.sCapabilities.__ptr[i]);

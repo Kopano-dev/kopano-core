@@ -2045,7 +2045,7 @@ exit:
 ECRESULT ECUserManagement::QueryContentsRowData(struct soap *soap, ECObjectTableList *lpRowList, struct propTagArray *lpPropTagArray, struct rowSet **lppRowSet)
 {
 	ECRESULT er = erSuccess;
-	int i = 0, j = 0;
+	int i = 0;
 	struct rowSet *lpsRowSet = NULL;
 	objectid_t externid;
 
@@ -2186,7 +2186,7 @@ ECRESULT ECUserManagement::QueryContentsRowData(struct soap *soap, ECObjectTable
 				lpsRowSet->__ptr[i].__ptr = s_alloc<propVal>(soap, lpPropTagArray->__size);
 				lpsRowSet->__ptr[i].__size = lpPropTagArray->__size;
 
-				for (j = 0; j < lpPropTagArray->__size; ++j) {
+				for (gsoap_size_t j = 0; j < lpPropTagArray->__size; ++j) {
 					lpsRowSet->__ptr[i].__ptr[j].ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropTagArray->__ptr[j]));
 					lpsRowSet->__ptr[i].__ptr[j].Value.ul = KCERR_NOT_FOUND;
 					lpsRowSet->__ptr[i].__ptr[j].__union = SOAP_UNION_propValData_ul;
@@ -3742,7 +3742,6 @@ exit:
 ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap, unsigned int ulId, objectdetails_t *lpDetails, struct propTagArray *lpPropTags, struct propValArray *lpPropValsRet)
 {
 	ECRESULT er = erSuccess;
-	int i = 0;
 	struct propVal *lpPropVal;
 	unsigned int ulOrder = 0;
 	ECSecurity *lpSecurity = NULL;
@@ -3766,7 +3765,7 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap, unsign
 	lpPropVals->__ptr = s_alloc<struct propVal>(soap, lpPropTags->__size);
 	lpPropVals->__size = lpPropTags->__size;
 
-	for (i = 0; i < lpPropTags->__size; ++i) {
+	for (gsoap_size_t i = 0; i < lpPropTags->__size; ++i) {
 		lpPropVal = &lpPropVals->__ptr[i];
 		lpPropVal->ulPropTag = lpPropTags->__ptr[i];
 
@@ -4320,7 +4319,6 @@ exit:
 ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soap, unsigned int ulId, objectdetails_t *lpDetails, struct propTagArray *lpPropTags, struct propValArray *lpPropVals)
 {
 	ECRESULT er = erSuccess;
-	int i = 0;
 	struct propVal *lpPropVal;
 	unsigned int ulOrder = 0;
 	ECSecurity *lpSecurity = NULL;
@@ -4342,7 +4340,7 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
 	lpPropVals->__ptr = s_alloc<struct propVal>(soap, lpPropTags->__size);
 	lpPropVals->__size = lpPropTags->__size;
 
-	for (i = 0; i < lpPropTags->__size; ++i) {
+	for (gsoap_size_t i = 0; i < lpPropTags->__size; ++i) {
 		lpPropVal = &lpPropVals->__ptr[i];
 		lpPropVal->ulPropTag = lpPropTags->__ptr[i];
 
@@ -4539,7 +4537,6 @@ exit:
 ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap, unsigned int ulId, struct propTagArray *lpPropTagArray, struct propValArray *lpPropValArray)
 {
 	ECRESULT er = erSuccess;
-	int i = 0;
 	struct propVal *lpPropVal;
 	std::string strName;
 	ABEID abeid;
@@ -4565,7 +4562,7 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap, unsigned
 		goto exit;
 	}
 
-	for (i = 0; i < lpPropTagArray->__size; ++i) {
+	for (gsoap_size_t i = 0; i < lpPropTagArray->__size; ++i) {
 		lpPropVal = &lpPropValArray->__ptr[i];
 		lpPropVal->ulPropTag = lpPropTagArray->__ptr[i];
 
@@ -5042,11 +5039,13 @@ exit:
 	return er;
 }
 
-ECRESULT ECUserManagement::CreateABEntryID(struct soap *soap, unsigned int ulVersion, unsigned int ulObjId, unsigned int ulType, objectid_t *lpExternId, int *lpcbEID, PABEID *lppEid)
+ECRESULT ECUserManagement::CreateABEntryID(struct soap *soap,
+    unsigned int ulVersion, unsigned int ulObjId, unsigned int ulType,
+    objectid_t *lpExternId, gsoap_size_t *lpcbEID, PABEID *lppEid)
 {
 	ECRESULT 	er = erSuccess;
 	PABEID		lpEid = NULL;
-	int			ulSize = 0;
+	gsoap_size_t ulSize = 0;
 	std::string	strEncExId;
 	
 	ASSERT(ulVersion == 0 || ulVersion == 1);

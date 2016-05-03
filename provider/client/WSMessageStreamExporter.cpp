@@ -52,9 +52,8 @@ HRESULT WSMessageStreamExporter::Create(ULONG ulOffset, ULONG ulCount, const mes
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-
 	
-	for (unsigned i = 0; i < streams.__size; ++i) {
+	for (gsoap_size_t i = 0; i < streams.__size; ++i) {
 		lpsi = new StreamInfo;
 
 		lpsi->id.assign(streams.__ptr[i].sStreamData.xop__Include.id);
@@ -62,7 +61,7 @@ HRESULT WSMessageStreamExporter::Create(ULONG ulOffset, ULONG ulCount, const mes
 		hr = MAPIAllocateBuffer(streams.__ptr[i].sPropVals.__size * sizeof(SPropValue), &lpsi->ptrPropVals);
 		if (hr != hrSuccess)
 			goto exit;
-		for (int j = 0; j < streams.__ptr[i].sPropVals.__size; ++j) {
+		for (gsoap_size_t j = 0; j < streams.__ptr[i].sPropVals.__size; ++j) {
 			hr = CopySOAPPropValToMAPIPropVal(&lpsi->ptrPropVals[j], &streams.__ptr[i].sPropVals.__ptr[j], lpsi->ptrPropVals, &converter);
 			if (hr != hrSuccess)
 				goto exit;

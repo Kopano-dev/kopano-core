@@ -211,7 +211,7 @@ public:
 	virtual ECRESULT	UpdateUserDetailsFromClient(objectdetails_t *lpDetails);
 
 	/* Create an ABEID in version 1 or version 0 */
-	ECRESULT	CreateABEntryID(struct soap *soap, unsigned int ulVersion, unsigned int ulObjId, unsigned int ulType, objectid_t *sExternId, int *lpcbEID, PABEID *lppEid);
+	ECRESULT CreateABEntryID(struct soap *soap, unsigned int ulVersion, unsigned int ulObjId, unsigned int ulType, objectid_t *sExternId, gsoap_size_t *lpcbEID, PABEID *lppEid);
 
 	/* Completely remove all users, groups, etc except for the passed object */
 	ECRESULT	RemoveAllObjectsAndSync(unsigned int ulObjId);

@@ -310,7 +310,7 @@ struct categoryState {
 };
 
 struct categoryStateArray {
-    unsigned int __size;
+    int __size;
     struct categoryState* __ptr;
 };
 
@@ -359,7 +359,7 @@ struct notification {
 };
 
 struct notificationArray {
-	unsigned int __size;
+	int __size;
 	struct notification *__ptr;
 };
 
@@ -381,7 +381,7 @@ struct notifySubscribe {
 };
 
 struct notifySubscribeArray {
-	unsigned int __size;
+	int __size;
 	struct notifySubscribe *__ptr;
 };
 
@@ -396,7 +396,7 @@ struct rights {
 };
 
 struct rightsArray {
-	unsigned int __size;
+	int __size;
 	struct rights *__ptr;
 };
 
@@ -413,7 +413,7 @@ struct userobject {
 };
 
 struct userobjectArray {
-	unsigned int __size;
+	int __size;
 	struct userobject *__ptr;
 };
 
@@ -442,7 +442,7 @@ struct namedProp {
 };
 
 struct namedPropArray {
-	unsigned int __size;
+	int __size;
 	struct namedProp * __ptr;
 };
 
@@ -459,7 +459,7 @@ struct ns:getNamesFromIDsResponse {
 struct restrictTable;
 
 struct restrictAnd {
-	unsigned int __size;
+	int __size;
 	struct restrictTable **__ptr;
 };
 
@@ -495,7 +495,7 @@ struct restrictNot {
 };
 
 struct restrictOr {
-	unsigned int __size;
+	int __size;
 	struct restrictTable **__ptr;
 };
 
@@ -549,7 +549,7 @@ struct ns:receiveFolderResponse {
 };
 
 struct receiveFoldersArray {
-	unsigned int __size;
+	int __size;
 	struct receiveFolder * __ptr;
 };
 
@@ -570,7 +570,7 @@ struct propmapPair {
 };
 
 struct propmapPairArray {
-	unsigned int __size;
+	int __size;
 	struct propmapPair *__ptr;
 };
 
@@ -580,7 +580,7 @@ struct propmapMVPair {
 };
 
 struct propmapMVPairArray {
-	unsigned int __size;
+	int __size;
 	struct propmapMVPair *__ptr;
 };
 
@@ -602,7 +602,7 @@ struct user {
 };
 
 struct userArray {
-	unsigned int __size;
+	int __size;
 	struct user *__ptr;
 };
 
@@ -634,7 +634,7 @@ struct group {
 };
 
 struct groupArray {
-	unsigned int __size;
+	int __size;
 	struct group *__ptr;
 };
 
@@ -667,7 +667,7 @@ struct company {
 };
 
 struct companyArray {
-	unsigned int __size;
+	int __size;
 	struct company *__ptr;
 };
 
@@ -731,7 +731,7 @@ struct readChunkResponse {
 };
 
 struct flagArray {
-	unsigned int __size;
+	int __size;
 	unsigned int *__ptr;
 };
 
@@ -802,7 +802,7 @@ struct icsChange {
 };
 
 struct icsChangesArray {
-	unsigned int __size;
+	int __size;
 	struct icsChange *__ptr;
 };
 
@@ -833,7 +833,7 @@ struct ns:resolvePseudoUrlResponse {
 };
 
 struct licenseCapabilities {
-    unsigned int __size;
+    int __size;
     char **__ptr;
 };
 
@@ -857,7 +857,7 @@ struct server {
 };
 
 struct serverList {
-	unsigned int __size;
+	int __size;
 	struct server *__ptr;
 };
 
@@ -877,7 +877,7 @@ struct sourceKeyPair {
 };
 
 struct sourceKeyPairArray {
-	unsigned int __size;
+	int __size;
 	struct sourceKeyPair *__ptr;
 };
 
@@ -888,7 +888,7 @@ struct messageStream {
 };
 
 struct messageStreamArray {
-	unsigned int __size;
+	int __size;
 	struct messageStream *__ptr;
 };
 
@@ -909,7 +909,7 @@ struct syncState {
 };
 
 struct syncStateArray {
-	unsigned int __size;
+	int __size;
 	struct syncState *__ptr;
 };
 

@@ -39,7 +39,6 @@ static ECRESULT GetSubRestrictionRecursive(struct restrictTable *lpRestrict,
     struct restrictSub **lppSubRestrict, unsigned int maxdepth)
 {
     ECRESULT er = erSuccess;
-    unsigned int i = 0;
     unsigned int ulCount = 0;
     
     if(maxdepth == 0)
@@ -51,14 +50,14 @@ static ECRESULT GetSubRestrictionRecursive(struct restrictTable *lpRestrict,
     
     switch(lpRestrict->ulType) {
         case RES_AND:
-            for (i = 0; i < lpRestrict->lpAnd->__size; ++i) {
+            for (gsoap_size_t i = 0; i < lpRestrict->lpAnd->__size; ++i) {
                 er = GetSubRestrictionRecursive(lpRestrict->lpAnd->__ptr[i], lpulCount, ulSubRestriction, lppSubRestrict, maxdepth-1);
                 if(er != erSuccess)
                     goto exit;
             }        
             break;
         case RES_OR:
-            for (i = 0; i < lpRestrict->lpOr->__size; ++i) {
+            for (gsoap_size_t i = 0; i < lpRestrict->lpOr->__size; ++i) {
                 er = GetSubRestrictionRecursive(lpRestrict->lpOr->__ptr[i], lpulCount, ulSubRestriction, lppSubRestrict, maxdepth-1);
                 if(er != erSuccess)
                     goto exit;
@@ -166,7 +165,6 @@ ECRESULT RunSubRestriction(ECSession *lpSession, void *lpECODStore, struct restr
     unsigned int ulSubObject = 0;
     unsigned int ulParent = 0;
     sObjectTableKey sKey;
-    int i = 0;
     ECDatabase *lpDatabase = NULL;
 
 	er = lpSession->GetDatabase(&lpDatabase);
@@ -245,7 +243,7 @@ ECRESULT RunSubRestriction(ECSession *lpSession, void *lpECODStore, struct restr
         
     iterObject = lstSubObjects.begin();
     // Loop through all the rows, see if they match
-    for (i = 0; i < lpRowSet->__size; ++i) {
+    for (gsoap_size_t i = 0; i < lpRowSet->__size; ++i) {
         er = ECGenericObjectTable::MatchRowRestrict(lpSession->GetSessionManager()->GetCacheManager(), &lpRowSet->__ptr[i], lpRestrict->lpSubObject, NULL, locale, &fMatch);
         if(er != erSuccess)
             goto exit;

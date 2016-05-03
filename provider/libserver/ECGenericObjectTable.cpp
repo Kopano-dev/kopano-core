@@ -247,7 +247,6 @@ ECRESULT ECGenericObjectTable::FindRow(struct restrictTable *lpsRestrict, unsign
 	ECRESULT		er = erSuccess;
 	bool			fMatch = false;
 	int				ulSeeked = 0;
-	int				i;
 	unsigned int	ulRow = 0;
 	unsigned int	ulCount = 0;
 	int				ulTraversed = 0;
@@ -346,7 +345,7 @@ ECRESULT ECGenericObjectTable::FindRow(struct restrictTable *lpsRestrict, unsign
 
 		ASSERT(lpRowSet->__size == (int)ecRowList.size());
 
-		for (i = 0; i < lpRowSet->__size; ++i) {
+		for (gsoap_size_t i = 0; i < lpRowSet->__size; ++i) {
 			// Match the row
 			er = MatchRowRestrict(lpSession->GetSessionManager()->GetCacheManager(), &lpRowSet->__ptr[i], lpsRestrict, lpSubResults, m_locale, &fMatch);
 			if(er != erSuccess)
@@ -487,7 +486,7 @@ ECRESULT ECGenericObjectTable::ReloadTable(enumReloadType eType)
 	pthread_mutex_lock(&m_hLock);
 
 	//Scan for MVI columns
-	for (int i = 0; lpsPropTagArray != NULL && i < lpsPropTagArray->__size; ++i) {
+	for (gsoap_size_t i = 0; lpsPropTagArray != NULL && i < lpsPropTagArray->__size; ++i) {
 		if((PROP_TYPE(lpsPropTagArray->__ptr[i]) &MVI_FLAG) == MVI_FLAG) {
 			if(bMVColsNew == true)
 				ASSERT(FALSE); //FIXME: error 1 mv prop set!!!
@@ -498,7 +497,7 @@ ECRESULT ECGenericObjectTable::ReloadTable(enumReloadType eType)
 	}
 	
 	//Check for mvi props
-	for (int i = 0; lpsSortOrderArray != NULL && i < lpsSortOrderArray->__size; ++i) {
+	for (gsoap_size_t i = 0; lpsSortOrderArray != NULL && i < lpsSortOrderArray->__size; ++i) {
 		if((PROP_TYPE(lpsSortOrderArray->__ptr[i].ulPropTag)&MVI_FLAG) == MVI_FLAG) {
 			if(bMVSortNew == true)
 				ASSERT(FALSE);
@@ -603,7 +602,7 @@ ECRESULT ECGenericObjectTable::SetColumns(struct propTagArray *lpsPropTags, bool
 	lpsPropTagArray->__size = lpsPropTags->__size;
 	lpsPropTagArray->__ptr = new unsigned int[lpsPropTags->__size];
 	if (bDefaultSet) {
-		for (int n = 0; n < lpsPropTags->__size; ++n) {
+		for (gsoap_size_t n = 0; n < lpsPropTags->__size; ++n) {
 			if (PROP_TYPE(lpsPropTags->__ptr[n]) == PT_STRING8 || PROP_TYPE(lpsPropTags->__ptr[n]) == PT_UNICODE)
 				lpsPropTagArray->__ptr[n] = CHANGE_PROP_TYPE(lpsPropTags->__ptr[n], ((m_ulFlags & MAPI_UNICODE) ? PT_UNICODE : PT_STRING8));
 			else if (PROP_TYPE(lpsPropTags->__ptr[n]) == PT_MV_STRING8 || PROP_TYPE(lpsPropTags->__ptr[n]) == PT_MV_UNICODE)
@@ -740,7 +739,7 @@ ECRESULT ECGenericObjectTable::SetSortOrder(struct sortOrderArray *lpsSortOrder,
 	
 	// Check validity of tags
 	if (lpsSortOrder != NULL)
-		for (int i = 0; i < lpsSortOrder->__size; ++i)
+		for (gsoap_size_t i = 0; i < lpsSortOrder->__size; ++i)
 			if ((PROP_TYPE(lpsSortOrder->__ptr[i].ulPropTag) & MVI_FLAG) == MV_FLAG) {
 				er = KCERR_TOO_COMPLEX;
 				goto exit;
@@ -973,11 +972,8 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 	TRACE_INTERNAL(TRACE_ENTRY, "Table call:", "ECGenericObjectTable::AddRowKey", "");
 
 	ECRESULT		er = erSuccess;
-	int				i = 0; 
-	int				j = 0;
-	int				n = 0;
 	bool			fMatch = true;
-	unsigned int	ulFirstCol = 0;
+	gsoap_size_t ulFirstCol = 0, n = 0;
 	unsigned int	ulLoaded = 0;
 	bool			bExist;
 	bool			fHidden = false;
@@ -1032,15 +1028,15 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 	
 	// Put all the proptags of the sort columns in a proptag array
 	if(lpsSortOrderArray)
-		for (i = 0; i < this->lpsSortOrderArray->__size; ++i)
+		for (gsoap_size_t i = 0; i < this->lpsSortOrderArray->__size; ++i)
 			sPropTagArray.__ptr[n++] = this->lpsSortOrderArray->__ptr[i].ulPropTag;
 
 	// Same for restrict columns
 	// Check if an item already exist
 	if(lpsRestrictPropTagArray) {
-		for (i = 0; i < lpsRestrictPropTagArray->__size; ++i) {
+		for (gsoap_size_t i = 0; i < lpsRestrictPropTagArray->__size; ++i) {
 			bExist = false;
-			for (j = 0; j < n; ++j)
+			for (gsoap_size_t j = 0; j < n; ++j)
 				if(sPropTagArray.__ptr[j] == lpsRestrictPropTagArray->__ptr[i])
 					bExist = true;
 			if(bExist == false)
@@ -1056,7 +1052,7 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 		sQueryRows.clear();
 
 		// if we use a restriction, memory usage goes up, so only fetch 20 rows at a time
-		for (i = 0; i < (lpsRestrictPropTagArray ? 20 : 256) && iterRows != lpRows->end(); ++i) {
+		for (size_t i = 0; i < (lpsRestrictPropTagArray ? 20 : 256) && iterRows != lpRows->end(); ++i) {
 			sQueryRows.push_back(*iterRows);
 			++iterRows;
 		}
@@ -1073,7 +1069,7 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 		}
 
 		// Send all this data to the internal key table
-		for (i = 0; i < lpRowSet->__size; ++i) {
+		for (gsoap_size_t i = 0; i < lpRowSet->__size; ++i) {
 			lpCategory = NULL;
 
 			if (lpRowSet->__ptr[i].__ptr[0].ulPropTag != PR_INSTANCE_KEY) // Row completely not found
@@ -1564,7 +1560,7 @@ ECRESULT ECGenericObjectTable::SetCollapseState(struct xsd__base64Binary sCollap
     
     // lpCollapseState now contains the collapse state for all categories, apply them now
     
-    for (unsigned int i = 0; i < lpCollapseState->sCategoryStates.__size; ++i) {
+    for (gsoap_size_t i = 0; i < lpCollapseState->sCategoryStates.__size; ++i) {
         lpSortLen = new unsigned int[lpCollapseState->sCategoryStates.__ptr[i].sProps.__size];
         lpSortData = new unsigned char* [lpCollapseState->sCategoryStates.__ptr[i].sProps.__size];
         lpSortFlags = new unsigned char [lpCollapseState->sCategoryStates.__ptr[i].sProps.__size];
@@ -1572,7 +1568,7 @@ ECRESULT ECGenericObjectTable::SetCollapseState(struct xsd__base64Binary sCollap
         memset(lpSortData, 0, lpCollapseState->sCategoryStates.__ptr[i].sProps.__size * sizeof(unsigned char *));
         
         // Get the binary sortkeys for all properties
-        for (int n = 0; n < lpCollapseState->sCategoryStates.__ptr[i].sProps.__size; ++n) {
+        for (gsoap_size_t n = 0; n < lpCollapseState->sCategoryStates.__ptr[i].sProps.__size; ++n) {
             if(GetBinarySortKey(&lpCollapseState->sCategoryStates.__ptr[i].sProps.__ptr[n], &lpSortLen[n], &lpSortData[n]) != erSuccess)
                 goto next;
                 
@@ -1594,7 +1590,7 @@ ECRESULT ECGenericObjectTable::SetCollapseState(struct xsd__base64Binary sCollap
         }
 next:        
         delete [] lpSortLen;
-        for (int j = 0; j < lpCollapseState->sCategoryStates.__ptr[i].sProps.__size; ++j)
+        for (gsoap_size_t j = 0; j < lpCollapseState->sCategoryStates.__ptr[i].sProps.__size; ++j)
                 delete [] lpSortData[j];
         delete [] lpSortData;
         delete [] lpSortFlags;
@@ -1607,13 +1603,13 @@ next:
     // There is also a row stored in the collapse state which we have to create a bookmark at and return that. If it is not found,
     // we return a bookmark to the nearest next row.
     if (lpCollapseState->sBookMarkProps.__size > 0) {
-        int n;
         lpSortLen = new unsigned int[lpCollapseState->sBookMarkProps.__size];
         lpSortData = new unsigned char* [lpCollapseState->sBookMarkProps.__size];
         lpSortFlags = new unsigned char [lpCollapseState->sBookMarkProps.__size];
         
         memset(lpSortData, 0, lpCollapseState->sBookMarkProps.__size * sizeof(unsigned char *));
-        
+
+	gsoap_size_t n;
         for (n = 0; n < lpCollapseState->sBookMarkProps.__size; ++n) {
             if(GetBinarySortKey(&lpCollapseState->sBookMarkProps.__ptr[n], &lpSortLen[n], &lpSortData[n]) != erSuccess)
                 break;
@@ -1631,7 +1627,7 @@ next:
 
         delete [] lpSortLen;
         lpSortLen = NULL;
-        for (int j = 0; j < lpCollapseState->sBookMarkProps.__size; ++j)
+        for (gsoap_size_t j = 0; j < lpCollapseState->sBookMarkProps.__size; ++j)
 			delete[] lpSortData[j];
         delete [] lpSortData;
         lpSortData = NULL;
@@ -1855,7 +1851,6 @@ exit:
 ECRESULT ECGenericObjectTable::GetRestrictPropTagsRecursive(struct restrictTable *lpsRestrict, list<ULONG> *lpPropTags, ULONG ulLevel)
 {
 	ECRESULT		er = erSuccess;
-	unsigned int	i=0;
 
 	if(ulLevel > RESTRICT_MAX_DEPTH) {
 		er = KCERR_TOO_COMPLEX;
@@ -1870,7 +1865,7 @@ ECRESULT ECGenericObjectTable::GetRestrictPropTagsRecursive(struct restrictTable
 	    break;
 	    
 	case RES_OR:
-		for (i = 0; i < lpsRestrict->lpOr->__size; ++i) {
+		for (gsoap_size_t i = 0; i < lpsRestrict->lpOr->__size; ++i) {
 			er = GetRestrictPropTagsRecursive(lpsRestrict->lpOr->__ptr[i], lpPropTags, ulLevel+1);
 
 			if(er != erSuccess)
@@ -1879,7 +1874,7 @@ ECRESULT ECGenericObjectTable::GetRestrictPropTagsRecursive(struct restrictTable
 		break;	
 		
 	case RES_AND:
-		for (i = 0; i < lpsRestrict->lpAnd->__size; ++i) {
+		for (gsoap_size_t i = 0; i < lpsRestrict->lpAnd->__size; ++i) {
 			er = GetRestrictPropTagsRecursive(lpsRestrict->lpAnd->__ptr[i], lpPropTags, ulLevel+1);
 
 			if(er != erSuccess)
@@ -1987,7 +1982,6 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager* lpCacheManager, 
 {
 	ECRESULT		er = erSuccess;
 	bool			fMatch = false;
-	unsigned int	i = 0;
 	int				lCompare = 0;
 	unsigned int	ulSize = 0;
 	struct propVal	*lpProp = NULL;
@@ -2027,7 +2021,7 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager* lpCacheManager, 
 
 		fMatch = false;
 
-		for (i = 0; i < lpsRestrict->lpOr->__size; ++i) {
+		for (gsoap_size_t i = 0; i < lpsRestrict->lpOr->__size; ++i) {
 			er = MatchRowRestrict(lpCacheManager, lpPropVals, lpsRestrict->lpOr->__ptr[i], lpSubResults, locale, &fMatch, lpulSubRestriction);
 
 			if(er != erSuccess)
@@ -2045,7 +2039,7 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager* lpCacheManager, 
 		
 		fMatch = true;
 
-		for (i = 0; i < lpsRestrict->lpAnd->__size; ++i) {
+		for (gsoap_size_t i = 0; i < lpsRestrict->lpAnd->__size; ++i) {
 			er = MatchRowRestrict(lpCacheManager, lpPropVals, lpsRestrict->lpAnd->__ptr[i], lpSubResults, locale, &fMatch, lpulSubRestriction);
 
 			if(er != erSuccess)

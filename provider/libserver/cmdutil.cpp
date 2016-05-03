@@ -1705,7 +1705,6 @@ ECRESULT GetNamesFromIDs(struct soap *soap, ECDatabase *lpDatabase, struct propT
     DB_RESULT lpDBResult = NULL;
     DB_ROW lpDBRow = NULL;
     DB_LENGTHS lpDBLen = NULL;
-    int i = 0;
     std::string strQuery;
 
 	// Allocate memory for return object
@@ -1713,7 +1712,7 @@ ECRESULT GetNamesFromIDs(struct soap *soap, ECDatabase *lpDatabase, struct propT
 	lpsNames->__size = lpPropTags->__size;
 	memset(lpsNames->__ptr, 0, sizeof(struct namedProp) * lpPropTags->__size);
 
-	for (i = 0; i < lpPropTags->__size; ++i) {
+	for (gsoap_size_t i = 0; i < lpPropTags->__size; ++i) {
 		strQuery = "SELECT nameid, namestring, guid FROM names WHERE id=" + stringify(lpPropTags->__ptr[i]-1);
 
 		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
