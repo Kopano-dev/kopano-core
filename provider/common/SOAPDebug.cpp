@@ -290,41 +290,41 @@ std::string PropValueToString(const propVal *lpPropValue)
 			strResult = "PT_MV_I2[" + stringify(lpPropValue->Value.mvi.__size) + "]";
 			break;
 		case PT_MV_LONG:
-			strResult = "PT_MV_LONG[" + stringify(lpPropValue->Value.mvi.__size) + "]";
+			strResult = "PT_MV_LONG[" + stringify(lpPropValue->Value.mvl.__size) + "]";
 			break;
 		case PT_MV_R4:
-			strResult = "PT_MV_R4[" + stringify(lpPropValue->Value.mvi.__size) + "]";
+			strResult = "PT_MV_R4[" + stringify(lpPropValue->Value.mvflt.__size) + "]";
 			break;
 		case PT_MV_DOUBLE:
-			strResult = "PT_MV_DOUBLE[" + stringify(lpPropValue->Value.mvi.__size) + "]";
+			strResult = "PT_MV_DOUBLE[" + stringify(lpPropValue->Value.mvdbl.__size) + "]";
 			break;
 		case PT_MV_APPTIME:
-			strResult = "PT_MV_APPTIME[" + stringify(lpPropValue->Value.mvi.__size) + "]";
+			strResult = "PT_MV_APPTIME[" + stringify(lpPropValue->Value.mvbin.__size) + "]";
 			break;
 		case PT_MV_CURRENCY:
-			strResult = "PT_MV_CURRENCY[" + stringify(lpPropValue->Value.mvi.__size) + "]";
+			strResult = "PT_MV_CURRENCY[" + stringify(lpPropValue->Value.mvbin.__size) + "]";
 			break;
 		case PT_MV_SYSTIME:
-			strResult = "PT_MV_SYSTIME[" + stringify(lpPropValue->Value.mvi.__size) + "]";
+			strResult = "PT_MV_SYSTIME[" + stringify(lpPropValue->Value.mvbin.__size) + "]";
 			break;
 		case PT_MV_I8:
-			strResult = "PT_MV_I8[" + stringify(lpPropValue->Value.mvi.__size) + "]";
+			strResult = "PT_MV_I8[" + stringify(lpPropValue->Value.mvli.__size) + "]";
 			break;
 		case PT_MV_UNICODE:
-			strResult = "PT_MV_UNICODE[" + stringify(lpPropValue->Value.mvi.__size) + "]" + "\n";
-			for (int i = 0; i < lpPropValue->Value.mvi.__size; ++i)
+			strResult = "PT_MV_UNICODE[" + stringify(lpPropValue->Value.mvszA.__size) + "]" + "\n";
+			for (int i = 0; i < lpPropValue->Value.mvszA.__size; ++i)
 				strResult += std::string("\t") + lpPropValue->Value.mvszA.__ptr[i] + "\n";
 			break;
 		case PT_MV_STRING8:
-			strResult = "PT_MV_STRING8[" + stringify(lpPropValue->Value.mvi.__size) + "]" + "\n";
-			for (int i = 0; i < lpPropValue->Value.mvi.__size; ++i)
+			strResult = "PT_MV_STRING8[" + stringify(lpPropValue->Value.mvszA.__size) + "]" + "\n";
+			for (int i = 0; i < lpPropValue->Value.mvszA.__size; ++i)
 				strResult += std::string("\t") + lpPropValue->Value.mvszA.__ptr[i] + "\n";
 			break;
 		case PT_MV_BINARY:
-			strResult = "PT_MV_BINARY[" + stringify(lpPropValue->Value.mvi.__size) + "]";
+			strResult = "PT_MV_BINARY[" + stringify(lpPropValue->Value.mvbin.__size) + "]";
 			break;
 		case PT_MV_CLSID:
-			strResult = "PT_MV_CLSID[" + stringify(lpPropValue->Value.mvi.__size) + "]";
+			strResult = "PT_MV_CLSID[" + stringify(lpPropValue->Value.mvbin.__size) + "]";
 			break;
 		default:
 			strResult = "<UNKNOWN>";
