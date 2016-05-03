@@ -80,56 +80,6 @@ HRESULT ECOfflineState::GetOfflineState(const std::string &strProfName, ECOfflin
 
 HRESULT ECOfflineState::GetIMAPIOffline(const std::string &strProfname, IMAPIOffline **lppOffline)
 {
-#ifdef WIN32
-	HRESULT hr = hrSuccess;
-	HMODULE hLib = 0;
-	WCHAR wProfName[256];
-
-	typedef HRESULT (STDMETHODCALLTYPE HROPENOFFLINEOBJ)(
-		ULONG ulReserved,
-		LPCWSTR pwszProfileNameIn,
-		const GUID* pGUID,
-		const GUID* pReserved,
-		IMAPIOfflineMgr** ppOfflineObj);
-
-	HROPENOFFLINEOBJ *HrOpenOfflineObj = NULL;
-	IMAPIOfflineMgr *lpOfflineMgr = NULL;
-	IMAPIOffline *lpOffline = NULL;
-
-	hLib = LoadLibrary(_T("msmapi32.dll"));
-	if(!hLib) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
-	HrOpenOfflineObj = (HROPENOFFLINEOBJ *)GetProcAddress(hLib, "HrOpenOfflineObj@20");
-	if(!HrOpenOfflineObj) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
-	memset(wProfName, 0, sizeof(wProfName));
-	mbstowcs(wProfName, strProfname.c_str(), ARRAY_SIZE(wProfName) - 1);
-
-	hr = HrOpenOfflineObj(0, wProfName, &GUID_GlobalState, NULL, &lpOfflineMgr);
-	if(hr != hrSuccess)
-		goto exit;
-
-	hr = lpOfflineMgr->QueryInterface(IID_IMAPIOffline, (void **)&lpOffline);
-	if(hr != hrSuccess)
-		goto exit;
-
-	*lppOffline = lpOffline;
-exit:
-	if(lpOfflineMgr)
-		lpOfflineMgr->Release();
-
-	if(hLib)
-		FreeLibrary(hLib);
-
-	return hr;
-#else
 	return MAPI_E_NOT_FOUND;
-#endif
 }
 #endif

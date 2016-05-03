@@ -23,12 +23,6 @@
 #include <openssl/ssl.h>
 #include <openssl/conf.h>
 #include <openssl/engine.h>
-
-#ifdef WIN32
-typedef __int32 int32_t;
-typedef unsigned __int32 uint32_t;
-#endif
-
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -45,12 +39,10 @@ static void ssl_lock(int mode, int n, const char *file, int line)
 	}
 }
 
-#ifndef WIN32
 static unsigned long ssl_id_function(void)
 {
     return ((unsigned long) pthread_self());
 }
-#endif
 
 void ssl_threading_setup() {
 	if (ssl_locks)
@@ -63,10 +55,7 @@ void ssl_threading_setup() {
 	for (int i = 0; i < CRYPTO_num_locks(); ++i)
 		pthread_mutex_init(&ssl_locks[i], &mattr);
 	CRYPTO_set_locking_callback(ssl_lock);
-#ifndef WIN32
-	// no need to set on win32 (or maybe use GetCurrentThreadId)
 	CRYPTO_set_id_callback(ssl_id_function);
-#endif	
 }
 
 void ssl_threading_cleanup() {
@@ -76,11 +65,8 @@ void ssl_threading_cleanup() {
 		pthread_mutex_destroy(&ssl_locks[i]);
 	delete [] ssl_locks;
 	ssl_locks = NULL;
-#ifndef WIN32
 	CRYPTO_set_id_callback(NULL);
-#endif
 	CRYPTO_set_locking_callback(NULL);
-
 }
 
 /**

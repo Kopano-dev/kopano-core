@@ -52,12 +52,6 @@
  * that's for sure.
  *
  */
-
-#ifdef _WIN32
-// Disable debug warning for symbol lengths > 255
-#pragma warning ( disable: 4786 )
-#endif
-
 #include <kopano/zcdefs.h>
 #include <kopano/kcodes.h>
 

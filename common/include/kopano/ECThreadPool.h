@@ -23,12 +23,6 @@
 #include <list>
 #include <kopano/zcdefs.h>
 
-#ifdef WIN32
-static inline bool operator<(const pthread_t &lhs, const pthread_t &rhs) {
-	return lhs.p < rhs.p;
-}
-#endif
-
 class ECTask;
 
 /**

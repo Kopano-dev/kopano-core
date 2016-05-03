@@ -20,13 +20,6 @@
 
 #include <kopano/platform.h>
 #include <new>
-
-#ifdef DEBUG
-#ifdef WIN32
-#pragma warning(disable: 4786)
-#endif
-#endif
-
 #ifdef LINUX
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -567,7 +560,6 @@ void ECSession::RemoveBusyState(pthread_t threadId)
 	i = m_mapBusyStates.find(threadId);
 
 	if(i != m_mapBusyStates.end()) {
-#ifndef WIN32
 		clockid_t clock;
 		struct timespec end;
 
@@ -579,7 +571,6 @@ void ECSession::RemoveBusyState(pthread_t threadId)
 		} else {
 			ASSERT(FALSE);
 		}
-#endif
 		m_mapBusyStates.erase(threadId);
 	} else {
 		ASSERT(FALSE);
@@ -907,16 +898,8 @@ ECRESULT ECAuthSession::ValidateUserSocket(int socket, const char* lpszName, con
 	const char *p = NULL;
 	bool			allowLocalUsers = false;
 	int				pid = 0;
-#ifdef WIN32
-	TCHAR			*pt = NULL;
-	TCHAR			*localAdminUsers = NULL;
-	TCHAR			szUsernameServer[256+1] = {0}; // max size is UNLEN +1 (defined in Lmcons.h)
-	TCHAR			szUsernameClient[256+1] = {0};
-	DWORD			dwSize = 0;
-#else
 	char			*ptr = NULL;
 	char			*localAdminUsers = NULL;
-#endif
 
     if (!lpszName)
     {
@@ -1678,167 +1661,6 @@ exit:
 	return er;
 }
 #undef NTLMBUFFER
-#endif
-#ifdef WIN32
-ECRESULT ECAuthSession::ValidateSSOData(struct soap* soap, const char* lpszName, const char* lpszImpersonateUser, const char* szClientVersion, const char* szClientApp, const char *szClientAppVersion, const char *szClientAppMisc, const struct xsd__base64Binary* lpInput, struct xsd__base64Binary** lppOutput)
-{
-	ECRESULT er = KCERR_INVALID_PARAMETER;
-	SECURITY_STATUS	SecStatus;
-	bool			bFirst = false;
-	SecBuffer		OutSecBuffer, InSecBuffer[2];
-	SecBufferDesc	OutSecBufferDesc, InSecBufferDesc;
-	ULONG			fContextAttr = 0;
-	struct xsd__base64Binary *lpOutput = NULL;
-
-	OutSecBuffer.pvBuffer = NULL;
-
-	if (!soap) {
-		ec_log_err("Invalid argument \"soap\" in call to ECAuthSession::ValidateSSOData()");
-		goto exit;
-	}
-	if (!lpszName) {
-		ec_log_err("Invalid argument \"lpszName\" in call to ECAuthSession::ValidateSSOData()");
-		goto exit;
-	}
-	if (!szClientVersion) {
-		ec_log_err("Invalid argument \"zClientVersionin\" in call to ECAuthSession::ValidateSSOData()");
-		goto exit;
-	}
-	if (!szClientApp) {
-		ec_log_err("Invalid argument \"szClientApp\" in call to ECAuthSession::ValidateSSOData()");
-		goto exit;
-	}
-	if (!lpInput) {
-		ec_log_err("Invalid argument \"lpInput\" in call to ECAuthSession::ValidateSSOData()");
-		goto exit;
-	}
-	if (!lppOutput) {
-		ec_log_err("Invalid argument \"lppOutput\" in call to ECAuthSession::ValidateSSOData()");
-		goto exit;
-	}
-	er = KCERR_LOGON_FAILED;
-	if (!SecIsValidHandle(&m_hCredentials)) {
-		// new connection
-
-		SecStatus = EnumerateSecurityPackages(&m_cPackages, &m_lpPackageInfo);
-		if (SecStatus != SEC_E_OK) {
-			ec_log_err("Unable to get security packages list");
-			goto exit;
-		}
-
-		for (m_ulPid = 0; m_ulPid < m_cPackages; ++m_ulPid) {
-			// find auto detect method, always (?) first item in the list
-			// TODO: config option to force a method?
-			if (_tcsicmp(_T("Negotiate"), m_lpPackageInfo[m_ulPid].Name) == 0)
-				break;
-		}
-		if (m_ulPid == m_cPackages) {
-			ec_log_err("Negotiate security package was not found");
-			goto exit;
-		}
-
-		SecStatus = AcquireCredentialsHandle(/* principal */NULL, /* package */m_lpPackageInfo[m_ulPid].Name,
-			/*fCredentialUse*/SECPKG_CRED_INBOUND, /*pvLogonID*/NULL, /*pAuthData*/NULL, NULL, NULL,
-			&m_hCredentials, &m_tsExpiry);
-		if (SecStatus != SEC_E_OK) {
-			ec_log_err("Unable to acquire credentials handle: 0x%08X", SecStatus);
-			goto exit;
-		}
-
-		bFirst = true;
-	} else {
-		// step 2
-	}
-
-	// prepare input buffer
-	InSecBufferDesc.ulVersion = SECBUFFER_VERSION;
-	InSecBufferDesc.cBuffers = 2;
-	InSecBufferDesc.pBuffers = InSecBuffer;
-	InSecBuffer[0].BufferType = SECBUFFER_TOKEN;
-	InSecBuffer[0].cbBuffer = lpInput->__size;
-	InSecBuffer[0].pvBuffer = (void*)lpInput->__ptr;
-	InSecBuffer[1].BufferType = SECBUFFER_EMPTY;
-	InSecBuffer[1].cbBuffer = 0;
-	InSecBuffer[1].pvBuffer = NULL;
-
-	OutSecBufferDesc.ulVersion = SECBUFFER_VERSION;
-	OutSecBufferDesc.cBuffers = 1;
-	OutSecBufferDesc.pBuffers = &OutSecBuffer;
-	OutSecBuffer.BufferType = SECBUFFER_TOKEN;
-	OutSecBuffer.cbBuffer = m_lpPackageInfo[m_ulPid].cbMaxToken;
-	OutSecBuffer.pvBuffer = NULL;
-
-	SecStatus = AcceptSecurityContext(&m_hCredentials, bFirst ? NULL : &m_hContext, &InSecBufferDesc,
-		ASC_REQ_ALLOCATE_MEMORY | ASC_REQ_CONFIDENTIALITY | ASC_REQ_CONNECTION, SECURITY_NATIVE_DREP,
-		&m_hContext, &OutSecBufferDesc, &fContextAttr, &m_tsExpiry);
-
-	if (FAILED(SecStatus)) {
-		ec_log_err("Error accepting security context: 0x%08X", SecStatus);
-		goto exit;
-	}
-
-	if (SecStatus) {
-		// continue data
-		lpOutput = s_alloc<struct xsd__base64Binary>(soap);
-		lpOutput->__size = OutSecBuffer.cbBuffer;
-		lpOutput->__ptr = s_alloc<unsigned char>(soap, OutSecBuffer.cbBuffer);
-		memcpy(lpOutput->__ptr, OutSecBuffer.pvBuffer, OutSecBuffer.cbBuffer);
-
-		er = KCERR_SSO_CONTINUE;
-	} else {
-		// logged on
-		TCHAR username[256];
-		ULONG size = 256;
-		string strUsername;
-
-		SecStatus = ImpersonateSecurityContext(&m_hContext);
-		if (SecStatus != SEC_E_OK)
-			goto exit;
-
-		GetUserName(username, &size);
-		strUsername = convert_to<std::string>("UTF-8", username, rawsize(username), CHARSET_TCHAR);
-
-		SecStatus = RevertSecurityContext(&m_hContext);
-		if (SecStatus != SEC_E_OK)
-			goto exit;
-
-		// Check whether user exists in the user database
-		er = m_lpUserManagement->ResolveObjectAndSync(ACTIVE_USER, (char *)strUsername.c_str(), &m_ulUserID);
-		// don't check NONACTIVE, since those shouldn't be able to login
-		if (er != erSuccess)
-			goto exit;
-
-		// stricmp ??
-		if (strUsername.compare(lpszName) != 0) {
-			// cannot open another user without password
-			// or should be check permissions ?
-			ec_log_warn("Single Sign-On: User \"%s\" authenticated, but user \"%s\" requested.", username, lpszName);
-			er = KCERR_LOGON_FAILED;
-		} else {
-			m_bValidated = true;
-			er = erSuccess;
-			ec_log_info("Single Sign-On: User \"%s\" authenticated", username);
-		}
-	}
-
-	*lppOutput = lpOutput;
-
-exit:
-	if (OutSecBuffer.pvBuffer)
-		FreeContextBuffer(OutSecBuffer.pvBuffer);
-
-	return er;
-}
-
-ECRESULT ECAuthSession::ValidateSSOData_KRB5(struct soap* soap, const char* lpszName, const char* szClientVersion, const char* szClientApp, const char *szClientAppVersion, const char *szClientAppMisc, const struct xsd__base64Binary* lpInput, struct xsd__base64Binary** lppOutput)
-{
-	return KCERR_LOGON_FAILED;
-}
-
-ECRESULT ECAuthSession::ValidateSSOData_NTLM(struct soap* soap, const char* lpszName, const char* szClientVersion, const char* szClientApp, const char *szClientAppVersion, const char *szClientAppMisc, const struct xsd__base64Binary* lpInput, struct xsd__base64Binary **lppOutput)
-{
-	return KCERR_LOGON_FAILED;
-}
 #endif
 
 ECRESULT ECAuthSession::ProcessImpersonation(const char* lpszImpersonateUser)

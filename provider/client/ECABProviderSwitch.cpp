@@ -36,12 +36,6 @@
 
 #include "ECABProviderSwitch.h"
 #include "ECOfflineState.h"
-
-#ifdef WIN32
-#include <Sensapi.h>
-#include "PasswordDlg.h"
-#endif
-
 #include "ProviderUtil.h"
 
 #include <kopano/charset/convstring.h>
@@ -109,12 +103,6 @@ HRESULT ECABProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR l
 #endif
 
 	convstring tstrProfileName(lpszProfileName, ulFlags);
-
-#if defined(WIN32) && !defined(WINCE)
-	if (ulUIParam == 0)
-		ulUIParam = (ULONG)GetWindow(GetDesktopWindow(), GW_CHILD);
-#endif
-
 	hr = GetProviders(&g_mapProviders, lpMAPISup, convstring(lpszProfileName, ulFlags).c_str(), ulFlags, &sProviderInfo);
 	if (hr != hrSuccess)
 		goto exit;
@@ -160,15 +148,6 @@ relogin:
 		else if (hr != hrSuccess)
 			goto exit;
 
-		//TODO: check is this the first time?
-#ifdef WIN32
-		if (bFirstSync) {
-			hr = FirstAddressBookSync((HWND)ulUIParam, lpOffline, lpOnline, lpMAPISup);
-			if (hr != hrSuccess)
-				goto exit;
-		}
-#endif
-
 		if ( (sProviderInfo.ulProfileFlags&(EC_PROFILE_FLAGS_OFFLINE|EC_PROFILE_FLAGS_CACHE_PRIVATE)) == (EC_PROFILE_FLAGS_OFFLINE|EC_PROFILE_FLAGS_CACHE_PRIVATE) )
 		{ 
 			// Cached mode
@@ -176,78 +155,6 @@ relogin:
 			lpABLogonOffline = NULL;
 			ulConnectType = CT_OFFLINE;
 		}
-#ifdef WIN32
-		else 
-		{
-			// Autodetect
-			if ((ulFlags & MDB_NO_DIALOG) && sProviderInfo.ulConnectType == CT_UNSPECIFIED) {
-
-				// This is a non-interactive logon with autodetect mode. Our behaviour is to follow
-				// whatever the user has last chosen in an interactive login session (pressing the button 'continue'
-				// for example, selecting offline mode. This causes MAPISP32.exe to follow whatever the user has chosen.
-
-				if(GetLastConnectionType(lpMAPISup, &ulConnectType) == erSuccess) {
-					sProviderInfo.ulConnectType = ulConnectType;
-				}
-			}
-
-			if (bFirstSync == FALSE && sProviderInfo.ulConnectType == CT_OFFLINE) {
-				// Autodetect offline
-				lpABLogon = lpABLogonOffline;
-				lpABLogonOffline = NULL;
-				ulConnectType = CT_OFFLINE;
-			} else if (bFirstSync == FALSE && sProviderInfo.ulConnectType == CT_ONLINE) {
-				// Autodetect online
-				hr = lpOnline->Logon(lpMAPISup, ulUIParam, lpszProfileName, ulFlags, NULL, NULL, NULL, &lpABLogon);
-				ulConnectType = CT_ONLINE;
-			} else {
-				// Autodetect unspecified
-
-				do {
-					bRetryLogon = false;
-					ulConnectType = CT_ONLINE;
-
-					if (IsNetworkAlive(&dwNetworkFlag) == TRUE) {
-						hr = lpOnline->Logon(lpMAPISup, ulUIParam, lpszProfileName, ulFlags, NULL, NULL, NULL, &lpABLogon);
-					}else {
-						hr = MAPI_E_NETWORK_ERROR;
-					}
-
-					if(hr != hrSuccess && ulFlags & MDB_NO_DIALOG) {
-						goto exit;
-					}else if (hr == MAPI_E_NETWORK_ERROR) {
-						hr = hrSuccess;
-
-						// Question work online / offline 
-						ulAction = MessageBox((HWND)ulUIParam, _("Unable to work online! Do you want to switch to offline mode?"), g_strProductName.c_str(), MB_CANCELTRYCONTINUE);
-						switch(ulAction)
-						{
-							case IDCONTINUE: // Use offline store
-								lpABLogon = lpABLogonOffline;
-								lpABLogonOffline = NULL;
-
-								ulConnectType = CT_OFFLINE;
-
-								// Set 'work offline' mode, since we know that the online server is not available now
-								ECOfflineState::SetOfflineState(tstrProfileName, ECOfflineState::OFFLINESTATE_OFFLINE);
-								break;
-							case IDTRYAGAIN:
-								bRetryLogon = true;
-								break;
-							case IDCANCEL:
-							default:
-								hr = MAPI_E_NETWORK_ERROR;
-								break;
-						}// switch(ulAction)
-					} // if (hr == MAPI_E_NETWORK_ERROR)
-
-					// INFO: hr can be an error, check on a other place
-				}while (bRetryLogon);
-				
-			} // if (bFirstSync == FALSE && sProviderInfo.bOnline == FALSE)
-
-		}
-#endif	// WIN32
 	}
 #endif	// HAVE_OFFLINE_SUPPORT
 
@@ -265,39 +172,9 @@ relogin:
 			hr = MAPI_E_FAILONEPROVIDER; //for disable public folders, so you can work offline
 			goto exit;
 		} else if (hr == MAPI_E_LOGON_FAILED) {
-#if defined(WIN32) && !defined(WINCE)
-			//MessageBox((HWND)ulUIParam, _("Incorrect username and/or password."), g_strProductName, MB_OK | MB_ICONEXCLAMATION );
-
-			// Use this dll for resource stuff
-			AFX_MANAGE_STATE(AfxGetStaticModuleState());
-
-			CWnd *lpParentWnd = CWnd::FromHandle((HWND)ulUIParam); 
-			CPasswordDlg pwdDlg(lpParentWnd, lpMAPISup);
-
-			if (pwdDlg.DoModal() == IDOK && pwdDlg.Save() == hrSuccess) {
-				goto relogin;
-			}
-			else {
-				hr = MAPI_E_LOGON_FAILED;
-				goto exit;
-			}
-#else
 			hr = MAPI_E_UNCONFIGURED; // Linux error ??//
 			//hr = MAPI_E_LOGON_FAILED;
 			goto exit;
-#endif
-#ifdef WIN32
-		}else if(hr == MAPI_E_SESSION_LIMIT) {
-			if(!(ulFlags & MDB_NO_DIALOG)) {
-				MessageBox((HWND)ulUIParam, _("Cannot use the profile because you are over the license limit. To continue, you must purchase additional client licenses."), g_strProductName.c_str(), MB_ICONEXCLAMATION | MB_OK);
-			}
-			goto exit;
-		}else if(hr == MAPI_E_NO_ACCESS) {
-			if(!(ulFlags & MDB_NO_DIALOG)) {
-				MessageBox((HWND)ulUIParam, _("Cannot use the profile because the server was unable to contact the license server. Please consult your system administrator."), g_strProductName.c_str(), MB_ICONEXCLAMATION | MB_OK);
-			}
-			goto exit;
-#endif
 		}else{
 			hr = MAPI_E_LOGON_FAILED;
 			goto exit;

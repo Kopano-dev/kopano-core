@@ -46,10 +46,6 @@
 #include <map>
 #include <kopano/charset/convert.h>
 
-#ifdef WIN32
-HMODULE g_hLibMapi = 0;
-#endif
-
 /* Some required globals */
 ECConfig *m4l_lpConfig = NULL;
 ECLogger *m4l_lpLogger = NULL;
@@ -76,28 +72,8 @@ static HRESULT HrCreateM4LServices(void)
 		{ NULL, NULL },
 	};
 
-#ifdef WIN32
-	configfile = _T("."); /* Not sure if this is going to work... */
-
-	/*
-	 * Read register key to discover the installation directory
-	 * where the configuration file can be found (Obviously this only works on Windows).
-	 */
-	HKEY hKey = NULL;
-	TCHAR szDir[MAX_PATH];
-	ULONG cbDir = 0;
-
-	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, _T("Software\\Kopano\\ExchangeRedirector"), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
-		cbDir = MAX_PATH * sizeof(TCHAR);
-		if (RegQueryValueEx(hKey, _T("InstallDir"), NULL, NULL, (BYTE*)szDir, &cbDir) == ERROR_SUCCESS)
-			configfile = szDir;
-		RegCloseKey(hKey);
-	}
-#else
 	/* Go for default location of kopano configuration */
 	configfile = _T("/etc/kopano/");
-#endif /* WIN32 */
-
 	configfile += PATH_SEPARATOR;
 	configfile += _T("exchange-redirector.cfg");
 
@@ -675,9 +651,6 @@ HRESULT M4LMsgServiceAdmin::CreateMsgService(LPTSTR lpszService, LPTSTR lpszDisp
 		goto exit;
 	}
 
-#ifdef WIN32
-	// @todo, this should be able to find MSEMS as Kopano
-#endif
 	hr = m4l_lpMAPISVC->GetService(lpszService, ulFlags, &service);
 	if (hr == MAPI_E_NOT_FOUND) {
 		ec_log_err("M4LMsgServiceAdmin::CreateMsgService(): get service \"%s\" failed: %s (%x). "
@@ -728,12 +701,6 @@ HRESULT M4LMsgServiceAdmin::CreateMsgService(LPTSTR lpszService, LPTSTR lpszDisp
 	hr = service->CreateProviders(entry->provideradmin);
 
 	entry->bInitialize = false;
-#ifdef WIN32
-//	The windows mapi32 calls always MSG_SERVICE_CREATE and shows a gui. This is how it should work. Do not remove example code.
-//	if(EC_MSGServiceEntry(0, NULL, NULL, ulUIParam, ulFlags, MSG_SERVICE_CREATE, 0, NULL, (LPPROVIDERADMIN)entry->provideradmin, NULL) == hrSuccess)
-//		entry->bInitialize = true;
-#endif
-
 exit:
 	pthread_mutex_unlock(&m_mutexserviceadmin);
 
@@ -824,11 +791,6 @@ HRESULT M4LMsgServiceAdmin::ConfigureMsgService(LPMAPIUID lpUID, ULONG ulUIParam
 	HRESULT hr = hrSuccess;
 	M4LProviderAdmin *lpProviderAdmin = NULL;
     serviceEntry* entry;
-#if WIN32
-	std::string strServerPath;
-	ULONG ulcTmpValues = 0;
-	LPSPropValue lpTmpProps = NULL;
-#endif
 
 	pthread_mutex_lock(&m_mutexserviceadmin);
 	
@@ -849,23 +811,6 @@ HRESULT M4LMsgServiceAdmin::ConfigureMsgService(LPMAPIUID lpUID, ULONG ulUIParam
 		goto exit;
 	}
 
-#if WIN32
-	if(entry->servicename == "MSEMS") {
-		LPSPropValue lpServer = PpropFindProp(lpProps, cValues, PR_PROFILE_UNRESOLVED_SERVER);
-		LPSPropValue lpUsername = PpropFindProp(lpProps, cValues, PR_PROFILE_UNRESOLVED_NAME);
-
-		hr = GetConnectionProperties(lpServer, lpUsername, &ulcTmpValues, &lpTmpProps); 
-		if (hr != hrSuccess) {
-			ec_log_err("M4LMsgServiceAdmin::ConfigureMsgService() GetConnectionProperties failed %x: %s", hr, GetMAPIErrorMessage(hr));
-			goto exit;
-		}
-
-		// @todo, merge with parameters, not override?
-		cValues = ulcTmpValues; 
-		lpProps = lpTmpProps; 
-	}
-#endif /* WIN32 */
-
 	// call kopano client Message Service Entry (provider/client/EntryPoint.cpp)
 	hr = entry->service->MSGServiceEntry()(0, NULL, NULL, ulUIParam, ulFlags, MSG_SERVICE_CONFIGURE, cValues, lpProps, (LPPROVIDERADMIN)entry->provideradmin, NULL);
 	if(hr != hrSuccess) {
@@ -877,9 +822,6 @@ HRESULT M4LMsgServiceAdmin::ConfigureMsgService(LPMAPIUID lpUID, ULONG ulUIParam
 
 exit:
 	pthread_mutex_unlock(&m_mutexserviceadmin);
-#if WIN32
-	MAPIFreeBuffer(lpTmpProps);
-#endif
 	if(lpProviderAdmin)
 		lpProviderAdmin->Release();
 
@@ -1234,28 +1176,6 @@ HRESULT M4LMAPISession::GetMsgStoresTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 		lpType = PpropFindProp(lpsProps, cValues, PR_RESOURCE_TYPE);
 		if(lpType == NULL || lpType->Value.ul != MAPI_STORE_PROVIDER)
 			goto next;
-
-#ifdef WIN32
-		/*
-		 * BlackBerry: Swap GUIDS from Kopano to Exchange when requesting Micrsoft Exchange services
-		 */
-		if ((*i)->servicename == "MSEMS" &&
-			lpsProps[0].ulPropTag == PR_MDB_PROVIDER &&
-			lpsProps[0].Value.bin.cb == sizeof(GUID)) {
-				if (memcmp(lpsProps[0].Value.bin.lpb, &KOPANO_SERVICE_GUID, sizeof(GUID)) == 0) {
-					TRACE_MAPILIB(TRACE_ENTRY, "IMAPISession::GetMsgStoresTable", "Replacing Private Store GUID");
-					memcpy(lpsProps[0].Value.bin.lpb, pbExchangeProviderPrimaryUserGuid, sizeof(GUID));
-				} else if (memcmp(lpsProps[0].Value.bin.lpb, &KOPANO_STORE_DELEGATE_GUID, sizeof(GUID)) == 0) {
-					TRACE_MAPILIB(TRACE_ENTRY, "IMAPISession::GetMsgStoresTable", "Replacing Delegate Store GUID");
-					memcpy(lpsProps[0].Value.bin.lpb, pbExchangeProviderDelegateGuid, sizeof(GUID));
-				} else if (memcmp(lpsProps[0].Value.bin.lpb, &KOPANO_STORE_PUBLIC_GUID, sizeof(GUID)) == 0) {
-					TRACE_MAPILIB(TRACE_ENTRY, "IMAPISession::GetMsgStoresTable", "Replacing Public Store GUID");
-					memcpy(lpsProps[0].Value.bin.lpb, pbExchangeProviderPublicGuid, sizeof(GUID));
-				} else {
-					TRACE_MAPILIB(TRACE_ENTRY, "IMAPISession::GetMsgStoresTable", "Unknown GUID, not replaced");
-				}
-		}
-#endif
 
 		sPropID.ulPropTag = PR_ROWID;
 		sPropID.Value.ul = n++;
@@ -3273,26 +3193,6 @@ HRESULT __stdcall MAPIInitialize(LPVOID lpMapiInit) {
 			goto exit;
 		}
 		localProfileAdmin->AddRef();
-
-#ifdef WIN32
-		typedef HRESULT (__stdcall MS_MAPIInitialize)(LPVOID lpMapiInit);
-		MS_MAPIInitialize*	lpMapiInitFn = NULL;
-
-		g_hLibMapi = LoadLibraryA("msmapi32.dll");
-		if(!g_hLibMapi) {
-			goto ignore;
-		}
-
-		lpMapiInitFn = (MS_MAPIInitialize *)GetProcAddress(g_hLibMapi, "MAPIInitialize@4");
-		if(!lpMapiInitFn) {
-			hr = MAPI_E_CALL_FAILED;
-			goto exit;
-		}
-
-		hr = lpMapiInitFn(lpMapiInit);
-ignore:
-	  ;
-#endif
 	}
 
 exit:
@@ -3330,21 +3230,6 @@ void __stdcall MAPIUninitialize(void) {
 		HrFreeM4LServices();
 
 		pthread_mutex_destroy(&_memlist_lock);
-
-#ifdef WIN32
-		if(g_hLibMapi) {
-			typedef HRESULT (__stdcall MS_MAPIUninitialize)();
-			MS_MAPIUninitialize*	lpMapiUninit = NULL;
-
-			lpMapiUninit = (MS_MAPIUninitialize *)GetProcAddress(g_hLibMapi, "MAPIUninitialize@0");
-			if(lpMapiUninit)
-				lpMapiUninit();
-
-			FreeLibrary(g_hLibMapi);
-
-			g_hLibMapi = 0;
-		}
-#endif
 	}
 
 	pthread_mutex_unlock(&g_MAPILock);

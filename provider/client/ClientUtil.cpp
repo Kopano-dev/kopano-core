@@ -831,32 +831,7 @@ exit:
  */
 HRESULT ClientUtil::GetConfigPath(std::string *lpConfigPath)
 {
-#ifdef WIN32
-	HRESULT hr = hrSuccess;
-	HKEY hKey = NULL;
-	char szDir[MAX_PATH];
-	ULONG cbDir = 0;
-
-	hr = RegOpenKeyExA(HKEY_LOCAL_MACHINE, "Software\\Kopano\\ExchangeRedirector", 0, KEY_READ, &hKey);
-	if(hr != hrSuccess)
-		goto exit;
-
-	cbDir = MAX_PATH;
-
-	hr = RegQueryValueExA(hKey, "InstallDir", NULL, NULL, (BYTE*)szDir, &cbDir);
-	if(hr != hrSuccess)
-		goto exit;
-
-	lpConfigPath->assign(szDir);
-
-exit:
-	if(hKey)
-		RegCloseKey(hKey);
-
-	return hr;
-#else
 	return MAPI_E_NO_SUPPORT;
-#endif
 }
 
 /**
@@ -1198,13 +1173,5 @@ BOOL CompareMDBProvider(MAPIUID* lpguid, const GUID *lpguidKopano)
 {
 	if (memcmp(lpguid, lpguidKopano, sizeof(GUID)) == 0)
 		return TRUE;
-#ifdef WIN32
-		if ((memcmp(lpguidKopano, &KOPANO_SERVICE_GUID, sizeof(GUID)) == 0 && memcmp(lpguid, &MSEMS_SERVICE_GUID, sizeof(GUID)) == 0) ||
-			(memcmp(lpguidKopano, &KOPANO_STORE_PUBLIC_GUID, sizeof(GUID)) == 0 && memcmp(lpguid, &MSEMS_PUBLIC_STORE_GUID, sizeof(GUID)) == 0) ||
-			(memcmp(lpguidKopano, &KOPANO_STORE_DELEGATE_GUID, sizeof(GUID)) == 0 && memcmp(lpguid, &MSEMS_DELEGATE_GUID, sizeof(GUID)) == 0) )
-		{
-			return TRUE;
-		}
-#endif
 	return FALSE;
 }

@@ -39,11 +39,7 @@
 
 // vmime
 #include <vmime/vmime.hpp>
-#ifdef _WIN32
-#include <vmime/platforms/windows/windowsHandler.hpp>
-#else
 #include <vmime/platforms/posix/posixHandler.hpp>
-#endif
 #include <vmime/contentTypeField.hpp>
 #include <vmime/contentDispositionField.hpp>
 

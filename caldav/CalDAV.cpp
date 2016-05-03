@@ -157,11 +157,7 @@ int main(int argc, char **argv) {
 
 	// Configuration
 	int opt = 0;
-#ifdef WIN32
-	const char *lpszCfg = "ical.cfg";
-#else
 	const char *lpszCfg = ECConfig::GetDefaultPath("ical.cfg");
-#endif
 	static const configsetting_t lpDefaults[] = {
 #ifdef LINUX
 		{ "run_as_user", "kopano" },
@@ -252,11 +248,7 @@ int main(int argc, char **argv) {
 	if (!g_lpConfig->LoadSettings(lpszCfg) ||
 	    !g_lpConfig->ParseParams(argc - optind, &argv[optind], NULL) ||
 	    (!bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())) {
-#ifdef WIN32
-		g_lpLogger = new ECLogger_Eventlog(1, "KopanoICal");
-#else
 		g_lpLogger = new ECLogger_File(1, 0, "-", false);
-#endif
 		ec_log_set(g_lpLogger);
 		LogConfigErrors(g_lpConfig);
 		goto exit;

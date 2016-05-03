@@ -130,11 +130,6 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 	ECUserPtr		ptrUser;
 #endif
 
-#if defined(WIN32) && !defined(WINCE)
-	if(ulUIParam == 0)
-		ulUIParam = (ULONG)GetWindow(GetDesktopWindow(), GW_CHILD);
-#endif
-
 	// Always suppress UI when running in a service
 	if(m_ulFlags & MAPI_NT_SERVICE)
 		ulFlags |= MDB_NO_DIALOG;

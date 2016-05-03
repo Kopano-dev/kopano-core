@@ -28,16 +28,7 @@
 
 class ECLogger;
 
-#ifdef _WIN32
-# ifdef INETMAPI_EXPORTS
-#  define INETMAPI_API __declspec(dllexport)
-# else
-#  define INETMAPI_API __declspec(dllimport)
-# endif
-#else
-/* we do not need this on linux */
 # define INETMAPI_API
-#endif
 
 typedef struct _sFailedRecip {
 	std::string strRecipEmail;

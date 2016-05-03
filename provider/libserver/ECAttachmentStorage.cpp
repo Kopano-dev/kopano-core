@@ -30,9 +30,7 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
-#ifndef WIN32
 	#include <unistd.h>
-#endif
 
 #include "ECAttachmentStorage.h"
 #include "SOAPUtils.h"
@@ -1254,19 +1252,9 @@ ECFileAttachment::ECFileAttachment(ECDatabase *lpDatabase,
 {
 	m_basepath = basepath;
 	if (m_basepath.empty())
-#ifdef WIN32
-		m_basepath = "Kopano Data";
-#else
 		m_basepath = "/var/lib/kopano";
-#endif
 
 	this -> force_changes_to_disk = force_changes_to_disk;
-#ifdef WIN32
-	if (force_changes_to_disk)
-		ec_log_warn("Sync to disk for directories not supported on WIN32; ignoring setting");
-#endif
-
-#ifndef WIN32
 	m_dirFd = -1;
 	m_dirp = NULL;
 
@@ -1279,8 +1267,6 @@ ECFileAttachment::ECFileAttachment(ECDatabase *lpDatabase,
 		if (m_dirFd == -1)
 			ec_log_warn("Problem opening directory file \"%s\": %s - attachment storage atomicity not guaranteed", m_basepath.c_str(), strerror(errno));
 	}
-#endif
-
 	attachment_size_safety_limit = 512 * 1024 * 1024; // FIXME make configurable
 	
 	m_bTransaction = false;
@@ -1288,11 +1274,8 @@ ECFileAttachment::ECFileAttachment(ECDatabase *lpDatabase,
 
 ECFileAttachment::~ECFileAttachment()
 {
-#ifndef WIN32
 	if (m_dirp != NULL)
 		closedir(m_dirp);
-#endif
-
 	if (m_bTransaction)
 		ASSERT(FALSE);
 }
@@ -1306,11 +1289,7 @@ ECFileAttachment::~ECFileAttachment()
  */
 bool ECFileAttachment::ExistAttachmentInstance(ULONG ulInstanceId)
 {
-#ifdef WIN32
-#	define z_stat _stat
-#else
 #	define z_stat stat
-#endif
 	ECRESULT er = erSuccess;
 	string filename = CreateAttachmentFilename(ulInstanceId, m_bFileCompression);
 
@@ -1814,12 +1793,7 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(ULONG ulInstanceId,
 		}
 	}
 	else {
-#ifdef WIN32
-		fd = _open(filename.c_str(), _O_WRONLY | _O_CREAT | _O_TRUNC, _S_IREAD | _S_IWRITE);
-#else
 		fd = open(filename.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IWUSR | S_IRUSR);
-#endif
-
 		if (fd < 0) {
 			ec_log_err("Unable to open attachment \"%s\" for writing: %s", filename.c_str(), strerror(errno));
 			er = KCERR_DATABASE_ERROR;
@@ -1874,11 +1848,7 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(ULONG ulInstanceId,
 	unsigned char szBuffer[CHUNK_SIZE];
 	size_t iSizeLeft = iSize;
 
-#ifdef WIN32
-	int fd = _open(filename.c_str(), _O_RDWR | _O_CREAT, _S_IREAD | _S_IWRITE);
-#else
 	int fd = open(filename.c_str(), O_RDWR | O_CREAT, S_IWUSR | S_IRUSR);
-#endif
 	if (fd == -1) {
 		ec_log_err("Unable to open attachment \"%s\" for writing: %s.",
 			filename.c_str(), strerror(errno));
@@ -1987,11 +1957,8 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(ULONG ulInstanceId,
 	}
 
 exit:
-#ifndef WIN32
 	if (er == erSuccess && m_dirFd != -1 && fsync(m_dirFd) == -1)
 		ec_log_warn("Problem syncing parent directory of \"%s\": %s", filename.c_str(), strerror(errno));
-#endif
-
 	if (fd != -1)
 		close(fd);
 

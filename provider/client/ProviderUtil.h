@@ -41,11 +41,6 @@ HRESULT CreateMsgStoreObject(char *lpszProfname, LPMAPISUP lpMAPISup, ULONG cbEn
 							MAPIUID* lpguidMDBProvider, BOOL bSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore,
 							ECMsgStore** lppMsgStore);
 
-#ifdef WIN32
-HRESULT FirstFolderSync(HWND hWnd, IMSProvider *lpOffline, IMSProvider *lpOnline, ULONG cbEntryID, LPENTRYID lpEntryID, LPMAPISUP lpMAPISupport);
-HRESULT FirstAddressBookSync(HWND hWnd, IABProvider *lpOffline, IABProvider *lpOnline, LPMAPISUP lpMAPISupport);
-#endif
-
 #ifdef HAVE_OFFLINE_SUPPORT
 /*
 	Start a storage server with a unique pipe and database

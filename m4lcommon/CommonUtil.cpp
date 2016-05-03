@@ -56,12 +56,8 @@
 #include <kopano/MAPIErrors.h>
 
 #include <sys/types.h>
-#ifdef WIN32
-#include <ws2tcpip.h>
-#else
 #include <sys/socket.h>
 #include <netdb.h>
-#endif
 
 using namespace std;
 
@@ -2352,39 +2348,7 @@ exit:
 HRESULT GetClientVersion(unsigned int* ulVersion)
 {
 	HRESULT hr = hrSuccess;
-#ifdef WIN32
-	DWORD dwType = 0;
-	char	szData[255];
-	DWORD	cbData = 255;
-	char* lpFind = NULL;
-	HKEY	hKeyRoot = NULL;
-	
-	if(RegOpenKeyExA(HKEY_CLASSES_ROOT, "Outlook.Application\\CurVer", 0, KEY_READ, &hKeyRoot) != ERROR_SUCCESS) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
-	if(RegQueryValueExA(hKeyRoot, NULL, NULL, &dwType, (LPBYTE)szData, &cbData) != ERROR_SUCCESS || dwType != REG_SZ) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
-	// Outlook.Application.xx
-	lpFind = strrchr(szData, '.');
-	if(lpFind == NULL) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-	++lpFind;
-	*ulVersion = atoui(lpFind);	
-
-exit:
-	if(hKeyRoot)
-		RegCloseKey(hKeyRoot);
-#else
 	*ulVersion = CLIENT_VERSION_LATEST;
-#endif
-
 	return hr;
 }
 

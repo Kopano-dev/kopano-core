@@ -38,16 +38,6 @@
 #include "ECArchiveAwareMsgStore.h"
 #include "ECMsgStorePublic.h"
 #include <kopano/charset/convstring.h>
-
-
-#ifdef WIN32
-#include "ProgressDlg.h"
-#include <ECSync.h>
-
-#include <Sensapi.h>
-
-#endif //#ifdef WIN32
-
 #include "DLLGlobal.h"
 #include "EntryPoint.h"
 #include "ProviderUtil.h"
@@ -120,186 +110,6 @@ exit:
 
 	return hr;
 }
-
-#ifdef WIN32
-HRESULT FirstFolderSync(HWND hWnd, IMSProvider *lpOffline, IMSProvider *lpOnline, ULONG cbEntryID, LPENTRYID lpEntryID, LPMAPISUP lpMAPISupport)
-{
-	HRESULT hr = hrSuccess;
-	DWORD dwNetworkFlag = 0;
-
-	IECSync* lpStoreSync = NULL;
-	bool bRetryLogon;
-	ULONG ulAction;
-#if defined(WIN32) && !defined(WINCE)
-	CProgressDlg	dlgProgress(hWnd);
-#endif
-
-	SyncProgressCallBack	lpFolderSyncCallBack = NULL;
-	void*					lpCallObject = NULL;
-
-	convert_context			converter;
-
-	// Check is networkavailable
-	do {
-		bRetryLogon = false;
-		
-		if (IsNetworkAlive(&dwNetworkFlag) == FALSE) { // No network, can't sync
-			ulAction = MessageBox(hWnd, _("Unable to work online! The first time you need a network connection. Retry if you have the network connection."), g_strProductName.c_str(), MB_RETRYCANCEL);
-			if (ulAction == IDRETRY) {
-				bRetryLogon = true;
-			} else {
-				hr = MAPI_E_NETWORK_ERROR;
-				goto exit;
-			}
-		}
-	} while (bRetryLogon);
-
-
-	hr = CreateECSync(lpOffline, lpOnline, lpMAPISupport, cbEntryID, lpEntryID, &lpStoreSync);
-	if(hr != hrSuccess)
-		goto exit;
-
-#if defined(WIN32) && !defined(WINCE)
-
-	// Setup dialog
-	dlgProgress.SetTitle(_("First Folder Sync..."));
-	dlgProgress.SetCancelMsg(_("Cancel"));
-	dlgProgress.SetCalculateTime(true);
-	dlgProgress.SetAllowMinimize(false);
-	dlgProgress.SetShowCancelButton(false);
-	dlgProgress.SetLine(1, _("Sync folder items"));
-	
-	dlgProgress.ShowModal(true);
-
-	// Callback
-	lpCallObject = (void*)&dlgProgress;
-	lpFolderSyncCallBack = (SyncProgressCallBack)CProgressDlg::WrapCallUpdateProgress;
-
-#else
-	lpCallObject = NULL;
-	lpFolderSyncCallBack = NULL;
-#endif
-
-	// SYNC all folders
-	hr = lpStoreSync->SetSyncProgressCallBack(lpCallObject, lpFolderSyncCallBack);
-	if (hr != hrSuccess)
-		goto exit;
-
-	hr = lpStoreSync->FirstFolderSync();
-	if(hr != hrSuccess) {
-		// FIXME: give an error 
-		goto exit;
-	}
-
-#if defined(WIN32) && !defined(WINCE)
-	// Remove first sync dialog
-	dlgProgress.EndDialog();
-#endif
-
-exit:
-	if(lpStoreSync) {
-	    /* 
-		 * Make sure to Logoff lpStoreSync to make sure the internal Advice doesn't keep
-		 * a reference (or actually three references) to the instance itself, which acts
-		 * as the AdviseSink for the Advise. Failing to do so will cause lpStoreSync to
-		 * not be destructed by the call to Release, which will cause it to call into
-		 * dlgProgress (that is destructed) when new mail is delivered online.
-		 */
-		lpStoreSync->Logoff();
-		lpStoreSync->Release();
-	}
-
-	return hr;
-}
-
-HRESULT FirstAddressBookSync(HWND hWnd, IABProvider *lpOffline, IABProvider *lpOnline, LPMAPISUP lpMAPISupport)
-{
-	// Check is networkavailable
-
-	return MAPI_E_NO_SUPPORT;
-}
-
-#endif
-
-#ifdef WIN32
-BOOL StartServer(LPCTSTR lpKopanoDir, LPCTSTR lpDbConfigName, LPCTSTR lpDatabasePath, LPCTSTR lpUniqueId, LPPROCESS_INFORMATION lpProcInfo)
-{
-	BOOL bRunning = TRUE;
-	STARTUPINFO siStartupInfo;
-	DWORD dwCreationFlags;
-	DWORD dwWait = 0;
-	DWORD dwExitCode = 0;
-	LPCTSTR lpEnvironment = NULL;
-	LPCTSTR lpTmp;
-	LPTSTR lpCmdLine = NULL;
-
-	tstring strNewEnv, strCmdLine;
-
-	ASSERT(lpProcInfo != NULL);
-
-	memset(&siStartupInfo, 0, sizeof(siStartupInfo));
-	memset(lpProcInfo, 0, sizeof *lpProcInfo);
-
-	siStartupInfo.cb = sizeof(siStartupInfo);
-
-	dwCreationFlags = CREATE_NO_WINDOW | CREATE_DEFAULT_ERROR_MODE | NORMAL_PRIORITY_CLASS;
-#ifdef UNICODE
-	dwCreationFlags |= CREATE_UNICODE_ENVIRONMENT;
-#endif
-	
-	// Get all current environment variables
-	lpEnvironment = GetEnvironmentStrings();
-
-	if (lpEnvironment) {
-		lpTmp = lpEnvironment;
-		while(true)
-		{
-			if (*lpTmp == '\0')
-				break;
-
-			int size = _tcslen(lpTmp);
-
-			strNewEnv += lpTmp;
-			strNewEnv.append(1, '\0');
-
-			lpTmp += size + 1;
-		}
-	}
-
-	// Add kopano environment variable
-	strNewEnv += _T("KOPANO_DB_CONFIG_NAME=");
-	strNewEnv += lpDbConfigName;
-	strNewEnv.append(1, '\0');
-
-	strNewEnv += _T("KOPANO_DB_PATH=");
-	strNewEnv += lpDatabasePath;
-	strNewEnv.append(1, '\0');
-
-	strNewEnv += _T("KOPANO_UNIQUEID=");
-	strNewEnv += lpUniqueId;
-	strNewEnv.append(1, '\0');
-
-	strCmdLine = lpKopanoDir;
-	strCmdLine += _T("\\kopano-offline.exe");
-
-	// CreateProcess can modify the commandline parameter, so create a temporary buffer.
-	lpCmdLine = new TCHAR[strCmdLine.size() + 1];
-	_tcscpy(lpCmdLine, strCmdLine.c_str());
-
-	// Start kopano server process
-	if (CreateProcess(NULL, lpCmdLine, NULL, NULL, FALSE, 
-			dwCreationFlags, (LPVOID)strNewEnv.c_str(), lpKopanoDir, &siStartupInfo, lpProcInfo) == FALSE)
-	{
-		bRunning = FALSE;
-		goto exit;
-	}
-
-exit:
-	delete[] lpCmdLine;	// delete[] on NULL is allowed
-
-	return bRunning;
-}
-#endif //#ifdef WIN32
 
 // Get MAPI unique guid, guaranteed by MAPI to be unique for all profiles.
 HRESULT GetMAPIUniqueProfileId(LPMAPISUP lpMAPISup, tstring* lpstrUniqueId)
@@ -622,12 +432,7 @@ HRESULT GetOfflineServerURL(IMAPISupport *lpMAPISup, std::string *lpstrServerURL
 
 	//for windows: file://\\.\pipe\kopano-ID
 	//for linux: file:///tmp/kopano-ID
-#ifdef WIN32
-	strServerPath = _T("file://\\\\.\\pipe\\kopano-");
-#else
 	strServerPath = _T("file:///tmp/kopano-");
-#endif
-
 	hr = GetMAPIUniqueProfileId(lpMAPISup, &strUniqueId);
 	if(hr != hrSuccess)
 		return hr;
@@ -649,10 +454,6 @@ HRESULT CheckStartServerAndGetServerURL(IMAPISupport *lpMAPISup, LPCTSTR lpszUse
 	tstring strDBDirectory;
 	tstring strDBConfigFile;
 
-#ifdef WIN32
-	PROCESS_INFORMATION piProcInfo = {0};
-#endif
-
 	if (lpMAPISup == NULL || lpstrServerURL == NULL || lpszUserLocalAppDataKopano == NULL || lpszKopanoDirectory == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
@@ -662,73 +463,13 @@ HRESULT CheckStartServerAndGetServerURL(IMAPISupport *lpMAPISup, LPCTSTR lpszUse
 	if(hr != hrSuccess)
 		goto exit;
 
-#ifdef WIN32
-	// check if kopano server is running
-	if (WaitNamedPipeA(strServerPath.c_str() + 7, NMPWAIT_USE_DEFAULT_WAIT) == FALSE && GetLastError() != ERROR_PIPE_BUSY) {
-
-		strDBDirectory = lpszUserLocalAppDataKopano;
-		strDBDirectory+= _T("\\offlinedata\\");
-
-		strDBConfigFile = lpszKopanoDirectory;
-		strDBConfigFile+= _T("\\MySQL\\My.ini");
-
-		const path pathUpgradeFile = path(strDBDirectory) / path(strUniqueId + _T(".upgrading"));
-	
-		// Check if the offline server isn't upgrading the database.
-		if (bfs::exists(pathUpgradeFile) && ::_unlink(pathUpgradeFile.string().c_str()) == -1) {
-			hr = MAPI_E_BUSY;
-			goto exit;
-		}
-
-		if (StartServer(lpszKopanoDirectory, strDBConfigFile.c_str(), strDBDirectory.c_str(), strUniqueId.c_str(), &piProcInfo) == FALSE) {
-			hr = MAPI_E_FAILONEPROVIDER;
-			goto exit;
-		}
-
-        // Check 25 times with a 1 second interval if the named pipe is availble or the process has exit.
-		hr = MAPI_E_FAILONEPROVIDER;
-		for (int wait = 0; wait < 25; ++wait) {
-			DWORD dwExitCode = 0;
-			if (GetExitCodeProcess(piProcInfo.hProcess, &dwExitCode) == FALSE || dwExitCode != STILL_ACTIVE)
-				goto exit;
-
-			// Check if the offline server isn't upgrading the database.
-			if (bfs::exists(pathUpgradeFile)) {
-				hr = MAPI_E_BUSY;
-				goto exit;
-			}
-
-			// The named pipe is available whenever WaitNamedPipe returns TRUE (meaning it's ready to be connected) or 
-			// when GetLastError() returns ERROR_PIPE_BUSY (meaning that it exists but is busy).
-			if (WaitNamedPipeA(strServerPath.c_str() + 7, NMPWAIT_USE_DEFAULT_WAIT) == TRUE || GetLastError() == ERROR_PIPE_BUSY) {
-				hr = hrSuccess;
-				break;
-			}
-
-			// WaitNamedPipe doesn't block if the named pipe doesn't exist. So it will only block if the pipe does exist, which
-			// is all we're interested in. So in our loop it will never block. Therefore we'll just Sleep for a second.
-			Sleep(1000);
-		}
-	}
-
-#else
 	hr = MAPI_E_FAILONEPROVIDER;
 	// TODO: Linux support
-#endif
-
 	if(hr != hrSuccess)
 		goto exit;
 
 	*lpstrServerURL = strServerPath;
 exit:
-
-#ifdef WIN32
-	if (piProcInfo.hProcess)
-		CloseHandle(piProcInfo.hProcess);
-	if (piProcInfo.hThread)
-		CloseHandle(piProcInfo.hThread);
-#endif
-
 	return hr;
 }
 #endif

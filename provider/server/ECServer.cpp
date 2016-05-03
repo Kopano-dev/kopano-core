@@ -30,14 +30,6 @@
 #include <kopano/ECConfig.h>
 #include "ECDatabase.h"
 #include "ECPluginFactory.h"
-
-#ifdef WIN32
-#include "ECNTService.h"
-#include <process.h>
-#include <direct.h>
-#include <ws2tcpip.h>
-#endif
-
 #include "ECNotificationManager.h"
 #include "ECSessionManager.h"
 #include "ECStatsCollector.h"
@@ -64,11 +56,6 @@
 #include <map>
 #include <kopano/tstring.h>
 #include <kopano/charset/convstring.h>
-
-#ifdef WIN32
-#include "ECProcessPriority.h"
-#endif
-
 #ifdef ZCP_USES_ICU
 #include <unicode/uclean.h>
 #endif
@@ -128,13 +115,6 @@ sigset_t	signal_mask;
 bool 		m_bNPTL = true;
 #endif
 bool m_bDatabaseUpdateIgnoreSignals = false;
-
-#ifdef WIN32
-	#define SIGHUP		1
-	#define SIGPIPE		13
-	#define SIGUSR1		16
-	#define SIGUSR2		17
-#endif
 
 // This is the callback function for libserver/* so that it can notify that a delayed soap
 // request has been handled.
@@ -774,12 +754,6 @@ int main(int argc, char* argv[])
 			cout << "     --override-multiserver-lock             Start in multiserver mode even if multiserver mode is locked" << endl;
 			cout << "     --force-database-upgrade                Start upgrade from 6.x database and continue running if upgrade is complete" << endl;
 			cout << "     --ignore-db-thread-stack-size           Start even if the thread_stack setting for MySQL is too low" << endl;
-#if defined(WIN32)
-			cout << endl;
-			cout << "  Windows service options" << endl;
-			cout << "  -i                                         Install as service." << endl;
-			cout << "  -u                                         Remove the service." << endl;
-#endif
 			return 0;
 		case 'V':
 			cout << "Product version:\t" <<  PROJECT_VERSION_SERVER_STR << endl
@@ -809,103 +783,24 @@ int main(int argc, char* argv[])
 			break;
 		};
 	}
-
-#if defined(WIN32) && !defined(HAVE_OFFLINE_SUPPORT)
-	ECNTService ecNTService;
-	// Parse for standard arguments (install, uninstall, version etc.)
-	if (!ecNTService.ParseStandardArgs(argc, argv))
-	{
-		ecNTService.StartService(config, &g_Quit);
-	}
-
-	nReturn = ecNTService.m_Status.dwWin32ExitCode;
-	if(nReturn == ERROR_FAILED_SERVICE_CONTROLLER_CONNECT)
-		nReturn = running_server(argv[0], config);
-
-#else
-	//windows and linux
 	nReturn = running_server(argv[0], config, argc - optind, &argv[optind]);
-#endif
-
 	return nReturn;
 }
 
-#ifdef WIN32
-#define KOPANO_SERVER_PIPE "\\\\.\\pipe\\kopano"
-#define KOPANO_SERVER_PRIO "\\\\.\\pipe\\kopano-prio"
-inline int getuid() { return 0; }
-#else
 #define KOPANO_SERVER_PIPE "/var/run/kopano/server.sock"
 #define KOPANO_SERVER_PRIO "/var/run/kopano/prio.sock"
-#endif
 
-#ifdef WIN32
-void InitBindTextDomain()
-{
-	tstring strPath;
-	tstring strManufacturer = _T("Kopano");
-	BYTE szDir[MAX_PATH];
-	TCHAR szShort[MAX_PATH];
-	ULONG cbDir = 0;
-	HKEY hKey = NULL;
-
-#ifndef NO_GETTEXT
-	if(RegOpenKeyEx(HKEY_LOCAL_MACHINE, _T("Software\\Kopano\\Client"), 0, KEY_READ, &hKey) == ERROR_SUCCESS)
-	{
-		cbDir = MAX_PATH;
-		if(RegQueryValueEx(hKey, _T("Manufacturer"), NULL, NULL, szDir, &cbDir) == ERROR_SUCCESS) {
-			strManufacturer = (LPTSTR)szDir;
-		}
-
-		RegCloseKey(hKey);
-
-
-		if(SUCCEEDED(SHGetFolderPath(NULL, CSIDL_PROGRAM_FILES_COMMON, NULL, SHGFP_TYPE_CURRENT, (LPTSTR)szDir)))
-		{
-			strPath = (LPTSTR)szDir;
-			strPath += _T("\\");
-			strPath += strManufacturer.c_str();
-			strPath += _T("\\locale");
-
-#ifdef UNICODE
-			// bindtextdomain takes a non-unicode path argument, which we don't have if compiled with UNICODE. Our
-			// best bet is to get the short form of the required directory, which will contain only ANSI characters.
-			// However the 8.3 aliasses can be disabled. In that case we'll just convert the UNICODE path to ANSI
-			// and pray for the best.
-			if (GetShortPathName(strPath.c_str(), szShort, sizeof(szShort)) > 0)
-				bindtextdomain("kopano", convert_to<std::string>(szShort).c_str());
-			else
-				bindtextdomain("kopano", convert_to<std::string>(strPath).c_str());
-#else
-			bindtextdomain("kopano", strPath.c_str());
-#endif
-		}
-	}// RegOpenKeyEx
-
-	// Set gettext codeset, used for generated folder name translations
-	bind_textdomain_codeset("kopano", "UTF-8");
-#endif
-
-}
-
-#else
 static void InitBindTextDomain(void)
 {
 	// Set gettext codeset, used for generated folder name translations
 	bind_textdomain_codeset("kopano", "UTF-8");
 }
-#endif
 
 int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 {
 	int retval = -1;
 	ECRESULT		er = erSuccess;
-#ifdef WIN32
-	HRESULT			hr = hrSuccess;
-#endif
-
 	ECDatabaseFactory*	lpDatabaseFactory = NULL;
-
 	ECDatabase*		lpDatabase = NULL;
 	std::string		dbError;
 
@@ -1006,11 +901,7 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 		{"attachment_s3_secretaccesskey", ""},
 		{"attachment_s3_bucketname", ""},
 #endif
-#ifdef WIN32
 		{ "attachment_path",			"Kopano Data" },
-#else
-		{ "attachment_path",			"/var/lib/kopano/attachments" },
-#endif
 		{ "attachment_compression",		"6" },
 
 		// Log options
@@ -1161,11 +1052,7 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 	
 	if (!g_lpConfig->LoadSettings(szConfig) || !g_lpConfig->ParseParams(argc, argv, NULL) || (!m_bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors()) ) {
 #ifndef HAVE_OFFLINE_SUPPORT
-#ifdef WIN32
-		g_lpLogger = new ECLogger_Eventlog(EC_LOGLEVEL_INFO, "KopanoServer");
-#else
 		g_lpLogger = new ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false); // create info logger without a timestamp to stderr
-#endif
 		ec_log_set(g_lpLogger);
 		LogConfigErrors(g_lpConfig);
 		er = MAPI_E_UNCONFIGURED;
@@ -1187,13 +1074,6 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 	if (!TmpPath::getInstance() -> OverridePath(g_lpConfig))
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Ignoring invalid path-setting!");
 
-#ifdef WIN32
-	// now that we have a logger we'll attempt to correct our cpu, memory and IO priority
-	hr = SetPriority(NORMAL_PRIORITY_CLASS, DEFAULT_MEMORY_PRIORITY, DEFAULT_IO_PRIORITY);
-	if (FAILED(hr))
-		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed to set priority. Performance will be degraded! hr=0x%08x", hr);
-
-#endif
 	g_lpAudit = CreateLogger(g_lpConfig, szName, "KopanoServer", true);
 	if (g_lpAudit)
 		g_lpAudit->Log(EC_LOGLEVEL_NOTICE, "server startup uid=%d", getuid());

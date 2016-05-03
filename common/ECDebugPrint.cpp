@@ -53,11 +53,7 @@ namespace details {
 		if(!lpVoid) return L"NULL";
 
 		wchar_t szBuff[33];
-#if WIN32
-		swprintf(szBuff, L"0x%p", lpVoid);
-#else
 		swprintf(szBuff, ARRAY_SIZE(szBuff), L"0x%p", lpVoid);
-#endif
 		return szBuff;
 	}
 

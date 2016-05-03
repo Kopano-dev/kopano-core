@@ -414,42 +414,7 @@ HRESULT M4LProfSect::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfa
 }
 
 HRESULT M4LProfSect::SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray* lppProblems) {
-	HRESULT hr = hrSuccess;
-
-#ifdef WIN32
-	ULONG ulcTmpValues = 0;
-	LPSPropValue lpTmpProps = NULL; 
-	LPSPropValue lpDisplayname = NULL;
-	LPSPropValue lpServer = NULL;
-	LPSPropValue lpUsername = NULL;
-
-	if (bGlobalProf) { 
-		lpServer = PpropFindProp(lpPropArray, cValues, PR_PROFILE_HOME_SERVER); 
-		lpUsername = PpropFindProp(lpPropArray, cValues, PR_PROFILE_USER);
-		lpDisplayname = PpropFindProp(lpPropArray, cValues, PR_DISPLAY_NAME);
-
-		if (lpServer && lpUsername) 
-		{
-			hr = GetConnectionProperties(lpServer, lpUsername, &ulcTmpValues, &lpTmpProps); 
-			if (hr != hrSuccess) 
-				goto exit;
-
-			cValues = ulcTmpValues; 
-			lpPropArray = lpTmpProps;
-		}
-
-		if (lpDisplayname)
-			M4LMAPIProp::SetProps(1, lpDisplayname, NULL); //ignore errors
-	}
-#endif
-	hr = M4LMAPIProp::SetProps(cValues, lpPropArray, lppProblems);
-
-#ifdef WIN32
-exit:
-	MAPIFreeBuffer(lpTmpProps);
-#endif
-
-	return hr;
+	return M4LMAPIProp::SetProps(cValues, lpPropArray, lppProblems);
 }
 
 HRESULT M4LProfSect::DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray* lppProblems) {

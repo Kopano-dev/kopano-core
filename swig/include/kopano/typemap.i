@@ -446,7 +446,6 @@
 // ECLogger director
 ///////////////////////////////////
 #if SWIGPYTHON
-#ifndef WIN32
 
 %typemap(in) ECLogger *lpLogger (int res, ECSimpleLogger *sl, ECLoggerProxy *proxy)
 {
@@ -463,7 +462,6 @@
 	$1->Release();
 }
 
-#endif
 #endif
 
 // Pull in the language-specific typemap

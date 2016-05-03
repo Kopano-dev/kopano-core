@@ -128,13 +128,8 @@
 #include <csignal>
 #include "SSLUtil.h"
 #include "StatsClient.h"
-
-#ifdef WIN32
-#include "ECNTService.h"
-#else
 #include <execinfo.h>
-#endif
-    
+
 using namespace std;
 
 static StatsClient *sc = NULL;
@@ -489,17 +484,11 @@ static HRESULT HrAutoAccept(ECLogger *lpLogger, IMAPISession *lpMAPISession,
 	// force utf-8 output on the username. This means that the autoaccept script must also interpret the username
 	// in utf-8, *not* in the current locale.
 	strCmdLine = (std::string)autoresponder + " \"" + convert_to<string>("UTF-8", lpRecip->wstrUsername, rawsize(lpRecip->wstrUsername), CHARSET_WCHAR) + "\" \"" + g_lpConfig->GetSettingsPath() + "\" \"" + strEntryID + "\"";
-	
-#ifdef WIN32
-	g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "No support for autoaccept with command line %s", strCmdLine.c_str());
-	hr = MAPI_E_NO_SUPPORT;
-#else
 	g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Starting autoaccept with command line %s", strCmdLine.c_str());
 	if (!unix_system(autoresponder, strCmdLine.c_str(), const_cast<const char **>(environ))) {
 		hr = MAPI_E_CALL_FAILED;
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrAutoAccept(): invoking autoaccept script failed %x", hr);
 	}
-#endif
 		
 	// Delete the copy, irrespective of the outcome of the script.
 	sEntryList.cValues = 1;
@@ -580,15 +569,9 @@ static HRESULT HrAutoProcess(ECLogger *lpLogger, IMAPISession *lpMAPISession,
 	// force utf-8 output on the username. This means that the autoaccept script must also interpret the username
 	// in utf-8, *not* in the current locale.
 	strCmdLine = (std::string)autoprocessor + " \"" + convert_to<string>("UTF-8", lpRecip->wstrUsername, rawsize(lpRecip->wstrUsername), CHARSET_WCHAR) + "\" \"" + g_lpConfig->GetSettingsPath() + "\" \"" + strEntryID + "\"";
-
-#ifdef WIN32
-	g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "No support for autoaccept with command line %s", strCmdLine.c_str());
-	hr = MAPI_E_NO_SUPPORT;
-#else
 	g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Starting autoaccept with command line %s", strCmdLine.c_str());
 	if (!unix_system(autoprocessor, strCmdLine.c_str(), const_cast<const char **>(environ)))
 		hr = MAPI_E_CALL_FAILED;
-#endif
 
 	// Delete the copy, irrespective of the outcome of the script.
 	sEntryList.cValues = 1;
@@ -3605,19 +3588,6 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 	}
 
 	g_lpLogger->Log(EC_LOGLEVEL_INFO, "Maximum LMTP threads set to %d", nMaxThreads);
-
-#ifdef WIN32
-	// Initialize Winsock
-	WSADATA wsaData;
-	int iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
-
-	if (iResult != NO_ERROR) {
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Could not initialize Winsock (%d)", iResult);
-		hr = E_FAIL;
-		goto exit;
-	}
-#endif
-	
 	// Setup sockets
 	hr = HrListen(g_lpLogger, g_lpConfig->GetSetting("server_bind"),
 	              atoi(g_lpConfig->GetSetting("lmtp_port")), &ulListenLMTP);
@@ -3780,11 +3750,6 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 
 exit:
 	ECChannel::HrFreeCtx();
-
-#ifdef WIN32
-	WSACleanup();
-#endif
-
 #ifdef LINUX
 	free(st.ss_sp);
 #endif
@@ -4266,20 +4231,6 @@ int main(int argc, char *argv[]) {
 	sDeliveryArgs.sDeliveryOpts.default_charset = g_lpConfig->GetSetting("default_charset");
 
 	if (bListenLMTP) {
-#ifdef _WIN32
-#if 0
-		// FIXME
-		// Parse for standard arguments (install, uninstall, version etc.)
-		if (!ecNTService.ParseStandardArgs(argc, argv)) {
-			ecNTService.StartService(lpConfig, lpLogger, path);
-		}
-
-		hr = ecNTService.m_Status.dwWin32ExitCode;
-	
-		if (hr != ERROR_FAILED_SERVICE_CONTROLLER_CONNECT)
-			goto exit;
-#endif
-#endif
 		/* MAPIInitialize done inside running_service */
 		hr = running_service(argv[0], bDaemonize, &sDeliveryArgs);
 		if (hr != hrSuccess)

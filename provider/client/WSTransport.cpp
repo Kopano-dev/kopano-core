@@ -16,14 +16,6 @@
  */
 
 #include <kopano/platform.h>
-
-#ifdef WIN32
-// For WSAIoctl
-#include <WinSock2.h>
-#include <WS2tcpip.h>
-#include <Wincrypt.h>
-#endif
-
 #include <mapidefs.h>
 #include <mapicode.h>
 #include <mapitags.h>
@@ -37,14 +29,6 @@
 #include "SymmetricCrypt.h"
 #include "soapH.h"
 #include "pcutil.hpp"
-
-#ifdef WIN32
-// SSO security context
-// use WIN32 security model (?)
-#define SECURITY_WIN32
-#include <Security.h>
-#include "ECLicense.h"
-#endif
 
 // The header files we use for communication with the server
 #include <kopano/kcodes.h>
@@ -407,13 +391,8 @@ HRESULT WSTransport::HrLogon(const struct sGlobalProfileProps &in_props)
 	if (in_props.strServerPath.compare("default:") != 0)
 		return HrLogon2(in_props);
 	struct sGlobalProfileProps p = in_props;
-#ifdef WIN32
-	p.strServerPath = "file://\\\\.\\pipe\\kopano";
-	return HrLogon2(p);
-#else
 	p.strServerPath = "file:///var/run/kopano/server.sock";
 	return HrLogon2(p);
-#endif
 }
 
 HRESULT WSTransport::HrSetRecvTimeout(unsigned int ulSeconds)
@@ -515,138 +494,6 @@ HRESULT WSTransport::HrReLogon()
 ECRESULT WSTransport::TrySSOLogon(KCmd* lpCmd, LPCSTR szServer, utf8string strUsername, utf8string strImpersonateUser, unsigned int ulCapabilities, ECSESSIONGROUPID ecSessionGroupId, char *szAppName, ECSESSIONID* lpSessionId, unsigned int* lpulServerCapabilities, unsigned long long *lpllFlags, LPGUID lpsServerGuid, const std::string appVersion, const std::string appMisc)
 {
 	ECRESULT		er = KCERR_LOGON_FAILED;
-#ifdef WIN32
-	std::string strPrincipal("kopano/");
-	SECURITY_STATUS	SecStatus;
-	PSecPkgInfo		lpPackageInfo = NULL;
-	ULONG			cPackages = 0;
-	ULONG			ulPid = 0;
-	CredHandle		hCredential;
-	CtxtHandle		hNewContext;
-	SecBuffer		OutSecBuffer, InSecBuffer[2];
-	SecBufferDesc	OutSecBufferDesc, InSecBufferDesc;
-	ULONG			fContextAttr = 0;
-	unsigned int	ulServerVersion = 0;
-	struct xsd__base64Binary sSSOData;
-	struct ssoLogonResponse sResponse;
-	struct xsd__base64Binary sLicenseRequest = {0, 0};
-
-	OutSecBuffer.pvBuffer = NULL;	// auto allocated by InitializeSecurityContext(), but freed by us
-
-	SecInvalidateHandle(&hCredential);
-	SecInvalidateHandle(&hNewContext);
-
-	strPrincipal += szServer;
-
-	SecStatus = EnumerateSecurityPackages(&cPackages, &lpPackageInfo);
-	if (SecStatus != SEC_E_OK)
-		goto exit;
-
-	for (ulPid = 0; ulPid < cPackages; ++ulPid) {
-		// find auto detect method, always (?) first item in the list
-		// TODO: config option to force a method?
-		if (_tcsicmp(_T("Negotiate"), lpPackageInfo[ulPid].Name) == 0)
-			break;
-	}
-	if (ulPid == cPackages)
-		goto exit;
-
-	SecStatus = AcquireCredentialsHandle(/*service?? principal*/ NULL, /*package*/ lpPackageInfo[ulPid].Name,
-		/*fCredentialUse*/ SECPKG_CRED_OUTBOUND, /*pvLoginID*/ NULL,
-		/*pAuthData*/ NULL, /*pGetKeyFn*/ NULL, /*pvGetKeyArgument*/ NULL, &hCredential, NULL);
-
-	if (SecStatus != SEC_E_OK)
-		goto exit;
-
-	// setup security buffer descriptor
-	OutSecBufferDesc.ulVersion = SECBUFFER_VERSION;
-	OutSecBufferDesc.cBuffers = 1;
-	OutSecBufferDesc.pBuffers = &OutSecBuffer;
-	OutSecBuffer.BufferType = SECBUFFER_TOKEN;
-	OutSecBuffer.cbBuffer = lpPackageInfo[ulPid].cbMaxToken;
-	OutSecBuffer.pvBuffer = NULL;
-
-	// query identification packet
-	SecStatus = InitializeSecurityContextA(&hCredential, NULL /*1st time context*/, (SEC_CHAR*)strPrincipal.c_str(),
-		ISC_REQ_ALLOCATE_MEMORY | ISC_REQ_CONFIDENTIALITY | ISC_REQ_CONNECTION,
-		0, SECURITY_NATIVE_DREP, NULL, 0, &hNewContext, &OutSecBufferDesc, &fContextAttr, NULL);
-	if (SecStatus != SEC_E_OK && SecStatus != SEC_I_CONTINUE_NEEDED && SecStatus != SEC_I_COMPLETE_AND_CONTINUE) {
-		er = KCERR_LOGON_FAILED;
-		goto exit;
-	}
-
-	// send to server
-	sSSOData.__ptr = (unsigned char*)OutSecBufferDesc.pBuffers->pvBuffer;
-	sSSOData.__size = OutSecBufferDesc.pBuffers->cbBuffer;
-
-	if (SOAP_OK != lpCmd->ns__ssoLogon(0, (char*)strUsername.c_str(), (char*)strImpersonateUser.c_str(), &sSSOData, PROJECT_VERSION_CLIENT_STR, ulCapabilities, sLicenseRequest, ecSessionGroupId, szAppName, (char *)appVersion.c_str(), (char *)appMisc.c_str(), &sResponse))
-		goto exit;
-
-	while (sResponse.er == KCERR_SSO_CONTINUE) {
-		// setup inbut buffer
-		InSecBufferDesc.ulVersion = SECBUFFER_VERSION;
-		InSecBufferDesc.cBuffers = 2;
-		InSecBufferDesc.pBuffers = InSecBuffer;
-		InSecBuffer[0].BufferType = SECBUFFER_TOKEN;
-		InSecBuffer[0].cbBuffer = sResponse.lpOutput->__size;
-		InSecBuffer[0].pvBuffer = (void*)sResponse.lpOutput->__ptr;
-		InSecBuffer[1].BufferType = SECBUFFER_EMPTY;
-		InSecBuffer[1].cbBuffer = 0;
-		InSecBuffer[1].pvBuffer = NULL;
-
-		// reset output buffer
-		FreeContextBuffer(OutSecBuffer.pvBuffer);
-		OutSecBufferDesc.ulVersion = SECBUFFER_VERSION;
-		OutSecBufferDesc.cBuffers = 1;
-		OutSecBufferDesc.pBuffers = &OutSecBuffer;
-		OutSecBuffer.BufferType = SECBUFFER_TOKEN;
-		OutSecBuffer.cbBuffer = lpPackageInfo[ulPid].cbMaxToken;
-		OutSecBuffer.pvBuffer = NULL;
-
-		// feed response to windows
-		SecStatus = InitializeSecurityContext(NULL, &hNewContext, NULL,	ISC_REQ_ALLOCATE_MEMORY | ISC_REQ_CONFIDENTIALITY | ISC_REQ_CONNECTION,
-			0, SECURITY_NATIVE_DREP, &InSecBufferDesc, 0, &hNewContext, &OutSecBufferDesc, &fContextAttr, NULL);
-		if (FAILED(SecStatus))
-			goto exit;
-
-		// feed response to kopano
-		sSSOData.__ptr = (unsigned char*)OutSecBufferDesc.pBuffers->pvBuffer;
-		sSSOData.__size = OutSecBufferDesc.pBuffers->cbBuffer;
-
-		if (SOAP_OK != lpCmd->ns__ssoLogon(sResponse.ulSessionId, (char*)strUsername.c_str(), (char*)strImpersonateUser.c_str(), &sSSOData, PROJECT_VERSION_CLIENT_STR, ulCapabilities, sLicenseRequest, ecSessionGroupId, szAppName, (char *)appVersion.c_str(), (char *)appMisc.c_str(), &sResponse))
-			goto exit;
-	}
-	er = sResponse.er;
-	if (er != erSuccess)
-		goto exit;
-
-	// Connecting to a server of with a lower major version is unsupported. Since the server only
-	// checks if a client isn't too old, we'll prohibit connecting to an old server here.
-	er = ParseKopanoVersion(sResponse.lpszVersion, &ulServerVersion);
-	if (er != erSuccess || KOPANO_COMPARE_VERSION_TO_MAJOR(ulServerVersion, KOPANO_CUR_MAJOR) < 0) {
-		er = KCERR_INVALID_VERSION;
-		goto exit;
-	}
-
-	*lpSessionId = sResponse.ulSessionId;
-	*lpulServerCapabilities = sResponse.ulCapabilities;
-
-	if (sResponse.sServerGuid.__ptr != NULL && sResponse.sServerGuid.__size == sizeof *lpsServerGuid)
-		memcpy(lpsServerGuid, sResponse.sServerGuid.__ptr, sizeof *lpsServerGuid);
-
-exit:
-	if (OutSecBuffer.pvBuffer)
-		FreeContextBuffer(OutSecBuffer.pvBuffer);
-
-	if (lpPackageInfo)
-		FreeContextBuffer(lpPackageInfo);
-
-	if (SecIsValidHandle(&hCredential))
-		FreeCredentialHandle(&hCredential);
-
-	if (SecIsValidHandle(&hNewContext))
-		DeleteSecurityContext(&hNewContext);
-#endif
 	return er;
 }
 

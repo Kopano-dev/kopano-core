@@ -18,12 +18,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <memory>
-//
-#ifdef WIN32
-#include <windows.h>
-#else
 #include <unistd.h>
-#endif
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -31,22 +26,6 @@
 #include <kopano/ECConfig.h>
 
 TmpPath::TmpPath() {
-#ifdef WIN32
-	char dummy[MAX_PATH + 1] = { 0 };
-
-	// this should only happen when the environment variables
-	// have been tampered with
-	// note: >= because GetTempPath retuns count WITHOUT 0x00!
-	if (GetTempPathA(sizeof dummy, dummy) >= sizeof dummy) {
-		// this is a difficult situation. let's assume that
-		// we can at least write in the current directory
-		// but really if GetTempPath fails, something is
-		// very wrong
-		dummy[0] = 0x00;
-	}
-
-	path = dummy;
-#else
 	const char *dummy = NULL;
 
 	if (path.empty()) {
@@ -69,7 +48,6 @@ TmpPath::TmpPath() {
 
 	if (path.empty())
 		path = "/tmp";
-#endif
 }
 
 TmpPath::~TmpPath() {
@@ -86,7 +64,6 @@ bool TmpPath::OverridePath(ECConfig *const ec) {
 		if (path.at(s - 1) == '/' && s > 1)
 			path = path.substr(0, s - 1);
 
-#ifndef WIN32
 		struct stat st;
 		if (stat(path.c_str(), &st) == -1) {
 			path = "/tmp"; // what to do if we can't access that path either? FIXME
@@ -95,7 +72,6 @@ bool TmpPath::OverridePath(ECConfig *const ec) {
 
 		setenv("TMP", newPath, 1);
 		setenv("TEMP", newPath, 1);
-#endif
 	}
 
 	return rc;

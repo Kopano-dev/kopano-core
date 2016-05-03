@@ -184,9 +184,7 @@ int main(int argc, char* argv[])
 	modes	mode = MODE_INVALID;
 	int		passprompt = 1;
 
-#ifndef WIN32
 	setlocale(LC_MESSAGES, "");
-#endif
 	setlocale(LC_CTYPE, "");
 
 	if(argc < 2) {

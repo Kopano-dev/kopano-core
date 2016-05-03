@@ -622,15 +622,6 @@ HRESULT
 WrapCompressedRTFStream (LPSTREAM lpCompressedRTFStream,
         ULONG ulFlags, LPSTREAM * lpUncompressedRTFStream);
 
-/* Storage on Stream */
-
-#if defined(_WIN32) || defined(WIN16)
-HRESULT
-HrIStorageFromStream (LPUNKNOWN lpUnkIn,
-    LPCIID lpInterface, ULONG ulFlags, LPSTORAGE * lppStorageOut);
-#endif
-
-
 /*
  * Setup and cleanup. 
  *

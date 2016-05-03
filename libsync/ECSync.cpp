@@ -23,13 +23,6 @@
 #include <kopano/ECDebug.h>
 #include "../provider/include/kcore.hpp"
 #include <algorithm>
-
-#ifdef WIN32
-#include <eventsys.h>
-#include <Sensevts.h>
-#include <sensapi.h>
-#endif
-
 #include <mapiutil.h>
 #include <kopano/mapiguidext.h>
 #include <edkguid.h>
@@ -1113,71 +1106,6 @@ LPVOID ECSync::SyncThread() {
 	struct z_tms	tmsEnd = {0};
 	double		dblDuration = 0;
 	char		szDuration[64] = {0};
-
-#ifdef WIN32
-	SensNetworkPtr			ptrSensNetwork;
-	EventSystemPtr			ptrEventSystem;
-	EventSubscriptionPtr	ptrEventSubscription;
-
-	hr = ECSensNetwork::Create(&this->m_xECSync, &ptrSensNetwork);
-	if (hr != hrSuccess)
-		goto loop;
-
-	hr = CoCreateInstance(CLSID_CEventSystem, 0, CLSCTX_SERVER, ptrEventSystem.iid, &ptrEventSystem);
-	if(hr != hrSuccess)
-		goto loop;
-
-	hr = CoCreateInstance(CLSID_CEventSubscription, 0, CLSCTX_SERVER, ptrEventSubscription.iid, &ptrEventSubscription);
-	if(hr != hrSuccess)
-		goto loop;
-	hr = ptrEventSubscription->put_EventClassID(OLESTR("{D5978620-5B9F-11D1-8DD2-00AA004ABD5E}"));
-	if(hr != hrSuccess)
-		goto loop;
-	hr = ptrEventSubscription->put_SubscriberInterface(ptrSensNetwork);
-	if(hr != hrSuccess)
-		goto loop;
-	hr = ptrEventSubscription->put_MethodName(OLESTR("ConnectionMade"));
-	if(hr != hrSuccess)
-		goto loop;
-	hr = ptrEventSubscription->put_SubscriptionName(OLESTR("Connection Made"));
-	if(hr != hrSuccess)
-		goto loop;
-	hr = ptrEventSubscription->put_SubscriptionID(OLESTR("{cd1dcbd6-a14d-4823-a0d2-8473afde360f}"));
-	if(hr != hrSuccess)
-		goto loop;
-	hr = ptrEventSystem->Store(PROGID_EventSubscription, ptrEventSubscription);
-	if(hr != hrSuccess)
-		goto loop;
-
-	hr = CoCreateInstance(CLSID_CEventSubscription, 0, CLSCTX_SERVER, IID_IEventSubscription, &ptrEventSubscription);
-	if(hr != hrSuccess)
-		goto loop;
-	hr = ptrEventSubscription->put_EventClassID(OLESTR("{D5978620-5B9F-11D1-8DD2-00AA004ABD5E}"));
-	if(hr != hrSuccess)
-		goto loop;
-	hr = ptrEventSubscription->put_SubscriberInterface(ptrSensNetwork);
-	if(hr != hrSuccess)
-		goto loop;
-	hr = ptrEventSubscription->put_MethodName(OLESTR("ConnectionLost"));
-	if(hr != hrSuccess)
-		goto loop;
-	hr = ptrEventSubscription->put_SubscriptionName(OLESTR("Connection Lost"));
-	if(hr != hrSuccess)
-		goto loop;
-	hr = ptrEventSubscription->put_SubscriptionID(OLESTR("{45233130-b6c3-44fb-a6af-487c47cee611}"));
-	if(hr != hrSuccess)
-		goto loop;
-	hr = ptrEventSystem->Store(PROGID_EventSubscription, ptrEventSubscription);
-	if(hr != hrSuccess)
-		goto loop;
-
-loop:
-	ptrEventSubscription.reset();
-	ptrSensNetwork.reset();
-
-	if (m_localeOLK)
-		::SetThreadLocale(this->m_localeOLK);
-#endif
 
 	while(true){
 

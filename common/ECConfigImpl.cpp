@@ -797,14 +797,8 @@ bool ECConfigImpl::WriteSettingsToFile(const char* szFileName)
 	out.close();
 
 // the stdio functions does not work in win release mode in some cases
-#ifdef WIN32 
-	CopyFileA(szFileName, pathBakFile.string().c_str(), false); // Backup
-	CopyFileA(pathOutFile.string().c_str(), szFileName, false);
-#else
 	remove(szFileName);
 	rename(path_to_string(pathOutFile).c_str(),szFileName);
-#endif
-
 	return true;
 }
 

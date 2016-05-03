@@ -106,9 +106,6 @@ HRESULT ECABProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 	LPSPropValue lpSectionUid = NULL;
 	IProfSect *lpProfSect = NULL;
 	IProfSect *lpProfSectSection = NULL;
-#ifdef WIN32
-	IProfSect *lpProfSectService = NULL;
-#endif
 	LPSPropValue lpUidService = NULL;
 	sGlobalProfileProps	sProfileProps;
 	LPMAPIUID	lpGuid = NULL;
@@ -206,105 +203,6 @@ HRESULT ECABProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 	if(hr != hrSuccess)
 		goto exit;
 
-#ifdef WIN32
-	/**
-	 * Do some profile management:
-	 * 
-	 * Add PR_EMSMDB_SECTION_UID to the addressbook's profile section AND the service entry if it is not there yet
-	 * Create the EMSMDB section if it does not exist yet
-	 * Add PR_EMSABP_UID to the EMSMDB profile section if it doesn't exist yet
-	 */
-	hr = lpMAPISup->OpenProfileSection(NULL, MAPI_MODIFY, &lpProfSect);
-	if(hr != hrSuccess)
-		goto exit;
-
-	if(HrGetOneProp(lpProfSect, PR_EMSMDB_SECTION_UID, &lpSectionUid) != hrSuccess) {
-		/* No EMSMDB property found; create the EMSMDB uid and save it in both our profile section
-		 * and the message service's profile section */
-
-		/* Open our service's profile section */
-		hr = HrGetOneProp(lpProfSect, PR_SERVICE_UID, &lpUidService);
-		if(hr != hrSuccess)
-			goto exit;
-
-		hr = lpMAPISup->OpenProfileSection((LPMAPIUID)lpUidService->Value.bin.lpb, MAPI_MODIFY, &lpProfSectService);
-		if(hr != hrSuccess)
-			goto exit;
-
-		/* Create the new PR_EMSMDB_SECTION_UID property */
-		hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **)&lpSectionUid);
-		if(hr != hrSuccess)
-			goto exit;
-
-		hr = MAPIAllocateMore(sizeof(GUID), lpSectionUid, (void **)&lpSectionUid->Value.bin.lpb);
-		if(hr != hrSuccess)
-			goto exit;
-
-		lpSectionUid->ulPropTag = PR_EMSMDB_SECTION_UID;
-		lpSectionUid->Value.bin.cb = sizeof(GUID);
-		CoCreateGuid((GUID *)lpSectionUid->Value.bin.lpb);
-
-		/* Set the property on the message service profile section */
-		hr = HrSetOneProp(lpProfSectService, lpSectionUid);
-		if(hr != hrSuccess)
-			goto exit;
-
-		/* Set the property on the addressbook provider's profile section */
-		hr = HrSetOneProp(lpProfSect, lpSectionUid);
-		if(hr != hrSuccess)
-			goto exit;
-	}
-
-	/* from the emsmdb section, get the emsabp UID (creates the section if it was not there before) */
-	hr = lpMAPISup->OpenProfileSection((LPMAPIUID)lpSectionUid->Value.bin.lpb, MAPI_MODIFY, &lpProfSectSection);
-	if(hr != hrSuccess)
-		goto exit;
-
-	if(HrGetOneProp(lpProfSectSection, 0x3d1a0102 /* PR_EMSABP_UID */, &lpProviderUid) != hrSuccess) {
-		/* Unsure if this is the right place, but can't find a more logical place to do it. Use case
-		 * is to have a 2007-style profile (without 0x3d1a) and then 'upgrade' by starting OLK2010 with
-		 * global profile redirection enabled. This automatically creates a new EMSMDB_SECTION_UID and
-		 * profile section, but it does not contain the EMSABP UID. Tactic is now to just create it here
-		 * if there was none yet.
-		 */
-		hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **)&lpProviderUid);
-		if (hr != hrSuccess)
-			goto exit;
-
-		hr = MAPIAllocateMore(sizeof(GUID), lpProviderUid, (void **)&lpProviderUid->Value.bin.lpb);
-		if (hr != hrSuccess)
-			goto exit;
-
-		hr = lpMAPISup->NewUID((LPMAPIUID)lpProviderUid->Value.bin.lpb);
-		if (hr != hrSuccess)
-			goto exit;
-
-		lpProviderUid->ulPropTag = 0x3d1a0102;
-		lpProviderUid->Value.bin.cb = sizeof(GUID);
-		hr = lpProfSectSection->SetProps(1, lpProviderUid, NULL);
-		if (hr != hrSuccess)
-			goto exit;
-
-		hr = lpProfSectSection->SaveChanges(0);
-		if (hr != hrSuccess)
-			goto exit;
-	}
-
-	lpGuid = (LPMAPIUID)lpProviderUid->Value.bin.lpb;
-
-	/* Register ourselves as handling the EMSABP UID too
-	 *
-	 * This is needed because in OLK2010, multi-exchange-account-mode, there can be multiple GAB
-	 * providers. Normally these would all use UID MUIDECSAB, which would make entryIDs indistinguishable. To
-	 * distinguish between addressbooks, various *WithExchangeContext*() functions have been introduced, which
-	 * take an EMSMDB parameter. The EMSMDB parameter is then used to lookup the EMSABP GUID from the profile
-	 * section, which is then patched directly into the EntryID of that addressbook item. This is then passed
-	 * to MAPI. We therefore have to register ourselves for THAT uid, apart from registering ourselves for
-	 * the 'normal' UID (which was done dus before the EMSMDB_SECTION_UID call above.
-	 */
-	lpMAPISup->SetProviderUID(lpGuid, 0);
-#endif
-
 	hr = ECABLogon::Create(lpMAPISup, lpTransport, sProfileProps.ulProfileFlags, (GUID *)lpGuid, &lpABLogon);
 	if(hr != hrSuccess)
 		goto exit;
@@ -326,10 +224,6 @@ HRESULT ECABProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 		*lppMAPIError = NULL;
 
 exit:
-#ifdef WIN32
-	if (lpProfSectService)
-		lpProfSectService->Release();
-#endif
 	MAPIFreeBuffer(lpUidService);
 	MAPIFreeBuffer(lpProviderUid);
 	MAPIFreeBuffer(lpSectionUid);

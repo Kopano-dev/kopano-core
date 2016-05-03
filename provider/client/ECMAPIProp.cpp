@@ -179,22 +179,6 @@ HRESULT	ECMAPIProp::DefaultMAPIGetProp(ULONG ulPropTag, void* lpProvider, ULONG 
 		hr = lpProp->HrGetRealProp(PR_SOURCE_KEY, ulFlags, lpBase, lpsPropValue);
 		if(hr != hrSuccess)
 			return hr;
-#ifdef WIN32
-		if(lpMsgStore->m_ulProfileFlags & EC_PROFILE_FLAGS_TRUNCATE_SOURCEKEY && lpsPropValue->Value.bin.cb > 22) {
-			/*
-			 * Make our source key a little shorter; MSEMS has 22-byte sourcekeys, while we can have 24-byte
-			 * source keys. This can cause buffer overflows in applications that (wrongly) assume fixed 22-byte
-			 * source keys. We're not losing any data here actually, since the last two bytes are always 0000 since
-			 * the source key ends in a 128-bit little-endian counter which will definitely never increment the last two
-			 * bytes in the coming 1000000 years ;)
-			 *
-			 * Then, mark the sourcekey as being truncated by setting the highest bit in the ID part to 1, so we can 
-			 * untruncate it when needed.
-			 */
-			lpsPropValue->Value.bin.cb = 22;
-			lpsPropValue->Value.bin.lpb[lpsPropValue->Value.bin.cb-1] |= 0x80; // Set top bit
-		}
-#endif
 		break;
 		
 	case PROP_ID(0x664B0014):

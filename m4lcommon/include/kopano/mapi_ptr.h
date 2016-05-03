@@ -85,9 +85,4 @@ typedef mapi_array_ptr<SPropValue> SPropArrayPtr;
 typedef mapi_rowset_ptr<SRow> SRowSetPtr;
 typedef mapi_rowset_ptr<ADRENTRY> AdrListPtr;
 
-#ifdef WIN32
-#include <mapiform.h>
-typedef mapi_object_ptr<IMAPIFormContainer, IID_IMAPIFormContainer> MAPIFormContainerPtr;
-#endif
-
 #endif // ndef mapi_ptr_INCLUDED

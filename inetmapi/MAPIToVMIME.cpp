@@ -23,11 +23,7 @@
 
 // vmime
 #include <vmime/vmime.hpp>
-#ifdef _WIN32
-#include <vmime/platforms/windows/windowsHandler.hpp>
-#else
 #include <vmime/platforms/posix/posixHandler.hpp>
-#endif
 #include <vmime/contentTypeField.hpp>
 #include <vmime/parsedMessageAttachment.hpp>
 
@@ -63,12 +59,7 @@
 #include "MAPIToICal.h"
 
 // others
-
-#ifdef _WIN32
-#define BASETMPDIR "c:\\"
-#else
 #define BASETMPDIR "/tmp/"
-#endif
 
 using namespace std;
 
@@ -1151,12 +1142,7 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage, vmime::ref<vmime::m
 	}
 
 	// Add iconv tag to convert non-exising chars without a fuss
-#ifdef WIN32
-	m_strCharset = m_vmCharset.getName() + "//IGNORE";
-#else
 	m_strCharset = m_vmCharset.getName() + "//TRANSLIT";
-#endif
-
 	if ((stricmp(lpMsgClass->Value.lpszA, "REPORT.IPM.Note.IPNNRN") == 0 ||
 		stricmp(lpMsgClass->Value.lpszA, "REPORT.IPM.Note.IPNRN") == 0)
 		)

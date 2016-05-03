@@ -48,7 +48,7 @@ extern ECLogger *m4l_lpLogger;
  * For Exchange redirector (WIN32) we allow the log message to be send to a logfile.
  * For Linux debug build we allow the log message to be send to a logfile.
  */
-#if defined(WIN32) || (defined(LINUX) && defined(DEBUG))
+#if (defined(LINUX) && defined(DEBUG))
 #ifdef USE_VARIADIC_MACRO
 #define TRACE_TO_FILE(__level, __message, __args...) \
 	if (m4l_lpLogger) \
@@ -84,14 +84,14 @@ extern ECLogger *m4l_lpLogger;
 	if (m4l_lpLogger) \
 		m4l_lpLogger->Log(__level, __message, __arg1, __arg2, __arg3, __arg4, __arg5);
 #endif /* USE_VARIADIC_MACRO */
-#else /* defined(WIN32) || (defined(LINUX) && defined(DEBUG)) */
+#else /* (defined(LINUX) && defined(DEBUG)) */
 #define TRACE_TO_FILE(__level, __message) {}
 #define TRACE_TO_FILE1(__level, __message, __arg1) {}
 #define TRACE_TO_FILE2(__level, __message, __arg1, __arg2) {}
 #define TRACE_TO_FILE3(__level, __message, __arg1, __arg2, __arg3) {}
 #define TRACE_TO_FILE4(__level, __message, __arg1, __arg2, __arg3, __arg4) {}
 #define TRACE_TO_FILE5(__level, __message, __arg1, __arg2, __arg3, __arg4, __arg5) {}
-#endif /* defined(WIN32) || (defined(LINUX) && defined(DEBUG)) */
+#endif /* (defined(LINUX) && defined(DEBUG)) */
 
 /* 
  * If only we could nicely rename the TRACE_MAPILIB macro and undef it

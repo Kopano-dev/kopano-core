@@ -819,10 +819,6 @@ static struct addrinfo *reorder_addrinfo_ipv6(struct addrinfo *node)
 
 HRESULT HrListen(ECLogger *lpLogger, const char *szPath, int *lpulListenSocket)
 {
-#ifdef WIN32
-	// TODO: named pipe?
-	return MAPI_E_NO_SUPPORT;
-#else
 	HRESULT hr = hrSuccess;
 	int fd = -1;
 	struct sockaddr_un sun_addr;
@@ -837,16 +833,6 @@ HRESULT HrListen(ECLogger *lpLogger, const char *szPath, int *lpulListenSocket)
 	memset(&sun_addr, 0, sizeof(sun_addr));
 	sun_addr.sun_family = AF_UNIX;
 	strncpy(sun_addr.sun_path, szPath, sizeof(sun_addr.sun_path));
-
-#ifdef WIN32
-	WSAData wsaData;
-	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-		if (lpLogger)
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to initialize Winsock.");
-		hr = E_FAIL;
-		goto exit;
-	}
-#endif
 
 	if ((fd = socket(PF_UNIX, SOCK_STREAM, 0)) == -1) {
 		if (lpLogger)
@@ -885,7 +871,6 @@ exit:
 	if (hr != hrSuccess && fd != -1)
 		close(fd);
 	return hr;
-#endif
 }
 
 int zcp_bindtodevice(ECLogger *log, int fd, const char *i)
@@ -914,16 +899,6 @@ HRESULT HrListen(ECLogger *lpLogger, const char *szBind, uint16_t ulPort,
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-
-#ifdef WIN32
-	WSAData wsaData;
-	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-		if (lpLogger)
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to initialize Winsock.");
-		hr = E_FAIL;
-		goto exit;
-	}
-#endif
 
 	snprintf(port_string, sizeof(port_string), "%u", ulPort);
 	memset(&sock_hints, 0, sizeof(sock_hints));

@@ -22,18 +22,10 @@
 #define COMPILE_DL_MAPI 1
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
-#ifdef _WIN32
-#  undef HAVE_DLFCN_H 
-#else
 #  define HAVE_DLFCN_H 1
-#endif
 
 /* Use pthreads thread library */
 #define PTHREAD 1
-
-#ifdef _WIN32
-#define NSAPI 1
-#endif
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1

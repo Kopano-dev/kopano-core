@@ -97,11 +97,7 @@ typedef int Py_ssize_t;
 #endif
 
 // Depending on native vs python unicode representation, set NATIVE_UNICODE
-#ifdef WIN32
-  #define WCHAR_T_SIZE 2
-#else
   #define WCHAR_T_SIZE __SIZEOF_WCHAR_T__
-#endif
 
 #if (Py_UNICODE_SIZE == WCHAR_T_SIZE)
   #define NATIVE_UNICODE 1

@@ -30,11 +30,7 @@
 #include "vmime/vmime.hpp"
 #include "vmime/textPartFactory.hpp"
 #include "mapiTextPart.h"
-#ifdef _WIN32
-#include "vmime/platforms/windows/windowsHandler.hpp"
-#else
 #include "vmime/platforms/posix/posixHandler.hpp"
-#endif
 
 // mapi
 #include <mapix.h>
@@ -119,11 +115,7 @@ static void InitializeVMime()
 		vmime::platform::getHandler();
 	}
 	catch (vmime::exceptions::no_platform_handler &) {
-#ifdef _WIN32
-		vmime::platform::setHandler<vmime::platforms::windows::windowsHandler>();
-#else
 		vmime::platform::setHandler<vmime::platforms::posix::posixHandler>();
-#endif
 		// need to have a unique indentifier in the mediaType
 		vmime::textPartFactory::getInstance()->registerType<vmime::mapiTextPart>(vmime::mediaType(vmime::mediaTypes::TEXT, "mapi"));
 		// init our random engine for random message id generation

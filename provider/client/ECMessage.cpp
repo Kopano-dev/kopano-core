@@ -1419,21 +1419,6 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 	if(HR_FAILED(hr))
 		goto exit;
 
-#ifdef WIN32
-	if(cValue == 1 && lpsPropArray != NULL && PROP_TYPE(lpsPropArray->ulPropTag) != PT_ERROR && (lpsPropArray->Value.ul & MSGFLAG_RESEND))
-	{
-		ULONG ulPreFlags = 0;
-
-		hr = this->GetMsgStore()->lpSupport->SpoolerNotify(NOTIFY_READYTOSEND, NULL);
-		if(hr != hrSuccess)
-			goto exit;
-
-		hr = this->GetMsgStore()->lpSupport->PrepareSubmit(&this->m_xMessage, &ulPreFlags);
-		if(hr != hrSuccess)
-			goto exit;
-	}
-#endif
-
 	if(lpsPropArray->ulPropTag == PR_MESSAGE_FLAGS) {
 		// Re-set 'unsent' as it is obviously not sent if we're submitting it ... This allows you to send a message
 		// multiple times, but only if the client calls SubmitMessage multiple times.

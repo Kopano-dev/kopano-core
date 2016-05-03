@@ -29,10 +29,6 @@
  */
 
 #include <kopano/platform.h>
-#ifdef _WIN32
-	#include "ECNTService.h"
-#endif
-
 #include "mailer.h"
 #include <climits>
 #include <cstdio>
@@ -140,30 +136,6 @@ static pthread_mutex_t hMutexFinished;	// mutex for mapFinished
 
 static HRESULT running_server(const char *szSMTP, int port, const char *szPath);
 
-#ifdef WIN32
-/**
- * signal handler for termination requests
- *
- * @param[in]	sig	signal number triggered
- */
-static void sighandle(int sig)
-{
-	// Win32 has unix semantics and therefore requires us to reset the signal handler.
-	signal(SIGTERM , sighandle);
-	signal(SIGINT  , sighandle);	// CTRL+C
-
-	if (!bQuit)						// do not log multimple shutdown messages
-		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Termination requested, shutting down.");
-
-	bQuit = true;
-
-	// Trigger condition as it may be waiting for messages
-	pthread_mutex_lock(&hMutexMessagesWaiting);
-	pthread_cond_signal(&hCondMessagesWaiting);
-	pthread_mutex_unlock(&hMutexMessagesWaiting);
-}
-#endif
-
 /**
  * Print command line options, only for daemon version, not for mailer fork process
  *
@@ -178,12 +150,6 @@ static void print_help(const char *name)
 	cout << "  -V Print version info." << endl;
 	cout << "  -c filename\tUse alternate config file (e.g. /etc/kopano-spooler.cfg)\n\t\tDefault: /etc/kopano/spooler.cfg" << endl;
 	cout << "  smtp server: The name or IP-address of the SMTP server, overriding the configuration" << endl;
-#if defined(WIN32)
-	cout << endl;
-	cout << "  Windows service options" << endl;
-	cout << "  -i\t\tInstall as service." << endl;
-	cout << "  -u\t\tRemove the service." << endl;
-#endif
 	cout << endl;
 }
 
@@ -444,9 +410,6 @@ exit:
 static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
     IECSpooler *lpSpooler)
 {
-#ifdef WIN32
-	return hrSuccess;
-#else
 	HRESULT hr = hrSuccess;
 	std::map<pid_t, int>::const_iterator i, iDel;
 	SendData sSendData;
@@ -581,7 +544,6 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 		lpMessage->Release();
 
 	return hr;
-#endif
 }
 
 /**
@@ -696,11 +658,6 @@ static HRESULT ProcessAllEntries(IMAPISession *lpAdminSession,
 		}
 
 		strUsername = lpsRowSet->aRow[0].lpProps[0].Value.lpszW;
-
-#ifdef WIN32
-		// call directly without forking, and remove from queue if hr != MAPI_E_WAIT || MAPI_W_NO_SERVICE
-		hr = ProcessMessageForked(strUsername.c_str(), szSMTP, ulPort, szPath, lpsRowSet->aRow[0].lpProps[2].Value.bin.cb, (LPENTRYID)lpsRowSet->aRow[0].lpProps[2].Value.bin.lpb, lpsRowSet->aRow[0].lpProps[3].Value.ul & EC_SUBMIT_DOSENTMAIL);
-#else
 		// Check if there is already an active process for this message
 		bool bMatch = false;
 		for (std::map<pid_t, SendData>::const_iterator i = mapSendData.begin();
@@ -720,7 +677,6 @@ static HRESULT ProcessAllEntries(IMAPISession *lpAdminSession,
 			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "ProcessAllEntries(): Failed starting spooler: %x", hr);
 			goto exit;
 		}
-#endif
 	}
 
 exit:
@@ -1101,9 +1057,6 @@ static HRESULT running_server(const char *szSMTP, int ulPort,
 int main(int argc, char *argv[]) {
 
 	HRESULT hr = hrSuccess;
-#ifdef WIN32
-	ECNTService ecNTService;
-#endif
 	const char *szPath = NULL;
 	const char *szSMTP = NULL;
 	int ulPort = 0;
@@ -1263,11 +1216,7 @@ int main(int argc, char *argv[]) {
 		if (!g_lpConfig->LoadSettings(szConfig) ||
 		    !g_lpConfig->ParseParams(argc - optind, &argv[optind], &argidx) ||
 		    (!bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())) {
-#ifdef WIN32
-			g_lpLogger = new ECLogger_Eventlog(EC_LOGLEVEL_INFO, "KopanoSpooler");
-#else
 			g_lpLogger = new ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false); // create info logger without a timestamp to stderr
-#endif
 			ec_log_set(g_lpLogger);
 			LogConfigErrors(g_lpConfig);
 			hr = E_FAIL;
@@ -1342,19 +1291,12 @@ int main(int argc, char *argv[]) {
 		// notification condition
 		pthread_mutex_init(&hMutexMessagesWaiting, NULL);
 		pthread_cond_init(&hCondMessagesWaiting, NULL);
-
-#ifdef WIN32
-		// use default generic method for these signals
-		signal(SIGTERM, sighandle);
-		signal(SIGINT, sighandle);
-#else
 		sigemptyset(&signal_mask);
 		sigaddset(&signal_mask, SIGTERM);
 		sigaddset(&signal_mask, SIGINT);
 		sigaddset(&signal_mask, SIGCHLD);
 		sigaddset(&signal_mask, SIGHUP);
 		sigaddset(&signal_mask, SIGUSR2);
-#endif
 	}
 
 #ifdef LINUX
@@ -1428,17 +1370,6 @@ int main(int argc, char *argv[]) {
 #endif
 
 	sc = new StatsClient(g_lpConfig->GetSetting("z_statsd_stats"), g_lpLogger);
-
-#ifdef WIN32
-	// Parse for standard arguments (install, uninstall, version etc.)
-	if (!ecNTService.ParseStandardArgs(argc, argv))
-		ecNTService.StartService(&bQuit, szSMTP, szPath);
-
-	hr = ecNTService.m_Status.dwWin32ExitCode;
-	if(hr == ERROR_FAILED_SERVICE_CONTROLLER_CONNECT)
-		hr = running_server(szSMTP, ulPort, szPath);
-	else
-#endif
 	if (bForked)
 		hr = ProcessMessageForked(strUsername.c_str(), szSMTP, ulPort, szPath, strMsgEntryId.length(), (LPENTRYID)strMsgEntryId.data(), bDoSentMail);
 	else

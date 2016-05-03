@@ -16,10 +16,6 @@
  */
 
 #include <kopano/platform.h>
-
-#ifdef _WIN32
-	#include "ECNTService.h"
-#endif
 #include <climits>
 #include <cstdio>
 #include <cstdlib>
@@ -127,12 +123,6 @@ static void print_help(const char *name)
 	cout << "  -F\t\tDo not run in the background" << endl;
 	cout << "  -h path\tUse alternate connect path (e.g. file:///var/run/socket).\n\t\tDefault: file:///var/run/kopano/server.sock" << endl;
 	cout << "  -c filename\tUse alternate config file (e.g. /etc/kopano-monitor.cfg)\n\t\tDefault: /etc/kopano/monitor.cfg" << endl;
-#if defined(WIN32)
-	cout << endl;
-	cout << "  Windows service options" << endl;
-	cout << "  -i\t\tInstall as service." << endl;
-	cout << "  -u\t\tRemove the service." << endl;
-#endif
 	cout << endl;
 }
 
@@ -148,10 +138,6 @@ int main(int argc, char *argv[]) {
 	int c;
 	int daemonize = 1;
 	bool bIgnoreUnknownConfigOptions = false;
-
-#if defined(_WIN32)
-	ECNTService ecNTService;
-#endif
 
 	// Default settings
 	static const configsetting_t lpDefaults[] = {
@@ -247,11 +233,7 @@ int main(int argc, char *argv[]) {
 	if (!m_lpThreadMonitor->lpConfig->LoadSettings(szConfig) ||
 	    !m_lpThreadMonitor->lpConfig->ParseParams(argc - optind, &argv[optind], NULL) ||
 	    (!bIgnoreUnknownConfigOptions && m_lpThreadMonitor->lpConfig->HasErrors())) {
-#ifdef WIN32
-		m_lpThreadMonitor->lpLogger = new ECLogger_Eventlog(EC_LOGLEVEL_INFO, "KopanoMonitor");
-#else
 		m_lpThreadMonitor->lpLogger = new ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false); // create fatal logger without a timestamp to stderr
-#endif
 		ec_log_set(m_lpThreadMonitor->lpLogger);
 		LogConfigErrors(m_lpThreadMonitor->lpConfig);
 		hr = E_FAIL;
@@ -312,20 +294,7 @@ int main(int argc, char *argv[]) {
 	// Init exit threads
 	pthread_mutex_init(&m_hExitMutex, NULL);
 	pthread_cond_init(&m_hExitSignal, NULL);
-
-#if defined(_WIN32)
-	// Parse for standard arguments (install, uninstall, version etc.)
-	if (!ecNTService.ParseStandardArgs(argc, argv))
-	{
-		ecNTService.StartService(&m_lpThreadMonitor->bShutdown, szPath);
-	}
-	
-	hr = ecNTService.m_Status.dwWin32ExitCode;
-	if(hr == ERROR_FAILED_SERVICE_CONTROLLER_CONNECT)
-#endif
-		hr = running_service(szPath);
-
-
+	hr = running_service(szPath);
 exit:
 	if(m_lpThreadMonitor)
 		deleteThreadMonitor(m_lpThreadMonitor, true);

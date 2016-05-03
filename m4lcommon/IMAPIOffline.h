@@ -313,17 +313,5 @@ Remarks:
 
 	When using GetProcAddress to look for the address of this function in msmapi32.dll, specify HrOpenOfflineObj@20 as the procedure name.  
 */
-#ifdef WIN32
-typedef HRESULT (STDMETHODCALLTYPE HROPENOFFLINEOBJ)(
-	ULONG ulReserved,
-	LPCWSTR pwszProfileNameIn,
-	const GUID* pGUID,
-	const GUID* pReserved,
-	IMAPIOfflineMgr** ppOfflineObj);
-
-typedef HRESULT (STDMETHODCALLTYPE HRGETGLOBALOFFLINEOBJ)(
-	LPCTSTR pwszProfileNameIn,
-	IMAPIOfflineMgr** ppOfflineObj);
-#endif
 
 #endif //IMAPIOFFLINE_INCLUDED

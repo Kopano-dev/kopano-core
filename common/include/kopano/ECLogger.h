@@ -77,17 +77,9 @@ static const unsigned int EC_LOGLEVEL_EXTENDED_MASK = 0xFFFF0000;
 #else
 #define TSTRING_PRINTF "%s"
 #endif
-
-#ifdef WIN32
-#define SIZE_T_PRINTF    "%Iu"
-#define SSIZE_T_PRINTF   "%Id"
-#define PTRDIFF_T_PRINTF "%Id"
-#else
 #define SIZE_T_PRINTF    "%lu"
 #define SSIZE_T_PRINTF   "%l"
 #define PTRDIFF_T_PRINTF "%l"
-#endif
-
 
 /**
  * Prefixes in log message in different process models.
@@ -279,29 +271,6 @@ class ECLogger_Syslog _zcp_final : public ECLogger {
 	public:
 		ECLogger_Syslog(unsigned int max_ll, const char *ident, int facility);
 		~ECLogger_Syslog();
-
-		virtual void Reset(void) _zcp_override;
-		virtual void Log(unsigned int loglevel, const std::string &message) _zcp_override;
-		virtual void Log(unsigned int loglevel, const char *format, ...) _zcp_override __LIKE_PRINTF(3, 4);
-		virtual void LogVA(unsigned int loglevel, const char *format, va_list &va) _zcp_override;
-};
-#endif
-
-#if defined(_WIN32) && !defined(WINCE)
-/**
- * Windows eventlog logger
- */
-class ECLogger_Eventlog _zcp_final : public ECLogger {
-	private:
-		WORD levelmap[EC_LOGLEVEL_DEBUG+1];	/* converts to eventlog levels */
-
-		void ReportEventLog(WORD wType, const char *szMsg);
-		HANDLE m_hEventSource;
-		char m_szServiceName[64];
-
-	public:
-		ECLogger_Eventlog(unsigned int max_ll, const char *lpszServiceName);
-		~ECLogger_Eventlog();
 
 		virtual void Reset(void) _zcp_override;
 		virtual void Log(unsigned int loglevel, const std::string &message) _zcp_override;

@@ -31,12 +31,6 @@
 #include <kopano/charset/convert.h>
 #include <kopano/charset/utf8string.h>
 
-#if defined(WIN32) && !defined(DISABLE_SSL_UI)
-#include "EntryPoint.h"
-#include <kopano/ECGetText.h>
-#include "CertificateDlg.h"
-#endif
-
 using namespace std;
 
 static int ssl_zvcb_index = -1;	// the index to get our custom data
@@ -262,38 +256,6 @@ int gsoap_connect_pipe(struct soap *soap, const char *endpoint, const char *host
 }
 #endif
 
-#ifdef WIN32
-// This is a reference to gSoap's standard tcp_connect
-SOAP_SOCKET (*tcp_connect)(struct soap *soap, const char *endpoint, const char *host, int port);
-
-SOAP_SOCKET MyConnect(struct soap *soap, const char* endpoint, const char* host, int port)
-{
-	int sock = 0;
-	int on = 1;
-
-	// set callback information if we're connecting with SSL
-	if (soap->ctx)
-		SSL_CTX_set_ex_data(soap->ctx, ssl_zvcb_index, (void*)host);
-
-	sock = tcp_connect(soap, endpoint, host, port);
-	if(sock != SOAP_INVALID_SOCKET) {
-		setsockopt(soap->socket, SOL_SOCKET, SO_KEEPALIVE, (char *)&on, sizeof(on));
-		// Set (in)sane keepalive values
-		struct tcp_keepalive ka;
-		DWORD ret;
-
-		ka.onoff = 1;
-		ka.keepaliveinterval = 1 * 1000; // Send keepalives 1s apart (max 10 or so before ending connection)
-		ka.keepalivetime = 30 * 1000; // Wait 30 seconds before sending keepalives
-
-		ret = WSAIoctl(soap->socket, SIO_KEEPALIVE_VALS, &ka, sizeof(ka), NULL, 0, &ret, NULL, NULL);
-		return sock;
-	}
-
-	return sock;
-}
-#endif
-
 HRESULT CreateSoapTransport(ULONG ulUIFlags,
 	const char *strServerPath,
 	const char *strSSLKeyFile,
@@ -342,22 +304,11 @@ HRESULT CreateSoapTransport(ULONG ulUIFlags,
 		// set connection string as callback information
 		if (ssl_zvcb_index == -1) {
 			ssl_zvcb_index = SSL_get_ex_new_index(0, NULL, NULL, NULL, NULL);
-#ifdef WIN32
-			LoadCertificatesFromRegistry();
-#endif
 		}
 		// callback data will be set right before tcp_connect()
 
 		// set our own certificate check function
-#if defined(WIN32) && !defined(DISABLE_SSL_UI)
-		if (ulUIFlags & 0x01 /*MDB_NO_DIALOG*/)
-			lpCmd->soap->fsslverify = ssl_verify_callback_kopano_silent;
-		else
-			lpCmd->soap->fsslverify = ssl_verify_callback_kopano;
-#else
 		lpCmd->soap->fsslverify = ssl_verify_callback_kopano_silent;
-#endif
-
 		SSL_CTX_set_verify(lpCmd->soap->ctx, SSL_VERIFY_PEER, lpCmd->soap->fsslverify);
 	}
 #endif
@@ -379,16 +330,7 @@ HRESULT CreateSoapTransport(ULONG ulUIFlags,
 		lpCmd->soap->connect_timeout = ulConnectionTimeOut;
 	}
 
-#ifdef WIN32
-	// UGLY HACK: we want to call tcp_connect in our our connect function. However, we can't link directly
-	// since it has 'static' scope. However, we can read it here, store it in a global variable, and then
-	// use it from there later.
-	tcp_connect = lpCmd->soap->fopen;
-	lpCmd->soap->fopen = MyConnect;
-#endif
-
 	*lppCmd = lpCmd;
-
 exit:
 	if (hr != hrSuccess && lpCmd) {
 		/* strdup'd them earlier */
@@ -413,79 +355,6 @@ VOID DestroySoapTransport(KCmd *lpCmd)
 }
 
 #ifdef WIN32
-/*
- * This verification callback function will be called multiple times per connection,
- * because certificates will be checked one by one, starting at the root CA (depth > 0),
- * until the top (depth == 0) is reached.
- * We continue in the chain by returning 1, until we reach the top. If the certificate
- * verifies with windows, all is fine. Otherwise we leave the choice up to the user.
- *
- * Since Kopano client is multi threaded, we must collect info in a struct and map per pthread (connection).
- *
- * We get the certificate raw data, and give that to the win32 crypt api. This should ensure
- * that installed certificates in windows will accept the trust of the presented certificate.
- * The verify function I chose to use from the CryptoAPI needs the previous certificate to
- * verify with, so we keep that in the verifyinfo struct. This function validates the certificate
- * with the issuer, even if the issuer is not trusted.
- *
- * To test the trust of a certificate, we find it by issuer in the ROOT certificate store of windows.
- */
-struct verifyinfo {
-	verifyinfo() {
-		pPrevCertificate = pLastCertificate = NULL;
-		user_choice = errors = 0;
-		max_depth = -1;
-		bTrusted = bVerified = false;
-	}
-	PCCERT_CONTEXT pPrevCertificate;
-	PCCERT_CONTEXT pLastCertificate;
-	int user_choice;
-	int max_depth;
-	int errors;
-	bool bTrusted;
-	bool bVerified;
-};
-
-static CPthreadMutex	g_SCDMutex; // Mutex for map mapSCD
-static map<std::string, struct verifyinfo> mapSCD;	// map server certificate data
-
-BOOL ValidateCertificateChain(PCCERT_CONTEXT pCertificate)
-{
-	BOOL result = TRUE;
-	PCCERT_CHAIN_CONTEXT	pTrusted = NULL;
-	CERT_ENHKEY_USAGE		EnhkeyUsage;
-	CERT_USAGE_MATCH		CertUsage;
-	CERT_CHAIN_PARA			ChainPara;
-	
-	EnhkeyUsage.cUsageIdentifier = 0;
-	EnhkeyUsage.rgpszUsageIdentifier = NULL;
-
-	CertUsage.dwType = USAGE_MATCH_TYPE_AND;
-	CertUsage.Usage = EnhkeyUsage;
-
-	ChainPara.cbSize = sizeof(CERT_CHAIN_PARA);
-	ChainPara.RequestedUsage = CertUsage;
-
-	if(!CertGetCertificateChain(
-				NULL,					// use the default chain engine
-				pCertificate,			// pointer to the end certificate
-				NULL,					// use the default time
-				NULL,					// search no additional stores
-				&ChainPara,				// use AND logic and enhanced key usage 
-										//  as indicated in the ChainPara 
-										//  data structure
-				0/*CERT_CHAIN_REVOCATION_CHECK_CHAIN| */,
-				NULL,					// currently reserved
-				&pTrusted))				// return a pointer to the chain created
-		return FALSE;
-
-	if(pTrusted->TrustStatus.dwErrorStatus != 0)
-		result = FALSE;
-
-	CertFreeCertificateChain(pTrusted);
-	return result;
-}
-
 int ssl_verify_callback_kopano_control(int ok, X509_STORE_CTX *store, BOOL bShowDlg)
 {
 	std::map<std::string, verifyinfo>::const_iterator iSCD; // current certificate data
@@ -793,51 +662,3 @@ exit:
 #endif
 	return ok;
 }
-
-#ifdef WIN32
-HRESULT LoadCertificatesFromRegistry()
-{
-	HRESULT hr = NOERROR;
-	HKEY keySSL;
-	unsigned char *lpRawCert;
-	DWORD cbRawCert;
-	DWORD index = 0;
-	char lpValueName[1024];
-	DWORD cbValueName;
-	DWORD dwType;
-	std::map<std::string, verifyinfo>::const_iterator iSCD;
-
-	g_SCDMutex.Lock();
-
-	if (RegOpenKeyExA(HKEY_CURRENT_USER, "Software\\Kopano\\Client\\SSL", 0, KEY_READ, &keySSL) != ERROR_SUCCESS)
-		goto exit;	// skip certificates, folder probably not there
-
-	do {
-		cbValueName = arraySize(lpValueName);
-		if (RegEnumValueA(keySSL, index, lpValueName, &cbValueName, NULL, &dwType, NULL, &cbRawCert) != ERROR_SUCCESS)
-			break;
-		if (dwType != REG_BINARY) {
-			++index;
-			continue;
-		}
-
-		lpRawCert = new unsigned char[cbRawCert];
-		cbValueName = arraySize(lpValueName);
-		RegEnumValueA(keySSL, index, lpValueName, &cbValueName, NULL, &dwType, lpRawCert, &cbRawCert);
-
-		iSCD = mapSCD.insert(make_pair(string(lpValueName, cbValueName), verifyinfo())).first;
-		iSCD->second.pLastCertificate = CertCreateCertificateContext(X509_ASN_ENCODING, lpRawCert, cbRawCert);
-		iSCD->second.user_choice = IDYES;
-		
-		delete [] lpRawCert;
-		++index;
-	} while (TRUE);
-	
-	RegCloseKey(keySSL);
-
-exit:
-	g_SCDMutex.Unlock();
-
-	return hr;
-}
-#endif

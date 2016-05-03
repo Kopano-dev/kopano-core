@@ -91,48 +91,6 @@ HRESULT ECDistList::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 	// FIXME: check variables
 
 	switch(ulPropTag) {
-#if defined(_WIN32) && !defined(WINCE) 
-	case PR_DETAILS_TABLE:
-		if (*lpiid != IID_IMAPITable)
-			return MAPI_E_INTERFACE_NOT_SUPPORTED;
-
-		hr = ECDisplayTable::CreateDisplayTable(arraySize(rgdtIDistListPage), rgdtIDistListPage, (LPMAPITABLE *) lppUnk);
-		if (hr != hrSuccess)
-			return hr;
-		break;
-	case PR_EMS_AB_MEMBER_O:
-		if (*lpiid != IID_IMAPITable)
-			return MAPI_E_INTERFACE_NOT_SUPPORTED;
-
-		hr = GetContentsTable(ulInterfaceOptions, (LPMAPITABLE*)lppUnk);
-		if (hr != hrSuccess)
-			return hr;
-		break;
-	case PR_EMS_AB_PROXY_ADDRESSES_O:
-		if (*lpiid != IID_IMAPITable)
-			return MAPI_E_INTERFACE_NOT_SUPPORTED;
-
-		hr = ECDisplayTable::CreateTableFromProperty(this, lpiid, ulInterfaceOptions, PR_SMTP_ADDRESS, PR_EMS_AB_PROXY_ADDRESSES, lppUnk);
-		if (hr != hrSuccess)
-			return hr;
-		break;
-	case PR_EMS_AB_IS_MEMBER_OF_DL_O:
-		if (*lpiid != IID_IMAPITable)
-			return MAPI_E_INTERFACE_NOT_SUPPORTED;
-
-		hr = ECDisplayTable::CreateTableFromResolved(this, lpiid, ulInterfaceOptions, PR_EMS_AB_IS_MEMBER_OF_DL_T, lppUnk);
-		if (hr != hrSuccess)
-			return hr;
-		break;
-	case PR_EMS_AB_OWNER_O:
-		if (*lpiid != IID_IMAPITable)
-			return MAPI_E_INTERFACE_NOT_SUPPORTED;
-
-		hr = ECDisplayTable::CreateTableFromResolved(this, lpiid, ulInterfaceOptions, PR_EMS_AB_OWNER, lppUnk);
-		if (hr != hrSuccess)
-			return hr;
-		break;
-#endif
 		default:
 			hr = ECABProp::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
 			break;

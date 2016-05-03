@@ -329,9 +329,5 @@ public:
 	}
 };
 
-
-#ifndef WIN32
 %include "kopanosync.i"
-#endif
-
 #endif

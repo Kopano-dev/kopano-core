@@ -105,9 +105,7 @@ private:
 #endif // HAVE_OFFLINE_SUPPORT
 
 #if SWIGPYTHON
-#ifndef WIN32
 %include "ECLogger.i"
-#endif
 #endif
 
 %include "ECLibSync.h"

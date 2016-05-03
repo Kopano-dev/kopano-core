@@ -115,11 +115,7 @@ UnicodeString UTF32ToUnicode(const UChar32 *utf32)
 
 UnicodeString WCHARToUnicode(const wchar_t *sz)
 {
-#ifdef WIN32
-	return UnicodeString(sz);
-#else
 	return UTF32ToUnicode((const UChar32 *)sz);
-#endif
 }
 
 UnicodeString StringToUnicode(const char *sz)

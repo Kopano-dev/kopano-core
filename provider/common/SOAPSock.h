@@ -18,14 +18,6 @@
 #ifndef SOAPSOCK_H
 #define SOAPSOCK_H
 
-#ifdef WIN32
-// For WSAIoctl
-#include <Winsock2.h>
-#include <Mstcpip.h>
-#include <Wincrypt.h>
-#include <Cryptuiapi.h>
-#endif
-
 #include <openssl/ssl.h>
 #include "soapKCmdProxy.h"
 

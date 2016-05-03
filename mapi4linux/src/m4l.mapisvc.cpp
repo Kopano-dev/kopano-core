@@ -29,9 +29,7 @@
 #include <kopano/Util.h>
 
 #include <iostream>
-#ifndef WIN32
 #include <arpa/inet.h>
-#endif
 #include <climits>
 
 #include <boost/algorithm/string.hpp>
@@ -102,9 +100,6 @@ HRESULT INFLoader::LoadINFs()
 				continue;
 
  			string strFilename = path_to_string(inffile->path());
-#ifdef WIN32
-			transform(strFilename.begin(), strFilename.begin(), strFilename.end(), ::tolower);
-#endif
 			string::size_type pos = strFilename.rfind(".inf", strFilename.size(), strlen(".inf"));
 
 			if (pos == string::npos || strFilename.size() - pos != strlen(".inf"))
@@ -219,18 +214,12 @@ const inf_section* INFLoader::GetSection(const string& strSectionName) const
 vector<string> INFLoader::GetINFPaths()
 {
 	vector<string> ret;
-#ifdef WIN32
-	// @todo fix real path
-	ret.push_back("%CommonProgramFiles%\\System\\MSMAPI\\1033\\MAPISVC.INF");
-	ret.push_back("%CommonProgramFiles(86)%\\System\\MSMAPI\\1033\\MAPISVC.INF");
-#else
 	char *env = getenv("MAPI_CONFIG_PATH");
 	if (env)
 		ba::split(ret, env, ba::is_any_of(":"), ba::token_compress_on);
 	else
 	// @todo, load both, or just one?
 		ret.push_back(MAPICONFIGDIR);
-#endif
 	return ret;
 }
 
@@ -442,13 +431,10 @@ HRESULT SVCService::Init(const INFLoader& cINF, const inf_section* infService)
 	}
 
 	m_dl = dlopen(lpSO->Value.lpszA, RTLD_NOW);
-#ifndef WIN32
 	if (!m_dl) {
 		snprintf(filename, PATH_MAX + 1, "%s%c%s", PKGLIBDIR, PATH_SEPARATOR, lpSO->Value.lpszA);
 		m_dl = dlopen(filename, RTLD_NOW);
 	}
-#endif
-
 	if (!m_dl) {
 		cerr << "Unable to load " << lpSO->Value.lpszA << ": " << dlerror() << endl;
 		hr = MAPI_E_NOT_FOUND;

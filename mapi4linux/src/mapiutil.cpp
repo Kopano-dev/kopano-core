@@ -849,12 +849,8 @@ LPTSTR __stdcall SzFindCh(LPCTSTR lpsz, USHORT ch)
 int __stdcall MNLS_CompareStringW(LCID Locale, DWORD dwCmpFlags, LPCWSTR lpString1, int cchCount1, LPCWSTR lpString2, int cchCount2)
 {
 	TRACE_MAPILIB4(TRACE_ENTRY, "MNLS_CompareStringW", "%d %S, %d %S", cchCount1, lpString1, cchCount2, lpString2);
-#ifdef WIN32
-	int ulCmp = CompareStringW(Locale, dwCmpFlags, lpString1, cchCount1, lpString2, cchCount2);
-#else
 	// FIXME: we're ignoring Locale, dwCmpFlags, cchCount1 and cchCount2
 	int ulCmp = wcscmp((LPWSTR)lpString1, (LPWSTR)lpString2);
-#endif
 	TRACE_MAPILIB1(TRACE_RETURN, "MNLS_CompareStringW", "%d", ulCmp);
 	return ulCmp;
 }

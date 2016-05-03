@@ -22,12 +22,6 @@
 #include <kopano/mapi_ptr.h>
 #include <kopano/threadutil.h>
 
-#if defined WIN32 && !defined _DEBUG
-#include "ECLicense.h"
-#include "ECMAPILicense.h"
-#endif
-
-
 ECArchiveAwareMsgStore::ECArchiveAwareMsgStore(char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags, BOOL fIsSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore)
 : ECMsgStore(lpszProfname, lpSupport, lpTransport, fModify, ulProfileFlags, fIsSpooler, fIsDefaultStore, bOfflineStore)
 { }
@@ -179,19 +173,6 @@ HRESULT ECArchiveAwareMsgStore::GetArchiveStore(LPSBinary lpStoreEID, ECMsgStore
 		hr = ptrUnknown->QueryInterface(IID_ECMsgStore, &ptrOnlineStore);
 		if (hr != hrSuccess)
 			return hr;
-
-#if defined WIN32 && !defined _DEBUG
-		// This is the place where the client eventually gets the first time
-		// an archive store is openend in order to retrieve an archived message
-		// that will be used to destub a message.
-		// This seems like an appropriate place to check if we're actually allowed
-		// to perform destubbing. If allowed we get here only once per archive store.
-		// If destubbing is not allowed we'll get here more often, but one shouldn't
-		// have any stubs to begin with if destubbing isn't allowed.
-		if (HrCheckLicense(&ptrOnlineStore->m_xMsgStore, SERVICE_TYPE_ARCHIVE, ZARAFA_ARCHIVE_DEFAULT) != hrSuccess)
-			return MAPI_E_NO_SUPPORT;
-#endif
-	
 		hr = UnWrapStoreEntryID(lpStoreEID->cb, (LPENTRYID)lpStoreEID->lpb, &cbEntryID, &ptrEntryID);
 		if (hr != hrSuccess)
 			return hr;

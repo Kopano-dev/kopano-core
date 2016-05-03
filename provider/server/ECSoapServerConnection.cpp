@@ -43,14 +43,6 @@ struct soap_connection_thread {
 	struct soap*			lpSoap;
 };
 
-#ifdef WIN32
-// used for std::set<pthread_t>
-bool operator<(const pthread_t &pta, const pthread_t &ptb)
-{
-	return pta.p < ptb.p;
-}
-#endif
-
 #ifdef LINUX
 /** 
  * Creates a AF_UNIX socket in a given location and starts to listen
@@ -509,22 +501,7 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriori
 		goto exit;
 	}
 
-#ifdef WIN32
-	// The windows pipe must overwrite some soap functions 
-	// because is doesn't work with sockets but with handles.
-	lpsSoap->fsend = gsoap_win_fsend;
-	lpsSoap->frecv = gsoap_win_frecv;
-	lpsSoap->fclose = gsoap_win_fclose;
-	lpsSoap->fclosesocket = gsoap_win_closesocket;
-	lpsSoap->fshutdownsocket = gsoap_win_shutdownsocket;
-
-	// Unused
-	lpsSoap->faccept = NULL;
-	lpsSoap->fopen = NULL;
-
-#endif
 	lpsSoap->master = sPipe;
-
 	lpsSoap->peerlen = 0;
 	memset(&lpsSoap->peer, 0, sizeof(lpsSoap->peer));
 	m_lpDispatcher->AddListenSocket(lpsSoap);

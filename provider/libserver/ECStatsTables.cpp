@@ -315,7 +315,6 @@ void ECSessionStatsTable::GetSessionData(ECSession *lpSession, void *obj)
 	lpSession->GetClientApplicationMisc(&sd.client_application_misc);
 	sd.requests = lpSession->GetRequests();
 
-#ifndef WIN32
 	// To get up-to-date CPU stats, check each of the active threads on the session
 	// for their CPU usage, and add that to the already-logged time on the session
 	for (iterBS = sd.busystates.begin(); iterBS != sd.busystates.end(); ++iterBS) {
@@ -330,8 +329,6 @@ void ECSessionStatsTable::GetSessionData(ECSession *lpSession, void *obj)
 		sd.dblUser += timespec2dbl(now) - timespec2dbl(iterBS->threadstart);
 		sd.dblReal += GetTimeOfDay() - iterBS->start;
 	}
-#endif
-
 	lpThis->m_mapSessionData[lpThis->id] = sd;
 	++lpThis->id;
 }

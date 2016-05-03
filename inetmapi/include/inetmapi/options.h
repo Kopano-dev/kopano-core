@@ -18,16 +18,7 @@
 #ifndef __INETMAPI_OPTIONS_H
 #define __INETMAPI_OPTIONS_H
 
-#ifdef _WIN32
-# ifdef INETMAPI_EXPORTS
-#  define INETMAPI_API __declspec(dllexport)
-# else
-#  define INETMAPI_API __declspec(dllimport)
-# endif
-#else
-/* we do not need this on linux */
 # define INETMAPI_API
-#endif
 
 typedef struct _do {
 	bool use_received_date;			// Use the 'received' date instead of the current date as delivery date

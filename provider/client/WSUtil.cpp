@@ -16,19 +16,6 @@
  */
 
 #include <kopano/platform.h>
-
-#ifdef WIN32
-// For WSAIoctl
-#include <windows.h> // must include windows
-#include <iostream>
-#include <WinSock2.h>
-#include <conio.h>
-#include <Ws2ipdef.h> // ws2ipdef.h has to come before mstcpip.h
-#include <mstcpip.h>
-#include <WS2tcpip.h>
-#include <Wincrypt.h>
-#endif
-
 #ifdef LINUX
 #include <sys/un.h>
 #endif

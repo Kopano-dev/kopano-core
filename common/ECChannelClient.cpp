@@ -107,10 +107,6 @@ ECRESULT ECChannelClient::Connect()
 
 ECRESULT ECChannelClient::ConnectSocket()
 {
-#ifdef WIN32
-	// TODO: named pipe?
-	return MAPI_E_NO_SUPPORT;
-#else
 	ECRESULT er = erSuccess;
 	int fd = -1;
 	struct sockaddr_un saddr;
@@ -140,7 +136,6 @@ exit:
 		closesocket(fd);
 
 	return er;
-#endif /* WIN32 */
 }
 
 ECRESULT ECChannelClient::ConnectHttp()
@@ -150,14 +145,6 @@ ECRESULT ECChannelClient::ConnectHttp()
 	struct addrinfo *sock_res, sock_hints;
 	const struct addrinfo *sock_addr;
 	char port_string[sizeof("65536")];
-
-#ifdef WIN32
-	WSAData wsaData;
-	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-		er = KCERR_CALL_FAILED;
-		goto exit;
-	}
-#endif
 
 	snprintf(port_string, sizeof(port_string), "%u", m_ulPort);
 	memset(&sock_hints, 0, sizeof(sock_hints));

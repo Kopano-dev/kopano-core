@@ -51,16 +51,6 @@ using namespace std;
 	#define PROP_ID(ulPropTag)		(((ULONG)(ulPropTag))>>16)
 #endif
 
-#ifdef WIN32
-	/* OpenLDAP TLS options */
-	#define LDAP_OPT_X_TLS_HARD		1
-	#define LDAP_OPT_X_TLS			0x6000
-
-	/* Error range check */
-	#define LDAP_RANGE(n,x,y)	(((x) <= (n)) && ((n) <= (y)))
-	#define LDAP_NAME_ERROR(n)	LDAP_RANGE((n),0x20,0x24) /* 32-34,36 */
-#endif
-
 extern "C" {
 	UserPlugin* getUserPluginInstance(pthread_mutex_t *pluginlock, ECPluginSharedData *shareddata) {
 		return new LDAPUserPlugin(pluginlock, shareddata);
@@ -86,22 +76,12 @@ void ber_auto_free(BerElement *ber)
 	ber_free(ber, 0);
 }
 
-#ifdef WIN32
-typedef auto_free<char, auto_free_dealloc<char*, void, ldap_memfree> >auto_free_ldap_attribute;
-typedef auto_free<BerElement, auto_free_dealloc<BerElement*, void, ber_auto_free> >auto_free_ldap_berelement;
-typedef auto_free<LDAPMessage, auto_free_dealloc<LDAPMessage*, ULONG, ldap_msgfree> >auto_free_ldap_message;
-typedef auto_free<LDAPControl, auto_free_dealloc<LDAPControl*, ULONG, ldap_control_free> >auto_free_ldap_control;
-typedef auto_free<LDAPControl*, auto_free_dealloc<LDAPControl**, ULONG, ldap_controls_free> >auto_free_ldap_controls;
-typedef auto_free<struct berval*, auto_free_dealloc<struct berval**, ULONG, ldap_value_free_len> >auto_free_ldap_berval;
-#else
 typedef auto_free<char, auto_free_dealloc<void*, void, ldap_memfree> >auto_free_ldap_attribute;
 typedef auto_free<BerElement, auto_free_dealloc<BerElement*, void, ber_auto_free> >auto_free_ldap_berelement;
 typedef auto_free<LDAPMessage, auto_free_dealloc<LDAPMessage*, int, ldap_msgfree> >auto_free_ldap_message;
 typedef auto_free<LDAPControl, auto_free_dealloc<LDAPControl*, void, ldap_control_free> >auto_free_ldap_control;
 typedef auto_free<LDAPControl*, auto_free_dealloc<LDAPControl**, void, ldap_controls_free> >auto_free_ldap_controls;
 typedef auto_free<struct berval*, auto_free_dealloc<struct berval**, void, ldap_value_free_len> >auto_free_ldap_berval;
-#endif
-
 
 #define LDAP_DATA_TYPE_DN			"dn"	// data in attribute like cn=piet,cn=user,dc=localhost,dc=com
 #define LDAP_DATA_TYPE_ATTRIBUTE	"attribute"	// data in attribute like piet
@@ -510,12 +490,10 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn, const char *bind_pw) {
 		// Set network timeout (for connect)
 		m_timeout.tv_sec = atoui(m_config->GetSetting("ldap_network_timeout"));
 		m_timeout.tv_usec = 0;
-#ifndef WIN32
 		if ((rc = ldap_set_option(ld, LDAP_OPT_NETWORK_TIMEOUT, &m_timeout)) != LDAP_OPT_SUCCESS) {
 			ec_log_err("LDAP_OPT_NETWORK_TIMEOUT failed: %s", ldap_err2string(rc));
 			goto fail;
 		}
-#endif
 
 #if 0		// OpenLDAP stupidly closes the connection when TLS is not configured on the server.
 #ifdef LINUX // Only available in Windows XP, so we can't use this on windows platform.

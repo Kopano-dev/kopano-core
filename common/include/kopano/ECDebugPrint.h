@@ -168,12 +168,6 @@ public:
 		return details::makeDefaultPrinter2<deref_mode, string_type>(a1, a2).toString();
 	}
 
-#ifdef WIN32
-	static string_type toString(ULONG ulValue) {
-		return helpers::stringify(ulValue);
-	}
-#endif
-
 	static string_type toString(unsigned int ulValue) {
 		return helpers::stringify(ulValue);
 	}
@@ -345,26 +339,6 @@ public:
 		string_type errorstring("STATSTG (not implemented)");
 		return helpers::convert_from(errorstring);
 	}
-
-#ifdef WIN32
-	static string_type toString(DISPPARAMS) {
-		return helpers::convert_from(std::string("DISPPARAMS (not implemented)"));
-	}
-
-	static string_type toString(VARIANT) {
-		return helpers::convert_from(std::string("VARIANT (not implemented)"));
-	}
-
-#ifdef __sensevts_h__
-	static string_type toString(SENS_QOCINFO) {
-		return helpers::convert_from(std::string("SENS_QOCINFO (not implemented)"));
-	}
-#endif // ndef __sensevts_h__
-
-	static string_type toString(EXCEPINFO) {
-		return helpers::convert_from(std::string("EXCEPINFO (not implemented)"));
-	}
-#endif
 };
 
 #endif // ndef ECDebugPrint_INCLUDED

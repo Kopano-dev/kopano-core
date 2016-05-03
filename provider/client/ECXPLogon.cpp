@@ -448,17 +448,6 @@ HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpu
 
 	gettimeofday(&sNow,NULL);
 	ulValue = 300; // Default wait for max 5 min
-#ifdef WIN32
-	{
-		HKEY hKey;
-		ULONG ulSize = sizeof(ULONG);
-
-		if(RegOpenKeyExA(HKEY_CURRENT_USER, "Software\\Kopano\\Client", 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
-			RegQueryValueExA(hKey, "SubmitTimeOut", NULL, NULL, (BYTE*)&ulValue, &ulSize);
-			RegCloseKey(hKey);
-		}
-	}
-#endif /* WIN32 */
 	sTimeOut.tv_sec = sNow.tv_sec + ulValue;
 	sTimeOut.tv_nsec = sNow.tv_usec * 1000;
 	if(ETIMEDOUT == pthread_cond_timedwait(&m_hExitSignal, &m_hExitMutex, &sTimeOut)){

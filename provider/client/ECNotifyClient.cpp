@@ -35,10 +35,6 @@
 #include <kopano/stringutil.h>
 #include <kopano/mapiext.h>
 
-#ifdef WIN32
-#define NOTIFY_THROUGH_SUPPORT_OBJECT
-#endif
-
 #define MAX_NOTIFS_PER_CALL 64
 
 #ifdef _DEBUG

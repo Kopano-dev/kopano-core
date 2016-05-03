@@ -202,11 +202,7 @@ bool ConvertAndValidatePath(const char *lpszClientUpdatePath, const std::string 
 	bool bRet = false;
 	size_t nTempLen = 0;
 	std::string strFile;
-#ifdef WIN32
-	char cPathSeparator = '\\';
-#else
 	char cPathSeparator = '/';
-#endif
 
 	if (lpstrDownloadFile == NULL || lpszClientUpdatePath == NULL)
 		goto exit;
@@ -215,11 +211,7 @@ bool ConvertAndValidatePath(const char *lpszClientUpdatePath, const std::string 
 	nTempLen = strFile.length();
 
 	// not 100% correct, but good enough
-#ifdef WIN32
-	if (strstr(strFile.c_str(), "\\.."))
-#else
 	if (strstr(strFile.c_str(), "/.."))
-#endif
 	{
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Client update: Update path contains invalid .. to previous path.");
 		goto exit;

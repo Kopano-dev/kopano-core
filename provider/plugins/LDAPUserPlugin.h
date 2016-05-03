@@ -24,27 +24,8 @@
 #include <kopano/ECIConv.h>
 
 #include <set>
-
-#ifdef WIN32
-// Disable LDAP_UNICODE to avoid wide string versions
-#ifdef LDAP_UNICODE
-	#undef LDAP_UNICODE
-#endif
-#define LDAP_UNICODE 0
-
-// Use native win32 ldap lib
-#include <winldap.h>
-#include <winber.h>
-// Win32 has two extra parameters for start_tls
-#undef ldap_start_tls_s
-#define ldap_start_tls_s(a,b,c)	ldap_start_tls_sA(a,NULL,NULL,b,c)
-#else
-// OpenLDAP
 #include <ldap.h>
-// win32 defines this because of clashing types, so we use this define outside win32 too
 #define LDAP_TIMEVAL struct timeval
-#endif
-
 #include "plugin.h"
 #include "LDAPCache.h"
 

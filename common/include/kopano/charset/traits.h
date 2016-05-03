@@ -26,14 +26,8 @@ template <typename _Type>
 class iconv_charset _zcp_final {
 };
 
-#ifdef WIN32
-#define CHARSET_CHAR "//IGNORE"
-#define CHARSET_WCHAR "UTF-16LE"
-#else
 #define CHARSET_CHAR "//TRANSLIT"
 #define CHARSET_WCHAR "UTF-32LE"
-#endif
-
 #define CHARSET_TCHAR (iconv_charset<TCHAR*>::name())
 
 void setCharsetBestAttempt(std::string &strCharset);

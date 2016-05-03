@@ -87,11 +87,7 @@ const static struct StreamCaps {
 #define STREAM_VERSION			1	// encode strings in UTF-8.
 #define STREAM_CAPS_CURRENT		(&g_StreamCaps[STREAM_VERSION])
 
-#ifdef WIN32
-#define CHARSET_WIN1252	"WINDOWS-1252//IGNORE"
-#else
 #define CHARSET_WIN1252	"WINDOWS-1252//TRANSLIT"
-#endif
 
 // External objects
 extern ECSessionManager *g_lpSessionManager;	// ECServerEntrypoint.cpp

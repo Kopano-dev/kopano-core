@@ -255,7 +255,6 @@ ECRESULT ECUserManagement::AuthUserAndSync(const char* szLoginname, const char* 
 		}
 	}
 
-#ifndef WIN32
 	szAuthMethod = m_lpConfig->GetSetting("auth_method");
 	if (szAuthMethod && strcmp(szAuthMethod, "pam") == 0) {
 		// authenticate through pam
@@ -298,7 +297,6 @@ ECRESULT ECUserManagement::AuthUserAndSync(const char* szLoginname, const char* 
 			goto exit;
 		}
 	} else
-#endif
 	{
 		// default method is plugin
 		try {

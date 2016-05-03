@@ -23,11 +23,8 @@
 #include <list>
 #include <set>
 #include <string>
-
-#ifndef WIN32
 #include <dirent.h>
 #include <sys/types.h>
-#endif
 
 class ECSerializer;
 class ECLogger;
@@ -142,11 +139,8 @@ private:
 	std::string CreateAttachmentFilename(ULONG ulInstanceId, bool bCompressed);
 
 	size_t attachment_size_safety_limit;
-
-#ifndef WIN32
 	int m_dirFd;
 	DIR *m_dirp;
-#endif
 	bool force_changes_to_disk;
 
 	/* helper functions for transacted deletion */

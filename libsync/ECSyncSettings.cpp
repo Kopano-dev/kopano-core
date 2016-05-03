@@ -48,44 +48,6 @@ ECSyncSettings::ECSyncSettings()
 , m_ulStreamBufferSize(131072)
 , m_ulStreamBatchSize(256)
 {
-#ifdef WIN32
-	ULONG ulSize = sizeof(ULONG);
-	HKEY hKey = NULL;
-
-	/**
-	 * Only load the registry setting once
-	 * to enable SyncLog set 1 (REG_DWORD) on to HKEY_CURRENT_USER\Software\Kopano\Client\SyncLog
-	 * to set SyncLogLevel set 1-6 (REG_DWORD) on HKEY_CURRENT_USER\Software\Kopano\Client\SyncLogLevel
-	 *
-	 * The SyncOptions (REG_DWORD) takes 3 options that are orred together:
-	 * bit 0: Enable Streaming ICS (unless disabled on server)
-	 * bit 1: Enable Change Notifications (unless disabled on server)
-	 * bit 2: Enable State Collector (not yet implemented in 6.40.x)
-	 *
-	 * If the registry key is absent all three options are enabled.
-	 **/
-	if (RegOpenKeyEx(HKEY_CURRENT_USER, _T("Software\\Kopano\\Client"), 0, KEY_READ, &hKey) == ERROR_SUCCESS){
-		ulSize = sizeof(ULONG);
-		RegQueryValueEx(hKey, _T("SyncLog"), NULL, NULL, (BYTE*)&m_ulSyncLog, &ulSize);
-
-		ulSize = sizeof(ULONG);
-		RegQueryValueEx(hKey, _T("SyncLogLevel"), NULL, NULL, (BYTE*)&m_ulSyncLogLevel, &ulSize);
-
-		ulSize = sizeof(ULONG);
-		RegQueryValueEx(hKey, _T("SyncOptions"), NULL, NULL, (BYTE*)&m_ulSyncOpts, &ulSize);
-
-		ulSize = sizeof(ULONG);
-		RegQueryValueEx(hKey, _T("StreamTimeout"), NULL, NULL, (BYTE*)&m_ulStreamTimeout, &ulSize);
-
-		ulSize = sizeof(ULONG);
-		RegQueryValueEx(hKey, _T("StreamBufferSize"), NULL, NULL, (BYTE*)&m_ulStreamBufferSize, &ulSize);
-
-		ulSize = sizeof(ULONG);
-		RegQueryValueEx(hKey, _T("StreamBatchSize"), NULL, NULL, (BYTE*)&m_ulStreamBatchSize, &ulSize);
-
-		RegCloseKey(hKey);
-	}
-#else
 	char *env = getenv("KOPANO_SYNC_LOGLEVEL");
 	if (env && env[0] != '\0') {
 		unsigned loglevel = strtoul(env, NULL, 10);
@@ -106,7 +68,6 @@ ECSyncSettings::ECSyncSettings()
 	env = getenv("KOPANO_STREAM_BATCHSIZE");
 	if (env && env[0] != '\0')
 		m_ulStreamBatchSize = strtoul(env, NULL, 10);
-#endif
 }
 
 bool ECSyncSettings::SyncLogEnabled() const {

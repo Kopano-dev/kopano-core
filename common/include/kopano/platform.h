@@ -50,10 +50,6 @@
 #undef _FORTIFY_SOURCE
 #endif
 
-#if defined(WIN32) || defined(WINCE)
-  #include <kopano/platform.win32.h>
-#else
-
   // We have to include this now in case select.h is included too soon.
   // Increase our maximum amount of file descriptors to 8192
   #include <bits/types.h>
@@ -67,7 +63,6 @@
   #include "config.h"
   #endif
   #include <kopano/platform.linux.h>
-#endif
 
 #define KOPANO_SYSTEM_USER		"SYSTEM"
 #define KOPANO_SYSTEM_USER_W	L"SYSTEM"
@@ -135,16 +130,7 @@ void	rand_get(char *p, int n);
 
 char *	get_password(const char *prompt);
 
-#if defined (WIN32) && !defined (IGNORE_EXPORTS)
- #ifdef KC_EXPORTS
-  #define KDLLAPI __declspec(dllexport)
- #else
-  #define KDLLAPI __declspec(dllimport)
- #endif
-#else
  #define KDLLAPI
-#endif
-
 
 /**
  * Memory usage calculation macros

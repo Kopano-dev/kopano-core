@@ -16,14 +16,7 @@
  */
 
 #include <kopano/platform.h>
-
-#ifdef WIN32
-#include <direct.h>
-#include <io.h>
-#else
 #include <fcntl.h>
-#endif
-
 #include <mapidefs.h>
 #include <mapicode.h>
 #include <climits>
@@ -348,16 +341,7 @@ time_t timegm(struct tm *t) {
 struct tm* gmtime_safe(const time_t* timer, struct tm *result)
 {
 	struct tm *tmp = NULL;
-#ifdef WIN32
-	tmp = gmtime(timer);
-	if(tmp) {
-		*result = *tmp; // copy data
-		tmp = result; // switch pointer
-	}
-#else
 	tmp = gmtime_r(timer, result);
-#endif
-
 	if(tmp == NULL)
 		memset(result, 0, sizeof(struct tm));
 
@@ -398,14 +382,6 @@ int CreatePath(const char *createpath)
 	size_t len = strlen(path);
 	while (len > 0 && (path[len-1] == '/' || path[len-1] == '\\'))
 		path[--len] = 0;
-
-#ifdef WIN32
-	if (path[len-1] == ':') {
-		// do not try to create driverletters
-		free(path);
-		return 0;
-	}
-#endif
 
 	if(stat(path, &s) == 0) {
 		if(s.st_mode & S_IFDIR) {
@@ -467,11 +443,7 @@ ssize_t read_retry(int fd, void *data, size_t len)
 	size_t tread = 0;
 
 	while (len > 0) {
-#ifdef _WIN32
-		ssize_t ret = _read(fd, buf, len);
-#else
 		ssize_t ret = read(fd, buf, len);
-#endif
 		if (ret < 0 && (errno == EINTR || errno == EAGAIN))
 			continue;
 		if (ret < 0)
@@ -491,11 +463,7 @@ ssize_t write_retry(int fd, const void *data, size_t len)
 	size_t twrote = 0;
 
 	while (len > 0) {
-#ifdef WIN32
-		ssize_t ret = _write(fd, buf, len);
-#else
 		ssize_t ret = write(fd, buf, len);
-#endif
 		if (ret < 0 && (errno == EINTR || errno == EAGAIN))
 			continue;
 		if (ret < 0)
@@ -511,33 +479,24 @@ ssize_t write_retry(int fd, const void *data, size_t len)
 
 bool force_buffers_to_disk(const int fd)
 {
-#ifdef WIN32
-	_commit(fd);
-#else
 	if (fsync(fd) == -1)
 	    return false;
-#endif
-
 	return true;
 }
 
 void my_readahead(const int fd)
 {
-#ifndef WIN32
 	struct stat st;
 
 	if (fstat(fd, &st) == 0)
 		(void)readahead(fd, 0, st.st_size);
-#endif
 }
 
 void give_filesize_hint(const int fd, const off_t len)
 {
-#ifndef WIN32
 	// this helps preventing filesystem fragmentation as the
 	// kernel can now look for the best disk allocation
 	// pattern as it knows how much date is going to be
 	// inserted
 	posix_fallocate(fd, 0, len);
-#endif
 }

@@ -30,10 +30,8 @@
 #define new DEBUG_NEW
 #endif
 
-#ifndef WIN32
 // for LOG_MAIL
 #include <syslog.h>
-#endif
 
 HRESULT ECSyncLog::GetLogger(ECLogger **lppLogger)
 {
@@ -81,11 +79,7 @@ HRESULT ECSyncLog::GetLogger(ECLogger **lppLogger)
 	}
 
 	if (!s_lpLogger) {
-#ifdef WIN32
-		s_lpLogger = new ECLogger_Eventlog(EC_LOGLEVEL_DEBUG, "kclibsync");
-#else
 		s_lpLogger = new ECLogger_Syslog(EC_LOGLEVEL_DEBUG, "kclibsync", LOG_MAIL);
-#endif
 	}
 
 	*lppLogger = s_lpLogger;
@@ -124,11 +118,6 @@ ECSyncLog::__initializer::__initializer() {
 ECSyncLog::__initializer::~__initializer() {
 	if (ECSyncLog::s_lpLogger) {
 		unsigned ulRef = ECSyncLog::s_lpLogger->Release();
-#ifdef WIN32
-		// This asserts in the nosetests. This should be investigated. For now
-		// disable the assert.
-		ASSERT(ulRef == 0);
-#endif
 		// Make sure all references are released so compressed logs don't get corrupted.
 		while (ulRef)
 			ulRef = ECSyncLog::s_lpLogger->Release();
