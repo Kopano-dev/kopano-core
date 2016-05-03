@@ -471,12 +471,11 @@ int main(int argc, char *argv[])
 
     ECLogger* filelogger = ptrArchiver->GetLogger(Archiver::LogOnly);
     ptrArchiver->GetLogger(Archiver::LogOnly)->Log(EC_LOGLEVEL_FATAL, "Config settings:");
-    for (std::list<configsetting_t>::const_iterator i = lSettings.begin(); i != lSettings.end(); ++i) {
-        if (strcmp(i->szName, "sslkey_pass") == 0 || strcmp(i->szName, "mysql_password") == 0)
-            filelogger->Log(EC_LOGLEVEL_FATAL, "*  %s = '********'", i->szName);
-        else
-            filelogger->Log(EC_LOGLEVEL_FATAL, "*  %s = '%s'", i->szName, i->szValue);
-    }
+	for (const auto &s : lSettings)
+		if (strcmp(s.szName, "sslkey_pass") == 0 || strcmp(s.szName, "mysql_password") == 0)
+			filelogger->Log(EC_LOGLEVEL_FATAL, "*  %s = '********'", s.szName);
+		else
+			filelogger->Log(EC_LOGLEVEL_FATAL, "*  %s = '%s'", s.szName, s.szValue);
 
     if (mode == MODE_ARCHIVE || mode == MODE_CLEANUP)
         if (unix_create_pidfile(argv[0], ptrArchiver->GetConfig(), ptrArchiver->GetLogger(), false) != 0)

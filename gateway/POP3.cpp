@@ -59,10 +59,8 @@ POP3::POP3(const char *szServerPath, ECChannel *lpChannel, ECLogger *lpLogger, E
 }
 
 POP3::~POP3() {
-	for (std::vector<MailListItem>::const_iterator i = lstMails.begin();
-	     i != lstMails.end(); ++i)
-		delete [] i->sbEntryID.lpb;
-
+	for (auto &m : lstMails)
+		delete[] m.sbEntryID.lpb;
 	if (lpInbox)
 		lpInbox->Release();
 
@@ -621,10 +619,8 @@ HRESULT POP3::HrCmdNoop() {
  * @return MAPI Error code
  */
 HRESULT POP3::HrCmdRset() {
-	for (std::vector<MailListItem>::iterator i = lstMails.begin();
-	     i != lstMails.end(); ++i)
-		i->bDeleted = false;
-
+	for (auto &m : lstMails)
+		m.bDeleted = false;
 	return HrResponse(POP3_RESP_OK, "Undeleted mails");
 }
 
@@ -639,10 +635,9 @@ HRESULT POP3::HrCmdQuit() {
 	HRESULT hr = hrSuccess;
 	unsigned int DeleteCount = 0;
 	SBinaryArray ba = {0, NULL};
-	vector<MailListItem>::const_iterator i;
 
-	for (i = lstMails.begin(); i != lstMails.end(); ++i)
-		if (i->bDeleted)
+	for (const auto &m : lstMails)
+		if (m.bDeleted)
 			++DeleteCount;
 
 	if (DeleteCount) {
@@ -650,12 +645,11 @@ HRESULT POP3::HrCmdQuit() {
 		ba.lpbin = new SBinary[DeleteCount];
 		DeleteCount = 0;
 
-		for (i = lstMails.begin(); i != lstMails.end(); ++i) {
-			if (i->bDeleted) {
-				ba.lpbin[DeleteCount] = i->sbEntryID;
+		for (const auto &m : lstMails)
+			if (m.bDeleted) {
+				ba.lpbin[DeleteCount] = m.sbEntryID;
 				++DeleteCount;
 			}
-		}
 
 		lpInbox->DeleteMessages(&ba, 0, NULL, 0);
 		// ignore error, we always send the Bye to the client

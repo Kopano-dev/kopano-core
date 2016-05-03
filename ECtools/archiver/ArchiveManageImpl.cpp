@@ -245,9 +245,9 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
 	}
 
 	// Find ptrArchiveStoreId in lstArchives
-	for (ObjectEntryList::const_iterator i = lstArchives.begin(); i != lstArchives.end(); ++i) {
+	for (const auto &arc : lstArchives) {
 		bool bEqual;
-		if (m_ptrSession->CompareStoreIds(i->sStoreEntryId, ptrArchiveStoreId->Value.bin, &bEqual) == hrSuccess && bEqual) {
+		if (m_ptrSession->CompareStoreIds(arc.sStoreEntryId, ptrArchiveStoreId->Value.bin, &bEqual) == hrSuccess && bEqual) {
 			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "An archive for this '" TSTRING_PRINTF "' is already present in this store.", m_strUser.c_str());
 			return MAPI_E_UNABLE_TO_COMPLETE;
 		}
@@ -560,19 +560,19 @@ eResult ArchiveManageImpl::ListArchives(std::ostream &ostr)
 		return er;
 
 	ostr << "User '" << convert_to<std::string>(m_strUser) << "' has " << lstArchives.size() << " attached archives:" << std::endl;
-	for (ArchiveList::const_iterator iArchive = lstArchives.begin(); iArchive != lstArchives.end(); ++iArchive, ++ulIdx) {
+	for (const auto &arc : lstArchives) {
 		ostr << "\t" << ulIdx
-			 << ": Store: " << iArchive->StoreName
-			 << ", Folder: " << iArchive->FolderName;
+			 << ": Store: " << arc.StoreName
+			 << ", Folder: " << arc.FolderName;
 
-		if (iArchive->Rights != ARCHIVE_RIGHTS_ABSENT) {
+		if (arc.Rights != ARCHIVE_RIGHTS_ABSENT) {
 			 ostr << ", Rights: ";
-			if (iArchive->Rights == ROLE_OWNER)
+			if (arc.Rights == ROLE_OWNER)
 				ostr << "Read Write";
-			else if (iArchive->Rights == ROLE_REVIEWER)
+			else if (arc.Rights == ROLE_REVIEWER)
 				ostr << "Read Only";
 			else
-				ostr << "Modified: " << AclRightsToString(iArchive->Rights);
+				ostr << "Modified: " << AclRightsToString(arc.Rights);
 		}
 
 		ostr << std::endl;
@@ -724,8 +724,8 @@ eResult ArchiveManageImpl::ListAttachedUsers(std::ostream &ostr)
 	}
 
 	ostr << "Users with an attached archive:" << std::endl;
-	for (UserList::const_iterator iUser = lstUsers.begin(); iUser != lstUsers.end(); ++iUser)
-		ostr << "\t" << iUser->UserName << std::endl;
+	for (const auto &user : lstUsers)
+		ostr << "\t" << user.UserName << std::endl;
 	return Success;
 }
 

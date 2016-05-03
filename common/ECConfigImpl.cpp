@@ -322,13 +322,10 @@ list<configsetting_t> ECConfigImpl::GetSettingGroup(unsigned int ulGroup)
 	list<configsetting_t> lGroup;
 	configsetting_t sSetting;
 
-	for (settingmap_t::iterator iter = m_mapSettings.begin(); iter != m_mapSettings.end(); ++iter) {
-		if ((iter->first.ulGroup & ulGroup) == ulGroup) {
-			if (CopyConfigSetting(&iter->first, iter->second, &sSetting))
-				lGroup.push_back(sSetting);
-		}
-	}
-
+	for (const auto &s : m_mapSettings)
+		if ((s.first.ulGroup & ulGroup) == ulGroup &&
+		    CopyConfigSetting(&s.first, s.second, &sSetting))
+			lGroup.push_back(sSetting);
 	return lGroup;
 }
 
@@ -337,11 +334,9 @@ std::list<configsetting_t> ECConfigImpl::GetAllSettings()
 	list<configsetting_t> lSettings;
 	configsetting_t sSetting;
 
-	for (settingmap_t::iterator iter = m_mapSettings.begin(); iter != m_mapSettings.end(); ++iter) {
-		if (CopyConfigSetting(&iter->first, iter->second, &sSetting))
+	for (const auto &s : m_mapSettings)
+		if (CopyConfigSetting(&s.first, s.second, &sSetting))
 			lSettings.push_back(sSetting);
-	}
-
 	return lSettings;
 }
 
@@ -667,17 +662,13 @@ bool ECConfigImpl::HasWarnings() {
 }
 
 bool ECConfigImpl::HasErrors() {
-	settingmap_t::iterator iterSettings;
-
 	/* First validate the configuration settings */
 	pthread_rwlock_rdlock(&m_settingsRWLock);
 
-	for (iterSettings = m_mapSettings.begin(); iterSettings != m_mapSettings.end(); ++iterSettings) {
-		if (iterSettings->first.ulFlags & CONFIGSETTING_NONEMPTY) {
-			if (!iterSettings->second || strlen(iterSettings->second) == 0)
-				errors.push_back("Option '" + string(iterSettings->first.s) + "' cannot be empty!");
-		}
-	}
+	for (const auto &s : m_mapSettings)
+		if (s.first.ulFlags & CONFIGSETTING_NONEMPTY)
+			if (!s.second || strlen(s.second) == 0)
+				errors.push_back("Option '" + string(s.first.s) + "' cannot be empty!");
 	
 	pthread_rwlock_unlock(&m_settingsRWLock);
 
@@ -753,19 +744,12 @@ bool ECConfigImpl::WriteSettingsToFile(const char* szFileName)
 
 	// open temp output file
 	ofstream out(path_to_string(pathOutFile.string()).c_str());
-
-	settingmap_t::iterator iterSettings;
 	const char* szName = NULL;
 	const char* szValue = NULL;
 
-	for(iterSettings = m_mapSettings.begin(); 
-		iterSettings != m_mapSettings.end();
-		++iterSettings)
-	{
-
-		szName = iterSettings->first.s;
-		szValue = iterSettings->second;
-
+	for (const auto &s : m_mapSettings) {
+		szName  = s.first.s;
+		szValue = s.second;
 		this->WriteLinesToFile(szName, szValue, in, out, false);
 	}
 	in.close();

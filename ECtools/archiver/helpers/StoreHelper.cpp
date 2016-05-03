@@ -802,12 +802,12 @@ HRESULT StoreHelper::GetArchiveCheckRestriction(ECAndRestriction *lpresArchiveCh
 
 	// Build the restriction that checks that the message has been archived to all archives.
 	resArchiveCheck.append(ECExistRestriction(PROP_ARCHIVE_STORE_ENTRYIDS));
-	for (ObjectEntryList::const_iterator iArchive = lstArchives.begin(); iArchive != lstArchives.end(); ++iArchive) {
+	for (const auto &arc : lstArchives) {
 		SPropValue sPropFolderEntryId;
 
 		sPropFolderEntryId.ulPropTag = (PROP_ARCHIVE_STORE_ENTRYIDS & ~MV_FLAG);
-		sPropFolderEntryId.Value.bin.cb = iArchive->sStoreEntryId.size();
-		sPropFolderEntryId.Value.bin.lpb = iArchive->sStoreEntryId;
+		sPropFolderEntryId.Value.bin.cb  = arc.sStoreEntryId.size();
+		sPropFolderEntryId.Value.bin.lpb = arc.sStoreEntryId;
 
 		resArchiveCheck.append(ECPropertyRestriction(RELOP_EQ, PROP_ARCHIVE_STORE_ENTRYIDS, &sPropFolderEntryId));
 	}

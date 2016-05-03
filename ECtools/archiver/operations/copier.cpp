@@ -623,15 +623,15 @@ HRESULT Copier::DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps)
 	// Once we reach this point all messages have been created and/or updated. We need to
 	// save them now. When a transaction is saved it will return a Rollback object we can
 	// use to undo the changes when a later save fails.
-	for (TransactionList::const_iterator iTransaction = lstTransactions.begin(); iTransaction != lstTransactions.end(); ++iTransaction) {
+	for (const auto &ta : lstTransactions) {
 		RollbackPtr ptrRollback;
-		hr = (*iTransaction)->SaveChanges(m_ptrSession, &ptrRollback);
+		hr = ta->SaveChanges(m_ptrSession, &ptrRollback);
 		if (FAILED(hr)) {
 			Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to save changes into archive, Rolling back. hr=0x%08x", hr);
 
 			// Rollback
-			for (RollbackList::const_iterator iRollback = lstRollbacks.begin(); iRollback != lstRollbacks.end(); ++iRollback) {
-				HRESULT hrTmp = (*iRollback)->Execute(m_ptrSession);
+			for (const auto &rb : lstRollbacks) {
+				HRESULT hrTmp = rb->Execute(m_ptrSession);
 				if (hrTmp != hrSuccess)
 					Logger()->Log(EC_LOGLEVEL_ERROR, "Failed to rollback transaction. The archive is consistent, but possibly cluttered. hr=0x%08x", hrTmp);
 			}
@@ -639,7 +639,7 @@ HRESULT Copier::DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps)
 		}
 		hr = hrSuccess;
 		lstRollbacks.push_back(ptrRollback);
-		lstNewMsgArchives.push_back((*iTransaction)->GetObjectEntry());
+		lstNewMsgArchives.push_back(ta->GetObjectEntry());
 	}
 
 	if (state.isDirty()) {
@@ -659,8 +659,8 @@ HRESULT Copier::DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps)
 		return hr;
 	}
 
-	for (TransactionList::const_iterator iTransaction = lstTransactions.begin(); iTransaction != lstTransactions.end(); ++iTransaction) {
-		HRESULT hrTmp = (*iTransaction)->PurgeDeletes(m_ptrSession, m_ptrTransaction);
+	for (const auto &ta : lstTransactions) {
+		HRESULT hrTmp = ta->PurgeDeletes(m_ptrSession, m_ptrTransaction);
 		if (hrTmp != hrSuccess)
 			Logger()->Log(EC_LOGLEVEL_ERROR, "Failed to remove old archives. (hr=0x%08x)", hrTmp);
 	}

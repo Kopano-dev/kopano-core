@@ -1180,7 +1180,6 @@ HRESULT IMAP::HrCmdCreate(const string &strTag, const string &strFolderParam) {
 	IMAPIFolder *lpFolder = NULL;
 	IMAPIFolder *lpSubFolder = NULL;
 	vector<wstring> strPaths;
-	vector<wstring>::const_iterator iPath;
 	wstring strFolder;
 	wstring strPath;
 	SPropValue sFolderClass;
@@ -1222,8 +1221,8 @@ HRESULT IMAP::HrCmdCreate(const string &strTag, const string &strFolderParam) {
 
 	strPaths = tokenize(strPath, IMAP_HIERARCHY_DELIMITER);
 
-	for (iPath = strPaths.begin(); iPath != strPaths.end(); ++iPath) {
-		hr = lpFolder->CreateFolder(FOLDER_GENERIC, (TCHAR *) iPath->c_str(), NULL, NULL, MAPI_UNICODE, &lpSubFolder);
+	for (const auto &path : strPaths) {
+		hr = lpFolder->CreateFolder(FOLDER_GENERIC, const_cast<TCHAR *>(path.c_str()), NULL, NULL, MAPI_UNICODE, &lpSubFolder);
 		if (hr != hrSuccess) {
 			if (hr == MAPI_E_COLLISION)
 				hr2 = HrResponse(RESP_TAGGED_NO, strTag, "CREATE folder already exists");
@@ -2322,7 +2321,6 @@ HRESULT IMAP::HrCmdSearch(const string &strTag, vector<string> &lstSearchCriteri
 	HRESULT hr = hrSuccess;
 	HRESULT hr2 = hrSuccess;
 	list<ULONG> lstMailnr;
-	list<ULONG>::const_iterator lpMailnr;
 	ULONG ulCriterianr = 0;
 	string strResponse;
 	char szBuffer[33];
@@ -2360,8 +2358,8 @@ HRESULT IMAP::HrCmdSearch(const string &strTag, vector<string> &lstSearchCriteri
 
 	strResponse = "SEARCH";
 
-	for (lpMailnr = lstMailnr.begin(); lpMailnr != lstMailnr.end(); ++lpMailnr) {
-		snprintf(szBuffer, 32, " %u", bUidMode ? lstFolderMailEIDs[*lpMailnr].ulUid : (*lpMailnr) + 1);
+	for (auto nr : lstMailnr) {
+		snprintf(szBuffer, 32, " %u", bUidMode ? lstFolderMailEIDs[nr].ulUid : nr + 1);
 		strResponse += szBuffer;
 	}
 
@@ -3261,7 +3259,6 @@ HRESULT IMAP::HrGetFolderList(list<SFolder> &lstFolders) {
 	LPSPropValue lpPropVal = NULL;
 	ULONG cbEntryID;
 	LPENTRYID lpEntryID = NULL;
-	list<SFolder>::iterator lpFolder;
 
 	lstFolders.clear();
 
@@ -3282,12 +3279,11 @@ HRESULT IMAP::HrGetFolderList(list<SFolder> &lstFolders) {
 	}
 
 	// find the inbox, and name it INBOX
-	for (lpFolder = lstFolders.begin(); lpFolder != lstFolders.end(); ++lpFolder) {
-		if (cbEntryID == lpFolder->sEntryID.cb && memcmp(lpFolder->sEntryID.lpb, lpEntryID, cbEntryID) == 0) {
-			lpFolder->strFolderName = L"INBOX";
+	for (auto &folder : lstFolders)
+		if (cbEntryID == folder.sEntryID.cb && memcmp(folder.sEntryID.lpb, lpEntryID, cbEntryID) == 0) {
+			folder.strFolderName = L"INBOX";
 			break;
 		}
-	}
 	
 	MAPIFreeBuffer(lpPropVal);
 	lpPropVal = NULL;
@@ -3400,7 +3396,6 @@ HRESULT IMAP::HrSetSubscribedList() {
 	ULONG cbEntryID = 0;
 	LPENTRYID lpEntryID = NULL;
 	ULONG ulObjType = 0;
-	vector<BinaryArray>::const_iterator iFolders;
 	ULONG written;
 	ULONG size;
 	ULARGE_INTEGER liZero = {{0, 0}};
@@ -3424,13 +3419,11 @@ HRESULT IMAP::HrSetSubscribedList() {
 	if (hr != hrSuccess)
 		goto exit;
 
-	for (iFolders = m_vSubscriptions.begin();
-	     iFolders != m_vSubscriptions.end(); ++iFolders) {
-		hr = lpStream->Write(&(iFolders->cb), sizeof(ULONG), &written);
+	for (const auto &folder : m_vSubscriptions) {
+		hr = lpStream->Write(&folder.cb, sizeof(ULONG), &written);
 		if (hr != hrSuccess)
 			goto exit;
-
-		hr = lpStream->Write(iFolders->lpb, iFolders->cb, &written);
+		hr = lpStream->Write(folder.lpb, folder.cb, &written);
 		if (hr != hrSuccess)
 			goto exit;
 	}
@@ -3646,9 +3639,8 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, bool bS
 
     // Remember UIDs if needed
     if(!bInitialLoad)
-        for (iterMail = lstFolderMailEIDs.begin();
-             iterMail != lstFolderMailEIDs.end(); ++iterMail)
-		mapUIDs[iterMail->ulUid] = n++;
+		for (const auto &mail : lstFolderMailEIDs)
+			mapUIDs[mail.ulUid] = n++;
     
     if(bInitialLoad)
         lstFolderMailEIDs.clear();
@@ -3995,9 +3987,7 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 	SPropValue sPropVal;
 	string strResponse;
 	LPSPropTagArray lpPropTags = NULL;
-	list<ULONG>::const_iterator lpMail;
     set<ULONG> setProps;
-    set<ULONG>::const_iterator iterProps;
     int n;
     LPSPropValue lpProps;
     ULONG cValues;
@@ -4089,8 +4079,8 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
         // Always get UID
         lpPropTags->aulPropTag[0] = PR_INSTANCE_KEY;
         n = 1;
-        for (iterProps = setProps.begin(); iterProps != setProps.end(); ++iterProps)
-            lpPropTags->aulPropTag[n++] = *iterProps;
+		for (auto prop : setProps)
+			lpPropTags->aulPropTag[n++] = prop;
         lpPropTags->cValues = setProps.size()+1;
 
         // Open the folder in question
@@ -4136,11 +4126,11 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 	sPropVal.ulPropTag = PR_INSTANCE_KEY;
     
 	// Loop through all requested rows, and get the data for each (FIXME: slow for large requests)
-	for (lpMail = lstMails.begin(); lpMail != lstMails.end(); ++lpMail) {
+	for (auto mail_idx : lstMails) {
 		lpProp = NULL;			// by default: no need to mark-as-read
 
-		sPropVal.Value.bin.cb = lstFolderMailEIDs[*lpMail].sInstanceKey.cb;
-		sPropVal.Value.bin.lpb = lstFolderMailEIDs[*lpMail].sInstanceKey.lpb;
+		sPropVal.Value.bin.cb = lstFolderMailEIDs[mail_idx].sInstanceKey.cb;
+		sPropVal.Value.bin.lpb = lstFolderMailEIDs[mail_idx].sInstanceKey.lpb;
 
         // We use a read-ahead mechanism here, reading 50 rows at a time.		
 		if (m_lpTable) {
@@ -4178,8 +4168,8 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 				if (bMarkAsRead) {
 					lpProp = PpropFindProp(lpRow->lpProps, lpRow->cValues, PR_MESSAGE_FLAGS);
 					if (!lpProp || (lpProp->Value.ul & MSGFLAG_READ) == 0) {
-						lpEntryList->lpbin[lpEntryList->cValues].cb = lstFolderMailEIDs[*lpMail].sEntryID.cb;
-						lpEntryList->lpbin[lpEntryList->cValues].lpb = lstFolderMailEIDs[*lpMail].sEntryID.lpb;
+						lpEntryList->lpbin[lpEntryList->cValues].cb = lstFolderMailEIDs[mail_idx].sEntryID.cb;
+						lpEntryList->lpbin[lpEntryList->cValues].lpb = lstFolderMailEIDs[mail_idx].sEntryID.lpb;
 						++lpEntryList->cValues;
 					}
 				}
@@ -4196,7 +4186,7 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
         }
         
         // Fetch the row data
-        if (HrPropertyFetchRow(lpProps, cValues, strResponse, *lpMail, (lpProp != NULL), lstDataItems) != hrSuccess) {
+        if (HrPropertyFetchRow(lpProps, cValues, strResponse, mail_idx, (lpProp != NULL), lstDataItems) != hrSuccess) {
             lpLogger->Log(EC_LOGLEVEL_WARNING, "{?} Error fetching mail");
         } else {
             hr = HrResponse(RESP_UNTAGGED, strResponse);
@@ -5049,7 +5039,6 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
          */
         bool bNot = Prefix(strPartName, "HEADER.FIELDS.NOT");
         list<pair<string, string> > lstFields;
-        list<pair<string, string> >::const_iterator iterField;
         string strFields;
         
         // Parse headers in message
@@ -5068,33 +5057,32 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
             HrTokenize(setFields, strFields);
             
             // Output all headers except those specified
-            for (iterField = lstFields.begin(); iterField != lstFields.end(); ++iterField) {
-                string strFieldUpper = iterField->first;
+            for (const auto &field : lstFields) {
+                std::string strFieldUpper = field.first;
                 ToUpper(strFieldUpper);
                 if(setFields.find(strFieldUpper) == setFields.end()) {
-                    strMessagePart += iterField->first;
+                    strMessagePart += field.first;
                     strMessagePart += ": ";
-                    strMessagePart += iterField->second;
+                    strMessagePart += field.second;
                     strMessagePart += "\r\n";
                 }
             }
         } else {
             vector<string> lstReqFields;
-            vector<string>::const_iterator iterReqField;
             boost::unordered_set<std::string> seen;
 
             // Get fields as vector
 			lstReqFields = tokenize(strFields, " ");
             
             // Output headers specified, in order of field set
-            for (iterReqField = lstReqFields.begin(); iterReqField != lstReqFields.end(); ++iterReqField) {
-                if (!seen.insert(*iterReqField).second)
+            for (const auto &reqfield : lstReqFields) {
+                if (!seen.insert(reqfield).second)
                     continue;
-                for (iterField = lstFields.begin(); iterField != lstFields.end(); ++iterField) {
-                    if(CaseCompare(*iterReqField, iterField->first)) {
-                        strMessagePart += iterField->first;
+                for (const auto &field : lstFields) {
+                    if(CaseCompare(reqfield, field.first)) {
+                        strMessagePart += field.first;
                         strMessagePart += ": ";
-                        strMessagePart += iterField->second;
+                        strMessagePart += field.second;
                         strMessagePart += "\r\n";
 						break;
                     }
@@ -5331,7 +5319,6 @@ HRESULT IMAP::HrStore(const list<ULONG> &lstMails, string strMsgDataItemName, st
 	LPSPropTagArray lpPropTagArray = NULL;
 	ULONG cValues;
 	ULONG ulObjType;
-	list<ULONG>::const_iterator lpMail;
 	string strNewFlags;
 	bool bDelete = false;
 
@@ -5348,8 +5335,8 @@ HRESULT IMAP::HrStore(const list<ULONG> &lstMails, string strMsgDataItemName, st
 	}
 	HrSplitInput(strMsgDataItemValue, lstFlags);
 
-	for (lpMail = lstMails.begin(); lpMail != lstMails.end(); ++lpMail) {
-		hr = lpSession->OpenEntry(lstFolderMailEIDs[(*lpMail)].sEntryID.cb, (LPENTRYID) lstFolderMailEIDs[(*lpMail)].sEntryID.lpb,
+	for (auto mail_idx : lstMails) {
+		hr = lpSession->OpenEntry(lstFolderMailEIDs[mail_idx].sEntryID.cb, (LPENTRYID) lstFolderMailEIDs[mail_idx].sEntryID.lpb,
 								&IID_IMessage, MAPI_MODIFY, &ulObjType, (LPUNKNOWN *) &lpMessage);
 		if (hr != hrSuccess) {
 			goto exit;
@@ -5606,13 +5593,13 @@ HRESULT IMAP::HrStore(const list<ULONG> &lstMails, string strMsgDataItemName, st
 			}
 		}
 
-		// Get the newly updated flags
-        hr = HrGetMessageFlags(strNewFlags, lpMessage, lstFolderMailEIDs[*lpMail].bRecent);
-        if(hr != hrSuccess)
-            goto exit;
-            
-        // Update our internal flag status
-        lstFolderMailEIDs[*lpMail].strFlags = strNewFlags;
+		/* Get the newly updated flags */
+		hr = HrGetMessageFlags(strNewFlags, lpMessage, lstFolderMailEIDs[mail_idx].bRecent);
+		if (hr != hrSuccess)
+			goto exit;
+
+		/* Update our internal flag status */
+		lstFolderMailEIDs[mail_idx].strFlags = strNewFlags;
 
 		if (lpMessage)
 			lpMessage->Release();
@@ -5650,8 +5637,6 @@ HRESULT IMAP::HrCopy(const list<ULONG> &lstMails, const string &strFolderParam, 
 	HRESULT hr = hrSuccess;
 	IMAPIFolder *lpFromFolder = NULL;
 	IMAPIFolder *lpDestFolder = NULL;
-	list<ULONG>::const_iterator lpMail;
-	list<SFolder>::const_iterator iDestFolder;
 	ULONG ulCount;
 	ENTRYLIST sEntryList;
 	wstring strFolder;
@@ -5681,9 +5666,9 @@ HRESULT IMAP::HrCopy(const list<ULONG> &lstMails, const string &strFolderParam, 
 		goto exit;
 	ulCount = 0;
 
-	for (lpMail = lstMails.begin(); lpMail != lstMails.end(); ++lpMail) {
-		sEntryList.lpbin[ulCount].cb = lstFolderMailEIDs[(*lpMail)].sEntryID.cb;
-		sEntryList.lpbin[ulCount].lpb = lstFolderMailEIDs[(*lpMail)].sEntryID.lpb;
+	for (auto mail_idx : lstMails) {
+		sEntryList.lpbin[ulCount].cb = lstFolderMailEIDs[mail_idx].sEntryID.cb;
+		sEntryList.lpbin[ulCount].lpb = lstFolderMailEIDs[mail_idx].sEntryID.lpb;
 		++ulCount;
 	}
 
@@ -5716,7 +5701,6 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 	vector<string> vSubSearch;
 	vector<LPSRestriction> lstRestrictions;
 	list<ULONG> lstMails;
-	list<ULONG>::const_iterator lpMail;
 	LPSRestriction lpRootRestrict = NULL;
 	LPSRestriction lpRestriction, lpExtraRestriction;
 	IMAPIFolder *lpFolder = NULL;
@@ -5728,7 +5712,6 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 	char *szBuffer;
 	enum { EID, NUM_COLS };
 	SizedSPropTagArray(NUM_COLS, spt) = { NUM_COLS, {PR_EC_IMAP_ID} };
-	vector<SMail>::const_iterator iterFolderMails;
 	map<unsigned int, unsigned int> mapUIDs;
 	map<unsigned int, unsigned int>::const_iterator iterUID;
 	int n = 0;
@@ -5779,9 +5762,8 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 	}
 	
 	// Make a map of UID->ID
-	for (iterFolderMails = lstFolderMailEIDs.begin();
-	     iterFolderMails != lstFolderMailEIDs.end(); ++iterFolderMails)
-		mapUIDs[iterFolderMails->ulUid] = n++;
+	for (const auto &e : lstFolderMailEIDs)
+		mapUIDs[e.ulUid] = n++;
 
 	hr = HrFindFolder(strCurrentFolder, bCurrentFolderReadOnly, &lpFolder);
 	if (hr != hrSuccess) {
@@ -5819,11 +5801,10 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 		if (lstSearchCriteria[ulStartCriteria][0] == '(') {
 			// remove all () and [], and resplit.
 			strSearchCriterium.clear();
-			for (string::const_iterator i = lstSearchCriteria[ulStartCriteria].begin();
-			     i != lstSearchCriteria[ulStartCriteria].end(); ++i) {
-				if (*i == '(' || *i == ')' || *i == '[' || *i == ']')
+			for (auto c : lstSearchCriteria[ulStartCriteria]) {
+				if (c == '(' || c == ')' || c == '[' || c == ']')
 					continue;
-				strSearchCriterium += *i;
+				strSearchCriterium += c;
 			}
 			vSubSearch.clear();
 			HrSplitInput(strSearchCriterium, vSubSearch);
@@ -5866,13 +5847,13 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 			lpRestriction->res.resOr.lpRes = lpExtraRestriction;
 			ulCount = 0;
 
-			for (lpMail = lstMails.begin(); lpMail != lstMails.end(); ++lpMail) {
+			for (auto mail_idx : lstMails) {
 				hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
 				if (hr != hrSuccess)
 					goto exit;
 
 				lpPropVal->ulPropTag = PR_EC_IMAP_ID;
-				lpPropVal->Value.ul = lstFolderMailEIDs[(*lpMail)].ulUid;
+				lpPropVal->Value.ul = lstFolderMailEIDs[mail_idx].ulUid;
 				lpExtraRestriction[ulCount].rt = RES_PROPERTY;
 				lpExtraRestriction[ulCount].res.resProperty.relop = RELOP_EQ;
 				lpExtraRestriction[ulCount].res.resProperty.ulPropTag = PR_EC_IMAP_ID;
@@ -6591,13 +6572,13 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 			lpRestriction->res.resOr.lpRes = lpExtraRestriction;
 			ulCount = 0;
 
-			for (lpMail = lstMails.begin(); lpMail != lstMails.end(); ++lpMail) {
+			for (auto mail_idx : lstMails) {
 				hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
 				if (hr != hrSuccess)
 					goto exit;
 
 				lpPropVal->ulPropTag = PR_EC_IMAP_ID;
-				lpPropVal->Value.ul = lstFolderMailEIDs[(*lpMail)].ulUid;
+				lpPropVal->Value.ul = lstFolderMailEIDs[mail_idx].ulUid;
 				lpExtraRestriction[ulCount].rt = RES_PROPERTY;
 				lpExtraRestriction[ulCount].res.resProperty.relop = RELOP_EQ;
 				lpExtraRestriction[ulCount].res.resProperty.ulPropTag = PR_EC_IMAP_ID;

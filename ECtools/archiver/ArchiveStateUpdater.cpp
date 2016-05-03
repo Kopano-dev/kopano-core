@@ -143,11 +143,10 @@ HRESULT ArchiveStateUpdater::UpdateAll(unsigned int ulAttachFlags)
 	HRESULT hr = hrSuccess;
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveStateUpdater::UpdateAll() function entry");
 
-	for (ArchiveInfoMap::const_iterator i = m_mapArchiveInfo.begin(); i != m_mapArchiveInfo.end(); ++i) 
-    {
-		HRESULT hrTmp = UpdateOne(i->first, i->second, ulAttachFlags);
+	for (const auto &i : m_mapArchiveInfo) {
+		HRESULT hrTmp = UpdateOne(i.first, i.second, ulAttachFlags);
 		if (hrTmp != hrSuccess)
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to auto attach store for user '" TSTRING_PRINTF "', hr=0x%08x", i->second.userName.c_str(), hrTmp);
+			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to auto attach store for user '" TSTRING_PRINTF "', hr=0x%08x", i.second.userName.c_str(), hrTmp);
 	}
 
 	return hr;
@@ -286,17 +285,17 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstr
 		return hr;
 
 	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Processing %lu archives for implicitly attached archives", lstArchives.size());
-	for (ObjectEntryList::const_iterator i = lstArchives.begin(); i != lstArchives.end(); ++i) {
+	for (const auto &i : lstArchives) {
 		MsgStorePtr ptrArchStore;
 		ULONG ulType;
 		MAPIFolderPtr ptrArchFolder;
 		ArchiveHelperPtr ptrArchiveHelper;
 		AttachType attachType;
 
-		hr = m_ptrSession->OpenStore(i->sStoreEntryId, &ptrArchStore);
+		hr = m_ptrSession->OpenStore(i.sStoreEntryId, &ptrArchStore);
 		if (hr == MAPI_E_NOT_FOUND) {
 			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive store returned not found, detaching it.");
-			lstCurrentArchives.remove_if(Predicates::SObjectEntry_equals_binary(*i));
+			lstCurrentArchives.remove_if(Predicates::SObjectEntry_equals_binary(i));
 			continue;
 		}
 		if (hr != hrSuccess) {
@@ -304,7 +303,7 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstr
 			return hr;
 		}
 
-		hr = ptrArchStore->OpenEntry(i->sItemEntryId.size(), i->sItemEntryId, &ptrArchFolder.iid, 0, &ulType, &ptrArchFolder);
+		hr = ptrArchStore->OpenEntry(i.sItemEntryId.size(), i.sItemEntryId, &ptrArchFolder.iid, 0, &ulType, &ptrArchFolder);
 		if (hr != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open archive root. hr=0x%08x", hr);
 			if (hr == MAPI_E_NOT_FOUND) {
@@ -326,7 +325,7 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstr
 
 		if (attachType == ImplicitAttach) {
 			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive was implicitly attached, detaching.");
-			lstCurrentArchives.remove_if(Predicates::SObjectEntry_equals_binary(*i));
+			lstCurrentArchives.remove_if(Predicates::SObjectEntry_equals_binary(i));
 			++ulDetachCount;
 		} else
 			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive was explicitly attached");
@@ -422,11 +421,11 @@ HRESULT ArchiveStateUpdater::AddCouplingBased(const tstring &userName, const std
 	}
 
 	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Attaching %lu couplings", lstCouplings.size());
-	for (std::list<tstring>::const_iterator i = lstCouplings.begin(); i != lstCouplings.end(); ++i) {
+	for (const auto &i : lstCouplings) {
 		tstring strArchive;
 		tstring strFolder;
 
-		hr = ParseCoupling(*i, &strArchive, &strFolder);
+		hr = ParseCoupling(i, &strArchive, &strFolder);
 		if (hr != hrSuccess)
 			return hr;
 
@@ -474,18 +473,18 @@ HRESULT ArchiveStateUpdater::AddServerBased(const tstring &userName, const abent
 	}
 
 	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Attaching %lu servers", lstServers.size());
-	for (std::list<tstring>::const_iterator i = lstServers.begin(); i != lstServers.end(); ++i) {
+	for (const auto &i : lstServers) {
 		MsgStorePtr ptrArchive;
 		
-		hr = m_ptrSession->OpenOrCreateArchiveStore(userName, *i, &ptrArchive);
+		hr = m_ptrSession->OpenOrCreateArchiveStore(userName, i, &ptrArchive);
 		if (hr != hrSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open or create the archive for user '" TSTRING_PRINTF "' on server '" TSTRING_PRINTF "', hr=0x%08x", userName.c_str(), i->c_str(), hr);
+			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open or create the archive for user '" TSTRING_PRINTF "' on server '" TSTRING_PRINTF "', hr=0x%08x", userName.c_str(), i.c_str(), hr);
 			return hr;
 		}
 
 		hr = lpManage->AttachTo(ptrArchive, L"", NULL, userId, ulAttachFlags, ImplicitAttach);
 		if (hr != hrSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to attach to archive store for user '" TSTRING_PRINTF "' on server '" TSTRING_PRINTF "', hr=0x%08x", userName.c_str(), i->c_str(), hr);
+			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to attach to archive store for user '" TSTRING_PRINTF "' on server '" TSTRING_PRINTF "', hr=0x%08x", userName.c_str(), i.c_str(), hr);
 			return hr;
 		}
 	}
@@ -507,20 +506,20 @@ HRESULT ArchiveStateUpdater::VerifyAndUpdate(const abentryid_t &userId, const Ar
 	ObjectEntryList lstArchives = info.lstArchives;
 
 	// Handle the automated couplings
-	for (std::list<tstring>::const_iterator i = info.lstCouplings.begin(); i != info.lstCouplings.end(); ++i) {
+	for (const auto &i : info.lstCouplings) {
 		tstring strArchive;
 		tstring strFolder;
 		SObjectEntry objEntry;
 		ObjectEntryList::iterator iObjEntry;
 
-		hr = ParseCoupling(*i, &strArchive, &strFolder);
+		hr = ParseCoupling(i, &strArchive, &strFolder);
 		if (hr != hrSuccess)
 			return hr;
 
 		hr = FindArchiveEntry(strArchive, strFolder, &objEntry);
 		if (hr == MAPI_E_NOT_FOUND) {
 			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "store '" TSTRING_PRINTF "', folder '" TSTRING_PRINTF "' does not exist. Adding to coupling list", strArchive.c_str(), strFolder.c_str());
-			lstCouplings.push_back(*i);
+			lstCouplings.push_back(i);
 			continue;
 		}
 		if (hr != hrSuccess) {
@@ -533,7 +532,7 @@ HRESULT ArchiveStateUpdater::VerifyAndUpdate(const abentryid_t &userId, const Ar
 		if (iObjEntry == lstArchives.end()) {
 			// Found a coupling that's not yet attached. Add it to the to-attach-list.
 			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "store '" TSTRING_PRINTF "', folder '" TSTRING_PRINTF "' not yet attached. Adding to coupling list", strArchive.c_str(), strFolder.c_str());
-			lstCouplings.push_back(*i);
+			lstCouplings.push_back(i);
 		} else {
 			// Found a coupling that's already attached. Remove it from lstArchives, which is later processed to remove all
 			// implicitly attached archives from it.
@@ -543,18 +542,18 @@ HRESULT ArchiveStateUpdater::VerifyAndUpdate(const abentryid_t &userId, const Ar
 	}
 
 	// Handle the automated archive stores
-	for (std::list<tstring>::const_iterator i = info.lstServers.begin(); i != info.lstServers.end(); ++i) {
+	for (const auto &i : info.lstServers) {
 		entryid_t archiveId;
 		ObjectEntryList::iterator iObjEntry;
 
-		hr = m_ptrSession->GetArchiveStoreEntryId(info.userName, *i, &archiveId);
+		hr = m_ptrSession->GetArchiveStoreEntryId(info.userName, i, &archiveId);
 		if (hr == MAPI_E_NOT_FOUND) {
-			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "archive store for '" TSTRING_PRINTF "' on server '" TSTRING_PRINTF "' does not exist. Adding to server list", info.userName.c_str(), i->c_str());
-			lstServers.push_back(*i);
+			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "archive store for '" TSTRING_PRINTF "' on server '" TSTRING_PRINTF "' does not exist. Adding to server list", info.userName.c_str(), i.c_str());
+			lstServers.push_back(i);
 			continue;
 		}
 		if (hr != hrSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to get archive store id for '" TSTRING_PRINTF "' on server '" TSTRING_PRINTF "', hr=0x%08x", info.userName.c_str(), i->c_str(), hr);
+			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to get archive store id for '" TSTRING_PRINTF "' on server '" TSTRING_PRINTF "', hr=0x%08x", info.userName.c_str(), i.c_str(), hr);
 			return hr;
 		}
 
@@ -562,12 +561,12 @@ HRESULT ArchiveStateUpdater::VerifyAndUpdate(const abentryid_t &userId, const Ar
 		iObjEntry = std::find_if(lstArchives.begin(), lstArchives.end(), Predicates::storeId_equals_compareEntryId(m_ptrSession->GetMAPISession(), archiveId));
 		if (iObjEntry == lstArchives.end()) {
 			// Found a server/archive that's not yet attached. Add it to the to-attach-list.
-			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "archive store for '" TSTRING_PRINTF "' on server '" TSTRING_PRINTF "' not yet attached. Adding to server list", info.userName.c_str(), i->c_str());
-			lstServers.push_back(*i);
+			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "archive store for '" TSTRING_PRINTF "' on server '" TSTRING_PRINTF "' not yet attached. Adding to server list", info.userName.c_str(), i.c_str());
+			lstServers.push_back(i);
 		} else {
 			// Found a server/archive that's already attached. Remove it from lstArchives, which is later processed to remove all
 			// implicitly attached archives from it.
-			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "archive store for '" TSTRING_PRINTF "' on server '" TSTRING_PRINTF "' already attached. Removing from post process list", info.userName.c_str(), i->c_str());
+			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "archive store for '" TSTRING_PRINTF "' on server '" TSTRING_PRINTF "' already attached. Removing from post process list", info.userName.c_str(), i.c_str());
 			lstArchives.erase(iObjEntry);
 		}
 	}

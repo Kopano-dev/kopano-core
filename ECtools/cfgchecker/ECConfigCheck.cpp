@@ -135,16 +135,14 @@ void ECConfigCheck::validate()
 
 	cout << "Starting configuration validation of " << m_lpszName << endl;
 
-	for (list<config_check_t>::iterator it = m_lChecks.begin(); it != m_lChecks.end(); ++it) {
-		it->hosted = m_bHosted;
-		it->multi = m_bMulti;
-		it->value1 = getSetting(it->option1);
-		it->value2 = getSetting(it->option2);
+	for (auto &c : m_lChecks) {
+		c.hosted = m_bHosted;
+		c.multi = m_bMulti;
+		c.value1 = getSetting(c.option1);
+		c.value2 = getSetting(c.option2);
 		int retval = 0;
-
-		if (it->check)
-			retval = it->check(&(*it));
-
+		if (c.check)
+			retval = c.check(&c);
 		warnings += (retval == CHECK_WARNING);
 		errors += (retval == CHECK_ERROR);
 	}
