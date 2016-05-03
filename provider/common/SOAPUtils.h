@@ -58,7 +58,7 @@ extern ECRESULT MergePropValArray(struct soap *soap, const struct propValArray *
 extern ECRESULT CompareProp(const struct propVal *lpProp1, const struct propVal *lpProp2, const ECLocale &locale, int *lpCompareResult);
 extern ECRESULT CompareMVPropWithProp(struct propVal *lpMVProp1, const struct propVal *lpProp2, unsigned int ulType, const ECLocale &locale, bool* lpfMatch);
 
-unsigned int		PropSize(struct propVal *lpProp);
+unsigned int		PropSize(const struct propVal *);
 ECRESULT			FreePropVal(struct propVal *lpProp, bool bBasePointerDel);
 ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal *lpDst, struct soap *soap = NULL, bool bTruncate = false);
 ECRESULT CopyPropVal(const struct propVal *lpSrc, struct propVal **lppDst, struct soap *soap = NULL, bool bTruncate = false); /* allocates new lpDst and calls other version */
@@ -104,14 +104,14 @@ ULONG 				NormalizePropTag(ULONG ulPropTag);
 
 const char *GetSourceAddr(struct soap *soap);
 
-unsigned int SearchCriteriaSize(struct searchCriteria *lpSrc);
-unsigned int RestrictTableSize(struct restrictTable *lpSrc);
-unsigned int PropValArraySize(struct propValArray *lpSrc);
-unsigned int EntryListSize(struct entryList *lpSrc);
-unsigned int EntryIdSize(entryId *lpEntryid);
-unsigned int NotificationStructSize(notification *lpNotification);
-unsigned int PropTagArraySize(struct propTagArray *pPropTagArray);
-unsigned int SortOrderArraySize(struct sortOrderArray *lpsSortOrder);
+unsigned int SearchCriteriaSize(const struct searchCriteria *);
+unsigned int RestrictTableSize(const struct restrictTable *);
+unsigned int PropValArraySize(const struct propValArray *);
+unsigned int EntryListSize(const struct entryList *);
+unsigned int EntryIdSize(const entryId *);
+unsigned int NotificationStructSize(const notification *);
+unsigned int PropTagArraySize(const struct propTagArray *);
+unsigned int SortOrderArraySize(const struct sortOrderArray *);
 
 class DynamicPropValArray {
 public:

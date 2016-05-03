@@ -725,7 +725,7 @@ ECRESULT CompareMVPropWithProp(struct propVal *lpMVProp1,
 	return erSuccess;
 }
 
-unsigned int PropSize(struct propVal *lpProp)
+unsigned int PropSize(const struct propVal *lpProp)
 {
 	unsigned int	ulSize;
 	int				i;
@@ -2239,7 +2239,7 @@ ECRESULT DynamicPropTagArray::GetPropTagArray(struct propTagArray *lpsPropTagArr
  *
  * @return the size of the object. If there is an error, object size is zero.
  */
-unsigned int PropValArraySize(struct propValArray *lpSrc)
+unsigned int PropValArraySize(const struct propValArray *lpSrc)
 {
 	unsigned int ulSize;
 
@@ -2258,7 +2258,7 @@ unsigned int PropValArraySize(struct propValArray *lpSrc)
  * @param[in] lpSrc Ponter to a restrict table object
  * @return the size of the object. If there is an error, object size is zero.
  */
-unsigned int RestrictTableSize(struct restrictTable *lpSrc)
+unsigned int RestrictTableSize(const struct restrictTable *lpSrc)
 {
 	unsigned int ulSize = 0;
 	unsigned int i = 0;
@@ -2337,7 +2337,7 @@ unsigned int RestrictTableSize(struct restrictTable *lpSrc)
  * @param[in] lpSrc pointer to a list of entries
  * @return the size of the object. If there is an error, object size is zero.
  */
-unsigned int EntryListSize(struct entryList *lpSrc)
+unsigned int EntryListSize(const struct entryList *lpSrc)
 {
 	unsigned int ulSize;
 
@@ -2357,7 +2357,7 @@ unsigned int EntryListSize(struct entryList *lpSrc)
  * @param[in] pPropTagArray Pointer to a array of property tags
  * @return the size of the object. If there is an error, object size is zero.
  */
-unsigned int PropTagArraySize(struct propTagArray *pPropTagArray)
+unsigned int PropTagArraySize(const struct propTagArray *pPropTagArray)
 {
 	return (pPropTagArray)?((sizeof(unsigned int) * pPropTagArray->__size) + sizeof(struct propTagArray)) : 0;
 }
@@ -2368,7 +2368,7 @@ unsigned int PropTagArraySize(struct propTagArray *pPropTagArray)
  * @param[in] lpSrc Pointer to a search criteria object.
  * @return the size of the object. If there is an error, object size is zero.
  */
-unsigned int SearchCriteriaSize(struct searchCriteria *lpSrc)
+unsigned int SearchCriteriaSize(const struct searchCriteria *lpSrc)
 {
 	unsigned int ulSize;
 
@@ -2392,7 +2392,7 @@ unsigned int SearchCriteriaSize(struct searchCriteria *lpSrc)
  * @param[in] lpEntryid Pointer to an entryid object.
  * @return the size of the object. If there is an error, object size is zero.
  */
-unsigned int EntryIdSize(entryId *lpEntryid)
+unsigned int EntryIdSize(const entryId *lpEntryid)
 {
 	if(lpEntryid == NULL)
 		return 0;
@@ -2406,7 +2406,7 @@ unsigned int EntryIdSize(entryId *lpEntryid)
  * @param[in] lpNotification Pointer to a notification struct.
  * @return the size of the object. If there is an error, object size is zero.
  */
-unsigned int NotificationStructSize(notification *lpNotification)
+unsigned int NotificationStructSize(const notification *lpNotification)
 {
 	unsigned int ulSize;
 
@@ -2451,7 +2451,7 @@ unsigned int NotificationStructSize(notification *lpNotification)
  * @param[in] lpsSortOrder Pointer to a sort order array.
  * @return the size of the object. If there is an error, object size is zero.
  */
-unsigned int SortOrderArraySize(struct sortOrderArray *lpsSortOrder)
+unsigned int SortOrderArraySize(const struct sortOrderArray *lpsSortOrder)
 {
 	if (lpsSortOrder == NULL)
 		return 0;	
