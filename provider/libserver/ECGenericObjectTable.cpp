@@ -72,8 +72,6 @@ struct sortOrderArray sDefaultSortOrder = {0,0};
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
-#undef THIS_FILE
-static const char THIS_FILE[] = __FILE__;
 #endif
 
 ULONG sANRProps[] = { PR_DISPLAY_NAME, PR_SMTP_ADDRESS, PR_ACCOUNT, PR_DEPARTMENT_NAME, PR_OFFICE_TELEPHONE_NUMBER, PR_OFFICE_LOCATION, PR_PRIMARY_FAX_NUMBER, PR_SURNAME};

@@ -30,8 +30,6 @@ using namespace std;
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
-#undef THIS_FILE
-static const char THIS_FILE[] = __FILE__;
 #endif
 
 // Convert search criteria from zarafa-5.2x to zarafa-6 format

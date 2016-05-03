@@ -56,8 +56,6 @@ typedef mapi_memory_ptr<ECUSER>	ECUserPtr;
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
-#undef THIS_FILE
-static const char THIS_FILE[] = __FILE__;
 #endif
 
 ECMSProvider::ECMSProvider(ULONG ulFlags, const char *szClassName) :

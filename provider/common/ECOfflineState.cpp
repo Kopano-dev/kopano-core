@@ -25,8 +25,6 @@
 #include "ECOfflineState.h"
 
 #ifdef _DEBUG
-#undef THIS_FILE
-static const char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 

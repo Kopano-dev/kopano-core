@@ -64,8 +64,6 @@ typedef mapi_object_ptr<IEventSubscription, IID_IEventSubscription> EventSubscri
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
-#undef THIS_FILE
-static const char THIS_FILE[] = __FILE__;
 #endif
 
 HRESULT CreateECSync(LPMSPROVIDER lpOfflineProvider, LPMSPROVIDER lpOnlineProvider, LPMAPISUP lpSupport, ULONG cbStoreID, LPENTRYID lpStoreID, IECSync **lppSync)

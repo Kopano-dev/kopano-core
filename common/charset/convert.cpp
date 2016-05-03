@@ -29,8 +29,6 @@
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
-#undef THIS_FILE
-static const char THIS_FILE[] = __FILE__;
 #endif
 
 convert_exception::convert_exception(enum exception_type type, const std::string &message)

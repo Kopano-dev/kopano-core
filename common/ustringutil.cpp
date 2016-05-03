@@ -98,8 +98,6 @@ typedef std::auto_ptr<Collator> unique_ptr_Collator;
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
-#undef THIS_FILE
-static const char THIS_FILE[] = __FILE__;
 #endif
 
 #ifndef ZCP_USES_ICU

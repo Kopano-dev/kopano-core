@@ -35,8 +35,6 @@ using namespace std;
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
-#undef THIS_FILE
-static const char THIS_FILE[] = __FILE__;
 #endif
 
 static const char szHex[] = "0123456789ABCDEF";

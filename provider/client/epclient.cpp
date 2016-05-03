@@ -71,8 +71,6 @@ using namespace std;
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
-#undef THIS_FILE
-static const char THIS_FILE[] = __FILE__;
 
 #define DEBUG_WITH_MEMORY_DUMP 0 // Sure to dump memleaks before the dll is exit
 #endif
