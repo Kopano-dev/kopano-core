@@ -944,10 +944,8 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::ref<vmime::header> vmHeader, IMessage*
 			}
 		}
 
-		std::vector<vmime::ref<vmime::headerField> > hf = vmHeader->getFieldList();
-		std::vector<vmime::ref<vmime::headerField> >::const_iterator hfi;
-		for (hfi = hf.begin(); hfi != hf.end(); ++hfi) {
-			string value, name = (*hfi)->getName();
+		for (const auto &field : vmHeader->getFieldList()) {
+			std::string value, name = field->getName();
 			
 			if (name[0] != 'X')
 				continue;
@@ -978,7 +976,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::ref<vmime::header> vmHeader, IMessage*
 			}
 
 			SPropValue sProp[1];
-			value = (*hfi)->getValue()->generate();
+			value = field->getValue()->generate();
 			sProp[0].ulPropTag = PROP_TAG(PT_STRING8, PROP_ID(lpPropTags->aulPropTag[0]));
 			sProp[0].Value.lpszA = (char*)value.c_str();
 
@@ -1628,15 +1626,15 @@ HRESULT VMIMEToMAPI::dissect_multipart(vmime::ref<vmime::header> vmHeader,
 	list<unsigned int> lBodies = vtm_order_alternatives(vmBody);
 
 	// recursively process multipart alternatives in reverse to select best body first
-	for (list<unsigned int>::const_iterator i = lBodies.begin(); i != lBodies.end(); ++i) {
-		vmime::ref<vmime::bodyPart> vmBodyPart = vmBody->getPartAt(*i);
+	for (auto body_idx : lBodies) {
+		vmime::ref<vmime::bodyPart> vmBodyPart = vmBody->getPartAt(body_idx);
 
-		lpLogger->Log(EC_LOGLEVEL_DEBUG, "Trying to parse alternative multipart %d of mail body", *i);
+		ec_log_debug("Trying to parse alternative multipart %d of mail body", body_idx);
 
 		hr = dissect_body(vmBodyPart->getHeader(), vmBodyPart->getBody(), lpMessage, bFilterDouble, bAppendBody);
 		if (hr == hrSuccess)
 			return hrSuccess;
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to parse alternative multipart %d of mail body, trying other alternatives", *i);
+		ec_log_err("Unable to parse alternative multipart %d of mail body, trying other alternatives", body_idx);
 	}
 	/* If lBodies was empty, we could get here, with hr being hrSuccess. */
 	if (hr != hrSuccess)
@@ -3815,12 +3813,9 @@ std::string VMIMEToMAPI::parameterizedFieldToStructure(vmime::ref<vmime::paramet
 	vmime::utility::outputStreamStringAdapter os(buffer);
 
 	try {
-		vector <vmime::ref<vmime::parameter> > vParams = vmParamField->getParameterList();
-		std::vector<vmime::ref<vmime::parameter> >::const_iterator iParam;
-
-		for (iParam = vParams.begin(); iParam != vParams.end(); ++iParam) {
-			lParams.push_back("\"" + (*iParam)->getName() + "\"");
-			(*iParam)->getValue().generate(os);
+		for (const auto &param : vmParamField->getParameterList()) {
+			lParams.push_back("\"" + param->getName() + "\"");
+			param->getValue().generate(os);
 			lParams.push_back("\"" + buffer + "\"");
 			buffer.clear();
 		}

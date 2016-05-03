@@ -100,13 +100,13 @@ std::string ECArchiverLogger::EscapeFormatString(const std::string &strFormat)
 	std::string strEscaped;
 	strEscaped.reserve(strFormat.length() * 2);
 
-	for (std::string::const_iterator c = strFormat.begin(); c != strFormat.end(); ++c) {
-		if (*c == '\\')
+	for (auto c : strFormat) {
+		if (c == '\\')
 			strEscaped.append("\\\\");
-		else if (*c == '%')
+		else if (c == '%')
 			strEscaped.append("%%");
 		else
-			strEscaped.append(1, *c);
+			strEscaped.append(1, c);
 	}
 	
 	return strEscaped;

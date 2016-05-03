@@ -573,18 +573,15 @@ void BufferLFtoCRLF(size_t size, const char *input, char *output, size_t *outsiz
  */
 void StringTabtoSpaces(const std::wstring &strInput, std::wstring *lpstrOutput) {
 
-	std::wstring::const_iterator iInput(strInput.begin());
 	std::wstring strOutput;
 
 	strOutput.reserve(strInput.length());
 
-	for (; iInput != strInput.end(); ++iInput) {
-		if (*iInput == '\t') {
+	for (auto c : strInput)
+		if (c == '\t')
 			strOutput.append(4, ' ');
-		} else {
-			strOutput.append(1, *iInput);
-		}
-	}
+		else
+			strOutput.append(1, c);
 
 	lpstrOutput->swap(strOutput);
 }

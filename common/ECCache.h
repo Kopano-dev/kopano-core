@@ -163,8 +163,8 @@ public:
 				for (iter = m_map.begin(); iter != m_map.end(); ++iter)
 					if ((long)(tNow - iter->second.ulLastAccess) >= MaxAge())
 						dl.push_back(iter->first);
-				for (typename std::vector<key_type>::const_iterator i = dl.begin(); i != dl.end(); ++i)
-					m_map.erase(*i);
+				for (const auto &i : dl)
+					m_map.erase(i);
 				er = KCERR_NOT_FOUND;
 			} else {
 				*lppValue = &iter->second;
@@ -242,13 +242,11 @@ private:
 	{
 		std::list<KeyEntry<key_type> > lstEntries;
 		typename std::list<KeyEntry<key_type> >::iterator iterEntry;
-		typename _MapType::iterator iterMap;
 
-		for (iterMap = m_map.begin(); iterMap != m_map.end(); ++iterMap) {
+		for (const auto &im : m_map) {
 			KeyEntry<key_type> k;
-			k.key = iterMap->first;
-			k.ulLastAccess = iterMap->second.ulLastAccess;
-
+			k.key = im.first;
+			k.ulLastAccess = im.second.ulLastAccess;
 			lstEntries.push_back(k);
 		}
 
@@ -260,7 +258,7 @@ private:
 		// Remove the oldest ulDelete entries from the cache, removing [ratio] % of all
 		// cache entries.
 		for (iterEntry = lstEntries.begin(); iterEntry != lstEntries.end() && ulDelete > 0; ++iterEntry, --ulDelete) {
-			iterMap = m_map.find(iterEntry->key);
+			auto iterMap = m_map.find(iterEntry->key);
 			assert(iterMap != m_map.end());
 			m_ulSize -= GetCacheAdditionalSize(iterMap->second);
 			m_ulSize -= GetCacheAdditionalSize(iterMap->first);

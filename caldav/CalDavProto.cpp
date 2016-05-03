@@ -1394,14 +1394,14 @@ HRESULT CalDAV::HrHandleMkCal(WEBDAVPROP *lpsDavProp)
 	std::string strContainerClass = "IPF.Appointment";
 
 	// @todo handle other props as in proppatch command
-	for (list<WEBDAVPROPERTY>::const_iterator i = lpsDavProp->lstProps.begin(); i != lpsDavProp->lstProps.end(); ++i) {
-		if (i->sPropName.strPropname.compare("displayname") == 0) {
-			wstrNewFldName = U2W(i->strValue);
-		} else if (i->sPropName.strPropname.compare("supported-calendar-component-set") == 0) {
-			if (i->strValue.compare("VTODO") == 0)
+	for (const auto &p : lpsDavProp->lstProps) {
+		if (p.sPropName.strPropname.compare("displayname") == 0) {
+			wstrNewFldName = U2W(p.strValue);
+		} else if (p.sPropName.strPropname.compare("supported-calendar-component-set") == 0) {
+			if (p.strValue.compare("VTODO") == 0)
 				strContainerClass = "IPF.Task";
-			else if (i->strValue.compare("VEVENT") != 0) {
-				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to create folder for supported-calendar-component-set type: %s", i->strValue.c_str());
+			else if (p.strValue.compare("VEVENT") != 0) {
+				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to create folder for supported-calendar-component-set type: %s", p.strValue.c_str());
 				hr = MAPI_E_INVALID_PARAMETER;
 				goto exit;
 			}
