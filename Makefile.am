@@ -3,8 +3,11 @@ ACLOCAL_AMFLAGS = -I autoconf
 
 SUBDIRS = . common m4lcommon mapi4linux libfreebusy libsync \
           provider libicalmapi inetmapi
-if WITH_PHP
+if WITH_PHP5
 SUBDIRS += php-ext
+endif
+if WITH_PHP7
+SUBDIRS += php7-ext
 endif
 SUBDIRS += ECtools spooler gateway caldav installer po doc swig
 

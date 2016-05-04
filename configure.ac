@@ -260,13 +260,19 @@ AC_CHECK_FUNCS([timegm getpeereid getpwnam_r vsyslog vsnprintf_l])
 #
 
 AC_ARG_WITH([php], [AS_HELP_STRING([--without-php], [Disable building PHP components])])
-AM_CONDITIONAL([WITH_PHP], [test "$with_php" != "no"])
 AS_IF([test "$with_php" != "no"], [
 	# Checks for PHP through php-config and tests the truth of
 	# php-config results
 	PHP_WITH_PHP_CONFIG
 	PHP_CHECK_INCLUDES
+	echo "PHP version: $PHP_VERSION"
+	AS_CASE([$PHP_VERSION],
+		[5.*], [with_php=5],
+		[7.*], [with_php=7]
+	)
 ])
+AM_CONDITIONAL([WITH_PHP5], [test "$with_php" = 5])
+AM_CONDITIONAL([WITH_PHP7], [test "$with_php" = 7])
 
 # Checks for libxml2
 AC_DEFUN([LIBXML_WITH_XML2_CONFIG],[
@@ -771,7 +777,7 @@ AC_CONFIG_FILES([Makefile
 		mapi4linux/src/Makefile
 		m4lcommon/Makefile
 		m4lcommon/include/kopano/Makefile
-		php-ext/Makefile
+		php-ext/Makefile php7-ext/Makefile
 		provider/Makefile
 		provider/client/Makefile
 		provider/contacts/Makefile
