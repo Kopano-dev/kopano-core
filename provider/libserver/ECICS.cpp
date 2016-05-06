@@ -612,6 +612,8 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 
 	ECGetContentChangesHelper *lpHelper = NULL;
 	
+	ec_log(EC_LOGLEVEL_ICS, "GetChanges(): sourcekey=%s, syncid=%d, changetype=%d, flags=%d", bin2hex(sFolderSourceKey).c_str(), ulSyncId, ulChangeType, ulFlags);
+
     // Get database object
     er = lpSession->GetDatabase(&lpDatabase);
     if (er != erSuccess)

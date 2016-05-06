@@ -455,6 +455,8 @@ ECRESULT LegacyProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, un
 			*lpulChangeType = 0;	// Ignore
 		else
 			*lpulChangeType = ICS_MESSAGE_NEW;
+
+		ec_log(EC_LOGLEVEL_ICS, "LegacyAccepted: not synced, sourcekey=%s, changetype=%d", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str(), *lpulChangeType);
 	} else {
 		// The message is synced!
 		if (ulMsgFlags & MSGFLAG_DELETED)		// Deleted
@@ -470,6 +472,7 @@ ECRESULT LegacyProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, un
 		else
 			*lpulChangeType = 0;	// Ignore
 		
+		ec_log(EC_LOGLEVEL_ICS, "LegacyAccepted: synced, sourcekey=%s , changetype=%d", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str(), *lpulChangeType);
 		m_setMessages.erase(iterMessage);
 	}
 	
@@ -494,12 +497,14 @@ ECRESULT LegacyProcessor::ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, un
 	if (iterMessage == m_setMessages.end()) {
 		// The message is not synced yet!
 		*lpulChangeType = 0;	// Ignore
+		ec_log(EC_LOGLEVEL_ICS, "LegacyRejected: not synced, sourcekey=%s, changetype=%d", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str(), *lpulChangeType);
 	} else {
 		// The message is synced!
 		*lpulChangeType = ICS_HARD_DELETE;
 		m_setMessages.erase(iterMessage);
+		ec_log(EC_LOGLEVEL_ICS, "LegacyRejected: synced, sourcekey=%s, changetype=%d", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str(), *lpulChangeType);
 	}
-	
+
 	if (*lpulChangeType != 0)
 		m_ulMaxChangeId = m_ulMaxFolderChange;
 	
@@ -792,8 +797,11 @@ ECRESULT ECGetContentChangesHelper::ProcessRows(const std::vector<DB_ROW> &db_ro
 
 		lpDBRow = db_rows[i];
 		lpDBLen = db_lengths[i];
+
 		if (m_lpsRestrict != NULL)
 			fMatch = matches->find(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])) != matches->end();
+
+		ec_log(EC_LOGLEVEL_ICS, "Processing: %s, match=%d", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str(), fMatch);
 		ulChangeType = 0;
 		ulFlags = 0;
 		if (fMatch) {
@@ -847,8 +855,8 @@ ECRESULT ECGetContentChangesHelper::ProcessResidualMessages()
 		if (iterMessage->first.size() == 1 && memcmp(iterMessage->first, "\0", 1) == 0)
 			continue;	// Skip empty restricted set marker,
 	
+		ec_log(EC_LOGLEVEL_ICS, "ProcessResidualMessages: sourcekey=%s", bin2hex(iterMessage->first).c_str());
 		m_lpChanges->__ptr[m_ulChangeCnt].ulChangeId = 0;
-		
 		m_lpChanges->__ptr[m_ulChangeCnt].sSourceKey.__ptr = (unsigned char *)soap_malloc(m_soap, iterMessage->first.size());
 		m_lpChanges->__ptr[m_ulChangeCnt].sSourceKey.__size = iterMessage->first.size();
 		memcpy(m_lpChanges->__ptr[m_ulChangeCnt].sSourceKey.__ptr, iterMessage->first, iterMessage->first.size());
