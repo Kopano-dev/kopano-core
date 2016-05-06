@@ -1962,7 +1962,6 @@ class Folder(object):
         if '/' in path.replace('\\/', ''): # XXX MAPI folders may contain '/' (and '\') in their names..
             subfolder = self
             for name in UNESCAPED_SLASH_RE.split(path):
-                name = name.replace('\\SLASH\\', '\\/')
                 subfolder = subfolder.folder(name, create=create, recurse=False)
             return subfolder
 
@@ -1971,7 +1970,9 @@ class Folder(object):
         matches = [f for f in self.folders(recurse=recurse) if f.name == path]
         if len(matches) == 0:
             if create:
-                return self.create_folder(path)
+                name = path.replace('\\/', '/')
+                mapifolder = self.mapiobj.CreateFolder(FOLDER_GENERIC, unicode(name), u'', None, MAPI_UNICODE)
+                return Folder(self.store, HrGetOneProp(mapifolder, PR_ENTRYID).Value)
             else:
                 raise ZNotFoundException("no such folder: '%s'" % path)
         elif len(matches) > 1:
@@ -2010,10 +2011,8 @@ class Folder(object):
                 for subfolder in folder.folders(depth=depth+1):
                     yield subfolder
 
-    def create_folder(self, name, **kwargs):
-        name = name.replace('\\/', '/')
-        mapifolder = self.mapiobj.CreateFolder(FOLDER_GENERIC, unicode(name), u'', None, MAPI_UNICODE)
-        folder = Folder(self.store, HrGetOneProp(mapifolder, PR_ENTRYID).Value)
+    def create_folder(self, path, **kwargs):
+        folder = self.folder(path, create=True)
         for key, val in kwargs.items():
             setattr(folder, key, val)
         return folder
