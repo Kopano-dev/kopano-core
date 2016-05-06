@@ -7737,9 +7737,8 @@ ZEND_FUNCTION(mapi_inetmapi_imtoinet)
     ZEND_REGISTER_RESOURCE(return_value, lpStream, le_istream);
     
 exit:
-    if(lpMemStream)
-        lpMemStream->Release();
-        
+	if (lpMemStream != NULL)
+		lpMemStream->Release();
 	delete[] lpBuffer;
 	LOG_END();
 	THROW_ON_ERROR();
