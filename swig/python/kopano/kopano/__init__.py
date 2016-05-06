@@ -824,7 +824,10 @@ Looks at command-line to see if another server address or other related options 
     def _archive_session(self, host):
         if host not in self._archive_sessions:
             try:
-                self._archive_sessions[host] = OpenECSession('SYSTEM', '', 'https://%s:237/' % host, sslkey_file=self.sslkey_file, sslkey_pass=self.sslkey_pass)
+                if os.getenv("KOPANO_SOCKET"): # env variable used in testset
+                    self._archive_sessions[host] = OpenECSession('SYSTEM', '', os.getenv("KOPANO_SOCKET"))
+                else:
+                    self._archive_sessions[host] = OpenECSession('SYSTEM', '', 'https://%s:237/' % host, sslkey_file=self.sslkey_file, sslkey_pass=self.sslkey_pass)
             except: # MAPIErrorLogonFailed, MAPIErrorNetworkError:
                 self._archive_sessions[host] = None # XXX avoid subsequent timeouts for now
                 raise ZException("could not connect to server at '%s'" % host)
@@ -1659,6 +1662,39 @@ class Store(object):
             return User(self.server.sa.GetUser(userid, MAPI_UNICODE).Username, self.server)
         except MAPIErrorNotFound:
             pass
+
+    @property
+    def archive_store(self):
+        """ Archive :class:`Store` or *None* if not found """
+
+        ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, 0) # XXX merge namedprops stuff
+        PROP_STORE_ENTRYIDS = CHANGE_PROP_TYPE(ids[0], PT_MV_BINARY)
+        try:
+            # support for multiple archives was a mistake, and is not and _should not_ be used. so we just pick nr 0.
+            arch_storeid = HrGetOneProp(self.mapiobj, PROP_STORE_ENTRYIDS).Value[0]
+        except MAPIErrorNotFound:
+            return
+        arch_server = arch_storeid[arch_storeid.find('pseudo://')+9:-1]
+        arch_session = self.server._archive_session(arch_server)
+        if arch_session is None:
+            return
+        arch_store = arch_session.OpenMsgStore(0, arch_storeid, None, MDB_WRITE)
+        return Store(self.server, arch_store) # XXX server?
+
+    @property
+    def archive_folder(self):
+        """ Archive :class:`Folder` or *None* if not found """
+
+        ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, 0) # XXX merge namedprops stuff
+        PROP_ITEM_ENTRYIDS = CHANGE_PROP_TYPE(ids[1], PT_MV_BINARY)
+
+        try:
+            # support for multiple archives was a mistake, and is not and _should not_ be used. so we just pick nr 0.
+            arch_folderid = HrGetOneProp(self.mapiobj, PROP_ITEM_ENTRYIDS).Value[0]
+        except MAPIErrorNotFound:
+            return
+
+        return self.archive_store.folder(entryid=arch_folderid.encode('hex'))
 
     @property
     def company(self):
@@ -3468,25 +3504,6 @@ class User(object):
         except MAPIErrorNotFound:
             pass
 
-    @property
-    def archive_store(self):
-        """ Archive :class:`Store` for user or *None* if not found """
-
-        mapistore = self.store.mapiobj
-        ids = mapistore.GetIDsFromNames(NAMED_PROPS_ARCHIVER, 0) # XXX merge namedprops stuff
-        PROP_STORE_ENTRYIDS = CHANGE_PROP_TYPE(ids[0], PT_MV_BINARY)
-        try:
-            # support for multiple archives was a mistake, and is not and _should not_ be used. so we just pick nr 0.
-            arch_storeid = HrGetOneProp(mapistore, PROP_STORE_ENTRYIDS).Value[0]
-        except MAPIErrorNotFound:
-            return
-        arch_server = arch_storeid[arch_storeid.find('pseudo://')+9:-1]
-        arch_session = self.server._archive_session(arch_server)
-        if arch_session is None:
-            return
-        arch_store = arch_session.OpenMsgStore(0, arch_storeid, None, MDB_WRITE)
-        return Store(self.server, arch_store) # XXX server?
-
     def hook(self, store): # XXX add Company.(un)hook for public store
         self.server.sa.HookStore(ECSTORE_TYPE_PRIVATE, self.userid.decode('hex'), store.guid.decode('hex'))
 
@@ -3514,7 +3531,6 @@ class User(object):
             return HrGetOneProp(self.mapiobj, PR_EC_ARCHIVE_SERVERS).Value[0]
         except MAPIErrorNotFound:
             return
-
 
     def prop(self, proptag):
         return _prop(self, self.mapiobj, proptag)
