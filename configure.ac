@@ -237,7 +237,7 @@ AC_DEFUN([LIBNCURSES_WITH_CONFIG],[
 		[
 			dnl just pick the lowest common denominator
 			NCURSES_FLAGS=""
-			NCURSES_LIBS="-lncurses"
+			NCURSES_LIBS="-lncurses -ltinfo"
 		]
 	)
 	dnl We should be using ncurses.h - or is portability to non-ncurses
