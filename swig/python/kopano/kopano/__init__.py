@@ -2173,6 +2173,21 @@ class Folder(object):
             if not state & SEARCH_REBUILD:
                 break
 
+    @property
+    def archive_folder(self):
+        """ Archive :class:`Folder` or *None* if not found """
+
+        ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, 0) # XXX merge namedprops stuff
+        PROP_ITEM_ENTRYIDS = CHANGE_PROP_TYPE(ids[1], PT_MV_BINARY)
+
+        try:
+            # support for multiple archives was a mistake, and is not and _should not_ be used. so we just pick nr 0.
+            arch_folderid = HrGetOneProp(self.mapiobj, PROP_ITEM_ENTRYIDS).Value[0]
+        except MAPIErrorNotFound:
+            return
+
+        return self.store.archive_store.folder(entryid=arch_folderid.encode('hex'))
+
     def __eq__(self, f): # XXX check same store?
         if isinstance(f, Folder):
             return self._entryid == f._entryid
