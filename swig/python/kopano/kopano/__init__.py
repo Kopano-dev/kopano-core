@@ -460,6 +460,32 @@ def _encode(s):
 def _decode(s):
     return s.decode(getattr(sys.stdin, 'encoding', 'utf8') or 'utf8')
 
+def _permissions(obj):
+        try:
+            acl_table = obj.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, 0)
+        except MAPIErrorNotFound:
+            return
+        table = Table(obj.server, acl_table.GetTable(0), PR_ACL_TABLE)
+        for row in table.dict_rows():
+            yield Permission(acl_table, row, obj.server)
+
+def _permission(obj, member, create):
+        for permission in obj.permissions():
+            if permission.member == member:
+                return permission
+        if create:
+            acl_table = obj.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, 0)
+            if isinstance(member, User): # XXX *.id_ or something..?
+                memberid = member.userid
+            elif isinstance(member, Group):
+                memberid = member.groupid
+            else:
+                memberid = member.companyid
+            acl_table.ModifyTable(0, [ROWENTRY(ROW_ADD, [SPropValue(PR_MEMBER_ENTRYID, memberid.decode('hex')), SPropValue(PR_MEMBER_RIGHTS, 0)])])
+            return obj.permission(member)
+        else:
+            raise ZNotFoundException("no permission entry for '%s'" % member.name)
+
 class ZException(Exception):
     pass
 
@@ -1668,6 +1694,12 @@ class Store(object):
         mapiobj = finder_root.mapiobj.CreateFolder(FOLDER_SEARCH, str(uuid.uuid4()), 'comment', None, 0)
         return Folder(self, mapiobj=mapiobj)
 
+    def permissions(self):
+        return _permissions(self)
+
+    def permission(self, member, create=False):
+        return _permission(self, member, create)
+
     def __eq__(self, s): # XXX check same server?
         if isinstance(s, Store):
             return self.guid == s.guid
@@ -2092,33 +2124,13 @@ class Folder(object):
         return Folder(self.store, self._entryid, deleted=True)
 
     def permissions(self):
-        try:
-            acl_table = self.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, 0)
-        except MAPIErrorNotFound:
-            return
-        table = Table(self.server, acl_table.GetTable(0), PR_ACL_TABLE)
-        for row in table.dict_rows():
-            yield Permission(acl_table, row, self.server)
+        return _permissions(self)
 
     def permission(self, member, create=False):
-        for permission in self.permissions():
-            if permission.member == member:
-                return permission
-        if create:
-            acl_table = self.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, 0)
-            if isinstance(member, User): # XXX *.id_ or something..?
-                memberid = member.userid
-            elif isinstance(member, Group):
-                memberid = member.groupid
-            else:
-                memberid = member.companyid
-            acl_table.ModifyTable(0, [ROWENTRY(ROW_ADD, [SPropValue(PR_MEMBER_ENTRYID, memberid.decode('hex')), SPropValue(PR_MEMBER_RIGHTS, 0)])])
-            return self.permission(member)
-        else:
-            raise ZNotFoundException("no permission entry for '%s'" % member.name)
+        return _permission(self, member, create)
 
     def rights(self, member):
-        if member == self.store.user: # XXX admin-over-user
+        if member == self.store.user: # XXX admin-over-user, Store.rights (inheritance)
             return NAME_RIGHT.keys()
         parent = self
         feids = set() # avoid loops
