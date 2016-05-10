@@ -23,6 +23,8 @@
 #include <ctime>
 #include <cmath>
 
+using namespace std;
+
 extern "C" {
 	// Remove these defines to remove warnings
 	#undef PACKAGE_VERSION

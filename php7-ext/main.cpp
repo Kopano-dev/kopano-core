@@ -104,6 +104,8 @@
 // 'extern "C"'-space which doesn't work in win32
 #include <cmath>
 
+using namespace std;
+
 extern "C" {
 	// Remove these defines to remove warnings
 	#undef PACKAGE_VERSION
