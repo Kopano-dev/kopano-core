@@ -26,7 +26,9 @@
 #ifndef ZCOMMON_DEFS_H
 #define ZCOMMON_DEFS_H 1
 
+/* Minimum requirement for KC is g++ 4.6, g++0x mode. */
 #if __cplusplus >= 201100L
+	/* Only in g++ 4.7 onwards */
 #	define _zcp_final final
 #	define _zcp_override override
 #else
