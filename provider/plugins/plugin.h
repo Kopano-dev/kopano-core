@@ -35,7 +35,6 @@
 #include <memory>
 #include <pthread.h>
 #include <kopano/ECPluginSharedData.h>
-#include <kopano/IECStatsCollector.h>
 
 /**
  * @defgroup userplugin Server user plugin
@@ -43,6 +42,7 @@
  */
 
 using namespace std;
+class ECStatsCollector;
 
 #include <kopano/ECLogger.h>
 #define LOG_PLUGIN_DEBUG(_msg, ...) \
@@ -436,7 +436,7 @@ protected:
 	/**
 	 * Pointer to statscollector
 	 */
-	IECStatsCollector *m_lpStatsCollector;
+	ECStatsCollector *m_lpStatsCollector;
 
 	/**
 	 * Boolean to indicate if multi-company features are enabled

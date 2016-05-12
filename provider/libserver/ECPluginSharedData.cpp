@@ -24,7 +24,7 @@ pthread_mutex_t ECPluginSharedData::m_SingletonLock = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t ECPluginSharedData::m_CreateConfigLock = PTHREAD_MUTEX_INITIALIZER;
 
 ECPluginSharedData::ECPluginSharedData(ECConfig *lpParent,
-    IECStatsCollector *lpStatsCollector, bool bHosted, bool bDistributed)
+    ECStatsCollector *lpStatsCollector, bool bHosted, bool bDistributed)
 {
 	m_ulRefCount = 0;
 	m_lpConfig = NULL;
@@ -54,7 +54,7 @@ ECPluginSharedData::~ECPluginSharedData()
 }
 
 void ECPluginSharedData::GetSingleton(ECPluginSharedData **lppSingleton,
-    ECConfig *lpParent, IECStatsCollector *lpStatsCollector, bool bHosted,
+    ECConfig *lpParent, ECStatsCollector *lpStatsCollector, bool bHosted,
     bool bDistributed)
 {
 	pthread_mutex_lock(&m_SingletonLock);
@@ -136,7 +136,7 @@ ECConfig *ECPluginSharedData::CreateConfig(const configsetting_t *lpDefaults,
 	return m_lpConfig;
 }
 
-IECStatsCollector* ECPluginSharedData::GetStatsCollector()
+ECStatsCollector *ECPluginSharedData::GetStatsCollector(void)
 {
 	return m_lpStatsCollector;
 }

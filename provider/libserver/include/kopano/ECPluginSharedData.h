@@ -19,10 +19,10 @@
 #define ECPLUGINSHAREDDATA_H
 
 #include <kopano/zcdefs.h>
+#include <kopano/ECConfig.h>
 #include <pthread.h>
 
-#include <kopano/ECConfig.h>
-#include <kopano/IECStatsCollector.h>
+class ECStatsCollector;
 
 /**
  * Shared plugin data
@@ -59,7 +59,7 @@ private:
 	 * @param[in]	lpParent
 	 *					Pointer to ECConfig to read configuration option from the server
 	 * @param[in]	lpStatsCollector
-	 *					Pointer to IECStatsCollector to collect statistics about 
+	 *					Pointer to ECStatsCollector to collect statistics about
 	 *					plugin specific tasks (i.e. the number of SQL or LDAP queries)
 	 * @param[in]   bHosted
 	 *					Boolean to indicate if multi-company support should be enabled.
@@ -70,7 +70,7 @@ private:
 	 * 					Plugins are allowed to throw an exception when bDistributed is true
 	 *					while the plugin doesn't support multi-server.
 	 */
-	ECPluginSharedData(ECConfig *lpParent, IECStatsCollector *lpStatsCollector, bool bHosted, bool bDistributed);
+	ECPluginSharedData(ECConfig *lpParent, ECStatsCollector *, bool bHosted, bool bDistributed);
 
 	/**
 	 * Default destructor
@@ -96,8 +96,7 @@ public:
 	 * 					Plugins are allowed to throw an exception when bDistributed is true
 	 *					while the plugin doesn't support multi-server.
 	 */
-	static void GetSingleton(ECPluginSharedData **lppSingleton, ECConfig *lpParent,
-							 IECStatsCollector *lpStatsCollector, bool bHosted, bool bDistributed);
+	static void GetSingleton(ECPluginSharedData **lppSingleton, ECConfig *lpParent, ECStatsCollector *, bool bHosted, bool bDistributed);
 
 	/**
 	 * Increase reference count
@@ -123,9 +122,9 @@ public:
 	/**
 	 * Obtain the Stats collector
 	 *
-	 * @return the IECStatsCollector pointer
+	 * @return the ECStatsCollector pointer
 	 */
-	virtual IECStatsCollector* GetStatsCollector();
+	virtual ECStatsCollector *GetStatsCollector(void);
 
 	/**
 	 * Check for multi-company support
@@ -163,7 +162,7 @@ private:
 	/**
 	 * Statistics collector
 	 */
-	IECStatsCollector *m_lpStatsCollector;
+	ECStatsCollector *m_lpStatsCollector;
 
 	/**
 	 * True if multi-company support is enabled.

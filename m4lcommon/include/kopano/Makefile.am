@@ -5,7 +5,7 @@ nobase_pkginclude_HEADERS = \
 	ECDefs.h ECInterfaceDefs.h ECMemTable.h \
 	ECRestriction.h ECTags.h EMSAbTag.h \
 	IECLicense.h IECServiceAdmin.h IECSecurity.h \
-	IECSingleInstance.h IECStatsCollector.h \
+	IECSingleInstance.h \
 	IECUnknown.h RecurrenceState.h \
 	Util.h auto_free.h boost_compat.h \
 	mapiext.h mapiguidext.h mapi_ptr.h namedprops.h \

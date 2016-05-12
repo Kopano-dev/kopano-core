@@ -21,14 +21,16 @@
 
 #include <kopano/zcdefs.h>
 #include <kopano/kcodes.h>
-#include <kopano/ECConfig.h>
-#include <kopano/ECPluginSharedData.h>
 #include "plugin.h"
 #include <pthread.h>
 
+class ECConfig;
+class ECPluginSharedData;
+class ECStatsCollector;
+
 class ECPluginFactory _zcp_final {
 public:
-	ECPluginFactory(ECConfig *config, IECStatsCollector *lpStatsCollector, bool bHosted, bool bDistributed);
+	ECPluginFactory(ECConfig *config, ECStatsCollector *lpStatsCollector, bool bHosted, bool bDistributed);
 	~ECPluginFactory();
 
 	ECRESULT	CreateUserPlugin(UserPlugin **lppPlugin);
