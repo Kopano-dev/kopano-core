@@ -1906,7 +1906,7 @@ static ECRESULT
 CopyAnonymousDetailsFromSoap(struct propmapPairArray *lpsoapPropmap,
     struct propmapMVPairArray *lpsoapMVPropmap, objectdetails_t *details)
 {
-	if (lpsoapPropmap)
+	if (lpsoapPropmap) {
 		for (gsoap_size_t i = 0; i < lpsoapPropmap->__size; ++i)
 			if (PROP_TYPE(lpsoapPropmap->__ptr[i].ulPropId) == PT_BINARY) {
 				string strData = base64_decode(lpsoapPropmap->__ptr[i].lpszValue);
@@ -1914,6 +1914,7 @@ CopyAnonymousDetailsFromSoap(struct propmapPairArray *lpsoapPropmap,
 			} else if (PROP_TYPE(lpsoapPropmap->__ptr[i].ulPropId) == PT_STRING8) {
 				details->SetPropString((property_key_t)lpsoapPropmap->__ptr[i].ulPropId, lpsoapPropmap->__ptr[i].lpszValue);
 			}
+	}
 
 	if (lpsoapMVPropmap)
 		for (gsoap_size_t i = 0; i < lpsoapMVPropmap->__size; ++i) {
