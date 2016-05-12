@@ -5,7 +5,7 @@ Documentation=man:kopano-spooler(8) man:kopano-spooler.cfg(5)
 [Service]
 Type=simple
 Environment=LC_ALL=C LANG=C
-ExecStart=/usr/sbin/kopano-spooler -F -c /etc/kopano/spooler.cfg
+ExecStart=/usr/sbin/kopano-spooler -F
 
 [Install]
 WantedBy=multi-user.target

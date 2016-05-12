@@ -5,7 +5,7 @@ Documentation=man:kopano-dagent(8) man:kopano-dagent.cfg(5)
 [Service]
 Type=simple
 Environment=LC_ALL=C LANG=C
-ExecStart=/usr/sbin/kopano-dagent -l -c /etc/kopano/dagent.cfg
+ExecStart=/usr/sbin/kopano-dagent -l
 
 [Install]
 WantedBy=multi-user.target

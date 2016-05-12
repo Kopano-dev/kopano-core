@@ -6,7 +6,7 @@ After=network.target mysql.service mariadb.service
 [Service]
 Type=simple
 Environment=LC_ALL=C LANG=C
-ExecStart=/usr/sbin/kopano-server -F -c /etc/kopano/server.cfg
+ExecStart=/usr/sbin/kopano-server -F
 TimeoutStopSec=60
 
 [Install]
