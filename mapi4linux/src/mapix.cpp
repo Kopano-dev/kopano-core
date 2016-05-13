@@ -56,7 +56,6 @@ MAPISVC *m4l_lpMAPISVC = NULL;
  */
 static HRESULT HrCreateM4LServices(void)
 {
-	HRESULT hr = hrSuccess;
 	std::basic_string<TCHAR> configfile;
 
 	static const configsetting_t settings[] = {
@@ -79,19 +78,15 @@ static HRESULT HrCreateM4LServices(void)
 
 	if (!m4l_lpConfig) {
 		m4l_lpConfig = ECConfig::Create(settings);
-		if (!m4l_lpConfig) {
-			hr = MAPI_E_NOT_ENOUGH_MEMORY;
-			goto exit;
-		}
+		if (!m4l_lpConfig)
+			return MAPI_E_NOT_ENOUGH_MEMORY;
 		m4l_lpConfig->LoadSettings(configfile.c_str());
 	}
 
 	if (!ec_log_has_target()) {
 		m4l_lpLogger = CreateLogger(m4l_lpConfig, "exchange-redirector", "ExchangeRedirector");
-		if (!m4l_lpLogger) {
-			hr = MAPI_E_NOT_ENOUGH_MEMORY;
-			goto exit;
-		}
+		if (!m4l_lpLogger)
+			return MAPI_E_NOT_ENOUGH_MEMORY;
 		/*
 		 * You already knew that MAPIInitialize() could only be called
 		 * from single-threaded context.
@@ -101,9 +96,7 @@ static HRESULT HrCreateM4LServices(void)
 		m4l_lpLogger = ec_log_get();
 		m4l_lpLogger->AddRef();
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -2922,21 +2915,18 @@ exit:
  * @retval		MAPI_E_NOT_ENOUGH_MEMORY
  */
 SCODE __stdcall MAPIAllocateMore(ULONG cbSize, LPVOID lpObject, LPVOID* lppBuffer) {
-	HRESULT hr = hrSuccess;
+	HRESULT hr;
 	std::map<void *, list<void *> *>::const_iterator mlptr;
 
-	if (lppBuffer == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (lppBuffer == NULL)
+		return MAPI_E_INVALID_PARAMETER;
 	if (!lpObject)
 		return MAPIAllocateBuffer(cbSize, lppBuffer);
 
 	hr = MAPIAllocate(cbSize, lppBuffer);
 	if (hr != hrSuccess) {
 		ec_log_crit("MAPIAllocateMore(): MAPIAllocate fail %x: %s", hr, GetMAPIErrorMessage(hr));
-		goto exit;
+		return hr;
 	}
 
 	pthread_mutex_lock(&_memlist_lock);
@@ -2976,9 +2966,7 @@ SCODE __stdcall MAPIAllocateMore(ULONG cbSize, LPVOID lpObject, LPVOID* lppBuffe
 #if _MAPI_MEM_DEBUG
 	fprintf(stderr, "Extra buffer: %p on %p\n", *lppBuffer, lpObject);
 #endif
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**

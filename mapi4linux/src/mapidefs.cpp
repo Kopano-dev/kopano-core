@@ -1236,15 +1236,12 @@ exit:
 }
 
 HRESULT M4LABContainer::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG* lpulObjType, LPUNKNOWN* lppUnk) {
-	HRESULT hr = hrSuccess;
 	std::list<abEntry>::const_iterator iter;
 	LPABLOGON lpABLogon = NULL;
 	MAPIUID muidEntry;
 
-	if (cbEntryID < sizeof(MAPIUID) + 4 || !lpEntryID) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (cbEntryID < sizeof(MAPIUID) + 4 || lpEntryID == NULL)
+		return MAPI_E_INVALID_PARAMETER;
 
 	// get the provider muid
 	memcpy(&muidEntry, (LPBYTE)lpEntryID + 4, sizeof(MAPIUID));
@@ -1257,16 +1254,10 @@ HRESULT M4LABContainer::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID l
 			break;
 		}
 	}
-	if (!lpABLogon) {
-		hr = MAPI_E_UNKNOWN_ENTRYID;
-		goto exit;
-	}
-
+	if (lpABLogon == NULL)
+		return MAPI_E_UNKNOWN_ENTRYID;
 	// open root container of provider
-	hr = lpABLogon->OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
-
-exit:
-	return hr;
+	return lpABLogon->OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
 }
 
 HRESULT M4LABContainer::SetSearchCriteria(LPSRestriction lpRestriction, LPENTRYLIST lpContainerList, ULONG ulSearchFlags) {

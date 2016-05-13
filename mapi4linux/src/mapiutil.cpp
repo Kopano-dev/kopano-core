@@ -510,7 +510,7 @@ HRESULT __stdcall ScCreateConversationIndex (ULONG cbParent,
 						ULONG FAR *	lpcbConvIndex,
 						LPBYTE FAR * lppbConvIndex)
 {
-	HRESULT hr = hrSuccess;
+	HRESULT hr;
 	TRACE_MAPILIB1(TRACE_ENTRY, "ScCreateConversationIndex", "%s", lpbParent ? bin2hex(cbParent, lpbParent).c_str() : "<null>");
 	ULONG cbConvIndex = 0;
 	BYTE *pbConvIndex = NULL;
@@ -518,7 +518,7 @@ HRESULT __stdcall ScCreateConversationIndex (ULONG cbParent,
 	if(cbParent == 0) {
 		FILETIME ft;
 		if ((hr = MAPIAllocateBuffer(sizeof(CONVERSATION_INDEX), (void **)&pbConvIndex)) != hrSuccess)
-			goto exit;
+			return hr;
 		cbConvIndex = sizeof(CONVERSATION_INDEX);
 
 		CONVERSATION_INDEX *ci = (CONVERSATION_INDEX*)pbConvIndex;
@@ -532,7 +532,7 @@ HRESULT __stdcall ScCreateConversationIndex (ULONG cbParent,
 		FILETIME diff;
 
 		if ((hr = MAPIAllocateBuffer(cbParent + 5, (void **)&pbConvIndex)) != hrSuccess)
-			goto exit;
+			return hr;
 		cbConvIndex = cbParent+5;
 		memcpy(pbConvIndex, lpbParent, cbParent);
 
@@ -550,9 +550,7 @@ HRESULT __stdcall ScCreateConversationIndex (ULONG cbParent,
 	*lpcbConvIndex = cbConvIndex;
 
 	TRACE_MAPILIB1(TRACE_RETURN, "ScCreateConversationIndex", "%s", bin2hex(cbConvIndex, pbConvIndex).c_str());
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 SCODE __stdcall ScDupPropset( int cprop,  LPSPropValue rgprop,  LPALLOCATEBUFFER lpAllocateBuffer,  LPSPropValue FAR * prgprop )
