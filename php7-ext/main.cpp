@@ -844,7 +844,7 @@ ZEND_FUNCTION(mapi_createoneoff)
 	char *szDisplayName = NULL;
 	char *szType = NULL;
 	char *szEmailAddress = NULL;
-	unsigned int ulDisplayNameLen=0, ulTypeLen=0, ulEmailAddressLen=0;
+	size_t ulDisplayNameLen = 0, ulTypeLen = 0, ulEmailAddressLen = 0;
 	long ulFlags = MAPI_SEND_NO_RICH_INFO;
 	// return value
 	LPENTRYID lpEntryID = NULL;
@@ -903,7 +903,7 @@ ZEND_FUNCTION(mapi_parseoneoff)
 	LOG_BEGIN();
 	// params
 	LPENTRYID lpEntryID = NULL;
-	ULONG cbEntryID = 0;
+	size_t cbEntryID = 0;
 	// return value
 	utf8string strDisplayName;
 	utf8string strType;
@@ -962,19 +962,19 @@ ZEND_FUNCTION(mapi_logon_zarafa)
 	LOG_BEGIN();
 	// params
 	char		*username = NULL;
-	int			username_len = 0;
+	size_t username_len = 0;
 	char		*password = NULL;
-	int			password_len = 0;
+	size_t password_len = 0;
 	const char *server = NULL;
-	int			server_len = 0;
+	size_t server_len = 0;
 	const char *sslcert = "";
-	int			sslcert_len = 0;
+	size_t sslcert_len = 0;
 	const char *sslpass = "";
-	int			sslpass_len = 0;
+	size_t sslpass_len = 0;
 	const char *wa_version = "";
-	int		wa_version_len = 0;
+	size_t wa_version_len = 0;
 	const char *misc_version = "";
-	int		misc_version_len = 0;
+	size_t misc_version_len = 0;
 	long		ulFlags = EC_PROFILE_FLAGS_NO_NOTIFICATIONS;
 	// return value
 	LPMAPISESSION lpMAPISession = NULL;
@@ -1065,7 +1065,7 @@ ZEND_FUNCTION(mapi_openentry)
 	// params
 	zval		*res;
 	IMAPISession *lpSession = NULL;
-	ULONG		cbEntryID	= 0;
+	size_t cbEntryID = 0;
 	LPENTRYID	lpEntryID	= NULL;
 	long		ulFlags = MAPI_BEST_ACCESS;
 	// return value
@@ -1110,7 +1110,7 @@ ZEND_FUNCTION(mapi_logon)
 	// params
 	const char *profilename = "";
 	const char *profilepassword = "";
-	int 			profilename_len = 0, profilepassword_len = 0;
+	size_t profilename_len = 0, profilepassword_len = 0;
 	// return value
 	LPMAPISESSION	lpMAPISession = NULL;
 	// local
@@ -1178,7 +1178,7 @@ ZEND_FUNCTION(mapi_ab_openentry) {
 	// params
 	zval		*res;
 	LPADRBOOK	lpAddrBook = NULL;
-	ULONG		cbEntryID = 0;
+	size_t cbEntryID = 0;
 	LPENTRYID	lpEntryID = NULL;
 	long		ulFlags = 0; //MAPI_BEST_ACCESS;
 	// return value
@@ -1349,7 +1349,7 @@ ZEND_FUNCTION(mapi_openmsgstore)
 	PMEASURE_FUNC;
 	LOG_BEGIN();
 	// params
-	ULONG		cbEntryID	= 0;
+	size_t cbEntryID = 0;
 	LPENTRYID	lpEntryID	= NULL;
 	zval *res = NULL;
 	IMAPISession * lpSession = NULL;
@@ -1393,7 +1393,7 @@ ZEND_FUNCTION(mapi_openprofilesection)
 	// params
 	zval *res;
 	IMAPISession *lpSession = NULL;
-	int uidlen;
+	size_t uidlen;
 	LPMAPIUID lpUID = NULL;
 	// return value
 	IMAPIProp *lpProfSectProp = NULL;
@@ -1693,7 +1693,7 @@ ZEND_FUNCTION(mapi_folder_createfolder) {
 	zval *srcFolder = NULL;
 	long folderType = FOLDER_GENERIC, ulFlags = 0;
 	const char *lpszFolderName = "", *lpszFolderComment = "";
-	int FolderNameLen = 0, FolderCommentLen = 0;
+	size_t FolderNameLen = 0, FolderCommentLen = 0;
 	// return value
 	LPMAPIFOLDER lpNewFolder = NULL;
 
@@ -1732,7 +1732,7 @@ ZEND_FUNCTION(mapi_folder_deletefolder)
 	LOG_BEGIN();
 	// params
 	ENTRYID			*lpEntryID = NULL;
-	ULONG			cbEntryID = 0;
+	size_t cbEntryID = 0;
 	long			ulFlags = 0;
 	zval			*res = NULL;
 	LPMAPIFOLDER	lpFolder = NULL;
@@ -1796,10 +1796,10 @@ ZEND_FUNCTION(mapi_folder_copyfolder)
 	zval			*zvalSrcFolder, *zvalDestFolder;
 	LPMAPIFOLDER	lpSrcFolder = NULL, lpDestFolder = NULL;
 	ENTRYID			*lpEntryID = NULL;
-	ULONG			cbEntryID = 0;
+	size_t cbEntryID = 0;
 	long			ulFlags = 0;
 	LPTSTR			lpszNewFolderName = NULL;
-	int				cbNewFolderNameLen = 0;
+	size_t cbNewFolderNameLen = 0;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -1847,7 +1847,7 @@ ZEND_FUNCTION(mapi_msgstore_createentryid)
 	zval		*res;
 	LPMDB		pMDB		= NULL;
 	LPSTR		sMailboxDN = NULL;
-	int			lMailboxDN = 0;
+	size_t lMailboxDN = 0;
 	// return value
 	ULONG		cbEntryID	= 0;
 	LPENTRYID	lpEntryID	= NULL;
@@ -1899,9 +1899,9 @@ ZEND_FUNCTION(mapi_msgstore_getarchiveentryid)
 	zval		*res;
 	LPMDB		pMDB		= NULL;
 	LPSTR		sUser = NULL;
-	int			lUser = 0;
+	size_t lUser = 0;
 	LPSTR		sServer = NULL;
-	int			lServer = 0;
+	size_t lServer = 0;
 	// return value
 	ULONG		cbEntryID	= 0;
 	EntryIdPtr	ptrEntryID;
@@ -1946,7 +1946,7 @@ ZEND_FUNCTION(mapi_msgstore_openentry)
 	// params
 	zval		*res;
 	LPMDB		pMDB		= NULL;
-	ULONG		cbEntryID	= 0;
+	size_t cbEntryID = 0;
 	LPENTRYID	lpEntryID	= NULL;
 	long		ulFlags = MAPI_BEST_ACCESS;
 	// return value
@@ -1991,10 +1991,10 @@ ZEND_FUNCTION(mapi_msgstore_entryidfromsourcekey)
 	LOG_BEGIN();
 	zval	*resStore = NULL;
 	BYTE 	*lpSourceKeyMessage = NULL;
-	ULONG	cbSourceKeyMessage = 0;
+	size_t cbSourceKeyMessage = 0;
 	LPMDB	lpMsgStore = NULL;
 	BYTE	*lpSourceKeyFolder = NULL;
-	ULONG	cbSourceKeyFolder = 0;
+	size_t cbSourceKeyFolder = 0;
 
 	LPENTRYID	lpEntryId = NULL;
 	ULONG		cbEntryId = 0;
@@ -2036,7 +2036,7 @@ ZEND_FUNCTION(mapi_msgstore_advise)
 	LPMDB	lpMsgStore = NULL;
 	IMAPIAdviseSink *lpSink = NULL;
 	LPENTRYID lpEntryId = NULL;
-	ULONG  	cbEntryId = 0;
+	size_t cbEntryId = 0;
 	long	ulMask = 0;
 	ULONG 	ulConnection = 0;
 
@@ -3063,7 +3063,7 @@ ZEND_FUNCTION(mapi_stream_write)
 	zval		*res = NULL;
 	LPSTREAM	pStream = NULL;
 	char		*pv = NULL;
-	ULONG		cb = 0;
+	size_t cb = 0;
 	// return value
 	ULONG		pcbWritten = 0;
 
@@ -3169,7 +3169,7 @@ ZEND_FUNCTION(mapi_openpropertytostream)
 	LPMAPIPROP	lpMapiProp	= NULL;
 	long		proptag		= 0, flags = 0; // open default readable
 	char		*guidStr	= NULL; // guid is given as an char array
-	ULONG		guidLen		= 0;
+	size_t guidLen = 0;
 	// return value
 	LPSTREAM	pStream		= NULL;
 	// local
@@ -3331,7 +3331,7 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 	// return value
 	LPSPropTagArray	lpPropTagArray = NULL;	// copied
 	// local
-	int hashTotal = 0, i = 0;
+	size_t hashTotal = 0, i = 0;
 	LPMAPINAMEID *lppNamePropId = NULL;
 	zval		*entry = NULL, *guidEntry = NULL;
 	HashTable	*targetHash	= NULL,	*guidHash = NULL;
@@ -3688,7 +3688,7 @@ ZEND_FUNCTION(mapi_openproperty)
 	LPMAPIPROP	lpMapiProp	= NULL;
 	long		proptag		= 0, flags = 0, interfaceflags = 0; // open default readable
 	char		*guidStr	= NULL; // guid is given as an char array
-	ULONG		guidLen		= 0;
+	size_t guidLen = 0;
 	// return value
 	IUnknown*	lpUnk		= NULL;
 	// local
@@ -3966,7 +3966,7 @@ ZEND_FUNCTION(mapi_decompressrtf)
 	LOG_BEGIN();
 	// params
 	char * rtfBuffer = NULL;
-	unsigned int rtfBufferLen = 0;
+	size_t rtfBufferLen = 0;
 	// return value
 	char * htmlbuf = NULL;		// duplicated, so free
 	// local
@@ -3974,7 +3974,7 @@ ZEND_FUNCTION(mapi_decompressrtf)
 	ULONG cbRead = 0;
 	LPSTREAM pStream = NULL, deCompressedStream = NULL;
 	LARGE_INTEGER begin = { { 0, 0 } };
-	unsigned int bufsize = 10240;
+	size_t bufsize = 10240;
 	std::string strUncompressed;
 
 	RETVAL_FALSE;
@@ -4263,13 +4263,13 @@ ZEND_FUNCTION(mapi_zarafa_createuser)
 	zval			*res = NULL;
 	LPMDB			lpMsgStore = NULL;
 	char			*lpszUsername = NULL;
-	unsigned int		ulUsernameLen = 0;
+	size_t ulUsernameLen = 0;
 	char			*lpszFullname = NULL;
-	unsigned int		ulFullname = 0;
+	size_t ulFullname = 0;
 	char			*lpszEmail = NULL;
-	unsigned int		ulEmail = 0;
+	size_t ulEmail = 0;
 	char			*lpszPassword = NULL;
-	unsigned int		ulPassword = 0;
+	size_t ulPassword = 0;
 	long			ulIsNonactive = false;
 	long			ulIsAdmin = false;
 
@@ -4342,15 +4342,15 @@ ZEND_FUNCTION(mapi_zarafa_setuser)
 	zval			*res = NULL;
 	LPMDB			lpMsgStore = NULL;
 	LPENTRYID		lpUserId = NULL;
-	unsigned int		cbUserId = 0;
+	size_t cbUserId = 0;
 	char			*lpszUsername = NULL;
-	unsigned int		ulUsername = 0;
+	size_t ulUsername = 0;
 	char			*lpszFullname = NULL;
-	unsigned int		ulFullname = 0;
+	size_t ulFullname = 0;
 	char			*lpszEmail = NULL;
-	unsigned int		ulEmail = 0;
+	size_t ulEmail = 0;
 	char			*lpszPassword = NULL;
-	unsigned int		ulPassword = 0;
+	size_t ulPassword = 0;
 	long			ulIsNonactive = 0;
 	long			ulIsAdmin = 0;
 
@@ -4419,7 +4419,7 @@ ZEND_FUNCTION(mapi_zarafa_deleteuser)
 	ULONG			cbUserId = 0;
 	LPENTRYID		lpUserId = NULL;
 	char*			lpszUserName = NULL;
-	ULONG			ulUserName;
+	size_t ulUserName;
 
 	// local
 	IECUnknown		*lpUnknown = NULL;
@@ -4477,7 +4477,7 @@ ZEND_FUNCTION(mapi_zarafa_createstore)
 	LPMDB			lpMsgStore = NULL;
 	long			ulStoreType;
 	LPENTRYID		lpUserId = NULL;
-	unsigned int		cbUserId = 0;
+	size_t cbUserId = 0;
 	// local
 	IECUnknown		*lpUnknown = NULL;
 	IECServiceAdmin 	*lpServiceAdmin = NULL;
@@ -4541,7 +4541,7 @@ ZEND_FUNCTION(mapi_zarafa_getuserlist)
 	zval			zval_data_value;
 	LPMDB			lpMsgStore = NULL;
 	LPENTRYID		lpCompanyId = NULL;
-	unsigned int		cbCompanyId = 0;
+	size_t cbCompanyId = 0;
 	// return value
 
 	// local
@@ -4610,7 +4610,7 @@ ZEND_FUNCTION(mapi_zarafa_getquota)
 	zval            *res = NULL;
 	LPMDB           lpMsgStore = NULL;
 	LPENTRYID		lpUserId = NULL;
-	unsigned int	cbUserId = 0;
+	size_t cbUserId = 0;
 	// return value
 
 	// local
@@ -4670,7 +4670,7 @@ ZEND_FUNCTION(mapi_zarafa_setquota)
 	zval            *res = NULL;
 	LPMDB           lpMsgStore = NULL;
 	LPENTRYID		lpUserId = NULL;
-	unsigned int	cbUserId = 0;
+	size_t cbUserId = 0;
 	zval			*array = NULL;
 	// return value
 
@@ -4771,7 +4771,7 @@ ZEND_FUNCTION(mapi_zarafa_getuser_by_name)
 	zval		*res = NULL;
 	LPMDB		lpMsgStore = NULL;
 	char			*lpszUsername;
-	unsigned int	ulUsername;
+	size_t ulUsername;
 	// return value
 
 	// local
@@ -4843,7 +4843,7 @@ ZEND_FUNCTION(mapi_zarafa_getuser_by_id)
 	zval			*res = NULL;
 	LPMDB			lpMsgStore = NULL;
 	LPENTRYID		lpUserId = NULL;
-	unsigned int	cbUserId = 0;
+	size_t cbUserId = 0;
 	// return value
 
 	// local
@@ -4899,7 +4899,7 @@ ZEND_FUNCTION(mapi_zarafa_creategroup)
 	zval			*res = NULL;
 	LPMDB			lpMsgStore = NULL;
 	ECGROUP			sGroup;
-	unsigned int	cbGroupname;
+	size_t cbGroupname;
 	// return value
 	LPENTRYID		lpGroupId = NULL;
 	unsigned int	cbGroupId = 0;
@@ -4952,7 +4952,7 @@ ZEND_FUNCTION(mapi_zarafa_deletegroup)
 	zval			*res = NULL;
 	LPMDB			lpMsgStore = NULL;
 	char			*lpszGroupname;
-	unsigned int	cbGroupname;
+	size_t cbGroupname;
 	// return value
 	// locals
 	IECUnknown		*lpUnknown = NULL;
@@ -5006,9 +5006,9 @@ ZEND_FUNCTION(mapi_zarafa_addgroupmember)
 	// params
 	zval 			*res = NULL;
 	LPENTRYID		lpGroupId = NULL;
-	unsigned int	cbGroupId = 0;
+	size_t cbGroupId = 0;
 	LPENTRYID		lpUserId = NULL;
-	unsigned int	cbUserId = 0;
+	size_t cbUserId = 0;
 	// return value
 	// locals
 	IECUnknown	*lpUnknown = NULL;
@@ -5053,9 +5053,9 @@ ZEND_FUNCTION(mapi_zarafa_deletegroupmember)
 	// params
 	zval 			*res = NULL;
 	LPENTRYID		lpGroupId = NULL;
-	unsigned int	cbGroupId = 0;
+	size_t cbGroupId = 0;
 	LPENTRYID		lpUserId = NULL;
-	unsigned int	cbUserId = 0;
+	size_t cbUserId = 0;
 	// return value
 	// locals
 	IECUnknown	*lpUnknown = NULL;
@@ -5101,9 +5101,9 @@ ZEND_FUNCTION(mapi_zarafa_setgroup)
 	zval			*res = NULL;
 	LPMDB			lpMsgStore = NULL;
 	char			*lpszGroupname;
-	unsigned int	cbGroupname;
+	size_t cbGroupname;
 	LPENTRYID		*lpGroupId = NULL;
-	unsigned int	cbGroupId = 0;
+	size_t cbGroupId = 0;
 
 	// return value
 	// locals
@@ -5154,7 +5154,7 @@ ZEND_FUNCTION(mapi_zarafa_getgroup_by_id)
 	zval			*res = NULL;
 	LPMDB			lpMsgStore = NULL;
 	LPENTRYID		lpGroupId = NULL;
-	unsigned int	cbGroupId = 0;
+	size_t cbGroupId = 0;
 	// return value
 	// locals
 	IECUnknown		*lpUnknown = NULL;
@@ -5201,16 +5201,16 @@ ZEND_FUNCTION(mapi_zarafa_getgroup_by_name)
 	LOG_BEGIN();
 	// params
 	zval			*res = NULL;
-	LPMDB			lpMsgStore = NULL;
 	char			*lpszGroupname = NULL;
-	unsigned int	ulGroupname;
-	LPENTRYID		lpGroupId = NULL;
-	unsigned int	cbGroupId = 0;
-	// return value
+	size_t ulGroupname;
 	// locals
+	LPMDB lpMsgStore = NULL;
 	IECUnknown		*lpUnknown = NULL;
 	IECServiceAdmin *lpServiceAdmin = NULL;
 	ECGROUP *lpsGroup = NULL;
+	// return value
+	LPENTRYID lpGroupId = NULL;
+	unsigned int cbGroupId = 0;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -5261,7 +5261,7 @@ ZEND_FUNCTION(mapi_zarafa_getgrouplist)
 	// params
 	zval			*res = NULL;
 	LPENTRYID		lpCompanyId = NULL;
-	unsigned int	cbCompanyId = 0;
+	size_t cbCompanyId = 0;
 	// return value
 	// locals
 	zval			zval_data_value;
@@ -5320,7 +5320,7 @@ ZEND_FUNCTION(mapi_zarafa_getgrouplistofuser)
 	// params
 	zval			*res = NULL;
 	LPENTRYID		lpUserId = NULL;
-	unsigned int	cbUserId = 0;
+	size_t cbUserId = 0;
 	// return value
 	// locals
 	zval			zval_data_value;
@@ -5378,7 +5378,7 @@ ZEND_FUNCTION(mapi_zarafa_getuserlistofgroup)
 	// params
 	zval			*res = NULL;
 	LPENTRYID		lpGroupId = NULL;
-	unsigned int	cbGroupId = 0;
+	size_t cbGroupId = 0;
 	// return value
 	// locals
 	zval			zval_data_value;
@@ -5441,7 +5441,7 @@ ZEND_FUNCTION(mapi_zarafa_createcompany)
 	zval *res = NULL;
 	LPMDB lpMsgStore = NULL;
 	ECCOMPANY sCompany;
-	unsigned int cbCompanyname;
+	size_t cbCompanyname;
 	// return value
 	LPENTRYID		lpCompanyId = NULL;
 	unsigned int	cbCompanyId = 0;
@@ -5493,7 +5493,7 @@ ZEND_FUNCTION(mapi_zarafa_deletecompany)
 	zval *res = NULL;
 	LPMDB lpMsgStore = NULL;
 	char *lpszCompanyname;
-	unsigned int cbCompanyname;
+	size_t cbCompanyname;
 	// return value
 	// locals
 	IECUnknown		*lpUnknown = NULL;
@@ -5549,7 +5549,7 @@ ZEND_FUNCTION(mapi_zarafa_getcompany_by_id)
 	zval			*res = NULL;
 	LPMDB			lpMsgStore = NULL;
 	LPENTRYID		lpCompanyId = NULL;
-	unsigned int	cbCompanyId = 0;
+	size_t cbCompanyId = 0;
 	// return value
 	// locals
 	IECUnknown *lpUnknown = NULL;
@@ -5599,7 +5599,7 @@ ZEND_FUNCTION(mapi_zarafa_getcompany_by_name)
 	zval *res = NULL;
 	LPMDB lpMsgStore = NULL;
 	char *lpszCompanyname = NULL;
-	unsigned int ulCompanyname;
+	size_t ulCompanyname;
 	LPENTRYID lpCompanyId = NULL;
 	unsigned int cbCompanyId = 0;
 	// return value
@@ -5711,9 +5711,9 @@ ZEND_FUNCTION(mapi_zarafa_add_company_remote_viewlist)
 	LOG_BEGIN();
 	zval			*res = NULL;
 	LPENTRYID		lpSetCompanyId = NULL;
-	unsigned int	cbSetCompanyId = 0;
+	size_t cbSetCompanyId = 0;
 	LPENTRYID		lpCompanyId = NULL;
-	unsigned int	cbCompanyId = 0;
+	size_t cbCompanyId = 0;
 
 	/* Locals */
 	IECUnknown		*lpUnknown = NULL;
@@ -5758,9 +5758,9 @@ ZEND_FUNCTION(mapi_zarafa_del_company_remote_viewlist)
 	LOG_BEGIN();
 	zval			*res = NULL;
 	LPENTRYID		lpSetCompanyId = NULL;
-	unsigned int	cbSetCompanyId = 0;
+	size_t cbSetCompanyId = 0;
 	LPENTRYID		lpCompanyId = NULL;
-	unsigned int	cbCompanyId = 0;
+	size_t cbCompanyId = 0;
 
 	/* Locals */
 	IECUnknown		*lpUnknown = NULL;
@@ -5805,7 +5805,7 @@ ZEND_FUNCTION(mapi_zarafa_get_remote_viewlist)
 	LOG_BEGIN();
 	zval			*res = NULL;
 	LPENTRYID		lpCompanyId = NULL;
-	unsigned int	cbCompanyId = 0;
+	size_t cbCompanyId = 0;
 
 	/* Locals */
 	zval			zval_data_value;
@@ -5861,9 +5861,9 @@ ZEND_FUNCTION(mapi_zarafa_add_user_remote_adminlist)
 	LOG_BEGIN();
 	zval			*res = NULL;
 	LPENTRYID		lpUserId = NULL;
-	unsigned int	cbUserId = 0;
+	size_t cbUserId = 0;
 	LPENTRYID		lpCompanyId = NULL;
-	unsigned int	cbCompanyId = 0;
+	size_t cbCompanyId = 0;
 
 	/* Locals */
 	IECUnknown		*lpUnknown = NULL;
@@ -5908,9 +5908,9 @@ ZEND_FUNCTION(mapi_zarafa_del_user_remote_adminlist)
 	LOG_BEGIN();
 	zval			*res = NULL;
 	LPENTRYID		lpUserId = NULL;
-	unsigned int	cbUserId = 0;
+	size_t cbUserId = 0;
 	LPENTRYID		lpCompanyId = NULL;
-	unsigned int	cbCompanyId = 0;
+	size_t cbCompanyId = 0;
 
 	/* Locals */
 	IECUnknown		*lpUnknown = NULL;
@@ -5955,7 +5955,7 @@ ZEND_FUNCTION(mapi_zarafa_get_remote_adminlist)
 	LOG_BEGIN();
 	zval			*res = NULL;
 	LPENTRYID		lpCompanyId = NULL;
-	unsigned int	cbCompanyId = 0;
+	size_t cbCompanyId = 0;
 
 	/* Locals */
 	zval			zval_data_value;
@@ -6011,9 +6011,9 @@ ZEND_FUNCTION(mapi_zarafa_add_quota_recipient)
 	LOG_BEGIN();
 	zval			*res = NULL;
 	LPENTRYID		lpRecipientId = NULL;
-	unsigned int	cbRecipientId = 0;
+	size_t cbRecipientId = 0;
 	LPENTRYID		lpCompanyId = NULL;
-	unsigned int	cbCompanyId = 0;
+	size_t cbCompanyId = 0;
 	long			ulType = 0;
 
 	/* Locals */
@@ -6059,9 +6059,9 @@ ZEND_FUNCTION(mapi_zarafa_del_quota_recipient)
 	LOG_BEGIN();
 	zval			*res = NULL;
 	LPENTRYID		lpRecipientId = NULL;
-	unsigned int	cbRecipientId = 0;
+	size_t cbRecipientId = 0;
 	LPENTRYID		lpCompanyId = NULL;
-	unsigned int	cbCompanyId = 0;
+	size_t cbCompanyId = 0;
 	long			ulType = 0;
 
 	/* Locals */
@@ -6107,7 +6107,7 @@ ZEND_FUNCTION(mapi_zarafa_get_quota_recipientlist)
 	LOG_BEGIN();
 	zval			*res = NULL;
 	LPENTRYID		lpObjectId = NULL;
-	unsigned int	cbObjectId = 0;
+	size_t cbObjectId = 0;
 
 	/* Locals */
 	zval			zval_data_value;
@@ -6164,7 +6164,7 @@ ZEND_FUNCTION(mapi_zarafa_check_license)
 	zval *res = NULL;
 	IMsgStore *lpMsgStore = NULL;
 	char *szFeature = NULL;
-	unsigned int cbFeature = 0;
+	size_t cbFeature = 0;
 	IECUnknown *lpUnknown = NULL;
 	IECLicense *lpLicense = NULL;
 	char **lpszCapas = NULL;
@@ -6340,7 +6340,7 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 	ULONG cPerms = 0;
 	ECPERMISSION *lpECPerms = NULL;
 	HashTable *target_hash = NULL;
-	ULONG i, j;
+	ULONG j;
 	zval *entry = NULL, *value = NULL;
 	HashTable *data = NULL;
 
@@ -7073,13 +7073,13 @@ ZEND_FUNCTION(mapi_favorite_add)
 	// params
 	zval *				resSession = NULL;
 	zval *				resFolder = NULL;
-	IMAPISession		*lpSession = NULL;
-	LPMAPIFOLDER		lpFolder = NULL;
+	LPSTR lpszAliasName = NULL;
+	size_t cbAliasName = 0;
 	long				ulFlags = 0;
 	// local
+	LPMAPIFOLDER lpFolder = NULL;
+	IMAPISession *lpSession = NULL;
 	LPMAPIFOLDER		lpShortCutFolder = NULL;
-	ULONG				cbAliasName = 0;
-	LPSTR				lpszAliasName = NULL;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -7475,15 +7475,15 @@ ZEND_FUNCTION(mapi_importcontentschanges_importmessagemove)
 {
 	PMEASURE_FUNC;
 	LOG_BEGIN();
-	ULONG			cbSourceKeySrcFolder = 0;
+	size_t cbSourceKeySrcFolder = 0;
 	BYTE *			pbSourceKeySrcFolder = NULL;
-	ULONG			cbSourceKeySrcMessage = 0;
+	size_t cbSourceKeySrcMessage = 0;
 	BYTE *			pbSourceKeySrcMessage = NULL;
-	ULONG			cbPCLMessage = 0;
+	size_t cbPCLMessage = 0;
 	BYTE *			pbPCLMessage = NULL;
-	ULONG 			cbSourceKeyDestMessage = 0;
+	size_t cbSourceKeyDestMessage = 0;
 	BYTE *			pbSourceKeyDestMessage = NULL;
-	ULONG			cbChangeNumDestMessage = 0;
+	size_t cbChangeNumDestMessage = 0;
 	BYTE *			pbChangeNumDestMessage = NULL;
 
 	zval *			resImportContentsChanges;
@@ -7771,7 +7771,7 @@ ZEND_FUNCTION(mapi_inetmapi_imtomapi)
     zval *resOptions;
     ECLogger_Null logger;
     delivery_options dopt;
-    ULONG cbString = 0;
+    size_t cbString = 0;
     char *szString = NULL;
     
     imopt_default_delivery_options(&dopt);
@@ -7842,7 +7842,7 @@ ZEND_FUNCTION(mapi_feature)
 	static const char *const features[] =
 		{"LOGONFLAGS", "NOTIFICATIONS", "INETMAPI_IMTOMAPI"};
 	const char *szFeature = NULL;
-    ULONG cbFeature = 0;
+    size_t cbFeature = 0;
     
     RETVAL_FALSE;
     
