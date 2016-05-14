@@ -2854,20 +2854,11 @@ pthread_mutex_t _memlist_lock;
  */
 static SCODE MAPIAllocate(ULONG cbSize, LPVOID *lppBuffer)
 {
-	char *buffer = NULL;
-
-	try {
-		buffer = new char[cbSize];
-	} catch (...) {
+	*lppBuffer = malloc(cbSize);
+	if (*lppBuffer != NULL)
+		return S_OK;
+	else
 		return MAKE_MAPI_E(1);
-	}
-
-	if (!buffer)
-		return MAKE_MAPI_E(1);
-
-	*lppBuffer = (void*)buffer;
-
-	return S_OK;
 }
 
 /**
@@ -2997,12 +2988,12 @@ ULONG __stdcall MAPIFreeBuffer(LPVOID lpBuffer) {
 #if _MAPI_MEM_DEBUG
 			fprintf(stderr, "  Freeing: %p\n", (*i));
 #endif
-			delete[] static_cast<char *>(*i);
+			free(*i);
 		}
 
 		// delete list
 		delete mlptr->second;
-		delete [] (char *)mlptr->first;
+		free(mlptr->first);
 
 		// remove map entry
 		_memlist.erase(mlptr);
