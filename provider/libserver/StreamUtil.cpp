@@ -549,7 +549,7 @@ exit:
 
 ECRESULT SerializePropVal(LPCSTREAMCAPS lpStreamCaps, const struct propVal &sPropVal, ECSerializer *lpSink, const NamedPropDefMap *lpNamedPropDefs)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	unsigned int type = PROP_TYPE(sPropVal.ulPropTag);
 	unsigned int ulLen;
 	unsigned char b;
@@ -566,22 +566,17 @@ ECRESULT SerializePropVal(LPCSTREAMCAPS lpStreamCaps, const struct propVal &sPro
 
 	if (PROP_ID(ulPropTag) > 0x8500) {
 		ASSERT(lpNamedPropDefs);
-		if (!lpNamedPropDefs) {
-			er = KCERR_INVALID_TYPE;
-			goto exit;
-		}
-		
+		if (!lpNamedPropDefs)
+			return KCERR_INVALID_TYPE;
 		iNamedPropDef = lpNamedPropDefs->find(ulPropTag);
 		ASSERT(iNamedPropDef != lpNamedPropDefs->end());
-		if (iNamedPropDef == lpNamedPropDefs->end()) {
-			er = KCERR_NOT_FOUND;
-			goto exit;
-		}
+		if (iNamedPropDef == lpNamedPropDefs->end())
+			return KCERR_NOT_FOUND;
 	}
 	
 	er = lpSink->Write((unsigned char *)&ulPropTag, sizeof(ulPropTag), 1);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	switch (type) {
 	case PT_I2:
@@ -721,8 +716,6 @@ ECRESULT SerializePropVal(LPCSTREAMCAPS lpStreamCaps, const struct propVal &sPro
 				er = KCERR_INVALID_TYPE;
 		}
 	}
-
-exit:
 	return er;
 }
 
@@ -730,23 +723,21 @@ static ECRESULT SerializeProps(struct propValArray *lpPropVals,
     LPCSTREAMCAPS lpStreamCaps, ECSerializer *lpSink,
     const NamedPropDefMap *lpNamedPropDefs)
 {
-	ECRESULT		er = erSuccess;
+	ECRESULT er;
 	unsigned int	ulCount = 0;
 
 	ulCount = lpPropVals->__size;
 	
     er = lpSink->Write(&ulCount, sizeof(ulCount), 1);
 	if (er != erSuccess)
-    	goto exit;
+		return er;
     	
 	for (unsigned int i = 0; i < ulCount; ++i) {
 		er = SerializePropVal(lpStreamCaps, lpPropVals->__ptr[i], lpSink, lpNamedPropDefs);
-        if (er != erSuccess)
-	        goto exit;
+	        if (er != erSuccess)
+			return er;
 	}
-	
-exit:
-	return er;                
+	return erSuccess;
 }
 
 static ECRESULT GetBestBody(ECDatabase *lpDatabase, unsigned int ulObjId,
@@ -1117,7 +1108,7 @@ static ECRESULT DeserializePropVal(struct soap *soap,
     LPCSTREAMCAPS lpStreamCaps, NamedPropertyMapper &namedPropertyMapper,
     propVal **lppsPropval, ECSerializer *lpSource)
 {
-	ECRESULT		er = erSuccess;
+	ECRESULT er;
 	gsoap_size_t ulCount;
 	unsigned int	ulLen;
 	propVal			*lpsPropval = NULL;
@@ -1134,7 +1125,7 @@ static ECRESULT DeserializePropVal(struct soap *soap,
 	lpsPropval = s_alloc<propVal>(soap);
 	er = lpSource->Read(&lpsPropval->ulPropTag, sizeof(lpsPropval->ulPropTag), 1);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	switch (PROP_TYPE(lpsPropval->ulPropTag)) {
 	case PT_I2:
@@ -1305,8 +1296,7 @@ static ECRESULT DeserializePropVal(struct soap *soap,
 		}
 		break;
 	default:
-		er = KCERR_INVALID_TYPE;
-		goto exit;
+		return KCERR_INVALID_TYPE;
 	}
 
 	// If the proptag is in the dynamic named property range, we need to get the correct local proptag
@@ -1332,8 +1322,6 @@ static ECRESULT DeserializePropVal(struct soap *soap,
 	}
 
 	*lppsPropval = lpsPropval;
-
-exit:
 	return er;
 }
 
@@ -1815,127 +1803,115 @@ ECRESULT GetValidatedPropType(DB_ROW lpRow, unsigned int *lpulType)
 	ECRESULT er = KCERR_DATABASE_ERROR;
 	unsigned int ulType = 0;
 
-	if (lpRow == NULL || lpulType == NULL) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpRow == NULL || lpulType == NULL)
+		return KCERR_INVALID_PARAMETER;
 
 	ulType = atoi(lpRow[FIELD_NR_TYPE]);
 	switch (ulType) {
 	case PT_I2:
 		if (lpRow[FIELD_NR_ULONG] == NULL)
-			goto exit;
+			return er;
 		break;
 	case PT_LONG:
 		if (lpRow[FIELD_NR_ULONG] == NULL)
-			goto exit;
+			return er;
 		break;
 	case PT_R4:
 		if (lpRow[FIELD_NR_DOUBLE] == NULL)
-			goto exit;
+			return er;
 		break;
 	case PT_BOOLEAN:
 		if (lpRow[FIELD_NR_ULONG] == NULL)
-			goto exit;
+			return er;
 		break;
 	case PT_DOUBLE:
 	case PT_APPTIME:
 		if (lpRow[FIELD_NR_DOUBLE] == NULL)
-			goto exit;
+			return er;
 		break;
 	case PT_CURRENCY:
 	case PT_SYSTIME:
 		if (lpRow[FIELD_NR_HI] == NULL || lpRow[FIELD_NR_LO] == NULL) 
-			goto exit;
+			return er;
 		break;
 	case PT_I8:
 		if (lpRow[FIELD_NR_LONGINT] == NULL)
-			goto exit;
+			return er;
 		break;
 	case PT_STRING8:
 	case PT_UNICODE:
 		if (lpRow[FIELD_NR_STRING] == NULL) 
-			goto exit;
+			return er;
 		break;
 	case PT_CLSID:
 	case PT_BINARY:
 		if (lpRow[FIELD_NR_BINARY] == NULL) 
-			goto exit;
+			return er;
 		break;
 	case PT_MV_I2:
 		if (lpRow[FIELD_NR_ULONG] == NULL) 
-			goto exit;
+			return er;
 		break;
 	case PT_MV_LONG:
 		if (lpRow[FIELD_NR_ULONG] == NULL) 
-			goto exit;
+			return er;
 		break;
 	case PT_MV_R4:
 		if (lpRow[FIELD_NR_DOUBLE] == NULL) 
-			goto exit;
+			return er;
 		break;
 	case PT_MV_DOUBLE:
 	case PT_MV_APPTIME:
 		if (lpRow[FIELD_NR_DOUBLE] == NULL) 
-			goto exit;
+			return er;
 		break;
 	case PT_MV_CURRENCY:
 	case PT_MV_SYSTIME:
 		if (lpRow[FIELD_NR_HI] == NULL || lpRow[FIELD_NR_LO] == NULL) 
-			goto exit;
+			return er;
 		break;
 	case PT_MV_BINARY:
 	case PT_MV_CLSID:
 		if (lpRow[FIELD_NR_BINARY] == NULL) 
-			goto exit;
+			return er;
 		break;
 	case PT_MV_STRING8:
 	case PT_MV_UNICODE:
 		if (lpRow[FIELD_NR_STRING] == NULL) 
-			goto exit;
+			return er;
 		break;
 	case PT_MV_I8:
 		if (lpRow[FIELD_NR_LONGINT] == NULL) 
-			goto exit;
+			return er;
 		break;
 	default:
-		er = KCERR_INVALID_TYPE;
-		goto exit;
+		return KCERR_INVALID_TYPE;
 	}
-
-	er = erSuccess;
 	*lpulType = ulType;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT GetValidatedPropCount(ECDatabase *lpDatabase, DB_RESULT lpDBResult, unsigned int *lpulCount)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	unsigned int ulCount = 0;
 	DB_ROW lpRow;
 
-	if (lpDatabase == NULL || lpDBResult == NULL || lpulCount == 0) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpDatabase == NULL || lpDBResult == NULL || lpulCount == 0)
+		return KCERR_INVALID_PARAMETER;
 
 	while ((lpRow = lpDatabase->FetchRow(lpDBResult)) != NULL) {
 		unsigned int ulType;
 		er = GetValidatedPropType(lpRow, &ulType);	// Ignore ulType, we just need the validation
 		if (er == KCERR_DATABASE_ERROR) {
 			ec_log_err("GetValidatedPropCount(): GetValidatedPropType failed");
-			er = erSuccess;
 			continue;
 		} else if (er != erSuccess)
-			goto exit;
+			return er;
 		++ulCount;
 	}
 
 	lpDatabase->ResetResult(lpDBResult);
 	*lpulCount = ulCount;
-
-exit:
-	return er;
+	return erSuccess;
 }

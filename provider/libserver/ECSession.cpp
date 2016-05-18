@@ -637,25 +637,19 @@ void ECSession::GetClientApp(std::string *lpstrClientApp)
  */
 ECRESULT ECSession::GetObjectFromEntryId(const entryId *lpEntryId, unsigned int *lpulObjId, unsigned int *lpulEidFlags)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	unsigned int ulObjId = 0;
 
-	if (lpEntryId == NULL || lpulObjId == NULL) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (lpEntryId == NULL || lpulObjId == NULL)
+		return KCERR_INVALID_PARAMETER;
 	er = m_lpSessionManager->GetCacheManager()->GetObjectFromEntryId(lpEntryId, &ulObjId);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	*lpulObjId = ulObjId;
 
 	if(lpulEidFlags)
 		*lpulEidFlags = ((EID *)lpEntryId->__ptr)->usFlags;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECSession::LockObject(unsigned int ulObjId)
@@ -673,19 +667,16 @@ ECRESULT ECSession::LockObject(unsigned int ulObjId)
 
 ECRESULT ECSession::UnlockObject(unsigned int ulObjId)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	LockMap::iterator i;
 	scoped_lock lock(m_hLocksLock);
 
 	i = m_mapLocks.find(ulObjId);
 	if (i == m_mapLocks.end())
-		goto exit;
-
+		return erSuccess;
 	er = i->second.Unlock();
 	if (er == erSuccess)
 		m_mapLocks.erase(i);
-
-exit:
 	return er;
 }
 
@@ -853,39 +844,31 @@ exit:
 // You always log in as the user you are authenticating with.
 ECRESULT ECAuthSession::ValidateUserLogon(const char* lpszName, const char* lpszPassword, const char* lpszImpersonateUser)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 
 	if (!lpszName)
 	{
 		ec_log_err("Invalid argument \"lpszName\" in call to ECAuthSession::ValidateUserLogon()");
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
+		return KCERR_INVALID_PARAMETER;
     }
 	if (!lpszPassword) {
 		ec_log_err("Invalid argument \"lpszPassword\" in call to ECAuthSession::ValidateUserLogon()");
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
+		return KCERR_INVALID_PARAMETER;
 	}
 
 	// SYSTEM can't login with user/pass
-	if(stricmp(lpszName, KOPANO_ACCOUNT_SYSTEM) == 0) {
-		er = KCERR_NO_ACCESS;
-		goto exit;
-	}
-
+	if (stricmp(lpszName, KOPANO_ACCOUNT_SYSTEM) == 0)
+		return KCERR_NO_ACCESS;
 	er = m_lpUserManagement->AuthUserAndSync(lpszName, lpszPassword, &m_ulUserID);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = ProcessImpersonation(lpszImpersonateUser);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	m_bValidated = true;
 	m_ulValidationMethod = METHOD_USERPASSWORD;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 // Validate a user through the socket they are connecting through. This has the special feature
@@ -1164,31 +1147,31 @@ ECRESULT ECAuthSession::ValidateSSOData(struct soap* soap, const char* lpszName,
 	ECRESULT er = KCERR_INVALID_PARAMETER;
 	if (!soap) {
 		ec_log_err("Invalid argument \"soap\" in call to ECAuthSession::ValidateSSOData()");
-		goto exit;
+		return er;
 	}
 	if (!lpszName) {
 		ec_log_err("Invalid argument \"lpszName\" in call to ECAuthSession::ValidateSSOData()");
-		goto exit;
+		return er;
 	}
 	if (!lpszImpersonateUser) {
 		ec_log_err("Invalid argument \"lpszImpersonateUser\" in call to ECAuthSession::ValidateSSOData()");
-		goto exit;
+		return er;
 	}
 	if (!szClientVersion) {
 		ec_log_err("Invalid argument \"szClientVersion\" in call to ECAuthSession::ValidateSSOData()");
-		goto exit;
+		return er;
 	}
 	if (!szClientApp) {
 		ec_log_err("Invalid argument \"szClientApp\" in call to ECAuthSession::ValidateSSOData()");
-		goto exit;
+		return er;
 	}
 	if (!lpInput) {
 		ec_log_err("Invalid argument \"lpInput\" in call to ECAuthSession::ValidateSSOData()");
-		goto exit;
+		return er;
 	}
 	if (!lppOutput) {
 		ec_log_err("Invalid argument \"lppOutput\" in call to ECAuthSession::ValidateSSOData()");
-		goto exit;
+		return er;
 	}
 
 	er = KCERR_LOGON_FAILED;
@@ -1199,14 +1182,12 @@ ECRESULT ECAuthSession::ValidateSSOData(struct soap* soap, const char* lpszName,
 	else
 		er = ValidateSSOData_KRB5(soap, lpszName, szClientVersion, szClientApp, szClientAppVersion, szClientAppMisc, lpInput, lppOutput);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	er = ProcessImpersonation(lpszImpersonateUser);
 	if (er != erSuccess)
-		goto exit;
-
-exit:
-	return er;
+		return er;
+	return erSuccess;
 }
 
 #ifdef HAVE_GSSAPI
@@ -1420,27 +1401,27 @@ ECRESULT ECAuthSession::ValidateSSOData_NTLM(struct soap* soap, const char* lpsz
 
 	if (!soap) {
 		ec_log_err("Invalid argument \"soap\" in call to ECAuthSession::ValidateSSOData_NTLM()");
-		goto exit;
+		return er;
 	}
 	if (!lpszName) {
 		ec_log_err("Invalid argument \"lpszName\" in call to ECAuthSession::ValidateSSOData_NTLM()");
-		goto exit;
+		return er;
 	}
 	if (!szClientVersion) {
 		ec_log_err("Invalid argument \"zClientVersionin\" in call to ECAuthSession::ValidateSSOData_NTLM()");
-		goto exit;
+		return er;
 	}
 	if (!szClientApp) {
 		ec_log_err("Invalid argument \"szClientApp\" in call to ECAuthSession::ValidateSSOData_NTLM()");
-		goto exit;
+		return er;
 	}
 	if (!lpInput) {
 		ec_log_err("Invalid argument \"lpInput\" in call to ECAuthSession::ValidateSSOData_NTLM()");
-		goto exit;
+		return er;
 	}
 	if (!lppOutput) {
 		ec_log_err("Invalid argument \"lppOutput\" in call to ECAuthSession::ValidateSSOData_NTLM()");
-		goto exit;
+		return er;
 	}
 	er = KCERR_LOGON_FAILED;
 	strEncoded = base64_encode(lpInput->__ptr, lpInput->__size);
@@ -1452,7 +1433,7 @@ ECRESULT ECAuthSession::ValidateSSOData_NTLM(struct soap* soap, const char* lpsz
 
 		if (pipe(m_NTLM_stdin) == -1 || pipe(m_NTLM_stdout) == -1 || pipe(m_NTLM_stderr) == -1) {
 			ec_log_crit(string("Unable to create communication pipes for ntlm_auth: ") + strerror(errno));
-			goto exit;
+			return er;
 		}
 
 		/*
@@ -1473,7 +1454,7 @@ ECRESULT ECAuthSession::ValidateSSOData_NTLM(struct soap* soap, const char* lpsz
 		if (m_NTLM_pid == -1) {
 			// broken
 			ec_log_crit(string("Unable to start new process for ntlm_auth: ") + strerror(errno));
-			goto exit;
+			return er;
 		} else if (m_NTLM_pid == 0) {
 			// client
 			int j, k;
@@ -1534,13 +1515,13 @@ retry:
 			goto retry;
 
 		ec_log_err(string("Error while waiting for data from ntlm_auth: ") + strerror(errno));
-		goto exit;
+		return er;
 	}
 
 	if (ret == 0) {
 		// timeout
 		ec_log_err("Timeout while reading from ntlm_auth");
-		goto exit;
+		return er;
 	}
 
 	// stderr is optional, and always written first
@@ -1552,7 +1533,7 @@ retry:
 		// print in lower level. if ntlm_auth was not installed (kerberos only environment), you won't care that ntlm_auth doesn't work.
 		// login error is returned to the client, which was expected anyway.
 		ec_log_notice(string("Received error from ntlm_auth:\n") + buffer);
-		goto exit;
+		return er;
 	}
 
 	// stdout is mandatory, so always read from this pipe
@@ -1560,10 +1541,10 @@ retry:
 	bytes = read(m_stdout, buffer, NTLMBUFFER-1);
 	if (bytes < 0) {
 		ec_log_err(string("Unable to read data from ntlm_auth: ") + strerror(errno));
-		goto exit;
+		return er;
 	} else if (bytes == 0) {
 		ec_log_err("Nothing read from ntlm_auth");
-		goto exit;
+		return er;
 	}
 	if (buffer[bytes-1] == '\n')
 		/*
@@ -1574,7 +1555,7 @@ retry:
 	if (bytes < 2) {
 		/* Ensure buffer[0]==.. && buffer[1]==.. is valid to do */
 		ec_log_err("Short reply from ntlm_auth");
-		goto exit;
+		return er;
 	}
 
 	if (bytes >= 3)
@@ -1587,7 +1568,7 @@ retry:
 	if (buffer[0] == 'B' && buffer[1] == 'H') {
 		// Broken Helper
 		ec_log_err("Incorrect data fed to ntlm_auth");
-		goto exit;
+		return er;
 	} else if (buffer[0] == 'T' && buffer[1] == 'T') {
 		// Try This
 		strDecoded = base64_decode(strAnswer);
@@ -1606,7 +1587,7 @@ retry:
 		ECIConv iconv("windows-1252", "utf-8");
 		if (!iconv.canConvert()) {
 			ec_log_crit("Problem setting up windows-1252 to utf-8 converter");
-			goto exit;
+			return er;
 		}
 
 		strAnswer = iconv.convert(strAnswer);
@@ -1624,7 +1605,7 @@ retry:
 		er = m_lpUserManagement->ResolveObjectAndSync(ACTIVE_USER, (char *)strAnswer.c_str(), &m_ulUserID);
 		// don't check NONACTIVE, since those shouldn't be able to login
 		if(er != erSuccess)
-			goto exit;
+			return er;
 
 		if (stricmp(lpszName, strAnswer.c_str()) != 0) {
 			// cannot open another user without password
@@ -1651,13 +1632,10 @@ retry:
 	} else {
 		// unknown response?
 		ec_log_err("Unknown response from ntlm_auth: %.*s", static_cast<int>(bytes), buffer);
-		er = KCERR_CALL_FAILED;
-		goto exit;
+		return KCERR_CALL_FAILED;
 	}
 
 	*lppOutput = lpOutput;
-
-exit:
 	return er;
 }
 #undef NTLMBUFFER
@@ -1665,18 +1643,14 @@ exit:
 
 ECRESULT ECAuthSession::ProcessImpersonation(const char* lpszImpersonateUser)
 {
-	ECRESULT er = erSuccess;
-
 	if (lpszImpersonateUser == NULL || *lpszImpersonateUser == '\0') {
 		m_ulImpersonatorID = EC_NO_IMPERSONATOR;
-		goto exit;
+		return erSuccess;
 	}
 
 	m_ulImpersonatorID = m_ulUserID;
-	er = m_lpUserManagement->ResolveObjectAndSync(OBJECTCLASS_USER, lpszImpersonateUser, &m_ulUserID);
-
-exit:
-	return er;
+	return m_lpUserManagement->ResolveObjectAndSync(OBJECTCLASS_USER,
+	       lpszImpersonateUser, &m_ulUserID);
 }
 
 size_t ECAuthSession::GetObjectSize()

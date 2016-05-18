@@ -213,13 +213,10 @@ ECRESULT ECSessionGroup::AddAdvise(ECSESSIONID ulSessionId, unsigned int ulConne
 
 ECRESULT ECSessionGroup::AddChangeAdvise(ECSESSIONID ulSessionId, unsigned int ulConnection, notifySyncState *lpSyncState)
 {
-	ECRESULT			er = erSuccess;
 	changeSubscribeItem sSubscribeItem = {ulSessionId, ulConnection};
 
-	if (lpSyncState == NULL) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpSyncState == NULL)
+		return KCERR_INVALID_PARAMETER;
 
 	sSubscribeItem.sSyncState = *lpSyncState;
 
@@ -228,9 +225,7 @@ ECRESULT ECSessionGroup::AddChangeAdvise(ECSESSIONID ulSessionId, unsigned int u
 	m_mapChangeSubscribe.insert(CHANGESUBSCRIBEMAP::value_type(lpSyncState->ulSyncId, sSubscribeItem));
 
 	pthread_mutex_unlock(&m_hNotificationLock);
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECSessionGroup::DelAdvise(ECSESSIONID ulSessionId, unsigned int ulConnection)

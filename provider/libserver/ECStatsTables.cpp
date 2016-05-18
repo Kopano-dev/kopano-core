@@ -157,7 +157,6 @@ void ECSystemStatsTable::GetStatsCollectorData(const std::string &name, const st
 
 ECRESULT ECSystemStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis, struct soap *soap, ECSession *lpSession, ECObjectTableList *lpRowList, struct propTagArray *lpsPropTagArray, void *lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
 {
-	ECRESULT er = erSuccess;
 	struct rowSet *lpsRowSet = NULL;
 	ECSystemStatsTable *lpThis = (ECSystemStatsTable *)lpGenericThis;
 	ECObjectTableList::const_iterator iterRowList;
@@ -170,7 +169,7 @@ ECRESULT ECSystemStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis, s
 
 	if (lpRowList->empty()) {
 		*lppRowSet = lpsRowSet;
-		goto exit;
+		return erSuccess;
 	}
 
 	// We return a square array with all the values
@@ -233,9 +232,7 @@ ECRESULT ECSystemStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis, s
 	}
 
 	*lppRowSet = lpsRowSet;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 
@@ -334,7 +331,6 @@ void ECSessionStatsTable::GetSessionData(ECSession *lpSession, void *obj)
 
 ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis, struct soap *soap, ECSession *lpSession, ECObjectTableList *lpRowList, struct propTagArray *lpsPropTagArray, void *lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
 {
-	ECRESULT er = erSuccess;
 	struct rowSet *lpsRowSet = NULL;
 	ECObjectTableList::const_iterator iterRowList;
 	ECSessionStatsTable *lpThis = (ECSessionStatsTable *)lpGenericThis;
@@ -349,7 +345,7 @@ ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis, 
 
 	if (lpRowList->empty()) {
 		*lppRowSet = lpsRowSet;
-		goto exit;
+		return erSuccess;
 	}
 
 	// We return a square array with all the values
@@ -522,9 +518,7 @@ ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis, 
 	}
 
 	*lppRowSet = lpsRowSet;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 
@@ -612,7 +606,7 @@ exit:
 
 ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList *lpRowList, struct propTagArray *lpsPropTagArray, void *lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	gsoap_size_t i;
 	struct rowSet *lpsRowSet = NULL;
 	ECObjectTableList::const_iterator iterRowList;
@@ -631,7 +625,7 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct soa
 
 	er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	lpsRowSet = s_alloc<rowSet>(soap);
 	lpsRowSet->__size = 0;
@@ -639,7 +633,7 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct soa
 
 	if (lpRowList->empty()) {
 		*lppRowSet = lpsRowSet;
-		goto exit;
+		return erSuccess;
 	}
 
 	// We return a square array with all the values
@@ -817,8 +811,6 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct soa
 	}	
 
 	*lppRowSet = lpsRowSet;
-
-exit:
 	return er;
 }
 
@@ -860,7 +852,7 @@ exit:
 
 ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList* lpRowList, struct propTagArray *lpsPropTagArray, void* lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	gsoap_size_t i;
 	struct rowSet *lpsRowSet = NULL;
 	ECObjectTableList::const_iterator iterRowList;
@@ -878,7 +870,7 @@ ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct 
 
 	er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	lpsRowSet = s_alloc<rowSet>(soap);
 	lpsRowSet->__size = 0;
@@ -886,7 +878,7 @@ ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct 
 
 	if (lpRowList->empty()) {
 		*lppRowSet = lpsRowSet;
-		goto exit;
+		return erSuccess;
 	}
 
 	// We return a square array with all the values
@@ -995,8 +987,6 @@ ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct 
 	}	
 
 	*lppRowSet = lpsRowSet;
-
-exit:
 	return er;
 }
 
@@ -1017,14 +1007,14 @@ ECRESULT ECServerStatsTable::Create(ECSession *lpSession, unsigned int ulFlags, 
 
 ECRESULT ECServerStatsTable::Load()
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	sObjectTableKey sRowItem;
 	serverlist_t servers;
 	unsigned int i = 1;
 
 	er = lpSession->GetUserManagement()->GetServerList(&servers);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 		
 	// Assign an ID to each server which is usable from QueryRowData
 	for (serverlist_t::const_iterator iServer = servers.begin();
@@ -1034,16 +1024,12 @@ ECRESULT ECServerStatsTable::Load()
 		UpdateRow(ECKeyTable::TABLE_ROW_ADD, i, 0);
 		++i;
 	}
-
-exit:
-
-	return er;
+	return erSuccess;
 }
 
 
 ECRESULT ECServerStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList* lpRowList, struct propTagArray *lpsPropTagArray, void* lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
 {
-	ECRESULT er = erSuccess;
 	gsoap_size_t i;
 	struct rowSet *lpsRowSet = NULL;
 	ECObjectTableList::const_iterator iterRowList;
@@ -1058,7 +1044,7 @@ ECRESULT ECServerStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
 
 	if (lpRowList->empty()) {
 		*lppRowSet = lpsRowSet;
-		goto exit;
+		return erSuccess;
 	}
 
 	// We return a square array with all the values
@@ -1140,8 +1126,6 @@ ECRESULT ECServerStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
 	}	
 
 	*lppRowSet = lpsRowSet;
-
-exit:
-	return er;
+	return erSuccess;
 }
 

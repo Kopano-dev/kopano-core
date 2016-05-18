@@ -111,19 +111,13 @@ static bool g_bPurgeSoftDeleteStatus = FALSE;
 static ECRESULT CreateEntryId(GUID guidStore, unsigned int ulObjType,
     entryId **lppEntryId)
 {
-	ECRESULT	er = erSuccess;
 	entryId*	lpEntryId = NULL;
 	EID			eid;
 
-	if(lppEntryId == NULL) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	if(CoCreateGuid(&eid.uniqueId) != hrSuccess) {
-		er = KCERR_CALL_FAILED;
-		goto exit;
-	}
+	if (lppEntryId == NULL)
+		return KCERR_INVALID_PARAMETER;
+	if (CoCreateGuid(&eid.uniqueId) != hrSuccess)
+		return KCERR_CALL_FAILED;
 
 	eid.guid = guidStore;
 	eid.usType = ulObjType;
@@ -135,37 +129,29 @@ static ECRESULT CreateEntryId(GUID guidStore, unsigned int ulObjType,
 	memcpy(lpEntryId->__ptr, &eid, lpEntryId->__size);
 
 	*lppEntryId = lpEntryId;
-
-exit:
-
-	return er;
+	return erSuccess;
 }
 
 #ifdef HAVE_OFFLINE_SUPPORT
 ECRESULT GetLocalIdOffline(entryId sUserId, unsigned int ulDefaultId, unsigned int *lpulUserId, objectid_t *lpsExternId)
 {
-	ECRESULT 			er = erSuccess;
+	ECRESULT er;
 	unsigned int		ulUserId = ulDefaultId;
 	objectid_t			sExternId;
 	unsigned int		ulMapiType = 0;
 	objectclass_t		ocType;
 
 	if (lpulUserId == NULL || lpsExternId == NULL)
-	{
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
+		return KCERR_INVALID_PARAMETER;
 
 	// If no entryid is present, use the 'current' user.
-	if (ulDefaultId == 0 && sUserId.__size == 0) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (ulDefaultId == 0 && sUserId.__size == 0)
+		return KCERR_INVALID_PARAMETER;
 
 	// Extract the information from the entryid.
 	er = ABEntryIDToID(&sUserId, &ulUserId, &sExternId, &ulMapiType);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// If an extern id is present, we should get an object based on that.
 	if (!sExternId.id.empty())
@@ -193,7 +179,7 @@ ECRESULT GetLocalIdOffline(entryId sUserId, unsigned int ulDefaultId, unsigned i
 
 				er = MAPITypeToType(ulMapiType, &ocType);
 				if (er != erSuccess)
-					goto exit;
+					return er;
 
 				if (OBJECTCLASS_CLASSTYPE(sExternId.objclass) == OBJECTCLASS_CLASSTYPE(ocType)) {
 					char *lpszRes = NULL;
@@ -210,16 +196,14 @@ ECRESULT GetLocalIdOffline(entryId sUserId, unsigned int ulDefaultId, unsigned i
 			// now update the extern id again, since the ABEntryIDToID returned a guessed objectclass
 			er = g_lpSessionManager->GetCacheManager()->GetUserObject(ulUserId, &sExternId, NULL, NULL);
 			if (er != erSuccess)
-				goto exit;
+				return er;
 		} else
-			goto exit;
+			return er;
 	}
 
 	*lpulUserId = ulUserId;
 	*lpsExternId = sExternId;
-
-exit:
-	return er;
+	return erSuccess;
 }
 #endif
 
@@ -244,16 +228,13 @@ exit:
 static ECRESULT GetLocalId(entryId sUserId, unsigned int ulLegacyUserId,
     unsigned int *lpulUserId, objectid_t *lpsExternId)
 {
-	ECRESULT 		er = erSuccess;
+	ECRESULT er = erSuccess;
 	unsigned int	ulUserId = 0;
 	objectid_t		sExternId;
 	objectdetails_t	sDetails;
 
 	if (lpulUserId == NULL)
-	{
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
+		return KCERR_INVALID_PARAMETER;
 
 	// If no entryid is present, use the 'current' user.
 	if (ulLegacyUserId == 0 && sUserId.__size == 0) {
@@ -266,14 +247,14 @@ static ECRESULT GetLocalId(entryId sUserId, unsigned int ulLegacyUserId,
 			*lpulUserId = 0;
 
 		// TODO: return value in lpulUserId ?
-		goto exit;
+		return er;
 	}
 
 	if (sUserId.__ptr) {
 		// Extract the information from the entryid.
 		er = ABEntryIDToID(&sUserId, &ulUserId, &sExternId, NULL);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 
 		// If an extern id is present, we should get an object based on that.
 		if (!sExternId.id.empty())
@@ -285,14 +266,12 @@ static ECRESULT GetLocalId(entryId sUserId, unsigned int ulLegacyUserId,
 			er = g_lpSessionManager->GetCacheManager()->GetUserObject(ulLegacyUserId, &sExternId, NULL, NULL);
 	}
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	*lpulUserId = ulUserId;
 	if (lpsExternId)
 		*lpsExternId = sExternId;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 /**
@@ -317,21 +296,19 @@ exit:
 static ECRESULT CheckUserStore(ECSession *lpecSession, unsigned ulUserId,
     unsigned ulStoreType, bool *lpbHasLocalStore)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	objectdetails_t	sDetails;
 	bool bPrivateOrPublic;
 
-	if (lpecSession == NULL || lpbHasLocalStore == NULL || !ECSTORE_TYPE_ISVALID(ulStoreType)) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpecSession == NULL || lpbHasLocalStore == NULL || !ECSTORE_TYPE_ISVALID(ulStoreType))
+		return KCERR_INVALID_PARAMETER;
 
 	bPrivateOrPublic = (ulStoreType == ECSTORE_TYPE_PRIVATE || ulStoreType == ECSTORE_TYPE_PUBLIC);
 
 	if (g_lpSessionManager->IsDistributedSupported()) {
         er = lpecSession->GetUserManagement()->GetObjectDetails(ulUserId, &sDetails);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 
 		if (bPrivateOrPublic) {
 			// @todo: Check if there's a define or constant for everyone.
@@ -344,23 +321,18 @@ static ECRESULT CheckUserStore(ECSession *lpecSession, unsigned ulUserId,
 	} else	// Single tennant
 		*lpbHasLocalStore = bPrivateOrPublic;
 
-exit:
-	return er;
+	return erSuccess;
 }
 
 static ECRESULT GetABEntryID(unsigned int ulUserId, soap *lpSoap,
     entryId *lpUserId)
 {
-	ECRESULT			er = erSuccess;
+	ECRESULT er;
 	entryId				sUserId = {0};
 	objectid_t			sExternId;
 
 	if (lpSoap == NULL)
-	{
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}	
-
+		return KCERR_INVALID_PARAMETER;
 	if (ulUserId == KOPANO_UID_SYSTEM) {
 		sExternId.objclass = ACTIVE_USER;
 	} else if (ulUserId == KOPANO_UID_EVERYONE) {
@@ -368,31 +340,25 @@ static ECRESULT GetABEntryID(unsigned int ulUserId, soap *lpSoap,
 	} else {
 		er = g_lpSessionManager->GetCacheManager()->GetUserObject(ulUserId, &sExternId, NULL, NULL);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
 
 	er = ABIDToEntryID(lpSoap, ulUserId, sExternId, &sUserId);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	*lpUserId = sUserId;	// pointer (__ptr) is copied, not data
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 static ECRESULT PeerIsServer(struct soap *soap,
     const std::string &strServerName, const std::string &strHttpPath,
     const std::string &strSslPath, bool *lpbResult)
 {
-	ECRESULT		er = erSuccess;
 	bool			bResult = false;
 
 	if (soap == NULL || lpbResult == NULL)
-	{
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
+		return KCERR_INVALID_PARAMETER;
 
 	// First check if we're connecting through unix-socket/named-pipe and if the request url matches this server
 	if (SOAP_CONNECTION_TYPE_NAMED_PIPE(soap) &&
@@ -414,27 +380,21 @@ static ECRESULT PeerIsServer(struct soap *soap,
 			struct addrinfo *lpsAddrIter = NULL;
 			
 			ulHostStart = lpstrPath->find("://");
-			if (ulHostStart == std::string::npos) {
-				er = KCERR_INVALID_PARAMETER;
-				goto exit;
-			}
+			if (ulHostStart == std::string::npos)
+				return KCERR_INVALID_PARAMETER;
 			ulHostStart += 3;	// Skip the '://'
 
 			ulHostEnd = lpstrPath->find(':', ulHostStart);
-			if (ulHostEnd == std::string::npos) {
-				er = KCERR_INVALID_PARAMETER;
-				goto exit;
-			}
+			if (ulHostEnd == std::string::npos)
+				return KCERR_INVALID_PARAMETER;
 
 			strHost = lpstrPath->substr(ulHostStart, ulHostEnd - ulHostStart);
 
 			sHint.ai_family = AF_UNSPEC;
 			sHint.ai_socktype = SOCK_STREAM;
 
-			if (getaddrinfo(strHost.c_str(), NULL, &sHint, &lpsAddrInfo) != 0) {
-				er = KCERR_NOT_FOUND;
-				goto exit;
-			}
+			if (getaddrinfo(strHost.c_str(), NULL, &sHint, &lpsAddrInfo) != 0)
+				return KCERR_NOT_FOUND;
 
 			lpsAddrIter = lpsAddrInfo;
 			while (lpsAddrIter && bResult == false) {
@@ -467,9 +427,7 @@ static ECRESULT PeerIsServer(struct soap *soap,
 	}
 
 	*lpbResult = bResult;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 /**
@@ -494,7 +452,7 @@ exit:
  */
 ECRESULT GetBestServerPath(struct soap *soap, ECSession *lpecSession, const std::string &strServerName, std::string *lpstrServerPath)
 {
-	ECRESULT	er = erSuccess;
+	ECRESULT er;
 	std::string	strServerPath;
 	bool		bConnectPipe = false;
 	SOAPINFO	*lpInfo = NULL;
@@ -507,16 +465,13 @@ ECRESULT GetBestServerPath(struct soap *soap, ECSession *lpecSession, const std:
 	const char *szProxyHeader = lpecSession->GetSessionManager()->GetConfig()->GetSetting("proxy_header");
 
 	if (soap == NULL || soap->user == NULL || lpstrServerPath == NULL)
-	{
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
+		return KCERR_INVALID_PARAMETER;
 	
 	lpInfo = (SOAPINFO *)soap->user;
 
 	er = lpecSession->GetUserManagement()->GetServerDetails(strServerName, &sServerDetails);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
     strProxyPath = sServerDetails.GetProxyPath();
 	strFilePath = sServerDetails.GetFilePath();
@@ -527,7 +482,7 @@ ECRESULT GetBestServerPath(struct soap *soap, ECSession *lpecSession, const std:
     if (!strcmp(szProxyHeader, "*") || lpInfo->bProxy) {
         if(!strProxyPath.empty()) {
             *lpstrServerPath = strProxyPath;
-            goto exit;
+			return erSuccess;
         } else {
             ec_log_warn("Proxy path not set for server \"%s\"! falling back to direct address.", strServerName.c_str());
         }
@@ -537,7 +492,7 @@ ECRESULT GetBestServerPath(struct soap *soap, ECSession *lpecSession, const std:
 	{
 		er = PeerIsServer(soap, strServerName, strHttpPath, strSslPath, &bConnectPipe);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	} else {
 		// TODO: check if same server, and set strFilePath 'cause it's known
 
@@ -571,15 +526,9 @@ ECRESULT GetBestServerPath(struct soap *soap, ECSession *lpecSession, const std:
 		}
 
 	if (strServerPath.empty())
-	{
-		er = KCERR_NOT_FOUND;
-		goto exit;
-	}
-
+		return KCERR_NOT_FOUND;
 	*lpstrServerPath = strServerPath;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 
@@ -2529,7 +2478,7 @@ static ECRESULT DeleteProps(ECSession *lpecSession, ECDatabase *lpDatabase,
     ULONG ulObjId, struct propTagArray *lpsPropTags,
     ECAttachmentStorage *at_storage)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	std::string		strQuery;
 	sObjectTableKey key;
 	struct propVal  sPropVal;
@@ -2549,7 +2498,7 @@ static ECRESULT DeleteProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 
 		er = lpDatabase->DoDelete(strQuery);
 		if(er != erSuccess)
-			goto exit;
+			return er;
 			
 		// Remove from tproperties
 		if((lpsPropTags->__ptr[i]&MV_FLAG) == 0) {
@@ -2557,7 +2506,7 @@ static ECRESULT DeleteProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 
 			er = lpDatabase->DoDelete(strQuery);
 			if(er != erSuccess)
-				goto exit;
+				return er;
 		}			
 
 		// Remove eml attachment
@@ -2576,10 +2525,7 @@ static ECRESULT DeleteProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 
 		g_lpSessionManager->GetCacheManager()->SetCell(&key, lpsPropTags->__ptr[i], &sPropVal);
 	}
-
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 static unsigned int SaveObject(struct soap *soap, ECSession *lpecSession,
@@ -3791,7 +3737,7 @@ static ECRESULT OpenTable(ECSession *lpecSession, entryId sEntryId,
     unsigned int ulTableType, unsigned int ulType, unsigned int ulFlags,
     unsigned int *lpulTableId)
 {
-    ECRESULT er = erSuccess;
+	ECRESULT er;
 	objectid_t	sExternId;
 	unsigned int	ulTableId = 0;
 	unsigned int	ulId = 0;
@@ -3807,17 +3753,15 @@ static ECRESULT OpenTable(ECSession *lpecSession, entryId sEntryId,
 
 			er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulId);
 			if(er != erSuccess)
-				goto exit;
-
+				return er;
 			er = lpecSession->GetTableManager()->OpenGenericTable(ulId, ulType, ulFlags, &ulTableId);
 			if( er != erSuccess)
-				goto exit;
-
+				return er;
 			break;
 		case TABLETYPE_AB:
 			er = ABEntryIDToID(&sEntryId, &ulId, &sExternId, &ulTypeId);
 			if(er != erSuccess)
-				goto exit;
+				return er;
 
 			// If an extern id is present, we should get an object based on that.
 			if (!sExternId.id.empty())
@@ -3825,32 +3769,30 @@ static ECRESULT OpenTable(ECSession *lpecSession, entryId sEntryId,
 				
 			er = lpecSession->GetTableManager()->OpenABTable(ulId, ulTypeId, ulType, ulFlags, &ulTableId);
 			if( er != erSuccess)
-				goto exit;
-
+				return er;
 			break;
 		case TABLETYPE_SPOOLER:
 			// sEntryId must be a store entryid or zero for all stores
 			if(sEntryId.__size > 0 ) {
 				er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulId);
 				if(er != erSuccess)
-					goto exit;
+					return er;
 			}else
 				ulId = 0; //All stores
 
 			er = lpecSession->GetTableManager()->OpenOutgoingQueueTable(ulId, &ulTableId);
 			if( er != erSuccess)
-				goto exit;
-
+				return er;
 			break;
 		case TABLETYPE_MULTISTORE:
 			er = lpecSession->GetTableManager()->OpenMultiStoreTable(ulType, ulFlags, &ulTableId);
 			if( er != erSuccess)
-				goto exit;
+				return er;
 			break;
 		case TABLETYPE_USERSTORES:
 			er = lpecSession->GetTableManager()->OpenUserStoresTable(ulFlags, &ulTableId);
 			if( er != erSuccess)
-				goto exit;
+				return er;
 			break;
 		case TABLETYPE_STATS_SYSTEM:
 		case TABLETYPE_STATS_SESSIONS:
@@ -3859,22 +3801,20 @@ static ECRESULT OpenTable(ECSession *lpecSession, entryId sEntryId,
 		case TABLETYPE_STATS_SERVERS:
 			er = lpecSession->GetTableManager()->OpenStatsTable(ulTableType, ulFlags, &ulTableId);
 			if (er != erSuccess)
-				goto exit;
+				return er;
 			break;
 		case TABLETYPE_MAILBOX:
 			er = lpecSession->GetTableManager()->OpenMailBoxTable(ulFlags, &ulTableId);
 			if (er != erSuccess)
-				goto exit;
+				return er;
 			break;
 		default:
-			er = KCERR_BAD_VALUE;
-			goto exit;
+			return KCERR_BAD_VALUE;
 			break; //Happy compiler
 	} // switch (ulTableType)
 
 	*lpulTableId = ulTableId;
-exit:
-	return er;
+	return erSuccess;
 }
 
 SOAP_ENTRY_START(tableOpen, lpsTableOpenResponse->er, entryId sEntryId, unsigned int ulTableType, unsigned ulType, unsigned int ulFlags, struct tableOpenResponse *lpsTableOpenResponse)

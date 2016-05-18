@@ -55,17 +55,14 @@ ECRESULT ECUserStoreTable::Create(ECSession *lpSession, unsigned int ulFlags, co
 
 ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList* lpRowList, struct propTagArray *lpsPropTagArray, void* lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
 {
-	ECRESULT er = erSuccess;
 	ECUserStoreTable *pThis = dynamic_cast<ECUserStoreTable*>(lpThis);
 	struct rowSet *lpsRowSet = NULL;
 	ECObjectTableList::const_iterator iterRowList;
 	gsoap_size_t i;
 	GUID sZeroGuid = {0};
 
-	if (!lpThis) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpThis == NULL)
+		return KCERR_INVALID_PARAMETER;
 
 	lpsRowSet = s_alloc<rowSet>(soap);
 	lpsRowSet->__size = 0;
@@ -73,7 +70,7 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis, struct soa
 
 	if(lpRowList->empty()) {
 		*lppRowSet = lpsRowSet;
-		goto exit; // success
+		return erSuccess;
 	}
 
 	// We return a square array with all the values
@@ -188,9 +185,7 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis, struct soa
 	}
 
 	*lppRowSet = lpsRowSet;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECUserStoreTable::Load() {

@@ -38,7 +38,7 @@ ECRESULT TestPerform(struct soap *soap, ECSession *lpSession, char *szCommand, u
 
 			er = lpSession->GetDatabase(&lpDatabase);
             if(er != erSuccess)
-				goto exit;
+				return er;
 			
             er = ECTPropsPurge::GetLargestFolderId(lpDatabase, &ulFolderId);
             if(er != erSuccess) {
@@ -48,7 +48,7 @@ ECRESULT TestPerform(struct soap *soap, ECSession *lpSession, char *szCommand, u
             
             er = ECTPropsPurge::PurgeDeferredTableUpdates(lpDatabase, ulFolderId);
             if(er != erSuccess)
-                goto exit;
+                return er;
         }
             
     } else if (stricmp(szCommand, "indexer_syncrun") == 0) {
@@ -69,8 +69,6 @@ ECRESULT TestPerform(struct soap *soap, ECSession *lpSession, char *szCommand, u
         if(ulArgs == 1 && args[0])
             Sleep(atoui(args[0]) * 1000);
     }
-    
-exit:
     return er;
 }
 

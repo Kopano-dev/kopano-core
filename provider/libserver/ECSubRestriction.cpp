@@ -38,7 +38,7 @@ static ECRESULT GetSubRestrictionRecursive(struct restrictTable *lpRestrict,
     unsigned int *lpulCount, unsigned int ulSubRestriction,
     struct restrictSub **lppSubRestrict, unsigned int maxdepth)
 {
-    ECRESULT er = erSuccess;
+    ECRESULT er;
     unsigned int ulCount = 0;
     
     if(maxdepth == 0)
@@ -53,14 +53,14 @@ static ECRESULT GetSubRestrictionRecursive(struct restrictTable *lpRestrict,
             for (gsoap_size_t i = 0; i < lpRestrict->lpAnd->__size; ++i) {
                 er = GetSubRestrictionRecursive(lpRestrict->lpAnd->__ptr[i], lpulCount, ulSubRestriction, lppSubRestrict, maxdepth-1);
                 if(er != erSuccess)
-                    goto exit;
+                    return er;
             }        
             break;
         case RES_OR:
             for (gsoap_size_t i = 0; i < lpRestrict->lpOr->__size; ++i) {
                 er = GetSubRestrictionRecursive(lpRestrict->lpOr->__ptr[i], lpulCount, ulSubRestriction, lppSubRestrict, maxdepth-1);
                 if(er != erSuccess)
-                    goto exit;
+                    return er;
             }        
             break;        
         case RES_NOT:
@@ -88,34 +88,24 @@ static ECRESULT GetSubRestrictionRecursive(struct restrictTable *lpRestrict,
             break;
         
     }
-    
-exit:
-    return er;
+	return erSuccess;
 }
 
 ECRESULT GetSubRestrictionCount(struct restrictTable *lpRestrict, unsigned int *lpulCount)
 {
-    ECRESULT er = erSuccess;
-    
 	// Recursively get the amount of subqueries in the given restriction
-	er = GetSubRestrictionRecursive(lpRestrict, lpulCount, 0, NULL, SUBRESTRICTION_MAXDEPTH);
-
-	return er;
+	return GetSubRestrictionRecursive(lpRestrict, lpulCount, 0, NULL, SUBRESTRICTION_MAXDEPTH);
 }
 
 ECRESULT GetSubRestriction(struct restrictTable *lpBase, unsigned int ulCount, struct restrictSub **lppSubRestrict)
 {
-    ECRESULT er = erSuccess;
-    
-    er = GetSubRestrictionRecursive(lpBase, NULL, ulCount, lppSubRestrict, SUBRESTRICTION_MAXDEPTH);
-    
-    return er;
+	return GetSubRestrictionRecursive(lpBase, NULL, ulCount, lppSubRestrict, SUBRESTRICTION_MAXDEPTH);
 }
 
 // Get results for all subqueries for a set of objects (should be freed with FreeSubRestrictionResults() )
 ECRESULT RunSubRestrictions(ECSession *lpSession, void *lpECODStore, struct restrictTable *lpRestrict, ECObjectTableList *lpObjects, const ECLocale &locale, SUBRESTRICTIONRESULTS **lppResults)
 {
-    ECRESULT er = erSuccess;
+	ECRESULT er;
     unsigned int i = 0;
     unsigned int ulCount = 0;
     SUBRESTRICTIONRESULTS *lpResults = NULL;
@@ -124,26 +114,23 @@ ECRESULT RunSubRestrictions(ECSession *lpSession, void *lpECODStore, struct rest
     
     er = GetSubRestrictionCount(lpRestrict, &ulCount);
     if(er != erSuccess)
-        goto exit;
+		return er;
     
     lpResults = new SUBRESTRICTIONRESULTS;
     
     for (i = 0; i < ulCount; ++i) {
         er = GetSubRestriction(lpRestrict, i, &lpSubRestrict);
         if(er != erSuccess)
-            goto exit;
-            
+			return er;
         er = RunSubRestriction(lpSession, lpECODStore, lpSubRestrict, lpObjects, locale, &lpResult);
         if(er != erSuccess)
-            goto exit;
+			return er;
             
         lpResults->push_back(lpResult);
     }
     
-    *lppResults = lpResults;
-    
-exit:
-    return er;
+	*lppResults = lpResults;
+	return erSuccess;
 }
 
 // Run a single subquery on a set of objects

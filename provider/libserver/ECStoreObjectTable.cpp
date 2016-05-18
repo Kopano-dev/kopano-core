@@ -1201,35 +1201,29 @@ ECRESULT ECStoreObjectTable::CheckPermissions(unsigned int ulObjId)
             // Get the parent id of the row we're inserting (this is very probably cached from Load())
             er = lpSession->GetSessionManager()->GetCacheManager()->GetParent(ulObjId, &ulParent);
             if(er != erSuccess)
-                goto exit;
+			return er;
             
             // This will be cached after the first row in the table is added
             er = lpSession->GetSecurity()->CheckPermission(ulParent, ecSecurityRead);
             if(er != erSuccess)
-                goto exit;
+			return er;
         }
     } else if(m_ulObjType == MAPI_FOLDER) {
 	    // Check the folder type for searchfolders
 		er = lpSession->GetSessionManager()->GetCacheManager()->GetObject(ulObjId, NULL, NULL, &ulFolderFlags, NULL);
 		if(er != erSuccess)
-		    goto exit;
+			return er;
 		
-		if(ulFolderFlags == FOLDER_SEARCH) {
+		if(ulFolderFlags == FOLDER_SEARCH)
 		    // Searchfolders are only visible in the home store
-		    if(lpSession->GetSecurity()->IsAdminOverOwnerOfObject(ulObjId) != erSuccess && lpSession->GetSecurity()->IsStoreOwner(ulObjId) != erSuccess) {
-				er = KCERR_NO_ACCESS;
-		        goto exit;
-            }
-		}
+		    if(lpSession->GetSecurity()->IsAdminOverOwnerOfObject(ulObjId) != erSuccess && lpSession->GetSecurity()->IsStoreOwner(ulObjId) != erSuccess)
+				return KCERR_NO_ACCESS;
 
         er = lpSession->GetSecurity()->CheckPermission(ulObjId, ecSecurityFolderVisible);
         if(er != erSuccess)
-            goto exit;
+			return er;
     }
-            
-exit:
     return er;
-
 }
 
 ECRESULT ECStoreObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int *lpulLoaded, unsigned int ulFlags, bool bLoad, bool bOverride, struct restrictTable *lpOverride)
