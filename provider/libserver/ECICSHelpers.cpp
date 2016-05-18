@@ -742,7 +742,7 @@ ECGetContentChangesHelper::~ECGetContentChangesHelper()
 	
 ECRESULT ECGetContentChangesHelper::QueryDatabase(DB_RESULT *lppDBResult)
 {
-	ECRESULT		er = erSuccess;
+	ECRESULT er;
 	DB_RESULT		lpDBResult = NULL;
 	std::string		strQuery;
 	unsigned int	ulChanges = 0;
@@ -754,7 +754,7 @@ ECRESULT ECGetContentChangesHelper::QueryDatabase(DB_RESULT *lppDBResult)
 		ASSERT(m_lpDatabase);
 		er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	} else {
 		lpDBResult = NULL;
 		ulChanges = 0;
@@ -771,9 +771,7 @@ ECRESULT ECGetContentChangesHelper::QueryDatabase(DB_RESULT *lppDBResult)
 	
 	ASSERT(lppDBResult);
 	*lppDBResult = lpDBResult;
-	
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECGetContentChangesHelper::ProcessRows(const std::vector<DB_ROW> &db_rows, const std::vector<DB_LENGTHS> &db_lengths)
@@ -842,14 +840,14 @@ exit:
 
 ECRESULT ECGetContentChangesHelper::ProcessResidualMessages()
 {
-	ECRESULT				er = erSuccess;
+	ECRESULT er;
 	MESSAGESET				setResiduals;
 	MESSAGESET::const_iterator iterMessage;
 
 	ASSERT(m_lpMsgProcessor);
 	er = m_lpMsgProcessor->GetResidualMessages(&setResiduals);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 	
 	for (iterMessage = setResiduals.begin(); iterMessage != setResiduals.end(); ++iterMessage) {
 		if (iterMessage->first.size() == 1 && memcmp(iterMessage->first, "\0", 1) == 0)
@@ -870,9 +868,7 @@ ECRESULT ECGetContentChangesHelper::ProcessResidualMessages()
 		m_lpChanges->__ptr[m_ulChangeCnt].ulFlags = 0;
 		++m_ulChangeCnt;
 	}	
-	
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsChangesArray **lppChanges)

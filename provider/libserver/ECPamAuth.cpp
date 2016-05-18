@@ -36,7 +36,6 @@ public:
 static int converse(int num_msg, const struct pam_message **msg,
     struct pam_response **resp, void *appdata_ptr)
 {
-	int ret = PAM_SUCCESS;
 	int i = 0;
 	struct pam_response *response = NULL;
 	char *password = (char *) appdata_ptr;
@@ -56,15 +55,12 @@ static int converse(int num_msg, const struct pam_message **msg,
 			response[i].resp = strdup(password);
 		} else {
 			free(response);
-			ret = PAM_CONV_ERR;
-			goto exit;
+			return PAM_CONV_ERR;
 		}
 	}
 
 	*resp = response;
-
-exit:
-	return ret;
+	return PAM_SUCCESS;
 }
 
 ECRESULT ECPAMAuthenticateUser(const char* szPamService, const std::string &strUsername, const std::string &strPassword, std::string *lpstrError)

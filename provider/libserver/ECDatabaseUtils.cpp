@@ -88,47 +88,36 @@ ci_find_substr(const std::string &first, const std::string &second)
 
 ECRESULT CopySOAPPropValToDatabasePropVal(struct propVal *lpPropVal, unsigned int *lpulColNr, std::string &strColData, ECDatabase *lpDatabase, bool bTruncate)
 {
-	ECRESULT er = erSuccess;
 	ULONG type = PROP_TYPE(lpPropVal->ulPropTag);
 
 	switch(type) {
 	case PT_I2:
-		if(lpPropVal->__union != SOAP_UNION_propValData_i) {
-			er = KCERR_INVALID_PARAMETER;
-			goto exit;
-		}
+		if (lpPropVal->__union != SOAP_UNION_propValData_i)
+			return KCERR_INVALID_PARAMETER;
 		strColData = stringify(lpPropVal->Value.i);
 		*lpulColNr = VALUE_NR_ULONG;
 		break;
 	case PT_LONG:
-		if(lpPropVal->__union != SOAP_UNION_propValData_ul) {
-			er = KCERR_INVALID_PARAMETER;
-			goto exit;
-		}
+		if (lpPropVal->__union != SOAP_UNION_propValData_ul)
+			return KCERR_INVALID_PARAMETER;
 		strColData = stringify(lpPropVal->Value.ul);
 		*lpulColNr = VALUE_NR_ULONG;
 		break;
 	case PT_R4:
-		if(lpPropVal->__union != SOAP_UNION_propValData_flt) {
-			er = KCERR_INVALID_PARAMETER;
-			goto exit;
-		}
+		if (lpPropVal->__union != SOAP_UNION_propValData_flt)
+			return KCERR_INVALID_PARAMETER;
 		strColData = stringify_float(lpPropVal->Value.flt);
 		*lpulColNr = VALUE_NR_DOUBLE;
 		break;
 	case PT_BOOLEAN:
-		if(lpPropVal->__union != SOAP_UNION_propValData_b) {
-			er = KCERR_INVALID_PARAMETER;
-			goto exit;
-		}
+		if (lpPropVal->__union != SOAP_UNION_propValData_b)
+			return KCERR_INVALID_PARAMETER;
 		strColData = stringify(lpPropVal->Value.b);
 		*lpulColNr = VALUE_NR_ULONG;
 		break;
 	case PT_DOUBLE:
-		if(lpPropVal->__union != SOAP_UNION_propValData_dbl) {
-			er = KCERR_INVALID_PARAMETER;
-			goto exit;
-		}
+		if (lpPropVal->__union != SOAP_UNION_propValData_dbl)
+			return KCERR_INVALID_PARAMETER;
 		strColData = stringify_double(lpPropVal->Value.dbl);
 		*lpulColNr = VALUE_NR_DOUBLE;
 		if (ci_find_substr(strColData, std::string("nan")) != std::string::npos) {
@@ -137,44 +126,37 @@ ECRESULT CopySOAPPropValToDatabasePropVal(struct propVal *lpPropVal, unsigned in
 		}
 	break;
 	case PT_CURRENCY:
-		if(lpPropVal->__union != SOAP_UNION_propValData_hilo || lpPropVal->Value.hilo == NULL) {
-			er = KCERR_INVALID_PARAMETER;
-			goto exit;
-		}
+		if (lpPropVal->__union != SOAP_UNION_propValData_hilo ||
+		    lpPropVal->Value.hilo == NULL)
+			return KCERR_INVALID_PARAMETER;
 		strColData = stringify(lpPropVal->Value.hilo->hi,false,true) + "," + stringify(lpPropVal->Value.hilo->lo);
 		*lpulColNr = VALUE_NR_HILO;
 		break;
 	case PT_APPTIME:
-		if(lpPropVal->__union != SOAP_UNION_propValData_dbl) {
-			er = KCERR_INVALID_PARAMETER;
-			goto exit;
-		}
+		if (lpPropVal->__union != SOAP_UNION_propValData_dbl)
+			return KCERR_INVALID_PARAMETER;
 		strColData = stringify_double(lpPropVal->Value.dbl);
 		*lpulColNr = VALUE_NR_DOUBLE;
 		break;
 	case PT_SYSTIME:
-		if(lpPropVal->__union != SOAP_UNION_propValData_hilo || lpPropVal->Value.hilo == NULL) {
-			er = KCERR_INVALID_PARAMETER;
-			goto exit;
-		}
+		if (lpPropVal->__union != SOAP_UNION_propValData_hilo ||
+		    lpPropVal->Value.hilo == NULL)
+			return KCERR_INVALID_PARAMETER;
 		strColData = stringify(lpPropVal->Value.hilo->hi,false,true) + "," + stringify(lpPropVal->Value.hilo->lo);
 		*lpulColNr = VALUE_NR_HILO;
 		break;
 	case PT_I8:
-		if(lpPropVal->__union != SOAP_UNION_propValData_li) {
-			er = KCERR_INVALID_PARAMETER;
-			goto exit;
-		}
+		if (lpPropVal->__union != SOAP_UNION_propValData_li)
+			return KCERR_INVALID_PARAMETER;
 		strColData = stringify_int64(int64_t(lpPropVal->Value.li));
 		*lpulColNr = VALUE_NR_LONGINT;
 		break;
 	case PT_UNICODE:
 	case PT_STRING8: {
 		std::string strData;
-		if(lpPropVal->__union != SOAP_UNION_propValData_lpszA || lpPropVal->Value.lpszA == NULL) {
-			er = KCERR_INVALID_PARAMETER;
-			goto exit;
-		}
+		if (lpPropVal->__union != SOAP_UNION_propValData_lpszA ||
+		    lpPropVal->Value.lpszA == NULL)
+			return KCERR_INVALID_PARAMETER;
 		if(bTruncate) {
 			u8_ncpy(lpPropVal->Value.lpszA, TABLE_CAP_STRING, &strData);
 		} else {
@@ -187,10 +169,10 @@ ECRESULT CopySOAPPropValToDatabasePropVal(struct propVal *lpPropVal, unsigned in
 	}
 	case PT_BINARY: {
 		unsigned int ulSize;
-		if(lpPropVal->__union != SOAP_UNION_propValData_bin || lpPropVal->Value.bin == NULL || lpPropVal->Value.bin->__ptr == NULL) {
-			er = KCERR_INVALID_PARAMETER;
-			goto exit;
-		}
+		if (lpPropVal->__union != SOAP_UNION_propValData_bin ||
+		    lpPropVal->Value.bin == NULL ||
+		    lpPropVal->Value.bin->__ptr == NULL)
+			return KCERR_INVALID_PARAMETER;
 
 		if(bTruncate && lpPropVal->Value.bin->__size > TABLE_CAP_BINARY) {
 			ulSize = TABLE_CAP_BINARY;
@@ -203,19 +185,17 @@ ECRESULT CopySOAPPropValToDatabasePropVal(struct propVal *lpPropVal, unsigned in
 		break;
 	}
 	case PT_CLSID:
-		if(lpPropVal->__union != SOAP_UNION_propValData_bin || lpPropVal->Value.bin == NULL || lpPropVal->Value.bin->__ptr == NULL) {
-			er = KCERR_INVALID_PARAMETER;
-			goto exit;
-		}
+		if (lpPropVal->__union != SOAP_UNION_propValData_bin ||
+		    lpPropVal->Value.bin == NULL ||
+		    lpPropVal->Value.bin->__ptr == NULL)
+			return KCERR_INVALID_PARAMETER;
 		strColData = lpDatabase->EscapeBinary(lpPropVal->Value.bin->__ptr, lpPropVal->Value.bin->__size);
 		*lpulColNr = VALUE_NR_BINARY;
 		break;
 	default:
-		er = KCERR_INVALID_TYPE;
+		return KCERR_INVALID_TYPE;
 	}
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 gsoap_size_t GetMVItemCount(struct propVal *lpPropVal)
@@ -301,105 +281,91 @@ gsoap_size_t GetMVItemCount(struct propVal *lpPropVal)
 
 ECRESULT CopySOAPPropValToDatabaseMVPropVal(struct propVal *lpPropVal, int nItem, std::string &strColName, std::string &strColData, ECDatabase *lpDatabase)
 {
-	ECRESULT er = erSuccess;
 	ULONG type = PROP_TYPE(lpPropVal->ulPropTag);
 
 	switch(type) {
 	case PT_MV_I2:
-		if (lpPropVal->__union != SOAP_UNION_propValData_mvi || lpPropVal->Value.mvi.__ptr == NULL) {
-			er = KCERR_INVALID_PARAMETER;
-			goto exit;
-		}
+		if (lpPropVal->__union != SOAP_UNION_propValData_mvi ||
+		    lpPropVal->Value.mvi.__ptr == NULL)
+			return KCERR_INVALID_PARAMETER;
 		strColData = stringify(lpPropVal->Value.mvi.__ptr[nItem]);
 		strColName = PROPCOL_ULONG;
 		break;
 	case PT_MV_LONG:
-		if (lpPropVal->__union != SOAP_UNION_propValData_mvl || lpPropVal->Value.mvl.__ptr == NULL) {
-			er = KCERR_INVALID_PARAMETER;
-			goto exit;
-		}
+		if (lpPropVal->__union != SOAP_UNION_propValData_mvl ||
+		    lpPropVal->Value.mvl.__ptr == NULL)
+			return KCERR_INVALID_PARAMETER;
 		strColData = stringify(lpPropVal->Value.mvl.__ptr[nItem]);
 		strColName = PROPCOL_ULONG;
 		break;
 	case PT_MV_R4:
-		if (lpPropVal->__union != SOAP_UNION_propValData_mvflt || lpPropVal->Value.mvflt.__ptr == NULL) {
-			er = KCERR_INVALID_PARAMETER;
-			goto exit;
-		}
+		if (lpPropVal->__union != SOAP_UNION_propValData_mvflt ||
+		    lpPropVal->Value.mvflt.__ptr == NULL)
+			return KCERR_INVALID_PARAMETER;
 		strColData = stringify_float(lpPropVal->Value.mvflt.__ptr[nItem]);
 		strColName = PROPCOL_DOUBLE;
 		break;
 	case PT_MV_DOUBLE:
-		if (lpPropVal->__union != SOAP_UNION_propValData_mvdbl || lpPropVal->Value.mvdbl.__ptr == NULL) {
-			er = KCERR_INVALID_PARAMETER;
-			goto exit;
-		}
+		if (lpPropVal->__union != SOAP_UNION_propValData_mvdbl ||
+		    lpPropVal->Value.mvdbl.__ptr == NULL)
+			return KCERR_INVALID_PARAMETER;
 		strColData = stringify_double(lpPropVal->Value.mvdbl.__ptr[nItem]);
 		strColName = PROPCOL_DOUBLE;
 		break;
 	case PT_MV_CURRENCY:
-		if (lpPropVal->__union != SOAP_UNION_propValData_mvhilo || lpPropVal->Value.mvhilo.__ptr == NULL) {
-			er = KCERR_INVALID_PARAMETER;
-			goto exit;
-		}
+		if (lpPropVal->__union != SOAP_UNION_propValData_mvhilo ||
+		    lpPropVal->Value.mvhilo.__ptr == NULL)
+			return KCERR_INVALID_PARAMETER;
 		strColData = stringify(lpPropVal->Value.mvhilo.__ptr[nItem].hi,false,true) + "," + stringify(lpPropVal->Value.mvhilo.__ptr[nItem].lo);
 		strColName = PROPCOL_HILO;
 		break;
 	case PT_MV_APPTIME:
-		if (lpPropVal->__union != SOAP_UNION_propValData_mvdbl || lpPropVal->Value.mvdbl.__ptr == NULL) {
-			er = KCERR_INVALID_PARAMETER;
-			goto exit;
-		}
+		if (lpPropVal->__union != SOAP_UNION_propValData_mvdbl ||
+		    lpPropVal->Value.mvdbl.__ptr == NULL)
+			return KCERR_INVALID_PARAMETER;
 		strColData = stringify_double(lpPropVal->Value.mvdbl.__ptr[nItem]);
 		strColName = PROPCOL_DOUBLE;
 		break;
 	case PT_MV_SYSTIME:
-		if (lpPropVal->__union != SOAP_UNION_propValData_mvhilo || lpPropVal->Value.mvhilo.__ptr == NULL) {
-			er = KCERR_INVALID_PARAMETER;
-			goto exit;
-		}
+		if (lpPropVal->__union != SOAP_UNION_propValData_mvhilo ||
+		    lpPropVal->Value.mvhilo.__ptr == NULL)
+			return KCERR_INVALID_PARAMETER;
 		strColData = stringify(lpPropVal->Value.mvhilo.__ptr[nItem].hi,false,true) + "," + stringify(lpPropVal->Value.mvhilo.__ptr[nItem].lo);
 		strColName = PROPCOL_HILO;
 		break;
 	case PT_MV_BINARY:
-		if (lpPropVal->__union != SOAP_UNION_propValData_mvbin || lpPropVal->Value.mvbin.__ptr == NULL) {
-			er = KCERR_INVALID_PARAMETER;
-			goto exit;
-		}
+		if (lpPropVal->__union != SOAP_UNION_propValData_mvbin ||
+		    lpPropVal->Value.mvbin.__ptr == NULL)
+			return KCERR_INVALID_PARAMETER;
 		strColData = lpDatabase->EscapeBinary(lpPropVal->Value.mvbin.__ptr[nItem].__ptr, lpPropVal->Value.mvbin.__ptr[nItem].__size);
 		strColName = PROPCOL_BINARY;
 		break;
 	case PT_MV_STRING8:
 	case PT_MV_UNICODE:
-		if (lpPropVal->__union != SOAP_UNION_propValData_mvszA || lpPropVal->Value.mvszA.__ptr == NULL) {
-			er = KCERR_INVALID_PARAMETER;
-			goto exit;
-		}
+		if (lpPropVal->__union != SOAP_UNION_propValData_mvszA ||
+		    lpPropVal->Value.mvszA.__ptr == NULL)
+			return KCERR_INVALID_PARAMETER;
 		strColData = "'" + lpDatabase->Escape(lpDatabase->FilterBMP(lpPropVal->Value.mvszA.__ptr[nItem])) + "'";
 		strColName = PROPCOL_STRING;
 		break;
 	case PT_MV_CLSID:
-		if (lpPropVal->__union != SOAP_UNION_propValData_mvbin || lpPropVal->Value.mvbin.__ptr == NULL) {
-			er = KCERR_INVALID_PARAMETER;
-			goto exit;
-		}
+		if (lpPropVal->__union != SOAP_UNION_propValData_mvbin ||
+		    lpPropVal->Value.mvbin.__ptr == NULL)
+			return KCERR_INVALID_PARAMETER;
 		strColData = lpDatabase->EscapeBinary(lpPropVal->Value.mvbin.__ptr[nItem].__ptr, lpPropVal->Value.mvbin.__ptr[nItem].__size);
 		strColName = PROPCOL_BINARY;
 		break;
 	case PT_MV_I8:
-		if (lpPropVal->__union != SOAP_UNION_propValData_mvli || lpPropVal->Value.mvli.__ptr == NULL) {
-			er = KCERR_INVALID_PARAMETER;
-			goto exit;
-		}
+		if (lpPropVal->__union != SOAP_UNION_propValData_mvli ||
+		    lpPropVal->Value.mvli.__ptr == NULL)
+			return KCERR_INVALID_PARAMETER;
 		strColData = stringify_int64(lpPropVal->Value.mvli.__ptr[nItem]);
 		strColName = PROPCOL_LONGINT;
 		break;
 	default:
-		er = KCERR_INVALID_TYPE;
+		return KCERR_INVALID_TYPE;
 	}
-
-exit:
-	return er;
+	return erSuccess;
 }
 // by table 
 
@@ -426,8 +392,6 @@ ECRESULT ParseMVPropCount(const char *lpRowData, ULONG ulSize,
 ECRESULT ParseMVProp(const char *lpRowData, ULONG ulSize,
     unsigned int *lpulLastPos, std::string *lpstrData)
 {
-	ECRESULT er = erSuccess;
-
 	ULONG	ulPos = *lpulLastPos;
 	ULONG   ulLen = 0;
 	char	*lpEnd = NULL;
@@ -435,28 +399,18 @@ ECRESULT ParseMVProp(const char *lpRowData, ULONG ulSize,
 
 	ASSERT(ulPos < ulSize);
 
-	if (ulPos >= ulSize) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (ulPos >= ulSize)
+		return KCERR_INVALID_PARAMETER;
 	ulLen = strtoul(lpRowData + ulPos, &lpEnd, 10);
-	if (lpEnd == lpRowData + ulPos || lpEnd == NULL || *lpEnd != ':') {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	if (lpRowData + ulSize < lpEnd + 1 + ulLen) {
+	if (lpEnd == lpRowData + ulPos || lpEnd == NULL || *lpEnd != ':')
+		return KCERR_INVALID_PARAMETER;
+	if (lpRowData + ulSize < lpEnd + 1 + ulLen)
 		// not enough data from mysql
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
+		return KCERR_INVALID_PARAMETER;
 
 	lpstrData->assign(lpEnd + 1, ulLen);
 	*lpulLastPos = (lpEnd - lpRowData) + 1 + ulLen;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 ULONG GetColOffset(unsigned int ulPropTag)

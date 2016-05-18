@@ -1113,23 +1113,21 @@ ECRESULT ECSecurity::GetStoreOwner(unsigned int ulObjId, unsigned int* lpulOwner
  */
 ECRESULT ECSecurity::GetStoreOwnerAndType(unsigned int ulObjId, unsigned int* lpulOwnerId, unsigned int* lpulStoreType)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	unsigned int ulStoreId = 0;
 
 	if (lpulOwnerId || lpulStoreType) {
 		er = m_lpSession->GetSessionManager()->GetCacheManager()->GetStoreAndType(ulObjId, &ulStoreId, NULL, lpulStoreType);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
 
 	if (lpulOwnerId) {
 		er = GetOwner(ulStoreId, lpulOwnerId);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 /** 
@@ -1157,13 +1155,12 @@ ECRESULT ECSecurity::IsAdminOverUserObject(unsigned int ulUserObjectId)
 	if (!m_lpSession->GetSessionManager()->IsHostedSupported()) {
 		if (m_details.GetPropInt(OB_PROP_I_ADMINLEVEL) != 0)
 			er = erSuccess;
-		goto exit;
+		return er;
 	}
 
 	/* If hosted is enabled, system administrators are administrator over all users. */
 	if (m_details.GetPropInt(OB_PROP_I_ADMINLEVEL) == ADMIN_LEVEL_SYSADMIN) {
-		er = erSuccess;
-		goto exit;
+		return erSuccess;
 	}
 
 	/*
@@ -1171,7 +1168,7 @@ ECRESULT ECSecurity::IsAdminOverUserObject(unsigned int ulUserObjectId)
 	 */
 	er = m_lpSession->GetUserManagement()->GetExternalId(ulUserObjectId, &sExternId, &ulCompanyId);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// still needed?
 	if (sExternId.objclass == CONTAINER_COMPANY)
@@ -1186,26 +1183,21 @@ ECRESULT ECSecurity::IsAdminOverUserObject(unsigned int ulUserObjectId)
 			er = erSuccess;
 		else
 			er = KCERR_NO_ACCESS;
-		goto exit;
+		return er;
 	}
 
 	if (!m_lpAdminCompanies) {
 		er = GetAdminCompanies(USERMANAGEMENT_IDS_ONLY, &m_lpAdminCompanies);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
 	for (objectIter = m_lpAdminCompanies->begin();
 	     objectIter != m_lpAdminCompanies->end(); ++objectIter)
-		if (objectIter->ulId == ulCompanyId) {
-			er = erSuccess;
-			goto exit;
-		}
+		if (objectIter->ulId == ulCompanyId)
+			return erSuccess;
 
 	/* Item was not found, so no access */
-	er = KCERR_NO_ACCESS;
-
-exit:
-	return er;
+	return KCERR_NO_ACCESS;
 }
 
 /** 
@@ -1219,7 +1211,7 @@ exit:
  */
 ECRESULT ECSecurity::IsAdminOverOwnerOfObject(unsigned int ulObjectId)
 {
-	ECRESULT er = KCERR_NO_ACCESS;
+	ECRESULT er;
 	unsigned int ulOwner;
 
 	/*
@@ -1227,12 +1219,8 @@ ECRESULT ECSecurity::IsAdminOverOwnerOfObject(unsigned int ulObjectId)
 	 */
 	er = GetStoreOwner(ulObjectId, &ulOwner);
 	if (er != erSuccess)
-		goto exit;
-
-	er = IsAdminOverUserObject(ulOwner);
-
-exit:
-	return er;
+		return er;
+	return IsAdminOverUserObject(ulOwner);
 }
 
 /** 
@@ -1364,28 +1352,25 @@ exit:
  */
 ECRESULT ECSecurity::CheckQuota(unsigned int ulStoreId, long long llStoreSize, eQuotaStatus* lpQuotaStatus)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	unsigned int ulOwnerId = 0;
 	unsigned int ulStoreType = 0;
 
 	er = m_lpSession->GetSessionManager()->GetCacheManager()->GetStoreAndType(ulStoreId, NULL, NULL, &ulStoreType);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 		
 	if(ulStoreType != ECSTORE_TYPE_PRIVATE) {
 		*lpQuotaStatus = QUOTA_OK;
-		goto exit; // all is good, no quota on non-private stores.
+		return er; // all is good, no quota on non-private stores.
 	}
 
 	// Get the store owner
 	er = GetStoreOwner(ulStoreId, &ulOwnerId);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
-	er = CheckUserQuota(ulOwnerId, llStoreSize, lpQuotaStatus);
-
-exit:
-	return er;
+	return CheckUserQuota(ulOwnerId, llStoreSize, lpQuotaStatus);
 }
 
 /** 
@@ -1400,19 +1385,19 @@ exit:
  */
 ECRESULT ECSecurity::CheckUserQuota(unsigned int ulUserId, long long llStoreSize, eQuotaStatus *lpQuotaStatus)
 {
-	ECRESULT		er = erSuccess;
+	ECRESULT er;
 	quotadetails_t	quotadetails;
 
 	if (ulUserId == KOPANO_UID_EVERYONE) {
 		/* Publicly owned stores are never over quota.
 		 * But do publicly owned stores actually exist since the owner is either a user or company */
 		*lpQuotaStatus = QUOTA_OK;
-		goto exit;
+		return erSuccess;
 	}
 
 	er = GetUserQuota(ulUserId, false, &quotadetails);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// check the options
 	if(quotadetails.llHardSize > 0 && llStoreSize >= quotadetails.llHardSize)
@@ -1423,9 +1408,7 @@ ECRESULT ECSecurity::CheckUserQuota(unsigned int ulUserId, long long llStoreSize
 		*lpQuotaStatus = QUOTA_WARN;
 	else
 		*lpQuotaStatus = QUOTA_OK;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 /** 

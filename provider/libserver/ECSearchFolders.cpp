@@ -179,7 +179,7 @@ exit:
 // Called from IMAPIContainer::SetSearchCriteria
 ECRESULT ECSearchFolders::SetSearchCriteria(unsigned int ulStoreId, unsigned int ulFolderId, struct searchCriteria *lpSearchCriteria)
 {
-    ECRESULT er =erSuccess;
+	ECRESULT er;
 
     if(lpSearchCriteria == NULL) {
         /* Always return successful, so that Outlook 2007 works */
@@ -188,15 +188,12 @@ ECRESULT ECSearchFolders::SetSearchCriteria(unsigned int ulStoreId, unsigned int
 
         er = AddSearchFolder(ulStoreId, ulFolderId, true, lpSearchCriteria);
         if(er != erSuccess)
-            goto exit;
-
+			return er;
         er = SaveSearchCriteria(ulStoreId, ulFolderId, lpSearchCriteria);
         if(er != erSuccess)
-            goto exit;
+			return er;
     }
-
-exit:
-    return er;
+	return erSuccess;
 }
 
 // Gets the search criteria from in-memory
@@ -379,7 +376,6 @@ exit:
 // Cancel a search: stop any rebuild thread and stop processing updates for this search folder
 ECRESULT ECSearchFolders::CancelSearchFolder(unsigned int ulStoreID, unsigned int ulFolderId)
 {
-    ECRESULT er = erSuccess;
     STOREFOLDERIDSEARCH::iterator iterStore;
     FOLDERIDSEARCH::iterator iterFolder;
     SEARCHFOLDER *lpFolder = NULL;
@@ -390,15 +386,13 @@ ECRESULT ECSearchFolders::CancelSearchFolder(unsigned int ulStoreID, unsigned in
     iterStore = m_mapSearchFolders.find(ulStoreID);
     if(iterStore == m_mapSearchFolders.end()) {
         pthread_mutex_unlock(&m_mutexMapSearchFolders);
-        er = KCERR_NOT_FOUND;
-        goto exit;
+        return KCERR_NOT_FOUND;
     }
 
     iterFolder = iterStore->second.find(ulFolderId);
     if(iterFolder == iterStore->second.end()) {
         pthread_mutex_unlock(&m_mutexMapSearchFolders);
-        er = KCERR_NOT_FOUND;
-        goto exit;
+        return KCERR_NOT_FOUND;
     }
     
     lpFolder = iterFolder->second;
@@ -410,9 +404,7 @@ ECRESULT ECSearchFolders::CancelSearchFolder(unsigned int ulStoreID, unsigned in
     pthread_mutex_unlock(&m_mutexMapSearchFolders);
 
 	DestroySearchFolder(lpFolder);
-
-exit:    
-    return er;
+	return erSuccess;
 }
 
 void ECSearchFolders::DestroySearchFolder(SEARCHFOLDER *lpFolder)
@@ -449,7 +441,6 @@ void ECSearchFolders::DestroySearchFolder(SEARCHFOLDER *lpFolder)
  */
 ECRESULT ECSearchFolders::RemoveSearchFolder(unsigned int ulStoreID)
 {
-	ECRESULT er = erSuccess;
 	STOREFOLDERIDSEARCH::iterator iterStore;
 	FOLDERIDSEARCH::iterator iterFolder;
 	unsigned int ulFolderID;
@@ -462,8 +453,7 @@ ECRESULT ECSearchFolders::RemoveSearchFolder(unsigned int ulStoreID)
 	iterStore = m_mapSearchFolders.find(ulStoreID);
 	if(iterStore == m_mapSearchFolders.end()) {
 		pthread_mutex_unlock(&m_mutexMapSearchFolders);
-		er = KCERR_NOT_FOUND;
-		goto exit;
+		return KCERR_NOT_FOUND;
 	}
 
 	for (iterFolder = iterStore->second.begin();
@@ -489,9 +479,7 @@ ECRESULT ECSearchFolders::RemoveSearchFolder(unsigned int ulStoreID)
 		// Remove results from database
 		ResetResults(ulStoreID, ulFolderID);
 	}
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 // Removing a search folder is subtly different from cancelling it; removing a search folder
@@ -1523,7 +1511,7 @@ exit:
 ECRESULT ECSearchFolders::AddResults(unsigned int ulStoreId, unsigned int ulFolderId, std::list<unsigned int> &lstObjId, std::list<unsigned int>& lstFlags, int *lpulCount, int *lpulUnread)
 {
     ECDatabase *lpDatabase = NULL;
-    ECRESULT er = erSuccess;
+    ECRESULT er;
     std::string strQuery;
     unsigned int ulInserted = 0;
     unsigned int ulModified = 0;
@@ -1531,12 +1519,12 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulStoreId, unsigned int ulFold
     ASSERT(lstObjId.size() == lstFlags.size());
     
     if(lstObjId.empty())
-        goto exit;
+		return erSuccess;
     
     er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
     if(er != erSuccess) {
 		ec_log_crit("ECSearchFolders::AddResults(): GetThreadLocalDatabase failed 0x%x", er);
-		goto exit;
+		return er;
 	}
 
     strQuery = "INSERT IGNORE INTO searchresults (folderid, hierarchyid, flags) VALUES";
@@ -1554,7 +1542,7 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulStoreId, unsigned int ulFold
     er = lpDatabase->DoInsert(strQuery, NULL, &ulInserted);
     if (er != erSuccess) {
 		ec_log_err("ECSearchFolders::AddResults(): DoInsert failed 0x%x", er);
-		goto exit;
+		return er;
 	}
 
     /*
@@ -1571,7 +1559,7 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulStoreId, unsigned int ulFold
             er = lpDatabase->DoUpdate(strQuery, &modified);
             if (er != erSuccess) {
 			ec_log_err("ECSearchFolders::AddResults(): UPDATE failed 0x%x", er);
-			goto exit;
+			return er;
 	}
 
             ulModified += modified;
@@ -1583,8 +1571,7 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulStoreId, unsigned int ulFold
     if(lpulUnread)
         *lpulUnread += ulModified;
         
-exit:
-    return er;
+	return erSuccess;
 }
 
 
@@ -1643,7 +1630,7 @@ exit:
 ECRESULT ECSearchFolders::SetStatus(unsigned int ulFolderId, unsigned int ulStatus)
 {
     ECDatabase *lpDatabase = NULL;
-    ECRESULT er = erSuccess;
+	ECRESULT er;
     std::string strQuery;
    
 	// Do not use transactions because this function is called inside a transaction.
@@ -1651,7 +1638,7 @@ ECRESULT ECSearchFolders::SetStatus(unsigned int ulFolderId, unsigned int ulStat
     er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
     if(er != erSuccess) {
 		ec_log_crit("ECSearchFolders::SetStatus(): GetThreadLocalDatabase failed 0x%x", er);
-		goto exit;
+		return er;
 	}
         
     // No record == running
@@ -1665,7 +1652,7 @@ ECRESULT ECSearchFolders::SetStatus(unsigned int ulFolderId, unsigned int ulStat
         er = lpDatabase->DoInsert(strQuery);
         if(er != erSuccess) {
 		ec_log_err("ECSearchFolders::SetStatus(): DoInsert failed 0x%x", er);
-		goto exit;
+		return er;
 	}
     } else {
 		strQuery = "DELETE FROM properties "
@@ -1676,12 +1663,10 @@ ECRESULT ECSearchFolders::SetStatus(unsigned int ulFolderId, unsigned int ulStat
 		er = lpDatabase->DoDelete(strQuery);
 		if (er != erSuccess) {
 			ec_log_err("ECSearchFolders::SetStatus(): DELETE failed 0x%x", er);
-			goto exit;
+			return er;
+		}
 	}
-	}
-        
-exit:
-	return er;
+	return erSuccess;
 }
 
 // Get all results of a certain search folder in a list of hierarchy IDs
@@ -1834,7 +1819,7 @@ exit:
 // Serialize and save the search criteria for a certain folder. The property is saved as a PR_EC_SEARCHCRIT property
 ECRESULT ECSearchFolders::SaveSearchCriteria(ECDatabase *lpDatabase, unsigned int ulStoreId, unsigned int ulFolderId, struct searchCriteria *lpSearchCriteria)
 {
-    ECRESULT er = erSuccess;
+	ECRESULT er;
 	std::string		strQuery;
 
 	struct soap				xmlsoap;
@@ -1865,17 +1850,10 @@ ECRESULT ECSearchFolders::SaveSearchCriteria(ECDatabase *lpDatabase, unsigned in
 
 	er = lpDatabase->DoDelete(strQuery);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	strQuery = "INSERT INTO properties (hierarchyid, tag, type, val_string) VALUES(" + stringify(ulFolderId) + "," + stringify(PROP_ID(PR_EC_SEARCHCRIT)) + "," + stringify(PROP_TYPE(PR_EC_SEARCHCRIT)) + ",'" + lpDatabase->Escape( xml.str() ) + "')";
-
-	er = lpDatabase->DoInsert(strQuery);
-	if(er != erSuccess)
-		goto exit;
-		
- exit:
-    
-    return er;
+	return lpDatabase->DoInsert(strQuery);
 }
 
 void ECSearchFolders::FlushAndWait()

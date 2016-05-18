@@ -130,29 +130,25 @@ static ECRESULT ConvertABEntryIDToSoapSourceKey(struct soap *soap,
     ECSession *lpSession, bool bUseV1, unsigned int cbEntryId,
     char *lpEntryId, xsd__base64Binary *lpSourceKey)
 {
-	ECRESULT			er			= erSuccess;
+	ECRESULT er;
 	unsigned int		cbAbeid		= cbEntryId;
 	PABEID				lpAbeid		= (PABEID)lpEntryId;
 	entryId				sEntryId	= {0};
 	SOURCEKEY			sSourceKey;
 	objectid_t			sExternId;
 
-	if (cbEntryId < CbNewABEID("") || lpEntryId == NULL || lpSourceKey == NULL)
-	{
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (cbEntryId < CbNewABEID("") || lpEntryId == NULL ||
+	    lpSourceKey == NULL)
+		return KCERR_INVALID_PARAMETER;
 
 	if (lpAbeid->ulVersion == 1 && !bUseV1)
 	{
 		er = MAPITypeToType(lpAbeid->ulType, &sExternId.objclass);
 		if (er != erSuccess)
-			goto exit;
-
+			return er;
 		er = ABIDToEntryID(soap, lpAbeid->ulId, sExternId, &sEntryId);	// Creates a V0 EntryID, because sExternId.id is empty
 		if (er != erSuccess)
-			goto exit;
-
+			return er;
 		lpAbeid = (PABEID)sEntryId.__ptr;
 		cbAbeid = sEntryId.__size;
 	} 
@@ -160,7 +156,7 @@ static ECRESULT ConvertABEntryIDToSoapSourceKey(struct soap *soap,
 	{
 		er = lpSession->GetUserManagement()->GetABSourceKeyV1(lpAbeid->ulId, &sSourceKey);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 
 		lpAbeid = (PABEID)(unsigned char*)sSourceKey;
 		cbAbeid = sSourceKey.size();
@@ -168,9 +164,7 @@ static ECRESULT ConvertABEntryIDToSoapSourceKey(struct soap *soap,
 
 	lpSourceKey->__size = cbAbeid;
 	lpSourceKey->__ptr = (unsigned char*)s_memcpy(soap, (char*)lpAbeid, cbAbeid);
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 static void AddChangeKeyToChangeList(std::string *strChangeList,
@@ -1186,22 +1180,17 @@ exit:
 
 ECRESULT AddABChange(BTSession *lpSession, unsigned int ulChange, SOURCEKEY sSourceKey, SOURCEKEY sParentSourceKey)
 {
-	ECRESULT		er = erSuccess;
+	ECRESULT er;
 	std::string		strQuery;
 	ECDatabase*		lpDatabase = NULL;
 
 	er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// Add/Replace new change
 	strQuery = "REPLACE INTO abchanges (sourcekey, parentsourcekey, change_type) VALUES(" + lpDatabase->EscapeBinary(sSourceKey, sSourceKey.size()) + "," + lpDatabase->EscapeBinary(sParentSourceKey, sParentSourceKey.size()) + "," + stringify(ulChange) + ")";
-	er = lpDatabase->DoInsert(strQuery);
-	if(er != erSuccess)
-	    goto exit;
-
-exit:
-    return er;
+	return lpDatabase->DoInsert(strQuery);
 }
 
 ECRESULT GetSyncStates(struct soap *soap, ECSession *lpSession, mv_long ulaSyncId, syncStateArray *lpsaSyncState)

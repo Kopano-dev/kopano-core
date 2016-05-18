@@ -849,12 +849,11 @@ ECRESULT ECGenericObjectTable::GetBinarySortKey(struct propVal *lpsPropVal, unsi
 	}
 
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	*lpSortLen = ulSortLen;
 	*lppSortData = lpSortData;
-exit:
-	return er;
+	return erSuccess;
 }
 
 /**
@@ -1144,7 +1143,7 @@ exit:
 // Actually add a row to the table
 ECRESULT ECGenericObjectTable::AddRow(sObjectTableKey sRowItem, struct propVal *lpProps, unsigned int cProps, unsigned int ulFlags, bool fHidden, ECCategory *lpCategory)
 {
-    ECRESULT er = erSuccess;
+    ECRESULT er;
     ECKeyTable::UpdateType ulAction;
     sObjectTableKey sPrevRow;
 
@@ -1154,30 +1153,27 @@ ECRESULT ECGenericObjectTable::AddRow(sObjectTableKey sRowItem, struct propVal *
     if(ulAction && !fHidden && (ulFlags & OBJECTTABLE_NOTIFY)) {
         er = AddTableNotif(ulAction, sRowItem, &sPrevRow);
         if(er != erSuccess)
-            goto exit;
+			return er;
     }
-
-exit:
-    return er;
+	return erSuccess;
 }
 
 // Actually remove a row from the table
 ECRESULT ECGenericObjectTable::DeleteRow(sObjectTableKey sRow, unsigned int ulFlags)
 {
-    ECRESULT		er = erSuccess;
+	ECRESULT er;
     ECKeyTable::UpdateType ulAction;
 
     // Delete the row from the key table    
     er = lpKeyTable->UpdateRow(ECKeyTable::TABLE_ROW_DELETE, &sRow, 0, NULL, NULL, NULL, NULL, false, &ulAction);
     if(er != erSuccess)
-        goto exit;
+		return er;
     
     // Send notification if required
     if((ulFlags & OBJECTTABLE_NOTIFY) && ulAction == ECKeyTable::TABLE_ROW_DELETE ) {
         AddTableNotif(ulAction, sRow, NULL);
     }
-exit:    
-    return er;
+	return erSuccess;
 }
 
 // Add a table notification by getting row data and sending it
@@ -1852,16 +1848,14 @@ ECRESULT ECGenericObjectTable::GetRestrictPropTagsRecursive(struct restrictTable
 {
 	ECRESULT		er = erSuccess;
 
-	if(ulLevel > RESTRICT_MAX_DEPTH) {
-		er = KCERR_TOO_COMPLEX;
-		goto exit;
-	}
+	if (ulLevel > RESTRICT_MAX_DEPTH)
+		return KCERR_TOO_COMPLEX;
 
 	switch(lpsRestrict->ulType) {
 	case RES_COMMENT:
 	    er = GetRestrictPropTagsRecursive(lpsRestrict->lpComment->lpResTable, lpPropTags, ulLevel+1);
 	    if(er != erSuccess)
-	        goto exit;
+			return er;
 	    break;
 	    
 	case RES_OR:
@@ -1869,7 +1863,7 @@ ECRESULT ECGenericObjectTable::GetRestrictPropTagsRecursive(struct restrictTable
 			er = GetRestrictPropTagsRecursive(lpsRestrict->lpOr->__ptr[i], lpPropTags, ulLevel+1);
 
 			if(er != erSuccess)
-				goto exit;
+				return er;
 		}
 		break;	
 		
@@ -1878,14 +1872,14 @@ ECRESULT ECGenericObjectTable::GetRestrictPropTagsRecursive(struct restrictTable
 			er = GetRestrictPropTagsRecursive(lpsRestrict->lpAnd->__ptr[i], lpPropTags, ulLevel+1);
 
 			if(er != erSuccess)
-				goto exit;
+				return er;
 		}
 		break;	
 
 	case RES_NOT:
 		er = GetRestrictPropTagsRecursive(lpsRestrict->lpNot->lpNot, lpPropTags, ulLevel+1);
 		if(er != erSuccess)
-			goto exit;
+			return er;
 		break;
 
 	case RES_CONTENT:
@@ -1923,9 +1917,7 @@ ECRESULT ECGenericObjectTable::GetRestrictPropTagsRecursive(struct restrictTable
 	    lpPropTags->push_back(PR_ENTRYID); // we need the entryid in subrestriction searches, because we need to know which object to subsearch
 		break;
 	}
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 /**
@@ -1944,7 +1936,7 @@ exit:
  */
 ECRESULT ECGenericObjectTable::GetRestrictPropTags(struct restrictTable *lpsRestrict, std::list<ULONG> *lstPrefix, struct propTagArray **lppPropTags)
 {
-	ECRESULT			er = erSuccess;
+	ECRESULT er;
 	struct propTagArray *lpPropTagArray;
 
 	std::list<ULONG> 	lstPropTags;
@@ -1952,7 +1944,7 @@ ECRESULT ECGenericObjectTable::GetRestrictPropTags(struct restrictTable *lpsRest
 	// Just go through all the properties, adding the properties one-by-one 
 	er = GetRestrictPropTagsRecursive(lpsRestrict, &lstPropTags, 0);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// Sort and unique-ize the properties (order is not important in the returned array)
 	lstPropTags.sort();
@@ -1969,9 +1961,7 @@ ECRESULT ECGenericObjectTable::GetRestrictPropTags(struct restrictTable *lpsRest
 
 	copy(lstPropTags.begin(), lstPropTags.end(), lpPropTagArray->__ptr);
 	*lppPropTags = lpPropTagArray;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 // Simply matches the restriction with the given data. Make sure you pass all the data
@@ -2006,68 +1996,54 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager* lpCacheManager, 
 	    
 	switch(lpsRestrict->ulType) {
 	case RES_COMMENT:
-	    if(lpsRestrict->lpComment == NULL) {
-	        er = KCERR_INVALID_TYPE;
-	        goto exit;
-        }
+		if (lpsRestrict->lpComment == NULL)
+			return KCERR_INVALID_TYPE;
         er = MatchRowRestrict(lpCacheManager, lpPropVals, lpsRestrict->lpComment->lpResTable, lpSubResults, locale, &fMatch, lpulSubRestriction);
         break;
         
 	case RES_OR:
-		if(lpsRestrict->lpOr == NULL) {
-			er = KCERR_INVALID_TYPE;
-			goto exit;
-		}
-
+		if (lpsRestrict->lpOr == NULL)
+			return KCERR_INVALID_TYPE;
 		fMatch = false;
 
 		for (gsoap_size_t i = 0; i < lpsRestrict->lpOr->__size; ++i) {
 			er = MatchRowRestrict(lpCacheManager, lpPropVals, lpsRestrict->lpOr->__ptr[i], lpSubResults, locale, &fMatch, lpulSubRestriction);
 
 			if(er != erSuccess)
-				goto exit;
-
+				return er;
 			if(fMatch) // found a restriction in an OR which matches, ignore the rest of the query
 				break;
 		}
 		break;
 	case RES_AND:
-		if(lpsRestrict->lpAnd == NULL) {
-			er = KCERR_INVALID_TYPE;
-			goto exit;
-		}
-		
+		if (lpsRestrict->lpAnd == NULL)
+			return KCERR_INVALID_TYPE;
 		fMatch = true;
 
 		for (gsoap_size_t i = 0; i < lpsRestrict->lpAnd->__size; ++i) {
 			er = MatchRowRestrict(lpCacheManager, lpPropVals, lpsRestrict->lpAnd->__ptr[i], lpSubResults, locale, &fMatch, lpulSubRestriction);
 
 			if(er != erSuccess)
-				goto exit;
-
+				return er;
 			if(!fMatch) // found a restriction in an AND which doesn't match, ignore the rest of the query
 				break;
 		}
 		break;
 
 	case RES_NOT:
-		if(lpsRestrict->lpNot == NULL) {
-			er = KCERR_INVALID_TYPE;
-			goto exit;
-		}
-		
+		if (lpsRestrict->lpNot == NULL)
+			return KCERR_INVALID_TYPE;
 		er = MatchRowRestrict(lpCacheManager, lpPropVals, lpsRestrict->lpNot->lpNot, lpSubResults, locale, &fMatch, lpulSubRestriction);
 		if(er != erSuccess)
-			goto exit;
+			return er;
 
 		fMatch = !fMatch;
 		break;
 
 	case RES_CONTENT:
-		if(lpsRestrict->lpContent == NULL || lpsRestrict->lpContent->lpProp == NULL) {
-			er = KCERR_INVALID_TYPE;
-			goto exit;
-		}
+		if (lpsRestrict->lpContent == NULL ||
+		    lpsRestrict->lpContent->lpProp == NULL)
+			return KCERR_INVALID_TYPE;
 		// FIXME: FL_IGNORENONSPACE and FL_LOOSE are ignored
 		ulPropTagRestrict = lpsRestrict->lpContent->ulPropTag;
 		ulPropTagValue = lpsRestrict->lpContent->lpProp->ulPropTag;
@@ -2188,10 +2164,9 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager* lpCacheManager, 
 		break;
 
 	case RES_PROPERTY:
-		if(lpsRestrict->lpProp == NULL || lpsRestrict->lpProp->lpProp == NULL) {
-			er = KCERR_INVALID_TYPE;
-			goto exit;
-		}
+		if (lpsRestrict->lpProp == NULL ||
+		    lpsRestrict->lpProp->lpProp == NULL)
+			return KCERR_INVALID_TYPE;
 
 		ulPropTagRestrict = lpsRestrict->lpProp->ulPropTag;
 		ulPropTagValue = lpsRestrict->lpProp->lpProp->ulPropTag;
@@ -2205,11 +2180,9 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager* lpCacheManager, 
 		if (PROP_TYPE(ulPropTagValue) == PT_STRING8)
 			ulPropTagValue = CHANGE_PROP_TYPE(ulPropTagValue, PT_TSTRING);
 
-		if((PROP_TYPE(ulPropTagRestrict)&~MV_FLAG) != PROP_TYPE(ulPropTagValue)) {
+		if((PROP_TYPE(ulPropTagRestrict) & ~MV_FLAG) != PROP_TYPE(ulPropTagValue))
 			// cannot compare two different types, except mvprop -> prop
-			er = KCERR_INVALID_TYPE;
-			goto exit;
-		}
+			return KCERR_INVALID_TYPE;
 #ifdef LINUX
 		if(lpsRestrict->lpProp->ulType == RELOP_RE) {
 		    regex_t reg;
@@ -2222,10 +2195,9 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager* lpCacheManager, 
 			}
 
 			// @todo add support for ulPropTagRestrict PT_MV_TSTRING
-		    if(PROP_TYPE(ulPropTagValue) != PT_TSTRING || PROP_TYPE(ulPropTagRestrict) != PT_TSTRING) {
-                er = KCERR_INVALID_TYPE;
-                goto exit;
-            }
+			if (PROP_TYPE(ulPropTagValue) != PT_TSTRING ||
+			    PROP_TYPE(ulPropTagRestrict) != PT_TSTRING)
+				return KCERR_INVALID_TYPE;
             
             if(regcomp(&reg, lpsRestrict->lpProp->lpProp->Value.lpszA, REG_NOSUB | REG_NEWLINE | REG_ICASE) != 0) {
                 fMatch = false;
@@ -2306,10 +2278,8 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager* lpCacheManager, 
 		break;
 		
 	case RES_COMPAREPROPS:
-		if(lpsRestrict->lpCompare == NULL) {
-			er = KCERR_INVALID_TYPE;
-			goto exit;
-		}
+		if (lpsRestrict->lpCompare == NULL)
+			return KCERR_INVALID_TYPE;
 
 		unsigned int ulPropTag1;
 		unsigned int ulPropTag2;
@@ -2330,11 +2300,9 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager* lpCacheManager, 
 			ulPropTag2 = CHANGE_PROP_TYPE(ulPropTag2, PT_MV_TSTRING);
 
 		// FIXME: Is this check correct, PT_STRING8 vs PT_ERROR == false and not a error? (RELOP_NE == true)
-		if(PROP_TYPE(ulPropTag1) != PROP_TYPE(ulPropTag2)) {
+		if (PROP_TYPE(ulPropTag1) != PROP_TYPE(ulPropTag2))
 			// cannot compare two different types
-			er = KCERR_INVALID_TYPE;
-			goto exit;
-		}
+			return KCERR_INVALID_TYPE;
 
 		// find using original restriction proptag
 		lpProp = FindProp(lpPropVals, lpsRestrict->lpCompare->ulPropTag1);
@@ -2380,17 +2348,12 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager* lpCacheManager, 
 		break;
 
 	case RES_BITMASK:
-		if(lpsRestrict->lpBitmask == NULL) {
-			er = KCERR_INVALID_TYPE;
-			goto exit;
-		}
+		if (lpsRestrict->lpBitmask == NULL)
+			return KCERR_INVALID_TYPE;
 
 		// We can only bitmask 32-bit LONG values (aka ULONG)
-		if(PROP_TYPE(lpsRestrict->lpBitmask->ulPropTag) != PT_LONG) {
-			er = KCERR_INVALID_TYPE;
-			goto exit;
-		}
-
+		if (PROP_TYPE(lpsRestrict->lpBitmask->ulPropTag) != PT_LONG)
+			return KCERR_INVALID_TYPE;
 		lpProp = FindProp(lpPropVals, lpsRestrict->lpBitmask->ulPropTag);
 
 		if(lpProp == NULL) {
@@ -2406,18 +2369,11 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager* lpCacheManager, 
 		break;
 		
 	case RES_SIZE:
-		if(lpsRestrict->lpSize == NULL) {
-			er = KCERR_INVALID_TYPE;
-			goto exit;
-		}
-
+		if (lpsRestrict->lpSize == NULL)
+			return KCERR_INVALID_TYPE;
 		lpProp = FindProp(lpPropVals, lpsRestrict->lpSize->ulPropTag);
-
-		if(lpProp == NULL) {
-			er = KCERR_INVALID_TYPE;
-			goto exit;
-		}
-
+		if (lpProp == NULL)
+			return KCERR_INVALID_TYPE;
 		ulSize = PropSize(lpProp);
 
 		lCompare = ulSize - lpsRestrict->lpSize->cb;
@@ -2448,23 +2404,16 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager* lpCacheManager, 
 		break;
 
 	case RES_EXIST:
-		if(lpsRestrict->lpExist == NULL) {
-			er = KCERR_INVALID_TYPE;
-			goto exit;
-		}
-
+		if (lpsRestrict->lpExist == NULL)
+			return KCERR_INVALID_TYPE;
 		lpProp = FindProp(lpPropVals, lpsRestrict->lpExist->ulPropTag);
 
 		fMatch = (lpProp != NULL);
 		break;
 	case RES_SUBRESTRICTION:
 	    lpProp = FindProp(lpPropVals, PR_ENTRYID);
-	    
-	    if(lpProp == NULL) {
-	        er = KCERR_INVALID_TYPE;
-	        goto exit;
-        }
-        
+		if (lpProp == NULL)
+			return KCERR_INVALID_TYPE;
 	    if(lpSubResults == NULL) {
 	        fMatch = false;
         } else {
@@ -2491,13 +2440,10 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager* lpCacheManager, 
 		break;
 
 	default:
-		er = KCERR_INVALID_TYPE;
-		goto exit;
+		return KCERR_INVALID_TYPE;
 	}
 
 	*lpfMatch = fMatch;
-
-exit:
 	return er;
 }
 
@@ -2883,15 +2829,10 @@ exit:
  */
 ECRESULT ECGenericObjectTable::UpdateCategoryMinMax(sObjectTableKey &sKey, ECCategory *lpCategory, unsigned int i, struct propVal *lpProps, unsigned int cProps, bool *lpfModified)
 {
-	ECRESULT er = erSuccess;
-
 	if(lpsSortOrderArray->__size <= i || !ISMINMAX(lpsSortOrderArray->__ptr[i].ulOrder))
-		goto exit;
-
+		return erSuccess;
 	lpCategory->UpdateMinMax(sKey, i, &lpProps[i], lpsSortOrderArray->__ptr[i].ulOrder == EC_TABLE_SORT_CATEG_MAX, lpfModified);
-	
-exit:
-	return er;
+	return erSuccess;
 }
 
 /**
@@ -3194,10 +3135,8 @@ ECRESULT ECGenericObjectTable::GetPropCategory(struct soap *soap, unsigned int u
     unsigned int i = 0;
     
     iterCategories = m_mapCategories.find(sKey);
-    if(iterCategories == m_mapCategories.end()) {
-        er = KCERR_NOT_FOUND;
-        goto exit;
-    }
+	if (iterCategories == m_mapCategories.end())
+		return KCERR_NOT_FOUND;
     
     switch(ulPropTag) {
         case PR_INSTANCE_KEY:
@@ -3242,9 +3181,7 @@ ECRESULT ECGenericObjectTable::GetPropCategory(struct soap *soap, unsigned int u
             if(i == iterCategories->second->m_cProps)
                 er = KCERR_NOT_FOUND;
         }
-
-exit:    
-    return er;
+	return er;
 }
 
 unsigned int ECGenericObjectTable::GetCategories()
@@ -3387,7 +3324,7 @@ ECRESULT ECCategory::SetProp(unsigned int i, struct propVal* lpPropVal)
  */
 ECRESULT ECCategory::UpdateMinMax(const sObjectTableKey &sKey, unsigned int i, struct propVal *lpNewValue, bool fMax, bool *lpfModified)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	bool fModified = false;
 	int result = 0;
 	std::map<sObjectTableKey, struct propVal *>::iterator iterMinMax;
@@ -3401,13 +3338,13 @@ ECRESULT ECCategory::UpdateMinMax(const sObjectTableKey &sKey, unsigned int i, s
 		// Compare old with new
 		er = CompareProp(lpOldValue, lpNewValue, m_locale, &result);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
 	
 	// Copy the value so we can track it for later (in UpdateMinMaxRemove) if we didn't have it yet
 	er = CopyPropVal(lpNewValue, &lpNew);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 		
 	iterMinMax = m_mapMinMax.find(sKey);
 	if(iterMinMax == m_mapMinMax.end()) {
@@ -3421,8 +3358,7 @@ ECRESULT ECCategory::UpdateMinMax(const sObjectTableKey &sKey, unsigned int i, s
 		// Either there was no old value, or the new value is larger or smaller than the old one
 		er = SetProp(i, lpNew);
 		if(er != erSuccess)
-			goto exit;
-	
+			return er;
 		m_sCurMinMax = sKey;
 					
 		fModified = true;
@@ -3430,9 +3366,7 @@ ECRESULT ECCategory::UpdateMinMax(const sObjectTableKey &sKey, unsigned int i, s
 	
 	if(lpfModified)
 		*lpfModified = fModified;
-	
-exit:	
-	return er;
+	return erSuccess;
 }
 
 /**
@@ -3449,17 +3383,14 @@ exit:
  */
 ECRESULT ECCategory::UpdateMinMaxRemove(const sObjectTableKey &sKey, unsigned int i, bool fMax, bool *lpfModified)
 {
-	ECRESULT er = erSuccess;
 	std::map<sObjectTableKey, struct propVal *>::iterator iterMinMax;
 	bool fModified = false;
 	
 	
 	iterMinMax = m_mapMinMax.find(sKey);
 	
-	if(iterMinMax == m_mapMinMax.end()) {
-		er = KCERR_NOT_FOUND;
-		goto exit;
-	}
+	if (iterMinMax == m_mapMinMax.end())
+		return KCERR_NOT_FOUND;
 	
 	FreePropVal(iterMinMax->second, true);
 	m_mapMinMax.erase(iterMinMax);
@@ -3480,9 +3411,7 @@ ECRESULT ECCategory::UpdateMinMaxRemove(const sObjectTableKey &sKey, unsigned in
 	
 	if(lpfModified)
 		*lpfModified = fModified;
-	
-exit:
-	return er;
+	return erSuccess;
 }
 
 

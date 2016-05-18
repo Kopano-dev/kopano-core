@@ -52,7 +52,7 @@ static BOOL NormalizeRestrictionIsFalse(const struct restrictTable *lpRestrict)
     bool fAlwaysFalse = false;
     
     if(lpRestrict->ulType != RES_AND)
-        goto exit;
+		return false;
         
     for (gsoap_size_t i = 0; i < lpRestrict->lpAnd->__size; ++i) {
         if (lpRestrict->lpAnd->__ptr[i]->ulType == RES_EXIST)
@@ -68,8 +68,6 @@ static BOOL NormalizeRestrictionIsFalse(const struct restrictTable *lpRestrict)
     
     if(!setBoth.empty())
         fAlwaysFalse = true;
-        
-exit:
     return fAlwaysFalse;
 }
 
@@ -89,19 +87,19 @@ exit:
  */
 static ECRESULT NormalizeRestrictionNestedAnd(struct restrictTable *lpRestrict)
 {
-    ECRESULT er = erSuccess;
+	ECRESULT er;
     std::list<struct restrictTable *> lstClauses;
     bool bModified = false;
     
     if(lpRestrict->ulType != RES_AND)
-        goto exit;
+		return erSuccess;
         
     for (gsoap_size_t i = 0; i < lpRestrict->lpAnd->__size; ++i) {
         if(lpRestrict->lpAnd->__ptr[i]->ulType == RES_AND) {
             // First, flatten our subchild
             er = NormalizeRestrictionNestedAnd(lpRestrict->lpAnd->__ptr[i]);
             if (er != erSuccess)
-                goto exit;
+				return er;
 
             // Now, get all the clauses from the child AND-clause and push them to this AND-clause
             for (gsoap_size_t j = 0; j < lpRestrict->lpAnd->__ptr[i]->lpAnd->__size; ++j)
@@ -130,9 +128,7 @@ static ECRESULT NormalizeRestrictionNestedAnd(struct restrictTable *lpRestrict)
         
         lpRestrict->lpAnd->__size = n;
     }
-    
-exit:
-    return er;
+	return erSuccess;
 }
 
 /**
@@ -158,7 +154,7 @@ exit:
 static ECRESULT NormalizeGetMultiSearch(struct restrictTable *lpRestrict,
     const std::set<unsigned int> &setExcludeProps, SIndexedTerm &sMultiSearch)
 {
-    ECRESULT er = erSuccess;
+    ECRESULT er;
     
     sMultiSearch.strTerm.clear();
     sMultiSearch.setFields.clear();
@@ -172,43 +168,35 @@ static ECRESULT NormalizeGetMultiSearch(struct restrictTable *lpRestrict,
                 
             er = NormalizeGetMultiSearch(lpRestrict->lpOr->__ptr[i], setExcludeProps, terms);
             if (er != erSuccess)
-                goto exit;
+                return er;
                 
             if(sMultiSearch.strTerm.empty()) {
                 // This is the first term, copy it
                 sMultiSearch = terms;
             } else {
-                if(sMultiSearch.strTerm == terms.strTerm) {
-                    // Add the search fields from the subrestriction into ours
-                    sMultiSearch.setFields.insert(terms.setFields.begin(), terms.setFields.end());
-                } else {
-                    // There are different search terms in this OR (case 2)
-                    er = KCERR_INVALID_PARAMETER;
-                    goto exit;
-                }
+			if (sMultiSearch.strTerm == terms.strTerm)
+				// Add the search fields from the subrestriction into ours
+				sMultiSearch.setFields.insert(terms.setFields.begin(), terms.setFields.end());
+			else
+				// There are different search terms in this OR (case 2)
+				return KCERR_INVALID_PARAMETER;
             }
         }
     } else if(lpRestrict->ulType == RES_CONTENT && (lpRestrict->lpContent->ulFuzzyLevel & (FL_SUBSTRING | FL_IGNORECASE)) == (FL_SUBSTRING | FL_IGNORECASE)) {
-        if(setExcludeProps.find(PROP_ID(lpRestrict->lpContent->ulPropTag)) != setExcludeProps.end()) {
-            // The property cannot be searched from the indexer since it has been excluded from indexing
-            er = KCERR_NOT_FOUND;
-            goto exit;
-        }
-        // Only support looking for string-type properties
-        if(PROP_TYPE(lpRestrict->lpContent->lpProp->ulPropTag) != PT_STRING8 && PROP_TYPE(lpRestrict->lpContent->lpProp->ulPropTag) != PT_UNICODE) {
-            er = KCERR_INVALID_PARAMETER;
-            goto exit;
-        }
+		if (setExcludeProps.find(PROP_ID(lpRestrict->lpContent->ulPropTag)) != setExcludeProps.end())
+			// The property cannot be searched from the indexer since it has been excluded from indexing
+			return KCERR_NOT_FOUND;
+		// Only support looking for string-type properties
+		if (PROP_TYPE(lpRestrict->lpContent->lpProp->ulPropTag) != PT_STRING8 &&
+		    PROP_TYPE(lpRestrict->lpContent->lpProp->ulPropTag) != PT_UNICODE)
+			return KCERR_INVALID_PARAMETER;
         sMultiSearch.strTerm = lpRestrict->lpContent->lpProp->Value.lpszA;
         sMultiSearch.setFields.insert(PROP_ID(lpRestrict->lpContent->ulPropTag));
     } else {
         // Some other restriction type, unsupported (case 3)
-        er = KCERR_INVALID_PARAMETER;
-        goto exit;
+        return KCERR_INVALID_PARAMETER;
     }
-        
-exit:
-    return er;
+	return erSuccess;
 }
 
 /**
@@ -307,21 +295,16 @@ static ECRESULT NormalizeGetOptimalMultiFieldSearch(
     const std::set<unsigned int> &setExcludeProps,
     std::list<SIndexedTerm> *lpMultiSearches)
 {
-    ECRESULT er = erSuccess;
+    ECRESULT er;
     
     // Normalize nested ANDs, if any
     er = NormalizeRestrictionNestedAnd(lpRestrict);
     if (er != erSuccess)
-        goto exit;
+		return er;
         
     // Convert a series of AND's or a single text search into a new restriction and the multisearch
     // terms
-    er = NormalizeRestrictionMultiFieldSearch(lpRestrict, setExcludeProps, lpMultiSearches);
-    if (er != erSuccess)
-        goto exit;
-exit:
-
-    return er;
+	return NormalizeRestrictionMultiFieldSearch(lpRestrict, setExcludeProps, lpMultiSearches);
 }
 
 /** 

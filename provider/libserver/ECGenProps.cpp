@@ -146,8 +146,6 @@ ECRESULT ECGenProps::GetPropSubquery(unsigned int ulPropTagRequested, std::strin
  */
 ECRESULT ECGenProps::GetPropSubstitute(unsigned int ulObjType, unsigned int ulPropTagRequested, unsigned int *lpulPropTagRequired)
 {
-	ECRESULT er = erSuccess;
-
 	unsigned int ulPropTagRequired = 0;
 
 	switch(PROP_ID(ulPropTagRequested)) {
@@ -157,20 +155,15 @@ ECRESULT ECGenProps::GetPropSubstitute(unsigned int ulObjType, unsigned int ulPr
 		case PROP_ID(PR_CONTENT_UNREAD):
 			if(ulObjType == MAPI_MESSAGE)
 				ulPropTagRequired = PR_MESSAGE_FLAGS;
-			else {
-				er = KCERR_NOT_FOUND;
-				goto exit;
-			}
+			else
+				return KCERR_NOT_FOUND;
 			break;
 		default:
-			er = KCERR_NOT_FOUND;
-			goto exit;
+			return KCERR_NOT_FOUND;
 	}
 
 	*lpulPropTagRequired = ulPropTagRequired;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 // This should be synchronized with GetPropComputed
@@ -396,12 +389,8 @@ ECRESULT ECGenProps::GetPropComputed(struct soap *soap, unsigned int ulObjType, 
 			er = KCERR_NOT_FOUND;
 		break;
 	default:
-		er = KCERR_NOT_FOUND;
-		goto exit;
+		return KCERR_NOT_FOUND;
 	}
-
-exit:
-
 	return er;
 }
 
