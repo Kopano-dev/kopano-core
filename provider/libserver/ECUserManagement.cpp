@@ -215,7 +215,7 @@ ECUserManagement::~ECUserManagement(void)
 // Authenticate a user (NOTE: ECUserManagement will never authenticate SYSTEM unless it is actually
 // authenticated by the remote server, which normally never happens)
 ECRESULT ECUserManagement::AuthUserAndSync(const char* szLoginname, const char* szPassword, unsigned int *lpulUserId) {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	objectsignature_t external;
 	UserPlugin *lpPlugin = NULL;
 	string username;
@@ -228,7 +228,7 @@ ECRESULT ECUserManagement::AuthUserAndSync(const char* szLoginname, const char* 
 
 	er = GetThreadLocalPlugin(m_lpPluginFactory, &lpPlugin);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	/*
 	 * GetUserAndCompanyFromLoginName() will return KCWARN_PARTIAL_COMPLETION
@@ -240,7 +240,7 @@ ECRESULT ECUserManagement::AuthUserAndSync(const char* szLoginname, const char* 
 	 */
 	er = GetUserAndCompanyFromLoginName(szLoginname, &username, &companyname);
 	if (er != erSuccess && er != KCWARN_PARTIAL_COMPLETION)
-		goto exit;
+		return er;
 
 	if(SymmetricIsCrypted(szPassword)) {
 		password = SymmetricDecrypt(szPassword);
@@ -252,7 +252,7 @@ ECRESULT ECUserManagement::AuthUserAndSync(const char* szLoginname, const char* 
 		er = ResolveObject(CONTAINER_COMPANY, companyname, objectid_t(), &sCompany);
 		if (er != erSuccess || sCompany.objclass != CONTAINER_COMPANY) {
 			ec_log_warn("Company \"%s\" not found for authentication by plugin failed for user \"%s\"", companyname.c_str(), szLoginname);
-			goto exit;
+			return er;
 		}
 	}
 
@@ -262,40 +262,36 @@ ECRESULT ECUserManagement::AuthUserAndSync(const char* szLoginname, const char* 
 		er = ECPAMAuthenticateUser(m_lpConfig->GetSetting("pam_service"), username, password, &error);
 		if (er != erSuccess) {
 			ec_log_warn("Authentication through PAM failed for user \"%s\": %s", szLoginname, error.c_str());
-			goto exit;
+			return er;
 		}
 		try {
 			external = lpPlugin->resolveName(ACTIVE_USER, username, sCompany);
 		}
 		catch (objectnotfound &e) {
 			ec_log_warn("Authentication through PAM succeeded for \"%s\", but not found by plugin: %s", szLoginname, e.what());
-			er = KCERR_LOGON_FAILED;
-			goto exit;
+			return KCERR_LOGON_FAILED;
 		}
 		catch (std::exception &e) {
 			ec_log_warn("Authentication through PAM succeeded for \"%s\", but plugin returned an error: %s", szLoginname, e.what());
-			er = KCERR_LOGON_FAILED;
-			goto exit;
+			return KCERR_LOGON_FAILED;
 		}
 	} else if (szAuthMethod && strcmp(szAuthMethod, "kerberos") == 0) {
 		// authenticate through kerberos
 		er = ECKrb5AuthenticateUser(username, password, &error);
 		if (er != erSuccess) {
 			ec_log_warn("Authentication through Kerberos failed for user \"%s\": %s", szLoginname, error.c_str());
-			goto exit;
+			return er;
 		}
 		try {
 			external = lpPlugin->resolveName(ACTIVE_USER, username, sCompany);
 		}
 		catch (objectnotfound &e) {
 			ec_log_warn("Authentication through Kerberos succeeded for \"%s\", but not found by plugin: %s", szLoginname, e.what());
-			er = KCERR_LOGON_FAILED;
-			goto exit;
+			return KCERR_LOGON_FAILED;
 		}
 		catch (std::exception &e) {
 			ec_log_warn("Authentication through Kerberos succeeded for \"%s\", but plugin returned an error: %s", szLoginname, e.what());
-			er = KCERR_LOGON_FAILED;
-			goto exit;
+			return KCERR_LOGON_FAILED;
 		}
 	} else
 	{
@@ -304,25 +300,16 @@ ECRESULT ECUserManagement::AuthUserAndSync(const char* szLoginname, const char* 
 			external = lpPlugin->authenticateUser(username, password, sCompany);
 		} catch (login_error &e) {
 			ec_log_warn("Authentication by plugin failed for user \"%s\": %s", szLoginname, e.what());
-			er = KCERR_LOGON_FAILED;
-			goto exit;
+			return KCERR_LOGON_FAILED;
 		} catch (objectnotfound &e) {
 			ec_log_warn("Authentication by plugin failed for user \"%s\": %s", szLoginname, e.what());
-			er = KCERR_NOT_FOUND;
-			goto exit;
+			return KCERR_NOT_FOUND;
 		} catch (std::exception &e) {
 			ec_log_warn("Authentication error by plugin for user \"%s\": %s", szLoginname, e.what());
-			er = KCERR_PLUGIN_ERROR;
-			goto exit;
+			return KCERR_PLUGIN_ERROR;
 		}
 	}
-		
-	er = GetLocalObjectIdOrCreate(external, lpulUserId);
-	if(er != erSuccess)
-		goto exit;
-
-exit:
-	return er;
+	return GetLocalObjectIdOrCreate(external, lpulUserId);
 }
 
 /*
@@ -357,7 +344,7 @@ ECRESULT ECUserManagement::GetObjectDetails(unsigned int ulObjectId, objectdetai
 
 ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const list<objectsignature_t> &lstSignatures, const std::map<objectid_t, unsigned int> &mapExternToLocal, unsigned int ulFlags, list<localobjectdetails_t> *lpDetails)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	ECSecurity *lpSecurity = NULL;
 	list<objectsignature_t>::const_iterator iterSignatures;
 	std::map<objectid_t, unsigned int>::const_iterator iterExternLocal;
@@ -374,11 +361,10 @@ ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const list<objectsig
 
 	er = GetThreadLocalPlugin(m_lpPluginFactory, &lpPlugin);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = GetSecurity(&lpSecurity);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	for (iterSignatures = lstSignatures.begin();
 	     iterSignatures != lstSignatures.end(); ++iterSignatures) {
@@ -415,15 +401,12 @@ ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const list<objectsig
 			// Get all pending details
 			lpExternDetails = lpPlugin->getObjectDetails(lstExternIds);
 		} catch (notsupported &) {
-			er = KCERR_NO_SUPPORT;
-			goto exit;
+			return KCERR_NO_SUPPORT;
 		} catch (objectnotfound &) {
-			er = KCERR_NOT_FOUND;
-			goto exit;
+			return KCERR_NOT_FOUND;
 		} catch(std::exception &e) {
 			ec_log_warn("Unable to retrieve details from external user source: %s", e.what());
-			er = KCERR_PLUGIN_ERROR;
-			goto exit;
+			return KCERR_PLUGIN_ERROR;
 		}
 
 		for (iterExternDetails = lpExternDetails->begin();
@@ -449,9 +432,7 @@ ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const list<objectsig
 			m_lpSession->GetSessionManager()->GetCacheManager()->SetUserDetails(ulObjectId, &iterExternDetails->second);	
 		}
 	}
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 /**
@@ -926,57 +907,50 @@ exit:
 
 // Set data for a single object, with on-the-fly delete of the specified object id
 ECRESULT ECUserManagement::SetObjectDetailsAndSync(unsigned int ulObjectId, const objectdetails_t &sDetails, std::list<std::string> *lpRemoveProps) {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	objectid_t objectid;
 	UserPlugin *lpPlugin = NULL;
 
 	er = GetThreadLocalPlugin(m_lpPluginFactory, &lpPlugin);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	// Resolve the objectname and sync the object into local database
 	er = GetExternalId(ulObjectId, &objectid);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	try {
 		lpPlugin->changeObject(objectid, sDetails, lpRemoveProps);
 	} catch (objectnotfound &) {
 		MoveOrDeleteLocalObject(ulObjectId, objectid.objclass);
-		er = KCERR_NOT_FOUND;
-		goto exit;
+		return KCERR_NOT_FOUND;
 	} catch (notimplemented &e) {
 		ec_log_warn("Unable to set details for external %s: %s", ObjectClassToName(objectid.objclass), e.what());
-		er = KCERR_NOT_IMPLEMENTED;
-		goto exit;
+		return KCERR_NOT_IMPLEMENTED;
 	} catch (std::exception &e) {
 		ec_log_warn("Unable to set details for external %s: %s", ObjectClassToName(objectid.objclass), e.what());
-		er = KCERR_PLUGIN_ERROR;
-		goto exit;
+		return KCERR_PLUGIN_ERROR;
 	}
 
 	// Purge cache
 	m_lpSession->GetSessionManager()->GetCacheManager()->UpdateUser(ulObjectId);
-
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 // Create an object with specific ID or modify an existing object. Used for sync purposes
 ECRESULT ECUserManagement::CreateOrModifyObject(const objectid_t &sExternId, const objectdetails_t &sDetails, unsigned int ulPreferredId, std::list<std::string> *lpRemoveProps) {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	objectsignature_t signature;
 	UserPlugin *lpPlugin = NULL;
 	unsigned int ulObjectId = 0;
 
 	// Local items have no external id
 	if (sExternId.id.empty())
-		goto exit;
-
+		return erSuccess;
 	er = GetThreadLocalPlugin(m_lpPluginFactory, &lpPlugin);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	// Resolve the objectname and sync the object into local database
 	if (GetLocalId(sExternId, &ulObjectId, &signature.signature) == erSuccess) {
@@ -984,16 +958,13 @@ ECRESULT ECUserManagement::CreateOrModifyObject(const objectid_t &sExternId, con
 			lpPlugin->changeObject(sExternId, sDetails, lpRemoveProps);
 		} catch (objectnotfound &) {
 			MoveOrDeleteLocalObject(ulObjectId, sExternId.objclass);
-			er = KCERR_NOT_FOUND;
-			goto exit;
+			return KCERR_NOT_FOUND;
 		} catch (notimplemented &e) {
 			ec_log_warn("Unable to set details for external %s (1): %s", ObjectClassToName(sExternId.objclass), e.what());
-			er = KCERR_NOT_IMPLEMENTED;
-			goto exit;
+			return KCERR_NOT_IMPLEMENTED;
 		} catch (std::exception &e) {
 			ec_log_warn("Unable to set details for external %s (2): %s", ObjectClassToName(sExternId.objclass), e.what());
-			er = KCERR_PLUGIN_ERROR;
-			goto exit;
+			return KCERR_PLUGIN_ERROR;
 		}
 	} else {
 		// Object does not exist yet, create in external database
@@ -1002,16 +973,13 @@ ECRESULT ECUserManagement::CreateOrModifyObject(const objectid_t &sExternId, con
 			signature = lpPlugin->createObject(sDetails);
 		} catch (notimplemented &e) {
 			ec_log_warn("Unable to create %s in external database(1): %s", ObjectClassToName(sExternId.objclass), e.what());
-			er = KCERR_NOT_IMPLEMENTED;
-			goto exit;
+			return KCERR_NOT_IMPLEMENTED;
 		} catch (collision_error &e) {
 			ec_log_warn("Unable to create %s in external database(2): %s", ObjectClassToName(sExternId.objclass), e.what());
-			er = KCERR_COLLISION;
-			goto exit;
+			return KCERR_COLLISION;
 		} catch (std::exception &e) {
 			ec_log_warn("Unable to create %s in external database(3): %s", ObjectClassToName(sExternId.objclass), e.what());
-			er = KCERR_PLUGIN_ERROR;
-			goto exit;
+			return KCERR_PLUGIN_ERROR;
 		}
 
 		er = CreateLocalObjectSimple(signature, ulPreferredId);
@@ -1031,12 +999,10 @@ ECRESULT ECUserManagement::CreateOrModifyObject(const objectid_t &sExternId, con
 								ObjectClassToName(sExternId.objclass), e.what());
 			}
 
-			goto exit;
+			return er;
 		}
 	}
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECUserManagement::ModifyExternId(unsigned int ulObjectId, const objectid_t &sExternId)
@@ -1112,7 +1078,7 @@ exit:
 
 // Add a member to a group, with on-the-fly delete of the specified group id
 ECRESULT ECUserManagement::AddSubObjectToObjectAndSync(userobject_relation_t relation, unsigned int ulParentId, unsigned int ulChildId) {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	ABEID eid(MAPI_ABCONT, MUIDECSAB, 1);
 	objectid_t parentid;
 	objectid_t childid;
@@ -1120,40 +1086,31 @@ ECRESULT ECUserManagement::AddSubObjectToObjectAndSync(userobject_relation_t rel
 	UserPlugin *lpPlugin = NULL;
 
 	/* We don't support operations on local items */
-	if (IsInternalObject(ulParentId) || IsInternalObject(ulChildId)) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (IsInternalObject(ulParentId) || IsInternalObject(ulChildId))
+		return KCERR_INVALID_PARAMETER;
 	er = GetThreadLocalPlugin(m_lpPluginFactory, &lpPlugin);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = GetExternalId(ulParentId, &parentid);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = GetExternalId(ulChildId, &childid);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	try {
 		lpPlugin->addSubObjectRelation(relation, parentid, childid);
 	} catch(objectnotfound &) {
 		MoveOrDeleteLocalObject(ulParentId, parentid.objclass);
-		er = KCERR_NOT_FOUND;
-		goto exit;
+		return KCERR_NOT_FOUND;
 	} catch (notimplemented &) {
-		er = KCERR_NOT_IMPLEMENTED;
-		goto exit;
+		return KCERR_NOT_IMPLEMENTED;
 	} catch (collision_error &) {
-		er = KCERR_COLLISION;
 		ec_log_crit("ECUserManagement::AddSubObjectToObjectAndSync(): addSubObjectRelation failed with a collision error");
-		goto exit;
+		return KCERR_COLLISION;
 	} catch(std::exception &e) {
 		ec_log_warn("Unable to add relation %s to external user database: %s", RelationTypeToName(relation), e.what());
-		er = KCERR_PLUGIN_ERROR;
-		goto exit;
+		return KCERR_PLUGIN_ERROR;
 	}
 
 	/*
@@ -1170,19 +1127,16 @@ ECRESULT ECUserManagement::AddSubObjectToObjectAndSync(userobject_relation_t rel
 	if (relation == OBJECTRELATION_GROUP_MEMBER || relation == OBJECTRELATION_COMPANY_ADMIN || relation == OBJECTRELATION_COMPANY_VIEW)
 	{
 		if (er != erSuccess)
-			goto exit;
-
+			return er;
 		AddABChange(m_lpSession, ICS_AB_CHANGE, sSourceKey, SOURCEKEY(CbABEID(&eid), (char *)&eid));
 	}
 
 	m_lpSession->GetSessionManager()->GetCacheManager()->UpdateUser(ulParentId);
-
-exit:
 	return er;
 }
 
 ECRESULT ECUserManagement::DeleteSubObjectFromObjectAndSync(userobject_relation_t relation, unsigned int ulParentId, unsigned int ulChildId) {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	ABEID eid(MAPI_ABCONT, MUIDECSAB, 1);
 	objectid_t parentid;
 	objectid_t childid;
@@ -1190,36 +1144,28 @@ ECRESULT ECUserManagement::DeleteSubObjectFromObjectAndSync(userobject_relation_
 	UserPlugin *lpPlugin = NULL;
 
 	/* We don't support operations on local items */
-	if (IsInternalObject(ulParentId) || IsInternalObject(ulChildId)) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (IsInternalObject(ulParentId) || IsInternalObject(ulChildId))
+		return KCERR_INVALID_PARAMETER;
 	er = GetThreadLocalPlugin(m_lpPluginFactory, &lpPlugin);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = GetExternalId(ulParentId, &parentid);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = GetExternalId(ulChildId, &childid);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	try {
 		lpPlugin->deleteSubObjectRelation(relation, parentid, childid);
 	} catch(objectnotfound &) {
 		// We can't delete the parent because we don't know whether the child or the entire parent was not found
-		er = KCERR_NOT_FOUND;
-		goto exit;
+		return KCERR_NOT_FOUND;
 	} catch (notimplemented &) {
-		er = KCERR_NOT_IMPLEMENTED;
-		goto exit;
+		return KCERR_NOT_IMPLEMENTED;
 	} catch(std::exception &e) {
 		ec_log_warn("Unable to remove relation %s from external user database: %s.", RelationTypeToName(relation), e.what());
-		er = KCERR_PLUGIN_ERROR;
-		goto exit;
+		return KCERR_PLUGIN_ERROR;
 	}
 
 	/*
@@ -1236,45 +1182,39 @@ ECRESULT ECUserManagement::DeleteSubObjectFromObjectAndSync(userobject_relation_
 	if (relation == OBJECTRELATION_GROUP_MEMBER || relation == OBJECTRELATION_COMPANY_ADMIN || relation == OBJECTRELATION_COMPANY_VIEW)
 	{
 		if (er != erSuccess)
-			goto exit;
+			return er;
 
 		AddABChange(m_lpSession, ICS_AB_CHANGE, sSourceKey, SOURCEKEY(CbABEID(&eid), (char *)&eid));
 	}
 
 	m_lpSession->GetSessionManager()->GetCacheManager()->UpdateUser(ulParentId);
-
-exit:
 	return er;
 }
 
 // TODO: cache these values ?
 ECRESULT ECUserManagement::ResolveObject(objectclass_t objclass, const std::string &strName, const objectid_t &sCompany, objectid_t *lpsExternId)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	objectid_t sObjectId;
 	UserPlugin *lpPlugin = NULL;
 	objectsignature_t objectsignature;
 
 	er = GetThreadLocalPlugin(m_lpPluginFactory, &lpPlugin);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	try {
 		objectsignature = lpPlugin->resolveName(objclass, strName, sCompany);
 	}
 	catch (objectnotfound &) {
-		er = KCERR_NOT_FOUND;
-		goto exit;
+		return KCERR_NOT_FOUND;
 	}
 	catch (std::exception &) {
-		er = KCERR_PLUGIN_ERROR;
-		goto exit;
+		return KCERR_PLUGIN_ERROR;
 	}
 
 	*lpsExternId = objectsignature.id;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 // Resolve an object name to an object id, with on-the-fly create of the specified object class
@@ -1289,11 +1229,11 @@ ECRESULT ECUserManagement::ResolveObjectAndSync(objectclass_t objclass, const ch
 
 	if (!szName) {
 		ec_log_crit("Invalid argument szName in call to ECUserManagement::ResolveObjectAndSync()");
-		goto exit;
+		return er;
 	}
 	if (!lpulObjectId) {
 		ec_log_crit("Invalid argument lpulObjectId call to ECUserManagement::ResolveObjectAndSync()");
-		goto exit;
+		return er;
 	}
 
 	er = erSuccess;
@@ -1303,21 +1243,21 @@ ECRESULT ECUserManagement::ResolveObjectAndSync(objectclass_t objclass, const ch
 		stricmp(szName, KOPANO_ACCOUNT_SYSTEM) == 0)
 	{
 		*lpulObjectId = KOPANO_UID_SYSTEM;
-		goto exit;
+		return er;
 	} else if ((OBJECTCLASS_TYPE(objclass) == OBJECTTYPE_UNKNOWN ||
 				objclass == OBJECTCLASS_DISTLIST ||
 				objclass == DISTLIST_SECURITY) &&
 			   stricmp(szName, KOPANO_FULLNAME_EVERYONE) == 0)
 	{
 		*lpulObjectId = KOPANO_UID_EVERYONE;
-		goto exit;
+		return er;
 	} else if ((OBJECTCLASS_TYPE(objclass) == OBJECTTYPE_UNKNOWN ||
 				objclass == OBJECTCLASS_CONTAINER ||
 				objclass == CONTAINER_COMPANY) &&
 			   strlen(szName) == 0)
 	{
 		*lpulObjectId = 0;
-		goto exit;
+		return er;
 	}
 
 	if (bHosted &&
@@ -1334,7 +1274,7 @@ ECRESULT ECUserManagement::ResolveObjectAndSync(objectclass_t objclass, const ch
 			if (er == KCWARN_PARTIAL_COMPLETION)
 				er = erSuccess;
 			else if (er != erSuccess)
-				goto exit;
+				return er;
 	} else {
 		username = szName;
 		companyname.clear();
@@ -1344,55 +1284,42 @@ ECRESULT ECUserManagement::ResolveObjectAndSync(objectclass_t objclass, const ch
 		er = ResolveObject(CONTAINER_COMPANY, companyname, objectid_t(), &sCompany);
 		if (er == KCERR_NOT_FOUND) {
 			ec_log_warn("Search company error by plugin for company \"%s\"", companyname.c_str());
-			goto exit;
+			return er;
 		}
 	}
 
 	er = GetThreadLocalPlugin(m_lpPluginFactory, &lpPlugin);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	try {
 		objectsignature = lpPlugin->resolveName(objclass, username, sCompany);
 	} catch (notsupported &) {
-		er = KCERR_NO_SUPPORT;
-		goto exit;
+		return KCERR_NO_SUPPORT;
 	} catch (objectnotfound &e) {
 		ec_log_warn("Object not found %s \"%s\": %s", ObjectClassToName(objclass), szName, e.what());
-		er = KCERR_NOT_FOUND;
-		goto exit;
+		return KCERR_NOT_FOUND;
 	} catch(std::exception &e) {
 		ec_log_warn("Unable to resolve %s \"%s\": %s", ObjectClassToName(objclass), szName, e.what());
-		er = KCERR_NOT_FOUND;
-		goto exit;
+		return KCERR_NOT_FOUND;
 	}
-
-	er = GetLocalObjectIdOrCreate(objectsignature, lpulObjectId);
-
-exit:
-	return er;
+	return GetLocalObjectIdOrCreate(objectsignature, lpulObjectId);
 }
 
 // Get MAPI property data for a group or user/group id, with on-the-fly delete of the specified user/group
 ECRESULT ECUserManagement::GetProps(struct soap *soap, unsigned int ulId, struct propTagArray *lpPropTagArray, struct propValArray *lpPropValArray) {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	objectdetails_t objectdetails;
 
 	er = GetObjectDetails(ulId, &objectdetails);
-	if(er != erSuccess) {
-		er = KCERR_NOT_FOUND;
-		goto exit;
-	}
-
-	er = ConvertObjectDetailsToProps(soap, ulId, &objectdetails, lpPropTagArray, lpPropValArray);
-
-exit:
-	return er;
+	if (er != erSuccess)
+		return KCERR_NOT_FOUND;
+	return ConvertObjectDetailsToProps(soap, ulId, &objectdetails, lpPropTagArray, lpPropValArray);
 }
 
 ECRESULT ECUserManagement::GetContainerProps(struct soap *soap, unsigned int ulObjectId, struct propTagArray *lpPropTagArray, struct propValArray *lpPropValArray)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	ECSecurity *lpSecurity = NULL;
 	objectdetails_t objectdetails;
 
@@ -1403,19 +1330,14 @@ ECRESULT ECUserManagement::GetContainerProps(struct soap *soap, unsigned int ulO
 		er = ConvertABContainerToProps(soap, ulObjectId, lpPropTagArray, lpPropValArray);
 	} else {
 		er = GetObjectDetails(ulObjectId, &objectdetails);
-		if(er != erSuccess) {
-			er = KCERR_NOT_FOUND;
-			goto exit;
-		}
-
+		if (er != erSuccess)
+			return KCERR_NOT_FOUND;
 		er = GetSecurity(&lpSecurity);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 
 		er = ConvertContainerObjectDetailsToProps(soap, ulObjectId, &objectdetails, lpPropTagArray, lpPropValArray);
 	}
-
-exit:
 	return er;
 }
 
@@ -1438,7 +1360,7 @@ ECRESULT ECUserManagement::GetLocalObjectDetails(unsigned int ulId, objectdetail
 	} else if (ulId == KOPANO_UID_EVERYONE) {
 		er = GetSecurity(&lpSecurity);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 
 		sDetails = objectdetails_t(DISTLIST_SECURITY);
 		sDetails.SetPropString(OB_PROP_S_LOGIN, KOPANO_ACCOUNT_EVERYONE);
@@ -1452,15 +1374,13 @@ ECRESULT ECUserManagement::GetLocalObjectDetails(unsigned int ulId, objectdetail
 	}
 
 	*lpDetails = sDetails;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 // Get remote details
 ECRESULT ECUserManagement::GetExternalObjectDetails(unsigned int ulId, objectdetails_t *lpDetails)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	std::unique_ptr<objectdetails_t> details;
 	objectdetails_t detailscached;
 	objectid_t externid;
@@ -1468,23 +1388,21 @@ ECRESULT ECUserManagement::GetExternalObjectDetails(unsigned int ulId, objectdet
 
 	er = GetExternalId(ulId, &externid);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	er = m_lpSession->GetSessionManager()->GetCacheManager()->GetUserDetails(ulId, &detailscached);
 	if (er == erSuccess) {
 		// @todo should compare signature, and see if we need new details for this user
 		er = UpdateUserDetailsToClient(&detailscached);
 		if (er != erSuccess)
-			goto exit;
-
+			return er;
 		*lpDetails = detailscached;
-
-		goto exit;
+		return erSuccess;
 	}
 
 	er = GetThreadLocalPlugin(m_lpPluginFactory, &lpPlugin);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	try {
 		details = lpPlugin->getObjectDetails(externid);
@@ -1495,15 +1413,12 @@ ECRESULT ECUserManagement::GetExternalObjectDetails(unsigned int ulId, objectdet
 		 * this location!.
 		 */
 		DeleteLocalObject(ulId, externid.objclass);
-		er = KCERR_NOT_FOUND;
-		goto exit;
+		return KCERR_NOT_FOUND;
 	} catch (notsupported &) {
-		er = KCERR_NO_SUPPORT;
-		goto exit;
+		return KCERR_NO_SUPPORT;
 	} catch (std::exception &e) {
 		ec_log_warn("Unable to get %s details for object id %d: %s", ObjectClassToName(externid.objclass), ulId, e.what());
-		er = KCERR_NOT_FOUND;
-		goto exit;
+		return KCERR_NOT_FOUND;
 	}
 
 	/* Update cache so we don't have to bug the plugin until the data has changed.
@@ -1514,13 +1429,11 @@ ECRESULT ECUserManagement::GetExternalObjectDetails(unsigned int ulId, objectdet
 	if (! IsInternalObject(ulId)) {
 		er = UpdateUserDetailsToClient(details.get());
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
 
 	*lpDetails = *details;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 // **************************************************************************************************************************************
@@ -1548,25 +1461,22 @@ ECRESULT ECUserManagement::GetLocalId(const objectid_t &sExternId, unsigned int 
 
 ECRESULT ECUserManagement::GetLocalObjectIdOrCreate(const objectsignature_t &sSignature, unsigned int *lpulObjectId)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	unsigned ulObjectId = 0;
 
 	er = m_lpSession->GetSessionManager()->GetCacheManager()->GetUserObject(sSignature.id, &ulObjectId, NULL, NULL);
 	if (er == KCERR_NOT_FOUND)
 		er = MoveOrCreateLocalObject(sSignature, &ulObjectId, NULL);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	if (lpulObjectId)
 		*lpulObjectId = ulObjectId;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECUserManagement::GetLocalObjectsIdsOrCreate(const list<objectsignature_t> &lstSignatures, map<objectid_t, unsigned int> *lpmapLocalObjIds)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	list<objectid_t> lstExternObjIds;
 	list<objectsignature_t>::const_iterator iterSignature;
 	pair<map<objectid_t, unsigned int>::iterator,bool> result;
@@ -1578,7 +1488,7 @@ ECRESULT ECUserManagement::GetLocalObjectsIdsOrCreate(const list<objectsignature
 
 	er = m_lpSession->GetSessionManager()->GetCacheManager()->GetUserObjects(lstExternObjIds, lpmapLocalObjIds);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	for (iterSignature = lstSignatures.begin();
 	     iterSignature != lstSignatures.end(); ++iterSignature) {
@@ -1590,14 +1500,12 @@ ECRESULT ECUserManagement::GetLocalObjectsIdsOrCreate(const list<objectsignature
 		er = MoveOrCreateLocalObject(*iterSignature, &ulObjectId, NULL);
 		if (er != erSuccess) {
 			lpmapLocalObjIds->erase(result.first);
-			goto exit;
+			return er;
 		}
 
 		result.first->second = ulObjectId;
 	}
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECUserManagement::GetLocalObjectIdList(objectclass_t objclass, unsigned int ulCompanyId, std::list<unsigned int> **lppObjects)
@@ -1661,28 +1569,25 @@ exit:
 
 ECRESULT ECUserManagement::CreateObjectAndSync(const objectdetails_t &details, unsigned int *lpulId)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	objectsignature_t objectsignature;
 	UserPlugin *lpPlugin = NULL;
 
 	er = GetThreadLocalPlugin(m_lpPluginFactory, &lpPlugin);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	try {
 		objectsignature = lpPlugin->createObject(details);
 	} catch (notimplemented &e) {
 		ec_log_warn("Unable to create %s in user database(1): %s", ObjectClassToName(details.GetClass()), e.what());
-		er = KCERR_NOT_IMPLEMENTED;
-		goto exit;
+		return KCERR_NOT_IMPLEMENTED;
 	} catch (collision_error &e) {
 		ec_log_warn("Unable to create %s in user database(2): %s", ObjectClassToName(details.GetClass()), e.what());
-		er = KCERR_COLLISION;
-		goto exit;
+		return KCERR_COLLISION;
 	} catch(std::exception &e) {
 		ec_log_warn("Unable to create %s in user database(3): %s", ObjectClassToName(details.GetClass()), e.what());
-		er = KCERR_PLUGIN_ERROR;
-		goto exit;
+		return KCERR_PLUGIN_ERROR;
 	}
 
 	er = MoveOrCreateLocalObject(objectsignature, lpulId, NULL);
@@ -1698,84 +1603,68 @@ ECRESULT ECUserManagement::CreateObjectAndSync(const objectdetails_t &details, u
 			lpPlugin->deleteObject(objectsignature.id);
 		} catch(std::exception &e) {
 			ec_log_warn("Unable to delete %s from plugin database after failed creation: %s", ObjectClassToName(details.GetClass()), e.what());
-			er = KCERR_PLUGIN_ERROR;
-			goto exit;
+			return KCERR_PLUGIN_ERROR;
 		}
 	}
-
-exit:
 	return er;
 }
 
 ECRESULT ECUserManagement::DeleteObjectAndSync(unsigned int ulId)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	objectid_t objectid;
 	UserPlugin *lpPlugin = NULL;
 
 	er = GetThreadLocalPlugin(m_lpPluginFactory, &lpPlugin);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	er = GetExternalId(ulId, &objectid);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	try {
 		lpPlugin->deleteObject(objectid);
 	} catch (objectnotfound &) {
-		er = KCERR_NOT_FOUND;
-		goto exit;
+		return KCERR_NOT_FOUND;
 	} catch (notimplemented &e) {
 		ec_log_warn("Unable to delete %s in user database: %s", ObjectClassToName(objectid.objclass), e.what());
-		er = KCERR_NOT_IMPLEMENTED;
-		goto exit;
+		return KCERR_NOT_IMPLEMENTED;
 	} catch(std::exception &e) {
 		ec_log_warn("Unable to delete %s in user database: %s", ObjectClassToName(objectid.objclass), e.what());
-		er = KCERR_PLUGIN_ERROR;
-		goto exit;
+		return KCERR_PLUGIN_ERROR;
 	}
-
-	er = DeleteLocalObject(ulId, objectid.objclass);
-
-exit:
-	return er;
+	return DeleteLocalObject(ulId, objectid.objclass);
 }
 
 ECRESULT ECUserManagement::SetQuotaDetailsAndSync(unsigned int ulId, const quotadetails_t &details)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	objectid_t externid;
 	UserPlugin *lpPlugin = NULL;
 
 	er = GetThreadLocalPlugin(m_lpPluginFactory, &lpPlugin);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = GetExternalId(ulId, &externid);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	try {
 		lpPlugin->setQuota(externid, details);
 	} catch(objectnotfound &) {
 		MoveOrDeleteLocalObject(ulId, externid.objclass);
-		er = KCERR_NOT_FOUND;
-		goto exit;
+		return KCERR_NOT_FOUND;
 	} catch (notimplemented &e) {
 		ec_log_warn("Unable to set quota for %s: %s", ObjectClassToName(externid.objclass), e.what());
-		er = KCERR_NOT_IMPLEMENTED;
-		goto exit;
+		return KCERR_NOT_IMPLEMENTED;
 	} catch(std::exception &e) {
 		ec_log_warn("Unable to set quota for %s: %s", ObjectClassToName(externid.objclass), e.what());
-		er = KCERR_PLUGIN_ERROR;
-		goto exit;
+		return KCERR_PLUGIN_ERROR;
 	}
 
 	m_lpSession->GetSessionManager()->GetCacheManager()->UpdateUser(ulId);
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECUserManagement::GetQuotaDetailsAndSync(unsigned int ulId, quotadetails_t* lpDetails, bool bGetUserDefault)
@@ -1795,37 +1684,33 @@ ECRESULT ECUserManagement::GetQuotaDetailsAndSync(unsigned int ulId, quotadetail
 			lpDetails->llSoftSize = 0;
 			lpDetails->llHardSize = 0;
 		}
-		goto exit;
+		return er;
 	}
 
 	er = m_lpSession->GetSessionManager()->GetCacheManager()->GetQuota(ulId, bGetUserDefault, lpDetails);
 	if (er == erSuccess)
-		goto exit; /* Cache contained requested information, we're done. */
+		return erSuccess; /* Cache contained requested information, we're done. */
 
 	er = GetThreadLocalPlugin(m_lpPluginFactory, &lpPlugin);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	er = GetExternalId(ulId, &userid);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	if ((userid.objclass == CONTAINER_COMPANY && !m_lpSession->GetSessionManager()->IsHostedSupported()) ||
-		(userid.objclass != CONTAINER_COMPANY && bGetUserDefault)) {
-		er = KCERR_NO_SUPPORT;
-		goto exit;
-	}
+	    (userid.objclass != CONTAINER_COMPANY && bGetUserDefault))
+		return KCERR_NO_SUPPORT;
 
 	try {
 		details = *lpPlugin->getQuota(userid, bGetUserDefault);
 	} catch(objectnotfound &) {
 		MoveOrDeleteLocalObject(ulId, userid.objclass);
-		er = KCERR_NOT_FOUND;
-		goto exit;
+		return KCERR_NOT_FOUND;
 	} catch(std::exception &e) {
 		ec_log_warn("Unable to get quota for %s: %s", ObjectClassToName(userid.objclass), e.what());
-		er = KCERR_PLUGIN_ERROR;
-		goto exit;
+		return KCERR_PLUGIN_ERROR;
 	}
 
 	/* Update cache so we don't have to bug the plugin until the data has changed.
@@ -1834,14 +1719,12 @@ ECRESULT ECUserManagement::GetQuotaDetailsAndSync(unsigned int ulId, quotadetail
 	m_lpSession->GetSessionManager()->GetCacheManager()->SetQuota(ulId, bGetUserDefault, details);
 
 	*lpDetails = details;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECUserManagement::SearchObjectAndSync(const char* szSearchString, unsigned int ulFlags, unsigned int *lpulID)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	objectsignature_t objectsignature;
 	std::unique_ptr<signatures_t> lpObjectsignatures;
 	signatures_t::const_iterator iterSignature;
@@ -1857,39 +1740,34 @@ ECRESULT ECUserManagement::SearchObjectAndSync(const char* szSearchString, unsig
 
 	er = GetSecurity(&lpSecurity);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// Special case: SYSTEM
 	if (stricmp(szSearchString, KOPANO_ACCOUNT_SYSTEM) == 0) {
 		// Hide user SYSTEM when requested
 		if (lpSecurity->GetUserId() != KOPANO_UID_SYSTEM) {
 			szHideSystem = m_lpConfig->GetSetting("hide_system");
-			if (szHideSystem && parseBool(szHideSystem)) {
-				er = KCERR_NOT_FOUND;
-				goto exit;
-			}
+			if (szHideSystem && parseBool(szHideSystem))
+				return KCERR_NOT_FOUND;
 		}
 
 		*lpulID = KOPANO_UID_SYSTEM;
-		goto exit;
+		return erSuccess;
 	} else if (stricmp(szSearchString, KOPANO_ACCOUNT_EVERYONE) == 0) {
 		// Hide group everyone when requested
 		if (lpSecurity->GetUserId() != KOPANO_UID_SYSTEM) {
 			szHideEveryone = m_lpConfig->GetSetting("hide_everyone");
-			if (szHideEveryone && parseBool(szHideEveryone) && lpSecurity->GetAdminLevel() == 0) {
-				er = KCERR_NOT_FOUND;
-				goto exit;
-			}
+			if (szHideEveryone && parseBool(szHideEveryone) && lpSecurity->GetAdminLevel() == 0)
+				return KCERR_NOT_FOUND;
 		}
 		
 		*lpulID = KOPANO_UID_EVERYONE;
-		goto exit;
+		return erSuccess;
 	}
 
 	er = GetThreadLocalPlugin(m_lpPluginFactory, &lpPlugin);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	/*
 	 * The search string might be the following:
 	 *  1) Portion of the fullname
@@ -1945,25 +1823,18 @@ ECRESULT ECUserManagement::SearchObjectAndSync(const char* szSearchString, unsig
 	try {
 		lpObjectsignatures = lpPlugin->searchObject(szSearchString, ulFlags);
 	} catch(notimplemented &) {
-		er = KCERR_NOT_FOUND;
-		goto exit;
+		return KCERR_NOT_FOUND;
 	} catch(objectnotfound &) {
-		er = KCERR_NOT_FOUND;
-		goto exit;
+		return KCERR_NOT_FOUND;
 	} catch(notsupported &) {
-		er = KCERR_NO_SUPPORT;
-		goto exit;
+		return KCERR_NO_SUPPORT;
 	} catch(std::exception &e) {
 		ec_log_warn("Unable to perform search for string \"%s\" on user database: %s", szSearchString, e.what());
-		er = KCERR_PLUGIN_ERROR;
-		goto exit;
+		return KCERR_PLUGIN_ERROR;
 	}
 
-	if (lpObjectsignatures->empty()) {
-		er = KCERR_NOT_FOUND;
-		goto exit;
-	}
-
+	if (lpObjectsignatures->empty())
+		return KCERR_NOT_FOUND;
 	lpObjectsignatures->sort();
 	lpObjectsignatures->unique();
 
@@ -1978,8 +1849,7 @@ done:
 
 		er = GetLocalObjectIdOrCreate(*iterSignature, &ulIdTmp);
 		if (er != erSuccess)
-			goto exit;
-
+			return er;
 		if (lpSecurity->IsUserObjectVisible(ulIdTmp) != erSuccess)
 			continue;
 
@@ -1988,9 +1858,8 @@ done:
 			if (ulId == 0) {
 				ulId = ulIdTmp;
 			} else if (ulId != ulIdTmp) {
-				er = KCERR_COLLISION;
 				ec_log_crit("ECUserManagement::SearchObjectAndSync() unexpected id %u/%u", ulId, ulIdTmp);
-				goto exit;
+				return KCERR_COLLISION;
 			}
 		} else {
 			/* EMS_AB_ADDRESS_LOOKUP specified. We use a different algorithm for disambiguating: We look at the object types
@@ -2014,10 +1883,8 @@ done:
 	}
 
 	if(ulFlags & EMS_AB_ADDRESS_LOOKUP) {
-		if(mapMatches.empty()) {
-			er = KCERR_NOT_FOUND;
-			goto exit;
-		}
+		if (mapMatches.empty())
+			return KCERR_NOT_FOUND;
 
 		// mapMatches is already sorted numerically, so it's OBJECTTYPE_MAILUSER, OBJECTTYPE_DISTLIST, OBJECTTYPE_CONTAINER, NONACTIVE_CONTACT
 		if(mapMatches.begin()->second.size() == 1) {
@@ -2025,20 +1892,15 @@ done:
 		} else {
 			// size() cannot be 0. Otherwise, it would not be there at all. So apparently, it is > 1, so it is ambiguous.
 			ec_log_info("Resolved multiple users for search \"%s\".", szSearchString);
-			er = KCERR_COLLISION;
-			goto exit;
+			return KCERR_COLLISION;
 		}
 	}
 
-	if(ulId == 0) {
+	if(ulId == 0)
 		// Nothing matched..
-		er = KCERR_NOT_FOUND;
-		goto exit;
-	}
+		return KCERR_NOT_FOUND;
 		
 	*lpulID = ulId;
-
-exit:
 	return er;
 }
 
@@ -2354,7 +2216,7 @@ ECRESULT ECUserManagement::GetUserAndCompanyFromLoginName(const std::string &str
 
 ECRESULT ECUserManagement::ConvertLoginToUserAndCompany(objectdetails_t *lpDetails)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	bool bHosted = m_lpSession->GetSessionManager()->IsHostedSupported();
 	string loginname;
 	string companyname;
@@ -2364,7 +2226,7 @@ ECRESULT ECUserManagement::ConvertLoginToUserAndCompany(objectdetails_t *lpDetai
 	if ((OBJECTCLASS_TYPE(lpDetails->GetClass()) != OBJECTTYPE_MAILUSER &&
 		 OBJECTCLASS_TYPE(lpDetails->GetClass()) != OBJECTTYPE_DISTLIST) ||
 		lpDetails->GetClass() == NONACTIVE_CONTACT || lpDetails->GetPropString(OB_PROP_S_LOGIN).empty())
-			goto exit;
+			return erSuccess;
 
 	er = GetUserAndCompanyFromLoginName(lpDetails->GetPropString(OB_PROP_S_LOGIN), &loginname, &companyname);
 	/* GetUserAndCompanyFromLoginName() uses KCWARN_PARTIAL_COMPLETION to indicate
@@ -2373,17 +2235,16 @@ ECRESULT ECUserManagement::ConvertLoginToUserAndCompany(objectdetails_t *lpDetai
 	if (er == KCWARN_PARTIAL_COMPLETION)
 		er = KCERR_INVALID_PARAMETER;
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	if (bHosted) {
 #ifndef HAVE_OFFLINE_SUPPORT
 		er = ResolveObject(CONTAINER_COMPANY, companyname, objectid_t(), &sCompanyId);
 		if (er != erSuccess)
-			goto exit;
-
+			return er;
 		er = GetLocalId(sCompanyId, &ulCompanyId);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 #endif
 
 		lpDetails->SetPropObject(OB_PROP_O_COMPANYID, sCompanyId);
@@ -2395,14 +2256,12 @@ ECRESULT ECUserManagement::ConvertLoginToUserAndCompany(objectdetails_t *lpDetai
 	/* Groups require fullname to be updated as well */
 	if (OBJECTCLASS_TYPE(lpDetails->GetClass()) == OBJECTTYPE_DISTLIST)
 		lpDetails->SetPropString(OB_PROP_S_FULLNAME, loginname);
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECUserManagement::ConvertUserAndCompanyToLogin(objectdetails_t *lpDetails)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	string format;
 	bool bHosted = m_lpSession->GetSessionManager()->IsHostedSupported();
 	string login;
@@ -2414,7 +2273,7 @@ ECRESULT ECUserManagement::ConvertUserAndCompanyToLogin(objectdetails_t *lpDetai
 
 #ifdef HAVE_OFFLINE_SUPPORT
 	/* We cannot convert user and company names in offline server. */
-	goto exit;
+	return erSuccess;
 #endif
 
 	/*
@@ -2423,7 +2282,7 @@ ECRESULT ECUserManagement::ConvertUserAndCompanyToLogin(objectdetails_t *lpDetai
 	 * or when the user objecttype does not need any conversions.
 	 */
 	if (!bHosted ||	login == KOPANO_ACCOUNT_SYSTEM || login == KOPANO_ACCOUNT_EVERYONE || lpDetails->GetClass() == CONTAINER_COMPANY)
-		goto exit;
+		return erSuccess;
 
 	format = m_lpConfig->GetSetting("loginname_format");
 	login  = lpDetails->GetPropString(OB_PROP_S_LOGIN);
@@ -2436,7 +2295,7 @@ ECRESULT ECUserManagement::ConvertUserAndCompanyToLogin(objectdetails_t *lpDetai
 	er = GetLocalId(sCompany, &ulCompanyId);
 	if (er != erSuccess) {
 		ec_log_crit("Unable to find company id for object " + lpDetails->GetPropString(OB_PROP_S_FULLNAME));
-		goto exit;
+		return er;
 	}
 
 	// update company local id and company name
@@ -2445,12 +2304,12 @@ ECRESULT ECUserManagement::ConvertUserAndCompanyToLogin(objectdetails_t *lpDetai
 	// skip login conversion for non-login objects
 	if ((OBJECTCLASS_TYPE(lpDetails->GetClass()) != OBJECTTYPE_MAILUSER && OBJECTCLASS_TYPE(lpDetails->GetClass()) != OBJECTTYPE_DISTLIST) ||
 		(lpDetails->GetClass() == NONACTIVE_CONTACT))
-		goto exit;
+		return er;
 
 	// find company name for object
 	er = GetObjectDetails(ulCompanyId, &sCompanyDetails);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	company = sCompanyDetails.GetPropString(OB_PROP_S_FULLNAME);
 
@@ -2459,10 +2318,8 @@ ECRESULT ECUserManagement::ConvertUserAndCompanyToLogin(objectdetails_t *lpDetai
 	 * company must contain *something* when hosted is enabled, and we already confirmed that this
 	 * is the case.
 	 */
-	if (login.empty() || company.empty()) {
-		er = KCERR_UNABLE_TO_COMPLETE;
-		goto exit;
-	}
+	if (login.empty() || company.empty())
+		return KCERR_UNABLE_TO_COMPLETE;
 
 	pos = format.find("%u");
 	if (pos != string::npos)
@@ -2477,13 +2334,12 @@ ECRESULT ECUserManagement::ConvertUserAndCompanyToLogin(objectdetails_t *lpDetai
 	if (OBJECTCLASS_TYPE(lpDetails->GetClass()) == OBJECTTYPE_DISTLIST)
 		lpDetails->SetPropString(OB_PROP_S_FULLNAME, format);
 
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECUserManagement::ConvertExternIDsToLocalIDs(objectdetails_t *lpDetails)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	list<objectid_t> lstExternIDs;
 	map<objectid_t, unsigned int> mapLocalIDs;
 	std::map<objectid_t, unsigned int>::const_iterator iterLocalIDs;
@@ -2494,7 +2350,7 @@ ECRESULT ECUserManagement::ConvertExternIDsToLocalIDs(objectdetails_t *lpDetails
 
 #ifdef HAVE_OFFLINE_SUPPORT
 	/* We cannot convert ? or can we.....? */
-	goto exit;
+	return erSuccess;
 #endif
 
 	// details == info, list contains 1) active_users or 2) groups
@@ -2513,7 +2369,7 @@ ECRESULT ECUserManagement::ConvertExternIDsToLocalIDs(objectdetails_t *lpDetails
 
 		er = m_lpSession->GetSessionManager()->GetCacheManager()->GetUserObjects(lstExternIDs, &mapLocalIDs);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 
 		for (iterLocalIDs = mapLocalIDs.begin();
 		     iterLocalIDs != mapLocalIDs.end(); ++iterLocalIDs) {
@@ -2537,20 +2393,18 @@ ECRESULT ECUserManagement::ConvertExternIDsToLocalIDs(objectdetails_t *lpDetails
 		// Nothing to do
 		break;
 	}
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECUserManagement::ConvertLocalIDsToExternIDs(objectdetails_t *lpDetails)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	objectid_t sExternID;
 	unsigned int ulLocalID = 0;
 
 #ifdef HAVE_OFFLINE_SUPPORT
 	/* We cannot convert ? or can we.....? */
-	goto exit;
+	return erSuccess;
 #endif
 
 	switch (lpDetails->GetClass()) {
@@ -2562,7 +2416,7 @@ ECRESULT ECUserManagement::ConvertLocalIDsToExternIDs(objectdetails_t *lpDetails
 
 		er = GetExternalId(ulLocalID, &sExternID);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 
 		lpDetails->SetPropObject(OB_PROP_O_SYSADMIN, sExternID);
 		break;
@@ -2570,9 +2424,7 @@ ECRESULT ECUserManagement::ConvertLocalIDsToExternIDs(objectdetails_t *lpDetails
 		// Nothing to do
 		break;
 	}
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 /** 
@@ -2696,22 +2548,18 @@ ECRESULT ECUserManagement::RemoveDefaultFeatures(objectdetails_t *lpDetails)
  */
 ECRESULT ECUserManagement::UpdateUserDetailsToClient(objectdetails_t *lpDetails)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 
 	er = ConvertUserAndCompanyToLogin(lpDetails);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	er = ConvertExternIDsToLocalIDs(lpDetails);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	er = ComplementDefaultFeatures(lpDetails);
 	if (er != erSuccess)
-		goto exit;
-
-exit:
-	return er;
+		return er;
+	return erSuccess;
 }
 
 /** 
@@ -2723,22 +2571,18 @@ exit:
  */
 ECRESULT ECUserManagement::UpdateUserDetailsFromClient(objectdetails_t *lpDetails)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 
 	er = ConvertLoginToUserAndCompany(lpDetails);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	er = ConvertLocalIDsToExternIDs(lpDetails);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	er = RemoveDefaultFeatures(lpDetails);
 	if (er != erSuccess)
-		goto exit;
-
-exit:
-	return er;
+		return er;
+	return erSuccess;
 }
 
 // ******************************************************************************************************
@@ -2750,7 +2594,7 @@ exit:
 // Perform a license check
 ECRESULT ECUserManagement::CheckUserLicense(unsigned int *lpulLicenseStatus)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	std::string strQuery;
 	unsigned int ulTotalUsers = 0;
 	unsigned int ulActive = 0;
@@ -2766,14 +2610,14 @@ ECRESULT ECUserManagement::CheckUserLicense(unsigned int *lpulLicenseStatus)
 	er = GetUserCount(&ulActive, &ulNonActive);
 	if (er != erSuccess) {
 		ec_log_crit("Unable to query user count");
-		goto exit;
+		return er;
 	}
 	ulTotalUsers = ulActive + ulNonActive;
 
 	er = m_lpSession->GetSessionManager()->GetLicensedUsers(0 /*SERVICE_TYPE_ZCP*/, &ulLicensedUsers);
 	if (er != erSuccess) {
 		ec_log_crit("Unable to query license user count");
-		goto exit;
+		return er;
 	}
 
 	/* Active limit is always licensed users limit when the limit is 0 we have unlimited users,
@@ -2794,14 +2638,12 @@ ECRESULT ECUserManagement::CheckUserLicense(unsigned int *lpulLicenseStatus)
 		if (ulTotalUsers > ulNonActiveLimit)
 			*lpulLicenseStatus |= USERMANAGEMENT_EXCEED_NONACTIVE_USERS;
 	}
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 // Create a local user corresponding to the given userid on the external database
 ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature, unsigned int *lpulObjectId) {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	ECDatabase *lpDatabase = NULL;
 	std::string strQuery;
 	objectdetails_t details;
@@ -2817,25 +2659,22 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 
 	er = m_lpSession->GetDatabase(&lpDatabase);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = GetThreadLocalPlugin(m_lpPluginFactory, &lpPlugin);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	if (OBJECTCLASS_TYPE(signature.id.objclass) == OBJECTTYPE_MAILUSER && signature.id.objclass != NONACTIVE_CONTACT) {
 		er = CheckUserLicense(&ulLicenseStatus);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 
 		if (signature.id.objclass == ACTIVE_USER && (ulLicenseStatus & USERMANAGEMENT_BLOCK_CREATE_ACTIVE_USER)) {
 			ec_log_crit("Unable to create active user: Your license does not permit this amount of users.");
-			er = KCERR_UNABLE_TO_COMPLETE;
-			goto exit;
+			return KCERR_UNABLE_TO_COMPLETE;
 		} else if (ulLicenseStatus & USERMANAGEMENT_BLOCK_CREATE_NONACTIVE_USER) {
 			ec_log_crit("Unable to create non-active user: Your license does not permit this amount of users.");
-			er = KCERR_UNABLE_TO_COMPLETE;
-			goto exit;
+			return KCERR_UNABLE_TO_COMPLETE;
 		}
 	}
 
@@ -2851,29 +2690,25 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 		 */
 		if (signature.id.objclass != NONACTIVE_CONTACT && details.GetPropString(OB_PROP_S_LOGIN).empty()) {
 			ec_log_warn("Unable to create object in local database: %s has no name", ObjectClassToName(signature.id.objclass));
-			er = KCERR_UNKNOWN_OBJECT;
-			goto exit;
+			return KCERR_UNKNOWN_OBJECT;
 		}
 
 		// details is from externid, no need to check for SYSTEM or EVERYONE
 		er = UpdateUserDetailsToClient(&details);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	} catch (objectnotfound &) {
-		er = KCERR_NOT_FOUND;
-		goto exit;
+		return KCERR_NOT_FOUND;
 	} catch (notsupported &) {
-		er = KCERR_NO_SUPPORT;
-		goto exit;
+		return KCERR_NO_SUPPORT;
 	} catch(std::exception &e) {
 		ec_log_warn("Unable to get object data while adding new %s: %s", ObjectClassToName(signature.id.objclass), e.what());
-		er = KCERR_PLUGIN_ERROR;
-		goto exit;
+		return KCERR_PLUGIN_ERROR;
 	}
 
 	if (parseBool(m_lpConfig->GetSetting("user_safe_mode"))) {
 		ec_log_crit("user_safe_mode: Would create new %s with name \"%s\"", ObjectClassToName(signature.id.objclass), details.GetPropString(OB_PROP_S_FULLNAME).c_str());
-		goto exit;
+		return er;
 	}
 
 	/*
@@ -2907,7 +2742,7 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 			"'" + lpDatabase->Escape(signature.signature) + "')";
 	er = lpDatabase->DoInsert(strQuery, &ulId);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	if (signature.id.objclass == CONTAINER_COMPANY)
 		ulCompanyId = 0;
@@ -2921,7 +2756,7 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 			"WHERE id = " + stringify(ulId);
 		er = lpDatabase->DoUpdate(strQuery);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
 
 	switch(signature.id.objclass) {
@@ -2957,14 +2792,12 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 	// Log the change to ICS
 	er = GetABSourceKeyV1(ulId, &sSourceKey);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	AddABChange(m_lpSession, ICS_AB_NEW, sSourceKey, SOURCEKEY(CbABEID(&eid), (char *)&eid));
 
 	*lpulObjectId = ulId;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 // Creates a local object under a specific object ID
@@ -3139,7 +2972,7 @@ exit:
 // Check if an object has moved to a new company, or if it was created as new 
 ECRESULT ECUserManagement::MoveOrCreateLocalObject(const objectsignature_t &signature, unsigned int *lpulObjectId, bool *lpbMoved)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	objectdetails_t details;
 	unsigned int ulObjectId = 0;
 	unsigned int ulNewCompanyId = 0;
@@ -3170,8 +3003,7 @@ ECRESULT ECUserManagement::MoveOrCreateLocalObject(const objectsignature_t &sign
 	if (signature.id.objclass == CONTAINER_COMPANY) {
 		er = CreateLocalObject(signature, &ulObjectId);
 		if (er != erSuccess)
-			goto exit;
-
+			return er;
 		goto done;
 	}
 
@@ -3184,7 +3016,7 @@ ECRESULT ECUserManagement::MoveOrCreateLocalObject(const objectsignature_t &sign
 		if (er == KCERR_NOT_FOUND) {
 			er = CreateLocalObject(signature, &ulObjectId);
 			if (er != erSuccess)
-				goto exit;
+				return er;
 		} else if (er == erSuccess)
 			bMoved = true;
 
@@ -3194,18 +3026,17 @@ ECRESULT ECUserManagement::MoveOrCreateLocalObject(const objectsignature_t &sign
 	/* Delete cache, to force call to plugin */
 	er = m_lpSession->GetSessionManager()->GetCacheManager()->UpdateUser(ulObjectId);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	/* Result new object details */
 	er = GetObjectDetails(ulObjectId, &details);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	ulNewCompanyId = details.GetPropInt(OB_PROP_I_COMPANYID);
 
 	er = MoveLocalObject(ulObjectId, signature.id.objclass, ulNewCompanyId, details.GetPropString(OB_PROP_S_LOGIN));
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	bMoved = true;
 
@@ -3214,24 +3045,19 @@ done:
 		*lpulObjectId = ulObjectId;
 	if (lpbMoved)
 		*lpbMoved = bMoved;
-
-exit:
 	return er;
 }
 
 // Check if an object has moved to a new company, or if it was deleted completely
 ECRESULT ECUserManagement::MoveOrDeleteLocalObject(unsigned int ulObjectId, objectclass_t objclass)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	objectdetails_t details;
 	unsigned int ulOldCompanyId = 0;
 	unsigned int ulNewCompanyId = 0;
 
-	if(IsInternalObject(ulObjectId)) {
-		er = KCERR_NO_ACCESS;
-		goto exit;
-	}
-
+	if (IsInternalObject(ulObjectId))
+		return KCERR_NO_ACCESS;
 	/*
 	 * This function is called when an object with an external id has disappeared,
 	 * there are various reasons why this might happen:
@@ -3254,30 +3080,26 @@ ECRESULT ECUserManagement::MoveOrDeleteLocalObject(unsigned int ulObjectId, obje
 	 */
 
 	/* We don't support moving entire companies, delete it. */
-	if (objclass == CONTAINER_COMPANY) {
-		er = DeleteLocalObject(ulObjectId, objclass);
-		goto exit;
-	}
+	if (objclass == CONTAINER_COMPANY)
+		return DeleteLocalObject(ulObjectId, objclass);
 
 	/* Request old company */
 	er = GetExternalId(ulObjectId, NULL, &ulOldCompanyId);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	/* Delete cache, to force call to plugin */
 	er = m_lpSession->GetSessionManager()->GetCacheManager()->UpdateUser(ulObjectId);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	/* Result new object details */
 	er = GetObjectDetails(ulObjectId, &details);
-	if (er == KCERR_NOT_FOUND) {
+	if (er == KCERR_NOT_FOUND)
 		/* Object was indeed deleted, GetObjectDetails() has called DeleteLocalObject() */
-		er = erSuccess;
-		goto exit;
-	} else if (er != erSuccess) {
-		goto exit;
-	}
+		return erSuccess;
+	else if (er != erSuccess)
+		return er;
 
 	ulNewCompanyId = details.GetPropInt(OB_PROP_I_COMPANYID);
 
@@ -3289,12 +3111,11 @@ ECRESULT ECUserManagement::MoveOrDeleteLocalObject(unsigned int ulObjectId, obje
 	if (ulOldCompanyId != ulNewCompanyId) {
 		er = MoveLocalObject(ulObjectId, objclass, ulNewCompanyId, details.GetPropString(OB_PROP_S_LOGIN));
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	} else
 		ec_log_err("Unable to move object %s \"%s\" (id=%d)", ObjectClassToName(objclass), details.GetPropString(OB_PROP_S_LOGIN).c_str(), ulObjectId);
 
-exit:
-	return er;
+	return erSuccess;
 }
 
 // Move a local user with the specified id to a new company
@@ -3588,7 +3409,7 @@ bool ECUserManagement::IsInternalObject(unsigned int ulUserId)
  */
 ECRESULT ECUserManagement::ConvertAnonymousObjectDetailToProp(struct soap *soap, objectdetails_t *lpDetails, unsigned int ulPropTag, struct propVal *lpPropVal)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	struct propVal sPropVal;
 	std::string strValue;
 	std::list<std::string> lstrValues;
@@ -3608,16 +3429,12 @@ ECRESULT ECUserManagement::ConvertAnonymousObjectDetailToProp(struct soap *soap,
 
 	if (PROP_TYPE(ulPropTag) & MV_FLAG) {
 		lstrValues = lpDetails->GetPropListString((property_key_t)ulGetPropTag);
-		if (lstrValues.empty()) {
-			er = KCERR_UNKNOWN;
-			goto exit;
-		}
+		if (lstrValues.empty())
+			return KCERR_UNKNOWN;
 	} else {
 		strValue = lpDetails->GetPropString((property_key_t)ulGetPropTag);
-		if (strValue.empty()) {
-			er = KCERR_UNKNOWN;
-			goto exit;
-		}
+		if (strValue.empty())
+			return KCERR_UNKNOWN;
 	}
 
 	/* Special properties which cannot be copied blindly */
@@ -3626,10 +3443,9 @@ ECRESULT ECUserManagement::ConvertAnonymousObjectDetailToProp(struct soap *soap,
 	case 0x800C0102: /* PR_EMS_AB_OWNER		| PT_BINARY */
 		er = CreateABEntryID(soap, lpDetails->GetPropObject((property_key_t)ulPropTag), lpPropVal);
 		if (er != erSuccess)
-			goto exit;
-
+			return er;
 		lpPropVal->ulPropTag = ulPropTag;
-		goto exit;
+		return erSuccess;
 	case 0x80081102: /* PR_EMS_AB_IS_MEMBER_OF_DL	| PT_MV_BINARY */
 	case 0x800E1102: /* PR_EMS_AB_REPORTS			| PT_MV_BINARY */
 		lobjValues = lpDetails->GetPropListObject((property_key_t)ulPropTag);
@@ -3649,8 +3465,7 @@ ECRESULT ECUserManagement::ConvertAnonymousObjectDetailToProp(struct soap *soap,
 			lpPropVal->Value.mvbin.__ptr[i++].__size = sPropVal.Value.bin->__size;
 		}
 		lpPropVal->Value.mvbin.__size = i;
-		er = erSuccess;
-		goto exit;
+		return erSuccess;
 	default:
 		break;
 	}
@@ -3714,12 +3529,9 @@ ECRESULT ECUserManagement::ConvertAnonymousObjectDetailToProp(struct soap *soap,
 		lpPropVal->__union = SOAP_UNION_propValData_mvbin;
 		break;
 	default:
-		er = KCERR_UNKNOWN;
-		goto exit;
+		return KCERR_UNKNOWN;
 	}
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 /**
@@ -4318,7 +4130,7 @@ exit:
 // Convert a userdetails_t to a set of MAPI properties
 ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soap, unsigned int ulId, objectdetails_t *lpDetails, struct propTagArray *lpPropTags, struct propValArray *lpPropVals)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	struct propVal *lpPropVal;
 	unsigned int ulOrder = 0;
 	ECSecurity *lpSecurity = NULL;
@@ -4327,15 +4139,13 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
 
 	er = GetSecurity(&lpSecurity);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	er = lpSecurity->IsUserObjectVisible(ulId);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	er = TypeToMAPIType(lpDetails->GetClass(), &ulMapiType);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	lpPropVals->__ptr = s_alloc<struct propVal>(soap, lpPropTags->__size);
 	lpPropVals->__size = lpPropTags->__size;
@@ -4354,7 +4164,7 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
 			case PR_ENTRYID: {
 				er = CreateABEntryID(soap, ulId, ulMapiType, lpPropVal);
 				if (er != erSuccess)
-					goto exit;
+					return er;
 				break;
 			}
 			case PR_PARENT_ENTRYID: {
@@ -4432,7 +4242,7 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
 			case PR_ENTRYID: {
 				er = CreateABEntryID(soap, ulId, ulMapiType, lpPropVal);
 				if (er != erSuccess)
-					goto exit;
+					return er;
 				break;
 			}
 			case PR_EMS_AB_PARENT_ENTRYID:
@@ -4529,14 +4339,11 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
 		} // end CONTAINER_COMPANY
 		} // end switch(objclass)
 	}
-
-exit:
 	return er;
 }
 
 ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap, unsigned int ulId, struct propTagArray *lpPropTagArray, struct propValArray *lpPropValArray)
 {
-	ECRESULT er = erSuccess;
 	struct propVal *lpPropVal;
 	std::string strName;
 	ABEID abeid;
@@ -4557,10 +4364,8 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap, unsigned
 		strName = KOPANO_FULLNAME_GLOBAL_ADDRESS_BOOK;
 	else if (ulId == KOPANO_UID_GLOBAL_ADDRESS_LISTS)
 		strName = KOPANO_FULLNAME_GLOBAL_ADDRESS_LISTS;
-	else {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
+	else
+		return KCERR_INVALID_PARAMETER;
 
 	for (gsoap_size_t i = 0; i < lpPropTagArray->__size; ++i) {
 		lpPropVal = &lpPropValArray->__ptr[i];
@@ -4711,27 +4516,22 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap, unsigned
 			break;
 		}
 	}
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECUserManagement::GetUserCount(unsigned int *lpulActive, unsigned int *lpulNonActive)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	usercount_t userCount;
 
 	er = GetUserCount(&userCount);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	if (lpulActive)
 		*lpulActive = userCount[usercount_t::ucActiveUser];
 	if (lpulNonActive)
 		*lpulNonActive = userCount[usercount_t::ucNonActiveTotal];
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECUserManagement::GetUserCount(usercount_t *lpUserCount)
@@ -4814,7 +4614,7 @@ ECRESULT ECUserManagement::GetCachedUserCount(usercount_t *lpUserCount)
 
 ECRESULT ECUserManagement::GetPublicStoreDetails(objectdetails_t *lpDetails)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	std::unique_ptr<objectdetails_t> details;
 	UserPlugin *lpPlugin = NULL;
 
@@ -4822,24 +4622,20 @@ ECRESULT ECUserManagement::GetPublicStoreDetails(objectdetails_t *lpDetails)
 	// type passed was , CONTAINER_COMPANY .. still working?
 	er = m_lpSession->GetSessionManager()->GetCacheManager()->GetUserDetails(KOPANO_UID_EVERYONE, lpDetails);
 	if (er == erSuccess)
-		goto exit; /* Cache contained requested information, we're done.*/
-
+		return erSuccess; /* Cache contained requested information, we're done.*/
 	er = GetThreadLocalPlugin(m_lpPluginFactory, &lpPlugin);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	try {
 		details = lpPlugin->getPublicStoreDetails();
 	} catch (objectnotfound &) {
-		er = KCERR_NOT_FOUND;
-		goto exit;
+		return KCERR_NOT_FOUND;
 	} catch (notsupported &) {
-		er = KCERR_NO_SUPPORT;
-		goto exit;
+		return KCERR_NO_SUPPORT;
 	} catch (std::exception &e) {
 		ec_log_warn("Unable to get %s details for object id %d: %s", ObjectClassToName(CONTAINER_COMPANY), KOPANO_UID_EVERYONE, e.what());
-		er = KCERR_NOT_FOUND;
-		goto exit;
+		return KCERR_NOT_FOUND;
 	}
 
 	/* Update cache so we don't have to bug the plugin until the data has changed.
@@ -4848,46 +4644,37 @@ ECRESULT ECUserManagement::GetPublicStoreDetails(objectdetails_t *lpDetails)
 	m_lpSession->GetSessionManager()->GetCacheManager()->SetUserDetails(KOPANO_UID_EVERYONE, details.get());
 
 	*lpDetails = *details;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECUserManagement::GetServerDetails(const std::string &strServer, serverdetails_t *lpDetails)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	std::unique_ptr<serverdetails_t> details;
 	UserPlugin *lpPlugin = NULL;
 
 	// Try the cache first
 	er = m_lpSession->GetSessionManager()->GetCacheManager()->GetServerDetails(strServer, lpDetails);
 	if (er == erSuccess)
-		goto exit;
-
-
+		return erSuccess;
 	er = GetThreadLocalPlugin(m_lpPluginFactory, &lpPlugin);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	try {
 		details = lpPlugin->getServerDetails(strServer);
 		m_lpSession->GetSessionManager()->GetCacheManager()->SetServerDetails(strServer, *details);
 	} catch (objectnotfound &) {
-		er = KCERR_NOT_FOUND;
-		goto exit;
+		return KCERR_NOT_FOUND;
 	} catch (notsupported &) {
-		er = KCERR_NO_SUPPORT;
-		goto exit;
+		return KCERR_NO_SUPPORT;
 	} catch (std::exception &e) {
 		ec_log_warn("Unable to get server details for \"%s\": %s", strServer.c_str(), e.what());
-		er = KCERR_NOT_FOUND;
-		goto exit;
+		return KCERR_NOT_FOUND;
 	}
 
 	*lpDetails = *details;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 /**
@@ -4903,26 +4690,23 @@ exit:
  */
 ECRESULT ECUserManagement::GetServerList(serverlist_t *lpServerList)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	std::unique_ptr<serverlist_t> list;
 	UserPlugin *lpPlugin = NULL;
 	
 	er = GetThreadLocalPlugin(m_lpPluginFactory, &lpPlugin);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	try {
 		list = lpPlugin->getServers();
 	} catch (std::exception &e) {
 		ec_log_warn("Unable to get server list: %s", e.what());
-		er = KCERR_NOT_FOUND;
-		goto exit;
+		return KCERR_NOT_FOUND;
 	}
 
 	*lpServerList = *list;
-	
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECUserManagement::CheckObjectModified(unsigned int ulObjectId, const string &localsignature, const string &remotesignature)
@@ -4948,7 +4732,7 @@ ECRESULT ECUserManagement::CheckObjectModified(unsigned int ulObjectId, const st
 
 ECRESULT ECUserManagement::ProcessModification(unsigned int ulId, const std::string &newsignature)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	std::string strQuery;
 	ECDatabase *lpDatabase = NULL;
 	ABEID eid(MAPI_ABCONT, MUIDECSAB, 1);
@@ -4957,7 +4741,7 @@ ECRESULT ECUserManagement::ProcessModification(unsigned int ulId, const std::str
 	// Log the change to ICS
 	er = GetABSourceKeyV1(ulId, &sSourceKey);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	AddABChange(m_lpSession, ICS_AB_CHANGE, sSourceKey, SOURCEKEY(CbABEID(&eid), (char *)&eid));
 
@@ -4966,18 +4750,14 @@ ECRESULT ECUserManagement::ProcessModification(unsigned int ulId, const std::str
 	// Save the new signature
 	er = m_lpSession->GetDatabase(&lpDatabase);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = lpDatabase->DoUpdate("UPDATE users SET signature=" + lpDatabase->EscapeBinary((unsigned char *)newsignature.c_str(), newsignature.size()) + " WHERE id=" + stringify(ulId));
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = m_lpSession->GetSessionManager()->GetCacheManager()->UpdateUser(ulId);
 	if (er != erSuccess)
-		goto exit;
-
-exit:
-	return er;
+		return er;
+	return erSuccess;
 }
 
 ECRESULT ECUserManagement::GetABSourceKeyV1(unsigned int ulUserId, SOURCEKEY *lpsSourceKey)
@@ -5021,29 +4801,23 @@ exit:
 
 ECRESULT ECUserManagement::CreateABEntryID(struct soap *soap, const objectid_t &sExternId, struct propVal *lpPropVal)
 {
-	ECRESULT	er = erSuccess;
+	ECRESULT er;
 	unsigned int ulObjId;
 	ULONG ulObjType;
 
 	er = GetLocalId(sExternId, &ulObjId);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	er = TypeToMAPIType(sExternId.objclass, &ulObjType);
 	if (er != erSuccess)
-		goto exit;
-
-	er = CreateABEntryID(soap, ulObjId, ulObjType, lpPropVal);
-
-exit:
-	return er;
+		return er;
+	return CreateABEntryID(soap, ulObjId, ulObjType, lpPropVal);
 }
 
 ECRESULT ECUserManagement::CreateABEntryID(struct soap *soap,
     unsigned int ulVersion, unsigned int ulObjId, unsigned int ulType,
     objectid_t *lpExternId, gsoap_size_t *lpcbEID, PABEID *lppEid)
 {
-	ECRESULT 	er = erSuccess;
 	PABEID		lpEid = NULL;
 	gsoap_size_t ulSize = 0;
 	std::string	strEncExId;
@@ -5062,10 +4836,8 @@ ECRESULT ECUserManagement::CreateABEntryID(struct soap *soap,
 			memset(lpEid, 0, sizeof(ABEID));
 			ulSize = sizeof(ABEID);
 		} else if(ulVersion == 1) {
-			if (!lpExternId) {
-				er = KCERR_INVALID_PARAMETER;
-				goto exit;
-			}
+			if (lpExternId == NULL)
+				return KCERR_INVALID_PARAMETER;
 			
 			strEncExId = base64_encode((unsigned char*)lpExternId->id.c_str(), lpExternId->id.size());
 
@@ -5085,10 +4857,7 @@ ECRESULT ECUserManagement::CreateABEntryID(struct soap *soap,
 
 	*lppEid = lpEid;
 	*lpcbEID = ulSize;
-
-exit:
-
-	return er;
+	return erSuccess;
 }
 
 /**
@@ -5102,14 +4871,14 @@ exit:
  */
 ECRESULT ECUserManagement::CreateABEntryID(struct soap *soap, unsigned int ulObjId, unsigned int ulType, struct propVal *lpPropVal)
 {
-	ECRESULT	er = erSuccess;
+	ECRESULT er;
 	objectid_t 	sExternId;
 	unsigned int ulVersion = 1;
 
 	if (!IsInternalObject(ulObjId)) {
 		er = GetExternalId(ulObjId, &sExternId);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 			
 		ulVersion = 1;
 	} else {
@@ -5119,53 +4888,37 @@ ECRESULT ECUserManagement::CreateABEntryID(struct soap *soap, unsigned int ulObj
 	lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
 	lpPropVal->__union = SOAP_UNION_propValData_bin;
 
-	er = CreateABEntryID(soap, ulVersion, ulObjId, ulType, &sExternId, &lpPropVal->Value.bin->__size, (PABEID *)&lpPropVal->Value.bin->__ptr);
-	if (er != erSuccess)
-		goto exit;
-
-exit:
-
-	return er;
+	return CreateABEntryID(soap, ulVersion, ulObjId, ulType, &sExternId,
+	       &lpPropVal->Value.bin->__size,
+	       reinterpret_cast<PABEID *>(&lpPropVal->Value.bin->__ptr));
 }
 
 ECRESULT ECUserManagement::GetSecurity(ECSecurity **lppSecurity)
 {
-	ECRESULT er = erSuccess;
 	ECSession *lpecSession = NULL;
 
 	lpecSession = dynamic_cast<ECSession*>(m_lpSession);
-	if (!lpecSession) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (lpecSession == NULL)
+		return KCERR_INVALID_PARAMETER;
 	if (lppSecurity)
 		*lppSecurity = lpecSession->GetSecurity();
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECUserManagement::RemoveAllObjectsAndSync(unsigned int ulObjId)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	UserPlugin *lpPlugin = NULL;
 	objectid_t id;
 
 	er = GetThreadLocalPlugin(m_lpPluginFactory, &lpPlugin);
 	if(er != erSuccess)
-		goto exit;
-		
+		return er;
 	er = GetExternalId(ulObjId, &id);
 	if(er != erSuccess)
-		goto exit;
-		
+		return er;
 	lpPlugin->removeAllObjects(id);
-
-	er = SyncAllObjects();
-
-exit:
-	return er;	
+	return SyncAllObjects();
 }
 
 ECRESULT ECUserManagement::SyncAllObjects()

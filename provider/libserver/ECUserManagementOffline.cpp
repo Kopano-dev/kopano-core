@@ -66,7 +66,7 @@ ECRESULT ECUserManagementOffline::GetGroupDetailsAndSync(unsigned int ulGroupId,
 
 ECRESULT ECUserManagementOffline::GetUserListAndSync(std::list<localuserdetails_t> **lppUsers, unsigned int ulFlags)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	userdetails_t details;
 
 	std::list<localuserdetails_t> *lpUsers = new std::list<localuserdetails_t>;
@@ -74,16 +74,14 @@ ECRESULT ECUserManagementOffline::GetUserListAndSync(std::list<localuserdetails_
 	if(! (ulFlags & USERMANAGEMENT_IDS_ONLY)) {
 		er = GetUserDetailsAndSync(m_ulUserId, &details);
 		if(er != erSuccess)
-			goto exit;
+			return er;
 	}
 	
 	lpUsers->push_back(localuserdetails_t(m_ulUserId, details));
 
 
 	*lppUsers = lpUsers;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECUserManagementOffline::GetGroupListAndSync(std::list<localgroupdetails> **lppGroups, unsigned int ulFlags)
