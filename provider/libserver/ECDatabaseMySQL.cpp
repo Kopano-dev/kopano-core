@@ -1441,10 +1441,6 @@ ECRESULT ECDatabaseMySQL::Rollback() {
 	return er;
 }
 
-unsigned int ECDatabaseMySQL::GetMaxAllowedPacket() {
-    return m_ulMaxAllowedPacket;
-}
-
 void ECDatabaseMySQL::ThreadInit() {
 	mysql_thread_init();
 }

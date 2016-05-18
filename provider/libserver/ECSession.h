@@ -143,8 +143,8 @@ class ECSession _zcp_final : public BTSession {
 public:
 	ECSession(const char *addr, ECSESSIONID sessionID, ECSESSIONGROUPID ecSessionGroupId, ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager, unsigned int ulCapabilities, bool bIsOffline, AUTHMETHOD ulAuthMethod, int pid, const std::string &cl_vers, const std::string &cl_app, const std::string &cl_app_ver, const std::string &cl_app_misc);
 
-	virtual ECSESSIONGROUPID GetSessionGroupId();
-	virtual int				 GetConnectingPid();
+	virtual ECSESSIONGROUPID GetSessionGroupId(void) const { return m_ecSessionGroupId; }
+	virtual int GetConnectingPid(void) const { return m_ulConnectingPid; }
 
 	virtual ~ECSession();
 
@@ -157,8 +157,8 @@ public:
 	ECRESULT AddNotificationTable(unsigned int ulType, unsigned int ulObjType, unsigned int ulTableId, sObjectTableKey *lpsChildRow, sObjectTableKey *lpsPrevRow, struct propValArray *lpRow);
 	ECRESULT GetNotifyItems(struct soap *soap, struct notifyResponse *notifications);
 
-	ECTableManager* GetTableManager();
-	ECSecurity* GetSecurity();
+	ECTableManager *GetTableManager(void) const { return m_lpTableManager; }
+	ECSecurity *GetSecurity(void) const { return m_lpEcSecurity; }
 	
 	ECRESULT GetObjectFromEntryId(const entryId *lpEntryId, unsigned int *lpulObjId, unsigned int *lpulEidFlags = NULL);
 	ECRESULT LockObject(unsigned int ulObjId);
@@ -179,7 +179,7 @@ public:
 
 	unsigned int ClientVersion() const { return m_ulClientVersion; }
 
-	AUTHMETHOD GetAuthMethod();
+	AUTHMETHOD GetAuthMethod(void) const { return m_ulAuthMethod; }
 
 private:
 	ECTableManager		*m_lpTableManager;

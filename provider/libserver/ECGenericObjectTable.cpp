@@ -3423,10 +3423,6 @@ void ECCategory::IncUnread() {
 	++m_ulUnread;
 }
 
-unsigned int ECCategory::GetCount() {
-    return m_ulLeafs;
-}
-
 /**
  * Get object size
  *

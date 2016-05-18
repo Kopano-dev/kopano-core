@@ -79,7 +79,7 @@ public:
 	ECRESULT Commit(void) _zcp_override;
 	ECRESULT Rollback(void) _zcp_override;
 	
-	unsigned int GetMaxAllowedPacket(void) _zcp_override;
+	unsigned int GetMaxAllowedPacket(void) _zcp_override { return m_ulMaxAllowedPacket; }
 
 	void ThreadInit(void) _zcp_override;
 	void ThreadEnd(void) _zcp_override;

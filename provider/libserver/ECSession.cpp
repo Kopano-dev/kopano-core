@@ -372,19 +372,6 @@ ECRESULT ECSession::Shutdown(unsigned int ulTimeout)
 	return er;
 }
 
-ECSession::AUTHMETHOD ECSession::GetAuthMethod()
-{
-    return m_ulAuthMethod;
-}
-
-ECSESSIONGROUPID ECSession::GetSessionGroupId() {
-    return m_ecSessionGroupId;
-}
-
-int ECSession::GetConnectingPid() {
-    return m_ulConnectingPid;
-}
-
 ECRESULT ECSession::AddAdvise(unsigned int ulConnection, unsigned int ulKey, unsigned int ulEventMask)
 {
 	ECRESULT		hr = erSuccess;
@@ -507,16 +494,6 @@ ECRESULT ECSession::GetNotifyItems(struct soap *soap, struct notifyResponse *not
 	Unlock();
 
 	return hr;
-}
-
-ECTableManager* ECSession::GetTableManager()
-{
-	return m_lpTableManager;
-}
-
-ECSecurity* ECSession::GetSecurity()
-{
-	return m_lpEcSecurity;
 }
 
 void ECSession::AddBusyState(pthread_t threadId, const char* lpszState, struct timespec threadstart, double start)

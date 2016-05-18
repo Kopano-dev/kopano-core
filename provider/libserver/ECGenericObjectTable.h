@@ -62,7 +62,7 @@ public:
     void IncUnread();
     void DecUnread();
     
-    unsigned int GetCount();
+	unsigned int GetCount(void) const { return m_ulLeafs; }
     
     ECCategory* GetParent();
     

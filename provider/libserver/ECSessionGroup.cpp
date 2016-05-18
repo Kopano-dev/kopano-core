@@ -112,16 +112,6 @@ void ECSessionGroup::Unlock()
 	pthread_mutex_unlock(&m_hThreadReleasedMutex);
 }
 
-bool ECSessionGroup::IsLocked()
-{
-	return m_ulRefCount > 0;
-}
-
-ECSESSIONGROUPID ECSessionGroup::GetSessionGroupId()
-{
-	return m_sessionGroupId;
-}
-
 void ECSessionGroup::AddSession(ECSession *lpSession)
 {
 	pthread_mutex_lock(&m_hSessionMapLock);

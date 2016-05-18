@@ -136,21 +136,6 @@ ECConfig *ECPluginSharedData::CreateConfig(const configsetting_t *lpDefaults,
 	return m_lpConfig;
 }
 
-ECStatsCollector *ECPluginSharedData::GetStatsCollector(void)
-{
-	return m_lpStatsCollector;
-}
-
-bool ECPluginSharedData::IsHosted()
-{
-	return m_bHosted;
-}
-
-bool ECPluginSharedData::IsDistributed()
-{
-	return m_bDistributed;
-}
-
 void ECPluginSharedData::Signal(int signal)
 {
 #ifdef LINUX

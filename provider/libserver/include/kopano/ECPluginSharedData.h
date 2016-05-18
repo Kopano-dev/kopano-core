@@ -124,21 +124,21 @@ public:
 	 *
 	 * @return the ECStatsCollector pointer
 	 */
-	virtual ECStatsCollector *GetStatsCollector(void);
+	virtual ECStatsCollector *GetStatsCollector(void) const { return m_lpStatsCollector; }
 
 	/**
 	 * Check for multi-company support
 	 *
 	 * @return True if multi-company support is enabled.
 	 */
-	virtual bool IsHosted();
+	virtual bool IsHosted(void) const { return m_bHosted; }
 
 	/**
 	 * Check for multi-server support
 	 * 
 	 * @return True if multi-server support is enabled.
 	 */
-	virtual bool IsDistributed();
+	virtual bool IsDistributed(void) const { return m_bDistributed; }
 
 	/**
 	 * Signal handler for userspace signals like SIGHUP

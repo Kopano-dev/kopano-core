@@ -272,8 +272,12 @@ public:
 	NonLegacyIncrementalProcessor(unsigned int ulMaxChangeId);
 	ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags);
 	ECRESULT ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType);
-	ECRESULT GetResidualMessages(LPMESSAGESET lpsetResiduals);
-	unsigned int GetMaxChangeId() const;
+	ECRESULT GetResidualMessages(LPMESSAGESET lpsetResiduals)
+	{
+		/* No legacy, no residuals. */
+		return erSuccess;
+	}
+	unsigned int GetMaxChangeId(void) const { return m_ulMaxChangeId; }
 	
 private:
 	unsigned int m_ulMaxChangeId;
@@ -305,18 +309,6 @@ ECRESULT NonLegacyIncrementalProcessor::ProcessRejected(DB_ROW lpDBRow, DB_LENGT
 	return erSuccess;
 }
 
-ECRESULT NonLegacyIncrementalProcessor::GetResidualMessages(LPMESSAGESET lpsetResiduals)
-{
-	// No legacy, so no residuals.
-	return erSuccess;
-}
-
-unsigned int NonLegacyIncrementalProcessor::GetMaxChangeId() const
-{
-	return m_ulMaxChangeId;
-}
-
-
 /**
  * NonLegacyFullProcessor: Processes accepted and rejected messages without the burden of tracking
  *                         legacy, but allowing messages to be processed that were synced to the 
@@ -329,8 +321,12 @@ public:
 	NonLegacyFullProcessor(unsigned int ulChangeId, unsigned int ulSyncId);
 	ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags);
 	ECRESULT ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType);
-	ECRESULT GetResidualMessages(LPMESSAGESET lpsetResiduals);
-	unsigned int GetMaxChangeId() const;
+	ECRESULT GetResidualMessages(LPMESSAGESET lpsetResiduals)
+	{
+		/* No legacy, no residuals. */
+		return erSuccess;
+	}
+	unsigned int GetMaxChangeId(void) const { return m_ulMaxChangeId; }
 	
 private:
 	unsigned int m_ulChangeId;
@@ -387,18 +383,6 @@ ECRESULT NonLegacyFullProcessor::ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDB
 	return erSuccess;
 }
 
-ECRESULT NonLegacyFullProcessor::GetResidualMessages(LPMESSAGESET lpsetResiduals)
-{
-	// No legacy, so no residuals.
-	return erSuccess;
-}
-
-unsigned int NonLegacyFullProcessor::GetMaxChangeId() const
-{
-	return m_ulMaxChangeId;
-}
-
-
 /**
  * LegacyProcessor: Processes accepted and rejected messages while keeping track of legacy messages.
  **/
@@ -409,7 +393,7 @@ public:
 	ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags);
 	ECRESULT ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType);
 	ECRESULT GetResidualMessages(LPMESSAGESET lpsetResiduals);
-	unsigned int GetMaxChangeId() const;
+	unsigned int GetMaxChangeId(void) const { return m_ulMaxChangeId; }
 	
 private:
 	unsigned int	m_ulSyncId;
@@ -519,12 +503,6 @@ ECRESULT LegacyProcessor::GetResidualMessages(LPMESSAGESET lpsetResiduals)
 	return erSuccess;
 }
 
-unsigned int LegacyProcessor::GetMaxChangeId() const
-{
-	return m_ulMaxChangeId;
-}
-
-
 /**
  * FirstSyncProcessor: Processes accepted and rejected messages for initial syncs. And because
  *                     it is the first sync we assume there are no messages on the device yet.
@@ -535,8 +513,12 @@ public:
 	FirstSyncProcessor(unsigned int ulMaxFolderChange);
 	ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags);
 	ECRESULT ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType);
-	ECRESULT GetResidualMessages(LPMESSAGESET lpsetResiduals);
-	unsigned int GetMaxChangeId() const;
+	ECRESULT GetResidualMessages(LPMESSAGESET lpsetResiduals)
+	{
+		/* No legacy, no residuals. */
+		return erSuccess;
+	}
+	unsigned int GetMaxChangeId(void) const { return m_ulMaxFolderChange; }
 	
 private:
 	unsigned int m_ulMaxFolderChange;
@@ -571,18 +553,6 @@ ECRESULT FirstSyncProcessor::ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen,
 	*lpulChangeType = 0;	// Ignore
 	return erSuccess;
 }
-
-ECRESULT FirstSyncProcessor::GetResidualMessages(LPMESSAGESET lpsetResiduals)
-{
-	// No legacy, so no residuals.
-	return erSuccess;
-}
-
-unsigned int FirstSyncProcessor::GetMaxChangeId() const
-{
-	return m_ulMaxFolderChange;
-}
-
 
 /**
  * ECGetContentChangesHelper definitions
