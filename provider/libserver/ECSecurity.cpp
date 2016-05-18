@@ -114,7 +114,7 @@ ECSecurity::~ECSecurity()
  */
 ECRESULT ECSecurity::SetUserContext(unsigned int ulUserId, unsigned int ulImpersonatorID)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	ECUserManagement *lpUserManagement = m_lpSession->GetUserManagement();
 
 	m_ulUserID = ulUserId;
@@ -122,7 +122,7 @@ ECRESULT ECSecurity::SetUserContext(unsigned int ulUserId, unsigned int ulImpers
 
 	er = lpUserManagement->GetObjectDetails(m_ulUserID, &m_details);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	// Get the company we're assigned to
 	if(m_lpSession->GetSessionManager()->IsHostedSupported()) {
@@ -136,18 +136,15 @@ ECRESULT ECSecurity::SetUserContext(unsigned int ulUserId, unsigned int ulImpers
 
 		er = lpUserManagement->GetObjectDetails(m_ulImpersonatorID, &m_impersonatorDetails);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 
 		ulAdminLevel = m_impersonatorDetails.GetPropInt(OB_PROP_I_ADMINLEVEL);
 		if (ulAdminLevel == 0) {
-			er = KCERR_NO_ACCESS;
-			goto exit;
+			return KCERR_NO_ACCESS;
 		} else if (m_lpSession->GetSessionManager()->IsHostedSupported() == true && ulAdminLevel < ADMIN_LEVEL_SYSADMIN) {
 			unsigned int ulCompanyID = m_impersonatorDetails.GetPropInt(OB_PROP_I_COMPANYID);
-			if (ulCompanyID != m_ulCompanyID) {
-				er = KCERR_NO_ACCESS;
-				goto exit;
-			}
+			if (ulCompanyID != m_ulCompanyID)
+				return KCERR_NO_ACCESS;
 		}
 	}
 
@@ -157,9 +154,7 @@ ECRESULT ECSecurity::SetUserContext(unsigned int ulUserId, unsigned int ulImpers
 	 * this will save quite a lot of LDAP queries since often we don't
 	 * even need the list at all.
 	 */
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 // helper class to remember groups we've seen to break endless loops
@@ -184,7 +179,7 @@ public:
  */
 ECRESULT ECSecurity::GetGroupsForUser(unsigned int ulUserId, std::list<localobjectdetails_t> **lppGroups)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	std::list<localobjectdetails_t> *lpGroups = NULL;
 	std::list<localobjectdetails_t>::iterator iterGroups;
 	cUniqueGroup cSeenGroups;
@@ -192,9 +187,9 @@ ECRESULT ECSecurity::GetGroupsForUser(unsigned int ulUserId, std::list<localobje
 	/* Gets the current user's membership information.
 	 * This means you will be in the same groups until you login again */
 	er = m_lpSession->GetUserManagement()->GetParentObjectsOfObjectAndSync(OBJECTRELATION_GROUP_MEMBER,
-																		   ulUserId, &lpGroups, USERMANAGEMENT_IDS_ONLY);
+		ulUserId, &lpGroups, USERMANAGEMENT_IDS_ONLY);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	/* A user is only member of a group when he can also view the group */
 	for (iterGroups = lpGroups->begin(); iterGroups != lpGroups->end(); ) {
@@ -219,15 +214,13 @@ ECRESULT ECSecurity::GetGroupsForUser(unsigned int ulUserId, std::list<localobje
 				remove_copy_if(lpGroupInGroups->begin(), lpGroupInGroups->end(), back_inserter(*lpGroups), cSeenGroups);
 				delete lpGroupInGroups;
 			}
-			er = erSuccess;		// Ignore error (eg. cannot use that function on group Everyone)
+			// Ignore error (eg. cannot use that function on group Everyone)
 			++iterGroups;
 		}
 	}
 
 	*lppGroups = lpGroups;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 /** 
@@ -394,13 +387,9 @@ ECRESULT ECSecurity::CheckDeletedParent(unsigned int ulId)
 	do {
 		er = lpCache->GetObject(ulId, &ulParentObjId, NULL, &ulObjFlags, &ulObjType);
 		if (er != erSuccess)
-			goto exit;
-
-		if (ulObjFlags & MSGFLAG_DELETED) {
-			er = KCERR_NOT_FOUND;
-			goto exit;
-		}
-
+			return er;
+		if (ulObjFlags & MSGFLAG_DELETED)
+			return KCERR_NOT_FOUND;
 		ulId = ulParentObjId;
 		++ulDepth;
 	} while (ulObjType != MAPI_STORE && ulParentObjId != CACHE_NO_PARENT && ulDepth <= MAX_PARENT_LIMIT);
@@ -408,8 +397,6 @@ ECRESULT ECSecurity::CheckDeletedParent(unsigned int ulId)
 	// return error when max depth is reached, so we don't create folders and messages deeper than the limit
 	if (ulDepth == MAX_PARENT_LIMIT)
 		er = KCERR_NOT_FOUND;
-
-exit:
 	return er;
 }
 
@@ -707,7 +694,7 @@ exit:
  */
 ECRESULT ECSecurity::SetRights(unsigned int objid, struct rightsArray *lpsRightsArray)
 {
-	ECRESULT			er = erSuccess;
+	ECRESULT er;
 	std::string			strQueryNew, strQueryDeniedNew;
 	std::string			strQueryModify, strQueryDeniedModify;
 	std::string			strQueryDelete, strQueryDeniedDelete;
@@ -720,12 +707,9 @@ ECRESULT ECSecurity::SetRights(unsigned int objid, struct rightsArray *lpsRights
 
 	er = m_lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
-		goto exit;
-
-	if (lpsRightsArray == NULL) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
+		return er;
+	if (lpsRightsArray == NULL)
+		return KCERR_INVALID_PARAMETER;
 
 	// Invalidate cache for this object
 	m_lpSession->GetSessionManager()->GetCacheManager()->Update(fnevObjectModified, objid);
@@ -738,7 +722,7 @@ ECRESULT ECSecurity::SetRights(unsigned int objid, struct rightsArray *lpsRights
 		{
 			er = ABEntryIDToID(&lpsRightsArray->__ptr[i].sUserId, &ulUserId, &sExternId, NULL);
 			if (er != erSuccess)
-				goto exit;
+				return er;
 
 			// internal user/group doesn't have an externid
 			if (!sExternId.id.empty())
@@ -746,7 +730,7 @@ ECRESULT ECSecurity::SetRights(unsigned int objid, struct rightsArray *lpsRights
 				// Get real ulUserId on this server
 				er = m_lpSession->GetUserManagement()->GetLocalId(sExternId, &ulUserId, NULL);
 				if (er != erSuccess)
-					goto exit;
+					return er;
 			}
 		}
 		else
@@ -754,7 +738,7 @@ ECRESULT ECSecurity::SetRights(unsigned int objid, struct rightsArray *lpsRights
 
 		er = m_lpSession->GetUserManagement()->GetObjectDetails(ulUserId, &sDetails);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 
 		// You can only set (delete is ok) permissions on active users, and security groups
 		// Outlook 2007 blocks this client side, other clients get this error.
@@ -794,7 +778,7 @@ ECRESULT ECSecurity::SetRights(unsigned int objid, struct rightsArray *lpsRights
 
 			er = lpDatabase->DoInsert(strQueryNew);
 			if(er != erSuccess)
-				goto exit;
+				return er;
 
 			if(lpsRightsArray->__ptr[i].ulState & RIGHT_AUTOUPDATE_DENIED){
 				strQueryNew = "REPLACE INTO acl (id, hierarchy_id, type, rights) VALUES ";
@@ -802,10 +786,8 @@ ECRESULT ECSecurity::SetRights(unsigned int objid, struct rightsArray *lpsRights
 
 				er = lpDatabase->DoInsert(strQueryNew);
 				if(er != erSuccess)
-					goto exit;
-
+					return er;
 			}
-
 		}
 		else if(lpsRightsArray->__ptr[i].ulState & RIGHT_DELETED)
 		{
@@ -814,7 +796,7 @@ ECRESULT ECSecurity::SetRights(unsigned int objid, struct rightsArray *lpsRights
 
 			er = lpDatabase->DoDelete(strQueryDelete);
 			if(er != erSuccess)
-				goto exit;
+				return er;
 
 			if(lpsRightsArray->__ptr[i].ulState & RIGHT_AUTOUPDATE_DENIED) {
 				strQueryDelete = "DELETE FROM acl WHERE ";
@@ -822,7 +804,7 @@ ECRESULT ECSecurity::SetRights(unsigned int objid, struct rightsArray *lpsRights
 
 				er = lpDatabase->DoDelete(strQueryDelete);
 				if(er != erSuccess)
-					goto exit;
+					return er;
 			}
 
 		}else{
@@ -836,8 +818,6 @@ ECRESULT ECSecurity::SetRights(unsigned int objid, struct rightsArray *lpsRights
 		er = KCWARN_PARTIAL_COMPLETION;	// some acl's failed
 	else
 		er = erSuccess;
-
-exit:
 	return er;
 }
 
@@ -864,7 +844,7 @@ ECRESULT ECSecurity::GetUserCompany(unsigned int *lpulCompanyId)
  */
 ECRESULT ECSecurity::GetViewableCompanyIds(unsigned int ulFlags, list<localobjectdetails_t> **lppObjects)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	std::list<localobjectdetails_t>::const_iterator iter;
 
 	/*
@@ -878,7 +858,7 @@ ECRESULT ECSecurity::GetViewableCompanyIds(unsigned int ulFlags, list<localobjec
 	if (!m_lpViewCompanies) {
 		er = GetViewableCompanies(0, &m_lpViewCompanies);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
 
 	/*
@@ -898,9 +878,7 @@ ECRESULT ECSecurity::GetViewableCompanyIds(unsigned int ulFlags, list<localobjec
 		else
 			(*lppObjects)->push_back(localobjectdetails_t(iter->ulId, *iter));
 	}
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 /** 
@@ -914,7 +892,7 @@ exit:
  */
 ECRESULT ECSecurity::IsUserObjectVisible(unsigned int ulUserObjectId)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	std::list<localobjectdetails_t>::const_iterator iterCompany;
 	objectid_t sExternId;
 	unsigned int ulCompanyId;
@@ -926,12 +904,12 @@ ECRESULT ECSecurity::IsUserObjectVisible(unsigned int ulUserObjectId)
 		ulUserObjectId == KOPANO_UID_EVERYONE ||
 		m_details.GetPropInt(OB_PROP_I_ADMINLEVEL) == ADMIN_LEVEL_SYSADMIN ||
 		!m_lpSession->GetSessionManager()->IsHostedSupported()) {
-		goto exit;
+		return erSuccess;
 	}
 
 	er = m_lpSession->GetUserManagement()->GetExternalId(ulUserObjectId, &sExternId, &ulCompanyId);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// still needed?
 	if (sExternId.objclass == CONTAINER_COMPANY)
@@ -940,20 +918,15 @@ ECRESULT ECSecurity::IsUserObjectVisible(unsigned int ulUserObjectId)
 	if (!m_lpViewCompanies) {
 		er = GetViewableCompanies(0, &m_lpViewCompanies);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
 	for (iterCompany = m_lpViewCompanies->begin();
 	     iterCompany != m_lpViewCompanies->end(); ++iterCompany)
-		if (iterCompany->ulId == ulCompanyId) {
-			er = erSuccess;
-			goto exit;
-		}
+		if (iterCompany->ulId == ulCompanyId)
+			return erSuccess;
 
 	/* Item was not found */
-	er = KCERR_NOT_FOUND;
-
-exit:
-	return er;
+	return KCERR_NOT_FOUND;
 }
 
 /** 
@@ -1094,19 +1067,16 @@ unsigned int ECSecurity::GetUserId(unsigned int ulObjId)
  */
 ECRESULT ECSecurity::IsStoreOwner(unsigned int ulObjId)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	unsigned int ulStoreId = 0;
 
 	er = m_lpSession->GetSessionManager()->GetCacheManager()->GetStore(ulObjId, &ulStoreId, NULL);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = IsOwner(ulStoreId);
 	if(er != erSuccess)
-		goto exit;
-
-exit:
-	return er;
+		return er;
+	return erSuccess;
 }
 
 /** 

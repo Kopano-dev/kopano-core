@@ -390,7 +390,6 @@ ECDatabaseMySQL::~ECDatabaseMySQL()
 ECRESULT ECDatabaseMySQL::InitLibrary(const char *lpDatabaseDir,
     const char *lpConfigFile)
 {
-	ECRESULT	er = erSuccess;
 	string		strDatabaseDir;
 	string		strConfigFile;
 	int			ret = 0;
@@ -420,12 +419,9 @@ ECRESULT ECDatabaseMySQL::InitLibrary(const char *lpDatabaseDir,
 	     const_cast<char **>(server_args),
 	     const_cast<char **>(server_groups))) != 0) {
 		ec_log_crit("Unable to initialize mysql: error 0x%08X", ret);
-		er = KCERR_DATABASE_ERROR;
-		goto exit;
+		return KCERR_DATABASE_ERROR;
 	}
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 /**
@@ -468,7 +464,7 @@ ECRESULT ECDatabaseMySQL::InitializeDBState(void)
 
 ECRESULT ECDatabaseMySQL::InitializeDBStateInner()
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 
 #ifdef HAVE_OFFLINE_SUPPORT
 	// Unsure the stored procedures table is available
@@ -484,29 +480,25 @@ ECRESULT ECDatabaseMySQL::InitializeDBStateInner()
 
 	er = DoUpdate("CREATE DATABASE IF NOT EXISTS mysql");
 	if(er != erSuccess)
-		goto exit;
-
+		return hr;
 	er = DoUpdate(szProc);
 	if(er != erSuccess)
-		goto exit;
-		
+		return hr;
 	er = DoUpdate(szPlugin);
 	if(er != erSuccess)
-		goto exit;
-
+		return hr;
 	er = DoUpdate(szInnoStats);
 	if(er != erSuccess)
-		goto exit;
-
+		return hr;
 	er = DoUpdate(szInnoIndexStats);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 #endif
 	
 	for (unsigned int i = 0; i < arraySize(stored_procedures); ++i) {
 		er = DoUpdate(std::string("DROP PROCEDURE IF EXISTS ") + stored_procedures[i].szName);
 		if(er != erSuccess)
-			goto exit;
+			return er;
 			
 		er = DoUpdate(stored_procedures[i].szSQL);
 		if(er != erSuccess) {
@@ -518,12 +510,10 @@ ECRESULT ECDatabaseMySQL::InitializeDBStateInner()
 			} else {
 				ec_log_err("The storage server is unable to create stored procedures, error %d", err);
 			}
-			goto exit;
+			return er;
 		}
 	}
-
-exit:	
-	return er;
+	return erSuccess;
 }
 
 void ECDatabaseMySQL::UnloadLibrary(void)
@@ -542,15 +532,12 @@ void ECDatabaseMySQL::UnloadLibrary(void)
 
 ECRESULT ECDatabaseMySQL::InitEngine()
 {
-	ECRESULT er = erSuccess;
-
 	_ASSERT(m_bMysqlInitialize == false);
 
 	//Init mysql and make a connection
 	if(mysql_init(&m_lpMySQL) == NULL) {
 		ec_log_crit("ECDatabaseMySQL::InitEngine(): mysql_init failed");
-		er = KCERR_DATABASE_ERROR;
-		goto exit;
+		return KCERR_DATABASE_ERROR;
 	}
 
 	m_bMysqlInitialize = true; 
@@ -561,9 +548,7 @@ ECRESULT ECDatabaseMySQL::InitEngine()
 	// is broken since this creates a new MySQL session, and we want to set some session
 	// variables
 	m_lpMySQL.reconnect = 0;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 std::string ECDatabaseMySQL::GetDatabaseDir()
@@ -818,11 +803,10 @@ ECRESULT ECDatabaseMySQL::Query(const string &strQuery) {
 			
 		er = Close();
 		if(er != erSuccess)
-			goto exit;
-			
+			return er;
 		er = Connect();
 		if(er != erSuccess)
-			goto exit;
+			return er;
 			
 		// Try again
 		err = mysql_real_query( &m_lpMySQL, strQuery.c_str(), strQuery.length() );
@@ -836,8 +820,6 @@ ECRESULT ECDatabaseMySQL::Query(const string &strQuery) {
 		if (mysql_errno(&m_lpMySQL) != ER_NO_SUCH_TABLE)
 			ASSERT(false);
 	}
-
-exit:
 	return er;
 }
 
@@ -1068,21 +1050,16 @@ ECRESULT ECDatabaseMySQL::DoUpdate(const string &strQuery, unsigned int *lpulAff
 
 ECRESULT ECDatabaseMySQL::_Update(const string &strQuery, unsigned int *lpulAffectedRows)
 {
-	ECRESULT er = erSuccess;
-					
 	if( Query(strQuery) != erSuccess ) {
 		// FIXME: Add the mysql error system ?
 		// er = nMysqlError;
-		er = KCERR_DATABASE_ERROR;
 		ec_log_err("ECDatabaseMySQL::_Update() query failed");
-		goto exit;
+		return KCERR_DATABASE_ERROR;
 	}
 	
 	if(lpulAffectedRows)
 		*lpulAffectedRows = GetAffectedRows();
-	
-exit:
-	return er;
+	return erSuccess;
 }
 
 /**
@@ -1520,7 +1497,7 @@ exit:
 
 ECRESULT ECDatabaseMySQL::CreateDatabase()
 {
-	ECRESULT	er = erSuccess;
+	ECRESULT er;
 	string		strQuery;
 	const char *lpDatabase = m_lpConfig->GetSetting("mysql_database");
 	const char *lpMysqlPort = m_lpConfig->GetSetting("mysql_port");
@@ -1575,7 +1552,7 @@ ECRESULT ECDatabaseMySQL::CreateDatabase()
 
 	er = InitEngine();
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	// Connect
 	if(mysql_real_connect(&m_lpMySQL, 
@@ -1586,41 +1563,38 @@ ECRESULT ECDatabaseMySQL::CreateDatabase()
 			(lpMysqlPort)?atoi(lpMysqlPort):0, 
 			lpMysqlSocket, 0) == NULL)
 	{
-		er = KCERR_DATABASE_ERROR;
 		ec_log_err("ECDatabaseMySQL::CreateDatabase(): mysql connect failed");
-		goto exit;
+		return KCERR_DATABASE_ERROR;
 	}
 
 	if(lpDatabase == NULL) {
 		ec_log_crit("Unable to create database: Unknown database");
-		er = KCERR_DATABASE_ERROR;
-		goto exit;
+		return KCERR_DATABASE_ERROR;
 	}
 
 	ec_log_notice("Creating database \"%s\"", lpDatabase);
 
 	er = IsInnoDBSupported();
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	strQuery = "CREATE DATABASE IF NOT EXISTS `"+std::string(m_lpConfig->GetSetting("mysql_database"))+"`";
 	if(Query(strQuery) != erSuccess){
 		ec_log_crit("Unable to create database: %s", GetError());
-		er = KCERR_DATABASE_ERROR;
-		goto exit;
+		return KCERR_DATABASE_ERROR;
 	}
 
 	strQuery = "USE `"+std::string(m_lpConfig->GetSetting("mysql_database"))+"`";
 	er = DoInsert(strQuery);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	// Database tables
 	for (size_t i = 0; i < ARRAY_SIZE(sDatabaseTables); ++i) {
 		ec_log_info("Creating table \"%s\"", sDatabaseTables[i].lpComment);
 		er = DoInsert(sDatabaseTables[i].lpSQL);
 		if(er != erSuccess)
-			goto exit;	
+			return er;	
 	}
 
 	// Add the default table data
@@ -1628,17 +1602,17 @@ ECRESULT ECDatabaseMySQL::CreateDatabase()
 		ec_log_info("Add table data for \"%s\"", sDatabaseData[i].lpComment);
 		er = DoInsert(sDatabaseData[i].lpSQL);
 		if(er != erSuccess)
-			goto exit;
+			return er;
 	}
 
 	er = InsertServerGUID(this);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	// Add the release id in the database
 	er = UpdateDatabaseVersion(Z_UPDATE_RELEASE_ID);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	// Loop throught the update list
 	for (size_t i = Z_UPDATE_RELEASE_ID;
@@ -1646,14 +1620,12 @@ ECRESULT ECDatabaseMySQL::CreateDatabase()
 	{
 		er = UpdateDatabaseVersion(sUpdateList[i].ulVersion);
 		if(er != erSuccess)
-			goto exit;
+			return er;
 	}
 
 	
 	ec_log_notice("Database has been created");
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 static inline bool row_has_null(DB_ROW row, size_t z)
@@ -1800,7 +1772,7 @@ exit:
  */
 ECRESULT ECDatabaseMySQL::UpdateDatabase(bool bForceUpdate, std::string &strReport)
 {
-	ECRESULT		er = erSuccess;
+	ECRESULT er;
 	bool			bUpdated = false;
 	bool			bSkipped = false;
 	unsigned int	ulDatabaseRevisionMin = 0;
@@ -1810,12 +1782,10 @@ ECRESULT ECDatabaseMySQL::UpdateDatabase(bool bForceUpdate, std::string &strRepo
 
 	er = GetDatabaseVersion(&stored_ver);
 	if(er != erSuccess)
-		goto exit;
-
-	
+		return er;
 	er = GetFirstUpdate(&ulDatabaseRevisionMin);
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	//default error
 	strReport = "Unable to upgrade database from version " +
@@ -1825,13 +1795,12 @@ ECRESULT ECDatabaseMySQL::UpdateDatabase(bool bForceUpdate, std::string &strRepo
 	cmp = stored_ver.compare(program_ver);
 	if (cmp == 0 && stored_ver.v_schema == Z_UPDATE_LAST) {
 		// up to date
-		goto exit;
+		return erSuccess;
 	} else if (cmp > 0) {
 		// Start a old server with a new database
 		strReport = "Database version (" + stored_ver.stringify(',') +
 		            ") is newer than the server version (" + program_ver.stringify(',') + ")";
-		er = KCERR_INVALID_VERSION;
-		goto exit;
+		return KCERR_INVALID_VERSION;
 	}
 
 	this->m_bForceUpdate = bForceUpdate;
@@ -1856,7 +1825,7 @@ ECRESULT ECDatabaseMySQL::UpdateDatabase(bool bForceUpdate, std::string &strRepo
 
 		er = Begin();
 		if(er != erSuccess)
-			goto exit;
+			return er;
 
 		bSkipped = false;
 		er = sUpdateList[i].lpFunction(this);
@@ -1864,20 +1833,19 @@ ECRESULT ECDatabaseMySQL::UpdateDatabase(bool bForceUpdate, std::string &strRepo
 			bSkipped = true;
 			er = erSuccess;
 		} else if (er == KCERR_USER_CANCEL) {
-			goto exit; // Reason should be logged in the update itself.
+			return er; // Reason should be logged in the update itself.
 		} else if (er != hrSuccess) {
 			Rollback();
 			ec_log_err("Failed: Rollback database");
-			goto exit;
+			return er;
 		}
 
 		er = UpdateDatabaseVersion(sUpdateList[i].ulVersion);
 		if(er != erSuccess)
-			goto exit;
-
+			return er;
 		er = Commit();
 		if(er != erSuccess)
-			goto exit;
+			return er;
 		ec_log_notice("%s: %s", bSkipped ? "Skipped" : "Done", sUpdateList[i].lpszLogComment);
 		bUpdated = true;
 	}
@@ -1887,17 +1855,14 @@ ECRESULT ECDatabaseMySQL::UpdateDatabase(bool bForceUpdate, std::string &strRepo
 		// Update version table
 		er = UpdateDatabaseVersion(Z_UPDATE_LAST);
 		if(er != erSuccess)
-			goto exit;
+			return er;
 	}
-
-exit:
-
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECDatabaseMySQL::UpdateDatabaseVersion(unsigned int ulDatabaseRevision)
 {
-	ECRESULT	er = erSuccess;
+	ECRESULT er;
 	string		strQuery;
 	DB_RESULT result;
 	bool have_micro;
@@ -1905,7 +1870,7 @@ ECRESULT ECDatabaseMySQL::UpdateDatabaseVersion(unsigned int ulDatabaseRevision)
 	/* Check for "micro" column (present in v64+) */
 	er = DoSelect("SELECT databaserevision FROM versions WHERE databaserevision>=64 LIMIT 1", &result);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 	have_micro = GetNumRows(result) > 0;
 	FreeResult(result);
 
@@ -1918,13 +1883,7 @@ ECRESULT ECDatabaseMySQL::UpdateDatabaseVersion(unsigned int ulDatabaseRevision)
 	if (have_micro)
 		strQuery += stringify(PROJECT_VERSION_MICRO) + std::string(", ");
 	strQuery += std::string("'") + std::string(PROJECT_SVN_REV_STR) +  std::string("', ") + stringify(ulDatabaseRevision) + ", FROM_UNIXTIME("+stringify(time(NULL))+") )";
-
-	er = DoInsert(strQuery);
-	if(er != erSuccess)
-		goto exit;
-
-exit:
-	return er;
+	return DoInsert(strQuery);
 }
 /**
  * Validate all database tables

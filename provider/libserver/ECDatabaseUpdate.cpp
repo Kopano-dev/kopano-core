@@ -282,22 +282,14 @@ ECRESULT UpdateDatabaseCreateSettingsTable(ECDatabase *lpDatabase)
 
 ECRESULT InsertServerGUID(ECDatabase *lpDatabase)
 {
-	ECRESULT		er = erSuccess;
-
 	GUID guid;
 
 	if (CoCreateGuid(&guid) != S_OK) {
-		er = KCERR_DATABASE_ERROR;
 		ec_log_err("InsertServerGUID(): CoCreateGuid failed");
-		goto exit;
+		return KCERR_DATABASE_ERROR;
 	}
 
-	er = lpDatabase->DoInsert("INSERT INTO `settings` VALUES ('server_guid', " + lpDatabase->EscapeBinary((unsigned char *)&guid, sizeof(GUID)) + ")");
-	if(er != erSuccess)
-		goto exit;
-
-exit:
-	return er;
+	return lpDatabase->DoInsert("INSERT INTO `settings` VALUES ('server_guid', " + lpDatabase->EscapeBinary(reinterpret_cast<unsigned char *>(&guid), sizeof(GUID)) + ")");
 }
 
 // 10
@@ -413,7 +405,7 @@ exit:
 
 ECRESULT CreateRecursiveStoreEntryIds(ECDatabase *lpDatabase, unsigned int ulStoreHierarchyId, unsigned char* lpStoreGuid)
 {
-	ECRESULT		er = erSuccess;
+	ECRESULT er;
 	string			strQuery, strInsertQuery, strDefaultQuery;
 	string			strInValues;
 	DB_RESULT		lpDBResult = NULL;
@@ -455,15 +447,14 @@ ECRESULT CreateRecursiveStoreEntryIds(ECDatabase *lpDatabase, unsigned int ulSto
 		// Insert the entryids
 		er = lpDatabase->DoInsert(strDefaultQuery + "(" + strInValues + ")");
 		if(er != erSuccess)
-			goto exit;
-
+			return er;
 
 		// Get the new parents
 		strQuery= "SELECT id FROM hierarchy WHERE parent IN ( "+strInValues+")";
 
 		er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 
 		while(true) {
 			lpDBRow = lpDatabase->FetchRow(lpDBResult);
@@ -472,9 +463,8 @@ ECRESULT CreateRecursiveStoreEntryIds(ECDatabase *lpDatabase, unsigned int ulSto
 				break;
 			
 			if (lpDBRow[0] == NULL) {
-				er = KCERR_DATABASE_ERROR;
 				ec_log_err("CreateRecursiveStoreEntryIds(): column is NULL");
-				goto exit;
+				return KCERR_DATABASE_ERROR;
 			}
 
 			 lstFolders.push_back(atoui(lpDBRow[0]));
@@ -486,9 +476,7 @@ ECRESULT CreateRecursiveStoreEntryIds(ECDatabase *lpDatabase, unsigned int ulSto
 		}
 		iterFolders = lstFolders.begin();
 	} //while
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 // 13
@@ -558,8 +546,7 @@ exit:
 // 14
 ECRESULT UpdateDatabaseAddUserObjectType(ECDatabase *lpDatabase)
 {
-	ECRESULT er = erSuccess;
-
+	ECRESULT er;
 	/*
 	 * First we create the object_type column and initialize the values
 	 * based on the isgroup and nonactive columns. Once that is done we should
@@ -568,43 +555,31 @@ ECRESULT UpdateDatabaseAddUserObjectType(ECDatabase *lpDatabase)
 	 */
 	er = lpDatabase->DoUpdate("ALTER TABLE users ADD COLUMN object_type int(11) NOT NULL default '0'");
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = lpDatabase->DoUpdate("UPDATE users SET object_type=5 WHERE nonactive != 0"); /* USEROBJECT_TYPE_NONACTIVE */
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = lpDatabase->DoUpdate("UPDATE users SET object_type=2 WHERE isgroup != 0"); /* USEROBJECT_TYPE_GROUP */
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	/*
 	 * All other entries should be considered as users.
 	 * This is safe since there are at this time no other valid object types.
 	 */
 	er = lpDatabase->DoUpdate("UPDATE users SET object_type=1 WHERE object_type = 0"); /* USEROBJECT_TYPE_USER */
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = lpDatabase->DoUpdate("ALTER TABLE users DROP COLUMN nonactive");
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = lpDatabase->DoUpdate("ALTER TABLE users DROP INDEX externid, DROP COLUMN isgroup, ADD INDEX externid (`externid`, `object_type`)");
 	if(er != erSuccess)
-		goto exit;
+		return er;
 		
     /*
      * Another change is that for the DB plugin, the 'objects' table should now show type 5 for nonactive users (instead of 1)
      */
-     
-    er = lpDatabase->DoUpdate("UPDATE object SET objecttype=5 WHERE id IN (SELECT objectid FROM objectproperty WHERE propname='isnonactive' AND value != 0)");
-    if(er != erSuccess)
-        goto exit;
-
-exit:
-
-	return er;
+	return lpDatabase->DoUpdate("UPDATE object SET objecttype=5 WHERE id IN (SELECT objectid FROM objectproperty WHERE propname='isnonactive' AND value != 0)");
 }
 
 // 15
@@ -645,81 +620,60 @@ ECRESULT UpdateDatabaseRestrictExternId(ECDatabase *lpDatabase)
 // 18
 ECRESULT UpdateDatabaseAddUserCompany(ECDatabase *lpDatabase)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 
 	er = lpDatabase->DoUpdate("ALTER TABLE users ADD COLUMN company int(11) NOT NULL default '0'");
 	if(er != erSuccess)
-		goto exit;
-
-	er = lpDatabase->DoInsert("INSERT INTO `users` (`externid`, `object_type`, `signature`, `company`) VALUES (NULL, 4, '', 0)");
-	if(er != erSuccess)
-		goto exit;
-exit:
-	return er;
+		return er;
+	return lpDatabase->DoInsert("INSERT INTO `users` (`externid`, `object_type`, `signature`, `company`) VALUES (NULL, 4, '', 0)");
 }
 
 // 19
 ECRESULT UpdateDatabaseAddObjectRelationType(ECDatabase *lpDatabase)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 
 	er = lpDatabase->DoUpdate("ALTER TABLE objectrelation ADD COLUMN relationtype tinyint(11) unsigned NOT NULL");
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = lpDatabase->DoUpdate("ALTER TABLE objectrelation DROP PRIMARY KEY");
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = lpDatabase->DoUpdate("ALTER TABLE objectrelation ADD PRIMARY KEY (`objectid`, `parentobjectid`, `relationtype`)");
 	if (er != erSuccess)
-		goto exit;
-
-	er = lpDatabase->DoUpdate("UPDATE objectrelation SET relationtype = " + stringify(OBJECTRELATION_GROUP_MEMBER));
-	if (er != erSuccess)
-		goto exit;
-
-exit:
-
-	return er;
+		return er;
+	return lpDatabase->DoUpdate("UPDATE objectrelation SET relationtype = " + stringify(OBJECTRELATION_GROUP_MEMBER));
 }
 
 // 20
 ECRESULT UpdateDatabaseDelUserCompany(ECDatabase *lpDatabase)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 
 	er = lpDatabase->DoDelete(
 		"DELETE FROM `users` "
 		"WHERE externid IS NULL "
 			"AND object_type = 4");
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
-	er = lpDatabase->DoDelete(
+	return lpDatabase->DoDelete(
 		"DELETE FROM `objectproperty` "
 		"WHERE `propname` = 'companyid' "
 			"AND `value` = 'default'");
-	if (er != erSuccess)
-		goto exit;
-
-exit:
-	return er;
 }
 
 // 21
 ECRESULT UpdateDatabaseAddCompanyToStore(ECDatabase *lpDatabase)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 
 	er = lpDatabase->DoUpdate("ALTER TABLE stores ADD COLUMN user_name varbinary(255) NOT NULL default ''");
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	er = lpDatabase->DoUpdate("ALTER TABLE stores ADD COLUMN company smallint(11) NOT NULL default 0");
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	/*
 	 * The user_name column should contain the actual username, but resolving the username for each
 	 * entry will be quite tiresome without much to gain. Instead we just push the userid as
@@ -728,12 +682,7 @@ ECRESULT UpdateDatabaseAddCompanyToStore(ECDatabase *lpDatabase)
 	 * information from the 'users' table. Note that this will always be correct regardless of
 	 * hosted is enabled or disabled since the default value in the 'users' table is 0.
 	 */
-	er = lpDatabase->DoUpdate("UPDATE stores SET user_name = user_id, company = IFNULL( (SELECT company FROM users WHERE users.id = user_id), 0)");
-	if (er != erSuccess)
-		goto exit;
-
-exit:
-	return er;
+	return lpDatabase->DoUpdate("UPDATE stores SET user_name = user_id, company = IFNULL( (SELECT company FROM users WHERE users.id = user_id), 0)");
 }
 
 // 22
@@ -1316,14 +1265,7 @@ exit:
 // 27
 ECRESULT UpdateDatabaseLockDistributed(ECDatabase *lpDatabase)
 {
-	ECRESULT	er = erSuccess;
-
-	er = lpDatabase->DoInsert("INSERT INTO settings VALUES ('lock_distributed_kopano', 'upgrade')");
-	if (er != erSuccess)
-		goto exit;
-
-exit:
-	return er;
+	return lpDatabase->DoInsert("INSERT INTO settings VALUES ('lock_distributed_kopano', 'upgrade')");
 }
 
 // 28
@@ -1424,18 +1366,11 @@ exit:
 // 29
 ECRESULT UpdateDatabaseSetSingleinstanceTag(ECDatabase *lpDatabase)
 {
-	ECRESULT	er = erSuccess;
 	string		strQuery;
 
 	// Force all tag values to PR_ATTACH_DATA_BIN. Up to now, no other values can be present in the table.
 	strQuery = "UPDATE `singleinstances` SET `tag` = " + stringify(PROP_ID(PR_ATTACH_DATA_BIN));
-
-	er = lpDatabase->DoUpdate(strQuery);
-	if (er != erSuccess)
-		goto exit;
-
-exit:
-	return er;
+	return lpDatabase->DoUpdate(strQuery);
 }
 
 // 30
@@ -1468,7 +1403,7 @@ ECRESULT UpdateDatabaseForceAbResync(ECDatabase *lpDatabase)
 // 32
 ECRESULT UpdateDatabaseRenameObjectTypeToObjectClass(ECDatabase *lpDatabase)
 {
-	ECRESULT	er = erSuccess;
+	ECRESULT er;
 	std::string strQuery;
 
 	// rename columns in users and object tables
@@ -1477,18 +1412,13 @@ ECRESULT UpdateDatabaseRenameObjectTypeToObjectClass(ECDatabase *lpDatabase)
 		"CHANGE COLUMN `object_type` `objectclass` int(11) unsigned NOT NULL";
 	er = lpDatabase->DoUpdate(strQuery);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// Note: type also changes from int to tinyint here
 	strQuery =
 		"ALTER TABLE `object` "
 		"CHANGE COLUMN `objecttype` `objectclass` int(11) unsigned NOT NULL";
-	er = lpDatabase->DoUpdate(strQuery);
-	if (er != erSuccess)
-		goto exit;
-
-exit:
-	return er;
+	return lpDatabase->DoUpdate(strQuery);
 }
 
 // 33
@@ -1636,33 +1566,19 @@ exit:
 // 36
 ECRESULT UpdateDatabaseOutgoingQueuePrimarykey(ECDatabase *lpDatabase)
 {
-	ECRESULT er = erSuccess;
-
-	er= lpDatabase->DoUpdate("ALTER TABLE outgoingqueue DROP PRIMARY KEY, ADD PRIMARY KEY (`hierarchy_id`,`flags`,`store_id`)");
-	if (er != erSuccess)
-		goto exit;
-
-exit:
-	return er;
+	return lpDatabase->DoUpdate("ALTER TABLE outgoingqueue DROP PRIMARY KEY, ADD PRIMARY KEY (`hierarchy_id`,`flags`,`store_id`)");
 }
 
 // 37
 ECRESULT UpdateDatabaseACLPrimarykey(ECDatabase *lpDatabase)
 {
-	ECRESULT er = erSuccess;
-
-	er= lpDatabase->DoUpdate("ALTER TABLE acl DROP PRIMARY KEY, ADD PRIMARY KEY (`hierarchy_id`,`id`,`type`)");
-	if (er != erSuccess)
-		goto exit;
-
-exit:
-	return er;
+	return lpDatabase->DoUpdate("ALTER TABLE acl DROP PRIMARY KEY, ADD PRIMARY KEY (`hierarchy_id`,`id`,`type`)");
 }
 
 // 38
 ECRESULT UpdateDatabaseBlobExternId(ECDatabase *lpDatabase)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	std::string strQuery;
 
 	strQuery = "ALTER TABLE `object` "
@@ -1672,33 +1588,20 @@ ECRESULT UpdateDatabaseBlobExternId(ECDatabase *lpDatabase)
 
 	er = lpDatabase->DoUpdate(strQuery);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	strQuery = "ALTER TABLE `users` "
 				"DROP KEY `externid`, "
 				"MODIFY `externid` blob, "
 				"ADD UNIQUE KEY `externid` (`externid`(255), `objectclass`)";
-
-	er = lpDatabase->DoUpdate(strQuery);
-	if (er != erSuccess)
-		goto exit;
-
-exit:
-	return er;
+	return lpDatabase->DoUpdate(strQuery);
 }
 
 // 39
 ECRESULT UpdateDatabaseKeysChanges2(ECDatabase *lpDatabase)
 {
-	ECRESULT er = erSuccess;
-
 	// Change index
-	er = lpDatabase->DoUpdate("ALTER TABLE changes DROP PRIMARY KEY, ADD PRIMARY KEY(`parentsourcekey`,`sourcekey`,`change_type`)");
-	if (er != erSuccess)
-		goto exit;
-
-exit:
-	return er;
+	return lpDatabase->DoUpdate("ALTER TABLE changes DROP PRIMARY KEY, ADD PRIMARY KEY(`parentsourcekey`,`sourcekey`,`change_type`)");
 }
 
 /**
@@ -1755,14 +1658,7 @@ exit:
 // 41
 ECRESULT UpdateDatabaseFixDBPluginGroups(ECDatabase *lpDatabase)
 {
-	ECRESULT er = erSuccess;
-
-	er = lpDatabase->DoUpdate("UPDATE object SET objectclass="+stringify(DISTLIST_SECURITY)+" WHERE objectclass="+stringify(DISTLIST_GROUP));
-	if (er != erSuccess)
-		goto exit;
-
-exit:
-	return er;
+	return lpDatabase->DoUpdate("UPDATE object SET objectclass="+stringify(DISTLIST_SECURITY)+" WHERE objectclass="+stringify(DISTLIST_GROUP));
 }
 
 // 42
@@ -1921,14 +1817,14 @@ ECRESULT UpdateDatabaseConvertToUnicode(ECDatabase *lpDatabase)
 		strQuery = "UPDATE objectproperty SET value = hex(value) WHERE propname = 'companyid'";
 		er = lpDatabase->DoUpdate(strQuery);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 
 		// Convert tables to unicode
 
 		strQuery = "ALTER TABLE mvproperties MODIFY val_string longtext CHARSET utf8 COLLATE utf8_general_ci";
 		er = lpDatabase->DoUpdate(strQuery);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 
 		// No need to convert the properties table as that will be done on the fly in update 50 (Z_UPDATE_CONVERT_PROPERTIES)
 
@@ -1936,8 +1832,7 @@ ECRESULT UpdateDatabaseConvertToUnicode(ECDatabase *lpDatabase)
 		strQuery = "ALTER TABLE objectproperty MODIFY propname VARCHAR(255) CHARSET utf8 COLLATE utf8_general_ci, MODIFY value TEXT CHARSET utf8 COLLATE utf8_general_ci";
 		er = lpDatabase->DoUpdate(strQuery);
 		if (er != erSuccess)
-			goto exit;
-
+			return er;
 		/*
 		 * Another similar change is to the SYSADMIN property; it used
 		 * to be 12345:XXXXXXXX with XXXXX being a binary externid. That
@@ -1947,13 +1842,11 @@ ECRESULT UpdateDatabaseConvertToUnicode(ECDatabase *lpDatabase)
 		strQuery = "UPDATE objectproperty SET value = concat(substr(value,1,instr(value,';')-1),';',hex(substr(value,instr(value,';')+1))) WHERE propname = 'companyadmin'";
 		er = lpDatabase->DoUpdate(strQuery);
 		if (er != erSuccess)
-			goto exit; 
-
+			return er;
 		strQuery = "ALTER TABLE objectmvproperty MODIFY propname VARCHAR(255) CHARSET utf8 COLLATE utf8_general_ci, MODIFY value TEXT CHARSET utf8 COLLATE utf8_general_ci";
 		er = lpDatabase->DoUpdate(strQuery);
 		if (er != erSuccess)
-			goto exit;
-
+			return er;
 		/*
 		 * Other tables containing varchar's are not converted, all data in those fields are us-ascii anyway:
 		 * - receivefolder
@@ -1968,11 +1861,9 @@ ECRESULT UpdateDatabaseConvertToUnicode(ECDatabase *lpDatabase)
 		ec_log_crit("Please consult the Zarafa and Kopano administrator manual on how to correctly upgrade your database.");
 		ec_log_crit("Alternatively you may try to upgrade using --force-database-upgrade,");
 		ec_log_crit("but no progress and estimates within the updates will be available.");
-		er = KCERR_USER_CANCEL;
-		goto exit;
+		return KCERR_USER_CANCEL;
 	}
 #endif
-
 exit:
 	return er;
 }

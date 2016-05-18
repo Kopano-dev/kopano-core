@@ -36,43 +36,37 @@ ECDatabaseFactory::ECDatabaseFactory(ECConfig *lpConfig)
 
 ECRESULT ECDatabaseFactory::GetDatabaseFactory(ECDatabase **lppDatabase)
 {
-	ECRESULT		er = erSuccess;
 	const char *szEngine = m_lpConfig->GetSetting("database_engine");
 
 	if(stricmp(szEngine, "mysql") == 0) {
 		*lppDatabase = new ECDatabaseMySQL(m_lpConfig);
 	} else {
 		ec_log_crit("ECDatabaseFactory::GetDatabaseFactory(): database not mysql");
-		er = KCERR_DATABASE_ERROR;
-		goto exit;
+		return KCERR_DATABASE_ERROR;
 	}
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECDatabaseFactory::CreateDatabaseObject(ECDatabase **lppDatabase, std::string &ConnectError)
 {
-	ECRESULT		er = erSuccess;
+	ECRESULT er;
 	ECDatabase*		lpDatabase = NULL;
 
 	er = GetDatabaseFactory(&lpDatabase);
 	if(er != erSuccess) {
 		ConnectError = "Invalid database engine";
-		goto exit;
+		return er;
 	}
 
 	er = lpDatabase->Connect();
 	if(er != erSuccess) {
 		ConnectError = lpDatabase->GetError();
 		delete lpDatabase;
-		goto exit;
+		return er;
 	}
 
 	*lppDatabase = lpDatabase;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECDatabaseFactory::CreateDatabase()
@@ -116,7 +110,7 @@ extern pthread_key_t database_key;
 
 ECRESULT GetThreadLocalDatabase(ECDatabaseFactory *lpFactory, ECDatabase **lppDatabase)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	ECDatabase *lpDatabase = NULL;
 	std::string error;
 
@@ -133,7 +127,7 @@ ECRESULT GetThreadLocalDatabase(ECDatabaseFactory *lpFactory, ECDatabase **lppDa
 		if(er != erSuccess) {
 			ec_log_err("Unable to get database connection: %s", error.c_str());
 			lpDatabase = NULL;
-			goto exit;
+			return er;
 		}
 		
 		// Add database into a list, for close all database connections
@@ -143,8 +137,6 @@ ECRESULT GetThreadLocalDatabase(ECDatabaseFactory *lpFactory, ECDatabase **lppDa
 	}
 
 	*lppDatabase = lpDatabase;
-
-exit:
-	return er;
+	return erSuccess;
 }
 

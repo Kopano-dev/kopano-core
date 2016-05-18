@@ -74,12 +74,10 @@ static void plugin_destroy(void *lpParam)
 
 ECRESULT kopano_initlibrary(const char *lpDatabaseDir, const char *lpConfigFile)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 
-	if(g_bInitLib == true) {
-		er = KCERR_CALL_FAILED;
-		goto exit;
-	}
+	if (g_bInitLib == true)
+		return KCERR_CALL_FAILED;
 
 	// This is a global key that we can reference from each thread with a different value. The
 	// database_destroy routine is called when the thread terminates.
@@ -94,20 +92,15 @@ ECRESULT kopano_initlibrary(const char *lpDatabaseDir, const char *lpConfigFile)
 	
 	//TODO: with an error remove all variables and g_bInitLib = false
 	g_bInitLib = true;
-
-exit:
 	return er;
 }
 
 ECRESULT kopano_unloadlibrary(void)
 {
-	ECRESULT er = erSuccess;
 	std::set<ECDatabase *>::const_iterator iterDBObject, iNext;
 
-	if(!g_bInitLib) {
-		er = KCERR_NOT_INITIALIZED;
-		goto exit;
-	}
+	if (!g_bInitLib)
+		return KCERR_NOT_INITIALIZED;
 
 	// Delete the global key,  
 	//  on this position, there are zero or more threads exist. 
@@ -137,19 +130,15 @@ ECRESULT kopano_unloadlibrary(void)
 	pthread_mutex_destroy(&g_hMutexDBObjectList);
 	ECDatabaseMySQL::UnloadLibrary();
 	g_bInitLib = false;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT kopano_init(ECConfig *lpConfig, ECLogger *lpAudit, bool bHostedKopano, bool bDistributedKopano)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 
-	if(!g_bInitLib) {
-		er = KCERR_NOT_INITIALIZED;
-		goto exit;
-	}
+	if (!g_bInitLib)
+		return KCERR_NOT_INITIALIZED;
 
 #ifdef HAVE_OFFLINE_SUPPORT
     g_lpSessionManager = new ECSessionManagerOffline(lpConfig, bHostedKopano, bDistributedKopano);
@@ -159,17 +148,15 @@ ECRESULT kopano_init(ECConfig *lpConfig, ECLogger *lpAudit, bool bHostedKopano, 
 	
 	er = g_lpSessionManager->LoadSettings();
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	er = g_lpSessionManager->CheckUserLicense();
 	if (er != erSuccess)
-		goto exit;
+		return er;
 #ifdef HAVE_LIBS3_H
         if (strcmp(lpConfig->GetSetting("attachment_storage"), "s3") == 0)
                 ECS3Attachment::StaticInit(lpConfig);
 #endif
-exit:
-	return er;
+	return erSuccess;
 }
 
 void kopano_removeallsessions()
@@ -181,13 +168,10 @@ void kopano_removeallsessions()
 
 ECRESULT kopano_exit()
 {
-	ECRESULT er = erSuccess;
 	std::set<ECDatabase *>::const_iterator iterDBObject;
 
-	if(!g_bInitLib) {
-		er = KCERR_NOT_INITIALIZED;
-		goto exit;
-	}
+	if (!g_bInitLib)
+		return KCERR_NOT_INITIALIZED;
 
 #ifdef HAVE_LIBS3_H
         if (g_lpSessionManager && strcmp(g_lpSessionManager->GetConfig()->GetSetting("attachment_storage"), "s3") == 0)
@@ -210,9 +194,7 @@ ECRESULT kopano_exit()
 	     iterDBObject != g_lpDBObjectList.end(); ++iterDBObject)
 		(*iterDBObject)->Close();		
 	pthread_mutex_unlock(&g_hMutexDBObjectList);
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 #if 0

@@ -68,19 +68,12 @@ ECRESULT ECSecurityOffline::GetViewableCompanyIds(std::list<localobjectdetails_t
 
 ECRESULT ECSecurityOffline::GetUserQuota(unsigned int ulUserId, quotadetails_t *lpDetails)
 {
-	ECRESULT er = erSuccess;
-
-	if (!lpDetails) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (lpDetails == NULL)
+		return KCERR_INVALID_PARAMETER;
 	lpDetails->bIsUserDefaultQuota = false;
 	lpDetails->bUseDefaultQuota = false;
 	lpDetails->llHardSize = 0;
 	lpDetails->llSoftSize = 0;
 	lpDetails->llWarnSize = 0;
-
-exit:
-	return er;
+	return erSuccess;
 }

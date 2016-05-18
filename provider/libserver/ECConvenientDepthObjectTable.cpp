@@ -204,7 +204,7 @@ exit:
 }
 
 ECRESULT ECConvenientDepthObjectTable::GetComputedDepth(struct soap *soap, ECSession* lpSession, unsigned int ulObjId, struct propVal *lpPropVal){
-	ECRESULT		er = erSuccess;
+	ECRESULT er;
 	unsigned int ulObjType;
 
 	lpPropVal->ulPropTag = PR_DEPTH;
@@ -216,16 +216,11 @@ ECRESULT ECConvenientDepthObjectTable::GetComputedDepth(struct soap *soap, ECSes
 		if(er != erSuccess) {
 			// should never happen
 			ASSERT(FALSE);
-			er = KCERR_NOT_FOUND;
-			goto exit;
+			return KCERR_NOT_FOUND;
 		}
-		if(ulObjType != MAPI_FOLDER){
-			er = KCERR_NOT_FOUND;
-			goto exit;
-		}
+		if (ulObjType != MAPI_FOLDER)
+			return KCERR_NOT_FOUND;
 		++lpPropVal->Value.ul;
 	}
-	
-exit:
-	return er;
+	return erSuccess;
 }

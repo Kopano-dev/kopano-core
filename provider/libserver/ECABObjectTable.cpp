@@ -193,13 +193,10 @@ ECRESULT ECABObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct soap
 	else
 		er = KCERR_INVALID_TYPE;
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	*lppRowSet = lpsRowSet;
-
-exit:
-
-	return er;
+	return erSuccess;
 }
 
 struct filter_objects {

@@ -269,17 +269,13 @@ exit:
  */
 ECRESULT ECAttachmentStorage::SetSingleInstanceId(ULONG ulObjId, ULONG ulInstanceId, ULONG ulTag)
 {
-	ECRESULT er = erSuccess;
 	std::string strQuery;
 
 	/*
 	 * Check if attachment reference exists, if not return error
 	 */
-	if (!ExistAttachmentInstance(ulInstanceId)) {
-		er = KCERR_UNABLE_TO_COMPLETE;
-		goto exit;
-	}
-
+	if (!ExistAttachmentInstance(ulInstanceId))
+		return KCERR_UNABLE_TO_COMPLETE;
 	/*
 	 * Create Attachment reference, use provided attachment id
 	 */
@@ -287,12 +283,7 @@ ECRESULT ECAttachmentStorage::SetSingleInstanceId(ULONG ulObjId, ULONG ulInstanc
 		"REPLACE INTO `singleinstances` (`instanceid`, `hierarchyid`, `tag`) VALUES"
 		"(" + stringify(ulInstanceId) + ", " + stringify(ulObjId) + ", " +  stringify(ulTag) + ")";
 
-	er = m_lpDatabase->DoInsert(strQuery, (unsigned int*)&ulInstanceId);
-	if (er != erSuccess)
-		goto exit;
-
-exit:
-	return er;
+	return m_lpDatabase->DoInsert(strQuery, reinterpret_cast<unsigned int *>(&ulInstanceId));
 }
 
 /** 
@@ -470,7 +461,7 @@ bool ECAttachmentStorage::ExistAttachment(ULONG ulObjId, ULONG ulPropId)
  */
 ECRESULT ECAttachmentStorage::LoadAttachment(struct soap *soap, ULONG ulObjId, ULONG ulPropId, size_t *lpiSize, unsigned char **lppData)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	ULONG ulInstanceId = 0;
 
 	/*
@@ -478,14 +469,11 @@ ECRESULT ECAttachmentStorage::LoadAttachment(struct soap *soap, ULONG ulObjId, U
 	 */
 	er = GetSingleInstanceId(ulObjId, ulPropId, &ulInstanceId);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	er = LoadAttachmentInstance(soap, ulInstanceId, lpiSize, lppData);
 	if (er != erSuccess)
-		goto exit;
-
-exit:
-	return er;
+		return er;
+	return erSuccess;
 }
 
 /** 
@@ -500,7 +488,7 @@ exit:
  */
 ECRESULT ECAttachmentStorage::LoadAttachment(ULONG ulObjId, ULONG ulPropId, size_t *lpiSize, ECSerializer *lpSink)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	ULONG ulInstanceId = 0;
 
 	/*
@@ -508,14 +496,11 @@ ECRESULT ECAttachmentStorage::LoadAttachment(ULONG ulObjId, ULONG ulPropId, size
 	 */
 	er = GetSingleInstanceId(ulObjId, ulPropId, &ulInstanceId);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	er = LoadAttachmentInstance(ulInstanceId, lpiSize, lpSink);
 	if (er != erSuccess)
-		goto exit;
-
-exit:
-	return er;
+		return er;
+	return erSuccess;
 }
 
 /** 
@@ -532,15 +517,12 @@ exit:
  */
 ECRESULT ECAttachmentStorage::SaveAttachment(ULONG ulObjId, ULONG ulPropId, bool bDeleteOld, size_t iSize, unsigned char *lpData, ULONG *lpulInstanceId)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	ULONG ulInstanceId = 0;
 	std::string strQuery;
 
-	if (!lpData) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (lpData == NULL)
+		return KCERR_INVALID_PARAMETER;
 	if (bDeleteOld) {
 		/*
 		 * Call DeleteAttachment to decrease the refcount
@@ -548,7 +530,7 @@ ECRESULT ECAttachmentStorage::SaveAttachment(ULONG ulObjId, ULONG ulPropId, bool
 		 */
 		er = DeleteAttachment(ulObjId, ulPropId, true);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
 
 	/*
@@ -560,18 +542,15 @@ ECRESULT ECAttachmentStorage::SaveAttachment(ULONG ulObjId, ULONG ulPropId, bool
 	er = m_lpDatabase->DoInsert(strQuery, (unsigned int*)&ulInstanceId);
 	if (er != erSuccess) {
 		ec_log_err("ECAttachmentStorage::SaveAttachment(): DoInsert failed %x", er);
-		goto exit;
+		return er;
 	}
 
 	er = SaveAttachmentInstance(ulInstanceId, ulPropId, iSize, lpData);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	if (lpulInstanceId)
 		*lpulInstanceId = ulInstanceId;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 /** 
@@ -588,7 +567,7 @@ exit:
  */
 ECRESULT ECAttachmentStorage::SaveAttachment(ULONG ulObjId, ULONG ulPropId, bool bDeleteOld, size_t iSize, ECSerializer *lpSource, ULONG *lpulInstanceId)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	ULONG ulInstanceId = 0;
 	std::string strQuery;
 
@@ -599,7 +578,7 @@ ECRESULT ECAttachmentStorage::SaveAttachment(ULONG ulObjId, ULONG ulPropId, bool
 		 */
 		er = DeleteAttachment(ulObjId, ulPropId, true);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
 
 	/*
@@ -611,18 +590,15 @@ ECRESULT ECAttachmentStorage::SaveAttachment(ULONG ulObjId, ULONG ulPropId, bool
 	er = m_lpDatabase->DoInsert(strQuery, (unsigned int*)&ulInstanceId);
 	if (er != erSuccess) {
 		ec_log_err("ECAttachmentStorage::SaveAttachment(): DoInsert failed %x", er);
-		goto exit;
+		return er;
 	}
 
 	er = SaveAttachmentInstance(ulInstanceId, ulPropId, iSize, lpSource);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	if (lpulInstanceId)
 		*lpulInstanceId = ulInstanceId;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 /** 
@@ -638,7 +614,7 @@ exit:
  */
 ECRESULT ECAttachmentStorage::SaveAttachment(ULONG ulObjId, ULONG ulPropId, bool bDeleteOld, ULONG ulInstanceId, ULONG *lpulInstanceId)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	ULONG ulOldAttachId = 0;
 
 	if (bDeleteOld) {
@@ -646,25 +622,21 @@ ECRESULT ECAttachmentStorage::SaveAttachment(ULONG ulObjId, ULONG ulPropId, bool
 		 * Call DeleteAttachment to decrease the refcount
 		 * and optionally delete the original attachment.
 		 */
-		if(GetSingleInstanceId(ulObjId, ulPropId, &ulOldAttachId) == erSuccess && ulOldAttachId == ulInstanceId) {
+		if (GetSingleInstanceId(ulObjId, ulPropId, &ulOldAttachId) == erSuccess &&
+		    ulOldAttachId == ulInstanceId)
 			// Nothing to do, we already have that instance ID
-			goto exit;
-		}
-		 
+			return erSuccess;
 		er = DeleteAttachment(ulObjId, ulPropId, true);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
 
 	er = SetSingleInstanceId(ulObjId, ulInstanceId, ulPropId);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	/* InstanceId is equal to provided AttachId */
 	*lpulInstanceId = ulInstanceId;
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 /** 
@@ -680,7 +652,7 @@ exit:
  */
 ECRESULT ECAttachmentStorage::CopyAttachment(ULONG ulObjId, ULONG ulNewObjId)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	std::string strQuery;
 
 	/*
@@ -694,12 +666,8 @@ ECRESULT ECAttachmentStorage::CopyAttachment(ULONG ulObjId, ULONG ulNewObjId)
 			"WHERE `hierarchyid` = " + stringify(ulObjId);
 
 	er = m_lpDatabase->DoInsert(strQuery);
-	if (er != erSuccess) {
+	if (er != erSuccess)
 		ec_log_err("ECAttachmentStorage::CopyAttachment(): DoInsert failed %x", er);
-		goto exit;
-	}
-
-exit:
 	return er;
 }
 
@@ -725,12 +693,10 @@ ECRESULT ECAttachmentStorage::DeleteAttachments(const std::list<ULONG> &lstDelet
 	 */
 	er = GetSingleInstanceIds(lstDeleteObjects, &lstAttachments);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	/* No attachments present, we're done */
 	if (lstAttachments.empty())
-		goto exit;
-
+		return er;
 	/*
 	 * Remove all objects from `singleinstances` table this will decrease the
 	 * reference count for each attachment.
@@ -749,7 +715,7 @@ ECRESULT ECAttachmentStorage::DeleteAttachments(const std::list<ULONG> &lstDelet
 	er = m_lpDatabase->DoDelete(strQuery);
 	if (er != erSuccess) {
 		ec_log_err("ECAttachmentStorage::DeleteAttachments(): DoDelete failed %x", er);
-		goto exit;
+		return er;
 	}
 
 	/*
@@ -757,16 +723,13 @@ ECRESULT ECAttachmentStorage::DeleteAttachments(const std::list<ULONG> &lstDelet
 	 */
 	er = GetOrphanedSingleInstances(lstAttachments, &lstDeleteAttach);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	if (!lstDeleteAttach.empty()) {
 		er = DeleteAttachmentInstances(lstDeleteAttach, false);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 /** 
@@ -793,7 +756,7 @@ ECRESULT ECAttachmentStorage::DeleteAttachment(ULONG ulObjId, ULONG ulPropId) {
  */
 ECRESULT ECAttachmentStorage::DeleteAttachment(ULONG ulObjId, ULONG ulPropId, bool bReplace)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	ULONG ulInstanceId = 0;
 	bool bOrphan = false;
 	std::string strQuery;
@@ -805,7 +768,7 @@ ECRESULT ECAttachmentStorage::DeleteAttachment(ULONG ulObjId, ULONG ulPropId, bo
 	if (er != erSuccess) {
 		if (er == KCERR_NOT_FOUND)
 			er = erSuccess;	// Nothing to delete
-		goto exit;
+		return er;
 	}
 
 	/*
@@ -820,7 +783,7 @@ ECRESULT ECAttachmentStorage::DeleteAttachment(ULONG ulObjId, ULONG ulPropId, bo
 	er = m_lpDatabase->DoDelete(strQuery);
 	if (er != erSuccess) {
 		ec_log_err("ECAttachmentStorage::DeleteAttachment(): DoDelete failed %x", er);
-		goto exit;
+		return er;
 	}
 
 	/*
@@ -829,11 +792,9 @@ ECRESULT ECAttachmentStorage::DeleteAttachment(ULONG ulObjId, ULONG ulPropId, bo
 	if (IsOrphanedSingleInstance(ulInstanceId, &bOrphan) == erSuccess && bOrphan) {
 		er = DeleteAttachmentInstance(ulInstanceId, bReplace);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 /** 
@@ -847,7 +808,7 @@ exit:
  */
 ECRESULT ECAttachmentStorage::GetSize(ULONG ulObjId, ULONG ulPropId, size_t *lpulSize)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	ULONG ulInstanceId = 0;
 
 	/*
@@ -856,18 +817,11 @@ ECRESULT ECAttachmentStorage::GetSize(ULONG ulObjId, ULONG ulPropId, size_t *lpu
 	er = GetSingleInstanceId(ulObjId, ulPropId, &ulInstanceId);
 	if (er == KCERR_NOT_FOUND) {
 		*lpulSize = 0;
-		er = erSuccess;
-		goto exit;
+		return erSuccess;
 	} else if (er != erSuccess) {
-		goto exit;
+		return er;
 	}
-
-	er = GetSizeInstance(ulInstanceId, lpulSize);
-	if (er != erSuccess)
-		goto exit;
-
-exit:
-	return er;
+	return GetSizeInstance(ulInstanceId, lpulSize);
 }
 
 // Attachment storage is in database
@@ -1060,7 +1014,7 @@ exit:
  */
 ECRESULT ECDatabaseAttachment::SaveAttachmentInstance(ULONG ulInstanceId, ULONG ulPropId, size_t iSize, unsigned char *lpData)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	std::string strQuery;
 
 	// make chunks of 393216 bytes (384*1024)
@@ -1078,15 +1032,14 @@ ECRESULT ECDatabaseAttachment::SaveAttachmentInstance(ULONG ulInstanceId, ULONG 
 		er = m_lpDatabase->DoInsert(strQuery);
 		if (er != erSuccess) {
 			ec_log_err("ECAttachmentStorage::SaveAttachmentInstance(): DoInsert failed %x", er);
-			goto exit;
+			return er;
 		}
 		++ulChunk;
 		iSizeLeft -= iChunkSize;
 		iPtr += iChunkSize;
 	} while (iSizeLeft > 0);
 
-exit:
-	return er;
+	return erSuccess;
 }
 
 /** 
@@ -1106,7 +1059,7 @@ exit:
  */
 ECRESULT ECDatabaseAttachment::SaveAttachmentInstance(ULONG ulInstanceId, ULONG ulPropId, size_t iSize, ECSerializer *lpSource)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	std::string strQuery;
 	unsigned char szBuffer[CHUNK_SIZE] = {0};
 
@@ -1119,7 +1072,7 @@ ECRESULT ECDatabaseAttachment::SaveAttachmentInstance(ULONG ulInstanceId, ULONG 
 
 		er = lpSource->Read(szBuffer, 1, iChunkSize);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 
 		strQuery = (std::string)"INSERT INTO lob (instanceid, chunkid, tag, val_binary) VALUES (" +
 			stringify(ulInstanceId) + ", " + stringify(ulChunk) + ", " + stringify(ulPropId) +
@@ -1128,14 +1081,12 @@ ECRESULT ECDatabaseAttachment::SaveAttachmentInstance(ULONG ulInstanceId, ULONG 
 		er = m_lpDatabase->DoInsert(strQuery);
 		if (er != erSuccess) {
 			ec_log_err("ECAttachmentStorage::SaveAttachmentInstance(): DoInsert failed %x", er);
-			goto exit;
+			return er;
 		}
 		++ulChunk;
 		iSizeLeft -= iChunkSize;
 	}
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 /** 
@@ -1290,21 +1241,16 @@ ECFileAttachment::~ECFileAttachment()
 bool ECFileAttachment::ExistAttachmentInstance(ULONG ulInstanceId)
 {
 #	define z_stat stat
-	ECRESULT er = erSuccess;
 	string filename = CreateAttachmentFilename(ulInstanceId, m_bFileCompression);
 
 	struct z_stat st;
 	if (z_stat(filename.c_str(), &st) == -1) {
 		filename = CreateAttachmentFilename(ulInstanceId, !m_bFileCompression);
 
-		if (z_stat(filename.c_str(), &st) == -1) {
-			er = KCERR_NOT_FOUND;
-			goto exit;
-		}
+		if (z_stat(filename.c_str(), &st) == -1)
+			return false;
 	}
-
-exit:
-	return er == erSuccess;
+	return true;
 #undef z_stat
 }
 
@@ -2001,17 +1947,17 @@ ECRESULT ECFileAttachment::DeleteAttachmentInstances(const std::list<ULONG> &lst
  */
 ECRESULT ECFileAttachment::MarkAttachmentForDeletion(ULONG ulInstanceId) 
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	string filename = CreateAttachmentFilename(ulInstanceId, m_bFileCompression);
 
 	if(rename(filename.c_str(), string(filename+".deleted").c_str()) == 0)
-		goto exit; /* succeeded */
+		return erSuccess;
 
 	if (errno == ENOENT) {
 		// retry with another filename
 		filename = CreateAttachmentFilename(ulInstanceId, !m_bFileCompression);
 		if(rename(filename.c_str(), string(filename+".deleted").c_str()) == 0)
-			goto exit; /* succeeded */
+			return erSuccess;
 	}
 
 	// FIXME log in all errno cases
@@ -2023,8 +1969,6 @@ ECRESULT ECFileAttachment::MarkAttachmentForDeletion(ULONG ulInstanceId)
 		er = KCERR_DATABASE_ERROR;
 		ec_log_err("ECFileAttachment::MarkAttachmentForDeletion(): cannot mark %u", ulInstanceId);
 	}
-
-exit:
 	return er;
 }
 
@@ -2037,17 +1981,17 @@ exit:
  */
 ECRESULT ECFileAttachment::RestoreMarkedAttachment(ULONG ulInstanceId)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	string filename = CreateAttachmentFilename(ulInstanceId, m_bFileCompression);
 
 	if(rename(string(filename+".deleted").c_str(), filename.c_str()) == 0)
-        goto exit; /* succeeded */
+		return erSuccess;
 
 	if (errno == ENOENT) {
 		// retry with another filename
 		filename = CreateAttachmentFilename(ulInstanceId, !m_bFileCompression);
 		if(rename(string(filename+".deleted").c_str(), filename.c_str()) == 0)
-			goto exit; /* succeeded */
+			return erSuccess;
 	}
 	
     if (errno == EACCES || errno == EPERM)
@@ -2058,7 +2002,6 @@ ECRESULT ECFileAttachment::RestoreMarkedAttachment(ULONG ulInstanceId)
 		er = KCERR_DATABASE_ERROR;
 		ec_log_err("ECFileAttachment::RestoreMarkedAttachment(): cannot mark %u", ulInstanceId);
 	}
-exit:
 	return er;
 }
 
@@ -2071,16 +2014,16 @@ exit:
  */
 ECRESULT ECFileAttachment::DeleteMarkedAttachment(ULONG ulInstanceId)
 {
-	ECRESULT er = erSuccess;
+	ECRESULT er;
 	string filename = CreateAttachmentFilename(ulInstanceId, m_bFileCompression) + ".deleted";
 
 	if (unlink(filename.c_str()) == 0)
-		goto exit; /* Successed! */
+		return erSuccess;
 
 	if (errno == ENOENT) {
 		filename = CreateAttachmentFilename(ulInstanceId, !m_bFileCompression) + ".deleted";
 		if (unlink(filename.c_str()) == 0)
-			goto exit; /* Successed! */
+			return erSuccess;
 	}
 
 	// FIXME log in all errno cases
@@ -2090,8 +2033,6 @@ ECRESULT ECFileAttachment::DeleteMarkedAttachment(ULONG ulInstanceId)
 		er = KCERR_DATABASE_ERROR;
 		ec_log_err("ECFileAttachment::DeleteMarkedAttachment() cannot delete instance %u", ulInstanceId);
 	}
-
-exit:
 	return er;
 }
 
@@ -2113,7 +2054,7 @@ ECRESULT ECFileAttachment::DeleteAttachmentInstance(ULONG ulInstanceId, bool bRe
 			er = MarkAttachmentForDeletion(ulInstanceId);
 			if (er != erSuccess && er != KCERR_NOT_FOUND) {
 				ASSERT(FALSE);
-				goto exit;
+				return er;
 			} else if(er != KCERR_NOT_FOUND) {
 				 m_setMarkedAttachment.insert(ulInstanceId);
 			}
@@ -2122,14 +2063,14 @@ ECRESULT ECFileAttachment::DeleteAttachmentInstance(ULONG ulInstanceId, bool bRe
 		} else {
 			m_setDeletedAttachment.insert(ulInstanceId);
 		}
-		goto exit;
+		return er;
 	}
 
 	if (unlink(filename.c_str()) != 0) {
 		if (errno == ENOENT){
 			filename = CreateAttachmentFilename(ulInstanceId, !m_bFileCompression);
 			if (unlink(filename.c_str()) == 0)
-				goto exit; /* Success! */
+				return erSuccess;
 		}
 
 		if (errno == EACCES || errno == EPERM)
@@ -2139,8 +2080,6 @@ ECRESULT ECFileAttachment::DeleteAttachmentInstance(ULONG ulInstanceId, bool bRe
 			ec_log_err("ECFileAttachment::DeleteAttachmentInstance() id %u fail", ulInstanceId);
 		}
 	}
-
-exit:
 	return er;
 }
 
@@ -2255,12 +2194,10 @@ exit:
 
 ECRESULT ECFileAttachment::Begin()
 {
-	ECRESULT er = erSuccess;
-
 	if(m_bTransaction) {
 		// Possible a duplicate begin call, don't destroy the data in production
 		ASSERT(FALSE);
-		goto exit;
+		return erSuccess;
 	}
 
 	// Set begin values
@@ -2268,8 +2205,7 @@ ECRESULT ECFileAttachment::Begin()
 	m_setDeletedAttachment.clear();
 	m_setMarkedAttachment.clear();
 	m_bTransaction = true;
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECFileAttachment::Commit()
@@ -2280,7 +2216,7 @@ ECRESULT ECFileAttachment::Commit()
 	
 	if(!m_bTransaction) {
 		ASSERT(FALSE);
-		goto exit;
+		return erSuccess;
 	}
 
 	// Disable the transaction
@@ -2307,8 +2243,6 @@ ECRESULT ECFileAttachment::Commit()
 	m_setNewAttachment.clear();
 	m_setDeletedAttachment.clear();
 	m_setMarkedAttachment.clear();
-
-exit:
 	return er;
 }
 
@@ -2320,7 +2254,7 @@ ECRESULT ECFileAttachment::Rollback()
 
 	if(!m_bTransaction) {
 		ASSERT(FALSE);
-		goto exit;
+		return erSuccess;
 	}
 
 	// Disable the transaction
@@ -2348,7 +2282,5 @@ ECRESULT ECFileAttachment::Rollback()
 		er = KCERR_DATABASE_ERROR;
 		ec_log_err("ECFileAttachment::Rollback() error");
 	}
-
-exit:
 	return er;
 }
