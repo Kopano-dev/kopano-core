@@ -1238,8 +1238,8 @@ ECRESULT ECCacheManager::_GetACLs(unsigned int ulObjId, struct rightsArray **lpp
 			LOG_USERCACHE_DEBUG("_Get ACLs result for objectid %d: userid %d, type %d, permissions %d", ulObjId, lpRights->__ptr[i].ulUserid, lpRights->__ptr[i].ulType, lpRights->__ptr[i].ulRights);
         }
     }
-    else
-        memset(lpRights, 0, sizeof *lpRights);
+	else
+		memset(lpRights, 0, sizeof *lpRights);
 
 	*lppRights = lpRights;
 	return erSuccess;

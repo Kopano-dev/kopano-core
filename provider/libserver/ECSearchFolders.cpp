@@ -1566,10 +1566,10 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulStoreId, unsigned int ulFold
         }
     }
 
-    if(lpulCount)
-        *lpulCount += ulInserted;
-    if(lpulUnread)
-        *lpulUnread += ulModified;
+	if (lpulCount != NULL)
+		*lpulCount += ulInserted;
+	if (lpulUnread != NULL)
+		*lpulUnread += ulModified;
         
 	return erSuccess;
 }

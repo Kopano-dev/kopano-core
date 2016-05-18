@@ -1960,21 +1960,21 @@ exit:
 ECRESULT ApplyFolderCounts(ECDatabase *lpDatabase, unsigned int ulFolderId, const PARENTINFO &pi) {
 	ECRESULT er;
     
-    er = UpdateFolderCount(lpDatabase, ulFolderId, PR_CONTENT_COUNT,    			pi.lItems);
-    if (er == erSuccess)
-        er = UpdateFolderCount(lpDatabase, ulFolderId, PR_CONTENT_UNREAD,   		pi.lUnread);
-    if (er == erSuccess)
-        er = UpdateFolderCount(lpDatabase, ulFolderId, PR_ASSOC_CONTENT_COUNT,   	pi.lAssoc);
-    if (er == erSuccess)
-        er = UpdateFolderCount(lpDatabase, ulFolderId, PR_DELETED_MSG_COUNT, 		pi.lDeleted);
-    if (er == erSuccess)
-        er = UpdateFolderCount(lpDatabase, ulFolderId, PR_DELETED_ASSOC_MSG_COUNT, 	pi.lDeletedAssoc);
-    if (er == erSuccess)
-        er = UpdateFolderCount(lpDatabase, ulFolderId, PR_SUBFOLDERS,  				pi.lFolders);
-    if (er == erSuccess)
-        er = UpdateFolderCount(lpDatabase, ulFolderId, PR_FOLDER_CHILD_COUNT,		pi.lFolders);
-    if (er == erSuccess)
-        er = UpdateFolderCount(lpDatabase, ulFolderId, PR_DELETED_FOLDER_COUNT,		pi.lDeletedFolders);
+	er = UpdateFolderCount(lpDatabase, ulFolderId, PR_CONTENT_COUNT,    			pi.lItems);
+	if (er == erSuccess)
+		er = UpdateFolderCount(lpDatabase, ulFolderId, PR_CONTENT_UNREAD,   		pi.lUnread);
+	if (er == erSuccess)
+		er = UpdateFolderCount(lpDatabase, ulFolderId, PR_ASSOC_CONTENT_COUNT,   	pi.lAssoc);
+	if (er == erSuccess)
+		er = UpdateFolderCount(lpDatabase, ulFolderId, PR_DELETED_MSG_COUNT, 		pi.lDeleted);
+	if (er == erSuccess)
+		er = UpdateFolderCount(lpDatabase, ulFolderId, PR_DELETED_ASSOC_MSG_COUNT, 	pi.lDeletedAssoc);
+	if (er == erSuccess)
+		er = UpdateFolderCount(lpDatabase, ulFolderId, PR_SUBFOLDERS,  				pi.lFolders);
+	if (er == erSuccess)
+		er = UpdateFolderCount(lpDatabase, ulFolderId, PR_FOLDER_CHILD_COUNT,		pi.lFolders);
+	if (er == erSuccess)
+		er = UpdateFolderCount(lpDatabase, ulFolderId, PR_DELETED_FOLDER_COUNT,		pi.lDeletedFolders);
 
 	return er;
 }
@@ -2010,10 +2010,10 @@ static ECRESULT LockFolders(ECDatabase *lpDatabase, bool bShared,
     strQuery.resize(strQuery.size()-1);
     strQuery += ") ";
     
-    if(bShared)
-        strQuery += "LOCK IN SHARE MODE";
-    else
-        strQuery += "FOR UPDATE";
+	if (bShared)
+		strQuery += "LOCK IN SHARE MODE";
+	else
+		strQuery += "FOR UPDATE";
     
 	return lpDatabase->DoSelect(strQuery, NULL);
 }
