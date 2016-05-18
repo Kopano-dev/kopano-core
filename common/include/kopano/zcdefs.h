@@ -29,9 +29,13 @@
 /* Minimum requirement for KC is g++ 4.6, g++0x mode. */
 #if __cplusplus >= 201100L
 	/* Only in g++ 4.7 onwards */
-#	define _zcp_final final
-#	define _zcp_override override
+#	define _kc_final final
+#	define _kc_override override
+#	define _zcp_final _kc_final
+#	define _zcp_override _kc_override
 #else
+#	define _kc_final
+#	define _kc_override
 #	define _zcp_final
 #	define _zcp_override
 #endif

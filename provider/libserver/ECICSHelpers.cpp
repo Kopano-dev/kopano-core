@@ -15,6 +15,7 @@
  *
  */
 
+#include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <memory>
 #include <kopano/stringutil.h>
@@ -63,7 +64,7 @@ public:
 	CommonQueryCreator(unsigned int ulFlags);
 	
 	// IDbQueryCreator
-	std::string CreateQuery();
+	std::string CreateQuery(void) _kc_override;
 	
 private:
 	virtual std::string CreateBaseQuery() = 0;
@@ -101,13 +102,12 @@ std::string CommonQueryCreator::CreateQuery()
  *                          that are new or have changed since the last check will be
  *                          returned (deleted is a change is this context).
  **/
-class IncrementalQueryCreator : public CommonQueryCreator
-{
+class IncrementalQueryCreator _kc_final : public CommonQueryCreator {
 public:
 	IncrementalQueryCreator(ECDatabase *lpDatabase, unsigned int ulSyncId, unsigned int ulChangeId, const SOURCEKEY &sFolderSourceKey, unsigned int ulFlags);
 	
 private:
-	std::string CreateBaseQuery();
+	std::string CreateBaseQuery(void) _kc_override;
 	std::string CreateOrderQuery();
 	
 private:
@@ -168,13 +168,12 @@ std::string IncrementalQueryCreator::CreateOrderQuery()
  *                   messages need to be processed afterwards to see what needs to be
  *                   send to the client.
  **/
-class FullQueryCreator : public CommonQueryCreator
-{
+class FullQueryCreator _kc_final : public CommonQueryCreator {
 public:
 	FullQueryCreator(ECDatabase *lpDatabase, const SOURCEKEY &sFolderSourceKey, unsigned int ulFlags, unsigned int ulFilteredSourceSync = 0);
 	
 private:
-	std::string CreateBaseQuery();
+	std::string CreateBaseQuery(void) _kc_override;
 	std::string CreateOrderQuery();
 	
 private:
@@ -222,13 +221,12 @@ std::string FullQueryCreator::CreateOrderQuery()
  * do not have a restriction set. (When a restriction is set, we still need to generate the message set
  * so we cannot optimize anything out then).
  **/
-class NullQueryCreator : public CommonQueryCreator
-{
+class NullQueryCreator _kc_final : public CommonQueryCreator {
 public:
 	NullQueryCreator();
 	
 private:
-	std::string CreateBaseQuery();
+	std::string CreateBaseQuery(void) _kc_override;
 	std::string CreateOrderQuery();
 };
 
@@ -266,13 +264,12 @@ public:
  *                                which implies that all changes are genuin changes and no messages will be
  *                                rejected through a restriction.
  **/
-class NonLegacyIncrementalProcessor : public IMessageProcessor
-{
+class NonLegacyIncrementalProcessor _kc_final : public IMessageProcessor {
 public:
 	NonLegacyIncrementalProcessor(unsigned int ulMaxChangeId);
-	ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags);
-	ECRESULT ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType);
-	ECRESULT GetResidualMessages(LPMESSAGESET lpsetResiduals)
+	ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags) _kc_override;
+	ECRESULT ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType) _kc_override;
+	ECRESULT GetResidualMessages(LPMESSAGESET lpsetResiduals) _kc_override
 	{
 		/* No legacy, no residuals. */
 		return erSuccess;
@@ -315,13 +312,12 @@ ECRESULT NonLegacyIncrementalProcessor::ProcessRejected(DB_ROW lpDBRow, DB_LENGT
  *                         client previously. Since we don't have legacy, we assume all messages
  *                         up to the current changeId are on the client.
  **/
-class NonLegacyFullProcessor : public IMessageProcessor
-{
+class NonLegacyFullProcessor _kc_final : public IMessageProcessor {
 public:
 	NonLegacyFullProcessor(unsigned int ulChangeId, unsigned int ulSyncId);
-	ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags);
-	ECRESULT ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType);
-	ECRESULT GetResidualMessages(LPMESSAGESET lpsetResiduals)
+	ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags) _kc_override;
+	ECRESULT ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType) _kc_override;
+	ECRESULT GetResidualMessages(LPMESSAGESET lpsetResiduals) _kc_override
 	{
 		/* No legacy, no residuals. */
 		return erSuccess;
@@ -386,13 +382,12 @@ ECRESULT NonLegacyFullProcessor::ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDB
 /**
  * LegacyProcessor: Processes accepted and rejected messages while keeping track of legacy messages.
  **/
-class LegacyProcessor : public IMessageProcessor
-{
+class LegacyProcessor _kc_final : public IMessageProcessor {
 public:
 	LegacyProcessor(unsigned int ulChangeId, unsigned int ulSyncId, const MESSAGESET &setMessages, unsigned int ulMaxFolderChange);
-	ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags);
-	ECRESULT ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType);
-	ECRESULT GetResidualMessages(LPMESSAGESET lpsetResiduals);
+	ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags) _kc_override;
+	ECRESULT ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType) _kc_override;
+	ECRESULT GetResidualMessages(LPMESSAGESET lpsetResiduals) _kc_override;
 	unsigned int GetMaxChangeId(void) const { return m_ulMaxChangeId; }
 	
 private:
@@ -507,13 +502,12 @@ ECRESULT LegacyProcessor::GetResidualMessages(LPMESSAGESET lpsetResiduals)
  * FirstSyncProcessor: Processes accepted and rejected messages for initial syncs. And because
  *                     it is the first sync we assume there are no messages on the device yet.
  **/
-class FirstSyncProcessor : public IMessageProcessor
-{
+class FirstSyncProcessor _kc_final : public IMessageProcessor {
 public:
 	FirstSyncProcessor(unsigned int ulMaxFolderChange);
-	ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags);
-	ECRESULT ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType);
-	ECRESULT GetResidualMessages(LPMESSAGESET lpsetResiduals)
+	ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags) _kc_override;
+	ECRESULT ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType) _kc_override;
+	ECRESULT GetResidualMessages(LPMESSAGESET lpsetResiduals) _kc_override
 	{
 		/* No legacy, no residuals. */
 		return erSuccess;

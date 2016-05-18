@@ -15,6 +15,7 @@
  *
  */
 
+#include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 
 #include "ECExchangeImportContentsChanges.h"
@@ -48,7 +49,7 @@
 #endif
 
 #ifdef _DEBUG
-class NullStream : public IStream
+class NullStream _kc_final : public IStream
 {
 public:
 	NullStream() : m_cRef(1) {}
