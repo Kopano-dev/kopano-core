@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <memory>
 #include <kopano/stringutil.h>
 #include "ics.h"
 
@@ -782,7 +783,7 @@ ECRESULT ECGetContentChangesHelper::ProcessRows(const std::vector<DB_ROW> &db_ro
 	unsigned int	ulFlags = 0;
 	DB_ROW lpDBRow;
 	DB_LENGTHS lpDBLen;
-	std::set<SOURCEKEY> *matches = NULL;
+	std::set<SOURCEKEY> matches;
 
 	if (m_lpsRestrict) {
 		ASSERT(m_lpSession);
@@ -799,7 +800,7 @@ ECRESULT ECGetContentChangesHelper::ProcessRows(const std::vector<DB_ROW> &db_ro
 		lpDBLen = db_lengths[i];
 
 		if (m_lpsRestrict != NULL)
-			fMatch = matches->find(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])) != matches->end();
+			fMatch = matches.find(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])) != matches.end();
 
 		ec_log(EC_LOGLEVEL_ICS, "Processing: %s, match=%d", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str(), fMatch);
 		ulChangeType = 0;
@@ -836,7 +837,6 @@ ECRESULT ECGetContentChangesHelper::ProcessRows(const std::vector<DB_ROW> &db_ro
 		++m_ulChangeCnt;
 	}
 exit:
-	delete matches;
 	return er;
 }
 
@@ -1041,7 +1041,7 @@ exit:
 
 ECRESULT ECGetContentChangesHelper::MatchRestrictions(const std::vector<DB_ROW> &db_rows,
     const std::vector<DB_LENGTHS> &db_lengths,
-    struct restrictTable *restrict, std::set<SOURCEKEY> **matches_p)
+    struct restrictTable *restrict, std::set<SOURCEKEY> *matches_p)
 {
 	ECRESULT er = erSuccess;
 	unsigned int ulObjId = 0;
@@ -1053,7 +1053,7 @@ ECRESULT ECGetContentChangesHelper::MatchRestrictions(const std::vector<DB_ROW> 
 	std::map<ECsIndexProp, unsigned int> index_objs;
 	struct propTagArray *lpPropTags = NULL;
 	struct rowSet *lpRowSet = NULL;
-	std::set<SOURCEKEY> *matches = new std::set<SOURCEKEY>;
+	std::set<SOURCEKEY> matches;
 	std::vector<unsigned int> cbdata;
 	std::vector<unsigned char *> lpdata;
 	std::vector<unsigned int> objectids;
@@ -1112,12 +1112,10 @@ ECRESULT ECGetContentChangesHelper::MatchRestrictions(const std::vector<DB_ROW> 
 		if(er != erSuccess)
 			goto exit;
 		if (fMatch)
-			matches->insert(source_keys[j]);
+			matches.insert(source_keys[j]);
 	}
 
-	*matches_p = matches;
-	matches = NULL;
-
+	*matches_p = std::move(matches);
 exit:
 	delete sODStore.lpGuid;
 
@@ -1125,8 +1123,6 @@ exit:
 		FreePropTagArray(lpPropTags);
 	if(lpRowSet)
 		FreeRowSet(lpRowSet, true);
-	if (matches != NULL)
-		delete matches;
 	return er;
 }
 
