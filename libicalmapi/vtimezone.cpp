@@ -142,13 +142,25 @@ static HRESULT HrZoneToStruct(icalcomponent_kind kind, icalcomponent *lpVTZ,
 {
 	HRESULT hr = hrSuccess;
 	icalcomponent *icComp = NULL;
+	icalcomponent *iterComp = NULL;
 	icalproperty *tzFrom, *tzTo, *rRule, *dtStart, *rDate;
 	icaltimetype icTime;
 	SYSTEMTIME *lpSysTime = NULL;
 	SYSTEMTIME stRecurTime;
 	icalrecurrencetype recur;
 
-	icComp = icalcomponent_get_first_component(lpVTZ, kind);
+	/* Assumes that definitions are sorted on dtstart, in ascending order. */
+	iterComp = icalcomponent_get_first_component(lpVTZ, kind);
+	while (iterComp != NULL) {
+		icTime = icalcomponent_get_dtstart(iterComp);
+		icTime.is_utc = 1;
+		struct tm start = UTC_ICalTime2UnixTime(icTime);
+		if (time(NULL) < mktime(&start))
+			break;
+		icComp = iterComp;
+		iterComp = icalcomponent_get_next_component(lpVTZ, kind);
+	}
+
 	if (!icComp) {
 		hr = MAPI_E_NOT_FOUND;
 		goto exit;
@@ -203,8 +215,7 @@ static HRESULT HrZoneToStruct(icalcomponent_kind kind, icalcomponent *lpVTZ,
 			lpSysTime->wDay = icalrecurrencetype_day_position(recur.by_day[0]); // 1..4
 
 		lpSysTime->wDayOfWeek = icalrecurrencetype_day_day_of_week(recur.by_day[0]) -1;
-	} else if (rDate) {
-		// one hit recurrence
+	} else {
 		stRecurTime = TMToSystemTime(UTC_ICalTime2UnixTime(icTime));
 
 		lpSysTime->wMonth = stRecurTime.wMonth+1; // fix for -1 in UTC_ICalTime2UnixTime, since TMToSystemTime doesn't do +1
@@ -261,15 +272,20 @@ HRESULT HrParseVTimeZone(icalcomponent* lpVTZ, std::string* lpstrTZID, TIMEZONE_
 	{
 		icalcomponent *icComp = NULL;
 		icalproperty *tzSTDRule = NULL, *tzDSTRule = NULL;
+		icalproperty *tzSTDDate = NULL, *tzDSTDate = NULL;
 
 		icComp = icalcomponent_get_first_component(lpVTZ, ICAL_XSTANDARD_COMPONENT);
-		if (icComp)
+		if (icComp) {
 			tzSTDRule = icalcomponent_get_first_property(icComp, ICAL_RRULE_PROPERTY);
+			tzSTDDate = icalcomponent_get_first_property(icComp, ICAL_RDATE_PROPERTY);
+		}
 		icComp = icalcomponent_get_first_component(lpVTZ, ICAL_XDAYLIGHT_COMPONENT);
-		if (icComp)
+		if (icComp) {
 			tzDSTRule = icalcomponent_get_first_property(icComp, ICAL_RRULE_PROPERTY);
+			tzDSTDate = icalcomponent_get_first_property(icComp, ICAL_RDATE_PROPERTY);
+		}
 
-		if (tzSTDRule == NULL && tzDSTRule == NULL) {
+		if (tzSTDRule == NULL && tzDSTRule == NULL && tzSTDDate != NULL && tzDSTDate != NULL) {
 			// clear rule data
 			memset(&tzRet.stStdDate, 0, sizeof(SYSTEMTIME));
 			memset(&tzRet.stDstDate, 0, sizeof(SYSTEMTIME));
