@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <memory>
 #include <kopano/stringutil.h>
 #include "ics.h"
 
@@ -293,6 +294,8 @@ ECRESULT NonLegacyIncrementalProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGT
 	
 	*lpulChangeType = atoui(lpDBRow[icsChangeType]);
 	*lpulFlags = lpDBRow[icsFlags] ? atoui(lpDBRow[icsFlags]) : 0;
+
+	ec_log(EC_LOGLEVEL_ICS, "NonLegacyIncrementalAccepted: sourcekey=%s, changetype=%d", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str(), *lpulChangeType);
 	return erSuccess;
 }
 
@@ -303,6 +306,7 @@ ECRESULT NonLegacyIncrementalProcessor::ProcessRejected(DB_ROW lpDBRow, DB_LENGT
 	ASSERT(FALSE);
 	
 	*lpulChangeType = 0;
+	ec_log(EC_LOGLEVEL_ICS, "NonLegacyIncrementalRejected: sourcekey=%s, changetype=0", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str());
 	return erSuccess;
 }
 
@@ -370,6 +374,7 @@ ECRESULT NonLegacyFullProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDB
 	if (ulChange > m_ulMaxChangeId)
 		m_ulMaxChangeId = ulChange;
 		
+	ec_log(EC_LOGLEVEL_ICS, "NonLegacyFullAccepted: sourcekey=%s, changetype=%d", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str(), *lpulChangeType);
 	return erSuccess;
 }
 
@@ -385,6 +390,7 @@ ECRESULT NonLegacyFullProcessor::ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDB
 	if (ulChange > m_ulMaxChangeId)
 		m_ulMaxChangeId = ulChange;
 
+	ec_log(EC_LOGLEVEL_ICS, "NonLegacyFullRejected: sourcekey=%s, changetype=%d", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str(), *lpulChangeType);
 	return erSuccess;
 }
 
@@ -562,6 +568,7 @@ ECRESULT FirstSyncProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen,
 	else
 		*lpulChangeType = ICS_MESSAGE_NEW;
 		
+	ec_log(EC_LOGLEVEL_ICS, "FirstSyncAccepted: sourcekey=%s, changetype=%d", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str(), *lpulChangeType);
 	return erSuccess;
 }
 
@@ -570,6 +577,8 @@ ECRESULT FirstSyncProcessor::ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen,
 	ASSERT(lpulChangeType);
 	
 	*lpulChangeType = 0;	// Ignore
+
+	ec_log(EC_LOGLEVEL_ICS, "FirstSyncRejected: sourcekey=%s, changetype=0", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str());
 	return erSuccess;
 }
 
@@ -784,7 +793,7 @@ ECRESULT ECGetContentChangesHelper::ProcessRows(const std::vector<DB_ROW> &db_ro
 	unsigned int	ulFlags = 0;
 	DB_ROW lpDBRow;
 	DB_LENGTHS lpDBLen;
-	std::set<SOURCEKEY> *matches = NULL;
+	std::set<SOURCEKEY> matches;
 
 	if (m_lpsRestrict) {
 		ASSERT(m_lpSession);
@@ -801,7 +810,7 @@ ECRESULT ECGetContentChangesHelper::ProcessRows(const std::vector<DB_ROW> &db_ro
 		lpDBLen = db_lengths[i];
 
 		if (m_lpsRestrict != NULL)
-			fMatch = matches->find(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])) != matches->end();
+			fMatch = matches.find(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])) != matches.end();
 
 		ec_log(EC_LOGLEVEL_ICS, "Processing: %s, match=%d", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str(), fMatch);
 		ulChangeType = 0;
@@ -838,7 +847,6 @@ ECRESULT ECGetContentChangesHelper::ProcessRows(const std::vector<DB_ROW> &db_ro
 		++m_ulChangeCnt;
 	}
 exit:
-	delete matches;
 	return er;
 }
 
@@ -1043,7 +1051,7 @@ exit:
 
 ECRESULT ECGetContentChangesHelper::MatchRestrictions(const std::vector<DB_ROW> &db_rows,
     const std::vector<DB_LENGTHS> &db_lengths,
-    struct restrictTable *restrict, std::set<SOURCEKEY> **matches_p)
+    struct restrictTable *restrict, std::set<SOURCEKEY> *matches_p)
 {
 	ECRESULT er = erSuccess;
 	unsigned int ulObjId = 0;
@@ -1055,12 +1063,14 @@ ECRESULT ECGetContentChangesHelper::MatchRestrictions(const std::vector<DB_ROW> 
 	std::map<ECsIndexProp, unsigned int> index_objs;
 	struct propTagArray *lpPropTags = NULL;
 	struct rowSet *lpRowSet = NULL;
-	std::set<SOURCEKEY> *matches = new std::set<SOURCEKEY>;
+	std::set<SOURCEKEY> matches;
 	std::vector<unsigned int> cbdata;
 	std::vector<unsigned char *> lpdata;
 	std::vector<unsigned int> objectids;
 
 	memset(&sODStore, 0, sizeof(sODStore));
+
+	ec_log(EC_LOGLEVEL_ICS, "MatchRestrictions: matching %zu rows", db_rows.size());
 
 	for (size_t i = 0; i < db_rows.size(); ++i) {
 		lpdata.push_back(reinterpret_cast<unsigned char *>(db_rows[i][icsSourceKey]));
@@ -1114,13 +1124,12 @@ ECRESULT ECGetContentChangesHelper::MatchRestrictions(const std::vector<DB_ROW> 
 		if(er != erSuccess)
 			goto exit;
 		if (fMatch)
-			matches->insert(source_keys[j]);
+			matches.insert(source_keys[j]);
 	}
 
 	ec_log(EC_LOGLEVEL_ICS, "MatchRestrictions: %zu match(es) out of %d rows (%d properties)",
-		matches->size(), lpRowSet->__size, lpPropTags->__size);
+		matches.size(), lpRowSet->__size, lpPropTags->__size);
 	*matches_p = matches;
-	matches = NULL;
 exit:
 	delete sODStore.lpGuid;
 
@@ -1128,8 +1137,6 @@ exit:
 		FreePropTagArray(lpPropTags);
 	if(lpRowSet)
 		FreeRowSet(lpRowSet, true);
-	if (matches != NULL)
-		delete matches;
 	return er;
 }
 
