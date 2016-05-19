@@ -254,7 +254,7 @@ def _create_prop(self, mapiobj, proptag, value, proptype=None):
         try:
             mapiobj.SetProps([SPropValue(proptag, value)])
         except TypeError:
-            raise ZException('Could not create property, type and value did not match')
+            raise Error('Could not create property, type and value did not match')
     else: # named prop
         # XXX: code duplication from _prop()
         namespace, name = proptag.split(':') # XXX syntax
@@ -264,7 +264,7 @@ def _create_prop(self, mapiobj, proptag, value, proptype=None):
         if proptype == PT_SYSTIME:
             value = MAPI.Time.unixtime(time.mktime(value.timetuple()))
         if not proptype:
-            raise ZException('Missing type to create named Property') # XXX exception too general?
+            raise Error('Missing type to create named Property') # XXX exception too general?
 
         nameid = MAPINAMEID(NAMESPACE_GUID.get(namespace), MNID_ID if isinstance(name, int) else MNID_STRING, name)
         lpname = mapiobj.GetIDsFromNames([nameid], 0)
@@ -273,7 +273,7 @@ def _create_prop(self, mapiobj, proptag, value, proptype=None):
         try:
             mapiobj.SetProps([SPropValue(proptag, value)])
         except TypeError:
-            raise ZException('Could not create property, type and value did not match')
+            raise Error('Could not create property, type and value did not match')
 
     return _prop(self, mapiobj, proptag)
 
@@ -496,21 +496,21 @@ def _permission(obj, member, create):
             acl_table.ModifyTable(0, [ROWENTRY(ROW_ADD, [SPropValue(PR_MEMBER_ENTRYID, memberid.decode('hex')), SPropValue(PR_MEMBER_RIGHTS, 0)])])
             return obj.permission(member)
         else:
-            raise ZNotFoundException("no permission entry for '%s'" % member.name)
+            raise NotFoundError("no permission entry for '%s'" % member.name)
 
-class ZException(Exception):
+class Error(Exception):
     pass
 
-class ZConfigException(ZException):
+class ConfigError(Error):
     pass
 
-class ZNotFoundException(ZException):
+class NotFoundError(Error):
     pass
 
-class ZLogonException(ZException):
+class LogonError(Error):
     pass
 
-class ZNotSupported(ZException):
+class NotSupportedError(Error):
     pass
 
 class PersistentList(list):
@@ -800,9 +800,9 @@ Looks at command-line to see if another server address or other related options 
                         service.log.warn("could not connect to server at '%s', retrying in 5 sec" % self.server_socket)
                         time.sleep(5)
                     else:
-                        raise ZException("could not connect to server at '%s'" % self.server_socket)
+                        raise Error("could not connect to server at '%s'" % self.server_socket)
                 except MAPIErrorLogonFailed:
-                    raise ZLogonException('Could not logon to server: username or password incorrect')
+                    raise LogonError('Could not logon to server: username or password incorrect')
 
         # start talking dirty
         self.mapistore = GetDefaultStore(self.mapisession)
@@ -866,7 +866,7 @@ Looks at command-line to see if another server address or other related options 
 
         try:
             return User(name, email=email, server=self)
-        except ZNotFoundException:
+        except NotFoundError:
             if create and name:
                 return self.create_user(name)
             else:
@@ -877,7 +877,7 @@ Looks at command-line to see if another server address or other related options 
 
         try:
             return self.user(name)
-        except ZException:
+        except Error:
             pass
 
     def users(self, remote=False, system=False, parse=True):
@@ -952,7 +952,7 @@ Looks at command-line to see if another server address or other related options 
 
         try:
             return Company(name, self)
-        except ZNotFoundException:
+        except NotFoundError:
             if create:
                 return self.create_company(name)
             else:
@@ -963,7 +963,7 @@ Looks at command-line to see if another server address or other related options 
 
         try:
             return self.company(name)
-        except ZException:
+        except Error:
             pass
 
     def remove_company(self, name): # XXX delete(object)?
@@ -993,7 +993,7 @@ Looks at command-line to see if another server address or other related options 
                 try:
                     yield Company(name, self)
                 except MAPIErrorNoSupport:
-                    raise ZNotFoundException('no such company: %s' % name)
+                    raise NotFoundError('no such company: %s' % name)
             return
         try:
             for name in self._companylist():
@@ -1008,17 +1008,17 @@ Looks at command-line to see if another server address or other related options 
 
     def _store(self, guid):
         if len(guid) != 32:
-            raise ZException("invalid store id: '%s'" % guid)
+            raise Error("invalid store id: '%s'" % guid)
         try:
             storeid = guid.decode('hex')
         except:
-            raise ZException("invalid store id: '%s'" % guid)
+            raise Error("invalid store id: '%s'" % guid)
         table = self.ems.GetMailboxTable(None, 0) # XXX merge with Store.__init__
         table.SetColumns([PR_ENTRYID], 0)
         table.Restrict(SPropertyRestriction(RELOP_EQ, PR_STORE_RECORD_KEY, SPropValue(PR_STORE_RECORD_KEY, storeid)), TBL_BATCH)
         for row in table.QueryRows(-1, 0):
-            return self.mapisession.OpenMsgStore(0, row[0].Value, None, MDB_WRITE) # XXX cache
-        raise ZNotFoundException("no such store: '%s'" % guid)
+            return self.mapisession.OpenMsgStore(0, row[0].Value, None, MDB_WRITE)
+        raise NotFoundError("no such store: '%s'" % guid)
 
     def _store2(self, storeid): # XXX max lifetime
         if storeid not in self._store_cache:
@@ -1049,7 +1049,7 @@ Looks at command-line to see if another server address or other related options 
 
         if guid == 'public':
             if not self.public_store:
-                raise ZNotFoundException("no public store")
+                raise NotFoundError("no public store")
             return self.public_store
         else:
             return Store(self, self._store(guid))
@@ -1059,7 +1059,7 @@ Looks at command-line to see if another server address or other related options 
 
         try:
             return self.store(guid)
-        except ZException:
+        except Error:
             pass
 
     def stores(self, system=False, remote=False, parse=True): # XXX implement remote
@@ -1074,7 +1074,7 @@ Looks at command-line to see if another server address or other related options 
             for guid in self.options.stores:
                 if guid == 'public': # XXX check self.options.companies?
                     if not self.public_store:
-                        raise ZNotFoundException("no public store")
+                        raise NotFoundError("no public store")
                     yield self.public_store
                 else:
                     yield Store(self, self._store(guid))
@@ -1106,7 +1106,7 @@ Looks at command-line to see if another server address or other related options 
 
         try:
             self.sa.GetCompanyList(MAPI_UNICODE)
-            raise ZException('request for server-wide public store in multi-company setup')
+            raise Error('request for server-wide public store in multi-company setup')
         except MAPIErrorNoSupport:
             return self.companies().next().public_store
 
@@ -1156,7 +1156,7 @@ class Group(object):
         try:
             self._ecgroup = self.server.sa.GetGroup(self.server.sa.ResolveGroupName(self._name, MAPI_UNICODE), MAPI_UNICODE)
         except (MAPIErrorNotFound, MAPIErrorInvalidParameter):
-            raise ZNotFoundException("no such group '%s'" % name)
+            raise NotFoundError("no such group '%s'" % name)
 
     @property
     def groupid(self):
@@ -1181,12 +1181,12 @@ class Group(object):
             if users:
                 try:
                     yield User(ecuser.Username, self.server)
-                except ZNotFoundException: # XXX everyone, groups are included as users..
+                except NotFoundError: # XXX everyone, groups are included as users..
                     pass
             if groups:
                 try:
                     yield Group(ecuser.Username, self.server)
-                except ZNotFoundException:
+                except NotFoundError:
                     pass
 
     @property
@@ -1273,7 +1273,7 @@ class Company(object):
             try:
                 self._eccompany = self.server.sa.GetCompany(self.server.sa.ResolveCompanyName(self._name, MAPI_UNICODE), MAPI_UNICODE)
             except MAPIErrorNotFound:
-                raise ZNotFoundException("no such company: '%s'" % name)
+                raise NotFoundError("no such company: '%s'" % name)
 
     @property
     def companyid(self): # XXX single-tenant case
@@ -1288,7 +1288,7 @@ class Company(object):
     def store(self, guid):
         if guid == 'public':
             if not self.public_store:
-                raise ZNotFoundException("no public store for company '%s'" % self.name)
+                raise NotFoundError("no public store for company '%s'" % self.name)
             return self.public_store
         else:
             return self.server.store(guid)
@@ -1340,14 +1340,14 @@ class Company(object):
         if create:
             return self.create_user(name)
         else:
-            raise ZNotFoundException("no such user: '%s'" % name)
+            raise NotFoundError("no such user: '%s'" % name)
 
     def get_user(self, name):
         """ Return :class:`user <User>` with given name or *None* if not found """
 
         try:
             return self.user(name)
-        except ZException:
+        except Error:
             pass
 
     def users(self, parse=True):
@@ -1593,7 +1593,7 @@ class Store(object):
             try:
                 return Folder(self, entryid.decode('hex'))
             except (MAPIErrorInvalidEntryid, MAPIErrorNotFound):
-                raise ZNotFoundException("no folder with entryid: '%s'" % entryid)
+                raise NotFoundError("no folder with entryid: '%s'" % entryid)
 
         return self.subtree.folder(path, recurse=recurse, create=create)
 
@@ -1602,7 +1602,7 @@ class Store(object):
 
         try:
             return self.folder(path, entryid=entryid)
-        except ZNotFoundException:
+        except NotFoundError:
             pass
 
     def folders(self, recurse=True, parse=True):
@@ -2043,7 +2043,7 @@ class Folder(object):
             try:
                 return Folder(self, entryid.decode('hex'))
             except (MAPIErrorInvalidEntryid, MAPIErrorNotFound, TypeError):
-                raise ZNotFoundException
+                raise NotFoundError
 
         if '/' in path.replace('\\/', ''): # XXX MAPI folders may contain '/' (and '\') in their names..
             subfolder = self
@@ -2060,9 +2060,9 @@ class Folder(object):
                 mapifolder = self.mapiobj.CreateFolder(FOLDER_GENERIC, unicode(name), u'', None, MAPI_UNICODE)
                 return Folder(self.store, HrGetOneProp(mapifolder, PR_ENTRYID).Value)
             else:
-                raise ZNotFoundException("no such folder: '%s'" % path)
+                raise NotFoundError("no such folder: '%s'" % path)
         elif len(matches) > 1:
-            raise ZNotFoundException("multiple folders with name '%s'" % path)
+            raise NotFoundError("multiple folders with name '%s'" % path)
         else:
             return matches[0]
 
@@ -2071,7 +2071,7 @@ class Folder(object):
 
         try:
             return self.folder(path, entryid=entryid)
-        except ZException:
+        except Error:
             pass
 
     def folders(self, recurse=True, depth=0):
@@ -2191,12 +2191,12 @@ class Folder(object):
         while parent.entryid not in feids:
             try:
                 return parent.permission(member).rights
-            except ZNotFoundException:
+            except NotFoundError:
                 if isinstance(member, User):
                     for group in member.groups():
                         try:
                             return parent.permission(group).rights
-                        except ZNotFoundException:
+                        except NotFoundError:
                             pass
                     # XXX company
             feids.add(parent.entryid)
@@ -3360,7 +3360,7 @@ class Address:
             try:
                 mailuser = self.server.mapisession.OpenEntry(self.entryid, None, 0)
                 return self.server.user(HrGetOneProp(mailuser, PR_ACCOUNT).Value).email # XXX PR_SMTP_ADDRESS_W from mailuser?
-            except (ZException, MAPIErrorNotFound): # XXX deleted user
+            except (Error, MAPIErrorNotFound): # XXX deleted user
                 return '' # XXX groups?
         else:
             return self._email or ''
@@ -3459,14 +3459,14 @@ class User(object):
             try:
                 self._name = unicode(server.gab.ResolveNames([PR_EMAIL_ADDRESS], MAPI_UNICODE | EMS_AB_ADDRESS_LOOKUP, [[SPropValue(PR_DISPLAY_NAME, unicode(email))]], [MAPI_UNRESOLVED])[0][0][1].Value)
             except (MAPIErrorNotFound, MAPIErrorInvalidParameter):
-                raise ZNotFoundException("no such user '%s'" % email)
+                raise NotFoundError("no such user '%s'" % email)
         else:
             self._name = unicode(name)
 
         try:
             self._ecuser = self.server.sa.GetUser(self.server.sa.ResolveUserName(self._name, MAPI_UNICODE), MAPI_UNICODE)
         except (MAPIErrorNotFound, MAPIErrorInvalidParameter): # multi-tenant, but no '@' in username..
-            raise ZNotFoundException("no such user: '%s'" % self.name)
+            raise NotFoundError("no such user: '%s'" % self.name)
         self._mapiobj = None
 
     @property
@@ -3518,7 +3518,7 @@ class User(object):
         """ Enabled features (pop3/imap/mobile) """
 
         if not hasattr(self._ecuser, 'MVPropMap'):
-            raise ZNotSupported('Python-Mapi does not support MVPropMap')
+            raise NotSupportedError('Python-Mapi does not support MVPropMap')
 
         for entry in self._ecuser.MVPropMap:
             if entry.ulPropId == PR_EC_ENABLED_FEATURES_W:
@@ -3528,7 +3528,7 @@ class User(object):
     def features(self, value):
 
         if not hasattr(self._ecuser, 'MVPropMap'):
-            raise ZNotSupported('Python-Mapi does not support MVPropMap')
+            raise NotSupportedError('Python-Mapi does not support MVPropMap')
 
         # Enabled + Disabled defines all features.
         features = set([e for entry in self._ecuser.MVPropMap for e in entry.Values])
@@ -3801,7 +3801,7 @@ class Permission(object):
     def member(self): # XXX company?
         try:
             return self.server.user(self.server.sa.GetUser(self.mapirow[PR_MEMBER_ENTRYID], MAPI_UNICODE).Username)
-        except (ZNotFoundException, MAPIErrorNotFound):
+        except (NotFoundError, MAPIErrorNotFound):
             return self.server.group(self.server.sa.GetGroup(self.mapirow[PR_MEMBER_ENTRYID], MAPI_UNICODE).Groupname)
 
     @property
@@ -4167,9 +4167,9 @@ class ConfigOption:
             values = [value]
         for value in values:
             if self.kwargs.get('check_path') is True and not os.path.exists(value): # XXX moved to parse_path
-                raise ZConfigException("%s: path '%s' does not exist" % (key, value))
+                raise ConfigError("%s: path '%s' does not exist" % (key, value))
             if self.kwargs.get('options') is not None and value not in self.kwargs.get('options'):
-                raise ZConfigException("%s: '%s' is not a legal value" % (key, value))
+                raise ConfigError("%s: '%s' is not a legal value" % (key, value))
         if self.kwargs.get('multiple') == True:
             return values
         else:
@@ -4177,12 +4177,12 @@ class ConfigOption:
 
     def parse_path(self, key, value):
         if self.kwargs.get('check', True) and not os.path.exists(value):
-            raise ZConfigException("%s: path '%s' does not exist" % (key, value))
+            raise ConfigError("%s: path '%s' does not exist" % (key, value))
         return value
 
     def parse_integer(self, key, value):
         if self.kwargs.get('options') is not None and int(value) not in self.kwargs.get('options'):
-            raise ZConfigException("%s: '%s' is not a legal value" % (key, value))
+            raise ConfigError("%s: '%s' is not a legal value" % (key, value))
         if self.kwargs.get('multiple') == True:
             return [int(x, base=self.kwargs.get('base', 10)) for x in value.split()]
         return int(value, base=self.kwargs.get('base', 10))
@@ -4240,7 +4240,7 @@ Example::
                         else:
                             try:
                                 self.data[key] = self.config[key].parse(key, value)
-                            except ZConfigException as e:
+                            except ConfigError as e:
                                 if service:
                                     self.errors.append(e.message)
                                 else:
@@ -4250,7 +4250,7 @@ Example::
                         if service:
                             self.warnings.append(msg)
                         else:
-                            raise ZConfigException(msg)
+                            raise ConfigError(msg)
         if self.config is not None:
             for key, val in self.config.items():
                 if key not in self.data and val.type_ != 'ignore':
@@ -4258,7 +4258,7 @@ Example::
                     if service: # XXX merge
                         self.errors.append(msg)
                     else:
-                        raise ZConfigException(msg)
+                        raise ConfigError(msg)
 
     @staticmethod
     def string(**kwargs):
