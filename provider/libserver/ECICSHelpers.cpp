@@ -838,7 +838,7 @@ ECRESULT ECGetContentChangesHelper::ProcessRows(const std::vector<DB_ROW> &db_ro
 		++m_ulChangeCnt;
 	}
 exit:
-	free(matches);
+	delete matches;
 	return er;
 }
 
