@@ -2701,3 +2701,19 @@ ECRESULT UpdateVersionsTbl(ECDatabase *db)
 		"drop primary key, "
 		"add primary key (`major`, `minor`, `micro`, `revision`, `databaserevision`)");
 }
+
+/* Edit no. 65 */
+ECRESULT UpdateChangesTbl(ECDatabase *db)
+{
+	return db->DoUpdate(
+		"alter table `changes` "
+		"modify change_type int(11) unsigned not null default 0");
+}
+
+/* Edit no. 66 */
+ECRESULT UpdateABChangesTbl(ECDatabase *db)
+{
+	return db->DoUpdate(
+		"alter table `abchanges` "
+		"modify change_type int(11) unsigned not null default 0");
+}

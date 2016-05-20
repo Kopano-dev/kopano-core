@@ -103,5 +103,7 @@ ECRESULT UpdateDatabaseUpdateStores(ECDatabase *lpDatabase);
 
 ECRESULT UpdateWLinkRecordKeys(ECDatabase *lpDatabase);
 ECRESULT UpdateVersionsTbl(ECDatabase *db);
+ECRESULT UpdateChangesTbl(ECDatabase *db);
+ECRESULT UpdateABChangesTbl(ECDatabase *db);
 
 #endif // #ifndef ECDATABASEUPDATE_H

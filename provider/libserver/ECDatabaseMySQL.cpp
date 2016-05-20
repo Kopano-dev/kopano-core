@@ -194,6 +194,10 @@ static const sUpdateList_t sUpdateList[] = {
 
 	// New in 7.2.2
 	{ Z_UPDATE_VERSIONTBL_MICRO, 0, "Add \"micro\" column to \"versions\" table", UpdateVersionsTbl },
+
+	// New in 8.1.0 / 7.2.4, MySQL 5.7 compatibility
+	{ Z_UPDATE_ABCHANGES_PKEY, 0, "Updating abchanges table", UpdateABChangesTbl },
+	{ Z_UPDATE_CHANGES_PKEY, 0, "Updating changes table", UpdateChangesTbl },
 };
 
 static const char *const server_groups[] = {

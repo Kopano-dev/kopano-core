@@ -254,7 +254,7 @@
 										`id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT, \
 										`sourcekey` VARBINARY(64) NOT NULL, \
 										`parentsourcekey` VARBINARY(64) NOT NULL, \
-										`change_type` INT(11) UNSIGNED NULL, \
+										`change_type` INT(11) UNSIGNED NOT NULL DEFAULT '0', \
 										`flags` INT(11) UNSIGNED DEFAULT NULL, \
 										`sourcesync` INT(11) UNSIGNED DEFAULT NULL, \
 										PRIMARY KEY (`parentsourcekey`,`sourcekey`,`change_type`), \
@@ -266,7 +266,7 @@
 										`id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT, \
 										`sourcekey` VARBINARY(255) NOT NULL, \
 										`parentsourcekey` VARBINARY(255) NOT NULL, \
-										`change_type` INT(11) UNSIGNED NULL, \
+										`change_type` INT(11) UNSIGNED NOT NULL DEFAULT '0', \
 										PRIMARY KEY (`parentsourcekey`,`change_type`,`sourcekey`), \
 										UNIQUE KEY `changeid` (`id`) \
 									) ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_general_ci;"
@@ -412,6 +412,8 @@
 #define Z_UPDATE_UPDATE_STORES					62
 #define Z_UPDATE_UPDATE_WLINK_RECKEY			63
 #define Z_UPDATE_VERSIONTBL_MICRO 64
+#define Z_UPDATE_CHANGES_PKEY 65
+#define Z_UPDATE_ABCHANGES_PKEY 66
 
 /*
  * The first population of the SQL tables can use both create-type and
@@ -419,9 +421,9 @@
  * version that can be reached with creates only.
  * (This is never less than %Z_UPDATE_LAST.)
  */
-#define Z_UPDATE_RELEASE_ID 64
+#define Z_UPDATE_RELEASE_ID 66
 
 // This is the last update ID always update this to the last ID
-#define Z_UPDATE_LAST 64
+#define Z_UPDATE_LAST 66
 
 #endif
