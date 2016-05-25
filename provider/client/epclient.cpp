@@ -466,7 +466,9 @@ exit:
 	MAPIFreeBuffer(pABeid);
 	pABeid = NULL;
 	if (lpTransport != NULL && lpTransport != transport)
-		lpTransport->Release();
+		lpTransport->Release(); /* implies logoff */
+	else
+		lpTransport->HrLogOff();
 
 	return hr;
 }
