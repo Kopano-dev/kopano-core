@@ -8,7 +8,7 @@ COMMON_DBPLUGIN_FILES = DBBase.h DBBase.cpp
 
 
 pkglib_LTLIBRARIES = 
-noinst_DATA = .libs/ldapmsplugin.so
+noinst_DATA =
 
 if WITH_UNIX
 pkglib_LTLIBRARIES += unixplugin.la
@@ -24,6 +24,7 @@ endif
 if WITH_LDAP
 pkglib_LTLIBRARIES += ldapplugin.la
 #noinst_DATA += ldapplugin.ldd
+noinst_DATA += .libs/ldapmsplugin.so
 ldapplugin_la_CPPFLAGS = ${AM_CPPFLAGS} $(LDAP_FLAGS) -DLDAP_THREAD_SAFE -DWITH_MULTISERVER
 ldapplugin_la_SOURCES = LDAPUserPlugin.cpp LDAPUserPlugin.h LDAPCache.cpp LDAPCache.h ldappasswords.cpp ldappasswords.h $(COMMON_PLUGIN_FILES)
 ldapplugin_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version
