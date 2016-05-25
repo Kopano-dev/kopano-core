@@ -1,6 +1,7 @@
 #ifndef _KCHL_HPP
 #define _KCHL_HPP 1
 
+#include <kopano/zcdefs.h>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -47,7 +48,7 @@ class KAttach {
 	unsigned int m_num;
 };
 
-class KMAPIError final : public std::exception {
+class KMAPIError _kc_final : public std::exception {
 	public:
 	KMAPIError(HRESULT = hrSuccess);
 	virtual ~KMAPIError(void) throw() {}
@@ -59,7 +60,7 @@ class KMAPIError final : public std::exception {
 	std::string m_message;
 };
 
-class KDeleter final {
+class KDeleter _kc_final {
 	public:
 	void operator()(SPropValue *);
 	void operator()(SRowSet *);
