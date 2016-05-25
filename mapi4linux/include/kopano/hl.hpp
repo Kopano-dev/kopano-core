@@ -48,6 +48,19 @@ class KAttach {
 	unsigned int m_num;
 };
 
+class KEntryId _kc_final {
+	public:
+	KEntryId(void);
+	KEntryId(KEntryId &&);
+	KEntryId(ENTRYID *, size_t);
+	~KEntryId(void);
+	KEntryId &operator=(KEntryId &&);
+
+	private:
+	ENTRYID *m_eid;
+	size_t m_size;
+};
+
 class KMAPIError _kc_final : public std::exception {
 	public:
 	KMAPIError(HRESULT = hrSuccess);

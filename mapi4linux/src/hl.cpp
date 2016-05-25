@@ -62,6 +62,34 @@ void KDeleter::operator()(SRowSet *p)
 	FreeProws(p);
 }
 
+KEntryId::KEntryId(void) :
+	m_eid(NULL), m_size(0)
+{
+}
+
+KEntryId::KEntryId(ENTRYID *eid, size_t size) :
+	m_eid(eid), m_size(size)
+{
+}
+
+KEntryId::KEntryId(KEntryId &&other) :
+	m_eid(other.m_eid), m_size(other.m_size)
+{
+	other.m_eid = NULL;
+}
+
+KEntryId::~KEntryId(void)
+{
+	MAPIFreeBuffer(m_eid);
+}
+
+KEntryId &KEntryId::operator=(KEntryId &&other)
+{
+	std::swap(m_eid, other.m_eid);
+	other.m_size = 0;
+	return *this;
+}
+
 KMAPIError::KMAPIError(HRESULT code) :
 	m_code(code), m_message(GetMAPIErrorDescription(m_code))
 {
