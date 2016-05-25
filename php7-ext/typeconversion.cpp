@@ -208,7 +208,7 @@ HRESULT PHPArraytoSortOrderSet(zval * sortorder_array, void *lpBase, LPSSortOrde
 	for (int i = 0; i < count; ++i) {
 		//todo: check on FAILURE
 		zend_string *key = NULL;
-		ulong ind = 0;
+		zend_ulong ind = 0;
 		entry = zend_hash_get_current_data(target_hash);
 
 		// when the key is a char &key is set else ind is set
@@ -303,7 +303,7 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 	HashTable		*target_hash = NULL;
 	HashTable		*dataHash = NULL;
 	zend_string		*keyIndex;
-	ulong			numIndex = 0;
+	zend_ulong numIndex = 0;
 	zval			*entry = NULL;
 	ULONG			countarray = 0;
 	zval			*dataEntry = NULL;
@@ -2202,7 +2202,7 @@ HRESULT PHPArraytoSendingOptions(zval *phpArray, sending_options *lpSOPT)
 	HashTable		*target_hash = NULL;
 	zval			*entry = NULL;
 	zend_string		*keyIndex;
-	ulong			numIndex = 0;
+	zend_ulong numIndex = 0;
 
 	if (!phpArray) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No phpArray in PHPArraytoSendingOptions");
@@ -2268,7 +2268,7 @@ HRESULT PHPArraytoDeliveryOptions(zval *phpArray, delivery_options *lpDOPT)
 	HashTable		*target_hash = NULL;
 	zval			*entry = NULL;
 	zend_string		*keyIndex;
-	ulong			numIndex = 0;
+	zend_ulong numIndex = 0;
 
 	if (!phpArray) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "No phpArray in PHPArraytoDeliveryOptions");
