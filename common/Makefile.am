@@ -53,12 +53,12 @@ endif
 # libkcmapi
 #
 noinst_HEADERS += \
-	ECFifoStream.h ECMemStream.h \
+	ECMemStream.h \
 	HtmlEntity.h HtmlToTextParser.h IStreamAdapter.h \
 	rtfutil.h
 libkcmapi_la_SOURCES = \
 	ECABEntryID.cpp ECDebug.cpp ECDebugPrint.cpp ECGuid.cpp \
-	ECFifoStream.cpp ECKeyTable.cpp ECMemStream.cpp ECUnknown.cpp \
+	ECKeyTable.cpp ECMemStream.cpp ECUnknown.cpp \
 	HtmlEntity.cpp HtmlToTextParser.cpp IStreamAdapter.cpp \
 	MAPIErrors.cpp kcodes.cpp codepage.cpp rtfutil.cpp
 libkcmapi_la_LIBADD = libkcutil.la -lpthread
