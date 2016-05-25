@@ -1,0 +1,9 @@
+Release notes for 8.0.1
+=======================
+Fixes:
+* server: A fast-growing memory leak was resolved [KC-12]
+* server: avoid "netlink: 4 bytes leftover" in dmesg
+* server: avoid accessing uninitialized variable within
+  function ECCacheManager::GetPropFromObject
+Enhancements:
+* server: add ICS log messages [KC-18]
