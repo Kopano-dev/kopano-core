@@ -89,7 +89,7 @@ using namespace std;
 
 WSTransport::WSTransport(ULONG ulUIFlags)  
 : ECUnknown("WSTransport")
-, m_ResolveResultCache("ResolveResult", 4096, 300)
+, m_ResolveResultCache("ResolveResult", 4096, 300), m_has_session(false)
 {
     pthread_mutexattr_t attr;
     
@@ -368,6 +368,7 @@ auth: // User have a logon
 	m_sProfileProps = sProfileProps;
 	m_ulServerCapabilities = ulServerCapabilities;
 	m_ecSessionId = ecSessionId;
+	m_has_session = true;
 	m_lpCmd = lpCmd;
 
 exit:
@@ -388,6 +389,8 @@ exit:
 
 HRESULT WSTransport::HrLogon(const struct sGlobalProfileProps &in_props)
 {
+	if (m_has_session)
+		logoff_nd();
 	if (in_props.strServerPath.compare("default:") != 0)
 		return HrLogon2(in_props);
 	struct sGlobalProfileProps p = in_props;
@@ -709,9 +712,11 @@ HRESULT WSTransport::HrLogOff()
 	{
 		if(SOAP_OK != m_lpCmd->ns__logoff(m_ecSessionId, &er) )
 			er = KCERR_NETWORK_ERROR;
+		else
+			m_has_session = false;
 
-        DestroySoapTransport(m_lpCmd);
-        m_lpCmd = NULL;
+		DestroySoapTransport(m_lpCmd);
+		m_lpCmd = NULL;
 	}
 	END_SOAP_CALL
 
@@ -720,6 +725,25 @@ exit:
 	UnLockSoap();
 
 	return hrSuccess; // NOTE hrSuccess, never fails since we don't really mind that it failed.
+}
+
+HRESULT WSTransport::logoff_nd(void)
+{
+	HRESULT hr = hrSuccess;
+	ECRESULT er = erSuccess;
+
+	LockSoap();
+	START_SOAP_CALL
+	{
+		if (m_lpCmd->ns__logoff(m_ecSessionId, &er) != SOAP_OK)
+			er = KCERR_NETWORK_ERROR;
+		else
+			m_has_session = false;
+	}
+	END_SOAP_CALL
+ exit:
+	UnLockSoap();
+	return er;
 }
 
 HRESULT WSTransport::HrCheckExistObject(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags)
