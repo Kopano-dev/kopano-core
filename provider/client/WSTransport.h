@@ -18,6 +18,7 @@
 #ifndef WSTRANSPORT_H
 #define WSTRANSPORT_H
 
+#include <kopano/zcdefs.h>
 #include <mapi.h>
 #include <mapispi.h>
 
@@ -65,7 +66,7 @@ enum
     NUM_RFT_PROPS
 };
 
-class WSTransport : public ECUnknown {
+class WSTransport _kc_final : public ECUnknown {
 protected:
 	WSTransport(ULONG ulUIFlags);
 	virtual ~WSTransport();
@@ -73,7 +74,7 @@ protected:
 public:
 	static HRESULT Create(ULONG ulUIFlags, WSTransport **lppTransport);
 
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface);
+	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 
 	static	HRESULT	HrOpenTransport(LPMAPISUP lpMAPISup, WSTransport **lppTransport, BOOL bOffline = FALSE);
 
