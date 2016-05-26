@@ -52,7 +52,10 @@ Main classes:
 from __future__ import with_statement
 
 import contextlib
-import cPickle as pickle
+try:
+        import cPickle as pickle
+except ImportError:
+        import pickle
 import csv
 import daemon
 import errno
@@ -68,13 +71,19 @@ except ImportError:
     pass
 import logging.handlers
 from multiprocessing import Process, Queue
-from Queue import Empty
+try:
+    from Queue import Empty
+except ImportError:
+    from queue import Empty
 import optparse
 import os.path
 import pwd
 import socket
 import sys
-import StringIO
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 import struct
 import threading
 import time
