@@ -1,0 +1,10 @@
+Release notes for 8.0.1
+=======================
+Fixes:
+* server: A fast-growing memory leak was resolved [KC-12]
+* sql schema: all PRIMARY keys need to be NOT NULL, otherwise a UNIQUE
+  key would be required. [KC-2]
+Enhancements:
+* server: add ICS log messages [KC-18]
+* libicalmapi: improve fallback scenario to server_timezone in ical.cfg [KC-11]
+* PHP7 support
