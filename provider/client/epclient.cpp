@@ -468,7 +468,7 @@ exit:
 	if (lpTransport != NULL && lpTransport != transport)
 		lpTransport->Release(); /* implies logoff */
 	else
-		lpTransport->HrLogOff();
+		lpTransport->logoff_nd();
 
 	return hr;
 }
