@@ -762,7 +762,7 @@ AC_PATH_PROG(PROG_ANT, ant)		# not an error if not found, no 'make dist' (waxt p
 AC_PATH_PROG([SWIG_EXEC], [swig])
 AS_IF([test "x$SWIG_EXEC" = "x"], [AC_MSG_ERROR([Cannot find swig binary])])
 AM_PATH_PYTHON([2.5])
-PYTHON_LIBS=$("$PYTHON" -c "import distutils.sysconfig as x; print('-lpython' + x.get_config_var('VERSION') + ' ' + x.get_config_var('LIBS') + ' ' + x.get_config_var('SYSLIBS'))")
+PYTHON_LIBS=$("$PYTHON" -c "import sys; import distutils.sysconfig as x; print('-lpython' + x.get_config_var('VERSION') + getattr(sys, 'abiflags', '') + ' ' + x.get_config_var('LIBS') + ' ' + x.get_config_var('SYSLIBS'))")
 PYTHON_INCLUDES=$("$PYTHON" -c "import distutils.sysconfig as x; print('-I' + x.get_python_inc())")
 AC_SUBST([PYTHON_LIBS])
 AC_SUBST([PYTHON_INCLUDES])
