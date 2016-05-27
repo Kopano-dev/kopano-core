@@ -853,7 +853,7 @@ Looks at command-line to see if another server address or other related options 
     @property
     def admin_store(self):
         if not self._admin_store:
-            self._admin_store = Store(self, self.mapistore)
+            self._admin_store = Store(mapiobj=self.mapistore, server=self)
         return self._admin_store
 
     @property
@@ -1061,7 +1061,7 @@ Looks at command-line to see if another server address or other related options 
                 raise NotFoundError("no public store")
             return self.public_store
         else:
-            return Store(self, self._store(guid))
+            return Store(guid=guid, entryid=entryid, server=self)
 
     def get_store(self, guid):
         """ Return :class:`store <Store>` with given GUID or *None* if not found """
@@ -1086,20 +1086,20 @@ Looks at command-line to see if another server address or other related options 
                         raise NotFoundError("no public store")
                     yield self.public_store
                 else:
-                    yield Store(self, self._store(guid))
+                    yield Store(guid, server=self)
             return
 
         table = self.ems.GetMailboxTable(None, 0)
         table.SetColumns([PR_DISPLAY_NAME_W, PR_ENTRYID], 0)
         for row in table.QueryRows(-1, 0):
-            store = Store(self, self.mapisession.OpenMsgStore(0, row[1].Value, None, MDB_WRITE)) # XXX cache
+            store = Store(mapiobj=self.mapisession.OpenMsgStore(0, row[1].Value, None, MDB_WRITE), server=self) # XXX cache
             if system or store.public or (store.user and store.user.name != 'SYSTEM'):
                 yield store
 
     def create_store(self, public=False):
         if public:
             mapistore = self.sa.CreateStore(ECSTORE_TYPE_PUBLIC, EID_EVERYONE)
-            return Store(self, mapistore)
+            return Store(mapiobj=mapistore, server=self)
         # XXX
 
     def remove_store(self, store): # XXX server.delete?
@@ -1309,7 +1309,7 @@ class Company(object):
             for row in table.QueryRows(-1,0):
                 prop = PpropFindProp(row, PR_EC_STOREGUID)
                 if prop:
-                    yield Store(prop.Value.encode('hex'), self.server)
+                    yield Store(prop.Value.encode('hex'), server=self.server)
         else:
             for store in self.server.stores():
                 yield store
@@ -1322,13 +1322,12 @@ class Company(object):
             pubstore = GetPublicStore(self.server.mapisession)
             if pubstore is None:
                 return None
-            return Store(self.server, pubstore)
+            return Store(mapiobj=pubstore, server=self.server)
         try:
-            publicstoreid = self.server.ems.CreateStoreEntryID(None, self._name, MAPI_UNICODE)
+            entryid = self.server.ems.CreateStoreEntryID(None, self._name, MAPI_UNICODE)
         except MAPIErrorNotFound:
             return None
-        publicstore = self.server.mapisession.OpenMsgStore(0, publicstoreid, None, MDB_WRITE) # XXX cache
-        return Store(self.server, publicstore)
+        return Store(entryid=entryid, server=self.server)
 
     def create_store(self, public=False):
         if public:
@@ -1336,7 +1335,7 @@ class Company(object):
                 mapistore = self.server.sa.CreateStore(ECSTORE_TYPE_PUBLIC, EID_EVERYONE)
             else:
                 mapistore = self.server.sa.CreateStore(ECSTORE_TYPE_PUBLIC, self._eccompany.CompanyID)
-            return Store(self.server, mapistore)
+            return Store(mapiobj=mapistore, server=self.server)
         # XXX
 
     def user(self, name, create=False):
@@ -1415,11 +1414,12 @@ class Store(object):
     
     """
 
-    def __init__(self, server, mapiobj=None):
-        if isinstance(server, str): # XXX fix args
-            guid, server = server, Server()
-            mapiobj = server._store(guid)
-        self.server = server
+    def __init__(self, guid=None, entryid=None, mapiobj=None, server=None):
+        self.server = server or Server()
+        if guid:
+            mapiobj = self.server._store(guid)
+        elif entryid:
+            mapiobj = self.server._store2(entryid)
         self.mapiobj = mapiobj
         # XXX: fails if store is orphaned and guid is given..
         self._root = self.mapiobj.OpenEntry(None, None, 0)
@@ -1690,12 +1690,11 @@ class Store(object):
 
         try:
             # support for multiple archives was a mistake, and is not and _should not_ be used. so we just pick nr 0.
-            arch_storeid = HrGetOneProp(self.mapiobj, PROP_STORE_ENTRYIDS).Value[0]
+            entryid = HrGetOneProp(self.mapiobj, PROP_STORE_ENTRYIDS).Value[0]
         except MAPIErrorNotFound:
             return
 
-        arch_store = self.server._store2(arch_storeid)
-        return Store(self.server, arch_store) # XXX server?
+        return Store(entryid=entryid, server=self.server) # XXX server?
 
     @archive_store.setter
     def archive_store(self, store):
@@ -2246,24 +2245,22 @@ class Folder(object):
 
         try:
             # support for multiple archives was a mistake, and is not and _should not_ be used. so we just pick nr 0.
-            arch_storeid = HrGetOneProp(self.mapiobj, PROP_STORE_ENTRYIDS).Value[0]
-            arch_folderid = HrGetOneProp(self.mapiobj, PROP_ITEM_ENTRYIDS).Value[0]
+            store_entryid = HrGetOneProp(self.mapiobj, PROP_STORE_ENTRYIDS).Value[0]
+            folder_entryid = HrGetOneProp(self.mapiobj, PROP_ITEM_ENTRYIDS).Value[0]
         except MAPIErrorNotFound:
             return
 
-        archive_store = self.server._store2(arch_storeid)
-        return Store(mapiobj=archive_store, server=self.server).folder(entryid=arch_folderid.encode('hex'))
+        return Store(entryid=store_entryid, server=self.server).folder(entryid=folder_entryid.encode('hex'))
 
     @property
     def primary_store(self):
         ids = self.mapiobj.GetIDsFromNames(NAMED_PROPS_ARCHIVER, 0) # XXX merge namedprops stuff
         PROP_REF_STORE_ENTRYID = CHANGE_PROP_TYPE(ids[3], PT_BINARY)
         try:
-            storeid = HrGetOneProp(self.mapiobj, PROP_REF_STORE_ENTRYID).Value
+            entryid = HrGetOneProp(self.mapiobj, PROP_REF_STORE_ENTRYID).Value
         except MAPIErrorNotFound:
             return
-        store = self.server._store2(storeid)
-        return Store(self.server, store)
+        return Store(entryid=entryid, server=self.server)
 
     @property
     def primary_folder(self):
@@ -3598,9 +3595,8 @@ class User(object):
         """ Default :class:`Store` for user or *None* if no store is attached """
 
         try:
-            storeid = self.server.ems.CreateStoreEntryID(None, self._name, MAPI_UNICODE)
-            mapistore = self.server.mapisession.OpenMsgStore(0, storeid, IID_IMsgStore, MDB_WRITE|MAPI_DEFERRED_ERRORS)
-            return Store(self.server, mapistore)
+            entryid = self.server.ems.CreateStoreEntryID(None, self._name, MAPI_UNICODE)
+            return Store(entryid=entryid, server=self.server)
         except MAPIErrorNotFound:
             pass
 
@@ -3859,7 +3855,7 @@ class TrackingContentsImporter(ECImportContentsChanges):
                 mapistore = self.server.mapisession.OpenMsgStore(0, store_entryid, None, 0) # XXX cache
             item = Item()
             item.server = self.server
-            item.store = Store(self.server, mapistore)
+            item.store = Store(mapiobj=mapistore, server=self.server)
             try:
                 item.mapiobj = _openentry_raw(mapistore, entryid.Value, 0)
                 item.folderid = PpropFindProp(props, PR_EC_PARENT_HIERARCHYID).Value
