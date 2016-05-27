@@ -4,7 +4,7 @@ import dbhash
 import fcntl
 import os.path
 from Queue import Empty
-from multiprocessing import Queue
+from multiprocessing import Queue, Value
 import time
 import sys
 
@@ -100,8 +100,10 @@ class SearchWorker(kopano.Worker):
                     if cmd == 'PROPS':
                         response(conn, 'OK:'+' '.join(map(str, config['index_exclude_properties'])))
                         break
-                    if cmd == 'SYNCRUN': # wait for syncing to be up-to-date (used from testset)
-                        time.sleep(10) # XXX use multiprocessing signal
+                    if cmd == 'SYNCRUN': # wait for syncing to be up-to-date (only used in tests)
+                        self.syncrun.value = time.time()
+                        while self.syncrun.value:
+                            time.sleep(1)
                         response(conn, 'OK:')
                         break
                     elif cmd == 'SCOPE':
@@ -276,7 +278,8 @@ class Service(kopano.Service):
             self.state = new_state
             db_put(self.state_db, 'SERVER', self.state)
             self.log.info('saved server sync state = %s' % self.state)
-        SearchWorker(self, 'query', reindex_queue=self.reindex_queue).start()
+        self.syncrun = Value('d', 0)
+        SearchWorker(self, 'query', reindex_queue=self.reindex_queue, syncrun=self.syncrun).start()
         self.log.info('starting incremental sync')
         self.incremental_sync()
 
@@ -317,6 +320,8 @@ class Service(kopano.Service):
                     self.state = new_state
                     db_put(self.state_db, 'SERVER', self.state)
                     self.log.info('saved server sync state = %s' % self.state)
+                if t0 > self.syncrun.value+1:
+                    self.syncrun.value = 0
             time.sleep(5)
 
     def reindex(self):
