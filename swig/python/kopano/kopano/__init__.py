@@ -804,7 +804,7 @@ Looks at command-line to see if another server address or other related options 
                 try:
                     self.mapisession = OpenECSession(self.auth_user, self.auth_pass, self.server_socket, sslkey_file=self.sslkey_file, sslkey_pass=self.sslkey_pass) #, providers=['ZARAFA6','ZCONTACTS'])
                     break
-                except MAPIErrorNetworkError:
+                except (MAPIErrorNetworkError, MAPIErrorDiskError):
                     if service:
                         service.log.warn("could not connect to server at '%s', retrying in 5 sec" % self.server_socket)
                         time.sleep(5)
