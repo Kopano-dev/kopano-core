@@ -1353,6 +1353,14 @@ exit:
 	return hr;
 }
 
+static void strupr(char *a)
+{
+	while (*a != '\0') {
+		*a = toupper(*a);
+		++a;
+	}
+}
+
 ///////////////////////////////////////////
 // Create Search key for recipients
 //

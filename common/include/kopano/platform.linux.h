@@ -584,8 +584,6 @@ bool operator!=(const GUID &, const GUID &);
 bool operator==(REFIID, const GUID &);
 HRESULT CoCreateGuid(LPGUID);
 
-void strupr(char *);
-
 __int64_t Int32x32To64(ULONG, ULONG);
 
 void GetSystemTimeAsFileTime(FILETIME *ft);

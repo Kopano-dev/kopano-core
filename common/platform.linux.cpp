@@ -104,13 +104,6 @@ HRESULT CoCreateGuid(LPGUID pNewGUID) {
 	return S_OK;
 }
 
-void strupr(char* a) {
-	while (*a != '\0') {
-		*a = toupper (*a);
-		++a;
-	}
-}
-
 __int64_t Int32x32To64(ULONG a, ULONG b) {
 	return (__int64_t)a*(__int64_t)b;
 }
