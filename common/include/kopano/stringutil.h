@@ -127,8 +127,6 @@ std::string urlEncode(const std::wstring &input, const char* charset);
 std::string urlEncode(const WCHAR* input, const char* charset);
 std::string urlDecode(const std::string &input);
 
-std::string StringEscape(const char* input, const char *tokens, const char escape);
-
 void BufferLFtoCRLF(size_t size, const char *input, char *output, size_t *outsize);
 void StringCRLFtoLF(const std::wstring &strInput, std::wstring *lpstrOutput);
 void StringLFtoCRLF(std::string &strInOut);

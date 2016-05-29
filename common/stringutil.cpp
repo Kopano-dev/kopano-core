@@ -480,28 +480,6 @@ std::wstring bin2hexw(const std::string &input)
     return bin2hexw((unsigned int)input.size(), (const unsigned char*)input.c_str());
 }
 
-std::string StringEscape(const char* input, const char *tokens, const char escape)
- {
-	std::string strEscaped;
-	int i = 0;
-	int t;
-
-	while (true) {
-		if(input[i] == 0)
-			break;
-		
-		for (t = 0; tokens[t] != 0; ++t)
-			if (input[i] == tokens[t])
-				strEscaped += escape;
-
-		strEscaped += input[i];
-		++i;
-	}
-
-	return strEscaped;
-}
-
-
 /** 
  * Encodes a string for inclusion into an url.
  *
