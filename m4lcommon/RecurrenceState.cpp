@@ -37,6 +37,7 @@
 #define DEBUGPRINT(x, args...)
 #endif
 #else
+// Testing for both WIN32 && LINUX makes no f sense
 	#ifdef LINUX
 		#define DEBUGPRINT(...)
 	#else
