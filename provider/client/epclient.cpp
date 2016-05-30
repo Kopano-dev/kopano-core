@@ -521,6 +521,17 @@ static HRESULT UpdateProviders(LPPROVIDERADMIN lpAdminProviders,
 	return hrSuccess;
 }
 
+static std::string GetServerTypeFromPath(const char *szPath)
+{
+	std::string path = szPath;
+	size_t pos;
+
+	pos = path.find("://");
+	if (pos != std::string::npos)
+		return path.substr(0, pos);
+	return std::string();
+}
+
 // Called by MAPI to configure, or create a service
 extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
     LPMALLOC lpMalloc, LPMAPISUP psup, ULONG ulUIParam, ULONG ulFlags,

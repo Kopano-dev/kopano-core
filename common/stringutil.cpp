@@ -234,16 +234,6 @@ std::string GetServerNameFromPath(const char *szPath) {
 	return path;
 }
 
-std::string GetServerTypeFromPath(const char *szPath) {
-	std::string path = szPath;
-	size_t pos;
-
-	pos = path.find("://");
-	if (pos != std::string::npos)
-		return path.substr(0, pos);
-	return std::string();
-}
-
 std::string GetServerPortFromPath(const char *szPath) {
 	std::string path = szPath;
 	size_t pos = 0;

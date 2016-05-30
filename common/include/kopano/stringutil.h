@@ -88,7 +88,6 @@ std::string striconv(const std::string &strinput, const char *lpszFromCharset, c
 std::string str_storage(uint64_t ulBytes, bool bUnlimited = true);
 
 std::string GetServerNameFromPath(const char *szPath);
-std::string GetServerTypeFromPath(const char *szPath);
 std::string GetServerPortFromPath(const char *szPath);
 std::string ServerNamePortToURL(const char *lpszType, const char *lpszServerName, const char *lpszServerPort, const char *lpszExtra = "zarafa");
 
