@@ -39,13 +39,14 @@ class ECSearchClient _zcp_final : public ECChannelClient {
 public:
 	ECSearchClient(const char *szIndexerPath, unsigned int ulTimeOut);
 	ECRESULT GetProperties(setindexprops_t &mapProps);
-	ECRESULT Query(GUID *lpServerGuid, GUID *lpStoreGUID, std::list<unsigned int> &lstFolders, std::list<SIndexedTerm> &lstSearches, std::list<unsigned int> &lstMatches);
+	ECRESULT Query(GUID *lpServerGuid, GUID *lpStoreGUID, std::list<unsigned int> &lstFolders, std::list<SIndexedTerm> &lstSearches, std::list<unsigned int> &lstMatches, std::string &suggestion);
 	ECRESULT SyncRun();
 	
 private:
 	ECRESULT Scope(const std::string &strServer, const std::string &strStore, const std::list<unsigned int> &ulFolders);
 	ECRESULT Find(const std::set<unsigned int> &setFields, const std::string &strTerm);
 	ECRESULT Query(std::list<unsigned int> &lstMatches);
+	ECRESULT Suggest(std::string &suggestion);
 };
 
 #endif /* ECSEARCHCLIENT_H */

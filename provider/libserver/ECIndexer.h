@@ -26,6 +26,6 @@ struct ECSearchResultArray;
 #include "ECSearchClient.h"
 #include "soapH.h"
 
-extern ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig, ECCacheManager *lpCacheManager, GUID *guidServer, GUID *guidStore, ECListInt &lstFolders, struct restrictTable *lpRestrict, struct restrictTable **lppNewRestrict, std::list<unsigned int> &lstIndexerResults);
+extern ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig, ECCacheManager *lpCacheManager, GUID *guidServer, GUID *guidStore, ECListInt &lstFolders, struct restrictTable *lpRestrict, struct restrictTable **lppNewRestrict, std::list<unsigned int> &lstIndexerResults, std::string &suggestion);
 
 #endif

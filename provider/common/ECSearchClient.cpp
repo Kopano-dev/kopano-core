@@ -170,7 +170,7 @@ ECRESULT ECSearchClient::Query(std::list<unsigned int> &lstMatches)
  * @return result
  */
  
-ECRESULT ECSearchClient::Query(GUID *lpServerGuid, GUID *lpStoreGuid, std::list<unsigned int>& lstFolders, std::list<SIndexedTerm> &lstSearches, std::list<unsigned int> &lstMatches)
+ECRESULT ECSearchClient::Query(GUID *lpServerGuid, GUID *lpStoreGuid, std::list<unsigned int>& lstFolders, std::list<SIndexedTerm> &lstSearches, std::list<unsigned int> &lstMatches, std::string &suggestion)
 {
 	ECRESULT er;
 	std::string strServer = bin2hex(sizeof(GUID), (unsigned char *)lpServerGuid);
@@ -184,7 +184,29 @@ ECRESULT ECSearchClient::Query(GUID *lpServerGuid, GUID *lpStoreGuid, std::list<
 	     i != lstSearches.end(); ++i)
 		Find(i->setFields, i->strTerm);
 
+	er = Suggest(suggestion);
+	if (er != erSuccess)
+		return er;
+
 	return Query(lstMatches);
+}
+
+ECRESULT ECSearchClient::Suggest(std::string &suggestion)
+{
+	ECRESULT er = erSuccess;
+	std::vector<std::string> lstResponse;
+	std::vector<std::string> lstResponseWords;
+
+	er = DoCmd("SUGGEST", lstResponse);
+	if (er != erSuccess)
+		goto exit;
+
+	suggestion = lstResponse[0];
+	if(suggestion[0] == ' ')
+		suggestion.erase(0,1);
+
+exit:
+	return er;
 }
 
 ECRESULT ECSearchClient::SyncRun()

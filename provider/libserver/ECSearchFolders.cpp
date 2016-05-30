@@ -1084,6 +1084,7 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 	struct restrictTable *lpAdditionalRestrict = NULL;
 	unsigned int ulParent = 0;
 	std::list<unsigned int>::const_iterator iterResults;
+	std::string suggestion;
 
 	std::list<ULONG> lstPrefix;
 	lstPrefix.push_back(PR_MESSAGE_FLAGS);
@@ -1177,7 +1178,16 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 	if(er != erSuccess)
 		goto exit;
 	
-	if (GetIndexerResults(lpDatabase, m_lpSessionManager->GetConfig(), m_lpSessionManager->GetCacheManager(), &guidServer, &guidStore, lstFolders, lpSearchCrit->lpRestrict, &lpAdditionalRestrict, lstIndexerResults) == erSuccess) {
+	if (GetIndexerResults(lpDatabase, m_lpSessionManager->GetConfig(), m_lpSessionManager->GetCacheManager(), &guidServer, &guidStore, lstFolders, lpSearchCrit->lpRestrict, &lpAdditionalRestrict, lstIndexerResults, suggestion) == erSuccess) {
+
+		strQuery = "REPLACE INTO properties (hierarchyid, tag, type, val_string) VALUES(" + stringify(ulFolderId) + "," + stringify(PROP_ID(PR_EC_SUGGESTION)) + "," + stringify(PROP_TYPE(PR_EC_SUGGESTION)) + ",'" + lpDatabase->Escape(suggestion) + "')";
+
+		er = lpDatabase->DoInsert(strQuery);
+		if(er != erSuccess) {
+			ec_log_err("ECSearchFolders::Search(): could not add suggestion");
+			goto exit;
+		}
+
 		// Get the additional restriction properties ready
 		er = ECGenericObjectTable::GetRestrictPropTags(lpAdditionalRestrict, &lstPrefix, &lpPropTags);
 		if(er != erSuccess) {

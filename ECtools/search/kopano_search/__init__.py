@@ -62,6 +62,7 @@ CONFIG = {
     'run_as_user': Config.string(default="kopano"),
     'run_as_group': Config.string(default="kopano"),
     'search_engine': Config.string(default='xapian'),
+    'suggestions': Config.boolean(default=True),
     'server_bind_name': Config.string(default='file:///var/run/kopano/search.sock'),
     'ssl_private_key_file': Config.path(default=None, check=False), # XXX don't check when default=None?
     'ssl_certificate_file': Config.path(default=None, check=False),
@@ -87,7 +88,7 @@ class SearchWorker(kopano.Worker):
         config, plugin = self.service.config, self.service.plugin
         def response(conn, msg):
             self.log.info('Response: ' + msg)
-            conn.sendall(msg+'\r\n')
+            conn.sendall(msg.encode('utf-8')+'\r\n')
         s = kopano.server_socket(config['server_bind_name'], ssl_key=config['ssl_private_key_file'], ssl_cert=config['ssl_certificate_file'], log=self.log)
         while True:
             with log_exc(self.log):
@@ -119,6 +120,14 @@ class SearchWorker(kopano.Worker):
                         if fields and terms:
                             fields_terms.append((fields, terms))
                         response(conn, 'OK:')
+                    elif cmd == 'SUGGEST':
+                        suggestion = u''
+                        if config['suggestions'] and len(fields_terms) == 1:
+                            for fields, terms in fields_terms:
+                                suggestion = plugin.suggest(server_guid, store_guid, terms, orig, self.log)
+                                if suggestion == orig:
+                                    suggestion = u''
+                        response(conn, 'OK: '+suggestion)
                     elif cmd == 'QUERY':
                         t0 = time.time()
                         restrictions = []
@@ -130,11 +139,9 @@ class SearchWorker(kopano.Worker):
                             else:
                                 restrictions.append('('+' AND '.join('%s*' % term for term in terms)+')')
                         query = ' AND '.join(restrictions) # plugin doesn't have to use this relatively standard query format
-                        docids, suggestion = plugin.search(server_guid, store_guid, folder_ids, fields_terms, query, self.log)
+                        docids = plugin.search(server_guid, store_guid, folder_ids, fields_terms, query, self.log)
                         docids = docids[:config['limit_results'] or len(docids)]
                         response(conn, 'OK: '+' '.join(map(str, docids)))
-                        if 'SUGGEST' in args:
-                            response(conn, 'OK: '+suggestion.encode('utf-8'))
                         self.log.info('found %d results in %.2f seconds' % (len(docids), time.time()-t0))
                         break
                     elif cmd == 'REINDEX':
@@ -262,7 +269,7 @@ class Service(kopano.Service):
         if not os.path.exists(index_path):
             os.makedirs(index_path)
         self.state_db = os.path.join(index_path, self.server.guid+'_state')
-        self.plugin = __import__('plugin_%s' % self.config['search_engine']).Plugin(index_path, self.log)
+        self.plugin = __import__('plugin_%s' % self.config['search_engine']).Plugin(index_path, self.config['suggestions'], self.log)
         self.iqueue, self.oqueue = Queue(), Queue()
         self.index_processes = self.config['index_processes']
         workers = [IndexWorker(self, 'index%d'%i, nr=i, iqueue=self.iqueue, oqueue=self.oqueue) for i in range(self.index_processes)]
