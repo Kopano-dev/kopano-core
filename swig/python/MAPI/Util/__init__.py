@@ -10,7 +10,7 @@ from MAPI.Tags import *
 from MAPI.Struct import *
 
 # For backward compatibility
-from AddressBook import GetUserList
+from MAPI.Util.AddressBook import GetUserList
 
 # flags = 1 == EC_PROFILE_FLAGS_NO_NOTIFICATIONS
 def OpenECSession(user, password, path, **keywords):

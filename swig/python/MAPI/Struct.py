@@ -220,12 +220,12 @@ class MAPIError(Exception):
     
     @staticmethod
     def _initialize_errors():
-        for name, value in inspect.getmembers(sys.modules['MAPICore'], lambda obj: isinstance(obj, (long, int))):
+        for name, value in inspect.getmembers(sys.modules['MAPICore']):
             if name.startswith('MAPI_E_'):
                 clsname = 'MAPIError' + ''.join(s.capitalize() for s in name[7:].split('_'))
                 def construct_class(hr):
                     if issubclass(MAPIError, object):
-                        return type(clsname, (MAPIError,), {'__init__': lambda(self): MAPIError.__init__(self, hr)})
+                        return type(clsname, (MAPIError,), {'__init__': lambda self: MAPIError.__init__(self, hr)})
                     else:
                         class MAPIErrorDynamic(MAPIError):
                             def __init__(self):

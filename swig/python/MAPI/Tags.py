@@ -1694,7 +1694,7 @@ ecRightsDeleteAny       = 0x00000040
 ecRightsCreateSubfolder = 0x00000080
 ecRightsFolderAccess    = 0x00000100
 ecRightsFolderVisible   = 0x00000400
-ecRightsFullControl     = 0x00004FBL
+ecRightsFullControl     = 0x000004FB
 
 ecRightsTemplateNoRights    = ecRightsFolderVisible
 ecRightsTemplateReadOnly    = ecRightsTemplateNoRights | ecRightsReadAny

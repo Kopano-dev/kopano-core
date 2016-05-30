@@ -711,7 +711,7 @@ class Table(object):
         return '\n'.join(result)
 
     def csv(self, *args, **kwargs):
-        csvfile = StringIO.StringIO()
+        csvfile = StringIO()
         writer = csv.writer(csvfile, *args, **kwargs)
         writer.writerows(self.data(header=True))
         return csvfile.getvalue()
@@ -4282,7 +4282,7 @@ Example::
 
 CONFIG = {
     'log_method': Config.string(options=['file', 'syslog'], default='file'),
-    'log_level': Config.string(options=map(str, range(7))+['info', 'debug', 'warning', 'error', 'critical'], default='info'),
+    'log_level': Config.string(options=[str(i) for i in range(7)] + ['info', 'debug', 'warning', 'error', 'critical'], default='info'),
     'log_file': Config.string(default=None),
     'log_timestamp': Config.integer(options=[0,1], default=1),
     'pid_file': Config.string(default=None),
