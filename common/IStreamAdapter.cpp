@@ -40,9 +40,6 @@ HRESULT IStreamAdapter::QueryInterface(REFIID iid, void **pv){
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
-ULONG IStreamAdapter::AddRef() { return 1; }
-ULONG IStreamAdapter::Release() { return 1; }
-
 HRESULT IStreamAdapter::Read(void *pv, ULONG cb, ULONG *pcbRead)
 {
 	size_t toread = std::min(cb, (ULONG)(m_str.size() - m_pos));
@@ -134,40 +131,10 @@ HRESULT IStreamAdapter::CopyTo(IStream *pstm, ULARGE_INTEGER cb, ULARGE_INTEGER 
 	return hr;
 }
 
-HRESULT IStreamAdapter::Commit(DWORD grfCommitFlags)
-{
-	return hrSuccess;
-}
-
-HRESULT IStreamAdapter::Revert(void)
-{
-	return hrSuccess;
-}
-
-HRESULT IStreamAdapter::LockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-HRESULT IStreamAdapter::UnlockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
 HRESULT IStreamAdapter::Stat(STATSTG *pstatstg, DWORD grfStatFlag)
 {
 	memset(pstatstg, 0, sizeof(STATSTG));
 	pstatstg->cbSize.QuadPart = m_str.size();
 	
 	return hrSuccess;
-}
-
-HRESULT IStreamAdapter::Clone(IStream **ppstm)
-{
-	return MAPI_E_NO_SUPPORT;
-}
-
-IStream *IStreamAdapter::get()
-{
-	return this;
 }

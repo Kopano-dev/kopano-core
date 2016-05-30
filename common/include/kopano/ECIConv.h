@@ -27,7 +27,7 @@ public:
     ECIConv(const std::string &strToCharset, const std::string &strFromCharset);
     ~ECIConv();
     
-	bool canConvert();
+	bool canConvert(void) const { return m_lpContext != NULL; }
     std::string convert(const std::string &input);
 
 private:

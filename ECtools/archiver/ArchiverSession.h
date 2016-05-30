@@ -57,7 +57,7 @@ public:
 	HRESULT OpenOrCreateArchiveStore(const tstring& strUserName, const tstring& strServerName, LPMDB *lppArchiveStore);
 	HRESULT GetArchiveStoreEntryId(const tstring& strUserName, const tstring& strServerName, entryid_t *lpArchiveId);
 
-	IMAPISession *GetMAPISession() const;
+	IMAPISession *GetMAPISession(void) const { return m_ptrSession; }
 	const char *GetSSLPath() const;
 	const char *GetSSLPass() const;
 

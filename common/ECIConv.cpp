@@ -35,10 +35,6 @@ ECIConv::~ECIConv()
 	delete m_lpContext;
 }
 
-bool ECIConv::canConvert() {
-	return (m_lpContext != NULL);
-}
-
 std::string ECIConv::convert(const std::string &strinput)
 {
 	return m_lpContext->convert(strinput);

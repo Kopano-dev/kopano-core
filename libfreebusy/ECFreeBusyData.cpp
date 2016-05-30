@@ -92,11 +92,6 @@ HRESULT ECFreeBusyData::QueryInterface(REFIID refiid, void** lppInterface)
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
-HRESULT ECFreeBusyData::Reload(void*) 
-{
-	return E_NOTIMPL;
-}
-
 HRESULT ECFreeBusyData::EnumBlocks(IEnumFBBlock **ppenumfb, FILETIME ftmStart, FILETIME ftmEnd)
 {
 	HRESULT			hr = S_OK;
@@ -130,16 +125,6 @@ exit:
 		lpECEnumFBBlock->Release();
 
 	return hr;
-}
-
-HRESULT ECFreeBusyData::Merge(void *)
-{
-	return E_NOTIMPL;
-}
-
-HRESULT ECFreeBusyData::GetDeligateInfo(void *)
-{
-	return E_NOTIMPL;
 }
 
 /**
@@ -207,21 +192,11 @@ exit:
 	return hr;
 }
 
-HRESULT ECFreeBusyData::InterSect(void *lpData1, LONG ulData, void *lpData2)
-{
-	return E_NOTIMPL;
-}
-
 HRESULT ECFreeBusyData::SetFBRange(LONG rtmStart, LONG rtmEnd)
 {
 	m_rtmStart = rtmStart;
 	m_rtmEnd = rtmEnd;
 	return S_OK;
-}
-
-HRESULT ECFreeBusyData::NextFBAppt(void *, ULONG, void *, ULONG, void *, void *)
-{
-	return E_NOTIMPL;
 }
 
 HRESULT ECFreeBusyData::GetFBPublishRange(LONG *prtmStart, LONG *prtmEnd)

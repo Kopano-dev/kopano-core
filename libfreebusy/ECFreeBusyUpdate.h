@@ -42,8 +42,7 @@
 /**
  * Implementatie of the IFreeBusyUpdate interface
  */
-class ECFreeBusyUpdate : public ECUnknown
-{
+class ECFreeBusyUpdate _kc_final : public ECUnknown {
 private:
 	ECFreeBusyUpdate(IMessage* lpMessage);
 	~ECFreeBusyUpdate(void);
@@ -52,14 +51,14 @@ public:
 	
 	virtual HRESULT QueryInterface(REFIID refiid, void** lppInterface);
 
-	virtual HRESULT Reload();
+	virtual HRESULT Reload(void) { return S_OK; }
 	virtual HRESULT PublishFreeBusy(FBBlock_1 *lpBlocks, ULONG nBlocks);
-	virtual HRESULT RemoveAppt();
+	virtual HRESULT RemoveAppt(void) { return S_OK; }
 	virtual HRESULT ResetPublishedFreeBusy();
-	virtual HRESULT ChangeAppt();
+	virtual HRESULT ChangeAppt(void) { return S_OK; }
 	virtual HRESULT SaveChanges(FILETIME ftStart, FILETIME ftEnd);
-	virtual HRESULT GetFBTimes();
-	virtual HRESULT Intersect();
+	virtual HRESULT GetFBTimes(void) { return S_OK; }
+	virtual HRESULT Intersect(void) { return S_OK; }
 
 public:
 	class xFreeBusyUpdate _zcp_final : public IFreeBusyUpdate {

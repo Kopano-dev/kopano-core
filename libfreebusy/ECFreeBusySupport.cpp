@@ -283,86 +283,6 @@ exit:
 	return hr;
 }
 
-HRESULT ECFreeBusySupport::CommitChanges()
-{
-	return S_OK;
-}
-
-HRESULT ECFreeBusySupport::GetDelegateInfo(FBUser sFBUser, void *lpData)
-{
-	return E_NOTIMPL;
-}
-
-HRESULT ECFreeBusySupport::SetDelegateInfo(void * lpdata)
-{
-	return E_NOTIMPL;
-}
-
-HRESULT ECFreeBusySupport::AdviseFreeBusy(void *lpData)
-{
-	return E_NOTIMPL;
-}
-
-HRESULT ECFreeBusySupport::Reload(void *lpData)
-{
-	return E_NOTIMPL;
-}
-
-HRESULT ECFreeBusySupport::GetFBDetailSupport(void **lppdata, BOOL bData)
-{
-	return E_NOTIMPL;
-}
-
-HRESULT ECFreeBusySupport::HrHandleServerSched(void *lpdata)
-{
-	return E_NOTIMPL;
-}
-
-HRESULT ECFreeBusySupport::HrHandleServerSchedAccess()
-{
-	return S_OK;
-}
-
-BOOL ECFreeBusySupport::FShowServerSched(BOOL bData)
-{
-	return FALSE;
-}
-
-HRESULT ECFreeBusySupport::HrDeleteServerSched()
-{
-	return S_OK;
-}
-
-HRESULT ECFreeBusySupport::GetFReadOnly(void *lpData)
-{
-	return E_NOTIMPL;
-}
-
-HRESULT ECFreeBusySupport::SetLocalFB(void *lpData)
-{
-	return E_NOTIMPL;
-}
-
-HRESULT ECFreeBusySupport::PrepareForSync()
-{
-	return E_NOTIMPL;
-}
-
-HRESULT ECFreeBusySupport::GetFBPublishMonthRange(void *lpData)
-{
-	return E_NOTIMPL;
-}
-
-HRESULT ECFreeBusySupport::PublishRangeChanged()
-{
-	return E_NOTIMPL;
-}
-
-HRESULT ECFreeBusySupport::CleanTombstone()
-{
-	return E_NOTIMPL;
-}
-
 HRESULT ECFreeBusySupport::GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulStatus, unsigned int *lpulStart, unsigned int *lpulEnd)
 {
 	HRESULT hr = hrSuccess;
@@ -509,22 +429,6 @@ exit:
 	// if an error is returned, outlook will send an email to the resource.
 	// PR_LAST_VERB_EXECUTED (ulong) will be set to 516, so outlook knows modifications need to be mailed too.
 	return hr;
-}
-
-HRESULT ECFreeBusySupport::PushDelegateInfoToWorkspace()
-{
-	return E_NOTIMPL;
-}
-
-HRESULT ECFreeBusySupport::Placeholder21(void *lpData, HWND hwnd, BOOL bData)
-{
-	return S_OK;
-}
-
-
-HRESULT ECFreeBusySupport::Placeholder22()
-{
-	return S_OK;
 }
 
 //////////////////////////////////////////////////////////////////

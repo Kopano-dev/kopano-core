@@ -111,13 +111,6 @@ MAPISMTPTransport::~MAPISMTPTransport()
 		m_lpLogger->Release();
 }
 
-
-const string MAPISMTPTransport::getProtocolName() const
-{
-	return "mapismtp";
-}
-
-
 void MAPISMTPTransport::connect()
 {
 	if (isConnected())
@@ -513,19 +506,6 @@ bool MAPISMTPTransport::isConnected() const
 	return (m_socket && m_socket->isConnected() && m_authentified);
 }
 
-
-bool MAPISMTPTransport::isSecuredConnection() const
-{
-	return m_secured;
-}
-
-
-ref <connectionInfos> MAPISMTPTransport::getConnectionInfos() const
-{
-	return m_cntInfos;
-}
-
-
 void MAPISMTPTransport::disconnect()
 {
 	if (!isConnected())
@@ -701,18 +681,6 @@ void MAPISMTPTransport::send(const mailbox& expeditor, const mailboxList& recipi
 	}
 }
 
-const std::vector<sFailedRecip> &
-MAPISMTPTransport::getPermanentFailedRecipients(void) const
-{
-	return mPermanentFailedRecipients;
-}
-
-const std::vector<sFailedRecip> &
-MAPISMTPTransport::getTemporaryFailedRecipients(void) const
-{
-	return mTemporaryFailedRecipients;
-}
-
 void MAPISMTPTransport::setLogger(ECLogger *lpLogger)
 {                              
 	if (m_lpLogger != NULL)
@@ -752,19 +720,6 @@ ref <SMTPResponse> MAPISMTPTransport::readResponse()
 // Service infos
 
 SMTPServiceInfos MAPISMTPTransport::sm_infos(false);
-
-
-const serviceInfos& MAPISMTPTransport::getInfosInstance()
-{
-	return sm_infos;
-}
-
-
-const serviceInfos& MAPISMTPTransport::getInfos() const
-{
-	return sm_infos;
-}
-
 
 } // smtp
 } // net

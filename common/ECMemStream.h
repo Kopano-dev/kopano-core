@@ -47,7 +47,7 @@ public:
 	virtual HRESULT SetSize(ULONG ulSize);
 	virtual HRESULT GetSize(ULONG *ulSize);
 
-	virtual char* GetBuffer();
+	virtual char *GetBuffer(void) { return lpCurrent; }
 
 private:
 	char *	lpCurrent;

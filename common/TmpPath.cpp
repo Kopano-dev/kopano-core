@@ -77,10 +77,6 @@ bool TmpPath::OverridePath(ECConfig *const ec) {
 	return rc;
 }
 
-const std::string & TmpPath::getTempPath() const {
-	return path;
-}
-
 TmpPath *TmpPath::getInstance()
 {
         static std::unique_ptr<TmpPath> instance(new TmpPath);

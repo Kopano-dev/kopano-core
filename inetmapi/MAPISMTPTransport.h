@@ -44,7 +44,7 @@
 #ifndef MAPI_NET_SMTP_SMTPTRANSPORT_HPP_INCLUDED
 #define MAPI_NET_SMTP_SMTPTRANSPORT_HPP_INCLUDED
 
-
+#include <kopano/zcdefs.h>
 #include "vmime/config.hpp"
 
 #include "vmime/net/transport.hpp"
@@ -66,17 +66,16 @@ class SMTPResponse;
 /** SMTP transport service.
   */
 
-class MAPISMTPTransport : public transport
-{
+class MAPISMTPTransport _kc_final : public transport {
 public:
 
 	MAPISMTPTransport(ref <session> sess, ref <security::authenticator> auth, const bool secured = false);
 	~MAPISMTPTransport();
 
-	const string getProtocolName() const;
+	const std::string getProtocolName(void) const { return "mapismtp"; }
 
-	static const serviceInfos& getInfosInstance();
-	const serviceInfos& getInfos() const;
+	static const serviceInfos &getInfosInstance(void) { return sm_infos; }
+	const serviceInfos& getInfos() const { return sm_infos; }
 
 	void connect();
 	bool isConnected() const;
@@ -86,12 +85,12 @@ public:
 
 	void send(const mailbox& expeditor, const mailboxList& recipients, utility::inputStream& is, const utility::stream::size_type size, utility::progressListener* progress = NULL);
 
-	bool isSecuredConnection() const;
-	ref <connectionInfos> getConnectionInfos() const;
+	bool isSecuredConnection(void) const { return m_secured; }
+	ref<connectionInfos> getConnectionInfos(void) const { return m_cntInfos; }
 
 	// additional functions
-	const std::vector<sFailedRecip> &getPermanentFailedRecipients(void) const;
-	const std::vector<sFailedRecip> &getTemporaryFailedRecipients(void) const;
+	const std::vector<sFailedRecip> &getPermanentFailedRecipients(void) const { return mPermanentFailedRecipients; }
+	const std::vector<sFailedRecip> &getTemporaryFailedRecipients(void) const { return mTemporaryFailedRecipients; }
 	void setLogger(ECLogger *lpLogger);
 	void requestDSN(BOOL bRequest, const std::string &strTrackid);
 

@@ -43,11 +43,6 @@ Deleter::~Deleter()
 	PurgeQueuedMessages();
 }
 
-HRESULT Deleter::EnterFolder(LPMAPIFOLDER)
-{
-	return hrSuccess;
-}
-
 HRESULT Deleter::LeaveFolder()
 {
 	// Folder is still available, purge now!

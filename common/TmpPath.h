@@ -31,8 +31,7 @@ class TmpPath _zcp_final {
 		static TmpPath *getInstance();
 
 		bool OverridePath(ECConfig *const ec);
-
-		const std::string & getTempPath() const;
+		const std::string &getTempPath(void) const { return path; }
 };
 
 extern TmpPath *tmpPath;

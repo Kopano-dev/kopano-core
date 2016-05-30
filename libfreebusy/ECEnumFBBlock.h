@@ -39,8 +39,7 @@
 /**
  * Implementatie of the IEnumFBBlock interface
  */
-class ECEnumFBBlock : public ECUnknown
-{
+class ECEnumFBBlock _kc_final : public ECUnknown {
 private:
 	ECEnumFBBlock(ECFBBlockList* lpFBBlock);
 	~ECEnumFBBlock(void);
@@ -51,7 +50,7 @@ public:
 	virtual HRESULT Next(LONG celt, FBBlock_1 *pblk, LONG *pcfetch);
 	virtual HRESULT Skip(LONG celt);
 	virtual HRESULT Reset();
-	virtual HRESULT Clone(IEnumFBBlock **ppclone);
+	virtual HRESULT Clone(IEnumFBBlock **) { return E_NOTIMPL; }
 	virtual HRESULT Restrict(FILETIME ftmStart, FILETIME ftmEnd);
 
 public:

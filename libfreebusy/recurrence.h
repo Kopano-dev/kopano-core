@@ -18,6 +18,7 @@
 #ifndef RECURRENCE_H
 #define RECURRENCE_H
 
+#include <kopano/zcdefs.h>
 #include <kopano/RecurrenceState.h>
 #include <mapidefs.h>
 #include <mapix.h>
@@ -28,7 +29,7 @@
 #include "freebusy.h"
 #include "freebusyutil.h"
 
-class recurrence {
+class recurrence _kc_final {
 public:
 	recurrence();
 	~recurrence();
@@ -73,7 +74,7 @@ public:
 	ULONG getInterval();
 	HRESULT setInterval(ULONG);
 
-	ULONG getSlidingFlag();
+	ULONG getSlidingFlag(void) { return m_sRecState.ulSlidingFlag; }
 	HRESULT setSlidingFlag(ULONG);
 
 	ULONG getFirstDOW();

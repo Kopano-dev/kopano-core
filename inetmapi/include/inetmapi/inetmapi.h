@@ -61,8 +61,8 @@ public:
 	virtual void setError(const std::string &newError);
 	virtual bool haveError();
 
-	virtual const std::vector<sFailedRecip> &getPermanentFailedRecipients(void) const;
-	virtual const std::vector<sFailedRecip> &getTemporaryFailedRecipients(void) const;
+	virtual const std::vector<sFailedRecip> &getPermanentFailedRecipients(void) const { return mPermanentFailedRecipients; }
+	virtual const std::vector<sFailedRecip> &getTemporaryFailedRecipients(void) const { return mTemporaryFailedRecipients; }
 };
 
 bool ValidateCharset(const char *charset);

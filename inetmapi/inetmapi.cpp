@@ -97,16 +97,6 @@ bool ECSender::haveError() {
 	return ! error.empty();
 }
 
-const std::vector<sFailedRecip> &ECSender::getPermanentFailedRecipients(void) const
-{
-	return mPermanentFailedRecipients;
-}
-
-const std::vector<sFailedRecip> &ECSender::getTemporaryFailedRecipients() const
-{
-	return mTemporaryFailedRecipients;
-}
-
 pthread_mutex_t vmInitLock = PTHREAD_MUTEX_INITIALIZER;
 static void InitializeVMime()
 {

@@ -44,7 +44,7 @@
 #ifndef VMIME_MAPITEXTPART_HPP_INCLUDED
 #define VMIME_MAPITEXTPART_HPP_INCLUDED
 
-
+#include <kopano/zcdefs.h>
 #include "vmime/textPart.hpp"
 #include "vmime/messageId.hpp"
 #include "vmime/encoding.hpp"
@@ -59,24 +59,22 @@ namespace vmime
 /** Text part of type 'text/html'.
   */
 
-class mapiTextPart : public textPart
-{
+class mapiTextPart _kc_final : public textPart {
 public:
 
 	mapiTextPart();
 	~mapiTextPart();
 
 	const mediaType getType() const;
-
-	const charset& getCharset() const;
+	const charset &getCharset(void) const { return m_charset; }
 	void setCharset(const charset& ch);
 
 	/* plain text */
-	const ref <const contentHandler> getPlainText() const;
+	const ref<const contentHandler> getPlainText(void) const { return m_plainText; }
 	void setPlainText(ref <contentHandler> plainText);
 
 	/* 'other' text */
-	const ref <const contentHandler> getOtherText() const;
+	const ref<const contentHandler> getOtherText(void) const { return m_otherText; }
 	void setOtherText(ref <contentHandler> otherText);
 	/* extra 'other' properties */
 	void setOtherContentType(const mediaType& type);
@@ -85,7 +83,7 @@ public:
 	void setOtherCharset(const charset& ch);
 
 	/* html + plain + 'other' text */
-	const ref <const contentHandler> getText() const;
+	const ref<const contentHandler> getText(void) const { return m_text; }
 	void setText(ref <contentHandler> text);
 
 	/** Embedded object (eg: image for &lt;IMG> tag).
@@ -101,39 +99,39 @@ public:
 		  *
 		  * @return stored data
 		  */
-		const ref <const contentHandler> getData() const;
+		const ref<const contentHandler> getData(void) const { return m_data; }
 
 		/** Return the encoding used for data in this
 		  * embedded object.
 		  *
 		  * @return data encoding
 		  */
-		const vmime::encoding& getEncoding() const;
+		const vmime::encoding &getEncoding(void) const { return m_encoding; }
 
 		/** Return the identifier of this embedded object.
 		  *
 		  * @return object identifier
 		  */
-		const string& getId() const;
+		const std::string &getId(void) const { return m_id; }
 
 		/** Return the location (URL) of this embedded object.
 		  *
 		  * @return object location url
 		  */
-		const string& getLocation() const;
+		const std::string &getLocation(void) const { return m_loc; }
 
 		/** Return the content type of data stored in
 		  * this embedded object.
 		  *
 		  * @return data type
 		  */
-		const mediaType& getType() const;
+		const mediaType &getType(void) const { return m_type; }
 
 		/** Return the object name of this embedded object, if any
 		 *
 		 * @return object name
 		 */
-		const string& getName() const;
+		const std::string &getName(void) const { return m_name; }
 
 	private:
 
@@ -166,14 +164,14 @@ public:
 	  *
 	  * @return number of embedded objects
 	  */
-	int getObjectCount() const;
+	int getObjectCount(void) const { return m_objects.size(); }
 
 	/** Return the embedded object at the specified position.
 	  *
 	  * @param pos position of the embedded object
 	  * @return embedded object at position 'pos'
 	  */
-	const ref <const embeddedObject> getObjectAt(const int pos) const;
+	const ref<const embeddedObject> getObjectAt(int pos) const { return m_objects[pos]; }
 
 	/** Embed an object and returns a string which identifies it.
 	  * The returned identifier is suitable for use in the 'src' attribute

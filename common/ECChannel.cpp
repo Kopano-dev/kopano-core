@@ -539,14 +539,6 @@ HRESULT ECChannel::HrSelect(int seconds) {
 	return hrSuccess;
 }
 
-bool ECChannel::UsingSsl() {
-	return lpSSL != NULL;
-}
-
-bool ECChannel::sslctx() {
-	return lpCTX != NULL;
-}
-
 /** 
  * read from buffer until \n is found, or buffer length is reached
  * return buffer always contains \0 in the end, so max read from network is *lpulLen -1
@@ -668,11 +660,6 @@ void ECChannel::SetIPAddress(const struct sockaddr *sa, size_t slen)
 		snprintf(peer_atxt, sizeof(peer_atxt), "%s:%s", host, serv);
 	memcpy(&peer_sockaddr, sa, slen);
 	peer_salen = slen;
-}
-
-const char *ECChannel::peer_addr(void) const
-{
-	return peer_atxt;
 }
 
 #ifdef LINUX

@@ -37,7 +37,7 @@ public:
 	eResult GetManage(const TCHAR *lpszUser, ArchiveManagePtr *lpptrManage);
 	eResult AutoAttach(unsigned int ulFlags);
 
-	ECConfig* GetConfig() const;
+	ECConfig *GetConfig(void) const { return m_lpsConfig; }
 
 	ECLogger* GetLogger(eLogType which) const; // Inherits default (which = DefaultLog) from Archiver::GetLogger
 

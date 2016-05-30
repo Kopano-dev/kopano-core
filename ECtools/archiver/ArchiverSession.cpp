@@ -685,11 +685,6 @@ HRESULT ArchiverSession::OpenMAPIProp(ULONG cbEntryID, LPENTRYID lpEntryID, LPMA
 		reinterpret_cast<LPVOID *>(lppProp));
 }
 
-IMAPISession *ArchiverSession::GetMAPISession() const
-{
-	return m_ptrSession;
-}
-
 const char *ArchiverSession::GetSSLPath() const {
 	return m_strSslPath.c_str();
 }

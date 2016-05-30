@@ -34,7 +34,7 @@ public:
 	~Deleter();
 
 private:
-	HRESULT EnterFolder(LPMAPIFOLDER);
+	HRESULT EnterFolder(LPMAPIFOLDER) { return hrSuccess; }
 	HRESULT LeaveFolder();
 	HRESULT DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps);
 	HRESULT PurgeQueuedMessages();

@@ -414,35 +414,15 @@ bool mapiTextPart::findPlainTextPart(const bodyPart& part, const bodyPart& paren
 	return found;
 }
 
-
-const charset& mapiTextPart::getCharset() const
-{
-	return m_charset;
-}
-
-
 void mapiTextPart::setCharset(const charset& ch)
 {
 	m_charset = ch;
 }
 
-
-const ref <const contentHandler> mapiTextPart::getPlainText() const
-{
-	return m_plainText;
-}
-
-
 void mapiTextPart::setPlainText(ref <contentHandler> plainText)
 {
 	m_plainText = plainText->clone();
 }
-
-const ref <const contentHandler> mapiTextPart::getOtherText() const
-{
-	return m_otherText;
-}
-
 
 void mapiTextPart::setOtherText(ref <contentHandler> otherText)
 {
@@ -470,30 +450,10 @@ void mapiTextPart::setOtherCharset(const charset& ch)
        m_bHaveOtherCharset = true;
 }
 
-
-const ref <const contentHandler> mapiTextPart::getText() const
-{
-	return m_text;
-}
-
-
 void mapiTextPart::setText(ref <contentHandler> text)
 {
 	m_text = text->clone();
 }
-
-
-int mapiTextPart::getObjectCount() const
-{
-	return m_objects.size();
-}
-
-
-const ref <const mapiTextPart::embeddedObject> mapiTextPart::getObjectAt(const int pos) const
-{
-	return m_objects[pos];
-}
-
 
 const ref <const mapiTextPart::embeddedObject> mapiTextPart::findObject(const string& id_) const
 {
@@ -584,41 +544,5 @@ mapiTextPart::embeddedObject::embeddedObject
 	  m_encoding(enc), m_id(id), m_type(type), m_name(name), m_loc(loc)
 {
 }
-
-
-const ref <const contentHandler> mapiTextPart::embeddedObject::getData() const
-{
-	return m_data;
-}
-
-
-const vmime::encoding& mapiTextPart::embeddedObject::getEncoding() const
-{
-	return m_encoding;
-}
-
-
-const string& mapiTextPart::embeddedObject::getId() const
-{
-	return m_id;
-}
-
-const string& mapiTextPart::embeddedObject::getLocation() const
-{
-	return (m_loc);
-}
-
-
-const mediaType& mapiTextPart::embeddedObject::getType() const
-{
-	return m_type;
-}
-
-
-const string& mapiTextPart::embeddedObject::getName() const
-{
-	return m_name;
-}
-
 
 } // vmime

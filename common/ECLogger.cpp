@@ -138,10 +138,6 @@ void ECLogger::SetLogprefix(logprefix lp) {
 	prefix = lp;
 }
 
-int ECLogger::GetFileDescriptor() {
-	return -1;
-}
-
 unsigned int ECLogger::AddRef(void)
 {
 	pthread_mutex_lock(&m_mutex);
@@ -659,11 +655,6 @@ void ECLogger_Pipe::LogVA(unsigned int loglevel, const char *format, va_list& va
 	 * (Atomicity actually only guaranteed up to PIPE_BUF number of bytes.)
 	 */
 	write(m_fd, msgbuffer, off);
-}
-
-int ECLogger_Pipe::GetFileDescriptor()
-{
-	return m_fd;
 }
 
 /**

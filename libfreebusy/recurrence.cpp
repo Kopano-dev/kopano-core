@@ -387,11 +387,6 @@ HRESULT recurrence::setInterval(ULONG i)
 	return S_OK;
 }
 
-ULONG recurrence::getSlidingFlag()
-{
-	return m_sRecState.ulSlidingFlag;
-}
-
 HRESULT recurrence::setSlidingFlag(ULONG s)
 {
 	m_sRecState.ulSlidingFlag = s;

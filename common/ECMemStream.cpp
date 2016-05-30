@@ -184,11 +184,6 @@ HRESULT ECMemBlock::GetSize(ULONG *ulSize)
 	return hrSuccess;
 }
 
-char* ECMemBlock::GetBuffer() 
-{
-	return lpCurrent;
-}
-
 /*
  * ECMemStream, IStream compatible in-memory stream object
  */

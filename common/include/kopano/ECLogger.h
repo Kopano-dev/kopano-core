@@ -171,7 +171,7 @@ class ECLogger {
 		 *
 		 * @return	int		The file descriptor of the logfile being written to.
 		 */
-		virtual int GetFileDescriptor();
+		virtual int GetFileDescriptor(void) { return -1; }
 		/**
 		 * Log a message on a specified loglevel using std::string
 		 *
@@ -299,7 +299,7 @@ class ECLogger_Pipe _zcp_final : public ECLogger {
 		virtual void Log(unsigned int loglevel, const char *format, ...) _zcp_override __LIKE_PRINTF(3, 4);
 		virtual void LogVA(unsigned int loglevel, const char *format, va_list &va) _zcp_override;
 
-		int GetFileDescriptor(void) _zcp_override;
+		int GetFileDescriptor(void) _kc_override { return m_fd; }
 		void Disown();
 };
 

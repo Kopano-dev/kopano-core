@@ -144,11 +144,6 @@ bool ECConfigImpl::ParseParams(int argc, char *argv[], int *lpargidx)
 	return true;
 }
 
-const char *ECConfigImpl::GetSettingsPath()
-{
-	return m_szConfigFile;
-}
-
 bool ECConfigImpl::ReloadSettings()
 {
 	// unsetting this value isn't possible
@@ -680,11 +675,6 @@ bool ECConfigImpl::HasWarnings() {
 	return !warnings.empty();
 }
 
-const list<string> *ECConfigImpl::GetWarnings(void)
-{
-	return &warnings;
-}
-
 bool ECConfigImpl::HasErrors() {
 	settingmap_t::iterator iterSettings;
 
@@ -702,12 +692,6 @@ bool ECConfigImpl::HasErrors() {
 
 	return !errors.empty();
 }
-
-const list<string> *ECConfigImpl::GetErrors(void)
-{
-	return &errors;
-}
-
 
 bool ECConfigImpl::WriteSettingToFile(const char *szName, const char *szValue, const char* szFileName)
 {

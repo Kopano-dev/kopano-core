@@ -1208,12 +1208,6 @@ void ECKeyTable::RotateRL(ECTableRow *lpPivot)
 	RotateR(lpParent);
 }
 
-// Returns the height of a given tree
-unsigned int ECKeyTable::GetHeight(ECTableRow *lpRoot)
-{
-	return lpRoot->ulHeight;
-}
-
 int ECKeyTable::GetBalance(ECTableRow *lpPivot)
 {
 	int balance = 0;

@@ -66,12 +66,6 @@ HRESULT ECFreeBusyUpdate::QueryInterface(REFIID refiid, void** lppInterface)
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
-
-HRESULT ECFreeBusyUpdate::Reload()
-{
-	return S_OK;
-}
-
 HRESULT ECFreeBusyUpdate::PublishFreeBusy(FBBlock_1 *lpBlocks, ULONG nBlocks)
 {
 	HRESULT hr = S_OK;
@@ -88,21 +82,10 @@ exit:
 	return hr;
 }
 
-HRESULT ECFreeBusyUpdate::RemoveAppt()
-{
-	
-	return S_OK;
-}
-
 HRESULT ECFreeBusyUpdate::ResetPublishedFreeBusy()
 {
 	m_fbBlockList.Clear();
 
-	return S_OK;
-}
-
-HRESULT ECFreeBusyUpdate::ChangeAppt()
-{
 	return S_OK;
 }
 
@@ -239,17 +222,6 @@ exit:
 	MAPIFreeBuffer(lpPropFBDataArray);
 	return hr;
 }
-
-HRESULT ECFreeBusyUpdate::GetFBTimes()
-{
-	return S_OK;
-}
-
-HRESULT ECFreeBusyUpdate::Intersect()
-{
-	return S_OK;
-}
-
 
 //////////////////////////////////////////////////////////////////
 // Interfaces

@@ -40,8 +40,7 @@
 /**
  * Implementatie of the IFreeBusyData interface
  */
-class ECFreeBusyData : public ECUnknown
-{
+class ECFreeBusyData _kc_final : public ECUnknown {
 private:
 	ECFreeBusyData();
 	~ECFreeBusyData(void);
@@ -51,14 +50,14 @@ public:
 	HRESULT Init(LONG rtmStart, LONG rtmEnd, ECFBBlockList* lpfbBlockList);
 	
 	virtual HRESULT QueryInterface(REFIID refiid, void** lppInterface);
-	virtual HRESULT Reload(void*);
+	virtual HRESULT Reload(void *) { return E_NOTIMPL; }
 	virtual HRESULT EnumBlocks(IEnumFBBlock **ppenumfb, FILETIME ftmStart, FILETIME ftmEnd);
-	virtual HRESULT Merge(void *);
-	virtual HRESULT GetDeligateInfo(void *);
+	virtual HRESULT Merge(void *) { return E_NOTIMPL; }
+	virtual HRESULT GetDeligateInfo(void *) { return E_NOTIMPL; }
 	virtual HRESULT FindFreeBlock(LONG, LONG, LONG, BOOL, LONG, LONG, LONG, FBBlock_1 *);
-	virtual HRESULT InterSect(void *, LONG, void *);
+	virtual HRESULT InterSect(void *, LONG, void *) { return E_NOTIMPL; }
 	virtual HRESULT SetFBRange(LONG rtmStart, LONG rtmEnd);
-	virtual HRESULT NextFBAppt(void *, ULONG, void *, ULONG, void *, void *);
+	virtual HRESULT NextFBAppt(void *, ULONG, void *, ULONG, void *, void *) { return E_NOTIMPL; }
 	virtual HRESULT GetFBPublishRange(LONG *prtmStart, LONG *prtmEnd);
 
 public:

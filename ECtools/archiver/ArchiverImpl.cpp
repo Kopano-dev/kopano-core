@@ -170,11 +170,6 @@ eResult ArchiverImpl::AutoAttach(unsigned int ulFlags)
 	return MAPIErrorToArchiveError(ptrArchiveStateUpdater->UpdateAll(ulFlags));
 }
 
-ECConfig* ArchiverImpl::GetConfig() const
-{
-	return m_lpsConfig;
-}
-
 ECLogger* ArchiverImpl::GetLogger(eLogType which) const
 {
     ECLogger* retval = NULL;

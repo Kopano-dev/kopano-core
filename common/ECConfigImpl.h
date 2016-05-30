@@ -79,7 +79,7 @@ public:
 
 	bool LoadSettings(const char *szFilename) _zcp_override;
 	virtual bool ParseParams(int argc, char *argv[], int *lpargidx) _zcp_override;
-	const char *GetSettingsPath(void) _zcp_override;
+	const char *GetSettingsPath(void) _kc_override { return m_szConfigFile; }
 	bool ReloadSettings(void) _zcp_override;
 
 	bool AddSetting(const char *szName, const char *szValue, const unsigned int ulGroup = 0) _zcp_override;
@@ -95,9 +95,9 @@ public:
 	std::list<configsetting_t> GetAllSettings(void) _zcp_override;
 
 	bool HasWarnings(void) _zcp_override;
-	const std::list<std::string> *GetWarnings(void) _zcp_override;
+	const std::list<std::string> *GetWarnings(void) _kc_override { return &warnings; }
 	bool HasErrors(void) _zcp_override;
-	const std::list<std::string> *GetErrors(void) _zcp_override;
+	const std::list<std::string> *GetErrors(void) _kc_override { return &errors; }
 
 	bool WriteSettingToFile(const char *szName, const char *szValue, const char *szFileName) _zcp_override;
 	bool WriteSettingsToFile(const char *szFileName) _zcp_override;

@@ -73,8 +73,3 @@ vmime::utility::stream::size_type inputStreamMAPIAdapter::skip(const size_type c
 
 	return ulSize.QuadPart;
 }
-
-bool inputStreamMAPIAdapter::eof() const
-{
-	return this->ateof;
-}

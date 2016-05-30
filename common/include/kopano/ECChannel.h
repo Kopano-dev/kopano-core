@@ -59,11 +59,11 @@ public:
 	HRESULT HrSelect(int seconds);
 
 	void SetIPAddress(const struct sockaddr *, size_t);
-	const char *peer_addr(void) const;
+	const char *peer_addr(void) const { return peer_atxt; }
 	int peer_is_local(void) const;
 		
-	bool UsingSsl();
-	bool sslctx();
+	bool UsingSsl(void) const { return lpSSL != NULL; }
+	bool sslctx(void) const { return lpCTX != NULL; }
 
 	static HRESULT HrSetCtx(ECConfig * lpConfig, ECLogger * lpLogger);
 	static HRESULT HrFreeCtx();

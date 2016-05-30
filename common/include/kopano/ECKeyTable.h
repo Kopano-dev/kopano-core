@@ -187,7 +187,7 @@ private:
 	void		RotateR(ECTableRow *lpPivot);
 	void		RotateLR(ECTableRow *lpPivot);
 	void		RotateRL(ECTableRow *lpPivot);
-	unsigned int GetHeight(ECTableRow *lpRoot);
+	unsigned int GetHeight(ECTableRow *root) { return root->ulHeight; }
 	int 		GetBalance(ECTableRow *lpRoot);
 	void		Restructure(ECTableRow *lpPivot);
 	void		RestructureRecursive(ECTableRow *lpRow);

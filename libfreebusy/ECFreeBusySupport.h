@@ -48,8 +48,7 @@
 /**
  * Implementatie of the IFreeBusySupport interface
  */
-class ECFreeBusySupport : public ECUnknown
-{
+class ECFreeBusySupport _kc_final : public ECUnknown {
 private:
 	ECFreeBusySupport(void);
 	~ECFreeBusySupport(void);
@@ -66,26 +65,26 @@ public:
 											HRESULT *phrStatus, ULONG *pcRead);
 
 		virtual HRESULT LoadFreeBusyUpdate(ULONG cUsers, FBUser *lpUsers, IFreeBusyUpdate **lppFBUpdate, ULONG *lpcFBUpdate, void *lpData4);
-		virtual HRESULT CommitChanges();
-		virtual HRESULT GetDelegateInfo(FBUser, void *);
-		virtual HRESULT SetDelegateInfo(void *);
-		virtual HRESULT AdviseFreeBusy(void *);
-		virtual HRESULT Reload(void *);
-		virtual HRESULT GetFBDetailSupport(void **, BOOL );
-		virtual HRESULT HrHandleServerSched(void *);
-		virtual HRESULT HrHandleServerSchedAccess();
-		virtual BOOL FShowServerSched(BOOL );
-		virtual HRESULT HrDeleteServerSched();
-		virtual HRESULT GetFReadOnly(void *);
-		virtual HRESULT SetLocalFB(void *);
-		virtual HRESULT PrepareForSync();
-		virtual HRESULT GetFBPublishMonthRange(void *);
-		virtual HRESULT PublishRangeChanged();
-		virtual HRESULT CleanTombstone();
+		virtual HRESULT CommitChanges(void) { return S_OK; }
+		virtual HRESULT GetDelegateInfo(FBUser, void *) { return E_NOTIMPL; }
+		virtual HRESULT SetDelegateInfo(void *) { return E_NOTIMPL; }
+		virtual HRESULT AdviseFreeBusy(void *) { return E_NOTIMPL; }
+		virtual HRESULT Reload(void *) { return E_NOTIMPL; }
+		virtual HRESULT GetFBDetailSupport(void **, BOOL) { return E_NOTIMPL; }
+		virtual HRESULT HrHandleServerSched(void *) { return E_NOTIMPL; }
+		virtual HRESULT HrHandleServerSchedAccess(void) { return S_OK; }
+		virtual BOOL FShowServerSched(BOOL) { return FALSE; }
+		virtual HRESULT HrDeleteServerSched(void) { return S_OK; }
+		virtual HRESULT GetFReadOnly(void *) { return E_NOTIMPL; }
+		virtual HRESULT SetLocalFB(void *) { return E_NOTIMPL; }
+		virtual HRESULT PrepareForSync(void) { return E_NOTIMPL; }
+		virtual HRESULT GetFBPublishMonthRange(void *) { return E_NOTIMPL; }
+		virtual HRESULT PublishRangeChanged(void) { return E_NOTIMPL; }
+		virtual HRESULT CleanTombstone(void) { return E_NOTIMPL; }
 		virtual HRESULT GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulStatus, unsigned int *lpulStart, unsigned int *lpulEnd);
-		virtual HRESULT PushDelegateInfoToWorkspace();
-		virtual HRESULT Placeholder21(void *, HWND, BOOL );
-		virtual HRESULT Placeholder22();
+		virtual HRESULT PushDelegateInfoToWorkspace(void) { return E_NOTIMPL; }
+		virtual HRESULT Placeholder21(void *, HWND, BOOL) { return S_OK; }
+		virtual HRESULT Placeholder22(void) { return S_OK; }
 
 public:
 	// Interface voor Outlook 2002 and up

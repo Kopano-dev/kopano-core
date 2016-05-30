@@ -123,12 +123,6 @@ HRESULT ECEnumFBBlock::Reset()
 	return m_FBBlock.Reset();
 }
 
-/*! @copydoc IEnumFBBlock::Clone */
-HRESULT ECEnumFBBlock::Clone(IEnumFBBlock **ppclone)
-{
-	return E_NOTIMPL;
-}
-
 /*! @copydoc IEnumFBBlock::Restrict */
 HRESULT ECEnumFBBlock::Restrict(FILETIME ftmStart, FILETIME ftmEnd)
 {
