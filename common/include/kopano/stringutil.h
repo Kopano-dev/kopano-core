@@ -95,8 +95,8 @@ static inline bool parseBool(const std::string &s) {
 	return !(s == "0" || s == "false" || s == "no");
 }
 
-std::string shell_escape(std::string str);
-std::string shell_escape(std::wstring wstr);
+extern std::string shell_escape(const std::string &str);
+extern std::string shell_escape(const std::wstring &wstr);
 std::string forcealnum(const std::string& str, const char *additional = NULL);
 
 std::vector<std::wstring> tokenize(const std::wstring &strInput, const WCHAR sep, bool bFilterEmpty = false);

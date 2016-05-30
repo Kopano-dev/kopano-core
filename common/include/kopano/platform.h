@@ -81,14 +81,14 @@ void	RTimeToFileTime(LONG rtime, FILETIME *pft);
 void	FileTimeToRTime(const FILETIME *pft, LONG *prtime);
 HRESULT	UnixTimeToRTime(time_t unixtime, LONG *rtime);
 HRESULT	RTimeToUnixTime(LONG rtime, time_t *unixtime);
-time_t SystemTimeToUnixTime(SYSTEMTIME stime);
+extern time_t SystemTimeToUnixTime(const SYSTEMTIME &);
 SYSTEMTIME UnixTimeToSystemTime(time_t unixtime);
-SYSTEMTIME TMToSystemTime(struct tm t);
-struct tm SystemTimeToTM(SYSTEMTIME stime);
+extern SYSTEMTIME TMToSystemTime(const struct tm &);
+extern struct tm SystemTimeToTM(const SYSTEMTIME &);
 double GetTimeOfDay();
 ULONG	CreateIntDate(ULONG day, ULONG month, ULONG year);
 ULONG	CreateIntTime(ULONG seconds, ULONG minutes, ULONG hours);
-ULONG	FileTimeToIntDate(FILETIME &ft);
+extern ULONG FileTimeToIntDate(const FILETIME &);
 ULONG	SecondsToIntTime(ULONG seconds);
 
 int strcmp_ci(const char *s1, const char *s2);

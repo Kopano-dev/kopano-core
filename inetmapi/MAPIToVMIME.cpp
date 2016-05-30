@@ -1081,7 +1081,7 @@ exit:
  *
  * @return Description of the error if convertMAPIToVMIME returned an error.
  */
-wstring MAPIToVMIME::getConversionError()
+std::wstring MAPIToVMIME::getConversionError(void) const
 {
 	return m_strError;
 }

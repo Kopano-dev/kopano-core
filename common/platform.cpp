@@ -136,7 +136,7 @@ HRESULT UnixTimeToRTime(time_t unixtime, LONG *rtime)
 }
 
 // time only, not date!
-time_t SystemTimeToUnixTime(SYSTEMTIME stime)
+time_t SystemTimeToUnixTime(const SYSTEMTIME &stime)
 {
 	return stime.wSecond + (stime.wMinute*60) + ((stime.wHour)*60*60);
 }
@@ -152,7 +152,7 @@ SYSTEMTIME UnixTimeToSystemTime(time_t unixtime)
 	return stime;
 }
 
-SYSTEMTIME TMToSystemTime(struct tm t)
+SYSTEMTIME TMToSystemTime(const struct tm &t)
 {
 	SYSTEMTIME stime = {0};
 	stime.wYear = t.tm_year;
@@ -166,7 +166,7 @@ SYSTEMTIME TMToSystemTime(struct tm t)
 	return stime;	
 }
 
-struct tm SystemTimeToTM(SYSTEMTIME stime)
+struct tm SystemTimeToTM(const SYSTEMTIME &stime)
 {
 	// not quite, since we miss tm_yday
 	struct tm t = {0};
@@ -225,7 +225,7 @@ ULONG   CreateIntTime(ULONG seconds, ULONG minutes, ULONG hours)
  * @param[in] ft FileTime to convert
  * @return Converted DATE part of the file time.
  */
-ULONG FileTimeToIntDate(FILETIME &ft)
+ULONG FileTimeToIntDate(const FILETIME &ft)
 {
 	struct tm date;
 	time_t t;

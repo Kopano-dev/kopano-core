@@ -281,7 +281,7 @@ std::string ServerNamePortToURL(const char *lpszType, const char *lpszServerName
 	return strURL;
 }
 
-std::string shell_escape(std::string str)
+std::string shell_escape(const std::string &str)
 {
 	std::string::const_iterator start;
 	std::string::const_iterator ptr;
@@ -303,7 +303,7 @@ std::string shell_escape(std::string str)
 	return escaped;
 }
 
-std::string shell_escape(std::wstring wstr)
+std::string shell_escape(const std::wstring &wstr)
 {
 	std::string strLocale = convert_to<std::string>(wstr);
 	return shell_escape(strLocale);

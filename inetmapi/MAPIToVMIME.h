@@ -37,7 +37,7 @@ public:
 	~MAPIToVMIME();
 
 	HRESULT convertMAPIToVMIME(IMessage *lpMessage, vmime::ref<vmime::message> *lpvmMessage);
-	std::wstring getConversionError();
+	std::wstring getConversionError(void) const;
 
 private:
 	ECLogger *lpLogger;
