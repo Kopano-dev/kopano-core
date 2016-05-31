@@ -1117,9 +1117,10 @@ ECRESULT ECGetContentChangesHelper::MatchRestrictions(const std::vector<DB_ROW> 
 			matches->insert(source_keys[j]);
 	}
 
+	ec_log(EC_LOGLEVEL_ICS, "MatchRestrictions: %zu match(es) out of %d rows (%d properties)",
+		matches->size(), lpRowSet->__size, lpPropTags->__size);
 	*matches_p = matches;
 	matches = NULL;
-
 exit:
 	delete sODStore.lpGuid;
 
