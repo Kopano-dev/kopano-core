@@ -159,7 +159,7 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
       }
     } else {
       if(PyUnicode_Check(o)) {
-        PyErr_SetString(PyExc_RuntimeError, "MAPI_UNICODE flag not passed but passed parameter is a unicode string");
+        o = PyUnicode_AsASCIIString(o);
       }
       char *input;
       Py_ssize_t size;

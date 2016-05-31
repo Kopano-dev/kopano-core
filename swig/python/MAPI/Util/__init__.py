@@ -12,6 +12,24 @@ from MAPI.Struct import *
 # For backward compatibility
 from MAPI.Util.AddressBook import GetUserList
 
+def is_unicode(s):
+    if sys.hexversion >= 0x03000000:
+        return isinstance(s, str)
+    else:
+        return isinstance(s, unicode)
+
+def is_str(s):
+    if sys.hexversion >= 0x03000000:
+        return isinstance(s, bytes)
+    else:
+        return isinstance(s, str)
+
+def to_str(s):
+    if sys.hexversion >= 0x03000000:
+        return bytes(s, 'ascii')
+    else:
+        return str(s)
+
 # flags = 1 == EC_PROFILE_FLAGS_NO_NOTIFICATIONS
 def OpenECSession(user, password, path, **keywords):
     profname = '__pr__%d' % random.randint(0,100000)
@@ -19,7 +37,7 @@ def OpenECSession(user, password, path, **keywords):
     profadmin.CreateProfile(profname, None, 0, 0)
     try:
         admin = profadmin.AdminServices(profname, None, 0, 0)
-        if keywords.has_key('providers'):
+        if 'providers' in keywords:
             for provider in keywords['providers']:
                 admin.CreateMsgService(provider, provider, 0, 0)
         else:
@@ -30,31 +48,31 @@ def OpenECSession(user, password, path, **keywords):
         uid = prop.Value
         profprops = list()
         profprops.append(SPropValue(PR_EC_PATH, path if path else "default:"))
-        if isinstance(user, unicode):
+        if is_unicode(user):
             profprops.append(SPropValue(PR_EC_USERNAME_W, user))
         else:
-            assert isinstance(user, str)
+            assert is_str(user)
             profprops.append(SPropValue(PR_EC_USERNAME_A, user))
-        if isinstance(password, unicode):
+        if is_unicode(password):
             profprops.append(SPropValue(PR_EC_USERPASSWORD_W, password))
         else:
-            assert isinstance(password, str)
+            assert is_str(password)
             profprops.append(SPropValue(PR_EC_USERPASSWORD_A, password))
 
         sslkey_file = keywords.get('sslkey_file')
-        if isinstance(sslkey_file, basestring) and os.path.isfile(sslkey_file):
-            profprops.append(SPropValue(PR_EC_SSLKEY_FILE, str(sslkey_file)))
+        if sslkey_file and os.path.isfile(sslkey_file):
+            profprops.append(SPropValue(PR_EC_SSLKEY_FILE, to_str(sslkey_file)))
             sslkey_pass = keywords.get('sslkey_pass')
-            if isinstance(sslkey_pass, basestring):
-                profprops.append(SPropValue(PR_EC_SSLKEY_PASS, str(sslkey_pass)))
+            if sslkey_pass:
+                profprops.append(SPropValue(PR_EC_SSLKEY_PASS, to_str(sslkey_pass)))
 
         flags = EC_PROFILE_FLAGS_NO_NOTIFICATIONS
-        if keywords.has_key('flags'):
+        if 'flags' in keywords:
             flags = keywords['flags']
         profprops.append(SPropValue(PR_EC_FLAGS, flags))
 
         impersonate = keywords.get('impersonate')
-        if impersonate and isinstance(impersonate, unicode):
+        if impersonate and is_unicode(impersonate):
             profprops.append(SPropValue(PR_EC_IMPERSONATEUSER_W, impersonate))
         elif impersonate:
             profprops.append(SPropValue(PR_EC_IMPERSONATEUSER_A, impersonate))
