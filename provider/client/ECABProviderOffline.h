@@ -22,8 +22,7 @@
 #include <kopano/ECUnknown.h>
 #include "ECABProvider.h"
 
-class ECABProviderOffline : public ECABProvider
-{
+class ECABProviderOffline _kc_final : public ECABProvider {
 protected:
 	ECABProviderOffline(void);
 

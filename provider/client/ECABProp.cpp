@@ -39,11 +39,6 @@ ECABProp::ECABProp(void *lpProvider, ULONG ulObjType, BOOL fModify,
 	this->HrAddPropHandlers(PR_STORE_SUPPORT_MASK,	DefaultABGetProp,	DefaultSetPropComputed, (void*) this);
 }
 
-ECABProp::~ECABProp()
-{
-
-}
-
 HRESULT ECABProp::QueryInterface(REFIID refiid, void **lppInterface)
 {
 	REGISTER_INTERFACE(IID_ECABProp, this);

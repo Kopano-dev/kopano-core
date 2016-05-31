@@ -43,7 +43,7 @@ class MAPIPropHelper
 {
 public:
 	static HRESULT Create(MAPIPropPtr ptrMapiProp, MAPIPropHelperPtr *lpptrMAPIPropHelper);
-	virtual ~MAPIPropHelper();
+	virtual ~MAPIPropHelper(void) {}
 
 	HRESULT GetMessageState(ArchiverSessionPtr ptrSession, MessageState *lpState);
 	HRESULT GetArchiveList(ObjectEntryList *lplstArchives, bool bIgnoreSourceKey = false);

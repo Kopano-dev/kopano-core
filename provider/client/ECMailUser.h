@@ -23,12 +23,9 @@
 
 #include "ECABProp.h"
 
-
-class ECMailUser : public ECABProp 
-{
+class ECMailUser _kc_final : public ECABProp {
 private:
 	ECMailUser(void* lpProvider, BOOL fModify);
-	virtual ~ECMailUser();
 
 public:
 	static HRESULT Create(void* lpProvider, BOOL fModify, ECMailUser** lppMailUser);

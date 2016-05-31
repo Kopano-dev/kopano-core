@@ -50,9 +50,6 @@ TmpPath::TmpPath() {
 		path = "/tmp";
 }
 
-TmpPath::~TmpPath() {
-}
-
 bool TmpPath::OverridePath(ECConfig *const ec) {
 	bool rc = true;
 	const char *newPath = ec->GetSetting("tmp_path");

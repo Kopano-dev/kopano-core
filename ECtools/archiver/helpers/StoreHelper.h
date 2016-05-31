@@ -19,6 +19,7 @@
 #define STOREHELPER_H_INCLUDED
 
 #include <memory>
+#include <kopano/zcdefs.h>
 #include "MAPIPropHelper.h"
 
 class ECRestriction;
@@ -34,11 +35,9 @@ typedef std::unique_ptr<StoreHelper> StoreHelperPtr;
  * The StoreHelper class provides some common utility functions that relate to IMsgStore
  * objects in the archiver context.
  */
-class StoreHelper : public MAPIPropHelper
-{
+class StoreHelper _kc_final : public MAPIPropHelper {
 public:
 	static HRESULT Create(MsgStorePtr &ptrMsgStore, StoreHelperPtr *lpptrStoreHelper);
-	~StoreHelper();
 	
 	HRESULT GetFolder(const tstring &strFolder, bool bCreate, LPMAPIFOLDER *lppFolder);
 	HRESULT UpdateSearchFolders();

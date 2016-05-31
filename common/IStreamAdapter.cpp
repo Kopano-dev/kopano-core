@@ -28,10 +28,6 @@
 IStreamAdapter::IStreamAdapter(std::string& str) : m_pos(0), m_str(str) {
 }
 
-IStreamAdapter::~IStreamAdapter()
-{
-}
-
 HRESULT IStreamAdapter::QueryInterface(REFIID iid, void **pv){
 	if(iid == IID_IStream || iid == IID_ISequentialStream || iid == IID_IUnknown) {
 		*pv = this;

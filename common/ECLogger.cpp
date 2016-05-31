@@ -168,7 +168,6 @@ int ECLogger::snprintf(char *str, size_t size, const char *format, ...) {
 }
 
 ECLogger_Null::ECLogger_Null() : ECLogger(EC_LOGLEVEL_NONE) {}
-ECLogger_Null::~ECLogger_Null() {}
 void ECLogger_Null::Reset() {}
 void ECLogger_Null::Log(unsigned int loglevel, const string &message) {}
 void ECLogger_Null::Log(unsigned int loglevel, const char *format, ...) {}

@@ -18,15 +18,14 @@
 #ifndef ECMAPIFOLDERPUBLIC_H
 #define ECMAPIFOLDERPUBLIC_H
 
+#include <kopano/zcdefs.h>
 #include "ECMAPIFolder.h"
 #include <kopano/ECMemTable.h>
 #include "ClientUtil.h"
 
-class ECMAPIFolderPublic : public ECMAPIFolder
-{
+class ECMAPIFolderPublic _kc_final : public ECMAPIFolder {
 protected:
 	ECMAPIFolderPublic(ECMsgStore *lpMsgStore, BOOL fModify, WSMAPIFolderOps *lpFolderOps, enumPublicEntryID ePublicEntryID);
-	virtual ~ECMAPIFolderPublic(void);
 
 public:
 	static HRESULT Create(ECMsgStore *lpMsgStore, BOOL fModify, WSMAPIFolderOps *lpFolderOps, enumPublicEntryID ePublicEntryID, ECMAPIFolder **lppECMAPIFolder);

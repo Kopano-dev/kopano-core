@@ -21,10 +21,6 @@ MonitorConfigCheck::MonitorConfigCheck(const char *lpszConfigFile) : ECConfigChe
 {
 }
 
-MonitorConfigCheck::~MonitorConfigCheck()
-{
-}
-
 void MonitorConfigCheck::loadChecks()
 {
 	addCheck("companyquota_warning_template", CONFIG_MANDATORY | CONFIG_HOSTED_USED, &testFile);

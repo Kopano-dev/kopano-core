@@ -718,10 +718,6 @@ ECDispatcherSelect::ECDispatcherSelect(ECLogger *lpLogger, ECConfig *lpConfig, C
     m_fdRescanWrite = pipes[1];
 }
 
-ECDispatcherSelect::~ECDispatcherSelect()
-{
-}
-
 ECRESULT ECDispatcherSelect::MainLoop()
 {
 	ECRESULT er = erSuccess;

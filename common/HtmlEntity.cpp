@@ -517,14 +517,6 @@ static const struct HTMLEntityToName_t {
 };
 static const size_t cHTMLEntityToName = ARRAY_SIZE(_HTMLEntityToName);
 
-CHtmlEntity::CHtmlEntity(void)
-{
-}
-
-CHtmlEntity::~CHtmlEntity(void)
-{
-}
-
 static int compareHTMLEntityToChar(const void *m1, const void *m2)
 {
 	const HTMLEntity_t *e1 = static_cast<const HTMLEntity_t *>(m1);

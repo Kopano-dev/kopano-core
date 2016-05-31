@@ -44,13 +44,6 @@ iCal::iCal(Http *lpRequest, IMAPISession *lpSession, ECLogger *lpLogger, std::st
 {
 }
 
-/**
- * Default destructor
- */
-iCal::~iCal()
-{
-}
-
 HRESULT iCal::HrHandleCommand(const std::string &strMethod)
 {
 	HRESULT hr = hrSuccess;

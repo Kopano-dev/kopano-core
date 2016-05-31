@@ -40,13 +40,6 @@ ECEnumFBBlock::ECEnumFBBlock(ECFBBlockList* lpFBBlock)
 }
 
 /**
- * Destructor
- */
-ECEnumFBBlock::~ECEnumFBBlock(void)
-{
-}
-
-/**
  * Create ECEnumFBBlock object
  * 
  * @param[in]	lpFBBlock		Pointer to a list of free/busy blocks

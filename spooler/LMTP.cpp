@@ -50,9 +50,6 @@ LMTP::LMTP(ECChannel *lpChan, const char *szServerPath, ECLogger *lpLog, ECConfi
     m_strPath = szServerPath;
 }
 
-LMTP::~LMTP() {
-}
-
 /** 
  * Tests the start of the input for the LMTP command. LMTP is case
  * insensitive.

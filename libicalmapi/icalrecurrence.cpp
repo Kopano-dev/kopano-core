@@ -34,18 +34,6 @@ static bool operator ==(const SPropValue &spv, ULONG ulPropTag)
 }
 
 /**
- * Default constructor
- */
-ICalRecurrence::ICalRecurrence() {
-}
-
-/**
- * Default destructor
- */
-ICalRecurrence::~ICalRecurrence() {
-}
-
-/**
  * Parses ical RRULE and convert it to mapi recurrence
  *
  * @param[in]	sTimeZone		Timezone structure	

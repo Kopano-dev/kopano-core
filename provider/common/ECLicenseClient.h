@@ -27,8 +27,7 @@
 
 class ECLicenseClient _zcp_final {
 public:
-    ECLicenseClient(const char *szLicensePath=NULL, unsigned int ulTimeOut=0);
-    ~ECLicenseClient();
+	ECLicenseClient(const char * = NULL, unsigned int = 0) {}
     
     ECRESULT GetCapabilities(unsigned int ulServiceType, std::vector<std::string > &lstCapabilities);
     ECRESULT QueryCapability(unsigned int ulServiceType, const std::string &strCapability, bool *lpbResult);

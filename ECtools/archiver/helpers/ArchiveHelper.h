@@ -19,6 +19,7 @@
 #define ARCHIVEHELPER_H_INCLUDED
 
 #include <boost/smart_ptr.hpp>
+#include <kopano/zcdefs.h>
 #include <kopano/archiver-common.h>
 #include <kopano/mapi_ptr.h>
 #include <kopano/CommonUtil.h>
@@ -45,13 +46,11 @@ enum AttachType {
  * The ArchiveHelper class is a utility class that operates on a message store that's used as
  * an archive.
  */
-class ArchiveHelper
-{
+class ArchiveHelper _kc_final {
 public:
 	static HRESULT Create(LPMDB lpArchiveStore, const tstring &strFolder, const char *lpszServerPath, ArchiveHelperPtr *lpptrArchiveHelper);
 	static HRESULT Create(LPMDB lpArchiveStore, LPMAPIFOLDER lpArchiveFolder, const char *lpszServerPath, ArchiveHelperPtr *lpptrArchiveHelper);
 	static HRESULT Create(ArchiverSessionPtr ptrSession, const SObjectEntry &archiveEntry, ECLogger *lpLogger, ArchiveHelperPtr *lpptrArchiveHelper);
-	~ArchiveHelper();
 
 	HRESULT GetAttachedUser(abentryid_t *lpsUserEntryId);
 	HRESULT SetAttachedUser(const abentryid_t &sUserEntryId);

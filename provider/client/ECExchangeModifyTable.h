@@ -85,12 +85,8 @@ private:
 	bool	m_bPushToServer;
 };
 
-
-class ECExchangeRuleAction : public ECUnknown {
+class ECExchangeRuleAction _kc_final : public ECUnknown {
 public:
-	ECExchangeRuleAction();
-	virtual ~ECExchangeRuleAction();
-
 	HRESULT __stdcall ActionCount(ULONG *lpcActions);
 	HRESULT __stdcall GetAction(ULONG ulActionNumber, LARGE_INTEGER *lpruleid, LPACTION *lppAction);
 

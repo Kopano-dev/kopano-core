@@ -21,10 +21,6 @@ IcalConfigCheck::IcalConfigCheck(const char *lpszConfigFile) : ECConfigCheck("Ic
 {
 }
 
-IcalConfigCheck::~IcalConfigCheck()
-{
-}
-
 void IcalConfigCheck::loadChecks()
 {
 }

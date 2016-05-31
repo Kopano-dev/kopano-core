@@ -46,11 +46,6 @@ ECMailUser::ECMailUser(void* lpProvider, BOOL fModify) : ECABProp(lpProvider, MA
 	this->m_ulMaxPropSize = 0;
 }
 
-ECMailUser::~ECMailUser()
-{
-
-}
-
 HRESULT ECMailUser::Create(void* lpProvider, BOOL fModify, ECMailUser** lppMailUser)
 {
 

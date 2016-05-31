@@ -21,10 +21,6 @@ LDAPConfigCheck::LDAPConfigCheck(const char *lpszConfigFile) : ECConfigCheck("LD
 {
 }
 
-LDAPConfigCheck::~LDAPConfigCheck()
-{
-}
-
 void LDAPConfigCheck::loadChecks()
 {
 	// TODO: add check for ldap_host is resolveable ip address

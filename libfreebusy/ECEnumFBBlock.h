@@ -42,7 +42,6 @@
 class ECEnumFBBlock _kc_final : public ECUnknown {
 private:
 	ECEnumFBBlock(ECFBBlockList* lpFBBlock);
-	~ECEnumFBBlock(void);
 public:
 	static HRESULT Create(ECFBBlockList* lpFBBlock, ECEnumFBBlock **lppECEnumFBBlock);
 	

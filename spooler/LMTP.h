@@ -29,8 +29,6 @@ enum LMTP_Command {LMTP_Command_LHLO, LMTP_Command_MAIL_FROM, LMTP_Command_RCPT_
 class LMTP {
 public:
 	LMTP(ECChannel *lpChan, const char *szServerPath, ECLogger *lpLog, ECConfig *lpConf);
-	~LMTP();
-
 	HRESULT HrGetCommand(const std::string &strCommand, LMTP_Command &eCommand);
 	HRESULT HrResponse(const std::string &strResponse);
 

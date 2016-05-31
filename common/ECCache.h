@@ -58,7 +58,7 @@ public:
 	typedef unsigned long		count_type;
 		typedef uint64_t	size_type;
 
-	virtual ~ECCacheBase();
+	virtual ~ECCacheBase(void) {}
 
 	virtual count_type ItemCount() const = 0;
 	virtual size_type Size() const = 0;

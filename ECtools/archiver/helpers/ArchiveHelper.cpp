@@ -179,12 +179,6 @@ exit:
 }
 
 /**
- * Destructor
- */
-ArchiveHelper::~ArchiveHelper()
-{ }
-
-/**
  * Get the user that's attached to this archive.
  *
  * @param[out]	lpsUserEntryId

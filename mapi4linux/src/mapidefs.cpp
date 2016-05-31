@@ -43,9 +43,6 @@
 // IMAPIProp
 // ---
 
-M4LMAPIProp::M4LMAPIProp() {
-}
-
 M4LMAPIProp::~M4LMAPIProp() {
 	std::list<LPSPropValue>::const_iterator i;
 	for (i = properties.begin(); i != properties.end(); ++i)
@@ -365,8 +362,6 @@ M4LProfSect::M4LProfSect(BOOL bGlobalProf) {
 	this->bGlobalProf = bGlobalProf;
 }
 
-M4LProfSect::~M4LProfSect() {
-}
 
 HRESULT M4LProfSect::ValidateState(ULONG ulUIParam, ULONG ulFlags) {
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LProfSect::ValidateState", "");
@@ -467,12 +462,6 @@ HRESULT M4LProfSect::QueryInterface(REFIID refiid, void **lpvoid) {
 // ---
 // IMAPITable
 // ---
-M4LMAPITable::M4LMAPITable() {
-}
-
-M4LMAPITable::~M4LMAPITable() {
-}
-
 HRESULT M4LMAPITable::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) {
 	*lppMAPIError = NULL;
 	return hrSuccess;
@@ -950,9 +939,6 @@ M4LMAPIAdviseSink::M4LMAPIAdviseSink(LPNOTIFCALLBACK lpFn, void *lpContext) {
 	this->lpFn = lpFn;
 }
 
-M4LMAPIAdviseSink::~M4LMAPIAdviseSink() {
-}
-
 ULONG M4LMAPIAdviseSink::OnNotify(ULONG cNotif, LPNOTIFICATION lpNotifications) {
 	return this->lpFn(this->lpContext, cNotif, lpNotifications);
 }
@@ -982,13 +968,6 @@ HRESULT M4LMAPIAdviseSink::QueryInterface(REFIID refiid, void **lpvoid) {
 // 
 // IMAPIContainer
 // 
-
-M4LMAPIContainer::M4LMAPIContainer() {
-}
-
-M4LMAPIContainer::~M4LMAPIContainer() {
-}
-
 HRESULT M4LMAPIContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE* lppTable) {
 	return MAPI_E_NO_SUPPORT;
 }
@@ -1084,9 +1063,6 @@ HRESULT M4LMAPIContainer::QueryInterface(REFIID refiid, void **lpvoid) {
 // 
 
 M4LABContainer::M4LABContainer(const std::list<abEntry> &lABEntries) : m_lABEntries(lABEntries) {
-}
-
-M4LABContainer::~M4LABContainer() {
 }
 
 HRESULT M4LABContainer::CreateEntry(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulCreateFlags, LPMAPIPROP* lppMAPIPropEntry) {

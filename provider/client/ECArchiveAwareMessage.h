@@ -18,6 +18,7 @@
 #ifndef ECARCHIVEAWAREMESSAGE_H
 #define ECARCHIVEAWAREMESSAGE_H
 
+#include <kopano/zcdefs.h>
 #include "ECMessage.h"
 #include <kopano/CommonUtil.h>
 
@@ -28,7 +29,7 @@
 
 class ECArchiveAwareMsgStore;
 
-class ECArchiveAwareMessage : public ECMessage {
+class ECArchiveAwareMessage _kc_final : public ECMessage {
 protected:
 	/**
 	 * \brief Constructor

@@ -15,13 +15,12 @@
  *
  */
 
+#include <kopano/zcdefs.h>
 #include "ECConfigCheck.h"
 
-class GatewayConfigCheck : public ECConfigCheck {
+class GatewayConfigCheck _kc_final : public ECConfigCheck {
 public:
 	GatewayConfigCheck(const char *lpszConfigFile);
-	~GatewayConfigCheck();
-
 	void loadChecks();
 
 private:

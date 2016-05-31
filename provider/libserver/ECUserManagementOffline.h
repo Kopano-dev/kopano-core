@@ -21,9 +21,6 @@
 class ECUserManagementOffline _zcp_final : public ECUserManagement {
 public:
 	ECUserManagementOffline(ECSession *lpSession, ECPluginFactory *lpPluginFactory, ECConfig *lpConfig);
-	virtual ~ECUserManagementOffline(void);
-
-
 	//virtual ECRESULT	AuthUserAndSync(char *szUsername, char *szPassword, unsigned int *lpulUserId);
 	//virtual ECRESULT	GetUserDetailsAndSync(unsigned int ulUserId, userdetails_t *lpDetails);
 	virtual ECRESULT	GetUserQuotaDetailsAndSync(unsigned int ulUserId, quotadetails_t *lpDetails);

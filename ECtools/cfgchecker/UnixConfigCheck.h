@@ -18,13 +18,12 @@
 #ifndef UNIXCONFIGHECK_H
 #define UNIXCONFIGHECK_H
 
+#include <kopano/zcdefs.h>
 #include "ECConfigCheck.h"
 
-class UnixConfigCheck : public ECConfigCheck {
+class UnixConfigCheck _kc_final : public ECConfigCheck {
 public:
 	UnixConfigCheck(const char *lpszConfigFile);
-	~UnixConfigCheck();
-
 	void loadChecks();
 
 private:

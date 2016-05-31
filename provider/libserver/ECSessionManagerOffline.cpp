@@ -31,10 +31,6 @@ ECSessionManagerOffline::ECSessionManagerOffline(ECConfig *lpConfig,
 {
 }
 
-ECSessionManagerOffline::~ECSessionManagerOffline(void)
-{
-}
-
 ECRESULT ECSessionManagerOffline::CreateAuthSession(struct soap *soap, unsigned int ulCapabilities, ECSESSIONID *sessionID, ECAuthSession **lppAuthSession, bool bRegisterSession, bool bLockSession)
 {
 	ECAuthSession *lpAuthSession = NULL;

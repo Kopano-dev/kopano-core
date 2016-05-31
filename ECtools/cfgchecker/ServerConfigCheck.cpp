@@ -32,10 +32,6 @@ ServerConfigCheck::ServerConfigCheck(const char *lpszConfigFile) : ECConfigCheck
 		setMulti(parseBool(setting));
 }
 
-ServerConfigCheck::~ServerConfigCheck()
-{
-}
-
 void ServerConfigCheck::loadChecks()
 {
 	addCheck("attachment_storage", 0, &testAttachment);

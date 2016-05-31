@@ -29,10 +29,6 @@ ECSecurityOffline::ECSecurityOffline(ECSession *lpSession, ECConfig *lpConfig) :
 {
 }
 
-ECSecurityOffline::~ECSecurityOffline(void)
-{
-}
-
 int ECSecurityOffline::GetAdminLevel()
 {
 	return 2;	// System admin. Highest admin level in multi-tenan environment, which is the case for offline servers.

@@ -65,11 +65,6 @@ CHtmlToTextParser::CHtmlToTextParser(void)
 	// @todo check span
 }
 
-CHtmlToTextParser::~CHtmlToTextParser(void)
-{
-	
-}
-
 void CHtmlToTextParser::Init()
 {
 	fScriptMode = false;

@@ -18,13 +18,12 @@
 #ifndef MONITORCONFIGCHECK_H
 #define MONITORCONFIGCHECK_H
 
+#include <kopano/zcdefs.h>
 #include "ECConfigCheck.h"
 
-class MonitorConfigCheck : public ECConfigCheck {
+class MonitorConfigCheck _kc_final : public ECConfigCheck {
 public:
 	MonitorConfigCheck(const char *lpszConfigFile);
-	~MonitorConfigCheck();
-
 	void loadChecks();
 
 private:

@@ -43,7 +43,6 @@ typedef struct {
 class ECUserStoreTable _zcp_final : public ECGenericObjectTable {
 protected:
 	ECUserStoreTable(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale);
-	virtual ~ECUserStoreTable();
 
 public:
 	static ECRESULT Create(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale, ECUserStoreTable **lppTable);

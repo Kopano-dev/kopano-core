@@ -35,10 +35,6 @@ ECSearchClient::ECSearchClient(const char *szIndexerPath, unsigned int ulTimeOut
 	m_ulTimeout = ulTimeOut;
 }
 
-ECSearchClient::~ECSearchClient()
-{
-}
-
 ECRESULT ECSearchClient::GetProperties(setindexprops_t &setProps)
 {
 	ECRESULT er;

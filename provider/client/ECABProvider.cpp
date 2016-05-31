@@ -61,11 +61,6 @@ ECABProvider::ECABProvider(ULONG ulFlags, const char *szClassName) :
 	m_ulFlags = ulFlags;
 }
 
-ECABProvider::~ECABProvider()
-{
-
-}
-
 HRESULT ECABProvider::Create(ECABProvider **lppECABProvider)
 {
 	HRESULT hr = hrSuccess;

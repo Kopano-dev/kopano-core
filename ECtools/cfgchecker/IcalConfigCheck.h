@@ -18,13 +18,12 @@
 #ifndef ICALCONFIGCHECK_H
 #define ICALCONFIGCHECK_H
 
+#include <kopano/zcdefs.h>
 #include "ECConfigCheck.h"
 
-class IcalConfigCheck : public ECConfigCheck {
+class IcalConfigCheck _kc_final : public ECConfigCheck {
 public:
 	IcalConfigCheck(const char *lpszConfigFile);
-	~IcalConfigCheck();
-
 	void loadChecks();
 
 private:

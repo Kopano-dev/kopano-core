@@ -32,16 +32,6 @@
 
 #include "ECLicenseClient.h"
 
-ECLicenseClient::ECLicenseClient(const char *szLicensePath,
-    unsigned int ulTimeOut)
-{
-
-}
-
-ECLicenseClient::~ECLicenseClient()
-{
-}
-
 ECRESULT ECLicenseClient::ServiceTypeToServiceTypeString(unsigned int ulServiceType, std::string &strServiceType)
 {
     ECRESULT er = erSuccess;

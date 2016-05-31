@@ -35,8 +35,6 @@ ECCacheBase::ECCacheBase(const std::string &strCachename, size_type ulMaxSize, l
 	, m_ulCacheValid(0)
 { }
 
-ECCacheBase::~ECCacheBase() {}
-
 void ECCacheBase::RequestStats(void(callback)(const std::string &, const std::string &, const std::string &, void*), void *obj)
 {
 	callback((std::string)"cache_" + m_strCachename + "_items", (std::string)"Cache " + m_strCachename + " items", stringify_int64(ItemCount()), obj);

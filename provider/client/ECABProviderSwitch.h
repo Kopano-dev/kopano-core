@@ -21,11 +21,9 @@
 #include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
 
-class ECABProviderSwitch : public ECUnknown 
-{
+class ECABProviderSwitch _kc_final : public ECUnknown {
 protected:
 	ECABProviderSwitch(void);
-	~ECABProviderSwitch(void);
 
 public:
 	static  HRESULT Create(ECABProviderSwitch **lppECABProvider);

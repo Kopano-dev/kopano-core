@@ -47,16 +47,6 @@
 
 extern ECSessionManager*	g_lpSessionManager;
 
-ECGenProps::ECGenProps()
-{
-	// Nothing to do
-}
-
-ECGenProps::~ECGenProps()
-{
-	// Nothing to do
-}
-
 ECRESULT ECGenProps::GetMVPropSubquery(unsigned int ulPropTagRequested, std::string &subquery) 
 {
 	ECRESULT er = erSuccess;

@@ -22,6 +22,7 @@
 #include "CalDavUtil.h"
 #include <libxml/uri.h>
 
+#include <kopano/zcdefs.h>
 #include <kopano/restrictionutil.h>
 #include <kopano/mapiext.h>
 #include "MAPIToICal.h"
@@ -30,12 +31,9 @@
 
 #define FB_PUBLISH_DURATION 6
 
-class CalDAV : public WebDav
-{
+class CalDAV _kc_final : public WebDav {
 public:
 	CalDAV(Http *lpRequest, IMAPISession *lpSession, ECLogger *lpLogger, std::string strSrvTz, std::string strCharset);
-	virtual ~CalDAV();
-
 	HRESULT HrHandleCommand(const std::string &strMethod);
 
 protected:

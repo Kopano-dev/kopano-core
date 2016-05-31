@@ -32,10 +32,6 @@ ZCABProvider::ZCABProvider(ULONG ulFlags, const char *szClassName) :
 {
 }
 
-ZCABProvider::~ZCABProvider()
-{
-}
-
 HRESULT ZCABProvider::Create(ZCABProvider **lppZCABProvider)
 {
 	HRESULT hr = hrSuccess;

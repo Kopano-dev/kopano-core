@@ -23,10 +23,6 @@ UnixConfigCheck::UnixConfigCheck(const char *lpszConfigFile) : ECConfigCheck("Un
 {
 }
 
-UnixConfigCheck::~UnixConfigCheck()
-{
-}
-
 void UnixConfigCheck::loadChecks()
 {
 	addCheck("default_domain", CONFIG_MANDATORY);

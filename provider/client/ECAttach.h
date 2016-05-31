@@ -31,7 +31,7 @@ class ECMsgStore;
 class ECAttach : public ECMAPIProp {
 protected:
 	ECAttach(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, ULONG ulAttachNum, ECMAPIProp *lpRoot);
-	virtual ~ECAttach();
+	virtual ~ECAttach(void) {}
 
 public:
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface);

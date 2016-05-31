@@ -75,12 +75,6 @@ mapiTextPart::mapiTextPart()
 	m_bHaveOtherCharset = false;
 }
 
-
-mapiTextPart::~mapiTextPart()
-{
-}
-
-
 const mediaType mapiTextPart::getType() const
 {
 	// TODO: fixme?

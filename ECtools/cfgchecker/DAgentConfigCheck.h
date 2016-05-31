@@ -18,13 +18,12 @@
 #ifndef DAGENTCONFIGCHECK_H
 #define DAGENTCONFIGCHECK_H
 
+#include <kopano/zcdefs.h>
 #include "ECConfigCheck.h"
 
-class DAgentConfigCheck : public ECConfigCheck {
+class DAgentConfigCheck _kc_final : public ECConfigCheck {
 public:
 	DAgentConfigCheck(const char *lpszConfigFile);
-	~DAgentConfigCheck();
-
 	void loadChecks();
 
 private:

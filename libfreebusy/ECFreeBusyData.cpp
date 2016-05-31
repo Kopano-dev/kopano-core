@@ -30,11 +30,6 @@ ECFreeBusyData::ECFreeBusyData(void)
 	m_rtmEnd = 0;
 }
 
-ECFreeBusyData::~ECFreeBusyData(void)
-{
-
-}
-
 HRESULT ECFreeBusyData::Init(LONG rtmStart, LONG rtmEnd, ECFBBlockList* lpfbBlockList)
 {
 	HRESULT hr = hrSuccess;

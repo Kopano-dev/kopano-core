@@ -232,8 +232,6 @@ private:
 
 public:
     ECDispatcherSelect(ECLogger *lpLogger, ECConfig *lpConfig, CREATEPIPESOCKETCALLBACK lpCallback, void *lpCallbackParam);
-    virtual ~ECDispatcherSelect();
-
     virtual ECRESULT MainLoop();
 
     virtual ECRESULT ShutDown();

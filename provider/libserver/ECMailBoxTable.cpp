@@ -39,10 +39,6 @@ ECMailBoxTable::ECMailBoxTable(ECSession *lpSession, unsigned int ulFlags, const
 	m_ulStoreTypes = 3; // 1. Show all users store 2. Public stores
 }
 
-ECMailBoxTable::~ECMailBoxTable(void)
-{
-}
-
 ECRESULT ECMailBoxTable::Create(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale, ECMailBoxTable **lppTable)
 {
 	*lppTable = new ECMailBoxTable(lpSession, ulFlags, locale);

@@ -500,11 +500,9 @@ private:
 	std::set<ULONG>		m_setAdviseConnections;
 };
 
-class ECMSLogon : public ECUnknown {
+class ECMSLogon _kc_final : public ECUnknown {
 private:
 	ECMSLogon(ECMsgStore *lpStore);
-	~ECMSLogon();
-
 	ECMsgStore *m_lpStore;
 	
 public:

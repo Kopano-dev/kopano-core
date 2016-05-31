@@ -25,7 +25,6 @@ class ECSession;
 class ECMailBoxTable _zcp_final : public ECStoreObjectTable {
 protected:
 	ECMailBoxTable(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale);
-	virtual ~ECMailBoxTable();
 
 public:
 	static ECRESULT Create(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale, ECMailBoxTable **lppTable);

@@ -32,8 +32,6 @@
 class recurrence _kc_final {
 public:
 	recurrence();
-	~recurrence();
-
 	HRESULT HrLoadRecurrenceState(char *lpData, unsigned int ulLen, ULONG ulFlags);
 	HRESULT HrGetRecurrenceState(char **lppData, unsigned int *lpulLen, void *base = NULL);
 

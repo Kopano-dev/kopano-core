@@ -48,11 +48,6 @@ ECMAPIContainer::ECMAPIContainer(ECMsgStore *lpMsgStore, ULONG ulObjType,
 
 }
 
-ECMAPIContainer::~ECMAPIContainer()
-{
-
-}
-
 HRESULT	ECMAPIContainer::QueryInterface(REFIID refiid, void **lppInterface)
 {
 	REGISTER_INTERFACE(IID_ECMAPIContainer, this);

@@ -21,9 +21,6 @@
 class CHtmlEntity _zcp_final
 {
 public:
-	CHtmlEntity(void);
-	~CHtmlEntity(void);
-
 	static WCHAR toChar( const WCHAR *name );
 	static const WCHAR *toName( WCHAR c );
 	static bool CharToHtmlEntity(WCHAR c, std::wstring &strHTML);

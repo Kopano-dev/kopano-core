@@ -22,11 +22,9 @@
 #include <kopano/ECUnknown.h>
 #include <mapispi.h>
 
-class ZCABProvider : public ECUnknown 
-{
+class ZCABProvider _kc_final : public ECUnknown  {
 protected:
 	ZCABProvider(ULONG ulFlags, const char *szClassName);
-	virtual ~ZCABProvider();
 
 public:
 	static  HRESULT Create(ZCABProvider **lppZCABProvider);

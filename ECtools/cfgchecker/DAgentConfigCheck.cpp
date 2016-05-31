@@ -21,10 +21,6 @@ DAgentConfigCheck::DAgentConfigCheck(const char *lpszConfigFile) : ECConfigCheck
 {
 }
 
-DAgentConfigCheck::~DAgentConfigCheck()
-{
-}
-
 void DAgentConfigCheck::loadChecks()
 {
 	addCheck("lmtp_max_threads", 0, &testNonZero);

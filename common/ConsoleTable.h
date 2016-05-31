@@ -26,7 +26,6 @@
 class ConsoleTable _zcp_final {
 public:
 	ConsoleTable(size_t rows, size_t columns);
-	~ConsoleTable();
 
 	void Clear();
 	void Resize(size_t rows, size_t columns);

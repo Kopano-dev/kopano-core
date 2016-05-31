@@ -26,7 +26,7 @@ class ECABProvider : public ECUnknown
 {
 protected:
 	ECABProvider(ULONG ulFlags, const char *szClassName);
-	virtual ~ECABProvider();
+	virtual ~ECABProvider(void) {}
 
 public:
 	static  HRESULT Create(ECABProvider **lppECABProvider);

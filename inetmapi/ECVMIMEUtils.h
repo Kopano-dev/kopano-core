@@ -20,12 +20,12 @@
 
 #include <string>
 #include <set>
+#include <kopano/zcdefs.h>
 #include <kopano/ECLogger.h>
 #include <vmime/vmime.hpp>
 #include <inetmapi/inetmapi.h>
 
-class ECVMIMESender : public ECSender
-{
+class ECVMIMESender _kc_final : public ECSender {
 private:
 	HRESULT HrMakeRecipientsList(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage, vmime::ref<vmime::message> vmMessage, vmime::mailboxList &recipients, bool bAllowEveryone, bool bAlwaysExpandDistrList);
 	HRESULT HrExpandGroup(LPADRBOOK lpAdrBook, LPSPropValue lpGroupName, LPSPropValue lpGroupEntryID, vmime::mailboxList &recipients, std::set<std::wstring> &setGroups, std::set<std::wstring> &setRecips, bool bAllowEveryone);
@@ -33,8 +33,6 @@ private:
 
 public:
 	ECVMIMESender(ECLogger *newlpLogger, std::string strSMTPHost, int port);
-	virtual	~ECVMIMESender();
-
 	HRESULT sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage, vmime::ref<vmime::message> vmMessage, bool bAllowEveryone, bool bAlwaysExpandDistrList);
 };
 

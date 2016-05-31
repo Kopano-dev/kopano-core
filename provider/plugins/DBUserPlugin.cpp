@@ -63,10 +63,6 @@ DBUserPlugin::DBUserPlugin(pthread_mutex_t *pluginlock, ECPluginSharedData *shar
 		throw notsupported("Distributed Kopano not supported when using the Database Plugin");
 }
 
-DBUserPlugin::~DBUserPlugin()
-{
-}
-
 void DBUserPlugin::InitPlugin()
 {
 	DBPlugin::InitPlugin();

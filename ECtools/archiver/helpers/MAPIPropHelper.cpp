@@ -91,12 +91,6 @@ exit:
 }
 
 /**
- * Destructor
- */
-MAPIPropHelper::~MAPIPropHelper()
-{ }
-
-/**
  * Determine the state of the message. With this state one can determine if a
  * message is stubbed or dirty and copied or moved.
  *

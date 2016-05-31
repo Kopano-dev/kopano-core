@@ -21,11 +21,9 @@
 #include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
 
-class ECMSProviderSwitch : public ECUnknown
-{
+class ECMSProviderSwitch _kc_final : public ECUnknown {
 protected:
 	ECMSProviderSwitch(ULONG ulFlags);
-	virtual ~ECMSProviderSwitch(void);
 public:
 	static  HRESULT Create(ULONG ulFlags, ECMSProviderSwitch **lppMSProvider);
 

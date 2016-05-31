@@ -21,11 +21,9 @@
 #include <kopano/zcdefs.h>
 #include "ECABContainer.h"
 
-class ECDistList : public ECABContainer
-{
+class ECDistList _kc_final : public ECABContainer {
 protected:
 	ECDistList(void* lpProvider, BOOL fModify);
-	virtual ~ECDistList();
 public:
 	
 	static HRESULT Create(void* lpProvider, BOOL fModify, ECDistList** lppDistList);

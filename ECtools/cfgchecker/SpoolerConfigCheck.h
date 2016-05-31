@@ -18,13 +18,12 @@
 #ifndef SPOOLERCONFIGCHECK_H
 #define SPOOLERCONFIGCHECK_H
 
+#include <kopano/zcdefs.h>
 #include "ECConfigCheck.h"
 
-class SpoolerConfigCheck : public ECConfigCheck {
+class SpoolerConfigCheck _kc_final : public ECConfigCheck {
 public:
 	SpoolerConfigCheck(const char *lpszConfigFile);
-	~SpoolerConfigCheck();
-
 	void loadChecks();
 
 private:

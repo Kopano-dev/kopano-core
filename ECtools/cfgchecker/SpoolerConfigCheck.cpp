@@ -21,10 +21,6 @@ SpoolerConfigCheck::SpoolerConfigCheck(const char *lpszConfigFile) : ECConfigChe
 {
 }
 
-SpoolerConfigCheck::~SpoolerConfigCheck()
-{
-}
-
 void SpoolerConfigCheck::loadChecks()
 {
 	addCheck("max_threads", 0, &testNonZero);

@@ -63,8 +63,6 @@ class mapiTextPart _kc_final : public textPart {
 public:
 
 	mapiTextPart();
-	~mapiTextPart();
-
 	const mediaType getType() const;
 	const charset &getCharset(void) const { return m_charset; }
 	void setCharset(const charset& ch);

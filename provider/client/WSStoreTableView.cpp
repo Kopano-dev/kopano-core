@@ -47,12 +47,6 @@ WSStoreTableView::WSStoreTableView(ULONG ulType, ULONG ulFlags, KCmd *lpCmd, pth
 	this->m_ulTableType = TABLETYPE_MS;
 }
 
-WSStoreTableView::~WSStoreTableView()
-{
-	
-}
-
-
 HRESULT WSStoreTableView::Create(ULONG ulType, ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport, WSTableView **lppTableView)
 {
 	HRESULT hr = hrSuccess;
@@ -164,10 +158,6 @@ WSTableMisc::WSTableMisc(ULONG ulTableType, ULONG ulFlags, KCmd *lpCmd, pthread_
 	ulTableId = 0;
 }
 
-WSTableMisc::~WSTableMisc()
-{
-}
-
 HRESULT WSTableMisc::Create(ULONG ulTableType, ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport, WSTableMisc **lppTableMisc)
 {
 	HRESULT hr = hrSuccess;
@@ -218,11 +208,6 @@ exit:
 WSTableMailBox::WSTableMailBox(ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ECMsgStore *lpMsgStore, WSTransport *lpTransport) : WSStoreTableView(MAPI_STORE, ulFlags, lpCmd, lpDataLock, ecSessionId, 0, NULL, lpMsgStore, lpTransport)
 {
 	m_ulTableType = TABLETYPE_MAILBOX;
-}
-
-WSTableMailBox::~WSTableMailBox()
-{
-
 }
 
 HRESULT WSTableMailBox::Create(ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ECMsgStore *lpMsgStore, WSTransport *lpTransport, WSTableMailBox **lppTable)

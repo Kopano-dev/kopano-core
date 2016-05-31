@@ -26,8 +26,6 @@ class CHtmlToTextParser _zcp_final
 {
 public:
 	CHtmlToTextParser(void);
-	~CHtmlToTextParser(void);
-
 	bool Parse(const WCHAR *lpwHTML);
 	std::wstring& GetText();
 

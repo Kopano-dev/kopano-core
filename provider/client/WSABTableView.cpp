@@ -40,12 +40,6 @@ WSABTableView::WSABTableView(ULONG ulType, ULONG ulFlags, KCmd *lpCmd, pthread_m
 	m_ulTableType = TABLETYPE_AB;
 }
 
-WSABTableView::~WSABTableView()
-{
-
-}
-
-
 HRESULT WSABTableView::Create(ULONG ulType, ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId, ECABLogon* lpABLogon, WSTransport *lpTransport, WSTableView **lppTableView)
 {
 	HRESULT hr = hrSuccess;

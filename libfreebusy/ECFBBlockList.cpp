@@ -30,10 +30,6 @@ ECFBBlockList::ECFBBlockList(void)
 	m_tmRestictEnd = 0;
 }
 
-ECFBBlockList::~ECFBBlockList(void)
-{
-}
-
 void ECFBBlockList::Copy(ECFBBlockList *lpfbBlkList)
 {
 	this->m_FBMap = lpfbBlkList->m_FBMap;

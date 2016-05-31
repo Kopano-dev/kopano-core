@@ -18,13 +18,12 @@
 #ifndef LDAPCONFIGCHECK_H
 #define LDAPCONFIGCHECK_H
 
+#include <kopano/zcdefs.h>
 #include "ECConfigCheck.h"
 
-class LDAPConfigCheck : public ECConfigCheck {
+class LDAPConfigCheck _kc_final : public ECConfigCheck {
 public:
 	LDAPConfigCheck(const char *lpszConfigFile);
-	~LDAPConfigCheck();
-
 	void loadChecks();
 
 private:

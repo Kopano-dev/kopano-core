@@ -33,13 +33,6 @@ VEventConverter::VEventConverter(LPADRBOOK lpAdrBook, timezone_map *mapTimeZones
 }
 
 /** 
- * VEvent destructor
- */
-VEventConverter::~VEventConverter()
-{
-}
-
-/** 
  * Entrypoint to convert an ical object to MAPI object.
  * 
  * @param[in]  lpEventRoot The root component (VCALENDAR top object)

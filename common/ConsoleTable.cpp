@@ -38,10 +38,6 @@ ConsoleTable::ConsoleTable(size_t rows, size_t columns) : m_iRows(rows), m_iColu
 	bHaveHeader = false;
 }
 
-ConsoleTable::~ConsoleTable()
-{
-}
-
 /**
  * Removes all contents from the current table
  */

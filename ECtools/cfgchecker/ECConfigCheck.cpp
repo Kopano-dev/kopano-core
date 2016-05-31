@@ -38,10 +38,6 @@ ECConfigCheck::ECConfigCheck(const char *lpszName, const char *lpszConfigFile)
 	readConfigFile(lpszConfigFile);
 }
 
-ECConfigCheck::~ECConfigCheck()
-{
-}
-
 static string clearCharacters(string s, const string &whitespaces)
 {
 	size_t pos = 0;

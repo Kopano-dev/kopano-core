@@ -40,9 +40,6 @@ recurrence::recurrence() {
 	m_ulMonth = 0x0;
 }
 
-recurrence::~recurrence() {
-}
-
 /**
  * Load recurrence from blob property data
  *

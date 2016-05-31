@@ -41,9 +41,6 @@ typedef struct _ECODStore ECODStore;
 
 class ECGenProps _zcp_final {
 public:
-	ECGenProps();
-	~ECGenProps();
-
 	// Returns whether a different property should be retrieved instead of the
 	// requested property.
 	static ECRESULT	GetPropSubstitute(unsigned int ulObjType, unsigned int ulPropTagRequested, unsigned int *lpulPropTagRequired);

@@ -18,13 +18,12 @@
 #ifndef SERVERCONFIGCHECK_H
 #define SERVERCONFIGCHECK_H
 
+#include <kopano/zcdefs.h>
 #include "ECConfigCheck.h"
 
-class ServerConfigCheck : public ECConfigCheck {
+class ServerConfigCheck _kc_final : public ECConfigCheck {
 public:
 	ServerConfigCheck(const char *lpszConfigFile);
-	~ServerConfigCheck();
-
 	void loadChecks();
 
 private:

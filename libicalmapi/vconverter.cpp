@@ -104,13 +104,6 @@ VConverter::VConverter(LPADRBOOK lpAdrBook, timezone_map *mapTimeZones, LPSPropT
 }
 
 /**
- * Default destructor
- */
-VConverter::~VConverter()
-{
-}
-
-/**
  * Basic ical to mapi conversion, common to all VEVENT, VTODO,
  * VFREEBUSY.  It returns an internal icalitem struct, which can later
  * be converted into an existing IMessage.

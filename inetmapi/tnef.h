@@ -19,7 +19,7 @@
 #define TNEF_H
 
 #include <list>
-
+#include <kopano/zcdefs.h>
 #include <mapidefs.h>
 
 // We loosely follow the MS class ITNEF with the following main exceptions:
@@ -42,7 +42,7 @@ struct AttachRendData {
 #define AttachTypeFile 0x0001
 #define AttachTypeOle 0x0002
 
-class ECTNEF {
+class ECTNEF _kc_final {
 public:
 	ECTNEF(ULONG ulFlags, IMessage *lpMessage, IStream *lpStream);
 	virtual ~ECTNEF();

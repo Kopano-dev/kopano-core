@@ -114,12 +114,6 @@ exit:
 }
 
 /**
- * Destructor.
- */
-StoreHelper::~StoreHelper()
-{ }
-
-/**
  * Open or optionaly create a folder by name from the IPM subtree.
  *
  * @param[in]	strFolder

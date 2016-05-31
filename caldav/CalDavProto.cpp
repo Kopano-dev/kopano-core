@@ -111,13 +111,6 @@ CalDAV::CalDAV(Http *lpRequest, IMAPISession *lpSession, ECLogger *lpLogger, std
 }
 
 /**
- * Default Destructor
- */
-CalDAV::~CalDAV()
-{
-}
-
-/**
  * Process all the caldav requests
  * @param[in]	strMethod	Name of the http request(e.g PROPFIND, REPORT..)
  * @return		MAPI error code

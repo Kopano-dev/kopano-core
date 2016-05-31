@@ -61,10 +61,6 @@ ECMSProviderSwitch::ECMSProviderSwitch(ULONG ulFlags) : ECUnknown("ECMSProviderS
 	m_ulFlags = ulFlags;
 }
 
-ECMSProviderSwitch::~ECMSProviderSwitch(void)
-{
-}
-
 HRESULT ECMSProviderSwitch::Create(ULONG ulFlags, ECMSProviderSwitch **lppMSProvider)
 {
 	ECMSProviderSwitch *lpMSProvider = new ECMSProviderSwitch(ulFlags);

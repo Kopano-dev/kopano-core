@@ -18,13 +18,13 @@
 #ifndef ICALMAPI_VTODO_H
 #define ICALMAPI_VTODO_H
 
+#include <kopano/zcdefs.h>
 #include "vconverter.h"
 
-class VTodoConverter : public VConverter {
+class VTodoConverter _kc_final : public VConverter {
 public:
 	/* lpNamedProps must be the GetIDsFromNames() of the array in nameids.h */
 	VTodoConverter(LPADRBOOK lpAdrBook, timezone_map *mapTimeZones, LPSPropTagArray lpNamedProps, const std::string& strCharset, bool blCensor, bool bNoRecipients, IMailUser *lpImailUser);
-	virtual ~VTodoConverter();
 
 	HRESULT HrICal2MAPI(icalcomponent *lpEventRoot /* in */, icalcomponent *lpEvent /* in */, icalitem *lpPrevItem /* in */, icalitem **lppRet /* out */);
 	//	HRESULT HrMAPI2ICal(LPMESSAGE lpMessage /* in */, icalproperty_method *lpicMethod /* out */, std::list<icalcomponent*> *lpEventList /* out */);

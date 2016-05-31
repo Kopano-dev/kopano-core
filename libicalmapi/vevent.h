@@ -18,14 +18,13 @@
 #ifndef ICALMAPI_VEVENT_H
 #define ICALMAPI_VEVENT_H
 
+#include <kopano/zcdefs.h>
 #include "vconverter.h"
 
-class VEventConverter : public VConverter {
+class VEventConverter _kc_final : public VConverter {
 public:
 	/* lpNamedProps must be the GetIDsFromNames() of the array in nameids.h */
 	VEventConverter(LPADRBOOK lpAdrBook, timezone_map *mapTimeZones, LPSPropTagArray lpNamedProps, const std::string& strCharset, bool blCensor, bool bNoRecipients, IMailUser *lpImailUser);
-	virtual ~VEventConverter();
-
 	HRESULT HrICal2MAPI(icalcomponent *lpEventRoot /* in */, icalcomponent *lpEvent /* in */, icalitem *lpPrevItem /* in */, icalitem **lppRet /* out */);
 	//	HRESULT HrMAPI2ICal(LPMESSAGE lpMessage /* in */, icalproperty_method *lpicMethod /* out */, std::list<icalcomponent*> *lpEventList /* out */);
 

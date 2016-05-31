@@ -23,7 +23,7 @@
 class IStreamAdapter _zcp_final : public IStream {
 public:
     IStreamAdapter(std::string& str);
-    ~IStreamAdapter();
+	virtual ~IStreamAdapter(void) {}
     
     virtual HRESULT QueryInterface(REFIID iid, void **pv);
 	virtual ULONG AddRef(void) { return 1; }

@@ -203,8 +203,6 @@ class ECLogger {
 class ECLogger_Null _zcp_final : public ECLogger {
 	public:
 		ECLogger_Null();
-		~ECLogger_Null();
-
 		virtual void Reset(void) _zcp_override;
 		virtual void Log(unsigned int loglevel, const std::string &message) _zcp_override;
 		virtual void Log(unsigned int loglevel, const char *format, ...) _zcp_override __LIKE_PRINTF(3, 4);

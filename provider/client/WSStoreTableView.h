@@ -24,7 +24,7 @@ class WSStoreTableView : public WSTableView
 {
 protected:
     WSStoreTableView(ULONG ulType, ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport);
-	virtual ~WSStoreTableView();
+	virtual ~WSStoreTableView(void) {}
 
 public:
 	static HRESULT Create(ULONG ulType, ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport, WSTableView **lppTableView);
@@ -62,11 +62,9 @@ private:
 };
 
 /* not really store tables, but the code is the same.. */
-class WSTableMisc : public WSStoreTableView
-{
+class WSTableMisc _kc_final : public WSStoreTableView {
 protected:
 	WSTableMisc(ULONG ulTableType, ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport);
-	virtual ~WSTableMisc();
 
 public:
 	static HRESULT Create(ULONG ulTableType, ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport, WSTableMisc **lppTableMisc);
@@ -80,11 +78,9 @@ private:
 /**
  * MailBox table which shows all the stores
  */
-class WSTableMailBox : public WSStoreTableView
-{
+class WSTableMailBox _kc_final : public WSStoreTableView {
 protected:
 	WSTableMailBox(ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ECMsgStore *lpMsgStore, WSTransport *lpTransport);
-	virtual ~WSTableMailBox();
 
 public:
 	static HRESULT Create(ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ECMsgStore *lpMsgStore, WSTransport *lpTransport, WSTableMailBox **lppTableMisc);

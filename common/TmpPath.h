@@ -26,8 +26,6 @@ class TmpPath _zcp_final {
 
 	public:
 		TmpPath();
-		~TmpPath();
-
 		static TmpPath *getInstance();
 
 		bool OverridePath(ECConfig *const ec);

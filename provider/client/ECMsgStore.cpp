@@ -4907,10 +4907,6 @@ ECMSLogon::ECMSLogon(ECMsgStore *lpStore)
 	m_lpStore = lpStore;
 }
 
-ECMSLogon::~ECMSLogon()
-{
-}
-
 HRESULT ECMSLogon::Create(ECMsgStore *lpStore, ECMSLogon **lppECMSLogon)
 {
 	ECMSLogon *lpLogon = new ECMSLogon(lpStore);

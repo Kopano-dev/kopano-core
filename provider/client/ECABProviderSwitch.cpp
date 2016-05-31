@@ -48,10 +48,6 @@ ECABProviderSwitch::ECABProviderSwitch(void) : ECUnknown("ECABProviderSwitch")
 {
 }
 
-ECABProviderSwitch::~ECABProviderSwitch(void)
-{
-}
-
 HRESULT ECABProviderSwitch::Create(ECABProviderSwitch **lppECABProvider)
 {
 	HRESULT hr = hrSuccess;

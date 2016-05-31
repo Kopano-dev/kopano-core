@@ -28,15 +28,13 @@
 
 #include "freebusy.h"
 #include <map>
+#include <kopano/zcdefs.h>
 
 typedef std::map<LONG, FBBlock_1>mapFB;
 
-class ECFBBlockList
-{
+class ECFBBlockList _kc_final {
 public:
 	ECFBBlockList(void);
-	~ECFBBlockList(void);
-
 	void Copy(ECFBBlockList *lpfbBlkList);
 
 	HRESULT Add(FBBlock_1* lpFBBlock);

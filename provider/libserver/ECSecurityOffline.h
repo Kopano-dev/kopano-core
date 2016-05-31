@@ -24,8 +24,6 @@
 class ECSecurityOffline _zcp_final : public ECSecurity {
 public:
 	ECSecurityOffline(ECSession *lpSession, ECConfig *lpConfig);
-	virtual ~ECSecurityOffline(void);
-
 	virtual int GetAdminLevel();
 	virtual ECRESULT IsAdminOverUserObject(unsigned int ulUserObjectId);
 	virtual ECRESULT IsAdminOverOwnerOfObject(unsigned int ulObjectId);

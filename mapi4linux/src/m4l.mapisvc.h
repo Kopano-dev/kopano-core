@@ -46,8 +46,6 @@ typedef HRESULT(__cdecl *SVC_ABProviderInit)(HINSTANCE hInstance, LPMALLOC lpMal
 class INFLoader _zcp_final {
 public:
 	INFLoader();
-	~INFLoader();
-
 	HRESULT LoadINFs();
 	const inf_section* GetSection(const std::string& strSectionName) const;
 

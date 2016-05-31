@@ -22,6 +22,7 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <kopano/zcdefs.h>
 
 #include "plugin.h"
 #include "DBBase.h"
@@ -37,9 +38,7 @@
  *
  * User management based on Mysql. This is the build-in user management system
  */
-class DBUserPlugin : public DBPlugin
-{
-
+class DBUserPlugin _kc_final : public DBPlugin {
 public:
     /**
 	 * Constructor
@@ -51,12 +50,6 @@ public:
 	 * @throw notsupported When multi-server support is enabled
 	 */
 	DBUserPlugin(pthread_mutex_t *pluginlock, ECPluginSharedData *shareddata);
-
-	/**
-	 * Destructor
-	 */
-	virtual ~DBUserPlugin();
-
     /**
 	 * Initialize plugin
 	 *

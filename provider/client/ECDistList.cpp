@@ -41,10 +41,6 @@ ECDistList::ECDistList(void* lpProvider, BOOL fModify) : ECABContainer(lpProvide
 	this->m_ulMaxPropSize = 0;
 }
 
-ECDistList::~ECDistList()
-{
-}
-
 HRESULT	ECDistList::QueryInterface(REFIID refiid, void **lppInterface) 
 {
 	REGISTER_INTERFACE(IID_ECDistList, this);

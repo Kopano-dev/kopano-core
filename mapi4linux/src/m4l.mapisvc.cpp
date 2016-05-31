@@ -71,10 +71,6 @@ INFLoader::INFLoader()
 	m_mapDefs["STATUS_NO_DEFAULT_STORE"] = STATUS_NO_DEFAULT_STORE;
 }
 
-INFLoader::~INFLoader()
-{
-}
-
 /** 
  * Loads all *.inf files in the paths returned by GetINFPaths()
  * 

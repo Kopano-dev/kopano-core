@@ -21,10 +21,6 @@ GatewayConfigCheck::GatewayConfigCheck(const char *lpszConfigFile) : ECConfigChe
 {
 }
 
-GatewayConfigCheck::~GatewayConfigCheck()
-{
-}
-
 void GatewayConfigCheck::loadChecks()
 {
 }

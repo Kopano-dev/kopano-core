@@ -29,10 +29,6 @@ ECUserManagementOffline::ECUserManagementOffline(ECSession *lpSession,
 {
 }
 
-ECUserManagementOffline::~ECUserManagementOffline(void)
-{
-}
-
 ECRESULT ECUserManagementOffline::GetUserQuotaDetailsAndSync(unsigned int ulId, quotadetails_t *lpDetails)
 {
 	ECRESULT er = erSuccess;

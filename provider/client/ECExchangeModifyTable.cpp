@@ -680,12 +680,6 @@ DEF_HRMETHOD(TRACE_MAPI, ECExchangeModifyTable, ECExchangeModifyTable, DisablePu
 
 // ExchangeRuleAction object
 
-ECExchangeRuleAction::ECExchangeRuleAction() {
-}
-
-ECExchangeRuleAction::~ECExchangeRuleAction() {
-}
-
 HRESULT __stdcall ECExchangeRuleAction::ActionCount(ULONG *lpcActions) {
 	*lpcActions = 0;
 	return hrSuccess;

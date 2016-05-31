@@ -40,10 +40,6 @@ ECUserStoreTable::ECUserStoreTable(ECSession *lpSession, unsigned int ulFlags, c
 	m_lpfnQueryRowData = QueryRowData;
 }
 
-ECUserStoreTable::~ECUserStoreTable()
-{
-}
-
 ECRESULT ECUserStoreTable::Create(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale, ECUserStoreTable **lppTable)
 {
 	*lppTable = new ECUserStoreTable(lpSession, ulFlags, locale);

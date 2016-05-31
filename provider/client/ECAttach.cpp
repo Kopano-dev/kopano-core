@@ -49,10 +49,6 @@ ECAttach::ECAttach(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, ULONG 
 	this->HrAddPropHandlers(PR_ENTRYID,			GetPropHandler,	DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
 }
 
-ECAttach::~ECAttach()
-{
-}
-
 HRESULT ECAttach::Create(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, ULONG ulAttachNum, ECMAPIProp *lpRoot, ECAttach **lppAttach)
 {
 	HRESULT hr = hrSuccess;

@@ -43,7 +43,6 @@
 class ECFreeBusyData _kc_final : public ECUnknown {
 private:
 	ECFreeBusyData();
-	~ECFreeBusyData(void);
 public:
 	static HRESULT Create(ECFreeBusyData **lppECFreeBusyData);
 

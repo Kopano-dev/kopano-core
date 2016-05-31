@@ -71,9 +71,6 @@ public:
 ECVMIMESender::ECVMIMESender(ECLogger *newlpLogger, std::string strSMTPHost, int port) : ECSender(newlpLogger, strSMTPHost, port) {
 }
 
-ECVMIMESender::~ECVMIMESender() {
-}
-
 /**
  * Adds all the recipients from a table into the passed recipient list
  *

@@ -77,10 +77,6 @@ ECAttachmentStorage::ECAttachmentStorage(ECDatabase *lpDatabase, unsigned int ul
 	m_CompressionLevel = stringify(ulCompressionLevel);
 }
 
-ECAttachmentStorage::~ECAttachmentStorage()
-{
-}
-
 ULONG ECAttachmentStorage::AddRef() {
 	pthread_mutex_lock(&m_refcnt_lock);
 	ULONG ret = ++m_ulRef;
