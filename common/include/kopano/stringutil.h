@@ -101,7 +101,6 @@ std::string forcealnum(const std::string& str, const char *additional = NULL);
 
 std::vector<std::wstring> tokenize(const std::wstring &strInput, const WCHAR sep, bool bFilterEmpty = false);
 std::vector<std::string> tokenize(const std::string &strInput, const char sep, bool bFilterEmpty = false);
-std::string concatenate(std::vector<std::string> &elements, const std::string &delimeters);
 
 std::string trim(const std::string &strInput, const std::string &strTrim = " ");
 

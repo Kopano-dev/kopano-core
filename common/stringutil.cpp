@@ -348,20 +348,6 @@ std::vector<std::string> tokenize(const std::string &strInput, const char sep, b
 	return vct;
 }
 
-std::string concatenate(std::vector<std::string> &elements, const std::string &delimeters)
-{
-	std::vector<std::string>::const_iterator iter;
-	std::string concat;
-
-    if (!elements.empty()) {
-		for (iter = elements.begin(); iter != elements.end(); ++iter)
-			concat += *iter + delimeters;
-		concat.erase(concat.end() - delimeters.size());
-	}
-
-	return concat;
-}
-
 std::string trim(const std::string &strInput, const std::string &strTrim)
 {
 	std::string s = strInput;
