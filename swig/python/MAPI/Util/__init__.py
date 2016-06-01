@@ -47,7 +47,7 @@ def OpenECSession(user, password, path, **keywords):
         prop = PpropFindProp(rows[0], PR_SERVICE_UID)
         uid = prop.Value
         profprops = list()
-        profprops.append(SPropValue(PR_EC_PATH, path if path else "default:"))
+        profprops.append(SPropValue(PR_EC_PATH, to_str(path if path else "default:")))
         if is_unicode(user):
             profprops.append(SPropValue(PR_EC_USERNAME_W, user))
         else:
@@ -77,8 +77,8 @@ def OpenECSession(user, password, path, **keywords):
         elif impersonate:
             profprops.append(SPropValue(PR_EC_IMPERSONATEUSER_A, impersonate))
 
-        profprops.append(SPropValue(PR_EC_STATS_SESSION_CLIENT_APPLICATION_VERSION, sys.version))
-        profprops.append(SPropValue(PR_EC_STATS_SESSION_CLIENT_APPLICATION_MISC, sys.argv[0]))
+        profprops.append(SPropValue(PR_EC_STATS_SESSION_CLIENT_APPLICATION_VERSION, to_str(sys.version)))
+        profprops.append(SPropValue(PR_EC_STATS_SESSION_CLIENT_APPLICATION_MISC, to_str(sys.argv[0])))
     
         admin.ConfigureMsgService(uid, 0, 0, profprops)
         
@@ -97,8 +97,6 @@ def GetDefaultStore(session):
         if(row[0].ulPropTag == PR_DEFAULT_STORE and row[0].Value):
             return session.OpenMsgStore(0, row[1].Value, None, MDB_WRITE)
             
-    return None
-
 def GetPublicStore(session):
     table = session.GetMsgStoresTable(0)
 

@@ -190,11 +190,14 @@
 				LPGUID (int res, char *buf = NULL, size_t size, int alloc = 0)
 {
   alloc = SWIG_OLDOBJ;
-  res = SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc);
-  if (!SWIG_IsOK(res) || (size != 0 && (size-1) != sizeof(MAPIUID))) { // size-1 because we get \0 terminated string
-    %argument_fail(res,"$type",$symname, $argnum);
+  if($input == Py_None)
+    $1 = 0;
+  else {
+    if(PyBytes_AsStringAndSize($input, &buf, (Py_ssize_t *)&size) == -1 || size != sizeof(MAPIUID)) {
+      %argument_fail(res,"$type",$symname, $argnum);
+    }
+    $1 = %reinterpret_cast(buf, $1_ltype);
   }
-  $1 = %reinterpret_cast(buf, $1_ltype);
 }
 %typemap(in,fragment="SWIG_AsCharPtrAndSize")	const IID& (int res = 0, char *buf = NULL, size_t size = 0, int alloc = 0)
 {
