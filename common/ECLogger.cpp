@@ -929,6 +929,7 @@ ECLogger* CreateLogger(ECConfig *lpConfig, const char *argv0,
 				ret = fork();
 				if (ret == 0) {
 					// client test program
+					setgroups(0, NULL);
 					if (gr)
 						setgid(gr->gr_gid);
 					if (pw)
