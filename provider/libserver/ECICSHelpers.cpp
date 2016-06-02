@@ -293,6 +293,8 @@ ECRESULT NonLegacyIncrementalProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGT
 	
 	*lpulChangeType = atoui(lpDBRow[icsChangeType]);
 	*lpulFlags = lpDBRow[icsFlags] ? atoui(lpDBRow[icsFlags]) : 0;
+
+	ec_log(EC_LOGLEVEL_ICS, "NonLegacyIncrementalAccepted: sourcekey=%s, changetype=%d", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str(), *lpulChangeType);
 	return erSuccess;
 }
 
@@ -303,6 +305,7 @@ ECRESULT NonLegacyIncrementalProcessor::ProcessRejected(DB_ROW lpDBRow, DB_LENGT
 	ASSERT(FALSE);
 	
 	*lpulChangeType = 0;
+	ec_log(EC_LOGLEVEL_ICS, "NonLegacyIncrementalRejected: sourcekey=%s, changetype=0", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str());
 	return erSuccess;
 }
 
@@ -361,6 +364,7 @@ ECRESULT NonLegacyFullProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDB
 	if (ulChange > m_ulMaxChangeId)
 		m_ulMaxChangeId = ulChange;
 		
+	ec_log(EC_LOGLEVEL_ICS, "NonLegacyFullAccepted: sourcekey=%s, changetype=%d", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str(), *lpulChangeType);
 	return erSuccess;
 }
 
@@ -376,6 +380,7 @@ ECRESULT NonLegacyFullProcessor::ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDB
 	if (ulChange > m_ulMaxChangeId)
 		m_ulMaxChangeId = ulChange;
 
+	ec_log(EC_LOGLEVEL_ICS, "NonLegacyFullRejected: sourcekey=%s, changetype=%d", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str(), *lpulChangeType);
 	return erSuccess;
 }
 
@@ -537,6 +542,7 @@ ECRESULT FirstSyncProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen,
 	else
 		*lpulChangeType = ICS_MESSAGE_NEW;
 		
+	ec_log(EC_LOGLEVEL_ICS, "FirstSyncAccepted: sourcekey=%s, changetype=%d", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str(), *lpulChangeType);
 	return erSuccess;
 }
 
@@ -545,6 +551,8 @@ ECRESULT FirstSyncProcessor::ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen,
 	ASSERT(lpulChangeType);
 	
 	*lpulChangeType = 0;	// Ignore
+
+	ec_log(EC_LOGLEVEL_ICS, "FirstSyncRejected: sourcekey=%s, changetype=0", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str());
 	return erSuccess;
 }
 
@@ -1019,6 +1027,8 @@ ECRESULT ECGetContentChangesHelper::MatchRestrictions(const std::vector<DB_ROW> 
 	std::vector<unsigned int> objectids;
 
 	memset(&sODStore, 0, sizeof(sODStore));
+
+	ec_log(EC_LOGLEVEL_ICS, "MatchRestrictions: matching %d rows", db_rows.size());
 
 	for (size_t i = 0; i < db_rows.size(); ++i) {
 		lpdata.push_back(reinterpret_cast<unsigned char *>(db_rows[i][icsSourceKey]));
