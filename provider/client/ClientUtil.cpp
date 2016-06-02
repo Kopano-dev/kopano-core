@@ -784,15 +784,15 @@ exit:
 	return hr;
 }
 
-HRESULT ClientUtil::GetGlobalProfileDeligateStoresProp(LPPROFSECT lpGlobalProfSect, ULONG* lpcDeligates, LPBYTE* lppDeligateStores)
+HRESULT ClientUtil::GetGlobalProfileDelegateStoresProp(LPPROFSECT lpGlobalProfSect, ULONG *lpcDelegates, LPBYTE *lppDelegateStores)
 {
 	HRESULT			hr = hrSuccess;
 	LPSPropValue	lpsPropValue = NULL;
 	ULONG			cValues = 0;
 	SPropTagArray	sPropTagArray;
-	LPBYTE			lpDeligateStores = NULL;
+	LPBYTE			lpDelegateStores = NULL;
 
-	if(lpGlobalProfSect == NULL || lpcDeligates == NULL || lppDeligateStores == NULL)
+	if(lpGlobalProfSect == NULL || lpcDelegates == NULL || lppDelegateStores == NULL)
 	{
 		hr = MAPI_E_INVALID_OBJECT;
 		goto exit;
@@ -806,15 +806,15 @@ HRESULT ClientUtil::GetGlobalProfileDeligateStoresProp(LPPROFSECT lpGlobalProfSe
 		goto exit;
 
 	if(lpsPropValue[0].Value.bin.cb > 0){
-		hr = MAPIAllocateBuffer(lpsPropValue[0].Value.bin.cb, (void**)&lpDeligateStores);
+		hr = MAPIAllocateBuffer(lpsPropValue[0].Value.bin.cb, (void**)&lpDelegateStores);
 		if(hr != hrSuccess)
 			goto exit;
 
-		memcpy(lpDeligateStores, lpsPropValue[0].Value.bin.lpb, lpsPropValue[0].Value.bin.cb);
+		memcpy(lpDelegateStores, lpsPropValue[0].Value.bin.lpb, lpsPropValue[0].Value.bin.cb);
 	}
 
-	*lpcDeligates = lpsPropValue[0].Value.bin.cb;
-	*lppDeligateStores = lpDeligateStores;
+	*lpcDelegates = lpsPropValue[0].Value.bin.cb;
+	*lppDelegateStores = lpDelegateStores;
 
 	hr = hrSuccess;
 

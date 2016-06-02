@@ -564,8 +564,8 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
 	MAPIERROR		*lpMapiError = NULL;
 
 	bool			bShowAllSettingsPages = false;
-	LPBYTE			lpDeligateStores = NULL;
-	ULONG			cDeligateStores = 0;
+	LPBYTE			lpDelegateStores = NULL;
+	ULONG			cDelegateStores = 0;
 	LPSPropValue	lpsPropValueFind = NULL;
 	ULONG 			cValueIndex = 0;
 	convert_context	converter;
@@ -690,7 +690,7 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
 		}
 
 		// Get deligate stores, Ignore error
-		ClientUtil::GetGlobalProfileDeligateStoresProp(ptrGlobalProfSect, &cDeligateStores, &lpDeligateStores);
+		ClientUtil::GetGlobalProfileDelegateStoresProp(ptrGlobalProfSect, &cDelegateStores, &lpDelegateStores);
 
 		// init defaults
 		hr = WSTransport::Create(ulFlags & SERVICE_UI_ALLOWED ? 0 : MDB_NO_DIALOG, &lpTransport);
@@ -866,7 +866,7 @@ exit:
 		}
 	}
 
-	MAPIFreeBuffer(lpDeligateStores);
+	MAPIFreeBuffer(lpDelegateStores);
 	if(lpTransport)
 		lpTransport->Release();
 	MAPIFreeBuffer(lpsPropValue);

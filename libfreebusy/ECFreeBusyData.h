@@ -52,7 +52,7 @@ public:
 	virtual HRESULT Reload(void *) { return E_NOTIMPL; }
 	virtual HRESULT EnumBlocks(IEnumFBBlock **ppenumfb, FILETIME ftmStart, FILETIME ftmEnd);
 	virtual HRESULT Merge(void *) { return E_NOTIMPL; }
-	virtual HRESULT GetDeligateInfo(void *) { return E_NOTIMPL; }
+	virtual HRESULT GetDelegateInfo(void *) { return E_NOTIMPL; }
 	virtual HRESULT FindFreeBlock(LONG, LONG, LONG, BOOL, LONG, LONG, LONG, FBBlock_1 *);
 	virtual HRESULT InterSect(void *, LONG, void *) { return E_NOTIMPL; }
 	virtual HRESULT SetFBRange(LONG rtmStart, LONG rtmEnd);
@@ -72,7 +72,7 @@ public:
 			virtual HRESULT __stdcall Reload(void *) _zcp_override;
 			virtual HRESULT __stdcall EnumBlocks(IEnumFBBlock **ppenumfb, FILETIME ftmStart, FILETIME ftmEnd) _zcp_override;
 			virtual HRESULT __stdcall Merge(void *) _zcp_override;
-			virtual HRESULT __stdcall GetDeligateInfo(void *) _zcp_override;
+			virtual HRESULT __stdcall GetDelegateInfo(void *) _zcp_override;
 			virtual HRESULT __stdcall FindFreeBlock(LONG, LONG, LONG, BOOL, LONG, LONG, LONG, FBBlock_1 *) _zcp_override;
 			virtual HRESULT __stdcall InterSect(void *, LONG, void *) _zcp_override;
 			virtual HRESULT __stdcall SetFBRange(LONG rtmStart, LONG rtmEnd) _zcp_override;

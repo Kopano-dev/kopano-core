@@ -117,7 +117,7 @@ public:
 	static HRESULT GetGlobalProfileProperties(LPMAPISUP lpMAPISup, struct sGlobalProfileProps* lpsProfileProps);
 
 	// Get the deligate stores from the global profile
-	static HRESULT GetGlobalProfileDeligateStoresProp(LPPROFSECT lpGlobalProfSect, ULONG* lpcDeligates, LPBYTE* lppDeligateStores);
+	static HRESULT GetGlobalProfileDelegateStoresProp(LPPROFSECT lpGlobalProfSect, ULONG *lpcDelegates, LPBYTE *lppDelegateStores);
 
 	// Get MSEMS emulator config
 	static HRESULT GetConfigPath(std::string *lpConfigPath);

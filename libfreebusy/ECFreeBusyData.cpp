@@ -267,12 +267,12 @@ HRESULT __stdcall ECFreeBusyData::xFreeBusyData::Merge(void* lpData)
 	return hr;
 }
 
-HRESULT __stdcall ECFreeBusyData::xFreeBusyData::GetDeligateInfo(void* lpData)
+HRESULT __stdcall ECFreeBusyData::xFreeBusyData::GetDelegateInfo(void* lpData)
 {
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusyData::GetDeligateInfo", "");
+	TRACE_MAPI(TRACE_ENTRY, "IFreeBusyData::GetDelegateInfo", "");
 	METHOD_PROLOGUE_(ECFreeBusyData , FreeBusyData);
-	HRESULT hr = pThis->GetDeligateInfo(lpData);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusyData::GetDeligateInfo", "%s", GetMAPIErrorDescription(hr).c_str());
+	HRESULT hr = pThis->GetDelegateInfo(lpData);
+	TRACE_MAPI(TRACE_RETURN, "IFreeBusyData::GetDelegateInfo", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
 }
 

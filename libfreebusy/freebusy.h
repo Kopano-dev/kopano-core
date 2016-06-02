@@ -376,7 +376,7 @@ public:
 	/**
 	 * This member not supported must return E_NOTIMPL.
 	 */
-	virtual HRESULT __stdcall GetDeligateInfo(void *) = 0;
+	virtual HRESULT __stdcall GetDelegateInfo(void *) = 0;
 
 	/**
 	 * This member not supported must return S_OK.
