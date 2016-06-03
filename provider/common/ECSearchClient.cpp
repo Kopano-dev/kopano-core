@@ -193,20 +193,16 @@ ECRESULT ECSearchClient::Query(GUID *lpServerGuid, GUID *lpStoreGuid, std::list<
 
 ECRESULT ECSearchClient::Suggest(std::string &suggestion)
 {
-	ECRESULT er = erSuccess;
-	std::vector<std::string> lstResponse;
-	std::vector<std::string> lstResponseWords;
-
-	er = DoCmd("SUGGEST", lstResponse);
+	std::vector<std::string> resp;
+	ECRESULT er = DoCmd("SUGGEST", resp);
 	if (er != erSuccess)
-		goto exit;
-
-	suggestion = lstResponse[0];
-	if(suggestion[0] == ' ')
-		suggestion.erase(0,1);
-
-exit:
-	return er;
+		return er;
+	if (resp.size() < 1)
+		return KCERR_CALL_FAILED;
+	suggestion = std::move(resp[0]);
+	if (suggestion[0] == ' ')
+		suggestion.erase(0, 1);
+	return erSuccess;
 }
 
 ECRESULT ECSearchClient::SyncRun()
