@@ -102,16 +102,15 @@
 // Input
 %typemap(in, fragment="SWIG_AsCharPtrAndSize")				(ULONG cbEntryID, LPENTRYID lpEntryID) (int res, char *buf = 0, size_t size, int alloc = 0)
 {
-  res = SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc);
-  if (!SWIG_IsOK(res)) {
-    %argument_fail(res,"$type",$symname, $argnum);
-  }
-  if(buf == NULL) {
-	$1 = 0;
-	$2 = NULL;
+  if($input == Py_None) {
+    $1 = 0;
+    $2 = NULL;
   } else {
-	$1 = %numeric_cast(size - 1, $1_ltype);
- 	$2 = %reinterpret_cast(buf, $2_ltype);
+    if(PyBytes_AsStringAndSize($input, &buf, (Py_ssize_t *)&size) == -1) {
+      %argument_fail(res,"$type",$symname, $argnum);
+    }
+    $1 = %numeric_cast(size, $1_ltype);
+    $2 = %reinterpret_cast(buf, $2_ltype);
   }
 }
 %typemap(freearg) (ULONG cbEntryID, LPENTRYID lpEntryID) {
@@ -202,11 +201,14 @@
 %typemap(in,fragment="SWIG_AsCharPtrAndSize")	const IID& (int res = 0, char *buf = NULL, size_t size = 0, int alloc = 0)
 {
   alloc = SWIG_OLDOBJ;
-  res = SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc);
-  if (!SWIG_IsOK(res) || (size != 0 && (size-1) != sizeof(MAPIUID))) { // size-1 because we get \0 terminated string
-    %argument_fail(res,"$type",$symname, $argnum);
+  if($input == Py_None)
+      $1 = 0;
+  else {
+      if(!(buf = PyBytes_AsString($input))) {
+        %argument_fail(res, "$type", $symname, $argnum);
+      }
+      $1 = %reinterpret_cast(buf, $1_ltype);
   }
-  $1 = %reinterpret_cast(buf, $1_ltype);
 }
 %typemap(freearg,noblock=1,match="in") LPMAPIUID, LPCIID, const IID& {
   if (alloc$argnum == SWIG_NEWOBJ) %delete_array(buf$argnum);

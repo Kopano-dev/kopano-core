@@ -816,7 +816,7 @@ Looks at command-line to see if another server address or other related options 
         self._admin_store = None
         self._gab = None
         entryid = HrGetOneProp(self.mapistore, PR_STORE_ENTRYID).Value
-        self.pseudo_url = entryid[entryid.find('pseudo:'):-1] # XXX ECSERVER
+        self.pseudo_url = entryid[entryid.find(b'pseudo:'):-1] # XXX ECSERVER
         self.name = self.pseudo_url[9:] # XXX get this kind of stuff from pr_ec_statstable_servers..?
         self._archive_sessions = {}
 
@@ -1131,7 +1131,7 @@ Looks at command-line to see if another server address or other related options 
         importer.store = None
         return _sync(self, self.mapistore, importer, state, log or self.log, max_changes, window=window, begin=begin, end=end, stats=stats)
 
-    def __unicode__(self):
+    def __str__(self):
         return u'Server(%s)' % self.server_socket
 
     def __repr__(self):
