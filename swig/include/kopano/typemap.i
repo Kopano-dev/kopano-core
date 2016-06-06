@@ -119,7 +119,7 @@
 %typemap(argout,fragment="SWIG_FromCharPtrAndSize") (ULONG *OUTPUT, LPENTRYID *OUTPUT)
 {
   if (*$2) {
-    %append_output(SWIG_FromCharPtrAndSize((const char *)*$2,*$1));
+    %append_output(PyBytes_FromStringAndSize((const char *)*$2,*$1));
   }
 }
 %typemap(freearg) (ULONG *OUTPUT, LPENTRYID *OUTPUT) {
@@ -147,7 +147,7 @@
 %typemap(argout,fragment="SWIG_FromCharPtrAndSize") (ULONG *OPTINOUT, LPENTRYID *OPTINOUT)
 {
   if (*$2) {
-    %append_output(SWIG_FromCharPtrAndSize((const char *)*$2,*$1));
+    %append_output(PyBytes_FromStringAndSize((const char *)*$2,*$1));
   }
 }
 %typemap(freearg) (ULONG *OPTINOUT, LPENTRYID *OPTINOUT) {
@@ -218,7 +218,7 @@
 
 %typemap(argout) LPMAPIUID OUTPUT
 {
-	%append_output(SWIG_FromCharPtrAndSize((const char *)$1,sizeof(MAPIUID)));
+	%append_output(PyBytes_FromStringAndSize((const char *)$1,sizeof(MAPIUID)));
 }
 
 // ULONG ulFlags
