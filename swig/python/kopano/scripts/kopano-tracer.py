@@ -64,7 +64,7 @@ def main():
         print 'No folder specified'
     else:
         user = kopano.Server().user(server.options.auth_user)
-        folder = user.store.folders().next() # First Folder
+        folder = next(user.store.folders()) # First Folder
         print 'Monitoring folder %s of %s for update and delete events' % (folder, user.fullname)
         # Create mapping
         for item in folder.items():

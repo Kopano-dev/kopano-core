@@ -1117,7 +1117,7 @@ Looks at command-line to see if another server address or other related options 
             self.sa.GetCompanyList(MAPI_UNICODE)
             raise Error('request for server-wide public store in multi-company setup')
         except MAPIErrorNoSupport:
-            return self.companies().next().public_store
+            return next(self.companies()).public_store
 
     @property
     def state(self):
@@ -1729,7 +1729,7 @@ class Store(object):
         for row in table.QueryRows(1,0):
             companyname = PpropFindProp(row, PR_EC_COMPANY_NAME_W)
             if companyname is None: # XXX single-tenant, improve check..
-                return self.server.companies().next()
+                return next(self.server.companies())
             else:
                 return self.server.company(companyname.Value)
 
