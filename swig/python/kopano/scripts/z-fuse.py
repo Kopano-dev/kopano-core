@@ -47,7 +47,7 @@ class ZFilesystem(fuse.Fuse):
                 return -errno.ENOENT
             return st
 
-        except Exception, e:
+        except Exception as e:
             print >>open(LOG, 'a'), traceback.format_exc(e)
 
     def readdir(self, path, fh):

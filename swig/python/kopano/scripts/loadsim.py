@@ -43,7 +43,7 @@ def read_worker():
 		except KeyboardInterrupt:
 			return
 
-		except Exception, e:
+		except Exception as e:
 			print e
 
 def write_worker():
@@ -59,7 +59,7 @@ def write_worker():
 		except KeyboardInterrupt:
 			return
 
-		except Exception, e:
+		except Exception as e:
 			print e
 
 pids = []
