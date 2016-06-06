@@ -3678,18 +3678,8 @@ class User(object):
         user_class = kwargs.get('user_class', self._ecuser.Class)
         admin = kwargs.get('admin', self._ecuser.IsAdmin)
 
-        # Thrown when a user tries to set his own features, handle gracefully otherwise you'll end up without a store
-        try:
-            # Pass the MVPropMAP otherwise the set values are reset
-            if hasattr(self._ecuser, 'MVPropMap'):
-                usereid = self.server.sa.SetUser(ECUSER(Username=username, Password=password, Email=email, FullName=fullname,
-                                             Class=user_class, UserID=self._ecuser.UserID, IsAdmin=admin, MVPropMap = self._ecuser.MVPropMap), MAPI_UNICODE)
-
-            else:
-                usereid = self.server.sa.SetUser(ECUSER(Username=username, Password=password, Email=email, FullName=fullname,
-                                             Class=user_class, UserID=self._ecuser.UserID, IsAdmin=admin), MAPI_UNICODE)
-        except MAPIErrorNoSupport:
-            pass
+        usereid = self.server.sa.SetUser(ECUSER(Username=username, Password=password, Email=email, FullName=fullname,
+                 Class=user_class, UserID=self._ecuser.UserID, IsAdmin=admin, MVPropMap = self._ecuser.MVPropMap), MAPI_UNICODE)
 
         self._ecuser = self.server.sa.GetUser(self.server.sa.ResolveUserName(username, MAPI_UNICODE), MAPI_UNICODE)
         if self.name != username:
