@@ -3092,7 +3092,7 @@ class Recurrence:
         pos += LONG
         # XXX: optimize?
         self.del_recurrences = []
-        for _ in xrange(0, self.delcount):
+        for _ in range(0, self.delcount):
             self.del_recurrences.append(datetime.datetime.fromtimestamp(_rectime_to_unixtime(_unpack_long(value, pos))))
             pos += LONG
 
@@ -3100,7 +3100,7 @@ class Recurrence:
         pos += LONG
         # XXX: optimize?
         self.mod_recurrences = []
-        for _ in xrange(0, self.modcount):
+        for _ in range(0, self.modcount):
             self.mod_recurrences.append(datetime.datetime.fromtimestamp(_rectime_to_unixtime(_unpack_long(value, pos))))
             pos += LONG
 
@@ -3123,7 +3123,7 @@ class Recurrence:
 
         # FIXME: create class instances.
         self.exceptions = []
-        for i in xrange(0, self.exception_count):
+        for i in range(0, self.exception_count):
             exception = {}
             # Blegh helper..
             exception['startdatetime'] = datetime.datetime.fromtimestamp(_rectime_to_unixtime(_unpack_long(value, pos)))
