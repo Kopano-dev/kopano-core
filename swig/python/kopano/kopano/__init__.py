@@ -60,7 +60,6 @@ import csv
 import daemon
 import errno
 import fnmatch
-import lockfile
 import daemon.pidlockfile
 import datetime
 from functools import wraps
@@ -86,7 +85,6 @@ except ImportError:
     from io import StringIO
 import struct
 import threading
-import time
 import traceback
 import mailbox
 import email.parser
