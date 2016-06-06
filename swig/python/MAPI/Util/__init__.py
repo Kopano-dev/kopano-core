@@ -32,7 +32,7 @@ def to_str(s):
 
 # flags = 1 == EC_PROFILE_FLAGS_NO_NOTIFICATIONS
 def OpenECSession(user, password, path, **keywords):
-    profname = '__pr__%d' % random.randint(0,100000)
+    profname = to_str('__pr__%d' % random.randint(0,100000))
     profadmin = MAPIAdminProfiles(0)
     profadmin.CreateProfile(profname, None, 0, 0)
     try:
@@ -41,7 +41,7 @@ def OpenECSession(user, password, path, **keywords):
             for provider in keywords['providers']:
                 admin.CreateMsgService(provider, provider, 0, 0)
         else:
-            admin.CreateMsgService("ZARAFA6", "Zarafa", 0, 0)
+            admin.CreateMsgService(b"ZARAFA6", b"Zarafa", 0, 0)
         table = admin.GetMsgServiceTable(0)
         rows = table.QueryRows(1,0)
         prop = PpropFindProp(rows[0], PR_SERVICE_UID)
