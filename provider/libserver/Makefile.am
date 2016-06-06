@@ -71,7 +71,7 @@ libkcserver_la_SOURCES = \
 	ECTPropsPurge.cpp ECTPropsPurge.h \
 	ECMailBoxTable.cpp ECMailBoxTable.h \
 	ECTestProtocol.cpp ECTestProtocol.h \
-	cmdutil.cpp cmdutil.hpp \
+	cmdutil.cpp cmdutil.hpp logontime.cpp logontime.hpp \
 	ECLockManager.cpp ECLockManager.h
 libkcserver_la_LIBADD = \
 	../../common/libkcutil.la ../common/libkccommon.la \

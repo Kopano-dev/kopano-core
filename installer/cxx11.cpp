@@ -2,6 +2,8 @@
 This is a sample file documenting which C++2011 features we will
 be using and which we will not.
 
+g++ 4.3:
+	decltype
 g++ 4.4 (RHEL 6):
 	cbegin
 	rvalue refs with &&
@@ -13,11 +15,16 @@ g++ 4.6
 	range-based for (auto x : list)
 g++ 4.7
 	"final", "override" keywords
+??
+	std::unordered_map
 */
 #include <list>
 #include <memory>
+#include <mutex>
 #include <string>
+#include <unordered_map>
 #include <cstdio>
+#include <ctime>
 class B {
 	public:
 	B(){}
@@ -46,5 +53,14 @@ int main(void)
 	list.push_back(0);
 	auto j = list.cbegin();
 	printf("%s\n", typeid(j).name());
+
+	std::mutex mtx;
+	std::unordered_map<unsigned int, time_t> testmap;
+	testmap[1] = 2;
+	if (testmap.size() != 1)
+		abort();
+	decltype(testmap) testmap2 = std::move(testmap);
+	if (testmap.size() != 0 || testmap2.size() != 1)
+		abort();
 	return 0;
 }

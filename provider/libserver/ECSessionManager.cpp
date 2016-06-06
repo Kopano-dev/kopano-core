@@ -45,6 +45,7 @@
 
 #include "ECICS.h"
 #include <edkmdb.h>
+#include "logontime.hpp"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -864,6 +865,10 @@ void* ECSessionManager::SessionCleaner(void *lpTmpSessionManager)
 		return 0;
 	}
 
+	ECDatabase *db = NULL;
+	if (GetThreadLocalDatabase(lpSessionManager->m_lpDatabaseFactory, &db) != erSuccess)
+		ec_log_err("GTLD failed in SessionCleaner");
+
 	while(true){
 		pthread_rwlock_wrlock(&lpSessionManager->m_hCacheRWLock);
 
@@ -906,6 +911,7 @@ void* ECSessionManager::SessionCleaner(void *lpTmpSessionManager)
 		}
 
 		lstSessions.clear();
+		kcsrv::sync_logon_times(db);
 
 		// Wait for a terminate signal or return after a few minutes
 		pthread_mutex_lock(&lpSessionManager->m_hExitMutex);

@@ -31,6 +31,8 @@
 
 #include "soapH.h"
 
+#include <mutex>
+#include <unordered_map>
 #include <mapidefs.h>
 #include <mapitags.h>
 #include <sys/times.h>
@@ -84,6 +86,7 @@
 #include "cmdutil.hpp"
 #include <kopano/ECThreadPool.h>
 #include "cmd.hpp"
+#include "logontime.hpp"
 
 #if defined(HAVE_GPERFTOOLS_MALLOC_EXTENSION_H)
 #	include <gperftools/malloc_extension.h>
@@ -538,7 +541,6 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession, ECDatabase *lpDatabase, ECAttachmentStorage *lpAttachmentStorage, struct saveObject *lpsSaveObj, unsigned int ulObjId, bool fNewItem, unsigned int ulSyncId, struct saveObject *lpsReturnObj, bool *lpfHaveChangeKey, FILETIME *ftCreated, FILETIME *ftModified);
 
 static ECRESULT DoNotifySubscribe(ECSession *lpecSession, unsigned long long ulSessionId, struct notifySubscribe *notifySubscribe);
-static ECRESULT SaveLogonTime(ECSession *lpecSession, bool bLogon);
 
 
 /**
@@ -623,7 +625,7 @@ int ns__logon(struct soap *soap, char *user, char *pass, char *impersonate, char
 
     // Only save logon if credentials were supplied by the user; otherwise the logon is probably automated
     if(lpecSession->GetAuthMethod() == ECSession::METHOD_USERPASSWORD || lpecSession->GetAuthMethod() == ECSession::METHOD_SSO)
-        SaveLogonTime(lpecSession, true);
+		kcsrv::record_logon_time(lpecSession, true);
 	
 exit:
 	if (lpecSession)
@@ -774,7 +776,7 @@ int ns__ssoLogon(struct soap *soap, ULONG64 ulSessionId, char *szUsername, char 
     }
     
     if(lpecSession && (lpecSession->GetAuthMethod() == ECSession::METHOD_USERPASSWORD || lpecSession->GetAuthMethod() == ECSession::METHOD_SSO))
-        SaveLogonTime(lpecSession, true);
+		kcsrv::record_logon_time(lpecSession, true);
 
 exit:
 	if (lpecAuthSession != NULL)
@@ -814,7 +816,7 @@ int ns__logoff(struct soap *soap, ULONG64 ulSessionId, unsigned int *result)
 
 	if (lpecSession->GetAuthMethod() == ECSession::METHOD_USERPASSWORD ||
 	    lpecSession->GetAuthMethod() == ECSession::METHOD_SSO)
-		SaveLogonTime(lpecSession, false);
+		kcsrv::record_logon_time(lpecSession, false);
 
 	lpecSession->Unlock();
 
@@ -901,55 +903,6 @@ int ns__##fname(struct soap *soap, ULONG64 ulSessionId, ##__VA_ARGS__) \
 	if (lpDatabase && FAILED(er)) \
 		lpDatabase->Rollback(); \
 
-
-// Save the current time as the last logon time for the logged-on user of lpecSession
-static ECRESULT SaveLogonTime(ECSession *lpecSession, bool bLogon) 
-{
-    ECRESULT er = erSuccess;
-    unsigned int ulUserId = 0;
-    unsigned int ulStoreId = 0;
-    time_t now = time(NULL);
-    FILETIME ft;
-    unsigned int ulProperty = bLogon ? PR_LAST_LOGON_TIME : PR_LAST_LOGOFF_TIME;
-	ECDatabase *lpDatabase = NULL; 
-	ALLOC_DBRESULT(); 
-    
-	er = lpecSession->GetDatabase(&lpDatabase); 
-	if (er != erSuccess)
-		goto exit; 
-    
-    UnixTimeToFileTime(now, &ft);
-    
-        
-    ulUserId = lpecSession->GetSecurity()->GetUserId();
-    
-    strQuery = "SELECT hierarchy_id FROM stores WHERE stores.user_id=" + stringify(ulUserId);
-    
-    er = lpDatabase->DoSelect(strQuery, &lpDBResult);
-    if(er != erSuccess)
-        goto exit;
-        
-    if(lpDatabase->GetNumRows(lpDBResult) == 0)
-        goto exit; // User has no store on this server
-        
-    lpDBRow = lpDatabase->FetchRow(lpDBResult);
-    ulStoreId = atoi(lpDBRow[0]);
-    
-    strQuery = "REPLACE INTO properties (tag, type, hierarchyid, val_hi, val_lo) VALUES(" 
-                + stringify(PROP_ID(ulProperty)) + ","  + stringify(PROP_TYPE(ulProperty)) + ","
-                + stringify(ulStoreId) + "," 
-                + stringify(ft.dwHighDateTime) + "," + stringify(ft.dwLowDateTime) + ")";
-                
-    er = lpDatabase->DoInsert(strQuery);
-    if(er != erSuccess)
-        goto exit;
-    
-exit:
-    ROLLBACK_ON_ERROR();
-    FREE_DBRESULT();
-
-    return er;
-}
 
 static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
     unsigned int ulLifetime, unsigned int *lpulMessages,
