@@ -603,7 +603,7 @@ ECRESULT DeleteObjectSoft(ECSession *lpSession, ECDatabase *lpDatabase, unsigned
 			( (iterDeleteItems->ulObjType == MAPI_MESSAGE && iterDeleteItems->ulParentType == MAPI_FOLDER) || 
 			iterDeleteItems->ulObjType == MAPI_FOLDER  || iterDeleteItems->ulObjType == MAPI_STORE) )
 		{
-			strQuery = "REPLACE INTO properties(hierarchyid, tag, type, val_lo, val_hi) VALUES("+stringify(iterDeleteItems->ulId)+","+stringify(PROP_ID(PR_DELETED_ON))+","+stringify(PROP_TYPE(PR_DELETED_ON))+","+stringify(ft.dwLowDateTime)+","+stringify(ft.dwHighDateTime)+")";
+			strQuery = "INSERT INTO properties(hierarchyid, tag, type, val_lo, val_hi) VALUES("+stringify(iterDeleteItems->ulId)+","+stringify(PROP_ID(PR_DELETED_ON))+","+stringify(PROP_TYPE(PR_DELETED_ON))+","+stringify(ft.dwLowDateTime)+","+stringify(ft.dwHighDateTime)+") ON DUPLICATE KEY UPDATE val_lo="+stringify(ft.dwLowDateTime)+",val_hi="+stringify(ft.dwHighDateTime);
 			er = lpDatabase->DoUpdate(strQuery);
 			if(er!= erSuccess)
 				return er;
@@ -1009,7 +1009,7 @@ ECRESULT MarkStoreAsDeleted(ECSession *lpSession, ECDatabase *lpDatabase, unsign
 	// Add properties: PR_DELETED_ON
 	GetSystemTimeAsFileTime(&ft);
 
-	strQuery = "REPLACE INTO properties(hierarchyid, tag, type, val_lo, val_hi) VALUES("+stringify(ulStoreHierarchyId)+","+stringify(PROP_ID(PR_DELETED_ON))+","+stringify(PROP_TYPE(PR_DELETED_ON))+","+stringify(ft.dwLowDateTime)+","+stringify(ft.dwHighDateTime)+")";
+	strQuery = "INSERT INTO properties(hierarchyid, tag, type, val_lo, val_hi) VALUES("+stringify(ulStoreHierarchyId)+","+stringify(PROP_ID(PR_DELETED_ON))+","+stringify(PROP_TYPE(PR_DELETED_ON))+","+stringify(ft.dwLowDateTime)+","+stringify(ft.dwHighDateTime)+") ON DUPLICATE KEY UPDATE val_lo="+stringify(ft.dwLowDateTime)+",val_hi="+stringify(ft.dwHighDateTime);
 	er = lpDatabase->DoUpdate(strQuery);
 	if(er!= erSuccess)
 		return er;
@@ -1216,9 +1216,10 @@ ECRESULT WriteLocalCommitTimeMax(struct soap *soap, ECDatabase *lpDatabase, unsi
 		pvTime->Value.hilo->lo = ftNow.dwLowDateTime;
 	}
 
-	strQuery = "REPLACE INTO properties (hierarchyid, tag, type, val_hi, val_lo) VALUES ("
+	strQuery = "INSERT INTO properties (hierarchyid, tag, type, val_hi, val_lo) VALUES ("
 		+stringify(ulFolderId)+","+stringify(PROP_ID(PR_LOCAL_COMMIT_TIME_MAX))+","+stringify(PROP_TYPE(PR_LOCAL_COMMIT_TIME_MAX))+","
-		+stringify(ftNow.dwHighDateTime)+","+stringify(ftNow.dwLowDateTime)+")";
+		+stringify(ftNow.dwHighDateTime)+","+stringify(ftNow.dwLowDateTime)+")"+
+		" ON DUPLICATE KEY UPDATE val_hi="+stringify(ftNow.dwHighDateTime)+",val_lo="+stringify(ftNow.dwLowDateTime);
 
 	er = lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess)

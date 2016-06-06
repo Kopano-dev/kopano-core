@@ -7950,12 +7950,13 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 			goto exit;
 		}
 
-        strQuery = "REPLACE INTO properties(hierarchyid, tag, type, val_ulong) VALUES(" +
+        strQuery = "INSERT INTO properties(hierarchyid, tag, type, val_ulong) VALUES(" +
                     stringify(iterCopyItems->ulId) + "," +
                     stringify(PROP_ID(PR_EC_IMAP_ID)) + "," +
                     stringify(PROP_TYPE(PR_EC_IMAP_ID)) + "," +
                     stringify(ullIMAP) +
-                    ")";
+                    ") ON DUPLICATE KEY UPDATE val_ulong=" +
+                    stringify(ullIMAP);
 
 		er = lpDatabase->DoInsert(strQuery);
 		if (er != erSuccess) {
@@ -7985,7 +7986,7 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 
 		// update last modification time
 		// PR_LAST_MODIFICATION_TIME (ZCP-11897)
-		strQuery = "REPLACE INTO properties(hierarchyid, tag, type, val_lo, val_hi) VALUES(" + stringify(iterCopyItems -> ulId) + "," + stringify(PROP_ID(PR_LAST_MODIFICATION_TIME)) + "," + stringify(PROP_TYPE(PR_LAST_MODIFICATION_TIME)) + "," + stringify(ft.dwLowDateTime) + "," + stringify(ft.dwHighDateTime) + ")";
+		strQuery = "INSERT INTO properties(hierarchyid, tag, type, val_lo, val_hi) VALUES(" + stringify(iterCopyItems -> ulId) + "," + stringify(PROP_ID(PR_LAST_MODIFICATION_TIME)) + "," + stringify(PROP_TYPE(PR_LAST_MODIFICATION_TIME)) + "," + stringify(ft.dwLowDateTime) + "," + stringify(ft.dwHighDateTime) + ") ON DUPLICATE KEY UPDATE val_lo=" + stringify(ft.dwLowDateTime)  + ", val_hi=" + stringify(ft.dwHighDateTime);
 		er = lpDatabase->DoUpdate(strQuery);
 		if (er != erSuccess)
 			goto exit;
