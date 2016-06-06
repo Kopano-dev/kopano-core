@@ -48,9 +48,6 @@ Main classes:
 
 """
 
-# Python 2.5 doesn't have with
-from __future__ import with_statement
-
 import contextlib
 try:
         import cPickle as pickle
