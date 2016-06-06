@@ -596,8 +596,6 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 	bool			bAcceptABEID = false;
 	unsigned char	*lpSourceKeyData = NULL;
 	unsigned int	cbSourceKeyData = 0;
-	unsigned long	*col_lengths = NULL;
-	
 	list<unsigned int> lstFolderIds;
 	list<unsigned int>::const_iterator lpFolderId;
 
@@ -735,16 +733,17 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 		std::vector<DB_ROW> db_rows;
 		std::vector<DB_LENGTHS> db_lengths;
 
-		int ncols = 7;
-		col_lengths = (unsigned long *)malloc(1000 * ncols * sizeof(unsigned long));
-		int length_counter = 0;
+		static constexpr unsigned int ncols = 7;
+		unsigned long col_lengths[1000*ncols];
+		unsigned int length_counter = 0;
 
 		while (lpDBResult && (lpDBRow = lpDatabase->FetchRow(lpDBResult))) {
 			lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
-
-			memcpy((void *)(&col_lengths[length_counter * ncols]), (void *)lpDBLen, ncols * sizeof(unsigned long));
-			lpDBLen = &col_lengths[length_counter * ncols];
-			length_counter++;
+			if (lpDBLen == NULL)
+				continue;
+			memcpy(&col_lengths[length_counter*ncols], lpDBLen, ncols * sizeof(*col_lengths));
+			lpDBLen = &col_lengths[length_counter*ncols];
+			++length_counter;
 
 			if (lpDBRow[icsSourceKey] == NULL || lpDBRow[icsParentSourceKey] == NULL) {
 				er = KCERR_DATABASE_ERROR;
@@ -1177,9 +1176,6 @@ nextFolder:
 
 exit:
 	delete lpHelper;
-
-	free(col_lengths);
-
 	if(lpDBResult)
 		lpDatabase->FreeResult(lpDBResult);
 
