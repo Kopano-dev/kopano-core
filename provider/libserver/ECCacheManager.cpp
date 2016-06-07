@@ -1724,7 +1724,7 @@ ECRESULT ECCacheManager::GetPropFromObject(unsigned int ulTag, unsigned int ulOb
 	DB_LENGTHS		lpDBLenths = NULL;
 	std::string		strQuery;
 	ECDatabase*		lpDatabase = NULL;
-	ECsIndexProp	*sObject;
+	ECsIndexProp *sObject = NULL;
 	ECsIndexObject	sObjectKey;
     ECsIndexProp sNewObject;
 
