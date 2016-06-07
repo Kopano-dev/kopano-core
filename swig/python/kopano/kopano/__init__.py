@@ -1048,7 +1048,7 @@ Looks at command-line to see if another server address or other related options 
         group = self.group(name)
         self.sa.DeleteGroup(group._ecgroup.GroupID)
 
-    def store(self, guid):
+    def store(self, guid=None, entryid=None):
         """ Return :class:`store <Store>` with given GUID; raise exception if not found """
 
         if guid == 'public':
