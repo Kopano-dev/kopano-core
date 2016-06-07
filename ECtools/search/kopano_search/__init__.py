@@ -163,16 +163,17 @@ class IndexWorker(kopano.Worker):
                 (_, storeguid, folderid, reindex) = self.iqueue.get()
                 store = server.store(storeguid)
                 folder = kopano.Folder(store, folderid.decode('hex')) # XXX
-                if store.public or folder not in (store.junk, store.outbox):
+                if folder not in (store.root, store.outbox, store.drafts):
+                    suggestions = config['suggestions'] and folder != store.junk
                     self.log.info('syncing folder: %s %s' % (storeguid, folder.name))
-                    importer = FolderImporter(server.guid, config, plugin, self.log)
+                    importer = FolderImporter(server.guid, config, plugin, suggestions, self.log)
                     state = db_get(state_db, folder.entryid) if not reindex else None
                     if state:
                         self.log.info('found previous folder sync state: %s' % state)
                     t0 = time.time()
                     new_state = folder.sync(importer, state, log=self.log)
                     if new_state != state:
-                        plugin.commit()
+                        plugin.commit(suggestions)
                         db_put(state_db, folder.entryid, new_state)
                         self.log.info('saved folder sync state: %s' % new_state)
                         changes = importer.changes + importer.deletes 
@@ -183,7 +184,7 @@ class FolderImporter:
     """ tracks changes for a given folder """
 
     def __init__(self, *args):
-        self.serverid, self.config, self.plugin, self.log = args
+        self.serverid, self.config, self.plugin, self.suggestions, self.log = args
         self.changes = self.deletes = self.attachments = 0
         self.mapping_db = os.path.join(self.config['index_path'], self.serverid+'_mapping')
         self.excludes = set(self.config['index_exclude_properties']+[0x1000, 0x1009, 0x1013, 0x678C]) # PR_BODY, PR_RTF_COMPRESSED, PR_HTML, PR_EC_IMAP_EMAIL
@@ -221,7 +222,7 @@ class FolderImporter:
             self.plugin.update(doc)
             self.term_cache_size += sum(len(v) for k, v in doc.iteritems() if k.startswith('mapi'))
             if (8*self.term_cache_size) > self.config['term_cache_size']: # XXX profile to fine-tune factor
-                self.plugin.commit()
+                self.plugin.commit(self.suggestions)
                 self.term_cache_size = 0
 
     def delete(self, item, flags):
@@ -269,7 +270,7 @@ class Service(kopano.Service):
         if not os.path.exists(index_path):
             os.makedirs(index_path)
         self.state_db = os.path.join(index_path, self.server.guid+'_state')
-        self.plugin = __import__('plugin_%s' % self.config['search_engine']).Plugin(index_path, self.config['suggestions'], self.log)
+        self.plugin = __import__('plugin_%s' % self.config['search_engine']).Plugin(index_path, self.log)
         self.iqueue, self.oqueue = Queue(), Queue()
         self.index_processes = self.config['index_processes']
         workers = [IndexWorker(self, 'index%d'%i, nr=i, iqueue=self.iqueue, oqueue=self.oqueue) for i in range(self.index_processes)]

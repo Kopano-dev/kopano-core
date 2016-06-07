@@ -22,9 +22,8 @@ but in the old situation we have one database per store which is nice.
 """
 
 class Plugin:
-    def __init__(self, index_path, suggestions, log):
+    def __init__(self, index_path, log):
         self.index_path = index_path
-        self.suggestions = suggestions
         self.log = log
         self.data = []
         self.deletes = []
@@ -99,7 +98,7 @@ class Plugin:
 
         self.deletes.append(doc)
 
-    def commit(self):
+    def commit(self, suggestions):
         """ index pending documents; see links in the top for a description of the Xapian API """
 
         if not self.data and not self.deletes:
@@ -113,7 +112,7 @@ class Plugin:
                 termgenerator = xapian.TermGenerator()
                 termgenerator.set_database(db)
                 flags = 0
-                if self.suggestions:
+                if suggestions:
                     flags |= termgenerator.FLAG_SPELLING
                 termgenerator.set_flags(flags)
                 for doc in self.data:
