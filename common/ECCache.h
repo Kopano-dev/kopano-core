@@ -212,7 +212,8 @@ public:
 
 		if (result.second == false) {
 			// The key already exists but its value is unmodified. So update it now
-			m_ulSize += (int)(GetCacheAdditionalSize(value) - GetCacheAdditionalSize(result.first->second));
+			m_ulSize += GetCacheAdditionalSize(value);
+			m_ulSize -= GetCacheAdditionalSize(result.first->second);
 			result.first->second = value;
 			result.first->second.ulLastAccess = GetProcessTime();
 			// Since there is a very small chance that we need to purge the cache, we're skipping that here.
