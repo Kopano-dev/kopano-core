@@ -1,6 +1,6 @@
 # -*- Makefile -*-
 
-SUBDIRS = . archiver/include/kopano backup presence search
+SUBDIRS = . archiver/include/kopano backup presence search pst-import
 
 AM_CPPFLAGS = ${ZCPPFLAGS} ${DEBUGFLAGS} ${BOOST_CPPFLAGS} ${SSL_CFLAGS} \
 	-I${top_srcdir}/mapi4linux/include \
