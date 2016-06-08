@@ -17,12 +17,14 @@
 
 #include <kopano/platform.h>
 
+#include <cstdint>
 #include <mapi.h>
 #include <mapispi.h>
 #include <mapiutil.h>
 
 #include <kopano/ECGetText.h>
 
+#include <memory>
 #include <string>
 #include <cassert>
 
@@ -65,6 +67,13 @@ using namespace std;
 
 #define DEBUG_WITH_MEMORY_DUMP 0 // Sure to dump memleaks before the dll is exit
 #endif
+
+class EPCDeleter {
+	public:
+	void operator()(ABEID *p) { MAPIFreeBuffer(p); }
+};
+
+static const uint32_t MAPI_S_SPECIAL_OK = MAKE_MAPI_S(0x900);
 
 // Client wide variable
 tstring		g_strCommonFilesKopano;
@@ -163,6 +172,65 @@ static HRESULT GetServiceName(IProviderAdmin *lpProviderAdmin,
 	return hrSuccess;
 }
 
+static HRESULT initprov_storepub(WSTransport *tp, IProviderAdmin *provadm,
+    SPropValuePtr &provuid, const sGlobalProfileProps &profprop,
+    unsigned int *eid_size, EntryIdPtr &eid)
+{
+	/* Get the public store */
+	std::string redir_srv;
+	HRESULT ret;
+
+	if (profprop.ulProfileFlags & EC_PROFILE_FLAGS_NO_PUBLIC_STORE)
+		/* skip over to the DeleteProvider part */
+		ret = MAPI_E_INVALID_PARAMETER;
+	else
+		ret = tp->HrGetPublicStore(0, eid_size, &eid, &redir_srv);
+
+	if (ret == MAPI_E_UNABLE_TO_COMPLETE) {
+		tp->HrLogOff();
+		auto new_props = profprop;
+		new_props.strServerPath = redir_srv;
+		ret = tp->HrLogon(new_props);
+		if (ret == hrSuccess)
+			ret = tp->HrGetPublicStore(0, eid_size, &eid);
+	}
+	if (ret == hrSuccess)
+		return hrSuccess;
+	if (provadm != NULL && provuid.get() != NULL)
+		provadm->DeleteProvider(reinterpret_cast<MAPIUID *>(provuid->Value.bin.lpb));
+	/* Profile without public store */
+	return MAPI_S_SPECIAL_OK;
+}
+
+static HRESULT initprov_addrbook(std::unique_ptr<ABEID, EPCDeleter> &eid,
+    unsigned int &count, SPropValue *prop)
+{
+	ABEID *eidptr;
+	size_t abe_size = CbNewABEID("");
+	HRESULT ret = MAPIAllocateBuffer(abe_size, reinterpret_cast<void **>(&eidptr));
+	if (ret != hrSuccess)
+		return ret;
+
+	eid.reset(eidptr);
+	memset(eidptr, 0, abe_size);
+	memcpy(&eid->guid, &MUIDECSAB, sizeof(GUID));
+	eid->ulType = MAPI_ABCONT;
+
+	prop[count].ulPropTag = PR_ENTRYID;
+	prop[count].Value.bin.cb = abe_size;
+	prop[count++].Value.bin.lpb = reinterpret_cast<BYTE *>(eidptr);
+	prop[count].ulPropTag = PR_RECORD_KEY;
+	prop[count].Value.bin.cb = sizeof(MAPIUID);
+	prop[count++].Value.bin.lpb = reinterpret_cast<BYTE *>(const_cast<GUID *>(&MUIDECSAB));
+	prop[count].ulPropTag = PR_DISPLAY_NAME_A;
+	prop[count++].Value.lpszA = const_cast<char *>("Kopano Addressbook");
+	prop[count].ulPropTag = PR_EC_PATH;
+	prop[count++].Value.lpszA = const_cast<char *>("Kopano Addressbook");
+	prop[count].ulPropTag = PR_PROVIDER_DLL_NAME_A;
+	prop[count++].Value.lpszA = const_cast<char *>(WCLIENT_DLL_NAME);
+	return hrSuccess;
+}
+
 /**
  * Initialize one service provider
  *
@@ -182,7 +250,7 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 
 	WSTransport		*lpTransport = NULL;
 	WSTransport		*lpAltTransport = NULL;
-	ABEID *pABeid = NULL;
+	std::unique_ptr<ABEID, EPCDeleter> abe_id;
 	ULONG			cbEntryId = 0;
 	ULONG			cbWrappedEntryId = 0;
 	EntryIdPtr		ptrEntryId;
@@ -249,30 +317,9 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 			goto exit;
 
 		if(CompareMDBProvider(ptrPropValueMDB->Value.bin.lpb, &KOPANO_STORE_PUBLIC_GUID)) {
-			// Get the public store
-			if (sProfileProps.ulProfileFlags & EC_PROFILE_FLAGS_NO_PUBLIC_STORE)
-				hr = MAPI_E_INVALID_PARAMETER; // just to get to the DeleteProvider part
-			else
-				hr = lpTransport->HrGetPublicStore(0, &cbEntryId, &ptrEntryId, &strRedirServer);
-
-			if (hr == MAPI_E_UNABLE_TO_COMPLETE)
-			{
-				lpTransport->HrLogOff();
-				auto new_props = sProfileProps;
-				new_props.strServerPath = strRedirServer;
-				hr = lpTransport->HrLogon(new_props);
-									
-				if (hr == hrSuccess)
-					hr = lpTransport->HrGetPublicStore(0, &cbEntryId, &ptrEntryId);
-			}
-			if(hr != hrSuccess) {
-				if(lpAdminProvider && ptrPropValueProviderUid.get())
-					lpAdminProvider->DeleteProvider((MAPIUID *)ptrPropValueProviderUid->Value.bin.lpb);
-
-				// Profile without public store
-				hr = hrSuccess;
+			hr = initprov_storepub(lpTransport, lpAdminProvider, ptrPropValueProviderUid, sProfileProps, &cbEntryId, ptrEntryId);
+			if (hr != hrSuccess)
 				goto exit;
-			}
 		} else if(CompareMDBProvider(ptrPropValueMDB->Value.bin.lpb, &KOPANO_SERVICE_GUID)) {
 			// Get the default store for this user
 			hr = lpTransport->HrGetStore(0, NULL, &cbEntryId, &ptrEntryId, 0, NULL, &strRedirServer);
@@ -412,32 +459,9 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 		sPropVals[cPropValue++].Value.lpszA = const_cast<char *>(WCLIENT_DLL_NAME);
 						
 	} else if(ulResourceType == MAPI_AB_PROVIDER) {
-		hr = MAPIAllocateBuffer(CbNewABEID(""), (void**)&pABeid);
-		if(hr != hrSuccess)
+		hr = initprov_addrbook(abe_id, cPropValue, sPropVals);
+		if (hr != hrSuccess)
 			goto exit;
-
-		memset(pABeid, 0, CbNewABEID(""));
-
-		memcpy(&pABeid->guid, &MUIDECSAB, sizeof(GUID));
-		pABeid->ulType = MAPI_ABCONT;
-
-		sPropVals[cPropValue].ulPropTag = PR_ENTRYID;
-		sPropVals[cPropValue].Value.bin.cb = CbNewABEID("");
-		sPropVals[cPropValue++].Value.bin.lpb = (LPBYTE) pABeid;
-
-		sPropVals[cPropValue].ulPropTag = PR_RECORD_KEY;
-		sPropVals[cPropValue].Value.bin.cb = sizeof(MAPIUID);
-		sPropVals[cPropValue++].Value.bin.lpb = (LPBYTE)&MUIDECSAB;
-
-		sPropVals[cPropValue].ulPropTag = PR_DISPLAY_NAME_A;
-		sPropVals[cPropValue++].Value.lpszA = const_cast<char *>("Kopano Addressbook");
-
-		sPropVals[cPropValue].ulPropTag = PR_EC_PATH;
-		sPropVals[cPropValue++].Value.lpszA = const_cast<char *>("Kopano Addressbook");
-
-		sPropVals[cPropValue].ulPropTag = PR_PROVIDER_DLL_NAME_A;
-		sPropVals[cPropValue++].Value.lpszA = const_cast<char *>(WCLIENT_DLL_NAME);
-
 	} else {
 		if(ulResourceType != MAPI_TRANSPORT_PROVIDER) {
 			ASSERT(FALSE);
@@ -464,13 +488,12 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 	}
 exit:
 	//Free allocated memory
-	MAPIFreeBuffer(pABeid);
-	pABeid = NULL;
 	if (lpTransport != NULL && lpTransport != transport)
 		lpTransport->Release(); /* implies logoff */
 	else
 		lpTransport->logoff_nd();
-
+	if (hr == MAPI_S_SPECIAL_OK)
+		return hrSuccess;
 	return hr;
 }
 
