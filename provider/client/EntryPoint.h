@@ -33,7 +33,7 @@ HRESULT  __cdecl ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc, LPALLOCA
 }
 
 class WSTransport;
-HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider, IProfSect *lpProfSect, sGlobalProfileProps, ULONG *lpcStoreID, LPENTRYID *lppStoreID, WSTransport * = NULL);
+HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider, IProfSect *lpProfSect, const sGlobalProfileProps &, ULONG *lpcStoreID, LPENTRYID *lppStoreID, WSTransport * = NULL);
 
 // Global values
 extern tstring	g_strCommonFilesKopano;

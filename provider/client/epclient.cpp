@@ -175,7 +175,7 @@ static HRESULT GetServiceName(IProviderAdmin *lpProviderAdmin,
  * @return MAPI error codes
  */
 HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
-    IProfSect *lpProfSect, sGlobalProfileProps sProfileProps,
+    IProfSect *lpProfSect, const sGlobalProfileProps &sProfileProps,
     ULONG *lpcStoreID, LPENTRYID *lppStoreID, WSTransport *transport)
 {
 	HRESULT hr = hrSuccess;
@@ -258,8 +258,9 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 			if (hr == MAPI_E_UNABLE_TO_COMPLETE)
 			{
 				lpTransport->HrLogOff();
-				sProfileProps.strServerPath = strRedirServer;
-				hr = lpTransport->HrLogon(sProfileProps);
+				auto new_props = sProfileProps;
+				new_props.strServerPath = strRedirServer;
+				hr = lpTransport->HrLogon(new_props);
 									
 				if (hr == hrSuccess)
 					hr = lpTransport->HrGetPublicStore(0, &cbEntryId, &ptrEntryId);
@@ -279,8 +280,9 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 				ec_log_err("HrGetStore failed: No store present.");
 			} else if (hr == MAPI_E_UNABLE_TO_COMPLETE) {
 				lpTransport->HrLogOff();
-				sProfileProps.strServerPath = strRedirServer;
-				hr = lpTransport->HrLogon(sProfileProps);
+				auto new_props = sProfileProps;
+				new_props.strServerPath = strRedirServer;
+				hr = lpTransport->HrLogon(new_props);
 				if (hr != hrSuccess)
 					goto exit;
 
@@ -330,8 +332,9 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 			if (hr == MAPI_E_UNABLE_TO_COMPLETE)
 			{
 				lpTransport->HrLogOff();
-				sProfileProps.strServerPath = strRedirServer;
-				hr = lpTransport->HrLogon(sProfileProps);
+				auto new_props = sProfileProps;
+				new_props.strServerPath = strRedirServer;
+				hr = lpTransport->HrLogon(new_props);
 				if (hr != hrSuccess)
 					goto exit;
 				
