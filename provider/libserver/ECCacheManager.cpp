@@ -1783,7 +1783,7 @@ exit:
 	if (lpDBResult)
 		lpDatabase->FreeResult(lpDBResult);
 
-	if (er != erSuccess) {
+	if (er != erSuccess || sObject == NULL) {
 		LOG_CACHE_DEBUG("Get Prop From Object tag=0x%04X, objectid %d, error 0x%08x", ulTag, ulObjId, er);
 	} else {
 	    LOG_CACHE_DEBUG("Get Prop From Object tag=0x%04X, objectid %d, data %s", ulTag, ulObjId, bin2hex(sObject->cbData, sObject->lpData).c_str());
