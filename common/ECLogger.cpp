@@ -1061,11 +1061,19 @@ void generic_sigsegv_handler(ECLogger *lpLogger, const char *app_name,
 
 	ec_log_bt(EC_LOGLEVEL_CRIT, "Backtrace:");
 	ec_log_crit("Signal errno: %s, signal code: %d", strerror(si->si_errno), si->si_code);
-	ec_log_crit("Sender pid: %d, sender uid: %d, si_satus: %d", si->si_pid, si->si_uid, si->si_status);
+	ec_log_crit("Sender pid: %d, sender uid: %d, si_status: %d", si->si_pid, si->si_uid, si->si_status);
 	ec_log_crit("User time: %ld, system time: %ld, signal value: %d", si->si_utime, si->si_stime, si->si_value.sival_int);
 	ec_log_crit("Faulting address: %p, affected fd: %d", si->si_addr, si->si_fd);
 	lpLogger->Log(EC_LOGLEVEL_FATAL, "When reporting this traceback, please include Linux distribution name (and version), system architecture and Kopano version.");
+	/*
+	 * By default, the signal that invoked this handler is blocked
+	 * during execution of the handler.
+	 */
+	sigset_t bset;
+	sigfillset(&bset);
+	pthread_sigmask(SIG_UNBLOCK, &bset, NULL);
 	kill(getpid(), signr);
+	ec_log_warn("Killing self with signal had no effect; doing regular exit without coredump.");
 	exit(1);
 }
 
