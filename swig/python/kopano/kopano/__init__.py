@@ -470,15 +470,9 @@ def _extract_ipm_ol2007_entryids(blob, offset):
             pos += 2 # skip check
             sublen = _unpack_short(blob, pos)
             pos += 2
-            return blob[pos:pos+sublen].encode('hex').upper()
+            return codecs.encode(blob[pos:pos+sublen], 'hex').upper()
         else:
             pos += totallen
-
-def _encode(s):
-    return s.encode(getattr(sys.stdout, 'encoding', 'utf8') or 'utf8') # sys.stdout can be StringIO (nosetests)
-
-def _decode(s):
-    return s.decode(getattr(sys.stdin, 'encoding', 'utf8') or 'utf8')
 
 if sys.hexversion >= 0x03000000:
     def _is_int(i):
@@ -488,6 +482,9 @@ if sys.hexversion >= 0x03000000:
         return isinstance(s, str)
 
     def unicode(s):
+        return s
+
+    def _decode(s):
         return s
 
     def _repr(o):
@@ -501,6 +498,12 @@ else:
 
     def _is_str(s):
         return isinstance(s, (str, unicode))
+
+    def _decode(s):
+        return s.decode(getattr(sys.stdin, 'encoding', 'utf8') or 'utf8')
+
+    def _encode(s):
+        return s.encode(getattr(sys.stdout, 'encoding', 'utf8') or 'utf8') # sys.stdout can be StringIO (nosetests)
 
     def _repr(o):
         return _encode(unicode(o))

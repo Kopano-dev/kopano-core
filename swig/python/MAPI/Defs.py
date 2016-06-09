@@ -1,11 +1,16 @@
 import struct
+import sys
 import MAPI.Struct
 
 EC_ADDRTYPE = 'ZARAFA'
 EC_ADDRTYPE_W = u'ZARAFA'
 
-def bin2hex(x):
-    return ''.join('%02X' % ord(c) for c in x)
+if sys.hexversion >= 0x03000000:
+    def bin2hex(x):
+        return ''.join('%02X' % c for c in x)
+else:
+    def bin2hex(x):
+        return ''.join('%02X' % ord(c) for c in x)
 
 def PROP_TAG(type, id):
     return id << 16 | type
