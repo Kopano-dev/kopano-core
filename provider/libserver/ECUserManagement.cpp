@@ -4771,13 +4771,13 @@ ECRESULT ECUserManagement::GetABSourceKeyV1(unsigned int ulUserId, SOURCEKEY *lp
 
 	er = GetExternalId(ulUserId, &sExternId);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	strEncExId = base64_encode((unsigned char*)sExternId.id.c_str(), sExternId.id.size());
 
 	er = TypeToMAPIType(sExternId.objclass, &ulType);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	ulLen = CbNewABEID(strEncExId.c_str());
 	lpAbeid = (PABEID)new char[ulLen];
@@ -4793,10 +4793,8 @@ ECRESULT ECUserManagement::GetABSourceKeyV1(unsigned int ulUserId, SOURCEKEY *lp
 	}
 
 	*lpsSourceKey = SOURCEKEY(ulLen, (char*)lpAbeid);
-
-exit:
 	delete[] lpAbeid;
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECUserManagement::CreateABEntryID(struct soap *soap, const objectid_t &sExternId, struct propVal *lpPropVal)
