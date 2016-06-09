@@ -132,7 +132,7 @@ static ECRESULT ConvertABEntryIDToSoapSourceKey(struct soap *soap,
 {
 	ECRESULT er;
 	unsigned int		cbAbeid		= cbEntryId;
-	PABEID				lpAbeid		= (PABEID)lpEntryId;
+	auto lpAbeid = reinterpret_cast<ABEID *>(lpEntryId);
 	entryId				sEntryId	= {0};
 	SOURCEKEY			sSourceKey;
 	objectid_t			sExternId;
@@ -149,7 +149,7 @@ static ECRESULT ConvertABEntryIDToSoapSourceKey(struct soap *soap,
 		er = ABIDToEntryID(soap, lpAbeid->ulId, sExternId, &sEntryId);	// Creates a V0 EntryID, because sExternId.id is empty
 		if (er != erSuccess)
 			return er;
-		lpAbeid = (PABEID)sEntryId.__ptr;
+		lpAbeid = reinterpret_cast<ABEID *>(sEntryId.__ptr);
 		cbAbeid = sEntryId.__size;
 	} 
 	else if (lpAbeid->ulVersion == 0 && bUseV1) 
@@ -158,7 +158,7 @@ static ECRESULT ConvertABEntryIDToSoapSourceKey(struct soap *soap,
 		if (er != erSuccess)
 			return er;
 
-		lpAbeid = (PABEID)(unsigned char*)sSourceKey;
+		lpAbeid = reinterpret_cast<ABEID *>(static_cast<unsigned char *>(sSourceKey));
 		cbAbeid = sSourceKey.size();
 	}
 
@@ -1044,7 +1044,7 @@ nextFolder:
 				}
 
 				lstChanges.push_back(ABChangeRecord(atoui(lpDBRow[0]), std::string(lpDBRow[1], lpDBLen[1]), std::string(lpDBRow[2], lpDBLen[2]), atoui(lpDBRow[3])));
-				sUserIds.insert(((PABEID)lpDBRow[1])->ulId);
+				sUserIds.insert(reinterpret_cast<ABEID *>(lpDBRow[1])->ulId);
 			}
 
 			if (!sUserIds.empty() && ulCompanyId != 0 && (lpSession->GetCapabilities() & KOPANO_CAP_MAX_ABCHANGEID)) {
@@ -1064,7 +1064,7 @@ nextFolder:
 
             i=0;
 			for (ABChangeRecordList::const_iterator iter = lstChanges.begin(); iter != lstChanges.end(); ++iter) {
-				const unsigned int ulUserId = ((PABEID)iter->strItem.data())->ulId;
+				unsigned int ulUserId = reinterpret_cast<const ABEID *>(iter->strItem.data())->ulId;
 
 				if (iter->change_type != ICS_AB_DELETE && sUserIds.find(ulUserId) == sUserIds.end())
 					continue;
@@ -1153,7 +1153,10 @@ nextFolder:
                     goto exit;
 
                 lpChanges->__ptr[i].ulChangeId = ulMaxChange;
-                er = lpSession->GetUserManagement()->CreateABEntryID(soap, bAcceptABEID ? 1 : 0, atoui(lpDBRow[0]), ulType, &id, &lpChanges->__ptr[i].sSourceKey.__size, (PABEID *)&lpChanges->__ptr[i].sSourceKey.__ptr);
+                er = lpSession->GetUserManagement()->CreateABEntryID(soap,
+                     bAcceptABEID ? 1 : 0, atoui(lpDBRow[0]), ulType, &id,
+                     &lpChanges->__ptr[i].sSourceKey.__size,
+                     reinterpret_cast<ABEID **>(&lpChanges->__ptr[i].sSourceKey.__ptr));
                 if (er != erSuccess)
                     goto exit;
                 lpChanges->__ptr[i].sParentSourceKey.__size = sizeof(eid);

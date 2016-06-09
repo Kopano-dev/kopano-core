@@ -34,6 +34,6 @@ HRESULT EntryIdIsSystem(unsigned int cbEntryId, const ENTRYID *lpEntryId, bool *
 HRESULT EntryIdIsEveryone(unsigned int cbEntryId, const ENTRYID *lpEntryId, bool *lpbResult);
 HRESULT GetNonPortableObjectId(unsigned int cbEntryId, const ENTRYID *lpEntryId, unsigned int *lpulObjectId);
 HRESULT GetNonPortableObjectType(unsigned int cbEntryId, const ENTRYID *lpEntryId, ULONG *lpulObjectType);
-HRESULT GeneralizeEntryIdInPlace(unsigned int cbEntryId, const ENTRYID *lpEntryId);
+extern HRESULT GeneralizeEntryIdInPlace(unsigned int eid_size, ENTRYID *eid);
 
 #endif

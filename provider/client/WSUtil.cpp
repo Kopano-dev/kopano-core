@@ -2164,7 +2164,6 @@ HRESULT UnWrapServerClientABEntry(ULONG cbWrapABID, LPENTRYID lpWrapABID, ULONG*
 {
 	HRESULT	hr;
 	LPENTRYID lpUnWrapABID = NULL;
-	PABEID	pabeid = NULL;
 	ULONG	ulSize = 0;
 
 	if (lpWrapABID == NULL || lppUnWrapABID == NULL)
@@ -2175,9 +2174,7 @@ HRESULT UnWrapServerClientABEntry(ULONG cbWrapABID, LPENTRYID lpWrapABID, ULONG*
 		return MAPI_E_INVALID_ENTRYID;
 
 	// FIXME: Check whether it is a Zarafa entry?
-
-	pabeid = (PABEID)lpWrapABID;
-
+	auto pabeid = reinterpret_cast<const ABEID *>(lpWrapABID);
 	if (pabeid->ulVersion == 0)
 		ulSize = sizeof(ABEID);
 	else if (pabeid->ulVersion == 1)

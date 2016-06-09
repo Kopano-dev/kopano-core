@@ -4765,7 +4765,7 @@ ECRESULT ECUserManagement::GetABSourceKeyV1(unsigned int ulUserId, SOURCEKEY *lp
 	ECRESULT 			er = erSuccess;
 	objectid_t			sExternId;
 	std::string			strEncExId;
-	PABEID				lpAbeid = NULL;
+	ABEID *lpAbeid = NULL;
 	unsigned int		ulLen = 0;
 	ULONG				ulType = 0;
 
@@ -4780,7 +4780,7 @@ ECRESULT ECUserManagement::GetABSourceKeyV1(unsigned int ulUserId, SOURCEKEY *lp
 		return er;
 
 	ulLen = CbNewABEID(strEncExId.c_str());
-	lpAbeid = (PABEID)new char[ulLen];
+	lpAbeid = reinterpret_cast<ABEID *>(new char[ulLen]);
 	memset(lpAbeid, 0, ulLen);
 	lpAbeid->ulId = ulUserId;
 	lpAbeid->ulType = ulType;
@@ -4814,9 +4814,9 @@ ECRESULT ECUserManagement::CreateABEntryID(struct soap *soap, const objectid_t &
 
 ECRESULT ECUserManagement::CreateABEntryID(struct soap *soap,
     unsigned int ulVersion, unsigned int ulObjId, unsigned int ulType,
-    objectid_t *lpExternId, gsoap_size_t *lpcbEID, PABEID *lppEid)
+    objectid_t *lpExternId, gsoap_size_t *lpcbEID, ABEID **lppEid)
 {
-	PABEID		lpEid = NULL;
+	ABEID *lpEid = NULL;
 	gsoap_size_t ulSize = 0;
 	std::string	strEncExId;
 	
@@ -4824,12 +4824,12 @@ ECRESULT ECUserManagement::CreateABEntryID(struct soap *soap,
 	
 	if (IsInternalObject(ulObjId)) {
 		ASSERT(ulVersion == 0); // Internal objects always have version 0 ABEIDs
-		lpEid = (PABEID)s_alloc<unsigned char>(soap, sizeof(ABEID));
+		lpEid = reinterpret_cast<ABEID *>(s_alloc<unsigned char>(soap, sizeof(ABEID)));
 		memset(lpEid, 0, sizeof(ABEID));
 		ulSize = sizeof(ABEID);
 	} else {
 		if(ulVersion == 0) {
-			lpEid = (PABEID)s_alloc<unsigned char>(soap, sizeof(ABEID));
+			lpEid = reinterpret_cast<ABEID *>(s_alloc<unsigned char>(soap, sizeof(ABEID)));
 			
 			memset(lpEid, 0, sizeof(ABEID));
 			ulSize = sizeof(ABEID);
@@ -4840,7 +4840,7 @@ ECRESULT ECUserManagement::CreateABEntryID(struct soap *soap,
 			strEncExId = base64_encode((unsigned char*)lpExternId->id.c_str(), lpExternId->id.size());
 
 			ulSize = CbNewABEID(strEncExId.c_str());
-			lpEid = (PABEID)s_alloc<unsigned char>(soap, ulSize);
+			lpEid = reinterpret_cast<ABEID *>(s_alloc<unsigned char>(soap, ulSize));
 			memset(lpEid, 0, ulSize);
 
 			// avoid FORTIFY_SOURCE checks in strcpy to an address that the compiler thinks is 1 size large
@@ -4888,7 +4888,7 @@ ECRESULT ECUserManagement::CreateABEntryID(struct soap *soap, unsigned int ulObj
 
 	return CreateABEntryID(soap, ulVersion, ulObjId, ulType, &sExternId,
 	       &lpPropVal->Value.bin->__size,
-	       reinterpret_cast<PABEID *>(&lpPropVal->Value.bin->__ptr));
+	       reinterpret_cast<ABEID **>(&lpPropVal->Value.bin->__ptr));
 }
 
 ECRESULT ECUserManagement::GetSecurity(ECSecurity **lppSecurity)

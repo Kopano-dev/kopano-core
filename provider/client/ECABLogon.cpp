@@ -151,7 +151,7 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 	ECABContainer*	lpABContainer = NULL;
 	BOOL			fModifyObject = FALSE;
 	ABEID			eidRoot =  ABEID(MAPI_ABCONT, MUIDECSAB, 0);
-	PABEID			lpABeid = NULL;
+	ABEID *lpABeid = NULL;
 	IECPropStorage*	lpPropStorage = NULL;
 	ECMailUser*		lpMailUser = NULL;
 	ECDistList*		lpDistList = NULL;
@@ -193,7 +193,7 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 		memcpy(lpEntryIDServer, lpEntryID, cbEntryID);
 		lpEntryID = lpEntryIDServer;
 
-		lpABeid = (PABEID)lpEntryID;
+		lpABeid = reinterpret_cast<ABEID *>(lpEntryID);
 
 		// Check sane entryid
 		if (lpABeid->ulType != MAPI_ABCONT && lpABeid->ulType != MAPI_MAILUSER && lpABeid->ulType != MAPI_DISTLIST) 
@@ -376,7 +376,7 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags, LPSPropTagArray lpPropTagArray, 
 	ULONG			cPropsRecip;
 	LPSPropValue	rgpropvalsRecip;
 	LPSPropValue	lpPropVal = NULL;
-	PABEID			lpABeid   = NULL;
+	ABEID *lpABeid = NULL;
 	ULONG			cbABeid;
 	ULONG			cValues;
 	IMailUser*		lpIMailUser = NULL;
@@ -397,7 +397,7 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags, LPSPropTagArray lpPropTagArray, 
 		if(!lpPropVal)
 			continue; // no
 		
-		lpABeid = (PABEID) lpPropVal->Value.bin.lpb;
+		lpABeid = reinterpret_cast<ABEID *>(lpPropVal->Value.bin.lpb);
 		cbABeid = lpPropVal->Value.bin.cb;
 
 		/* Is it one of ours? */

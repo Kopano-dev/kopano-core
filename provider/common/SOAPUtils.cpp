@@ -378,9 +378,8 @@ static ECRESULT CompareABEID(const struct propVal *lpProp1,
 	ASSERT(lpProp1 != NULL && PROP_TYPE(lpProp1->ulPropTag) == PT_BINARY);
 	ASSERT(lpProp2 != NULL && PROP_TYPE(lpProp2->ulPropTag) == PT_BINARY);
 	ASSERT(lpCompareResult != NULL);
-
-	const ABEID *peid1 = (PABEID)lpProp1->Value.bin->__ptr;
-	const ABEID *peid2 = (PABEID)lpProp2->Value.bin->__ptr;
+	auto peid1 = reinterpret_cast<const ABEID *>(lpProp1->Value.bin->__ptr);
+	auto peid2 = reinterpret_cast<const ABEID *>(lpProp2->Value.bin->__ptr);
 
 	if (memcmp(&peid1->guid, &MUIDECSAB, sizeof(GUID)) || memcmp(&peid2->guid, &MUIDECSAB, sizeof(GUID))) {
 		er = KCERR_INVALID_PARAMETER;

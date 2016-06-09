@@ -182,9 +182,7 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 
 	WSTransport		*lpTransport = NULL;
 	WSTransport		*lpAltTransport = NULL;
-	
-	PABEID			pABeid = NULL;
-	
+	ABEID *pABeid = NULL;
 	ULONG			cbEntryId = 0;
 	ULONG			cbWrappedEntryId = 0;
 	EntryIdPtr		ptrEntryId;

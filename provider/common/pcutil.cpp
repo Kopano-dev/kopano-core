@@ -150,7 +150,6 @@ HRESULT HrGetObjTypeFromEntryId(ULONG cb, LPBYTE lpEntryId, unsigned int* lpulOb
 
 ECRESULT ABEntryIDToID(ULONG cb, LPBYTE lpEntryId, unsigned int* lpulID, objectid_t* lpsExternId, unsigned int* lpulMapiType)
 {
-	PABEID			lpABEID = NULL;
 	unsigned int	ulID = 0;
 	objectid_t		sExternId;
 	objectclass_t	sClass = ACTIVE_USER;
@@ -158,8 +157,7 @@ ECRESULT ABEntryIDToID(ULONG cb, LPBYTE lpEntryId, unsigned int* lpulID, objecti
 	if (lpEntryId == NULL || lpulID == NULL || cb < CbNewABEID(""))
 		return KCERR_INVALID_PARAMETER;
 
-	lpABEID = (PABEID)lpEntryId;
-
+	auto lpABEID = reinterpret_cast<const ABEID *>(lpEntryId);
 	if (memcmp(&lpABEID->guid, &MUIDECSAB, sizeof(GUID)) != 0)
 		return KCERR_INVALID_ENTRYID;
 
@@ -167,7 +165,7 @@ ECRESULT ABEntryIDToID(ULONG cb, LPBYTE lpEntryId, unsigned int* lpulID, objecti
 	MAPITypeToType(lpABEID->ulType, &sClass);
 
 	if (lpABEID->ulVersion == 1)
-		sExternId = objectid_t(base64_decode((char*)lpABEID->szExId), sClass);
+		sExternId = objectid_t(base64_decode(reinterpret_cast<const char *>(lpABEID->szExId)), sClass);
 
 	*lpulID = ulID;
 
@@ -212,9 +210,8 @@ ECRESULT SIEntryIDToID(ULONG cb, LPBYTE lpInstanceId, LPGUID guidServer, unsigne
 int SortCompareABEID(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2)
 {
 	int rv = 0;
-
-	PABEID peid1 = (PABEID)lpEntryID1;
-	PABEID peid2 = (PABEID)lpEntryID2;
+	auto peid1 = reinterpret_cast<const ABEID *>(lpEntryID1);
+	auto peid2 = reinterpret_cast<const ABEID *>(lpEntryID2);
 
 	if (lpEntryID1 == NULL || lpEntryID2 == NULL)
 		return 0;
@@ -246,8 +243,8 @@ int SortCompareABEID(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, L
 
 bool CompareABEID(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2)
 {
-	PABEID peid1 = (PABEID)lpEntryID1;
-	PABEID peid2 = (PABEID)lpEntryID2;
+	auto peid1 = reinterpret_cast<const ABEID *>(lpEntryID1);
+	auto peid2 = reinterpret_cast<const ABEID *>(lpEntryID2);
 
 	if (lpEntryID1 == NULL || lpEntryID2 == NULL)
 		return false;
@@ -291,7 +288,6 @@ HRESULT HrSIEntryIDToID(ULONG cb, LPBYTE lpInstanceId, LPGUID guidServer, unsign
 ECRESULT ABIDToEntryID(struct soap *soap, unsigned int ulID, const objectid_t& sExternId, entryId *lpsEntryId)
 {
 	ECRESULT er;
-	PABEID			lpUserEid	= NULL;
 	std::string		strEncExId  = base64_encode((unsigned char*)sExternId.id.c_str(), sExternId.id.size());
 	unsigned int	ulLen       = 0;
 
@@ -299,7 +295,7 @@ ECRESULT ABIDToEntryID(struct soap *soap, unsigned int ulID, const objectid_t& s
 		return KCERR_INVALID_PARAMETER;
 
 	ulLen = CbNewABEID(strEncExId.c_str());
-	lpUserEid = (PABEID)s_alloc<char>(soap, ulLen);
+	auto lpUserEid = reinterpret_cast<ABEID *>(s_alloc<char>(soap, ulLen));
 	memset(lpUserEid, 0, ulLen);
 	lpUserEid->ulId = ulID;
 	er = TypeToMAPIType(sExternId.objclass, &lpUserEid->ulType);

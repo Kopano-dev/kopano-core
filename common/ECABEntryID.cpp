@@ -42,7 +42,7 @@ typedef struct ABEID {
 		this->guid = guid;
 		this->ulId = ulId;
 	}
-} ABEID, *PABEID;
+} ABEID;
 
 static ABEID		g_sDefaultEid(MAPI_MAILUSER, MUIDECSAB, 0);
 unsigned char		*g_lpDefaultEid = (unsigned char*)&g_sDefaultEid;
@@ -60,12 +60,11 @@ static HRESULT CheckEntryId(unsigned int cbEntryId, const ENTRYID *lpEntryId,
     unsigned int ulId, unsigned int ulType, bool *lpbResult)
 {
 	bool	bResult = true;
-	PABEID	lpEid = NULL;
 
 	if (cbEntryId < sizeof(ABEID) || lpEntryId == NULL || lpbResult == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
-	lpEid = (PABEID)lpEntryId;
+	auto lpEid = reinterpret_cast<const ABEID *>(lpEntryId);
 	if (lpEid->ulId != ulId)
 		bResult = false;
 		
@@ -102,7 +101,7 @@ HRESULT GetNonPortableObjectId(unsigned int cbEntryId,
 {
 	if (cbEntryId < sizeof(ABEID) || lpEntryId == NULL || lpulObjectId == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	*lpulObjectId = ((PABEID)lpEntryId)->ulId;
+	*lpulObjectId = reinterpret_cast<const ABEID *>(lpEntryId)->ulId;
 	return hrSuccess;
 }
 
@@ -111,19 +110,16 @@ HRESULT GetNonPortableObjectType(unsigned int cbEntryId,
 {
 	if (cbEntryId < sizeof(ABEID) || lpEntryId == NULL || lpulObjectType == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	*lpulObjectType = ((PABEID)lpEntryId)->ulType;
+	*lpulObjectType = reinterpret_cast<const ABEID *>(lpEntryId)->ulType;
 	return hrSuccess;
 }
 
-HRESULT GeneralizeEntryIdInPlace(unsigned int cbEntryId,
-    const ENTRYID *lpEntryId)
+HRESULT GeneralizeEntryIdInPlace(unsigned int cbEntryId, ENTRYID *lpEntryId)
 {
-	PABEID	lpAbeid = NULL;
-
 	if (cbEntryId < sizeof(ABEID) || lpEntryId == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
-	lpAbeid = (PABEID)lpEntryId;
+	auto lpAbeid = reinterpret_cast<ABEID *>(lpEntryId);
 	switch (lpAbeid->ulVersion) {
 		// A version 0 entry id is generalized by nature as it's not used to be shared
 		// between servers.

@@ -234,7 +234,6 @@ HRESULT	ECExportAddressbookChanges::Config(LPSTREAM lpStream, ULONG ulFlags, IEC
 HRESULT ECExportAddressbookChanges::Synchronize(ULONG *lpulSteps, ULONG *lpulProgress)
 {	
     HRESULT hr = hrSuccess;
-	PABEID eid = NULL;
     
     // Check if we're already done
 	if (m_ulThisChange >= m_ulChanges)
@@ -243,7 +242,7 @@ HRESULT ECExportAddressbookChanges::Synchronize(ULONG *lpulSteps, ULONG *lpulPro
 	if (m_lpChanges[m_ulThisChange].sSourceKey.cb < sizeof(ABEID))
 		return MAPI_E_INVALID_PARAMETER;
 
-	eid = (PABEID)m_lpChanges[m_ulThisChange].sSourceKey.lpb;
+	auto eid = reinterpret_cast<const ABEID *>(m_lpChanges[m_ulThisChange].sSourceKey.lpb);
 	ZLOG_DEBUG(m_lpLogger, "abchange type=%04x, sourcekey=%s", m_lpChanges[m_ulThisChange].ulChangeType, bin2hex(m_lpChanges[m_ulThisChange].sSourceKey.cb, m_lpChanges[m_ulThisChange].sSourceKey.lpb).c_str());
 
 	switch(m_lpChanges[m_ulThisChange].ulChangeType) {

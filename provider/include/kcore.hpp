@@ -153,8 +153,8 @@ typedef struct ABEID {
 #define _CbNewABEID(p) 	((sizeof(ABEID)+strlen((char*)(p)))&~3)
 #define CbNewABEID(p)	(sizeof(ABEID)>_CbNewABEID((p))?sizeof(ABEID):_CbNewABEID((p)))
 
-#define ABEID_TYPE(p)	((p) ? ((PABEID)p)->ulType : -1)
-#define ABEID_ID(p)		((p) ? ((PABEID)p)->ulId : 0)
+#define ABEID_TYPE(p)	((p) ? ((ABEID *)(p))->ulType : -1)
+#define ABEID_ID(p)		((p) ? ((ABEID *)(p))->ulId : 0)
 
 typedef struct SIEID {
 	BYTE	abFlags[4];
