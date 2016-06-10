@@ -492,6 +492,13 @@ if sys.hexversion >= 0x03000000:
 
     def _unhex(s):
         return codecs.decode(s, 'hex')
+
+    def _pickle_load(f):
+        return pickle.load(f, encoding='bytes')
+
+    def _pickle_loads(s):
+        return pickle.loads(s, encoding='bytes')
+
 else:
     def _is_int(i):
         return isinstance(i, (int, long))
@@ -510,6 +517,12 @@ else:
 
     def _unhex(s):
         return s.decode('hex')
+
+    def _pickle_load(f):
+        return pickle.loads(f)
+
+    def _pickle_loads(s):
+        return pickle.loads(s)
 
 def _permissions(obj):
         try:
@@ -2999,9 +3012,9 @@ class Item(object):
                     raise
 
         return {
-            'props': props,
-            'recipients': recs,
-            'attachments': atts,
+            b'props': props,
+            b'recipients': recs,
+            b'attachments': atts,
         }
 
     def dump(self, f, attachments=True, archiver=True):
@@ -3013,18 +3026,18 @@ class Item(object):
     def _load(self, d, attachments):
         # props
         props = []
-        for proptag, value, nameid in d['props']:
+        for proptag, value, nameid in d[b'props']:
             if nameid is not None:
                 proptag = self.mapiobj.GetIDsFromNames([nameid], MAPI_CREATE)[0] | (proptag & 0xffff)
             props.append(SPropValue(proptag, value))
         self.mapiobj.SetProps(props)
 
         # recipients
-        recipients = [[SPropValue(proptag, value) for (proptag, value, nameid) in row] for row in d['recipients']]
+        recipients = [[SPropValue(proptag, value) for (proptag, value, nameid) in row] for row in d[b'recipients']]
         self.mapiobj.ModifyRecipients(0, recipients)
 
         # attachments
-        for props, data in d['attachments']:
+        for props, data in d[b'attachments']:
             props = [SPropValue(proptag, value) for (proptag, value, nameid) in props]
             (id_, attach) = self.mapiobj.CreateAttach(None, 0)
             attach.SetProps(props)
@@ -3040,10 +3053,10 @@ class Item(object):
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE) # XXX needed?
 
     def load(self, f, attachments=True):
-        self._load(pickle.load(f), attachments)
+        self._load(_pickle_load(f), attachments)
 
     def loads(self, s, attachments=True):
-        self._load(pickle.loads(s), attachments)
+        self._load(_pickle_loads(s), attachments)
 
     @property
     def embedded(self): # XXX multiple?
