@@ -624,8 +624,18 @@ ECRESULT ECSession::GetObjectFromEntryId(const entryId *lpEntryId, unsigned int 
 		return er;
 	*lpulObjId = ulObjId;
 
-	if(lpulEidFlags)
-		*lpulEidFlags = ((EID *)lpEntryId->__ptr)->usFlags;
+	if (lpulEidFlags != NULL) {
+		static_assert(offsetof(EID, usFlags) == offsetof(EID_V0, usFlags),
+			"usFlags member not at same position");
+		auto d = reinterpret_cast<EID *>(lpEntryId->__ptr);
+		if (lpEntryId->__size < 0 ||
+		    static_cast<size_t>(lpEntryId->__size) < offsetof(EID, usFlags) + sizeof(d->usFlags)) {
+			ec_log_err("%s: entryid has size %d; not enough for EID_V1.usFlags",
+				__func__, lpEntryId->__size);
+			return MAPI_E_CORRUPT_DATA;
+		}
+		*lpulEidFlags = d->usFlags;
+	}
 	return erSuccess;
 }
 

@@ -66,25 +66,34 @@ public:
 	/* EID_V0 is marked packed, so direct-access w/o memcpy is ok */
 
     unsigned int type() const {
-		if (m_data.size() < sizeof(EID_V0))
+		auto d = reinterpret_cast<EID_V0 *>(const_cast<char *>(m_data.data()));
+		if (m_data.size() < offsetof(EID_V0, usType) + sizeof(d->usType)) {
+			ec_log_err("%s: entryid has size %zu; not enough for EID_V0.usType",
+				__func__, m_data.size());
 			throw runtime_error("entryid is not of type EID_V0");
-		EID_V0 *d = reinterpret_cast<EID_V0 *>(const_cast<char *>(m_data.data()));
+		}
 		return d->usType;
     }
 
 #if 0
     unsigned int flags() const {
-		if (m_data.size() < sizeof(EID_V0))
+		auto d = reinterpret_cast<EID_V0 *>(const_cast<char *>(m_data.data()));
+		if (m_data.size() < offsetof(EID_V0, usFlags) + sizeof(d->usFlags)) {
+			ec_log_err("%s: entryid has size %zu; not enough for EID_V0.usFlags",
+				__func__, m_data.size());
 			throw runtime_error("entryid is not of type EID_V0");
-		EID_V0 *d = reinterpret_cast<EID_V0 *>(const_cast<char *>(m_data.data()));
+		}
 		return d->usFlags;
     }
 #endif
     
     void setFlags(unsigned int ulFlags) {
-		if (m_data.size() < sizeof(EID_V0))
+		auto d = reinterpret_cast<EID_V0 *>(const_cast<char *>(m_data.data()));
+		if (m_data.size() < offsetof(EID_V0, usFlags) + sizeof(d->usFlags)) {
+			ec_log_err("%s: entryid has size %zu; not enough for EID_V0.usFlags",
+				__func__, m_data.size());
 			throw runtime_error("entryid is not of type EID_V0");
-		EID_V0 *d = reinterpret_cast<EID_V0 *>(const_cast<char *>(m_data.data()));
+		}
 		d->usFlags = ulFlags;
     }
 
