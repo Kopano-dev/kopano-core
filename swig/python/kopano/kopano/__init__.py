@@ -2465,7 +2465,7 @@ class Item(object):
                     SPropValue(PR_TRANSMITABLE_DISPLAY_NAME, ''),
                     SPropValue(PR_DISPLAY_NAME_W, fullname),
                     SPropValue(0x80D81003, [0]), SPropValue(0x80D90003, 1), 
-                    SPropValue(PR_MESSAGE_CLASS, 'IPM.Contact'),
+                    SPropValue(PR_MESSAGE_CLASS_W, u'IPM.Contact'),
                 ])
 
             elif load is not None:
@@ -2477,12 +2477,12 @@ class Item(object):
                 try:
                     container_class = HrGetOneProp(self.folder.mapiobj, PR_CONTAINER_CLASS).Value
                 except MAPIErrorNotFound:
-                    self.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS, 'IPM.Note')])
+                    self.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS_W, u'IPM.Note')])
                 else:
                     if container_class == 'IPF.Contact': # XXX just skip first 4 chars? 
-                        self.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS, 'IPM.Contact')]) # XXX set default props
+                        self.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS_W, u'IPM.Contact')]) # XXX set default props
                     elif container_class == 'IPF.Appointment':
-                        self.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS, 'IPM.Appointment')]) # XXX set default props
+                        self.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS_W, u'IPM.Appointment')]) # XXX set default props
 
             self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
@@ -2730,7 +2730,7 @@ class Item(object):
         """ Return transport message headers """
 
         try:
-            message_headers = self.prop(PR_TRANSPORT_MESSAGE_HEADERS)
+            message_headers = self.prop(PR_TRANSPORT_MESSAGE_HEADERS_W)
             headers = email.parser.Parser().parsestr(message_headers.value, headersonly=True)
             return headers
         except MAPIErrorNotFound:
@@ -2889,8 +2889,8 @@ class Item(object):
             names.append([
                 SPropValue(PR_RECIPIENT_TYPE, MAPI_TO), 
                 SPropValue(PR_DISPLAY_NAME_W, pr_dispname),
-                SPropValue(PR_ADDRTYPE, pr_addrtype),
-                SPropValue(PR_EMAIL_ADDRESS, pr_email),
+                SPropValue(PR_ADDRTYPE_W, unicode(pr_addrtype)),
+                SPropValue(PR_EMAIL_ADDRESS_W, unicode(pr_email)),
                 SPropValue(PR_ENTRYID, pr_entryid),
             ])
         self.mapiobj.ModifyRecipients(0, names)
