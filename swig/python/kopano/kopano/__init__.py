@@ -3530,7 +3530,7 @@ class Attachment(object):
         """ Mime-type or *None* if not found """
 
         try:
-            return HrGetOneProp(self.mapiobj, PR_ATTACH_MIME_TAG).Value
+            return HrGetOneProp(self.mapiobj, PR_ATTACH_MIME_TAG_W).Value
         except MAPIErrorNotFound:
             pass
 
