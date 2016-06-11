@@ -247,6 +247,45 @@ static HRESULT initprov_service(WSTransport *transport,
 	return HrSetOneProp(globprofsect, &spv);
 }
 
+static HRESULT initprov_storedl(WSTransport *transport,
+    IProviderAdmin *provadm, SPropValuePtr &provuid,
+    const sGlobalProfileProps &profprop, IProfSect *profsect,
+    unsigned int *eid_size, EntryIdPtr &eid)
+{
+	/* PR_EC_USERNAME is the user we want to add ... */
+	SPropValuePtr name;
+	HRESULT ret = HrGetOneProp(profsect, PR_EC_USERNAME_W, &name);
+	if (ret != hrSuccess)
+		ret = HrGetOneProp(profsect, PR_EC_USERNAME_A, &name);
+	if (ret != hrSuccess) {
+		/*
+		 * This should probably be done in UpdateProviders. But
+		 * UpdateProviders does not know the type of the provider and it
+		 * should not just delete the provider for all types of
+		 * providers.
+		 */
+		if (provadm != NULL && provuid.get() != NULL)
+			provadm->DeleteProvider(reinterpret_cast<MAPIUID *>(provuid->Value.bin.lpb));
+		/* Invalid or empty delegate store */
+		return MAPI_S_SPECIAL_OK;
+	}
+
+	std::string redir_srv;
+	ret = transport->HrResolveUserStore(convstring::from_SPropValue(name),
+	      0, NULL, eid_size, &eid, &redir_srv);
+	if (ret != MAPI_E_UNABLE_TO_COMPLETE)
+		return ret;
+
+	transport->HrLogOff();
+	auto new_props = profprop;
+	new_props.strServerPath = redir_srv;
+	ret = transport->HrLogon(new_props);
+	if (ret != hrSuccess)
+		return ret;
+	return transport->HrResolveUserStore(convstring::from_SPropValue(name),
+	       0, NULL, eid_size, &eid);
+}
+
 static HRESULT initprov_addrbook(std::unique_ptr<ABEID, EPCDeleter> &eid,
     unsigned int &count, SPropValue *prop)
 {
@@ -308,7 +347,6 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 	SPropValuePtr	ptrPropValueProviderUid;
 	SPropValuePtr	ptrPropValueServerName;
 	WStringPtr		ptrStoreName;
-	std::string		strRedirServer;
 	std::string		strDefStoreServer;
 	std::string		strServiceName;
 	SPropValue		sPropVals[6]; 
@@ -368,36 +406,8 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 			if (hr != hrSuccess) 
 				goto exit;
 		} else if(CompareMDBProvider(ptrPropValueMDB->Value.bin.lpb, &KOPANO_STORE_DELEGATE_GUID)) {
-			// PR_EC_USERNAME is the user we're want to add ...
-			hr = HrGetOneProp(lpProfSect, PR_EC_USERNAME_W, &ptrPropValueName);
-			if(hr != hrSuccess) {
-				hr = HrGetOneProp(lpProfSect, PR_EC_USERNAME_A, &ptrPropValueName);
-			}
-			if(hr != hrSuccess) {
-				// This should probably be done in UpdateProviders. But UpdateProviders doesn't
-				// know the type of the provider and it shouldn't just delete the provider for
-				// all types of providers.
-				if(lpAdminProvider && ptrPropValueProviderUid.get())
-					lpAdminProvider->DeleteProvider((MAPIUID *)ptrPropValueProviderUid->Value.bin.lpb);
-
-				// Invalid or empty delegate store
-				hr = hrSuccess;
-				goto exit;
-			}
-
-			hr = lpTransport->HrResolveUserStore(convstring::from_SPropValue(ptrPropValueName), 0, NULL, &cbEntryId, &ptrEntryId, &strRedirServer);
-			if (hr == MAPI_E_UNABLE_TO_COMPLETE)
-			{
-				lpTransport->HrLogOff();
-				auto new_props = sProfileProps;
-				new_props.strServerPath = strRedirServer;
-				hr = lpTransport->HrLogon(new_props);
-				if (hr != hrSuccess)
-					goto exit;
-				
-				hr = lpTransport->HrResolveUserStore(convstring::from_SPropValue(ptrPropValueName), 0, NULL, &cbEntryId, &ptrEntryId);
-			}
-			if(hr != hrSuccess)
+			hr = initprov_storedl(lpTransport, lpAdminProvider, ptrPropValueProviderUid, sProfileProps, lpProfSect, &cbEntryId, ptrEntryId);
+			if (hr != hrSuccess)
 				goto exit;
 		} else if(CompareMDBProvider(ptrPropValueMDB->Value.bin.lpb, &KOPANO_STORE_ARCHIVE_GUID)) {
 			// We need to get the username and the server name or url from the profsect.
@@ -581,7 +591,6 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
 	std::string		strServerPort;
 	std::string		strDefaultOfflinePath;
 	std::string		strType;
-	std::string		strRedirServer;
 	std::string		strDefStoreServer;
 	sGlobalProfileProps	sProfileProps;
 	std::basic_string<TCHAR> strError;
