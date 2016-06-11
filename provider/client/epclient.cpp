@@ -331,6 +331,63 @@ static HRESULT initprov_storearc(WSTransport *&transport,
 	       ECSTORE_TYPE_ARCHIVE, eid_size, &eid);
 }
 
+static HRESULT initprov_mapi_store(WSTransport *&transport,
+    IProviderAdmin *provadm, SPropValuePtr &provuid,
+    const sGlobalProfileProps &profprop, IProfSect *profsect,
+    unsigned int *eid_size, EntryIdPtr &eid, unsigned int &count,
+    SPropValue *prop, WStringPtr &store_name, unsigned int &wrap_eid_size,
+    EntryIdPtr &wrap_eid)
+{
+	SPropValuePtr mdb;
+	HRESULT ret = HrGetOneProp(profsect, PR_MDB_PROVIDER, &mdb);
+	if (ret != hrSuccess)
+		return ret;
+
+	if (CompareMDBProvider(mdb->Value.bin.lpb, &KOPANO_STORE_PUBLIC_GUID)) {
+		ret = initprov_storepub(transport, provadm, provuid, profprop, eid_size, eid);
+		if (ret != hrSuccess)
+			return ret;
+	} else if (CompareMDBProvider(mdb->Value.bin.lpb, &KOPANO_SERVICE_GUID)) {
+		ret = initprov_service(transport, provadm, profprop, eid_size, eid);
+		if (ret != hrSuccess)
+			return ret;
+	} else if(CompareMDBProvider(mdb->Value.bin.lpb, &KOPANO_STORE_DELEGATE_GUID)) {
+		ret = initprov_storedl(transport, provadm, provuid, profprop, profsect, eid_size, eid);
+		if (ret != hrSuccess)
+			return ret;
+	} else if(CompareMDBProvider(mdb->Value.bin.lpb, &KOPANO_STORE_ARCHIVE_GUID)) {
+		ret = initprov_storearc(transport, provadm, provuid, profsect, eid_size, eid);
+		if (ret != hrSuccess)
+			return ret;
+	} else {
+		ASSERT(FALSE); // unknown GUID?
+		return hrSuccess;
+	}
+
+	ret = transport->HrGetStoreName(*eid_size, eid, MAPI_UNICODE,
+	      static_cast<LPTSTR *>(&store_name));
+	if (ret != hrSuccess)
+		return ret;
+	ret = WrapStoreEntryID(0, reinterpret_cast<LPTSTR>(const_cast<char *>(WCLIENT_DLL_NAME)),
+	      *eid_size, eid, &wrap_eid_size, &wrap_eid);
+	if (ret != hrSuccess)
+		return ret;
+
+	prop[count].ulPropTag = PR_ENTRYID;
+	prop[count].Value.bin.cb = wrap_eid_size;
+	prop[count++].Value.bin.lpb = reinterpret_cast<BYTE *>(wrap_eid.get());
+	prop[count].ulPropTag = PR_RECORD_KEY;
+	prop[count].Value.bin.cb = sizeof(MAPIUID);
+	prop[count++].Value.bin.lpb = (LPBYTE) &reinterpret_cast<PEID>(eid.get())->guid; //@FIXME validate guid
+	prop[count].ulPropTag = PR_DISPLAY_NAME_W;
+	prop[count++].Value.lpszW = reinterpret_cast<wchar_t *>(store_name.get());
+	prop[count].ulPropTag = PR_EC_PATH;
+	prop[count++].Value.lpszA = const_cast<char *>("Server");
+	prop[count].ulPropTag = PR_PROVIDER_DLL_NAME_A;
+	prop[count++].Value.lpszA = const_cast<char *>(WCLIENT_DLL_NAME);
+	return hrSuccess;
+}
+
 static HRESULT initprov_addrbook(std::unique_ptr<ABEID, EPCDeleter> &eid,
     unsigned int &count, SPropValue *prop)
 {
@@ -437,56 +494,12 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 
 	if(ulResourceType == MAPI_STORE_PROVIDER)
 	{
-		hr = HrGetOneProp(lpProfSect, PR_MDB_PROVIDER, &ptrPropValueMDB);
-		if(hr != hrSuccess)
+		hr = initprov_mapi_store(lpTransport, lpAdminProvider,
+		     ptrPropValueProviderUid, sProfileProps, lpProfSect,
+		     &cbEntryId, ptrEntryId, cPropValue, sPropVals,
+		     ptrStoreName, cbWrappedEntryId, ptrWrappedEntryId);
+		if (hr != hrSuccess)
 			goto exit;
-
-		if(CompareMDBProvider(ptrPropValueMDB->Value.bin.lpb, &KOPANO_STORE_PUBLIC_GUID)) {
-			hr = initprov_storepub(lpTransport, lpAdminProvider, ptrPropValueProviderUid, sProfileProps, &cbEntryId, ptrEntryId);
-			if (hr != hrSuccess)
-				goto exit;
-		} else if(CompareMDBProvider(ptrPropValueMDB->Value.bin.lpb, &KOPANO_SERVICE_GUID)) {
-			hr = initprov_service(lpTransport, lpAdminProvider, sProfileProps, &cbEntryId, ptrEntryId);
-			if (hr != hrSuccess) 
-				goto exit;
-		} else if(CompareMDBProvider(ptrPropValueMDB->Value.bin.lpb, &KOPANO_STORE_DELEGATE_GUID)) {
-			hr = initprov_storedl(lpTransport, lpAdminProvider, ptrPropValueProviderUid, sProfileProps, lpProfSect, &cbEntryId, ptrEntryId);
-			if (hr != hrSuccess)
-				goto exit;
-		} else if(CompareMDBProvider(ptrPropValueMDB->Value.bin.lpb, &KOPANO_STORE_ARCHIVE_GUID)) {
-			hr = initprov_storearc(lpTransport, lpAdminProvider, ptrPropValueProviderUid, lpProfSect, &cbEntryId, ptrEntryId);
-			if (hr != hrSuccess)
-				goto exit;
-		} else {
-			ASSERT(FALSE); // unknown GUID?
-			goto exit;
-		}
-
-		hr = lpTransport->HrGetStoreName(cbEntryId, ptrEntryId, MAPI_UNICODE, (LPTSTR*)&ptrStoreName);
-		if(hr != hrSuccess) 
-			goto exit;
-
-		hr = WrapStoreEntryID(0, (LPTSTR)WCLIENT_DLL_NAME, cbEntryId, ptrEntryId, &cbWrappedEntryId, &ptrWrappedEntryId);
-		if(hr != hrSuccess) 
-			goto exit;
-
-		sPropVals[cPropValue].ulPropTag = PR_ENTRYID;
-		sPropVals[cPropValue].Value.bin.cb = cbWrappedEntryId;
-		sPropVals[cPropValue++].Value.bin.lpb = (LPBYTE) ptrWrappedEntryId.get();
-
-		sPropVals[cPropValue].ulPropTag = PR_RECORD_KEY;
-		sPropVals[cPropValue].Value.bin.cb = sizeof(MAPIUID);
-		sPropVals[cPropValue++].Value.bin.lpb = (LPBYTE) &((PEID)ptrEntryId.get())->guid; //@FIXME validate guid
-
-			sPropVals[cPropValue].ulPropTag = PR_DISPLAY_NAME_W;
-			sPropVals[cPropValue++].Value.lpszW = ptrStoreName.get();
-
-		sPropVals[cPropValue].ulPropTag = PR_EC_PATH;
-		sPropVals[cPropValue++].Value.lpszA = const_cast<char *>("Server");
-
-		sPropVals[cPropValue].ulPropTag = PR_PROVIDER_DLL_NAME_A;
-		sPropVals[cPropValue++].Value.lpszA = const_cast<char *>(WCLIENT_DLL_NAME);
-						
 	} else if(ulResourceType == MAPI_AB_PROVIDER) {
 		hr = initprov_addrbook(abe_id, cPropValue, sPropVals);
 		if (hr != hrSuccess)
