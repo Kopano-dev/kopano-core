@@ -168,12 +168,6 @@ AC_ARG_ENABLE(coverage,
 	  fi
     ])
 
-# test offline possibility
-  AC_ARG_ENABLE([offline], AS_HELP_STRING([--enable-offline], [Compile server as the offline server]),
-  [
-  	ZCPPFLAGS="$ZCPPFLAGS -DHAVE_OFFLINE_SUPPORT"
-  ])
-
 # MAPI config files
 AC_ARG_WITH(mapi-configdir,
   AS_HELP_STRING([--with-mapi-configdir=PATH], [path to install the libmapi config (provider) files (default /etc/mapi)]),

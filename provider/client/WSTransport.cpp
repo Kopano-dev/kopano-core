@@ -181,13 +181,6 @@ HRESULT WSTransport::HrOpenTransport(LPMAPISUP lpMAPISup, WSTransport **lppTrans
 	if(hr != hrSuccess)
 		goto exit;
 
-#ifdef HAVE_OFFLINE_SUPPORT
-	if(bOffline) {
-		GetOfflineServerURL(lpMAPISup, &sProfileProps.strServerPath);
-		// Use online path on error
-    }
-#endif
-
 	// Log on the transport to the server
 	hr = lpTransport->HrLogon(sProfileProps);
 	if(hr != hrSuccess) 

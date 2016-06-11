@@ -278,24 +278,7 @@ DBUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 
 void DBUserPlugin::modifyObjectId(const objectid_t &oldId, const objectid_t &newId)
 {
-#ifdef HAVE_OFFLINE_SUPPORT
-	ECRESULT er = erSuccess;
-	string strQuery;
-	unsigned int ulAffRows = 0;
-
-	strQuery = "UPDATE object SET externid='" + m_lpDatabase->Escape(newId.id) + "', objectclass="+stringify(newId.objclass) +
-		" WHERE externid='" + m_lpDatabase->Escape(oldId.id) + "' AND objectclass="+stringify(oldId.objclass);
-	er = m_lpDatabase->DoUpdate(strQuery, &ulAffRows);
-
-	if (er != erSuccess)
-		throw runtime_error(string("db_query: ") + strerror(er));
-
-	if (ulAffRows > 1)
-		throw collision_error("modifyObjectId sql failed");
-
-#else
 	throw notimplemented("Modifying objects is not supported when using the DB user plugin.");
-#endif
 }
 
 void DBUserPlugin::setQuota(const objectid_t &objectid, const quotadetails_t &quotadetails)

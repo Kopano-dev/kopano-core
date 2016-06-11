@@ -44,41 +44,10 @@
 #include <kopano/mapiext.h>
 #include <edkmdb.h>
 
-#ifdef HAVE_OFFLINE_SUPPORT
-#include "ECDBUpdateProgress.h"
-
-#define PROGRESS_INIT(_curupdate)												\
-	ECDBUpdateProgress *__lpProgress = NULL;									\
-	const unsigned int __ulCurUpdate = (_curupdate);							\
-	er = ECDBUpdateProgress::GetInstance(Z_UPDATE_CONVERT_NAMES, lpDatabase, &__lpProgress);	\
-	if (er == erSuccess)														\
-		er = __lpProgress->Start(__ulCurUpdate);								\
-	if (er != erSuccess)														\
-		goto exit;
-
-#define PROGRESS_DONE															\
-	er = __lpProgress->Finish(__ulCurUpdate);									\
-	if (er != erSuccess)														\
-		goto exit;
-
-#define INTERMEDIATE_PROGRESS(_cur, _total)										\
-	er = __lpProgress->SetIntermediateProgress((_cur), (_total));				\
-	if (er != erSuccess)														\
-		goto exit;
-
-#define INTERMEDIATE_PROGRESS_(_progress)										\
-	er = __lpProgress->SetIntermediateProgress((_progress));					\
-	if (er != erSuccess)														\
-		goto exit;
-
-#else
-
 #define PROGRESS_INIT(...)
 #define PROGRESS_DONE
 #define INTERMEDIATE_PROGRESS(...)
 #define INTERMEDIATE_PROGRESS_(...)
-
-#endif
 
 extern int searchfolder_restart_required; // HACK
 
@@ -1171,38 +1140,6 @@ ECRESULT UpdateDatabaseCreateReferences(ECDatabase *lpDatabase)
 	ECRESULT	er = erSuccess;
 	string		strQuery;
 
-#ifdef HAVE_OFFLINE_SUPPORT
-	struct {
-			const uLong cbUncompressed;
-			const uLong cbCompressed;
-			const char *lpCompressed;
-	} data = {
-			8678,
-			271,
-			"\x78\x9c\xed\xd8\xbd\x4a\x03\x41\x14\x86\xe1\x77\x67\x7f\x32\x71"
-			"\x2d\x82\x24\x82\x36\x26\x60\x63\x15\xc1\xd2\x42\x2c\x2d\x84\x90"
-			"\xce\x26\xb2\x46\xd1\x45\xd9\x42\xa3\x60\x97\xc2\xab\xf0\x92\xbc"
-			"\x00\x2f\xc1\x5c\x84\xe0\x38\x1b\x83\x91\x54\x22\xc2\x2a\x7c\x4f"
-			"\x33\x67\xbf\x81\x39\xa7\xdd\xf3\x16\xd4\x97\x43\x68\x04\xb0\x0d"
-			"\x13\x5a\xf0\xf4\xb8\x4b\xc9\xec\x50\xf7\xc7\x73\x02\x1d\x66\x26"
-			"\x2c\xe8\x76\xa1\xbd\x18\x8a\x88\x88\x88\x88\x88\x88\xc8\x9f\x12"
-			"\xf8\x9f\xff\x25\x7f\x5a\xc2\xf2\x6b\x6c\x60\x9d\x88\x70\x6c\x61"
-			"\x05\x83\x19\x27\x1f\x85\xeb\xf5\x0f\x0e\xf7\xfb\x47\xae\xea\x89"
-			"\x7f\xe4\x7f\x4e\x2d\x22\x22\x22\x22\x22\x22\xf2\x4b\x5e\x02\x1a"
-			"\x55\xcf\x50\xa5\x80\x88\x01\x1b\xbe\x6a\xb1\xf9\x99\xf6\x58\xf5"
-			"\x37\xa5\x01\x71\x64\x9a\x5b\xed\x6f\xf2\xaf\xa5\x79\x71\x33\xca"
-			"\x8a\xe1\x59\x7e\x4a\x8c\x1d\x5e\xdc\x16\x97\xbe\x4c\x88\x46\xd9"
-			"\x39\x35\xd2\xbb\xec\xea\xf8\x24\x2f\xb2\xeb\x7b\xa2\x34\x4d\x99"
-			"\xae\x5c\xbc\xb0\x03\xb1\x4d\x12\xa6\x1b\x17\xcf\xf8\x20\x89\x7c"
-			"\x60\xbf\x04\xb5\xd4\xda\x72\x63\xb3\xf6\xd0\x84\xd7\x3d\x70\xf3"
-			"\x7e\x6e\xd6\xcc\xf9\x4e\x6e\xde\xc6\xf1\x0e\x4f\x19\x36\x95"
-	};
-	Bytef		*lpUncompressed = NULL;
-	uLong		cbUncompressed = data.cbUncompressed;
-	std::string	strLobPath;
-	FILE		*fdLob = NULL;
-#endif
-
 	er = lpDatabase->DoInsert(Z_TABLEDEF_REFERENCES);
 	if (er != erSuccess)
 		goto exit;
@@ -1223,28 +1160,6 @@ ECRESULT UpdateDatabaseCreateReferences(ECDatabase *lpDatabase)
 		goto exit;
 
 	/* We need to rename the column in `lob` */
-#ifdef HAVE_OFFLINE_SUPPORT
-	lpUncompressed = new Bytef[cbUncompressed];
-
-	if (uncompress(lpUncompressed, &cbUncompressed, (const Bytef*)data.lpCompressed, data.cbCompressed) != Z_OK) {
-		er = KCERR_UNABLE_TO_COMPLETE;
-		goto exit;
-	}
-
-	strLobPath = lpDatabase->GetDatabaseDir() + "/zarafa/lob.frm";
-	fdLob = fopen(strLobPath.c_str(), "wb");
-	if (fdLob == NULL) {
-		er = KCERR_UNABLE_TO_COMPLETE;
-		goto exit;
-	}
-
-	fwrite(lpUncompressed, 1, cbUncompressed, fdLob);
-	fclose(fdLob);	
-
-	er = lpDatabase->DoUpdate("FLUSH TABLES");
-	if (er != erSuccess)
-		goto exit;
-#else
 	strQuery =
 		"ALTER TABLE `lob` "
 		"CHANGE COLUMN `hierarchyid` `instanceid` int(11) unsigned NOT NULL";
@@ -1252,13 +1167,7 @@ ECRESULT UpdateDatabaseCreateReferences(ECDatabase *lpDatabase)
 	er = lpDatabase->DoUpdate(strQuery);
 	if (er != erSuccess)
 		goto exit;
-#endif
-
 exit:
-#ifdef HAVE_OFFLINE_SUPPORT
-	delete[] lpUncompressed;
-#endif
-
 	return er;
 }
 
@@ -1386,18 +1295,7 @@ ECRESULT UpdateDatabaseCreateSyncedMessagesTable(ECDatabase *lpDatabase)
 // 31
 ECRESULT UpdateDatabaseForceAbResync(ECDatabase *lpDatabase)
 {
-#ifdef HAVE_OFFLINE_SUPPORT
-	ECRESULT	er = erSuccess;
-	std::string	strQuery;
-
-	// Remove the PR_EC_AB_SYNC_STATUS property.
-	strQuery = "DELETE p.* FROM properties AS p JOIN stores AS s ON p.storeid=s.hierarchy_id AND p.hierarchyid=s.hierarchy_id WHERE p.tag=0x67a2 AND p.type=0x102";
-	er = lpDatabase->DoDelete(strQuery);
-#else
-	ECRESULT	er = KCERR_IGNORE_ME;
-#endif
-	
-	return er;
+	return KCERR_IGNORE_ME;
 }
 
 // 32
@@ -1775,18 +1673,12 @@ ECRESULT UpdateDatabaseSyncTimeIndex(ECDatabase *lpDatabase)
 ECRESULT UpdateDatabaseAddStateKey(ECDatabase *lpDatabase)
 {
 	ECRESULT er = erSuccess;
-#ifndef HAVE_OFFLINE_SUPPORT
 	bool bHaveIndex;
 
 	// There are upgrade paths where the state key already exists.
 	er = lpDatabase->CheckExistIndex("changes", "state", &bHaveIndex);
 	if (er == erSuccess && !bHaveIndex)
 		er = lpDatabase->DoUpdate("ALTER TABLE changes ADD UNIQUE KEY `state` (`parentsourcekey`,`id`)");
-#else
-
-	er = KCERR_IGNORE_ME;
-#endif
-
 	return er;
 }
 
@@ -1796,9 +1688,7 @@ ECRESULT UpdateDatabaseConvertToUnicode(ECDatabase *lpDatabase)
 	ECRESULT er = erSuccess;
 	std::string strQuery;
 
-#ifndef HAVE_OFFLINE_SUPPORT
 	if (lpDatabase->m_bForceUpdate) {
-#endif
 		PROGRESS_INIT(Z_UPDATE_CONVERT_TO_UNICODE)
 
 		// Admin requested a forced upgrade, converting known tables
@@ -1854,7 +1744,6 @@ ECRESULT UpdateDatabaseConvertToUnicode(ECDatabase *lpDatabase)
 		 * - settings
 		 */
 		PROGRESS_DONE
-#ifndef HAVE_OFFLINE_SUPPORT
 	} else {
 		ec_log_crit("Will not upgrade your database from Zarafa 6.40.x.");
 		ec_log_crit("The recommended upgrade procedure is to first upgrade by first upgrading to ZCP 7.2 and using the zarafa7-upgrade commandline tool.");
@@ -1863,7 +1752,6 @@ ECRESULT UpdateDatabaseConvertToUnicode(ECDatabase *lpDatabase)
 		ec_log_crit("but no progress and estimates within the updates will be available.");
 		return KCERR_USER_CANCEL;
 	}
-#endif
 exit:
 	return er;
 }
@@ -1880,10 +1768,6 @@ ECRESULT UpdateDatabaseConvertStoreUsername(ECDatabase *lpDatabase)
 		er = lpDatabase->DoUpdate("ALTER TABLE stores MODIFY user_name VARCHAR(255) CHARACTER SET utf8 NOT NULL DEFAULT ''");
 
 	PROGRESS_DONE
-
-#ifdef HAVE_OFFLINE_SUPPORT
-exit:
-#endif
 	return er;
 }
 
@@ -1897,20 +1781,11 @@ ECRESULT UpdateDatabaseConvertRules(ECDatabase *lpDatabase)
 
 	convert_context converter;
 	char *lpszConverted = NULL;
-
-#ifdef HAVE_OFFLINE_SUPPORT
-	unsigned int ulTotal = 0;
-	unsigned int ulCurrent = 0;
-#endif
 	PROGRESS_INIT(Z_UPDATE_CONVERT_RULES)
 
 	er = lpDatabase->DoSelect("SELECT p.hierarchyid, p.storeid, p.val_binary FROM properties AS p JOIN receivefolder AS r ON p.hierarchyid=r.objid AND p.storeid=r.storeid JOIN stores AS s ON r.storeid=s.hierarchy_id WHERE p.tag=0x3fe1 AND p.type=0x102 AND r.messageclass='IPM'", &lpResult);
 	if (er != erSuccess)
 		goto exit;
-
-#ifdef HAVE_OFFLINE_SUPPORT
-	ulTotal = lpDatabase->GetNumRows(lpResult);
-#endif
 
 	while ((lpDBRow = lpDatabase->FetchRow(lpResult))) {
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL) {
@@ -1955,21 +1830,12 @@ ECRESULT UpdateDatabaseConvertSearchFolders(ECDatabase *lpDatabase)
 
 	convert_context converter;
 	char *lpszConverted = NULL;
-
-#ifdef HAVE_OFFLINE_SUPPORT
-	unsigned int ulTotal = 0;
-	unsigned int ulCurrent = 0;
-#endif
 	PROGRESS_INIT(Z_UPDATE_CONVERT_SEARCH_FOLDERS)
 
 	strQuery = "SELECT h.id, p.storeid, p.val_string FROM hierarchy AS h JOIN properties AS p ON p.hierarchyid=h.id AND p.tag=" + stringify(PROP_ID(PR_EC_SEARCHCRIT)) +" AND p.type=" + stringify(PROP_TYPE(PR_EC_SEARCHCRIT)) + " WHERE h.type=3 AND h.flags=2";
 	er = lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
 		goto exit;
-
-#ifdef HAVE_OFFLINE_SUPPORT
-	ulTotal = lpDatabase->GetNumRows(lpResult);
-#endif
 
 	while ((lpDBRow = lpDatabase->FetchRow(lpResult))) {
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL) {
@@ -2010,11 +1876,6 @@ ECRESULT UpdateDatabaseConvertProperties(ECDatabase *lpDatabase)
 	std::string strQuery;
 	DB_RESULT lpResult = NULL;
 	DB_ROW lpDBRow = NULL;
-
-#ifdef HAVE_OFFLINE_SUPPORT
-	unsigned int ulTotal = 0;
-	unsigned int ulCurrent = 0;
-#endif
 	PROGRESS_INIT(Z_UPDATE_CONVERT_PROPERTIES)
 
 	// Create the temporary properties table
@@ -2024,24 +1885,6 @@ ECRESULT UpdateDatabaseConvertProperties(ECDatabase *lpDatabase)
 	er = lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess)
 		goto exit;
-
-#ifdef HAVE_OFFLINE_SUPPORT
-	strQuery = "SELECT MAX(hierarchyid) FROM properties";
-	er = lpDatabase->DoSelect(strQuery, &lpResult);
-	if (er != erSuccess)
-		goto exit;
-
-	lpDBRow = lpDatabase->FetchRow(lpResult);
-	if (lpDBRow == NULL) {
-		er = KCERR_DATABASE_ERROR;
-		ec_log_err("UpdateDatabaseConvertProperties(): row non existing");
-		goto exit;
-	}
-
-	ulTotal = lpDBRow[0] ? atoui(lpDBRow[0]) : 0;
-	lpDatabase->FreeResult(lpResult);
-	lpResult = NULL;
-#endif
 
 	while (true) {
 		strQuery = "INSERT IGNORE INTO properties_temp (hierarchyid,tag,type,val_ulong,val_string,val_binary,val_double,val_longint,val_hi,val_lo) SELECT hierarchyid,tag,type,val_ulong,val_string,val_binary,val_double,val_longint,val_hi,val_lo FROM properties ORDER BY hierarchyid ASC LIMIT 10000";
@@ -2120,10 +1963,6 @@ ECRESULT UpdateDatabaseCreateCounters(ECDatabase *lpDatabase)
 
 	ECRESULT er = erSuccess;
 	std::string strQuery;
-
-#ifdef HAVE_OFFLINE_SUPPORT
-	unsigned int ulCurrent = 0;
-#endif
 	PROGRESS_INIT(Z_UPDATE_CREATE_COUNTERS)
 
 	for (unsigned i = 0; i < 8; ++i) {
@@ -2245,7 +2084,6 @@ ECRESULT UpdateDatabaseCreateTProperties(ECDatabase *lpDatabase)
 	ECRESULT er = erSuccess;
 	std::string strQuery;
 
-#ifndef HAVE_OFFLINE_SUPPORT 
 	// Create the tproperties table
 	er = lpDatabase->DoInsert(Z_TABLEDEF_TPROPERTIES);
 	if (er != erSuccess)
@@ -2259,63 +2097,7 @@ ECRESULT UpdateDatabaseCreateTProperties(ECDatabase *lpDatabase)
 	er = lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess)
 		goto exit;
-#else
-	DB_RESULT lpResult = NULL;
-	DB_ROW lpDBRow = NULL;
-	unsigned int ulTotal = 0;
-	unsigned int ulCurrent = 0;
-
-	PROGRESS_INIT(Z_UPDATE_CREATE_TPROPERTIES)
-
-	// Create the tproperties table
-	strQuery = Z_TABLEDEF_TPROPERTIES;
-	strQuery.replace(strQuery.find("CREATE TABLE"), strlen("CREATE TABLE"), "CREATE TABLE IF NOT EXISTS");
-	er = lpDatabase->DoInsert(strQuery);
-	if (er != erSuccess)
-		goto exit;
-
-	strQuery = "SELECT MAX(hierarchyid) FROM properties";
-	er = lpDatabase->DoSelect(strQuery, &lpResult);
-	if (er != erSuccess)
-		goto exit;
-
-	lpDBRow = lpDatabase->FetchRow(lpResult);
-	if (lpDBRow == NULL) {
-		er = KCERR_DATABASE_ERROR;
-		ec_log_err("UpdateDatabaseCreateTProperties(): row non existing");
-		goto exit;
-	}
-
-	ulTotal = lpDBRow[0] ? atoui(lpDBRow[0]) : 0;
-	lpDatabase->FreeResult(lpResult);
-	lpResult = NULL;
-
-	while (ulCurrent <= ulTotal) {
-		unsigned int ulInserted, ulAffected;
-
-		strQuery = 	"INSERT IGNORE INTO tproperties (folderid,hierarchyid,tag,type,val_ulong,val_string,val_binary,val_double,val_longint,val_hi,val_lo) "
-						"SELECT h.id, p.hierarchyid, p.tag, p.type, p.val_ulong, LEFT(p.val_string,255), LEFT(p.val_binary,255), p.val_double, p.val_longint, p.val_hi, p.val_lo "
-						"FROM properties AS p "
-							"JOIN hierarchy AS tmp ON p.hierarchyid = tmp.id AND p.tag NOT IN (" + stringify(PROP_ID(PR_BODY_HTML)) + "," + stringify(PROP_ID(PR_RTF_COMPRESSED)) + ") "
-												 " AND p.hierarchyid >= " + stringify(ulCurrent) + " AND p.hierarchyid < " + stringify(ulCurrent + 500) + " "
-							"LEFT JOIN hierarchy AS h ON tmp.parent = h.id AND h.type = 3";
-		er = lpDatabase->DoInsert(strQuery, &ulInserted, &ulAffected);
-		if (er != erSuccess)
-			goto exit;
-
-		ulCurrent += 500;
-		INTERMEDIATE_PROGRESS(ulCurrent, ulTotal)
-	}
-
-	PROGRESS_DONE
-#endif
-
 exit:
-#ifdef HAVE_OFFLINE_SUPPORT
-	if (lpResult)
-		lpDatabase->FreeResult(lpResult);
-#endif
-
 	return er;
 }
 
@@ -2368,10 +2150,6 @@ ECRESULT UpdateDatabaseCreateDeferred(ECDatabase *lpDatabase)
 	er = lpDatabase->DoInsert(Z_TABLEDEF_DELAYEDUPDATE);
 
 	PROGRESS_DONE
-
-#ifdef HAVE_OFFLINE_SUPPORT
-exit:
-#endif
 	return er;
 }
 
@@ -2380,7 +2158,6 @@ ECRESULT UpdateDatabaseConvertChanges(ECDatabase *lpDatabase)
 {
 	ECRESULT er = erSuccess;
 	std::string strQuery;
-#ifndef HAVE_OFFLINE_SUPPORT
 	bool bDropColumn;
 	
 	// In some upgrade paths the moved_from column doesn't exist. We'll
@@ -2390,85 +2167,6 @@ ECRESULT UpdateDatabaseConvertChanges(ECDatabase *lpDatabase)
 		strQuery = "ALTER TABLE changes DROP COLUMN moved_from, DROP key moved";
 		er = lpDatabase->DoDelete(strQuery);
 	}
-
-#else
-	DB_RESULT lpResult = NULL;
-	DB_ROW lpDBRow = NULL;
-	unsigned int ulTotal = 0;
-	unsigned int ulCurrent = 0;
-
-	PROGRESS_INIT(Z_UPDATE_CONVERT_CHANGES)
-
-	// Create the temporary properties table
-	strQuery = Z_TABLEDEF_CHANGES;
-	strQuery.replace(strQuery.find("CREATE TABLE"), strlen("CREATE TABLE"), "CREATE TABLE IF NOT EXISTS");
-	strQuery.replace(strQuery.find("changes"), strlen("changes"), "changes_temp");
-	er = lpDatabase->DoInsert(strQuery);
-	if (er != erSuccess)
-		goto exit;
-
-	strQuery = "SELECT MAX(id) FROM changes";
-	er = lpDatabase->DoSelect(strQuery, &lpResult);
-	if (er != erSuccess)
-		goto exit;
-
-	lpDBRow = lpDatabase->FetchRow(lpResult);
-	if (lpDBRow == NULL) {
-		er = KCERR_DATABASE_ERROR;
-		ec_log_err("UpdateDatabaseConvertChanges(): row non existing");
-		goto exit;
-	}
-
-	ulTotal = lpDBRow[0] ? atoui(lpDBRow[0]) : 0;
-	lpDatabase->FreeResult(lpResult);
-	lpResult = NULL;
-
-	while (true) {
-		strQuery = "INSERT INTO changes_temp (id, sourcekey, parentsourcekey, change_type, flags, sourcesync) SELECT id, sourcekey, parentsourcekey, change_type, flags, sourcesync FROM changes ORDER BY id ASC LIMIT 10000";
-		er = lpDatabase->DoInsert(strQuery);
-		if (er != erSuccess)
-			goto exit;
-
-		strQuery = "DELETE FROM changes ORDER BY id ASC LIMIT 10000";
-		er = lpDatabase->DoDelete(strQuery);
-		if (er != erSuccess)
-			goto exit;
-
-		er = lpDatabase->Commit();
-		if (er != erSuccess)
-			goto exit;
-
-		er = lpDatabase->Begin();
-		if (er != erSuccess)
-			goto exit;
-
-		strQuery = "SELECT MIN(id) FROM changes";
-		er = lpDatabase->DoSelect(strQuery, &lpResult);
-		if (er != erSuccess)
-			goto exit;
-
-		lpDBRow = lpDatabase->FetchRow(lpResult);
-		if (lpDBRow == NULL || lpDBRow[0] == NULL)
-			break;
-
-		INTERMEDIATE_PROGRESS(atoui(lpDBRow[0]), ulTotal)
-		lpDatabase->FreeResult(lpResult);
-		lpResult = NULL;
-	}
-
-	er = lpDatabase->DoUpdate("RENAME TABLE changes TO changes_old, changes_temp TO changes");
-	if (er != erSuccess)
-		goto exit;
-
-	er = lpDatabase->DoDelete("DROP TABLE changes_old");
-
-	PROGRESS_DONE
-
-exit:
-	if (lpResult)
-		lpDatabase->FreeResult(lpResult);
-
-#endif
 	return er;
 }
 

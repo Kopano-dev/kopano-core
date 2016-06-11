@@ -33,11 +33,6 @@
 #include <sstream>
 #include <kopano/ECDebug.h>
 #include <kopano/charset/convert.h>
-
-#ifdef HAVE_OFFLINE_SUPPORT
-#include "ECOfflineState.h"
-#endif
-
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -104,21 +99,10 @@ HRESULT ECArchiveAwareMessage::HrLoadProps()
 	if (m_mode == MODE_STUBBED) {
 		const BOOL fModifyCopy = this->fModify;
 		ECMsgStore *lpMsgStore = GetMsgStore();
-#ifdef HAVE_OFFLINE_SUPPORT
-		ECOfflineState::OFFLINESTATE state;
-#endif
 
 		// @todo: Put in MergePropsFromStub
 		SizedSPropTagArray(4, sptaDeleteProps) = {4, {PR_RTF_COMPRESSED, PR_BODY, PR_HTML, PR_ICON_INDEX}};
 		SizedSPropTagArray(6, sptaRestoreProps) = {6, {PR_RTF_COMPRESSED, PR_BODY, PR_HTML, PR_ICON_INDEX, PR_MESSAGE_CLASS, PR_MESSAGE_SIZE}};
-
-#ifdef HAVE_OFFLINE_SUPPORT
-		// Check if we're allowing online logons
-		if (ECOfflineState::GetOfflineState(lpMsgStore->GetProfileName(), &state) == hrSuccess && state == ECOfflineState::OFFLINESTATE_OFFLINE) {
-			hr = CreateInfoMessage((LPSPropTagArray)&sptaDeleteProps, CreateOfflineWarnBodyUtf8());
-			goto exit;
-		}
-#endif
 
 		if (!m_ptrArchiveMsg) {
 			ECArchiveAwareMsgStore *lpStore = dynamic_cast<ECArchiveAwareMsgStore*>(lpMsgStore);

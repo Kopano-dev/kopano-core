@@ -35,7 +35,6 @@
 #include <kopano/mapiext.h>
 
 #include "ECABProviderSwitch.h"
-#include "ECOfflineState.h"
 #include "ProviderUtil.h"
 
 #include <kopano/charset/convstring.h>
@@ -88,15 +87,6 @@ HRESULT ECABProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR l
 
 	IABLogon *lpABLogon = NULL;
 	IABProvider *lpOnline = NULL;
-#ifdef HAVE_OFFLINE_SUPPORT
-	IABLogon *lpABLogonOffline = NULL;
-	IABProvider *lpOffline = NULL;
-
-	ULONG ulAction;
-	bool bRetryLogon;
-	bool bFirstSync = false;
-	DWORD dwNetworkFlag = 0;
-#endif
 
 	convstring tstrProfileName(lpszProfileName, ulFlags);
 	hr = GetProviders(&g_mapProviders, lpMAPISup, convstring(lpszProfileName, ulFlags).c_str(), ulFlags, &sProviderInfo);
@@ -107,52 +97,9 @@ HRESULT ECABProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR l
 	if (hr != hrSuccess)
 		goto exit;
 
-#ifdef HAVE_OFFLINE_SUPPORT
-	hr = sProviderInfo.lpABProviderOffline->QueryInterface(IID_IABProvider, (void **)&lpOffline);
-	if (hr != hrSuccess)
-		goto exit;
-
-relogin:
-
-	if ((ulFlags & MDB_ONLINE) == MDB_ONLINE || (sProviderInfo.ulProfileFlags&EC_PROFILE_FLAGS_OFFLINE) != EC_PROFILE_FLAGS_OFFLINE) {
-#endif
-		// Online
-		hr = lpOnline->Logon(lpMAPISup, ulUIParam, lpszProfileName, ulFlags, NULL, NULL, NULL, &lpABLogon);
-		ulConnectType = CT_ONLINE;
-#ifdef HAVE_OFFLINE_SUPPORT
-	} else {
-		// Offline
-		hr = lpOffline->Logon(lpMAPISup, ulUIParam, lpszProfileName, ulFlags | AB_NO_DIALOG, NULL, NULL, NULL, &lpABLogonOffline);
-		if (hr == MAPI_E_BUSY) {
-			bool bTryOnline = (sProviderInfo.ulConnectType != CT_OFFLINE);
-
-			// The offline server is performing an upgrade that takes too long for a
-			// user to comfortably wait for.
-			// We'll just work online this session if the user wants to
-			if (sProviderInfo.ulConnectType == CT_UNSPECIFIED && (ulFlags & MDB_NO_DIALOG) == 0) {
-				MessageBox((HWND)ulUIParam, _("Your offline cache database is being upgraded. Outlook will start in online mode for this session."), g_strProductName.c_str(), MB_ICONEXCLAMATION | MB_OK);
-				bTryOnline = true;
-			}
-
-			if (bTryOnline)
-				hr = Logon(lpMAPISup, ulUIParam, lpszProfileName, ulFlags | MDB_ONLINE, lpulcbSecurity, lppbSecurity, lppMAPIError, lppABLogon);
-			else
-				hr = MAPI_E_LOGON_FAILED;
-
-			goto exit;	// In any case we're done
-		} 
-		else if (hr != hrSuccess)
-			goto exit;
-
-		if ( (sProviderInfo.ulProfileFlags&(EC_PROFILE_FLAGS_OFFLINE|EC_PROFILE_FLAGS_CACHE_PRIVATE)) == (EC_PROFILE_FLAGS_OFFLINE|EC_PROFILE_FLAGS_CACHE_PRIVATE) )
-		{ 
-			// Cached mode
-			lpABLogon = lpABLogonOffline;
-			lpABLogonOffline = NULL;
-			ulConnectType = CT_OFFLINE;
-		}
-	}
-#endif	// HAVE_OFFLINE_SUPPORT
+	// Online
+	hr = lpOnline->Logon(lpMAPISup, ulUIParam, lpszProfileName, ulFlags, NULL, NULL, NULL, &lpABLogon);
+	ulConnectType = CT_ONLINE;
 
 	// Set the provider in the right connection type
 	if (SetProviderMode(lpMAPISup, &g_mapProviders, convstring(lpszProfileName, ulFlags).c_str(), ulConnectType) != hrSuccess) {
@@ -200,15 +147,6 @@ exit:
 
 	if (lpOnline)
 		lpOnline->Release();
-
-#ifdef HAVE_OFFLINE_SUPPORT
-	if (lpABLogonOffline)
-		lpABLogonOffline->Release();
-
-	if (lpOffline)
-		lpOffline->Release();
-#endif
-
 	return hr;
 }
 

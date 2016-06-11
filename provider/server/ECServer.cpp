@@ -808,12 +808,6 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 	bool			bSSLEnabled = false;
 	bool			bPipeEnabled = false;
 	bool			bTCPEnabled = false;
-
-#ifdef HAVE_OFFLINE_SUPPORT
-	string			strPipeName;
-	string			strDBPath;
-	char			*lpTmp = NULL;
-#endif
 	bool			hosted = false;
 	bool			distributed = false;
 
@@ -888,7 +882,7 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 		{ "mysql_password",				"",	CONFIGSETTING_EXACT },
 		{ "mysql_database",				"kopano" },
 		{ "mysql_socket",				"" },
-#if defined(EMBEDDED_MYSQL) || defined(HAVE_OFFLINE_SUPPORT)
+#if defined(EMBEDDED_MYSQL)
 		{ "mysql_database_path",		"/var/kopano/data" },
 		{ "mysql_config_file",			"/etc/kopano/my.cnf" },
 #endif
@@ -968,11 +962,7 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 		{ "companyquota_hard",		"0", CONFIGSETTING_UNUSED },
 		{ "session_timeout",		"300", CONFIGSETTING_RELOADABLE },		// 5 minutes
 		{ "sync_lifetime",			"365", CONFIGSETTING_RELOADABLE },		// 1 year
-#ifndef HAVE_OFFLINE_SUPPORT
 		{ "sync_log_all_changes",	"yes", CONFIGSETTING_RELOADABLE },	// Log All ICS changes
-#else
-		{ "sync_log_all_changes",	"no", CONFIGSETTING_RELOADABLE },	// Log All ICS changes
-#endif
 		{ "auth_method",			"plugin", CONFIGSETTING_RELOADABLE },		// plugin (default), pam, kerberos
 		{ "pam_service",			"passwd", CONFIGSETTING_RELOADABLE },		// pam service, found in /etc/pam.d/
 		{ "enable_sso_ntlmauth",	"no", CONFIGSETTING_UNUSED },			// default disables ntlm_auth, so we don't log errors on useless things
@@ -1001,12 +991,7 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 		{ "index_services_enabled", "", CONFIGSETTING_UNUSED },
 		{ "index_services_path",    "", CONFIGSETTING_UNUSED },
 		{ "index_services_search_timeout", "", CONFIGSETTING_UNUSED },
-
-#ifdef HAVE_OFFLINE_SUPPORT
-		{ "search_enabled",			"no", CONFIGSETTING_RELOADABLE }, 
-#else
 		{ "search_enabled",			"yes", CONFIGSETTING_RELOADABLE }, 
-#endif
 		{ "search_socket",			"file:///var/run/kopano/search.sock", CONFIGSETTING_RELOADABLE },
 		{ "search_timeout",			"10", CONFIGSETTING_RELOADABLE },
 
@@ -1051,13 +1036,11 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 	g_lpConfig = ECConfig::Create(lpDefaults);
 	
 	if (!g_lpConfig->LoadSettings(szConfig) || !g_lpConfig->ParseParams(argc, argv, NULL) || (!m_bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors()) ) {
-#ifndef HAVE_OFFLINE_SUPPORT
 		g_lpLogger = new ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false); // create info logger without a timestamp to stderr
 		ec_log_set(g_lpLogger);
 		LogConfigErrors(g_lpConfig);
 		er = MAPI_E_UNCONFIGURED;
 		goto exit;
-#endif
 	}
 
 	// setup logging
@@ -1126,63 +1109,6 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Unsupported sync_gab_realtime = no when using DB plugin. Enabling sync_gab_realtime.");
 		g_lpConfig->AddSetting("sync_gab_realtime", "yes");
 	}
-
-#ifdef HAVE_OFFLINE_SUPPORT
-
-#ifdef EMBEDDED_MYSQL
-	// override database path
-	lpTmp= getenv("KOPANO_DB_PATH");
-	if (lpTmp == NULL) {
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to getenv value KOPANO_DB_PATH");
-		retval = -1;
-		er = MAPI_E_UNCONFIGURED;
-		goto exit;
-	}
-
-	strDBPath = lpTmp;
-
-	// override database name and pipe name
-	lpTmp= getenv("KOPANO_UNIQUEID");
-	if (lpTmp == NULL) {
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to getenv value KOPANO_UNIQUEID");
-		retval = -1;
-		er = MAPI_E_UNCONFIGURED;
-		goto exit;
-	}
-
-	strPipeName = KOPANO_SERVER_PIPE;
-	strPipeName += "-";
-	strPipeName += lpTmp;
-
-	g_lpConfig->AddSetting("server_pipe_name", strPipeName.c_str());
-
-	// Add unique id in the database path
-	strDBPath += "/";
-	strDBPath+=lpTmp;
-
-	// Create storage directory
-	if(CreatePath((char *)strDBPath.c_str()) != 0) {
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to create directory %s!", strDBPath.c_str());
-		// Things will probably fail now
-	}
-
-	g_lpConfig->AddSetting("mysql_database_path", strDBPath.c_str());
-
-	// override database config file
-	lpTmp= getenv("KOPANO_DB_CONFIG_NAME");
-	if (lpTmp == NULL) {
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to getenv value KOPANO_DB_CONFIG_NAME");
-		retval = -1;
-		er = MAPI_E_UNCONFIGURED;
-		goto exit;
-	}
-
-	g_lpConfig->AddSetting("mysql_config_file", (const char*)lpTmp);
-
-#endif //#ifdef EMBEDDED_MYSQL
-	g_lpConfig->AddSetting("server_tcp_enabled", "no");
-
-#endif //#ifdef HAVE_OFFLINE_SUPPORT
 
 	kopano_initlibrary(g_lpConfig->GetSetting("mysql_database_path"), g_lpConfig->GetSetting("mysql_config_file"));
 
@@ -1253,7 +1179,6 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 		goto exit;
 	}
 #endif
-#ifndef HAVE_OFFLINE_SUPPORT
 	// Priority queue is always enabled, create as first socket, so this socket is returned first too on activity
 	er = g_lpSoapServerConn->ListenPipe(g_lpConfig->GetSetting("server_pipe_priority"), true);
 	if (er != erSuccess) {
@@ -1266,8 +1191,6 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 			goto exit;
 		}
 	}
-#endif
-
 	// Test database settings
 	lpDatabaseFactory = new ECDatabaseFactory(g_lpConfig);
 
@@ -1290,11 +1213,6 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 
 	hosted = parseBool(g_lpConfig->GetSetting("enable_hosted_kopano"));
 	distributed = parseBool(g_lpConfig->GetSetting("enable_distributed_kopano"));
-#ifdef HAVE_OFFLINE_SUPPORT
-	hosted = true;
-	distributed = false;
-#endif
-
 #ifdef LINUX
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
@@ -1423,36 +1341,6 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 	}
 	
 	m_bDatabaseUpdateIgnoreSignals = false;
-
-#ifdef HAVE_OFFLINE_SUPPORT
-	/**
-	 * The kopano-client checks for the file <db-guid>.upgrading to determine
-	 * if a long upgrade (6 -> 7) is in progress. Before it attempts to make
-	 * a connection to the pipe.
-	 * However, this file is created during the upgrade process. This means
-	 * that in the regular setup order, the socket is created before the
-	 * DB upgrade is started, which could cause the client to see no .upgrading
-	 * file and happily connect to the pipe, which is not being serviced untill
-	 * the upgrade is ready. This will cause the client to block for quite a
-	 * while.
-	 *
-	 * We can't setup the pipe connection here in the regular setup order
-	 * because it must be done before the call to unix_daemonize or setid
-	 * because we might lose the privileges to even create the socket after
-	 * those calls.
-	 * In an offline server (and in Windows in general) this is not an issue.
-	 */
-
-	// Setup a pipe connection
-	if (bPipeEnabled) {
-		er = g_lpSoapServerConn->ListenPipe(g_lpConfig->GetSetting("server_pipe_name"));
-		if (er != erSuccess) {
-			retval = -1;
-			goto exit;
-		}
-	}
-#endif
-
 	if(searchfolder_restart_required) {
 		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Update requires searchresult folders to be rebuilt. This may take some time. You can restart this process with the --restart-searches option");
 		restart_searches = 1;

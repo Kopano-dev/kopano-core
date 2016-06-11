@@ -53,8 +53,6 @@
 #include "EntryPoint.h"
 
 #include <kopano/stringutil.h>
-#include "ECOfflineState.h"
-
 #include "ECExchangeModifyTable.h"
 
 #include <kopano/mapi_ptr.h>
@@ -206,18 +204,6 @@ static HRESULT GetIMsgStoreObject(BOOL bOffline, std::string strProfname,
 	LPSPropValue lpsPropValue = NULL;
 	char *lpszProfileName = NULL;
 
-#ifdef HAVE_OFFLINE_SUPPORT
-	// Check if we're allowing online logons
-	if(bOffline == FALSE) {
-		ECOfflineState::OFFLINESTATE state;
-
-		if(ECOfflineState::GetOfflineState(strProfname, &state) == hrSuccess && state == ECOfflineState::OFFLINESTATE_OFFLINE) {
-			hr = MAPI_E_NETWORK_ERROR;
-			goto exit;
-		}
-	}
-#endif
-
 	hr = lpMAPISup->OpenProfileSection((LPMAPIUID)&MUID_PROFILE_INSTANCE, 0, &lpProfSect);
 	if(hr != hrSuccess)
 		goto exit;
@@ -232,13 +218,7 @@ static HRESULT GetIMsgStoreObject(BOOL bOffline, std::string strProfname,
 	hr = GetProviders(lpmapProviders, lpMAPISup, lpszProfileName, 0, &sProviderInfo);
 	if (hr != hrSuccess)
 		goto exit;
-
-#ifdef HAVE_OFFLINE_SUPPORT
-	if (bOffline)
-		hr = sProviderInfo.lpMSProviderOffline->Logon(lpMAPISup, 0, (LPTSTR)lpszProfileName, cbEntryId, lpEntryId, (bModify)?(MAPI_BEST_ACCESS|MDB_NO_DIALOG):MDB_NO_DIALOG, NULL, NULL, NULL, NULL, NULL, lppIMsgStore);
-	else
-#endif
-		hr = sProviderInfo.lpMSProviderOnline->Logon(lpMAPISup, 0, (LPTSTR)lpszProfileName, cbEntryId, lpEntryId, (bModify)?(MAPI_BEST_ACCESS|MDB_NO_DIALOG):MDB_NO_DIALOG, NULL, NULL, NULL, NULL, NULL, lppIMsgStore);
+	hr = sProviderInfo.lpMSProviderOnline->Logon(lpMAPISup, 0, (LPTSTR)lpszProfileName, cbEntryId, lpEntryId, (bModify)?(MAPI_BEST_ACCESS|MDB_NO_DIALOG):MDB_NO_DIALOG, NULL, NULL, NULL, NULL, NULL, lppIMsgStore);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -269,29 +249,6 @@ HRESULT ECMsgStore::QueryInterface(REFIID refiid, void **lppInterface)
 			REGISTER_INTERFACE(IID_IExchangeManageStore, &this->m_xExchangeManageStore);
 			REGISTER_INTERFACE(IID_IExchangeManageStore6, &this->m_xExchangeManageStore6);
 			REGISTER_INTERFACE(IID_IExchangeManageStoreEx, &this->m_xExchangeManageStoreEx);
-#ifdef HAVE_OFFLINE_SUPPORT
-		} else {
-			IMsgStore *lpOnline = NULL;
-			ECMsgStore *lpChild = NULL;
-
-			hr = GetIMsgStoreObject(FALSE, this->m_strProfname, fModify, &g_mapProviders, lpSupport, m_cbEntryId, m_lpEntryId, (LPMDB*)&lpOnline);
-			if (hr != hrSuccess)
-				return hr;
-
-			if (lpOnline->QueryInterface(IID_ECMsgStore, (void**)&lpChild) != hrSuccess) {
-				lpOnline->Release();
-				return MAPI_E_INTERFACE_NOT_SUPPORTED;
-			}
-			
-			AddChild(lpChild);
-
-			hr = lpOnline->QueryInterface(refiid, lppInterface);
-
-			lpChild->Release();
-			lpOnline->Release();
-
-			return hr;
-#endif
 		}
 	}
 
@@ -299,32 +256,6 @@ HRESULT ECMsgStore::QueryInterface(REFIID refiid, void **lppInterface)
 	REGISTER_INTERFACE(IID_IECSpooler, &this->m_xECSpooler);
 	REGISTER_INTERFACE(IID_IECSecurity, &this->m_xECSecurity);
 	REGISTER_INTERFACE(IID_IProxyStoreObject, &this->m_xProxyStoreObject);
-
-#ifdef HAVE_OFFLINE_SUPPORT
-	if (refiid == IID_ECMsgStoreOffline && ((m_ulProfileFlags&EC_PROFILE_FLAGS_OFFLINE) == EC_PROFILE_FLAGS_OFFLINE) && m_fIsDefaultStore == TRUE)
-	{
-		if (m_bOfflineStore == TRUE) {
-			*lppInterface = &this->m_xMsgStore;
-			AddRef();
-			return hrSuccess;
-		}
-
-		hr = GetIMsgStoreObject(TRUE, this->m_strProfname, fModify, &g_mapProviders, lpSupport, m_cbEntryId, m_lpEntryId, (LPMDB*)lppInterface);
-		if (hr != hrSuccess)
-			return hr;
-		
-		ECMsgStore *lpChild = NULL;
-
-		if ( ((LPMDB)*lppInterface)->QueryInterface(IID_ECMsgStore, (void**)&lpChild) != hrSuccess)
-			return MAPI_E_INTERFACE_NOT_SUPPORTED;
-		
-		AddChild(lpChild);
-
-		lpChild->Release();
-
-		return hrSuccess;
-	}
-#endif
 
 	if (refiid == IID_ECMsgStoreOnline)
 	{
@@ -352,15 +283,6 @@ HRESULT ECMsgStore::QueryInterface(REFIID refiid, void **lppInterface)
 
 		return hrSuccess;
 	}
-
-#ifdef HAVE_OFFLINE_SUPPORT
-	/*if(refiid == IID_IMAPIOfflineMgr) {
-		AddRef();
-		*lpvoid = &this->m_xMAPIOfflineMgr;
-		return hrSuccess;
-	}*/
-#endif
-
 	// is admin store?
 	REGISTER_INTERFACE(IID_IECMultiStoreTable, &this->m_xECMultiStoreTable);
 	REGISTER_INTERFACE(IID_IECLicense, &this->m_xECLicense);

@@ -325,17 +325,10 @@ ECRESULT ECABObjectTable::LoadHierarchyContainer(unsigned int ulObjectId, unsign
 		 *    in the hierarchy view. The user will not be allowed to open it, so it isn't a real security risk,
 		 *    but since we still have issue (1) open, we might as well disable the hierarchy view
 		 *    containers completely. */
-#ifdef HAVE_OFFLINE_SUPPORT
-		lpObjects = new std::list<localobjectdetails_t>();
-#else
 		er = LoadHierarchyCompany(ulObjectId, ulFlags, &lpObjects);
 		if (er != erSuccess)
 			goto exit;
-#endif
 	} else if (ulObjectId == KOPANO_UID_GLOBAL_ADDRESS_LISTS) {
-#ifdef HAVE_OFFLINE_SUPPORT
-		lpObjects = new std::list<localobjectdetails_t>();
-#else
 		if (lpSession->GetSecurity()->GetUserId() == KOPANO_UID_SYSTEM) {
 			er = KCERR_INVALID_PARAMETER;
 			goto exit;
@@ -344,7 +337,6 @@ ECRESULT ECABObjectTable::LoadHierarchyContainer(unsigned int ulObjectId, unsign
 		er = LoadHierarchyAddressList(ulObjectId, ulFlags, &lpObjects);
 		if (er != erSuccess)
 			goto exit;
-#endif
 	} else {
 		/*
 		 * Normal container

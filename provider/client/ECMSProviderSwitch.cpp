@@ -26,8 +26,6 @@
 
 #include "ECMSProviderSwitch.h"
 #include "ECMSProvider.h"
-#include "ECOfflineState.h"
-
 #include <kopano/ECGuid.h>
 
 #include <kopano/Trace.h>
@@ -122,19 +120,6 @@ HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR l
 
 	convstring			tstrProfileName(lpszProfileName, ulFlags);
 
-#ifdef HAVE_OFFLINE_SUPPORT
-	int				ulAction = 0;
-	BOOL			bFirstSync = FALSE;
-
-	LPMSLOGON		lpMSLogonOffline = NULL;
-	LPMDB			lpMDBOffline = NULL;
-	DWORD			dwNetworkFlag = 0;
-
-	IMSProvider *lpOffline = NULL;
-	bool bRetryLogon;
-	IUnknown *lpTmpStream = NULL;
-#endif
-
 	// Get the username and password from the profile settings
 	hr = ClientUtil::GetGlobalProfileProperties(lpMAPISup, &sProfileProps);
 	if (hr != hrSuccess)
@@ -185,12 +170,6 @@ HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR l
 	if (hr != hrSuccess)
 		goto exit;
 
-#ifdef HAVE_OFFLINE_SUPPORT
-	hr = sProviderInfo.lpMSProviderOffline->QueryInterface(IID_IMSProvider, (void **)&lpOffline);
-	if (hr != hrSuccess)
-		goto exit;
-#endif
-
 	// Default error
 	hr = MAPI_E_LOGON_FAILED; //or MAPI_E_FAILONEPROVIDER
 
@@ -201,41 +180,14 @@ HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR l
 
 	if ((ulFlags & MDB_ONLINE) == MDB_ONLINE || (sProviderInfo.ulProfileFlags&EC_PROFILE_FLAGS_OFFLINE) != EC_PROFILE_FLAGS_OFFLINE || bIsDefaultStore == false)
 	{
-#ifdef HAVE_OFFLINE_SUPPORT
-		ECOfflineState::OFFLINESTATE state;
-
-		if(sProviderInfo.ulProfileFlags & EC_PROFILE_FLAGS_OFFLINE) {
-			// If the profile is offline-capable, check offline state
-			if(ECOfflineState::GetOfflineState(tstrProfileName, &state) == hrSuccess && state == ECOfflineState::OFFLINESTATE_OFFLINE) {
-				// Deny logon to online store if 'working offline'
-				hr = MAPI_E_FAILONEPROVIDER;
-				goto exit;
-			}
-		}
-#endif
 		bool fDone = false;
 
 		while(!fDone) {
 			hr = lpOnline->Logon(lpMAPISup, ulUIParam, lpszProfileName, cbEntryID, lpEntryID, ulFlags, lpInterface, NULL, NULL, NULL, &lpMSLogon, &lpMDB);
 			ulConnectType = CT_ONLINE;
-#ifdef HAVE_OFFLINE_SUPPORT
-			if(hr == MAPI_E_NETWORK_ERROR && sProviderInfo.ulProfileFlags&EC_PROFILE_FLAGS_OFFLINE) {
-					// If no dialog is allowed, do the same as when pressing 'continue', ie work offline
-					ECOfflineState::SetOfflineState(tstrProfileName, ECOfflineState::OFFLINESTATE_OFFLINE);
-					fDone = true;
-			} else
-#endif //offline
-			{
-				fDone = true;
-			}
+			fDone = true;
 		}
 	}
-#ifdef HAVE_OFFLINE_SUPPORT
-	// Offline provider
-	else {
-		// TODO: Linux support
-	}
-#endif	// HAVE_OFFLINE_SUPPORT
 
 	// Set the provider in the right connection type
 	if (bIsDefaultStore) {
@@ -336,15 +288,6 @@ exit:
 	MAPIFreeBuffer(lpProp);
 	if (lpProfSect)
 		lpProfSect->Release();
-
-#ifdef HAVE_OFFLINE_SUPPORT
-	if (lpMSLogonOffline)
-		lpMSLogonOffline->Release();
-
-	if (lpMDBOffline)
-		lpMDBOffline->Release();
-#endif
-	
 	if (lpMSLogon)
 		lpMSLogon->Release();
 	
@@ -356,14 +299,6 @@ exit:
     
 	if (lpOnline)
 		lpOnline->Release();
-
-#ifdef HAVE_OFFLINE_SUPPORT
-	if (lpOffline)
-		lpOffline->Release();
-
-	if (lpTmpStream)
-		lpTmpStream->Release();
-#endif
 	MAPIFreeBuffer(lpIdentityProps);
 	MAPIFreeBuffer(lpStoreID);
 	return hr;
@@ -392,14 +327,7 @@ HRESULT ECMSProviderSwitch::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, L
 	if (hr != hrSuccess)
 		goto exit;
 
-#ifdef HAVE_OFFLINE_SUPPORT
-	ASSERT(sProviderInfo.ulConnectType != CT_UNSPECIFIED);
-	if (sProviderInfo.ulConnectType == CT_OFFLINE)
-		lpProvider = sProviderInfo.lpMSProviderOffline;
-	else // all other types
-#endif
-		lpProvider = sProviderInfo.lpMSProviderOnline;
-
+	lpProvider = sProviderInfo.lpMSProviderOnline;
 	hr = lpProvider->SpoolerLogon(lpMAPISup, ulUIParam, lpszProfileName, cbEntryID, lpEntryID, ulFlags, lpInterface, cbSpoolSecurity, lpbSpoolSecurity, NULL, &lpMSLogon, &lpMDB);
 	if (hr != hrSuccess)
 		goto exit;

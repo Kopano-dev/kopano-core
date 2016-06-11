@@ -135,81 +135,6 @@ static ECRESULT CreateEntryId(GUID guidStore, unsigned int ulObjType,
 	return erSuccess;
 }
 
-#ifdef HAVE_OFFLINE_SUPPORT
-ECRESULT GetLocalIdOffline(entryId sUserId, unsigned int ulDefaultId, unsigned int *lpulUserId, objectid_t *lpsExternId)
-{
-	ECRESULT er;
-	unsigned int		ulUserId = ulDefaultId;
-	objectid_t			sExternId;
-	unsigned int		ulMapiType = 0;
-	objectclass_t		ocType;
-
-	if (lpulUserId == NULL || lpsExternId == NULL)
-		return KCERR_INVALID_PARAMETER;
-
-	// If no entryid is present, use the 'current' user.
-	if (ulDefaultId == 0 && sUserId.__size == 0)
-		return KCERR_INVALID_PARAMETER;
-
-	// Extract the information from the entryid.
-	er = ABEntryIDToID(&sUserId, &ulUserId, &sExternId, &ulMapiType);
-	if (er != erSuccess)
-		return er;
-
-	// If an extern id is present, we should get an object based on that.
-	if (!sExternId.id.empty())
-	{
-		er = g_lpSessionManager->GetCacheManager()->GetUserObject(sExternId, &ulUserId, NULL, NULL);
-		if (er == KCERR_NOT_FOUND) {
-			// In the offline server this can fail for two reasons:
-			// 1. The object is not yet created.
-			// 2. The database has been upgraded from pre 6.30 to 6.30 or later.
-			//
-			// In the second case ulUserId should exist in the users table. However, we can't be
-			// 100% sure that an existing user with that id actually is the same user. In practice this won't
-			// be a problem as prior to 6.30 the online and offline id's match, and they won't be reused. And
-			// new entries will have the correct extern id to begin with.
-			er = g_lpSessionManager->GetCacheManager()->GetUserObject(ulUserId, &sExternId, NULL, NULL);
-			if (er == KCERR_NOT_FOUND) {
-				ulUserId = 0;
-				er = erSuccess;
-			} else if (er == erSuccess) {
-				// We found a user based on the legacy user id. There are 2 sanity checks that we'll perform to
-				// make sure we're not accidentaly using the wrong entry:
-				// 1. The object types must match.
-				// 2. The extern id of the found entry must be numerical (we do not care about its value). This is
-				//    because the offline extern id of upgraded databases is the old id from the object table.
-
-				er = MAPITypeToType(ulMapiType, &ocType);
-				if (er != erSuccess)
-					return er;
-
-				if (OBJECTCLASS_CLASSTYPE(sExternId.objclass) == OBJECTCLASS_CLASSTYPE(ocType)) {
-					char *lpszRes = NULL;
-
-					strtoul(sExternId.id.c_str(), &lpszRes, 0);
-
-					// Full conversion: lpszRes points to the null termination of the input (and the input is not empty).
-					if (lpszRes == sExternId.id.c_str() || *lpszRes != '\0')
-						ulUserId = 0;
-				}else
-					ulUserId = 0;
-			}
-		} else if (er == erSuccess) {
-			// now update the extern id again, since the ABEntryIDToID returned a guessed objectclass
-			er = g_lpSessionManager->GetCacheManager()->GetUserObject(ulUserId, &sExternId, NULL, NULL);
-			if (er != erSuccess)
-				return er;
-		} else
-			return er;
-	}
-
-	*lpulUserId = ulUserId;
-	*lpsExternId = sExternId;
-	return erSuccess;
-}
-#endif
-
 /**
  * Get the local user id based on the entryid or the user id for old clients.
  *
@@ -5438,11 +5363,7 @@ SOAP_ENTRY_START(setUser, *result, struct user *lpsUser, unsigned int *result)
 
 	if (lpsUser->sUserId.__size > 0 && lpsUser->sUserId.__ptr != NULL)
 	{
-#ifdef HAVE_OFFLINE_SUPPORT
-		er = GetLocalIdOffline(lpsUser->sUserId, lpsUser->ulUserId, &ulUserId, &sExternId);
-#else
 		er = GetLocalId(lpsUser->sUserId, lpsUser->ulUserId, &ulUserId, &sExternId);
-#endif
 		if (er != erSuccess) 
 			goto exit;
 	}
@@ -5522,39 +5443,7 @@ SOAP_ENTRY_START(setUser, *result, struct user *lpsUser, unsigned int *result)
 	if (er != erSuccess)
 		goto exit;
 
-#ifdef HAVE_OFFLINE_SUPPORT
-    // In offline mode, setUser() can also create new objects
-	if (!lpecSession->GetUserManagement()->IsInternalObject(ulUserId)) {
-		// GetLocalIdOffline did not return correct objectclass in sExternId, so replace from details
-		sExternId.objclass = details.GetClass();
-
-		// The extern id can be updated. In that case sExternId is the new extern id, and 
-		// we need to get the old extern id. We need to upgrade extern id now as CreateOrModifyObject
-		// will try to resolve user info based on sExternId.
-		if (ulUserId) {
-			objectid_t sOldExternId;
-			er = lpecSession->GetSessionManager()->GetCacheManager()->GetUserObject(ulUserId, &sOldExternId, NULL, NULL);
-			if (er != erSuccess)
-				goto exit;
-
-			if (sOldExternId != sExternId) {
-				er = lpecSession->GetUserManagement()->ModifyExternId(ulUserId, sExternId);
-				if (er != erSuccess)
-					goto exit;
-			}
-		}
-
-		if (sExternId.id.empty()) {
-			sExternId.id = stringify(ulUserId);
-			details.SetPropObject(OB_PROP_O_EXTERNID, sExternId);
-		}
-
-	    er = lpecSession->GetUserManagement()->CreateOrModifyObject(sExternId, details, ulUserId == 0 ? lpsUser->ulUserId : 0, NULL);
-	}
-#else
 	er = lpecSession->GetUserManagement()->SetObjectDetailsAndSync(ulUserId, details, NULL);
-#endif
-
 exit:
     ;
 }
@@ -5730,11 +5619,6 @@ SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(addSendAsUser, *result, unsigned int ulUserId, entryId sUserId, unsigned int ulSenderId, entryId sSenderId, unsigned int *result)
 {
-#ifdef HAVE_OFFLINE_SUPPORT
-	er = KCERR_NO_ACCESS;
-	goto exit;
-#endif
-
 	er = GetLocalId(sUserId, ulUserId, &ulUserId, NULL);
 	if (er != erSuccess) {
 		ec_log_err("addSendAsUser(): GetLocalId(ulUserId) failed %x", er);
@@ -5778,11 +5662,6 @@ SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(delSendAsUser, *result, unsigned int ulUserId, entryId sUserId, unsigned int ulSenderId, entryId sSenderId, unsigned int *result)
 {
-#ifdef HAVE_OFFLINE_SUPPORT
-	er = KCERR_NO_ACCESS;
-	goto exit;
-#endif
-
 	er = GetLocalId(sUserId, ulUserId, &ulUserId, NULL);
 	if (er != erSuccess)
 		goto exit;
@@ -6144,11 +6023,7 @@ SOAP_ENTRY_START(setGroup, *result, struct group *lpsGroup, unsigned int *result
 
 	if (lpsGroup->sGroupId.__size > 0 && lpsGroup->sGroupId.__ptr != NULL)
 	{
-#ifdef HAVE_OFFLINE_SUPPORT
-		er = GetLocalIdOffline(lpsGroup->sGroupId, lpsGroup->ulGroupId, &ulGroupId, &sExternId);
-#else
 		er = GetLocalId(lpsGroup->sGroupId, lpsGroup->ulGroupId, &ulGroupId, &sExternId);
-#endif
 		if (er != erSuccess) 
 			goto exit;
 	}
@@ -6170,38 +6045,7 @@ SOAP_ENTRY_START(setGroup, *result, struct group *lpsGroup, unsigned int *result
 	if (er != erSuccess)
 		goto exit;
 
-#ifdef HAVE_OFFLINE_SUPPORT
-	// In offline mode, setGroup() can also create new objects
-	if (!lpecSession->GetUserManagement()->IsInternalObject(ulGroupId)) {
-		// GetLocalIdOffline did not return correct objectclass in sExternId, so replace from details
-		sExternId.objclass = details.GetClass();
-
-		// The extern id can be updated. In that case sExternId is the new extern id, and 
-		// we need to get the old extern id. We need to upgrade extern id now as CreateOrModifyObject
-		// will try to resolve user info based on sExternId.
-		if (ulGroupId) {
-			objectid_t sOldExternId;
-			er = lpecSession->GetSessionManager()->GetCacheManager()->GetUserObject(ulGroupId, &sOldExternId, NULL, NULL);
-			if (er != erSuccess)
-				goto exit;
-
-			if (sOldExternId != sExternId) {
-				er = lpecSession->GetUserManagement()->ModifyExternId(ulGroupId, sExternId);
-				if (er != erSuccess)
-					goto exit;
-			}
-		}
-
-		if (sExternId.id.empty()) {
-			sExternId.id = stringify(ulGroupId);
-			details.SetPropObject(OB_PROP_O_EXTERNID, sExternId);
-		}
-
-		er = lpecSession->GetUserManagement()->CreateOrModifyObject(sExternId, details, ulGroupId == 0 ? lpsGroup->ulGroupId : 0, NULL);
-	}
-#else
 	er = lpecSession->GetUserManagement()->SetObjectDetailsAndSync(ulGroupId, details, NULL);
-#endif
 	if(er != erSuccess)
 	    goto exit;
 
@@ -6626,11 +6470,7 @@ SOAP_ENTRY_START(setCompany, *result, struct company *lpsCompany, unsigned int *
 
 	if (lpsCompany->sCompanyId.__size > 0 && lpsCompany->sCompanyId.__ptr != NULL)
 	{
-#ifdef HAVE_OFFLINE_SUPPORT
-		er = GetLocalIdOffline(lpsCompany->sCompanyId, lpsCompany->ulCompanyId, &ulCompanyId, &sExternId);
-#else
 		er = GetLocalId(lpsCompany->sCompanyId, lpsCompany->ulCompanyId, &ulCompanyId, &sExternId);
-#endif
 		if (er != erSuccess) 
 			goto exit;
 	}
@@ -6656,38 +6496,7 @@ SOAP_ENTRY_START(setCompany, *result, struct company *lpsCompany, unsigned int *
 	if (er != erSuccess)
 		goto exit;
 
-#ifdef HAVE_OFFLINE_SUPPORT
-	//In offline mode, setCompany() can also create new objects
-	if (!lpecSession->GetUserManagement()->IsInternalObject(ulCompanyId)) {
-		// GetLocalIdOffline did not return correct objectclass in sExternId, so replace from details
-		sExternId.objclass = details.GetClass();
-
-		// The extern id can be updated. In that case sExternId is the new extern id, and 
-		// we need to get the old extern id. We need to upgrade extern id now as CreateOrModifyObject
-		// will try to resolve user info based on sExternId.
-		if (ulCompanyId) {
-			objectid_t sOldExternId;
-			er = lpecSession->GetSessionManager()->GetCacheManager()->GetUserObject(ulCompanyId, &sOldExternId, NULL, NULL);
-			if (er != erSuccess)
-				goto exit;
-
-			if (sOldExternId != sExternId) {
-				er = lpecSession->GetUserManagement()->ModifyExternId(ulCompanyId, sExternId);
-				if (er != erSuccess)
-					goto exit;
-			}
-		}
-
-		if (sExternId.id.empty()) {
-			sExternId.id = stringify(ulCompanyId);
-			details.SetPropObject(OB_PROP_O_EXTERNID, sExternId);
-		}
-
-		er = lpecSession->GetUserManagement()->CreateOrModifyObject(sExternId, details, ulCompanyId == 0 ? lpsCompany->ulCompanyId : 0, NULL);
-	}
-#else
 	er = lpecSession->GetUserManagement()->SetObjectDetailsAndSync(ulCompanyId, details, NULL);
-#endif
 	if(er != erSuccess)
 		goto exit;
 
@@ -11828,20 +11637,7 @@ SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(removeAllObjects, *result, entryId sExceptUserId, unsigned int *result)
 {
-#ifdef HAVE_OFFLINE_SUPPORT
-    unsigned int ulObjId = 0;
-    
-	er = GetLocalId(sExceptUserId, 0, &ulObjId, NULL);
-	if (er != erSuccess)
-		goto exit;
-
-    er = lpecSession->GetUserManagement()->RemoveAllObjectsAndSync(ulObjId);
-    
-exit:
-    ;
-#else
     er = KCERR_NO_SUPPORT;
-#endif
 }
 SOAP_ENTRY_END()
 

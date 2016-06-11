@@ -20,7 +20,7 @@ libkccommon_la_SOURCES = SOAPUtils.cpp SOAPUtils.h \
 	pcuser.cpp \
 	ECLicenseClient.h ECLicenseClient.cpp \
 	ECSearchClient.h ECSearchClient.cpp \
-	ECOfflineState.h ECOfflineState.cpp soapctor.cpp
+	soapctor.cpp
 libkccommon_la_LIBADD = \
 	../../common/libkcutil.la ../../common/libkcmapi.la \
 	../soap/libkcsoapclient.la ../../common/libkcssl.la \

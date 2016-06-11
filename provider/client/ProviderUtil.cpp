@@ -144,105 +144,23 @@ HRESULT RemoveAllProviders(ECMapProvider* lpmapProvider)
 
 	for (iterProvider = lpmapProvider->begin();
 	     iterProvider != lpmapProvider->end(); ++iterProvider) {
-#ifdef HAVE_OFFLINE_SUPPORT
-		if (iterProvider->second.lpMSProviderOffline)
-			iterProvider->second.lpMSProviderOffline->Release();
-#endif
 		if (iterProvider->second.lpMSProviderOnline)
 			iterProvider->second.lpMSProviderOnline->Release();
 
 		if (iterProvider->second.lpABProviderOnline)
 			iterProvider->second.lpABProviderOnline->Release();
-
-#ifdef HAVE_OFFLINE_SUPPORT
-		if (iterProvider->second.lpABProviderOffline)
-			iterProvider->second.lpABProviderOffline->Release();
-#endif
 	}
 	return hrSuccess;
 }
 
 HRESULT SetProviderMode(IMAPISupport *lpMAPISup, ECMapProvider* lpmapProvider, LPCSTR lpszProfileName, ULONG ulConnectType)
 {
-	HRESULT hr = hrSuccess;
-#ifdef HAVE_OFFLINE_SUPPORT
-	ECMapProvider::const_iterator iterProvider;
-	SPropValue sProps;
-	LPPROFSECT lpProfSect = NULL;
-
-	if (lpmapProvider == NULL || lpszProfileName == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	if ( (ulConnectType &~(CT_UNSPECIFIED|CT_ONLINE|CT_OFFLINE)) != 0 ) {
-		hr = MAPI_E_UNKNOWN_FLAGS;
-		goto exit;
-	}
-
-	
-	iterProvider = lpmapProvider->find(lpszProfileName);
-	if (iterProvider == lpmapProvider->end()) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
-	iterProvider->second.ulConnectType = ulConnectType;
-
-	// We also save the connection type in the global profile section. This information can be used later
-	// by other processes which are not interactive (ie they use MDB_NO_DIALOG) when they log on in autodetect
-	// mode. This means that you can only switch between using the online or offline mode when in 'autodetect' mode
-	// by using an interactive logon.
-
-	hr = lpMAPISup->OpenProfileSection((LPMAPIUID)pbGlobalProfileSectionGuid, MAPI_MODIFY, &lpProfSect);
-	if(hr != hrSuccess)
-		goto exit;
-
-	sProps.ulPropTag = PR_EC_LAST_CONNECTIONTYPE;
-	sProps.Value.ul = ulConnectType;
-
-	hr = lpProfSect->SetProps(1, &sProps, NULL);
-	if(hr != hrSuccess)
-		goto exit;
-
-	hr = lpProfSect->SaveChanges(0);
-	if(hr != hrSuccess)
-		goto exit;
-
-exit:
-	if(lpProfSect)
-		lpProfSect->Release();
-#endif
-
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT GetLastConnectionType(IMAPISupport *lpMAPISup, ULONG *lpulType) {
-	HRESULT hr = hrSuccess;
-#ifdef HAVE_OFFLINE_SUPPORT
-	LPPROFSECT lpProfSect = NULL;
-	LPSPropValue lpProp = NULL;
-
-	hr = lpMAPISup->OpenProfileSection((LPMAPIUID)&pbGlobalProfileSectionGuid, MAPI_MODIFY, &lpProfSect);
-	if(hr != hrSuccess)
-		goto exit;
-
-	hr = HrGetOneProp(lpProfSect, PR_EC_LAST_CONNECTIONTYPE, &lpProp);
-	if(hr != hrSuccess)
-		goto exit;
-
-	if(lpulType)
-		*lpulType = lpProp->Value.ul;
-
-exit:
-	MAPIFreeBuffer(lpProp);
-	if(lpProfSect)
-		lpProfSect->Release();
-#else
 	*lpulType = CT_ONLINE;
-#endif
-
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT GetProviders(ECMapProvider* lpmapProvider, IMAPISupport *lpMAPISup, const char *lpszProfileName, ULONG ulFlags, PROVIDER_INFO* lpsProviderInfo)
@@ -252,10 +170,6 @@ HRESULT GetProviders(ECMapProvider* lpmapProvider, IMAPISupport *lpMAPISup, cons
 	PROVIDER_INFO sProviderInfo;
 	ECMSProvider *lpECMSProvider = NULL;
 	ECABProvider *lpECABProvider = NULL;
-#ifdef HAVE_OFFLINE_SUPPORT
-	ECMSProviderOffline *lpECMSProviderOffline = NULL;
-	ECABProviderOffline *lpECABProviderOffline = NULL;
-#endif
 	sGlobalProfileProps	sProfileProps;
 
 	if (lpmapProvider == NULL || lpMAPISup == NULL || lpszProfileName == NULL || lpsProviderInfo == NULL) {
@@ -288,30 +202,12 @@ HRESULT GetProviders(ECMapProvider* lpmapProvider, IMAPISupport *lpMAPISup, cons
 	if(hr != hrSuccess)
 		goto exit;
 
-#ifdef HAVE_OFFLINE_SUPPORT
-	// Message store offline
-	hr = ECMSProviderOffline::Create(ulFlags, &lpECMSProviderOffline);
-	if(hr != hrSuccess)
-		goto exit;
-
-	// Addressbook offline
-	hr = ECABProviderOffline::Create(&lpECABProviderOffline);
-	if(hr != hrSuccess)
-		goto exit;
-#endif
-
 	//////////////////////////////////////////////////////
 	// Fill in the Provider info struct
 	
 	//Init only the firsttime the flags
 	sProviderInfo.ulProfileFlags = sProfileProps.ulProfileFlags;
-
-#ifdef HAVE_OFFLINE_SUPPORT
-	sProviderInfo.ulConnectType = CT_UNSPECIFIED; //Default start with CT_UNSPECIFIED this will change
-#else
 	sProviderInfo.ulConnectType = CT_ONLINE;
-#endif
-
 	hr = lpECMSProvider->QueryInterface(IID_IMSProvider, (void **)&sProviderInfo.lpMSProviderOnline);
 	if(hr != hrSuccess)
 		goto exit;
@@ -319,17 +215,6 @@ HRESULT GetProviders(ECMapProvider* lpmapProvider, IMAPISupport *lpMAPISup, cons
 	hr = lpECABProvider->QueryInterface(IID_IABProvider, (void **)&sProviderInfo.lpABProviderOnline);
 	if(hr != hrSuccess)
 		goto exit;
-
-#ifdef HAVE_OFFLINE_SUPPORT
-	hr = lpECMSProviderOffline->QueryInterface(IID_IMSProvider, (void **)&sProviderInfo.lpMSProviderOffline);
-	if(hr != hrSuccess)
-		goto exit;
-
-	hr = lpECABProviderOffline->QueryInterface(IID_IABProvider, (void **)&sProviderInfo.lpABProviderOffline);
-	if(hr != hrSuccess)
-		goto exit;
-#endif
-	
 
 	//Add provider in map
 	lpmapProvider->insert(std::map<string, PROVIDER_INFO>::value_type(lpszProfileName, sProviderInfo));
@@ -342,15 +227,6 @@ exit:
 
 	if (lpECABProvider)
 		lpECABProvider->Release();
-
-#ifdef HAVE_OFFLINE_SUPPORT
-	if (lpECMSProviderOffline)
-		lpECMSProviderOffline->Release();
-
-	if (lpECABProviderOffline)
-		lpECABProviderOffline->Release();
-#endif
-
 	return hr;
 }
 
@@ -419,60 +295,6 @@ exit:
 
 	return hr;
 }
-
-#ifdef HAVE_OFFLINE_SUPPORT
-HRESULT GetOfflineServerURL(IMAPISupport *lpMAPISup, std::string *lpstrServerURL, tstring *lpstrUniqueId)
-{
-	HRESULT hr;
-	tstring strServerPath;
-	tstring strUniqueId;
-
-	if (lpMAPISup == NULL || lpstrServerURL == NULL)
-		return MAPI_E_INVALID_PARAMETER;
-
-	//for windows: file://\\.\pipe\kopano-ID
-	//for linux: file:///tmp/kopano-ID
-	strServerPath = _T("file:///tmp/kopano-");
-	hr = GetMAPIUniqueProfileId(lpMAPISup, &strUniqueId);
-	if(hr != hrSuccess)
-		return hr;
-
-	*lpstrServerURL = convert_to<std::string>(strServerPath + strUniqueId);
-
-	if (lpstrUniqueId)
-		*lpstrUniqueId = strUniqueId;
-	return hrSuccess;
-}
-#endif
-
-#ifdef HAVE_OFFLINE_SUPPORT
-HRESULT CheckStartServerAndGetServerURL(IMAPISupport *lpMAPISup, LPCTSTR lpszUserLocalAppDataKopano, LPCTSTR lpszKopanoDirectory, std::string *lpstrServerURL)
-{
-	HRESULT hr = hrSuccess;
-	string strServerPath;
-	tstring strUniqueId;
-	tstring strDBDirectory;
-	tstring strDBConfigFile;
-
-	if (lpMAPISup == NULL || lpstrServerURL == NULL || lpszUserLocalAppDataKopano == NULL || lpszKopanoDirectory == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	hr = GetOfflineServerURL(lpMAPISup, &strServerPath, &strUniqueId);
-	if(hr != hrSuccess)
-		goto exit;
-
-	hr = MAPI_E_FAILONEPROVIDER;
-	// TODO: Linux support
-	if(hr != hrSuccess)
-		goto exit;
-
-	*lpstrServerURL = strServerPath;
-exit:
-	return hr;
-}
-#endif
 
 HRESULT GetTransportToNamedServer(WSTransport *lpTransport, LPCTSTR lpszServerName, ULONG ulFlags, WSTransport **lppTransport)
 {

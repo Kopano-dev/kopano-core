@@ -41,35 +41,12 @@ HRESULT CreateMsgStoreObject(char *lpszProfname, LPMAPISUP lpMAPISup, ULONG cbEn
 							MAPIUID* lpguidMDBProvider, BOOL bSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore,
 							ECMsgStore** lppMsgStore);
 
-#ifdef HAVE_OFFLINE_SUPPORT
-/*
-	Start a storage server with a unique pipe and database
-
-	lpWorkDir
-		The directory of the storage server
-	lpUniqueId
-		used for database name and pipe name
-	lpDatabasePath
-		Database path
-	lpDbConfigName
-		Database configuration file path
-	dwSecondsToWait
-		The seconds to wait to run a storage server
-*/
-BOOL StartServer(LPCTSTR lpWorkDir, LPCTSTR lpDbConfigName, LPCTSTR lpDatabasePath, LPCTSTR lpUniqueId, LPPROCESS_INFORMATION lpProcInfo);
-#endif
-
 HRESULT RemoveAllProviders(ECMapProvider *lpmapProvider);
 HRESULT SetProviderMode(IMAPISupport *lpMAPISup, ECMapProvider *lpmapProvider, LPCSTR lpszProfileName, ULONG ulConnectType);
 HRESULT GetProviders(ECMapProvider *lpmapProvider, IMAPISupport *lpMAPISup, LPCSTR lpszProfileName, ULONG ulFlags, PROVIDER_INFO *lpsProviderInfo);
 HRESULT GetLastConnectionType(IMAPISupport *lpMAPISup, ULONG *lpulType);
 
 HRESULT GetMAPIUniqueProfileId(LPMAPISUP lpMAPISup, tstring *lpstrUniqueId);
-#ifdef HAVE_OFFLINE_SUPPORT
-HRESULT CheckStartServerAndGetServerURL(IMAPISupport *lpMAPISup, LPCTSTR lpszUserLocalAppDataKopano, LPCTSTR lpszKopanoDirectory, std::string *lpstrServerURL);
-HRESULT GetOfflineServerURL(IMAPISupport *lpMAPISup, std::string *lpstrServerURL, tstring *lpstrUniqueId = NULL);
-#endif
-
 HRESULT GetTransportToNamedServer(WSTransport *lpTransport, LPCTSTR lpszServerName, ULONG ulFlags, WSTransport **lppTransport);
 
 #endif // #ifndef PROVIDERUTIL_H

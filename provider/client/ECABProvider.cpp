@@ -107,12 +107,6 @@ HRESULT ECABProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 
 	WSTransport*	lpTransport = NULL;
 
-#ifdef HAVE_OFFLINE_SUPPORT
-	ECUserPtr		ptrUser;
-	unsigned int	ulUserId = 0;
-	std::string		strLocalServerPath;
-#endif
-
 	if (!lpMAPISup || !lppABLogon) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
@@ -127,74 +121,8 @@ HRESULT ECABProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 	hr = WSTransport::Create(ulFlags, &lpTransport);
 	if(hr != hrSuccess)
 		goto exit;
-
-#ifdef HAVE_OFFLINE_SUPPORT
-	if ( (m_ulFlags&EC_PROVIDER_OFFLINE) == EC_PROVIDER_OFFLINE) { 
-		if (!sProfileProps.strOfflinePath.empty())
-			g_strUserLocalAppDataKopano = sProfileProps.strOfflinePath;
-
-		hr = CheckStartServerAndGetServerURL(lpMAPISup, g_strUserLocalAppDataKopano.c_str(), g_strKopanoDirectory.c_str(), &strLocalServerPath);
-		if(hr != hrSuccess)
-			goto exit;
-
-		sProfileProps.strServerPath = strLocalServerPath;
-	}
-#endif
-
 	// Log on the transport to the server
 	hr = lpTransport->HrLogon(sProfileProps);
-
-#ifdef HAVE_OFFLINE_SUPPORT
-	if ( (m_ulFlags&EC_PROVIDER_OFFLINE) == EC_PROVIDER_OFFLINE && hr != hrSuccess)
-	{
-		sGlobalProfileProps sLocalServerProfileProps;
-		sGlobalProfileProps sOnlineProfileProps;
-
-		hr = ClientUtil::GetGlobalProfileProperties(lpMAPISup, &sLocalServerProfileProps);
-		if(hr != hrSuccess)
-			goto exit;
-
-		sOnlineProfileProps = sLocalServerProfileProps;
-
-		sLocalServerProfileProps.strServerPath = strLocalServerPath;
-		sLocalServerProfileProps.strUserName = KOPANO_SYSTEM_USER_W;
-		sLocalServerProfileProps.strPassword = KOPANO_SYSTEM_USER_W;
-
-		lpTransport->HrLogOff();
-
-		// Log on online
-		hr = lpTransport->HrLogon(sOnlineProfileProps);
-		if(hr != hrSuccess) {
-			hr = MAPI_E_UNCONFIGURED;
-			goto exit;
-		}
-
-		hr = lpTransport->HrGetUser(0, NULL, MAPI_UNICODE, &ptrUser);
-		if(hr != hrSuccess)
-			goto exit;
-
-		lpTransport->HrLogOff();
-
-		// first time logon, you should be an administrator
-		hr = lpTransport->HrLogon(sLocalServerProfileProps);
-		if(hr != hrSuccess)
-			goto exit; // Only when the offline server is killed on a bad moment
-
-		// Add user to offline store
-		ptrUser->lpszPassword = (LPTSTR)L"dummy";		
-		hr = lpTransport->HrSetUser(ptrUser, MAPI_UNICODE);
-		if(hr != hrSuccess)
-			goto exit;
-
-		// Log off the admin user
-		lpTransport->HrLogOff();
-
-		// Login as normal user
-		hr = lpTransport->HrLogon(sProfileProps);
-
-	}
-#endif
-
 	if(hr != hrSuccess)
 		goto exit;
 

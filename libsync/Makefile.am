@@ -14,10 +14,10 @@ libkcsync_la_LIBADD = \
 
 libkcsync_la_includedir = $(includedir)/libkcsync
 
-libkcsync_la_include_HEADERS = ECLibSync.h ECSync.h ECSyncLog.h	\
+libkcsync_la_include_HEADERS = ECLibSync.h ECSyncLog.h	\
 	ECSyncUtil.h ECSyncContext.h ECOfflineABImporter.h ECSyncSettings.h ECResyncSet.h
 
-libkcsync_la_SOURCES = ECSync.cpp ECSyncLog.cpp ECSyncUtil.cpp	\
+libkcsync_la_SOURCES = ECSyncLog.cpp ECSyncUtil.cpp	\
 	ECSyncContext.cpp ECOfflineABImporter.cpp ECSyncSettings.cpp ECResyncSet.cpp
 libkcsync_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	-Wl,--version-script=${top_builddir}/default.sym

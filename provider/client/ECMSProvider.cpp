@@ -108,27 +108,7 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 	ULONG			ulStoreType = 0;
 	MAPIUID			guidMDBProvider;
 	BOOL			bOfflineStore = FALSE;
-	
 	sGlobalProfileProps	sProfileProps;
-
-#ifdef HAVE_OFFLINE_SUPPORT
-	ULONG		cbUnWrapStoreID = 0;
-	LPENTRYID	lpUnWrapStoreID = NULL;
-	ULONG		cbRootId = 0;
-	LPENTRYID	lpRootId = NULL;
-	GUID		guidStore;
-	BOOL		bFirstLogin = FALSE;
-	BOOL		bFirstUserLogin = FALSE;
-	ULONG		cbTmp = 0; // unused vars
-	LPENTRYID	lpTmpId = NULL; // unused vars
-	string strUniqueId;
-	string strDBDirectory;
-	string strDBConfigFile;
-	std::string strOfflineServerPath;
-	LPSTREAM lpTmpStream = NULL;
-
-	ECUserPtr		ptrUser;
-#endif
 
 	// Always suppress UI when running in a service
 	if(m_ulFlags & MAPI_NT_SERVICE)
@@ -173,43 +153,12 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 
 	if (lpsPropArray[1].ulPropTag == PR_RESOURCE_FLAGS && (lpsPropArray[1].Value.ul & STATUS_DEFAULT_STORE) == STATUS_DEFAULT_STORE)
 		fIsDefaultStore = TRUE;
-
-#ifdef HAVE_OFFLINE_SUPPORT
-	// The only possible offline provider is default store(KOPANO_SERVICE_GUID / fIsDefaultStore == TRUE)
-	if ((m_ulFlags & EC_PROVIDER_OFFLINE) == EC_PROVIDER_OFFLINE && fIsDefaultStore == FALSE) {
-		hr = MAPI_E_CALL_FAILED;
-		ASSERT(FALSE);
-		goto exit;
-	}
-#endif
-
 	// Create a transport for this message store
 	hr = WSTransport::Create(ulFlags, &lpTransport);
 	if(hr != hrSuccess)
 		goto exit;
 
-#ifdef HAVE_OFFLINE_SUPPORT
-	if ((m_ulFlags & EC_PROVIDER_OFFLINE) == EC_PROVIDER_OFFLINE && fIsDefaultStore == TRUE) { 
-		if (!sProfileProps.strOfflinePath.empty())
-			g_strUserLocalAppDataKopano = sProfileProps.strOfflinePath;
-
-		hr = CheckStartServerAndGetServerURL(lpMAPISup, g_strUserLocalAppDataKopano.c_str(), g_strKopanoDirectory.c_str(), &strOfflineServerPath);		
-		if (hr != hrSuccess)
-			goto exit;
-
-		// It's an offline store
-		bOfflineStore = TRUE;
-		sProfileProps.strServerPath = strOfflineServerPath;
-
-		// Log on the transport to the server
-		hr = lpTransport->HrLogon(sProfileProps);
-	}
-	else
-#endif
-	{
-		hr = LogonByEntryID(&lpTransport, &sProfileProps, cbEntryID, lpEntryID);
-	}
-
+	hr = LogonByEntryID(&lpTransport, &sProfileProps, cbEntryID, lpEntryID);
 	if (lpsPropArray[0].ulPropTag == PR_MDB_PROVIDER) {
 		memcpy(&guidMDBProvider, lpsPropArray[0].Value.bin.lpb, sizeof(MAPIUID));
 	} else if (fIsDefaultStore == FALSE){
@@ -235,122 +184,6 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 		memcpy(&guidMDBProvider, &KOPANO_SERVICE_GUID, sizeof(MAPIUID));
 	}
 	TRACE_MAPI(TRACE_ENTRY, "ECMSProvider::Logon::MDB", "PR_MDB_PROVIDER = %s", DBGGUIDToString(*(IID*)&guidMDBProvider).c_str());
-
-#ifdef HAVE_OFFLINE_SUPPORT
-	if ( hr == hrSuccess && (m_ulFlags&EC_PROVIDER_OFFLINE) == EC_PROVIDER_OFFLINE && CompareMDBProvider(&guidMDBProvider, &KOPANO_SERVICE_GUID))
-	{
-		// check if there is already a store
-		hr = lpTransport->HrGetStore(cbEntryID, lpEntryID, &cbTmp, &lpTmpId, 0 , NULL);
-		
-		if(lpTmpId) {
-			ECFreeBuffer(lpTmpId);
-			lpTmpId = NULL;
-		}
-
-	}else if(hr == MAPI_E_LOGON_FAILED){
-		bFirstUserLogin = TRUE;
-	}else if(hr == MAPI_E_SESSION_LIMIT) {
-		if(!(ulFlags & MDB_NO_DIALOG)) {
-			MessageBox((HWND)ulUIParam, _("Cannot use the profile because you are over the license limit. To continue, you must purchase additional client licenses."), g_strProductName.c_str(), MB_ICONEXCLAMATION | MB_OK);
-		}
-	}else if(hr == MAPI_E_NO_ACCESS) {
-		if(!(ulFlags & MDB_NO_DIALOG)) {
-			MessageBox((HWND)ulUIParam, _("Cannot use the profile because the server was unable to contact the license server. Please consult your system administrator."), g_strProductName.c_str(), MB_ICONEXCLAMATION | MB_OK);
-		}
-	}
-
-	// As this the first time you logon, you must be an administrator
-	if (hr != hrSuccess && (m_ulFlags&EC_PROVIDER_OFFLINE) == EC_PROVIDER_OFFLINE && CompareMDBProvider(&guidMDBProvider, &KOPANO_SERVICE_GUID))
-	{
-		sGlobalProfileProps sLocalServerProfileProps;
-		sGlobalProfileProps sOnlineProfileProps;
-
-		hr = ClientUtil::GetGlobalProfileProperties(lpMAPISup, &sLocalServerProfileProps);
-		if(hr != hrSuccess)
-			goto exit;
-
-		sOnlineProfileProps = sLocalServerProfileProps;
-
-		sLocalServerProfileProps.strServerPath = strOfflineServerPath;
-		sLocalServerProfileProps.strUserName = KOPANO_SYSTEM_USER_W;
-		sLocalServerProfileProps.strPassword = KOPANO_SYSTEM_USER_W;
-
-		// Log off the user
-		lpTransport->HrLogOff();
-
-		// Login as admin
-		hr = lpTransport->HrLogon(sLocalServerProfileProps);
-		if(hr != hrSuccess)
-			goto exit; // Only when the offline server is killed on a bad moment
-
-		// Check if it's a new offline profile
-		hr = lpTransport->HrGetStore(cbEntryID, lpEntryID, &cbTmp, &lpTmpId, 0 , NULL);
-		if(hr == MAPI_E_NOT_FOUND)
-			bFirstLogin = TRUE;
-		else if(hr != hrSuccess)
-			goto exit;
-
-		if(bFirstLogin == TRUE)
-		{
-			lpTransport->HrLogOff();
-
-			hr = lpTransport->HrLogon(sOnlineProfileProps);
-			if(hr != hrSuccess)
-				goto exit;
-
-			hr = lpTransport->HrGetUser(0, NULL, MAPI_UNICODE, &ptrUser);
-			if(hr != hrSuccess)
-				goto exit;
-
-			lpTransport->HrLogOff();
-
-			hr = lpTransport->HrLogon(sLocalServerProfileProps);
-			if(hr != hrSuccess)
-				goto exit; // Only when the offline server is killed on a bad moment
-
-			if(bFirstUserLogin){
-				// Add user to offline store
-				ptrUser->lpszPassword = (LPTSTR)L"dummy";
-				hr = lpTransport->HrSetUser(ptrUser, MAPI_UNICODE);
-				if(hr != hrSuccess)
-					goto exit;
-			}
-
-			// Create new offline store
-			//
-
-			hr = UnWrapServerClientStoreEntry(cbEntryID, lpEntryID, &cbUnWrapStoreID,&lpUnWrapStoreID);
-			if(hr != hrSuccess)
-				goto exit;
-			
-			hr = HrGetStoreGuidFromEntryId(cbUnWrapStoreID, (LPBYTE)lpUnWrapStoreID, &guidStore);
-			if(hr != hrSuccess)
-				goto exit;
-
-			// create root entryid
-			hr = HrCreateEntryId(guidStore, MAPI_FOLDER, &cbRootId, &lpRootId);
-			if(hr != hrSuccess)
-				goto exit;
-			
-			hr = lpTransport->HrCreateStore(ECSTORE_TYPE_PRIVATE, ptrUser->sUserId.cb, (LPENTRYID)ptrUser->sUserId.lpb, cbUnWrapStoreID, lpUnWrapStoreID, cbRootId, lpRootId, 0);
-			if(hr != hrSuccess)
-				goto exit;
-
-			hr = lpTransport->HrSetReceiveFolder(cbUnWrapStoreID, lpUnWrapStoreID, utf8string::from_string("IPC"), cbRootId, lpRootId);
-			if(hr != hrSuccess)
-				goto exit;
-		} // if(bFirstLogin == TRUE)
-
-		// Log off the admin store
-		lpTransport->HrLogOff();
-
-		// Login with the user
-		hr = lpTransport->HrLogon(sProfileProps);
-
-	} // if (hr != hrSuccess .....)
-
-#endif
-
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -361,71 +194,6 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 	if(hr != hrSuccess)
 		goto exit;
 
-#ifdef HAVE_OFFLINE_SUPPORT
-	// We now have a store. We'll now check for EC_AB_SYNC_STATUS in order to set the correct
-	// user. If it is missing, we are dealing with an upgrade that forced a resync in order to upgrade
-	// the extern ids. We need to upgrade ourselve now to get the correct owner property on the store.
-	if (!bFirstUserLogin && bOfflineStore) {
-		sGlobalProfileProps sLocalServerProfileProps;
-		sGlobalProfileProps sOnlineProfileProps;
-
-		hr = ClientUtil::GetGlobalProfileProperties(lpMAPISup, &sLocalServerProfileProps);
-		if(hr != hrSuccess)
-			goto exit;
-
-		sOnlineProfileProps = sLocalServerProfileProps;
-
-		sLocalServerProfileProps.strServerPath = strOfflineServerPath;
-		sLocalServerProfileProps.strUserName = KOPANO_SYSTEM_USER_W;
-		sLocalServerProfileProps.strPassword = KOPANO_SYSTEM_USER_W;
-
-		hr = lpECMsgStore->OpenProperty(PR_EC_AB_SYNC_STATUS, &IID_IStream, 0, 0, (IUnknown**)&lpTmpStream);
-		if (lpTmpStream) { lpTmpStream->Release(); lpTmpStream = NULL; }
-
-		if (hr == MAPI_E_NOT_FOUND) {
-			// Destroy the just opened store.
-			lpECMsgStore->Release();
-			lpECMsgStore = NULL;
-
-			// Get the online user information.
-			hr = lpTransport->HrLogon(sOnlineProfileProps);
-			if(hr != hrSuccess)
-				goto exit;
-
-			hr = lpTransport->HrGetUser(0, NULL, MAPI_UNICODE, &ptrUser);
-			if(hr != hrSuccess)
-				goto exit;
-
-			lpTransport->HrLogOff();
-
-			// Store the information offline.
-			hr = lpTransport->HrLogon(sLocalServerProfileProps);
-			if(hr != hrSuccess)
-				goto exit; // Only when the offline server is killed on a bad moment
-
-			// Add user to offline store
-			ptrUser->lpszPassword = (LPTSTR)L"dummy";
-			hr = lpTransport->HrSetUser(ptrUser, MAPI_UNICODE);
-			if(hr != hrSuccess)
-				goto exit;
-
-			// Log off the admin store
-			lpTransport->HrLogOff();
-
-			// Recreate the store object with the user
-			hr = lpTransport->HrLogon(sProfileProps);
-			if (hr != hrSuccess)
-				goto exit;
-
-			hr = CreateMsgStoreObject((LPSTR)sProfileProps.strProfileName.c_str(), lpMAPISup, cbEntryID, lpEntryID, ulFlags, sProfileProps.ulProfileFlags, lpTransport,
-									&guidMDBProvider, false, fIsDefaultStore, bOfflineStore,
-									&lpECMsgStore);
-			if(hr != hrSuccess)
-				goto exit;
-		}
-	}
-#endif
-	
 	// Register ourselves with mapisupport
 	//hr = lpMAPISup->SetProviderUID((MAPIUID *)&lpMsgStore->GetStoreGuid(), 0); 
 	//if(hr != hrSuccess)
@@ -468,14 +236,6 @@ exit:
 		lpTransport->Release();
 	MAPIFreeBuffer(lpsPropTagArray);
 	MAPIFreeBuffer(lpsPropArray);
-#ifdef HAVE_OFFLINE_SUPPORT
-	if(lpTmpId)
-		ECFreeBuffer(lpTmpId);
-
-	if (lpTmpStream)
-		lpTmpStream->Release();
-#endif
-
 	return hr;
 }
 
@@ -560,24 +320,7 @@ HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR 
 	if(hr != hrSuccess)
 		goto exit;
 
-#ifdef HAVE_OFFLINE_SUPPORT
-	if ( (m_ulFlags&EC_PROVIDER_OFFLINE) == EC_PROVIDER_OFFLINE) { 
-
-		hr = GetOfflineServerURL(lpMAPISup, &sProfileProps.strServerPath);
-		if(hr != hrSuccess) {
-			hr = MAPI_E_FAILONEPROVIDER;
-			goto exit;
-		}
-		bOfflineStore = true;
-
-		// Log on the transport to the server
-		hr = lpTransport->HrLogon(sProfileProps);
-	} else
-#endif
-	{
-		hr = LogonByEntryID(&lpTransport, &sProfileProps, cbEntryID, lpEntryID);
-	}
-	
+	hr = LogonByEntryID(&lpTransport, &sProfileProps, cbEntryID, lpEntryID);
 	if(hr != hrSuccess) {
 		if(ulFlags & MDB_NO_DIALOG) {
 			hr = MAPI_E_FAILONEPROVIDER;

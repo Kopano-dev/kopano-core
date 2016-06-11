@@ -320,17 +320,10 @@ ECRESULT ECUserManagement::AuthUserAndSync(const char* szLoginname, const char* 
  */
 bool ECUserManagement::MustHide(/*const*/ ECSecurity& security, unsigned int ulFlags, const objectdetails_t& details)
 {
-#ifdef HAVE_OFFLINE_SUPPORT
-	// ECSecurityOffline::GetAdminLevel always returns 2, so do not check the admin level for the hidden users feature here.
-	return	(security.GetUserId() != KOPANO_UID_SYSTEM) &&
-		((ulFlags & USERMANAGEMENT_SHOW_HIDDEN) == 0) &&
-		details.GetPropBool(OB_PROP_B_AB_HIDDEN);
-#else
 	return	(security.GetUserId() != KOPANO_UID_SYSTEM) &&
 		(security.GetAdminLevel() == 0) &&
 		((ulFlags & USERMANAGEMENT_SHOW_HIDDEN) == 0) &&
 		details.GetPropBool(OB_PROP_B_AB_HIDDEN);
-#endif
 }
 
 // Get details for an object
@@ -494,13 +487,11 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 		/* When hosted is enabled, the companyid _must_ have an external id,
 		 * unless we are requesting the companylist in which case the companyid is 0 and doesn't
 		 * need to be resolved at all.*/
-#ifndef HAVE_OFFLINE_SUPPORT
 		if (objclass != CONTAINER_COMPANY && !IsInternalObject(ulCompanyId)) {
 			er = GetExternalId(ulCompanyId, &extcompany);
 			if (er != erSuccess)
 				goto exit;
 		}
-#endif
 	} else {
 		if (objclass == CONTAINER_COMPANY) {
 			er = KCERR_NO_SUPPORT;
@@ -1524,7 +1515,6 @@ ECRESULT ECUserManagement::GetLocalObjectIdList(objectclass_t objclass, unsigned
 	strQuery =
 		"SELECT id FROM users "
 		"WHERE " + OBJECTCLASS_COMPARE_SQL("objectclass", objclass);
-#ifndef HAVE_OFFLINE_SUPPORT
 	/* As long as the Offline server has partial hosted support,
 	 * we must comment out this additional where statement... */
 	if (m_lpSession->GetSessionManager()->IsHostedSupported()) {
@@ -1537,7 +1527,6 @@ ECRESULT ECUserManagement::GetLocalObjectIdList(objectclass_t objclass, unsigned
 				"OR id = " + stringify(KOPANO_UID_SYSTEM) + " "
 				"OR id = " + stringify(KOPANO_UID_EVERYONE) + ")";
 	}
-#endif
 
 	er = lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
@@ -2149,10 +2138,8 @@ ECRESULT ECUserManagement::GetUserAndCompanyFromLoginName(const std::string &str
 	if (!bHosted || pos_u == string::npos || pos_c == string::npos) {
 		/* When hosted is enabled, return a warning. Otherwise,
 		 * this call was successful. */
-#ifndef HAVE_OFFLINE_SUPPORT
 		if (bHosted)
 			er = KCWARN_PARTIAL_COMPLETION;
-#endif
 		*username = strLoginName;
 		companyname->clear();
 		return er;
@@ -2185,11 +2172,9 @@ ECRESULT ECUserManagement::GetUserAndCompanyFromLoginName(const std::string &str
 		(!end.empty() && pos_e == string::npos)) {
 		/* When hosted is enabled, return a warning. Otherwise,
 		 * this call was successful. */
-#ifndef HAVE_OFFLINE_SUPPORT
 		if (strLoginName != KOPANO_ACCOUNT_SYSTEM &&
 			strLoginName != KOPANO_ACCOUNT_EVERYONE)
 				er = KCERR_INVALID_PARAMETER;
-#endif
 		*username = strLoginName;
 		companyname->clear();
 		return er;
@@ -2238,15 +2223,12 @@ ECRESULT ECUserManagement::ConvertLoginToUserAndCompany(objectdetails_t *lpDetai
 		return er;
 
 	if (bHosted) {
-#ifndef HAVE_OFFLINE_SUPPORT
 		er = ResolveObject(CONTAINER_COMPANY, companyname, objectid_t(), &sCompanyId);
 		if (er != erSuccess)
 			return er;
 		er = GetLocalId(sCompanyId, &ulCompanyId);
 		if (er != erSuccess)
 			return er;
-#endif
-
 		lpDetails->SetPropObject(OB_PROP_O_COMPANYID, sCompanyId);
 		lpDetails->SetPropInt(OB_PROP_I_COMPANYID, ulCompanyId);
 	}
@@ -2270,12 +2252,6 @@ ECRESULT ECUserManagement::ConvertUserAndCompanyToLogin(objectdetails_t *lpDetai
 	objectid_t sCompany;
 	unsigned int ulCompanyId;
 	objectdetails_t sCompanyDetails;
-
-#ifdef HAVE_OFFLINE_SUPPORT
-	/* We cannot convert user and company names in offline server. */
-	return erSuccess;
-#endif
-
 	/*
 	 * We don't have to do anything when hosted is disabled,
 	 * when we perform this operation on SYSTEM or EVERYONE (since they don't belong to a company),
@@ -2347,14 +2323,7 @@ ECRESULT ECUserManagement::ConvertExternIDsToLocalIDs(objectdetails_t *lpDetails
 	objectid_t sExternID;
 	unsigned int ulLocalID = 0;
 
-
-#ifdef HAVE_OFFLINE_SUPPORT
-	/* We cannot convert ? or can we.....? */
-	return erSuccess;
-#endif
-
 	// details == info, list contains 1) active_users or 2) groups
-
 	switch (lpDetails->GetClass()) {
 	case ACTIVE_USER:
 	case NONACTIVE_USER:
@@ -2401,11 +2370,6 @@ ECRESULT ECUserManagement::ConvertLocalIDsToExternIDs(objectdetails_t *lpDetails
 	ECRESULT er;
 	objectid_t sExternID;
 	unsigned int ulLocalID = 0;
-
-#ifdef HAVE_OFFLINE_SUPPORT
-	/* We cannot convert ? or can we.....? */
-	return erSuccess;
-#endif
 
 	switch (lpDetails->GetClass()) {
 	case CONTAINER_COMPANY:
@@ -3329,8 +3293,6 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 	if(er != erSuccess)
 		goto exit;
 
-
-#ifndef HAVE_OFFLINE_SUPPORT
 	switch (objclass) {
 	case ACTIVE_USER:
 	case NONACTIVE_USER:
@@ -3370,8 +3332,6 @@ ECRESULT ECUserManagement::DeleteLocalObject(unsigned int ulObjectId, objectclas
 	default:
 		break;
 	}
-#endif
-
 exit:
 	if (er)
 		ec_log_info("Auto-deleting %s %d done. Error code 0x%08X", ObjectClassToName(objclass), ulObjectId, er);
@@ -3611,15 +3571,11 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap, unsign
 				if (IsInternalObject(ulId) || (! m_lpSession->GetSessionManager()->IsHostedSupported())) {
 					lpPropVal->Value.lpszA = s_strcpy(soap, "");
 				} else {
-#ifdef HAVE_OFFLINE_SUPPORT
-					lpPropVal->Value.lpszA = s_strcpy(soap, "");
-#else
 					objectdetails_t sCompanyDetails;
 					er = GetObjectDetails(lpDetails->GetPropInt(OB_PROP_I_COMPANYID), &sCompanyDetails);
 					if (er != erSuccess)
 						goto exit;
 					lpPropVal->Value.lpszA = s_strcpy(soap, sCompanyDetails.GetPropString(OB_PROP_S_FULLNAME).c_str());
-#endif
 				}
 				lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 				break;
@@ -3916,15 +3872,11 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap, unsign
 				if (IsInternalObject(ulId) || (! m_lpSession->GetSessionManager()->IsHostedSupported())) {
 					lpPropVal->Value.lpszA = s_strcpy(soap, "");
 				} else {
-#ifdef HAVE_OFFLINE_SUPPORT
-					lpPropVal->Value.lpszA = s_strcpy(soap, "");
-#else
 					objectdetails_t sCompanyDetails;
 					er = GetObjectDetails(lpDetails->GetPropInt(OB_PROP_I_COMPANYID), &sCompanyDetails);
 					if (er != erSuccess)
 						goto exit;
 					lpPropVal->Value.lpszA = s_strcpy(soap, sCompanyDetails.GetPropString(OB_PROP_S_FULLNAME).c_str());
-#endif
 				}
 				lpPropVal->__union = SOAP_UNION_propValData_lpszA;
 				break;

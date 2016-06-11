@@ -92,11 +92,7 @@ ECMAPIFolder::ECMAPIFolder(ECMsgStore *lpMsgStore, BOOL fModify,
 	HrAddPropHandlers(PR_FOLDER_TYPE,		DefaultMAPIGetProp,		DefaultSetPropComputed, (void*) this);
 
 	// ACLs are only offline
-#ifdef HAVE_OFFLINE_SUPPORT
-	HrAddPropHandlers(PR_ACL_DATA,			DefaultGetPropNotFound,	DefaultSetPropIgnore,	(void*)this);
-#else
 	HrAddPropHandlers(PR_ACL_DATA,			GetPropHandler,			SetPropHandler,			(void*)this);
-#endif
 
 	this->lpFolderOps = lpFolderOps;
 	if (lpFolderOps)

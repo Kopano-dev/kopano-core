@@ -140,12 +140,7 @@ ECRESULT kopano_init(ECConfig *lpConfig, ECLogger *lpAudit, bool bHostedKopano, 
 	if (!g_bInitLib)
 		return KCERR_NOT_INITIALIZED;
 
-#ifdef HAVE_OFFLINE_SUPPORT
-    g_lpSessionManager = new ECSessionManagerOffline(lpConfig, bHostedKopano, bDistributedKopano);
-#else
-    g_lpSessionManager = new ECSessionManager(lpConfig, lpAudit, bHostedKopano, bDistributedKopano);
-#endif
-	
+	g_lpSessionManager = new ECSessionManager(lpConfig, lpAudit, bHostedKopano, bDistributedKopano);
 	er = g_lpSessionManager->LoadSettings();
 	if(er != erSuccess)
 		return er;
