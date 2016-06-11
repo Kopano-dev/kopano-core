@@ -18,12 +18,11 @@
 #ifndef ECRestrictionBuilder_INCLUDED
 #define ECRestrictionBuilder_INCLUDED
 
+#include <memory>
 #include <kopano/zcdefs.h>
 #include <mapidefs.h>
 
 #include <list>
-
-#include <boost/smart_ptr.hpp>
 
 class ECRestrictionList;
 
@@ -82,8 +81,8 @@ public:
 	ECRestrictionList operator+ (const ECRestriction &other) const;
 
 protected:
-	typedef boost::shared_ptr<SPropValue>		PropPtr;
-	typedef boost::shared_ptr<ECRestriction>	ResPtr;
+	typedef std::shared_ptr<SPropValue> PropPtr;
+	typedef std::shared_ptr<ECRestriction> ResPtr;
 	typedef std::list<ResPtr>					ResList;
 
 	ECRestriction() { }
@@ -112,7 +111,7 @@ public:
 	}
 
 private:
-	typedef boost::shared_ptr<ECRestriction>	ResPtr;
+	typedef std::shared_ptr<ECRestriction> ResPtr;
 	typedef std::list<ResPtr>					ResList;
 
 	ResList	m_list;
@@ -334,8 +333,7 @@ public:
 	ECRestriction *Clone() const _zcp_override;
 
 private:
-	typedef boost::shared_ptr<SRestriction>	RawResPtr;
-
+	typedef std::shared_ptr<SRestriction> RawResPtr;
 	ECRawRestriction(RawResPtr ptrRestriction);
 
 private:

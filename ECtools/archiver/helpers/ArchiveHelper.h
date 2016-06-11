@@ -18,7 +18,7 @@
 #ifndef ARCHIVEHELPER_H_INCLUDED
 #define ARCHIVEHELPER_H_INCLUDED
 
-#include <boost/smart_ptr.hpp>
+#include <memory>
 #include <kopano/zcdefs.h>
 #include <kopano/archiver-common.h>
 #include <kopano/mapi_ptr.h>
@@ -28,7 +28,7 @@
 namespace za { namespace helpers {
 
 class ArchiveHelper;
-typedef boost::shared_ptr<ArchiveHelper> ArchiveHelperPtr;
+typedef std::shared_ptr<ArchiveHelper> ArchiveHelperPtr;
 
 enum ArchiveType {
 	UndefArchive = 0,

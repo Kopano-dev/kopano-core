@@ -18,9 +18,9 @@
 #ifndef archivestateupdater_fwd_INCLUDED
 #define archivestateupdater_fwd_INCLUDED
 
-#include <boost/smart_ptr.hpp>
+#include <memory>
 
 class ArchiveStateUpdater;
-typedef boost::shared_ptr<ArchiveStateUpdater> ArchiveStateUpdaterPtr;
+typedef std::shared_ptr<ArchiveStateUpdater> ArchiveStateUpdaterPtr;
 
 #endif // ndef archivestateupdater_fwd_INCLUDED

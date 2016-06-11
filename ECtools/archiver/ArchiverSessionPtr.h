@@ -18,9 +18,9 @@
 #ifndef ARCHIVERSESSIONPTR_INCLUDED
 #define ARCHIVERSESSIONPTR_INCLUDED
 
-#include <boost/smart_ptr.hpp>
+#include <memory>
 
 class ArchiverSession;
-typedef boost::shared_ptr<ArchiverSession>	ArchiverSessionPtr;
+typedef std::shared_ptr<ArchiverSession> ArchiverSessionPtr;
 
 #endif // !defined ARCHIVERSESSIONPTR_INCLUDED

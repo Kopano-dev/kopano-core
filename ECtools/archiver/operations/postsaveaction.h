@@ -18,7 +18,7 @@
 #ifndef postsaveaction_INCLUDED
 #define postsaveaction_INCLUDED
 
-#include <boost/smart_ptr.hpp>
+#include <memory>
 
 namespace za { namespace operations {
 
@@ -31,7 +31,7 @@ public:
 	virtual ~IPostSaveAction() {};
 	virtual HRESULT Execute() = 0;
 };
-typedef boost::shared_ptr<IPostSaveAction> PostSaveActionPtr;
+typedef std::shared_ptr<IPostSaveAction> PostSaveActionPtr;
 
 }} // namespace operations, za
 

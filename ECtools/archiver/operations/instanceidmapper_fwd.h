@@ -18,12 +18,12 @@
 #ifndef instanceidmapper_fwd_INCLUDED
 #define instanceidmapper_fwd_INCLUDED
 
-#include <boost/smart_ptr.hpp>
+#include <memory>
 
 namespace za { namespace operations {
 
 class InstanceIdMapper;
-typedef boost::shared_ptr<InstanceIdMapper> InstanceIdMapperPtr;
+typedef std::shared_ptr<InstanceIdMapper> InstanceIdMapperPtr;
 
 }} // namespace operations, za
 

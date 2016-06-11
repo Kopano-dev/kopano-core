@@ -18,6 +18,7 @@
 #ifndef postsaveiidupdater_INCLUDED
 #define postsaveiidupdater_INCLUDED
 
+#include <memory>
 #include "postsaveaction.h"
 #include <kopano/mapi_ptr.h>
 #include "instanceidmapper_fwd.h"
@@ -41,7 +42,7 @@ private:
 	MessagePtr	m_ptrDestMsg;
 	ULONG 	m_ulDestAttachIdx;
 };
-typedef boost::shared_ptr<TaskBase> TaskPtr;
+typedef std::shared_ptr<TaskBase> TaskPtr;
 typedef std::list<TaskPtr> TaskList;
 
 

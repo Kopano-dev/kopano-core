@@ -18,13 +18,14 @@
 #ifndef instanceidmapper_INCLUDED
 #define instanceidmapper_INCLUDED
 
+#include <memory>
 #include "instanceidmapper_fwd.h"
 #include <mapidefs.h>
 
 class ECConfig;
 class ECLogger;
 class ECDatabaseMySQL;
-typedef boost::shared_ptr<ECDatabaseMySQL> DatabasePtr;
+typedef std::shared_ptr<ECDatabaseMySQL> DatabasePtr;
 
 namespace za { namespace operations {
 

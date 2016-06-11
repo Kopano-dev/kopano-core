@@ -20,6 +20,7 @@
 #include "Archiver.h"
 #include "ECDatabase.h"
 #include <kopano/stringutil.h>
+#include <boost/utility.hpp>
 
 namespace za { namespace operations {
 

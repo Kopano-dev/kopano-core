@@ -18,21 +18,21 @@
 #ifndef operations_fwd_INCLUDED
 #define operations_fwd_INCLUDED
 
-#include <boost/smart_ptr.hpp>
+#include <memory>
 
 namespace za { namespace operations {
 
 class IArchiveOperation;
-typedef boost::shared_ptr<IArchiveOperation> ArchiveOperationPtr;
+typedef std::shared_ptr<IArchiveOperation> ArchiveOperationPtr;
 
 class Copier;
-typedef boost::shared_ptr<Copier> CopierPtr;
+typedef std::shared_ptr<Copier> CopierPtr;
 
 class Deleter;
-typedef boost::shared_ptr<Deleter> DeleterPtr;
+typedef std::shared_ptr<Deleter> DeleterPtr;
 
 class Stubber;
-typedef boost::shared_ptr<Stubber> StubberPtr;
+typedef std::shared_ptr<Stubber> StubberPtr;
 
 }} // namespaces
 

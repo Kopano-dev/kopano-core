@@ -15,6 +15,7 @@
  *
  */
 
+#include <memory>
 #include <kopano/platform.h>
 #include "ECLockManager.h"
 #include <kopano/threadutil.h>
@@ -38,7 +39,7 @@ public:
 	ECRESULT Unlock();
 
 private:
-	boost::weak_ptr<ECLockManager> m_ptrLockManager;
+	std::weak_ptr<ECLockManager> m_ptrLockManager;
 	unsigned int m_ulObjId;
 	ECSESSIONID m_sessionId;
 };

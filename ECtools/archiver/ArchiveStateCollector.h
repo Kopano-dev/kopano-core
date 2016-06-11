@@ -18,8 +18,8 @@
 #ifndef ARCHIVESTATECOLLECTOR_H_INCLUDED
 #define ARCHIVESTATECOLLECTOR_H_INCLUDED
 
-#include <boost/smart_ptr.hpp>
 #include <map>
+#include <memory>
 #include "archivestateupdater_fwd.h"
 #include "ArchiverSessionPtr.h"     // For ArchiverSessionPtr
 #include <kopano/tstring.h>
@@ -27,7 +27,7 @@
 #include "ECArchiverLogger.h"
 
 class ArchiveStateCollector;
-typedef boost::shared_ptr<ArchiveStateCollector> ArchiveStateCollectorPtr;
+typedef std::shared_ptr<ArchiveStateCollector> ArchiveStateCollectorPtr;
 
 /**
  * The ArchiveStateCollector will construct the current archive state, which
