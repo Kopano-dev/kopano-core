@@ -286,6 +286,51 @@ static HRESULT initprov_storedl(WSTransport *transport,
 	       0, NULL, eid_size, &eid);
 }
 
+static HRESULT initprov_storearc(WSTransport *&transport,
+    IProviderAdmin *provadm, SPropValuePtr &provuid, IProfSect *profsect,
+    unsigned int *eid_size, EntryIdPtr &eid)
+{
+	// We need to get the username and the server name or url from the profsect.
+	// That's enough information to get the entryid from the correct server. There's no redirect
+	// available when resolving archive stores.
+	SPropValuePtr name, server;
+	HRESULT ret = HrGetOneProp(profsect, PR_EC_USERNAME_W, &name);
+	if (ret != hrSuccess)
+		ret = HrGetOneProp(profsect, PR_EC_USERNAME_A, &name);
+	if (ret == hrSuccess) {
+		ret = HrGetOneProp(profsect, PR_EC_SERVERNAME_W, &server);
+		if (ret != hrSuccess)
+			ret = HrGetOneProp(profsect, PR_EC_SERVERNAME_A, &server);
+		if (ret != hrSuccess)
+			return MAPI_E_UNCONFIGURED;
+	}
+	if (ret != hrSuccess) {
+		/*
+		 * This should probably be done in UpdateProviders. But
+		 * UpdateProviders does not know the type of the provider and
+		 * it should not just delete the provider for all types of
+		 * providers.
+		 */
+		if (provadm != NULL && provuid.get() != NULL)
+			provadm->DeleteProvider(reinterpret_cast<MAPIUID *>(provuid->Value.bin.lpb));
+		/* Invalid or empty archive store */
+		return MAPI_S_SPECIAL_OK;
+	}
+
+	WSTransport *alt_transport;
+	ret = GetTransportToNamedServer(transport, server->Value.LPSZ,
+	      (PROP_TYPE(name->ulPropTag) == PT_STRING8 ? 0 : MAPI_UNICODE),
+	      &alt_transport);
+	if (ret != hrSuccess)
+		return ret;
+
+	std::swap(transport, alt_transport);
+	alt_transport->Release();
+	alt_transport = NULL;
+	return transport->HrResolveTypedStore(convstring::from_SPropValue(name),
+	       ECSTORE_TYPE_ARCHIVE, eid_size, &eid);
+}
+
 static HRESULT initprov_addrbook(std::unique_ptr<ABEID, EPCDeleter> &eid,
     unsigned int &count, SPropValue *prop)
 {
@@ -333,7 +378,6 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 	HRESULT hr = hrSuccess;
 
 	WSTransport		*lpTransport = NULL;
-	WSTransport		*lpAltTransport = NULL;
 	std::unique_ptr<ABEID, EPCDeleter> abe_id;
 	ULONG			cbEntryId = 0;
 	ULONG			cbWrappedEntryId = 0;
@@ -410,42 +454,7 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 			if (hr != hrSuccess)
 				goto exit;
 		} else if(CompareMDBProvider(ptrPropValueMDB->Value.bin.lpb, &KOPANO_STORE_ARCHIVE_GUID)) {
-			// We need to get the username and the server name or url from the profsect.
-			// That's enough information to get the entryid from the correct server. There's no redirect
-			// available when resolving archive stores.
-			hr = HrGetOneProp(lpProfSect, PR_EC_USERNAME_W, &ptrPropValueName);
-			if (hr != hrSuccess)
-				hr = HrGetOneProp(lpProfSect, PR_EC_USERNAME_A, &ptrPropValueName);
-			if (hr == hrSuccess) {
-				hr = HrGetOneProp(lpProfSect, PR_EC_SERVERNAME_W, &ptrPropValueServerName);
-				if (hr != hrSuccess)
-					hr = HrGetOneProp(lpProfSect, PR_EC_SERVERNAME_A, &ptrPropValueServerName);
-				if (hr != hrSuccess) {
-					hr = MAPI_E_UNCONFIGURED;
-					goto exit;
-				}
-			}
-			if (hr != hrSuccess) {
-				// This should probably be done in UpdateProviders. But UpdateProviders doesn't
-				// know the type of the provider and it shouldn't just delete the provider for
-				// all types of providers.
-				if(lpAdminProvider && ptrPropValueProviderUid.get())
-					lpAdminProvider->DeleteProvider((MAPIUID *)ptrPropValueProviderUid->Value.bin.lpb);
-
-				// Invalid or empty archive store
-				hr = hrSuccess;
-				goto exit;
-			}
-
-			hr = GetTransportToNamedServer(lpTransport, ptrPropValueServerName->Value.LPSZ, (PROP_TYPE(ptrPropValueServerName->ulPropTag) == PT_STRING8 ? 0 : MAPI_UNICODE), &lpAltTransport);
-			if (hr != hrSuccess)
-				goto exit;
-
-			std::swap(lpTransport, lpAltTransport);
-			lpAltTransport->Release();
-			lpAltTransport = NULL;
-
-			hr = lpTransport->HrResolveTypedStore(convstring::from_SPropValue(ptrPropValueName), ECSTORE_TYPE_ARCHIVE, &cbEntryId, &ptrEntryId);
+			hr = initprov_storearc(lpTransport, lpAdminProvider, ptrPropValueProviderUid, lpProfSect, &cbEntryId, ptrEntryId);
 			if (hr != hrSuccess)
 				goto exit;
 		} else {
