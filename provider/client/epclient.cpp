@@ -73,6 +73,20 @@ class EPCDeleter {
 	void operator()(ABEID *p) { MAPIFreeBuffer(p); }
 };
 
+struct initprov {
+	IProviderAdmin *provadm;
+	MAPIUID *provuid;
+	IProfSect *profsect;
+	WSTransport *transport;
+	unsigned int count, eid_size, wrap_eid_size;
+	SPropValue prop[6];
+	EntryIdPtr eid;
+	/* referenced from prop[n] */
+	WStringPtr store_name;
+	EntryIdPtr wrap_eid;
+	std::unique_ptr<ABEID, EPCDeleter> abe_id;
+};
+
 static const uint32_t MAPI_S_SPECIAL_OK = MAKE_MAPI_S(0x900);
 
 // Client wide variable
@@ -172,9 +186,8 @@ static HRESULT GetServiceName(IProviderAdmin *lpProviderAdmin,
 	return hrSuccess;
 }
 
-static HRESULT initprov_storepub(WSTransport *tp, IProviderAdmin *provadm,
-    SPropValuePtr &provuid, const sGlobalProfileProps &profprop,
-    unsigned int *eid_size, EntryIdPtr &eid)
+static HRESULT
+initprov_storepub(struct initprov &d, const sGlobalProfileProps &profprop)
 {
 	/* Get the public store */
 	std::string redir_srv;
@@ -184,31 +197,30 @@ static HRESULT initprov_storepub(WSTransport *tp, IProviderAdmin *provadm,
 		/* skip over to the DeleteProvider part */
 		ret = MAPI_E_INVALID_PARAMETER;
 	else
-		ret = tp->HrGetPublicStore(0, eid_size, &eid, &redir_srv);
+		ret = d.transport->HrGetPublicStore(0, &d.eid_size, &d.eid, &redir_srv);
 
 	if (ret == MAPI_E_UNABLE_TO_COMPLETE) {
-		tp->HrLogOff();
+		d.transport->HrLogOff();
 		auto new_props = profprop;
 		new_props.strServerPath = redir_srv;
-		ret = tp->HrLogon(new_props);
+		ret = d.transport->HrLogon(new_props);
 		if (ret == hrSuccess)
-			ret = tp->HrGetPublicStore(0, eid_size, &eid);
+			ret = d.transport->HrGetPublicStore(0, &d.eid_size, &d.eid);
 	}
 	if (ret == hrSuccess)
 		return hrSuccess;
-	if (provadm != NULL && provuid.get() != NULL)
-		provadm->DeleteProvider(reinterpret_cast<MAPIUID *>(provuid->Value.bin.lpb));
+	if (d.provadm != NULL && d.provuid != NULL)
+		d.provadm->DeleteProvider(d.provuid);
 	/* Profile without public store */
 	return MAPI_S_SPECIAL_OK;
 }
 
-static HRESULT initprov_service(WSTransport *transport,
-    IProviderAdmin *provadm, const sGlobalProfileProps &profprop,
-    unsigned int *eid_size, EntryIdPtr &eid)
+static HRESULT
+initprov_service(struct initprov &d, const sGlobalProfileProps &profprop)
 {
 	/* Get the default store for this user */
 	std::string redir_srv;
-	HRESULT ret = transport->HrGetStore(0, NULL, eid_size, &eid,
+	HRESULT ret = d.transport->HrGetStore(0, NULL, &d.eid_size, &d.eid,
 	              0, NULL, &redir_srv);
 	if (ret == MAPI_E_NOT_FOUND) {
 		ec_log_err("HrGetStore failed: No store present.");
@@ -218,26 +230,26 @@ static HRESULT initprov_service(WSTransport *transport,
 	}
 
 	/* MAPI_E_UNABLE_TO_COMPLETE */
-	transport->HrLogOff();
+	d.transport->HrLogOff();
 	auto new_props = profprop;
 	new_props.strServerPath = redir_srv;
-	ret = transport->HrLogon(new_props);
+	ret = d.transport->HrLogon(new_props);
 	if (ret != hrSuccess)
 		return ret;
-	ret = transport->HrGetStore(0, NULL, eid_size, &eid, 0, NULL);
+	ret = d.transport->HrGetStore(0, NULL, &d.eid_size, &d.eid, 0, NULL);
 	if (ret != hrSuccess)
 		return ret;
 
 	/* This should be a real URL */
 	assert(redir_srv.compare(0, 9, "pseudo://") != 0);
 
-	if (provadm == NULL || redir_srv.empty())
+	if (d.provadm == NULL || redir_srv.empty())
 		return hrSuccess;
 
 	/* Set/update the default store home server. */
 	auto guid = reinterpret_cast<MAPIUID *>(const_cast<char *>(pbGlobalProfileSectionGuid));
 	ProfSectPtr globprofsect;
-	ret = provadm->OpenProfileSection(guid, NULL, MAPI_MODIFY, &globprofsect);
+	ret = d.provadm->OpenProfileSection(guid, NULL, MAPI_MODIFY, &globprofsect);
 	if (ret != hrSuccess)
 		return ret;
 
@@ -247,16 +259,14 @@ static HRESULT initprov_service(WSTransport *transport,
 	return HrSetOneProp(globprofsect, &spv);
 }
 
-static HRESULT initprov_storedl(WSTransport *transport,
-    IProviderAdmin *provadm, SPropValuePtr &provuid,
-    const sGlobalProfileProps &profprop, IProfSect *profsect,
-    unsigned int *eid_size, EntryIdPtr &eid)
+static HRESULT
+initprov_storedl(struct initprov &d, const sGlobalProfileProps &profprop)
 {
 	/* PR_EC_USERNAME is the user we want to add ... */
 	SPropValuePtr name;
-	HRESULT ret = HrGetOneProp(profsect, PR_EC_USERNAME_W, &name);
+	HRESULT ret = HrGetOneProp(d.profsect, PR_EC_USERNAME_W, &name);
 	if (ret != hrSuccess)
-		ret = HrGetOneProp(profsect, PR_EC_USERNAME_A, &name);
+		ret = HrGetOneProp(d.profsect, PR_EC_USERNAME_A, &name);
 	if (ret != hrSuccess) {
 		/*
 		 * This should probably be done in UpdateProviders. But
@@ -264,43 +274,41 @@ static HRESULT initprov_storedl(WSTransport *transport,
 		 * should not just delete the provider for all types of
 		 * providers.
 		 */
-		if (provadm != NULL && provuid.get() != NULL)
-			provadm->DeleteProvider(reinterpret_cast<MAPIUID *>(provuid->Value.bin.lpb));
+		if (d.provadm != NULL && d.provuid != NULL)
+			d.provadm->DeleteProvider(d.provuid);
 		/* Invalid or empty delegate store */
 		return MAPI_S_SPECIAL_OK;
 	}
 
 	std::string redir_srv;
-	ret = transport->HrResolveUserStore(convstring::from_SPropValue(name),
-	      0, NULL, eid_size, &eid, &redir_srv);
+	ret = d.transport->HrResolveUserStore(convstring::from_SPropValue(name),
+	      0, NULL, &d.eid_size, &d.eid, &redir_srv);
 	if (ret != MAPI_E_UNABLE_TO_COMPLETE)
 		return ret;
 
-	transport->HrLogOff();
+	d.transport->HrLogOff();
 	auto new_props = profprop;
 	new_props.strServerPath = redir_srv;
-	ret = transport->HrLogon(new_props);
+	ret = d.transport->HrLogon(new_props);
 	if (ret != hrSuccess)
 		return ret;
-	return transport->HrResolveUserStore(convstring::from_SPropValue(name),
-	       0, NULL, eid_size, &eid);
+	return d.transport->HrResolveUserStore(convstring::from_SPropValue(name),
+	       0, NULL, &d.eid_size, &d.eid);
 }
 
-static HRESULT initprov_storearc(WSTransport *&transport,
-    IProviderAdmin *provadm, SPropValuePtr &provuid, IProfSect *profsect,
-    unsigned int *eid_size, EntryIdPtr &eid)
+static HRESULT initprov_storearc(struct initprov &d)
 {
 	// We need to get the username and the server name or url from the profsect.
 	// That's enough information to get the entryid from the correct server. There's no redirect
 	// available when resolving archive stores.
 	SPropValuePtr name, server;
-	HRESULT ret = HrGetOneProp(profsect, PR_EC_USERNAME_W, &name);
+	HRESULT ret = HrGetOneProp(d.profsect, PR_EC_USERNAME_W, &name);
 	if (ret != hrSuccess)
-		ret = HrGetOneProp(profsect, PR_EC_USERNAME_A, &name);
+		ret = HrGetOneProp(d.profsect, PR_EC_USERNAME_A, &name);
 	if (ret == hrSuccess) {
-		ret = HrGetOneProp(profsect, PR_EC_SERVERNAME_W, &server);
+		ret = HrGetOneProp(d.profsect, PR_EC_SERVERNAME_W, &server);
 		if (ret != hrSuccess)
-			ret = HrGetOneProp(profsect, PR_EC_SERVERNAME_A, &server);
+			ret = HrGetOneProp(d.profsect, PR_EC_SERVERNAME_A, &server);
 		if (ret != hrSuccess)
 			return MAPI_E_UNCONFIGURED;
 	}
@@ -311,52 +319,48 @@ static HRESULT initprov_storearc(WSTransport *&transport,
 		 * it should not just delete the provider for all types of
 		 * providers.
 		 */
-		if (provadm != NULL && provuid.get() != NULL)
-			provadm->DeleteProvider(reinterpret_cast<MAPIUID *>(provuid->Value.bin.lpb));
+		if (d.provadm != NULL && d.provuid != NULL)
+			d.provadm->DeleteProvider(d.provuid);
 		/* Invalid or empty archive store */
 		return MAPI_S_SPECIAL_OK;
 	}
 
 	WSTransport *alt_transport;
-	ret = GetTransportToNamedServer(transport, server->Value.LPSZ,
+	ret = GetTransportToNamedServer(d.transport, server->Value.LPSZ,
 	      (PROP_TYPE(name->ulPropTag) == PT_STRING8 ? 0 : MAPI_UNICODE),
 	      &alt_transport);
 	if (ret != hrSuccess)
 		return ret;
 
-	std::swap(transport, alt_transport);
+	std::swap(d.transport, alt_transport);
 	alt_transport->Release();
 	alt_transport = NULL;
-	return transport->HrResolveTypedStore(convstring::from_SPropValue(name),
-	       ECSTORE_TYPE_ARCHIVE, eid_size, &eid);
+	return d.transport->HrResolveTypedStore(convstring::from_SPropValue(name),
+	       ECSTORE_TYPE_ARCHIVE, &d.eid_size, &d.eid);
 }
 
-static HRESULT initprov_mapi_store(WSTransport *&transport,
-    IProviderAdmin *provadm, SPropValuePtr &provuid,
-    const sGlobalProfileProps &profprop, IProfSect *profsect,
-    unsigned int *eid_size, EntryIdPtr &eid, unsigned int &count,
-    SPropValue *prop, WStringPtr &store_name, unsigned int &wrap_eid_size,
-    EntryIdPtr &wrap_eid)
+static HRESULT
+initprov_mapi_store(struct initprov &d, const sGlobalProfileProps &profprop)
 {
 	SPropValuePtr mdb;
-	HRESULT ret = HrGetOneProp(profsect, PR_MDB_PROVIDER, &mdb);
+	HRESULT ret = HrGetOneProp(d.profsect, PR_MDB_PROVIDER, &mdb);
 	if (ret != hrSuccess)
 		return ret;
 
 	if (CompareMDBProvider(mdb->Value.bin.lpb, &KOPANO_STORE_PUBLIC_GUID)) {
-		ret = initprov_storepub(transport, provadm, provuid, profprop, eid_size, eid);
+		ret = initprov_storepub(d, profprop);
 		if (ret != hrSuccess)
 			return ret;
 	} else if (CompareMDBProvider(mdb->Value.bin.lpb, &KOPANO_SERVICE_GUID)) {
-		ret = initprov_service(transport, provadm, profprop, eid_size, eid);
+		ret = initprov_service(d, profprop);
 		if (ret != hrSuccess)
 			return ret;
 	} else if(CompareMDBProvider(mdb->Value.bin.lpb, &KOPANO_STORE_DELEGATE_GUID)) {
-		ret = initprov_storedl(transport, provadm, provuid, profprop, profsect, eid_size, eid);
+		ret = initprov_storedl(d, profprop);
 		if (ret != hrSuccess)
 			return ret;
 	} else if(CompareMDBProvider(mdb->Value.bin.lpb, &KOPANO_STORE_ARCHIVE_GUID)) {
-		ret = initprov_storearc(transport, provadm, provuid, profsect, eid_size, eid);
+		ret = initprov_storearc(d);
 		if (ret != hrSuccess)
 			return ret;
 	} else {
@@ -364,32 +368,31 @@ static HRESULT initprov_mapi_store(WSTransport *&transport,
 		return hrSuccess;
 	}
 
-	ret = transport->HrGetStoreName(*eid_size, eid, MAPI_UNICODE,
-	      static_cast<LPTSTR *>(&store_name));
+	ret = d.transport->HrGetStoreName(d.eid_size, d.eid, MAPI_UNICODE,
+	      static_cast<LPTSTR *>(&d.store_name));
 	if (ret != hrSuccess)
 		return ret;
 	ret = WrapStoreEntryID(0, reinterpret_cast<LPTSTR>(const_cast<char *>(WCLIENT_DLL_NAME)),
-	      *eid_size, eid, &wrap_eid_size, &wrap_eid);
+	      d.eid_size, d.eid, &d.wrap_eid_size, &d.wrap_eid);
 	if (ret != hrSuccess)
 		return ret;
 
-	prop[count].ulPropTag = PR_ENTRYID;
-	prop[count].Value.bin.cb = wrap_eid_size;
-	prop[count++].Value.bin.lpb = reinterpret_cast<BYTE *>(wrap_eid.get());
-	prop[count].ulPropTag = PR_RECORD_KEY;
-	prop[count].Value.bin.cb = sizeof(MAPIUID);
-	prop[count++].Value.bin.lpb = (LPBYTE) &reinterpret_cast<PEID>(eid.get())->guid; //@FIXME validate guid
-	prop[count].ulPropTag = PR_DISPLAY_NAME_W;
-	prop[count++].Value.lpszW = reinterpret_cast<wchar_t *>(store_name.get());
-	prop[count].ulPropTag = PR_EC_PATH;
-	prop[count++].Value.lpszA = const_cast<char *>("Server");
-	prop[count].ulPropTag = PR_PROVIDER_DLL_NAME_A;
-	prop[count++].Value.lpszA = const_cast<char *>(WCLIENT_DLL_NAME);
+	d.prop[d.count].ulPropTag = PR_ENTRYID;
+	d.prop[d.count].Value.bin.cb = d.wrap_eid_size;
+	d.prop[d.count++].Value.bin.lpb = reinterpret_cast<BYTE *>(d.wrap_eid.get());
+	d.prop[d.count].ulPropTag = PR_RECORD_KEY;
+	d.prop[d.count].Value.bin.cb = sizeof(MAPIUID);
+	d.prop[d.count++].Value.bin.lpb = (LPBYTE)&reinterpret_cast<PEID>(d.eid.get())->guid; //@FIXME validate guid
+	d.prop[d.count].ulPropTag = PR_DISPLAY_NAME_W;
+	d.prop[d.count++].Value.lpszW = reinterpret_cast<wchar_t *>(d.store_name.get());
+	d.prop[d.count].ulPropTag = PR_EC_PATH;
+	d.prop[d.count++].Value.lpszA = const_cast<char *>("Server");
+	d.prop[d.count].ulPropTag = PR_PROVIDER_DLL_NAME_A;
+	d.prop[d.count++].Value.lpszA = const_cast<char *>(WCLIENT_DLL_NAME);
 	return hrSuccess;
 }
 
-static HRESULT initprov_addrbook(std::unique_ptr<ABEID, EPCDeleter> &eid,
-    unsigned int &count, SPropValue *prop)
+static HRESULT initprov_addrbook(struct initprov &d)
 {
 	ABEID *eidptr;
 	size_t abe_size = CbNewABEID("");
@@ -397,23 +400,23 @@ static HRESULT initprov_addrbook(std::unique_ptr<ABEID, EPCDeleter> &eid,
 	if (ret != hrSuccess)
 		return ret;
 
-	eid.reset(eidptr);
+	d.abe_id.reset(eidptr);
 	memset(eidptr, 0, abe_size);
-	memcpy(&eid->guid, &MUIDECSAB, sizeof(GUID));
-	eid->ulType = MAPI_ABCONT;
+	memcpy(&d.abe_id->guid, &MUIDECSAB, sizeof(GUID));
+	d.abe_id->ulType = MAPI_ABCONT;
 
-	prop[count].ulPropTag = PR_ENTRYID;
-	prop[count].Value.bin.cb = abe_size;
-	prop[count++].Value.bin.lpb = reinterpret_cast<BYTE *>(eidptr);
-	prop[count].ulPropTag = PR_RECORD_KEY;
-	prop[count].Value.bin.cb = sizeof(MAPIUID);
-	prop[count++].Value.bin.lpb = reinterpret_cast<BYTE *>(const_cast<GUID *>(&MUIDECSAB));
-	prop[count].ulPropTag = PR_DISPLAY_NAME_A;
-	prop[count++].Value.lpszA = const_cast<char *>("Kopano Addressbook");
-	prop[count].ulPropTag = PR_EC_PATH;
-	prop[count++].Value.lpszA = const_cast<char *>("Kopano Addressbook");
-	prop[count].ulPropTag = PR_PROVIDER_DLL_NAME_A;
-	prop[count++].Value.lpszA = const_cast<char *>(WCLIENT_DLL_NAME);
+	d.prop[d.count].ulPropTag = PR_ENTRYID;
+	d.prop[d.count].Value.bin.cb = abe_size;
+	d.prop[d.count++].Value.bin.lpb = reinterpret_cast<BYTE *>(eidptr);
+	d.prop[d.count].ulPropTag = PR_RECORD_KEY;
+	d.prop[d.count].Value.bin.cb = sizeof(MAPIUID);
+	d.prop[d.count++].Value.bin.lpb = reinterpret_cast<BYTE *>(const_cast<GUID *>(&MUIDECSAB));
+	d.prop[d.count].ulPropTag = PR_DISPLAY_NAME_A;
+	d.prop[d.count++].Value.lpszA = const_cast<char *>("Kopano Addressbook");
+	d.prop[d.count].ulPropTag = PR_EC_PATH;
+	d.prop[d.count++].Value.lpszA = const_cast<char *>("Kopano Addressbook");
+	d.prop[d.count].ulPropTag = PR_PROVIDER_DLL_NAME_A;
+	d.prop[d.count++].Value.lpszA = const_cast<char *>(WCLIENT_DLL_NAME);
 	return hrSuccess;
 }
 
@@ -433,75 +436,64 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
     ULONG *lpcStoreID, LPENTRYID *lppStoreID, WSTransport *transport)
 {
 	HRESULT hr = hrSuccess;
-
-	WSTransport		*lpTransport = NULL;
-	std::unique_ptr<ABEID, EPCDeleter> abe_id;
-	ULONG			cbEntryId = 0;
-	ULONG			cbWrappedEntryId = 0;
-	EntryIdPtr		ptrEntryId;
-	EntryIdPtr		ptrWrappedEntryId;
-	ProfSectPtr		ptrGlobalProfSect;
-	SPropValuePtr	ptrPropValueName;
-	SPropValuePtr	ptrPropValueMDB;
 	SPropValuePtr	ptrPropValueResourceType;
-	SPropValuePtr	ptrPropValueServiceName;
 	SPropValuePtr	ptrPropValueProviderUid;
-	SPropValuePtr	ptrPropValueServerName;
-	WStringPtr		ptrStoreName;
-	std::string		strDefStoreServer;
 	std::string		strServiceName;
-	SPropValue		sPropVals[6]; 
-	ULONG			cPropValue = 0;
 	ULONG			ulResourceType=0;
+	struct initprov d;
+	d.provadm = lpAdminProvider;
+	d.profsect = lpProfSect;
+	d.count = d.eid_size = 0;
 
-	if (lpAdminProvider) {
-		hr = GetServiceName(lpAdminProvider, &strServiceName);
+	if (d.provadm != NULL) {
+		hr = GetServiceName(d.provadm, &strServiceName);
 		if (hr != hrSuccess)
 			goto exit;
 	} else {
-
-		hr = HrGetOneProp(lpProfSect, PR_SERVICE_NAME_A, &ptrPropValueServiceName);
+		SPropValuePtr psn;
+		hr = HrGetOneProp(d.profsect, PR_SERVICE_NAME_A, &psn);
 		if(hr == hrSuccess)
-			strServiceName = ptrPropValueServiceName->Value.lpszA;
-		
+			strServiceName = psn->Value.lpszA;
 		hr = hrSuccess;
 	}
 	
-	hr = HrGetOneProp(lpProfSect, PR_RESOURCE_TYPE, &ptrPropValueResourceType);
+	hr = HrGetOneProp(d.profsect, PR_RESOURCE_TYPE, &ptrPropValueResourceType);
 	if(hr != hrSuccess) {
 		// Ignore this provider; apparently it has no resource type, so just skip it
 		hr = hrSuccess;
 		goto exit;
 	}
 	
-	HrGetOneProp(lpProfSect, PR_PROVIDER_UID, &ptrPropValueProviderUid);
+	HrGetOneProp(d.profsect, PR_PROVIDER_UID, &ptrPropValueProviderUid);
 
 	ulResourceType = ptrPropValueResourceType->Value.l;
 
 	TRACE_MAPI(TRACE_INFO, "InitializeProvider", "Resource type=%s", ResourceTypeToString(ulResourceType) );
 
 	if (transport != NULL) {
-		lpTransport = transport;
+		d.transport = transport;
 	} else {
-		hr = WSTransport::Create(0, &lpTransport);
+		hr = WSTransport::Create(0, &d.transport);
 		if (hr != hrSuccess)
 			goto exit;
 	}
 
-	hr = lpTransport->HrLogon(sProfileProps);
+	hr = d.transport->HrLogon(sProfileProps);
 	if(hr != hrSuccess)
 		goto exit;
 
+	if (ptrPropValueProviderUid.get() != NULL)
+		d.provuid = reinterpret_cast<MAPIUID *>(ptrPropValueProviderUid.get()->Value.bin.lpb);
+	else
+		d.provuid = NULL;
+
 	if(ulResourceType == MAPI_STORE_PROVIDER)
 	{
-		hr = initprov_mapi_store(lpTransport, lpAdminProvider,
-		     ptrPropValueProviderUid, sProfileProps, lpProfSect,
-		     &cbEntryId, ptrEntryId, cPropValue, sPropVals,
-		     ptrStoreName, cbWrappedEntryId, ptrWrappedEntryId);
+		hr = initprov_mapi_store(d, sProfileProps);
 		if (hr != hrSuccess)
 			goto exit;
 	} else if(ulResourceType == MAPI_AB_PROVIDER) {
-		hr = initprov_addrbook(abe_id, cPropValue, sPropVals);
+		hr = initprov_addrbook(d);
 		if (hr != hrSuccess)
 			goto exit;
 	} else {
@@ -511,29 +503,28 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 		goto exit;
 	}
 
-	hr = lpProfSect->SetProps(cPropValue, sPropVals, NULL);
+	hr = d.profsect->SetProps(d.count, d.prop, NULL);
 	if(hr != hrSuccess)
 		goto exit;
 
-	hr = lpProfSect->SaveChanges(0);
+	hr = d.profsect->SaveChanges(0);
 	if(hr != hrSuccess)
 		goto exit;
 
 	if (lpcStoreID && lppStoreID) {
-		*lpcStoreID = cbEntryId;
-
-		hr = MAPIAllocateBuffer(cbEntryId, (void**)lppStoreID);
+		*lpcStoreID = d.eid_size;
+		hr = MAPIAllocateBuffer(d.eid_size, reinterpret_cast<void **>(lppStoreID));
 		if(hr != hrSuccess)
 			goto exit;
 		
-		memcpy(*lppStoreID, ptrEntryId, cbEntryId);
+		memcpy(*lppStoreID, d.eid, d.eid_size);
 	}
 exit:
 	//Free allocated memory
-	if (lpTransport != NULL && lpTransport != transport)
-		lpTransport->Release(); /* implies logoff */
+	if (d.transport != NULL && d.transport != transport)
+		d.transport->Release(); /* implies logoff */
 	else
-		lpTransport->logoff_nd();
+		d.transport->logoff_nd();
 	if (hr == MAPI_S_SPECIAL_OK)
 		return hrSuccess;
 	return hr;
