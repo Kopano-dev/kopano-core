@@ -202,6 +202,51 @@ static HRESULT initprov_storepub(WSTransport *tp, IProviderAdmin *provadm,
 	return MAPI_S_SPECIAL_OK;
 }
 
+static HRESULT initprov_service(WSTransport *transport,
+    IProviderAdmin *provadm, const sGlobalProfileProps &profprop,
+    unsigned int *eid_size, EntryIdPtr &eid)
+{
+	/* Get the default store for this user */
+	std::string redir_srv;
+	HRESULT ret = transport->HrGetStore(0, NULL, eid_size, &eid,
+	              0, NULL, &redir_srv);
+	if (ret == MAPI_E_NOT_FOUND) {
+		ec_log_err("HrGetStore failed: No store present.");
+		return ret;
+	} else if (ret != MAPI_E_UNABLE_TO_COMPLETE) {
+		return ret;
+	}
+
+	/* MAPI_E_UNABLE_TO_COMPLETE */
+	transport->HrLogOff();
+	auto new_props = profprop;
+	new_props.strServerPath = redir_srv;
+	ret = transport->HrLogon(new_props);
+	if (ret != hrSuccess)
+		return ret;
+	ret = transport->HrGetStore(0, NULL, eid_size, &eid, 0, NULL);
+	if (ret != hrSuccess)
+		return ret;
+
+	/* This should be a real URL */
+	assert(redir_srv.compare(0, 9, "pseudo://") != 0);
+
+	if (provadm == NULL || redir_srv.empty())
+		return hrSuccess;
+
+	/* Set/update the default store home server. */
+	auto guid = reinterpret_cast<MAPIUID *>(const_cast<char *>(pbGlobalProfileSectionGuid));
+	ProfSectPtr globprofsect;
+	ret = provadm->OpenProfileSection(guid, NULL, MAPI_MODIFY, &globprofsect);
+	if (ret != hrSuccess)
+		return ret;
+
+	SPropValue spv;
+	spv.ulPropTag = PR_EC_PATH;
+	spv.Value.lpszA = const_cast<char *>(redir_srv.c_str());
+	return HrSetOneProp(globprofsect, &spv);
+}
+
 static HRESULT initprov_addrbook(std::unique_ptr<ABEID, EPCDeleter> &eid,
     unsigned int &count, SPropValue *prop)
 {
@@ -266,8 +311,6 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 	std::string		strRedirServer;
 	std::string		strDefStoreServer;
 	std::string		strServiceName;
-
-	SPropValue		sPropValue;
 	SPropValue		sPropVals[6]; 
 	ULONG			cPropValue = 0;
 	ULONG			ulResourceType=0;
@@ -321,42 +364,9 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 			if (hr != hrSuccess)
 				goto exit;
 		} else if(CompareMDBProvider(ptrPropValueMDB->Value.bin.lpb, &KOPANO_SERVICE_GUID)) {
-			// Get the default store for this user
-			hr = lpTransport->HrGetStore(0, NULL, &cbEntryId, &ptrEntryId, 0, NULL, &strRedirServer);
-			if (hr == MAPI_E_NOT_FOUND) {
-				ec_log_err("HrGetStore failed: No store present.");
-			} else if (hr == MAPI_E_UNABLE_TO_COMPLETE) {
-				lpTransport->HrLogOff();
-				auto new_props = sProfileProps;
-				new_props.strServerPath = strRedirServer;
-				hr = lpTransport->HrLogon(new_props);
-				if (hr != hrSuccess)
-					goto exit;
-
-				hr = lpTransport->HrGetStore(0, NULL, &cbEntryId, &ptrEntryId, 0, NULL);
-				if (hr == hrSuccess)
-				{
-					// This should be a real URL
-					assert(strRedirServer.compare(0, 9, "pseudo://") != 0);
-
-					// Set the default store home server.
-					if (lpAdminProvider && !strRedirServer.empty())
-					{
-						hr = lpAdminProvider->OpenProfileSection((LPMAPIUID)pbGlobalProfileSectionGuid, NULL, MAPI_MODIFY , &ptrGlobalProfSect);
-						if(hr != hrSuccess)
-							goto exit;
-
-						sPropValue.ulPropTag = PR_EC_PATH;
-						sPropValue.Value.lpszA = (char *)strRedirServer.c_str();
-						hr = HrSetOneProp(ptrGlobalProfSect, &sPropValue);
-						if(hr != hrSuccess)
-							goto exit;
-					}
-				}
-			}
-			if(hr != hrSuccess) 
+			hr = initprov_service(lpTransport, lpAdminProvider, sProfileProps, &cbEntryId, ptrEntryId);
+			if (hr != hrSuccess) 
 				goto exit;
-			
 		} else if(CompareMDBProvider(ptrPropValueMDB->Value.bin.lpb, &KOPANO_STORE_DELEGATE_GUID)) {
 			// PR_EC_USERNAME is the user we're want to add ...
 			hr = HrGetOneProp(lpProfSect, PR_EC_USERNAME_W, &ptrPropValueName);
