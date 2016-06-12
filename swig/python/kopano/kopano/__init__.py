@@ -482,7 +482,7 @@ if sys.hexversion >= 0x03000000:
         return isinstance(s, str)
 
     def unicode(s):
-        return s
+        return str(s)
 
     def _decode(s):
         return s
@@ -1990,13 +1990,13 @@ class Folder(object):
         '''
 
         try:
-            return self.prop(PR_CONTAINER_CLASS).value
+            return self.prop(PR_CONTAINER_CLASS_W).value
         except MAPIErrorNotFound:
             pass
 
     @container_class.setter
     def container_class(self, value):
-        self.mapiobj.SetProps([SPropValue(PR_CONTAINER_CLASS, unicode(value))])
+        self.mapiobj.SetProps([SPropValue(PR_CONTAINER_CLASS_W, unicode(value))])
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     @property
@@ -2549,7 +2549,7 @@ class Item(object):
 
     @property
     def message_class(self):
-        return self.prop(PR_MESSAGE_CLASS).value
+        return self.prop(PR_MESSAGE_CLASS_W).value
 
     @message_class.setter
     def message_class(self, messageclass):
@@ -2563,7 +2563,7 @@ class Item(object):
         * IPM.Appointment                - appointment
         * IPM.Task                       - task
         '''
-        self.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS, unicode(messageclass))])
+        self.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS_W, unicode(messageclass))])
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     @body.setter
@@ -3420,13 +3420,13 @@ class Outofoffice(object):
         """ Subject """
 
         try:
-            return self.store.prop(PR_EC_OUTOFOFFICE_SUBJECT).value
+            return self.store.prop(PR_EC_OUTOFOFFICE_SUBJECT_W).value
         except MAPIErrorNotFound:
             return u''
 
     @subject.setter
     def subject(self, value):
-        self.store.mapiobj.SetProps([SPropValue(PR_EC_OUTOFOFFICE_SUBJECT, value)])
+        self.store.mapiobj.SetProps([SPropValue(PR_EC_OUTOFOFFICE_SUBJECT_W, unicode(value))])
         self.store.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     @property
@@ -3434,13 +3434,13 @@ class Outofoffice(object):
         """ Message """
 
         try:
-            return self.store.prop(PR_EC_OUTOFOFFICE_MSG).value
+            return self.store.prop(PR_EC_OUTOFOFFICE_MSG_W).value
         except MAPIErrorNotFound:
             return u''
 
     @message.setter
     def message(self, value):
-        self.store.mapiobj.SetProps([SPropValue(PR_EC_OUTOFOFFICE_MSG, value)])
+        self.store.mapiobj.SetProps([SPropValue(PR_EC_OUTOFOFFICE_MSG_W, unicode(value))])
         self.store.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     @property
