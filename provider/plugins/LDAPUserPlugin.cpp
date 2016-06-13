@@ -468,7 +468,7 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn, const char *bind_pw) {
 			goto fail2;
 		}
 
-		ec_log_debug("Trying to connect to %s", currentServer.c_str());
+		LOG_PLUGIN_DEBUG("Trying to connect to %s", currentServer.c_str());
 
 		if ((rc = ldap_set_option(ld, LDAP_OPT_PROTOCOL_VERSION, &version)) != LDAP_OPT_SUCCESS) {
 			ec_log_err("LDAP_OPT_PROTOCOL_VERSION failed: %s", ldap_err2string(rc));
@@ -513,6 +513,7 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn, const char *bind_pw) {
 		// Bind
 		// For these two values: if they are both NULL, anonymous bind
 		// will be used (ldap_binddn, ldap_bindpw)
+		LOG_PLUGIN_DEBUG("Issuing LDAP bind");
 		if ((rc = ldap_simple_bind_s(ld, (char *)bind_dn, (char *)bind_pw)) == LDAP_SUCCESS)
 			break;
 
@@ -550,7 +551,7 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn, const char *bind_pw) {
 LDAPUserPlugin::~LDAPUserPlugin() {
 	// Disconnect from the LDAP server
 	if (m_ldap) {
-		LOG_PLUGIN_DEBUG("%s", "Disconnect from LDAP while unloading plugin");
+		LOG_PLUGIN_DEBUG("%s", "Disconnecting from LDAP since unloading plugin instance");
 
 		if (ldap_unbind_s(m_ldap) == -1)
 			ec_log_err("LDAP unbind failed");
@@ -581,20 +582,25 @@ void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char 
 		filter = NULL;
 	}
 
+	/*
+	 * When an m_ldap connection object already exists, use it to make
+	 * a query, and, if that fails for any reason, reconnect-and-retry
+	 * exactly once.
+	 * When no m_ldap connection object existed, this boils down to
+	 * one standard connect plus query.
+	 */
 	if (m_ldap != NULL)
 		result = ldap_search_ext_s(m_ldap, base, scope, filter, attrs, attrsonly, serverControls, NULL, &m_timeout, 0, &res);
 
 	if (m_ldap == NULL || LDAP_API_ERROR(result)) {
-		// try 1 reconnect and retry, and if that fails, just completely fail
-		// We need this because LDAP server connections can timeout
 		const char *ldap_binddn = m_config->GetSetting("ldap_bind_user");
 		const char *ldap_bindpw = m_config->GetSetting("ldap_bind_passwd");
 
 		if (m_ldap != NULL) {
+			ec_log_err("LDAP search error: %s. Will unbind, reconnect and retry.", ldap_err2string(result));
 			if (ldap_unbind_s(m_ldap) == -1)
 				ec_log_err("LDAP unbind failed");
 			m_ldap = NULL;
-			ec_log_err("Disconnect from LDAP because of search error %s", ldap_err2string(result));
 		}
 
 		/// @todo encode the user and password, now it's depended in which charset the config is saved
@@ -612,10 +618,10 @@ void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char 
 		    // Some kind of API error occurred (error is not from the server). Unbind the connection so any next try will re-bind
 		    // which will possibly connect to a different (failed over) server.
 			if (m_ldap != NULL) {
+				ec_log_err("Unbinding from LDAP because of continued error (%s)", ldap_err2string(result));
 				if (ldap_unbind_s(m_ldap) == -1)
 					ec_log_err("LDAP unbind failed");
 				m_ldap = NULL;
-				ec_log_err("Disconnect from LDAP because reconnect search error %s", ldap_err2string(result));
 			}
 		}
 		goto exit;
