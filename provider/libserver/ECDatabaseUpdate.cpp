@@ -1137,7 +1137,7 @@ ECRESULT UpdateDatabaseCreateReferences(ECDatabase *lpDatabase)
 
 	er = lpDatabase->DoInsert(Z_TABLEDEF_REFERENCES);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	/* 
 	 * Create all attachment references from hierarchy table, let
@@ -1152,18 +1152,13 @@ ECRESULT UpdateDatabaseCreateReferences(ECDatabase *lpDatabase)
 
 	er = lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	/* We need to rename the column in `lob` */
 	strQuery =
 		"ALTER TABLE `lob` "
 		"CHANGE COLUMN `hierarchyid` `instanceid` int(11) unsigned NOT NULL";
-
-	er = lpDatabase->DoUpdate(strQuery);
-	if (er != erSuccess)
-		goto exit;
-exit:
-	return er;
+	return lpDatabase->DoUpdate(strQuery);
 }
 
 // 27
@@ -1744,7 +1739,6 @@ ECRESULT UpdateDatabaseConvertToUnicode(ECDatabase *lpDatabase)
 		ec_log_crit("but no progress and estimates within the updates will be available.");
 		return KCERR_USER_CANCEL;
 	}
-exit:
 	return er;
 }
 
@@ -1940,15 +1934,14 @@ ECRESULT UpdateDatabaseCreateCounters(ECDatabase *lpDatabase)
 						"GROUP BY parent.id";
 		er = lpDatabase->DoInsert(strQuery);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 		strQuery =	"REPLACE INTO properties(hierarchyid,tag,type,val_ulong) "
 						"SELECT folderid,"+stringify(PROP_ID(counter_info[i].ulPropTag))+","+stringify(PROP_TYPE(counter_info[i].ulPropTag))+","+counter_info[i].lpszValue+" FROM searchresults GROUP BY folderid";
 		er = lpDatabase->DoInsert(strQuery);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
-exit:
-	return er;
+	return hrSuccess;
 }
 
 // 52
@@ -1963,30 +1956,26 @@ ECRESULT UpdateDatabaseCreateCommonProps(ECDatabase *lpDatabase)
 						"WHERE h.type IN (3,5,7)";
 	er = lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 	strQuery =	"REPLACE INTO properties(hierarchyid,tag,type,val_hi,val_lo,val_ulong) "
 					"SELECT h.id,"+stringify(PROP_ID(PR_LAST_MODIFICATION_TIME))+","+stringify(PROP_TYPE(PR_LAST_MODIFICATION_TIME))+",(UNIX_TIMESTAMP(h.modtime) * 10000000 + 116444736000000000) >> 32,(UNIX_TIMESTAMP(h.modtime) * 10000000 + 116444736000000000) & 0xffffffff, NULL "
 					"FROM hierarchy AS h "
 						"WHERE h.type IN (3,5,7)";
 	er = lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 	strQuery =	"REPLACE INTO properties(hierarchyid,tag,type,val_hi,val_lo,val_ulong) "
 					"SELECT h.id,"+stringify(PROP_ID(PR_MESSAGE_FLAGS))+","+stringify(PROP_TYPE(PR_MESSAGE_FLAGS))+",NULL, NULL, h.flags "
 					"FROM hierarchy AS h "
 						"WHERE h.type IN (3,5,7)";
 	er = lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 	strQuery =	"REPLACE INTO properties(hierarchyid,tag,type,val_hi,val_lo,val_ulong) "
 					"SELECT h.id,"+stringify(PROP_ID(PR_FOLDER_TYPE))+","+stringify(PROP_TYPE(PR_FOLDER_TYPE))+",NULL, NULL, h.flags & 0x3 "
 					"FROM hierarchy AS h "
 						"WHERE h.type=3";
-	er = lpDatabase->DoInsert(strQuery);
-	if (er != erSuccess)
-		goto exit;
-exit:
-	return er;
+	return lpDatabase->DoInsert(strQuery);
 }
 
 // 53
@@ -2002,17 +1991,13 @@ ECRESULT UpdateDatabaseCheckAttachments(ECDatabase *lpDatabase)
 					"GROUP BY h.id";
 	er = lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 	strQuery =	"UPDATE properties AS p "
 					"JOIN hierarchy AS h ON p.hierarchyid=h.id AND h.type=5 "
 					"LEFT JOIN hierarchy AS c ON c.type=7 AND c.parent=p.hierarchyid "
 				"SET p.val_ulong = IF(c.id,p.val_ulong|"+stringify(MSGFLAG_DELETED)+", p.val_ulong & ~"+stringify(MSGFLAG_DELETED)+") "
 				"WHERE p.tag="+stringify(PROP_ID(PR_MESSAGE_FLAGS))+" AND p.type="+stringify(PROP_TYPE(PR_MESSAGE_FLAGS));
-	er = lpDatabase->DoInsert(strQuery);
-	if (er != erSuccess)
-		goto exit;
-exit:
-	return er;
+	return lpDatabase->DoInsert(strQuery);
 }
 
 // 54
@@ -2024,18 +2009,14 @@ ECRESULT UpdateDatabaseCreateTProperties(ECDatabase *lpDatabase)
 	// Create the tproperties table
 	er = lpDatabase->DoInsert(Z_TABLEDEF_TPROPERTIES);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	strQuery = 	"INSERT IGNORE INTO tproperties (folderid,hierarchyid,tag,type,val_ulong,val_string,val_binary,val_double,val_longint,val_hi,val_lo) "
 					"SELECT h.id, p.hierarchyid, p.tag, p.type, p.val_ulong, LEFT(p.val_string,255), LEFT(p.val_binary,255), p.val_double, p.val_longint, p.val_hi, p.val_lo "
 					"FROM properties AS p "
 						"JOIN hierarchy AS tmp ON p.hierarchyid = tmp.id AND p.tag NOT IN (" + stringify(PROP_ID(PR_BODY_HTML)) + "," + stringify(PROP_ID(PR_RTF_COMPRESSED)) + ")"
 						"LEFT JOIN hierarchy AS h ON tmp.parent = h.id AND h.type = 3";
-	er = lpDatabase->DoInsert(strQuery);
-	if (er != erSuccess)
-		goto exit;
-exit:
-	return er;
+	return lpDatabase->DoInsert(strQuery);
 }
 
 // 55
