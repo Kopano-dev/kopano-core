@@ -44,11 +44,6 @@
 #include <kopano/mapiext.h>
 #include <edkmdb.h>
 
-#define PROGRESS_INIT(...)
-#define PROGRESS_DONE
-#define INTERMEDIATE_PROGRESS(...)
-#define INTERMEDIATE_PROGRESS_(...)
-
 extern int searchfolder_restart_required; // HACK
 
 /*
@@ -1689,8 +1684,6 @@ ECRESULT UpdateDatabaseConvertToUnicode(ECDatabase *lpDatabase)
 	std::string strQuery;
 
 	if (lpDatabase->m_bForceUpdate) {
-		PROGRESS_INIT(Z_UPDATE_CONVERT_TO_UNICODE)
-
 		// Admin requested a forced upgrade, converting known tables
 		
 		/*
@@ -1743,7 +1736,6 @@ ECRESULT UpdateDatabaseConvertToUnicode(ECDatabase *lpDatabase)
 		 * - stores (specially handled in next update
 		 * - settings
 		 */
-		PROGRESS_DONE
 	} else {
 		ec_log_crit("Will not upgrade your database from Zarafa 6.40.x.");
 		ec_log_crit("The recommended upgrade procedure is to first upgrade by first upgrading to ZCP 7.2 and using the zarafa7-upgrade commandline tool.");
@@ -1760,14 +1752,9 @@ exit:
 ECRESULT UpdateDatabaseConvertStoreUsername(ECDatabase *lpDatabase)
 {
 	ECRESULT er = erSuccess;
-
-	PROGRESS_INIT(Z_UPDATE_CONVERT_STORE_USERNAME)
-
 	er = lpDatabase->DoUpdate("UPDATE stores SET user_name = CAST(CONVERT(user_name USING latin1) AS CHAR(255) CHARACTER SET utf8)");
 	if (er == erSuccess)
 		er = lpDatabase->DoUpdate("ALTER TABLE stores MODIFY user_name VARCHAR(255) CHARACTER SET utf8 NOT NULL DEFAULT ''");
-
-	PROGRESS_DONE
 	return er;
 }
 
@@ -1781,7 +1768,6 @@ ECRESULT UpdateDatabaseConvertRules(ECDatabase *lpDatabase)
 
 	convert_context converter;
 	char *lpszConverted = NULL;
-	PROGRESS_INIT(Z_UPDATE_CONVERT_RULES)
 
 	er = lpDatabase->DoSelect("SELECT p.hierarchyid, p.storeid, p.val_binary FROM properties AS p JOIN receivefolder AS r ON p.hierarchyid=r.objid AND p.storeid=r.storeid JOIN stores AS s ON r.storeid=s.hierarchy_id WHERE p.tag=0x3fe1 AND p.type=0x102 AND r.messageclass='IPM'", &lpResult);
 	if (er != erSuccess)
@@ -1801,15 +1787,9 @@ ECRESULT UpdateDatabaseConvertRules(ECDatabase *lpDatabase)
 		er = lpDatabase->DoUpdate("UPDATE properties SET val_binary='" + lpDatabase->Escape(lpszConverted) + "' WHERE hierarchyid=" + lpDBRow[0] + " AND storeid=" + lpDBRow[1] + " AND tag=0x3fe1 AND type=0x102");
 		if (er != erSuccess)
 			goto exit;
-
-		INTERMEDIATE_PROGRESS(++ulCurrent, ulTotal)
-
 		delete[] lpszConverted;
 		lpszConverted = NULL;
 	}
-
-	PROGRESS_DONE
-
 exit:
 	delete[] lpszConverted;
 
@@ -1830,7 +1810,6 @@ ECRESULT UpdateDatabaseConvertSearchFolders(ECDatabase *lpDatabase)
 
 	convert_context converter;
 	char *lpszConverted = NULL;
-	PROGRESS_INIT(Z_UPDATE_CONVERT_SEARCH_FOLDERS)
 
 	strQuery = "SELECT h.id, p.storeid, p.val_string FROM hierarchy AS h JOIN properties AS p ON p.hierarchyid=h.id AND p.tag=" + stringify(PROP_ID(PR_EC_SEARCHCRIT)) +" AND p.type=" + stringify(PROP_TYPE(PR_EC_SEARCHCRIT)) + " WHERE h.type=3 AND h.flags=2";
 	er = lpDatabase->DoSelect(strQuery, &lpResult);
@@ -1851,15 +1830,9 @@ ECRESULT UpdateDatabaseConvertSearchFolders(ECDatabase *lpDatabase)
 		er = lpDatabase->DoUpdate("UPDATE properties SET val_string='" + lpDatabase->Escape(lpszConverted) + "' WHERE hierarchyid=" + lpDBRow[0] + " AND storeid=" + lpDBRow[1] + " AND tag=" + stringify(PROP_ID(PR_EC_SEARCHCRIT)) +" AND type=" + stringify(PROP_TYPE(PR_EC_SEARCHCRIT)));
 		if (er != erSuccess)
 			goto exit;
-
-		INTERMEDIATE_PROGRESS(++ulCurrent, ulTotal)
-
 		delete[] lpszConverted;
 		lpszConverted = NULL;
 	}
-
-	PROGRESS_DONE
-
 exit:
 	delete[] lpszConverted;
 
@@ -1876,7 +1849,6 @@ ECRESULT UpdateDatabaseConvertProperties(ECDatabase *lpDatabase)
 	std::string strQuery;
 	DB_RESULT lpResult = NULL;
 	DB_ROW lpDBRow = NULL;
-	PROGRESS_INIT(Z_UPDATE_CONVERT_PROPERTIES)
 
 	// Create the temporary properties table
 	strQuery = Z_TABLEDEF_PROPERTIES;
@@ -1913,9 +1885,6 @@ ECRESULT UpdateDatabaseConvertProperties(ECDatabase *lpDatabase)
 		lpDBRow = lpDatabase->FetchRow(lpResult);
 		if (lpDBRow == NULL || lpDBRow[0] == NULL)
 			break;
-
-		INTERMEDIATE_PROGRESS(atoui(lpDBRow[0]), ulTotal)
-
 		lpDatabase->FreeResult(lpResult);
 		lpResult = NULL;
 	}
@@ -1931,9 +1900,6 @@ ECRESULT UpdateDatabaseConvertProperties(ECDatabase *lpDatabase)
 		goto exit;
 
 	er = lpDatabase->DoDelete("DROP TABLE properties_old");
-
-	PROGRESS_DONE
-
 exit:
 	if (lpResult)
 		lpDatabase->FreeResult(lpResult);
@@ -1963,7 +1929,6 @@ ECRESULT UpdateDatabaseCreateCounters(ECDatabase *lpDatabase)
 
 	ECRESULT er = erSuccess;
 	std::string strQuery;
-	PROGRESS_INIT(Z_UPDATE_CREATE_COUNTERS)
 
 	for (unsigned i = 0; i < 8; ++i) {
 		strQuery =	"REPLACE INTO properties(hierarchyid,tag,type,val_ulong) "
@@ -1976,20 +1941,12 @@ ECRESULT UpdateDatabaseCreateCounters(ECDatabase *lpDatabase)
 		er = lpDatabase->DoInsert(strQuery);
 		if (er != erSuccess)
 			goto exit;
-
-		INTERMEDIATE_PROGRESS(++ulCurrent, 16)
-
 		strQuery =	"REPLACE INTO properties(hierarchyid,tag,type,val_ulong) "
 						"SELECT folderid,"+stringify(PROP_ID(counter_info[i].ulPropTag))+","+stringify(PROP_TYPE(counter_info[i].ulPropTag))+","+counter_info[i].lpszValue+" FROM searchresults GROUP BY folderid";
 		er = lpDatabase->DoInsert(strQuery);
 		if (er != erSuccess)
 			goto exit;
-
-		INTERMEDIATE_PROGRESS(++ulCurrent, 16)
 	}
-
-	PROGRESS_DONE
-
 exit:
 	return er;
 }
@@ -2000,8 +1957,6 @@ ECRESULT UpdateDatabaseCreateCommonProps(ECDatabase *lpDatabase)
 	ECRESULT er = erSuccess;
 	std::string strQuery;
 
-	PROGRESS_INIT(Z_UPDATE_CREATE_COMMON_PROPS)
-
 	strQuery =	"REPLACE INTO properties(hierarchyid,tag,type,val_hi,val_lo,val_ulong) "
 					"SELECT h.id,"+stringify(PROP_ID(PR_CREATION_TIME))+","+stringify(PROP_TYPE(PR_CREATION_TIME))+",(UNIX_TIMESTAMP(h.createtime) * 10000000 + 116444736000000000) >> 32,(UNIX_TIMESTAMP(h.createtime) * 10000000 + 116444736000000000) & 0xffffffff, NULL "
 					"FROM hierarchy AS h "
@@ -2009,8 +1964,6 @@ ECRESULT UpdateDatabaseCreateCommonProps(ECDatabase *lpDatabase)
 	er = lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess)
 		goto exit;
-	INTERMEDIATE_PROGRESS_(.25)
-
 	strQuery =	"REPLACE INTO properties(hierarchyid,tag,type,val_hi,val_lo,val_ulong) "
 					"SELECT h.id,"+stringify(PROP_ID(PR_LAST_MODIFICATION_TIME))+","+stringify(PROP_TYPE(PR_LAST_MODIFICATION_TIME))+",(UNIX_TIMESTAMP(h.modtime) * 10000000 + 116444736000000000) >> 32,(UNIX_TIMESTAMP(h.modtime) * 10000000 + 116444736000000000) & 0xffffffff, NULL "
 					"FROM hierarchy AS h "
@@ -2018,8 +1971,6 @@ ECRESULT UpdateDatabaseCreateCommonProps(ECDatabase *lpDatabase)
 	er = lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess)
 		goto exit;
-	INTERMEDIATE_PROGRESS_(.5)
-
 	strQuery =	"REPLACE INTO properties(hierarchyid,tag,type,val_hi,val_lo,val_ulong) "
 					"SELECT h.id,"+stringify(PROP_ID(PR_MESSAGE_FLAGS))+","+stringify(PROP_TYPE(PR_MESSAGE_FLAGS))+",NULL, NULL, h.flags "
 					"FROM hierarchy AS h "
@@ -2027,8 +1978,6 @@ ECRESULT UpdateDatabaseCreateCommonProps(ECDatabase *lpDatabase)
 	er = lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess)
 		goto exit;
-	INTERMEDIATE_PROGRESS_(.75)
-
 	strQuery =	"REPLACE INTO properties(hierarchyid,tag,type,val_hi,val_lo,val_ulong) "
 					"SELECT h.id,"+stringify(PROP_ID(PR_FOLDER_TYPE))+","+stringify(PROP_TYPE(PR_FOLDER_TYPE))+",NULL, NULL, h.flags & 0x3 "
 					"FROM hierarchy AS h "
@@ -2036,10 +1985,6 @@ ECRESULT UpdateDatabaseCreateCommonProps(ECDatabase *lpDatabase)
 	er = lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess)
 		goto exit;
-	INTERMEDIATE_PROGRESS_(1)
-
-	PROGRESS_DONE
-
 exit:
 	return er;
 }
@@ -2050,8 +1995,6 @@ ECRESULT UpdateDatabaseCheckAttachments(ECDatabase *lpDatabase)
 	ECRESULT er = erSuccess;
 	std::string strQuery;
 
-	PROGRESS_INIT(Z_UPDATE_CHECK_ATTACHMENTS)
-
 	strQuery =	"REPLACE INTO properties(hierarchyid,tag,type,val_ulong) "
 					"SELECT h.id,"+stringify(PROP_ID(PR_HASATTACH))+","+stringify(PROP_TYPE(PR_HASATTACH))+",IF(att.id,1,0) "
 						"FROM hierarchy AS h "
@@ -2060,8 +2003,6 @@ ECRESULT UpdateDatabaseCheckAttachments(ECDatabase *lpDatabase)
 	er = lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess)
 		goto exit;
-	INTERMEDIATE_PROGRESS_(.5)
-
 	strQuery =	"UPDATE properties AS p "
 					"JOIN hierarchy AS h ON p.hierarchyid=h.id AND h.type=5 "
 					"LEFT JOIN hierarchy AS c ON c.type=7 AND c.parent=p.hierarchyid "
@@ -2070,10 +2011,6 @@ ECRESULT UpdateDatabaseCheckAttachments(ECDatabase *lpDatabase)
 	er = lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess)
 		goto exit;
-	INTERMEDIATE_PROGRESS_(1)
-
-	PROGRESS_DONE
-
 exit:
 	return er;
 }
@@ -2107,8 +2044,6 @@ ECRESULT UpdateDatabaseConvertHierarchy(ECDatabase *lpDatabase)
 	ECRESULT er = erSuccess;
 	std::string strQuery;
 
-	PROGRESS_INIT(Z_UPDATE_CONVERT_HIERARCHY)
-
 	// Create the temporary properties table
 	strQuery = Z_TABLEDEF_HIERARCHY;
 	strQuery.replace(strQuery.find("hierarchy"), strlen("hierarchy"), "hierarchy_temp");
@@ -2129,9 +2064,6 @@ ECRESULT UpdateDatabaseConvertHierarchy(ECDatabase *lpDatabase)
 		goto exit;
 
 	er = lpDatabase->DoDelete("DROP TABLE hierarchy_old");
-
-	PROGRESS_DONE
-
 exit:
 	lpDatabase->DoDelete("DROP TABLE IF EXISTS hierarchy_temp");
 	
@@ -2143,13 +2075,8 @@ ECRESULT UpdateDatabaseCreateDeferred(ECDatabase *lpDatabase)
 {
 	ECRESULT er = erSuccess;
 	std::string strQuery;
-
-	PROGRESS_INIT(Z_UPDATE_CREATE_DEFERRED)
-
 	// Create the deferred table
 	er = lpDatabase->DoInsert(Z_TABLEDEF_DELAYEDUPDATE);
-
-	PROGRESS_DONE
 	return er;
 }
 
@@ -2176,8 +2103,6 @@ ECRESULT UpdateDatabaseConvertNames(ECDatabase *lpDatabase)
 	ECRESULT er = erSuccess;
 	std::string strQuery;
 
-	PROGRESS_INIT(Z_UPDATE_CONVERT_NAMES)
-
 	// CharsetDetect(names)
 
 	// Create the temporary names table
@@ -2197,9 +2122,6 @@ ECRESULT UpdateDatabaseConvertNames(ECDatabase *lpDatabase)
 		goto exit;
 
 	er = lpDatabase->DoDelete("DROP TABLE names_old");
-
-	PROGRESS_DONE
-
 exit:
 	lpDatabase->DoDelete("DROP TABLE IF EXISTS names_temp");
 	
