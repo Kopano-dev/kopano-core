@@ -317,7 +317,12 @@ HRESULT WSMAPIPropStorage::HrUpdateSoapObject(MAPIOBJECT *lpsMapiObject, struct 
 				continue;
 
 			// Extra check for protect the modProps array
-			if(lpsSaveObj->modProps.__size+1 > lpsMapiObject->lstModified->size() ) {
+			if (lpsSaveObj->modProps.__size >= 0 &&
+			    static_cast<size_t>(lpsSaveObj->modProps.__size) >= lpsMapiObject->lstModified->size()) {
+				/*
+				 * modProps.size+1 > lpsMapiObject->lstModified->size()
+				 * (a+1>b) transformed to (a>=b)
+				 */
 				ASSERT(FALSE);
 				return MAPI_E_NOT_ENOUGH_MEMORY;
 			}
@@ -515,16 +520,15 @@ exit:
 }
 
 ECRESULT WSMAPIPropStorage::ECSoapObjectToMapiObject(struct saveObject *lpsSaveObj, MAPIOBJECT *lpsMapiObject) {
-	ECRESULT ec;
 	MAPIOBJECT *mo = NULL;
 	ULONG ulAttachUniqueId = 0;
 	ULONG ulRecipUniqueId = 0;
 
 	// delProps contains all the available property tag
-	ec = EcFillPropTags(lpsSaveObj, lpsMapiObject);
+	EcFillPropTags(lpsSaveObj, lpsMapiObject);
 
 	// modProps contains all the props < 8K
-	ec = EcFillPropValues(lpsSaveObj, lpsMapiObject);
+	EcFillPropValues(lpsSaveObj, lpsMapiObject);
 
 	// delete stays false, unique id is set upon allocation
 	lpsMapiObject->ulObjId = lpsSaveObj->ulServerId;

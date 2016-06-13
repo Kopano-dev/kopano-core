@@ -368,7 +368,7 @@ void* ECNotifyMaster::NotifyWatch(void *pTmpNotifyMaster)
 		notificationArray *pNotifyArray = NULL;
 
 		hr = pNotifyMaster->m_lpTransport->HrGetNotify(&pNotifyArray);
-		if (hr == KCWARN_CALL_KEEPALIVE) {
+		if (static_cast<unsigned int>(hr) == KCWARN_CALL_KEEPALIVE) {
 			if (bReconnect) {
 				TRACE_NOTIFY(TRACE_WARNING, "NotifyWatch::Reconnection", "OK connection: %d", pNotifyMaster->m_ulConnection);
 				bReconnect = false;

@@ -143,7 +143,7 @@ static HRESULT HrZoneToStruct(icalcomponent_kind kind, icalcomponent *lpVTZ,
 	HRESULT hr = hrSuccess;
 	icalcomponent *icComp = NULL;
 	icalcomponent *iterComp = NULL;
-	icalproperty *tzFrom, *tzTo, *rRule, *dtStart, *rDate;
+	icalproperty *tzFrom, *tzTo, *rRule, *dtStart;
 	icaltimetype icTime;
 	SYSTEMTIME *lpSysTime = NULL;
 	SYSTEMTIME stRecurTime;
@@ -170,7 +170,7 @@ static HRESULT HrZoneToStruct(icalcomponent_kind kind, icalcomponent *lpVTZ,
 	tzFrom = icalcomponent_get_first_property(icComp, ICAL_TZOFFSETFROM_PROPERTY);
 	tzTo = icalcomponent_get_first_property(icComp, ICAL_TZOFFSETTO_PROPERTY);
 	rRule = icalcomponent_get_first_property(icComp, ICAL_RRULE_PROPERTY);
-	rDate = icalcomponent_get_first_property(icComp, ICAL_RDATE_PROPERTY);
+	//rDate = icalcomponent_get_first_property(icComp, ICAL_RDATE_PROPERTY);
 
 	if (!tzFrom || !tzTo || !dtStart) {
 		hr = MAPI_E_NOT_FOUND;

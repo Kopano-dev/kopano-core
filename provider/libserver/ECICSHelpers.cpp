@@ -1028,7 +1028,7 @@ ECRESULT ECGetContentChangesHelper::MatchRestrictions(const std::vector<DB_ROW> 
 
 	memset(&sODStore, 0, sizeof(sODStore));
 
-	ec_log(EC_LOGLEVEL_ICS, "MatchRestrictions: matching %d rows", db_rows.size());
+	ec_log(EC_LOGLEVEL_ICS, "MatchRestrictions: matching %zu rows", db_rows.size());
 
 	for (size_t i = 0; i < db_rows.size(); ++i) {
 		lpdata.push_back(reinterpret_cast<unsigned char *>(db_rows[i][icsSourceKey]));

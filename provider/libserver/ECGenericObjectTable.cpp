@@ -2827,9 +2827,13 @@ exit:
  * @param lpfModified Returns whether the category min/max value was changed
  * @return result
  */
-ECRESULT ECGenericObjectTable::UpdateCategoryMinMax(sObjectTableKey &sKey, ECCategory *lpCategory, unsigned int i, struct propVal *lpProps, unsigned int cProps, bool *lpfModified)
+ECRESULT ECGenericObjectTable::UpdateCategoryMinMax(sObjectTableKey &sKey,
+    ECCategory *lpCategory, size_t i, struct propVal *lpProps, size_t cProps,
+    bool *lpfModified)
 {
-	if(lpsSortOrderArray->__size <= i || !ISMINMAX(lpsSortOrderArray->__ptr[i].ulOrder))
+	if (lpsSortOrderArray->__size < 0 ||
+	    static_cast<size_t>(lpsSortOrderArray->__size) <= i ||
+	    !ISMINMAX(lpsSortOrderArray->__ptr[i].ulOrder))
 		return erSuccess;
 	lpCategory->UpdateMinMax(sKey, i, &lpProps[i], lpsSortOrderArray->__ptr[i].ulOrder == EC_TABLE_SORT_CATEG_MAX, lpfModified);
 	return erSuccess;

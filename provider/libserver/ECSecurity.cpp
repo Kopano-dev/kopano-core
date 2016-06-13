@@ -703,7 +703,7 @@ ECRESULT ECSecurity::SetRights(unsigned int objid, struct rightsArray *lpsRights
 	unsigned int		ulUserId = 0;
 	objectid_t			sExternId;
 	objectdetails_t		sDetails;
-	unsigned int		ulErrors = 0;
+	size_t ulErrors = 0;
 
 	er = m_lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
@@ -812,9 +812,9 @@ ECRESULT ECSecurity::SetRights(unsigned int objid, struct rightsArray *lpsRights
 		}
 	}
 
-	if (ulErrors == lpsRightsArray->__size)
+	if (lpsRightsArray->__size >= 0 && ulErrors == static_cast<size_t>(lpsRightsArray->__size))
 		er = KCERR_INVALID_PARAMETER;	// all acl's failed
-	else if (ulErrors)
+	else if (ulErrors != 0)
 		er = KCWARN_PARTIAL_COMPLETION;	// some acl's failed
 	else
 		er = erSuccess;

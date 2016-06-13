@@ -196,7 +196,7 @@ protected:
 	// Add data to key table
 	ECRESULT 	UpdateKeyTableRow(ECCategory *lpCategory, sObjectTableKey *lpsRowKey, struct propVal *lpProps, unsigned int cValues, bool fHidden, sObjectTableKey *sPrevRow, ECKeyTable::UpdateType *lpulAction);
 	// Update min/max field for category
-	ECRESULT 	UpdateCategoryMinMax(sObjectTableKey& lpKey, ECCategory *lpCategory, unsigned int i, struct propVal *lpProps, unsigned int cProps, bool *lpfModified);
+	ECRESULT 	UpdateCategoryMinMax(sObjectTableKey& lpKey, ECCategory *lpCategory, size_t i, struct propVal *lpProps, size_t cProps, bool *lpfModified);
 
 	virtual ECRESULT	ReloadKeyTable();
 	ECRESULT	GetBinarySortKey(struct propVal *lpsPropVal, unsigned int *lpSortLen, unsigned char **lppSortData);

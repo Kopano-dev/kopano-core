@@ -560,8 +560,6 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
 	bool			bShowDialog = false;
 
 	MAPIERROR		*lpMapiError = NULL;
-
-	bool			bShowAllSettingsPages = false;
 	LPBYTE			lpDelegateStores = NULL;
 	ULONG			cDelegateStores = 0;
 	LPSPropValue	lpsPropValueFind = NULL;
@@ -659,7 +657,7 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
 
 		break;
 	case MSG_SERVICE_CONFIGURE:
-		bShowAllSettingsPages = true;
+		//bShowAllSettingsPages = true;
 		// Do not break here
 	case MSG_SERVICE_CREATE:
 		
