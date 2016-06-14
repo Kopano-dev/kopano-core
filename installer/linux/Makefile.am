@@ -40,7 +40,8 @@ debian_initscript_files = \
 	kopano-presence.init.debi
 
 data_configdir = ${docdir}/example-config
-dist_data_config_DATA = ${config_files}
+dist_data_config_DATA = \
+	${config_files} ldapms.active-directory.cfg ldapms.openldap.cfg
 
 sysconf_configdir = ${sysconfdir}/kopano
 dist_sysconf_config_DATA = ${config_files}
