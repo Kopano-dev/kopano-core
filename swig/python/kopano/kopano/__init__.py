@@ -2855,7 +2855,7 @@ class Item(object):
                 item.server = self.server # XXX
                 data = item._dump() # recursion
                 atts.append(([[a, b, None] for a, b in row.items()], data))
-            elif attachments:
+            elif method == ATTACH_BY_VALUE and attachments: # XXX ATTACH_OLE
                 data = _stream(att, PR_ATTACH_DATA_BIN)
                 atts.append(([[a, b, None] for a, b in row.items()], data))
 
