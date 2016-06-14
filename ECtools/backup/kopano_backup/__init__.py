@@ -301,6 +301,12 @@ class Service(kopano.Service):
         else:
             self.log.info('restoring folder %s' % path)
 
+            # restore container class
+            folderprops = pickle.loads(file('%s/folder' % data_path).read())
+            container_class = folderprops.get(long(PR_CONTAINER_CLASS_W))
+            if container_class:
+                folder.container_class = container_class
+
             # restore metadata
             if not self.options.skip_meta:
                 load_acl(folder, user, server, file(data_path+'/acl').read(), self.log)
