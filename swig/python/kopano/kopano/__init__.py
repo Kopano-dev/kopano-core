@@ -442,7 +442,7 @@ def _unpack_long(s, pos):
     return struct.unpack_from('<L', s, pos)[0]
 
 def _unpack_string(s, pos, length):
-    return ''.join(struct.unpack_from('<' + 's' * length, s, pos))
+    return b''.join(struct.unpack_from('<' + 's' * length, s, pos))
 
 def _pack_long(i):
     return struct.pack('<L', i)
@@ -3346,7 +3346,7 @@ class Recurrence:
         # FIXME: merge exception details with normal appointment data to recurrence.occurences() (Class occurence)
         if self.patterntype == 1: # WEEKLY
             byweekday = () # Set
-            for index, week in rrule_weekdays.iteritems():
+            for index, week in rrule_weekdays.items():
                 if (self.pattern >> index ) & 1:
                     byweekday += (week,)
             # Setup our rule
@@ -3364,7 +3364,7 @@ class Recurrence:
             # self.pattern is either day of month or 
         elif self.patterntype == 3: # MONTHY, YEARLY
             byweekday = () # Set
-            for index, week in rrule_weekdays.iteritems():
+            for index, week in rrule_weekdays.items():
                 if (weekday >> index ) & 1:
                     byweekday += (week(weeknumber),)
             # Yearly, the last XX of YY

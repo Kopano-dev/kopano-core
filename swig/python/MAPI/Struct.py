@@ -54,6 +54,11 @@ class MAPINAMEID(MAPIStruct):
         self.kind = kind
         self.id = id
 
+    def __setstate__(self, d): # XXX pickle with python2, unpickle with python3 (encoding='bytes')
+        self.guid = d[b'guid']
+        self.kind = d[b'kind']
+        self.id = d[b'id']
+
     def __hash__(self):
         return (self.guid, self.kind, self.id).__hash__()
         

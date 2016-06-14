@@ -12,6 +12,9 @@ class FileTime(object):
         else:
             raise AttributeError
         
+    def __setstate__(self, d):
+        self.filetime = d[b'filetime'] # XXX pickle with python2, unpickle with python3 (encoding='bytes')
+
     def __setattr__(self, attr, val):
         if attr == 'unixtime':
             self.filetime = val * 10000000 + NANOSECS_BETWEEN_EPOCH
