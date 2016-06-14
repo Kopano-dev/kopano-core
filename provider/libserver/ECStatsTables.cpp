@@ -49,6 +49,7 @@
 ECSystemStatsTable::ECSystemStatsTable(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale) : ECGenericObjectTable(lpSession, MAPI_STATUS, ulFlags, locale)
 {
 	m_lpfnQueryRowData = QueryRowData;
+	id = 0;
 }
 
 ECRESULT ECSystemStatsTable::Create(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale, ECSystemStatsTable **lppTable)
@@ -251,6 +252,7 @@ ECRESULT ECSystemStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis, s
 ECSessionStatsTable::ECSessionStatsTable(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale) : ECGenericObjectTable(lpSession, MAPI_STATUS, ulFlags, locale)
 {
 	m_lpfnQueryRowData = QueryRowData;
+	id = 0;
 }
 
 ECRESULT ECSessionStatsTable::Create(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale, ECSessionStatsTable **lppTable)
