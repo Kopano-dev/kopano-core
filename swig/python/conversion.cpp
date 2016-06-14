@@ -2721,9 +2721,8 @@ void Object_to_MVPROPMAP(PyObject *elem, ECUSER *&lpUser, ULONG ulFlags)
 	/* Multi-Value PropMap support. */
 	MVPropMaps = PyObject_GetAttrString(elem, "MVPropMap");
 
-	if (MVPropMaps == NULL || MVPropMaps == Py_None || !PyList_Check(MVPropMaps)) {
-		if (MVPropMaps != NULL)
-			Py_DECREF(MVPropMaps);
+	if (MVPropMaps == NULL || !PyList_Check(MVPropMaps)) {
+		Py_XDECREF(MVPropMaps);
 		return;
 	}
 
@@ -2731,8 +2730,7 @@ void Object_to_MVPROPMAP(PyObject *elem, ECUSER *&lpUser, ULONG ulFlags)
 	/* No PropMaps - bail out */
 	if (MVPropMapsSize != 2) {
 		PyErr_SetString(PyExc_TypeError, "MVPropMap should contain two entries");
-		if (MVPropMaps != NULL)
-			Py_DECREF(MVPropMaps);
+		Py_DECREF(MVPropMaps);
 		return;
 	}
 
@@ -2745,15 +2743,12 @@ void Object_to_MVPROPMAP(PyObject *elem, ECUSER *&lpUser, ULONG ulFlags)
 		PropID = PyObject_GetAttrString(Item, "ulPropId");
 		Values = PyObject_GetAttrString(Item, "Values");
 
-		if (PropID == NULL || Values == NULL || PropID == Py_None || !PyList_Check(Values)) {
+		if (PropID == NULL || Values == NULL || !PyList_Check(Values)) {
 			PyErr_SetString(PyExc_TypeError, "ulPropId or Values is empty or values is not a list");
 
-			if (PropID != NULL)
-				Py_DECREF(PropID);
-			if (Values != NULL)
-				Py_DECREF(Values);
-			if (MVPropMaps != NULL)
-				Py_DECREF(MVPropMaps);
+			Py_XDECREF(PropID);
+			Py_XDECREF(Values);
+			Py_DECREF(MVPropMaps);
 			return;
 		}
 
@@ -2770,12 +2765,9 @@ void Object_to_MVPROPMAP(PyObject *elem, ECUSER *&lpUser, ULONG ulFlags)
 			hr = MAPIAllocateMore(sizeof(LPTSTR) * lpUser->sMVPropmap.lpEntries[i].cValues, lpUser, reinterpret_cast<void **>(&lpUser->sMVPropmap.lpEntries[i].lpszValues));
 			if (hr != hrSuccess) {
 				PyErr_SetString(PyExc_RuntimeError, "Out of memory");
-				if (PropID != NULL)
-					Py_DECREF(PropID);
-				if (Values != NULL)
-					Py_DECREF(Values);
-				if (MVPropMaps != NULL)
-					Py_DECREF(MVPropMaps);
+				Py_DECREF(PropID);
+				Py_DECREF(Values);
+				Py_DECREF(MVPropMaps);
 				return;
 			}
 		}
@@ -2790,15 +2782,13 @@ void Object_to_MVPROPMAP(PyObject *elem, ECUSER *&lpUser, ULONG ulFlags)
 				else
 					CopyPyUnicode(&lpUser->sMVPropmap.lpEntries[i].lpszValues[j], ListItem, lpUser);
 			}
-			Py_DECREF(ListItem);
 		}
 
 		Py_DECREF(PropID);
 		Py_DECREF(Values);
 	}
 
-	if (MVPropMaps != NULL)
-		Py_DECREF(MVPropMaps);
+	Py_DECREF(MVPropMaps);
 }
 
 PyObject *Object_from_MVPROPMAP(MVPROPMAP propmap, ULONG ulFlags)
@@ -2841,6 +2831,7 @@ PyObject *Object_from_MVPROPMAP(MVPROPMAP propmap, ULONG ulFlags)
 		}
 
 		MVPropMap = PyObject_CallFunction(PyTypeMVPROPMAP, "(lO)", lpMVPropmap->lpEntries[i].ulPropId, MVPropValues);
+		Py_DECREF(MVPropValues);
 		PyList_Append(MVProps, MVPropMap);
 		Py_DECREF(MVPropMap);
 		MVPropMap = NULL;
@@ -2891,12 +2882,16 @@ exit:
 PyObject *Object_from_LPECUSER(ECUSER *lpUser, ULONG ulFlags)
 {
 	PyObject *MVProps = Object_from_MVPROPMAP(lpUser->sMVPropmap, ulFlags);
+	PyObject *result = NULL;
 
 	// XXX: Caller should DECREF List?
 	if (ulFlags & MAPI_UNICODE)
-		return PyObject_CallFunction(PyTypeECUser, "(uuuuulllls#O)", lpUser->lpszUsername, lpUser->lpszPassword, lpUser->lpszMailAddress, lpUser->lpszFullName, lpUser->lpszServername, lpUser->ulObjClass, lpUser->ulIsAdmin, lpUser->ulIsABHidden, lpUser->ulCapacity, lpUser->sUserId.lpb, lpUser->sUserId.cb, MVProps);
+		result = PyObject_CallFunction(PyTypeECUser, "(uuuuulllls#O)", lpUser->lpszUsername, lpUser->lpszPassword, lpUser->lpszMailAddress, lpUser->lpszFullName, lpUser->lpszServername, lpUser->ulObjClass, lpUser->ulIsAdmin, lpUser->ulIsABHidden, lpUser->ulCapacity, lpUser->sUserId.lpb, lpUser->sUserId.cb, MVProps);
 	else
-		return PyObject_CallFunction(PyTypeECUser, "(ssssslllls#O)", lpUser->lpszUsername, lpUser->lpszPassword, lpUser->lpszMailAddress, lpUser->lpszFullName, lpUser->lpszServername, lpUser->ulObjClass, lpUser->ulIsAdmin, lpUser->ulIsABHidden, lpUser->ulCapacity, lpUser->sUserId.lpb, lpUser->sUserId.cb, MVProps);
+		result = PyObject_CallFunction(PyTypeECUser, "(ssssslllls#O)", lpUser->lpszUsername, lpUser->lpszPassword, lpUser->lpszMailAddress, lpUser->lpszFullName, lpUser->lpszServername, lpUser->ulObjClass, lpUser->ulIsAdmin, lpUser->ulIsABHidden, lpUser->ulCapacity, lpUser->sUserId.lpb, lpUser->sUserId.cb, MVProps);
+
+	Py_DECREF(MVProps);
+	return result;
 }
 
 
