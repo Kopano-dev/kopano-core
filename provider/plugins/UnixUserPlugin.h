@@ -479,7 +479,7 @@ private:
 	 *					The username for which the exception will be thrown.
 	 * @throw runtime_error Thrown when errno was set.
 	 */
-	void errnoCheck(const string &user);
+	void errnoCheck(const std::string &, int) const;
 };
 
 extern "C" {

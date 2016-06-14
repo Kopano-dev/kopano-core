@@ -118,11 +118,9 @@ void UnixUserPlugin::findUserID(const string &id, struct passwd *pwd, char *buff
 	uid_t maxuid = fromstring<const char *, uid_t>(m_config->GetSetting("max_user_uid"));
 	vector<string> exceptuids = tokenize(m_config->GetSetting("except_user_uids"), " \t");
 	objectid_t objectid;
-
-	errno = 0;
-	getpwuid_r(atoi(id.c_str()), pwd, buffer, PWBUFSIZE, &pw);
-	errnoCheck(id);
-
+	int ret = getpwuid_r(atoi(id.c_str()), pwd, buffer, PWBUFSIZE, &pw);
+	if (ret != 0)
+		errnoCheck(id, ret);
 	if (pw == NULL)
 		throw objectnotfound(id);
 
@@ -141,11 +139,9 @@ void UnixUserPlugin::findUser(const string &name, struct passwd *pwd, char *buff
 	uid_t maxuid = fromstring<const char *, uid_t>(m_config->GetSetting("max_user_uid"));
 	vector<string> exceptuids = tokenize(m_config->GetSetting("except_user_uids"), " \t");
 	objectid_t objectid;
-
-	errno = 0;
-	getpwnam_r(name.c_str(), pwd, buffer, PWBUFSIZE, &pw);
-	errnoCheck(name);
-
+	int ret = getpwnam_r(name.c_str(), pwd, buffer, PWBUFSIZE, &pw);
+	if (ret != 0)
+		errnoCheck(name, ret);
 	if (pw == NULL)
 		throw objectnotfound(name);
 
@@ -164,11 +160,9 @@ void UnixUserPlugin::findGroupID(const string &id, struct group *grp, char *buff
 	gid_t maxgid = fromstring<const char *, gid_t>(m_config->GetSetting("max_group_gid"));
 	vector<string> exceptgids = tokenize(m_config->GetSetting("except_group_gids"), " \t");
 	objectid_t objectid;
-
-	errno = 0;
-	getgrgid_r(atoi(id.c_str()), grp, buffer, PWBUFSIZE, &gr);
-	errnoCheck(id);
-
+	int ret = getgrgid_r(atoi(id.c_str()), grp, buffer, PWBUFSIZE, &gr);
+	if (ret != 0)
+		errnoCheck(id, ret);
 	if (gr == NULL)
 		throw objectnotfound(id);
 
@@ -187,11 +181,9 @@ void UnixUserPlugin::findGroup(const string &name, struct group *grp, char *buff
 	gid_t maxgid = fromstring<const char *, gid_t>(m_config->GetSetting("max_group_gid"));
 	vector<string> exceptgids = tokenize(m_config->GetSetting("except_group_gids"), " \t");
 	objectid_t objectid;
-
-	errno = 0;
-	getgrnam_r(name.c_str(), grp, buffer, PWBUFSIZE, &gr);
-	errnoCheck(name);
-
+	int ret = getgrnam_r(name.c_str(), grp, buffer, PWBUFSIZE, &gr);
+	if (ret != 0)
+		errnoCheck(name, ret);
 	if (gr == NULL)
 		throw objectnotfound(name);
 
@@ -294,10 +286,9 @@ objectsignature_t UnixUserPlugin::authenticateUser(const string &username, const
 	cryptdata.reset(new struct crypt_data); // malloc because it is > 128K !
 	memset(cryptdata.get(), 0, sizeof(struct crypt_data));
 
-	errno = 0;
-	getpwnam_r(username.c_str(), &pws, buffer, PWBUFSIZE, &pw);
-	errnoCheck(username);
-
+	int ret = getpwnam_r(username.c_str(), &pws, buffer, PWBUFSIZE, &pw);
+	if (ret != 0)
+		errnoCheck(username, ret);
 	if (pw == NULL)
 		throw objectnotfound(username);
 
@@ -379,7 +370,8 @@ UnixUserPlugin::getAllUserObjects(const std::string &match,
 
 	setpwent();
 	while (true) {
-		getpwent_r(&pws, buffer, PWBUFSIZE, &pw);
+		if (getpwent_r(&pws, buffer, PWBUFSIZE, &pw) != 0)
+			break;
 		if (pw == NULL)
 			break;
 
@@ -422,7 +414,8 @@ UnixUserPlugin::getAllGroupObjects(const std::string &match,
 
 	setgrent();
 	while (true) {
-		getgrent_r(&grs, buffer, PWBUFSIZE, &gr);
+		if (getgrent_r(&grs, buffer, PWBUFSIZE, &gr) != 0)
+			break;
 		if (gr == NULL)
 			break;
 
@@ -716,7 +709,8 @@ UnixUserPlugin::getParentObjectsForObject(userobject_relation_t relation,
 	pthread_mutex_lock(m_plugin_lock);
 	setgrent();
 	while (true) {
-		getgrent_r(&grs, buffer, PWBUFSIZE, &gr);
+		if (getgrent_r(&grs, buffer, PWBUFSIZE, &gr) != 0)
+			break;
 		if (gr == NULL)
 			break;
 
@@ -779,7 +773,8 @@ UnixUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 	pthread_mutex_lock(m_plugin_lock);
 	setpwent();
 	while (true) {
-		getpwent_r(&pws, buffer, PWBUFSIZE, &pw);
+		if (getpwent_r(&pws, buffer, PWBUFSIZE, &pw) != 0)
+			break;
 		if (pw == NULL)
 			break;
 
@@ -850,10 +845,9 @@ UnixUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 		     iter != objects->end(); ++iter)
 		{
 			// the DBPlugin returned the DB signature, so we need to prepend this with the gecos signature
-			errno = 0;
-			getpwuid_r(atoi(iter->id.id.c_str()), &pws, buffer, PWBUFSIZE, &pw);
-			errnoCheck(iter->id.id);
-
+			int ret = getpwuid_r(atoi(iter->id.id.c_str()), &pws, buffer, PWBUFSIZE, &pw);
+			if (ret != 0)
+				errnoCheck(iter->id.id, ret);
 			if (pw == NULL)	// object not found anymore
 				continue;
 
@@ -947,8 +941,11 @@ UnixUserPlugin::objectdetailsFromPwent(struct passwd *pw)
 		struct spwd spws, *spw = NULL;
 		char sbuffer[PWBUFSIZE];
 
-		getspnam_r(pw->pw_name, &spws, sbuffer, PWBUFSIZE, &spw);
-		if (spw == NULL) {
+		if (getspnam_r(pw->pw_name, &spws, sbuffer, PWBUFSIZE, &spw) != 0) {
+			ec_log_warn("getspname_r: %s", strerror(errno));
+			/* set invalid password entry, cannot login without a password */
+			ud->SetPropString(OB_PROP_S_PASSWORD, std::string("x"));
+		} else if (spw == NULL) {
 			// invalid entry, must have a shadow password set in this case
 			// throw objectnotfound(ud->id);
 			// too bad that the password couldn't be found, but it's not that critical
@@ -1007,18 +1004,19 @@ std::string UnixUserPlugin::getDBSignature(const objectid_t &id)
 	return lpDBRow[0];
 }
 
-void UnixUserPlugin::errnoCheck(const string &user) {
-	if (errno) {
+void UnixUserPlugin::errnoCheck(const std::string &user, int e) const
+{
+	if (e != 0) {
 		char buffer[256];
 		char *retbuf;
-		retbuf = strerror_r(errno, buffer, 256);
+		retbuf = strerror_r(e, buffer, 256);
 
 		// from the getpwnam() man page: (notice the last or...)
 		//  ERRORS
 		//    0 or ENOENT or ESRCH or EBADF or EPERM or ...
 		//    The given name or uid was not found.
 
-		switch (errno) {
+		switch (e) {
 			// 0 is handled in top if()
 		case ENOENT:
 		case ESRCH:
