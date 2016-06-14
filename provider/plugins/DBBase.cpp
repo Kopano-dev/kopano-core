@@ -357,6 +357,7 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 			if (!bFirstOne)
 				strDeleteQuery += ",";
 			strDeleteQuery += *iterProps;
+			bFirstOne = false;
 		}
 
 		strDeleteQuery += ")";
