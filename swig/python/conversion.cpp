@@ -2957,10 +2957,12 @@ exit:
 
 PyObject *Object_from_LPECGROUP(ECGROUP *lpGroup, ULONG ulFlags)
 {
+	PyObject *groupid = PyBytes_FromStringAndSize((const char *)lpGroup->sGroupId.lpb, lpGroup->sGroupId.cb);
+
 	if(ulFlags & MAPI_UNICODE)
-		return PyObject_CallFunction(PyTypeECGroup, "(uuuls#)", lpGroup->lpszGroupname, lpGroup->lpszFullname, lpGroup->lpszFullEmail, lpGroup->ulIsABHidden, lpGroup->sGroupId.lpb, lpGroup->sGroupId.cb);
+		return PyObject_CallFunction(PyTypeECGroup, "(uuulO)", lpGroup->lpszGroupname, lpGroup->lpszFullname, lpGroup->lpszFullEmail, lpGroup->ulIsABHidden, groupid);
 	else
-		return PyObject_CallFunction(PyTypeECGroup, "(sssls#)", lpGroup->lpszGroupname, lpGroup->lpszFullname, lpGroup->lpszFullEmail, lpGroup->ulIsABHidden, lpGroup->sGroupId.lpb, lpGroup->sGroupId.cb);
+		return PyObject_CallFunction(PyTypeECGroup, "(ssslO)", lpGroup->lpszGroupname, lpGroup->lpszFullname, lpGroup->lpszFullEmail, lpGroup->ulIsABHidden, groupid);
 }
 
 PyObject *List_from_LPECGROUP(ECGROUP *lpGroup, ULONG cElements, ULONG ulFlags)
@@ -3029,10 +3031,12 @@ exit:
 
 PyObject *Object_from_LPECCOMPANY(ECCOMPANY *lpCompany, ULONG ulFlags)
 {
+	PyObject *companyid = PyBytes_FromStringAndSize((const char *)lpCompany->sCompanyId.lpb, lpCompany->sCompanyId.cb);
+
         if(ulFlags & MAPI_UNICODE)
-		return PyObject_CallFunction(PyTypeECCompany, "(uuls#)", lpCompany->lpszCompanyname, lpCompany->lpszServername, lpCompany->ulIsABHidden, lpCompany->sCompanyId.lpb, lpCompany->sCompanyId.cb);
+		return PyObject_CallFunction(PyTypeECCompany, "(uulO)", lpCompany->lpszCompanyname, lpCompany->lpszServername, lpCompany->ulIsABHidden, companyid);
 	else
-		return PyObject_CallFunction(PyTypeECCompany, "(ssls#)", lpCompany->lpszCompanyname, lpCompany->lpszServername, lpCompany->ulIsABHidden, lpCompany->sCompanyId.lpb, lpCompany->sCompanyId.cb);
+		return PyObject_CallFunction(PyTypeECCompany, "(sslO)", lpCompany->lpszCompanyname, lpCompany->lpszServername, lpCompany->ulIsABHidden, companyid);
 }
 
 PyObject *List_from_LPECCOMPANY(ECCOMPANY *lpCompany, ULONG cElements,
