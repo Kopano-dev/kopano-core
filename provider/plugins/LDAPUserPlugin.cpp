@@ -416,6 +416,8 @@ LDAPUserPlugin::LDAPUserPlugin(pthread_mutex_t *pluginlock,
 
 	if (ldap_servers.empty())
 		throw ldap_error(string("No LDAP servers configured in ldap.cfg"));
+	m_timeout.tv_sec = atoui(m_config->GetSetting("ldap_network_timeout"));
+	m_timeout.tv_usec = 0;
 }
 
 void LDAPUserPlugin::InitPlugin()
@@ -489,8 +491,6 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn, const char *bind_pw) {
 		}
 
 		// Set network timeout (for connect)
-		m_timeout.tv_sec = atoui(m_config->GetSetting("ldap_network_timeout"));
-		m_timeout.tv_usec = 0;
 		if ((rc = ldap_set_option(ld, LDAP_OPT_NETWORK_TIMEOUT, &m_timeout)) != LDAP_OPT_SUCCESS) {
 			ec_log_err("LDAP_OPT_NETWORK_TIMEOUT failed: %s", ldap_err2string(rc));
 			goto fail;
