@@ -397,9 +397,12 @@ void ECStatsCollector::ForEachString(void(callback)(const std::string &, const s
 void ECStatsCollector::Reset() {
 	SCMap::iterator iSD;
 
-	for (iSD = m_StatData.begin(); iSD != m_StatData.end(); ++iSD)
+	for (iSD = m_StatData.begin(); iSD != m_StatData.end(); ++iSD) {
 		// reset largest var in union
+		pthread_mutex_lock(&iSD->second.lock);
 		iSD->second.data.ll = 0;
+		pthread_mutex_unlock(&iSD->second.lock);
+	}
 }
 
 void ECStatsCollector::Reset(SCName name) {
@@ -407,6 +410,8 @@ void ECStatsCollector::Reset(SCName name) {
 
 	if (iSD != m_StatData.end()) {
 		// reset largest var in union
+		pthread_mutex_lock(&iSD->second.lock);
 		iSD->second.data.ll = 0;
+		pthread_mutex_unlock(&iSD->second.lock);
 	}
 }
