@@ -130,6 +130,7 @@ HRESULT WSMessageStreamExporter::GetSerializedMessage(ULONG ulIndex, WSSerialize
 
 WSMessageStreamExporter::WSMessageStreamExporter()
 { 
+	m_ulExpectedIndex = m_ulMaxIndex = 0;
 }
 
 WSMessageStreamExporter::~WSMessageStreamExporter()
