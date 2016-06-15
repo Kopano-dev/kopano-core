@@ -58,8 +58,8 @@ private:
 	void SetErrorMessage(HRESULT hr, LPCTSTR lpszMessage);
 
 	// Inhibit copying
-	Archive(const Archive&);
-	Archive& operator=(const Archive&);
+	Archive(const Archive &) = delete;
+	Archive &operator=(const Archive &) = delete;
 
 private:
 	MAPISessionPtr	m_ptrSession;

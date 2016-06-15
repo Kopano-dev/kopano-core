@@ -46,8 +46,8 @@ public:
 
 private:
 	// Make sure an object is not accidentally copied
-	scoped_lock(const scoped_lock &);
-	scoped_lock& operator=(const scoped_lock &);
+	scoped_lock(const scoped_lock &) = delete;
+	scoped_lock &operator=(const scoped_lock &) = delete;
 
 	pthread_mutex_t &m_mutex;
 };
@@ -69,8 +69,8 @@ public:
 
 private:
 	// Make sure an object is not accidentally copied
-	scoped_rwlock(const scoped_rwlock &);
-	scoped_rwlock& operator=(const scoped_rwlock &);
+	scoped_rwlock(const scoped_rwlock &) = delete;
+	scoped_rwlock &operator=(const scoped_rwlock &) = delete;
 
 	pthread_rwlock_t &m_rwlock;
 };

@@ -114,8 +114,8 @@ namespace details {
 		bool m_bHTML;
 		
 	private:	// Disallow copying
-		iconv_context_base(const iconv_context_base &);
-		iconv_context_base &operator=(const iconv_context_base &);
+		iconv_context_base(const iconv_context_base &) = delete;
+		iconv_context_base &operator=(const iconv_context_base &) = delete;
 	};
 
 
@@ -701,8 +701,8 @@ private:
 	
 // a convert_context is not supposed to be copyable.
 private:
-	convert_context(const convert_context &);
-	convert_context &operator=(const convert_context &);
+	convert_context(const convert_context &) = delete;
+	convert_context &operator=(const convert_context &) = delete;
 };
 
 

@@ -43,8 +43,8 @@ private:
 	std::string EscapeFormatString(const std::string &strFormat);
 
 private:
-	ECArchiverLogger(const ECArchiverLogger&);
-	ECArchiverLogger& operator=(const ECArchiverLogger&);
+	ECArchiverLogger(const ECArchiverLogger &) = delete;
+	ECArchiverLogger &operator=(const ECArchiverLogger &) = delete;
 
 private:
 	ECLogger	*m_lpLogger;
@@ -60,8 +60,8 @@ public:
 	~ScopedUserLogging();
 
 private:
-	ScopedUserLogging(const ScopedUserLogging&);
-	ScopedUserLogging& operator=(const ScopedUserLogging&);
+	ScopedUserLogging(const ScopedUserLogging &) = delete;
+	ScopedUserLogging &operator=(const ScopedUserLogging &) = delete;
 
 private:
 	ECArchiverLogger *m_lpLogger;
@@ -76,8 +76,8 @@ public:
 	~ScopedFolderLogging();
 
 private:
-	ScopedFolderLogging(const ScopedFolderLogging&);
-	ScopedFolderLogging& operator=(const ScopedFolderLogging&);
+	ScopedFolderLogging(const ScopedFolderLogging &) = delete;
+	ScopedFolderLogging &operator=(const ScopedFolderLogging &) = delete;
 
 private:
 	ECArchiverLogger *m_lpLogger;

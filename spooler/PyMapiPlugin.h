@@ -71,8 +71,8 @@ private:
 
 private:
 	// Inhibit (accidental) copying
-	PyMapiPlugin(const PyMapiPlugin &);
-	PyMapiPlugin& operator=(const PyMapiPlugin &);
+	PyMapiPlugin(const PyMapiPlugin &) = delete;
+	PyMapiPlugin &operator=(const PyMapiPlugin &) = delete;
 };
 
 
@@ -94,8 +94,8 @@ private:
 
 private:
 	// Inhibit (accidental) copying
-	PyMapiPluginFactory(const PyMapiPluginFactory &);
-	PyMapiPluginFactory& operator=(const PyMapiPluginFactory &);
+	PyMapiPluginFactory(const PyMapiPluginFactory &) = delete;
+	PyMapiPluginFactory &operator=(const PyMapiPluginFactory &) = delete;
 };
 
 

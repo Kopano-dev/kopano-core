@@ -72,8 +72,8 @@ private:	// members
 	mutable pthread_cond_t	m_hCondTaskDone;
 
 private:
-	ECThreadPool(const ECThreadPool &);
-	ECThreadPool& operator=(const ECThreadPool &);
+	ECThreadPool(const ECThreadPool &) = delete;
+	ECThreadPool &operator=(const ECThreadPool &) = delete;
 	
 	unsigned	m_ulTermReq;
 };
@@ -107,8 +107,8 @@ protected:
 	
 private:
 	// Make the object non-copyable
-	ECTask(const ECTask &);
-	ECTask &operator=(const ECTask &);
+	ECTask(const ECTask &) = delete;
+	ECTask &operator=(const ECTask &) = delete;
 };
 
 /**

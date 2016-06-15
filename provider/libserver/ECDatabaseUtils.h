@@ -105,8 +105,8 @@ private:
 	bool m_bResetValue;
 
 private:
-	SuppressLockErrorLogging(const SuppressLockErrorLogging&);
-	SuppressLockErrorLogging& operator=(const SuppressLockErrorLogging&);
+	SuppressLockErrorLogging(const SuppressLockErrorLogging &) = delete;
+	SuppressLockErrorLogging &operator=(const SuppressLockErrorLogging &) = delete;
 };
 
 /**

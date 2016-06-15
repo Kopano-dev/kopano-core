@@ -45,8 +45,8 @@ private:
 	~WSMessageStreamExporter();
 
 	// Inhibit copying
-	WSMessageStreamExporter(const WSMessageStreamExporter&);
-	WSMessageStreamExporter& operator=(const WSMessageStreamExporter&);
+	WSMessageStreamExporter(const WSMessageStreamExporter &) = delete;
+	WSMessageStreamExporter &operator=(const WSMessageStreamExporter &) = delete;
 
 private:
 	typedef mapi_object_ptr<WSTransport> WSTransportPtr;

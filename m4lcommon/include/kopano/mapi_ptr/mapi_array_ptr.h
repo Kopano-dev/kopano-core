@@ -118,10 +118,8 @@ public:
 	}
 	
 private:	// inhibit copying untill refcounting is implemented
-	mapi_array_ptr(const mapi_array_ptr &other);
-	mapi_array_ptr& operator=(const mapi_array_ptr &other);
-
-private:
+	mapi_array_ptr(const mapi_array_ptr &) = delete;
+	mapi_array_ptr &operator=(const mapi_array_ptr &) = delete;
 	pointer	m_lpObject;
 };
 

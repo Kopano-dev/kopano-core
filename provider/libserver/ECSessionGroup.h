@@ -156,8 +156,8 @@ private:
 	
 private:
 	// Make ECSessionGroup non-copyable
-	ECSessionGroup(const ECSessionGroup &);
-	ECSessionGroup& operator=(const ECSessionGroup &);
+	ECSessionGroup(const ECSessionGroup &) = delete;
+	ECSessionGroup &operator=(const ECSessionGroup &) = delete;
 };
 
 #endif // #ifndef ECSESSIONGROUP

@@ -47,8 +47,8 @@ public:
 	
 private:
 	// prohibit copy
-	ECFifoBuffer(const ECFifoBuffer &);
-	ECFifoBuffer& operator=(const ECFifoBuffer &);
+	ECFifoBuffer(const ECFifoBuffer &) = delete;
+	ECFifoBuffer &operator=(const ECFifoBuffer &) = delete;
 	
 private:
 	storage_type	m_storage;
