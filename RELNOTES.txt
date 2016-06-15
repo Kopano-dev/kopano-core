@@ -5,5 +5,7 @@ Fixes:
 * server: avoid "netlink: 4 bytes leftover" in dmesg
 * server: avoid accessing uninitialized variable within
   function ECCacheManager::GetPropFromObject
+* backup: restore container classes [KC-22]
 Enhancements:
 * server: add ICS log messages [KC-18]
+* server: ship multiserver config files [KC-65]
