@@ -1,11 +1,25 @@
-Release notes for 8.0.1
+Release notes for 8.1.0
 =======================
 Fixes:
 * server: A fast-growing memory leak was resolved [KC-12]
 * sql schema: all PRIMARY keys need to be NOT NULL, otherwise a UNIQUE
-  key would be required. [KC-2]
+  key would be required. / MySQL 5.7 support [KC-2]
 * server: avoid "netlink: 4 bytes leftover" in dmesg
+* ldapplugin: hopefully avoid "Timed out" errors from ldap_search [KC-74]
+* swig: resolve a memory leak when using python components [KC-72]
+* server: better guard against off-size EntryIDs [KC-60]
+* ics: avoid referencing a value-replaced mysql_fetch_lengths array [KC-52]
+* backup: restore container classes [KC-22]
+* all daemons: fixed coredumps not getting generated most of the time [KC-61]
+* all: issue setgroups(2) before setuid(2) [KC-37]
 Enhancements:
-* server: add ICS log messages [KC-18]
-* libicalmapi: improve fallback scenario to server_timezone in ical.cfg [KC-11]
 * PHP7 support
+* server: add ICS log messages [KC-18]
+* server: ship example config files for ldap multi-server [KC-65]
+* server: speed up REPLACE-type sql queries [KC-58]
+* server: speed up login phase by caching PR_LOGON_TIME [KC-6]
+* libicalmapi: improve fallback scenario to server_timezone in ical.cfg [KC-11]
+Changes:
+* search: no longer do indexing on root and Draft folders [KC-57]
+* search: index junk folders, but skip updating suggestion list [KC-57]
+* Python 2.5 support is removed
