@@ -2267,7 +2267,7 @@ class Folder(object):
         """
 
         if state is None:
-            state = (8*'\0').encode('hex').upper()
+            state = codecs.encode(8*b'\0', 'hex').upper()
         importer.store = self.store
         return _sync(self.store.server, self.mapiobj, importer, state, log, max_changes, associated, window=window, begin=begin, end=end, stats=stats)
 
@@ -3994,7 +3994,7 @@ class TrackingContentsImporter(ECImportContentsChanges):
                 mapistore = self.importer.store.mapiobj
             else:
                 store_entryid = PpropFindProp(props, PR_STORE_ENTRYID).Value
-                store_entryid = WrapStoreEntryID(0, 'zarafa6client.dll', store_entryid[:-4])+self.server.pseudo_url+'\x00'
+                store_entryid = WrapStoreEntryID(0, b'zarafa6client.dll', store_entryid[:-4])+self.server.pseudo_url+b'\x00'
                 mapistore = self.server.mapisession.OpenMsgStore(0, store_entryid, None, 0) # XXX cache
             item = Item()
             item.server = self.server
