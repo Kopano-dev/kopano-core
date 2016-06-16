@@ -2958,11 +2958,15 @@ exit:
 PyObject *Object_from_LPECGROUP(ECGROUP *lpGroup, ULONG ulFlags)
 {
 	PyObject *groupid = PyBytes_FromStringAndSize((const char *)lpGroup->sGroupId.lpb, lpGroup->sGroupId.cb);
+	PyObject *result = NULL;
 
 	if(ulFlags & MAPI_UNICODE)
-		return PyObject_CallFunction(PyTypeECGroup, "(uuulO)", lpGroup->lpszGroupname, lpGroup->lpszFullname, lpGroup->lpszFullEmail, lpGroup->ulIsABHidden, groupid);
+		result = PyObject_CallFunction(PyTypeECGroup, "(uuulO)", lpGroup->lpszGroupname, lpGroup->lpszFullname, lpGroup->lpszFullEmail, lpGroup->ulIsABHidden, groupid);
 	else
-		return PyObject_CallFunction(PyTypeECGroup, "(ssslO)", lpGroup->lpszGroupname, lpGroup->lpszFullname, lpGroup->lpszFullEmail, lpGroup->ulIsABHidden, groupid);
+		result = PyObject_CallFunction(PyTypeECGroup, "(ssslO)", lpGroup->lpszGroupname, lpGroup->lpszFullname, lpGroup->lpszFullEmail, lpGroup->ulIsABHidden, groupid);
+
+	Py_DECREF(groupid);
+	return result;
 }
 
 PyObject *List_from_LPECGROUP(ECGROUP *lpGroup, ULONG cElements, ULONG ulFlags)
@@ -3032,11 +3036,15 @@ exit:
 PyObject *Object_from_LPECCOMPANY(ECCOMPANY *lpCompany, ULONG ulFlags)
 {
 	PyObject *companyid = PyBytes_FromStringAndSize((const char *)lpCompany->sCompanyId.lpb, lpCompany->sCompanyId.cb);
+	PyObject *result = NULL;
 
         if(ulFlags & MAPI_UNICODE)
-		return PyObject_CallFunction(PyTypeECCompany, "(uulO)", lpCompany->lpszCompanyname, lpCompany->lpszServername, lpCompany->ulIsABHidden, companyid);
+		result = PyObject_CallFunction(PyTypeECCompany, "(uulO)", lpCompany->lpszCompanyname, lpCompany->lpszServername, lpCompany->ulIsABHidden, companyid);
 	else
-		return PyObject_CallFunction(PyTypeECCompany, "(sslO)", lpCompany->lpszCompanyname, lpCompany->lpszServername, lpCompany->ulIsABHidden, companyid);
+		result = PyObject_CallFunction(PyTypeECCompany, "(sslO)", lpCompany->lpszCompanyname, lpCompany->lpszServername, lpCompany->ulIsABHidden, companyid);
+
+	Py_DECREF(companyid);
+	return result;
 }
 
 PyObject *List_from_LPECCOMPANY(ECCOMPANY *lpCompany, ULONG cElements,
