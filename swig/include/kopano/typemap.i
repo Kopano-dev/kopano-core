@@ -14,9 +14,14 @@
 
 %include "cstring.i"
 %include "cwstring.i"
-%cstring_input_binary(const char *pv, ULONG cb);
-%cstring_input_binary(const void *pv, ULONG cb);
 %cstring_output_allocate_size(char **lpOutput, ULONG *ulRead, MAPIFreeBuffer(*$1));
+
+%typemap(in) (const void *pv, ULONG cb) (int res, char *buf = 0, Py_ssize_t size, int alloc = 0)
+{
+  PyBytes_AsStringAndSize($input, &buf, &size);
+  $1 = %reinterpret_cast(buf, $1_ltype);
+  $2 = %numeric_cast(size, $2_ltype);
+}
 
 // HRESULT
 %include "exception.i"

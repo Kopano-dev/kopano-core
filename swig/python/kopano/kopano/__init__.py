@@ -248,7 +248,7 @@ def _stream(mapiobj, proptag):
         if len(temp) < block_size:
             break
 
-    data = ''.join(data)
+    data = b''.join(data)
 
     if PROP_TYPE(proptag) == PT_UNICODE:
         data = data.decode('utf-32le') # under windows them be utf-16le?
