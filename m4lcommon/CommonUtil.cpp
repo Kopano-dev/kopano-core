@@ -173,7 +173,7 @@ exit:
  */
 HRESULT CreateProfileTemp(ECLogger *const lpLogger, const WCHAR *username, const WCHAR *password, const char *path, const char* szProfName, ULONG ulProfileFlags, const char *sslkey_file, const char *sslkey_password, const char *app_version, const char *app_misc) {
 	HRESULT hr = hrSuccess;
-	LPPROFADMIN	lpProfAdmin = NULL;
+	IProfAdmin *lpProfAdmin = NULL;
 	LPSERVICEADMIN lpServiceAdmin = NULL;
 	LPSPropValue lpServiceUID = NULL;
 	SPropValue sProps[9];	// server, username, password and profile -name and -flags, optional sslkey file with sslkey password
@@ -330,7 +330,7 @@ exit:
  */
 HRESULT DeleteProfileTemp(char *szProfName)
 {
-	LPPROFADMIN	lpProfAdmin = NULL;
+	IProfAdmin *lpProfAdmin = NULL;
 	HRESULT hr = hrSuccess;
 
 	// Get the MAPI Profile administration object

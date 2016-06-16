@@ -3010,7 +3010,7 @@ ULONG __stdcall MAPIFreeBuffer(LPVOID lpBuffer) {
 // Entry
 // ---
 
-LPPROFADMIN localProfileAdmin = NULL;
+IProfAdmin *localProfileAdmin = NULL;
 
 /**
  * Returns a pointer to the IProfAdmin interface. MAPIInitialize must been called previously.
@@ -3021,7 +3021,8 @@ LPPROFADMIN localProfileAdmin = NULL;
  * @retval		MAPI_E_CALL_FAILED	MAPIInitialize not called previously.
  * @retval		MAPI_E_INVALID_PARAMETER	No lppProfAdmin return parameter given.
  */
-HRESULT __stdcall MAPIAdminProfiles(ULONG ulFlags, LPPROFADMIN *lppProfAdmin) {
+HRESULT __stdcall MAPIAdminProfiles(ULONG ulFlags, IProfAdmin **lppProfAdmin)
+{
 	TRACE_MAPILIB1(TRACE_ENTRY, "MAPIAdminProfiles", "flags=0x%08d", ulFlags);
 
 	HRESULT hr = hrSuccess;

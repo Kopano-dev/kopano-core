@@ -35,7 +35,7 @@ HRESULT mapi_util_createprof(const char *szProfName, const char *szServiceName,
     ULONG cValues, LPSPropValue lpPropVals)
 {
 	HRESULT			hr = hrSuccess;
-	LPPROFADMIN		lpProfAdmin = NULL;
+	IProfAdmin *lpProfAdmin = NULL;
 	LPSERVICEADMIN	lpServiceAdmin = NULL;
 	LPMAPITABLE		lpTable = NULL;
 	LPSRowSet		lpRows = NULL;
@@ -152,7 +152,7 @@ exit:
 
 HRESULT mapi_util_deleteprof(const char *szProfName)
 {
-	LPPROFADMIN	lpProfAdmin = NULL;
+	IProfAdmin *lpProfAdmin = NULL;
 	HRESULT hr = hrSuccess;
 
 	// Get the MAPI Profile administration object
