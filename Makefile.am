@@ -19,6 +19,8 @@ EXTRA_DIST = version versionheader.sh php-webclient-ajax \
 BUILT_SOURCES = source-moved-check common/include/kopano/ecversion.h
 
 sbin_SCRIPTS = tools/python-scripts/kopano-cachestat.py
+gdbautoloaddir = ${datadir}/gdb/auto-load/${libdir}
+gdbautoload_DATA = tools/libmapi.so.1.0.0-gdb.py
 
 .PHONY: source-moved-check
 source-moved-check:
