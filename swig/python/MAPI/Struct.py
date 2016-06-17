@@ -6,6 +6,12 @@ import sys
 import MAPICore
 from MAPI.Defs import *
 
+def _convert(s):
+    if sys.hexversion >= 0x03000000 and isinstance(s, bytes):
+        return s.decode('ascii')
+    else:
+        return s
+
 class MAPIStruct:
     def __init__(self): pass
     def __eq__(self, other):
@@ -14,6 +20,10 @@ class MAPIStruct:
         return self.__dict__ == other.__dict__
     def __repr__(self):
         return repr(self.__dict__)
+    def __setstate__(self, d):
+        # XXX pickle with python2, unpickle with python3 (encoding='bytes')
+        for k, v in d.items():
+            setattr(self, _convert(k), v)
 
 class SPropValue(MAPIStruct):
     def __init__(self, ulPropTag, Value):
@@ -53,11 +63,6 @@ class MAPINAMEID(MAPIStruct):
         self.guid = guid
         self.kind = kind
         self.id = id
-
-    def __setstate__(self, d): # XXX pickle with python2, unpickle with python3 (encoding='bytes')
-        self.guid = d[b'guid']
-        self.kind = d[b'kind']
-        self.id = d[b'id']
 
     def __hash__(self):
         return (self.guid, self.kind, self.id).__hash__()

@@ -703,9 +703,9 @@ Wrapper around MAPI properties
     @property
     def strid(self):
         if self.named:
-            return '%s:%s' % (self.namespace, self.name)
+            return u'%s:%s' % (self.namespace, self.name)
         else:
-            return self.idname if self.idname else '' # FIXME: should never be None
+            return self.idname or u'' # FIXME: should never be None
 
     @property
     def strval(self):
@@ -714,8 +714,10 @@ Wrapper around MAPI properties
                 return u','.join(flatten(e) for e in v)
             elif isinstance(v, bool):
                 return u'01'[v]
-            elif self.type_ in (PT_BINARY, PT_MV_BINARY):
-                return unicode(v.encode('hex').upper())
+            elif self.type_ == PT_BINARY:
+                return codecs.encode(v, 'hex').decode('ascii').upper()
+            elif self.type_ == PT_MV_BINARY:
+                return u'PT_MV_BINARY()' # XXX
             else:
                 return unicode(v)
         return flatten(self.value)

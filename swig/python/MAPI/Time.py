@@ -1,6 +1,13 @@
+import sys
 import time
 
 NANOSECS_BETWEEN_EPOCH = 116444736000000000
+
+def _convert(s):
+    if sys.hexversion >= 0x03000000 and isinstance(s, bytes):
+        return s.decode('ascii')
+    else:
+        return s
 
 class FileTime(object):
     def __init__(self, filetime):
@@ -13,7 +20,9 @@ class FileTime(object):
             raise AttributeError
         
     def __setstate__(self, d):
-        self.filetime = d[b'filetime'] # XXX pickle with python2, unpickle with python3 (encoding='bytes')
+        # XXX pickle with python2, unpickle with python3 (encoding='bytes')
+        for k, v in d.items():
+            setattr(self, _convert(k), v)
 
     def __setattr__(self, attr, val):
         if attr == 'unixtime':
