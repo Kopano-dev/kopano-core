@@ -711,13 +711,13 @@ Wrapper around MAPI properties
     def strval(self):
         def flatten(v):
             if isinstance(v, list):
-                return ','.join(flatten(e) for e in v)
+                return u','.join(flatten(e) for e in v)
             elif isinstance(v, bool):
-                return '01'[v]
+                return u'01'[v]
             elif self.type_ in (PT_BINARY, PT_MV_BINARY):
-                return v.encode('hex').upper()
+                return unicode(v.encode('hex').upper())
             else:
-                return unicode(v).encode('utf-8')
+                return unicode(v)
         return flatten(self.value)
 
     def __lt__(self, prop):
@@ -749,7 +749,7 @@ class Table(object):
 
     @property
     def header(self):
-        return [REV_TAG.get(c, hex(c)) for c in self.mapitable.QueryColumns(0)]
+        return [unicode(REV_TAG.get(c, hex(c))) for c in self.mapitable.QueryColumns(0)]
 
     def rows(self):
         try:
