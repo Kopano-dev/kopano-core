@@ -117,9 +117,9 @@ try:
     REV_TAG
 except NameError:
     REV_TAG = {}
-    for K, V in MAPI.Tags.__dict__.items():
+    for K in sorted(MAPI.Tags.__dict__, reverse=True):
         if K.startswith('PR_'):
-            REV_TAG[V] = K
+            REV_TAG[MAPI.Tags.__dict__[K]] = K
 
 PS_INTERNET_HEADERS = DEFINE_OLEGUID(0x00020386, 0, 0)
 PS_EC_IMAP = DEFINE_GUID(0x00f5f108, 0x8e3f, 0x46c7, 0xaf, 0x72, 0x5e, 0x20, 0x1c, 0x23, 0x49, 0xe7)
