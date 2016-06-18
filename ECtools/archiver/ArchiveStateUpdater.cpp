@@ -162,7 +162,7 @@ HRESULT ArchiveStateUpdater::Update(const tstring &userName, unsigned int ulAtta
     m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "ArchiveStateUpdater::Update(): function entry");
 
 	// First see if the username can be found in the map.
-	ArchiveInfoMap::const_iterator i = std::find_if(m_mapArchiveInfo.begin(), m_mapArchiveInfo.end(), Predicates::MapInfo_contains_userName(userName));
+	auto i = std::find_if(m_mapArchiveInfo.cbegin(), m_mapArchiveInfo.cend(), Predicates::MapInfo_contains_userName(userName));
 	if (i == m_mapArchiveInfo.end()) {
 		// Resolve the username and search by entryid.
 		abentryid_t userId;

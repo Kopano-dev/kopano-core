@@ -2964,7 +2964,7 @@ std::wstring VMIMEToMAPI::getWideFromVmimeText(const vmime::text &vmText)
 
 	const std::vector<vmime::ref<const vmime::word> >& words = vmText.getWordList();
 	std::vector<vmime::ref<const vmime::word> >::const_iterator i, j;
-	for (i = words.begin(); i != words.end(); ++i) {
+	for (i = words.cbegin(); i != words.cend(); ++i) {
 		/*
 		 * RFC 5322 §2.2 specifies header field bodies consist of
 		 * US-ASCII characters only, and the only way to get other
@@ -3004,7 +3004,7 @@ std::wstring VMIMEToMAPI::getWideFromVmimeText(const vmime::text &vmText)
 		 * here anytime soon.
 		 */
 		myword = (*i)->getBuffer();
-		for (j = i + 1; j != words.end() && (*j)->getCharset() == wordCharset; ++j, ++i)
+		for (j = i + 1; j != words.cend() && (*j)->getCharset() == wordCharset; ++j, ++i)
 			myword += (*j)->getBuffer();
 
 		std::string tmp = vmime::word(myword, wordCharset).getConvertedText(CHARSET_WCHAR);

@@ -484,8 +484,9 @@ bool ECConfigImpl::HandleDirective(const string &strLine, unsigned int ulFlags)
 	for (int i = 0; s_sDirectives[i].lpszDirective != NULL; ++i) {
 		if (strName.compare(s_sDirectives[i].lpszDirective) == 0) {
 			/* Check if this directive is supported */
-			list<string>::iterator f = find(m_lDirectives.begin(), m_lDirectives.end(), strName);
-			if (f != m_lDirectives.end())
+			std::list<std::string>::const_iterator f =
+				find(m_lDirectives.begin(), m_lDirectives.end(), strName);
+			if (f != m_lDirectives.cend())
 				return (this->*s_sDirectives[i].fExecute)(strLine.substr(pos).c_str(), ulFlags);
 
 			warnings.push_back("Unsupported directive '" + strName + "' found!");
@@ -551,7 +552,7 @@ bool ECConfigImpl::CopyConfigSetting(const settingkey_t *lpsKey, const char *szV
 
 bool ECConfigImpl::AddSetting(const configsetting_t *lpsConfig, unsigned int ulFlags)
 {
-	settingmap_t::iterator iterSettings;
+	settingmap_t::const_iterator iterSettings;
 	settingkey_t s;
 	char *valid = NULL;
 	const char *szAlias = NULL;
@@ -572,7 +573,7 @@ bool ECConfigImpl::AddSetting(const configsetting_t *lpsConfig, unsigned int ulF
 
 	iterSettings = m_mapSettings.find(s);
 
-	if (iterSettings == m_mapSettings.end()) {
+	if (iterSettings == m_mapSettings.cend()) {
 		// new items from file are illegal, add error
 		if (!(ulFlags & LOADSETTING_UNKNOWN)) {
 			errors.push_back("Unknown option '" + string(lpsConfig->szName) + "' found!");

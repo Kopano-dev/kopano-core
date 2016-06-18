@@ -256,12 +256,10 @@ std::string GetServerPortFromPath(const char *szPath) {
 
 std::string shell_escape(const std::string &str)
 {
-	std::string::const_iterator start;
-	std::string::const_iterator ptr;
 	std::string escaped;
-
-	start = ptr = str.begin();
-	while (ptr != str.end()) {
+	auto start = str.cbegin();
+	auto ptr   = start;
+	while (ptr != str.cend()) {
 		while (ptr != str.end() && *ptr != '\'')
 			++ptr;
 

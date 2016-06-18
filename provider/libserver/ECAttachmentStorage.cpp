@@ -226,9 +226,8 @@ ECRESULT ECAttachmentStorage::GetSingleInstanceIds(const std::list<ULONG> &lstOb
 		"SELECT DISTINCT `instanceid` "
 		"FROM `singleinstances` "
 		"WHERE `hierarchyid` IN (";
-	for (std::list<ULONG>::const_iterator i = lstObjIds.begin();
-	     i != lstObjIds.end(); ++i) {
-		if (i != lstObjIds.begin())
+	for (auto i = lstObjIds.cbegin(); i != lstObjIds.cend(); ++i) {
+		if (i != lstObjIds.cbegin())
 			strQuery += ",";
 		strQuery += stringify(*i);
 	}

@@ -835,7 +835,7 @@ HRESULT recurrence::setChangedOccurrence(changed_occurrence_type c){
 HRESULT recurrence::removeChangedOccurrence(time_t t){
 	if(!isChangedOccurrence(t))
 		return MAPI_E_CALL_FAILED;
-	for (std::list<changed_occurrence_type>::const_iterator i = changed_occurrences.begin();
+	for (auto i = changed_occurrences.begin();
 	     i != changed_occurrences.end(); ++i)
 		if(DayStartOf(i->basedate) == DayStartOf(t)){
 			changed_occurrences.erase(i);

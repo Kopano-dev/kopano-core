@@ -128,9 +128,7 @@ public:
 
 	ECRESULT RemoveCacheItem(const key_type &key) 
 	{
-		typename _MapType::iterator iter;
-
-		iter = m_map.find(key);
+		auto iter = m_map.find(key);
 		if (iter == m_map.end())
 			return KCERR_NOT_FOUND;
 
@@ -144,9 +142,7 @@ public:
 	{
 		ECRESULT er = erSuccess;
 		time_t	tNow  = GetProcessTime();
-		typename _MapType::iterator iter;
-
-		iter = m_map.find(key);
+		auto iter = m_map.find(key);
 		
 		if (iter != m_map.end()) {
 			// Cache age of the cached item, if expired remove the item from the cache
@@ -189,11 +185,9 @@ public:
 
 	ECRESULT GetCacheRange(const key_type &lower, const key_type &upper, std::list<typename _MapType::value_type> *values)
 	{
-		typedef typename _MapType::iterator iterator;
-
-		iterator iLower = m_map.lower_bound(lower);
-		iterator iUpper = m_map.upper_bound(upper);
-		for (iterator i = iLower; i != iUpper; ++i)
+		auto iLower = m_map.lower_bound(lower);
+		auto iUpper = m_map.upper_bound(upper);
+		for (auto i = iLower; i != iUpper; ++i)
 			values->push_back(*i);
 
 		return erSuccess;

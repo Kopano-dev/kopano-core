@@ -2309,10 +2309,10 @@ static HRESULT fillMVPropmap(ECUSER &sECUser, ULONG ulPropTag, int index,
 			cerr << "Memory error" << endl;
 			return hr;
 		}
-		int n;
-		set<string, lstr>::const_iterator i;
+		int n = 0;
+		auto i = sFeatures.cbegin();
 		// @note we store char* data in a LPTSTR (whcar_t by -DUNICODE) pointer.
-		for (i = sFeatures.begin(), n = 0; i != sFeatures.end(); ++i, ++n)
+		for (n = 0; i != sFeatures.cend(); ++i, ++n)
 			sECUser.sMVPropmap.lpEntries[index].lpszValues[n] = (TCHAR*)i->c_str();
 	}
 	return hrSuccess;
