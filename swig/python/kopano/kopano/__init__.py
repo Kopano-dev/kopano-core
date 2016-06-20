@@ -1390,7 +1390,7 @@ class Company(object):
             for row in table.QueryRows(-1,0):
                 prop = PpropFindProp(row, PR_EC_STOREGUID)
                 if prop:
-                    yield Store(prop.Value.encode('hex'), server=self.server)
+                    yield Store(codecs.encode(prop.Value, 'hex'), self.server)
         else:
             for store in self.server.stores():
                 yield store
@@ -1823,7 +1823,7 @@ class Store(object):
         except MAPIErrorNotFound:
             return
 
-        return self.archive_store.folder(entryid=arch_folderid.encode('hex'))
+        return self.archive_store.folder(entryid=codecs.encode(arch_folderid, 'hex'))
 
     @property
     def company(self):
@@ -2070,7 +2070,7 @@ class Folder(object):
             table.Restrict(restriction, 0)
             rows = table.QueryRows(-1, 0)
             for row in rows:
-                entryid = row[0].Value.encode('hex')
+                entryid = codecs.encode(row[0].Value, 'hex')
                 for occurrence in self.item(entryid).occurrences(start, end):
                     yield occurrence
 
@@ -2365,12 +2365,13 @@ class Folder(object):
 
         try:
             # support for multiple archives was a mistake, and is not and _should not_ be used. so we just pick nr 0.
-            store_entryid = HrGetOneProp(self.mapiobj, PROP_STORE_ENTRYIDS).Value[0]
-            folder_entryid = HrGetOneProp(self.mapiobj, PROP_ITEM_ENTRYIDS).Value[0]
+            arch_storeid = HrGetOneProp(self.mapiobj, PROP_STORE_ENTRYIDS).Value[0]
+            arch_folderid = HrGetOneProp(self.mapiobj, PROP_ITEM_ENTRYIDS).Value[0]
         except MAPIErrorNotFound:
             return
 
-        return Store(entryid=store_entryid, server=self.server).folder(entryid=folder_entryid.encode('hex'))
+        archive_store = self.server._store2(arch_storeid)
+        return Store(mapiobj=archive_store, server=self.server).folder(entryid=codecs.encode(arch_folderid, 'hex'))
 
     @property
     def primary_store(self):
@@ -2390,7 +2391,7 @@ class Folder(object):
 
         if self.primary_store:
             try:
-                return self.primary_store.folder(entryid=entryid.encode('hex'))
+                return self.primary_store.folder(entryid=codecs.encode(entryid, 'hex'))
             except MAPIErrorNotFound:
                 pass
 
@@ -3079,7 +3080,7 @@ class Item(object):
         entryid = HrGetOneProp(self.mapiobj, PROP_REF_ITEM_ENTRYID).Value
 
         try:
-            return self.folder.primary_store.item(entryid=entryid.encode('hex'))
+            return self.folder.primary_store.item(entryid=codecs.encode(entryid, 'hex'))
         except MAPIErrorNotFound:
             pass
 
