@@ -104,9 +104,16 @@ int StatsClient::startup(const std::string &collectorSocket)
 		struct sockaddr_un laddr;
 		memset(&laddr, 0, sizeof(laddr));
 		laddr.sun_family = AF_UNIX;
-		sprintf(laddr.sun_path, "%s/.%x%x.sock", TmpPath::getInstance() -> getTempPath().c_str(), rand(), rand());
+		int ret = snprintf(laddr.sun_path, sizeof(laddr.sun_path), "%s/.%x%x.sock", TmpPath::getInstance() -> getTempPath().c_str(), rand(), rand());
+		if (ret >= 0 &&
+		    static_cast<size_t>(ret) >= sizeof(laddr.sun_path)) {
+			ec_log_err("%s: Random path too long (%s...) for AF_UNIX socket",
+				__func__, laddr.sun_path);
+			return -ENAMETOOLONG;
+		}
 
-		int ret = bind(fd, reinterpret_cast<const struct sockaddr *>(&laddr), sizeof(sa_family_t) + strlen(laddr.sun_path) + 1);
+		ret = bind(fd, reinterpret_cast<const struct sockaddr *>(&laddr),
+		      sizeof(laddr));
 		if (ret == 0) {
 			logger -> Log(EC_LOGLEVEL_DEBUG, "StatsClient bound socket to %s", laddr.sun_path);
 
@@ -123,9 +130,14 @@ int StatsClient::startup(const std::string &collectorSocket)
 
 	memset(&addr, 0, sizeof(addr));
 	addr.sun_family = AF_UNIX;
-	strcpy(addr.sun_path, collectorSocket.c_str());
+	ret = snprintf(addr.sun_path, sizeof(addr.sun_path), "%s", collectorSocket.c_str());
+	if (ret >= 0 && static_cast<size_t>(ret) >= sizeof(addr.sun_path)) {
+		ec_log_err("%s: Path \"%s\" too long for AF_UNIX socket",
+			__func__, collectorSocket.c_str());
+		return -ENAMETOOLONG;
+	}
 
-	addr_len = sizeof(sa_family_t) + collectorSocket.size() + 1;
+	addr_len = sizeof(addr);
 
 	if (pthread_create(&countsSubmitThread, NULL, submitThread, this) == 0)
 		thread_running = true;
