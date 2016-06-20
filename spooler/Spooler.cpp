@@ -1369,7 +1369,8 @@ int main(int argc, char *argv[]) {
 	}
 #endif
 
-	sc = new StatsClient(g_lpConfig->GetSetting("z_statsd_stats"), g_lpLogger);
+	sc = new StatsClient(g_lpLogger);
+	sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
 	if (bForked)
 		hr = ProcessMessageForked(strUsername.c_str(), szSMTP, ulPort, szPath, strMsgEntryId.length(), (LPENTRYID)strMsgEntryId.data(), bDoSentMail);
 	else

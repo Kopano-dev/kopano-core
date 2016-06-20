@@ -80,30 +80,46 @@ static void *submitThread(void *p)
 	return NULL;
 }
 
-StatsClient::StatsClient(const std::string & collectorSocket, ECLogger *const l) : logger(l) {
+StatsClient::StatsClient(ECLogger *l) :
+	fd(-1), thread_running(false), logger(l), terminate(false)
+{
+	pthread_mutex_init(&mapsLock, NULL);
+}
+
+int StatsClient::startup(const std::string &collectorSocket)
+{
+	int ret = -1;
+
 	fd = socket(AF_UNIX, SOCK_DGRAM, 0);
 	if (fd == -1) {
 		logger -> Log(EC_LOGLEVEL_ERROR, "StatsClient cannot create socket: %s", strerror(errno));
-		return; // maybe log a bit
+		return -errno; /* maybe log a bit */
 	}
 
 	srand(time(NULL));
 
 	logger -> Log(EC_LOGLEVEL_DEBUG, "StatsClient binding socket");
 
-	for(;;) {
+	for (unsigned int retry = 0; retry < 3; ++retry) {
 		struct sockaddr_un laddr;
 		memset(&laddr, 0, sizeof(laddr));
 		laddr.sun_family = AF_UNIX;
 		sprintf(laddr.sun_path, "%s/.%x%x.sock", TmpPath::getInstance() -> getTempPath().c_str(), rand(), rand());
 
-		if (bind(fd, (struct sockaddr *)&laddr, sizeof(sa_family_t) + strlen(laddr.sun_path) + 1) == 0) {
+		int ret = bind(fd, reinterpret_cast<const struct sockaddr *>(&laddr), sizeof(sa_family_t) + strlen(laddr.sun_path) + 1);
+		if (ret == 0) {
 			logger -> Log(EC_LOGLEVEL_DEBUG, "StatsClient bound socket to %s", laddr.sun_path);
 
 			unlink(laddr.sun_path);
 			break;
 		}
+		ret = -errno;
+		ec_log_err("StatsClient bind %s: %s", laddr.sun_path, strerror(errno));
+		if (ret == -EADDRINUSE)
+			return ret;
 	}
+	if (ret != 0)
+		return ret;
 
 	memset(&addr, 0, sizeof(addr));
 	addr.sun_family = AF_UNIX;
@@ -111,24 +127,23 @@ StatsClient::StatsClient(const std::string & collectorSocket, ECLogger *const l)
 
 	addr_len = sizeof(sa_family_t) + collectorSocket.size() + 1;
 
-	terminate = false;
-	pthread_mutex_init(&mapsLock, NULL);
-	pthread_create(&countsSubmitThread, NULL, submitThread, this);
+	if (pthread_create(&countsSubmitThread, NULL, submitThread, this) == 0)
+		thread_running = true;
 
 	logger -> Log(EC_LOGLEVEL_DEBUG, "StatsClient thread started");
+	return 0;
 }
 
 StatsClient::~StatsClient() {
 	logger -> Log(EC_LOGLEVEL_DEBUG, "StatsClient terminating");
 
 	terminate = true;
-
-	// interrupt sleep()
-	pthread_cancel(countsSubmitThread);
-
-	void *dummy = NULL;
-	pthread_join(countsSubmitThread, &dummy);
-
+	if (thread_running) {
+		// interrupt sleep()
+		pthread_cancel(countsSubmitThread);
+		void *dummy = NULL;
+		pthread_join(countsSubmitThread, &dummy);
+	}
 	pthread_mutex_destroy(&mapsLock);
 
 	closesocket(fd);

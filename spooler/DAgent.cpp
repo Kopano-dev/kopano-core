@@ -3659,7 +3659,8 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 			GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
-	sc = new StatsClient(g_lpConfig->GetSetting("z_statsd_stats"), g_lpLogger);
+	sc = new StatsClient(g_lpLogger);
+	sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
 
 	g_lpLogger->Log(EC_LOGLEVEL_ALWAYS, "Starting kopano-dagent LMTP mode version " PROJECT_VERSION_DAGENT_STR " (" PROJECT_SVN_REV_STR "), pid %d", getpid());
 
@@ -4250,7 +4251,8 @@ int main(int argc, char *argv[]) {
 			goto exit;
 		}
 
-		sc = new StatsClient(g_lpConfig->GetSetting("z_statsd_stats"), g_lpLogger);
+		sc = new StatsClient(g_lpLogger);
+		sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
 		hr = pyMapiPluginFactory.Init(g_lpConfig, g_lpLogger);
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to instantiate plugin factory, hr=0x%08x", hr);

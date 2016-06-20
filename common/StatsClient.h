@@ -33,6 +33,7 @@ private:
 	int fd;
 	struct sockaddr_un addr;
 	int addr_len;
+	bool thread_running;
 	ECLogger *const logger;
 
 	pthread_t countsSubmitThread;
@@ -43,9 +44,10 @@ public:
 	std::map<std::string, int64_t> countsMapInt64;
 
 public:
-	StatsClient(const std::string & collectorSocket, ECLogger *const logger);
+	StatsClient(ECLogger *);
 	~StatsClient();
 
+	int startup(const std::string &collector);
 	inline ECLogger *const getLogger() { return logger; }
 
 	void countInc(const std::string & key, const std::string & key_sub);
