@@ -745,7 +745,7 @@ int zcp_peeraddr_is_local(const struct sockaddr *peer_sockaddr,
 		const struct in_addr &ad = reinterpret_cast<const struct sockaddr_in *>(peer_sockaddr)->sin_addr;
 		req.rth.rtm_dst_len = sizeof(ad);
 		rta->rta_len = RTA_LENGTH(sizeof(ad));
-		req.nh.nlmsg_len = NLMSG_ALIGN(req.nh.nlmsg_len) + RTA_LENGTH(rta->rta_len);
+		req.nh.nlmsg_len = NLMSG_ALIGN(req.nh.nlmsg_len) + rta->rta_len;
 		memcpy(RTA_DATA(rta), &ad, sizeof(ad));
 	}
 	ret = peer_is_local2(rsk, &req.nh);
