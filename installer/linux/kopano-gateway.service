@@ -6,6 +6,7 @@ Documentation=man:kopano-gateway(8) man:kopano-gateway.cfg(5)
 Type=simple
 Environment=LC_ALL=C LANG=C
 ExecStart=/usr/sbin/kopano-gateway -F
+ExecReload=/bin/kill -HUP $MAINPID
 
 [Install]
 WantedBy=multi-user.target

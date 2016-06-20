@@ -6,6 +6,7 @@ Documentation=man:kopano-search(8) man:kopano-search.cfg(5)
 Type=simple
 Environment=LC_ALL=C LANG=C
 ExecStart=/usr/sbin/kopano-search -F
+ExecReload=/bin/kill -HUP $MAINPID
 
 [Install]
 WantedBy=multi-user.target

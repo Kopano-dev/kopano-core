@@ -6,6 +6,7 @@ Documentation=man:kopano-dagent(8) man:kopano-dagent.cfg(5)
 Type=simple
 Environment=LC_ALL=C LANG=C
 ExecStart=/usr/sbin/kopano-dagent -l
+ExecReload=/bin/kill -HUP $MAINPID
 
 [Install]
 WantedBy=multi-user.target

@@ -7,6 +7,7 @@ After=network.target mysql.service mariadb.service
 Type=simple
 Environment=LC_ALL=C LANG=C
 ExecStart=/usr/sbin/kopano-server -F
+ExecReload=/bin/kill -HUP $MAINPID
 TimeoutStopSec=60
 
 [Install]
