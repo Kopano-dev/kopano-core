@@ -2949,7 +2949,7 @@ class Item(object):
             else:
                 props.append([email, email_addr, None])
             tag_data[entryid][1] = self.server.ab.CreateOneOff(tag_data[name][1], u'SMTP', email_addr, MAPI_UNICODE)
-            key = 'SMTP:'+str(email_addr).upper()
+            key = b'SMTP:'+email_addr.upper().encode('ascii')
             if searchkey in tag_data: # XXX probably need to create, also email
                 tag_data[searchkey][1] = key
             else:
@@ -3609,7 +3609,7 @@ class User(object):
 
         if email:
             try:
-                self._name = unicode(server.gab.ResolveNames([PR_EMAIL_ADDRESS], MAPI_UNICODE | EMS_AB_ADDRESS_LOOKUP, [[SPropValue(PR_DISPLAY_NAME, unicode(email))]], [MAPI_UNRESOLVED])[0][0][1].Value)
+                self._name = unicode(server.gab.ResolveNames([PR_EMAIL_ADDRESS_W], MAPI_UNICODE | EMS_AB_ADDRESS_LOOKUP, [[SPropValue(PR_DISPLAY_NAME_W, unicode(email))]], [MAPI_UNRESOLVED])[0][0][1].Value)
             except (MAPIErrorNotFound, MAPIErrorInvalidParameter):
                 raise NotFoundError("no such user '%s'" % email)
         else:
