@@ -1955,7 +1955,6 @@ class Folder(object):
 
     def create_item(self, eml=None, ics=None, vcf=None, load=None, loads=None, attachments=True, **kwargs): # XXX associated
         item = Item(self, eml=eml, ics=ics, vcf=vcf, load=load, loads=loads, attachments=attachments, create=True)
-        item.server = self.server
         for key, val in kwargs.items():
             setattr(item, key, val)
         return item
@@ -2306,7 +2305,8 @@ class Item(object):
             
         elif create:
             self.mapiobj = self.folder.mapiobj.CreateMessage(None, 0)
-            self.server = server = self.folder.store.server # XXX
+            self.store = self.folder.store
+            self.server = server = self.store.server # XXX
 
             if eml is not None:
                 # options for CreateMessage: 0 / MAPI_ASSOCIATED
