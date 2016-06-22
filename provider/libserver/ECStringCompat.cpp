@@ -86,8 +86,8 @@ char *ECStringCompat::UTF8_to_WTF1252(soap *lpsoap, const char *szUTF8, convert_
 	back_insert_iterator<string> iWTF1252 = back_inserter(strWTF1252);
 
 	strWTF1252.reserve(string::size_type(str1252.size() * 1.3));	// It will probably grow a bit, 1.3 is just a guess.
-	for (string::const_iterator i1252 = str1252.begin(); i1252 != str1252.end(); ++i1252)
-		utf8::unchecked::append((unsigned char)*i1252, iWTF1252);
+	for (const auto c : str1252)
+		utf8::unchecked::append(static_cast<unsigned char>(c), iWTF1252);
 
 	return s_strcpy(lpsoap, strWTF1252.c_str());
 }

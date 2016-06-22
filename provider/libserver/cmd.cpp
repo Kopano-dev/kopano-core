@@ -1869,9 +1869,8 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 				goto exit;
 
 			er = KCERR_UNKNOWN_INSTANCE_ID;
-			for (std::list<ULONG>::const_iterator i = lstObjIds.begin();
-			     i != lstObjIds.end(); ++i)
-				if (lpecSession->GetSecurity()->CheckPermission(*i, ecSecurityRead) == erSuccess) {
+			for (const auto i : lstObjIds)
+				if (lpecSession->GetSecurity()->CheckPermission(i, ecSecurityRead) == erSuccess) {
 						er = erSuccess;
 						break;
 				}

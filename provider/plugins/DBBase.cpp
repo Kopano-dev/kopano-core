@@ -103,11 +103,10 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 
 	LOG_PLUGIN_DEBUG("%s N=%d", __FUNCTION__, (int)objectids.size());
 
-	for (std::list<objectid_t>::const_iterator i = objectids.begin();
-	     i != objectids.end(); ++i) {
-		if (!objectstrings[i->objclass].empty())
-			objectstrings[i->objclass] += ", ";
-		objectstrings[i->objclass] += "'" + m_lpDatabase->Escape(i->id) + "'";
+	for (const auto &id : objectids) {
+		if (!objectstrings[id.objclass].empty())
+			objectstrings[id.objclass] += ", ";
+		objectstrings[id.objclass] += "'" + m_lpDatabase->Escape(id.id) + "'";
 	}
 
 	/* Create subquery which combines all externids with the matching objectclass */

@@ -75,9 +75,8 @@ ECRESULT ECSearchClient::Scope(const std::string &strServer,
 		return er;
 
 	strScope = "SCOPE " + strServer + " " + strStore;
-	for (std::list<unsigned int>::const_iterator i = lstFolders.begin();
-	     i != lstFolders.end(); ++i)
-		strScope += " " + stringify(*i);
+	for (const auto i : lstFolders)
+		strScope += " " + stringify(i);
 
 	er = DoCmd(strScope, lstResponse);
 	if (er != erSuccess)
@@ -105,9 +104,8 @@ ECRESULT ECSearchClient::Find(const std::set<unsigned int> &setFields,
 	std::string strFind;
 
 	strFind = "FIND";
-	for (std::set<unsigned int>::const_iterator i = setFields.begin();
-	     i != setFields.end(); ++i)
-		strFind += " " + stringify(*i);
+	for (const auto i : setFields)
+		strFind += " " + stringify(i);
 		
 	strFind += ":";
 	
@@ -176,9 +174,8 @@ ECRESULT ECSearchClient::Query(GUID *lpServerGuid, GUID *lpStoreGuid, std::list<
 	if (er != erSuccess)
 		return er;
 
-	for (std::list<SIndexedTerm>::const_iterator i = lstSearches.begin();
-	     i != lstSearches.end(); ++i)
-		Find(i->setFields, i->strTerm);
+	for (const auto &i : lstSearches)
+		Find(i.setFields, i.strTerm);
 
 	er = Suggest(suggestion);
 	if (er != erSuccess)

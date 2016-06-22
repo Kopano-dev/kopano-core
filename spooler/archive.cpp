@@ -52,9 +52,8 @@ void ArchiveResult::AddMessage(MessagePtr ptrMessage) {
 }
 
 void ArchiveResult::Undo(IMAPISession *lpSession) {
-	for (std::list<MessagePtr>::const_iterator i = m_lstMessages.begin();
-	     i != m_lstMessages.end(); ++i)
-		Util::HrDeleteMessage(lpSession, *i);
+	for (const auto i : m_lstMessages)
+		Util::HrDeleteMessage(lpSession, i);
 }
 
 HRESULT Archive::Create(IMAPISession *lpSession, ECLogger *lpLogger, ArchivePtr *lpptrArchive)

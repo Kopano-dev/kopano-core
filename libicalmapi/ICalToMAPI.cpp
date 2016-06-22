@@ -123,11 +123,11 @@ ICalToMapiImpl::~ICalToMapiImpl()
 void ICalToMapiImpl::Clean()
 {
 	m_ulErrorCount = 0;
-	for (std::vector<icalitem *>::const_iterator i = m_vMessages.begin(); i != m_vMessages.end(); ++i) {
-		if ((*i)->lpRecurrence)
-			delete (*i)->lpRecurrence;
-		MAPIFreeBuffer((*i)->base);
-		delete (*i);
+	for (const auto i : m_vMessages) {
+		if (i->lpRecurrence != NULL)
+			delete i->lpRecurrence;
+		MAPIFreeBuffer(i->base);
+		delete i;
 	}
 	m_vMessages.clear();
 

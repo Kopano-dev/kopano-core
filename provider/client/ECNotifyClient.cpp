@@ -93,21 +93,17 @@ ECNotifyClient::~ECNotifyClient()
 	 * This is however not always the case, but ECNotifyMaster and Server will remove all
 	 * advises when the session is removed.
 	 */
-	for (ECMAPADVISE::const_iterator i = m_mapAdvise.begin();
-	     i != m_mapAdvise.end(); ++i) {
-		if (i->second->lpAdviseSink)
-			i->second->lpAdviseSink->Release();
-
-		MAPIFreeBuffer(i->second);
+	for (const auto &i : m_mapAdvise) {
+		if (i.second->lpAdviseSink != NULL)
+			i.second->lpAdviseSink->Release();
+		MAPIFreeBuffer(i.second);
 	}
 	m_mapAdvise.clear();
 
-	for (ECMAPCHANGEADVISE::const_iterator i = m_mapChangeAdvise.begin();
-	     i != m_mapChangeAdvise.end(); ++i) {
-		if (i->second->lpAdviseSink != NULL)
-			i->second->lpAdviseSink->Release();
-
-		MAPIFreeBuffer(i->second);
+	for (const auto &i : m_mapChangeAdvise) {
+		if (i.second->lpAdviseSink != NULL)
+			i.second->lpAdviseSink->Release();
+		MAPIFreeBuffer(i.second);
 	}
 
 	m_mapChangeAdvise.clear();

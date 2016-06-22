@@ -509,15 +509,13 @@ HRESULT RecurrenceState::GetBlob(char **lppData, unsigned int *lpulLen, void *ba
     WRITELONG(ulFirstDOW);
     WRITELONG(ulDeletedInstanceCount);
     
-	for (std::vector<unsigned int>::const_iterator i = lstDeletedInstanceDates.begin();
-	     i != lstDeletedInstanceDates.end(); ++i)
-		WRITELONG(*i);
+	for (const auto i : lstDeletedInstanceDates)
+		WRITELONG(i);
     
     WRITELONG(ulModifiedInstanceCount);
     
-	for (std::vector<unsigned int>::const_iterator i = lstModifiedInstanceDates.begin();
-	     i != lstModifiedInstanceDates.end(); ++i)
-		WRITELONG(*i);
+	for (const auto i : lstModifiedInstanceDates)
+		WRITELONG(i);
     
     WRITELONG(ulStartDate);
     WRITELONG(ulEndDate);
@@ -529,90 +527,71 @@ HRESULT RecurrenceState::GetBlob(char **lppData, unsigned int *lpulLen, void *ba
     
     WRITESHORT(ulExceptionCount);
     
-    for (std::vector<Exception>::const_iterator i = lstExceptions.begin(); i != lstExceptions.end(); ++i) {
-        WRITELONG(i->ulStartDateTime);
-        WRITELONG(i->ulEndDateTime);
-        WRITELONG(i->ulOriginalStartDate);
-        WRITESHORT(i->ulOverrideFlags);
-        
-        if(i->ulOverrideFlags & ARO_SUBJECT) {
-            WRITESHORT((ULONG)i->strSubject.size()+1);
-            WRITESHORT((ULONG)i->strSubject.size());
-            WRITESTRING(i->strSubject.c_str(), (ULONG)i->strSubject.size());
-        }
-        
-        if(i->ulOverrideFlags & ARO_MEETINGTYPE) {
-            WRITELONG(i->ulApptStateFlags);
-        }
-        
-        if(i->ulOverrideFlags & ARO_REMINDERDELTA) {
-            WRITELONG(i->ulReminderDelta);
-        }
-        
-        if(i->ulOverrideFlags & ARO_REMINDERSET) {
-            WRITELONG(i->ulReminderSet);
-        }
-        
-        if(i->ulOverrideFlags & ARO_LOCATION) {
-            WRITESHORT((ULONG)i->strLocation.size()+1);
-            WRITESHORT((ULONG)i->strLocation.size());
-            WRITESTRING(i->strLocation.c_str(), (ULONG)i->strLocation.size());
-        }
-        
-        if(i->ulOverrideFlags & ARO_BUSYSTATUS) {
-            WRITELONG(i->ulBusyStatus);
-        }
-        
-        if(i->ulOverrideFlags & ARO_ATTACHMENT) {
-            WRITELONG(i->ulAttachment);
-        }
-        
-        if(i->ulOverrideFlags & ARO_SUBTYPE) {
-            WRITELONG(i->ulSubType);
-        }
-        
-        if(i->ulOverrideFlags & ARO_APPTCOLOR) {
-            WRITELONG(i->ulAppointmentColor);
-        }
-    }
+	for (const auto &i : lstExceptions) {
+		WRITELONG(i.ulStartDateTime);
+		WRITELONG(i.ulEndDateTime);
+		WRITELONG(i.ulOriginalStartDate);
+		WRITESHORT(i.ulOverrideFlags);
+		if (i.ulOverrideFlags & ARO_SUBJECT) {
+			WRITESHORT(static_cast<ULONG>(i.strSubject.size() + 1));
+			WRITESHORT(static_cast<ULONG>(i.strSubject.size()));
+			WRITESTRING(i.strSubject.c_str(), static_cast<ULONG>(i.strSubject.size()));
+		}
+		if (i.ulOverrideFlags & ARO_MEETINGTYPE)
+			WRITELONG(i.ulApptStateFlags);
+		if (i.ulOverrideFlags & ARO_REMINDERDELTA)
+			WRITELONG(i.ulReminderDelta);
+		if (i.ulOverrideFlags & ARO_REMINDERSET)
+			WRITELONG(i.ulReminderSet);
+		if (i.ulOverrideFlags & ARO_LOCATION) {
+			WRITESHORT(static_cast<ULONG>(i.strLocation.size()) + 1);
+			WRITESHORT(static_cast<ULONG>(i.strLocation.size()));
+			WRITESTRING(i.strLocation.c_str(), static_cast<ULONG>(i.strLocation.size()));
+		}
+		if (i.ulOverrideFlags & ARO_BUSYSTATUS)
+			WRITELONG(i.ulBusyStatus);
+		if (i.ulOverrideFlags & ARO_ATTACHMENT)
+			WRITELONG(i.ulAttachment);
+		if (i.ulOverrideFlags & ARO_SUBTYPE)
+			WRITELONG(i.ulSubType);
+		if (i.ulOverrideFlags & ARO_APPTCOLOR)
+			WRITELONG(i.ulAppointmentColor);
+	}
     
     WRITELONG((ULONG)strReservedBlock1.size());
     WRITESTRING(strReservedBlock1.c_str(), (ULONG)strReservedBlock1.size());
 
-    for (std::vector<ExtendedException>::const_iterator i = lstExtendedExceptions.begin(); i != lstExtendedExceptions.end(); ++i) {
-        if(ulWriterVersion2 >= 0x00003009) {
-            WRITELONG((ULONG)i->strReserved.size()+4);
-            WRITELONG(i->ulChangeHighlightValue);
-            WRITESTRING(i->strReserved.c_str(), (ULONG)i->strReserved.size());
-        }
-        
-        WRITELONG((ULONG)i->strReservedBlock1.size());
-        WRITESTRING(i->strReservedBlock1.c_str(), (ULONG)i->strReservedBlock1.size());
-        
-        if(j->ulOverrideFlags & ARO_SUBJECT || j->ulOverrideFlags & ARO_LOCATION) {
-            WRITELONG(i->ulStartDateTime);
-            WRITELONG(i->ulEndDateTime);
-            WRITELONG(i->ulOriginalStartDate);
-        }        
-        
-        if(j->ulOverrideFlags & ARO_SUBJECT) {
-			utf16string strWide = convert_to<utf16string>(i->strWideCharSubject);
-            WRITESHORT((ULONG)strWide.size());
-            WRITESTRING((const char*)strWide.c_str(), (ULONG)strWide.size()*2);
-        }
-        
-        if(j->ulOverrideFlags & ARO_LOCATION) {
-			utf16string strWide = convert_to<utf16string>(i->strWideCharLocation);
-            WRITESHORT((ULONG)strWide.size());
-            WRITESTRING((const char*)strWide.c_str(), (ULONG)strWide.size()*2);
-        }
-        
-        if(j->ulOverrideFlags & ARO_SUBJECT || j->ulOverrideFlags & ARO_LOCATION) {
-            WRITELONG((ULONG)i->strReservedBlock2.size());
-            WRITESTRING(i->strReservedBlock2.c_str(), (ULONG)i->strReservedBlock2.size());
-        }
-        ++j;
-    }    
+	for (const auto &i : lstExtendedExceptions) {
+		if (ulWriterVersion2 >= 0x00003009) {
+			WRITELONG(static_cast<ULONG>(i.strReserved.size() + 4));
+			WRITELONG(i.ulChangeHighlightValue);
+			WRITESTRING(i.strReserved.c_str(), static_cast<ULONG>(i.strReserved.size()));
+		}
+
+		WRITELONG(static_cast<ULONG>(i.strReservedBlock1.size()));
+		WRITESTRING(i.strReservedBlock1.c_str(), static_cast<ULONG>(i.strReservedBlock1.size()));
+
+		if ((j->ulOverrideFlags & ARO_SUBJECT) || (j->ulOverrideFlags & ARO_LOCATION)) {
+			WRITELONG(i.ulStartDateTime);
+			WRITELONG(i.ulEndDateTime);
+			WRITELONG(i.ulOriginalStartDate);
+		}
+		if (j->ulOverrideFlags & ARO_SUBJECT) {
+			utf16string strWide = convert_to<utf16string>(i.strWideCharSubject);
+			WRITESHORT(static_cast<ULONG>(strWide.size()));
+			WRITESTRING(reinterpret_cast<const char *>(strWide.c_str()), static_cast<ULONG>(strWide.size()) * 2);
+		}
+		if (j->ulOverrideFlags & ARO_LOCATION) {
+			utf16string strWide = convert_to<utf16string>(i.strWideCharLocation);
+			WRITESHORT(static_cast<ULONG>(strWide.size()));
+			WRITESTRING(reinterpret_cast<const char *>(strWide.c_str()), static_cast<ULONG>(strWide.size()) * 2);
+		}
+		if ((j->ulOverrideFlags & ARO_SUBJECT) || (j->ulOverrideFlags & ARO_LOCATION)) {
+			WRITELONG(static_cast<ULONG>(i.strReservedBlock2.size()));
+			WRITESTRING(i.strReservedBlock2.c_str(), static_cast<ULONG>(i.strReservedBlock2.size()));
+		}
+		++j;
+	}
 
     WRITELONG((ULONG)strReservedBlock2.size());
     WRITESTRING(strReservedBlock2.c_str(), (ULONG)strReservedBlock2.size());

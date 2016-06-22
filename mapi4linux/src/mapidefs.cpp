@@ -1155,17 +1155,15 @@ HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 	++lpColumns->cValues;
 
 	n = 0;
-	for (std::list<LPMAPITABLE>::const_iterator i = lHierarchies.begin();
-	     i != lHierarchies.end(); ++i)
-	{
+	for (const auto mt : lHierarchies) {
 		LPSRowSet lpsRows = NULL;
 
-		hr = (*i)->SetColumns(lpColumns, 0);
+		hr = mt->SetColumns(lpColumns, 0);
 		if (hr != hrSuccess)
 			goto exit;
 
 		while (true) {
-			hr = (*i)->QueryRows(1, 0, &lpsRows);
+			hr = mt->QueryRows(1, 0, &lpsRows);
 			if (hr != hrSuccess)
 				goto exit;
 			if (lpsRows->cRows == 0)
@@ -1193,9 +1191,8 @@ HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 	hr = lpTableView->QueryInterface(IID_IMAPITable, (void **)lppTable);
 
 exit:
-	for (std::list<LPMAPITABLE>::const_iterator i = lHierarchies.begin();
-	     i != lHierarchies.end(); ++i)
-		(*i)->Release();
+	for (const auto mt : lHierarchies)
+		mt->Release();
 	MAPIFreeBuffer(lpColumns);
 	if (lpTableView)
 		lpTableView->Release();

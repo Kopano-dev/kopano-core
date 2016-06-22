@@ -170,8 +170,8 @@ objectdetails_t::GetPropListInt(property_key_t propname) const
 	if (mvitem == m_mapMVProps.end())
 		return std::list<unsigned int>();
 	std::list<unsigned int> l;
-	for (std::list<std::string>::const_iterator i = mvitem->second.begin(); i != mvitem->second.end(); ++i)
-		l.push_back(atoui(i->c_str()));
+	for (const auto &i : mvitem->second)
+		l.push_back(atoui(i.c_str()));
 	return l;
 }
 
@@ -190,18 +190,17 @@ objectdetails_t::GetPropListObject(property_key_t propname) const
 	if (mvitem == m_mapMVProps.end())
 		return std::list<objectid_t>();
 	std::list<objectid_t> l;
-	for (std::list<std::string>::const_iterator i = mvitem->second.begin(); i != mvitem->second.end(); ++i)
-		l.push_back(objectid_t(*i));
+	for (const auto &i : mvitem->second)
+		l.push_back(objectid_t(i));
 	return l;
 }
 
 property_map objectdetails_t::GetPropMapAnonymous() const {
 	property_map anonymous;
-	property_map::const_iterator iter;
 
-	for (iter = m_mapProps.begin(); iter != m_mapProps.end(); ++iter)
-		if (((unsigned int)iter->first) & 0xffff0000)
-			anonymous.insert(*iter);
+	for (const auto &iter : m_mapProps)
+		if (((unsigned int)iter.first) & 0xffff0000)
+			anonymous.insert(iter);
 	return anonymous;
 }
 
@@ -209,9 +208,9 @@ property_mv_map objectdetails_t::GetPropMapListAnonymous() const {
 	property_mv_map anonymous;
 	property_mv_map::const_iterator iter;
 
-	for (iter = m_mapMVProps.begin(); iter != m_mapMVProps.end(); ++iter)
-		if (((unsigned int)iter->first) & 0xffff0000)
-			anonymous.insert(*iter);
+	for (const auto &iter : m_mapMVProps)
+		if (((unsigned int)iter.first) & 0xffff0000)
+			anonymous.insert(iter);
 	return anonymous;
 }
 

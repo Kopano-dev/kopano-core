@@ -2388,17 +2388,15 @@ ECRESULT ECUserManagement::ComplementDefaultFeatures(objectdetails_t *lpDetails)
 	}
 
 	// explicit enable remove from default disable, and add in defaultEnabled
-	for (std::list<std::string>::const_iterator i = userEnabled.begin();
-	     i != userEnabled.end(); ++i) {
-		defaultDisabled.erase(*i);
-		defaultEnabled.insert(*i);
+	for (const auto &s : userEnabled) {
+		defaultDisabled.erase(s);
+		defaultEnabled.insert(s);
 	}
 
 	// explicit disable remove from default enable, and add in defaultDisabled
-	for (std::list<std::string>::const_iterator i = userDisabled.begin();
-	     i != userDisabled.end(); ++i) {
-		defaultEnabled.erase(*i);
-		defaultDisabled.insert(*i);
+	for (const auto &s : userDisabled) {
+		defaultEnabled.erase(s);
+		defaultDisabled.insert(s);
 	}
 
 	userEnabled.assign(defaultEnabled.begin(), defaultEnabled.end());
@@ -2443,10 +2441,9 @@ ECRESULT ECUserManagement::RemoveDefaultFeatures(objectdetails_t *lpDetails)
 	ba::split(defaultDisabled, config, ba::is_any_of("\t "));
 
 	// remove all default disabled from enabled and user explicit list
-	for (std::set<std::string>::const_iterator i = defaultDisabled.begin();
-	     i != defaultDisabled.end(); ++i) {
-		defaultEnabled.erase(*i);
-		userDisabled.remove(*i);
+	for (const auto &s : defaultDisabled) {
+		defaultEnabled.erase(s);
+		userDisabled.remove(s);
 	}
 
 	// remove all default enabled features from explicit list

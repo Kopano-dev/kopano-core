@@ -837,17 +837,15 @@ UnixUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 		const char *search_props[] = { OP_EMAILADDRESS, NULL };
 		objects = DBPlugin::searchObjects(match, search_props, NULL, ulFlags);
 
-		for (signatures_t::const_iterator iter = objects->begin();
-		     iter != objects->end(); ++iter)
-		{
+		for (const auto &sig : *objects) {
 			// the DBPlugin returned the DB signature, so we need to prepend this with the gecos signature
-			int ret = getpwuid_r(atoi(iter->id.id.c_str()), &pws, buffer, PWBUFSIZE, &pw);
+			int ret = getpwuid_r(atoi(sig.id.id.c_str()), &pws, buffer, PWBUFSIZE, &pw);
 			if (ret != 0)
-				errnoCheck(iter->id.id, ret);
+				errnoCheck(sig.id.id, ret);
 			if (pw == NULL)	// object not found anymore
 				continue;
 
-			objectlist->push_back(objectsignature_t(iter->id, iter->signature + pw->pw_gecos + pw->pw_name));
+			objectlist->push_back(objectsignature_t(sig.id, sig.signature + pw->pw_gecos + pw->pw_name));
 		}
 	} catch (objectnotfound &e) {
 			// Ignore exception, we will check lObjects.empty() later.

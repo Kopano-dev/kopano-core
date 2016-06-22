@@ -160,9 +160,8 @@ bool ECSessionGroup::isOrphan()
 void ECSessionGroup::UpdateSessionTime()
 {
 	pthread_mutex_lock(&m_hSessionMapLock);
-	for (SESSIONINFOMAP::const_iterator i = m_mapSessions.begin();
-	     i != m_mapSessions.end(); ++i)
-		i->second.lpSession->UpdateSessionTime();
+	for (const auto &i : m_mapSessions)
+		i.second.lpSession->UpdateSessionTime();
 	pthread_mutex_unlock(&m_hSessionMapLock);
 }
 
@@ -264,16 +263,12 @@ ECRESULT ECSessionGroup::AddNotification(notification *notifyItem, unsigned int 
 
 	ECNotification notify(*notifyItem);
 
-	for (SUBSCRIBEMAP::const_iterator i = m_mapSubscribe.begin();
-	     i != m_mapSubscribe.end(); ++i)
-	{
-		if ((ulSessionId && ulSessionId != i->second.ulSession) ||
-		    (ulKey != i->second.ulKey && i->second.ulKey != ulStore) ||
-			!(notifyItem->ulEventType & i->second.ulEventMask))
+	for (const auto &i : m_mapSubscribe) {
+		if ((ulSessionId != 0 && ulSessionId != i.second.ulSession) ||
+		    (ulKey != i.second.ulKey && i.second.ulKey != ulStore) ||
+			!(notifyItem->ulEventType & i.second.ulEventMask))
 				continue;
-
-		notify.SetConnection(i->second.ulConnection);
-
+		notify.SetConnection(i.second.ulConnection);
 		m_listNotification.push_back(notify);
 	}
 
@@ -491,11 +486,9 @@ ECRESULT ECSessionGroup::GetNotifyItems(struct soap *soap, ECSESSIONID ulSession
 		notifications->pNotificationArray->__ptr = s_alloc<notification>(soap, ulSize);
 		notifications->pNotificationArray->__size = ulSize;
 
-		int nPos = 0;
-		for (ECNOTIFICATIONLIST::const_iterator i = m_listNotification.begin();
-		     i != m_listNotification.end(); ++i)
-			i->GetCopy(soap, notifications->pNotificationArray->__ptr[nPos++]);
-
+		size_t nPos = 0;
+		for (const auto i : m_listNotification)
+			i.GetCopy(soap, notifications->pNotificationArray->__ptr[nPos++]);
 		m_listNotification.clear();
 	} else {
 	    er = KCERR_NOT_FOUND;

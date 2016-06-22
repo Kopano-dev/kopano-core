@@ -4189,8 +4189,8 @@ HRESULT Util::HrDeleteResidualProps(LPMESSAGE lpDestMsg, LPMESSAGE lpSourceMsg, 
 	memset(lpsPropArray->aulPropTag, 0, lpsPropArray->cValues * sizeof *lpsPropArray->aulPropTag);
 	lpsPropArray->cValues = 0;
 
-	for (PropTagSet::const_iterator it = sPropTagSet.begin(); it != sPropTagSet.end(); ++it)
-		lpsPropArray->aulPropTag[lpsPropArray->cValues++] = *it;
+	for (const auto &i : sPropTagSet)
+		lpsPropArray->aulPropTag[lpsPropArray->cValues++] = i;
 
 	hr = lpDestMsg->DeleteProps(lpsPropArray, NULL);
 	if (hr != hrSuccess)

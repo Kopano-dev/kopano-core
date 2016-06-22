@@ -3459,24 +3459,22 @@ static void *HandlerLMTP(void *lpArg)
 				/* Responses need to be sent in the same sequence that we received the recipients in.
 				 * Build all responses and find the sequence through the ordered list
 				 */
-				for (companyrecipients_t::const_iterator iCompany = mapRCPT.begin(); iCompany != mapRCPT.end(); ++iCompany) {
-					for (serverrecipients_t::const_iterator iServer = iCompany->second.begin(); iServer != iCompany->second.end(); ++iServer) {
-						for (recipients_t::const_iterator iRecipient = iServer->second.begin(); iRecipient != iServer->second.end(); ++iRecipient) {
+				for (const auto &company : mapRCPT)
+					for (const auto &server : company.second)
+						for (const auto &recip : server.second) {
 							std::vector<std::wstring>::const_iterator i;
 							WCHAR wbuffer[4096];
-							for (i = (*iRecipient)->vwstrRecipients.begin(); i != (*iRecipient)->vwstrRecipients.end(); ++i) {
-								swprintf(wbuffer, arraySize(wbuffer), (*iRecipient)->wstrDeliveryStatus.c_str(), i->c_str());
-								mapRecipientResults.insert(make_pair<string,string>(converter.convert_to<string>(*i),
-																					// rawsize([N]) returns N, not contents len, so cast to fix
-																					converter.convert_to<string>(CHARSET_CHAR, wbuffer, rawsize((WCHAR*)wbuffer), CHARSET_WCHAR)));
+							for (const auto i : recip->vwstrRecipients) {
+								swprintf(wbuffer, arraySize(wbuffer), recip->wstrDeliveryStatus.c_str(), i.c_str());
+								mapRecipientResults.insert(make_pair<std::string, std::string>(converter.convert_to<std::string>(i),
+									// rawsize([N]) returns N, not contents len, so cast to fix
+									converter.convert_to<std::string>(CHARSET_CHAR, wbuffer, rawsize(reinterpret_cast<WCHAR *>(wbuffer)), CHARSET_WCHAR)));
 							}
 						}
-					}
-				}
 
 				// Reply each recipient in the received order
-				for (std::list<std::string>::const_iterator i = lOrderedRecipients.begin(); hr == hrSuccess && i != lOrderedRecipients.end(); ++i) {
-					std::map<std::string, std::string>::const_iterator r = mapRecipientResults.find(*i);
+				for (const auto &i : lOrderedRecipients) {
+					std::map<std::string, std::string>::const_iterator r = mapRecipientResults.find(i);
 					if (r == mapRecipientResults.end()) {
 						// FIXME if a following item from lORderedRecipients does succeed, then this error status
 						// is forgotten. is that ok? (FvH)
@@ -3486,6 +3484,8 @@ static void *HandlerLMTP(void *lpArg)
 					else {
 						hr = lmtp.HrResponse(r->second);
 					}
+					if (hr != hrSuccess)
+						break;
 				}
 
 				sc -> countInc("DAgent::LMTP", "received");

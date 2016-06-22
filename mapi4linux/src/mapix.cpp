@@ -1413,11 +1413,11 @@ HRESULT M4LMAPISession::OpenAddressBook(ULONG ulUIParam, LPCIID lpInterface, ULO
 			vector<SVCProvider*> vABProviders = (*iService)->service->GetProviders();
 			LPSPropValue lpProps;
 			ULONG cValues;
-			for (vector<SVCProvider*>::const_iterator i = vABProviders.begin(); i != vABProviders.end(); ++i) {
+			for (const auto prov : vABProviders) {
 				LPSPropValue lpUID;
 				LPSPropValue lpProp;
 				std::string strDisplayName = "<unknown>";
-				(*i)->GetProps(&cValues, &lpProps);
+				prov->GetProps(&cValues, &lpProps);
 
 				lpProp = PpropFindProp(lpProps, cValues, PR_RESOURCE_TYPE);
 				lpUID = PpropFindProp(lpProps, cValues, PR_AB_PROVIDER_ID);
@@ -1896,11 +1896,10 @@ M4LAddrBook::M4LAddrBook(M4LMsgServiceAdmin *new_serviceAdmin, LPMAPISUP newlpMA
 }
 
 M4LAddrBook::~M4LAddrBook() {
-	for (std::list<abEntry>::const_iterator i = m_lABProviders.begin();
-	     i != m_lABProviders.end(); ++i) {
-		i->lpABLogon->Logoff(0);
-		i->lpABLogon->Release();
-		i->lpABProvider->Release();	// TODO: call shutdown too? useless..
+	for (const auto &i : m_lABProviders) {
+		i.lpABLogon->Logoff(0);
+		i.lpABLogon->Release();
+		i.lpABProvider->Release();	// TODO: call shutdown too? useless..
 	}
 	if(m_lpMAPISup)
 		m_lpMAPISup->Release();
@@ -2132,8 +2131,8 @@ HRESULT M4LAddrBook::CompareEntryIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULO
 	HRESULT hr = hrSuccess;
 
 	// m_lABProviders[0] probably always is Kopano
-	for (std::list<abEntry>::const_iterator i = m_lABProviders.begin(); i != m_lABProviders.end(); ++i) {
-		hr = i->lpABLogon->CompareEntryIDs(cbEntryID1, lpEntryID1, cbEntryID2, lpEntryID2, ulFlags, lpulResult);
+	for (const auto &i : m_lABProviders) {
+		hr = i.lpABLogon->CompareEntryIDs(cbEntryID1, lpEntryID1, cbEntryID2, lpEntryID2, ulFlags, lpulResult);
 		if (hr == hrSuccess || hr != MAPI_E_NO_SUPPORT)
 			break;
 	}
@@ -2475,10 +2474,10 @@ HRESULT M4LAddrBook::GetDefaultDir(ULONG* lpcbEntryID, LPENTRYID* lppEntryID) {
 	}
 
 	// m_lABProviders[0] probably always is Kopano
-	for (std::list<abEntry>::const_iterator i = m_lABProviders.begin();
-	     i != m_lABProviders.end(); ++i) {
+	for (const auto &i : m_lABProviders) {
 		// find a working open root container
-		hr = i->lpABLogon->OpenEntry(0, NULL, &IID_IABContainer, 0, &objType, (IUnknown**)&lpABContainer);
+		hr = i.lpABLogon->OpenEntry(0, NULL, &IID_IABContainer, 0,
+		     &objType, reinterpret_cast<IUnknown **>(&lpABContainer));
 		if (hr == hrSuccess)
 			break;
 	}

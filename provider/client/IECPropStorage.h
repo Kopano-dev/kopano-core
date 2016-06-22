@@ -88,9 +88,8 @@ typedef struct MAPIOBJECT {
 		*this->lstProperties = *lpSource->lstProperties;
 		*this->lstAvailable = *lpSource->lstAvailable;
 
-		for (std::set<MAPIOBJECT *, CompareMAPIOBJECT>::const_iterator i = lpSource->lstChildren->begin();
-		     i != lpSource->lstChildren->end(); ++i)
-			this->lstChildren->insert(new MAPIOBJECT(*i));
+		for (const auto &i : *lpSource->lstChildren)
+			this->lstChildren->insert(new MAPIOBJECT(i));
 	};
 
 	/* data */

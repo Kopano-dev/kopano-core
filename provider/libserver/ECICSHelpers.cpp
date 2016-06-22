@@ -1027,14 +1027,12 @@ ECRESULT ECGetContentChangesHelper::MatchRestrictions(const std::vector<DB_ROW> 
 	if (er != erSuccess)
 		goto exit;
 
-	for (std::map<ECsIndexProp, unsigned int>::const_iterator i = index_objs.begin();
-	     i != index_objs.end(); ++i)
-	{
-		sRow.ulObjId = i->second;
+	for (const auto &i : index_objs) {
+		sRow.ulObjId = i.second;
 		sRow.ulOrderId = 0;
 		lstRows.push_back(sRow);
-		source_keys.push_back(SOURCEKEY(i->first.cbData, reinterpret_cast<const char *>(i->first.lpData)));
-		ulObjId = i->second; /* no need to split QueryRowData call per-objtype (always same) */
+		source_keys.push_back(SOURCEKEY(i.first.cbData, reinterpret_cast<const char *>(i.first.lpData)));
+		ulObjId = i.second; /* no need to split QueryRowData call per-objtype (always same) */
 	}
 
 	er = g_lpSessionManager->GetCacheManager()->GetObject(ulObjId, NULL, NULL, NULL, &sODStore.ulObjType);

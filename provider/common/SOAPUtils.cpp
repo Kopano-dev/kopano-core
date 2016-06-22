@@ -1815,20 +1815,18 @@ static ECRESULT CopyAnonymousDetailsToSoap(struct soap *soap,
 		lpsoapPropmap = s_alloc<struct propmapPairArray>(soap, 1);
 		lpsoapPropmap->__size = 0;
 		lpsoapPropmap->__ptr = s_alloc<struct propmapPair>(soap, propmap.size());
-		for (property_map::const_iterator iter = propmap.begin();
-		     iter != propmap.end(); ++iter)
-		{
-			if (PROP_TYPE(iter->first) == PT_BINARY && bCopyBinary) {
-				string strData = base64_encode((const unsigned char *)iter->second.data(), iter->second.size());
-				lpsoapPropmap->__ptr[lpsoapPropmap->__size].ulPropId = iter->first;
+		for (const auto &iter : propmap) {
+			if (PROP_TYPE(iter.first) == PT_BINARY && bCopyBinary) {
+				string strData = base64_encode((const unsigned char *)iter.second.data(), iter.second.size());
+				lpsoapPropmap->__ptr[lpsoapPropmap->__size].ulPropId = iter.first;
 				lpsoapPropmap->__ptr[lpsoapPropmap->__size++].lpszValue = s_strcpy(soap, strData.c_str());
 				continue;
 			}
 
-			if (PROP_TYPE(iter->first) != PT_STRING8 && PROP_TYPE(iter->first) != PT_UNICODE)
+			if (PROP_TYPE(iter.first) != PT_STRING8 && PROP_TYPE(iter.first) != PT_UNICODE)
 				continue;
-			lpsoapPropmap->__ptr[lpsoapPropmap->__size].ulPropId = iter->first;
-			lpsoapPropmap->__ptr[lpsoapPropmap->__size++].lpszValue = s_strcpy(soap, iter->second.c_str());
+			lpsoapPropmap->__ptr[lpsoapPropmap->__size].ulPropId = iter.first;
+			lpsoapPropmap->__ptr[lpsoapPropmap->__size++].lpszValue = s_strcpy(soap, iter.second.c_str());
 		}
 	}
 
@@ -1836,18 +1834,14 @@ static ECRESULT CopyAnonymousDetailsToSoap(struct soap *soap,
 		lpsoapMVPropmap = s_alloc<struct propmapMVPairArray>(soap, 1);
 		lpsoapMVPropmap->__size = 0;
 		lpsoapMVPropmap->__ptr = s_alloc<struct propmapMVPair>(soap, propmvmap.size());
-		for (property_mv_map::const_iterator iter = propmvmap.begin();
-		     iter != propmvmap.end(); ++iter)
-		{
-			if (PROP_TYPE(iter->first) == PT_MV_BINARY && bCopyBinary) {
+		for (const auto &iter : propmvmap) {
+			if (PROP_TYPE(iter.first) == PT_MV_BINARY && bCopyBinary) {
 				j = 0;
-				lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].ulPropId = iter->first;
-				lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__size = iter->second.size();
+				lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].ulPropId = iter.first;
+				lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__size = iter.second.size();
 				lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__ptr = s_alloc<char *>(soap, lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__size);
-				for (std::list<std::string>::const_iterator entry = iter->second.begin();
-				     entry != iter->second.end(); ++entry)
-				{
-					string strData = base64_encode((const unsigned char *)entry->data(), entry->size());
+				for (const auto &entry : iter.second) {
+					string strData = base64_encode(reinterpret_cast<const unsigned char *>(entry.data()), entry.size());
 					lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__ptr[j] = s_strcpy(soap, strData.c_str());
 					++j;
 				}
@@ -1855,16 +1849,15 @@ static ECRESULT CopyAnonymousDetailsToSoap(struct soap *soap,
 				continue;
 			}
 
-			if (PROP_TYPE(iter->first) != PT_MV_STRING8 && PROP_TYPE(iter->first) != PT_MV_UNICODE)
+			if (PROP_TYPE(iter.first) != PT_MV_STRING8 && PROP_TYPE(iter.first) != PT_MV_UNICODE)
 				continue;
 
 			j = 0;
-			lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].ulPropId = iter->first;
-			lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__size = iter->second.size();
+			lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].ulPropId = iter.first;
+			lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__size = iter.second.size();
 			lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__ptr = s_alloc<char *>(soap, lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__size);
-			for (std::list<std::string>::const_iterator entry = iter->second.begin();
-			     entry != iter->second.end(); ++entry) {
-				lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__ptr[j] = s_strcpy(soap, entry->c_str());
+			for (const auto &entry : iter.second) {
+				lpsoapMVPropmap->__ptr[lpsoapMVPropmap->__size].sValues.__ptr[j] = s_strcpy(soap, entry.c_str());
 				++j;
 			}
 			++lpsoapMVPropmap->__size;

@@ -844,8 +844,9 @@ static ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 		++ulCount;
 	}
 
-	for (std::list<struct propVal>::const_iterator it = sPropValList.begin(); it != sPropValList.end(); ++it) {
-		er = SerializePropVal(lpStreamCaps, *it, lpTempSink, NULL);		// No NamedPropDefMap needed for computed properties
+	for (const auto &pv : sPropValList) {
+		/* No NamedPropDefMap needed for computed properties */
+		er = SerializePropVal(lpStreamCaps, pv, lpTempSink, NULL);
 		if (er != erSuccess)
 			goto exit;
 		++ulCount;

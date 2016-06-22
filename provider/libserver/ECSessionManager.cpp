@@ -872,18 +872,15 @@ void* ECSessionManager::SessionCleaner(void *lpTmpSessionManager)
 		pthread_rwlock_unlock(&lpSessionManager->m_hCacheRWLock);
 
 		// Now, remove all the session. It will wait until all running threads for that session have exited.
-		for (std::list<BTSession *>::const_iterator iSessions = lstSessions.begin();
-		     iSessions != lstSessions.end(); ++iSessions)
-		{
-			if((*iSessions)->Shutdown(5 * 60 * 1000) == erSuccess) 
-				delete *iSessions;
-			else {
+		for (const auto ses : lstSessions) {
+			if (ses->Shutdown(5 * 60 * 1000) == erSuccess)
+				delete ses;
+			else
 				// The session failed to shut down within our timeout period. This means we probably hit a bug; this
 				// should only happen if some bit of code has locked the session and failed to unlock it. There are now
 				// two options: delete the session anyway and hope we don't segfault, or leak the session. We choose
 				// the latter.
 				ec_log_err("Session failed to shut down: skipping clean");
-			}
 		}
 
 		lstSessions.clear();

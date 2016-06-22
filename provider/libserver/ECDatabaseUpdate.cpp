@@ -1374,9 +1374,8 @@ ECRESULT UpdateDatabaseConvertObjectTypeToObjectClass(ECDatabase *lpDatabase)
 	}
 
 	// process all type updates
-	for (std::list<std::string>::const_iterator iu = lstUpdates.begin();
-	     iu != lstUpdates.end(); ++iu) {
-		er = lpDatabase->DoUpdate(*iu);
+	for (const auto &q : lstUpdates) {
+		er = lpDatabase->DoUpdate(q);
 		if (er != erSuccess)
 			goto exit;
 	}

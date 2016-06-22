@@ -767,9 +767,8 @@ objectid_t LDAPUserPlugin::GetObjectIdForEntry(LDAPMessage *entry)
 	 * If that does not resolve the ambiguity, then object classes with higher numerical values
 	 * override those with lower numerical values (most importantly, contacts override users)
 	 */
-	for (list<string>::const_iterator i = objclasses.begin();
-	     i != objclasses.end(); ++i)
-		setObjectClasses.insert(strToUpper(*i));
+	for (const auto &i : objclasses)
+		setObjectClasses.insert(strToUpper(i));
 
 	lstLDAPObjectClasses = GetClasses(class_user_type);
 	if(MatchClasses(setObjectClasses, lstLDAPObjectClasses))
@@ -1373,10 +1372,9 @@ LDAPUserPlugin::objectDNtoObjectSignatures(objectclass_t objclass,
 {
 	std::unique_ptr<signatures_t> signatures(new signatures_t());
 
-	for (std::list<std::string>::const_iterator i = dn.begin();
-	     i != dn.end(); ++i) {
+	for (const auto &i : dn) {
 		try {
-			signatures->push_back(objectDNtoObjectSignature(objclass, *i));
+			signatures->push_back(objectDNtoObjectSignature(objclass, i));
 		} catch (objectnotfound &e) {
 			// resolve failed, drop entry
 			continue;
@@ -1442,10 +1440,9 @@ LDAPUserPlugin::resolveObjectsFromAttributes(objectclass_t objclass,
 		companyDN = ldap_basedn; // in hosted, companyDN is the same as searchbase?
 
 	ldap_filter = "(&" + ldap_filter + "(|";
-	for (std::list<std::string>::const_iterator i = objects.begin();
-	     i != objects.end(); ++i)
+	for (const auto &i : objects)
 		for (unsigned int j = 0; lppAttr[j] != NULL; ++j)
-			ldap_filter += "(" + string(lppAttr[j]) + "=" + StringEscapeSequence(*i) + ")";
+			ldap_filter += "(" + string(lppAttr[j]) + "=" + StringEscapeSequence(i) + ")";
 	ldap_filter += "))";
 
 	return getAllObjectsByFilter(ldap_basedn, LDAP_SCOPE_SUBTREE, ldap_filter, companyDN, false);
@@ -1883,9 +1880,8 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 	}
 #endif
 
-	for (std::list<configsetting_t>::const_iterator iter = lExtraAttrs.begin();
-	     iter != lExtraAttrs.end(); ++iter)
-		request_attrs->add(iter->szValue);
+	for (const auto &c : lExtraAttrs)
+		request_attrs->add(c.szValue);
 	unsigned int ulCutoff = atoui(m_config->GetSetting("ldap_filter_cutoff_elements"));
 
 	/*
@@ -1920,11 +1916,10 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 		// find all the different object classes in the objectids list, and make an or filter based on that
 		objectclass_t objclass = (objectclass_t)-1; // set to something invalid
 		ldap_filter = "(|";
-		for (std::set<objectid_t>::const_iterator iter = setObjectIds.begin();
-		     iter != setObjectIds.end(); ++iter)
-			if (objclass != iter->objclass) {
-				ldap_filter += getSearchFilter(iter->objclass);
-				objclass = iter->objclass;
+		for (const auto &id : setObjectIds)
+			if (objclass != id.objclass) {
+				ldap_filter += getSearchFilter(id.objclass);
+				objclass = id.objclass;
 			}
 		ldap_filter += ")";
 
@@ -2011,18 +2006,17 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 				sObjDetails.SetPropBool(OB_PROP_B_AB_HIDDEN, parseBool(ldap_attr.c_str()));
 			}
 
-			for (std::list<configsetting_t>::const_iterator iter = lExtraAttrs.begin();
-			     iter != lExtraAttrs.end(); ++iter) {
+			for (const auto &se : lExtraAttrs) {
 				unsigned int ulPropTag;
 
 				/*
 				 * The value should be set to something, as protection to make sure
 				 * the name is a property tag all names should be prefixed with '0x'.
 				 */
-				if (strcasecmp(iter->szValue, att) != 0 || strncasecmp(iter->szName, "0x", strlen("0x")) != 0)
+				if (strcasecmp(se.szValue, att) != 0 || strncasecmp(se.szName, "0x", strlen("0x")) != 0)
 					continue;
 
-				ulPropTag = xtoi(iter->szName);
+				ulPropTag = xtoi(se.szName);
 
 				/* Handle property actions */
 				switch (PROP_ID(ulPropTag)) {
@@ -2106,9 +2100,8 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 					ldap_attrs = getLDAPAttributeValues(att, entry);
 
 					if ((ulPropTag & 0xFFFE) == 0x1E) // if (PROP_TYPE(ulPropTag) == PT_STRING8 || PT_UNICODE)
-						for (std::list<std::string>::iterator i = ldap_attrs.begin();
-						     i != ldap_attrs.end(); ++i)
-							*i = m_iconv->convert(*i);
+						for (auto &i : ldap_attrs)
+							i = m_iconv->convert(i);
 
 					if (ulPropTag & 0x1000) /* MV_FLAG */
 						sObjDetails.SetPropListString((property_key_t)ulPropTag, ldap_attrs);
@@ -2308,67 +2301,60 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 	END_FOREACH_LDAP_PAGING
 
 	// paged loop ended, so now we can process the postactions.
-	for (std::list<postaction>::const_iterator p = lPostActions.begin();
-	     p != lPostActions.end(); ++p)
-	{
-		map<objectid_t, objectdetails_t>::iterator o = mapdetails->find(p->objectid);
+	for (const auto &p : lPostActions) {
+		map<objectid_t, objectdetails_t>::iterator o = mapdetails->find(p.objectid);
 		if (o == mapdetails->end()) {
 			// this should never happen, but only some details will be missing, not the end of the world.
-			ec_log_crit("No object \"%s\" found for postaction", p->objectid.id.c_str());
+			ec_log_crit("No object \"%s\" found for postaction", p.objectid.id.c_str());
 			continue;
 		}
 
-		if (p->ldap_attr.empty()) {
+		if (p.ldap_attr.empty()) {
 			// list, so use AddPropObject()
 			try {
 			    // Currently not supported for multivalued arrays. This would require multiple calls to objectUniqueIDtoAttributeData
 			    // which is inefficient, and it is currently unused.
-			    ASSERT(p->result_attr.empty());
-			    
-				std::unique_ptr<signatures_t> lstSignatures;
-				signatures_t::const_iterator iSignature;
-				lstSignatures = resolveObjectsFromAttributeType(p->objclass, p->ldap_attrs, p->relAttr, p->relAttrType);
-				if (lstSignatures->size() != p->ldap_attrs.size()) {
+			    ASSERT(p.result_attr.empty());
+				std::unique_ptr<signatures_t> lstSignatures = resolveObjectsFromAttributeType(p.objclass, p.ldap_attrs, p.relAttr, p.relAttrType);
+				if (lstSignatures->size() != p.ldap_attrs.size()) {
 					// try to rat out the object causing the failed ldap query
 					ec_log_err("Not all objects in relation found for object \"%s\"", o->second.GetPropString(OB_PROP_S_LOGIN).c_str());
 				}
-				for (iSignature = lstSignatures->begin();
-				     iSignature != lstSignatures->end();
-				     ++iSignature)
-					o->second.AddPropObject(p->propname, iSignature->id);
+				for (const auto &sig : *lstSignatures)
+					o->second.AddPropObject(p.propname, sig.id);
 			} catch (ldap_error &e) {
 				if(!LDAP_NAME_ERROR(e.GetLDAPError()))
 					throw;
 			} catch (std::exception &e) {
-				ec_log_err("Unable to resolve object from relational attribute type \"%s\"", p->relAttr);
+				ec_log_err("Unable to resolve object from relational attribute type \"%s\"", p.relAttr);
 			}
 		} else {
 			// string, so use SetPropObject
 			try {
 				objectsignature_t signature;
-				signature = resolveObjectFromAttributeType(p->objclass, p->ldap_attr, p->relAttr, p->relAttrType);
-				if (!p->result_attr.empty()) {
+				signature = resolveObjectFromAttributeType(p.objclass, p.ldap_attr, p.relAttr, p.relAttrType);
+				if (!p.result_attr.empty()) {
 				    // String type
 				    try {
-    				    o->second.SetPropString(p->propname, objectUniqueIDtoAttributeData(signature.id, p->result_attr.c_str()));
+						o->second.SetPropString(p.propname, objectUniqueIDtoAttributeData(signature.id, p.result_attr.c_str()));
                     } catch (ldap_error &e) {
                         if(!LDAP_NAME_ERROR(e.GetLDAPError()))
                             throw;
                     } catch (std::exception &e) {
-                        ec_log_err("Unable to get attribute \"%s\" for relation \"%s\" for object \"%s\"", p->result_attr.c_str(), p->ldap_attr.c_str(), o->second.GetPropString(OB_PROP_S_LOGIN).c_str());
+                        ec_log_err("Unable to get attribute \"%s\" for relation \"%s\" for object \"%s\"", p.result_attr.c_str(), p.ldap_attr.c_str(), o->second.GetPropString(OB_PROP_S_LOGIN).c_str());
                     }
 				} else {
 				    // ID type
     				if (!signature.id.id.empty())
-		    			o->second.SetPropObject(p->propname, signature.id);
+					o->second.SetPropObject(p.propname, signature.id);
 	    			else
-					ec_log_err("Unable to find relation \"%s\" in attribute \"%s\"", p->ldap_attr.c_str(), p->relAttr);
+					ec_log_err("Unable to find relation \"%s\" in attribute \"%s\"", p.ldap_attr.c_str(), p.relAttr);
                 }
 			} catch (ldap_error &e) {
 				if(!LDAP_NAME_ERROR(e.GetLDAPError()))
 					throw;
 			} catch (std::exception &e) {
-				ec_log_err("Unable to resolve object from relational attribute type \"%s\"", p->relAttr);
+				ec_log_err("Unable to resolve object from relational attribute type \"%s\"", p.relAttr);
 			}
 		}
 	}
@@ -2404,11 +2390,10 @@ static LDAPMod *newLDAPModification(char *attribute, const list<string> &values)
 	mod->mod_type = attribute;
 	mod->mod_vals.modv_strvals = (char**) calloc(values.size() + 1, sizeof(char*));
 	int idx = 0;
-	for (std::list<std::string>::const_iterator i = values.begin();
-	     i != values.end(); ++i)
+	for (const auto &i : values)
 		// A strdup is necessary to be able to call free on it in the
 		// method changeAttribute, below.
-		mod->mod_vals.modv_strvals[idx++] = strdup((*i).c_str());
+		mod->mod_vals.modv_strvals[idx++] = strdup(i.c_str());
 	mod->mod_vals.modv_strvals[idx] = NULL;
 	return mod;
 }

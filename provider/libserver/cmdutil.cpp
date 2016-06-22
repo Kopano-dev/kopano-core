@@ -1975,10 +1975,9 @@ ECRESULT ApplyFolderCounts(ECDatabase *lpDatabase, const std::map<unsigned int, 
 	ECRESULT er;
     
 	// Update folder counts
-	for (std::map<unsigned int, PARENTINFO>::const_iterator iterFolderCounts = mapFolderCounts.begin();
-	     iterFolderCounts != mapFolderCounts.end(); ++iterFolderCounts) {
-	    er = ApplyFolderCounts(lpDatabase, iterFolderCounts->first, iterFolderCounts->second);
-	    if(er != erSuccess)
+	for (const auto &p : mapFolderCounts) {
+		er = ApplyFolderCounts(lpDatabase, p.first, p.second);
+		if (er != erSuccess)
 			return er;
 	}
 	return erSuccess;
@@ -2024,13 +2023,12 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
     std::string strQuery;
     
     // See if we can get the object IDs for the passed objects from the cache
-    for (std::set<std::string>::const_iterator i = setIds.begin();
-         i != setIds.end(); ++i) {
-        if(g_lpSessionManager->GetCacheManager()->QueryObjectFromProp(ulTag, i->size(), (unsigned char *)i->data(), &ulId) == erSuccess) {
+    for (const auto &s : setIds) {
+        if (g_lpSessionManager->GetCacheManager()->QueryObjectFromProp(ulTag, s.size(), reinterpret_cast<unsigned char *>(const_cast<char *>(s.data())), &ulId) == erSuccess) {
             if(ulTag == PROP_ID(PR_SOURCE_KEY))
                 setFolders.insert(ulId);
             else if(ulTag == PROP_ID(PR_ENTRYID)) {
-                EntryId eid(*i);
+                EntryId eid(s);
                 
 		try {
 			if (eid.type() == MAPI_FOLDER)
@@ -2048,7 +2046,7 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
                 ASSERT(false);
             }
         } else {
-            setUncached.insert(*i);
+            setUncached.insert(s);
         }
     }
 
@@ -2083,16 +2081,13 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
     }
         
     // For the items that were cached, but messages, find their parents in the cache first
-    for (std::set<unsigned int>::const_iterator i = setMessages.begin();
-         i != setMessages.end(); ++i)
-    {
+	for (const auto i : setMessages) {
         unsigned int ulParent = 0;
         
-        if(g_lpSessionManager->GetCacheManager()->QueryParent(*i, &ulParent) == erSuccess) {
-            setFolders.insert(ulParent);
-        } else {
-            setUncachedMessages.insert(*i);
-        }
+		if (g_lpSessionManager->GetCacheManager()->QueryParent(i, &ulParent) == erSuccess)
+			setFolders.insert(ulParent);
+		else
+			setUncachedMessages.insert(i);
     }
     
     // Query uncached parents from the database

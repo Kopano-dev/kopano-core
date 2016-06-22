@@ -1535,13 +1535,11 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulStoreId, unsigned int ulFold
 	}
 
     strQuery = "INSERT IGNORE INTO searchresults (folderid, hierarchyid, flags) VALUES";
-    for (std::list<unsigned int>::const_iterator i = lstObjId.begin();
-         i != lstObjId.end(); ++i)
-    {
+	for (const auto n : lstObjId) {
         strQuery += "(";
         strQuery += stringify(ulFolderId);
         strQuery += ",";
-        strQuery += stringify(*i);
+		strQuery += stringify(n);
         strQuery += ",1),";
     }
     strQuery.resize(strQuery.size()-1);

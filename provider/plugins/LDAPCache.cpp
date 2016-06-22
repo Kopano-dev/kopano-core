@@ -85,9 +85,8 @@ void LDAPCache::setObjectDNCache(objectclass_t objclass,
 	 */
 	std::unique_ptr<dn_cache_t> lpTmp = getObjectDNCache(NULL, objclass);
 	// cannot use insert() because it does not override existing entries
-	for (dn_cache_t::const_iterator i = lpCache->begin();
-	     i != lpCache->end(); ++i)
-		(*lpTmp)[i->first] = i->second;
+	for (const auto &i : *lpCache)
+		(*lpTmp)[i.first] = i.second;
 	lpCache = std::move(lpTmp);
 
 	pthread_mutex_lock(&m_hMutex);
@@ -171,14 +170,13 @@ objectid_t LDAPCache::getParentForDN(const std::unique_ptr<dn_cache_t> &lpCache,
 		goto exit;
 
 	// @todo make sure we find the largest DN match
-	for (dn_cache_t::const_iterator it = lpCache->begin();
-	     it != lpCache->end(); ++it)
+	for (const auto &i : *lpCache)
 		/* Key should be larger then current guess, but has to be smaller then the userobject dn */
 		/* If key matches the end of the userobject dn, we have a positive match */
-		if (it->second.size() > parent_dn.size() && it->second.size() < dn.size() &&
-		    strcasecmp(dn.c_str() + (dn.size() - it->second.size()), it->second.c_str()) == 0) {
-			parent_dn = it->second;
-			entry = it->first;
+		if (i.second.size() > parent_dn.size() && i.second.size() < dn.size() &&
+		    strcasecmp(dn.c_str() + (dn.size() - i.second.size()), i.second.c_str()) == 0) {
+			parent_dn = i.second;
+			entry = i.first;
 		}
 
 exit:
@@ -193,14 +191,12 @@ LDAPCache::getChildrenForDN(const std::unique_ptr<dn_cache_t> &lpCache,
 	std::unique_ptr<dn_list_t> list(new dn_list_t());
 
 	/* Find al DNs which are hierarchically below the given dn */
-	for (dn_cache_t::const_iterator iter = lpCache->begin();
-	     iter != lpCache->end(); ++iter)
+	for (const auto &i : *lpCache)
 		/* Key should be larger then root DN */
 		/* If key matches the end of the root dn, we have a positive match */
-		if (iter->second.size() > dn.size() &&
-		    strcasecmp(iter->second.c_str() + (iter->second.size() - dn.size()), dn.c_str()) == 0)
-			list->push_back(iter->second);
-
+		if (i.second.size() > dn.size() &&
+		    strcasecmp(i.second.c_str() + (i.second.size() - dn.size()), dn.c_str()) == 0)
+			list->push_back(i.second);
 	return list;
 }
 
@@ -216,12 +212,11 @@ bool LDAPCache::isDNInList(const std::unique_ptr<dn_list_t> &lpList,
     const std::string &dn)
 {
 	/* We were given an DN, check if a parent of that dn is listed as filterd */
-	for (dn_list_t::const_iterator iter = lpList->begin();
-	     iter != lpList->end(); ++iter)
+	for (const auto &i : *lpList)
 		/* Key should be larger or equal then user DN */
 		/* If key matches the end of the user dn, we have a positive match */
-		if (iter->size() <= dn.size() &&
-		    strcasecmp(dn.c_str() + (dn.size() - iter->size()), iter->c_str()) == 0)
+		if (i.size() <= dn.size() &&
+		    strcasecmp(dn.c_str() + (dn.size() - i.size()), i.c_str()) == 0)
 			return true;
 
 	return false;

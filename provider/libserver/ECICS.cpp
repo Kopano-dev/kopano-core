@@ -84,8 +84,8 @@ static ECRESULT FilterUserIdsByCompany(ECDatabase *lpDatabase, const std::set<un
 	ASSERT(!sUserIds.empty());
 
 	strQuery = "SELECT id FROM users where company=" + stringify(ulCompanyFilter) + " AND id IN (";
-	for (std::set<unsigned int>::const_iterator i = sUserIds.begin(); i != sUserIds.end(); ++i)
-		strQuery.append(stringify(*i) + ",");
+	for (const auto i : sUserIds)
+		strQuery.append(stringify(i) + ",");
 	strQuery.resize(strQuery.size() - 1);
 	strQuery.append(1, ')');
 
@@ -1056,25 +1056,25 @@ nextFolder:
             memset(lpChanges->__ptr, 0, sizeof(icsChange) * ulChanges);
 
             i=0;
-			for (ABChangeRecordList::const_iterator iter = lstChanges.begin(); iter != lstChanges.end(); ++iter) {
-				unsigned int ulUserId = reinterpret_cast<const ABEID *>(iter->strItem.data())->ulId;
+			for (const auto &iter : lstChanges) {
+				unsigned int ulUserId = reinterpret_cast<const ABEID *>(iter.strItem.data())->ulId;
 
-				if (iter->change_type != ICS_AB_DELETE && sUserIds.find(ulUserId) == sUserIds.end())
+				if (iter.change_type != ICS_AB_DELETE && sUserIds.find(ulUserId) == sUserIds.end())
 					continue;
 
-				er = ConvertABEntryIDToSoapSourceKey(soap, lpSession, bAcceptABEID, iter->strItem.size(), (char*)iter->strItem.data(), &lpChanges->__ptr[i].sSourceKey);
+				er = ConvertABEntryIDToSoapSourceKey(soap, lpSession, bAcceptABEID, iter.strItem.size(), const_cast<char *>(iter.strItem.data()), &lpChanges->__ptr[i].sSourceKey);
                 if (er != erSuccess) {
                     er = erSuccess;
                     continue;
                 }
 
-				lpChanges->__ptr[i].ulChangeId = iter->id;
-                lpChanges->__ptr[i].sParentSourceKey.__ptr = (unsigned char *)s_memcpy(soap, iter->strParent.data(), iter->strParent.size());
-                lpChanges->__ptr[i].sParentSourceKey.__size = iter->strParent.size();
-                lpChanges->__ptr[i].ulChangeType = iter->change_type;
+				lpChanges->__ptr[i].ulChangeId = iter.id;
+				lpChanges->__ptr[i].sParentSourceKey.__ptr = reinterpret_cast<unsigned char *>(s_memcpy(soap, iter.strParent.data(), iter.strParent.size()));
+				lpChanges->__ptr[i].sParentSourceKey.__size = iter.strParent.size();
+				lpChanges->__ptr[i].ulChangeType = iter.change_type;
 
-                if(iter->id > ulMaxChange)
-                    ulMaxChange = iter->id;
+				if (iter.id > ulMaxChange)
+					ulMaxChange = iter.id;
                 ++i;
             }
 

@@ -122,9 +122,8 @@ static ECRESULT NormalizeRestrictionNestedAnd(struct restrictTable *lpRestrict)
         lpRestrict->lpAnd->__ptr = s_alloc<restrictTable *>(NULL, lstClauses.size());
         
         int n = 0;
-        for (std::list<struct restrictTable *>::const_iterator clause = lstClauses.begin();
-             clause != lstClauses.end(); ++clause)
-		lpRestrict->lpAnd->__ptr[n++] = *clause;
+		for (const auto rt : lstClauses)
+			lpRestrict->lpAnd->__ptr[n++] = rt;
         
         lpRestrict->lpAnd->__size = n;
     }

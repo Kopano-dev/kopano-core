@@ -645,14 +645,12 @@ static HRESULT ProcessAllEntries(IMAPISession *lpAdminSession,
 		strUsername = lpsRowSet->aRow[0].lpProps[0].Value.lpszW;
 		// Check if there is already an active process for this message
 		bool bMatch = false;
-		for (std::map<pid_t, SendData>::const_iterator i = mapSendData.begin();
-		     i != mapSendData.end(); ++i) {
-			if (i->second.cbMessageEntryId == lpsRowSet->aRow[0].lpProps[2].Value.bin.cb &&
-				memcmp(i->second.lpMessageEntryId, lpsRowSet->aRow[0].lpProps[2].Value.bin.lpb, i->second.cbMessageEntryId) == 0) {
+		for (const auto &i : mapSendData)
+			if (i.second.cbMessageEntryId == lpsRowSet->aRow[0].lpProps[2].Value.bin.cb &&
+			    memcmp(i.second.lpMessageEntryId, lpsRowSet->aRow[0].lpProps[2].Value.bin.lpb, i.second.cbMessageEntryId) == 0) {
 				bMatch = true;
 				break;
 			}
-		}
 		if (bMatch)
 			continue;
 
