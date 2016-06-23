@@ -3029,7 +3029,8 @@ exit:
 	return hr;
 }
 
-HRESULT ECMsgStore::ResolvePseudoUrl(char *lpszPseudoUrl, char **lppszServerPath, bool *lpbIsPeer)
+HRESULT ECMsgStore::ResolvePseudoUrl(const char *lpszPseudoUrl,
+    char **lppszServerPath, bool *lpbIsPeer)
 {
 	return lpTransport->HrResolvePseudoUrl(lpszPseudoUrl, lppszServerPath, lpbIsPeer);
 }
@@ -4115,7 +4116,8 @@ HRESULT ECMsgStore::xECServiceAdmin::OpenUserStoresTable(ULONG ulFlags, LPMAPITA
 	return pThis->OpenUserStoresTable(ulFlags, lppTable);
 }
 
-HRESULT ECMsgStore::xECServiceAdmin::ResolvePseudoUrl(char *lpszPseudoUrl, char **lppszServerPath, bool *lpbIsPeer)
+HRESULT ECMsgStore::xECServiceAdmin::ResolvePseudoUrl(const char *lpszPseudoUrl,
+    char **lppszServerPath, bool *lpbIsPeer)
 {
 	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::ResolvePseudoUrl", "");
 	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);

@@ -155,7 +155,7 @@ public:
 	virtual HRESULT PurgeDeferredUpdates(ULONG *lpulDeferredRemaining);
 	virtual HRESULT GetServerDetails(ECSVRNAMELIST *lpServerNameList, ULONG ulFlags, ECSERVERLIST **lppsServerList);
 	virtual HRESULT OpenUserStoresTable(ULONG ulFlags, LPMAPITABLE *lppTable);
-	virtual HRESULT ResolvePseudoUrl(char *lpszPseudoUrl, char **lppszServerPath, bool *lpbIsPeer);
+	virtual HRESULT ResolvePseudoUrl(const char *url, char **pathp, bool *ispeer);
 	virtual HRESULT GetPublicStoreEntryID(ULONG ulFlags, ULONG* lpcbStoreID, LPENTRYID* lppStoreID);
 	virtual HRESULT GetArchiveStoreEntryID(LPCTSTR lpszUserName, LPCTSTR lpszServerName, ULONG ulFlags, ULONG* lpcbStoreID, LPENTRYID* lppStoreID);
 	virtual HRESULT ResetFolderCount(ULONG cbEntryId, LPENTRYID lpEntryId, ULONG *lpulUpdates);
@@ -356,7 +356,7 @@ public:
 		virtual HRESULT __stdcall PurgeDeferredUpdates(ULONG *lpulDeferredRemaining) _zcp_override;
 		virtual HRESULT __stdcall GetServerDetails(ECSVRNAMELIST *lpServerNameList, ULONG ulFlags, ECSERVERLIST **lppsServerList) _zcp_override;
 		virtual HRESULT __stdcall OpenUserStoresTable(ULONG ulFlags, LPMAPITABLE *lppTable) _zcp_override;
-		virtual HRESULT __stdcall ResolvePseudoUrl(char *lpszPseudoUrl, char **lppszServerPath, bool *lpbIsPeer) _zcp_override;
+		virtual HRESULT __stdcall ResolvePseudoUrl(const char *url, char **pathp, bool *ispeer) _kc_override;
 		virtual HRESULT __stdcall GetPublicStoreEntryID(ULONG ulFlags, ULONG *lpcbStoreID, LPENTRYID *lppStoreID) _zcp_override;
 		virtual HRESULT __stdcall GetArchiveStoreEntryID(LPCTSTR lpszUserName, LPCTSTR lpszServerName, ULONG ulFlags, ULONG *lpcbStoreID, LPENTRYID *lppStoreID) _zcp_override;
 		virtual HRESULT __stdcall ResetFolderCount(ULONG cbEntryId, LPENTRYID lpEntryId, ULONG *lpulUpdates) _zcp_override;

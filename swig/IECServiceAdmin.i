@@ -111,7 +111,7 @@ public:
 
 	// Multiserver functions
 	virtual HRESULT GetServerDetails(LPECSVRNAMELIST lpServerNameList, ULONG ulFlags, LPECSERVERLIST* OUTPUT/*lppsServerList*/) = 0;
-	virtual HRESULT ResolvePseudoUrl(char *lpszPseudoUrl, char** OUTMAPICHAR/*lppszServerPath*/, bool *OUTPUT /*lpbIsPeer*/) = 0;
+	virtual HRESULT ResolvePseudoUrl(const char *url, char** OUTMAPICHAR/*lppszServerPath*/, bool *OUTPUT /*lpbIsPeer*/) = 0;
 	
 	// Public store function(s)
 	virtual HRESULT GetPublicStoreEntryID(ULONG ulFlags, ULONG *OUTPUT /*lpcbStoreID*/, LPENTRYID *OUTPUT /*lppStoreID*/) = 0;
