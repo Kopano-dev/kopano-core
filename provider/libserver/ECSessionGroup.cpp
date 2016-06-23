@@ -492,7 +492,7 @@ ECRESULT ECSessionGroup::GetNotifyItems(struct soap *soap, ECSESSIONID ulSession
 		notifications->pNotificationArray->__size = ulSize;
 
 		int nPos = 0;
-		for (NOTIFICATIONLIST::const_iterator i = m_listNotification.begin();
+		for (ECNOTIFICATIONLIST::const_iterator i = m_listNotification.begin();
 		     i != m_listNotification.end(); ++i)
 			i->GetCopy(soap, notifications->pNotificationArray->__ptr[nPos++]);
 
@@ -530,7 +530,7 @@ ECRESULT ECSessionGroup::releaseListeners()
  */
 size_t ECSessionGroup::GetObjectSize(void)
 {
-	NOTIFICATIONLIST::const_iterator iterlNotify;
+	ECNOTIFICATIONLIST::const_iterator iterlNotify;
 	size_t ulSize = 0;
 	unsigned int ulItems;
 
@@ -542,7 +542,7 @@ size_t ECSessionGroup::GetObjectSize(void)
 	for (iterlNotify = m_listNotification.begin(), ulItems = 0;
 	     iterlNotify != m_listNotification.end(); ++iterlNotify, ++ulItems)
 		ulSize += iterlNotify->GetObjectSize();
-	ulSize += MEMORY_USAGE_LIST(ulItems, NOTIFICATIONLIST);
+	ulSize += MEMORY_USAGE_LIST(ulItems, ECNOTIFICATIONLIST);
 
 	pthread_mutex_unlock(&m_hNotificationLock);
 
