@@ -69,7 +69,7 @@ HRESULT HrParseURL(const std::string &strUrl, ULONG *lpulFlag, std::string *lpst
 		goto exit;
 	}
 
-	iterToken = vcUrlTokens.begin();
+	iterToken = vcUrlTokens.cbegin();
 
 	strService = *iterToken++;
 
@@ -83,7 +83,7 @@ HRESULT HrParseURL(const std::string &strUrl, ULONG *lpulFlag, std::string *lpst
 	else
 		ulFlag |= SERVICE_UNKNOWN;
 
-	if (iterToken == vcUrlTokens.end())
+	if (iterToken == vcUrlTokens.cend())
 		goto exit;
 
 	strUrlUser = *iterToken++;
@@ -97,7 +97,7 @@ HRESULT HrParseURL(const std::string &strUrl, ULONG *lpulFlag, std::string *lpst
 	if (!strUrlUser.compare("public"))
 		ulFlag |= REQ_PUBLIC;
 
-	if (iterToken == vcUrlTokens.end())
+	if (iterToken == vcUrlTokens.cend())
 		goto exit;
 
 	// @todo subfolder/folder/ is not allowed! only subfolder/item.ics
@@ -208,7 +208,7 @@ HRESULT Http::HrParseHeaders()
 	std::string strUserAgent;
 
 	std::vector<std::string> items;
-	std::map<std::string, std::string>::const_iterator iHeader = mapHeaders.end();
+	std::map<std::string, std::string>::const_iterator iHeader = mapHeaders.cend();
 
 	std::string user_pass;
 	size_t colon_pos;
@@ -823,8 +823,8 @@ HRESULT Http::X2W(const std::string &strIn, std::wstring *lpstrOut)
 
 HRESULT Http::HrGetHeaderValue(const std::string &strHeader, std::string *strValue)
 {
-	std::map<std::string, std::string>::const_iterator iHeader = mapHeaders.find(strHeader);
-	if (iHeader == mapHeaders.end())
+	auto iHeader = mapHeaders.find(strHeader);
+	if (iHeader == mapHeaders.cend())
 		return MAPI_E_NOT_FOUND;
 	*strValue = iHeader->second;
 	return hrSuccess;

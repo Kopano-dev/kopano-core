@@ -923,11 +923,8 @@ void WebDav::RegisterNs(std::string strNs, std::string *lpstrNsPrefix)
 HRESULT WebDav::GetNs(std::string * lpstrPrefx, std::string *lpstrNs)
 {
 	HRESULT hr = hrSuccess;
-	map <std::string,std::string>::const_iterator itMpNs;
-
-	itMpNs = m_mapNs.find(*lpstrNs);
-	if (itMpNs != m_mapNs.end())
-	{
+	auto itMpNs = m_mapNs.find(*lpstrNs);
+	if (itMpNs != m_mapNs.cend()) {
 		lpstrPrefx->assign(itMpNs->second);
 		lpstrNs->clear();
 	}

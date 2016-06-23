@@ -211,14 +211,12 @@ static void showtop(LPMDB lpStore, bool bLocal)
     LPSRowSet lpsRowSet = NULL;
     WINDOW *win = NULL;
     std::map<unsigned long long, TIMES> mapLastTimes;
-    std::map<unsigned long long, TIMES>::const_iterator iterTimes;
     std::map<std::string, std::string> mapStats;
     std::map<std::string, double> mapDiffStats;
     std::list<SESSION> lstSessions;
     std::set<std::string> setUsers;
     std::set<std::string> setHosts;
     std::map<unsigned long long, unsigned int> mapSessionGroups;
-    std::map<unsigned long long, unsigned int>::const_iterator iterSessionGroups;
 	char date[64];
 	time_t now;
     unsigned int ulSessGrp = 1;
@@ -321,8 +319,8 @@ static void showtop(LPMDB lpStore, bool bLocal)
             session.times.dblSystem = GetDouble(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_EC_STATS_SESSION_CPU_SYSTEM);
             session.times.dblReal = GetDouble(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_EC_STATS_SESSION_CPU_REAL);
 
-            iterTimes = mapLastTimes.find(session.ullSessionId);
-            if(iterTimes != mapLastTimes.end()) {
+            auto iterTimes = mapLastTimes.find(session.ullSessionId);
+            if (iterTimes != mapLastTimes.cend()) {
                 session.dtimes.dblUser = (session.times.dblUser - iterTimes->second.dblUser) / dblTime;
                 session.dtimes.dblSystem = (session.times.dblSystem - iterTimes->second.dblSystem) / dblTime;
                 session.dtimes.dblReal = (session.times.dblReal - iterTimes->second.dblReal) / dblTime;
@@ -341,8 +339,8 @@ static void showtop(LPMDB lpStore, bool bLocal)
             setHosts.insert(session.strIP);
             
             if(session.ullSessionGroupId != 0) {
-                iterSessionGroups = mapSessionGroups.find(session.ullSessionGroupId);
-                if(iterSessionGroups == mapSessionGroups.end())
+                auto iterSessionGroups = mapSessionGroups.find(session.ullSessionGroupId);
+                if (iterSessionGroups == mapSessionGroups.cend())
                     mapSessionGroups[session.ullSessionGroupId] = ulSessGrp++;
             }
         }
