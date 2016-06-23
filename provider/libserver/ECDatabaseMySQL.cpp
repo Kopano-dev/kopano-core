@@ -576,11 +576,12 @@ ECRESULT ECDatabaseMySQL::Connect()
 			(lpMysqlPort)?atoi(lpMysqlPort):0, 
 			lpMysqlSocket, CLIENT_MULTI_STATEMENTS) == NULL)
 	{
-		if(mysql_errno(&m_lpMySQL) == ER_BAD_DB_ERROR) // Database does not exist
+		if (mysql_errno(&m_lpMySQL) == ER_BAD_DB_ERROR) // Database does not exist
 			er = KCERR_DATABASE_NOT_FOUND;
 		else
 			er = KCERR_DATABASE_ERROR;
-		ec_log_err("ECDatabaseMySQL::Connect(): mysql connect fail %x", er);
+
+		ec_log_err("ECDatabaseMySQL::Connect(): mysql connect fail: %s", GetError());
 		goto exit;
 	}
 	
@@ -791,7 +792,7 @@ ECRESULT ECDatabaseMySQL::DoSelect(const string &strQuery, DB_RESULT *lppResult,
 		
 	if( Query(strQuery) != erSuccess ) {
 		er = KCERR_DATABASE_ERROR;
-		ec_log_err("ECDatabaseMySQL::DoSelect(): query failed");
+		ec_log_err("ECDatabaseMySQL::DoSelect(): query failed: %s", GetError());
 		goto exit;
 	}
 
@@ -990,9 +991,7 @@ ECRESULT ECDatabaseMySQL::DoUpdate(const string &strQuery, unsigned int *lpulAff
 ECRESULT ECDatabaseMySQL::_Update(const string &strQuery, unsigned int *lpulAffectedRows)
 {
 	if( Query(strQuery) != erSuccess ) {
-		// FIXME: Add the mysql error system ?
-		// er = nMysqlError;
-		ec_log_err("ECDatabaseMySQL::_Update() query failed");
+		ec_log_err("ECDatabaseMySQL::_Update() query failed: %s", GetError());
 		return KCERR_DATABASE_ERROR;
 	}
 	
@@ -1473,7 +1472,7 @@ ECRESULT ECDatabaseMySQL::CreateDatabase()
 			(lpMysqlPort)?atoi(lpMysqlPort):0, 
 			lpMysqlSocket, 0) == NULL)
 	{
-		ec_log_err("ECDatabaseMySQL::CreateDatabase(): mysql connect failed");
+		ec_log_err("ECDatabaseMySQL::CreateDatabase(): mysql connect failed: %s", GetError());
 		return KCERR_DATABASE_ERROR;
 	}
 
