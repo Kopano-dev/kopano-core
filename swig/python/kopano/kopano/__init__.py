@@ -1450,12 +1450,15 @@ class Store(object):
     def subtree(self):
         """ :class:`Folder` designated as IPM.Subtree """
 
-        if self.public:
-            ipmsubtreeid = HrGetOneProp(self.mapiobj, PR_IPM_PUBLIC_FOLDERS_ENTRYID).Value
-        else:
-            ipmsubtreeid = HrGetOneProp(self.mapiobj, PR_IPM_SUBTREE_ENTRYID).Value
+        try:
+            if self.public:
+                ipmsubtreeid = HrGetOneProp(self.mapiobj, PR_IPM_PUBLIC_FOLDERS_ENTRYID).Value
+            else:
+                ipmsubtreeid = HrGetOneProp(self.mapiobj, PR_IPM_SUBTREE_ENTRYID).Value
 
-        return Folder(self, ipmsubtreeid)
+            return Folder(self, ipmsubtreeid)
+        except MAPIErrorNotFound:
+            pass
 
     @property
     def inbox(self):
@@ -1625,8 +1628,9 @@ class Store(object):
                 yield self.folder(_decode(path)) # XXX can optparse output unicode?
             return
 
-        for folder in self.subtree.folders(recurse=recurse):
-            yield folder
+        if self.subtree:
+            for folder in self.subtree.folders(recurse=recurse):
+                yield folder
 
     def item(self, entryid):
         """ Return :class:`Item` with given entryid; raise exception of not found """ # XXX better exception?
