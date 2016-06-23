@@ -88,7 +88,6 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 	map<objectid_t,objectdetails_t>::iterator iterDetails;
 	ECRESULT er;
 	map<objectclass_t, string> objectstrings;
-	std::map<objectclass_t, std::string>::const_iterator iterStrings;
 	string strQuery;
 	string strSubQuery;
 	DB_RESULT_AUTOFREE lpResult(m_lpDatabase);
@@ -110,9 +109,9 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 	}
 
 	/* Create subquery which combines all externids with the matching objectclass */
-	for (iterStrings = objectstrings.begin();
-	     iterStrings != objectstrings.end(); ++iterStrings) {
-		if (iterStrings != objectstrings.begin())
+	for (auto iterStrings = objectstrings.cbegin();
+	     iterStrings != objectstrings.cend(); ++iterStrings) {
+		if (iterStrings != objectstrings.cbegin())
 			strSubQuery += " OR ";
 		strSubQuery += "(o.externid IN (" + iterStrings->second + ") "
 				"AND " + OBJECTCLASS_COMPARE_SQL("objectclass", iterStrings->first) + ")";

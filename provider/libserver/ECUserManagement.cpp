@@ -2377,7 +2377,7 @@ ECRESULT ECUserManagement::ComplementDefaultFeatures(objectdetails_t *lpDetails)
 
 	ba::split(defaultDisabled, config, ba::is_any_of("\t "), ba::token_compress_on);
 
-	for (std::set<std::string>::const_iterator i = defaultDisabled.begin(); i != defaultDisabled.end(); ) {
+	for (auto i = defaultDisabled.cbegin(); i != defaultDisabled.cend(); ) {
 		if (i->empty()) {
 			// nasty side effect of boost split, when input consists only of a split predicate.
 			defaultDisabled.erase(i++);

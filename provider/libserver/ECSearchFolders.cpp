@@ -1554,9 +1554,8 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulStoreId, unsigned int ulFold
      * Combining the following queries in one query seems to cause MySQL to do a range- or gaplock, causing deadlocks
      * when folders with adjacent ids are updated at the same time.
      */
-    for (std::list<unsigned int>::const_iterator i = lstFlags.begin(),
-         j = lstObjId.begin(); i != lstFlags.end(); ++i, ++j)
-    {
+	for (auto i = lstFlags.cbegin(), j = lstObjId.cbegin();
+	     i != lstFlags.cend(); ++i, ++j) {
         if(*i == 0) {
             unsigned int modified = 0;
             

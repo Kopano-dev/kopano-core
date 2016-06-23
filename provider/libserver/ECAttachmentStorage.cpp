@@ -387,9 +387,8 @@ ECRESULT ECAttachmentStorage::GetOrphanedSingleInstances(const std::list<ULONG> 
 		"SELECT DISTINCT `instanceid` "
 		"FROM `singleinstances` "
 		"WHERE `instanceid` IN ( ";
-	for (std::list<ULONG>::const_iterator i = lstInstanceIds.begin();
-	     i != lstInstanceIds.end(); ++i) {
-		if (i != lstInstanceIds.begin())
+	for (auto i = lstInstanceIds.cbegin(); i != lstInstanceIds.cend(); ++i) {
+		if (i != lstInstanceIds.cbegin())
 			strQuery += ",";
 		strQuery += stringify(*i);
 	}
@@ -704,9 +703,8 @@ ECRESULT ECAttachmentStorage::DeleteAttachments(const std::list<ULONG> &lstDelet
 	strQuery =
 		"DELETE FROM `singleinstances` "
 		"WHERE `hierarchyid` IN (";
-	for (std::list<ULONG>::const_iterator i = lstDeleteObjects.begin();
-	     i != lstDeleteObjects.end(); ++i) {
-		if (i != lstDeleteObjects.begin())
+	for (auto i = lstDeleteObjects.cbegin(); i != lstDeleteObjects.cend(); ++i) {
+		if (i != lstDeleteObjects.cbegin())
 			strQuery += ",";
 		strQuery += stringify(*i);
 	}

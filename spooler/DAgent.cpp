@@ -1490,9 +1490,7 @@ static bool dagent_stop_autoreply_hdr(const char *s)
  */
 static bool dagent_avoid_autoreply(const std::vector<std::string> &hl)
 {
-	for (std::vector<std::string>::const_iterator sline = hl.begin();
-	     sline != hl.end(); ++sline)
-	{
+	for (auto sline = hl.cbegin(); sline != hl.cend(); ++sline) {
 		const std::string &line = *sline;
 		/* no-throw guarantee because const string & */
 		if (isspace(line[0]))
@@ -2786,7 +2784,7 @@ static void RespondMessageExpired(recipients_t::const_iterator start,
 {
 	convert_context converter;
 	g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Message was expired, not delivering");
-	for (recipients_t::const_iterator iter = start; iter != end; ++iter)
+	for (auto iter = start; iter != end; ++iter)
 		(*iter)->wstrDeliveryStatus = L"250 2.4.7 %ls Delivery time expired";
 }
 

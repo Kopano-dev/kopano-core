@@ -1926,7 +1926,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 		bCutOff = true;
 	} else {
 		ldap_filter = "(|";
-		for(set<objectid_t>::const_iterator iter = setObjectIds.begin(); iter != setObjectIds.end(); /* no increment */) {
+		for (auto iter = setObjectIds.cbegin(); iter != setObjectIds.cend(); /* no increment */) {
 			objectclass_t objclass = iter->objclass;
 
 			ldap_filter += "(&" + getSearchFilter(iter->objclass) + "(|";

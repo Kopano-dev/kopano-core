@@ -3450,7 +3450,9 @@ HRESULT IMAP::ChangeSubscribeList(bool bSubscribe, ULONG cbEntryID, LPENTRYID lp
 	HRESULT hr = hrSuccess;
 	bool bChanged = false;
 
-	auto iFolder = find(m_vSubscriptions.begin(), m_vSubscriptions.end(), BinaryArray((BYTE *)lpEntryID, cbEntryID, true));
+	auto iFolder = find(m_vSubscriptions.begin(), m_vSubscriptions.end(),
+	               BinaryArray(reinterpret_cast<BYTE *>(lpEntryID),
+	               cbEntryID, true));
 	if (iFolder == m_vSubscriptions.cend()) {
 		if (bSubscribe) {
 			m_vSubscriptions.push_back(BinaryArray((BYTE*)lpEntryID, cbEntryID));
@@ -3711,7 +3713,7 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, bool bS
     // send the correct EXPUNGE calls; At the same time, count RECENT messages.
     ulMailnr = 0;
     while(ulMailnr < lstFolderMailEIDs.size()) {
-        if(mapUIDs.find(lstFolderMailEIDs[ulMailnr].ulUid) != mapUIDs.cend()) {
+        if (mapUIDs.find(lstFolderMailEIDs[ulMailnr].ulUid) != mapUIDs.cend()) {
             hr = HrResponse(RESP_UNTAGGED, stringify(ulMailnr+1) + " EXPUNGE");
 			if (hr != hrSuccess)
 				goto exit;
@@ -3832,7 +3834,7 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &lstFolders, SBinary &sEntryID, wstring
 	}
 
 	iFolder = find(m_vSubscriptions.cbegin(), m_vSubscriptions.cend(), BinaryArray(sEntryID));
-	sFolder.bActive = !(iFolder == m_vSubscriptions.cend());
+	sFolder.bActive = iFolder != m_vSubscriptions.cend();
 	sFolder.bSpecialFolder = IsSpecialFolder(sEntryID.cb, (LPENTRYID)sEntryID.lpb);
 	sFolder.bMailFolder = true;
 	sFolder.lpParentFolder = lpParentFolder;
@@ -5050,7 +5052,7 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
             for (const auto &field : lstFields) {
                 std::string strFieldUpper = field.first;
                 ToUpper(strFieldUpper);
-                if(setFields.find(strFieldUpper) == setFields.cend()) {
+                if (setFields.find(strFieldUpper) == setFields.cend()) {
                     strMessagePart += field.first;
                     strMessagePart += ": ";
                     strMessagePart += field.second;

@@ -2053,10 +2053,8 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
     if(!setUncached.empty()) {    
         // For the items that were uncached, go directly to their parent (or the item itself for folders) in the DB
         strQuery = "SELECT hierarchyid, hierarchy.type, hierarchy.parent FROM indexedproperties JOIN hierarchy ON hierarchy.id=indexedproperties.hierarchyid WHERE tag = " + stringify(ulTag) + " AND val_binary IN(";
-        for (std::set<std::string>::const_iterator i = setUncached.begin();
-             i != setUncached.end(); ++i)
-        {
-            if(i != setUncached.begin())
+        for (auto i = setUncached.cbegin(); i != setUncached.cend(); ++i) {
+            if (i != setUncached.cbegin())
                 strQuery += ",";
             strQuery += lpDatabase->EscapeBinary(*i);
         }
@@ -2093,9 +2091,8 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
     // Query uncached parents from the database
     if(!setUncachedMessages.empty()) {
         strQuery = "SELECT parent FROM hierarchy WHERE id IN(";
-        for (std::set<unsigned int>::const_iterator i = setUncachedMessages.begin();
-             i != setUncachedMessages.end(); ++i)
-        {
+		for (auto i = setUncachedMessages.cbegin();
+		     i != setUncachedMessages.cend(); ++i) {
             if(i != setUncachedMessages.begin())
                 strQuery += ",";
             strQuery += stringify(*i);
