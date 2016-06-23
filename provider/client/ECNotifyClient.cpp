@@ -543,8 +543,8 @@ HRESULT ECNotifyClient::ReleaseAll()
 	return hr;
 }
 
-typedef std::list<LPNOTIFICATION> NOTIFICATIONLIST;
-typedef std::list<LPSBinary> BINARYLIST;
+typedef std::list<NOTIFICATION *> NOTIFICATIONLIST;
+typedef std::list<SBinary *> BINARYLIST;
 
 HRESULT ECNotifyClient::NotifyReload()
 {

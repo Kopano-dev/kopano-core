@@ -39,7 +39,7 @@ public:
 	virtual HRESULT OpenItemFromArchive(LPSPropValue lpPropStoreEIDs, LPSPropValue lpPropItemEIDs, ECMessage **lppMessage);
 
 private:
-	typedef std::list<LPSBinary>	BinaryList;
+	typedef std::list<SBinary *> BinaryList;
 	typedef BinaryList::iterator	BinaryListIterator;
 	typedef mapi_object_ptr<ECMsgStore, IID_ECMsgStore>	ECMsgStorePtr;
 	typedef std::vector<BYTE>		EntryID;
