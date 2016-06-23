@@ -178,9 +178,7 @@ HRESULT WebDav::RespStructToXml(WEBDAVMULTISTATUS *sDavMStatus, std::string *str
 	std::string strNsPrefix;
 	xmlTextWriter *xmlWriter = NULL;
 	xmlBuffer *xmlBuff = NULL;
-	std::list<WEBDAVRESPONSE>::const_iterator iterResp;
 	std::string strNs;	
-	std::map<std::string,std::string>::const_iterator iterMapNS;
 
 	strNsPrefix = "C";
 	xmlBuff = xmlBufferCreate();
@@ -230,10 +228,9 @@ HRESULT WebDav::RespStructToXml(WEBDAVMULTISTATUS *sDavMStatus, std::string *str
 		goto xmlfail;
 
 	//write all xmlname spaces in main tag.
-	for (iterMapNS = m_mapNs.begin(); iterMapNS != m_mapNs.end(); ++iterMapNS)
-	{
+	for (const auto &ns : m_mapNs) {
 		std::string strprefix;
-		strNs = iterMapNS->first;
+		strNs = ns.first;
 		if(sDavMStatus->sPropName.strNS == strNs || strNs.empty())
 			continue;
 		RegisterNs(strNs, &strNsPrefix);
@@ -246,12 +243,8 @@ HRESULT WebDav::RespStructToXml(WEBDAVMULTISTATUS *sDavMStatus, std::string *str
 			goto xmlfail;
 	}
 	// <response>
-	iterResp = sDavMStatus->lstResp.begin();
-	for (int i = 0; sDavMStatus->lstResp.end() != iterResp; ++i, ++iterResp)
-	{
-		WEBDAVRESPONSE sDavResp;
-		sDavResp = *iterResp;
-		hr = HrWriteSResponse(xmlWriter, &strNsPrefix, sDavResp);
+	for (const auto &resp : sDavMStatus->lstResp) {
+		hr = HrWriteSResponse(xmlWriter, &strNsPrefix, resp);
 		if(hr != hrSuccess)
 			goto exit;
 	}
@@ -762,16 +755,13 @@ HRESULT WebDav::HrPropertySearchSet()
 HRESULT WebDav::HrPostFreeBusy(WEBDAVFBINFO *lpsWebFbInfo)
 {
 	HRESULT hr = hrSuccess;
-	std::list<WEBDAVFBUSERINFO>::const_iterator itFbUserInfo;
 	WEBDAVMULTISTATUS sWebMStatus;
 	
 	std::string strXml;
 
 	HrSetDavPropName(&sWebMStatus.sPropName,"schedule-response", CALDAVNS);
 
-	for (itFbUserInfo = lpsWebFbInfo->lstFbUserInfo.begin();
-	     itFbUserInfo != lpsWebFbInfo->lstFbUserInfo.end(); ++itFbUserInfo)
-	{
+	for (const auto &ui : lpsWebFbInfo->lstFbUserInfo) {
 		WEBDAVPROPERTY sWebProperty;
 		WEBDAVVALUE sWebVal;
 		WEBDAVRESPONSE sWebResPonse;
@@ -781,19 +771,19 @@ HRESULT WebDav::HrPostFreeBusy(WEBDAVFBINFO *lpsWebFbInfo)
 		HrSetDavPropName(&sWebProperty.sPropName,"recipient", CALDAVNS);
 		HrSetDavPropName(&sWebVal.sPropName,"href", WEBDAVNS);
 		
-		sWebVal.strValue = "mailto:" + itFbUserInfo->strUser;
+		sWebVal.strValue = "mailto:" + ui.strUser;
 		sWebProperty.lstValues.push_back(sWebVal);
 		sWebResPonse.lstProps.push_back(sWebProperty);
 
 		sWebProperty.lstValues.clear();
 		
 		HrSetDavPropName(&sWebProperty.sPropName,"request-status", CALDAVNS);
-		sWebProperty.strValue = itFbUserInfo->strIcal.empty() ? "3.8;No authority" : "2.0;Success";
+		sWebProperty.strValue = ui.strIcal.empty() ? "3.8;No authority" : "2.0;Success";
 		sWebResPonse.lstProps.push_back(sWebProperty);
 		
-		if (!itFbUserInfo->strIcal.empty()) {	
+		if (!ui.strIcal.empty()) {
 			HrSetDavPropName(&sWebProperty.sPropName,"calendar-data", CALDAVNS);
-			sWebProperty.strValue = itFbUserInfo->strIcal;
+			sWebProperty.strValue = ui.strIcal;
 			sWebResPonse.lstProps.push_back(sWebProperty);
 		}
 
@@ -959,8 +949,6 @@ HRESULT WebDav::HrWriteSResponse(xmlTextWriter *xmlWriter,
 {
 	HRESULT hr;
 	WEBDAVRESPONSE sWebResp;
-	std::list<WEBDAVPROPSTAT>::const_iterator iterPropStat;
-	std::list<WEBDAVPROPERTY>::const_iterator iterProperty;
 	int ulRet;
 
 	sWebResp = sResponse;
@@ -984,12 +972,8 @@ HRESULT WebDav::HrWriteSResponse(xmlTextWriter *xmlWriter,
 			return hr;
 	}
 
-	for (iterPropStat = sWebResp.lstsPropStat.begin();
-	     iterPropStat != sWebResp.lstsPropStat.end(); ++iterPropStat)
-	{
-		WEBDAVPROPSTAT sDavPropStat;
-		sDavPropStat = *iterPropStat;
-		hr = HrWriteSPropStat(xmlWriter, lpstrNsPrefix, sDavPropStat);
+	for (const auto &stat : sWebResp.lstsPropStat) {
+		hr = HrWriteSPropStat(xmlWriter, lpstrNsPrefix, stat);
 		if (hr != hrSuccess)
 			return hr;
 	}
@@ -1021,15 +1005,10 @@ HRESULT WebDav::HrWriteResponseProps(xmlTextWriter *xmlWriter,
     std::string *lpstrNsPrefix, std::list<WEBDAVPROPERTY> *lplstProps)
 {
 	HRESULT hr;
-	std::list<WEBDAVPROPERTY>::const_iterator iterProp;
 	ULONG ulRet;
 
-	for (iterProp = lplstProps->begin(); iterProp != lplstProps->end();
-	     ++iterProp)
-	{
-		WEBDAVPROPERTY sWebProperty;
-		sWebProperty = *iterProp;
-		
+	for (const auto &iterProp : *lplstProps) {
+		auto sWebProperty = iterProp;
 		if (!sWebProperty.strValue.empty())
 		{
 			WEBDAVVALUE sWebVal;
@@ -1088,7 +1067,6 @@ HRESULT WebDav::HrWriteSPropStat(xmlTextWriter *xmlWriter,
 	WEBDAVPROPSTAT sWebPropStat;
 	WEBDAVPROP sWebProp;
 	int ulRet;
-	std::list<WEBDAVPROPERTY>::const_iterator iterProp;
 	
 	sWebPropStat = lpsPropStat;
 	//<propstat>
@@ -1104,11 +1082,8 @@ HRESULT WebDav::HrWriteSPropStat(xmlTextWriter *xmlWriter,
 		return hr;
 
 	//loop	for properties list
-	for (iterProp = sWebProp.lstProps.begin();
-	     iterProp != sWebProp.lstProps.end(); ++iterProp)
-	{			
-		WEBDAVPROPERTY sWebProperty;
-		sWebProperty = *iterProp;
+	for (const auto &iterProp : sWebProp.lstProps) {
+		auto sWebProperty = iterProp;
 		
 		if (!sWebProperty.strValue.empty())
 		{

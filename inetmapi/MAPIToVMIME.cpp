@@ -2210,7 +2210,6 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
 	std::string		strTnefReason;
 
 	std::list<ULONG> lstOLEAttach; // list of OLE attachments that must be sent via TNEF
-	std::list<ULONG>::const_iterator iterAttach;
 	IMAPITable *	lpAttachTable = NULL;
 	LPSRowSet		lpAttachRows = NULL;
 	SizedSPropTagArray(2, sptaAttachProps) = {2, {PR_ATTACH_METHOD, PR_ATTACH_NUM }};
@@ -2360,10 +2359,8 @@ tnef_anyway:
 				}
 				
 				// Add all OLE attachments
-				for (iterAttach = lstOLEAttach.begin();
-				     iterAttach != lstOLEAttach.end();
-				     ++iterAttach)
-					tnef.FinishComponent(0x00002000, *iterAttach, (LPSPropTagArray)&sptaOLEAttachProps);
+				for (const auto atnum : lstOLEAttach)
+					tnef.FinishComponent(0x00002000, atnum, reinterpret_cast<SPropTagArray *>(&sptaOLEAttachProps));
 		
 				// Write the stream
 				hr = tnef.Finish();

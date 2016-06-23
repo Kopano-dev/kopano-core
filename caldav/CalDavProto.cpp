@@ -198,13 +198,13 @@ HRESULT CalDAV::HrHandlePropfind(WEBDAVREQSTPROPS *lpsDavProp, WEBDAVMULTISTATUS
 HRESULT CalDAV::HrHandlePropfindRoot(WEBDAVREQSTPROPS *sDavReqstProps, WEBDAVMULTISTATUS *lpsDavMulStatus)
 {
 	HRESULT hr = hrSuccess;
-	std::list<WEBDAVPROPERTY>::const_iterator iter;
 	WEBDAVPROP *lpsDavProp = NULL;
 	WEBDAVRESPONSE sDavResp;
 	IMAPIProp *lpMapiProp = NULL;
 	LPSPropTagArray lpPropTagArr = NULL;
 	LPSPropValue lpSpropVal = NULL;
 	ULONG cbsize = 0;
+	int i = 0;
 
 	lpsDavProp = &(sDavReqstProps->sProp);
 
@@ -227,9 +227,8 @@ HRESULT CalDAV::HrHandlePropfindRoot(WEBDAVREQSTPROPS *sDavReqstProps, WEBDAVMUL
 	lpPropTagArr->cValues = cbsize;
 	
 	// Get corresponding mapi properties.
-	iter = lpsDavProp->lstProps.begin();
-	for(int i = 0; iter != lpsDavProp->lstProps.end(); ++iter, ++i)
-		lpPropTagArr->aulPropTag[i] = GetPropIDForXMLProp(lpMapiProp, iter->sPropName, m_converter);
+	for (const auto &iter : lpsDavProp->lstProps)
+		lpPropTagArr->aulPropTag[i++] = GetPropIDForXMLProp(lpMapiProp, iter.sPropName, m_converter);
 
 	hr = lpMapiProp->GetProps((LPSPropTagArray)lpPropTagArr, 0, &cbsize, &lpSpropVal);
 	if (FAILED(hr)) {
@@ -284,9 +283,7 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 	ULONG ulTagGOID = 0;
 	ULONG ulTagTsRef = 0;
 	ULONG ulTagPrivate = 0;
-	std::list<WEBDAVPROPERTY>::const_iterator iter;
 	WEBDAVPROP sDavProp;
-	WEBDAVPROPERTY sDavProperty;
 	WEBDAVRESPONSE sWebResponse;
 	bool blCensorPrivate = false;
 	ULONG ulCensorFlag = 0;
@@ -295,6 +292,7 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 	SRestriction *lpsRestriction = NULL;
 	SPropValue sResData;
 	ULONG ulItemCount = 0;
+	int i;
 
 	ulTagGOID = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY);
 	ulTagTsRef = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTTSREF], PT_UNICODE);
@@ -372,16 +370,11 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 	lpPropTagArr->aulPropTag[1] = ulTagGOID;
 	lpPropTagArr->aulPropTag[2] = PR_ENTRYID;
 	lpPropTagArr->aulPropTag[3] = ulTagPrivate;
-	
-	iter = sDavProp.lstProps.begin();
-
 	//mapi property mapping for requested properties.
 	//FIXME what if the property mapping is not found.
-	for (int i = 4; iter != sDavProp.lstProps.end(); ++iter, ++i)
-	{
-		sDavProperty = *iter;
-		lpPropTagArr->aulPropTag[i] = GetPropIDForXMLProp(m_lpUsrFld, sDavProperty.sPropName, m_converter);
-	}
+	i = 4;
+	for (const auto sDavProperty : sDavProp.lstProps)
+		lpPropTagArr->aulPropTag[i++] = GetPropIDForXMLProp(m_lpUsrFld, sDavProperty.sPropName, m_converter);
 
 	hr = m_lpUsrFld->GetProps((LPSPropTagArray)lpPropTagArr, 0, &cValues, &lpProps);
 	if (FAILED(hr)) {
@@ -508,13 +501,12 @@ HRESULT CalDAV::HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWeb
 	LPSPropTagArray lpPropTagArr = NULL;
 	MapiToICal *lpMtIcal = NULL;
 	std::string strReqUrl;
-	std::list<WEBDAVPROPERTY>::const_iterator iter;
 	SRestriction * lpsRoot = NULL;
 	ULONG cbsize = 0;
 	WEBDAVPROP sDavProp;
-	WEBDAVPROPERTY sDavProperty;
 	WEBDAVRESPONSE sWebResponse;
 	bool blCensorPrivate = false;
+	int i;
 
 	m_lpRequest->HrGetRequestUrl(&strReqUrl);
 	if (strReqUrl.empty() || *--strReqUrl.end() != '/')
@@ -546,12 +538,9 @@ HRESULT CalDAV::HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWeb
 	lpPropTagArr->cValues = cbsize;
 	lpPropTagArr->aulPropTag[0] = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY);
 	lpPropTagArr->aulPropTag[1] = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_PRIVATE], PT_BOOLEAN);
-	
-	iter = sDavProp.lstProps.begin();
-	for (int i = 2; iter != sDavProp.lstProps.end(); ++iter, ++i) {
-		sDavProperty = *iter;
-		lpPropTagArr->aulPropTag[i] = GetPropIDForXMLProp(m_lpUsrFld, sDavProperty.sPropName, m_converter);
-	}
+	i = 2;
+	for (const auto &sDavProperty : sDavProp.lstProps)
+		lpPropTagArr->aulPropTag[i++] = GetPropIDForXMLProp(m_lpUsrFld, sDavProperty.sPropName, m_converter);
 
 	hr = lpTable->SetColumns((LPSPropTagArray)lpPropTagArr, 0);
 	if(hr != hrSuccess)
@@ -725,14 +714,13 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 	ULONG cbsize = 0;
 	ULONG ulPropTag = 0;
 	ULONG ulTagPrivate = 0;
-	std::list<WEBDAVPROPERTY>::const_iterator iter;
 	std::list<WEBDAVVALUE>::const_iterator iterWebVal;
 	SBinary sbEid = {0, NULL};
 	WEBDAVPROP sDavProp;
-	WEBDAVPROPERTY sDavProperty;
 	WEBDAVRESPONSE sWebResponse;
 	ULONG ulObjType = 0;
 	std::string strReq;	
+	int i;
 
 	m_lpRequest->HrGetRequestUrl(&strReq);
 
@@ -807,12 +795,9 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 	lpPropTagArr->aulPropTag[0] = ulPropTag;
 	lpPropTagArr->aulPropTag[1] = ulTagPrivate;
 	lpPropTagArr->aulPropTag[2] = PR_ACCOUNT;
-
-	iter = sDavProp.lstProps.begin();
-	for (int i = 3; iter != sDavProp.lstProps.end(); ++iter, ++i) {
-		sDavProperty = *iter;
-		lpPropTagArr->aulPropTag[i] = GetPropIDForXMLProp(lpAbCont, sDavProperty.sPropName, m_converter);
-	}
+	i = 3;
+	for (const auto &sDavProperty : sDavProp.lstProps)
+		lpPropTagArr->aulPropTag[i++] = GetPropIDForXMLProp(lpAbCont, sDavProperty.sPropName, m_converter);
 
 	hr = lpTable->SetColumns((LPSPropTagArray)lpPropTagArr, 0);
 	if (hr != hrSuccess) {

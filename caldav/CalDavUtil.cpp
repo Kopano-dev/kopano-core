@@ -861,8 +861,8 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 
 	ptrFlagList->cFlags = cUsers;
 
-	
-	for (itUsers = lplstUsers->begin(), cUsers = 0; itUsers != lplstUsers->end(); ++itUsers, ++cUsers) {
+	cUsers = 0;
+	for (const auto &user : *lplstUsers) {
 		lpAdrList->aEntries[cUsers].cValues = 1;
 
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **)&lpAdrList->aEntries[cUsers].rgPropVals);
@@ -870,9 +870,9 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 			goto exit;
 
 		lpAdrList->aEntries[cUsers].rgPropVals[0].ulPropTag = PR_DISPLAY_NAME_A;
-		lpAdrList->aEntries[cUsers].rgPropVals[0].Value.lpszA = (char*)itUsers->c_str();
-
+		lpAdrList->aEntries[cUsers].rgPropVals[0].Value.lpszA = const_cast<char *>(user.c_str());
 		ptrFlagList->ulFlag[cUsers] = MAPI_UNRESOLVED;
+		++cUsers;
 	}
 
 	// NULL or sptaAddrListProps containing just PR_ENTRYID?

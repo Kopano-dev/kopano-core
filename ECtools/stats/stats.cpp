@@ -215,7 +215,6 @@ static void showtop(LPMDB lpStore, bool bLocal)
     std::map<std::string, std::string> mapStats;
     std::map<std::string, double> mapDiffStats;
     std::list<SESSION> lstSessions;
-    std::list<SESSION>::const_iterator iterSessions;
     std::set<std::string> setUsers;
     std::set<std::string> setHosts;
     std::map<unsigned long long, unsigned int> mapSessionGroups;
@@ -402,8 +401,8 @@ static void showtop(LPMDB lpStore, bool bLocal)
         if (bColumns[10]) { wmove(win, 4, ofs); wprintw(win, "STAT");		ofs += cols[11]; }
         if (bColumns[11]) { wmove(win, 4, ofs); wprintw(win, "TASK"); }
         
-        for (iterSessions = lstSessions.begin(); iterSessions != lstSessions.end(); ++iterSessions) {
-            if(iterSessions->dtimes.dblUser + iterSessions->dtimes.dblSystem > 0)
+	for (const auto &ses : lstSessions) {
+		if (ses.dtimes.dblUser + ses.dtimes.dblSystem > 0)
                 wattron(win, A_BOLD);
             else
                 wattroff(win, A_BOLD);
@@ -411,36 +410,38 @@ static void showtop(LPMDB lpStore, bool bLocal)
 			ofs = cols[0];
 			if (bColumns[0]) {
 				wmove(win, 5 + line, ofs);
-				if(iterSessions->ullSessionGroupId > 0)
-					wprintw(win, "%3d", mapSessionGroups[iterSessions->ullSessionGroupId]);
+				if (ses.ullSessionGroupId > 0)
+					wprintw(win, "%3d", mapSessionGroups[ses.ullSessionGroupId]);
 				ofs += cols[1];
 			}
 			if (bColumns[1]) {
 				wmove(win, 5 + line, ofs);
-				wprintw(win, "%19llu", iterSessions->ullSessionId);
+				wprintw(win, "%19llu", ses.ullSessionId);
 				ofs += cols[2];
 			}
 			if (bColumns[2]) {
 				wmove(win, 5 + line, ofs);
-				wprintw(win, "%.*s", cols[3] - 1, iterSessions->strClientVersion.c_str());
+				wprintw(win, "%.*s", cols[3] - 1, ses.strClientVersion.c_str());
 				ofs += cols[3];
 			}
 			if (bColumns[3]) {
 				wmove(win, 5 + line, ofs);
 				// the .24 caps off 24 bytes, not characters, so multi-byte utf-8 is capped earlier than you might expect
-				wprintw(win, "%.24s", iterSessions->strUser.c_str());
+				wprintw(win, "%.24s", ses.strUser.c_str());
 				ofs += cols[4];
 			}
 			if (bColumns[4]) {
 				wmove(win, 5 + line, ofs);
-				if(iterSessions->ulPeerPid > 0)
-					wprintw(win, "%.20s", iterSessions->strPeer.c_str());
+				if (ses.ulPeerPid > 0)
+					wprintw(win, "%.20s", ses.strPeer.c_str());
 				else
-					wprintw(win, "%s", iterSessions->strIP.c_str());
+					wprintw(win, "%s", ses.strIP.c_str());
 				ofs += cols[5];
 			}
 			if (bColumns[5]) {
-				std::string dummy = iterSessions->strClientApp + "/" + iterSessions->strClientAppVersion + "/" + iterSessions->strClientAppMisc;
+				std::string dummy = ses.strClientApp + "/" +
+					ses.strClientAppVersion + "/" +
+					ses.strClientAppMisc;
 				if (dummy.size() >= cols[6])
 					dummy = dummy.substr(0, cols[6] - 1);
 				wmove(win, 5 + line, ofs);
@@ -449,33 +450,35 @@ static void showtop(LPMDB lpStore, bool bLocal)
 			}
 			if (bColumns[6]) {
 				wmove(win, 5 + line, ofs);
-				wprintw(win, "%d:%02d", (int)iterSessions->times.dblReal/60, (int)iterSessions->times.dblReal%60);
+				wprintw(win, "%d:%02d", static_cast<int>(ses.times.dblReal) / 60,
+					static_cast<int>(ses.times.dblReal) % 60);
 				ofs += cols[7];
 			}
 			if (bColumns[7]) {
 				wmove(win, 5 + line, ofs);
-				wprintw(win, "%d:%02d", (int)(iterSessions->times.dblUser + iterSessions->times.dblSystem)/60, (int)(iterSessions->times.dblUser + iterSessions->times.dblUser)%60);
+				wprintw(win, "%d:%02d", static_cast<int>(ses.times.dblUser + ses.times.dblSystem) / 60,
+					static_cast<int>(ses.times.dblUser + ses.times.dblUser) % 60);
 				ofs += cols[8];
 			}
 			if (bColumns[8]) {
 				wmove(win, 5 + line, ofs);
-				wprintw(win, "%d", (int)(iterSessions->dtimes.dblUser*100.0 + iterSessions->dtimes.dblSystem*100.0));
+				wprintw(win, "%d", static_cast<int>(ses.dtimes.dblUser * 100.0 + ses.dtimes.dblSystem * 100.0));
 				ofs += cols[9];
 			}
 			if (bColumns[9]) {
 				wmove(win, 5 + line, ofs);
-				wprintw(win, "%d", (int)iterSessions->dtimes.ulRequests);
+				wprintw(win, "%d", static_cast<int>(ses.dtimes.ulRequests));
 				ofs += cols[10];
 			}
 			if (bColumns[10]) {
 				wmove(win, 5 + line, ofs);
-				wprintw(win, "%s", iterSessions->strState.c_str());
+				wprintw(win, "%s", ses.strState.c_str());
 				ofs += cols[11];
 			}
 
 			if (bColumns[11]) {
 				wmove(win, 5 + line, ofs);
-				wprintw(win, "%s", iterSessions->strBusy.c_str());
+				wprintw(win, "%s", ses.strBusy.c_str());
 			}
 
             ++line;

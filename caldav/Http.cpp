@@ -770,7 +770,6 @@ HRESULT Http::HrRequestAuth(std::string strMsg)
 HRESULT Http::HrFlushHeaders()
 {
 	HRESULT hr = hrSuccess;
-	std::list<std::string>::const_iterator h;
 	std::string strOutput;
 	char lpszChar[128];
 	time_t tmCurrenttime = time(NULL);
@@ -803,9 +802,9 @@ HRESULT Http::HrFlushHeaders()
 	strOutput += m_strRespHeader + "\r\n";
 	m_strRespHeader.clear();
 
-	for (h = m_lstHeaders.begin(); h != m_lstHeaders.end(); ++h) {
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "> " + *h);
-		strOutput += *h + "\r\n";
+	for (const auto &h : m_lstHeaders) {
+		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "> " + h);
+		strOutput += h + "\r\n";
 	}
 	m_lstHeaders.clear();
 
