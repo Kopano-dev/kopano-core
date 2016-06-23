@@ -58,6 +58,7 @@ class BackupWorker(kopano.Worker):
         config, server, options = self.service.config, self.service.server, self.service.options
         while True:
             stats = {'changes': 0, 'deletes': 0, 'errors': 0}
+            self.service.stats = stats # XXX generalize
             with log_exc(self.log, stats):
                 # get store from input queue
                 (storeguid, username, path) = self.iqueue.get()
@@ -148,7 +149,7 @@ class FolderImporter:
         with log_exc(self.log, self.stats):
             self.log.debug('folder %s: new/updated document with sourcekey %s' % (self.folder.sourcekey, item.sourcekey))
             with closing(dbopen(self.folder_path+'/items')) as db:
-                db[item.sourcekey] = zlib.compress(item.dumps(attachments=not self.options.skip_attachments, archiver=False))
+                db[item.sourcekey] = zlib.compress(item.dumps(attachments=not self.options.skip_attachments, archiver=False, skip_broken=True))
             with closing(dbopen(self.folder_path+'/index')) as db:
                 orig_prop = item.get_prop(PR_EC_BACKUP_SOURCE_KEY)
                 if orig_prop:

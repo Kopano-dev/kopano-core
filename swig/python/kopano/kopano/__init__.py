@@ -48,6 +48,7 @@ Main classes:
 
 """
 
+import collections
 import contextlib
 try:
         import cPickle as pickle
@@ -2812,7 +2813,7 @@ class Item(object):
             else:
                 props.append([searchkey, key, None])
 
-    def _dump(self, attachments=True, archiver=True):
+    def _dump(self, attachments=True, archiver=True, skip_broken=False):
         # props
         props = []
         tag_data = {}
@@ -2846,18 +2847,30 @@ class Item(object):
         atts = []
         # XXX optimize by looking at PR_MESSAGE_FLAGS?
         for row in self.table(PR_MESSAGE_ATTACHMENTS).dict_rows(): # XXX should we use GetAttachmentTable?
-            num = row[PR_ATTACH_NUM]
-            method = row[PR_ATTACH_METHOD] # XXX default
-            att = self.mapiobj.OpenAttach(num, IID_IAttachment, 0)
-            if method == ATTACH_EMBEDDED_MSG:
-                msg = att.OpenProperty(PR_ATTACH_DATA_OBJ, IID_IMessage, 0, MAPI_MODIFY | MAPI_DEFERRED_ERRORS)
-                item = Item(mapiobj=msg)
-                item.server = self.server # XXX
-                data = item._dump() # recursion
-                atts.append(([[a, b, None] for a, b in row.items()], data))
-            elif method == ATTACH_BY_VALUE and attachments: # XXX ATTACH_OLE
-                data = _stream(att, PR_ATTACH_DATA_BIN)
-                atts.append(([[a, b, None] for a, b in row.items()], data))
+            try:
+                num = row[PR_ATTACH_NUM]
+                method = row[PR_ATTACH_METHOD] # XXX default
+                att = self.mapiobj.OpenAttach(num, IID_IAttachment, 0)
+                if method == ATTACH_EMBEDDED_MSG:
+                    msg = att.OpenProperty(PR_ATTACH_DATA_OBJ, IID_IMessage, 0, MAPI_MODIFY | MAPI_DEFERRED_ERRORS)
+                    item = Item(mapiobj=msg)
+                    item.server = self.server # XXX
+                    data = item._dump() # recursion
+                    atts.append(([[a, b, None] for a, b in row.items()], data))
+                elif method == ATTACH_BY_VALUE and attachments:
+                    data = _stream(att, PR_ATTACH_DATA_BIN)
+                    atts.append(([[a, b, None] for a, b in row.items()], data))
+            except Exception as e: # XXX generalize so usable in more places
+                service = self.server.service
+                log = (service or self.server).log
+                if log:
+                    log.error('could not serialize attachment')
+                if skip_broken:
+                    log.error(traceback.format_exc(e))
+                    if service and service.stats:
+                        service.stats['errors'] += 1
+                else:
+                    raise
 
         return {
             'props': props,
@@ -2868,8 +2881,8 @@ class Item(object):
     def dump(self, f, attachments=True, archiver=True):
         pickle.dump(self._dump(attachments=attachments, archiver=archiver), f, pickle.HIGHEST_PROTOCOL)
 
-    def dumps(self, attachments=True, archiver=True):
-        return pickle.dumps(self._dump(attachments=attachments, archiver=archiver), pickle.HIGHEST_PROTOCOL)
+    def dumps(self, attachments=True, archiver=True, skip_broken=False):
+        return pickle.dumps(self._dump(attachments=attachments, archiver=archiver, skip_broken=skip_broken), pickle.HIGHEST_PROTOCOL)
 
     def _load(self, d, attachments):
         # props
@@ -4414,6 +4427,7 @@ Encapsulates everything to create a simple service, such as:
             for msg in self.config.errors:
                 self.log.error(msg)
             sys.exit(1)
+        self.stats = collections.defaultdict(int, {'errors': 0})
 
     @property
     def server(self):
