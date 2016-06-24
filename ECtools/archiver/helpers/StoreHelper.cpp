@@ -94,7 +94,7 @@ HRESULT StoreHelper::Init()
 	
 	hr = MAPIPropHelper::Init();
 	if (hr != hrSuccess)
-		goto exit;
+		goto exitpm;
 	
 	PROPMAP_INIT_NAMED_ID(ARCHIVE_STORE_ENTRYIDS, PT_MV_BINARY, PSETID_Archive, dispidStoreEntryIds)
 	PROPMAP_INIT_NAMED_ID(ARCHIVE_ITEM_ENTRYIDS, PT_MV_BINARY, PSETID_Archive, dispidItemEntryIds)
@@ -105,8 +105,7 @@ HRESULT StoreHelper::Init()
 	PROPMAP_INIT_NAMED_ID(FLAGS, PT_LONG, PSETID_Archive, dispidFlags)
 	PROPMAP_INIT_NAMED_ID(VERSION, PT_LONG, PSETID_Archive, dispidVersion)
 	PROPMAP_INIT(m_ptrMsgStore)
-	
-exit:
+ exitpm:
 	return hr;
 }
 

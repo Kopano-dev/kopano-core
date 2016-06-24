@@ -158,8 +158,7 @@ HRESULT PublishFreeBusy::HrInit()
 	PROPMAP_INIT_NAMED_ID (APPT_TIMEZONESTRUCT,	PT_BINARY, PSETID_Appointment,	dispidTimeZoneData)
 	PROPMAP_INIT (m_lpDefStore)
 	;
-
-exit:
+ exitpm:
 	return hr;
 }
 

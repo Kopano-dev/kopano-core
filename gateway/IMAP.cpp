@@ -963,34 +963,34 @@ HRESULT IMAP::HrCmdLogin(const string &strTag, const string &strUser, const stri
 		hr2 = HrResponse(RESP_UNTAGGED, "BAD [ALERT] Plaintext authentication not allowed without SSL/TLS, but your client "
 						"did it anyway. If anyone was listening, the password was exposed.");
 		if (hr2 != hrSuccess)
-			goto exit;
+			goto exitpm;
 
 		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "[PRIVACYREQUIRED] Plaintext authentication disallowed on non-secure "
 							 "(SSL/TLS) connections.");
 		if (hr2 != hrSuccess)
-			goto exit;
+			goto exitpm;
 
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Aborted login from %s with username \"%s\" (tried to use disallowed plaintext auth)",
 					  lpChannel->peer_addr(), strUsername.c_str());
-		goto exit;
+		goto exitpm;
 	}
 
 	if (lpSession != NULL) {
 		lpLogger->Log(EC_LOGLEVEL_INFO, "Ignoring to login TWICE for username \"%s\"", strUsername.c_str());
 		hr = HrResponse(RESP_TAGGED_NO, strTag, "LOGIN Can't login twice");
 		// hr = MAPI_E_CALL_FAILED;
-		goto exit;
+		goto exitpm;
 	}
 
 	hr = TryConvert(strUsername, rawsize(strUsername), "windows-1252", strwUsername);
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Illegal byte sequence in username");
-		goto exit;
+		goto exitpm;
 	}
 	hr = TryConvert(strPass, rawsize(strPass), "windows-1252", strwPassword);
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Illegal byte sequence in password");
-		goto exit;
+		goto exitpm;
 	}
 
 	// do not disable notifications for imap connections, may be idle and sessions on the storage server will disappear.
@@ -1003,26 +1003,26 @@ HRESULT IMAP::HrCmdLogin(const string &strTag, const string &strUser, const stri
 		else
 			hr2 = HrResponse(RESP_TAGGED_BAD, strTag, "Internal error: OpenECSession failed");
 		if (hr2 != hrSuccess)
-			goto exit;
+			goto exitpm;
 		++m_ulFailedLogins;
 		if (m_ulFailedLogins >= LOGIN_RETRIES)
 			// disconnect client
 			hr = MAPI_E_END_OF_SESSION;
-		goto exit;
+		goto exitpm;
 	}
 
 	hr = HrOpenDefaultStore(lpSession, &lpStore);
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open default store");
 		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "LOGIN can't open default store");
-		goto exit;
+		goto exitpm;
 	}
 
 	hr = lpSession->OpenAddressBook(0, NULL, AB_NO_DIALOG, &lpAddrBook);
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open addressbook");
 		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "LOGIN can't open addressbook");
-		goto exit;
+		goto exitpm;
 	}
 
 	// check if imap access is disabled
@@ -1030,7 +1030,7 @@ HRESULT IMAP::HrCmdLogin(const string &strTag, const string &strUser, const stri
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "IMAP not enabled for user '%s'", strUsername.c_str());
 		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "LOGIN imap feature disabled");
 		hr = MAPI_E_LOGON_FAILED;
-		goto exit;
+		goto exitpm;
 	}
 
 	m_strwUsername = strwUsername;
@@ -1042,7 +1042,7 @@ HRESULT IMAP::HrCmdLogin(const string &strTag, const string &strUser, const stri
 
 		hr = MAPIAllocateBuffer(CbNewSPropTagArray(4), (void**)&m_lpsIMAPTags);
 		if (hr != hrSuccess)
-			goto exit;
+			goto exitpm;
 
 		m_lpsIMAPTags->aulPropTag[0] = PROP_ENVELOPE;
 	}
@@ -1062,13 +1062,12 @@ HRESULT IMAP::HrCmdLogin(const string &strTag, const string &strUser, const stri
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed to find special folder properties");
 		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "LOGIN can't find special folder properties");
-		goto exit;
+		goto exitpm;
 	}
 
 	lpLogger->Log(EC_LOGLEVEL_NOTICE, "IMAP Login from %s for user %s", lpChannel->peer_addr(), strUsername.c_str());
 	hr = HrResponse(RESP_TAGGED_OK, strTag, "[" + GetCapabilityString(false) + "] LOGIN completed");
-
-exit:
+ exitpm:
 	if (hr != hrSuccess || hr2 != hrSuccess)
 		CleanupObject();
 

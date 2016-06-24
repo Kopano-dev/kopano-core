@@ -80,8 +80,7 @@ HRESULT MAPIPropHelper::Init()
 	PROPMAP_INIT_NAMED_ID(REF_ITEM_ENTRYID, PT_BINARY, PSETID_Archive, dispidRefItemEntryId)
 	PROPMAP_INIT_NAMED_ID(REF_PREV_ENTRYID, PT_BINARY, PSETID_Archive, dispidRefPrevEntryId)
 	PROPMAP_INIT(m_ptrMapiProp)
-	
-exit:
+ exitpm:
 	return hr;
 }
 
@@ -628,7 +627,7 @@ HRESULT MAPIPropHelper::GetArchiveList(MAPIPropPtr ptrMapiProp, LPSPropValue lpP
 		{
 			// No entry ids exist. So that's fine
 			hr = hrSuccess;
-			goto exit;
+			goto exitpm;
 		}
 		else if (lpPropStoreEIDs && lpPropItemEIDs)
 		{
@@ -637,16 +636,15 @@ HRESULT MAPIPropHelper::GetArchiveList(MAPIPropPtr ptrMapiProp, LPSPropValue lpP
 			if (lpPropSourceKey) {
 				if (!lpPropOrigSK) {
 					hr = MAPI_E_CORRUPT_DATA;
-					goto exit;
+					goto exitpm;
 				} else {
 					// @todo: Create correct locale.
 					hr = Util::CompareProp(lpPropSourceKey, lpPropOrigSK, createLocaleFromName(""), &result);
 					if (hr != hrSuccess)
-						goto exit;
-
+						goto exitpm;
 					if (result != 0)
 						// The archive list was apparently copied into this message. So it's not valid (not an error).
-						goto exit;
+						goto exitpm;
 				}
 			} else
 				hr = hrSuccess;
@@ -655,13 +653,13 @@ HRESULT MAPIPropHelper::GetArchiveList(MAPIPropPtr ptrMapiProp, LPSPropValue lpP
 		{
 			// One exists, one doesn't.
 			hr = MAPI_E_CORRUPT_DATA;
-			goto exit;
+			goto exitpm;
 		}
 	}
 
 	if (lpPropStoreEIDs->Value.MVbin.cValues != lpPropItemEIDs->Value.MVbin.cValues) {
 		hr = MAPI_E_CORRUPT_DATA;
-		goto exit;
+		goto exitpm;
 	}
 	
 	for (ULONG i = 0; i < lpPropStoreEIDs->Value.MVbin.cValues; ++i) {
@@ -674,8 +672,7 @@ HRESULT MAPIPropHelper::GetArchiveList(MAPIPropPtr ptrMapiProp, LPSPropValue lpP
 	}
 	
 	swap(*lplstArchives, lstArchives);
-		
-exit:
+ exitpm:
 	return hr;
 }
 

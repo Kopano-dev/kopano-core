@@ -125,8 +125,7 @@ HRESULT DataCollector::GetRestriction(LPMAPIPROP lpProp, LPSRestriction *lppRest
 				);
 
 	hr = resMailBox.CreateMAPIRestriction(lppRestriction);
-
-exit:
+ exitpm:
 	return hr;
 }
 

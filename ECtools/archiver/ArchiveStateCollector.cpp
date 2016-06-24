@@ -67,7 +67,7 @@ namespace details {
 
 		hr = MAPIAllocateBuffer(CbNewSPropTagArray(4), &ptrPropTagArray);
 		if (hr != hrSuccess)
-			goto exit;
+			goto exitpm;
 
 		ptrPropTagArray->cValues = 4;
 		ptrPropTagArray->aulPropTag[0] = PR_ENTRYID;
@@ -76,7 +76,7 @@ namespace details {
 		ptrPropTagArray->aulPropTag[3] = PROP_ITEM_ENTRYIDS;
 
 		*lppPropTagArray = ptrPropTagArray.release();
-	exit:
+	exitpm:
 		return hr;
 	}
 

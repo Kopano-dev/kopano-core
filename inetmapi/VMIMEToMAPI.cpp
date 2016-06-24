@@ -3062,7 +3062,7 @@ HRESULT VMIMEToMAPI::postWriteFixups(IMessage *lpMessage)
 
 	hr = HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &lpMessageClass);
 	if (hr != hrSuccess)
-		goto exit;
+		goto exitpm;
 
 	if (strncasecmp(lpMessageClass->Value.lpszA, "IPM.Schedule.Meeting.", strlen( "IPM.Schedule.Meeting." )) == 0)
 	{
@@ -3072,7 +3072,7 @@ HRESULT VMIMEToMAPI::postWriteFixups(IMessage *lpMessage)
 
 		hr = lpMessage->GetProps((LPSPropTagArray)&sptaMeetingReqProps, 0, &cValues, &lpProps);
 		if(FAILED(hr))
-			goto exit;
+			goto exitpm;
 
 		// If hr is hrSuccess then all properties are available, and we don't need to do anything
 		if(hr != hrSuccess) {
@@ -3107,7 +3107,7 @@ HRESULT VMIMEToMAPI::postWriteFixups(IMessage *lpMessage)
 				lpProps[5].ulPropTag = PR_CONVERSATION_INDEX;
 				hr = ScCreateConversationIndex(0, NULL, &cbConversationIndex, &lpConversationIndex);
 				if(hr != hrSuccess)
-					goto exit;
+					goto exitpm;
 
 				lpProps[5].Value.bin.cb = cbConversationIndex;
 				lpProps[5].Value.bin.lpb = lpConversationIndex;
@@ -3115,7 +3115,7 @@ HRESULT VMIMEToMAPI::postWriteFixups(IMessage *lpMessage)
 
 			hr = lpMessage->SetProps(6, lpProps, NULL);
 			if(hr != hrSuccess)
-				goto exit;
+				goto exitpm;
 		}
 
 		// @todo
@@ -3133,11 +3133,11 @@ HRESULT VMIMEToMAPI::postWriteFixups(IMessage *lpMessage)
 			// @todo, if all properties are not available: remove recurrence true marker
 			hr = lpMessage->GetProps((LPSPropTagArray)&sptaRecProps, 0, &cRecProps, &lpRecProps);
 			if(hr != hrSuccess) // Warnings not accepted
-				goto exit;
+				goto exitpm;
 			
 			hr = rec.ParseBlob((char *)lpRecProps[0].Value.bin.lpb, (unsigned int)lpRecProps[0].Value.bin.cb, 0);
 			if(FAILED(hr))
-				goto exit;
+				goto exitpm;
 			
 			// Ignore warnings	
 			hr = hrSuccess;
@@ -3248,11 +3248,10 @@ HRESULT VMIMEToMAPI::postWriteFixups(IMessage *lpMessage)
 			
 			hr = lpMessage->SetProps(14, sMeetingProps, NULL);
 			if(hr != hrSuccess)
-				goto exit;
+				goto exitpm;
 		}
 	}
-
-exit:
+ exitpm:
 	MAPIFreeBuffer(lpRecProps);
 	MAPIFreeBuffer(lpConversationIndex);
 	MAPIFreeBuffer(lpMessageClass);
@@ -3380,7 +3379,7 @@ HRESULT VMIMEToMAPI::createIMAPEnvelope(vmime::ref<vmime::message> vmMessage, IM
 	sEnvelope.Value.lpszA = (char*)buffer.c_str();
 
 	hr = lpMessage->SetProps(1, &sEnvelope, NULL);
-exit: /* label still needed for expansion of PROPMAP_INIT */
+ exitpm:
 	return hr;
 }
 

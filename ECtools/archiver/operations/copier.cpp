@@ -152,7 +152,7 @@ HRESULT Copier::Helper::ArchiveMessage(LPMESSAGE lpSource, const SObjectEntry *l
 	// @todo: What to do with warnings?
 	if (FAILED(hr)) {
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to copy message. (hr=%s)", stringify(hr, true).c_str());
-		goto exit;
+		goto exitpm;
 	}
 
 	hr = UpdateIIDs(lpSource, lpDest, &ptrPSAction);
@@ -167,26 +167,25 @@ HRESULT Copier::Helper::ArchiveMessage(LPMESSAGE lpSource, const SObjectEntry *l
 	hr = lpDest->SetProps(1, &sPropArchFlags, NULL);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to set flags on archive message. (hr=%s)", stringify(hr, true).c_str());
-		goto exit;
+		goto exitpm;
 	}
 
 	hr = MAPIPropHelper::Create(MAPIPropPtr(lpDest, true), &ptrMsgHelper);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to create prop helper. (hr=%s)", stringify(hr, true).c_str());
-		goto exit;
+		goto exitpm;
 	}
 
 	if (lpMsgEntry) {
 		hr = ptrMsgHelper->SetReference(*lpMsgEntry);
 		if (hr != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to set reference to original message. (hr=%s)", stringify(hr, true).c_str());
-			goto exit;
+			goto exitpm;
 		}
 	}
 
 	lpptrPSAction->swap(ptrPSAction);
-
-exit:
+ exitpm:
 	return hr;
 }
 
@@ -429,7 +428,7 @@ HRESULT Copier::GetRestriction(LPMAPIPROP lpMapiProp, LPSRestriction *lppRestric
 	// old enough to be processed.
 	hr = ArchiveOperationBaseEx::GetRestriction(lpMapiProp, &ptrRestriction);
 	if (hr != hrSuccess)
-		goto exit;
+		goto exitpm;
 	resResult.append(ECRawRestriction(ptrRestriction));
 
 	// A reason to process a message before being old enough is when
@@ -439,8 +438,7 @@ HRESULT Copier::GetRestriction(LPMAPIPROP lpMapiProp, LPSRestriction *lppRestric
 	resResult.append(ECExistRestriction(PROP_ORIGINAL_SOURCE_KEY));
 
 	hr = resResult.CreateMAPIRestriction(lppRestriction);
-
-exit:
+ exitpm:
 	return hr;
 }
 

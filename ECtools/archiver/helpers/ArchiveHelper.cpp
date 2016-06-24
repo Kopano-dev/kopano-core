@@ -161,8 +161,7 @@ HRESULT ArchiveHelper::Init()
 	PROPMAP_INIT_NAMED_ID(ATTACH_TYPE, PT_LONG, PSETID_Archive, dispidAttachType)
 	PROPMAP_INIT_NAMED_ID(SPECIAL_FOLDER_ENTRYIDS, PT_MV_BINARY, PSETID_Archive, dispidSpecialFolderEntryIds);
 	PROPMAP_INIT(m_ptrArchiveStore)
-	
-exit:
+ exitpm:
 	return hr;
 }
 
