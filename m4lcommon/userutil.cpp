@@ -132,17 +132,13 @@ HRESULT DataCollector::GetRestriction(LPMAPIPROP lpProp, LPSRestriction *lppRest
 UserCountCollector::UserCountCollector(): m_ulUserCount(0) {}
 
 HRESULT UserCountCollector::CollectData(LPMAPITABLE lpStoreTable) {
-	HRESULT hr = hrSuccess;
 	ULONG ulCount = 0;
-
-	hr = lpStoreTable->GetRowCount(0, &ulCount);
+	HRESULT hr = lpStoreTable->GetRowCount(0, &ulCount);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	m_ulUserCount += ulCount;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 inline unsigned int UserCountCollector::result() const {
@@ -160,14 +156,12 @@ HRESULT	UserListCollector<string_type, prAccount>::GetRequiredPropTags(LPMAPIPRO
 
 template<typename string_type, ULONG prAccount>
 HRESULT UserListCollector<string_type, prAccount>::CollectData(LPMAPITABLE lpStoreTable) {
-	HRESULT hr = hrSuccess;
-
 	while (true) {
 		SRowSetPtr ptrRows;
 
-		hr = lpStoreTable->QueryRows(50, 0, &ptrRows);
+		HRESULT hr = lpStoreTable->QueryRows(50, 0, &ptrRows);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
 			if (ptrRows[i].lpProps[0].ulPropTag == PR_MAILBOX_OWNER_ENTRYID) {
@@ -191,8 +185,7 @@ HRESULT UserListCollector<string_type, prAccount>::CollectData(LPMAPITABLE lpSto
 		if (ptrRows.size() < 50)
 			break;
 	}
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 template<typename string_type, ULONG prAccount>
@@ -212,32 +205,22 @@ void UserListCollector<std::wstring, PR_ACCOUNT_W>::push_back(LPSPropValue lpPro
 
 HRESULT GetArchivedUserList(ECLogger *lpLogger, IMAPISession *lpMapiSession, const char *lpSSLKey, const char *lpSSLPass, std::list<std::string> *lplstUsers, bool bLocalOnly)
 {
-	HRESULT hr = hrSuccess;
 	UserListCollector<std::string, PR_ACCOUNT_A> collector(lpMapiSession);
-
-	hr = GetMailboxData(lpLogger, lpMapiSession, lpSSLKey, lpSSLPass, bLocalOnly, &collector);
+	HRESULT hr = GetMailboxData(lpLogger, lpMapiSession, lpSSLKey, lpSSLPass, bLocalOnly, &collector);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	collector.swap_result(lplstUsers);
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT GetArchivedUserList(ECLogger *lpLogger, IMAPISession *lpMapiSession, const char *lpSSLKey, const char *lpSSLPass, std::list<std::wstring> *lplstUsers, bool bLocalOnly)
 {
-	HRESULT hr = hrSuccess;
 	UserListCollector<std::wstring, PR_ACCOUNT_W> collector(lpMapiSession);
-
-	hr = GetMailboxData(lpLogger, lpMapiSession, lpSSLKey, lpSSLPass, bLocalOnly, &collector);
+	HRESULT hr = GetMailboxData(lpLogger, lpMapiSession, lpSSLKey, lpSSLPass, bLocalOnly, &collector);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	collector.swap_result(lplstUsers);
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT GetMailboxData(ECLogger *lpLogger, IMAPISession *lpMapiSession, const char *lpSSLKey, const char *lpSSLPass, bool bLocalOnly, DataCollector *lpCollector)
@@ -430,18 +413,13 @@ exit:
 HRESULT GetMailboxDataPerServer(ECLogger *lpLogger, const char *lpszPath,
     const char *lpSSLKey, const char *lpSSLPass, DataCollector *lpCollector)
 {
-	HRESULT hr = hrSuccess;
 	MAPISessionPtr  ptrSessionServer;
-
-	hr = HrOpenECAdminSession(lpLogger, &ptrSessionServer, "userutil.cpp", "GetMailboxDataPerServer", lpszPath, 0, lpSSLKey, lpSSLPass);
+	HRESULT hr = HrOpenECAdminSession(lpLogger, &ptrSessionServer, "userutil.cpp", "GetMailboxDataPerServer", lpszPath, 0, lpSSLKey, lpSSLPass);
 	if(hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open admin session on server '%s': 0x%08X", lpszPath, hr);
-		goto exit;
+		return hr;
 	}
-
-	hr = GetMailboxDataPerServer(lpLogger, ptrSessionServer, lpszPath, lpCollector);
-exit:
-	return hr;
+	return GetMailboxDataPerServer(lpLogger, ptrSessionServer, lpszPath, lpCollector);
 }
 
 /**
@@ -455,8 +433,6 @@ exit:
 HRESULT GetMailboxDataPerServer(ECLogger *lpLogger, IMAPISession *lpSession,
     const char *lpszPath, DataCollector *lpCollector)
 {
-	HRESULT hr = hrSuccess;
-
 	MsgStorePtr		ptrStoreAdmin;
 	MAPITablePtr	ptrStoreTable;
 	SPropTagArrayPtr ptrPropTagArray;
@@ -464,44 +440,33 @@ HRESULT GetMailboxDataPerServer(ECLogger *lpLogger, IMAPISession *lpSession,
 
 	ExchangeManageStorePtr	ptrEMS;
 
-	hr = HrOpenDefaultStore(lpSession, &ptrStoreAdmin);
+	HRESULT hr = HrOpenDefaultStore(lpSession, &ptrStoreAdmin);
 	if(hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open default store on server '%s': 0x%08X", lpszPath, hr);
-		goto exit;
+		return hr;
 	}
 
 	//@todo use PT_OBJECT to queryinterface
 	hr = ptrStoreAdmin->QueryInterface(IID_IExchangeManageStore, (void**)&ptrEMS);
-	if (hr != hrSuccess) {
-		goto exit;
-	}
-
+	if (hr != hrSuccess)
+		return hr;
 	hr = ptrEMS->GetMailboxTable(NULL, &ptrStoreTable, MAPI_DEFERRED_ERRORS);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpCollector->GetRequiredPropTags(ptrStoreAdmin, &ptrPropTagArray);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = ptrStoreTable->SetColumns(ptrPropTagArray, TBL_BATCH);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpCollector->GetRestriction(ptrStoreAdmin, &ptrRestriction);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = ptrStoreTable->Restrict(ptrRestriction, TBL_BATCH);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
-	hr = lpCollector->CollectData(ptrStoreTable);
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+	return lpCollector->CollectData(ptrStoreTable);
 }
 
 /**
@@ -514,7 +479,6 @@ exit:
  */
 HRESULT UpdateServerList(ECLogger *lpLogger, IABContainer *lpContainer, std::set<servername> &listServers)
 {
-	HRESULT hr = S_OK;
 	SRowSetPtr ptrRows;
 	MAPITablePtr ptrTable;
 	SRestriction sResAllUsers;
@@ -544,30 +508,29 @@ HRESULT UpdateServerList(ECLogger *lpLogger, IABContainer *lpContainer, std::set
 	sResAllUsers.res.resAnd.cRes = 2;
 	sResAllUsers.res.resAnd.lpRes = sResSub;
 
-	hr = lpContainer->GetContentsTable(MAPI_DEFERRED_ERRORS, &ptrTable);
+	HRESULT hr = lpContainer->GetContentsTable(MAPI_DEFERRED_ERRORS, &ptrTable);
 	if(hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open contents table: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = ptrTable->SetColumns((LPSPropTagArray)&sCols, TBL_BATCH);
 	if(hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to set set columns on user table: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 
 	// Restrict to users (not groups) 
 	hr = ptrTable->Restrict(&sResAllUsers, TBL_BATCH);
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get total user count: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 
 	while (true) {
 		hr = ptrTable->QueryRows(50, 0, &ptrRows);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		if (ptrRows.empty())
 			break;
 
@@ -580,8 +543,5 @@ HRESULT UpdateServerList(ECLogger *lpLogger, IABContainer *lpContainer, std::set
 			}
 		}
 	}
-
-exit:
-
-	return hr;
+	return hrSuccess;
 }

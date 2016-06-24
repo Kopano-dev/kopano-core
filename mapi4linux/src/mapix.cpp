@@ -2862,16 +2862,11 @@ static SCODE MAPIAllocate(ULONG cbSize, LPVOID *lppBuffer)
  */
 SCODE __stdcall MAPIAllocateBuffer(ULONG cbSize, LPVOID* lppBuffer)
 {
-	HRESULT hr = hrSuccess;
-
-	if (lppBuffer == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	hr = MAPIAllocate(cbSize, lppBuffer);
+	if (lppBuffer == NULL)
+		return MAPI_E_INVALID_PARAMETER;
+	HRESULT hr = MAPIAllocate(cbSize, lppBuffer);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	pthread_mutex_lock(&_memlist_lock);
 	_memlist.insert(map<void*, list<void *>* >::value_type(*lppBuffer, new list<void *>()));
@@ -2880,9 +2875,7 @@ SCODE __stdcall MAPIAllocateBuffer(ULONG cbSize, LPVOID* lppBuffer)
 #if _MAPI_MEM_DEBUG
 		fprintf(stderr, "New buffer: %p\n", buffer);
 #endif
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
