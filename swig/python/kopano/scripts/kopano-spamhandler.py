@@ -6,7 +6,10 @@
 
 # XXX use python-kopano Config class
 
-import ConfigParser
+try:
+    from ConfigParser import ConfigParser
+except ImportError:
+    from configparser import ConfigParser
 import sys
 import subprocess
 import datetime
@@ -29,14 +32,14 @@ def main():
             for item in user.store.junk.items():
                 if autolearn:
                     if (not item.header('x-spam-flag')) or ( item.header('x-spam-flag') == 'NO'):
-                        print "%s : untagged spam [Subject: %s]" % (user.name, item.subject)
+                        print("%s : untagged spam [Subject: %s]" % (user.name, item.subject))
                         try:
                             p = subprocess.Popen(spamcommand, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
                             learn, output_err = p.communicate(item.eml())
                         except:
-                            print 'failed to run [%s] [%s]' % (SPAM, output_err)
+                            print('failed to run [%s] [%s]' % (SPAM, output_err))
                         if learn:
-                            print "%s : learned [%s]" % (user.name, learn.rstrip('\n'))
+                            print("%s : learned [%s]" % (user.name, learn.rstrip('\n')))
                             delmsg = 'delete after learn'
                             deletejunk(user, item, delmsg)
                             learncounter += 1
@@ -46,25 +49,25 @@ def main():
                         delmsg = 'autodelete'
                         deletejunk(user, item, delmsg)
         except Exception as error:
-            print "%s : Unable to open store/item : [%s] [%s]" % (username, username, error)
+            print("%s : Unable to open store/item : [%s] [%s]" % (username, username, error))
             continue
-    print "Summary learned %d items, deleted %d items" % (learncounter, delcounter)
+    print("Summary learned %d items, deleted %d items" % (learncounter, delcounter))
 
 
 def deletejunk(user, item, delmsg):
     global delcounter
     try:
         user.store.junk.delete([item])
-        print "%s : %s [Subject: %s]" % (user.name, delmsg, item.subject)
+        print("%s : %s [Subject: %s]" % (user.name, delmsg, item.subject))
         delcounter += 1
     except Exception as error:
-        print "%s : Unable to %s item [Subject: %s] [%s]" % (user.name, delmsg, item.subject, error)
+        print("%s : Unable to %s item [Subject: %s] [%s]" % (user.name, delmsg, item.subject, error))
         pass
     return
 
 
 def getconfig():
-    Config = ConfigParser.ConfigParser()
+    Config = ConfigParser()
     try:
         Config.read('kopano-spamhandler.cfg')
         users = Config.get('users', 'users')

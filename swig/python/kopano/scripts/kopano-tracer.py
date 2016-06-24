@@ -36,7 +36,7 @@ def diffitems(item, old_item=[], delete=False):
 
 class Importer:
     def update(self, item, flags):
-        print '\033[1;41mUpdate: subject: %s folder: %s sender: %s (%s)\033[1;m' % (item.subject, item.folder, item.sender.email, time.strftime('%a %b %d %H:%M:%S %Y'))
+        print('\033[1;41mUpdate: subject: %s folder: %s sender: %s (%s)\033[1;m' % (item.subject, item.folder, item.sender.email, time.strftime('%a %b %d %H:%M:%S %Y')))
         if not flags & SYNC_NEW_MESSAGE:
             old_item = ITEM_MAPPING[item.sourcekey]
         else:
@@ -44,14 +44,14 @@ class Importer:
             old_item = False
 
         diffitems(item, old_item)
-        print '\033[1;41mEnd Update\033[1;m\n'
+        print('\033[1;41mEnd Update\033[1;m\n')
 
     def delete(self, item, flags): # only item.sourcekey is available here!
         rm_item = ITEM_MAPPING[item.sourcekey]
         if rm_item:
-            print '\033[1;41mBegin Delete: subject: %s folder: %s sender: %s (%s)\033[1;m' % (rm_item.subject, rm_item.folder, rm_item.sender.email, time.strftime('%a %b %d %H:%M:%S %Y'))
+            print('\033[1;41mBegin Delete: subject: %s folder: %s sender: %s (%s)\033[1;m' % (rm_item.subject, rm_item.folder, rm_item.sender.email, time.strftime('%a %b %d %H:%M:%S %Y')))
             diffitems(rm_item, delete=True)
-            print '\033[1;41mEnd Delete\033[1;m\n'
+            print('\033[1;41mEnd Delete\033[1;m\n')
             del ITEM_MAPPING[rm_item.sourcekey]
 
 def main():
@@ -59,17 +59,17 @@ def main():
     server = kopano.Server(options)
     # TODO: use optparse to figure this out?
     if not server.options.auth_user:
-        print 'No user specified'
+        print('No user specified')
     if not server.options.folders:
-        print 'No folder specified'
+        print('No folder specified')
     else:
         user = kopano.Server().user(server.options.auth_user)
         folder = next(user.store.folders()) # First Folder
-        print 'Monitoring folder %s of %s for update and delete events' % (folder, user.fullname)
+        print('Monitoring folder %s of %s for update and delete events' % (folder, user.fullname))
         # Create mapping
         for item in folder.items():
             ITEM_MAPPING[item.sourcekey] = item
-        print 'Mapping of items and sourcekey complete'
+        print('Mapping of items and sourcekey complete')
 
         folder_state = folder.state
         new_state = folder.sync(Importer(), folder_state) # from last known state

@@ -33,45 +33,46 @@ def main():
         if not server.public_store:
             server.create_store(public=True)
         else:
-            print 'public store already exists'
+            print('public store already exists')
 
     elif options.list_users:
         fmt = '{:>16}{:>20}{:>40}'
-        print fmt.format('User', 'Full Name', 'Store')
-        print 76*'-'
+        print(fmt.format('User', 'Full Name', 'Store'))
+        print(76*'-')
         for user in server.users():
-            print fmt.format(user.name, user.fullname, user.store.guid)
+            print(fmt.format(user.name, user.fullname, user.store.guid))
 
     elif options.list_companies:
         fmt = '{:>16}'
-        print fmt.format('Company')
-        print 16*'-'
+        print(fmt.format('Company'))
+        print(16*'-')
         for company in server.companies():
-            print fmt.format(company.name)
+            print(fmt.format(company.name))
 
     elif options.list_stores:
         fmt = '{:>40}'+'{:>16}'*3
-        print fmt.format('Store', 'User', 'Public', 'Orphan')
-        print 64*'-'
+        print(fmt.format('Store', 'User', 'Public', 'Orphan'))
+        print(64*'-')
         for store in server.stores():
-            print fmt.format(store.guid, store.user.name if store.user else '', store.public, store.orphan)
+            print(fmt.format(store.guid, store.user.name if store.user else '', store.public, store.orphan))
 
     elif options.user_details:
         user = server.user(options.user_details)
-        print 'Username:\t' + user.name
-        print 'Fullname:\t' + user.fullname
-        print 'Emailaddress:\t' + user.email
-        print 'Active:\t\t' + ('yes' if user.active else 'no')
-        print 'Features:\t' + '; '.join(user.features)
-        print 'Store:\t\t' + user.store.guid
+        print('Username:\t' + user.name)
+        print('Fullname:\t' + user.fullname)
+        print('Emailaddress:\t' + user.email)
+        print('Active:\t\t' + ('yes' if user.active else 'no'))
+        print('Features:\t' + '; '.join(user.features))
+        print('Store:\t\t' + user.store.guid)
 
     elif options.usercount:
         stats = server.table(PR_EC_STATSTABLE_SYSTEM).dict_(PR_DISPLAY_NAME, PR_EC_STATS_SYSTEM_VALUE)
-        print 'Active:\t\t', int(stats['usercnt_active'])
-        print 'Non-active:\t', int(stats['usercnt_nonactive'])
-        print '  Users:\t', int(stats['usercnt_na_user'])
-        print '  Rooms:\t', int(stats['usercnt_room'])
-        print '  Equipment:\t', int(stats['usercnt_equipment'])
+        print(stats)
+        print('Active:\t\t', int(stats['usercnt_active']))
+        print('Non-active:\t', int(stats['usercnt_nonactive']))
+        print('  Users:\t', int(stats['usercnt_na_user']))
+        print('  Rooms:\t', int(stats['usercnt_room']))
+        print('  Equipment:\t', int(stats['usercnt_equipment']))
 
     elif options.create_group:
         server.create_group(options.create_group)

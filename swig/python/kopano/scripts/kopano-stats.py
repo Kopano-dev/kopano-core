@@ -150,7 +150,7 @@ def main():
             if getattr(options, option):
                 table = kopano.Server(options).table(table)
                 table.sort(sort)
-                print table.csv(delimiter=';') if options.dump else table.text()
+                print(table.csv(delimiter=';') if options.dump else table.text())
 
 if __name__ == '__main__':
     main()
