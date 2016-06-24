@@ -123,25 +123,22 @@ public:
 
 				hr = ptrStream->Seek(liMove, SEEK_CUR, &liPosition);
 				if (hr != hrSuccess)
-					goto exit;
-
+					return hr;
 				hr = ptrStream->Stat(&statbuf, 0);
 				if (hr != hrSuccess)
-					goto exit;
-
+					return hr;
 				if ((statbuf.cbSize.QuadPart - liPosition.QuadPart) < cb)
 					cb = (ULONG)(statbuf.cbSize.QuadPart - liPosition.QuadPart);
 			}
 
 			hr = MAPIAllocateBuffer(cb, (void **)&buffer);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			self->Read(buffer, cb, ulRead);
 
 			*lpOutput = buffer;
-		exit:
-			return hr;
+			return hrSuccess;
 		}
     }
 };

@@ -110,32 +110,28 @@ HRESULT ZCABLogon::Logoff(ULONG ulFlags)
  */
 HRESULT ZCABLogon::AddFolder(const WCHAR* lpwDisplayName, ULONG cbStore, LPBYTE lpStore, ULONG cbFolder, LPBYTE lpFolder)
 {
-	HRESULT hr = hrSuccess;
 	zcabFolderEntry entry;
 
-	if (cbStore == 0 || lpStore == NULL || cbFolder == 0 || lpFolder == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (cbStore == 0 || lpStore == NULL || cbFolder == 0 || lpFolder == NULL)
+		return MAPI_E_INVALID_PARAMETER;
 
 	entry.strwDisplayName = lpwDisplayName;
 
 	entry.cbStore = cbStore;
-	hr = MAPIAllocateBuffer(cbStore, (void**)&entry.lpStore);
+	HRESULT hr = MAPIAllocateBuffer(cbStore,
+	             reinterpret_cast<void **>(&entry.lpStore));
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	memcpy(entry.lpStore, lpStore, cbStore);
 
 	entry.cbFolder = cbFolder;
 	hr = MAPIAllocateBuffer(cbFolder, (void**)&entry.lpFolder);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	memcpy(entry.lpFolder, lpFolder, cbFolder);
 
 	m_lFolders.push_back(entry);
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ZCABLogon::ClearFolderList()
@@ -278,22 +274,11 @@ HRESULT ZCABLogon::CompareEntryIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG
 
 HRESULT ZCABLogon::Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection)
 {
-	HRESULT hr = hrSuccess;
-
-	if(lpAdviseSink == NULL || lpulConnection == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	if(lpEntryID == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	hr = MAPI_E_NO_SUPPORT;
-
-exit:
-	return hr;
+	if (lpAdviseSink == NULL || lpulConnection == NULL)
+		return MAPI_E_INVALID_PARAMETER;
+	if (lpEntryID == NULL)
+		return MAPI_E_INVALID_PARAMETER;
+	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT ZCABLogon::Unadvise(ULONG ulConnection)
@@ -318,15 +303,10 @@ HRESULT ZCABLogon::GetOneOffTable(ULONG ulFlags, LPMAPITABLE * lppTable)
 
 HRESULT ZCABLogon::PrepareRecips(ULONG ulFlags, LPSPropTagArray lpPropTagArray, LPADRLIST lpRecipList)
 {
-	HRESULT			hr = hrSuccess;
-
-	if(lpPropTagArray == NULL || lpPropTagArray->cValues == 0) // There is no work to do.
-		goto exit;
-
-	hr = MAPI_E_NO_SUPPORT;
-
-exit:
-	return hr;
+	if(lpPropTagArray == NULL || lpPropTagArray->cValues == 0)
+		/* There is no work to do. */
+		return hrSuccess;
+	return MAPI_E_NO_SUPPORT;
 }
 
 HRESULT ZCABLogon::xABLogon::QueryInterface(REFIID refiid, void ** lppInterface)

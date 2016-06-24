@@ -372,19 +372,15 @@ HRESULT ECMsgStorePublic::InitEntryIDs()
 
 HRESULT ECMsgStorePublic::GetPublicEntryId(enumPublicEntryID ePublicEntryID, void *lpBase, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
 {
-	HRESULT hr = hrSuccess;
 	ULONG cbPublicID = 0;
 	LPENTRYID lpPublicID = NULL;
 	LPENTRYID lpEntryID = NULL;
 
-	hr = InitEntryIDs();
+	HRESULT hr = InitEntryIDs();
 	if(hr != hrSuccess)
-		goto exit;
-
-	if (lpcbEntryID == NULL || lppEntryID == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+		return hr;
+	if (lpcbEntryID == NULL || lppEntryID == NULL)
+		return MAPI_E_INVALID_PARAMETER;
 
 	switch(ePublicEntryID)
 	{
@@ -401,8 +397,7 @@ HRESULT ECMsgStorePublic::GetPublicEntryId(enumPublicEntryID ePublicEntryID, voi
 			lpPublicID = m_lpIPMFavoritesID;
 			break;
 		default:
-			hr = MAPI_E_INVALID_PARAMETER;
-			goto exit;
+			return MAPI_E_INVALID_PARAMETER;
 	}
 
 	if (lpBase)
@@ -410,15 +405,13 @@ HRESULT ECMsgStorePublic::GetPublicEntryId(enumPublicEntryID ePublicEntryID, voi
 	else
 		hr = MAPIAllocateBuffer(cbPublicID, (void**)&lpEntryID);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	memcpy(lpEntryID, lpPublicID, cbPublicID);
 
 	*lpcbEntryID = cbPublicID;
 	*lppEntryID = lpEntryID;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECMsgStorePublic::ComparePublicEntryId(enumPublicEntryID ePublicEntryID, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG *lpulResult)

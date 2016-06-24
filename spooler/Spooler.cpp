@@ -226,7 +226,6 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
     BYTE *lpStoreEntryId, ULONG cbMsgEntryId, BYTE *lpMsgEntryId,
     ULONG ulFlags)
 {
-	HRESULT hr = hrSuccess;
 	SendData sSendData;
 	pid_t pid;
 	bool bDoSentMail = ulFlags & EC_SUBMIT_DOSENTMAIL;
@@ -234,10 +233,11 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 
 	// place pid with entryid copy in map
 	sSendData.cbStoreEntryId = cbStoreEntryId;
-	hr = MAPIAllocateBuffer(cbStoreEntryId, (void**)&sSendData.lpStoreEntryId);
+	HRESULT hr = MAPIAllocateBuffer(cbStoreEntryId,
+	             reinterpret_cast<void **>(&sSendData.lpStoreEntryId));
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "StartSpoolerFork(): MAPIAllocateBuffer failed(1) %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	memcpy(sSendData.lpStoreEntryId, lpStoreEntryId, cbStoreEntryId);
@@ -245,7 +245,7 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 	hr = MAPIAllocateBuffer(cbMsgEntryId, (void**)&sSendData.lpMessageEntryId);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "StartSpoolerFork(): MAPIAllocateBuffer failed(2) %x", hr);
-		goto exit;
+		return hr;
 	}
 	memcpy(sSendData.lpMessageEntryId, lpMsgEntryId, cbMsgEntryId);
 	sSendData.ulFlags = ulFlags;
@@ -255,8 +255,7 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 	pid = vfork();
 	if (pid < 0) {
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, string("Unable to start new spooler process: ") + strerror(errno));
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
 
 	if (pid == 0) {
@@ -294,9 +293,7 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 
 	// process is started, place in map
 	mapSendData[pid] = sSendData;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**

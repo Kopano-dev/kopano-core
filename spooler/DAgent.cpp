@@ -667,30 +667,24 @@ exit:
 static HRESULT OpenResolveAddrFolder(IMAPISession *lpSession,
     LPADRBOOK *lppAdrBook, IABContainer **lppAddrDir)
 {
-	HRESULT hr = hrSuccess;
+	if (lpSession == NULL || lppAdrBook == NULL)
+		return MAPI_E_INVALID_PARAMETER;
 
-	if (lpSession == NULL || lppAdrBook == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	hr = lpSession->OpenAddressBook(0, NULL, 0, lppAdrBook);
+	HRESULT hr = lpSession->OpenAddressBook(0, NULL, 0, lppAdrBook);
 	if(hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open addressbook: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 
 	if (lppAddrDir) {
 		hr = OpenResolveAddrFolder(*lppAdrBook, lppAddrDir);
 		if(hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "OpenResolveAddrFolder() OpenResolveAddrFolder failed %x", hr);
-			goto exit;
+			return hr;
+		}
 	}
-	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -903,15 +897,12 @@ static HRESULT ResolveUser(DeliveryArgs *lpArgs, IABContainer *lpAddrFolder,
  */
 static HRESULT FreeServerRecipients(companyrecipients_t *lpCompanyRecips)
 {
-	HRESULT hr = hrSuccess;
 	companyrecipients_t::const_iterator iterCMP;
 	serverrecipients_t::const_iterator iterSRV;
 	recipients_t::const_iterator iterRCPT;
 
-	if (!lpCompanyRecips) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpCompanyRecips == NULL)
+		return MAPI_E_INVALID_PARAMETER;
 
 	for (iterCMP = lpCompanyRecips->begin();
 	     iterCMP != lpCompanyRecips->end(); ++iterCMP)
@@ -921,9 +912,7 @@ static HRESULT FreeServerRecipients(companyrecipients_t *lpCompanyRecips)
 			     iterRCPT != iterSRV->second.end(); ++iterRCPT)
 				delete *iterRCPT;
 	lpCompanyRecips->clear();
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -940,16 +929,13 @@ exit:
 static HRESULT AddServerRecipient(companyrecipients_t *lpCompanyRecips,
     ECRecipient **lppRecipient)
 {
-	HRESULT hr = hrSuccess;
 	companyrecipients_t::iterator iterCMP;
 	serverrecipients_t::iterator iterSRV;
 	recipients_t::const_iterator iterRecip;
 	ECRecipient *lpRecipient = *lppRecipient;
 
-	if (!lpCompanyRecips) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpCompanyRecips == NULL)
+		return MAPI_E_INVALID_PARAMETER;
 
 	// Find or insert
 	iterCMP = lpCompanyRecips->insert(companyrecipients_t::value_type(lpRecipient->wstrCompany, serverrecipients_t())).first;
@@ -967,9 +953,7 @@ static HRESULT AddServerRecipient(companyrecipients_t *lpCompanyRecips,
 		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Combining recipient %ls and %ls, delivering only once", lpRecipient->wstrRCPT.c_str(), (*iterRecip)->wstrUsername.c_str());
 		(*iterRecip)->combine(lpRecipient);
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -2185,7 +2169,6 @@ exit:
 static HRESULT HrOverrideReceivedByProps(IMessage *lpMessage,
     ECRecipient *lpRecip)
 {
-	HRESULT hr = hrSuccess;
 	SPropValue sPropReceived[5];
 
 	/* First set the PR_RECEIVED_BY_* properties */
@@ -2206,14 +2189,12 @@ static HRESULT HrOverrideReceivedByProps(IMessage *lpMessage,
 	sPropReceived[4].Value.bin.cb = lpRecip->sSearchKey.cb;
 	sPropReceived[4].Value.bin.lpb = lpRecip->sSearchKey.lpb;
 
-	hr = lpMessage->SetProps(5, sPropReceived, NULL);
+	HRESULT hr = lpMessage->SetProps(5, sPropReceived, NULL);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to set RECEIVED_BY properties: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -2375,11 +2356,9 @@ static HRESULT HrGetSession(const DeliveryArgs *lpArgs,
 			if (!bSuppress) g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to login for user %ls, error code: 0x%08X", szUsername, hr);
 			break;
 		}
-		goto exit;
+		return hr;
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -2949,7 +2928,6 @@ static HRESULT ProcessDeliveryToSingleRecipient(PyMapiPlugin *lppyMapiPlugin,
     IMAPISession *lpSession, LPADRBOOK lpAdrBook, FILE *fp,
     recipients_t &lstSingleRecip, DeliveryArgs *lpArgs)
 {
-	HRESULT hr = hrSuccess;
 	std::string strMail;
 
 	sc -> countInc("DAgent", "to_single_recipient");
@@ -2958,11 +2936,11 @@ static HRESULT ProcessDeliveryToSingleRecipient(PyMapiPlugin *lppyMapiPlugin,
 	rewind(fp);
 
 	/* Read file into string */
-	hr = HrMapFileToString(fp, &strMail);
+	HRESULT hr = HrMapFileToString(fp, &strMail);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to map input to memory: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 
 	FindSpamMarker(strMail, lpArgs);
@@ -2971,8 +2949,6 @@ static HRESULT ProcessDeliveryToSingleRecipient(PyMapiPlugin *lppyMapiPlugin,
 
 	if (hr != hrSuccess)
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ProcessDeliveryToSingleRecipient: ProcessDeliveryToServer failed %x", hr);
-
-exit:
 	return hr;
 }
 

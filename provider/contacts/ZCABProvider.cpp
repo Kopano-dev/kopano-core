@@ -34,23 +34,18 @@ ZCABProvider::ZCABProvider(ULONG ulFlags, const char *szClassName) :
 
 HRESULT ZCABProvider::Create(ZCABProvider **lppZCABProvider)
 {
-	HRESULT hr = hrSuccess;
 	ZCABProvider *lpZCABProvider = NULL;
 
 	try {
 		lpZCABProvider = new ZCABProvider(0, "ZCABProvider");
 	} catch (...) {
-		hr = MAPI_E_NOT_ENOUGH_MEMORY;
-		goto exit;
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	}
-
-	hr = lpZCABProvider->QueryInterface(IID_ZCABProvider, (void **)lppZCABProvider);
-
+	HRESULT hr = lpZCABProvider->QueryInterface(IID_ZCABProvider,
+	             reinterpret_cast<void **>(lppZCABProvider));
 	if(hr != hrSuccess)
 		delete lpZCABProvider;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ZCABProvider::QueryInterface(REFIID refiid, void **lppInterface)

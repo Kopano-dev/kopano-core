@@ -748,7 +748,7 @@ ECRESULT ECGetContentChangesHelper::ProcessRows(const std::vector<DB_ROW> &db_ro
 		ASSERT(m_lpSession);
 		er = MatchRestrictions(db_rows, db_lengths, m_lpsRestrict, &matches);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
 
 	ASSERT(m_lpMsgProcessor);
@@ -774,7 +774,7 @@ ECRESULT ECGetContentChangesHelper::ProcessRows(const std::vector<DB_ROW> &db_ro
 			er = m_lpMsgProcessor->ProcessRejected(lpDBRow, lpDBLen, &ulChangeType);
 		}
 		if (er != erSuccess)
-			goto exit;
+			return er;
 
 		// If ulChangeType equals 0 we can skip this message
 		if (ulChangeType == 0)
@@ -795,8 +795,7 @@ ECRESULT ECGetContentChangesHelper::ProcessRows(const std::vector<DB_ROW> &db_ro
 		m_lpChanges->__ptr[m_ulChangeCnt].ulFlags = ulFlags;
 		++m_ulChangeCnt;
 	}
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECGetContentChangesHelper::ProcessResidualMessages()

@@ -506,13 +506,13 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 	er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess) {
 		ec_log_err("Unix plugin: Unable to cleanup old entries");
-		goto exit;
+		return objectlist;
 	}
 
 	// check if we have obsolute objects
 	ulRows = m_lpDatabase->GetNumRows(lpResult);
 	if (!ulRows)
-		goto exit;
+		return objectlist;
 
 	// clear our stringlist containing the valid entries and fill it with the deleted item ids
 	objectstrings.clear();
@@ -535,7 +535,7 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 	er = m_lpDatabase->DoDelete(strQuery, &ulRows);
 	if (er != erSuccess) {
 		ec_log_err("Unix plugin: Unable to cleanup old entries in object table");
-		goto exit;
+		return objectlist;
 	} else if (ulRows > 0) {
 		ec_log_info("Unix plugin: Cleaned up %d old entries from object table", ulRows);
 	}
@@ -559,7 +559,7 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 	er = m_lpDatabase->DoDelete(strQuery, &ulRows);
 	if (er != erSuccess) {
 		ec_log_err("Unix plugin: Unable to cleanup old entries in objectproperty table");
-		goto exit;
+		return objectlist;
 	} else if (ulRows > 0) {
 		ec_log_info("Unix plugin: Cleaned up %d old entries from objectproperty table", ulRows);
 	}
@@ -571,12 +571,10 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 	er = m_lpDatabase->DoDelete(strQuery, &ulRows);
 	if (er != erSuccess) {
 		ec_log_err("Unix plugin: Unable to cleanup old entries in objectrelation table");
-		goto exit;
+		return objectlist;
 	} else if (ulRows > 0) {
 		ec_log_info("Unix plugin: Cleaned-up %d old entries from objectrelation table", ulRows);
 	}
-
-exit:
 	return objectlist;
 }
 

@@ -494,16 +494,11 @@ ECDispatcher::~ECDispatcher()
 
 ECRESULT ECDispatcher::GetThreadCount(unsigned int *lpulThreads, unsigned int *lpulIdleThreads)
 {
-    ECRESULT er = erSuccess;
-    
-    er = m_lpThreadManager->GetThreadCount(lpulThreads);
-    if(er != erSuccess)
-        goto exit;
-        
-    *lpulIdleThreads = m_ulIdle;
-    
-exit:
-    return er;
+	ECRESULT er = m_lpThreadManager->GetThreadCount(lpulThreads);
+	if (er != erSuccess)
+		return er;
+	*lpulIdleThreads = m_ulIdle;
+	return erSuccess;
 }
 
 // Get the age (in seconds) of the next-in-line item in the queue, or 0 if the queue is empty
@@ -669,15 +664,12 @@ ECRESULT ECDispatcher::NotifyDone(struct soap *soap)
 // Set the nominal thread count
 ECRESULT ECDispatcher::SetThreadCount(unsigned int ulThreads)
 {
-    ECRESULT er = erSuccess;
-
 	// if we receive a signal before the MainLoop() has started, we don't have thread manager yet
 	if (m_lpThreadManager == NULL)
-		goto exit;
-    
-    er = m_lpThreadManager->SetThreadCount(ulThreads);
-    if(er != erSuccess)
-        goto exit;
+		return erSuccess;
+	ECRESULT er = m_lpThreadManager->SetThreadCount(ulThreads);
+	if (er != erSuccess)
+		return er;
         
     // Since the threads may be blocking while waiting for the next queue item, broadcast
     // a wakeup for all threads so that they re-check their idle state (and exit if the thread count
@@ -685,9 +677,7 @@ ECRESULT ECDispatcher::SetThreadCount(unsigned int ulThreads)
     pthread_mutex_lock(&m_mutexItems);
     pthread_cond_broadcast(&m_condItems);
     pthread_mutex_unlock(&m_mutexItems);
-        
-exit:
-    return er;
+	return erSuccess;
 }
 
 ECRESULT ECDispatcher::DoHUP()

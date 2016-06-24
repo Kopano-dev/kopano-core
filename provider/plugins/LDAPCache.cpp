@@ -167,7 +167,7 @@ objectid_t LDAPCache::getParentForDN(const std::unique_ptr<dn_cache_t> &lpCache,
 	std::string parent_dn;
 
 	if (lpCache->empty())
-		goto exit;
+		return entry; /* empty */
 
 	// @todo make sure we find the largest DN match
 	for (const auto &i : *lpCache)
@@ -179,7 +179,6 @@ objectid_t LDAPCache::getParentForDN(const std::unique_ptr<dn_cache_t> &lpCache,
 			entry = i.first;
 		}
 
-exit:
 	/* Either empty, or the correct result */
 	return entry;
 }

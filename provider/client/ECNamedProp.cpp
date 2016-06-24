@@ -337,14 +337,11 @@ HRESULT ECNamedProp::ResolveReverseCache(ULONG ulId, LPGUID lpGuid, ULONG ulFlag
 
 HRESULT ECNamedProp::ResolveReverseLocal(ULONG ulId, LPGUID lpGuid, ULONG ulFlags, void *lpBase, MAPINAMEID **lppName)
 {
-	HRESULT		hr = hrSuccess;
 	MAPINAMEID*	lpName = NULL; 
 
 	// Local mapping is only for MNID_ID
-	if(ulFlags & MAPI_NO_IDS) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+	if (ulFlags & MAPI_NO_IDS)
+		return MAPI_E_NOT_FOUND;
 
 	// Loop through the local names to see if we can reverse-map the id
 	for (size_t i = 0; i < ARRAY_SIZE(sLocalNames); ++i) {
@@ -360,13 +357,10 @@ HRESULT ECNamedProp::ResolveReverseLocal(ULONG ulId, LPGUID lpGuid, ULONG ulFlag
 			break;
 		}
 	}
-
-	if(lpName)
-		*lppName = lpName;
-	else
-		hr = MAPI_E_NOT_FOUND;
-exit:
-	return hr;
+	if (lpName == NULL)
+		return MAPI_E_NOT_FOUND;
+	*lppName = lpName;
+	return hrSuccess;
 }
 
 // Update the cache with the given data

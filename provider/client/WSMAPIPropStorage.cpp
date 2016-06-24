@@ -173,8 +173,7 @@ HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(MAPIOBJECT *lpsMapiObject, s
 	
 	if (lpConverter == NULL) {
 		convert_context converter;
-		hr = HrMapiObjectToSoapObject(lpsMapiObject, lpSaveObj, &converter);
-		goto exit;
+		return HrMapiObjectToSoapObject(lpsMapiObject, lpSaveObj, &converter);
 	}
 
 	if (lpsMapiObject->lpInstanceID) {
@@ -267,8 +266,6 @@ HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(MAPIOBJECT *lpsMapiObject, s
 	lpSaveObj->ulClientId = lpsMapiObject->ulUniqueId;
 	lpSaveObj->ulServerId = lpsMapiObject->ulObjId;
 	lpSaveObj->ulObjType = lpsMapiObject->ulObjType;
-
-exit:
 	return hr;
 } 
 

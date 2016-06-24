@@ -423,20 +423,17 @@ ECRESULT ECSoapServerConnection::NotifyDone(struct soap *soap)
 
 ECRESULT ECSoapServerConnection::GetStats(unsigned int *lpulQueueLength, double *lpdblAge,unsigned int *lpulThreadCount, unsigned int *lpulIdleThreads)
 {
-    ECRESULT er = erSuccess;
-    
-    er = m_lpDispatcher->GetQueueLength(lpulQueueLength);
+	ECRESULT er = m_lpDispatcher->GetQueueLength(lpulQueueLength);
     if(er != erSuccess)
-        goto exit;
+		return er;
         
     er = m_lpDispatcher->GetFrontItemAge(lpdblAge);
     if(er != erSuccess)
-        goto exit;
+		return er;
         
     er = m_lpDispatcher->GetThreadCount(lpulThreadCount, lpulIdleThreads);
     if(er != erSuccess)
-        goto exit;
+		return er;
 
-exit:    
-    return er;
+	return erSuccess;
 }

@@ -58,21 +58,15 @@ void ArchiveResult::Undo(IMAPISession *lpSession) {
 
 HRESULT Archive::Create(IMAPISession *lpSession, ECLogger *lpLogger, ArchivePtr *lpptrArchive)
 {
-	HRESULT hr = hrSuccess;
-
-	if (lpSession == NULL || lpLogger == NULL || lpptrArchive == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpSession == NULL || lpLogger == NULL || lpptrArchive == NULL)
+		return MAPI_E_INVALID_PARAMETER;
 
 	try {
 		lpptrArchive->reset(new Archive(lpSession, lpLogger));
 	} catch (const std::bad_alloc &) {
-		hr = MAPI_E_NOT_ENOUGH_MEMORY;
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 Archive::Archive(IMAPISession *lpSession, ECLogger *lpLogger)

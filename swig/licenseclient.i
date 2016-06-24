@@ -7,19 +7,15 @@
 	#include "licenseclient_conv.h"
 
 	ECRESULT ServiceTypeStringToServiceType(const char *lpszServiceType, int &serviceType) {
-		ECRESULT er = erSuccess;
-		if (lpszServiceType == NULL) {
-			er = KCERR_INVALID_TYPE;
-			goto exit;
-		}
+		if (lpszServiceType == NULL)
+			return KCERR_INVALID_TYPE;
 		if (strcmp(lpszServiceType, "ZCP") == 0)
 			serviceType = 0;	/*SERVICE_TYPE_ZCP*/
 		else if (strcmp(lpszServiceType, "ARCHIVER") == 0)
 			serviceType = 1;	/*SERVICE_TYPE_ARCHIVE*/
 		else
-			er = KCERR_INVALID_TYPE;
-	exit:
-		return er;
+			return KCERR_INVALID_TYPE;
+		return erSuccess;
 	}
 %}
 

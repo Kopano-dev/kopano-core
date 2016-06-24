@@ -1821,14 +1821,12 @@ static HRESULT HrCheckAllowedEntryIDArray(const char *szFunc,
 		if (hr == hrSuccess && ulCmpRes == TRUE) {
 			*lpulObjType = ulObjType;
 			*lpbAllowed = true;
-			goto exit;
+			// always return success, since lpbAllowed is always written
+			return hrSuccess;
 		}
 	}
 
 	*lpbAllowed = false;
-
-exit:
-	// always return success, since lpbAllowed is always written
 	return hrSuccess;
 }
 
