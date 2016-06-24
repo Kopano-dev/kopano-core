@@ -98,12 +98,10 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 	StoreHelperPtr ptrStoreHelper;
 	SObjectEntry refMsgEntry;
 	ObjectEntryList lstArchives;
-	ObjectEntryList::const_iterator iArchive;
 	ArchiverSessionPtr ptrSession;
 	InstanceIdMapperPtr ptrMapper;
 	HelperPtr ptrHelper;
 	list<pair<MessagePtr,PostSaveActionPtr> > lstArchivedMessages;
-	std::list<std::pair<MessagePtr, PostSaveActionPtr> >::const_iterator iArchivedMessage;
 	ArchiveResult result;
 	ObjectEntryList lstReferences;
 	MAPIPropHelperPtr ptrMsgHelper;
@@ -173,11 +171,11 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 
 	// First create all (mostly one) the archive messages without saving them.
 	ptrHelper.reset(new Copier::Helper(ptrSession, m_lpLogger, ptrMapper, NULL, ptrFolder));
-	for (iArchive = lstArchives.begin(); iArchive != lstArchives.end(); ++iArchive) {
+	for (const auto &arc : lstArchives) {
 		MessagePtr ptrArchivedMsg;
 		PostSaveActionPtr ptrPSAction;
 
-		hr = ptrHelper->CreateArchivedMessage(lpMessage, *iArchive, refMsgEntry, &ptrArchivedMsg, &ptrPSAction);
+		hr = ptrHelper->CreateArchivedMessage(lpMessage, arc, refMsgEntry, &ptrArchivedMsg, &ptrPSAction);
 		if (hr != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Archive::HrArchiveMessageForDelivery(): CreateArchivedMessage failed %x", hr);
 			goto exit;
@@ -187,12 +185,12 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 	}
 
 	// Now save the messages one by one. On failure all saved messages need to be deleted.
-	for (iArchivedMessage = lstArchivedMessages.begin(); iArchivedMessage != lstArchivedMessages.end(); ++iArchivedMessage) {
+	for (const auto &msg : lstArchivedMessages) {
 		ULONG cArchivedMsgProps;
 		SPropArrayPtr ptrArchivedMsgProps;
 		SObjectEntry refArchiveEntry;
 
-		hr = iArchivedMessage->first->GetProps((LPSPropTagArray)&sptaMessageProps, 0, &cArchivedMsgProps, &ptrArchivedMsgProps);
+		hr = msg.first->GetProps(reinterpret_cast<SPropTagArray *>(&sptaMessageProps), 0, &cArchivedMsgProps, &ptrArchivedMsgProps);
 		if (hr != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Archive::HrArchiveMessageForDelivery(): ArchivedMessage GetProps failed %x", hr);
 			goto exit;
@@ -202,19 +200,19 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 		refArchiveEntry.sStoreEntryId.assign(ptrArchivedMsgProps[IDX_STORE_ENTRYID].Value.bin);
 		lstReferences.push_back(refArchiveEntry);
 
-		hr = iArchivedMessage->first->SaveChanges(KEEP_OPEN_READWRITE);
+		hr = msg.first->SaveChanges(KEEP_OPEN_READWRITE);
 		if (hr != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Archive::HrArchiveMessageForDelivery(): ArchivedMessage SaveChanges failed %x", hr);
 			goto exit;
 		}
 
-		if (iArchivedMessage->second) {
-			HRESULT hrTmp = iArchivedMessage->second->Execute();
+		if (msg.second) {
+			HRESULT hrTmp = msg.second->Execute();
 			if (hrTmp != hrSuccess)
 				m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed to execute post save action. hr=0x%08x", hrTmp);
 		}
 
-		result.AddMessage(iArchivedMessage->first);
+		result.AddMessage(msg.first);
 	}
 
 	// Now add the references to the original message.
@@ -245,12 +243,10 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *
 	MsgStorePtr ptrStore;
 	StoreHelperPtr ptrStoreHelper;
 	ObjectEntryList lstArchives;
-	ObjectEntryList::const_iterator iArchive;
 	ArchiverSessionPtr ptrSession;
 	InstanceIdMapperPtr ptrMapper;
 	HelperPtr ptrHelper;
 	list<pair<MessagePtr,PostSaveActionPtr> > lstArchivedMessages;
-	std::list<std::pair<MessagePtr, PostSaveActionPtr> >::const_iterator iArchivedMessage;
 	ArchiveResult result;
 
 	SizedSPropTagArray(2, sptaMessageProps) = {1, {PR_STORE_ENTRYID}};
@@ -309,13 +305,13 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *
 
 	// First create all (mostly one) the archive messages without saving them.
 	ptrHelper.reset(new Copier::Helper(ptrSession, m_lpLogger, ptrMapper, NULL, MAPIFolderPtr()));	// We pass an empty MAPIFolderPtr here!
-	for (iArchive = lstArchives.begin(); iArchive != lstArchives.end(); ++iArchive) {
+	for (const auto &arc : lstArchives) {
 		ArchiveHelperPtr ptrArchiveHelper;
 		MAPIFolderPtr ptrArchiveFolder;
 		MessagePtr ptrArchivedMsg;
 		PostSaveActionPtr ptrPSAction;
 
-		hr = ArchiveHelper::Create(ptrSession, *iArchive, m_lpLogger, &ptrArchiveHelper);
+		hr = ArchiveHelper::Create(ptrSession, arc, m_lpLogger, &ptrArchiveHelper);
 		if (hr != hrSuccess) {
 			SetErrorMessage(hr, _("Unable to open archive."));
 			goto exit;
@@ -346,21 +342,21 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *
 	}
 
 	// Now save the messages one by one. On failure all saved messages need to be deleted.
-	for (iArchivedMessage = lstArchivedMessages.begin(); iArchivedMessage != lstArchivedMessages.end(); ++iArchivedMessage) {
-		hr = iArchivedMessage->first->SaveChanges(KEEP_OPEN_READONLY);
+	for (const auto &msg : lstArchivedMessages) {
+		hr = msg.first->SaveChanges(KEEP_OPEN_READONLY);
 		if (hr != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to save message in archive. hr=0x%08x", hr);
 			SetErrorMessage(hr, _("Unable to save archived message."));
 			goto exit;
 		}
 
-		if (iArchivedMessage->second) {
-			HRESULT hrTmp = iArchivedMessage->second->Execute();
+		if (msg.second) {
+			HRESULT hrTmp = msg.second->Execute();
 			if (hrTmp != hrSuccess)
 				m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed to execute post save action. hr=0x%08x", hrTmp);
 		}
 
-		result.AddMessage(iArchivedMessage->first);
+		result.AddMessage(msg.first);
 	}
 
 	if (lpResult)

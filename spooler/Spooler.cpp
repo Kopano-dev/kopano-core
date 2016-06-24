@@ -396,7 +396,6 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
     IECSpooler *lpSpooler)
 {
 	HRESULT hr = hrSuccess;
-	std::map<pid_t, int>::const_iterator i;
 	SendData sSendData;
 	bool bErrorMail;
 	map<pid_t, int> finished; // exit status of finished processes
@@ -425,11 +424,11 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 	g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Cleaning %d messages from queue", (int)finished.size());
 
 	// process finished entries
-	for (i = finished.begin(); i != finished.end(); ++i) {
-		sSendData = mapSendData[i->first];
+	for (const auto &i : finished) {
+		sSendData = mapSendData[i.first];
 
 		/* Find exit status, and decide to remove mail from queue or not */
-		status = i->second;
+		status = i.second;
 
 		bErrorMail = false;
 
@@ -455,20 +454,20 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 		}
 		else if(WIFSIGNALED(status)) {        /* Child was killed by a signal */
 			bErrorMail = true;
-			g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Spooler process %d was killed by signal %d", i->first, WTERMSIG(status));
+			g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Spooler process %d was killed by signal %d", i.first, WTERMSIG(status));
 			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Message for user %ls will be removed from queue", sSendData.strUsername.c_str());
 			sc -> countInc("Spooler", "sig_killed");
 		}
 		else {								/* Something strange happened */
 			bErrorMail = true;
-			g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Spooler process %d terminated abnormally", i->first);
+			g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Spooler process %d terminated abnormally", i.first);
 			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Message for user %ls will be removed from queue", sSendData.strUsername.c_str());
 			sc -> countInc("Spooler", "abnormal_terminate");
 		}
 #else
 		if (status) {
 			bErrorMail = true;
-			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Spooler process %d exited with status %d", i->first, status);
+			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Spooler process %d exited with status %d", i.first, status);
 		}
 #endif
 
@@ -514,7 +513,7 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 
 		MAPIFreeBuffer(sSendData.lpStoreEntryId);
 		MAPIFreeBuffer(sSendData.lpMessageEntryId);
-		mapSendData.erase(i->first);
+		mapSendData.erase(i.first);
 	}
 
 	if (lpAddrBook)
