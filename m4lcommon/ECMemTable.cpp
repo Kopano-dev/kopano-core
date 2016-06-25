@@ -85,22 +85,17 @@ ECMemTable::~ECMemTable()
 
 HRESULT ECMemTable::Create(LPSPropTagArray lpsColumns, ULONG ulRowPropTag, ECMemTable **lppECMemTable)
 {
-	HRESULT hr = hrSuccess;
 	ECMemTable *lpMemTable = NULL;
 	
 	if(PROP_TYPE(ulRowPropTag) != PT_I8 && PROP_TYPE(ulRowPropTag) != PT_LONG)
 	{
 		ASSERT(FALSE);
-		hr = MAPI_E_INVALID_TYPE;
-		goto exit;
+		return MAPI_E_INVALID_TYPE;
 	}
 
 	lpMemTable = new ECMemTable(lpsColumns, ulRowPropTag);
-
-	hr = lpMemTable->QueryInterface(IID_ECMemTable, (void **)lppECMemTable);
-
-exit:
-	return hr;
+	return lpMemTable->QueryInterface(IID_ECMemTable,
+	       reinterpret_cast<void **>(lppECMemTable));
 }
 
 HRESULT ECMemTable::QueryInterface(REFIID refiid, void **lppInterface)
@@ -605,15 +600,11 @@ HRESULT ECMemTableView::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR
 
 HRESULT ECMemTableView::Advise(ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG * lpulConnection)
 {
-	HRESULT hr = hrSuccess;
 	ECMEMADVISE *lpMemAdvise = NULL;
 	ULONG ulConnection = m_ulConnection++;
 
-	if(lpAdviseSink == NULL || lpulConnection == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (lpAdviseSink == NULL || lpulConnection == NULL)
+		return MAPI_E_INVALID_PARAMETER;
 	lpAdviseSink->AddRef();
 
 	lpMemAdvise = new ECMEMADVISE;
@@ -623,8 +614,7 @@ HRESULT ECMemTableView::Advise(ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink,
 	m_mapAdvise.insert( ECMapMemAdvise::value_type( ulConnection, lpMemAdvise) );
 
 	*lpulConnection = ulConnection;
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECMemTableView::Unadvise(ULONG ulConnection)
@@ -755,17 +745,15 @@ HRESULT ECMemTableView::SetColumns(LPSPropTagArray lpPropTagArray, ULONG ulFlags
 
 HRESULT ECMemTableView::QueryColumns(ULONG ulFlags, LPSPropTagArray *lppPropTagArray)
 {
-	HRESULT hr = hrSuccess;
+	HRESULT hr;
 	LPSPropTagArray lpsPropTagArray = NULL;
 	std::list<ULONG> lstTags;
 	std::list<ULONG>::const_iterator iterTags;
 	unsigned int i = 0;
 	std::map<unsigned int, ECTableEntry>::const_iterator iterRows;
 
-	if ((ulFlags & ~TBL_ALL_COLUMNS) != 0) {
-		hr = MAPI_E_UNKNOWN_FLAGS;
-		goto exit;
-	}
+	if ((ulFlags & ~TBL_ALL_COLUMNS) != 0)
+		return MAPI_E_UNKNOWN_FLAGS;
 
 	if(ulFlags & TBL_ALL_COLUMNS) {
 		FixStringType fix(m_ulFlags);
@@ -795,8 +783,7 @@ HRESULT ECMemTableView::QueryColumns(ULONG ulFlags, LPSPropTagArray *lppPropTagA
 		hr = MAPIAllocateBuffer(CbNewSPropTagArray(lstTags.size()), (void **)&lpsPropTagArray);
 
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		lpsPropTagArray->cValues = lstTags.size();
 		for (i = 0, iterTags = lstTags.begin(); iterTags != lstTags.end(); ++iterTags)
 			lpsPropTagArray->aulPropTag[i++] = *iterTags;
@@ -805,118 +792,84 @@ HRESULT ECMemTableView::QueryColumns(ULONG ulFlags, LPSPropTagArray *lppPropTagA
 		hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpsPropTags->cValues),(void **)&lpsPropTagArray);
 
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		lpsPropTagArray->cValues = this->lpsPropTags->cValues;
 		memcpy(&lpsPropTagArray->aulPropTag, &this->lpsPropTags->aulPropTag, sizeof(ULONG) * this->lpsPropTags->cValues);
 	} else {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
+		return MAPI_E_NOT_FOUND;
 	}
 
 	*lppPropTagArray = lpsPropTagArray;
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECMemTableView::GetRowCount(ULONG ulFlags, ULONG *lpulCount)
 {
-	HRESULT hr = hrSuccess;
-	ECRESULT er = erSuccess;
 	unsigned int ulCount;
 	unsigned int ulCurrentRow;
 
-	if(lpulCount == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	er = this->lpKeyTable->GetRowCount(&ulCount, &ulCurrentRow);
-	hr = kcerr_to_mapierr(er);
-
+	if(lpulCount == NULL)
+		return MAPI_E_INVALID_PARAMETER;
+	ECRESULT er = this->lpKeyTable->GetRowCount(&ulCount, &ulCurrentRow);
+	HRESULT hr = kcerr_to_mapierr(er);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	*lpulCount = ulCount;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECMemTableView::SeekRow(BOOKMARK bkOrigin, LONG lRowCount, LONG *lplRowsSought)
 {
-	HRESULT hr = hrSuccess;
-	ECRESULT er = erSuccess;
 	int lRowsSought;
 
-	er = this->lpKeyTable->SeekRow((unsigned int)bkOrigin, lRowCount, &lRowsSought);
-	hr = kcerr_to_mapierr(er);
-
+	ECRESULT er = this->lpKeyTable->SeekRow(static_cast<unsigned int>(bkOrigin),
+	              lRowCount, &lRowsSought);
+	HRESULT hr = kcerr_to_mapierr(er);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	if(lplRowsSought)
 		*lplRowsSought = lRowsSought;
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECMemTableView::SeekRowApprox(ULONG ulNumerator, ULONG ulDenominator)
 {
-	HRESULT hr = hrSuccess;
-	ECRESULT er = erSuccess;
 	unsigned int ulRows = 0;
 	unsigned int ulCurrentRow = 0;
 
-	er = lpKeyTable->GetRowCount(&ulRows, &ulCurrentRow);
-	hr = kcerr_to_mapierr(er);
-
+	ECRESULT er = lpKeyTable->GetRowCount(&ulRows, &ulCurrentRow);
+	HRESULT hr = kcerr_to_mapierr(er);
 	if(hr != hrSuccess)
-		goto exit;
-
-	hr = SeekRow(BOOKMARK_BEGINNING, (ULONG)((double)ulRows * ((double)ulNumerator / ulDenominator)),NULL);
-		
-exit:
-	return hr;
+		return hr;
+	return SeekRow(BOOKMARK_BEGINNING, static_cast<ULONG>(static_cast<double>(ulRows) * (static_cast<double>(ulNumerator) / ulDenominator)), NULL);
 }
 
 HRESULT ECMemTableView::QueryPosition(ULONG *lpulRow, ULONG *lpulNumerator, ULONG *lpulDenominator)
 {
-	HRESULT hr = hrSuccess;
-	ECRESULT er = erSuccess;
 	unsigned int ulRows = 0;
 	unsigned int ulCurrentRow = 0;
 
-	if(lpulRow == NULL || lpulNumerator == NULL || lpulDenominator == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	er = lpKeyTable->GetRowCount(&ulRows, &ulCurrentRow);
-	hr = kcerr_to_mapierr(er);
-
+	if (lpulRow == NULL || lpulNumerator == NULL || lpulDenominator == NULL)
+		return MAPI_E_INVALID_PARAMETER;
+	ECRESULT er = lpKeyTable->GetRowCount(&ulRows, &ulCurrentRow);
+	HRESULT hr = kcerr_to_mapierr(er);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	*lpulRow = ulCurrentRow;
 	*lpulNumerator = ulCurrentRow;
 	*lpulDenominator = ulRows;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECMemTableView::FindRow(LPSRestriction lpRestriction, BOOKMARK bkOrigin, ULONG ulFlags)
 {
-	HRESULT hr = hrSuccess;
-	ECRESULT er = erSuccess;
+	HRESULT hr;
+	ECRESULT er;
 	ECObjectTableList sRowList;
 	sObjectTableKey sRowItem;
 
-	if(lpRestriction == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpRestriction == NULL)
+		return MAPI_E_INVALID_PARAMETER;
 
 	if(	lpRestriction->rt == RES_PROPERTY && 
 		lpRestriction->res.resProperty.lpProp->ulPropTag == this->lpMemTable->ulRowPropTag &&
@@ -924,10 +877,7 @@ HRESULT ECMemTableView::FindRow(LPSRestriction lpRestriction, BOOKMARK bkOrigin,
 	{
 		sRowItem.ulObjId = lpRestriction->res.resContent.lpProp->Value.ul;
 		sRowItem.ulOrderId = 0; // FIXME:mvprops ?
-
-		er = this->lpKeyTable->SeekId(&sRowItem);
-		hr = kcerr_to_mapierr(er);
-		goto exit;
+		return kcerr_to_mapierr(this->lpKeyTable->SeekId(&sRowItem));
 	}
 
 	if(bkOrigin == BOOKMARK_END && ulFlags & DIR_BACKWARD) {
@@ -938,19 +888,16 @@ HRESULT ECMemTableView::FindRow(LPSRestriction lpRestriction, BOOKMARK bkOrigin,
 	}
 	hr = kcerr_to_mapierr(er);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Loop through the rows until one matches.
 	while(1) {
 		er = this->lpKeyTable->QueryRows(1, &sRowList, ulFlags & DIR_BACKWARD, 0);
 		hr = kcerr_to_mapierr(er);
 		if(hr != hrSuccess)
-			break;
-		if (sRowList.empty()) {
-			hr = MAPI_E_NOT_FOUND;
-			break;
-		}
-
+			return hr;
+		if (sRowList.empty())
+			return MAPI_E_NOT_FOUND;
 		if(TestRestriction(lpRestriction, 
 							this->lpMemTable->mapRows[sRowList.begin()->ulObjId].cValues,
 							this->lpMemTable->mapRows[sRowList.begin()->ulObjId].lpsPropVal,
@@ -965,8 +912,6 @@ HRESULT ECMemTableView::FindRow(LPSRestriction lpRestriction, BOOKMARK bkOrigin,
 		}
 		sRowList.clear();
 	}
-
-exit:
 	return hr;
 }
 
@@ -983,59 +928,38 @@ HRESULT ECMemTableView::Restrict(LPSRestriction lpRestriction, ULONG ulFlags)
 		this->lpsRestriction = NULL;
 
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	hr = this->UpdateSortOrRestrict();
 
 	if (hr == hrSuccess)
 		Notify(TABLE_RESTRICT_DONE, NULL, NULL);
-
-exit:
 	return hr;
 }
 
 HRESULT ECMemTableView::CreateBookmark(BOOKMARK* lpbkPosition)
 {
-	HRESULT hr = hrSuccess;
-	ECRESULT er = erSuccess;
 	unsigned int bkPosition = 0;
 
-	if (lpbkPosition == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	er = this->lpKeyTable->CreateBookmark(&bkPosition);
-
-	hr = kcerr_to_mapierr(er);
-
+	if (lpbkPosition == NULL)
+		return MAPI_E_INVALID_PARAMETER;
+	ECRESULT er = this->lpKeyTable->CreateBookmark(&bkPosition);
+	HRESULT hr = kcerr_to_mapierr(er);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	*lpbkPosition = bkPosition;
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECMemTableView::FreeBookmark(BOOKMARK bkPosition)
 {
-	HRESULT hr = hrSuccess;
-	ECRESULT er = erSuccess;
-
-	er = this->lpKeyTable->FreeBookmark((unsigned int)bkPosition);
-
-	hr = kcerr_to_mapierr(er);
-
-	if(hr != hrSuccess)
-		goto exit;
-exit:
-	return hr;
+	ECRESULT er = this->lpKeyTable->FreeBookmark(static_cast<unsigned int>(bkPosition));
+	return kcerr_to_mapierr(er);
 }
 
 // This is the client version of ECGenericObjectTable::GetBinarySortKey()
 HRESULT ECMemTableView::GetBinarySortKey(LPSPropValue lpsPropVal, unsigned int *lpSortLen, unsigned char *lpFlags, unsigned char **lppSortData)
 {
-	HRESULT			hr = hrSuccess;
 	unsigned char	*lpSortData = NULL;
 	unsigned int	ulSortLen = 0;
 	unsigned char	ulFlags = 0;
@@ -1108,19 +1032,12 @@ HRESULT ECMemTableView::GetBinarySortKey(LPSPropValue lpsPropVal, unsigned int *
 		lpSortData = NULL;
 		break;
 	default:
-		hr = MAPI_E_INVALID_TYPE;
-		break;
+		return MAPI_E_INVALID_TYPE;
 	}
-
-	if(hr != hrSuccess)
-		goto exit;
-
 	*lpSortLen = ulSortLen;
 	*lppSortData = lpSortData;
 	*lpFlags = ulFlags;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECMemTableView::SortTable(LPSSortOrderSet lpSortCriteria, ULONG ulFlags)
@@ -1238,18 +1155,16 @@ exit:
 
 HRESULT ECMemTableView::QuerySortOrder(LPSSortOrderSet *lppSortCriteria)
 {
-	HRESULT hr = hrSuccess;
 	LPSSortOrderSet lpSortCriteria = NULL;
 
-	hr = MAPIAllocateBuffer(CbSSortOrderSet(lpsSortOrderSet), (void **) &lpSortCriteria);
+	HRESULT hr = MAPIAllocateBuffer(CbSSortOrderSet(lpsSortOrderSet),
+	             reinterpret_cast<void **>(&lpSortCriteria));
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	memcpy(lpSortCriteria, lpsSortOrderSet, CbSSortOrderSet(lpsSortOrderSet));
-
 	*lppSortCriteria = lpSortCriteria;
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECMemTableView::Abort()
@@ -1285,22 +1200,13 @@ HRESULT ECMemTableView::SetCollapseState(ULONG ulFlags, ULONG cbCollapseState, L
 
 HRESULT ECMemTableView::QueryRows(LONG lRowCount, ULONG ulFlags, LPSRowSet *lppRows)
 {
-	HRESULT hr = hrSuccess;
-	HRESULT er = hrSuccess;
-	
 	ECObjectTableList	sRowList;
 
-	er = lpKeyTable->QueryRows(lRowCount, &sRowList, false, ulFlags);
-	hr = kcerr_to_mapierr(er);
+	HRESULT er = lpKeyTable->QueryRows(lRowCount, &sRowList, false, ulFlags);
+	HRESULT hr = kcerr_to_mapierr(er);
 	if(hr != hrSuccess)
-		goto exit;
-
-	hr = QueryRowData(&sRowList, lppRows);
-	if (hr != hrSuccess)
-		goto exit;
-exit:
-
-	return hr;
+		return hr;
+	return QueryRowData(&sRowList, lppRows);
 }
 
 HRESULT ECMemTableView::QueryRowData(ECObjectTableList *lpsRowList, LPSRowSet *lppRows)

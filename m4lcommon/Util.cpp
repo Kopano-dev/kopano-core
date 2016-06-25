@@ -95,15 +95,15 @@ typedef std::set<ULONG,PropTagCompare> PropTagSet;
 HRESULT Util::HrAddToPropertyArray(const SPropValue *lpSrc, ULONG cValues,
     const SPropValue *lpToAdd, SPropValue **lppDest, ULONG *cDestValues)
 {
-	HRESULT hr = hrSuccess;
 	LPSPropValue lpDest = NULL;
 	LPSPropValue lpFind = NULL;
 	unsigned int i = 0;
 	unsigned int n = 0;
 
-	hr = MAPIAllocateBuffer(sizeof(SPropValue) * (cValues + 1), (void **)&lpDest);
+	HRESULT hr = MAPIAllocateBuffer(sizeof(SPropValue) * (cValues + 1),
+	             reinterpret_cast<void **>(&lpDest));
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	for (i = 0; i < cValues; ++i) {
 		hr = HrCopyProperty(&lpDest[n], &lpSrc[i], lpDest);
@@ -124,13 +124,10 @@ HRESULT Util::HrAddToPropertyArray(const SPropValue *lpSrc, ULONG cValues,
 	}
 
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	*lppDest = lpDest;
 	*cDestValues = n;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -222,14 +219,14 @@ exit:
 HRESULT Util::HrCopyPropertyArrayByRef(const SPropValue *lpSrc, ULONG cValues,
     LPSPropValue *lppDest, ULONG *cDestValues, bool bExcludeErrors)
 {
-    HRESULT hr = hrSuccess;
     LPSPropValue lpDest = NULL;
     unsigned int i = 0;
     unsigned int n = 0;
     
-    hr = MAPIAllocateBuffer(sizeof(SPropValue) * cValues, (void **)&lpDest);
+	HRESULT hr = MAPIAllocateBuffer(sizeof(SPropValue) * cValues,
+	             reinterpret_cast<void **>(&lpDest));
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
     
     for (i = 0; i < cValues; ++i) {
         if(!bExcludeErrors || PROP_TYPE(lpSrc[i].ulPropTag) != PT_ERROR) {
@@ -244,9 +241,7 @@ HRESULT Util::HrCopyPropertyArrayByRef(const SPropValue *lpSrc, ULONG cValues,
     
     *lppDest = lpDest;
 	*cDestValues = n;
-
-exit:    
-    return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -271,7 +266,7 @@ HRESULT Util::HrCopyPropertyArray(const SPropValue *lpSrc, ULONG cValues,
 
 	hr = MAPIAllocateBuffer(sizeof(SPropValue) * cValues, (void **)&lpDest);
 	if (hr != hrSuccess)
-		goto exit;
+		goto exitfixme;
 
 	for (i = 0; i < cValues; ++i) {
 	    if(!bExcludeErrors || PROP_TYPE(lpSrc[i].ulPropTag) != PT_ERROR) {
@@ -287,7 +282,7 @@ HRESULT Util::HrCopyPropertyArray(const SPropValue *lpSrc, ULONG cValues,
 	*lppDest = lpDest;
 	*cDestValues = n;
 
-exit:
+ exitfixme:
 	return hr;
 	// FIXME potential incomplete copy possible, should free data (?)
 }
@@ -305,18 +300,14 @@ exit:
 HRESULT Util::HrCopyPropertyArray(const SPropValue *lpSrc, ULONG cValues,
     LPSPropValue lpDest, void *lpBase)
 {
-	HRESULT hr = hrSuccess;
 	unsigned int i;
 
 	for (i = 0; i < cValues; ++i) {
-		hr = HrCopyProperty(&lpDest[i], &lpSrc[i], lpBase);
-
+		HRESULT hr = HrCopyProperty(&lpDest[i], &lpSrc[i], lpBase);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -333,18 +324,14 @@ exit:
 HRESULT Util::HrCopyPropertyArrayByRef(const SPropValue *lpSrc, ULONG cValues,
     LPSPropValue lpDest)
 {
-	HRESULT hr = hrSuccess;
 	unsigned int i;
 
 	for (i = 0; i < cValues; ++i) {
-		hr = HrCopyPropertyByRef(&lpDest[i], &lpSrc[i]);
-
+		HRESULT hr = HrCopyPropertyByRef(&lpDest[i], &lpSrc[i]);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -410,35 +397,27 @@ HRESULT Util::HrCopyProperty(LPSPropValue lpDest, const SPropValue *lpSrc,
 		lpDest->Value.li = lpSrc->Value.li;
 		break;
 	case PT_UNICODE:
-		if(lpSrc->Value.lpszW == NULL) {
-			hr = MAPI_E_INVALID_PARAMETER;
-			goto exit;
-		}
-
+		if (lpSrc->Value.lpszW == NULL)
+			return MAPI_E_INVALID_PARAMETER;
 		hr = lpfAllocMore(wcslen(lpSrc->Value.lpszW)*sizeof(wchar_t)+sizeof(wchar_t), lpBase, (void**)&lpDest->Value.lpszW);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		wcscpy(lpDest->Value.lpszW, lpSrc->Value.lpszW);
 		break;
 	case PT_STRING8:
-		if(lpSrc->Value.lpszA == NULL) {
-			hr = MAPI_E_INVALID_PARAMETER;
-			goto exit;
-		}
-
+		if (lpSrc->Value.lpszA == NULL)
+			return MAPI_E_INVALID_PARAMETER;
 		hr = lpfAllocMore(strlen(lpSrc->Value.lpszA) + 1, lpBase, (void**)&lpDest->Value.lpszA);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		strcpy(lpDest->Value.lpszA, lpSrc->Value.lpszA);
 		break;
 	case PT_BINARY:
 		if(lpSrc->Value.bin.cb > 0) {
 			hr = lpfAllocMore(lpSrc->Value.bin.cb, lpBase, (void **) &lpDest->Value.bin.lpb);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
-
-		
 		lpDest->Value.bin.cb = lpSrc->Value.bin.cb;
 		
 		if(lpSrc->Value.bin.cb > 0)
@@ -450,32 +429,28 @@ HRESULT Util::HrCopyProperty(LPSPropValue lpDest, const SPropValue *lpSrc,
 	case PT_CLSID:
 		hr = lpfAllocMore(sizeof(GUID), lpBase, (void **)&lpDest->Value.lpguid);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		memcpy(lpDest->Value.lpguid, lpSrc->Value.lpguid, sizeof(GUID));
 		break;
 	case PT_ERROR:
 		lpDest->Value.err = lpSrc->Value.err;
 		break;
 	case PT_SRESTRICTION:
-		if(lpSrc->Value.lpszA == NULL) {
-			hr = MAPI_E_INVALID_PARAMETER;
-			goto exit;
-		}
+		if (lpSrc->Value.lpszA == NULL)
+			return MAPI_E_INVALID_PARAMETER;
 		// NOTE: we place the object pointer in lpszA to make sure it's on the same offset as Value.x on 32bit as 64bit machines
 		hr = lpfAllocMore(sizeof(SRestriction), lpBase, (void **)&lpDest->Value.lpszA);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		hr = Util::HrCopySRestriction((LPSRestriction)lpDest->Value.lpszA, (LPSRestriction)lpSrc->Value.lpszA, lpBase);
 		break;
 	case PT_ACTIONS:
-		if(lpSrc->Value.lpszA == NULL) {
-			hr = MAPI_E_INVALID_PARAMETER;
-			goto exit;
-		}
+		if (lpSrc->Value.lpszA == NULL)
+			return MAPI_E_INVALID_PARAMETER;
 		// NOTE: we place the object pointer in lpszA to make sure it's on the same offset as Value.x on 32bit as 64bit machines
 		hr = lpfAllocMore(sizeof(ACTIONS), lpBase, (void **)&lpDest->Value.lpszA);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		hr = Util::HrCopyActions((ACTIONS *)lpDest->Value.lpszA, (ACTIONS *)lpSrc->Value.lpszA, lpBase);
 		break;
 	case PT_NULL:
@@ -487,21 +462,21 @@ HRESULT Util::HrCopyProperty(LPSPropValue lpDest, const SPropValue *lpSrc,
 	case PT_MV_I2:
 		hr = lpfAllocMore(sizeof(short int) * lpSrc->Value.MVi.cValues, lpBase, (void **)&lpDest->Value.MVi.lpi);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		memcpy(lpDest->Value.MVi.lpi, lpSrc->Value.MVi.lpi, sizeof(short int) * lpSrc->Value.MVi.cValues);
 		lpDest->Value.MVi.cValues = lpSrc->Value.MVi.cValues;
 		break;
 	case PT_MV_LONG:
 		hr = lpfAllocMore(sizeof(LONG) * lpSrc->Value.MVl.cValues, lpBase, (void **)&lpDest->Value.MVl.lpl);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		memcpy(lpDest->Value.MVl.lpl, lpSrc->Value.MVl.lpl, sizeof(LONG) * lpSrc->Value.MVl.cValues);
 		lpDest->Value.MVl.cValues = lpSrc->Value.MVl.cValues;
 		break;
 	case PT_MV_FLOAT:
 		hr = lpfAllocMore(sizeof(float) * lpSrc->Value.MVflt.cValues, lpBase, (void **)&lpDest->Value.MVflt.lpflt);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		memcpy(lpDest->Value.MVflt.lpflt, lpSrc->Value.MVflt.lpflt, sizeof(float) * lpSrc->Value.MVflt.cValues);
 		lpDest->Value.MVflt.cValues = lpSrc->Value.MVflt.cValues;
 		break;
@@ -509,40 +484,40 @@ HRESULT Util::HrCopyProperty(LPSPropValue lpDest, const SPropValue *lpSrc,
 	case PT_MV_APPTIME:
 		hr = lpfAllocMore(sizeof(double) * lpSrc->Value.MVdbl.cValues, lpBase, (void **)&lpDest->Value.MVdbl.lpdbl);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		memcpy(lpDest->Value.MVdbl.lpdbl, lpSrc->Value.MVdbl.lpdbl, sizeof(double) * lpSrc->Value.MVdbl.cValues);
 		lpDest->Value.MVdbl.cValues = lpSrc->Value.MVdbl.cValues;
 		break;
 	case PT_MV_I8:
 		hr = lpfAllocMore(sizeof(LONGLONG) * lpSrc->Value.MVli.cValues, lpBase, (void **)&lpDest->Value.MVli.lpli);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		memcpy(lpDest->Value.MVli.lpli, lpSrc->Value.MVli.lpli, sizeof(LONGLONG) * lpSrc->Value.MVli.cValues);
 		lpDest->Value.MVli.cValues = lpSrc->Value.MVli.cValues;
 		break;
 	case PT_MV_CURRENCY:
 		hr = lpfAllocMore(sizeof(CURRENCY) * lpSrc->Value.MVcur.cValues, lpBase, (void **)&lpDest->Value.MVcur.lpcur);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		memcpy(lpDest->Value.MVcur.lpcur, lpSrc->Value.MVcur.lpcur, sizeof(CURRENCY) * lpSrc->Value.MVcur.cValues);
 		lpDest->Value.MVcur.cValues = lpSrc->Value.MVcur.cValues;
 		break;
 	case PT_MV_SYSTIME:
 		hr = lpfAllocMore(sizeof(FILETIME) * lpSrc->Value.MVft.cValues, lpBase, (void **)&lpDest->Value.MVft.lpft);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		memcpy(lpDest->Value.MVft.lpft, lpSrc->Value.MVft.lpft, sizeof(FILETIME) * lpSrc->Value.MVft.cValues);
 		lpDest->Value.MVft.cValues = lpSrc->Value.MVft.cValues;
 		break;
 	case PT_MV_STRING8:
 		hr = lpfAllocMore(sizeof(LPSTR *) * lpSrc->Value.MVszA.cValues, lpBase, (void **)&lpDest->Value.MVszA.lppszA);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		for (ULONG i = 0; i < lpSrc->Value.MVszA.cValues; ++i) {
 			int datalength = strlen(lpSrc->Value.MVszA.lppszA[i]) + 1;
 			hr = lpfAllocMore(datalength, lpBase, (void **)&lpDest->Value.MVszA.lppszA[i]);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			memcpy(lpDest->Value.MVszA.lppszA[i], lpSrc->Value.MVszA.lppszA[i], datalength);
 		}
 		lpDest->Value.MVszA.cValues = lpSrc->Value.MVszA.cValues;
@@ -550,11 +525,11 @@ HRESULT Util::HrCopyProperty(LPSPropValue lpDest, const SPropValue *lpSrc,
 	case PT_MV_UNICODE:
 		hr = lpfAllocMore(sizeof(LPWSTR *) * lpSrc->Value.MVszW.cValues, lpBase, (void **)&lpDest->Value.MVszW.lppszW);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		for (ULONG i = 0; i < lpSrc->Value.MVszW.cValues; ++i) {
 			hr = lpfAllocMore(wcslen(lpSrc->Value.MVszW.lppszW[i]) * sizeof(WCHAR) + sizeof(WCHAR), lpBase, (void**)&lpDest->Value.MVszW.lppszW[i]);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			wcscpy(lpDest->Value.MVszW.lppszW[i], lpSrc->Value.MVszW.lppszW[i]);
 		}
 		lpDest->Value.MVszW.cValues = lpSrc->Value.MVszW.cValues;
@@ -562,11 +537,11 @@ HRESULT Util::HrCopyProperty(LPSPropValue lpDest, const SPropValue *lpSrc,
 	case PT_MV_BINARY:
 		hr = lpfAllocMore(sizeof(SBinary) * lpSrc->Value.MVbin.cValues, lpBase, (void **)&lpDest->Value.MVbin.lpbin);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		for (ULONG i = 0; i < lpSrc->Value.MVbin.cValues; ++i) {
 			hr = lpfAllocMore(lpSrc->Value.MVbin.lpbin[i].cb, lpBase, (void **)&lpDest->Value.MVbin.lpbin[i].lpb);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			memcpy(lpDest->Value.MVbin.lpbin[i].lpb, lpSrc->Value.MVbin.lpbin[i].lpb, lpSrc->Value.MVbin.lpbin[i].cb);
 			lpDest->Value.MVbin.lpbin[i].cb = lpSrc->Value.MVbin.lpbin[i].cb;
 		}
@@ -575,19 +550,16 @@ HRESULT Util::HrCopyProperty(LPSPropValue lpDest, const SPropValue *lpSrc,
 	case PT_MV_CLSID:
 		hr = lpfAllocMore(sizeof(GUID) * lpSrc->Value.MVguid.cValues, lpBase, (void **)&lpDest->Value.MVguid.lpguid);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		memcpy(lpDest->Value.MVguid.lpguid, lpSrc->Value.MVguid.lpguid, sizeof(GUID) * lpSrc->Value.MVguid.cValues);
 		lpDest->Value.MVguid.cValues = lpSrc->Value.MVguid.cValues;
 		break;
 
 	default:
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
+		return MAPI_E_INVALID_PARAMETER;
 	}
 
 	lpDest->ulPropTag = lpSrc->ulPropTag;
-
-exit:
 	return hr;
 }
 
@@ -602,22 +574,16 @@ exit:
 HRESULT Util::HrCopySRestriction(LPSRestriction *lppDest,
     const SRestriction *lpSrc)
 {
-	HRESULT hr = hrSuccess;
 	LPSRestriction lpDest = NULL;
-
-	hr = MAPIAllocateBuffer(sizeof(SRestriction), (void **)&lpDest);
+	HRESULT hr = MAPIAllocateBuffer(sizeof(SRestriction),
+	             reinterpret_cast<void **>(&lpDest));
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = HrCopySRestriction(lpDest, lpSrc, lpDest);
-
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	*lppDest = lpDest;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -633,12 +599,10 @@ HRESULT	Util::HrCopySRestriction(LPSRestriction lpDest,
     const SRestriction *lpSrc, void *lpBase)
 {
 	HRESULT hr = hrSuccess;
-	unsigned int i = 0;
+	unsigned int i;
 
-	if (!lpDest || !lpSrc || !lpBase) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpDest == NULL || lpSrc == NULL || lpBase == NULL)
+		return MAPI_E_INVALID_PARAMETER;
 
 	lpDest->rt = lpSrc->rt;
 
@@ -647,30 +611,28 @@ HRESULT	Util::HrCopySRestriction(LPSRestriction lpDest,
 			lpDest->res.resAnd.cRes = lpSrc->res.resAnd.cRes;
 			hr = MAPIAllocateMore(sizeof(SRestriction) * lpSrc->res.resAnd.cRes, lpBase, (void **)&lpDest->res.resAnd.lpRes);
 			if (hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			for (i = 0; i < lpSrc->res.resAnd.cRes; ++i) {
 				hr = HrCopySRestriction(&lpDest->res.resAnd.lpRes[i], &lpSrc->res.resAnd.lpRes[i], lpBase);
 				if(hr != hrSuccess)
-					goto exit;
+					return hr;
 			}
 			break;
 		case RES_OR:
 			lpDest->res.resOr.cRes = lpSrc->res.resOr.cRes;
 			hr = MAPIAllocateMore(sizeof(SRestriction) * lpSrc->res.resOr.cRes, lpBase, (void **)&lpDest->res.resOr.lpRes);
 			if (hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			for (i = 0; i < lpSrc->res.resOr.cRes; ++i) {
 				hr = HrCopySRestriction(&lpDest->res.resOr.lpRes[i], &lpSrc->res.resOr.lpRes[i], lpBase);
 				if(hr != hrSuccess)
-					goto exit;
+					return hr;
 			}
 			break;
 		case RES_NOT:
 			hr = MAPIAllocateMore(sizeof(SRestriction), lpBase, (void **) &lpDest->res.resNot.lpRes);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			hr = HrCopySRestriction(lpDest->res.resNot.lpRes, lpSrc->res.resNot.lpRes, lpBase);
 			
 			break;
@@ -679,7 +641,7 @@ HRESULT	Util::HrCopySRestriction(LPSRestriction lpDest,
 			lpDest->res.resContent.ulPropTag = lpSrc->res.resContent.ulPropTag;
 			hr = MAPIAllocateMore(sizeof(SPropValue), lpBase, (void **) &lpDest->res.resContent.lpProp);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			hr = HrCopyProperty(lpDest->res.resContent.lpProp, lpSrc->res.resContent.lpProp, lpBase);
 			break;
 		case RES_PROPERTY:
@@ -687,7 +649,7 @@ HRESULT	Util::HrCopySRestriction(LPSRestriction lpDest,
 			lpDest->res.resProperty.ulPropTag = lpSrc->res.resProperty.ulPropTag;
 			hr = MAPIAllocateMore(sizeof(SPropValue), lpBase, (void **) &lpDest->res.resProperty.lpProp);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			hr = HrCopyProperty(lpDest->res.resProperty.lpProp, lpSrc->res.resProperty.lpProp, lpBase);
 			break;
 		case RES_COMPAREPROPS:	 
@@ -712,7 +674,7 @@ HRESULT	Util::HrCopySRestriction(LPSRestriction lpDest,
 			lpDest->res.resSub.ulSubObject = lpSrc->res.resSub.ulSubObject;
 			hr = MAPIAllocateMore(sizeof(SRestriction), lpBase, (void **)&lpDest->res.resSub.lpRes);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			hr = HrCopySRestriction(lpDest->res.resSub.lpRes, lpSrc->res.resSub.lpRes, lpBase);
 			break;
 		case RES_COMMENT: // What a weird restriction type
@@ -723,24 +685,21 @@ HRESULT	Util::HrCopySRestriction(LPSRestriction lpDest,
 			{
 				hr = MAPIAllocateMore(sizeof(SPropValue) * lpSrc->res.resComment.cValues, lpBase, (void **) &lpDest->res.resComment.lpProp);
 				if (hr != hrSuccess)
-					goto exit;
-
+					return hr;
 				hr = HrCopyPropertyArray(lpSrc->res.resComment.lpProp, lpSrc->res.resComment.cValues, lpDest->res.resComment.lpProp, lpBase);
 				if(hr != hrSuccess)
-					goto exit;
+					return hr;
 			}
 
 			if(lpSrc->res.resComment.lpRes) {
 				hr = MAPIAllocateMore(sizeof(SRestriction), lpBase, (void **) &lpDest->res.resComment.lpRes);
 				if (hr != hrSuccess)
-					goto exit;
+					return hr;
 				hr = HrCopySRestriction(lpDest->res.resComment.lpRes, lpSrc->res.resComment.lpRes, lpBase);
 			}
 
 			break;
 	}
-
-exit:
 	return hr;
 }
 
@@ -756,25 +715,23 @@ exit:
 HRESULT	Util::HrCopyActions(ACTIONS *lpDest, const ACTIONS *lpSrc,
     void *lpBase)
 {
-	HRESULT hr = hrSuccess;
 	unsigned int i;
 
 	lpDest->cActions = lpSrc->cActions;
 	lpDest->ulVersion = lpSrc->ulVersion;
-	hr = MAPIAllocateMore(sizeof(ACTION) * lpSrc->cActions, lpBase, (void **)&lpDest->lpAction);
+	HRESULT hr = MAPIAllocateMore(sizeof(ACTION) * lpSrc->cActions, lpBase,
+	             reinterpret_cast<void **>(&lpDest->lpAction));
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	memset(lpDest->lpAction, 0, sizeof(ACTION) * lpSrc->cActions);
 
 	for (i = 0; i < lpSrc->cActions; ++i) {
 		hr = HrCopyAction(&lpDest->lpAction[i], &lpSrc->lpAction[i], lpBase);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -802,13 +759,13 @@ HRESULT	Util::HrCopyAction(ACTION *lpDest, const ACTION *lpSrc, void *lpBase)
 			lpDest->actMoveCopy.cbStoreEntryId = lpSrc->actMoveCopy.cbStoreEntryId;
 			hr = MAPIAllocateMore(lpSrc->actMoveCopy.cbStoreEntryId, lpBase, (void **) &lpDest->actMoveCopy.lpStoreEntryId);
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 			memcpy(lpDest->actMoveCopy.lpStoreEntryId, lpSrc->actMoveCopy.lpStoreEntryId, lpSrc->actMoveCopy.cbStoreEntryId);
 
 			lpDest->actMoveCopy.cbFldEntryId = lpSrc->actMoveCopy.cbFldEntryId;
 			hr = MAPIAllocateMore(lpSrc->actMoveCopy.cbFldEntryId, lpBase, (void **) &lpDest->actMoveCopy.lpFldEntryId);
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 			memcpy(lpDest->actMoveCopy.lpFldEntryId, lpSrc->actMoveCopy.lpFldEntryId, lpSrc->actMoveCopy.cbFldEntryId);
 
 			break;
@@ -817,7 +774,7 @@ HRESULT	Util::HrCopyAction(ACTION *lpDest, const ACTION *lpSrc, void *lpBase)
 			lpDest->actReply.cbEntryId = lpSrc->actReply.cbEntryId;
 			hr = MAPIAllocateMore(lpSrc->actReply.cbEntryId, lpBase, (void **) &lpDest->actReply.lpEntryId);
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 			memcpy(lpDest->actReply.lpEntryId, lpSrc->actReply.lpEntryId, lpSrc->actReply.cbEntryId);
 
 			lpDest->actReply.guidReplyTemplate = lpSrc->actReply.guidReplyTemplate;
@@ -826,7 +783,7 @@ HRESULT	Util::HrCopyAction(ACTION *lpDest, const ACTION *lpSrc, void *lpBase)
 			lpDest->actDeferAction.cbData = lpSrc->actDeferAction.cbData;
 			hr = MAPIAllocateMore(lpSrc->actDeferAction.cbData, lpBase, (void **)&lpDest->actDeferAction.pbData);
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 			memcpy(lpDest->actDeferAction.pbData, lpSrc->actDeferAction.pbData, lpSrc->actDeferAction.cbData);
 
 			break;
@@ -837,7 +794,7 @@ HRESULT	Util::HrCopyAction(ACTION *lpDest, const ACTION *lpSrc, void *lpBase)
 		case OP_DELEGATE:
 			hr = MAPIAllocateMore(CbNewADRLIST(lpSrc->lpadrlist->cEntries), lpBase, (void **)&lpDest->lpadrlist);
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 			hr = HrCopySRowSet((LPSRowSet)lpDest->lpadrlist, (LPSRowSet)lpSrc->lpadrlist, lpBase);
 			break;
 		case OP_TAG:
@@ -849,8 +806,6 @@ HRESULT	Util::HrCopyAction(ACTION *lpDest, const ACTION *lpSrc, void *lpBase)
 		default:
 			break;
 	}
-
-exit:
 	return hr;
 }
 
@@ -866,19 +821,16 @@ exit:
 HRESULT Util::HrCopySRowSet(LPSRowSet lpDest, const SRowSet *lpSrc,
     void *lpBase)
 {
-	HRESULT hr = hrSuccess;
 	unsigned int i;
 
 	lpDest->cRows = 0;
 	for (i = 0; i < lpSrc->cRows; ++i) {
-		hr = HrCopySRow(&lpDest->aRow[i], &lpSrc->aRow[i], lpBase);
+		HRESULT hr = HrCopySRow(&lpDest->aRow[i], &lpSrc->aRow[i], lpBase);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		++lpDest->cRows;
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -901,7 +853,7 @@ exit:
  */
 HRESULT	Util::HrCopySRow(LPSRow lpDest, const SRow *lpSrc, void *lpBase)
 {
-	HRESULT hr = hrSuccess;
+	HRESULT hr;
 
 	lpDest->cValues = lpSrc->cValues;
 
@@ -910,31 +862,24 @@ HRESULT	Util::HrCopySRow(LPSRow lpDest, const SRow *lpSrc, void *lpBase)
 	else
 		hr = MAPIAllocateBuffer(sizeof(SPropValue) * lpSrc->cValues, (void **) &lpDest->lpProps);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
-	hr = HrCopyPropertyArray(lpSrc->lpProps, lpSrc->cValues, lpDest->lpProps, lpBase ? lpBase : lpDest->lpProps);
-
-exit:
-	return hr;
+	return HrCopyPropertyArray(lpSrc->lpProps, lpSrc->cValues, lpDest->lpProps, lpBase ? lpBase : lpDest->lpProps);
 }
 
 HRESULT	Util::HrCopyPropTagArray(const SPropTagArray *lpSrc,
     LPSPropTagArray *lppDest)
 {
-	HRESULT hr = hrSuccess;
 	SPropTagArrayPtr ptrPropTagArray;
-
-	hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpSrc->cValues), &ptrPropTagArray);
+	HRESULT hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpSrc->cValues), &ptrPropTagArray);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	memcpy(ptrPropTagArray->aulPropTag, lpSrc->aulPropTag, lpSrc->cValues * sizeof *lpSrc->aulPropTag);
 	ptrPropTagArray->cValues = lpSrc->cValues;
 
 	*lppDest = ptrPropTagArray.release();
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -949,12 +894,11 @@ exit:
 HRESULT Util::HrCopyUnicodePropTagArray(ULONG ulFlags,
     const SPropTagArray *lpSrc, LPSPropTagArray *lppDest)
 {
-	HRESULT hr = hrSuccess;
 	LPSPropTagArray lpPropTagArray = NULL;
-
-	hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpSrc->cValues), (void**)&lpPropTagArray);
+	HRESULT hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpSrc->cValues),
+	             reinterpret_cast<void **>(&lpPropTagArray));
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	for (ULONG n = 0; n < lpSrc->cValues; ++n) {
 		if (PROP_TYPE(lpSrc->aulPropTag[n]) == PT_STRING8 || PROP_TYPE(lpSrc->aulPropTag[n]) == PT_UNICODE)
@@ -965,9 +909,7 @@ HRESULT Util::HrCopyUnicodePropTagArray(ULONG ulFlags,
 	lpPropTagArray->cValues = lpSrc->cValues;
 
 	*lppDest = lpPropTagArray;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -986,13 +928,13 @@ exit:
 HRESULT Util::HrCopyBinary(ULONG ulSize, const BYTE *lpSrc,
     ULONG *lpulDestSize, LPBYTE *lppDest, LPVOID lpBase)
 {
-	HRESULT hr = hrSuccess;
+	HRESULT hr;
 	LPBYTE lpDest = NULL;
 
 	if (ulSize == 0) {
 		*lpulDestSize = 0;
 		*lppDest = NULL;
-		goto exit;
+		return hrSuccess;
 	}
 
 	if (lpBase)
@@ -1000,15 +942,13 @@ HRESULT Util::HrCopyBinary(ULONG ulSize, const BYTE *lpSrc,
 	else
 		hr = MAPIAllocateBuffer(ulSize, (void **) &lpDest);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	memcpy(lpDest, lpSrc, ulSize);
 
 	*lppDest = lpDest;
 	*lpulDestSize = ulSize;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -3373,10 +3313,8 @@ exit:
  */
 HRESULT Util::ValidMapiPropInterface(LPCIID lpInterface)
 {
-	HRESULT hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
-	
 	if (!lpInterface)
-		goto exit;
+		return MAPI_E_INTERFACE_NOT_SUPPORTED;
 
 	if (*lpInterface == IID_IAttachment ||
 		*lpInterface == IID_IMAPIProp ||
@@ -3389,12 +3327,8 @@ HRESULT Util::ValidMapiPropInterface(LPCIID lpInterface)
 		*lpInterface == IID_IMAPIFolder ||
 		*lpInterface == IID_IABContainer ||
 		*lpInterface == IID_IDistList)
-	{
-		hr = S_OK;
-	}
-
-exit:
-	return hr;
+		return S_OK;
+	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
 /**

@@ -42,72 +42,60 @@
 static HRESULT MAPICopyMem(ULONG cb, void *lpb, void *lpBase, ULONG *lpCb,
     void **lpDest)
 {
-    HRESULT hr = hrSuccess;
-    
     if(lpb == NULL) {
         *lpDest = NULL;
         *lpCb = 0;
-        goto exit;
+		return hrSuccess;
     }
     
-    hr = MAPIAllocateMore(cb, lpBase, lpDest);
-
-    if(hr != hrSuccess)
-        goto exit;
+	HRESULT hr = MAPIAllocateMore(cb, lpBase, lpDest);
+	if (hr != hrSuccess)
+		return hr;
         
     memcpy(*lpDest, lpb, cb);
     *lpCb = cb;
-
-exit:    
-    return hr;
+	return hrSuccess;
 }
 
 HRESULT MAPICopyString(char *lpSrc, void *lpBase, char **lpDst)
 {
-    HRESULT hr = hrSuccess;
-    
     if(lpSrc == NULL) {
         *lpDst = NULL;
-        goto exit;
-    }
+		return hrSuccess;
+	}
     
-    hr = MAPIAllocateMore(strlen(lpSrc)+1, lpBase, (void **)lpDst);
-    if(hr != hrSuccess)
-        goto exit;
-        
-    strcpy(*lpDst, lpSrc);
-        
-exit:
-    return hr;
+	HRESULT hr = MAPIAllocateMore(strlen(lpSrc) + 1, lpBase,
+	             reinterpret_cast<void **>(lpDst));
+	if (hr != hrSuccess)
+		return hr;
+	strcpy(*lpDst, lpSrc);
+	return hrSuccess;
 }
 
 HRESULT MAPICopyUnicode(WCHAR *lpSrc, void *lpBase, WCHAR **lpDst)
 {
-    HRESULT hr = hrSuccess;
-    
     if(lpSrc == NULL) {
         *lpDst = NULL;
-        goto exit;
+		return hrSuccess;
     }
     
-    hr = MAPIAllocateMore(wcslen(lpSrc)*sizeof(WCHAR)+sizeof(WCHAR), lpBase, (void **)lpDst);
-    if(hr != hrSuccess)
-        goto exit;
-        
-    wcscpy(*lpDst, lpSrc);
-        
-exit:
-    return hr;
+	HRESULT hr = MAPIAllocateMore(wcslen(lpSrc) * sizeof(WCHAR) +
+	             sizeof(WCHAR), lpBase, reinterpret_cast<void **>(lpDst));
+	if (hr != hrSuccess)
+		return hr;
+	wcscpy(*lpDst, lpSrc);
+	return hrSuccess;
 }
 
 static HRESULT CopyMAPIERROR(const MAPIERROR *lpSrc, void *lpBase,
     MAPIERROR **lppDst)
 {
-    HRESULT hr = hrSuccess;
     MAPIERROR *lpDst = NULL;
     
-    if ((hr = MAPIAllocateMore(sizeof(MAPIERROR), lpBase, (void **)&lpDst)) != hrSuccess)
-		goto exit;
+	HRESULT hr = MAPIAllocateMore(sizeof(MAPIERROR), lpBase,
+	             reinterpret_cast<void **>(&lpDst));
+	if (hr != hrSuccess)
+		return hr;
 
     lpDst->ulVersion = lpSrc->ulVersion;
 	// @todo we don't know if the strings were create with unicode anymore
@@ -121,16 +109,14 @@ static HRESULT CopyMAPIERROR(const MAPIERROR *lpSrc, void *lpBase,
     lpDst->ulLowLevelError = lpSrc->ulLowLevelError;
     lpDst->ulContext = lpSrc->ulContext;
     
-    *lppDst = lpDst;
-
-exit:
-    return hr;
+	*lppDst = lpDst;
+	return hrSuccess;
 }
 
 static HRESULT CopyNotification(const NOTIFICATION *lpSrc, void *lpBase,
     NOTIFICATION *lpDst)
 {
-    HRESULT hr = hrSuccess;
+    HRESULT hr;
 
     memset(lpDst, 0, sizeof(NOTIFICATION));
 
@@ -180,30 +166,28 @@ static HRESULT CopyNotification(const NOTIFICATION *lpSrc, void *lpBase,
             lpDst->info.tab.hResult = lpSrc->info.tab.hResult;
             hr = Util::HrCopyProperty(&lpDst->info.tab.propPrior, &lpSrc->info.tab.propPrior, lpBase);
             if (hr != hrSuccess)
-		goto exit;
+			return hr;
             hr = Util::HrCopyProperty(&lpDst->info.tab.propIndex, &lpSrc->info.tab.propIndex, lpBase);
             if (hr != hrSuccess)
-		goto exit;
+			return hr;
             if ((hr = MAPIAllocateMore(lpSrc->info.tab.row.cValues * sizeof(SPropValue), lpBase, (void **)&lpDst->info.tab.row.lpProps)) != hrSuccess)
-		goto exit;
+			return hr;
             hr = Util::HrCopyPropertyArray(lpSrc->info.tab.row.lpProps, lpSrc->info.tab.row.cValues, lpDst->info.tab.row.lpProps, lpBase);
             if (hr != hrSuccess)
-                goto exit;
+			return hr;
             lpDst->info.tab.row.cValues = lpSrc->info.tab.row.cValues;
             break;
         case fnevStatusObjectModified:
             MAPICopyMem(lpSrc->info.statobj.cbEntryID, 		lpSrc->info.statobj.lpEntryID, 		lpBase, &lpDst->info.statobj.cbEntryID, 	(void**)&lpDst->info.statobj.lpEntryID);
             if ((hr = MAPIAllocateMore(lpSrc->info.statobj.cValues * sizeof(SPropValue), lpBase, (void **)&lpDst->info.statobj.lpPropVals)) != hrSuccess)
-			goto exit;
+			return hr;
             hr = Util::HrCopyPropertyArray(lpSrc->info.statobj.lpPropVals, lpSrc->info.statobj.cValues, lpDst->info.statobj.lpPropVals, lpBase);
             if (hr != hrSuccess)
-                goto exit;
+			return hr;
             lpDst->info.statobj.cValues = lpSrc->info.statobj.cValues;
             break;
-    }
-
-exit:
-    return hr;
+	}
+	return hrSuccess;
 }
 
 HRESULT MAPINotifSink::Create(MAPINotifSink **lppSink)

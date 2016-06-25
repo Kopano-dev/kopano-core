@@ -843,7 +843,6 @@ exit:
 
 static HRESULT HrAddProfileUID(LPPROVIDERADMIN lpProviderAdmin, LPMAPIUID lpNewProfileUID)
 {
-	HRESULT				hr = hrSuccess;
 	ProfSectPtr			ptrGlobalProfSect;
 	ULONG				cValues;
 	SPropValuePtr		ptrGlobalProps;
@@ -853,17 +852,15 @@ static HRESULT HrAddProfileUID(LPPROVIDERADMIN lpProviderAdmin, LPMAPIUID lpNewP
 	SizedSPropTagArray(1, sptaGlobalProps) = {1, {PR_STORE_PROVIDERS}};
 
 	//Open global profile, add the store.(for show list, delete etc)
-	hr = lpProviderAdmin->OpenProfileSection((LPMAPIUID)pbGlobalProfileSectionGuid, NULL, MAPI_MODIFY, &ptrGlobalProfSect);
+	HRESULT hr = lpProviderAdmin->OpenProfileSection(reinterpret_cast<MAPIUID *>(const_cast<char *>(pbGlobalProfileSectionGuid)),
+	             NULL, MAPI_MODIFY, &ptrGlobalProfSect);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// The prop value PR_STORE_PROVIDERS
 	hr = ptrGlobalProfSect->GetProps((LPSPropTagArray)&sptaGlobalProps, 0, &cValues, &ptrGlobalProps);
 	if (HR_FAILED(hr))
-		goto exit;
-
-	hr = hrSuccess;
-
+		return hr;
 	if (ptrGlobalProps->ulPropTag != PR_STORE_PROVIDERS)
 		ptrGlobalProps->Value.bin.cb = 0;
 
@@ -872,11 +869,10 @@ static HRESULT HrAddProfileUID(LPPROVIDERADMIN lpProviderAdmin, LPMAPIUID lpNewP
 
 	hr = MAPIAllocateBuffer(sizeof(SPropValue), &ptrNewProp);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = MAPIAllocateMore(csNewMapiUID, ptrNewProp, (LPVOID*)&ptrNewProp->Value.bin.lpb);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	ptrNewProp->Value.bin.cb = csNewMapiUID;
 	ptrNewProp->ulPropTag = PR_STORE_PROVIDERS;
@@ -888,14 +884,8 @@ static HRESULT HrAddProfileUID(LPPROVIDERADMIN lpProviderAdmin, LPMAPIUID lpNewP
 
 	hr = ptrGlobalProfSect->SetProps(1, ptrNewProp, NULL);
 	if (hr != hrSuccess)
-		goto exit;
-
-	hr = ptrGlobalProfSect->SaveChanges(0);
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+		return hr;
+	return ptrGlobalProfSect->SaveChanges(0);
 }
 
 HRESULT HrAddECMailBox(LPMAPISESSION lpSession, LPCWSTR lpszUserName)
@@ -920,41 +910,32 @@ exit:
 
 HRESULT HrAddECMailBox(LPPROVIDERADMIN lpProviderAdmin, LPCWSTR lpszUserName)
 {
-	HRESULT		hr = hrSuccess;
 	MAPIUID		sNewProfileUID;
 	SPropValue	asProfileProps[1];
 
-	if (lpProviderAdmin == NULL || lpszUserName == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpProviderAdmin == NULL || lpszUserName == NULL)
+		return MAPI_E_INVALID_PARAMETER;
 
 	asProfileProps[0].ulPropTag = PR_EC_USERNAME_W;
 	asProfileProps[0].Value.lpszW = (WCHAR*)lpszUserName;
 
 	// Create the profile, now the profile is shown in outlook
-	hr = lpProviderAdmin->CreateProvider((TCHAR*)"ZARAFA6_MSMDB_Delegate", 1, asProfileProps, 0, 0, &sNewProfileUID);
+	HRESULT hr = lpProviderAdmin->CreateProvider((TCHAR *)"ZARAFA6_MSMDB_Delegate",
+	             ARRAY_SIZE(asProfileProps), asProfileProps, 0, 0,
+	             &sNewProfileUID);
 	if (hr != hrSuccess)
-		goto exit;
-
-	hr = HrAddProfileUID(lpProviderAdmin, &sNewProfileUID);
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+		return hr;
+	return HrAddProfileUID(lpProviderAdmin, &sNewProfileUID);
 }
 
 HRESULT HrAddArchiveMailBox(LPPROVIDERADMIN lpProviderAdmin, LPCWSTR lpszUserName, LPCWSTR lpszServerName, LPMAPIUID lpProviderUID)
 {
-	HRESULT		hr = hrSuccess;
 	MAPIUID		sNewProfileUID;
 	SPropValue	asProfileProps[2];
 
-	if (lpProviderAdmin == NULL || lpszUserName == NULL || lpszServerName == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpProviderAdmin == NULL || lpszUserName == NULL ||
+	    lpszServerName == NULL)
+		return MAPI_E_INVALID_PARAMETER;
 
 	asProfileProps[0].ulPropTag = PR_EC_USERNAME_W;
 	asProfileProps[0].Value.lpszW = (LPWSTR)lpszUserName;
@@ -963,19 +944,17 @@ HRESULT HrAddArchiveMailBox(LPPROVIDERADMIN lpProviderAdmin, LPCWSTR lpszUserNam
 	asProfileProps[1].Value.lpszW = (LPWSTR)lpszServerName;
 
 	// Create the profile, now the profile is shown in outlook
-	hr = lpProviderAdmin->CreateProvider((TCHAR*)"ZARAFA6_MSMDB_archive", 2, asProfileProps, 0, 0, &sNewProfileUID);
+	HRESULT hr = lpProviderAdmin->CreateProvider((TCHAR *)("ZARAFA6_MSMDB_archive"),
+	             ARRAY_SIZE(asProfileProps), asProfileProps, 0, 0,
+	             &sNewProfileUID);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = HrAddProfileUID(lpProviderAdmin, &sNewProfileUID);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	if (lpProviderUID)
 		*lpProviderUID = sNewProfileUID;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -994,15 +973,12 @@ exit:
  */
 HRESULT ECCreateOneOff(LPTSTR lpszName, LPTSTR lpszAdrType, LPTSTR lpszAddress, ULONG ulFlags, ULONG* lpcbEntryID, LPENTRYID* lppEntryID)
 {
-	HRESULT		hr = hrSuccess;
 	std::string strOneOff;
 	MAPIUID uid = {MAPI_ONE_OFF_UID};
 	unsigned short usFlags = (((ulFlags & MAPI_UNICODE)?MAPI_ONE_OFF_UNICODE:0) | ((ulFlags & MAPI_SEND_NO_RICH_INFO)?MAPI_ONE_OFF_NO_RICH_INFO:0));
 
-	if (!lpszAdrType || !lpszAddress) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpszAdrType == NULL || lpszAddress == NULL)
+		return MAPI_E_INVALID_PARAMETER;
 
 	strOneOff.append(4, '\0'); // abFlags
 	strOneOff.append((char *)&uid, sizeof(MAPIUID));
@@ -1033,16 +1009,14 @@ HRESULT ECCreateOneOff(LPTSTR lpszName, LPTSTR lpszAdrType, LPTSTR lpszAddress, 
 		strOneOff.append((char *)lpszAddress, strlen((char *)lpszAddress) + 1);
 	}
 
-	hr = MAPIAllocateBuffer(strOneOff.size(), (void **)lppEntryID);
+	HRESULT hr = MAPIAllocateBuffer(strOneOff.size(),
+	             reinterpret_cast<void **>(lppEntryID));
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	memcpy(*lppEntryID, strOneOff.c_str(), strOneOff.size());
 	*lpcbEntryID = strOneOff.size();
-
-exit:
-	return hr;
-
+	return hrSuccess;
 }
 
 /**
@@ -1068,30 +1042,18 @@ HRESULT ECParseOneOff(const ENTRYID *lpEntryID, ULONG cbEntryID,
 	std::wstring type;
 	std::wstring addr;
 
-	if (cbEntryID < (8+sizeof(MAPIUID)) || lpEntryID == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	if(*(unsigned int*)lpBuffer != 0) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (cbEntryID < (8 + sizeof(MAPIUID)) || lpEntryID == NULL)
+		return MAPI_E_INVALID_PARAMETER;
+	if(*reinterpret_cast<const unsigned int *>(lpBuffer) != 0)
+		return MAPI_E_INVALID_PARAMETER;
 	lpBuffer += 4;
 
-	if(memcmp(&muidOneOff, lpBuffer, sizeof(MAPIUID)) != 0) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (memcmp(&muidOneOff, lpBuffer, sizeof(MAPIUID)) != 0)
+		return MAPI_E_INVALID_PARAMETER;
 	lpBuffer += sizeof(MAPIUID);
 
-	if(*(unsigned short *)lpBuffer != 0) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (*reinterpret_cast<const unsigned short *>(lpBuffer) != 0)
+		return MAPI_E_INVALID_PARAMETER;
 	lpBuffer += 2;
 
 	memcpy(&usFlags, lpBuffer, sizeof(usFlags));
@@ -1104,25 +1066,21 @@ HRESULT ECParseOneOff(const ENTRYID *lpEntryID, ULONG cbEntryID,
 		str.assign((utf16string::pointer)lpBuffer);
 		// can be 0 length
 		if ((hr = TryConvert(str, name)) != hrSuccess)
-			goto exit;
+			return hr;
 		lpBuffer += (str.length() + 1) * sizeof(unsigned short);
 
 		str.assign((utf16string::pointer)lpBuffer);
-		if (str.length() == 0) {
-			hr = MAPI_E_INVALID_PARAMETER;
-			goto exit;
-		}
+		if (str.length() == 0)
+			return MAPI_E_INVALID_PARAMETER;
 		if ((hr = TryConvert(str, type)) != hrSuccess)
-			goto exit;
+			return hr;
 		lpBuffer += (str.length() + 1) * sizeof(unsigned short);
 
 		str.assign((utf16string::pointer)lpBuffer);
-		if (str.length() == 0) {
-			hr = MAPI_E_INVALID_PARAMETER;
-			goto exit;
-		}
+		if (str.length() == 0)
+			return MAPI_E_INVALID_PARAMETER;
 		if ((hr = TryConvert(str, addr)) != hrSuccess)
-			goto exit;
+			return hr;
 		lpBuffer += (str.length() + 1) * sizeof(unsigned short);
 		
 	} else {
@@ -1136,34 +1094,28 @@ HRESULT ECParseOneOff(const ENTRYID *lpEntryID, ULONG cbEntryID,
 		// can be 0 length
 		hr = TryConvert(lpBuffer, rawsize(lpBuffer), "windows-1252", name);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		lpBuffer += str.length() + 1;
 
 		str = (char*)lpBuffer;
-		if (str.length() == 0) {
-			hr = MAPI_E_INVALID_PARAMETER;
-			goto exit;
-		}
+		if (str.length() == 0)
+			return MAPI_E_INVALID_PARAMETER;
 		if ((hr = TryConvert(str, type)) != hrSuccess)
-			goto exit;
+			return hr;
 		lpBuffer += str.length() + 1;
 
 		str = (char*)lpBuffer;
-		if (str.length() == 0) {
-			hr = MAPI_E_INVALID_PARAMETER;
-			goto exit;
-		}
+		if (str.length() == 0)
+			return MAPI_E_INVALID_PARAMETER;
 		if ((hr = TryConvert(str, addr)) != hrSuccess)
-			goto exit;
+			return hr;
 		lpBuffer += str.length() + 1;
 	}
 
 	strWName = name;
 	strWType = type;
 	strWAddress = addr;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -1989,14 +1941,14 @@ static HRESULT GetRestrictTagsRecursive(const SRestriction *lpRestriction,
 			for (i = 0; i < lpRestriction->res.resAnd.cRes; ++i) {
 				hr = GetRestrictTagsRecursive(&lpRestriction->res.resAnd.lpRes[i], lpList, ulLevel+1);
 				if(hr != hrSuccess)
-					goto exit;
+					return hr;
 			}
 			break;
 		case RES_OR:
 			for (i = 0; i < lpRestriction->res.resOr.cRes; ++i) {
 				hr = GetRestrictTagsRecursive(&lpRestriction->res.resOr.lpRes[i], lpList, ulLevel+1);
 				if(hr != hrSuccess)
-					goto exit;
+					return hr;
 			}
 			break;
 		case RES_NOT:
@@ -2030,28 +1982,23 @@ static HRESULT GetRestrictTagsRecursive(const SRestriction *lpRestriction,
 			hr = GetRestrictTagsRecursive(lpRestriction->res.resComment.lpRes, lpList, ulLevel+1);
 			break;
 	}
-
-exit:
 	return hr;
 }
 
 static HRESULT GetRestrictTags(const SRestriction *lpRestriction,
     LPSPropTagArray *lppTags)
 {
-	HRESULT hr = hrSuccess;
 	std::list<unsigned int> lstTags;
 	std::list<unsigned int>::const_iterator iterTags;
 	ULONG n = 0;
 
 	LPSPropTagArray lpTags = NULL;
 
-	hr = GetRestrictTagsRecursive(lpRestriction, &lstTags, 0);
+	HRESULT hr = GetRestrictTagsRecursive(lpRestriction, &lstTags, 0);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	if ((hr = MAPIAllocateBuffer(CbNewSPropTagArray(lstTags.size()), (void **) &lpTags)) != hrSuccess)
-		goto exit;
-
+		return hr;
 	lpTags->cValues = lstTags.size();
 
 	lstTags.sort();
@@ -2064,9 +2011,7 @@ static HRESULT GetRestrictTags(const SRestriction *lpRestriction,
 	lpTags->cValues = n;
 
 	*lppTags = lpTags;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT TestRestriction(LPSRestriction lpCondition, ULONG cValues, LPSPropValue lpPropVals, const ECLocale &locale, ULONG ulLevel) {
@@ -2756,7 +2701,6 @@ exit:
  */
 HRESULT HrGetAllProps(IMAPIProp *lpProp, ULONG ulFlags, ULONG *lpcValues, LPSPropValue *lppProps)
 {
-	HRESULT hr = hrSuccess;
 	SPropTagArrayPtr lpTags;
 	SPropArrayPtr lpProps;
 	ULONG cValues = 0;
@@ -2764,13 +2708,12 @@ HRESULT HrGetAllProps(IMAPIProp *lpProp, ULONG ulFlags, ULONG *lpcValues, LPSPro
 	std::string strData;
 	void *lpData = NULL;
 	
-	hr = lpProp->GetPropList(ulFlags, &lpTags);
+	HRESULT hr = lpProp->GetPropList(ulFlags, &lpTags);
 	if(hr != hrSuccess)
-		goto exit;
-		
+		return hr;
 	hr = lpProp->GetProps(lpTags, ulFlags, &cValues, &lpProps);
 	if(FAILED(hr))
-		goto exit;
+		return hr;
 		
 	for (unsigned int i = 0; i < cValues; ++i) {
 		if(PROP_TYPE(lpProps[i].ulPropTag) == PT_ERROR && lpProps[i].Value.err == MAPI_E_NOT_ENOUGH_MEMORY) {
@@ -2785,7 +2728,7 @@ HRESULT HrGetAllProps(IMAPIProp *lpProp, ULONG ulFlags, ULONG *lpcValues, LPSPro
 				continue;
 				
 			if ((hr = MAPIAllocateMore(strData.size() + sizeof(WCHAR), lpProps, (void **)&lpData)) != hrSuccess)
-				goto exit;
+				return hr;
 
 			memcpy(lpData, strData.data(), strData.size());
 			
@@ -2812,9 +2755,7 @@ HRESULT HrGetAllProps(IMAPIProp *lpProp, ULONG ulFlags, ULONG *lpcValues, LPSPro
 	
 	*lppProps = lpProps.release();
 	*lpcValues = cValues;
-	
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -2899,7 +2840,6 @@ exit:
  */
 HRESULT DoAddress(IAddrBook *lpAdrBook, ULONG* hWnd, LPADRPARM lpAdrParam, LPADRLIST *lpAdrList)
 {
-	HRESULT hr = hrSuccess;
 	ULONG ulUnCapabilities = 0; // All the UNSUPPORTED features for this outlook version
 	std::string strCaption;
 	std::string strNewEntryTitle;
@@ -2910,9 +2850,9 @@ HRESULT DoAddress(IAddrBook *lpAdrBook, ULONG* hWnd, LPADRPARM lpAdrParam, LPADR
 	ADRPARM sAdrParam = *lpAdrParam;
 	std::vector<std::string> vDestFields;
 
-	hr = GetClientVersion(&ulVersion);
+	HRESULT hr = GetClientVersion(&ulVersion);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Various versions of outlook support some flags and dont support others
 	if (ulVersion <= CLIENT_VERSION_OLK2000)
@@ -2962,7 +2902,7 @@ HRESULT DoAddress(IAddrBook *lpAdrBook, ULONG* hWnd, LPADRPARM lpAdrParam, LPADR
 	
 	hr = lpAdrBook->Address(hWnd, &sAdrParam, &lpResult);
 	if(hr != hrSuccess) 
-		goto exit;
+		return hr;
 
 	if ((ulUnCapabilities & MAPI_UNICODE) && (lpAdrParam->ulFlags & MAPI_UNICODE)) {
 		// MAPI_UNICODE was requested, but the addressbook did not support it. This means we have to convert all the PT_STRING8 data
@@ -2975,7 +2915,7 @@ HRESULT DoAddress(IAddrBook *lpAdrBook, ULONG* hWnd, LPADRPARM lpAdrParam, LPADR
 
 					hr = MAPIAllocateMore((wstrData.size() + 1) * sizeof(WCHAR), lpResult->aEntries[i].rgPropVals, (void **)&lpResult->aEntries[i].rgPropVals[j].Value.lpszW);
 					if(hr != hrSuccess)
-						goto exit;
+						return hr;
 
 					memcpy(lpResult->aEntries[i].rgPropVals[j].Value.lpszW, wstrData.c_str(), (wstrData.size() + 1) * sizeof(WCHAR));
 
@@ -2986,9 +2926,7 @@ HRESULT DoAddress(IAddrBook *lpAdrBook, ULONG* hWnd, LPADRPARM lpAdrParam, LPADR
 	}
 
 	*lpAdrList = lpResult;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -3368,21 +3306,18 @@ exit:
 
 HRESULT HrGetRemoteAdminStore(IMAPISession *lpMAPISession, IMsgStore *lpMsgStore, LPCTSTR lpszServerName, ULONG ulFlags, IMsgStore **lppMsgStore)
 {
-	HRESULT hr = hrSuccess;
 	ExchangeManageStorePtr ptrEMS;
 	ULONG cbStoreId;
 	EntryIdPtr ptrStoreId;
 	MsgStorePtr ptrMsgStore;
 
-	if (lpMAPISession == NULL || lpMsgStore == NULL || lpszServerName == NULL || (ulFlags & ~(MAPI_UNICODE|MDB_WRITE)) || lppMsgStore == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	hr = lpMsgStore->QueryInterface(ptrEMS.iid, &ptrEMS);
+	if (lpMAPISession == NULL || lpMsgStore == NULL ||
+	    lpszServerName == NULL || (ulFlags & ~(MAPI_UNICODE | MDB_WRITE)) ||
+	    lppMsgStore == NULL)
+		return MAPI_E_INVALID_PARAMETER;
+	HRESULT hr = lpMsgStore->QueryInterface(ptrEMS.iid, &ptrEMS);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	if (ulFlags & MAPI_UNICODE) {
 		std::wstring strMsgStoreDN = std::wstring(L"cn=") + (LPCWSTR)lpszServerName + L"/cn=Microsoft Private MDB";
 		hr = ptrEMS->CreateStoreEntryID((LPTSTR)strMsgStoreDN.c_str(), (LPTSTR)L"SYSTEM", MAPI_UNICODE|OPENSTORE_OVERRIDE_HOME_MDB, &cbStoreId, &ptrStoreId);
@@ -3391,41 +3326,28 @@ HRESULT HrGetRemoteAdminStore(IMAPISession *lpMAPISession, IMsgStore *lpMsgStore
 		hr = ptrEMS->CreateStoreEntryID((LPTSTR)strMsgStoreDN.c_str(), (LPTSTR)"SYSTEM", OPENSTORE_OVERRIDE_HOME_MDB, &cbStoreId, &ptrStoreId);
 	}
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpMAPISession->OpenMsgStore(0, cbStoreId, ptrStoreId, &ptrMsgStore.iid, ulFlags & MDB_WRITE, &ptrMsgStore);
 	if (hr != hrSuccess)
-		goto exit;
-
-	hr = ptrMsgStore->QueryInterface(IID_IMsgStore, (LPVOID*)lppMsgStore);
-
-exit:
-	return hr;
+		return hr;
+	return ptrMsgStore->QueryInterface(IID_IMsgStore,
+	       reinterpret_cast<LPVOID *>(lppMsgStore));
 }
 
 HRESULT HrGetGAB(LPMAPISESSION lpSession, LPABCONT *lppGAB)
 {
-	HRESULT hr = hrSuccess;
 	AddrBookPtr ptrAddrBook;
 
-	if (lpSession == NULL || lppGAB == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	hr = lpSession->OpenAddressBook(0, 0, 0, &ptrAddrBook);
+	if (lpSession == NULL || lppGAB == NULL)
+		return MAPI_E_INVALID_PARAMETER;
+	HRESULT hr = lpSession->OpenAddressBook(0, 0, 0, &ptrAddrBook);
 	if (hr != hrSuccess)
-		goto exit;
-
-	hr = HrGetGAB(ptrAddrBook, lppGAB);
-
-exit:
-	return hr;
+		return hr;
+	return HrGetGAB(ptrAddrBook, lppGAB);
 }
 
 HRESULT HrGetGAB(LPADRBOOK lpAddrBook, LPABCONT *lppGAB)
 {
-	HRESULT hr = hrSuccess;
 	ULONG ulType = 0;
 	ABContainerPtr ptrRoot;
 	MAPITablePtr ptrTable;
@@ -3437,22 +3359,17 @@ HRESULT HrGetGAB(LPADRBOOK lpAddrBook, LPABCONT *lppGAB)
 
 	SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ENTRYID}};
 
-	if (lpAddrBook == NULL || lppGAB == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	hr = lpAddrBook->OpenEntry(0, NULL, &ptrRoot.iid, MAPI_DEFERRED_ERRORS, &ulType, &ptrRoot);
+	if (lpAddrBook == NULL || lppGAB == NULL)
+		return MAPI_E_INVALID_PARAMETER;
+	HRESULT hr = lpAddrBook->OpenEntry(0, NULL, &ptrRoot.iid, MAPI_DEFERRED_ERRORS, &ulType, &ptrRoot);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = ptrRoot->GetHierarchyTable(MAPI_DEFERRED_ERRORS, &ptrTable);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = ptrTable->SetColumns((LPSPropTagArray)&sptaTableProps, TBL_BATCH);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	propDisplayType.ulPropTag = PR_DISPLAY_TYPE;
 	propDisplayType.Value.l = DT_GLOBAL;
@@ -3468,20 +3385,14 @@ HRESULT HrGetGAB(LPADRBOOK lpAddrBook, LPABCONT *lppGAB)
 			)
 		).FindRowIn(ptrTable, BOOKMARK_BEGINNING, 0);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = ptrTable->QueryRows(1, 0, &ptrRows);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpAddrBook->OpenEntry(ptrRows[0].lpProps[0].Value.bin.cb, (LPENTRYID)ptrRows[0].lpProps[0].Value.bin.lpb, &ptrGAB.iid, 0, &ulType, &ptrGAB);
 	if (hr != hrSuccess)
-		goto exit;
-
-	hr = ptrGAB->QueryInterface(IID_IABContainer, (LPVOID*)lppGAB);
-
-exit:
-	return hr;
+		return hr;
+	return ptrGAB->QueryInterface(IID_IABContainer, reinterpret_cast<LPVOID *>(lppGAB));
 }
 
 /** 
@@ -3496,7 +3407,6 @@ exit:
  */
 HRESULT GetConfigMessage(LPMDB lpStore, const char* szMessageName, IMessage **lppMessage)
 {
-	HRESULT hr = hrSuccess;
 	ULONG cValues;
 	SPropArrayPtr ptrEntryIDs;
 	MAPIFolderPtr ptrFolder;
@@ -3508,9 +3418,10 @@ HRESULT GetConfigMessage(LPMDB lpStore, const char* szMessageName, IMessage **lp
 	MessagePtr ptrMessage;
 	SizedSPropTagArray(2, sptaTreeProps) = {2, {PR_NON_IPM_SUBTREE_ENTRYID, PR_IPM_SUBTREE_ENTRYID}};
 
-	hr = lpStore->GetProps((LPSPropTagArray)&sptaTreeProps, 0, &cValues, &ptrEntryIDs);
+	HRESULT hr = lpStore->GetProps(reinterpret_cast<SPropTagArray *>(&sptaTreeProps),
+	             0, &cValues, &ptrEntryIDs);
 	if (FAILED(hr))
-		goto exit;
+		return hr;
 
 	// NON_IPM on a public store, IPM on a normal store
 	if (ptrEntryIDs[0].ulPropTag == sptaTreeProps.aulPropTag[0])
@@ -3520,11 +3431,10 @@ HRESULT GetConfigMessage(LPMDB lpStore, const char* szMessageName, IMessage **lp
 	else
 		hr = MAPI_E_INVALID_PARAMETER;
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = ptrFolder->GetContentsTable(MAPI_DEFERRED_ERRORS | MAPI_ASSOCIATED, &ptrTable);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	propSubject.ulPropTag = PR_SUBJECT_A;
 	propSubject.Value.lpszA = (char*)szMessageName;
@@ -3533,28 +3443,25 @@ HRESULT GetConfigMessage(LPMDB lpStore, const char* szMessageName, IMessage **lp
 	if (hr == hrSuccess) {
 		hr = ptrTable->QueryRows(1, 0, &ptrRows);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	if (!ptrRows.empty()) {
 		// message found, open it
 		lpEntryID = PpropFindProp(ptrRows[0].lpProps, ptrRows[0].cValues, PR_ENTRYID);
-		if (!lpEntryID) {
-			hr = MAPI_E_INVALID_ENTRYID;
-			goto exit;
-		}
+		if (lpEntryID == NULL)
+			return MAPI_E_INVALID_ENTRYID;
 		hr = ptrFolder->OpenEntry(lpEntryID->Value.bin.cb, (LPENTRYID)lpEntryID->Value.bin.lpb, NULL, MAPI_MODIFY, &ulType, &ptrMessage);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	} else {
 		// not found in folder, create new message
 		hr = ptrFolder->CreateMessage(&IID_IMessage, MAPI_ASSOCIATED, &ptrMessage);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = ptrMessage->SetProps(1, &propSubject, NULL);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		// set mandatory message property
 		propSubject.ulPropTag = PR_MESSAGE_CLASS_A;
@@ -3562,11 +3469,9 @@ HRESULT GetConfigMessage(LPMDB lpStore, const char* szMessageName, IMessage **lp
 
 		hr = ptrMessage->SetProps(1, &propSubject, NULL);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	*lppMessage = ptrMessage.release();
-
-exit:
-	return hr;
+	return hrSuccess;
 }

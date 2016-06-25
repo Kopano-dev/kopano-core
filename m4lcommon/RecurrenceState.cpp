@@ -474,17 +474,14 @@ exit:
  */
 HRESULT RecurrenceState::GetBlob(char **lppData, unsigned int *lpulLen, void *base)
 {
-    HRESULT hr = hrSuccess;
     BinWriter data;
     std::vector<Exception>::const_iterator j = lstExceptions.begin();
     
     // There is one hard requirement: there must be as many Exceptions as there are ExtendedExceptions. Other
     // inconstencies are also bad, but we need at least that to even write the stream
     
-    if(lstExceptions.size() != lstExtendedExceptions.size()) {
-        hr = MAPI_E_CORRUPT_DATA;
-        goto exit;
-    }
+	if (lstExceptions.size() != lstExtendedExceptions.size())
+		return MAPI_E_CORRUPT_DATA;
     
     WRITESHORT(ulReaderVersion); 		WRITESHORT(ulWriterVersion);
     WRITESHORT(ulRecurFrequency);		WRITESHORT(ulPatternType);
@@ -596,7 +593,6 @@ HRESULT RecurrenceState::GetBlob(char **lppData, unsigned int *lpulLen, void *ba
     WRITELONG((ULONG)strReservedBlock2.size());
     WRITESTRING(strReservedBlock2.c_str(), (ULONG)strReservedBlock2.size());
     
-    data.GetData(lppData, lpulLen, base);
-exit:    
-    return hr;
+	data.GetData(lppData, lpulLen, base);
+	return hrSuccess;
 }
