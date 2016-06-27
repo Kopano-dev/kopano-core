@@ -140,7 +140,7 @@ static struct tm UTC_ICalTime2UnixTime(icaltimetype tt)
 static HRESULT HrZoneToStruct(icalcomponent_kind kind, icalcomponent *lpVTZ,
     TIMEZONE_STRUCT *lpsTimeZone)
 {
-	HRESULT hr = hrSuccess;
+//	HRESULT hr = hrSuccess;
 	icalcomponent *icComp = NULL;
 	icalcomponent *iterComp = NULL;
 	icalproperty *tzFrom, *tzTo, *rRule, *dtStart;
@@ -161,10 +161,8 @@ static HRESULT HrZoneToStruct(icalcomponent_kind kind, icalcomponent *lpVTZ,
 		iterComp = icalcomponent_get_next_component(lpVTZ, kind);
 	}
 
-	if (!icComp) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+	if (icComp == NULL)
+		return MAPI_E_NOT_FOUND;
 
 	dtStart = icalcomponent_get_first_property(icComp, ICAL_DTSTART_PROPERTY);
 	tzFrom = icalcomponent_get_first_property(icComp, ICAL_TZOFFSETFROM_PROPERTY);
@@ -172,10 +170,8 @@ static HRESULT HrZoneToStruct(icalcomponent_kind kind, icalcomponent *lpVTZ,
 	rRule = icalcomponent_get_first_property(icComp, ICAL_RRULE_PROPERTY);
 	//rDate = icalcomponent_get_first_property(icComp, ICAL_RDATE_PROPERTY);
 
-	if (!tzFrom || !tzTo || !dtStart) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+	if (tzFrom == NULL || tzTo == NULL || dtStart == NULL)
+		return MAPI_E_NOT_FOUND;
 
 	icTime = icalcomponent_get_dtstart(icComp);
 	icTime.is_utc = 1;
@@ -201,7 +197,7 @@ static HRESULT HrZoneToStruct(icalcomponent_kind kind, icalcomponent *lpVTZ,
 
 		// can daylight saving really be !yearly ??
 		if (recur.freq != ICAL_YEARLY_RECURRENCE ||	recur.by_month[0] == ICAL_RECURRENCE_ARRAY_MAX || recur.by_month[1] != ICAL_RECURRENCE_ARRAY_MAX)
-			goto exit;
+			return hrSuccess;
 
 		stRecurTime = TMToSystemTime(UTC_ICalTime2UnixTime(icTime));
 		lpSysTime->wHour = stRecurTime.wHour;
@@ -224,9 +220,7 @@ static HRESULT HrZoneToStruct(icalcomponent_kind kind, icalcomponent *lpVTZ,
 		lpSysTime->wHour = stRecurTime.wHour;
 		lpSysTime->wMinute = stRecurTime.wMinute;
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -249,10 +243,8 @@ HRESULT HrParseVTimeZone(icalcomponent* lpVTZ, std::string* lpstrTZID, TIMEZONE_
 	memset(&tzRet, 0, sizeof(TIMEZONE_STRUCT));
 
 	icProp = icalcomponent_get_first_property(lpVTZ, ICAL_TZID_PROPERTY);
-	if (!icProp) {
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
+	if (icProp == NULL)
+		return MAPI_E_CALL_FAILED;
 
 	strTZID = icalproperty_get_tzid(icProp);
 	if (strTZID.at(0) == '\"') {
@@ -263,7 +255,7 @@ HRESULT HrParseVTimeZone(icalcomponent* lpVTZ, std::string* lpstrTZID, TIMEZONE_
 
 	hr = HrZoneToStruct(ICAL_XSTANDARD_COMPONENT, lpVTZ, &tzRet);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// if the timezone does no switching, daylight is not given, so we ignore the error (which is only MAPI_E_NOT_FOUND)
 	HrZoneToStruct(ICAL_XDAYLIGHT_COMPONENT, lpVTZ, &tzRet);
@@ -296,9 +288,7 @@ HRESULT HrParseVTimeZone(icalcomponent* lpVTZ, std::string* lpstrTZID, TIMEZONE_
 		*lpstrTZID = strTZID;
 	if (lpTimeZone)
 		*lpTimeZone = tzRet;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -312,19 +302,17 @@ exit:
  */
 HRESULT HrCreateVTimeZone(const std::string &strTZID, TIMEZONE_STRUCT &tsTimeZone, icalcomponent** lppVTZComp)
 {
-	HRESULT hr = hrSuccess;
 	icalcomponent *icTZComp = NULL;
 	icalcomponent *icComp = NULL;
 	icaltimetype icTime;
 	icalrecurrencetype icRec;
 
 	// wDay in a timezone context means "week in month", 5 for last week in month
-	if (tsTimeZone.stStdDate.wYear > 0 || tsTimeZone.stStdDate.wDay > 5 || tsTimeZone.stStdDate.wDayOfWeek > 7 ||
-		tsTimeZone.stDstDate.wYear > 0 || tsTimeZone.stDstDate.wDay > 5 || tsTimeZone.stDstDate.wDayOfWeek > 7)
-	{
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (tsTimeZone.stStdDate.wYear > 0 || tsTimeZone.stStdDate.wDay > 5 ||
+	    tsTimeZone.stStdDate.wDayOfWeek > 7 ||
+	    tsTimeZone.stDstDate.wYear > 0 || tsTimeZone.stDstDate.wDay > 5 ||
+	    tsTimeZone.stDstDate.wDayOfWeek > 7)
+		return MAPI_E_INVALID_PARAMETER;
 
 	// make a new timezone
 	icTZComp = icalcomponent_new(ICAL_VTIMEZONE_COMPONENT);
@@ -388,9 +376,7 @@ HRESULT HrCreateVTimeZone(const std::string &strTZID, TIMEZONE_STRUCT &tsTimeZon
 	}
 
 	*lppVTZComp = icTZComp;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -405,33 +391,16 @@ exit:
  */
 HRESULT HrGetTzStruct(const std::string &strTimezone, TIMEZONE_STRUCT *ttTimeZone)
 {
-	HRESULT hr = hrSuccess;
 	icaltimezone *lpicTimeZone = NULL;
 	icalcomponent *lpicComponent = NULL;
 	
-
 	if (strTimezone.empty())
-	{
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
+		return MAPI_E_INVALID_PARAMETER;
 	lpicTimeZone = icaltimezone_get_builtin_timezone(strTimezone.c_str());
-	if (!lpicTimeZone) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
+	if (lpicTimeZone == NULL)
+		return MAPI_E_NOT_FOUND;
 	lpicComponent = icaltimezone_get_component(lpicTimeZone);
-	if (!lpicComponent) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
-	hr = HrParseVTimeZone(lpicComponent, NULL, ttTimeZone);
-	if (hr != hrSuccess)
-		goto exit;
-	
-exit:
-	return hr;
+	if (lpicComponent == NULL)
+		return MAPI_E_NOT_FOUND;
+	return HrParseVTimeZone(lpicComponent, NULL, ttTimeZone);
 }

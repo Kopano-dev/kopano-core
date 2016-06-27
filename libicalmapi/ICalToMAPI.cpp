@@ -323,17 +323,10 @@ ULONG ICalToMapiImpl::GetItemCount()
  */
 HRESULT ICalToMapiImpl::GetItemInfo(ULONG ulPosition, eIcalType *lpType, time_t *lptLastModified, SBinary *lpUid)
 {
-	HRESULT hr = hrSuccess;
-
-	if (ulPosition >= m_vMessages.size()) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-	if (lpType == NULL && lptLastModified == NULL && lpUid == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (ulPosition >= m_vMessages.size())
+		return MAPI_E_INVALID_PARAMETER;
+	if (lpType == NULL && lptLastModified == NULL && lpUid == NULL)
+		return MAPI_E_INVALID_PARAMETER;
 	if (lpType)
 		*lpType = m_vMessages[ulPosition]->eType;
 
@@ -342,9 +335,7 @@ HRESULT ICalToMapiImpl::GetItemInfo(ULONG ulPosition, eIcalType *lpType, time_t 
 
 	if (lpUid)
 		*lpUid = m_vMessages[ulPosition]->sBinGuid.Value.bin;
-	
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 

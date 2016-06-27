@@ -206,7 +206,6 @@ exit:
  */
 HRESULT MapiToICalImpl::AddBlocks(FBBlock_1 *lpsFbblk, LONG ulBlocks, time_t tStart, time_t tEnd, const std::string &strOrganiser, const std::string &strUser, const std::string &strUID)
 {
-	HRESULT hr = hrSuccess;
 	icalcomponent *icFbComponent = NULL;
 
 	if (m_lpicCalender == NULL) {
@@ -216,15 +215,14 @@ HRESULT MapiToICalImpl::AddBlocks(FBBlock_1 *lpsFbblk, LONG ulBlocks, time_t tSt
 		icalcomponent_add_property(m_lpicCalender, icalproperty_new_prodid("-//Kopano//" PROJECT_VERSION_DOT_STR "-" PROJECT_SVN_REV_STR "//EN"));		
 	}
 	
-	hr  = HrFbBlock2ICal(lpsFbblk, ulBlocks, tStart, tEnd, strOrganiser, strUser, strUID, &icFbComponent);
+	HRESULT hr = HrFbBlock2ICal(lpsFbblk, ulBlocks, tStart, tEnd,
+	             strOrganiser, strUser, strUID, &icFbComponent);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	m_icMethod = ICAL_METHOD_PUBLISH;
 	icalcomponent_add_component(m_lpicCalender,icFbComponent);
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 

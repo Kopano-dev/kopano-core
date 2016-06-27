@@ -111,41 +111,32 @@ exit:
 
 HRESULT ResetStream(LPSTREAM lpStream)
 {
-	HRESULT hr = hrSuccess;
 	LARGE_INTEGER liPos = {{0, 0}};
 	ULARGE_INTEGER uliSize = {{8, 0}};
-	hr = lpStream->Seek(liPos, STREAM_SEEK_SET, NULL);
+	HRESULT hr = lpStream->Seek(liPos, STREAM_SEEK_SET, NULL);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpStream->SetSize(uliSize);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpStream->Write("\0\0\0\0\0\0\0\0", 8, NULL);
 	if (hr != hrSuccess)
-		goto exit;
-	hr = lpStream->Seek(liPos, STREAM_SEEK_SET, NULL);
-
-exit:
-	return hr;
+		return hr;
+	return lpStream->Seek(liPos, STREAM_SEEK_SET, NULL);
 }
 
 HRESULT CreateNullStatusStream(LPSTREAM *lppStream)
 {
-	HRESULT hr = hrSuccess;
 	StreamPtr ptrStream;
 
-	hr = CreateStreamOnHGlobal(GlobalAlloc(GPTR, 8), true, &ptrStream);
+	HRESULT hr = CreateStreamOnHGlobal(GlobalAlloc(GPTR, 8), true, &ptrStream);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = ResetStream(ptrStream);
 	if (hr != hrSuccess)
-		goto exit;
-
-	hr = ptrStream->QueryInterface(IID_IStream, (LPVOID*)lppStream);
-
-exit:
-	return hr;
+		return hr;
+	return ptrStream->QueryInterface(IID_IStream,
+	       reinterpret_cast<LPVOID *>(lppStream));
 }
 
 HRESULT HrGetOneBinProp(IMAPIProp *lpProp, ULONG ulPropTag, LPSPropValue *lppPropValue)

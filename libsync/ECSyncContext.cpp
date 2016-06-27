@@ -172,22 +172,12 @@ ECSyncContext::~ECSyncContext()
 
 HRESULT ECSyncContext::HrGetMsgStore(LPMDB *lppMsgStore)
 {
-	HRESULT hr = hrSuccess;
-
-	if (!lppMsgStore) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	if (m_lpStore == NULL) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
-	hr = m_lpStore->QueryInterface(IID_IMsgStore, (void**)lppMsgStore);
-
-exit:
-	return hr;
+	if (lppMsgStore == NULL)
+		return MAPI_E_INVALID_PARAMETER;
+	if (m_lpStore == NULL)
+		return MAPI_E_NOT_FOUND;
+	return m_lpStore->QueryInterface(IID_IMsgStore,
+	       reinterpret_cast<void **>(lppMsgStore));
 }
 
 HRESULT ECSyncContext::HrGetReceiveFolder(LPMAPIFOLDER *lppInboxFolder)
@@ -231,19 +221,13 @@ HRESULT ECSyncContext::HrGetChangeAdvisor(IECChangeAdvisor **lppChangeAdvisor)
 	pthread_mutex_unlock(&m_hMutex);
 
 	if (hr != hrSuccess)
-		goto exit;
-
-	hr = m_lpChangeAdvisor->QueryInterface(IID_IECChangeAdvisor, (void**)lppChangeAdvisor);
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+		return hr;
+	return m_lpChangeAdvisor->QueryInterface(IID_IECChangeAdvisor,
+	       reinterpret_cast<void **>(lppChangeAdvisor));
 }
 
 HRESULT ECSyncContext::HrReleaseChangeAdvisor()
 {
-	HRESULT hr = hrSuccess;
 	ECChangeAdvisorPtr ptrReleaseMe;
 
 	// WARNING:
@@ -252,10 +236,8 @@ HRESULT ECSyncContext::HrReleaseChangeAdvisor()
 	// is released.
 	scoped_lock lock(m_hMutex);
 
-	if (!m_lpSettings->ChangeNotificationsEnabled()) {
-		hr = MAPI_E_NO_SUPPORT;
-		goto exit;
-	}
+	if (!m_lpSettings->ChangeNotificationsEnabled())
+		return MAPI_E_NO_SUPPORT;
 
 	if (m_lpChangeAdvisor) {
 		// Don't release while holding the lock as that might
@@ -265,35 +247,24 @@ HRESULT ECSyncContext::HrReleaseChangeAdvisor()
 	}
 
 	m_mapNotifiedSyncIds.clear();
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECSyncContext::HrResetChangeAdvisor()
 {
-	HRESULT hr = hrSuccess;
 	ECChangeAdvisorPtr ptrChangeAdvisor;
 	ECChangeAdviseSinkPtr ptrChangeAdviseSink;
 
-	hr = HrReleaseChangeAdvisor();
+	HRESULT hr = HrReleaseChangeAdvisor();
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = HrGetChangeAdvisor(&ptrChangeAdvisor);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = HrGetChangeAdviseSink(&ptrChangeAdviseSink);
 	if (hr != hrSuccess)
-		goto exit;
-
-	hr = ptrChangeAdvisor->Config(NULL, NULL, ptrChangeAdviseSink, 0);
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+		return hr;
+	return ptrChangeAdvisor->Config(NULL, NULL, ptrChangeAdviseSink, 0);
 }
 
 HRESULT ECSyncContext::HrGetChangeAdviseSink(IECChangeAdviseSink **lppChangeAdviseSink)
@@ -512,16 +483,15 @@ exit:
 
 HRESULT ECSyncContext::HrUpdateChangeId(LPSTREAM lpStream)
 {
-	HRESULT		hr = hrSuccess;
 	syncid_t	ulSyncId = 0;
 	changeid_t	ulChangeId = 0;
 	ECChangeAdvisorPtr	ptrECA;
 
 	ASSERT(lpStream != NULL);
 
-	hr = HrDecodeSyncStateStream(lpStream, &ulSyncId, &ulChangeId);
+	HRESULT hr = HrDecodeSyncStateStream(lpStream, &ulSyncId, &ulChangeId);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	pthread_mutex_lock(&m_hMutex);
 
@@ -534,17 +504,13 @@ HRESULT ECSyncContext::HrUpdateChangeId(LPSTREAM lpStream)
 		// Now inform the change advisor of our accomplishment
 		hr = m_lpChangeAdvisor->QueryInterface(ptrECA.iid, &ptrECA);
 		if (hr == MAPI_E_INTERFACE_NOT_SUPPORTED)
-			goto exit;
-
+			return hr;
 		hr = ptrECA->UpdateSyncState(ulSyncId, ulChangeId);
-		if (hr == MAPI_E_INVALID_PARAMETER) {
+		if (hr == MAPI_E_INVALID_PARAMETER)
 			// We're apparently not tracking this syncid.
-			hr = hrSuccess;
-		}
+			return hrSuccess;
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECSyncContext::HrGetSyncStateFromSourceKey(SBinary *lpSourceKey, SSyncState *lpsSyncState)
@@ -601,7 +567,6 @@ HRESULT ECSyncContext::HrClearSyncStatus()
 
 HRESULT ECSyncContext::HrLoadSyncStatus(SBinary *lpsSyncState)
 {
-	HRESULT hr = hrSuccess;
 	ULONG ulStatusCount = 0;
 	ULONG ulStatusNumber = 0;
 	ULONG ulVersion = 0;
@@ -612,16 +577,13 @@ HRESULT ECSyncContext::HrLoadSyncStatus(SBinary *lpsSyncState)
 
 	ASSERT(lpsSyncState != NULL);
 
-	if (lpsSyncState->cb < 8) {
-		hr = MAPI_E_CORRUPT_DATA;
-		goto exit;
-	}
-
+	if (lpsSyncState->cb < 8)
+		return MAPI_E_CORRUPT_DATA;
 	HrClearSyncStatus();
 
 	ulVersion = *((ULONG*)(lpsSyncState->lpb));
 	if (ulVersion != EC_SYNC_STATUS_VERSION)
-		goto exit;
+		return hrSuccess;
 
 	ulStatusCount = *((ULONG*)(lpsSyncState->lpb+4));
 
@@ -632,38 +594,31 @@ HRESULT ECSyncContext::HrLoadSyncStatus(SBinary *lpsSyncState)
 		ulSize = *((ULONG*)(lpsSyncState->lpb + ulPos));
 		ulPos += 4;
 
-		if (ulSize <= 16 || ulPos + ulSize + 4 > lpsSyncState->cb) {
-			hr = MAPI_E_CORRUPT_DATA;
-			goto exit;
-		}
+		if (ulSize <= 16 || ulPos + ulSize + 4 > lpsSyncState->cb)
+			return MAPI_E_CORRUPT_DATA;
 
 		strSourceKey.assign((char*)(lpsSyncState->lpb + ulPos), ulSize);
 		ulPos += ulSize;
 		ulSize = *((ULONG*)(lpsSyncState->lpb + ulPos));
 		ulPos += 4;
 
-		if (ulSize < 8 || ulPos + ulSize > lpsSyncState->cb) {
-			hr = MAPI_E_CORRUPT_DATA;
-			goto exit;
-		}
+		if (ulSize < 8 || ulPos + ulSize > lpsSyncState->cb)
+			return MAPI_E_CORRUPT_DATA;
 
 		ZLOG_DEBUG(m_lpLogger, "  Stream %u: size=%u, sourcekey=%s", ulStatusNumber, ulSize, bin2hex(strSourceKey.size(), (unsigned char*)strSourceKey.data()).c_str());
 
-		hr = CreateStreamOnHGlobal(GlobalAlloc(GPTR, ulSize), true, &lpStream);
+		HRESULT hr = CreateStreamOnHGlobal(GlobalAlloc(GPTR, ulSize), true, &lpStream);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		hr = lpStream->Write(lpsSyncState->lpb + ulPos, ulSize, &ulSize);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		m_mapSyncStatus[strSourceKey] = lpStream;
 		lpStream = NULL;
 
 		ulPos += ulSize;
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECSyncContext::HrSaveSyncStatus(LPSPropValue *lppSyncStatusProp)
@@ -786,19 +741,14 @@ exit:
 
 HRESULT ECSyncContext::GetResyncID(ULONG *lpulResyncID)
 {
-	HRESULT hr = hrSuccess;
 	MAPIFolderPtr ptrRoot;
 	SPropValuePtr ptrResyncID;
 
-	if (lpulResyncID == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	hr = HrOpenRootFolder(&ptrRoot, NULL);
+	if (lpulResyncID == NULL)
+		return MAPI_E_INVALID_PARAMETER;
+	HRESULT hr = HrOpenRootFolder(&ptrRoot, NULL);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = HrGetOneProp(ptrRoot, PR_EC_RESYNC_ID, &ptrResyncID);
 	if (hr == hrSuccess)
 		*lpulResyncID = ptrResyncID->Value.ul;
@@ -806,108 +756,76 @@ HRESULT ECSyncContext::GetResyncID(ULONG *lpulResyncID)
 		*lpulResyncID = 0;
 		hr = hrSuccess;
 	}
-
-exit:
 	return hr;
 }
 
 HRESULT ECSyncContext::SetResyncID(ULONG ulResyncID)
 {
-	HRESULT hr = hrSuccess;
 	MAPIFolderPtr ptrRoot;
 	SPropValue sPropResyncID;
 
-	hr = HrOpenRootFolder(&ptrRoot, NULL);
+	HRESULT hr = HrOpenRootFolder(&ptrRoot, NULL);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	sPropResyncID.ulPropTag = PR_EC_RESYNC_ID;
 	sPropResyncID.Value.ul = ulResyncID;
-
-	hr = HrSetOneProp(ptrRoot, &sPropResyncID);
-
-exit:
-	return hr;
+	return HrSetOneProp(ptrRoot, &sPropResyncID);
 }
 
 HRESULT ECSyncContext::GetStoredServerUid(LPGUID lpServerUid)
 {
-	HRESULT hr = hrSuccess;
 	MAPIFolderPtr ptrRoot;
 	SPropValuePtr ptrServerUid;
 
-	if (lpServerUid == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	hr = HrOpenRootFolder(&ptrRoot, NULL);
+	if (lpServerUid == NULL)
+		return MAPI_E_INVALID_PARAMETER;
+	HRESULT hr = HrOpenRootFolder(&ptrRoot, NULL);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = HrGetOneProp(ptrRoot, PR_EC_STORED_SERVER_UID, &ptrServerUid);
 	if (hr != hrSuccess)
-		goto exit;
-
-	if (ptrServerUid->Value.bin.lpb == NULL || ptrServerUid->Value.bin.cb != sizeof *lpServerUid) {
-		hr = MAPI_E_CORRUPT_DATA;
-		goto exit;
-	}
-
+		return hr;
+	if (ptrServerUid->Value.bin.lpb == NULL ||
+	    ptrServerUid->Value.bin.cb != sizeof(*lpServerUid))
+		return MAPI_E_CORRUPT_DATA;
 	memcpy(lpServerUid, ptrServerUid->Value.bin.lpb, sizeof *lpServerUid);
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECSyncContext::SetStoredServerUid(LPGUID lpServerUid)
 {
-	HRESULT hr = hrSuccess;
 	MAPIFolderPtr ptrRoot;
 	SPropValue sPropServerUid;
 
-	hr = HrOpenRootFolder(&ptrRoot, NULL);
+	HRESULT hr = HrOpenRootFolder(&ptrRoot, NULL);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	sPropServerUid.ulPropTag = PR_EC_STORED_SERVER_UID;
 	sPropServerUid.Value.bin.cb = sizeof *lpServerUid;
 	sPropServerUid.Value.bin.lpb = (LPBYTE)lpServerUid;
-
-	hr = HrSetOneProp(ptrRoot, &sPropServerUid);
-
-exit:
-	return hr;
+	return HrSetOneProp(ptrRoot, &sPropServerUid);
 }
 
 HRESULT ECSyncContext::GetServerUid(LPGUID lpServerUid)
 {
-	HRESULT hr = hrSuccess;
 	MsgStorePtr ptrStore;
 	SPropValuePtr ptrServerUid;
 
-	if (lpServerUid == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	hr = HrGetMsgStore(&ptrStore);
+	if (lpServerUid == NULL)
+		return MAPI_E_INVALID_PARAMETER;
+	HRESULT hr = HrGetMsgStore(&ptrStore);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = HrGetOneProp(ptrStore, PR_EC_SERVER_UID, &ptrServerUid);
 	if (hr != hrSuccess)
-		goto exit;
-
-	if (ptrServerUid->Value.bin.lpb == NULL || ptrServerUid->Value.bin.cb != sizeof *lpServerUid) {
-		hr = MAPI_E_CORRUPT_DATA;
-		goto exit;
-	}
+		return hr;
+	if (ptrServerUid->Value.bin.lpb == NULL ||
+	    ptrServerUid->Value.bin.cb != sizeof(*lpServerUid))
+		return MAPI_E_CORRUPT_DATA;
 
 	memcpy(lpServerUid, ptrServerUid->Value.bin.lpb, sizeof *lpServerUid);
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 ULONG ECSyncContext::OnChange(ULONG ulFlags, LPENTRYLIST lpEntryList)

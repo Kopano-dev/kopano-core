@@ -44,16 +44,12 @@ VEventConverter::VEventConverter(LPADRBOOK lpAdrBook, timezone_map *mapTimeZones
  */
 HRESULT VEventConverter::HrICal2MAPI(icalcomponent *lpEventRoot, icalcomponent *lpEvent, icalitem *lpPrevItem, icalitem **lppRet)
 {
-	HRESULT hr = hrSuccess;
-
-	hr = VConverter::HrICal2MAPI(lpEventRoot, lpEvent, lpPrevItem, lppRet);
+	HRESULT hr = VConverter::HrICal2MAPI(lpEventRoot, lpEvent,
+	             lpPrevItem, lppRet);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	(*lppRet)->eType = VEVENT;
-	
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -83,7 +79,6 @@ exit:
  */
 HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalcomponent *lpicEvent, void *base, bool bisException, std::list<SPropValue> *lstMsgProps)
 {
-	HRESULT hr = hrSuccess;
 	icalproperty *icProp = NULL;
 	icalparameter *icParam = NULL;
 	SPropValue sPropVal;
@@ -136,22 +131,14 @@ HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalc
 		bMeeting = false;
 
 		// A reply message must have only one attendee, the attendee replying
-		if (icalcomponent_count_properties(lpicEvent, ICAL_ATTENDEE_PROPERTY) != 1) {
-			hr = MAPI_E_CALL_FAILED;
-			goto exit;
-		}
-
+		if (icalcomponent_count_properties(lpicEvent, ICAL_ATTENDEE_PROPERTY) != 1)
+			return MAPI_E_CALL_FAILED;
 		icProp = icalcomponent_get_first_property(lpicEvent, ICAL_ATTENDEE_PROPERTY);
-		if (!icProp) {
-			hr = MAPI_E_CALL_FAILED;
-			goto exit;
-		}
-
+		if (icProp == NULL)
+			return MAPI_E_CALL_FAILED;
 		icParam = icalproperty_get_first_parameter(icProp, ICAL_PARTSTAT_PARAMETER);
-		if (!icParam) {
-			hr = MAPI_E_CALL_FAILED;
-			goto exit;
-		}
+		if (icParam == NULL)
+			return MAPI_E_CALL_FAILED;
 
 		switch (icalparameter_get_partstat(icParam)) {
 		case ICAL_PARTSTAT_ACCEPTED:
@@ -167,8 +154,7 @@ HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalc
 			break;
 
 		default:
-			hr = MAPI_E_TYPE_NO_SUPPORT;
-			goto exit;
+			return MAPI_E_TYPE_NO_SUPPORT;
 		}
 		break;
 
@@ -267,9 +253,7 @@ HRESULT VEventConverter::HrAddBaseProperties(icalproperty_method icMethod, icalc
 	// 1026: meeting request
 	// 1027: recurring meeting request
 	lstMsgProps->push_back(sPropVal);
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -499,16 +483,16 @@ exit:
  */
 HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMsgProps, icaltimezone *lpicTZinfo, const std::string &strTZid, icalcomponent *lpEvent)
 {
-	HRESULT hr = hrSuccess;
 	bool bIsAllDay = false;
 	LPSPropValue lpPropVal = NULL;
 	bool bCounterProposal = false;
 	ULONG ulStartIndex = PROP_APPTSTARTWHOLE;
 	ULONG ulEndIndex = PROP_APPTENDWHOLE;
 
-	hr = VConverter::HrSetTimeProperties(lpMsgProps, ulMsgProps, lpicTZinfo, strTZid, lpEvent);
+	HRESULT hr = VConverter::HrSetTimeProperties(lpMsgProps, ulMsgProps,
+	             lpicTZinfo, strTZid, lpEvent);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// vevent extra
 
@@ -533,11 +517,10 @@ HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMs
 
 		hr = HrSetTimeProperty(ttTime, bIsAllDay, lpicTZinfo, strTZid, ICAL_DTSTART_PROPERTY, lpEvent);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	} else {
 		// do not create calendar items without start/end date, which is invalid.
-		hr = MAPI_E_CORRUPT_DATA;
-		goto exit;
+		return MAPI_E_CORRUPT_DATA;
 	}
 
 	// Set end time / DTEND
@@ -547,11 +530,10 @@ HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMs
 
 		hr = HrSetTimeProperty(ttTime, bIsAllDay, lpicTZinfo, strTZid, ICAL_DTEND_PROPERTY, lpEvent);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	} else {
 		// do not create calendar items without start/end date, which is invalid.
-		hr = MAPI_E_CORRUPT_DATA;
-		goto exit;
+		return MAPI_E_CORRUPT_DATA;
 	}
 	// @note we never set the DURATION property: MAPI objects always should have the end property 
 
@@ -569,13 +551,12 @@ HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMs
 
 			hr = HrSetTimeProperty(ttTime, bIsAllDay, lpicTZinfo, strTZid, ICAL_DTSTART_PROPERTY, lpProp);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			icalcomponent_add_property(lpEvent, lpProp);
 		} else {
 			// do not create calendar items without start/end date, which is invalid.
-			hr = MAPI_E_CORRUPT_DATA;
-			goto exit;
+			return MAPI_E_CORRUPT_DATA;
 		}
 
 		// Set original end time / DTEND
@@ -588,16 +569,13 @@ HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMs
 
 			hr = HrSetTimeProperty(ttTime, bIsAllDay, lpicTZinfo, strTZid, ICAL_DTEND_PROPERTY, lpProp);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			icalcomponent_add_property(lpEvent, lpProp);
 		} else {
 			// do not create calendar items without start/end date, which is invalid.
-			hr = MAPI_E_CORRUPT_DATA;
-			goto exit;
+			return MAPI_E_CORRUPT_DATA;
 		}
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
