@@ -143,7 +143,7 @@ def getUserlistNormal(gab):
 def buildUserList(table):
     users = []
     table.Restrict(SPropertyRestriction(RELOP_EQ, PR_DISPLAY_TYPE, SPropValue(PR_DISPLAY_TYPE, DT_MAILUSER)), TBL_BATCH)
-    table.SetColumns([PR_ACCOUNT], TBL_BATCH)
+    table.SetColumns([PR_ACCOUNT_W], TBL_BATCH)
     while True:
         rows = table.QueryRows(50, 0)
 
@@ -251,7 +251,7 @@ def UserAccountsToEntryIDs(session, users):
     addrlist = []
     flaglist = []
     for user in users:
-        addrlist.append([SPropValue(PR_DISPLAY_NAME, user)])
+        addrlist.append([SPropValue(PR_DISPLAY_NAME_W, user)])
         flaglist.append(MAPI_UNRESOLVED)
 
     # We need flag EMS_AB_ADDRESS_LOOKUP in kopano to avoid ambiguous users
