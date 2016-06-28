@@ -53,7 +53,7 @@ static const MAPIErrorTranslateRecord MAPIErrorCodes[] = {
     { MAPI_E_NOT_ENOUGH_DISK,               "not enough disk" },
     { MAPI_E_NOT_ENOUGH_RESOURCES,          "not enough resources" },
     { MAPI_E_NOT_FOUND,                     "not found" },
-    { MAPI_E_VERSION,                       "version" },
+    { MAPI_E_VERSION,                       "version mismatch" },
     { MAPI_E_LOGON_FAILED,                  "logon failed" },
     { MAPI_E_SESSION_LIMIT,                 "session limit" },
     { MAPI_E_USER_CANCEL,                   "use cancel" },

@@ -319,15 +319,12 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 	if (hr != hrSuccess)
 		goto exit;
 
-	// Connecting to a server with a lower major version is unsupported. Since the server only
-	// checks if a client isn't too old, we'll prohibit connecting to an old server here.
-	//
-	// During development of 7.1, it is quite annoying that a development client won't connect to
-	// a 7.0 server. On top of that, there are currently (12-jul-2011) no protocol differences
-	// between the two version.
-	// So for now, we will just check the general version, not the major.
+	/*
+	 * Version is retrieved but not analyzed because we want to be able to
+	 * connect to old servers for development.
+	 */
 	er = ParseKopanoVersion(sResponse.lpszVersion, &ulServerVersion);
-	if (er != erSuccess || KOPANO_COMPARE_VERSION_TO_GENERAL(ulServerVersion, KOPANO_CUR_GENERAL) < 0) {
+	if (er != erSuccess) {
 		hr = MAPI_E_VERSION;
 		goto exit;
 	}
