@@ -58,8 +58,6 @@ using namespace std;
 #define new DEBUG_NEW
 #endif
 
-#define BLOCKSIZE	65536
-
 // HACK: prototypes may differ depending on the compiler and/or system (the
 // second parameter may or may not be 'const'). This redeclaration is a hack
 // to have a common prototype "iconv_cast".

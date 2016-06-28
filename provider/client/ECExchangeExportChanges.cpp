@@ -53,8 +53,6 @@
 #define new DEBUG_NEW
 #endif
 
-#define max(a,b) ((a) > (b) ? (a) : (b))
-
 ECExchangeExportChanges::ECExchangeExportChanges(ECMsgStore *lpStore, const std::string &sk, const wchar_t * szDisplay, unsigned int ulSyncType)
 : m_iidMessage(IID_IMessage)
 {

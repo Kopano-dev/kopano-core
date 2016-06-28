@@ -51,19 +51,6 @@ static void assertbreak(void)
 	}\
 }
 
-#define NEW_SWIG_POINTER_OBJ(pyswigobj, objpointer, typeobj) {\
-	if (objpointer) {\
-		pyswigobj = SWIG_NewPointerObj((void*)objpointer, typeobj, SWIG_POINTER_OWN | 0);\
-		PY_HANDLE_ERROR(m_lpLogger, pyswigobj) \
-		\
-	} else {\
-		pyswigobj = Py_None;\
-		Py_INCREF(Py_None);\
-	}\
-}
-
-#define DECREF_PYOBJ(pyswigobj) { if (pyswigobj) { Py_DECREF(pyswigobj); pyswigobj = NULL;} }
-
 #define BUILD_SWIG_TYPE(pyswigobj, type) {\
 	pyswigobj = SWIG_TypeQuery(type);\
 	if (!pyswigobj) {\

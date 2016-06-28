@@ -189,12 +189,7 @@ private:
                             
 #define READSHORT(x) READDATA(x, Short)
 #define READLONG(x) READDATA(x, Long)
-#define READBYTE(x) READDATA(x, Byte)
 
-#define WRITEBYTE(x) do { \
-		DEBUGPRINT("%02X %10u %08X %s\n", (x), (x), (x), #x); \
-		data.WriteByte(x); \
-	} while (false)
 #define WRITESHORT(x) do { \
 		DEBUGPRINT("%04X %10u %08X %s\n", htons(x), (x), (x), #x); \
 		data.WriteShort(x); \

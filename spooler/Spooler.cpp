@@ -89,9 +89,6 @@ using namespace std;
 
 static StatsClient *sc = NULL;
 
-#define SMTP_HOST	"127.0.0.1"
-#define WHITESPACE	" \t\n\r"
-
 // spooler exit codes
 #define EXIT_OK 0
 #define EXIT_FAILED 1

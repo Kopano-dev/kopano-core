@@ -85,9 +85,7 @@ typedef auto_free<LDAPControl*, auto_free_dealloc<LDAPControl**, void, ldap_cont
 typedef auto_free<struct berval*, auto_free_dealloc<struct berval**, void, ldap_value_free_len> >auto_free_ldap_berval;
 
 #define LDAP_DATA_TYPE_DN			"dn"	// data in attribute like cn=piet,cn=user,dc=localhost,dc=com
-#define LDAP_DATA_TYPE_ATTRIBUTE	"attribute"	// data in attribute like piet
 #define LDAP_DATA_TYPE_BINARY		"binary"
-#define LDAP_DATA_TYPE_TEXT			"text"
 
 #define FETCH_ATTR_VALS 0
 #define DONT_FETCH_ATTR_VALS 1

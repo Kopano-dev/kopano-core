@@ -58,11 +58,7 @@
 // icalmapi
 #include "MAPIToICal.h"
 
-// others
-#define BASETMPDIR "/tmp/"
-
 using namespace std;
-
 
 /* These are the properties that we DON'T send through TNEF. Reasons can be:
  *
