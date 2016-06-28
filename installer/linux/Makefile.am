@@ -62,8 +62,6 @@ dist_doc_DATA = \
 	audit-parse.pl db-remove-orphaned-attachments \
 	${top_srcdir}/tools/python-scripts/optimize-imap.py ${top_srcdir}/tools/python-scripts/update-resource-recipients
 
-dist_pkgdata_DATA = ldap.m4
-
 BUILT_SOURCES = ldap.openldap.cfg ldap.active-directory.cfg
 
 ldap.openldap.cfg: ldap.m4

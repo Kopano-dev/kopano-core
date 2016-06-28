@@ -31,7 +31,6 @@ ldapplugin_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version
 ldapplugin_la_LIBADD = \
 	${top_builddir}/common/libkcutil.la \
 	../libserver/libkcserver.la ${CRYPTO_LIBS} ${LDAP_LIBS}
-dist_pkgdata_DATA = ${ldapplugin_la_SOURCES}
 
 .libs/ldapmsplugin.so: ldapplugin.la
 	${AM_V_GEN}ln -fs ldapplugin.so .libs/ldapmsplugin.so
