@@ -55,7 +55,7 @@ start() {
 
 stop() {
 	echo -n $"Stopping $presence: "
-	killproc $PRESENCEPROGRAM
+	killproc -p "$pidfile"
 	RETVAL=$?
 	echo
 	[ $RETVAL -eq 0 ] && rm -f $lockfile $pidfile
@@ -70,7 +70,7 @@ restart() {
 
 reload() {
 	echo -n $"Restarting $presence: "
-	killproc $PRESENCEPROGRAM -SIGHUP
+	killproc -p "$pidfile" -SIGHUP
 	RETVAL=$?
 	echo
 
@@ -86,7 +86,7 @@ case "$1" in
 		stop
 		;;
     status)
-		status $presence
+		status -p "$pidfile"
 		RETVAL=$?
 		;;
     restart|force-reload)
