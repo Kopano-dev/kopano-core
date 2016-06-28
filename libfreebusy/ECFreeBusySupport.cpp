@@ -431,11 +431,9 @@ exit:
 	return hr;
 }
 
-//////////////////////////////////////////////////////////////////
 // Interfaces
 //		IUnknown
 //		IFreeBusySupport
-//
 
 // IUnknown
 
@@ -679,7 +677,6 @@ HRESULT __stdcall ECFreeBusySupport::xFreeBusySupport::Placeholder22()
 	return hr;
 }
 
-//////////////////////////////////////////////////////////////////
 // Interfaces
 //		IUnknown
 //		IFreeBusySupportOutlook2000

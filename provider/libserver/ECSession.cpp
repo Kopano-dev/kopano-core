@@ -15,9 +15,6 @@
  *
  */
 
-//
-//////////////////////////////////////////////////////////////////////
-
 #include <kopano/platform.h>
 #include <new>
 #ifdef LINUX
@@ -261,9 +258,7 @@ size_t BTSession::GetInternalObjectSize()
 			MEMORY_USAGE_STRING(m_strProxyHost);
 }
 
-//////////////////////////////////////////////////////////////////////
 // Construction/Destruction
-//////////////////////////////////////////////////////////////////////
 
 ECSession::ECSession(const char *src_addr, ECSESSIONID sessionID,
     ECSESSIONGROUPID ecSessionGroupId, ECDatabaseFactory *lpDatabaseFactory,

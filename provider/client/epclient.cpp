@@ -126,9 +126,7 @@ public:
 
 CKopanoApp theApp;
 
-///////////////////////////////////////////////////////////////////
 // entrypoints
-//
 
 // Called by MAPI to return a MSProvider object when a user opens a store based on our service
 extern "C" HRESULT __cdecl MSProviderInit(HINSTANCE hInstance, LPMALLOC pmalloc, LPALLOCATEBUFFER pfnAllocBuf, LPALLOCATEMORE pfnAllocMore, LPFREEBUFFER pfnFreeBuf, ULONG ulFlags, ULONG ulMAPIver, ULONG * lpulProviderVer, LPMSPROVIDER * ppmsp)

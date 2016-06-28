@@ -589,9 +589,7 @@ HRESULT ECMsgStorePublic::BuildIPMSubTree()
 	MAPIFreeBuffer(lpProps);
 	lpProps = NULL;
 
-	///////////////////////////////////////////////////
 	// the folder "Public Folders"
-	//
 	++ulRowId;
 	cProps = 0;
 	cMaxProps = 20;

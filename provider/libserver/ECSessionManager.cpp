@@ -16,8 +16,6 @@
  */
 
 /// ECSessionManager.cpp: implementation of the ECSessionManager class.
-//
-//////////////////////////////////////////////////////////////////////
 #include <kopano/platform.h>
  
  
@@ -51,9 +49,7 @@
 #define new DEBUG_NEW
 #endif
 
-//////////////////////////////////////////////////////////////////////
 // Construction/Destruction
-//////////////////////////////////////////////////////////////////////
 
 ECSessionManager::ECSessionManager(ECConfig *lpConfig, ECLogger *lpAudit,
     bool bHostedKopano, bool bDistributedKopano)
@@ -1785,4 +1781,3 @@ exit:
 		
 	return er;
 }
-

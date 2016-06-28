@@ -68,9 +68,7 @@ HRESULT WSStoreTableView::QueryInterface(REFIID refiid, void **lppInterface)
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
-//////////////////////////////////////////////
 // WSTableMultiStore view
-//
 WSTableMultiStore::WSTableMultiStore(ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport) : WSStoreTableView(MAPI_MESSAGE, ulFlags, lpCmd, lpDataLock, ecSessionId, cbEntryId, lpEntryId, lpMsgStore, lpTransport)
 {
     memset(&m_sEntryList, 0, sizeof(m_sEntryList));
@@ -202,9 +200,7 @@ exit:
 }
 
 
-//////////////////////////////////////////////
 // WSTableMailBox view
-//
 WSTableMailBox::WSTableMailBox(ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ECMsgStore *lpMsgStore, WSTransport *lpTransport) : WSStoreTableView(MAPI_STORE, ulFlags, lpCmd, lpDataLock, ecSessionId, 0, NULL, lpMsgStore, lpTransport)
 {
 	m_ulTableType = TABLETYPE_MAILBOX;

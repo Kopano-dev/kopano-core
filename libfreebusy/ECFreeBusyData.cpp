@@ -211,11 +211,9 @@ exit:
 	return hr;
 }
 
-//////////////////////////////////////////////////////////////////
 // Interfaces
 //		IUnknown
 //		IFreeBusyData
-//
 
 HRESULT __stdcall ECFreeBusyData::xFreeBusyData::QueryInterface(REFIID refiid , void** lppInterface)
 {

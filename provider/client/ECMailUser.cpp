@@ -16,8 +16,7 @@
  */
 
 // ECMailUser.cpp: implementation of the ECMailUser class.
-//
-//////////////////////////////////////////////////////////////////////
+
 #include <kopano/platform.h>
 
 #include "resource.h"
@@ -36,9 +35,7 @@
 #define new DEBUG_NEW
 #endif
 
-//////////////////////////////////////////////////////////////////////
 // Construction/Destruction
-//////////////////////////////////////////////////////////////////////
 
 ECMailUser::ECMailUser(void* lpProvider, BOOL fModify) : ECABProp(lpProvider, MAPI_MAILUSER, fModify, "IMailUser")
 {
@@ -109,9 +106,7 @@ HRESULT ECMailUser::CopyProps(LPSPropTagArray lpIncludeProps, ULONG ulUIParam, L
 	return this->GetABStore()->m_lpMAPISup->DoCopyProps(&IID_IMailUser, &this->m_xMailUser, lpIncludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
 }
 
-//////////////////////////////////////////////
 // IMailUser
-//
 
 HRESULT ECMailUser::xMailUser::QueryInterface(REFIID refiid , void** lppInterface)
 {

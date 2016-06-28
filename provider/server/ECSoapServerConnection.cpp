@@ -111,9 +111,7 @@ static int create_pipe_socket(const char *unix_socket, ECConfig *lpConfig,
 
 #else
 
-//////////////////////////////////////////////////////////////////////
 // Named pipe functions
-//
 
 // Create a namedpipe in windows 
 // the function must be called very time you have used the pipe
@@ -214,9 +212,7 @@ int gsoap_win_shutdownsocket(struct soap *soap, SOAP_SOCKET fd, int how)
 }
 
 
-//////////////////////////////////////////////////////////////////////
 // TCP/SSL socket functions
-//
 #endif // #ifdef LINUX
 
 /*

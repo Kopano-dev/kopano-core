@@ -16,8 +16,7 @@
  */
 
 // ECMAPIContainer.cpp: implementation of the ECMAPIContainer class.
-//
-//////////////////////////////////////////////////////////////////////
+
 #include <kopano/platform.h>
 #include "kcore.hpp"
 #include "ECMAPIContainer.h"
@@ -37,9 +36,7 @@
 #define new DEBUG_NEW
 #endif
 
-//////////////////////////////////////////////////////////////////////
 // Construction/Destruction
-//////////////////////////////////////////////////////////////////////
 
 ECMAPIContainer::ECMAPIContainer(ECMsgStore *lpMsgStore, ULONG ulObjType,
     BOOL fModify, const char *szClassName) :

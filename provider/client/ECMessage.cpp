@@ -1620,10 +1620,7 @@ HRESULT ECMessage::SetReadFlag(ULONG ulFlags)
 	if(hr != hrSuccess)
 		goto exit;
 
-	///////////////////////////////////////////////////
 	// Check for Read receipts
-	//
-
 	lpsPropTagArray->cValues = 2;
 	lpsPropTagArray->aulPropTag[0] = PR_MESSAGE_FLAGS;
 	lpsPropTagArray->aulPropTag[1] = PR_READ_RECEIPT_REQUESTED;
@@ -2247,7 +2244,6 @@ HRESULT ECMessage::SyncSubject()
 		goto exit;
 	}
 
-	//////////////////////////////////////////
 	// Check if subject and prefix in sync
 
 	hr = ECMAPIProp::GetProps((LPSPropTagArray)&sPropSubjects, 0, &cValues, &lpPropArray);

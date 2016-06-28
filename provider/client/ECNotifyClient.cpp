@@ -16,8 +16,6 @@
  */
 
 // ECNotifyClient.cpp: implementation of the ECNotifyClient class.
-//
-//////////////////////////////////////////////////////////////////////
 
 #include <kopano/platform.h>
 
@@ -45,9 +43,7 @@ static inline std::pair<ULONG,ULONG> SyncAdviseToConnection(const SSyncAdvise &s
 	return std::make_pair(sSyncAdvise.sSyncState.ulSyncId,sSyncAdvise.ulConnection);
 }
 
-//////////////////////////////////////////////////////////////////////
 // Construction/Destruction
-//////////////////////////////////////////////////////////////////////
 
 ECNotifyClient::ECNotifyClient(ULONG ulProviderType, void *lpProvider, ULONG ulFlags, LPMAPISUP lpSupport) : ECUnknown("ECNotifyClient")
 {

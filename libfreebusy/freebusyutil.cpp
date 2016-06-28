@@ -232,9 +232,7 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 		if(hr != hrSuccess)
 			goto exit;
 
-		///////////////////////////////////////////////////////////////////////
 		// Set the accountname in properties PR_DISPLAY_NAME and PR_SUBJECT
-		//
 		hr = lpSession->OpenAddressBook(0, NULL, AB_NO_DIALOG, &lpAdrBook);
  		if(hr != hrSuccess)
 			goto exit;
@@ -277,9 +275,7 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 		if(hr != hrSuccess)
 			goto exit;
 
-		//////////////////////////////////////////////////////////
 		// Update the user freebusy entryid array
-		//
 
 		if (lpUserStore) {
 			// Get entryid

@@ -131,9 +131,7 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
 
 // Unicode
 
-/////////////////////////////////
 // LPTSTR
-/////////////////////////////////
 
 // Input
 
@@ -224,9 +222,7 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
     %dirout_fail(0, "$type");  
 }
 
-//////////////////////////////////////////////
 // void *    Used in CopyTo/CopyProps
-//////////////////////////////////////////////
 %typemap(directorin) void *lpDestObj
 {
 	$input = SWIG_NewPointerObj($1_name, TypeFromIID(*__iid), 0 | 0);

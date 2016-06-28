@@ -2853,7 +2853,6 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er, entryId sParentEntryId, 
 	if(er != erSuccess)
 		goto exit;
 	
-	/////////////////////////////////////////////////
 	// Quota check
 	if(ulObjType == MAPI_MESSAGE) {
 		er = CheckQuota(lpecSession, ulStoreId);
@@ -6968,7 +6967,6 @@ SOAP_ENTRY_START(submitMessage, *result, entryId sEntryId, unsigned int ulFlags,
 	if(er != erSuccess)
 		goto exit;
 
-	/////////////////////////////////////////////////
 	// Quota check
 	er = lpecSession->GetSecurity()->GetStoreSize(ulStoreId, &llStoreSize);
 	if(er != erSuccess)
@@ -7668,7 +7666,6 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 	// Check the quota size when the item is a softdelete item
 	if(bUpdateDeletedSize == true)
 	{
-		/////////////////////////////////////////////////
 		// Quota check
 		er = lpSession->GetSecurity()->GetStoreSize(ulDestFolderId, &llStoreSize);
 		if (er != erSuccess) {
@@ -8045,7 +8042,6 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 			goto exit;
 		}
 
-		/////////////////////////////////////////////////
 		// Quota check
 		er = lpecSession->GetSecurity()->GetStoreSize(ulDestFolderId, &llStoreSize);
 		if (er != erSuccess) {
@@ -8433,7 +8429,6 @@ static ECRESULT CopyFolderObjects(struct soap *soap, ECSession *lpecSession,
 		goto exit;
 	}
 
-	/////////////////////////////////////////////////
 	// Quota check
 	er = lpecSession->GetSecurity()->GetStoreSize(ulDestFolderId, &llStoreSize);
 	if (er != erSuccess) {
@@ -9833,10 +9828,7 @@ SOAP_ENTRY_START(syncUsers, *result, unsigned int ulCompanyId, entryId sCompanyI
 }
 SOAP_ENTRY_END()
 
-///////////////////
 // Quota
-//
-
 SOAP_ENTRY_START(GetQuota, lpsQuota->er, unsigned int ulUserid, entryId sUserId, bool bGetUserDefault, struct quotaResponse* lpsQuota)
 {
 	quotadetails_t	quotadetails;

@@ -345,9 +345,7 @@ HRESULT WSABPropStorage::Reload(void *lpParam, ECSESSIONID sessionId) {
 }
             
 
-////////////////////////////////////////////////
 // Interface IECPropStorage
-//
 
 ULONG WSABPropStorage::xECPropStorage::AddRef()
 {

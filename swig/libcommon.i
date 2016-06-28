@@ -45,9 +45,7 @@ class CHtmlToTextParser {
 
 };
 
-/////////////////////////////////
 // std::string&
-/////////////////////////////////
 %typemap(in,numinputs=0) std::string &OUTPUT	(std::string s)
 {
 	$1 = &s;

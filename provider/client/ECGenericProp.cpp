@@ -324,7 +324,6 @@ exit:
 	return hr;
 }
 
-////////////////////////////////////////////////////////////
 // Default property handles
 //
 
@@ -1170,7 +1169,6 @@ HRESULT ECGenericProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID FAR * lppP
 	return MAPI_E_NO_SUPPORT;
 }
 
-////////////////////////////////////////////
 // Interface IECSingleInstance
 //
 
@@ -1233,7 +1231,6 @@ exit:
 	return hr;
 }
 
-////////////////////////////////////////////
 // Interface IMAPIProp
 //
 

@@ -17,7 +17,6 @@
 
 // ECABProvider.cpp: implementation of the ECABProvider class.
 //
-//////////////////////////////////////////////////////////////////////
 
 #include <kopano/platform.h>
 #include <mapi.h>
@@ -51,9 +50,7 @@ using namespace std;
 #define new DEBUG_NEW
 #endif
 
-//////////////////////////////////////////////////////////////////////
 // Construction/Destruction
-//////////////////////////////////////////////////////////////////////
 
 ECABProvider::ECABProvider(ULONG ulFlags, const char *szClassName) :
     ECUnknown(szClassName)

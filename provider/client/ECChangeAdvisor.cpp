@@ -508,7 +508,6 @@ exit:
 
 
 
-//////////////////////////////////
 // IECChangeAdvisor interface
 
 ULONG ECChangeAdvisor::xECChangeAdvisor::AddRef() {

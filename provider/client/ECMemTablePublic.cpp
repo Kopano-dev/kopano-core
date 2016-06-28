@@ -415,9 +415,7 @@ HRESULT ECMemTablePublic::ModifyRow(SBinary* lpInstanceKey, LPSRow lpsRow)
 	lpProps[cProps].ulPropTag = PR_SUBFOLDERS;
 	lpProps[cProps++].Value.b = TRUE;
 
-	/////////////////////////////////////////////////////
 	// Properties from the real folder
-	//
 	if (ulUpdateType == ECKeyTable::TABLE_ROW_ADD) {
 		hr = m_lpECParentFolder->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, MAPI_BEST_ACCESS, &ulObjType, (LPUNKNOWN *)&lpFolderReal);
 		if(hr != hrSuccess)
@@ -508,9 +506,7 @@ HRESULT ECMemTablePublic::ModifyRow(SBinary* lpInstanceKey, LPSRow lpsRow)
 		lpProps[cProps++].Value = lpPropsFolder[i].Value;
 	}
 
-	/////////////////////////////////////////////////////
 	// Add the row in the list
-	//
 	sKeyProp.ulPropTag = PR_ROWID;
 	sKeyProp.Value.ul = ulRowId;
 

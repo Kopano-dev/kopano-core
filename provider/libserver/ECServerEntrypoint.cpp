@@ -275,9 +275,7 @@ void kopano_disconnect_soap_connection(struct soap *soap)
 	}
 }
 
-/////////////////////////////////////////////////////
 // Export functions
-//
 
 ECRESULT GetDatabaseObject(ECDatabase **lppDatabase)
 {

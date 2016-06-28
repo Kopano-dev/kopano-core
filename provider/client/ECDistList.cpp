@@ -104,10 +104,7 @@ HRESULT ECDistList::CopyProps(LPSPropTagArray lpIncludeProps, ULONG ulUIParam, L
 	return this->GetABStore()->m_lpMAPISup->DoCopyProps(&IID_IDistList, &this->m_xDistList, lpIncludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
 }
 
-////////////////////////////////////////////
 // Interface IUnknown
-//
-
 HRESULT ECDistList::xDistList::QueryInterface(REFIID refiid , void** lppInterface)
 {
 	TRACE_MAPI(TRACE_ENTRY, "IDistList::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
@@ -131,10 +128,7 @@ ULONG ECDistList::xDistList::Release()
 	return pThis->Release();
 }
 
-////////////////////////////////////////////
 // Interface IABContainer
-//
-
 HRESULT ECDistList::xDistList::CreateEntry(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulCreateFlags, LPMAPIPROP* lppMAPIPropEntry)
 {
 	TRACE_MAPI(TRACE_ENTRY, "IDistList::CreateEntry", "");
@@ -171,9 +165,7 @@ HRESULT ECDistList::xDistList::ResolveNames(LPSPropTagArray lpPropTagArray, ULON
 	return hr;
 }
 
-////////////////////////////////////////////
 // Interface IMAPIContainer
-//
 HRESULT ECDistList::xDistList::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
 	TRACE_MAPI(TRACE_ENTRY, "IDistList::GetContentsTable", "");
@@ -219,9 +211,7 @@ HRESULT ECDistList::xDistList::GetSearchCriteria(ULONG ulFlags, LPSRestriction *
 	return hr;
 }
 
-////////////////////////////////////////////
 // Interface IMAPIProp
-//
 HRESULT ECDistList::xDistList::GetLastError(HRESULT hError, ULONG ulFlags, LPMAPIERROR * lppMapiError)
 {
 	TRACE_MAPI(TRACE_ENTRY, "IDistList::GetLastError", "");

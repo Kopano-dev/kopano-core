@@ -78,9 +78,7 @@ private:
 };
 
 
-//////////////////////////////////////////////////////////////////////
 // Construction/Destruction
-//////////////////////////////////////////////////////////////////////
 
 ECMAPIProp::ECMAPIProp(void *lpProvider, ULONG ulObjType, BOOL fModify,
     ECMAPIProp *lpRoot, const char *szClassName) :
@@ -164,9 +162,7 @@ BOOL ECMAPIProp::IsICSObject()
 	return m_bICSObject;
 }
 
-/////////////////////////////////////////////////
 // Property handles
-//
 
 HRESULT	ECMAPIProp::DefaultMAPIGetProp(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase)
 {
@@ -779,9 +775,7 @@ HRESULT ECMAPIProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID FAR * lppProp
 	return this->GetMsgStore()->lpNamedProp->GetIDsFromNames(cPropNames, lppPropNames, ulFlags, lppPropTags);
 }
 
-/////////////////////////////////////////////
 // Stream functions
-//
 
 HRESULT ECMAPIProp::HrStreamCommit(IStream *lpStream, void *lpData)
 {
@@ -887,9 +881,8 @@ exit:
 	return hr;
 }
 
-////////////////////////////////////////////////////////////////
 // Security fucntions
-//
+
 HRESULT ECMAPIProp::GetPermissionRules(int ulType, ULONG *lpcPermissions,
     ECPERMISSION **lppECPermissions)
 {
@@ -952,7 +945,6 @@ HRESULT ECMAPIProp::SetParentID(ULONG cbParentID, LPENTRYID lpParentID)
 	return hrSuccess;
 }
 
-////////////////////////////////////////////
 // Interface IMAPIProp
 
 HRESULT __stdcall ECMAPIProp::xMAPIProp::QueryInterface(REFIID refiid, void **lppInterface)
@@ -1080,7 +1072,6 @@ HRESULT __stdcall ECMAPIProp::xMAPIProp::GetIDsFromNames(ULONG cNames, LPMAPINAM
 	return hr;
 }
 
-/////////////////////////////////////////////////////////////////////////////
 // Interface ECSecurity
 
 HRESULT ECMAPIProp::xECSecurity::QueryInterface(REFIID refiid, void ** lppInterface)

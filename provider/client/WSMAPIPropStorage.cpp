@@ -685,9 +685,7 @@ HRESULT WSMAPIPropStorage::Reload(void *lpParam, ECSESSIONID sessionId) {
 }
 
 
-////////////////////////////////////////////////
 // Interface IECPropStorage
-//
 
 ULONG WSMAPIPropStorage::xECPropStorage::AddRef()
 {

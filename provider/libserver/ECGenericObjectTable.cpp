@@ -1966,7 +1966,6 @@ ECRESULT ECGenericObjectTable::GetRestrictPropTags(struct restrictTable *lpsRest
 
 // Simply matches the restriction with the given data. Make sure you pass all the data
 // needed for the restriction in lpPropVals. (missing columns do not match, ever.)
-//
 
 ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager* lpCacheManager, propValArray *lpPropVals, restrictTable *lpsRestrict, SUBRESTRICTIONRESULTS *lpSubResults, const ECLocale &locale, bool *lpfMatch, unsigned int *lpulSubRestriction)
 {
@@ -2503,9 +2502,7 @@ exit:
 	return er;
 }
 
-/////////////////////////////////////////////////////////
 // Sort functions, overide this functions as you used a caching system
-//
 
 ECRESULT ECGenericObjectTable::IsSortKeyExist(const sObjectTableKey* lpsRowItem, unsigned int ulPropTag)
 {
@@ -2523,9 +2520,7 @@ ECRESULT ECGenericObjectTable::SetSortKey(sObjectTableKey* lpsRowItem, unsigned 
 	return KCERR_NO_SUPPORT;
 }
 
-////////////////////////////////////////////////////////////
 // Category handling functions
-//
 
 /*
  * GENERAL workings of categorization

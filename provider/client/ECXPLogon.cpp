@@ -16,8 +16,6 @@
  */
 
 // ECXPLogon.cpp: implementation of the ECXPLogon class.
-//
-//////////////////////////////////////////////////////////////////////
 
 #include <kopano/platform.h>
 #include <mapi.h>
@@ -67,9 +65,7 @@ static HRESULT HrGetECMsgStore(IMAPIProp *lpProp, ECMsgStore **lppECMsgStore)
 	return hrSuccess;
 }
 
-//////////////////////////////////////////////////////////////////////
 // Construction/Destruction
-//////////////////////////////////////////////////////////////////////
 
 ECXPLogon::ECXPLogon(const std::string &strProfileName, BOOL bOffline, ECXPProvider *lpXPProvider, LPMAPISUP lpMAPISup) : ECUnknown("IXPLogon")
 {

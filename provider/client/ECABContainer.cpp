@@ -283,10 +283,8 @@ HRESULT ECABContainer::TableRowGetProp(void* lpProvider, struct propVal *lpsProp
 	}
 	return hr;
 }
-/////////////////////////////////////////////////
-// IMAPIContainer
-//
 
+// IMAPIContainer
 HRESULT ECABContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
 	HRESULT			hr = hrSuccess;
@@ -380,10 +378,7 @@ HRESULT ECABContainer::GetSearchCriteria(ULONG ulFlags, LPSRestriction *lppRestr
 	return MAPI_E_NO_SUPPORT;
 }
 
-/////////////////////////////////////////////////
 // IABContainer
-//
-
 HRESULT ECABContainer::CreateEntry(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulCreateFlags, LPMAPIPROP* lppMAPIPropEntry)
 {
 	return MAPI_E_NO_SUPPORT;
@@ -416,9 +411,7 @@ HRESULT ECABContainer::ResolveNames(LPSPropTagArray lpPropTagArray, ULONG ulFlag
 	return ((ECABLogon*)lpProvider)->m_lpTransport->HrResolveNames(lpPropTagArray, ulFlags, lpAdrList, lpFlagList);
 }
 
-//////////////////////////////////
 // Interface IUnknown
-//
 HRESULT ECABContainer::xABContainer::QueryInterface(REFIID refiid , void** lppInterface)
 {
 	TRACE_MAPI(TRACE_ENTRY, "IABContainer::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
@@ -444,9 +437,7 @@ ULONG ECABContainer::xABContainer::Release()
 	return ulRef;
 }
 
-//////////////////////////////////
 // Interface IABContainer
-//
 HRESULT ECABContainer::xABContainer::CreateEntry(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulCreateFlags, LPMAPIPROP* lppMAPIPropEntry)
 {
 	TRACE_MAPI(TRACE_ENTRY, "IABContainer::CreateEntry", "");
@@ -483,9 +474,7 @@ HRESULT ECABContainer::xABContainer::ResolveNames(LPSPropTagArray lpPropTagArray
 	return hr;
 }
 
-//////////////////////////////////
 // Interface IMAPIContainer
-//
 HRESULT ECABContainer::xABContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
 	TRACE_MAPI(TRACE_ENTRY, "IABContainer::GetContentsTable", "");
@@ -531,7 +520,6 @@ HRESULT ECABContainer::xABContainer::GetSearchCriteria(ULONG ulFlags, LPSRestric
 	return hr;
 }
 
-////////////////////////////////
 // Interface IMAPIProp
 //
 HRESULT ECABContainer::xABContainer::GetLastError(HRESULT hError, ULONG ulFlags, LPMAPIERROR * lppMapiError)

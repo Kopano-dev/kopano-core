@@ -155,9 +155,7 @@ IECPropStorage* ECParentStorage::GetServerStorage() {
 	return m_lpServerStorage;
 }
 
-////////////////////////////////////////////////
 // Interface IECPropStorage
-//
 
 ULONG ECParentStorage::xECPropStorage::AddRef()
 {

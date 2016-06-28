@@ -141,7 +141,6 @@ ECMessageStreamImporterIStreamAdapter::~ECMessageStreamImporterIStreamAdapter()
 
 
 
-////////////////////////////
 // ISequentialStream proxies
 ULONG ECMessageStreamImporterIStreamAdapter::xSequentialStream::AddRef()
 {
@@ -162,7 +161,6 @@ DEF_HRMETHOD(TRACE_MAPI, ECMessageStreamImporterIStreamAdapter, SequentialStream
 DEF_HRMETHOD(TRACE_MAPI, ECMessageStreamImporterIStreamAdapter, SequentialStream, Write, (const void *, pv), (ULONG, cb), (ULONG *, pcbWritten))
 
 
-//////////////////
 // IStream proxies
 ULONG ECMessageStreamImporterIStreamAdapter::xStream::AddRef()
 {

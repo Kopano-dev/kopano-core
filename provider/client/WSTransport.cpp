@@ -2303,7 +2303,6 @@ exit:
 	return hr;
 }
 
-/////////////////////////////////////////////////////////////////////
 // IECServiceAdmin group functions
 /**
  * Create a new group.

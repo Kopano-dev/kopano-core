@@ -525,9 +525,7 @@ HRESULT ZCMAPIProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID * lppPropName
 }
 
 
-////////////////////////////////////////////
 // Interface IMAPIProp
-//
 
 HRESULT __stdcall ZCMAPIProp::xMAPIProp::QueryInterface(REFIID refiid, void ** lppInterface)
 {

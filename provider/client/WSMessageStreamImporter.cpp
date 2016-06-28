@@ -24,7 +24,6 @@
 #define new DEBUG_NEW
 #endif
 
-/////////////////////////////////////
 // WSMessageStreamSink Implementation
 
 /**
@@ -99,7 +98,6 @@ WSMessageStreamSink::~WSMessageStreamSink()
 }
 
 
-/////////////////////////////////////////
 // WSMessageStreamImporter Implementation
 HRESULT WSMessageStreamImporter::Create(ULONG ulFlags, ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG cbFolderEntryID, LPENTRYID lpFolderEntryID, bool bNewMessage, LPSPropValue lpConflictItems, WSTransport *lpTransport, WSMessageStreamImporter **lppStreamImporter)
 {

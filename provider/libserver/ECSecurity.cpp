@@ -16,8 +16,6 @@
  */
 
 // ECSecurity.cpp: implementation of the ECSecurity class.
-//
-//////////////////////////////////////////////////////////////////////
 
 #include <kopano/platform.h>
 

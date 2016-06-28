@@ -18,9 +18,7 @@
 %cstring_input_binary(const void *pv, ULONG cb);
 %cstring_output_allocate_size(char **lpOutput, ULONG *ulRead, MAPIFreeBuffer(*$1));
 
-/////////////////////////////////
 // HRESULT
-/////////////////////////////////
 %include "exception.i"
 %typemap(out) HRESULT (char ex[64])
 {
@@ -30,9 +28,7 @@
   }
 }
 
-/////////////////////////////////
 // LARGE_INTEGER / ULARGE_INTEGER
-/////////////////////////////////
 
 %typemap(in,fragment=SWIG_AsVal_frag(unsigned long long)) ULARGE_INTEGER
 {
@@ -70,9 +66,7 @@
  %append_output(SWIG_From(unsigned long long)($1->QuadPart));
 }
 
-/////////////////////////////////
 // FILETIME
-/////////////////////////////////
 
 %typemap(in,fragment=SWIG_AsVal_frag(unsigned long long)) FILETIME
 {
@@ -95,9 +89,7 @@
 }
 
 
-//////////////////
 // ULONG+LP
-//////////////////
 
 // Input
 %typemap(in, fragment="SWIG_AsCharPtrAndSize")				(ULONG cbEntryID, LPENTRYID lpEntryID) (int res, char *buf = 0, size_t size, int alloc = 0)
@@ -164,9 +156,7 @@
 }
 %apply (ULONG *OPTINOUT, LPENTRYID *OPTINOUT) {(ULONG* lpcbStoreId_oio, LPENTRYID* lppStoreId_oio), (ULONG* lpcbRootId_oio, LPENTRYID *lppRootId_oio)};
 
-////////////////////////
 // IID + LPUNKOWN
-////////////////////////
 
 // Output
 %typemap(in,numinputs=0) LPUNKNOWN *OUTPUT_USE_IID (LPUNKNOWN temp) {
@@ -179,9 +169,7 @@
 // Also apply to void ** in QueryInterface()
 %apply LPUNKNOWN *OUTPUT_USE_IID {void **OUTPUT_USE_IID};
 
-//////////////////////////
 // LPMAPIUID/LPCIID/LPGUID
-//////////////////////////
 
 // Input
 %typemap(in,fragment="SWIG_AsCharPtrAndSize")	LPMAPIUID (int res, char *buf = NULL, size_t size, int alloc = 0),
@@ -233,9 +221,7 @@
 	%append_output(SWIG_FromCharPtrAndSize((const char *)$1,sizeof(MAPIUID)));
 }
 
-///////////////////////
 // ULONG ulFlags
-///////////////////////
 %typemap(arginit,noblock=1) ULONG ulFlags
 {
   ULONG ulFlags = 0;
@@ -251,9 +237,7 @@
 	ulFlags = fl;
 }
 
-///////////////////////
 // LPTSTR
-///////////////////////
 
 // Output
 %typemap(in,numinputs=0) (LPTSTR *OUTPUT) (LPTSTR lpStr = NULL) {
@@ -270,9 +254,7 @@
 	MAPIFreeBuffer(*$1);
 }
 
-//////////////////////
 // char** allocated with mapi
-/////////////////////
 %typemap(in,numinputs=0) (char** OUTMAPICHAR) (char* lpStr = NULL) {
   $1 = &lpStr;
 }
@@ -283,9 +265,7 @@
     MAPIFreeBuffer(*$1);
 }
 
-//////////////////////
 // ULONG+IUnknown **
-//////////////////////
 
 // Output
 %typemap(in,numinputs=0) (ULONG *OUTPUT, IUnknown **OUTPUT) (ULONG ulType, IUnknown *lpUnk)
@@ -315,9 +295,7 @@
   }
 }
 
-/////////////////////////////////
 // unsigned char *, unsigned int
-/////////////////////////////////
 %typemap(in,numinputs=1) (unsigned char *, unsigned int) (int res, char *buf = 0, size_t size, int alloc = 0)
 {
 	res = SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc);
@@ -333,9 +311,7 @@
 	}
 }
 
-/////////////////////////////////////////////
 // STATSTG
-/////////////////////////////////////////////
 
 %typemap(in,numinputs=0) STATSTG * (STATSTG stat)
 {
@@ -348,9 +324,7 @@
 	%append_output(Object_from_STATSTG($1));
 }
 
-/////////////////////////////////////////////
 // MAPISTRUCT (MAPI data struct)
-/////////////////////////////////////////////
 
 // Input
 %typemap(arginit) MAPISTRUCT
@@ -360,9 +334,7 @@
 	MAPIFreeBuffer($1);
 }
 
-/////////////////////////////////////////////
 // MAPISTRUCT_W_FLAGS (MAPI data struct with LPTSTR members)
-/////////////////////////////////////////////
 
 // Input
 %typemap(arginit) MAPISTRUCT_W_FLAGS
@@ -372,9 +344,7 @@
 	MAPIFreeBuffer($1);
 }
 
-//////////////////////////////////////////////
 // MAPILIST (MAPI list of data structs)
-//////////////////////////////////////////////
 
 // Input
 %typemap(arginit) MAPILIST
@@ -398,9 +368,7 @@
 }
 
 
-//////////////////////////////////////////////
 // MAPICLASS (Class instances of MAPI objects)
-//////////////////////////////////////////////
 
 // Output
 %typemap(in,numinputs=0) 	MAPICLASS *($basetype *temp)
@@ -410,9 +378,7 @@
   %append_output(SWIG_NewPointerObj((void*)*($1), $*1_descriptor, SWIG_SHADOW | SWIG_OWNER));
 }
 
-/////////////////////////////////////////////
 // MAPIARRAY (List of objects)
-/////////////////////////////////////////////
 
 // Check
 %typecheck(9999)	(ULONG, MAPIARRAY)
@@ -439,17 +405,13 @@
 	MAPIFreeBuffer((void *)$2);
 }
 
-//////////////////
 // SYSTEMTIME
-//////////////////
 // Output (specifics are in typemap_python.i)
 %typemap(in, numinputs=0)	(SYSTEMTIME *)(SYSTEMTIME st)
 	"$1 = &st;";
 
 
-///////////////////////////////////
 // ECLogger director
-///////////////////////////////////
 #if SWIGPYTHON
 
 %typemap(in) ECLogger *lpLogger (int res, ECSimpleLogger *sl, ECLoggerProxy *proxy)
@@ -474,9 +436,7 @@
 %include <kopano/typemap_python.i>
 #endif
 
-/////////////////////////////////////////////////
 // Mapping of types to correct MAPI* handler type
-/////////////////////////////////////////////////
 
 // Input
 %apply (ULONG, MAPIARRAY) {(ULONG cValues, LPSPropValue lpProps), (ULONG cPropNames, LPMAPINAMEID* lppPropNames), (ULONG cInterfaces, LPCIID lpInterfaces), ( ULONG cValuesConversion, LPSPropValue lpPropArrayConversion) };

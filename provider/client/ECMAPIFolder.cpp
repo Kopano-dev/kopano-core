@@ -1183,9 +1183,7 @@ HRESULT ECMAPIFolder::xMAPIFolder::EmptyFolder(ULONG ulUIParam, LPMAPIPROGRESS l
 	return hr;
 }
 
-////////////////////////////
 // IFolderSupport
-//
 
 HRESULT ECMAPIFolder::xFolderSupport::QueryInterface(REFIID refiid , void** lppInterface)
 {

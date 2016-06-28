@@ -189,7 +189,6 @@ HRESULT GetProviders(ECMapProvider* lpmapProvider, IMAPISupport *lpMAPISup, cons
 	if(hr != hrSuccess)
 		goto exit;
 
-	//////////////////////////////////////////////////////
 	// Init providers
 
 	// Message store online
@@ -202,7 +201,6 @@ HRESULT GetProviders(ECMapProvider* lpmapProvider, IMAPISupport *lpMAPISup, cons
 	if(hr != hrSuccess)
 		goto exit;
 
-	//////////////////////////////////////////////////////
 	// Fill in the Provider info struct
 	
 	//Init only the firsttime the flags

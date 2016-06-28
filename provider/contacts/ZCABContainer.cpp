@@ -154,9 +154,7 @@ exit:
 	return hr;
 }
 
-/////////////////////////////////////////////////
 // IMAPIContainer
-//
 
 HRESULT ZCABContainer::MakeWrappedEntryID(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulObjType, ULONG ulOffset, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
 {
@@ -1025,9 +1023,7 @@ HRESULT ZCABContainer::GetSearchCriteria(ULONG ulFlags, LPSRestriction *lppRestr
 	return MAPI_E_NO_SUPPORT;
 }
 
-/////////////////////////////////////////////////
 // IABContainer
-//
 
 HRESULT ZCABContainer::CreateEntry(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulCreateFlags, LPMAPIPROP* lppMAPIPropEntry)
 {
@@ -1205,9 +1201,7 @@ HRESULT ZCABContainer::GetPropList(ULONG ulFlags, LPSPropTagArray FAR * lppPropT
 }
 
 
-//////////////////////////////////
 // Interface IUnknown
-//
 HRESULT ZCABContainer::xABContainer::QueryInterface(REFIID refiid , void** lppInterface)
 {
 	TRACE_MAPI(TRACE_ENTRY, "IABContainer::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
@@ -1233,9 +1227,7 @@ ULONG ZCABContainer::xABContainer::Release()
 	return ulRef;
 }
 
-//////////////////////////////////
 // Interface IABContainer
-//
 HRESULT ZCABContainer::xABContainer::CreateEntry(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulCreateFlags, LPMAPIPROP* lppMAPIPropEntry)
 {
 	TRACE_MAPI(TRACE_ENTRY, "IABContainer::CreateEntry", "");
@@ -1272,9 +1264,7 @@ HRESULT ZCABContainer::xABContainer::ResolveNames(LPSPropTagArray lpPropTagArray
 	return hr;
 }
 
-//////////////////////////////////
 // Interface IMAPIContainer
-//
 HRESULT ZCABContainer::xABContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
 	TRACE_MAPI(TRACE_ENTRY, "IABContainer::GetContentsTable", "");
@@ -1320,9 +1310,7 @@ HRESULT ZCABContainer::xABContainer::GetSearchCriteria(ULONG ulFlags, LPSRestric
 	return hr;
 }
 
-////////////////////////////////
 // Interface IMAPIProp
-//
 HRESULT ZCABContainer::xABContainer::GetLastError(HRESULT hError, ULONG ulFlags, LPMAPIERROR * lppMapiError)
 {
 	TRACE_MAPI(TRACE_ENTRY, "IABContainer::GetLastError", "");

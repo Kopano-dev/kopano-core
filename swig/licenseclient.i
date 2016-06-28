@@ -24,9 +24,7 @@
 %}
 
 
-/////////////////////////////////
 // ECRESULT
-/////////////////////////////////
 %include "exception.i"
 %typemap(out) ECRESULT (char ex[64])
 {
@@ -37,9 +35,7 @@
 }
 
 
-/////////////////////////////////
 // std::vector<std::string>&
-/////////////////////////////////
 %typemap(in,numinputs=0) std::vector<std::string> &OUTPUT	(std::vector<std::string> sv)
 {
 	$1 = &sv;
@@ -52,9 +48,7 @@
 }
 
 
-/////////////////////////////////
 // const std::vector<std::string>&
-/////////////////////////////////
 %typemap(in) const std::vector<std::string> & (int res, std::vector<std::string> v)
 {
 	res = List_to_StringVector($input, v);
@@ -66,9 +60,7 @@
 
 
 
-/////////////////////////////////
 // std::string&
-/////////////////////////////////
 %typemap(in,numinputs=0) std::string &OUTPUT	(std::string s)
 {
 	$1 = &s;
@@ -81,9 +73,7 @@
 }
 
 
-/////////////////////////////////
 // unsigned char *, unsigned int
-/////////////////////////////////
 %typemap(in,numinputs=1) (unsigned char *, unsigned int) (int res, char *buf = 0, size_t size, int alloc = 0)
 {
 	res = SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc);
@@ -101,9 +91,7 @@
 
 
 
-/////////////////////////////////
 // unsigned int
-/////////////////////////////////
 %typemap(in,numinputs=0) unsigned int *OUTPUT (unsigned int u)
 {
   $1 = &u;

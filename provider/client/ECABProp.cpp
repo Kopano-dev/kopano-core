@@ -117,7 +117,6 @@ ECABLogon* ECABProp::GetABStore()
 	return (ECABLogon*)lpProvider;
 }
 
-////////////////////////////////////////////
 // Interface IMAPIProp
 
 HRESULT __stdcall ECABProp::xMAPIProp::QueryInterface(REFIID refiid, void ** lppInterface)

@@ -1361,9 +1361,7 @@ static void strupr(char *a)
 	}
 }
 
-///////////////////////////////////////////
 // Create Search key for recipients
-//
 HRESULT HrCreateEmailSearchKey(const char *lpszEmailType,
     const char *lpszEmail, ULONG *cb, LPBYTE *lppByte)
 {
