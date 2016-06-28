@@ -61,8 +61,6 @@ private:
     
     unsigned int m_ulTimeout;
 
-    ECLogger *m_lpLogger;
-
     // A map of all sessions that are waiting for a SOAP response to be sent (an item can be in here for up to 60 seconds)
     std::map<ECSESSIONID, NOTIFREQUEST> 	m_mapRequests;
     // A set of all sessions that have reported notification activity, but are yet to be processed.
