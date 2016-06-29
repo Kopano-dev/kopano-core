@@ -270,7 +270,8 @@ class Service(kopano.Service):
             for company in self.server.companies():
                 companyname = company.name if company.name != 'Default' else ''
                 for user in company.users():
-                    jobs.append((user.store, user.name, os.path.join(output_dir, companyname, user.name)))
+                    if user.store:
+                        jobs.append((user.store, user.name, os.path.join(output_dir, companyname, user.name)))
                 if company.public_store and not self.options.skip_public:
                     target = 'public@'+companyname if companyname else 'public'
                     jobs.append((company.public_store, None, os.path.join(output_dir, companyname, target)))
@@ -278,7 +279,8 @@ class Service(kopano.Service):
         # specified users
         if self.options.users:
             for user in self.server.users():
-                jobs.append((user.store, user.name, os.path.join(output_dir, user.name)))
+                if user.store:
+                    jobs.append((user.store, user.name, os.path.join(output_dir, user.name)))
 
         # specified stores
         if self.options.stores:
