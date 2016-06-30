@@ -989,14 +989,14 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 
 				hr = lpDestFolder->CreateMessage(NULL, 0, &lpNewMessage);
 				if(hr != hrSuccess) {
-					std::string msg = "Unable to create e-mail for rule: %s (%x)" + strRule;
+					std::string msg = "Unable to create e-mail for rule " + strRule + ": %s (%x)";
 					lpLogger->Log(EC_LOGLEVEL_ERROR, msg.c_str(), GetMAPIErrorMessage(hr), hr);
 					goto exit;
 				}
 					
 				hr = (*lppMessage)->CopyTo(0, NULL, NULL, 0, NULL, &IID_IMessage, lpNewMessage, 0, NULL);
 				if(hr != hrSuccess) {
-					std::string msg = "Unable to copy e-mail for rule: %s (%x)" + strRule;
+					std::string msg = "Unable to copy e-mail for rule " + strRule + ": %s (%x)";
 					lpLogger->Log(EC_LOGLEVEL_ERROR, msg.c_str(), GetMAPIErrorMessage(hr), hr);
 					goto exit;
 				}
