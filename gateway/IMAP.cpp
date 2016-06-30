@@ -337,21 +337,16 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 		lpLogger->Log(EC_LOGLEVEL_DEBUG, "< %s", strInput.c_str());
 
 	HrSplitInput(strInput, strvResult);
-	if (strvResult.empty()) {
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
+	if (strvResult.empty())
+		return MAPI_E_CALL_FAILED;
 
 	if (strvResult.size() == 1) {
 		// must be idle, and command must be done
 		// DONE is not really a command, but the end of the IDLE command by the client marker
 		ToUpper(strvResult[0]);
-		if (strvResult[0].compare("DONE") == 0) {
-			hr = HrDone(true);
-		} else {
-			hr = HrResponse(RESP_UNTAGGED, "BAD Command not recognized");
-		}
-		goto exit;
+		if (strvResult[0].compare("DONE") == 0)
+			return HrDone(true);
+		return HrResponse(RESP_UNTAGGED, "BAD Command not recognized");
 	}
 
 	while (hr == hrSuccess && !strvResult.empty() && strvResult.back().size() > 2 && strvResult.back()[0] == '{')
@@ -367,7 +362,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 		if (lpcres == strByteTag.c_str() || (*lpcres != '}' && *lpcres != '+')) {
 			// invalid tag received
 			lpLogger->Log(EC_LOGLEVEL_ERROR, "Invalid size tag received: %s", strByteTag.c_str());
-			goto exit;
+			return hr;
 		}
 		bPlus = (*lpcres == '+');
 
@@ -376,7 +371,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 			hr = HrResponse(RESP_CONTINUE, "Ready for literal data");
 			if (hr != hrSuccess) {
 				lpLogger->Log(EC_LOGLEVEL_ERROR, "Error sending during continuation");
-				goto exit;
+				return hr;
 			}
 		}
 
@@ -418,7 +413,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 		}
 	}
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	strTag = strvResult.front();
 	strvResult.erase(strvResult.begin());
@@ -430,7 +425,7 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 	if (isIdle()) {
 		hr = HrResponse(RESP_UNTAGGED, "BAD still in idle state");
 		HrDone(false); // false for no output		
-		goto exit;
+		return hr;
 	}
 
 	// process {} and end of line
@@ -627,10 +622,9 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 			hr = HrCmdSetQuota(strTag, strvResult[0], strvResult[1]);
 		}
 	} else if (strCommand.compare("UID") == 0) {
-		if (strvResult.empty()) {
-			hr = HrResponse(RESP_TAGGED_BAD, strTag, "UID must have a command");
-			goto exit;
-		}
+		if (strvResult.empty())
+			return HrResponse(RESP_TAGGED_BAD, strTag,
+			       "UID must have a command");
 
 		strCommand = strvResult.front();
 		strvResult.erase(strvResult.begin());
@@ -679,8 +673,6 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 	} else {
 		hr = HrResponse(RESP_TAGGED_BAD, strTag, "Command not supported");
 	}
-
-exit:
 	return hr;
 }
 
@@ -749,19 +741,10 @@ std::string IMAP::GetCapabilityString(bool bAllFlags)
  * @return hrSuccess
  */
 HRESULT IMAP::HrCmdCapability(const string &strTag) {
-	HRESULT hr = hrSuccess;
-	std::string strCapabilities = GetCapabilityString(true);
-
-	hr = HrResponse(RESP_UNTAGGED, strCapabilities);
+	HRESULT hr = HrResponse(RESP_UNTAGGED, GetCapabilityString(true));
 	if (hr != hrSuccess)
-		goto exit;
-
-	hr = HrResponse(RESP_TAGGED_OK, strTag, "CAPABILITY Completed");
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+		return hr;
+	return HrResponse(RESP_TAGGED_OK, strTag, "CAPABILITY Completed");
 }
 
 /** 
@@ -776,21 +759,14 @@ exit:
  */
 HRESULT IMAP::HrCmdNoop(const string &strTag) {
 	HRESULT hr = hrSuccess;
-	HRESULT hr2 = hrSuccess;
 
 	if (!strCurrentFolder.empty())
 		hr = HrRefreshFolderMails(false, !bCurrentFolderReadOnly, false, NULL);
 	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_TAGGED_BAD, strTag, "NOOP completed");
-		goto exit;
+		HRESULT hr2 = HrResponse(RESP_TAGGED_BAD, strTag, "NOOP completed");
+		return hr2 != hrSuccess ? hr2 : hr;
 	}
-
-	hr = HrResponse(RESP_TAGGED_OK, strTag, "NOOP completed");
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	return (hr2 != hrSuccess) ? hr2 : hr;
+	return HrResponse(RESP_TAGGED_OK, strTag, "NOOP completed");
 }
 
 /** 
@@ -804,18 +780,10 @@ exit:
  * @return hrSuccess
  */
 HRESULT IMAP::HrCmdLogout(const string &strTag) {
-	HRESULT hr = hrSuccess;
-
-	hr = HrResponse(RESP_UNTAGGED, "BYE server logging out");
+	HRESULT hr = HrResponse(RESP_UNTAGGED, "BYE server logging out");
 	if (hr != hrSuccess)
-		goto exit;
-	
-	hr = HrResponse(RESP_TAGGED_OK, strTag, "LOGOUT completed");
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+		return hr;
+	return HrResponse(RESP_TAGGED_OK, strTag, "LOGOUT completed");
 }
 
 /** 
@@ -828,34 +796,27 @@ exit:
  * @return hrSuccess
  */
 HRESULT IMAP::HrCmdStarttls(const string &strTag) {
-	HRESULT hr = hrSuccess;
+	if (!lpChannel->sslctx())
+		return HrResponse(RESP_TAGGED_NO, strTag,
+		       "STARTTLS error in ssl context");
+	if (lpChannel->UsingSsl())
+		return HrResponse(RESP_TAGGED_NO, strTag,
+		       "STARTTLS already using SSL/TLS");
 
-	if (!lpChannel->sslctx()) {
-		hr = HrResponse(RESP_TAGGED_NO, strTag, "STARTTLS error in ssl context");
-		goto exit;
-	}
-
-	if (lpChannel->UsingSsl()) {
-		hr = HrResponse(RESP_TAGGED_NO, strTag, "STARTTLS already using SSL/TLS");
-		goto exit;
-	}
-
-	hr = HrResponse(RESP_TAGGED_OK, strTag, "Begin TLS negotiation now");
+	HRESULT hr = HrResponse(RESP_TAGGED_OK, strTag, "Begin TLS negotiation now");
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	hr = lpChannel->HrEnableTLS(lpLogger);
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_BAD, strTag, "[ALERT] Error switching to secure SSL/TLS connection");
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Error switching to SSL in STARTTLS");
-		goto exit;
+		return hr;
 	}
 
 	if (lpChannel->UsingSsl())
 		lpLogger->Log(EC_LOGLEVEL_INFO, "Using SSL now");
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -2941,18 +2902,11 @@ HRESULT IMAP::HrDone(bool bSendResponse) {
  * @return MAPI Error code
  */
 HRESULT IMAP::HrCmdNamespace(const string &strTag) {
-	HRESULT hr = hrSuccess;
-
-	hr = HrResponse(RESP_UNTAGGED, string("NAMESPACE ((\"\" \"") + IMAP_HIERARCHY_DELIMITER + "\")) NIL NIL");
+	HRESULT hr = HrResponse(RESP_UNTAGGED, string("NAMESPACE ((\"\" \"") +
+	             IMAP_HIERARCHY_DELIMITER + "\")) NIL NIL");
 	if (hr != hrSuccess)
-		goto exit;
-
-	hr = HrResponse(RESP_TAGGED_OK, strTag, "NAMESPACE Completed");
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+		return hr;
+	return HrResponse(RESP_TAGGED_OK, strTag, "NAMESPACE Completed");
 }
 
 /** 
@@ -3446,7 +3400,6 @@ exit:
  */
 HRESULT IMAP::ChangeSubscribeList(bool bSubscribe, ULONG cbEntryID, LPENTRYID lpEntryID)
 {
-	HRESULT hr = hrSuccess;
 	bool bChanged = false;
 
 	auto iFolder = find(m_vSubscriptions.begin(), m_vSubscriptions.end(),
@@ -3465,13 +3418,11 @@ HRESULT IMAP::ChangeSubscribeList(bool bSubscribe, ULONG cbEntryID, LPENTRYID lp
 	}
 
 	if (bChanged) {
-		hr = HrSetSubscribedList();
+		HRESULT hr = HrSetSubscribedList();
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -3773,23 +3724,18 @@ exit:
  * @retval MAPI_E_NOT_FOUND lpFolder is not a valid iterator in lstFolders
  */
 HRESULT IMAP::HrGetFolderPath(list<SFolder>::const_iterator lpFolder, list<SFolder> &lstFolders, wstring &strPath) {
-	HRESULT hr = hrSuccess;
-
-	if (lpFolder == lstFolders.cend()) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+	if (lpFolder == lstFolders.cend())
+		return MAPI_E_NOT_FOUND;
 
 	if (lpFolder->lpParentFolder != lstFolders.cend()) {
-		hr = HrGetFolderPath(lpFolder->lpParentFolder, lstFolders, strPath);
+		HRESULT hr = HrGetFolderPath(lpFolder->lpParentFolder, lstFolders,
+		             strPath);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		strPath += IMAP_HIERARCHY_DELIMITER;
 		strPath += lpFolder->strFolderName;
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -4887,7 +4833,6 @@ exit:
  * @return MAPI Error code
  */
 HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, string strPartName) {
-	HRESULT hr = hrSuccess;
 	string::size_type ulPos;
 	unsigned long int ulPartnr;
 	string strHeaders;
@@ -4971,13 +4916,13 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
                 }
 
                 // All done
-                goto exit;
+				return hrSuccess;
 			} else if(strNextPart.find_first_of("123456789") == 0) {
 			    // Handle Subpart
     			HrGetMessagePart(strMessagePart, strMessage, strNextPart);
 
     			// All done
-    			goto exit;
+				return hrSuccess;
             }
         }
         
@@ -5085,9 +5030,7 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
 	} else {
 		strMessagePart = "NIL";
 	}
-	
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -5235,16 +5178,13 @@ HRESULT IMAP::HrParseSeqUidSet(const string &strSeqSet, list<ULONG> &lstMails) {
  * @return MAPI Error code
  */
 HRESULT IMAP::HrParseSeqSet(const string &strSeqSet, list<ULONG> &lstMails) {
-	HRESULT hr = hrSuccess;
 	vector<string> vSequences;
 	string::size_type ulPos = 0;
 	ULONG ulMailnr;
 	ULONG ulBeginMailnr;
 
-	if(lstFolderMailEIDs.empty()) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+	if (lstFolderMailEIDs.empty())
+		return MAPI_E_NOT_FOUND;
 
 	// split different sequence parts into a vector
 	vSequences = tokenize(strSeqSet, ',');
@@ -5254,10 +5194,8 @@ HRESULT IMAP::HrParseSeqSet(const string &strSeqSet, list<ULONG> &lstMails) {
 		if (ulPos == string::npos) {
 			// single number
 			ulMailnr = LastOrNumber(vSequences[i].c_str(), false) - 1;
-			if (ulMailnr >= lstFolderMailEIDs.size()) {
-				hr = MAPI_E_CALL_FAILED;
-				goto exit;
-			}
+			if (ulMailnr >= lstFolderMailEIDs.size())
+				return MAPI_E_CALL_FAILED;
 			lstMails.push_back(ulMailnr);
 		} else {
 			// range
@@ -5266,12 +5204,9 @@ HRESULT IMAP::HrParseSeqSet(const string &strSeqSet, list<ULONG> &lstMails) {
 
 			if (ulBeginMailnr > ulMailnr)
 				swap(ulBeginMailnr, ulMailnr);
-
-			if (ulBeginMailnr >= lstFolderMailEIDs.size() || ulMailnr >= lstFolderMailEIDs.size()) {
-				hr = MAPI_E_CALL_FAILED;
-				goto exit;
-			}
-
+			if (ulBeginMailnr >= lstFolderMailEIDs.size() ||
+			    ulMailnr >= lstFolderMailEIDs.size())
+				return MAPI_E_CALL_FAILED;
 			for (ULONG j = ulBeginMailnr; j <= ulMailnr; ++j)
 				lstMails.push_back(j);
 		}
@@ -5279,9 +5214,7 @@ HRESULT IMAP::HrParseSeqSet(const string &strSeqSet, list<ULONG> &lstMails) {
 
 	lstMails.sort();
 	lstMails.unique();
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -7038,16 +6971,13 @@ string IMAP::EscapeStringQT(const string &input) {
 			s += input[i];
 		else if (input[i] == 34) {
 			// " found, should send literal and data
-			s = "{" + stringify(input.length()) + "}\n" + input;
-			goto exit;
+			return "{" + stringify(input.length()) + "}\n" + input;
 		} else {
 			s.append(1, '\\');
 			s += input[i];
 		}
 	}
 	s.append(1, '"');
-
-exit:
 	return s;
 }
 
@@ -7166,44 +7096,35 @@ bool IMAP::MatchFolderPath(wstring strFolder, const wstring& strPattern)
     ToUpper(strFolder);
     
     while(1) {
-        if(f == (int)strFolder.size() && p == (int)strPattern.size()) {
+        if (f == static_cast<int>(strFolder.size()) &&
+            p == static_cast<int>(strPattern.size()))
             // Reached the end of the folder and the pattern strings, so match
-            bMatch = true;
-            break;
-        }
+            return true;
         
         if(strPattern[p] == '*') {
             // Match 0-n chars, try longest match first
-            for (int i = strFolder.size(); i >= f; --i) {
+            for (int i = strFolder.size(); i >= f; --i)
                 // Try matching the rest of the string from position i in the string
-                if(MatchFolderPath(strFolder.substr(i), strPattern.substr(p+1))) {
+                if (MatchFolderPath(strFolder.substr(i), strPattern.substr(p + 1)))
                     // Match OK, apply the 'skip i' chars
-                    bMatch = true;
-                    goto exit;
-                }
-            }
+                    return true;
             
             // No match found, failed
-            bMatch = false;
-            break;
+            return false;
         } else if(strPattern[p] == '%') {
             // Match 0-n chars excluding '/', try longest match first
             size_t slash = strFolder.find('/', f);
             if(slash == std::string::npos)
                 slash = strFolder.size();
 
-            for (int i = slash; i >= f; --i) {
+            for (int i = slash; i >= f; --i)
                 // Try matching the rest of the string from position i in the string
-                if(MatchFolderPath(strFolder.substr(i), strPattern.substr(p+1))) {
+                if (MatchFolderPath(strFolder.substr(i), strPattern.substr(p + 1)))
                     // Match OK, apply the 'skip i' chars
-                    bMatch = true;
-                    goto exit;
-                }
-            }
+                    return true;
 
             // No match found, failed
-            bMatch = false;
-            break;
+            return false;
         } else {
             // Match normal string
             if(strFolder[f] != strPattern[p])
@@ -7212,8 +7133,6 @@ bool IMAP::MatchFolderPath(wstring strFolder, const wstring& strPattern)
             ++p;
         }
     }
-    
-exit:
     return bMatch;
 }
 

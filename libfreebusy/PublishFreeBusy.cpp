@@ -407,7 +407,6 @@ exit:
  */
 HRESULT PublishFreeBusy::HrMergeBlocks(FBBlock_1 **lppfbBlocks, ULONG *lpcValues)
 {
-	HRESULT hr = hrSuccess;
 	FBBlock_1 *lpFbBlocks = NULL;
 	ULONG cValues = *lpcValues;
 	ULONG ulLevel = 0;
@@ -489,9 +488,10 @@ HRESULT PublishFreeBusy::HrMergeBlocks(FBBlock_1 **lppfbBlocks, ULONG *lpcValues
 		*lppfbBlocks = NULL;
 	}
 
-	hr = MAPIAllocateBuffer(sizeof(FBBlock_1) * vcFBblocks.size(), (void **)&lpFbBlocks);
+	HRESULT hr = MAPIAllocateBuffer(sizeof(FBBlock_1) * vcFBblocks.size(),
+	             reinterpret_cast<void **>(&lpFbBlocks));
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	iterVcBlocks = vcFBblocks.begin();
 
 	for (ULONG i = 0; iterVcBlocks != vcFBblocks.end(); ++i, ++iterVcBlocks)
@@ -501,9 +501,7 @@ HRESULT PublishFreeBusy::HrMergeBlocks(FBBlock_1 **lppfbBlocks, ULONG *lpcValues
 	*lpcValues = vcFBblocks.size();
 
 	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Output blocks %d", *lpcValues);
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 

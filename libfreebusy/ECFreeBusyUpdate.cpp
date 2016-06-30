@@ -63,18 +63,11 @@ HRESULT ECFreeBusyUpdate::QueryInterface(REFIID refiid, void** lppInterface)
 
 HRESULT ECFreeBusyUpdate::PublishFreeBusy(FBBlock_1 *lpBlocks, ULONG nBlocks)
 {
-	HRESULT hr = S_OK;
-
 	if(nBlocks > 0 && lpBlocks == NULL)
-	{
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
+		return MAPI_E_INVALID_PARAMETER;
 	for (ULONG i = 0; i < nBlocks; ++i)
 		m_fbBlockList.Add(&lpBlocks[i]);
-exit:
-	return hr;
+	return S_OK;
 }
 
 HRESULT ECFreeBusyUpdate::ResetPublishedFreeBusy()

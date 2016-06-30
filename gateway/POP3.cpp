@@ -124,8 +124,7 @@ HRESULT POP3::HrProcessCommand(const std::string &strInput)
 	vWords = tokenize(strInput, ' ');
 	if (vWords.empty()) {
 		lpLogger->Log(EC_LOGLEVEL_WARNING, "Empty line received");
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
 
 	if (lpLogger->Log(EC_LOGLEVEL_DEBUG))
@@ -135,32 +134,28 @@ HRESULT POP3::HrProcessCommand(const std::string &strInput)
 	transform(strCommand.begin(), strCommand.end(), strCommand.begin(), ::toupper);
 
 	if (strCommand.compare("CAPA") == 0) {
-		if (vWords.size() != 1) {
-			hr = HrResponse(POP3_RESP_ERR, "CAPA command must have 0 arguments");
-			goto exit;
-		}
+		if (vWords.size() != 1)
+			return HrResponse(POP3_RESP_ERR,
+			       "CAPA command must have 0 arguments");
 		hr = HrCmdCapability();
 	} else if (strCommand.compare("STLS") == 0) {
-		if (vWords.size() != 1) {
-			hr = HrResponse(POP3_RESP_ERR, "STLS command must have 0 arguments");
-			goto exit;
-		}
+		if (vWords.size() != 1)
+			return HrResponse(POP3_RESP_ERR,
+			       "STLS command must have 0 arguments");
 		if (HrCmdStarttls() != hrSuccess) {
 			// log ?
 			// let the gateway quit from the socket read loop
 			hr = MAPI_E_END_OF_SESSION;
 		}
 	} else if (strCommand.compare("USER") == 0) {
-		if (vWords.size() != 2) {
-			hr = HrResponse(POP3_RESP_ERR, "User command must have 1 argument");
-			goto exit;
-		}
+		if (vWords.size() != 2)
+			return HrResponse(POP3_RESP_ERR,
+			       "User command must have 1 argument");
 		hr = HrCmdUser(vWords[1]);
 	} else if (strCommand.compare("PASS") == 0) {
-		if (vWords.size() < 2) {
-			hr = HrResponse(POP3_RESP_ERR, "Pass command must have 1 argument");
-			goto exit;
-		}
+		if (vWords.size() < 2)
+			return HrResponse(POP3_RESP_ERR,
+			       "Pass command must have 1 argument");
 		string strPass = strInput;
 		strPass.erase(0, strCommand.length()+1);
 		hr = HrCmdPass(strPass);
@@ -173,59 +168,48 @@ HRESULT POP3::HrProcessCommand(const std::string &strInput)
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Not authorized for command: %s", vWords[0].c_str());
 		hr = MAPI_E_CALL_FAILED;
 	} else if (strCommand.compare("STAT") == 0) {
-		if (vWords.size() != 1) {
-			hr = HrResponse(POP3_RESP_ERR, "Stat command has no arguments");
-			goto exit;
-		}
+		if (vWords.size() != 1)
+			return HrResponse(POP3_RESP_ERR,
+			       "Stat command has no arguments");
 		hr = HrCmdStat();
 	} else if (strCommand.compare("LIST") == 0) {
-		if (vWords.size() > 2) {
-			hr = HrResponse(POP3_RESP_ERR, "List must have 0 or 1 arguments");
-			goto exit;
-		}
-
+		if (vWords.size() > 2)
+			return HrResponse(POP3_RESP_ERR,
+			       "List must have 0 or 1 arguments");
 		if (vWords.size() == 2) {
 			hr = HrCmdList(strtoul(vWords[1].c_str(), NULL, 0));
 		} else {
 			hr = HrCmdList();
 		}
 	} else if (strCommand.compare("RETR") == 0) {
-		if (vWords.size() != 2) {
-			hr = HrResponse(POP3_RESP_ERR, "RETR must have 1 argument");
-			goto exit;
-		}
+		if (vWords.size() != 2)
+			return HrResponse(POP3_RESP_ERR,
+			       "RETR must have 1 argument");
 		hr = HrCmdRetr(strtoul(vWords[1].c_str(), NULL, 0));
 	} else if (strCommand.compare("DELE") == 0) {
-		if (vWords.size() != 2) {
-			hr = HrResponse(POP3_RESP_ERR, "DELE must have 1 argument");
-			goto exit;
-		}
+		if (vWords.size() != 2)
+			return HrResponse(POP3_RESP_ERR,
+			       "DELE must have 1 argument");
 		hr = HrCmdDele(strtoul(vWords[1].c_str(), NULL, 0));
 	} else if (strCommand.compare("NOOP") == 0) {
-		if (vWords.size() > 1) {
-			hr = HrResponse(POP3_RESP_ERR, "NOOP must have 0 arguments");
-			goto exit;
-		}
+		if (vWords.size() > 1)
+			return HrResponse(POP3_RESP_ERR,
+			       "NOOP must have 0 arguments");
 		hr = HrCmdNoop();
 	} else if (strCommand.compare("RSET") == 0) {
-		if (vWords.size() > 1) {
-			hr = HrResponse(POP3_RESP_ERR, "RSET must have 0 arguments");
-			goto exit;
-		}
+		if (vWords.size() > 1)
+			return HrResponse(POP3_RESP_ERR,
+			       "RSET must have 0 arguments");
 		hr = HrCmdRset();
 	} else if (strCommand.compare("TOP") == 0) {
-		if (vWords.size() != 3) {
-			hr = HrResponse(POP3_RESP_ERR, "TOP must have 2 arguments");
-			goto exit;
-		}
-
+		if (vWords.size() != 3)
+			return HrResponse(POP3_RESP_ERR,
+			       "TOP must have 2 arguments");
 		hr = HrCmdTop(strtoul(vWords[1].c_str(), NULL, 0), strtoul(vWords[2].c_str(), NULL, 0));
 	} else if (strCommand.compare("UIDL") == 0) {
-		if (vWords.size() > 2) {
-			hr = HrResponse(POP3_RESP_ERR, "UIDL must have 0 or 1 arguments");
-			goto exit;
-		}
-
+		if (vWords.size() > 2)
+			return HrResponse(POP3_RESP_ERR,
+			       "UIDL must have 0 or 1 arguments");
 		if (vWords.size() == 2) {
 			hr = HrCmdUidl(strtoul(vWords[1].c_str(), NULL, 0));
 		} else {
@@ -236,8 +220,6 @@ HRESULT POP3::HrProcessCommand(const std::string &strInput)
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "non-existing function called: %s", vWords[0].c_str());
 		hr = MAPI_E_CALL_FAILED;
 	}
-
-exit:
 	return hr;
 }
 
@@ -306,15 +288,7 @@ std::string POP3::GetCapabilityString()
  * @return hrSuccess
  */
 HRESULT POP3::HrCmdCapability() {
-	HRESULT hr = hrSuccess;
-	std::string strCapabilities = GetCapabilityString();
-
-	hr = HrResponse(POP3_RESP_OK, strCapabilities);
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+	return HrResponse(POP3_RESP_OK, GetCapabilityString());
 }
 
 /** 
@@ -325,34 +299,23 @@ exit:
  * @return hrSuccess
  */
 HRESULT POP3::HrCmdStarttls() {
-	HRESULT hr = hrSuccess;
-
-	if (!lpChannel->sslctx()) {
-		hr = HrResponse(POP3_RESP_PERMFAIL, "STLS error in ssl context");
-		goto exit;
-	}
-
-	if (lpChannel->UsingSsl()) {
-		hr = HrResponse(POP3_RESP_ERR, "STLS already using SSL/TLS");
-		goto exit;
-	}
-
-	hr = HrResponse(POP3_RESP_OK, "Begin TLS negotiation now");
+	if (!lpChannel->sslctx())
+		return HrResponse(POP3_RESP_PERMFAIL, "STLS error in ssl context");
+	if (lpChannel->UsingSsl())
+		return HrResponse(POP3_RESP_ERR, "STLS already using SSL/TLS");
+	HRESULT hr = HrResponse(POP3_RESP_OK, "Begin TLS negotiation now");
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpChannel->HrEnableTLS(lpLogger);
 	if (hr != hrSuccess) {
 		HrResponse(POP3_RESP_ERR, "Error switching to secure SSL/TLS connection");
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Error switching to SSL in STLS");
-		goto exit;
+		return hr;
 	}
 
 	if (lpChannel->UsingSsl())
 		lpLogger->Log(EC_LOGLEVEL_INFO, "Using SSL now");
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -394,7 +357,7 @@ HRESULT POP3::HrCmdUser(const string &strUser) {
  * @return MAPI Error code
  */
 HRESULT POP3::HrCmdPass(const string &strPass) {
-	HRESULT hr = hrSuccess;
+	HRESULT hr;
 	const char *plain = lpConfig->GetSetting("disable_plaintext_auth");
 
 	if (!lpChannel->UsingSsl() && lpChannel->sslctx() && plain && strcmp(plain, "yes") == 0 && lpChannel->peer_is_local() <= 0) {
@@ -419,19 +382,17 @@ HRESULT POP3::HrCmdPass(const string &strPass) {
 				HrResponse(POP3_RESP_AUTH_ERROR, "Wrong username or password");
 			else
 				HrResponse(POP3_RESP_TEMPFAIL, "Internal error: HrLogin failed");
-			goto exit;
+			return hr;
 		}
 
 		hr = this->HrMakeMailList();
 		if (hr != hrSuccess) {
 			HrResponse(POP3_RESP_ERR, "Can't get mail list");
-			goto exit;
+			return hr;
 		}
 
 		hr = HrResponse(POP3_RESP_OK, "Username and password accepted");
 	}
-
-exit:
 	return hr;
 }
 
@@ -463,25 +424,20 @@ HRESULT POP3::HrCmdStat() {
  * @return MAPI Error code
  */
 HRESULT POP3::HrCmdList() {
-	HRESULT hr = hrSuccess;
 	char szResponse[POP3_MAX_RESPONSE_LENGTH];
 
 	snprintf(szResponse, POP3_MAX_RESPONSE_LENGTH, "%u messages", (ULONG)lstMails.size());
-	hr = HrResponse(POP3_RESP_OK, szResponse);
+	HRESULT hr = HrResponse(POP3_RESP_OK, szResponse);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	for (size_t i = 0; i < lstMails.size(); ++i) {
 		snprintf(szResponse, POP3_MAX_RESPONSE_LENGTH, "%u %u", (ULONG)i + 1, lstMails[i].ulSize);
 		hr = lpChannel->HrWriteLine(szResponse);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
-
-	hr = lpChannel->HrWriteLine(".");
-
-exit:
-	return hr;
+	return lpChannel->HrWriteLine(".");
 }
 
 /** 
@@ -494,20 +450,15 @@ exit:
  * @return MAPI Error code
  */
 HRESULT POP3::HrCmdList(unsigned int ulMailNr) {
-	HRESULT hr = hrSuccess;
 	char szResponse[POP3_MAX_RESPONSE_LENGTH];
 
 	if (ulMailNr > lstMails.size() || ulMailNr < 1) {
 		HrResponse(POP3_RESP_ERR, "Wrong mail number");
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
+		return MAPI_E_NOT_FOUND;
 	}
 
 	snprintf(szResponse, POP3_MAX_RESPONSE_LENGTH, "%u %u", ulMailNr, lstMails[ulMailNr - 1].ulSize);
-	hr = HrResponse(POP3_RESP_OK, szResponse);
-
-exit:
-	return hr;
+	return HrResponse(POP3_RESP_OK, szResponse);
 }
 
 /** 
@@ -585,20 +536,15 @@ exit:
  * @return MAPI Error code
  */
 HRESULT POP3::HrCmdDele(unsigned int ulMailNr) {
-	HRESULT hr = hrSuccess;
-
 	if (ulMailNr < 1 || ulMailNr > lstMails.size()) {
-		hr = HrResponse(POP3_RESP_ERR, "mail nr not found");
+		HRESULT hr = HrResponse(POP3_RESP_ERR, "mail nr not found");
 		if (hr == hrSuccess)
 			hr = MAPI_E_NOT_FOUND;
-		goto exit;
+		return hr;
 	}
 
 	lstMails[ulMailNr - 1].bDeleted = true;
-	hr = HrResponse(POP3_RESP_OK, "mail deleted");
-
-exit:
-	return hr;
+	return HrResponse(POP3_RESP_OK, "mail deleted");
 }
 
 /** 
@@ -669,13 +615,12 @@ HRESULT POP3::HrCmdQuit() {
  * @return MAPI Error code
  */
 HRESULT POP3::HrCmdUidl() {
-	HRESULT hr = hrSuccess;
 	char szResponse[POP3_MAX_RESPONSE_LENGTH];
 	string strResponse;
 
-	hr = lpChannel->HrWriteLine("+OK");
+	HRESULT hr = lpChannel->HrWriteLine("+OK");
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	for (size_t i = 0; i < lstMails.size(); ++i) {
 		snprintf(szResponse, POP3_MAX_RESPONSE_LENGTH, "%u ", (ULONG)i + 1);
@@ -684,15 +629,9 @@ HRESULT POP3::HrCmdUidl() {
 
 		hr = lpChannel->HrWriteLine(strResponse);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
-
-	hr = lpChannel->HrWriteLine(".");
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+	return lpChannel->HrWriteLine(".");
 }
 
 /** 
@@ -714,17 +653,13 @@ HRESULT POP3::HrCmdUidl(unsigned int ulMailNr) {
 		hr = HrResponse(POP3_RESP_ERR, "mail nr not found");
 		if (hr == hrSuccess)
 			hr = MAPI_E_NOT_FOUND;
-		goto exit;
+		return hr;
 	}
 
 	snprintf(szResponse, POP3_MAX_RESPONSE_LENGTH, "%u ", ulMailNr);
 	strResponse = szResponse;
 	strResponse += bin2hex(lstMails[ulMailNr - 1].sbEntryID.cb, lstMails[ulMailNr - 1].sbEntryID.lpb);
-
-	hr = HrResponse(POP3_RESP_OK, strResponse);
-
-exit:
-	return hr;
+	return HrResponse(POP3_RESP_OK, strResponse);
 }
 
 /** 

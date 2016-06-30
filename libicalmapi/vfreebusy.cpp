@@ -85,7 +85,6 @@ HRESULT HrGetFbInfo(icalcomponent *lpFbcomp, time_t *lptStart, time_t *lptEnd, s
  */
 HRESULT HrFbBlock2ICal(FBBlock_1 *lpsFbblk, LONG ulBlocks, time_t tDtStart, time_t tDtEnd, const std::string &strOrganiser, const std::string &strUser, const std::string &strUID, icalcomponent **lpicFbComponent)
 {
-	HRESULT hr = hrSuccess;
 	icalcomponent *lpFbComp = NULL;
 	icaltimetype ittStamp;
 	icalproperty *lpicProp = NULL;
@@ -96,66 +95,52 @@ HRESULT HrFbBlock2ICal(FBBlock_1 *lpsFbblk, LONG ulBlocks, time_t tDtStart, time
 	std::string strEmail;
 
 	lpFbComp = icalcomponent_new(ICAL_VFREEBUSY_COMPONENT);
-	if (!lpFbComp) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpFbComp == NULL)
+		return MAPI_E_INVALID_PARAMETER;
 	
 	//DTSTART
 	ittStamp = icaltime_from_timet_with_zone(tDtStart, false, icaltimezone_get_utc_timezone());	
 	lpicProp = icalproperty_new(ICAL_DTSTART_PROPERTY);
-	if (!lpicProp) {
-		hr = MAPI_E_NOT_ENOUGH_MEMORY;
-		goto exit;
-	}
+	if (lpicProp == NULL)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	icalproperty_set_value(lpicProp, icalvalue_new_datetime(ittStamp));
 	icalcomponent_add_property(lpFbComp, lpicProp);
 
 	//DTEND
 	ittStamp = icaltime_from_timet_with_zone(tDtEnd, false, icaltimezone_get_utc_timezone());	
 	lpicProp = icalproperty_new(ICAL_DTEND_PROPERTY);
-	if (!lpicProp) {
-		hr = MAPI_E_NOT_ENOUGH_MEMORY;
-		goto exit;
-	}	
+	if (lpicProp == NULL)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	icalproperty_set_value(lpicProp, icalvalue_new_datetime(ittStamp));
 	icalcomponent_add_property(lpFbComp, lpicProp);
 
 	//DTSTAMP
 	ittStamp = icaltime_from_timet_with_zone(time(NULL), false, icaltimezone_get_utc_timezone());	
 	lpicProp = icalproperty_new(ICAL_DTSTAMP_PROPERTY);
-	if (!lpicProp) {
-		hr = MAPI_E_NOT_ENOUGH_MEMORY;
-		goto exit;
-	}	
+	if (lpicProp == NULL)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	icalproperty_set_value(lpicProp, icalvalue_new_datetime(ittStamp));
 	icalcomponent_add_property(lpFbComp, lpicProp);
 	
 	//UID
 	lpicProp = icalproperty_new(ICAL_UID_PROPERTY);
-	if (!lpicProp) {
-		hr = MAPI_E_NOT_ENOUGH_MEMORY;
-		goto exit;
-	}
+	if (lpicProp == NULL)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	icalproperty_set_uid(lpicProp, strUID.c_str());
 	icalcomponent_add_property(lpFbComp, lpicProp);
 
 	//ORGANIZER
 	lpicProp = icalproperty_new(ICAL_ORGANIZER_PROPERTY);
-	if (!lpicProp) {
-		hr = MAPI_E_NOT_ENOUGH_MEMORY;
-		goto exit;
-	}	
+	if (lpicProp == NULL)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	icalproperty_set_organizer(lpicProp, strOrganiser.c_str());
 	icalcomponent_add_property(lpFbComp, lpicProp);
 	
 	//ATTENDEE
 	strEmail = "mailto:" + strUser;
 	lpicProp = icalproperty_new_attendee(strEmail.c_str());
-	if (!lpicProp) {
-		hr = MAPI_E_NOT_ENOUGH_MEMORY;
-		goto exit;
-	}
+	if (lpicProp == NULL)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	
 	// param PARTSTAT
 	icalParam = icalparameter_new_partstat(ICAL_PARTSTAT_ACCEPTED);
@@ -171,11 +156,8 @@ HRESULT HrFbBlock2ICal(FBBlock_1 *lpsFbblk, LONG ulBlocks, time_t tDtStart, time
 	for (int i = 0; i < ulBlocks; ++i) {
 		// FREEBUSY
 		lpicProp = icalproperty_new(ICAL_FREEBUSY_PROPERTY);
-		if (!lpicProp) {
-			hr = MAPI_E_NOT_ENOUGH_MEMORY;
-			goto exit;
-		}
-
+		if (lpicProp == NULL)
+			return MAPI_E_NOT_ENOUGH_MEMORY;
 		RTimeToUnixTime(lpsFbblk[i].m_tmStart, &tStart);
 		RTimeToUnixTime(lpsFbblk[i].m_tmEnd, &tEnd);
 		icalPeriod.start = icaltime_from_timet_with_zone(tStart, false, icaltimezone_get_utc_timezone());
@@ -205,8 +187,5 @@ HRESULT HrFbBlock2ICal(FBBlock_1 *lpsFbblk, LONG ulBlocks, time_t tDtStart, time
 	
 	icalcomponent_end_component(lpFbComp, ICAL_VFREEBUSY_COMPONENT);
 	*lpicFbComponent = lpFbComp;
-
-exit:
-
-	return hr;
+	return hrSuccess;
 }

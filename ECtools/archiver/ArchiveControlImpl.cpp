@@ -57,23 +57,19 @@ using namespace za::operations;
  */
 HRESULT ArchiveControlImpl::Create(ArchiverSessionPtr ptrSession, ECConfig *lpConfig, ECLogger *lpLogger, bool bForceCleanup, ArchiveControlPtr *lpptrArchiveControl)
 {
-	HRESULT hr = hrSuccess;
 	std::unique_ptr<ArchiveControlImpl> ptrArchiveControl;
 
 	try {
 		ptrArchiveControl.reset(new ArchiveControlImpl(ptrSession, lpConfig, lpLogger, bForceCleanup));
 	} catch (std::bad_alloc &) {
-		hr = MAPI_E_NOT_ENOUGH_MEMORY;
-		goto exit;
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	}
 
-	hr = ptrArchiveControl->Init();
+	HRESULT hr = ptrArchiveControl->Init();
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	*lpptrArchiveControl = std::move(ptrArchiveControl);
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**

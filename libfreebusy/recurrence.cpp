@@ -56,7 +56,6 @@ HRESULT recurrence::HrLoadRecurrenceState(char *lpData, unsigned int ulLen, ULON
  */
 HRESULT recurrence::HrGetRecurrenceState(char **lppData, unsigned int *lpulLen, void *base)
 {
-	HRESULT hr;
 	time_t tStart;
 	LONG rStart;
 	struct tm tm;
@@ -64,24 +63,15 @@ HRESULT recurrence::HrGetRecurrenceState(char **lppData, unsigned int *lpulLen, 
 	// VALIDATION ONLY, not auto-correcting .. you should enter data correctly!
 	if (m_sRecState.ulRecurFrequency != 0x200A && m_sRecState.ulRecurFrequency != 0x200B &&
 		m_sRecState.ulRecurFrequency != 0x200C && m_sRecState.ulRecurFrequency != 0x200D)
-	{
-        hr = MAPI_E_CORRUPT_DATA;
-		goto exit;
-	}
+		return MAPI_E_CORRUPT_DATA;
 
 	if (m_sRecState.ulPatternType != 0x0000 && m_sRecState.ulPatternType != 0x0001 && 
 		m_sRecState.ulPatternType != 0x0002 && m_sRecState.ulPatternType != 0x0003 && m_sRecState.ulPatternType != 0x0004 && 
 		m_sRecState.ulPatternType != 0x000A && m_sRecState.ulPatternType != 0x000B && m_sRecState.ulPatternType != 0x000C)
-	{
-        hr = MAPI_E_CORRUPT_DATA;
-		goto exit;
-	}
+		return MAPI_E_CORRUPT_DATA;
 
 	if (m_sRecState.ulEndType != 0x2021 && m_sRecState.ulEndType != 0x2022 && m_sRecState.ulEndType != 0x2023)
-	{
-        hr = MAPI_E_CORRUPT_DATA;
-		goto exit;
-	}
+		return MAPI_E_CORRUPT_DATA;
 
 	// calculate ulFirstDateTime
 	switch (m_sRecState.ulRecurFrequency) {
@@ -154,11 +144,7 @@ HRESULT recurrence::HrGetRecurrenceState(char **lppData, unsigned int *lpulLen, 
 
 	// exception info count is same as number of modified items
 	m_sRecState.ulExceptionCount = m_sRecState.lstModifiedInstanceDates.size();
-
-	hr = m_sRecState.GetBlob(lppData, lpulLen, base);
-
-exit:
-	return hr;
+	return m_sRecState.GetBlob(lppData, lpulLen, base);
 }
 
 HRESULT recurrence::HrGetHumanReadableString(std::string *lpstrHRS)
@@ -1832,7 +1818,6 @@ next:
 
 HRESULT recurrence::AddValidOccr(time_t tsOccrStart, time_t tsOccrEnd, ULONG ulBusyStatus, OccrInfo **lpFBBlocksAll, ULONG *lpcValues)
 {
-	HRESULT hr = hrSuccess;
 	OccrInfo sOccrInfo;
 
 	// APPT_STARTWHOLE
@@ -1843,36 +1828,18 @@ HRESULT recurrence::AddValidOccr(time_t tsOccrStart, time_t tsOccrEnd, ULONG ulB
 	UnixTimeToRTime(tsOccrEnd, &sOccrInfo.fbBlock.m_tmEnd);
 
 	sOccrInfo.fbBlock.m_fbstatus = (FBStatus)ulBusyStatus;
-
-	hr = HrAddFBBlock(sOccrInfo, lpFBBlocksAll, lpcValues);
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+	return HrAddFBBlock(sOccrInfo, lpFBBlocksAll, lpcValues);
 }
 
 bool recurrence::isOccurrenceValid(time_t tsPeriodStart, time_t tsPeriodEnd, time_t tsNewOcc)
 {
-	bool IsValid = true;
-
-	if(isException(tsNewOcc)) {
-		IsValid = false;
-		goto exit;
-	}
-
-	if(tsNewOcc < tsPeriodStart || tsNewOcc > tsPeriodEnd) {
-		IsValid = false;
-		goto exit;
-	}
-
-	if(isDeletedOccurrence(tsNewOcc)) {
-		IsValid = false;
-		goto exit;
-	}
-
-exit:
-	return IsValid;
+	if (isException(tsNewOcc))
+		return false;
+	if (tsNewOcc < tsPeriodStart || tsNewOcc > tsPeriodEnd)
+		return false;
+	if (isDeletedOccurrence(tsNewOcc))
+		return false;
+	return true;
 }
 
 /**
