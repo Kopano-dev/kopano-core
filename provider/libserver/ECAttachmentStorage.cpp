@@ -2010,7 +2010,6 @@ ECRESULT ECFileAttachment::RestoreMarkedAttachment(ULONG ulInstanceId)
  */
 ECRESULT ECFileAttachment::DeleteMarkedAttachment(ULONG ulInstanceId)
 {
-	ECRESULT er;
 	string filename = CreateAttachmentFilename(ulInstanceId, m_bFileCompression) + ".deleted";
 
 	if (unlink(filename.c_str()) == 0)
@@ -2022,7 +2021,8 @@ ECRESULT ECFileAttachment::DeleteMarkedAttachment(ULONG ulInstanceId)
 			return erSuccess;
 	}
 
-	// FIXME log in all errno cases
+	ECRESULT er = erSuccess;
+	ec_log_err("%s unlink %s failed: %s\n", __PRETTY_FUNCTION__, filename.c_str(), strerror(errno));
 	if (errno == EACCES || errno == EPERM)
 		er = KCERR_NO_ACCESS;
 	else if (errno != ENOENT) { // ignore "file not found" error
