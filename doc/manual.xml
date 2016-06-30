@@ -9786,11 +9786,13 @@
 	      <varlistentry>
 		    <term>
 			  <option>--reindex</option>
-			  <replaceable>username</replaceable>
+			  <replaceable>user/store</replaceable>
 			</term>
 			<listitem>
-				<para>Remove the current index of the given user and
+				<para>Remove the current index of the given user or store and
 				start to make a new index immediately.</para>
+				<para>The given argument can be a user name, store GUID or 'public'
+				(without quotes) to indicate the public store.</para>
 				<para>The kopano-search daemon must already be running
 				on the same machine.</para>
             </listitem>
@@ -10185,6 +10187,16 @@
 
 		<variablelist>
 		  <varlistentry>
+		    <term><option>search_engine</option></term>
+		    <listitem>
+		      <para>Backend search engine (currently only xapian is
+                      supported).
+		      </para>
+		      <para>Default: xapian</para>
+		    </listitem>
+		  </varlistentry>
+
+		  <varlistentry>
 		    <term><option>term_cache_size</option></term>
 		    <listitem>
 		      <para>The size in bytes of the term cache used when writing
@@ -10225,12 +10237,22 @@
 		  </varlistentry>
 
 		  <varlistentry>
-		    <term><option>search_engine</option></term>
+		    <term><option>index_junk</option></term>
 		    <listitem>
-		      <para>Backend search engine (currently only xapian is 
-                      supported).
+		      <para>Index junk folders
 		      </para>
-		      <para>Default: xapian</para>
+		      <para>Default: yes</para>
+		    </listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+		    <term><option>suggestions</option></term>
+		    <listitem>
+		      <para>Prepare search suggestions ("did-you-mean?") during indexing.
+		      Junk folders are excluded. This takes up a large percentage of the
+		      used disk space.
+		      </para>
+		      <para>Default: yes</para>
 		    </listitem>
 		  </varlistentry>
 
@@ -10262,31 +10284,6 @@
 			  be indexed. This value may contain a k, m or g
 			  multiplier.</para>
 			  <para>Default: <replaceable>5M</replaceable></para>
-			</listitem>
-		  </varlistentry>
-
-		  <varlistentry>
-		    <term><option>index_attachment_mime_filter</option></term>
-			<listitem>
-			  <para>Some attachments are not intresting to run through
-			  the parser. With this option you can filter out
-			  attachment which have a specific mimetype. Only the
-			  first part of the mimetype should be given here. Good
-			  examples of a mimetype to filter is 'image', 'audio' and
-			  'video'. This field is space separated.</para>
-			  <para>Default: <replaceable></replaceable></para>
-			</listitem>
-		  </varlistentry>
-
-		  <varlistentry>
-		    <term><option>index_attachment_extension_filter</option></term>
-			<listitem>
-			  <para>As the mime filter above, but works on the
-				attachment extension. This is only tested if the
-				mimetype of an attachment was unknown. Good examples
-				of an extension to filter is 'gif', 'jpeg', 'jpg' and
-				'png'. This field is space separated.</para>
-			  <para>Default: <replaceable></replaceable></para>
 			</listitem>
 		  </varlistentry>
 
