@@ -155,7 +155,6 @@ exit:
 }
 
 // IMAPIContainer
-
 HRESULT ZCABContainer::MakeWrappedEntryID(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulObjType, ULONG ulOffset, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
 {
 	HRESULT hr = hrSuccess;
@@ -1024,7 +1023,6 @@ HRESULT ZCABContainer::GetSearchCriteria(ULONG ulFlags, LPSRestriction *lppRestr
 }
 
 // IABContainer
-
 HRESULT ZCABContainer::CreateEntry(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulCreateFlags, LPMAPIPROP* lppMAPIPropEntry)
 {
 	return MAPI_E_NO_SUPPORT;
@@ -1199,7 +1197,6 @@ HRESULT ZCABContainer::GetPropList(ULONG ulFlags, LPSPropTagArray FAR * lppPropT
 		hr = m_lpDistList->GetPropList(ulFlags, lppPropTagArray);
 	return hr;
 }
-
 
 // Interface IUnknown
 HRESULT ZCABContainer::xABContainer::QueryInterface(REFIID refiid , void** lppInterface)

@@ -12,13 +12,8 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
-
-// ECMailUser.cpp: implementation of the ECMailUser class.
-
 #include <kopano/platform.h>
-
 #include "resource.h"
 #include <mapiutil.h>
 #include "kcore.hpp"
@@ -34,8 +29,6 @@
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
-
-// Construction/Destruction
 
 ECMailUser::ECMailUser(void* lpProvider, BOOL fModify) : ECABProp(lpProvider, MAPI_MAILUSER, fModify, "IMailUser")
 {
@@ -107,7 +100,6 @@ HRESULT ECMailUser::CopyProps(LPSPropTagArray lpIncludeProps, ULONG ulUIParam, L
 }
 
 // IMailUser
-
 HRESULT ECMailUser::xMailUser::QueryInterface(REFIID refiid , void** lppInterface)
 {
 	TRACE_MAPI(TRACE_ENTRY, "IMailUser::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());

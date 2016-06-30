@@ -131,7 +131,6 @@ HRESULT ECEnumFBBlock::Restrict(FILETIME ftmStart, FILETIME ftmEnd)
 // Interfaces
 //		IUnknown
 //		IEnumFBBlock
-
 HRESULT __stdcall ECEnumFBBlock::xEnumFBBlock::QueryInterface(REFIID refiid , void** lppInterface)
 {
 	TRACE_MAPI(TRACE_ENTRY, "IEnumFBBlock::QueryInterface", "");

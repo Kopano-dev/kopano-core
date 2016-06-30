@@ -12,15 +12,10 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
-
-// ECMAPIContainer.cpp: implementation of the ECMAPIContainer class.
-
 #include <kopano/platform.h>
 #include "kcore.hpp"
 #include "ECMAPIContainer.h"
-
 #include "ECMAPITable.h"
 #include "Mem.h"
 
@@ -35,8 +30,6 @@
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
-
-// Construction/Destruction
 
 ECMAPIContainer::ECMAPIContainer(ECMsgStore *lpMsgStore, ULONG ulObjType,
     BOOL fModify, const char *szClassName) :

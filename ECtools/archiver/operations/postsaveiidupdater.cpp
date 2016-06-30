@@ -21,7 +21,6 @@
 
 namespace za { namespace operations {
 
-// TaskBase Implementation
 TaskBase::TaskBase(const AttachPtr &ptrSourceAttach, const MessagePtr &ptrDestMsg, ULONG ulDestAttachIdx)
 : m_ptrSourceAttach(ptrSourceAttach)
 , m_ptrDestMsg(ptrDestMsg)
@@ -95,9 +94,6 @@ HRESULT TaskBase::GetUniqueIDs(IAttach *lpAttach, LPSPropValue *lppServerUID, UL
 	return hrSuccess;
 }
 
-
-
-// TaskMapInstanceId implementation
 TaskMapInstanceId::TaskMapInstanceId(const AttachPtr &ptrSourceAttach, const MessagePtr &ptrDestMsg, ULONG ulDestAttachNum)
 : TaskBase(ptrSourceAttach, ptrDestMsg, ulDestAttachNum)
 { }
@@ -106,8 +102,6 @@ HRESULT TaskMapInstanceId::DoExecute(ULONG ulPropTag, const InstanceIdMapperPtr 
 	return ptrMapper->SetMappedInstances(ulPropTag, sourceServerUID, cbSourceInstanceID, lpSourceInstanceID, destServerUID, cbDestInstanceID, lpDestInstanceID);
 }
 
-
-// TaskVerifyAndUpdateInstanceId implementation
 TaskVerifyAndUpdateInstanceId::TaskVerifyAndUpdateInstanceId(const AttachPtr &ptrSourceAttach, const MessagePtr &ptrDestMsg, ULONG ulDestAttachNum, ULONG cbDestInstanceID, LPENTRYID lpDestInstanceID)
 : TaskBase(ptrSourceAttach, ptrDestMsg, ulDestAttachNum)
 , m_destInstanceID(cbDestInstanceID, lpDestInstanceID)
@@ -127,9 +121,6 @@ HRESULT TaskVerifyAndUpdateInstanceId::DoExecute(ULONG ulPropTag, const Instance
 	return hr;
 }
 
-
-
-// PostSaveInstanceIdUpdater implementation
 PostSaveInstanceIdUpdater::PostSaveInstanceIdUpdater(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper, const TaskList &lstDeferred)
 : m_ulPropTag(ulPropTag)
 , m_ptrMapper(ptrMapper)

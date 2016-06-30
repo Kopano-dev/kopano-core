@@ -12,11 +12,7 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
-
-// ECXPLogon.cpp: implementation of the ECXPLogon class.
-
 #include <kopano/platform.h>
 #include <mapi.h>
 #include <mapispi.h>
@@ -64,8 +60,6 @@ static HRESULT HrGetECMsgStore(IMAPIProp *lpProp, ECMsgStore **lppECMsgStore)
 	(*lppECMsgStore)->AddRef();
 	return hrSuccess;
 }
-
-// Construction/Destruction
 
 ECXPLogon::ECXPLogon(const std::string &strProfileName, BOOL bOffline, ECXPProvider *lpXPProvider, LPMAPISUP lpMAPISup) : ECUnknown("IXPLogon")
 {

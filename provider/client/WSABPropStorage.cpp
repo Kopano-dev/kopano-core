@@ -12,20 +12,13 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
-
 #include <kopano/platform.h>
-
 #include "WSABPropStorage.h"
-
 #include "Mem.h"
 #include <kopano/ECGuid.h>
-
-// Utils
 #include "SOAPUtils.h"
 #include "WSUtil.h"
-
 #include <kopano/charset/convert.h>
 
 #ifdef _DEBUG
@@ -344,9 +337,7 @@ HRESULT WSABPropStorage::Reload(void *lpParam, ECSESSIONID sessionId) {
     return hrSuccess;
 }
             
-
 // Interface IECPropStorage
-
 ULONG WSABPropStorage::xECPropStorage::AddRef()
 {
 	METHOD_PROLOGUE_(WSABPropStorage, ECPropStorage);

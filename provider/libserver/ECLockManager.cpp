@@ -28,7 +28,6 @@
 
 using namespace std;
 
-// ECObjectLockImpl
 class ECObjectLockImpl : private boost::noncopyable {
 public:
 	ECObjectLockImpl(ECLockManagerPtr ptrLockManager, unsigned int ulObjId, ECSESSIONID sessionId);
@@ -42,7 +41,6 @@ private:
 	ECSESSIONID m_sessionId;
 };
 
-// ECLockObjectImpl Implementation
 ECObjectLockImpl::ECObjectLockImpl(ECLockManagerPtr ptrLockManager, unsigned int ulObjId, ECSESSIONID sessionId)
 : m_ptrLockManager(ptrLockManager)
 , m_ulObjId(ulObjId)
@@ -66,9 +64,6 @@ ECRESULT ECObjectLockImpl::Unlock() {
 	return er;
 }
 
-
-
-// ECLockObject Implementation
 ECObjectLock::ECObjectLock(ECLockManagerPtr ptrLockManager, unsigned int ulObjId, ECSESSIONID sessionId)
 : m_ptrImpl(new ECObjectLockImpl(ptrLockManager, ulObjId, sessionId))
 { }
@@ -83,9 +78,6 @@ ECRESULT ECObjectLock::Unlock() {
 	return er;
 }
 
-
-
-// ECLockManager Implementation
 ECLockManagerPtr ECLockManager::Create() {
 	return ECLockManagerPtr(new ECLockManager());
 }

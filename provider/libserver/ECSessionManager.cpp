@@ -12,20 +12,13 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
-
-/// ECSessionManager.cpp: implementation of the ECSessionManager class.
 #include <kopano/platform.h>
- 
- 
 #include <algorithm>
 #include <new>
 #include <typeinfo>
-
 #include <mapidefs.h>
 #include <mapitags.h>
-
 #include "ECMAPI.h"
 #include "ECDatabase.h"
 #include "ECSessionGroup.h"
@@ -33,14 +26,11 @@
 #include "ECStatsCollector.h"
 #include "ECTPropsPurge.h"
 #include "ECLicenseClient.h"
-
 #include "ECDatabaseUtils.h"
 #include "ECSecurity.h"
 #include "SSLUtil.h"
-
 #include <kopano/Trace.h>
 #include "kcore.hpp"
-
 #include "ECICS.h"
 #include <edkmdb.h>
 #include "logontime.hpp"
@@ -48,8 +38,6 @@
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
-
-// Construction/Destruction
 
 ECSessionManager::ECSessionManager(ECConfig *lpConfig, ECLogger *lpAudit,
     bool bHostedKopano, bool bDistributedKopano)
@@ -457,7 +445,6 @@ ECRESULT ECSessionManager::ForEachSession(void(*callback)(ECSession*, void*), vo
 	return er;
 }
 
-
 // Locking of sessions works as follows:
 //
 // - A session is requested by the caller thread through ValidateSession. ValidateSession
@@ -481,7 +468,6 @@ ECRESULT ECSessionManager::ForEachSession(void(*callback)(ECSession*, void*), vo
 // having the session call a 'cancel' request to long-running calls, which makes the calls
 // exit prematurely.
 //
-
 ECRESULT ECSessionManager::ValidateSession(struct soap *soap, ECSESSIONID sessionID, ECAuthSession **lppSession, bool fLockSession)
 {
 	ECRESULT er;
@@ -1021,6 +1007,7 @@ ECRESULT ECSessionManager::UpdateSubscribedTables(ECKeyTable::UpdateType ulType,
 
 	return er;
 }
+
 // FIXME: ulFolderId should be an entryid, because the parent is already deleted!
 // You must specify which store the object was deleted from, 'cause we can't find out afterwards
 ECRESULT ECSessionManager::NotificationDeleted(unsigned int ulObjType, unsigned int ulObjId, unsigned int ulStoreId, entryId* lpEntryId, unsigned int ulFolderId, unsigned int ulFlags)

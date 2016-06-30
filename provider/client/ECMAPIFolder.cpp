@@ -913,7 +913,6 @@ HRESULT ECMAPIFolder::UpdateMessageFromStream(ULONG ulSyncId, ULONG cbEntryID, L
 	return hrSuccess;
 }
 
-// -----------
 HRESULT ECMAPIFolder::xMAPIFolder::QueryInterface(REFIID refiid , void** lppInterface)
 {
 	TRACE_MAPI(TRACE_ENTRY, "IMAPIFolder::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
@@ -1184,7 +1183,6 @@ HRESULT ECMAPIFolder::xMAPIFolder::EmptyFolder(ULONG ulUIParam, LPMAPIPROGRESS l
 }
 
 // IFolderSupport
-
 HRESULT ECMAPIFolder::xFolderSupport::QueryInterface(REFIID refiid , void** lppInterface)
 {
 	TRACE_MAPI(TRACE_ENTRY, "IFolderSupport::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());

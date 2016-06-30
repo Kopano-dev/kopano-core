@@ -459,14 +459,11 @@ ECRESULT GetBestServerPath(struct soap *soap, ECSession *lpecSession, const std:
 	return erSuccess;
 }
 
-
 // exception: This function does internal Begin + Commit/Rollback
 static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt* lplObjectIds, unsigned int ulDestFolderId, unsigned int ulSyncId);
 // these functions don't do Begin + Commit/Rollback
 static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession, ECDatabase *lpDatabase, ECAttachmentStorage *lpAttachmentStorage, struct saveObject *lpsSaveObj, unsigned int ulObjId, bool fNewItem, unsigned int ulSyncId, struct saveObject *lpsReturnObj, bool *lpfHaveChangeKey, FILETIME *ftCreated, FILETIME *ftModified);
-
 static ECRESULT DoNotifySubscribe(ECSession *lpecSession, unsigned long long ulSessionId, struct notifySubscribe *notifySubscribe);
-
 
 /**
  * logon: log on and create a session with provided credentials

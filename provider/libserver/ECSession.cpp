@@ -258,8 +258,6 @@ size_t BTSession::GetInternalObjectSize()
 			MEMORY_USAGE_STRING(m_strProxyHost);
 }
 
-// Construction/Destruction
-
 ECSession::ECSession(const char *src_addr, ECSESSIONID sessionID,
     ECSESSIONGROUPID ecSessionGroupId, ECDatabaseFactory *lpDatabaseFactory,
     ECSessionManager *lpSessionManager, unsigned int ulCapabilities,
@@ -680,14 +678,9 @@ size_t ECSession::GetObjectSize()
 
 	// The Table manager size is not callculated here
 //	ulSize += GetTableManager()->GetObjectSize();
-
 	return ulSize;
 }
 
-
-/*
-  ECAuthSession
-*/
 ECAuthSession::ECAuthSession(const char *src_addr, ECSESSIONID sessionID,
     ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager,
     unsigned int ulCapabilities) :

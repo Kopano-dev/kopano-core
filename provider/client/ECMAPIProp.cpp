@@ -77,9 +77,6 @@ private:
 	const ECENTRYID &m_sEntryID;
 };
 
-
-// Construction/Destruction
-
 ECMAPIProp::ECMAPIProp(void *lpProvider, ULONG ulObjType, BOOL fModify,
     ECMAPIProp *lpRoot, const char *szClassName) :
 	ECGenericProp(lpProvider, ulObjType, fModify, szClassName)
@@ -163,7 +160,6 @@ BOOL ECMAPIProp::IsICSObject()
 }
 
 // Property handles
-
 HRESULT	ECMAPIProp::DefaultMAPIGetProp(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase)
 {
 	HRESULT		hr = hrSuccess;
@@ -776,7 +772,6 @@ HRESULT ECMAPIProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID FAR * lppProp
 }
 
 // Stream functions
-
 HRESULT ECMAPIProp::HrStreamCommit(IStream *lpStream, void *lpData)
 {
 	HRESULT hr = hrSuccess;
@@ -881,8 +876,7 @@ exit:
 	return hr;
 }
 
-// Security fucntions
-
+// Security functions
 HRESULT ECMAPIProp::GetPermissionRules(int ulType, ULONG *lpcPermissions,
     ECPERMISSION **lppECPermissions)
 {
@@ -946,7 +940,6 @@ HRESULT ECMAPIProp::SetParentID(ULONG cbParentID, LPENTRYID lpParentID)
 }
 
 // Interface IMAPIProp
-
 HRESULT __stdcall ECMAPIProp::xMAPIProp::QueryInterface(REFIID refiid, void **lppInterface)
 {
 	TRACE_MAPI(TRACE_ENTRY, "IMAPIProp::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
@@ -1073,7 +1066,6 @@ HRESULT __stdcall ECMAPIProp::xMAPIProp::GetIDsFromNames(ULONG cNames, LPMAPINAM
 }
 
 // Interface ECSecurity
-
 HRESULT ECMAPIProp::xECSecurity::QueryInterface(REFIID refiid, void ** lppInterface)
 {
 	METHOD_PROLOGUE_(ECMAPIProp , ECSecurity);

@@ -506,10 +506,7 @@ exit:
 	return hr;
 }
 
-
-
 // IECChangeAdvisor interface
-
 ULONG ECChangeAdvisor::xECChangeAdvisor::AddRef() {
 	TRACE_MAPI(TRACE_ENTRY, "IECChangeAdvisor::AddRef", "");
 	METHOD_PROLOGUE_(ECChangeAdvisor, ECChangeAdvisor);

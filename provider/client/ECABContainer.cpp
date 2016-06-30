@@ -521,7 +521,6 @@ HRESULT ECABContainer::xABContainer::GetSearchCriteria(ULONG ulFlags, LPSRestric
 }
 
 // Interface IMAPIProp
-//
 HRESULT ECABContainer::xABContainer::GetLastError(HRESULT hError, ULONG ulFlags, LPMAPIERROR * lppMapiError)
 {
 	TRACE_MAPI(TRACE_ENTRY, "IABContainer::GetLastError", "");

@@ -214,7 +214,6 @@ exit:
 // Interfaces
 //		IUnknown
 //		IFreeBusyData
-
 HRESULT __stdcall ECFreeBusyData::xFreeBusyData::QueryInterface(REFIID refiid , void** lppInterface)
 {
 	TRACE_MAPI(TRACE_ENTRY, "IFreeBusyData::QueryInterface", "");

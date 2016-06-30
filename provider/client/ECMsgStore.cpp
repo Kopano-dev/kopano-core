@@ -3156,9 +3156,7 @@ HRESULT ECMsgStore::DeleteFromMasterOutgoingTable(ULONG cbEntryId,
 	return this->lpTransport->HrFinishedMessage(cbEntryId, lpEntryId, EC_SUBMIT_MASTER | ulFlags);
 }
 
-
 // MAPIOfflineMgr
-
 HRESULT ECMsgStore::SetCurrentState(ULONG ulFlags, ULONG ulMask, ULONG ulState, void* pReserved)
 {
 	return MAPI_E_NO_SUPPORT;
@@ -3185,7 +3183,6 @@ HRESULT ECMsgStore::Unadvise(ULONG ulFlags,ULONG ulAdviseToken)
 }
 
 // ProxyStoreObject
-
 HRESULT ECMsgStore::UnwrapNoRef(LPVOID *ppvObject) 
 {
 	if (ppvObject == NULL)
@@ -3363,10 +3360,7 @@ HRESULT ECMsgStore::ExportMessageChangesAsStream(ULONG ulFlags, ULONG ulPropTag,
 	return hrSuccess;
 }
 
-
-
 // IMsgStore interface
-
 ULONG ECMsgStore::xMsgStore::AddRef() {
 	TRACE_MAPI(TRACE_ENTRY, "IMsgStore::AddRef", "");
 	METHOD_PROLOGUE_(ECMsgStore, MsgStore);
@@ -4426,7 +4420,6 @@ HRESULT ECMsgStore::xProxyStoreObject::PlaceHolder2()
 }
 
 // IMsgStoreProxy interface
-
 ULONG ECMsgStore::xMsgStoreProxy::AddRef() {
 	TRACE_MAPI(TRACE_ENTRY, "IMsgStoreProxy::AddRef", "");
 	METHOD_PROLOGUE_(ECMsgStore, MsgStoreProxy);
@@ -4636,7 +4629,6 @@ HRESULT ECMsgStore::xMsgStoreProxy::GetIDsFromNames(ULONG cNames, LPMAPINAMEID *
 }
 
 // IECMultiStoreTable interface
-
 ULONG ECMsgStore::xECMultiStoreTable::AddRef() {
 	TRACE_MAPI(TRACE_ENTRY, "IECMultiStoreTable::AddRef", "");
 	METHOD_PROLOGUE_(ECMsgStore, ECMultiStoreTable);
@@ -4761,8 +4753,6 @@ HRESULT ECMsgStore::xECTestProtocol::TestGet(char *szName, char **szValue) {
 	TRACE_MAPI(TRACE_RETURN, "IECTestProtocol::TestGet", "%s %s", GetMAPIErrorDescription(hr).c_str(), szValue ? *szValue : "<null>");
 	return hr;
 }
-
-// ECMSLogon
 
 ECMSLogon::ECMSLogon(ECMsgStore *lpStore)
 {

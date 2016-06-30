@@ -12,11 +12,7 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
-
-// ECXPProvider.cpp: implementation of the ECXPProvider class.
-
 #include <kopano/platform.h>
 #include <mapi.h>
 #include <mapispi.h>
@@ -44,8 +40,6 @@
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
-
-// Construction/Destruction
 
 ECXPProvider::ECXPProvider() : ECUnknown("IXPProvider")
 {

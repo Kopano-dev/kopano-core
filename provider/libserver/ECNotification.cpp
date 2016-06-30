@@ -14,10 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-// ECNotification.cpp: implementation of the ECNotification class.
 #include <kopano/platform.h>
-
 #include "ECNotification.h"
 #include "ECMAPI.h"
 #include "SOAPUtils.h"
@@ -25,8 +22,6 @@
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
-
-// Construction/Destruction
 
 ECNotification::ECNotification()
 {

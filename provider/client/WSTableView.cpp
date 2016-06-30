@@ -12,21 +12,13 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
-
 #include <kopano/platform.h>
-
-
 #include "WSTableView.h"
-
 #include "Mem.h"
 #include <kopano/ECGuid.h>
-
-// Utils
 #include "SOAPUtils.h"
 #include "WSUtil.h"
-
 #include <kopano/charset/convert.h>
 
 #ifdef _DEBUG
@@ -35,9 +27,7 @@
 
 /*
  * TableView operations for WS transport
- *
  */
-
 #define START_SOAP_CALL retry:
 #define END_SOAP_CALL 	\
 	if(er == KCERR_END_OF_SESSION) { if(m_lpTransport->HrReLogon() == hrSuccess) goto retry; } \
@@ -781,10 +771,10 @@ HRESULT WSTableView::SetReloadCallback(RELOADCALLBACK callback, void *lpParam)
 
 	return hr;
 }
+
 // WSTableOutGoingQueue view
 WSTableOutGoingQueue::WSTableOutGoingQueue(KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport) : WSStoreTableView(MAPI_MESSAGE, 0, lpCmd, lpDataLock, ecSessionId, cbEntryId, lpEntryId, lpMsgStore, lpTransport)
 {
-
 }
 
 HRESULT WSTableOutGoingQueue::Create(KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport, WSTableOutGoingQueue **lppTableOutGoingQueue)

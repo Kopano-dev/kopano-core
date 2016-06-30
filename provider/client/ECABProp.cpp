@@ -118,7 +118,6 @@ ECABLogon* ECABProp::GetABStore()
 }
 
 // Interface IMAPIProp
-
 HRESULT __stdcall ECABProp::xMAPIProp::QueryInterface(REFIID refiid, void ** lppInterface)
 {
 	TRACE_MAPI(TRACE_ENTRY, "AB::IMAPIProp::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());

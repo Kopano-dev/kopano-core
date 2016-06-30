@@ -48,8 +48,6 @@ static inline struct timeval operator-(const struct timeval &lhs, const struct t
 	return result;
 }
 
-// ECThreadPool implementation
-
 /**
  * Construct an ECThreadPool instance.
  * @param[in]	ulThreadCount	The amount of worker hreads to create.
@@ -304,11 +302,6 @@ void* ECThreadPool::threadFunc(void *lpVoid)
 	return NULL;
 }
 
-
-
-
-// ECTask implementation
-
 /**
  * Execute an ECTask instance, just calls the run() method of the derived class.
  */
@@ -316,10 +309,6 @@ void ECTask::execute()
 {
 	run();
 }
-
-
-
-// ECWaitableTask implementation
 
 /** 
  * Construct an ECWaitableTask object.

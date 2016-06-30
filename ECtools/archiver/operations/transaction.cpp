@@ -21,7 +21,6 @@
 
 namespace za { namespace operations {
 
-// Transaction implementation
 Transaction::Transaction(const SObjectEntry &objectEntry): m_objectEntry(objectEntry) 
 { }
 
@@ -119,9 +118,6 @@ HRESULT Transaction::Delete(const SObjectEntry &objectEntry, bool bDeferredDelet
 	return hrSuccess;
 }
 
-
-
-// Rollback implementation
 HRESULT Rollback::Delete(ArchiverSessionPtr ptrSession, IMessage *lpMessage)
 {
 	HRESULT hr;

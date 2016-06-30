@@ -160,7 +160,6 @@ DEF_HRMETHOD(TRACE_MAPI, ECMessageStreamImporterIStreamAdapter, SequentialStream
 DEF_HRMETHOD(TRACE_MAPI, ECMessageStreamImporterIStreamAdapter, SequentialStream, Read, (void *, pv), (ULONG, cb), (ULONG *, pcbRead))
 DEF_HRMETHOD(TRACE_MAPI, ECMessageStreamImporterIStreamAdapter, SequentialStream, Write, (const void *, pv), (ULONG, cb), (ULONG *, pcbWritten))
 
-
 // IStream proxies
 ULONG ECMessageStreamImporterIStreamAdapter::xStream::AddRef()
 {

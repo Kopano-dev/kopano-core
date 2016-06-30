@@ -31,8 +31,6 @@
 #define new DEBUG_NEW
 #endif
 
-// Construction/Destruction
-
 ZCABLogon::ZCABLogon(LPMAPISUP lpMAPISup, ULONG ulProfileFlags, GUID *lpGUID) : ECUnknown("IABLogon")
 {
 	// The specific GUID for *this* addressbook provider, if available

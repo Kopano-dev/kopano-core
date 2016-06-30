@@ -12,16 +12,10 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
-
-// ECNotifyClient.cpp: implementation of the ECNotifyClient class.
-
 #include <kopano/platform.h>
-
 #include <mapispi.h>
 #include <mapix.h>
-
 #include <kopano/ECDebug.h>
 #include "ECMsgStore.h"
 #include "ECNotifyClient.h"
@@ -42,8 +36,6 @@
 static inline std::pair<ULONG,ULONG> SyncAdviseToConnection(const SSyncAdvise &sSyncAdvise) {
 	return std::make_pair(sSyncAdvise.sSyncState.ulSyncId,sSyncAdvise.ulConnection);
 }
-
-// Construction/Destruction
 
 ECNotifyClient::ECNotifyClient(ULONG ulProviderType, void *lpProvider, ULONG ulFlags, LPMAPISUP lpSupport) : ECUnknown("ECNotifyClient")
 {
@@ -498,7 +490,6 @@ HRESULT ECNotifyClient::Unadvise(const ECLISTCONNECTION &lstConnections)
 
 	return hr;
 }
-
 
 // Re-registers a notification on the server. Normally only called if the server
 // session has been reset.

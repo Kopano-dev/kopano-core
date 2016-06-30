@@ -12,15 +12,9 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
-
-// ECABLogon.cpp: implementation of the ECABLogon class.
-
 #include <kopano/platform.h>
-
 #include <mapiutil.h>
-
 #include "kcore.hpp"
 #include <kopano/ECGuid.h>
 #include <edkguid.h>
@@ -42,8 +36,6 @@
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
-
-// Construction/Destruction
 
 ECABLogon::ECABLogon(LPMAPISUP lpMAPISup, WSTransport* lpTransport, ULONG ulProfileFlags, GUID *lpGUID) : ECUnknown("IABLogon")
 {

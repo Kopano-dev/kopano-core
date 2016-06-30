@@ -866,7 +866,6 @@ HRESULT WSTransport::HrOpenFolderOps(ULONG cbEntryID, LPENTRYID lpEntryID, WSMAP
 //	if( hr != hrSuccess)
 		//goto exit;
 
-
 	hr = UnWrapServerClientStoreEntry(cbEntryID, lpEntryID, &cbUnWrapStoreID, &lpUnWrapStoreID);
 	if(hr != hrSuccess)
 		goto exit;

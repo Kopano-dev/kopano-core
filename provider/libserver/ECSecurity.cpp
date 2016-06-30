@@ -12,13 +12,8 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
-
-// ECSecurity.cpp: implementation of the ECSecurity class.
-
 #include <kopano/platform.h>
-
 #ifdef LINUX
 #include <sys/types.h>
 #include <sys/stat.h>

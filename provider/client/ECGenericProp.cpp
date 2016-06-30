@@ -220,7 +220,6 @@ exit:
 //    the property has not been force-loaded with OpenProperty
 // or
 // 2) A MaxSize was specified and the property is larger than that size (normally 8k or so)
-//
 
 HRESULT ECGenericProp::HrGetRealProp(ULONG ulPropTag, ULONG ulFlags, void *lpBase, LPSPropValue lpsPropValue, ULONG ulMaxSize)
 {
@@ -325,8 +324,6 @@ exit:
 }
 
 // Default property handles
-//
-
 HRESULT	ECGenericProp::DefaultGetProp(ULONG ulPropTag,  void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase)
 {
 	HRESULT			hr = hrSuccess;
@@ -1170,8 +1167,6 @@ HRESULT ECGenericProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID FAR * lppP
 }
 
 // Interface IECSingleInstance
-//
-
 HRESULT ECGenericProp::GetSingleInstanceId(ULONG *lpcbInstanceID, LPSIEID *lppInstanceID)
 {
 	HRESULT hr = hrSuccess;
@@ -1232,8 +1227,6 @@ exit:
 }
 
 // Interface IMAPIProp
-//
-
 HRESULT __stdcall ECGenericProp::xMAPIProp::QueryInterface(REFIID refiid, void ** lppInterface)
 {
 	METHOD_PROLOGUE_(ECGenericProp , MAPIProp);

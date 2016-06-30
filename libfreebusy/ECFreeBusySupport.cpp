@@ -434,9 +434,7 @@ exit:
 // Interfaces
 //		IUnknown
 //		IFreeBusySupport
-
 // IUnknown
-
 HRESULT __stdcall ECFreeBusySupport::xFreeBusySupport::QueryInterface(REFIID refiid, void** lppInterface)
 {
 	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupport::QueryInterface", "");
@@ -680,10 +678,7 @@ HRESULT __stdcall ECFreeBusySupport::xFreeBusySupport::Placeholder22()
 // Interfaces
 //		IUnknown
 //		IFreeBusySupportOutlook2000
-//
-
 // IUnknown
-
 HRESULT __stdcall ECFreeBusySupport::xFreeBusySupportOutlook2000::QueryInterface(REFIID refiid, void** lppInterface)
 {
 	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupportOutlook2000::QueryInterface", "");

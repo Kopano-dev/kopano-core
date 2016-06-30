@@ -12,20 +12,12 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
-
 #include <kopano/platform.h>
-
-
 #include "ECMsgStore.h"
-
 #include "WSStoreTableView.h"
-
 #include "Mem.h"
 #include <kopano/ECGuid.h>
-
-// Utils
 #include "SOAPUtils.h"
 #include "WSUtil.h"
 
@@ -198,7 +190,6 @@ exit:
 
 	return hr;
 }
-
 
 // WSTableMailBox view
 WSTableMailBox::WSTableMailBox(ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ECMsgStore *lpMsgStore, WSTransport *lpTransport) : WSStoreTableView(MAPI_STORE, ulFlags, lpCmd, lpDataLock, ecSessionId, 0, NULL, lpMsgStore, lpTransport)

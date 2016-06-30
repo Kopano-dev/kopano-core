@@ -22,8 +22,6 @@
 #include <kopano/ECGuid.h>
 
 #include <mapiutil.h>
-
-// Utils
 #include "SOAPUtils.h"
 #include "WSUtil.h"
 #include <kopano/Util.h>
@@ -156,7 +154,6 @@ IECPropStorage* ECParentStorage::GetServerStorage() {
 }
 
 // Interface IECPropStorage
-
 ULONG ECParentStorage::xECPropStorage::AddRef()
 {
 	METHOD_PROLOGUE_(ECParentStorage, ECPropStorage);

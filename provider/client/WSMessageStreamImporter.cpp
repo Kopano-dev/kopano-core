@@ -89,7 +89,6 @@ WSMessageStreamSink::WSMessageStreamSink(ECFifoBuffer *lpFifoBuffer, ULONG ulTim
 { }
 
 /**
- * Destructor
  * Closes the underlaying fifo buffer, causing the reader to stop reading.
  */
 WSMessageStreamSink::~WSMessageStreamSink()
@@ -97,8 +96,6 @@ WSMessageStreamSink::~WSMessageStreamSink()
 	m_lpFifoBuffer->Close(ECFifoBuffer::cfWrite);
 }
 
-
-// WSMessageStreamImporter Implementation
 HRESULT WSMessageStreamImporter::Create(ULONG ulFlags, ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG cbFolderEntryID, LPENTRYID lpFolderEntryID, bool bNewMessage, LPSPropValue lpConflictItems, WSTransport *lpTransport, WSMessageStreamImporter **lppStreamImporter)
 {
 	HRESULT hr = hrSuccess;
