@@ -158,12 +158,11 @@ BOOL ECUnknown::IsParentOf(const ECUnknown *lpObject) {
  * @return lpObject is a parent of this, or not
  */
 BOOL ECUnknown::IsChildOf(const ECUnknown *lpObject) {
-	std::list<ECUnknown *>::const_iterator i;
 	if (lpObject) {
-		for (i = lpObject->lstChildren.begin(); i != lpObject->lstChildren.end(); ++i) {
-			if (this == *i)
+		for (auto p : lpObject->lstChildren) {
+			if (this == p)
 				return TRUE;
-			if (this->IsChildOf(*i))
+			if (this->IsChildOf(p))
 				return TRUE;
 		}
 	}

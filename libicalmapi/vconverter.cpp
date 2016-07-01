@@ -349,7 +349,6 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 	ULONG cbDDEntryID;
 	IABContainer *lpAddrFolder = NULL;
 	FlagList *lpFlagList = NULL;
-	std::list<icalrecip>::const_iterator iIcalRecip;
 	icalrecip icalRecipient;
 	ULONG ulRecpCnt = 0;
 	ULONG ulRetn = 0;
@@ -378,8 +377,8 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 
 	lpAdrList->cEntries = ulRecpCnt;
 
-	for (iIcalRecip = lplstIcalRecip->begin(), ulRecpCnt = 0;
-	     iIcalRecip != lplstIcalRecip->end(); ++iIcalRecip, ++ulRecpCnt) {
+	ulRecpCnt = 0;
+	for (const auto &recip : *lplstIcalRecip) {
 		lpAdrList->aEntries[ulRecpCnt].cValues = 1;
 
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **) &lpAdrList->aEntries[ulRecpCnt].rgPropVals);
@@ -387,8 +386,8 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 			goto exit;
 
 		lpAdrList->aEntries[ulRecpCnt].rgPropVals[0].ulPropTag = PR_DISPLAY_NAME_W;
-		lpAdrList->aEntries[ulRecpCnt].rgPropVals[0].Value.lpszW = (WCHAR *)iIcalRecip->strEmail.c_str();
-		lpFlagList->ulFlag[ulRecpCnt] = MAPI_UNRESOLVED;
+		lpAdrList->aEntries[ulRecpCnt].rgPropVals[0].Value.lpszW = const_cast<wchar_t *>(recip.strEmail.c_str());
+		lpFlagList->ulFlag[ulRecpCnt++] = MAPI_UNRESOLVED;
 	}
 
 	hr = m_lpAdrBook->GetDefaultDir(&cbDDEntryID, &lpDDEntryID);
@@ -804,7 +803,6 @@ HRESULT VConverter::HrAddBusyStatus(icalcomponent *lpicEvent, icalproperty_metho
 	HRESULT hr = hrSuccess;
 	SPropValue sPropVal;
 	icalproperty* lpicProp = NULL;
-	std::list<icalrecip>::const_iterator iIcalRecip;
 
 	// default: busy
 	// 0: free
@@ -1019,7 +1017,6 @@ HRESULT VConverter::HrAddCategories(icalcomponent *lpicEvent, icalitem *lpIcalIt
 	icalproperty *lpicProp = NULL;
 	const char* lpszCategories = NULL;
 	std::vector<std::string> vCategories;
-	std::vector<std::string>::const_iterator iCats;
 	int i;
 
 	// Set keywords / CATEGORIES
@@ -1039,13 +1036,13 @@ HRESULT VConverter::HrAddCategories(icalcomponent *lpicEvent, icalitem *lpIcalIt
 	if (hr != hrSuccess)
 		return hr;
 
-	for (i = 0, iCats = vCategories.begin();
-	     iCats != vCategories.end(); ++iCats, ++i) {
-		int length = iCats->length() + 1;
+	i = 0;
+	for (const auto &cat : vCategories) {
+		int length = cat.length() + 1;
 		hr = MAPIAllocateMore(length, lpIcalItem->base, (void **) &sPropVal.Value.MVszA.lppszA[i]);
 		if (hr != hrSuccess)
 			return hr;
-		memcpy(sPropVal.Value.MVszA.lppszA[i], iCats->c_str(), length);
+		memcpy(sPropVal.Value.MVszA.lppszA[i++], cat.c_str(), length);
 	}
 
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_KEYWORDS], PT_MV_STRING8);

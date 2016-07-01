@@ -342,7 +342,6 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot, icalcomp
 	LONG ulRemindBefore = 0;
 	time_t ttReminderTime = 0;
 	bool bReminderSet = false;
-	std::list<SPropValue>::iterator iProp;
 	convert_context converter;
 	const char *lpszProp;
 
@@ -456,19 +455,17 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot, icalcomp
 	lpEx->lstMsgProps.push_back(sPropVal);
 
 	// copy properties to exception and test if changed
-	for (iProp = lpIcalItem->lstMsgProps.begin();
-	     iProp != lpIcalItem->lstMsgProps.end(); ++iProp) {
+	for (const auto &prop : lpIcalItem->lstMsgProps)
 		for (i = 0; i < sptaCopy.cValues; ++i) {
-			if (sptaCopy.aulPropTag[i] == (*iProp).ulPropTag) {
+			if (sptaCopy.aulPropTag[i] == prop.ulPropTag) {
 				abOldPresent[i] = true;
 				if (sptaCopy.aulPropTag[i] != PR_BODY) // no need to copy body
-					lpEx->lstMsgProps.push_back(*iProp);
+					lpEx->lstMsgProps.push_back(prop);
 				if (sptaCopy.aulPropTag[i] == CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_ALLDAYEVENT], PT_BOOLEAN))
-					bOldIsAllDay = iProp->Value.b; // remember allday event status
+					bOldIsAllDay = prop.Value.b; // remember allday event status
 				break;
 			}
 		}
-	}
 
 	// find exceptional properties
 	// TODO: should actually look at original message, and check for differences
@@ -567,7 +564,7 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot, icalcomp
 	// test if properties were just removed
 	for (i = 0; i < sptaCopy.cValues; ++i) {
 		if (abOldPresent[i] == true && abNewPresent[i] == false) {
-			iProp = find(lpEx->lstMsgProps.begin(), lpEx->lstMsgProps.end(), sptaCopy.aulPropTag[i]);
+			auto iProp = find(lpEx->lstMsgProps.begin(), lpEx->lstMsgProps.end(), sptaCopy.aulPropTag[i]);
 			if (iProp != lpEx->lstMsgProps.end()) {
 				lpEx->lstMsgProps.erase(iProp);
 				switch (i) {
@@ -784,7 +781,6 @@ HRESULT ICalRecurrence::HrCreateICalRecurrence(TIMEZONE_STRUCT sTimeZone, bool b
 {
 	icalrecurrencetype icRRule;
 	std::list<time_t> lstExceptions;
-	std::list<time_t>::const_iterator iException;
 	icaltimetype ittExDate;
 	TIMEZONE_STRUCT sTZgmt = {0};
 
@@ -798,14 +794,11 @@ HRESULT ICalRecurrence::HrCreateICalRecurrence(TIMEZONE_STRUCT sTimeZone, bool b
 	lstExceptions = lpRecurrence->getDeletedExceptions();
 	if (!lstExceptions.empty()) {
 		// add EXDATE props
-		for (iException = lstExceptions.begin();
-		     iException != lstExceptions.end(); ++iException) {
+		for (const auto &exc : lstExceptions) {
 			if(bIsAllDay)
-			{
-				ittExDate = icaltime_from_timet(LocalToUTC(*iException, sTZgmt), bIsAllDay);
-			}
+				ittExDate = icaltime_from_timet(LocalToUTC(exc, sTZgmt), bIsAllDay);
 			else
-				ittExDate = icaltime_from_timet(LocalToUTC(*iException, sTimeZone), 0);
+				ittExDate = icaltime_from_timet(LocalToUTC(exc, sTimeZone), 0);
 
 			ittExDate.is_utc = 1;
 

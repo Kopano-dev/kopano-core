@@ -335,8 +335,6 @@ HRESULT Fsck::ReplaceProperty(LPMESSAGE lpMessage,
 HRESULT Fsck::DeleteRecipientList(LPMESSAGE lpMessage, std::list<unsigned int> &mapiReciptDel, bool &bChanged)
 {
 	HRESULT hr = hrSuccess;
-
-	std::list<unsigned int>::const_iterator iter;
 	SRowSet *lpMods = NULL;
 
 	++this->ulProblems;
@@ -350,14 +348,12 @@ HRESULT Fsck::DeleteRecipientList(LPMESSAGE lpMessage, std::list<unsigned int> &
 			goto exit;
 
 		lpMods->cRows = 0;
-		for (iter = mapiReciptDel.begin(); iter != mapiReciptDel.end(); ++iter) {
+		for (const auto &recip : mapiReciptDel) {
 			lpMods->aRow[lpMods->cRows].cValues = 1;
 			if ((hr = MAPIAllocateMore(sizeof(SPropValue), lpMods, (void**)&lpMods->aRow[lpMods->cRows].lpProps)) != hrSuccess)
 				goto exit;
 			lpMods->aRow[lpMods->cRows].lpProps->ulPropTag = PR_ROWID;
-			lpMods->aRow[lpMods->cRows].lpProps->Value.ul = *iter;
-
-			++lpMods->cRows;
+			lpMods->aRow[lpMods->cRows++].lpProps->Value.ul = recip;
 		}
 
 		hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE, (LPADRLIST)lpMods);
@@ -496,7 +492,6 @@ HRESULT Fsck::ValidateDuplicateRecipients(LPMESSAGE lpMessage, bool &bChanged)
 	ULONG cRows = 0;
 	std::set<std::string> mapRecip;
 	std::list<unsigned int> mapiReciptDel;
-	std::list<unsigned int>::const_iterator iter;
 	SRowSet *pRows = NULL;
 	std::string strData;
 	std::pair<std::set<std::string>::const_iterator, bool> res;

@@ -586,7 +586,6 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 	StoreHelperPtr ptrStoreHelper;
 	bool bAclCapable = true;
 	ObjectEntryList lstArchives;
-	ObjectEntryList::const_iterator iArchive;
 	MsgStorePtr ptrArchiveStore;
 	ULONG ulType = 0;
 	ArchiveList lstEntries;
@@ -603,7 +602,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 	if (hr != hrSuccess)
 		return MAPIErrorToArchiveError(hr);
 		
-	for (iArchive = lstArchives.begin(); iArchive != lstArchives.end(); ++iArchive) {
+	for (const auto &arc : lstArchives) {
 		HRESULT hrTmp = hrSuccess;
 		ULONG cStoreProps = 0;
 		SPropArrayPtr ptrStoreProps;
@@ -617,10 +616,10 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 
 		entry.Rights = ARCHIVE_RIGHTS_ERROR;
 
-		hrTmp = m_ptrSession->OpenStore(iArchive->sStoreEntryId, &ptrArchiveStore);
+		hrTmp = m_ptrSession->OpenStore(arc.sStoreEntryId, &ptrArchiveStore);
 		if (hrTmp != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open store (hr=%s)", stringify(hrTmp, true).c_str());
-			entry.StoreName = "Failed id=" + iArchive->sStoreEntryId.tostring() + ", hr=" + stringify(hrTmp, true);
+			entry.StoreName = "Failed id=" + arc.sStoreEntryId.tostring() + ", hr=" + stringify(hrTmp, true);
 			lstEntries.push_back(entry);
 			continue;
 		}
@@ -654,7 +653,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 				if (ptrStoreProps[IDX_IPM_SUBTREE_ENTRYID].ulPropTag != PR_IPM_SUBTREE_ENTRYID)
 					hrTmp = MAPI_E_NOT_FOUND;
 				else
-					hrTmp = ptrArchiveStore->CompareEntryIDs(iArchive->sItemEntryId.size(), iArchive->sItemEntryId,
+					hrTmp = ptrArchiveStore->CompareEntryIDs(arc.sItemEntryId.size(), arc.sItemEntryId,
 															 ptrStoreProps[IDX_IPM_SUBTREE_ENTRYID].Value.bin.cb, (LPENTRYID)ptrStoreProps[IDX_IPM_SUBTREE_ENTRYID].Value.bin.lpb,
 															 0, &ulCompareResult);
 				if (hrTmp != hrSuccess) {
@@ -668,10 +667,10 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 			}
 		}
 
-		hrTmp = ptrArchiveStore->OpenEntry(iArchive->sItemEntryId.size(), iArchive->sItemEntryId, &ptrArchiveFolder.iid, fMapiDeferredErrors, &ulType, &ptrArchiveFolder);
+		hrTmp = ptrArchiveStore->OpenEntry(arc.sItemEntryId.size(), arc.sItemEntryId, &ptrArchiveFolder.iid, fMapiDeferredErrors, &ulType, &ptrArchiveFolder);
 		if (hrTmp != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open folder (hr=%s)", stringify(hrTmp, true).c_str());
-			entry.FolderName = "Failed id=" + iArchive->sStoreEntryId.tostring() + ", hr=" + stringify(hrTmp, true);
+			entry.FolderName = "Failed id=" + arc.sStoreEntryId.tostring() + ", hr=" + stringify(hrTmp, true);
 			lstEntries.push_back(entry);
 			continue;
 		}
@@ -687,7 +686,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 				entry.FolderName = ptrPropValue->Value.lpszA ;
 		}
 
-		if (bAclCapable && !iArchive->sStoreEntryId.isWrapped()) {
+		if (bAclCapable && !arc.sStoreEntryId.isWrapped()) {
 			hrTmp = GetRights(ptrArchiveFolder, &entry.Rights);
 			if (hrTmp != hrSuccess)
 				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to get archive rights (hr=%s)", stringify(hrTmp, true).c_str());

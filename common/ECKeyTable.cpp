@@ -1494,14 +1494,13 @@ exit:
 unsigned int ECKeyTable::GetObjectSize()
 {
 	unsigned int ulSize = sizeof(*this);
-	ECTableRowMap::iterator iterRow;
 
 	pthread_mutex_lock(&mLock);
 	
 	ulSize += MEMORY_USAGE_MAP(mapRow.size(), ECTableRowMap);
 
-	for (iterRow = mapRow.begin(); iterRow != mapRow.end(); ++iterRow)
-		ulSize += iterRow->second->GetObjectSize();
+	for (const auto &r : mapRow)
+		ulSize += r.second->GetObjectSize();
 
 	ulSize += MEMORY_USAGE_MAP(m_mapBookmarks.size(), ECBookmarkMap);
 

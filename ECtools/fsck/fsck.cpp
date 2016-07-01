@@ -320,9 +320,9 @@ RunFolderValidation(const std::set<std::string> &setFolderIgnore,
 		goto exit;
 	}
 
-	for (CHECKMAP_CI i = checkmap.begin(); i != checkmap.end(); ++i)
-		if (i->first == strClass) {
-			lpFsck = i->second;
+	for (const auto &i : checkmap)
+		if (i.first == strClass) {
+			lpFsck = i.second;
 			break;
 		}
 

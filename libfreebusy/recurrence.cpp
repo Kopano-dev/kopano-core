@@ -477,22 +477,19 @@ std::list<time_t> recurrence::getDeletedExceptions() {
 	time_t offset = getStartTimeOffset();
 	std::list<time_t> lstDeletes;
 	std::vector<unsigned int> lstDeletedInstanceDates;
-	std::vector<unsigned int>::iterator d;
-	std::vector<RecurrenceState::Exception>::const_iterator iExceptions;
-
 	// make copy of struct info
 	lstDeletedInstanceDates = m_sRecState.lstDeletedInstanceDates;
 
-	for (iExceptions = m_sRecState.lstExceptions.begin(); iExceptions != m_sRecState.lstExceptions.end(); ++iExceptions) {
+	for (const auto &exc : m_sRecState.lstExceptions) {
 		// if startofday(exception.basedata) == present in lstDeletes, that's a move, so remove from deletes list
-		d = find(lstDeletedInstanceDates.begin(), lstDeletedInstanceDates.end(), iExceptions->ulOriginalStartDate - (iExceptions->ulOriginalStartDate % 1440));
-		if (d != lstDeletedInstanceDates.end())
+		auto d = find(lstDeletedInstanceDates.begin(),
+		         lstDeletedInstanceDates.end(),
+		         exc.ulOriginalStartDate - (exc.ulOriginalStartDate % 1440));
+		if (d != lstDeletedInstanceDates.cend())
 			lstDeletedInstanceDates.erase(d);
 	}
-
-	for (d = lstDeletedInstanceDates.begin();
-	     d != lstDeletedInstanceDates.end(); ++d) {
-		RTimeToUnixTime(*d, &tDayDelete);
+	for (const auto &d : lstDeletedInstanceDates) {
+		RTimeToUnixTime(d, &tDayDelete);
 		lstDeletes.push_back(tDayDelete + offset);
 	}
 
@@ -503,15 +500,12 @@ std::list<time_t> recurrence::getModifiedOccurrences() {
 	time_t tDayModified;
 	std::list<time_t> lstModified;
 	std::vector<unsigned int> lstModifiedInstanceDates;
-	std::vector<unsigned int>::const_iterator d;
-	std::vector<RecurrenceState::Exception>::const_iterator iExceptions;
 
 	// make copy of struct info
 	lstModifiedInstanceDates = m_sRecState.lstModifiedInstanceDates;
 
-	for (iExceptions = m_sRecState.lstExceptions.begin();
-	     iExceptions != m_sRecState.lstExceptions.end(); ++iExceptions) {
-		RTimeToUnixTime(iExceptions->ulOriginalStartDate, &tDayModified);
+	for (const auto &exc : m_sRecState.lstExceptions) {
+		RTimeToUnixTime(exc.ulOriginalStartDate, &tDayModified);
 		lstModified.push_back(tDayModified);
 	}
 

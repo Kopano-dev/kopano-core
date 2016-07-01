@@ -131,7 +131,6 @@ HRESULT MapiToICalImpl::AddMessage(LPMESSAGE lpMessage, const std::string &strSr
 	HRESULT hr = hrSuccess;
 	VConverter *lpVEC = NULL;
 	std::list<icalcomponent*> lstEvents;
-	std::list<icalcomponent *>::const_iterator iEvents;
 	icalproperty_method icMethod = ICAL_METHOD_NONE;
 	LPSPropValue lpMessageClass = NULL;
 	TIMEZONE_STRUCT ttTZinfo = {0};
@@ -175,9 +174,9 @@ HRESULT MapiToICalImpl::AddMessage(LPMESSAGE lpMessage, const std::string &strSr
 	if (hr != hrSuccess)
 		goto exit;
 
-	for (iEvents = lstEvents.begin(); iEvents != lstEvents.end(); ++iEvents) {
+	for (auto ev : lstEvents) {
 		++m_ulEvents;
-		icalcomponent_add_component(m_lpicCalender, *iEvents);
+		icalcomponent_add_component(m_lpicCalender, ev);
 	}
 
 	if (m_icMethod != ICAL_METHOD_NONE && m_icMethod != icMethod)
@@ -239,7 +238,6 @@ HRESULT MapiToICalImpl::Finalize(ULONG ulFlags, std::string *strMethod, std::str
 {
 	HRESULT hr = hrSuccess;
 	char *ics = NULL;
-	timezone_map_iterator iTZMap;
 	icalcomponent *lpVTZComp = NULL;
 
 	if (strMethod == NULL && strIcal == NULL) {
@@ -254,8 +252,8 @@ HRESULT MapiToICalImpl::Finalize(ULONG ulFlags, std::string *strMethod, std::str
 	// no timezone block in VFREEBUSY data.
 	if ((ulFlags & M2IC_NO_VTIMEZONE) == 0)
 	{
-		for (iTZMap = m_tzMap.begin(); iTZMap != m_tzMap.end(); ++iTZMap) {
-			hr = HrCreateVTimeZone(iTZMap->first, iTZMap->second, &lpVTZComp);
+		for (auto &tzp : m_tzMap) {
+			hr = HrCreateVTimeZone(tzp.first, tzp.second, &lpVTZComp);
 			if (hr == hrSuccess)
 				icalcomponent_add_component(m_lpicCalender, lpVTZComp);
 		}

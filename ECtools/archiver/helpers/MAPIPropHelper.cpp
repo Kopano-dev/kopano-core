@@ -153,7 +153,6 @@ HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageSt
 	if (result != 0) {
 		// The message is copied. Now check if it was moved.
 		ObjectEntryList lstArchives;
-		ObjectEntryList::const_iterator iArchive;
 		ULONG ulType;
 		MessagePtr ptrArchiveMsg;
 		MAPIPropHelperPtr ptrArchiveHelper;
@@ -165,15 +164,15 @@ HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageSt
 		if (hr != hrSuccess)
 			return hr;
 
-		for (iArchive = lstArchives.begin(); iArchive != lstArchives.end(); ++iArchive) {
+		for (const auto &arc : lstArchives) {
 			HRESULT hrTmp;
 			MsgStorePtr ptrArchiveStore;
 
-			hrTmp = ptrSession->OpenReadOnlyStore(iArchive->sStoreEntryId, &ptrArchiveStore);
+			hrTmp = ptrSession->OpenReadOnlyStore(arc.sStoreEntryId, &ptrArchiveStore);
 			if (hrTmp != hrSuccess)
 				continue;
 
-			hrTmp = ptrArchiveStore->OpenEntry(iArchive->sItemEntryId.size(), iArchive->sItemEntryId, &ptrArchiveMsg.iid, 0, &ulType, &ptrArchiveMsg);
+			hrTmp = ptrArchiveStore->OpenEntry(arc.sItemEntryId.size(), arc.sItemEntryId, &ptrArchiveMsg.iid, 0, &ulType, &ptrArchiveMsg);
 			if (hrTmp != hrSuccess)
 				continue;
 

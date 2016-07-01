@@ -397,8 +397,6 @@ bool Http::CheckIfMatch(LPMAPIPROP lpProp)
 	bool invert = false;
 	string strIf;
 	SPropValuePtr ptrLastModTime;
-	vector<string> vMatches;
-	vector<string>::iterator i;
 	string strValue;
 
 	if (lpProp) {
@@ -425,11 +423,10 @@ bool Http::CheckIfMatch(LPMAPIPROP lpProp)
 	}
 
 	// check all etags for a match
-	vMatches = tokenize(strIf, ',', true);
-	for (i = vMatches.begin(); i != vMatches.end(); ++i) {
-		if (i->at(0) == '"' || i->at(0) == '\'')
-			i->assign(i->begin()+1, i->end()-1);
-		if (i->compare(strValue) == 0) {
+	for (auto &i : tokenize(strIf, ',', true)) {
+		if (i.at(0) == '"' || i.at(0) == '\'')
+			i.assign(i.begin() + 1, i.end() - 1);
+		if (i.compare(strValue) == 0) {
 			ret = true;
 			break;
 		}

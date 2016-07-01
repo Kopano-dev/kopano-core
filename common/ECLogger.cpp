@@ -453,21 +453,19 @@ ECLogger_Tee::ECLogger_Tee(): ECLogger(EC_LOGLEVEL_DEBUG) {
  * The destructor calls Release on each attached logger so
  * they'll be deleted if it was the last reference.
  */
-ECLogger_Tee::~ECLogger_Tee() {
-	LoggerList::iterator iLogger;
-
-	for (iLogger = m_loggers.begin(); iLogger != m_loggers.end(); ++iLogger)
-		(*iLogger)->Release();
+ECLogger_Tee::~ECLogger_Tee(void)
+{
+	for (auto log : m_loggers)
+		log->Release();
 }
 
 /**
  * Reset all loggers attached to this logger.
  */
-void ECLogger_Tee::Reset() {
-	LoggerList::iterator iLogger;
-
-	for (iLogger = m_loggers.begin(); iLogger != m_loggers.end(); ++iLogger)
-		(*iLogger)->Reset();
+void ECLogger_Tee::Reset(void)
+{
+	for (auto log : m_loggers)
+		log->Reset();
 }
 
 /**
@@ -479,12 +477,12 @@ void ECLogger_Tee::Reset() {
  *
  * @retval	true when at least one of the attached loggers would produce output
  */
-bool ECLogger_Tee::Log(unsigned int loglevel) {
-	LoggerList::iterator iLogger;
+bool ECLogger_Tee::Log(unsigned int loglevel)
+{
 	bool bResult = false;
 
-	for (iLogger = m_loggers.begin(); !bResult && iLogger != m_loggers.end(); ++iLogger)
-		bResult = (*iLogger)->Log(loglevel);
+	for (auto log : m_loggers)
+		bResult = log->Log(loglevel);
 
 	return bResult;
 }
@@ -495,11 +493,10 @@ bool ECLogger_Tee::Log(unsigned int loglevel) {
  * @param[in]	loglevel	The requierd loglevel
  * @param[in]	message		The message to log
  */
-void ECLogger_Tee::Log(unsigned int loglevel, const std::string &message) {
-	LoggerList::iterator iLogger;
-
-	for (iLogger = m_loggers.begin(); iLogger != m_loggers.end(); ++iLogger)
-		(*iLogger)->Log(loglevel, message);
+void ECLogger_Tee::Log(unsigned int loglevel, const std::string &message)
+{
+	for (auto log : m_loggers)
+		log->Log(loglevel, message);
 }
 
 /**
@@ -516,14 +513,13 @@ void ECLogger_Tee::Log(unsigned int loglevel, const char *format, ...) {
 	va_end(va);
 }
 
-void ECLogger_Tee::LogVA(unsigned int loglevel, const char *format, va_list& va) {
-	LoggerList::iterator iLogger;
-
+void ECLogger_Tee::LogVA(unsigned int loglevel, const char *format, va_list &va)
+{
 	char msgbuffer[_LOG_BUFSIZE];
 	_vsnprintf_l(msgbuffer, sizeof msgbuffer, format, datalocale, va);
 
-	for (iLogger = m_loggers.begin(); iLogger != m_loggers.end(); ++iLogger)
-		(*iLogger)->Log(loglevel, std::string(msgbuffer));
+	for (auto log : m_loggers)
+		log->Log(loglevel, std::string(msgbuffer));
 }
 
 /**
@@ -969,20 +965,14 @@ int DeleteLogger(ECLogger *lpLogger) {
 	return 0;
 }
 
-void LogConfigErrors(ECConfig *lpConfig) {
-	const list<string> *strings;
-	list<string>::const_iterator i;
-
+void LogConfigErrors(ECConfig *lpConfig)
+{
 	if (lpConfig == NULL)
 		return;
-
-	strings = lpConfig->GetWarnings();
-	for (i = strings->begin(); i != strings->end(); ++i)
-		ec_log_warn("Config warning: " + *i);
-
-	strings = lpConfig->GetErrors();
-	for (i = strings->begin(); i != strings->end(); ++i)
-		ec_log_crit("Config error: " + *i);
+	for (const auto &i : *lpConfig->GetWarnings())
+		ec_log_warn("Config warning: " + i);
+	for (const auto &i : *lpConfig->GetErrors())
+		ec_log_crit("Config error: " + i);
 }
 
 void generic_sigsegv_handler(ECLogger *lpLogger, const char *app_name,

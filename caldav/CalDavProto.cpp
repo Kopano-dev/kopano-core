@@ -1471,6 +1471,7 @@ HRESULT CalDAV::HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lp
 	std::list<WEBDAVPROPERTY>::const_iterator iter;
 	WEBDAVRESPONSE sDavResponse;
 	std::string strReqUrl;
+	int i;
 
 	// @todo, check input url not to have 3rd level path? .. see input/output list above.
 
@@ -1494,10 +1495,9 @@ HRESULT CalDAV::HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lp
 	lpPropTagArr->cValues = (ULONG)cbsize;
 	lpPropTagArr->aulPropTag[0] = PR_ENTRYID;
 	lpPropTagArr->aulPropTag[1] = ulPropTagFldId;
-
-	iter = lpsDavProp->lstProps.begin();
-	for (int i = 2; iter != lpsDavProp->lstProps.end(); ++iter, ++i)
-		lpPropTagArr->aulPropTag[i] = GetPropIDForXMLProp(m_lpUsrFld, iter->sPropName, m_converter);
+	i = 2;
+	for (const auto &iter : lpsDavProp->lstProps)
+		lpPropTagArr->aulPropTag[i++] = GetPropIDForXMLProp(m_lpUsrFld, iter.sPropName, m_converter);
 
 	if (m_ulFolderFlag & SINGLE_FOLDER)
 	{
@@ -1681,7 +1681,6 @@ exit:
 HRESULT CalDAV::HrHandlePropPatch(WEBDAVPROP *lpsDavProp, WEBDAVMULTISTATUS *lpsMultiStatus)
 {
 	HRESULT hr;
-	std::list<WEBDAVPROPERTY>::const_iterator iter;
 	std::wstring wstrConvProp;
 	SPropValue sProp;
 	WEBDAVRESPONSE sDavResponse;
@@ -1709,44 +1708,40 @@ HRESULT CalDAV::HrHandlePropPatch(WEBDAVPROP *lpsDavProp, WEBDAVMULTISTATUS *lps
 	sPropStatusCollision.sStatus.strValue = "HTTP/1.1 409 Conflict";
 	HrSetDavPropName(&sPropStatusCollision.sProp.sPropName, "prop", WEBDAVNS);
 	
-
-	for (iter = lpsDavProp->lstProps.begin(); iter != lpsDavProp->lstProps.end(); ++iter)
-	{
+	for (const auto &iter : lpsDavProp->lstProps) {
 		WEBDAVPROPERTY sDavProp;
-		sDavProp.sPropName = iter->sPropName; // only copy the propname + namespace part, value is empty
-
+		sDavProp.sPropName = iter.sPropName; // only copy the propname + namespace part, value is empty
 		sProp.ulPropTag = PR_NULL;
-
-		if (iter->sPropName.strPropname == "displayname") {
+		if (iter.sPropName.strPropname == "displayname") {
 			// deny rename of default Calendar
 			if (!m_blFolderAccess) {
 				sPropStatusForbidden.sProp.lstProps.push_back(sDavProp);
 				continue;
 			}
-		} else if (iter->sPropName.strPropname == "calendar-free-busy-set") {
+		} else if (iter.sPropName.strPropname == "calendar-free-busy-set") {
 			// not allowed to select which calendars give freebusy information
 			sPropStatusForbidden.sProp.lstProps.push_back(sDavProp);
 			continue;
 		} else {
-			if (iter->sPropName.strNS.compare(WEBDAVNS) == 0) {
+			if (iter.sPropName.strNS.compare(WEBDAVNS) == 0) {
 				// only DAV:displayname may be modified, the rest is read-only
 				sPropStatusForbidden.sProp.lstProps.push_back(sDavProp);
 				continue;
 			}
 		}
 
-		sProp.ulPropTag = GetPropIDForXMLProp(m_lpUsrFld, iter->sPropName, m_converter, MAPI_CREATE);
+		sProp.ulPropTag = GetPropIDForXMLProp(m_lpUsrFld, iter.sPropName, m_converter, MAPI_CREATE);
 		if (sProp.ulPropTag == PR_NULL) {
 			sPropStatusForbidden.sProp.lstProps.push_back(sDavProp);
 			continue;
 		}
 
 		if (PROP_TYPE(sProp.ulPropTag) == PT_UNICODE) {
-			wstrConvProp = U2W(iter->strValue);
+			wstrConvProp = U2W(iter.strValue);
 			sProp.Value.lpszW = (WCHAR*)wstrConvProp.c_str();
 		} else {
-			sProp.Value.bin.cb = iter->strValue.size();
-			sProp.Value.bin.lpb = (BYTE*)iter->strValue.data();
+			sProp.Value.bin.cb = iter.strValue.size();
+			sProp.Value.bin.lpb = reinterpret_cast<BYTE *>(const_cast<char *>(iter.strValue.data()));
 		}
 
 		hr = m_lpUsrFld->SetProps(1, &sProp, NULL);
@@ -2076,9 +2071,7 @@ exit:
 HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG ulPropCount, MapiToICal *lpMtIcal, ULONG ulFlags, bool bPropsFirst, std::list<WEBDAVPROPERTY> *lstDavProps, WEBDAVRESPONSE *lpsResponse)
 {
 	HRESULT hr;
-	std::list<WEBDAVPROPERTY>::const_iterator iterProperty;
 	WEBDAVPROPERTY sWebProperty;
-	std::string strProperty;
 	std::string strIcal;
 	std::string strOwnerURL;
 	std::string strCurrentUserURL;
@@ -2125,15 +2118,14 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 
 	HrSetDavPropName(&(sWebProp.sPropName), "prop", WEBDAVNS);
 	HrSetDavPropName(&(sWebPropNotFound.sPropName), "prop", WEBDAVNS);
-	for (iterProperty = lstDavProps->begin(); iterProperty != lstDavProps->end(); ++iterProperty)
-	{
+	for (const auto &iterprop : *lstDavProps) {
 		WEBDAVVALUE sWebVal;
 
 		sWebProperty.lstItems.clear();
 		sWebProperty.lstValues.clear();
 		
-		sWebProperty = *iterProperty;
-		strProperty = sWebProperty.sPropName.strPropname;
+		sWebProperty = iterprop;
+		const std::string &strProperty = sWebProperty.sPropName.strPropname;
 
 		lpFoundProp = PpropFindProp(lpProps, ulPropCount, GetPropIDForXMLProp(lpObj, sWebProperty.sPropName, m_converter));
 		if (strProperty == "resourcetype") {

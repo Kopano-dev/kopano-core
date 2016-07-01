@@ -383,7 +383,6 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 	ICalRecurrence cRec;
 	icalitem *lpItem = NULL;
 	std::vector<icalitem *>::const_iterator iItem;
-	std::list<icalitem::exception>::const_iterator iEx;
 	ULONG ulANr = 0;
 	LPATTACH lpAttach = NULL;
 	LPMESSAGE lpExMsg = NULL;
@@ -492,16 +491,12 @@ next:
 		// TODO: log error if any?
 		
 		// check if all exceptions are valid
-		for (iEx = lpItem->lstExceptionAttachments.begin();
-		     iEx != lpItem->lstExceptionAttachments.end(); ++iEx) {
-			if (cRec.HrValidateOccurrence(lpItem, *iEx) == false) {
+		for (const auto &ex : lpItem->lstExceptionAttachments)
+			if (cRec.HrValidateOccurrence(lpItem, ex) == false) {
 				hr = MAPI_E_INVALID_OBJECT;
 				goto exit;
 			}
-		}
-
-		for (iEx = lpItem->lstExceptionAttachments.begin();
-		     iEx != lpItem->lstExceptionAttachments.end(); ++iEx) {
+		for (const auto &ex : lpItem->lstExceptionAttachments) {
 			hr = lpMessage->CreateAttach(NULL, 0, &ulANr, &lpAttach);
 			if (hr != hrSuccess)
 				goto exit;
@@ -511,20 +506,16 @@ next:
 				goto exit;
 			
 			if (!(ulFlags & IC2M_NO_RECIPIENTS))
-				hr = SaveRecipList(&(iEx->lstRecips), ulFlags, lpExMsg);
-
+				hr = SaveRecipList(&ex.lstRecips, ulFlags, lpExMsg);
 			if (hr != hrSuccess)
 				goto exit;
-			
-			hr = SaveAttendeesString(&(iEx->lstRecips), lpExMsg);
+			hr = SaveAttendeesString(&ex.lstRecips, lpExMsg);
 			if (hr != hrSuccess)
 				goto exit;
-
-			hr = SaveProps(&(iEx->lstMsgProps), lpExMsg);
+			hr = SaveProps(&ex.lstMsgProps, lpExMsg);
 			if (hr != hrSuccess)
 				goto exit;
-
-			hr = SaveProps(&(iEx->lstAttachProps), lpAttach);
+			hr = SaveProps(&ex.lstAttachProps, lpAttach);
 			if (hr != hrSuccess)
 				goto exit;
 
@@ -576,7 +567,6 @@ HRESULT ICalToMapiImpl::SaveProps(const std::list<SPropValue> *lpPropList,
     LPMAPIPROP lpMapiProp)
 {
 	HRESULT hr = hrSuccess;
-	std::list<SPropValue>::const_iterator iProps;
 	LPSPropValue lpsPropVals = NULL;
 	int i;
 
@@ -586,10 +576,9 @@ HRESULT ICalToMapiImpl::SaveProps(const std::list<SPropValue> *lpPropList,
 		goto exit;
 
 	// @todo: add exclude list or something? might set props the caller doesn't want (see vevent::HrAddTimes())
-	for (i = 0, iProps = lpPropList->begin();
-	     iProps != lpPropList->end(); ++iProps, ++i)
-		lpsPropVals[i] = *iProps;
-
+	i = 0;
+	for (const auto &prop : *lpPropList)
+		lpsPropVals[i++] = prop;
 	hr = lpMapiProp->SetProps(i, lpsPropVals, NULL);
 	if (FAILED(hr))
 		goto exit;
@@ -614,7 +603,6 @@ HRESULT ICalToMapiImpl::SaveRecipList(const std::list<icalrecip> *lplstRecip,
 {
 	HRESULT hr = hrSuccess;
 	LPADRLIST lpRecipients = NULL;
-	std::list<icalrecip>::const_iterator iRecip;
 	std::string strSearch;
 	ULONG i = 0;
 	convert_context converter;
@@ -624,14 +612,12 @@ HRESULT ICalToMapiImpl::SaveRecipList(const std::list<icalrecip> *lplstRecip,
 		goto exit;
 
 	lpRecipients->cEntries = 0;
-
-	for (iRecip = lplstRecip->begin(); iRecip != lplstRecip->end(); ++iRecip) {
+	for (const auto &recip : *lplstRecip) {
 		// iRecip->ulRecipientType
 		// strEmail
 		// strName
 		// cbEntryID, lpEntryID
-
-		if ((ulFlag & IC2M_NO_ORGANIZER) && iRecip->ulRecipientType == MAPI_ORIG)
+		if ((ulFlag & IC2M_NO_ORGANIZER) && recip.ulRecipientType == MAPI_ORIG)
 			continue;
 			
 		if ((hr = MAPIAllocateBuffer(sizeof(SPropValue)*10, (void**)&lpRecipients->aEntries[i].rgPropVals)) != hrSuccess)
@@ -639,24 +625,24 @@ HRESULT ICalToMapiImpl::SaveRecipList(const std::list<icalrecip> *lplstRecip,
 		lpRecipients->aEntries[i].cValues = 10;
 
 		lpRecipients->aEntries[i].rgPropVals[0].ulPropTag = PR_RECIPIENT_TYPE;
-		lpRecipients->aEntries[i].rgPropVals[0].Value.ul = iRecip->ulRecipientType;
-
+		lpRecipients->aEntries[i].rgPropVals[0].Value.ul = recip.ulRecipientType;
 		lpRecipients->aEntries[i].rgPropVals[1].ulPropTag = PR_DISPLAY_NAME_W;
-		lpRecipients->aEntries[i].rgPropVals[1].Value.lpszW = (WCHAR*)iRecip->strName.c_str();
-
+		lpRecipients->aEntries[i].rgPropVals[1].Value.lpszW = const_cast<wchar_t *>(recip.strName.c_str());
 		lpRecipients->aEntries[i].rgPropVals[2].ulPropTag = PR_SMTP_ADDRESS_W;
-		lpRecipients->aEntries[i].rgPropVals[2].Value.lpszW = (WCHAR*)iRecip->strEmail.c_str();
-		
+		lpRecipients->aEntries[i].rgPropVals[2].Value.lpszW = const_cast<wchar_t *>(recip.strEmail.c_str());
 		lpRecipients->aEntries[i].rgPropVals[3].ulPropTag = PR_ENTRYID;
-		lpRecipients->aEntries[i].rgPropVals[3].Value.bin.cb = iRecip->cbEntryID;
-		if ((hr = MAPIAllocateMore(iRecip->cbEntryID, lpRecipients->aEntries[i].rgPropVals, (void**)&lpRecipients->aEntries[i].rgPropVals[3].Value.bin.lpb)) != hrSuccess)
+		lpRecipients->aEntries[i].rgPropVals[3].Value.bin.cb = recip.cbEntryID;
+		hr = MAPIAllocateMore(recip.cbEntryID,
+		     lpRecipients->aEntries[i].rgPropVals,
+		     reinterpret_cast<void **>(&lpRecipients->aEntries[i].rgPropVals[3].Value.bin.lpb));
+		if (hr != hrSuccess)
 			goto exit;
-		memcpy(lpRecipients->aEntries[i].rgPropVals[3].Value.bin.lpb, iRecip->lpEntryID, iRecip->cbEntryID);
+		memcpy(lpRecipients->aEntries[i].rgPropVals[3].Value.bin.lpb, recip.lpEntryID, recip.cbEntryID);
 		
 		lpRecipients->aEntries[i].rgPropVals[4].ulPropTag = PR_ADDRTYPE_W;
 		lpRecipients->aEntries[i].rgPropVals[4].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
 
-		strSearch = "SMTP:" + converter.convert_to<std::string>(iRecip->strEmail);
+		strSearch = "SMTP:" + converter.convert_to<std::string>(recip.strEmail);
 		transform(strSearch.begin(), strSearch.end(), strSearch.begin(), ::toupper);
 		lpRecipients->aEntries[i].rgPropVals[5].ulPropTag = PR_SEARCH_KEY;
 		lpRecipients->aEntries[i].rgPropVals[5].Value.bin.cb = strSearch.size() + 1;
@@ -665,17 +651,14 @@ HRESULT ICalToMapiImpl::SaveRecipList(const std::list<icalrecip> *lplstRecip,
 		memcpy(lpRecipients->aEntries[i].rgPropVals[5].Value.bin.lpb, strSearch.c_str(), strSearch.size()+1);
 
 		lpRecipients->aEntries[i].rgPropVals[6].ulPropTag = PR_EMAIL_ADDRESS_W;
-		lpRecipients->aEntries[i].rgPropVals[6].Value.lpszW = (WCHAR*)iRecip->strEmail.c_str();
-
+		lpRecipients->aEntries[i].rgPropVals[6].Value.lpszW = const_cast<wchar_t *>(recip.strEmail.c_str());
 		lpRecipients->aEntries[i].rgPropVals[7].ulPropTag = PR_DISPLAY_TYPE;
 		lpRecipients->aEntries[i].rgPropVals[7].Value.ul = DT_MAILUSER;
 
 		lpRecipients->aEntries[i].rgPropVals[8].ulPropTag = PR_RECIPIENT_FLAGS;
-		lpRecipients->aEntries[i].rgPropVals[8].Value.ul = iRecip->ulRecipientType == MAPI_ORIG? 3 : 1;
-
+		lpRecipients->aEntries[i].rgPropVals[8].Value.ul = recip.ulRecipientType == MAPI_ORIG? 3 : 1;
 		lpRecipients->aEntries[i].rgPropVals[9].ulPropTag = PR_RECIPIENT_TRACKSTATUS;
-		lpRecipients->aEntries[i].rgPropVals[9].Value.ul = iRecip->ulTrackStatus;
-
+		lpRecipients->aEntries[i].rgPropVals[9].Value.ul = recip.ulTrackStatus;
 		++lpRecipients->cEntries;
 		++i;
 	}
@@ -707,8 +690,6 @@ exit:
 HRESULT ICalToMapiImpl::SaveAttendeesString(const std::list<icalrecip> *lplstRecip, LPMESSAGE lpMessage)
 {
 	HRESULT hr = hrSuccess;
-
-	std::list<icalrecip>::const_iterator iRecip;
 	std::wstring strAllAttendees;
 	std::wstring strToAttendees;
 	std::wstring strCCAttendees;
@@ -719,25 +700,21 @@ HRESULT ICalToMapiImpl::SaveAttendeesString(const std::list<icalrecip> *lplstRec
 		goto exit;
 
 	// Create attendees string
-	for (iRecip = lplstRecip->begin(); iRecip != lplstRecip->end(); ++iRecip) {
-		if (iRecip->ulRecipientType == MAPI_ORIG)
+	for (const auto &recip : *lplstRecip) {
+		if (recip.ulRecipientType == MAPI_ORIG)
 			continue;
-
-		if (iRecip->ulRecipientType == MAPI_TO) {
+		if (recip.ulRecipientType == MAPI_TO) {
 			if (!strToAttendees.empty())
 				strToAttendees += L"; ";
-
-			strToAttendees += iRecip->strName;
-		} else if(iRecip->ulRecipientType == MAPI_CC) {
+			strToAttendees += recip.strName;
+		} else if (recip.ulRecipientType == MAPI_CC) {
 			if (!strCCAttendees.empty())
 				strCCAttendees += L"; ";
-
-			strCCAttendees += iRecip->strName;
+			strCCAttendees += recip.strName;
 		}
 		if (!strAllAttendees.empty())
 			strAllAttendees += L"; ";
-
-		strAllAttendees += iRecip->strName;
+		strAllAttendees += recip.strName;
 	}
 
 	lpsPropValue[0].ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TOATTENDEESSTRING], PT_UNICODE);

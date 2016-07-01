@@ -413,11 +413,9 @@ HRESULT PublishFreeBusy::HrMergeBlocks(FBBlock_1 **lppfbBlocks, ULONG *lpcValues
 	time_t tsLastTime = 0;
 	TSARRAY sTsitem = {0,0,0};
 	std::map<time_t , TSARRAY> mpTimestamps;
-	std::map<time_t, TSARRAY>::const_iterator iterTs;
 	std::vector <ULONG> vctStatus;
 	std::vector <ULONG>::iterator iterStatus;
 	std::vector <FBBlock_1> vcFBblocks;
-	std::vector<FBBlock_1>::const_iterator iterVcBlocks;
 	time_t tTemp = 0;
 
 	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Input blocks %ul", cValues);
@@ -441,10 +439,10 @@ HRESULT PublishFreeBusy::HrMergeBlocks(FBBlock_1 **lppfbBlocks, ULONG *lpcValues
 		mpTimestamps[sTsitem.tsTime] = sTsitem;
 	}
 	
-	for (iterTs = mpTimestamps.begin(); iterTs != mpTimestamps.end(); ++iterTs) {
+	for (const auto &pts : mpTimestamps) {
 		FBBlock_1 fbBlockTemp;
 
-		sTsitem = iterTs->second;
+		sTsitem = pts.second;
 		switch(sTsitem.ulType)
 		{
 		case START_TIME:
@@ -492,11 +490,10 @@ HRESULT PublishFreeBusy::HrMergeBlocks(FBBlock_1 **lppfbBlocks, ULONG *lpcValues
 	             reinterpret_cast<void **>(&lpFbBlocks));
 	if (hr != hrSuccess)
 		return hr;
-	iterVcBlocks = vcFBblocks.begin();
 
-	for (ULONG i = 0; iterVcBlocks != vcFBblocks.end(); ++i, ++iterVcBlocks)
-		lpFbBlocks[i] = *iterVcBlocks;		
-
+	ULONG i = 0;
+	for (const auto &vcblock : vcFBblocks)
+		lpFbBlocks[i++] = vcblock;
 	*lppfbBlocks = lpFbBlocks;
 	*lpcValues = vcFBblocks.size();
 

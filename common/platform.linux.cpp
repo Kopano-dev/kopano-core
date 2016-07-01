@@ -338,12 +338,13 @@ int my_pthread_rwlock_wrlock(const char *file, unsigned int line, pthread_rwlock
 
 std::string dump_pthread_locks()
 {
-	std::map<std::string, Lock>::const_iterator i;
        std::string strLog;
        char s[2048];
 
-       for (i = my_pthread_map.begin(); i!= my_pthread_map.end(); ++i) {
-               snprintf(s,sizeof(s), "%s\t\t%d\t\t%d\t\t%f\n", i->second.strLocation.c_str(), i->second.locks, i->second.busy, (float)i->second.dblTime);
+       for (const auto &p : my_pthread_map) {
+               snprintf(s, sizeof(s), "%s\t\t%d\t\t%d\t\t%f\n",
+                        i.second.strLocation.c_str(), i.second.locks,
+                        i.second.busy, i.second.dblTime);
                strLog += s;
        }
 

@@ -251,11 +251,8 @@ bool ECThreadPool::getNextTask(STaskInfo *lpsTaskInfo)
 void ECThreadPool::joinTerminated()
 {
 	ASSERT(pthread_mutex_trylock(&m_hMutex) != 0);
-	
-	ThreadSet::iterator iThread;
-	
-	for (iThread = m_setTerminated.begin(); iThread != m_setTerminated.end(); ++iThread)
-		pthread_join(*iThread, NULL);
+	for (auto thr : m_setTerminated)
+		pthread_join(thr, NULL);
 	
 	m_setTerminated.clear();
 }
