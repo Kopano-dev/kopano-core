@@ -358,7 +358,7 @@ HRESULT MAPIPropHelper::SetArchiveList(const ObjectEntryList &lstArchives, bool 
 	if (hr != hrSuccess)
 		return hr;
 	
-	iArchive = lstArchives.begin();
+	iArchive = lstArchives.cbegin();
 	for (ULONG i = 0; i < cValues; ++i, ++iArchive) {
 		ptrPropArray[0].Value.MVbin.lpbin[i].cb = iArchive->sStoreEntryId.size();
 		hr = MAPIAllocateMore(iArchive->sStoreEntryId.size(), ptrPropArray, (LPVOID*)&ptrPropArray[0].Value.MVbin.lpbin[i].lpb);

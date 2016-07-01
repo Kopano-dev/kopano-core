@@ -917,7 +917,7 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 	UnixTimeToFileTime(lpFbInfo->tStart, &ftStart);
 	UnixTimeToFileTime(lpFbInfo->tEnd, &ftEnd);
 
-	itUsers = lplstUsers->begin();
+	itUsers = lplstUsers->cbegin();
 	// iterate through all users
 	for (ULONG i = 0; i < cUsers; ++i) {
 		strIcal.clear();

@@ -92,7 +92,7 @@ HRESULT Copier::Helper::GetArchiveFolder(const SObjectEntry &archiveEntry, LPMAP
 		return MAPI_E_INVALID_PARAMETER;
 	
 	iArchiveFolder = m_mapArchiveFolders.find(archiveEntry.sStoreEntryId);
-	if (iArchiveFolder == m_mapArchiveFolders.end()) {
+	if (iArchiveFolder == m_mapArchiveFolders.cend()) {
 		ArchiveHelperPtr ptrArchiveHelper;
 
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive folder not found in cache");
@@ -559,9 +559,9 @@ HRESULT Copier::DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps)
 		
 	for (const auto &arc : m_lstArchives) {
 		TransactionPtr ptrTransaction;
-		ObjectEntryList::const_iterator iArchivedMsg = find_if(lstMsgArchives.begin(), lstMsgArchives.end(), StoreCompare(arc));
+		auto iArchivedMsg = find_if(lstMsgArchives.cbegin(), lstMsgArchives.cend(), StoreCompare(arc));
 		// Check if this message is archived to the current archive.
-		if (iArchivedMsg == lstMsgArchives.end()) {
+		if (iArchivedMsg == lstMsgArchives.cend()) {
 			// It's possible to have a dirty message that has not been archived to the current archive if at the time of the
 			// previous archiver run, this archive was unavailable for some reason.
 			// If this happens, we'll can't do much more than just archive the current version of the message to the archive.

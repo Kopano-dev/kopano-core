@@ -414,7 +414,6 @@ HRESULT PublishFreeBusy::HrMergeBlocks(FBBlock_1 **lppfbBlocks, ULONG *lpcValues
 	TSARRAY sTsitem = {0,0,0};
 	std::map<time_t , TSARRAY> mpTimestamps;
 	std::vector <ULONG> vctStatus;
-	std::vector <ULONG>::iterator iterStatus;
 	std::vector <FBBlock_1> vcFBblocks;
 	time_t tTemp = 0;
 
@@ -471,8 +470,8 @@ HRESULT PublishFreeBusy::HrMergeBlocks(FBBlock_1 **lppfbBlocks, ULONG *lpcValues
 			}
 			--ulLevel;
 			if(!vctStatus.empty()){
-				iterStatus = std::find(vctStatus.begin(),vctStatus.end(),sTsitem.ulStatus);
-				if(iterStatus != vctStatus.end())
+				auto iterStatus = std::find(vctStatus.begin(), vctStatus.end(), sTsitem.ulStatus);
+				if (iterStatus != vctStatus.cend())
 					vctStatus.erase(iterStatus);
 			}
 			tsLastTime = sTsitem.tsTime;

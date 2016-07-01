@@ -163,7 +163,6 @@ HRESULT Http::HrReadHeaders()
 		} else {
 			std::string::size_type pos = strBuffer.find(':');
 			std::string::size_type start = 0;
-			std::pair<std::map<std::string, std::string>::iterator, bool> r;
 
 			if (strBuffer[0] == ' ' || strBuffer[0] == '\t') {
 				if (iHeader == mapHeaders.end())
@@ -174,7 +173,7 @@ HRESULT Http::HrReadHeaders()
 				iHeader->second += strBuffer.substr(start);
 			} else {
 				// new header
-				r = mapHeaders.insert(make_pair<string,string>(strBuffer.substr(0,pos), strBuffer.substr(pos+2)));
+				auto r = mapHeaders.insert(make_pair<string,string>(strBuffer.substr(0,pos), strBuffer.substr(pos+2)));
 				iHeader = r.first;
 			}
 		}
@@ -208,8 +207,6 @@ HRESULT Http::HrParseHeaders()
 	std::string strUserAgent;
 
 	std::vector<std::string> items;
-	std::map<std::string, std::string>::const_iterator iHeader = mapHeaders.cend();
-
 	std::string user_pass;
 	size_t colon_pos;
 

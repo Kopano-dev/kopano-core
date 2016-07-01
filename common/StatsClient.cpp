@@ -189,9 +189,8 @@ void StatsClient::countAdd(const std::string & key, const std::string & key_sub,
 
 	pthread_mutex_lock(&mapsLock);
 
-	std::map<std::string, double>::iterator doubleIterator = countsMapDouble.find(kp);
-
-	if (doubleIterator == countsMapDouble.end())
+	auto doubleIterator = countsMapDouble.find(kp);
+	if (doubleIterator == countsMapDouble.cend())
 		countsMapDouble.insert(std::pair<std::string, double>(kp, n));
 	else
 		doubleIterator -> second += n;
@@ -204,9 +203,8 @@ void StatsClient::countAdd(const std::string & key, const std::string & key_sub,
 
 	pthread_mutex_lock(&mapsLock);
 
-	std::map<std::string, int64_t>::iterator int64Iterator = countsMapInt64.find(kp);
-
-	if (int64Iterator == countsMapInt64.end())
+	auto int64Iterator = countsMapInt64.find(kp);
+	if (int64Iterator == countsMapInt64.cend())
 		countsMapInt64.insert(std::pair<std::string, int64_t>(kp, n));
 	else
 		int64Iterator -> second += n;

@@ -232,9 +232,8 @@ void ECConfigImpl::InsertOrReplace(settingmap_t *lpMap, const settingkey_t &s, c
 	char* data = NULL;
 	size_t len = std::min((size_t)1023, strlen(szValue));
 
-	settingmap_t::iterator i = lpMap->find(s);
-
-	if(i == lpMap->end()) {
+	auto i = lpMap->find(s);
+	if (i == lpMap->cend()) {
 		// Insert new value
 		data = new char[1024];
 		lpMap->insert(make_pair(s, data));
@@ -268,8 +267,8 @@ const char *ECConfigImpl::GetMapEntry(const settingmap_t *lpMap,
 	strcpy(key.s, szName);
 	pthread_rwlock_rdlock(&m_settingsRWLock);
 
-	settingmap_t::const_iterator itor = lpMap->find(key);
-	if (itor != lpMap->end())
+	auto itor = lpMap->find(key);
+	if (itor != lpMap->cend())
 		retval = itor->second;
 	pthread_rwlock_unlock(&m_settingsRWLock);
 	return retval;
@@ -298,9 +297,8 @@ const char *ECConfigImpl::GetSetting(const char *szName, const char *equal,
 const wchar_t *ECConfigImpl::GetSettingW(const char *szName)
 {
 	const char *value = GetSetting(szName);
-	pair<ConvertCache::iterator, bool> result = m_convertCache.insert(ConvertCache::value_type(value, L""));
-	ConvertCache::iterator iter = result.first;
-
+	auto result = m_convertCache.insert(ConvertCache::value_type(value, L""));
+	auto iter = result.first;
 	if (result.second)
 		iter->second = convert_to<wstring>(value);
 
@@ -484,8 +482,7 @@ bool ECConfigImpl::HandleDirective(const string &strLine, unsigned int ulFlags)
 	for (int i = 0; s_sDirectives[i].lpszDirective != NULL; ++i) {
 		if (strName.compare(s_sDirectives[i].lpszDirective) == 0) {
 			/* Check if this directive is supported */
-			std::list<std::string>::const_iterator f =
-				find(m_lDirectives.begin(), m_lDirectives.end(), strName);
+			auto f = find(m_lDirectives.cbegin(), m_lDirectives.cend(), strName);
 			if (f != m_lDirectives.cend())
 				return (this->*s_sDirectives[i].fExecute)(strLine.substr(pos).c_str(), ulFlags);
 

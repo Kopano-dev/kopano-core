@@ -228,20 +228,17 @@ convert_context::convert_context()
 
 convert_context::~convert_context()
 {
-	context_map::iterator iContext;
-	for (iContext = m_contexts.begin(); iContext != m_contexts.end(); ++iContext)
-		delete iContext->second;
-		
-	code_set::iterator iCode;
-	for (iCode = m_codes.begin(); iCode != m_codes.end(); ++iCode)
-		delete[] *iCode;
+	for (auto &ictx : m_contexts)
+		delete ictx.second;
+	for (auto &icode : m_codes)
+		delete[] icode;
 }
 
 void convert_context::persist_code(context_key &key, unsigned flags)
 {
 	if (flags & pfToCode) {
 		code_set::const_iterator iCode = m_codes.find(key.tocode);
-		if (iCode == m_codes.end()) {
+		if (iCode == m_codes.cend()) {
 			char *tocode = new char[strlen(key.tocode) + 1];
 			memcpy(tocode, key.tocode, strlen(key.tocode) + 1);
 			iCode = m_codes.insert(tocode).first;
@@ -250,7 +247,7 @@ void convert_context::persist_code(context_key &key, unsigned flags)
 	}
 	if (flags & pfFromCode) {
 		code_set::const_iterator iCode = m_codes.find(key.fromcode);
-		if (iCode == m_codes.end()) {
+		if (iCode == m_codes.cend()) {
 			char *fromcode = new char[strlen(key.fromcode) + 1];
 			memcpy(fromcode, key.fromcode, strlen(key.fromcode) + 1);
 			iCode = m_codes.insert(fromcode).first;

@@ -512,7 +512,6 @@ HRESULT ArchiveStateUpdater::VerifyAndUpdate(const abentryid_t &userId, const Ar
 		tstring strArchive;
 		tstring strFolder;
 		SObjectEntry objEntry;
-		ObjectEntryList::iterator iObjEntry;
 
 		hr = ParseCoupling(i, &strArchive, &strFolder);
 		if (hr != hrSuccess)
@@ -530,7 +529,7 @@ HRESULT ArchiveStateUpdater::VerifyAndUpdate(const abentryid_t &userId, const Ar
 		}
 
 		// see if entry is in list of attached archives.
-		iObjEntry = std::find_if(lstArchives.begin(), lstArchives.end(), Predicates::SObjectEntry_equals_compareEntryId(m_ptrSession->GetMAPISession(), objEntry));
+		auto iObjEntry = std::find_if(lstArchives.begin(), lstArchives.end(), Predicates::SObjectEntry_equals_compareEntryId(m_ptrSession->GetMAPISession(), objEntry));
 		if (iObjEntry == lstArchives.end()) {
 			// Found a coupling that's not yet attached. Add it to the to-attach-list.
 			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "store '" TSTRING_PRINTF "', folder '" TSTRING_PRINTF "' not yet attached. Adding to coupling list", strArchive.c_str(), strFolder.c_str());
@@ -546,7 +545,6 @@ HRESULT ArchiveStateUpdater::VerifyAndUpdate(const abentryid_t &userId, const Ar
 	// Handle the automated archive stores
 	for (const auto &i : info.lstServers) {
 		entryid_t archiveId;
-		ObjectEntryList::iterator iObjEntry;
 
 		hr = m_ptrSession->GetArchiveStoreEntryId(info.userName, i, &archiveId);
 		if (hr == MAPI_E_NOT_FOUND) {
@@ -560,7 +558,7 @@ HRESULT ArchiveStateUpdater::VerifyAndUpdate(const abentryid_t &userId, const Ar
 		}
 
 		// see if entry is in list of attached archives (store entryid only)
-		iObjEntry = std::find_if(lstArchives.begin(), lstArchives.end(), Predicates::storeId_equals_compareEntryId(m_ptrSession->GetMAPISession(), archiveId));
+		auto iObjEntry = std::find_if(lstArchives.begin(), lstArchives.end(), Predicates::storeId_equals_compareEntryId(m_ptrSession->GetMAPISession(), archiveId));
 		if (iObjEntry == lstArchives.end()) {
 			// Found a server/archive that's not yet attached. Add it to the to-attach-list.
 			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "archive store for '" TSTRING_PRINTF "' on server '" TSTRING_PRINTF "' not yet attached. Adding to server list", info.userName.c_str(), i.c_str());

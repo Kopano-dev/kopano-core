@@ -157,19 +157,19 @@ bool ConsoleTable::SetColumn(size_t row, size_t col, const string& entry)
  */
 void ConsoleTable::PrintRow(const vector<wstring>& vRow)
 {
-	vector<wstring>::const_iterator iCol;
-	size_t nCol;
+	size_t nCol = 0;
 	size_t longest, ntabs;
 
 	cout << '\t';
-	for (nCol = 0, iCol = vRow.begin(); iCol != vRow.end(); ++iCol, ++nCol) {
+	for (const auto &col : vRow) {
 		// cout can't print wstring, and wcout is not allowed to mix with cout.
-		printf("%ls\t", iCol->c_str());
+		printf("%ls\t", col.c_str());
 		if (nCol+1 < m_iColumns) {
 			longest = ((m_vMaxLengths[nCol] /8) +1);
-			ntabs = longest - ((iCol->length() /8) +1);
+			ntabs = longest - ((col.length() / 8) + 1);
 			cout << string(ntabs, '\t');
 		}
+		++nCol;
 	}
 	cout << endl;
 }
@@ -181,15 +181,15 @@ void ConsoleTable::PrintRow(const vector<wstring>& vRow)
  */
 void ConsoleTable::DumpRow(const vector<wstring>& vRow)
 {
-	vector<wstring>::const_iterator iCol;
-	size_t nCol;
-	for (nCol = 0, iCol = vRow.begin(); iCol != vRow.end(); ++iCol, ++nCol) {
-		std::wstring temp = *iCol;
+	size_t nCol = 0;
+	for (const auto &col : vRow) {
+		std::wstring temp = col;
 		std::replace(temp.begin(), temp.end(), '\n', ' ');
 		// cout can't print wstring, and wcout is not allowed to mix with cout.
 		printf("%ls", temp.c_str());
 		if (nCol + 1 < m_iColumns)
 			printf(";");
+		++nCol;
 	}
 	printf("\n");
 }

@@ -752,7 +752,7 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 	// create restriction
 	CREATE_RESTRICTION(lpsRoot);
 	CREATE_RES_OR(lpsRoot, lpsRoot, sWebRMGet->lstWebVal.size()); // max: or guid or raw or entryid
-	iterWebVal = sWebRMGet->lstWebVal.begin();
+	iterWebVal = sWebRMGet->lstWebVal.cbegin();
 
 	for (int i = 0; i < (int)sWebRMGet->lstWebVal.size(); ++i, ++iterWebVal)
 	{
@@ -1468,7 +1468,6 @@ HRESULT CalDAV::HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lp
 	ULONG ulObjType = 0;
 	ULONG ulCmp = 0;
 	ULONG ulDelEntries = 0;
-	std::list<WEBDAVPROPERTY>::const_iterator iter;
 	WEBDAVRESPONSE sDavResponse;
 	std::string strReqUrl;
 	int i;
@@ -1613,9 +1612,6 @@ nowaste:
 
 			HrSetDavPropName(&(sDavResponse.sHRef.sPropName), "href", lpsDavProp->sPropName.strNS);
 			sDavResponse.sHRef.strValue = strReqUrl + W2U(wstrFldPath);
-
-			iter = lpsDavProp->lstProps.begin();
-			
 			HrMapValtoStruct(m_lpUsrFld, lpRowsALL->aRow[i].lpProps, lpRowsALL->aRow[i].cValues, NULL, 0, true, &lpsDavProp->lstProps, &sDavResponse);
 
 			lpsMulStatus->lstResp.push_back(sDavResponse);

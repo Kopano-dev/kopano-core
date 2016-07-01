@@ -494,7 +494,6 @@ HRESULT Fsck::ValidateDuplicateRecipients(LPMESSAGE lpMessage, bool &bChanged)
 	std::list<unsigned int> mapiReciptDel;
 	SRowSet *pRows = NULL;
 	std::string strData;
-	std::pair<std::set<std::string>::const_iterator, bool> res;
 	unsigned int i = 0;
 
 	SizedSPropTagArray(5, sptaProps) = {5, {PR_ROWID, PR_DISPLAY_NAME_A, PR_EMAIL_ADDRESS_A, PR_RECIPIENT_TYPE, PR_ENTRYID}};
@@ -543,7 +542,7 @@ HRESULT Fsck::ValidateDuplicateRecipients(LPMESSAGE lpMessage, bool &bChanged)
 			if (pRows->aRow[i].lpProps[2].ulPropTag == PR_EMAIL_ADDRESS_A)  strData += pRows->aRow[i].lpProps[2].Value.lpszA;
 			if (pRows->aRow[i].lpProps[3].ulPropTag == PR_RECIPIENT_TYPE)   strData += stringify(pRows->aRow[i].lpProps[3].Value.ul);
 
-			res = mapRecip.insert(strData);
+			auto res = mapRecip.insert(strData);
 			if (res.second == false)
 				mapiReciptDel.push_back(pRows->aRow[i].lpProps[0].Value.ul);
 		}

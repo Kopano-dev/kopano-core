@@ -386,8 +386,7 @@ ECRESULT ECKeyTable::UpdateRow(UpdateType ulType,
 	case TABLE_ROW_DELETE:
 		// Find the row by ID
 		iterMap = mapRow.find(*lpsRowItem);
-
-		if(iterMap != mapRow.end()) {
+		if (iterMap != mapRow.cend()) {
 			// The row exists
 			lpRow = iterMap->second;
 
@@ -504,8 +503,7 @@ ECRESULT ECKeyTable::UpdateRow(UpdateType ulType,
 
 		// Find the row by id (see if we already have the row)
 		iterMap = mapRow.find(*lpsRowItem);
-	
-		if(iterMap != mapRow.end()) {
+		if (iterMap != mapRow.cend()) {
 			// Found the row
 
 			// Indiciate that we are modifying an existing row
@@ -709,13 +707,11 @@ ECRESULT ECKeyTable::Clear()
 ECRESULT ECKeyTable::SeekId(const sObjectTableKey *lpsRowItem)
 {
 	ECRESULT er = erSuccess;
-	ECTableRowMap::iterator iterMap;
 
 	pthread_mutex_lock(&mLock);
 
-	iterMap = this->mapRow.find(*lpsRowItem);
-
-	if(iterMap == mapRow.end()) {
+	auto iterMap = this->mapRow.find(*lpsRowItem);
+	if (iterMap == mapRow.cend()) {
 		er = KCERR_NOT_FOUND;
 		goto exit;
 	}
@@ -731,13 +727,12 @@ exit:
 ECRESULT ECKeyTable::GetBookmark(unsigned int ulbkPosition, int* lpbkPosition)
 {
 	ECRESULT er = erSuccess;
-	ECBookmarkMap::iterator	iPosition;
 	unsigned int ulCurrPosition = 0;
 	
 	pthread_mutex_lock(&mLock);
 
-	iPosition = m_mapBookmarks.find(ulbkPosition);
-	if (iPosition == m_mapBookmarks.end()) {
+	auto iPosition = m_mapBookmarks.find(ulbkPosition);
+	if (iPosition == m_mapBookmarks.cend()) {
 		er = KCERR_INVALID_BOOKMARK;
 		goto exit;
 	}
@@ -795,12 +790,10 @@ exit:
 ECRESULT ECKeyTable::FreeBookmark(unsigned int ulbkPosition)
 {
 	ECRESULT er = erSuccess;
-	ECBookmarkMap::iterator	iPosition;
 
 	pthread_mutex_lock(&mLock);
-
-	iPosition = m_mapBookmarks.find(ulbkPosition);
-	if (iPosition == m_mapBookmarks.end()) {
+	auto iPosition = m_mapBookmarks.find(ulbkPosition);
+	if (iPosition == m_mapBookmarks.cend()) {
 		er = KCERR_INVALID_BOOKMARK;
 		goto exit;
 	}

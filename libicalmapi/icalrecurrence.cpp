@@ -565,7 +565,7 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot, icalcomp
 	for (i = 0; i < sptaCopy.cValues; ++i) {
 		if (abOldPresent[i] == true && abNewPresent[i] == false) {
 			auto iProp = find(lpEx->lstMsgProps.begin(), lpEx->lstMsgProps.end(), sptaCopy.aulPropTag[i]);
-			if (iProp != lpEx->lstMsgProps.end()) {
+			if (iProp != lpEx->lstMsgProps.cend()) {
 				lpEx->lstMsgProps.erase(iProp);
 				switch (i) {
 				case 0:

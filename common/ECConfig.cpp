@@ -51,8 +51,6 @@ bool ECConfig::LoadSettings(const wchar_t *szFilename)
 const char* ECConfig::GetDefaultPath(const char* lpszBasename)
 {
 	typedef map<string, string> stringmap_t;
-	typedef stringmap_t::iterator iterator_t;
-	typedef pair<iterator_t, bool> insertresult_t;
 
 	// @todo: Check how this behaves with dlopen,dlclose,dlopen,etc...
 	// We use a static map here to store the strings we're going to return.
@@ -62,7 +60,7 @@ const char* ECConfig::GetDefaultPath(const char* lpszBasename)
 	if (!lpszBasename)
 		lpszBasename = "";
 
-	insertresult_t result = s_mapPaths.insert(stringmap_t::value_type(lpszBasename, string()));
+	auto result = s_mapPaths.insert(stringmap_t::value_type(lpszBasename, string()));
 	if (result.second == true) {		// New item added, so create the actual path
 		const char *lpszDirname = getenv("KOPANO_CONFIG_PATH");
 		if (!lpszDirname || lpszDirname[0] == '\0')
