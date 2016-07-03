@@ -187,8 +187,7 @@ HRESULT ECMemTable::HrGetRowID(LPSPropValue lpRow, LPSPropValue *lppID)
 	}
 
 	iterRows = mapRows.find(lpRow->Value.ul);
-
-	if(iterRows == mapRows.end() || iterRows->second.lpsID == NULL) {
+	if (iterRows == mapRows.cend() || iterRows->second.lpsID == NULL) {
 		hr = MAPI_E_NOT_FOUND;
 		goto exit;
 	}
@@ -227,8 +226,7 @@ HRESULT ECMemTable::HrGetRowData(LPSPropValue lpRow, ULONG *lpcValues, LPSPropVa
 	}
 
 	iterRows = mapRows.find(lpRow->Value.ul);
-	
-	if(iterRows == mapRows.end() || iterRows->second.lpsID == NULL) {
+	if (iterRows == mapRows.cend() || iterRows->second.lpsID == NULL) {
 		hr = MAPI_E_NOT_FOUND;
 		goto exit;
 	}
@@ -296,8 +294,7 @@ HRESULT ECMemTable::HrUpdateRowID(LPSPropValue lpId, LPSPropValue lpProps, ULONG
     }
     
     iterRows = mapRows.find(lpUniqueProp->Value.ul);
-    
-    if(iterRows == mapRows.end()) {
+	if (iterRows == mapRows.cend()) {
         hr = MAPI_E_NOT_FOUND;
         goto exit;
     }
@@ -349,18 +346,13 @@ HRESULT ECMemTable::HrModifyRow(ULONG ulUpdateType, SPropValue *lpsID, SPropValu
 	}
 
 	iterRows = mapRows.find(lpsRowID->Value.ul);
-
-	if(ulUpdateType == ECKeyTable::TABLE_ROW_ADD && iterRows != mapRows.end()) {
+	if (ulUpdateType == ECKeyTable::TABLE_ROW_ADD && iterRows != mapRows.cend())
 		// Row is already in here, move to modify
 		ulUpdateType = ECKeyTable::TABLE_ROW_MODIFY;
-	}
-
-	if(ulUpdateType == ECKeyTable::TABLE_ROW_MODIFY && iterRows == mapRows.end()) {
+	if (ulUpdateType == ECKeyTable::TABLE_ROW_MODIFY && iterRows == mapRows.cend())
 		// Row not found, move to add
 		ulUpdateType = ECKeyTable::TABLE_ROW_ADD;
-	}
-
-	if(ulUpdateType == ECKeyTable::TABLE_ROW_DELETE && iterRows == mapRows.end()) {
+	if (ulUpdateType == ECKeyTable::TABLE_ROW_DELETE && iterRows == mapRows.cend()) {
 		// Row to delete is nonexistent
 		hr = MAPI_E_NOT_FOUND;
 		goto exit;
@@ -528,20 +520,19 @@ ECMemTableView::ECMemTableView(ECMemTable *lpMemTable, const ECLocale &locale, U
 
 ECMemTableView::~ECMemTableView()
 {
-	std::vector<ECMemTableView *>::iterator iterViews;
 	ECMapMemAdvise::const_iterator iterAdvise, iterAdviseRemove;
 
 	// Remove ourselves from the parent's view list
-	for (iterViews = lpMemTable->lstViews.begin(); iterViews != lpMemTable->lstViews.end(); ++iterViews)
+	for (auto iterViews = lpMemTable->lstViews.begin();
+	     iterViews != lpMemTable->lstViews.cend(); ++iterViews)
 		if(*iterViews == this) {
 			lpMemTable->lstViews.erase(iterViews);
 			break;
 		}
 
 	// Remove advises
-	iterAdvise = m_mapAdvise.begin();
-	while( iterAdvise != m_mapAdvise.end() )
-	{
+	iterAdvise = m_mapAdvise.cbegin();
+	while (iterAdvise != m_mapAdvise.cend()) {
 		iterAdviseRemove = iterAdvise;
 		++iterAdvise;
 		Unadvise(iterAdviseRemove->first);
@@ -605,12 +596,10 @@ HRESULT ECMemTableView::Advise(ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink,
 HRESULT ECMemTableView::Unadvise(ULONG ulConnection)
 {
 	HRESULT hr = hrSuccess;
-	ECMapMemAdvise::iterator	iterAdvise;
 
 	// Remove notify from list
-	iterAdvise = m_mapAdvise.find(ulConnection);
-
-	if (iterAdvise != m_mapAdvise.end()) {
+	ECMapMemAdvise::const_iterator iterAdvise = m_mapAdvise.find(ulConnection);
+	if (iterAdvise != m_mapAdvise.cend()) {
 		if (iterAdvise->second->lpAdviseSink != NULL)
 			iterAdvise->second->lpAdviseSink->Release();
 
@@ -1068,22 +1057,17 @@ HRESULT ECMemTableView::ModifyRowKey(sObjectTableKey *lpsRowItem, sObjectTableKe
 	unsigned int	*lpulSortLen = NULL;
 	unsigned char	**lpSortKeys = NULL;
 	unsigned char	*lpFlags = NULL;
-	std::map<unsigned int, ECTableEntry>::const_iterator iterData;
 	LPSPropValue lpsSortID = NULL;
 	ULONG j;
 
 	// FIXME: mvprops?
 	// now is only ulObjId used from lpsRowItem
-	if (lpsRowItem == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpsRowItem == NULL)
+		return MAPI_E_INVALID_PARAMETER;
 
-	iterData = lpMemTable->mapRows.find(lpsRowItem->ulObjId);
-	if(iterData == lpMemTable->mapRows.end()) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+	auto iterData = lpMemTable->mapRows.find(lpsRowItem->ulObjId);
+	if (iterData == lpMemTable->mapRows.cend())
+		return MAPI_E_NOT_FOUND;
 
 	if (lpsSortOrderSet && lpsSortOrderSet->cSorts > 0){
 		lpulSortLen = new unsigned int [lpsSortOrderSet->cSorts];
@@ -1191,7 +1175,6 @@ HRESULT ECMemTableView::QueryRowData(ECObjectTableList *lpsRowList, LPSRowSet *l
 	HRESULT hr = hrSuccess;
 
 	LPSPropValue lpsProp = NULL;
-	std::map<unsigned int, ECTableEntry>::const_iterator iterRows;
 	unsigned int i=0,j=0;
 
 	LPSRowSet lpRows = NULL;
@@ -1212,7 +1195,6 @@ HRESULT ECMemTableView::QueryRowData(ECObjectTableList *lpsRowList, LPSRowSet *l
 	i = 0;
 	for (auto rowlist : *lpsRowList) {
 		auto iterRows = this->lpMemTable->mapRows.find(rowlist.ulObjId);
-
 		if (iterRows == this->lpMemTable->mapRows.cend()) {
 			hr = MAPI_E_NOT_FOUND;
 			goto exit; // FIXME this could happen during multi-threading

@@ -2604,7 +2604,6 @@ HRESULT ECPropMap::Resolve(IMAPIProp *lpMAPIProp) {
     
     // Do GetIDsFromNames() and store result in correct places
     lppNames = new MAPINAMEID *[lstNames.size()];
-    
 	for (auto &mapent : lstNames)
 		lppNames[n++] = mapent.GetMAPINameId();
     

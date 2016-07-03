@@ -157,15 +157,14 @@ HRESULT INFLoader::LoadINF(const char *filename)
 				if (pos == string::npos)
 					continue;	// skip line
 				strName = strLine.substr(1, pos-1);
-
-				pair<inf::iterator, bool> rv = m_mapSections.insert(make_pair(strName, inf_section()));
+				auto rv = m_mapSections.insert(make_pair(strName, inf_section()));
 				iSection = rv.first;
 			}
 			// always continue with next line.
 			continue;
 		}
 
-		if (iSection == m_mapSections.end())
+		if (iSection == m_mapSections.cend())
 			continue;
 
 		// Parse strName in a property, else leave name?
@@ -188,10 +187,8 @@ exit:
  */
 const inf_section* INFLoader::GetSection(const string& strSectionName) const
 {
-	inf::const_iterator iSection;
-
-	iSection = m_mapSections.find(strSectionName);
-	if (iSection == m_mapSections.end()) {
+	inf::const_iterator iSection = m_mapSections.find(strSectionName);
+	if (iSection == m_mapSections.cend()) {
 		static inf_section empty;
 		return &empty;
 	}
@@ -275,12 +272,11 @@ HRESULT INFLoader::MakeProperty(const std::string& strTag, const std::string& st
  */
 ULONG INFLoader::DefinitionFromString(const std::string& strDef, bool bProp) const
 {
-	std::map<std::string, unsigned int>::const_iterator i;
 	char *end;
 	unsigned int hex;
 
-	i = m_mapDefs.find(strDef);
-	if (i != m_mapDefs.end())
+	std::map<std::string, unsigned int>::const_iterator i = m_mapDefs.find(strDef);
+	if (i != m_mapDefs.cend())
 		return i->second;
 	// parse strProp as hex
 	hex = strtoul(strDef.c_str(), &end, 16);
@@ -458,7 +454,7 @@ LPSPropValue SVCService::GetProp(ULONG ulPropTag)
 SVCProvider* SVCService::GetProvider(LPTSTR lpszProvider, ULONG ulFlags)
 {
 	std::map<std::string, SVCProvider*>::const_iterator i = m_sProviders.find(reinterpret_cast<const char *>(lpszProvider));
-	if (i == m_sProviders.end())
+	if (i == m_sProviders.cend())
 		return NULL;
 	return i->second;
 }
@@ -542,7 +538,7 @@ HRESULT MAPISVC::GetService(LPTSTR lpszService, ULONG ulFlags, SVCService **lppS
 	std::map<std::string, SVCService *>::const_iterator i;
 	
 	i = m_sServices.find((char*)lpszService);
-	if (i == m_sServices.end())
+	if (i == m_sServices.cend())
 		return MAPI_E_NOT_FOUND;
 
 	*lppService = i->second;

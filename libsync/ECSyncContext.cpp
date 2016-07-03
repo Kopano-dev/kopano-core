@@ -373,7 +373,6 @@ HRESULT ECSyncContext::HrGetSteps(SBinary *lpEntryID, SBinary *lpSourceKey, ULON
 	ULONG ulType = 0;
 	SSyncState sSyncState = {0};
 	IECChangeAdvisor *lpECA = NULL;
-	NotifiedSyncIdMap::const_iterator iterNotifiedSyncId;
 	bool bNotified = false;
 
 	ASSERT(lpulSteps != NULL);
@@ -398,8 +397,8 @@ HRESULT ECSyncContext::HrGetSteps(SBinary *lpEntryID, SBinary *lpSourceKey, ULON
 	if (hr == hrSuccess) {
 		pthread_mutex_lock(&m_hMutex);
 
-		iterNotifiedSyncId = m_mapNotifiedSyncIds.find(sSyncState.ulSyncId);
-		if (iterNotifiedSyncId == m_mapNotifiedSyncIds.end()) {
+		auto iterNotifiedSyncId = m_mapNotifiedSyncIds.find(sSyncState.ulSyncId);
+		if (iterNotifiedSyncId == m_mapNotifiedSyncIds.cend()) {
 			*lpulSteps = 0;
 			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "GetSteps: sourcekey=%s, syncid=%u, notified=yes, steps=0 (unsignalled)", bin2hex(lpSourceKey->cb, lpSourceKey->lpb).c_str(), sSyncState.ulSyncId);
 
@@ -517,13 +516,12 @@ HRESULT ECSyncContext::HrGetSyncStateFromSourceKey(SBinary *lpSourceKey, SSyncSt
 {
 	HRESULT							hr = hrSuccess;
 	std::string						strSourceKey((char*)lpSourceKey->lpb, lpSourceKey->cb);
-	SyncStateMap::const_iterator	iterSyncState;
 	LPSTREAM						lpStream = NULL;
 	SSyncState						sSyncState = {0};
 
 	// First check the sourcekey to syncid map.
-	iterSyncState = m_mapStates.find(strSourceKey);
-	if (iterSyncState != m_mapStates.end()) {
+	auto iterSyncState = m_mapStates.find(strSourceKey);
+	if (iterSyncState != m_mapStates.cend()) {
 		ASSERT(iterSyncState->second.ulSyncId != 0);
 		*lpsSyncState = iterSyncState->second;
 		goto exit;
@@ -710,12 +708,10 @@ HRESULT ECSyncContext::HrGetSyncStatusStream(SBinary *lpsSourceKey, LPSTREAM *lp
 	HRESULT hr = hrSuccess;
 	LPSTREAM lpStream = NULL;
 	std::string strSourceKey;
-	StatusStreamMap::const_iterator iStatusStream;
 
 	strSourceKey.assign((char*)lpsSourceKey->lpb, lpsSourceKey->cb);
-	iStatusStream = m_mapSyncStatus.find(strSourceKey);
-
-	if (iStatusStream != m_mapSyncStatus.end()) {
+	auto iStatusStream = m_mapSyncStatus.find(strSourceKey);
+	if (iStatusStream != m_mapSyncStatus.cend()) {
 		*lppStream = iStatusStream->second;
 	} else {
 		hr = CreateNullStatusStream(&lpStream);

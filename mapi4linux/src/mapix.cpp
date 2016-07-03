@@ -269,7 +269,7 @@ HRESULT M4LProfAdmin::CreateProfile(LPTSTR lpszProfileName, LPTSTR lpszPassword,
 	}
     
     i = findProfile(lpszProfileName);
-    if (i != profiles.end()) {
+	if (i != profiles.cend()) {
 		ec_log_err("M4LProfAdmin::CreateProfile(): duplicate profile name");
 		hr = MAPI_E_NO_ACCESS;	// duplicate profile name
 		goto exit;
@@ -332,12 +332,11 @@ exit:
 HRESULT M4LProfAdmin::DeleteProfile(LPTSTR lpszProfileName, ULONG ulFlags) {
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LProfAdmin::DeleteProfile", "");
     HRESULT hr = hrSuccess;
-    list<profEntry*>::iterator i;
 
     pthread_mutex_lock(&m_mutexProfiles);
     
-    i = findProfile(lpszProfileName);
-    if (i != profiles.end()) {
+	auto i = findProfile(lpszProfileName);
+	if (i != profiles.cend()) {
 		(*i)->serviceadmin->Release();
 		delete *i;
 		profiles.erase(i);
@@ -405,7 +404,7 @@ HRESULT M4LProfAdmin::AdminServices(LPTSTR lpszProfileName, LPTSTR lpszPassword,
 	}
 
     i = findProfile(lpszProfileName);
-    if (i == profiles.end()) {
+    if (i == profiles.cend()) {
         hr = MAPI_E_NOT_FOUND;
 	ec_log_err("M4LProfAdmin::AdminServices profile not found");
         goto exit;
@@ -1508,7 +1507,7 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID l
         
 	// See if we already have the store open
 	iterStores = mapStores.find(guidProvider);
-	if(iterStores != mapStores.end()) {
+	if (iterStores != mapStores.cend()) {
 		if (bStoreEntryID == true) {
 			hr = iterStores->second->QueryInterface(IID_IMsgStore, (void**)lppUnk);
 			if (hr == hrSuccess)
@@ -1899,7 +1898,6 @@ HRESULT M4LAddrBook::addProvider(const std::string &profilename, const std::stri
 	LPBYTE lpSecurity = NULL;
 	LPMAPIERROR lpMAPIError = NULL;
 	LPABLOGON lpABLogon = NULL;
-	std::pair<std::map<LPABPROVIDER, LPABLOGON>::const_iterator, bool> iRes;
 	abEntry entry;
 
 	hr = newProvider->Logon(m_lpMAPISup, 0, (TCHAR*)profilename.c_str(), 0, &cbSecurity, &lpSecurity, &lpMAPIError, &lpABLogon);
@@ -2083,10 +2081,10 @@ HRESULT M4LAddrBook::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpIn
 		std::list<abEntry>::const_iterator i;
 
 		hr = MAPI_E_UNKNOWN_ENTRYID;
-		for (i = m_lABProviders.begin(); i != m_lABProviders.end(); ++i)
+		for (i = m_lABProviders.cbegin(); i != m_lABProviders.cend(); ++i)
 			if (memcmp((BYTE*)lpEntryID +4, &i->muid, sizeof(MAPIUID)) == 0)
 				break;
-		if (i != m_lABProviders.end())
+		if (i != m_lABProviders.cend())
 			hr = i->lpABLogon->OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
 	} else {
 		// lpEntryID == NULL
@@ -2892,17 +2890,16 @@ SCODE __stdcall MAPIAllocateMore(ULONG cbSize, LPVOID lpObject, LPVOID* lppBuffe
 	pthread_mutex_lock(&_memlist_lock);
 
 #if _MAPI_MEM_MORE_DEBUG
-	for (mlptr = _memlist.begin(); mlptr != _memlist.end(); ++mlptr) {
+	for (mlptr = _memlist.cbegin(); mlptr != _memlist.cend(); ++mlptr)
 		for (auto lp : *mlptr->second)
 			if (lp == lpObject) {
 				fprintf(stderr, "AllocateMore on an AllocateMore buffer!\n");
 				break;
 			}
-	}
 #endif
 
 	mlptr = _memlist.find(lpObject);
-	if (mlptr == _memlist.end()) {
+	if (mlptr == _memlist.cend()) {
 		/* lpObject was not allocatated with MAPIAllocateBuffer() */
 		ASSERT(FALSE);
 
