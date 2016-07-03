@@ -754,8 +754,7 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 	CREATE_RES_OR(lpsRoot, lpsRoot, sWebRMGet->lstWebVal.size()); // max: or guid or raw or entryid
 	iterWebVal = sWebRMGet->lstWebVal.cbegin();
 
-	for (int i = 0; i < (int)sWebRMGet->lstWebVal.size(); ++i, ++iterWebVal)
-	{
+	for (size_t i = 0; i < sWebRMGet->lstWebVal.size(); ++i, ++iterWebVal) {
 		wstring content = U2W(iterWebVal->strValue);
 
 		hr = MAPIAllocateMore(sizeof(SPropValue), lpsRoot, (void**)&lpsPropVal);
