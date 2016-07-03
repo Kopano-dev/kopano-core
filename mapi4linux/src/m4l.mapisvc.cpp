@@ -314,17 +314,15 @@ void SVCProvider::GetProps(ULONG *lpcValues, LPSPropValue *lppPropValues)
 
 HRESULT SVCProvider::Init(const INFLoader& cINF, const inf_section* infProvider)
 {
-	HRESULT hr;
-	inf_section::const_iterator iSection;
-
-	hr = MAPIAllocateBuffer(sizeof(SPropValue) * infProvider->size(), (void**)&m_lpProps);
+	HRESULT hr = MAPIAllocateBuffer(sizeof(SPropValue) * infProvider->size(),
+		reinterpret_cast<void **>(&m_lpProps));
 	if (hr != hrSuccess)
 		return hr;
 
-	for (m_cValues = 0, iSection = infProvider->begin();
-	     iSection != infProvider->end(); ++iSection)
+	m_cValues = 0;
+	for (const auto &sp : *infProvider)
 		// add properties to list
-		if (cINF.MakeProperty(iSection->first, iSection->second, m_lpProps, &m_lpProps[m_cValues]) == hrSuccess)
+		if (cINF.MakeProperty(sp.first, sp.second, m_lpProps, &m_lpProps[m_cValues]) == hrSuccess)
 			++m_cValues;
 	return hrSuccess;
 }
@@ -365,7 +363,6 @@ SVCService::~SVCService()
 HRESULT SVCService::Init(const INFLoader& cINF, const inf_section* infService)
 {
 	HRESULT hr;
-	inf_section::const_iterator iSection;
 	const inf_section* infProvider = NULL;
 	vector<string> prop;
 	LPSPropValue lpSO;
@@ -376,13 +373,13 @@ HRESULT SVCService::Init(const INFLoader& cINF, const inf_section* infService)
 	if (hr != hrSuccess)
 		return hr;
 
-	for (m_cValues = 0, iSection = infService->begin();
-	     iSection != infService->end(); ++iSection) {
+	m_cValues = 0;
+	for (const auto &sp : *infService) {
 		// convert section to class
-		if (iSection->first.compare("Providers") == 0) {
+		if (sp.first.compare("Providers") == 0) {
 			// make new providers list
 			// *new function, new loop
-			ba::split(prop, iSection->second, ba::is_any_of(", \t"), ba::token_compress_on);
+			ba::split(prop, sp.second, ba::is_any_of(", \t"), ba::token_compress_on);
 
 			for (const auto &i : prop) {
 				infProvider = cINF.GetSection(i);
@@ -395,7 +392,7 @@ HRESULT SVCService::Init(const INFLoader& cINF, const inf_section* infService)
 			}
 		} else {
 			// add properties to list
-			if (cINF.MakeProperty(iSection->first, iSection->second, m_lpProps, &m_lpProps[m_cValues]) == hrSuccess)
+			if (cINF.MakeProperty(sp.first, sp.second, m_lpProps, &m_lpProps[m_cValues]) == hrSuccess)
 				++m_cValues;
 		}
 	}
@@ -444,12 +441,9 @@ HRESULT SVCService::Init(const INFLoader& cINF, const inf_section* infService)
  */
 HRESULT SVCService::CreateProviders(IProviderAdmin *lpProviderAdmin)
 {
-	HRESULT hr;
-	std::map<std::string, SVCProvider *>::const_iterator i;
-
-	for (i = m_sProviders.begin(); i != m_sProviders.end(); ++i)  {
+	for (const auto &i : m_sProviders) {
 		// CreateProvider will find the provider properties itself. the property parameters can be used for other properties.
-		hr = lpProviderAdmin->CreateProvider((TCHAR*)i->first.c_str(), 0, NULL, 0, 0, NULL);
+		HRESULT hr = lpProviderAdmin->CreateProvider(const_cast<TCHAR *>(reinterpret_cast<const TCHAR *>(i.first.c_str())), 0, NULL, 0, 0, NULL);
 		if (hr != hrSuccess)
 			return hr;
 	}
@@ -508,7 +502,6 @@ HRESULT MAPISVC::Init()
 	HRESULT hr;
 	INFLoader inf;
 	const inf_section* infServices = NULL;
-	inf_section::const_iterator iServices;
 	const inf_section* infService = NULL;
 
 	hr = inf.LoadINFs();
@@ -517,11 +510,10 @@ HRESULT MAPISVC::Init()
 
 	infServices = inf.GetSection("Services");
 
-	for (iServices = infServices->begin(); iServices != infServices->end(); ++iServices) {
+	for (const auto &sp : *infServices) {
 		// ZARAFA6, ZCONTACTS
-		infService = inf.GetSection(iServices->first);
-
-		pair<std::map<std::string, SVCService*>::iterator, bool> i = m_sServices.insert(make_pair(iServices->first, new SVCService()));
+		infService = inf.GetSection(sp.first);
+		auto i = m_sServices.insert(make_pair(sp.first, new SVCService()));
 		if (i.second == false)
 			continue;			// already exists
 

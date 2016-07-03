@@ -246,7 +246,6 @@ HRESULT RecurrenceState::ParseBlob(char *lpData, unsigned int ulLen, ULONG ulFla
     HRESULT hr = hrSuccess;
     unsigned int ulReservedBlock1Size;
     unsigned int ulReservedBlock2Size;
-    std::vector<Exception>::const_iterator iterExceptions;
     bool bReadValid = false; // Read is valid if first set of exceptions was read ok
 	bool bExtended = false;	 // false if we need to sync extended data from "normal" data
 	convert_context converter;
@@ -370,9 +369,7 @@ HRESULT RecurrenceState::ParseBlob(char *lpData, unsigned int ulLen, ULONG ulFla
     READLONG(ulReservedBlock1Size);
     READSTRING(strReservedBlock1, ulReservedBlock1Size);
 
-    for (iterExceptions = lstExceptions.begin();
-         iterExceptions != lstExceptions.end(); ++iterExceptions)
-    {
+    for (auto &exc : lstExceptions) {
         ExtendedException sExtendedException;
         unsigned int ulReservedBlock1Size;
         unsigned int ulReservedBlock2Size;
@@ -390,27 +387,29 @@ HRESULT RecurrenceState::ParseBlob(char *lpData, unsigned int ulLen, ULONG ulFla
         READSTRING(sExtendedException.strReservedBlock1, ulReservedBlock1Size);
         
         // According to the docs, these are condition depending on the OverrideFlags field. But that's wrong.
-        if(iterExceptions->ulOverrideFlags & ARO_SUBJECT || iterExceptions->ulOverrideFlags & ARO_LOCATION) {       
+        if (exc.ulOverrideFlags & ARO_SUBJECT ||
+            exc.ulOverrideFlags & ARO_LOCATION) {
             READLONG(sExtendedException.ulStartDateTime);
             READLONG(sExtendedException.ulEndDateTime);
             READLONG(sExtendedException.ulOriginalStartDate);
         }
         
-        if(iterExceptions->ulOverrideFlags & ARO_SUBJECT) {
+        if (exc.ulOverrideFlags & ARO_SUBJECT) {
 			std::string strBytes;
             READSHORT(ulWideCharSubjectLength);
             READSTRING(strBytes, ulWideCharSubjectLength * sizeof(short));
 			TryConvert(converter, strBytes, ulWideCharSubjectLength * sizeof(short), "UCS-2LE", sExtendedException.strWideCharSubject);
         }
 
-        if(iterExceptions->ulOverrideFlags & ARO_LOCATION) {
+        if (exc.ulOverrideFlags & ARO_LOCATION) {
 			std::string strBytes;
             READSHORT(ulWideCharLocationLength);
             READSTRING(strBytes, ulWideCharLocationLength * sizeof(short));
 			TryConvert(converter, strBytes, ulWideCharLocationLength * sizeof(short), "UCS-2LE", sExtendedException.strWideCharLocation);
         }
         
-        if(iterExceptions->ulOverrideFlags & ARO_SUBJECT || iterExceptions->ulOverrideFlags & ARO_LOCATION) {       
+        if (exc.ulOverrideFlags & ARO_SUBJECT ||
+            exc.ulOverrideFlags & ARO_LOCATION) {
             READLONG(ulReservedBlock2Size);
             READSTRING(sExtendedException.strReservedBlock2, ulReservedBlock2Size);
         }

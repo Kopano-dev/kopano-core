@@ -174,7 +174,6 @@ HRESULT	Util::HrMergePropertyArrays(const SPropValue *lpSrc, ULONG cValues,
 {
 	HRESULT hr = hrSuccess;
 	map<ULONG, const SPropValue *> mapPropSource;
-	map<ULONG, const SPropValue *>::const_iterator iterPropSource;
 	ULONG i = 0;
 	LPSPropValue lpProps = NULL;
 
@@ -187,11 +186,12 @@ HRESULT	Util::HrMergePropertyArrays(const SPropValue *lpSrc, ULONG cValues,
 	if (hr != hrSuccess)
 		goto exit;
 
-	for (i = 0, iterPropSource = mapPropSource.begin();
-	     iterPropSource != mapPropSource.end(); ++iterPropSource, ++i) {
-		hr = Util::HrCopyProperty(&lpProps[i], iterPropSource->second, lpProps);
+	i = 0;
+	for (const auto &ips : mapPropSource) {
+		hr = Util::HrCopyProperty(&lpProps[i], ips.second, lpProps);
 		if (hr != hrSuccess)
 			goto exit;
+		++i;
 	}
 
 	*cDestValues = i;

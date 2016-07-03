@@ -624,7 +624,6 @@ HRESULT ECSyncContext::HrLoadSyncStatus(SBinary *lpsSyncState)
 HRESULT ECSyncContext::HrSaveSyncStatus(LPSPropValue *lppSyncStatusProp)
 {
 	HRESULT hr = hrSuccess;
-	StatusStreamMap::const_iterator iSyncStatus;
 	std::string strSyncStatus;
 	ULONG ulSize = 0;
 	ULONG ulVersion = EC_SYNC_STATUS_VERSION;
@@ -641,27 +640,25 @@ HRESULT ECSyncContext::HrSaveSyncStatus(LPSPropValue *lppSyncStatusProp)
 
 	ZLOG_DEBUG(m_lpLogger, "Saving sync status stream: items=%u", ulSize);
 
-	for (iSyncStatus = m_mapSyncStatus.begin(); iSyncStatus != m_mapSyncStatus.end(); ++iSyncStatus) {
-		ulSize = iSyncStatus->first.size();
+	for (const auto &ssp : m_mapSyncStatus) {
+		ulSize = ssp.first.size();
 		strSyncStatus.append((char*)&ulSize, 4);
-		strSyncStatus.append(iSyncStatus->first);
+		strSyncStatus.append(ssp.first);
 
-		hr = iSyncStatus->second->Stat(&sStat, STATFLAG_NONAME);
+		hr = ssp.second->Stat(&sStat, STATFLAG_NONAME);
 		if (hr != hrSuccess)
 			goto exit;
 
 		ulSize = sStat.cbSize.LowPart;
 		strSyncStatus.append((char*)&ulSize, 4);
-
-		ZLOG_DEBUG(m_lpLogger, "  Stream: size=%u, sourcekey=%s", ulSize, bin2hex(iSyncStatus->first.size(), (unsigned char*)iSyncStatus->first.data()).c_str());
-
-		hr = iSyncStatus->second->Seek(liPos, STREAM_SEEK_SET, NULL);
+		ZLOG_DEBUG(m_lpLogger, "  Stream: size=%u, sourcekey=%s", ulSize,
+			bin2hex(ssp.first.size(), reinterpret_cast<const unsigned char *>(ssp.first.data())).c_str());
+		hr = ssp.second->Seek(liPos, STREAM_SEEK_SET, NULL);
 		if (hr != hrSuccess)
 			goto exit;
 
 		lpszStream = new char[sStat.cbSize.LowPart];
-
-		hr = iSyncStatus->second->Read(lpszStream, sStat.cbSize.LowPart, &ulSize);
+		hr = ssp.second->Read(lpszStream, sStat.cbSize.LowPart, &ulSize);
 		if (hr != hrSuccess)
 			goto exit;
 

@@ -1989,7 +1989,6 @@ static HRESULT GetRestrictTags(const SRestriction *lpRestriction,
     LPSPropTagArray *lppTags)
 {
 	std::list<unsigned int> lstTags;
-	std::list<unsigned int>::const_iterator iterTags;
 	ULONG n = 0;
 
 	LPSPropTagArray lpTags = NULL;
@@ -2004,9 +2003,8 @@ static HRESULT GetRestrictTags(const SRestriction *lpRestriction,
 	lstTags.sort();
 	lstTags.unique();
 
-	for (iterTags = lstTags.begin();
-	     iterTags != lstTags.end() && n < lpTags->cValues; ++iterTags)
-		lpTags->aulPropTag[n++] = *iterTags;
+	for (auto tag : lstTags)
+		lpTags->aulPropTag[n++] = tag;
 	
 	lpTags->cValues = n;
 
@@ -2594,7 +2592,6 @@ void ECPropMap::AddProp(ULONG *lpId, ULONG ulType, ECPropMapEntry entry) {
 HRESULT ECPropMap::Resolve(IMAPIProp *lpMAPIProp) {
     HRESULT hr = hrSuccess;
     MAPINAMEID **lppNames = NULL;
-    std::list<ECPropMapEntry>::iterator i;
     std::list<ULONG *>::const_iterator j;
     std::list<ULONG>::const_iterator k;
     int n = 0;
@@ -2608,8 +2605,8 @@ HRESULT ECPropMap::Resolve(IMAPIProp *lpMAPIProp) {
     // Do GetIDsFromNames() and store result in correct places
     lppNames = new MAPINAMEID *[lstNames.size()];
     
-    for (i = lstNames.begin(); i != lstNames.end(); ++i)
-        lppNames[n++] = i->GetMAPINameId();
+	for (auto &mapent : lstNames)
+		lppNames[n++] = mapent.GetMAPINameId();
     
     hr = lpMAPIProp->GetIDsFromNames(n, lppNames, MAPI_CREATE, &lpPropTags);
     if(hr != hrSuccess)

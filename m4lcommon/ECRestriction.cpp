@@ -166,7 +166,6 @@ HRESULT ECAndRestriction::append(const ECRestrictionList &list) {
 HRESULT ECAndRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const {
 	SRestriction restriction = {0};
 	ULONG i = 0;
-	ResList::const_iterator iRestriction;
 
 	if (lpBase == NULL || lpRestriction == NULL)
 		return MAPI_E_INVALID_PARAMETER;
@@ -179,10 +178,11 @@ HRESULT ECAndRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRes
 	if (hr != hrSuccess)
 		return hr;
 
-	for (iRestriction = m_lstRestrictions.begin(); iRestriction != m_lstRestrictions.end(); ++iRestriction, ++i) {
-		hr = (*iRestriction)->GetMAPIRestriction(lpBase, restriction.res.resAnd.lpRes + i, ulFlags);
+	for (const auto &r : m_lstRestrictions) {
+		hr = r->GetMAPIRestriction(lpBase, restriction.res.resAnd.lpRes + i, ulFlags);
 		if (hr != hrSuccess)
 			return hr;
+		++i;
 	}
 
 	*lpRestriction = restriction;
@@ -208,7 +208,6 @@ HRESULT ECOrRestriction::append(const ECRestrictionList &list) {
 HRESULT ECOrRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const {
 	SRestriction restriction = {0};
 	ULONG i = 0;
-	ResList::const_iterator iRestriction;
 
 	if (lpBase == NULL || lpRestriction == NULL)
 		return MAPI_E_INVALID_PARAMETER;
@@ -221,10 +220,11 @@ HRESULT ECOrRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRest
 	if (hr != hrSuccess)
 		return hr;
 
-	for (iRestriction = m_lstRestrictions.begin(); iRestriction != m_lstRestrictions.end(); ++iRestriction, ++i) {
-		hr = (*iRestriction)->GetMAPIRestriction(lpBase, restriction.res.resOr.lpRes + i, ulFlags);
+	for (const auto &r : m_lstRestrictions) {
+		hr = r->GetMAPIRestriction(lpBase, restriction.res.resOr.lpRes + i, ulFlags);
 		if (hr != hrSuccess)
 			return hr;
+		++i;
 	}
 
 	*lpRestriction = restriction;

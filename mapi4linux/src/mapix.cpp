@@ -172,7 +172,6 @@ HRESULT M4LProfAdmin::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* 
 HRESULT M4LProfAdmin::GetProfileTable(ULONG ulFlags, LPMAPITABLE* lppTable) {
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LProfAdmin::GetProfileTable", "");
 	HRESULT hr = hrSuccess;
-	list<profEntry*>::const_iterator i;
 	ECMemTable *lpTable = NULL;
 	ECMemTableView *lpTableView = NULL;
 	SPropValue sProps[3];
@@ -192,17 +191,17 @@ HRESULT M4LProfAdmin::GetProfileTable(ULONG ulFlags, LPMAPITABLE* lppTable) {
 	if(hr != hrSuccess)
 		goto exit;
 
-	for (i = profiles.begin(); i != profiles.end(); ++i) {
+	for (auto prof : profiles) {
 		sProps[0].ulPropTag = PR_DEFAULT_PROFILE;
 		sProps[0].Value.b = false; //FIXME: support setDefaultProfile
 
 		if (ulFlags & MAPI_UNICODE) {
-			wDisplayName = convert_to<wstring>((*i)->profname);
+			wDisplayName = convert_to<std::wstring>(prof->profname);
 			sProps[1].ulPropTag = PR_DISPLAY_NAME_W;
 			sProps[1].Value.lpszW = (WCHAR *) wDisplayName.c_str();
 		} else {
 			sProps[1].ulPropTag = PR_DISPLAY_NAME_A;
-			sProps[1].Value.lpszA = (char *) (*i)->profname.c_str();
+			sProps[1].Value.lpszA = const_cast<char *>(prof->profname.c_str());
 		}
 		
 		sProps[2].ulPropTag = PR_ROWID;
@@ -470,18 +469,15 @@ M4LMsgServiceAdmin::M4LMsgServiceAdmin(M4LProfSect *profilesection) {
 }
 
 M4LMsgServiceAdmin::~M4LMsgServiceAdmin() {
-	std::list<serviceEntry *>::const_iterator s;
-	std::list<providerEntry *>::const_iterator p;
-    
 	pthread_mutex_lock(&m_mutexserviceadmin);
 
-	for (s = services.begin(); s != services.end(); ++s) {
-		(*s)->provideradmin->Release();
-		delete *s;
+	for (auto serv : services) {
+		serv->provideradmin->Release();
+		delete serv;
 	}
-	for (p = providers.begin(); p != providers.end(); ++p) {
-		(*p)->profilesection->Release();
-		delete *p;
+	for (auto prov : providers) {
+		prov->profilesection->Release();
+		delete prov;
 	}
     
     services.clear();
@@ -496,27 +492,23 @@ M4LMsgServiceAdmin::~M4LMsgServiceAdmin() {
 }
     
 serviceEntry* M4LMsgServiceAdmin::findServiceAdmin(LPTSTR lpszServiceName) {
-	list<serviceEntry*>::const_iterator i;
-	for (i = services.begin(); i != services.end(); ++i)
-		if ((*i)->servicename == (char*)lpszServiceName)
-			return *i;
+	for (auto serv : services)
+		if (serv->servicename == reinterpret_cast<char *>(lpszServiceName))
+			return serv;
 	return NULL;
 }
 
 serviceEntry* M4LMsgServiceAdmin::findServiceAdmin(LPMAPIUID lpMUID) {
-	list<serviceEntry*>::const_iterator i;
-	for (i = services.begin(); i != services.end(); ++i)
-		if (memcmp(&(*i)->muid, lpMUID, sizeof(MAPIUID)) == 0)
-			return *i;
+	for (auto serv : services)
+		if (memcmp(&serv->muid, lpMUID, sizeof(MAPIUID)) == 0)
+			return serv;
 	return NULL;
 }
 
 providerEntry* M4LMsgServiceAdmin::findProvider(LPMAPIUID lpUid) {
-	list<providerEntry *>::const_iterator i;
-	
-	for (i = providers.begin(); i != providers.end(); ++i)
-		if (memcmp(&(*i)->uid,lpUid,sizeof(MAPIUID)) == 0)
-			return *i;
+	for (auto prov : providers)
+		if (memcmp(&prov->uid,lpUid,sizeof(MAPIUID)) == 0)
+			return prov;
 	return NULL;
 }
 
@@ -562,27 +554,27 @@ HRESULT M4LMsgServiceAdmin::GetMsgServiceTable(ULONG ulFlags, LPMAPITABLE* lppTa
 	}
 	
 	// Loop through all providers, add each to the table
-	for (i = services.begin(); i != services.end(); ++i) {
+	for (auto serv : services) {
 		sProps[0].ulPropTag = PR_SERVICE_UID;
-		sProps[0].Value.bin.lpb = (BYTE *) &(*i)->muid;
+		sProps[0].Value.bin.lpb = reinterpret_cast<BYTE *>(&serv->muid);
 		sProps[0].Value.bin.cb = sizeof(GUID);
 
 		if (ulFlags & MAPI_UNICODE) {
-			wServiceName = converter.convert_to<wstring>((*i)->servicename);
+			wServiceName = converter.convert_to<std::wstring>(serv->servicename);
 			sProps[1].ulPropTag = PR_SERVICE_NAME_W;
 			sProps[1].Value.lpszW = (WCHAR *) wServiceName.c_str();
 		} else {
 			sProps[1].ulPropTag = PR_SERVICE_NAME_A;
-			sProps[1].Value.lpszA = (char *) (*i)->servicename.c_str();
+			sProps[1].Value.lpszA = const_cast<char *>(serv->servicename.c_str());
 		}			
 		
 		if (ulFlags & MAPI_UNICODE) {
-			wDisplayName = converter.convert_to<wstring>((*i)->displayname);
+			wDisplayName = converter.convert_to<std::wstring>(serv->displayname);
 			sProps[1].ulPropTag = PR_DISPLAY_NAME_W;
 			sProps[1].Value.lpszW = (WCHAR *) wDisplayName.c_str();
 		} else {
 			sProps[2].ulPropTag = PR_DISPLAY_NAME_A;
-			sProps[2].Value.lpszA = (char *) (*i)->displayname.c_str();
+			sProps[2].Value.lpszA = const_cast<char *>(serv->displayname.c_str());
 		}
 		
 		sProps[3].ulPropTag = PR_ROWID;
@@ -963,8 +955,6 @@ HRESULT M4LMsgServiceAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTabl
 	HRESULT hr = hrSuccess;
 	ULONG cValues = 0;
 	LPSPropValue lpsProps = NULL;
-	list<providerEntry *>::const_iterator i;
-	list<serviceEntry *>::const_iterator j;
 	ECMemTable *lpTable = NULL;
 	ECMemTableView *lpTableView = NULL;
 	LPSPropValue lpDest = NULL;
@@ -978,15 +968,17 @@ HRESULT M4LMsgServiceAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTabl
 
 	pthread_mutex_lock(&m_mutexserviceadmin);
 	
-	for (j = services.begin(); j != services.end(); ++j) {
-		if ((*j)->bInitialize == false) {
-			hr = (*j)->service->MSGServiceEntry()(0, NULL, NULL, 0, 0, MSG_SERVICE_CREATE, 0, NULL, (LPPROVIDERADMIN)(*j)->provideradmin, NULL);
+	for (auto serv : services) {
+		if (serv->bInitialize == false) {
+			hr = serv->service->MSGServiceEntry()(0, NULL, NULL, 0,
+			     0, MSG_SERVICE_CREATE, 0, NULL,
+			     reinterpret_cast<LPPROVIDERADMIN>(serv->provideradmin),
+			     NULL);
 			if(hr !=hrSuccess) {
 				ec_log_err("M4LMsgServiceAdmin::GetProviderTable(): MSGServiceEntry fail %x: %s", hr, GetMAPIErrorMessage(hr));
 				goto exit;
 			}
-			
-			(*j)->bInitialize = true;
+			serv->bInitialize = true;
 		}
 	}
 
@@ -1003,8 +995,8 @@ HRESULT M4LMsgServiceAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTabl
 	}
 	
 	// Loop through all providers, add each to the table
-	for (i = providers.begin(); i != providers.end(); ++i) {
-		hr = (*i)->profilesection->GetProps(lpPropTagArray, 0, &cValues, &lpsProps);
+	for (auto prov : providers) {
+		hr = prov->profilesection->GetProps(lpPropTagArray, 0, &cValues, &lpsProps);
 		if (FAILED(hr)) {
 			ec_log_err("M4LMsgServiceAdmin::GetProviderTable(): GetProps fail %x: %s", hr, GetMAPIErrorMessage(hr));
 			goto exit;
@@ -1095,10 +1087,8 @@ M4LMAPISession::M4LMAPISession(LPTSTR new_profileName, M4LMsgServiceAdmin *new_s
 }
 
 M4LMAPISession::~M4LMAPISession() {
-	std::map<GUID, IMsgStore *>::const_iterator iterStores;
-    
-	for (iterStores = mapStores.begin(); iterStores != mapStores.end(); ++iterStores)
-		iterStores->second->Release();
+	for (const auto &p : mapStores)
+		p.second->Release();
 
 	MAPIFreeBuffer(m_lpPropsStatus);
 	pthread_mutex_destroy(&m_mutexStatusRow);
@@ -1127,7 +1117,6 @@ HRESULT M4LMAPISession::GetMsgStoresTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 	HRESULT hr = hrSuccess;
 	ULONG cValues = 0;
 	LPSPropValue lpsProps = NULL;
-	list<providerEntry *>::const_iterator i;
 	ECMemTable *lpTable = NULL;
 	ECMemTableView *lpTableView = NULL;
 	LPSPropValue lpDest = NULL;
@@ -1156,8 +1145,8 @@ HRESULT M4LMAPISession::GetMsgStoresTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 	}
 	
 	// Loop through all providers, add each to the table
-	for (i = serviceAdmin->providers.begin(); i != serviceAdmin->providers.end(); ++i) {
-		hr = (*i)->profilesection->GetProps(lpPropTagArray, 0, &cValues, &lpsProps);
+	for (auto prov : serviceAdmin->providers) {
+		hr = prov->profilesection->GetProps(lpPropTagArray, 0, &cValues, &lpsProps);
 		if (FAILED(hr)) {
 			ec_log_err("M4LMAPISession::GetMsgStoresTable(): GetProps fail %x: %s", hr, GetMAPIErrorMessage(hr));
 			goto exit;
@@ -1370,7 +1359,6 @@ HRESULT M4LMAPISession::OpenAddressBook(ULONG ulUIParam, LPCIID lpInterface, ULO
 	LPABPROVIDER lpABProvider = NULL;
 	LPMAPISUP lpMAPISup = NULL;
 	SPropValue sProps[1];
-	list<serviceEntry*>::const_iterator iService;
 
 	lpMAPISup = new(std::nothrow) M4LMAPISupport(this, NULL, NULL);
 	if (!lpMAPISup) {
@@ -1403,14 +1391,12 @@ HRESULT M4LMAPISession::OpenAddressBook(ULONG ulUIParam, LPCIID lpInterface, ULO
 		goto exit;
 	}
 
-	for (iService = serviceAdmin->services.begin();
-	     iService != serviceAdmin->services.end(); ++iService) {
-		if ((*iService)->service->ABProviderInit() == NULL)
+	for (auto serv : serviceAdmin->services) {
+		if (serv->service->ABProviderInit() == NULL)
 			continue;
 
-		if ((*iService)->service->ABProviderInit()(0, NULL, MAPIAllocateBuffer, MAPIAllocateMore, MAPIFreeBuffer, ulFlags, CURRENT_SPI_VERSION, &abver, &lpABProvider) == hrSuccess)
-		{
-			vector<SVCProvider*> vABProviders = (*iService)->service->GetProviders();
+		if (serv->service->ABProviderInit()(0, NULL, MAPIAllocateBuffer, MAPIAllocateMore, MAPIFreeBuffer, ulFlags, CURRENT_SPI_VERSION, &abver, &lpABProvider) == hrSuccess) {
+			std::vector<SVCProvider *> vABProviders = serv->service->GetProviders();
 			LPSPropValue lpProps;
 			ULONG cValues;
 			for (const auto prov : vABProviders) {
@@ -2907,13 +2893,11 @@ SCODE __stdcall MAPIAllocateMore(ULONG cbSize, LPVOID lpObject, LPVOID* lppBuffe
 
 #if _MAPI_MEM_MORE_DEBUG
 	for (mlptr = _memlist.begin(); mlptr != _memlist.end(); ++mlptr) {
-		list<void *>::const_iterator lp;
-		for (lp = mlptr->second->begin(); lp != mlptr->second->end(); ++lp) {
-			if ((*lp) == lpObject) {
+		for (auto lp : *mlptr->second)
+			if (lp == lpObject) {
 				fprintf(stderr, "AllocateMore on an AllocateMore buffer!\n");
 				break;
 			}
-		}
 	}
 #endif
 
@@ -2951,7 +2935,6 @@ SCODE __stdcall MAPIAllocateMore(ULONG cbSize, LPVOID lpObject, LPVOID* lppBuffe
  * @return		ULONG		Always 0 in Linux.
  */
 ULONG __stdcall MAPIFreeBuffer(LPVOID lpBuffer) {
-	list<void*>::const_iterator i;
 	map<void*, list<void*>* >::iterator mlptr;
 
 	/* Well it could happen, especially according to the MSDN.. */
@@ -2966,12 +2949,11 @@ ULONG __stdcall MAPIFreeBuffer(LPVOID lpBuffer) {
 
 	mlptr = _memlist.find(lpBuffer);
 	if (mlptr != _memlist.end()) {
-
-		for (i = mlptr->second->begin(); i != mlptr->second->end(); ++i) {
+		for (auto i : *mlptr->second) {
 #if _MAPI_MEM_DEBUG
-			fprintf(stderr, "  Freeing: %p\n", (*i));
+			fprintf(stderr, "  Freeing: %p\n", i);
 #endif
-			free(*i);
+			free(i);
 		}
 
 		// delete list

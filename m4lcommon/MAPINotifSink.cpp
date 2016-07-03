@@ -214,12 +214,8 @@ MAPINotifSink::~MAPINotifSink() {
     
     pthread_cond_destroy(&m_hCond);
     pthread_mutex_destroy(&m_hMutex);
-
-	std::list<NOTIFICATION *>::const_iterator iterNotif;
-
-	for (iterNotif = m_lstNotifs.begin(); iterNotif != m_lstNotifs.end(); ++iterNotif)
-		MAPIFreeBuffer(*iterNotif);	
-
+	for (auto n : m_lstNotifs)
+		MAPIFreeBuffer(n);
 	m_lstNotifs.clear();
 }
 
@@ -252,7 +248,6 @@ ULONG MAPINotifSink::OnNotify(ULONG cNotifications, LPNOTIFICATION lpNotificatio
 HRESULT MAPINotifSink::GetNotifications(ULONG *lpcNotif, LPNOTIFICATION *lppNotifications, BOOL fNonBlock, ULONG timeout)
 {
     HRESULT hr = hrSuccess;
-    std::list<NOTIFICATION *>::const_iterator iterNotif;
     ULONG cNotifs = 0;
     struct timespec t;
     
@@ -276,10 +271,10 @@ HRESULT MAPINotifSink::GetNotifications(ULONG *lpcNotif, LPNOTIFICATION *lppNoti
 	LPNOTIFICATION lpNotifications = NULL;
     
 	if ((hr = MAPIAllocateBuffer(sizeof(NOTIFICATION) * m_lstNotifs.size(), (void **) &lpNotifications)) == hrSuccess) {
-		for (iterNotif = m_lstNotifs.begin(); iterNotif != m_lstNotifs.end(); ++iterNotif) {
-			if(CopyNotification(*iterNotif, lpNotifications, &lpNotifications[cNotifs]) == 0) 
+		for (auto n : m_lstNotifs) {
+			if (CopyNotification(n, lpNotifications, &lpNotifications[cNotifs]) == 0)
 				++cNotifs;
-			MAPIFreeBuffer(*iterNotif);
+			MAPIFreeBuffer(n);
 		}
 	}
 

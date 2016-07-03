@@ -85,12 +85,9 @@ M4LMAPISupport::M4LMAPISupport(LPMAPISESSION new_session, LPMAPIUID lpUid, SVCSe
 }
 
 M4LMAPISupport::~M4LMAPISupport() {
-	M4LSUPPORTADVISES::const_iterator i;
-
 	delete lpsProviderUID;
-	for (i = m_advises.begin(); i != m_advises.end(); ++i)
-		MAPIFreeBuffer(i->second.lpKey);
-
+	for (const auto &i : m_advises)
+		MAPIFreeBuffer(i.second.lpKey);
 	pthread_mutex_destroy(&m_advises_mutex);
 }
 
