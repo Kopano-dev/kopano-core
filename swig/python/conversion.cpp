@@ -2887,6 +2887,7 @@ PyObject *Object_from_LPECUSER(ECUSER *lpUser, ULONG ulFlags)
 		result = PyObject_CallFunction(PyTypeECUser, "(sssssllllOO)", lpUser->lpszUsername, lpUser->lpszPassword, lpUser->lpszMailAddress, lpUser->lpszFullName, lpUser->lpszServername, lpUser->ulObjClass, lpUser->ulIsAdmin, lpUser->ulIsABHidden, lpUser->ulCapacity, userid, MVProps);
 
 	Py_DECREF(MVProps);
+	Py_DECREF(userid);
 	return result;
 }
 
