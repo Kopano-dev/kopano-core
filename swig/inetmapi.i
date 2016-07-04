@@ -43,6 +43,7 @@ typedef struct _so {
 			~sending_options() {
 				free(self->alternate_boundary);
 				free(self->charset_upgrade);
+				delete(self);
 			}
 		}
 
@@ -66,6 +67,7 @@ typedef struct _do {
 			}
 			~delivery_options() {
 				free(const_cast<char *>(self->default_charset));
+				delete(self);
 			}
         }
 
