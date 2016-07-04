@@ -1,8 +1,9 @@
+import atexit
 import sys
 from MAPICore import *
 
-
 MAPIInitialize_Multithreaded()
+atexit.register(MAPIUninitialize)
 
 unicode = False
 
