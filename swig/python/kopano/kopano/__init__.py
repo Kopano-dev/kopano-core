@@ -534,6 +534,35 @@ class PersistentList(list):
             return ret
         return _func
 
+def timed_cache(seconds=0, minutes=0, hours=0, days=0):
+    # used with permission from will mcgugan, https://www.willmcgugan.com
+    time_delta = datetime.timedelta(seconds=seconds, minutes=minutes, hours=hours, days=days)
+
+    def decorate(f):
+        f._updates = {}
+        f._results = {}
+
+        def do_cache(*args, **kwargs):
+            key = tuple(sorted(kwargs.items()))
+
+            updates = f._updates
+            results = f._results
+
+            t = datetime.datetime.now()
+            updated = updates.get(key, t)
+
+            if key not in results or t-updated > time_delta:
+                # calculate
+                updates[key] = t
+                result = f(*args, **kwargs)
+                results[key] = result
+                return result
+            else:
+                # cache
+                return results[key]
+        return do_cache
+    return decorate
+
 class SPropDelayedValue(SPropValue):
     def __init__(self, mapiobj, proptag):
         self.mapiobj = mapiobj
@@ -1131,6 +1160,14 @@ Looks at command-line to see if another server address or other related options 
 
         importer.store = None
         return _sync(self, self.mapistore, importer, state, log or self.log, max_changes, window=window, begin=begin, end=end, stats=stats)
+
+    @timed_cache(minutes=60)
+    def _resolve_email(self, entryid=None):
+        try:
+            mailuser = self.mapisession.OpenEntry(entryid, None, 0)
+            return self.user(HrGetOneProp(mailuser, PR_ACCOUNT).Value).email # XXX PR_SMTP_ADDRESS_W from mailuser?
+        except (Error, MAPIErrorNotFound): # XXX deleted user
+            return '' # XXX groups
 
     def __str__(self):
         return u'Server(%s)' % self.server_socket
@@ -3375,11 +3412,7 @@ class Address:
         """ Email address """
 
         if self.addrtype == 'ZARAFA':
-            try:
-                mailuser = self.server.mapisession.OpenEntry(self.entryid, None, 0)
-                return self.server.user(HrGetOneProp(mailuser, PR_ACCOUNT).Value).email # XXX PR_SMTP_ADDRESS_W from mailuser?
-            except (Error, MAPIErrorNotFound): # XXX deleted user
-                return '' # XXX groups?
+            return self.server._resolve_email(entryid=self.entryid)
         else:
             return self._email or ''
 
