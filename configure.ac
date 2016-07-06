@@ -425,27 +425,8 @@ dnl Stupid gsoap not abstracting properly! If our -Ds do not match with what
 dnl gsoap was compiled with, we are in trouble.
 GSOAP_CFLAGS="-DWITH_OPENSSL -DWITH_GZIP -DHAVE_OPENSSL_SSL_H -DHAVE_ZLIB_H"
 GSOAP_LIBS="-lgsoapssl++"
-AC_MSG_CHECKING([gsoap])
-AC_ARG_WITH(gsoap-prefix,
-  AS_HELP_STRING([--with-gsoap-prefix=PATH], [gsoap prefix, e.g. /usr/local, default /usr]),
-  [
-  GSOAP_PREFIX="$withval"
-  GSOAP_SOAPCPP2="$GSOAP_PREFIX/bin/soapcpp2"
-  GSOAP_CFLAGS="$GSOAP_CFLAGS -I$GSOAP_PREFIX/include"
-  # Hardcoding directories is bad… they may contain libraries of mismatching archictecture
-  GSOAP_LIBS="$GSOAP_LIBS -L$GSOAP_PREFIX/lib -L$GSOAP_PREFIX/lib64 -R$GSOAP_PREFIX/lib -R$GSOAP_PREFIX/lib64"
-  ],
-  [
-  GSOAP_PREFIX="/usr"
-  GSOAP_SOAPCPP2="soapcpp2"
-  ])
-# Gsoap 2.8.13 introduced the -z1 flag for depreacted old-style C++ service proxies and objects ( https://www.cs.fsu.edu/~engelen/changelog.html )
-GSOAP_SOAPCPP2=$(mkdir -p "conftest.$$" && cd "conftest.$$" && "$GSOAP_SOAPCPP2" -z1 </dev/null >/dev/null 2>/dev/null && echo "$GSOAP_SOAPCPP2 -z1 " || echo "$GSOAP_SOAPCPP2")
-rm -Rf "conftest.$$"
-AC_MSG_RESULT([$GSOAP_SOAPCPP2])
 AC_SUBST(GSOAP_CFLAGS)
 AC_SUBST(GSOAP_LIBS)
-AC_SUBST(GSOAP_SOAPCPP2)
 
 ICAL_CFLAGS=""
 ICAL_LIBS="-lical -licalss"

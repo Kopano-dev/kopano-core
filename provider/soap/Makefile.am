@@ -30,7 +30,7 @@ SOAP_CPP_SRC=$(SOAP_CPP_CLIENT) soapServer.cpp $(SOAP_H_FILES) $(SOAP_NS) $(SOAP
 
 $(SOAP_CPP_SRC) : ns.xsd
 ns.xsd: $(SOAPHEADER)
-	$(GSOAP_SOAPCPP2) -x -I$(SOAP_INC) $<
+	soapcpp2 -z1 -x -I$(SOAP_INC) $<
 
 #libsoapserver_a_LDADD=$(SOAP_CPP_LIB)
 BUILT_SOURCES=ns.xsd $(SOAP_CPP_SRC)
