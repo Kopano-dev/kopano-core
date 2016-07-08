@@ -107,6 +107,8 @@ public:
 	}
 };
 
+%cstring_input_binary(const char *pv, ULONG cb);
+
 class IStreamAdapter {
 public:
 	// Hard to typemap so using other method below
