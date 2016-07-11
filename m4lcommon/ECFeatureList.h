@@ -24,7 +24,7 @@
 
 ///< all kopano features that are checked for access before allowing it
 static const char *const kopano_features[] = {
-	"imap", "pop3", "mobile"
+	"imap", "pop3", "mobile", "outlook"
 };
 
 /** 
