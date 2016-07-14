@@ -19,7 +19,7 @@ genpages = \
 	kopano-server.8 kopano-server.cfg.5 \
 	kopano-set-oof.1 \
 	kopano-spooler.8 kopano-spooler.cfg.5 \
-	kopano-backup.8 \
+	kopano-backup.8 kopano-backup.cfg.5 \
 	kopano-stats.1 \
 	kopano-unix.cfg.5
 

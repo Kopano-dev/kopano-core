@@ -4213,7 +4213,7 @@
 		  <varlistentry>
 			<term><option>server_ssl_key_pass</option></term>
 			<listitem>
-			  <para>Enter you password here when your key file
+			  <para>Enter your password here when your key file
 			  contains a password to be readable.
 			  </para>
 			  <para>No default set.
@@ -9703,7 +9703,7 @@
 
 <!--
   -+-+-
-	Kopano search manual page
+	Kopano Search manual page
   -+-+-
 -->
 	<refentry>
@@ -9849,7 +9849,7 @@
 
 <!--
   -+-+-
-	Kopano search Configuration file manual page
+	Kopano Search Configuration file manual page
   -+-+-
 -->
 	<refentry>
@@ -10025,7 +10025,7 @@
 		  <varlistentry>
 			<term><option>ssl_key_pass</option></term>
 			<listitem>
-			  <para>Enter you password here when your key file
+			  <para>Enter your password here when your key file
 			  contains a password to be readable.
 			  </para>
 			  <para>No default set.
@@ -10147,7 +10147,7 @@
 			<listitem>
 			  <para>The level of output for logging in the range from
 			  0 to 5. 0 means no logging, 5 means full logging.</para>
-			  <para>Default: <replaceable>2</replaceable></para>
+			  <para>Default: <replaceable>3</replaceable></para>
 			</listitem>
 		  </varlistentry>
 
@@ -10674,6 +10674,199 @@
 	  <refsection>
 		<title>Author</title>
 		<para>Written by Kopano.</para>
+	  </refsection>
+
+	</refentry>
+<!--
+  -+-+-
+	Kopano Backup Configuration file manual page
+  -+-+-
+-->
+	<refentry>
+	  <refmeta>
+		<refentrytitle>kopano-backup.cfg</refentrytitle>
+		<manvolnum>5</manvolnum>
+	  </refmeta>
+
+	  <refnamediv>
+		<refname>kopano-backup.cfg</refname>
+		<refpurpose>The Kopano Backup configuration file</refpurpose>
+	  </refnamediv>
+
+	  <refsynopsisdiv>
+		<para><command>backup.cfg</command></para>
+	  </refsynopsisdiv>
+
+	  <refsection>
+		<title>Description</title>
+
+		<para><filename>backup.cfg</filename> is a configuration file for
+		the Kopano Backup service.
+		</para>
+	  </refsection>
+
+	  <refsection>
+		<title>File format</title>
+
+		<para>The file consists of one big section, but parameters can be
+		grouped by functionality.</para>
+
+		<para>The parameters are written in the form:</para>
+
+		<para><option>name</option> = <replaceable>value</replaceable></para>
+
+		<para>The file is line-based. Each newline-terminated line
+		represents either a comment, nothing, a parameter or a directive.
+		A line beginning with `#' is considered a comment, and will be
+		ignored by Kopano. Parameter names are case sensitive. Lines
+		beginning with `!' are directives.</para>
+
+		<para>Directives are written in the form:</para>
+
+		<para>!<option>directive</option> <replaceable>[argument(s)]
+		</replaceable></para>
+
+		<para>The following directives exist:</para>
+		<variablelist>
+		  <varlistentry>
+		    <term><option>include</option></term>
+		    <listitem>
+		      <para>Include and process <replaceable>argument</replaceable>
+		      </para>
+		      <para>Example: !include common.cfg</para>
+		    </listitem>
+		  </varlistentry>
+		</variablelist>
+	  </refsection>
+
+	  <refsection>
+		<title>Explanation of the Server Settings parameters</title>
+
+		<variablelist>
+		  <varlistentry>
+			<term><option>server_socket</option></term>
+			<listitem>
+			  <para>Socket to find the connection to the Kopano
+			  server.</para>
+			  <para>Default:
+			  <parameter>file:///var/run/kopano/server.sock</parameter></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>ssl_key_file</option></term>
+			<listitem>
+			  <para>The file containing the private key and
+			  certificate. Please read the SSL section in the
+			  <citerefentry><refentrytitle>kopano-server</refentrytitle>
+			  <manvolnum>8</manvolnum></citerefentry> manual on how to
+			  create this file.
+			  </para>
+			  <para>Default:
+			  <replaceable>/etc/kopano/ssl/search.pem</replaceable>
+			  </para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>ssl_key_pass</option></term>
+			<listitem>
+			  <para>Enter your password here when your key file
+			  contains a password to be readable.
+			  </para>
+			  <para>No default set.
+			  </para>
+			</listitem>
+		  </varlistentry>
+
+		</variablelist>
+	  </refsection>
+
+	  <refsection>
+		<title>Explanation of the Log Settings parameters</title>
+
+		<variablelist>
+		  <varlistentry>
+			<term><option>log_method</option></term>
+			<listitem>
+			  <para>The method which should be used for logging. Valid
+			  values are:</para>
+
+			  <variablelist>
+				<varlistentry>
+				  <term><replaceable>syslog</replaceable></term>
+				  <listitem>
+					<para>Use the Linux system log. All messages will
+					be written to the mail facility. See also <citerefentry>
+					<refentrytitle>syslog.conf</refentrytitle>
+					<manvolnum>5</manvolnum>
+					</citerefentry>.</para>
+				  </listitem>
+				</varlistentry>
+
+				<varlistentry>
+				  <term><replaceable>file</replaceable></term>
+				  <listitem>
+					<para>Log to a file. The filename will be
+					specified in <option>log_file</option>.</para>
+				  </listitem>
+				</varlistentry>
+			  </variablelist>
+			  <para>Default: <replaceable>file</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>log_level</option></term>
+			<listitem>
+			  <para>The level of output for logging in the range from
+			  0 to 5. 0 means no logging, 5 means full logging.</para>
+			  <para>Default: <replaceable>3</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>log_file</option></term>
+			<listitem>
+			  <para>When logging to a file, specify the filename in
+			  this parameter. Use <replaceable>-</replaceable> (minus
+			  sign) for stderr output.</para>
+			  <para>Default: <replaceable>/var/log/kopano/search.log</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		</variablelist>
+	  </refsection>
+
+	  <refsection>
+		<title>Explanation of the Backup Settings parameters</title>
+
+		<variablelist>
+
+		  <varlistentry>
+		    <term><option>worker_processes</option></term>
+		    <listitem>
+		      <para>Maximum number of stores to backup in parallel
+		      </para>
+		      <para>Default: 1</para>
+		    </listitem>
+		  </varlistentry>
+		</variablelist>
+	  </refsection>
+
+	  <refsection>
+		<title>Author</title>
+		<para>Written by Kopano.</para>
+	  </refsection>
+
+	  <refsection>
+		<title>See also</title>
+		<para>
+		  <citerefentry>
+			<refentrytitle>kopano-backup</refentrytitle>
+			<manvolnum>8</manvolnum>
+		  </citerefentry>
+		</para>
 	  </refsection>
 
 	</refentry>
