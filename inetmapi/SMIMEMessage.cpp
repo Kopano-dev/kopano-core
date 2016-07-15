@@ -24,11 +24,13 @@ SMIMEMessage::SMIMEMessage()
 {
 }
 
-void SMIMEMessage::generate(vmime::utility::outputStream& os, const std::string::size_type maxLineLength, const std::string::size_type curLinePos, std::string::size_type* newLinePos) const
+void SMIMEMessage::generateImpl(const vmime::generationContext &ctx,
+    vmime::utility::outputStream &os, size_t curLinePos,
+    size_t *newLinePos) const
 {
     if(!m_body.empty()) {
         // Generate headers
-        getHeader()->generate(os, maxLineLength);
+        getHeader()->generate(ctx, os);
 
         // Concatenate S/MIME body without CRLF since it also contains some additional headers
         os << m_body;
@@ -37,7 +39,7 @@ void SMIMEMessage::generate(vmime::utility::outputStream& os, const std::string:
 	    	*newLinePos = 0;
     } else {
         // Normal generation
-        vmime::message::generate(os, maxLineLength, curLinePos, newLinePos);
+        vmime::message::generate(ctx, os, curLinePos, newLinePos);
     }
 }
 
