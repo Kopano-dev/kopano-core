@@ -628,32 +628,32 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::ref<vmime::header> vmHeader, IMessage*
 			msgProps[nProps++].Value.ft = vmimeDatetimeToFiletime(d);
 		}
 
-		vmime::datetime date;
 		// setting receive date (now)
-		// parse from Received header, if possible. Otherwise, use now()
-		if (m_dopt.use_received_date) {
+		// parse from Received header, if possible
+		vmime::datetime date = vmime::datetime::now();
+		bool found_date = false;
+		if (m_dopt.use_received_date || m_mailState.ulMsgInMsg) {
 			try {
 				vmime::ref<vmime::relay> recv = vmHeader->findField("Received")->getValue().dynamicCast<vmime::relay>();
-				if (recv)
-				    date = recv->getDate();
+				if (recv) {
+					date = recv->getDate();
+					found_date = true;
+				}
 			}
 			catch (...) {
-				if (m_mailState.ulMsgInMsg)
+				if (m_mailState.ulMsgInMsg) {
 					date = *vmHeader->Date()->getValue().dynamicCast<vmime::datetime>();
-				else
+					found_date = true;
+				} else {
 					date = vmime::datetime::now();
+				}
 			}
-		} else {
-			if (m_mailState.ulMsgInMsg)
-				date = *vmHeader->Date()->getValue().dynamicCast<vmime::datetime>();
-			else
-				date = vmime::datetime::now();
 		}
 
 		// When parse_smime_signed = True, we don't want to change the delivery date, since otherwise
 		// clients which decode an signed email using mapi_inetmapi_imtomapi() will have a different deliver time
 		// when opening an signed email in for example the WebApp
-		if(!m_dopt.parse_smime_signed && !m_mailState.ulMsgInMsg) {
+		if (!m_dopt.parse_smime_signed && (!m_mailState.ulMsgInMsg || found_date)) {
 			msgProps[nProps].ulPropTag = PR_MESSAGE_DELIVERY_TIME;
 			msgProps[nProps++].Value.ft = vmimeDatetimeToFiletime(date);
 
