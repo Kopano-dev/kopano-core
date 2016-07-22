@@ -25,6 +25,10 @@ AC_DEFUN([PHP_WITH_PHP_CONFIG],[
 	# find path in existing paths
 	if test -d "/etc/php.d"; then
 		PHP_SYSCONF_DIR="/etc/php.d"
+	elif test -d "/etc/php7/conf.d"; then
+		PHP_SYSCONF_DIR="/etc/php7/conf.d"
+	elif test -d "/etc/php7/apache2/conf.d"; then
+		PHP_SYSCONF_DIR="/etc/php7/apache2/conf.d"
 	elif test -d "/etc/php5/conf.d"; then
 		PHP_SYSCONF_DIR="/etc/php5/conf.d"
 	elif test -d "/etc/php5/apache2/conf.d"; then
