@@ -386,7 +386,7 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 			case PT_BOOLEAN:
 				convert_to_boolean_ex(entry);
 				// lval will be 1 or 0 for true or false
-				lpPropValue[cvalues++].Value.b = (unsigned short) entry->value.lval;
+				lpPropValue[cvalues++].Value.b = (Z_TYPE_P(entry) == IS_TRUE);
 				break;
 
 			case PT_SYSTIME:
@@ -1322,7 +1322,7 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 					break;
 				case PT_BOOLEAN:
 					convert_to_boolean_ex(valueEntry);
-					lpProp->Value.b = (unsigned short) valueEntry->value.lval;
+					lpProp->Value.b = (Z_TYPE_P(valueEntry) == IS_TRUE);
 					break;
 				case PT_SYSTIME:
 					convert_to_long_ex(valueEntry);
