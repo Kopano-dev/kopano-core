@@ -72,8 +72,6 @@ ECChangeAdvisor::ECChangeAdvisor(ECMsgStore *lpMsgStore)
 
 ECChangeAdvisor::~ECChangeAdvisor()
 {
-	ConnectionMap::const_iterator iterConnection;
-
 	if (m_ulReloadId)
 		m_lpMsgStore->lpTransport->RemoveSessionReloadCallback(m_ulReloadId);
 
@@ -166,7 +164,6 @@ HRESULT ECChangeAdvisor::Config(LPSTREAM lpStream, LPGUID /*lpGUID*/,
 	ULONG					ulVal = 0;
 	LPENTRYLIST				lpEntryList = NULL;
 	ULONG					ulRead = {0};
-	ConnectionMap::const_iterator iterConnection;
 	LARGE_INTEGER			liSeekStart = {{0}};
 
 	if (lpAdviseSink == NULL && !(ulFlags & SYNC_CATCHUP)) {
@@ -288,7 +285,6 @@ HRESULT ECChangeAdvisor::PurgeStates()
 HRESULT ECChangeAdvisor::UpdateState(LPSTREAM lpStream)
 {
 	HRESULT					hr = hrSuccess;
-	ConnectionMap::const_iterator iterConnection;
 	LARGE_INTEGER			liPos = {{0}};
 	ULARGE_INTEGER			uliSize = {{0}};
 	ULONG					ulVal = 0;
@@ -322,16 +318,15 @@ HRESULT ECChangeAdvisor::UpdateState(LPSTREAM lpStream)
 	ulVal = (ULONG)m_mapConnections.size();
 	lpStream->Write(&ulVal, sizeof(ulVal), NULL);
 
-	for (iterConnection = m_mapConnections.begin(); iterConnection != m_mapConnections.end(); ++iterConnection) {
+	for (const auto &p : m_mapConnections) {
 		// The size of the sync state
 		ulVal = 2 * sizeof(ULONG);		// syncid, changeid
 		lpStream->Write(&ulVal, sizeof(ulVal), NULL);
 
 		// syncid
-		lpStream->Write(&iterConnection->first, sizeof(iterConnection->first), NULL);
-
+		lpStream->Write(&p.first, sizeof(p.first), NULL);
 		// changeid
-		lpStream->Write(&m_mapSyncStates[iterConnection->first], sizeof(SyncStateMap::key_type), NULL);
+		lpStream->Write(&m_mapSyncStates[p.first], sizeof(SyncStateMap::key_type), NULL);
 	}
 
 exit:

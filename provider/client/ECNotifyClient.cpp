@@ -382,19 +382,16 @@ HRESULT ECNotifyClient::Advise(const ECLISTSYNCSTATE &lstSyncStates,
 
 	HRESULT				hr = MAPI_E_NO_SUPPORT;
 	ECLISTSYNCADVISE	lstAdvises;
-
-	ECLISTSYNCSTATE::const_iterator iSyncState;
 	ECLISTSYNCADVISE::const_iterator iSyncAdvise;
 	ECLISTSYNCADVISE::const_iterator iSyncUnadvise;
 
-	for (iSyncState = lstSyncStates.begin(); iSyncState != lstSyncStates.end(); ++iSyncState) {
+	for (const auto &state : lstSyncStates) {
 		SSyncAdvise sSyncAdvise = {{0}};
 
-		hr = RegisterChangeAdvise(iSyncState->ulSyncId, iSyncState->ulChangeId, lpChangeAdviseSink, &sSyncAdvise.ulConnection);
+		hr = RegisterChangeAdvise(state.ulSyncId, state.ulChangeId, lpChangeAdviseSink, &sSyncAdvise.ulConnection);
 		if (hr != hrSuccess)
 			goto exit;
-
-		sSyncAdvise.sSyncState = *iSyncState;
+		sSyncAdvise.sSyncState = state;
 		lstAdvises.push_back(sSyncAdvise);
 	}
 
@@ -455,7 +452,6 @@ HRESULT ECNotifyClient::Unadvise(const ECLISTCONNECTION &lstConnections)
 
 	HRESULT hr	= MAPI_E_NO_SUPPORT;
 	HRESULT hrTmp;
-	ECLISTCONNECTION::const_iterator iConnection;
 	bool bWithErrors = false;
 
 	// Logoff the advisors
@@ -463,15 +459,14 @@ HRESULT ECNotifyClient::Unadvise(const ECLISTCONNECTION &lstConnections)
 	if (hr != hrSuccess) {
 		hr = hrSuccess;
 
-		for (iConnection = lstConnections.begin(); iConnection != lstConnections.end(); ++iConnection) {
-			hrTmp = m_lpTransport->HrUnSubscribe(iConnection->second);
+		for (const auto &p : lstConnections) {
+			hrTmp = m_lpTransport->HrUnSubscribe(p.second);
 			if (FAILED(hrTmp))
 				bWithErrors = true;
 		}
 	}
-
-	for (iConnection = lstConnections.begin(); iConnection != lstConnections.end(); ++iConnection) {
-		hrTmp = UnRegisterAdvise(iConnection->second);
+	for (const auto &p : lstConnections) {
+		hrTmp = UnRegisterAdvise(p.second);
 		if (FAILED(hrTmp))
 			bWithErrors = true;
 	}
@@ -525,13 +520,12 @@ exit:
 HRESULT ECNotifyClient::ReleaseAll()
 {
 	HRESULT hr			= hrSuccess;
-	ECMAPADVISE::const_iterator iIterAdvise;
 
 	pthread_mutex_lock(&m_hMutex);
 
-	for (iIterAdvise = m_mapAdvise.begin(); iIterAdvise != m_mapAdvise.end(); ++iIterAdvise) {
-		iIterAdvise->second->lpAdviseSink->Release();
-		iIterAdvise->second->lpAdviseSink = NULL;
+	for (auto &p : m_mapAdvise) {
+		p.second->lpAdviseSink->Release();
+		p.second->lpAdviseSink = NULL;
 	}
 
 	pthread_mutex_unlock(&m_hMutex);
@@ -545,7 +539,6 @@ typedef std::list<SBinary *> BINARYLIST;
 HRESULT ECNotifyClient::NotifyReload()
 {
 	HRESULT hr = hrSuccess;
-	ECMAPADVISE::const_iterator iterAdvise;
 	struct notification notif;
 	struct notificationTable table;
 	NOTIFYLIST notifications;
@@ -567,9 +560,9 @@ HRESULT ECNotifyClient::NotifyReload()
 
 	// Don't send the notification while we are locked
 	pthread_mutex_lock(&m_hMutex);
-	for (iterAdvise = m_mapAdvise.begin(); iterAdvise != m_mapAdvise.end(); ++iterAdvise)
-		if (iterAdvise->second->cbKey == 4)
-			Notify(iterAdvise->first, notifications);
+	for (const auto &p : m_mapAdvise)
+		if (p.second->cbKey == 4)
+			Notify(p.first, notifications);
 	pthread_mutex_unlock(&m_hMutex);
 
 	return hr;
@@ -579,20 +572,17 @@ HRESULT ECNotifyClient::Notify(ULONG ulConnection, const NOTIFYLIST &lNotificati
 {
 	HRESULT						hr = hrSuccess;
 	LPNOTIFICATION				lpNotifs = NULL;
-	NOTIFYLIST::const_iterator	iterNotify;
 	ECMAPADVISE::const_iterator iterAdvise;
 	NOTIFICATIONLIST			notifications;
-	NOTIFICATIONLIST::const_iterator iterNotification;
 
-	for (iterNotify = lNotifications.begin();
-	     iterNotify != lNotifications.end(); ++iterNotify) {
+	for (auto notp : lNotifications) {
 		LPNOTIFICATION tmp = NULL;
 
-		hr = CopySOAPNotificationToMAPINotification(m_lpProvider, *iterNotify, &tmp);
+		hr = CopySOAPNotificationToMAPINotification(m_lpProvider, notp, &tmp);
 		if (hr != hrSuccess)
 			continue;
 
-		TRACE_NOTIFY(TRACE_ENTRY, "ECNotifyClient::Notify", "id=%d\n%s", (*iterNotify)->ulConnection, NotificationToString(1, tmp).c_str());
+		TRACE_NOTIFY(TRACE_ENTRY, "ECNotifyClient::Notify", "id=%d\n%s", notp->ulConnection, NotificationToString(1, tmp).c_str());
 		notifications.push_back(tmp);
 	}
 
@@ -610,7 +600,7 @@ HRESULT ECNotifyClient::Notify(ULONG ulConnection, const NOTIFYLIST &lNotificati
 
 	if (!notifications.empty()) {
 		/* Send notifications in batches of MAX_NOTIFS_PER_CALL notifications */
-		iterNotification = notifications.begin();
+		auto iterNotification = notifications.begin();
 		while (iterNotification != notifications.end()) {
 			/* Create a straight array of all the notifications */
 			hr = MAPIAllocateBuffer(sizeof(NOTIFICATION) * MAX_NOTIFS_PER_CALL, (void **)&lpNotifs);
@@ -659,10 +649,8 @@ exit:
 	MAPIFreeBuffer(lpNotifs);
 
 	/* Release all notifications */
-	for (iterNotification = notifications.begin();
-	     iterNotification != notifications.end(); ++iterNotification)
-		MAPIFreeBuffer(*iterNotification);
-
+	for (auto notp : notifications)
+		MAPIFreeBuffer(notp);
 	return hr;
 }
 
@@ -670,7 +658,6 @@ HRESULT ECNotifyClient::NotifyChange(ULONG ulConnection, const NOTIFYLIST &lNoti
 {
 	HRESULT						hr = hrSuccess;
 	LPENTRYLIST					lpSyncStates = NULL;
-	NOTIFYLIST::const_iterator	iterNotify;
 	ECMAPCHANGEADVISE::const_iterator iterAdvise;
 	BINARYLIST					syncStates;
 	BINARYLIST::const_iterator iterSyncStates;
@@ -686,15 +673,14 @@ HRESULT ECNotifyClient::NotifyChange(ULONG ulConnection, const NOTIFYLIST &lNoti
 		goto exit;
 	memset(lpSyncStates->lpbin, 0, sizeof *lpSyncStates->lpbin * MAX_NOTIFS_PER_CALL);
 
-	for (iterNotify = lNotifications.begin();
-	     iterNotify != lNotifications.end(); ++iterNotify) {
+	for (auto notp : lNotifications) {
 		LPSBinary	tmp = NULL;
 
-		hr = CopySOAPChangeNotificationToSyncState(*iterNotify, &tmp, lpSyncStates);
+		hr = CopySOAPChangeNotificationToSyncState(notp, &tmp, lpSyncStates);
 		if (hr != hrSuccess)
 			continue;
 
-		TRACE_NOTIFY(TRACE_ENTRY, "ECNotifyClient::NotifyChange", "id=%d\n%s", (*iterNotify)->ulConnection, bin2hex(tmp->cb, tmp->lpb).c_str());
+		TRACE_NOTIFY(TRACE_ENTRY, "ECNotifyClient::NotifyChange", "id=%d\n%s", notp->ulConnection, bin2hex(tmp->cb, tmp->lpb).c_str());
 		syncStates.push_back(tmp);
 	}
 

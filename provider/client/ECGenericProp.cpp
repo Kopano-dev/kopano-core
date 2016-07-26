@@ -73,9 +73,8 @@ ECGenericProp::~ECGenericProp()
 		FreeMapiObject(m_sMapiObject);
 
 	if(lstProps) {
-		for (iterProps = lstProps->begin(); iterProps != lstProps->end(); ++iterProps)
-			iterProps->second.DeleteProperty();
-
+		for (auto &i : *lstProps)
+			i.second.DeleteProperty();
 		delete lstProps;
 	}
 
@@ -513,10 +512,6 @@ exit:
 HRESULT ECGenericProp::SaveChanges(ULONG ulFlags)
 {
 	HRESULT			hr = hrSuccess;
-	ECPropertyEntryIterator iterProps;
-	std::list<ULONG>::const_iterator iterPropTags;
-	std::list<ECProperty>::const_iterator iterPropVals;
-	std::set<ULONG>::const_iterator iterDelProps;
 
 	pthread_mutex_lock(&m_hMutexMAPIObject);
 
@@ -545,35 +540,31 @@ HRESULT ECGenericProp::SaveChanges(ULONG ulFlags)
 
 	// save into m_sMapiObject
 	
-	for (iterDelProps = m_setDeletedProps.begin();
-	     iterDelProps != m_setDeletedProps.end(); ++iterDelProps) {
+	for (auto l : m_setDeletedProps) {
 		// Make sure the property is not present in deleted/modified list
-		HrRemoveModifications(m_sMapiObject, *iterDelProps);
-
-		m_sMapiObject->lstDeleted->push_back(*iterDelProps);
+		HrRemoveModifications(m_sMapiObject, l);
+		m_sMapiObject->lstDeleted->push_back(l);
 	}
 
-	for (iterProps = lstProps->begin(); iterProps != lstProps->end(); ++iterProps) {
+	for (auto &p : *lstProps) {
 		// Property is dirty, so we have to save it
-		if (iterProps->second.FIsDirty()) {
+		if (p.second.FIsDirty()) {
 			// Save in the 'modified' list
 
 			// Make sure the property is not present in deleted/modified list
-			HrRemoveModifications(m_sMapiObject, iterProps->second.GetPropTag());
-
+			HrRemoveModifications(m_sMapiObject, p.second.GetPropTag());
 			// Save modified property
-			m_sMapiObject->lstModified->push_back(*iterProps->second.GetProperty());
-			
+			m_sMapiObject->lstModified->push_back(*p.second.GetProperty());
 			// Save in the normal properties list
-			m_sMapiObject->lstProperties->push_back(*iterProps->second.GetProperty());
+			m_sMapiObject->lstProperties->push_back(*p.second.GetProperty());
 			continue;
 		}
 
 		// Normal property: either non-loaded or loaded
-		if (!iterProps->second.FIsLoaded())	// skip pt_error anyway
-			m_sMapiObject->lstAvailable->push_back(iterProps->second.GetPropTag());
+		if (!p.second.FIsLoaded())	// skip pt_error anyway
+			m_sMapiObject->lstAvailable->push_back(p.second.GetPropTag());
 		else
-			m_sMapiObject->lstProperties->push_back(*iterProps->second.GetProperty());
+			m_sMapiObject->lstProperties->push_back(*p.second.GetProperty());
 	}
 
 	m_sMapiObject->bChanged = true;
@@ -591,23 +582,21 @@ HRESULT ECGenericProp::SaveChanges(ULONG ulFlags)
 	// that save to ECParentStorage, the object will be untouched. The code below will do nothing.
 
 	// Large properties received
-	for (iterPropTags = m_sMapiObject->lstAvailable->begin();
-	     iterPropTags != m_sMapiObject->lstAvailable->end(); ++iterPropTags) {
+	for (auto tag : *m_sMapiObject->lstAvailable) {
 		// ONLY if not present
-		iterProps = lstProps->find(PROP_ID(*iterPropTags));
-		if (iterProps == lstProps->end() || iterProps->second.GetPropTag() != *iterPropTags) {
-			ECPropertyEntry entry(*iterPropTags);
-			lstProps->insert(std::make_pair(PROP_ID(*iterPropTags), entry));
+		auto ip = lstProps->find(PROP_ID(tag));
+		if (ip == lstProps->cend() || ip->second.GetPropTag() != tag) {
+			ECPropertyEntry entry(tag);
+			lstProps->insert(std::make_pair(PROP_ID(tag), entry));
 		}
 	}
 	m_sMapiObject->lstAvailable->clear();
 
 	// Normal properties with value
-	for (iterPropVals = m_sMapiObject->lstProperties->begin();
-	     iterPropVals != m_sMapiObject->lstProperties->end(); ++iterPropVals)
+	for (const auto &pv : *m_sMapiObject->lstProperties)
 		// don't add any 'error' types ... (the storage object shouldn't really give us these anyway ..)
-		if (PROP_TYPE((*iterPropVals).GetPropTag()) != PT_ERROR) {
-			SPropValue tmp = iterPropVals->GetMAPIPropValRef();
+		if (PROP_TYPE(pv.GetPropTag()) != PT_ERROR) {
+			SPropValue tmp = pv.GetMAPIPropValRef();
 			HrSetRealProp(&tmp);
 		}
 
@@ -748,9 +737,6 @@ HRESULT ECGenericProp::HrLoadEmptyProps()
 HRESULT ECGenericProp::HrLoadProps()
 {
 	HRESULT			hr = hrSuccess;
-	ECPropertyEntryIterator iterProps;
-	std::list<ULONG>::const_iterator iterPropTags;
-	std::list<ECProperty>::const_iterator iterPropVals;
 
 	if(lpStorage == NULL)
 		return MAPI_E_CALL_FAILED;
@@ -769,9 +755,8 @@ HRESULT ECGenericProp::HrLoadProps()
 		m_sMapiObject = NULL;
 
 		// only remove my own properties: keep recipients and attachment tables
-		for (iterProps = lstProps->begin(); iterProps != lstProps->end(); ++iterProps)
-			iterProps->second.DeleteProperty();
-
+		for (auto &p : *lstProps)
+			p.second.DeleteProperty();
 		lstProps->clear();
 		m_setDeletedProps.clear();
 	}
@@ -785,22 +770,18 @@ HRESULT ECGenericProp::HrLoadProps()
 
 	// Add *all* the entries as with empty values; values for these properties will be
 	// retrieved on-demand
-	for (iterPropTags = m_sMapiObject->lstAvailable->begin();
-	     iterPropTags != m_sMapiObject->lstAvailable->end(); ++iterPropTags) {
-		ECPropertyEntry entry(*iterPropTags);
-
-		lstProps->insert(std::make_pair(PROP_ID(*iterPropTags), entry));
+	for (auto tag : *m_sMapiObject->lstAvailable) {
+		ECPropertyEntry entry(tag);
+		lstProps->insert(std::make_pair(PROP_ID(tag), entry));
 	}
 
 	// Load properties
-	for (iterPropVals = m_sMapiObject->lstProperties->begin();
-	     iterPropVals != m_sMapiObject->lstProperties->end(); ++iterPropVals) {
+	for (const auto &pv : *m_sMapiObject->lstProperties)
 		// don't add any 'error' types ... (the storage object shouldn't really give us these anyway ..)
-		if (PROP_TYPE((*iterPropVals).GetPropTag()) != PT_ERROR) {
-			SPropValue tmp = iterPropVals->GetMAPIPropValRef();
+		if (PROP_TYPE(pv.GetPropTag()) != PT_ERROR) {
+			SPropValue tmp = pv.GetMAPIPropValRef();
 			HrSetRealProp(&tmp);
 		}
-	}
 
 	// remove copied proptags, subobjects are still present
 	m_sMapiObject->lstAvailable->clear();

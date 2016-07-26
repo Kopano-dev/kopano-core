@@ -874,24 +874,17 @@ HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 		// table received from the server through m_sMapiObject, but the PR_ATTACH_NUM is re-generated locally
 		if (!fNew) {
 			// existing message has "table" in m_sMapiObject data
-			ECMapiObjects::const_iterator iterObjects;
-			std::list<ECProperty>::const_iterator iterPropVals;
-
-			for (iterObjects = m_sMapiObject->lstChildren->begin();
-			     iterObjects != m_sMapiObject->lstChildren->end();
-			     ++iterObjects)
-			{
-				if ((*iterObjects)->ulObjType != MAPI_ATTACH)
+			for (const auto &obj : *m_sMapiObject->lstChildren) {
+				if (obj->ulObjType != MAPI_ATTACH)
+					continue;
+				if (obj->bDelete)
 					continue;
 
-				if ((*iterObjects)->bDelete)
-					continue;
-
-				this->ulNextAttUniqueId = (*iterObjects)->ulUniqueId > this->ulNextAttUniqueId ? (*iterObjects)->ulUniqueId : this->ulNextAttUniqueId;
+				this->ulNextAttUniqueId = obj->ulUniqueId > this->ulNextAttUniqueId ? obj->ulUniqueId : this->ulNextAttUniqueId;
 				++this->ulNextAttUniqueId;
 
 				{
-					ULONG ulProps = (*iterObjects)->lstProperties->size();
+					ULONG ulProps = obj->lstProperties->size();
 					LPSPropValue lpProps = NULL;
 					SPropValue sKeyProp;
 					ULONG i;
@@ -903,12 +896,9 @@ HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 					lpPropID = NULL;
 					lpPropType = NULL;
 
-					for (i = 0, iterPropVals = (*iterObjects)->lstProperties->begin();
-					     iterPropVals != (*iterObjects)->lstProperties->end();
-					     ++iterPropVals, ++i)
-					{
-						(*iterPropVals).CopyToByRef(&lpProps[i]);
-
+					i = 0;
+					for (const auto &pv : *obj->lstProperties) {
+						pv.CopyToByRef(&lpProps[i]);
 						if (lpProps[i].ulPropTag == PR_ATTACH_NUM) {
 							lpPropID = &lpProps[i];
 						} else if (lpProps[i].ulPropTag == PR_OBJECT_TYPE) {
@@ -920,6 +910,7 @@ HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 							lpProps[i].ulPropTag = CHANGE_PROP_TYPE(lpProps[i].ulPropTag, PT_ERROR);
 							lpProps[i].Value.err = MAPI_E_NOT_ENOUGH_MEMORY;
 						}
+						++i;
 					}
 
 					if (lpPropID == NULL) {
@@ -927,7 +918,7 @@ HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 						lpPropID = &lpProps[i++];
 					}
 					lpPropID->ulPropTag = PR_ATTACH_NUM;
-					lpPropID->Value.ul = (*iterObjects)->ulUniqueId;				// use uniqueid from "recount" code in WSMAPIPropStorage::desoapertize()
+					lpPropID->Value.ul = obj->ulUniqueId; // use uniqueid from "recount" code in WSMAPIPropStorage::desoapertize()
 
 					if (lpPropType == NULL) {
 						++ulProps;
@@ -937,8 +928,7 @@ HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 					lpPropType->Value.ul = MAPI_ATTACH;
 
 					sKeyProp.ulPropTag = PR_EC_HIERARCHYID;
-					sKeyProp.Value.ul = (*iterObjects)->ulObjId;
-
+					sKeyProp.Value.ul = obj->ulObjId;
 					hr = lpAttachments->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, &sKeyProp, lpProps, i);
 					if (hr != hrSuccess)
 						goto exit; // continue?
@@ -1179,27 +1169,21 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 		// Get the existing table for this message (there is none if the message is unsaved)
 		if (!fNew) {
 			// existing message has "table" in m_sMapiObject data
-			ECMapiObjects::const_iterator iterObjects;
-			std::list<ECProperty>::const_iterator iterPropVals;
-
-			for (iterObjects = m_sMapiObject->lstChildren->begin();
-			     iterObjects != m_sMapiObject->lstChildren->end();
-			     ++iterObjects) {
+			for (const auto &obj : *m_sMapiObject->lstChildren) {
 				// The only valid types are MAPI_MAILUSER and MAPI_DISTLIST. However some MAPI clients put in other
 				// values as object type. We know about the existence of MAPI_ATTACH as another valid subtype for
 				// Messages, so we'll skip those, treat MAPI_DISTLIST as MAPI_DISTLIST and anything else as
 				// MAPI_MAILUSER.
-				if ((*iterObjects)->ulObjType == MAPI_ATTACH)
+				if (obj->ulObjType == MAPI_ATTACH)
+					continue;
+				if (obj->bDelete)
 					continue;
 
-				if ((*iterObjects)->bDelete)
-					continue;
-
-				this->ulNextRecipUniqueId = (*iterObjects)->ulUniqueId > this->ulNextRecipUniqueId ? (*iterObjects)->ulUniqueId : this->ulNextRecipUniqueId;
+				this->ulNextRecipUniqueId = obj->ulUniqueId > this->ulNextRecipUniqueId ? obj->ulUniqueId : this->ulNextRecipUniqueId;
 				++this->ulNextRecipUniqueId;
 
 				{
-					ULONG ulProps = (*iterObjects)->lstProperties->size();
+					ULONG ulProps = obj->lstProperties->size();
 					LPSPropValue lpProps = NULL;
 					SPropValue sKeyProp;
 					ULONG i;
@@ -1211,12 +1195,9 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 					ECAllocateBuffer(sizeof(SPropValue)*(ulProps+2), (void**)&lpProps);
 
 					lpPropID = NULL;
-					for (i = 0, iterPropVals = (*iterObjects)->lstProperties->begin();
-					     iterPropVals != (*iterObjects)->lstProperties->end();
-					     ++iterPropVals, ++i)
-					{
-						(*iterPropVals).CopyToByRef(&lpProps[i]);
-
+					i = 0;
+					for (const auto &pv : *obj->lstProperties) {
+						pv.CopyToByRef(&lpProps[i]);
 						if (lpProps[i].ulPropTag == PR_ROWID) {
 							lpPropID = &lpProps[i];
 						} else if (lpProps[i].ulPropTag == PR_OBJECT_TYPE) {
@@ -1225,6 +1206,7 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 							// rename to PR_ENTRYID
 							lpProps[i].ulPropTag = PR_ENTRYID;
 						}
+						++i;
 					}
 
 					if (lpPropID == NULL) {
@@ -1232,18 +1214,16 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 						lpPropID = &lpProps[i++];
 					}
 					lpPropID->ulPropTag = PR_ROWID;
-					lpPropID->Value.ul = (*iterObjects)->ulUniqueId;				// use uniqueid from "recount" code in WSMAPIPropStorage::ECSoapObjectToMapiObject()
+					lpPropID->Value.ul = obj->ulUniqueId; // use uniqueid from "recount" code in WSMAPIPropStorage::ECSoapObjectToMapiObject()
 
 					if (lpPropObjType == NULL) {
 						++ulProps;
 						lpPropObjType = &lpProps[i++];
 					}
 					lpPropObjType->ulPropTag = PR_OBJECT_TYPE;
-					lpPropObjType->Value.ul = (*iterObjects)->ulObjType;
-
+					lpPropObjType->Value.ul = obj->ulObjType;
 					sKeyProp.ulPropTag = PR_EC_HIERARCHYID;
-					sKeyProp.Value.ul = (*iterObjects)->ulObjId;
-
+					sKeyProp.Value.ul = obj->ulObjId;
 					hr = lpRecips->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, &sKeyProp, lpProps, i);
 					if (hr != hrSuccess)
 						goto exit;
@@ -1897,17 +1877,13 @@ exit:
 }
 
 void ECMessage::RecursiveMarkDelete(MAPIOBJECT *lpObj) {
-	ECMapiObjects::const_iterator iterSObj;
-
 	lpObj->bDelete = true;
 	lpObj->lstDeleted->clear();
 	lpObj->lstAvailable->clear();
 	lpObj->lstModified->clear();
 	lpObj->lstProperties->clear();
-
-	for (iterSObj = lpObj->lstChildren->begin();
-	     iterSObj != lpObj->lstChildren->end(); ++iterSObj)
-		RecursiveMarkDelete(*iterSObj);
+	for (const auto &obj : *lpObj->lstChildren)
+		RecursiveMarkDelete(obj);
 }
 
 BOOL ECMessage::HasAttachment()
@@ -2007,10 +1983,8 @@ exit:
 
 HRESULT ECMessage::UpdateTable(ECMemTable *lpTable, ULONG ulObjType, ULONG ulObjKeyProp) {
 	HRESULT hr = hrSuccess;
-	ECMapiObjects::const_iterator iterObjects;
 	SPropValue sKeyProp;
 	SPropValue sUniqueProp;
-	std::list<ECProperty>::const_iterator iterPropVals;
 	LPSPropValue lpProps = NULL;
 	LPSPropValue lpNewProps = NULL;
 	LPSPropValue lpAllProps = NULL;
@@ -2027,21 +2001,19 @@ HRESULT ECMessage::UpdateTable(ECMemTable *lpTable, ULONG ulObjType, ULONG ulObj
 	}
 
 	// update hierarchy id in table
-	for (iterObjects = m_sMapiObject->lstChildren->begin();
-	     iterObjects != m_sMapiObject->lstChildren->end(); ++iterObjects) {
-		if ((*iterObjects)->ulObjType == ulObjType) {
+	for (const auto &obj : *m_sMapiObject->lstChildren) {
+		if (obj->ulObjType == ulObjType) {
 			sUniqueProp.ulPropTag = ulObjKeyProp;
-			sUniqueProp.Value.ul = (*iterObjects)->ulUniqueId;
-
+			sUniqueProp.Value.ul = obj->ulUniqueId;
 			sKeyProp.ulPropTag = PR_EC_HIERARCHYID;
-			sKeyProp.Value.ul = (*iterObjects)->ulObjId;
+			sKeyProp.Value.ul = obj->ulObjId;
 
 			hr = lpTable->HrUpdateRowID(&sKeyProp, &sUniqueProp, 1);
 			if (hr != hrSuccess)
 				goto exit;
 
 			// put new server props in table too
-			ulProps = (*iterObjects)->lstProperties->size();
+			ulProps = obj->lstProperties->size();
 			if (ulProps != 0) {
 				// retrieve old row from table
 				hr = lpTable->HrGetRowData(&sUniqueProp, &cValues, &lpProps);
@@ -2052,11 +2024,9 @@ HRESULT ECMessage::UpdateTable(ECMemTable *lpTable, ULONG ulObjType, ULONG ulObj
 				if ((hr = MAPIAllocateBuffer(sizeof(SPropValue)*ulProps, (void**)&lpNewProps)) != hrSuccess)
 					goto exit;
 
-				for (i = 0, iterPropVals = (*iterObjects)->lstProperties->begin();
-				     iterPropVals != (*iterObjects)->lstProperties->end();
-				     ++iterPropVals, ++i)
-				{
-					(*iterPropVals).CopyToByRef(&lpNewProps[i]);
+				i = 0;
+				for (const auto &pv : *obj->lstProperties) {
+					pv.CopyToByRef(&lpNewProps[i]);
 					if (PROP_ID(lpNewProps[i].ulPropTag) == PROP_ID(PR_ATTACH_DATA_OBJ)) {
 						lpNewProps[i].ulPropTag = CHANGE_PROP_TYPE(lpNewProps[i].ulPropTag, PT_ERROR);
 						lpNewProps[i].Value.err = MAPI_E_NOT_ENOUGH_MEMORY;
@@ -2064,6 +2034,7 @@ HRESULT ECMessage::UpdateTable(ECMemTable *lpTable, ULONG ulObjType, ULONG ulObj
 						lpNewProps[i].ulPropTag = CHANGE_PROP_TYPE(lpNewProps[i].ulPropTag, PT_ERROR);
 						lpNewProps[i].Value.err = MAPI_E_NOT_ENOUGH_MEMORY;
 					}
+					++i;
 				}
 
 				hr = Util::HrMergePropertyArrays(lpProps, cValues, lpNewProps, ulProps, &lpAllProps, &cAllValues);
@@ -2102,9 +2073,6 @@ exit:
 HRESULT ECMessage::SaveChanges(ULONG ulFlags)
 {
 	HRESULT				hr = hrSuccess;
-	std::map<ULONG, SBinary>::const_iterator iterSubMessage;
-	std::map<ULONG, SBinary>::const_iterator iterSubMessageNext;
-
 	LPSPropTagArray		lpPropTagArray = NULL;
 	LPSPropValue		lpsPropMessageFlags = NULL;
 	ULONG				cValues = 0;
@@ -2824,18 +2792,14 @@ struct findobject_if {
 static HRESULT HrCopyObjIDs(MAPIOBJECT *lpDest, const MAPIOBJECT *lpSrc)
 {
     HRESULT hr;
-    ECMapiObjects::const_iterator iterSrc;
     ECMapiObjects::const_iterator iterDest;
 
     lpDest->ulObjId = lpSrc->ulObjId;
 
-    for (iterSrc = lpSrc->lstChildren->begin();
-         iterSrc != lpSrc->lstChildren->end();
-         ++iterSrc)
-    {
-    	iterDest = lpDest->lstChildren->find(*iterSrc);
+	for (const auto &src : *lpSrc->lstChildren) {
+		iterDest = lpDest->lstChildren->find(src);
         if(iterDest != lpDest->lstChildren->end()) {
-            hr = HrCopyObjIDs(*iterDest, *iterSrc);
+			hr = HrCopyObjIDs(*iterDest, src);
             if(hr != hrSuccess)
                 return hr;
         }
@@ -2908,12 +2872,9 @@ HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 	ECAllocateBuffer(sizeof(SPropValue)*(ulProps+2), (void**)&lpProps);
 
 	lpPropID = NULL;
-	for (i = 0, iterPropVals = lpsMapiObject->lstProperties->begin();
-	     iterPropVals != lpsMapiObject->lstProperties->end();
-	     ++iterPropVals, ++i)
-	{
-		(*iterPropVals).CopyToByRef(&lpProps[i]);
-
+	i = 0;
+	for (const auto &pv : *lpsMapiObject->lstProperties) {
+		pv.CopyToByRef(&lpProps[i]);
 		if (lpProps[i].ulPropTag == PR_ATTACH_NUM) {
 			lpPropID = &lpProps[i];
 		} else if(lpProps[i].ulPropTag == PR_OBJECT_TYPE) {
@@ -2925,6 +2886,7 @@ HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 			lpProps[i].ulPropTag = CHANGE_PROP_TYPE(lpProps[i].ulPropTag, PT_ERROR);
 			lpProps[i].Value.err = MAPI_E_NOT_ENOUGH_MEMORY;
 		}
+		++i;
 	}
 
 	if (lpPropID == NULL) {

@@ -570,11 +570,9 @@ HRESULT ECMsgStore::Reload(void *lpParam, ECSESSIONID sessionid)
 {
 	HRESULT hr = hrSuccess;
 	ECMsgStore *lpThis = (ECMsgStore *)lpParam;
-	std::set<ULONG>::const_iterator iter;
 
-	for (iter = lpThis->m_setAdviseConnections.begin();
-	     iter != lpThis->m_setAdviseConnections.end(); ++iter)
-		lpThis->m_lpNotifyClient->Reregister(*iter);
+	for (auto conn_id : lpThis->m_setAdviseConnections)
+		lpThis->m_lpNotifyClient->Reregister(conn_id);
 	return hr;
 }
 

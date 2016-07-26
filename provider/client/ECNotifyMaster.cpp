@@ -180,15 +180,14 @@ HRESULT ECNotifyMaster::ReleaseSession(ECNotifyClient* lpClient)
 	TRACE_NOTIFY(TRACE_ENTRY, "ECNotifyMaster::ReleaseSession", "");
 
 	HRESULT hr = hrSuccess;
-	NOTIFYCONNECTIONCLIENTMAP::iterator iter;
 	
 	pthread_mutex_lock(&m_hMutex);
 
 	/* Remove all connections attached to client */
-	iter = m_mapConnections.begin();
+	auto iter = m_mapConnections.cbegin();
 	while (true) {
-		iter = find_if(iter, m_mapConnections.end(), findConnectionClient(lpClient));
-		if (iter == m_mapConnections.end())
+		iter = find_if(iter, m_mapConnections.cend(), findConnectionClient(lpClient));
+		if (iter == m_mapConnections.cend())
 			break;
 		m_mapConnections.erase(iter++);
 	}
@@ -328,7 +327,6 @@ void* ECNotifyMaster::NotifyWatch(void *pTmpNotifyMaster)
 
 	HRESULT							hr = hrSuccess;
 	NOTIFYCONNECTIONMAP				mapNotifications;
-	NOTIFYCONNECTIONMAP::iterator	iterNotifications;
 	notifyResponse					notifications;
 	bool							bReconnect = false;
 
@@ -398,17 +396,11 @@ void* ECNotifyMaster::NotifyWatch(void *pTmpNotifyMaster)
 			if (pNotifyMaster->m_bThreadExit)
 				goto exit;
 			else {
-				NOTIFYCLIENTLIST::const_iterator iterNotifyClients;
-
 				// We have a new session ID, notify reload
 
 				pthread_mutex_lock(&pNotifyMaster->m_hMutex);
-
-				for (iterNotifyClients = pNotifyMaster->m_listNotifyClients.begin();
-				     iterNotifyClients != pNotifyMaster->m_listNotifyClients.end();
-				     ++iterNotifyClients)
-					(*iterNotifyClients)->NotifyReload();
-
+				for (auto ptr : pNotifyMaster->m_listNotifyClients)
+					ptr->NotifyReload();
 				pthread_mutex_unlock(&pNotifyMaster->m_hMutex);
 				continue;
             }
@@ -433,33 +425,26 @@ void* ECNotifyMaster::NotifyWatch(void *pTmpNotifyMaster)
 			ULONG ulConnection = pNotifyArray->__ptr[item].ulConnection;
 
 			// No need to do a find before an insert with a default object.
-			iterNotifications =
+			auto iterNotifications =
 				mapNotifications.insert(NOTIFYCONNECTIONMAP::value_type(ulConnection, NOTIFYLIST())).first;
 
 			iterNotifications->second.push_back(&pNotifyArray->__ptr[item]);
 		}
 
-		for (iterNotifications = mapNotifications.begin();
-		     iterNotifications != mapNotifications.end();
-		     ++iterNotifications)
-		{
-			NOTIFYCONNECTIONCLIENTMAP::const_iterator iterClient;
-
+		for (const auto &p : mapNotifications) {
 			/*
 			 * Check if we have a client registered for this connection
 			 * Be careful when locking this, Client->m_hMutex has priority over Master->m_hMutex
 			 * which means we should NEVER call a Client function while holding the Master->m_hMutex!
 			 */
 			pthread_mutex_lock(&pNotifyMaster->m_hMutex);
-
-			iterClient = pNotifyMaster->m_mapConnections.find(iterNotifications->first);
+			auto iterClient = pNotifyMaster->m_mapConnections.find(p.first);
 			if (iterClient == pNotifyMaster->m_mapConnections.end()) {
 				pthread_mutex_unlock(&pNotifyMaster->m_hMutex);
 				continue;
 			}
 
-			iterClient->second.Notify(iterNotifications->first, iterNotifications->second);
-
+			iterClient->second.Notify(p.first, p.second);
 			/* All access to map completd, unlock mutex and send notification to client. */
 			pthread_mutex_unlock(&pNotifyMaster->m_hMutex);
 		}

@@ -92,17 +92,13 @@ HRESULT AllocNewMapiObject(ULONG ulUniqueId, ULONG ulObjId, ULONG ulObjType, MAP
 
 HRESULT FreeMapiObject(MAPIOBJECT *lpsObject)
 {
-	ECMapiObjects::const_iterator iterSObj;
-
 	delete lpsObject->lstAvailable;
 	delete lpsObject->lstDeleted;
 	delete lpsObject->lstModified;
 	delete lpsObject->lstProperties;
 
-	for (iterSObj = lpsObject->lstChildren->begin();
-	     iterSObj != lpsObject->lstChildren->end(); ++iterSObj)
-		FreeMapiObject(*iterSObj);
-
+	for (const auto &obj : *lpsObject->lstChildren)
+		FreeMapiObject(obj);
 	delete lpsObject->lstChildren;
 
 	if (lpsObject->lpInstanceID)

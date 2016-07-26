@@ -461,18 +461,14 @@ exit:
 
 HRESULT WSTransport::HrReLogon()
 {
-	HRESULT hr;
-	SESSIONRELOADLIST::const_iterator iter;
-
-	hr = HrLogon(m_sProfileProps);
+	HRESULT hr = HrLogon(m_sProfileProps);
 	if(hr != hrSuccess)
 		return hr;
 
 	// Notify new session to listeners
 	pthread_mutex_lock(&m_mutexSessionReload);
-	for (iter = m_mapSessionReload.begin();
-	     iter != m_mapSessionReload.end(); ++iter)
-		iter->second.second(iter->second.first, this->m_ecSessionId);
+	for (const auto &p : m_mapSessionReload)
+		p.second.second(p.second.first, this->m_ecSessionId);
 	pthread_mutex_unlock(&m_mutexSessionReload);
 	return hrSuccess;
 }
@@ -1061,7 +1057,6 @@ HRESULT WSTransport::HrSubscribeMulti(const ECLISTSYNCADVISE &lstSyncAdvises, UL
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
 	notifySubscribeArray notSubscribeArray{__gszeroinit};
-	ECLISTSYNCADVISE::const_iterator iSyncAdvise;
 	unsigned	i = 0;
 	
 	LockSoap();
@@ -1072,11 +1067,12 @@ HRESULT WSTransport::HrSubscribeMulti(const ECLISTSYNCADVISE &lstSyncAdvises, UL
 		goto exitm;
 	memset(notSubscribeArray.__ptr, 0, notSubscribeArray.__size * sizeof *notSubscribeArray.__ptr);
 	
-	for (iSyncAdvise = lstSyncAdvises.begin(); iSyncAdvise != lstSyncAdvises.end(); ++i, ++iSyncAdvise) {
-		notSubscribeArray.__ptr[i].ulConnection = iSyncAdvise->ulConnection;
-		notSubscribeArray.__ptr[i].sSyncState.ulSyncId = iSyncAdvise->sSyncState.ulSyncId;
-		notSubscribeArray.__ptr[i].sSyncState.ulChangeId = iSyncAdvise->sSyncState.ulChangeId;
+	for (const auto &adv : lstSyncAdvises) {
+		notSubscribeArray.__ptr[i].ulConnection = adv.ulConnection;
+		notSubscribeArray.__ptr[i].sSyncState.ulSyncId = adv.sSyncState.ulSyncId;
+		notSubscribeArray.__ptr[i].sSyncState.ulChangeId = adv.sSyncState.ulChangeId;
 		notSubscribeArray.__ptr[i].ulEventMask = ulEventMask;
+		++i;
 	}
 
 	START_SOAP_CALL
@@ -1118,16 +1114,14 @@ HRESULT WSTransport::HrUnSubscribeMulti(const ECLISTCONNECTION &lstConnections)
 	HRESULT hr = hrSuccess;
 	ECRESULT er = erSuccess;
 	mv_long ulConnArray = {0};
-	ECLISTCONNECTION::const_iterator iConnection;
 	unsigned i = 0;
 
 	ulConnArray.__size = lstConnections.size();
 	ulConnArray.__ptr = new unsigned int[ulConnArray.__size];
 	
 	LockSoap();
-
-	for (iConnection = lstConnections.begin(); iConnection != lstConnections.end(); ++i, ++iConnection)
-		ulConnArray.__ptr[i] = iConnection->second;
+	for (const auto &p : lstConnections)
+		ulConnArray.__ptr[i++] = p.second;
 
 	START_SOAP_CALL
 	{
@@ -4251,7 +4245,6 @@ HRESULT WSTransport::HrGetSyncStates(const ECLISTSYNCID &lstSyncId, ECLISTSYNCST
 	ECRESULT						er = erSuccess;
 	mv_long							ulaSyncId = {0};
 	getSyncStatesReponse sResponse{__gszeroinit};
-	ECLISTSYNCID::const_iterator	iSyncId;
 	SSyncState						sSyncState = {0};
 
 	ASSERT(lplstSyncState != NULL);
@@ -4262,8 +4255,8 @@ HRESULT WSTransport::HrGetSyncStates(const ECLISTSYNCID &lstSyncId, ECLISTSYNCST
 		goto exitm;
 
 	ulaSyncId.__ptr = new unsigned int[lstSyncId.size()];
-	for (iSyncId = lstSyncId.begin(); iSyncId != lstSyncId.end(); ++iSyncId)
-		ulaSyncId.__ptr[ulaSyncId.__size++] = *iSyncId;
+	for (auto sync_id : lstSyncId)
+		ulaSyncId.__ptr[ulaSyncId.__size++] = sync_id;
 
 	START_SOAP_CALL
 	{
@@ -4606,7 +4599,6 @@ HRESULT WSTransport::AddSessionReloadCallback(void *lpParam, SESSIONRELOADCALLBA
 HRESULT WSTransport::RemoveSessionReloadCallback(ULONG ulId)
 {
 	HRESULT hr = hrSuccess;
-	SESSIONRELOADLIST::const_iterator iter;
 	
 	pthread_mutex_lock(&m_mutexSessionReload);
 

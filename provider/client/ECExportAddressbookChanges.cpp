@@ -294,7 +294,6 @@ HRESULT ECExportAddressbookChanges::UpdateState(LPSTREAM lpStream)
 	ULONG ulCount = 0;
 	ULONG ulWritten = 0;
 	ULONG ulProcessed = 0;
-	std::set<ULONG>::const_iterator iterProcessed;
 
 	if(m_ulThisChange == m_ulChanges) {
 		// All changes have been processed, we can discard processed changes and go to the next server change ID
@@ -326,10 +325,8 @@ HRESULT ECExportAddressbookChanges::UpdateState(LPSTREAM lpStream)
 		return hr;
 
 	// Write the processed IDs
-	for (iterProcessed = m_setProcessed.begin();
-	     iterProcessed != m_setProcessed.end(); ++iterProcessed) {
-		ulProcessed = *iterProcessed;
-
+	for (const auto &pc : m_setProcessed) {
+		ulProcessed = pc;
 		hr = lpStream->Write(&ulProcessed, sizeof(ULONG), &ulWritten);
 		if(hr != hrSuccess)
 			return hr;
