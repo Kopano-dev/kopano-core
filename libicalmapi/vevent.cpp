@@ -512,70 +512,62 @@ HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMs
 
 	// Set start time / DTSTART
 	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[ulStartIndex], PT_SYSTIME));
-	if (lpPropVal != NULL) {
-		time_t ttTime = FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime);
-
-		hr = HrSetTimeProperty(ttTime, bIsAllDay, lpicTZinfo, strTZid, ICAL_DTSTART_PROPERTY, lpEvent);
-		if (hr != hrSuccess)
-			return hr;
-	} else {
+	if (lpPropVal == NULL)
 		// do not create calendar items without start/end date, which is invalid.
 		return MAPI_E_CORRUPT_DATA;
-	}
+
+	time_t ttTime = FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime);
+	hr = HrSetTimeProperty(ttTime, bIsAllDay, lpicTZinfo, strTZid, ICAL_DTSTART_PROPERTY, lpEvent);
+	if (hr != hrSuccess)
+		return hr;
 
 	// Set end time / DTEND
 	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[ulEndIndex], PT_SYSTIME));
-	if (lpPropVal) {
-		time_t ttTime = FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime);
-
-		hr = HrSetTimeProperty(ttTime, bIsAllDay, lpicTZinfo, strTZid, ICAL_DTEND_PROPERTY, lpEvent);
-		if (hr != hrSuccess)
-			return hr;
-	} else {
+	if (lpPropVal == NULL) {
 		// do not create calendar items without start/end date, which is invalid.
 		return MAPI_E_CORRUPT_DATA;
 	}
+
+	ttTime = FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime);
+	hr = HrSetTimeProperty(ttTime, bIsAllDay, lpicTZinfo, strTZid, ICAL_DTEND_PROPERTY, lpEvent);
+	if (hr != hrSuccess)
+		return hr;
 	// @note we never set the DURATION property: MAPI objects always should have the end property 
 
-	if (bCounterProposal) {
-		// set the original times in X properties
-		icalproperty *lpProp = NULL;
+	if (!bCounterProposal)
+		return hrSuccess;
 
-		// Set original start time / DTSTART
-		lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTSTARTWHOLE], PT_SYSTIME));
-		if (lpPropVal != NULL) {
-			time_t ttTime = FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime);
+	// set the original times in X properties
+	icalproperty *lpProp = NULL;
 
-			lpProp = icalproperty_new_x("overwrite-me");
-			icalproperty_set_x_name(lpProp, "X-MS-OLK-ORIGINALSTART");
-
-			hr = HrSetTimeProperty(ttTime, bIsAllDay, lpicTZinfo, strTZid, ICAL_DTSTART_PROPERTY, lpProp);
-			if (hr != hrSuccess)
-				return hr;
-
-			icalcomponent_add_property(lpEvent, lpProp);
-		} else {
-			// do not create calendar items without start/end date, which is invalid.
-			return MAPI_E_CORRUPT_DATA;
-		}
-
-		// Set original end time / DTEND
-		lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTENDWHOLE], PT_SYSTIME));
-		if (lpPropVal != NULL) {
-			time_t ttTime = FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime);
-
-			lpProp = icalproperty_new_x("overwrite-me");
-			icalproperty_set_x_name(lpProp, "X-MS-OLK-ORIGINALEND");
-
-			hr = HrSetTimeProperty(ttTime, bIsAllDay, lpicTZinfo, strTZid, ICAL_DTEND_PROPERTY, lpProp);
-			if (hr != hrSuccess)
-				return hr;
-
-			icalcomponent_add_property(lpEvent, lpProp);
-		} else {
-			// do not create calendar items without start/end date, which is invalid.
-			return MAPI_E_CORRUPT_DATA;
-		}
+	// Set original start time / DTSTART
+	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTSTARTWHOLE], PT_SYSTIME));
+	if (lpPropVal == NULL) {
+		// do not create calendar items without start/end date, which is invalid.
+		return MAPI_E_CORRUPT_DATA;
 	}
+
+	ttTime = FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime);
+	lpProp = icalproperty_new_x("overwrite-me");
+	icalproperty_set_x_name(lpProp, "X-MS-OLK-ORIGINALSTART");
+	hr = HrSetTimeProperty(ttTime, bIsAllDay, lpicTZinfo, strTZid, ICAL_DTSTART_PROPERTY, lpProp);
+	if (hr != hrSuccess)
+		return hr;
+	icalcomponent_add_property(lpEvent, lpProp);
+
+	// Set original end time / DTEND
+	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTENDWHOLE], PT_SYSTIME));
+	if (lpPropVal == NULL) {
+		// do not create calendar items without start/end date, which is invalid.
+		return MAPI_E_CORRUPT_DATA;
+	}
+
+	ttTime = FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime);
+	lpProp = icalproperty_new_x("overwrite-me");
+	icalproperty_set_x_name(lpProp, "X-MS-OLK-ORIGINALEND");
+	hr = HrSetTimeProperty(ttTime, bIsAllDay, lpicTZinfo, strTZid, ICAL_DTEND_PROPERTY, lpProp);
+	if (hr != hrSuccess)
+		return hr;
+	icalcomponent_add_property(lpEvent, lpProp);
 	return hrSuccess;
 }

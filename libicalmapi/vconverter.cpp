@@ -3164,40 +3164,39 @@ HRESULT VConverter::HrAddTimeZone(icalproperty *lpicProp, icalitem *lpIcalItem)
 	// Take the timezone from DTSTART and set that as the item timezone
 	lpicTZParam = icalproperty_get_first_parameter(lpicProp, ICAL_TZID_PARAMETER);
 	// All day recurring items may not have timezone data.
-	if (lpicTZParam || lpicProp) 
-	{
-		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TIMEZONE], PT_UNICODE);
-		if(lpicTZParam) {
-			strTZ = urlDecode(icalparameter_get_tzid(lpicTZParam));
-			lpszTZID = strTZ.c_str();
-		}
-		else if (!m_mapTimeZones->empty())
-			lpszTZID = (m_mapTimeZones->begin()->first).c_str();
-		else
-			return hrSuccess;
+	if (lpicTZParam == NULL && lpicProp == NULL)
+		return hrSuccess;
 
-		HrCopyString(m_converter, m_strCharset, lpIcalItem->base, lpszTZID, &sPropVal.Value.lpszW);
-		lpIcalItem->lstMsgProps.push_back(sPropVal);
-
-		// keep found timezone also as current timezone. will be used in recurrence
-		m_iCurrentTimeZone = m_mapTimeZones->find(lpszTZID);
-		if (m_iCurrentTimeZone != m_mapTimeZones->end()) {
-			sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TIMEZONEDATA], PT_BINARY);
-			sPropVal.Value.bin.cb = sizeof(TIMEZONE_STRUCT);
-
-			HRESULT hr = MAPIAllocateMore(sizeof(TIMEZONE_STRUCT), lpIcalItem->base, (void**)&sPropVal.Value.bin.lpb);
-			if (hr != hrSuccess)
-				return hr;
-			memcpy(sPropVal.Value.bin.lpb, &m_iCurrentTimeZone->second, sizeof(TIMEZONE_STRUCT));
-			lpIcalItem->lstMsgProps.push_back(sPropVal);
-
-			// save timezone in icalitem
-			lpIcalItem->tTZinfo = m_iCurrentTimeZone->second;
-		} else {
-			//.. huh? did find a timezone id, but not the actual timezone?? FAIL!
-			return MAPI_E_NOT_FOUND;
-		}
+	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TIMEZONE], PT_UNICODE);
+	if (lpicTZParam != NULL) {
+		strTZ = urlDecode(icalparameter_get_tzid(lpicTZParam));
+		lpszTZID = strTZ.c_str();
+	} else if (!m_mapTimeZones->empty()) {
+		lpszTZID = (m_mapTimeZones->begin()->first).c_str();
+	} else {
+		return hrSuccess;
 	}
+
+	HrCopyString(m_converter, m_strCharset, lpIcalItem->base, lpszTZID, &sPropVal.Value.lpszW);
+	lpIcalItem->lstMsgProps.push_back(sPropVal);
+
+	// keep found timezone also as current timezone. will be used in recurrence
+	m_iCurrentTimeZone = m_mapTimeZones->find(lpszTZID);
+	if (m_iCurrentTimeZone == m_mapTimeZones->cend())
+		//.. huh? did find a timezone id, but not the actual timezone?? FAIL!
+		return MAPI_E_NOT_FOUND;
+		
+	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TIMEZONEDATA], PT_BINARY);
+	sPropVal.Value.bin.cb = sizeof(TIMEZONE_STRUCT);
+
+	HRESULT hr = MAPIAllocateMore(sizeof(TIMEZONE_STRUCT), lpIcalItem->base, (void**)&sPropVal.Value.bin.lpb);
+	if (hr != hrSuccess)
+		return hr;
+	memcpy(sPropVal.Value.bin.lpb, &m_iCurrentTimeZone->second, sizeof(TIMEZONE_STRUCT));
+	lpIcalItem->lstMsgProps.push_back(sPropVal);
+
+	// save timezone in icalitem
+	lpIcalItem->tTZinfo = m_iCurrentTimeZone->second;
 	return hrSuccess;
 }
 

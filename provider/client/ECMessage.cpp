@@ -883,59 +883,57 @@ HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 				this->ulNextAttUniqueId = obj->ulUniqueId > this->ulNextAttUniqueId ? obj->ulUniqueId : this->ulNextAttUniqueId;
 				++this->ulNextAttUniqueId;
 
-				{
-					ULONG ulProps = obj->lstProperties->size();
-					LPSPropValue lpProps = NULL;
-					SPropValue sKeyProp;
-					ULONG i;
+				ULONG ulProps = obj->lstProperties->size();
+				LPSPropValue lpProps = NULL;
+				SPropValue sKeyProp;
+				ULONG i;
 
-					// +1 for maybe missing PR_ATTACH_NUM property
-					// +1 for maybe missing PR_OBJECT_TYPE property
-					ECAllocateBuffer(sizeof(SPropValue)*(ulProps+2), (void**)&lpProps);
+				// +1 for maybe missing PR_ATTACH_NUM property
+				// +1 for maybe missing PR_OBJECT_TYPE property
+				ECAllocateBuffer(sizeof(SPropValue)*(ulProps+2), (void**)&lpProps);
 
-					lpPropID = NULL;
-					lpPropType = NULL;
+				lpPropID = NULL;
+				lpPropType = NULL;
 
-					i = 0;
-					for (const auto &pv : *obj->lstProperties) {
-						pv.CopyToByRef(&lpProps[i]);
-						if (lpProps[i].ulPropTag == PR_ATTACH_NUM) {
-							lpPropID = &lpProps[i];
-						} else if (lpProps[i].ulPropTag == PR_OBJECT_TYPE) {
-							lpPropType = &lpProps[i];
-						} else if (PROP_ID(lpProps[i].ulPropTag) == PROP_ID(PR_ATTACH_DATA_OBJ)) {
-							lpProps[i].ulPropTag = CHANGE_PROP_TYPE(lpProps[i].ulPropTag, PT_ERROR);
-							lpProps[i].Value.err = MAPI_E_NOT_ENOUGH_MEMORY;
-						} else if (PROP_TYPE(lpProps[i].ulPropTag) == PT_BINARY && lpProps[i].Value.bin.cb > MAX_TABLE_PROPSIZE) {
-							lpProps[i].ulPropTag = CHANGE_PROP_TYPE(lpProps[i].ulPropTag, PT_ERROR);
-							lpProps[i].Value.err = MAPI_E_NOT_ENOUGH_MEMORY;
-						}
-						++i;
+				i = 0;
+				for (const auto &pv : *obj->lstProperties) {
+					pv.CopyToByRef(&lpProps[i]);
+					if (lpProps[i].ulPropTag == PR_ATTACH_NUM) {
+						lpPropID = &lpProps[i];
+					} else if (lpProps[i].ulPropTag == PR_OBJECT_TYPE) {
+						lpPropType = &lpProps[i];
+					} else if (PROP_ID(lpProps[i].ulPropTag) == PROP_ID(PR_ATTACH_DATA_OBJ)) {
+						lpProps[i].ulPropTag = CHANGE_PROP_TYPE(lpProps[i].ulPropTag, PT_ERROR);
+						lpProps[i].Value.err = MAPI_E_NOT_ENOUGH_MEMORY;
+					} else if (PROP_TYPE(lpProps[i].ulPropTag) == PT_BINARY && lpProps[i].Value.bin.cb > MAX_TABLE_PROPSIZE) {
+						lpProps[i].ulPropTag = CHANGE_PROP_TYPE(lpProps[i].ulPropTag, PT_ERROR);
+						lpProps[i].Value.err = MAPI_E_NOT_ENOUGH_MEMORY;
 					}
-
-					if (lpPropID == NULL) {
-						++ulProps;
-						lpPropID = &lpProps[i++];
-					}
-					lpPropID->ulPropTag = PR_ATTACH_NUM;
-					lpPropID->Value.ul = obj->ulUniqueId; // use uniqueid from "recount" code in WSMAPIPropStorage::desoapertize()
-
-					if (lpPropType == NULL) {
-						++ulProps;
-						lpPropType = &lpProps[i++];
-					}
-					lpPropType->ulPropTag = PR_OBJECT_TYPE;
-					lpPropType->Value.ul = MAPI_ATTACH;
-
-					sKeyProp.ulPropTag = PR_EC_HIERARCHYID;
-					sKeyProp.Value.ul = obj->ulObjId;
-					hr = lpAttachments->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, &sKeyProp, lpProps, i);
-					if (hr != hrSuccess)
-						goto exit; // continue?
-
-					ECFreeBuffer(lpProps);
-					lpProps = NULL;
+					++i;
 				}
+
+				if (lpPropID == NULL) {
+					++ulProps;
+					lpPropID = &lpProps[i++];
+				}
+				lpPropID->ulPropTag = PR_ATTACH_NUM;
+				lpPropID->Value.ul = obj->ulUniqueId; // use uniqueid from "recount" code in WSMAPIPropStorage::desoapertize()
+
+				if (lpPropType == NULL) {
+					++ulProps;
+					lpPropType = &lpProps[i++];
+				}
+				lpPropType->ulPropTag = PR_OBJECT_TYPE;
+				lpPropType->Value.ul = MAPI_ATTACH;
+
+				sKeyProp.ulPropTag = PR_EC_HIERARCHYID;
+				sKeyProp.Value.ul = obj->ulObjId;
+				hr = lpAttachments->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, &sKeyProp, lpProps, i);
+				if (hr != hrSuccess)
+					goto exit; // continue?
+
+				ECFreeBuffer(lpProps);
+				lpProps = NULL;
 			}
 
 			// since we just loaded the table, all enties are clean (actually not required for attachments, but it doesn't hurt)
@@ -1182,55 +1180,49 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 				this->ulNextRecipUniqueId = obj->ulUniqueId > this->ulNextRecipUniqueId ? obj->ulUniqueId : this->ulNextRecipUniqueId;
 				++this->ulNextRecipUniqueId;
 
-				{
-					ULONG ulProps = obj->lstProperties->size();
-					LPSPropValue lpProps = NULL;
-					SPropValue sKeyProp;
-					ULONG i;
-					LPSPropValue lpPropID = NULL;
-					LPSPropValue lpPropObjType = NULL;
+				ULONG ulProps = obj->lstProperties->size();
+				LPSPropValue lpProps = NULL;
+				SPropValue sKeyProp;
+				ULONG i = 0;
+				LPSPropValue lpPropID = NULL;
+				LPSPropValue lpPropObjType = NULL;
 
-					// +1 for maybe missing PR_ROWID property
-					// +1 for maybe missing PR_OBJECT_TYPE property
-					ECAllocateBuffer(sizeof(SPropValue)*(ulProps+2), (void**)&lpProps);
-
-					lpPropID = NULL;
-					i = 0;
-					for (const auto &pv : *obj->lstProperties) {
-						pv.CopyToByRef(&lpProps[i]);
-						if (lpProps[i].ulPropTag == PR_ROWID) {
-							lpPropID = &lpProps[i];
-						} else if (lpProps[i].ulPropTag == PR_OBJECT_TYPE) {
-							lpPropObjType = &lpProps[i];
-						} else if (lpProps[i].ulPropTag == PR_EC_CONTACT_ENTRYID) {
-							// rename to PR_ENTRYID
-							lpProps[i].ulPropTag = PR_ENTRYID;
-						}
-						++i;
+				// +1 for maybe missing PR_ROWID property
+				// +1 for maybe missing PR_OBJECT_TYPE property
+				ECAllocateBuffer(sizeof(SPropValue)*(ulProps+2), (void**)&lpProps);
+				for (const auto &pv : *obj->lstProperties) {
+					pv.CopyToByRef(&lpProps[i]);
+					if (lpProps[i].ulPropTag == PR_ROWID) {
+						lpPropID = &lpProps[i];
+					} else if (lpProps[i].ulPropTag == PR_OBJECT_TYPE) {
+						lpPropObjType = &lpProps[i];
+					} else if (lpProps[i].ulPropTag == PR_EC_CONTACT_ENTRYID) {
+						// rename to PR_ENTRYID
+						lpProps[i].ulPropTag = PR_ENTRYID;
 					}
-
-					if (lpPropID == NULL) {
-						++ulProps;
-						lpPropID = &lpProps[i++];
-					}
-					lpPropID->ulPropTag = PR_ROWID;
-					lpPropID->Value.ul = obj->ulUniqueId; // use uniqueid from "recount" code in WSMAPIPropStorage::ECSoapObjectToMapiObject()
-
-					if (lpPropObjType == NULL) {
-						++ulProps;
-						lpPropObjType = &lpProps[i++];
-					}
-					lpPropObjType->ulPropTag = PR_OBJECT_TYPE;
-					lpPropObjType->Value.ul = obj->ulObjType;
-					sKeyProp.ulPropTag = PR_EC_HIERARCHYID;
-					sKeyProp.Value.ul = obj->ulObjId;
-					hr = lpRecips->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, &sKeyProp, lpProps, i);
-					if (hr != hrSuccess)
-						goto exit;
-
-					ECFreeBuffer(lpProps);
-					lpProps = NULL;
+					++i;
 				}
+
+				if (lpPropID == NULL) {
+					++ulProps;
+					lpPropID = &lpProps[i++];
+				}
+				lpPropID->ulPropTag = PR_ROWID;
+				lpPropID->Value.ul = obj->ulUniqueId; // use uniqueid from "recount" code in WSMAPIPropStorage::ECSoapObjectToMapiObject()
+
+				if (lpPropObjType == NULL) {
+					++ulProps;
+					lpPropObjType = &lpProps[i++];
+				}
+				lpPropObjType->ulPropTag = PR_OBJECT_TYPE;
+				lpPropObjType->Value.ul = obj->ulObjType;
+				sKeyProp.ulPropTag = PR_EC_HIERARCHYID;
+				sKeyProp.Value.ul = obj->ulObjId;
+				hr = lpRecips->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, &sKeyProp, lpProps, i);
+				if (hr != hrSuccess)
+					goto exit;
+				ECFreeBuffer(lpProps);
+				lpProps = NULL;
 			}
 
 			// since we just loaded the table, all enties are clean
@@ -1241,14 +1233,10 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	}
 
 	hr = lpRecips->HrGetView(createLocaleFromName(""), ulFlags & MAPI_UNICODE, &lpView);
-
 	if(hr != hrSuccess)
 		goto exit;
-
 	hr = lpView->QueryInterface(IID_IMAPITable, (void **)lppTable);
-
 	lpView->Release();
-
 exit:
 	MAPIFreeBuffer(lpPropTagArray);
 	pthread_mutex_unlock(&m_hMutexMAPIObject);
@@ -1999,65 +1987,57 @@ HRESULT ECMessage::UpdateTable(ECMemTable *lpTable, ULONG ulObjType, ULONG ulObj
 
 	// update hierarchy id in table
 	for (const auto &obj : *m_sMapiObject->lstChildren) {
-		if (obj->ulObjType == ulObjType) {
-			sUniqueProp.ulPropTag = ulObjKeyProp;
-			sUniqueProp.Value.ul = obj->ulUniqueId;
-			sKeyProp.ulPropTag = PR_EC_HIERARCHYID;
-			sKeyProp.Value.ul = obj->ulObjId;
+		if (obj->ulObjType != ulObjType)
+			continue;
+		sUniqueProp.ulPropTag = ulObjKeyProp;
+		sUniqueProp.Value.ul = obj->ulUniqueId;
+		sKeyProp.ulPropTag = PR_EC_HIERARCHYID;
+		sKeyProp.Value.ul = obj->ulObjId;
 
-			hr = lpTable->HrUpdateRowID(&sKeyProp, &sUniqueProp, 1);
-			if (hr != hrSuccess)
-				goto exit;
-
-			// put new server props in table too
-			ulProps = obj->lstProperties->size();
-			if (ulProps != 0) {
-				// retrieve old row from table
-				hr = lpTable->HrGetRowData(&sUniqueProp, &cValues, &lpProps);
-				if (hr != hrSuccess)
-					goto exit;
-
-				// add new props
-				if ((hr = MAPIAllocateBuffer(sizeof(SPropValue)*ulProps, (void**)&lpNewProps)) != hrSuccess)
-					goto exit;
-
-				i = 0;
-				for (const auto &pv : *obj->lstProperties) {
-					pv.CopyToByRef(&lpNewProps[i]);
-					if (PROP_ID(lpNewProps[i].ulPropTag) == PROP_ID(PR_ATTACH_DATA_OBJ)) {
-						lpNewProps[i].ulPropTag = CHANGE_PROP_TYPE(lpNewProps[i].ulPropTag, PT_ERROR);
-						lpNewProps[i].Value.err = MAPI_E_NOT_ENOUGH_MEMORY;
-					} else if (PROP_TYPE(lpNewProps[i].ulPropTag) == PT_BINARY && lpNewProps[i].Value.bin.cb > MAX_TABLE_PROPSIZE) {
-						lpNewProps[i].ulPropTag = CHANGE_PROP_TYPE(lpNewProps[i].ulPropTag, PT_ERROR);
-						lpNewProps[i].Value.err = MAPI_E_NOT_ENOUGH_MEMORY;
-					}
-					++i;
-				}
-
-				hr = Util::HrMergePropertyArrays(lpProps, cValues, lpNewProps, ulProps, &lpAllProps, &cAllValues);
-				if (hr != hrSuccess)
-					goto exit;
-
-				hr = lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_MODIFY, &sKeyProp, lpAllProps, cAllValues);
-				if (hr != hrSuccess)
-					goto exit;
-
-				MAPIFreeBuffer(lpNewProps);
-				lpNewProps = NULL;
-
-				MAPIFreeBuffer(lpAllProps);
-				lpAllProps = NULL;
-
-				MAPIFreeBuffer(lpProps);
-				lpProps = NULL;
+		hr = lpTable->HrUpdateRowID(&sKeyProp, &sUniqueProp, 1);
+		if (hr != hrSuccess)
+			goto exit;
+		// put new server props in table too
+		ulProps = obj->lstProperties->size();
+		if (ulProps == 0)
+			continue;
+		// retrieve old row from table
+		hr = lpTable->HrGetRowData(&sUniqueProp, &cValues, &lpProps);
+		if (hr != hrSuccess)
+			goto exit;
+		// add new props
+		if ((hr = MAPIAllocateBuffer(sizeof(SPropValue)*ulProps, (void**)&lpNewProps)) != hrSuccess)
+			goto exit;
+		i = 0;
+		for (const auto &pv : *obj->lstProperties) {
+			pv.CopyToByRef(&lpNewProps[i]);
+			if (PROP_ID(lpNewProps[i].ulPropTag) == PROP_ID(PR_ATTACH_DATA_OBJ)) {
+				lpNewProps[i].ulPropTag = CHANGE_PROP_TYPE(lpNewProps[i].ulPropTag, PT_ERROR);
+				lpNewProps[i].Value.err = MAPI_E_NOT_ENOUGH_MEMORY;
+			} else if (PROP_TYPE(lpNewProps[i].ulPropTag) == PT_BINARY && lpNewProps[i].Value.bin.cb > MAX_TABLE_PROPSIZE) {
+				lpNewProps[i].ulPropTag = CHANGE_PROP_TYPE(lpNewProps[i].ulPropTag, PT_ERROR);
+				lpNewProps[i].Value.err = MAPI_E_NOT_ENOUGH_MEMORY;
 			}
+			++i;
 		}
+
+		hr = Util::HrMergePropertyArrays(lpProps, cValues, lpNewProps, ulProps, &lpAllProps, &cAllValues);
+		if (hr != hrSuccess)
+			goto exit;
+		hr = lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_MODIFY, &sKeyProp, lpAllProps, cAllValues);
+		if (hr != hrSuccess)
+			goto exit;
+		MAPIFreeBuffer(lpNewProps);
+		lpNewProps = NULL;
+		MAPIFreeBuffer(lpAllProps);
+		lpAllProps = NULL;
+		MAPIFreeBuffer(lpProps);
+		lpProps = NULL;
 	}
 
 	hr = lpTable->HrSetClean();
 	if (hr != hrSuccess)
 		goto exit;
-
 exit:
 	MAPIFreeBuffer(lpAllProps);
 	MAPIFreeBuffer(lpNewProps);

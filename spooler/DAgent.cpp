@@ -2332,33 +2332,33 @@ static HRESULT HrGetSession(const DeliveryArgs *lpArgs,
 	string strUnixUser;
 
 	hr = HrOpenECSession(g_lpLogger, lppSession, "spooler/dagent", PROJECT_SVN_REV_STR, szUsername, L"", lpArgs->strPath.c_str(), 0, g_lpConfig->GetSetting("sslkey_file","",NULL), g_lpConfig->GetSetting("sslkey_pass","",NULL));
-	if (hr != hrSuccess) {
-		// if connecting fails, the mailer should try to deliver again.
-		switch (hr) {
-		case MAPI_E_NETWORK_ERROR:
-			if (!bSuppress) g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to connect to storage server for user %ls, using socket: '%s'", szUsername, lpArgs->strPath.c_str());
-			break;
+	if (hr == hrSuccess)
+		return hrSuccess;
+	// if connecting fails, the mailer should try to deliver again.
+	switch (hr) {
+	case MAPI_E_NETWORK_ERROR:
+		if (!bSuppress)
+			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to connect to storage server for user %ls, using socket: '%s'", szUsername, lpArgs->strPath.c_str());
+		break;
 
-		// MAPI_E_NO_ACCESS or MAPI_E_LOGON_FAILED are fatal (user does not exist)
-		case MAPI_E_LOGON_FAILED:
-			// running dagent as unix user != lpRecip->strUsername and ! listed in local_admin_user, which gives this error too
-			if (!bSuppress) g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Access denied or connection failed for user %ls, using socket: '%s', error code: 0x%08X", szUsername, lpArgs->strPath.c_str(), hr);
-			// so also log userid we're running as
-			pwd = getpwuid(getuid());
-			if (pwd && pwd->pw_name)
-				strUnixUser = pwd->pw_name;
-			else
-				strUnixUser = stringify(getuid());
-			if (!bSuppress) g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Current uid:%d username:%s", getuid(), strUnixUser.c_str());
-			break;
+	// MAPI_E_NO_ACCESS or MAPI_E_LOGON_FAILED are fatal (user does not exist)
+	case MAPI_E_LOGON_FAILED:
+		// running dagent as unix user != lpRecip->strUsername and ! listed in local_admin_user, which gives this error too
+		if (!bSuppress)
+			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Access denied or connection failed for user %ls, using socket: '%s', error code: 0x%08X", szUsername, lpArgs->strPath.c_str(), hr);
+		// so also log userid we're running as
+		pwd = getpwuid(getuid());
+		strUnixUser = (pwd != NULL && pwd->pw_name != NULL) ? pwd->pw_name : stringify(getuid());
+		if (!bSuppress)
+			g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Current uid:%d username:%s", getuid(), strUnixUser.c_str());
+		break;
 
-		default:
-			if (!bSuppress) g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to login for user %ls, error code: 0x%08X", szUsername, hr);
-			break;
-		}
-		return hr;
+	default:
+		if (!bSuppress)
+			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to login for user %ls, error code: 0x%08X", szUsername, hr);
+		break;
 	}
-	return hrSuccess;
+	return hr;
 }
 
 /** 
