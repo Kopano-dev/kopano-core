@@ -124,9 +124,6 @@ AC_SUBST([SWIG_FLAGS])
 AC_ARG_ENABLE([tcmalloc], AS_HELP_STRING([--enable-tcmalloc], [enable use of tcmalloc minimal lib]),
   [want_tcmalloc=${enableval}],[want_tcmalloc=no])
 
-AC_ARG_ENABLE([sparsehash], AS_HELP_STRING([--enable-sparsehash], [enable use of sparsehash]),
-  [want_sparsehash=${enableval}],[want_sparsehash=no])
-
 AC_MSG_CHECKING([specified Linux distribution name])
 AC_ARG_WITH([distro], AS_HELP_STRING([--with-distro], [set distribution name, used for sysconfig and initscripts only. available: rhel, alt, suse or sles]),
   [with_distro=${withval}],[with_distro=rhel])
@@ -469,11 +466,6 @@ if test "$want_tcmalloc" = "yes"; then
 	AC_CHECK_HEADERS([gperftools/malloc_extension.h google/malloc_extension.h])
 	CPPFLAGS="$CPPFLAGS_system"
 	AC_DEFINE(HAVE_TCMALLOC, [1], [Google TCMalloc enabled])
-fi
-
-# Check for sparsehash availability
-if test "$want_sparsehash" = "yes"; then
-	AC_CHECK_HEADERS([google/sparse_hash_map], AC_DEFINE(HAVE_SPARSEHASH, [], [Google sparsehash available]), [])
 fi
 
 #
