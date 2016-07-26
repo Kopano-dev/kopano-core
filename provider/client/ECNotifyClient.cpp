@@ -303,9 +303,6 @@ exit:
 HRESULT ECNotifyClient::UnRegisterAdvise(ULONG ulConnection)
 {
 	HRESULT hr;
-	ECMAPADVISE::iterator iIterAdvise;
-	ECMAPCHANGEADVISE::iterator iIterChangeAdvise;
-
 	/*
 	 * Release connection from Master
 	 */
@@ -316,8 +313,8 @@ HRESULT ECNotifyClient::UnRegisterAdvise(ULONG ulConnection)
 	pthread_mutex_lock(&m_hMutex);
 
 	// Remove notify from list
-	iIterAdvise = m_mapAdvise.find(ulConnection);
-	if (iIterAdvise != m_mapAdvise.end()) {
+	auto iIterAdvise = m_mapAdvise.find(ulConnection);
+	if (iIterAdvise != m_mapAdvise.cend()) {
 		if(iIterAdvise->second->ulSupportConnection)
 			m_lpSupport->Unsubscribe(iIterAdvise->second->ulSupportConnection);
 
@@ -327,8 +324,8 @@ HRESULT ECNotifyClient::UnRegisterAdvise(ULONG ulConnection)
 		MAPIFreeBuffer(iIterAdvise->second);
 		m_mapAdvise.erase(iIterAdvise);	
 	} else {
-		iIterChangeAdvise = m_mapChangeAdvise.find(ulConnection);
-		if (iIterChangeAdvise != m_mapChangeAdvise.end()) {
+		auto iIterChangeAdvise = m_mapChangeAdvise.find(ulConnection);
+		if (iIterChangeAdvise != m_mapChangeAdvise.cend()) {
 			if (iIterChangeAdvise->second->lpAdviseSink != NULL)
 				iIterChangeAdvise->second->lpAdviseSink->Release();
 
@@ -382,8 +379,6 @@ HRESULT ECNotifyClient::Advise(const ECLISTSYNCSTATE &lstSyncStates,
 
 	HRESULT				hr = MAPI_E_NO_SUPPORT;
 	ECLISTSYNCADVISE	lstAdvises;
-	ECLISTSYNCADVISE::const_iterator iSyncAdvise;
-	ECLISTSYNCADVISE::const_iterator iSyncUnadvise;
 
 	for (const auto &state : lstSyncStates) {
 		SSyncAdvise sSyncAdvise = {{0}};
@@ -398,12 +393,14 @@ HRESULT ECNotifyClient::Advise(const ECLISTSYNCSTATE &lstSyncStates,
 	hr = m_lpTransport->HrSubscribeMulti(lstAdvises, fnevKopanoIcsChange);
 	if (hr != hrSuccess) {
 		// On failure we'll try the one-at-a-time approach.
-		for (iSyncAdvise = lstAdvises.begin(); iSyncAdvise != lstAdvises.end(); ++iSyncAdvise) {
+		for (auto iSyncAdvise = lstAdvises.cbegin();
+		     iSyncAdvise != lstAdvises.cend(); ++iSyncAdvise) {
 			hr = m_lpTransport->HrSubscribe(iSyncAdvise->sSyncState.ulSyncId, iSyncAdvise->sSyncState.ulChangeId, iSyncAdvise->ulConnection, fnevKopanoIcsChange);
 			if (hr != hrSuccess) {
 				// Unadvise all advised connections
 				// No point in attempting the multi version as SubscribeMulti also didn't work
-				for (iSyncUnadvise = lstAdvises.begin(); iSyncUnadvise != iSyncAdvise; ++iSyncUnadvise)
+				for (auto iSyncUnadvise = lstAdvises.cbegin();
+				     iSyncUnadvise != iSyncAdvise; ++iSyncUnadvise)
 					m_lpTransport->HrUnSubscribe(iSyncUnadvise->ulConnection);
 				
 				hr = MAPI_E_NO_SUPPORT;
@@ -417,7 +414,8 @@ HRESULT ECNotifyClient::Advise(const ECLISTSYNCSTATE &lstSyncStates,
 exit:
 	if (hr != hrSuccess) {
 		// Unregister all advises.
-		for (iSyncAdvise = lstAdvises.begin(); iSyncAdvise != lstAdvises.end(); ++iSyncAdvise)
+		for (auto iSyncAdvise = lstAdvises.cbegin();
+		     iSyncAdvise != lstAdvises.cend(); ++iSyncAdvise)
 			UnRegisterAdvise(iSyncAdvise->ulConnection);
 	}
 
@@ -489,7 +487,7 @@ HRESULT ECNotifyClient::Reregister(ULONG ulConnection, ULONG cbKey, LPBYTE lpKey
 	pthread_mutex_lock(&m_hMutex);
 
 	iter = m_mapAdvise.find(ulConnection);
-	if(iter == m_mapAdvise.end()) {
+	if (iter == m_mapAdvise.cend()) {
 		hr = MAPI_E_NOT_FOUND;
 		goto exit;
 	}
@@ -590,9 +588,8 @@ HRESULT ECNotifyClient::Notify(ULONG ulConnection, const NOTIFYLIST &lNotificati
 
 	/* Search for the right connection */
 	iterAdvise = m_mapAdvise.find(ulConnection);
-
-	if (iterAdvise == m_mapAdvise.end() || iterAdvise->second->lpAdviseSink == NULL)	
-	{
+	if (iterAdvise == m_mapAdvise.cend() ||
+	    iterAdvise->second->lpAdviseSink == NULL) {
 		TRACE_NOTIFY(TRACE_WARNING, "ECNotifyClient::Notify", "Unknown Notification id %d", ulConnection);
 		pthread_mutex_unlock(&m_hMutex);
 		goto exit;
@@ -600,15 +597,15 @@ HRESULT ECNotifyClient::Notify(ULONG ulConnection, const NOTIFYLIST &lNotificati
 
 	if (!notifications.empty()) {
 		/* Send notifications in batches of MAX_NOTIFS_PER_CALL notifications */
-		auto iterNotification = notifications.begin();
-		while (iterNotification != notifications.end()) {
+		auto iterNotification = notifications.cbegin();
+		while (iterNotification != notifications.cend()) {
 			/* Create a straight array of all the notifications */
 			hr = MAPIAllocateBuffer(sizeof(NOTIFICATION) * MAX_NOTIFS_PER_CALL, (void **)&lpNotifs);
 			if (hr != hrSuccess)
 				continue;
 
 			ULONG i = 0;
-			while (iterNotification != notifications.end() && i < MAX_NOTIFS_PER_CALL) {
+			while (iterNotification != notifications.cend() && i < MAX_NOTIFS_PER_CALL) {
 				/* We can do a straight memcpy here because pointers are still intact */
 				memcpy(&lpNotifs[i++], *iterNotification, sizeof(NOTIFICATION));
 				++iterNotification;
@@ -660,7 +657,6 @@ HRESULT ECNotifyClient::NotifyChange(ULONG ulConnection, const NOTIFYLIST &lNoti
 	LPENTRYLIST					lpSyncStates = NULL;
 	ECMAPCHANGEADVISE::const_iterator iterAdvise;
 	BINARYLIST					syncStates;
-	BINARYLIST::const_iterator iterSyncStates;
 
 	/* Create a straight array of MAX_NOTIFS_PER_CALL sync states */
 	hr = MAPIAllocateBuffer(sizeof *lpSyncStates, (void**)&lpSyncStates);
@@ -688,9 +684,8 @@ HRESULT ECNotifyClient::NotifyChange(ULONG ulConnection, const NOTIFYLIST &lNoti
 
 	/* Search for the right connection */
 	iterAdvise = m_mapChangeAdvise.find(ulConnection);
-
-	if (iterAdvise == m_mapChangeAdvise.end() || iterAdvise->second->lpAdviseSink == NULL)	
-	{
+	if (iterAdvise == m_mapChangeAdvise.cend() ||
+	    iterAdvise->second->lpAdviseSink == NULL) {
 		TRACE_NOTIFY(TRACE_WARNING, "ECNotifyClient::NotifyChange", "Unknown Notification id %d", ulConnection);
 		pthread_mutex_unlock(&m_hMutex);
 		goto exit;
@@ -698,11 +693,12 @@ HRESULT ECNotifyClient::NotifyChange(ULONG ulConnection, const NOTIFYLIST &lNoti
 
 	if (!syncStates.empty()) {
 		/* Send notifications in batches of MAX_NOTIFS_PER_CALL notifications */
-		iterSyncStates = syncStates.begin();
-		while (iterSyncStates != syncStates.end()) {
+		auto iterSyncStates = syncStates.cbegin();
+		while (iterSyncStates != syncStates.cend()) {
 
 			lpSyncStates->cValues = 0;
-			while (iterSyncStates != syncStates.end() && lpSyncStates->cValues < MAX_NOTIFS_PER_CALL) {
+			while (iterSyncStates != syncStates.cend() &&
+			       lpSyncStates->cValues < MAX_NOTIFS_PER_CALL) {
 				/* We can do a straight memcpy here because pointers are still intact */
 				memcpy(&lpSyncStates->lpbin[lpSyncStates->cValues++], *iterSyncStates, sizeof *lpSyncStates->lpbin);
 				++iterSyncStates;

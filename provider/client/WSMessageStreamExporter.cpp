@@ -106,7 +106,7 @@ HRESULT WSMessageStreamExporter::GetSerializedMessage(ULONG ulIndex, WSSerialize
 		return MAPI_E_INVALID_PARAMETER;
 
 	iStreamInfo = m_mapStreamInfo.find(ulIndex);
-	if (iStreamInfo == m_mapStreamInfo.end()) {
+	if (iStreamInfo == m_mapStreamInfo.cend()) {
 		++m_ulExpectedIndex;
 		return SYNC_E_OBJECT_DELETED;
 	}

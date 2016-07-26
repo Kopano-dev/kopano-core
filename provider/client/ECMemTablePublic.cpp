@@ -332,8 +332,7 @@ HRESULT ECMemTablePublic::ModifyRow(SBinary* lpInstanceKey, LPSRow lpsRow)
 
 	iterRel = m_mapRelation.find(strInstanceKey);
 
-	if (iterRel != m_mapRelation.end() ) {
-
+	if (iterRel != m_mapRelation.cend()) {
 		sRelFolder = iterRel->second;
 		ulRowId = sRelFolder.ulRowID;
 
@@ -559,8 +558,7 @@ HRESULT ECMemTablePublic::DelRow(SBinary* lpInstanceKey)
 	strInstanceKey.assign((char*)lpInstanceKey->lpb, lpInstanceKey->cb);
 
 	iterRel = m_mapRelation.find(strInstanceKey);
-
-	if (iterRel == m_mapRelation.end() )
+	if (iterRel == m_mapRelation.cend())
 		return hrSuccess;
 
 	sKeyProp.ulPropTag = PR_ROWID;

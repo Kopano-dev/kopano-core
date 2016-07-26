@@ -392,7 +392,7 @@ HRESULT ECNamedProp::ResolveCache(MAPINAMEID *lpName, ULONG *lpulPropTag)
 
 	iterMap = mapNames.find(lpName);
 
-	if (iterMap == mapNames.end())
+	if (iterMap == mapNames.cend())
 		return MAPI_E_NOT_FOUND;
 	*lpulPropTag = PROP_TAG(PT_UNSPECIFIED, iterMap->second);
 	return hrSuccess;

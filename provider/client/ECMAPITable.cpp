@@ -98,14 +98,11 @@ BOOL ECMAPITable::IsDeferred()
 ECMAPITable::~ECMAPITable()
 {
 	TRACE_MAPI(TRACE_ENTRY, "ECMAPITable::~ECMAPITable","");
-	std::set<ULONG>::const_iterator iterMapInt;
-	std::set<ULONG>::const_iterator iterMapIntDel;
 
 	// Remove all advises	
-	iterMapInt = m_ulConnectionList.begin();
-	while( iterMapInt != m_ulConnectionList.end() )
-	{
-		iterMapIntDel = iterMapInt;
+	auto iterMapInt = m_ulConnectionList.cbegin();
+	while (iterMapInt != m_ulConnectionList.cend()) {
+		auto iterMapIntDel = iterMapInt;
 		++iterMapInt;
 		Unadvise(*iterMapIntDel);
 	}

@@ -1797,7 +1797,6 @@ HRESULT ECMessage::SaveRecips()
 						j = 0;
 	ULONG				ulRealObjType;
 	LPSPropValue		lpObjType = NULL;
-	ECMapiObjects::const_iterator iterSObj;
 
 	pthread_mutex_lock(&m_hMutexMAPIObject);
 
@@ -1848,8 +1847,8 @@ HRESULT ECMessage::SaveRecips()
 		}
 
 		// find old recipient in child list, and remove if present
-		iterSObj = m_sMapiObject->lstChildren->find(mo);
-		if (iterSObj != m_sMapiObject->lstChildren->end()) {
+		auto iterSObj = m_sMapiObject->lstChildren->find(mo);
+		if (iterSObj != m_sMapiObject->lstChildren->cend()) {
 			FreeMapiObject(*iterSObj);
 			m_sMapiObject->lstChildren->erase(iterSObj);
 		}
@@ -1904,8 +1903,8 @@ BOOL ECMessage::HasAttachment()
 		}
 	}
 
-	for (iterObjects = m_sMapiObject->lstChildren->begin();
-	     iterObjects != m_sMapiObject->lstChildren->end(); ++iterObjects)
+	for (iterObjects = m_sMapiObject->lstChildren->cbegin();
+	     iterObjects != m_sMapiObject->lstChildren->cend(); ++iterObjects)
 		if ((*iterObjects)->ulObjType == MAPI_ATTACH)
 			break;
 
@@ -1930,7 +1929,6 @@ HRESULT ECMessage::SyncAttachments()
 	LPULONG				lpulStatus = NULL;
 	unsigned int		i = 0;
 	LPSPropValue		lpObjType = NULL;
-	ECMapiObjects::const_iterator iterSObj;
 
 	pthread_mutex_lock(&m_hMutexMAPIObject);
 
@@ -1956,10 +1954,9 @@ HRESULT ECMessage::SyncAttachments()
 
 		// delete complete attachment
 		MAPIOBJECT find(lpObjType->Value.ul, lpAttachNum->Value.ul);
-		iterSObj = m_sMapiObject->lstChildren->find(&find);
-		if (iterSObj != m_sMapiObject->lstChildren->end()) {
+		auto iterSObj = m_sMapiObject->lstChildren->find(&find);
+		if (iterSObj != m_sMapiObject->lstChildren->cend())
 			RecursiveMarkDelete(*iterSObj);
-		}
 	}
 
 	hr = lpAttachments->HrSetClean();
@@ -2792,13 +2789,12 @@ struct findobject_if {
 static HRESULT HrCopyObjIDs(MAPIOBJECT *lpDest, const MAPIOBJECT *lpSrc)
 {
     HRESULT hr;
-    ECMapiObjects::const_iterator iterDest;
 
     lpDest->ulObjId = lpSrc->ulObjId;
 
 	for (const auto &src : *lpSrc->lstChildren) {
-		iterDest = lpDest->lstChildren->find(src);
-        if(iterDest != lpDest->lstChildren->end()) {
+		auto iterDest = lpDest->lstChildren->find(src);
+		if (iterDest != lpDest->lstChildren->cend()) {
 			hr = HrCopyObjIDs(*iterDest, src);
             if(hr != hrSuccess)
                 return hr;
@@ -2816,7 +2812,6 @@ HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 	ULONG ulProps = 0;
 	LPSPropValue lpPropID = NULL;
 	LPSPropValue lpPropObjType = NULL;
-	std::list<ECProperty>::const_iterator iterPropVals;
 	ULONG i;
 
 	pthread_mutex_lock(&m_hMutexMAPIObject);
@@ -2852,7 +2847,7 @@ HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 	// Replace the attachment in the object hierarchy with this one, but preserve server object id. This is needed
 	// if the entire object has been saved to the server in the mean time.
 	iterSObj = m_sMapiObject->lstChildren->find(lpsMapiObject);
-	if (iterSObj != m_sMapiObject->lstChildren->end()) {
+	if (iterSObj != m_sMapiObject->lstChildren->cend()) {
 		// Preserve server IDs
 		hr = HrCopyObjIDs(lpsMapiObject, (*iterSObj));
 		if(hr != hrSuccess)

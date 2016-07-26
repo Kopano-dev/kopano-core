@@ -1016,8 +1016,6 @@ HRESULT ECExchangeImportContentsChanges::SetMessageInterface(REFIID refiid)
 static HRESULT HrRestrictionContains(const SRestriction *lpRestriction,
     std::list<SBinary> &lstEntryIds)
 {
-	typedef std::list<SBinary>::iterator iterator;
-
 	HRESULT hr = MAPI_E_NOT_FOUND;
 
 	switch (lpRestriction->rt) {
@@ -1037,7 +1035,7 @@ static HRESULT HrRestrictionContains(const SRestriction *lpRestriction,
 
 		case RES_PROPERTY:
 			if (lpRestriction->res.resProperty.ulPropTag == PR_PARENT_ENTRYID) {
-				for (iterator i = lstEntryIds.begin(); i != lstEntryIds.end(); ++i) {
+				for (auto i = lstEntryIds.begin(); i != lstEntryIds.cend(); ++i) {
 					if (Util::CompareSBinary(lpRestriction->res.resProperty.lpProp->Value.bin, *i) == 0) {
 						lstEntryIds.erase(i);
 						break;

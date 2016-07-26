@@ -439,7 +439,7 @@ void* ECNotifyMaster::NotifyWatch(void *pTmpNotifyMaster)
 			 */
 			pthread_mutex_lock(&pNotifyMaster->m_hMutex);
 			auto iterClient = pNotifyMaster->m_mapConnections.find(p.first);
-			if (iterClient == pNotifyMaster->m_mapConnections.end()) {
+			if (iterClient == pNotifyMaster->m_mapConnections.cend()) {
 				pthread_mutex_unlock(&pNotifyMaster->m_hMutex);
 				continue;
 			}

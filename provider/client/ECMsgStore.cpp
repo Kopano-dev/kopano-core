@@ -3277,7 +3277,7 @@ HRESULT ECMsgStore::MsgStoreDnToPseudoUrl(const utf8string &strMsgStoreDN, utf8s
 		return MAPI_E_INVALID_PARAMETER;
 
 	// Check if the last part equals 'cn=Microsoft Private MDB'
-	riPart = parts.rbegin();
+	riPart = parts.crbegin();
 	if (strcasecmp(riPart->c_str(), "cn=Microsoft Private MDB") != 0)
 		return MAPI_E_INVALID_PARAMETER;
 

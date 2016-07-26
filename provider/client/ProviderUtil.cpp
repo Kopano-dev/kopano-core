@@ -142,8 +142,7 @@ HRESULT GetProviders(ECMapProvider* lpmapProvider, IMAPISupport *lpMAPISup, cons
 	}
 
 	iterProvider = lpmapProvider->find(lpszProfileName);
-	if (iterProvider != lpmapProvider->end())
-	{
+	if (iterProvider != lpmapProvider->cend()) {
 		*lpsProviderInfo = iterProvider->second;
 		goto exit;
 	}

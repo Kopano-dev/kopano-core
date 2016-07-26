@@ -332,8 +332,8 @@ HRESULT ECAttach::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject)
 	}
 
 	// attachments can only have 1 sub-message
-	iterSObj = m_sMapiObject->lstChildren->begin();
-	if (iterSObj != m_sMapiObject->lstChildren->end()) {
+	iterSObj = m_sMapiObject->lstChildren->cbegin();
+	if (iterSObj != m_sMapiObject->lstChildren->cend()) {
 		FreeMapiObject(*iterSObj);
 		m_sMapiObject->lstChildren->erase(iterSObj);
 	}

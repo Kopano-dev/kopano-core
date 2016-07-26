@@ -442,11 +442,9 @@ HRESULT ECGenericProp::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject)
 HRESULT ECGenericProp::HrRemoveModifications(MAPIOBJECT *lpsMapiObject, ULONG ulPropTag)
 {
 	HRESULT hr = hrSuccess;
-	std::list<ECProperty>::iterator iterProps;
 
 	lpsMapiObject->lstDeleted->remove(ulPropTag);
-
-	for (iterProps = lpsMapiObject->lstModified->begin();
+	for (auto iterProps = lpsMapiObject->lstModified->begin();
 	     iterProps != lpsMapiObject->lstModified->end(); ++iterProps)
 		if(iterProps->GetPropTag() == ulPropTag) {
 			lpsMapiObject->lstModified->erase(iterProps);

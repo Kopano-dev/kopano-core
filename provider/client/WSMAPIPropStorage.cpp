@@ -257,7 +257,6 @@ HRESULT WSMAPIPropStorage::HrMapiObjectToSoapObject(MAPIOBJECT *lpsMapiObject, s
 HRESULT WSMAPIPropStorage::HrUpdateSoapObject(MAPIOBJECT *lpsMapiObject, struct saveObject *lpsSaveObj, convert_context *lpConverter)
 {
 	HRESULT hr;
-	ECMapiObjects::const_iterator iter;
 	std::list<ECProperty>::const_iterator iterProps;
 	SPropValue sData;
 	ULONG ulPropId = 0;
@@ -279,8 +278,8 @@ HRESULT WSMAPIPropStorage::HrUpdateSoapObject(MAPIOBJECT *lpsMapiObject, struct 
 		lpsSaveObj->lpInstanceIds = NULL;
 
 		/* Search for the correct property and copy it into the soap object, note that we already allocated the required memory... */
-		for (iterProps = lpsMapiObject->lstModified->begin();
-		     iterProps != lpsMapiObject->lstModified->end();
+		for (iterProps = lpsMapiObject->lstModified->cbegin();
+		     iterProps != lpsMapiObject->lstModified->cend();
 		     ++iterProps) {
 			sData = iterProps->GetMAPIPropValRef();
 
@@ -306,14 +305,13 @@ HRESULT WSMAPIPropStorage::HrUpdateSoapObject(MAPIOBJECT *lpsMapiObject, struct 
 		}
 
 		// Broken single instance ID without data.
-		ASSERT(!(iterProps == lpsMapiObject->lstModified->end()) );
+		ASSERT(!(iterProps == lpsMapiObject->lstModified->cend()));
 	}
 
 	for (gsoap_size_t i = 0; i < lpsSaveObj->__size; ++i) {
 		MAPIOBJECT find(lpsSaveObj->__ptr[i].ulObjType, lpsSaveObj->__ptr[i].ulClientId);
-		iter = lpsMapiObject->lstChildren->find(&find);
-		
-		if(iter != lpsMapiObject->lstChildren->end()) {
+		auto iter = lpsMapiObject->lstChildren->find(&find);
+		if (iter != lpsMapiObject->lstChildren->cend()) {
 			hr = HrUpdateSoapObject(*iter, &lpsSaveObj->__ptr[i], lpConverter);
 			if (hr != hrSuccess)
 				return hr;
@@ -374,8 +372,6 @@ ECRESULT WSMAPIPropStorage::EcFillPropValues(struct saveObject *lpsSaveObj, MAPI
 // removes current list of del/mod props, and sets server changes in the lists
 HRESULT WSMAPIPropStorage::HrUpdateMapiObject(MAPIOBJECT *lpClientObj, struct saveObject *lpsServerObj)
 {
-	ECMapiObjects::const_iterator iterObj, iterDel;
-
 	lpClientObj->ulObjId = lpsServerObj->ulServerId;
 
 	// The deleted properties have been deleted, so forget about them
@@ -406,10 +402,11 @@ HRESULT WSMAPIPropStorage::HrUpdateMapiObject(MAPIOBJECT *lpClientObj, struct sa
 	    CopySOAPEntryIdToMAPIEntryId(&lpsServerObj->lpInstanceIds->__ptr[0], &lpClientObj->cbInstanceID, (LPENTRYID *)&lpClientObj->lpInstanceID) != hrSuccess)
 		return MAPI_E_INVALID_PARAMETER;
 
-	for (iterObj = lpClientObj->lstChildren->begin(); iterObj != lpClientObj->lstChildren->end(); ) {
+	for (auto iterObj = lpClientObj->lstChildren->cbegin();
+	     iterObj != lpClientObj->lstChildren->cend(); ) {
 		if ((*iterObj)->bDelete) {
 			// this child was removed, so we don't need it anymore
-			iterDel = iterObj;
+			auto iterDel = iterObj;
 			++iterObj;
 			FreeMapiObject(*iterDel);
 			lpClientObj->lstChildren->erase(iterDel);
