@@ -607,6 +607,7 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 
 				for (j = 0; j < countarray; ++j) {
 					entry = zend_hash_get_current_data(dataHash);
+					ZVAL_DEREF(entry);
 					actionHash = HASH_OF(entry);
 					if (!actionHash) {
 						php_error_docref(NULL TSRMLS_CC, E_WARNING, "ACTIONS structure has a wrong ACTION");
