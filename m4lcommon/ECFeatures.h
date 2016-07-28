@@ -30,7 +30,6 @@ HRESULT hasFeature(const char* feature, LPSPropValue lpProps);
 HRESULT hasFeature(const WCHAR* feature, LPSPropValue lpProps);
 std::set<std::string> getFeatures();
 
-bool isFeatureEnabled(const char* feature, IAddrBook *lpAddrBook, IMsgStore *lpUser);
 bool isFeatureDisabled(const char* feature, IAddrBook *lpAddrBook, IMsgStore *lpUser);
 
 #endif

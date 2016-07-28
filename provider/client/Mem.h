@@ -26,10 +26,6 @@ HRESULT ECAllocateBuffer(ULONG cbSize, void **lpvoid);
 HRESULT ECAllocateBufferDbg(ULONG cbSize, void **lpvoid, char *szFile, int line);
 HRESULT ECAllocateMore(ULONG cbSize, void *lpBase, void **lpvoid);
 
-LPALLOCATEBUFFER GetAllocateBuffer();
-LPALLOCATEMORE GetAllocateMore();
-LPFREEBUFFER GetFreeBuffer();
-
 HINSTANCE GetInstance();
 LPMALLOC GetMalloc();
 

@@ -4845,22 +4845,6 @@ ECRESULT ECUserManagement::GetSecurity(ECSecurity **lppSecurity)
 	return erSuccess;
 }
 
-ECRESULT ECUserManagement::RemoveAllObjectsAndSync(unsigned int ulObjId)
-{
-	ECRESULT er;
-	UserPlugin *lpPlugin = NULL;
-	objectid_t id;
-
-	er = GetThreadLocalPlugin(m_lpPluginFactory, &lpPlugin);
-	if(er != erSuccess)
-		return er;
-	er = GetExternalId(ulObjId, &id);
-	if(er != erSuccess)
-		return er;
-	lpPlugin->removeAllObjects(id);
-	return SyncAllObjects();
-}
-
 ECRESULT ECUserManagement::SyncAllObjects()
 {
 	ECRESULT er = erSuccess;

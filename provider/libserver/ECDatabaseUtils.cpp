@@ -367,27 +367,6 @@ ECRESULT CopySOAPPropValToDatabaseMVPropVal(struct propVal *lpPropVal, int nItem
 	}
 	return erSuccess;
 }
-// by table 
-
-ECRESULT ParseMVPropCount(const char *lpRowData, ULONG ulSize,
-    unsigned int *lpulLastPos, int *lpnItemCount)
-{
-	ULONG	ulPos = *lpulLastPos;
-	ULONG	ulIter = ulPos;
-	std::string strSize;
-
-	ASSERT(ulPos < ulSize);
-
-	while(ulIter < ulSize && lpRowData[ulIter] != ':')
-		++ulIter;
-	
-	strSize.insert(0, lpRowData+ulPos, ulIter - ulPos);
-
-	*lpnItemCount = atoi(strSize.c_str());
-	*lpulLastPos = (ulIter+1);
-
-	return erSuccess;
-}
 
 ECRESULT ParseMVProp(const char *lpRowData, ULONG ulSize,
     unsigned int *lpulLastPos, std::string *lpstrData)

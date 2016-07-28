@@ -2695,35 +2695,6 @@ std::string IMAP::PropsToFlags(LPSPropValue lpProps, unsigned int cValues, bool 
 }
 
 /** 
- * Convert MAPI properties to a RFC-822 email address string, with optional fullname
- * 
- * @param[in] lpProps Array of properties containing atleast the tags given in ulEmailPropTag and ulNamePropTag
- * @param[in] cValues The number of properties in lpProps
- * @param[in] ulEmailPropTag The PropTag to use for the email address
- * @param[in] ulNamePropTag The PropTag to use for the fullname
- * 
- * @return String with email address, or empty
- */
-std::string IMAP::PropsToEmailAddress(LPSPropValue lpProps, unsigned int cValues, ULONG ulEmailPropTag, ULONG ulNamePropTag)
-{
-	const SPropValue *lpPropEmail = PpropFindProp(lpProps, cValues, ulEmailPropTag);
-	const SPropValue *lpPropName = PpropFindProp(lpProps, cValues, ulNamePropTag);
-    std::string strAddress;
-    
-    if(lpPropEmail && lpPropName && strcmp(lpPropEmail->Value.lpszA, lpPropName->Value.lpszA) == 0) {
-        strAddress = (string)"<" + lpPropEmail->Value.lpszA + ">";
-    } else if(lpPropEmail && lpPropName) {
-        strAddress = (string)"\"" + lpPropName->Value.lpszA + "\" <" + lpPropEmail->Value.lpszA + ">";
-    } else if(lpPropEmail) {
-        strAddress = (string)"<" + lpPropEmail->Value.lpszA + ">";
-    } else {
-        // Only a name ??
-    }
-    
-    return strAddress;
-}
-
-/** 
  * The notify callback function. Sends changes to the client on the
  * current selected folder during the IDLE command.
  * 
@@ -3353,13 +3324,6 @@ exit:
 	MAPIFreeBuffer(lpPropVal);
 	MAPIFreeBuffer(lpEntryID);
 	return hr;
-}
-
-bool IMAP::IsSubscribed(BinaryArray sEntryId) {
-	vector<BinaryArray>::const_iterator iFld;
-
-	iFld = find(m_vSubscriptions.begin(), m_vSubscriptions.end(), sEntryId);
-	return iFld != m_vSubscriptions.end();
 }
 
 /**
@@ -4918,39 +4882,6 @@ HRESULT IMAP::HrGetMessageFlags(string &strResponse, LPMESSAGE lpMessage, bool b
 
 exit:
 	MAPIFreeBuffer(lpProps);
-	return hr;
-}
-
-/** 
- * Returns the INTERNALDATE for a given message.  The value comes
- * either from PR_MESSAGE_DELIVERY_TIME or PR_CLIENT_SUBMIT_TIME.
- *
- * @param[out] strResponse the INTERNALDATE reply for the given message
- * @param[in] lpMessage the MAPI message to get the date for
- * 
- * @return MAPI Error code
- */
-HRESULT IMAP::HrGetMessageInterDate(string &strResponse, LPMESSAGE lpMessage) {
-	HRESULT hr = hrSuccess;
-	LPSPropValue lpPropVal = NULL;
-
-	if (!lpMessage) {
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
-
-	strResponse += "INTERNALDATE ";
-	if (HrGetOneProp(lpMessage, PR_MESSAGE_DELIVERY_TIME, &lpPropVal) == hrSuccess
-		|| HrGetOneProp(lpMessage, PR_CLIENT_SUBMIT_TIME, &lpPropVal) == hrSuccess) {
-		strResponse += "\"";
-		strResponse += FileTimeToString(lpPropVal->Value.ft);
-		strResponse += "\"";
-	} else {
-		strResponse += "NIL";
-	}
-
-exit:
-	MAPIFreeBuffer(lpPropVal);
 	return hr;
 }
 

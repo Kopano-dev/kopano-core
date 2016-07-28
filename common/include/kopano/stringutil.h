@@ -89,7 +89,6 @@ std::string str_storage(uint64_t ulBytes, bool bUnlimited = true);
 
 std::string GetServerNameFromPath(const char *szPath);
 std::string GetServerPortFromPath(const char *szPath);
-std::string ServerNamePortToURL(const char *lpszType, const char *lpszServerName, const char *lpszServerPort, const char *lpszExtra = "zarafa");
 
 static inline bool parseBool(const std::string &s) {
 	return !(s == "0" || s == "false" || s == "no");
@@ -97,7 +96,6 @@ static inline bool parseBool(const std::string &s) {
 
 extern std::string shell_escape(const std::string &str);
 extern std::string shell_escape(const std::wstring &wstr);
-std::string forcealnum(const std::string& str, const char *additional = NULL);
 
 std::vector<std::wstring> tokenize(const std::wstring &strInput, const WCHAR sep, bool bFilterEmpty = false);
 std::vector<std::string> tokenize(const std::string &strInput, const char sep, bool bFilterEmpty = false);

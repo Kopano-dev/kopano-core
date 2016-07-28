@@ -82,7 +82,6 @@ void	FileTimeToRTime(const FILETIME *pft, LONG *prtime);
 HRESULT	UnixTimeToRTime(time_t unixtime, LONG *rtime);
 HRESULT	RTimeToUnixTime(LONG rtime, time_t *unixtime);
 extern time_t SystemTimeToUnixTime(const SYSTEMTIME &);
-SYSTEMTIME UnixTimeToSystemTime(time_t unixtime);
 extern SYSTEMTIME TMToSystemTime(const struct tm &);
 extern struct tm SystemTimeToTM(const SYSTEMTIME &);
 double GetTimeOfDay();

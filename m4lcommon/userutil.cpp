@@ -216,64 +216,6 @@ void UserListCollector<std::wstring, PR_ACCOUNT_W>::push_back(LPSPropValue lpPro
 	m_lstUsers.push_back(lpPropAccount->Value.lpszW);
 }
 
-
-
-HRESULT ValidateArchivedUserCount(ECLogger *lpLogger, IMAPISession *lpMapiSession, const char *lpSSLKey, const char *lpSSLPass, unsigned int *lpulArchivedUsers, unsigned int *lpulMaxUsers)
-{
-	HRESULT hr = S_OK;
-	unsigned int ulArchivedUsers = 0;
-	unsigned int ulMaxUsers = 0;
-	MsgStorePtr		ptrStore;
-	ECLicensePtr	ptrLicense;
-
-	hr = GetArchivedUserCount(lpLogger, lpMapiSession, lpSSLKey, lpSSLPass, &ulArchivedUsers);
-	if (hr != hrSuccess)
-		goto exit;
-
-	//@todo use PR_EC_OBJECT property
-	hr = HrOpenDefaultStore(lpMapiSession, &ptrStore);
-	if(hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_CRIT, "Unable to open default store: 0x%08X", hr);
-		goto exit;
-	}
-
-	hr = ptrStore->QueryInterface(IID_IECLicense, &ptrLicense);
-	if(hr != hrSuccess)
-		goto exit;
-
-	// Do no check the return value, possible the license server isn't running!
-	ptrLicense->LicenseUsers(1/*SERVICE_TYPE_ARCHIVE*/, &ulMaxUsers);
-
-
-	*lpulArchivedUsers = ulArchivedUsers;
-	*lpulMaxUsers = ulMaxUsers;
-
-exit:
-	return hr;
-}
-
-/**
- * Get the archived users
- *
- * @param[out] lpulArchivedUsers	Get archived user count
- *
- * @return MAPI error codes
- */
-HRESULT GetArchivedUserCount(ECLogger *lpLogger, IMAPISession *lpMapiSession, const char *lpSSLKey, const char *lpSSLPass, unsigned int *lpulArchivedUsers)
-{
-	HRESULT hr = hrSuccess;
-	UserCountCollector collector;
-
-	hr = GetMailboxData(lpLogger, lpMapiSession, lpSSLKey, lpSSLPass, false, &collector);
-	if (hr != hrSuccess)
-		goto exit;
-
-	*lpulArchivedUsers = collector.result();
-
-exit:
-	return hr;
-}
-
 HRESULT GetArchivedUserList(ECLogger *lpLogger, IMAPISession *lpMapiSession, const char *lpSSLKey, const char *lpSSLPass, std::list<std::string> *lplstUsers, bool bLocalOnly)
 {
 	HRESULT hr = hrSuccess;

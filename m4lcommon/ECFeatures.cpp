@@ -145,11 +145,6 @@ exit:
 	return hr == hrSuccess;
 }
 
-bool isFeatureEnabled(const char* feature, IAddrBook *lpAddrBook, IMsgStore *lpStore)
-{
-	return checkFeature(feature, lpAddrBook, lpStore, PR_EC_ENABLED_FEATURES_A);
-}
-
 bool isFeatureDisabled(const char* feature, IAddrBook *lpAddrBook, IMsgStore *lpStore)
 {
 	return checkFeature(feature, lpAddrBook, lpStore, PR_EC_DISABLED_FEATURES_A);

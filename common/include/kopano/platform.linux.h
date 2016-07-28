@@ -584,8 +584,6 @@ bool operator!=(const GUID &, const GUID &);
 bool operator==(REFIID, const GUID &);
 HRESULT CoCreateGuid(LPGUID);
 
-__int64_t Int32x32To64(ULONG, ULONG);
-
 void GetSystemTimeAsFileTime(FILETIME *ft);
 DWORD GetTempPath(DWORD inLen, char *lpBuffer);
 #define GetTempPathA GetTempPath

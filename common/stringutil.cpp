@@ -258,29 +258,6 @@ std::string GetServerPortFromPath(const char *szPath) {
 	return path.c_str();
 }
 
-std::string ServerNamePortToURL(const char *lpszType, const char *lpszServerName, const char *lpszServerPort, const char *lpszExtra) {
-	std::string strURL;
-
-	if (lpszType && lpszType[0]) {
-		strURL.append(lpszType);
-		strURL.append("://");
-	}
-
-	strURL.append(lpszServerName);
-
-	if (lpszServerPort && lpszServerPort[0]) {
-		strURL.append(":");
-		strURL.append(lpszServerPort);
-	}
-
-	if (strnicmp(lpszType,"http", 4) == 0 && lpszExtra && lpszExtra[0]) {
-		strURL.append("/");
-		strURL.append(lpszExtra);
-	}
-
-	return strURL;
-}
-
 std::string shell_escape(const std::string &str)
 {
 	std::string::const_iterator start;
@@ -660,31 +637,6 @@ void StringLFtoCRLF(std::string &strInOut)
 			strOutput.append(1, *i);
 
 	swap(strInOut, strOutput);
-}
-
-
-/**
- * Force a string to contain alphanumerics only
- *
- * Replaces all other characters with _ unless they are in szAdditional
- *
- * @param[in] str Input string
- * @param[in] szAdditional Additional characters to accept
- * @return Modified string
- */
-std::string forcealnum(const std::string& str, const char *szAdditional)
-{
-    std::string out;
-
-    for (std::string::const_iterator i = str.begin(); i != str.end(); ++i)
-        if(isalnum(*i))
-            out += *i;
-        else if(szAdditional && strchr(szAdditional, *i) != NULL)
-            out += *i;
-        else
-            out += '_';
-
-    return out;
 }
 
 std::string format(const char *const fmt, ...) {

@@ -1801,21 +1801,6 @@ ECRESULT FreeSearchCriteria(struct searchCriteria *lpSearchCriteria)
 	return er;
 }
 
-ECRESULT CopyUserObjectDetailsToSoap(unsigned int ulId, entryId *lpUserEid, const objectdetails_t &details, struct soap *soap, struct userobject *lpObject)
-{
-	ECRESULT er = erSuccess;
-
-	lpObject->ulId = ulId;
-	lpObject->lpszName = s_strcpy(soap, details.GetPropString(OB_PROP_S_FULLNAME).c_str());
-	lpObject->ulType = details.GetClass();
-	lpObject->sId.__size = lpUserEid->__size;
-	lpObject->sId.__ptr = s_alloc<unsigned char>(soap, lpUserEid->__size);
-	memcpy(lpObject->sId.__ptr, lpUserEid->__ptr, lpUserEid->__size);
-
-	return er;
-}
-
-
 /**
  * Copy extra user details into propmap, (only the string values)
  *

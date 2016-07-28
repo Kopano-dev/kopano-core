@@ -2145,11 +2145,6 @@ std::string RestrictionToString(const SRestriction *lpRestriction,
 	return strResult;
 }
 
-std::string unicodetostr(const wchar_t *lpszW)
-{
-	return convert_to<std::string>(lpszW);
-}
-
 std::string PropValueToString(const SPropValue *lpPropValue)
 {
 	std::string strResult;

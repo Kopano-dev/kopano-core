@@ -298,7 +298,6 @@ private:
 
 	/* subscribed folders */
 	vector<BinaryArray> m_vSubscriptions;
-	bool IsSubscribed(BinaryArray sEntryId);
 	HRESULT HrGetSubscribedList();
 	HRESULT HrSetSubscribedList();
 	HRESULT ChangeSubscribeList(bool bSubscribe, ULONG cbEntryID, LPENTRYID lpEntryID);
@@ -320,7 +319,6 @@ private:
 	std::string HrEnvelopeSender(LPMESSAGE lpMessage, ULONG ulTagName, ULONG ulTagEmail, std::string& strCharset, bool bIgnore);
 	HRESULT HrGetMessageEnvelope(string &strResponse, LPMESSAGE lpMessage);
 	HRESULT HrGetMessageFlags(string &strResponse, LPMESSAGE lpMessage, bool bRecent);
-	HRESULT HrGetMessageInterDate(string &strResponse, LPMESSAGE lpMessage);
 
 	HRESULT HrGetMessagePart(string &strMessagePart, string &strMessage, string strPartName);
 
@@ -364,7 +362,6 @@ private:
 
 	// Various conversion functions
 	string PropsToFlags(LPSPropValue lpProps, unsigned int cValues, bool bRecent, bool bRead);
-	string PropsToEmailAddress(LPSPropValue lpProps, unsigned int cValues, ULONG ulEmailPropTag, ULONG ulNamePropTag);
 
 	void HrParseHeaders(const std::string &, std::list<std::pair<std::string, std::string> > &);
 	void HrGetSubString(string &strOutput, const std::string &strInput, const std::string &strBegin, const std::string &strEnd);

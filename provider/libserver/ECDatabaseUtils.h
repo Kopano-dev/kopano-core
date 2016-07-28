@@ -80,7 +80,6 @@ gsoap_size_t GetMVItemCount(struct propVal *lpPropVal);
 ECRESULT CopySOAPPropValToDatabaseMVPropVal(struct propVal *lpPropVal, int nItem, std::string &strColName, std::string &strColData, ECDatabase *lpDatabase);
 
 ECRESULT ParseMVProp(const char *lpRowData, ULONG ulSize, unsigned int *lpulLastPos, std::string *lpstrData);
-ECRESULT ParseMVPropCount(const char *lpRowData, ULONG ulSize, unsigned int *lpulLastPos, int *lpnItemCount);
 
 unsigned int NormalizeDBPropTag(unsigned int ulPropTag);
 bool CompareDBPropTag(unsigned int ulPropTag1, unsigned int ulPropTag2);

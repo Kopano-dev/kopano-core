@@ -63,7 +63,6 @@ public:
 
 	//Result functions
 	unsigned int	GetNumRows(DB_RESULT sResult);
-	unsigned int	GetNumRowFields(DB_RESULT sResult);
 
 	DB_ROW			FetchRow(DB_RESULT sResult);
 	DB_LENGTHS		FetchRowLengths(DB_RESULT sResult);

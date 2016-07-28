@@ -66,7 +66,6 @@ std::string SortOrderSetToString(const SSortOrderSet *lpSortCriteria);
 std::string NotificationToString(ULONG cNotification, const NOTIFICATION *lpNotification);
 
 std::string ProblemArrayToString(const SPropProblemArray *lpProblemArray);
-std::string unicodetostr(const wchar_t *lpszW);
 
 const char *MsgServiceContextToString(ULONG ulContext);
 const char *ResourceTypeToString(ULONG ulResourceType);

@@ -104,10 +104,6 @@ HRESULT CoCreateGuid(LPGUID pNewGUID) {
 	return S_OK;
 }
 
-__int64_t Int32x32To64(ULONG a, ULONG b) {
-	return (__int64_t)a*(__int64_t)b;
-}
-
 void GetSystemTimeAsFileTime(FILETIME *ft) {
 	struct timeval now;
 	__int64_t l;

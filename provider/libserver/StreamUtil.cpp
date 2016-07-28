@@ -1889,28 +1889,3 @@ ECRESULT GetValidatedPropType(DB_ROW lpRow, unsigned int *lpulType)
 	*lpulType = ulType;
 	return erSuccess;
 }
-
-ECRESULT GetValidatedPropCount(ECDatabase *lpDatabase, DB_RESULT lpDBResult, unsigned int *lpulCount)
-{
-	ECRESULT er;
-	unsigned int ulCount = 0;
-	DB_ROW lpRow;
-
-	if (lpDatabase == NULL || lpDBResult == NULL || lpulCount == 0)
-		return KCERR_INVALID_PARAMETER;
-
-	while ((lpRow = lpDatabase->FetchRow(lpDBResult)) != NULL) {
-		unsigned int ulType;
-		er = GetValidatedPropType(lpRow, &ulType);	// Ignore ulType, we just need the validation
-		if (er == KCERR_DATABASE_ERROR) {
-			ec_log_err("GetValidatedPropCount(): GetValidatedPropType failed");
-			continue;
-		} else if (er != erSuccess)
-			return er;
-		++ulCount;
-	}
-
-	lpDatabase->ResetResult(lpDBResult);
-	*lpulCount = ulCount;
-	return erSuccess;
-}

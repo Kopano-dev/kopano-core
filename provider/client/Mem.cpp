@@ -35,9 +35,6 @@ LPALLOCATEMORE		_pfnAllocMore;
 LPFREEBUFFER		_pfnFreeBuf;
 HINSTANCE			_hInstance;
 
-LPALLOCATEBUFFER GetAllocateBuffer() { return _pfnAllocBuf; }
-LPALLOCATEMORE GetAllocateMore() { return _pfnAllocMore; }
-LPFREEBUFFER GetFreeBuffer() { return _pfnFreeBuf; }
 HINSTANCE GetInstance() { return _hInstance; }
 LPMALLOC GetMalloc(){ return _pmalloc; }
 
@@ -76,47 +73,6 @@ HRESULT ECAllocateMore(ULONG cbSize, void *lpBase, void **lpvoid) {
 		return MAPI_E_CALL_FAILED;
 	else return _pfnAllocMore(cbSize, lpBase, lpvoid);
 }
-
-// Use these functions for internal memory management
-
-/* Use new() and delete() instead ! 
-HRESULT HrAlloc(ULONG cbSize, void **lpvoid) {
-	if(_pmalloc == NULL)
-		return MAPI_E_CALL_FAILED;
-	else {
-		*lpvoid = _pmalloc->Alloc(cbSize);
-		if(*lpvoid == NULL)
-			return MAPI_E_NOT_ENOUGH_MEMORY;
-		else
-			return hrSuccess;
-	}
-}
-
-HRESULT HrRealloc(ULONG cbSize, void *lpBase, void **lpvoid) {
-	if(_pmalloc == NULL)
-		return MAPI_E_CALL_FAILED;
-	else {
-		*lpvoid = _pmalloc->Realloc(lpBase, cbSize);
-		if(*lpvoid == NULL)
-			return MAPI_E_NOT_ENOUGH_MEMORY;
-		else
-			return hrSuccess;
-	}
-}
-
-HRESULT HrFree(void *lpvoid) {
-	if(lpvoid == NULL)
-		return MAPI_E_CALL_FAILED;
-
-	if(_pmalloc == NULL)
-		return MAPI_E_CALL_FAILED;
-	else {
-		_pmalloc->Free(lpvoid);
-		return hrSuccess;
-	}
-}
-
-*/
 
 HRESULT AllocNewMapiObject(ULONG ulUniqueId, ULONG ulObjId, ULONG ulObjType, MAPIOBJECT **lppMapiObject)
 {

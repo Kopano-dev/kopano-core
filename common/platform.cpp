@@ -141,17 +141,6 @@ time_t SystemTimeToUnixTime(const SYSTEMTIME &stime)
 	return stime.wSecond + (stime.wMinute*60) + ((stime.wHour)*60*60);
 }
 
-SYSTEMTIME UnixTimeToSystemTime(time_t unixtime)
-{
-	SYSTEMTIME stime = {0};
-	stime.wSecond = unixtime%60;
-	unixtime /= 60;
-	stime.wMinute = unixtime%60;
-	unixtime /= 60;
-	stime.wHour = unixtime;
-	return stime;
-}
-
 SYSTEMTIME TMToSystemTime(const struct tm &t)
 {
 	SYSTEMTIME stime = {0};
@@ -164,21 +153,6 @@ SYSTEMTIME TMToSystemTime(const struct tm &t)
 	stime.wSecond = t.tm_sec;
 	stime.wMilliseconds = 0;
 	return stime;	
-}
-
-struct tm SystemTimeToTM(const SYSTEMTIME &stime)
-{
-	// not quite, since we miss tm_yday
-	struct tm t = {0};
-	t.tm_year = stime.wYear;
-	t.tm_mon = stime.wMonth;
-	t.tm_wday = stime.wDayOfWeek;
-	t.tm_mday = stime.wDay;
-	t.tm_hour = stime.wHour;
-	t.tm_min = stime.wMinute;
-	t.tm_sec = stime.wSecond;
-	t.tm_isdst = -1;
-	return t;	
 }
 
 /* The 'IntDate' and 'IntTime' date and time encoding are used for some CDO calculations. They

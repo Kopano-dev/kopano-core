@@ -400,11 +400,6 @@ unsigned int ECDatabaseMySQL::GetNumRows(DB_RESULT sResult) {
 	return (unsigned int)mysql_num_rows((MYSQL_RES *)sResult);
 }
 
-unsigned int ECDatabaseMySQL::GetNumRowFields(DB_RESULT sResult) {
-
-	return mysql_num_fields((MYSQL_RES *)sResult);
-}
-
 DB_ROW ECDatabaseMySQL::FetchRow(DB_RESULT sResult) {
 
 	return mysql_fetch_row((MYSQL_RES *)sResult);

@@ -613,42 +613,6 @@ HRESULT ArchiverSession::CompareStoreIds(const entryid_t &sEntryId1, const entry
 }
 
 /**
- * Check if the server specified by strServername is the server we're currently connected with.
- *
- * @param[in]	strServername
- *					The name of the server to check.
- * @param[out]	lpbResult
- *					Pointer to a boolean that will be set to true if the server is the
- *					same server we're currently connected with.
- *
- * @return HRESULT
- */ 
-HRESULT ArchiverSession::ServerIsLocal(const std::string &strServername, bool *lpbResult)
-{
-	HRESULT hr;
-	char *lpszServername = NULL;
-	ECSVRNAMELIST sSvrNameList = {0};
-	ECServiceAdminPtr ptrServiceAdmin;
-	ECServerListPtr ptrServerList;
-
-	hr = m_ptrAdminStore->QueryInterface(ptrServiceAdmin.iid, &ptrServiceAdmin);
-	if (hr != hrSuccess)
-		return hr;
-
-	lpszServername = (char*)strServername.c_str();
-	
-	sSvrNameList.cServers = 1;
-	sSvrNameList.lpszaServer = (LPTSTR*)&lpszServername;
-
-	hr = ptrServiceAdmin->GetServerDetails(&sSvrNameList, EC_SERVERDETAIL_NO_NAME, &ptrServerList);	// No MAPI_UNICODE
-	if (hr != hrSuccess)
-		return hr;
-
-	*lpbResult = (ptrServerList->lpsaServer[0].ulFlags & EC_SDFLAG_IS_PEER) == EC_SDFLAG_IS_PEER;
-	return hrSuccess;
-}
-
-/**
  * Create a ArchiverSession on another server, with the same credentials (SSL) as the current ArchiverSession.
  * 
  * @param[in]	lpszServerPath	The path of the server to connect with.

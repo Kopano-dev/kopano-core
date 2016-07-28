@@ -85,8 +85,6 @@ ECRESULT			FreeRightsArray(struct rightsArray *lpRights);
 ECRESULT			CopyRightsArrayToSoap(struct soap *soap, struct rightsArray *lpRightsArraySrc, struct rightsArray **lppRightsArrayDst);
 
 // userobjects
-ECRESULT			CopyUserObjectDetailsToSoap(unsigned int ulId, entryId *lpUserEid, const objectdetails_t &details,
-												struct soap *soap, struct userobject *lpObject);
 ECRESULT			CopyUserDetailsToSoap(unsigned int ulId, entryId *lpUserEid, const objectdetails_t &details, bool bCopyBinary,
 										  struct soap *soap, struct user *lpUser);
 ECRESULT			CopyUserDetailsFromSoap(struct user *lpUser, std::string *lpstrExternId, objectdetails_t *details, struct soap *soap);

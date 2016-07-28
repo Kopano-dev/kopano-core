@@ -194,15 +194,6 @@ int gsoap_win_fclose(struct soap *soap)
 	return SOAP_OK;
 }
 
-// Override the soap function tcp_disconnect
-//  close master, ignored by using namedpipe
-int gsoap_win_closesocket(struct soap *soap, SOAP_SOCKET fd)
-{
-	// is used only to close the master socket in a server upon soap_done()
-	// skip this for namedpipe
-	return SOAP_OK;
-}
-
 // Override the soap function tcp_shutdownsocket
 //  shutdown a socket ignored by using namedpipe
 int gsoap_win_shutdownsocket(struct soap *soap, SOAP_SOCKET fd, int how)
