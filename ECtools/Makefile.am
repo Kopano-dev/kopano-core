@@ -12,6 +12,7 @@ dist_bin_SCRIPTS = utils/kopano-set-oof
 sbin_PROGRAMS = kopano-admin kopano-archiver kopano-monitor
 dist_sbin_SCRIPTS = utils/kopano-mailbox-permissions
 noinst_PROGRAMS = kopano-cfgchecker
+pkglibexec_PROGRAMS = mapitime
 lib_LTLIBRARIES = libkcarchiver.la libkcarchivercore.la
 noinst_DATA = \
 	libkcarchiver.ldd libkcarchivercore.ldd \
@@ -192,5 +193,9 @@ libkcarchivercore_la_LIBADD = \
 	${PROG_LIBS} ${SSL_LIBS} ${MYSQL_LIBS}
 EXTRA_libkcarchivercore_la_DEPENDENCIES = \
 	${top_builddir}/default.sym
+
+mapitime_SOURCES = mapitime.cpp hx-time.c
+mapitime_LDADD = -lrt ${top_builddir}/mapi4linux/src/libmapi.la \
+	${top_builddir}/common/libkcutil.la
 
 include ../global.am

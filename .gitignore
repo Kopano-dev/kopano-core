@@ -37,6 +37,7 @@ stamp-h2
 /ECtools/kopano-monitor
 /ECtools/kopano-passwd
 /ECtools/kopano-stats
+/ECtools/mapitime
 /ECtools/backup/build/
 /ECtools/presence/build/
 /ECtools/search/build/
