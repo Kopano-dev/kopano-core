@@ -554,7 +554,6 @@ ECRESULT SerializePropVal(LPCSTREAMCAPS lpStreamCaps, const struct propVal &sPro
 	unsigned int ulLen;
 	unsigned char b;
 	unsigned int ulPropTag = sPropVal.ulPropTag;
-	std::string	strData;
 	convert_context converter;
 	NamedPropDefMap::const_iterator iNamedPropDef;
 

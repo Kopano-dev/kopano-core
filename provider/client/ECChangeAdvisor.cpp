@@ -352,7 +352,6 @@ HRESULT ECChangeAdvisor::AddKeys(LPENTRYLIST lpEntryList)
 	HRESULT						hr = hrSuccess;
 	SSyncState					*lpsSyncState = NULL;
 	ECLISTCONNECTION			listConnections;
-	ECLISTCONNECTION::const_iterator iterConnection;
 	ECLISTSYNCSTATE				listSyncStates;
 
 	if (m_lpChangeAdviseSink == NULL && !(m_ulFlags & SYNC_CATCHUP))

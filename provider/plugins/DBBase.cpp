@@ -97,7 +97,6 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 	objectdetails_t details;
 	objectid_t lastid;
 	objectid_t curid;
-	std::list<objectid_t>::const_iterator iterID;
 
 	if(objectids.empty())
 		return std::unique_ptr<std::map<objectid_t, objectdetails_t> >(mapdetails);
@@ -304,7 +303,6 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 	bool bFirstOne = true;
 	bool bFirstDel = true;
 	string strData;
-	string strMD5Pw;
 	property_map anonymousProps;
 	property_map::const_iterator iterAnonymous;
 	property_mv_map anonymousMVProps;
@@ -719,7 +717,6 @@ void DBPlugin::deleteSubObjectRelation(userobject_relation_t relation, const obj
 std::unique_ptr<signatures_t> DBPlugin::searchObjects(const std::string &match,
     const char **search_props, const char *return_prop, unsigned int ulFlags)
 {
-	string signature;
 	objectid_t objectid;
 	std::unique_ptr<signatures_t> lpSignatures(new signatures_t());
 

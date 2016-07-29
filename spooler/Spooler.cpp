@@ -408,7 +408,7 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
     IECSpooler *lpSpooler)
 {
 	HRESULT hr = hrSuccess;
-	std::map<pid_t, int>::const_iterator i, iDel;
+	std::map<pid_t, int>::const_iterator i;
 	SendData sSendData;
 	bool bErrorMail;
 	map<pid_t, int> finished; // exit status of finished processes

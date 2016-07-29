@@ -198,7 +198,6 @@ ECRESULT ECSecurity::GetGroupsForUser(unsigned int ulUserId, std::list<localobje
 			cSeenGroups.m_seen.insert(*iterGroups);
 
 			std::list<localobjectdetails_t> *lpGroupInGroups = NULL;
-			std::list<localobjectdetails_t>::const_iterator li;
 
 			er = m_lpSession->GetUserManagement()->GetParentObjectsOfObjectAndSync(OBJECTRELATION_GROUP_MEMBER,
 																				   iterGroups->ulId, &lpGroupInGroups, USERMANAGEMENT_IDS_ONLY);
@@ -688,9 +687,7 @@ exit:
 ECRESULT ECSecurity::SetRights(unsigned int objid, struct rightsArray *lpsRightsArray)
 {
 	ECRESULT er;
-	std::string			strQueryNew, strQueryDeniedNew;
-	std::string			strQueryModify, strQueryDeniedModify;
-	std::string			strQueryDelete, strQueryDeniedDelete;
+	std::string			strQueryNew, strQueryDelete;
 	unsigned int		ulDeniedRights=0;
 	ECDatabase			*lpDatabase = NULL;
 	unsigned int		ulUserId = 0;

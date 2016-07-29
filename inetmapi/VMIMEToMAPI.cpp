@@ -3480,7 +3480,6 @@ std::string VMIMEToMAPI::createIMAPEnvelope(vmime::ref<vmime::message> vmMessage
 
 	// ((cc),(cc))
 	try {
-		list<string> lAddr;
 		vmime::ref<vmime::addressList> aList = vmHeader->Cc()->getValue().dynamicCast<vmime::addressList>();
 		int aCount = aList->getAddressCount();
 		for (int i = 0; i < aCount; ++i)
@@ -3493,7 +3492,6 @@ std::string VMIMEToMAPI::createIMAPEnvelope(vmime::ref<vmime::message> vmMessage
 
 	// ((bcc),(bcc))
 	try {
-		list<string> lAddr;
 		vmime::ref<vmime::addressList> aList = vmHeader->Bcc()->getValue().dynamicCast<vmime::addressList>();
 		int aCount = aList->getAddressCount();
 		for (int i = 0; i < aCount; ++i)
