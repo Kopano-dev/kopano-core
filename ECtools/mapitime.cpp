@@ -7,6 +7,7 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/ECLogger.h>
 #include <kopano/MAPIErrors.h>
+#include <kopano/charset/convert.h>
 #include "hx-time.h"
 
 struct mpt_stat_entry {
@@ -14,9 +15,9 @@ struct mpt_stat_entry {
 };
 
 static std::list<struct mpt_stat_entry> mpt_stat_list;
-static const wchar_t *mpt_user = L"foo";
-static const wchar_t *mpt_pass = L"xfoo";
-static const char *mpt_socket = "http://localhost:236/";
+static std::wstring mpt_userw, mpt_passw;
+static const wchar_t *mpt_user, *mpt_pass;
+static const char *mpt_socket;
 static size_t mpt_repeat = ~0U;
 
 static void mpt_stat_dump(int s = 0)
@@ -149,19 +150,48 @@ static int mpt_main_lilo(void)
 	return EXIT_SUCCESS;
 }
 
-int main(int argc, char **argv)
+static int mpt_option_parse(int argc, char **argv)
 {
+	char *user = NULL, *pass = NULL;
 	int c;
 	if (argc < 2) {
 		fprintf(stderr, "Need to specify a benchmark to run (init, login)\n");
 		return EXIT_FAILURE;
 	}
-	while ((c = getopt(argc, argv, "z:")) != -1) {
-		if (c == 'z')
+	while ((c = getopt(argc, argv, "u:p:z:")) != -1) {
+		if (c == 'p')
+			pass = optarg;
+		else if (c == 'u')
+			user = optarg;
+		else if (c == 'z')
 			mpt_repeat = strtoul(optarg, NULL, 0);
 		else
 			fprintf(stderr, "Error: unknown option -%c\n", c);
 	}
+	if (user == NULL) {
+		user = "foo";
+		fprintf(stderr, "Info: defaulting to username \"foo\"\n");
+	}
+	mpt_userw = convert_to<std::wstring>(user);
+	mpt_user = mpt_userw.c_str();
+	if (pass == NULL) {
+		pass = "xfoo";
+		fprintf(stderr, "Info: defaulting to password \"xfoo\"\n");
+	}
+	mpt_passw = convert_to<std::wstring>(pass);
+	mpt_pass = mpt_passw.c_str();
+	if (mpt_socket == NULL) {
+		mpt_socket = "http://localhost:236/";
+		fprintf(stderr, "Info: defaulting to %s\n", mpt_socket);
+	}
+	return EXIT_SUCCESS;
+}
+
+int main(int argc, char **argv)
+{
+	int ret = mpt_option_parse(argc, argv);
+	if (ret != EXIT_SUCCESS)
+		return ret;
 	argv += optind - 1;
 	if (strcmp(argv[1], "init") == 0 || strcmp(argv[1], "i") == 0)
 		return mpt_main_init();
