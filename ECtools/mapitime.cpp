@@ -158,11 +158,13 @@ static int mpt_option_parse(int argc, char **argv)
 		fprintf(stderr, "Need to specify a benchmark to run (init, login)\n");
 		return EXIT_FAILURE;
 	}
-	while ((c = getopt(argc, argv, "u:p:z:")) != -1) {
+	while ((c = getopt(argc, argv, "p:s:u:z:")) != -1) {
 		if (c == 'p')
 			pass = optarg;
 		else if (c == 'u')
 			user = optarg;
+		else if (c == 's')
+			mpt_socket = optarg;
 		else if (c == 'z')
 			mpt_repeat = strtoul(optarg, NULL, 0);
 		else
