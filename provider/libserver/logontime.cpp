@@ -16,7 +16,7 @@
 namespace kcsrv {
 
 static std::unordered_map<unsigned int, time_t> ltm_ontime_cache, ltm_offtime_cache;
-static std::mutex ltm_ontime_mutex, ltm_offtime_mutex, ltm_master;
+static std::mutex ltm_ontime_mutex, ltm_offtime_mutex;
 
 static ECRESULT ltm_sync_time(ECDatabase *db,
     const std::pair<unsigned int, time_t> &e, bool dir)
