@@ -86,6 +86,7 @@ case "$1" in
 		stop
 		;;
     status)
+		echo -n $"kopano-search "
 		status -p "$pidfile"
 		RETVAL=$?
 		;;
