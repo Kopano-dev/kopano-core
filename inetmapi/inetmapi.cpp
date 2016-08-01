@@ -120,7 +120,7 @@ static string generateRandomMessageId()
 	char id[IDLEN] = {0};
 	// the same format as the vmime generator, but with more randomness
 	snprintf(id, IDLEN, "kcim.%08x.%04x.%08x%08x", (unsigned int)time(NULL), getpid(), rand_mt(), rand_mt());
-	return string(id, IDLEN -1); // do not include \0 in std::string
+	return string(id, strlen(id));
 #undef IDLEN
 }
 
