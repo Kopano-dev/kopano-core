@@ -60,8 +60,8 @@ int unix_runas(ECConfig *lpConfig, ECLogger *lpLogger) {
 	if (ret != 0)
 		return ret;
 
-	if (setgroups(0, NULL) < 0)
-		ec_log_warn("setgroups: %s", strerror(errno));
+	if (getgroups(0, NULL) != 0 && setgroups(0, NULL) < 0)
+		ec_log_warn("setgroups(0): %s", strerror(errno));
 
 	if (group != NULL && *group != '\0') {
 		const struct group *gr = getgrnam(group);
