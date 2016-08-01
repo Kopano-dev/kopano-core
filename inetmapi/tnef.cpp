@@ -52,6 +52,17 @@
 
 #include "tnef.h"
 
+enum {
+	ATT_ATTACH_TITLE     = 0x18010,
+	ATT_REQUEST_RES      = 0x40009,
+	ATT_ATTACH_DATA      = 0x6800F,
+	ATT_ATTACH_META_FILE = 0x68011,
+	ATT_ATTACH_REND_DATA = 0x69002,
+	ATT_MAPI_PROPS       = 0x69003,
+	ATT_ATTACHMENT       = 0x69005,
+	ATT_MESSAGE_CLASS    = 0x78008,
+};
+
 // The mapping between Microsoft Mail IPM classes and those used in MAPI
 // see: http://msdn2.microsoft.com/en-us/library/ms527360.aspx
 static const struct _sClassMap {
@@ -405,12 +416,12 @@ HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 		// in the properties block for now (0x00069003)
 
 		switch(ulType) {
-		case 0x00069003: 
+		case ATT_MAPI_PROPS:
 			hr = HrReadPropStream((char *)lpBuffer, ulSize, lstProps);
 			if (hr != hrSuccess)
 				goto exit;
 			break;
-		case 0x00078008: /* PR_MESSAGE_CLASS */
+		case ATT_MESSAGE_CLASS: /* PR_MESSAGE_CLASS */
 			{
 				szSClass = new char[ulSize+1];
 				char *szMAPIClass = NULL;
@@ -447,7 +458,7 @@ HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 				m_lpMessage->SetProps(1, &sProp, NULL);
 			}
 			break;
-		case 0x00040009:/* PR_RESPONSE_REQUESTED */
+		case ATT_REQUEST_RES: /* PR_RESPONSE_REQUESTED */
 			if(ulSize == 2 && lpBuffer) {
 				sProp.ulPropTag = PR_RESPONSE_REQUESTED;
 				sProp.Value.b = (bool)(*(short*)lpBuffer);
@@ -456,7 +467,8 @@ HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 			break;
 
 // --- TNEF attachemnts ---
-		case 0x00069002:		// Start marker of attachment
+		case ATT_ATTACH_REND_DATA:
+			// Start marker of attachment
 		    if(ulSize == sizeof(struct AttachRendData) && lpBuffer) {
 		        struct AttachRendData *lpData = (AttachRendData *)lpBuffer;
 		        
@@ -473,7 +485,7 @@ HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
             }
 			break;
 
-		case 0x00018010:		// PR_ATTACH_FILENAME
+		case ATT_ATTACH_TITLE: // PR_ATTACH_FILENAME
 			if (!lpTnefAtt) {
 				hr = MAPI_E_CORRUPT_DATA;
 				goto exit;
@@ -488,7 +500,8 @@ HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 			lpTnefAtt->lstProps.push_back(lpProp);
 			break;
 
-		case 0x00068011:		// PR_ATTACH_RENDERING, extra icon information
+		case ATT_ATTACH_META_FILE:
+			// PR_ATTACH_RENDERING, extra icon information
 			if (!lpTnefAtt) {
 				hr = MAPI_E_CORRUPT_DATA;
 				goto exit;
@@ -504,7 +517,8 @@ HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 			lpTnefAtt->lstProps.push_back(lpProp);
 			break;
 
-		case 0x0006800f:		// PR_ATTACH_DATA_BIN, will be set via OpenProperty() in ECTNEF::Finish()
+		case ATT_ATTACH_DATA:
+			// PR_ATTACH_DATA_BIN, will be set via OpenProperty() in ECTNEF::Finish()
 			if (!lpTnefAtt) {
 				hr = MAPI_E_CORRUPT_DATA;
 				goto exit;
@@ -514,7 +528,7 @@ HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 			memcpy(lpTnefAtt->data, lpBuffer, ulSize);
 			break;
 
-		case 0x00069005:		// Attachment property stream
+		case ATT_ATTACHMENT: // Attachment property stream
 			if (!lpTnefAtt) {
 				hr = MAPI_E_CORRUPT_DATA;
 				goto exit;
