@@ -119,7 +119,9 @@ static string generateRandomMessageId()
 #define IDLEN 38
 	char id[IDLEN] = {0};
 	// the same format as the vmime generator, but with more randomness
-	snprintf(id, IDLEN, "kcim.%08x.%04x.%08x%08x", (unsigned int)time(NULL), getpid(), rand_mt(), rand_mt());
+	snprintf(id, IDLEN, "kcim.%lx.%x.%08x%08x",
+		static_cast<unsigned long>(time(NULL)), getpid(),
+		rand_mt(), rand_mt());
 	return string(id, strlen(id));
 #undef IDLEN
 }
