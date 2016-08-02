@@ -1236,18 +1236,15 @@ ECFileAttachment::~ECFileAttachment()
  */
 bool ECFileAttachment::ExistAttachmentInstance(ULONG ulInstanceId)
 {
-#	define z_stat stat
 	string filename = CreateAttachmentFilename(ulInstanceId, m_bFileCompression);
 
-	struct z_stat st;
-	if (z_stat(filename.c_str(), &st) == -1) {
+	struct stat st;
+	if (stat(filename.c_str(), &st) == -1) {
 		filename = CreateAttachmentFilename(ulInstanceId, !m_bFileCompression);
-
-		if (z_stat(filename.c_str(), &st) == -1)
+		if (stat(filename.c_str(), &st) == -1)
 			return false;
 	}
 	return true;
-#undef z_stat
 }
 
 /**
