@@ -216,6 +216,7 @@ class FolderImporter:
                         attach_text.append(plaintext.get(a, mimetype=a.mimetype, log=self.log))
                     attach_text.append(u' '+(a.filename or u''))
             doc['mapi4096'] = item.body.text + u' ' + u' '.join(attach_text) # PR_BODY
+            doc['mapi3098'] = u' '.join([item.sender.name, item.sender.email, item.from_.name, item.from_.email]) # PR_SENDER_NAME
             doc['mapi3588'] = u' '.join([a.name + u' ' + a.email for a in item.to]) # PR_DISPLAY_TO
             doc['mapi3587'] = u' '.join([a.name + u' ' + a.email for a in item.cc]) # PR_DISPLAY_CC
             doc['mapi3586'] = u' '.join([a.name + u' ' + a.email for a in item.bcc]) # PR_DISPLAY_BCC
@@ -223,7 +224,7 @@ class FolderImporter:
             db_put(self.mapping_db, item.sourcekey, '%s %s' % (storeid, item.folder.entryid)) # ICS doesn't remember which store a change belongs to..
             self.plugin.update(doc)
             self.term_cache_size += sum(len(v) for k, v in doc.iteritems() if k.startswith('mapi'))
-            if (8*self.term_cache_size) > self.config['term_cache_size']: # XXX profile to fine-tune factor
+            if (8*self.term_cache_size) > self.config['term_cache_size']:
                 self.plugin.commit(self.suggestions)
                 self.term_cache_size = 0
 

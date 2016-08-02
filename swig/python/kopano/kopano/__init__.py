@@ -2685,13 +2685,15 @@ class Item(object):
     def sender(self):
         """ Sender :class:`Address` """
 
-        return Address(self.server, *(self.prop(p).value for p in (PR_SENDER_ADDRTYPE_W, PR_SENDER_NAME_W, PR_SENDER_EMAIL_ADDRESS_W, PR_SENDER_ENTRYID)))
+        args = [self.get_prop(p).value if self.get_prop(p) else None for p in (PR_SENDER_ADDRTYPE_W, PR_SENDER_NAME_W, PR_SENDER_EMAIL_ADDRESS_W, PR_SENDER_ENTRYID)]
+        return Address(self.server, *args)
 
     @property
     def from_(self):
         """ From :class:`Address` """
 
-        return Address(self.server, *(self.prop(p).value for p in (PR_SENT_REPRESENTING_ADDRTYPE_W, PR_SENT_REPRESENTING_NAME_W, PR_SENT_REPRESENTING_EMAIL_ADDRESS_W, PR_SENT_REPRESENTING_ENTRYID)))
+        args = [self.get_prop(p).value if self.get_prop(p) else None for p in (PR_SENT_REPRESENTING_ADDRTYPE_W, PR_SENT_REPRESENTING_NAME_W, PR_SENT_REPRESENTING_EMAIL_ADDRESS_W, PR_SENT_REPRESENTING_ENTRYID)]
+        return Address(self.server, *args)
 
     @from_.setter
     def from_(self, addr):
