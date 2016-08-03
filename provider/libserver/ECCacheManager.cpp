@@ -104,18 +104,6 @@ ECCacheManager::ECCacheManager(ECConfig *lpConfig, ECDatabaseFactory *lpDatabase
 
 	/* Initial cleaning/initialization of cache */
 	PurgeCache(PURGE_CACHE_ALL);
-
-#ifdef HAVE_SPARSEHASH
-	// This is a requirement of sparse_hash_map. Since the value 0 is unused, we can use it as 'deleted' key
-	m_mapObjects.set_deleted_key(-1);
-	m_mapStores.set_deleted_key(-1);
-	m_mapACLs.set_deleted_key(-1);
-	m_mapQuota.set_deleted_key(-1);
-	m_mapUserObject.set_deleted_key(-1);
-	m_mapUserObjectDetails.set_deleted_key(-1);
-	m_mapCells.set_deleted_key(-1);
-#endif
-
 }
 
 ECCacheManager::~ECCacheManager()

@@ -34,16 +34,7 @@
 
 #include <kopano/ECKeyTable.h>
 
-#ifdef HAVE_SPARSEHASH
-#include <google/sparse_hash_map>
-#include <google/dense_hash_map>
-
-template <typename Key, typename T>
-struct hash_map {
-	typedef google::sparse_hash_map<Key,T> Type;
-};
-
-#elif __cplusplus >= 201100L
+#if __cplusplus >= 201100L
 #include <unordered_map>
 #define HASH_NAMESPACE std
 
@@ -263,9 +254,6 @@ class ECsCells _zcp_final : public ECsCacheEntry {
 public:
     ECsCells() : ECsCacheEntry() { 
     	m_bComplete = false; 
-#ifdef HAVE_SPARSEHASH    	
-    	mapPropVals.set_deleted_key(-1); 
-#endif    	
 	};
     ~ECsCells() {
 		std::map<unsigned int, struct propVal>::iterator i;
@@ -280,9 +268,6 @@ public:
             CopyPropVal((struct propVal *)&i->second, &val);
             mapPropVals[i->first] = val;
         }
-#ifdef HAVE_SPARSEHASH    	
-    	mapPropVals.set_deleted_key(-1); 
-#endif    	
         m_bComplete = src.m_bComplete;
     }
     
