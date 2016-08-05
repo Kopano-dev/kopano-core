@@ -1074,7 +1074,7 @@ void generic_sigsegv_handler(ECLogger *lpLogger, const char *app_name,
 	pthread_sigmask(SIG_UNBLOCK, &bset, NULL);
 	kill(getpid(), signr);
 	ec_log_warn("Killing self with signal had no effect; doing regular exit without coredump.");
-	exit(1);
+	_exit(1);
 }
 
 /**
