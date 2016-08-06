@@ -691,6 +691,19 @@ exit:
 	return er;
 }
 
+/**
+ * NSPR initialization is not properly guarded for threaded operation;
+ * so call it now before we create threads if it is part of the process image.
+ */
+static void nspr_thread_workaround(void)
+{
+	auto f = reinterpret_cast<void (*)(int, int, int)>(dlsym(NULL, "PR_Init"));
+	if (f == NULL)
+		return;
+	ec_log_warn("Calling NSPR's PR_Init now to workaround KC-104.");
+	f(0, 0, 0);
+}
+
 int main(int argc, char* argv[])
 {
 	int nReturn = 0;
@@ -783,6 +796,7 @@ int main(int argc, char* argv[])
 			break;
 		};
 	}
+	nspr_thread_workaround();
 	nReturn = running_server(argv[0], config, argc - optind, &argv[optind]);
 	return nReturn;
 }
