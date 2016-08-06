@@ -2123,7 +2123,8 @@ ECRESULT ECFileAttachment::GetSizeInstance(ULONG ulInstanceId, size_t *lpulSize,
 	 * We are always going to use the normal FILE handler for determining the file size,
 	 * the gzFile handler is broken since it doesn't support SEEK_END and gzseek itself
 	 * is very slow. When the attachment has been zipped, we are going to read the
-	 * last 4 bytes of the file, that contains the uncompressed filesize.
+	 * last 4 bytes of the file, which contain the uncompressed filesize
+	 * (provided that there is a single gzip stream).
 	 *
 	 * For uncompressed files we use fstat() which is the fastest as the inode is already
 	 * in memory due to the earlier open().
@@ -2170,6 +2171,11 @@ ECRESULT ECFileAttachment::GetSizeInstance(ULONG ulInstanceId, size_t *lpulSize,
 				goto exit;
 			}
 
+			if (st.st_size >= 40 && atsize == 0) {
+				ec_log_warn("ECFileAttachment: %s seems to be an unsupported multi-stream gzip file (KC-64).", filename.c_str());
+				//er = KCERR_DATABASE_ERROR;
+				goto exit;
+			}
 			*lpulSize = atsize;
 		} else {
 			*lpulSize = 0;
