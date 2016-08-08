@@ -192,14 +192,6 @@ ECRESULT kopano_exit()
 	return erSuccess;
 }
 
-#if 0
-static void kopano_resetstats(void)
-{
-	if (g_lpStatsCollector)
-		g_lpStatsCollector->Reset();
-}
-#endif
-
 /**
  * Called for each HTTP header in a request, handles the proxy header
  * and marks the connection as using the proxy if it is found. The value

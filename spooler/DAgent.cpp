@@ -3966,10 +3966,6 @@ int main(int argc, char *argv[]) {
 		const char *szConfig = ECConfig::GetDefaultPath("dagent.cfg");
 #else
 		char *szConfig = "dagent.cfg";
-#if 0
-		// FIXME
-		ECNTService ecNTService;
-#endif
 #endif
 
 	enum {

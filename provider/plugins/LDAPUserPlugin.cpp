@@ -494,20 +494,6 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn, const char *bind_pw) {
 			goto fail;
 		}
 
-#if 0		// OpenLDAP stupidly closes the connection when TLS is not configured on the server.
-#ifdef LINUX // Only available in Windows XP, so we can't use this on windows platform.
-#ifdef HAVE_LDAP_START_TLS_S
-		// Initialize TLS-secured connection - this is the first command
-		// after ldap_init, so it will be the call that actually connects
-		// to the server.
-		if ((rc = ldap_start_tls_s(ld, NULL, NULL)) != LDAP_SUCCESS) {
-			ec_log_err("Failed to enable TLS on LDAP session: %s", ldap_err2string(rc));
-			goto fail;
-		}
-#endif
-#endif
-#endif
-
 		// Bind
 		// For these two values: if they are both NULL, anonymous bind
 		// will be used (ldap_binddn, ldap_bindpw)
