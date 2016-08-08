@@ -1982,7 +1982,6 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager* lpCacheManager, 
 	unsigned int ulSearchStringSize;
 	ULONG ulPropType;
 	ULONG ulFuzzyLevel;
-	unsigned int ulScan, ulPos;
 	unsigned int ulSubRestrict = 0;
 	SUBRESTRICTIONRESULT::const_iterator iterSubResult;
 	entryId sEntryId;
@@ -2077,7 +2076,7 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager* lpCacheManager, 
 			fMatch = false;
 			break;
 		} else {
-			ulScan = 1;
+			unsigned int ulScan = 1;
 			if(ulPropTagRestrict & MV_FLAG)
 			{
 				if(PROP_TYPE(ulPropTagRestrict) == PT_MV_TSTRING)
@@ -2100,7 +2099,7 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager* lpCacheManager, 
 			// Default match is false
 			fMatch = false;
 
-			for (ulPos = 0; ulPos < ulScan; ++ulPos) {
+			for (unsigned int ulPos = 0; ulPos < ulScan; ++ulPos) {
 				if(ulPropTagRestrict & MV_FLAG)
 				{
 					if(PROP_TYPE(ulPropTagRestrict) == PT_MV_TSTRING)	{
@@ -2158,7 +2157,7 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager* lpCacheManager, 
 
 				if(fMatch)
 					break;
-			} // for (ulPos = 0; ulPos < ulScan; ++ulPos)
+			}
 		}
 		break;
 
@@ -3430,12 +3429,10 @@ void ECCategory::IncUnread() {
 size_t ECCategory::GetObjectSize(void) const
 {
 	size_t ulSize = 0;
-	unsigned int i;
 	
 	if (m_cProps > 0) {
 		ulSize += sizeof(struct propVal) * m_cProps;
-
-		for (i = 0; i < m_cProps; ++i)
+		for (unsigned int i = 0; i < m_cProps; ++i)
 			ulSize += PropSize(&m_lpProps[i]);
 	}
 

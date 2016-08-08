@@ -17,14 +17,12 @@
 
 #include <kopano/platform.h>
 
-// STL defines
 #include <exception>
 #include <set>
 #include <string>
 #include <list>
 #include <map>
 
-// mapi defines
 #include <mapidefs.h>
 #include <mapitags.h>
 #include <kopano/mapiext.h>
@@ -1384,13 +1382,12 @@ ECRESULT MapEntryIdToObjectId(ECSession *lpecSession, ECDatabase *lpDatabase, UL
 ECRESULT UpdateFolderCounts(ECDatabase *lpDatabase, ULONG ulParentId, ULONG ulFlags, propValArray *lpModProps)
 {
 	ECRESULT er = erSuccess;
-	struct propVal *lpPropMessageFlags = NULL;	// non-free
 	
 	if (ulFlags & MAPI_ASSOCIATED)
 		er = UpdateFolderCount(lpDatabase, ulParentId, PR_ASSOC_CONTENT_COUNT, 1);
 	else {
 		er = UpdateFolderCount(lpDatabase, ulParentId, PR_CONTENT_COUNT, 1);
-	
+		struct propVal *lpPropMessageFlags = NULL;
 		lpPropMessageFlags = FindProp(lpModProps, PR_MESSAGE_FLAGS);
 		if (er == erSuccess && (!lpPropMessageFlags || (lpPropMessageFlags->Value.ul & MSGFLAG_READ) == 0))
 			er = UpdateFolderCount(lpDatabase, ulParentId, PR_CONTENT_UNREAD, 1);
