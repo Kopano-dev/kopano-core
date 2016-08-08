@@ -60,7 +60,7 @@ void sync_logon_times(ECDatabase *db)
 	ltm_offtime_mutex.lock();
 	decltype(ltm_offtime_cache) logoff_time = std::move(ltm_offtime_cache);
 	ltm_offtime_mutex.unlock();
-	ec_log_warn("Writing out logon/logoff time cache (%zu/%zu entries) to DB",
+	ec_log_debug("Writing out logon/logoff time cache (%zu/%zu entries) to DB",
 		logon_time.size(), logoff_time.size());
 
 	for (const auto &i : logon_time)
