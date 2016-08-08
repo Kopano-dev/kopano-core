@@ -1,0 +1,8 @@
+The server.cfg server_ssl_key_file and admin.cfg sslkey_file variable are to
+point to a file containing a "PRIVATE KEY" and one or more "CERTIFICATE"
+sections. ["TRUSTED CERTIFICATE"?] A depth zero self-signed certificate can
+be generated using `openssl req -x509 -nodes -newkey rsa`.
+
+The server.cfg sslkeys_path must point to a directory which contains "PUBLIC
+KEY" files for the corresponding allowed client certificate(s). These can be
+generated per certificate using `openssl rsa -in client.private.key -pubout`.
