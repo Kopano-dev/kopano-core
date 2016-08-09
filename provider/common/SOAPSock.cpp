@@ -19,6 +19,7 @@
 #include "SOAPSock.h"
 #include <sys/un.h>
 #include "SOAPUtils.h"
+#include <kopano/ECLogger.h>
 #include <kopano/stringutil.h>
 #include <kopano/CommonUtil.h>
 #include <string>
@@ -28,6 +29,14 @@
 #include <kopano/charset/utf8string.h>
 
 using namespace std;
+
+/*
+ * The structure of the data stored in soap->user on the _client_ side.
+ * (cf. SOAPUtils.h for server side.)
+ */
+struct KCmdData {
+	SOAP_SOCKET (*orig_fopen)(struct soap *, const char *, const char *, int);
+};
 
 static int ssl_zvcb_index = -1;	// the index to get our custom data
 
@@ -102,6 +111,23 @@ static int gsoap_connect_pipe(struct soap *soap, const char *endpoint,
    	return SOAP_OK;
 }
 
+static SOAP_SOCKET kc_client_connect(struct soap *soap, const char *ep,
+    const char *host, int port)
+{
+	auto si = reinterpret_cast<struct KCmdData *>(soap->user);
+	if (si == NULL)
+		return -1;
+	auto fopen = si->orig_fopen;
+	delete si;
+	if (fopen == NULL)
+		return -1;
+	soap->user = NULL;
+	if (soap->ctx != NULL)
+		SSL_CTX_set_ex_data(soap->ctx, ssl_zvcb_index,
+			static_cast<void *>(const_cast<char *>(host)));
+	return (*fopen)(soap, ep, host, port);
+}
+
 HRESULT CreateSoapTransport(ULONG ulUIFlags,
 	const char *strServerPath,
 	const char *strSSLKeyFile,
@@ -117,6 +143,7 @@ HRESULT CreateSoapTransport(ULONG ulUIFlags,
 	KCmd **lppCmd)
 {
 	KCmd*	lpCmd = NULL;
+	struct KCmdData *si;
 
 	if (strServerPath == NULL || *strServerPath == '\0' || lppCmd == NULL)
 		return E_INVALIDARG;
@@ -176,6 +203,16 @@ HRESULT CreateSoapTransport(ULONG ulUIFlags,
 		lpCmd->soap->connect_timeout = ulConnectionTimeOut;
 	}
 
+	if (lpCmd->soap->user != NULL)
+		ec_log_warn("Hmm. SOAP object custom data is already set.");
+	si = new(std::nothrow) struct KCmdData;
+	if (si == NULL) {
+		ec_log_err("alloc: %s\n", strerror(errno));
+		return E_OUTOFMEMORY;
+	}
+	si->orig_fopen = lpCmd->soap->fopen;
+	lpCmd->soap->user = si;
+	lpCmd->soap->fopen = kc_client_connect;
 	*lppCmd = lpCmd;
 	return hrSuccess;
 }
@@ -193,8 +230,77 @@ VOID DestroySoapTransport(KCmd *lpCmd)
 	delete lpCmd;
 }
 
+/**
+ * @cn:		the common name (can be a pattern)
+ * @host:	the host we are connecting to
+ */
+static bool kc_wildcard_cmp(const char *cn, const char *host)
+{
+	while (*cn != '\0' && *host != '\0') {
+		if (*cn == '*') {
+			++cn;
+			for (; *host != '\0' && *host != '.'; ++host)
+				if (kc_wildcard_cmp(cn, host))
+					return true;
+			continue;
+		}
+		if (tolower(*cn) != tolower(*host))
+			return false;
+		++cn;
+		++host;
+	}
+	return *cn == '\0' && *host == '\0';
+}
+
+static int kc_ssl_check_name(X509_STORE_CTX *store)
+{
+	auto ssl = static_cast<SSL *>(X509_STORE_CTX_get_ex_data(store, SSL_get_ex_data_X509_STORE_CTX_idx()));
+	if (ssl == NULL) {
+		ec_log_warn("Unable to get SSL object from store");
+		return false;
+	}
+	auto ctx = SSL_get_SSL_CTX(ssl);
+	if (ctx == NULL) {
+		ec_log_warn("Unable to get SSL context from SSL object");
+		return false;
+	}
+	auto cert = X509_STORE_CTX_get_current_cert(store);
+	if (cert == NULL) {
+		ec_log_warn("No certificate found in connection. What gives?");
+		return false;
+	}
+	auto name = X509_get_subject_name(cert);
+	const char *subject = NULL;
+	if (name != NULL) {
+		auto i = X509_NAME_get_index_by_NID(name, NID_commonName, -1);
+		if (i != -1)
+			subject = reinterpret_cast<const char *>(ASN1_STRING_data(X509_NAME_ENTRY_get_data(X509_NAME_get_entry(name, i))));
+	}
+	if (subject == NULL) {
+		ec_log_err("Server presented no X.509 Subject name. Aborting login.");
+		return false;
+	}
+	auto hostname = static_cast<const char *>(SSL_CTX_get_ex_data(ctx, ssl_zvcb_index));
+	if (hostname == NULL) {
+		ec_log_err("Internal fluctuation - no hostname in our SSL context. Aborting login.");
+		return false;
+	}
+	if (kc_wildcard_cmp(subject, hostname)) {
+		ec_log_debug("Server %s presented matching certificate for %s.",
+			hostname, subject);
+		return true;
+	}
+	ec_log_err("Server %s presented non-matching certificate for %s. "
+		"Aborting login.", hostname, subject);
+	return false;
+}
+
 int ssl_verify_callback_kopano_silent(int ok, X509_STORE_CTX *store)
 {
+	if (!kc_ssl_check_name(store)) {
+		X509_STORE_CTX_set_error(store, X509_V_ERR_CERT_REJECTED);
+		ok = 0;
+	}
 	int sslerr;
 
 	if (ok == 0)
