@@ -627,9 +627,9 @@ bool CHtmlEntity::validateHtmlEntity(const std::wstring &strEntity)
 		return false;
 	
 	std::wstring str;
-	int base = 10;
 
 	if (strEntity[1] == '#') {
+		int base = 10;
 		str = strEntity.substr(2, pos-2);
 
 		if(str[0] == 'x')

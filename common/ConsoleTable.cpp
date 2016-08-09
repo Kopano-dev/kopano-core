@@ -199,19 +199,18 @@ void ConsoleTable::DumpRow(const vector<wstring>& vRow)
  */
 void ConsoleTable::PrintTable()
 {
-	size_t nRow, nCol;
-	size_t total;
-
 	if (bHaveHeader) {
 		PrintRow(m_vHeader);
-		total = 0;
-		for (nCol = 0; nCol < m_iColumns; ++nCol)
+		size_t total = 0;
+
+		for (size_t nCol = 0; nCol < m_iColumns; ++nCol)
 			total += m_vMaxLengths[nCol];
+
 		total += (m_iColumns -1) * 8;
 		cout << "\t" << string(total, '-') << endl;
 	}
 
-	for (nRow = 0; nRow < m_nRow; ++nRow)
+	for (size_t nRow = 0; nRow < m_nRow; ++nRow)
 		PrintRow(m_vTable[nRow]);
 }
 

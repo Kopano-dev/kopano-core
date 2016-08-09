@@ -102,7 +102,6 @@ ECTableRow::ECTableRow(sObjectTableKey sKey, unsigned int ulSortCols,
 void ECTableRow::initSortCols(unsigned int ulSortCols, const int *lpSortLen,
     const unsigned char *lpFlags, unsigned char **lppSortData)
 {
-	unsigned int i=0;
 	int len = 0;
 
 	this->ulSortCols = ulSortCols;
@@ -122,7 +121,7 @@ void ECTableRow::initSortCols(unsigned int ulSortCols, const int *lpSortLen,
 		memcpy(this->lpSortLen, lpSortLen, sizeof(unsigned int) * ulSortCols);
 
 	// Copy sort keys
-	for (i = 0; i < ulSortCols; ++i) {
+	for (unsigned int i = 0; i < ulSortCols; ++i) {
 		len = lpSortLen[i];
 		len = len < 0 ? -len : len;
 

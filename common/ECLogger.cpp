@@ -815,7 +815,6 @@ ECLogger* StartLoggerProcess(ECConfig* lpConfig, ECLogger* lpLogger) {
 	ECLogger_Pipe *lpPipeLogger = NULL;
 	int filefd;
 	int pipefds[2];
-	int t, i;
 	pid_t child = 0;
 
 	if (lpFileLogger == NULL)
@@ -833,8 +832,8 @@ ECLogger* StartLoggerProcess(ECConfig* lpConfig, ECLogger* lpLogger) {
 
 	if (child == 0) {
 		// close all files except the read pipe and the logfile
-		t = getdtablesize();
-		for (i = 3; i < t; ++i) {
+		int t = getdtablesize();
+		for (int i = 3; i < t; ++i) {
 			if (i == pipefds[0] || i == filefd) continue;
 			close(i);
 		}
