@@ -68,8 +68,6 @@ class CHtmlToTextParser {
 		goto fail;
 }
 
-bool ConvertFileFromUCS2ToUTF8(const std::string &, const std::string &);
-
 // some common/rtfutil.h functions
 HRESULT HrExtractHTMLFromRTF(std::string lpStrRTFIn, std::string &OUTPUT, ULONG ulCodepage);
 HRESULT HrExtractHTMLFromTextRTF(std::string lpStrRTFIn, std::string &OUTPUT, ULONG ulCodepage);
