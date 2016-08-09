@@ -24,8 +24,8 @@
 #include <kopano/ECIConv.h>
 #include <kopano/ECLogger.h>
 
-#include <mapicode.h> // only for MAPI error codes
-#include <mapidefs.h> // only for MAPI error codes
+#include <mapicode.h>
+#include <mapidefs.h>
 
 #ifdef LINUX
 #include <sys/mman.h>
