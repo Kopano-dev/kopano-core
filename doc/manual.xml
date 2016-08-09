@@ -2388,6 +2388,25 @@
 		<variablelist>
 		  <varlistentry>
 			<term>
+			  <option>--verbose</option>
+			  <replaceable>level</replaceable>
+			</term>
+			<listitem>
+			  <para>Set the verbosity level (0=critical, …, 6=debug).</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term>
+			  <option>-v</option>
+			</term>
+			<listitem>
+			  <para>Increases the verbosity level by one, up to the maximum of 6.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term>
 			  <option>-U</option>
 			  <replaceable>'new username'</replaceable>
 			</term>
