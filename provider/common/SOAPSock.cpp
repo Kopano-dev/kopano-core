@@ -147,9 +147,8 @@ HRESULT CreateSoapTransport(ULONG ulUIFlags,
 		}
 
 		// set connection string as callback information
-		if (ssl_zvcb_index == -1) {
+		if (ssl_zvcb_index == -1)
 			ssl_zvcb_index = SSL_get_ex_new_index(0, NULL, NULL, NULL, NULL);
-		}
 		// callback data will be set right before tcp_connect()
 
 		// set our own certificate check function

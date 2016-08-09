@@ -271,9 +271,8 @@ HRESULT IMAP::HrSplitInput(const string &strInput, vector<string> &vWords) {
 			if (uSpecialCount > 0)
 				--uSpecialCount;
 		} else if (uSpecialCount == 0) {
-			if (findPos > beginPos) {
+			if (findPos > beginPos)
 				vWords.push_back(strInput.substr(beginPos, findPos - beginPos));
-			}
 			beginPos = findPos + 1;
 		}
 
@@ -281,10 +280,8 @@ HRESULT IMAP::HrSplitInput(const string &strInput, vector<string> &vWords) {
 		findPos = strInput.find_first_of("\"()[] ", currentPos);
 	}
 
-	if (beginPos < strInput.size()) {
+	if (beginPos < strInput.size())
 		vWords.push_back(strInput.substr(beginPos));
-	}
-
 	return hrSuccess;
 }
 
@@ -431,17 +428,15 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 	// process {} and end of line
 
 	if (strCommand.compare("CAPABILITY") == 0) {
-		if (!strvResult.empty()) {
+		if (!strvResult.empty())
 			hr = HrResponse(RESP_TAGGED_BAD, strTag, "CAPABILITY must have 0 arguments");
-		} else {
+		else
 			hr = HrCmdCapability(strTag);
-		}
 	} else if (strCommand.compare("NOOP") == 0) {
-		if (!strvResult.empty()) {
+		if (!strvResult.empty())
 			hr = HrResponse(RESP_TAGGED_BAD, strTag, "NOOP must have 0 arguments");
-		} else {
+		else
 			hr = HrCmdNoop(strTag);
-		}
 	} else if (strCommand.compare("LOGOUT") == 0) {
 		if (!strvResult.empty()) {
 			hr = HrResponse(RESP_TAGGED_BAD, strTag, "LOGOUT must have 0 arguments");
@@ -455,74 +450,63 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 			hr = HrResponse(RESP_TAGGED_BAD, strTag, "STARTTLS must have 0 arguments");
 		} else {
 			hr = HrCmdStarttls(strTag);
-			if (hr != hrSuccess) {
+			if (hr != hrSuccess)
 				// log ?
 				// let the gateway quit from the socket read loop
 				hr = MAPI_E_END_OF_SESSION;
-			}
 		}
 	} else if (strCommand.compare("AUTHENTICATE") == 0) {
-		if (strvResult.size() == 1) {
+		if (strvResult.size() == 1)
 			hr = HrCmdAuthenticate(strTag, strvResult[0], string());
-		} else if (strvResult.size() == 2) {
+		else if (strvResult.size() == 2)
 			hr = HrCmdAuthenticate(strTag, strvResult[0], strvResult[1]);
-		} else {
+		else
 			hr = HrResponse(RESP_TAGGED_BAD, strTag, "AUTHENTICATE must have 1 or 2 arguments");
-		}
 	} else if (strCommand.compare("LOGIN") == 0) {
-		if (strvResult.size() != 2) {
+		if (strvResult.size() != 2)
 			hr = HrResponse(RESP_TAGGED_BAD, strTag, "LOGIN must have 2 arguments");
-		} else {
+		else
 			hr = HrCmdLogin(strTag, strvResult[0], strvResult[1]);
-		}
 	} else if (strCommand.compare("SELECT") == 0) {
-		if (strvResult.size() != 1) {
+		if (strvResult.size() != 1)
 			hr = HrResponse(RESP_TAGGED_BAD, strTag, "SELECT must have 1 argument");
-		} else {
+		else
 			hr = HrCmdSelect(strTag, strvResult[0], false);
-		}
 	} else if (strCommand.compare("EXAMINE") == 0) {
-		if (strvResult.size() != 1) {
+		if (strvResult.size() != 1)
 			hr = HrResponse(RESP_TAGGED_BAD, strTag, "EXAMINE must have 1 argument");
-		} else {
+		else
 			hr = HrCmdSelect(strTag, strvResult[0], true);
-		}
 	} else if (strCommand.compare("CREATE") == 0) {
-		if (strvResult.size() != 1) {
+		if (strvResult.size() != 1)
 			hr = HrResponse(RESP_TAGGED_BAD, strTag, "CREATE must have 1 argument");
-		} else {
+		else
 			hr = HrCmdCreate(strTag, strvResult[0]);
-		}
 	} else if (strCommand.compare("DELETE") == 0) {
-		if (strvResult.size() != 1) {
+		if (strvResult.size() != 1)
 			hr = HrResponse(RESP_TAGGED_BAD, strTag, "DELETE must have 1 argument");
-		} else {
+		else
 			hr = HrCmdDelete(strTag, strvResult[0]);
-		}
 	} else if (strCommand.compare("RENAME") == 0) {
-		if (strvResult.size() != 2) {
+		if (strvResult.size() != 2)
 			hr = HrResponse(RESP_TAGGED_BAD, strTag, "RENAME must have 2 arguments");
-		} else {
+		else
 			hr = HrCmdRename(strTag, strvResult[0], strvResult[1]);
-		}
 	} else if (strCommand.compare("SUBSCRIBE") == 0) {
-		if (strvResult.size() != 1) {
+		if (strvResult.size() != 1)
 			hr = HrResponse(RESP_TAGGED_BAD, strTag, "SUBSCRIBE must have 1 arguments");
-		} else {
+		else
 			hr = HrCmdSubscribe(strTag, strvResult[0], true);
-		}
 	} else if (strCommand.compare("UNSUBSCRIBE") == 0) {
-		if (strvResult.size() != 1) {
+		if (strvResult.size() != 1)
 			hr = HrResponse(RESP_TAGGED_BAD, strTag, "UNSUBSCRIBE must have 1 arguments");
-		} else {
+		else
 			hr = HrCmdSubscribe(strTag, strvResult[0], false);
-		}
 	} else if (strCommand.compare("LIST") == 0) {
-		if (strvResult.size() != 2) {
+		if (strvResult.size() != 2)
 			hr = HrResponse(RESP_TAGGED_BAD, strTag, "LIST must have 2 arguments");
-		} else {
+		else
 			hr = HrCmdList(strTag, strvResult[0], strvResult[1], false);
-		}
 	} else if (strCommand.compare("LSUB") == 0) {
 		if (strvResult.size() != 2) {
 			hr = HrResponse(RESP_TAGGED_BAD, strTag, "LSUB must have 2 arguments");
@@ -530,11 +514,10 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 			hr = HrCmdList(strTag, strvResult[0], strvResult[1], true);
 		}
 	} else if (strCommand.compare("STATUS") == 0) {
-		if (strvResult.size() != 2) {
+		if (strvResult.size() != 2)
 			hr = HrResponse(RESP_TAGGED_BAD, strTag, "STATUS must have 2 arguments");
-		} else {
+		else
 			hr = HrCmdStatus(strTag, strvResult[0], strvResult[1]);
-		}
 	} else if (strCommand.compare("APPEND") == 0) {
 		if (strvResult.size() == 2) {
 			hr = HrCmdAppend(strTag, strvResult[0], strvResult[1]);
@@ -550,77 +533,65 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 			hr = HrResponse(RESP_TAGGED_BAD, strTag, "APPEND must have 2, 3 or 4 arguments");
 		}
 	} else if (strCommand.compare("CHECK") == 0) {
-		if (!strvResult.empty()) {
+		if (!strvResult.empty())
 			hr = HrResponse(RESP_TAGGED_BAD, strTag, "CHECK must have 0 arguments");
-		} else {
+		else
 			hr = HrCmdCheck(strTag);
-		}
 	} else if (strCommand.compare("CLOSE") == 0) {
-		if (!strvResult.empty()) {
+		if (!strvResult.empty())
 			hr = HrResponse(RESP_TAGGED_BAD, strTag, "CLOSE must have 0 arguments");
-		} else {
+		else
 			hr = HrCmdClose(strTag);
-		}
 	} else if (strCommand.compare("EXPUNGE") == 0) {
-		if (!strvResult.empty()) {
+		if (!strvResult.empty())
 			hr = HrResponse(RESP_TAGGED_BAD, strTag, "EXPUNGE must have 0 arguments");
-		} else {
+		else
 			hr = HrCmdExpunge(strTag, string());
-		}
 	} else if (strCommand.compare("SEARCH") == 0) {
-		if (strvResult.empty()) {
+		if (strvResult.empty())
 			hr = HrResponse(RESP_TAGGED_BAD, strTag, "SEARCH must have 1 or more arguments");
-		} else {
+		else
 			hr = HrCmdSearch(strTag, strvResult, false);
-		}
 	} else if (strCommand.compare("FETCH") == 0) {
-		if (strvResult.size() != 2) {
+		if (strvResult.size() != 2)
 			hr = HrResponse(RESP_TAGGED_BAD, strTag, "FETCH must have 2 arguments");
-		} else {
+		else
 			hr = HrCmdFetch(strTag, strvResult[0], strvResult[1], false);
-		}
 	} else if (strCommand.compare("STORE") == 0) {
-		if (strvResult.size() != 3) {
+		if (strvResult.size() != 3)
 			hr = HrResponse(RESP_TAGGED_BAD, strTag, "STORE must have 3 arguments");
-		} else {
+		else
 			hr = HrCmdStore(strTag, strvResult[0], strvResult[1], strvResult[2], false);
-		}
 	} else if (strCommand.compare("COPY") == 0) {
-		if (strvResult.size() != 2) {
+		if (strvResult.size() != 2)
 			hr = HrResponse(RESP_TAGGED_BAD, strTag, "COPY must have 2 arguments");
-		} else {
+		else
 			hr = HrCmdCopy(strTag, strvResult[0], strvResult[1], false);
-		}
 	} else if (strCommand.compare("IDLE") == 0) {
-		if (!strvResult.empty()) {
+		if (!strvResult.empty())
 			hr = HrResponse(RESP_TAGGED_BAD, strTag, "IDLE must have 0 arguments");
-		} else {
+		else
 			hr = HrCmdIdle(strTag);
-		}
 	} else if (strCommand.compare("NAMESPACE") == 0) {
-		if (!strvResult.empty()) {
+		if (!strvResult.empty())
 			hr = HrResponse(RESP_TAGGED_BAD, strTag, "NAMESPACE must have 0 arguments");
-		} else {
+		else
 			hr = HrCmdNamespace(strTag);
-		}
 	} else if (strCommand.compare("GETQUOTAROOT") == 0) {
-		if (strvResult.size() != 1) {
+		if (strvResult.size() != 1)
 			hr = HrResponse(RESP_TAGGED_BAD, strTag, "GETQUOTAROOT must have 1 arguments");
-		} else {
+		else
 			hr = HrCmdGetQuotaRoot(strTag, strvResult[0]);
-		}
 	} else if (strCommand.compare("GETQUOTA") == 0) {
-		if (strvResult.size() != 1) {
+		if (strvResult.size() != 1)
 			hr = HrResponse(RESP_TAGGED_BAD, strTag, "GETQUOTA must have 1 arguments");
-		} else {
+		else
 			hr = HrCmdGetQuota(strTag, strvResult[0]);
-		}
 	} else if (strCommand.compare("SETQUOTA") == 0) {
-		if (strvResult.size() != 2) {
+		if (strvResult.size() != 2)
 			hr = HrResponse(RESP_TAGGED_BAD, strTag, "SETQUOTA must have 2 arguments");
-		} else {
+		else
 			hr = HrCmdSetQuota(strTag, strvResult[0], strvResult[1]);
-		}
 	} else if (strCommand.compare("UID") == 0) {
 		if (strvResult.empty())
 			return HrResponse(RESP_TAGGED_BAD, strTag,
@@ -631,41 +602,35 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 		ToUpper(strCommand);
 
 		if (strCommand.compare("SEARCH") == 0) {
-			if (strvResult.empty()) {
+			if (strvResult.empty())
 				hr = HrResponse(RESP_TAGGED_BAD, strTag, "UID SEARCH must have 1 or more arguments");
-			} else {
+			else
 				hr = HrCmdSearch(strTag, strvResult, true);
-			}
 		} else if (strCommand.compare("FETCH") == 0) {
-			if (strvResult.size() != 2) {
+			if (strvResult.size() != 2)
 				hr = HrResponse(RESP_TAGGED_BAD, strTag, "UID FETCH must have 2 arguments");
-			} else {
+			else
 				hr = HrCmdFetch(strTag, strvResult[0], strvResult[1], true);
-			}
 		} else if (strCommand.compare("STORE") == 0) {
-			if (strvResult.size() != 3) {
+			if (strvResult.size() != 3)
 				hr = HrResponse(RESP_TAGGED_BAD, strTag, "UID STORE must have 3 arguments");
-			} else {
+			else
 				hr = HrCmdStore(strTag, strvResult[0], strvResult[1], strvResult[2], true);
-			}
 		} else if (strCommand.compare("COPY") == 0) {
-			if (strvResult.size() != 2) {
+			if (strvResult.size() != 2)
 				hr = HrResponse(RESP_TAGGED_BAD, strTag, "UID COPY must have 2 arguments");
-			} else {
+			else
 				hr = HrCmdCopy(strTag, strvResult[0], strvResult[1], true);
-			}
 		} else if (strCommand.compare("XAOL-MOVE") == 0) {
-			if (strvResult.size() != 2) {
+			if (strvResult.size() != 2)
 				hr = HrResponse(RESP_TAGGED_BAD, strTag, "UID XAOL-MOVE must have 2 arguments");
-			} else {
+			else
 				hr = HrCmdUidXaolMove(strTag, strvResult[0], strvResult[1]);
-			}
 		} else if (strCommand.compare("EXPUNGE") == 0) {
-			if (strvResult.size() != 1) {
+			if (strvResult.size() != 1)
 				hr = HrResponse(RESP_TAGGED_BAD, strTag, "UID EXPUNGE must have 1 argument");
-			} else {
+			else
 				hr = HrCmdExpunge(strTag, strvResult[0]);
-			}
 		} else {
 			hr = HrResponse(RESP_TAGGED_BAD, strTag, "UID Command not supported");
 		}
@@ -1601,9 +1566,9 @@ HRESULT IMAP::HrCmdList(const string &strTag, string strReferenceFolder, const s
 	// ignore error
 	
 	// add trailing delimiter to strReferenceFolder
-	if (!strReferenceFolder.empty() && strReferenceFolder[strReferenceFolder.length()-1] != IMAP_HIERARCHY_DELIMITER) {
+	if (!strReferenceFolder.empty() &&
+	    strReferenceFolder[strReferenceFolder.length()-1] != IMAP_HIERARCHY_DELIMITER)
 		strReferenceFolder += IMAP_HIERARCHY_DELIMITER;
-	}
 
 	strReferenceFolder += strFindFolder;
 	hr = IMAP2MAPICharset(strReferenceFolder, strPattern);
@@ -1645,16 +1610,14 @@ HRESULT IMAP::HrCmdList(const string &strTag, string strReferenceFolder, const s
 			strResponse = (string)"\"" + IMAP_HIERARCHY_DELIMITER + "\" \"" + strResponse + "\""; // prepend folder delimiter
 
 			strListProps = strAction+" (";
-			if (!iFld->bMailFolder) {
+			if (!iFld->bMailFolder)
 				strListProps += "\\Noselect ";
-			}
 			if (!bSubscribedOnly) {
 				// don't list flag on LSUB command
-				if (iFld->bHasSubfolders) {
+				if (iFld->bHasSubfolders)
 					strListProps += "\\HasChildren";
-				} else {
+				else
 					strListProps += "\\HasNoChildren";
-				}
 			}
 			strListProps += ") ";
 
@@ -2593,48 +2556,39 @@ std::string IMAP::PropsToFlags(LPSPropValue lpProps, unsigned int cValues, bool 
 	const SPropValue *lpMsgStatus = PpropFindProp(lpProps, cValues, PR_MSG_STATUS);
 	const SPropValue *lpLastVerb = PpropFindProp(lpProps, cValues, PR_LAST_VERB_EXECUTED);
 
-	if ((lpMessageFlags && lpMessageFlags->Value.ul & MSGFLAG_READ) || bRead) {
+	if ((lpMessageFlags != NULL &&
+	    lpMessageFlags->Value.ul & MSGFLAG_READ) || bRead)
 		strFlags += "\\Seen ";
-	}
-
-	if (lpFlagStatus && lpFlagStatus->Value.ul != 0) {
+	if (lpFlagStatus != NULL && lpFlagStatus->Value.ul != 0)
 		strFlags += "\\Flagged ";
-	}
 
 	if (lpLastVerb) {
-		if ((lpLastVerb->Value.ul == NOTEIVERB_REPLYTOSENDER || lpLastVerb->Value.ul == NOTEIVERB_REPLYTOALL)) {
+		if (lpLastVerb->Value.ul == NOTEIVERB_REPLYTOSENDER ||
+		    lpLastVerb->Value.ul == NOTEIVERB_REPLYTOALL)
 			strFlags += "\\Answered ";
-		}
 
 		// there is no flag in imap for forwards. thunderbird uses the custom flag $Forwarded,
 		// and this is the only custom flag we support.
-		if (lpLastVerb->Value.ul == NOTEIVERB_FORWARD) {
+		if (lpLastVerb->Value.ul == NOTEIVERB_FORWARD)
 			strFlags += "$Forwarded ";
-		}
 	}
 
 	if (lpMsgStatus) {
-		if (lpMsgStatus->Value.ul & MSGSTATUS_DRAFT) {
+		if (lpMsgStatus->Value.ul & MSGSTATUS_DRAFT)
 			strFlags += "\\Draft ";
-		}
-
-		if (!lpLastVerb && lpMsgStatus->Value.ul & MSGSTATUS_ANSWERED) {
+		if (lpLastVerb == NULL &&
+		    lpMsgStatus->Value.ul & MSGSTATUS_ANSWERED)
 			strFlags += "\\Answered ";
-		}
-
-		if (lpMsgStatus->Value.ul & MSGSTATUS_DELMARKED) {
+		if (lpMsgStatus->Value.ul & MSGSTATUS_DELMARKED)
 			strFlags += "\\Deleted ";
-		}
 	}
 	
 	if (bRecent)
 	    strFlags += "\\Recent ";
 	
 	// strip final space
-	if (!strFlags.empty()) {
+	if (!strFlags.empty())
 		strFlags.resize(strFlags.size() - 1);
-	}
-
 	return strFlags;
 }
 
@@ -2688,9 +2642,8 @@ LONG __stdcall IMAPIdleAdviseCallback(void *lpContext, ULONG cNotif, LPNOTIFICAT
 			sMail.sInstanceKey = BinaryArray(lpNotif[i].info.tab.propIndex.Value.bin);
 			sMail.bRecent = true;
 
-			if (lpNotif[i].info.tab.row.lpProps[IMAPID].ulPropTag == PR_EC_IMAP_ID) {
+			if (lpNotif[i].info.tab.row.lpProps[IMAPID].ulPropTag == PR_EC_IMAP_ID)
 				sMail.ulUid = lpNotif[i].info.tab.row.lpProps[IMAPID].Value.ul;
-			}
 
 			sMail.strFlags = lpIMAP->PropsToFlags(lpNotif[i].info.tab.row.lpProps, lpNotif[i].info.tab.row.cValues, true, false);
 			lpIMAP->lstFolderMailEIDs.push_back(sMail);
@@ -3216,15 +3169,11 @@ HRESULT IMAP::HrGetFolderList(list<SFolder> &lstFolders) {
 
 	// make folders list from IPM_SUBTREE
 	hr = HrGetSubTree(lstFolders, lpPropVal->Value.bin, wstring(), lstFolders.end());
-	if (hr != hrSuccess) {
+	if (hr != hrSuccess)
 		goto exit;
-	}
-
 	hr = lpStore->GetReceiveFolder((LPTSTR)"IPM", 0, &cbEntryID, &lpEntryID, NULL);
-	if (hr != hrSuccess) {
+	if (hr != hrSuccess)
 		goto exit;
-	}
-
 	// find the inbox, and name it INBOX
 	for (auto &folder : lstFolders)
 		if (cbEntryID == folder.sEntryID.cb && memcmp(folder.sEntryID.lpb, lpEntryID, cbEntryID) == 0) {
@@ -3628,11 +3577,9 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, bool bS
                 bNewMail = true;
                 
                 // Remember the first unseen message
-                if(ulUnseen == 0) {
-                    if(lpRows->aRow[ulMailnr].lpProps[FLAGS].ulPropTag == PR_MESSAGE_FLAGS && (lpRows->aRow[ulMailnr].lpProps[FLAGS].Value.ul & MSGFLAG_READ) == 0) {
+                if (ulUnseen == 0 &&
+                    lpRows->aRow[ulMailnr].lpProps[FLAGS].ulPropTag == PR_MESSAGE_FLAGS && (lpRows->aRow[ulMailnr].lpProps[FLAGS].Value.ul & MSGFLAG_READ) == 0)
                         ulUnseen = lstFolderMailEIDs.size()-1+1; // size()-1 = last offset, mail ID = position + 1
-                    }
-                }
             } else {
                 // Check flags
                 std::string strFlags = PropsToFlags(lpRows->aRow[ulMailnr].lpProps, lpRows->aRow[ulMailnr].cValues, lstFolderMailEIDs[iterUID->second].bRecent, false);
@@ -3870,13 +3817,12 @@ exit:
 HRESULT IMAP::HrGetDataItems(string strMsgDataItemNames, vector<string> &lstDataItems) {
 	// translate macro's
 	ToUpper(strMsgDataItemNames);
-	if (strMsgDataItemNames.compare("ALL") == 0) {
+	if (strMsgDataItemNames.compare("ALL") == 0)
 		strMsgDataItemNames = "FLAGS INTERNALDATE RFC822.SIZE ENVELOPE";
-	} else if (strMsgDataItemNames.compare("FAST") == 0) {
+	else if (strMsgDataItemNames.compare("FAST") == 0)
 		strMsgDataItemNames = "FLAGS INTERNALDATE RFC822.SIZE";
-	} else if (strMsgDataItemNames.compare("FULL") == 0) {
+	else if (strMsgDataItemNames.compare("FULL") == 0)
 		strMsgDataItemNames = "FLAGS INTERNALDATE RFC822.SIZE ENVELOPE BODY";
-	}
 
 	// split data items
 	if (strMsgDataItemNames.size() > 1 && strMsgDataItemNames[0] == '(') {
@@ -4206,29 +4152,26 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 	for (auto iFetch = lstDataItems.cbegin();
 	     bSkipOpen && iFetch != lstDataItems.cend(); ++iFetch)
 	{
-		if (iFetch->compare("BODY") == 0) {
+		if (iFetch->compare("BODY") == 0)
 			bSkipOpen = PpropFindProp(lpProps, cValues, PR_EC_IMAP_BODY) != NULL;
-		} else if (iFetch->compare("BODYSTRUCTURE") == 0) {
+		else if (iFetch->compare("BODYSTRUCTURE") == 0)
 			bSkipOpen = PpropFindProp(lpProps, cValues, PR_EC_IMAP_BODYSTRUCTURE) != NULL;
-		} else if (iFetch->compare("ENVELOPE") == 0) {
+		else if (iFetch->compare("ENVELOPE") == 0)
 			bSkipOpen = PpropFindProp(lpProps, cValues, m_lpsIMAPTags->aulPropTag[0]) != NULL;
-		} else if (iFetch->compare("RFC822.SIZE") == 0) {
+		else if (iFetch->compare("RFC822.SIZE") == 0)
 			bSkipOpen = PpropFindProp(lpProps, cValues, PR_EC_IMAP_EMAIL_SIZE) != NULL;
-		} else if (strstr(iFetch->c_str(), "HEADER") != NULL) {
+		else if (strstr(iFetch->c_str(), "HEADER") != NULL)
 			// we can only use PR_TRANSPORT_MESSAGE_HEADERS when we have the full email.
 			bSkipOpen = (PpropFindProp(lpProps, cValues, PR_TRANSPORT_MESSAGE_HEADERS_A) != NULL &&
 						 PpropFindProp(lpProps, cValues, PR_EC_IMAP_EMAIL_SIZE) != NULL);
-		}
 		// full/partial body fetches, or size
-		else if (Prefix(*iFetch, "BODY") || Prefix(*iFetch, "RFC822")) {
+		else if (Prefix(*iFetch, "BODY") || Prefix(*iFetch, "RFC822"))
 			bSkipOpen = false;
-		}
 	}
-	if (!bSkipOpen && m_ulCacheUID != lstFolderMailEIDs[ulMailnr].ulUid) {
+	if (!bSkipOpen && m_ulCacheUID != lstFolderMailEIDs[ulMailnr].ulUid)
 		// ignore error, we can't print an error halfway to the imap client
 		lpSession->OpenEntry(lstFolderMailEIDs[ulMailnr].sEntryID.cb, (LPENTRYID) lstFolderMailEIDs[ulMailnr].sEntryID.lpb,
 							 &IID_IMessage, MAPI_DEFERRED_ERRORS, &ulObjType, (LPUNKNOWN *) &lpMessage);
-	}
 
 	// Handle requested properties
 	for (const auto &item : lstDataItems) {
@@ -4252,11 +4195,10 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 			if (!lpProp)
 				lpProp = PpropFindProp(lpProps, cValues, PR_CREATION_TIME);
 
-			if (lpProp) {
+			if (lpProp != NULL)
 				vProps.push_back("\"" + FileTimeToString(lpProp->Value.ft) + "\"");
-			} else {
+			else
 				vProps.push_back("NIL");
-			}
 		} else if (item.compare("UID") == 0) {
 			vProps.push_back(item);
 			vProps.push_back(stringify(lstFolderMailEIDs[ulMailnr].ulUid));
@@ -4296,13 +4238,12 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 
 			// mapping with RFC822 to BODY[* requests
 			strItem = item;
-			if (strItem.compare("RFC822") == 0) {
+			if (strItem.compare("RFC822") == 0)
 				strItem = "BODY[]";
-			} else if (strItem.compare("RFC822.TEXT") == 0) {
+			else if (strItem.compare("RFC822.TEXT") == 0)
 				strItem = "BODY[TEXT]";
-			} else if (strItem.compare("RFC822.HEADER") == 0) {
+			else if (strItem.compare("RFC822.HEADER") == 0)
 				strItem = "BODY[HEADER]";
-			}
 
 			// structure only, take shortcut if we have it
 			if (strItem.find('[') == string::npos) {
@@ -4340,12 +4281,11 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 
 				if (sopt.headers_only && bSkipOpen) {
 					lpProp = PpropFindProp(lpProps, cValues, PR_TRANSPORT_MESSAGE_HEADERS_A);
-					if(lpProp) {
+					if (lpProp != NULL)
 						strMessage = lpProp->Value.lpszA;
-					} else {
+					else
 						// still need to convert message 
 						hr = MAPI_E_NOT_FOUND;
-					}
 				} else {
 					// If we have the full body, download that property
 					lpProp = PpropFindProp(lpProps, cValues, PR_EC_IMAP_EMAIL_SIZE);
@@ -4437,11 +4377,10 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 				if (ulPos != string::npos)
 					strParts.erase(ulPos);
 
-				if (Prefix(item, "BODY")) {
+				if (Prefix(item, "BODY"))
 					vProps.push_back("BODY[" + strParts + "]");
-				} else {
+				else
 					vProps.push_back("RFC822." + strParts);
-				}
 
 				// Get the correct message part (1.2.3, TEXT, HEADER, 1.2.3.TEXT, 1.2.3.HEADER)
 				HrGetMessagePart(strMessagePart, strMessage, strParts);
@@ -5257,9 +5196,8 @@ HRESULT IMAP::HrStore(const list<ULONG> &lstMails, string strMsgDataItemName, st
 	for (auto mail_idx : lstMails) {
 		hr = lpSession->OpenEntry(lstFolderMailEIDs[mail_idx].sEntryID.cb, (LPENTRYID) lstFolderMailEIDs[mail_idx].sEntryID.lpb,
 								&IID_IMessage, MAPI_MODIFY, &ulObjType, (LPUNKNOWN *) &lpMessage);
-		if (hr != hrSuccess) {
+		if (hr != hrSuccess)
 			goto exit;
-		}
 
 		// FLAGS, FLAGS.SILENT, +FLAGS, +FLAGS.SILENT, -FLAGS, -FLAGS.SILENT
 		if (strMsgDataItemName.compare(0, 5, "FLAGS") == 0) {
@@ -5294,11 +5232,10 @@ HRESULT IMAP::HrStore(const list<ULONG> &lstMails, string strMsgDataItemName, st
 			cValues = 5;
 
 			lpPropVal[1].ulPropTag = PR_FLAG_STATUS;
-			if (strMsgDataItemValue.find("\\FLAGGED") == string::npos) {
+			if (strMsgDataItemValue.find("\\FLAGGED") == string::npos)
 				lpPropVal[1].Value.ul = 0;
-			} else {
+			else
 				lpPropVal[1].Value.ul = 2;
-			}
 
 			if (lpPropVal[2].ulPropTag != PR_ICON_INDEX) {
 				lpPropVal[2].ulPropTag = PR_ICON_INDEX;
@@ -5528,9 +5465,9 @@ HRESULT IMAP::HrStore(const list<ULONG> &lstMails, string strMsgDataItemName, st
 
 	} // loop on mails
 
-	if (strMsgDataItemName.size() > 7 && strMsgDataItemName.compare(strMsgDataItemName.size() - 7, 7, ".SILENT") == 0) {
+	if (strMsgDataItemName.size() > 7 &&
+	    strMsgDataItemName.compare(strMsgDataItemName.size() - 7, 7, ".SILENT") == 0)
 		hr = MAPI_E_NOT_ME;		// abuse error code that will not be used elsewhere from this function
-	}
 	if (lpbDoDelete)
 		*lpbDoDelete = bDelete;
 
@@ -5684,15 +5621,11 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 		mapUIDs[e.ulUid] = n++;
 
 	hr = HrFindFolder(strCurrentFolder, bCurrentFolderReadOnly, &lpFolder);
-	if (hr != hrSuccess) {
+	if (hr != hrSuccess)
 		goto exit;
-	}
-
 	hr = lpFolder->GetContentsTable(MAPI_DEFERRED_ERRORS, &lpTable);
-	if (hr != hrSuccess) {
+	if (hr != hrSuccess)
 		goto exit;
-	}
-
 	hr = MAPIAllocateBuffer(sizeof(SRestriction), (LPVOID *) &lpRootRestrict);
 	if (hr != hrSuccess)
 		goto exit;
@@ -6842,29 +6775,22 @@ FILETIME IMAP::StringToFileTime(string strTime, bool bDateOnly) {
 	// 01-Jan-2006 00:00:00 +0000
 	if (strTime.size() < 2)
 		goto done;
-	
-	if(strTime.at(1) == '-'){
+	if (strTime.at(1) == '-')
 		strTime = " " + strTime;
-	}
 
 	// day of month
-	if(strTime.at(0) == ' '){
+	if (strTime.at(0) == ' ')
 		sTm.tm_mday = atoi(strTime.substr(1, 1).c_str());
-	}else{
+	else
 		sTm.tm_mday = atoi(strTime.substr(0, 2).c_str());
-	}
 	// month name 3 chars
 	if (strTime.size() < 6)
 		goto done;
 
 	sTm.tm_mon = 0;
-	for (ulMonth = 0; ulMonth < 12; ++ulMonth) {
-		if (CaseCompare(strMonth[ulMonth],strTime.substr(3, 3))) {
+	for (ulMonth = 0; ulMonth < 12; ++ulMonth)
+		if (CaseCompare(strMonth[ulMonth],strTime.substr(3, 3)))
 			sTm.tm_mon = ulMonth;
-		}
-	}
-	
-	    
 	if (strTime.size() < 11)
 		goto done;
 
@@ -7157,11 +7083,10 @@ void IMAP::HrParseHeaders(const string &strHeaders, list<pair<string, string> > 
     while(1) {
         end = strHeaders.find("\r\n", pos);
         
-        if(end == string::npos) {
-            strLine = strHeaders.substr(pos);
-        } else {
-            strLine = strHeaders.substr(pos, end-pos);
-        }
+		if (end == string::npos)
+			strLine = strHeaders.substr(pos);
+		else
+			strLine = strHeaders.substr(pos, end-pos);
 		if (strLine.empty())
 			break;				// parsed all headers
 
