@@ -410,7 +410,6 @@ LegacyProcessor::LegacyProcessor(unsigned int ulChangeId, unsigned int ulSyncId,
 ECRESULT LegacyProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags)
 {
 	unsigned int			ulMsgFlags = 0;
-	MESSAGESET::iterator	iterMessage;
 
 	// When we get here we're accepting a message that has matched the restriction (or if there was no
 	// restriction). However since we have legacy, this messages might be present already, in which
@@ -421,8 +420,8 @@ ECRESULT LegacyProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, un
 	
 	*lpulFlags = 0;
 	ulMsgFlags = atoui(lpDBRow[icsMsgFlags]);
-	iterMessage = m_setMessages.find(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey]));
-	if (iterMessage == m_setMessages.end()) {
+	auto iterMessage = m_setMessages.find(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey]));
+	if (iterMessage == m_setMessages.cend()) {
 		// The message is not synced yet!
 		unsigned int ulSourceSync = (lpDBRow[icsSourceSync] ? atoui(lpDBRow[icsSourceSync]) : 0);
 		if (ulMsgFlags & MSGFLAG_DELETED || (ulSourceSync != 0 && ulSourceSync == m_ulSyncId))		// Deleted or created by current client
@@ -458,8 +457,6 @@ ECRESULT LegacyProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, un
 
 ECRESULT LegacyProcessor::ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType)
 {
-	MESSAGESET::iterator	iterMessage;
-
 	// When we get here we're rejecting a message that has not-matched the restriction. 
 	// However since we have legacy, this messages might not be present anyway, in which
 	// case we need to do nothing.
@@ -467,8 +464,8 @@ ECRESULT LegacyProcessor::ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, un
 	ASSERT(lpDBRow && lpDBRow[icsSourceKey] && lpDBRow[icsChangeType] && lpDBRow[icsMsgFlags]);
 	ASSERT(atoui(lpDBRow[icsChangeType]) == ICS_MESSAGE_NEW);
 	
-	iterMessage = m_setMessages.find(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey]));
-	if (iterMessage == m_setMessages.end()) {
+	auto iterMessage = m_setMessages.find(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey]));
+	if (iterMessage == m_setMessages.cend()) {
 		// The message is not synced yet!
 		*lpulChangeType = 0;	// Ignore
 		ec_log(EC_LOGLEVEL_ICS, "LegacyRejected: not synced, sourcekey=%s, changetype=%d", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str(), *lpulChangeType);
@@ -1081,8 +1078,6 @@ exit:
 
 ECRESULT ECGetContentChangesHelper::GetSyncedMessages(unsigned int ulSyncId, unsigned int ulChangeId, LPMESSAGESET lpsetMessages)
 {
-	typedef std::pair<MESSAGESET::iterator, bool> insert_result;
-
 	ECRESULT		er = erSuccess;
 	std::string		strSubQuery;
 	std::string		strQuery;
@@ -1102,8 +1097,6 @@ ECRESULT ECGetContentChangesHelper::GetSyncedMessages(unsigned int ulSyncId, uns
 		goto exit;
 		
 	while ((lpDBRow = m_lpDatabase->FetchRow(lpDBResult))) {
-		insert_result	iResult;
-
 		lpDBLen = m_lpDatabase->FetchRowLengths(lpDBResult);
 		if (lpDBRow == NULL || lpDBLen == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL) {
 			er = KCERR_DATABASE_ERROR; // this should never happen
@@ -1111,7 +1104,7 @@ ECRESULT ECGetContentChangesHelper::GetSyncedMessages(unsigned int ulSyncId, uns
 			goto exit;
 		}
 
-		iResult = lpsetMessages->insert(MESSAGESET::value_type(SOURCEKEY(lpDBLen[0], lpDBRow[0]), SAuxMessageData(SOURCEKEY(lpDBLen[1], lpDBRow[1]), 1 << (lpDBRow[2]?atoui(lpDBRow[2]):0), lpDBRow[3]?atoui(lpDBRow[3]):0)));
+		auto iResult = lpsetMessages->insert(MESSAGESET::value_type(SOURCEKEY(lpDBLen[0], lpDBRow[0]), SAuxMessageData(SOURCEKEY(lpDBLen[1], lpDBRow[1]), 1 << (lpDBRow[2]?atoui(lpDBRow[2]):0), lpDBRow[3]?atoui(lpDBRow[3]):0)));
 		if (iResult.second == false && lpDBRow[2]) {
 			iResult.first->second.ulChangeTypes |= 1 << (lpDBRow[2]?atoui(lpDBRow[2]):0);
 		}

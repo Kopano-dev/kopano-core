@@ -102,12 +102,11 @@ ECNotificationManager::~ECNotificationManager()
 // Called by the SOAP handler
 HRESULT ECNotificationManager::AddRequest(ECSESSIONID ecSessionId, struct soap *soap)
 {
-    std::map<ECSESSIONID, NOTIFREQUEST>::const_iterator iterRequest;
     struct soap *lpItem = NULL;
     
     pthread_mutex_lock(&m_mutexRequests);
-    iterRequest = m_mapRequests.find(ecSessionId);
-    if(iterRequest != m_mapRequests.end()) {
+	auto iterRequest = m_mapRequests.find(ecSessionId);
+	if (iterRequest != m_mapRequests.cend()) {
         // Hm. There is already a SOAP request waiting for this session id. Apparently a second SOAP connection has now
         // requested notifications. Since this should only happen if the client thinks it has lost its connection and has
         // restarted the request, we will replace the existing request with this one.
@@ -175,7 +174,6 @@ void *ECNotificationManager::Work() {
     struct notifyResponse notifications;
 
     std::set<ECSESSIONID> setActiveSessions;
-    std::map<ECSESSIONID, NOTIFREQUEST>::iterator iterRequest;
     struct soap *lpItem;
     time_t ulNow = 0;
     
@@ -209,9 +207,8 @@ void *ECNotificationManager::Work() {
             pthread_mutex_lock(&m_mutexRequests);
             
             // Find the request for the session that had something to say
-            iterRequest = m_mapRequests.find(ses);
-            
-            if(iterRequest != m_mapRequests.end()) {
+            auto iterRequest = m_mapRequests.find(ses);
+            if (iterRequest != m_mapRequests.cend()) {
                 // Reset notification response to default values
 #if GSOAP_VERSION > 20816
                 soap_default_notifyResponse(iterRequest->second.soap, &notifications);
