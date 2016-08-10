@@ -650,14 +650,9 @@ std::list<std::string> LDAPUserPlugin::GetClasses(const char *lpszClasses)
 
 bool LDAPUserPlugin::MatchClasses(std::set<std::string> setClasses, std::list<std::string> lstClasses)
 {
-	std::list<std::string>::const_iterator i;
-
-	for (i = lstClasses.begin(); i!=lstClasses.end(); ++i) {
-		std::string upcase = strToUpper(*i);
-		if (setClasses.find(upcase) == setClasses.end())
+	for (const auto &cls : lstClasses)
+		if (setClasses.find(strToUpper(cls)) == setClasses.cend())
 			return false;
-	}
-
 	return true;
 }
 
@@ -672,11 +667,9 @@ std::string LDAPUserPlugin::GetObjectClassFilter(const char *lpszObjectClassAttr
 		filter = (std::string)"(" + lpszObjectClassAttr + "=" + *lstObjectClasses.begin() + ")";
 	}
 	else {
-		std::list<std::string>::const_iterator i;
 		filter = "(&";
-
-		for (i = lstObjectClasses.begin(); i != lstObjectClasses.end(); ++i)
-			filter += (std::string)"(" + lpszObjectClassAttr + "=" + *i + ")";
+		for (const auto &cls : lstObjectClasses)
+			filter += (std::string)"(" + lpszObjectClassAttr + "=" + cls + ")";
 		filter += ")";
 	}
 
@@ -869,7 +862,6 @@ LDAPUserPlugin::getAllObjectsByFilter(const std::string &basedn, int scope,
 	string					signature;
 
 	map<objectclass_t, dn_cache_t*> mapDNCache;
-	std::map<objectclass_t, dn_cache_t *>::const_iterator iterDNCache;
 	std::unique_ptr<dn_list_t> dnFilter;
 
 	auto_free_ldap_message res;
@@ -939,7 +931,7 @@ LDAPUserPlugin::getAllObjectsByFilter(const std::string &basedn, int scope,
 				retval = mapDNCache.insert(make_pair(objectid.objclass, (dn_cache_t*)NULL));
 				if (retval.second)
 					retval.first->second = new dn_cache_t();
-				iterDNCache = retval.first;
+				auto iterDNCache = retval.first;
 				iterDNCache->second->insert(make_pair(objectid, dn));
 			}
 		}
@@ -948,9 +940,8 @@ LDAPUserPlugin::getAllObjectsByFilter(const std::string &basedn, int scope,
 	END_FOREACH_LDAP_PAGING
 
 	/* Update cache */
-	for (iterDNCache = mapDNCache.begin(); iterDNCache != mapDNCache.end(); ++iterDNCache)
-		m_lpCache->setObjectDNCache(iterDNCache->first, std::unique_ptr<dn_cache_t>(iterDNCache->second));
-
+	for (const auto &p : mapDNCache)
+		m_lpCache->setObjectDNCache(p.first, std::unique_ptr<dn_cache_t>(p.second));
 	return signatures;
 }
 
@@ -3166,11 +3157,10 @@ std::unique_ptr<abprops_t> LDAPUserPlugin::getExtraAddressbookProperties(void)
 {
 	std::unique_ptr<abprops_t> lProps(new abprops_t());
 	list<configsetting_t> lExtraAttrs = m_config->GetSettingGroup(CONFIGGROUP_PROPMAP);
-	std::list<configsetting_t>::const_iterator i;
 
 	LOG_PLUGIN_DEBUG("%s", __FUNCTION__);
-	for (i = lExtraAttrs.begin(); i != lExtraAttrs.end(); ++i)
-		lProps->push_back(xtoi(i->szName));
+	for (const auto &cs : lExtraAttrs)
+		lProps->push_back(xtoi(cs.szName));
 
 	return lProps;
 }

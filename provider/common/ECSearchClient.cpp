@@ -36,7 +36,6 @@ ECRESULT ECSearchClient::GetProperties(setindexprops_t &setProps)
 	ECRESULT er;
 	std::vector<std::string> lstResponse;
 	std::vector<std::string> lstProps;
-	std::vector<std::string>::const_iterator iter;
 
 	er = DoCmd("PROPS", lstResponse);
 	if (er != erSuccess)
@@ -48,8 +47,8 @@ ECRESULT ECSearchClient::GetProperties(setindexprops_t &setProps)
 
 	lstProps = tokenize(lstResponse[0], " ");
 
-	for (iter = lstProps.begin(); iter != lstProps.end(); ++iter)
-		setProps.insert(atoui(iter->c_str()));
+	for (const auto &s : lstProps)
+		setProps.insert(atoui(s.c_str()));
 	return erSuccess;
 }
 

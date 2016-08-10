@@ -2168,16 +2168,14 @@ BOOL DynamicPropTagArray::HasPropTag(unsigned int ulPropTag) const {
 }
 
 ECRESULT DynamicPropTagArray::GetPropTagArray(struct propTagArray *lpsPropTagArray) {
-    std::list<unsigned int>::const_iterator i;
-    int n = 0;
+	size_t n = 0;
     
     lpsPropTagArray->__size = m_lstPropTags.size();
     lpsPropTagArray->__ptr = s_alloc<unsigned int>(m_soap, lpsPropTagArray->__size);
     
-	for (i = m_lstPropTags.begin(); i != m_lstPropTags.end(); ++i)
-		lpsPropTagArray->__ptr[n++] = *i;
-    
-    return erSuccess;
+	for (auto tag : m_lstPropTags)
+		lpsPropTagArray->__ptr[n++] = tag;
+	return erSuccess;
 }
 
 /**

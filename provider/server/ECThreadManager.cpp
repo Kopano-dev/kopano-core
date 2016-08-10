@@ -710,8 +710,6 @@ ECRESULT ECDispatcherSelect::MainLoop()
 {
 	ECRESULT er = erSuccess;
 	ECWatchDog *lpWatchDog = NULL;
-	std::map<int, ACTIVESOCKET>::iterator iterSockets;
-	std::map<int, struct soap *>::const_iterator iterListenSockets;
     int maxfds = 0;
     char s = 0;
     time_t now;
@@ -739,24 +737,21 @@ ECRESULT ECDispatcherSelect::MainLoop()
         pthread_mutex_lock(&m_mutexSockets);
 
         // Listen on active sockets
-        iterSockets = m_setSockets.begin();
-        while(iterSockets != m_setSockets.end()) {
-            ulType = SOAP_CONNECTION_TYPE(iterSockets->second.soap);
-            if(ulType != CONNECTION_TYPE_NAMED_PIPE && ulType != CONNECTION_TYPE_NAMED_PIPE_PRIORITY && (now - (time_t)iterSockets->second.ulLastActivity > m_nRecvTimeout)) {
-                // Socket has been inactive for more than server_recv_timeout seconds, close the socket
-				shutdown(iterSockets->second.soap->socket, SHUT_RDWR);
-            }
+		for (const auto &p : m_setSockets) {
+			ulType = SOAP_CONNECTION_TYPE(p.second.soap);
+			if (ulType != CONNECTION_TYPE_NAMED_PIPE &&
+			    ulType != CONNECTION_TYPE_NAMED_PIPE_PRIORITY &&
+				now - static_cast<time_t>(p.second.ulLastActivity) > m_nRecvTimeout)
+				// Socket has been inactive for more than server_recv_timeout seconds, close the socket
+				shutdown(p.second.soap->socket, SHUT_RDWR);
             
-            FD_SET(iterSockets->second.soap->socket, &readfds);
-            maxfds = max(maxfds, iterSockets->second.soap->socket);
-            ++iterSockets;
+			FD_SET(p.second.soap->socket, &readfds);
+			maxfds = max(maxfds, p.second.soap->socket);
         }
         // Listen on listener sockets
-        for (iterListenSockets = m_setListenSockets.begin();
-             iterListenSockets != m_setListenSockets.end();
-             ++iterListenSockets) {
-			FD_SET(iterListenSockets->second->socket, &readfds);
-            maxfds = max(maxfds, iterListenSockets->second->socket);
+		for (const auto &p : m_setListenSockets) {
+			FD_SET(p.second->socket, &readfds);
+			maxfds = max(maxfds, p.second->socket);
         }
         pthread_mutex_unlock(&m_mutexSockets);
         		
@@ -778,8 +773,8 @@ ECRESULT ECDispatcherSelect::MainLoop()
         pthread_mutex_lock(&m_mutexSockets);
         
         // Search for activity on active sockets
-        iterSockets = m_setSockets.begin();
-        while(n && iterSockets != m_setSockets.end()) {
+	auto iterSockets = m_setSockets.cbegin();
+	while (n != 0 && iterSockets != m_setSockets.cend()) {
             if(FD_ISSET(iterSockets->second.soap->socket, &readfds)) {
                 // Activity on a TCP/pipe socket
                 
@@ -809,16 +804,13 @@ ECRESULT ECDispatcherSelect::MainLoop()
         pthread_mutex_unlock(&m_mutexSockets);
 
         // Search for activity on listen sockets
-        for (iterListenSockets = m_setListenSockets.begin();
-             iterListenSockets != m_setListenSockets.end();
-             ++iterListenSockets)
-        {
-            if(FD_ISSET(iterListenSockets->second->socket, &readfds)) {
+		for (const auto &p : m_setListenSockets) {
+			if (FD_ISSET(p.second->socket, &readfds)) {
                 struct soap *newsoap;
                 ACTIVESOCKET sActive;
                 
-                newsoap = soap_copy(iterListenSockets->second);
-                kopano_new_soap_connection(SOAP_CONNECTION_TYPE(iterListenSockets->second), newsoap);
+				newsoap = soap_copy(p.second);
+				kopano_new_soap_connection(SOAP_CONNECTION_TYPE(p.second), newsoap);
                 
                 if(newsoap == NULL) {
                     m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to accept new connection: out of memory");
@@ -828,7 +820,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
                 // Record last activity (now)
                 time(&sActive.ulLastActivity);
 
-        		ulType = SOAP_CONNECTION_TYPE(iterListenSockets->second);
+				ulType = SOAP_CONNECTION_TYPE(p.second);
                 if(ulType == CONNECTION_TYPE_NAMED_PIPE || ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY) {
                     int socket = accept(newsoap->master, NULL, 0);
                     newsoap->socket = socket;
@@ -895,19 +887,15 @@ ECRESULT ECDispatcherSelect::MainLoop()
     pthread_mutex_unlock(&m_mutexItems);
 
 	// Close all listener sockets. 
-	for (iterListenSockets = m_setListenSockets.begin();
-	     iterListenSockets != m_setListenSockets.end();
-	     ++iterListenSockets) {
-		kopano_end_soap_listener(iterListenSockets->second); 
-		soap_free(iterListenSockets->second);
+	for (const auto &p : m_setListenSockets) {
+		kopano_end_soap_listener(p.second);
+		soap_free(p.second);
 	}
 	// Close all sockets. This will cause all that we were listening on clients to get an EOF
 	pthread_mutex_lock(&m_mutexSockets);
-	for (iterSockets = m_setSockets.begin();
-	     iterSockets != m_setSockets.end();
-	     ++iterSockets) {
-		kopano_end_soap_connection(iterSockets->second.soap); 
-		soap_free(iterSockets->second.soap);
+	for (const auto &p : m_setSockets) {
+		kopano_end_soap_connection(p.second.soap);
+		soap_free(p.second.soap);
 	}
 	pthread_mutex_unlock(&m_mutexSockets);
     

@@ -262,18 +262,15 @@ void objectdetails_t::MergeFrom(const objectdetails_t &from) {
 size_t objectdetails_t::GetObjectSize(void)
 {
 	size_t ulSize = sizeof(*this);
-	property_map::const_iterator i;
-	property_mv_map::const_iterator mvi;
-	std::list<std::string>::const_iterator istr;
 
 	ulSize += MEMORY_USAGE_MAP(m_mapProps.size(), property_map);
-	for (i = m_mapProps.begin(); i != m_mapProps.end(); ++i)
-		ulSize += MEMORY_USAGE_STRING(i->second);
+	for (const auto &p : m_mapProps)
+		ulSize += MEMORY_USAGE_STRING(p.second);
 
 	ulSize += MEMORY_USAGE_MAP(m_mapMVProps.size(), property_mv_map);
-	for (mvi = m_mapMVProps.begin(); mvi != m_mapMVProps.end(); ++mvi)
-		for (istr = mvi->second.begin(); istr != mvi->second.end(); ++istr)
-			ulSize += MEMORY_USAGE_STRING((*istr));
+	for (const auto &p : m_mapMVProps)
+		for (const auto &s : p.second)
+			ulSize += MEMORY_USAGE_STRING(s);
 	return ulSize;
 }
 

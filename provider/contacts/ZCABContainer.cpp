@@ -678,7 +678,6 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 #define TCOLS 9
 	SizedSPropTagArray(TCOLS, sptaCols) = {TCOLS, {PR_ENTRYID, PR_STORE_ENTRYID, PR_DISPLAY_NAME_W, PR_OBJECT_TYPE, PR_CONTAINER_FLAGS, PR_DISPLAY_TYPE, PR_AB_PROVIDER_ID, PR_DEPTH, PR_INSTANCE_KEY}};
 	enum {ENTRYID = 0, STORE_ENTRYID, DISPLAY_NAME, OBJECT_TYPE, CONTAINER_FLAGS, DISPLAY_TYPE, AB_PROVIDER_ID, DEPTH, INSTANCE_KEY, ROWID};
-	std::vector<zcabFolderEntry>::const_iterator iter;
 	ULONG ulInstance = 0;
 	SPropValue sProps[TCOLS + 1];
 	convert_context converter;
@@ -702,10 +701,10 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 
 	if (m_lpFolders) {
 		// create hierarchy with folders from user stores
-		for (iter = m_lpFolders->begin(); iter != m_lpFolders->end(); ++iter, ++ulInstance) {
+		for (const auto &folder : *m_lpFolders) {
 			std::string strName;
 			cabEntryID *lpEntryID = NULL;
-			ULONG cbEntryID = CbNewCABENTRYID(iter->cbFolder);
+			ULONG cbEntryID = CbNewCABENTRYID(folder.cbFolder);
 
 			hr = MAPIAllocateBuffer(cbEntryID, (void**)&lpEntryID);
 			if (hr != hrSuccess)
@@ -715,7 +714,7 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 			memcpy(&lpEntryID->muid, &MUIDZCSAB, sizeof(MAPIUID));
 			lpEntryID->ulObjType = MAPI_ABCONT;
 			lpEntryID->ulOffset = 0;
-			memcpy(lpEntryID->origEntryID, iter->lpFolder, iter->cbFolder);
+			memcpy(lpEntryID->origEntryID, folder.lpFolder, folder.cbFolder);
 
 			sProps[ENTRYID].ulPropTag = sptaCols.aulPropTag[ENTRYID];
 			sProps[ENTRYID].Value.bin.cb = cbEntryID;
@@ -727,10 +726,10 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 			sProps[DISPLAY_NAME].ulPropTag = sptaCols.aulPropTag[DISPLAY_NAME];
 			if ((ulFlags & MAPI_UNICODE) == 0) {
 				sProps[DISPLAY_NAME].ulPropTag = PR_DISPLAY_NAME_A;
-				strName = converter.convert_to<std::string>(iter->strwDisplayName);
+				strName = converter.convert_to<std::string>(folder.strwDisplayName);
 				sProps[DISPLAY_NAME].Value.lpszA = (char*)strName.c_str();
 			} else {
-				sProps[DISPLAY_NAME].Value.lpszW = (WCHAR*)iter->strwDisplayName.c_str();
+				sProps[DISPLAY_NAME].Value.lpszW = const_cast<wchar_t *>(folder.strwDisplayName.c_str());
 			}
 
 			sProps[OBJECT_TYPE].ulPropTag = sptaCols.aulPropTag[OBJECT_TYPE];
@@ -762,6 +761,7 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 
 			if (hr != hrSuccess)
 				goto exit;
+			++ulInstance;
 		}
 	} else if (!m_lpContactFolder) {
 		// only if not using a contacts folder, which should make the contents table. so this would return an empty hierarchy table, which is true.

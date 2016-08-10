@@ -440,7 +440,6 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 	ECRESULT er = erSuccess;
 	std::unique_ptr<signatures_t> objectlist(new signatures_t());
 	std::unique_ptr<signatures_t> objects;
-	signatures_t::const_iterator iterObjs;
 	map<objectclass_t, string> objectstrings;
 	std::map<objectclass_t, string>::const_iterator iterStrings;
 	DB_RESULT_AUTOFREE lpResult(m_lpDatabase);
@@ -486,10 +485,10 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 		return objectlist;
 
 	// Distribute all objects over the various types
-	for (iterObjs = objectlist->begin(); iterObjs != objectlist->end(); ++iterObjs) {
-		if (!objectstrings[iterObjs->id.objclass].empty())
-			objectstrings[iterObjs->id.objclass] += ", ";
-		objectstrings[iterObjs->id.objclass] += iterObjs->id.id;
+	for (const auto &obj : *objectlist) {
+		if (!objectstrings[obj.id.objclass].empty())
+			objectstrings[obj.id.objclass] += ", ";
+		objectstrings[obj.id.objclass] += obj.id.id;
 	}
 
 	// make list of obsolete objects
@@ -879,22 +878,20 @@ UnixUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 {
 	std::unique_ptr<std::map<objectid_t, objectdetails_t> > mapdetails(new map<objectid_t, objectdetails_t>());
 	std::unique_ptr<objectdetails_t> uDetails;
-	list<objectid_t>::const_iterator iterID;
 	objectdetails_t details;
 
 	if (objectids.empty())
 		return mapdetails;
 
-	for (iterID = objectids.begin(); iterID != objectids.end(); ++iterID) {
+	for (const auto &id : objectids) {
 		try {
-			uDetails = this->getObjectDetails(*iterID);
+			uDetails = this->getObjectDetails(id);
 		}
 		catch (objectnotfound &e) {
 			// ignore not found error
 			continue;
 		}
-
-		(*mapdetails)[*iterID] = (*uDetails.get());
+		(*mapdetails)[id] = (*uDetails.get());
 	}
     
     return mapdetails;

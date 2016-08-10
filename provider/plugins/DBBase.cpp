@@ -302,10 +302,7 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 	bool bFirstDel = true;
 	string strData;
 	property_map anonymousProps;
-	property_map::const_iterator iterAnonymous;
 	property_mv_map anonymousMVProps;
-	property_mv_map::const_iterator iterMVAnonymous;
-	std::list<std::string>::const_iterator iterProps;
 	unsigned int ulOrderId = 0;
 
 	struct props sUserValidProps[] = {
@@ -348,11 +345,10 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 
 		bFirstOne = true;
 
-		for (iterProps = lpDeleteProps->begin();
-		     iterProps != lpDeleteProps->end(); ++iterProps) {
+		for (const auto &prop : *lpDeleteProps) {
 			if (!bFirstOne)
 				strDeleteQuery += ",";
-			strDeleteQuery += *iterProps;
+			strDeleteQuery += prop;
 			bFirstOne = false;
 		}
 
@@ -415,19 +411,18 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 
 	/* Load optional anonymous attributes */
 	anonymousProps = details.GetPropMapAnonymous();
-	for (iterAnonymous = anonymousProps.begin();
-	     iterAnonymous != anonymousProps.end(); ++iterAnonymous) {
-		if (!iterAnonymous->second.empty()) {
+	for (const auto &ap : anonymousProps) {
+		if (!ap.second.empty()) {
 			if (!bFirstOne)
 				strQuery += ",";
-			if (PROP_TYPE(iterAnonymous->first) == PT_BINARY) {
-				strData = base64_encode((const unsigned char*)iterAnonymous->second.c_str(), iterAnonymous->second.size());
+			if (PROP_TYPE(ap.first) == PT_BINARY) {
+				strData = base64_encode(reinterpret_cast<const unsigned char *>(ap.second.c_str()), ap.second.size());
 			} else {
-				strData = iterAnonymous->second;
+				strData = ap.second;
 			}
 			strQuery +=
 				"((" + strSubQuery + "),"
-				"'" + m_lpDatabase->Escape(stringify(iterAnonymous->first, true)) + "',"
+				"'" + m_lpDatabase->Escape(stringify(ap.first, true)) + "',"
 				"'" +  m_lpDatabase->Escape(strData) + "')";
 			bFirstOne = false;
 		}
@@ -449,31 +444,28 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 		" AND propname IN (";
 
 	anonymousMVProps = details.GetPropMapListAnonymous();
-	for (iterMVAnonymous = anonymousMVProps.begin();
-	     iterMVAnonymous != anonymousMVProps.end(); ++iterMVAnonymous) {
+	for (const auto &mva : anonymousMVProps) {
 		ulOrderId = 0;
 
 		if (!bFirstDel)
 			strDeleteQuery += ",";
-		strDeleteQuery += "'" + m_lpDatabase->Escape(stringify(iterMVAnonymous->first, true)) + "'";
+		strDeleteQuery += "'" + m_lpDatabase->Escape(stringify(mva.first, true)) + "'";
 		bFirstDel = false;
 
-		if (iterMVAnonymous->second.empty())
+		if (mva.second.empty())
 			continue;
 
-		for (iterProps = iterMVAnonymous->second.begin();
-		     iterProps != iterMVAnonymous->second.end(); ++iterProps) {
-			if (!iterProps->empty()) {
+		for (const auto &prop : mva.second) {
+			if (!prop.empty()) {
 				if (!bFirstOne)
 					strQuery += ",";
-				if (PROP_TYPE(iterMVAnonymous->first) == PT_MV_BINARY) {
-					strData = base64_encode((const unsigned char*)iterProps->c_str(), iterProps->size());
-				} else {
-					strData = *iterProps;
-				}
+				if (PROP_TYPE(mva.first) == PT_MV_BINARY)
+					strData = base64_encode(reinterpret_cast<const unsigned char *>(prop.c_str()), prop.size());
+				else
+					strData = prop;
 				strQuery +=
 					"((" + strSubQuery + "),"
-					"'" + m_lpDatabase->Escape(stringify(iterMVAnonymous->first, true)) + "',"
+					"'" + m_lpDatabase->Escape(stringify(mva.first, true)) + "',"
 					"" + stringify(ulOrderId) + ","
 					"'" +  m_lpDatabase->Escape(strData) + "')";
 				++ulOrderId;
@@ -929,12 +921,11 @@ ECRESULT DBPlugin::CreateMD5Hash(const std::string &strData, std::string* lpstrR
 void DBPlugin::addSendAsToDetails(const objectid_t &objectid, objectdetails_t *lpDetails)
 {
 	std::unique_ptr<signatures_t> sendas;
-	signatures_t::const_iterator iter;
 
 	sendas = getSubObjectsForObject(OBJECTRELATION_USER_SENDAS, objectid);
 
-	for (iter = sendas->begin(); iter != sendas->end(); ++iter)
-		lpDetails->AddPropObject(OB_PROP_LO_SENDAS, iter->id);
+	for (const auto &objlist : *sendas)
+		lpDetails->AddPropObject(OB_PROP_LO_SENDAS, objlist.id);
 }
 
 std::unique_ptr<abprops_t> DBPlugin::getExtraAddressbookProperties(void)
