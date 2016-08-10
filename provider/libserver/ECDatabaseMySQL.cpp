@@ -1798,7 +1798,6 @@ ECRESULT ECDatabaseMySQL::ValidateTables()
 	string		strQuery;
 	list<std::string> listTables;
 	list<std::string> listErrorTables;
-	list<std::string>::const_iterator iterTables;
 	DB_RESULT	lpResult = NULL;
 	DB_ROW		lpDBRow = NULL;
 
@@ -1821,10 +1820,10 @@ ECRESULT ECDatabaseMySQL::ValidateTables()
 	if(lpResult) FreeResult(lpResult);
 	lpResult = NULL;
 
-	for (iterTables = listTables.begin(); iterTables != listTables.end(); ++iterTables) {
-		er = DoSelect("CHECK TABLE " + *iterTables, &lpResult);
+	for (const auto &table : listTables) {
+		er = DoSelect("CHECK TABLE " + table, &lpResult);
 		if(er != erSuccess) {
-			ec_log_err("Unable to check table \"%s\"", iterTables->c_str());
+			ec_log_err("Unable to check table \"%s\"", table.c_str());
 			goto exit;
 		}
 
@@ -1846,11 +1845,10 @@ ECRESULT ECDatabaseMySQL::ValidateTables()
 	if (!listErrorTables.empty())
 	{
 		ec_log_notice("Rebuilding tables.");
-		for (iterTables = listErrorTables.begin();
-		     iterTables != listErrorTables.end(); ++iterTables) {
-			er = DoUpdate("ALTER TABLE " + *iterTables + " FORCE");
+		for (const auto &table : listErrorTables) {
+			er = DoUpdate("ALTER TABLE " + table + " FORCE");
 			if(er != erSuccess) {
-				ec_log_crit("Unable to fix table \"%s\"", iterTables->c_str());
+				ec_log_crit("Unable to fix table \"%s\"", table.c_str());
 				break;
 			}
 		}

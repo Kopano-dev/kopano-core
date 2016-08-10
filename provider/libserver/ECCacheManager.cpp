@@ -465,9 +465,7 @@ ECRESULT ECCacheManager::GetObjects(const std::list<sObjectTableKey> &lstObjects
 	sObjectTableKey key;
 	ECsObjects  *lpsObject = NULL;
 	ECsObjects	sObject;
-	std::list<sObjectTableKey>::const_iterator i;
 	std::set<sObjectTableKey> setUncached;
-	std::set<sObjectTableKey>::const_iterator j;
 
 	er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
 
@@ -478,21 +476,19 @@ ECRESULT ECCacheManager::GetObjects(const std::list<sObjectTableKey> &lstObjects
         // Get everything from the cache that we can
     	scoped_lock lock(m_hCacheMutex);
 
-        for (i = lstObjects.begin(); i != lstObjects.end(); ++i) {
-            if(m_ObjectsCache.GetCacheItem(i->ulObjId, &lpsObject) == erSuccess) {
-                mapObjects[*i] = *lpsObject;
-            } else {
-                setUncached.insert(*i);
-            }
-        }
+	for (const auto &key : lstObjects)
+		if (m_ObjectsCache.GetCacheItem(key.ulObjId, &lpsObject) == erSuccess)
+			mapObjects[key] = *lpsObject;
+		else
+			setUncached.insert(key);
     }
 
     if(!setUncached.empty()) {
         // Get uncached items from SQL
         strQuery = "SELECT id, parent, owner, flags, type FROM hierarchy WHERE id IN(";
         
-        for (j = setUncached.begin(); j != setUncached.end(); ++j) {
-            strQuery += stringify(j->ulObjId);
+		for (const auto &key : setUncached) {
+			strQuery += stringify(key.ulObjId);
             strQuery += ",";
         }
         
@@ -887,12 +883,15 @@ ECRESULT ECCacheManager::GetUserObjects(const list<objectid_t> &lstExternObjIds,
 	// everything we couldn't find must be collected from the database
 	LOG_USERCACHE_DEBUG("Get User Objects. requested objects %lu", lstExternObjIds.size() );
 
-	for (iter = lstExternObjIds.begin(); iter != lstExternObjIds.end(); ++iter) {
-		LOG_USERCACHE_DEBUG(" Get user objects from externid '%s', class %d" , bin2hex(iter->id).c_str(), iter->objclass);
-		if (_GetUEIdObject(iter->id, iter->objclass, NULL, &ulLocalId, NULL) == erSuccess)
-			lpmapLocalObjIds->insert(make_pair(*iter, ulLocalId)); // object was found in cache
+	for (const auto &objid : lstExternObjIds) {
+		LOG_USERCACHE_DEBUG(" Get user objects from externid \"%s\", class %d",
+			bin2hex(objid.id).c_str(), objid.objclass);
+		if (_GetUEIdObject(objid.id, objid.objclass, NULL, &ulLocalId, NULL) == erSuccess)
+			/* Object was found in cache. */
+			lpmapLocalObjIds->insert(make_pair(objid, ulLocalId));
 		else
-			lstExternIds.push_back(*iter); // object was not found in cache
+			/* Object was not found in cache. */
+			lstExternIds.push_back(objid);
 	}
 
 	// Check if all objects have been collected from the cache
@@ -1596,10 +1595,7 @@ ECRESULT ECCacheManager::RemoveIndexData(unsigned int ulObjId)
 {
 	ECRESULT				er = erSuccess;
 	ECsIndexObject	sObjectKeyLower, sObjectKeyUpper;
-	ECMapPropToObject::const_iterator iterPropToObj;
-
 	std::list<ECMapObjectToProp::value_type> lstItems;
-	std::list<ECMapObjectToProp::value_type>::const_iterator iItem;
 
 	// Get all records with specified hierarchyid and all tags (0 -> 0xffffffff)
 	sObjectKeyLower.ulObjId = ulObjId;
@@ -1610,9 +1606,9 @@ ECRESULT ECCacheManager::RemoveIndexData(unsigned int ulObjId)
 	scoped_lock lock(m_hCacheIndPropMutex);
 
 	er = m_ObjectToPropCache.GetCacheRange(sObjectKeyLower, sObjectKeyUpper, &lstItems);
-	for (iItem = lstItems.begin(); iItem != lstItems.end(); ++iItem) {
-		m_ObjectToPropCache.RemoveCacheItem(iItem->first);
-		m_PropToObjectCache.RemoveCacheItem(iItem->second);
+	for (const auto &p : lstItems) {
+		m_ObjectToPropCache.RemoveCacheItem(p.first);
+		m_PropToObjectCache.RemoveCacheItem(p.second);
 	}
 
 	return er;
@@ -1989,7 +1985,6 @@ ECRESULT ECCacheManager::GetEntryListFromObjectList(ECListInt* lplObjectList, st
 {
 	ECRESULT		er = erSuccess;
 	bool			bPartialCompletion = false;
-	ECListInt::const_iterator iterList;
 	entryList*		lpEntryList = s_alloc<entryList>(soap);
 
 	if(lplObjectList == NULL || lppEntryList == NULL) {
@@ -2000,8 +1995,8 @@ ECRESULT ECCacheManager::GetEntryListFromObjectList(ECListInt* lplObjectList, st
 	lpEntryList->__ptr = s_alloc<entryId>(soap, lplObjectList->size());
 	lpEntryList->__size = 0;
 
-	for (iterList = lplObjectList->begin(); iterList != lplObjectList->end(); ++iterList) {
-		if(GetEntryIdFromObject(*iterList, soap, 0, &lpEntryList->__ptr[lpEntryList->__size]) != erSuccess) {
+	for (auto xint : *lplObjectList) {
+		if (GetEntryIdFromObject(xint, soap, 0, &lpEntryList->__ptr[lpEntryList->__size]) != erSuccess) {
 			bPartialCompletion = true;
 			continue; // Unknown entryid, next item
 		}

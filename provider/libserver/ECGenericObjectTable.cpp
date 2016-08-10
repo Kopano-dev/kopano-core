@@ -167,8 +167,6 @@ ECGenericObjectTable::ECGenericObjectTable(ECSession *lpSession, unsigned int ul
  */
 ECGenericObjectTable::~ECGenericObjectTable()
 {
-	ECCategoryMap::const_iterator iterCategories;
-        
 	delete lpKeyTable;
 
 	if(this->lpsPropTagArray)
@@ -180,9 +178,8 @@ ECGenericObjectTable::~ECGenericObjectTable()
 	if(this->lpsRestrict)
 		FreeRestrictTable(this->lpsRestrict);
 		
-	for (iterCategories = m_mapCategories.begin();
-	     iterCategories != m_mapCategories.end(); ++iterCategories)
-		delete iterCategories->second;
+	for (const auto &p : m_mapCategories)
+		delete p.second;
 
 	pthread_mutex_destroy(&m_hLock);
 }
@@ -475,8 +472,6 @@ ECRESULT ECGenericObjectTable::ReloadTable(enumReloadType eType)
 	bool				bMVSortNew = false;
 
 	ECObjectTableList			listRows;
-	ECObjectTableList::const_iterator iterListRows;
-	ECObjectTableMap::const_iterator iterIDs;
 	ECListInt					listMVPropTag;
 
 	
@@ -519,10 +514,9 @@ ECRESULT ECGenericObjectTable::ReloadTable(enumReloadType eType)
 	m_listMVSortCols = listMVPropTag;
 
 	// Get all the Single Row ID's from the ID map
-	for (iterIDs = mapObjects.begin(); iterIDs != mapObjects.end(); ++iterIDs)
-		if(iterIDs->first.ulOrderId == 0)
-			listRows.push_back(iterIDs->first);
-
+	for (const auto &p : mapObjects)
+		if (p.first.ulOrderId == 0)
+			listRows.push_back(p.first);
 	if(mapObjects.empty())
 		goto skip;
 
@@ -538,8 +532,8 @@ ECRESULT ECGenericObjectTable::ReloadTable(enumReloadType eType)
 	Clear();
 
 	//Add items
-	for (iterListRows = listRows.begin(); iterListRows != listRows.end(); ++iterListRows)
-		mapObjects[*iterListRows] = 1;
+	for (const auto &row : listRows)
+		mapObjects[row] = 1;
 
 	// Load the keys with sort data from the table
 	er = AddRowKey(&listRows, NULL, 0, true, false, NULL);
@@ -623,11 +617,7 @@ ECRESULT ECGenericObjectTable::GetColumns(struct soap *soap, ULONG ulFlags, stru
 	ECRESULT			er = erSuccess;
 	int					n = 0;
 	ECListInt			lstProps;
-	ECListIntIterator	iterProps;
 	struct propTagArray *lpsPropTags;
-
-	ECObjectTableMap::const_iterator iterObjects;
-	
 	pthread_mutex_lock(&m_hLock);
 
 	if(ulFlags & TBL_ALL_COLUMNS) {
@@ -649,12 +639,14 @@ ECRESULT ECGenericObjectTable::GetColumns(struct soap *soap, ULONG ulFlags, stru
         lpsPropTags->__size = lstProps.size();
         lpsPropTags->__ptr = s_alloc<unsigned int>(soap, lstProps.size());
 
-		for (n = 0, iterProps = lstProps.begin(); iterProps != lstProps.end(); ++iterProps, ++n) {
-			lpsPropTags->__ptr[n] = *iterProps;
+		n = 0;
+		for (auto prop_int : lstProps) {
+			lpsPropTags->__ptr[n] = prop_int;
 			if (PROP_TYPE(lpsPropTags->__ptr[n]) == PT_STRING8 || PROP_TYPE(lpsPropTags->__ptr[n]) == PT_UNICODE)
 				lpsPropTags->__ptr[n] = CHANGE_PROP_TYPE(lpsPropTags->__ptr[n], ((m_ulFlags & MAPI_UNICODE) ? PT_UNICODE : PT_STRING8));
 			else if (PROP_TYPE(lpsPropTags->__ptr[n]) == PT_MV_STRING8 || PROP_TYPE(lpsPropTags->__ptr[n]) == PT_MV_UNICODE)
 				lpsPropTags->__ptr[n] = CHANGE_PROP_TYPE(lpsPropTags->__ptr[n], ((m_ulFlags & MAPI_UNICODE) ? PT_MV_UNICODE : PT_MV_STRING8));
+			++n;
 		}
 	} else {
 		lpsPropTags = s_alloc<propTagArray>(soap);
@@ -684,23 +676,19 @@ ECRESULT ECGenericObjectTable::ReloadKeyTable()
 {
 	ECRESULT		er = erSuccess;
 	ECObjectTableList listRows;
-	ECObjectTableMap::const_iterator iterMapObject;
-	ECCategoryMap::const_iterator iterCategories;
 
 	pthread_mutex_lock(&m_hLock);
 
 	// Get all the Row ID's from the ID map
-	for (iterMapObject = mapObjects.begin();
-	     iterMapObject != mapObjects.end(); ++iterMapObject)
-		listRows.push_back(iterMapObject->first);
+	for (const auto &p : mapObjects)
+		listRows.push_back(p.first);
 
 	// Reset the key table
 	lpKeyTable->Clear();
 	m_mapLeafs.clear();
 
-	for (iterCategories = m_mapCategories.begin();
-	     iterCategories != m_mapCategories.end(); ++iterCategories)
-		delete iterCategories->second;
+	for (const auto &p : m_mapCategories)
+		delete p.second;
 	m_mapCategories.clear();
 	m_mapSortedCategories.clear();
 
@@ -1429,7 +1417,6 @@ exit:
 ECRESULT ECGenericObjectTable::GetCollapseState(struct soap *soap, struct xsd__base64Binary sBookmark, struct xsd__base64Binary *lpsCollapseState)
 {
     ECRESULT er = erSuccess;
-    ECCategoryMap::const_iterator iterCategory;
     struct collapseState sCollapseState;
     int n = 0;
     std::ostringstream os;
@@ -1452,17 +1439,16 @@ ECRESULT ECGenericObjectTable::GetCollapseState(struct soap *soap, struct xsd__b
 
     memset(sCollapseState.sCategoryStates.__ptr, 0, sizeof(struct categoryState) * sCollapseState.sCategoryStates.__size);
 
-    for (iterCategory = m_mapCategories.begin();
-         iterCategory != m_mapCategories.end(); ++iterCategory) {
-        sCollapseState.sCategoryStates.__ptr[n].fExpanded = iterCategory->second->m_fExpanded;
-        sCollapseState.sCategoryStates.__ptr[n].sProps.__ptr = s_alloc<struct propVal>(soap, iterCategory->second->m_cProps);
-        memset(sCollapseState.sCategoryStates.__ptr[n].sProps.__ptr, 0, sizeof(struct propVal) * iterCategory->second->m_cProps);
-        for (unsigned int i = 0; i < iterCategory->second->m_cProps; ++i) {
-            er = CopyPropVal(&iterCategory->second->m_lpProps[i], &sCollapseState.sCategoryStates.__ptr[n].sProps.__ptr[i], soap);
+	for (const auto &p : m_mapCategories) {
+		sCollapseState.sCategoryStates.__ptr[n].fExpanded = p.second->m_fExpanded;
+		sCollapseState.sCategoryStates.__ptr[n].sProps.__ptr = s_alloc<struct propVal>(soap, p.second->m_cProps);
+		memset(sCollapseState.sCategoryStates.__ptr[n].sProps.__ptr, 0, sizeof(struct propVal) * p.second->m_cProps);
+		for (unsigned int i = 0; i < p.second->m_cProps; ++i) {
+			er = CopyPropVal(&p.second->m_lpProps[i], &sCollapseState.sCategoryStates.__ptr[n].sProps.__ptr[i], soap);
             if (er != erSuccess)
                 goto exit;
         }
-        sCollapseState.sCategoryStates.__ptr[n].sProps.__size = iterCategory->second->m_cProps;
+		sCollapseState.sCategoryStates.__ptr[n].sProps.__size = p.second->m_cProps;
         ++n;
     }
 
@@ -1515,7 +1501,6 @@ exit:
 ECRESULT ECGenericObjectTable::SetCollapseState(struct xsd__base64Binary sCollapseState, unsigned int *lpulBookmark)
 {
     ECRESULT er = erSuccess;
-    ECCategoryMap::const_iterator iterCategory;
     struct soap xmlsoap;
     struct collapseState *lpCollapseState = NULL;
     std::istringstream is(std::string((const char *)sCollapseState.__ptr, sCollapseState.__size));
@@ -1700,14 +1685,10 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
 	unsigned int			cMVOld = 0,
 							cMVNew = 1;
 	unsigned int			i;
-	
-	std::list<unsigned int>::const_iterator iterObjId;
 	std::list<unsigned int> lstFilteredIds;
 	
 	ECObjectTableList		ecRowsItem;
 	ECObjectTableList		ecRowsDeleted;
-
-	ECObjectTableList::const_iterator iterRows;
 	ECObjectTableMap::const_iterator iterMapObject;
 	ECObjectTableMap::const_iterator iterToDelete;
 
@@ -1723,9 +1704,9 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
     case ECKeyTable::TABLE_ROW_MODIFY:
     case ECKeyTable::TABLE_ROW_ADD:
         // Filter out any item we cannot access (for example, in search-results tables)
-        for (iterObjId = lstObjId->begin(); iterObjId != lstObjId->end(); ++iterObjId)
-        	if(CheckPermissions(*iterObjId) == erSuccess)
-        	    lstFilteredIds.push_back(*iterObjId);
+		for (const auto &obj_id : *lstObjId)
+			if (CheckPermissions(obj_id) == erSuccess)
+				lstFilteredIds.push_back(obj_id);
 
         // Use our filtered list now
         lstObjId = &lstFilteredIds;
@@ -1747,47 +1728,44 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
 	switch(ulType) {
 	case ECKeyTable::TABLE_ROW_DELETE:
 		// Delete the object ID from our object list, and all items with that object ID (including various order IDs)
-		for (iterObjId = lstObjId->begin(); iterObjId != lstObjId->end(); ++iterObjId) {
-            iterMapObject = this->mapObjects.find(sObjectTableKey(*iterObjId, 0));
+		for (const auto &obj_id : *lstObjId) {
+			iterMapObject = this->mapObjects.find(sObjectTableKey(obj_id, 0));
             while(iterMapObject != this->mapObjects.end()) {
-                if(iterMapObject->first.ulObjId == *iterObjId)
+				if (iterMapObject->first.ulObjId == obj_id)
                     ecRowsItem.push_back(iterMapObject->first);
-                else if(iterMapObject->first.ulObjId != *iterObjId)
+				else if (iterMapObject->first.ulObjId != obj_id)
                     break;
                 ++iterMapObject;
             }
             
-            for (iterRows = ecRowsItem.begin(); iterRows != ecRowsItem.end(); ++iterRows) {
-                this->mapObjects.erase(*iterRows);
-                
-                // Delete the object from the active keyset
-                DeleteRow(*iterRows, ulFlags);
-                
-                RemoveCategoryAfterRemoveRow(*iterRows, ulFlags);
+		for (const auto &row : ecRowsItem) {
+			this->mapObjects.erase(row);
+			/* Delete the object from the active keyset */
+			DeleteRow(row, ulFlags);
+			RemoveCategoryAfterRemoveRow(row, ulFlags);
             }
         }
 		break;
 
 	case ECKeyTable::TABLE_ROW_MODIFY:
 	case ECKeyTable::TABLE_ROW_ADD:
-	    for (iterObjId = lstObjId->begin(); iterObjId != lstObjId->end(); ++iterObjId) {
-            // Add the object to our list of objects
-            ecRowsItem.push_back(sObjectTableKey(*iterObjId, 0));
+		for (const auto &obj_id : *lstObjId) {
+			/* Add the object to our list of objects */
+			ecRowsItem.push_back(sObjectTableKey(obj_id, 0));
 
             if(IsMVSet() == true) {
                 // get new mvprop count
-                er = GetMVRowCount(*iterObjId, &cMVNew);
+                er = GetMVRowCount(obj_id, &cMVNew);
                 if(er != erSuccess){
                     ASSERT(FALSE);// What now???
                 }
 
                 // get old mvprops count
                 cMVOld = 0;
-                iterMapObject = this->mapObjects.find(sObjectTableKey(*iterObjId, 0));
+                iterMapObject = this->mapObjects.find(sObjectTableKey(obj_id, 0));
                 while(iterMapObject != this->mapObjects.end())
                 {
-                    if(iterMapObject->first.ulObjId == *iterObjId)
-                    {
+                    if (iterMapObject->first.ulObjId == obj_id) {
                         ++cMVOld;
                         if(cMVOld > cMVNew && (ulFlags&OBJECTTABLE_NOTIFY) == OBJECTTABLE_NOTIFY) {
 
@@ -1801,12 +1779,12 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
                             
                             RemoveCategoryAfterRemoveRow(sRow, ulFlags);
                         }//if(cMVOld > cMVNew)
-                    }else if(iterMapObject->first.ulObjId != *iterObjId)
+                    } else if (iterMapObject->first.ulObjId != obj_id)
                         break;
                     ++iterMapObject;
                 }
                 
-                sRow = sObjectTableKey(*iterObjId, 0);
+                sRow = sObjectTableKey(obj_id, 0);
                 for (i = 1; i < cMVNew; ++i) { // 0 already added
                     sRow.ulOrderId = i;
                     ecRowsItem.push_back(sRow);
@@ -1815,8 +1793,8 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
         }
         
         // Remember that the specified row is available		
-        for (iterRows = ecRowsItem.begin(); iterRows != ecRowsItem.end(); ++iterRows)
-            this->mapObjects[*iterRows] = 1;
+		for (const auto &row : ecRowsItem)
+			this->mapObjects[row] = 1;
             
 		// Add/modify the key in the keytable
 		er = AddRowKey(&ecRowsItem, &ulRead, ulFlags, bLoad, false, NULL);
@@ -2453,8 +2431,6 @@ void ECGenericObjectTable::SetTableId(unsigned int ulTableId)
 
 ECRESULT ECGenericObjectTable::Clear()
 {
-	ECCategoryMap::const_iterator iterCategories;
-
 	pthread_mutex_lock(&m_hLock);
 
 	// Clear old entries
@@ -2462,9 +2438,8 @@ ECRESULT ECGenericObjectTable::Clear()
 	lpKeyTable->Clear();
 	m_mapLeafs.clear();
 
-	for (iterCategories = m_mapCategories.begin();
-	     iterCategories != m_mapCategories.end(); ++iterCategories)
-		delete iterCategories->second;
+	for (const auto &p : m_mapCategories)
+		delete p.second;
 	m_mapCategories.clear();
 	m_mapSortedCategories.clear();
     
@@ -2742,7 +2717,6 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
 
 		if (fCategoryMoved) {
 			ECObjectTableList lstObjects;
-			ECObjectTableList::iterator iterObject;
 			// The min/max value of this category has changed. We have to move all the rows in the category
 			// somewhere else in the table.
 			
@@ -2752,18 +2726,20 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
 				goto exit;
 				
 			// Update the keytable to reflect the new change
-			for (iterObject = lstObjects.begin();
-			     iterObject != lstObjects.end(); ++iterObject) {
+			for (auto &obj : lstObjects) {
 				// Update the keytable with the new effective sort data for this column
 				
 				bool bDescend = lpsSortOrderArray->__ptr[ulDepth].ulOrder == EC_TABLE_SORT_DESCEND; // Column we're updating is descending
 				
-				er = lpKeyTable->UpdatePartialSortKey(&(*iterObject), ulDepth, lppSortKeys[i], lpSortLen[i], lpSortFlags[i] | (bDescend ? TABLEROW_FLAG_DESC : 0), &sPrevRow, &fHidden, &ulAction);
+				er = lpKeyTable->UpdatePartialSortKey(&obj,
+				     ulDepth, lppSortKeys[i], lpSortLen[i],
+				     lpSortFlags[i] | (bDescend ? TABLEROW_FLAG_DESC : 0),
+				     &sPrevRow, &fHidden, &ulAction);
 				if (er != erSuccess)
 					goto exit;
 					
 				if((ulFlags & OBJECTTABLE_NOTIFY) && !fHidden) {
-					AddTableNotif(ulAction, *iterObject, &sPrevRow);
+					AddTableNotif(ulAction, obj, &sPrevRow);
 				}
 			}
 		} else {
@@ -3015,7 +2991,6 @@ ECRESULT ECGenericObjectTable::RemoveCategoryAfterRemoveRow(sObjectTableKey sObj
 			if(fModified && lpCategory->GetCount() > 0) {
 				// We have removed the min or max value for the category, so reorder is needed (unless category is empty, since it will be removed)
 				ECObjectTableList lstObjects;
-				ECObjectTableList::iterator iterObject;
 				
 				// Get the rows that are affected
 				er = lpKeyTable->GetRowsBySortPrefix(&sCatRow, &lstObjects);
@@ -3023,9 +2998,7 @@ ECRESULT ECGenericObjectTable::RemoveCategoryAfterRemoveRow(sObjectTableKey sObj
 					goto exit;
 					
 				// Update the keytable to reflect the new change
-				for (iterObject = lstObjects.begin();
-				     iterObject != lstObjects.end();
-				     ++iterObject) {
+				for (auto &obj : lstObjects) {
 					// Update the keytable with the new effective sort data for this column
 					
 					if(lpCategory->GetProp(NULL, lpsSortOrderArray->__ptr[ulDepth+1].ulPropTag, &sProp) != erSuccess) {
@@ -3040,14 +3013,11 @@ ECRESULT ECGenericObjectTable::RemoveCategoryAfterRemoveRow(sObjectTableKey sObj
 					
 					ulSortFlags |=  lpsSortOrderArray->__ptr[ulDepth].ulOrder == EC_TABLE_SORT_DESCEND ? TABLEROW_FLAG_DESC : 0;
 					
-					er = lpKeyTable->UpdatePartialSortKey(&(*iterObject), ulDepth, lpSortKey, ulSortLen, ulSortFlags, &sPrevRow, &fHidden, &ulAction);
+					er = lpKeyTable->UpdatePartialSortKey(&obj, ulDepth, lpSortKey, ulSortLen, ulSortFlags, &sPrevRow, &fHidden, &ulAction);
 					if (er != erSuccess)
 						goto exit;
-						
-					if((ulFlags & OBJECTTABLE_NOTIFY) && !fHidden) {
-						AddTableNotif(ulAction, *iterObject, &sPrevRow);
-					}
-					
+					if ((ulFlags & OBJECTTABLE_NOTIFY) && !fHidden)
+						AddTableNotif(ulAction, obj, &sPrevRow);
 					delete[] lpSortKey;
 					lpSortKey = NULL;
 						
@@ -3197,7 +3167,6 @@ ECRESULT ECGenericObjectTable::CheckPermissions(unsigned int ulObjId)
 size_t ECGenericObjectTable::GetObjectSize(void)
 {
 	size_t ulSize = sizeof(*this);
-	ECCategoryMap::const_iterator iterCat;
 
 	pthread_mutex_lock(&m_hLock);
 
@@ -3210,9 +3179,8 @@ size_t ECGenericObjectTable::GetObjectSize(void)
 	ulSize += lpKeyTable->GetObjectSize();
 
 	ulSize += MEMORY_USAGE_MAP(m_mapCategories.size(), ECCategoryMap);
-	for (iterCat = m_mapCategories.begin();
-	     iterCat != m_mapCategories.end(); ++iterCat)
-		ulSize += iterCat->second->GetObjectSize();
+	for (const auto &p : m_mapCategories)
+		ulSize += p.second->GetObjectSize();
 	
 	ulSize += MEMORY_USAGE_MAP(m_mapLeafs.size(), ECLeafMap);
 
@@ -3250,13 +3218,8 @@ ECCategory::~ECCategory()
     
 	for (i = 0; i < m_cProps; ++i)
 		FreePropVal(&m_lpProps[i], false);
-    
-    std::map<sObjectTableKey, struct propVal *>::const_iterator iterMinMax;
-    
-	for (iterMinMax = m_mapMinMax.begin();
-	     iterMinMax != m_mapMinMax.end(); ++iterMinMax)
-		FreePropVal(iterMinMax->second, true);
-
+	for (const auto &p : m_mapMinMax)
+		FreePropVal(p.second, true);
     delete[] m_lpProps;
 }
 

@@ -1917,11 +1917,9 @@ ECRESULT ECFileAttachment::DeleteAttachmentInstances(const std::list<ULONG> &lst
 {
 	ECRESULT er = erSuccess;
 	int errors = 0;
-	std::list<ULONG>::const_iterator iterDel;
 
-	for (iterDel = lstDeleteInstances.begin();
-	     iterDel != lstDeleteInstances.end(); ++iterDel) {
-		er = this->DeleteAttachmentInstance(*iterDel, bReplace);
+	for (auto del_id : lstDeleteInstances) {
+		er = this->DeleteAttachmentInstance(del_id, bReplace);
 		if (er != erSuccess)
 			++errors;
 	}
@@ -2212,7 +2210,6 @@ ECRESULT ECFileAttachment::Commit()
 {
 	ECRESULT er = erSuccess;
 	bool bError = false;
-	std::set<ULONG>::const_iterator iterAtt;
 	
 	if(!m_bTransaction) {
 		ASSERT(FALSE);
@@ -2223,15 +2220,12 @@ ECRESULT ECFileAttachment::Commit()
 	m_bTransaction = false;
 
 	// Delete the attachments
-	for (iterAtt = m_setDeletedAttachment.begin();
-	     iterAtt != m_setDeletedAttachment.end(); ++iterAtt)
-		if(DeleteAttachmentInstance(*iterAtt, false) != erSuccess)
+	for (auto att_id : m_setDeletedAttachment)
+		if (DeleteAttachmentInstance(att_id, false) != erSuccess)
 			bError = true;
-
 	// Delete marked attachments
-	for (iterAtt = m_setMarkedAttachment.begin();
-	     iterAtt != m_setMarkedAttachment.end(); ++iterAtt)
-		if (DeleteMarkedAttachment(*iterAtt) != erSuccess)
+	for (auto att_id : m_setMarkedAttachment)
+		if (DeleteMarkedAttachment(att_id) != erSuccess)
 			bError = true;
 
 	if (bError) {
@@ -2250,7 +2244,6 @@ ECRESULT ECFileAttachment::Rollback()
 {
 	ECRESULT er = erSuccess;
 	bool bError = false;
-	std::set<ULONG>::const_iterator iterAtt;
 
 	if(!m_bTransaction) {
 		ASSERT(FALSE);
@@ -2264,14 +2257,12 @@ ECRESULT ECFileAttachment::Rollback()
 	m_setDeletedAttachment.clear();
 	
 	// Remove the created attachments
-	for (iterAtt = m_setNewAttachment.begin();
-	     iterAtt != m_setNewAttachment.end(); ++iterAtt)
-		if(DeleteAttachmentInstance(*iterAtt, false) != erSuccess)
+	for (auto att_id : m_setNewAttachment)
+		if (DeleteAttachmentInstance(att_id, false) != erSuccess)
 			bError = true;
 	// Restore marked attachment
-	for (iterAtt = m_setMarkedAttachment.begin();
-	     iterAtt != m_setMarkedAttachment.end(); ++iterAtt)
-		if (RestoreMarkedAttachment(*iterAtt) != erSuccess)
+	for (auto att_id : m_setMarkedAttachment)
+		if (RestoreMarkedAttachment(att_id) != erSuccess)
 			bError = true;
 
 	m_setNewAttachment.clear();

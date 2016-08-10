@@ -423,7 +423,6 @@ ECRESULT ECABObjectTable::Load()
 	sObjectTableKey sRowItem;
 
 	std::list<localobjectdetails_t> *lpObjects = NULL;
-	std::list<localobjectdetails_t>::const_iterator iterObjects;
 	std::list<unsigned int> lstObjects;
 	unsigned int ulObjectId = 0;
 	unsigned int ulObjectFilter = 0;
@@ -531,12 +530,11 @@ ECRESULT ECABObjectTable::Load()
 		}
 	}
 
-	for (iterObjects = lpObjects->begin(); iterObjects != lpObjects->end(); ++iterObjects) {
+	for (const auto &obj : *lpObjects) {
 		/* Only add visible items */
-		if (lpSession->GetSecurity()->IsUserObjectVisible(iterObjects->ulId) != erSuccess)
+		if (lpSession->GetSecurity()->IsUserObjectVisible(obj.ulId) != erSuccess)
 			continue;
-
-		lstObjects.push_back(iterObjects->ulId);
+		lstObjects.push_back(obj.ulId);
 	}
 
 	er = LoadRows(&lstObjects, 0);

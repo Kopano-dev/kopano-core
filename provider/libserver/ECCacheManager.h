@@ -278,10 +278,9 @@ public:
 			FreePropVal(&i->second, false);
         mapPropVals.clear();
         
-        for (i = ((ECsCells &)src).mapPropVals.begin();
-             i != ((ECsCells &)src).mapPropVals.end(); ++i) {
-            CopyPropVal((struct propVal *)&i->second, &val);
-            mapPropVals[i->first] = val;
+		for (const auto &p : src.mapPropVals) {
+			CopyPropVal(const_cast<struct propVal *>(&p.second), &val);
+			mapPropVals[p.first] = val;
         }
         m_bComplete = src.m_bComplete;
 		return *this;

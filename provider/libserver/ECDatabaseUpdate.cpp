@@ -895,14 +895,10 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 	bool			bFirstResult;
 
 	std::list<SObject> sObjectList;
-	std::list<SObject>::const_iterator sObjectIter;
-
 	std::map<SObject,unsigned int> sObjectMap;
 	std::map<SObject,unsigned int>::const_iterator sObjectMapIter;
 
 	std::list<SRelation> sRelationList;
-	std::list<SRelation>::const_iterator sRelationIter;
-
 #define Z_TABLEDEF_OBJECT_R630	"CREATE TABLE object ( \
 									`id` int(11) unsigned NOT NULL auto_increment, \
 									`externid` varbinary(255), \
@@ -954,17 +950,19 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 
 	// Recreate the objects in the object_temp table and on the fly create the queries to regenerate
 	// their properties in the objectpropert_temp table.
-	for (sObjectIter = sObjectList.begin(); sObjectIter != sObjectList.end(); ++sObjectIter) {
-		strQuery = (string)"INSERT INTO object_temp (objecttype, externid) VALUES (" + stringify(sObjectIter->ulType) + ", '" + stringify(sObjectIter->ulId) + "')";
+	for (const auto &obj : sObjectList) {
+		strQuery = (string)"INSERT INTO object_temp (objecttype, externid) VALUES (" +
+		           stringify(obj.ulType) + ", '" + stringify(obj.ulId) + "')";
 		er = lpDatabase->DoInsert(strQuery, &ulNewId);
 		if (er != erSuccess)
 			goto exit;
 
 		// Add to the map for later use
-		sObjectMap[*sObjectIter] = ulNewId;
+		sObjectMap[obj] = ulNewId;
 
 		// Find the properties for this object
-		strQuery = (string)"SELECT propname, value FROM objectproperty WHERE objectid=" + stringify(sObjectIter->ulId);
+		strQuery = (string)"SELECT propname, value FROM objectproperty WHERE objectid=" +
+		           stringify(obj.ulId);
 		er = lpDatabase->DoSelect(strQuery, &lpResult);
 		if (er != erSuccess)
 			goto exit;
@@ -1012,7 +1010,7 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 				goto exit;
 		}
 
-		er = lpDatabase->DoDelete("DELETE FROM objectproperty WHERE objectid=" + stringify(sObjectIter->ulId));
+		er = lpDatabase->DoDelete("DELETE FROM objectproperty WHERE objectid=" + stringify(obj.ulId));
 		if (er != erSuccess)
 			goto exit;
 	}
@@ -1038,21 +1036,21 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 
 	strQuery.clear();
 	bFirstResult = true;
-	for (sRelationIter = sRelationList.begin(); sRelationIter != sRelationList.end(); ++sRelationIter) {
+	for (const auto &rel : sRelationList) {
 		// Find the new parentId, if not found: ignore so they disappear .. would have been invalid relations anyway.
-		switch (sRelationIter->ulRelationType) {
+		switch (rel.ulRelationType) {
 			case OBJECTRELATION_QUOTA_USERRECIPIENT:
 			case OBJECTRELATION_USER_SENDAS:
-				sObjectMapIter = sObjectMap.find(SObject(sRelationIter->ulParentObjectId, 1 /* USEROBJECT_TYPE_USER */));
+				sObjectMapIter = sObjectMap.find(SObject(rel.ulParentObjectId, 1 /* USEROBJECT_TYPE_USER */));
 				if (sObjectMapIter == sObjectMap.end())
-					sObjectMapIter = sObjectMap.find(SObject(sRelationIter->ulParentObjectId, 5 /* USEROBJECT_TYPE_NONACTIVE */));
+					sObjectMapIter = sObjectMap.find(SObject(rel.ulParentObjectId, 5 /* USEROBJECT_TYPE_NONACTIVE */));
 				if (sObjectMapIter == sObjectMap.end())
 					continue;
 				ulNewParentId = sObjectMapIter->second;
 				break;
 
 			case OBJECTRELATION_GROUP_MEMBER:
-				sObjectMapIter = sObjectMap.find(SObject(sRelationIter->ulParentObjectId, 2 /* USEROBJECT_TYPE_GROUP */));
+				sObjectMapIter = sObjectMap.find(SObject(rel.ulParentObjectId, 2 /* USEROBJECT_TYPE_GROUP */));
 				if (sObjectMapIter == sObjectMap.end())
 					continue;
 				ulNewParentId = sObjectMapIter->second;
@@ -1061,14 +1059,14 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 			case OBJECTRELATION_COMPANY_VIEW:
 			case OBJECTRELATION_COMPANY_ADMIN:
 			case OBJECTRELATION_QUOTA_COMPANYRECIPIENT:
-				sObjectMapIter = sObjectMap.find(SObject(sRelationIter->ulParentObjectId, 4 /* USEROBJECT_TYPE_COMPANY */));
+				sObjectMapIter = sObjectMap.find(SObject(rel.ulParentObjectId, 4 /* USEROBJECT_TYPE_COMPANY */));
 				if (sObjectMapIter == sObjectMap.end())
 					continue;
 				ulNewParentId = sObjectMapIter->second;
 				break;
 
 			case OBJECTRELATION_ADDRESSLIST_MEMBER:
-				sObjectMapIter = sObjectMap.find(SObject(sRelationIter->ulParentObjectId, 6 /* USEROBJECT_TYPE_ADDRESSLIST */));
+				sObjectMapIter = sObjectMap.find(SObject(rel.ulParentObjectId, 6 /* USEROBJECT_TYPE_ADDRESSLIST */));
 				if (sObjectMapIter == sObjectMap.end())
 					continue;
 				ulNewParentId = sObjectMapIter->second;
@@ -1076,9 +1074,9 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 		}
 
 		// Find the new object id
-		sObjectMapIter = sObjectMap.find(SObject(sRelationIter->ulObjectId, 1 /* USEROBJECT_TYPE_USER */));
+		sObjectMapIter = sObjectMap.find(SObject(rel.ulObjectId, 1 /* USEROBJECT_TYPE_USER */));
 		if (sObjectMapIter == sObjectMap.end())
-			sObjectMapIter = sObjectMap.find(SObject(sRelationIter->ulObjectId, 5)); // USEROBJECT_TYPE_NONACTIVE
+			sObjectMapIter = sObjectMap.find(SObject(rel.ulObjectId, 5)); // USEROBJECT_TYPE_NONACTIVE
 		if (sObjectMapIter == sObjectMap.end())
 			continue;
 		ulNewId = sObjectMapIter->second;
@@ -1092,7 +1090,9 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 		else
 			bFirstResult = false;
 
-		strQuery += "(" + stringify(ulNewId) + "," + stringify(ulNewParentId) + "," + stringify(sRelationIter->ulRelationType) + ")";
+		strQuery += "(" + stringify(ulNewId) + "," +
+		            stringify(ulNewParentId) + "," +
+		            stringify(rel.ulRelationType) + ")";
 	}
 
 	if (!strQuery.empty()) {
@@ -1172,9 +1172,6 @@ ECRESULT UpdateDatabaseCreateABChangesTable(ECDatabase *lpDatabase)
 	bool			fFirst = true;
 	string			strSyncId;
 
-	list<string>::const_iterator	queryIter;
-	list<int>::const_iterator		syncIdIter;
-
 	er = lpDatabase->DoInsert(Z_TABLEDEF_ABCHANGES);
 	if (er != erSuccess)
 		goto exit;
@@ -1210,16 +1207,16 @@ ECRESULT UpdateDatabaseCreateABChangesTable(ECDatabase *lpDatabase)
 
 	
 	// Populate the abchanges table with the extracted data
-	for (queryIter = queries.begin(); queryIter != queries.end(); ++queryIter) {
-		er = lpDatabase->DoInsert(*queryIter);
+	for (const auto &query : queries) {
+		er = lpDatabase->DoInsert(query);
 		if (er != erSuccess)
 			goto exit;
 	}
 
 	// Remove the extracted changes from the changes table
 	strQuery = "DELETE FROM changes WHERE id IN (";
-	for (syncIdIter = syncIds.begin(); syncIdIter != syncIds.end(); ++syncIdIter) {
-		strSyncId = stringify(*syncIdIter, false);
+	for (auto id : syncIds) {
+		strSyncId = stringify(id, false);
 		
 		if (strQuery.length() + strSyncId.length() + 2 >= lpDatabase->GetMaxAllowedPacket()) {	// we need to be able to add a ',' and a ')';
 			strQuery += ")";
@@ -1309,7 +1306,6 @@ ECRESULT UpdateDatabaseConvertObjectTypeToObjectClass(ECDatabase *lpDatabase)
 	std::string strQuery, strUpdate;
 	bool bFirst = true;
 	std::map<unsigned int, unsigned int> mapTypes;
-	std::map<unsigned int, unsigned int>::const_iterator iTypes;
 	std::list<std::string> lstUpdates;
 
 	// make internal SYSTEM a objectclass_t user
@@ -1330,10 +1326,10 @@ ECRESULT UpdateDatabaseConvertObjectTypeToObjectClass(ECDatabase *lpDatabase)
 	mapTypes.insert(std::pair<unsigned int, unsigned int>(5, NONACTIVE_USER)); // USEROBJECT_TYPE_NONACTIVE
 	mapTypes.insert(std::pair<unsigned int, unsigned int>(6, CONTAINER_ADDRESSLIST)); // USEROBJECT_TYPE_ADDRESSLIST
 
-	for (iTypes = mapTypes.begin(); iTypes != mapTypes.end(); ++iTypes) {
+	for (const auto &p : mapTypes) {
 		// extern id, because it links to object table for DB plugin
 		// on LDAP plugin, object table is empty.
-		er = lpDatabase->DoSelect("SELECT `externid`, `objectclass` FROM `users` WHERE `externid` is not NULL AND `objectclass` = "+stringify(iTypes->first), &lpResult);
+		er = lpDatabase->DoSelect("SELECT `externid`, `objectclass` FROM `users` WHERE `externid` is not NULL AND `objectclass` = " + stringify(p.first), &lpResult);
 		if (er != erSuccess)
 			goto exit;
 
@@ -1343,7 +1339,7 @@ ECRESULT UpdateDatabaseConvertObjectTypeToObjectClass(ECDatabase *lpDatabase)
 			lpDBLen = lpDatabase->FetchRowLengths(lpResult);
 			if (lpDBRow[0] == NULL || lpDBLen == NULL || lpDBLen[0] == 0) {
 				er = KCERR_DATABASE_ERROR;
-				ec_log_crit("  users table contains invalid NULL records for type %d", iTypes->first);
+				ec_log_crit("  users table contains invalid NULL records for type %d", p.first);
 				goto exit;
 			}
 
@@ -1361,15 +1357,15 @@ ECRESULT UpdateDatabaseConvertObjectTypeToObjectClass(ECDatabase *lpDatabase)
 		// save all queries in a list, so we don't cross-update types
 
 		strQuery =
-			"UPDATE `users` SET `objectclass`=" + stringify(iTypes->second) + " "
+			"UPDATE `users` SET `objectclass`=" + stringify(p.second) + " "
 			"WHERE `externid` IN " + strUpdate + " "
-			"AND `objectclass` = " + stringify(iTypes->first);
+			"AND `objectclass` = " + stringify(p.first);
 		lstUpdates.push_back(strQuery);
 
 		strQuery =
-			"UPDATE `object` SET `objectclass`=" + stringify(iTypes->second) + " "
+			"UPDATE `object` SET `objectclass`=" + stringify(p.second) + " "
 			"WHERE `externid` IN " + strUpdate + " "
-			"AND `objectclass` = " + stringify(iTypes->first);
+			"AND `objectclass` = " + stringify(p.first);
 		lstUpdates.push_back(strQuery);
 	}
 
@@ -1403,7 +1399,6 @@ ECRESULT UpdateDatabaseCompanyNameToCompanyId(ECDatabase *lpDatabase)
 	ECRESULT	er = erSuccess;
 	string		strQuery;
 	map<string, string> mapIdToName;
-	std::map<std::string, std::string>::const_iterator iter;
 	DB_RESULT	lpResult = NULL;
 	DB_ROW		lpDBRow = NULL;
 	DB_LENGTHS	lpDBLen = NULL;
@@ -1424,10 +1419,9 @@ ECRESULT UpdateDatabaseCompanyNameToCompanyId(ECDatabase *lpDatabase)
 	}
 
 	// update objects to link via externid in companyid, not companyname anymore
-	for (iter = mapIdToName.begin(); iter != mapIdToName.end(); ++iter) {
-		strQuery = "UPDATE objectproperty SET value = 0x" + bin2hex(iter->first) +
-			" WHERE propname='companyid' AND value = '" + iter->second + "'";
-
+	for (const auto &p : mapIdToName) {
+		strQuery = "UPDATE objectproperty SET value = 0x" + bin2hex(p.first) +
+			" WHERE propname='companyid' AND value = '" + p.second + "'";
 		er = lpDatabase->DoUpdate(strQuery);
 		if (er != erSuccess)
 			goto exit;
@@ -1546,7 +1540,6 @@ ECRESULT UpdateDatabaseFixDBPluginSendAs(ECDatabase *lpDatabase)
 	DB_ROW		lpDBRow = NULL;
 	DB_LENGTHS	lpDBLen = NULL;
 	list<std::pair<string, string> > lstRelations;
-	std::list<std::pair<std::string, std::string> >::const_iterator iRelations;
 
 	// relation 6 == OBJECTRELATION_USER_SENDAS
 	er = lpDatabase->DoSelect("SELECT objectid, parentobjectid FROM objectrelation WHERE relationtype=6", &lpResult);
@@ -1566,8 +1559,9 @@ ECRESULT UpdateDatabaseFixDBPluginSendAs(ECDatabase *lpDatabase)
 	if (er != erSuccess)
 		goto exit;
 
-	for (iRelations = lstRelations.begin(); iRelations != lstRelations.end(); ++iRelations) {
-		er = lpDatabase->DoUpdate("INSERT INTO objectrelation (objectid, parentobjectid, relationtype) VALUES ("+iRelations->second+", "+iRelations->first+", 6)");
+	for (const auto &p : lstRelations) {
+		er = lpDatabase->DoUpdate("INSERT INTO objectrelation (objectid, parentobjectid, relationtype) VALUES (" +
+		     p.second + ", " + p.first + ", 6)");
 		if (er != erSuccess)
 			goto exit;
 	}
@@ -1596,7 +1590,6 @@ ECRESULT UpdateDatabaseMoveSubscribedList(ECDatabase *lpDatabase)
 {
 	ECRESULT er = erSuccess;
 	map<string, string> mapStoreInbox;
-	std::map<std::string, std::string>::const_iterator i;
 	DB_RESULT	lpResult = NULL;
 	DB_ROW		lpDBRow = NULL;
 	DB_LENGTHS	lpDBLen = NULL;
@@ -1614,15 +1607,19 @@ ECRESULT UpdateDatabaseMoveSubscribedList(ECDatabase *lpDatabase)
 		mapStoreInbox.insert(pair<string,string>(string(lpDBRow[0], lpDBLen[0]), string(lpDBRow[1], lpDBLen[1])));
 	}
 
-	for (i = mapStoreInbox.begin(); i != mapStoreInbox.end(); ++i) {
+	for (const auto &p : mapStoreInbox) {
 		// Remove property if it's already there (possible if you run new gateway against old server before upgrade)
-		er = lpDatabase->DoDelete("DELETE FROM properties WHERE storeid="+i->first+" AND hierarchyid="+i->first+" AND tag=0x6784 AND type=0x0102");
+		er = lpDatabase->DoDelete("DELETE FROM properties WHERE storeid=" +
+		     p.first + " AND hierarchyid=" + p.first +
+		     " AND tag=0x6784 AND type=0x0102");
 		if (er != erSuccess)
 			goto exit;
 
 		// does not return an error if property was not in the database
-		er = lpDatabase->DoUpdate("UPDATE properties SET hierarchyid="+i->second+
-								  " WHERE storeid="+i->first+" AND hierarchyid="+i->first+" AND tag=0x6784 AND type=0x0102");
+		er = lpDatabase->DoUpdate("UPDATE properties SET hierarchyid=" +
+		     p.second + " WHERE storeid=" + p.first +
+		     " AND hierarchyid=" + p.first +
+		     " AND tag=0x6784 AND type=0x0102");
 		if (er != erSuccess)
 			goto exit;
 	}
