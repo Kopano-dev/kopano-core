@@ -497,30 +497,21 @@ void ECSession::AddBusyState(pthread_t threadId, const char* lpszState, struct t
 
 void ECSession::UpdateBusyState(pthread_t threadId, int state)
 {
-	std::map<pthread_t, BUSYSTATE>::iterator i;
-
 	pthread_mutex_lock(&m_hStateLock);
-
-	i = m_mapBusyStates.find(threadId);
-
-	if(i != m_mapBusyStates.end()) {
+	auto i = m_mapBusyStates.find(threadId);
+	if (i != m_mapBusyStates.cend())
 		i->second.state = state;
-	} else {
+	else
 		ASSERT(FALSE);
-	}
-
 	pthread_mutex_unlock(&m_hStateLock);
 }
 
 void ECSession::RemoveBusyState(pthread_t threadId)
 {
-	std::map<pthread_t, BUSYSTATE>::const_iterator i;
-
 	pthread_mutex_lock(&m_hStateLock);
 
-	i = m_mapBusyStates.find(threadId);
-
-	if(i != m_mapBusyStates.end()) {
+	auto i = m_mapBusyStates.find(threadId);
+	if (i != m_mapBusyStates.cend()) {
 		clockid_t clock;
 		struct timespec end;
 
@@ -624,10 +615,9 @@ ECRESULT ECSession::GetObjectFromEntryId(const entryId *lpEntryId, unsigned int 
 ECRESULT ECSession::LockObject(unsigned int ulObjId)
 {
 	ECRESULT er = erSuccess;
-	std::pair<LockMap::iterator, bool> res;
 	scoped_lock lock(m_hLocksLock);
 
-	res = m_mapLocks.insert(LockMap::value_type(ulObjId, ECObjectLock()));
+	auto res = m_mapLocks.insert(LockMap::value_type(ulObjId, ECObjectLock()));
 	if (res.second == true)
 		er = m_lpSessionManager->GetLockManager()->LockObject(ulObjId, m_sessionID, &res.first->second);
 
@@ -637,11 +627,10 @@ ECRESULT ECSession::LockObject(unsigned int ulObjId)
 ECRESULT ECSession::UnlockObject(unsigned int ulObjId)
 {
 	ECRESULT er;
-	LockMap::iterator i;
 	scoped_lock lock(m_hLocksLock);
 
-	i = m_mapLocks.find(ulObjId);
-	if (i == m_mapLocks.end())
+	auto i = m_mapLocks.find(ulObjId);
+	if (i == m_mapLocks.cend())
 		return erSuccess;
 	er = i->second.Unlock();
 	if (er == erSuccess)

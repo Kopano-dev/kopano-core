@@ -92,8 +92,6 @@ ECRESULT kopano_initlibrary(const char *lpDatabaseDir, const char *lpConfigFile)
 
 ECRESULT kopano_unloadlibrary(void)
 {
-	std::set<ECDatabase *>::const_iterator iterDBObject, iNext;
-
 	if (!g_bInitLib)
 		return KCERR_NOT_INITIALIZED;
 
@@ -107,10 +105,10 @@ ECRESULT kopano_unloadlibrary(void)
 	// Remove all exist database objects
 	pthread_mutex_lock(&g_hMutexDBObjectList);
 
-	iterDBObject = g_lpDBObjectList.begin();
-	while( iterDBObject != g_lpDBObjectList.end())
+	auto iterDBObject = g_lpDBObjectList.cbegin();
+	while (iterDBObject != g_lpDBObjectList.cend())
 	{
-		iNext = iterDBObject;
+		auto iNext = iterDBObject;
 		++iNext;
 		delete (*iterDBObject);
 

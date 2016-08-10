@@ -116,21 +116,18 @@ void ECSessionGroup::AddSession(ECSession *lpSession)
 
 void ECSessionGroup::ReleaseSession(ECSession *lpSession)
 {
-	SUBSCRIBEMAP::iterator i, iRemove;
-
 	pthread_mutex_lock(&m_hSessionMapLock);
 	m_mapSessions.erase(lpSession->GetSessionId());
 	pthread_mutex_unlock(&m_hSessionMapLock);
 
 	pthread_mutex_lock(&m_hNotificationLock);
 
-	for (i = m_mapSubscribe.begin(); i != m_mapSubscribe.end(); ) {
+	for (auto i = m_mapSubscribe.cbegin(); i != m_mapSubscribe.cend(); ) {
 		if (i->second.ulSession != lpSession->GetSessionId()) {
 			++i;
 			continue;
 		}
-
-		iRemove = i;
+		auto iRemove = i;
 		++i;
 		m_mapSubscribe.erase(iRemove);
 
@@ -215,27 +212,22 @@ ECRESULT ECSessionGroup::AddChangeAdvise(ECSESSIONID ulSessionId, unsigned int u
 ECRESULT ECSessionGroup::DelAdvise(ECSESSIONID ulSessionId, unsigned int ulConnection)
 {
 	ECRESULT		hr = erSuccess;
-
-	CHANGESUBSCRIBEMAP::iterator iterItem;
-	SUBSCRIBEMAP::iterator iterSubscription;
-	std::multimap<unsigned int, unsigned int>::iterator iterSubscribed;
-	
 	pthread_mutex_lock(&m_hNotificationLock);
-
-	iterSubscription = m_mapSubscribe.find(ulConnection);
-
-	if (iterSubscription == m_mapSubscribe.end()) {
+	auto iterSubscription = m_mapSubscribe.find(ulConnection);
+	if (iterSubscription == m_mapSubscribe.cend()) {
 		// Apparently the connection was used for change notifications.
-		iterItem = find_if(m_mapChangeSubscribe.begin(), m_mapChangeSubscribe.end(), FindChangeAdvise(ulSessionId, ulConnection));
-		if (iterItem != m_mapChangeSubscribe.end())
+		auto iterItem = find_if(m_mapChangeSubscribe.cbegin(),
+			m_mapChangeSubscribe.cend(),
+			FindChangeAdvise(ulSessionId, ulConnection));
+		if (iterItem != m_mapChangeSubscribe.cend())
 			m_mapChangeSubscribe.erase(iterItem);
 	} else {
 		if(iterSubscription->second.ulEventMask & (fnevObjectModified | fnevObjectCreated | fnevObjectCopied | fnevObjectDeleted | fnevObjectMoved)) {
 			// Object notification - remove our subscription to the store
 			pthread_mutex_lock(&m_mutexSubscribedStores);
 			// Find the store that the key was subscribed for
-			iterSubscribed = m_mapSubscribedStores.find(iterSubscription->second.ulKey);
-			if(iterSubscribed != m_mapSubscribedStores.end()) {
+			auto iterSubscribed = m_mapSubscribedStores.find(iterSubscription->second.ulKey);
+			if (iterSubscribed != m_mapSubscribedStores.cend()) {
 				// Unsubscribe the store
 				m_lpSessionManager->UnsubscribeObjectEvents(iterSubscribed->second, this->m_sessionGroupId);
 				// Remove from our list
@@ -360,8 +352,6 @@ ECRESULT ECSessionGroup::AddChangeNotification(const std::set<unsigned int> &syn
 	entryId			syncStateBin = {0};
 	notifySyncState	syncState = {0, ulChangeId};
 	std::map<ECSESSIONID,unsigned int> mapInserted;
-	CHANGESUBSCRIBEMAP::const_iterator iterItem;
-	std::pair<CHANGESUBSCRIBEMAP::const_iterator, CHANGESUBSCRIBEMAP::const_iterator> iterRange;
 
 	notifyItem.ulEventType = fnevKopanoIcsChange;
 	notifyItem.ics = &ics;
@@ -376,8 +366,9 @@ ECRESULT ECSessionGroup::AddChangeNotification(const std::set<unsigned int> &syn
 	// Iterate through all sync ids
 	for (auto sync_id : syncIds) {
 		// Iterate through all subscribed clients for the current sync id
-		iterRange = m_mapChangeSubscribe.equal_range(sync_id);
-		for (iterItem = iterRange.first; iterItem != iterRange.second; ++iterItem) {
+		auto iterRange = m_mapChangeSubscribe.equal_range(sync_id);
+		for (auto iterItem = iterRange.first;
+		     iterItem != iterRange.second; ++iterItem) {
 			// update sync state
 			syncState.ulSyncId = sync_id;
 			

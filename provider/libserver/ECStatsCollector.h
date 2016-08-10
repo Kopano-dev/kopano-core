@@ -100,8 +100,8 @@ public:
 	void Set(const std::string &name, const std::string &description, const std::string &value);
 	void Remove(const std::string &name);
 
-	std::string GetValue(SCMap::const_iterator iSD);
-	std::string GetValue(SCName name);
+	std::string GetValue(const SCMap::const_iterator::value_type &iSD);
+	std::string GetValue(const SCName &name);
 
 	void ForEachStat(void(callback)(const std::string &, const std::string &, const std::string &, void*), void *obj);
 	void ForEachString(void(callback)(const std::string &, const std::string &, const std::string &, void*), void *obj);

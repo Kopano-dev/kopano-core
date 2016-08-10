@@ -121,8 +121,8 @@ void ECStatsCollector::AddStat(SCName index, SCType type, const char *name, cons
 }
 
 void ECStatsCollector::Increment(SCName name, float inc) {
-	SCMap::iterator iSD = m_StatData.find(name);
-	if (iSD == m_StatData.end())
+	auto iSD = m_StatData.find(name);
+	if (iSD == m_StatData.cend())
 		return;
 
 	ASSERT(iSD->second.type == SCDT_FLOAT);
@@ -137,8 +137,8 @@ void ECStatsCollector::Increment(SCName name, int inc) {
 }
 
 void ECStatsCollector::Increment(SCName name, LONGLONG inc) {
-	SCMap::iterator iSD = m_StatData.find(name);
-	if (iSD == m_StatData.end())
+	auto iSD = m_StatData.find(name);
+	if (iSD == m_StatData.cend())
 		return;
 
 	ASSERT(iSD->second.type == SCDT_LONGLONG);
@@ -149,8 +149,8 @@ void ECStatsCollector::Increment(SCName name, LONGLONG inc) {
 }
 
 void ECStatsCollector::Set(SCName name, float set) {
-	SCMap::iterator iSD = m_StatData.find(name);
-	if (iSD == m_StatData.end())
+	auto iSD = m_StatData.find(name);
+	if (iSD == m_StatData.cend())
 		return;
 
 	ASSERT(iSD->second.type == SCDT_FLOAT);
@@ -161,8 +161,8 @@ void ECStatsCollector::Set(SCName name, float set) {
 }
 
 void ECStatsCollector::Set(SCName name, LONGLONG set) {
-	SCMap::iterator iSD = m_StatData.find(name);
-	if (iSD == m_StatData.end())
+	auto iSD = m_StatData.find(name);
+	if (iSD == m_StatData.cend())
 		return;
 
 	ASSERT(iSD->second.type == SCDT_LONGLONG);
@@ -173,8 +173,8 @@ void ECStatsCollector::Set(SCName name, LONGLONG set) {
 }
 
 void ECStatsCollector::SetTime(SCName name, time_t set) {
-	SCMap::iterator iSD = m_StatData.find(name);
-	if (iSD == m_StatData.end())
+	auto iSD = m_StatData.find(name);
+	if (iSD == m_StatData.cend())
 		return;
 
 	ASSERT(iSD->second.type == SCDT_TIMESTAMP);
@@ -186,8 +186,8 @@ void ECStatsCollector::SetTime(SCName name, time_t set) {
 
 void ECStatsCollector::Min(SCName name, float min)
 {
-	SCMap::iterator iSD = m_StatData.find(name);
-	if (iSD == m_StatData.end())
+	auto iSD = m_StatData.find(name);
+	if (iSD == m_StatData.cend())
 		return;
 
 	ASSERT(iSD->second.type == SCDT_FLOAT);
@@ -200,8 +200,8 @@ void ECStatsCollector::Min(SCName name, float min)
 
 void ECStatsCollector::Min(SCName name, LONGLONG min)
 {
-	SCMap::iterator iSD = m_StatData.find(name);
-	if (iSD == m_StatData.end())
+	auto iSD = m_StatData.find(name);
+	if (iSD == m_StatData.cend())
 		return;
 
 	ASSERT(iSD->second.type == SCDT_LONGLONG);
@@ -214,8 +214,8 @@ void ECStatsCollector::Min(SCName name, LONGLONG min)
 
 void ECStatsCollector::MinTime(SCName name, time_t min)
 {
-	SCMap::iterator iSD = m_StatData.find(name);
-	if (iSD == m_StatData.end())
+	auto iSD = m_StatData.find(name);
+	if (iSD == m_StatData.cend())
 		return;
 
 	ASSERT(iSD->second.type == SCDT_TIMESTAMP);
@@ -228,8 +228,8 @@ void ECStatsCollector::MinTime(SCName name, time_t min)
 
 void ECStatsCollector::Max(SCName name, float max)
 {
-	SCMap::iterator iSD = m_StatData.find(name);
-	if (iSD == m_StatData.end())
+	auto iSD = m_StatData.find(name);
+	if (iSD == m_StatData.cend())
 		return;
 
 	ASSERT(iSD->second.type == SCDT_FLOAT);
@@ -242,8 +242,8 @@ void ECStatsCollector::Max(SCName name, float max)
 
 void ECStatsCollector::Max(SCName name, LONGLONG max)
 {
-	SCMap::iterator iSD = m_StatData.find(name);
-	if (iSD == m_StatData.end())
+	auto iSD = m_StatData.find(name);
+	if (iSD == m_StatData.cend())
 		return;
 
 	ASSERT(iSD->second.type == SCDT_LONGLONG);
@@ -256,8 +256,8 @@ void ECStatsCollector::Max(SCName name, LONGLONG max)
 
 void ECStatsCollector::MaxTime(SCName name, time_t max)
 {
-	SCMap::iterator iSD = m_StatData.find(name);
-	if (iSD == m_StatData.end())
+	auto iSD = m_StatData.find(name);
+	if (iSD == m_StatData.cend())
 		return;
 
 	ASSERT(iSD->second.type == SCDT_TIMESTAMP);
@@ -270,8 +270,8 @@ void ECStatsCollector::MaxTime(SCName name, time_t max)
 
 void ECStatsCollector::Avg(SCName name, float add)
 {
-	SCMap::iterator iSD = m_StatData.find(name);
-	if (iSD == m_StatData.end())
+	auto iSD = m_StatData.find(name);
+	if (iSD == m_StatData.cend())
 		return;
 
 	ASSERT(iSD->second.type == SCDT_FLOAT);
@@ -286,8 +286,8 @@ void ECStatsCollector::Avg(SCName name, float add)
 
 void ECStatsCollector::Avg(SCName name, LONGLONG add)
 {
-	SCMap::iterator iSD = m_StatData.find(name);
-	if (iSD == m_StatData.end())
+	auto iSD = m_StatData.find(name);
+	if (iSD == m_StatData.cend())
 		return;
 
 	ASSERT(iSD->second.type == SCDT_LONGLONG);
@@ -302,8 +302,8 @@ void ECStatsCollector::Avg(SCName name, LONGLONG add)
 
 void ECStatsCollector::AvgTime(SCName name, time_t add)
 {
-	SCMap::iterator iSD = m_StatData.find(name);
-	if (iSD == m_StatData.end())
+	auto iSD = m_StatData.find(name);
+	if (iSD == m_StatData.cend())
 		return;
 
 	ASSERT(iSD->second.type == SCDT_TIMESTAMP);
@@ -335,21 +335,21 @@ void ECStatsCollector::Remove(const std::string &name)
 	pthread_mutex_unlock(&m_StringsLock);
 }
 
-std::string ECStatsCollector::GetValue(SCMap::const_iterator iSD)
+std::string ECStatsCollector::GetValue(const SCMap::const_iterator::value_type &iSD)
 {
 	std::string rv;
 
-	switch(iSD->second.type) {
+	switch (iSD.second.type) {
 	case SCDT_FLOAT:
-		rv = stringify_float(iSD->second.data.f);
+		rv = stringify_float(iSD.second.data.f);
 		break;
 	case SCDT_LONGLONG:
-		rv = stringify_int64(iSD->second.data.ll);
+		rv = stringify_int64(iSD.second.data.ll);
 		break;
 	case SCDT_TIMESTAMP:
-		if (iSD->second.data.ts > 0) {
+		if (iSD.second.data.ts > 0) {
 			char timestamp[128] = { 0 };
-			struct tm *tm = localtime(&iSD->second.data.ts);
+			struct tm *tm = localtime(&iSD.second.data.ts);
 			strftime(timestamp, sizeof timestamp, "%a %b %e %T %Y", tm);
 			rv = timestamp;
 		}
@@ -359,12 +359,11 @@ std::string ECStatsCollector::GetValue(SCMap::const_iterator iSD)
 	return rv;
 }
 
-std::string ECStatsCollector::GetValue(SCName name) {
+std::string ECStatsCollector::GetValue(const SCName &name) {
 	std::string rv;
-	SCMap::const_iterator iSD = m_StatData.find(name);
-
-	if (iSD != m_StatData.end())
-		rv = GetValue(iSD);
+	auto iSD = m_StatData.find(name);
+	if (iSD != m_StatData.cend())
+		rv = GetValue(*iSD);
 
 	return rv;
 }
@@ -375,7 +374,7 @@ void ECStatsCollector::ForEachStat(void(callback)(const std::string &, const std
 
 	for (iSD = m_StatData.begin(); iSD != m_StatData.end(); ++iSD) {
 		pthread_mutex_lock(&iSD->second.lock);
-		callback(iSD->second.name, iSD->second.description, GetValue(iSD), obj);
+		callback(iSD->second.name, iSD->second.description, GetValue(*iSD), obj);
 		pthread_mutex_unlock(&iSD->second.lock);
 	}
 }
@@ -402,9 +401,8 @@ void ECStatsCollector::Reset() {
 }
 
 void ECStatsCollector::Reset(SCName name) {
-	SCMap::iterator iSD = m_StatData.find(name);
-
-	if (iSD != m_StatData.end()) {
+	auto iSD = m_StatData.find(name);
+	if (iSD != m_StatData.cend()) {
 		// reset largest var in union
 		pthread_mutex_lock(&iSD->second.lock);
 		iSD->second.data.ll = 0;

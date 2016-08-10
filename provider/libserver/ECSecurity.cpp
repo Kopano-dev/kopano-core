@@ -164,7 +164,6 @@ ECRESULT ECSecurity::GetGroupsForUser(unsigned int ulUserId, std::list<localobje
 {
 	ECRESULT er;
 	std::list<localobjectdetails_t> *lpGroups = NULL;
-	std::list<localobjectdetails_t>::iterator iterGroups;
 	cUniqueGroup cSeenGroups;
 
 	/* Gets the current user's membership information.
@@ -175,9 +174,9 @@ ECRESULT ECSecurity::GetGroupsForUser(unsigned int ulUserId, std::list<localobje
 		return er;
 
 	/* A user is only member of a group when he can also view the group */
-	for (iterGroups = lpGroups->begin(); iterGroups != lpGroups->end(); ) {
-
-		/* Since this function is only used by ECSecurity, we can only
+	for (auto iterGroups = lpGroups->begin(); iterGroups != lpGroups->cend(); ) {
+		/*
+		 * Since this function is only used by ECSecurity, we can only
 		 * test for security groups here. However, normal groups were
 		 * used to be security enabled, so only check for dynamic
 		 * groups here to exclude.
@@ -975,8 +974,6 @@ ECRESULT ECSecurity::GetAdminCompanies(unsigned int ulFlags, list<localobjectdet
 {
 	ECRESULT er = erSuccess;
 	list<localobjectdetails_t> *lpObjects = NULL;
-	list<localobjectdetails_t>::iterator iterObjects;
-	list<localobjectdetails_t>::iterator iterObjectsRemove;
 
 	if (m_details.GetPropInt(OB_PROP_I_ADMINLEVEL) == ADMIN_LEVEL_SYSADMIN)
 		er = m_lpSession->GetUserManagement()->GetCompanyObjectListAndSync(CONTAINER_COMPANY, 0, &lpObjects, ulFlags);
@@ -988,9 +985,9 @@ ECRESULT ECSecurity::GetAdminCompanies(unsigned int ulFlags, list<localobjectdet
 		goto exit;
 
 	/* A user is only admin over an company when he has privileges to view the company */
-	for (iterObjects = lpObjects->begin(); iterObjects != lpObjects->end(); ) {
+	for (auto iterObjects = lpObjects->begin(); iterObjects != lpObjects->cend(); ) {
 		if (IsUserObjectVisible(iterObjects->ulId) != erSuccess) {
-			iterObjectsRemove = iterObjects;
+			auto iterObjectsRemove = iterObjects;
 			++iterObjects;
 			lpObjects->erase(iterObjectsRemove);
 		} else {
