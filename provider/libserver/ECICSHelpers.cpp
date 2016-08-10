@@ -802,26 +802,25 @@ ECRESULT ECGetContentChangesHelper::ProcessResidualMessages()
 {
 	ECRESULT er;
 	MESSAGESET				setResiduals;
-	MESSAGESET::const_iterator iterMessage;
 
 	ASSERT(m_lpMsgProcessor);
 	er = m_lpMsgProcessor->GetResidualMessages(&setResiduals);
 	if (er != erSuccess)
 		return er;
 	
-	for (iterMessage = setResiduals.begin(); iterMessage != setResiduals.end(); ++iterMessage) {
-		if (iterMessage->first.size() == 1 && memcmp(iterMessage->first, "\0", 1) == 0)
+	for (const auto &p : setResiduals) {
+		if (p.first.size() == 1 && memcmp(p.first, "\0", 1) == 0)
 			continue;	// Skip empty restricted set marker,
 	
-		ec_log(EC_LOGLEVEL_ICS, "ProcessResidualMessages: sourcekey=%s", bin2hex(iterMessage->first).c_str());
+		ec_log(EC_LOGLEVEL_ICS, "ProcessResidualMessages: sourcekey=%s", bin2hex(p.first).c_str());
 		m_lpChanges->__ptr[m_ulChangeCnt].ulChangeId = 0;
-		m_lpChanges->__ptr[m_ulChangeCnt].sSourceKey.__ptr = (unsigned char *)soap_malloc(m_soap, iterMessage->first.size());
-		m_lpChanges->__ptr[m_ulChangeCnt].sSourceKey.__size = iterMessage->first.size();
-		memcpy(m_lpChanges->__ptr[m_ulChangeCnt].sSourceKey.__ptr, iterMessage->first, iterMessage->first.size());
+		m_lpChanges->__ptr[m_ulChangeCnt].sSourceKey.__ptr = (unsigned char *)soap_malloc(m_soap, p.first.size());
+		m_lpChanges->__ptr[m_ulChangeCnt].sSourceKey.__size = p.first.size();
+		memcpy(m_lpChanges->__ptr[m_ulChangeCnt].sSourceKey.__ptr, p.first, p.first.size());
 
-		m_lpChanges->__ptr[m_ulChangeCnt].sParentSourceKey.__ptr = (unsigned char *)soap_malloc(m_soap, iterMessage->second.sParentSourceKey.size());
-		m_lpChanges->__ptr[m_ulChangeCnt].sParentSourceKey.__size = iterMessage->second.sParentSourceKey.size();
-		memcpy(m_lpChanges->__ptr[m_ulChangeCnt].sParentSourceKey.__ptr, iterMessage->second.sParentSourceKey, iterMessage->second.sParentSourceKey.size());
+		m_lpChanges->__ptr[m_ulChangeCnt].sParentSourceKey.__ptr = (unsigned char *)soap_malloc(m_soap, p.second.sParentSourceKey.size());
+		m_lpChanges->__ptr[m_ulChangeCnt].sParentSourceKey.__size = p.second.sParentSourceKey.size();
+		memcpy(m_lpChanges->__ptr[m_ulChangeCnt].sParentSourceKey.__ptr, p.second.sParentSourceKey, p.second.sParentSourceKey.size());
 		
 		m_lpChanges->__ptr[m_ulChangeCnt].ulChangeType = ICS_HARD_DELETE;
 		
@@ -837,7 +836,6 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 	std::string					strQuery;
 	unsigned int				ulMaxChange = 0;
 	unsigned int				ulNewChange = 0;
-	MESSAGESET::const_iterator	iterMessage;
 	DB_RESULT					lpDBResult	= NULL;
 	DB_ROW						lpDBRow;
 	
@@ -923,7 +921,6 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 
 		if (!setChangeIds.empty()) {
 			std::set<unsigned int> setDeleteIds;
-			std::set<unsigned int>::const_iterator iter;
 			
 			/* Remove obsolete states
 			 *
@@ -943,10 +940,9 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 
 			// Delete any message state that is higher than the changeset that changes were
 			// requested from (rule 1)
-			iter = setChangeIds.upper_bound(m_ulChangeId);
-			if (iter != setChangeIds.end()) {
+			auto iter = setChangeIds.upper_bound(m_ulChangeId);
+			if (iter != setChangeIds.cend())
 				std::copy(iter, setChangeIds.end(), std::inserter(setDeleteIds, setDeleteIds.begin()));
-			}
 
 			// Find all message states that are equal or lower than the changeset that changes were requested from
 			iter = setChangeIds.lower_bound(m_ulChangeId);
@@ -959,8 +955,8 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 				ASSERT(setChangeIds.size() - setDeleteIds.size() <= 9);
 				
 				strQuery = "DELETE FROM syncedmessages WHERE sync_id=" + stringify(m_ulSyncId) + " AND change_id IN (";
-				for (iter = setDeleteIds.begin(); iter != setDeleteIds.end(); ++iter) {
-					strQuery.append(stringify(*iter));
+				for (auto del_id : setDeleteIds) {
+					strQuery.append(stringify(del_id));
 					strQuery.append(1, ',');
 				}
 				strQuery.resize(strQuery.size() - 1);	// Remove trailing ','
@@ -974,10 +970,10 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 	
 		// Create the insert query
 		strQuery = "INSERT INTO syncedmessages (sync_id,change_id,sourcekey,parentsourcekey) VALUES ";
-		for (iterMessage = m_setNewMessages.begin(); iterMessage != m_setNewMessages.end(); ++iterMessage)
-			strQuery += "(" + stringify(m_ulSyncId) + "," + stringify(ulMaxChange) + "," + 
-						m_lpDatabase->EscapeBinary(iterMessage->first, iterMessage->first.size()) + "," + 
-						m_lpDatabase->EscapeBinary(iterMessage->second.sParentSourceKey, iterMessage->second.sParentSourceKey.size()) + "),";
+		for (const auto &p : m_setNewMessages)
+			strQuery += "(" + stringify(m_ulSyncId) + "," + stringify(ulMaxChange) + "," +
+				m_lpDatabase->EscapeBinary(p.first, p.first.size()) + "," +
+				m_lpDatabase->EscapeBinary(p.second.sParentSourceKey, p.second.sParentSourceKey.size()) + "),";
 
 		strQuery.resize(strQuery.size() - 1);
 		er = m_lpDatabase->DoInsert(strQuery);
