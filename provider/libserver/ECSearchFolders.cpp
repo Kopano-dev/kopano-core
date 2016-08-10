@@ -597,19 +597,17 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 				     stringify(folder.first) + " FOR UPDATE", NULL);
 			if (er == KCERR_DATABASE_ERROR) {
 				DB_ERROR dberr = lpDatabase->GetLastError();
-				if (dberr == DB_E_LOCK_WAIT_TIMEOUT || dberr == DB_E_LOCK_DEADLOCK) {
-					er = lpDatabase->Rollback();
-					if (er != erSuccess) {
-						ec_log_crit("ECSearchFolders::ProcessMessageChange(): database rollback failed %d", er);
-						goto exit;
-					}
-					g_lpStatsCollector->Increment(SCN_SEARCHFOLDER_UPDATE_RETRY);
-					continue;
-				}
-				else {
+				if (dberr != DB_E_LOCK_WAIT_TIMEOUT && dberr != DB_E_LOCK_DEADLOCK) {
 					ec_log_err("ECSearchFolders::ProcessMessageChange(): select failed");
 					goto exit;
 				}
+				er = lpDatabase->Rollback();
+				if (er != erSuccess) {
+					ec_log_crit("ECSearchFolders::ProcessMessageChange(): database rollback failed %d", er);
+					goto exit;
+				}
+				g_lpStatsCollector->Increment(SCN_SEARCHFOLDER_UPDATE_RETRY);
+				continue;
 			} else if (er != erSuccess) {
 				ec_log_crit("ECSearchFolders::ProcessMessageChange(): unexpected error %d", er);
 				goto exit;
@@ -646,12 +644,12 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 					// setParents now contains all the parent of this object, now we can check if any of the ancestors
 					// are in the search target
 					for (unsigned int i = 0; i < folder.second->lpSearchCriteria->lpFolders->__size; ++i) {
-						if (m_lpSessionManager->GetCacheManager()->GetObjectFromEntryId(&folder.second->lpSearchCriteria->lpFolders->__ptr[i], &ulSCFolderId) == erSuccess) {
-							auto iterParents = setParents.find(ulSCFolderId);
-							if (iterParents != setParents.cend()) {
-								bIsInTargetFolder = true;
-								break;
-							}
+						if (m_lpSessionManager->GetCacheManager()->GetObjectFromEntryId(&folder.second->lpSearchCriteria->lpFolders->__ptr[i], &ulSCFolderId) != erSuccess)
+							continue;
+						auto iterParents = setParents.find(ulSCFolderId);
+						if (iterParents != setParents.cend()) {
+							bIsInTargetFolder = true;
+							break;
 						}
 					}
 				}

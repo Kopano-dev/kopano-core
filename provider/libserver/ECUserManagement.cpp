@@ -1993,16 +1993,13 @@ ECRESULT ECUserManagement::QueryContentsRowData(struct soap *soap, ECObjectTable
 			er = ConvertObjectDetailsToProps(soap, iterRowList->ulObjId, &details, lpPropTagArray, &lpsRowSet->__ptr[i]);
 			if(er != erSuccess)
 				goto exit;
-		} else {
-			if (lpsRowSet->__ptr[i].__ptr == NULL) {
-				lpsRowSet->__ptr[i].__ptr = s_alloc<propVal>(soap, lpPropTagArray->__size);
-				lpsRowSet->__ptr[i].__size = lpPropTagArray->__size;
-
-				for (gsoap_size_t j = 0; j < lpPropTagArray->__size; ++j) {
-					lpsRowSet->__ptr[i].__ptr[j].ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropTagArray->__ptr[j]));
-					lpsRowSet->__ptr[i].__ptr[j].Value.ul = KCERR_NOT_FOUND;
-					lpsRowSet->__ptr[i].__ptr[j].__union = SOAP_UNION_propValData_ul;
-				}
+		} else if (lpsRowSet->__ptr[i].__ptr == NULL) {
+			lpsRowSet->__ptr[i].__ptr = s_alloc<propVal>(soap, lpPropTagArray->__size);
+			lpsRowSet->__ptr[i].__size = lpPropTagArray->__size;
+			for (gsoap_size_t j = 0; j < lpPropTagArray->__size; ++j) {
+				lpsRowSet->__ptr[i].__ptr[j].ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropTagArray->__ptr[j]));
+				lpsRowSet->__ptr[i].__ptr[j].Value.ul = KCERR_NOT_FOUND;
+				lpsRowSet->__ptr[i].__ptr[j].__union = SOAP_UNION_propValData_ul;
 			}
 		}
 		++i;
@@ -2054,22 +2051,20 @@ ECRESULT ECUserManagement::QueryHierarchyRowData(struct soap *soap, ECObjectTabl
 			er = ConvertABContainerToProps(soap, iterRowList->ulObjId, lpPropTagArray, &lpsRowSet->__ptr[i]);
 			if (er != erSuccess)
 				goto exit;
-		} else {
-			objectdetails_t details;
-			objectid_t sExternId;
-
-			er = GetObjectDetails(iterRowList->ulObjId, &details);
-			if (er != erSuccess)
-				goto exit;
-				
-			er = GetExternalId(iterRowList->ulObjId, &sExternId);
-			if (er != erSuccess)
-				goto exit;
-
-			er = ConvertContainerObjectDetailsToProps(soap, iterRowList->ulObjId, &details, lpPropTagArray, &lpsRowSet->__ptr[i]);
-			if(er != erSuccess)
-				goto exit;
+			++i;
+			continue;
 		}
+		objectdetails_t details;
+		objectid_t sExternId;
+		er = GetObjectDetails(iterRowList->ulObjId, &details);
+		if (er != erSuccess)
+			goto exit;
+		er = GetExternalId(iterRowList->ulObjId, &sExternId);
+		if (er != erSuccess)
+			goto exit;
+		er = ConvertContainerObjectDetailsToProps(soap, iterRowList->ulObjId, &details, lpPropTagArray, &lpsRowSet->__ptr[i]);
+		if (er != erSuccess)
+			goto exit;
 		++i;
 	}
 

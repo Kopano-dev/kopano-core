@@ -388,11 +388,12 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 	while (sValidProps[i].column != NULL) {
 		string propvalue = details.GetPropString(sValidProps[i].id);
 
-		if (strcasecmp(sValidProps[i].column, OP_PASSWORD) == 0 && !propvalue.empty()) {
-			// Password value has special treatment
-			if (CreateMD5Hash(propvalue, &propvalue) != erSuccess) // WARNING input and output point to the same data
-				throw runtime_error(string("db_changeUser: create md5"));
-		}
+		if (strcasecmp(sValidProps[i].column, OP_PASSWORD) == 0 &&
+		    !propvalue.empty() &&
+			/* Password value has special treatment */
+		    CreateMD5Hash(propvalue, &propvalue) != erSuccess)
+			/* WARNING input and output point to the same data */
+			throw runtime_error(string("db_changeUser: create md5"));
 
 		if (sValidProps[i].id == OB_PROP_O_COMPANYID) {
 			propvalue = details.GetPropObject(OB_PROP_O_COMPANYID).id;
@@ -412,20 +413,20 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 	/* Load optional anonymous attributes */
 	anonymousProps = details.GetPropMapAnonymous();
 	for (const auto &ap : anonymousProps) {
-		if (!ap.second.empty()) {
-			if (!bFirstOne)
-				strQuery += ",";
-			if (PROP_TYPE(ap.first) == PT_BINARY) {
-				strData = base64_encode(reinterpret_cast<const unsigned char *>(ap.second.c_str()), ap.second.size());
-			} else {
-				strData = ap.second;
-			}
-			strQuery +=
-				"((" + strSubQuery + "),"
-				"'" + m_lpDatabase->Escape(stringify(ap.first, true)) + "',"
-				"'" +  m_lpDatabase->Escape(strData) + "')";
-			bFirstOne = false;
+		if (ap.second.empty())
+			continue;
+		if (!bFirstOne)
+			strQuery += ",";
+		if (PROP_TYPE(ap.first) == PT_BINARY) {
+			strData = base64_encode(reinterpret_cast<const unsigned char *>(ap.second.c_str()), ap.second.size());
+		} else {
+			strData = ap.second;
 		}
+		strQuery +=
+			"((" + strSubQuery + "),"
+			"'" + m_lpDatabase->Escape(stringify(ap.first, true)) + "',"
+			"'" +  m_lpDatabase->Escape(strData) + "')";
+		bFirstOne = false;
 	}
 
 	/* Only update when there were actually properties provided. */

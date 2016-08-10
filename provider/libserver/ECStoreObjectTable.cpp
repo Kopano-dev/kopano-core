@@ -456,15 +456,12 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
 		
 		if(!mapIncompleteRows.empty()) {
 			// Find rows that are in the deferred processing queue, and we have rows to be processed
-			if(lpODStore->ulFolderId) {
+			if (lpODStore->ulFolderId)
 				er = GetDeferredTableUpdates(lpDatabase, lpODStore->ulFolderId, &lstDeferred);
-				if(er != erSuccess)
-					goto exit;
-			} else {
+			else
 				er = GetDeferredTableUpdates(lpDatabase, lpRowList, &lstDeferred);
-				if(er != erSuccess)
-					goto exit;
-			}
+			if(er != erSuccess)
+				goto exit;
 				
 			// Build list of rows that are incomplete (not in cache) AND deferred
 			for (iterDeferred = lstDeferred.begin();
@@ -491,16 +488,14 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
 
             // Find out which columns we need
             for (k = 0; k < lpsPropTagArray->__size; ++k) {
-                if(setCellDone.count(std::make_pair(iterRows->second, k)) == 0) {
-                    // Not done yet, remember that we need to get this column
-                    unsigned int ulPropTag;
-                    
-                    if(ECGenProps::GetPropSubstitute(lpODStore->ulObjType, lpsPropTagArray->__ptr[k], &ulPropTag) != erSuccess)
-                    	ulPropTag = lpsPropTagArray->__ptr[k];
-                    	
-                    mapColumns.insert(std::make_pair(ulPropTag, k));
-                    setCellDone.insert(std::make_pair(iterRows->second, k)); // Done now
-                }
+				if (setCellDone.count(std::make_pair(iterRows->second, k)) != 0)
+					continue;
+				// Not done yet, remember that we need to get this column
+				unsigned int ulPropTag;
+				if (ECGenProps::GetPropSubstitute(lpODStore->ulObjType, lpsPropTagArray->__ptr[k], &ulPropTag) != erSuccess)
+					ulPropTag = lpsPropTagArray->__ptr[k];
+				mapColumns.insert(std::make_pair(ulPropTag, k));
+				setCellDone.insert(std::make_pair(iterRows->second, k)); // Done now
             }
             
             // Get actual data
@@ -574,40 +569,41 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
     	 * - Get any additional data via QueryRowDataByRow() if needed since that is the only method to get > 255 bytes
     	 */
 		for (k = 0; k < lpsPropTagArray->__size; ++k) {
-			if(IsTruncatableType(lpsPropTagArray->__ptr[k])) {
-				for (i = 0, iterRowList = lpRowList->begin();
-				     iterRowList != lpRowList->end();
-				     ++iterRowList, ++i) {
-					if(IsTruncated(&lpsRowSet->__ptr[i].__ptr[k])) {
-						
-						// We only want one column in this row
-						mapColumns.clear();
-						mapColumns.insert(std::make_pair(lpsPropTagArray->__ptr[k], k));
-						
-						// Un-truncate this value
-						er = QueryRowDataByRow(lpThis, soap, lpSession, *iterRowList, i, mapColumns, false, lpsRowSet);
-						if (er != erSuccess)
-							goto exit;
-					}
-				}
+			if (!IsTruncatableType(lpsPropTagArray->__ptr[k]))
+				continue;
+			for (i = 0, iterRowList = lpRowList->begin();
+			     iterRowList != lpRowList->end();
+			     ++iterRowList, ++i) {
+				if (!IsTruncated(&lpsRowSet->__ptr[i].__ptr[k]))
+					continue;
+				// We only want one column in this row
+				mapColumns.clear();
+				mapColumns.insert(std::make_pair(lpsPropTagArray->__ptr[k], k));
+				// Un-truncate this value
+				er = QueryRowDataByRow(lpThis, soap, lpSession, *iterRowList, i, mapColumns, false, lpsRowSet);
+				if (er != erSuccess)
+					goto exit;
 			}
 		}
     }
     
-	for (k = 0; k < lpsPropTagArray->__size; ++k)
+	for (k = 0; k < lpsPropTagArray->__size; ++k) {
 		// Do any post-processing operations
 		if (ECGenProps::IsPropComputed(lpsPropTagArray->__ptr[k],
-		    lpODStore->ulObjType) == erSuccess)
-			for (i = 0, iterRowList = lpRowList->begin();
-			     iterRowList != lpRowList->end();
-			     ++iterRowList, ++i)
-				if (iterRowList->ulObjId != 0)
-					// Do not change category values!
-					ECGenProps::GetPropComputed(soap,
-						lpODStore->ulObjType,
-						lpsPropTagArray->__ptr[k],
-						iterRowList->ulObjId,
-						&lpsRowSet->__ptr[i].__ptr[k]);
+		    lpODStore->ulObjType) != erSuccess)
+			continue;
+		for (i = 0, iterRowList = lpRowList->begin();
+		     iterRowList != lpRowList->end();
+		     ++iterRowList, ++i) {
+			if (iterRowList->ulObjId == 0)
+				continue;
+			// Do not change category values!
+			ECGenProps::GetPropComputed(soap, lpODStore->ulObjType,
+				lpsPropTagArray->__ptr[k],
+				iterRowList->ulObjId,
+				&lpsRowSet->__ptr[i].__ptr[k]);
+		}
+	}
     
     *lppRowSet = lpsRowSet;
 	lpsRowSet = NULL;
@@ -740,15 +736,12 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
         std::string strPropColOrder;
         
         for (iterColumns = mapColumns.begin(); iterColumns != mapColumns.end(); ++iterColumns) {
-            if(ECGenProps::GetPropSubquery(iterColumns->first, strSubQuery) == erSuccess) {
-                strPropColOrder = GetPropColOrder(iterColumns->first, strSubQuery);
-
-                if(!strQuery.empty())
-                    strQuery += " UNION ";
-                    
-                strQuery += " SELECT " + strPropColOrder + " FROM hierarchy WHERE hierarchy.id = " + stringify(sKey.ulObjId);
-            
-            }
+			if (ECGenProps::GetPropSubquery(iterColumns->first, strSubQuery) != erSuccess)
+				continue;
+			strPropColOrder = GetPropColOrder(iterColumns->first, strSubQuery);
+			if (!strQuery.empty())
+				strQuery += " UNION ";
+			strQuery += " SELECT " + strPropColOrder + " FROM hierarchy WHERE hierarchy.id = " + stringify(sKey.ulObjId);
         }
     }
     
@@ -920,11 +913,10 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 		     iterSubQueries != setSubQueries.end(); ++iterSubQueries) {
 			if(!strQuery.empty())
 				strQuery += " UNION ";
-			if(ECGenProps::GetPropSubquery(*iterSubQueries, strSubquery) == erSuccess) {
-				strPropColOrder = GetPropColOrder(*iterSubQueries, strSubquery);
-
-				strQuery += " SELECT " + strPropColOrder + ", hierarchy.id, 0 FROM hierarchy WHERE hierarchy.id IN (" + strHierarchyIds + ")";
-			}
+			if (ECGenProps::GetPropSubquery(*iterSubQueries, strSubquery) != erSuccess)
+				continue;
+			strPropColOrder = GetPropColOrder(*iterSubQueries, strSubquery);
+			strQuery += " SELECT " + strPropColOrder + ", hierarchy.id, 0 FROM hierarchy WHERE hierarchy.id IN (" + strHierarchyIds + ")";
 		}
 	}
 
@@ -1207,10 +1199,11 @@ ECRESULT ECStoreObjectTable::CheckPermissions(unsigned int ulObjId)
 		if(er != erSuccess)
 			return er;
 		
-		if(ulFolderFlags == FOLDER_SEARCH)
-		    // Searchfolders are only visible in the home store
-		    if(lpSession->GetSecurity()->IsAdminOverOwnerOfObject(ulObjId) != erSuccess && lpSession->GetSecurity()->IsStoreOwner(ulObjId) != erSuccess)
-				return KCERR_NO_ACCESS;
+		if (ulFolderFlags == FOLDER_SEARCH &&
+		    /* Searchfolders are only visible in the home store */
+		    lpSession->GetSecurity()->IsAdminOverOwnerOfObject(ulObjId) != erSuccess &&
+		    lpSession->GetSecurity()->IsStoreOwner(ulObjId) != erSuccess)
+			return KCERR_NO_ACCESS;
 
         er = lpSession->GetSecurity()->CheckPermission(ulObjId, ecSecurityFolderVisible);
         if(er != erSuccess)

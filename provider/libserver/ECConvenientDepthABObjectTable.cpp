@@ -107,26 +107,26 @@ ECRESULT ECConvenientDepthABObjectTable::Load()
 
     // 'Recursively' loop through all our containers and add each of those children to our object list
 	for (const auto &obj : lstObjects) {
-		if (LoadHierarchyContainer(obj.ulId, 0, &lpSubObjects) == erSuccess) {
-			for (const auto &subobj : *lpSubObjects) {
-                CONTAINERINFO folder;
-                folder.ulId = subobj.ulId;
-                folder.ulDepth = obj.ulDepth + 1;
-                folder.strPath = obj.strPath + "/" + subobj.GetPropString(OB_PROP_S_LOGIN);
-                lstObjects.push_back(folder);
-            }
-            delete lpSubObjects;
-            lpSubObjects = NULL;
-        }
+		if (LoadHierarchyContainer(obj.ulId, 0, &lpSubObjects) != erSuccess)
+			continue;
+		for (const auto &subobj : *lpSubObjects) {
+			CONTAINERINFO folder;
+			folder.ulId = subobj.ulId;
+			folder.ulDepth = obj.ulDepth + 1;
+			folder.strPath = obj.strPath + "/" + subobj.GetPropString(OB_PROP_S_LOGIN);
+			lstObjects.push_back(folder);
+		}
+		delete lpSubObjects;
+		lpSubObjects = NULL;
     }
 
     // Add all the rows into the row engine, except the root object (the folder itself does not show in its own hierarchy table)
 	for (const auto &obj : lstObjects) {
-		if (obj.ulId != lpODAB->ulABParentId) {
-			m_mapDepth[obj.ulId] = obj.ulDepth;
-			m_mapPath[obj.ulId] = obj.strPath;
-			UpdateRow(ECKeyTable::TABLE_ROW_ADD, obj.ulId, 0);
-        }
+		if (obj.ulId == lpODAB->ulABParentId)
+			continue;
+		m_mapDepth[obj.ulId] = obj.ulDepth;
+		m_mapPath[obj.ulId] = obj.strPath;
+		UpdateRow(ECKeyTable::TABLE_ROW_ADD, obj.ulId, 0);
 	}
 
 exit:

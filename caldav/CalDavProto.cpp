@@ -1717,12 +1717,10 @@ HRESULT CalDAV::HrHandlePropPatch(WEBDAVPROP *lpsDavProp, WEBDAVMULTISTATUS *lps
 			// not allowed to select which calendars give freebusy information
 			sPropStatusForbidden.sProp.lstProps.push_back(sDavProp);
 			continue;
-		} else {
-			if (iter.sPropName.strNS.compare(WEBDAVNS) == 0) {
-				// only DAV:displayname may be modified, the rest is read-only
-				sPropStatusForbidden.sProp.lstProps.push_back(sDavProp);
-				continue;
-			}
+		} else if (iter.sPropName.strNS.compare(WEBDAVNS) == 0) {
+			// only DAV:displayname may be modified, the rest is read-only
+			sPropStatusForbidden.sProp.lstProps.push_back(sDavProp);
+			continue;
 		}
 
 		sProp.ulPropTag = GetPropIDForXMLProp(m_lpUsrFld, iter.sPropName, m_converter, MAPI_CREATE);
@@ -1740,19 +1738,18 @@ HRESULT CalDAV::HrHandlePropPatch(WEBDAVPROP *lpsDavProp, WEBDAVMULTISTATUS *lps
 		}
 
 		hr = m_lpUsrFld->SetProps(1, &sProp, NULL);
-		if (hr != hrSuccess) {
-			if (hr == MAPI_E_COLLISION) {
-				// set error 409 collision
-				sPropStatusCollision.sProp.lstProps.push_back(sDavProp);
-				// returned on folder rename, directly return an error and skip all other properties, see note above
-				return hr;
-			} else {
-				// set error 403 forbidden
-				sPropStatusForbidden.sProp.lstProps.push_back(sDavProp);
-			}
-		} else {
+		if (hr == hrSuccess) {
 			sPropStatusOK.sProp.lstProps.push_back(sDavProp);
+			continue;
 		}
+		if (hr == MAPI_E_COLLISION) {
+			// set error 409 collision
+			sPropStatusCollision.sProp.lstProps.push_back(sDavProp);
+			// returned on folder rename, directly return an error and skip all other properties, see note above
+			return hr;
+		}
+		// set error 403 forbidden
+		sPropStatusForbidden.sProp.lstProps.push_back(sDavProp);
 	}
 
 	// @todo, maybe only do this for certain Mac iCal app versions?

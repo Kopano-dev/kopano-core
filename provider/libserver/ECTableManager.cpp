@@ -652,17 +652,15 @@ ECRESULT ECTableManager::UpdateOutgoingTables(ECKeyTable::UpdateType ulType, uns
 	pthread_mutex_lock(&hListMutex);
 
 	for (iterTables = mapTable.begin(); iterTables != mapTable.end(); ++iterTables) {
-		if(	iterTables->second->ulTableType == TABLE_ENTRY::TABLE_TYPE_OUTGOINGQUEUE &&
+		bool k = iterTables->second->ulTableType == TABLE_ENTRY::TABLE_TYPE_OUTGOINGQUEUE &&
 			(iterTables->second->sTable.sOutgoingQueue.ulStoreId == ulStoreId ||
 			 iterTables->second->sTable.sOutgoingQueue.ulStoreId == 0) &&
-			 iterTables->second->sTable.sOutgoingQueue.ulFlags == (ulFlags & EC_SUBMIT_MASTER)) {
-
-			er = iterTables->second->lpTable->UpdateRows(ulType, &lstObjId, OBJECTTABLE_NOTIFY, false);
-
-			// ignore errors from the update
-			er = erSuccess;
-
-		}
+			 iterTables->second->sTable.sOutgoingQueue.ulFlags == (ulFlags & EC_SUBMIT_MASTER);
+		if (!k)
+			continue;
+		er = iterTables->second->lpTable->UpdateRows(ulType, &lstObjId, OBJECTTABLE_NOTIFY, false);
+		// ignore errors from the update
+		er = erSuccess;
 	}
 
 	pthread_mutex_unlock(&hListMutex);
@@ -682,17 +680,15 @@ ECRESULT ECTableManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned in
 
 	// First, do all the actual contents tables and hierarchy tables
 	for (iterTables = mapTable.begin(); iterTables != mapTable.end(); ++iterTables) {
-		if(	iterTables->second->ulTableType == TABLE_ENTRY::TABLE_TYPE_GENERIC &&
+		bool k = iterTables->second->ulTableType == TABLE_ENTRY::TABLE_TYPE_GENERIC &&
 			iterTables->second->sTable.sGeneric.ulParentId == ulObjId && 
 			iterTables->second->sTable.sGeneric.ulObjectFlags == ulFlags &&
-			iterTables->second->sTable.sGeneric.ulObjectType == ulObjType) {
-
-			er = iterTables->second->lpTable->UpdateRows(ulType, &lstChildId, OBJECTTABLE_NOTIFY, false);
-
-			// ignore errors from the update
-			er = erSuccess;
-
-		}
+			iterTables->second->sTable.sGeneric.ulObjectType == ulObjType;
+		if (!k)
+			continue;
+		er = iterTables->second->lpTable->UpdateRows(ulType, &lstChildId, OBJECTTABLE_NOTIFY, false);
+		// ignore errors from the update
+		er = erSuccess;
 	}
 
 	pthread_mutex_unlock(&hListMutex);
