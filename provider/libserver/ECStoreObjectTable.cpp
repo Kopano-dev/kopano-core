@@ -311,7 +311,6 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
 
 	std::map<unsigned int, std::map<sObjectTableKey, unsigned int> > mapStoreIdObjIds;
 	std::map<sObjectTableKey, unsigned int> mapIncompleteRows;
-	std::map<sObjectTableKey, unsigned int>::const_iterator iterIncomplete;
 	std::map<sObjectTableKey, unsigned int> mapRows;
 	std::multimap<unsigned int, unsigned int> mapColumns;
 	std::list<unsigned int> lstDeferred;
@@ -319,7 +318,6 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
 	ECObjectTableList lstRowOrder;
 	sObjectTableKey					sMapKey;
 	std::map<sObjectTableKey, ECsObjects> mapObjects;
-	std::map<sObjectTableKey, ECsObjects>::const_iterator iterObjects;
 
 	ECListInt			listMVSortCols;//Other mvprops then normal column set
 	ECListInt			listMVIColIds;
@@ -454,8 +452,9 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
 			for (auto dfr : lstDeferred) {
 				sKey.ulObjId = dfr;
 				sKey.ulOrderId = 0;
-				iterIncomplete = mapIncompleteRows.lower_bound(sKey);
-				while (iterIncomplete != mapIncompleteRows.end() && iterIncomplete->first.ulObjId == dfr) {
+				auto iterIncomplete = mapIncompleteRows.lower_bound(sKey);
+				while (iterIncomplete != mapIncompleteRows.cend() &&
+				       iterIncomplete->first.ulObjId == dfr) {
 					g_lpStatsCollector->Increment(SCN_DATABASE_DEFERRED_FETCHES);
 					mapRows[iterIncomplete->first] = iterIncomplete->second;
 					++iterIncomplete;
@@ -512,9 +511,8 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
 				setColumnIDs.insert(k);
 				
                 if(lpODStore->ulFolderId == 0) {
-					iterObjects = mapObjects.find(row);
-                	
-                	if(iterObjects != mapObjects.end())
+					auto iterObjects = mapObjects.find(row);
+					if (iterObjects != mapObjects.cend())
                 		ulFolderId = iterObjects->second.ulParent;
 					else {
                     	/* This will cause the request to fail, since no items are in folder id 0. However, this is what we want since
@@ -663,7 +661,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
         
 		for (const auto &col : mapColumns) {
             // A subquery is defined for this type, we don't have to get the data in the normal way.
-			if (setSubQueries.find(col.first) != setSubQueries.end())
+			if (setSubQueries.find(col.first) != setSubQueries.cend())
                 continue;
 			if ((col.first & MV_FLAG) == 0) {
 				strQuery += stringify(PROP_ID(col.first));
@@ -684,7 +682,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
         strQuery += "SELECT " + (std::string)MVPROPCOLORDER + " FROM mvproperties WHERE hierarchyid="+stringify(sKey.ulObjId) + " AND mvproperties.tag IN (";
         
 		for (const auto &col : mapColumns) {
-			if (setSubQueries.find(col.first) != setSubQueries.end())
+			if (setSubQueries.find(col.first) != setSubQueries.cend())
                 continue;
 			if ((col.first & MV_FLAG) && !(col.first & MV_INSTANCE)) {
 				strQuery += stringify(PROP_ID(col.first));
@@ -705,7 +703,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
         strQuery += "SELECT " + strMVIPropColOrder + " FROM mvproperties WHERE hierarchyid="+stringify(sKey.ulObjId);
         
 		for (const auto &col : mapColumns) {
-			if (setSubQueries.find(col.first) != setSubQueries.end())
+			if (setSubQueries.find(col.first) != setSubQueries.cend())
                 continue;
 			if ((col.first & MV_FLAG) && (col.first & MV_INSTANCE)) {
                 strQuery += " AND (";
@@ -935,15 +933,17 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 			iterObjIds = mapObjIds.lower_bound(key);
 		}
 			
-		if(iterObjIds == mapObjIds.end())
+		if (iterObjIds == mapObjIds.cend())
 			continue; // Got data for a row we didn't request ? (Possible for MVI queries)
 			
-		while(iterObjIds != mapObjIds.end() && iterObjIds->first.ulObjId == key.ulObjId) {
+		while (iterObjIds != mapObjIds.cend() &&
+		       iterObjIds->first.ulObjId == key.ulObjId) {
 			// WARNING. For PT_UNICODE columns, ulTag contains PT_STRING8, since that is the tag in the database. We rely
 			// on PT_UNICODE = PT_STRING8 + 1 here since we do a lower_bound to scan for either PT_STRING8 or PT_UNICODE
 			// and then use CompareDBPropTag to check the actual type in the while loop later. Same goes for PT_MV_UNICODE.
 			auto iterColumns = mapColumns.lower_bound(PROP_TAG(ulType, ulTag));
-			while(iterColumns != mapColumns.end() && CompareDBPropTag(iterColumns->first, PROP_TAG(ulType, ulTag))) {
+			while (iterColumns != mapColumns.cend() &&
+			       CompareDBPropTag(iterColumns->first, PROP_TAG(ulType, ulTag))) {
 
 				// free prop if we're not allocing by soap
 				if(soap == NULL && lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second].ulPropTag != 0) {

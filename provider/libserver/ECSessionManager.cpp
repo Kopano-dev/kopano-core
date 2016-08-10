@@ -1405,19 +1405,18 @@ ECRESULT ECSessionManager::SetSessionPersistentConnection(ECSESSIONID sessionID,
 ECRESULT ECSessionManager::RemoveSessionPersistentConnection(unsigned int ulPersistentConnectionId)
 {
 	ECRESULT er = erSuccess;
-	PERSISTENTBYCONNECTION::const_iterator iterConnection;
 	PERSISTENTBYSESSION::const_iterator iterSession;
 
 	pthread_mutex_lock(&m_mutexPersistent);
 
-	iterConnection = m_mapPersistentByConnection.find(ulPersistentConnectionId);
-	if(iterConnection == m_mapPersistentByConnection.end()) {
+	auto iterConnection = m_mapPersistentByConnection.find(ulPersistentConnectionId);
+	if (iterConnection == m_mapPersistentByConnection.cend()) {
 		er = KCERR_NOT_FOUND; // shouldn't really happen
 		goto exit;
 	}
 
 	iterSession = m_mapPersistentBySession.find(iterConnection->second);
-	if(iterSession == m_mapPersistentBySession.end()) {
+	if (iterSession == m_mapPersistentBySession.cend()) {
 		er = KCERR_NOT_FOUND; // really really shouldn't happen
 		goto exit;
 	}

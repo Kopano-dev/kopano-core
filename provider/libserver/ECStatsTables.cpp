@@ -174,7 +174,6 @@ ECRESULT ECSystemStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis, s
 {
 	struct rowSet *lpsRowSet = NULL;
 	ECSystemStatsTable *lpThis = (ECSystemStatsTable *)lpGenericThis;
-	std::map<unsigned int, statstrings>::const_iterator iterSD;
 	gsoap_size_t i;
 
 	lpsRowSet = s_alloc<rowSet>(soap);
@@ -200,9 +199,9 @@ ECRESULT ECSystemStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis, s
 
 	i = 0;
 	for (const auto &row : *lpRowList) {
-		iterSD = lpThis->m_mapStatData.find(row.ulObjId);
+		auto iterSD = lpThis->m_mapStatData.find(row.ulObjId);
 		for (gsoap_size_t k = 0; k < lpsPropTagArray->__size; ++k) {
-			if (iterSD == lpThis->m_mapStatData.end())
+			if (iterSD == lpThis->m_mapStatData.cend())
 				continue;		// broken .. should never happen
 
 			// default is error prop
@@ -346,7 +345,6 @@ ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis, 
 	ECSessionStatsTable *lpThis = (ECSessionStatsTable *)lpGenericThis;
 	gsoap_size_t i;
 	std::string strTemp;
-	std::map<unsigned int, sessiondata>::const_iterator iterSD;
 
 	lpsRowSet = s_alloc<rowSet>(soap);
 	lpsRowSet->__size = 0;
@@ -371,7 +369,7 @@ ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis, 
 
 	i = 0;
 	for (const auto &row : *lpRowList) {
-		iterSD = lpThis->m_mapSessionData.find(row.ulObjId);
+		auto iterSD = lpThis->m_mapSessionData.find(row.ulObjId);
 		for (gsoap_size_t k = 0; k < lpsPropTagArray->__size; ++k) {
 			gsoap_size_t j;
 			// default is error prop
@@ -379,7 +377,7 @@ ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis, 
 			lpsRowSet->__ptr[i].__ptr[k].Value.ul = KCERR_NOT_FOUND;
 			lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_ul;
 
-			if (iterSD == lpThis->m_mapSessionData.end())
+			if (iterSD == lpThis->m_mapSessionData.cend())
 				continue;		// broken; should never happen
 
 			switch (PROP_ID(lpsPropTagArray->__ptr[k])) {
