@@ -204,7 +204,7 @@ LDAPCache::getDNForObject(const std::unique_ptr<dn_cache_t> &lpCache,
     const objectid_t &externid)
 {
 	dn_cache_t::const_iterator it = lpCache->find(externid);
-	return it == lpCache->end() ? std::string() : it->second;
+	return it == lpCache->cend() ? std::string() : it->second;
 }
 
 bool LDAPCache::isDNInList(const std::unique_ptr<dn_list_t> &lpList,

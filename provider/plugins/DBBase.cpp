@@ -85,7 +85,6 @@ std::unique_ptr<std::map<objectid_t, objectdetails_t> >
 DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 {
 	map<objectid_t,objectdetails_t> *mapdetails = new map<objectid_t,objectdetails_t>;
-	map<objectid_t,objectdetails_t>::iterator iterDetails;
 	ECRESULT er;
 	map<objectclass_t, string> objectstrings;
 	string strQuery;
@@ -211,6 +210,7 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 	if(er != erSuccess)
 		throw runtime_error(string("db_query: ") + strerror(er));
 
+	std::map<objectid_t, objectdetails_t>::iterator iterDetails;
 	while((lpDBRow = m_lpDatabase->FetchRow(lpResult)) != NULL) {
 		if(lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL || lpDBRow[3] == NULL)
 			continue;
@@ -223,7 +223,7 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 
 		if (lastid != curid) {
 			iterDetails = mapdetails->find(curid);
-			if (iterDetails == mapdetails->end())
+			if (iterDetails == mapdetails->cend())
 				continue;
 		}
 

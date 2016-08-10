@@ -923,12 +923,13 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lp
 
 			std::vector<zcabFolderEntry>::const_iterator i;
 			// find the store of this folder
-			for (i = m_lpFolders->begin(); i != m_lpFolders->end(); ++i) {
+			for (i = m_lpFolders->cbegin();
+			     i != m_lpFolders->cend(); ++i) {
 				ULONG res;
 				if ((m_lpMAPISup->CompareEntryIDs(i->cbFolder, (LPENTRYID)i->lpFolder, cbFolder, lpFolder, 0, &res) == hrSuccess) && res == TRUE)
 					break;
 			}
-			if (i == m_lpFolders->end()) {
+			if (i == m_lpFolders->cend()) {
 				hr = MAPI_E_NOT_FOUND;
 				goto exit;
 			}

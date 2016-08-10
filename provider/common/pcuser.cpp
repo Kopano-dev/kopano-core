@@ -97,25 +97,25 @@ objectdetails_t::objectdetails_t(const objectdetails_t &objdetails) {
 unsigned int objectdetails_t::GetPropInt(property_key_t propname) const
 {
 	property_map::const_iterator item = m_mapProps.find(propname);
-	return item == m_mapProps.end() ? 0 : atoi(item->second.c_str());
+	return item == m_mapProps.cend() ? 0 : atoi(item->second.c_str());
 }
 
 bool objectdetails_t::GetPropBool(property_key_t propname) const
 {
 	property_map::const_iterator item = m_mapProps.find(propname);
-	return item == m_mapProps.end() ? false : atoi(item->second.c_str());
+	return item == m_mapProps.cend() ? false : atoi(item->second.c_str());
 }
 
 std::string objectdetails_t::GetPropString(property_key_t propname) const
 {
 	property_map::const_iterator item = m_mapProps.find(propname);
-	return item == m_mapProps.end() ? std::string() : item->second;
+	return item == m_mapProps.cend() ? std::string() : item->second;
 }
 
 objectid_t objectdetails_t::GetPropObject(property_key_t propname) const
 {
 	property_map::const_iterator item = m_mapProps.find(propname);
-	return item == m_mapProps.end() ? objectid_t() : objectid_t(item->second);
+	return item == m_mapProps.cend() ? objectid_t() : objectid_t(item->second);
 }
 
 void objectdetails_t::SetPropInt(property_key_t propname, unsigned int value)
@@ -167,7 +167,7 @@ std::list<unsigned int>
 objectdetails_t::GetPropListInt(property_key_t propname) const
 {
 	property_mv_map::const_iterator mvitem = m_mapMVProps.find(propname);
-	if (mvitem == m_mapMVProps.end())
+	if (mvitem == m_mapMVProps.cend())
 		return std::list<unsigned int>();
 	std::list<unsigned int> l;
 	for (const auto &i : mvitem->second)
@@ -179,15 +179,16 @@ std::list<std::string>
 objectdetails_t::GetPropListString(property_key_t propname) const
 {
 	property_mv_map::const_iterator mvitem = m_mapMVProps.find(propname);
-	if (mvitem != m_mapMVProps.end()) return mvitem->second;
-	else return std::list<std::string>();
+	if (mvitem != m_mapMVProps.cend())
+		return mvitem->second;
+	return std::list<std::string>();
 }
 
 std::list<objectid_t>
 objectdetails_t::GetPropListObject(property_key_t propname) const
 {
 	property_mv_map::const_iterator mvitem = m_mapMVProps.find(propname);
-	if (mvitem == m_mapMVProps.end())
+	if (mvitem == m_mapMVProps.cend())
 		return std::list<objectid_t>();
 	std::list<objectid_t> l;
 	for (const auto &i : mvitem->second)
@@ -206,8 +207,6 @@ property_map objectdetails_t::GetPropMapAnonymous() const {
 
 property_mv_map objectdetails_t::GetPropMapListAnonymous() const {
 	property_mv_map anonymous;
-	property_mv_map::const_iterator iter;
-
 	for (const auto &iter : m_mapMVProps)
 		if (((unsigned int)iter.first) & 0xffff0000)
 			anonymous.insert(iter);
@@ -243,14 +242,13 @@ objectclass_t objectdetails_t::GetClass() const {
 }
 
 void objectdetails_t::MergeFrom(const objectdetails_t &from) {
-	property_map::const_iterator i, fi;
-	property_mv_map::const_iterator mvi, fmvi;
-
 	ASSERT(this->m_objclass == from.m_objclass);
 
-	for (fi = from.m_mapProps.begin(); fi != from.m_mapProps.end(); ++fi)
+	for (auto fi = from.m_mapProps.cbegin();
+	     fi != from.m_mapProps.cend(); ++fi)
 		this->m_mapProps[fi->first].assign(fi->second);
-	for (fmvi = from.m_mapMVProps.begin(); fmvi != from.m_mapMVProps.end(); ++fmvi)
+	for (auto fmvi = from.m_mapMVProps.cbegin();
+	     fmvi != from.m_mapMVProps.cend(); ++fmvi)
 		this->m_mapMVProps[fmvi->first].assign(fmvi->second.begin(), fmvi->second.end());
 }
 
@@ -277,23 +275,25 @@ size_t objectdetails_t::GetObjectSize(void)
 std::string objectdetails_t::ToStr(void) const
 {
 	std::string str;
-	property_map::const_iterator i;
-	property_mv_map::const_iterator mvi;
-	std::list<std::string>::const_iterator istr;
 
 	str = "propmap: ";
-	for (i = m_mapProps.begin(); i != m_mapProps.end(); ++i) {
-		if(i != m_mapProps.begin())  str+= ", ";
+	for (auto i = m_mapProps.cbegin(); i != m_mapProps.cend(); ++i) {
+		if (i != m_mapProps.cbegin())
+			str += ", ";
 		str+= stringify(i->first) + "='";
 		str+= i->second + "'";
 	}
 
 	str += " mvpropmap: ";
-	for (mvi = m_mapMVProps.begin(); mvi != m_mapMVProps.end(); ++mvi) {
-		if(mvi != m_mapMVProps.begin()) str += ", ";
+	for (auto mvi = m_mapMVProps.cbegin();
+	     mvi != m_mapMVProps.cend(); ++mvi) {
+		if (mvi != m_mapMVProps.begin())
+			str += ", ";
 		str += stringify(mvi->first) + "=(";
-		for (istr = mvi->second.begin(); istr != mvi->second.end(); ++istr) {
-			if(istr != mvi->second.begin()) str +=", ";
+		for (auto istr = mvi->second.cbegin();
+		     istr != mvi->second.cend(); ++istr) {
+			if (istr != mvi->second.cbegin())
+				str += ", ";
 			str += *istr;
 		}
 		str +=")";

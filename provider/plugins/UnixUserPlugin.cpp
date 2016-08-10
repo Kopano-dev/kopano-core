@@ -441,7 +441,6 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 	std::unique_ptr<signatures_t> objectlist(new signatures_t());
 	std::unique_ptr<signatures_t> objects;
 	map<objectclass_t, string> objectstrings;
-	std::map<objectclass_t, string>::const_iterator iterStrings;
 	DB_RESULT_AUTOFREE lpResult(m_lpDatabase);
 	DB_ROW lpDBRow = NULL;
 	string strQuery;
@@ -493,9 +492,9 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 
 	// make list of obsolete objects
 	strQuery = "SELECT id, objectclass FROM " + (string)DB_OBJECT_TABLE + " WHERE ";
-	for (iterStrings = objectstrings.begin();
-	     iterStrings != objectstrings.end(); ++iterStrings) {
-		if (iterStrings != objectstrings.begin())
+	for (auto iterStrings = objectstrings.cbegin();
+	     iterStrings != objectstrings.cend(); ++iterStrings) {
+		if (iterStrings != objectstrings.cbegin())
 			strQuery += "AND ";
 		strQuery +=
 			"(externid NOT IN (" + iterStrings->second + ") "
@@ -524,9 +523,9 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 
 	// remove obsolete objects
 	strQuery = "DELETE FROM " + (string)DB_OBJECT_TABLE + " WHERE ";
-	for (iterStrings = objectstrings.begin();
-	     iterStrings != objectstrings.end(); ++iterStrings) {
-		if (iterStrings != objectstrings.begin())
+	for (auto iterStrings = objectstrings.cbegin();
+	     iterStrings != objectstrings.cend(); ++iterStrings) {
+		if (iterStrings != objectstrings.cbegin())
 			strQuery += "OR ";
 		strQuery += "(externid IN (" + iterStrings->second + ") AND objectclass = " + stringify(iterStrings->first) + ")";
 	}
@@ -544,9 +543,9 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 		"SELECT o.id "
 		"FROM " + (string)DB_OBJECT_TABLE + " AS o "
 		"WHERE ";
-	for (iterStrings = objectstrings.begin();
-	     iterStrings != objectstrings.end(); ++iterStrings) {
-		if (iterStrings != objectstrings.begin())
+	for (auto iterStrings = objectstrings.cbegin();
+	     iterStrings != objectstrings.cend(); ++iterStrings) {
+		if (iterStrings != objectstrings.cbegin())
 			strSubQuery += "OR ";
 		strSubQuery += "(o.externid IN (" + iterStrings->second + ") AND o.objectclass = " + stringify(iterStrings->first) + ")";
 	}

@@ -396,8 +396,6 @@ HRESULT ZCMAPIProp::CopyOneProp(convert_context &converter, ULONG ulFlags,
 HRESULT ZCMAPIProp::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG * lpcValues, LPSPropValue * lppPropArray)
 {
 	HRESULT hr = hrSuccess;
-	std::map<short, SPropValue>::const_iterator i;
-	ULONG j = 0;
 	LPSPropValue lpProps = NULL;
 	convert_context converter;
 
@@ -410,10 +408,13 @@ HRESULT ZCMAPIProp::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULON
 		if (hr != hrSuccess)
 			goto exit;
 
-		for (i = m_mapProperties.begin(), j = 0; i != m_mapProperties.end(); ++i, ++j) {
+		ULONG j = 0;
+		for (auto i = m_mapProperties.cbegin();
+		     i != m_mapProperties.cend(); ++i) {
 			hr = CopyOneProp(converter, ulFlags, i, &lpProps[j], lpProps);
 			if (hr != hrSuccess)
 				goto exit;				
+			++j;
 		}
 		
 		*lpcValues = m_mapProperties.size();
@@ -424,8 +425,8 @@ HRESULT ZCMAPIProp::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULON
 			goto exit;
 
 		for (ULONG n = 0, j = 0; n < lpPropTagArray->cValues; ++n, ++j) {
-			i = m_mapProperties.find(PROP_ID(lpPropTagArray->aulPropTag[n]));
-			if (i == m_mapProperties.end()) {
+			auto i = m_mapProperties.find(PROP_ID(lpPropTagArray->aulPropTag[n]));
+			if (i == m_mapProperties.cend()) {
 				lpProps[j].ulPropTag = CHANGE_PROP_TYPE(lpPropTagArray->aulPropTag[n], PT_ERROR);
 				lpProps[j].Value.ul = MAPI_E_NOT_FOUND;
 				continue;
