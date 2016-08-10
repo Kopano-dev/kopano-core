@@ -1073,6 +1073,7 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 		goto exit;
 	}
 
+	ZVAL_DEREF(phpVal);
 	resHash = HASH_OF(phpVal);
 	if (!resHash || zend_hash_num_elements(resHash) != 2) {		// should always be array(RES_ , array(values))
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Wrong array should be array(RES_, array(values))");
@@ -1087,6 +1088,7 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 	valueEntry = zend_hash_get_current_data(resHash);
 
 	lpRes->rt = typeEntry->value.lval;		// set restriction type (RES_AND, RES_OR, ...)
+	ZVAL_DEREF(valueEntry);
 	dataHash = HASH_OF(valueEntry);			// from resHash
 	if (!dataHash) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "critical error, wrong array");
