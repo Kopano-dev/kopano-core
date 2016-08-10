@@ -645,20 +645,18 @@ ECRESULT ECTableManager::CloseTable(unsigned int ulTableId)
 ECRESULT ECTableManager::UpdateOutgoingTables(ECKeyTable::UpdateType ulType, unsigned ulStoreId, std::list<unsigned int> &lstObjId, unsigned int ulFlags, unsigned int ulObjType)
 {
 	ECRESULT er = erSuccess;
-	std::map<unsigned int, TABLE_ENTRY *>::const_iterator iterTables;
-
 	sObjectTableKey	sRow;
 
 	pthread_mutex_lock(&hListMutex);
 
-	for (iterTables = mapTable.begin(); iterTables != mapTable.end(); ++iterTables) {
-		bool k = iterTables->second->ulTableType == TABLE_ENTRY::TABLE_TYPE_OUTGOINGQUEUE &&
-			(iterTables->second->sTable.sOutgoingQueue.ulStoreId == ulStoreId ||
-			 iterTables->second->sTable.sOutgoingQueue.ulStoreId == 0) &&
-			 iterTables->second->sTable.sOutgoingQueue.ulFlags == (ulFlags & EC_SUBMIT_MASTER);
+	for (const auto &t : mapTable) {
+		bool k = t.second->ulTableType == TABLE_ENTRY::TABLE_TYPE_OUTGOINGQUEUE &&
+		         (t.second->sTable.sOutgoingQueue.ulStoreId == ulStoreId ||
+		         t.second->sTable.sOutgoingQueue.ulStoreId == 0) &&
+		         t.second->sTable.sOutgoingQueue.ulFlags == (ulFlags & EC_SUBMIT_MASTER);
 		if (!k)
 			continue;
-		er = iterTables->second->lpTable->UpdateRows(ulType, &lstObjId, OBJECTTABLE_NOTIFY, false);
+		er = t.second->lpTable->UpdateRows(ulType, &lstObjId, OBJECTTABLE_NOTIFY, false);
 		// ignore errors from the update
 		er = erSuccess;
 	}
@@ -670,7 +668,6 @@ ECRESULT ECTableManager::UpdateOutgoingTables(ECKeyTable::UpdateType ulType, uns
 ECRESULT ECTableManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned int ulFlags, unsigned int ulObjId, std::list<unsigned int> &lstChildId, unsigned int ulObjType)
 {
 	ECRESULT er = erSuccess;
-	std::map<unsigned int, TABLE_ENTRY *>::const_iterator iterTables;
 	sObjectTableKey	sRow;
 
 	pthread_mutex_lock(&hListMutex);
@@ -679,14 +676,14 @@ ECRESULT ECTableManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned in
 	// manager, and then update the row if required.
 
 	// First, do all the actual contents tables and hierarchy tables
-	for (iterTables = mapTable.begin(); iterTables != mapTable.end(); ++iterTables) {
-		bool k = iterTables->second->ulTableType == TABLE_ENTRY::TABLE_TYPE_GENERIC &&
-			iterTables->second->sTable.sGeneric.ulParentId == ulObjId && 
-			iterTables->second->sTable.sGeneric.ulObjectFlags == ulFlags &&
-			iterTables->second->sTable.sGeneric.ulObjectType == ulObjType;
+	for (const auto &t : mapTable) {
+		bool k = t.second->ulTableType == TABLE_ENTRY::TABLE_TYPE_GENERIC &&
+		         t.second->sTable.sGeneric.ulParentId == ulObjId &&
+		         t.second->sTable.sGeneric.ulObjectFlags == ulFlags &&
+		         t.second->sTable.sGeneric.ulObjectType == ulObjType;
 		if (!k)
 			continue;
-		er = iterTables->second->lpTable->UpdateRows(ulType, &lstChildId, OBJECTTABLE_NOTIFY, false);
+		er = t.second->lpTable->UpdateRows(ulType, &lstChildId, OBJECTTABLE_NOTIFY, false);
 		// ignore errors from the update
 		er = erSuccess;
 	}
@@ -704,7 +701,6 @@ ECRESULT ECTableManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned in
  */
 ECRESULT ECTableManager::GetStats(unsigned int *lpulTables, unsigned int *lpulObjectSize)
 {
-	TABLEENTRYMAP::const_iterator iterEntry;
 	unsigned int ulSize = 0;
 	unsigned int ulTables = 0; 
 	
@@ -713,9 +709,10 @@ ECRESULT ECTableManager::GetStats(unsigned int *lpulTables, unsigned int *lpulOb
 	ulTables = mapTable.size();
 	ulSize = MEMORY_USAGE_MAP(ulTables, TABLEENTRYMAP);
 
-	for (iterEntry = mapTable.begin(); iterEntry !=  mapTable.end(); ++iterEntry)
-		if(iterEntry->second->ulTableType != TABLE_ENTRY::TABLE_TYPE_SYSTEMSTATS) // Skip system stats since it would recursively include itself
-			ulSize += iterEntry->second->lpTable->GetObjectSize();
+	for (const auto &e : mapTable)
+		if (e.second->ulTableType != TABLE_ENTRY::TABLE_TYPE_SYSTEMSTATS)
+			/* Skip system stats since it would recursively include itself */
+			ulSize += e.second->lpTable->GetObjectSize();
 
 	pthread_mutex_unlock(&hListMutex);
 

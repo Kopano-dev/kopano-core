@@ -49,7 +49,6 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis, struct soa
 {
 	ECUserStoreTable *pThis = dynamic_cast<ECUserStoreTable*>(lpThis);
 	struct rowSet *lpsRowSet = NULL;
-	ECObjectTableList::const_iterator iterRowList;
 	gsoap_size_t i;
 	GUID sZeroGuid = {0};
 
@@ -77,8 +76,8 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis, struct soa
 		memset(lpsRowSet->__ptr[i].__ptr, 0, sizeof(propVal) * lpsPropTagArray->__size);
 	}
 
-	for (i = 0, iterRowList = lpRowList->begin();
-	     iterRowList != lpRowList->end(); ++iterRowList, ++i) {
+	i = 0;
+	for (const auto &row : *lpRowList) {
 		for (gsoap_size_t k = 0; k < lpsPropTagArray->__size; ++k) {
 			lpsRowSet->__ptr[i].__ptr[k].ulPropTag = PROP_TAG(PT_ERROR, lpsPropTagArray->__ptr[k]);
 			lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_ul;
@@ -92,67 +91,70 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis, struct soa
 				lpsRowSet->__ptr[i].__ptr[k].Value.bin = s_alloc<xsd__base64Binary>(soap);
 				lpsRowSet->__ptr[i].__ptr[k].Value.bin->__size = sizeof(sObjectTableKey);
 				lpsRowSet->__ptr[i].__ptr[k].Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(sObjectTableKey));
-				memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.bin->__ptr, &(*iterRowList), sizeof(sObjectTableKey));
+				memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.bin->__ptr, &row, sizeof(sObjectTableKey));
 				break;
 
 			case PROP_ID(PR_EC_USERNAME):
-				if (!pThis->m_mapUserStoreData[iterRowList->ulObjId].strUsername.empty()) {
+				if (!pThis->m_mapUserStoreData[row.ulObjId].strUsername.empty()) {
 					lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
 
 					lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
-					lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, (char*)pThis->m_mapUserStoreData[iterRowList->ulObjId].strUsername.c_str());
+					lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, const_cast<char *>(pThis->m_mapUserStoreData[row.ulObjId].strUsername.c_str()));
 				}
 				break;
 			case PROP_ID(PR_DISPLAY_NAME):
-				if (!pThis->m_mapUserStoreData[iterRowList->ulObjId].strGuessname.empty()) {
+				if (!pThis->m_mapUserStoreData[row.ulObjId].strGuessname.empty()) {
 					lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
 
 					lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
-					lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, (char*)pThis->m_mapUserStoreData[iterRowList->ulObjId].strGuessname.c_str());
+					lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, const_cast<char *>(pThis->m_mapUserStoreData[row.ulObjId].strGuessname.c_str()));
 				}
 				break;
 			case PROP_ID(PR_EC_STOREGUID):
-				if (pThis->m_mapUserStoreData[iterRowList->ulObjId].sGuid != sZeroGuid) {
+				if (pThis->m_mapUserStoreData[row.ulObjId].sGuid != sZeroGuid) {
 					lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
 
 					lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_bin;
 					lpsRowSet->__ptr[i].__ptr[k].Value.bin = s_alloc<xsd__base64Binary>(soap);
 					lpsRowSet->__ptr[i].__ptr[k].Value.bin->__size = sizeof(GUID);
 					lpsRowSet->__ptr[i].__ptr[k].Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(GUID));
-					memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.bin->__ptr, &pThis->m_mapUserStoreData[iterRowList->ulObjId].sGuid, sizeof(GUID));
+					memcpy(lpsRowSet->__ptr[i].__ptr[k].Value.bin->__ptr, &pThis->m_mapUserStoreData[row.ulObjId].sGuid, sizeof(GUID));
 				}
 				break;
 			case PROP_ID(PR_EC_STORETYPE):
 				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
 
 				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_ul;
-				lpsRowSet->__ptr[i].__ptr[k].Value.ul = pThis->m_mapUserStoreData[iterRowList->ulObjId].ulStoreType;
+				lpsRowSet->__ptr[i].__ptr[k].Value.ul = pThis->m_mapUserStoreData[row.ulObjId].ulStoreType;
 				break;
 			case PROP_ID(PR_EC_COMPANYID):
-				if (pThis->m_mapUserStoreData[iterRowList->ulObjId].ulCompanyId != 0) {
+				if (pThis->m_mapUserStoreData[row.ulObjId].ulCompanyId != 0) {
 					lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
 
 					lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_ul;
-					lpsRowSet->__ptr[i].__ptr[k].Value.ul = pThis->m_mapUserStoreData[iterRowList->ulObjId].ulCompanyId;
+					lpsRowSet->__ptr[i].__ptr[k].Value.ul = pThis->m_mapUserStoreData[row.ulObjId].ulCompanyId;
 				}
 				break;
 			case PROP_ID(PR_EC_COMPANY_NAME):
-				if (!pThis->m_mapUserStoreData[iterRowList->ulObjId].strCompanyName.empty()) {
+				if (!pThis->m_mapUserStoreData[row.ulObjId].strCompanyName.empty()) {
 					lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
 
 					lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_lpszA;
-					lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, (char*)pThis->m_mapUserStoreData[iterRowList->ulObjId].strCompanyName.c_str());
+					lpsRowSet->__ptr[i].__ptr[k].Value.lpszA = s_strcpy(soap, const_cast<char *>(pThis->m_mapUserStoreData[row.ulObjId].strCompanyName.c_str()));
 				}
 				break;
 			case PROP_ID(PR_STORE_ENTRYID):
 				// ignore errors
-				ECGenProps::GetPropComputedUncached(soap, NULL ,lpSession, PR_STORE_ENTRYID, pThis->m_mapUserStoreData[iterRowList->ulObjId].ulObjId, 0,
-							   				pThis->m_mapUserStoreData[iterRowList->ulObjId].ulObjId, 0, MAPI_STORE, &lpsRowSet->__ptr[i].__ptr[k]);
+				ECGenProps::GetPropComputedUncached(soap, NULL,
+					lpSession, PR_STORE_ENTRYID,
+					pThis->m_mapUserStoreData[row.ulObjId].ulObjId,
+					0, pThis->m_mapUserStoreData[row.ulObjId].ulObjId,
+					0, MAPI_STORE, &lpsRowSet->__ptr[i].__ptr[k]);
 				break;
 			case PROP_ID(PR_LAST_MODIFICATION_TIME):
-				if (pThis->m_mapUserStoreData[iterRowList->ulObjId].tModTime != 0) {
+				if (pThis->m_mapUserStoreData[row.ulObjId].tModTime != 0) {
 					FILETIME ftTmp;
-					UnixTimeToFileTime(pThis->m_mapUserStoreData[iterRowList->ulObjId].tModTime, &ftTmp);
+					UnixTimeToFileTime(pThis->m_mapUserStoreData[row.ulObjId].tModTime, &ftTmp);
 
 					lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
 					lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_hilo;
@@ -164,7 +166,7 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis, struct soa
 			case PROP_ID(PR_MESSAGE_SIZE_EXTENDED):
 				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = lpsPropTagArray->__ptr[k];
 				lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_li;
-				lpsRowSet->__ptr[i].__ptr[k].Value.li = pThis->m_mapUserStoreData[iterRowList->ulObjId].ullStoreSize;
+				lpsRowSet->__ptr[i].__ptr[k].Value.li = pThis->m_mapUserStoreData[row.ulObjId].ullStoreSize;
 				break;
 			default:
 				lpsRowSet->__ptr[i].__ptr[k].ulPropTag = PROP_TAG(PT_ERROR, lpsPropTagArray->__ptr[k]);
@@ -174,6 +176,7 @@ ECRESULT ECUserStoreTable::QueryRowData(ECGenericObjectTable *lpThis, struct soa
 				break;
 			};
 		}
+		++i;
 	}
 
 	*lppRowSet = lpsRowSet;
