@@ -337,10 +337,9 @@ ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const list<objectsig
 			continue;
 		}
 
-		if (ulFlags & USERMANAGEMENT_ADDRESSBOOK) {
+		if (ulFlags & USERMANAGEMENT_ADDRESSBOOK)
 			if (MustHide(*lpSecurity, ulFlags, details))
 				continue;
-		}
 
 		// remove details, but keep the class information
 		if (ulFlags & USERMANAGEMENT_IDS_ONLY)
@@ -372,11 +371,9 @@ ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const list<objectsig
 
 			ulObjectId = iterExternLocal->second;
 
-			if (ulFlags & USERMANAGEMENT_ADDRESSBOOK) {
+			if (ulFlags & USERMANAGEMENT_ADDRESSBOOK)
 				if (MustHide(*lpSecurity, ulFlags, iterExternDetails->second))
 					continue;
-			}
-
 			if (ulFlags & USERMANAGEMENT_IDS_ONLY)
 				lpDetails->push_back(localobjectdetails_t(ulObjectId, objectdetails_t(iterExternDetails->second.GetClass())));
 			else
@@ -478,10 +475,9 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 			if(er != erSuccess)
 				goto exit;
 
-			if (ulFlags & USERMANAGEMENT_ADDRESSBOOK) {
+			if (ulFlags & USERMANAGEMENT_ADDRESSBOOK)
 				if (MustHide(*lpSecurity, ulFlags, details))
 					continue;
-			}
 			// Reset details, this saves time copying unwanted data, but keep the correct class
 			if (ulFlags & USERMANAGEMENT_IDS_ONLY)
 				details = objectdetails_t(details.GetClass());
@@ -3690,12 +3686,11 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap, unsign
 				list<string> strCerts = lpDetails->GetPropListString(OB_PROP_LS_CERTIFICATE);
 				std::list<std::string>::const_iterator iCert;
 
-				if (strCerts.empty()) {
+				if (strCerts.empty())
 					/* This is quite annoying. The LDAP plugin loads it in a specific location, while the db plugin
 					  saves it through the anonymous map into the proptag location.
 					 */
 					strCerts = lpDetails->GetPropListString((property_key_t)lpPropTags->__ptr[i]);
-				}
 
 				if (!strCerts.empty()) {
 					unsigned int i = 0;

@@ -341,11 +341,10 @@ ECRESULT ECCacheManager::GetOwner(unsigned int ulObjId, unsigned int *ulOwner)
 	er = GetObject(ulObjId, NULL, ulOwner, NULL);
 
 exit:
-	if (er) {
+	if (er != erSuccess)
 		LOG_CACHE_DEBUG("Get Owner for id %d error 0x%08X", ulObjId, er);
-	} else {
+	else
 		LOG_CACHE_DEBUG("Get Owner for id %d result [%s]: owner %d", ulObjId, ((bCacheResult)?"C":"D"), *ulOwner);
-	}
 	return er;
 }
 
@@ -442,13 +441,10 @@ ECRESULT ECCacheManager::GetObject(unsigned int ulObjId, unsigned int *lpulParen
 exit:
 	if (lpDBResult)
 		lpDatabase->FreeResult(lpDBResult);
-
-	if (er != erSuccess) {
+	if (er != erSuccess)
 		LOG_CACHE_DEBUG("Get object id %d error 0x%08x", ulObjId, er);
-	} else {
+	else
 		LOG_CACHE_DEBUG("Get object id %d result [%s]: parent %d owner %d flags %d type %d", ulObjId, ((bCacheResult)?"C":"D"), ulParent, ulOwner, ulFlags, ulType);
-	}
-
 	return er;
 
 }
@@ -520,13 +516,11 @@ ECRESULT ECCacheManager::GetObjects(const std::list<sObjectTableKey> &lstObjects
 exit:
 	if (lpDBResult != NULL)
 		lpDatabase->FreeResult(lpDBResult);
-    
-	if (er)	 {
+	if (er != erSuccess)
 		LOG_CACHE_DEBUG("Get object ids error 0x%08x", er);
-	} else {
+	else
 		LOG_CACHE_DEBUG("Get object ids total ids %lu from disk %lu", lstObjects.size(), setUncached.size());
-	}
-    return er;
+	return er;
 }
 
 ECRESULT ECCacheManager::GetObjectsFromProp(unsigned int ulTag,
@@ -666,13 +660,10 @@ found:
 exit:
 	if(lpDBResult)
 		lpDatabase->FreeResult(lpDBResult);
-
-	if (er) {
+	if (er != erSuccess)
 		LOG_CACHE_DEBUG("Get store and type %d error 0x%08x", ulObjId, er);
-	} else {
+	else
 		LOG_CACHE_DEBUG("Get store and type %d result [%s]: store %d, type %d, guid %s", ulObjId, ((bCacheResult)?"C":"D"), ulStore, ulType, bin2hex(sizeof(GUID), (const unsigned char*)&guid).c_str());
-	}
-
 	return er;
 }
 
@@ -743,13 +734,10 @@ ECRESULT ECCacheManager::GetUserObject(unsigned int ulUserId, objectid_t *lpExte
 exit:
 	if(lpDBResult)
 		lpDatabase->FreeResult(lpDBResult);
-
-	if (er) {
+	if (er != erSuccess)
 		LOG_USERCACHE_DEBUG("Get user object for user %d error 0x%08x", ulUserId, er);
-	} else {
+	else
 		LOG_USERCACHE_DEBUG("Get user object for user %d result [%s]: externid '%s', class %d, companyid %d, signature '%s'", ulUserId, ((bCacheResult)?"C":"D"), bin2hex(externid).c_str(), ulClass, ((lpulCompanyId)?*lpulCompanyId:-1), ((lpstrSignature)?bin2hex(*lpstrSignature).c_str():"-") );
-	}
-
 	return er;
 }
 
@@ -760,13 +748,10 @@ ECRESULT ECCacheManager::GetUserDetails(unsigned int ulUserId, objectdetails_t *
 	er = _GetUserObjectDetails(ulUserId, details);
 
 	// on error, ECUserManagement will update the cache
-	
-	if (er != erSuccess) {
+	if (er != erSuccess)
 		LOG_USERCACHE_DEBUG("Get user details for userid %d not found, error 0x%08x", ulUserId, er);
-	} else {
+	else
 		LOG_USERCACHE_DEBUG("Get user details for userid %d result: %s", ulUserId, details->ToStr().c_str() );
-	}
-
 	return er;
 }
 
@@ -854,13 +839,10 @@ ECRESULT ECCacheManager::GetUserObject(const objectid_t &sExternId, unsigned int
 exit:
 	if(lpDBResult)
 		lpDatabase->FreeResult(lpDBResult);
-
-	if (er) {
+	if (er != erSuccess)
 		LOG_USERCACHE_DEBUG("Get user object done. error 0x%08X", er);
-	} else {
+	else
 		LOG_USERCACHE_DEBUG("Get user object from externid '%s', class %d result [%s]: company %d, userid %d, signature '%s'" , bin2hex(sExternId.id).c_str(), sExternId.objclass, ((bCacheResult)?"C":"D"), ((lpulCompanyId)?*lpulCompanyId:-1), ((lpulUserId)?*lpulUserId:-1), ((lpstrSignature)?bin2hex(*lpstrSignature).c_str():"-") );
-	}
-
 	return er;
 }
 
@@ -944,13 +926,10 @@ ECRESULT ECCacheManager::GetUserObjects(const list<objectid_t> &lstExternObjIds,
 exit:
 	if(lpDBResult)
 		lpDatabase->FreeResult(lpDBResult);
-
-	if (er) {
+	if (er != erSuccess)
 		LOG_USERCACHE_DEBUG("Get User Objects done. Error 0x%08X", er);
-	} else {
+	else
 		LOG_USERCACHE_DEBUG("Get User Objects done. Returned objects %lu", lpmapLocalObjIds->size());
-	}
-
 	return er;
 }
 
@@ -1431,12 +1410,11 @@ ECRESULT ECCacheManager::GetCell(const sObjectTableKey *lpsRowItem,
     }
 
 exit:
-	if (er) {
+	if (er != erSuccess)
 		LOG_CELLCACHE_DEBUG("Get cell object %d tag 0x%08X item not found", lpsRowItem->ulObjId, ulPropTag);
-	} else {
+	else
 		LOG_CELLCACHE_DEBUG("Get cell object %d tag 0x%08X result found", lpsRowItem->ulObjId, ulPropTag);
-	}
-    return er;
+	return er;
 }
 
 ECRESULT ECCacheManager::SetCell(const sObjectTableKey *lpsRowItem,
@@ -1469,12 +1447,11 @@ ECRESULT ECCacheManager::SetCell(const sObjectTableKey *lpsRowItem,
     }
 
 exit:
-	if (er) {
+	if (er != erSuccess)
 		LOG_CELLCACHE_DEBUG("Set cell object %d tag 0x%08X error 0x%08X", lpsRowItem->ulObjId, ulPropTag, er);
-	} else {
+	else
 		LOG_CELLCACHE_DEBUG("Set cell object %d tag 0x%08X", lpsRowItem->ulObjId, ulPropTag);
-	}
-    return er;
+	return er;
 }
 
 ECRESULT ECCacheManager::SetComplete(unsigned int ulObjId)
@@ -1492,13 +1469,11 @@ ECRESULT ECCacheManager::SetComplete(unsigned int ulObjId)
     }
 
 exit:
-	if (er) {
+	if (er != erSuccess)
 		LOG_CELLCACHE_DEBUG("Set cell complete for object %d failed cell not found", ulObjId);
-	} else {
+	else
 		LOG_CELLCACHE_DEBUG("Set cell complete for object %d", ulObjId);
-	}
-
-    return er;
+	return er;
 }
 
 ECRESULT ECCacheManager::UpdateCell(unsigned int ulObjId, unsigned int ulPropTag, int lDelta)
@@ -1516,12 +1491,11 @@ ECRESULT ECCacheManager::UpdateCell(unsigned int ulObjId, unsigned int ulPropTag
     }
 
 exit:
-	if (er) {
+	if (er != erSuccess)
 		LOG_CELLCACHE_DEBUG("Update cell object %d tag 0x%08X, delta %d failed cell not found", ulObjId, ulPropTag, lDelta);
-	} else {
+	else
 		LOG_CELLCACHE_DEBUG("Update cell object %d tag 0x%08X, delta %d", ulObjId, ulPropTag, lDelta);
-	}
-    return er;
+	return er;
 }
 
 ECRESULT ECCacheManager::UpdateCell(unsigned int ulObjId, unsigned int ulPropTag, unsigned int ulMask, unsigned int ulValue)
@@ -1539,12 +1513,11 @@ ECRESULT ECCacheManager::UpdateCell(unsigned int ulObjId, unsigned int ulPropTag
     }
 
 exit:
-	if (er) {
+	if (er != erSuccess)
 		LOG_CELLCACHE_DEBUG("Update cell object %d tag 0x%08X, mask 0x%08X, value %d failed cell not found", ulObjId, ulPropTag, ulMask, ulValue);
-	} else {
+	else
 		LOG_CELLCACHE_DEBUG("Update cell object %d tag 0x%08X, mask 0x%08X, value %d", ulObjId, ulPropTag, ulMask, ulValue);
-	}
-    return er;
+	return er;
 }
 
 ECRESULT ECCacheManager::_DelCell(unsigned int ulObjId)
@@ -1818,12 +1791,10 @@ exit:
 
 	sObject.lpData = NULL; // Remove reference
 
-	if (er) {
+	if (er != erSuccess)
 		LOG_CACHE_DEBUG("Get object from prop tag 0x%04X, data %s error 0x%08x", ulTag, bin2hex(cbData, lpData).c_str(), er);
-	} else {
+	else
 		LOG_CACHE_DEBUG("Get object from prop tag 0x%04X, data %s result [%s]: objectid %d", ulTag, bin2hex(cbData, lpData).c_str(), ((bCacheResult)?"C":"D"), *lpulObjId);
-	}
-
 	return er;
 }
 

@@ -233,11 +233,10 @@ ECRESULT RunSubRestriction(ECSession *lpSession, void *lpECODStore, struct restr
             
         if(fMatch) {
             iterParent = mapParent.find(iterObject->ulObjId);
-            if(iterParent != mapParent.end()) {
+            if (iterParent != mapParent.end())
                 // Remember the id of the message one of whose subobjects matched
 
                 lpResult->insert(iterParent->second);
-            }
         }
         
         // Optimisation possibility: if one of the subobjects matches, we shouldn't bother checking

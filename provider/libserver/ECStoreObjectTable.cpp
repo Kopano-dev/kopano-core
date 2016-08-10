@@ -779,13 +779,12 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
                 // Update property tag to requested property tag; requested type may have been PT_UNICODE while database contains PT_STRING8
                 lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second].ulPropTag = iterColumns->first;
 
-                if ((lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second].ulPropTag & MV_FLAG) == 0) {
+                if ((lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second].ulPropTag & MV_FLAG) == 0)
 					// Cache value
 					lpSession->GetSessionManager()->GetCacheManager()->SetCell(&sKey, iterColumns->first, &lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second]);
-				} else if ((lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second].ulPropTag & MVI_FLAG) == MVI_FLAG) {
+				else if ((lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second].ulPropTag & MVI_FLAG) == MVI_FLAG)
 					// Get rid of the MVI_FLAG
 					lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second].ulPropTag &= ~MVI_FLAG;
-				}
 
                 // Remove from mapColumns so we know that we got a response from SQL
                 mapColumns.erase(iterColumns++);
@@ -969,9 +968,8 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 
 				// Handle requesting the same tag multiple times; the data is returned only once, so we need to copy it to all the columns in which it was
 				// requested. Note that requesting the same ROW more than once is not supported (it is a map, not a multimap)
-				if(CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, &lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second]) != erSuccess) {
+				if (CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, &lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second]) != erSuccess)
 					CopyEmptyCellToSOAPPropVal(soap, iterColumns->first, &lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second]);
-				}
 				
 				// Update propval to correct value. We have to do this because we may have requested PT_UNICODE while the database
 				// contains PT_STRING8.
@@ -1003,9 +1001,8 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 		for (iterObjIds = mapObjIds.begin(); iterObjIds != mapObjIds.end(); ++iterObjIds)
 			if(setDone.count(std::make_pair(iterObjIds->second, iterColumns->second)) == 0) {
 				// We may be overwriting a value that was retrieved from the cache before.
-				if(soap == NULL && lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second].ulPropTag != 0) {
+				if (soap == NULL && lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second].ulPropTag != 0)
 					FreePropVal(&lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second], false);
-				}
 				CopyEmptyCellToSOAPPropVal(soap, iterColumns->first, &lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second]);
 				lpSession->GetSessionManager()->GetCacheManager()->SetCell((sObjectTableKey*)&iterObjIds->first, iterColumns->first, &lpsRowSet->__ptr[iterObjIds->second].__ptr[iterColumns->second]);
 			}
@@ -1308,11 +1305,8 @@ ECRESULT GetDeferredTableUpdates(ECDatabase *lpDatabase, unsigned int ulFolderId
 	er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess)
 		goto exit;
-		
-	while((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL) {
+	while ((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL)
 		lpDeferred->push_back(atoui(lpDBRow[0]));
-	}
-
 exit:
 	if(lpDBResult)
 		lpDatabase->FreeResult(lpDBResult);
@@ -1347,10 +1341,8 @@ ECRESULT GetDeferredTableUpdates(ECDatabase *lpDatabase, ECObjectTableList* lpRo
 	if(er != erSuccess)
 		goto exit;
 		
-	while((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL) {
+	while ((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL)
 		lpDeferred->push_back(atoui(lpDBRow[0]));
-	}
-
 exit:
 	if(lpDBResult)
 		lpDatabase->FreeResult(lpDBResult);
