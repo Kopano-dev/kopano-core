@@ -100,10 +100,8 @@ ECStatsCollector::ECStatsCollector() {
 }
 
 ECStatsCollector::~ECStatsCollector() {
-	SCMap::iterator iSD;
-
-	for (iSD = m_StatData.begin(); iSD != m_StatData.end(); ++iSD)
-		pthread_mutex_destroy(&iSD->second.lock);
+	for (auto &i : m_StatData)
+		pthread_mutex_destroy(&i.second.lock);
 	pthread_mutex_destroy(&m_StringsLock);
 }
 
@@ -370,33 +368,27 @@ std::string ECStatsCollector::GetValue(const SCName &name) {
 
 void ECStatsCollector::ForEachStat(void(callback)(const std::string &, const std::string &, const std::string &, void*), void *obj)
 {
-	SCMap::iterator iSD;
-
-	for (iSD = m_StatData.begin(); iSD != m_StatData.end(); ++iSD) {
-		pthread_mutex_lock(&iSD->second.lock);
-		callback(iSD->second.name, iSD->second.description, GetValue(*iSD), obj);
-		pthread_mutex_unlock(&iSD->second.lock);
+	for (auto &i : m_StatData) {
+		pthread_mutex_lock(&i.second.lock);
+		callback(i.second.name, i.second.description, GetValue(i), obj);
+		pthread_mutex_unlock(&i.second.lock);
 	}
 }
 
 void ECStatsCollector::ForEachString(void(callback)(const std::string &, const std::string &, const std::string &, void*), void *obj)
 {
-	std::map<std::string, ECStrings>::const_iterator iSS;
-
 	pthread_mutex_lock(&m_StringsLock);
-	for (iSS = m_StatStrings.begin(); iSS != m_StatStrings.end(); ++iSS)
-		callback(iSS->first, iSS->second.description, iSS->second.value, obj);
+	for (const auto &i : m_StatStrings)
+		callback(i.first, i.second.description, i.second.value, obj);
 	pthread_mutex_unlock(&m_StringsLock);
 }
 
 void ECStatsCollector::Reset() {
-	SCMap::iterator iSD;
-
-	for (iSD = m_StatData.begin(); iSD != m_StatData.end(); ++iSD) {
+	for (auto &i : m_StatData) {
 		// reset largest var in union
-		pthread_mutex_lock(&iSD->second.lock);
-		iSD->second.data.ll = 0;
-		pthread_mutex_unlock(&iSD->second.lock);
+		pthread_mutex_lock(&i.second.lock);
+		i.second.data.ll = 0;
+		pthread_mutex_unlock(&i.second.lock);
 	}
 }
 
