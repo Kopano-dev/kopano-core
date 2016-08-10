@@ -216,7 +216,6 @@ ECRESULT ECSecurity::GetGroupsForUser(unsigned int ulUserId, std::list<localobje
 ECRESULT ECSecurity::GetObjectPermission(unsigned int ulObjId, unsigned int* lpulRights)
 {
 	ECRESULT		er = erSuccess;
-	std::list<localobjectdetails_t>::const_iterator iterGroups;
 	struct rightsArray *lpRights = NULL;
 	unsigned		ulCurObj = ulObjId;
 	bool 			bFoundACL = false;
@@ -248,9 +247,10 @@ ECRESULT ECSecurity::GetObjectPermission(unsigned int ulObjId, unsigned int* lpu
 
 			// Also check for groups that we are in, and add those permissions
 			if(m_lpGroups || GetGroupsForUser(m_ulUserID, &m_lpGroups) == erSuccess)
-				for (iterGroups = m_lpGroups->begin(); iterGroups != m_lpGroups->end(); ++iterGroups)
+				for (const auto &grp : *m_lpGroups)
 					for (gsoap_size_t i = 0; i < lpRights->__size; ++i)
-						if(lpRights->__ptr[i].ulType == ACCESS_TYPE_GRANT && lpRights->__ptr[i].ulUserid == iterGroups->ulId) {
+						if (lpRights->__ptr[i].ulType == ACCESS_TYPE_GRANT &&
+						    lpRights->__ptr[i].ulUserid == grp.ulId) {
 							*lpulRights |= lpRights->__ptr[i].ulRights;
 							bFoundACL = true;
 						}
@@ -825,8 +825,6 @@ ECRESULT ECSecurity::GetUserCompany(unsigned int *lpulCompanyId)
 ECRESULT ECSecurity::GetViewableCompanyIds(unsigned int ulFlags, list<localobjectdetails_t> **lppObjects)
 {
 	ECRESULT er;
-	std::list<localobjectdetails_t>::const_iterator iter;
-
 	/*
 	 * We have the viewable companies stored in our cache,
 	 * if it is present use that, otherwise just create a
@@ -846,17 +844,15 @@ ECRESULT ECSecurity::GetViewableCompanyIds(unsigned int ulFlags, list<localobjec
 	 * too many entries in the list. We need to filter those out now.
 	 */
 	*lppObjects = new list<localobjectdetails_t>();
-	for (iter = m_lpViewCompanies->begin();
-	     iter != m_lpViewCompanies->end(); ++iter) {
-		if ((m_ulUserID != 0) &&
-			(ulFlags & USERMANAGEMENT_ADDRESSBOOK) &&
-			iter->GetPropBool(OB_PROP_B_AB_HIDDEN))
+	for (const auto &i : *m_lpViewCompanies) {
+		if (m_ulUserID != 0 && (ulFlags & USERMANAGEMENT_ADDRESSBOOK) &&
+		    i.GetPropBool(OB_PROP_B_AB_HIDDEN))
 			continue;
 
 		if (ulFlags & USERMANAGEMENT_IDS_ONLY)
-			(*lppObjects)->push_back(localobjectdetails_t(iter->ulId, iter->GetClass()));
+			(*lppObjects)->push_back(localobjectdetails_t(i.ulId, i.GetClass()));
 		else
-			(*lppObjects)->push_back(localobjectdetails_t(iter->ulId, *iter));
+			(*lppObjects)->push_back(localobjectdetails_t(i.ulId, i));
 	}
 	return erSuccess;
 }
@@ -873,7 +869,6 @@ ECRESULT ECSecurity::GetViewableCompanyIds(unsigned int ulFlags, list<localobjec
 ECRESULT ECSecurity::IsUserObjectVisible(unsigned int ulUserObjectId)
 {
 	ECRESULT er;
-	std::list<localobjectdetails_t>::const_iterator iterCompany;
 	objectid_t sExternId;
 	unsigned int ulCompanyId;
 
@@ -900,9 +895,8 @@ ECRESULT ECSecurity::IsUserObjectVisible(unsigned int ulUserObjectId)
 		if (er != erSuccess)
 			return er;
 	}
-	for (iterCompany = m_lpViewCompanies->begin();
-	     iterCompany != m_lpViewCompanies->end(); ++iterCompany)
-		if (iterCompany->ulId == ulCompanyId)
+	for (const auto &company : *m_lpViewCompanies)
+		if (company.ulId == ulCompanyId)
 			return erSuccess;
 
 	/* Item was not found */
@@ -1124,7 +1118,6 @@ ECRESULT ECSecurity::GetStoreOwnerAndType(unsigned int ulObjId, unsigned int* lp
 ECRESULT ECSecurity::IsAdminOverUserObject(unsigned int ulUserObjectId)
 {
 	ECRESULT er = KCERR_NO_ACCESS;
-	std::list<localobjectdetails_t>::const_iterator objectIter;
 	unsigned int ulCompanyId;
 	objectdetails_t objectdetails;
 	objectid_t sExternId;
@@ -1171,9 +1164,8 @@ ECRESULT ECSecurity::IsAdminOverUserObject(unsigned int ulUserObjectId)
 		if (er != erSuccess)
 			return er;
 	}
-	for (objectIter = m_lpAdminCompanies->begin();
-	     objectIter != m_lpAdminCompanies->end(); ++objectIter)
-		if (objectIter->ulId == ulCompanyId)
+	for (const auto &obj : *m_lpAdminCompanies)
+		if (obj.ulId == ulCompanyId)
 			return erSuccess;
 
 	/* Item was not found, so no access */
@@ -1513,37 +1505,36 @@ ECRESULT ECSecurity::GetImpersonator(std::string *lpstrImpersonator)
 size_t ECSecurity::GetObjectSize(void)
 {
 	size_t ulSize = sizeof(*this);
-	unsigned int ulItems;
-
-	list<localobjectdetails_t>::iterator iter;
-
 	ulSize += m_details.GetObjectSize();
 	ulSize += m_impersonatorDetails.GetObjectSize();
 	
 
 	if (m_lpGroups) {
-		for (iter = m_lpGroups->begin(), ulItems = 0;
-		     iter != m_lpGroups->end(); ++iter, ++ulItems)
-			ulSize += iter->GetObjectSize();
-
+		size_t ulItems = 0;
+		for (auto &i : *m_lpGroups) {
+			++ulItems;
+			ulSize += i.GetObjectSize();
+		}
 		ulSize += MEMORY_USAGE_LIST(ulItems, list<localobjectdetails_t>);
 	}
 
 	if (m_lpViewCompanies)
 	{
-		for (iter = m_lpViewCompanies->begin(), ulItems = 0;
-		     iter != m_lpViewCompanies->end(); ++iter, ++ulItems)
-			ulSize += iter->GetObjectSize();
-
+		size_t ulItems = 0;
+		for (auto &i : *m_lpViewCompanies) {
+			++ulItems;
+			ulSize += i.GetObjectSize();
+		}
 		ulSize += MEMORY_USAGE_LIST(ulItems, list<localobjectdetails_t>);
 	}
 
 	if (m_lpAdminCompanies)
 	{
-		for (iter = m_lpAdminCompanies->begin(), ulItems = 0;
-		     iter != m_lpAdminCompanies->end(); ++iter, ++ulItems)
-			ulSize += iter->GetObjectSize();
-
+		size_t ulItems = 0;
+		for (auto &i : *m_lpAdminCompanies) {
+			++ulItems;
+			ulSize += i.GetObjectSize();
+		}
 		ulSize += MEMORY_USAGE_LIST(ulItems, list<localobjectdetails_t>);
 	}
 

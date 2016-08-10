@@ -542,14 +542,12 @@ void ECSession::RemoveBusyState(pthread_t threadId)
 
 void ECSession::GetBusyStates(std::list<BUSYSTATE> *lpStates)
 {
-	map<pthread_t, BUSYSTATE>::const_iterator iMap;
-
 	// this map is very small, since a session only performs one or two functions at a time
 	// so the lock time is short, which will block _all_ incoming functions
 	lpStates->clear();
 	pthread_mutex_lock(&m_hStateLock);
-	for (iMap = m_mapBusyStates.begin(); iMap != m_mapBusyStates.end(); ++iMap)
-		lpStates->push_back(iMap->second);
+	for (const auto &p : m_mapBusyStates)
+		lpStates->push_back(p.second);
 	pthread_mutex_unlock(&m_hStateLock);
 }
 

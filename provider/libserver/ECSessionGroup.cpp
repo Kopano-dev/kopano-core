@@ -75,9 +75,8 @@ ECSessionGroup::ECSessionGroup(ECSESSIONGROUPID sessionGroupId, ECSessionManager
 ECSessionGroup::~ECSessionGroup()
 {
 	/* Unsubscribe any subscribed stores */
-	std::multimap<unsigned int, unsigned int>::const_iterator i;
-	for (i = m_mapSubscribedStores.begin(); i != m_mapSubscribedStores.end(); ++i)
-		m_lpSessionManager->UnsubscribeObjectEvents(i->second, m_sessionGroupId);
+	for (const auto &p : m_mapSubscribedStores)
+		m_lpSessionManager->UnsubscribeObjectEvents(p.second, m_sessionGroupId);
 
 	/* Release any GetNotifyItems() threads */
 	pthread_mutex_destroy(&m_hNotificationLock);
@@ -257,7 +256,6 @@ ECRESULT ECSessionGroup::DelAdvise(ECSESSIONID ulSessionId, unsigned int ulConne
 ECRESULT ECSessionGroup::AddNotification(notification *notifyItem, unsigned int ulKey, unsigned int ulStore, ECSESSIONID ulSessionId)
 {
 	ECRESULT		hr = erSuccess;
-	SESSIONINFOMAP::const_iterator iterSessions;
 	
 	pthread_mutex_lock(&m_hNotificationLock);
 
@@ -277,9 +275,8 @@ ECRESULT ECSessionGroup::AddNotification(notification *notifyItem, unsigned int 
 	// Since we now have a notification ready to send, tell the session manager that we have something to send. Since
 	// a notification can be read from any session in the session group, we have to notify all of the sessions
 	pthread_mutex_lock(&m_hSessionMapLock);
-	for (iterSessions = m_mapSessions.begin();
-	     iterSessions != m_mapSessions.end(); ++iterSessions)
-		m_lpSessionManager->NotifyNotificationReady(iterSessions->second.lpSession->GetSessionId());
+	for (const auto &p : m_mapSessions)
+		m_lpSessionManager->NotifyNotificationReady(p.second.lpSession->GetSessionId());
 	pthread_mutex_unlock(&m_hSessionMapLock);
 
 	return hr;
@@ -362,10 +359,7 @@ ECRESULT ECSessionGroup::AddChangeNotification(const std::set<unsigned int> &syn
 	notificationICS ics{__gszeroinit};
 	entryId			syncStateBin = {0};
 	notifySyncState	syncState = {0, ulChangeId};
-	SESSIONINFOMAP::const_iterator iterSessions;
-
 	std::map<ECSESSIONID,unsigned int> mapInserted;
-	std::set<unsigned int>::const_iterator iterSyncId;
 	CHANGESUBSCRIBEMAP::const_iterator iterItem;
 	std::pair<CHANGESUBSCRIBEMAP::const_iterator, CHANGESUBSCRIBEMAP::const_iterator> iterRange;
 
@@ -380,13 +374,12 @@ ECRESULT ECSessionGroup::AddChangeNotification(const std::set<unsigned int> &syn
 	pthread_mutex_lock(&m_hNotificationLock);
 
 	// Iterate through all sync ids
-	for (iterSyncId = syncIds.begin(); iterSyncId != syncIds.end(); ++iterSyncId) {
-
+	for (auto sync_id : syncIds) {
 		// Iterate through all subscribed clients for the current sync id
-		iterRange = m_mapChangeSubscribe.equal_range(*iterSyncId);
+		iterRange = m_mapChangeSubscribe.equal_range(sync_id);
 		for (iterItem = iterRange.first; iterItem != iterRange.second; ++iterItem) {
 			// update sync state
-			syncState.ulSyncId = *iterSyncId;
+			syncState.ulSyncId = sync_id;
 			
 			// create ECNotification
 			ECNotification notify(notifyItem);
@@ -402,10 +395,8 @@ ECRESULT ECSessionGroup::AddChangeNotification(const std::set<unsigned int> &syn
 	// Since we now have a notification ready to send, tell the session manager that we have something to send. Since
 	// a notifications can be read from any session in the session group, we have to notify all of the sessions
 	pthread_mutex_lock(&m_hSessionMapLock);
-	for (iterSessions = m_mapSessions.begin();
-	     iterSessions != m_mapSessions.end(); ++iterSessions)
-		m_lpSessionManager->NotifyNotificationReady(iterSessions->second.lpSession->GetSessionId());
-    
+	for (const auto &p : m_mapSessions)
+		m_lpSessionManager->NotifyNotificationReady(p.second.lpSession->GetSessionId());
 	pthread_mutex_unlock(&m_hSessionMapLock);
 
 	Unlock();
@@ -421,7 +412,6 @@ ECRESULT ECSessionGroup::AddChangeNotification(ECSESSIONID ulSessionId, unsigned
 	entryId			syncStateBin = {0};
 
 	notifySyncState	syncState = { ulSyncId, static_cast<unsigned int>(ulChangeId) };
-	SESSIONINFOMAP::const_iterator iterSessions;
 
 	notifyItem.ulEventType = fnevKopanoIcsChange;
 	notifyItem.ics = &ics;
@@ -443,10 +433,8 @@ ECRESULT ECSessionGroup::AddChangeNotification(ECSESSIONID ulSessionId, unsigned
 	// Since we now have a notification ready to send, tell the session manager that we have something to send. Since
 	// a notifications can be read from any session in the session group, we have to notify all of the sessions
 	pthread_mutex_lock(&m_hSessionMapLock);
-	for (iterSessions = m_mapSessions.begin();
-	     iterSessions != m_mapSessions.end(); ++iterSessions)
-		m_lpSessionManager->NotifyNotificationReady(iterSessions->second.lpSession->GetSessionId());
-    
+	for (const auto &p : m_mapSessions)
+		m_lpSessionManager->NotifyNotificationReady(p.second.lpSession->GetSessionId());
 	pthread_mutex_unlock(&m_hSessionMapLock);
 
 	Unlock();
@@ -523,18 +511,18 @@ ECRESULT ECSessionGroup::releaseListeners()
  */
 size_t ECSessionGroup::GetObjectSize(void)
 {
-	ECNOTIFICATIONLIST::const_iterator iterlNotify;
 	size_t ulSize = 0;
-	unsigned int ulItems;
 
 	pthread_mutex_lock(&m_hNotificationLock);
 
 	ulSize += MEMORY_USAGE_MAP(m_mapSubscribe.size(), SUBSCRIBEMAP);
 	ulSize += MEMORY_USAGE_MAP(m_mapChangeSubscribe.size(), CHANGESUBSCRIBEMAP);
 
-	for (iterlNotify = m_listNotification.begin(), ulItems = 0;
-	     iterlNotify != m_listNotification.end(); ++iterlNotify, ++ulItems)
-		ulSize += iterlNotify->GetObjectSize();
+	size_t ulItems = 0;
+	for (const auto &n : m_listNotification) {
+		++ulItems;
+		ulSize += n.GetObjectSize();
+	}
 	ulSize += MEMORY_USAGE_LIST(ulItems, ECNOTIFICATIONLIST);
 
 	pthread_mutex_unlock(&m_hNotificationLock);

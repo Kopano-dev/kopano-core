@@ -158,8 +158,6 @@ void kopano_removeallsessions()
 
 ECRESULT kopano_exit()
 {
-	std::set<ECDatabase *>::const_iterator iterDBObject;
-
 	if (!g_bInitLib)
 		return KCERR_NOT_INITIALIZED;
 
@@ -180,9 +178,8 @@ ECRESULT kopano_exit()
 	// Close all database connections
 	pthread_mutex_lock(&g_hMutexDBObjectList);
 
-	for (iterDBObject = g_lpDBObjectList.begin();
-	     iterDBObject != g_lpDBObjectList.end(); ++iterDBObject)
-		(*iterDBObject)->Close();		
+	for (auto dbobjp : g_lpDBObjectList)
+		dbobjp->Close();
 	pthread_mutex_unlock(&g_hMutexDBObjectList);
 	return erSuccess;
 }

@@ -348,7 +348,6 @@ ECRESULT ECSessionManager::RemoveAllSessions()
 	BTSession		*lpSession = NULL;
 	SESSIONMAP::const_iterator iIterSession, iSessionNext;
 	std::list<BTSession *> lstSessions;
-	std::list<BTSession *>::const_iterator iterSessionList;
 	
 	// Lock the session map since we're going to remove all the sessions.
 	pthread_rwlock_wrlock(&m_hCacheRWLock);
@@ -372,10 +371,8 @@ ECRESULT ECSessionManager::RemoveAllSessions()
 	pthread_rwlock_unlock(&m_hCacheRWLock);
 	
 	// Do the actual session deletes, while the session map is not locked (!)
-	for (iterSessionList = lstSessions.begin();
-	     iterSessionList != lstSessions.end(); ++iterSessionList)
-	    delete *iterSessionList;
-	
+	for (auto sesp : lstSessions)
+		delete sesp;
 	return er;
 }
 
@@ -385,7 +382,6 @@ ECRESULT ECSessionManager::CancelAllSessions(ECSESSIONID sessionIDException)
 	BTSession		*lpSession = NULL;
 	SESSIONMAP::const_iterator iIterSession, iSessionNext;
 	std::list<BTSession *> lstSessions;
-	std::list<BTSession *>::const_iterator iterSessionList;
 	
 	// Lock the session map since we're going to remove all the sessions.
 	pthread_rwlock_wrlock(&m_hCacheRWLock);
@@ -416,10 +412,8 @@ ECRESULT ECSessionManager::CancelAllSessions(ECSESSIONID sessionIDException)
 	pthread_rwlock_unlock(&m_hCacheRWLock);
 	
 	// Do the actual session deletes, while the session map is not locked (!)
-	for (iterSessionList = lstSessions.begin();
-	     iterSessionList != lstSessions.end(); ++iterSessionList)
-	    delete *iterSessionList;
-	
+	for (auto sesp : lstSessions)
+		delete sesp;
 	return er;
 }
 
@@ -427,18 +421,11 @@ ECRESULT ECSessionManager::CancelAllSessions(ECSESSIONID sessionIDException)
 // used by ECStatsTable
 ECRESULT ECSessionManager::ForEachSession(void(*callback)(ECSession*, void*), void *obj)
 {
-	ECRESULT er = erSuccess;
-	SESSIONMAP::const_iterator iIterSession;
-
 	pthread_rwlock_rdlock(&m_hCacheRWLock);
-
-	for (iIterSession = m_mapSessions.begin();
-	     iIterSession != m_mapSessions.end(); ++iIterSession)
-		callback(dynamic_cast<ECSession*>(iIterSession->second), obj);
-
+	for (const auto &p : m_mapSessions)
+		callback(dynamic_cast<ECSession *>(p.second), obj);
 	pthread_rwlock_unlock(&m_hCacheRWLock);
-
-	return er;
+	return erSuccess;
 }
 
 // Locking of sessions works as follows:
@@ -761,7 +748,6 @@ ECRESULT ECSessionManager::AddNotification(notification *notifyItem, unsigned in
 	EC_SESSIONGROUPMAP::const_iterator iIterator;
 	std::multimap<unsigned int, ECSESSIONGROUPID>::const_iterator iterObjectSubscription;
 	std::set<ECSESSIONGROUPID> setGroups;
-	std::set<ECSESSIONGROUPID>::const_iterator iterGroups;
 	
 	ECRESULT				hr = erSuccess;
 	
@@ -784,9 +770,9 @@ ECRESULT ECSessionManager::AddNotification(notification *notifyItem, unsigned in
 	pthread_mutex_unlock(&m_mutexObjectSubscriptions);
 
 	// Send each subscribed session group one notification
-	for (iterGroups = setGroups.begin(); iterGroups != setGroups.end(); ++iterGroups) {
+	for (const auto &grp : setGroups) {
 		pthread_rwlock_rdlock(&m_hGroupLock);
-		iIterator = m_mapSessionGroups.find(*iterGroups);
+		iIterator = m_mapSessionGroups.find(grp);
 		if(iIterator != m_mapSessionGroups.end())
 			iIterator->second->AddNotification(notifyItem, ulKey, ulStore);
 		pthread_rwlock_unlock(&m_hGroupLock);
@@ -948,10 +934,8 @@ ECRESULT ECSessionManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned 
 
 ECRESULT ECSessionManager::UpdateSubscribedTables(ECKeyTable::UpdateType ulType, TABLESUBSCRIPTION sSubscription, std::list<unsigned int> &lstChildId)
 {
-	SESSIONMAP::const_iterator iterSession;
 	ECRESULT		er = erSuccess;
 	std::set<ECSESSIONID> setSessions;
-	std::set<ECSESSIONID>::const_iterator iterSubscribedSession;
 	std::multimap<TABLESUBSCRIPTION, ECSESSIONID>::const_iterator iterSubscriptions;
 
 	BTSession	*lpBTSession = NULL;
@@ -971,12 +955,10 @@ ECRESULT ECSessionManager::UpdateSubscribedTables(ECKeyTable::UpdateType ulType,
     // sessions have the same table opened at one time.
 
     // For each of the sessions that are interested, send the table change
-	for (iterSubscribedSession = setSessions.begin();
-	     iterSubscribedSession != setSessions.end();
-	     ++iterSubscribedSession) {
+	for (const auto &ses : setSessions) {
 		// Get session
 		pthread_rwlock_rdlock(&m_hCacheRWLock);
-		lpBTSession = GetSession(*iterSubscribedSession, true);
+		lpBTSession = GetSession(ses, true);
 		pthread_rwlock_unlock(&m_hCacheRWLock);
 	    
 	    // Send the change notification
@@ -1220,20 +1202,14 @@ exit:
 
 ECRESULT ECSessionManager::NotificationChange(const set<unsigned int> &syncIds, unsigned int ulChangeId, unsigned int ulChangeType)
 {
-	ECRESULT					er = erSuccess;
-	EC_SESSIONGROUPMAP::const_iterator iIterator;
-	
 	pthread_rwlock_rdlock(&m_hGroupLock);
 
 	// Send the notification to all sessionsgroups so that any client listening for these
 	// notifications can receive them
-	for (iIterator = m_mapSessionGroups.begin();
-	     iIterator != m_mapSessionGroups.end(); ++iIterator)
-		iIterator->second->AddChangeNotification(syncIds, ulChangeId, ulChangeType);
-	
+	for (const auto &p : m_mapSessionGroups)
+		p.second->AddChangeNotification(syncIds, ulChangeId, ulChangeType);
 	pthread_rwlock_unlock(&m_hGroupLock);
-
-	return er;
+	return erSuccess;
 }
 
 /**
@@ -1280,8 +1256,6 @@ void ECSessionManager::GetStats(void(callback)(const std::string &, const std::s
  */
 void ECSessionManager::GetStats(sSessionManagerStats &sStats)
 {
-	SESSIONMAP::const_iterator iIterator;
-	EC_SESSIONGROUPMAP::const_iterator itersg;
 	list<ECSession*> vSessions;
 
 	memset(&sStats, 0, sizeof(sSessionManagerStats));
@@ -1300,10 +1274,8 @@ void ECSessionManager::GetStats(sSessionManagerStats &sStats)
 	sStats.group.ulItems = m_mapSessionGroups.size();
 	sStats.group.ullSize = MEMORY_USAGE_HASHMAP(sStats.group.ulItems, EC_SESSIONGROUPMAP);
 
-	for (itersg = m_mapSessionGroups.begin();
-	     itersg != m_mapSessionGroups.end(); ++itersg)
-		sStats.group.ullSize += itersg->second->GetObjectSize();
-
+	for (const auto &psg : m_mapSessionGroups)
+		sStats.group.ullSize += psg.second->GetObjectSize();
 	pthread_rwlock_unlock(&m_hGroupLock);
 
 	// persistent connections/sessions
