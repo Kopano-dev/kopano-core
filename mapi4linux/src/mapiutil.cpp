@@ -356,7 +356,6 @@ HRESULT __stdcall RTFSync(LPMESSAGE lpMessage, ULONG ulFlags, BOOL * lpfMessageU
 	return hr;
 }
 
-
 //--- php-ext used functions
 HRESULT __stdcall HrQueryAllRows(LPMAPITABLE lpTable, LPSPropTagArray lpPropTags, LPSRestriction lpRestriction, LPSSortOrderSet lpSortOrderSet, LONG crowsMax, LPSRowSet *lppRows) {
 	TRACE_MAPILIB1(TRACE_ENTRY, "HrQueryAllRows", "%s", PropNameFromPropTagArray(lpPropTags).c_str());
@@ -447,7 +446,6 @@ BOOL __stdcall FPropExists(LPMAPIPROP lpMapiProp, ULONG ulPropTag)
 	TRACE_MAPILIB1(TRACE_RETURN, "FPropExists", "0x%08x", hr);
 	return (hr == hrSuccess);
 }
-
 
 /* Actually not part of MAPI */
 #ifdef LINUX

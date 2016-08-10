@@ -222,7 +222,6 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 				++pos;
 		}
 
-
 		{
 			strHTMLForwardText = "<b>From:</b> ";
 			if (PROP_TYPE(ptrInfo[0].ulPropTag) != PT_ERROR)
@@ -410,7 +409,6 @@ static HRESULT CreateReplyCopy(LPMAPISESSION lpSession, LPMDB lpOrigStore,
 		if (hr != hrSuccess)
 			goto exit;
 	}
-
 
 	// append To with original sender
 	// @todo get Reply-To ?

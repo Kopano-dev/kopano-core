@@ -26,7 +26,6 @@
 #include <kopano/ECGuid.h>
 #include "versions.h"
 
-
 bool IsKopanoEntryId(ULONG cb, LPBYTE lpEntryId)
 {
 	EID*	peid = NULL;

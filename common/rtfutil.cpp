@@ -33,7 +33,6 @@
 
 using namespace std;
 
-
 static const char szHex[] = "0123456789ABCDEF";
 
 // Charsets used in \fcharsetXXX (from http://msdn.microsoft.com/library/default.asp?url=/library/en-us/dnrtfspec/html/rtfspec_6.asp )

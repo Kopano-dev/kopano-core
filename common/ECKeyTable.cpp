@@ -312,7 +312,6 @@ ECKeyTable::ECKeyTable()
 	// The start of bookmark, the first 3 (0,1,2) are default
 	m_ulBookmarkPosition = 3;
 
-
 	// g++ doesn't like static initializers on existing variables
 	pthread_mutexattr_t mattr;
 	pthread_mutexattr_init(&mattr);
@@ -835,7 +834,6 @@ ECRESULT ECKeyTable::InvalidateBookmark(ECTableRow *lpRow)
 	return erSuccess;
 }
 
-
 ECRESULT ECKeyTable::SeekRow(unsigned int lbkOrgin, int lSeekTo, int *lplRowsSought)
 {
 	ECRESULT er = erSuccess;
@@ -843,7 +841,6 @@ ECRESULT ECKeyTable::SeekRow(unsigned int lbkOrgin, int lSeekTo, int *lplRowsSou
 	unsigned int ulCurrentRow = 0;
 	unsigned int ulRowCount = 0;
 	ECTableRow *lpRow = NULL;
-
 
 	pthread_mutex_lock(&mLock);
 

@@ -226,7 +226,6 @@ void ECStatsCollector::MinTime(SCName name, time_t min)
 	pthread_mutex_unlock(&iSD->second.lock);	
 }
 
-
 void ECStatsCollector::Max(SCName name, float max)
 {
 	SCMap::iterator iSD = m_StatData.find(name);
@@ -268,7 +267,6 @@ void ECStatsCollector::MaxTime(SCName name, time_t max)
 		iSD->second.data.ts = max;
 	pthread_mutex_unlock(&iSD->second.lock);	
 }
-
 
 void ECStatsCollector::Avg(SCName name, float add)
 {
@@ -317,8 +315,6 @@ void ECStatsCollector::AvgTime(SCName name, time_t add)
 		iSD->second.avginc = 1;
 	pthread_mutex_unlock(&iSD->second.lock);	
 }
-
-
 
 void ECStatsCollector::Set(const std::string &name, const std::string &description, const std::string &value)
 {

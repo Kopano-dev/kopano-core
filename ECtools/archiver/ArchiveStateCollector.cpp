@@ -140,7 +140,6 @@ namespace details {
 
 }
 
-
 /**
  * Create an ArchiveStateCollector instance.
  * @param[in]	ArchiverSessionPtr		The archive session

@@ -26,7 +26,6 @@
 #include "WSUtil.h"
 #include <kopano/Util.h>
 
-
 /*
  * ECParentStorage implementation
  */

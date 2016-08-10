@@ -36,7 +36,6 @@
 
 #include "ECSearchClient.h"
 
-
 typedef struct {
     SEARCHFOLDER 	*lpFolder;
     ECSearchFolders *lpSearchFolders;
@@ -1058,7 +1057,6 @@ exit:
     return er;
 }    
 
-
 // Does an actual search of a specific search Criteria in store ulStoreId, search folder ulFolderId. Will cancel if *lpbCancel
 // is TRUE. We check after each message row set to see if the cancel has been requested.
 ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId, struct searchCriteria *lpSearchCrit, bool *lpbCancel, bool bNotify)
@@ -1581,7 +1579,6 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulStoreId, unsigned int ulFold
 	return erSuccess;
 }
 
-
 // Remove a single search result (so one message in a search folder). Returns NOT_FOUND if the item wasn't in the database in the first place
 ECRESULT ECSearchFolders::DeleteResults(unsigned int ulStoreId, unsigned int ulFolderId, unsigned int ulObjId, unsigned int *lpulOldFlags)
 {
@@ -1832,7 +1829,6 @@ ECRESULT ECSearchFolders::SaveSearchCriteria(ECDatabase *lpDatabase, unsigned in
 	struct soap				xmlsoap;
 	struct searchCriteria	sSearchCriteria;
 	std::ostringstream		xml;
-
 
 	// We use the soap serializer / deserializer to store the data
 	soap_set_mode(&xmlsoap, SOAP_XML_TREE | SOAP_C_UTFSTRING);

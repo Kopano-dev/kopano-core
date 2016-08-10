@@ -53,9 +53,6 @@ using namespace std;
 #include <unicode/uclean.h>
 #endif
 
-
-
-
 struct HandlerArgs {
     ECChannel *lpChannel;
 	bool bUseSSL;
@@ -108,7 +105,6 @@ static void sighup(int)
 	}
 }
 
-
 #ifdef LINUX
 static void sigchld(int)
 {
@@ -139,7 +135,6 @@ static void PrintVersion(void)
 {
 	cout << "Product version:\t"  <<  PROJECT_VERSION_CALDAV_STR << endl << "File version:\t\t" << PROJECT_SVN_REV_STR << endl;
 }
-
 
 int main(int argc, char **argv) {
 	HRESULT hr = hrSuccess;
@@ -273,7 +268,6 @@ int main(int argc, char **argv) {
 	if (hr != hrSuccess)
 		goto exit;
 
-
 	// setup signals
 	signal(SIGTERM, sigterm);
 	signal(SIGINT, sigterm);
@@ -328,7 +322,6 @@ int main(int argc, char **argv) {
 	if (hr != hrSuccess)
 		goto exit2;
 
-
 	g_lpLogger->Log(EC_LOGLEVEL_ALWAYS, "CalDAV Gateway will now exit");
 
 #ifdef LINUX
@@ -364,7 +357,6 @@ exit:
 	ECChannel::HrFreeCtx();
 	delete g_lpConfig;
 	DeleteLogger(g_lpLogger);
-
 
 	SSL_library_cleanup(); // Remove ssl data for the main application and other related libraries
 

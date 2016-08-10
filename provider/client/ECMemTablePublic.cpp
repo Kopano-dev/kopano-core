@@ -31,8 +31,6 @@
 #include <kopano/restrictionutil.h>
 #include "favoritesutil.h"
 
-
-
 //FIXME: add the classname "ECMemTablePublic"
 ECMemTablePublic::ECMemTablePublic(ECMAPIFolderPublic *lpECParentFolder, SPropTagArray *lpsPropTags, ULONG ulRowPropTag) : ECMemTable(lpsPropTags, ulRowPropTag)
 {
@@ -67,7 +65,6 @@ ECMemTablePublic::~ECMemTablePublic(void)
 		m_lpECParentFolder->Release();
 
 }
-
 
 HRESULT ECMemTablePublic::Create(ECMAPIFolderPublic *lpECParentFolder, ECMemTablePublic **lppECMemTable)
 {
@@ -234,7 +231,6 @@ HRESULT ECMemTablePublic::Init(ULONG ulFlags)
 		if(hr != hrSuccess)
 			goto exit;
 
-
 		// build restriction
 		CREATE_RESTRICTION(lpRestriction);
 		CREATE_RES_AND(lpRestriction, lpRestriction, 1);
@@ -372,7 +368,6 @@ HRESULT ECMemTablePublic::ModifyRow(SBinary* lpInstanceKey, LPSRow lpsRow)
 		cbEntryID = cbFolderID;
 		lpEntryID = lpFolderID;
 	}
-
 
 	cProps = 0;
 

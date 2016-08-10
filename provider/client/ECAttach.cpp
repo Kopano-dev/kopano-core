@@ -27,14 +27,10 @@
 #include <kopano/ECDebug.h>
 #include <kopano/ECInterfaceDefs.h>
 
-
-
 HRESULT ECAttachFactory::Create(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, ULONG ulAttachNum, ECMAPIProp *lpRoot, ECAttach **lppAttach) const
 {
 	return ECAttach::Create(lpMsgStore, ulObjType, fModify, ulAttachNum, lpRoot, lppAttach);
 }
-
-
 
 ECAttach::ECAttach(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, ULONG ulAttachNum, ECMAPIProp *lpRoot) : ECMAPIProp(lpMsgStore, ulObjType, fModify, lpRoot, "IAttach")
 {

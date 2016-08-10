@@ -19,7 +19,6 @@
 #include "ECMAPI.h"
 #include "SOAPUtils.h"
 
-
 ECNotification::ECNotification()
 {
 	Init();

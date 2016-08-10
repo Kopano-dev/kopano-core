@@ -70,7 +70,6 @@
 
 struct sortOrderArray sDefaultSortOrder{__gszeroinit};
 
-
 ULONG sANRProps[] = { PR_DISPLAY_NAME, PR_SMTP_ADDRESS, PR_ACCOUNT, PR_DEPARTMENT_NAME, PR_OFFICE_TELEPHONE_NUMBER, PR_OFFICE_LOCATION, PR_PRIMARY_FAX_NUMBER, PR_SURNAME};
 
 #define ISMINMAX(x) ((x) == EC_TABLE_SORT_CATEG_MIN || (x) == EC_TABLE_SORT_CATEG_MAX)
@@ -115,8 +114,6 @@ static inline bool match(unsigned int relop, int equality)
 	
 	return fMatch;
 }
-
-
 
 /**
  * Constructor of the Generic Object Table
@@ -629,7 +626,6 @@ ECRESULT ECGenericObjectTable::GetColumns(struct soap *soap, ULONG ulFlags, stru
 	ECObjectTableMap::const_iterator iterObjects;
 	
 	pthread_mutex_lock(&m_hLock);
-
 
 	if(ulFlags & TBL_ALL_COLUMNS) {
 		// All columns were requested. Simply get a unique list of all the proptags used in all the objects in this table
@@ -3409,7 +3405,6 @@ ECRESULT ECCategory::UpdateMinMaxRemove(const sObjectTableKey &sKey, unsigned in
 		*lpfModified = fModified;
 	return erSuccess;
 }
-
 
 void ECCategory::DecUnread() {
 	--m_ulUnread;

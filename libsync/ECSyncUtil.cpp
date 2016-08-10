@@ -21,7 +21,6 @@
 
 #include <mapix.h>
 
-
 HRESULT HrDecodeSyncStateStream(LPSTREAM lpStream, ULONG *lpulSyncId, ULONG *lpulChangeId, PROCESSEDCHANGESSET *lpSetProcessChanged)
 {
 	HRESULT		hr = hrSuccess;

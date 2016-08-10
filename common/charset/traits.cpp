@@ -19,7 +19,6 @@
 #include <kopano/charset/utf16string.h>
 #include "utf32string.h"
 
-
 /** 
  * Make charset string ignore invalid characters, possebly converting
  * them with '?' character in iconv.

@@ -441,7 +441,6 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 
 	// process {} and end of line
 
-
 	if (strCommand.compare("CAPABILITY") == 0) {
 		if (!strvResult.empty()) {
 			hr = HrResponse(RESP_TAGGED_BAD, strTag, "CAPABILITY must have 0 arguments");
@@ -825,7 +824,6 @@ exit:
 	return hr;
 }
 
-
 /** 
  * @brief Handles the STARTTLS command
  * 
@@ -1054,7 +1052,6 @@ HRESULT IMAP::HrCmdLogin(const string &strTag, const string &strUser, const stri
 
 		m_lpsIMAPTags->aulPropTag[0] = PROP_ENVELOPE;
 	}
-
 
 	hr = HrGetSubscribedList();
 	// ignore error, empty list of subscribed folder
@@ -2149,7 +2146,6 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 		HrSetOneProp(lpMessage, lpPropVal);
 	}
 
-
 	hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE | FORCE_SAVE);
 	if (hr != hrSuccess) {
 		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "APPEND error saving message");
@@ -2858,7 +2854,6 @@ HRESULT IMAP::HrCmdIdle(const string &strTag) {
 	enum { EID, IKEY, IMAPID, MESSAGE_FLAGS, FLAG_STATUS, MSG_STATUS, LAST_VERB, NUM_COLS };
 	SizedSPropTagArray(NUM_COLS, spt) = { NUM_COLS, {PR_ENTRYID, PR_INSTANCE_KEY, PR_EC_IMAP_ID, PR_MESSAGE_FLAGS, PR_FLAG_STATUS, PR_MSG_STATUS, PR_LAST_VERB_EXECUTED} };
 
-
 	// Outlook (express) IDLEs without selecting a folder.
 	// When sending an error from this command, Outlook loops on the IDLE command forever :(
 	// Therefore, we can never return an HrResultBad() or ...No() here, so we always "succeed"
@@ -2908,7 +2903,6 @@ HRESULT IMAP::HrCmdIdle(const string &strTag) {
 	hr = HrResponse(RESP_CONTINUE, "waiting for notifications");
 
 	pthread_mutex_unlock(&m_mIdleLock);
-
 
 exit:
 	if (hr != hrSuccess || hr2 != hrSuccess) {
@@ -6219,7 +6213,6 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 			lpExtraRestriction[1].res.resAnd.lpRes[1].res.resProperty.relop = RELOP_GT;
 			lpExtraRestriction[1].res.resAnd.lpRes[1].res.resProperty.ulPropTag = PR_MESSAGE_SIZE;
 			lpExtraRestriction[1].res.resAnd.lpRes[1].res.resProperty.lpProp = lpPropVal;
-
 
 			ulStartCriteria += 2;
 			// NEW done with ALL

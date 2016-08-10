@@ -23,7 +23,6 @@
 
 #include "ZCABProvider.h"
 
-
 extern "C" MSGSERVICEENTRY __stdcall MSGServiceEntry;
 
 HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst, LPMALLOC lpMalloc,
@@ -61,7 +60,6 @@ HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst, LPMALLOC lpMalloc,
 
 	if (lppMapiError)
 		*lppMapiError = NULL;
-
 
 	TRACE_MAPI(TRACE_RETURN, "MSGServiceEntry", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;

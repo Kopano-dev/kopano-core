@@ -176,7 +176,6 @@ HRESULT ProtocolBase::HrInitializeClass()
 	if(hr != hrSuccess)
 		goto exit;
 
-
 	/*
 	 * Set m_lpIPMSubtree, used for CopyFolder, CreateFolder, DeleteFolder
 	 */
@@ -186,7 +185,6 @@ HRESULT ProtocolBase::HrInitializeClass()
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error opening IPM SUBTREE, using user %ls, error code : 0x%08X", m_wstrUser.c_str(), hr);
 		goto exit;
 	}
-
 
 	// Get active store default calendar to prevent delete action on this folder
 	hr = m_lpActiveStore->OpenEntry(0, NULL, NULL, 0, &ulType, &lpRoot);
@@ -262,7 +260,6 @@ HRESULT ProtocolBase::HrInitializeClass()
 		}
 	}
 
-
 	/*
 	 * Workaround for old users with sunbird / lightning on old url base.
 	 */
@@ -324,7 +321,6 @@ HRESULT ProtocolBase::HrInitializeClass()
 		if(lpFldProp->Value.b == (unsigned short)true && !strMethod.compare("DELETE"))
 			m_blFolderAccess = false;
 	}
-
 
 exit:
 	MAPIFreeBuffer(lpFldProp);

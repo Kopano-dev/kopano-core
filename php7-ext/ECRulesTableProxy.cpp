@@ -25,11 +25,9 @@
 
 #include <mapix.h>
 
-
 /* conversion from unicode to string8 for rules table data */
 static HRESULT ConvertUnicodeToString8(LPSRestriction lpRes, void *base, convert_context &converter);
 static HRESULT ConvertUnicodeToString8(const ACTIONS *lpActions, void *base, convert_context &converter);
-
 
 ECRulesTableProxy::ECRulesTableProxy(LPMAPITABLE lpTable)
 : m_lpTable(lpTable)
@@ -64,7 +62,6 @@ HRESULT ECRulesTableProxy::Create(LPMAPITABLE lpTable, ECRulesTableProxy **lppRu
 exit:
 	return hr;
 }
-
 
 HRESULT ECRulesTableProxy::QueryInterface(REFIID refiid, void **lppInterface)
 {
@@ -232,7 +229,6 @@ ULONG ECRulesTableProxy::xMAPITable::Release()
 	return pThis->Release();
 }
 
-
 DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, QueryInterface, (REFIID, refiid), (void **, lppInterface))
 DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, GetLastError, (HRESULT, hResult), (ULONG, ulFlags), (LPMAPIERROR *, lppMAPIError))
 DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, Advise, (ULONG, ulEventMask), (LPMAPIADVISESINK, lpAdviseSink), (ULONG *, lpulConnection))
@@ -257,8 +253,6 @@ DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, CollapseRow, (ULONG, cbIn
 DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, WaitForCompletion, (ULONG, ulFlags), (ULONG, ulTimeout), (ULONG *, lpulTableStatus))
 DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, GetCollapseState, (ULONG, ulFlags), (ULONG, cbInstanceKey, LPBYTE, lpbInstanceKey), (ULONG *, lpcbCollapseState, LPBYTE *, lppbCollapseState))
 DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, SetCollapseState, (ULONG, ulFlags), (ULONG, cbCollapseState, LPBYTE, pbCollapseState), (BOOKMARK *, lpbkLocation))
-
-
 
 static HRESULT ConvertUnicodeToString8(const WCHAR *lpszW, char **lppszA,
     void *base, convert_context &converter)

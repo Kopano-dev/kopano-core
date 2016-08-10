@@ -38,7 +38,6 @@ void mapiAttachment::generatePart(vmime::ref<vmime::bodyPart> part) const
 {
 	vmime::defaultAttachment::generatePart(part);
 
-
 	part->getHeader()->ContentDisposition().dynamicCast <vmime::contentDispositionField>()->setFilename(m_filename);
 
 	vmime::ref<vmime::contentTypeField> ctf = part->getHeader()->ContentType().dynamicCast <vmime::contentTypeField>();

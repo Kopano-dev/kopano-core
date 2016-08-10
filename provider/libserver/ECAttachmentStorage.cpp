@@ -1190,7 +1190,6 @@ ECRESULT ECDatabaseAttachment::Rollback()
 	return erSuccess;
 }
 
-
 // Attachment storage is in separate files
 ECFileAttachment::ECFileAttachment(ECDatabase *lpDatabase,
     const std::string &basepath, unsigned int ulCompressionLevel,

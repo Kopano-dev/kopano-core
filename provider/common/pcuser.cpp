@@ -22,7 +22,6 @@
 
 #include <sstream>
 
-
 template<int(*fnCmp)(const char*, const char*)>
 class StringComparer {
 public:

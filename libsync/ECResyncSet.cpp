@@ -30,7 +30,6 @@ bool ECResyncSet::Remove(const SBinary &sbinSourceKey)
 	return m_map.erase(array_type(sbinSourceKey.lpb, sbinSourceKey.lpb + sbinSourceKey.cb)) == 1;
 }
 
-
 ECResyncSetIterator::ECResyncSetIterator(ECResyncSet &resyncSet)
 : m_lpResyncSet(&resyncSet)
 , m_iterator(m_lpResyncSet->m_map.begin())

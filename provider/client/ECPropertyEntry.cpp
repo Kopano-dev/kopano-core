@@ -21,7 +21,6 @@
 #include "Mem.h"
 #include <kopano/charset/convert.h>
 
-
 //
 // ECPropertyEntry
 //

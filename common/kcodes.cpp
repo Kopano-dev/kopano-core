@@ -20,8 +20,6 @@
 #include <kopano/kcodes.h>
 #include <kopano/mapiext.h>
 
-
-
 /*
  * Some helper functions to convert the SOAP-style objects
  * to MAPI-style structs and vice-versa

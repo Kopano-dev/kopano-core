@@ -453,7 +453,6 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-
     r = Archiver::Create(&ptrArchiver);
     if (r != Success) {
         cerr << "Failed to instantiate archiver object" << endl;

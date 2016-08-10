@@ -36,7 +36,6 @@
 #include "soapH.h"
 #include "SOAPUtils.h"
 
-
 extern ECSessionManager*	g_lpSessionManager;
 
 struct ABChangeRecord {
@@ -55,9 +54,7 @@ inline ABChangeRecord::ABChangeRecord(ULONG _id, const std::string &_strItem, co
 , change_type(_change_type)
 { }
 
-
 typedef std::list<ABChangeRecord> ABChangeRecordList;
-
 
 static bool isICSChange(unsigned int ulChange)
 {
@@ -616,7 +613,6 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
     // CHeck if the client understands the new ABEID.
 	if ((lpSession->GetCapabilities() & KOPANO_CAP_MULTI_SERVER) == KOPANO_CAP_MULTI_SERVER)
 		bAcceptABEID = true;
-
 
 	if(ulChangeType != ICS_SYNC_AB) {
         // You must first register your sync via setSyncStatus()

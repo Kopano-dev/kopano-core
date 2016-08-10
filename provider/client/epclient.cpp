@@ -62,7 +62,6 @@
 
 using namespace std;
 
-
 class EPCDeleter {
 	public:
 	void operator()(ABEID *p) { MAPIFreeBuffer(p); }
@@ -859,7 +858,6 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
 		break;
 	} // switch(ulContext)
 
-
 exit:
 	if (lppMapiError) {
 		
@@ -921,7 +919,6 @@ exit:
 	return hr;
 }
 
-
 extern "C" HRESULT __cdecl XPProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc, LPALLOCATEBUFFER lpAllocateBuffer, LPALLOCATEMORE lpAllocateMore, LPFREEBUFFER lpFreeBuffer, ULONG ulFlags, ULONG ulMAPIVer, ULONG * lpulProviderVer, LPXPPROVIDER * lppXPProvider)
 {
 	TRACE_MAPI(TRACE_ENTRY, "XPProviderInit", "");
@@ -954,10 +951,8 @@ exit:
 	if(pXPProvider)
 		pXPProvider->Release();
 
-
 	return hr;
 }
-
 
 extern "C" HRESULT  __cdecl ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc, LPALLOCATEBUFFER lpAllocateBuffer, LPALLOCATEMORE lpAllocateMore, LPFREEBUFFER lpFreeBuffer, ULONG ulFlags, ULONG ulMAPIVer, ULONG * lpulProviderVer, LPABPROVIDER * lppABProvider)
 {
@@ -989,7 +984,6 @@ extern "C" HRESULT  __cdecl ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMallo
 exit:
 	if(lpABProvider)
 		lpABProvider->Release();
-
 
 	return hr;
 }

@@ -524,7 +524,6 @@ static int compareHTMLEntityToChar(const void *m1, const void *m2)
 	return wcscmp( e1->s, e2->s );
 }
 
-
 static int compareHTMLEntityToName(const void *m1, const void *m2)
 {
 	const HTMLEntityToName_t *e1 = static_cast<const HTMLEntityToName_t *>(m1);

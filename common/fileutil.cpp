@@ -35,7 +35,6 @@
 #endif
 #include "fileutil.h"
 
-
 #define BLOCKSIZE	65536
 
 /** 

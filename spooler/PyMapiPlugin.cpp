@@ -325,8 +325,6 @@ exit:
 	return hr;
 }
 
-
-
 PyMapiPluginFactory::PyMapiPluginFactory()
 	: m_ptrModMapiPlugin(NULL)
 	, m_bEnablePlugin(false)

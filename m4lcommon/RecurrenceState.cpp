@@ -45,7 +45,6 @@
 	#endif
 #endif
 
-
 class BinReader _zcp_final {
 public:
     BinReader(char *lpData, unsigned int ulLen) {

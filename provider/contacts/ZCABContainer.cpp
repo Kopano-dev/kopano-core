@@ -39,7 +39,6 @@
 #include <kopano/stringutil.h>
 using namespace std;
 
-
 ZCABContainer::ZCABContainer(std::vector<zcabFolderEntry> *lpFolders,
     IMAPIFolder *lpContacts, LPMAPISUP lpMAPISup, void *lpProvider,
     const char *szClassName) :
@@ -266,7 +265,6 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 		// restriction
 		{(LPGUID)&PSETID_Address, MNID_ID, {dispidABPArrayType}},
 	};
-
 
 	ulFlags = ulFlags & MAPI_UNICODE;
 
@@ -545,7 +543,6 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 	if (hr != hrSuccess)
 		goto exit;
 
-
 	sKey.ulPropTag = PR_ROWID;
 	sKey.Value.ul = 0;
 	for (ULONG i = 0; i < ptrEntries->Value.MVbin.cValues; ++i) {
@@ -645,7 +642,6 @@ exit:
 
 	return hr;
 }
-
 
 /** 
  * Returns an addressbook contents table of the IPM.Contacts folder in m_lpContactFolder.
@@ -1112,7 +1108,6 @@ HRESULT ZCABContainer::ResolveNames(LPSPropTagArray lpPropTagArray, ULONG ulFlag
 			goto exit;
 		ptrColumns->cValues = stProps.size();
 		std::copy(stProps.begin(), stProps.end(), ptrColumns->aulPropTag);
-
 
 		hr = this->GetContentsTable(ulFlags & MAPI_UNICODE, &ptrContents);
 		if (hr != hrSuccess)

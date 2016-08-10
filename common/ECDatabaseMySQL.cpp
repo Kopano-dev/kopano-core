@@ -543,7 +543,6 @@ ECRESULT ECDatabaseMySQL::CreateDatabase(ECConfig *lpConfig)
 	const char *lpMysqlPort = lpConfig->GetSetting("mysql_port");
 	const char *lpMysqlSocket = lpConfig->GetSetting("mysql_socket");
 
-
 	if(*lpMysqlSocket == '\0')
 		lpMysqlSocket = NULL;
 

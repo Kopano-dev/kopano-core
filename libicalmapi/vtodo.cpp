@@ -144,7 +144,6 @@ HRESULT VTodoConverter::HrAddBaseProperties(icalproperty_method icMethod, icalco
 	sPropVal.Value.ul = ulStatus;
 	lplstMsgProps->push_back(sPropVal);
 
-
 	sPropVal.ulPropTag = PR_ICON_INDEX;
 	// 1280: task
 	// 1281: recurring task
@@ -287,7 +286,6 @@ HRESULT VTodoConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMsg
 {
 	HRESULT hr = hrSuccess;
 	LPSPropValue lpPropVal = NULL;
-
 
 	hr = VConverter::HrSetTimeProperties(lpMsgProps, ulMsgProps, lpicTZinfo, strTZid, lpEvent);
 	if (hr != hrSuccess)

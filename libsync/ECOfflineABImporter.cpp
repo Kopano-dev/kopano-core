@@ -29,7 +29,6 @@
 
 #include <list>
 
-
 static inline bool operator==(const ECENTRYID& lhs, const ECENTRYID& rhs)
 {
 	if (lhs.cb == rhs.cb)

@@ -20,7 +20,6 @@
 #include "WSUtil.h"
 #include "ECSyncSettings.h"
 
-
 // WSMessageStreamSink Implementation
 
 /**

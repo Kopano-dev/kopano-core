@@ -19,7 +19,6 @@
 #include <kopano/base64.h>
 #include <cctype>
 
-
 static const std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 static inline bool is_base64(unsigned char c) {

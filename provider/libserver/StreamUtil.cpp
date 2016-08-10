@@ -44,7 +44,6 @@
 #include <map>
 #include <string>
 
-
 /*
 	streams are as follows:
 	  <version>
@@ -56,13 +55,11 @@
 	  <# of sub objects>:32bit
 	    <subobject>
 
-
 	properties are as follows:
 	  <prop tag>:32bit
 	  [<length in bytes>:32bit]
 	  <data bytes>
 	  [<guid, kind, [id|bytes+string>]
-
 
 	subobjects are as follows:
 	  <type>:32bit
@@ -112,7 +109,6 @@ private:
 	nameidmap_t m_mapNameIds;
 	namestringmap_t m_mapNameStrings;
 };
-
 
 NamedPropertyMapper::NamedPropertyMapper(ECDatabase *lpDatabase)
 	: m_lpDatabase(lpDatabase) 
@@ -169,7 +165,6 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, unsigned int ulNameId, uns
 
 	// *lpulId now contains the local propid, update the cache
 	m_mapNameIds.insert(nameidmap_t::value_type(key, *lpulId));
-
 
 exit:
 	if (lpResult)
@@ -228,14 +223,12 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, const std::string &strName
 	// *lpulId now contains the local propid, update the cache
 	m_mapNameStrings.insert(namestringmap_t::value_type(key, *lpulId));
 
-
 exit:
 	if (lpResult)
 		m_lpDatabase->FreeResult(lpResult);
 
 	return er;
 }
-
 
 // Utility Functions
 ECRESULT SerializeDatabasePropVal(LPCSTREAMCAPS lpStreamCaps, DB_ROW lpRow, DB_LENGTHS lpLen, ECSerializer *lpSink)
@@ -1417,7 +1410,6 @@ ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtta
 				CopyPropVal(lpsPropval, lpPropValArray->__ptr + lpPropValArray->__size++);
 		}
 
-
 		// Make sure we dont have a colliding PR_SOURCE_KEY. This can happen if a user imports an exported message for example.
 		if (lpsPropval->ulPropTag == PR_SOURCE_KEY) {
 			// don't use the sourcekey if found.
@@ -1438,7 +1430,6 @@ ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtta
 			// We can't use lpDBRow here except for checking if it was NULL.
 			if (lpDBRow != NULL)
 				continue;
-
 
 			strQuery = "REPLACE INTO indexedproperties(hierarchyid,tag,val_binary) VALUES (" + stringify(ulObjId) + "," + stringify(PROP_ID(PR_SOURCE_KEY)) + "," + lpDatabase->EscapeBinary(lpsPropval->Value.bin->__ptr, lpsPropval->Value.bin->__size) + ")";
 			er = lpDatabase->DoInsert(strQuery);
@@ -1646,8 +1637,6 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 	if (er != erSuccess)
 		goto exit;
 
-
-
 	if (ulParentType == MAPI_FOLDER) {
 		sObjectTableKey key(ulObjId, 0);
 		propVal sProp;
@@ -1674,8 +1663,6 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 		if (er != erSuccess)
 			goto exit;
 	}
-
-
 
 	if (ulRealObjType == MAPI_MESSAGE || ulRealObjType == MAPI_ATTACH) {
 		unsigned int	ulSubObjCount = 0;
@@ -1793,7 +1780,6 @@ exit:
 
 	return er;
 }
-
 
 ECRESULT GetValidatedPropType(DB_ROW lpRow, unsigned int *lpulType)
 {

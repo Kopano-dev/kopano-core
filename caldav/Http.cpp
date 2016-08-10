@@ -24,7 +24,6 @@
 
 using namespace std;
 
-
 /** 
  * Parse the incoming URL into known pieces:
  *

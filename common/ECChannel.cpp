@@ -36,8 +36,6 @@
 #include <cerrno>
 #include <mapicode.h>
 
-
-
 #ifndef hrSuccess
 #define hrSuccess 0
 #endif

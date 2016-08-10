@@ -30,10 +30,7 @@
 #include <string>
 using namespace std;
 
-
-
 SizedSPropTagArray(SHORTCUT_NUM, sPropsShortcuts) = {SHORTCUT_NUM, { PR_INSTANCE_KEY, PR_FAV_PUBLIC_SOURCE_KEY, PR_FAV_PARENT_SOURCE_KEY, PR_FAV_DISPLAY_NAME, PR_FAV_DISPLAY_ALIAS, PR_FAV_LEVEL_MASK, PR_FAV_CONTAINER_CLASS}};
-
 
 LPSPropTagArray GetShortCutTagArray() {
 	return (LPSPropTagArray)&sPropsShortcuts;
@@ -223,7 +220,6 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 
 	if (lpRows->cRows == 0)
 		goto exit; // Folder already removed
-
 
 	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), (void**)&lpsMsgList);
 	if (hr != hrSuccess)

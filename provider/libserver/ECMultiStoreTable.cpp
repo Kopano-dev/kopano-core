@@ -27,7 +27,6 @@
 #include "ECMAPI.h"
 #include <kopano/stringutil.h>
 
-
 ECMultiStoreTable::ECMultiStoreTable(ECSession *lpSession, unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale) : ECStoreObjectTable(lpSession, 0, NULL, 0, ulObjType, ulFlags, 0, locale) {
 }
 

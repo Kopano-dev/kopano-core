@@ -462,7 +462,6 @@ HRESULT Fsck::ValidateRecursiveDuplicateRecipients(LPMESSAGE lpMessage, bool &bC
 		pRows = NULL;
 	}
 
-
 message:
 	lpTable->Release();
 	lpTable = NULL;
@@ -512,7 +511,6 @@ HRESULT Fsck::ValidateDuplicateRecipients(LPMESSAGE lpMessage, bool &bChanged)
 	hr = lpTable->GetRowCount(0, &cRows);
 	if (hr != hrSuccess)
 		goto exit;
-
 
 	if (cRows < 1) {
 		// 0 or 1 row not needed to check
@@ -566,7 +564,6 @@ HRESULT Fsck::ValidateDuplicateRecipients(LPMESSAGE lpMessage, bool &bChanged)
 	if (!mapiReciptDel.empty()) {
 		hr = DeleteRecipientList(lpMessage, mapiReciptDel, bChanged);
 	}
-
 
 	
 exit:

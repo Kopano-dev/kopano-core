@@ -19,7 +19,6 @@
 
 #include "ECUserManagementOffline.h"
 
-
 ECUserManagementOffline::ECUserManagementOffline(ECSession *lpSession,
     ECPluginFactory *lpPluginFactory, ECConfig *lpConfig) :
 	ECUserManagement(lpSession, lpPluginFactory, lpConfig)
@@ -71,7 +70,6 @@ ECRESULT ECUserManagementOffline::GetUserListAndSync(std::list<localuserdetails_
 	}
 	
 	lpUsers->push_back(localuserdetails_t(m_ulUserId, details));
-
 
 	*lppUsers = lpUsers;
 	return erSuccess;

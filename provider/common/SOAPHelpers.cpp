@@ -17,7 +17,6 @@
 
 #include "SOAPHelpers.h"
 
-
 void *mime_file_read_open(struct soap *soap, void *handle, const char *id, const char *type, const char *description) 
 {
 	return handle;

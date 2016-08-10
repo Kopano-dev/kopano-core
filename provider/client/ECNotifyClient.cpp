@@ -29,7 +29,6 @@
 
 #define MAX_NOTIFS_PER_CALL 64
 
-
 static inline std::pair<ULONG,ULONG> SyncAdviseToConnection(const SSyncAdvise &sSyncAdvise) {
 	return std::make_pair(sSyncAdvise.sSyncState.ulSyncId,sSyncAdvise.ulConnection);
 }
@@ -526,7 +525,6 @@ exit:
 	return hr;
 }
 
-
 HRESULT ECNotifyClient::ReleaseAll()
 {
 	HRESULT hr			= hrSuccess;
@@ -564,7 +562,6 @@ HRESULT ECNotifyClient::NotifyReload()
 	
 	notifications.push_back(&notif);
 
-
 	// The transport used for this notifyclient *may* have a broken session. Inform the
 	// transport that the session may be broken and it should verify that all is well.
 
@@ -580,7 +577,6 @@ HRESULT ECNotifyClient::NotifyReload()
 
 	return hr;
 }
-
 
 HRESULT ECNotifyClient::Notify(ULONG ulConnection, const NOTIFYLIST &lNotifications)
 {

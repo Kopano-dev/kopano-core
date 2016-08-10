@@ -23,8 +23,6 @@
 
 #include <kopano/ECLogger.h>
 
-
-
 ECSyncSettings* ECSyncSettings::GetInstance()
 {
 	pthread_mutex_lock(&s_hMutex);
@@ -186,11 +184,8 @@ ULONG ECSyncSettings::SetStreamBatchSize(ULONG ulBatchSize) {
 	return ulPrev;
 }
 
-
-
 pthread_mutex_t ECSyncSettings::s_hMutex;
 ECSyncSettings* ECSyncSettings::s_lpInstance = NULL;
-
 
 ECSyncSettings::__initializer::__initializer() {
 	pthread_mutex_init(&ECSyncSettings::s_hMutex, NULL);

@@ -22,7 +22,6 @@
 
 #include <kopano/codepage.h>
 
-
 // These charset should all be supported by iconv
 
 // @see http://msdn.microsoft.com/en-us/library/dd317756(VS.85).aspx

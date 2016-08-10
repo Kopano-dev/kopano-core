@@ -19,13 +19,10 @@
 #include "ECArchiveAwareAttach.h"
 #include "ECArchiveAwareMessage.h"
 
-
 HRESULT ECArchiveAwareAttachFactory::Create(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, ULONG ulAttachNum, ECMAPIProp *lpRoot, ECAttach **lppAttach) const
 {
 	return ECArchiveAwareAttach::Create(lpMsgStore, ulObjType, fModify, ulAttachNum, lpRoot, lppAttach);
 }
-
-
 
 ECArchiveAwareAttach::ECArchiveAwareAttach(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, ULONG ulAttachNum, ECMAPIProp *lpRoot) 
 : ECAttach(lpMsgStore, ulObjType, fModify, ulAttachNum, lpRoot)

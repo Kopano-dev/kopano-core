@@ -39,8 +39,6 @@
 #include <kopano/ECRestriction.h>
 #include <kopano/mapi_ptr.h>
 
-
-
 static HRESULT HrGetECMsgStore(IMAPIProp *lpProp, ECMsgStore **lppECMsgStore)
 {
 	HRESULT hr;
@@ -722,7 +720,6 @@ HRESULT ECXPLogon::HrUpdateTransportStatus()
 
     return hResult;
 }
-
 
 HRESULT ECXPLogon::xXPLogon::QueryInterface(REFIID refiid, void ** lppInterface)
 {

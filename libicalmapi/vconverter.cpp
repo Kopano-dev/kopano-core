@@ -2439,7 +2439,6 @@ HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPM
 	icalcomponent_add_property(lpEvent, lpProp);
 	icalvalue_free(lpicValue);
 
-
 	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, PR_RTF_COMPRESSED);
 	if (lpPropVal && Util::GetBestBody(lpMsgProps, ulMsgProps, fMapiUnicode) == PR_RTF_COMPRESSED) {
 		string rtf;
@@ -2461,7 +2460,6 @@ HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPM
 			lpStream ->Release();
 		}
 	}
-
 
 	return hrSuccess;
 }

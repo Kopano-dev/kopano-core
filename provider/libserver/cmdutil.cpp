@@ -50,7 +50,6 @@
 #define FIELD_NR_NAMESTR	(FIELD_NR_MAX + 2)
 #define FIELD_NR_NAMEGUID	(FIELD_NR_MAX + 3)
 
-
 extern ECSessionManager*    g_lpSessionManager; // FIXME: remove this global and change the depended source code!
 extern ECStatsCollector* 	g_lpStatsCollector;
 
@@ -1340,7 +1339,6 @@ ECRESULT UpdateFolderCount(ECDatabase *lpDatabase, unsigned int ulFolderId, unsi
 		return er;
 	return erSuccess;
 }
-
 
 ECRESULT CheckQuota(ECSession *lpecSession, ULONG ulStoreId)
 {

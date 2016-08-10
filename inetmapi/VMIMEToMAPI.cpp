@@ -247,7 +247,6 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 			if (hr != hrSuccess)
 				goto exit;
 
-
 			outputStreamMAPIAdapter os(lpStream);
 			// get the content-type string from the headers
 			vmHeader->ContentType()->generate(os);
@@ -1175,7 +1174,6 @@ exit:
 	return hr;
 }
 
-
 /**
  * Adds recipients from a vmime list to rows for the recipient
  * table. Starts adding at offset in cEntries member of the lpRecipients
@@ -1381,7 +1379,6 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals, ULONG *lpu
 		goto exit;
 	}
 
-
 	if (!m_lpDefaultDir) {
 		hr = m_lpAdrBook->GetDefaultDir(&cbDDEntryID, &lpDDEntryID);
 		if (hr != hrSuccess)
@@ -1511,7 +1508,6 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals, ULONG *lpu
 		}
 		++cValues;
 	}
-
 
 	if (PROP_TYPE(lpPropsList->aulPropTag[6]) != PT_NULL) {
 		lpProp = PpropFindProp(lpAdrList->aEntries[0].rgPropVals, lpAdrList->aEntries[0].cValues, PR_SMTP_ADDRESS_W);
@@ -2560,7 +2556,6 @@ exit:
 
 	return hr;
 }
-
 
 /**
  * Handle Attachments.. Now works for inlines and attachments...
@@ -3614,7 +3609,6 @@ HRESULT VMIMEToMAPI::messagePartToStructure(const string &input, vmime::ref<vmim
 			lBodyStructure.clear();
 			lBodyStructure.push_back(strBodyStructure);
 
-
 			// body:
 			//   (<SUB> "subtype")
 			// bodystructure:
@@ -3871,7 +3865,6 @@ std::string::size_type VMIMEToMAPI::countBodyLines(const std::string &input, std
 
 	return lines;
 }
-
 
 // options.h code
 /**

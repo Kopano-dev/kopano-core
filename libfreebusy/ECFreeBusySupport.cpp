@@ -27,7 +27,6 @@
 #include "freebusyutil.h"
 #include <kopano/mapi_ptr.h>
 
-
 ECFreeBusySupport::ECFreeBusySupport(void)
 {
 	m_lpSession = NULL;
@@ -106,7 +105,6 @@ HRESULT ECFreeBusySupport::Open(IMAPISession* lpMAPISession, IMsgStore* lpMsgSto
 	}
 #endif
 
-
 	// Hold the mapisession, the session will be released by function 'close' or 
 	// on delete the class
 	hr = lpMAPISession->QueryInterface(IID_IMAPISession, (void**)&m_lpSession);
@@ -135,7 +133,6 @@ exit:
 
 	return hr;
 }
-
 
 HRESULT ECFreeBusySupport::Close()
 {
@@ -275,7 +272,6 @@ exit:
 
 	if(lpMessage)
 		lpMessage->Release();
-
 
 	return hr;
 }

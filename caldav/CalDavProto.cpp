@@ -23,8 +23,6 @@
 
 using namespace std;
 
-
-
 /**
  * Maping of caldav properties to Mapi properties
  */
@@ -343,7 +341,6 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 		goto exit;
 	}
 
-
 	// restrict on meeting requests and appointments
 	CREATE_RESTRICTION(lpsRestriction);
 	CREATE_RES_OR(lpsRestriction, lpsRestriction, 3);
@@ -392,7 +389,6 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to receive folder properties, error 0x%08X %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
 	}
-
 
 	// @todo, add "start time" property and recurrence data to table and filter in loop
 	// if lpsWebRCalQry->sFilter.tStart is set.
@@ -895,7 +891,6 @@ exit:
 	return hr;
 }
 
-
 /**
  * Function moves a folder or message to the deleted items folder
  * @note does not check if-match: if you had a message modified which you now want to delete, we delete anyway
@@ -921,7 +916,6 @@ HRESULT CalDAV::HrHandleDelete()
 	LPENTRYLIST lpEntryList= NULL;
 	bool bisFolder = false;
 	SizedSPropTagArray(3, lpPropTagArr) = {3, {PR_ENTRYID, PR_LAST_MODIFICATION_TIME, PR_DISPLAY_NAME_W}};
-
 
 	m_lpRequest->HrGetUrl(&strUrl);
 	bisFolder = m_ulUrlFlag & REQ_COLLECTION;
@@ -1501,7 +1495,6 @@ HRESULT CalDAV::HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lp
 	else
 		strReqUrl = "/caldav/public/";
 
-
 	// all folder properties to fill request.
 	cbsize = lpsDavProp->lstProps.size() + 2;
 
@@ -1521,7 +1514,6 @@ HRESULT CalDAV::HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lp
 	iter = lpsDavProp->lstProps.begin();
 	for (int i = 2; iter != lpsDavProp->lstProps.end(); ++iter, ++i)
 		lpPropTagArr->aulPropTag[i] = GetPropIDForXMLProp(m_lpUsrFld, iter->sPropName, m_converter);
-
 
 	if (m_ulFolderFlag & SINGLE_FOLDER)
 	{
@@ -2126,7 +2118,6 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 
 	HrGetOneProp(m_lpActiveUser, PR_SMTP_ADDRESS_A, &ptrEmail);
 	HrGetOneProp(m_lpActiveUser, PR_DISPLAY_NAME_W, &ptrFullname);
-
 
 	// owner is DAV namespace, the owner of the resource (url)
 	strOwnerURL = "/caldav/" + urlEncode(m_wstrFldOwner, "utf-8") + "/";

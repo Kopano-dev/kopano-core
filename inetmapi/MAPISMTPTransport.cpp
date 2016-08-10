@@ -67,7 +67,6 @@
 	#include "vmime/net/tls/TLSSecuredConnectionInfos.hpp"
 #endif // VMIME_HAVE_TLS_SUPPORT
 
-
 // Helpers for service properties
 #define GET_PROPERTY(type, prop) \
 	(getInfos().getPropertyValue <type>(getSession(), \
@@ -84,7 +83,6 @@ namespace vmime {
 namespace net {
 namespace smtp {
 
-
 MAPISMTPTransport::MAPISMTPTransport(ref <session> sess, ref <security::authenticator> auth, const bool secured)
 	: transport(sess, getInfosInstance(), auth), m_socket(NULL),
 	  m_authentified(false), m_extendedSMTP(false), m_timeoutHandler(NULL),
@@ -92,7 +90,6 @@ MAPISMTPTransport::MAPISMTPTransport(ref <session> sess, ref <security::authenti
 	  m_bDSNRequest(false)
 {
 }
-
 
 MAPISMTPTransport::~MAPISMTPTransport()
 {
@@ -216,7 +213,6 @@ void MAPISMTPTransport::connect()
 		m_authentified = true;
 }
 
-
 void MAPISMTPTransport::helo()
 {
 	// First, try Extended SMTP (ESMTP)
@@ -282,7 +278,6 @@ void MAPISMTPTransport::helo()
 	}
 }
 
-
 void MAPISMTPTransport::authenticate()
 {
 	if (!m_extendedSMTP)
@@ -328,7 +323,6 @@ void MAPISMTPTransport::authenticate()
 	// No other authentication method is possible
 	throw exceptions::authentication_error("All authentication methods failed");
 }
-
 
 #if VMIME_HAVE_SASL_SUPPORT
 
@@ -457,7 +451,6 @@ void MAPISMTPTransport::authenticateSASL()
 
 #endif // VMIME_HAVE_SASL_SUPPORT
 
-
 #if VMIME_HAVE_TLS_SUPPORT
 
 void MAPISMTPTransport::startTLS()
@@ -500,7 +493,6 @@ void MAPISMTPTransport::startTLS()
 
 #endif // VMIME_HAVE_TLS_SUPPORT
 
-
 bool MAPISMTPTransport::isConnected() const
 {
 	return (m_socket && m_socket->isConnected() && m_authentified);
@@ -513,7 +505,6 @@ void MAPISMTPTransport::disconnect()
 
 	internalDisconnect();
 }
-
 
 void MAPISMTPTransport::internalDisconnect()
 {
@@ -538,7 +529,6 @@ void MAPISMTPTransport::internalDisconnect()
 	m_cntInfos = NULL;
 }
 
-
 void MAPISMTPTransport::noop()
 {
 	if (!isConnected())
@@ -551,7 +541,6 @@ void MAPISMTPTransport::noop()
 	if (resp->getCode() != 250)
 		throw exceptions::command_error("NOOP", resp->getText());
 }
-
 
 //                             
 // Only this function is altered, to return per recipient failure.
@@ -706,7 +695,6 @@ void MAPISMTPTransport::sendRequest(const string& buffer, const bool end)
 		m_socket->send(buffer);
 }
 
-
 ref <SMTPResponse> MAPISMTPTransport::readResponse()
 {
 	ref <SMTPResponse> resp = SMTPResponse::readResponse(m_socket, m_timeoutHandler);
@@ -714,8 +702,6 @@ ref <SMTPResponse> MAPISMTPTransport::readResponse()
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "> %d %s", resp->getCode(), resp->getText().c_str());
 	return resp;
 }
-
-
 
 // Service infos
 

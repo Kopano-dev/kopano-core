@@ -138,7 +138,6 @@ ECRESULT ECS3Attachment::StaticDeinit(void)
  * attachment id.
  */
 
-
 /**
  * The ECS3Attachment Storage engine is used to store attachments as separate
  * files in the S3 storage cluster. This is useful to ensure you have enough

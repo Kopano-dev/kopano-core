@@ -44,7 +44,6 @@ void LDAPConfigCheck::loadChecks()
 	addCheck("ldap_group_search_filter", 0, &testLdapQuery);
 	addCheck("ldap_company_search_filter", 0, &testLdapQuery);
 
-
 	addCheck("ldap_user_unique_attribute", CONFIG_MANDATORY);
 	addCheck("ldap_user_unique_attribute_type", 0, &testLdapType);
 	addCheck("ldap_group_unique_attribute", CONFIG_MANDATORY);

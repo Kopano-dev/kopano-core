@@ -21,7 +21,6 @@
 #include "WSUtil.h"
 #include <kopano/charset/convert.h>
 
-
 #define START_SOAP_CALL retry:
 #define END_SOAP_CALL   \
 	if(er == KCERR_END_OF_SESSION) { if(this->m_lpTransport->HrReLogon() == hrSuccess) goto retry; } \

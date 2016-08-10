@@ -32,7 +32,6 @@
 #include <kopano/charset/convert.h>
 #include "EntryPoint.h"
 
-
 ECGenericProp::ECGenericProp(void *lpProvider, ULONG ulObjType, BOOL fModify,
     const char *szClassName) :
 	ECUnknown(szClassName)
@@ -456,7 +455,6 @@ HRESULT ECGenericProp::HrRemoveModifications(MAPIOBJECT *lpsMapiObject, ULONG ul
 		}
 	return hr;
 }
-
 
 HRESULT ECGenericProp::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR FAR * lppMAPIError)
 {

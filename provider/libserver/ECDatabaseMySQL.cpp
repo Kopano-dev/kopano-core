@@ -250,7 +250,6 @@ static const char szPrepareGetProps[] =
 "    FROM mvproperties JOIN hierarchy ON mvproperties.hierarchyid=hierarchy.id LEFT JOIN names ON (mvproperties.tag-0x8501)=names.id WHERE hierarchy.parent=hid AND (tag <= 0x8500 OR names.id IS NOT NULL) GROUP BY tag, mvproperties.type; \n"
 "END;\n";
 
-
 static const char szGetBestBody[] =
 "CREATE PROCEDURE GetBestBody(hid integer, OUT bestbody integer)\n"
 "DETERMINISTIC\n"
@@ -1660,7 +1659,6 @@ ECRESULT ECDatabaseMySQL::GetFirstUpdate(unsigned int *lpulDatabaseRevision)
 		*lpulDatabaseRevision = 0;
 	}else
 		*lpulDatabaseRevision = atoui(lpDBRow[0]);
-
 
 exit:
 	if (lpResult != NULL)

@@ -95,7 +95,6 @@ HRESULT HrFbBlock2ICal(FBBlock_1 *lpsFbblk, LONG ulBlocks, time_t tDtStart, time
 	time_t tEnd = 0;
 	std::string strEmail;
 
-
 	lpFbComp = icalcomponent_new(ICAL_VFREEBUSY_COMPONENT);
 	if (!lpFbComp) {
 		hr = MAPI_E_INVALID_PARAMETER;

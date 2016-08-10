@@ -17,7 +17,6 @@
 
 #include "archiver_conv.h"
 
-
 PyObject* PyObject_from_Iterator(const ArchiveList::const_iterator &i) {
 	return Py_BuildValue("(sssi)", i->StoreName.c_str(), i->FolderName.c_str(), i->StoreOwner.c_str(), i->Rights);
 }
@@ -25,7 +24,6 @@ PyObject* PyObject_from_Iterator(const ArchiveList::const_iterator &i) {
 PyObject* PyObject_from_Iterator(const UserList::const_iterator &i) {
 	return Py_BuildValue("s", i->UserName.c_str());
 }
-
 
 template<typename ListType>
 PyObject* List_from(const ListType &lst)
@@ -59,7 +57,6 @@ exit:
     
     return list;
 }
-
 
 PyObject* List_from_ArchiveList(const ArchiveList &lst)
 {

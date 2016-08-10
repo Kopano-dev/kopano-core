@@ -802,7 +802,6 @@ HRESULT ECQuotaMonitor::CreateMessageProperties(ECUSER *lpecToUser,
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_RCVD_REPRESENTING_EMAIL_ADDRESS_A;
 	lpPropArray[ulPropArrayCur++].Value.lpszA = (lpecToUser->lpszMailAddress ? (LPSTR)lpecToUser->lpszMailAddress : (LPSTR)"");
 
-
 	hr = MAPIAllocateMore(cbToEntryid, lpPropArray,
 						  (void**)&lpPropArray[ulPropArrayCur].Value.bin.lpb);
 	if (hr != hrSuccess)

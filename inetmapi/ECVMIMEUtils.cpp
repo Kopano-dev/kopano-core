@@ -162,7 +162,6 @@ exit:
 	return hr;
 }
 
-
 /**
  * Takes a group entry of a recipient table and expands the recipients for the group recursively by adding them to the recipients list
  *
@@ -316,7 +315,6 @@ exit:
 	return hr;
 }
 
-
 // This function does not catch the vmime exception
 // it should be handled by the calling party.
 
@@ -387,7 +385,6 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage, vmime:
 		if (mapiTransport && HrGetOneProp(lpMessage, PR_ORIGINATOR_DELIVERY_REPORT_REQUESTED, &ptrDeliveryReport) == hrSuccess && ptrDeliveryReport->Value.b == TRUE) {
 			mapiTransport->requestDSN(true, "");
 		}
-
 
 		// Generate the message, "stream" it and delegate the sending
 		// to the generic send() function.

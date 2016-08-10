@@ -21,7 +21,6 @@
 #include <mapiutil.h>
 #include <mapispi.h>
 
-
 #include <kopano/ECGuid.h>
 #include <edkguid.h>
 
@@ -31,8 +30,6 @@
 #include <kopano/ECTags.h>
 
 #include "ECABProviderOffline.h"
-
-
 
 ECABProviderOffline::ECABProviderOffline(void) : ECABProvider(EC_PROVIDER_OFFLINE, "ECABProviderOffline")
 {

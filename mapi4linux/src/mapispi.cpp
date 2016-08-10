@@ -335,7 +335,6 @@ HRESULT M4LMAPISupport::CopyMessages(LPCIID lpSrcInterface, LPVOID lpSrcFolder, 
 	bool bPartial = false;
 	ULONG i;
 
-
 	if (!lpSrcInterface || !lpSrcFolder || !lpDestFolder || !lpMsgList) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
@@ -603,7 +602,6 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 
 		if (_tcscmp(lpAddrType->Value.LPSZ, _T("MAPIPDL")))
 			continue;
-
 
 		lpDLEntryID = PpropFindProp(ptrRow[0].lpProps, ptrRow[0].cValues, PR_ENTRYID);
 		if (!lpDLEntryID)

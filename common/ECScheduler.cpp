@@ -23,7 +23,6 @@
 #endif
 #include <sys/time.h> /* gettimeofday */
 
-
 #define SCHEDULER_POLL_FREQUENCY	5
 
 ECScheduler::ECScheduler(ECLogger *lpLogger)

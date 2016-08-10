@@ -35,7 +35,6 @@
 
 using namespace std;
 
-
 #include <boost/filesystem.hpp>
 namespace fs = boost::filesystem;
 
@@ -507,7 +506,6 @@ bool ECConfigImpl::HandleDirective(const string &strLine, unsigned int ulFlags)
 	return true;
 }
 
-
 bool ECConfigImpl::HandleInclude(const char *lpszArgs, unsigned int ulFlags)
 {
 	string strValue;
@@ -782,7 +780,6 @@ bool ECConfigImpl::WriteSettingsToFile(const char* szFileName)
 	rename(path_to_string(pathOutFile).c_str(),szFileName);
 	return true;
 }
-
 
 void ECConfigImpl::WriteLinesToFile(const char* szName, const char* szValue, ifstream& in, ofstream& out, bool bWriteAll)
 {

@@ -520,7 +520,6 @@ providerEntry* M4LMsgServiceAdmin::findProvider(LPMAPIUID lpUid) {
 	return NULL;
 }
 
-
 HRESULT M4LMsgServiceAdmin::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError) {
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LMsgServiceAdmin::GetLastError", "");
     *lppMAPIError = NULL;
@@ -977,7 +976,6 @@ HRESULT M4LMsgServiceAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTabl
 												   PR_DISPLAY_NAME_A, PR_OBJECT_TYPE, PR_PROVIDER_UID, PR_RESOURCE_TYPE,
 												   PR_PROVIDER_DISPLAY_A, PR_SERVICE_UID}};
 
-
 	pthread_mutex_lock(&m_mutexserviceadmin);
 	
 	for (j = services.begin(); j != services.end(); ++j) {
@@ -1083,7 +1081,6 @@ HRESULT M4LMsgServiceAdmin::QueryInterface(REFIID refiid, void **lpvoid) {
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LMsgServiceAdmin::QueryInterface", "0x%08x", hr);
 	return hr;
 }
-
 
 // ---
 // M4LMAPISession
@@ -1888,7 +1885,6 @@ exit:
 	return hr;
 }
 
-
 // ---
 // M4LAddrBook
 // ---
@@ -2007,7 +2003,6 @@ exit:
 
 	return hr;
 }
-
 
 // 
 // How it works:
@@ -2714,7 +2709,6 @@ exit:
 	return hr;
 }
 
-
     // imapiprop passthru
 // maybe not all functions should be passed though?
 HRESULT M4LAddrBook::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError) {
@@ -2800,7 +2794,6 @@ HRESULT M4LAddrBook::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID* lppPropName
 	return hr;
 }
 
-
     // iunknown passthru
 ULONG M4LAddrBook::AddRef() {
     TRACE_MAPILIB(TRACE_ENTRY, "M4LAddrBook::AddRef", "");
@@ -2829,8 +2822,6 @@ HRESULT M4LAddrBook::QueryInterface(REFIID refiid, void **lpvoid) {
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LAddrBook::QueryInterface", "0x%08x", hr);
 	return hr;
 }
-
-
 
 // ---------------------------------------
 

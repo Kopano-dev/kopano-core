@@ -24,7 +24,6 @@
 #include "ECSearchObjectTable.h"
 #include "ECSession.h"
 
-
 ECSearchObjectTable::ECSearchObjectTable(ECSession *lpSession, unsigned int ulStoreId, LPGUID lpGuid, unsigned int ulFolderId, unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale) : ECStoreObjectTable(lpSession, ulStoreId, lpGuid, 0, ulObjType, ulFlags, 0, locale) {
 	// We don't pass ulFolderId to ECStoreObjectTable (see constructor above passing '0'), because 
 	// it will assume that all rows are in that folder if we do that. But we still want to 

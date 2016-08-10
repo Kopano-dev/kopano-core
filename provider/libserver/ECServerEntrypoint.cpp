@@ -28,7 +28,6 @@
 #include "ECSessionManagerOffline.h"
 #include "ECS3Attachment.h"
 
-
 pthread_key_t database_key;
 pthread_key_t plugin_key;
 

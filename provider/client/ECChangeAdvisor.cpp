@@ -25,8 +25,6 @@
 #include "ECChangeAdvisor.h"
 #include "ECMsgStore.h"
 
-
-
 ULONG ECChangeAdvisor::GetSyncId(const ConnectionMap::value_type &sConnection)
 {
 	return sConnection.first;
@@ -155,8 +153,6 @@ exit:
 
 	return hr;
 }
-
-
 
 HRESULT ECChangeAdvisor::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError)
 {
@@ -337,7 +333,6 @@ HRESULT ECChangeAdvisor::UpdateState(LPSTREAM lpStream)
 		// changeid
 		lpStream->Write(&m_mapSyncStates[iterConnection->first], sizeof(SyncStateMap::key_type), NULL);
 	}
-
 
 exit:
 	pthread_mutex_unlock(&m_hConnectionLock);

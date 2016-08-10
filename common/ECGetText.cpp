@@ -26,7 +26,6 @@
 #include <pthread.h>
 #include <cassert>
 
-
 namespace detail {
 
 	/**
@@ -114,7 +113,6 @@ namespace detail {
 	pthread_mutex_t converter::s_hInstanceLock = PTHREAD_MUTEX_INITIALIZER;
 
 } // namespace detail
-
 
 /**
  * Performs a 'regular' gettext and converts the result to a wide character string.

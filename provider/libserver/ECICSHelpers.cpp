@@ -35,10 +35,7 @@
 #include <kopano/ECLogger.h>
 extern ECLogger* g_lpLogger;
 
-
 extern ECSessionManager*	g_lpSessionManager;
-
-
 
 /**
  * IDbQueryCreator: Interface to the database query creators
@@ -49,7 +46,6 @@ public:
 	virtual ~IDbQueryCreator() {};
 	virtual std::string CreateQuery() = 0;
 };
-
 
 /**
  * CommonQueryCreator: Abstract implementation of IDBQueryCreator that handles the
@@ -92,7 +88,6 @@ std::string CommonQueryCreator::CreateQuery()
 		
 	return strQuery;
 }
-
 
 /**
  * IncrementalQueryCreator: Creates an incremental query. In other words only messages
@@ -159,7 +154,6 @@ std::string IncrementalQueryCreator::CreateOrderQuery()
 	return " ORDER BY changes.id";
 }
 
-
 /**
  * FullQueryCreator: Create a query that will return all messages for a sync id. The
  *                   messages need to be processed afterwards to see what needs to be
@@ -212,7 +206,6 @@ std::string FullQueryCreator::CreateOrderQuery()
 	return " ORDER BY hierarchy.id DESC";
 }
 
-
 /**
  * NullQueryCreator: Returns no query at all. This is only used for SYNC_CATCHUP syncs that
  * do not have a restriction set. (When a restriction is set, we still need to generate the message set
@@ -252,7 +245,6 @@ public:
 	virtual ECRESULT GetResidualMessages(LPMESSAGESET lpsetResiduals) = 0;
 	virtual unsigned int GetMaxChangeId() const = 0;
 };
-
 
 /**
  * NonLegacyIncrementalProcessor: Processes accepted and rejected messages without the burden of tracking
@@ -909,7 +901,6 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 	 **/
 	if (m_lpsRestrict && m_setNewMessages.empty())
 		m_setNewMessages.insert(MESSAGESET::value_type(SOURCEKEY(1, "\x00"), SAuxMessageData(m_sFolderSourceKey, 0, 0)));
-
 
 	if (!m_setNewMessages.empty()) {
 		std::set<unsigned int> setChangeIds;

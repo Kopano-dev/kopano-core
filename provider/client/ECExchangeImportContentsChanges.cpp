@@ -44,8 +44,6 @@
 
 #include <list>
 
-
-
 ECExchangeImportContentsChanges::ECExchangeImportContentsChanges(ECMAPIFolder *lpFolder)
 : m_iidMessage(IID_IMessage)
 {
@@ -226,7 +224,6 @@ HRESULT ECExchangeImportContentsChanges::UpdateState(LPSTREAM lpStream){
 
 	return hrSuccess;
 }
-
 
 HRESULT ECExchangeImportContentsChanges::ImportMessageChange(ULONG cValue, LPSPropValue lpPropArray, ULONG ulFlags, LPMESSAGE * lppMessage){
 	HRESULT hr = hrSuccess; 
@@ -514,7 +511,6 @@ bool ECExchangeImportContentsChanges::IsConflict(LPSPropValue lpLocalCK, LPSProp
 	return bConflict;
 }
 
-
 HRESULT ECExchangeImportContentsChanges::CreateConflictMessage(LPMESSAGE lpMessage)
 {
 	HRESULT hr = hrSuccess;
@@ -531,7 +527,6 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictMessage(LPMESSAGE lpMessa
 	hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
 	if(hr != hrSuccess)
 		goto exit;
-
 
 exit:
 	MAPIFreeBuffer(lpConflictItems);
@@ -652,7 +647,6 @@ exit:
 	MAPIFreeBuffer(lpEntryIdProp);
 	return hr;
 }
-
 
 HRESULT ECExchangeImportContentsChanges::CreateConflictFolders(){
 	HRESULT hr = hrSuccess;
@@ -1007,7 +1001,6 @@ HRESULT ECExchangeImportContentsChanges::SetMessageInterface(REFIID refiid)
 	m_iidMessage = refiid;
 	return hrSuccess;
 }
-
 
 /**
  * Check if the passed entryids can be found in the RES_PROPERTY restrictions with the proptag

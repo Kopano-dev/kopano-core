@@ -22,7 +22,6 @@
 
 #include <boost/utility.hpp>
 
-
 using namespace std;
 
 class ECObjectLockImpl : private boost::noncopyable {

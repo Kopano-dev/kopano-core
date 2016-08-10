@@ -22,7 +22,6 @@
 #include <kopano/Trace.h>
 #include "Mem.h"
 
-
 // We don't want that here
 #undef ECAllocateBuffer
 

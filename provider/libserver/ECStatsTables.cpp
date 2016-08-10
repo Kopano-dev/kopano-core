@@ -236,7 +236,6 @@ ECRESULT ECSystemStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis, s
 	return erSuccess;
 }
 
-
 /*
   Session stats
   - session object:
@@ -523,7 +522,6 @@ ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis, 
 	return erSuccess;
 }
 
-
 /*
   User stats
 */
@@ -604,7 +602,6 @@ exit:
 	delete lpObjects;
 	return er;
 }
-
 
 ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList *lpRowList, struct propTagArray *lpsPropTagArray, void *lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
 {
@@ -816,7 +813,6 @@ ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct soa
 	return er;
 }
 
-
 ECCompanyStatsTable::ECCompanyStatsTable(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale) : ECGenericObjectTable(lpSession, MAPI_STATUS, ulFlags, locale)
 {
 	m_lpfnQueryRowData = QueryRowData;
@@ -850,7 +846,6 @@ exit:
 	delete lpCompanies;
 	return er;
 }
-
 
 ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList* lpRowList, struct propTagArray *lpsPropTagArray, void* lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
 {
@@ -905,7 +900,6 @@ ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct 
 		else if (lpUserManagement->GetQuotaDetailsAndSync(iterRowList->ulObjId, &quotaDetails) != erSuccess)
 			// company gone missing since last call, all quota props should be set to ignore
 			bNoQuotaDetails = true;
-
 
 		if (lpSession->GetSecurity()->GetUserSize(iterRowList->ulObjId, &llStoreSize) != erSuccess)
 			llStoreSize = 0;
@@ -1028,7 +1022,6 @@ ECRESULT ECServerStatsTable::Load()
 	}
 	return erSuccess;
 }
-
 
 ECRESULT ECServerStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList* lpRowList, struct propTagArray *lpsPropTagArray, void* lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
 {

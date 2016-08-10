@@ -20,7 +20,6 @@
 #include "freebusyutil.h"
 #include <kopano/stringutil.h>
 
-
 /**
  * Constructor
  *

@@ -23,7 +23,6 @@
 #include <mapicode.h>
 #include <mapix.h>
 
-
 /**
  * Allocate and populate a MAPI SRestriction structure based on the current
  * ECRestriction object.
@@ -178,7 +177,6 @@ exit:
 
 inline void ECRestriction::DummyFree(LPVOID) {}
 
-
 /**
  * ECAndRestriction
  */
@@ -224,7 +222,6 @@ ECRestriction *ECAndRestriction::Clone() const {
 	lpNew->m_lstRestrictions.assign(m_lstRestrictions.begin(), m_lstRestrictions.end());
 	return lpNew;
 }
-
 
 /**
  * ECOrRestriction
@@ -272,7 +269,6 @@ ECRestriction *ECOrRestriction::Clone() const {
 	return lpNew;
 }
 
-
 /**
  * ECNotRestriction
  */
@@ -305,7 +301,6 @@ exit:
 ECRestriction *ECNotRestriction::Clone() const {
 	return new ECNotRestriction(m_ptrRestriction);
 }
-
 
 /**
  * ECContentRestriction
@@ -364,7 +359,6 @@ ECRestriction *ECContentRestriction::Clone() const {
 	return new ECContentRestriction(m_ulFuzzyLevel, m_ulPropTag, m_ptrProp);
 }
 
-
 /**
  * ECBitMaskRestriction
  */
@@ -388,7 +382,6 @@ exit:
 ECRestriction *ECBitMaskRestriction::Clone() const {
 	return new ECBitMaskRestriction(m_relBMR, m_ulPropTag, m_ulMask);
 }
-
 
 /**
  * ECPropertyRestriction
@@ -447,7 +440,6 @@ ECRestriction *ECPropertyRestriction::Clone() const {
 	return new ECPropertyRestriction(m_relop, m_ulPropTag, m_ptrProp);
 }
 
-
 /**
  * ECComparePropsRestriction
  */
@@ -471,7 +463,6 @@ exit:
 ECRestriction *ECComparePropsRestriction::Clone() const {
 	return new ECComparePropsRestriction(m_relop, m_ulPropTag1, m_ulPropTag2);
 }
-
 
 /**
  * ECSizeRestriction
@@ -497,7 +488,6 @@ ECRestriction *ECSizeRestriction::Clone() const {
 	return new ECSizeRestriction(m_relop, m_ulPropTag, m_cb);
 }
 
-
 /**
  * ECExistRestriction
  */
@@ -519,7 +509,6 @@ exit:
 ECRestriction *ECExistRestriction::Clone() const {
 	return new ECExistRestriction(m_ulPropTag);
 }
-
 
 /**
  * ECSubRestriction
@@ -559,7 +548,6 @@ ECRestriction *ECSubRestriction::Clone() const {
 	return new ECSubRestriction(m_ulSubObject, m_ptrRestriction);
 }
 
-
 /**
  * ECCommentRestriction
  */
@@ -580,7 +568,6 @@ ECCommentRestriction::ECCommentRestriction(ResPtr ptrRestriction, ULONG cValues,
 , m_cValues(cValues)
 , m_ptrProp(ptrProp)
 { }
-
 
 HRESULT ECCommentRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const {
 	HRESULT hr = hrSuccess;
@@ -624,7 +611,6 @@ exit:
 ECRestriction *ECCommentRestriction::Clone() const {
 	return new ECCommentRestriction(m_ptrRestriction, m_cValues, m_ptrProp);
 }
-
 
 /**
  * ECRawRestriction

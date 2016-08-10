@@ -24,7 +24,6 @@
 #include <openssl/conf.h>
 #include <openssl/engine.h>
 
-
 static pthread_mutex_t *ssl_locks;
 
 static void ssl_lock(int mode, int n, const char *file, int line)

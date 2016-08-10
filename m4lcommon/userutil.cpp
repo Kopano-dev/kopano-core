@@ -68,7 +68,6 @@ static HRESULT GetMailboxDataPerServer(ECLogger *lpLogger, const char *lpszPath,
 static HRESULT GetMailboxDataPerServer(ECLogger *lpLogger, IMAPISession *lpSession, const char *lpszPath, DataCollector *lpCollector);
 static HRESULT UpdateServerList(ECLogger *lpLogger, IABContainer *lpContainer, std::set<servername> &listServers);
 
-
 class UserCountCollector _zcp_final : public DataCollector
 {
 public:
@@ -97,7 +96,6 @@ private:
 	std::list<string_type> m_lstUsers;
 	MAPISessionPtr m_ptrSession;
 };
-
 
 HRESULT	DataCollector::GetRequiredPropTags(LPMAPIPROP /*lpProp*/, LPSPropTagArray *lppPropTagArray) const {
 	static SizedSPropTagArray(1, sptaDefaultProps) = {1, {PR_DISPLAY_NAME}};
@@ -132,8 +130,6 @@ exit:
 	return hr;
 }
 
-
-
 UserCountCollector::UserCountCollector(): m_ulUserCount(0) {}
 
 HRESULT UserCountCollector::CollectData(LPMAPITABLE lpStoreTable) {
@@ -153,7 +149,6 @@ exit:
 inline unsigned int UserCountCollector::result() const {
 	return m_ulUserCount;
 }
-
 
 template<typename string_type, ULONG prAccount>
 UserListCollector<string_type, prAccount>::UserListCollector(IMAPISession *lpSession): m_ptrSession(lpSession, true) {}
@@ -216,8 +211,6 @@ void UserListCollector<std::wstring, PR_ACCOUNT_W>::push_back(LPSPropValue lpPro
 	m_lstUsers.push_back(lpPropAccount->Value.lpszW);
 }
 
-
-
 HRESULT ValidateArchivedUserCount(ECLogger *lpLogger, IMAPISession *lpMapiSession, const char *lpSSLKey, const char *lpSSLPass, unsigned int *lpulArchivedUsers, unsigned int *lpulMaxUsers)
 {
 	HRESULT hr = S_OK;
@@ -243,7 +236,6 @@ HRESULT ValidateArchivedUserCount(ECLogger *lpLogger, IMAPISession *lpMapiSessio
 
 	// Do no check the return value, possible the license server isn't running!
 	ptrLicense->LicenseUsers(1/*SERVICE_TYPE_ARCHIVE*/, &ulMaxUsers);
-
 
 	*lpulArchivedUsers = ulArchivedUsers;
 	*lpulMaxUsers = ulMaxUsers;

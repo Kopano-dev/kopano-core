@@ -32,7 +32,6 @@
 #include <pthread.h>
 #include <string>
 
-
 ECRESULT GetPropSize(DB_ROW lpRow, DB_LENGTHS lpLen, unsigned int *lpulSize)
 {
 	ECRESULT er = erSuccess;
@@ -70,7 +69,6 @@ ECRESULT GetPropSize(DB_ROW lpRow, DB_LENGTHS lpLen, unsigned int *lpulSize)
 	*lpulSize = ulSize;
 	return er;
 }
-
 
 // Case insensitive find
 static size_t
@@ -746,7 +744,6 @@ exit:
 	freelocale(loc);
 	return er;
 }
-
 
 unsigned int NormalizeDBPropTag(unsigned int ulPropTag)
 {

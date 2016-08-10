@@ -248,7 +248,6 @@ int main(int argc, char *argv[]) {
 	if ((bIgnoreUnknownConfigOptions && m_lpThreadMonitor->lpConfig->HasErrors()) || m_lpThreadMonitor->lpConfig->HasWarnings())
 		LogConfigErrors(m_lpThreadMonitor->lpConfig);
 
-
 	// set socket filename
 	if (!szPath)
 		szPath = m_lpThreadMonitor->lpConfig->GetSetting("server_socket");

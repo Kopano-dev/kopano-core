@@ -202,7 +202,6 @@ static LONG __stdcall AdviseCallback(void *lpContext, ULONG cNotif,
 	return 0;
 }
 
-
 /*
  * starting fork, passes:
  * -c config    for all log settings and smtp server and such

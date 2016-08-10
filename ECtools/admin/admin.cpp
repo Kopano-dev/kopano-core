@@ -2453,7 +2453,6 @@ int main(int argc, char* argv[])
 	char *szConfig = "admin.cfg";
 #endif
 
-
 	// Set locale to system variables
 	setlocale(LC_MESSAGES, "");
 	setlocale(LC_CTYPE, "");

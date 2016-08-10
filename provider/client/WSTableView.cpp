@@ -21,7 +21,6 @@
 #include "WSUtil.h"
 #include <kopano/charset/convert.h>
 
-
 /*
  * TableView operations for WS transport
  */
@@ -127,7 +126,6 @@ exit:
 
 	return hr;
 }
-
 
 HRESULT WSTableView::HrSetColumns(LPSPropTagArray lpsPropTagArray)
 {
@@ -305,7 +303,6 @@ exit:
 
 	return hr;
 }
-
 
 HRESULT WSTableView::HrGetRowCount(ULONG *lpulRowCount, ULONG *lpulCurrentRow)
 {

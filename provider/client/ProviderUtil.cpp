@@ -55,8 +55,6 @@ typedef bfs::path path;
 
 using namespace std;
 
-
-
 HRESULT CompareStoreIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2, ULONG ulFlags, ULONG *lpulResult)
 {
 	HRESULT hr = hrSuccess;

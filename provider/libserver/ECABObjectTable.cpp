@@ -34,7 +34,6 @@
 #include "ECSessionManager.h"
 #include <kopano/stringutil.h>
 
-
 ECABObjectTable::ECABObjectTable(ECSession *lpSession, unsigned int ulABId, unsigned int ulABType, unsigned int ulABParentId, unsigned int ulABParentType, unsigned int ulFlags, const ECLocale &locale) : ECGenericObjectTable(lpSession, ulABType, ulFlags, locale)
 {
 	ECODAB* lpODAB = new ECODAB;
@@ -136,7 +135,6 @@ ECRESULT ECABObjectTable::GetColumnsAll(ECListInt* lplstProps)
 
 	pthread_mutex_unlock(&m_hLock);
 
-
 	return er;
 }
 
@@ -155,7 +153,6 @@ ECRESULT ECABObjectTable::ReloadTableMVData(ECObjectTableList* lplistRows, ECLis
 
 	return er;
 }
-
 
 ECRESULT ECABObjectTable::GetMVRowCount(unsigned int ulObjId, unsigned int *lpulCount)
 {

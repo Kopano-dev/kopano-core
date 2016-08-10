@@ -218,7 +218,6 @@ exit:
 	return hr;
 }
 
-
 // Read properties from lpMessage object and to internet rfc2822 format message
 // then send it using the provided ECSender object
 INETMAPI_API HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook, IMessage *lpMessage, ECSender *mailer_base, sending_options sopt, ECLogger *lpLogger)

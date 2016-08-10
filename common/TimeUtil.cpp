@@ -19,7 +19,6 @@
 
 #include "TimeUtil.h"
 
-
 /**
  * Get a timestamp for the given date/time point
  *

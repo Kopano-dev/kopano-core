@@ -23,7 +23,6 @@
 #include "pcutil.hpp"
 #include <kopano/charset/convert.h>
 
-
 /*
  *
  * This is a PropStorage object for use with the WebServices storage platform
@@ -465,7 +464,6 @@ HRESULT WSMAPIPropStorage::HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject
 	struct loadObjectResponse sResponse;
 	convert_context converter;
 
-
 	HrMapiObjectToSoapObject(lpsMapiObject, &sSaveObj, &converter);
 
 	LockSoap();
@@ -640,7 +638,6 @@ exit:
 IECPropStorage* WSMAPIPropStorage::GetServerStorage() {
 	return &this->m_xECPropStorage;				// I am the server storage
 }
-
 
 //FIXME: one lock/unlock function
 HRESULT WSMAPIPropStorage::LockSoap()

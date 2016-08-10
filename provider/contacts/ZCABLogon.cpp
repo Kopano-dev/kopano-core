@@ -27,7 +27,6 @@
 #include <mapix.h>
 #include <edkmdb.h>
 
-
 ZCABLogon::ZCABLogon(LPMAPISUP lpMAPISup, ULONG ulProfileFlags, GUID *lpGUID) : ECUnknown("IABLogon")
 {
 	// The specific GUID for *this* addressbook provider, if available
@@ -330,7 +329,6 @@ HRESULT ZCABLogon::PrepareRecips(ULONG ulFlags, LPSPropTagArray lpPropTagArray, 
 exit:
 	return hr;
 }
-
 
 HRESULT ZCABLogon::xABLogon::QueryInterface(REFIID refiid, void ** lppInterface)
 {

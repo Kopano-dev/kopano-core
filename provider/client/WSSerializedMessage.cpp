@@ -18,7 +18,6 @@
 #include <kopano/platform.h>
 #include "WSSerializedMessage.h"
 
-
 /**
  * Constructor
  * @param[in]	lpSoap		The gSoap object from which the MTOM attachments must be obtained.
@@ -100,9 +99,6 @@ HRESULT WSSerializedMessage::DoCopyData(LPSTREAM lpDestStream)
 		return MAPI_E_NETWORK_ERROR;
 	return m_hr;
 }
-
-
-
 
 void* WSSerializedMessage::StaticMTOMWriteOpen(struct soap *soap, void *handle, const char *id, const char *type, const char *description, enum soap_mime_encoding encoding)
 {

@@ -69,7 +69,6 @@ static LONG PropTagToPHPTag(ULONG ulPropTag) {
 	return PHPTag;
 }
 
-
 /*
 * Converts a PHP Array into a SBinaryArray. This is the same as an ENTRYLIST which
 * is used with DeleteMessages();
@@ -294,7 +293,6 @@ exit:
 	return MAPI_G(hr);
 }
 
-
 /*
 * Converts an PHP property value array to a MAPI property value structure
 */
@@ -461,7 +459,6 @@ HRESULT PHPArraytoPropValueArray(zval* phpArray, void *lpBase, ULONG *lpcValues,
 					lpPropValue[cvalues].Value.mapimvmember.mapilpmember[j] = dataEntry[0]->value.phpmember; \
 					zend_hash_move_forward(dataHash); \
 				} 
-
 
 			case PT_MV_I2:
 				COPY_MV_PROPS(long, MVi, lpi, lval);
@@ -1528,7 +1525,6 @@ HRESULT SRestrictiontoPHPArray(LPSRestriction lpRes, int level, zval **pret TSRM
 		add_assoc_zval(ret, "1", array);
 		break;
 
-
 	case RES_CONTENT:
 		MAPI_G(hr) = PropValueArraytoPHPArray(1, lpRes->res.resContent.lpProp, &props TSRMLS_CC);
 		if (MAPI_G(hr) != hrSuccess)
@@ -1714,7 +1710,6 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues, LPSPropValue pPropValueArray, zv
 		char pulproptag[16];
 
 		pPropValue = &pPropValueArray[col];
-
 
 		/*
 		* PHP wants a string as array key. PHP will transform this to zval integer when possible.
@@ -2002,7 +1997,6 @@ HRESULT RowSettoPHPArray(LPSRowSet lpRowSet, zval **pret TSRMLS_DC) {
 	return MAPI_G(hr);
 }
 
-
 /*
  * Convert from READSTATE array to PHP. Returns a list of arrays, each containing "sourcekey" and "flags" per entry
  */
@@ -2112,7 +2106,6 @@ HRESULT PHPArraytoGUIDArray(zval *phpVal, void *lpBase, ULONG *lpcValues, LPGUID
 	int i = 0;
 	zval			**ppentry = NULL;
 	zval			*pentry = NULL;
-
 
 	MAPI_G(hr) = hrSuccess;
 

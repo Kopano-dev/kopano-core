@@ -27,7 +27,6 @@
 
 #include "TmpPath.h"
 
-
 HRESULT UnixTimeToFileTime(time_t t, FILETIME *ft)
 {
     __int64 l;

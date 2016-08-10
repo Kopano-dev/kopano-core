@@ -25,7 +25,6 @@ struct thread_info {
 	bool bCalledFromPython;
 };
 
-
 static void free_tls_data(void *lpvoid) {
 	delete (thread_info *)lpvoid;
 }

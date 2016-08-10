@@ -50,7 +50,6 @@
 	#undef swprintf
 #endif
 
-
 ECMSProviderSwitch::ECMSProviderSwitch(ULONG ulFlags) : ECUnknown("ECMSProviderSwitch")
 {
 	m_ulFlags = ulFlags;
@@ -276,7 +275,6 @@ HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR l
 		*lpcbSpoolSecurity = cbSpoolSecurity;
 	}
 
-
 exit:
 	if (lppMAPIError)
 		*lppMAPIError = NULL;
@@ -338,7 +336,6 @@ HRESULT ECMSProviderSwitch::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, L
 	if (hr != hrSuccess)
 		goto exit;
 
-
 	if (lppMSLogon) {
 		hr = lpMSLogon->QueryInterface(IID_IMSLogon, (void **)lppMSLogon);
 		if (hr != hrSuccess)
@@ -350,7 +347,6 @@ HRESULT ECMSProviderSwitch::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, L
 		if (hr != hrSuccess)
 			goto exit;
 	}
-
 
 exit:
 	if (lppMAPIError)

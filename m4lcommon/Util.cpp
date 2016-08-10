@@ -54,7 +54,6 @@ using namespace std;
 
 #include <kopano/ECGetText.h>
 
-
 // HACK: prototypes may differ depending on the compiler and/or system (the
 // second parameter may or may not be 'const'). This redeclaration is a hack
 // to have a common prototype "iconv_cast".
@@ -70,7 +69,6 @@ private:
 	const char** m_ptr;
 };
 
-
 class PropTagCompare _zcp_final {
 public:
 	PropTagCompare() {}
@@ -82,7 +80,6 @@ public:
 };
 
 typedef std::set<ULONG,PropTagCompare> PropTagSet;
-
 
 /** 
  * Add or replaces a prop value in a an SPropValue array
@@ -1710,7 +1707,6 @@ LONG Util::FindPropInArray(const SPropTagArray *lpPropTags, ULONG ulPropTag)
 	return -1;
 }
 
-
 /** 
  * Return a human readable string for a specified HRESULT code.  You
  * should only call this function if hr contains an error. If an error
@@ -2438,7 +2434,6 @@ HRESULT Util::hex2bin(const char *input, size_t len, ULONG *outLength, LPBYTE *o
 	if (hr != hrSuccess)
 		goto exit;
 
-
 	hr = hex2bin(input, len, buffer);
 	if(hr != hrSuccess)
 		goto exit;
@@ -2451,7 +2446,6 @@ HRESULT Util::hex2bin(const char *input, size_t len, ULONG *outLength, LPBYTE *o
 exit:
 	return hr;
 }
-
 
 /** 
  * Converts a string containing hexidecimal numbers into binary
@@ -2481,7 +2475,6 @@ HRESULT Util::hex2bin(const char *input, size_t len, LPBYTE output)
 exit:
 	return hr;
 }
-
 
 /** 
  * Return the original body property tag of a message, or PR_NULL when unknown.
@@ -2985,7 +2978,6 @@ HRESULT Util::CopyHierarchy(LPMAPIFOLDER lpSrc, LPMAPIFOLDER lpDest, ULONG ulFla
 	if (hr != hrSuccess)
 		goto exit;
 
-
 	hr = lpSrc->GetHierarchyTable(MAPI_UNICODE, &lpTable);
 	if (hr != hrSuccess)
 		goto exit;
@@ -3090,7 +3082,6 @@ HRESULT Util::CopyContents(ULONG ulWhat, LPMAPIFOLDER lpSrc, LPMAPIFOLDER lpDest
 	ULONG ulObj;
 	LPMESSAGE lpSrcMessage = NULL, lpDestMessage = NULL;
 	LPENTRYLIST lpDeleteEntries = NULL;
-
 
 	hr = lpSrc->GetContentsTable(MAPI_UNICODE | ulWhat, &lpTable);
 	if (hr != hrSuccess)
@@ -3344,7 +3335,6 @@ HRESULT Util::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj, ULONG ciidExclude
 		goto exit;
 	}
 
-
 	hr = FindInterface(&IID_IMAPIProp, ciidExclude, rgiidExclude);
 	if (hr == hrSuccess) {
 		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
@@ -3352,7 +3342,6 @@ HRESULT Util::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj, ULONG ciidExclude
 	}
 
 	// end sanity checks
-
 
 	// check message, folder, attach, recipients, stream, mapitable, ... ?
 
@@ -3386,7 +3375,6 @@ HRESULT Util::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj, ULONG ciidExclude
 			if (hr != hrSuccess)
 				bPartial = true;
 		}
-
 
 	} else if (*lpSrcInterface == IID_IMessage) {
 		// recipients & attachments
@@ -3838,7 +3826,6 @@ next_include_check:
 			lpIncludeProps->aulPropTag[i] = PR_NULL;
 		}
 	}
-
 
 	hr = lpSrcProp->GetProps(lpIncludeProps, 0, &cValues, &lpProps);
 	if (FAILED(hr))

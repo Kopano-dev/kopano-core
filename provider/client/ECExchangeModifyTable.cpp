@@ -42,7 +42,6 @@
 
 #include <kopano/ECInterfaceDefs.h>
 
-
 static LPWSTR WTF1252_to_WCHAR(LPCSTR szWTF1252, LPVOID lpBase, convert_context *lpConverter)
 {
 	HRESULT hr = hrSuccess;
@@ -79,7 +78,6 @@ static LPWSTR WTF1252_to_WCHAR(LPCSTR szWTF1252, LPVOID lpBase, convert_context 
 	return lpszResult;
 }
 
-
 ECExchangeModifyTable::ECExchangeModifyTable(ULONG ulUniqueTag, ECMemTable *table, ECMAPIProp *lpParent, ULONG ulStartUniqueId, ULONG ulFlags) {
 	m_ecTable = table;
 	m_ecTable->AddRef();
@@ -100,7 +98,6 @@ ECExchangeModifyTable::~ECExchangeModifyTable() {
 	if(m_lpParent)
 		m_lpParent->Release();
 }
-
 
 HRESULT __stdcall ECExchangeModifyTable::CreateACLTable(ECMAPIProp *lpParent, ULONG ulFlags, LPEXCHANGEMODIFYTABLE *lppObj) {
 	HRESULT hr = hrSuccess;
@@ -331,7 +328,6 @@ exit:
 	return hr;
 }
 
-
 HRESULT ECExchangeModifyTable::OpenACLS(ECMAPIProp *lpecMapiProp, ULONG ulFlags, ECMemTable *lpTable, ULONG *lpulUniqueID)
 {
 	HRESULT hr = hrSuccess;
@@ -549,7 +545,6 @@ HRESULT	ECExchangeModifyTable::HrSerializeTable(ECMemTable *lpTable, char **lppS
 	if(hr != hrSuccess)
 		goto exit;
 
-
 	// Convert to SOAP rows
 	hr = CopyMAPIRowSetToSOAPRowSet(lpRowSet, &lpSOAPRowSet);
 	if(hr != hrSuccess)
@@ -685,7 +680,6 @@ HRESULT __stdcall ECExchangeRuleAction::ActionCount(ULONG *lpcActions) {
 HRESULT __stdcall ECExchangeRuleAction::GetAction(ULONG ulActionNumber, LARGE_INTEGER *lpruleid, LPACTION *lppAction) {
 	return MAPI_E_NO_SUPPORT;
 }
-
 
 // wrappers for ExchageRuleAction class
 

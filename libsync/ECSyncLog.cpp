@@ -26,7 +26,6 @@
 #include <cstdlib>
 #include <mapidefs.h>
 
-
 // for LOG_MAIL
 #include <syslog.h>
 
@@ -106,7 +105,6 @@ HRESULT ECSyncLog::SetLogger(ECLogger *lpLogger)
 
 pthread_mutex_t	ECSyncLog::s_hMutex;
 ECLogger		*ECSyncLog::s_lpLogger = NULL;
-
 
 ECSyncLog::__initializer::__initializer() {
 	pthread_mutex_init(&ECSyncLog::s_hMutex, NULL);

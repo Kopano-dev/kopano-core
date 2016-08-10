@@ -21,7 +21,6 @@
 #include "SOAPUtils.h"
 #include "WSUtil.h"
 
-
 WSStoreTableView::WSStoreTableView(ULONG ulType, ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport) : WSTableView(ulType, ulFlags, lpCmd, lpDataLock, ecSessionId, cbEntryId, lpEntryId, lpTransport, "WSStoreTableView")
 {
 
@@ -124,14 +123,12 @@ exit:
 	return hr;
 }
 
-
 HRESULT WSTableMultiStore::HrSetEntryIDs(LPENTRYLIST lpMsgList)
 {
 	// Not really a transport function, but this is the best place for it for now
 
 	return CopyMAPIEntryListToSOAPEntryList(lpMsgList, &m_sEntryList);
 }
-
 
 /*
   Miscellaneous tables are not really store tables, but the is the same, so it inherits from the store table

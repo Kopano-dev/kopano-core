@@ -23,7 +23,6 @@
 #include <kopano/Trace.h>
 #include <kopano/ECDebug.h>
 
-
 /*
  * ECMemBlock implementation 
  *
@@ -111,7 +110,6 @@ HRESULT ECMemBlock::WriteAt(ULONG ulPos, ULONG ulLen, char *buffer, ULONG *ulByt
 		memset(lpCurrent+cbTotal, 0, newsize-cbTotal);	// clear new alloced mem
 		cbTotal = newsize;		// set new size
 	}
-
 
 	if (dsize > cbCurrent)			// if write part is bigger than actual data
 		cbCurrent = ulPos + ulLen;	// set _real_ buffer size
@@ -531,7 +529,6 @@ HRESULT ECMemStream::xStream::QueryInterface(REFIID refiid, LPVOID *lppInterface
 	TRACE_STREAM(TRACE_RETURN, "IStream::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
 }
-
 
 HRESULT ECMemStream::xStream::Read(void *pv, ULONG cb, ULONG *pcbRead)
 {

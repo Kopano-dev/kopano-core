@@ -31,7 +31,6 @@
 	#include "DBUserPlugin.h"
 #endif
 
-
 ECPluginFactory::ECPluginFactory(ECConfig *config, ECStatsCollector *lpStatsCollector,
     bool bHosted, bool bDistributed)
 {

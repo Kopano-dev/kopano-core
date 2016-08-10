@@ -37,7 +37,6 @@
 #include <kopano/ECDebug.h>
 #include "WSUtil.h"
 
-
 #include "ClientUtil.h"
 #include "ECMemStream.h"
 
@@ -45,7 +44,6 @@
 #include <kopano/charset/convert.h>
 
 using namespace std;
-
 
 #define MAX_TABLE_PROPSIZE 8192
 
@@ -94,7 +92,6 @@ ECMessage::ECMessage(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFl
 
 	// Workaround for support html in outlook 2000/xp need SetPropHandler
 	this->HrAddPropHandlers(PR_HTML,					GetPropHandler		 ,SetPropHandler,			(void*) this, FALSE, FALSE);
-
 
 	// The property 0x10970003 is set by outlook when browsing in the 'unread mail' searchfolder. It is used to make sure
 	// that a message that you just read is not removed directly from view. It is set for each message which should be in the view
@@ -546,7 +543,6 @@ HRESULT ECMessage::SyncRtf()
 	if (hr != hrSuccess)
 		goto exit;
 
-
 	// Determine strategy based on RTF type.
 	if (isrtfhtml(strRTF.c_str(), strRTF.size()))
 		rtfType = RTFTypeFromHTML;
@@ -554,7 +550,6 @@ HRESULT ECMessage::SyncRtf()
 		rtfType = RTFTypeFromText;
 	else
 		rtfType = RTFTypeOther;
-
 
 	if (rtfType == RTFTypeOther) {
 		BOOL bUpdated;
@@ -960,7 +955,6 @@ HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 		} // !new == empty table
 	}
 
-
 	if(this->lpAttachments == NULL) {
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
@@ -1265,7 +1259,6 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 				goto exit;
 		} // !fNew
 	}
-
 
 	hr = lpRecips->HrGetView(createLocaleFromName(""), ulFlags & MAPI_UNICODE, &lpView);
 
@@ -2146,7 +2139,6 @@ HRESULT ECMessage::SaveChanges(ULONG ulFlags)
 			goto exit;
 	}
 
-
 	// Property change of a new item
 	if (fNew && this->GetMsgStore()->IsSpooler() == TRUE) {
 
@@ -2692,7 +2684,6 @@ HRESULT ECMessage::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArra
 
 	hr = Util::DoCopyTo(&IID_IMessage, &this->m_xMessage, ciidExclude, rgiidExclude, lpExcludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
 
-
 exit:
 	if(lpECMAPIProp)
 		lpECMAPIProp->Release();
@@ -2752,7 +2743,6 @@ HRESULT ECMessage::HrLoadProps()
 
 	if (lpsBodyProps[2].ulPropTag == PR_HTML || (lpsBodyProps[2].ulPropTag == PROP_TAG(PT_ERROR, PROP_ID(PR_HTML)) && lpsBodyProps[2].Value.err == MAPI_E_NOT_ENOUGH_MEMORY))
 		fHTMLOK = TRUE;
-
 
 	if (fRTFOK) {
 		HRESULT hrTmp = hrSuccess;
@@ -2887,7 +2877,6 @@ HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
-
 
 	if (!m_sMapiObject) {
 		// when does this happen? .. just a simple precaution for now
@@ -3105,7 +3094,6 @@ ULONG ECMessage::xMessage::Release()
 	return pThis->Release();
 }
 
-
 HRESULT ECMessage::xMessage::GetLastError(HRESULT hError, ULONG ulFlags, LPMAPIERROR * lppMapiError)
 {
 	TRACE_MAPI(TRACE_ENTRY, "IMessage::GetLastError", "");
@@ -3202,7 +3190,6 @@ HRESULT ECMessage::xMessage::GetIDsFromNames(ULONG cNames, LPMAPINAMEID * ppName
 	TRACE_MAPI(TRACE_RETURN, "IMessage::GetIDsFromNames", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
 }
-
 
 HRESULT ECMessage::xMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {

@@ -32,7 +32,6 @@
 
 using namespace std;
 
-
 static const char b64chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 /** 
@@ -234,7 +233,6 @@ static int password_check_ssha(const char *data, unsigned int len, const char *c
 		return 1;
 }
 
-
 char *encryptPassword(int type, const char *password) {
 	switch(type) {
 	case PASSWORD_CRYPT:
@@ -251,7 +249,6 @@ char *encryptPassword(int type, const char *password) {
 		return NULL;
 	}
 }
-
 
 int checkPassword(int type, const char *password, const char *crypted) {
 	switch(type) {

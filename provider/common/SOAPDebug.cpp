@@ -26,7 +26,6 @@
 
 using namespace std;
 
-
 std::string RestrictionToString(const restrictTable *lpRestriction,
     unsigned int indent)
 {

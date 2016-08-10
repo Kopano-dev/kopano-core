@@ -30,7 +30,6 @@
 
 #include "ECSessionManager.h"
 
-
 static ECRESULT GetSubRestrictionRecursive(struct restrictTable *lpRestrict,
     unsigned int *lpulCount, unsigned int ulSubRestriction,
     struct restrictSub **lppSubRestrict, unsigned int maxdepth)

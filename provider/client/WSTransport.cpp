@@ -60,8 +60,6 @@
 
 using namespace std;
 
-
-
 /*
  *
  * This is the main WebServices transport object. All communications with the
@@ -332,7 +330,6 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 	if (sResponse.sServerGuid.__ptr != NULL && sResponse.sServerGuid.__size == sizeof(m_sServerGuid))
 		memcpy(&m_sServerGuid, sResponse.sServerGuid.__ptr, sizeof(m_sServerGuid));
 
-
 	// From here the login is ok
 
 auth: // User have a logon
@@ -393,7 +390,6 @@ HRESULT WSTransport::HrSetRecvTimeout(unsigned int ulSeconds)
 	this->m_lpCmd->soap->recv_timeout = ulSeconds;
 	return hrSuccess;
 }
-
 
 HRESULT WSTransport::CreateAndLogonAlternate(LPCSTR szServer, WSTransport **lppTransport) const
 {
@@ -707,7 +703,6 @@ HRESULT WSTransport::HrLogOff()
 	}
 	END_SOAP_CALL
 
-
 exit:
 	UnLockSoap();
 
@@ -773,7 +768,6 @@ HRESULT WSTransport::HrOpenPropStorage(ULONG cbParentEntryID, LPENTRYID lpParent
 	LPENTRYID	lpUnWrapEntryID = NULL;
 	ULONG		cbUnWrapEntryID = 0;
 
-
 	if (lpParentEntryID) {
 		hr = UnWrapServerClientStoreEntry(cbParentEntryID, lpParentEntryID, &cbUnWrapParentID, &lpUnWrapParentID);
 		if(hr != hrSuccess)
@@ -828,7 +822,6 @@ HRESULT WSTransport::HrOpenABPropStorage(ULONG cbEntryID, LPENTRYID lpEntryID, I
 
 	LPENTRYID	lpUnWrapStoreID = NULL;
 	ULONG		cbUnWrapStoreID = 0;
-
 
 	hr = UnWrapServerClientABEntry(cbEntryID, lpEntryID, &cbUnWrapStoreID, &lpUnWrapStoreID);
 	if(hr != hrSuccess)
@@ -952,14 +945,12 @@ HRESULT WSTransport::HrDeleteObjects(ULONG ulFlags, LPENTRYLIST lpMsgList, ULONG
 	if(hr != hrSuccess)
 		goto exit;
 
-
 	START_SOAP_CALL
 	{
 		if(SOAP_OK != m_lpCmd->ns__deleteObjects(m_ecSessionId, ulFlags, &sEntryList, ulSyncId, &er))
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
-
 
 exit:
 	UnLockSoap();
@@ -1109,7 +1100,6 @@ HRESULT WSTransport::HrSubscribeMulti(const ECLISTSYNCADVISE &lstSyncAdvises, UL
 
 	}
 	END_SOAP_CALL
-
 
 exit:
 	MAPIFreeBuffer(notSubscribeArray.__ptr);
@@ -1413,8 +1403,6 @@ HRESULT WSTransport::HrGetReceiveFolderTable(ULONG ulFlags, ULONG cbStoreEntryID
 	sEntryId.__ptr = (unsigned char*)lpUnWrapStoreID;
 	sEntryId.__size = cbUnWrapStoreID;
 
-
-
 	// Get ReceiveFolder information from the server
 	START_SOAP_CALL
 	{
@@ -1506,7 +1494,6 @@ HRESULT WSTransport::HrGetReceiveFolder(ULONG cbStoreEntryID, LPENTRYID lpStoreE
 	if(lpstrExplicitClass)
 		lpstrExplicitClass->clear();
 
-
 	// Get ReceiveFolder information from the server
 	START_SOAP_CALL
 	{
@@ -1573,10 +1560,8 @@ HRESULT WSTransport::HrSetReceiveFolder(ULONG cbStoreID, LPENTRYID lpStoreID, co
 	sStoreId.__ptr = (unsigned char*)lpUnWrapStoreID;
 	sStoreId.__size = cbUnWrapStoreID;
 
-
 	// Ignore error
 	CopyMAPIEntryIdToSOAPEntryId(cbEntryID, lpEntryID, &sEntryId, true);
-
 
 	START_SOAP_CALL
 	{
@@ -1784,7 +1769,6 @@ HRESULT WSTransport::HrResolveUserStore(const utf8string &strUserName, ULONG ulF
 		goto exit;
 	}
 
-
 	START_SOAP_CALL
 	{
 		if(SOAP_OK != m_lpCmd->ns__resolveUserStore(m_ecSessionId, (char*)strUserName.c_str(), ECSTORE_TYPE_MASK_PRIVATE | ECSTORE_TYPE_MASK_PUBLIC, ulFlags, &sResponse))
@@ -1871,7 +1855,6 @@ exit:
 
 	return hr;
 }
-
 
 /**
  * Create a new user.
@@ -2047,7 +2030,6 @@ HRESULT WSTransport::HrSetUser(ECUSER *lpECUser, ULONG ulFlags)
 
 	}
 	END_SOAP_CALL
-
 
 exit:
 	UnLockSoap();
@@ -2275,7 +2257,6 @@ HRESULT WSTransport::HrGetUserList(ULONG cbCompanyId, LPENTRYID lpCompanyId,
 		if (hr != hrSuccess)
 			goto exit;
 	}
-
 
 	*lpcUsers = 0;
 
@@ -2640,7 +2621,6 @@ HRESULT WSTransport::HrGetUserClientUpdateStatus(ULONG cbUserId,
 			er = KCERR_NETWORK_ERROR;
 	}
 	END_SOAP_CALL
-
 
 	hr = CopyUserClientUpdateStatusFromSOAP(sResponse, ulFlags, lppECUCUS);
 	if (hr != hrSuccess)
@@ -4144,7 +4124,6 @@ HRESULT WSTransport::HrResolvePseudoUrl(const char *lpszPseudoUrl, char **lppszS
 	}
 	pthread_mutex_unlock(&m_ResolveResultCacheMutex);
 
-
 	// Cache failed. Try the server
 	LockSoap();
 
@@ -4201,7 +4180,6 @@ HRESULT WSTransport::HrGetServerDetails(ECSVRNAMELIST *lpServerNameList,
 	hr = SvrNameListToSoapMvString8(lpServerNameList, ulFlags & MAPI_UNICODE, &lpsSvrNameList);
 	if (hr != hrSuccess)
 		goto exit;
-
 
 	START_SOAP_CALL
 	{
@@ -4433,12 +4411,10 @@ HRESULT WSTransport::HrOpenMultiStoreTable(LPENTRYLIST lpMsgList, ULONG ulFlags,
 	HRESULT hr = hrSuccess;
 	WSTableMultiStore *lpMultiStoreTable = NULL;
 
-
 	if (!lpMsgList || lpMsgList->cValues == 0) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-
 
 	hr = WSTableMultiStore::Create(ulFlags, m_lpCmd, &m_hDataLock, m_ecSessionId, cbEntryID, lpEntryID, lpMsgStore, this, &lpMultiStoreTable);
 	if (hr != hrSuccess)
@@ -4456,7 +4432,6 @@ exit:
 
 	return hr;
 }
-
 
 HRESULT WSTransport::HrOpenMiscTable(ULONG ulTableType, ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID, ECMsgStore *lpMsgStore, WSTableView **lppTableView)
 {
@@ -4506,7 +4481,6 @@ HRESULT WSTransport::HrSetLockState(ULONG cbEntryID, LPENTRYID lpEntryID, bool b
 		/* else: er is already set and good to use */
 	}
 	END_SOAP_CALL
-
 
 exit:
     UnLockSoap();
@@ -4613,7 +4587,6 @@ HRESULT WSTransport::HrLicenseUsers(unsigned int ulServiceType, unsigned int *lp
 			er = sResponse.er;
 	}
 	END_SOAP_CALL
-
 
 	*lpulUsers = sResponse.ulUsers;
 

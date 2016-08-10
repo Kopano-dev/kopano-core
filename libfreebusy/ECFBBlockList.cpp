@@ -18,7 +18,6 @@
 #include <kopano/platform.h>
 #include "ECFBBlockList.h"
 
-
 ECFBBlockList::ECFBBlockList(void)
 {
 	m_bInitIter = false;
