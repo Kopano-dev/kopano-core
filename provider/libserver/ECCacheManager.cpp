@@ -903,8 +903,9 @@ ECRESULT ECCacheManager::GetUserObjects(const list<objectid_t> &lstExternObjIds,
 		goto exit;
 
 	strQuery = "SELECT id, externid, objectclass, signature, company FROM users WHERE ";
-	for (iter = lstExternIds.begin(); iter != lstExternIds.end(); ++iter) {
-		if (iter != lstExternIds.begin())
+	for (auto iter = lstExternIds.cbegin();
+	     iter != lstExternIds.cend(); ++iter) {
+		if (iter != lstExternIds.cbegin())
 			strQuery += " OR ";
 		strQuery +=
 			"(" + OBJECTCLASS_COMPARE_SQL("objectclass", iter->objclass) +

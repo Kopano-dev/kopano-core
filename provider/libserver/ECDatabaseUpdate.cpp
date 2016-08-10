@@ -376,7 +376,6 @@ ECRESULT CreateRecursiveStoreEntryIds(ECDatabase *lpDatabase, unsigned int ulSto
 
 	// FIXME: use ECListInt and ECListIntIterator (in ECGenericObjectTable.h)
 	std::list<unsigned int>			lstFolders;	// The list of folders
-	std::list<unsigned int>::iterator	iterFolders;
 
 	// Insert the entryids
 	strDefaultQuery = "REPLACE INTO indexedproperties (tag, hierarchyid, val_binary) ";
@@ -388,19 +387,18 @@ ECRESULT CreateRecursiveStoreEntryIds(ECDatabase *lpDatabase, unsigned int ulSto
 	// Add the master id
 	lstFolders.push_back( ulStoreHierarchyId );
 
-	iterFolders = lstFolders.begin();
-	while (iterFolders != lstFolders.end()) {
+	auto iterFolders = lstFolders.begin();
+	while (iterFolders != lstFolders.cend()) {
 
 		// Make parent list
 		strInValues.clear();
 
-		while(iterFolders != lstFolders.end()) {
-
+		while (iterFolders != lstFolders.cend()) {
 			strInValues += stringify(*iterFolders);
 			++iterFolders;
 			if (strDefaultQuery.size() + strInValues.size() * 2 > lpDatabase->GetMaxAllowedPacket())
 				break;
-			if(iterFolders != lstFolders.end())
+			if (iterFolders != lstFolders.cend())
 				strInValues += ",";
 		}
 		
@@ -1042,16 +1040,16 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 			case OBJECTRELATION_QUOTA_USERRECIPIENT:
 			case OBJECTRELATION_USER_SENDAS:
 				sObjectMapIter = sObjectMap.find(SObject(rel.ulParentObjectId, 1 /* USEROBJECT_TYPE_USER */));
-				if (sObjectMapIter == sObjectMap.end())
+				if (sObjectMapIter == sObjectMap.cend())
 					sObjectMapIter = sObjectMap.find(SObject(rel.ulParentObjectId, 5 /* USEROBJECT_TYPE_NONACTIVE */));
-				if (sObjectMapIter == sObjectMap.end())
+				if (sObjectMapIter == sObjectMap.cend())
 					continue;
 				ulNewParentId = sObjectMapIter->second;
 				break;
 
 			case OBJECTRELATION_GROUP_MEMBER:
 				sObjectMapIter = sObjectMap.find(SObject(rel.ulParentObjectId, 2 /* USEROBJECT_TYPE_GROUP */));
-				if (sObjectMapIter == sObjectMap.end())
+				if (sObjectMapIter == sObjectMap.cend())
 					continue;
 				ulNewParentId = sObjectMapIter->second;
 				break;
@@ -1060,14 +1058,14 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 			case OBJECTRELATION_COMPANY_ADMIN:
 			case OBJECTRELATION_QUOTA_COMPANYRECIPIENT:
 				sObjectMapIter = sObjectMap.find(SObject(rel.ulParentObjectId, 4 /* USEROBJECT_TYPE_COMPANY */));
-				if (sObjectMapIter == sObjectMap.end())
+				if (sObjectMapIter == sObjectMap.cend())
 					continue;
 				ulNewParentId = sObjectMapIter->second;
 				break;
 
 			case OBJECTRELATION_ADDRESSLIST_MEMBER:
 				sObjectMapIter = sObjectMap.find(SObject(rel.ulParentObjectId, 6 /* USEROBJECT_TYPE_ADDRESSLIST */));
-				if (sObjectMapIter == sObjectMap.end())
+				if (sObjectMapIter == sObjectMap.cend())
 					continue;
 				ulNewParentId = sObjectMapIter->second;
 				break;
@@ -1075,9 +1073,9 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 
 		// Find the new object id
 		sObjectMapIter = sObjectMap.find(SObject(rel.ulObjectId, 1 /* USEROBJECT_TYPE_USER */));
-		if (sObjectMapIter == sObjectMap.end())
+		if (sObjectMapIter == sObjectMap.cend())
 			sObjectMapIter = sObjectMap.find(SObject(rel.ulObjectId, 5)); // USEROBJECT_TYPE_NONACTIVE
-		if (sObjectMapIter == sObjectMap.end())
+		if (sObjectMapIter == sObjectMap.cend())
 			continue;
 		ulNewId = sObjectMapIter->second;
 

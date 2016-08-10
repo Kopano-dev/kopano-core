@@ -101,7 +101,6 @@ ECRESULT ECABObjectTable::Create(ECSession *lpSession, unsigned int ulABId, unsi
 ECRESULT ECABObjectTable::GetColumnsAll(ECListInt* lplstProps)
 {
 	ECRESULT		er = erSuccess;
-	ECObjectTableMap::const_iterator iterObjects;
 	ECODAB *lpODAB = (ECODAB*)m_lpObjectData;
 
 	pthread_mutex_lock(&m_hLock);
@@ -140,28 +139,18 @@ ECRESULT ECABObjectTable::GetColumnsAll(ECListInt* lplstProps)
 
 ECRESULT ECABObjectTable::ReloadTableMVData(ECObjectTableList* lplistRows, ECListInt* lplistMVPropTag)
 {
-	ECRESULT			er = erSuccess;
-
 	ASSERT(lplistMVPropTag->size() <2); //FIXME: Limit of one 1 MV column
-
 	// scan for MV-props and add rows
-
 	// Add items to list
-
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECABObjectTable::GetMVRowCount(unsigned int ulObjId, unsigned int *lpulCount)
 {
-	ECRESULT er = erSuccess;
-
 	pthread_mutex_lock(&m_hLock);
-
 	*lpulCount = 0;
-
 	pthread_mutex_unlock(&m_hLock);
-
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECABObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList* lpRowList, struct propTagArray *lpsPropTagArray, void* lpObjectData, struct rowSet **lppRowSet, bool bTableData, bool bTableLimit)

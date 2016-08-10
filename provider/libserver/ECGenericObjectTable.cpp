@@ -967,8 +967,6 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 	struct rowSet		*lpRowSet = NULL;
 	struct propTagArray	*lpsRestrictPropTagArray = NULL;
 	struct restrictTable *lpsRestrict = NULL;
-
-	ECObjectTableList::const_iterator iterRows;
 	sObjectTableKey					sRowItem;
 	
 	ECCategory		*lpCategory = NULL;
@@ -1030,12 +1028,11 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 
 	sPropTagArray.__size = n;
 
-	for(iterRows = lpRows->begin(); iterRows != lpRows->end(); )
-	{
+	for (auto iterRows = lpRows->cbegin(); iterRows != lpRows->cend(); ) {
 		sQueryRows.clear();
 
 		// if we use a restriction, memory usage goes up, so only fetch 20 rows at a time
-		for (size_t i = 0; i < (lpsRestrictPropTagArray ? 20 : 256) && iterRows != lpRows->end(); ++i) {
+		for (size_t i = 0; i < (lpsRestrictPropTagArray ? 20 : 256) && iterRows != lpRows->cend(); ++i) {
 			sQueryRows.push_back(*iterRows);
 			++iterRows;
 		}
@@ -1304,7 +1301,7 @@ ECRESULT ECGenericObjectTable::ExpandRow(struct soap *soap, xsd__base64Binary sI
     sKey.ulOrderId = *((unsigned int *)sInstanceKey.__ptr+1);
     
     iterCategory = m_mapCategories.find(sKey);
-    if(iterCategory == m_mapCategories.end()) {
+    if (iterCategory == m_mapCategories.cend()) {
         er = KCERR_NOT_FOUND;
         goto exit;
     }
@@ -1363,7 +1360,6 @@ ECRESULT ECGenericObjectTable::CollapseRow(xsd__base64Binary sInstanceKey, unsig
     ECCategoryMap::const_iterator iterCategory;
     ECCategory *lpCategory = NULL;
     ECObjectTableList lstHidden;
-    ECObjectTableList::const_iterator iterHidden;
 
 	pthread_mutex_lock(&m_hLock);
     
@@ -1380,7 +1376,7 @@ ECRESULT ECGenericObjectTable::CollapseRow(xsd__base64Binary sInstanceKey, unsig
     sKey.ulOrderId = *((unsigned int *)sInstanceKey.__ptr+1);
     
     iterCategory = m_mapCategories.find(sKey);
-    if(iterCategory == m_mapCategories.end()) {
+    if (iterCategory == m_mapCategories.cend()) {
         er = KCERR_NOT_FOUND;
         goto exit;
     }
@@ -1397,12 +1393,11 @@ ECRESULT ECGenericObjectTable::CollapseRow(xsd__base64Binary sInstanceKey, unsig
     
     // Loop through the hidden rows to see if we have hidden any categories. If so, mark them as
     // collapsed
-    for (iterHidden = lstHidden.begin(); iterHidden != lstHidden.end(); ++iterHidden) {
+    for (auto iterHidden = lstHidden.cbegin(); iterHidden != lstHidden.cend(); ++iterHidden) {
         iterCategory = m_mapCategories.find(*iterHidden);
         
-        if(iterCategory != m_mapCategories.end()) {
+        if (iterCategory != m_mapCategories.cend())
             iterCategory->second->m_fExpanded = false;
-        }
     }
 
     if(lpulRows)
@@ -1689,9 +1684,6 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
 	
 	ECObjectTableList		ecRowsItem;
 	ECObjectTableList		ecRowsDeleted;
-	ECObjectTableMap::const_iterator iterMapObject;
-	ECObjectTableMap::const_iterator iterToDelete;
-
 	sObjectTableKey		sRow;
 	
 	pthread_mutex_lock(&m_hLock);
@@ -1729,8 +1721,8 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
 	case ECKeyTable::TABLE_ROW_DELETE:
 		// Delete the object ID from our object list, and all items with that object ID (including various order IDs)
 		for (const auto &obj_id : *lstObjId) {
-			iterMapObject = this->mapObjects.find(sObjectTableKey(obj_id, 0));
-            while(iterMapObject != this->mapObjects.end()) {
+			auto iterMapObject = this->mapObjects.find(sObjectTableKey(obj_id, 0));
+			while (iterMapObject != this->mapObjects.cend()) {
 				if (iterMapObject->first.ulObjId == obj_id)
                     ecRowsItem.push_back(iterMapObject->first);
 				else if (iterMapObject->first.ulObjId != obj_id)
@@ -1762,14 +1754,13 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
 
                 // get old mvprops count
                 cMVOld = 0;
-                iterMapObject = this->mapObjects.find(sObjectTableKey(obj_id, 0));
-                while(iterMapObject != this->mapObjects.end())
-                {
+                auto iterMapObject = this->mapObjects.find(sObjectTableKey(obj_id, 0));
+                while (iterMapObject != this->mapObjects.cend()) {
                     if (iterMapObject->first.ulObjId == obj_id) {
                         ++cMVOld;
                         if(cMVOld > cMVNew && (ulFlags&OBJECTTABLE_NOTIFY) == OBJECTTABLE_NOTIFY) {
 
-                            iterToDelete = iterMapObject;
+                            auto iterToDelete = iterMapObject;
                             --iterMapObject;
                             sRow = iterToDelete->first;
                             //Delete of map
@@ -1957,7 +1948,6 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager* lpCacheManager, 
 	ULONG ulPropType;
 	ULONG ulFuzzyLevel;
 	unsigned int ulSubRestrict = 0;
-	SUBRESTRICTIONRESULT::const_iterator iterSubResult;
 	entryId sEntryId;
 	unsigned int ulResId = 0;
 	unsigned int ulPropTagRestrict;
@@ -2401,11 +2391,9 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager* lpCacheManager, 
 				sEntryId.__size = lpProp->Value.bin->__size;
 				if(lpCacheManager->GetObjectFromEntryId(&sEntryId, &ulResId) == erSuccess)
 				{
-	                iterSubResult = (*lpSubResults)[ulSubRestrict]->find(ulResId); // If the item is in the set, it matched
-                
-					if(iterSubResult != (*lpSubResults)[ulSubRestrict]->end()) {
+					auto r = (*lpSubResults)[ulSubRestrict]->find(ulResId); // If the item is in the set, it matched
+					if (r != (*lpSubResults)[ulSubRestrict]->cend())
 						fMatch = true;
-					}
 				}
             }
         }
@@ -2564,8 +2552,6 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
     int fResult = 0;
     bool fCollapsed = false;
     bool fHidden = false;
-	ECCategoryMap::const_iterator iterCategory;
-	ECSortedCategoryMap::const_iterator iterCategoriesSorted;
     
     if(m_ulCategories == 0)
         goto exit;
@@ -2586,7 +2572,7 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
 
     // See if we're dealing with a changed row, not a new row
     iterLeafs = m_mapLeafs.find(sObjKey);
-    if(iterLeafs != m_mapLeafs.end()) {
+    if (iterLeafs != m_mapLeafs.cend()) {
     	fPrevUnread = iterLeafs->second.fUnread;
         // The leaf was already in the table, compare new properties of the leaf with those of the category it
         // was in.
@@ -2626,13 +2612,13 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
         ECTableRow row(sObjectTableKey(0,0), i+1, lpSortLen, lpSortFlags, lppSortKeys, false);
 
         // Find the actual category in our sorted category map
-    	iterCategoriesSorted = m_mapSortedCategories.find(row);
+	auto iterCategoriesSorted = m_mapSortedCategories.find(row);
 
         // Include the next sort order if it s CATEG_MIN or CATEG_MAX
         if(lpsSortOrderArray->__size > (int)i+1 && ISMINMAX(lpsSortOrderArray->__ptr[i+1].ulOrder))
 		++i;
     	
-        if(iterCategoriesSorted == m_mapSortedCategories.end()) {
+        if (iterCategoriesSorted == m_mapSortedCategories.cend()) {
      		ASSERT(fNewLeaf); // The leaf must be new if the category is new       
 
             // Category not available yet, add it now
@@ -2679,8 +2665,8 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
                 sPrevRow.ulOrderId = 0;
             }
             
-			iterCategory = m_mapCategories.find(sCatRow);
-			if(iterCategory == m_mapCategories.end()) {
+			auto iterCategory = m_mapCategories.find(sCatRow);
+			if (iterCategory == m_mapCategories.cend()) {
 				ASSERT(FALSE);
 				er = KCERR_NOT_FOUND;
 				goto exit;
@@ -2942,7 +2928,7 @@ ECRESULT ECGenericObjectTable::RemoveCategoryAfterRemoveRow(sObjectTableKey sObj
     ECRESULT er = erSuccess;
     sObjectTableKey sCatRow;
     sObjectTableKey sPrevRow(0,0);
-    ECLeafMap::iterator iterLeafs;
+    ECLeafMap::const_iterator iterLeafs;
     ECKeyTable::UpdateType ulAction;
     ECCategory *lpCategory = NULL;
     ECCategory *lpParent = NULL;
@@ -2958,7 +2944,7 @@ ECRESULT ECGenericObjectTable::RemoveCategoryAfterRemoveRow(sObjectTableKey sObj
     
     // Find information for the deleted leaf
     iterLeafs = m_mapLeafs.find(sObjKey);
-    if(iterLeafs == m_mapLeafs.end()) {
+    if (iterLeafs == m_mapLeafs.cend()) {
         er = KCERR_NOT_FOUND;
         goto exit;
     }
@@ -3095,11 +3081,10 @@ exit:
 ECRESULT ECGenericObjectTable::GetPropCategory(struct soap *soap, unsigned int ulPropTag, sObjectTableKey sKey, struct propVal *lpPropVal)
 {
     ECRESULT er = erSuccess;
-    ECCategoryMap::const_iterator iterCategories;
     unsigned int i = 0;
     
-    iterCategories = m_mapCategories.find(sKey);
-	if (iterCategories == m_mapCategories.end())
+	auto iterCategories = m_mapCategories.find(sKey);
+	if (iterCategories == m_mapCategories.cend())
 		return KCERR_NOT_FOUND;
     
     switch(ulPropTag) {
@@ -3284,8 +3269,6 @@ ECRESULT ECCategory::UpdateMinMax(const sObjectTableKey &sKey, unsigned int i, s
 	ECRESULT er;
 	bool fModified = false;
 	int result = 0;
-	std::map<sObjectTableKey, struct propVal *>::iterator iterMinMax;
-
 	struct propVal *lpOldValue;
 	struct propVal *lpNew;
 	
@@ -3303,8 +3286,8 @@ ECRESULT ECCategory::UpdateMinMax(const sObjectTableKey &sKey, unsigned int i, s
 	if(er != erSuccess)
 		return er;
 		
-	iterMinMax = m_mapMinMax.find(sKey);
-	if(iterMinMax == m_mapMinMax.end()) {
+	auto iterMinMax = m_mapMinMax.find(sKey);
+	if (iterMinMax == m_mapMinMax.cend()) {
 		m_mapMinMax.insert(std::make_pair(sKey, lpNew));
 	} else {
 		FreePropVal(iterMinMax->second, true); // NOTE this may free lpNewValue, so you can't use that anymore now
@@ -3340,13 +3323,9 @@ ECRESULT ECCategory::UpdateMinMax(const sObjectTableKey &sKey, unsigned int i, s
  */
 ECRESULT ECCategory::UpdateMinMaxRemove(const sObjectTableKey &sKey, unsigned int i, bool fMax, bool *lpfModified)
 {
-	std::map<sObjectTableKey, struct propVal *>::iterator iterMinMax;
 	bool fModified = false;
-	
-	
-	iterMinMax = m_mapMinMax.find(sKey);
-	
-	if (iterMinMax == m_mapMinMax.end())
+	auto iterMinMax = m_mapMinMax.find(sKey);
+	if (iterMinMax == m_mapMinMax.cend())
 		return KCERR_NOT_FOUND;
 	
 	FreePropVal(iterMinMax->second, true);

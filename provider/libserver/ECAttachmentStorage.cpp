@@ -1098,13 +1098,12 @@ ECRESULT ECDatabaseAttachment::SaveAttachmentInstance(ULONG ulInstanceId, ULONG 
 ECRESULT ECDatabaseAttachment::DeleteAttachmentInstances(const std::list<ULONG> &lstDeleteInstances, bool bReplace)
 {
 	ECRESULT er = erSuccess;
-	std::list<ULONG>::const_iterator iterDel;
 	std::string strQuery;
 
 	strQuery = (std::string)"DELETE FROM lob WHERE instanceid IN (";
-	for (iterDel = lstDeleteInstances.begin();
-	     iterDel != lstDeleteInstances.end(); ++iterDel) {
-		if (iterDel != lstDeleteInstances.begin())
+	for (auto iterDel = lstDeleteInstances.cbegin();
+	     iterDel != lstDeleteInstances.cend(); ++iterDel) {
+		if (iterDel != lstDeleteInstances.cbegin())
 			strQuery += ",";
 		strQuery += stringify(*iterDel);
 	}

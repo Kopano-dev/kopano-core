@@ -256,26 +256,23 @@ public:
     	m_bComplete = false; 
 	};
     ~ECsCells() {
-		std::map<unsigned int, struct propVal>::iterator i;
-		for (i = mapPropVals.begin(); i != mapPropVals.end(); ++i)
-			FreePropVal(&i->second, false);
+		for (auto &p : mapPropVals)
+			FreePropVal(&p.second, false);
     };
     
     ECsCells(const ECsCells &src) {
         struct propVal val;
-        std::map<unsigned int, struct propVal>::const_iterator i;
-        for (i = src.mapPropVals.begin(); i != src.mapPropVals.end(); ++i) {
-            CopyPropVal((struct propVal *)&i->second, &val);
-            mapPropVals[i->first] = val;
+		for (auto &p : src.mapPropVals) {
+			CopyPropVal(const_cast<struct propVal *>(&p.second), &val);
+			mapPropVals[p.first] = val;
         }
         m_bComplete = src.m_bComplete;
     }
     
     ECsCells& operator=(const ECsCells &src) {
         struct propVal val;
-        std::map<unsigned int, struct propVal>::iterator i;
-		for (i = mapPropVals.begin(); i != mapPropVals.end(); ++i)
-			FreePropVal(&i->second, false);
+		for (auto &p : mapPropVals)
+			FreePropVal(&p.second, false);
         mapPropVals.clear();
         
 		for (const auto &p : src.mapPropVals) {
@@ -290,10 +287,9 @@ public:
     void AddPropVal(unsigned int ulPropTag, const struct propVal *lpPropVal) {
         struct propVal val;
         ulPropTag = NormalizeDBPropTag(ulPropTag); // Only cache PT_STRING8
-		std::pair<std::map<unsigned int, struct propVal>::iterator,bool> res;
         CopyPropVal(lpPropVal, &val, NULL, true);
         val.ulPropTag = NormalizeDBPropTag(val.ulPropTag);
-		res = mapPropVals.insert(std::make_pair(ulPropTag, val));
+		auto res = mapPropVals.insert(std::make_pair(ulPropTag, val));
 		if (res.second == false) {
             FreePropVal(&res.first->second, false); 
             res.first->second = val;	// reassign
@@ -302,10 +298,9 @@ public:
     
     // get a property value for this object
     bool GetPropVal(unsigned int ulPropTag, struct propVal *lpPropVal, struct soap *soap) {
-        std::map<unsigned int, struct propVal>::const_iterator i;
-        i = mapPropVals.find(NormalizeDBPropTag(ulPropTag));
-        if(i == mapPropVals.end())
-            return false;
+		auto i = mapPropVals.find(NormalizeDBPropTag(ulPropTag));
+		if (i == mapPropVals.cend())
+			return false;
         CopyPropVal(&i->second, lpPropVal, soap);
         if(NormalizeDBPropTag(ulPropTag) == lpPropVal->ulPropTag)
 	        lpPropVal->ulPropTag = ulPropTag; // Switch back to requested type (not on PT_ERROR of course)
@@ -314,23 +309,23 @@ public:
     
     // Updates a LONG type property
     void UpdatePropVal(unsigned int ulPropTag, int lDelta) {
-        std::map<unsigned int, struct propVal>::iterator i;
         if(PROP_TYPE(ulPropTag) != PT_LONG)
             return;
-        i = mapPropVals.find(ulPropTag);
-        if(i == mapPropVals.end() || PROP_TYPE(i->second.ulPropTag) != PT_LONG)
-            return;
+		auto i = mapPropVals.find(ulPropTag);
+		if (i == mapPropVals.cend() ||
+		    PROP_TYPE(i->second.ulPropTag) != PT_LONG)
+			return;
         i->second.Value.ul += lDelta;
     }
     
     // Updates a LONG type property
     void UpdatePropVal(unsigned int ulPropTag, unsigned int ulMask, unsigned int ulValue) {
-        std::map<unsigned int, struct propVal>::iterator i;
         if(PROP_TYPE(ulPropTag) != PT_LONG)
             return;
-        i = mapPropVals.find(ulPropTag);
-        if(i == mapPropVals.end() || PROP_TYPE(i->second.ulPropTag) != PT_LONG)
-            return;
+		auto i = mapPropVals.find(ulPropTag);
+		if (i == mapPropVals.cend() ||
+		    PROP_TYPE(i->second.ulPropTag) != PT_LONG)
+			return;
         i->second.Value.ul &= ~ulMask;
         i->second.Value.ul |= ulValue & ulMask;
     }
@@ -347,17 +342,19 @@ public:
     size_t GetSize() const {
         size_t ulSize = 0;
         
-        std::map<unsigned int, struct propVal>::const_iterator i;
-        for (i = mapPropVals.begin(); i != mapPropVals.end(); ++i) {
-            switch(i->second.__union) {
+        for (const auto &p : mapPropVals) {
+            switch (p.second.__union) {
                 case SOAP_UNION_propValData_lpszA:
-                    ulSize += i->second.Value.lpszA ? (unsigned int)strlen(i->second.Value.lpszA) : 0;
+                    ulSize += p.second.Value.lpszA != NULL ?
+                              strlen(p.second.Value.lpszA) : 0;
 					break;
                 case SOAP_UNION_propValData_bin:
-                    ulSize += i->second.Value.bin ? i->second.Value.bin->__size + sizeof(i->second.Value.bin[0]) : 0;
+                    ulSize += p.second.Value.bin != NULL ?
+                              p.second.Value.bin->__size +
+                              sizeof(p.second.Value.bin[0]) : 0;
 					break;
                 case SOAP_UNION_propValData_hilo:
-                    ulSize += sizeof(i->second.Value.hilo[0]);
+                    ulSize += sizeof(p.second.Value.hilo[0]);
 					break;
                 default:
                     break;
