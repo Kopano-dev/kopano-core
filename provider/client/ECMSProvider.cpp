@@ -54,9 +54,6 @@ using namespace std;
 #include <kopano/mapi_ptr/mapi_memory_ptr.h>
 typedef mapi_memory_ptr<ECUSER>	ECUserPtr;
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 ECMSProvider::ECMSProvider(ULONG ulFlags, const char *szClassName) :
     ECUnknown(szClassName)

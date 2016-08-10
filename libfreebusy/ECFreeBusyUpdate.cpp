@@ -21,9 +21,6 @@
 
 #include "freebusyutil.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 ECFreeBusyUpdate::ECFreeBusyUpdate(IMessage* lpMessage)
 {

@@ -34,9 +34,6 @@
 
 #include <edkmdb.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 ECExportAddressbookChanges::ECExportAddressbookChanges(ECMsgStore *lpStore) {
 	ECSyncLog::GetLogger(&m_lpLogger);

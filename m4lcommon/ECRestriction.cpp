@@ -23,9 +23,6 @@
 #include <mapicode.h>
 #include <mapix.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 /**
  * Allocate and populate a MAPI SRestriction structure based on the current

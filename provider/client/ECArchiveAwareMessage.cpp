@@ -33,9 +33,6 @@
 #include <sstream>
 #include <kopano/ECDebug.h>
 #include <kopano/charset/convert.h>
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 #define dispidStoreEntryIds			"store-entryids"
 #define dispidItemEntryIds			"item-entryids"

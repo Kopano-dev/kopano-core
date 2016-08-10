@@ -35,9 +35,6 @@
 #include <edkmdb.h>
 #include "logontime.hpp"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 ECSessionManager::ECSessionManager(ECConfig *lpConfig, ECLogger *lpAudit,
     bool bHostedKopano, bool bDistributedKopano)

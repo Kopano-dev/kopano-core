@@ -21,9 +21,6 @@
 #include "WSUtil.h"
 #include <kopano/charset/convert.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 /*
  * TableView operations for WS transport

@@ -31,9 +31,6 @@
 #include <kopano/restrictionutil.h>
 #include "favoritesutil.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 
 //FIXME: add the classname "ECMemTablePublic"

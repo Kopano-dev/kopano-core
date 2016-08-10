@@ -50,9 +50,6 @@
 #define FIELD_NR_NAMESTR	(FIELD_NR_MAX + 2)
 #define FIELD_NR_NAMEGUID	(FIELD_NR_MAX + 3)
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 extern ECSessionManager*    g_lpSessionManager; // FIXME: remove this global and change the depended source code!
 extern ECStatsCollector* 	g_lpStatsCollector;

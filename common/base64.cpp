@@ -19,9 +19,6 @@
 #include <kopano/base64.h>
 #include <cctype>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 static const std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 

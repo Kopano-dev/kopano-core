@@ -20,9 +20,6 @@
 #include <kopano/kcodes.h>
 #include <kopano/mapiext.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 
 /*

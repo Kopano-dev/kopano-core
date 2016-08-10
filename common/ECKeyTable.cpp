@@ -19,9 +19,6 @@
 #include <cassert>
 #include <kopano/ECKeyTable.h> 
 #include <kopano/ustringutil.h>
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 bool operator!=(const sObjectTableKey& a, const sObjectTableKey& b)
 {

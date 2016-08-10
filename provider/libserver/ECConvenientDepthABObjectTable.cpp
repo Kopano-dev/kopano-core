@@ -28,9 +28,6 @@
 #include "ECMAPI.h"
 #include <kopano/stringutil.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 ECConvenientDepthABObjectTable::ECConvenientDepthABObjectTable(ECSession *lpSession, unsigned int ulABId, unsigned int ulABType, unsigned int ulABParentId, unsigned int ulABParentType, unsigned int ulFlags, const ECLocale &locale) : ECABObjectTable(lpSession, ulABId, ulABType, ulABParentId, ulABParentType, ulFlags, locale) {
     m_lpfnQueryRowData = ECConvenientDepthABObjectTable::QueryRowData;

@@ -19,9 +19,6 @@
 
 #include "ECUserManagementOffline.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 ECUserManagementOffline::ECUserManagementOffline(ECSession *lpSession,
     ECPluginFactory *lpPluginFactory, ECConfig *lpConfig) :

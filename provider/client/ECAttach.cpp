@@ -27,9 +27,6 @@
 #include <kopano/ECDebug.h>
 #include <kopano/ECInterfaceDefs.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 
 HRESULT ECAttachFactory::Create(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, ULONG ulAttachNum, ECMAPIProp *lpRoot, ECAttach **lppAttach) const

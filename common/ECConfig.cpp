@@ -19,9 +19,6 @@
 #include "ECConfigImpl.h"
 #include <kopano/charset/convert.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 ECConfig *ECConfig::Create(const configsetting_t *lpDefaults,
     const char *const *lpszDirectives)

@@ -24,9 +24,6 @@
 #include <kopano/ECUnknown.h>
 #include <kopano/ECGuid.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 ECUnknown::ECUnknown(const char *szClassName)
 {

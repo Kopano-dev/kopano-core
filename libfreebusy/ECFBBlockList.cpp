@@ -18,9 +18,6 @@
 #include <kopano/platform.h>
 #include "ECFBBlockList.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 ECFBBlockList::ECFBBlockList(void)
 {

@@ -36,9 +36,6 @@
 #include <cerrno>
 #include <mapicode.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 
 #ifndef hrSuccess

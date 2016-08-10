@@ -22,9 +22,6 @@
 #include <kopano/charset/convert.h>
 #include "WSUtil.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 /**
  * Create a WSMessageStreamExporter instance.

@@ -49,9 +49,6 @@
 
 #include <kopano/charset/convert.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 ECExchangeExportChanges::ECExchangeExportChanges(ECMsgStore *lpStore, const std::string &sk, const wchar_t * szDisplay, unsigned int ulSyncType)
 : m_iidMessage(IID_IMessage)

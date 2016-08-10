@@ -26,9 +26,6 @@
 #include <kopano/ECDebug.h>
 
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 ECABProp::ECABProp(void *lpProvider, ULONG ulObjType, BOOL fModify,
     const char *szClassName) :

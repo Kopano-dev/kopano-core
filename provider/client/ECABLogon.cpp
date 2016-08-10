@@ -33,9 +33,6 @@
 #include <kopano/stringutil.h>
 #include "pcutil.hpp"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 ECABLogon::ECABLogon(LPMAPISUP lpMAPISup, WSTransport* lpTransport, ULONG ulProfileFlags, GUID *lpGUID) : ECUnknown("IABLogon")
 {

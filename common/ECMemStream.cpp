@@ -23,9 +23,6 @@
 #include <kopano/Trace.h>
 #include <kopano/ECDebug.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 /*
  * ECMemBlock implementation 

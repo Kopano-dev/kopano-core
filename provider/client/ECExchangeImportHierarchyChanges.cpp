@@ -38,9 +38,6 @@
 #include <kopano/charset/utf8string.h>
 #include <kopano/charset/convstring.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 ECExchangeImportHierarchyChanges::ECExchangeImportHierarchyChanges(ECMAPIFolder *lpFolder){
 	m_lpFolder = lpFolder;

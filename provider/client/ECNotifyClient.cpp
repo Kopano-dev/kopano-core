@@ -29,9 +29,6 @@
 
 #define MAX_NOTIFS_PER_CALL 64
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 static inline std::pair<ULONG,ULONG> SyncAdviseToConnection(const SSyncAdvise &sSyncAdvise) {
 	return std::make_pair(sSyncAdvise.sSyncState.ulSyncId,sSyncAdvise.ulConnection);

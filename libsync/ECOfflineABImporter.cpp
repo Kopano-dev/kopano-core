@@ -29,9 +29,6 @@
 
 #include <list>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 static inline bool operator==(const ECENTRYID& lhs, const ECENTRYID& rhs)
 {

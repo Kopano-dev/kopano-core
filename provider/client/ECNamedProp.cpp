@@ -27,9 +27,6 @@
 #include "ECNamedProp.h"
 #include "WSTransport.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 /*
  * How our named properties work

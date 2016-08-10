@@ -32,9 +32,6 @@
 #include <algorithm>
 using namespace std;
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 recurrence::recurrence() {
 	m_ulMonth = 0x0;

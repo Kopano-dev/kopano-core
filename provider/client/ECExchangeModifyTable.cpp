@@ -42,9 +42,6 @@
 
 #include <kopano/ECInterfaceDefs.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 static LPWSTR WTF1252_to_WCHAR(LPCSTR szWTF1252, LPVOID lpBase, convert_context *lpConverter)
 {

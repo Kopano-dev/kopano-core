@@ -39,9 +39,6 @@
 #include <edkmdb.h>
 #include <kopano/mapiext.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 #define _(string) dcgettext("kopano", string, LC_MESSAGES)
 

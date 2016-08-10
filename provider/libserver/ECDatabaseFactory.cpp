@@ -22,9 +22,6 @@
 
 #include "ECServerEntrypoint.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 // The ECDatabaseFactory creates database objects connected to the server database. Which
 // database is returned is chosen by the database_engine configuration setting.

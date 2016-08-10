@@ -49,9 +49,6 @@
 
 #include <kopano/charset/convstring.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 static LONG __stdcall AdviseECFolderCallback(void *lpContext, ULONG cNotif,
     LPNOTIFICATION lpNotif)

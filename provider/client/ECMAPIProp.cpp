@@ -44,9 +44,6 @@
 
 #include <sstream>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 static struct rights ECPermToRightsCheap(const ECPERMISSION &p)
 {

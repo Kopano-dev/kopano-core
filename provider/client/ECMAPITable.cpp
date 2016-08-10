@@ -33,9 +33,6 @@
 #include <kopano/ECInterfaceDefs.h>
 
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 ECMAPITable::ECMAPITable(std::string strName, ECNotifyClient *lpNotifyClient, ULONG ulFlags) : ECUnknown("IMAPITable")
 {

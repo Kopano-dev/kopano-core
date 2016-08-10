@@ -48,9 +48,6 @@
 #include <kopano/mapiext.h>
 #include <edkmdb.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 void FreeRowSet(struct rowSet *lpRowSet, bool bBasePointerDel);
 

@@ -44,9 +44,6 @@
 #include <map>
 #include <string>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 /*
 	streams are as follows:

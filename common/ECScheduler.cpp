@@ -23,9 +23,6 @@
 #endif
 #include <sys/time.h> /* gettimeofday */
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 #define SCHEDULER_POLL_FREQUENCY	5
 

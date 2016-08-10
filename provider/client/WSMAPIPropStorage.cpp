@@ -23,9 +23,6 @@
 #include "pcutil.hpp"
 #include <kopano/charset/convert.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 /*
  *

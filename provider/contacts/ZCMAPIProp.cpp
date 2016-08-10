@@ -30,9 +30,6 @@
 #include <kopano/namedprops.h>
 #include <kopano/mapiguidext.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 ZCMAPIProp::ZCMAPIProp(ULONG ulObjType, const char *szClassName) :
     ECUnknown(szClassName), m_ulObject(ulObjType)

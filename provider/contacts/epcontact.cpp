@@ -23,9 +23,6 @@
 
 #include "ZCABProvider.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 extern "C" MSGSERVICEENTRY __stdcall MSGServiceEntry;
 

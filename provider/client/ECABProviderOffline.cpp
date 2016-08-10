@@ -32,9 +32,6 @@
 
 #include "ECABProviderOffline.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 
 ECABProviderOffline::ECABProviderOffline(void) : ECABProvider(EC_PROVIDER_OFFLINE, "ECABProviderOffline")

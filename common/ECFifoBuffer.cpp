@@ -18,9 +18,6 @@
 #include <kopano/platform.h>
 #include "ECFifoBuffer.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 ECFifoBuffer::ECFifoBuffer(size_type ulMaxSize)
 	: m_ulMaxSize(ulMaxSize)

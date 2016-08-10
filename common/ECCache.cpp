@@ -22,9 +22,6 @@
 #include <kopano/ECLogger.h>
 #include <kopano/stringutil.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 
 ECCacheBase::ECCacheBase(const std::string &strCachename, size_type ulMaxSize, long lMaxAge)

@@ -27,9 +27,6 @@
 #include <kopano/mapiext.h>
 #include <mapiutil.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 ECMAPIContainer::ECMAPIContainer(ECMsgStore *lpMsgStore, ULONG ulObjType,
     BOOL fModify, const char *szClassName) :

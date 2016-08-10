@@ -27,9 +27,6 @@
 #include <cerrno>
 #define BUFSIZE 4096
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 convert_exception::convert_exception(enum exception_type type, const std::string &message)
 	: std::runtime_error(message)

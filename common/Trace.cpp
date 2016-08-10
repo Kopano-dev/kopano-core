@@ -21,9 +21,6 @@
 #include <cstdarg>
 #include <kopano/Trace.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 #ifdef WITH_TRACING
 // Turn these on/off

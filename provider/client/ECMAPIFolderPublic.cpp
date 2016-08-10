@@ -43,9 +43,6 @@
 
 #include <kopano/ECGetText.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 
 ECMAPIFolderPublic::ECMAPIFolderPublic(ECMsgStore *lpMsgStore, BOOL fModify, WSMAPIFolderOps *lpFolderOps, enumPublicEntryID ePublicEntryID) : 

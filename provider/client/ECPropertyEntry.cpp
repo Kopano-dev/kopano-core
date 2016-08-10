@@ -21,9 +21,6 @@
 #include "Mem.h"
 #include <kopano/charset/convert.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 //
 // ECPropertyEntry

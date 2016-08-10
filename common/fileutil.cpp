@@ -35,9 +35,6 @@
 #endif
 #include "fileutil.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 #define BLOCKSIZE	65536
 

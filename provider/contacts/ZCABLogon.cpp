@@ -27,9 +27,6 @@
 #include <mapix.h>
 #include <edkmdb.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 ZCABLogon::ZCABLogon(LPMAPISUP lpMAPISup, ULONG ulProfileFlags, GUID *lpGUID) : ECUnknown("IABLogon")
 {

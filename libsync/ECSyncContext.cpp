@@ -46,9 +46,6 @@ typedef mapi_object_ptr<IECChangeAdvisor, IID_IECChangeAdvisor> ECChangeAdvisorP
 typedef mapi_object_ptr<IECChangeAdviseSink, IID_IECChangeAdviseSink> ECChangeAdviseSinkPtr;
 //DEFINEMAPIPTR(ECChangeAdviseSink);
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 #define EC_SYNC_STATUS_VERSION			1
 

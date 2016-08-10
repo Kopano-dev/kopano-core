@@ -21,9 +21,6 @@
 #include "SOAPUtils.h"
 #include "WSUtil.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 WSStoreTableView::WSStoreTableView(ULONG ulType, ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport) : WSTableView(ulType, ulFlags, lpCmd, lpDataLock, ecSessionId, cbEntryId, lpEntryId, lpTransport, "WSStoreTableView")
 {

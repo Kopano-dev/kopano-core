@@ -26,9 +26,6 @@
 #include "SessionGroupData.h"
 #include "WSTransport.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 
 SessionGroupData::SessionGroupData(ECSESSIONGROUPID ecSessionGroupId, ECSessionGroupInfo *lpInfo, const sGlobalProfileProps &sProfileProps)

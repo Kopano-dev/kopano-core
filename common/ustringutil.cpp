@@ -88,9 +88,6 @@ typedef std::unique_ptr<Collator> unique_ptr_Collator;
 #include <kopano/charset/convert.h>
 #endif
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 #ifndef ZCP_USES_ICU
 ECSortKey::ECSortKey(const unsigned char *lpSortData, unsigned int cbSortData)

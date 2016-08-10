@@ -31,9 +31,6 @@
 #include <kopano/Util.h>
 #include <kopano/stringutil.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 /**
  * Generates ical VALARM component from reminderbefore minutes.

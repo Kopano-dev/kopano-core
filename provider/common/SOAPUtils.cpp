@@ -31,9 +31,6 @@
 
 using namespace std;
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 /* See m4lcommon/Util.cpp for twcmp */
 template<typename T> static int twcmp(T a, T b)

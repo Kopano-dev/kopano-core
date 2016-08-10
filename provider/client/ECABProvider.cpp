@@ -41,9 +41,6 @@ typedef mapi_memory_ptr<ECUSER>	ECUserPtr;
 
 using namespace std;
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 ECABProvider::ECABProvider(ULONG ulFlags, const char *szClassName) :
     ECUnknown(szClassName)

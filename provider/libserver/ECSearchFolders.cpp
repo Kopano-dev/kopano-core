@@ -36,9 +36,6 @@
 
 #include "ECSearchClient.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 typedef struct {
     SEARCHFOLDER 	*lpFolder;

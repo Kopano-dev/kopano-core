@@ -31,9 +31,6 @@
 	#include "DBUserPlugin.h"
 #endif
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 ECPluginFactory::ECPluginFactory(ECConfig *config, ECStatsCollector *lpStatsCollector,
     bool bHosted, bool bDistributed)

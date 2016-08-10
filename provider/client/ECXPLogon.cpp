@@ -40,9 +40,6 @@
 #include <kopano/mapi_ptr.h>
 
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 static HRESULT HrGetECMsgStore(IMAPIProp *lpProp, ECMsgStore **lppECMsgStore)
 {

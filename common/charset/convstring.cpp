@@ -18,9 +18,6 @@
 #include <kopano/platform.h>
 #include <kopano/charset/convstring.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 /** Create a convstring instance from a SPropValue.
  *

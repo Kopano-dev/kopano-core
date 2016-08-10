@@ -32,9 +32,6 @@
 #include "ECGenericObjectTable.h"
 #include <kopano/threadutil.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 #include <algorithm>
 

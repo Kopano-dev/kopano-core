@@ -26,9 +26,6 @@
 #include <cstdlib>
 #include <mapidefs.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 // for LOG_MAIL
 #include <syslog.h>

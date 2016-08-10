@@ -42,9 +42,6 @@
 
 #include "ProviderUtil.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 
 ECMSProviderOffline::ECMSProviderOffline(ULONG ulFlags) : 

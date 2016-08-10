@@ -44,60 +44,7 @@
 
 #include <list>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
-#ifdef _DEBUG
-class NullStream _kc_final : public IStream
-{
-public:
-	NullStream() : m_cRef(1) {}
-
-	// IUnknown
-	ULONG __stdcall AddRef() { return ++m_cRef; }
-	ULONG __stdcall Release() { 
-		ULONG cRef = --m_cRef; 
-		if (!m_cRef) 
-			delete this; 
-		return cRef; 
-	}
-	HRESULT __stdcall QueryInterface(REFIID refiid, void **lpvoid) {
-		if (refiid == IID_IUnknown || refiid == IID_IStream) {
-			AddRef();
-			*lpvoid = this;
-			return hrSuccess;
-		}
-		return MAPI_E_INTERFACE_NOT_SUPPORTED;
-	}
-	
-	// ISequentialStream
-	HRESULT __stdcall Read(void *pv, ULONG cb, ULONG *pcbRead) { 
-		if (pcbRead)
-			*pcbRead = cb;
-		return hrSuccess; 
-	}
-	HRESULT __stdcall Write(const void *pv, ULONG cb, ULONG *pcbWritten) { 
-		if (pcbWritten)
-			*pcbWritten = cb;
-		return hrSuccess; 
-	}
-
-	// IStream
-	HRESULT __stdcall Seek(LARGE_INTEGER dlibMove, DWORD dwOrigin, ULARGE_INTEGER *plibNewPosition) { return MAPI_E_NO_SUPPORT; }
-	HRESULT __stdcall SetSize(ULARGE_INTEGER libNewSize) { return MAPI_E_NO_SUPPORT; }
-	HRESULT __stdcall CopyTo(IStream *pstm, ULARGE_INTEGER cb, ULARGE_INTEGER *pcbRead, ULARGE_INTEGER *pcbWritten) { return MAPI_E_NO_SUPPORT; }
-	HRESULT __stdcall Commit(DWORD grfCommitFlags) { return MAPI_E_NO_SUPPORT; }
-	HRESULT __stdcall Revert(void) { return MAPI_E_NO_SUPPORT; }
-	HRESULT __stdcall LockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType) { return MAPI_E_NO_SUPPORT; }
-	HRESULT __stdcall UnlockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType) { return MAPI_E_NO_SUPPORT; }
-	HRESULT __stdcall Stat(STATSTG *pstatstg, DWORD grfStatFlag) { return MAPI_E_NO_SUPPORT; }
-	HRESULT __stdcall Clone(IStream **ppstm) { return MAPI_E_NO_SUPPORT; }
-
-private:
-	ULONG	m_cRef;
-};
-#endif
 
 ECExchangeImportContentsChanges::ECExchangeImportContentsChanges(ECMAPIFolder *lpFolder)
 : m_iidMessage(IID_IMessage)

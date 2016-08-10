@@ -32,9 +32,6 @@
 #include <kopano/charset/convert.h>
 #include "EntryPoint.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 ECGenericProp::ECGenericProp(void *lpProvider, ULONG ulObjType, BOOL fModify,
     const char *szClassName) :

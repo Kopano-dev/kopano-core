@@ -26,9 +26,6 @@
 #include <pthread.h>
 #include <cassert>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 namespace detail {
 

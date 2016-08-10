@@ -64,9 +64,6 @@ typedef mapi_object_ptr<ECMessage, IID_ECMessage> ECMessagePtr;
 
 using namespace std;
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 // FIXME: from libserver/ECMAPI.h
 #define MSGFLAG_DELETED                           ((ULONG) 0x00000400)

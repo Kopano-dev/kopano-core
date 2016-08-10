@@ -62,9 +62,6 @@
 
 #include "TmpPath.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 // The following value is based on:
 // http://dev.mysql.com/doc/refman/5.0/en/server-system-variables.html#sysvar_thread_stack

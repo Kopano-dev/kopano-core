@@ -35,9 +35,6 @@
 
 using namespace std;
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 #include <boost/filesystem.hpp>
 namespace fs = boost::filesystem;

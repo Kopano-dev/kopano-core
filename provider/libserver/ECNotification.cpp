@@ -19,9 +19,6 @@
 #include "ECMAPI.h"
 #include "SOAPUtils.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 ECNotification::ECNotification()
 {

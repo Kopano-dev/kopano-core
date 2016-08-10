@@ -26,9 +26,6 @@
 #include <kopano/ECGuid.h>
 #include "versions.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 bool IsKopanoEntryId(ULONG cb, LPBYTE lpEntryId)
 {

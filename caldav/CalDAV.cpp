@@ -54,9 +54,6 @@ using namespace std;
 #endif
 
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 
 struct HandlerArgs {

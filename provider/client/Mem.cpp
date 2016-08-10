@@ -22,9 +22,6 @@
 #include <kopano/Trace.h>
 #include "Mem.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 // We don't want that here
 #undef ECAllocateBuffer

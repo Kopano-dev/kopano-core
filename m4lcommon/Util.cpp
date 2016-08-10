@@ -54,9 +54,6 @@ using namespace std;
 
 #include <kopano/ECGetText.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 // HACK: prototypes may differ depending on the compiler and/or system (the
 // second parameter may or may not be 'const'). This redeclaration is a hack

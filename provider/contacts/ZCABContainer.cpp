@@ -39,9 +39,6 @@
 #include <kopano/stringutil.h>
 using namespace std;
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 ZCABContainer::ZCABContainer(std::vector<zcabFolderEntry> *lpFolders,
     IMAPIFolder *lpContacts, LPMAPISUP lpMAPISup, void *lpProvider,

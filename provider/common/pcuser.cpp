@@ -22,9 +22,6 @@
 
 #include <sstream>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 template<int(*fnCmp)(const char*, const char*)>
 class StringComparer {

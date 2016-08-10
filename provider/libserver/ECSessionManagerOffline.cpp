@@ -21,9 +21,6 @@
 #include "ECSecurity.h"
 #include "ECSessionManagerOffline.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 ECSessionManagerOffline::ECSessionManagerOffline(ECConfig *lpConfig,
     bool bHostedKopano, bool bDistributedKopano) :

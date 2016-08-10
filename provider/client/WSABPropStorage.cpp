@@ -21,9 +21,6 @@
 #include "WSUtil.h"
 #include <kopano/charset/convert.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 #define START_SOAP_CALL retry:
 #define END_SOAP_CALL   \

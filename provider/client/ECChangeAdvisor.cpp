@@ -26,9 +26,6 @@
 #include "ECMsgStore.h"
 
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 ULONG ECChangeAdvisor::GetSyncId(const ConnectionMap::value_type &sConnection)
 {

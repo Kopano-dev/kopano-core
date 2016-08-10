@@ -19,9 +19,6 @@
 #include <kopano/charset/utf16string.h>
 #include "utf32string.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 /** 
  * Make charset string ignore invalid characters, possebly converting

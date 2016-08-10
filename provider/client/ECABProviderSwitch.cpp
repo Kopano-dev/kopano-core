@@ -39,9 +39,6 @@
 
 #include <kopano/charset/convstring.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 ECABProviderSwitch::ECABProviderSwitch(void) : ECUnknown("ECABProviderSwitch")
 {

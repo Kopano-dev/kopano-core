@@ -26,9 +26,6 @@
 
 #include "ECDisplayTable.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 ECMailUser::ECMailUser(void* lpProvider, BOOL fModify) : ECABProp(lpProvider, MAPI_MAILUSER, fModify, "IMailUser")
 {

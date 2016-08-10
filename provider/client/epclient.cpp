@@ -62,11 +62,6 @@
 
 using namespace std;
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-
-#define DEBUG_WITH_MEMORY_DUMP 0 // Sure to dump memleaks before the dll is exit
-#endif
 
 class EPCDeleter {
 	public:

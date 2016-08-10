@@ -27,9 +27,6 @@
 #include <mapidefs.h>
 #include <kopano/CommonUtil.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 #ifdef DEBUG
 #define DEBUG_SQL 0
 #define DEBUG_TRANSACTION 0

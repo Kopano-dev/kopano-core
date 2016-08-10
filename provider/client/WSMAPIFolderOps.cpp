@@ -27,9 +27,6 @@
 
 #include <kopano/charset/utf8string.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 #define START_SOAP_CALL retry:
 #define END_SOAP_CALL 	\

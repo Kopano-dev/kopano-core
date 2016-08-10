@@ -53,9 +53,6 @@
 #include <boost/filesystem.hpp>
 namespace bfs = boost::filesystem;
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 #if defined LINUX || !defined UNICODE
 #define WHITESPACE " \t\n\r"

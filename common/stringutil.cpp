@@ -22,9 +22,6 @@
 
 #include <kopano/ECIConv.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 std::string stringify(unsigned int x, bool usehex, bool _signed) {
 	char szBuff[33];

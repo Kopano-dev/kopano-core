@@ -36,9 +36,6 @@
 #include "soapH.h"
 #include "SOAPUtils.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 extern ECSessionManager*	g_lpSessionManager;
 

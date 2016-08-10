@@ -22,9 +22,6 @@
 
 #include <kopano/codepage.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 // These charset should all be supported by iconv
 
