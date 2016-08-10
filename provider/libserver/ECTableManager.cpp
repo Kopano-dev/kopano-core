@@ -93,15 +93,12 @@ ECTableManager::ECTableManager(ECSession *lpSession)
 
 ECTableManager::~ECTableManager()
 {
-	std::map<unsigned int, TABLE_ENTRY *>::const_iterator iterTables;
-	std::map<unsigned int, TABLE_ENTRY *>::const_iterator iterNext;
-
 	pthread_mutex_lock(&hListMutex);
 
-	iterTables = mapTable.begin();
+	auto iterTables = mapTable.cbegin();
 	// Clean up tables, if CloseTable(..) isn't called 
-	while(iterTables != mapTable.end()) {
-		iterNext = iterTables;
+	while (iterTables != mapTable.cend()) {
+		auto iterNext = iterTables;
 		++iterNext;
 		CloseTable(iterTables->first);
 		iterTables = iterNext;
@@ -570,12 +567,11 @@ ECRESULT ECTableManager::GetTable(unsigned int ulTableId, ECGenericObjectTable *
 {
 	ECRESULT		er = erSuccess;
 	ECGenericObjectTable	*lpTable = NULL;
-	std::map<unsigned int, TABLE_ENTRY *>::const_iterator iterTables;
 
 	pthread_mutex_lock(&hListMutex);
 
-	iterTables = mapTable.find(ulTableId);
-	if(iterTables == mapTable.end()) {
+	auto iterTables = mapTable.find(ulTableId);
+	if (iterTables == mapTable.cend()) {
 		er = KCERR_NOT_FOUND;
 		goto exit;
 	}
@@ -599,14 +595,11 @@ exit:
 ECRESULT ECTableManager::CloseTable(unsigned int ulTableId)
 {
 	ECRESULT er = erSuccess;
-	std::map<unsigned int, TABLE_ENTRY *>::const_iterator iterTables;
 	TABLE_ENTRY *lpEntry = NULL;
 
 	pthread_mutex_lock(&hListMutex);
-	iterTables = mapTable.find(ulTableId);
-
-	if(iterTables != mapTable.end())
-	{
+	auto iterTables = mapTable.find(ulTableId);
+	if (iterTables != mapTable.cend()) {
 		// Remember the table entry struct
 		lpEntry = iterTables->second;
 		

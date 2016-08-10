@@ -831,7 +831,6 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 	unsigned int	ulDeleteFlags = 0;
 	time_t			ulTime = 0;
 	ECListInt		lObjectIds;
-	ECListIntIterator	iterObjectId;
 	unsigned int	ulFolders = 0, ulMessages = 0;
 	unsigned int	ulStores = 0;
 	bool 			bExitDummy = false;
@@ -888,8 +887,8 @@ static ECRESULT PurgeSoftDelete(ECSession *lpecSession,
 
 		ec_log_info("Start to purge %d stores", (int)lObjectIds.size());
 
-		for (iterObjectId = lObjectIds.begin();
-		     iterObjectId != lObjectIds.end() && !*lpbExit;
+		for (auto iterObjectId = lObjectIds.cbegin();
+		     iterObjectId != lObjectIds.cend() && !*lpbExit;
 		     ++iterObjectId)
 		{
 			ec_log_info(" purge store (%d)", *iterObjectId);
@@ -1731,7 +1730,6 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 	unsigned long long ullIMAP = 0;
 
 	std::set<unsigned int>	setInserted;
-	std::set<unsigned int>::const_iterator iterInserted;
 
 	GUID sGuidServer;
 	std::list<ULONG> lstObjIds;
@@ -1900,8 +1898,8 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 	// Write the properties
 	for (gsoap_size_t i = 0; i < lpPropValArray->__size; ++i) {
 	    // Check if we already inserted this property tag. We only accept the first.
-	    iterInserted = setInserted.find(lpPropValArray->__ptr[i].ulPropTag);
-	    if(iterInserted != setInserted.end())
+	    auto iterInserted = setInserted.find(lpPropValArray->__ptr[i].ulPropTag);
+	    if (iterInserted != setInserted.cend())
 	        continue;
 
         // Check if we actually need to write this property. The client may send us properties
@@ -2144,10 +2142,9 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 	}
 	
 	if(ulObjType == MAPI_MESSAGE) {
-		iterInserted = setInserted.find(PR_LAST_MODIFIER_NAME_W);
-		
+		auto iterInserted = setInserted.find(PR_LAST_MODIFIER_NAME_W);
 		// update the PR_LAST_MODIFIER_NAME and PR_LAST_MODIFIER_ENTRYID
-		if(iterInserted == setInserted.end()) {
+		if (iterInserted == setInserted.cend()) {
 			er = GetABEntryID(lpecSession->GetSecurity()->GetUserId(), soap, &sUserId);
 			if(er != erSuccess)
 				goto exit;
@@ -2187,7 +2184,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 
 	if(!fNewItem) {
 		// Update, so write the modtime and clear UNMODIFIED flag
-		if(setInserted.find(PR_LAST_MODIFICATION_TIME) == setInserted.end()) {
+		if (setInserted.find(PR_LAST_MODIFICATION_TIME) == setInserted.cend()) {
 		    struct propVal sProp;
 		    struct hiloLong sHilo;
 		    struct sObjectTableKey key;
@@ -2229,7 +2226,8 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 		}
 	} else {
 		// New item, make sure PR_CREATION_TIME and PR_LAST_MODIFICATION_TIME are available
-		if(setInserted.find(PR_LAST_MODIFICATION_TIME) == setInserted.end() || setInserted.find(PR_CREATION_TIME) == setInserted.end()) {
+		if (setInserted.find(PR_LAST_MODIFICATION_TIME) == setInserted.cend() ||
+		    setInserted.find(PR_CREATION_TIME) == setInserted.cend()) {
 			struct propVal sPropTime;
 			FILETIME ft;
 			unsigned int tags[] = { PR_LAST_MODIFICATION_TIME, PR_CREATION_TIME };
@@ -2278,9 +2276,8 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 	if(fNewItem && ulObjType == MAPI_MESSAGE) {
         // Add PR_SOURCE_KEY to new messages without a given PR_SOURCE_KEY
         // This isn't for folders, this done in the createfolder function
-		iterInserted = setInserted.find(PR_SOURCE_KEY);
-
-		if(iterInserted == setInserted.end()) {
+		auto iterInserted = setInserted.find(PR_SOURCE_KEY);
+		if (iterInserted == setInserted.cend()) {
 			er = lpecSession->GetNewSourceKey(&sSourceKey);
 			if (er != erSuccess)
 				goto exit;
@@ -2351,7 +2348,7 @@ static ECRESULT DeleteProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 
 	// Delete one or more properties of an object
 	for (gsoap_size_t i = 0; i < lpsPropTags->__size; ++i) {
-		if (setNotDeletable.find(lpsPropTags->__ptr[i]) != setNotDeletable.end())
+		if (setNotDeletable.find(lpsPropTags->__ptr[i]) != setNotDeletable.cend())
 			continue;
 
 		if((lpsPropTags->__ptr[i]&MV_FLAG) == 0)
@@ -3034,7 +3031,7 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
     }
 	
 	iterProps = lpChildProps->find(ulObjId);
-	if (iterProps == lpChildProps->end())
+	if (iterProps == lpChildProps->cend())
 		er = ReadProps(soap, lpecSession, ulObjId, ulObjType, ulParentObjType, sEmptyProps, &sSavedObject.delProps, &sSavedObject.modProps);
 	else
 		er = ReadProps(soap, lpecSession, ulObjId, ulObjType, ulParentObjType, iterProps->second, &sSavedObject.delProps, &sSavedObject.modProps);
@@ -5111,14 +5108,11 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
         
         // Now find all messages that will actually change
 		strQueryCache = "SELECT id, properties.val_ulong FROM hierarchy JOIN properties ON hierarchy.id=properties.hierarchyid AND properties.tag = " + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + " AND properties.type = " + stringify(PROP_TYPE(PR_MESSAGE_FLAGS)) + " WHERE hierarchy.type=5 AND flags = 0 AND (properties.val_ulong & " + stringify(ulFlagsRemove) + " OR properties.val_ulong & " + stringify(ulFlagsAdd) + " != " + stringify(ulFlagsAdd) + ") AND hierarchyid IN (";
-		for (iterHierarchyIDs = lHierarchyIDs.begin();
-		     iterHierarchyIDs != lHierarchyIDs.end();
-		     ++iterHierarchyIDs)
-		{
-			if(iterHierarchyIDs != lHierarchyIDs.begin())
+		for (auto hier = lHierarchyIDs.cbegin();
+		     hier != lHierarchyIDs.cend(); ++hier) {
+			if (hier != lHierarchyIDs.cbegin())
 				strQueryCache += ",";
-				
-			strQueryCache += stringify(*iterHierarchyIDs);
+			strQueryCache += stringify(*hier);
 		}
 		strQueryCache += ") FOR UPDATE"; // See comment above about FOR UPDATE
 		er = lpDatabase->DoSelect(strQueryCache, &lpDBResult);
@@ -5151,9 +5145,9 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
     strQuery += " WHERE properties.hierarchyid IN(";
 
     lHierarchyIDs.clear();
-    for (iObjectid = lObjectIds.begin(); iObjectid != lObjectIds.end(); ++iObjectid) {
+    for (auto iObjectid = lObjectIds.cbegin(); iObjectid != lObjectIds.cend(); ++iObjectid) {
 
-        if(iObjectid != lObjectIds.begin())
+        if (iObjectid != lObjectIds.cbegin())
             strQuery += ",";
 
         strQuery += stringify(iObjectid->first);

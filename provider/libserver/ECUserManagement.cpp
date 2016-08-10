@@ -299,7 +299,6 @@ ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const list<objectsig
 {
 	ECRESULT er;
 	ECSecurity *lpSecurity = NULL;
-	std::map<objectid_t, unsigned int>::const_iterator iterExternLocal;
 
 	// Extern details
 	list<objectid_t> lstExternIds;
@@ -318,8 +317,8 @@ ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const list<objectsig
 		return er;
 
 	for (const auto &sig : lstSignatures) {
-		iterExternLocal = mapExternToLocal.find(sig.id);
-		if (iterExternLocal == mapExternToLocal.end())
+		auto iterExternLocal = mapExternToLocal.find(sig.id);
+		if (iterExternLocal == mapExternToLocal.cend())
 			continue;
 
 		ulObjectId = iterExternLocal->second;
@@ -359,8 +358,8 @@ ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const list<objectsig
 		}
 
 		for (const auto &ext_det : *lpExternDetails) {
-			iterExternLocal = mapExternToLocal.find(ext_det.first);
-			if (iterExternLocal == mapExternToLocal.end())
+			auto iterExternLocal = mapExternToLocal.find(ext_det.first);
+			if (iterExternLocal == mapExternToLocal.cend())
 				continue;
 
 			ulObjectId = iterExternLocal->second;
@@ -500,7 +499,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 		// Loop through all the external signatures, adding them to the lpUsers list which we're going to be returning
 		for (const auto &ext_sig : *lpExternSignatures) {
 			auto iterSignatureIdToLocal = mapSignatureIdToLocal.find(ext_sig.id);
-			if (iterSignatureIdToLocal == mapSignatureIdToLocal.end()) {
+			if (iterSignatureIdToLocal == mapSignatureIdToLocal.cend()) {
 				// User is in external user database, but not in local, so add
 				er = MoveOrCreateLocalObject(ext_sig, &ulObjectId, &bMoved);
 				if(er != erSuccess) {
@@ -1399,7 +1398,6 @@ ECRESULT ECUserManagement::GetLocalObjectsIdsOrCreate(const list<objectsignature
 {
 	ECRESULT er;
 	list<objectid_t> lstExternObjIds;
-	pair<map<objectid_t, unsigned int>::iterator,bool> result;
 	unsigned int ulObjectId;
 
 	for (const auto &sig : lstSignatures)
@@ -1410,7 +1408,7 @@ ECRESULT ECUserManagement::GetLocalObjectsIdsOrCreate(const list<objectsignature
 		return er;
 
 	for (const auto &sig : lstSignatures) {
-		result = lpmapLocalObjIds->insert(make_pair(sig.id, 0));
+		auto result = lpmapLocalObjIds->insert(make_pair(sig.id, 0));
 		if (result.second == false)
 			// object already exists
 			continue;
@@ -1831,9 +1829,6 @@ ECRESULT ECUserManagement::QueryContentsRowData(struct soap *soap, ECObjectTable
 	std::unique_ptr<map<objectid_t, objectdetails_t> > mapExternObjectDetails;
 	map<objectid_t, unsigned int> mapExternIdToRowId;
 	map<objectid_t, unsigned int> mapExternIdToObjectId;
-	std::map<objectid_t, unsigned int>::const_iterator iterObjectId;
-	std::map<objectid_t, unsigned int>::const_iterator iterRowId;
-	
 	objectdetails_t details;
 	UserPlugin *lpPlugin = NULL;
 	string signature;
@@ -1889,8 +1884,8 @@ ECRESULT ECUserManagement::QueryContentsRowData(struct soap *soap, ECObjectTable
 			mapAllObjectDetails.insert(std::make_pair(eod.first, eod.second));
 
 			// Get the local object id for the item
-			iterObjectId = mapExternIdToObjectId.find(eod.first);
-			if (iterObjectId == mapExternIdToObjectId.end())
+			auto iterObjectId = mapExternIdToObjectId.find(eod.first);
+			if (iterObjectId == mapExternIdToObjectId.cend())
 				continue;
 
 			// Add data to the cache
@@ -1917,13 +1912,13 @@ ECRESULT ECUserManagement::QueryContentsRowData(struct soap *soap, ECObjectTable
 		objectdetails_t &objectdetails = eod.second; // reference, no need to copy
 
 		// If the objectid is not found, the plugin returned too many "hits"
-		iterRowId = mapExternIdToRowId.find(objectid);
-		if (iterRowId == mapExternIdToRowId.end())
+		auto iterRowId = mapExternIdToRowId.find(objectid);
+		if (iterRowId == mapExternIdToRowId.cend())
 			continue;
 
 		// Get the local object id for the item
-		iterObjectId = mapExternIdToObjectId.find(objectid);
-		if (iterObjectId == mapExternIdToObjectId.end())
+		auto iterObjectId = mapExternIdToObjectId.find(objectid);
+		if (iterObjectId == mapExternIdToObjectId.cend())
 			continue;
 
 		// objectdetails can only be from an extern object here, no need to check for SYSTEM or EVERYONE

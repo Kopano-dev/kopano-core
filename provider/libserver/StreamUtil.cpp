@@ -126,8 +126,7 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, unsigned int ulNameId, uns
 
 	nameidkey_t key(guid, ulNameId);
 	nameidmap_t::const_iterator i = m_mapNameIds.find(key);
-
-	if (i != m_mapNameIds.end()) {
+	if (i != m_mapNameIds.cend()) {
 		*lpulId = i->second;
 		goto exit;
 	}
@@ -183,8 +182,7 @@ ECRESULT NamedPropertyMapper::GetId(const GUID &guid, const std::string &strName
 
 	namestringkey_t key(guid, strNameString);
 	namestringmap_t::const_iterator i = m_mapNameStrings.find(key);
-
-	if (i != m_mapNameStrings.end()) {
+	if (i != m_mapNameStrings.cend()) {
 		*lpulId = i->second;
 		goto exit;
 	}
@@ -558,8 +556,8 @@ ECRESULT SerializePropVal(LPCSTREAMCAPS lpStreamCaps, const struct propVal &sPro
 		if (!lpNamedPropDefs)
 			return KCERR_INVALID_TYPE;
 		iNamedPropDef = lpNamedPropDefs->find(ulPropTag);
-		ASSERT(iNamedPropDef != lpNamedPropDefs->end());
-		if (iNamedPropDef == lpNamedPropDefs->end())
+		ASSERT(iNamedPropDef != lpNamedPropDefs->cend());
+		if (iNamedPropDef == lpNamedPropDefs->cend())
 			return KCERR_NOT_FOUND;
 	}
 	
@@ -684,7 +682,7 @@ ECRESULT SerializePropVal(LPCSTREAMCAPS lpStreamCaps, const struct propVal &sPro
 	
 	// If property is named property in the dynamic range we need to add some extra info
 	if (PROP_ID(sPropVal.ulPropTag) > 0x8500) {
-		ASSERT(lpNamedPropDefs && iNamedPropDef != lpNamedPropDefs->end());
+		ASSERT(lpNamedPropDefs && iNamedPropDef != lpNamedPropDefs->cend());
 		// Send out the GUID.
 		er = lpSink->Write(&iNamedPropDef->second.guid, 1, sizeof(iNamedPropDef->second.guid));
 		if (er == erSuccess)
@@ -912,7 +910,6 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 	unsigned int	ulSubObjType = 0;
 	unsigned int	ulCount = 0;
 	ChildPropsMap	mapChildProps;
-	ChildPropsMap::const_iterator iterChild;
 	NamedPropDefMap	mapNamedPropDefs;
 
 	DB_ROW 			lpDBRow = NULL;
@@ -990,9 +987,8 @@ ECRESULT SerializeMessage(ECSession *lpecSession, ECDatabase *lpStreamDatabase, 
 			goto exit;
 			
 		// Output properties for this object
-		iterChild = mapChildProps.find(ulSubObjId);
-		
-		if(iterChild != mapChildProps.end()) {
+		auto iterChild = mapChildProps.find(ulSubObjId);
+		if (iterChild != mapChildProps.cend()) {
 			struct propValArray props;
 			
 			iterChild->second.lpPropVals->GetPropValArray(&props);
@@ -1343,7 +1339,6 @@ ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtta
 	DB_ROW			lpDBRow = NULL;
 
 	std::set<unsigned int>				setInserted;
-	std::set<unsigned int>::const_iterator iterInserted;
 
 	if (!lpDatabase) {
 		er = KCERR_DATABASE_ERROR;
@@ -1389,8 +1384,8 @@ ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtta
 		if (er != erSuccess)
 			goto exit;
 
-		iterInserted = setInserted.find(lpsPropval->ulPropTag);
-		if (iterInserted != setInserted.end())
+		auto iterInserted = setInserted.find(lpsPropval->ulPropTag);
+		if (iterInserted != setInserted.cend())
 			goto next_property;
 
 		if (ECGenProps::IsPropRedundant(lpsPropval->ulPropTag, ulObjType) == erSuccess)
@@ -1536,8 +1531,8 @@ next_property:
 	}
 
 	if (bNewItem && ulParentType == MAPI_FOLDER && RealObjType(ulObjType, ulParentType) == MAPI_MESSAGE) {
-		iterInserted = setInserted.find(PR_SOURCE_KEY);
-		if (iterInserted == setInserted.end()) {
+		auto iterInserted = setInserted.find(PR_SOURCE_KEY);
+		if (iterInserted == setInserted.cend()) {
 			er = lpecSession->GetNewSourceKey(&sSourceKey);
 			if (er != erSuccess)
 				goto exit;

@@ -410,10 +410,9 @@ static ECRESULT CheckICSDeleteScope(ECDatabase *lpDatabase,
     ECListDeleteItems &lstDeleted, unsigned int ulSyncId)
 {
 	ECRESULT er;
-	ECListDeleteItems::iterator iterDeleteItems;
 
-	for(iterDeleteItems = lstDeleted.begin(); iterDeleteItems != lstDeleted.end(); )
-	{
+	for (auto iterDeleteItems = lstDeleted.begin();
+	     iterDeleteItems != lstDeleted.end(); ) {
 		er = CheckWithinLastSyncedMessagesSet(lpDatabase, ulSyncId, iterDeleteItems->sSourceKey);
 		if (er == KCERR_NOT_FOUND) {
 			// ignore delete of message
@@ -635,7 +634,6 @@ ECRESULT DeleteObjectHard(ECSession *lpSession, ECDatabase *lpDatabase, ECAttach
 	std::string strOGQInclause;
 	std::string strQuery;
 	ECListDeleteItems lstToBeDeleted;
-	ECListDeleteItems::reverse_iterator iterDeleteItems;
 
 	PARENTINFO pi;
 	
@@ -663,8 +661,8 @@ ECRESULT DeleteObjectHard(ECSession *lpSession, ECDatabase *lpDatabase, ECAttach
 		lpAttachmentStorage = lpInternalAttachmentStorage;
 	}
 
-	for (iterDeleteItems = lstDeleteItems.rbegin(); iterDeleteItems != lstDeleteItems.rend(); )
-	{
+	for (auto iterDeleteItems = lstDeleteItems.crbegin();
+	     iterDeleteItems != lstDeleteItems.crend(); ) {
 		strInclause.clear();
 		strOGQInclause.clear();
 		lstDeleteAttachments.clear();
@@ -672,8 +670,7 @@ ECRESULT DeleteObjectHard(ECSession *lpSession, ECDatabase *lpDatabase, ECAttach
 		i = 0;
 
 		// Delete max 32 items per query
-		while (i<32 && iterDeleteItems != lstDeleteItems.rend())
-		{
+		while (i < 32 && iterDeleteItems != lstDeleteItems.crend()) {
 			if(!strInclause.empty())
 				strInclause += ",";
 
