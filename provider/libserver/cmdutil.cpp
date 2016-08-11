@@ -454,17 +454,16 @@ ECRESULT DeleteObjectStoreSize(ECSession *lpSession, ECDatabase *lpDatabase, uns
 	for (iterDeleteItems = lstDeleted.begin();
 	     iterDeleteItems != lstDeleted.end(); ++iterDeleteItems) {
 		// Get size of all the messages
-		if( iterDeleteItems->ulObjType == MAPI_MESSAGE && 
+		bool k = iterDeleteItems->ulObjType == MAPI_MESSAGE &&
 			iterDeleteItems->ulParentType == MAPI_FOLDER && 
-			(iterDeleteItems->ulFlags&MSGFLAG_DELETED) != MSGFLAG_DELETED)
-		{
-			ASSERT(iterDeleteItems->ulStoreId != 0);
-
-			if (mapStoreSize.find(iterDeleteItems->ulStoreId) != mapStoreSize.end() )
-				mapStoreSize[iterDeleteItems->ulStoreId] += iterDeleteItems->ulObjSize;
-			else
-				mapStoreSize[iterDeleteItems->ulStoreId] = iterDeleteItems->ulObjSize;
-		}
+			(iterDeleteItems->ulFlags & MSGFLAG_DELETED) != MSGFLAG_DELETED;
+		if (!k)
+			continue;
+		ASSERT(iterDeleteItems->ulStoreId != 0);
+		if (mapStoreSize.find(iterDeleteItems->ulStoreId) != mapStoreSize.end() )
+			mapStoreSize[iterDeleteItems->ulStoreId] += iterDeleteItems->ulObjSize;
+		else
+			mapStoreSize[iterDeleteItems->ulStoreId] = iterDeleteItems->ulObjSize;
 	}
 
 	// Update store size for each store
@@ -509,45 +508,42 @@ ECRESULT DeleteObjectSoft(ECSession *lpSession, ECDatabase *lpDatabase, unsigned
 	// Build where condition
 	for (iterDeleteItems=lstDeleteItems.begin();
 	     iterDeleteItems != lstDeleteItems.end(); ++iterDeleteItems) {
-		if( (iterDeleteItems->ulObjType == MAPI_MESSAGE && iterDeleteItems->ulParentType == MAPI_FOLDER) || 
-			  iterDeleteItems->ulObjType == MAPI_FOLDER  || iterDeleteItems->ulObjType == MAPI_STORE) 
-		{
-			if (iterDeleteItems->fInOGQueue) {
-				if(!strInclauseOQQ.empty())
-					strInclauseOQQ += ",";
-
-				strInclauseOQQ += stringify(iterDeleteItems->ulId);
+		bool k = (iterDeleteItems->ulObjType == MAPI_MESSAGE &&
+			iterDeleteItems->ulParentType == MAPI_FOLDER) ||
+			iterDeleteItems->ulObjType == MAPI_FOLDER ||
+			iterDeleteItems->ulObjType == MAPI_STORE;
+		if (!k)
+			continue;
+		if (iterDeleteItems->fInOGQueue) {
+			if(!strInclauseOQQ.empty())
+				strInclauseOQQ += ",";
+			strInclauseOQQ += stringify(iterDeleteItems->ulId);
+		}
+		if (!iterDeleteItems->fRoot)
+			continue;
+		if (!strInclause.empty())
+			strInclause += ",";
+		strInclause += stringify(iterDeleteItems->ulId);
+		// Track counter changes
+		if (iterDeleteItems->ulParentType != MAPI_FOLDER)
+			continue;
+		// Ignore already-softdeleted items
+		if ((iterDeleteItems->ulFlags & MSGFLAG_DELETED) != 0)
+			continue;
+		if (iterDeleteItems->ulObjType == MAPI_MESSAGE) {
+			if (iterDeleteItems->ulFlags & MAPI_ASSOCIATED) {
+				--mapFolderCounts[iterDeleteItems->ulParent].lAssoc;
+				++mapFolderCounts[iterDeleteItems->ulParent].lDeletedAssoc;
+			} else {
+				--mapFolderCounts[iterDeleteItems->ulParent].lItems;
+				++mapFolderCounts[iterDeleteItems->ulParent].lDeleted;
+				if ((iterDeleteItems->ulMessageFlags & MSGFLAG_READ) == 0)
+					--mapFolderCounts[iterDeleteItems->ulParent].lUnread;
 			}
-			
-			if (iterDeleteItems->fRoot == true)
-			{
-				if(!strInclause.empty())
-					strInclause += ",";
-
-				strInclause += stringify(iterDeleteItems->ulId);
-				
-                // Track counter changes
-                if(iterDeleteItems->ulParentType == MAPI_FOLDER) {
-                	// Ignore already-softdeleted items
-                	if((iterDeleteItems->ulFlags & MSGFLAG_DELETED) == 0) {
-						if(iterDeleteItems->ulObjType == MAPI_MESSAGE) {
-							if(iterDeleteItems->ulFlags & MAPI_ASSOCIATED) {
-								--mapFolderCounts[iterDeleteItems->ulParent].lAssoc;
-								++mapFolderCounts[iterDeleteItems->ulParent].lDeletedAssoc;
-							} else {
-								--mapFolderCounts[iterDeleteItems->ulParent].lItems;
-								++mapFolderCounts[iterDeleteItems->ulParent].lDeleted;
-								if((iterDeleteItems->ulMessageFlags & MSGFLAG_READ) == 0)
-									--mapFolderCounts[iterDeleteItems->ulParent].lUnread;
-							}
-						}
-						if(iterDeleteItems->ulObjType == MAPI_FOLDER) {
-							--mapFolderCounts[iterDeleteItems->ulParent].lFolders;
-							++mapFolderCounts[iterDeleteItems->ulParent].lDeletedFolders;
-						}
-					}
-				}
-			}
+		}
+		if (iterDeleteItems->ulObjType == MAPI_FOLDER) {
+			--mapFolderCounts[iterDeleteItems->ulParent].lFolders;
+			++mapFolderCounts[iterDeleteItems->ulParent].lDeletedFolders;
 		}
 	}
 

@@ -3107,12 +3107,12 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 	if (ulObjType == MAPI_MESSAGE) {
 		// @todo: Check if we can do this on the fly to avoid the additional lookup.
 		for (gsoap_size_t i = 0; i < sSavedObject.modProps.__size; ++i) {
-			if (sSavedObject.modProps.__ptr[i].ulPropTag == PR_SUBMIT_FLAGS) {
-				if (g_lpSessionManager->GetLockManager()->IsLocked(ulObjId, NULL))
-					sSavedObject.modProps.__ptr[i].Value.ul |= SUBMITFLAG_LOCKED;
-				else
-					sSavedObject.modProps.__ptr[i].Value.ul &= ~SUBMITFLAG_LOCKED;
-			}
+			if (sSavedObject.modProps.__ptr[i].ulPropTag != PR_SUBMIT_FLAGS)
+				continue;
+			if (g_lpSessionManager->GetLockManager()->IsLocked(ulObjId, NULL))
+				sSavedObject.modProps.__ptr[i].Value.ul |= SUBMITFLAG_LOCKED;
+			else
+				sSavedObject.modProps.__ptr[i].Value.ul &= ~SUBMITFLAG_LOCKED;
 		}
 	}
 
@@ -3299,12 +3299,12 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
     struct hiloLong sHilo;
 
 	// You're only allowed to create search folders in your own store
-	if(type == FOLDER_SEARCH) {
-	    if(lpecSession->GetSecurity()->IsStoreOwner(ulParentId) != erSuccess && (lpecSession->GetSecurity()->IsAdminOverOwnerOfObject(ulParentId) != erSuccess)) {
-	        er = KCERR_NO_ACCESS;
-	        goto exit;
-        }
-    }
+	if (type == FOLDER_SEARCH &&
+	    lpecSession->GetSecurity()->IsStoreOwner(ulParentId) != erSuccess &&
+	    (lpecSession->GetSecurity()->IsAdminOverOwnerOfObject(ulParentId) != erSuccess)) {
+		er = KCERR_NO_ACCESS;
+		goto exit;
+	}
 
 	er = lpecSession->GetSessionManager()->GetCacheManager()->GetStore(ulParentId, &ulStoreId, &guid);
 	if(er != erSuccess)
@@ -5179,7 +5179,10 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
     
     // Add changes to ICS
     for (iObjectid = lObjectIds.begin(); iObjectid != lObjectIds.end(); ++iObjectid) {
-        if( (ulFlagsRemove & MSGFLAG_READ) || (ulFlagsAdd & MSGFLAG_READ) ) {
+		bool read = (ulFlagsRemove & MSGFLAG_READ) ||
+		            (ulFlagsAdd & MSGFLAG_READ);
+		if (!read)
+			continue;
             // Only save ICS change when the actual readflag has changed
             SOURCEKEY		sSourceKey;
             SOURCEKEY		sParentSourceKey;
@@ -5195,7 +5198,6 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
             // that they are never both TRUE, we can ignore ulFlagsRemove and just look at ulFlagsAdd for the new
             // readflag state
             AddChange(lpecSession, ulSyncId, sSourceKey, sParentSourceKey, ICS_MESSAGE_FLAG, ulFlagsAdd & MSGFLAG_READ);
-        }
     }
 
     // Update counters, by counting the number of changes per folder
@@ -5206,23 +5208,23 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
         	
 		mapParents.insert(std::pair<unsigned int, unsigned int>(ulParent, 0));
 		
-		if(ulFlagsAdd & MSGFLAG_READ)
-			if((iObjectid->second & MSGFLAG_READ) == 0)
-				--mapParents[ulParent]; // Decrease unread count
-		if(ulFlagsRemove & MSGFLAG_READ)
-			if((iObjectid->second & MSGFLAG_READ) == MSGFLAG_READ)
-				++mapParents[ulParent]; // Increase unread count
+		if (ulFlagsAdd & MSGFLAG_READ &&
+		    (iObjectid->second & MSGFLAG_READ) == 0)
+			--mapParents[ulParent]; // Decrease unread count
+		if (ulFlagsRemove & MSGFLAG_READ &&
+		    (iObjectid->second & MSGFLAG_READ) == MSGFLAG_READ)
+			++mapParents[ulParent]; // Increase unread count
 	}
 	
 	for (iterParents = mapParents.begin(); iterParents != mapParents.end(); ++iterParents) {
-		if(iterParents->second != 0) {
-			er = g_lpSessionManager->GetCacheManager()->GetParent(iterParents->first, &ulGrandParent);
-			if(er != erSuccess)
-				goto exit;
-			er = UpdateFolderCount(lpDatabase, iterParents->first, PR_CONTENT_UNREAD, iterParents->second);
-			if (er != erSuccess)
-				goto exit;
-		}
+		if (iterParents->second == 0)
+			continue;
+		er = g_lpSessionManager->GetCacheManager()->GetParent(iterParents->first, &ulGrandParent);
+		if(er != erSuccess)
+			goto exit;
+		er = UpdateFolderCount(lpDatabase, iterParents->first, PR_CONTENT_UNREAD, iterParents->second);
+		if (er != erSuccess)
+			goto exit;
 	}
 	
 	er = lpDatabase->Commit();
@@ -5502,8 +5504,8 @@ SOAP_ENTRY_START(getUserList, lpsUserList->er, unsigned int ulCompanyId, entryId
 
 	for (iterUsers = lpUsers->begin(); iterUsers != lpUsers->end(); ++iterUsers) {
 		if (OBJECTCLASS_TYPE(iterUsers->GetClass()) != OBJECTTYPE_MAILUSER ||
-			iterUsers->GetClass() == NONACTIVE_CONTACT)
-				continue;
+		    iterUsers->GetClass() == NONACTIVE_CONTACT)
+			continue;
 
 		er = GetABEntryID(iterUsers->ulId, soap, &sUserEid);
 		if (er != erSuccess)
@@ -7078,19 +7080,16 @@ SOAP_ENTRY_START(finishedMessage, *result,  entryId sEntryId, unsigned int ulFla
 
 	strQuery = "UPDATE properties ";
 
-	if(!(ulFlags & EC_SUBMIT_MASTER)) {
+	if (!(ulFlags & EC_SUBMIT_MASTER))
         // Removing from local queue; remove submit flag and unsent flag
 	    strQuery += " SET val_ulong=val_ulong&~"+stringify(MSGFLAG_SUBMIT|MSGFLAG_UNSENT);
-    } else {
+	else if (ulFlags & EC_SUBMIT_DOSENTMAIL)
         // Removing from master queue
-    	if(ulFlags & EC_SUBMIT_DOSENTMAIL) {
             // Spooler sent message and moved, remove submit flag and unsent flag
     	    strQuery += " SET val_ulong=val_ulong&~" +stringify(MSGFLAG_SUBMIT|MSGFLAG_UNSENT);
-        } else {
+        else
             // Spooler only sent message
             strQuery += " SET val_ulong=val_ulong&~" +stringify(MSGFLAG_UNSENT);
-        }
-    }
 
     // Always set message read
     strQuery += ", val_ulong=val_ulong|" + stringify(MSGFLAG_READ) + " WHERE hierarchyid="+stringify(ulObjId) + " AND tag=" + stringify(PROP_ID(PR_MESSAGE_FLAGS)) + " AND type=" + stringify(PROP_TYPE(PR_MESSAGE_FLAGS));
@@ -7845,18 +7844,15 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 
 	for (iterCopyItems=lstCopyItems.begin();
 	     iterCopyItems != lstCopyItems.end(); ++iterCopyItems) {
-	    if(iterCopyItems->bMoved) {
-            // Cache update for object
-            g_lpSessionManager->GetCacheManager()->SetObject(iterCopyItems->ulId, ulDestFolderId, iterCopyItems->ulOwner, iterCopyItems->ulFlags & ~MSGFLAG_DELETED /* possible undelete */, iterCopyItems->ulType);
-
-            // Remove old sourcekey and entryid and add them
-            g_lpSessionManager->GetCacheManager()->RemoveIndexData(iterCopyItems->ulId);
-
-            g_lpSessionManager->GetCacheManager()->SetObjectProp(PROP_ID(PR_SOURCE_KEY), iterCopyItems->sNewSourceKey.size(), iterCopyItems->sNewSourceKey, iterCopyItems->ulId);
-
-            g_lpSessionManager->GetCacheManager()->SetObjectProp(PROP_ID(PR_ENTRYID), iterCopyItems->sNewEntryId.size(), iterCopyItems->sNewEntryId, iterCopyItems->ulId);
-        }
-    }
+		if (!iterCopyItems->bMoved)
+			continue;
+		// Cache update for object
+		g_lpSessionManager->GetCacheManager()->SetObject(iterCopyItems->ulId, ulDestFolderId, iterCopyItems->ulOwner, iterCopyItems->ulFlags & ~MSGFLAG_DELETED /* possible undelete */, iterCopyItems->ulType);
+		// Remove old sourcekey and entryid and add them
+		g_lpSessionManager->GetCacheManager()->RemoveIndexData(iterCopyItems->ulId);
+		g_lpSessionManager->GetCacheManager()->SetObjectProp(PROP_ID(PR_SOURCE_KEY), iterCopyItems->sNewSourceKey.size(), iterCopyItems->sNewSourceKey, iterCopyItems->ulId);
+		g_lpSessionManager->GetCacheManager()->SetObjectProp(PROP_ID(PR_ENTRYID), iterCopyItems->sNewEntryId.size(), iterCopyItems->sNewEntryId, iterCopyItems->ulId);
+	}
     
 	er = lpDatabase->Commit();
 	if (er != erSuccess) {
@@ -7866,20 +7862,19 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 
     for (iterCopyItems = lstCopyItems.begin();
          iterCopyItems != lstCopyItems.end(); ++iterCopyItems) {
-        if(iterCopyItems->bMoved) {
-            // update destenation folder after PR_ENTRYID update
-            if(cCopyItems < EC_TABLE_CHANGE_THRESHOLD) {
-                //Update messages
-                g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_DELETE, 0, iterCopyItems->ulParent, iterCopyItems->ulId, iterCopyItems->ulType);
-                //Update destenation folder
-                g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_ADD, 0, ulDestFolderId, iterCopyItems->ulId, iterCopyItems->ulType);
-            }
+		if (!iterCopyItems->bMoved)
+			continue;
+		// update destenation folder after PR_ENTRYID update
+		if (cCopyItems < EC_TABLE_CHANGE_THRESHOLD) {
+			// Update messages
+			g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_DELETE, 0, iterCopyItems->ulParent, iterCopyItems->ulId, iterCopyItems->ulType);
+			// Update destenation folder
+			g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_ADD, 0, ulDestFolderId, iterCopyItems->ulId, iterCopyItems->ulType);
+		}
 
-            // Update Store object
-            g_lpSessionManager->NotificationMoved(iterCopyItems->ulType, iterCopyItems->ulId, ulDestFolderId, iterCopyItems->ulParent, iterCopyItems->sOldEntryId);
-
-            lstParent.push_back(iterCopyItems->ulParent);
-        }		
+		// Update Store object
+		g_lpSessionManager->NotificationMoved(iterCopyItems->ulType, iterCopyItems->ulId, ulDestFolderId, iterCopyItems->ulParent, iterCopyItems->sOldEntryId);
+		lstParent.push_back(iterCopyItems->ulParent);
 	}
 
 	lstParent.sort();
@@ -11337,11 +11332,8 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags, unsigne
 	g_lpStatsCollector->Increment(SCN_DATABASE_MWOPS);
 
 exit:
-	if (lpsStreamInfo) {
-		if (lpsStreamInfo->lpPropValArray)
-			FreePropValArray(lpsStreamInfo->lpPropValArray, true);
-	}
-
+	if (lpsStreamInfo != NULL && lpsStreamInfo->lpPropValArray != NULL)
+		FreePropValArray(lpsStreamInfo->lpPropValArray, true);
 	FreeDeletedItems(&lstDeleteItems);
 
 	if(lpAttachmentStorage && er != erSuccess)
