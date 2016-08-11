@@ -4669,27 +4669,24 @@ SOAP_ENTRY_START(getIDsFromNames, lpsResponse->er,  struct namedPropArray *lpsNa
 
 				strQuery = "INSERT INTO names (nameid, namestring, guid) VALUES(";
 
-				if(lpsNamedProps->__ptr[i].lpId) {
+				if (lpsNamedProps->__ptr[i].lpId)
 					strQuery += stringify(*lpsNamedProps->__ptr[i].lpId);
-				} else {
+				else
 					strQuery += "null";
-				}
 
 				strQuery += ",";
 
-				if(lpsNamedProps->__ptr[i].lpString) {
+				if (lpsNamedProps->__ptr[i].lpString)
 					strQuery += "'" + strEscapedString + "'";
-				} else {
+				else
 					strQuery += "null";
-				}
 
 				strQuery += ",";
 
-				if(lpsNamedProps->__ptr[i].lpguid) {
+				if (lpsNamedProps->__ptr[i].lpguid)
 					strQuery += strEscapedGUID;
-				} else {
+				else
 					strQuery += "null";
-				}
 
 				strQuery += ")";
 
@@ -5093,10 +5090,8 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 		     ++iterHierarchyIDs) {
 			// Get the parent object. Note that the cache will hold this information so the loop below with GetObject() will
 			// be done directly from the cache (assuming it's not too large)
-			if(g_lpSessionManager->GetCacheManager()->GetObject(*iterHierarchyIDs, &ulParent, NULL, NULL) != erSuccess) {
+			if (g_lpSessionManager->GetCacheManager()->GetObject(*iterHierarchyIDs, &ulParent, NULL, NULL) != erSuccess)
 			    continue;
-			}
-			
 			setParents.insert(ulParent);
         }
 
@@ -5187,9 +5182,8 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
             SOURCEKEY		sSourceKey;
             SOURCEKEY		sParentSourceKey;
 
-			if(g_lpSessionManager->GetCacheManager()->GetObject(iObjectid->first, &ulParent, NULL, NULL) != erSuccess) {
+			if (g_lpSessionManager->GetCacheManager()->GetObject(iObjectid->first, &ulParent, NULL, NULL) != erSuccess)
 			    continue;
-			}
 
             GetSourceKey(iObjectid->first, &sSourceKey);
             GetSourceKey(ulParent, &sParentSourceKey);
@@ -6274,9 +6268,8 @@ SOAP_ENTRY_START(getUserListOfGroup, lpsUserList->er, unsigned int ulGroupId, en
     lpsUserList->sUserArray.__ptr = s_alloc<user>(soap, lpUsers->size());
 
 	for (iterUsers = lpUsers->begin(); iterUsers != lpUsers->end(); ++iterUsers) {
-		if (lpecSession->GetSecurity()->IsUserObjectVisible(iterUsers->ulId) != erSuccess) {
+		if (lpecSession->GetSecurity()->IsUserObjectVisible(iterUsers->ulId) != erSuccess)
 			continue;
-		}
 
 		er = GetABEntryID(iterUsers->ulId, soap, &sUserEid);
 		if (er != erSuccess)
@@ -6327,9 +6320,8 @@ SOAP_ENTRY_START(getGroupListOfUser, lpsGroupList->er, unsigned int ulUserId, en
 	lpsGroupList->sGroupArray.__size = 0;
 	lpsGroupList->sGroupArray.__ptr = s_alloc<group>(soap, lpGroups->size());
 	for (iterGroups = lpGroups->begin(); iterGroups != lpGroups->end(); ++iterGroups) {
-		if (lpecSession->GetSecurity()->IsUserObjectVisible(iterGroups->ulId) != erSuccess) {
+		if (lpecSession->GetSecurity()->IsUserObjectVisible(iterGroups->ulId) != erSuccess)
 			continue;
-		}
 
 		er = GetABEntryID(iterGroups->ulId, soap, &sGroupEid);
 		if (er != erSuccess)
@@ -6735,9 +6727,8 @@ SOAP_ENTRY_START(getRemoteViewList, lpsCompanyList->er, unsigned int ulCompanyId
 
 	for (iterCompanies = lpCompanies->begin();
 	     iterCompanies != lpCompanies->end(); ++iterCompanies) {
-		if (lpecSession->GetSecurity()->IsUserObjectVisible(iterCompanies->ulId) != erSuccess) {
+		if (lpecSession->GetSecurity()->IsUserObjectVisible(iterCompanies->ulId) != erSuccess)
 			continue;
-		}
 
 		ulAdmin = iterCompanies->GetPropInt(OB_PROP_I_SYSADMIN);
 		er = lpecSession->GetSecurity()->IsUserObjectVisible(ulAdmin);
@@ -6864,9 +6855,8 @@ SOAP_ENTRY_START(getRemoteAdminList, lpsUserList->er, unsigned int ulCompanyId, 
 
 	for (iterUsers = lpUsers->begin(); iterUsers != lpUsers->end();
 	     ++iterUsers) {
-		if (lpecSession->GetSecurity()->IsUserObjectVisible(iterUsers->ulId) != erSuccess) {
+		if (lpecSession->GetSecurity()->IsUserObjectVisible(iterUsers->ulId) != erSuccess)
 			continue;
-		}
 
 		er = GetABEntryID(iterUsers->ulId, soap, &sUserEid);
 		if (er != erSuccess)
@@ -7144,9 +7134,8 @@ table:
 			g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulParentId);
 	        
 			g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulParentId, ulObjId, MAPI_MESSAGE);
-			if(g_lpSessionManager->GetCacheManager()->GetParent(ulParentId, &ulGrandParentId) == erSuccess) {
+			if (g_lpSessionManager->GetCacheManager()->GetParent(ulParentId, &ulGrandParentId) == erSuccess)
 				g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulGrandParentId, ulParentId, MAPI_FOLDER);
-			}
 		}
 	}
 
@@ -7247,9 +7236,8 @@ SOAP_ENTRY_START(abortSubmit, *result, entryId sEntryId, unsigned int *result)
 		g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulParentId);
 
 		g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulParentId, ulObjId, MAPI_MESSAGE);
-		if(g_lpSessionManager->GetCacheManager()->GetParent(ulParentId, &ulGrandParentId) == erSuccess) {
+		if (g_lpSessionManager->GetCacheManager()->GetParent(ulParentId, &ulGrandParentId) == erSuccess)
 			g_lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulGrandParentId, ulParentId, MAPI_FOLDER);
-		}
 	}
 
 exit:
@@ -10964,12 +10952,9 @@ next_object:
 	
 exit:
     lpDatabase->Commit();
-    
-	if (er != erSuccess) {
+	if (er != erSuccess)
 		// Do not output any streams
 		lpsResponse->sMsgStreams.__size = 0;
-	}
-
 	if(lpAttachmentStorage)
 		lpAttachmentStorage->Release();
 

@@ -217,12 +217,10 @@ HRESULT PHPArraytoSortOrderSet(zval * sortorder_array, void *lpBase, LPSSortOrde
 
 		// when the key is a char &key is set else ind is set
 		zend_hash_get_current_key(target_hash, &key, &ind, 0);
-
-		if (key != NULL) {
+		if (key != NULL)
 			lpSortOrderSet->aSort[i].ulPropTag = atoi(key);
-		} else {
+		else
 			lpSortOrderSet->aSort[i].ulPropTag = ind;
-		}
 
 		convert_to_long_ex(&entry[0]);
 		lpSortOrderSet->aSort[i].ulOrder = (ULONG) entry[0]->value.lval;
@@ -1253,12 +1251,10 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 					goto exit;
 
 				lpProp->dwAlignPad = 0;
-
-				if (lpRes->rt == RES_PROPERTY) {
+				if (lpRes->rt == RES_PROPERTY)
 					lpProp->ulPropTag = lpRes->res.resProperty.ulPropTag;
-				} else {
+				else
 					lpProp->ulPropTag = lpRes->res.resContent.ulPropTag;
-				}
 
 				switch (PROP_TYPE(lpProp->ulPropTag)) {		// sets in either resContent or resProperty
 				case PT_STRING8:
@@ -1332,12 +1328,10 @@ HRESULT PHPArraytoSRestriction(zval *phpVal, void* lpBase, LPSRestriction lpRes 
 				}
 			}
 
-			if (lpRes->rt == RES_PROPERTY) {
+			if (lpRes->rt == RES_PROPERTY)
 				lpRes->res.resProperty.lpProp = lpProp;
-			} else {
+			else
 				lpRes->res.resContent.lpProp = lpProp;
-			}
-			
 		}
 		break;
 	case RES_COMPAREPROPS:

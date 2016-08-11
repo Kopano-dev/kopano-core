@@ -913,16 +913,14 @@ ECRESULT DeleteObjectNotifications(ECSession *lpSession, unsigned int ulFlags, E
 			if(cDeleteditems < EC_TABLE_CHANGE_THRESHOLD) {
 				lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_DELETE, (iterDeleteItems->ulFlags & (MSGFLAG_ASSOCIATED|MSGFLAG_DELETED)), iterDeleteItems->ulParent, iterDeleteItems->ulId, iterDeleteItems->ulObjType);
 		
-				if((ulFlags & EC_DELETE_HARD_DELETE) != EC_DELETE_HARD_DELETE) {
+				if ((ulFlags & EC_DELETE_HARD_DELETE) != EC_DELETE_HARD_DELETE)
 					// Update all tables viewing this message
 					lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_ADD, MSGFLAG_DELETED, iterDeleteItems->ulParent, iterDeleteItems->ulId, iterDeleteItems->ulObjType);
-				}
 			} else {
 				// We need to send a table change notifications later on
 				mapTableChangeNotifications[iterDeleteItems->ulParent].insert(TABLECHANGENOTIFICATION(iterDeleteItems->ulObjType, iterDeleteItems->ulFlags & MSGFLAG_NOTIFY_FLAGS));
-				if((ulFlags & EC_DELETE_HARD_DELETE) != EC_DELETE_HARD_DELETE) {
+				if ((ulFlags & EC_DELETE_HARD_DELETE) != EC_DELETE_HARD_DELETE)
 					mapTableChangeNotifications[iterDeleteItems->ulParent].insert(TABLECHANGENOTIFICATION(iterDeleteItems->ulObjType, (iterDeleteItems->ulFlags & MSGFLAG_NOTIFY_FLAGS) | MSGFLAG_DELETED));
-				}
 			}
 
 			// @todo: Is this correct ???
@@ -1099,9 +1097,8 @@ ECRESULT DeleteObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt *
 				lpSearchFolders->RemoveSearchFolder(iterDeleteItems->ulStoreId, iterDeleteItems->ulId);
 
 	// before actual delete check items which are outside the sync scope
-	if (ulSyncId != 0) {
+	if (ulSyncId != 0)
 		CheckICSDeleteScope(lpDatabase, lstDeleteItems, ulSyncId);
-	}
 	
 	// Mark or delete objects
 	if(ulFlags & EC_DELETE_HARD_DELETE)
@@ -1159,10 +1156,8 @@ ECRESULT DeleteObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt *
 	DeleteObjectCacheUpdate(lpSession, ulFlags, lstDeleted);
 
 	// Send notifications
-	if (!(ulFlags&EC_DELETE_STORE)) {
+	if (!(ulFlags&EC_DELETE_STORE))
 		DeleteObjectNotifications(lpSession, ulFlags, lstDeleted);
-	}
-
 exit:
 	if(er != erSuccess && !bNoTransaction && !(ulFlags & EC_DELETE_HARD_DELETE))
 		lpDatabase->Rollback();
