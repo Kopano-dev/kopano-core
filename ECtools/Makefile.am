@@ -10,7 +10,10 @@ AM_CPPFLAGS = ${ZCPPFLAGS} ${DEBUGFLAGS} ${BOOST_CPPFLAGS} ${SSL_CFLAGS} \
 bin_PROGRAMS = kopano-fsck kopano-passwd kopano-stats
 dist_bin_SCRIPTS = utils/kopano-set-oof
 sbin_PROGRAMS = kopano-admin kopano-archiver kopano-monitor
-dist_sbin_SCRIPTS = utils/kopano-mailbox-permissions
+dist_sbin_SCRIPTS = utils/kopano-mailbox-permissions \
+	archiver/scripts/kopano-archiver-aclset \
+	archiver/scripts/kopano-archiver-aclsync \
+	archiver/scripts/kopano-archiver-restore
 noinst_PROGRAMS = kopano-cfgchecker
 pkglibexec_PROGRAMS = mapitime
 lib_LTLIBRARIES = libkcarchiver.la libkcarchivercore.la

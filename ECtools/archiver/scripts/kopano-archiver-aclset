@@ -1,0 +1,65 @@
+#!/usr/bin/env python
+import logging
+import sys
+
+import kopano
+
+"""
+enable or disable write permissions for users archived to subfolders
+
+"""
+
+ROLE_OWNER = [
+    'folder_owner',
+    'folder_visible',
+    'delete_own',
+    'edit_all',
+    'delete_all',
+    'create_subfolders',
+    'edit_own',
+    'read_items',
+    'create_items',
+]
+
+ROLE_REVIEWER = [
+    'folder_visible',
+    'read_items',
+]
+
+def logger(options):
+    logging.basicConfig(stream=sys.stdout, level=options.loglevel)
+    return logging.getLogger('aclset')
+
+def opt_args():
+    parser = kopano.parser('spkul')
+    parser.add_option('-w', '--writable', dest='writable', action='store_true',
+        help='Enable or disable write permissions')
+    options, args = parser.parse_args()
+    return options, args
+
+def main():
+    options, args = opt_args()
+    log = logger(options)
+    stats = {'users': 0, 'errors': 0}
+    server = kopano.Server(options=options)
+
+    for user in server.users():
+        with kopano.log_exc(log, stats):
+            log.info('processing user %s', user.name)
+            stats['users'] += 1
+
+            if user.archive_folder:
+                if options.writable:
+                    log.debug('setting rights to owner')
+                    rights = ROLE_OWNER
+                else:
+                    log.debug('setting rights to reviewer')
+                    rights = ROLE_REVIEWER
+                user.archive_folder.permission(user, create=True).rights = rights
+            else:
+                log.debug('user has no archive folder')
+
+    log.info('processed %(users)d user(s) (%(errors)d error(s))' % stats)
+
+if __name__ == '__main__':
+    main()

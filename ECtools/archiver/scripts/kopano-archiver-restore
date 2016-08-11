@@ -1,0 +1,78 @@
+#!/usr/bin/env python
+import logging
+import sys
+
+import kopano
+from MAPI.Tags import ECSTORE_TYPE_ARCHIVE
+
+"""
+restore data from archive store
+
+"""
+
+def unhook_archive(user): # XXX merge into python-kopano
+    user.server.sa.UnhookStore(ECSTORE_TYPE_ARCHIVE, user.userid.decode('hex'))
+
+def logger(options):
+    logging.basicConfig(stream=sys.stdout, level=options.loglevel)
+    return logging.getLogger('restore')
+
+def opt_args():
+    parser = kopano.parser('spkul')
+    parser.add_option('', '--detach', dest='detach', action='store_true',
+        help='Detach archive before restore')
+    parser.add_option('', '--unhook', dest='unhook', action='store_true',
+        help='Unhook archive store after restore')
+    parser.add_option('', '--remove', dest='remove', action='store_true',
+        help='Remove archive store after restore')
+
+    options, args = parser.parse_args()
+
+    options.unhook = options.unhook or options.remove
+    options.detach = options.detach or options.unhook
+
+    return options, args
+
+def main():
+    options, args = opt_args()
+    log = logger(options)
+    stats = {'items': 0, 'users': 0, 'errors': 0}
+    server = kopano.Server(options=options)
+
+    for user in server.users():
+        with kopano.log_exc(log, stats):
+            log.info('processing user %s', user.name)
+            stats['users'] += 1
+
+            archive_store = user.archive_store
+            if archive_store:
+                if options.detach:
+                    log.debug('detaching archive store')
+                    user.store.archive_store = None # XXX user.archive_store = None
+
+                for folder in user.folders():
+                    log.debug('processing folder %s', folder.path)
+
+                    if folder.archive_folder:
+                        for item in folder.archive_folder:
+                            with kopano.log_exc(log, stats):
+                                log.debug('processing item %s', item.subject)
+                                stats['items'] += 1
+                                item.restore()
+                    else:
+                        log.debug('no archive folder')
+
+                if options.unhook:
+                    log.debug('unhooking archive store')
+                    unhook_archive(archive_store.user)
+
+                if options.remove:
+                    log.debug('removing archive store')
+                    server.remove_store(archive_store)
+            else:
+                log.info('no archive store')
+
+    log.info('restored %(items)d item(s) for %(users)d user(s) (%(errors)d error(s))' % stats)
+
+if __name__ == '__main__':
+    main()
