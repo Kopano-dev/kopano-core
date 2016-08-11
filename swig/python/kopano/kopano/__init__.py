@@ -4020,12 +4020,12 @@ def _loglevel(options, config):
         '4': logging.INFO,
         '5': logging.INFO,
         '6': logging.DEBUG,
-        'debug': logging.DEBUG,
-        'info': logging.INFO,
-        'warning': logging.WARNING,
-        'error': logging.ERROR,
-        'critical': logging.CRITICAL,
-    }[log_level]
+        'DEBUG': logging.DEBUG,
+        'INFO': logging.INFO,
+        'WARNING': logging.WARNING,
+        'ERROR': logging.ERROR,
+        'CRITICAL': logging.CRITICAL,
+    }[log_level.upper()]
 
 def logger(service, options=None, stdout=False, config=None, name=''):
     logger = logging.getLogger(name or service)
@@ -4059,6 +4059,9 @@ def logger(service, options=None, stdout=False, config=None, name=''):
 
 def _parse_date(option, opt_str, value, parser):
     setattr(parser.values, option.dest, datetime.datetime.strptime(value, '%Y-%m-%d'))
+
+def _parse_loglevel(option, opt_str, value, parser):
+    setattr(parser.values, option.dest, value.upper())
 
 def parser(options='cskpUPufmvCSlbe', usage=None):
     """
@@ -4128,7 +4131,7 @@ Available options:
     if 'F' in options: parser.add_option('-F', '--foreground', dest='foreground', action='store_true', help='run program in foreground')
 
     if 'm' in options: parser.add_option('-m', '--modify', dest='modify', action='store_true', help='enable database modification')
-    if 'l' in options: parser.add_option('-l', '--log-level', dest='loglevel', action='store', help='set log level', metavar='NAME')
+    if 'l' in options: parser.add_option('-l', '--log-level', dest='loglevel', action='callback', default='INFO', type='str', callback=_parse_loglevel, help='set log level (CRITICAL, ERROR, WARNING, INFO, DEBUG)', metavar='LEVEL')
     if 'v' in options: parser.add_option('-v', '--verbose', dest='verbose', action='store_true', help='enable verbose output')
     if 'V' in options: parser.add_option('-V', '--version', dest='version', action='store_true', help='show program version')
 
