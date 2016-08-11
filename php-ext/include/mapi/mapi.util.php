@@ -37,24 +37,7 @@
  */
 function makeGuid($guid)
 {
-	// remove the { and } from the string and explode it into an array
-	$guidArray = explode('-', substr($guid, 1,strlen($guid)-2));
-	
-	// convert to hex!
-	$data1[0] = intval(substr($guidArray[0], 0, 4),16); // we need to split the unsigned long
-	$data1[1] = intval(substr($guidArray[0], 4, 4),16);
-	$data2 = intval($guidArray[1], 16);
-	$data3 = intval($guidArray[2], 16);
-	
-	$data4[0] = intval(substr($guidArray[3], 0, 2),16);
-	$data4[1] = intval(substr($guidArray[3], 2, 2),16);
-	
-	for($i=0; $i < 6; $i++)
-	{
-		$data4[] = intval(substr($guidArray[4], $i*2, 2),16);
-	}
-
-	return pack("vvvvCCCCCCCC", $data1[1], $data1[0], $data2, $data3, $data4[0],$data4[1],$data4[2],$data4[3],$data4[4],$data4[5],$data4[6],$data4[7]);
+	return pack("vvvv", hexdec(substr($guid, 5, 4)), hexdec(substr($guid, 1, 4)), hexdec(substr($guid, 10, 4)), hexdec(substr($guid, 15, 4))) . hex2bin(substr($guid, 20, 4)) . hex2bin(substr($guid, 25, 12));
 }
 
 /**
