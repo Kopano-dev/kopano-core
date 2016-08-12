@@ -929,23 +929,20 @@ static HRESULT FreeServerRecipients(companyrecipients_t *lpCompanyRecips)
 static HRESULT AddServerRecipient(companyrecipients_t *lpCompanyRecips,
     ECRecipient **lppRecipient)
 {
-	companyrecipients_t::iterator iterCMP;
-	serverrecipients_t::iterator iterSRV;
-	recipients_t::const_iterator iterRecip;
 	ECRecipient *lpRecipient = *lppRecipient;
 
 	if (lpCompanyRecips == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
 	// Find or insert
-	iterCMP = lpCompanyRecips->insert(companyrecipients_t::value_type(lpRecipient->wstrCompany, serverrecipients_t())).first;
+	auto iterCMP = lpCompanyRecips->insert(companyrecipients_t::value_type(lpRecipient->wstrCompany, serverrecipients_t())).first;
 
 	// Find or insert
-	iterSRV = iterCMP->second.insert(serverrecipients_t::value_type(lpRecipient->wstrServerDisplayName, recipients_t())).first;
+	auto iterSRV = iterCMP->second.insert(serverrecipients_t::value_type(lpRecipient->wstrServerDisplayName, recipients_t())).first;
 
 	// insert into sorted set
-	iterRecip = iterSRV->second.find(lpRecipient);
-	if (iterRecip == iterSRV->second.end()) {
+	auto iterRecip = iterSRV->second.find(lpRecipient);
+	if (iterRecip == iterSRV->second.cend()) {
 		iterSRV->second.insert(lpRecipient);
 		// The recipient is in the list, and no longer belongs to the caller
 		*lppRecipient = NULL;
@@ -1046,8 +1043,8 @@ static HRESULT ResolveServerToPath(IMAPISession *lpSession,
 	}
 
 	for (ULONG i = 0; i < lpSrvList->cServers; ++i) {
-		iter = lpServerNameRecips->find((LPWSTR)lpSrvList->lpsaServer[i].lpszName);
-		if (iter == lpServerNameRecips->end()) {
+		auto iter = lpServerNameRecips->find((LPWSTR)lpSrvList->lpsaServer[i].lpszName);
+		if (iter == lpServerNameRecips->cend()) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Server '%s' not found", (char*)lpSrvList->lpsaServer[i].lpszName);
 			hr = MAPI_E_NOT_FOUND;
 			goto exit;
@@ -3449,7 +3446,7 @@ static void *HandlerLMTP(void *lpArg)
 				// Reply each recipient in the received order
 				for (const auto &i : lOrderedRecipients) {
 					std::map<std::string, std::string>::const_iterator r = mapRecipientResults.find(i);
-					if (r == mapRecipientResults.end()) {
+					if (r == mapRecipientResults.cend()) {
 						// FIXME if a following item from lORderedRecipients does succeed, then this error status
 						// is forgotten. is that ok? (FvH)
 						hr = lmtp.HrResponse("503 5.1.1 Internal error while searching recipient delivery status");

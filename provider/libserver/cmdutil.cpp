@@ -443,8 +443,6 @@ ECRESULT DeleteObjectStoreSize(ECSession *lpSession, ECDatabase *lpDatabase, uns
 {
 	ECRESULT er = erSuccess;
 	std::map<unsigned int, long long> mapStoreSize;
-	std::map<unsigned int, long long>::const_iterator iterStoreSizeItems;
-
 //TODO: check or foldersize also is used
 
 	for (const auto &di : lstDeleted) {
@@ -462,12 +460,10 @@ ECRESULT DeleteObjectStoreSize(ECSession *lpSession, ECDatabase *lpDatabase, uns
 	}
 
 	// Update store size for each store
-	for (iterStoreSizeItems = mapStoreSize.begin();
-	     iterStoreSizeItems != mapStoreSize.end() && er == erSuccess;
-	     ++iterStoreSizeItems)
-		if (iterStoreSizeItems->second > 0)
-			er = UpdateObjectSize(lpDatabase, iterStoreSizeItems->first, MAPI_STORE, UPDATE_SUB, iterStoreSizeItems->second);
-
+	for (auto i = mapStoreSize.cbegin();
+	     i != mapStoreSize.cend() && er == erSuccess; ++i)
+		if (i->second > 0)
+			er = UpdateObjectSize(lpDatabase, i->first, MAPI_STORE, UPDATE_SUB, i->second);
 	return er;
 }
 
@@ -635,8 +631,6 @@ ECRESULT DeleteObjectHard(ECSession *lpSession, ECDatabase *lpDatabase, ECAttach
 	PARENTINFO pi;
 	
 	std::map<unsigned int, PARENTINFO> mapFolderCounts;
-	std::map<unsigned int, PARENTINFO>::const_iterator iterFolderCounts;
-
 	int i;
 
 	if(!(ulFlags & EC_DELETE_HARD_DELETE)) {
@@ -928,14 +922,14 @@ ECRESULT DeleteObjectNotifications(ECSession *lpSession, unsigned int ulFlags, E
 		if(cDeleteditems >= EC_TABLE_CHANGE_THRESHOLD) {
 
 			// Find the set of notifications to send for the current parent.
-			ECMapTableChangeNotifications::const_iterator iParentNotifications = mapTableChangeNotifications.find(*iterParent);
-			if (iParentNotifications != mapTableChangeNotifications.end()) {
-				ECSetTableChangeNotifications::const_iterator iNotification;
-
+			auto pn = mapTableChangeNotifications.find(*iterParent);
+			if (pn != mapTableChangeNotifications.cend())
 				// Iterate the set and send notifications.
-				for (iNotification = iParentNotifications->second.begin(); iNotification != iParentNotifications->second.end(); ++iNotification)
-					lpSessionManager->UpdateTables(ECKeyTable::TABLE_CHANGE, iNotification->ulFlags, *iterParent, 0, iNotification->ulType);
-			}
+				for (auto n = pn->second.cbegin();
+				     n != pn->second.cend(); ++n)
+					lpSessionManager->UpdateTables(ECKeyTable::TABLE_CHANGE,
+						n->ulFlags, *iterParent,
+						0, n->ulType);
 		}
 
 		lpSessionManager->NotificationModified(MAPI_FOLDER, *iterParent);
@@ -1232,8 +1226,6 @@ void FreeDeletedItems(ECListDeleteItems *lplstDeleteItems)
  */
 ECRESULT UpdateTProp(ECDatabase *lpDatabase, unsigned int ulPropTag, unsigned int ulFolderId, ECListInt *lpObjectIDs) {
     std::string strQuery;
-    ECListInt::const_iterator iObjectid;
-    
     if(lpObjectIDs->empty())
 		return erSuccess; // Nothing to do
 
@@ -1241,8 +1233,8 @@ ECRESULT UpdateTProp(ECDatabase *lpDatabase, unsigned int ulPropTag, unsigned in
     strQuery = "UPDATE tproperties JOIN properties on properties.hierarchyid=tproperties.hierarchyid AND properties.tag=tproperties.tag AND properties.type=tproperties.type SET tproperties.val_ulong = properties.val_ulong "
     			"WHERE properties.tag = " + stringify(PROP_ID(ulPropTag)) + " AND properties.type = " + stringify(PROP_TYPE(ulPropTag)) + " AND tproperties.folderid = " + stringify(ulFolderId) + " AND properties.hierarchyid IN (";
     			
-    for (iObjectid = lpObjectIDs->begin(); iObjectid != lpObjectIDs->end(); ++iObjectid) {
-        if(iObjectid != lpObjectIDs->begin())
+    for (auto iObjectid = lpObjectIDs->cbegin(); iObjectid != lpObjectIDs->cend(); ++iObjectid) {
+        if(iObjectid != lpObjectIDs->cbegin())
             strQuery += ",";
 
         strQuery += stringify(*iObjectid);
@@ -2178,7 +2170,6 @@ ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const SOURCEKEY &sourcekey, un
 ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQuery, bool fUnicode, unsigned int ulObjId, unsigned int ulParentId, unsigned int ulMaxSize, ChildPropsMap *lpChildProps, NamedPropDefMap *lpNamedPropDefs)
 {
     ECRESULT er = erSuccess;
-	ChildPropsMap::const_iterator iterChild;
 	unsigned int ulSize;
 	struct propVal sPropVal;
     unsigned int ulChildId;
@@ -2270,9 +2261,8 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
 
         ulChildId = atoui(lpDBRow[FIELD_NR_MAX]);
 
-        iterChild = lpChildProps->find(ulChildId);
-        
-        if(iterChild == lpChildProps->end()) {
+		auto iterChild = lpChildProps->find(ulChildId);
+		if (iterChild == lpChildProps->cend()) {
             CHILDPROPS sChild;
             
             sChild.lpPropTags = new DynamicPropTagArray(soap);
@@ -2380,9 +2370,8 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
 
         ulChildId = atoui(lpDBRow[FIELD_NR_MAX]);
 
-        iterChild = lpChildProps->find(ulChildId);
-        
-        if(iterChild == lpChildProps->end()) {
+		auto iterChild = lpChildProps->find(ulChildId);
+		if (iterChild == lpChildProps->cend()) {
             CHILDPROPS sChild;
             
             sChild.lpPropTags = new DynamicPropTagArray(soap);
