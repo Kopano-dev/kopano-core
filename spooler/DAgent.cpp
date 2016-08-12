@@ -3006,32 +3006,30 @@ static HRESULT ProcessDeliveryToCompany(PyMapiPlugin *lppyMapiPlugin,
 		IMessage *lpMessageTmp = NULL;
 		bool bFallbackDeliveryTmp = false;
 
-		if (!bExpired) {
-			hr = ProcessDeliveryToServer(lppyMapiPlugin, NULL, lpMasterMessage, bFallbackDelivery, strMail, convert_to<string>(iter->first), iter->second, lpAdrBook, lpArgs, &lpMessageTmp, &bFallbackDeliveryTmp);
-			if (hr == MAPI_W_CANCEL_MESSAGE) {
-				bExpired =  true;
-				/* Don't report the error further */
-				hr = hrSuccess;
-			} else if (hr != hrSuccess) {
-				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to deliver all messages for server '%ls'", iter->first.c_str());
-			}
-
-			/* lpMessage is our base message which we will copy to each server/recipient */
-			if (lpMessageTmp) {
-				if (lpMasterMessage == NULL) {
-					// keep message to make copies of on the same server
-					lpMessageTmp->QueryInterface(IID_IMessage, (void**)&lpMasterMessage);
-				}
-
-				bFallbackDelivery = bFallbackDeliveryTmp;
-
-				lpMessageTmp->Release();
-			}
-			lpMessageTmp = NULL;
-		} else {
+		if (bExpired) {
 			/* Simply loop through all recipients to respond to LMTP */
 			RespondMessageExpired(iter->second.begin(), iter->second.end());
+			continue;
 		}
+		hr = ProcessDeliveryToServer(lppyMapiPlugin, NULL, lpMasterMessage, bFallbackDelivery, strMail, convert_to<string>(iter->first), iter->second, lpAdrBook, lpArgs, &lpMessageTmp, &bFallbackDeliveryTmp);
+		if (hr == MAPI_W_CANCEL_MESSAGE) {
+			bExpired =  true;
+			/* Don't report the error further */
+			hr = hrSuccess;
+		} else if (hr != hrSuccess) {
+			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to deliver all messages for server '%ls'", iter->first.c_str());
+		}
+
+		/* lpMessage is our base message which we will copy to each server/recipient */
+		if (lpMessageTmp) {
+			if (lpMasterMessage == NULL) {
+				// keep message to make copies of on the same server
+				lpMessageTmp->QueryInterface(IID_IMessage, (void**)&lpMasterMessage);
+			}
+			bFallbackDelivery = bFallbackDeliveryTmp;
+			lpMessageTmp->Release();
+		}
+		lpMessageTmp = NULL;
 	}
 
 	g_lpLogger->Log(EC_LOGLEVEL_INFO, "Finished processing message");

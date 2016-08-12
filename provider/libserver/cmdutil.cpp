@@ -587,19 +587,20 @@ ECRESULT DeleteObjectSoft(ECSession *lpSession, ECDatabase *lpDatabase, unsigned
 
 	for (iterDeleteItems=lstDeleteItems.begin();
 	     iterDeleteItems != lstDeleteItems.end(); ++iterDeleteItems) {
-		if( iterDeleteItems->fRoot == true && 
-			( (iterDeleteItems->ulObjType == MAPI_MESSAGE && iterDeleteItems->ulParentType == MAPI_FOLDER) || 
-			iterDeleteItems->ulObjType == MAPI_FOLDER  || iterDeleteItems->ulObjType == MAPI_STORE) )
-		{
-			strQuery = "INSERT INTO properties(hierarchyid, tag, type, val_lo, val_hi) VALUES("+stringify(iterDeleteItems->ulId)+","+stringify(PROP_ID(PR_DELETED_ON))+","+stringify(PROP_TYPE(PR_DELETED_ON))+","+stringify(ft.dwLowDateTime)+","+stringify(ft.dwHighDateTime)+") ON DUPLICATE KEY UPDATE val_lo="+stringify(ft.dwLowDateTime)+",val_hi="+stringify(ft.dwHighDateTime);
-			er = lpDatabase->DoUpdate(strQuery);
-			if(er!= erSuccess)
-				return er;
-
-			er = ECTPropsPurge::AddDeferredUpdateNoPurge(lpDatabase, iterDeleteItems->ulParent, 0, iterDeleteItems->ulId);
-			if (er != erSuccess)
-				return er;
-		}
+		bool k = iterDeleteItems->fRoot == true && 
+			((iterDeleteItems->ulObjType == MAPI_MESSAGE &&
+			iterDeleteItems->ulParentType == MAPI_FOLDER) ||
+			iterDeleteItems->ulObjType == MAPI_FOLDER ||
+			iterDeleteItems->ulObjType == MAPI_STORE);
+		if (!k)
+			continue;
+		strQuery = "INSERT INTO properties(hierarchyid, tag, type, val_lo, val_hi) VALUES("+stringify(iterDeleteItems->ulId)+","+stringify(PROP_ID(PR_DELETED_ON))+","+stringify(PROP_TYPE(PR_DELETED_ON))+","+stringify(ft.dwLowDateTime)+","+stringify(ft.dwHighDateTime)+") ON DUPLICATE KEY UPDATE val_lo="+stringify(ft.dwLowDateTime)+",val_hi="+stringify(ft.dwHighDateTime);
+		er = lpDatabase->DoUpdate(strQuery);
+		if (er!= erSuccess)
+			return er;
+		er = ECTPropsPurge::AddDeferredUpdateNoPurge(lpDatabase, iterDeleteItems->ulParent, 0, iterDeleteItems->ulId);
+		if (er != erSuccess)
+			return er;
 	}
 
 	lstDeleted = lstDeleteItems;
@@ -900,30 +901,28 @@ ECRESULT DeleteObjectNotifications(ECSession *lpSession, unsigned int ulFlags, E
 			lpSessionManager->UpdateOutgoingTables(ECKeyTable::TABLE_ROW_DELETE, iterDeleteItems->ulStoreId, iterDeleteItems->ulId, EC_SUBMIT_MASTER, MAPI_MESSAGE);
 		}
 
-		if( (iterDeleteItems->ulParentType == MAPI_FOLDER && iterDeleteItems->ulObjType == MAPI_MESSAGE) || 
-			  iterDeleteItems->ulObjType == MAPI_FOLDER ) 
-		{
-			// Notify that the message has been deleted
-			lpSessionManager->NotificationDeleted(iterDeleteItems->ulObjType, iterDeleteItems->ulId, iterDeleteItems->ulStoreId, &iterDeleteItems->sEntryId, iterDeleteItems->ulParent, iterDeleteItems->ulFlags& (MSGFLAG_ASSOCIATED|MSGFLAG_DELETED) );
-
-			// Update all tables viewing this message
-			if(cDeleteditems < EC_TABLE_CHANGE_THRESHOLD) {
-				lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_DELETE, (iterDeleteItems->ulFlags & (MSGFLAG_ASSOCIATED|MSGFLAG_DELETED)), iterDeleteItems->ulParent, iterDeleteItems->ulId, iterDeleteItems->ulObjType);
-		
-				if ((ulFlags & EC_DELETE_HARD_DELETE) != EC_DELETE_HARD_DELETE)
-					// Update all tables viewing this message
-					lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_ADD, MSGFLAG_DELETED, iterDeleteItems->ulParent, iterDeleteItems->ulId, iterDeleteItems->ulObjType);
-			} else {
-				// We need to send a table change notifications later on
-				mapTableChangeNotifications[iterDeleteItems->ulParent].insert(TABLECHANGENOTIFICATION(iterDeleteItems->ulObjType, iterDeleteItems->ulFlags & MSGFLAG_NOTIFY_FLAGS));
-				if ((ulFlags & EC_DELETE_HARD_DELETE) != EC_DELETE_HARD_DELETE)
-					mapTableChangeNotifications[iterDeleteItems->ulParent].insert(TABLECHANGENOTIFICATION(iterDeleteItems->ulObjType, (iterDeleteItems->ulFlags & MSGFLAG_NOTIFY_FLAGS) | MSGFLAG_DELETED));
-			}
-
-			// @todo: Is this correct ???
-			if (iterDeleteItems->fRoot)
-				 lstParent.push_back(iterDeleteItems->ulParent);
+		bool k = (iterDeleteItems->ulParentType == MAPI_FOLDER &&
+			iterDeleteItems->ulObjType == MAPI_MESSAGE) ||
+			iterDeleteItems->ulObjType == MAPI_FOLDER;
+		if (!k)
+			continue;
+		// Notify that the message has been deleted
+		lpSessionManager->NotificationDeleted(iterDeleteItems->ulObjType, iterDeleteItems->ulId, iterDeleteItems->ulStoreId, &iterDeleteItems->sEntryId, iterDeleteItems->ulParent, iterDeleteItems->ulFlags& (MSGFLAG_ASSOCIATED|MSGFLAG_DELETED) );
+		// Update all tables viewing this message
+		if (cDeleteditems < EC_TABLE_CHANGE_THRESHOLD) {
+			lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_DELETE, (iterDeleteItems->ulFlags & (MSGFLAG_ASSOCIATED|MSGFLAG_DELETED)), iterDeleteItems->ulParent, iterDeleteItems->ulId, iterDeleteItems->ulObjType);
+			if ((ulFlags & EC_DELETE_HARD_DELETE) != EC_DELETE_HARD_DELETE)
+				// Update all tables viewing this message
+				lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_ADD, MSGFLAG_DELETED, iterDeleteItems->ulParent, iterDeleteItems->ulId, iterDeleteItems->ulObjType);
+		} else {
+			// We need to send a table change notifications later on
+			mapTableChangeNotifications[iterDeleteItems->ulParent].insert(TABLECHANGENOTIFICATION(iterDeleteItems->ulObjType, iterDeleteItems->ulFlags & MSGFLAG_NOTIFY_FLAGS));
+			if ((ulFlags & EC_DELETE_HARD_DELETE) != EC_DELETE_HARD_DELETE)
+				mapTableChangeNotifications[iterDeleteItems->ulParent].insert(TABLECHANGENOTIFICATION(iterDeleteItems->ulObjType, (iterDeleteItems->ulFlags & MSGFLAG_NOTIFY_FLAGS) | MSGFLAG_DELETED));
 		}
+		// @todo: Is this correct ???
+		if (iterDeleteItems->fRoot)
+			 lstParent.push_back(iterDeleteItems->ulParent);
 	}
 
 	// We have a list of all the folders in which something was deleted, so get a unique list
@@ -1128,17 +1127,19 @@ ECRESULT DeleteObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt *
 		for (iterDeleteItems = lstDeleteItems.begin();
 		     iterDeleteItems != lstDeleteItems.end();
 		     ++iterDeleteItems) {
-			if( !(ulFlags & EC_DELETE_HARD_DELETE) && iterDeleteItems->fRoot &&
-				iterDeleteItems->ulParentType == MAPI_FOLDER && iterDeleteItems->ulObjType == MAPI_MESSAGE)
-			{
-				// directly hard-delete the item is not supported for updating PR_LOCAL_COMMIT_TIME_MAX
-				er = WriteLocalCommitTimeMax(NULL, lpDatabase, iterDeleteItems->ulParent, NULL);
-				if (er != erSuccess) {
-					ec_log_info("Error while updating folder access time after delete, error code %u", er);
-					goto exit;
-				}
-				// the folder will receive a changed notification anyway, since items are being deleted from it
+			bool k = !(ulFlags & EC_DELETE_HARD_DELETE) &&
+				iterDeleteItems->fRoot &&
+				iterDeleteItems->ulParentType == MAPI_FOLDER &&
+				iterDeleteItems->ulObjType == MAPI_MESSAGE;
+			if (!k)
+				continue;
+			// directly hard-delete the item is not supported for updating PR_LOCAL_COMMIT_TIME_MAX
+			er = WriteLocalCommitTimeMax(NULL, lpDatabase, iterDeleteItems->ulParent, NULL);
+			if (er != erSuccess) {
+				ec_log_info("Error while updating folder access time after delete, error code %u", er);
+				goto exit;
 			}
+			// the folder will receive a changed notification anyway, since items are being deleted from it
 		}
 	}
 	
