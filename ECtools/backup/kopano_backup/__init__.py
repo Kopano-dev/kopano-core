@@ -237,9 +237,9 @@ class Service(kopano.Service):
 
         # determine stored and specified folders
         path_folder = folder_struct(self.data_path, self.options)
-        paths = self.options.folders or sorted(path_folder.keys())
+        paths = [_decode(f) for f in self.options.folders] or sorted(path_folder.keys())
         if self.options.recursive:
-            paths = [path2 for path2 in path_folder for path in paths if path2.startswith(path+'/')]
+            paths = [path2 for path2 in path_folder for path in paths if (path2+'//').startswith(path+'/')]
 
         # restore specified folders
         for path in paths:
@@ -248,7 +248,7 @@ class Service(kopano.Service):
                 stats['errors'] += 1
             else:
                 # handle --restore-root, filter and start restore
-                restore_path = self.options.restore_root+'/'+path if self.options.restore_root else path
+                restore_path = _decode(self.options.restore_root)+'/'+path if self.options.restore_root else path
                 folder = store.subtree.folder(restore_path, create=True)
                 if (not store.public and \
                     ((self.options.skip_junk and folder == store.junk) or \
@@ -262,7 +262,7 @@ class Service(kopano.Service):
     def create_jobs(self):
         """ check command-line options and determine which stores should be backed up """
 
-        output_dir = self.options.output_dir or ''
+        output_dir = _decode(self.options.output_dir) if self.options.output_dir else ''
         jobs = []
 
         # specified companies/all users
@@ -379,7 +379,7 @@ def folder_struct(data_path, options, mapper=None):
     if mapper is None:
         mapper = {}
     if os.path.exists(data_path+'/path'):
-        path = file(data_path+'/path').read()
+        path = file(data_path+'/path').read().decode('utf8')
         mapper[path] = data_path
     if os.path.exists(data_path+'/folders'):
         for f in os.listdir(data_path+'/folders'):
@@ -404,7 +404,7 @@ def show_contents(data_path, options):
     # setup CSV writer, perform basic checks
     writer = csv.writer(sys.stdout)
     path_folder = folder_struct(data_path, options)
-    paths = options.folders or sorted(path_folder)
+    paths = [_decode(f) for f in options.folders] or sorted(path_folder)
     for path in paths:
         if path not in path_folder:
             print 'no such folder:', path
@@ -429,13 +429,13 @@ def show_contents(data_path, options):
 
         # --stats: one entry per folder
         if options.stats:
-            writer.writerow([path, len(items)])
+            writer.writerow([path.encode(sys.stdout.encoding or 'utf8'), len(items)])
 
         # --index: one entry per item
         elif options.index:
             items.sort(key=lambda (k, d): d['last_modified'])
             for key, d in items:
-                writer.writerow([key, path, d['last_modified'], d['subject'].encode(sys.stdout.encoding or 'utf8')])
+                writer.writerow([key, path.encode(sys.stdout.encoding or 'utf8'), d['last_modified'], d['subject'].encode(sys.stdout.encoding or 'utf8')])
 
 def dump_props(props):
     """ dump given MAPI properties """
