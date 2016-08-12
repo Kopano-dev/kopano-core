@@ -609,21 +609,23 @@ Wrapper around MAPI properties
         self.idname = REV_TAG.get(self.proptag) # XXX slow, often unused: make into properties?
         self.type_ = PROP_TYPE(self.proptag)
         self.typename = REV_TYPE.get(self.type_)
-        self.named = (self.id_ >= 0x8000)
+        self.named = False
         self.kind = None
         self.kindname = None
         self.guid = None
         self.name = None
         self.namespace = None
 
-        if self.named:
+        if self.id_ >= 0x8000: # possible named prop
             try:
                 lpname = self._parent_mapiobj.GetNamesFromIDs([self.proptag], None, 0)[0]
-                self.guid = bin2hex(lpname.guid)
-                self.namespace = GUID_NAMESPACE.get(lpname.guid)
-                self.name = lpname.id
-                self.kind = lpname.kind
-                self.kindname = 'MNID_STRING' if lpname.kind == MNID_STRING else 'MNID_ID'
+                if lpname:
+                    self.guid = bin2hex(lpname.guid)
+                    self.namespace = GUID_NAMESPACE.get(lpname.guid)
+                    self.name = lpname.id
+                    self.kind = lpname.kind
+                    self.kindname = 'MNID_STRING' if lpname.kind == MNID_STRING else 'MNID_ID'
+                    self.named = True
             except MAPIErrorNoSupport: # XXX user.props()?
                 pass
 
@@ -2866,7 +2868,7 @@ class Item(object):
         for prop in self.props():
             if (bestbody != PR_NULL and prop.proptag in (PR_BODY_W, PR_HTML, PR_RTF_COMPRESSED) and prop.proptag != bestbody):
                 continue
-            if prop.id_ >= 0x8000: # named prop: prop.id_ system dependant..
+            if prop.named: # named prop: prop.id_ system dependant..
                 data = [prop.proptag, prop.mapiobj.Value, self.mapiobj.GetNamesFromIDs([prop.proptag], None, 0)[0]]
                 if not archiver and data[2].guid == PSETID_Archive:
                     continue
