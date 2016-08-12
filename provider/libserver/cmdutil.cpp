@@ -485,8 +485,6 @@ ECRESULT DeleteObjectStoreSize(ECSession *lpSession, ECDatabase *lpDatabase, uns
 ECRESULT DeleteObjectSoft(ECSession *lpSession, ECDatabase *lpDatabase, unsigned int ulFlags, ECListDeleteItems &lstDeleteItems, ECListDeleteItems &lstDeleted)
 {
 	ECRESULT er;
-	ECListDeleteItems::const_iterator iterDeleteItems;
-
 	FILETIME ft;
 	std::string strInclauseOQQ;
 	std::string strInclause;
@@ -497,44 +495,43 @@ ECRESULT DeleteObjectSoft(ECSession *lpSession, ECDatabase *lpDatabase, unsigned
 	std::map<unsigned int, PARENTINFO> mapFolderCounts;
 
 	// Build where condition
-	for (iterDeleteItems=lstDeleteItems.begin();
-	     iterDeleteItems != lstDeleteItems.end(); ++iterDeleteItems) {
-		bool k = (iterDeleteItems->ulObjType == MAPI_MESSAGE &&
-			iterDeleteItems->ulParentType == MAPI_FOLDER) ||
-			iterDeleteItems->ulObjType == MAPI_FOLDER ||
-			iterDeleteItems->ulObjType == MAPI_STORE;
+	for (const auto &di : lstDeleteItems) {
+		bool k = (di.ulObjType == MAPI_MESSAGE &&
+			di.ulParentType == MAPI_FOLDER) ||
+			di.ulObjType == MAPI_FOLDER ||
+			di.ulObjType == MAPI_STORE;
 		if (!k)
 			continue;
-		if (iterDeleteItems->fInOGQueue) {
+		if (di.fInOGQueue) {
 			if(!strInclauseOQQ.empty())
 				strInclauseOQQ += ",";
-			strInclauseOQQ += stringify(iterDeleteItems->ulId);
+			strInclauseOQQ += stringify(di.ulId);
 		}
-		if (!iterDeleteItems->fRoot)
+		if (!di.fRoot)
 			continue;
 		if (!strInclause.empty())
 			strInclause += ",";
-		strInclause += stringify(iterDeleteItems->ulId);
+		strInclause += stringify(di.ulId);
 		// Track counter changes
-		if (iterDeleteItems->ulParentType != MAPI_FOLDER)
+		if (di.ulParentType != MAPI_FOLDER)
 			continue;
 		// Ignore already-softdeleted items
-		if ((iterDeleteItems->ulFlags & MSGFLAG_DELETED) != 0)
+		if ((di.ulFlags & MSGFLAG_DELETED) != 0)
 			continue;
-		if (iterDeleteItems->ulObjType == MAPI_MESSAGE) {
-			if (iterDeleteItems->ulFlags & MAPI_ASSOCIATED) {
-				--mapFolderCounts[iterDeleteItems->ulParent].lAssoc;
-				++mapFolderCounts[iterDeleteItems->ulParent].lDeletedAssoc;
+		if (di.ulObjType == MAPI_MESSAGE) {
+			if (di.ulFlags & MAPI_ASSOCIATED) {
+				--mapFolderCounts[di.ulParent].lAssoc;
+				++mapFolderCounts[di.ulParent].lDeletedAssoc;
 			} else {
-				--mapFolderCounts[iterDeleteItems->ulParent].lItems;
-				++mapFolderCounts[iterDeleteItems->ulParent].lDeleted;
-				if ((iterDeleteItems->ulMessageFlags & MSGFLAG_READ) == 0)
-					--mapFolderCounts[iterDeleteItems->ulParent].lUnread;
+				--mapFolderCounts[di.ulParent].lItems;
+				++mapFolderCounts[di.ulParent].lDeleted;
+				if ((di.ulMessageFlags & MSGFLAG_READ) == 0)
+					--mapFolderCounts[di.ulParent].lUnread;
 			}
 		}
-		if (iterDeleteItems->ulObjType == MAPI_FOLDER) {
-			--mapFolderCounts[iterDeleteItems->ulParent].lFolders;
-			++mapFolderCounts[iterDeleteItems->ulParent].lDeletedFolders;
+		if (di.ulObjType == MAPI_FOLDER) {
+			--mapFolderCounts[di.ulParent].lFolders;
+			++mapFolderCounts[di.ulParent].lDeletedFolders;
 		}
 	}
 
@@ -576,21 +573,28 @@ ECRESULT DeleteObjectSoft(ECSession *lpSession, ECDatabase *lpDatabase, unsigned
 
 	// Add properties: PR_DELETED_ON
 	GetSystemTimeAsFileTime(&ft);
-
-	for (iterDeleteItems=lstDeleteItems.begin();
-	     iterDeleteItems != lstDeleteItems.end(); ++iterDeleteItems) {
-		bool k = iterDeleteItems->fRoot == true && 
-			((iterDeleteItems->ulObjType == MAPI_MESSAGE &&
-			iterDeleteItems->ulParentType == MAPI_FOLDER) ||
-			iterDeleteItems->ulObjType == MAPI_FOLDER ||
-			iterDeleteItems->ulObjType == MAPI_STORE);
+	for (const auto &di : lstDeleteItems) {
+		bool k = di.fRoot == true && 
+			((di.ulObjType == MAPI_MESSAGE &&
+			di.ulParentType == MAPI_FOLDER) ||
+			di.ulObjType == MAPI_FOLDER ||
+			di.ulObjType == MAPI_STORE);
 		if (!k)
 			continue;
-		strQuery = "INSERT INTO properties(hierarchyid, tag, type, val_lo, val_hi) VALUES("+stringify(iterDeleteItems->ulId)+","+stringify(PROP_ID(PR_DELETED_ON))+","+stringify(PROP_TYPE(PR_DELETED_ON))+","+stringify(ft.dwLowDateTime)+","+stringify(ft.dwHighDateTime)+") ON DUPLICATE KEY UPDATE val_lo="+stringify(ft.dwLowDateTime)+",val_hi="+stringify(ft.dwHighDateTime);
+		strQuery = "INSERT INTO properties(hierarchyid, tag, type, val_lo, val_hi) VALUES(" +
+			stringify(di.ulId) + "," +
+			stringify(PROP_ID(PR_DELETED_ON)) + "," +
+			stringify(PROP_TYPE(PR_DELETED_ON)) + "," +
+			stringify(ft.dwLowDateTime) + "," +
+			stringify(ft.dwHighDateTime) +
+			") ON DUPLICATE KEY UPDATE val_lo=" +
+			stringify(ft.dwLowDateTime) + ",val_hi=" +
+			stringify(ft.dwHighDateTime);
 		er = lpDatabase->DoUpdate(strQuery);
 		if (er!= erSuccess)
 			return er;
-		er = ECTPropsPurge::AddDeferredUpdateNoPurge(lpDatabase, iterDeleteItems->ulParent, 0, iterDeleteItems->ulId);
+		er = ECTPropsPurge::AddDeferredUpdateNoPurge(lpDatabase,
+		     di.ulParent, 0, di.ulId);
 		if (er != erSuccess)
 			return er;
 	}
@@ -863,10 +867,7 @@ ECRESULT DeleteObjectCacheUpdate(ECSession *lpSession, unsigned int ulFlags, ECL
 ECRESULT DeleteObjectNotifications(ECSession *lpSession, unsigned int ulFlags, ECListDeleteItems &lstDeleted)
 {
 	ECSessionManager *lpSessionManager = NULL;
-	ECListDeleteItems::iterator iterDeleteItems;
-
 	std::list<unsigned int> lstParent;
-	std::list<unsigned int>::const_iterator iterParent;
 	ECMapTableChangeNotifications mapTableChangeNotifications;
 	//std::set<unsigned int>	setFolderParents;
 	size_t cDeleteditems = lstDeleted.size();
@@ -878,37 +879,43 @@ ECRESULT DeleteObjectNotifications(ECSession *lpSession, unsigned int ulFlags, E
 	lpSessionManager = lpSession->GetSessionManager();
 
 	// Now, send the notifications for MAPI_MESSAGE and MAPI_FOLDER types
-	for (iterDeleteItems = lstDeleted.begin();
-	     iterDeleteItems != lstDeleted.end(); ++iterDeleteItems) {
+	for (auto &di : lstDeleted) {
 		// Update the outgoing queue
 		// Remove the item from both the local and master outgoing queues
-		if( (iterDeleteItems->ulFlags & MSGFLAG_SUBMIT) && iterDeleteItems->ulParentType == MAPI_FOLDER && iterDeleteItems->ulObjType == MAPI_MESSAGE) {
-			lpSessionManager->UpdateOutgoingTables(ECKeyTable::TABLE_ROW_DELETE, iterDeleteItems->ulStoreId, iterDeleteItems->ulId, EC_SUBMIT_LOCAL, MAPI_MESSAGE);
-			lpSessionManager->UpdateOutgoingTables(ECKeyTable::TABLE_ROW_DELETE, iterDeleteItems->ulStoreId, iterDeleteItems->ulId, EC_SUBMIT_MASTER, MAPI_MESSAGE);
+		if ((di.ulFlags & MSGFLAG_SUBMIT) &&
+		    di.ulParentType == MAPI_FOLDER &&
+		    di.ulObjType == MAPI_MESSAGE) {
+			lpSessionManager->UpdateOutgoingTables(ECKeyTable::TABLE_ROW_DELETE, di.ulStoreId, di.ulId, EC_SUBMIT_LOCAL, MAPI_MESSAGE);
+			lpSessionManager->UpdateOutgoingTables(ECKeyTable::TABLE_ROW_DELETE, di.ulStoreId, di.ulId, EC_SUBMIT_MASTER, MAPI_MESSAGE);
 		}
 
-		bool k = (iterDeleteItems->ulParentType == MAPI_FOLDER &&
-			iterDeleteItems->ulObjType == MAPI_MESSAGE) ||
-			iterDeleteItems->ulObjType == MAPI_FOLDER;
+		bool k = (di.ulParentType == MAPI_FOLDER &&
+			di.ulObjType == MAPI_MESSAGE) ||
+			di.ulObjType == MAPI_FOLDER;
 		if (!k)
 			continue;
 		// Notify that the message has been deleted
-		lpSessionManager->NotificationDeleted(iterDeleteItems->ulObjType, iterDeleteItems->ulId, iterDeleteItems->ulStoreId, &iterDeleteItems->sEntryId, iterDeleteItems->ulParent, iterDeleteItems->ulFlags& (MSGFLAG_ASSOCIATED|MSGFLAG_DELETED) );
+		lpSessionManager->NotificationDeleted(di.ulObjType, di.ulId,
+			di.ulStoreId, &di.sEntryId, di.ulParent,
+			di.ulFlags & (MSGFLAG_ASSOCIATED | MSGFLAG_DELETED));
 		// Update all tables viewing this message
 		if (cDeleteditems < EC_TABLE_CHANGE_THRESHOLD) {
-			lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_DELETE, (iterDeleteItems->ulFlags & (MSGFLAG_ASSOCIATED|MSGFLAG_DELETED)), iterDeleteItems->ulParent, iterDeleteItems->ulId, iterDeleteItems->ulObjType);
+			lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_DELETE,
+				di.ulFlags & (MSGFLAG_ASSOCIATED | MSGFLAG_DELETED),
+				di.ulParent, di.ulId, di.ulObjType);
 			if ((ulFlags & EC_DELETE_HARD_DELETE) != EC_DELETE_HARD_DELETE)
 				// Update all tables viewing this message
-				lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_ADD, MSGFLAG_DELETED, iterDeleteItems->ulParent, iterDeleteItems->ulId, iterDeleteItems->ulObjType);
+				lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_ADD,
+					MSGFLAG_DELETED, di.ulParent, di.ulId, di.ulObjType);
 		} else {
 			// We need to send a table change notifications later on
-			mapTableChangeNotifications[iterDeleteItems->ulParent].insert(TABLECHANGENOTIFICATION(iterDeleteItems->ulObjType, iterDeleteItems->ulFlags & MSGFLAG_NOTIFY_FLAGS));
+			mapTableChangeNotifications[di.ulParent].insert(TABLECHANGENOTIFICATION(di.ulObjType, di.ulFlags & MSGFLAG_NOTIFY_FLAGS));
 			if ((ulFlags & EC_DELETE_HARD_DELETE) != EC_DELETE_HARD_DELETE)
-				mapTableChangeNotifications[iterDeleteItems->ulParent].insert(TABLECHANGENOTIFICATION(iterDeleteItems->ulObjType, (iterDeleteItems->ulFlags & MSGFLAG_NOTIFY_FLAGS) | MSGFLAG_DELETED));
+				mapTableChangeNotifications[di.ulParent].insert(TABLECHANGENOTIFICATION(di.ulObjType, (di.ulFlags & MSGFLAG_NOTIFY_FLAGS) | MSGFLAG_DELETED));
 		}
 		// @todo: Is this correct ???
-		if (iterDeleteItems->fRoot)
-			 lstParent.push_back(iterDeleteItems->ulParent);
+		if (di.fRoot)
+			 lstParent.push_back(di.ulParent);
 	}
 
 	// We have a list of all the folders in which something was deleted, so get a unique list
@@ -918,24 +925,22 @@ ECRESULT DeleteObjectNotifications(ECSession *lpSession, unsigned int ulFlags, E
 	// Now, send each parent folder a notification that it has been altered and send
 	// its parent a notification (ie the grandparent of the deleted object) that its
 	// hierarchy table has been changed.
-	for (iterParent = lstParent.begin(); iterParent != lstParent.end(); ++iterParent) {
+	for (auto pa_id : lstParent) {
 		if(cDeleteditems >= EC_TABLE_CHANGE_THRESHOLD) {
 
 			// Find the set of notifications to send for the current parent.
-			auto pn = mapTableChangeNotifications.find(*iterParent);
+			auto pn = mapTableChangeNotifications.find(pa_id);
 			if (pn != mapTableChangeNotifications.cend())
 				// Iterate the set and send notifications.
 				for (auto n = pn->second.cbegin();
 				     n != pn->second.cend(); ++n)
 					lpSessionManager->UpdateTables(ECKeyTable::TABLE_CHANGE,
-						n->ulFlags, *iterParent,
-						0, n->ulType);
+						n->ulFlags, pa_id, 0, n->ulType);
 		}
-
-		lpSessionManager->NotificationModified(MAPI_FOLDER, *iterParent);
-
-		if(lpSessionManager->GetCacheManager()->GetParent(*iterParent, &ulGrandParent) == erSuccess)
-			lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY, 0, ulGrandParent, *iterParent, MAPI_FOLDER);
+		lpSessionManager->NotificationModified(MAPI_FOLDER, pa_id);
+		if (lpSessionManager->GetCacheManager()->GetParent(pa_id, &ulGrandParent) == erSuccess)
+			lpSessionManager->UpdateTables(ECKeyTable::TABLE_ROW_MODIFY,
+				0, ulGrandParent, pa_id, MAPI_FOLDER);
 	}
 	return erSuccess;
 }
@@ -1031,7 +1036,6 @@ ECRESULT DeleteObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt *
 	ECRESULT er = erSuccess;
 	ECListDeleteItems lstDeleteItems;
 	ECListDeleteItems lstDeleted;
-	ECListDeleteItems::const_iterator iterDeleteItems;
 	ECSearchFolders *lpSearchFolders = NULL;
 	ECSessionManager *lpSessionManager = NULL;
 	
@@ -1071,12 +1075,10 @@ ECRESULT DeleteObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt *
 	if (ulFlags & EC_DELETE_STORE)
 		lpSearchFolders->RemoveSearchFolder(*lpsObjectList->begin());
 	else
-		for (iterDeleteItems = lstDeleteItems.begin();
-		     iterDeleteItems != lstDeleteItems.end();
-		     ++iterDeleteItems)
-			if (iterDeleteItems->ulObjType == MAPI_FOLDER &&
-			    iterDeleteItems->ulFlags == FOLDER_SEARCH)
-				lpSearchFolders->RemoveSearchFolder(iterDeleteItems->ulStoreId, iterDeleteItems->ulId);
+		for (const auto &di : lstDeleteItems)
+			if (di.ulObjType == MAPI_FOLDER &&
+			    di.ulFlags == FOLDER_SEARCH)
+				lpSearchFolders->RemoveSearchFolder(di.ulStoreId, di.ulId);
 
 	// before actual delete check items which are outside the sync scope
 	if (ulSyncId != 0)
@@ -1110,17 +1112,14 @@ ECRESULT DeleteObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt *
 		}
 
 		// Update local commit time on top level folders
-		for (iterDeleteItems = lstDeleteItems.begin();
-		     iterDeleteItems != lstDeleteItems.end();
-		     ++iterDeleteItems) {
+		for (const auto &di : lstDeleteItems) {
 			bool k = !(ulFlags & EC_DELETE_HARD_DELETE) &&
-				iterDeleteItems->fRoot &&
-				iterDeleteItems->ulParentType == MAPI_FOLDER &&
-				iterDeleteItems->ulObjType == MAPI_MESSAGE;
+				di.fRoot && di.ulParentType == MAPI_FOLDER &&
+				di.ulObjType == MAPI_MESSAGE;
 			if (!k)
 				continue;
 			// directly hard-delete the item is not supported for updating PR_LOCAL_COMMIT_TIME_MAX
-			er = WriteLocalCommitTimeMax(NULL, lpDatabase, iterDeleteItems->ulParent, NULL);
+			er = WriteLocalCommitTimeMax(NULL, lpDatabase, di.ulParent, NULL);
 			if (er != erSuccess) {
 				ec_log_info("Error while updating folder access time after delete, error code %u", er);
 				goto exit;
@@ -1204,11 +1203,8 @@ void FreeDeleteItem(DELETEITEM *src)
 
 void FreeDeletedItems(ECListDeleteItems *lplstDeleteItems)
 {
-	ECListDeleteItems::iterator iterDeleteItems;
-	
-	for (iterDeleteItems = lplstDeleteItems->begin();
-	     iterDeleteItems != lplstDeleteItems->end(); ++iterDeleteItems)
-		FreeDeleteItem(&(*iterDeleteItems));
+	for (auto &di : *lplstDeleteItems)
+		FreeDeleteItem(&di);
 	lplstDeleteItems->clear();
 }
 
@@ -1960,15 +1956,13 @@ static ECRESULT LockFolders(ECDatabase *lpDatabase, bool bShared,
     const std::set<unsigned int> &setParents)
 {
     std::string strQuery;
-    std::set<unsigned int>::const_iterator i;
-
     if(setParents.empty())
 		return erSuccess;
     
     strQuery = "SELECT * FROM properties WHERE hierarchyid IN(";
     
-    for (i = setParents.begin(); i != setParents.end(); ++i) {
-        strQuery += stringify(*i);
+	for (auto pa_id : setParents) {
+		strQuery += stringify(pa_id);
         strQuery += ",";
     }
     strQuery.resize(strQuery.size()-1);
@@ -2407,17 +2401,13 @@ exit:
 
 ECRESULT FreeChildProps(std::map<unsigned int, CHILDPROPS> *lpChildProps)
 {
-    std::map<unsigned int, CHILDPROPS>::const_iterator iterChild;
-    
-    for (iterChild = lpChildProps->begin(); iterChild != lpChildProps->end(); ++iterChild) {
-        if(iterChild->second.lpPropVals)
-            delete iterChild->second.lpPropVals;
-        if(iterChild->second.lpPropTags)
-            delete iterChild->second.lpPropTags;
-    }
-    
+	for (const auto &cp : *lpChildProps) {
+		if (cp.second.lpPropVals)
+			delete cp.second.lpPropVals;
+		if (cp.second.lpPropTags)
+			delete cp.second.lpPropTags;
+	}
     lpChildProps->clear();
     
     return erSuccess;
 }
-

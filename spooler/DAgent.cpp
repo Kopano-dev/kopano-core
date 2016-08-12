@@ -897,20 +897,13 @@ static HRESULT ResolveUser(DeliveryArgs *lpArgs, IABContainer *lpAddrFolder,
  */
 static HRESULT FreeServerRecipients(companyrecipients_t *lpCompanyRecips)
 {
-	companyrecipients_t::const_iterator iterCMP;
-	serverrecipients_t::const_iterator iterSRV;
-	recipients_t::const_iterator iterRCPT;
-
 	if (lpCompanyRecips == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
-	for (iterCMP = lpCompanyRecips->begin();
-	     iterCMP != lpCompanyRecips->end(); ++iterCMP)
-		for (iterSRV = iterCMP->second.begin();
-		     iterSRV != iterCMP->second.end(); ++iterSRV)
-			for (iterRCPT = iterSRV->second.begin();
-			     iterRCPT != iterSRV->second.end(); ++iterRCPT)
-				delete *iterRCPT;
+	for (const auto &cmp : *lpCompanyRecips)
+		for (const auto &srv : cmp.second)
+			for (const auto &rcpt : srv.second)
+				delete rcpt;
 	lpCompanyRecips->clear();
 	return hrSuccess;
 }
@@ -973,7 +966,6 @@ static HRESULT ResolveServerToPath(IMAPISession *lpSession,
 	LPSPropValue	lpsObject = NULL;
 	ECSVRNAMELIST *lpSrvNameList = NULL;
 	ECSERVERLIST *lpSrvList = NULL;
-	serverrecipients_t::const_iterator iter;
 
 	if (!lpServerNameRecips || !lpServerPathRecips) {
 		hr = MAPI_E_INVALID_PARAMETER;
@@ -1018,21 +1010,22 @@ static HRESULT ResolveServerToPath(IMAPISession *lpSession,
 	}
 
 	lpSrvNameList->cServers = 0;
-	for (iter = lpServerNameRecips->begin(); iter != lpServerNameRecips->end(); ++iter) {
-		if (iter->first.empty()) {
+	for (const auto &iter : *lpServerNameRecips) {
+		if (iter.first.empty()) {
 			// recipient doesn't have a home server.
 			// don't try to resolve since that will break the GetServerDetails call
 			// and thus fail all recipients, not just this one
 			continue;
 		}
 
-		hr = MAPIAllocateMore((iter->first.size() + 1) * sizeof(WCHAR), lpSrvNameList, (LPVOID *)&lpSrvNameList->lpszaServer[lpSrvNameList->cServers]);
+		hr = MAPIAllocateMore((iter.first.size() + 1) * sizeof(wchar_t),
+		     lpSrvNameList, reinterpret_cast<LPVOID *>(&lpSrvNameList->lpszaServer[lpSrvNameList->cServers]));
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ResolveServerToPath(): MAPIAllocateMore failed(2) %x", hr);
 			goto exit;
 		}
 
-		wcscpy((LPWSTR)lpSrvNameList->lpszaServer[lpSrvNameList->cServers], iter->first.c_str());
+		wcscpy(reinterpret_cast<LPWSTR>(lpSrvNameList->lpszaServer[lpSrvNameList->cServers]), iter.first.c_str());
 		++lpSrvNameList->cServers;
 	}
 
@@ -2969,7 +2962,6 @@ static HRESULT ProcessDeliveryToCompany(PyMapiPlugin *lppyMapiPlugin,
 	IMessage *lpMasterMessage = NULL;
 	std::string strMail;
 	serverrecipients_t listServerPathRecips;
-	serverrecipients_t::const_iterator iter;
 	bool bFallbackDelivery = false;
 	bool bExpired = false;
 
@@ -2999,22 +2991,26 @@ static HRESULT ProcessDeliveryToCompany(PyMapiPlugin *lppyMapiPlugin,
 		goto exit;
 	}
 
-	for (iter = listServerPathRecips.begin(); iter != listServerPathRecips.end(); ++iter) {
+	for (const auto &iter : listServerPathRecips) {
 		IMessage *lpMessageTmp = NULL;
 		bool bFallbackDeliveryTmp = false;
 
 		if (bExpired) {
 			/* Simply loop through all recipients to respond to LMTP */
-			RespondMessageExpired(iter->second.begin(), iter->second.end());
+			RespondMessageExpired(iter.second.cbegin(), iter.second.cend());
 			continue;
 		}
-		hr = ProcessDeliveryToServer(lppyMapiPlugin, NULL, lpMasterMessage, bFallbackDelivery, strMail, convert_to<string>(iter->first), iter->second, lpAdrBook, lpArgs, &lpMessageTmp, &bFallbackDeliveryTmp);
+		hr = ProcessDeliveryToServer(lppyMapiPlugin, NULL,
+		     lpMasterMessage, bFallbackDelivery, strMail,
+		     convert_to<std::string>(iter.first), iter.second,
+		     lpAdrBook, lpArgs, &lpMessageTmp, &bFallbackDeliveryTmp);
 		if (hr == MAPI_W_CANCEL_MESSAGE) {
 			bExpired =  true;
 			/* Don't report the error further */
 			hr = hrSuccess;
 		} else if (hr != hrSuccess) {
-			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to deliver all messages for server '%ls'", iter->first.c_str());
+			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to deliver all messages for server '%ls'",
+				iter.first.c_str());
 		}
 
 		/* lpMessage is our base message which we will copy to each server/recipient */
