@@ -182,7 +182,6 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 	std::string strQuery;
 	std::set<unsigned int> setIDs;
 	ECListDeleteItems lstDeleteItems;
-	ECListDeleteItems::const_iterator iterDeleteItems;
 	ECListDeleteItems lstContainerItems;
 	DELETEITEM sItem;
 	ECSessionManager *lpSessionManager = NULL;
@@ -294,13 +293,12 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 
 	// Now, run through the list, adding children to the bottom of the list. This means
 	// we're actually running width-first, and don't have to do anything recursive.
-	for (iterDeleteItems=lstDeleteItems.begin();
-	     iterDeleteItems != lstDeleteItems.end(); ++iterDeleteItems)
-	{
+	for (const auto &di : lstDeleteItems) {
 		// Free database results
 		if(lpDBResult) { lpDatabase->FreeResult(lpDBResult); lpDBResult = NULL; }
 
-		strQuery = "SELECT id, type, flags, (SELECT hierarchy_id FROM outgoingqueue WHERE outgoingqueue.hierarchy_id = hierarchy.id LIMIT 1) FROM hierarchy WHERE parent=" + stringify(iterDeleteItems->ulId);
+		strQuery = "SELECT id, type, flags, (SELECT hierarchy_id FROM outgoingqueue WHERE outgoingqueue.hierarchy_id = hierarchy.id LIMIT 1) FROM hierarchy WHERE parent=" +
+			stringify(di.ulId);
 		if((ulFlags & EC_DELETE_HARD_DELETE) != EC_DELETE_HARD_DELETE)
 			strQuery += " AND (flags&"+stringify(MSGFLAG_DELETED)+") !="+stringify(MSGFLAG_DELETED);
 
@@ -327,10 +325,11 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 			sItem.sEntryId.__ptr = NULL;
 
 			sItem.ulId = atoui(lpDBRow[0]);
-			sItem.ulParent = iterDeleteItems->ulId;
-			sItem.ulParentType = iterDeleteItems->ulObjType;
+			sItem.ulParent = di.ulId;
+			sItem.ulParentType = di.ulObjType;
 			sItem.ulObjType = atoi(lpDBRow[1]);
-			sItem.ulFlags = atoui(lpDBRow[2]) | (iterDeleteItems->ulFlags&MSGFLAG_DELETED); // Add the parent delete flag, because only the top-level object is marked for deletion
+			// Add the parent delete flag, because only the top-level object is marked for deletion
+			sItem.ulFlags = atoui(lpDBRow[2]) | (di.ulFlags & MSGFLAG_DELETED);
 			sItem.fInOGQueue = lpDBRow[3] ? true : false;
 
 			// Validate deleted object, if no valid, break directly
@@ -383,15 +382,15 @@ exit:
 ECRESULT DeleteObjectUpdateICS(ECSession *lpSession, unsigned int ulFlags, ECListDeleteItems &lstDeleted, unsigned int ulSyncId)
 {
 	ECRESULT er = erSuccess;
-	ECListDeleteItems::const_iterator iterDeleteItems;
 
-	for (iterDeleteItems = lstDeleted.begin();
-	     iterDeleteItems != lstDeleted.end(); ++iterDeleteItems)
+	for (const auto &di : lstDeleted)
 		// ICS update
-		if (iterDeleteItems->ulObjType == MAPI_MESSAGE && iterDeleteItems->ulParentType == MAPI_FOLDER)
-			AddChange(lpSession, ulSyncId, iterDeleteItems->sSourceKey, iterDeleteItems->sParentSourceKey, ulFlags & EC_DELETE_HARD_DELETE ? ICS_MESSAGE_HARD_DELETE : ICS_MESSAGE_SOFT_DELETE);
-		else if (iterDeleteItems->ulObjType == MAPI_FOLDER && !(iterDeleteItems->ulFlags & FOLDER_SEARCH))
-			AddChange(lpSession, ulSyncId, iterDeleteItems->sSourceKey, iterDeleteItems->sParentSourceKey, ulFlags & EC_DELETE_HARD_DELETE ? ICS_FOLDER_HARD_DELETE : ICS_FOLDER_SOFT_DELETE);
+		if (di.ulObjType == MAPI_MESSAGE &&
+		    di.ulParentType == MAPI_FOLDER)
+			AddChange(lpSession, ulSyncId, di.sSourceKey, di.sParentSourceKey, ulFlags & EC_DELETE_HARD_DELETE ? ICS_MESSAGE_HARD_DELETE : ICS_MESSAGE_SOFT_DELETE);
+		else if (di.ulObjType == MAPI_FOLDER &&
+		    !(di.ulFlags & FOLDER_SEARCH))
+			AddChange(lpSession, ulSyncId, di.sSourceKey, di.sParentSourceKey, ulFlags & EC_DELETE_HARD_DELETE ? ICS_FOLDER_HARD_DELETE : ICS_FOLDER_SOFT_DELETE);
 
 	return er;
 }
@@ -444,25 +443,22 @@ ECRESULT DeleteObjectStoreSize(ECSession *lpSession, ECDatabase *lpDatabase, uns
 {
 	ECRESULT er = erSuccess;
 	std::map<unsigned int, long long> mapStoreSize;
-
-	ECListDeleteItems::const_iterator iterDeleteItems;
 	std::map<unsigned int, long long>::const_iterator iterStoreSizeItems;
 
 //TODO: check or foldersize also is used
 
-	for (iterDeleteItems = lstDeleted.begin();
-	     iterDeleteItems != lstDeleted.end(); ++iterDeleteItems) {
+	for (const auto &di : lstDeleted) {
 		// Get size of all the messages
-		bool k = iterDeleteItems->ulObjType == MAPI_MESSAGE &&
-			iterDeleteItems->ulParentType == MAPI_FOLDER && 
-			(iterDeleteItems->ulFlags & MSGFLAG_DELETED) != MSGFLAG_DELETED;
+		bool k = di.ulObjType == MAPI_MESSAGE &&
+			di.ulParentType == MAPI_FOLDER &&
+			(di.ulFlags & MSGFLAG_DELETED) != MSGFLAG_DELETED;
 		if (!k)
 			continue;
-		ASSERT(iterDeleteItems->ulStoreId != 0);
-		if (mapStoreSize.find(iterDeleteItems->ulStoreId) != mapStoreSize.end() )
-			mapStoreSize[iterDeleteItems->ulStoreId] += iterDeleteItems->ulObjSize;
+		ASSERT(di.ulStoreId != 0);
+		if (mapStoreSize.find(di.ulStoreId) != mapStoreSize.end() )
+			mapStoreSize[di.ulStoreId] += di.ulObjSize;
 		else
-			mapStoreSize[iterDeleteItems->ulStoreId] = iterDeleteItems->ulObjSize;
+			mapStoreSize[di.ulStoreId] = di.ulObjSize;
 	}
 
 	// Update store size for each store
@@ -842,7 +838,6 @@ ECRESULT DeleteObjectCacheUpdate(ECSession *lpSession, unsigned int ulFlags, ECL
 {
 	ECSessionManager *lpSessionManager = NULL;
 	ECCacheManager *lpCacheManager = NULL;
-	ECListDeleteItems::const_iterator iterDeleteItems;
 
 	if (lpSession == NULL)
 		return KCERR_INVALID_PARAMETER;
@@ -851,17 +846,14 @@ ECRESULT DeleteObjectCacheUpdate(ECSession *lpSession, unsigned int ulFlags, ECL
 	lpCacheManager = lpSessionManager->GetCacheManager();
 
 	// Remove items from cache and update the outgoing queue
-	for (iterDeleteItems = lstDeleted.begin();
-	     iterDeleteItems != lstDeleted.end(); ++iterDeleteItems) {
+	for (const auto &di : lstDeleted) {
 		// update the cache
-		lpCacheManager->Update(fnevObjectDeleted, iterDeleteItems->ulId);
-
-		if (iterDeleteItems->fRoot)
-			lpCacheManager->Update(fnevObjectModified, iterDeleteItems->ulParent);
-
+		lpCacheManager->Update(fnevObjectDeleted, di.ulId);
+		if (di.fRoot)
+			lpCacheManager->Update(fnevObjectModified, di.ulParent);
 		// Update cache, Remove index properties
 		if((ulFlags & EC_DELETE_HARD_DELETE) == EC_DELETE_HARD_DELETE)
-			lpCacheManager->RemoveIndexData(iterDeleteItems->ulId);
+			lpCacheManager->RemoveIndexData(di.ulId);
 	}
 	return erSuccess;
 }
