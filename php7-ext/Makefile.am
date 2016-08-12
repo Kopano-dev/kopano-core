@@ -8,9 +8,9 @@ AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) $(BOOST_CPPFLAGS) \
 	$(PHP_INCLUDES)
 AM_CXXFLAGS = ${ZCXXFLAGS} ${ZPHPCXXFLAGS}
 
-lib_LTLIBRARIES = mapi.la
+phplib_LTLIBRARIES = mapi.la
 
-libdir=$(PHP_EXTENSION_DIR)
+phplibdir = ${PHP_EXTENSION_DIR}
 
 mapi_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version \
 	$(PHP_LDFLAGS)
