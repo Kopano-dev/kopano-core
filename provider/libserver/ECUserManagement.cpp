@@ -107,32 +107,6 @@ static bool execute_script(const char *scriptname, ...)
 #endif
 }
 
-#if 0
-static std::string HostnameFromSoap(struct soap *soap)
-{
-	/*
-	 * Is the client connecting using an IP address or fully qualified hostname?
-	 * SOAP knows... SOAP is all-knowing.
-	 */
-	if (soap->host[0] == '\0') {
-		/* Use the endpoint which is something like: http://<ip>:<port>/<path>*/
-		std::string ip = soap->endpoint;
-		size_t pos;
-
-		pos = ip.find("://");
-		if (pos != std::string::npos)
-			ip.erase(0, ip.find_first_not_of(":/", pos));
-
-		pos = ip.find_first_of(":/");
-		if (pos != std::string::npos)
-			ip.erase(pos, std::string::npos);
-
-		return ip;
-	}
-	return std::string(soap->host);
-}
-#endif
-
 static const char *ObjectClassToName(objectclass_t objclass)
 {
 	switch (objclass) {

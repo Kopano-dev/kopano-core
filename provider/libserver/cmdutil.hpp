@@ -75,18 +75,6 @@ public:
 		return d->usType;
     }
 
-#if 0
-    unsigned int flags() const {
-		auto d = reinterpret_cast<EID_V0 *>(const_cast<char *>(m_data.data()));
-		if (m_data.size() < offsetof(EID_V0, usFlags) + sizeof(d->usFlags)) {
-			ec_log_err("%s: entryid has size %zu; not enough for EID_V0.usFlags",
-				__func__, m_data.size());
-			throw runtime_error("entryid is not of type EID_V0");
-		}
-		return d->usFlags;
-    }
-#endif
-    
     void setFlags(unsigned int ulFlags) {
 		auto d = reinterpret_cast<EID_V0 *>(const_cast<char *>(m_data.data()));
 		if (m_data.size() < offsetof(EID_V0, usFlags) + sizeof(d->usFlags)) {

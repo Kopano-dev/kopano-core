@@ -90,18 +90,6 @@ static const char *FindMAPIClassByScheduleClass(const char *szSClass)
 	return NULL;
 }
 
-#if 0
-static const char *FindScheduleClassByMAPIClass(const char *szMAPIClass)
-{
-	for (size_t i = 0; i < ARRAY_SIZE(sClassMap); ++i)
-		if(stricmp(szMAPIClass, sClassMap[i].szMAPIClass) == 0) {
-			return sClassMap[i].szScheduleClass;
-		}
-
-	return NULL;
-}
-#endif
-
 /**
  * Returns TRUE if the given property tag is in the given property tag array
  *
