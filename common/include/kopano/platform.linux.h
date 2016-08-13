@@ -58,10 +58,6 @@
 #define ASSERT assert
 #define _ASSERT assert
 
-#ifdef _DEBUG
-  #error _DEBUG is defined in linux, which should not be used!
-#endif
-
 #define _vsnprintf vsnprintf
 #define _snprintf snprintf
 #ifdef HAVE_VSNPRINTF_L
