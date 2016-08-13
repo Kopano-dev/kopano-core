@@ -33,10 +33,6 @@
 
 using namespace std;
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 /**
  * Default constructor
  */
@@ -172,7 +168,6 @@ HRESULT iCal::HrHandleIcalPost()
 	
 	map<std::string, int>::const_iterator mpIterI;
 	map<std::string,SBinary>::const_iterator mpIterJ;
-
 
 	ulProptag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY);
 	cValues = 3;

@@ -24,9 +24,6 @@
 
 #include "Mem.h"
 #include <kopano/ECMemTable.h>
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 // This function is NOT used, but is used as dummy for the xgettext parser so it
 // can find the translation strings. **DO NOT REMOVE THIS FUNCTION**

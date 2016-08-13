@@ -21,10 +21,6 @@
 
 #include <mapicode.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 /* This is a copy from the definition in kcore.hpp. It's for internal use only as we
  * don't want to expose the format of the entry id. */
 typedef struct ABEID {

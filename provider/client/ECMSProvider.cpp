@@ -34,7 +34,6 @@
 
 #include <kopano/ECDebug.h>
 
-
 #include "ClientUtil.h"
 #include "EntryPoint.h"
 
@@ -53,10 +52,6 @@ using namespace std;
 
 #include <kopano/mapi_ptr/mapi_memory_ptr.h>
 typedef mapi_memory_ptr<ECUSER>	ECUserPtr;
-
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 ECMSProvider::ECMSProvider(ULONG ulFlags, const char *szClassName) :
     ECUnknown(szClassName)
@@ -257,7 +252,6 @@ HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR 
 	sGlobalProfileProps	sProfileProps;
 	wchar_t *strSep = NULL;
 
-
 	if(lpEntryID == NULL) {
 		hr = MAPI_E_UNCONFIGURED;
 		goto exit;
@@ -299,7 +293,6 @@ HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR 
 		}
 	}
 
-
 	if (cbSpoolSecurity % sizeof(wchar_t) != 0) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
@@ -337,7 +330,6 @@ HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR 
 								&lpMsgStore);
 	if(hr != hrSuccess)
 		goto exit;
-
 
 	// Register ourselves with mapisupport
 	//guidStore = lpMsgStore->GetStoreGuid();

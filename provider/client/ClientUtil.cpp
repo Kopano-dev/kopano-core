@@ -44,10 +44,6 @@
 
 using namespace std;
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 HRESULT ClientUtil::HrInitializeStatusRow (const char * lpszProviderDisplay, ULONG ulResourceType, LPMAPISUP lpMAPISup, LPSPropValue lpspvIdentity, ULONG ulFlags)
 {
 	HRESULT			hResult = hrSuccess;
@@ -288,7 +284,6 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 												PR_INTERNET_MESSAGE_ID, PR_DELIVER_TIME, PR_SENT_REPRESENTING_ADDRTYPE, PR_SENT_REPRESENTING_EMAIL_ADDRESS,
 												PR_MDN_DISPOSITION_TYPE, PR_MDN_DISPOSITION_SENDINGMODE } };
 
-
 	// Check incoming parameters
 	if(lpReadMessage == NULL || lppEmptyMessage == NULL || *lppEmptyMessage == NULL) {
 		hr = MAPI_E_INVALID_OBJECT;
@@ -322,7 +317,6 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-
 
 	strBodyText = _("Your message");
 	strBodyText+= _T("\r\n\r\n");
@@ -366,7 +360,6 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 		strBodyText+= _T("\r\n");
 	}
 
-
 	strBodyText+= _T("\r\n");
 	strBodyText+= lpReportText;
 	strBodyText+= _T(" ");
@@ -380,7 +373,6 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 
 	strBodyText+= convert_to<tstring>(szTime, strlen(szTime), CHARSET_CHAR);
 	strBodyText+= _T("\r\n");
-
 
 	ulMaxDestValues = cSrcValues + 4;//+ default properties
 	hr = MAPIAllocateBuffer(sizeof(SPropValue)*ulMaxDestValues, (void**)&lpDestPropValue);
@@ -705,7 +697,6 @@ HRESULT ClientUtil::GetGlobalProfileProperties(LPPROFSECT lpGlobalProfSect, stru
 		if(FAILED(hr))
 			goto exit;
 	}
-
 
 	if((lpProp = PpropFindProp(lpsPropArray, cValues, PR_EC_PATH)) != NULL)
 		lpsProfileProps->strServerPath = lpProp->Value.lpszA;
@@ -1144,7 +1135,6 @@ HRESULT GetPublicEntryId(enumPublicEntryID ePublicEntryID, GUID guidStore, void 
 		default:
 			return MAPI_E_INVALID_PARAMETER;
 	}
-
 
 	if (lpcbEntryID == NULL || lppEntryID == NULL)
 		return MAPI_E_INVALID_PARAMETER;

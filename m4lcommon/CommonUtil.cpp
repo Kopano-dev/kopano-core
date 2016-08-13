@@ -61,10 +61,6 @@
 
 using namespace std;
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 #define PROFILEPREFIX		"ec-adm-"
 
 /* Indexes of the sPropNewMailColumns property array */
@@ -732,7 +728,6 @@ HRESULT HrGetECProviderAdmin(LPMAPISESSION lpSession, LPPROVIDERADMIN *lppProvid
 	hr = lpMsgServiceAdmin->AdminProviders((MAPIUID *)lpProviderUID->Value.bin.lpb, 0, lppProviderAdmin);
 	if(hr != hrSuccess)
 		goto exit;
-
 
 exit:
 	if(lpServiceTable)
@@ -2822,7 +2817,6 @@ exit:
 	return hr;
 }
 
-
 /**
  * Converts a wrapped message store's entry identifier to a message store entry identifier.
  *
@@ -3076,7 +3070,6 @@ exit:
 	return hr;
 }
 
-
 /*
  * Get local free/busy message to get delegate information
  * 
@@ -3246,7 +3239,6 @@ exit:
 
 	return hr;
 }
-
 
 /**
  * Set proccessing meeting request options of a user

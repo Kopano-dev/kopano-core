@@ -353,7 +353,6 @@ HRESULT M4LMAPIProp::QueryInterface(REFIID refiid, void **lpvoid) {
 	return hr;
 }
 
-
 // ---
 // IProfSect
 // ---
@@ -361,7 +360,6 @@ HRESULT M4LMAPIProp::QueryInterface(REFIID refiid, void **lpvoid) {
 M4LProfSect::M4LProfSect(BOOL bGlobalProf) {
 	this->bGlobalProf = bGlobalProf;
 }
-
 
 HRESULT M4LProfSect::ValidateState(ULONG ulUIParam, ULONG ulFlags) {
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LProfSect::ValidateState", "");
@@ -457,7 +455,6 @@ HRESULT M4LProfSect::QueryInterface(REFIID refiid, void **lpvoid) {
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LProfSect::QueryInterface", "0x%08x", hr);
 	return hr;
 }
-
 
 // ---
 // IMAPITable
@@ -929,7 +926,6 @@ HRESULT M4LProviderAdmin::QueryInterface(REFIID refiid, void **lpvoid) {
 	return hr;
 }
 
-
 // 
 // IMAPIAdviseSink
 // 
@@ -942,7 +938,6 @@ M4LMAPIAdviseSink::M4LMAPIAdviseSink(LPNOTIFCALLBACK lpFn, void *lpContext) {
 ULONG M4LMAPIAdviseSink::OnNotify(ULONG cNotif, LPNOTIFICATION lpNotifications) {
 	return this->lpFn(this->lpContext, cNotif, lpNotifications);
 }
-
 
 // iunknown passthru
 ULONG M4LMAPIAdviseSink::AddRef() {

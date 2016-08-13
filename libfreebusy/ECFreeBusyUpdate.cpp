@@ -21,10 +21,6 @@
 
 #include "freebusyutil.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 ECFreeBusyUpdate::ECFreeBusyUpdate(IMessage* lpMessage)
 {
 	m_lpMessage = lpMessage;
@@ -53,7 +49,6 @@ HRESULT ECFreeBusyUpdate::Create(IMessage* lpMessage, ECFreeBusyUpdate **lppECFr
 
 	return hr;
 }
-
 
 HRESULT ECFreeBusyUpdate::QueryInterface(REFIID refiid, void** lppInterface)
 {
@@ -118,7 +113,6 @@ HRESULT ECFreeBusyUpdate::SaveChanges(FILETIME ftStart, FILETIME ftEnd)
 			PR_FREEBUSY_TENTATIVE_MONTHS
 		}
 	};
-
 
 	FileTimeToRTime(&ftStart, &rtmStart);
 	FileTimeToRTime(&ftEnd, &rtmEnd);

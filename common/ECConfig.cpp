@@ -19,10 +19,6 @@
 #include "ECConfigImpl.h"
 #include <kopano/charset/convert.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 ECConfig *ECConfig::Create(const configsetting_t *lpDefaults,
     const char *const *lpszDirectives)
 {
@@ -34,7 +30,6 @@ bool ECConfig::LoadSettings(const wchar_t *szFilename)
 	convert_context converter;
 	return LoadSettings(converter.convert_to<char*>(szFilename));
 }
-
 
 /**
  * Get the default path for the configuration file specified with lpszBasename.

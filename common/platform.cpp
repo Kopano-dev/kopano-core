@@ -27,10 +27,6 @@
 
 #include "TmpPath.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 HRESULT UnixTimeToFileTime(time_t t, FILETIME *ft)
 {
     __int64 l;

@@ -29,10 +29,6 @@
 #include <kopano/mapiext.h>
 #include <edkmdb.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 BOOL leapyear(short year)
 {
 	return year % 4 == 0 && (year % 100 != 0 || year % 400 == 0); 
@@ -95,7 +91,6 @@ HRESULT GetFreeBusyFolder(IMsgStore* lpPublicStore, IMAPIFolder** lppFreeBusyFol
 	};
 
 	enum eFreeBusyPos{ FBPOS_FREE_BUSY_FOR_LOCAL_SITE_ENTRYID};
-
 
 	// Get freebusy properies
 	hr = lpPublicStore->GetProps((LPSPropTagArray)&sPropsFreeBusy, 0, &cValuesFreeBusy, &lpPropArrayFreeBusy);
@@ -174,8 +169,6 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 		hr = MAPI_E_INVALID_ENTRYID;
 		goto exit;
 	}
-
-
 
 	// GetFreeBusyFolder  
 	hr = GetFreeBusyFolder(lpPublicStore, &lpFreeBusyFolder);
@@ -510,7 +503,6 @@ HRESULT GetFreeBusyMessageData(IMessage* lpMessage, LONG* lprtmStart, LONG* lprt
 	if(FAILED(hr))
 		goto exit;
 
-
 	// Get busy data
 	if(lpPropArrayFBData[FBDATA_BUSY_EVENTS].ulPropTag == PR_FREEBUSY_BUSY_EVENTS &&
 		lpPropArrayFBData[FBDATA_BUSY_MONTHS].ulPropTag == PR_FREEBUSY_BUSY_MONTHS)
@@ -553,7 +545,6 @@ exit:
 	MAPIFreeBuffer(lpPropArrayFBData);
 	return hr;
 }
-
 
 unsigned int DiffYearMonthToMonth( struct tm *tm1, struct tm *tm2)
 {

@@ -23,10 +23,6 @@
 #include <openssl/ssl.h>
 #include <openssl/conf.h>
 #include <openssl/engine.h>
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 
 static pthread_mutex_t *ssl_locks;
 

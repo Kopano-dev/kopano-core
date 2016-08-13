@@ -22,14 +22,9 @@
 #include <kopano/ECGuid.h>
 #include <kopano/ECDebug.h>
 
-
 //#include <edkmdb.h>
 #include <kopano/mapiext.h>
 #include <mapiutil.h>
-
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 ECMAPIContainer::ECMAPIContainer(ECMsgStore *lpMsgStore, ULONG ulObjType,
     BOOL fModify, const char *szClassName) :
@@ -94,7 +89,6 @@ HRESULT ECMAPIContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	if(hr != hrSuccess)
 		goto exit;
 
-
 	hr = this->GetMsgStore()->lpTransport->HrOpenTableOps(MAPI_MESSAGE, (ulFlags&(MAPI_UNICODE|SHOW_SOFT_DELETES|MAPI_ASSOCIATED|EC_TABLE_NOCAP)), m_cbEntryId, m_lpEntryId, this->GetMsgStore(), &lpTableOps);
 
 	if(hr != hrSuccess)
@@ -118,7 +112,6 @@ exit:
 
 	return hr;
 }
-
 
 HRESULT ECMAPIContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
@@ -191,7 +184,6 @@ HRESULT ECMAPIContainer::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID 
 {
 	return this->GetMsgStore()->OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
 }
-
 
 // From IMAPIContainer
 HRESULT ECMAPIContainer::xMAPIContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)

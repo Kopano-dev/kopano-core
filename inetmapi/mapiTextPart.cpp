@@ -52,7 +52,6 @@
 #include "vmime/emptyContentHandler.hpp"
 #include "vmime/stringContentHandler.hpp"
 
-
 namespace vmime
 {
 
@@ -84,7 +83,6 @@ const mediaType mapiTextPart::getType() const
 		return (mediaType(mediaTypes::TEXT, mediaTypes::TEXT_HTML));
 }
 
-
 int mapiTextPart::getPartCount() const
 {
 	int count = 0;
@@ -96,7 +94,6 @@ int mapiTextPart::getPartCount() const
 		++count;
 	return count;
 }
-
 
 void mapiTextPart::generateIn(ref <bodyPart> /* message */, ref <bodyPart> parent) const
 {
@@ -195,7 +192,6 @@ void mapiTextPart::generateIn(ref <bodyPart> /* message */, ref <bodyPart> paren
 	}
 }
 
-
 void mapiTextPart::findEmbeddedParts(const bodyPart& part,
 	std::vector <ref <const bodyPart> >& cidParts, std::vector <ref <const bodyPart> >& locParts)
 {
@@ -229,7 +225,6 @@ void mapiTextPart::findEmbeddedParts(const bodyPart& part,
 	}
 }
 
-
 void mapiTextPart::addEmbeddedObject(const bodyPart& part, const string& id)
 {
 	// The object may already exists. This can happen if an object is
@@ -253,7 +248,6 @@ void mapiTextPart::addEmbeddedObject(const bodyPart& part, const string& id)
 		(part.getBody()->getContents()->clone().dynamicCast <contentHandler>(),
 		 part.getBody()->getEncoding(), id, type, string(), string()));
 }
-
 
 void mapiTextPart::parse(ref <const bodyPart> message, ref <const bodyPart> parent, ref <const bodyPart> textPart)
 {
@@ -329,7 +323,6 @@ void mapiTextPart::parse(ref <const bodyPart> message, ref <const bodyPart> pare
 		m_plainText = vmime::create <emptyContentHandler>();
 	}
 }
-
 
 bool mapiTextPart::findPlainTextPart(const bodyPart& part, const bodyPart& parent, const bodyPart& textPart)
 {
@@ -463,7 +456,6 @@ const ref <const mapiTextPart::embeddedObject> mapiTextPart::findObject(const st
 	throw exceptions::no_object_found();
 }
 
-
 bool mapiTextPart::hasObject(const string& id_) const
 {
 	const string id = cleanId(id_);
@@ -478,7 +470,6 @@ bool mapiTextPart::hasObject(const string& id_) const
 	return false;
 }
 
-
 const string mapiTextPart::addObject(ref <contentHandler> data,
 	const encoding& enc, const mediaType& type)
 {
@@ -488,12 +479,10 @@ const string mapiTextPart::addObject(ref <contentHandler> data,
 	return "CID:" + addObject(data, enc, type, id);
 }
 
-
 const string mapiTextPart::addObject(ref <contentHandler> data, const mediaType& type)
 {
 	return addObject(data, encoding::decide(data), type);
 }
-
 
 const string mapiTextPart::addObject(const string& data, const mediaType& type)
 {
@@ -506,7 +495,6 @@ const string mapiTextPart::addObject(ref <contentHandler> data, const encoding& 
 	m_objects.push_back(vmime::create <embeddedObject>(data, enc, id, type, name, loc));
 	return (id);
 }
-
 
 // static
 const string mapiTextPart::cleanId(const string& id)
@@ -524,8 +512,6 @@ const string mapiTextPart::cleanId(const string& id)
 		return id;
 	}
 }
-
-
 
 //
 // mapiTextPart::embeddedObject

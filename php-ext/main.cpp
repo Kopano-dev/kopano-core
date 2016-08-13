@@ -144,7 +144,6 @@ ZEND_BEGIN_ARG_INFO(fourth_arg_force_ref, 0)
 ZEND_END_ARG_INFO()
 #endif
 
-
 #define LOG_BEGIN() { \
     if (mapi_debug & 1) { \
         php_error_docref(NULL TSRMLS_CC, E_NOTICE, "[IN] %s", __FUNCTION__); \
@@ -721,7 +720,6 @@ static void _php_free_fb_object(zend_rsrc_list_entry *rsrc TSRMLS_DC)
 	if (lpObj) lpObj->Release();
 }
 
-
 static HRESULT GetECObject(LPMAPIPROP lpMapiProp,
     IECUnknown **lppIECUnknown TSRMLS_DC)
 {
@@ -1148,7 +1146,6 @@ ZEND_FUNCTION(mapi_openaddressbook)
 	LPADRBOOK lpAddrBook;
 	// local
 
-
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 
@@ -1290,7 +1287,6 @@ exit:
 	LOG_END();
 	THROW_ON_ERROR();
 }
-
 
 /**
 * mapi_getstores
@@ -1744,7 +1740,6 @@ exit:
 	THROW_ON_ERROR();
 }
 
-
 ZEND_FUNCTION(mapi_folder_emptyfolder)
 {
 	PMEASURE_FUNC;
@@ -1819,7 +1814,6 @@ exit:
 	THROW_ON_ERROR();
 }
 
-
 /**
 * mapi_msgstore_createentryid
 * Creates an EntryID to open a store with mapi_openmsgstore.
@@ -1870,7 +1864,6 @@ exit:
 	THROW_ON_ERROR();
 }
 
-
 /**
 * mapi_msgstore_getearchiveentryid
 * Creates an EntryID to open an archive store with mapi_openmsgstore.
@@ -1920,7 +1913,6 @@ exit:
 	LOG_END();
 	THROW_ON_ERROR();
 }
-
 
 /**
 * mapi_openentry
@@ -2259,7 +2251,6 @@ ZEND_FUNCTION(mapi_table_queryrows)
 			goto exit;
 		}
 	}
-
 
 	MAPI_G(hr) = lpTable->QueryRows(lRowCount, 0, &pRowSet);
 
@@ -2864,7 +2855,6 @@ exit:
 	THROW_ON_ERROR();
 }
 
-
 ZEND_FUNCTION(mapi_message_createattach)
 {
 	PMEASURE_FUNC;
@@ -3096,7 +3086,6 @@ ZEND_FUNCTION(mapi_stream_stat)
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &res) == FAILURE) return;
 
 	ZEND_FETCH_RESOURCE_C(pStream, LPSTREAM, &res, -1, name_istream, le_istream);
-
 
 	MAPI_G(hr) = pStream->Stat(&stg,STATFLAG_NONAME);
 	if(MAPI_G(hr) != hrSuccess)
@@ -3342,7 +3331,6 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 	if(guidArray)
 		guidHash = Z_ARRVAL_P(guidArray);
 
-
 	// get the number of items in the array
 	hashTotal = zend_hash_num_elements(targetHash);
 
@@ -3558,7 +3546,6 @@ ZEND_FUNCTION(mapi_copyto)
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unknown resource type");
 		goto exit;
 	}
-
 
 	MAPI_G(hr) = lpSrcObj->CopyTo(cExcludeIIDs, lpExcludeIIDs, lpExcludeProps, 0, NULL, lpInterface, lpDstObj, flags, NULL);
 
@@ -4325,7 +4312,6 @@ exit:
 	THROW_ON_ERROR();
 }
 
-
 ZEND_FUNCTION(mapi_zarafa_setuser)
 {
 	PMEASURE_FUNC;
@@ -4424,7 +4410,6 @@ ZEND_FUNCTION(mapi_zarafa_deleteuser)
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &res, &lpszUserName, &ulUserName) == FAILURE) return;
 
 	ZEND_FETCH_RESOURCE_C(lpMsgStore, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
-
 
 	MAPI_G(hr) = GetECObject(lpMsgStore, &lpUnknown TSRMLS_CC);
 	if(MAPI_G(hr) != hrSuccess) {
@@ -4738,7 +4723,6 @@ exit:
 	LOG_END();
 	THROW_ON_ERROR();
 }
-
 
 /**
 * Retrieve user information
@@ -5275,7 +5259,6 @@ ZEND_FUNCTION(mapi_zarafa_getgrouplist)
 	MAPI_G(hr) = lpServiceAdmin->GetGroupList(cbCompanyId, lpCompanyId, 0, &ulGroups, &lpsGroups);
 	if(MAPI_G(hr) != hrSuccess)
 		goto exit;
-
 
 	array_init(return_value);
 	for (i = 0; i < ulGroups; ++i) {
@@ -6853,7 +6836,6 @@ exit:
 	THROW_ON_ERROR();
 }
 
-
 ZEND_FUNCTION(mapi_freebusyenumblock_skip)
 {
 	PMEASURE_FUNC;
@@ -6978,7 +6960,6 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 
 		zend_hash_move_forward(target_hash);
 	}
-
 
 	MAPI_G(hr) = lpFBUpdate->PublishFreeBusy(lpBlocks, cBlocks);
 	if(MAPI_G(hr) != hrSuccess)
@@ -7589,7 +7570,6 @@ exit:
 	THROW_ON_ERROR();
 }
 
-
 ZEND_FUNCTION(mapi_importhierarchychanges_importfolderdeletion)
 {
 	PMEASURE_FUNC;
@@ -7625,8 +7605,6 @@ exit:
 	LOG_END();
 	THROW_ON_ERROR();
 }
-
-
 
 /*
  * This function needs some explanation as it is not just a one-to-one MAPI function. This function

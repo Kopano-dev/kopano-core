@@ -25,11 +25,6 @@
 #include "SessionGroupData.h"
 #include "SSLUtil.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
-
 /* std::algorithm helper structures/functions */
 struct findSessionGroupId
 {

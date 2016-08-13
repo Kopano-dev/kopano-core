@@ -346,7 +346,6 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 	bool			bSendBinary = true;
 	MapiToICal		*mapiical = NULL;
 
-
 	pPropAttachNum = PpropFindProp(lpRow->lpProps, lpRow->cValues, PR_ATTACH_NUM);
 	if (pPropAttachNum == NULL) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Attachment in table not correct, no attachment number present.");
@@ -649,7 +648,6 @@ HRESULT MAPIToVMIME::parseMimeTypeFromFilename(std::wstring strFilename, vmime::
 	} else if (strExt == "avi") {
 		strMedType = "video/x-msvideo";
 	}
-
 
 	else {
 		strMedType = "application/octet-stream";
@@ -2078,13 +2076,11 @@ HRESULT MAPIToVMIME::handleReplyTo(IMessage *lpMessage, vmime::ref<vmime::header
 	LPSPropTagArray lpNameTagArray = NULL;
 	LPSPropValue lpAddressProps = NULL;
 
-
 	if (HrGetOneProp(lpMessage, PR_REPLY_RECIPIENT_ENTRIES, &lpReplyTo) != hrSuccess)
 		goto exit;
 
 	if (lpReplyTo->Value.bin.cb == 0)
 		goto exit;
-
 
 	lpEntryList = (FLATENTRYLIST *)lpReplyTo->Value.bin.lpb;
 

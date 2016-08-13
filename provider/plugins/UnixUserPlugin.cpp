@@ -908,7 +908,6 @@ UnixUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
     return mapdetails;
 }
 
-
 // -------------
 // private
 // -------------

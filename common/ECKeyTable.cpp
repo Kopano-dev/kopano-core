@@ -19,9 +19,6 @@
 #include <cassert>
 #include <kopano/ECKeyTable.h> 
 #include <kopano/ustringutil.h>
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 bool operator!=(const sObjectTableKey& a, const sObjectTableKey& b)
 {
@@ -102,7 +99,6 @@ ECTableRow::ECTableRow(sObjectTableKey sKey, unsigned int ulSortCols,
 void ECTableRow::initSortCols(unsigned int ulSortCols, const int *lpSortLen,
     const unsigned char *lpFlags, unsigned char **lppSortData)
 {
-	unsigned int i=0;
 	int len = 0;
 
 	this->ulSortCols = ulSortCols;
@@ -122,7 +118,7 @@ void ECTableRow::initSortCols(unsigned int ulSortCols, const int *lpSortLen,
 		memcpy(this->lpSortLen, lpSortLen, sizeof(unsigned int) * ulSortCols);
 
 	// Copy sort keys
-	for (i = 0; i < ulSortCols; ++i) {
+	for (unsigned int i = 0; i < ulSortCols; ++i) {
 		len = lpSortLen[i];
 		len = len < 0 ? -len : len;
 
@@ -315,7 +311,6 @@ ECKeyTable::ECKeyTable()
 
 	// The start of bookmark, the first 3 (0,1,2) are default
 	m_ulBookmarkPosition = 3;
-
 
 	// g++ doesn't like static initializers on existing variables
 	pthread_mutexattr_t mattr;
@@ -839,7 +834,6 @@ ECRESULT ECKeyTable::InvalidateBookmark(ECTableRow *lpRow)
 	return erSuccess;
 }
 
-
 ECRESULT ECKeyTable::SeekRow(unsigned int lbkOrgin, int lSeekTo, int *lplRowsSought)
 {
 	ECRESULT er = erSuccess;
@@ -847,7 +841,6 @@ ECRESULT ECKeyTable::SeekRow(unsigned int lbkOrgin, int lSeekTo, int *lplRowsSou
 	unsigned int ulCurrentRow = 0;
 	unsigned int ulRowCount = 0;
 	ECTableRow *lpRow = NULL;
-
 
 	pthread_mutex_lock(&mLock);
 

@@ -23,10 +23,6 @@
 
 using namespace std;
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 /**
  * Open MAPI session
  *
@@ -195,7 +191,6 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder, LPSPropTa
 		// we're done either way
 		goto exit;
 	}
-
 
 	hr = lpRootFolder->GetHierarchyTable(CONVENIENT_DEPTH, &lpHichyTable);
 	if(hr != hrSuccess)
@@ -851,7 +846,6 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 	hr = lpAddrBook->OpenEntry(cbEntryId, ptrEntryId, NULL, 0, &ulObj, &ptrABDir);
 	if (hr != hrSuccess)
 		goto exit;
-
 
 	cUsers = lplstUsers->size();
 

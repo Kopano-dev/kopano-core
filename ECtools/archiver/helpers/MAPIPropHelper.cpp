@@ -133,7 +133,6 @@ HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageSt
 		return ptrMessageProps[IDX_HIERARCHYID].Value.err;
 	hr = hrSuccess;
 
-
 	// Determine stubbed / dirty state.
 	if (PROP_TYPE(ptrMessageProps[IDX_STUBBED].ulPropTag) != PT_ERROR && ptrMessageProps[IDX_STUBBED].Value.b == TRUE)
 		ulState |= MessageState::msStubbed;
@@ -145,7 +144,6 @@ HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageSt
 		if ((ulState & MessageState::msStubbed) == 0)
 			ulState |= MessageState::msDirty;
 	}
-
 
 	// Determine copy / move state.
 	if (PROP_TYPE(ptrMessageProps[IDX_ORIGINAL_SOURCEKEY].ulPropTag) == PT_ERROR) {
@@ -444,7 +442,6 @@ HRESULT  MAPIPropHelper::SetReference(const SObjectEntry &sEntry, bool bExplicit
 	return hr;
 }
 
-
 HRESULT MAPIPropHelper::ClearReference(bool bExplicitCommit)
 {
 	HRESULT hr;
@@ -459,7 +456,6 @@ HRESULT MAPIPropHelper::ClearReference(bool bExplicitCommit)
 
 	return hr;
 }
-
 
 HRESULT MAPIPropHelper::GetReference(SObjectEntry *lpEntry)
 {
@@ -485,7 +481,6 @@ HRESULT MAPIPropHelper::GetReference(SObjectEntry *lpEntry)
 	lpEntry->sItemEntryId.assign(ptrMessageProps[IDX_REF_ITEM_ENTRYID].Value.bin);
 	return hr;
 }
-
 
 HRESULT MAPIPropHelper::ReferencePrevious(const SObjectEntry &sEntry)
 {
@@ -551,7 +546,6 @@ HRESULT MAPIPropHelper::SetClean()
 	SizedSPropTagArray(1, sptaDirtyProps) = {1, {PROP_DIRTY}};
 	return m_ptrMapiProp->DeleteProps((LPSPropTagArray)&sptaDirtyProps, NULL);
 }
-
 
 /**
  * Detach an object from its archived version.

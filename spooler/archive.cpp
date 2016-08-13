@@ -47,7 +47,6 @@ typedef std::wostringstream tostringstream;
 typedef std::ostringstream tostringstream;
 #endif
 
-
 void ArchiveResult::AddMessage(MessagePtr ptrMessage) {
 	m_lstMessages.push_back(ptrMessage);
 }
@@ -57,7 +56,6 @@ void ArchiveResult::Undo(IMAPISession *lpSession) {
 	     i != m_lstMessages.end(); ++i)
 		Util::HrDeleteMessage(lpSession, *i);
 }
-
 
 HRESULT Archive::Create(IMAPISession *lpSession, ECLogger *lpLogger, ArchivePtr *lpptrArchive)
 {
@@ -239,7 +237,6 @@ exit:
 
 	return hr;
 }
-
 
 HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *lpResult)
 {

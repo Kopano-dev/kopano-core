@@ -44,10 +44,6 @@
 
 #include <sstream>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 static struct rights ECPermToRightsCheap(const ECPERMISSION &p)
 {
 	struct rights r = {0, p.ulType, p.ulRights, p.ulState};
@@ -388,7 +384,6 @@ HRESULT ECMAPIProp::TableRowGetProp(void* lpProvider, struct propVal *lpsPropVal
 	return hr;
 }
 
-
 // FIXME openproperty on computed value is illegal
 HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN FAR * lppUnk)
 {
@@ -538,7 +533,6 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 exit:	
 	if(lpsPropValue)
 		ECFreeBuffer(lpsPropValue);
-
 
 	return hr;
 }
@@ -748,7 +742,6 @@ HRESULT	ECMAPIProp::UpdateACLs(ULONG cNewPerms, ECPERMISSION *lpNewPerms)
 
 	return hrSuccess;
 }
-
 
 HRESULT ECMAPIProp::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArray lpExcludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray FAR * lppProblems)
 {

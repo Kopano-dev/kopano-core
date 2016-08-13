@@ -20,10 +20,6 @@
 
 #include "ECEnumFBBlock.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 ECFreeBusyData::ECFreeBusyData(void)
 {
 	m_rtmStart = 0;

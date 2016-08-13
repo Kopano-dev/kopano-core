@@ -56,7 +56,6 @@ void ServerConfigCheck::loadChecks()
 	addCheck("server_name", CONFIG_MULTI_USED);
 // 	addCheck("thread_stacksize", 0, &testMinInt, 25);
 
-
 	addCheck("enable_gab", 0, &testBoolean);
 	addCheck("enable_sso_ntlmauth", 0, &testBoolean);
 	addCheck("sync_log_all_changes", 0, &testBoolean);

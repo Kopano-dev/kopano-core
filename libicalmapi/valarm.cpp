@@ -31,10 +31,6 @@
 #include <kopano/Util.h>
 #include <kopano/stringutil.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 /**
  * Generates ical VALARM component from reminderbefore minutes.
  * Mapi -> Ical conversion
@@ -104,7 +100,6 @@ HRESULT HrParseVAlarm(icalcomponent *lpicAlarm, LONG *lplRemindBefore, time_t *l
 	LONG lRemindBefore = 0;
 	time_t ttReminderTime = 0;
 	bool bReminderSet = false;
-
 
 	lpTrigger = icalcomponent_get_first_property(lpicAlarm, ICAL_TRIGGER_PROPERTY);
 	lpAction = icalcomponent_get_first_property(lpicAlarm, ICAL_ACTION_PROPERTY);

@@ -22,10 +22,6 @@
 
 #include <boost/utility.hpp>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 using namespace std;
 
 class ECObjectLockImpl : private boost::noncopyable {

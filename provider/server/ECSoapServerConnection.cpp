@@ -202,7 +202,6 @@ int gsoap_win_shutdownsocket(struct soap *soap, SOAP_SOCKET fd, int how)
 	return SOAP_OK;
 }
 
-
 // TCP/SSL socket functions
 #endif // #ifdef LINUX
 

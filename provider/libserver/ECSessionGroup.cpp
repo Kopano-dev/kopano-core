@@ -27,10 +27,6 @@
 #include "ECSessionManager.h"
 #include "SOAPUtils.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 class FindChangeAdvise
 {
 public:
@@ -309,7 +305,6 @@ ECRESULT ECSessionGroup::AddNotificationTable(ECSESSIONID ulSessionId, unsigned 
 	
 	lpNotify->ulEventType			= fnevTableModified;
 	lpNotify->tab->ulTableEvent		= ulType;
-
 
 	if(lpsChildRow && (lpsChildRow->ulObjId > 0 || lpsChildRow->ulOrderId > 0)) {
 		lpNotify->tab->propIndex.ulPropTag = PR_INSTANCE_KEY;

@@ -64,13 +64,8 @@ typedef mapi_object_ptr<ECMessage, IID_ECMessage> ECMessagePtr;
 
 using namespace std;
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 // FIXME: from libserver/ECMAPI.h
 #define MSGFLAG_DELETED                           ((ULONG) 0x00000400)
-
 
 const static SizedSPropTagArray(NUM_RFT_PROPS, sPropRFTColumns) =
 {
@@ -159,8 +154,6 @@ ECMsgStore::ECMsgStore(const char *lpszProfname, LPMAPISUP lpSupport,
 	if(lpszProfname)
 		this->m_strProfname = lpszProfname;
 }
-
-
 
 ECMsgStore::~ECMsgStore() {
 
@@ -754,7 +747,6 @@ HRESULT ECMsgStore::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInt
 	hr = HrGetObjTypeFromEntryId(cbEntryID, (LPBYTE)lpEntryID, &ulObjType);
 	if(hr != hrSuccess)
 		goto exit;
-
 
 	switch( ulObjType ) {
 	case MAPI_FOLDER:
@@ -1717,7 +1709,6 @@ static HRESULT CreatePrivateFreeBusyData(LPMAPIFOLDER lpRootFolder,
 	// localfreebusy message
 	IMessage*			lpFBMessage		= NULL;
 
-
 	// Freebusy mv propery
 	// This property will be fill in on another place
 	hr = ECAllocateBuffer(sizeof(SPropValue), (void**)&lpFBPropValue);
@@ -1733,7 +1724,6 @@ static HRESULT CreatePrivateFreeBusyData(LPMAPIFOLDER lpRootFolder,
 		goto exit;
 
 	memset(lpFBPropValue->Value.MVbin.lpbin, 0, sizeof(SBinary)*lpFBPropValue->Value.MVbin.cValues);
-
 
 	// Create Freebusy Data into the rootfolder
 	// Folder for "freebusy data" settings
@@ -1787,7 +1777,6 @@ static HRESULT CreatePrivateFreeBusyData(LPMAPIFOLDER lpRootFolder,
 	lpPropValue[cCurValues].ulPropTag = PR_PROCESS_MEETING_REQUESTS;
 	lpPropValue[cCurValues++].Value.b = false;
 
-
 	hr = lpFBMessage->SetProps(cCurValues, lpPropValue, NULL);
 	if(hr != hrSuccess)
 		goto exit;
@@ -1834,7 +1823,6 @@ static HRESULT CreatePrivateFreeBusyData(LPMAPIFOLDER lpRootFolder,
 	lpPropValue[cCurValues].ulPropTag = PR_FREEBUSY_NUM_MONTHS;
 	lpPropValue[cCurValues++].Value.ul = ECFREEBUSY_DEFAULT_PUBLISH_MONTHS;
 
-
 	hr = lpFBMessage->SetProps(cCurValues, lpPropValue, NULL);
 	if(hr != hrSuccess)
 		goto exit;
@@ -1860,7 +1848,6 @@ static HRESULT CreatePrivateFreeBusyData(LPMAPIFOLDER lpRootFolder,
 
 	ECFreeBuffer(lpPropValue); lpPropValue = NULL;
 	lpFBMessage->Release(); lpFBMessage = NULL;
-
 
 	// Add freebusy entryid on Inbox folder
 	hr = lpInboxFolder->SetProps(1, lpFBPropValue, NULL);
@@ -2020,7 +2007,6 @@ exit:
 	return hr;
 }
 
-
 HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, ULONG* lpcbStoreId, LPENTRYID* lppStoreId, ULONG* lpcbRootId, LPENTRYID *lppRootId)
 {
 	HRESULT				hr				= hrSuccess;
@@ -2036,7 +2022,6 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 	ECMAPIFolder		*lpECMapiFolderInbox = NULL;
 	LPMAPIFOLDER		lpInboxFolder = NULL;
 	LPMAPIFOLDER		lpCalendarFolder = NULL;
-
 
 	LPSPropValue		lpPropValue = NULL;
 	ULONG				cValues = 0;
@@ -2056,7 +2041,6 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 	LPENTRYID			lpStoreId = NULL;
 	ULONG				cbRootId = 0;
 	LPENTRYID			lpRootId = NULL;
-
 
 	hr = CreateEmptyStore(ulStoreType, cbUserId, lpUserId, 0, &cbStoreId, &lpStoreId, &cbRootId, &lpRootId);
 	if (hr != hrSuccess)
@@ -2148,7 +2132,6 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 		if(hr != hrSuccess)
 			goto exit;
 
-
 		// Set acl's on the folder
 		sPermission.ulRights = ecRightsReadAny|ecRightsFolderVisible;
 		sPermission.ulState = RIGHT_NEW|RIGHT_AUTOUPDATE_DENIED;
@@ -2192,7 +2175,6 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 		lpMAPIFolder2 = NULL;
 		lpECSecurity->Release();
 		lpECSecurity = NULL;
-
 
 		// Set acl's on the IPM subtree folder
 		sPermission.ulRights = ecRightsReadAny| ecRightsCreate | ecRightsEditOwned| ecRightsDeleteOwned | ecRightsCreateSubfolder | ecRightsFolderVisible;
@@ -2292,7 +2274,6 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 		if(hr != hrSuccess)
 			goto exit;
 
-
 		// Create Outbox
 		hr = CreateSpecialFolder(lpFolderRootST, lpecMsgStore, _("Outbox"), _T(""), PR_IPM_OUTBOX_ENTRYID, 0, NULL, NULL);
 		if(hr != hrSuccess)
@@ -2390,7 +2371,6 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 
 		lpCalendarFolder->Release(); lpCalendarFolder = NULL;
 		lpECMapiFolderInbox->Release();	lpECMapiFolderInbox = NULL;
-
 
 		// Create Outlook 2007/2010 Additional folders
 		hr = CreateAdditionalFolder(lpFolderRoot, lpInboxFolder, lpFolderRootST, RSF_PID_RSS_SUBSCRIPTION, _("RSS Feeds"), _("RSS Feed comment"), _T("IPF.Note.OutlookHomepage"), false);
@@ -2542,7 +2522,6 @@ HRESULT ECMsgStore::CreateEmptyStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYI
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-
 
 	if (*lpcbStoreId == 0 || *lpcbRootId == 0) {
 		if (CoCreateGuid(&guidStore) != S_OK) {

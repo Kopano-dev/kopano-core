@@ -27,10 +27,6 @@
 #include "ECNamedProp.h"
 #include "WSTransport.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 /*
  * How our named properties work
  *
@@ -60,7 +56,6 @@
  * Exchange) due to the fact that we know which named properties are likely to be
  * requested. This means that we have 
  */
-
 
 /* Our local names
  *
@@ -237,7 +232,6 @@ HRESULT ECNamedProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID FAR * lppPro
 
 	lpsPropTagArray->cValues = cPropNames;
 
-
 	// Pass 1, resolve static (local) names (FAST)
 	for (i = 0; i < cPropNames; ++i)
 		if(lppPropNames[i] == NULL || ResolveLocal(lppPropNames[i], &lpsPropTagArray->aulPropTag[i]) != hrSuccess)
@@ -374,7 +368,6 @@ HRESULT ECNamedProp::ResolveReverseLocal(ULONG ulId, LPGUID lpGuid, ULONG ulFlag
 exit:
 	return hr;
 }
-
 
 // Update the cache with the given data
 HRESULT ECNamedProp::UpdateCache(ULONG ulId, MAPINAMEID *lpName)

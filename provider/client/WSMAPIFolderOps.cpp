@@ -27,10 +27,6 @@
 
 #include <kopano/charset/utf8string.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 #define START_SOAP_CALL retry:
 #define END_SOAP_CALL 	\
 	if(er == KCERR_END_OF_SESSION) { if(m_lpTransport->HrReLogon() == hrSuccess) goto retry; } \
@@ -158,7 +154,6 @@ exit:
 	return hr;
 }
 
-
 HRESULT WSMAPIFolderOps::HrEmptyFolder(ULONG ulFlags, ULONG ulSyncId)
 {
 	ECRESULT er = erSuccess;
@@ -251,7 +246,6 @@ HRESULT WSMAPIFolderOps::HrSetSearchCriteria(ENTRYLIST *lpMsgList, SRestriction 
 
 exit:
 	UnLockSoap();
-
 
 	if(lpsRestrict)
 		FreeRestrictTable(lpsRestrict);

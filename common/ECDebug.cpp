@@ -44,10 +44,6 @@
 
 using namespace std;
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 #define RETURN_ERROR_CASE(x) \
 	case x: \
 		return (HR_FAILED(x) ? "FAILED: " #x : ((x == hrSuccess) ? #x : "WARNING: " #x));
@@ -55,7 +51,6 @@ using namespace std;
 #define RETURN_CASE(x) \
 	case x: \
 		return #x;
-
 
 #define RETURN_PROP_CASE(pt) case PROP_ID(pt): return((#pt))
 
@@ -306,7 +301,6 @@ static const INFOGUID sGuidList[] = {
 //End of list
 	{0, NULL}
 };
-
 
 std::string GetMAPIErrorDescription(HRESULT hResult)
 {
@@ -1119,7 +1113,6 @@ std::string	PropNameFromPropTag(ULONG ulPropTag)
 		RETURN_PROP_CASE(PR_AUTO_ADD_NEW_SUBS);
 		RETURN_PROP_CASE(PR_NEW_SUBS_GET_AUTO_ADD);
 
-
 		RETURN_PROP_CASE(PR_OFFLINE_FLAGS);
 		RETURN_PROP_CASE(PR_SYNCHRONIZE_FLAGS);
 		RETURN_PROP_CASE(PR_MESSAGE_SITE_NAME);
@@ -1917,7 +1910,6 @@ default:
 	}
 	}
 }//PropNameFromPropTag
-
 
 const char *RelationalOperatorToString(ULONG relop)
 {
@@ -2738,7 +2730,6 @@ std::string DBGGUIDToString(REFIID iid)
 		guidIDD+=szGuidId;
 	}
 
-
 	return guidIDD;
 }
 
@@ -2767,7 +2758,6 @@ std::string MapiNameIdListToString(ULONG cNames,
 {
 	std::string str;
 	ULONG i;
-
 
 	if(ppNames == NULL)
 		return "NULL";

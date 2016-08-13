@@ -275,7 +275,6 @@ ECRESULT UpdateDatabaseCreateSourceKeys(ECDatabase *lpDatabase)
 	DB_ROW			lpDBRow = NULL;
 	DB_LENGTHS		lpDBLenths = NULL;
 
-
 	strQuery = "SELECT `value` FROM `settings` WHERE `name` = 'server_guid'";
 	er = lpDatabase->DoSelect(strQuery, &lpResult);
 	if(er != erSuccess)
@@ -876,7 +875,6 @@ ECRESULT UpdateDatabaseMoveFoldersInPublicFolder(ECDatabase *lpDatabase)
 		lpResult = NULL;
 	}
 
-
 exit:
 	if(lpResult)
 		lpDatabase->FreeResult(lpResult);
@@ -921,7 +919,6 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 	if (er != erSuccess)
 		goto exit;
 
-
 	// Create the new objectproperty table.
 	strQuery = Z_TABLEDEF_OBJECT_PROPERTY;
 	strQuery.replace(strQuery.find("objectproperty"), 14, "objectproperty_temp");
@@ -929,14 +926,12 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 	if (er != erSuccess)
 		goto exit;
 
-
 	// Create the new objectrelation table.
 	strQuery = Z_TABLEDEF_OBJECT_RELATION;
 	strQuery.replace(strQuery.find("objectrelation"), 14, "objectrelation_temp");
 	er = lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess)
 		goto exit;
-
 
 	// Create a list of all current objects from the object table.
 	strQuery = "SELECT id, objecttype FROM object ORDER BY objecttype";
@@ -956,7 +951,6 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 
 	lpDatabase->FreeResult(lpResult);
 	lpResult = NULL;
-
 
 	// Recreate the objects in the object_temp table and on the fly create the queries to regenerate
 	// their properties in the objectpropert_temp table.
@@ -1022,7 +1016,6 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 		if (er != erSuccess)
 			goto exit;
 	}
-
 
 	// Now repopulate the objectrelation table.
 	strQuery = "SELECT objectid, parentobjectid, relationtype FROM objectrelation";
@@ -1107,8 +1100,6 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 		if (er != erSuccess)
 			goto exit;
 	}
-
-
 
 	// Now delete the old tables and rename the new ones
 	er = lpDatabase->DoDelete("DROP TABLE object, objectproperty, objectrelation");
@@ -1224,7 +1215,6 @@ ECRESULT UpdateDatabaseCreateABChangesTable(ECDatabase *lpDatabase)
 		if (er != erSuccess)
 			goto exit;
 	}
-
 
 	// Remove the extracted changes from the changes table
 	strQuery = "DELETE FROM changes WHERE id IN (";

@@ -19,7 +19,6 @@
 #include <mapiutil.h>
 #include <kopano/ECGuid.h>
 
-
 #include "kcore.hpp"
 #include "ECXPProvider.h"
 #include "ECXPLogon.h"
@@ -36,10 +35,6 @@
 
 #include <kopano/charset/convstring.h>
 #include <kopano/ECGetText.h>
-
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 ECXPProvider::ECXPProvider() : ECUnknown("IXPProvider")
 {

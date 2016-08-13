@@ -33,10 +33,6 @@
 #include <kopano/stringutil.h>
 #include "pcutil.hpp"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 ECABLogon::ECABLogon(LPMAPISUP lpMAPISup, WSTransport* lpTransport, ULONG ulProfileFlags, GUID *lpGUID) : ECUnknown("IABLogon")
 {
 	// The 'legacy' guid used normally (all AB entryIDs have this GUID)
@@ -415,7 +411,6 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags, LPSPropTagArray lpPropTagArray, 
 			if(lpPropVal == NULL)
 				lpPropVal = &lpPropArray[j];
 
-
 			hr = Util::HrCopyProperty(lpNewPropArray + j, lpPropVal, lpNewPropArray);
 			if(hr != hrSuccess)
 				goto exit;
@@ -462,7 +457,6 @@ exit:
 
 	return hr;
 }
-
 
 HRESULT ECABLogon::xABLogon::QueryInterface(REFIID refiid, void ** lppInterface)
 {

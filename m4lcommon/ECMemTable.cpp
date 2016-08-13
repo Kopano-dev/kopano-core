@@ -40,10 +40,6 @@
 #include <netdb.h>
 #endif
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 using namespace std;
 
 SSortOrderSet sSortDefault = {0, 0};
@@ -271,7 +267,6 @@ HRESULT ECMemTable::HrSetClean()
 
 	map<unsigned int, ECTableEntry>::iterator iterRows;
 	map<unsigned int, ECTableEntry>::iterator iterNext;
-
 
 	pthread_mutex_lock(&m_hDataMutex);
 
@@ -746,7 +741,6 @@ HRESULT ECMemTableView::GetStatus(ULONG *lpulTableStatus, ULONG *lpulTableType)
 	return hr;
 }
 
-
 HRESULT ECMemTableView::SetColumns(LPSPropTagArray lpPropTagArray, ULONG ulFlags)
 {
 	HRESULT hr = hrSuccess;
@@ -852,7 +846,6 @@ exit:
 	return hr;
 }
 
-
 HRESULT ECMemTableView::SeekRow(BOOKMARK bkOrigin, LONG lRowCount, LONG *lplRowsSought)
 {
 	HRESULT hr = hrSuccess;
@@ -870,7 +863,6 @@ HRESULT ECMemTableView::SeekRow(BOOKMARK bkOrigin, LONG lRowCount, LONG *lplRows
 exit:
 	return hr;
 }
-
 
 HRESULT ECMemTableView::SeekRowApprox(ULONG ulNumerator, ULONG ulDenominator)
 {
@@ -890,7 +882,6 @@ HRESULT ECMemTableView::SeekRowApprox(ULONG ulNumerator, ULONG ulDenominator)
 exit:
 	return hr;
 }
-
 
 HRESULT ECMemTableView::QueryPosition(ULONG *lpulRow, ULONG *lpulNumerator, ULONG *lpulDenominator)
 {
@@ -917,7 +908,6 @@ HRESULT ECMemTableView::QueryPosition(ULONG *lpulRow, ULONG *lpulNumerator, ULON
 exit:
 	return hr;
 }
-
 
 HRESULT ECMemTableView::FindRow(LPSRestriction lpRestriction, BOOKMARK bkOrigin, ULONG ulFlags)
 {
@@ -1030,7 +1020,6 @@ exit:
 	return hr;
 }
 
-
 HRESULT ECMemTableView::FreeBookmark(BOOKMARK bkPosition)
 {
 	HRESULT hr = hrSuccess;
@@ -1137,7 +1126,6 @@ exit:
 	return hr;
 }
 
-
 HRESULT ECMemTableView::SortTable(LPSSortOrderSet lpSortCriteria, ULONG ulFlags)
 {
 	HRESULT hr = hrSuccess;
@@ -1223,7 +1211,6 @@ HRESULT ECMemTableView::ModifyRowKey(sObjectTableKey *lpsRowItem, sObjectTableKe
 		}
 	}
 
-
 	// Get all the sort columns and package them as binary keys
 	for (j = 0; j < lpsSortOrderSet->cSorts; ++j) {
 		lpsSortID = PpropFindProp(iterData->second.lpsPropVal, iterData->second.cValues, lpsSortOrderSet->aSort[j].ulPropTag);
@@ -1262,7 +1249,6 @@ HRESULT ECMemTableView::QuerySortOrder(LPSSortOrderSet *lppSortCriteria)
 		goto exit;
 
 	memcpy(lpSortCriteria, lpsSortOrderSet, CbSSortOrderSet(lpsSortOrderSet));
-
 
 	*lppSortCriteria = lpSortCriteria;
 exit:
@@ -1312,12 +1298,10 @@ HRESULT ECMemTableView::QueryRows(LONG lRowCount, ULONG ulFlags, LPSRowSet *lppR
 	if(hr != hrSuccess)
 		goto exit;
 
-
 	hr = QueryRowData(&sRowList, lppRows);
 	if (hr != hrSuccess)
 		goto exit;
 exit:
-
 
 	return hr;
 }
@@ -1334,7 +1318,6 @@ HRESULT ECMemTableView::QueryRowData(ECObjectTableList *lpsRowList, LPSRowSet *l
 	ECObjectTableList::const_iterator iterRowList;
 
 	convert_context converter;
-
 
 	if (lpsRowList == NULL || lppRows == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;

@@ -26,7 +26,6 @@
 
 #include <kopano/ECDebug.h>
 
-
 #include <kopano/Util.h>
 
 #include "WSTransport.h"
@@ -40,10 +39,6 @@ typedef mapi_memory_ptr<ECUSER>	ECUserPtr;
 #include <kopano/ECGetText.h>
 
 using namespace std;
-
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 ECABProvider::ECABProvider(ULONG ulFlags, const char *szClassName) :
     ECUnknown(szClassName)
@@ -126,7 +121,6 @@ HRESULT ECABProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 	if(hr != hrSuccess)
 		goto exit;
 
-
 	if (lpulcbSecurity)
 		*lpulcbSecurity = 0;
 
@@ -154,7 +148,6 @@ exit:
 
 	return hr;
 }
-
 
 HRESULT __stdcall ECABProvider::xABProvider::QueryInterface(REFIID refiid, void ** lppInterface)
 {

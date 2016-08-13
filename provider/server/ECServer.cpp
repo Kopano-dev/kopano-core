@@ -62,10 +62,6 @@
 
 #include "TmpPath.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 // The following value is based on:
 // http://dev.mysql.com/doc/refman/5.0/en/server-system-variables.html#sysvar_thread_stack
 // Since the remote MySQL server can be 32 or 64 bit we'll just go with the value specified
@@ -89,7 +85,6 @@ void *CleanupSyncedMessagesTable(void *lpTmpMain);
 void* ReportLicense(void *);
 
 int running_server(char *szName, const char *config, int argc, char *argv[]);
-
 
 int					g_Quit = 0;
 int					daemonize = 1;
@@ -289,7 +284,6 @@ static ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 	string strQuery;
 	DB_RESULT lpResult = NULL;
 	DB_ROW lpRow = NULL;
-
 
 	er = lpDatabase->DoSelect("SELECT value FROM settings WHERE name = 'attachment_storage'", &lpResult);
 	if (er != erSuccess) {
@@ -567,7 +561,6 @@ exit:
 	if (hostname[0] != '\0')
 		g_lpConfig->AddSetting("server_hostname", hostname);
 
-
 	if (aiResult)
 		freeaddrinfo(aiResult);
 
@@ -590,7 +583,6 @@ static ECRESULT check_server_configuration(void)
 	serverdetails_t	sServerDetails;
 	unsigned		ulPort = 0;
 
-
 	// Upgrade 'enable_sso_ntlmauth' to 'enable_sso'
 	bCheck = parseBool(g_lpConfig->GetSetting("enable_sso_ntlmauth"));
 	if (bCheck)
@@ -600,7 +592,6 @@ static ECRESULT check_server_configuration(void)
 	bCheck = parseBool(g_lpConfig->GetSetting("enable_sso"));
 	if (bCheck && check_server_fqdn() != erSuccess)
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "WARNING: Unable to find FQDN, please specify in 'server_hostname'. Now using '%s'.", g_lpConfig->GetSetting("server_hostname"));
-
 
 	// all other checks are only required for multi-server environments
 	bCheck = parseBool(g_lpConfig->GetSetting("enable_distributed_kopano"));
@@ -1141,7 +1132,6 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 	else
 		bSSLEnabled = false;
 
-
     soap_ssl_init(); // Always call this in the main thread once!
 
     ssl_threading_setup();
@@ -1257,7 +1247,6 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 	sigaction(SIGSEGV, &act, NULL);
 	sigaction(SIGBUS , &act, NULL);
 	sigaction(SIGABRT, &act, NULL);
-
 
 	if (m_bNPTL) {
 		// normally ignore these signals
@@ -1375,7 +1364,6 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 	if (er != erSuccess)
 		goto exit;
 
-
 	// check upgrade problem with wrong sequence in tproperties table primary key
 	er = check_database_tproperties_key(lpDatabase);
 	if (er != erSuccess)
@@ -1478,7 +1466,6 @@ exit:
 #endif
 	delete lpDatabase;
 	delete lpDatabaseFactory;
-
 
 	kopano_exit();
 

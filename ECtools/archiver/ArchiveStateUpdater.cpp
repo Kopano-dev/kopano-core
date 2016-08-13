@@ -39,7 +39,6 @@ namespace Predicates {
 		const SObjectEntry &m_objEntry;
 	};
 
-
 	/**
 	 * Compare two SObjectEntry instances.
 	 * This method uses CompareEntryIDs to do the comparison.
@@ -62,7 +61,6 @@ namespace Predicates {
 		IMAPISession *m_lpSession;
 		const SObjectEntry &m_objEntry;
 	};
-
 
 	/**
 	 * Compare a store entryid with the store entryid from an SObjectEntry instance.
@@ -93,7 +91,6 @@ namespace Predicates {
 	};
 
 } // namespace Predicates
-
 
 /**
  * Create an ArchiveStateUpdater instance.

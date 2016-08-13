@@ -77,7 +77,6 @@ int HandleClientUpdate(struct soap *soap)
 	std::string strClientMSIName;
 	FILE *fd = NULL;
 
-
 	// Get the server.cfg setting
 	szClientUpdatePath = g_lpConfig->GetSetting("client_update_path");
 
@@ -475,7 +474,6 @@ int ns__getClientUpdate(struct soap *soap, struct clientUpdateInfoRequest sClien
 		er = KCERR_NO_ACCESS;
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Client update: trackid: 0x%08X, unknown username '%s'", sClientUpdateInfo.ulTrackId, sClientUpdateInfo.szUsername);
 	}
-
 
 	if(lpecSession->GetUserManagement()->IsInternalObject(ulUserID)) {
 		er = KCERR_NO_ACCESS;

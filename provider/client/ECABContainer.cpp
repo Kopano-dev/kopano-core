@@ -24,7 +24,6 @@
 #include <kopano/ECGuid.h>
 #include <kopano/ECDebug.h>
 
-
 #include "ECMAPITable.h"
 
 #include "ECDisplayTable.h"
@@ -40,10 +39,6 @@
 
 #include <kopano/charset/convstring.h>
 #include <kopano/ECGetText.h>
-
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 ECABContainer::ECABContainer(void *lpProvider, ULONG ulObjType, BOOL fModify,
     const char *szClassName) :

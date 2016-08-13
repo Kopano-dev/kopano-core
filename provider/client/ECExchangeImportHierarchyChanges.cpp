@@ -38,10 +38,6 @@
 #include <kopano/charset/utf8string.h>
 #include <kopano/charset/convstring.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 ECExchangeImportHierarchyChanges::ECExchangeImportHierarchyChanges(ECMAPIFolder *lpFolder){
 	m_lpFolder = lpFolder;
 	m_lpStream = NULL;
@@ -210,7 +206,6 @@ HRESULT ECExchangeImportHierarchyChanges::UpdateState(LPSTREAM lpStream){
 
 	return lpStream->Write(&m_ulChangeId, 4, &ulLen);
 }
-
 
 HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPropValue lpPropArray){
 	HRESULT hr = hrSuccess;
@@ -466,7 +461,6 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPr
 
 		hrTmp = ECExchangeImportContentsChanges::HrUpdateSearchReminders(ptrRoot, lpPropAdditionalREN);
 	}
-
 
 exit:
 	MAPIFreeBuffer(lpPropVal);

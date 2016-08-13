@@ -27,6 +27,4 @@ HRESULT HrUnmapFileBuffer(char *lpBuffer, int ulSize, bool bImmap);
 
 bool DuplicateFile(FILE *lpFile, std::string &strFileName);
 
-bool ConvertFileFromUCS2ToUTF8(const std::string &strSrcFileName, const std::string &strDstFileName);
-
 #endif

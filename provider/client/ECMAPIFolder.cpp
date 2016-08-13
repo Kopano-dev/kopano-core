@@ -49,10 +49,6 @@
 
 #include <kopano/charset/convstring.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 static LONG __stdcall AdviseECFolderCallback(void *lpContext, ULONG cNotif,
     LPNOTIFICATION lpNotif)
 {
@@ -225,7 +221,6 @@ HRESULT ECMAPIFolder::TableRowGetProp(void* lpProvider, struct propVal *lpsPropV
 
 	return hr;
 }
-
 
 HRESULT	ECMAPIFolder::QueryInterface(REFIID refiid, void **lppInterface) 
 {
@@ -447,7 +442,6 @@ HRESULT ECMAPIFolder::CreateMessageWithEntryID(LPCIID lpInterface, ULONG ulFlags
 	hr = lpMessage->HrSetPropStorage(lpStorage, FALSE);
 	if(hr != hrSuccess)
 		goto exit;
-
 
 	// Load an empty property set
 	hr = lpMessage->HrLoadEmptyProps();
@@ -731,7 +725,6 @@ HRESULT ECMAPIFolder::CopyFolder(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lp
 		// Support object handled de copy/move
 		hr = this->GetMsgStore()->lpSupport->CopyFolder(&IID_IMAPIFolder, &this->m_xMAPIFolder, cbEntryID, lpEntryID, lpInterface, lpDestFolder, lpszNewFolderName, ulUIParam, lpProgress, ulFlags);
 	}
-
 
 exit:
 	if(lpMapiFolder)
@@ -1081,7 +1074,6 @@ HRESULT ECMAPIFolder::xMAPIFolder::GetSearchCriteria(ULONG ulFlags, LPSRestricti
 	TRACE_MAPI(TRACE_RETURN, "IMAPIFolder::GetSearchCriteria", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
 }
-
 
 HRESULT ECMAPIFolder::xMAPIFolder::CreateMessage(LPCIID lpInterface, ULONG ulFlags, LPMESSAGE *lppMessage)
 {

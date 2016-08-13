@@ -18,10 +18,6 @@
 #include <kopano/platform.h>
 #include <kopano/charset/convstring.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 /** Create a convstring instance from a SPropValue.
  *
  * Extarcts the lpszA or lpszW depending on the PROP_TYPE of the provided
@@ -218,7 +214,6 @@ T convstring::convert_to(const char *tocode) const {
 	}
 }
 
-
 /** Check if the convstring is initialized with a NULL pointer or with an empty string.
  *
  * @return	A boolean specifying of the internal string is a NULL pointer or an empty string.
@@ -276,7 +271,6 @@ const char* convstring::c_str() const
 	return (m_lpsz ? convert_to<char*>() : NULL);
 }
 
-
 /**
  * Convert this convstring object to a raw wchar_t pointer.
  *
@@ -289,7 +283,6 @@ const wchar_t* convstring::wc_str() const
 {
 	return (m_lpsz ? convert_to<wchar_t*>() : NULL);
 }
-
 
 /**
  * Convert this convstring object to a raw char pointer encoded in UTF-8.

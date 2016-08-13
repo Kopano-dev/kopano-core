@@ -22,10 +22,6 @@
 #include <kopano/charset/convert.h>
 #include "WSUtil.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 /**
  * Create a WSMessageStreamExporter instance.
  * @param[in]	ulOffset	The offset that should be used to index the streams. The server returns [0:B-A), while the client would

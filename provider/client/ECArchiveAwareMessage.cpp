@@ -33,9 +33,6 @@
 #include <sstream>
 #include <kopano/ECDebug.h>
 #include <kopano/charset/convert.h>
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 #define dispidStoreEntryIds			"store-entryids"
 #define dispidItemEntryIds			"item-entryids"
@@ -51,7 +48,6 @@ private:
 	ULONG m_ulPropTag;
 };
 
-
 HRESULT ECArchiveAwareMessageFactory::Create(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFlags, BOOL bEmbedded, ECMAPIProp* lpRoot, ECMessage **lppMessage) const
 {
 	ECArchiveAwareMsgStore *lpArchiveAwareStore = dynamic_cast<ECArchiveAwareMsgStore*>(lpMsgStore);
@@ -63,7 +59,6 @@ HRESULT ECArchiveAwareMessageFactory::Create(ECMsgStore *lpMsgStore, BOOL fNew, 
 
 	return ECArchiveAwareMessage::Create(lpArchiveAwareStore, FALSE, fModify, ulFlags, lppMessage);
 }
-
 
 ECArchiveAwareMessage::ECArchiveAwareMessage(ECArchiveAwareMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFlags)
 : ECMessage(lpMsgStore, fNew, fModify, ulFlags, FALSE, NULL)

@@ -112,7 +112,6 @@ std::string ECArchiverLogger::EscapeFormatString(const std::string &strFormat)
 	return strEscaped;
 }
 
-
 ScopedUserLogging::ScopedUserLogging(ECArchiverLogger *lpLogger, const tstring &strUser)
 : m_lpLogger(lpLogger)
 , m_strPrevUser(lpLogger->SetUser(strUser))
@@ -122,7 +121,6 @@ ScopedUserLogging::~ScopedUserLogging()
 {
 	m_lpLogger->SetUser(m_strPrevUser);
 }
-
 
 ScopedFolderLogging::ScopedFolderLogging(ECArchiverLogger *lpLogger, const tstring &strFolder)
 : m_lpLogger(lpLogger)

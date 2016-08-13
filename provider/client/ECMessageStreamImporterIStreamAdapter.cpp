@@ -129,7 +129,6 @@ HRESULT ECMessageStreamImporterIStreamAdapter::Clone(IStream** /*ppstm*/)
 	return MAPI_E_NO_SUPPORT;
 }
 
-
 ECMessageStreamImporterIStreamAdapter::ECMessageStreamImporterIStreamAdapter(WSMessageStreamImporter *lpStreamImporter)
 : m_ptrStreamImporter(lpStreamImporter, true)
 { }
@@ -138,8 +137,6 @@ ECMessageStreamImporterIStreamAdapter::~ECMessageStreamImporterIStreamAdapter()
 {
 	Commit(0);	// This causes us to wait for the async thread.
 }
-
-
 
 // ISequentialStream proxies
 ULONG ECMessageStreamImporterIStreamAdapter::xSequentialStream::AddRef()

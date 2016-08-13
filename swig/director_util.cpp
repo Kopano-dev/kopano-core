@@ -25,7 +25,6 @@ struct thread_info {
 	bool bCalledFromPython;
 };
 
-
 static void make_key() {
 	pthread_key_create(&g_key, NULL);	// We need cleanup here
 }

@@ -53,10 +53,6 @@
 #include <boost/filesystem.hpp>
 namespace bfs = boost::filesystem;
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 #if defined LINUX || !defined UNICODE
 #define WHITESPACE " \t\n\r"
 #else
@@ -184,7 +180,6 @@ ECRESULT BTSession::GetAdditionalDatabase(ECDatabase **lppDatabase)
 	return this->m_lpDatabaseFactory->CreateDatabaseObject(lppDatabase, str);
 }
 
-
 ECRESULT BTSession::GetServerGUID(GUID* lpServerGuid){
 	return 	m_lpSessionManager->GetServerGUID(lpServerGuid);
 }
@@ -306,7 +301,6 @@ ECSession::ECSession(const char *src_addr, ECSESSIONID sessionID,
 	pthread_mutex_init(&m_hStateLock, NULL);
 	pthread_mutex_init(&m_hLocksLock, NULL);
 }
-
 
 ECSession::~ECSession()
 {
@@ -675,7 +669,6 @@ size_t ECSession::GetObjectSize()
 	if (m_lpEcSecurity)
 		ulSize += m_lpEcSecurity->GetObjectSize();
 
-
 	// The Table manager size is not callculated here
 //	ulSize += GetTableManager()->GetObjectSize();
 	return ulSize;
@@ -772,7 +765,6 @@ ECAuthSession::~ECAuthSession()
 
 	delete m_lpUserManagement;
 }
-
 
 ECRESULT ECAuthSession::CreateECSession(ECSESSIONGROUPID ecSessionGroupId,
     const std::string &cl_ver, const std::string &cl_app,
@@ -1634,7 +1626,6 @@ size_t ECAuthSession::GetObjectSize()
 
 	return ulSize;
 }
-
 
 ECAuthSessionOffline::ECAuthSessionOffline(const char *src_addr,
     ECSESSIONID sessionID, ECDatabaseFactory *lpDatabaseFactory,

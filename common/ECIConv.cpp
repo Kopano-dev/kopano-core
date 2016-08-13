@@ -18,10 +18,6 @@
 #include <kopano/platform.h>
 #include <kopano/ECIConv.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 ECIConv::ECIConv(const std::string &strToCharset, const std::string &strFromCharset) {
 	try {
 		m_lpContext = new context_t(strToCharset.c_str(), strFromCharset.c_str());

@@ -88,10 +88,6 @@ typedef std::unique_ptr<Collator> unique_ptr_Collator;
 #include <kopano/charset/convert.h>
 #endif
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 #ifndef ZCP_USES_ICU
 ECSortKey::ECSortKey(const unsigned char *lpSortData, unsigned int cbSortData)
 	: m_lpSortData(lpSortData)
@@ -398,8 +394,6 @@ bool str_icontains(const char *haystack, const char *needle, const ECLocale &loc
 #endif
 }
 
-
-
 /**
  * Check if two strings are canonical equivalent.
  * 
@@ -652,9 +646,6 @@ bool wcs_icontains(const wchar_t *haystack, const wchar_t *needle, const ECLocal
 	return false;
 #endif
 }
-
-
-
 
 /**
  * Check if two strings are canonical equivalent.
@@ -914,7 +905,6 @@ bool u8_icontains(const char *haystack, const char *needle, const ECLocale &loca
 	return wcs_icontains(ws1, ws2, locale);
 #endif
 }
-
 
 /**
  * Copy at most n characters from the utf8 string src to lpstrDest.
@@ -1230,7 +1220,6 @@ static const struct localemap {
 	{"zu_ZA",1077,"Zulu_South Africa"},
 };
 
-
 ECLocale createLocaleFromName(const char *lpszLocale)
 {
 #ifdef ZCP_USES_ICU
@@ -1433,7 +1422,6 @@ void createSortKeyDataFromUTF8(const char *s, int nCap, const ECLocale &locale, 
 	createSortKeyData(wstrTmp.c_str(), nCap, locale, lpcbKey, lppKey);
 #endif
 }
-
 
 /**
  * Create a locale independant blob that can be used to sort

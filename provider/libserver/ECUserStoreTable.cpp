@@ -28,10 +28,6 @@
 #include "ECSession.h"
 #include <kopano/stringutil.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 // 1 == MAPI_STORE.. does it even matter?
 ECUserStoreTable::ECUserStoreTable(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale) : 
 	ECGenericObjectTable(lpSession, 1, ulFlags, locale)

@@ -26,10 +26,6 @@
 
 using namespace std;
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 std::string RestrictionToString(const restrictTable *lpRestriction,
     unsigned int indent)
 {

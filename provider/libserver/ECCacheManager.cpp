@@ -32,10 +32,6 @@
 #include "ECGenericObjectTable.h"
 #include <kopano/threadutil.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 #include <algorithm>
 
 #define LOG_CACHE_DEBUG(_msg, ...) \
@@ -653,7 +649,6 @@ ECRESULT ECCacheManager::GetStoreAndType(unsigned int ulObjId, unsigned int *lpu
         memcpy(&guid, lpDBRow[1], sizeof(GUID));
         ulType = atoi(lpDBRow[2]);
 
-
 	} else {
 	    // We have a parent, get the store for our parent by recursively calling ourselves
 	    er = GetStoreAndType(ulSubObjId, &ulStore, &guid, &ulType, maxdepth-1);
@@ -980,7 +975,6 @@ ECRESULT ECCacheManager::_AddUserObject(unsigned int ulUserId,
 	sData.strSignature = strSignature;
 	return m_UserObjectCache.AddCacheItem(ulUserId, sData);
 }
-
 
 ECRESULT ECCacheManager::_GetUserObject(unsigned int ulUserId, objectclass_t* lpulClass, unsigned int *lpulCompanyId,
 										std::string* lpstrExternId, std::string* lpstrSignature)
@@ -1348,13 +1342,11 @@ void ECCacheManager::ForEachCacheItem(void(callback)(const std::string &, const 
 	
 	pthread_mutex_unlock(&m_hCacheMutex);
 
-
 	pthread_mutex_lock(&m_hCacheCellsMutex);
 
 	m_CellCache.RequestStats(callback, obj);
 
 	pthread_mutex_unlock(&m_hCacheCellsMutex);
-
 
 	pthread_mutex_lock(&m_hCacheIndPropMutex);
 
@@ -1380,11 +1372,9 @@ ECRESULT ECCacheManager::DumpStats()
 	m_ServerDetailsCache.DumpStats();
 	pthread_mutex_unlock(&m_hCacheMutex);
 
-
 	pthread_mutex_lock(&m_hCacheCellsMutex);
 	m_CellCache.DumpStats();
 	pthread_mutex_unlock(&m_hCacheCellsMutex);
-
 
 	pthread_mutex_lock(&m_hCacheIndPropMutex);
 	m_PropToObjectCache.DumpStats();
@@ -1627,7 +1617,6 @@ ECRESULT ECCacheManager::RemoveIndexData(unsigned int ulObjId)
 
 	return er;
 }
-
 
 ECRESULT ECCacheManager::RemoveIndexData(unsigned int ulPropTag, unsigned int cbData, unsigned char *lpData)
 {
@@ -2026,7 +2015,6 @@ exit:
 
 	if(bPartialCompletion)
 		er = KCWARN_PARTIAL_COMPLETION;
-
 
 	return er;
 }

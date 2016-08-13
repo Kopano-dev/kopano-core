@@ -413,7 +413,6 @@ exit:
 	return hr == hrSuccess;
 }
 
-
 /**
  * Auto-respond to the passed message
  *
@@ -589,7 +588,6 @@ exit:
 	MAPIFreeBuffer(lpEntryID);
 	return hr;
 }
-
 
 /**
  * Save copy of the raw message
@@ -4199,7 +4197,6 @@ int main(int argc, char *argv[]) {
 	ec_log_set(g_lpLogger);
 	if (!bExplicitConfig && loglevel)
 		g_lpLogger->SetLoglevel(loglevel);
-
 
 	/* Warn users that we are using the default configuration */
 	if (bDefaultConfigWarning && bExplicitConfig) {

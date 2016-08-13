@@ -52,8 +52,6 @@ ArchiveOperationBase::ArchiveOperationBase(ECArchiverLogger *lpLogger, int ulAge
 	GetSystemTimeAsFileTime(&m_ftCurrent);
 }
 
-
-
 HRESULT ArchiveOperationBase::GetRestriction(LPMAPIPROP lpMapiProp, LPSRestriction *lppRestriction)
 {
 	HRESULT hr = hrSuccess;
@@ -106,7 +104,6 @@ HRESULT ArchiveOperationBase::GetRestriction(LPMAPIPROP lpMapiProp, LPSRestricti
 			)
 		)
 	);
-
 
 	hr = resResult.CreateMAPIRestriction(lppRestriction);
 

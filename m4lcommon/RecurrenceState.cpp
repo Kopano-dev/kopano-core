@@ -45,10 +45,6 @@
 	#endif
 #endif
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 class BinReader _zcp_final {
 public:
     BinReader(char *lpData, unsigned int ulLen) {

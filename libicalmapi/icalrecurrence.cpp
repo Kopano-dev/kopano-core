@@ -242,7 +242,6 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, ica
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRENCE_END], PT_SYSTIME);
 	lpIcalItem->lstMsgProps.push_back(sPropVal);
 
-
 	// find EXDATE properties, add to delete exceptions
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_EXDATE_PROPERTY);
 	while (lpicProp != NULL)
@@ -808,7 +807,6 @@ HRESULT ICalRecurrence::HrCreateICalRecurrence(TIMEZONE_STRUCT sTimeZone, bool b
 		goto exit;
 
 	icalcomponent_add_property(lpicEvent, icalproperty_new_rrule(icRRule));
-
 
 	// all delete exceptions are in the delete list,
 	lstExceptions = lpRecurrence->getDeletedExceptions();

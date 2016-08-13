@@ -30,7 +30,6 @@
 #include <kopano/Trace.h>
 #include <kopano/ECDebug.h>
 
-
 #include <edkguid.h>
 #include "EntryPoint.h"
 #include "DLLGlobal.h"
@@ -41,11 +40,6 @@
 #include <kopano/stringutil.h>
 
 #include "ProviderUtil.h"
-
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 
 ECMSProviderOffline::ECMSProviderOffline(ULONG ulFlags) : 
 	ECMSProvider(ulFlags|EC_PROVIDER_OFFLINE, "ECMSProviderOffline")

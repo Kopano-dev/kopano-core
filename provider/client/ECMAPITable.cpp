@@ -32,11 +32,6 @@
 #include <kopano/ECDebug.h>
 #include <kopano/ECInterfaceDefs.h>
 
-
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 ECMAPITable::ECMAPITable(std::string strName, ECNotifyClient *lpNotifyClient, ULONG ulFlags) : ECUnknown("IMAPITable")
 {
 	TRACE_MAPI(TRACE_ENTRY, "ECMAPITable::ECMAPITable","");
@@ -239,7 +234,6 @@ HRESULT ECMAPITable::GetStatus(ULONG *lpulTableStatus, ULONG *lpulTableType)
 	return hr;
 }
 
-
 HRESULT ECMAPITable::SetColumns(LPSPropTagArray lpPropTagArray, ULONG ulFlags)
 {
 	HRESULT hr = hrSuccess;
@@ -315,7 +309,6 @@ exit:
 	return hr;
 }
 
-
 HRESULT ECMAPITable::SeekRow(BOOKMARK bkOrigin, LONG lRowCount, LONG *lplRowsSought)
 {
 	HRESULT hr = hrSuccess;
@@ -333,7 +326,6 @@ exit:
 
 	return hr;
 }
-
 
 HRESULT ECMAPITable::SeekRowApprox(ULONG ulNumerator, ULONG ulDenominator)
 {
@@ -359,7 +351,6 @@ exit:
 
 	return hr;
 }
-
 
 HRESULT ECMAPITable::QueryPosition(ULONG *lpulRow, ULONG *lpulNumerator, ULONG *lpulDenominator)
 {
@@ -388,7 +379,6 @@ exit:
 	return hr;
 }
 
-
 HRESULT ECMAPITable::FindRow(LPSRestriction lpRestriction, BOOKMARK bkOrigin, ULONG ulFlags)
 {
 	HRESULT hr = hrSuccess;
@@ -410,7 +400,6 @@ exit:
 
 	return hr;
 }
-
 
 HRESULT ECMAPITable::Restrict(LPSRestriction lpRestriction, ULONG ulFlags)
 {
@@ -443,7 +432,6 @@ exit:
 	return hr;
 }
 
-
 HRESULT ECMAPITable::CreateBookmark(BOOKMARK* lpbkPosition)
 {
 	HRESULT hr = hrSuccess;
@@ -461,7 +449,6 @@ exit:
 	return hr;
 }
 
-
 HRESULT ECMAPITable::FreeBookmark(BOOKMARK bkPosition)
 {
 	HRESULT hr = hrSuccess;
@@ -478,7 +465,6 @@ exit:
 
 	return hr;
 }
-
 
 HRESULT ECMAPITable::SortTable(LPSSortOrderSet lpSortCriteria, ULONG ulFlags)
 {
@@ -511,7 +497,6 @@ exit:
 
 	return hr;
 }
-
 
 HRESULT ECMAPITable::QuerySortOrder(LPSSortOrderSet *lppSortCriteria)
 {
@@ -562,7 +547,6 @@ exit:
 	return hr;
 }
 
-
 HRESULT ECMAPITable::ExpandRow(ULONG cbInstanceKey, LPBYTE pbInstanceKey, ULONG ulRowCount, ULONG ulFlags, LPSRowSet * lppRows, ULONG *lpulMoreRows)
 {
 	HRESULT hr = hrSuccess;
@@ -578,7 +562,6 @@ exit:
 	pthread_mutex_unlock(&m_hLock);
 	return hr;
 }
-
 
 HRESULT ECMAPITable::CollapseRow(ULONG cbInstanceKey, LPBYTE pbInstanceKey, ULONG ulFlags, ULONG *lpulRowCount)
 {
@@ -615,7 +598,6 @@ exit:
 	return hr;
 }
 
-
 HRESULT ECMAPITable::GetCollapseState(ULONG ulFlags, ULONG cbInstanceKey, LPBYTE lpbInstanceKey, ULONG *lpcbCollapseState, LPBYTE *lppbCollapseState)
 {
 	HRESULT hr = hrSuccess;
@@ -632,7 +614,6 @@ exit:
 
 	return hr;
 }
-
 
 HRESULT ECMAPITable::SetCollapseState(ULONG ulFlags, ULONG cbCollapseState, LPBYTE pbCollapseState, BOOKMARK *lpbkLocation)
 {

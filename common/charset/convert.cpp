@@ -27,10 +27,6 @@
 #include <cerrno>
 #define BUFSIZE 4096
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 convert_exception::convert_exception(enum exception_type type, const std::string &message)
 	: std::runtime_error(message)
 	, m_type(type)
@@ -43,7 +39,6 @@ unknown_charset_exception::unknown_charset_exception(const std::string &message)
 illegal_sequence_exception::illegal_sequence_exception(const std::string &message)
 	: convert_exception(eIllegalSequence, message)
 {}
-
 
 namespace details {
 
@@ -145,7 +140,6 @@ namespace details {
 				strto += join(vOptionsFiltered.begin(), vOptionsFiltered.end(), std::string(","));
 			}
         }
-
 
 		m_cd = iconv_open(strto.c_str(), fromcode);
 		if (m_cd == (iconv_t)(-1))

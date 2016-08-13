@@ -592,4 +592,3 @@ HRESULT FsckCalendar::ValidateItem(LPMESSAGE lpMessage,
 	return ValidateRecursiveDuplicateRecipients(lpMessage, bChanged);
 }
 
-

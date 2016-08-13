@@ -39,8 +39,6 @@ extern "C" {
 	#include "ext/standard/php_string.h"
 }
 
-
-
 // A very, very nice PHP #define that causes link errors in MAPI when you have multiple
 // files referencing MAPI....
 #undef inline

@@ -164,7 +164,6 @@ HRESULT ECNotificationManager::NotifyChange(ECSESSIONID ecSessionId)
     return hrSuccess;
 }
 
-
 void * ECNotificationManager::Thread(void *lpParam)
 {
     ECNotificationManager *lpThis = (ECNotificationManager *)lpParam;

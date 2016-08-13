@@ -26,11 +26,6 @@
 #include "SessionGroupData.h"
 #include "WSTransport.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
-
 SessionGroupData::SessionGroupData(ECSESSIONGROUPID ecSessionGroupId, ECSessionGroupInfo *lpInfo, const sGlobalProfileProps &sProfileProps)
 {
 	m_ecSessionGroupId = ecSessionGroupId;
@@ -72,7 +67,6 @@ HRESULT SessionGroupData::Create(ECSESSIONGROUPID ecSessionGroupId, ECSessionGro
 
 	return hr;
 }
-
 
 HRESULT SessionGroupData::GetOrCreateNotifyMaster(ECNotifyMaster **lppMaster)
 {

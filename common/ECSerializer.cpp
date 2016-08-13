@@ -24,11 +24,6 @@
 #include "ECFifoBuffer.h"
 #include "ECSerializer.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
-
 ECStreamSerializer::ECStreamSerializer(IStream *lpBuffer)
 {
 	SetBuffer(lpBuffer);

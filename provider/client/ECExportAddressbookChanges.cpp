@@ -34,10 +34,6 @@
 
 #include <edkmdb.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 ECExportAddressbookChanges::ECExportAddressbookChanges(ECMsgStore *lpStore) {
 	ECSyncLog::GetLogger(&m_lpLogger);
 
@@ -345,7 +341,6 @@ HRESULT ECExportAddressbookChanges::UpdateState(LPSTREAM lpStream)
 	return hrSuccess;
 }
 
-
 /**
  * Compares two ICSCHANGE objects and determines which of the two should precede the other.
  * This function is supposed to be used as the predicate in std::stable_sort.
@@ -398,7 +393,6 @@ bool ECExportAddressbookChanges::LeftPrecedesRight(const ICSCHANGE &left, const 
 
 	return false;
 }
-
 
 ULONG ECExportAddressbookChanges::xECExportAddressbookChanges::AddRef()
 {

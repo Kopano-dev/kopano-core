@@ -20,10 +20,6 @@
 #include "freebusyutil.h"
 #include <kopano/stringutil.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 /**
  * Constructor
  *

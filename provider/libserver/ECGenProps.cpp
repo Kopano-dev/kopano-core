@@ -39,10 +39,6 @@
 #include <edkmdb.h>
 #include <kopano/mapiext.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 #define _(string) dcgettext("kopano", string, LC_MESSAGES)
 
 extern ECSessionManager*	g_lpSessionManager;
@@ -858,7 +854,6 @@ ECRESULT ECGenProps::IsOrphanStore(ECSession* lpSession, unsigned int ulObjId, b
 
 	if (lpDatabase->GetNumRows(lpDBResult) == 0)
 		bIsOrphan = true;
-
 
 	*lpbIsOrphan = bIsOrphan;
 

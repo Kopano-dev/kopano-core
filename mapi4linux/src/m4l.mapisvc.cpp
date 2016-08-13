@@ -331,7 +331,6 @@ HRESULT SVCProvider::Init(const INFLoader& cINF, const inf_section* infProvider)
 	return hrSuccess;
 }
 
-
 SVCService::SVCService()
 {
 	m_dl = NULL;

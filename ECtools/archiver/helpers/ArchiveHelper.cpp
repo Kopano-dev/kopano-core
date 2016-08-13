@@ -32,7 +32,6 @@ namespace za { namespace helpers {
 		(offsetof(ROWLIST,aEntries) + (_centries)*sizeof(ROWENTRY))
 #endif
 
-
 /**
  * Create an ArchiveHelper object based on a message store and a folder name.
  *

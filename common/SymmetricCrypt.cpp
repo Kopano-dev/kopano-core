@@ -38,9 +38,6 @@
  * @retval	true	The provided string was encrypted.
  * @retval	false 	The provided string was not encrypted.
  */
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 bool SymmetricIsCrypted(const char *c)
 {

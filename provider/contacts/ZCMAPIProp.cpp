@@ -30,10 +30,6 @@
 #include <kopano/namedprops.h>
 #include <kopano/mapiguidext.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 ZCMAPIProp::ZCMAPIProp(ULONG ulObjType, const char *szClassName) :
     ECUnknown(szClassName), m_ulObject(ulObjType)
 {
@@ -391,7 +387,6 @@ HRESULT ZCMAPIProp::CopyOneProp(convert_context &converter, ULONG ulFlags,
 exit:
 	return hr;
 }
-
 
 /** 
  * return property data of this object

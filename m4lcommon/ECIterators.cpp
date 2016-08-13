@@ -103,7 +103,6 @@ exit:
 		throw HrException(hr);	// @todo: Fix this
 }
 
-
 /**
  * ECContentsIteratorBase implementation
  */

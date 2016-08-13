@@ -730,7 +730,6 @@ ECRESULT ECDispatcherSelect::MainLoop()
 	CONNECTION_TYPE ulType;
 	int n = 0;
 
-
     // This will start the threads
     m_lpThreadManager = new ECThreadManager(m_lpLogger, this, atoui(m_lpConfig->GetSetting("threads")));
     

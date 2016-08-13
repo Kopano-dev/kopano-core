@@ -634,7 +634,6 @@ HRESULT ArchiverSession::CreateRemote(const char *lpszServerPath, ECLogger *lpLo
 	return hr;
 }
 
-
 HRESULT ArchiverSession::OpenMAPIProp(ULONG cbEntryID, LPENTRYID lpEntryID, LPMAPIPROP *lppProp)
 {
 	HRESULT hr;

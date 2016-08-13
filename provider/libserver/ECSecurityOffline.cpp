@@ -20,10 +20,6 @@
 #include <kopano/ECDefs.h>
 #include "ECSecurityOffline.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 ECSecurityOffline::ECSecurityOffline(ECSession *lpSession, ECConfig *lpConfig) :
 	ECSecurity(lpSession, lpConfig, NULL)
 {

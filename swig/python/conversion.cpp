@@ -105,7 +105,6 @@ typedef int Py_ssize_t;
   #define NATIVE_UNICODE 0
 #endif
 
-
 void Init()
 {
 	PyObject *lpMAPIStruct = PyImport_ImportModule("MAPI.Struct");
@@ -489,7 +488,6 @@ exit:
 	return list;
 }
 
-
 void Object_to_LPSPropValue(PyObject *object, LPSPropValue lpProp, ULONG ulFlags, void *lpBase)
 {
 	PyObject *ulPropTag = NULL;
@@ -728,7 +726,6 @@ void Object_to_LPSPropValue(PyObject *object, LPSPropValue lpProp, ULONG ulFlags
 				    CopyPyUnicode(&lpProp->Value.MVszW.lppszW[n], Value, lpBase);
 				}
 
-
 				Py_DECREF(elem);
 				++n;
 			}
@@ -803,7 +800,6 @@ LPSPropValue Object_to_LPSPropValue(PyObject *object, ULONG ulFlags, void *lpBas
 		return lpProp;
 	}
 }
-
 
 LPSPropValue	List_to_LPSPropValue(PyObject *object, ULONG *cValues, ULONG ulFlags, void *lpBase)
 {
@@ -2894,7 +2890,6 @@ PyObject *Object_from_LPECUSER(ECUSER *lpUser, ULONG ulFlags)
 	return result;
 }
 
-
 PyObject *List_from_LPECUSER(ECUSER *lpUser, ULONG cElements, ULONG ulFlags)
 {
 	PyObject *list = PyList_New(0);
@@ -3077,7 +3072,6 @@ PyObject *Object_from_LPECUSERCLIENTUPDATESTATUS(ECUSERCLIENTUPDATESTATUS *lpECU
 	// @todo charset conversion ?
 	return PyObject_CallFunction(PyTypeECUserClientUpdateStatus, "(llsssl)", lpECUCUS->ulTrackId, lpECUCUS->tUpdatetime, lpECUCUS->lpszCurrentversion, lpECUCUS->lpszLatestversion, lpECUCUS->lpszComputername, lpECUCUS->ulStatus);
 }
-
 
 LPROWLIST List_to_LPROWLIST(PyObject *object, ULONG ulFlags)
 {
@@ -3308,7 +3302,6 @@ ECSVRNAMELIST *List_to_LPECSVRNAMELIST(PyObject *object)
 		elem = NULL;
 		++lpSvrNameList->cServers;
 	}
-
 
 exit:
 	if(PyErr_Occurred()) {

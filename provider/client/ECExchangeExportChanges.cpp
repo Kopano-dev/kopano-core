@@ -49,10 +49,6 @@
 
 #include <kopano/charset/convert.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 ECExchangeExportChanges::ECExchangeExportChanges(ECMsgStore *lpStore, const std::string &sk, const wchar_t * szDisplay, unsigned int ulSyncType)
 : m_iidMessage(IID_IMessage)
 {
@@ -805,7 +801,6 @@ HRESULT ECExchangeExportChanges::xECExportChanges::SetLogger(ECLogger *lpLogger)
 	return pThis->SetLogger(lpLogger);
 }
 
-
 HRESULT ECExchangeExportChanges::ExportMessageChanges() {
 	ASSERT(m_lpImportContents != NULL);
 	if (m_lpImportStreamedContents != NULL)
@@ -1102,7 +1097,6 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 			ZLOG_DEBUG(m_lpLogger, "SaveChanges failed for destination message");
 			goto exit;
 		}
-
 
 next:
 		// Mark this change as processed, even if we skipped it due to SYNC_E_IGNORE or because the item was deleted on the source server

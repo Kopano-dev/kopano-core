@@ -306,7 +306,6 @@ eResult ArchiveControlImpl::Cleanup(const tstring &strUser)
 	return MAPIErrorToArchiveError(hr);
 }
 
-
 /**
  * Process all users.
  *
@@ -560,7 +559,6 @@ HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Done archiving messages");
 	}
 
-
 	if (ptrDeleteOp) {
 		// First delete all messages that are elegible for deletion, so we don't unneccesary stub them first
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Deleting old messages");
@@ -575,7 +573,6 @@ HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
 		}
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Done deleting messages");
 	}
-
 
 	if (ptrStubOp) {
 		// Now stub the remaing messages (if they're old enough)

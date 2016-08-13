@@ -27,9 +27,6 @@
 #include <mapidefs.h>
 #include <kopano/CommonUtil.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 #ifdef DEBUG
 #define DEBUG_SQL 0
 #define DEBUG_TRANSACTION 0
@@ -540,7 +537,6 @@ ECRESULT ECDatabaseMySQL::CreateDatabase(ECConfig *lpConfig)
 	const char *lpDatabase = lpConfig->GetSetting("mysql_database");
 	const char *lpMysqlPort = lpConfig->GetSetting("mysql_port");
 	const char *lpMysqlSocket = lpConfig->GetSetting("mysql_socket");
-
 
 	if(*lpMysqlSocket == '\0')
 		lpMysqlSocket = NULL;

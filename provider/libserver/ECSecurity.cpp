@@ -57,10 +57,6 @@
 #include "ECDBDef.h"
 #include "cmdutil.hpp"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 #define MAX_PARENT_LIMIT 64
 
 /** 

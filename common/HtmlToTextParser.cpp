@@ -20,7 +20,6 @@
 #include "HtmlEntity.h"
 #include <cwctype>
 
-
 CHtmlToTextParser::CHtmlToTextParser(void)
 {
 	tagMap[L"head"] = tagParser(false, &CHtmlToTextParser::parseTagHEAD);
@@ -338,7 +337,6 @@ void CHtmlToTextParser::parseTagBP() {
 	addNewLine( false );
 	addNewLine( true );
 }
-
 
 void CHtmlToTextParser::parseTagBR()
 {

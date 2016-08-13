@@ -69,10 +69,6 @@
 
 #include <map>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 extern ECStatsCollector*  g_lpStatsCollector;
 
 static bool IsTruncatableType(unsigned int ulTag)
@@ -781,7 +777,6 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
 					memset(&lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second], 0, sizeof(lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second]));
 				}
 
-
                 if(CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, &lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second]) != erSuccess) {
                 	// This can happen if a subquery returned a NULL field or if your database contains bad data (eg a NULL field where there shouldn't be)
 			++iterColumns;
@@ -807,7 +802,6 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
         if(lpDBResult) lpDatabase->FreeResult(lpDBResult);
         lpDBResult = NULL;
     }
-
 
     for (iterColumns = mapColumns.begin(); iterColumns != mapColumns.end(); ++iterColumns) {
     	ASSERT(lpsRowSet->__ptr[ulRowNum].__ptr[iterColumns->second].ulPropTag == 0);
@@ -1041,7 +1035,6 @@ ECRESULT ECStoreObjectTable::CopyEmptyCellToSOAPPropVal(struct soap *soap, unsig
 
 	return er;
 }
-
 
 ECRESULT ECStoreObjectTable::GetMVRowCount(unsigned int ulObjId, unsigned int *lpulCount)
 {
@@ -1305,7 +1298,6 @@ exit:
 	return er;
     
 }
-
 
 /**
  * Get all deferred changes for a specific folder

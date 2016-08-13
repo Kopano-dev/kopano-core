@@ -36,10 +36,6 @@ using namespace std;
 #define START_TIME 0
 #define END_TIME 1
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 /** 
  * Publish free/busy information from the default calendar
  * 

@@ -22,10 +22,6 @@
 
 #include <kopano/ECIConv.h>
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 std::string stringify(unsigned int x, bool usehex, bool _signed) {
 	char szBuff[33];
 
@@ -536,7 +532,6 @@ std::string urlDecode(const std::string &input)
 
 	return output;
 }
-
 
 /** 
  * Convert a memory buffer with strings with Unix \n enters to DOS

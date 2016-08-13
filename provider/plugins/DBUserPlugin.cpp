@@ -169,7 +169,6 @@ objectsignature_t DBUserPlugin::resolveName(objectclass_t objclass, const string
 	throw objectnotfound(name);
 }
 
-
 objectsignature_t DBUserPlugin::authenticateUser(const string &username, const string &password, const objectid_t &company)
 {
 	objectid_t	objectid;

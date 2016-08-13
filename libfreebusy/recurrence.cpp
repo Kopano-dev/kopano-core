@@ -32,10 +32,6 @@
 #include <algorithm>
 using namespace std;
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 recurrence::recurrence() {
 	m_ulMonth = 0x0;
 }
@@ -298,7 +294,6 @@ HRESULT recurrence::setStartDateTime(time_t t)
 	return hr;
 }
 
-
 time_t recurrence::getEndDateTime()
 {
 	time_t tStart;
@@ -306,7 +301,6 @@ time_t recurrence::getEndDateTime()
 	RTimeToUnixTime(m_sRecState.ulEndDate, &tStart);
 	return tStart + (m_sRecState.ulEndTimeOffset*60);
 }
-
 
 HRESULT recurrence::setEndDateTime(time_t t)
 {
@@ -318,7 +312,6 @@ HRESULT recurrence::setEndDateTime(time_t t)
 
 	return hr;
 }
-
 
 ULONG recurrence::getCount()
 {
@@ -460,7 +453,6 @@ HRESULT recurrence::setMonth(UCHAR m)
 	return hrSuccess;
 }
 
-
 // only valid in monthly type 0x3 and 0xb
 UCHAR recurrence::getWeekNumber()
 {
@@ -501,7 +493,6 @@ std::list<time_t> recurrence::getDeletedExceptions() {
 	std::vector<unsigned int> lstDeletedInstanceDates;
 	std::vector<unsigned int>::iterator d;
 	std::vector<RecurrenceState::Exception>::const_iterator iExceptions;
-
 
 	// make copy of struct info
 	lstDeletedInstanceDates = m_sRecState.lstDeletedInstanceDates;
@@ -1110,7 +1101,6 @@ time_t recurrence::calcStartDate()
 			// Go the the correct month day
 			tStart += (m_sRecState.ulDayOfMonth-1) * 24*60*60;
 
-
 			// If the previous calculation gave us a start date *before* the original start date, then we need to skip to the next occurrence
 			if (m_sRecState.ulRecurFrequency == RF_MONTHLY &&
 			    static_cast<int>(m_sRecState.ulDayOfMonth) < tm.tm_mday) {
@@ -1243,7 +1233,6 @@ time_t recurrence::calcEndDate()
 
 	if (m_sRecState.ulEndType != ET_NUMBER)
 		return getEndDateTime();
-
 
 	tStart = getStartDateTime();
 	tEnd = tStart;
@@ -1928,7 +1917,6 @@ bool recurrence::isException(time_t tsOccDate)
 			return true;
 	return false;
 }
-
 
 ULONG recurrence::countDaysOfMonth(time_t tsDate)
 {

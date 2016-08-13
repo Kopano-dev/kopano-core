@@ -860,7 +860,6 @@ objectid_t LDAPUserPlugin::GetObjectIdForEntry(LDAPMessage *entry)
 		object_uid = addresslist_unique;
 	}
 
-
 	return objectid_t(object_uid, objclass);
 }
 
@@ -906,7 +905,6 @@ LDAPUserPlugin::getAllObjectsByFilter(const std::string &basedn, int scope,
 	CONFIG_TO_ATTR(request_attrs, dynamicgroup_unique_attr, "ldap_dynamicgroup_unique_attribute");
 	/* Needed for cache */
 	CONFIG_TO_ATTR(request_attrs, modify_attr, "ldap_last_modification_attribute");
-
 
 	FOREACH_PAGING_SEARCH((char *)basedn.c_str(), scope,
 						  (char *)search_filter.c_str(), (char **)request_attrs->get(),
@@ -1781,7 +1779,6 @@ string LDAPUserPlugin::getLDAPAttributeValue(char *attribute, LDAPMessage *entry
 		return string();
 }
 
-
 list<string> LDAPUserPlugin::getLDAPAttributeValues(char *attribute, LDAPMessage *entry) {
 	list<string> r;
 	string s;
@@ -1834,7 +1831,6 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 	/* That was easy ... */
 	if (objectids.empty())
 		return mapdetails;
-
 
 	bool			bCutOff = false;
 
@@ -1992,7 +1988,6 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 		ldap_filter += ")";
 	}
 
-
 	FOREACH_PAGING_SEARCH((char *)ldap_basedn.c_str(), LDAP_SCOPE_SUBTREE,
 						  (char *)ldap_filter.c_str(), (char **)request_attrs->get(),
 						  FETCH_ATTR_VALS, res)
@@ -2019,7 +2014,6 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 				ldap_attr = getLDAPAttributeValue(att, entry);
 				sObjDetails.SetPropBool(OB_PROP_B_AB_HIDDEN, parseBool(ldap_attr.c_str()));
 			}
-
 
 			for (std::list<configsetting_t>::const_iterator iter = lExtraAttrs.begin();
 			     iter != lExtraAttrs.end(); ++iter) {
@@ -2938,7 +2932,6 @@ std::unique_ptr<serverlist_t> LDAPUserPlugin::getServers(void)
 
 	if (!m_bDistributed)
 		throw objectnotfound("Distributed not enabled");
-
 
 	LOG_PLUGIN_DEBUG("%s", __FUNCTION__);
 

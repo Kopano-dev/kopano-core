@@ -26,14 +26,9 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/ECDebug.h>
 
-
 #include "ECMAPITable.h"
 
 #include "ECDisplayTable.h"
-
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
 
 ECDistList::ECDistList(void* lpProvider, BOOL fModify) : ECABContainer(lpProvider, MAPI_DISTLIST, fModify, "IDistList")
 {

@@ -19,10 +19,6 @@
 
 #include "TimeUtil.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#endif
-
 /**
  * Get a timestamp for the given date/time point
  *
