@@ -1334,8 +1334,6 @@ ECRESULT ECCacheManager::_DelQuota(unsigned int ulUserId, bool bIsDefaultQuota)
 
 void ECCacheManager::ForEachCacheItem(void(callback)(const std::string &, const std::string &, const std::string &, void*), void *obj)
 {
-	string value;
-
 	pthread_mutex_lock(&m_hCacheMutex);
 
 	m_ObjectsCache.RequestStats(callback, obj);
@@ -1608,7 +1606,6 @@ ECRESULT ECCacheManager::RemoveIndexData(unsigned int ulObjId)
 {
 	ECRESULT				er = erSuccess;
 	ECsIndexObject	sObjectKeyLower, sObjectKeyUpper;
-	ECMapObjectToProp::const_iterator iter, iDel;
 	ECMapPropToObject::const_iterator iterPropToObj;
 
 	std::list<ECMapObjectToProp::value_type> lstItems;

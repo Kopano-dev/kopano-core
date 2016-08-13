@@ -318,7 +318,6 @@ HRESULT SVCProvider::Init(const INFLoader& cINF, const inf_section* infProvider)
 {
 	HRESULT hr;
 	inf_section::const_iterator iSection;
-	vector<string> prop;
 
 	hr = MAPIAllocateBuffer(sizeof(SPropValue) * infProvider->size(), (void**)&m_lpProps);
 	if (hr != hrSuccess)

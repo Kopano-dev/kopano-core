@@ -968,7 +968,6 @@ HRESULT WebDav::HrWriteSResponse(xmlTextWriter *xmlWriter,
 {
 	HRESULT hr;
 	WEBDAVRESPONSE sWebResp;
-	std::string strNsPrefix;
 	std::list<WEBDAVPROPSTAT>::const_iterator iterPropStat;
 	std::list<WEBDAVPROPERTY>::const_iterator iterProperty;
 	int ulRet;

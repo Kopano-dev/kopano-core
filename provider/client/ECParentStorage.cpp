@@ -101,8 +101,6 @@ HRESULT ECParentStorage::HrDeleteProps(LPSPropTagArray lpsPropTagArray)
 
 HRESULT ECParentStorage::HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject)
 {
-	ECMapiObjects::const_iterator iterSObj;
-
 	if (m_lpParentObject == NULL)
 		return MAPI_E_INVALID_OBJECT;
 

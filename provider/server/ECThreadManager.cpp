@@ -287,7 +287,6 @@ ECThreadManager::ECThreadManager(ECLogger *lpLogger, ECDispatcher *lpDispatcher,
 ECThreadManager::~ECThreadManager()
 {
 	unsigned int ulThreads;
-	std::list<ECWorkerThread *>::const_iterator iterThreads;
 
     // Wait for the threads to exit
     while(1) {
@@ -723,7 +722,6 @@ ECRESULT ECDispatcherSelect::MainLoop()
 	ECRESULT er = erSuccess;
 	ECWatchDog *lpWatchDog = NULL;
 	std::map<int, ACTIVESOCKET>::iterator iterSockets;
-	std::map<int, ACTIVESOCKET>::const_iterator iterErase;
 	std::map<int, struct soap *>::const_iterator iterListenSockets;
     int maxfds = 0;
     char s = 0;

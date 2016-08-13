@@ -511,7 +511,6 @@ ECRESULT DeleteObjectSoft(ECSession *lpSession, ECDatabase *lpDatabase, unsigned
 	PARENTINFO pi;
 	
 	std::map<unsigned int, PARENTINFO> mapFolderCounts;
-	std::map<unsigned int, PARENTINFO>::const_iterator iterFolderCounts;
 
 	// Build where condition
 	for (iterDeleteItems=lstDeleteItems.begin();

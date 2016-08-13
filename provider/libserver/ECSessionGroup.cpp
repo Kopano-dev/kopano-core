@@ -375,7 +375,6 @@ ECRESULT ECSessionGroup::AddChangeNotification(const std::set<unsigned int> &syn
 	SESSIONINFOMAP::const_iterator iterSessions;
 
 	std::map<ECSESSIONID,unsigned int> mapInserted;
-	std::map<ECSESSIONID,unsigned int>::const_iterator iterInserted;
 	std::set<unsigned int>::const_iterator iterSyncId;
 	CHANGESUBSCRIBEMAP::const_iterator iterItem;
 	std::pair<CHANGESUBSCRIBEMAP::const_iterator, CHANGESUBSCRIBEMAP::const_iterator> iterRange;

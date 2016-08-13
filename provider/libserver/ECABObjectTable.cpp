@@ -146,9 +146,6 @@ ECRESULT ECABObjectTable::GetColumnsAll(ECListInt* lplstProps)
 ECRESULT ECABObjectTable::ReloadTableMVData(ECObjectTableList* lplistRows, ECListInt* lplistMVPropTag)
 {
 	ECRESULT			er = erSuccess;
-	ECListIntIterator	iterListMVPropTag;
-
-	ECObjectTableList::const_iterator iterListRows;
 
 	ASSERT(lplistMVPropTag->size() <2); //FIXME: Limit of one 1 MV column
 
@@ -163,11 +160,6 @@ ECRESULT ECABObjectTable::ReloadTableMVData(ECObjectTableList* lplistRows, ECLis
 ECRESULT ECABObjectTable::GetMVRowCount(unsigned int ulObjId, unsigned int *lpulCount)
 {
 	ECRESULT er = erSuccess;
-    ECObjectTableList			listRows;
-	ECObjectTableList::const_iterator iterListRows;
-	ECObjectTableMap::const_iterator iterIDs;
-
-	ECListInt::const_iterator iterListMVPropTag;
 
 	pthread_mutex_lock(&m_hLock);
 

@@ -212,7 +212,6 @@ HRESULT Http::HrParseHeaders()
 {
 	HRESULT hr;
 	std::string strAuthdata;
-	std::string strLength;
 	std::string strUserAgent;
 
 	std::vector<std::string> items;

@@ -2319,7 +2319,6 @@ ECRESULT ECUserManagement::ConvertExternIDsToLocalIDs(objectdetails_t *lpDetails
 	list<objectid_t> lstExternIDs;
 	map<objectid_t, unsigned int> mapLocalIDs;
 	std::map<objectid_t, unsigned int>::const_iterator iterLocalIDs;
-	string strQuery;
 	objectid_t sExternID;
 	unsigned int ulLocalID = 0;
 
@@ -2559,7 +2558,6 @@ ECRESULT ECUserManagement::UpdateUserDetailsFromClient(objectdetails_t *lpDetail
 ECRESULT ECUserManagement::CheckUserLicense(unsigned int *lpulLicenseStatus)
 {
 	ECRESULT er;
-	std::string strQuery;
 	unsigned int ulTotalUsers = 0;
 	unsigned int ulActive = 0;
 	unsigned int ulNonActive = 0;
@@ -3517,7 +3515,6 @@ ECRESULT ECUserManagement::ConvertObjectDetailsToProps(struct soap *soap, unsign
 	struct propVal *lpPropVal;
 	unsigned int ulOrder = 0;
 	ECSecurity *lpSecurity = NULL;
-	std::string strEncExId;
 	struct propValArray sPropVals{__gszeroinit};
 	struct propValArray *lpPropVals = &sPropVals;
 	ULONG ulMapiType = 0;
@@ -4086,7 +4083,6 @@ ECRESULT ECUserManagement::ConvertContainerObjectDetailsToProps(struct soap *soa
 	struct propVal *lpPropVal;
 	unsigned int ulOrder = 0;
 	ECSecurity *lpSecurity = NULL;
-	std::string strEncExId;
 	ULONG ulMapiType = 0;
 
 	er = GetSecurity(&lpSecurity);
@@ -4685,7 +4681,6 @@ ECRESULT ECUserManagement::CheckObjectModified(unsigned int ulObjectId, const st
 ECRESULT ECUserManagement::ProcessModification(unsigned int ulId, const std::string &newsignature)
 {
 	ECRESULT er;
-	std::string strQuery;
 	ECDatabase *lpDatabase = NULL;
 	ABEID eid(MAPI_ABCONT, MUIDECSAB, 1);
 	SOURCEKEY sSourceKey;

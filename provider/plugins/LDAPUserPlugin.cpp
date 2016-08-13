@@ -2890,7 +2890,6 @@ std::unique_ptr<objectdetails_t> LDAPUserPlugin::getPublicStoreDetails(void)
 	LDAPMessage *entry = NULL;
 	string ldap_basedn;
 	string search_filter;
-	string subfilter;
 	std::unique_ptr<objectdetails_t> details(new objectdetails_t(CONTAINER_COMPANY));
 
 	if (!m_bDistributed)

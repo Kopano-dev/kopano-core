@@ -651,7 +651,6 @@ ECRESULT ECTableManager::UpdateOutgoingTables(ECKeyTable::UpdateType ulType, uns
 {
 	ECRESULT er = erSuccess;
 	std::map<unsigned int, TABLE_ENTRY *>::const_iterator iterTables;
-	std::map<unsigned int, unsigned int>::const_iterator iterFolders;
 
 	sObjectTableKey	sRow;
 

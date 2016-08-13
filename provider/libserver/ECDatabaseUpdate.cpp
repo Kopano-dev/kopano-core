@@ -2055,7 +2055,6 @@ exit:
 ECRESULT UpdateDatabaseCreateDeferred(ECDatabase *lpDatabase)
 {
 	ECRESULT er = erSuccess;
-	std::string strQuery;
 	// Create the deferred table
 	er = lpDatabase->DoInsert(Z_TABLEDEF_DELAYEDUPDATE);
 	return er;
