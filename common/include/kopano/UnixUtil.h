@@ -18,8 +18,6 @@
 #ifndef __UNIXUTIL_H
 #define __UNIXUTIL_H
 
-#ifdef LINUX
-
 #include <sys/resource.h>
 
 #include <kopano/ECLogger.h>
@@ -49,7 +47,5 @@ int unix_create_pidfile(const char *argv0, ECConfig *lpConfig, ECLogger *lpLogge
 int unix_daemonize(ECConfig *lpConfig, ECLogger *lpLogger);
 int unix_fork_function(void*(func)(void*), void *param, int nCloseFDs, int *pCloseFDs);
 extern bool unix_system(const char *szLogName, const char *command, const char **env);
-
-#endif
 
 #endif

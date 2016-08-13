@@ -26,10 +26,7 @@
 #include <kopano/ECLogger.h>
 #include <kopano/ecversion.h>
 #include "Archiver.h"
-
-#ifdef LINUX
 #include "UnixUtil.cpp"
-#endif
 
 enum modes
 {
@@ -245,9 +242,7 @@ int main(int argc, char *argv[])
     const char *lpszConfig = Archiver::GetConfigPath();
 
     static const configsetting_t lpDefaults[] = {
-#ifdef LINUX
         { "pid_file", "/var/run/kopano/archiver.pid" },
-#endif
         { NULL, NULL }
     };
 
@@ -483,11 +478,9 @@ int main(int argc, char *argv[])
             filelogger->Log(EC_LOGLEVEL_FATAL, "*  %s = '%s'", i->szName, i->szValue);
     }
 
-#ifdef LINUX
     if (mode == MODE_ARCHIVE || mode == MODE_CLEANUP)
         if (unix_create_pidfile(argv[0], ptrArchiver->GetConfig(), ptrArchiver->GetLogger(), false) != 0)
             return 1;
-#endif
 
     ptrArchiver->GetLogger()->Log(EC_LOGLEVEL_DEBUG, "Archiver mode: %d: (%s)", mode, modename(mode));
     switch (mode) {

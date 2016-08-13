@@ -69,16 +69,7 @@ HRESULT SoapCompanyToCompany(const struct company *lpCompany, ULONG ulFLags, ECC
 
 HRESULT SvrNameListToSoapMvString8(ECSVRNAMELIST *lpSvrNameList, ULONG ulFLags, struct mv_string8 **lppsSvrNameList);
 HRESULT SoapServerListToServerList(const struct serverList *lpsServerList, ULONG ulFLags, ECSERVERLIST **lppServerList);
-
-#ifdef LINUX
 int gsoap_connect_unixsocket(struct soap *soap, const char *endpoint, const char *host, int port);
-#else
-int gsoap_win_fsend(struct soap *soap, const char *s, size_t n);
-size_t gsoap_win_frecv(struct soap *soap, char *s, size_t n);
-int gsoap_win_fclose(struct soap *soap);
-int gsoap_connect_namedpipe(struct soap *soap, const char *endpoint, const char *host, int port);
-#endif
-
 HRESULT CreateSoapTransport(ULONG ulUIFlags, const sGlobalProfileProps &sProfileProps, KCmd **const lppCmd);
 
 HRESULT WrapServerClientStoreEntry(const char* lpszServerName, entryId* lpsStoreId, ULONG* lpcbStoreID, LPENTRYID* lppStoreID);

@@ -34,11 +34,8 @@
 
 #include <kopano/ECDebug.h>
 #include <algorithm>
-
-#ifdef LINUX
 // needed for htons()
 #include <netdb.h>
-#endif
 
 using namespace std;
 

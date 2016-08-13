@@ -29,12 +29,10 @@
 #include "ECSoapServerConnection.h"
 #include "ECServerEntrypoint.h"
 #include "ECClientUpdate.h"
-#ifdef LINUX
 #	include <dirent.h>
 #	include <fcntl.h>
 #	include <unistd.h>
 #	include <kopano/UnixUtil.h>
-#endif
 
 extern ECLogger *g_lpLogger;
 
@@ -43,7 +41,6 @@ struct soap_connection_thread {
 	struct soap*			lpSoap;
 };
 
-#ifdef LINUX
 /** 
  * Creates a AF_UNIX socket in a given location and starts to listen
  * on that socket.
@@ -79,9 +76,7 @@ static int create_pipe_socket(const char *unix_socket, ECConfig *lpConfig,
 
 	if (bind(s, (struct sockaddr*)&saddr, 2 + strlen(unix_socket)) == -1) {
 		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to bind to socket %s (%s). This is usually caused by another process (most likely another server) already using this port. This program will terminate now.", unix_socket, strerror(errno));
-#ifdef LINUX
                 kill(0, SIGTERM);
-#endif
                 exit(1);
         }
 
@@ -92,13 +87,11 @@ static int create_pipe_socket(const char *unix_socket, ECConfig *lpConfig,
 		return -1;
 	}
 
-#ifdef LINUX
 	if(er) {
 		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to chown socket %s, to %s:%s. Error: %s", unix_socket, lpConfig->GetSetting("run_as_user"), lpConfig->GetSetting("run_as_group"), strerror(errno));
 		closesocket(s);
 		return -1;
 	}
-#endif
 	
 	if (listen(s, SOMAXCONN) == -1) {
 		lpLogger->Log(EC_LOGLEVEL_FATAL, "Can't listen on unix socket %s", unix_socket);
@@ -108,102 +101,6 @@ static int create_pipe_socket(const char *unix_socket, ECConfig *lpConfig,
 
 	return s;
 }
-
-#else
-
-// Named pipe functions
-
-// Create a namedpipe in windows 
-// the function must be called very time you have used the pipe
-static int create_pipe_socket(const char *lpszPipename, ECConfig *lpConfig,
-    ECLogger *lpLogger, bool bInit, int mode)
-{
-	HANDLE hPipe;
-
-	DWORD dwOpenMode = PIPE_ACCESS_DUPLEX | // read/write access 
-					FILE_FLAG_OVERLAPPED; // overlapped mode
-
-	if (bInit) {
-		// block create multiple instances of a pipe
-		dwOpenMode |= FILE_FLAG_FIRST_PIPE_INSTANCE;
-	}
-
-	hPipe = CreateNamedPipeA( 
-					lpszPipename,             // pipe name 
-					dwOpenMode, 
-					PIPE_TYPE_BYTE |       // byte-oriented
-					PIPE_READMODE_BYTE |   
-					PIPE_WAIT,               // blocking mode 
-					PIPE_UNLIMITED_INSTANCES, // max. instances  
-					0x10000,                  // output buffer size 
-					0x10000,                  // input buffer size 
-					1000,					// client time-out 
-					NULL);                    // default security attribute 
-
-	if (hPipe == INVALID_HANDLE_VALUE) 
-	{
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to create pipe %s", lpszPipename);
-		return SOAP_INVALID_SOCKET;
-	}
-
-	return (int)hPipe;
-}
-
-// Override the soap function fsend
-//  Send data over a namedpipe
-int gsoap_win_fsend(struct soap *soap, const char *s, size_t n)
-{
-	DWORD ulWritten; 
-
-	if(WriteFile((HANDLE)soap->socket, s, n, &ulWritten, NULL))
-		return SOAP_OK;
-	else
-		return SOAP_ERR;
-}
-
-// Override the soap function frecv
-//  receive date from a namedpipe
-size_t gsoap_win_frecv(struct soap *soap, char *s, size_t n)
-{
-	DWORD ulRead;
-
-	if(ReadFile((HANDLE)soap->socket, s, n, &ulRead, NULL))
-		return ulRead;
-	else
-		return 0;
-}
-
-// Override the soap function tcp_disconnect
-//  close the namedpipe
-int gsoap_win_fclose(struct soap *soap)
-{
-	if((HANDLE)soap->socket == INVALID_HANDLE_VALUE)
-		return SOAP_OK;
-
-	kopano_disconnect_soap_connection(soap);
-
-	// Flush the data so the client gets any left-over data, then disconnect and close the socket
-	FlushFileBuffers((HANDLE)soap->socket);
-	DisconnectNamedPipe((HANDLE)soap->socket);
-	CloseHandle((HANDLE)soap->socket); // ignore errors
-
-	// Master and socket are the same
-	soap->socket = (int)INVALID_HANDLE_VALUE;
-	soap->master = (int)INVALID_HANDLE_VALUE;
-
-	return SOAP_OK;
-}
-
-// Override the soap function tcp_shutdownsocket
-//  shutdown a socket ignored by using namedpipe
-int gsoap_win_shutdownsocket(struct soap *soap, SOAP_SOCKET fd, int how)
-{
-	//  is used after completing a send operation to send TCP FIN 
-	return SOAP_OK;
-}
-
-// TCP/SSL socket functions
-#endif // #ifdef LINUX
 
 /*
  * Handles the HTTP GET command from soap, only the client update install may be downloaded.
@@ -236,16 +133,12 @@ ECSoapServerConnection::ECSoapServerConnection(ECConfig* lpConfig, ECLogger* lpL
 	m_lpLogger = lpLogger;
 	m_lpLogger->AddRef();
 
-#ifdef LINUX
 #ifdef USE_EPOLL
 	m_lpDispatcher = new ECDispatcherEPoll(lpLogger, lpConfig, ECSoapServerConnection::CreatePipeSocketCallback, this);
 	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Using epoll events");
 #else
 	m_lpDispatcher = new ECDispatcherSelect(lpLogger, lpConfig, ECSoapServerConnection::CreatePipeSocketCallback, this);
 	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Using select events");
-#endif
-#else
-	m_lpDispatcher = new ECDispatcherWin32(lpLogger, lpConfig, ECSoapServerConnection::CreatePipeSocketCallback, this);
 #endif
 }
 
@@ -273,16 +166,11 @@ ECRESULT ECSoapServerConnection::ListenTCP(const char* lpServerName, int nServer
 	if (bEnableGET)
 		lpsSoap->fget = http_get;
 
-#ifdef LINUX
 	lpsSoap->bind_flags = SO_REUSEADDR;
-#endif
-
 	lpsSoap->socket = socket = soap_bind(lpsSoap, *lpServerName == '\0' ? NULL : lpServerName, nServerPort, 100);
         if (socket == -1) {
                 m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to bind to port %d: %s. This is usually caused by another process (most likely another server) already using this port. This program will terminate now.", nServerPort, lpsSoap->fault->faultstring);
-#ifdef LINUX
                 kill(0, SIGTERM);
-#endif
                 exit(1);
         }
 
@@ -425,17 +313,11 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char* lpServerName, int nServer
 
 	// request certificate from client, is OK if not present.
 	SSL_CTX_set_verify(lpsSoap->ctx, SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE, NULL);
-
-#ifdef LINUX
 	lpsSoap->bind_flags = SO_REUSEADDR;
-#endif
-
 	lpsSoap->socket = socket = soap_bind(lpsSoap, *lpServerName == '\0' ? NULL : lpServerName, nServerPort, 100);
         if (socket == -1) {
                 m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to bind to port %d: %s (SSL). This is usually caused by another process (most likely another server) already using this port. This program will terminate now.", nServerPort, lpsSoap->fault->faultstring);
-#ifdef LINUX
                 kill(0, SIGTERM);
-#endif
                 exit(1);
         }
 

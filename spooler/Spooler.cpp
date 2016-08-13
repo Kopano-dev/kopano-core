@@ -60,9 +60,7 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ECConfig.h>
-#ifdef LINUX
 #include <kopano/UnixUtil.h>
-#endif
 #include <kopano/MAPIErrors.h>
 #include <kopano/my_getopt.h>
 #include <kopano/ecversion.h>
@@ -99,19 +97,13 @@ static bool bQuit = false;
 static int nReload = 0;
 static int disconnects = 0;
 static const char *szCommand = NULL;
-#ifdef LINUX
 static const char *szConfig = ECConfig::GetDefaultPath("spooler.cfg");
-#else
-static const char *szConfig = "spooler.cfg";
-#endif
 ECConfig *g_lpConfig = NULL;
 ECLogger *g_lpLogger = NULL;
 
-#ifdef LINUX
 static pthread_t signal_thread;
 static sigset_t signal_mask;
 static bool bNPTL = true;
-#endif
 
 // notification
 static bool bMessagesWaiting = false;
@@ -212,7 +204,6 @@ static LONG __stdcall AdviseCallback(void *lpContext, ULONG cNotif,
  * if (szSMTP)  smtp host
  * if (szSMTPPport) smtp port
  */
-#ifdef LINUX
 /**
  * Starts a forked process which sends the actual mail, and removes it
  * from the queue, in normal situations.  On error, the
@@ -308,7 +299,6 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 exit:
 	return hr;
 }
-#endif
 
 /**
  * Opens all required objects of the administrator to move an error
@@ -905,7 +895,6 @@ exit:
 	return hr;
 }
 
-#ifdef LINUX
 /**
  * Segfault signal handler. Prints the backtrace of the crash in the log.
  *
@@ -1009,7 +998,6 @@ static void *signal_handler(void *)
 
 	return NULL;
 }
-#endif
 
 /**
  * Main program loop. Calls ProcessQueue, which logs in to MAPI. This
@@ -1099,13 +1087,11 @@ int main(int argc, char *argv[]) {
 		{ "smtp_server","localhost", CONFIGSETTING_RELOADABLE },
 		{ "smtp_port","25", CONFIGSETTING_RELOADABLE },
 		{ "server_socket", "default:" },
-#ifdef LINUX
 		{ "run_as_user", "kopano" },
 		{ "run_as_group", "kopano" },
 		{ "pid_file", "/var/run/kopano/spooler.pid" },
 		{ "running_path", "/var/lib/kopano" },
 		{ "coredump_enabled", "no" },
-#endif
 		{ "log_method","file" },
 		{ "log_file","-" },
 		{ "log_level", "3", CONFIGSETTING_RELOADABLE },
@@ -1136,14 +1122,12 @@ int main(int argc, char *argv[]) {
 		{ "tmp_path", "/tmp" },
 		{ NULL, NULL },
 	};
-#ifdef LINUX
     // SIGSEGV backtrace support
     stack_t st;
     struct sigaction act;
 
     memset(&st, 0, sizeof(st));
     memset(&act, 0, sizeof(act));
-#endif
 
 	setlocale(LC_CTYPE, "");
 	setlocale(LC_MESSAGES, "");
@@ -1239,11 +1223,9 @@ int main(int argc, char *argv[]) {
 	szCommand = argv[0];
 
 	// setup logging, use pipe to log if started in forked mode and using pipe (file) logger, create normal logger for syslog
-#ifdef LINUX
 	if (bForked && logfd != -1)
 		g_lpLogger = new ECLogger_Pipe(logfd, 0, atoi(g_lpConfig->GetSetting("log_level")));
 	else
-#endif
 		g_lpLogger = CreateLogger(g_lpConfig, argv[0], "KopanoSpooler");
 
 	ec_log_set(g_lpLogger);
@@ -1253,7 +1235,6 @@ int main(int argc, char *argv[]) {
 	if (!TmpPath::getInstance() -> OverridePath(g_lpConfig))
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Ignoring invalid path-setting!");
 
-#ifdef LINUX
 	// detect linuxthreads, which is too broken to correctly run the spooler
 	if (!bForked) {
 		char buffer[256] = { 0 };
@@ -1266,7 +1247,6 @@ int main(int argc, char *argv[]) {
 			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: the kopano-spooler will only be able to send one message at a time.");
 		}
 	}
-#endif
 
 	// set socket filename
 	if (!szPath)
@@ -1276,11 +1256,9 @@ int main(int argc, char *argv[]) {
 		// keep sending mail when we're killed in forked mode
 		signal(SIGTERM, SIG_IGN);
 		signal(SIGINT, SIG_IGN);
-#ifdef LINUX
 		signal(SIGHUP, SIG_IGN);
 		signal(SIGUSR1, SIG_IGN);
 		signal(SIGUSR2, SIG_IGN);
-#endif
 	}
 	else {
 		pthread_mutex_init(&hMutexFinished, NULL);
@@ -1295,7 +1273,6 @@ int main(int argc, char *argv[]) {
 		sigaddset(&signal_mask, SIGUSR2);
 	}
 
-#ifdef LINUX
     st.ss_sp = malloc(65536);
     st.ss_flags = 0;
     st.ss_size = 65536;
@@ -1307,11 +1284,8 @@ int main(int argc, char *argv[]) {
     sigaction(SIGSEGV, &act, NULL);
     sigaction(SIGBUS, &act, NULL);
     sigaction(SIGABRT, &act, NULL);
-#endif
 
 	bQuit = bMessagesWaiting = false;
-
-#ifdef LINUX
 	if (parseBool(g_lpConfig->GetSetting("coredump_enabled")))
 		unix_coredump_enable(g_lpLogger);
 
@@ -1335,7 +1309,6 @@ int main(int argc, char *argv[]) {
 	}
 	g_lpLogger = StartLoggerProcess(g_lpConfig, g_lpLogger);
 	ec_log_set(g_lpLogger);
-#endif
 	g_lpLogger->SetLogprefix(LP_PID);
 
 	hr = MAPIInitialize(NULL);
@@ -1345,7 +1318,6 @@ int main(int argc, char *argv[]) {
 		goto exit;
 	}
 
-#ifdef LINUX
 	if (!bForked) {
 		if (bNPTL) {
 			// valid for all threads afterwards
@@ -1363,7 +1335,6 @@ int main(int argc, char *argv[]) {
 			signal(SIGUSR2, process_signal);
 		}
 	}
-#endif
 
 	sc = new StatsClient(g_lpLogger);
 	sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
@@ -1374,7 +1345,6 @@ int main(int argc, char *argv[]) {
 
 	delete sc;
 
-#ifdef LINUX
 	if (!bForked) {
 		if (bNPTL) {
 			g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Joining signal thread");
@@ -1386,18 +1356,12 @@ int main(int argc, char *argv[]) {
 			signal(SIGCHLD, SIG_IGN);
 		}
 	}
-#endif
-
 	MAPIUninitialize();
 
 exit:
 	delete g_lpConfig;
 	DeleteLogger(g_lpLogger);
-
-#ifdef LINUX
 	free(st.ss_sp);
-#endif
-
 	switch(hr) {
 	case hrSuccess:
 		return EXIT_OK;

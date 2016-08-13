@@ -16,9 +16,7 @@
  */
 
 #include <kopano/platform.h>
-#ifdef LINUX
 #include <sys/un.h>
-#endif
 #include "WSUtil.h"
 #include <kopano/ECIConv.h>
 #include <kopano/ECGuid.h>

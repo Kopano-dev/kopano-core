@@ -17,13 +17,10 @@
 
 #include <kopano/platform.h>
 #include <new>
-#ifdef LINUX
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <pwd.h>
 #include <dirent.h>
-#endif
-
 #include <mapidefs.h>
 #include <mapitags.h>
 
@@ -688,18 +685,10 @@ ECAuthSession::ECAuthSession(const char *src_addr, ECSESSIONID sessionID,
 
 	m_ulConnectingPid = 0;
 
-#ifdef LINUX
 	m_NTLM_pid = -1;
 #ifdef HAVE_GSSAPI
 	m_gssServerCreds = GSS_C_NO_CREDENTIAL;
 	m_gssContext = GSS_C_NO_CONTEXT;
-#endif
-#else
-	SecInvalidateHandle(&m_hCredentials);
-	SecInvalidateHandle(&m_hContext);
-	m_cPackages = 0;
-	m_ulPid = 0;
-	m_lpPackageInfo = NULL;
 #endif
 }
 
@@ -721,7 +710,6 @@ ECAuthSession::~ECAuthSession()
 		pthread_cond_wait(&m_hThreadReleased, &m_hThreadReleasedMutex);
 	pthread_mutex_unlock(&m_hThreadReleasedMutex);
 
-#ifdef LINUX
 	if (m_NTLM_pid != -1) {
 		int status;
 
@@ -752,17 +740,6 @@ ECAuthSession::~ECAuthSession()
 #endif
 		}
 	}
-#else // LINUX
-	if (m_lpPackageInfo)
-		FreeContextBuffer(m_lpPackageInfo);
-
-	if (SecIsValidHandle(&m_hCredentials))
-		FreeCredentialHandle(&m_hCredentials);
-
-	if (SecIsValidHandle(&m_hContext))
-		DeleteSecurityContext(&m_hContext);
-#endif
-
 	delete m_lpUserManagement;
 }
 
@@ -868,7 +845,6 @@ ECRESULT ECAuthSession::ValidateUserSocket(int socket, const char* lpszName, con
 	}
 
 	// Authentication stage
-#ifdef LINUX
 	localAdminUsers = strdup(m_lpSessionManager->GetConfig()->GetSetting("local_admin_users"));
 
 	struct passwd pwbuf;
@@ -936,35 +912,6 @@ ECRESULT ECAuthSession::ValidateUserSocket(int socket, const char* lpszName, con
 		}
 		p = strtok_r(NULL, WHITESPACE, &ptr);
 	}
-
-#else // LINUX
-
-	localAdminUsers = _tcsdup(GetConfigSetting(m_lpSessionManager->GetConfig(), "local_admin_users"));
-
-	dwSize = arraySize(szUsernameServer);
-
-	if (!GetNamedPipeHandleState((HANDLE)socket, NULL, NULL, NULL, NULL, szUsernameClient, arraySize(szUsernameClient)) ||
-		!GetUserName(szUsernameServer, &dwSize))
-	{
-		//GetLastError();
-		er = KCERR_LOGON_FAILED;
-		goto exit;
-	}
-
-	if (_tcscmp(szUsernameServer, szUsernameClient) == 0)
-		goto userok;
-
-	pt = _tcstok(localAdminUsers, WHITESPACE);
-
-	while (pt) {
-		if (_tcscmp(szUsernameClient, pt) == 0)
-			goto userok;
-
-		pt = _tcstok(NULL, WHITESPACE);
-	}
-
-#endif // LINUX
-
 	er = KCERR_LOGON_FAILED;
 	goto exit;
 
@@ -1107,7 +1054,6 @@ exit:
 	return er;
 }
 
-#ifdef LINUX
 #define NTLMBUFFER 8192
 ECRESULT ECAuthSession::ValidateSSOData(struct soap* soap, const char* lpszName, const char* lpszImpersonateUser, const char* szClientVersion, const char *szClientApp, const char *szClientAppVersion, const char *szClientAppMisc, const struct xsd__base64Binary* lpInput, struct xsd__base64Binary **lppOutput)
 {
@@ -1606,7 +1552,6 @@ retry:
 	return er;
 }
 #undef NTLMBUFFER
-#endif
 
 ECRESULT ECAuthSession::ProcessImpersonation(const char* lpszImpersonateUser)
 {

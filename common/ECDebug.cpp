@@ -256,16 +256,6 @@ static const INFOGUID sGuidList[] = {
 	{3, (GUID*)&KOPANO_STORE_DELEGATE_GUID, "Kopano Delegate Store"},
 	{3, (GUID*)&GUID_NULL , "GUID_NULL"},
 
-#ifndef LINUX
-	{4, (GUID*)&IID_IExternalConnection, "IID_IExternalConnection"},
-	{4, (GUID*)&IID_IMarshal, "IID_IMarshal"},
-//	{4, (GUID*)&IID_IMarshal2, "IID_IMarshal2"},
-	{4, (GUID*)&IID_IMalloc, "IID_IMalloc"},
-	{4, (GUID*)&IID_IStdMarshalInfo, "IID_IStdMarshalInfo"},
-	{4, (GUID*)&IID_IStorage, "IID_IStorage"},
-	{4, (GUID*)&IID_IClassFactory, "IID_IClassFactory"},
-	
-#endif
 	{4, (GUID*)&IID_IMSCapabilities, "IID_IMSCapabilities"},
 	{4, (GUID*)&IID_IFolderSupport, "IID_IFolderSupport"},
 	{4, (GUID*)&IID_IMessageRaw , "IID_IMessageRaw"},

@@ -26,8 +26,6 @@
 #include <zlib.h>
 #include <kopano/stringutil.h>
 #include "charset/localeutil.h"
-
-#ifdef LINUX
 #include "config.h"
 #include <poll.h>
 #if HAVE_SYSLOG_H
@@ -41,8 +39,6 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/utsname.h>
-#endif
-
 #include <kopano/ECConfig.h>
 
 using namespace std;
@@ -393,7 +389,6 @@ void ECLogger_File::LogVA(unsigned int loglevel, const char *format, va_list& va
 	Log(loglevel, std::string(msgbuffer));
 }
 
-#ifdef LINUX
 ECLogger_Syslog::ECLogger_Syslog(unsigned int max_ll, const char *ident, int facility) : ECLogger(max_ll) {
 	/*
 	 * Because @ident can go away, and openlog(3) does not make a copy for
@@ -452,7 +447,6 @@ void ECLogger_Syslog::LogVA(unsigned int loglevel, const char *format, va_list& 
 	syslog(levelmap[loglevel & EC_LOGLEVEL_MASK], "%s", msgbuffer);
 #endif
 }
-#endif
 
 /**
  * Consructor
@@ -554,7 +548,6 @@ void ECLogger_Tee::AddLogger(ECLogger *lpLogger) {
 	}
 }
 
-#ifdef LINUX
 ECLogger_Pipe::ECLogger_Pipe(int fd, pid_t childpid, int loglevel) : ECLogger(loglevel) {
 	m_fd = fd;
 	m_childpid = childpid;
@@ -859,7 +852,6 @@ ECLogger* StartLoggerProcess(ECConfig* lpConfig, ECLogger* lpLogger) {
 
 	return lpPipeLogger;
 }
-#endif
 
 /**
  * Create ECLogger object from configuration.
@@ -877,13 +869,10 @@ ECLogger* CreateLogger(ECConfig *lpConfig, const char *argv0,
 	ECLogger *lpLogger = NULL;
 	string prepend;
 	int loglevel = 0;
-
-#ifdef LINUX
 	int syslog_facility = LOG_MAIL;
-#endif
 
 	if (bAudit) {
-#ifdef LINUX
+#if 1 /* change to ifdef HAVE_LOG_AUTHPRIV */
 		if (!parseBool(lpConfig->GetSetting("audit_log_enabled")))
 			return NULL;
 		prepend = "audit_";
@@ -896,18 +885,13 @@ ECLogger* CreateLogger(ECConfig *lpConfig, const char *argv0,
 	loglevel = strtol(lpConfig->GetSetting((prepend+"log_level").c_str()), NULL, 0);
 
 	if (stricmp(lpConfig->GetSetting((prepend+"log_method").c_str()), "syslog") == 0) {
-#ifdef LINUX
 		char *argzero = strdup(argv0);
 		lpLogger = new ECLogger_Syslog(loglevel, basename(argzero), syslog_facility);
 		free(argzero);
-#else
-		fprintf(stderr, "syslog logging is only available on linux.\n");
-#endif
 	} else if (stricmp(lpConfig->GetSetting((prepend+"log_method").c_str()), "eventlog") == 0) {
 		fprintf(stderr, "eventlog logging is only available on windows.\n");
 	} else if (stricmp(lpConfig->GetSetting((prepend+"log_method").c_str()), "file") == 0) {
 		int ret = 0;
-#ifdef LINUX
 		const struct passwd *pw = NULL;
 		const struct group *gr = NULL;
 		if (strcmp(lpConfig->GetSetting((prepend+"log_file").c_str()), "-")) {
@@ -949,7 +933,6 @@ ECLogger* CreateLogger(ECConfig *lpConfig, const char *argv0,
 				}
 			}
 		}
-#endif
 		if (ret == 0) {
 			bool logtimestamp = parseBool(lpConfig->GetSetting((prepend + "log_timestamp").c_str()));
 
@@ -960,7 +943,6 @@ ECLogger* CreateLogger(ECConfig *lpConfig, const char *argv0,
 			ECLogger_File *log = new ECLogger_File(loglevel, logtimestamp, lpConfig->GetSetting((prepend + "log_file").c_str()), false);
 			log->reinit_buffer(log_buffer_size);
 			lpLogger = log;
-#ifdef LINUX
 			// chown file
 			if (pw || gr) {
 				uid_t uid = -1;
@@ -971,7 +953,6 @@ ECLogger* CreateLogger(ECConfig *lpConfig, const char *argv0,
 					gid = gr->gr_gid;
 				chown(lpConfig->GetSetting((prepend+"log_file").c_str()), uid, gid);
 			}
-#endif
 		} else {
 			fprintf(stderr, "Not enough permissions to append logfile '%s'. Reverting to stderr.\n", lpConfig->GetSetting((prepend+"log_file").c_str()));
 			bool logtimestamp = parseBool(lpConfig->GetSetting((prepend + "log_timestamp").c_str()));

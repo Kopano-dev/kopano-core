@@ -36,9 +36,7 @@
 #include "ECQuotaMonitor.h"
 
 #include <kopano/CommonUtil.h>
-#ifdef LINUX
 #include <kopano/UnixUtil.h>
-#endif
 #include <kopano/ecversion.h>
 #include "charset/localeutil.h"
 
@@ -84,10 +82,8 @@ static void sighup(int signr)
 {
 	// In Win32, the signal is sent in a separate, special signal thread. So this test is
 	// not needed or required.
-#ifdef LINUX
 	if (pthread_equal(pthread_self(), mainthread)==0)
 		return;
-#endif
 	if (m_lpThreadMonitor) {
 		if (m_lpThreadMonitor->lpConfig) {
 			if (!m_lpThreadMonitor->lpConfig->ReloadSettings() && m_lpThreadMonitor->lpLogger)
@@ -107,14 +103,12 @@ static void sighup(int signr)
 	}
 }
 
-#ifdef LINUX
 // SIGSEGV catcher
 static void sigsegv(int signr, siginfo_t *si, void *uc)
 {
 	generic_sigsegv_handler(m_lpThreadMonitor->lpLogger, "Monitor",
 		PROJECT_VERSION_MONITOR_STR, signr, si, uc);
 }
-#endif
 
 static void print_help(const char *name)
 {
@@ -129,11 +123,7 @@ static void print_help(const char *name)
 int main(int argc, char *argv[]) {
 
 	HRESULT hr = hrSuccess;
-#ifdef LINUX
 	const char *szConfig = ECConfig::GetDefaultPath("monitor.cfg");
-#else
-	const char *szConfig = "monitor.cfg";
-#endif
 	const char *szPath = NULL;
 	int c;
 	int daemonize = 1;
@@ -143,18 +133,12 @@ int main(int argc, char *argv[]) {
 	static const configsetting_t lpDefaults[] = {
 		{ "smtp_server","localhost" },
 		{ "server_socket", "default:" },
-#ifdef LINUX
 		{ "run_as_user", "kopano" },
 		{ "run_as_group", "kopano" },
 		{ "pid_file", "/var/run/kopano/monitor.pid" },
 		{ "running_path", "/var/lib/kopano" },
-#endif		
 		{ "log_method","file" },
-#ifdef LINUX
 		{ "log_file","/var/log/kopano/monitor.log" },
-#else
-		{ "log_file","-" },
-#endif
 		{ "log_level", "3", CONFIGSETTING_RELOADABLE },
 		{ "log_timestamp","1" },
 		{ "log_buffer_size", "0" },
@@ -254,7 +238,6 @@ int main(int argc, char *argv[]) {
 
 	signal(SIGTERM, sighandle);
 	signal(SIGINT, sighandle);
-#ifdef LINUX
 	signal(SIGHUP, sighup);
 
 	// SIGSEGV backtrace support
@@ -275,9 +258,7 @@ int main(int argc, char *argv[]) {
 	sigaction(SIGSEGV, &act, NULL);
 	sigaction(SIGBUS, &act, NULL);
 	sigaction(SIGABRT, &act, NULL);
-#endif
 
-#ifdef LINUX
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
 	if (unix_runas(m_lpThreadMonitor->lpConfig, m_lpThreadMonitor->lpLogger))
@@ -288,7 +269,6 @@ int main(int argc, char *argv[]) {
 		setsid();
 	if (unix_create_pidfile(argv[0], m_lpThreadMonitor->lpConfig, m_lpThreadMonitor->lpLogger, false) < 0)
 		goto exit;
-#endif
 
 	// Init exit threads
 	pthread_mutex_init(&m_hExitMutex, NULL);

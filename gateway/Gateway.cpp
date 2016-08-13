@@ -52,11 +52,7 @@
 #include <kopano/stringutil.h>
 
 #include "TmpPath.h"
-
-#ifdef LINUX
 #include <kopano/UnixUtil.h>
-#endif
-
 #ifdef ZCP_USES_ICU
 #include <unicode/uclean.h>
 #endif
@@ -81,15 +77,12 @@ static void sigterm(int s)
 	quit = 1;
 }
 
-#ifdef LINUX
 static void sighup(int sig)
 {
 	// In Win32, the signal is sent in a separate, special signal thread. So this test is
 	// not needed or required.
-#ifdef LINUX
 	if (bThreads && pthread_equal(pthread_self(), mainthread)==0)
 		return;
-#endif
 	if (g_lpConfig) {
 		if (!g_lpConfig->ReloadSettings() && g_lpLogger)
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to reload configuration file, continuing with current settings.");
@@ -120,7 +113,6 @@ static void sigsegv(int signr, siginfo_t *si, void *uc)
 	generic_sigsegv_handler(g_lpLogger, "Gateway",
 		PROJECT_VERSION_GATEWAY_STR, signr, si, uc);
 }
-#endif
 
 static HRESULT running_service(const char *szPath, const char *servicename);
 
@@ -162,11 +154,9 @@ static void *Handler(void *lpArg)
 	// not required anymore
 	delete lpHandlerArgs;
 
-#ifdef LINUX
 	// make sure the pipe logger does not exit when this handler exits, but only frees the memory.
 	if (dynamic_cast<ECLogger_Pipe*>(lpLogger) != NULL)
 		dynamic_cast<ECLogger_Pipe*>(lpLogger)->Disown();
-#endif
 
 	std::string inBuffer;
 	HRESULT hr;
@@ -275,24 +265,15 @@ int main(int argc, char *argv[]) {
 	bool bIgnoreUnknownConfigOptions = false;
 
 	ssl_threading_setup();
-
-#ifdef LINUX
 	const char *szConfig = ECConfig::GetDefaultPath("gateway.cfg");
-#else
-	const char *szConfig = "gateway.cfg";
-	ECNTService ecNTService;
-#endif
-
 	static const configsetting_t lpDefaults[] = {
 		{ "server_bind", "" },
-#ifdef LINUX
 		{ "run_as_user", "kopano" },
 		{ "run_as_group", "kopano" },
 		{ "pid_file", "/var/run/kopano/gateway.pid" },
 		{ "running_path", "/var/lib/kopano" },
 		{ "process_model", "fork" },
 		{ "coredump_enabled", "no" },
-#endif
 		{ "pop3_enable", "yes" },
 		{ "pop3_port", "110" },
 		{ "pop3s_enable", "no" },
@@ -479,14 +460,12 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 	pthread_attr_t ThreadAttr;
 	const char *const interface = g_lpConfig->GetSetting("server_bind");
 
-#ifdef LINUX
 	// SIGSEGV backtrace support
 	stack_t st;
 	struct sigaction act;
 
 	memset(&st, 0, sizeof(st));
 	memset(&act, 0, sizeof(act));
-#endif
 
 	if (bThreads) {
 		pthread_attr_init(&ThreadAttr);
@@ -494,13 +473,11 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Can't set thread attribute to detached");
 			goto exit;
 		}
-#ifdef LINUX
 		// 1Mb of stack space per thread
 		if (pthread_attr_setstacksize(&ThreadAttr, 1024 * 1024)) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Can't set thread stack size to 1Mb");
 			goto exit;
 		}
-#endif
 	}
 
 	bListenPOP3 = (strcmp(g_lpConfig->GetSetting("pop3_enable"), "yes") == 0);
@@ -550,7 +527,6 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 	// Setup signals
 	signal(SIGTERM, sigterm);
 	signal(SIGINT, sigterm);
-#ifdef LINUX
 	signal(SIGHUP, sighup);
 	signal(SIGCHLD, sigchld);
 	signal(SIGPIPE, SIG_IGN);
@@ -566,9 +542,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
     sigaction(SIGSEGV, &act, NULL);
     sigaction(SIGBUS, &act, NULL);
     sigaction(SIGABRT, &act, NULL);
-#endif
 
-#ifdef LINUX
     // Set max open file descriptors to FD_SETSIZE .. higher than this number
     // is a bad idea, as it will start breaking select() calls.
     struct rlimit file_limit;
@@ -594,7 +568,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 	if (bThreads == false)
 		g_lpLogger = StartLoggerProcess(g_lpConfig, g_lpLogger); // maybe replace logger
 	ec_log_set(g_lpLogger);
-#endif
+
 	hr = MAPIInitialize(NULL);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to initialize MAPI: %s (%x)",
@@ -763,13 +737,11 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 
 	g_lpLogger->Log(EC_LOGLEVEL_ALWAYS, "POP3/IMAP Gateway will now exit");
 
-#ifdef LINUX
 	// in forked mode, send all children the exit signal
 	if (bThreads == false) {
 		signal(SIGTERM, SIG_IGN);
 		kill(0, SIGTERM);
 	}
-#endif
 
 	// wait max 10 seconds (init script waits 15 seconds)
 	for (int i = 10; nChildren != 0 && i != 0; --i) {
@@ -792,10 +764,7 @@ exit:
 
 	if (bThreads)
 		pthread_attr_destroy(&ThreadAttr);
-
-#ifdef LINUX
 	free(st.ss_sp);
-#endif
 #ifdef ZCP_USES_ICU
 	// cleanup ICU data so valgrind is happy
 	u_cleanup();

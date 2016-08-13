@@ -36,12 +36,8 @@
 #include "ECStatsTables.h"
 #include <climits>
 #include <csignal>
-
-#ifdef LINUX
 #include <kopano/UnixUtil.h>
 #include <pwd.h>
-#endif
-
 #include <sys/stat.h>
 #include <kopano/ECScheduler.h>
 #include <kopano/kcodes.h>
@@ -104,11 +100,9 @@ ECLogger*			g_lpAudit = NULL;
 ECScheduler*		g_lpScheduler = NULL;
 ECSoapServerConnection*	g_lpSoapServerConn = NULL;
 
-#ifdef LINUX
 pthread_t	signal_thread;
 sigset_t	signal_mask;
 bool 		m_bNPTL = true;
-#endif
 bool m_bDatabaseUpdateIgnoreSignals = false;
 
 // This is the callback function for libserver/* so that it can notify that a delayed soap
@@ -135,16 +129,12 @@ static void process_signal(int sig)
 {
 	ZLOG_AUDIT(g_lpAudit, "server signalled sig=%d", sig);
 
-#ifdef LINUX
 	if (!m_bNPTL)
-#endif
 	{
 		// Win32 has unix semantics and therefore requires us to reset the signal handler.
 		signal(sig, process_signal);
-#ifdef LINUX
 		if(pthread_equal(pthread_self(), mainthread)==0)
 			return;					// soap threads do not handle this signal
-#endif
 	}
 
 	if (m_bDatabaseUpdateIgnoreSignals) {
@@ -166,11 +156,9 @@ static void process_signal(int sig)
 		if (g_lpSoapServerConn)
 			g_lpSoapServerConn->ShutDown();
 
-#ifdef LINUX
 		// unblock the signals so the server can exit
 		sigprocmask(SIG_UNBLOCK, &signal_mask, NULL);
 		signal(SIGPIPE, SIG_IGN);
-#endif
 		signal(SIGTERM, SIG_IGN);
 		signal(SIGINT, SIG_IGN);
 
@@ -213,7 +201,6 @@ static void process_signal(int sig)
 	}
 }
 
-#ifdef LINUX
 /** 
  * Signal handler thread.
  *
@@ -245,7 +232,6 @@ static void sigsegv(int signr, siginfo_t *si, void *uc)
 	generic_sigsegv_handler(g_lpLogger, "Server",
 		PROJECT_VERSION_SERVER_STR, signr, si, uc);
 }
-#endif
 
 static ECRESULT check_database_innodb(ECDatabase *lpDatabase)
 {
@@ -373,7 +359,6 @@ static ECRESULT check_attachment_storage_permissions(void)
 {
 	ECRESULT er = erSuccess;
 
-#ifdef LINUX
 	FILE *tmpfile = NULL;
 	string strtestpath;
 
@@ -393,8 +378,6 @@ exit:
 		fclose(tmpfile);
 		unlink(strtestpath.c_str());
 	}
-#endif
-
 	return er;
 }
 
@@ -698,11 +681,7 @@ static void nspr_thread_workaround(void)
 int main(int argc, char* argv[])
 {
 	int nReturn = 0;
-#ifdef LINUX
 	const char *config = ECConfig::GetDefaultPath("server.cfg");
-#else
-	const char *config = "server.cfg";
-#endif
 	const char *default_config = config;
 
 	enum {
@@ -816,14 +795,12 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 	bool			hosted = false;
 	bool			distributed = false;
 
-#ifdef LINUX
 	// SIGSEGV backtrace support
 	stack_t st = {0};
 	struct sigaction act = {{0}};
 	int tmplock = -1;
 	struct stat dir = {0};
 	struct passwd *runasUser = NULL;
-#endif
 
 	const configsetting_t lpDefaults[] = {
 		// Aliases
@@ -845,7 +822,6 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 		{ "server_read_timeout",		"60", CONFIGSETTING_RELOADABLE }, // timeout during reading of XML request
 		{ "server_send_timeout",		"60", CONFIGSETTING_RELOADABLE },
 		{ "server_max_keep_alive_requests",	"100" },
-#ifdef LINUX
 		{ "thread_stacksize",			"512" },
 		{ "allow_local_users",			"yes", CONFIGSETTING_RELOADABLE },			// allow any user connect through the unix socket
 		{ "local_admin_users",			"root", CONFIGSETTING_RELOADABLE },			// this local user is admin
@@ -858,10 +834,6 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 		{ "license_path",			"/etc/kopano/license", CONFIGSETTING_UNUSED },
 		{ "license_socket",			"/var/run/kopano/licensed.sock" },
 		{ "license_timeout", 		"10", CONFIGSETTING_RELOADABLE},
-#else
-		{ "local_admin_users",		"SYSTEM" },			// this local user is admin
-		{ "license_path",			"license", CONFIGSETTING_UNUSED },
-#endif
 		{ "system_email_address",		"postmaster@localhost", CONFIGSETTING_RELOADABLE },
 
 		{ "server_ssl_enabled",			"no" },
@@ -873,11 +845,7 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 		{ "server_ssl_protocols",		"!SSLv2" },
 		{ "server_ssl_ciphers",			"ALL:!LOW:!SSLv2:!EXP:!aNULL" },
 		{ "server_ssl_prefer_server_ciphers",	"no" },
-#ifdef LINUX
 		{ "sslkeys_path",				"/etc/kopano/sslkeys" },	// login keys
-#else
-		{ "sslkeys_path",				"sslkeys" },
-#endif
 		// Database options
 		{ "database_engine",			"mysql" },
 		// MySQL Settings
@@ -917,7 +885,6 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 		{ "audit_log_timestamp",		"0" },
 
 		// user plugin
-#ifdef LINUX
 		{ "plugin_path",				PKGLIBDIR },
 		{ "user_plugin",				"db" },
 		{ "user_plugin_config",			"/etc/kopano/ldap.cfg" },
@@ -927,17 +894,6 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 		{ "deletegroup_script",			"/etc/kopano/userscripts/deletegroup", CONFIGSETTING_RELOADABLE},
 		{ "createcompany_script",		"/etc/kopano/userscripts/createcompany", CONFIGSETTING_RELOADABLE },
 		{ "deletecompany_script",		"/etc/kopano/userscripts/deletecompany", CONFIGSETTING_RELOADABLE },
-#else
-		{ "plugin_path",				"plugins" },
-		{ "user_plugin",				"ldap" },
-		{ "user_plugin_config",			"ldap.cfg" },
-		{ "createuser_script",			"createuser.bat", CONFIGSETTING_RELOADABLE },
-		{ "deleteuser_script",			"deleteuser.bat", CONFIGSETTING_RELOADABLE },
-		{ "creategroup_script",			"creategroup.bat", CONFIGSETTING_RELOADABLE },
-		{ "deletegroup_script",			"deletegroup.bat", CONFIGSETTING_RELOADABLE },
-		{ "createcompany_script",		"", CONFIGSETTING_RELOADABLE },
-		{ "deletecompany_script",		"", CONFIGSETTING_RELOADABLE },
-#endif
 		{ "user_safe_mode",				"no", CONFIGSETTING_RELOADABLE },
 
 		// Storename format
@@ -986,13 +942,8 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 
 		{ "client_update_enabled",	"no" },
 		{ "client_update_log_level", "1", CONFIGSETTING_RELOADABLE },
-#ifdef LINUX
 		{ "client_update_path",		"/var/lib/kopano/client", CONFIGSETTING_RELOADABLE },
 		{ "client_update_log_path",	"/var/log/kopano/autoupdate", CONFIGSETTING_RELOADABLE },
-#else
-		{ "client_update_path",		"c:\\client_update_path", CONFIGSETTING_RELOADABLE },
-		{ "client_update_log_path", "C:\\TEMP", CONFIGSETTING_RELOADABLE },
-#endif 
 		{ "index_services_enabled", "", CONFIGSETTING_UNUSED },
 		{ "index_services_path",    "", CONFIGSETTING_UNUSED },
 		{ "index_services_search_timeout", "", CONFIGSETTING_UNUSED },
@@ -1022,12 +973,10 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 		{ NULL, NULL },
 	};
 
-#ifdef LINUX
 	char buffer[256];
 	confstr(_CS_GNU_LIBPTHREAD_VERSION, buffer, sizeof(buffer));
 	if (strncmp(buffer, "linuxthreads", strlen("linuxthreads")) == 0)
 		m_bNPTL = false;
-#endif
 
 	// Init random generator
 	rand_init();
@@ -1080,7 +1029,6 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 			er = KCERR_DATABASE_ERROR;
 			goto exit;
 		}
-#ifdef LINUX
 		if (stat(g_lpConfig->GetSetting("attachment_path"), &dir) != 0) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to stat attachment directory '%s', error: %s", g_lpConfig->GetSetting("attachment_path"), strerror(errno));
 			er = KCERR_DATABASE_ERROR;
@@ -1099,7 +1047,6 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 				goto exit;
 			}
 		}
-#endif
 #ifdef HAVE_LIBS3_H
 	} else if (strcmp(g_lpConfig->GetSetting("attachment_storage"), "s3") == 0) {
 		// @todo check S3 settings and connectivity
@@ -1164,7 +1111,6 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 		}
 	}
 
-#ifdef LINUX
 	// Set max open file descriptors to FD_SETSIZE .. higher than this number
 	// is a bad idea, as it will start breaking select() calls.
 	struct rlimit limit;
@@ -1182,7 +1128,7 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 		er = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
-#endif
+
 	// Priority queue is always enabled, create as first socket, so this socket is returned first too on activity
 	er = g_lpSoapServerConn->ListenPipe(g_lpConfig->GetSetting("server_pipe_priority"), true);
 	if (er != erSuccess) {
@@ -1217,7 +1163,6 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 
 	hosted = parseBool(g_lpConfig->GetSetting("enable_hosted_kopano"));
 	distributed = parseBool(g_lpConfig->GetSetting("enable_distributed_kopano"));
-#ifdef LINUX
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
 	if (daemonize && unix_daemonize(g_lpConfig, g_lpLogger)) {
@@ -1227,11 +1172,9 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 	if (!daemonize)
 		setsid();
 	unix_create_pidfile(szName, g_lpConfig, g_lpLogger);
-#endif
 
 	mainthread = pthread_self();
 
-#ifdef LINUX
 	// SIGSEGV backtrace support
 	memset(&st, 0, sizeof(st));
 	memset(&act, 0, sizeof(act));
@@ -1267,30 +1210,25 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 		pthread_create(&signal_thread, NULL, signal_handler, NULL);
 	        set_thread_name(signal_thread, "SignalHThread");
 	} else
-#endif
 	{
 		// reset signals to normal server usage
 		signal(SIGTERM , process_signal);
 		signal(SIGINT  , process_signal);	//CTRL+C
-#ifdef LINUX
 		signal(SIGHUP , process_signal);	// logrotate
 		signal(SIGUSR1, process_signal);
 		signal(SIGUSR2, process_signal);
 		signal(SIGPIPE, process_signal);
-#endif
 	}
 
 	// ignore ignorable signals that might stop the server during database upgrade
 	// all these signals will be reset after the database upgrade part.
 	m_bDatabaseUpdateIgnoreSignals = true;
 
-#ifdef LINUX
 	// add a lock file to disable the /etc/init.d scripts
 	tmplock = open(upgrade_lock_file, O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
 
 	if (tmplock == -1)
 		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: Unable to place upgrade lockfile: %s", strerror(errno));
-#endif
 
 #ifdef EMBEDDED_MYSQL
 {
@@ -1312,8 +1250,6 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 
 	// perform database upgrade .. may take a very long time
 	er = lpDatabaseFactory->UpdateDatabase(m_bForceDatabaseUpdate, dbError);
-
-#ifdef LINUX
 	// remove lock file
 	if (tmplock != -1) {
 		if (unlink(upgrade_lock_file) == -1)
@@ -1321,7 +1257,6 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 
 		close(tmplock);
 	}
-#endif
 
 	if(er == KCERR_INVALID_VERSION) {
 		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: %s", dbError.c_str());
@@ -1429,14 +1364,10 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 	}
 	// Close All sessions
 	kopano_removeallsessions();
-
-#ifdef LINUX
 	if (m_bNPTL) {
 		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Joining signal thread");
 		pthread_join(signal_thread, NULL);
 	}
-#endif
-	
 exit:
 	if (er != erSuccess || retval != 0) {
 		std::string msg;
@@ -1460,10 +1391,7 @@ exit:
 	delete g_lpSoapServerConn;
 
 	delete g_lpScheduler;
-
-#ifdef LINUX
 	free(st.ss_sp);
-#endif
 	delete lpDatabase;
 	delete lpDatabaseFactory;
 

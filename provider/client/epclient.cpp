@@ -35,10 +35,7 @@
 #include "ECMSProviderSwitch.h"
 #include "ECXPProvider.h"
 #include "ECABProviderSwitch.h"
-#ifdef LINUX
 #include <iostream>
-#endif
-
 #include <kopano/ecversion.h>
 
 #include <kopano/ECDebug.h>

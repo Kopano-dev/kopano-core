@@ -10436,7 +10436,6 @@ SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(getLicenseAuth, lpsResponse->er, struct xsd__base64Binary sAuthData, struct getLicenseAuthResponse *lpsResponse)
 {
-#ifdef LINUX
 	ECLicenseClient *lpLicenseClient = new ECLicenseClient();
 	unsigned char *data = NULL;
 
@@ -10450,15 +10449,11 @@ SOAP_ENTRY_START(getLicenseAuth, lpsResponse->er, struct xsd__base64Binary sAuth
 exit:
 	delete[] data;
 	delete lpLicenseClient;
-#else
-	er = KCERR_NOT_IMPLEMENTED;
-#endif
 }
 SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(getLicenseCapa, lpsResponse->er, unsigned int ulServiceType, struct getLicenseCapaResponse *lpsResponse)
 {
-#ifdef LINUX
     ECLicenseClient *lpLicenseClient = new ECLicenseClient();
     std::vector<std::string> lstCapabilities;
 
@@ -10474,15 +10469,11 @@ SOAP_ENTRY_START(getLicenseCapa, lpsResponse->er, unsigned int ulServiceType, st
 exit:
 
     delete lpLicenseClient;
-#else
-	er = KCERR_NOT_IMPLEMENTED;
-#endif
 }
 SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(getLicenseUsers, lpsResponse->er, unsigned int ulServiceType, struct getLicenseUsersResponse *lpsResponse)
 {
-#ifdef LINUX
 	unsigned int ulUsers = 0;
 
 	ECLicenseClient *lpLicenseClient = new ECLicenseClient();
@@ -10497,9 +10488,6 @@ SOAP_ENTRY_START(getLicenseUsers, lpsResponse->er, unsigned int ulServiceType, s
 exit:
 
 	delete lpLicenseClient;
-#else
-	er = KCERR_NOT_IMPLEMENTED;
-#endif
 }
 SOAP_ENTRY_END()
 

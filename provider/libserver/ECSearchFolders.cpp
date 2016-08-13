@@ -308,9 +308,7 @@ ECRESULT ECSearchFolders::AddSearchFolder(unsigned int ulStoreId, unsigned int u
         pthread_attr_t attr;
         pthread_attr_init(&attr);
         pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-#ifdef LINUX
         pthread_attr_setstacksize(&attr, 512*1024); // 512KB stack space for search threads
-#endif
         int err = 0;
         
         if((err = pthread_create(&lpSearchFolder->sThreadId, &attr, ECSearchFolders::SearchThread, (void *)ti)) != 0) {

@@ -1371,8 +1371,6 @@ ECRESULT ECSessionManager::GetLicensedUsers(unsigned int ulServiceType, unsigned
 {
 	ECRESULT er = erSuccess;
 	unsigned int ulLicensedUsers = 0;
-
-#ifdef LINUX	
     ECLicenseClient *lpLicenseClient = NULL;
 	lpLicenseClient = new ECLicenseClient();
 	
@@ -1384,10 +1382,6 @@ ECRESULT ECSessionManager::GetLicensedUsers(unsigned int ulServiceType, unsigned
 	}
 	
 	delete lpLicenseClient;
-#else
-    ulLicensedUsers = 0;
-#endif
-
 	*lpulLicensedUsers = ulLicensedUsers;
 
 	return er;

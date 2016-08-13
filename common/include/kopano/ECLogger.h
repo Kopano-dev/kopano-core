@@ -260,7 +260,6 @@ class ECLogger_File _zcp_final : public ECLogger {
 /**
  * Linux syslog logger. Output is whatever syslog does, probably LC_CTYPE.
  */
-#ifdef LINUX
 class ECLogger_Syslog _zcp_final : public ECLogger {
 	private:
 		char *m_ident;
@@ -275,9 +274,7 @@ class ECLogger_Syslog _zcp_final : public ECLogger {
 		virtual void Log(unsigned int loglevel, const char *format, ...) _zcp_override __LIKE_PRINTF(3, 4);
 		virtual void LogVA(unsigned int loglevel, const char *format, va_list &va) _zcp_override;
 };
-#endif
 
-#ifdef LINUX
 /**
  * Pipe Logger, only used by forked model processes. Redirects every
  * log message to an ECLogger_File object. This ECLogger_Pipe object
@@ -302,7 +299,6 @@ class ECLogger_Pipe _zcp_final : public ECLogger {
 };
 
 ECLogger* StartLoggerProcess(ECConfig *lpConfig, ECLogger *lpFileLogger);
-#endif
 
 /**
  * This class can be used if log messages need to go to

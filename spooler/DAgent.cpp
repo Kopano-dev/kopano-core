@@ -56,8 +56,6 @@
 #include <kopano/mapi_ptr.h>
 #include "fileutil.h"
 #include "PyMapiPlugin.h"
-
-#ifdef LINUX
 #include <cerrno>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -65,8 +63,6 @@
 #include <climits>
 #include <sys/mman.h>
 #include <pwd.h>
-#endif
-
 #include "spmain.h"
 #include "TmpPath.h"
 
@@ -296,7 +292,6 @@ static void sigterm(int)
 	g_bQuit = true;
 }
 
-#ifdef LINUX
 static void sighup(int sig)
 {
 	if (g_lpConfig) {
@@ -328,8 +323,6 @@ static void sigsegv(int signr, siginfo_t *si, void *uc)
 	generic_sigsegv_handler(g_lpLogger, "Spooler/DAgent",
 		PROJECT_VERSION_SPOOLER_STR, signr, si, uc);
 }
-
-#endif
 
 /**
  * Check if the message should be processed with the autoaccepter
@@ -1412,7 +1405,6 @@ exit:
 	return hr;
 }
 
-#ifdef LINUX
 /** 
  * Write into the given fd, and if that fails log an error.
  * 
@@ -1790,7 +1782,6 @@ exit:
 	MAPIFreeBuffer(lpMessageProps);
 	return hr;
 }
-#endif
 
 /** 
  * Create an empty message for delivery
@@ -2357,10 +2348,8 @@ static HRESULT HrGetSession(const DeliveryArgs *lpArgs,
     const WCHAR *szUsername, IMAPISession **lppSession, bool bSuppress = false)
 {
 	HRESULT hr = hrSuccess;
-#ifdef LINUX
 	struct passwd *pwd = NULL;
 	string strUnixUser;
-#endif
 
 	hr = HrOpenECSession(g_lpLogger, lppSession, "spooler/dagent", PROJECT_SVN_REV_STR, szUsername, L"", lpArgs->strPath.c_str(), 0, g_lpConfig->GetSetting("sslkey_file","",NULL), g_lpConfig->GetSetting("sslkey_pass","",NULL));
 	if (hr != hrSuccess) {
@@ -2374,7 +2363,6 @@ static HRESULT HrGetSession(const DeliveryArgs *lpArgs,
 		case MAPI_E_LOGON_FAILED:
 			// running dagent as unix user != lpRecip->strUsername and ! listed in local_admin_user, which gives this error too
 			if (!bSuppress) g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Access denied or connection failed for user %ls, using socket: '%s', error code: 0x%08X", szUsername, lpArgs->strPath.c_str(), hr);
-#ifdef LINUX
 			// so also log userid we're running as
 			pwd = getpwuid(getuid());
 			if (pwd && pwd->pw_name)
@@ -2382,7 +2370,6 @@ static HRESULT HrGetSession(const DeliveryArgs *lpArgs,
 			else
 				strUnixUser = stringify(getuid());
 			if (!bSuppress) g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Current uid:%d username:%s", getuid(), strUnixUser.c_str());
-#endif
 			break;
 
 		default:
@@ -2465,7 +2452,6 @@ static HRESULT HrPostDeliveryProcessing(PyMapiPlugin *lppyMapiPlugin,
 		// continue, still send possible out-of-office message
 	}
 
-#ifdef LINUX
 	// do not send vacation message for junk messages
 	if (lpArgs->ulDeliveryMode != DM_JUNK &&
 	// do not send vacation message on delegated messages
@@ -2473,8 +2459,6 @@ static HRESULT HrPostDeliveryProcessing(PyMapiPlugin *lppyMapiPlugin,
 	{
 		SendOutOfOffice(lpAdrBook, lpStore, *lppMessage, lpRecip, lpArgs->strAutorespond);
 	}
-#endif
-
 exit:
 	if (lpUserSession)
 		lpUserSession->Release();
@@ -3572,13 +3556,10 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 	int err = 0;
 	unsigned int nMaxThreads;
 	int nCloseFDs = 0, pCloseFDs[1] = {0};
-
-#ifdef LINUX
     stack_t st;
     struct sigaction act;
     memset(&st, 0, sizeof(st));
     memset(&act, 0, sizeof(act));
-#endif
 
 	nMaxThreads = atoui(g_lpConfig->GetSetting("lmtp_max_threads"));
 	if (nMaxThreads == 0 || nMaxThreads == INT_MAX) {
@@ -3608,7 +3589,6 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 	signal(SIGTERM, sigterm);
 	signal(SIGINT, sigterm);
 
-#ifdef LINUX
 	signal(SIGHUP, sighup);		// logrotate
 	signal(SIGCHLD, sigchld);
 	signal(SIGPIPE, SIG_IGN);
@@ -3650,7 +3630,7 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 	unix_create_pidfile(servicename, g_lpConfig, g_lpLogger);
 	g_lpLogger = StartLoggerProcess(g_lpConfig, g_lpLogger); // maybe replace logger
 	ec_log_set(g_lpLogger);
-#endif
+
 	hr = MAPIInitialize(NULL);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to initialize MAPI: %s (%x)",
@@ -3727,7 +3707,6 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 
 	g_lpLogger->Log(EC_LOGLEVEL_ALWAYS, "LMTP service will now exit");
 
-#ifdef LINUX
 	// in forked mode, send all children the exit signal
 	signal(SIGTERM, SIG_IGN);
 	kill(0, SIGTERM);
@@ -3743,15 +3722,12 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 		g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Forced shutdown with %d processes left", g_nLMTPThreads);
 	else
 		g_lpLogger->Log(EC_LOGLEVEL_INFO, "LMTP service shutdown complete");
-#endif
 
 	MAPIUninitialize();
 
 exit:
 	ECChannel::HrFreeCtx();
-#ifdef LINUX
 	free(st.ss_sp);
-#endif
 	return hr;
 }
 
@@ -3925,12 +3901,10 @@ static void print_help(const char *name)
 	cout << "  -r\t\t Mark mail as read on delivery. Default: mark mail as new unread mail." << endl;
 	cout << "  -l\t\t Run DAgent as LMTP listener" << endl;
 	cout << "  -d\t\t Run DAgent as LMTP daemon, implicates -l. DAgent will run in the background." << endl;
-#ifdef LINUX
 	cout << endl;
 	cout << "  -a responder\t path to autoresponder (e.g. /usr/local/bin/autoresponder)" << endl;
 	cout << "\t\t The autoresponder is called with </path/to/autoresponder> <from> <to> <subject> <kopano-username> <messagefile>" << endl;
 	cout << "\t\t when the autoresponder is enabled for this user, and -j is not specified" << endl;
-#endif
 	cout << endl;
 	cout << "<storename> is the name of the user where to deliver this mail." << endl;
 	cout << "If no file is specified with -f, it will be read from standard in." << endl;
@@ -3959,12 +3933,7 @@ int main(int argc, char *argv[]) {
 	sDeliveryArgs.bNewmailNotify = true;
 	sDeliveryArgs.ulDeliveryMode = DM_STORE;
 	imopt_default_delivery_options(&sDeliveryArgs.sDeliveryOpts);
-
-#ifdef LINUX
 		const char *szConfig = ECConfig::GetDefaultPath("dagent.cfg");
-#else
-		char *szConfig = "dagent.cfg";
-#endif
 
 	enum {
 		OPT_HELP = UCHAR_MAX + 1,
@@ -4002,12 +3971,10 @@ int main(int argc, char *argv[]) {
 	static const configsetting_t lpDefaults[] = {
 		{ "server_bind", "" },
 		{ "server_bind_intf", "" },
-#ifdef LINUX
 		{ "run_as_user", "kopano" },
 		{ "run_as_group", "kopano" },
 		{ "pid_file", "/var/run/kopano/dagent.pid" },
 		{ "coredump_enabled", "no" },
-#endif
 		{ "lmtp_port", "2003" },
 		{ "lmtp_max_threads", "20" },
 		{ "process_model", "", CONFIGSETTING_UNUSED },

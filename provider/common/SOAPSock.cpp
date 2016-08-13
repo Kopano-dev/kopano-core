@@ -17,11 +17,7 @@
 
 #include <kopano/platform.h>
 #include "SOAPSock.h"
-
-#ifdef LINUX
 #include <sys/un.h>
-#endif
-
 #include "SOAPUtils.h"
 #include <kopano/threadutil.h>
 #include <kopano/CommonUtil.h>
@@ -58,8 +54,6 @@ http_post(struct soap *soap, const char *endpoint, const char *host, int port, c
 #endif
   return soap->fposthdr(soap, NULL, NULL);
 }
-
-#ifdef LINUX
 
 // This function wraps the GSOAP fopen call to support "file:///var/run/socket" unix-socket URI's
 static int gsoap_connect_pipe(struct soap *soap, const char *endpoint,
@@ -107,154 +101,6 @@ static int gsoap_connect_pipe(struct soap *soap, const char *endpoint,
 
    	return SOAP_OK;
 }
-#else
-/* In windows, we support file: URI's with named pipes (ie file://\\server\pipe\kopano)
- * Unfortunately, we can't use the standard fsend/frecv call with this, because gsoap
- * uses winsock-style SOCKET handles for send and recv, so we also have to supply
- * fsend,frecv, etc to use HANDLE-type connections
- */
-
-int gsoap_win_fsend(struct soap *soap, const char *s, size_t n)
-{
-	int rc = SOAP_ERR;
-	DWORD ulWritten;
-	OVERLAPPED op = {0};
-
-	op.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);	// Will this ever fail?
-
-	if (WriteFile((HANDLE)soap->socket, s, n, &ulWritten, &op) == TRUE)
-		rc = SOAP_OK;
-
-	else if (GetLastError() == ERROR_IO_PENDING) {
-		if (WaitForSingleObject(op.hEvent, 70*1000) == WAIT_OBJECT_0) {
-			// We would normaly reset the event here, but we're not reusing it anyway.
-			if (GetOverlappedResult((HANDLE)soap->socket, &op, &ulWritten, TRUE) == TRUE)
-				rc = SOAP_OK;
-		} else
-			CancelIo((HANDLE)soap->socket);
-	}
-
-	CloseHandle(op.hEvent);
-	return rc;
-}
-
-size_t gsoap_win_frecv(struct soap *soap, char *s, size_t n)
-{
-	size_t rc = 0;
-	DWORD ulRead;
-	OVERLAPPED op = {0};
-
-	op.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);	// Will this ever fail?
-
-	if (ReadFile((HANDLE)soap->socket, s, n, &ulRead, &op) == TRUE)
-		rc = ulRead;
-
-	else if (GetLastError() == ERROR_IO_PENDING) {
-		if (WaitForSingleObject(op.hEvent, 70*1000) == WAIT_OBJECT_0) {
-			// We would normaly reset the event here, but we're not reusing it anyway.
-			if (GetOverlappedResult((HANDLE)soap->socket, &op, &ulRead, TRUE) == TRUE)
-				rc = ulRead;
-		} else
-			CancelIo((HANDLE)soap->socket);
-	} 
-
-	CloseHandle(op.hEvent);
-	return rc;
-}
-
-int gsoap_win_fclose(struct soap *soap)
-{
-	if((HANDLE)soap->socket == INVALID_HANDLE_VALUE)
-		return SOAP_OK;
-
-	CloseHandle((HANDLE)soap->socket); // Ignore error
-	soap->socket = (int)INVALID_HANDLE_VALUE;
-
-	return SOAP_OK;
-}
-
-int gsoap_win_fpoll(struct soap *soap)
-{
-	// Always a connection
-	return SOAP_OK;
-}
-
-// Override the soap function shutdown
-//  disable read/write actions
-static int gsoap_win_shutdownsocket(struct soap *soap, SOAP_SOCKET fd, int how)
-{
-	// Normaly gsoap called shutdown, but the function isn't
-	// exist for named pipes, so return;
-	return SOAP_OK;
-}
-
-int gsoap_connect_pipe(struct soap *soap, const char *endpoint, const char *host, int port)
-{
-	HANDLE hSocket = INVALID_HANDLE_VALUE;
-
-#ifdef UNDER_CE
-	WCHAR x[1024];
-#endif
-	// Check whether it is already a validated socket.
-	if ((HANDLE)soap->socket != INVALID_HANDLE_VALUE) // if (soap_valid_socket(soap->socket))
-		return SOAP_OK;
-
-	if (strncmp(endpoint, "file:", 5) || strlen(endpoint) < 7)
-		return SOAP_EOF;
-
-#ifdef UNDER_CE
-		MultiByteToWideChar(CP_ACP,MB_PRECOMPOSED,endpoint+5+2,strlen(endpoint+5+2),x,1024);
-#endif
-
-	for (int nRetry = 0; nRetry < 10; ++nRetry) {
-#ifdef UNDER_CE
-		hSocket = CreateFileW(x, GENERIC_READ|GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
-#else
-		hSocket = CreateFileA(endpoint+5+2, GENERIC_READ|GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
-#endif
-		if (hSocket == INVALID_HANDLE_VALUE) {
-			if (GetLastError() != ERROR_PIPE_BUSY) {
-				return SOAP_EOF; // Could not open pipe
-			}
-
-			// All pipe instances are busy, so wait for 1 second.
-			if (!WaitNamedPipeA(endpoint+5+2, 1000)) {
-				if (GetLastError() != ERROR_PIPE_BUSY) {
-					return SOAP_EOF; // Could not open pipe
-				}
-			}
-		} else {
-			break;
-		}
-	}// for (...)
-
-	if (hSocket == INVALID_HANDLE_VALUE)
-		return SOAP_EOF;
-
-#ifdef UNDER_CE
-	soap->sendfd = soap->recvfd = NULL;
-#else
-	soap->sendfd = soap->recvfd = SOAP_INVALID_SOCKET;
-#endif
-
-	soap->max_keep_alive = 0;
-	soap->socket = (int)hSocket;
-	soap->status = SOAP_POST;
-
-	//Override soap functions
-	soap->fpoll = gsoap_win_fpoll;
-	soap->fsend = gsoap_win_fsend;
-	soap->frecv = gsoap_win_frecv;
-	soap->fclose = gsoap_win_fclose;
-	soap->fshutdownsocket = gsoap_win_shutdownsocket;
-
-	// Unused
-	soap->faccept = NULL;
-	soap->fopen = NULL;
-
-	return SOAP_OK;
-}
-#endif
 
 HRESULT CreateSoapTransport(ULONG ulUIFlags,
 	const char *strServerPath,

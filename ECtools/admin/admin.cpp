@@ -2446,12 +2446,7 @@ int main(int argc, char* argv[])
 	ECConfig *lpsConfig = ECConfig::Create(lpDefaults);
 	bool bExplicitConfig = false;
 	ConsoleTable ct(0,0);
-
-#ifdef LINUX
 	const char *szConfig = ECConfig::GetDefaultPath("admin.cfg");
-#else
-	char *szConfig = "admin.cfg";
-#endif
 
 	// Set locale to system variables
 	setlocale(LC_MESSAGES, "");

@@ -35,12 +35,7 @@
 #include "SymmetricCrypt.h"
 #include "ECPamAuth.h"
 #include "ECKrbAuth.h"
-#ifdef LINUX
 #include <kopano/UnixUtil.h>
-#else
-#include "WinUtil.h"
-#endif
-
 #include <kopano/base64.h>
 
 #include "ECICS.h"
@@ -96,12 +91,7 @@ static bool execute_script(const char *scriptname, ...)
 	for (i = lstEnv.begin(); i != lstEnv.end(); ++i)
 		env[n++] = i->c_str();
 	env[n] = NULL;
-
-#ifdef LINUX
 	return unix_system(scriptname, scriptname, env);
-#else
-	return win_system(scriptname, scriptname, env);
-#endif
 }
 
 static const char *ObjectClassToName(objectclass_t objclass)

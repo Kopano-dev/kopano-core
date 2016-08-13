@@ -90,11 +90,7 @@ static void TraceMsg(const char *lpMsg, int time, const char *func,
 
 	if (format) {
 		va_copy(va_lentest, va);
-#ifdef LINUX
 		len += _vsnprintf(NULL, 0, format, va_lentest);
-#else
-		len += _vscprintf(format, va_lentest);
-#endif
 		va_end(va_lentest);
 	}
 

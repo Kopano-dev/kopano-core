@@ -138,7 +138,6 @@ ECConfig *ECPluginSharedData::CreateConfig(const configsetting_t *lpDefaults,
 
 void ECPluginSharedData::Signal(int signal)
 {
-#ifdef LINUX
 	if (!m_lpConfig)
 		return;
 
@@ -155,6 +154,5 @@ void ECPluginSharedData::Signal(int signal)
 	default:
 		break;
 	}
-#endif
 }
 

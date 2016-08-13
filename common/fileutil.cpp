@@ -26,13 +26,10 @@
 
 #include <mapicode.h>
 #include <mapidefs.h>
-
-#ifdef LINUX
 #include <sys/mman.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <arpa/inet.h>
-#endif
 #include "fileutil.h"
 
 #define BLOCKSIZE	65536
@@ -120,7 +117,6 @@ HRESULT HrMapFileToBuffer(FILE *f, char **lppBuffer, int *lpSize, bool *lpImmap)
 
 	*lpImmap = false;
 
-#ifdef LINUX
 	/* Try mmap first */
 	if (fstat(fd, &stat) != 0) {
 		perror("Stat failed");
@@ -135,7 +131,6 @@ HRESULT HrMapFileToBuffer(FILE *f, char **lppBuffer, int *lpSize, bool *lpImmap)
 		*lpSize = stat.st_size;
 		return hrSuccess;
 	}
-#endif /* LINUX */
 
 	/* mmap failed (probably reading from STDIN as a stream), just read the file into memory, and return that */
 	lpBuffer = (char*)malloc(BLOCKSIZE); // will be deleted as soon as possible
@@ -182,13 +177,10 @@ HRESULT HrMapFileToBuffer(FILE *f, char **lppBuffer, int *lpSize, bool *lpImmap)
  */
 HRESULT HrUnmapFileBuffer(char *lpBuffer, int ulSize, bool bImmap)
 {
-#ifdef LINUX
 	if (bImmap)
 		munmap(lpBuffer, mmapsize(ulSize));
 	else
-#endif
 		free(lpBuffer);
-
 	return hrSuccess;
 }
 

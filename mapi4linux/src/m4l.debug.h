@@ -100,11 +100,7 @@ extern ECLogger *m4l_lpLogger;
 #ifdef DEBUG
 #define ORIG_TRACE_MAPILIB TraceMapiLib
 #else
- #ifdef LINUX
   #define ORIG_TRACE_MAPILIB(...)
- #else
-  #define ORIG_TRACE_MAPILIB __noop
- #endif
 #endif
 #undef TRACE_MAPILIB
 

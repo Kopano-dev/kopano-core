@@ -49,7 +49,6 @@ void TraceRelease(const char *format, ...);
 #define TRACE_STREAM	TraceStream
 #define TRACE_EXT		TraceExt
 #else
-# ifdef LINUX
 #  define TRACE_MAPI(...)
 #  define TRACE_MAPILIB(...)
 #  define TRACE_ECMAPI(...)
@@ -58,16 +57,6 @@ void TraceRelease(const char *format, ...);
 #  define TRACE_SOAP(...)
 #  define TRACE_STREAM(...)
 #  define TRACE_EXT(...)
-# else
-#  define TRACE_MAPI		__noop
-#  define TRACE_MAPILIB		__noop
-#  define TRACE_ECMAPI		__noop
-#  define TRACE_NOTIFY		__noop
-#  define TRACE_INTERNAL	__noop
-#  define TRACE_SOAP		__noop
-#  define TRACE_STREAM		__noop
-#  define TRACE_EXT			__noop
-# endif
 #endif
 
 #endif // TRACE_H

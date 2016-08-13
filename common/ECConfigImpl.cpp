@@ -22,10 +22,7 @@
 #include <cstdlib>
 #include <algorithm>
 #include <cassert>
-#ifdef LINUX
 #include <climits>
-#endif
-
 #include <algorithm>
 #include <kopano/stringutil.h>
 #include "ECConfigImpl.h"

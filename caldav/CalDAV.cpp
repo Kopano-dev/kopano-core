@@ -44,11 +44,8 @@
 
 using namespace std;
 
-#ifdef LINUX
 #include <execinfo.h>
 #include <kopano/UnixUtil.h>
-#endif
-
 #ifdef ZCP_USES_ICU
 #include <unicode/uclean.h>
 #endif
@@ -82,12 +79,8 @@ static void sigterm(int)
 
 static void sighup(int)
 {
-	// In Win32, the signal is sent in a separate, special signal thread. So this test is
-	// not needed or required.
-#ifdef LINUX
 	if (g_bThreads && pthread_equal(pthread_self(), mainthread)==0)
 		return;
-#endif
 	if (g_lpConfig) {
 		if (!g_lpConfig->ReloadSettings() && g_lpLogger)
 			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to reload configuration file, continuing with current settings.");
@@ -105,7 +98,6 @@ static void sighup(int)
 	}
 }
 
-#ifdef LINUX
 static void sigchld(int)
 {
 	int stat;
@@ -118,7 +110,6 @@ static void sigsegv(int signr, siginfo_t *si, void *uc)
 	generic_sigsegv_handler(g_lpLogger, "CalDAV",
 		PROJECT_VERSION_GATEWAY_STR, signr, si, uc);
 }
-#endif
 
 static void PrintHelp(const char *name)
 {
@@ -141,23 +132,18 @@ int main(int argc, char **argv) {
 	int ulListenCalDAV = 0;
 	int ulListenCalDAVs = 0;
 	bool bIgnoreUnknownConfigOptions = false;
-
-#ifdef LINUX
     stack_t st = {0};
     struct sigaction act = {{0}};
-#endif
 
 	// Configuration
 	int opt = 0;
 	const char *lpszCfg = ECConfig::GetDefaultPath("ical.cfg");
 	static const configsetting_t lpDefaults[] = {
-#ifdef LINUX
 		{ "run_as_user", "kopano" },
 		{ "run_as_group", "kopano" },
 		{ "pid_file", "/var/run/kopano/ical.pid" },
 		{ "running_path", "/var/lib/kopano" },
 		{ "process_model", "fork" },
-#endif
 		{ "server_bind", "" },
 		{ "ical_port", "8080" },
 		{ "ical_enable", "yes" },
@@ -168,21 +154,12 @@ int main(int argc, char **argv) {
 		{ "server_timezone","Europe/Amsterdam"},
 		{ "default_charset","utf-8"},
 		{ "log_method", "file" },
-#ifdef LINUX
 		{ "log_file", "/var/log/kopano/ical.log" },
-#else
-		{ "log_file", "ical.log" },
-#endif
 		{ "log_level", "3", CONFIGSETTING_RELOADABLE },
 		{ "log_timestamp", "1" },
 		{ "log_buffer_size", "0" },
-#ifdef LINUX
         { "ssl_private_key_file", "/etc/kopano/ical/privkey.pem" },
         { "ssl_certificate_file", "/etc/kopano/ical/cert.pem" },
-#else
-        { "ssl_private_key_file", "privkey.pem" },
-        { "ssl_certificate_file", "cert.pem" },
-#endif
 		{ "ssl_protocols", "!SSLv2" },
 		{ "ssl_ciphers", "ALL:!LOW:!SSLv2:!EXP:!aNULL" },
 		{ "ssl_prefer_server_ciphers", "no" },
@@ -271,7 +248,6 @@ int main(int argc, char **argv) {
 	// setup signals
 	signal(SIGTERM, sigterm);
 	signal(SIGINT, sigterm);
-#ifdef LINUX
 	signal(SIGHUP, sighup);
 	signal(SIGCHLD, sigchld);
 	signal(SIGPIPE, SIG_IGN);
@@ -305,7 +281,7 @@ int main(int argc, char **argv) {
 	else
 		g_lpLogger->SetLogprefix(LP_TID);
 	ec_log_set(g_lpLogger);
-#endif
+
 	hr = MAPIInitialize(NULL);
 	if (hr != hrSuccess) {
 		fprintf(stderr, "Messaging API could not be initialized: %s (%x)",
@@ -324,7 +300,6 @@ int main(int argc, char **argv) {
 
 	g_lpLogger->Log(EC_LOGLEVEL_ALWAYS, "CalDAV Gateway will now exit");
 
-#ifdef LINUX
 	// in forked mode, send all children the exit signal
 	if (g_bThreads == false) {
 		int i;
@@ -344,16 +319,10 @@ int main(int argc, char **argv) {
 		else
 			g_lpLogger->Log(EC_LOGLEVEL_ALWAYS, "CalDAV Gateway shutdown complete");
 	}
-#endif
-
 exit2:
 	MAPIUninitialize();
 exit:
-
-#ifdef LINUX
 	free(st.ss_sp);
-#endif
-
 	ECChannel::HrFreeCtx();
 	delete g_lpConfig;
 	DeleteLogger(g_lpLogger);

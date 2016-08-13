@@ -19,12 +19,8 @@
 
 #include <string>
 #include <vector>
-
-#ifdef LINUX
 #include <sys/un.h>
 #include <sys/socket.h>
-#endif
-
 #include <kopano/ECDefs.h>
 #include <kopano/ECChannel.h>
 #include <kopano/base64.h>

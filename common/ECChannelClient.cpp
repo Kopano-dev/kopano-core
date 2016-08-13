@@ -21,15 +21,11 @@
 #include <mapidefs.h>
 #include <mapiutil.h>
 #include <mapix.h>
-
-#ifdef LINUX
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/un.h>
 #include <sys/socket.h>
-#endif
-
 #include <kopano/base64.h>
 #include <kopano/ECChannel.h>
 #include <kopano/ECDefs.h>

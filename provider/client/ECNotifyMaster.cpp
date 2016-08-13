@@ -27,11 +27,8 @@
 #include <kopano/stringutil.h>
 #include "SOAPUtils.h"
 #include "WSTransport.h"
-
-#ifdef LINUX
 #include <sys/signal.h>
 #include <sys/types.h>
-#endif
 
 #define CALL_MEMBER_FN(object,ptrToMember)  ((object).*(ptrToMember)) 
 
@@ -255,14 +252,11 @@ HRESULT ECNotifyMaster::StartNotifyWatch()
 	/* Make thread joinable which we need during shutdown */
 	pthread_attr_setdetachstate(&m_hAttrib, PTHREAD_CREATE_JOINABLE);
 
-#ifdef LINUX
 	/* 1Mb of stack space per thread */
 	if (pthread_attr_setstacksize(&m_hAttrib, 1024 * 1024)) {
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
-#endif
-
 	if (pthread_create(&m_hThread, &m_hAttrib, NotifyWatch, (void *)this)) {
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
@@ -338,10 +332,8 @@ void* ECNotifyMaster::NotifyWatch(void *pTmpNotifyMaster)
 	notifyResponse					notifications;
 	bool							bReconnect = false;
 
-#ifdef LINUX
 	/* Ignore SIGPIPE which may be caused by HrGetNotify writing to the closed socket */
 	signal(SIGPIPE, SIG_IGN);
-#endif
 
 	while (!pNotifyMaster->m_bThreadExit) {
 		memset(&notifications, 0, sizeof(notifications));

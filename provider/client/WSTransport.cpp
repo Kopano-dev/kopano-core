@@ -4832,7 +4832,6 @@ std::string WSTransport::GetAppName()
 {
 	if (!m_strAppName.empty())
 		return m_strAppName;
-#ifdef LINUX
 	std::string procpath = "/proc/" + stringify(getpid()) + "/cmdline";
 	std::string s;
 
@@ -4842,14 +4841,6 @@ std::string WSTransport::GetAppName()
 		m_strAppName = "<unknown>";
 	else
 		m_strAppName = basename((char *)s.c_str());
-#else
-    char s[1024];
-    GetModuleFileNameA(0, s, sizeof(s));
-    
-    s[sizeof(s)-1] = 0;
-    
-    m_strAppName = basename(s);
-#endif    
     return m_strAppName;
 }
 

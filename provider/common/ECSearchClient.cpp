@@ -16,12 +16,8 @@
  */
 
 #include <kopano/platform.h>
-
-#ifdef LINUX
 #include <sys/un.h>
 #include <sys/socket.h>
-#endif
-
 #include <kopano/base64.h>
 #include <kopano/ECChannel.h>
 #include <kopano/ECDefs.h>

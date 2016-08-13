@@ -706,7 +706,6 @@ ECRESULT ECDispatcher::ShutDown()
     return erSuccess;
 }
 
-#ifdef LINUX
 ECDispatcherSelect::ECDispatcherSelect(ECLogger *lpLogger, ECConfig *lpConfig, CREATEPIPESOCKETCALLBACK lpCallback, void *lpCallbackParam) : ECDispatcher(lpLogger, lpConfig, lpCallback, lpCallbackParam)
 {
     int pipes[2];
@@ -1141,5 +1140,4 @@ ECRESULT ECDispatcherEPoll::NotifyRestart(SOAP_SOCKET s)
 	epoll_ctl(m_epFD, EPOLL_CTL_ADD, epevent.data.fd, &epevent);
 	return erSuccess;
 }
-#endif
 #endif

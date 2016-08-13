@@ -335,14 +335,7 @@ public:
  * use of Outlook and are subject to change. Free/busy providers must implement them only 
  * as specified, returning only the specified return values.
  */
-#ifndef LINUX
-MIDL_INTERFACE("00067066-0000-0000-C000-000000000046")
-#else
-class
-#endif
-IFreeBusyData  : public IUnknown
-{
-
+class IFreeBusyData : public IUnknown {
 public:
 	
 	/**
@@ -445,13 +438,7 @@ public:
  *	only as specified, returning only the specified return values.
  *
  */
-#ifndef LINUX
-MIDL_INTERFACE("00067067-0000-0000-C000-000000000046")
-#else
-class
-#endif
-IFreeBusySupport : public IUnknown
-{
+class IFreeBusySupport : public IUnknown {
 public:
 
 	/**
@@ -670,13 +657,7 @@ public:
  *	Missing call is CleanTombstone. This is not support in outlook 2000
  *
  */
-#ifndef LINUX 
-MIDL_INTERFACE("00067067-0000-0000-C000-000000000046") 
-#else 
-class 
-#endif
-IFreeBusySupportOutlook2000 : public IUnknown
-{
+class IFreeBusySupportOutlook2000 : public IUnknown {
 public:
 
 	/*! @copydoc IFreeBusySupport::Open */

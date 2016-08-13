@@ -530,12 +530,7 @@ PHP_MINFO_FUNCTION(mapi)
 
 static int LoadSettingsFile(void)
 {
-#ifdef LINUX 
 	const char *const cfg_file = ECConfig::GetDefaultPath("php-mapi.cfg"); 
-#else 
-	const char *const cfg_file = "php-mapi.cfg"; 
-#endif
-
 	struct stat st;
 	if (stat(cfg_file, &st) == 0) {
 		static const configsetting_t settings[] = {

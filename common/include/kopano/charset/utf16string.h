@@ -24,7 +24,6 @@
 
 #include <kopano/charset/traits.h>
 
-#ifdef LINUX
 typedef unsigned short UTF16_CHAR;
 typedef std::basic_string<unsigned short> utf16string;
 
@@ -150,13 +149,5 @@ public:
 	}
 	static size_t rawsize(const unsigned short *from);
 };
-
-#else
-typedef wchar_t UTF16_CHAR;
-
-// The utf16string type
-typedef std::wstring utf16string;
-
-#endif
 
 #endif //ndef utf16string_INCLUDED

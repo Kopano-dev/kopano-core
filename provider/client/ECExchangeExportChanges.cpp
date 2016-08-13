@@ -41,12 +41,8 @@
 #include "ECSyncSettings.h"
 #include "EntryPoint.h"
 #include <kopano/CommonUtil.h>
-
-#ifdef LINUX
 // We use ntohl/htonl for network-order conversion
 #include <arpa/inet.h>
-#endif
-
 #include <kopano/charset/convert.h>
 
 ECExchangeExportChanges::ECExchangeExportChanges(ECMsgStore *lpStore, const std::string &sk, const wchar_t * szDisplay, unsigned int ulSyncType)

@@ -275,18 +275,9 @@ time_t timegm(struct tm *t) {
 
 	// SuSE 9.1 segfaults when putenv() is used in a detached thread on the next getenv() call.
 	// so use setenv() on linux, putenv() on others.
-
-#ifdef LINUX
 	setenv("TZ", "UTC0", 1);
 	tzset();
-#else
-	if(putenv("TZ=UTC0") != -1)
-		_tzset();
-#endif
-
 	convert = mktime(t);
-
-#ifdef LINUX
 	if (s_tz) {
 		setenv("TZ", s_tz, 1);
 		tzset();
@@ -294,15 +285,6 @@ time_t timegm(struct tm *t) {
 		unsetenv("TZ");
 		tzset();
 	}
-#else
-	if (s_tz) {
-		putenv(s_tz);
-		_tzset();
-	} else {
-		putenv("TZ=");
-		_tzset();
-	}
-#endif
 	free(s_tz);
 	return convert;
 }

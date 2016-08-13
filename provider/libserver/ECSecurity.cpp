@@ -14,13 +14,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <kopano/platform.h>
-#ifdef LINUX
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <pwd.h>
 #include <dirent.h>
-#endif
-
 #include "ECDatabaseUtils.h"
 #include "ECDatabase.h"
 #include "ECSessionManager.h"

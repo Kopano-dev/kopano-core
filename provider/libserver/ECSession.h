@@ -241,7 +241,6 @@ private:
 
 	ECRESULT ProcessImpersonation(const char* lpszImpersonateUser);
 
-#ifdef LINUX
 	/* NTLM */
 	pid_t m_NTLM_pid;
 	int m_NTLM_stdin[2], m_NTLM_stdout[2], m_NTLM_stderr[2];
@@ -251,7 +250,6 @@ private:
 	/* KRB5 */
 	gss_cred_id_t m_gssServerCreds;
 	gss_ctx_id_t m_gssContext;
-#endif
 #endif
 };
 

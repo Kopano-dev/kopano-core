@@ -20,7 +20,6 @@
 #include <kopano/ECChannel.h>
 #include <kopano/stringutil.h>
 #include <csignal>
-#ifdef LINUX
 #include <netdb.h>
 #include <sys/types.h>
 #include <sys/select.h>
@@ -30,6 +29,7 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
+#ifdef LINUX
 #include <linux/rtnetlink.h>
 #endif
 
@@ -506,10 +506,8 @@ HRESULT ECChannel::HrSelect(int seconds) {
 	int res = 0;
 	struct timeval timeout = { seconds, 0 };
 
-#ifdef LINUX
 	if(fd >= FD_SETSIZE)
 	    return MAPI_E_NOT_ENOUGH_MEMORY;
-#endif
 	if(lpSSL && SSL_pending(lpSSL))
 		return hrSuccess;
 
@@ -831,9 +829,7 @@ HRESULT HrListen(ECLogger *lpLogger, const char *szPath, int *lpulListenSocket)
 	if (bind(fd, (struct sockaddr *)&sun_addr, sizeof(sun_addr)) == -1) {
                 if (lpLogger)
 			lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to bind to socket %s (%s). This is usually caused by another process (most likely another kopano-server) already using this port. This program will terminate now.", szPath, strerror(errno));
-#ifdef LINUX
                 kill(0, SIGTERM);
-#endif
                 exit(1);
         }
 
