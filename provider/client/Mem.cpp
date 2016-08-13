@@ -35,9 +35,6 @@ LPALLOCATEMORE		_pfnAllocMore;
 LPFREEBUFFER		_pfnFreeBuf;
 HINSTANCE			_hInstance;
 
-HINSTANCE GetInstance() { return _hInstance; }
-LPMALLOC GetMalloc(){ return _pmalloc; }
-
 // This is the same as client-side MAPIFreeBuffer, but uses
 // the linked memory routines passed in during MSProviderInit()
 

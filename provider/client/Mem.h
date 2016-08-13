@@ -26,9 +26,6 @@ HRESULT ECAllocateBuffer(ULONG cbSize, void **lpvoid);
 HRESULT ECAllocateBufferDbg(ULONG cbSize, void **lpvoid, char *szFile, int line);
 HRESULT ECAllocateMore(ULONG cbSize, void *lpBase, void **lpvoid);
 
-HINSTANCE GetInstance();
-LPMALLOC GetMalloc();
-
 // debug tracing
 #ifdef _DEBUG
 #define ECAllocateBuffer(cbSize, lpvoid)	ECAllocateBufferDbg(cbSize, lpvoid, __FILE__, __LINE__)
