@@ -109,8 +109,6 @@ HRESULT ECImportHierarchyChangesProxy::GetLastError(HRESULT hResult, ULONG ulFla
 }
 
 HRESULT ECImportHierarchyChangesProxy::Config(LPSTREAM lpStream, ULONG ulFlags) {
-    HRESULT hr = hrSuccess;
-    
     zval pvalFuncName;
     zval pvalReturn;
     zval pvalArgs[2];
@@ -128,21 +126,14 @@ HRESULT ECImportHierarchyChangesProxy::Config(LPSTREAM lpStream, ULONG ulFlags) 
     
     if(call_user_function(NULL, m_lpObj, &pvalFuncName, &pvalReturn, 2, pvalArgs TSRMLS_CC) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "Config method not present on ImportHierarchyChanges object");
-        hr = MAPI_E_CALL_FAILED;
-        goto exit;
+        return MAPI_E_CALL_FAILED;
     }
     
     convert_to_long_ex(&pvalReturn);
-    
-    hr = pvalReturn.value.lval;
-
-exit:
-    return hr;
+    return pvalReturn.value.lval;
 }
 
 HRESULT ECImportHierarchyChangesProxy::UpdateState(LPSTREAM lpStream) {
-    HRESULT hr = hrSuccess;
-    
     zval pvalFuncName;
     zval pvalReturn;
     zval pvalArgs[1];
@@ -158,52 +149,35 @@ HRESULT ECImportHierarchyChangesProxy::UpdateState(LPSTREAM lpStream) {
     
     if(call_user_function(NULL, m_lpObj, &pvalFuncName, &pvalReturn, 1, pvalArgs TSRMLS_CC) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "UpdateState method not present on ImportHierarchyChanges object");
-        hr = MAPI_E_CALL_FAILED;
-        goto exit;
+        return MAPI_E_CALL_FAILED;
     }
     
     convert_to_long_ex(&pvalReturn);
-    
-    hr = pvalReturn.value.lval;
-
-exit:
-    return hr;
+    return pvalReturn.value.lval;
 }
 
 HRESULT ECImportHierarchyChangesProxy::ImportFolderChange(ULONG cValues, LPSPropValue lpPropArray)  {
     zval pvalFuncName;
     zval pvalReturn;
     zval pvalArgs[1];
-    HRESULT hr = hrSuccess;
-    
-    hr = PropValueArraytoPHPArray(cValues, lpPropArray, &pvalArgs[0] TSRMLS_CC);
+    HRESULT hr = PropValueArraytoPHPArray(cValues, lpPropArray, &pvalArgs[0] TSRMLS_CC);
     if(hr != hrSuccess) {
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to convert MAPI propvalue array to PHP");
-        goto exit;
+        return hr;
     }
     
     ZVAL_STRING(&pvalFuncName, "ImportFolderChange");
     
     if(call_user_function(NULL, m_lpObj, &pvalFuncName, &pvalReturn, 1, pvalArgs TSRMLS_CC) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "ImportFolderChange method not present on ImportHierarchyChanges object");
-        hr = MAPI_E_CALL_FAILED;
-        goto exit;
+        return MAPI_E_CALL_FAILED;
     }
         
     convert_to_long_ex(&pvalReturn);
-    
-    hr = pvalReturn.value.lval;
-    
-    if(hr != hrSuccess)
-        goto exit;
-
-exit:
-    return hr;
+    return pvalReturn.value.lval;
 }
 
 HRESULT ECImportHierarchyChangesProxy::ImportFolderDeletion(ULONG ulFlags, LPENTRYLIST lpSourceEntryList) {
-    HRESULT hr = hrSuccess;
-    
     zval pvalFuncName;
     zval pvalReturn;
     zval pvalArgs[2];
@@ -215,14 +189,9 @@ HRESULT ECImportHierarchyChangesProxy::ImportFolderDeletion(ULONG ulFlags, LPENT
     
     if(call_user_function(NULL, m_lpObj, &pvalFuncName, &pvalReturn, 2, pvalArgs TSRMLS_CC) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "ImportFolderDeletion method not present on ImportHierarchyChanges object");
-        hr = MAPI_E_CALL_FAILED;
-        goto exit;
+        return MAPI_E_CALL_FAILED;
     }
     
     convert_to_long_ex(&pvalReturn);
-    
-    hr = pvalReturn.value.lval;
-
-exit:
-    return hr;
+    return pvalReturn.value.lval;
 }

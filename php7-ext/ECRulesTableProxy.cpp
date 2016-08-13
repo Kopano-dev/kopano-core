@@ -42,25 +42,18 @@ ECRulesTableProxy::~ECRulesTableProxy()
 
 HRESULT ECRulesTableProxy::Create(LPMAPITABLE lpTable, ECRulesTableProxy **lppRulesTableProxy)
 {
-	HRESULT hr = hrSuccess;
 	mapi_object_ptr<ECRulesTableProxy> ptrRulesTableProxy;
 
-	if (lpTable == NULL || lppRulesTableProxy == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (lpTable == NULL || lppRulesTableProxy == NULL)
+		return MAPI_E_INVALID_PARAMETER;
 	try {
 		ptrRulesTableProxy.reset(new ECRulesTableProxy(lpTable));
 	} catch (const std::bad_alloc &) {
-		hr = MAPI_E_NOT_ENOUGH_MEMORY;
-		goto exit;
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	}
 
 	*lppRulesTableProxy = ptrRulesTableProxy.release();
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECRulesTableProxy::QueryInterface(REFIID refiid, void **lppInterface)
@@ -161,7 +154,7 @@ HRESULT ECRulesTableProxy::QueryRows(LONG lRowCount, ULONG ulFlags, LPSRowSet *l
 
 	hr = m_lpTable->QueryRows(lRowCount, ulFlags, &ptrRows);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	
 	// table PR_RULE_ACTIONS and PR_RULE_CONDITION contain PT_UNICODE data, which we must convert to local charset PT_STRING8
 	// so we update the rows before we return them to the caller.
@@ -172,18 +165,15 @@ HRESULT ECRulesTableProxy::QueryRows(LONG lRowCount, ULONG ulFlags, LPSRowSet *l
 		if (lpRuleProp)
 			hr = ConvertUnicodeToString8((LPSRestriction)lpRuleProp->Value.lpszA, ptrRows[i].lpProps, converter);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		lpRuleProp = PpropFindProp(ptrRows[i].lpProps, ptrRows[i].cValues, PR_RULE_ACTIONS);
 		if (lpRuleProp)
 			hr = ConvertUnicodeToString8((ACTIONS*)lpRuleProp->Value.lpszA, ptrRows[i].lpProps, converter);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 	
 	*lppRows = ptrRows.release();
-	
-exit:
 	return hr;
 }
 
@@ -257,24 +247,19 @@ DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, SetCollapseState, (ULONG,
 static HRESULT ConvertUnicodeToString8(const WCHAR *lpszW, char **lppszA,
     void *base, convert_context &converter)
 {
-	HRESULT hr = hrSuccess;
 	std::string local;
 	char *lpszA = NULL;
 
-	if (lpszW == NULL || lppszA == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (lpszW == NULL || lppszA == NULL)
+		return MAPI_E_INVALID_PARAMETER;
 	TryConvert(lpszW, local);
-	hr = MAPIAllocateMore((local.length() +1) * sizeof(std::string::value_type), base, (void**)&lpszA);
+	HRESULT hr = MAPIAllocateMore((local.length() +1) * sizeof(std::string::value_type),
+		base, reinterpret_cast<void **>(&lpszA));
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	strcpy(lpszA, local.c_str());
 	*lppszA = lpszA;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 static HRESULT ConvertUnicodeToString8(LPSRestriction lpRestriction,
@@ -284,39 +269,39 @@ static HRESULT ConvertUnicodeToString8(LPSRestriction lpRestriction,
 	ULONG i;
 
 	if (lpRestriction == NULL)
-		goto exit;
+		return hrSuccess;
 
 	switch (lpRestriction->rt) {
 	case RES_OR:
 		for (i = 0; i < lpRestriction->res.resOr.cRes; ++i) {
 			hr = ConvertUnicodeToString8(&lpRestriction->res.resOr.lpRes[i], base, converter);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 		break;
 	case RES_AND:
 		for (i = 0; i < lpRestriction->res.resAnd.cRes; ++i) {
 			hr = ConvertUnicodeToString8(&lpRestriction->res.resAnd.lpRes[i], base, converter);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 		break;
 	case RES_NOT:
 		hr = ConvertUnicodeToString8(lpRestriction->res.resNot.lpRes, base, converter);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		break;
 	case RES_COMMENT:
 		if (lpRestriction->res.resComment.lpRes) {
 			hr = ConvertUnicodeToString8(lpRestriction->res.resComment.lpRes, base, converter);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 		for (i = 0; i < lpRestriction->res.resComment.cValues; ++i)
 			if (PROP_TYPE(lpRestriction->res.resComment.lpProp[i].ulPropTag) == PT_UNICODE) {
 				hr = ConvertUnicodeToString8(lpRestriction->res.resComment.lpProp[i].Value.lpszW, &lpRestriction->res.resComment.lpProp[i].Value.lpszA, base, converter);
 				if (hr != hrSuccess)
-					goto exit;
+					return hr;
 				lpRestriction->res.resComment.lpProp[i].ulPropTag = CHANGE_PROP_TYPE(lpRestriction->res.resComment.lpProp[i].ulPropTag, PT_STRING8);
 			}
 		break;
@@ -326,7 +311,7 @@ static HRESULT ConvertUnicodeToString8(LPSRestriction lpRestriction,
 		if (PROP_TYPE(lpRestriction->res.resContent.ulPropTag) == PT_UNICODE) {
 			hr = ConvertUnicodeToString8(lpRestriction->res.resContent.lpProp->Value.lpszW, &lpRestriction->res.resContent.lpProp->Value.lpszA, base, converter);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			lpRestriction->res.resContent.lpProp->ulPropTag = CHANGE_PROP_TYPE(lpRestriction->res.resContent.lpProp->ulPropTag, PT_STRING8);
 			lpRestriction->res.resContent.ulPropTag = CHANGE_PROP_TYPE(lpRestriction->res.resContent.ulPropTag, PT_STRING8);
 		}
@@ -335,7 +320,7 @@ static HRESULT ConvertUnicodeToString8(LPSRestriction lpRestriction,
 		if (PROP_TYPE(lpRestriction->res.resProperty.ulPropTag) == PT_UNICODE) {
 			hr = ConvertUnicodeToString8(lpRestriction->res.resProperty.lpProp->Value.lpszW, &lpRestriction->res.resProperty.lpProp->Value.lpszA, base, converter);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			lpRestriction->res.resProperty.lpProp->ulPropTag = CHANGE_PROP_TYPE(lpRestriction->res.resProperty.lpProp->ulPropTag, PT_STRING8);
 			lpRestriction->res.resProperty.ulPropTag = CHANGE_PROP_TYPE(lpRestriction->res.resProperty.ulPropTag, PT_STRING8);
 		}
@@ -343,69 +328,53 @@ static HRESULT ConvertUnicodeToString8(LPSRestriction lpRestriction,
 	case RES_SUBRESTRICTION:
 		hr = ConvertUnicodeToString8(lpRestriction->res.resSub.lpRes, base, converter);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		break;
-	};
-
-exit:
+	}
 	return hr;
 }
 
 static HRESULT ConvertUnicodeToString8(const SRow *lpRow, void *base,
     convert_context &converter)
 {
-	HRESULT hr = hrSuccess;
-
 	if (lpRow == NULL)
-		goto exit;
-
+		return hrSuccess;
 	for (ULONG c = 0; c < lpRow->cValues; ++c) {
 		if (PROP_TYPE(lpRow->lpProps[c].ulPropTag) == PT_UNICODE) {
-			hr = ConvertUnicodeToString8(lpRow->lpProps[c].Value.lpszW, &lpRow->lpProps[c].Value.lpszA, base, converter);
+			HRESULT hr = ConvertUnicodeToString8(lpRow->lpProps[c].Value.lpszW,
+				&lpRow->lpProps[c].Value.lpszA, base, converter);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			lpRow->lpProps[c].ulPropTag = CHANGE_PROP_TYPE(lpRow->lpProps[c].ulPropTag, PT_STRING8);
 		}
-		if (hr != hrSuccess)
-			goto exit;
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 static HRESULT ConvertUnicodeToString8(const ADRLIST *lpAdrList, void *base,
     convert_context &converter)
 {
-	HRESULT hr = hrSuccess;
-
 	if (lpAdrList == NULL)
-		goto exit;
-
+		return hrSuccess;
 	for (ULONG c = 0; c < lpAdrList->cEntries; ++c) {
 		// treat as row
-		hr = ConvertUnicodeToString8((LPSRow)&lpAdrList->aEntries[c], base, converter);
+		HRESULT hr = ConvertUnicodeToString8(reinterpret_cast<const SRow *>(&lpAdrList->aEntries[c]),
+			base, converter);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 static HRESULT ConvertUnicodeToString8(const ACTIONS *lpActions, void *base, convert_context &converter)
 {
-	HRESULT hr = hrSuccess;
-
 	if (lpActions == NULL)
-		goto exit;
-
+		return hrSuccess;
 	for (ULONG c = 0; c < lpActions->cActions; ++c)
 		if (lpActions->lpAction[c].acttype == OP_FORWARD || lpActions->lpAction[c].acttype == OP_DELEGATE) {
-			hr = ConvertUnicodeToString8(lpActions->lpAction[c].lpadrlist, base, converter);
+			HRESULT hr = ConvertUnicodeToString8(lpActions->lpAction[c].lpadrlist, base, converter);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
-exit:
-	return hr;
+	return hrSuccess;
 }

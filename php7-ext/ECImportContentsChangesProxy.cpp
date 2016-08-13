@@ -112,8 +112,6 @@ HRESULT ECImportContentsChangesProxy::GetLastError(HRESULT hResult, ULONG ulFlag
 }
 
 HRESULT ECImportContentsChangesProxy::Config(LPSTREAM lpStream, ULONG ulFlags) {
-    HRESULT hr = hrSuccess;
-    
     zval pvalFuncName;
     zval pvalReturn;
     zval pvalArgs[2];
@@ -131,21 +129,14 @@ HRESULT ECImportContentsChangesProxy::Config(LPSTREAM lpStream, ULONG ulFlags) {
     
     if(call_user_function(NULL, m_lpObj, &pvalFuncName, &pvalReturn, 2, pvalArgs TSRMLS_CC) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "Config method not present on ImportContentsChanges object");
-        hr = MAPI_E_CALL_FAILED;
-        goto exit;
+        return MAPI_E_CALL_FAILED;
     }
     
     convert_to_long_ex(&pvalReturn);
-    
-    hr = pvalReturn.value.lval;
-
-exit:
-    return hr;
+    return pvalReturn.value.lval;
 }
 
 HRESULT ECImportContentsChangesProxy::UpdateState(LPSTREAM lpStream) {
-    HRESULT hr = hrSuccess;
-    
     zval pvalFuncName;
     zval pvalReturn;
     zval pvalArgs[1];
@@ -161,16 +152,11 @@ HRESULT ECImportContentsChangesProxy::UpdateState(LPSTREAM lpStream) {
     
     if(call_user_function(NULL, m_lpObj, &pvalFuncName, &pvalReturn, 1, pvalArgs TSRMLS_CC) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "UpdateState method not present on ImportContentsChanges object");
-        hr = MAPI_E_CALL_FAILED;
-        goto exit;
+        return MAPI_E_CALL_FAILED;
     }
     
     convert_to_long_ex(&pvalReturn);
-    
-    hr = pvalReturn.value.lval;
-
-exit:
-    return hr;
+    return pvalReturn.value.lval;
 }
 
 HRESULT ECImportContentsChangesProxy::ImportMessageChange(ULONG cValues, LPSPropValue lpPropArray, ULONG ulFlags, LPMESSAGE * lppMessage)  {
@@ -179,12 +165,10 @@ HRESULT ECImportContentsChangesProxy::ImportMessageChange(ULONG cValues, LPSProp
     zval pvalArgs[3];
 
     IMessage *lpMessage = NULL;
-    HRESULT hr = hrSuccess;
-
-    hr = PropValueArraytoPHPArray(cValues, lpPropArray, &pvalArgs[0] TSRMLS_CC);
+    HRESULT hr = PropValueArraytoPHPArray(cValues, lpPropArray, &pvalArgs[0] TSRMLS_CC);
     if(hr != hrSuccess) {
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to convert MAPI propvalue array to PHP");
-        goto exit;
+        return hr;
     }
         
     ZVAL_LONG(&pvalArgs[1], ulFlags);
@@ -194,8 +178,7 @@ HRESULT ECImportContentsChangesProxy::ImportMessageChange(ULONG cValues, LPSProp
     
     if(call_user_function(NULL, m_lpObj, &pvalFuncName, &pvalReturn, 3, pvalArgs TSRMLS_CC) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "ImportMessageChange method not present on ImportContentsChanges object");
-        hr = MAPI_E_CALL_FAILED;
-        goto exit;
+        return MAPI_E_CALL_FAILED;
     }
         
     convert_to_long_ex(&pvalReturn);
@@ -203,26 +186,20 @@ HRESULT ECImportContentsChangesProxy::ImportMessageChange(ULONG cValues, LPSProp
     hr = pvalReturn.value.lval;
     
     if(hr != hrSuccess)
-        goto exit;
-
+        return hr;
     lpMessage = (IMessage *) zend_fetch_resource(Z_RES_P(&pvalReturn) TSRMLS_CC, name_mapi_message, le_mapi_message);
         
     if(!lpMessage) {
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "ImportMessageChange() must return a valid MAPI message resource in the last argument when returning OK (0)");
-        hr = MAPI_E_CALL_FAILED;
-        goto exit;
+        return MAPI_E_CALL_FAILED;
     }         
     
     if(lppMessage)
         *lppMessage = lpMessage;
-           
-exit:
-    return hr;
+    return hrSuccess;
 }
 
 HRESULT ECImportContentsChangesProxy::ImportMessageDeletion(ULONG ulFlags, LPENTRYLIST lpSourceEntryList) {
-    HRESULT hr = hrSuccess;
-    
     zval pvalFuncName;
     zval pvalReturn;
     zval pvalArgs[2];
@@ -234,21 +211,14 @@ HRESULT ECImportContentsChangesProxy::ImportMessageDeletion(ULONG ulFlags, LPENT
     
     if(call_user_function(NULL, m_lpObj, &pvalFuncName, &pvalReturn, 2, pvalArgs TSRMLS_CC) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "ImportMessageDeletion method not present on ImportContentsChanges object");
-        hr = MAPI_E_CALL_FAILED;
-        goto exit;
+        return MAPI_E_CALL_FAILED;
     }
     
     convert_to_long_ex(&pvalReturn);
-    
-    hr = pvalReturn.value.lval;
-
-exit:
-    return hr;
+    return pvalReturn.value.lval;
 }
 
 HRESULT ECImportContentsChangesProxy::ImportPerUserReadStateChange(ULONG cElements, LPREADSTATE lpReadState) {
-    HRESULT hr = hrSuccess;
-    
     zval pvalFuncName;
     zval pvalReturn;
     zval pvalArgs[1];
@@ -259,16 +229,11 @@ HRESULT ECImportContentsChangesProxy::ImportPerUserReadStateChange(ULONG cElemen
     
     if(call_user_function(NULL, m_lpObj, &pvalFuncName, &pvalReturn, 1, pvalArgs TSRMLS_CC) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "ImportPerUserReadStateChange method not present on ImportContentsChanges object");
-        hr = MAPI_E_CALL_FAILED;
-        goto exit;
+        return MAPI_E_CALL_FAILED;
     }
     
     convert_to_long_ex(&pvalReturn);
-    
-    hr = pvalReturn.value.lval;
-
-exit:
-    return hr;
+    return pvalReturn.value.lval;
 }
 
 HRESULT ECImportContentsChangesProxy::ImportMessageMove(ULONG cbSourceKeySrcFolder, BYTE FAR * pbSourceKeySrcFolder, ULONG cbSourceKeySrcMessage, BYTE FAR * pbSourceKeySrcMessage, ULONG cbPCLMessage, BYTE FAR * pbPCLMessage, ULONG cbSourceKeyDestMessage, BYTE FAR * pbSourceKeyDestMessage, ULONG cbChangeNumDestMessage, BYTE FAR * pbChangeNumDestMessage) {
