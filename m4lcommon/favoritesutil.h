@@ -43,8 +43,6 @@ LPSPropTagArray GetShortCutTagArray();
 HRESULT AddToFavorite(IMAPIFolder *lpShortcutFolder, ULONG ulLevel, LPCTSTR lpszAliasName, ULONG ulFlags, ULONG cValues, LPSPropValue lpPropArray);
 HRESULT GetShortcutFolder(LPMAPISESSION lpSession, LPTSTR lpszFolderName, LPTSTR lpszFolderComment, ULONG ulFlags, LPMAPIFOLDER* lppShortcutFolder);
 HRESULT CreateShortcutFolder(IMsgStore *lpMsgStore, LPTSTR lpszFolderName, LPTSTR lpszFolderComment, ULONG ulFlags, LPMAPIFOLDER* lppShortcutFolder);
-HRESULT GetFavorite(IMAPIFolder *lpShortcutFolder, ULONG ulFlags, IMAPIFolder *lpMapiFolder, ULONG *lpcValues, LPSPropValue *lppShortCutPropValues);
-
 HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSourceKey);
 HRESULT AddFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPMAPIFOLDER lpFolder, LPCTSTR lpszAliasName, ULONG ulFlags);
 

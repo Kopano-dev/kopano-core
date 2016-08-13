@@ -20,12 +20,7 @@
 
 bool SymmetricIsCrypted(const wchar_t *);
 bool SymmetricIsCrypted(const char *);
-
-std::string SymmetricCrypt(const std::wstring &strPlain);
-std::wstring SymmetricCryptW(const std::wstring &strPlain);
-
 std::string SymmetricDecrypt(const char *strCrypted);
 std::string SymmetricDecrypt(const wchar_t *wstrCrypted);
-std::wstring SymmetricDecryptW(const wchar_t *wstrCrypted);
 
 #endif

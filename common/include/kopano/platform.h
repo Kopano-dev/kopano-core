@@ -83,7 +83,6 @@ HRESULT	UnixTimeToRTime(time_t unixtime, LONG *rtime);
 HRESULT	RTimeToUnixTime(LONG rtime, time_t *unixtime);
 extern time_t SystemTimeToUnixTime(const SYSTEMTIME &);
 extern SYSTEMTIME TMToSystemTime(const struct tm &);
-extern struct tm SystemTimeToTM(const SYSTEMTIME &);
 double GetTimeOfDay();
 ULONG	CreateIntDate(ULONG day, ULONG month, ULONG year);
 ULONG	CreateIntTime(ULONG seconds, ULONG minutes, ULONG hours);

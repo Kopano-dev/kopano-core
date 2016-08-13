@@ -29,12 +29,6 @@ HRESULT ECAllocateMore(ULONG cbSize, void *lpBase, void **lpvoid);
 HINSTANCE GetInstance();
 LPMALLOC GetMalloc();
 
-// Standard memory management
-/* DEPRECATED - do not use 
-HRESULT HrAlloc(ULONG cbSize, void **lpvoid);
-HRESULT HrRealloc(ULONG cbSize, void *lpBase, void **lpvoid);
-HRESULT HrFree(void *lpvoid); */
-
 // debug tracing
 #ifdef _DEBUG
 #define ECAllocateBuffer(cbSize, lpvoid)	ECAllocateBufferDbg(cbSize, lpvoid, __FILE__, __LINE__)
