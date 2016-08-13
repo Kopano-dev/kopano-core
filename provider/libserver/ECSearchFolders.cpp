@@ -353,7 +353,6 @@ ECRESULT ECSearchFolders::IsSearchFolder(unsigned int ulStoreID, unsigned int ul
     }
 
 exit:
-
     if(lpDBResult)
         lpDatabase->FreeResult(lpDBResult);
 

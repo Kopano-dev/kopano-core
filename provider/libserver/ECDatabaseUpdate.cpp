@@ -494,7 +494,6 @@ next: //Free
 	}
 
 exit:
-
 	if (lpDBResult)
 		lpDatabase->FreeResult(lpDBResult);
 	

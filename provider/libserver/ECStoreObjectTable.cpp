@@ -790,7 +790,6 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
 	er = erSuccess;
 
 exit:
-
 	if(lpDBResult)
 		lpDatabase->FreeResult(lpDBResult);
 

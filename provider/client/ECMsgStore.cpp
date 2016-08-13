@@ -1126,7 +1126,6 @@ HRESULT ECMsgStore::SetLockState(LPMESSAGE lpMessage, ULONG ulLockState)
 		goto exit;
 
 exit:
-
 	if(lpsPropArray)
 		ECFreeBuffer(lpsPropArray);
 

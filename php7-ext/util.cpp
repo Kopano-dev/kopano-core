@@ -134,7 +134,6 @@ HRESULT mapi_util_createprof(const char *szProfName, const char *szServiceName,
 	}
 
 exit:
-
 	if(lpRows)
 		FreeProws(lpRows);
 

@@ -127,7 +127,6 @@ HRESULT ECFreeBusySupport::Open(IMAPISession* lpMAPISession, IMsgStore* lpMsgSto
 			goto exit;
 	}
 exit:
-
 	if(lpPublicStore)
 		lpPublicStore->Release();
 
@@ -211,7 +210,6 @@ HRESULT ECFreeBusySupport::LoadFreeBusyData(ULONG cMax, FBUser *rgfbuser, IFreeB
 	if(pcRead)
 		*pcRead = ulFindUsers;
 exit:
-
 	if(lpECFreeBusyData)
 		lpECFreeBusyData->Release();
 	

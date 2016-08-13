@@ -1477,7 +1477,6 @@ HRESULT WebDav::HrMkCalendar()
 	hr = HrHandleMkCal(&sDavProp);
 
 exit:
-
 	if(hr == MAPI_E_COLLISION)
 	{
 		m_lpRequest->HrResponseHeader(409,"CONFLICT");

@@ -341,7 +341,6 @@ HRESULT ECAttach::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject)
 	m_sMapiObject->lstChildren->insert(new MAPIOBJECT(lpsMapiObject));
 
 exit:
-
 	pthread_mutex_unlock(&m_hMutexMAPIObject);
 
 	return hr;

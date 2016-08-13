@@ -161,7 +161,6 @@ HRESULT ECMemTable::HrGetAllWithStatus(LPSRowSet *lppRowSet, LPSPropValue *lppID
 	*lppulStatus = lpulStatus;
 
 exit:
-
 	pthread_mutex_unlock(&m_hDataMutex);
 
 	if (hr != hrSuccess) {
@@ -205,7 +204,6 @@ HRESULT ECMemTable::HrGetRowID(LPSPropValue lpRow, LPSPropValue *lppID)
 	*lppID = lpID;
 
 exit:
-
 	pthread_mutex_unlock(&m_hDataMutex);
 
 	return hr;
@@ -307,7 +305,6 @@ HRESULT ECMemTable::HrUpdateRowID(LPSPropValue lpId, LPSPropValue lpProps, ULONG
     hr = Util::HrCopyProperty(iterRows->second.lpsID, lpId, iterRows->second.lpsID);
 
 exit:
-	
 	pthread_mutex_unlock(&m_hDataMutex);
 
     return hr;
@@ -425,7 +422,6 @@ HRESULT ECMemTable::HrModifyRow(ULONG ulUpdateType, SPropValue *lpsID, SPropValu
 		goto exit;
 
 exit:
-
 	pthread_mutex_unlock(&m_hDataMutex);
 
 	return hr;

@@ -1983,7 +1983,6 @@ HRESULT CalDAV::HrHandleMeeting(ICalToMapi *lpIcalToMapi)
 	}
 
 exit:
-	
 	if(hr == hrSuccess)
 		m_lpRequest->HrResponseHeader(200, "Ok");
 	else
@@ -2038,7 +2037,6 @@ HRESULT CalDAV::HrConvertToIcal(LPSPropValue lpEid, MapiToICal *lpMtIcal, ULONG 
 	lpMtIcal->ResetObject();
 
 exit:
-	
 	if(lpMessage)
 		lpMessage->Release();
 	

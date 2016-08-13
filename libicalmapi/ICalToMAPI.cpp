@@ -669,7 +669,6 @@ HRESULT ICalToMapiImpl::SaveRecipList(const std::list<icalrecip> *lplstRecip,
 		goto exit;
 
 exit:
-	
 	if (lpRecipients)
 		FreePadrlist(lpRecipients);
 

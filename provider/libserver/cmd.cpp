@@ -2328,7 +2328,6 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 		g_lpSessionManager->GetCacheManager()->SetObject(ulObjId, ulParent, ulOwner, ulFlags, ulObjType);
 	
 exit:
-
     FREE_DBRESULT();
 	return er;
 }
@@ -7912,7 +7911,6 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 	if(bPartialCompletion && er == erSuccess)
 		er = KCWARN_PARTIAL_COMPLETION;
 exit:
-
 	if(lpDatabase && er != erSuccess && er != KCWARN_PARTIAL_COMPLETION)
 		lpDatabase->Rollback();
 	if (lpDBResult != NULL)
@@ -10455,7 +10453,6 @@ SOAP_ENTRY_START(getLicenseCapa, lpsResponse->er, unsigned int ulServiceType, st
 	for (unsigned int i = 0; i < lstCapabilities.size(); ++i)
 		lpsResponse->sCapabilities.__ptr[i] = s_strcpy(soap, lstCapabilities[i].c_str());
 exit:
-
     delete lpLicenseClient;
 }
 SOAP_ENTRY_END()
@@ -10474,7 +10471,6 @@ SOAP_ENTRY_START(getLicenseUsers, lpsResponse->er, unsigned int ulServiceType, s
 	lpsResponse->ulUsers = ulUsers;
 
 exit:
-
 	delete lpLicenseClient;
 }
 SOAP_ENTRY_END()

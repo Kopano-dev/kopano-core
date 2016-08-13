@@ -228,7 +228,6 @@ HRESULT PHPArraytoSortOrderSet(zval * sortorder_array, void *lpBase, LPSSortOrde
 	*lppSortOrderSet = lpSortOrderSet;
 	
 exit:
-
 	return MAPI_G(hr);
 }
 

@@ -184,7 +184,6 @@ HRESULT WSTransport::HrOpenTransport(LPMAPISUP lpMAPISup, WSTransport **lppTrans
 	*lppTransport = lpTransport;
 
 exit:
-
 	if (hr != hrSuccess && lpTransport)
 		lpTransport->Release();
 
@@ -356,7 +355,6 @@ auth: // User have a logon
 	m_lpCmd = lpCmd;
 
 exit:
-
 	UnLockSoap();
 
 	if(hr != hrSuccess) {

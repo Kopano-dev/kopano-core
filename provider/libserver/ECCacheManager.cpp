@@ -1785,7 +1785,6 @@ ECRESULT ECCacheManager::GetObjectFromProp(unsigned int ulTag, unsigned int cbDa
 	*lpulObjId = sNewIndexObject.ulObjId;
 
 exit:
-
 	if (lpDBResult)
 		lpDatabase->FreeResult(lpDBResult);
 

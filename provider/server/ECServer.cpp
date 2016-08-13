@@ -446,7 +446,6 @@ static ECRESULT check_database_tproperties_key(ECDatabase *lpDatabase)
 	er = erSuccess;
 
 exit:
-
 	if (lpResult)
 		lpDatabase->FreeResult(lpResult);
 

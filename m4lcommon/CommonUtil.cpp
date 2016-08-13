@@ -832,7 +832,6 @@ HRESULT HrRemoveECMailBox(LPPROVIDERADMIN lpProviderAdmin, LPMAPIUID lpsProvider
 	//FIXME: unknown error 0x80070005 by delete (HACK)
 	hr = hrSuccess;
 exit:
-
 	if(lpGlobalProfSect)
 		lpGlobalProfSect->Release();
 	MAPIFreeBuffer(lpsPropTagArray);

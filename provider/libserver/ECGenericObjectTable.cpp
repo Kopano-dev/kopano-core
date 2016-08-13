@@ -666,7 +666,6 @@ ECRESULT ECGenericObjectTable::GetColumns(struct soap *soap, ULONG ulFlags, stru
 	*lppsPropTags = lpsPropTags;
 
 exit:
-
 	pthread_mutex_unlock(&m_hLock);
 
 	return er;
@@ -754,7 +753,6 @@ ECRESULT ECGenericObjectTable::SetSortOrder(struct sortOrderArray *lpsSortOrder,
 	er = lpKeyTable->SeekRow(0, 0, NULL);
 
 exit:
-
 	pthread_mutex_unlock(&m_hLock);
 
 	return er;
@@ -1345,7 +1343,6 @@ ECRESULT ECGenericObjectTable::ExpandRow(struct soap *soap, xsd__base64Binary sI
         *lpulRowsLeft = ulRowsLeft;
     
 exit:
-
     pthread_mutex_unlock(&m_hLock);
     
     return er;

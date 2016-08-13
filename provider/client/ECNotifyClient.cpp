@@ -366,7 +366,6 @@ HRESULT ECNotifyClient::Advise(ULONG cbKey, LPBYTE lpKey, ULONG ulEventMask, LPM
 	hr = hrSuccess;
 
 exit:
-
 	TRACE_NOTIFY(TRACE_RETURN, "ECNotifyClient::Advise", "hr=0x%08X connection=%d", hr, *lpulConnection);
 
 	return hr;

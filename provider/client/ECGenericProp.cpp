@@ -852,7 +852,6 @@ HRESULT ECGenericProp::HrLoadProp(ULONG ulPropTag)
 	iterProps->second.HrSetClean();
 
 exit:
-
 	if(lpsPropVal)
 		ECFreeBuffer(lpsPropVal);
 
@@ -909,7 +908,6 @@ HRESULT ECGenericProp::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, U
 	*lppPropArray = lpsPropValue;
 	*lpcValues = lpGetPropTagArray->cValues;
 exit:
-
 	if(lpPropTagArray == NULL)
 		ECFreeBuffer(lpGetPropTagArray);
 
@@ -1163,7 +1161,6 @@ HRESULT ECGenericProp::GetSingleInstanceId(ULONG *lpcbInstanceID, LPSIEID *lppIn
 		goto exit;
 
 exit:
-
 	pthread_mutex_unlock(&m_hMutexMAPIObject);
 
 	return hr;
