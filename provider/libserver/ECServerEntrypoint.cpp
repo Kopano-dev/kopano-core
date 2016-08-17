@@ -217,16 +217,16 @@ void kopano_new_soap_connection(CONNECTION_TYPE ulType, struct soap *soap)
 	lpInfo->bProxy = false;
 	soap->user = (void *)lpInfo;
 	
-	if (szProxy[0]) {
-		if(strcmp(szProxy, "*") == 0) {
-			// Assume everything is proxied
-			lpInfo->bProxy = true; 
-		} else {
-			// Parse headers to determine if the connection is proxied
-			lpInfo->fparsehdr = soap->fparsehdr; // daisy-chain the existing code
-			soap->fparsehdr = kopano_fparsehdr;
-		}
+	if (szProxy[0] == '\0')
+		return;
+	if (strcmp(szProxy, "*") == 0) {
+		// Assume everything is proxied
+		lpInfo->bProxy = true;
+		return;
 	}
+	// Parse headers to determine if the connection is proxied
+	lpInfo->fparsehdr = soap->fparsehdr; // daisy-chain the existing code
+	soap->fparsehdr = kopano_fparsehdr;
 }
 
 void kopano_end_soap_connection(struct soap *soap)
