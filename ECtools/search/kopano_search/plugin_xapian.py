@@ -60,7 +60,8 @@ class Plugin:
 
         db = self.open_db(server_guid, store_guid, log=log)
         if not db:
-            return [], ''
+            return []
+
         qp = xapian.QueryParser()
         qp.add_prefix("sourcekey", "XK:")
         qp.add_prefix("folderid", "XF:")
@@ -81,7 +82,11 @@ class Plugin:
     def suggest(self, server_guid, store_guid, terms, orig, log):
         """ update original search text with suggested terms """
 
-        with closing(self.open_db(server_guid, store_guid)) as db:
+        db = self.open_db(server_guid, store_guid, log=log)
+        if not db:
+            return orig
+
+        with closing(db) as db:
             # XXX revisit later. looks like xapian cannot do this for us? :S
             for term in sorted(terms, key=lambda s: len(s), reverse=True):
                 suggestion = db.get_spelling_suggestion(term).decode('utf8') or term
