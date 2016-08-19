@@ -37,6 +37,9 @@ Enhancements:
 * archiver: new scripts kopano-archiver-{aclsync,aclset,restore} [KC-39]
 * python/swig: resolve some memory leaks [KC-92, KC-95]
 * client: permit self-signed certificates [KC-155]
+* Add scripts (source tarball only) to inspect/delete stale search folders
+  which slow down kopano-server startup and message modification when too many
+  have accumulated [KC-140]
 Changes:
 * search: no longer do indexing on root and Draft folders [KC-57]
 * search: index junk folders, but skip updating suggestion list [KC-57]
