@@ -634,8 +634,10 @@ Wrapper around MAPI properties
                 # The datetime object is of "naive" type, has local time and
                 # no TZ info. :-(
                 #
-                self._value = datetime.datetime.fromtimestamp(self.mapiobj.Value.unixtime)
-                
+                try:
+                    self._value = datetime.datetime.fromtimestamp(self.mapiobj.Value.unixtime)
+                except ValueError: # Y10K: datetime is limited to 4-digit years
+                    self._value = datetime.datetime(9999, 1, 1)
             else:
                 self._value = self.mapiobj.Value
         return self._value
