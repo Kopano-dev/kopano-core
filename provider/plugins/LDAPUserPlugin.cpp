@@ -269,9 +269,7 @@ LDAPUserPlugin::LDAPUserPlugin(std::mutex &pluginlock,
 		{ "ldap_company_type_attribute_value", "", static_cast<unsigned short>((m_bHosted ? CONFIGSETTING_NONEMPTY : 0) | CONFIGSETTING_RELOADABLE)},
 		{ "ldap_addresslist_type_attribute_value", "", CONFIGSETTING_RELOADABLE },
 		{ "ldap_dynamicgroup_type_attribute_value", "", CONFIGSETTING_RELOADABLE },
-#ifdef WITH_MULTISERVER
 		{ "ldap_server_type_attribute_value", "", static_cast<unsigned short>((m_bDistributed ? CONFIGSETTING_NONEMPTY : 0) | CONFIGSETTING_RELOADABLE)},
-#endif
 		{ "ldap_user_search_base","", CONFIGSETTING_UNUSED },
 		{ "ldap_user_search_filter","", CONFIGSETTING_RELOADABLE },
 		{ "ldap_user_unique_attribute","cn", CONFIGSETTING_RELOADABLE },
@@ -339,7 +337,6 @@ LDAPUserPlugin::LDAPUserPlugin(std::mutex &pluginlock,
 		{ "ldap_company_scope","", CONFIGSETTING_UNUSED },
 		{ "ldap_groupmembers_relation_attribute", "", CONFIGSETTING_RELOADABLE },
 		{ "ldap_last_modification_attribute", "modifyTimestamp", CONFIGSETTING_RELOADABLE },
-#ifdef WITH_MULTISERVER
 		{ "ldap_user_server_attribute", "kopanoUserServer", CONFIGSETTING_RELOADABLE },
 		{ "ldap_company_server_attribute", "kopanoCompanyServer", CONFIGSETTING_RELOADABLE },
 		{ "ldap_server_address_attribute", "", CONFIGSETTING_RELOADABLE },
@@ -352,7 +349,6 @@ LDAPUserPlugin::LDAPUserPlugin(std::mutex &pluginlock,
 		{ "ldap_server_search_base", "", CONFIGSETTING_UNUSED },
 		{ "ldap_server_search_filter", "", CONFIGSETTING_RELOADABLE },
 		{ "ldap_server_unique_attribute", "cn", CONFIGSETTING_RELOADABLE },
-#endif
 		{ "ldap_addresslist_search_base","", CONFIGSETTING_UNUSED },
 		{ "ldap_addresslist_scope","", CONFIGSETTING_UNUSED },
 		{ "ldap_addresslist_search_filter","", CONFIGSETTING_RELOADABLE },
@@ -1867,14 +1863,12 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 	CONFIG_TO_ATTR(request_attrs, dynamicgroup_unique_attr_type, "ldap_dynamicgroup_unique_attribute_type");
 	CONFIG_TO_ATTR(request_attrs, dynamicgroup_name_attr, "ldap_dynamicgroup_name_attribute");
 	CONFIG_TO_ATTR(request_attrs, ldap_addressbook_hide_attr, "ldap_addressbook_hide_attribute");
-#ifdef WITH_MULTISERVER
 	CONFIG_TO_ATTR(request_attrs, user_server_attr, "ldap_user_server_attribute");
 	CONFIG_TO_ATTR(request_attrs, company_server_attr, "ldap_company_server_attribute");
 	if (!m_bDistributed) {
 		user_server_attr = NULL;
 		company_server_attr = NULL;
 	}
-#endif
 
 	for (const auto &c : lExtraAttrs)
 		request_attrs->add(c.szValue);
@@ -2176,13 +2170,10 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 					p.propname = OB_PROP_LO_SENDAS;
 					lPostActions.push_back(p);
 				}
-
-#ifdef WITH_MULTISERVER
 				if (user_server_attr && !strcasecmp(att, user_server_attr)) {
 					ldap_attr = getLDAPAttributeValue(att, entry);
 					sObjDetails.SetPropString(OB_PROP_S_SERVERNAME, ldap_attr);
 				}
-#endif
 				break;
 			case DISTLIST_GROUP:
 			case DISTLIST_SECURITY:
@@ -2243,14 +2234,10 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 					sObjDetails.SetPropString(OB_PROP_S_LOGIN, ldap_attr);
 					sObjDetails.SetPropString(OB_PROP_S_FULLNAME, ldap_attr);
 				}
-
-#ifdef WITH_MULTISERVER
 				if (company_server_attr && !strcasecmp(att, company_server_attr)) {
 					ldap_attr = getLDAPAttributeValue(att, entry);
 					sObjDetails.SetPropString(OB_PROP_S_SERVERNAME, ldap_attr);
 				}
-#endif
-
 				if (sysadmin_attr && !strcasecmp(att, sysadmin_attr)) {
 					postaction p;
 
@@ -2838,9 +2825,6 @@ LDAPUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 
 std::unique_ptr<objectdetails_t> LDAPUserPlugin::getPublicStoreDetails(void)
 {
-#ifndef WITH_MULTISERVER
-	throw notimplemented("distributed");
-#else
 	auto_free_ldap_message res;
 	LDAPMessage *entry = NULL;
 	string ldap_basedn;
@@ -2892,14 +2876,10 @@ std::unique_ptr<objectdetails_t> LDAPUserPlugin::getPublicStoreDetails(void)
 	END_FOREACH_ATTR
 
 	return details;
-#endif
 }
 
 std::unique_ptr<serverlist_t> LDAPUserPlugin::getServers(void)
 {
-#ifndef WITH_MULTISERVER
-	throw notimplemented("distributed");
-#else
 	auto_free_ldap_message res;
 	string ldap_basedn;
 	string search_filter;
@@ -2939,15 +2919,11 @@ std::unique_ptr<serverlist_t> LDAPUserPlugin::getServers(void)
     END_FOREACH_ENTRY
 
 	return serverlist;
-#endif
 }
 
 std::unique_ptr<serverdetails_t>
 LDAPUserPlugin::getServerDetails(const std::string &server)
 {
-#ifndef WITH_MULTISERVER
-	throw notimplemented("distributed");
-#else
 	auto_free_ldap_message res;
 	LDAPMessage *entry = NULL;
 	string ldap_basedn;
@@ -3035,7 +3011,6 @@ LDAPUserPlugin::getServerDetails(const std::string &server)
 	serverDetails->SetProxyPath(strProxyPath);
 
 	return serverDetails;
-#endif
 }
 
 // Convert unsigned char to 2-char hex string

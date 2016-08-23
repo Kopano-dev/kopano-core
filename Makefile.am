@@ -15,8 +15,7 @@ endif
 SUBDIRS += installer po swig
 
 
-AM_CPPFLAGS = ${ZCPPFLAGS} ${DEBUGFLAGS} \
-	-DLDAP_THREAD_SAFE -DWITH_MULTISERVER \
+AM_CPPFLAGS = ${ZCPPFLAGS} ${DEBUGFLAGS} -DLDAP_THREAD_SAFE \
 	-DMAPICONFIGDIR=\"${MAPICONFIGDIR}\" -DPKGLIBDIR='"${pkglibdir}"' \
 	-Iprovider/soap \
 	-I${top_srcdir}/common \
