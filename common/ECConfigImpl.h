@@ -83,9 +83,6 @@ public:
 	bool ReloadSettings(void) _zcp_override;
 
 	bool AddSetting(const char *szName, const char *szValue, const unsigned int ulGroup = 0) _zcp_override;
-
-	void	AddWriteSetting(const char *szName, const char *szValue, const unsigned int ulGroup = 0);
-
 	const char *GetSetting(const char *szName) _zcp_override;
 	const char *GetSetting(const char *szName, const char *equal, const char *other) _zcp_override;
 	const wchar_t *GetSettingW(const char *szName) _zcp_override;
@@ -98,9 +95,6 @@ public:
 	const std::list<std::string> *GetWarnings(void) _kc_override { return &warnings; }
 	bool HasErrors(void) _zcp_override;
 	const std::list<std::string> *GetErrors(void) _kc_override { return &errors; }
-
-	bool WriteSettingToFile(const char *szName, const char *szValue, const char *szFileName) _zcp_override;
-	bool WriteSettingsToFile(const char *szFileName) _zcp_override;
 
 private:
 	typedef boost::filesystem::path path_type;
@@ -125,8 +119,6 @@ private:
 	void	CleanupMap(settingmap_t *lpMap);
 	bool	CopyConfigSetting(const configsetting_t *lpsSetting, settingkey_t *lpsKey);
 	bool	CopyConfigSetting(const settingkey_t *lpsKey, const char *szValue, configsetting_t *lpsSetting);
-
-	void    WriteLinesToFile(const char* szName, const char* szValue, ifstream& in, ofstream& out, bool bWriteAll);
 
 private:
 	const configsetting_t	*m_lpDefaults;
