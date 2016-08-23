@@ -10,11 +10,12 @@ dist_systemunit_DATA = kopano-dagent.service kopano-gateway.service \
                   kopano-server.service kopano-spooler.service
 dist_sysusers_DATA = kopano-sysusers.conf
 dist_tmpfiles_DATA = kopano-tmpfiles.conf
+dist_pkgdata_DATA = ldap.active-directory.cfg ldap.openldap.cfg
 
 config_files = \
 	server.cfg unix.cfg ldap.propmap.cfg presence.cfg \
 	spooler.cfg gateway.cfg monitor.cfg dagent.cfg ical.cfg search.cfg \
-	autorespond archiver.cfg backup.cfg
+	autorespond archiver.cfg backup.cfg ldap.cfg
 
 rhel_initscript_files = \
 	kopano-server.init.rhel kopano-spooler.init.rhel \
@@ -88,7 +89,6 @@ dist_sysconf_bc_DATA = kopano-bash-completion.sh
 
 sysconf_certdir = ${sysconfdir}/kopano/report-ca
 
-config_files += $(BUILT_SOURCES)
 EXTRA_DIST = ${BUILT_SOURCES} ldap.m4 \
 	$(rhel_initscript_files) $(suse_initscript_files) $(cbs4_initscript_files) $(alt_initscript_files) \
 	sysconfig.txt
