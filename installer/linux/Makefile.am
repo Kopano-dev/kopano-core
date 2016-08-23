@@ -15,7 +15,7 @@ dist_pkgdata_DATA = ldap.active-directory.cfg ldap.openldap.cfg ldap.propmap.cfg
 config_files = \
 	server.cfg unix.cfg presence.cfg \
 	spooler.cfg gateway.cfg monitor.cfg dagent.cfg ical.cfg search.cfg \
-	autorespond archiver.cfg backup.cfg ldap.cfg
+	autorespond archiver.cfg backup.cfg
 
 rhel_initscript_files = \
 	kopano-server.init.rhel kopano-spooler.init.rhel \
@@ -45,7 +45,7 @@ debian_initscript_files = \
 	kopano-presence.init.debi
 
 data_configdir = ${docdir}/example-config
-dist_data_config_DATA = ${config_files}
+dist_data_config_DATA = ${config_files} ldap.cfg
 
 sysconf_configdir = ${sysconfdir}/kopano
 dist_sysconf_config_DATA = ${config_files}
