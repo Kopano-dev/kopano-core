@@ -154,7 +154,7 @@ ldap_sendas_relation_attribute = ifelse(TYPE,`OPENLDAP',`',`distinguishedName')
 ldap_user_certificate_attribute = userCertificate`'ifelse(TYPE,`OPENLDAP',`;binary',`')
 
 # Load extra user properties from the propmap file
-!propmap /etc/kopano/ldap.propmap.cfg
+!propmap /usr/share/kopano/ldap.propmap.cfg
 
 ##########
 # Group settings
