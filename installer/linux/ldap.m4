@@ -1,6 +1,5 @@
 dnl m4 defines:
 dnl    TYPE == OPENLDAP or ADS
-dnl    MULTISERVER == 1, or other
 dnl
 ##############################################################
 #  LDAP/ACTIVE DIRECTORY USER PLUGIN SETTINGS
@@ -71,7 +70,7 @@ ldap_contact_type_attribute_value = ifelse(TYPE,`OPENLDAP',`kopano-contact',`con
 ldap_company_type_attribute_value = organizationalUnit
 ldap_addresslist_type_attribute_value = ifelse(TYPE,`OPENLDAP',`kopano-addresslist',`kopanoAddresslist')
 ldap_dynamicgroup_type_attribute_value = ifelse(TYPE,`OPENLDAP',`kopano-dynamicgroup',`kopanoDynamicGroup')
-ifelse(MULTISERVER,`1',`ldap_server_type_attribute_value = ifelse(TYPE,`OPENLDAP',`ipHost',`computer')',`')
+ldap_server_type_attribute_value = ifelse(TYPE,`OPENLDAP',`ipHost',`computer')
 
 ##########
 # There should be no need to edit any values below this line
@@ -472,7 +471,6 @@ ldap_object_search_filter = ifelse(TYPE,`OPENLDAP',`(|(givenName=*%s*)(sn=*%s*))
 # Default: 1000
 ldap_filter_cutoff_elements = 1000
 
-ifelse(MULTISERVER,`1',,`m4exit(0)')dnl
 ##########
 # Multi-server settings
 

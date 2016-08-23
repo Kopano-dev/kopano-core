@@ -44,8 +44,7 @@ debian_initscript_files = \
 	kopano-presence.init.debi
 
 data_configdir = ${docdir}/example-config
-dist_data_config_DATA = \
-	${config_files} ldapms.active-directory.cfg ldapms.openldap.cfg
+dist_data_config_DATA = ${config_files}
 
 sysconf_configdir = ${sysconfdir}/kopano
 dist_sysconf_config_DATA = ${config_files}
@@ -75,12 +74,6 @@ ldap.openldap.cfg: ldap.m4
 
 ldap.active-directory.cfg: ldap.m4
 	m4 -DTYPE=ADS ${top_srcdir}/installer/linux/ldap.m4 > $@
-
-ldapms.openldap.cfg: ldap.m4
-	m4 -DTYPE=OPENLDAP -DMULTISERVER=1 ${top_srcdir}/installer/linux/ldap.m4 > $@
-
-ldapms.active-directory.cfg: ldap.m4
-	m4 -DTYPE=ADS -DMULTISERVER=1 ${top_srcdir}/installer/linux/ldap.m4 > $@
 
 dist_sbin_SCRIPTS = kopano-autorespond kopano-mr-accept kopano-mr-process
 
