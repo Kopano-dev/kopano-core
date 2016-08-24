@@ -5,108 +5,6 @@
 #include <mapix.h>
 %}
 
-
-
-/*** FROM mapix.h ***/
-
-
-/* Forward interface declarations */
-/*class IProfAdmin;
-class IMsgServiceAdmin;
-class IMAPISession;*/
-
-typedef IProfAdmin* LPPROFADMIN;
-typedef IMsgServiceAdmin* LPSERVICEADMIN;
-typedef IMAPISession* LPMAPISESSION;
-
-
-/* uhhh... already in mapi.h ? */
-/* MAPILogon() flags.       */
-
-//#define MAPI_LOGON_UI           0x00000001  /* Display logon UI                 */
-//#define MAPI_NEW_SESSION        0x00000002  /* Don't use shared session         */
-#define MAPI_ALLOW_OTHERS       0x00000008  /* Make this a shared session       */
-#define MAPI_EXPLICIT_PROFILE   0x00000010  /* Don't use default profile        */
-//#define MAPI_EXTENDED           0x00000020  /* Extended MAPI Logon              */
-//#define MAPI_FORCE_DOWNLOAD     0x00001000  /* Get new mail before return       */
-#define MAPI_SERVICE_UI_ALWAYS  0x00002000  /* Do logon UI in all providers     */
-#define MAPI_NO_MAIL            0x00008000  /* Do not activate transports       */
-#define MAPI_NT_SERVICE          0x00010000  /* Allow logon from an NT service  */
-/* #ifndef MAPI_PASSWORD_UI */
-/* #define MAPI_PASSWORD_UI        0x00020000  /\* Display password UI only         *\/ */
-/* #endif */
-#define MAPI_TIMEOUT_SHORT      0x00100000  /* Minimal wait for logon resources */
-
-#define MAPI_SIMPLE_DEFAULT (MAPI_LOGON_UI | MAPI_FORCE_DOWNLOAD | MAPI_ALLOW_OTHERS)
-#define MAPI_SIMPLE_EXPLICIT (MAPI_NEW_SESSION | MAPI_FORCE_DOWNLOAD | MAPI_EXPLICIT_PROFILE)
-
-/* Structure passed to MAPIInitialize(), and its ulFlags values */
-
-typedef struct
-{
-    ULONG           ulVersion;
-    ULONG           ulFlags;
-} MAPIINIT_0, *LPMAPIINIT_0;
-
-typedef MAPIINIT_0 MAPIINIT;
-typedef MAPIINIT *LPMAPIINIT;
-
-#define MAPI_INIT_VERSION               0
-
-#define MAPI_MULTITHREAD_NOTIFICATIONS  0x00000001
-/* Reserved for MAPI                    0x40000000 */
-/* #define MAPI_NT_SERVICE              0x00010000  Use from NT service */
-
-/* MAPI base functions */
-
-
-HRESULT MAPIInitialize(MAPIINIT *lpMapiInit);
-
-void MAPIUninitialize(void);
-
-
-
-/*  Extended MAPI Logon function */
-
-HRESULT MAPILogonEx(
-    ULONG ulUIParam,
-    LPTSTR lpszProfileName,
-    LPTSTR lpszPassword,
-    ULONG ulFlags,
-    IMAPISession** OUTPUT
-);
-
-HRESULT MAPIAdminProfiles(
-    ULONG ulFlags,
-    IProfAdmin** OUTPUT
-);
-
-/*
- * IMAPISession Interface
- */
-
-/* Flags for OpenEntry and others */
-
-/*#define MAPI_MODIFY               ((ULONG) 0x00000001) */
-
-/* Flags for Logoff */
-
-#define MAPI_LOGOFF_SHARED      0x00000001  /* Close all shared sessions    */
-#define MAPI_LOGOFF_UI          0x00000002  /* It's OK to present UI        */
-
-/* Flags for SetDefaultStore. They are mutually exclusive. */
-
-#define MAPI_DEFAULT_STORE          0x00000001  /* for incoming messages */
-#define MAPI_SIMPLE_STORE_TEMPORARY 0x00000002  /* for simple MAPI and CMC */
-#define MAPI_SIMPLE_STORE_PERMANENT 0x00000003  /* for simple MAPI and CMC */
-#define MAPI_PRIMARY_STORE          0x00000004  /* Used by some clients */
-#define MAPI_SECONDARY_STORE        0x00000005  /* Used by some clients */
-
-/* Flags for ShowForm. */
-
-#define MAPI_POST_MESSAGE       0x00000001  /* Selects post/send semantics */
-#define MAPI_NEW_MESSAGE        0x00000002  /* Governs copying during submission */
-
 class IMAPISession : public IUnknown {
 public:
     //    virtual ~IMAPISession() = 0;
@@ -137,11 +35,9 @@ public:
 	}
 };
 
-
-/*DECLARE_MAPI_INTERFACE_PTR(IMAPISession, LPMAPISESSION);*/
-
-/* IAddrBook Interface ----------------------------------------------------- */
-
+/*
+ * IAddrBook Interface
+*/
 
 class IAddrBook : public IMAPIProp {
 public:
@@ -174,14 +70,9 @@ public:
 	}
 };
 
-typedef IAddrBook* LPADRBOOK;
-
 /*
  * IProfAdmin Interface
  */
-
-#define MAPI_DEFAULT_SERVICES           0x00000001
-
 
 class IProfAdmin : public IUnknown {
 public:
@@ -204,21 +95,9 @@ public:
 	}
 };
 
-
-
 /*
  * IMsgServiceAdmin Interface
  */
-
-/* Values for PR_RESOURCE_FLAGS in message service table */
-
-#define SERVICE_DEFAULT_STORE       0x00000001
-#define SERVICE_SINGLE_COPY         0x00000002
-#define SERVICE_CREATE_WITH_STORE   0x00000004
-#define SERVICE_PRIMARY_IDENTITY    0x00000008
-#define SERVICE_NO_PRIMARY_IDENTITY 0x00000020
-
-
 class IMsgServiceAdmin : public IUnknown {
 public:
     //    virtual ~IMsgServiceAdmin() = 0;
@@ -239,4 +118,3 @@ public:
 		~IMsgServiceAdmin() { self->Release(); }
 	}
 };
-
