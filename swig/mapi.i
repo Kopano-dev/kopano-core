@@ -18,14 +18,6 @@
 // DIRTIEST HACK IN THE WORLD WARNING: we need to fix the broken swig output for mapi_wrap.h .....
 #pragma include_alias( "mapi_wrap.h", "mapi_wrap_fixed.h" )
 
-/*
- * perl: CORE/thread.h can define PTHREAD_CREATE_JOINABLE to a value. This clashes with
- * the windows pthread implementation, where it's used in an enum.
- */
-#ifdef PTHREAD_CREATE_JOINABLE
-	#undef PTHREAD_CREATE_JOINABLE
-#endif
-
 #include "MAPINotifSink.h"
 #include <kopano/director_util.h>
 

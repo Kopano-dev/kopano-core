@@ -22,7 +22,6 @@
 %}
 
 %include "wchar.i"
-%include <windows.i>
 %include "cstring.i"
 %include "cwstring.i"
 %include "std_string.i"
