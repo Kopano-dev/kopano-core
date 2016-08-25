@@ -13,6 +13,10 @@ AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) $(BOOST_CPPFLAGS) \
 sbin_PROGRAMS = kopano-server
 noinst_DATA = kopano-server.ldx
 
+# -E (-rdynamic) still needed because libkcserver.so references
+# "searchfolder_restart_required", "_Z23kopano_get_server_statsPjPdS_S_"
+# and "_Z18kopano_notify_doneP4soap"
+#
 kopano_server_LDFLAGS = ${AM_LDFLAGS} -Wl,-E $(BOOST_FILESYSTEM_LDFLAGS)
 kopano_server_LDADD = \
 	${top_builddir}/provider/libserver/libkcserver.la \
