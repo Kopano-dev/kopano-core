@@ -560,7 +560,7 @@ static int LoadSettingsFile(void)
 	if (lpLogger == NULL)
 		return FAILURE;
 
-	lpLogger->Log(EC_LOGLEVEL_INFO, "PHP-Mapi instantiated " PROJECT_VERSION_EXT_STR);
+	lpLogger->Log(EC_LOGLEVEL_INFO, "PHP-MAPI instantiated " PROJECT_VERSION_EXT_STR);
 
 	ec_log_set(lpLogger);
 	if (mapi_debug)
@@ -637,7 +637,7 @@ PHP_MSHUTDOWN_FUNCTION(mapi)
 	perf_measure_file = NULL;
     
 	if (lpLogger)
-		lpLogger->Log(EC_LOGLEVEL_INFO, "php-mapi shutdown");
+		lpLogger->Log(EC_LOGLEVEL_INFO, "PHP-MAPI shutdown");
 
 	MAPIUninitialize();
 	lpLogger->Release();
