@@ -2313,7 +2313,7 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 			// do not set on public, so thunderbird/lightning doesn't require calendar-user-address-set, schedule-inbox-URL and schedule-outbox-URL
 			// public doesn't do meeting requests
 			// check here, because lpFoundProp is set to display name and isn't binary
-			if ((m_ulUrlFlag & REQ_PUBLIC) == 0) {
+			if ((m_ulUrlFlag & REQ_PUBLIC) == 0 || strAgent.find("Lightning") == string::npos) {
 				// Purpose: Identifies the URL of any WebDAV collections that contain
 				//          calendar collections owned by the associated principal resource.
 				// apple seems to use this as the root container where you have your calendars (and would create more)

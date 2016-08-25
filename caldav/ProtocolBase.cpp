@@ -84,7 +84,6 @@ HRESULT ProtocolBase::HrInitializeClass()
 	HRESULT hr = hrSuccess;
 	std::string strUrl;
 	std::string strMethod;
-	std::string strAgent;
 	string strFldOwner;
 	string strFldName;
 	LPSPropValue lpDefaultProp = NULL;
