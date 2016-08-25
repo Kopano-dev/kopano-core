@@ -118,15 +118,7 @@ extern "C" {
    	#include "php_globals.h"
    	#include "php_ini.h"
 
-#if PHP_MAJOR_VERSION >= 5
-#define SUPPORT_EXCEPTIONS 1
-#else
-#define SUPPORT_EXCEPTIONS 0
-#endif
-
-#if SUPPORT_EXCEPTIONS
    	#include "zend_exceptions.h"
-#endif
 	#include "ext/standard/info.h"
 	#include "ext/standard/php_string.h"
 }
@@ -459,9 +451,7 @@ zend_function_entry mapi_functions[] =
 	ZEND_FE(mapi_inetmapi_imtoinet, NULL)
 	ZEND_FE(mapi_inetmapi_imtomapi, NULL)
 	
-#if SUPPORT_EXCEPTIONS
 	ZEND_FE(mapi_enable_exceptions, NULL)
-#endif
 
     ZEND_FE(mapi_feature, NULL)
 
@@ -626,7 +616,6 @@ PHP_MINIT_FUNCTION(mapi) {
 }
 
 // Used at the end of each MAPI call to throw exceptions if mapi_enable_exceptions() has been called
-#if SUPPORT_EXCEPTIONS
 #define THROW_ON_ERROR() \
 	if (FAILED(MAPI_G(hr))) { \
 		if (lpLogger) \
@@ -635,11 +624,6 @@ PHP_MINIT_FUNCTION(mapi) {
 		if (MAPI_G(exceptions_enabled)) \
 			zend_throw_exception(MAPI_G(exception_ce), "MAPI error ", MAPI_G(hr)  TSRMLS_CC); \
 	}
-#else
-#define THROW_ON_ERROR() \
-	if (FAILED(MAPI_G(hr)) && lpLogger) \
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "MAPI error: %s (%x) (method: %s, line: %d)", GetMAPIErrorMessage(MAPI_G(hr)), MAPI_G(hr), __FUNCTION__, __LINE__);
-#endif
 
 /**
 *
@@ -7785,7 +7769,6 @@ exit:
     return;
 }    
 
-#if SUPPORT_EXCEPTIONS
 ZEND_FUNCTION(mapi_enable_exceptions)
 {
 	PMEASURE_FUNC;
@@ -7806,7 +7789,6 @@ ZEND_FUNCTION(mapi_enable_exceptions)
 	LOG_END();
     return;
 }
-#endif
 
 // Can be queried by client applications to check whether certain API features are supported or not.
 ZEND_FUNCTION(mapi_feature)
