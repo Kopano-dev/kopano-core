@@ -23,8 +23,10 @@
 #define ECSESSIONGROUP
 
 #include <kopano/zcdefs.h>
+#include <condition_variable>
 #include <list>
 #include <map>
+#include <mutex>
 #include <set>
 
 #include <kopano/ECKeyTable.h>
@@ -126,21 +128,21 @@ private:
 	/* List of all items the group is subscribed to */
 	SUBSCRIBEMAP        m_mapSubscribe;
 	CHANGESUBSCRIBEMAP	m_mapChangeSubscribe;
-	pthread_mutex_t		m_hSessionMapLock;
+	std::recursive_mutex m_hSessionMapLock;
 
 	/* Notifications */
 	ECNOTIFICATIONLIST m_listNotification;
 	double				m_dblLastQueryTime;
 
 	/* Notifications lock/event */
-	pthread_mutex_t		m_hNotificationLock;
-	pthread_cond_t      m_hNewNotificationEvent;
+	std::mutex m_hNotificationLock;
+	std::condition_variable m_hNewNotificationEvent;
 	ECSESSIONID			m_getNotifySession;
 
 	/* Thread safety mutex/event */
 	unsigned int		m_ulRefCount;
-	pthread_mutex_t		m_hThreadReleasedMutex;
-	pthread_cond_t		m_hThreadReleased;
+	std::mutex m_hThreadReleasedMutex;
+	std::condition_variable m_hThreadReleased;
 
 	/* Set to TRUE if no more GetNextNotifyItems() should be done on this group since the main
 	 * session has exited
@@ -152,7 +154,7 @@ private:
 	
 	/* Multimap of subscriptions that we have (key -> store id) */
 	SUBSCRIBESTOREMULTIMAP	m_mapSubscribedStores;
-	pthread_mutex_t		m_mutexSubscribedStores;
+	std::mutex m_mutexSubscribedStores;
 	
 private:
 	// Make ECSessionGroup non-copyable

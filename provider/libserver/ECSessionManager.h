@@ -23,9 +23,12 @@
 #define ECSESSIONMANAGER
 
 #include "ECSession.h"
+#include <condition_variable>
 #include <list>
 #include <map>
+#include <mutex>
 #include <set>
+#include <pthread.h>
 
 #include "ECUserManagement.h"
 #include "ECSearchFolders.h"
@@ -192,8 +195,8 @@ protected:
 	
 	pthread_rwlock_t	m_hCacheRWLock;			///< locking of the sessionMap
 	pthread_rwlock_t	m_hGroupLock;			///< locking of session group map and lonely list
-	pthread_mutex_t		m_hExitMutex;			///< Mutex needed for the release signal
-	pthread_cond_t		m_hExitSignal;			///< Signal that should be send to the sessionncleaner when to exit 
+	std::mutex m_hExitMutex; /* Mutex needed for the release signal */
+	std::condition_variable m_hExitSignal; /* Signal that should be send to the sessionncleaner when to exit */
 	pthread_t			m_hSessionCleanerThread;///< Thread that is used for the sessioncleaner
 	bool				m_bTerminateThread;
 	ECConfig*			m_lpConfig;
@@ -208,18 +211,18 @@ protected:
 	GUID*				m_lpServerGuid;
 	unsigned long long	m_ullSourceKeyAutoIncrement;
 	unsigned int		m_ulSourceKeyQueue;
-	pthread_mutex_t		m_hSourceKeyAutoIncrementMutex;
+	std::mutex m_hSourceKeyAutoIncrementMutex;
 	ECDatabase *		m_lpDatabase;
 
-	pthread_mutex_t		m_mutexPersistent;
+	std::mutex m_mutexPersistent;
 	PERSISTENTBYSESSION m_mapPersistentBySession; ///< map of all persistent sessions mapped to their connection id
 	PERSISTENTBYCONNECTION m_mapPersistentByConnection; ///< map of all persistent connections mapped to their sessions
 
-	pthread_mutex_t		m_mutexTableSubscriptions;
+	std::mutex m_mutexTableSubscriptions;
 	unsigned int		m_ulTableSubscriptionId;
 	TABLESUBSCRIPTIONMULTIMAP m_mapTableSubscriptions;	///< Maps a table subscription to the subscriber
 
-	pthread_mutex_t		m_mutexObjectSubscriptions;
+	std::mutex m_mutexObjectSubscriptions;
 	OBJECTSUBSCRIPTIONSMULTIMAP	m_mapObjectSubscriptions;	///< Maps an object notification subscription (store id) to the subscriber
 
 	ECNotificationManager *m_lpNotificationManager;
@@ -227,7 +230,7 @@ protected:
 	ECLockManagerPtr	m_ptrLockManager;
 
 	// Sequences
-	pthread_mutex_t		m_hSeqMutex;
+	std::mutex m_hSeqMutex;
 	unsigned long long 	m_ulSeqIMAP;
 	unsigned int		m_ulSeqIMAPQueue;
 };

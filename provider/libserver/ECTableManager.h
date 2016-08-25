@@ -94,7 +94,7 @@ private:
 	ECSession								*lpSession;
 	TABLEENTRYMAP							mapTable;
 	unsigned int							ulNextTableId;
-	pthread_mutex_t							hListMutex;
+	std::recursive_mutex hListMutex;
 };
 
 #endif // TABLEMANAGER_H

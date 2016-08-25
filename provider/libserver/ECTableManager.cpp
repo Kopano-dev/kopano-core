@@ -16,12 +16,12 @@
  */
 
 #include <kopano/platform.h>
-
+#include <mutex>
 #include <sstream>
 
 #include <mapidefs.h>
 #include <mapitags.h>
-
+#include <kopano/lockhelper.hpp>
 #include "ECMAPI.h"
 #include "ECGenericObjectTable.h"
 #include "ECSearchObjectTable.h"
@@ -84,17 +84,11 @@ ECTableManager::ECTableManager(ECSession *lpSession)
 {
 	this->lpSession = lpSession;
 	this->ulNextTableId = 1;
-	pthread_mutexattr_t mattr;
-	pthread_mutexattr_init(&mattr);
-	pthread_mutexattr_settype(&mattr, PTHREAD_MUTEX_RECURSIVE);
-	// make recursive lock, since destructor uses this->CloseTable()
-	pthread_mutex_init(&this->hListMutex, &mattr);
-	pthread_mutexattr_destroy(&mattr);
 }
 
 ECTableManager::~ECTableManager()
 {
-	pthread_mutex_lock(&hListMutex);
+	scoped_rlock lock(hListMutex);
 
 	auto iterTables = mapTable.cbegin();
 	// Clean up tables, if CloseTable(..) isn't called 
@@ -104,17 +98,12 @@ ECTableManager::~ECTableManager()
 		CloseTable(iterTables->first);
 		iterTables = iterNext;
 	}
-
-	pthread_mutex_unlock(&hListMutex);
-	pthread_mutex_destroy(&hListMutex);
-
 	mapTable.clear();
-
 }
 
 void ECTableManager::AddTableEntry(TABLE_ENTRY *lpEntry, unsigned int *lpulTableId)
 {
-	pthread_mutex_lock(&hListMutex);
+	scoped_rlock lock(hListMutex);
 
 	mapTable[ulNextTableId] = lpEntry;
 
@@ -141,8 +130,6 @@ void ECTableManager::AddTableEntry(TABLE_ENTRY *lpEntry, unsigned int *lpulTable
             break;
     }
 	++ulNextTableId;
-	pthread_mutex_unlock(&hListMutex);
-	
 }
 
 ECRESULT ECTableManager::OpenOutgoingQueueTable(unsigned int ulStoreId, unsigned int *lpulTableId)
@@ -566,39 +553,24 @@ exit:
 
 ECRESULT ECTableManager::GetTable(unsigned int ulTableId, ECGenericObjectTable **lppTable)
 {
-	ECRESULT		er = erSuccess;
-	ECGenericObjectTable	*lpTable = NULL;
-
-	pthread_mutex_lock(&hListMutex);
+	scoped_rlock lock(hListMutex);
 
 	auto iterTables = mapTable.find(ulTableId);
-	if (iterTables == mapTable.cend()) {
-		er = KCERR_NOT_FOUND;
-		goto exit;
-	}
-
-	lpTable = iterTables->second->lpTable;
-
-	if(lpTable == NULL) {
-		er = KCERR_NOT_FOUND;
-		goto exit;
-	}
-
+	if (iterTables == mapTable.cend())
+		return KCERR_NOT_FOUND;
+	ECGenericObjectTable *lpTable = iterTables->second->lpTable;
+	if (lpTable == NULL)
+		return KCERR_NOT_FOUND;
 	lpTable->AddRef();
 	*lppTable = lpTable;
-
-exit:
-	pthread_mutex_unlock(&hListMutex);
-
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECTableManager::CloseTable(unsigned int ulTableId)
 {
 	ECRESULT er = erSuccess;
 	TABLE_ENTRY *lpEntry = NULL;
-
-	pthread_mutex_lock(&hListMutex);
+	ulock_rec lk(hListMutex);
 	auto iterTables = mapTable.find(ulTableId);
 	if (iterTables != mapTable.cend()) {
 		// Remember the table entry struct
@@ -624,15 +596,14 @@ ECRESULT ECTableManager::CloseTable(unsigned int ulTableId)
 		mapTable.erase(ulTableId);
     
 		// Unlock the table now as the search thread may not be able to exit without a hListMutex lock
-		pthread_mutex_unlock(&hListMutex);
+		lk.unlock();
 
 		// Free table data and threads running
 		lpEntry->lpTable->Release();
 		delete lpEntry;
 	} else {
-		pthread_mutex_unlock(&hListMutex);
+		lk.unlock();
 	}
-	
 	return er;
 }
 
@@ -640,8 +611,7 @@ ECRESULT ECTableManager::UpdateOutgoingTables(ECKeyTable::UpdateType ulType, uns
 {
 	ECRESULT er = erSuccess;
 	sObjectTableKey	sRow;
-
-	pthread_mutex_lock(&hListMutex);
+	scoped_rlock lock(hListMutex);
 
 	for (const auto &t : mapTable) {
 		bool k = t.second->ulTableType == TABLE_ENTRY::TABLE_TYPE_OUTGOINGQUEUE &&
@@ -654,8 +624,6 @@ ECRESULT ECTableManager::UpdateOutgoingTables(ECKeyTable::UpdateType ulType, uns
 		// ignore errors from the update
 		er = erSuccess;
 	}
-
-	pthread_mutex_unlock(&hListMutex);
 	return er;
 }
 
@@ -663,8 +631,7 @@ ECRESULT ECTableManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned in
 {
 	ECRESULT er = erSuccess;
 	sObjectTableKey	sRow;
-
-	pthread_mutex_lock(&hListMutex);
+	scoped_rlock lock(hListMutex);
 
 	// This is called when a table has changed, so we have to see if the table in question is actually loaded by this table
 	// manager, and then update the row if required.
@@ -681,8 +648,6 @@ ECRESULT ECTableManager::UpdateTables(ECKeyTable::UpdateType ulType, unsigned in
 		// ignore errors from the update
 		er = erSuccess;
 	}
-
-	pthread_mutex_unlock(&hListMutex);
 	return er;
 }
 
@@ -697,8 +662,7 @@ ECRESULT ECTableManager::GetStats(unsigned int *lpulTables, unsigned int *lpulOb
 {
 	unsigned int ulSize = 0;
 	unsigned int ulTables = 0; 
-	
-	pthread_mutex_lock(&hListMutex);
+	scoped_rlock lock(hListMutex);
 
 	ulTables = mapTable.size();
 	ulSize = MEMORY_USAGE_MAP(ulTables, TABLEENTRYMAP);
@@ -708,10 +672,7 @@ ECRESULT ECTableManager::GetStats(unsigned int *lpulTables, unsigned int *lpulOb
 			/* Skip system stats since it would recursively include itself */
 			ulSize += e.second->lpTable->GetObjectSize();
 
-	pthread_mutex_unlock(&hListMutex);
-
 	*lpulTables = ulTables;
 	*lpulObjectSize = ulSize;
-
 	return erSuccess;
 }
