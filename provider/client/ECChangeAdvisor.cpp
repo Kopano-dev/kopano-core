@@ -68,6 +68,7 @@ ECChangeAdvisor::ECChangeAdvisor(ECMsgStore *lpMsgStore)
 	pthread_mutexattr_init(&attr);
 	pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
 	pthread_mutex_init(&m_hConnectionLock, &attr);
+	pthread_mutexattr_destroy(&attr);
 }
 
 ECChangeAdvisor::~ECChangeAdvisor()

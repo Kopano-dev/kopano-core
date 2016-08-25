@@ -102,6 +102,7 @@ WSTransport::WSTransport(ULONG ulUIFlags)
 	pthread_mutex_init(&m_hDataLock, &attr);
 	pthread_mutex_init(&m_mutexSessionReload, &attr);
 	pthread_mutex_init(&m_ResolveResultCacheMutex, &attr);
+	pthread_mutexattr_destroy(&attr);
 }
 
 WSTransport::~WSTransport()

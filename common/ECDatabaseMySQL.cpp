@@ -50,6 +50,7 @@ ECDatabaseMySQL::ECDatabaseMySQL(ECLogger *lpLogger)
 	pthread_mutexattr_init(&mattr);
 	pthread_mutexattr_settype(&mattr, PTHREAD_MUTEX_RECURSIVE);
 	pthread_mutex_init(&m_hMutexMySql, &mattr);
+	pthread_mutexattr_destroy(&mattr);
 }
 
 ECDatabaseMySQL::~ECDatabaseMySQL()

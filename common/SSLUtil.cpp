@@ -47,6 +47,7 @@ void ssl_threading_setup() {
 	// make recursive, because of openssl bug http://rt.openssl.org/Ticket/Display.html?id=2813&user=guest&pass=guest
 	pthread_mutexattr_init(&mattr);
 	pthread_mutexattr_settype(&mattr, PTHREAD_MUTEX_RECURSIVE);
+	pthread_mutexattr_destroy(&mattr);
 	ssl_locks = new pthread_mutex_t[CRYPTO_num_locks()];
 	for (int i = 0; i < CRYPTO_num_locks(); ++i)
 		pthread_mutex_init(&ssl_locks[i], &mattr);

@@ -74,6 +74,7 @@ ECMemTable::ECMemTable(SPropTagArray *lpsPropTags, ULONG ulRowPropTag) : ECUnkno
 	pthread_mutexattr_init(&mattr);
 	pthread_mutexattr_settype(&mattr, PTHREAD_MUTEX_RECURSIVE);
 	pthread_mutex_init(&m_hDataMutex, &mattr);
+	pthread_mutexattr_destroy(&mattr);
 }
 
 ECMemTable::~ECMemTable()

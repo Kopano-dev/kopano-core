@@ -35,6 +35,7 @@ ECScheduler::ECScheduler(ECLogger *lpLogger)
 
 	pthread_mutex_init(&m_hSchedulerMutex, &mattr);
 	pthread_mutex_init(&m_hExitMutex, NULL);
+	pthread_mutexattr_destroy(&mattr);
 
 	//Terminate Event
 

@@ -89,6 +89,7 @@ ECTableManager::ECTableManager(ECSession *lpSession)
 	pthread_mutexattr_settype(&mattr, PTHREAD_MUTEX_RECURSIVE);
 	// make recursive lock, since destructor uses this->CloseTable()
 	pthread_mutex_init(&this->hListMutex, &mattr);
+	pthread_mutexattr_destroy(&mattr);
 }
 
 ECTableManager::~ECTableManager()

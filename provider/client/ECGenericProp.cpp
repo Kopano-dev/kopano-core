@@ -53,6 +53,7 @@ ECGenericProp::ECGenericProp(void *lpProvider, ULONG ulObjType, BOOL fModify,
 	pthread_mutexattr_settype(&mattr, PTHREAD_MUTEX_RECURSIVE);
 
 	pthread_mutex_init(&m_hMutexMAPIObject, &mattr);
+	pthread_mutexattr_destroy(&mattr);
 
 	m_lpEntryId = NULL;
 	m_cbEntryId = 0;

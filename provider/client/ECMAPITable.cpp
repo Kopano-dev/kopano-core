@@ -59,6 +59,7 @@ ECMAPITable::ECMAPITable(std::string strName, ECNotifyClient *lpNotifyClient, UL
 	pthread_mutexattr_settype(&mattr, PTHREAD_MUTEX_RECURSIVE);
 	pthread_mutex_init(&m_hLock, &mattr);
 	pthread_mutex_init(&m_hMutexConnectionList, &mattr); 
+	pthread_mutexattr_destroy(&mattr);
 }
 
 HRESULT ECMAPITable::FlushDeferred(LPSRowSet *lppRowSet)

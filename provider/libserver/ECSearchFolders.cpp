@@ -58,7 +58,7 @@ ECSearchFolders::ECSearchFolders(ECSessionManager *lpSessionManager,
     
     pthread_mutex_init(&m_mutexEvents, &attr);
     pthread_cond_init(&m_condEvents, NULL);
-    
+    pthread_mutexattr_destroy(&attr);
     pthread_create(&m_threadProcess, NULL, ECSearchFolders::ProcessThread, (void *)this);
     set_thread_name(m_threadProcess, "SearchFolders");
 }

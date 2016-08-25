@@ -365,7 +365,7 @@ ECDatabaseMySQL::ECDatabaseMySQL(ECConfig *lpConfig)
 	pthread_mutexattr_init(&mattr);
 	pthread_mutexattr_settype(&mattr, PTHREAD_MUTEX_RECURSIVE);
 	pthread_mutex_init(&m_hMutexMySql, &mattr);
-
+	pthread_mutexattr_destroy(&mattr);
 #ifdef DEBUG
 	m_ulTransactionState = 0;
 #endif	
