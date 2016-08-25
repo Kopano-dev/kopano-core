@@ -18,8 +18,7 @@
 #include <memory>
 #include <kopano/platform.h>
 #include "ECLockManager.h"
-#include <kopano/threadutil.h>
-
+#include <kopano/lockhelper.hpp>
 #include <boost/utility.hpp>
 
 using namespace std;

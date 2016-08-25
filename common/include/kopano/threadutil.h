@@ -55,27 +55,4 @@ private:
 #define WITH_LOCK(_lock)	\
 	for (scoped_lock __lock(_lock), *ptr = NULL; ptr == NULL; ptr = &__lock)
 
-
-template<int(*fnlock)(pthread_rwlock_t*)>
-class scoped_rwlock _zcp_final {
-public:
-	scoped_rwlock(pthread_rwlock_t &rwlock) : m_rwlock(rwlock) {
-		fnlock(&m_rwlock);
-	}
-
-	~scoped_rwlock() { 
-		pthread_rwlock_unlock(&m_rwlock);
-	}
-
-private:
-	// Make sure an object is not accidentally copied
-	scoped_rwlock(const scoped_rwlock &) = delete;
-	scoped_rwlock &operator=(const scoped_rwlock &) = delete;
-
-	pthread_rwlock_t &m_rwlock;
-};
-
-typedef scoped_rwlock<pthread_rwlock_wrlock> scoped_exclusive_rwlock;
-typedef scoped_rwlock<pthread_rwlock_rdlock> scoped_shared_rwlock;
-
 #endif //#ifndef ECTHREADUTIL_H
