@@ -1502,6 +1502,15 @@ class Store(object):
             pass
 
     @property
+    def findroot(self):
+        """ :class:`Folder` designated as search-results root """
+
+        try:
+            return self.root.folder('FINDER_ROOT')
+        except NotFoundError:
+            pass
+
+    @property
     def inbox(self):
         """ :class:`Folder` designated as inbox """
 
@@ -1793,8 +1802,7 @@ class Store(object):
 
     def create_searchfolder(self, text=None): # XXX store.findroot.create_folder()?
         import uuid # XXX username+counter? permission problems to determine number?
-        finder_root = self.root.folder('FINDER_ROOT') # XXX store.findroot?
-        mapiobj = finder_root.mapiobj.CreateFolder(FOLDER_SEARCH, str(uuid.uuid4()), 'comment', None, 0)
+        mapiobj = self.findroot.mapiobj.CreateFolder(FOLDER_SEARCH, str(uuid.uuid4()), 'comment', None, 0)
         return Folder(self, mapiobj=mapiobj)
 
     def permissions(self):
@@ -2257,7 +2265,7 @@ class Folder(object):
         searchfolder.search_wait()
         for item in searchfolder:
             yield item
-        self.store.root.folder('FINDER_ROOT').mapiobj.DeleteFolder(searchfolder.entryid.decode('hex'), 0, None, 0) # XXX store.findroot
+        self.store.findroot.mapiobj.DeleteFolder(searchfolder.entryid.decode('hex'), 0, None, 0) # XXX store.findroot
 
     def search_start(self, folder, text): # XXX RECURSIVE_SEARCH
         # specific restriction format, needed to reach indexer
