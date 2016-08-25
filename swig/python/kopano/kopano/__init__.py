@@ -2314,6 +2314,13 @@ class Folder(object):
             except MAPIErrorNotFound:
                 pass
 
+    @property
+    def created(self):
+        try:
+            return self.prop(PR_CREATION_TIME).value
+        except MAPIErrorNotFound:
+            pass
+
     def __eq__(self, f): # XXX check same store?
         if isinstance(f, Folder):
             return self._entryid == f._entryid
@@ -2485,6 +2492,13 @@ class Item(object):
     def body(self, x):
         self.mapiobj.SetProps([SPropValue(PR_BODY_W, unicode(x))])
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+
+    @property
+    def created(self):
+        try:
+            return self.prop(PR_CREATION_TIME).value
+        except MAPIErrorNotFound:
+            pass
 
     @property
     def received(self):
