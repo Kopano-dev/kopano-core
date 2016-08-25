@@ -1217,7 +1217,7 @@ Looks at command-line to see if another server address or other related options 
     def _resolve_email(self, entryid=None):
         try:
             mailuser = self.mapisession.OpenEntry(entryid, None, 0)
-            return self.user(HrGetOneProp(mailuser, PR_ACCOUNT).Value).email # XXX PR_SMTP_ADDRESS_W from mailuser?
+            return self.user(HrGetOneProp(mailuser, PR_ACCOUNT_W).Value).email # XXX PR_SMTP_ADDRESS_W from mailuser?
         except (Error, MAPIErrorNotFound): # XXX deleted user
             return '' # XXX groups
 
