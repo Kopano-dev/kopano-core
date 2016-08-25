@@ -21,19 +21,6 @@
 #include <kopano/zcdefs.h>
 #include <pthread.h>
 
-class CPthreadMutex _zcp_final {
-public:
-	CPthreadMutex(bool bRecurse = false);
-	~CPthreadMutex();
-
-	void Lock();
-	void Unlock();
-
-private:
-	pthread_mutex_t m_hMutex;
-};
-
-
 class scoped_lock _zcp_final {
 public:
 	scoped_lock(pthread_mutex_t &mutex) : m_mutex(mutex) {
@@ -51,8 +38,5 @@ private:
 
 	pthread_mutex_t &m_mutex;
 };
-
-#define WITH_LOCK(_lock)	\
-	for (scoped_lock __lock(_lock), *ptr = NULL; ptr == NULL; ptr = &__lock)
 
 #endif //#ifndef ECTHREADUTIL_H
