@@ -16,6 +16,8 @@
  */
 
 #include <kopano/platform.h>
+#include <chrono>
+#include <mutex>
 #include <new>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -23,7 +25,7 @@
 #include <dirent.h>
 #include <mapidefs.h>
 #include <mapitags.h>
-
+#include <kopano/lockhelper.hpp>
 #include "ECSession.h"
 #include "ECSessionManager.h"
 #include "ECUserManagement.h"
@@ -42,9 +44,6 @@
 #include "ECICS.h"
 #include <kopano/ECIConv.h>
 #include "versions.h"
-
-#include "pthreadutil.h"
-#include <kopano/threadutil.h>
 #include <kopano/boost_compat.h>
 
 #include <boost/filesystem.hpp>
@@ -113,19 +112,6 @@ BTSession::BTSession(const char *src_addr, ECSESSIONID sessionID,
 	m_ulRequests = 0;
 
 	m_ulLastRequestPort = 0;
-
-	// Protects the object from deleting while a thread is running on a method in this object
-	pthread_cond_init(&m_hThreadReleased, NULL);
-	pthread_mutex_init(&m_hThreadReleasedMutex, NULL);
-
-	pthread_mutex_init(&m_hRequestStats, NULL);
-}
-
-BTSession::~BTSession() {
-	// derived destructor still uses these vars
-	pthread_cond_destroy(&m_hThreadReleased);
-	pthread_mutex_destroy(&m_hThreadReleasedMutex);
-	pthread_mutex_destroy(&m_hRequestStats);
 }
 
 void BTSession::SetClientMeta(const char *const lpstrClientVersion, const char *const lpstrClientMisc)
@@ -188,19 +174,17 @@ ECRESULT BTSession::GetNewSourceKey(SOURCEKEY* lpSourceKey){
 void BTSession::Lock()
 {
 	// Increase our refcount by one
-	pthread_mutex_lock(&m_hThreadReleasedMutex);
+	scoped_lock lock(m_hThreadReleasedMutex);
 	++this->m_ulRefCount;
-	pthread_mutex_unlock(&m_hThreadReleasedMutex);
 }
 
 void BTSession::Unlock()
 {
 	// Decrease our refcount by one, signal ThreadReleased if RefCount == 0
-	pthread_mutex_lock(&m_hThreadReleasedMutex);
+	scoped_lock lock(m_hThreadReleasedMutex);
 	--this->m_ulRefCount;
 	if(!IsLocked())
-		pthread_cond_signal(&m_hThreadReleased);
-	pthread_mutex_unlock(&m_hThreadReleasedMutex);
+		m_hThreadReleased.notify_one();
 }
 
 time_t BTSession::GetIdleTime()
@@ -294,9 +278,6 @@ ECSession::ECSession(const char *src_addr, ECSESSIONID sessionID,
 
 	// Atomically get and AddSession() on the sessiongroup. Needs a ReleaseSession() on the session group to clean up.
 	m_lpSessionManager->GetSessionGroup(ecSessionGroupId, this, &m_lpSessionGroup);
-
-	pthread_mutex_init(&m_hStateLock, NULL);
-	pthread_mutex_init(&m_hLocksLock, NULL);
 }
 
 ECSession::~ECSession()
@@ -312,10 +293,6 @@ ECSession::~ECSession()
 		m_lpSessionGroup->ReleaseSession(this);
     	m_lpSessionManager->DeleteIfOrphaned(m_lpSessionGroup);
 	}
-
-	pthread_mutex_destroy(&m_hLocksLock);
-	pthread_mutex_destroy(&m_hStateLock);
-
 	delete m_lpTableManager;
 	delete m_lpUserManagement;
 	delete m_lpEcSecurity;
@@ -343,11 +320,11 @@ ECRESULT ECSession::Shutdown(unsigned int ulTimeout)
 	}
 
 	/* Wait until there are no more running threads using this session */
-	pthread_mutex_lock(&m_hThreadReleasedMutex);
+	std::unique_lock<std::mutex> lk(m_hThreadReleasedMutex);
 	while(IsLocked())
-		if(pthread_cond_timedwait(&m_hThreadReleased, &m_hThreadReleasedMutex, ulTimeout) == ETIMEDOUT)
+		if (m_hThreadReleased.wait_for(lk, std::chrono::milliseconds(ulTimeout)) == std::cv_status::timeout)
 			break;
-	pthread_mutex_unlock(&m_hThreadReleasedMutex);
+	lk.unlock();
 
 	if(IsLocked()) {
 		er = KCERR_TIMEOUT;
@@ -484,31 +461,29 @@ void ECSession::AddBusyState(pthread_t threadId, const char* lpszState, struct t
 {
 	if (!lpszState) {		
 		ec_log_err("Invalid argument \"lpszState\" in call to ECSession::AddBusyState()");
-	} else {
-		pthread_mutex_lock(&m_hStateLock);
-		m_mapBusyStates[threadId].fname = lpszState;
-		m_mapBusyStates[threadId].threadstart = threadstart;
-		m_mapBusyStates[threadId].start = start;
-		m_mapBusyStates[threadId].threadid = threadId;
-		m_mapBusyStates[threadId].state = SESSION_STATE_PROCESSING;
-		pthread_mutex_unlock(&m_hStateLock);
+		return;
 	}
+	scoped_lock lock(m_hStateLock);
+	m_mapBusyStates[threadId].fname = lpszState;
+	m_mapBusyStates[threadId].threadstart = threadstart;
+	m_mapBusyStates[threadId].start = start;
+	m_mapBusyStates[threadId].threadid = threadId;
+	m_mapBusyStates[threadId].state = SESSION_STATE_PROCESSING;
 }
 
 void ECSession::UpdateBusyState(pthread_t threadId, int state)
 {
-	pthread_mutex_lock(&m_hStateLock);
+	scoped_lock lock(m_hStateLock);
 	auto i = m_mapBusyStates.find(threadId);
 	if (i != m_mapBusyStates.cend())
 		i->second.state = state;
 	else
 		ASSERT(FALSE);
-	pthread_mutex_unlock(&m_hStateLock);
 }
 
 void ECSession::RemoveBusyState(pthread_t threadId)
 {
-	pthread_mutex_lock(&m_hStateLock);
+	scoped_lock lock(m_hStateLock);
 
 	auto i = m_mapBusyStates.find(threadId);
 	if (i != m_mapBusyStates.cend()) {
@@ -527,8 +502,6 @@ void ECSession::RemoveBusyState(pthread_t threadId)
 	} else {
 		ASSERT(FALSE);
 	}
-
-	pthread_mutex_unlock(&m_hStateLock);
 }
 
 void ECSession::GetBusyStates(std::list<BUSYSTATE> *lpStates)
@@ -536,10 +509,9 @@ void ECSession::GetBusyStates(std::list<BUSYSTATE> *lpStates)
 	// this map is very small, since a session only performs one or two functions at a time
 	// so the lock time is short, which will block _all_ incoming functions
 	lpStates->clear();
-	pthread_mutex_lock(&m_hStateLock);
+	scoped_lock lock(m_hStateLock);
 	for (const auto &p : m_mapBusyStates)
 		lpStates->push_back(p.second);
-	pthread_mutex_unlock(&m_hStateLock);
 }
 
 void ECSession::AddClocks(double dblUser, double dblSystem, double dblReal)
@@ -692,10 +664,9 @@ ECAuthSession::~ECAuthSession()
 #endif
 
 	/* Wait until all locks have been closed */
-	pthread_mutex_lock(&m_hThreadReleasedMutex);
-	while (IsLocked())
-		pthread_cond_wait(&m_hThreadReleased, &m_hThreadReleasedMutex);
-	pthread_mutex_unlock(&m_hThreadReleasedMutex);
+	std::unique_lock<std::mutex> l_thread(m_hThreadReleasedMutex);
+	m_hThreadReleased.wait(l_thread, [this](void) { return !IsLocked(); });
+	l_thread.unlock();
 
 	if (m_NTLM_pid != -1) {
 		int status;

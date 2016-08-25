@@ -29,6 +29,9 @@
  */
 
 #include <kopano/platform.h>
+#include <chrono>
+#include <condition_variable>
+#include <mutex>
 #include "mailer.h"
 #include <climits>
 #include <cstdio>
@@ -106,8 +109,8 @@ static bool bNPTL = true;
 
 // notification
 static bool bMessagesWaiting = false;
-static pthread_mutex_t hMutexMessagesWaiting;
-static pthread_cond_t hCondMessagesWaiting;
+static std::mutex hMutexMessagesWaiting;
+static std::condition_variable hCondMessagesWaiting;
 
 // messages being processed
 typedef struct _SendData {
@@ -120,7 +123,7 @@ typedef struct _SendData {
 } SendData;
 static map<pid_t, SendData> mapSendData;
 static map<pid_t, int> mapFinished;	// exit status of finished processes
-static pthread_mutex_t hMutexFinished;	// mutex for mapFinished
+static std::mutex hMutexFinished; /* mutex for mapFinished */
 
 static HRESULT running_server(const char *szSMTP, int port, const char *szPath);
 
@@ -174,22 +177,20 @@ static wstring decodestring(const char *lpszA) {
 static LONG __stdcall AdviseCallback(void *lpContext, ULONG cNotif,
     LPNOTIFICATION lpNotif)
 {
-	pthread_mutex_lock(&hMutexMessagesWaiting);
+	std::unique_lock<std::mutex> lk(hMutexMessagesWaiting);
 	for (ULONG i = 0; i < cNotif; ++i) {
 		if (lpNotif[i].info.tab.ulTableEvent == TABLE_RELOAD) {
 			// Table needs a reload - trigger a reconnect with the server
 			nReload = true;
 			bMessagesWaiting = true;
-			pthread_cond_signal(&hCondMessagesWaiting);
+			hCondMessagesWaiting.notify_one();
 		} 
 		else if (lpNotif[i].info.tab.ulTableEvent != TABLE_ROW_DELETED) {
 			bMessagesWaiting = true;
-			pthread_cond_signal(&hCondMessagesWaiting);
+			hCondMessagesWaiting.notify_one();
 			break;
 		}
 	}
-	pthread_mutex_unlock(&hMutexMessagesWaiting);
-
 	return 0;
 }
 
@@ -405,19 +406,16 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 	IMsgStore *lpUserStore = NULL;
 	IMessage *lpMessage = NULL;
 
-	pthread_mutex_lock(&hMutexFinished);
-
+	hMutexFinished.lock();
 	if (mapFinished.empty()) {
-		pthread_mutex_unlock(&hMutexFinished);
+		hMutexFinished.unlock();
 		return hr;
 	}
 
 	// copy map contents and clear it, so hMutexFinished can be unlocked again asap
 	finished = mapFinished;
 	mapFinished.clear();
-
-	pthread_mutex_unlock(&hMutexFinished);
-
+	hMutexFinished.unlock();
 	g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Cleaning %d messages from queue", (int)finished.size());
 
 	// process finished entries
@@ -817,18 +815,11 @@ static HRESULT ProcessQueue(const char *szSMTP, int ulPort, const char *szPath)
 		if(nReload)
 			break;
 
-		pthread_mutex_lock(&hMutexMessagesWaiting);
+		std::unique_lock<std::mutex> lk(hMutexMessagesWaiting);
 		if(!bMessagesWaiting) {
-			struct timespec timeout;
-			struct timeval now;
-
-			// Wait for max 60 sec, then run queue anyway
-			gettimeofday(&now,NULL);
-			timeout.tv_sec = now.tv_sec + 60;
-			timeout.tv_nsec = now.tv_usec * 1000;
-
 			while (!bMessagesWaiting) {
-				if (pthread_cond_timedwait(&hCondMessagesWaiting, &hMutexMessagesWaiting, &timeout) == ETIMEDOUT || bMessagesWaiting || bQuit || nReload)
+				auto s = hCondMessagesWaiting.wait_for(lk, std::chrono::seconds(60));
+				if (s == std::cv_status::timeout || bMessagesWaiting || bQuit || nReload)
 					break;
 
 				// not timed out, no messages waiting, not quit requested, no table reload required:
@@ -836,8 +827,7 @@ static HRESULT ProcessQueue(const char *szSMTP, int ulPort, const char *szPath)
 				CleanFinishedMessages(lpAdminSession, lpSpooler);
 			}
 		}
-
-		pthread_mutex_unlock(&hMutexMessagesWaiting);
+		lk.unlock();
 
 		// remove any entries that were done during the wait
 		CleanFinishedMessages(lpAdminSession, lpSpooler);
@@ -911,24 +901,24 @@ static void process_signal(int sig)
 
 	switch (sig) {
 	case SIGTERM:
-	case SIGINT:
+	case SIGINT: {
 		bQuit = true;
 		// Trigger condition so we force wakeup the queue thread
-		pthread_mutex_lock(&hMutexMessagesWaiting);
-		pthread_cond_signal(&hCondMessagesWaiting);
-		pthread_mutex_unlock(&hMutexMessagesWaiting);
+		std::lock_guard<std::mutex> lk(hMutexMessagesWaiting);
+		hCondMessagesWaiting.notify_one();
 		break;
+	}
 
-	case SIGCHLD:
-		pthread_mutex_lock(&hMutexFinished);
+	case SIGCHLD: {
+		std::unique_lock<std::mutex> finlock(hMutexFinished);
 		while ((pid = waitpid (-1, &stat, WNOHANG)) > 0)
 			mapFinished[pid] = stat;
-		pthread_mutex_unlock(&hMutexFinished);
+		finlock.unlock();
 		// Trigger condition so the messages get cleaned from the queue
-		pthread_mutex_lock(&hMutexMessagesWaiting);
-		pthread_cond_signal(&hCondMessagesWaiting);
-		pthread_mutex_unlock(&hMutexMessagesWaiting);
+		std::lock_guard<std::mutex> mwlock(hMutexMessagesWaiting);
+		hCondMessagesWaiting.notify_one();
 		break;
+	}
 
 	case SIGHUP:
 		if (g_lpConfig) {
@@ -951,9 +941,9 @@ static void process_signal(int sig)
 	case SIGUSR2:
 		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Spooler stats:");
 		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Running threads: %lu", mapSendData.size());
-		pthread_mutex_lock(&hMutexFinished);
+		hMutexFinished.lock();
 		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Finished threads: %lu", mapFinished.size());
-		pthread_mutex_unlock(&hMutexFinished);
+		hMutexFinished.unlock();
 		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Disconnects: %d", disconnects);
 		break;
 
@@ -1025,9 +1015,6 @@ static HRESULT running_server(const char *szSMTP, int ulPort,
 	}
 
 	bQuit = true;				// make sure the sigchld does not use the lock anymore
-	pthread_mutex_destroy(&hMutexMessagesWaiting);
-	pthread_cond_destroy(&hCondMessagesWaiting);
-
 	return hr;
 }
 
@@ -1254,10 +1241,7 @@ int main(int argc, char *argv[]) {
 		signal(SIGUSR2, SIG_IGN);
 	}
 	else {
-		pthread_mutex_init(&hMutexFinished, NULL);
 		// notification condition
-		pthread_mutex_init(&hMutexMessagesWaiting, NULL);
-		pthread_cond_init(&hCondMessagesWaiting, NULL);
 		sigemptyset(&signal_mask);
 		sigaddset(&signal_mask, SIGTERM);
 		sigaddset(&signal_mask, SIGINT);

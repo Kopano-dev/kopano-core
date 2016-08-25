@@ -23,9 +23,12 @@
 #define ECSESSION
 
 #include <kopano/zcdefs.h>
+#include <condition_variable>
 #include <list>
 #include <map>
+#include <mutex>
 #include <set>
+#include <pthread.h>
 
 #include "soapH.h"
 #include <kopano/kcodes.h>
@@ -66,7 +69,7 @@ typedef struct {
 class BTSession {
 public:
 	BTSession(const char *addr, ECSESSIONID sessionID, ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager, unsigned int ulCapabilities);
-	virtual ~BTSession();
+	virtual ~BTSession(void) {}
 
 	virtual ECRESULT Shutdown(unsigned int ulTimeout);
 
@@ -124,10 +127,14 @@ protected:
 
 	unsigned int		m_ulClientCapabilities;
 
-	pthread_cond_t		m_hThreadReleased;
-	pthread_mutex_t		m_hThreadReleasedMutex;	
+	/*
+	 * Protects the object from deleting while a thread is running on a
+	 * method in this object.
+	 */
+	std::condition_variable m_hThreadReleased;
+	std::mutex m_hThreadReleasedMutex;	
 	
-	pthread_mutex_t		m_hRequestStats;
+	std::mutex m_hRequestStats;
 	unsigned int		m_ulRequests;
 	std::string		m_strLastRequestURL;
 	std::string		m_strProxyHost;
@@ -186,7 +193,7 @@ private:
 	ECSessionGroup		*m_lpSessionGroup;
 	ECSecurity		*m_lpEcSecurity;
 
-	pthread_mutex_t		m_hStateLock;
+	std::mutex m_hStateLock;
 	typedef std::map<pthread_t, BUSYSTATE> BusyStateMap;
 	BusyStateMap		m_mapBusyStates; /* which thread does what function */
 	double			m_dblUser;
@@ -201,7 +208,7 @@ private:
 	std::string		m_strUsername;
 
 	typedef std::map<unsigned int, ECObjectLock>	LockMap;
-	pthread_mutex_t	m_hLocksLock;
+	std::mutex m_hLocksLock;
 	LockMap			m_mapLocks;
 };
 

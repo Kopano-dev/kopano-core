@@ -18,6 +18,7 @@
 #ifndef ECSYNCLOG_INCLUDED
 #define ECSYNCLOG_INCLUDED
 
+#include <mutex>
 #include "ECLibSync.h"
 #include <pthread.h>
 
@@ -30,11 +31,10 @@ public:
 	static HRESULT ECLIBSYNC_API SetLogger(ECLogger *lpLogger);
 
 private:
-	static pthread_mutex_t	s_hMutex;
+	static std::mutex s_hMutex;
 	static ECLogger			*s_lpLogger;
 
 	struct __initializer {
-		__initializer();
 		~__initializer();
 	};
 	static __initializer __i;
