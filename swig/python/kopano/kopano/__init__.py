@@ -1552,6 +1552,15 @@ class Store(object):
             pass
 
     @property
+    def common_views(self):
+        """ :class:`Folder` contains folders for managing views for the message store """
+
+        try:
+            return Folder(self, self.prop(PR_COMMON_VIEWS_ENTRYID).value)
+        except MAPIErrorNotFound:
+            pass
+
+    @property
     def drafts(self):
         """ :class:`Folder` designated as drafts """
 
