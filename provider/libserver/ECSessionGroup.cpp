@@ -27,6 +27,7 @@
 #include "ECSessionGroup.h"
 #include "ECSessionManager.h"
 #include "SOAPUtils.h"
+#include "lockhelper.hpp"
 
 class FindChangeAdvise
 {

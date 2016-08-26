@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/lockhelper.hpp>
 #include "ECDatabase.h"
 
 #include <mapidefs.h>
@@ -48,22 +49,16 @@ ECRESULT ECSearchObjectTable::Load() {
     ECRESULT er = erSuccess;
     sObjectTableKey		sRowItem;
     std::list<unsigned int> lstObjId;
-
-	pthread_mutex_lock(&m_hLock);
+	scoped_rlock biglock(m_hLock);
 
     if(m_ulFolderId) {
         // Get the search results
         er = lpSession->GetSessionManager()->GetSearchFolders()->GetSearchResults(m_ulStoreId, m_ulFolderId, &lstObjId);
         if(er != erSuccess)
-            goto exit;
-
+			return er;
         er = UpdateRows(ECKeyTable::TABLE_ROW_ADD, &lstObjId, 0, true);
         if(er != hrSuccess)
-            goto exit;
+			return er;
     }
-    
-exit:
-	pthread_mutex_unlock(&m_hLock);
-
     return er;
 }
