@@ -20,6 +20,7 @@
 
 #include <list>
 #include <map>
+#include <mutex>
 #include <pthread.h>
 
 #include "ECSessionGroupManager.h"
@@ -86,8 +87,7 @@ private:
 	ULONG						m_ulConnection;
 
 	/* Threading information */
-	pthread_mutex_t				m_hMutex;
-	pthread_mutexattr_t			m_hMutexAttrib;
+	std::recursive_mutex m_hMutex;
 	pthread_attr_t				m_hAttrib;
 	pthread_t					m_hThread;
 	BOOL						m_bThreadRunning;

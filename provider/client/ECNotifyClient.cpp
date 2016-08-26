@@ -15,6 +15,7 @@
  */
 #include <kopano/platform.h>
 #include <stdexcept>
+#include <kopano/lockhelper.hpp>
 #include <mapispi.h>
 #include <mapix.h>
 #include <kopano/ECDebug.h>
@@ -39,11 +40,6 @@ ECNotifyClient::ECNotifyClient(ULONG ulProviderType, void *lpProvider, ULONG ulF
 	TRACE_MAPI(TRACE_ENTRY, "ECNotifyClient::ECNotifyClient","");
 
 	ECSESSIONID ecSessionId;
-
-	/* Create a recursive mutex */
-	pthread_mutexattr_init(&m_hMutexAttrib);
-	pthread_mutexattr_settype(&m_hMutexAttrib, PTHREAD_MUTEX_RECURSIVE);
-	pthread_mutex_init(&m_hMutex, &m_hMutexAttrib);
 
 	m_lpProvider		= lpProvider;
 	m_ulProviderType	= ulProviderType;
@@ -85,14 +81,12 @@ ECNotifyClient::~ECNotifyClient()
      * to look at the session group and delete it if necessary
      */
 	g_ecSessionManager.DeleteSessionGroupDataIfOrphan(m_ecSessionGroupId);
-
-	pthread_mutex_lock(&m_hMutex);
-
 	/*
 	 * Clean up, this map should actually be empty if all advised were correctly unadvised.
 	 * This is however not always the case, but ECNotifyMaster and Server will remove all
 	 * advises when the session is removed.
 	 */
+	ulock_rec biglock(m_hMutex);
 	for (const auto &i : m_mapAdvise) {
 		if (i.second->lpAdviseSink != NULL)
 			i.second->lpAdviseSink->Release();
@@ -107,13 +101,7 @@ ECNotifyClient::~ECNotifyClient()
 	}
 
 	m_mapChangeAdvise.clear();
-
-	pthread_mutex_unlock(&m_hMutex);
-
-	/* Cleanup mutexes */
-	pthread_mutex_destroy(&m_hMutex);
-	pthread_mutexattr_destroy(&m_hMutexAttrib);
-
+	biglock.unlock();
 	TRACE_MAPI(TRACE_RETURN, "ECNotifyClient::~ECNotifyClient","");
 }
 
@@ -218,14 +206,10 @@ HRESULT ECNotifyClient::RegisterAdvise(ULONG cbKey, LPBYTE lpKey, ULONG ulEventM
 	}
 #endif
 
-	/* Setup our maps to receive the notifications */
-	pthread_mutex_lock(&m_hMutex);
-
-	/* Add notification to map */
-	m_mapAdvise.insert( ECMAPADVISE::value_type( ulConnection, pEcAdvise) );
-	
-	// Release ownership of the mutex object.
-	pthread_mutex_unlock(&m_hMutex);
+	{
+		scoped_rlock biglock(m_hMutex);
+		m_mapAdvise.insert(ECMAPADVISE::value_type(ulConnection, pEcAdvise));
+	}
 
 	// Since we're ready to receive notifications now, register ourselves with the master
 	hr = m_lpNotifyMaster->ClaimConnection(this, &ECNotifyClient::Notify, ulConnection);
@@ -274,16 +258,11 @@ HRESULT ECNotifyClient::RegisterChangeAdvise(ULONG ulSyncId, ULONG ulChangeId,
 	/*
 	 * Setup our maps to receive the notifications
 	 */
-	pthread_mutex_lock(&m_hMutex);
-
-	// Add reference on the notify sink
-	lpChangeAdviseSink->AddRef();
-
-	/* Add notification to map */
-	m_mapChangeAdvise.insert( ECMAPCHANGEADVISE::value_type( ulConnection, pEcAdvise) );
-	
-	// Release ownership of the mutex object.
-	pthread_mutex_unlock(&m_hMutex);
+	{
+		scoped_rlock biglock(m_hMutex);
+		lpChangeAdviseSink->AddRef();
+		m_mapChangeAdvise.insert(ECMAPCHANGEADVISE::value_type(ulConnection, pEcAdvise));
+	}
 
 	// Since we're ready to receive notifications now, register ourselves with the master
 	hr = m_lpNotifyMaster->ClaimConnection(this, &ECNotifyClient::NotifyChange, ulConnection);
@@ -310,9 +289,8 @@ HRESULT ECNotifyClient::UnRegisterAdvise(ULONG ulConnection)
 	if (hr != hrSuccess)
 		return hr;
 
-	pthread_mutex_lock(&m_hMutex);
-
 	// Remove notify from list
+	scoped_rlock lock(m_hMutex);
 	auto iIterAdvise = m_mapAdvise.find(ulConnection);
 	if (iIterAdvise != m_mapAdvise.cend()) {
 		if(iIterAdvise->second->ulSupportConnection)
@@ -335,9 +313,6 @@ HRESULT ECNotifyClient::UnRegisterAdvise(ULONG ulConnection)
 			//ASSERT(FALSE);	
 		}
 	}
-		
-	// Release ownership of the mutex object.
-	pthread_mutex_unlock(&m_hMutex);
 	return hr;
 }
 
@@ -480,16 +455,11 @@ HRESULT ECNotifyClient::Unadvise(const ECLISTCONNECTION &lstConnections)
 // session has been reset.
 HRESULT ECNotifyClient::Reregister(ULONG ulConnection, ULONG cbKey, LPBYTE lpKey)
 {
-	HRESULT hr = hrSuccess;
-	ECMAPADVISE::const_iterator iter;
+	scoped_rlock biglock(m_hMutex);
 
-	pthread_mutex_lock(&m_hMutex);
-
-	iter = m_mapAdvise.find(ulConnection);
-	if (iter == m_mapAdvise.cend()) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+	ECMAPADVISE::const_iterator iter = m_mapAdvise.find(ulConnection);
+	if (iter == m_mapAdvise.cend())
+		return MAPI_E_NOT_FOUND;
 
 	if(cbKey) {
 		// Update key if required, when the new key is equal or smaller
@@ -497,37 +467,28 @@ HRESULT ECNotifyClient::Reregister(ULONG ulConnection, ULONG cbKey, LPBYTE lpKey
 		// Note that we cannot do MAPIFreeBuffer() since iter->second->lpKey
 		// was allocated with MAPIAllocateMore().
 		if (cbKey > iter->second->cbKey) {
-			hr = MAPIAllocateMore(cbKey, iter->second, (void **)&iter->second->lpKey);
+			HRESULT hr = MAPIAllocateMore(cbKey, iter->second,
+				reinterpret_cast<void **>(&iter->second->lpKey));
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 
 		memcpy(iter->second->lpKey, lpKey, cbKey);
 		iter->second->cbKey = cbKey;
 	}
-
-	hr = m_lpTransport->HrSubscribe(iter->second->cbKey, iter->second->lpKey, ulConnection, iter->second->ulEventMask);
-
-exit:
-	pthread_mutex_unlock(&m_hMutex);
-
-	return hr;
+	return m_lpTransport->HrSubscribe(iter->second->cbKey,
+	       iter->second->lpKey, ulConnection, iter->second->ulEventMask);
 }
 
 HRESULT ECNotifyClient::ReleaseAll()
 {
-	HRESULT hr			= hrSuccess;
-
-	pthread_mutex_lock(&m_hMutex);
+	scoped_rlock biglock(m_hMutex);
 
 	for (auto &p : m_mapAdvise) {
 		p.second->lpAdviseSink->Release();
 		p.second->lpAdviseSink = NULL;
 	}
-
-	pthread_mutex_unlock(&m_hMutex);
-
-	return hr;
+	return hrSuccess;
 }
 
 typedef std::list<NOTIFICATION *> NOTIFICATIONLIST;
@@ -556,12 +517,10 @@ HRESULT ECNotifyClient::NotifyReload()
 	//m_lpTransport->HrEnsureSession();
 
 	// Don't send the notification while we are locked
-	pthread_mutex_lock(&m_hMutex);
+	scoped_rlock biglock(m_hMutex);
 	for (const auto &p : m_mapAdvise)
 		if (p.second->cbKey == 4)
 			Notify(p.first, notifications);
-	pthread_mutex_unlock(&m_hMutex);
-
 	return hr;
 }
 
@@ -583,14 +542,13 @@ HRESULT ECNotifyClient::Notify(ULONG ulConnection, const NOTIFYLIST &lNotificati
 		notifications.push_back(tmp);
 	}
 
-	pthread_mutex_lock(&m_hMutex);
+	ulock_rec biglock(m_hMutex);
 
 	/* Search for the right connection */
 	iterAdvise = m_mapAdvise.find(ulConnection);
 	if (iterAdvise == m_mapAdvise.cend() ||
 	    iterAdvise->second->lpAdviseSink == NULL) {
 		TRACE_NOTIFY(TRACE_WARNING, "ECNotifyClient::Notify", "Unknown Notification id %d", ulConnection);
-		pthread_mutex_unlock(&m_hMutex);
 		goto exit;
 	}
 
@@ -619,10 +577,8 @@ HRESULT ECNotifyClient::Notify(ULONG ulConnection, const NOTIFYLIST &lNotificati
 				ULONG		ulResult = 0;
 
 				hr = MAPIAllocateBuffer(CbNewNOTIFKEY(sizeof(GUID)), (void **)&lpKey);
-				if (hr != hrSuccess) {
-					pthread_mutex_unlock(&m_hMutex);
+				if (hr != hrSuccess)
 					goto exit;
-				}
 
 				lpKey->cb = sizeof(GUID);
 				memcpy(lpKey->ab, &iterAdvise->second->guid, sizeof(GUID));
@@ -638,10 +594,8 @@ HRESULT ECNotifyClient::Notify(ULONG ulConnection, const NOTIFYLIST &lNotificati
 			lpNotifs = NULL;
 		}
 	}
-
-	pthread_mutex_unlock(&m_hMutex);
-
 exit:
+	biglock.unlock();
 	MAPIFreeBuffer(lpNotifs);
 
 	/* Release all notifications */
@@ -656,6 +610,7 @@ HRESULT ECNotifyClient::NotifyChange(ULONG ulConnection, const NOTIFYLIST &lNoti
 	LPENTRYLIST					lpSyncStates = NULL;
 	ECMAPCHANGEADVISE::const_iterator iterAdvise;
 	BINARYLIST					syncStates;
+	ulock_rec biglock(m_hMutex, std::defer_lock_t());
 
 	/* Create a straight array of MAX_NOTIFS_PER_CALL sync states */
 	hr = MAPIAllocateBuffer(sizeof *lpSyncStates, (void**)&lpSyncStates);
@@ -679,14 +634,12 @@ HRESULT ECNotifyClient::NotifyChange(ULONG ulConnection, const NOTIFYLIST &lNoti
 		syncStates.push_back(tmp);
 	}
 
-	pthread_mutex_lock(&m_hMutex);
-
 	/* Search for the right connection */
+	biglock.lock();
 	iterAdvise = m_mapChangeAdvise.find(ulConnection);
 	if (iterAdvise == m_mapChangeAdvise.cend() ||
 	    iterAdvise->second->lpAdviseSink == NULL) {
 		TRACE_NOTIFY(TRACE_WARNING, "ECNotifyClient::NotifyChange", "Unknown Notification id %d", ulConnection);
-		pthread_mutex_unlock(&m_hMutex);
 		goto exit;
 	}
 
@@ -709,10 +662,8 @@ HRESULT ECNotifyClient::NotifyChange(ULONG ulConnection, const NOTIFYLIST &lNoti
 
 		}
 	}
-
-	pthread_mutex_unlock(&m_hMutex);
-
 exit:
+	biglock.unlock();
 	MAPIFreeBuffer(lpSyncStates);
 	return hrSuccess;
 }

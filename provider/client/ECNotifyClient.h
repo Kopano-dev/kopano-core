@@ -18,13 +18,12 @@
 #ifndef ECNOTIFYCLIENT_H
 #define ECNOTIFYCLIENT_H
 
+#include <mutex>
 #include <kopano/ECUnknown.h>
 #include <IECChangeAdviseSink.h>
 
 #include "ECICS.h"
 #include "ECNotifyMaster.h"
-
-#include <pthread.h>
 #include <map>
 #include <list>
 #include <mapispi.h>
@@ -96,9 +95,7 @@ private:
 
 	void*					m_lpProvider;
 	ULONG					m_ulProviderType;
-
-	pthread_mutex_t			m_hMutex;
-	pthread_mutexattr_t		m_hMutexAttrib;
+	std::recursive_mutex m_hMutex;
 	ECSESSIONGROUPID		m_ecSessionGroupId;
 };
 

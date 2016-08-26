@@ -18,7 +18,7 @@
 #include <kopano/platform.h>
 
 #include <algorithm>
-
+#include <kopano/lockhelper.hpp>
 #include <mapidefs.h>
 
 #include "ECNotifyClient.h"
@@ -53,11 +53,6 @@ ECNotifyMaster::ECNotifyMaster(SessionGroupData *lpData)
 	TRACE_NOTIFY(TRACE_ENTRY, "ECNotifyMaster::ECNotifyMaster", "");
 
 	/* Initialize threading */
-	pthread_mutexattr_init(&m_hMutexAttrib);
-	pthread_mutexattr_settype(&m_hMutexAttrib, PTHREAD_MUTEX_RECURSIVE);
-
-	pthread_mutex_init(&m_hMutex, &m_hMutexAttrib);
-
 	pthread_attr_init(&m_hAttrib);
 	m_bThreadRunning = false;
 	m_bThreadExit = false;
@@ -83,10 +78,6 @@ ECNotifyMaster::~ECNotifyMaster(void)
 		m_lpSessionGroupData = NULL; /* DON'T Release() */
 	if (m_lpTransport)
 		m_lpTransport->Release();
-
-	pthread_mutex_destroy(&m_hMutex);
-	pthread_mutexattr_destroy(&m_hMutexAttrib);
-
 	pthread_attr_destroy(&m_hAttrib);
 
 	TRACE_NOTIFY(TRACE_RETURN, "ECNotifyMaster::~ECNotifyMaster", "");
@@ -113,8 +104,7 @@ HRESULT ECNotifyMaster::ConnectToSession()
 	TRACE_NOTIFY(TRACE_ENTRY, "ECNotifyMaster::ConnectToSession", "");
 
 	HRESULT			hr = hrSuccess;
-
-	pthread_mutex_lock(&m_hMutex);
+	scoped_rlock biglock(m_hMutex);
 
 	/* This function can be called from NotifyWatch, and could race against StopNotifyWatch */
 	if (m_bThreadExit) {
@@ -139,8 +129,6 @@ HRESULT ECNotifyMaster::ConnectToSession()
 		goto exit;
 
 exit:
-	pthread_mutex_unlock(&m_hMutex);
-
 	TRACE_NOTIFY(TRACE_RETURN, "ECNotifyMaster::ConnectToSession", "hr=0x%08X", hr);
 	return hr;
 }
@@ -148,17 +136,13 @@ exit:
 HRESULT ECNotifyMaster::AddSession(ECNotifyClient* lpClient)
 {
 	TRACE_NOTIFY(TRACE_ENTRY, "ECNotifyMaster::AddSession", "");
-
-	pthread_mutex_lock(&m_hMutex);
+	scoped_rlock biglock(m_hMutex);
 
 	m_listNotifyClients.push_back(lpClient);
 
 	/* Enable Notifications */
 	if (StartNotifyWatch() != hrSuccess)
 		ASSERT(FALSE);
-
-	pthread_mutex_unlock(&m_hMutex);
-
 	TRACE_NOTIFY(TRACE_RETURN, "ECNotifyMaster::AddSession", "");
 	return hrSuccess;
 }
@@ -180,8 +164,7 @@ HRESULT ECNotifyMaster::ReleaseSession(ECNotifyClient* lpClient)
 	TRACE_NOTIFY(TRACE_ENTRY, "ECNotifyMaster::ReleaseSession", "");
 
 	HRESULT hr = hrSuccess;
-	
-	pthread_mutex_lock(&m_hMutex);
+	scoped_rlock biglock(m_hMutex);
 
 	/* Remove all connections attached to client */
 	auto iter = m_mapConnections.cbegin();
@@ -194,43 +177,28 @@ HRESULT ECNotifyMaster::ReleaseSession(ECNotifyClient* lpClient)
 
 	/* Remove client from list */
 	m_listNotifyClients.remove(lpClient);
-
-	pthread_mutex_unlock(&m_hMutex);
-
 	TRACE_NOTIFY(TRACE_RETURN, "ECNotifyMaster::ReleaseSession", "");
 	return hr;
 }
 
 HRESULT ECNotifyMaster::ReserveConnection(ULONG *lpulConnection)
 {
-	pthread_mutex_lock(&m_hMutex);
-
-	*lpulConnection = m_ulConnection;
-	++m_ulConnection;
-	pthread_mutex_unlock(&m_hMutex);
-
+	scoped_rlock lock(m_hMutex);
+	*lpulConnection = m_ulConnection++;
 	return hrSuccess;
 }
 
 HRESULT ECNotifyMaster::ClaimConnection(ECNotifyClient* lpClient, NOTIFYCALLBACK fnCallback, ULONG ulConnection)
 {
-	pthread_mutex_lock(&m_hMutex);
-
+	scoped_rlock lock(m_hMutex);
 	m_mapConnections.insert(NOTIFYCONNECTIONCLIENTMAP::value_type(ulConnection, ECNotifySink(lpClient, fnCallback)));
-
-	pthread_mutex_unlock(&m_hMutex);
-
 	return hrSuccess;
 }
 
 HRESULT ECNotifyMaster::DropConnection(ULONG ulConnection)
 {
-	pthread_mutex_lock(&m_hMutex);
-
+	scoped_rlock lock(m_hMutex);
 	m_mapConnections.erase(ulConnection);
-
-	pthread_mutex_unlock(&m_hMutex);
-
 	return hrSuccess;
 }
 
@@ -276,14 +244,14 @@ HRESULT ECNotifyMaster::StopNotifyWatch()
 
 	HRESULT hr = hrSuccess;
 	WSTransport *lpTransport = NULL;
+	ulock_rec biglock(m_hMutex, std::defer_lock_t());
 
 	/* Thread was already halted, or connection is broken */
 	if (!m_bThreadRunning)
 		goto exit;
 
-	pthread_mutex_lock(&m_hMutex);
-
 	/* Let the thread exit during its busy looping */
+	biglock.lock();
 	m_bThreadExit = TRUE;
 
 	if (m_lpTransport) {
@@ -293,7 +261,7 @@ HRESULT ECNotifyMaster::StopNotifyWatch()
 		 * other option */
 		hr = m_lpTransport->HrClone(&lpTransport);
 		if (hr != hrSuccess) {
-			pthread_mutex_unlock(&m_hMutex);
+			biglock.unlock();
 			goto exit;
 		}
     
@@ -302,9 +270,7 @@ HRESULT ECNotifyMaster::StopNotifyWatch()
 		/* Cancel any pending IO if the network transport is down, causing the logoff to fail */
 		m_lpTransport->HrCancelIO();
 	}
-
-	pthread_mutex_unlock(&m_hMutex);
-
+	biglock.unlock();
 	if (pthread_join(m_hThread, NULL) != 0)
 		TRACE_NOTIFY(TRACE_WARNING, "ECNotifyMaster::StopNotifyWatch", "Invalid thread join");
 
@@ -397,13 +363,11 @@ void* ECNotifyMaster::NotifyWatch(void *pTmpNotifyMaster)
 				goto exit;
 			else {
 				// We have a new session ID, notify reload
-
-				pthread_mutex_lock(&pNotifyMaster->m_hMutex);
+				scoped_rlock lock(pNotifyMaster->m_hMutex);
 				for (auto ptr : pNotifyMaster->m_listNotifyClients)
 					ptr->NotifyReload();
-				pthread_mutex_unlock(&pNotifyMaster->m_hMutex);
 				continue;
-            }
+			}
 		}
 
 		if (bReconnect) {
@@ -437,16 +401,15 @@ void* ECNotifyMaster::NotifyWatch(void *pTmpNotifyMaster)
 			 * Be careful when locking this, Client->m_hMutex has priority over Master->m_hMutex
 			 * which means we should NEVER call a Client function while holding the Master->m_hMutex!
 			 */
-			pthread_mutex_lock(&pNotifyMaster->m_hMutex);
+			scoped_rlock lock(pNotifyMaster->m_hMutex);
 			auto iterClient = pNotifyMaster->m_mapConnections.find(p.first);
-			if (iterClient == pNotifyMaster->m_mapConnections.cend()) {
-				pthread_mutex_unlock(&pNotifyMaster->m_hMutex);
+			if (iterClient == pNotifyMaster->m_mapConnections.cend())
 				continue;
-			}
-
 			iterClient->second.Notify(p.first, p.second);
-			/* All access to map completd, unlock mutex and send notification to client. */
-			pthread_mutex_unlock(&pNotifyMaster->m_hMutex);
+			/*
+			 * All access to map completed, mutex is unlocked (end
+			 * of scope), and send notification to client.
+			 */
 		}
 
 		/* We're done, clean the map for next round */
