@@ -16,7 +16,8 @@
  */
 
 #include <kopano/platform.h>
-
+#include <kopano/lockhelper.hpp>
+#include <pthread.h>
 #include <mapidefs.h>
 #include <mapitags.h>
 
@@ -48,23 +49,12 @@ ECSearchFolders::ECSearchFolders(ECSessionManager *lpSessionManager,
     this->m_lpDatabaseFactory = lpFactory;
     this->m_bExitThread = false;
     this->m_bRunning = false;
-
-    pthread_mutexattr_t attr;
-    pthread_mutexattr_init(&attr);
-    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
-
-    pthread_mutex_init(&m_mutexMapSearchFolders, &attr);
-    pthread_cond_init(&m_condThreadExited, NULL);
-    
-    pthread_mutex_init(&m_mutexEvents, &attr);
-    pthread_cond_init(&m_condEvents, NULL);
-    pthread_mutexattr_destroy(&attr);
     pthread_create(&m_threadProcess, NULL, ECSearchFolders::ProcessThread, (void *)this);
     set_thread_name(m_threadProcess, "SearchFolders");
 }
 
 ECSearchFolders::~ECSearchFolders() {
-	pthread_mutex_lock(&m_mutexMapSearchFolders);
+	ulock_rec l_sf(m_mutexMapSearchFolders);
 
 	for (auto &p : m_mapSearchFolders) {
 		for (auto &f : p.second)
@@ -73,20 +63,14 @@ ECSearchFolders::~ECSearchFolders() {
 	}
     
 	m_mapSearchFolders.clear();
-	pthread_mutex_unlock(&m_mutexMapSearchFolders);
+	l_sf.unlock();
     
-    pthread_mutex_destroy(&m_mutexMapSearchFolders);
-    pthread_cond_destroy(&m_condThreadExited);
-    
-	pthread_mutex_lock(&m_mutexEvents);
+	ulock_rec l_events(m_mutexEvents);
     m_bExitThread = true;
-	pthread_cond_broadcast(&m_condEvents);
-	pthread_mutex_unlock(&m_mutexEvents);
+	m_condEvents.notify_all();
+	l_events.unlock();
 
     pthread_join(m_threadProcess, NULL);
-    
-    pthread_mutex_destroy(&m_mutexEvents);
-    pthread_cond_destroy(&m_condEvents);
 }
 
 // Only loads the search criteria for all search folders. Used once at boot time
@@ -192,36 +176,25 @@ ECRESULT ECSearchFolders::GetSearchCriteria(unsigned int ulStoreId, unsigned int
 {
 	ECRESULT er = erSuccess;
 	FOLDERIDSEARCH::const_iterator iterFolder;
+	scoped_rlock l_sf(m_mutexMapSearchFolders);
 
-    pthread_mutex_lock(&m_mutexMapSearchFolders);
-    
     // See if there are any searches for this store first
 	auto iterStore = m_mapSearchFolders.find(ulStoreId);
-	if (iterStore == m_mapSearchFolders.cend()) {
-        er = KCERR_NOT_INITIALIZED;
-        goto exit;
-    }
-    
-    iterFolder = iterStore->second.find(ulFolderId);
-	if (iterFolder == iterStore->second.cend()) {
-        er = KCERR_NOT_INITIALIZED;
-        goto exit;
-    }
+	if (iterStore == m_mapSearchFolders.cend())
+		return KCERR_NOT_INITIALIZED;
+	iterFolder = iterStore->second.find(ulFolderId);
+	if (iterFolder == iterStore->second.cend())
+		return KCERR_NOT_INITIALIZED;
     
     er = CopySearchCriteria(NULL, iterFolder->second->lpSearchCriteria, lppSearchCriteria);
     if(er != erSuccess)
-        goto exit;
-        
+		return er;
     er = GetState(ulStoreId, ulFolderId, lpulFlags);
     if(er != erSuccess)
-        goto exit;
+		return er;
         
     // Add recursive flag if necessary
     *lpulFlags |= iterFolder->second->lpSearchCriteria->ulFlags & SEARCH_RECURSIVE;
-        
-exit:
-    pthread_mutex_unlock(&m_mutexMapSearchFolders); 
-    
     return er;
 }
 
@@ -233,6 +206,7 @@ ECRESULT ECSearchFolders::AddSearchFolder(unsigned int ulStoreId, unsigned int u
     STOREFOLDERIDSEARCH::iterator iterStore;
     SEARCHFOLDER *lpSearchFolder = NULL;    
     unsigned int ulParent = 0;
+	ulock_rec l_sf(m_mutexMapSearchFolders, std::defer_lock_t());
 
     if(lpSearchCriteria == NULL) {
         er = LoadSearchCriteria(ulStoreId, ulFolderId, &lpCriteria);
@@ -281,9 +255,8 @@ ECRESULT ECSearchFolders::AddSearchFolder(unsigned int ulStoreId, unsigned int u
         goto exit;
     }
 
-    pthread_mutex_lock(&m_mutexMapSearchFolders);
-    
     // Get searches for this store, or add it to the list.
+	l_sf.lock();
 	iterStore = m_mapSearchFolders.insert(STOREFOLDERIDSEARCH::value_type(ulStoreId, FOLDERIDSEARCH())).first;
 
     iterStore->second.insert(FOLDERIDSEARCH::value_type(ulFolderId, lpSearchFolder));
@@ -310,9 +283,7 @@ ECRESULT ECSearchFolders::AddSearchFolder(unsigned int ulStoreId, unsigned int u
         }
 	set_thread_name(lpSearchFolder->sThreadId, "SearchFolders:Folder");
     }
-    
-    pthread_mutex_unlock(&m_mutexMapSearchFolders);
-
+	l_sf.unlock();
 exit:
     if (lpCriteria)
         FreeSearchCriteria(lpCriteria);
@@ -363,30 +334,22 @@ exit:
 ECRESULT ECSearchFolders::CancelSearchFolder(unsigned int ulStoreID, unsigned int ulFolderId)
 {
     SEARCHFOLDER *lpFolder = NULL;
-
     // Lock the list, preventing other Cancel requests messing with the thread    
-    pthread_mutex_lock(&m_mutexMapSearchFolders);
-    
-	auto iterStore = m_mapSearchFolders.find(ulStoreID);
-	if (iterStore == m_mapSearchFolders.cend()) {
-        pthread_mutex_unlock(&m_mutexMapSearchFolders);
-        return KCERR_NOT_FOUND;
-    }
+	ulock_rec l_sf(m_mutexMapSearchFolders);
 
+	auto iterStore = m_mapSearchFolders.find(ulStoreID);
+	if (iterStore == m_mapSearchFolders.cend())
+		return KCERR_NOT_FOUND;
 	auto iterFolder = iterStore->second.find(ulFolderId);
-	if (iterFolder == iterStore->second.cend()) {
-        pthread_mutex_unlock(&m_mutexMapSearchFolders);
-        return KCERR_NOT_FOUND;
-    }
+	if (iterFolder == iterStore->second.cend())
+		return KCERR_NOT_FOUND;
     
     lpFolder = iterFolder->second;
     
     // Remove the item from the list
     iterStore->second.erase(iterFolder);
 	g_lpStatsCollector->Increment(SCN_SEARCHFOLDER_COUNT, -1);
-    
-    pthread_mutex_unlock(&m_mutexMapSearchFolders);
-
+	l_sf.unlock();
 	DestroySearchFolder(lpFolder);
 	return erSuccess;
 }
@@ -400,17 +363,14 @@ void ECSearchFolders::DestroySearchFolder(SEARCHFOLDER *lpFolder)
     // Signal the thread to exit
     lpFolder->bThreadExit = true;
     
-    pthread_mutex_lock(&lpFolder->mMutexThreadFree);
-    
-    while(lpFolder->bThreadFree == false) {
-        // Wait for the thread to signal that lpFolder is no longer in use by the thread
-        
-        // The condition is used for all threads, so it may have been fired for a different
-        // thread. This is efficient enough.
-        pthread_cond_wait(&m_condThreadExited, &lpFolder->mMutexThreadFree);
-    }
-    
-    pthread_mutex_unlock(&lpFolder->mMutexThreadFree);
+	/*
+	 * Wait for the thread to signal that lpFolder is no longer in use by
+	 * the thread The condition is used for all threads, so it may have
+	 * been fired for a different thread. This is efficient enough.
+	 */
+	ulock_normal lk(lpFolder->mMutexThreadFree);
+	m_condThreadExited.wait(lk, [=](void) { return lpFolder->bThreadFree; });
+	lk.unlock();
 
     // Nobody is using lpFolder now
     delete lpFolder;
@@ -427,16 +387,12 @@ ECRESULT ECSearchFolders::RemoveSearchFolder(unsigned int ulStoreID)
 {
 	unsigned int ulFolderID;
 	std::list<SEARCHFOLDER*>	listSearchFolders;
-
 	// Lock the list, preventing other Cancel requests messing with the thread
-	pthread_mutex_lock(&m_mutexMapSearchFolders);
+	ulock_rec l_sf(m_mutexMapSearchFolders);
 
 	auto iterStore = m_mapSearchFolders.find(ulStoreID);
-	if (iterStore == m_mapSearchFolders.cend()) {
-		pthread_mutex_unlock(&m_mutexMapSearchFolders);
+	if (iterStore == m_mapSearchFolders.cend())
 		return KCERR_NOT_FOUND;
-	}
-
 	for (const auto &p : iterStore->second)
 		listSearchFolders.push_back(p.second);
 
@@ -444,8 +400,7 @@ ECRESULT ECSearchFolders::RemoveSearchFolder(unsigned int ulStoreID)
 	
 	// Remove store from list, items of the store will be delete in 'DestroySearchFolder'
 	m_mapSearchFolders.erase(iterStore);
-
-	pthread_mutex_unlock(&m_mutexMapSearchFolders);
+	l_sf.unlock();
 
 //@fixme: server shutdown can result in a crash?
 	for (auto srfolder : listSearchFolders) {
@@ -507,17 +462,14 @@ ECRESULT ECSearchFolders::UpdateSearchFolders(unsigned int ulStoreId, unsigned i
     ev.ulObjectId = ulObjId;
     ev.ulType = ulType;
     
-    pthread_mutex_lock(&m_mutexEvents);
-
+	scoped_rlock l_ev(m_mutexEvents);
     // Add the event to the queue
 	m_lstEvents.push_back(ev);
-    
-    // Signal a change in the queue (actually only needed for the first event, but this wastes almost
-    // no time and is safer)
-	pthread_cond_broadcast(&m_condEvents);
-
-	pthread_mutex_unlock(&m_mutexEvents);
-    
+	/*
+	 * Signal a change in the queue (actually only needed for the first
+	 * event, but this wastes almost no time and is safer.
+	 */
+	m_condEvents.notify_all();
     return er;
 }
 
@@ -546,8 +498,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 	lstPrefix.push_back(PR_MESSAGE_FLAGS);
 
 	ECLocale locale = m_lpSessionManager->GetSortLocale(ulStoreId);
-	
-    pthread_mutex_lock(&m_mutexMapSearchFolders);
+	ulock_rec l_sf(m_mutexMapSearchFolders);
 
     er = GetThreadLocalDatabase(m_lpDatabaseFactory, &lpDatabase);
     if(er != erSuccess)
@@ -853,10 +804,8 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 			g_lpStatsCollector->Increment(SCN_SEARCHFOLDER_UPDATE_FAIL);
 		}
     }
-
-exit:    
-    pthread_mutex_unlock(&m_mutexMapSearchFolders);
-
+ exit:
+	l_sf.unlock();
     if(lpPropTags)
         FreePropTagArray(lpPropTags);
         
@@ -1340,11 +1289,11 @@ void* ECSearchFolders::SearchThread(void *lpParam)
     // Signal search complete to clients
     lpSearchFolders->m_lpSessionManager->NotificationSearchComplete(lpFolder->ulFolderId, lpFolder->ulStoreId);
     
-    // Signal exit from thread
-    pthread_mutex_lock(&lpFolder->mMutexThreadFree);
-    lpFolder->bThreadFree = true;
-    pthread_cond_broadcast(&lpSearchFolders->m_condThreadExited);
-    pthread_mutex_unlock(&lpFolder->mMutexThreadFree);
+	/* Signal exit from thread */
+	ulock_normal l_thr(lpFolder->mMutexThreadFree);
+	lpFolder->bThreadFree = true;
+	lpSearchFolders->m_condThreadExited.notify_one();
+	l_thr.unlock();
     
     // We may not access lpFolder from this point on (it will be freed when the searchfolder is removed)
     lpFolder = NULL;
@@ -1819,12 +1768,12 @@ ECRESULT ECSearchFolders::SaveSearchCriteria(ECDatabase *lpDatabase, unsigned in
 
 void ECSearchFolders::FlushAndWait()
 {
-	pthread_mutex_lock(&m_mutexEvents);
-	pthread_cond_broadcast(&m_condEvents);
-	pthread_mutex_unlock(&m_mutexEvents);
+	ulock_rec l_ev(m_mutexEvents);
+	m_condEvents.notify_all();
+	l_ev.unlock();
 	// let ProcessThread get this lock, and mark the thread running
-	pthread_mutex_lock(&m_mutexEvents);
-	pthread_mutex_unlock(&m_mutexEvents);
+	l_ev.lock();
+	l_ev.unlock();
 	// wait for an inactive search thread
 	while (m_bRunning) Sleep(10);
 }
@@ -1840,25 +1789,28 @@ void * ECSearchFolders::ProcessThread(void *lpSearchFolders)
     
     while(1) {    
         // Get events to process
-        pthread_mutex_lock(&lpThis->m_mutexEvents);
-        
-        if(lpThis->m_bExitThread) {
-			pthread_mutex_unlock(&lpThis->m_mutexEvents);
-            break;
-		}
-
-        if(lpThis->m_lstEvents.empty()) {
-            // No events, wait until one arrives (the mutex is unlocked by pthread_cond_wait so people are able to add new
-            // events). The condition also occurs when the server is exiting.
-            pthread_cond_wait(&lpThis->m_condEvents, &lpThis->m_mutexEvents);
-        }
+		ulock_rec l_ev(lpThis->m_mutexEvents);
+		if (lpThis->m_bExitThread)
+			break;
+		if (lpThis->m_lstEvents.empty())
+			/*
+			 * No events, wait until one arrives (the mutex is
+			 * unlocked by pthread_cond_wait so people are able to
+			 * add new events). The condition also occurs when the
+			 * server is exiting.
+			 */
+			lpThis->m_condEvents.wait(l_ev);
 
 		lpThis->m_bRunning = true;
-
-        // The condition ended. Two things can have happened: there is now at least one event waiting, or and exit has been requested.
-        // In both cases, we simply unlock the mutex and process any (may be 0) events currently in the queue. This means that the caller
-        // must make sure that no new events can be added after the m_bThreadExit flag is set to TRUE.
-        pthread_mutex_unlock(&lpThis->m_mutexEvents);
+		/*
+		 * The condition ended. Two things can have happened: there is
+		 * now at least one event waiting, or and exit has been
+		 * requested. In both cases, we simply unlock the mutex and
+		 * process any (may be 0) events currently in the queue. This
+		 * means that the caller must make sure that no new events can
+		 * be added after the m_bThreadExit flag is set to TRUE.
+		 */
+		l_ev.unlock();
         
         lpThis->FlushEvents();
         Sleep(1000);
@@ -1889,14 +1841,14 @@ ECRESULT ECSearchFolders::FlushEvents()
     
     // We do a copy-remove-process cycle here to keep the event queue locked for the least time as possible with
     // 500 events at a time
-    pthread_mutex_lock(&m_mutexEvents);
+	ulock_rec l_ev(m_mutexEvents);
     for (int i = 0; i < 500; ++i) {
         // Move the first element of m_lstEvents to the head of our list.
         if(m_lstEvents.empty())
             break;
         lstEvents.splice(lstEvents.end(), m_lstEvents, m_lstEvents.begin());
     }
-    pthread_mutex_unlock(&m_mutexEvents);
+	l_ev.unlock();
     
     // Sort the items by folder. The order of DELETE and ADDs will remain unchanged. This is important
     // because the order of the incoming ADD or DELETE is obviously important for the final result.
@@ -1958,8 +1910,7 @@ ECRESULT ECSearchFolders::FlushEvents()
 ECRESULT ECSearchFolders::GetStats(sSearchFolderStats &sStats)
 {
 	memset(&sStats, 0, sizeof(sSearchFolderStats));
-
-	pthread_mutex_lock(&m_mutexMapSearchFolders);
+	ulock_rec l_sf(m_mutexMapSearchFolders);
 
 	sStats.ulStores = m_mapSearchFolders.size();
 	sStats.ullSize = sStats.ulStores * sizeof(STOREFOLDERIDSEARCH::value_type);
@@ -1970,13 +1921,11 @@ ECRESULT ECSearchFolders::GetStats(sSearchFolderStats &sStats)
 		for (const auto &fs : storefolder.second)
 			sStats.ullSize += SearchCriteriaSize(fs.second->lpSearchCriteria);
 	}
-	
-	pthread_mutex_unlock(&m_mutexMapSearchFolders);
+	l_sf.unlock();
 
-	pthread_mutex_lock(&m_mutexEvents);
+	ulock_rec l_ev(m_mutexEvents);
 	sStats.ulEvents = m_lstEvents.size();
-	pthread_mutex_unlock(&m_mutexEvents);
-
+	l_ev.unlock();
 	sStats.ullSize += sStats.ulEvents * sizeof(EVENT);
 
 	return erSuccess;

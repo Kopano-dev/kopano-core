@@ -19,6 +19,9 @@
 #define ECSEARCHFOLDERS_H
 
 #include <kopano/zcdefs.h>
+#include <condition_variable>
+#include <mutex>
+#include <pthread.h>
 #include "ECDatabaseFactory.h"
 #include <kopano/ECKeyTable.h>
 #include "ECStoreObjectTable.h"
@@ -36,7 +39,6 @@ typedef struct SEARCHFOLDER _zcp_final {
 	SEARCHFOLDER(unsigned int ulStoreId, unsigned int ulFolderId) {
 		this->lpSearchCriteria = NULL;
 		/* sThreadId */
-		pthread_mutex_init(&this->mMutexThreadFree, NULL);
 		this->bThreadExit = false;
 		this->bThreadFree = true;
 		this->ulStoreId = ulStoreId;
@@ -45,12 +47,11 @@ typedef struct SEARCHFOLDER _zcp_final {
 	~SEARCHFOLDER() {
 		if (this->lpSearchCriteria)
 			FreeSearchCriteria(this->lpSearchCriteria);
-		pthread_mutex_destroy(&this->mMutexThreadFree);
 	}
 
     struct searchCriteria 	*lpSearchCriteria;
     pthread_t 				sThreadId;
-    pthread_mutex_t			mMutexThreadFree;
+	std::mutex mMutexThreadFree;
     bool 					bThreadFree;
     bool					bThreadExit;
     unsigned int			ulStoreId;
@@ -417,19 +418,19 @@ private:
     // Map StoreID -> SearchFolderId -> SearchCriteria
     // Because searchfolders only work within a store, this allows us to skip 99% of all
     // search folders during UpdateSearchFolders (depending on how many users you have)
-    pthread_mutex_t m_mutexMapSearchFolders;
+	std::recursive_mutex m_mutexMapSearchFolders;
     STOREFOLDERIDSEARCH m_mapSearchFolders;
 
     // Pthread condition to signal a thread exit
-    pthread_cond_t m_condThreadExited;
+	std::condition_variable m_condThreadExited;
 
     ECDatabaseFactory *m_lpDatabaseFactory;
     ECSessionManager *m_lpSessionManager;
 
     // List of change events
     std::list<EVENT> m_lstEvents;
-    pthread_mutex_t m_mutexEvents;
-    pthread_cond_t m_condEvents;
+	std::recursive_mutex m_mutexEvents;
+	std::condition_variable_any m_condEvents;
     
     // Change processing thread
     pthread_t m_threadProcess;

@@ -16,14 +16,13 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/lockhelper.hpp>
 #include "ECStatsCollector.h"
 #include <kopano/stringutil.h>
 
 using namespace std;
 
 ECStatsCollector::ECStatsCollector() {
-	pthread_mutex_init(&m_StringsLock, NULL);
-
 	// the 'name' parameter may not be longer than 19 characters, since we want to use those in RRDtool
  	AddStat(SCN_SERVER_STARTTIME, SCDT_TIMESTAMP, "server_start_date", "Time when the server was started");
  	AddStat(SCN_SERVER_LAST_CACHECLEARED, SCDT_TIMESTAMP, "cache_purge_date", "Time when the cache was cleared");
@@ -99,23 +98,14 @@ ECStatsCollector::ECStatsCollector() {
 	AddStat(SCN_DATABASE_SEARCHES, SCDT_LONGLONG, "search_database", "Number of database searches performed");
 }
 
-ECStatsCollector::~ECStatsCollector() {
-	for (auto &i : m_StatData)
-		pthread_mutex_destroy(&i.second.lock);
-	pthread_mutex_destroy(&m_StringsLock);
-}
-
 void ECStatsCollector::AddStat(SCName index, SCType type, const char *name, const char *description) {
-	ECStat newStat;
+	ECStat &newStat = m_StatData[index];
 
 	newStat.data.ll = 0;		// reset largest data var in union
 	newStat.avginc = 1;
 	newStat.type = type;
 	newStat.name = name;
 	newStat.description = description;
-
-	m_StatData[index] = newStat;
-	pthread_mutex_init(&m_StatData[index].lock, NULL);
 }
 
 void ECStatsCollector::Increment(SCName name, float inc) {
@@ -125,9 +115,8 @@ void ECStatsCollector::Increment(SCName name, float inc) {
 
 	ASSERT(iSD->second.type == SCDT_FLOAT);
 
-	pthread_mutex_lock(&iSD->second.lock);
+	scoped_lock lk(iSD->second.lock);
 	iSD->second.data.f += inc;
-	pthread_mutex_unlock(&iSD->second.lock);
 }
 
 void ECStatsCollector::Increment(SCName name, int inc) {
@@ -141,9 +130,8 @@ void ECStatsCollector::Increment(SCName name, LONGLONG inc) {
 
 	ASSERT(iSD->second.type == SCDT_LONGLONG);
 
-	pthread_mutex_lock(&iSD->second.lock);
+	scoped_lock lk(iSD->second.lock);
 	iSD->second.data.ll += inc;
-	pthread_mutex_unlock(&iSD->second.lock);
 }
 
 void ECStatsCollector::Set(SCName name, float set) {
@@ -153,9 +141,8 @@ void ECStatsCollector::Set(SCName name, float set) {
 
 	ASSERT(iSD->second.type == SCDT_FLOAT);
 
-	pthread_mutex_lock(&iSD->second.lock);
+	scoped_lock lk(iSD->second.lock);
 	iSD->second.data.f = set;
-	pthread_mutex_unlock(&iSD->second.lock);
 }
 
 void ECStatsCollector::Set(SCName name, LONGLONG set) {
@@ -165,9 +152,8 @@ void ECStatsCollector::Set(SCName name, LONGLONG set) {
 
 	ASSERT(iSD->second.type == SCDT_LONGLONG);
 
-	pthread_mutex_lock(&iSD->second.lock);
+	scoped_lock lk(iSD->second.lock);
 	iSD->second.data.ll = set;
-	pthread_mutex_unlock(&iSD->second.lock);
 }
 
 void ECStatsCollector::SetTime(SCName name, time_t set) {
@@ -177,9 +163,8 @@ void ECStatsCollector::SetTime(SCName name, time_t set) {
 
 	ASSERT(iSD->second.type == SCDT_TIMESTAMP);
 
-	pthread_mutex_lock(&iSD->second.lock);
+	scoped_lock lk(iSD->second.lock);
 	iSD->second.data.ts = set;
-	pthread_mutex_unlock(&iSD->second.lock);
 }
 
 void ECStatsCollector::Min(SCName name, float min)
@@ -190,10 +175,9 @@ void ECStatsCollector::Min(SCName name, float min)
 
 	ASSERT(iSD->second.type == SCDT_FLOAT);
 
-	pthread_mutex_lock(&iSD->second.lock);
+	scoped_lock lk(iSD->second.lock);
 	if (iSD->second.data.f > min)
 		iSD->second.data.f = min;
-	pthread_mutex_unlock(&iSD->second.lock);	
 }
 
 void ECStatsCollector::Min(SCName name, LONGLONG min)
@@ -204,10 +188,9 @@ void ECStatsCollector::Min(SCName name, LONGLONG min)
 
 	ASSERT(iSD->second.type == SCDT_LONGLONG);
 
-	pthread_mutex_lock(&iSD->second.lock);
+	scoped_lock lk(iSD->second.lock);
 	if (iSD->second.data.ll > min)
 		iSD->second.data.ll = min;
-	pthread_mutex_unlock(&iSD->second.lock);	
 }
 
 void ECStatsCollector::MinTime(SCName name, time_t min)
@@ -218,10 +201,9 @@ void ECStatsCollector::MinTime(SCName name, time_t min)
 
 	ASSERT(iSD->second.type == SCDT_TIMESTAMP);
 
-	pthread_mutex_lock(&iSD->second.lock);
+	scoped_lock lk(iSD->second.lock);
 	if (iSD->second.data.ts > min)
 		iSD->second.data.ts = min;
-	pthread_mutex_unlock(&iSD->second.lock);	
 }
 
 void ECStatsCollector::Max(SCName name, float max)
@@ -232,10 +214,9 @@ void ECStatsCollector::Max(SCName name, float max)
 
 	ASSERT(iSD->second.type == SCDT_FLOAT);
 
-	pthread_mutex_lock(&iSD->second.lock);
+	scoped_lock(iSD->second.lock);
 	if (iSD->second.data.f < max)
 		iSD->second.data.f = max;
-	pthread_mutex_unlock(&iSD->second.lock);	
 }
 
 void ECStatsCollector::Max(SCName name, LONGLONG max)
@@ -246,10 +227,9 @@ void ECStatsCollector::Max(SCName name, LONGLONG max)
 
 	ASSERT(iSD->second.type == SCDT_LONGLONG);
 
-	pthread_mutex_lock(&iSD->second.lock);
+	scoped_lock(iSD->second.lock);
 	if (iSD->second.data.ll < max)
 		iSD->second.data.ll = max;
-	pthread_mutex_unlock(&iSD->second.lock);	
 }
 
 void ECStatsCollector::MaxTime(SCName name, time_t max)
@@ -260,10 +240,9 @@ void ECStatsCollector::MaxTime(SCName name, time_t max)
 
 	ASSERT(iSD->second.type == SCDT_TIMESTAMP);
 
-	pthread_mutex_lock(&iSD->second.lock);
+	scoped_lock lk(iSD->second.lock);
 	if (iSD->second.data.ts < max)
 		iSD->second.data.ts = max;
-	pthread_mutex_unlock(&iSD->second.lock);	
 }
 
 void ECStatsCollector::Avg(SCName name, float add)
@@ -274,12 +253,11 @@ void ECStatsCollector::Avg(SCName name, float add)
 
 	ASSERT(iSD->second.type == SCDT_FLOAT);
 
-	pthread_mutex_lock(&iSD->second.lock);
+	scoped_lock lk(iSD->second.lock);
 	iSD->second.data.f = ((add - iSD->second.data.f) / iSD->second.avginc) + iSD->second.data.f;
 	++iSD->second.avginc;
 	if (iSD->second.avginc == 0)
 		iSD->second.avginc = 1;
-	pthread_mutex_unlock(&iSD->second.lock);	
 }
 
 void ECStatsCollector::Avg(SCName name, LONGLONG add)
@@ -290,12 +268,11 @@ void ECStatsCollector::Avg(SCName name, LONGLONG add)
 
 	ASSERT(iSD->second.type == SCDT_LONGLONG);
 
-	pthread_mutex_lock(&iSD->second.lock);
+	scoped_lock lk(iSD->second.lock);
 	iSD->second.data.ll = ((add - iSD->second.data.ll) / iSD->second.avginc) + iSD->second.data.ll;
 	++iSD->second.avginc;
 	if (iSD->second.avginc == 0)
 		iSD->second.avginc = 1;
-	pthread_mutex_unlock(&iSD->second.lock);	
 }
 
 void ECStatsCollector::AvgTime(SCName name, time_t add)
@@ -306,12 +283,11 @@ void ECStatsCollector::AvgTime(SCName name, time_t add)
 
 	ASSERT(iSD->second.type == SCDT_TIMESTAMP);
 
-	pthread_mutex_lock(&iSD->second.lock);
+	scoped_lock lk(iSD->second.lock);
 	iSD->second.data.ts = ((add - iSD->second.data.ts) / iSD->second.avginc) + iSD->second.data.ts;
 	++iSD->second.avginc;
 	if (iSD->second.avginc == 0)
 		iSD->second.avginc = 1;
-	pthread_mutex_unlock(&iSD->second.lock);	
 }
 
 void ECStatsCollector::Set(const std::string &name, const std::string &description, const std::string &value)
@@ -321,16 +297,14 @@ void ECStatsCollector::Set(const std::string &name, const std::string &descripti
 	data.description = description;
 	data.value = value;
 
-	pthread_mutex_lock(&m_StringsLock);
+	scoped_lock lk(m_StringsLock);
 	m_StatStrings[name] = data;
-	pthread_mutex_unlock(&m_StringsLock);
 }
 
 void ECStatsCollector::Remove(const std::string &name)
 {
-	pthread_mutex_lock(&m_StringsLock);
+	scoped_lock lk(m_StringsLock);
 	m_StatStrings.erase(name);
-	pthread_mutex_unlock(&m_StringsLock);
 }
 
 std::string ECStatsCollector::GetValue(const SCMap::const_iterator::value_type &iSD)
@@ -369,35 +343,31 @@ std::string ECStatsCollector::GetValue(const SCName &name) {
 void ECStatsCollector::ForEachStat(void(callback)(const std::string &, const std::string &, const std::string &, void*), void *obj)
 {
 	for (auto &i : m_StatData) {
-		pthread_mutex_lock(&i.second.lock);
+		scoped_lock lk(i.second.lock);
 		callback(i.second.name, i.second.description, GetValue(i), obj);
-		pthread_mutex_unlock(&i.second.lock);
 	}
 }
 
 void ECStatsCollector::ForEachString(void(callback)(const std::string &, const std::string &, const std::string &, void*), void *obj)
 {
-	pthread_mutex_lock(&m_StringsLock);
+	scoped_lock lk(m_StringsLock);
 	for (const auto &i : m_StatStrings)
 		callback(i.first, i.second.description, i.second.value, obj);
-	pthread_mutex_unlock(&m_StringsLock);
 }
 
 void ECStatsCollector::Reset() {
 	for (auto &i : m_StatData) {
 		// reset largest var in union
-		pthread_mutex_lock(&i.second.lock);
+		scoped_lock lk(i.second.lock);
 		i.second.data.ll = 0;
-		pthread_mutex_unlock(&i.second.lock);
 	}
 }
 
 void ECStatsCollector::Reset(SCName name) {
 	auto iSD = m_StatData.find(name);
-	if (iSD != m_StatData.cend()) {
-		// reset largest var in union
-		pthread_mutex_lock(&iSD->second.lock);
-		iSD->second.data.ll = 0;
-		pthread_mutex_unlock(&iSD->second.lock);
-	}
+	if (iSD == m_StatData.cend())
+		return;
+	/* reset largest var in union */
+	scoped_lock lk(iSD->second.lock);
+	iSD->second.data.ll = 0;
 }
