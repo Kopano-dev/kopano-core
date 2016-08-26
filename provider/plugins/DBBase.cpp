@@ -17,7 +17,7 @@
 
 #include <kopano/platform.h>
 #include <memory>
-
+#include <mutex>
 #include "DBBase.h"
 #include <kopano/ECDefs.h>
 #include <kopano/EMSAbTag.h>
@@ -28,7 +28,7 @@
 
 KDLLAPI ECRESULT GetDatabaseObject(ECDatabase **lppDatabase);
 
-DBPlugin::DBPlugin(pthread_mutex_t *pluginlock, ECPluginSharedData *shareddata) :
+DBPlugin::DBPlugin(std::mutex &pluginlock, ECPluginSharedData *shareddata) :
 	UserPlugin(pluginlock, shareddata), m_lpDatabase(NULL) {
 }
 

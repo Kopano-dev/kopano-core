@@ -33,7 +33,6 @@ ECPluginFactory::ECPluginFactory(ECConfig *config, ECStatsCollector *lpStatsColl
 	m_getUserPluginInstance = NULL;
 	m_deleteUserPluginInstance = NULL;
 	m_config = config;
-	pthread_mutex_init(&m_plugin_lock, NULL);
 	ECPluginSharedData::GetSingleton(&m_shareddata, m_config, lpStatsCollector, bHosted, bDistributed);
 	m_dl = NULL;
 }
@@ -43,8 +42,6 @@ ECPluginFactory::~ECPluginFactory() {
 	if(m_dl)
 		dlclose(m_dl);
 #endif
-	pthread_mutex_destroy(&m_plugin_lock);
-
 	if (m_shareddata)
 		m_shareddata->Release();
 }
@@ -88,7 +85,7 @@ ECRESULT ECPluginFactory::CreateUserPlugin(UserPlugin **lppPlugin) {
 			goto out;
 	}
     
-        m_getUserPluginInstance = (UserPlugin* (*)(pthread_mutex_t *, ECPluginSharedData *)) dlsym(m_dl, "getUserPluginInstance");
+        m_getUserPluginInstance = (UserPlugin* (*)(std::mutex &, ECPluginSharedData *)) dlsym(m_dl, "getUserPluginInstance");
         if (m_getUserPluginInstance == NULL) {
 			ec_log_crit("Failed to load getUserPluginInstance from plugin: %s", dlerror());
 			goto out;
@@ -101,7 +98,7 @@ ECRESULT ECPluginFactory::CreateUserPlugin(UserPlugin **lppPlugin) {
         }
     }
 	try {
-		lpPlugin = m_getUserPluginInstance(&m_plugin_lock, m_shareddata);
+		lpPlugin = m_getUserPluginInstance(m_plugin_lock, m_shareddata);
 		lpPlugin->InitPlugin();
 	}
 	catch (exception &e) {

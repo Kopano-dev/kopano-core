@@ -32,7 +32,6 @@
 #include <stdexcept>
 #include <iostream>
 #include <sstream>
-#include <pthread.h>
 #include <kopano/ECPluginSharedData.h>
 
 /**
@@ -128,7 +127,7 @@ public:
 	 *					The singleton shared plugin data.
 	 * @throw std::exception
 	 */
-	UserPlugin(pthread_mutex_t *pluginlock, ECPluginSharedData *shareddata) :
+	UserPlugin(std::mutex &pluginlock, ECPluginSharedData *shareddata) :
 		m_plugin_lock(pluginlock), m_config(NULL),
 		m_lpStatsCollector(shareddata->GetStatsCollector()),
 		m_bHosted(shareddata->IsHosted()),
@@ -417,10 +416,7 @@ public:
 	
 
 protected:
-	/**
-	 * Pointer to pthread mutex
-	 */
-	pthread_mutex_t *m_plugin_lock;
+	std::mutex &m_plugin_lock;
 
 	/**
 	 * Pointer to local configuration manager.

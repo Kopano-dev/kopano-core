@@ -19,6 +19,7 @@
 #ifndef LDAPUSERPLUGIN_H
 #define LDAPUSERPLUGIN_H
 
+#include <mutex>
 #include <stdexcept>
 #include <string>
 #include <kopano/ECIConv.h>
@@ -66,7 +67,7 @@ public:
 	 * infinite, instead it'd be better to use ldap_search instead of
 	 * ldap_search_s.
 	 */
-	LDAPUserPlugin(pthread_mutex_t *pluginlock, ECPluginSharedData *shareddata);
+	LDAPUserPlugin(std::mutex &, ECPluginSharedData *shareddata);
 	virtual ~LDAPUserPlugin();
 
     /**
@@ -880,7 +881,7 @@ private:
 };
 
 extern "C" {
-	extern UserPlugin* getUserPluginInstance(pthread_mutex_t*, ECPluginSharedData*);
+	extern UserPlugin *getUserPluginInstance(std::mutex &, ECPluginSharedData*);
 	extern void deleteUserPluginInstance(UserPlugin*);
 	extern int getUserPluginVersion();
 }

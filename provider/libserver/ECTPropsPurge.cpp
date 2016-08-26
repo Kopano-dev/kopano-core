@@ -16,10 +16,8 @@
  */
 
 #include <kopano/platform.h>
-
+#include <kopano/lockhelper.hpp>
 #include <kopano/stringutil.h>
-
-#include <kopano/threadutil.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ECConfig.h>
 #include "ECSession.h"
@@ -34,9 +32,6 @@ extern ECStatsCollector*     g_lpStatsCollector;
 
 ECTPropsPurge::ECTPropsPurge(ECConfig *lpConfig, ECDatabaseFactory *lpDatabaseFactory)
 {
-    pthread_mutex_init(&m_hMutexExit, NULL);
-    pthread_cond_init(&m_hCondExit, NULL);
-    
     m_lpConfig = lpConfig;
     m_lpDatabaseFactory = lpDatabaseFactory;
     m_bExit = false;
@@ -49,17 +44,13 @@ ECTPropsPurge::ECTPropsPurge(ECConfig *lpConfig, ECDatabaseFactory *lpDatabaseFa
 ECTPropsPurge::~ECTPropsPurge()
 {
 	// Signal thread to exit
-	pthread_mutex_lock(&m_hMutexExit);
+	ulock_normal l_exit(m_hMutexExit);
 	m_bExit = true;
-	pthread_cond_signal(&m_hCondExit);
-	pthread_mutex_unlock(&m_hMutexExit);
+	m_hCondExit.notify_all();
+	l_exit.unlock();
 	
 	// Wait for the thread to exit
 	pthread_join(m_hThread, NULL);
-	
-	// Cleanup
-    pthread_mutex_destroy(&m_hMutexExit);
-    pthread_cond_destroy(&m_hCondExit);
 }
 
 /**
@@ -92,7 +83,6 @@ ECRESULT ECTPropsPurge::PurgeThread()
 {
     ECRESULT er = erSuccess;
     ECDatabase *lpDatabase = NULL;
-	struct timespec deadline = {0};
     
     while(1) {
     	// Run in a loop constantly checking our deferred update table
@@ -108,13 +98,13 @@ ECRESULT ECTPropsPurge::PurgeThread()
 
 		// Wait a while before repolling the count, unless we are requested to exit        
         {
-            scoped_lock lock(m_hMutexExit);
+			ulock_normal l_exit(m_hMutexExit);
             
-            if(m_bExit) break;
-            clock_gettime(CLOCK_REALTIME, &deadline);
-            deadline.tv_sec += 10;
-            pthread_cond_timedwait(&m_hCondExit, &m_hMutexExit, &deadline);
-            if(m_bExit) break;
+			if (m_bExit)
+				break;
+			m_hCondExit.wait_for(l_exit, std::chrono::seconds(10));
+			if (m_bExit)
+				break;
         }
         
         PurgeOverflowDeferred(lpDatabase); // Ignore error, just retry

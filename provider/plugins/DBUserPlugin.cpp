@@ -16,7 +16,6 @@
  */
 
 #include <kopano/platform.h>
-
 #include <iostream>
 #include <string>
 #include <stdexcept>
@@ -24,6 +23,7 @@
 
 #include <cerrno>
 #include <cassert>
+#include <mutex>
 #include <kopano/EMSAbTag.h>
 #include <kopano/ECConfig.h>
 #include <kopano/ECDefs.h>
@@ -39,9 +39,12 @@ using namespace std;
 #include <kopano/ecversion.h>
 
 extern "C" {
-	UserPlugin* getUserPluginInstance(pthread_mutex_t *pluginlock, ECPluginSharedData *shareddata) {
-		return new DBUserPlugin(pluginlock, shareddata);
-	}
+
+UserPlugin *getUserPluginInstance(std::mutex &pluginlock,
+    ECPluginSharedData *shareddata)
+{
+	return new DBUserPlugin(pluginlock, shareddata);
+}
 
 	void deleteUserPluginInstance(UserPlugin *up) {
 		delete up;
@@ -52,8 +55,9 @@ extern "C" {
 	}
 }
 
-DBUserPlugin::DBUserPlugin(pthread_mutex_t *pluginlock, ECPluginSharedData *shareddata)
-	: DBPlugin(pluginlock, shareddata)
+DBUserPlugin::DBUserPlugin(std::mutex &pluginlock,
+    ECPluginSharedData *shareddata) :
+	DBPlugin(pluginlock, shareddata)
 {
 	if (m_bDistributed)
 		throw notsupported("Distributed Kopano not supported when using the Database Plugin");

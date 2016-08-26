@@ -22,6 +22,7 @@
 #include <stdexcept>
 #include <algorithm>
 #include <map>
+#include <mutex>
 #include <set>
 #include <list>
 
@@ -32,6 +33,7 @@
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ECPluginSharedData.h>
+#include <kopano/lockhelper.hpp>
 #include "ECStatsCollector.h"
 #include <kopano/stringutil.h>
 
@@ -49,9 +51,12 @@ using namespace std;
 #endif
 
 extern "C" {
-	UserPlugin* getUserPluginInstance(pthread_mutex_t *pluginlock, ECPluginSharedData *shareddata) {
-		return new LDAPUserPlugin(pluginlock, shareddata);
-	}
+
+UserPlugin *getUserPluginInstance(std::mutex &pluginlock,
+    ECPluginSharedData *shareddata)
+{
+	return new LDAPUserPlugin(pluginlock, shareddata);
+}
 
 	void deleteUserPluginInstance(UserPlugin *up) {
 		delete up;
@@ -239,7 +244,7 @@ private:
 
 std::unique_ptr<LDAPCache> LDAPUserPlugin::m_lpCache(new LDAPCache());
 
-LDAPUserPlugin::LDAPUserPlugin(pthread_mutex_t *pluginlock,
+LDAPUserPlugin::LDAPUserPlugin(std::mutex &pluginlock,
     ECPluginSharedData *shareddata) :
 	UserPlugin(pluginlock, shareddata), m_ldap(NULL), m_iconv(NULL),
 	m_iconvrev(NULL), ldapServerIndex(0)
@@ -453,9 +458,9 @@ LDAP *LDAPUserPlugin::ConnectLDAP(const char *bind_dn, const char *bind_pw) {
 		const int version = LDAP_VERSION3;
 		std::string currentServer = ldap_servers.at(ldapServerIndex);
 
-		pthread_mutex_lock(m_plugin_lock);
+		ulock_normal biglock(m_plugin_lock);
 		rc = ldap_initialize(&ld, currentServer.c_str());
-		pthread_mutex_unlock(m_plugin_lock);
+		biglock.unlock();
 
 		if (rc != LDAP_SUCCESS) {
 			m_lpStatsCollector->Increment(SCN_LDAP_CONNECT_FAILED);

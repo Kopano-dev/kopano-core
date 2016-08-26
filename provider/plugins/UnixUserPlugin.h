@@ -20,6 +20,7 @@
 #define UNIXUSERPLUGIN_H
 
 #include <memory>
+#include <mutex>
 #include <stdexcept>
 #include <string>
 #include <kopano/ECIConv.h>
@@ -55,7 +56,7 @@ public:
 	 * @throw runtime_error When configuration file could not be loaded
 	 * @throw notsupported When multi-server or multi-company support is enabled.
 	 */
-	UnixUserPlugin(pthread_mutex_t *pluginlock, ECPluginSharedData *lpSharedData);
+	UnixUserPlugin(std::mutex &, ECPluginSharedData *lpSharedData);
 	virtual ~UnixUserPlugin();
 
     /**
@@ -477,7 +478,7 @@ private:
 };
 
 extern "C" {
-	extern UserPlugin* getUserPluginInstance(pthread_mutex_t*, ECPluginSharedData*);
+	extern UserPlugin *getUserPluginInstance(std::mutex &, ECPluginSharedData*);
 	extern void deleteUserPluginInstance(UserPlugin*);
 	extern int getUserPluginVersion();
 }

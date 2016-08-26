@@ -21,6 +21,7 @@
 
 #include "plugin.h"
 #include <memory>
+#include <mutex>
 #include <stdexcept>
 #include <string>
 
@@ -129,7 +130,7 @@ public:
 	 *					The singleton shared plugin data.
 	 * @throw std::exception
 	 */
-	DBPlugin(pthread_mutex_t *pluginlock, ECPluginSharedData *shareddata);
+	DBPlugin(std::mutex &, ECPluginSharedData *shareddata);
 	virtual ~DBPlugin();
 
 	/**
