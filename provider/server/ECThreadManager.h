@@ -19,8 +19,11 @@
 #define ECTHREADMANAGER_H
 
 #include <kopano/zcdefs.h>
+#include <condition_variable>
+#include <mutex>
 #include <queue>
 #include <set>
+#include <pthread.h>
 
 #include <kopano/ECLogger.h>
 #include <kopano/ECConfig.h>
@@ -118,7 +121,7 @@ public:
     ECRESULT NotifyIdle(ECWorkerThread *, bool *lpfStop);
     
 private:
-    pthread_mutex_t 			m_mutexThreads;
+	std::mutex m_mutexThreads;
     std::list<ECWorkerThread *> m_lstThreads;
 	ECPriorityWorkerThread *	m_lpPrioWorker;
     ECLogger *					m_lpLogger;
@@ -148,8 +151,8 @@ private:
     ECThreadManager*	m_lpThreadManager;
     pthread_t			m_thread;
     bool				m_bExit;
-    pthread_mutex_t		m_mutexExit;
-    pthread_cond_t		m_condExit;
+	std::mutex m_mutexExit;
+	std::condition_variable m_condExit;
 };
 
 /*
@@ -203,18 +206,18 @@ protected:
     ECConfig *				m_lpConfig;
     ECThreadManager *		m_lpThreadManager;
 
-    pthread_mutex_t 		m_mutexItems;
-    std::queue<WORKITEM *> 	m_queueItems;
-    pthread_cond_t			m_condItems;
-    std::queue<WORKITEM *> 	m_queuePrioItems;
-    pthread_cond_t			m_condPrioItems;
+	std::mutex m_mutexItems;
+	std::queue<WORKITEM *> m_queueItems;
+	std::condition_variable m_condItems;
+	std::queue<WORKITEM *> m_queuePrioItems;
+	std::condition_variable m_condPrioItems;
 
-    std::map<int, ACTIVESOCKET>	m_setSockets;
-    std::map<int, struct soap *>	m_setListenSockets;
-    pthread_mutex_t			m_mutexSockets;
-    bool					m_bExit;
-    pthread_mutex_t			m_mutexIdle;
-    unsigned int			m_ulIdle;
+	std::map<int, ACTIVESOCKET> m_setSockets;
+	std::map<int, struct soap *> m_setListenSockets;
+	std::mutex m_mutexSockets;
+	bool m_bExit;
+	std::mutex m_mutexIdle;
+	unsigned int m_ulIdle;
 	CREATEPIPESOCKETCALLBACK m_lpCreatePipeSocketCallback;
 	void *					m_lpCreatePipeSocketParam;
 
