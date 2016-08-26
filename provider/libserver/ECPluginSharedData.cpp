@@ -18,10 +18,11 @@
 #include <kopano/platform.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ECPluginSharedData.h>
+#include <kopano/lockhelper.hpp>
 
 ECPluginSharedData *ECPluginSharedData::m_lpSingleton = NULL;
-pthread_mutex_t ECPluginSharedData::m_SingletonLock = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t ECPluginSharedData::m_CreateConfigLock = PTHREAD_MUTEX_INITIALIZER;
+std::mutex ECPluginSharedData::m_SingletonLock;
+std::mutex ECPluginSharedData::m_CreateConfigLock;
 
 ECPluginSharedData::ECPluginSharedData(ECConfig *lpParent,
     ECStatsCollector *lpStatsCollector, bool bHosted, bool bDistributed)
@@ -57,37 +58,33 @@ void ECPluginSharedData::GetSingleton(ECPluginSharedData **lppSingleton,
     ECConfig *lpParent, ECStatsCollector *lpStatsCollector, bool bHosted,
     bool bDistributed)
 {
-	pthread_mutex_lock(&m_SingletonLock);
+	scoped_lock lock(m_SingletonLock);
 
 	if (!m_lpSingleton)
 		m_lpSingleton = new ECPluginSharedData(lpParent, lpStatsCollector, bHosted, bDistributed);
 	++m_lpSingleton->m_ulRefCount;
 	*lppSingleton = m_lpSingleton;
-
-	pthread_mutex_unlock(&m_SingletonLock);
 }
 
 void ECPluginSharedData::AddRef()
 {
-	pthread_mutex_lock(&m_SingletonLock);
+	scoped_lock lock(m_SingletonLock);
 	++m_ulRefCount;
-	pthread_mutex_unlock(&m_SingletonLock);
 }
 
 void ECPluginSharedData::Release()
 {
-	pthread_mutex_lock(&m_SingletonLock);
+	scoped_lock lock(m_SingletonLock);
 	if (!--m_ulRefCount) {
 		delete m_lpSingleton;
 		m_lpSingleton = NULL;
 	}
-	pthread_mutex_unlock(&m_SingletonLock);
 }
 
 ECConfig *ECPluginSharedData::CreateConfig(const configsetting_t *lpDefaults,
     const char *const *lpszDirectives)
 {
-	pthread_mutex_lock(&m_CreateConfigLock);
+	scoped_lock lock(m_CreateConfigLock);
 
 	if (!m_lpConfig)
 	{
@@ -130,9 +127,6 @@ ECConfig *ECPluginSharedData::CreateConfig(const configsetting_t *lpDefaults,
 			}
 		}
 	}
-
-	pthread_mutex_unlock(&m_CreateConfigLock);
-
 	return m_lpConfig;
 }
 

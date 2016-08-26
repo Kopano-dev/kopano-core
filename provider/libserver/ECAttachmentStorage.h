@@ -21,6 +21,7 @@
 #include <kopano/zcdefs.h>
 #include "ECDatabase.h"
 #include <list>
+#include <mutex>
 #include <set>
 #include <string>
 #include <dirent.h>
@@ -91,7 +92,7 @@ protected:
 	bool m_bFileCompression;
 	std::string m_CompressionLevel;
 	ULONG m_ulRef;
-	pthread_mutex_t m_refcnt_lock;
+	std::mutex m_refcnt_lock;
 };
 
 class ECDatabaseAttachment _zcp_final : public ECAttachmentStorage {
