@@ -1811,6 +1811,25 @@ class Store(object):
     def permission(self, member, create=False):
         return _permission(self, member, create)
 
+    def favorites(self):
+        """Returns a list of favorite folders """
+
+        table = self.common_views.mapiobj.GetContentsTable(MAPI_ASSOCIATED)
+        table.SetColumns([PR_MESSAGE_CLASS, PR_SUBJECT, PR_WLINK_ENTRYID, PR_WLINK_FLAGS, PR_WLINK_ORDINAL, PR_WLINK_STORE_ENTRYID, PR_WLINK_TYPE], 0)
+        table.Restrict(SPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS, SPropValue(PR_MESSAGE_CLASS, "IPM.Microsoft.WunderBar.Link")), TBL_BATCH)
+        
+        for row in table.QueryRows(-1, 0):
+            entryid = bin2hex(row[2].Value)
+            store_entryid = bin2hex(row[5].Value)
+
+            if store_entryid != self.entryid: # XXX: Handle favorites from public stores
+                continue
+
+            try:
+                yield self.folder(entryid=bin2hex(row[2].Value))
+            except MAPIErrorNotFound:
+                pass
+
     def __eq__(self, s): # XXX check same server?
         if isinstance(s, Store):
             return self.guid == s.guid
