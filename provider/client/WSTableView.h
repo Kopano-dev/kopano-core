@@ -23,13 +23,12 @@
 #define WSTABLEVIEW_H
 
 #include <kopano/ECUnknown.h>
+#include <mutex>
 #include "kcore.hpp"
 
 #include <kopano/kcodes.h>
 #include <mapi.h>
 #include <mapispi.h>
-
-#include <pthread.h>
 #include "soapKCmdProxy.h"
 class WSTransport;
 
@@ -38,7 +37,7 @@ typedef HRESULT (*RELOADCALLBACK)(void *lpParam);
 class WSTableView : public ECUnknown
 {
 protected:
-	WSTableView(ULONG ulType, ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId, WSTransport *lpTransport, const char *szClassName = NULL);
+	WSTableView(ULONG ulType, ULONG ulFlags, KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, WSTransport *, const char *szClassName = NULL);
 	virtual ~WSTableView();
 
 public:
@@ -78,7 +77,7 @@ protected:
 
 protected:
 	KCmd*		lpCmd;
-	pthread_mutex_t *lpDataLock;
+	std::recursive_mutex &lpDataLock;
 	ECSESSIONID		ecSessionId;
 	entryId			m_sEntryId;
 	void *			m_lpProvider;

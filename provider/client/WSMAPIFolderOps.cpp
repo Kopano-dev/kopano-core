@@ -38,10 +38,12 @@
  * The WSMAPIFolderOps for use with the WebServices transport
  */
 
-WSMAPIFolderOps::WSMAPIFolderOps(KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId, WSTransport *lpTransport) : ECUnknown("WSMAPIFolderOps")
+WSMAPIFolderOps::WSMAPIFolderOps(KCmd *lpCmd, std::recursive_mutex &data_lock,
+    ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId,
+    WSTransport *lpTransport) :
+	ECUnknown("WSMAPIFolderOps"), lpDataLock(data_lock)
 {
 	this->lpCmd = lpCmd;
-	this->lpDataLock = lpDataLock;
 	this->ecSessionId = ecSessionId;
 	this->m_lpTransport = lpTransport;
 
@@ -57,7 +59,9 @@ WSMAPIFolderOps::~WSMAPIFolderOps()
 	FreeEntryId(&m_sEntryId, false);
 }
 
-HRESULT WSMAPIFolderOps::Create(KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId, WSTransport *lpTransport, WSMAPIFolderOps **lppFolderOps)
+HRESULT WSMAPIFolderOps::Create(KCmd *lpCmd, std::recursive_mutex &lpDataLock,
+    ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId,
+    WSTransport *lpTransport, WSMAPIFolderOps **lppFolderOps)
 {
 	HRESULT hr = hrSuccess;
 	WSMAPIFolderOps *lpFolderOps = NULL;
@@ -524,7 +528,7 @@ exit:
 //FIXME: one lock/unlock function
 HRESULT WSMAPIFolderOps::LockSoap()
 {
-	pthread_mutex_lock(lpDataLock);
+	lpDataLock.lock();
 	return erSuccess;
 }
 
@@ -535,8 +539,7 @@ HRESULT WSMAPIFolderOps::UnLockSoap()
 		soap_destroy(lpCmd->soap);
 		soap_end(lpCmd->soap);
 	}
-
-	pthread_mutex_unlock(lpDataLock);
+	lpDataLock.unlock();
 	return erSuccess;
 }
 

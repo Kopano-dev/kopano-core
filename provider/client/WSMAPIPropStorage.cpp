@@ -37,13 +37,17 @@
 	if(hr != hrSuccess) \
 		goto exit;
 
-WSMAPIPropStorage::WSMAPIPropStorage(ULONG cbParentEntryId, LPENTRYID lpParentEntryId, ULONG cbEntryId, LPENTRYID lpEntryId, ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, unsigned int ulServerCapabilities, WSTransport *lpTransport) : ECUnknown("WSMAPIPropStorage")
+WSMAPIPropStorage::WSMAPIPropStorage(ULONG cbParentEntryId,
+    LPENTRYID lpParentEntryId, ULONG cbEntryId, LPENTRYID lpEntryId,
+    ULONG ulFlags, KCmd *lpCmd, std::recursive_mutex &data_lock,
+    ECSESSIONID ecSessionId, unsigned int ulServerCapabilities,
+    WSTransport *lpTransport) :
+	ECUnknown("WSMAPIPropStorage"), lpDataLock(data_lock)
 {
 	CopyMAPIEntryIdToSOAPEntryId(cbEntryId, lpEntryId, &m_sEntryId);
 	CopyMAPIEntryIdToSOAPEntryId(cbParentEntryId, lpParentEntryId, &m_sParentEntryId);
 
 	this->lpCmd = lpCmd;
-	this->lpDataLock = lpDataLock;
 	this->ecSessionId = ecSessionId;
 	this->ulServerCapabilities = ulServerCapabilities;
 	this->m_ulSyncId = 0;
@@ -82,7 +86,11 @@ HRESULT WSMAPIPropStorage::QueryInterface(REFIID refiid, void **lppInterface)
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
-HRESULT WSMAPIPropStorage::Create(ULONG cbParentEntryId, LPENTRYID lpParentEntryId, ULONG cbEntryId, LPENTRYID lpEntryId, ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, unsigned int ulServerCapabilities, WSTransport *lpTransport, WSMAPIPropStorage **lppPropStorage)
+HRESULT WSMAPIPropStorage::Create(ULONG cbParentEntryId,
+    LPENTRYID lpParentEntryId, ULONG cbEntryId, LPENTRYID lpEntryId,
+    ULONG ulFlags, KCmd *lpCmd, std::recursive_mutex &lpDataLock,
+    ECSESSIONID ecSessionId, unsigned int ulServerCapabilities,
+    WSTransport *lpTransport, WSMAPIPropStorage **lppPropStorage)
 {
 	HRESULT hr = hrSuccess;
 	WSMAPIPropStorage *lpStorage = NULL;
@@ -621,7 +629,7 @@ IECPropStorage* WSMAPIPropStorage::GetServerStorage() {
 //FIXME: one lock/unlock function
 HRESULT WSMAPIPropStorage::LockSoap()
 {
-	pthread_mutex_lock(lpDataLock);
+	lpDataLock.lock();
 	return erSuccess;
 }
 
@@ -632,8 +640,7 @@ HRESULT WSMAPIPropStorage::UnLockSoap()
 		soap_destroy(lpCmd->soap);
 		soap_end(lpCmd->soap);
 	}
-
-	pthread_mutex_unlock(lpDataLock);
+	lpDataLock.unlock();
 	return erSuccess;
 }
 

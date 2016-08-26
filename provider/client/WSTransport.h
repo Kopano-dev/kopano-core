@@ -23,8 +23,7 @@
 #include <mapispi.h>
 
 #include <map>
-#include <pthread.h>
-
+#include <mutex>
 #include "kcore.hpp"
 #include "ECMAPIProp.h"
 #include "soapKCmdProxy.h"
@@ -313,11 +312,11 @@ private:
 
 protected:
 	KCmd*		m_lpCmd;
-	pthread_mutex_t m_hDataLock;
+	std::recursive_mutex m_hDataLock;
 	ECSESSIONID		m_ecSessionId;
 	ECSESSIONGROUPID m_ecSessionGroupId;
 	SESSIONRELOADLIST m_mapSessionReload;
-	pthread_mutex_t m_mutexSessionReload;
+	std::recursive_mutex m_mutexSessionReload;
 	unsigned int	m_ulReloadId;
 	unsigned int	m_ulServerCapabilities;
 	unsigned long long m_llFlags;	// license flags
@@ -327,7 +326,7 @@ protected:
 	GUID			m_sServerGuid;
 
 private:
-	pthread_mutex_t					m_ResolveResultCacheMutex;
+	std::recursive_mutex m_ResolveResultCacheMutex;
 	ECCache<ECMapResolveResults>	m_ResolveResultCache;
 	bool m_has_session;
 

@@ -21,7 +21,11 @@
 #include "SOAPUtils.h"
 #include "WSUtil.h"
 
-WSStoreTableView::WSStoreTableView(ULONG ulType, ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport) : WSTableView(ulType, ulFlags, lpCmd, lpDataLock, ecSessionId, cbEntryId, lpEntryId, lpTransport, "WSStoreTableView")
+WSStoreTableView::WSStoreTableView(ULONG ulType, ULONG ulFlags, KCmd *lpCmd,
+    std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId,
+    LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport) :
+	WSTableView(ulType, ulFlags, lpCmd, lpDataLock, ecSessionId, cbEntryId,
+	    lpEntryId, lpTransport, "WSStoreTableView")
 {
 
 	// OK, this is ugly, but the static row-wrapper routines need this object
@@ -35,7 +39,10 @@ WSStoreTableView::WSStoreTableView(ULONG ulType, ULONG ulFlags, KCmd *lpCmd, pth
 	this->m_ulTableType = TABLETYPE_MS;
 }
 
-HRESULT WSStoreTableView::Create(ULONG ulType, ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport, WSTableView **lppTableView)
+HRESULT WSStoreTableView::Create(ULONG ulType, ULONG ulFlags, KCmd *lpCmd,
+    std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId,
+    LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport,
+    WSTableView **lppTableView)
 {
 	HRESULT hr = hrSuccess;
 	WSStoreTableView *lpTableView = NULL; 
@@ -57,7 +64,11 @@ HRESULT WSStoreTableView::QueryInterface(REFIID refiid, void **lppInterface)
 }
 
 // WSTableMultiStore view
-WSTableMultiStore::WSTableMultiStore(ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport) : WSStoreTableView(MAPI_MESSAGE, ulFlags, lpCmd, lpDataLock, ecSessionId, cbEntryId, lpEntryId, lpMsgStore, lpTransport)
+WSTableMultiStore::WSTableMultiStore(ULONG ulFlags, KCmd *lpCmd,
+    std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId,
+    LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport) :
+	WSStoreTableView(MAPI_MESSAGE, ulFlags, lpCmd, lpDataLock, ecSessionId,
+	    cbEntryId, lpEntryId, lpMsgStore, lpTransport)
 {
     memset(&m_sEntryList, 0, sizeof(m_sEntryList));
 
@@ -70,7 +81,10 @@ WSTableMultiStore::~WSTableMultiStore()
 	FreeEntryList(&m_sEntryList, false);
 }
 
-HRESULT WSTableMultiStore::Create(ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport, WSTableMultiStore **lppTableMultiStore)
+HRESULT WSTableMultiStore::Create(ULONG ulFlags, KCmd *lpCmd,
+    std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId,
+    LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport,
+    WSTableMultiStore **lppTableMultiStore)
 {
 	HRESULT hr = hrSuccess;
 	WSTableMultiStore *lpTableMultiStore = NULL; 
@@ -134,15 +148,21 @@ HRESULT WSTableMultiStore::HrSetEntryIDs(LPENTRYLIST lpMsgList)
   Miscellaneous tables are not really store tables, but the is the same, so it inherits from the store table
   Supported tables are the stats tables, and userstores table.
 */
-WSTableMisc::WSTableMisc(ULONG ulTableType, ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport)
+WSTableMisc::WSTableMisc(ULONG ulTableType, ULONG ulFlags, KCmd *lpCmd,
+    std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId,
+    LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport) :
 	// is MAPI_STATUS even valid here?
-	: WSStoreTableView(MAPI_STATUS, ulFlags, lpCmd, lpDataLock, ecSessionId, cbEntryId, lpEntryId, lpMsgStore, lpTransport)
+	WSStoreTableView(MAPI_STATUS, ulFlags, lpCmd, lpDataLock, ecSessionId,
+	    cbEntryId, lpEntryId, lpMsgStore, lpTransport)
 {
 	m_ulTableType = ulTableType;
 	ulTableId = 0;
 }
 
-HRESULT WSTableMisc::Create(ULONG ulTableType, ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport, WSTableMisc **lppTableMisc)
+HRESULT WSTableMisc::Create(ULONG ulTableType, ULONG ulFlags, KCmd *lpCmd,
+    std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId,
+    LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport,
+    WSTableMisc **lppTableMisc)
 {
 	HRESULT hr = hrSuccess;
 	WSTableMisc *lpTableMisc = NULL;
@@ -186,12 +206,18 @@ exit:
 }
 
 // WSTableMailBox view
-WSTableMailBox::WSTableMailBox(ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ECMsgStore *lpMsgStore, WSTransport *lpTransport) : WSStoreTableView(MAPI_STORE, ulFlags, lpCmd, lpDataLock, ecSessionId, 0, NULL, lpMsgStore, lpTransport)
+WSTableMailBox::WSTableMailBox(ULONG ulFlags, KCmd *lpCmd,
+    std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId,
+    ECMsgStore *lpMsgStore, WSTransport *lpTransport) :
+	WSStoreTableView(MAPI_STORE, ulFlags, lpCmd, lpDataLock, ecSessionId,
+	    0, NULL, lpMsgStore, lpTransport)
 {
 	m_ulTableType = TABLETYPE_MAILBOX;
 }
 
-HRESULT WSTableMailBox::Create(ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ECMsgStore *lpMsgStore, WSTransport *lpTransport, WSTableMailBox **lppTable)
+HRESULT WSTableMailBox::Create(ULONG ulFlags, KCmd *lpCmd,
+    std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId,
+    ECMsgStore *lpMsgStore, WSTransport *lpTransport, WSTableMailBox **lppTable)
 {
 	HRESULT hr = hrSuccess;
 	WSTableMailBox *lpTable = NULL; 

@@ -18,16 +18,17 @@
 #ifndef WSSTORETABLEVIEW_H
 #define WSSTORETABLEVIEW_H
 
+#include <mutex>
 #include "WSTableView.h"
 
 class WSStoreTableView : public WSTableView
 {
 protected:
-    WSStoreTableView(ULONG ulType, ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport);
+	WSStoreTableView(ULONG ulType, ULONG ulFlags, KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, ECMsgStore *, WSTransport *);
 	virtual ~WSStoreTableView(void) {}
 
 public:
-	static HRESULT Create(ULONG ulType, ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport, WSTableView **lppTableView);
+	static HRESULT Create(ULONG ulType, ULONG ulFlags, KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, ECMsgStore *, WSTransport *, WSTableView **);
 	virtual	HRESULT	QueryInterface(REFIID refiid, void **lppInterface);
 
 };
@@ -35,10 +36,10 @@ public:
 class WSTableOutGoingQueue : public WSStoreTableView
 {
 protected:
-    WSTableOutGoingQueue(KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport);
+	WSTableOutGoingQueue(KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, ECMsgStore *, WSTransport *);
 
 public:
-	static HRESULT Create(KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport, WSTableOutGoingQueue **lppTableOutGoingQueue);
+	static HRESULT Create(KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, ECMsgStore *, WSTransport *, WSTableOutGoingQueue **);
 	virtual	HRESULT	QueryInterface(REFIID refiid, void **lppInterface);
 
 public:
@@ -48,12 +49,11 @@ public:
 class WSTableMultiStore : public WSStoreTableView
 {
 protected:
-    WSTableMultiStore(ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport);
+	WSTableMultiStore(ULONG ulFlags, KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, ECMsgStore *, WSTransport *);
     virtual ~WSTableMultiStore();
 
 public:
-	static HRESULT Create(ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport, WSTableMultiStore **lppTableMultiStore);
-
+	static HRESULT Create(ULONG ulFlags, KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, ECMsgStore *, WSTransport *, WSTableMultiStore **);
 	virtual HRESULT HrOpenTable();
 
 	virtual HRESULT HrSetEntryIDs(LPENTRYLIST lpMsgList);
@@ -64,11 +64,10 @@ private:
 /* not really store tables, but the code is the same.. */
 class WSTableMisc _kc_final : public WSStoreTableView {
 protected:
-	WSTableMisc(ULONG ulTableType, ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport);
+	WSTableMisc(ULONG ulTableType, ULONG ulFlags, KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, ECMsgStore *, WSTransport *);
 
 public:
-	static HRESULT Create(ULONG ulTableType, ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport, WSTableMisc **lppTableMisc);
-
+	static HRESULT Create(ULONG ulTableType, ULONG ulFlags, KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, ECMsgStore *, WSTransport *, WSTableMisc **);
 	virtual HRESULT HrOpenTable();
 
 private:
@@ -80,9 +79,9 @@ private:
  */
 class WSTableMailBox _kc_final : public WSStoreTableView {
 protected:
-	WSTableMailBox(ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ECMsgStore *lpMsgStore, WSTransport *lpTransport);
+	WSTableMailBox(ULONG ulFlags, KCmd *, std::recursive_mutex &, ECSESSIONID, ECMsgStore *, WSTransport *);
 
 public:
-	static HRESULT Create(ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ECMsgStore *lpMsgStore, WSTransport *lpTransport, WSTableMailBox **lppTableMisc);
+	static HRESULT Create(ULONG ulFlags, KCmd *, std::recursive_mutex &, ECSESSIONID, ECMsgStore *, WSTransport *, WSTableMailBox **);
 };
 #endif
