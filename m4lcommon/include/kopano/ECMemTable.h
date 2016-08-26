@@ -21,9 +21,9 @@
 #include <kopano/zcdefs.h>
 #include <vector>
 #include <map>
+#include <mutex>
 #include <mapitags.h>
 #include <mapidefs.h>
-#include <pthread.h>
 
 #include <kopano/ECKeyTable.h>
 #include <kopano/ECUnknown.h>
@@ -95,8 +95,7 @@ protected:
 	std::vector<ECMemTableView *>			lstViews;
 	LPSPropTagArray							lpsColumns;
 	ULONG									ulRowPropTag;
-
-	pthread_mutex_t							m_hDataMutex;
+	std::recursive_mutex m_hDataMutex;
 
 	friend class ECMemTableView;
 };

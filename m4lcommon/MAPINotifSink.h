@@ -19,11 +19,12 @@
 #define MAPINOTIFSINK_H
 
 #include <kopano/zcdefs.h>
+#include <condition_variable>
 #include <list>
+#include <mutex>
 #include <mapi.h>
 #include <mapix.h>
 #include <mapidefs.h>
-#include <pthread.h>
 #include <kopano/ECUnknown.h>
 
 class MAPINotifSink _zcp_final : public IMAPIAdviseSink {
@@ -42,8 +43,8 @@ private:
     MAPINotifSink();
     virtual ~MAPINotifSink();
 
-    pthread_mutex_t m_hMutex;
-    pthread_cond_t 	m_hCond;
+	std::mutex m_hMutex;
+	std::condition_variable m_hCond;
     bool			m_bExit;
     std::list<NOTIFICATION *> m_lstNotifs;
     

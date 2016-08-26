@@ -19,8 +19,7 @@
 #define __M4L_MAPISPI_IMPL_H
 
 #include <map>
-#include <pthread.h>
-
+#include <mutex>
 #include "m4l.common.h"
 #include "m4l.mapisvc.h"
 #include <mapispi.h>
@@ -81,8 +80,7 @@ private:
 	LPMAPISESSION		session;
 	LPMAPIUID			lpsProviderUID;
 	SVCService*			service;
-
-	pthread_mutex_t		m_advises_mutex;
+	std::mutex m_advises_mutex;
 	M4LSUPPORTADVISES	m_advises;
 	ULONG				m_connections;
 

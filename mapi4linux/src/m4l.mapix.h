@@ -19,8 +19,7 @@
 #define __M4L_MAPIX_IMPL_H
 
 #include <kopano/zcdefs.h>
-#include <pthread.h>
-
+#include <mutex>
 #include "m4l.common.h"
 #include "m4l.mapidefs.h"
 #include "m4l.mapisvc.h"
@@ -62,13 +61,12 @@ class M4LProfAdmin _zcp_final : public M4LUnknown, public IProfAdmin {
 private:
     // variables
     list<profEntry*> profiles;
-    pthread_mutex_t m_mutexProfiles;
+	std::recursive_mutex m_mutexProfiles;
 
     // functions
     list<profEntry*>::iterator findProfile(LPTSTR lpszProfileName);
 
 public:
-    M4LProfAdmin();
     virtual ~M4LProfAdmin();
 
     virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError);
@@ -98,8 +96,7 @@ private:
     list<serviceEntry*> services;
 
 	M4LProfSect	*profilesection;  // Global Profile Section
-
-	pthread_mutex_t m_mutexserviceadmin;
+	std::recursive_mutex m_mutexserviceadmin;
 
     // functions
     serviceEntry* findServiceAdmin(LPTSTR lpszServiceName);
@@ -183,7 +180,7 @@ private:
 	/* @todo need a status row per provider */
 	ULONG m_cValuesStatus;
 	LPSPropValue m_lpPropsStatus;
-    pthread_mutex_t m_mutexStatusRow;
+	std::mutex m_mutexStatusRow;
 
 public:
 	HRESULT __stdcall setStatusRow(ULONG cValues, LPSPropValue lpProps);

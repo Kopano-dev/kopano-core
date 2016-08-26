@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/lockhelper.hpp>
 #include "m4l.mapispi.h"
 #include "m4l.mapiutil.h"
 #include "m4l.mapix.h"
@@ -73,8 +74,6 @@ HRESULT M4LMAPIGetSession::QueryInterface(REFIID refiid, void **lpvoid) {
 M4LMAPISupport::M4LMAPISupport(LPMAPISESSION new_session, LPMAPIUID lpUid, SVCService* lpService) {
 	session = new_session;
 	service = lpService;
-
-	pthread_mutex_init(&m_advises_mutex, NULL);
 	m_connections = 0;
 	if(lpUid) {
     	this->lpsProviderUID = new MAPIUID;
@@ -88,7 +87,6 @@ M4LMAPISupport::~M4LMAPISupport() {
 	delete lpsProviderUID;
 	for (const auto &i : m_advises)
 		MAPIFreeBuffer(i.second.lpKey);
-	pthread_mutex_destroy(&m_advises_mutex);
 }
 
 HRESULT M4LMAPISupport::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR * lppMAPIError) {
@@ -113,6 +111,7 @@ HRESULT M4LMAPISupport::Subscribe(LPNOTIFKEY lpKey, ULONG ulEventMask, ULONG ulF
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPISupport::Subscribe", "");
 	HRESULT hr = hrSuccess;
 	LPNOTIFKEY lpNewKey = NULL;
+	ulock_normal l_adv(m_advises_mutex, std::defer_lock_t());
 
 	/* Copy key (this should prevent deletion of the key while it is still in the list */
 	hr = MAPIAllocateBuffer(CbNewNOTIFKEY(sizeof(GUID)), (void **)&lpNewKey);
@@ -120,15 +119,11 @@ HRESULT M4LMAPISupport::Subscribe(LPNOTIFKEY lpKey, ULONG ulEventMask, ULONG ulF
 		goto exit;
 
 	memcpy(lpNewKey, lpKey, sizeof(*lpKey));
-
-	pthread_mutex_lock(&m_advises_mutex);
-
+	l_adv.lock();
 	++m_connections;
 	m_advises.insert(M4LSUPPORTADVISES::value_type(m_connections, M4LSUPPORTADVISE(lpNewKey, ulEventMask, ulFlags, lpAdviseSink)));
 	*lpulConnection = m_connections;
-
-	pthread_mutex_unlock(&m_advises_mutex);
-
+	l_adv.unlock();
 exit:
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPISupport::Subscribe", "0x%08x", hr);
     return hr;
@@ -138,8 +133,7 @@ HRESULT M4LMAPISupport::Unsubscribe(ULONG ulConnection) {
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPISupport::Unsubscribe", "");
 	HRESULT hr = hrSuccess;
 	M4LSUPPORTADVISES::iterator i;
-
-	pthread_mutex_lock(&m_advises_mutex);
+	scoped_lock l_adv(m_advises_mutex);
 
 	i = m_advises.find(ulConnection);
 	if (i != m_advises.cend()) {
@@ -147,8 +141,6 @@ HRESULT M4LMAPISupport::Unsubscribe(ULONG ulConnection) {
 		m_advises.erase(i);
 	} else
 		hr = MAPI_E_NOT_FOUND;
-
-	pthread_mutex_unlock(&m_advises_mutex);
 
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPISupport::Unsubscribe", "0x%08x", hr);
     return hr;
@@ -158,20 +150,17 @@ HRESULT M4LMAPISupport::Notify(LPNOTIFKEY lpKey, ULONG cNotification, LPNOTIFICA
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPISupport::Notify", "");
 	HRESULT hr = hrSuccess;
 	LPMAPIADVISESINK lpAdviseSink = NULL;
-
-	pthread_mutex_lock(&m_advises_mutex);
+	ulock_normal l_adv(m_advises_mutex);
 
 	auto iter = find_if(m_advises.cbegin(), m_advises.cend(), findKey(lpKey));
 	if (iter == m_advises.cend()) {
-		pthread_mutex_unlock(&m_advises_mutex);
+		l_adv.unlock();
 		/* Should this be reported as error? */
 		goto exit;
 	}
 	lpAdviseSink = iter->second.lpAdviseSink;
 	lpAdviseSink->AddRef();
-
-	pthread_mutex_unlock(&m_advises_mutex);
-
+	l_adv.unlock();
 	hr = lpAdviseSink->OnNotify(cNotification, lpNotifications);
 
 exit:

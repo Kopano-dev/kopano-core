@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/lockhelper.hpp>
 #include "m4l.common.h"
 #include <mapicode.h>
 #include <mapidefs.h>
@@ -23,36 +24,20 @@
 
 M4LUnknown::M4LUnknown() {
     ref = 0;
-    pthread_mutex_init(&mutex, NULL);
-}
-
-M4LUnknown::~M4LUnknown() {
-    pthread_mutex_destroy(&mutex);
 }
 
 ULONG M4LUnknown::AddRef() {
-    ULONG ret;
-    
-    pthread_mutex_lock(&mutex);
-    ret = ++ref;
-    pthread_mutex_unlock(&mutex);
-    
-    return ret;
+	scoped_lock lock(mutex);
+	return ++ref;
 }
 
 ULONG M4LUnknown::Release() {
-    ULONG nRef;
-    
-    pthread_mutex_lock(&mutex);
-	--this->ref;
-    nRef = ref;
-
-    pthread_mutex_unlock(&mutex);
-
-    if(ref == 0)
+	ulock_normal lock(mutex);
+	ULONG nRef = --this->ref;
+	lock.unlock();
+	if (ref == 0)
 		delete this;
-
-    return nRef;
+	return nRef;
 }
 
 HRESULT M4LUnknown::QueryInterface(REFIID refiid, void **lpvoid) {
