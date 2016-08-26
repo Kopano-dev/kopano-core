@@ -16,7 +16,7 @@
  */
 
 #include <kopano/platform.h>
-
+#include <kopano/lockhelper.hpp>
 #include <mapidefs.h>
 #include <mapicode.h>
 #include <mapiguid.h>
@@ -29,7 +29,6 @@ ECUnknown::ECUnknown(const char *szClassName)
 	this->m_cRef = 0;
 	this->szClassName = szClassName;
 	this->lpParent = NULL;
-	pthread_mutex_init(&mutex, NULL);
 }
 
 ECUnknown::~ECUnknown() {
@@ -37,36 +36,23 @@ ECUnknown::~ECUnknown() {
 		ASSERT(FALSE);	// apparently, we're being destructed with delete() while
 						// a parent was set up, so we should be deleted via Suicide() !
 	}
-
-	pthread_mutex_destroy(&mutex);
 }
 
 ULONG ECUnknown::AddRef() {
-	ULONG cRet;
-
-	pthread_mutex_lock(&mutex);
-	cRet = ++this->m_cRef;
-	pthread_mutex_unlock(&mutex);
-
-	return cRet;
+	scoped_lock lock(mutex);
+	return ++this->m_cRef;
 }
 
 ULONG ECUnknown::Release() {
-	ULONG nRef;
 	bool bLastRef = false;
 	
-	pthread_mutex_lock(&mutex);
-	--this->m_cRef;
-
-	nRef = m_cRef;
-
+	ulock_normal locker(mutex);
+	ULONG nRef = --this->m_cRef;
 	if((int)m_cRef == -1)
 		ASSERT(FALSE);
 		
 	bLastRef = this->lstChildren.empty() && this->m_cRef == 0;
-	
-	pthread_mutex_unlock(&mutex);
-	
+	locker.unlock();
 	if(bLastRef)
 		this->Suicide();
 
@@ -84,40 +70,29 @@ HRESULT ECUnknown::QueryInterface(REFIID refiid, void **lppInterface) {
 
 HRESULT ECUnknown::AddChild(ECUnknown *lpChild) {
 	
-	pthread_mutex_lock(&mutex);
-	
+	scoped_lock locker(mutex);
 	if(lpChild) {
 		this->lstChildren.push_back(lpChild);
 		lpChild->SetParent(this);
 	}
-
-	pthread_mutex_unlock(&mutex);
-
 	return hrSuccess;
 }
 
 HRESULT ECUnknown::RemoveChild(ECUnknown *lpChild) {
 	std::list<ECUnknown *>::iterator iterChild;
 	bool bLastRef;
-	
-	pthread_mutex_lock(&mutex);
+	ulock_normal locker(mutex);
 
 	if (lpChild != NULL)
 		for (iterChild = lstChildren.begin(); iterChild != lstChildren.end(); ++iterChild)
 			if(*iterChild == lpChild)
 				break;
-
-	if(iterChild == lstChildren.end()) {
-		pthread_mutex_unlock(&mutex);
+	if (iterChild == lstChildren.end())
 		return MAPI_E_NOT_FOUND;
-	}
-
 	lstChildren.erase(iterChild);
 
 	bLastRef = this->lstChildren.empty() && this->m_cRef == 0;
-
-	pthread_mutex_unlock(&mutex);
-
+	locker.unlock();
 	if(bLastRef)
 		this->Suicide();
 

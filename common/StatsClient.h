@@ -20,6 +20,7 @@
 
 #include <kopano/zcdefs.h>
 #include <map>
+#include <mutex>
 #include <string>
 #include <ctime>
 #include <sys/socket.h>
@@ -39,7 +40,7 @@ private:
 	pthread_t countsSubmitThread;
 public:
 	volatile bool terminate; // older compilers don't do atomic_bool
-	pthread_mutex_t mapsLock;
+	std::mutex mapsLock;
 	std::map<std::string, double> countsMapDouble;
 	std::map<std::string, int64_t> countsMapInt64;
 

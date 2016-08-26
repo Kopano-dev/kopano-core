@@ -15,7 +15,9 @@
  *
  */
 
+#include <chrono>
 #include <kopano/platform.h>
+#include <kopano/lockhelper.hpp>
 #include "ECFifoBuffer.h"
 
 ECFifoBuffer::ECFifoBuffer(size_type ulMaxSize)
@@ -23,17 +25,6 @@ ECFifoBuffer::ECFifoBuffer(size_type ulMaxSize)
 	, m_bReaderClosed(false)
 	, m_bWriterClosed(false)
 {
-	pthread_mutex_init(&m_hMutex, NULL);
-	pthread_cond_init(&m_hCondNotFull, NULL);
-	pthread_cond_init(&m_hCondNotEmpty, NULL);
-	pthread_cond_init(&m_hCondFlushed, NULL);
-}
-
-ECFifoBuffer::~ECFifoBuffer()
-{
-	pthread_mutex_destroy(&m_hMutex);
-	pthread_cond_destroy(&m_hCondNotFull);
-	pthread_cond_destroy(&m_hCondNotEmpty);
 }
 
 /**
@@ -73,8 +64,7 @@ ECRESULT ECFifoBuffer::Write(const void *lpBuf, size_type cbBuf, unsigned int ul
 	if (ulTimeoutMs > 0)
 		deadline = GetDeadline(ulTimeoutMs);
 
-	pthread_mutex_lock(&m_hMutex);
-
+	ulock_normal locker(m_hMutex);
 	while (cbWritten < cbBuf) {
 		while (IsFull()) {
 		    if (IsClosed(cfRead)) {
@@ -83,12 +73,14 @@ ECRESULT ECFifoBuffer::Write(const void *lpBuf, size_type cbBuf, unsigned int ul
 			}
 
 			if (ulTimeoutMs > 0) {
-				if (pthread_cond_timedwait(&m_hCondNotFull, &m_hMutex, &deadline) == ETIMEDOUT) {
+				if (m_hCondNotFull.wait_for(locker,
+				    std::chrono::milliseconds(ulTimeoutMs)) ==
+				    std::cv_status::timeout) {
 					er = KCERR_TIMEOUT;
 					goto exit;
 				}
 			} else
-				pthread_cond_wait(&m_hCondNotFull, &m_hMutex);
+				m_hCondNotFull.wait(locker);
 		}
 
 		const size_type cbNow = std::min(cbBuf - cbWritten, m_ulMaxSize - m_storage.size());
@@ -98,13 +90,12 @@ ECRESULT ECFifoBuffer::Write(const void *lpBuf, size_type cbBuf, unsigned int ul
 			er = KCERR_NOT_ENOUGH_MEMORY;
 			goto exit;
 		}
-		pthread_cond_signal(&m_hCondNotEmpty);
+		m_hCondNotEmpty.notify_one();
 		cbWritten += cbNow;
 	}
 
 exit:
-	pthread_mutex_unlock(&m_hMutex);
-
+	locker.unlock();
 	if (lpcbWritten && (er == erSuccess || er == KCERR_TIMEOUT))
 		*lpcbWritten = cbWritten;
 
@@ -146,37 +137,35 @@ ECRESULT ECFifoBuffer::Read(void *lpBuf, size_type cbBuf, unsigned int ulTimeout
 	if (ulTimeoutMs > 0)
 		deadline = GetDeadline(ulTimeoutMs);
 	
-	pthread_mutex_lock(&m_hMutex);
-
+	ulock_normal locker(m_hMutex);
 	while (cbRead < cbBuf) {
 		while (IsEmpty()) {
 			if (IsClosed(cfWrite)) 
 				goto exit;
 
 			if (ulTimeoutMs > 0) {
-				if (pthread_cond_timedwait(&m_hCondNotEmpty, &m_hMutex, &deadline) == ETIMEDOUT) {
+				if (m_hCondNotEmpty.wait_for(locker,
+				    std::chrono::milliseconds(ulTimeoutMs)) ==
+				    std::cv_status::timeout) {
 					er = KCERR_TIMEOUT;
 					goto exit;
 				}
 			} else
-				pthread_cond_wait(&m_hCondNotEmpty, &m_hMutex);
+				m_hCondNotEmpty.wait(locker);
 		}
 
 		const size_type cbNow = std::min(cbBuf - cbRead, m_storage.size());
 		auto iEndNow = m_storage.begin() + cbNow;
 		std::copy(m_storage.begin(), iEndNow, lpData + cbRead);
 		m_storage.erase(m_storage.begin(), iEndNow);
-		pthread_cond_signal(&m_hCondNotFull);
+		m_hCondNotFull.notify_one();
 		cbRead += cbNow;
 	}
 	
-	if(IsEmpty() && IsClosed(cfWrite)) {
-		pthread_cond_signal(&m_hCondFlushed);
-	}
-
+	if (IsEmpty() && IsClosed(cfWrite))
+		m_hCondFlushed.notify_one();
 exit:
-	pthread_mutex_unlock(&m_hMutex);
-
+	locker.unlock();
 	if (lpcbRead && (er == erSuccess || er == KCERR_TIMEOUT))
 		*lpcbRead = cbRead;
 
@@ -192,20 +181,17 @@ exit:
  */
 ECRESULT ECFifoBuffer::Close(close_flags flags)
 {
-	pthread_mutex_lock(&m_hMutex);
+	scoped_lock locker(m_hMutex);
 	if (flags & cfRead) {
 		m_bReaderClosed = true;
-		pthread_cond_signal(&m_hCondNotFull);
-
+		m_hCondNotFull.notify_one();
 		if(IsEmpty())
-			pthread_cond_signal(&m_hCondFlushed);
+			m_hCondFlushed.notify_one();
 	}
 	if (flags & cfWrite) {
 		m_bWriterClosed = true;
-		pthread_cond_signal(&m_hCondNotEmpty);
+		m_hCondNotEmpty.notify_one();
 	}
-
-	pthread_mutex_unlock(&m_hMutex);
 	return erSuccess;
 }
 
@@ -222,10 +208,8 @@ ECRESULT ECFifoBuffer::Flush()
 	if (!IsClosed(cfWrite))
 		return KCERR_NETWORK_ERROR;
 
-	pthread_mutex_lock(&m_hMutex);
-	while (!(IsClosed(cfWrite) || IsEmpty()))
-		pthread_cond_wait(&m_hCondFlushed, &m_hMutex);
-	pthread_mutex_unlock(&m_hMutex);
-	
+	ulock_normal locker(m_hMutex);
+	m_hCondFlushed.wait(locker,
+		[this](void) { return IsClosed(cfWrite) || IsEmpty(); });
 	return erSuccess;
 }

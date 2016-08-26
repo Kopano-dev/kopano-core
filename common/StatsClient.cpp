@@ -22,7 +22,7 @@
 #include <cstring>
 #include <ctime>
 #include <unistd.h>
-
+#include <kopano/lockhelper.hpp>
 #include "StatsClient.h"
 #include "TmpPath.h"
 
@@ -34,14 +34,13 @@ static void submitThreadDo(void *p)
 
 	time_t now = time(NULL);
 
-	pthread_mutex_lock(&psc -> mapsLock);
+	scoped_lock l_map(psc->mapsLock);
 	for (const auto &it : psc->countsMapDouble)
 		psc->submit(it.first, now, it.second);
 	psc->countsMapDouble.clear();
 	for (const auto &it : psc->countsMapInt64)
 		psc->submit(it.first, now, it.second);
 	psc->countsMapInt64.clear();
-	pthread_mutex_unlock(&psc -> mapsLock);
 }
 
 static void *submitThread(void *p)
@@ -68,7 +67,6 @@ static void *submitThread(void *p)
 StatsClient::StatsClient(ECLogger *l) :
 	fd(-1), thread_running(false), logger(l), terminate(false)
 {
-	pthread_mutex_init(&mapsLock, NULL);
 }
 
 int StatsClient::startup(const std::string &collectorSocket)
@@ -141,8 +139,6 @@ StatsClient::~StatsClient() {
 		void *dummy = NULL;
 		pthread_join(countsSubmitThread, &dummy);
 	}
-	pthread_mutex_destroy(&mapsLock);
-
 	close(fd);
 
 	logger -> Log(EC_LOGLEVEL_DEBUG, "StatsClient terminated");
@@ -186,28 +182,22 @@ void StatsClient::countInc(const std::string & key, const std::string & key_sub)
 
 void StatsClient::countAdd(const std::string & key, const std::string & key_sub, const double n) {
 	std::string kp = key + " " + key_sub;
-
-	pthread_mutex_lock(&mapsLock);
+	scoped_lock l_map(mapsLock);
 
 	auto doubleIterator = countsMapDouble.find(kp);
 	if (doubleIterator == countsMapDouble.cend())
 		countsMapDouble.insert(std::pair<std::string, double>(kp, n));
 	else
 		doubleIterator -> second += n;
-
-	pthread_mutex_unlock(&mapsLock);
 }
 
 void StatsClient::countAdd(const std::string & key, const std::string & key_sub, const int64_t n) {
 	std::string kp = key + " " + key_sub;
-
-	pthread_mutex_lock(&mapsLock);
+	scoped_lock l_map(mapsLock);
 
 	auto int64Iterator = countsMapInt64.find(kp);
 	if (int64Iterator == countsMapInt64.cend())
 		countsMapInt64.insert(std::pair<std::string, int64_t>(kp, n));
 	else
 		int64Iterator -> second += n;
-
-	pthread_mutex_unlock(&mapsLock);
 }

@@ -20,9 +20,9 @@
 
 #include <kopano/zcdefs.h>
 #include <kopano/IECUnknown.h>
-#include <pthread.h>
 
 #include <list>
+#include <mutex>
 #include <mapi.h>
 
 /**
@@ -90,9 +90,7 @@ protected:
 	ULONG					m_cRef;
 	const char *szClassName;
 	std::list<ECUnknown *>	lstChildren; 
-	pthread_mutex_t mutex;
-
+	std::mutex mutex;
 };
-
 
 #endif // ECUNKNOWN_H

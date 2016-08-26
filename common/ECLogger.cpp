@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <kopano/ECLogger.h>
+#include <kopano/lockhelper.hpp>
 #include <cassert>
 #include <climits>
 #include <clocale>
@@ -58,7 +59,6 @@ static ECLogger *ec_log_target = &ec_log_fallback_target;
 
 ECLogger::ECLogger(int max_ll) {
 	max_loglevel = max_ll;
-	pthread_mutex_init(&m_mutex, NULL);
 	// get system locale for time, NULL is returned if locale was not found.
 	timelocale = createlocale(LC_TIME, "C");
 	datalocale = createUTF8Locale();
@@ -75,7 +75,6 @@ ECLogger::~ECLogger() {
 
 	if (datalocale)
 		freelocale(datalocale);
-	pthread_mutex_destroy(&m_mutex);
 }
 
 void ECLogger::SetLoglevel(unsigned int max_ll) {
@@ -133,17 +132,15 @@ void ECLogger::SetLogprefix(logprefix lp) {
 
 unsigned int ECLogger::AddRef(void)
 {
-	pthread_mutex_lock(&m_mutex);
+	scoped_lock locker(m_mutex);
 	assert(m_ulRef < UINT_MAX);
-	unsigned int ret = ++m_ulRef;
-	pthread_mutex_unlock(&m_mutex);
-	return ret;
+	return ++m_ulRef;
 }
 
 unsigned ECLogger::Release() {
-	pthread_mutex_lock(&m_mutex);
+	ulock_normal locker(m_mutex);
 	unsigned int ulRef = --m_ulRef;
-	pthread_mutex_unlock(&m_mutex);
+	locker.unlock();
 	if (ulRef == 0)
 		delete this;
 	return ulRef;
