@@ -57,8 +57,7 @@
 
 #include <list>
 #include <map>
-
-#include <pthread.h>
+#include <mutex>
 
 #define BOOKMARK_LIMIT		100
 
@@ -197,7 +196,7 @@ private:
 	void		Next();
 	void		Prev();
 
-	pthread_mutex_t			mLock;			// Locks the entire b-tree
+	std::recursive_mutex mLock; /* Locks the entire b-tree */
 	ECTableRow				*lpRoot;		// The root node, which is infinitely 'low', ie all nodes are such that *node > *root
 	ECTableRow				*lpCurrent;		// The current node
 	ECTableRowMap			mapRow;

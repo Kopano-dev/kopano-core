@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <kopano/ECScheduler.h>
+#include <kopano/lockhelper.hpp>
 #include <cerrno>
 #include <sys/time.h> /* gettimeofday */
 
@@ -27,19 +28,6 @@ ECScheduler::ECScheduler(ECLogger *lpLogger)
 	m_bExit = FALSE;
 	m_lpLogger = lpLogger;
 	m_lpLogger->AddRef();
-
-	// Create a mutex with no initial owner.
-	pthread_mutexattr_t mattr;
-	pthread_mutexattr_init(&mattr);
-	pthread_mutexattr_settype(&mattr, PTHREAD_MUTEX_RECURSIVE);
-
-	pthread_mutex_init(&m_hSchedulerMutex, &mattr);
-	pthread_mutex_init(&m_hExitMutex, NULL);
-	pthread_mutexattr_destroy(&mattr);
-
-	//Terminate Event
-
-	pthread_cond_init(&m_hExitSignal, NULL);
 	//Create Scheduler thread
 	pthread_create(&m_hMainThread, NULL, ScheduleThread, (void*)this);
 	set_thread_name(m_hMainThread, "ECScheduler:main");
@@ -47,41 +35,24 @@ ECScheduler::ECScheduler(ECLogger *lpLogger)
 
 ECScheduler::~ECScheduler(void)
 {
-	pthread_mutex_lock( &m_hExitMutex);
+	ulock_normal l_exit(m_hExitMutex);
 	m_bExit = TRUE;
-	pthread_cond_signal(&m_hExitSignal);
-
-	pthread_mutex_unlock(&m_hExitMutex);
+	m_hExitSignal.notify_one();
+	l_exit.unlock();
 	pthread_join(m_hMainThread, NULL);
 
-	// Lock whole Scheduler
-	//pthread_mutex_lock(&m_hSchedulerMutex);
-	
 	//Clean up something
 	m_lpLogger->Release();
-
-	// Unlock whole Scheduler
-	//pthread_mutex_unlock(&m_hSchedulerMutex);
-
-	// Remove pthread things
-	pthread_mutex_destroy(&m_hSchedulerMutex);
-	pthread_mutex_destroy(&m_hExitMutex);
-	pthread_cond_destroy(&m_hExitSignal);
 }
 
 HRESULT ECScheduler::AddSchedule(eSchedulerType eType, unsigned int ulBeginCycle, void* (*lpFunction)(void*), void* lpData)
 {
-	HRESULT	hr = S_OK;
-	ECSCHEDULE	sECSchedule;
+	scoped_rlock l_sched(m_hSchedulerMutex);
 
-	// Lock whole Scheduler
-	pthread_mutex_lock(&m_hSchedulerMutex);
+	if (lpFunction == NULL)
+		return E_INVALIDARG;
 
-	if(lpFunction == NULL) {
-		hr = E_INVALIDARG;
-		goto exit;
-	}
-
+	ECSCHEDULE sECSchedule;
 	sECSchedule.eType = eType;
 	sECSchedule.ulBeginCycle = ulBeginCycle;
 	sECSchedule.lpFunction = lpFunction;
@@ -89,12 +60,7 @@ HRESULT ECScheduler::AddSchedule(eSchedulerType eType, unsigned int ulBeginCycle
 	sECSchedule.tLastRunTime = 0;
 
 	m_listScheduler.push_back(sECSchedule);
-
-exit:
-	// Unlock whole Scheduler
-	pthread_mutex_unlock(&m_hSchedulerMutex);
-
-	return hr;
+	return S_OK;
 }
 
 bool ECScheduler::hasExpired(time_t ttime, ECSCHEDULE *lpSchedule)
@@ -151,10 +117,7 @@ void* ECScheduler::ScheduleThread(void* lpTmpScheduler)
 	ECScheduleList::iterator	iterScheduleList;
 
 	ECScheduler*		lpScheduler = (ECScheduler*)lpTmpScheduler;
-	int					lResult;
 	HRESULT*			lperThread = NULL;
-	struct timeval		now;
-	struct timespec		timeout;
 	pthread_t			hThread;
 
 	time_t				ttime;
@@ -165,25 +128,16 @@ void* ECScheduler::ScheduleThread(void* lpTmpScheduler)
 	while(TRUE)
 	{
 		// Wait for a terminate signal or return after a few minutes
-		pthread_mutex_lock(&lpScheduler->m_hExitMutex);
-		if(lpScheduler->m_bExit) {
-			pthread_mutex_unlock(&lpScheduler->m_hExitMutex);
+		ulock_normal l_exit(lpScheduler->m_hExitMutex);
+		if (lpScheduler->m_bExit)
 			break;
-		}
-
-		gettimeofday(&now,NULL); // null==timezone
-		timeout.tv_sec = now.tv_sec + SCHEDULER_POLL_FREQUENCY;
-		timeout.tv_nsec = now.tv_usec * 1000;
-
-		lResult = pthread_cond_timedwait(&lpScheduler->m_hExitSignal, &lpScheduler->m_hExitMutex, &timeout);
-		if (lResult != ETIMEDOUT) {
-			pthread_mutex_unlock(&lpScheduler->m_hExitMutex);
+		if (lpScheduler->m_hExitSignal.wait_for(l_exit, std::chrono::seconds(SCHEDULER_POLL_FREQUENCY)) ==
+		    std::cv_status::timeout)
 			break;
-		}
-		pthread_mutex_unlock(&lpScheduler->m_hExitMutex);
+		l_exit.unlock();
 
 		for (auto &sl : lpScheduler->m_listScheduler) {
-			pthread_mutex_lock(&lpScheduler->m_hSchedulerMutex);
+			ulock_rec l_sched(lpScheduler->m_hSchedulerMutex);
 
 			//TODO If load on server high, check only items with a high priority
 
@@ -212,15 +166,14 @@ void* ECScheduler::ScheduleThread(void* lpTmpScheduler)
 			}
 
  task_fail:
-			pthread_mutex_unlock(&lpScheduler->m_hSchedulerMutex);
-
+			l_sched.unlock();
 			// check for a exit signal
-			pthread_mutex_lock(&lpScheduler->m_hExitMutex);
+			l_exit.lock();
 			if(lpScheduler->m_bExit) {
-				pthread_mutex_unlock(&lpScheduler->m_hExitMutex);
+				l_exit.unlock();
 				break;
 			}
-			pthread_mutex_unlock(&lpScheduler->m_hExitMutex);
+			l_exit.unlock();
 		}
 	}
 
