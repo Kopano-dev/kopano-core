@@ -15,7 +15,9 @@
  *
  */
 
+#include <mutex>
 #include <kopano/platform.h>
+#include <kopano/lockhelper.hpp>
 #include <kopano/stringutil.h>
 
 // Damn windows header defines max which break C++ header files
@@ -97,10 +99,10 @@ bool ECSender::haveError() {
 	return ! error.empty();
 }
 
-pthread_mutex_t vmInitLock = PTHREAD_MUTEX_INITIALIZER;
+static std::mutex vmInitLock;
 static void InitializeVMime()
 {
-	pthread_mutex_lock(&vmInitLock);
+	scoped_lock l_vm(vmInitLock);
 	try {
 		vmime::platform::getHandler();
 	}
@@ -111,7 +113,6 @@ static void InitializeVMime()
 		// init our random engine for random message id generation
 		rand_init();
 	}
-	pthread_mutex_unlock(&vmInitLock);
 }
 
 static string generateRandomMessageId()

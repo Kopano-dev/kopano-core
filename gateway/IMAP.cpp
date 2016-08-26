@@ -34,6 +34,7 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/ECTags.h>
 #include <kopano/ECIConv.h>
+#include <kopano/lockhelper.hpp>
 #include <inetmapi/inetmapi.h>
 #include <kopano/mapiext.h>
 #include <vector>
@@ -110,14 +111,12 @@ IMAP::IMAP(const char *szServerPath, ECChannel *lpChannel, ECLogger *lpLogger,
 	m_lpTable = NULL;
 	m_ulErrors = 0;
 	bCurrentFolderReadOnly = false;
-	pthread_mutex_init(&m_mIdleLock, NULL);
 }
 
 IMAP::~IMAP() {
 	if (m_lpTable)
 		m_lpTable->Release();
 	CleanupObject();
-	pthread_mutex_destroy(&m_mIdleLock);
 }
 
 void IMAP::CleanupObject()
@@ -2625,12 +2624,9 @@ LONG __stdcall IMAPIdleAdviseCallback(void *lpContext, ULONG cNotif, LPNOTIFICAT
 	if (!lpIMAP)
 		return MAPI_E_CALL_FAILED;
 
-	pthread_mutex_lock(&lpIMAP->m_mIdleLock);
-
-	if (!lpIMAP->m_bIdleMode) {
-		pthread_mutex_unlock(&lpIMAP->m_mIdleLock);
+	scoped_lock l_idle(lpIMAP->m_mIdleLock);
+	if (!lpIMAP->m_bIdleMode)
 		return MAPI_E_CALL_FAILED;
-	}
 
 	for (ULONG i = 0; i < cNotif && !bReload; ++i) {
 		if (lpNotif[i].ulEventType != fnevTableModified)
@@ -2699,9 +2695,6 @@ LONG __stdcall IMAPIdleAdviseCallback(void *lpContext, ULONG cNotif, LPNOTIFICAT
 		lpIMAP->HrResponse(RESP_UNTAGGED, stringify(ulRecent) + " RECENT");
 		lpIMAP->HrResponse(RESP_UNTAGGED, stringify(lpIMAP->lstFolderMailEIDs.size()) + " EXISTS");
 	}
-
-	pthread_mutex_unlock(&lpIMAP->m_mIdleLock);
-
 	return S_OK;
 }
 
@@ -2723,6 +2716,7 @@ HRESULT IMAP::HrCmdIdle(const string &strTag) {
 	LPMAPIFOLDER lpFolder = NULL;
 	enum { EID, IKEY, IMAPID, MESSAGE_FLAGS, FLAG_STATUS, MSG_STATUS, LAST_VERB, NUM_COLS };
 	SizedSPropTagArray(NUM_COLS, spt) = { NUM_COLS, {PR_ENTRYID, PR_INSTANCE_KEY, PR_EC_IMAP_ID, PR_MESSAGE_FLAGS, PR_FLAG_STATUS, PR_MSG_STATUS, PR_LAST_VERB_EXECUTED} };
+	ulock_normal l_idle(m_mIdleLock, std::defer_lock_t());
 
 	// Outlook (express) IDLEs without selecting a folder.
 	// When sending an error from this command, Outlook loops on the IDLE command forever :(
@@ -2760,20 +2754,17 @@ HRESULT IMAP::HrCmdIdle(const string &strTag) {
 		goto exit;
 	}
 
-	pthread_mutex_lock(&m_mIdleLock);
-
+	l_idle.lock();
 	hr = m_lpIdleTable->Advise(fnevTableModified, m_lpIdleAdviseSink, &m_ulIdleAdviseConnection);
 	if (hr != hrSuccess) {
 		hr2 = HrResponse(RESP_CONTINUE, "Can't advise on current selected folder");
-		pthread_mutex_unlock(&m_mIdleLock);
+		l_idle.unlock();
 		goto exit;
 	}
 
 	// \o/ we really succeeded this time
 	hr = HrResponse(RESP_CONTINUE, "waiting for notifications");
-
-	pthread_mutex_unlock(&m_mIdleLock);
-
+	l_idle.unlock();
 exit:
 	if (hr != hrSuccess || hr2 != hrSuccess) {
 		if (m_ulIdleAdviseConnection && m_lpIdleTable) {
@@ -2813,8 +2804,7 @@ HRESULT IMAP::HrDone(bool bSendResponse) {
 	HRESULT hr = hrSuccess;
 
 	// TODO: maybe add sleep here, so thunderbird gets all notifications?
-
-	pthread_mutex_lock(&m_mIdleLock);
+	scoped_lock l_idle(m_mIdleLock);
 
 	if (bSendResponse) {
 		if (m_bIdleMode)
@@ -2839,9 +2829,6 @@ HRESULT IMAP::HrDone(bool bSendResponse) {
 	if (m_lpIdleTable)
 		m_lpIdleTable->Release();
 	m_lpIdleTable = NULL;
-
-	pthread_mutex_unlock(&m_mIdleLock);
-
 	return hr;
 }
 

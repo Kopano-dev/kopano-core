@@ -18,6 +18,7 @@
 #ifndef IMAP_H
 #define IMAP_H
 
+#include <mutex>
 #include "ClientProto.h"
 
 #include <string>
@@ -273,7 +274,7 @@ private:
 	ULONG m_ulIdleAdviseConnection;
 	string m_strIdleTag;
 	IMAPITable *m_lpIdleTable;
-	pthread_mutex_t m_mIdleLock;
+	std::mutex m_mIdleLock;
 	ULONG m_ulLastUid;
 	ULONG m_ulErrors;
 
