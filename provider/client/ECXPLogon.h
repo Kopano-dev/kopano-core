@@ -19,9 +19,10 @@
 #define ECXPLOGON_H
 
 #include <kopano/zcdefs.h>
+#include <condition_variable>
+#include <mutex>
 #include <kopano/ECUnknown.h>
 #include "IMAPIOffline.h"
-#include <pthread.h>
 #include <string>
 
 /*typedef struct _MAILBOX_INFO {
@@ -99,8 +100,8 @@ private:
 	ULONG			m_ulTransportStatus;
 	ECXPProvider	*m_lpXPProvider;
 	bool			m_bCancel;
-	pthread_cond_t	m_hExitSignal;
-	pthread_mutex_t	m_hExitMutex;
+	std::condition_variable m_hExitSignal;
+	std::mutex m_hExitMutex;
 	ULONG			m_bOffline;
 };
 

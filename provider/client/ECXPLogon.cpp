@@ -14,6 +14,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <kopano/platform.h>
+#include <chrono>
+#include <condition_variable>
+#include <kopano/lockhelper.hpp>
 #include <mapi.h>
 #include <mapispi.h>
 #include <mapiutil.h>
@@ -65,10 +68,6 @@ ECXPLogon::ECXPLogon(const std::string &strProfileName, BOOL bOffline, ECXPProvi
 	m_lpMAPISup->AddRef();
 	m_bCancel = false;
 	m_bOffline = bOffline;
-
-	pthread_mutex_init(&m_hExitMutex, NULL);
-	pthread_cond_init(&m_hExitSignal, NULL);
-
 }
 
 ECXPLogon::~ECXPLogon()
@@ -78,10 +77,6 @@ ECXPLogon::~ECXPLogon()
 
 	if(m_lpMAPISup)
 		m_lpMAPISup->Release();
-
-	pthread_cond_destroy(&m_hExitSignal);
-	pthread_mutex_destroy(&m_hExitMutex);
-
 }
 
 HRESULT ECXPLogon::Create(const std::string &strProfileName, BOOL bOffline, ECXPProvider *lpXPProvider, LPMAPISUP lpMAPISup, ECXPLogon **lppECXPLogon)
@@ -172,10 +167,9 @@ HRESULT ECXPLogon::TransportNotify(ULONG * lpulFlags, LPVOID * lppvData)
 		m_ulTransportStatus |= STATUS_OUTBOUND_FLUSH;
 	}
 	if(*lpulFlags & NOTIFY_CANCEL_MESSAGE) {
-		pthread_mutex_lock(&m_hExitMutex);
+		scoped_lock lock(m_hExitMutex);
 		m_bCancel = true;
-		pthread_cond_signal(&m_hExitSignal);
-		pthread_mutex_unlock( &m_hExitMutex);
+		m_hExitSignal.notify_one();
 	}
 	if(*lpulFlags & NOTIFY_END_INBOUND) {
 		m_ulTransportStatus &= ~STATUS_INBOUND_ENABLED;
@@ -308,17 +302,13 @@ HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpu
 	ENTRYLIST sDelete;
 	IMsgStore *lpMsgStore = NULL;
 	ULONG ulType = 0;
-	ULONG ulValue;
-	
-	struct timespec sTimeOut;
-	struct timeval sNow;
 
 	SizedSPropTagArray(6, sptExcludeProps) = {6,{PR_SENTMAIL_ENTRYID, PR_SOURCE_KEY, PR_CHANGE_KEY, PR_PREDECESSOR_CHANGE_LIST, PR_ENTRYID, PR_SUBMIT_FLAGS}};
 
 	// Un-cancel
-	pthread_mutex_lock( &m_hExitMutex);
+	ulock_normal l_exit(m_hExitMutex);
 	m_bCancel = false;
-	pthread_mutex_unlock( &m_hExitMutex);
+	l_exit.unlock();
 
 	// Save some outgoing properties for the server
 	hr = SetOutgoingProps(lpMessage);
@@ -414,35 +404,28 @@ HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpu
 	sDelete.lpbin = &lpEntryID->Value.bin;
 
 	// Add the message to the master outgoing queue on the server
-
-	pthread_mutex_lock(&m_hExitMutex);
+	l_exit.lock();
 
 	hr = lpOnlineStore->Advise(lpEntryID->Value.bin.cb, (LPENTRYID)lpEntryID->Value.bin.lpb, fnevObjectDeleted, &this->m_xMAPIAdviseSink, &ulOnlineAdviseConnection);
 	if (hr != hrSuccess) {
 		lpSubmitFolder->DeleteMessages(&sDelete, 0, NULL, 0); //Delete message on the server
-		pthread_mutex_unlock(&m_hExitMutex);
+		l_exit.unlock();
 		goto exit;
 	}
 
 	hr = lpOnlineECMsgStore->lpTransport->HrSubmitMessage(lpEntryID->Value.bin.cb, (LPENTRYID)lpEntryID->Value.bin.lpb, EC_SUBMIT_MASTER | EC_SUBMIT_DOSENTMAIL);
 	if (hr != hrSuccess) {
 		lpSubmitFolder->DeleteMessages(&sDelete, 0, NULL, 0); //Delete message on the server
-		pthread_mutex_unlock(&m_hExitMutex);
+		l_exit.unlock();
 		goto exit;
 	}
-
-	gettimeofday(&sNow,NULL);
-	ulValue = 300; // Default wait for max 5 min
-	sTimeOut.tv_sec = sNow.tv_sec + ulValue;
-	sTimeOut.tv_nsec = sNow.tv_usec * 1000;
-	if(ETIMEDOUT == pthread_cond_timedwait(&m_hExitSignal, &m_hExitMutex, &sTimeOut)){
+	if (m_hExitSignal.wait_for(l_exit, std::chrono::minutes(5)) == std::cv_status::timeout)
 		m_bCancel = true;
-	}
 
 	lpOnlineStore->Unadvise(ulOnlineAdviseConnection);
 
 	if(m_bCancel){
-		pthread_mutex_unlock(&m_hExitMutex);
+		l_exit.unlock();
 		hr = MAPI_E_CANCEL;
 
 		lpOnlineECMsgStore->lpTransport->HrFinishedMessage(lpEntryID->Value.bin.cb, (LPENTRYID)lpEntryID->Value.bin.lpb, EC_SUBMIT_MASTER);
@@ -457,9 +440,7 @@ HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpu
 		
 		goto exit;
 	}
-
-	pthread_mutex_unlock(&m_hExitMutex);
-
+	l_exit.unlock();
 	if(lpulMsgRef)
 		*lpulMsgRef = rand_mt();
 
@@ -649,13 +630,11 @@ HRESULT ECXPLogon::FlushQueues(ULONG ulUIParam, ULONG cbTargetTransport, LPENTRY
 }
 
 ULONG ECXPLogon::OnNotify(ULONG cNotif, LPNOTIFICATION lpNotifs){
-	for (unsigned int i = 0; i < cNotif; ++i) {
+	for (unsigned int i = 0; i < cNotif; ++i)
 		if(lpNotifs[i].ulEventType == fnevObjectDeleted) {
-			pthread_mutex_lock(&m_hExitMutex);
-			pthread_cond_signal(&m_hExitSignal);
-			pthread_mutex_unlock(&m_hExitMutex);
+			scoped_lock lock(m_hExitMutex);
+			m_hExitSignal.notify_one();
 		}
-	}
 	return S_OK;
 }
 

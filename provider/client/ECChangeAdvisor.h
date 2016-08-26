@@ -19,11 +19,9 @@
 #define ECCHANGEADVISOR_H
 
 #include <kopano/zcdefs.h>
+#include <mutex>
 #include <mapidefs.h>
 #include <mapispi.h>
-
-#include <pthread.h>	
-
 #include <kopano/ECUnknown.h>
 #include <IECChangeAdvisor.h>
 #include "ECICS.h"
@@ -159,7 +157,7 @@ private:
 	ECMsgStore				*m_lpMsgStore;
 	IECChangeAdviseSink *m_lpChangeAdviseSink;
 	ULONG					m_ulFlags;
-	pthread_mutex_t			m_hConnectionLock;
+	std::recursive_mutex m_hConnectionLock;
 	ConnectionMap			m_mapConnections;
 	SyncStateMap			m_mapSyncStates;
 	ECLogger				*m_lpLogger;

@@ -18,10 +18,11 @@
 #ifndef ECSESSIONGROUPMANAGER_H
 #define ECSESSIONGROUPMANAGER_H
 
+#include <kopano/zcdefs.h>
 #include <algorithm>
 #include <list>
 #include <map>
-#include <pthread.h>
+#include <mutex>
 #include <string>
 
 #include "SessionGroupData.h"
@@ -30,22 +31,16 @@
 typedef std::map<ECSessionGroupInfo, ECSESSIONGROUPID> SESSIONGROUPIDMAP;
 typedef std::map<ECSessionGroupInfo, SessionGroupData*> SESSIONGROUPMAP;
 
-class ECSessionGroupManager
-{
+class ECSessionGroupManager _kc_final {
 private:
 	/*
 	 * Both maps must be protected under the same mutx: m_hMutex
 	 */
 	SESSIONGROUPIDMAP		m_mapSessionGroupIds;
 	SESSIONGROUPMAP			m_mapSessionGroups;
-
-	pthread_mutex_t			m_hMutex;
-	pthread_mutexattr_t		m_hMutexAttrib;
+	std::recursive_mutex m_hMutex;
 
 public:
-	ECSessionGroupManager(void);
-	~ECSessionGroupManager(void);
-
 	/* Gets the session id by connect parameters */
 	ECSESSIONGROUPID GetSessionGroupId(const sGlobalProfileProps &sProfileProps);
 
