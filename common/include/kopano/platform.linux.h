@@ -643,21 +643,6 @@ time_t GetProcessTime();
 #define GetTickCount() 0L
 
 #define TICKS_PER_SEC (sysconf(_SC_CLK_TCK))
-
-#if DEBUG_PTHREADS
-	#define pthread_mutex_lock(x) my_pthread_mutex_lock(__FILE__, __LINE__, x)
-	int my_pthread_mutex_lock(const char *file, unsigned int line, pthread_mutex_t *m);
-	
-	#define pthread_rwlock_rdlock(x) my_pthread_rwlock_rdlock(__FILE__, __LINE__, x)
-	int my_pthread_rwlock_rdlock(const char *file, unsigned int line, pthread_rwlock_t *m);
-	
-	#define pthread_rwlock_wrlock(x) my_pthread_rwlock_wrlock(__FILE__, __LINE__, x)
-	int my_pthread_rwlock_wrlock(const char *file, unsigned int line, pthread_rwlock_t *m);
-
-	std::string dump_pthread_locks();
-#endif
-
-
 #define localemask(_cat) (_cat ## _MASK)
 #define createlocale(_cat, _loc) newlocale(_cat ## _MASK, _loc, NULL)
 #define createlocale_real(_cat, _loc) newlocale(_cat, _loc, NULL)

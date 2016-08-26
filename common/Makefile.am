@@ -24,8 +24,7 @@ CLEANFILES = ${noinst_DATA}
 noinst_HEADERS = \
 	ConsoleTable.h ECACL.h ECCache.h ECConfigImpl.h \
 	ECFifoBuffer.h ECSerializer.h StatsClient.h \
-	SymmetricCrypt.h TimeUtil.h TmpPath.h \
-	fileutil.h utf8.h pthreadutil.h \
+	SymmetricCrypt.h TimeUtil.h TmpPath.h fileutil.h utf8.h \
 	charset/utf32string.h charset/localeutil.h \
 	ustringutil/utfutil.h \
 	utf8/checked.h utf8/core.h utf8/unchecked.h

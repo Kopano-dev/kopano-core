@@ -20,7 +20,6 @@
 #include "ECArchiveAwareMessage.h"
 #include <kopano/ECGuid.h>
 #include <kopano/mapi_ptr.h>
-#include <kopano/threadutil.h>
 
 ECArchiveAwareMsgStore::ECArchiveAwareMsgStore(char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags, BOOL fIsSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore)
 : ECMsgStore(lpszProfname, lpSupport, lpTransport, fModify, ulProfileFlags, fIsSpooler, fIsDefaultStore, bOfflineStore)

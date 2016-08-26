@@ -7,7 +7,7 @@ nobase_pkginclude_HEADERS = \
 	Trace.h UnixUtil.h kcodes.h \
 	base64.h codepage.h ecversion.h lockhelper.hpp md5.h \
 	my_getopt.h platform.h platform.linux.h \
-	stringutil.h threadutil.h ustringutil.h zcdefs.h zconfig.h \
+	stringutil.h ustringutil.h zcdefs.h zconfig.h \
 	charset/convert.h charset/convstring.h \
 	charset/traits.h charset/utf8string.h charset/utf16string.h
 
