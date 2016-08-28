@@ -24,10 +24,6 @@
 
 #include <cerrno>
 #include <cassert>
-#ifdef HAVE_MALLOC_H
-#include <malloc.h>
-#endif
-
 #include <kopano/EMSAbTag.h>
 #include <kopano/ECConfig.h>
 #include <kopano/ECDefs.h>

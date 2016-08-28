@@ -34,10 +34,6 @@
 #include <shadow.h>
 #include <cerrno>
 #endif
-#ifdef HAVE_MALLOC_H
-#include <malloc.h>
-#endif
-
 #include <kopano/EMSAbTag.h>
 #include <kopano/ECConfig.h>
 #include <kopano/ECDefs.h>

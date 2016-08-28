@@ -28,10 +28,6 @@
 #include <cerrno>
 #include <cassert>
 #include <sys/time.h> /* gettimeofday */
-#ifdef HAVE_MALLOC_H
-#include <malloc.h>
-#endif
-
 #include <kopano/EMSAbTag.h>
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
