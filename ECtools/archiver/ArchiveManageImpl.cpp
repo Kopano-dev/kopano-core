@@ -53,8 +53,6 @@ inline UserEntry ArchiveManageImpl::MakeUserEntry(const std::string &strUser) {
  *					Pointer to an ECLogger object to which message will be logged.
  * @param[out]	lpptrArchiveManager
  *					Pointer to an ArchiveManagePtr that will be assigned the address of the returned object.
- *
- * @return HRESULT
  */
 HRESULT ArchiveManageImpl::Create(ArchiverSessionPtr ptrSession, ECConfig *lpConfig, const TCHAR *lpszUser, ECLogger *lpLogger, ArchiveManagePtr *lpptrArchiveManage)
 {
@@ -92,8 +90,6 @@ HRESULT ArchiveManage::Create(LPMAPISESSION lpSession, ECLogger *lpLogger, const
 }
 
 /**
- * Constructor
- *
  * @param[in]	ptrSession
  *					Pointer to a Session object.
  * @param[in]	lpConfig
@@ -121,9 +117,6 @@ ArchiveManageImpl::ArchiveManageImpl(ArchiverSessionPtr ptrSession, ECConfig *lp
 	}
 }
 
-/**
- *  Destructor
- */
 ArchiveManageImpl::~ArchiveManageImpl()
 {
 	m_lpLogger->Release();
@@ -157,7 +150,6 @@ HRESULT ArchiveManageImpl::Init()
  *					the user is used as the root foldername.
  * @param[in]	ulFlags
  *					@ref flags specifying the options used for attaching the archive. 
- * @return HRESULT
  *
  * @section flags Flags
  * @li \b ATT_USE_IPM_SUBTREE	Use the IPM subtree of the archive store as the root of the archive.
@@ -380,8 +372,6 @@ HRESULT ArchiveManageImpl::AttachTo(LPMDB lpArchiveStore, const tstring &strFold
  *					in the archive store, the exact folder need to be specified.
  *					If the archive root was placed in the IPM subtree of the archive store, this parameter
  *					must be set to NULL.
- *
- * @return HRESULT
  */
 eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR *lpszArchive, const TCHAR *lpszFolder)
 {
@@ -507,8 +497,6 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
  *
  * @param[in]	ulArchive
  * 					The index of the archive in the list of archives.
- *
- * @return HRESULT
  */
 eResult ArchiveManageImpl::DetachFrom(unsigned int ulArchive)
 {
@@ -560,8 +548,6 @@ eResult ArchiveManageImpl::DetachFrom(unsigned int ulArchive)
  *
  * @param[in]	ostr
  *					The std::ostream to which the list will be outputted.
- *
- * @return HRESULT
  */
 eResult ArchiveManageImpl::ListArchives(std::ostream &ostr)
 {

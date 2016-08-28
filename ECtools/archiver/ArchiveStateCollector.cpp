@@ -161,7 +161,6 @@ HRESULT ArchiveStateCollector::Create(const ArchiverSessionPtr &ptrSession, ECLo
 }
 
 /**
- * Constructor
  * @param[in]	ArchiverSessionPtr		The archive session
  * @param[in]	lpLogger		The logger.
  */

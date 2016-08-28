@@ -130,9 +130,6 @@ Http::Http(ECChannel *lpChannel, ECLogger *lpLogger, ECConfig *lpConfig)
 	m_ulRetCode = 0;
 }
 
-/**
- * Default destructor
- */
 Http::~Http()
 {
 	m_lpLogger->Release();

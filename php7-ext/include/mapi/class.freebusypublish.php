@@ -32,8 +32,6 @@ class FreeBusyPublish {
 	var $proptags;
 
 	/**
-	 * Constuctor
-	 *
 	 * @param mapi_session $session MAPI Session
 	 * @param mapi_folder $calendar Calendar to publish
 	 * @param string $entryid AddressBook Entry ID for the user we're publishing for

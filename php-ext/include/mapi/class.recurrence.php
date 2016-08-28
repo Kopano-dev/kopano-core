@@ -60,7 +60,6 @@
 		);
 
 		/**
-		 * Constructor
 		 * @param resource $store MAPI Message Store Object
 		 * @param resource $message the MAPI (appointment) message
 		 */

@@ -48,8 +48,6 @@
 class UnixUserPlugin: public DBPlugin {
 public:
     /**
-	 * Constructor
-	 *
 	 * @param[in]	pluginlock
 	 *					The plugin mutex
 	 * @param[in]   lpSharedData
@@ -58,10 +56,6 @@ public:
 	 * @throw notsupported When multi-server or multi-company support is enabled.
 	 */
 	UnixUserPlugin(pthread_mutex_t *pluginlock, ECPluginSharedData *lpSharedData);
-
-    /**
-	 * Destructor
-	 */
 	virtual ~UnixUserPlugin();
 
     /**

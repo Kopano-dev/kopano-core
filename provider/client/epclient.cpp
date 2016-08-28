@@ -166,7 +166,6 @@ exit:
  *
  * @param lpProviderAdmin[in] The ProviderAdmin object passed to MSGServiceEntry
  * @param lpServiceName[out] The name of the message service
- * @return HRESULT Result status
  */
 static HRESULT GetServiceName(IProviderAdmin *lpProviderAdmin,
     std::string *lpServiceName)

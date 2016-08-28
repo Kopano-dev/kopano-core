@@ -116,7 +116,6 @@ HRESULT ArchiveStateUpdater::Create(const ArchiverSessionPtr &ptrSession, ECLogg
 }
 
 /**
- * Constructor
  * @param[in]	ptrSession		The archiver session.
  * @param[in]	lpLogger		The logger.
  * @param[in]	mapArchiveInfo	The map containing the users that have and/or

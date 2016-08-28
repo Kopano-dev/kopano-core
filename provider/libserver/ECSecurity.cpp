@@ -57,8 +57,6 @@
 #define MAX_PARENT_LIMIT 64
 
 /** 
- * ECSecurity constructor
- * 
  * @param[in] lpSession user session
  * @param[in] lpConfig config object
  * @param[in] lpLogger log object for normal logging

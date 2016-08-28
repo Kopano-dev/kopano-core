@@ -68,7 +68,6 @@ public:
 	 *					Pointer to a IMsgStore pointer, which will contain
 	 *					a pointer to the requested messages store upon successful
 	 *					completion.
-	 * @return HRESULT
 	 */
 	HRESULT HrGetMsgStore(LPMDB *lppMsgStore);
 
@@ -80,7 +79,6 @@ public:
 	 * @param[out]	lppInboxFolder
 	 *					Pointer to a IMAPIFolder pointer, which will contain a
 	 *					pointer to the requested folder upon successful completion.
-	 * @return HRESULT
 	 */
 	HRESULT HrGetReceiveFolder(LPMAPIFOLDER *lppInboxFolder);
 
@@ -110,7 +108,6 @@ public:
 	 * @param[out]	lppChangeAdviseSink
 	 *					Pointer to a IECChangeAdviseSInk pointer, which will contain a
 	 *					pointer to the change advise sink upon successful completion.
-	 * @return HRESULT.
 	 */
 	HRESULT HrGetChangeAdviseSink(IECChangeAdviseSink **lppChangeAdviseSink);
 
@@ -124,7 +121,6 @@ public:
 	 *					Pointer to a SRowSet pointer, which will be populated with
 	 *					the rows from the hierarchy table. Needs to be freed with
 	 *					FreePRows by the caller.
-	 * @return HRESULT
 	 */
 	HRESULT HrQueryHierarchyTable(LPSPropTagArray lpsPropTags, LPSRowSet *lppRows);
 
@@ -138,7 +134,6 @@ public:
 	 *					Pointer to a IMsgStore pointer that will contain a pointer to
 	 *					the message store upon successful completion. Passing NULL will
 	 *					cause no MsgStore pointer to be returned.
-	 * @return HRESULT
 	 */
 	HRESULT HrOpenRootFolder(LPMAPIFOLDER *lppRootFolder, LPMDB *lppMsgStore = NULL);
 
@@ -151,7 +146,6 @@ public:
 	 * @param[out]	lppFolder
 	 *					Pointer to a IMAPIFolder pointer that will contain a pointer to
 	 *					the requested folder upon successful completion.
-	 * @return HRESULT
 	 */
 	HRESULT HrOpenFolder(SBinary *lpsEntryID, LPMAPIFOLDER *lppFolder);
 
@@ -161,7 +155,6 @@ public:
 	 * @Param[in]	lpNotification
 	 *					Pointer to a NOTIFICATION structure that will be send as the
 	 *					new mail notification.
-	 * @return HRESULT
 	 */
 	HRESULT HrNotifyNewMail(LPNOTIFICATION lpNotification);
 
@@ -180,7 +173,6 @@ public:
 	 *					Pointer to a ULONG variable that will contain the number of steps
 	 *					to complete a synchronization on the selected folder upon successful
 	 *					completion.
-	 * @return HRESULT
 	 */
 	HRESULT HrGetSteps(SBinary *lpEntryID, SBinary *lpSourceKey, ULONG ulSyncFlags, ULONG *lpulSteps);
 
@@ -193,7 +185,6 @@ public:
 	 * @param[in]	lpStream
 	 *					The state stream from which the sync id and change id will be
 	 *					extracted.
-	 * @return HRESULT
 	 */
 	HRESULT HrUpdateChangeId(LPSTREAM lpStream);
 
@@ -206,8 +197,6 @@ public:
 
 	/**
 	 * Clear the sync status streams.
-	 *
-	 * @return HRESULT
 	 */
 	HRESULT HrClearSyncStatus();
 
@@ -216,7 +205,6 @@ public:
 	 *
 	 * @param[in]	lpsSyncState
 	 *					The SBinary structure containing the data to be decoded.
-	 * @return HRESULT
 	 */
 	HRESULT HrLoadSyncStatus(SBinary *lpsSyncState);
 
@@ -226,7 +214,6 @@ public:
 	 * @param[in]	lppSyncStatusProp
 	 *					Pointer to a SPropValue pointer that will be populated with
 	 *					the binary data that's made out of the status streams.
-	 * @return HRESULT
 	 */
 	HRESULT HrSaveSyncStatus(LPSPropValue *lppSyncStatusProp);
 
@@ -238,7 +225,6 @@ public:
 	 * @param[out]	lppStream
 	 *					Pointer to a IStream pointer that will contain the
 	 *					sync status stream on successful completion.
-	 * @return HRESULT
 	 */
 	HRESULT HrGetSyncStatusStream(LPMAPIFOLDER lpFolder, LPSTREAM *lppStream);
 
@@ -251,7 +237,6 @@ public:
 	 * @param[out]	lppStream
 	 *					Pointer to a IStream pointer that will contain the
 	 *					sync status stream on successful completion.
-	 * @return HRESULT
 	 */
 	HRESULT HrGetSyncStatusStream(SBinary *lpsSourceKey, LPSTREAM *lppStream);
 
@@ -312,7 +297,6 @@ private:	// methods
 	 * @param[out]	lpsSyncState
 	 *					Pointer to a SSyncState structure that will be populated
 	 *					with the retrieved sync state.
-	 * @return HRESULT
 	 */
 	HRESULT HrGetSyncStateFromSourceKey(SBinary *lpSourceKey, SSyncState *lpsSyncState);
 

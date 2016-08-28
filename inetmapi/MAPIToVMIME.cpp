@@ -136,8 +136,6 @@ SizedSPropTagArray(54, sptaExclude) = {
 #define PR_EC_OUTLOOK_VERSION PROP_TAG(PT_STRING8, 0x81F4)
 
 /**
- * Default constructor
- *
  * Inits the class with empty/default values.
  */
 MAPIToVMIME::MAPIToVMIME()
@@ -149,8 +147,6 @@ MAPIToVMIME::MAPIToVMIME()
 }
 
 /**
- * Constructor with parameters
- *
  * @param[in]	lpSession	current mapi session, used to open contact entryid's
  * @param[in]	lpAddrBook	global addressbook
  * @param[in]	newlogger	logger object
@@ -176,9 +172,6 @@ MAPIToVMIME::MAPIToVMIME(IMAPISession *lpSession, IAddrBook *lpAddrBook, ECLogge
 	m_lpSession = lpSession;
 }
 
-/**
- * Destructor
- */
 MAPIToVMIME::~MAPIToVMIME()
 {
 	lpLogger->Release();

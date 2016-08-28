@@ -106,8 +106,6 @@ class Meetingrequest {
 	var $errorSetResource;
 	
 	/**
-	 * Constructor
-	 *
 	 * Takes a store and a message. The message is an appointment item
 	 * that should be converted into a meeting request or an incoming
 	 * e-mail message that is a meeting request.

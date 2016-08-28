@@ -24,7 +24,6 @@
 using namespace std;
 
 /**
- * Default constructor
  * @param[in]	lpRequest	Pointer to http Request object
  * @param[in]	lpSession	Pointer to mapi session of the user
  * @param[in]	lpLogger	Pointer to logger object to log errors and information
@@ -34,9 +33,6 @@ WebDav::WebDav(Http *lpRequest, IMAPISession *lpSession, ECLogger *lpLogger, std
 	m_lpXmlDoc  = NULL;
 }
 
-/**
- * Default Destructor
- */
 WebDav::~WebDav()
 {
 	if (m_lpXmlDoc)

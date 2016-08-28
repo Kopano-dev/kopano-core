@@ -167,8 +167,6 @@ void ECLogger_Null::Log(unsigned int loglevel, const char *format, ...) {}
 void ECLogger_Null::LogVA(unsigned int loglevel, const char *format, va_list& va) {}
 
 /**
- * ECLogger_File constructor
- *
  * @param[in]	max_ll			max loglevel passed to ECLogger
  * @param[in]	add_timestamp	true if a timestamp before the logmessage is wanted
  * @param[in]	filename		filename of log in current locale
@@ -448,15 +446,10 @@ void ECLogger_Syslog::LogVA(unsigned int loglevel, const char *format, va_list& 
 #endif
 }
 
-/**
- * Consructor
- */
 ECLogger_Tee::ECLogger_Tee(): ECLogger(EC_LOGLEVEL_DEBUG) {
 }
 
 /**
- * Destructor
- *
  * The destructor calls Release on each attached logger so
  * they'll be deleted if it was the last reference.
  */

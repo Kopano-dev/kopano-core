@@ -79,8 +79,6 @@ static vmime::charset vtm_upgrade_charset(const vmime::charset &);
 static const char im_charset_unspec[] = "unspecified";
 
 /**
- * VMIMEToMAPI default constructor
- *
  * Default empty constructor for the inetmapi library. Sets all member
  * values to sane defaults.
  */
@@ -94,8 +92,6 @@ VMIMEToMAPI::VMIMEToMAPI()
 }
 
 /**
- * VMIMEToMAPI parameterized constructor.
- *
  * Adds user set addressbook (to minimize opens on this object) and delivery options.
  * 
  * @param[in]	lpAdrBook	Addressbook of a user.
@@ -115,9 +111,6 @@ VMIMEToMAPI::VMIMEToMAPI(LPADRBOOK lpAdrBook, ECLogger *newlogger, delivery_opti
 	m_lpDefaultDir = NULL;
 }
 
-/**
- * VMIMEToMAPI destructor.
- */
 VMIMEToMAPI::~VMIMEToMAPI()
 {
 	lpLogger->Release();

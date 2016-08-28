@@ -20,9 +20,6 @@
 #include <kopano/ECRestriction.h>
 #include "HrException.h"
 
-/**
- * ECHierarchyIteratorBase implementation
- */
 ECHierarchyIteratorBase::ECHierarchyIteratorBase(LPMAPICONTAINER lpContainer, ULONG ulFlags, ULONG ulDepth)
 : m_ptrContainer(lpContainer, true)
 , m_ulFlags(ulFlags)
@@ -103,9 +100,6 @@ exit:
 		throw HrException(hr);	// @todo: Fix this
 }
 
-/**
- * ECContentsIteratorBase implementation
- */
 ECContentsIteratorBase::ECContentsIteratorBase(LPMAPICONTAINER lpContainer, LPSRestriction lpRestriction, ULONG ulFlags, bool bOwnRestriction)
 : m_ptrContainer(lpContainer, true)
 , m_ulFlags(ulFlags)

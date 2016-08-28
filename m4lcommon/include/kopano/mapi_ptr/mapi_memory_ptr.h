@@ -50,21 +50,14 @@ public:
 	typedef const _T&				const_reference;
 	typedef mapi_memory_proxy<_T>	proxy;
 
-
-	// Constructors
 	mapi_memory_ptr() : m_lpMemory(NULL) {}
 	
 	mapi_memory_ptr(pointer lpObject) : m_lpMemory(lpObject) {}
-
-
-	// Destructor
 	~mapi_memory_ptr() {
 		MAPIFreeBuffer(m_lpMemory);
 		m_lpMemory = NULL;
 	}
 
-
-	// Assignment
 	mapi_memory_ptr& operator=(pointer lpObject) {
 		if (m_lpMemory != lpObject) {
 			mapi_memory_ptr tmp(lpObject);
@@ -73,8 +66,6 @@ public:
 		return *this;
 	}
 
-
-	// Dereference
 	pointer operator->() { return m_lpMemory; }
 	const_pointer operator->() const { return m_lpMemory; }
 	

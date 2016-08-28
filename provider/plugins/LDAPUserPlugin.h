@@ -67,10 +67,6 @@ public:
 	 * ldap_search_s.
 	 */
 	LDAPUserPlugin(pthread_mutex_t *pluginlock, ECPluginSharedData *shareddata);
-
-	/**
-	 * Destructor
-	 */
 	virtual ~LDAPUserPlugin();
 
     /**
@@ -530,7 +526,6 @@ private:
 	 *					The length of the binary data
 	 * @param[out]	lpEscaped
 	 *					Escaped string
-	 * @return HRESULT
 	 */
 	HRESULT BintoEscapeSequence(const char* lpdata, size_t size, string* lpEscaped);
 

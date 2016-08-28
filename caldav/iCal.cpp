@@ -33,9 +33,6 @@
 
 using namespace std;
 
-/**
- * Default constructor
- */
 iCal::iCal(Http *lpRequest, IMAPISession *lpSession, ECLogger *lpLogger, std::string strSrvTz, std::string strCharset) : ProtocolBase(lpRequest, lpSession, lpLogger, strSrvTz, strCharset)
 {
 }

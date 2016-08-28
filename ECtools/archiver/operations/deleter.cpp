@@ -24,20 +24,13 @@ using namespace std;
 namespace za { namespace operations {
 
 /**
- * Constructor
- *
  * @param[in]	lpLogger
  *					Pointer to the logger.
- *
- * @return HRESULT
  */
 Deleter::Deleter(ECArchiverLogger *lpLogger, int ulAge, bool bProcessUnread)
 : ArchiveOperationBaseEx(lpLogger, ulAge, bProcessUnread, ARCH_NEVER_DELETE)
 { }
 
-/**
- * Destructor
- */
 Deleter::~Deleter()
 {
 	PurgeQueuedMessages();
@@ -70,7 +63,6 @@ HRESULT Deleter::DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps)
 
 /**
  * Delete the messages that are queued for deletion.
- * @return HRESULT
  */
 HRESULT Deleter::PurgeQueuedMessages()
 {

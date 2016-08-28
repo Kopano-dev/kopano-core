@@ -27,14 +27,10 @@ using namespace za::helpers;
 namespace za { namespace operations {
 
 /**
- * Constructor
- * 
  * @param[in]	lpLogger
  *					Pointer to the logger.
  * @param[in]	ulptStubbed
  *					The proptag of the stubbed property {72e98ebc-57d2-4ab5-b0aad50a7b531cb9}/stubbed
- *
- * @return HRESULT
  */
 Stubber::Stubber(ECArchiverLogger *lpLogger, ULONG ulptStubbed, int ulAge, bool bProcessUnread)
 : ArchiveOperationBase(lpLogger, ulAge, bProcessUnread, ARCH_NEVER_STUB)

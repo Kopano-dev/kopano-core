@@ -41,7 +41,6 @@ public:
 	 * @param[in]	ulFlags
 	 *					- SYNC_CATCHUP	Update the internal state, but don't perform any operations
 	 *									on the server.
-	 * @return HRESULT
 	 */
 	virtual HRESULT __stdcall Config(LPSTREAM lpStream, LPGUID lpGUID, IECChangeAdviseSink *lpAdviseSink, ULONG ulFlags) = 0;
 
@@ -50,7 +49,6 @@ public:
 	 *
 	 * @param[in]	lpStream
 	 *					The stream in which the current state will be stored.
-	 * @return HRESULT
 	 */
 	virtual HRESULT __stdcall UpdateState(LPSTREAM lpStream) = 0;
 
@@ -62,7 +60,6 @@ public:
 	 *					block of data. The first 4 bytes specify the sync id of the folder to
 	 *					monitor. The second 4 bytes apecify the change id of the folder to monitor.
 	 *					Use the SSyncState structure to easily create and access this data.
-	 * @return HRESULT
 	 */
 	virtual HRESULT __stdcall AddKeys(LPENTRYLIST lpEntryList) = 0;
 
@@ -72,7 +69,6 @@ public:
 	 * @param[in]	lpEntryList
 	 *					A list of keys specifying the folders to monitor. See AddKeys for
 	 *					information about the key format.
-	 * @return HRESULT
 	 */
 	virtual HRESULT __stdcall RemoveKeys(LPENTRYLIST lpEntryList) = 0;
 
@@ -95,8 +91,6 @@ public:
 	 *					The syncid for which to update the changeid.
 	 * @param[in]	ulChangeId
 	 *					The new changeid for the specified syncid.
-	 *
-	 * @return HRESULT
 	 */
 	virtual HRESULT __stdcall UpdateSyncState(ULONG ulSyncId, ULONG ulChangeId) = 0;
 };

@@ -128,8 +128,6 @@ void *CleanupSyncedMessagesTable(void *lpTmpMain);
  *					The source key of the message.
  * @param[in]	sParentSourceKey
  *					THe source key of the folder containing the message.
- *
- * @return HRESULT
  */
 ECRESULT AddToLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int ulSyncId, const SOURCEKEY &sSourceKey, const SOURCEKEY &sParentSourceKey);
 

@@ -40,8 +40,6 @@ namespace za { namespace helpers {
  * @param[out]	lppptrMAPIPropHelper
  *					Pointer to a MAPIPropHelperPtr that will be assigned the returned
  *					MAPIPropHelper object.
- *
- * @return HRESULT
  */
 HRESULT MAPIPropHelper::Create(MAPIPropPtr ptrMapiProp, MAPIPropHelperPtr *lpptrMAPIPropHelper)
 {
@@ -62,9 +60,6 @@ HRESULT MAPIPropHelper::Create(MAPIPropPtr ptrMapiProp, MAPIPropHelperPtr *lpptr
 	return hrSuccess;
 }
 
-/**
- * Constructor
- */
 MAPIPropHelper::MAPIPropHelper(MAPIPropPtr ptrMapiProp)
 : m_ptrMapiProp(ptrMapiProp)
 { }
@@ -254,8 +249,6 @@ HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageSt
  *
  * @param[in]	bIgnoreSourceKey
  * 					Don't try to detect a copy/move and return an empty list in that case.
- *
- * @return HRESULT
  */
 HRESULT MAPIPropHelper::GetArchiveList(ObjectEntryList *lplstArchives, bool bIgnoreSourceKey)
 {
@@ -341,8 +334,6 @@ HRESULT MAPIPropHelper::GetArchiveList(ObjectEntryList *lplstArchives, bool bIgn
  *					The list of archive references that should be stored in the object.
  * @param[in]	bExplicitCommit
  *					If set to true, the changes are committed before this function returns.
- *
- * @return HRESULT
  */
 HRESULT MAPIPropHelper::SetArchiveList(const ObjectEntryList &lstArchives, bool bExplicitCommit)
 {
@@ -416,8 +407,6 @@ HRESULT MAPIPropHelper::SetArchiveList(const ObjectEntryList &lstArchives, bool 
  *					The id of the referenced object.
  * @param[in]	bExplicitCommit
  *					If set to true, the changes are committed before this function returns.
- *
- * @return HRESULT
  */
 HRESULT  MAPIPropHelper::SetReference(const SObjectEntry &sEntry, bool bExplicitCommit)
 {
@@ -532,8 +521,6 @@ HRESULT MAPIPropHelper::OpenPrevious(ArchiverSessionPtr ptrSession, LPMESSAGE *l
  * return true if the message class is not updated properly. However, this is done in the caller
  * of this function, which has no notion of the set of named properies that are needed to remove this
  * property.
- *
- * @return HRESULT.
  */
 HRESULT MAPIPropHelper::RemoveStub()
 {
@@ -550,8 +537,6 @@ HRESULT MAPIPropHelper::SetClean()
 /**
  * Detach an object from its archived version.
  * This does not cause the reference in the archived version to be removed.
- *
- * @return HRESULT
  */
 HRESULT MAPIPropHelper::DetachFromArchives()
 {
@@ -567,8 +552,6 @@ HRESULT MAPIPropHelper::DetachFromArchives()
  * @param[in]	lppFolder
  *					Pointer to a IMAPIFolder pointer that will be assigned the address
  *					of the returned folder.
- *
- * @return HRESULT
  */
 HRESULT MAPIPropHelper::GetParentFolder(ArchiverSessionPtr ptrSession, LPMAPIFOLDER *lppFolder)
 {
@@ -613,8 +596,6 @@ HRESULT MAPIPropHelper::GetParentFolder(ArchiverSessionPtr ptrSession, LPMAPIFOL
  * 								for the message from which they were obtained.
  * @param[in]	cbProps			The amount of properties in lpProps.
  * @param[out]	lplstArchives	Pointer to a list that will be populated with the archive references.
- *
- * @return HRESULT
  */
 HRESULT MAPIPropHelper::GetArchiveList(MAPIPropPtr ptrMapiProp, LPSPropValue lpProps, ULONG cbProps, ObjectEntryList *lplstArchives)
 {

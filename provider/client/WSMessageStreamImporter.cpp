@@ -20,8 +20,6 @@
 #include "WSUtil.h"
 #include "ECSyncSettings.h"
 
-// WSMessageStreamSink Implementation
-
 /**
  * Create a new WSMessageStreamSink instance
  * @param[in]	lpFifoBuffer	The fifobuffer to write the data into.
@@ -76,7 +74,6 @@ HRESULT WSMessageStreamSink::Write(LPVOID lpData, ULONG cbData)
 }
 
 /**
- * Constructor
  * @param[in]	lpFifoBuffer	The fifobuffer to write the data into.
  */
 WSMessageStreamSink::WSMessageStreamSink(ECFifoBuffer *lpFifoBuffer, ULONG ulTimeout, WSMessageStreamImporter *lpImporter)

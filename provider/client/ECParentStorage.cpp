@@ -26,10 +26,6 @@
 #include "WSUtil.h"
 #include <kopano/Util.h>
 
-/*
- * ECParentStorage implementation
- */
-
 ECParentStorage::ECParentStorage(ECGenericProp *lpParentObject, ULONG ulUniqueId, ULONG ulObjId, IECPropStorage *lpServerStorage)
 {
 	m_lpParentObject = lpParentObject;

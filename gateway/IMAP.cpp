@@ -80,9 +80,6 @@ static bool Prefix(const std::string &strInput, const std::string &strPrefix)
     return (strInput.compare(0, strPrefix.size(), strPrefix) == 0);
 }
 
-/**
- * IMAP class constructor
- */
 IMAP::IMAP(const char *szServerPath, ECChannel *lpChannel, ECLogger *lpLogger,
     ECConfig *lpConfig) :
 	ClientProto(szServerPath, lpChannel, lpLogger, lpConfig)
@@ -116,9 +113,6 @@ IMAP::IMAP(const char *szServerPath, ECChannel *lpChannel, ECLogger *lpLogger,
 	pthread_mutex_init(&m_mIdleLock, NULL);
 }
 
-/**
- * IMAP class destructor
- */
 IMAP::~IMAP() {
 	if (m_lpTable)
 		m_lpTable->Release();

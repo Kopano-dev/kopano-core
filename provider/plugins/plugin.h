@@ -123,8 +123,6 @@ class ECConfig;
 class UserPlugin {
 public:
 	/**
-	 * Constructor
-	 *
 	 * @param[in]	pluginlock
 	 *					The plugin mutex
 	 * @param[in]	shareddata
@@ -138,9 +136,6 @@ public:
 		m_bDistributed(shareddata->IsDistributed())
 	{}
 
-	/**
-	 * Destructor
-	 */
 	virtual ~UserPlugin(void) {}
 
 	/**
@@ -455,8 +450,6 @@ protected:
 class objectnotfound: public runtime_error {
 public:
 	/**
-	 * Constructor
-	 *
 	 * @param[in]	arg
 	 *					The description why the exception was thrown
 	 */
@@ -474,8 +467,6 @@ public:
 class toomanyobjects: public runtime_error {
 public:
 	/**
-	 * Constructor
-	 *
 	 * @param[in]	arg
 	 *					The description why the exception was thrown
 	 */
@@ -493,8 +484,6 @@ public:
 class collision_error: public runtime_error {
 public:
 	/**
-	 * Constructor
-	 *
 	 * @param[in]	arg
 	 *					The description why the exception was thrown
 	 */
@@ -512,8 +501,6 @@ public:
 class data_error: public runtime_error {
 public:
 	/**
-	 * Constructor
-	 *
 	 * @param[in]	arg
 	 *					The description why the exception was thrown
 	 */
@@ -531,8 +518,6 @@ public:
 class notimplemented: public runtime_error {
 public:
 	/**
-	 * Constructor
-	 *
 	 * @param[in]	arg
 	 *					The description why the exception was thrown
 	 */
@@ -552,8 +537,6 @@ public:
 class notsupported : public runtime_error {
 public:
 	/**
-	 * Constructor
-	 *
 	 * @param[in]	arg
 	 *					The description why the exception was thrown
 	 */
@@ -570,8 +553,6 @@ public:
 class login_error: public runtime_error {
 public:
 	/**
-	 * Constructor
-	 *
 	 * @param[in]	arg
 	 *					The description why the exception was thrown
 	 */
@@ -589,8 +570,6 @@ class ldap_error: public runtime_error {
 	int m_ldaperror;
 public:
 	/**
-	 * Constructor
-	 *
 	 * @param[in]	arg
 	 *					The description why the exception was thrown
 	 * @param[in]	ldaperror

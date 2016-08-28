@@ -21,7 +21,6 @@
 #include <mapidefs.h>
 #include <mapiguid.h>
 
-// IUnknown implementation
 M4LUnknown::M4LUnknown() {
     ref = 0;
     pthread_mutex_init(&mutex, NULL);

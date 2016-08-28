@@ -74,8 +74,6 @@
 class DB_RESULT_AUTOFREE {
 public:
 	/**
-	 * Constructor
-	 *
 	 * @param[in]	lpDatabase
 	 *					The database to which the result belongs
 	 */
@@ -84,11 +82,6 @@ public:
         m_lpResult = NULL;
     };
 
-	/**
-	 * Destructor
-	 *
-	 * Calls ECDatabase::FreeResult()
-	 */
     ~DB_RESULT_AUTOFREE() {
         if(m_lpDatabase && m_lpResult)
             m_lpDatabase->FreeResult(m_lpResult);
@@ -130,8 +123,6 @@ private:
 class DBPlugin : public UserPlugin {
 public:
 	/**
-	 * Constructor
-	 *
 	 * @param[in]	pluginlock
 	 *					The plugin mutex
 	 * @param[in]	shareddata
@@ -139,10 +130,6 @@ public:
 	 * @throw std::exception
 	 */
 	DBPlugin(pthread_mutex_t *pluginlock, ECPluginSharedData *shareddata);
-
-	/**
-	 * Destructor
-	 */
 	virtual ~DBPlugin();
 
 	/**

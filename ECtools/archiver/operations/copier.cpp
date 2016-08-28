@@ -387,8 +387,6 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 }
 
 /**
- * Constructor
- *
  * @param[in]	lpSession
  *					Pointer to the session.
  * @param[in]	lpLogger
@@ -397,8 +395,6 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
  *					The list of attached archives for this store.
  * @param[in]	lpExcludeProps
  *					The list of properties that will not be copied during the archive operation.
- *
- * @return HRESULT
  */
 Copier::Copier(ArchiverSessionPtr ptrSession, ECConfig *lpConfig, ECArchiverLogger *lpLogger, const ObjectEntryList &lstArchives, LPSPropTagArray lpExcludeProps, int ulAge, bool bProcessUnread)
 : ArchiveOperationBaseEx(lpLogger, ulAge, bProcessUnread, ARCH_NEVER_ARCHIVE)

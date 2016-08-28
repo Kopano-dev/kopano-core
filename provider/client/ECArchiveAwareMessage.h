@@ -32,8 +32,6 @@ class ECArchiveAwareMsgStore;
 class ECArchiveAwareMessage _kc_final : public ECMessage {
 protected:
 	/**
-	 * \brief Constructor
-	 *
 	 * \param lpMsgStore	The store owning this message.
 	 * \param fNew			Specifies whether the message is a new message.
 	 * \param fModify		Specifies whether the message is writable.

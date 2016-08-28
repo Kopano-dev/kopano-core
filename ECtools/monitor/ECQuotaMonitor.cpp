@@ -57,7 +57,6 @@ using namespace std;
 #define QUOTA_CONFIG_MSG "Kopano.Quota"
 
 /**
- * ECQuotaMonitor constructor
  * Takes an extra reference to the passed MAPI objects which have refcounting.
  */
 ECQuotaMonitor::ECQuotaMonitor(ECTHREADMONITOR *lpThreadMonitor,
@@ -78,7 +77,6 @@ ECQuotaMonitor::ECQuotaMonitor(ECTHREADMONITOR *lpThreadMonitor,
 }
 
 /**
- * ECQuotaMonitor destructor
  * Releases references to passed MAPI objects.
  */
 ECQuotaMonitor::~ECQuotaMonitor()

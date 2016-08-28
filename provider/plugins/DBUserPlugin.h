@@ -41,8 +41,6 @@
 class DBUserPlugin _kc_final : public DBPlugin {
 public:
     /**
-	 * Constructor
-	 *
 	 * @param[in]	pluginlock
 	 *					The plugin mutex
 	 * @param[in]   shareddata

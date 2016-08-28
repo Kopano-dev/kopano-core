@@ -54,8 +54,6 @@ using namespace za::operations;
  * 								if the settings aren't safe.
  * @param[out]	lpptrArchiver
  *					Pointer to a ArchivePtr that will be assigned the address of the returned object.
- *
- * @return HRESULT
  */
 HRESULT ArchiveControlImpl::Create(ArchiverSessionPtr ptrSession, ECConfig *lpConfig, ECLogger *lpLogger, bool bForceCleanup, ArchiveControlPtr *lpptrArchiveControl)
 {
@@ -79,8 +77,6 @@ exit:
 }
 
 /**
- * Constructor
- *
  * @param[in]	lpSession
  *					Pointer to the Session.
  * @param[in]	lpConfig
@@ -89,8 +85,6 @@ exit:
  *					Pointer to an ECLogger object that's used for logging.
   * @param[in]	bForceCleanup	Force a cleanup operation to continue, even
  * 								if the settings aren't safe.
-*
- * @return HRESULT
  */
 ArchiveControlImpl::ArchiveControlImpl(ArchiverSessionPtr ptrSession, ECConfig *lpConfig, ECLogger *lpLogger, bool bForceCleanup)
 : m_ptrSession(ptrSession)
@@ -111,9 +105,6 @@ ArchiveControlImpl::ArchiveControlImpl(ArchiverSessionPtr ptrSession, ECConfig *
 , m_bForceCleanup(bForceCleanup)
 { }
 
-/**
- * Destructor
- */
 ArchiveControlImpl::~ArchiveControlImpl()
 {
 	m_lpLogger->Release();
@@ -167,8 +158,6 @@ HRESULT ArchiveControlImpl::Init()
  * @param[in]	bLocalOnly
  *					If set to true only  messsages for users that have their store on the local server
  *					will be archived.
- *
- * @return HRESULT
  */
 eResult ArchiveControlImpl::ArchiveAll(bool bLocalOnly, bool bAutoAttach, unsigned int ulFlags)
 {
@@ -210,8 +199,6 @@ eResult ArchiveControlImpl::ArchiveAll(bool bLocalOnly, bool bAutoAttach, unsign
  *
  * @param[in]	strUser
  *					The username for which to archive the messages.
- *
- * @return HRESULT
  */
 eResult ArchiveControlImpl::Archive(const tstring &strUser, bool bAutoAttach, unsigned int ulFlags)
 {
@@ -267,8 +254,6 @@ exit:
  * @param[in]	bLocalOnly
  *					If set to true only  messsages for users that have their store on the local server
  *					will be archived.
- *
- * @return HRESULT
  */
 eResult ArchiveControlImpl::CleanupAll(bool bLocalOnly)
 {
@@ -290,8 +275,6 @@ eResult ArchiveControlImpl::CleanupAll(bool bLocalOnly)
  *
  * @param[in]	strUser
  *					The username for which to archive the messages.
- *
- * @return HRESULT
  */
 eResult ArchiveControlImpl::Cleanup(const tstring &strUser)
 {
@@ -709,8 +692,6 @@ HRESULT ArchiveControlImpl::DoCleanup(const tstring &strUser)
  * @param[in]	bProcessUnread
  *					If set to true, unread messages will also be processed. Otherwise unread message
  *					will be left untouched.
- *
- * @return HRESULT
  */
 HRESULT ArchiveControlImpl::ProcessFolder(MAPIFolderPtr &ptrFolder, ArchiveOperationPtr ptrArchiveOperation)
 {

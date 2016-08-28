@@ -19,7 +19,6 @@
 #include "WSSerializedMessage.h"
 
 /**
- * Constructor
  * @param[in]	lpSoap		The gSoap object from which the MTOM attachments must be obtained.
  * @param[in]	strStreamId	The expected stream id. Used to validate the MTOM attachment obtained from gSoap.
  * @param[in]	cbProps		The amount of properties returned from the original soap call.

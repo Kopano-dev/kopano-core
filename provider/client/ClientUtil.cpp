@@ -818,7 +818,6 @@ exit:
  * Read registry key to discover the installation directory for the exchange redirector
  *
  * @param[out] lpConfigPath String containing full config path
- * @return HRESULT Result
  */
 HRESULT ClientUtil::GetConfigPath(std::string *lpConfigPath)
 {
@@ -835,7 +834,6 @@ HRESULT ClientUtil::GetConfigPath(std::string *lpConfigPath)
  * @param pValues[in] Incoming exchange properties (must contain PR_PROFILE_UNRESOLVED_{USER,SERVER})
  * @param lpcValues[out] Number of properties in lppProps
  * @param lppProps[out] New ZARAFA properties
- * @return HRESULT Success result
  */
 HRESULT ClientUtil::ConvertMSEMSProps(ULONG cValues, LPSPropValue pValues, ULONG *lpcValues, LPSPropValue *lppProps)
 {

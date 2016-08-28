@@ -22,12 +22,6 @@
 #include "ECMemStream.h"
 #include <kopano/Trace.h>
 #include <kopano/ECDebug.h>
-
-/*
- * ECMemBlock implementation 
- *
- */
-
 #define EC_MEMBLOCK_SIZE 8192
 
 ECMemBlock::ECMemBlock(char *buffer, ULONG ulDataLen, ULONG ulFlags) : ECUnknown("ECMemBlock")

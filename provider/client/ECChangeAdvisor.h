@@ -64,7 +64,6 @@ public:
 	 *					change notifications.
 	 * @param[out]	lppChangeAdvisor
 	 *					The new change advisor.
-	 * @return HRESULT
 	 */
 	static	HRESULT Create(ECMsgStore *lpMsgStore, ECChangeAdvisor **lppChangeAdvisor);
 
@@ -132,14 +131,11 @@ private:
 	 *					The parameter passed to AddSessionReloadCallback.
 	 * @param[in]	newSessionId
 	 *					The sessionid of the new session.
-	 *
-	 * @return HRESULT.
 	 */
 	static HRESULT					Reload(void *lpParam, ECSESSIONID newSessionId);
 
 	/**
 	 * Purge all unused connections from advisor.
-	 * @return HRESULT
 	 */
 	HRESULT							PurgeStates();
 

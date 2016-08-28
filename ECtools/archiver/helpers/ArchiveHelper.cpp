@@ -45,8 +45,6 @@ namespace za { namespace helpers {
  * 					implies that the archive is remote (other server/cluster).
  * @param[out]	lpptrArchiveHelper
  *					Pointer to a ArchiveHelperPtr that assigned the address of the returned ArchiveHelper.
- *
- * @return HRESULT
  */
 HRESULT ArchiveHelper::Create(LPMDB lpArchiveStore, const tstring &strFolder, const char *lpszServerPath, ArchiveHelperPtr *lpptrArchiveHelper)
 {
@@ -79,8 +77,6 @@ HRESULT ArchiveHelper::Create(LPMDB lpArchiveStore, const tstring &strFolder, co
  * 					implies that the archive is remote (other server/cluster).
  * @param[out]	lpptrArchiveHelper
  *					Pointer to a ArchiveHelperPtr that assigned the address of the returned ArchiveHelper.
- *
- * @return HRESULT
  */
 HRESULT ArchiveHelper::Create(LPMDB lpArchiveStore, LPMAPIFOLDER lpArchiveFolder, const char *lpszServerPath, ArchiveHelperPtr *lpptrArchiveHelper)
 {
@@ -141,18 +137,12 @@ HRESULT ArchiveHelper::Create(ArchiverSessionPtr ptrSession, const SObjectEntry 
 	return hrSuccess;
 }
 
-/**
- * Constructor
- */
 ArchiveHelper::ArchiveHelper(LPMDB lpArchiveStore, const tstring &strFolder, const std::string &strServerPath)
 : m_ptrArchiveStore(lpArchiveStore, true)
 , m_strFolder(strFolder)
 , m_strServerPath(strServerPath)
 { }
 
-/**
- * Constructor
- */
 ArchiveHelper::ArchiveHelper(LPMDB lpArchiveStore, LPMAPIFOLDER lpArchiveFolder, const std::string &strServerPath)
 : m_ptrArchiveStore(lpArchiveStore, true)
 , m_ptrArchiveFolder(lpArchiveFolder, true)
@@ -161,7 +151,6 @@ ArchiveHelper::ArchiveHelper(LPMDB lpArchiveStore, LPMAPIFOLDER lpArchiveFolder,
 
 /**
  * Initialize an ArchiveHelper object.
- * @return HRESULT
  */
 HRESULT ArchiveHelper::Init()
 {
@@ -183,8 +172,6 @@ exit:
  * @param[out]	lpsUserEntryId
  *					Pointer to a entryid_t that will be populated with the entryid of the user
  *					who's store is attached to this archive.
- *
- * @return HRESULT
  */
 HRESULT ArchiveHelper::GetAttachedUser(abentryid_t *lpsUserEntryId)
 {
@@ -209,8 +196,6 @@ HRESULT ArchiveHelper::GetAttachedUser(abentryid_t *lpsUserEntryId)
  * @param[in]	sUserEntryId
  *					The entryid of the user who's store is attached to this
  *					archive.
- *
- * @return HRESULT
  */
 HRESULT ArchiveHelper::SetAttachedUser(const abentryid_t &sUserEntryId)
 {
@@ -236,8 +221,6 @@ HRESULT ArchiveHelper::SetAttachedUser(const abentryid_t &sUserEntryId)
  * @param[out]	lpSObjectEntry
  *					Pointer to a SObjectEntry structure that will be populated with the unique
  *					reference to this archive.
- *
- * @return HRESULT
  */
 HRESULT ArchiveHelper::GetArchiveEntry(bool bCreate, SObjectEntry *lpsObjectEntry)
 {
@@ -341,8 +324,6 @@ HRESULT ArchiveHelper::GetArchiveType(ArchiveType *lparchType, AttachType *lpatt
  *
  * @param[in]	aType
  *					The ArchiveType type of this archive.
- *
- * @return HRESULT
  */
 HRESULT ArchiveHelper::SetArchiveType(ArchiveType archType, AttachType attachType)
 {
@@ -374,8 +355,6 @@ HRESULT ArchiveHelper::SetArchiveType(ArchiveType archType, AttachType attachTyp
  *					The entryid of the user for who permissions are being set.
  * @param[in]	bWriteable.
  *					If set to true, the archive will be writable by the user.
- *
- * @return HRESULT
  */
 HRESULT ArchiveHelper::SetPermissions(const abentryid_t &sUserEntryId, bool bWritable)
 {
@@ -467,8 +446,6 @@ HRESULT ArchiveHelper::SetPermissions(const abentryid_t &sUserEntryId, bool bWri
  *					The Session pointer that's used to open folders with.
  * @param[out]	lppDestinationFolder
  *					Pointer to a MAPIFolder pointer that's assigned the address of the returned folder.
- *
- * @return HRESULT
  */
 HRESULT ArchiveHelper::GetArchiveFolderFor(MAPIFolderPtr &ptrSourceFolder, ArchiverSessionPtr ptrSession, LPMAPIFOLDER *lppDestinationFolder)
 {
@@ -663,8 +640,6 @@ HRESULT ArchiveHelper::GetSpecialsRootFolder(LPMAPIFOLDER *lppSpecialsRootFolder
  * @param[out]	lppArchiveFolder
  *					Pointer to the MAPIFolder pointer that will be assigned the address of the
  *					returned folder.
- *
- * @return HRESULT
  */
 HRESULT ArchiveHelper::GetArchiveFolder(bool bCreate, LPMAPIFOLDER *lppArchiveFolder)
 {
@@ -695,8 +670,6 @@ HRESULT ArchiveHelper::GetArchiveFolder(bool bCreate, LPMAPIFOLDER *lppArchiveFo
  *					Pointer to the MAPIFolder to check.
  * @param[out]	lpbResult
  *					True if the folder is the same as would be returned by GetArchiveFolder.
- *
- * @return HRESULT
  */
 HRESULT ArchiveHelper::IsArchiveFolder(LPMAPIFOLDER lpFolder, bool *lpbResult)
 {

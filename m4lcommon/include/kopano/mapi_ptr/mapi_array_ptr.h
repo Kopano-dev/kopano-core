@@ -49,20 +49,14 @@ public:
 
 	enum { element_size = sizeof(_T) };
 
-	// Constructors
 	mapi_array_ptr() : m_lpObject(NULL) {}
 	
 	mapi_array_ptr(pointer lpObject) : m_lpObject(lpObject) {}
-
-
-	// Destructor
 	~mapi_array_ptr() {
 		MAPIFreeBuffer(m_lpObject);
 		m_lpObject = NULL;
 	}
 
-
-	// Assignment
 	mapi_array_ptr& operator=(pointer lpObject) {
 		if (m_lpObject != lpObject) {
 			mapi_array_ptr tmp(lpObject);
@@ -71,12 +65,9 @@ public:
 		return *this;
 	}
 
-
-	// Dereference
 	reference operator*() { return *m_lpObject; }
 	const_reference operator*() const { return *m_lpObject; }
 
-	
 	// Utility
 	void swap(mapi_array_ptr &other) {
 		std::swap(m_lpObject, other.m_lpObject);

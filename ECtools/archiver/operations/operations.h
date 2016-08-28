@@ -48,8 +48,6 @@ public:
 	 *					The number op properties pointed to by lpProps.
 	 * @param[in]	lpProps
 	 *					Pointer to an array of properties that are used by the Operation object.
-	 *
-	 * @return HRESULT
 	 */
 	virtual HRESULT ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps, const LPSPropValue lpProps) = 0;
 
@@ -127,7 +125,6 @@ private:
 	 * the source folder is switched.
 	 *
 	 * @param[in]	lpFolder	The just opened folder.
-	 * @return HRESULT
 	 */
 	virtual HRESULT EnterFolder(LPMAPIFOLDER lpFolder) = 0;
 	
@@ -135,8 +132,6 @@ private:
 	 * Called by ProcessEntry before switching source folders. Derived classes will need to
 	 * implement this method. It can be used to perform operations that only need to be done when
 	 * the source folder is switched.
-	 *
-	 * @return HRESULT
 	 */
 	virtual HRESULT LeaveFolder() = 0;
 	
@@ -147,8 +142,6 @@ private:
 	 *					The number op properties pointed to by lpProps.
 	 * @param[in]	lpProps
 	 *					Pointer to an array of properties that are used by the Operation object.
-	 *
-	 * @return HRESULT
 	 */
 	virtual HRESULT DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps) = 0;
 	

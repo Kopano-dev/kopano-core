@@ -57,7 +57,6 @@ public:
 	typedef const _T&				const_reference;
 	typedef mapi_object_proxy<_T,_R>	proxy;
 
-	// Constructors
 	mapi_object_ptr() : m_lpObject(NULL) {}
 	
 	explicit mapi_object_ptr(pointer lpObject, bool bAddRef = true) : m_lpObject(lpObject) {
@@ -70,8 +69,6 @@ public:
 			m_lpObject->AddRef();
 	}
 	
-	
-	// Destructor
 	~mapi_object_ptr() {
 		if (m_lpObject) {
 			m_lpObject->Release();
@@ -79,8 +76,6 @@ public:
 		}
 	}
 	
-	
-	// Assignment
 	mapi_object_ptr& operator=(const mapi_object_ptr &other) {
 		if (this != &other) {
 			mapi_object_ptr tmp(other);

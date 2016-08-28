@@ -87,8 +87,7 @@
 		// All recipient properties
 		var $recipprops = Array(PR_ENTRYID, PR_DISPLAY_NAME, PR_EMAIL_ADDRESS, PR_RECIPIENT_ENTRYID, PR_RECIPIENT_TYPE, PR_SEND_INTERNET_ENCODING, PR_SEND_RICH_INFO, PR_RECIPIENT_DISPLAY_NAME, PR_ADDRTYPE, PR_DISPLAY_TYPE, PR_RECIPIENT_TRACKSTATUS, PR_RECIPIENT_TRACKSTATUS_TIME, PR_RECIPIENT_FLAGS, PR_ROWID, PR_SEARCH_KEY);
 
-		/* Constructor
-		 *
+		/*
 		 * Constructs a TaskRequest object for the specified message. This can be either the task request
 		 * message itself (in the inbox) or the task in the tasks folder, depending on the action to be performed.
 		 *

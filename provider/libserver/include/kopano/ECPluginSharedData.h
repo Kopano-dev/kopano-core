@@ -54,8 +54,6 @@ private:
 	unsigned int m_ulRefCount;
 
 	/**
-	 * Constructor
-	 *
 	 * @param[in]	lpParent
 	 *					Pointer to ECConfig to read configuration option from the server
 	 * @param[in]	lpStatsCollector
@@ -71,10 +69,6 @@ private:
 	 *					while the plugin doesn't support multi-server.
 	 */
 	ECPluginSharedData(ECConfig *lpParent, ECStatsCollector *, bool bHosted, bool bDistributed);
-
-	/**
-	 * Default destructor
-	 */
 	virtual ~ECPluginSharedData(void);
 
 public:

@@ -81,7 +81,6 @@ exit:
 }
 
 /**
- * Default constructor
  * @param[in]	lpAdrBook		Mapi addresss book
  * @param[in]	mapTimeZones	std::map containing timezone names and corresponding timezone structures
  * @param[in]	lpNamedProps	Named property tag array

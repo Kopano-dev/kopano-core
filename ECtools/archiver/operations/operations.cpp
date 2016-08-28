@@ -143,8 +143,6 @@ ArchiveOperationBaseEx::ArchiveOperationBaseEx(ECArchiverLogger *lpLogger, int u
  *					The number op properties pointed to by lpProps.
  * @param[in]	lpProps
  *					Pointer to an array of properties that are used by the Operation object.
- *
- * @return HRESULT
  */
 HRESULT ArchiveOperationBaseEx::ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps, const LPSPropValue lpProps)
 {

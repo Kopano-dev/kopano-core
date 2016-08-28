@@ -94,7 +94,6 @@ exit:
 }
 
 /**
- * Default constructor
  * @param[in]	lpRequest	Pointer to Http class object
  * @param[in]	lpSession	Pointer to Mapi session object
  * @param[in]	lpLogger	Pointer to ECLogger object

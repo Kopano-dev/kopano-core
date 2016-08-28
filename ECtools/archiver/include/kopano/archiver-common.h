@@ -90,8 +90,6 @@ public:
 	{ }
 	
 	/**
-	 * Copy constructor.
-	 *
 	 * @param[in]	other
 	 *					The entryid to copy.
 	 */
@@ -321,8 +319,6 @@ public:
 	{ }
 	
 	/**
-	 * Copy constructor.
-	 *
 	 * @param[in]	other
 	 *					The entryid to copy.
 	 */
@@ -536,8 +532,6 @@ class StoreCompare
 {
 public:
 	/**
-	 * Constructor
-	 *
 	 * This constructor takes the store entryid from an SObjectEntry.
 	 *
 	 * @param[in]	sEntry	The SObjectEntry from which the store entryid will be used
@@ -546,8 +540,6 @@ public:
 	StoreCompare(const SObjectEntry &sEntry): m_sEntryId(sEntry.sStoreEntryId.getUnwrapped()) {}
 
 	/**
-	 * Constructor
-	 *
 	 * This constructor takes an explicit entryid.
 	 *
 	 * @param[in]	sEntryId	The entryid the will be used

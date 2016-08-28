@@ -56,7 +56,6 @@
 		var $tz;
 
 		/**
-		 * Constructor
 		 * @param resource $store MAPI Message Store Object
 		 * @param resource $message the MAPI (appointment) message
 		 * @param array $properties the list of MAPI properties the message has.

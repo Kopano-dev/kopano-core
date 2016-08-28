@@ -70,17 +70,12 @@ convstring convstring::from_SPropValue(const SPropValue &sPropVal, bool bCheapCo
 	return from_SPropValue(&sPropVal, bCheapCopy);
 }
 
-/** Default constructor
- * 
- * Creates an empty convstring
- */
 convstring::convstring()
 : m_lpsz(NULL)
 , m_ulFlags(0)
 {}
 
-/** Copy constructor
- * 
+/**
  * Create a new convstring object based on another convstring object.
  *
  * @param[in]	other

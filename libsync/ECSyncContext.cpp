@@ -54,7 +54,6 @@ class ECChangeAdviseSink _zcp_final : public ECUnknown
 public:
 	typedef ULONG(ECSyncContext::*NOTIFYCALLBACK)(ULONG,LPENTRYLIST);
 
-	// Constructor
 	ECChangeAdviseSink(ECSyncContext *lpsSyncContext, NOTIFYCALLBACK fnCallback)
 		: m_lpsSyncContext(lpsSyncContext)
 		, m_fnCallback(fnCallback)
