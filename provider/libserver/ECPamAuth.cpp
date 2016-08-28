@@ -14,9 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-#include <mutex>
-#include <kopano/lockhelper.hpp>
 #include "ECPamAuth.h"
 #ifndef HAVE_PAM
 ECRESULT ECPAMAuthenticateUser(const char* szPamService, const std::string &strUsername, const std::string &strPassword, std::string *lpstrError)
@@ -26,8 +23,6 @@ ECRESULT ECPAMAuthenticateUser(const char* szPamService, const std::string &strU
 }
 #else
 #include <security/pam_appl.h>
-
-static std::mutex g_mPAMAuthLock;
 
 static int converse(int num_msg, const struct pam_message **msg,
     struct pam_response **resp, void *appdata_ptr)
@@ -64,7 +59,6 @@ ECRESULT ECPAMAuthenticateUser(const char* szPamService, const std::string &strU
 	int res = 0;
 	pam_handle_t *pamh = NULL;
 	struct pam_conv conv_info = { &converse, (void*)strPassword.c_str() };
-	scoped_lock biglock(g_mPAMAuthLock);
 
 	res = pam_start(szPamService, strUsername.c_str(), &conv_info, &pamh);
 	if (res != PAM_SUCCESS) 
