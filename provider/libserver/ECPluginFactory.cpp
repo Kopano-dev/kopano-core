@@ -27,10 +27,6 @@
 #include <kopano/ECLogger.h>
 #include <kopano/ecversion.h>
 
-#ifdef EMBEDDED_USERPLUGIN
-	#include "DBUserPlugin.h"
-#endif
-
 ECPluginFactory::ECPluginFactory(ECConfig *config, ECStatsCollector *lpStatsCollector,
     bool bHosted, bool bDistributed)
 {
@@ -56,9 +52,6 @@ ECPluginFactory::~ECPluginFactory() {
 ECRESULT ECPluginFactory::CreateUserPlugin(UserPlugin **lppPlugin) {
     UserPlugin *lpPlugin = NULL;
 
-#ifdef EMBEDDED_USERPLUGIN
-	m_getUserPluginInstance = (UserPlugin* (*)(pthread_mutex_t*, ECPluginSharedData *)) getUserPluginInstance;
-#else
     if(m_dl == NULL) {    
         const char *pluginpath = m_config->GetSetting("plugin_path");
         const char *pluginname = m_config->GetSetting("user_plugin");
@@ -107,7 +100,6 @@ ECRESULT ECPluginFactory::CreateUserPlugin(UserPlugin **lppPlugin) {
 			goto out;
         }
     }
-#endif
 	try {
 		lpPlugin = m_getUserPluginInstance(&m_plugin_lock, m_shareddata);
 		lpPlugin->InitPlugin();
