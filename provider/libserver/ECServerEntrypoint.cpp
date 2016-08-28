@@ -31,12 +31,11 @@
 pthread_key_t database_key;
 pthread_key_t plugin_key;
 
-ULONG					g_ulServerInitFlags = 0;	// Libary init flags
 ECSessionManager*		g_lpSessionManager = NULL;
 ECStatsCollector*		g_lpStatsCollector = NULL;
-std::set<ECDatabase*>	g_lpDBObjectList;
-pthread_mutex_t			g_hMutexDBObjectList;
-bool					g_bInitLib = false;
+static std::set<ECDatabase *> g_lpDBObjectList;
+static pthread_mutex_t g_hMutexDBObjectList;
+static bool g_bInitLib = false;
 
 void AddDatabaseObject(ECDatabase* lpDatabase)
 {

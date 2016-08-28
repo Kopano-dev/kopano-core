@@ -39,7 +39,7 @@
 
 using namespace std;
 
-SSortOrderSet sSortDefault = {0, 0};
+static SSortOrderSet sSortDefault = {0, 0};
 
 class FixStringType _zcp_final {
 public:
