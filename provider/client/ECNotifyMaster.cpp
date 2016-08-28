@@ -53,7 +53,6 @@ ECNotifyMaster::ECNotifyMaster(SessionGroupData *lpData)
 	TRACE_NOTIFY(TRACE_ENTRY, "ECNotifyMaster::ECNotifyMaster", "");
 
 	/* Initialize threading */
-	pthread_attr_init(&m_hAttrib);
 	m_bThreadRunning = false;
 	m_bThreadExit = false;
 
@@ -78,8 +77,6 @@ ECNotifyMaster::~ECNotifyMaster(void)
 		m_lpSessionGroupData = NULL; /* DON'T Release() */
 	if (m_lpTransport)
 		m_lpTransport->Release();
-	pthread_attr_destroy(&m_hAttrib);
-
 	TRACE_NOTIFY(TRACE_RETURN, "ECNotifyMaster::~ECNotifyMaster", "");
 }
 
@@ -217,8 +214,9 @@ HRESULT ECNotifyMaster::StartNotifyWatch()
 		goto exit;
 
 	/* Make thread joinable which we need during shutdown */
+	pthread_attr_t m_hAttrib;
+	pthread_attr_init(&m_hAttrib);
 	pthread_attr_setdetachstate(&m_hAttrib, PTHREAD_CREATE_JOINABLE);
-
 	/* 1Mb of stack space per thread */
 	if (pthread_attr_setstacksize(&m_hAttrib, 1024 * 1024)) {
 		hr = MAPI_E_CALL_FAILED;
@@ -229,6 +227,7 @@ HRESULT ECNotifyMaster::StartNotifyWatch()
 		goto exit;
 	}
 
+	pthread_attr_destroy(&m_hAttrib);
 	set_thread_name(m_hThread, "NotifyThread");
 
 	m_bThreadRunning = TRUE;

@@ -88,7 +88,6 @@ private:
 
 	/* Threading information */
 	std::recursive_mutex m_hMutex;
-	pthread_attr_t				m_hAttrib;
 	pthread_t					m_hThread;
 	BOOL						m_bThreadRunning;
 	BOOL						m_bThreadExit;
