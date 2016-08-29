@@ -27,7 +27,8 @@ kopano_server_LDADD = \
 	${top_builddir}/common/libkcmapi.la \
 	${top_builddir}/common/libkcssl.la \
 	$(PROG_LIBS) ${icu_uc_LIBS} \
-	$(BOOST_FILESYSTEM_LIBS) $(BOOST_SYSTEM_LIBS) $(ICU_LIBS) $(DL_LIBS)	\
+	$(BOOST_FILESYSTEM_LIBS) $(BOOST_SYSTEM_LIBS) ${icu_uc_LIBS} \
+	${icu_i18n_LIBS} ${DL_LIBS} \
 	$(MYSQL_LIBS) $(SSL_LIBS) $(PAM_LIBS) $(KRB5_LIBS) -lrt
 
 kopano_server_SOURCES = ECServer.cpp  \

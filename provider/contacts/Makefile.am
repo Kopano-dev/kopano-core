@@ -21,7 +21,7 @@ libkccontacts_la_LIBADD = \
 	${top_builddir}/common/libkcutil.la \
 	${top_builddir}/common/libkcmapi.la \
 	${top_builddir}/mapi4linux/src/libmapi.la			\
-	-lstdc++ $(UUID_LIBS) $(ICU_LIBS)
+	-lstdc++ $(UUID_LIBS) ${icu_uc_LIBS} ${icu_i18n_LIBS}
 
 libkccontacts_la_SOURCES = epcontact.cpp ZCABData.h \
 	ZCMAPIProp.h ZCMAPIProp.cpp \

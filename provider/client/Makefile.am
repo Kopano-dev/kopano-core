@@ -31,7 +31,7 @@ libkcclient_la_LIBADD = $(SSL_LIBS)	\
 	${top_builddir}/libfreebusy/libkcfreebusy.la \
 	${top_builddir}/mapi4linux/src/libmapi.la			\
 	${top_builddir}/libsync/libkcsync.la \
-	-lstdc++ $(UUID_LIBS) $(ICU_LIBS)
+	-lstdc++ $(UUID_LIBS) ${icu_uc_LIBS} ${icu_i18n_LIBS}
 
 libkcclient_la_SOURCES = ECABLogon.cpp ECABProvider.cpp											\
 	ECAttach.cpp ECMAPIContainer.cpp ECMAPIFolder.cpp ECMAPIProp.cpp								\
