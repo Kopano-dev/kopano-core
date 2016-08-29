@@ -98,18 +98,7 @@ stamp-h2
 /php-webclient-ajax/tmp
 /php-webclient-ajax/config.php
 
-## /provider/ECProps/
-#/provider/ECProps/Debug
-#
-## /provider/client/
-#/provider/client/Debug
-#/provider/client/Release
-#
-## /provider/plugins/
-#/provider/plugins/plugintest
-#
-# /provider/server/
-/provider/server/kopano-server
+/provider/kopano-server
 
 # /provider/soap/
 /provider/soap/*res.xml

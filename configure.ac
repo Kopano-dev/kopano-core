@@ -746,14 +746,7 @@ AC_CONFIG_FILES([Makefile
 		m4lcommon/include/kopano/Makefile
 		php-ext/Makefile php7-ext/Makefile
 		provider/Makefile
-		provider/client/Makefile
-		provider/contacts/Makefile
-		provider/common/Makefile
 		provider/include/Makefile
-		provider/libserver/Makefile
-		provider/plugins/Makefile
-		provider/server/Makefile
-		provider/soap/Makefile
 		inetmapi/Makefile
 		inetmapi/include/inetmapi/Makefile
 		spooler/Makefile

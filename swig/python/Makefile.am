@@ -64,9 +64,9 @@ _archiver_la_LIBADD = \
 
 _licenseclient_la_CPPFLAGS = ${AM_CPPFLAGS} -I${top_srcdir}/provider/common -I${top_builddir}/provider/soap -I${top_srcdir}/provider/soap ${GSOAP_CFLAGS}
 _licenseclient_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version
-_licenseclient_la_LIBADD = ${top_builddir}/provider/common/libkccommon.la \
+_licenseclient_la_LIBADD = ${top_builddir}/provider/libkccommon.la \
 						${GSOAP_LIBS} \
-						${top_builddir}/provider/soap/libkcsoapclient.la \
+						${top_builddir}/provider/libkcsoapclient.la \
 						${top_builddir}/common/libkcmapi.la \
 						${top_builddir}/common/libkcutil.la \
 						${top_builddir}/common/libkcssl.la \
