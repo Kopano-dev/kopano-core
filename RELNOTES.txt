@@ -4,7 +4,7 @@ Fixes:
 * server: A fast-growing memory leak was resolved [KC-12]
 * sql schema: all PRIMARY keys need to be NOT NULL, otherwise a UNIQUE
   key would be required. / MySQL 5.7 support [KC-2]
-* server: avoid "netlink: 4 bytes leftover" in dmesg
+* server: avoid "netlink: 4 bytes leftover" in dmesg [KC-82]
 * ldapplugin: hopefully avoid "Timed out" errors from ldap_search [KC-74]
 * swig: resolve a memory leak when using python components [KC-72]
 * server: better guard against off-size EntryIDs [KC-60]
@@ -12,13 +12,31 @@ Fixes:
 * backup: restore container classes [KC-22]
 * all daemons: fixed coredumps not getting generated most of the time [KC-61]
 * all: issue setgroups(2) before setuid(2) [KC-37]
+* server: avoid infinite do-nothing loop if tmp_path is unwritable [KC-77]
+* backup: users without a store are now ignored [KC-78]
+* kopano-mailbox-permissions: resolve a crash involving Unicode [KC-100]
+* inetmapi: Message-Id was truncated on send [KC-101]
+* inetmapi: character set was ignored when reading TNEF mails
+  (mails with a winmail.dat part/attachment) [KC-83]
+* python: avoid terminal exception when handling a date past year 9999 [KC-184]
+* caldav: Lightning workaround is not to apply to Apple mail client [KC-145]
 Enhancements:
-* PHP7 support
+* PHP7 support [KC-130, KC-131, KC-134, KC-158]
 * server: add ICS log messages [KC-18]
 * server: ship example config files for ldap multi-server [KC-65]
 * server: speed up REPLACE-type sql queries [KC-58]
 * server: speed up login phase by caching PR_LOGON_TIME [KC-6]
+* server: indexing of junk folders can be controlled now [KC-17]
+* server: warn about on-disk attachments that have wrong metadata [KC-104]
 * libicalmapi: improve fallback scenario to server_timezone in ical.cfg [KC-11]
+* tools: add an SPropValue pretty printer for use with gdb
+* `systemctl reload` for kopano services is now usable where supported [KC-71]
+* RHEL(6) initscripts did not cope with python daemons well [KC-96]
+* backup: add option to skip broken attachments [KC-45]
+* spooler: rule name is now logged [KC-102]
+* archiver: new scripts kopano-archiver-{aclsync,aclset,restore} [KC-39]
+* python/swig: resolve some memory leaks [KC-92, KC-95]
+* client: permit self-signed certificates [KC-155]
 Changes:
 * search: no longer do indexing on root and Draft folders [KC-57]
 * search: index junk folders, but skip updating suggestion list [KC-57]
