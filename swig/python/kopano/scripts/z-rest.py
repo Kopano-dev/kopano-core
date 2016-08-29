@@ -68,7 +68,7 @@ def check_auth(username, password):
     if password == 'test':
         try:
             user = server.user(username)
-        except kopano.ZException:
+        except kopano.Error:
             return False
         return True
     return False
@@ -158,7 +158,7 @@ def folder(foldername):
     itemlist = []
     try:
         folder = user.store.folder(foldername)
-    except kopano.ZException:
+    except kopano.Error:
         return jsonify({'error': 'Folder does not exist'})
     for item in folder.items():
         itemlist.append({
@@ -175,7 +175,7 @@ def folder(foldername):
 def item(folderid, itemid):
     try:
         folder = user.store.folder(entryid=folderid)
-    except kopano.ZException:
+    except kopano.Error:
         return jsonify({'error': 'Folder does not exist'})
     try:
         item = folder.item(itemid)
