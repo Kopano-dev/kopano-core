@@ -3,8 +3,9 @@
 if [ -z "$1" ]; then
 	exit 0
 fi
-input="$1"
-output="$2"
+libtool="$1"; shift
+input="$1"; shift
+output="$1"; shift
 
 case "$input" in #((
 	*.la)
@@ -18,7 +19,7 @@ case "$input" in #((
 		fi
 		;;
 	*)
-		if libtool --mode=execute ldd -r "$input" | c++filt | \
+		if "${libtool}" --mode=execute ldd -r "$input" | c++filt | \
 		   grep "undefined symbol"; then
 			exit 1
 		fi
