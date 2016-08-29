@@ -9,7 +9,7 @@ AM_CPPFLAGS = ${ZCPPFLAGS} ${DEBUGFLAGS} ${BOOST_CPPFLAGS} \
 	-I${top_srcdir}/common -I${top_srcdir}/m4lcommon \
 	-DPKGLIBDIR='"${pkglibdir}"' \
 	${MYSQL_INCLUDES} ${GSOAP_CFLAGS} ${SSL_CFLAGS} \
-	${SSL_HAS_EVP_PKEY_CMP} ${KRB5_CFLAGS} ${TCMALLOC_CFLAGS}
+	${KRB5_CFLAGS} ${TCMALLOC_CFLAGS}
 
 # We are not actually using any linked symbols from tcmalloc's header files,
 # so linking to tcmalloc is not done, not here at least. It is done in

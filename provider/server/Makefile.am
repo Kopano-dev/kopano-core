@@ -8,7 +8,7 @@ AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) $(BOOST_CPPFLAGS) \
 	-I${top_srcdir}/provider/soap \
 	-I${top_srcdir}/common -I${top_srcdir}/m4lcommon \
 	-DPKGLIBDIR='"${pkglibdir}"' \
-	$(MYSQL_INCLUDES) $(GSOAP_CFLAGS) $(SSL_CFLAGS) $(SSL_HAS_EVP_PKEY_CMP) $(EPOLL_CFLAGS) $(KRB5_CFLAGS)
+	$(MYSQL_INCLUDES) $(GSOAP_CFLAGS) $(SSL_CFLAGS) $(EPOLL_CFLAGS) $(KRB5_CFLAGS)
 
 sbin_PROGRAMS = kopano-server
 noinst_DATA = kopano-server.ldx
