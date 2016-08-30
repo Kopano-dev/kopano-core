@@ -4515,10 +4515,13 @@ Encapsulates everything to create a simple service, such as:
                 self.log.error(msg)
             sys.exit(1)
         self.stats = collections.defaultdict(int, {'errors': 0})
+        self._server = None
 
     @property
     def server(self):
-        return Server(options=self.options, config=self.config.data, log=self.log, service=self)
+        if self._server is None:
+            self._server = Server(options=self.options, config=self.config.data, log=self.log, service=self)
+        return self._server
 
     def start(self):
         for sig in (signal.SIGTERM, signal.SIGINT):
@@ -4545,6 +4548,7 @@ class Worker(Process):
             self.log.setLevel(loglevel)
 
     def run(self):
+        self.service._server = None # do not re-use "forked" session
         signal.signal(signal.SIGINT, signal.SIG_IGN)
         signal.signal(signal.SIGHUP, signal.SIG_IGN)
         signal.signal(signal.SIGTERM, lambda *args: sys.exit(0))
