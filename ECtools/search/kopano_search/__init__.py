@@ -87,7 +87,7 @@ class SearchWorker(kopano.Worker):
         config, plugin = self.service.config, self.service.plugin
         def response(conn, msg):
             self.log.info('Response: ' + msg)
-            conn.sendall(msg+'\r\n')
+            conn.sendall(msg.encode('utf-8')+'\r\n')
         s = kopano.server_socket(config['server_bind_name'], ssl_key=config['ssl_private_key_file'], ssl_cert=config['ssl_certificate_file'], log=self.log)
         while True:
             with log_exc(self.log):
