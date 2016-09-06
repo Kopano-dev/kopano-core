@@ -1816,7 +1816,7 @@ class Store(object):
         return _permission(self, member, create)
 
     def favorites(self):
-        """Returns a list of favorite folders """
+        """Returns all favorite folders"""
 
         table = self.common_views.mapiobj.GetContentsTable(MAPI_ASSOCIATED)
         table.SetColumns([PR_MESSAGE_CLASS, PR_SUBJECT, PR_WLINK_ENTRYID, PR_WLINK_FLAGS, PR_WLINK_ORDINAL, PR_WLINK_STORE_ENTRYID, PR_WLINK_TYPE], 0)
@@ -1826,12 +1826,46 @@ class Store(object):
             entryid = bin2hex(row[2].Value)
             store_entryid = bin2hex(row[5].Value)
 
-            if store_entryid != self.entryid: # XXX: Handle favorites from public stores
-                continue
+            if store_entryid == self.entryid: # XXX: Handle favorites from public stores
+                try:
+                    yield self.folder(entryid=bin2hex(row[2].Value))
+                except NotFoundError:
+                    pass
 
+    def _subprops(self, value):
+        result = {}
+        pos = 0
+        while pos < len(value):
+            id_ = ord(value[pos])
+            cb = ord(value[pos+1])
+            result[id_] = value[pos+2:pos+2+cb]
+            pos += 2 + cb
+        return result
+
+    def searches(self):
+        """Returns all permanent search folders """
+
+        findroot = self.root.folder('FINDER_ROOT') # XXX
+
+        # extract special type of guid from search folder PR_FOLDER_DISPLAY_FLAGS to match against
+        guid_folder = {}
+        for folder in findroot.folders():
             try:
-                yield self.folder(entryid=bin2hex(row[2].Value))
+                prop = folder.prop(PR_FOLDER_DISPLAY_FLAGS)
+                subprops = self._subprops(prop.value)
+                guid_folder[subprops[2]] = folder
             except MAPIErrorNotFound:
+                pass
+
+        # match common_views SFInfo records against these guids
+        table = self.common_views.mapiobj.GetContentsTable(MAPI_ASSOCIATED)
+        table.SetColumns([PR_MESSAGE_CLASS, PR_WB_SF_ID], MAPI_UNICODE)
+        table.Restrict(SPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS, SPropValue(PR_MESSAGE_CLASS, "IPM.Microsoft.WunderBar.SFInfo")), TBL_BATCH)
+
+        for row in table.QueryRows(-1, 0):
+            try:
+                yield guid_folder[row[1].Value]
+            except KeyError :
                 pass
 
     def __eq__(self, s): # XXX check same server?
