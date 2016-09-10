@@ -6361,6 +6361,7 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 	j = 0;
 	ZEND_HASH_FOREACH_VAL(target_hash, entry) {
 		// null pointer returned if perms was not array(array()).
+		ZVAL_DEREF(entry);
 		data = HASH_OF(entry);
 		zend_hash_internal_pointer_reset(data);
 
