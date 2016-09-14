@@ -620,11 +620,6 @@ typedef void * DLIB;
 #endif
 #define PATH_SEPARATOR				'/'
 
-// timezone compatability
-#define _tzset tzset
-#define _timezone timezone
-#define _daylight daylight
-#define _tzname tzname
 // unavailable in linux
 #define _dstbias 0
 
