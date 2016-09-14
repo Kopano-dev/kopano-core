@@ -43,7 +43,7 @@ HRESULT ECSyncLog::GetLogger(ECLogger **lppLogger)
 		if (lpSettings->SyncLogEnabled()) {
 			char dummy[MAX_PATH + 1] = { 0 };
 
-			if (GetTempPathA(sizeof dummy, dummy) >= sizeof dummy)
+			if (GetTempPath(sizeof dummy, dummy) >= sizeof dummy)
 				dummy[0] = 0x00;
 
 			std::string strPath = dummy + std::string("/");

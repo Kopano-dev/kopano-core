@@ -571,7 +571,6 @@ HRESULT CoCreateGuid(LPGUID);
 
 void GetSystemTimeAsFileTime(FILETIME *ft);
 DWORD GetTempPath(DWORD inLen, char *lpBuffer);
-#define GetTempPathA GetTempPath
 
 #define utf32len wcslen
 
