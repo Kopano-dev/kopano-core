@@ -1043,7 +1043,7 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 		g_lpConfig->AddSetting("attachment_storage", "database");
 	}
 
-	if (stricmp(g_lpConfig->GetSetting("user_plugin"), "db") == 0 && parseBool(g_lpConfig->GetSetting("sync_gab_realtime")) == false) {
+	if (strcasecmp(g_lpConfig->GetSetting("user_plugin"), "db") == 0 && parseBool(g_lpConfig->GetSetting("sync_gab_realtime")) == false) {
 		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Unsupported sync_gab_realtime = no when using DB plugin. Enabling sync_gab_realtime.");
 		g_lpConfig->AddSetting("sync_gab_realtime", "yes");
 	}

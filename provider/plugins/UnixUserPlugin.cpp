@@ -316,8 +316,8 @@ bool UnixUserPlugin::matchUserObject(struct passwd *pw, const string &match, uns
 	// username or fullname
 	if(ulFlags & EMS_AB_ADDRESS_LOOKUP) {
 		matched =
-			(stricmp(pw->pw_name, (char*)match.c_str()) == 0) ||
-			(stricmp((char*)m_iconv->convert(pw->pw_gecos).c_str(), (char*)match.c_str()) == 0);
+			(strcasecmp(pw->pw_name, (char*)match.c_str()) == 0) ||
+			(strcasecmp((char*)m_iconv->convert(pw->pw_gecos).c_str(), (char*)match.c_str()) == 0);
 	} else {
 		matched =
 			(strncasecmp(pw->pw_name, (char*)match.c_str(), match.size()) == 0) ||
@@ -341,7 +341,7 @@ bool UnixUserPlugin::matchGroupObject(struct group *gr, const string &match, uns
 	bool matched = false;
 
 	if(ulFlags & EMS_AB_ADDRESS_LOOKUP)
-		matched = stricmp(gr->gr_name, (char*)match.c_str()) == 0;
+		matched = strcasecmp(gr->gr_name, (char*)match.c_str()) == 0;
 	else
 		matched = strncasecmp(gr->gr_name, (char*)match.c_str(), match.size()) == 0;
 

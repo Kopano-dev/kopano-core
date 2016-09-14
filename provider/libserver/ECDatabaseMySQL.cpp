@@ -1153,7 +1153,7 @@ unsigned int ECDatabaseMySQL::GetRowIndex(DB_RESULT sResult, const std::string &
 	cbFields = mysql_field_count(&m_lpMySQL);
 
 	for (unsigned int i = 0; i < cbFields && ulIndex == (unsigned int)-1; ++i)
-		if (stricmp(lpFields[i].name, strFieldname.c_str()) == 0)
+		if (strcasecmp(lpFields[i].name, strFieldname.c_str()) == 0)
 			ulIndex = i;
 	
 	return ulIndex;
@@ -1371,15 +1371,15 @@ ECRESULT ECDatabaseMySQL::IsInnoDBSupported()
 	}
 
 	while ((lpDBRow = FetchRow(lpResult)) != NULL) {
-		if (stricmp(lpDBRow[0], "InnoDB") != 0)
+		if (strcasecmp(lpDBRow[0], "InnoDB") != 0)
 			continue;
 
-		if (stricmp(lpDBRow[1], "DISABLED") == 0) {
+		if (strcasecmp(lpDBRow[1], "DISABLED") == 0) {
 			// mysql has run with innodb enabled once, but disabled this.. so check your log.
 			ec_log_crit("INNODB engine is disabled. Please re-enable the INNODB engine. Check your MySQL log for more information or comment out skip-innodb in the mysql configuration file.");
 			er = KCERR_DATABASE_ERROR;
 			goto exit;
-		} else if (stricmp(lpDBRow[1], "YES") != 0 && stricmp(lpDBRow[1], "DEFAULT") != 0) {
+		} else if (strcasecmp(lpDBRow[1], "YES") != 0 && strcasecmp(lpDBRow[1], "DEFAULT") != 0) {
 			// mysql is incorrectly configured or compiled.
 			ec_log_crit("INNODB engine is not supported. Please enable the INNODB engine in the mysql configuration file.");
 			er = KCERR_DATABASE_ERROR;
@@ -1582,7 +1582,7 @@ ECRESULT ECDatabaseMySQL::GetDatabaseVersion(zcp_versiontuple *dbv)
 		er = KCERR_UNKNOWN_DATABASE;
 
 		while (lpDBRow != NULL) {
-			if (lpDBRow[0] != NULL && stricmp(lpDBRow[0], "storeid") == 0) {
+			if (lpDBRow[0] != NULL && strcasecmp(lpDBRow[0], "storeid") == 0) {
 				dbv->v_major  = 5;
 				dbv->v_minor  = 0;
 				dbv->v_rev    = 0;

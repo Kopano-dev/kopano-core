@@ -193,7 +193,7 @@ void IMAP::ToUpper(wstring &strString) {
  */
 bool IMAP::CaseCompare(const string& strA, const string& strB)
 {
-	return stricmp(strA.c_str(), strB.c_str()) == 0;
+	return strcasecmp(strA.c_str(), strB.c_str()) == 0;
 }
 
 /**
@@ -7706,7 +7706,7 @@ bool IMAP::IsMailFolder(IMAPIFolder *lpFolder)
         goto exit;
 	}
         
-	result = stricmp(lpProp->Value.lpszA, "IPM") == 0 || stricmp(lpProp->Value.lpszA, "IPF.NOTE") == 0;
+	result = strcasecmp(lpProp->Value.lpszA, "IPM") == 0 || strcasecmp(lpProp->Value.lpszA, "IPF.NOTE") == 0;
     
 exit:
 	MAPIFreeBuffer(lpProp);

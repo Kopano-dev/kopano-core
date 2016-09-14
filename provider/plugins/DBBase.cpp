@@ -394,7 +394,7 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 	while (sValidProps[i].column != NULL) {
 		string propvalue = details.GetPropString(sValidProps[i].id);
 
-		if (stricmp(sValidProps[i].column, OP_PASSWORD) == 0 && !propvalue.empty()) {
+		if (strcasecmp(sValidProps[i].column, OP_PASSWORD) == 0 && !propvalue.empty()) {
 			// Password value has special treatment
 			if (CreateMD5Hash(propvalue, &propvalue) != erSuccess) // WARNING input and output point to the same data
 				throw runtime_error(string("db_changeUser: create md5"));
@@ -1076,7 +1076,7 @@ objectid_t DBPlugin::CreateObject(const objectdetails_t &details)
 		throw runtime_error(string("db_query: ") + strerror(er));
 
 	while ((lpDBRow = m_lpDatabase->FetchRow(lpResult)) != NULL)
-		if (lpDBRow[1] != NULL && stricmp(lpDBRow[1], strPropValue.c_str()) == 0)
+		if (lpDBRow[1] != NULL && strcasecmp(lpDBRow[1], strPropValue.c_str()) == 0)
 			throw collision_error(string("Object exist: ") + strPropValue);
 
 	if (CoCreateGuid(&guidExternId) != S_OK)

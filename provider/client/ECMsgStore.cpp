@@ -3279,7 +3279,7 @@ HRESULT ECMsgStore::MsgStoreDnToPseudoUrl(const utf8string &strMsgStoreDN, utf8s
 
 	// Check if the last part equals 'cn=Microsoft Private MDB'
 	riPart = parts.rbegin();
-	if (stricmp(riPart->c_str(), "cn=Microsoft Private MDB") != 0)
+	if (strcasecmp(riPart->c_str(), "cn=Microsoft Private MDB") != 0)
 		return MAPI_E_INVALID_PARAMETER;
 
 	// Check if the for last part starts with 'cn='
@@ -3289,7 +3289,7 @@ HRESULT ECMsgStore::MsgStoreDnToPseudoUrl(const utf8string &strMsgStoreDN, utf8s
 
 	// If the server has no home server information for a user, the servername will be set to 'Unknown'
 	// Return MAPI_E_NO_SUPPORT in that case.
-	if (stricmp(riPart->c_str(), "cn=Unknown") == 0)
+	if (strcasecmp(riPart->c_str(), "cn=Unknown") == 0)
 		return MAPI_E_NO_SUPPORT;
 
 	*lpstrPseudoUrl = utf8string::from_string("pseudo://" + riPart->substr(3));

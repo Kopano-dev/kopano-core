@@ -176,7 +176,7 @@ objectid_t LDAPCache::getParentForDN(const std::unique_ptr<dn_cache_t> &lpCache,
 		/* Key should be larger then current guess, but has to be smaller then the userobject dn */
 		/* If key matches the end of the userobject dn, we have a positive match */
 		if (it->second.size() > parent_dn.size() && it->second.size() < dn.size() &&
-		    stricmp(dn.c_str() + (dn.size() - it->second.size()), it->second.c_str()) == 0) {
+		    strcasecmp(dn.c_str() + (dn.size() - it->second.size()), it->second.c_str()) == 0) {
 			parent_dn = it->second;
 			entry = it->first;
 		}
@@ -198,7 +198,7 @@ LDAPCache::getChildrenForDN(const std::unique_ptr<dn_cache_t> &lpCache,
 		/* Key should be larger then root DN */
 		/* If key matches the end of the root dn, we have a positive match */
 		if (iter->second.size() > dn.size() &&
-		    stricmp(iter->second.c_str() + (iter->second.size() - dn.size()), dn.c_str()) == 0)
+		    strcasecmp(iter->second.c_str() + (iter->second.size() - dn.size()), dn.c_str()) == 0)
 			list->push_back(iter->second);
 
 	return list;
@@ -221,7 +221,7 @@ bool LDAPCache::isDNInList(const std::unique_ptr<dn_list_t> &lpList,
 		/* Key should be larger or equal then user DN */
 		/* If key matches the end of the user dn, we have a positive match */
 		if (iter->size() <= dn.size() &&
-		    stricmp(dn.c_str() + (dn.size() - iter->size()), iter->c_str()) == 0)
+		    strcasecmp(dn.c_str() + (dn.size() - iter->size()), iter->c_str()) == 0)
 			return true;
 
 	return false;

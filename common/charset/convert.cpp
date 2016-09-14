@@ -129,7 +129,7 @@ namespace details {
                     m_bForce = true;
                 } else if (*i == "NOIGNORE" || *i == "NOFORCE") {
                     m_bForce = false;
-                } else if(*i == "HTMLENTITIES" && stricmp(fromcode, CHARSET_WCHAR) == 0) {
+                } else if(*i == "HTMLENTITIES" && strcasecmp(fromcode, CHARSET_WCHAR) == 0) {
                 	m_bHTML = true;
                 } else vOptionsFiltered.push_back(*i);
 				++i;

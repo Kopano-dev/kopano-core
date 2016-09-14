@@ -2782,7 +2782,7 @@ namespace charsetHelper {
 static vmime::charset vtm_upgrade_charset(const vmime::charset &cset)
 {
 	for (size_t i = 0; i < ARRAY_SIZE(charsetHelper::fixes); ++i)
-		if (stricmp(charsetHelper::fixes[i].original, cset.getName().c_str()) == 0)
+		if (strcasecmp(charsetHelper::fixes[i].original, cset.getName().c_str()) == 0)
 			return charsetHelper::fixes[i].update;
 
 	return cset;

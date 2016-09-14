@@ -81,9 +81,6 @@ inline int _vsnprintf_l(char *str, size_t size, const char *format, locale_t loc
 
 #define STDAPI_(__type) __type __stdcall
 
-/* Defines for some windows function that have a different name in Linux */
-#define stricmp strcasecmp
-
 /* base types */
 #include <sys/types.h>
 typedef void			VOID;
@@ -604,7 +601,7 @@ static inline LPWSTR lstrcpyW(LPWSTR dst, LPCWSTR src)
 #define _tcslen strlen
 #define _tcscpy strcpy
 #define _tcscmp strcmp
-#define _tcsicmp stricmp
+#define _tcsicmp strcasecmp
 #endif
 
 inline int strcmp_ci(const char *s1, const char *s2) { return strcasecmp(s1, s2); }

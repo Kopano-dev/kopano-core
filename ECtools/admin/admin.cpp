@@ -2291,7 +2291,7 @@ struct lstr
 {
 	bool operator()(const string &t1, const string &t2) const
 	{
-		return stricmp((char*)t1.c_str(), (char*)t2.c_str()) < 0;
+		return strcasecmp((char*)t1.c_str(), (char*)t2.c_str()) < 0;
 	}
 };
 
@@ -2774,7 +2774,7 @@ int main(int argc, char* argv[])
 		cerr << "Username (-u) cannot be empty" << endl;
 		return 1;
 	}
-	if (username && stricmp(username, "SYSTEM")==0) {
+	if (username && strcasecmp(username, "SYSTEM")==0) {
 		cerr << "Username (-u) cannot be SYSTEM" << endl;
 		return 1;
 	}
@@ -3058,9 +3058,9 @@ int main(int argc, char* argv[])
 		cout << "force a resync of all offline profiles for all users? [y/N]: ";
 
 		cin >> response;
-		if (response.empty() || stricmp(response.c_str(), "n") == 0 || stricmp(response.c_str(), "no") == 0)
+		if (response.empty() || strcasecmp(response.c_str(), "n") == 0 || strcasecmp(response.c_str(), "no") == 0)
 			return 0;
-		if (stricmp(response.c_str(), "y") != 0 && stricmp(response.c_str(), "yes") != 0) {
+		if (strcasecmp(response.c_str(), "y") != 0 && strcasecmp(response.c_str(), "yes") != 0) {
 			cout << "Invalid response." << endl;
 			return 1;
 		}
@@ -3216,19 +3216,19 @@ int main(int argc, char* argv[])
 			break;
 
 		case MODE_DETAILS:
-			if (detailstype == NULL || stricmp(detailstype, "user") == 0)
+			if (detailstype == NULL || strcasecmp(detailstype, "user") == 0)
 				ulClass = ACTIVE_USER;
-			else if (stricmp(detailstype, "group") == 0)
+			else if (strcasecmp(detailstype, "group") == 0)
 				ulClass = DISTLIST_GROUP;
-			else if (stricmp(detailstype, "company") == 0)
+			else if (strcasecmp(detailstype, "company") == 0)
 				ulClass = CONTAINER_COMPANY;
-			else if (stricmp(detailstype, "archive") != 0) {
+			else if (strcasecmp(detailstype, "archive") != 0) {
 				hr = MAPI_E_INVALID_TYPE;
 				cerr << "Unknown userobject type \"" << detailstype << "\"" << endl;
 				goto exit;
 			}
 
-			if (detailstype && stricmp(detailstype, "archive") == 0)
+			if (detailstype && strcasecmp(detailstype, "archive") == 0)
 				hr = print_archive_details(lpSession, lpECMsgStore, username);
 			else
 				hr = print_details(lpSession, lpECMsgStore, ulClass, username);
@@ -4290,10 +4290,10 @@ int main(int argc, char* argv[])
 					break;
 		case MODE_LIST_SENDAS:
 
-					if (detailstype == NULL || stricmp(detailstype, "user") == 0) {
+					if (detailstype == NULL || strcasecmp(detailstype, "user") == 0) {
 						hr = lpServiceAdmin->ResolveUserName((LPTSTR)username, 0, &cbUserId, &lpUserId);
 						detailstype = "user";
-					} else if (stricmp(detailstype, "group") == 0) {
+					} else if (strcasecmp(detailstype, "group") == 0) {
 						hr = lpServiceAdmin->ResolveGroupName((LPTSTR)username, 0, &cbUserId, &lpUserId);
 					} else {
 						hr = MAPI_E_INVALID_TYPE;

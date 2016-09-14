@@ -501,15 +501,15 @@ ECRESULT ECDatabaseMySQL::IsInnoDBSupported()
 	}
 
 	while ((lpDBRow = FetchRow(lpResult)) != NULL) {
-		if (stricmp(lpDBRow[0], "InnoDB") != 0)
+		if (strcasecmp(lpDBRow[0], "InnoDB") != 0)
 			continue;
 
-		if (stricmp(lpDBRow[1], "DISABLED") == 0) {
+		if (strcasecmp(lpDBRow[1], "DISABLED") == 0) {
 			// mysql has run with innodb enabled once, but disabled this.. so check your log.
 			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "INNODB engine is disabled. Please re-enable the INNODB engine. Check your MySQL log for more information or comment out skip-innodb in the mysql configuration file.");
 			er = KCERR_DATABASE_ERROR;
 			goto exit;
-		} else if (stricmp(lpDBRow[1], "YES") != 0 && stricmp(lpDBRow[1], "DEFAULT") != 0) {
+		} else if (strcasecmp(lpDBRow[1], "YES") != 0 && strcasecmp(lpDBRow[1], "DEFAULT") != 0) {
 			// mysql is incorrectly configured or compiled.
 			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "INNODB engine is not supported. Please enable the INNODB engine in the mysql configuration file.");
 			er = KCERR_DATABASE_ERROR;

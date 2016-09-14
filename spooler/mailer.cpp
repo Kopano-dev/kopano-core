@@ -2424,8 +2424,8 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 					// ignore error if unable to open, just the copy of the mail might possibily not be done.
 				} else 	if(strcmp(g_lpConfig->GetSetting("allow_delegate_meeting_request"), "yes") == 0 &&
 							HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &lpMsgClass) == hrSuccess &&
-							((stricmp(lpMsgClass->Value.lpszA, "IPM.Schedule.Meeting.Request" ) == 0) ||
-							 (stricmp(lpMsgClass->Value.lpszA, "IPM.Schedule.Meeting.Canceled" ) == 0))) {
+							((strcasecmp(lpMsgClass->Value.lpszA, "IPM.Schedule.Meeting.Request" ) == 0) ||
+							 (strcasecmp(lpMsgClass->Value.lpszA, "IPM.Schedule.Meeting.Canceled" ) == 0))) {
 					// Meeting request can always sent as 'on behalf of' (Zarafa and SMTP user).
 					// This is needed if a user forward a meeting request. If you have permissions on a calendar,
 					// you can always sent with 'on behalve of'. This behavior is like exchange.

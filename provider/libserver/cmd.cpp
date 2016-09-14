@@ -239,7 +239,7 @@ static ECRESULT CheckUserStore(ECSession *lpecSession, unsigned ulUserId,
 			if (ulUserId == 2)	// Everyone, public in single tennant
 				*lpbHasLocalStore = true;
 			else
-				*lpbHasLocalStore = (stricmp(sDetails.GetPropString(OB_PROP_S_SERVERNAME).c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) == 0);
+				*lpbHasLocalStore = (strcasecmp(sDetails.GetPropString(OB_PROP_S_SERVERNAME).c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) == 0);
 		} else	// Archive store
 			*lpbHasLocalStore = sDetails.PropListStringContains((property_key_t)PR_EC_ARCHIVE_SERVERS_A, g_lpSessionManager->GetConfig()->GetSetting("server_name"), true);
 	} else	// Single tennant
@@ -286,7 +286,7 @@ static ECRESULT PeerIsServer(struct soap *soap,
 
 	// First check if we're connecting through unix-socket/named-pipe and if the request url matches this server
 	if (SOAP_CONNECTION_TYPE_NAMED_PIPE(soap) &&
-			stricmp(strServerName.c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) == 0)
+			strcasecmp(strServerName.c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) == 0)
 		bResult = true;
 
 	else
@@ -584,7 +584,7 @@ int ns__ssoLogon(struct soap *soap, ULONG64 ulSessionId, char *szUsername, char 
 		goto exit;
 
 	lpszEnabled = g_lpSessionManager->GetConfig()->GetSetting("enable_sso");
-	if (!(lpszEnabled && stricmp(lpszEnabled, "yes") == 0))
+	if (!(lpszEnabled && strcasecmp(lpszEnabled, "yes") == 0))
 		goto nosso;
 
 	lpsResponse->lpszVersion = const_cast<char *>("0," PROJECT_VERSION_SERVER_STR);
@@ -1077,7 +1077,7 @@ SOAP_ENTRY_START(getPublicStore, lpsResponse->er, unsigned int ulFlags, struct g
 		}
 	
 		/* Do we own the store? */
-		if (stricmp(strThisServer.c_str(), strStoreServer.c_str()) != 0)
+		if (strcasecmp(strThisServer.c_str(), strStoreServer.c_str()) != 0)
 		{
 			if ((ulFlags & EC_OVERRIDE_HOMESERVER) == 0) {
 				er = GetBestServerPath(soap, lpecSession, strStoreServer, &strServerPath);
@@ -1171,7 +1171,7 @@ SOAP_ENTRY_START(getStore, lpsResponse->er, entryId* lpsEntryId, struct getStore
                 er = KCERR_NOT_FOUND;
                 goto exit;
             }
-            if (stricmp(strServerName.c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) != 0)  {
+            if (strcasecmp(strServerName.c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) != 0)  {
                 er = GetBestServerPath(soap, lpecSession, strServerName, &strServerPath);
                 if (er != erSuccess)
                     goto exit;
@@ -3183,7 +3183,7 @@ SOAP_ENTRY_START(loadObject, lpsLoadObjectResponse->er, entryId sEntryId, struct
 							goto exit;
 						}
 
-						if (stricmp(strServerName.c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) != 0) {
+						if (strcasecmp(strServerName.c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) != 0) {
 							er = KCERR_UNABLE_TO_COMPLETE;	// Reason 2
 							goto exit;
 						}
@@ -3330,7 +3330,7 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
 			goto exit;
 		}
 
-		if (stricmp(lpDBRow[1], name) == 0)
+		if (strcasecmp(lpDBRow[1], name) == 0)
 			bExist = true;
 	}
 
@@ -7405,7 +7405,7 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, char *szUserName, unsigned i
 				goto exit;
 			}
 
-			if (stricmp(strServerName.c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) != 0) {
+			if (strcasecmp(strServerName.c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) != 0) {
 				if ((ulFlags & OPENSTORE_OVERRIDE_HOME_MDB) == 0) {
 					string	strServerPath;
 
@@ -10521,7 +10521,7 @@ SOAP_ENTRY_START(resolvePseudoUrl, lpsResponse->er, char *lpszPseudoUrl, struct 
 		goto exit;
 
 	lpsResponse->lpszServerPath = STROUT_FIX_CPY(strServerPath.c_str());
-	lpsResponse->bIsPeer = stricmp(g_lpSessionManager->GetConfig()->GetSetting("server_name"), lpszPseudoUrl + 9) == 0;
+	lpsResponse->bIsPeer = strcasecmp(g_lpSessionManager->GetConfig()->GetSetting("server_name"), lpszPseudoUrl + 9) == 0;
 
 exit:
 	;
@@ -10570,11 +10570,11 @@ SOAP_ENTRY_START(getServerDetails, lpsResponse->er, struct mv_string8 szaSvrName
 				goto exit;
 
 			
-			if (stricmp(sDetails.GetServerName().c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) == 0)
+			if (strcasecmp(sDetails.GetServerName().c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) == 0)
 				lpsResponse->sServerList.__ptr[i].ulFlags |= EC_SDFLAG_IS_PEER;
 
 			// note: "contains a public of a company" is also a possibility
-			if (!strPublicServer.empty() && stricmp(sDetails.GetServerName().c_str(), strPublicServer.c_str()) == 0)
+			if (!strPublicServer.empty() && strcasecmp(sDetails.GetServerName().c_str(), strPublicServer.c_str()) == 0)
 				lpsResponse->sServerList.__ptr[i].ulFlags |= EC_SDFLAG_HAS_PUBLIC;
 				
 			if ((ulFlags & EC_SERVERDETAIL_NO_NAME) != EC_SERVERDETAIL_NO_NAME)

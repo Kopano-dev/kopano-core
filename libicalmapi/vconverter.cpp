@@ -2812,7 +2812,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 		goto exit;
 	
 	if ((PROP_TYPE(lpSpropArray[0].ulPropTag) != PT_ERROR)
-		&& (stricmp(lpSpropArray[0].Value.lpszA, "IPM.Task") == 0)) {
+		&& (strcasecmp(lpSpropArray[0].Value.lpszA, "IPM.Task") == 0)) {
 		ulRecurrenceStateTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TASK_RECURRSTATE], PT_BINARY);
 		lpSPropRecVal = &lpSpropArray[5];
 		ulFlag = RECURRENCE_STATE_TASKS;

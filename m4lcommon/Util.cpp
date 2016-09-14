@@ -1256,7 +1256,7 @@ HRESULT Util::CompareProp(const SPropValue *lpProp1, const SPropValue *lpProp2,
 		if (lpProp1->Value.MVszA.cValues == lpProp2->Value.MVszA.cValues) {
 			for (i = 0; i < lpProp1->Value.MVszA.cValues; ++i) {
 				if (lpProp1->Value.MVszA.lppszA[i] && lpProp2->Value.MVszA.lppszA[i])
-					nCompareResult = stricmp(lpProp1->Value.MVszA.lppszA[i], lpProp2->Value.MVszA.lppszA[i]);
+					nCompareResult = strcasecmp(lpProp1->Value.MVszA.lppszA[i], lpProp2->Value.MVszA.lppszA[i]);
 				else
 					nCompareResult = lpProp1->Value.MVszA.lppszA[i] != lpProp2->Value.MVszA.lppszA[i];
 

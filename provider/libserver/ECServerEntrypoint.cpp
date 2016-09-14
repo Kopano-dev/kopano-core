@@ -206,7 +206,7 @@ static int kopano_fparsehdr(struct soap *soap, const char *key,
     const char *val)
 {
 	const char *szProxy = g_lpSessionManager->GetConfig()->GetSetting("proxy_header");
-	if(strlen(szProxy) > 0 && stricmp(key, szProxy) == 0) {
+	if(strlen(szProxy) > 0 && strcasecmp(key, szProxy) == 0) {
 		((SOAPINFO *)soap->user)->bProxy = true;
 	}
 	

@@ -1240,7 +1240,7 @@ ECRESULT LocaleIdToLCID(const char *lpszLocaleID, ULONG *lpulLcid)
 	ASSERT(lpulLcid != NULL);
 
 	for (unsigned i = 0; !lpMapEntry && i < arraySize(localeMap); ++i)
-		if (stricmp(localeMap[i].lpszLocaleID, lpszLocaleID) == 0)
+		if (strcasecmp(localeMap[i].lpszLocaleID, lpszLocaleID) == 0)
 			lpMapEntry = &localeMap[i];
 
 	if (lpMapEntry == NULL)
@@ -1273,7 +1273,7 @@ ECRESULT LocaleIdToLocaleName(const char *lpszLocaleID, const char **lppszLocale
 	ASSERT(lppszLocaleName != NULL);
 
 	for (unsigned i = 0; !lpMapEntry && i < arraySize(localeMap); ++i)
-		if (stricmp(localeMap[i].lpszLocaleID, lpszLocaleID) == 0)
+		if (strcasecmp(localeMap[i].lpszLocaleID, lpszLocaleID) == 0)
 			lpMapEntry = &localeMap[i];
 
 	if (lpMapEntry == NULL)

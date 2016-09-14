@@ -718,35 +718,35 @@ objectid_t LDAPUserPlugin::GetObjectIdForEntry(LDAPMessage *entry)
 	const char *class_dynamic_type = m_config->GetSetting("ldap_dynamicgroup_type_attribute_value");
 
 	FOREACH_ATTR(entry) {
-		if (class_attr && stricmp(att, class_attr) == 0)
+		if (class_attr && strcasecmp(att, class_attr) == 0)
 			objclasses = getLDAPAttributeValues(att, entry);
 
-		if (nonactive_attr && stricmp(att, nonactive_attr) == 0) {
+		if (nonactive_attr && strcasecmp(att, nonactive_attr) == 0) {
 			nonactive_type = getLDAPAttributeValue(att, entry);
 
 		}
 
-		if (resource_attr && stricmp(att, resource_attr) == 0)
+		if (resource_attr && strcasecmp(att, resource_attr) == 0)
 			resource_type = getLDAPAttributeValue(att, entry);
 
-		if (security_attr && stricmp(att, security_attr) == 0) {
+		if (security_attr && strcasecmp(att, security_attr) == 0) {
 			security_type = getLDAPAttributeValue(att, entry);
 
 		}
 
-		if (user_unique_attr && stricmp(att, user_unique_attr) == 0)
+		if (user_unique_attr && strcasecmp(att, user_unique_attr) == 0)
 			user_unique = getLDAPAttributeValue(att, entry);
 
-		if (group_unique_attr && stricmp(att, group_unique_attr) == 0)
+		if (group_unique_attr && strcasecmp(att, group_unique_attr) == 0)
 			group_unique = getLDAPAttributeValue(att, entry);
 
-		if (company_unique_attr && stricmp(att, company_unique_attr) == 0)
+		if (company_unique_attr && strcasecmp(att, company_unique_attr) == 0)
 			company_unique = getLDAPAttributeValue(att, entry);
 
-		if (addresslist_unique_attr && stricmp(att, addresslist_unique_attr) == 0)
+		if (addresslist_unique_attr && strcasecmp(att, addresslist_unique_attr) == 0)
 			addresslist_unique = getLDAPAttributeValue(att, entry);
 
-		if (dynamicgroup_unique_attr && stricmp(att, dynamicgroup_unique_attr) == 0)
+		if (dynamicgroup_unique_attr && strcasecmp(att, dynamicgroup_unique_attr) == 0)
 			dynamicgroup_unique = getLDAPAttributeValue(att, entry);
 	}
 	END_FOREACH_ATTR
@@ -815,9 +815,9 @@ objectid_t LDAPUserPlugin::GetObjectIdForEntry(LDAPMessage *entry)
 
 		if (objclass == NONACTIVE_USER && !resource_type.empty()) {
 			/* Overwrite objectclass, a resource is allowed to overwrite the nonactive type */
-			if (stricmp(resource_type.c_str(), "room") == 0)
+			if (strcasecmp(resource_type.c_str(), "room") == 0)
 				objclass = NONACTIVE_ROOM;
-			else if (stricmp(resource_type.c_str(), "equipment") == 0)
+			else if (strcasecmp(resource_type.c_str(), "equipment") == 0)
 				objclass = NONACTIVE_EQUIPMENT;
 		}
 
@@ -830,7 +830,7 @@ objectid_t LDAPUserPlugin::GetObjectIdForEntry(LDAPMessage *entry)
 	}
 
 	if (objclass == OBJECTCLASS_DISTLIST) {
-		if (!stricmp(security_attr_type, "ads")) {
+		if (!strcasecmp(security_attr_type, "ads")) {
 			if(atoi(security_type.c_str()) & 0x80000000)
 				objclass = DISTLIST_SECURITY;
 			else
@@ -916,7 +916,7 @@ LDAPUserPlugin::getAllObjectsByFilter(const std::string &basedn, int scope,
 			}
 
 			FOREACH_ATTR(entry) {
-				if (modify_attr && stricmp(att, modify_attr) == 0)
+				if (modify_attr && strcasecmp(att, modify_attr) == 0)
 					signature = getLDAPAttributeValue(att, entry);
 			}
 			END_FOREACH_ATTR
@@ -1121,7 +1121,7 @@ string LDAPUserPlugin::getSearchFilter(const string &data, const char *attr, con
 	string search_data;
 
 	// Set binary uniqueid to escaped string
-	if(attr_type && stricmp(attr_type, LDAP_DATA_TYPE_BINARY) == 0)
+	if(attr_type && strcasecmp(attr_type, LDAP_DATA_TYPE_BINARY) == 0)
 		BintoEscapeSequence(data.c_str(), data.size(), &search_data);
 	else
 		search_data = StringEscapeSequence(data);
@@ -1238,7 +1238,7 @@ string LDAPUserPlugin::objectUniqueIDtoAttributeData(const objectid_t &uniqueid,
 	}
 
 	FOREACH_ATTR(entry) {
-		if (stricmp(att, lpAttr) == 0) {
+		if (strcasecmp(att, lpAttr) == 0) {
 			strData = getLDAPAttributeValue(att, entry);
 			bDataAttrFound = true;
 		}
@@ -1284,7 +1284,7 @@ string LDAPUserPlugin::objectDNtoAttributeData(const string &dn, const char *lpA
 	}
 
 	FOREACH_ATTR(entry) {
-		if (stricmp(att, lpAttr) == 0) {
+		if (strcasecmp(att, lpAttr) == 0) {
 			strData = getLDAPAttributeValue(att, entry);
 			bAttrFound = true;
 		}
@@ -1489,7 +1489,7 @@ LDAPUserPlugin::resolveObjectsFromAttributesType(objectclass_t objclass,
 	 * and we must incur the penalty of having to resolve each entry one by one.
 	 * When the relation attribute is not the DN, we can optimize the lookup
 	 * by creating a single query that obtains all the required data in a single query. */
-	if (lpAttrType && stricmp(lpAttrType, LDAP_DATA_TYPE_DN) == 0) {
+	if (lpAttrType && strcasecmp(lpAttrType, LDAP_DATA_TYPE_DN) == 0) {
 		signatures = objectDNtoObjectSignatures(objclass, objects);
 	} else {
 		/* We have the full member list, create a new query that
@@ -1607,7 +1607,7 @@ objectsignature_t LDAPUserPlugin::authenticateUser(const string &username, const
 	gettimeofday(&tstart, NULL);
 
 	try {
-		if (!stricmp(authmethod, "password")) {
+		if (!strcasecmp(authmethod, "password")) {
 			id = authenticateUserPassword(username, password, company);
 		} else {
 			id = authenticateUserBind(username, password, company);
@@ -1701,18 +1701,18 @@ objectsignature_t LDAPUserPlugin::authenticateUserPassword(const string &usernam
 	}
 
 	FOREACH_ATTR(entry) {
-		if (loginname_attr && !stricmp(att, loginname_attr)) {
+		if (loginname_attr && !strcasecmp(att, loginname_attr)) {
 			d.SetPropString(OB_PROP_S_LOGIN, m_iconv->convert(getLDAPAttributeValue(att, entry)));
-		} else if (password_attr && !stricmp(att, password_attr)) {
+		} else if (password_attr && !strcasecmp(att, password_attr)) {
 			d.SetPropString(OB_PROP_S_PASSWORD, getLDAPAttributeValue(att, entry));
 		}
 
-		if (unique_attr && !stricmp(att, unique_attr)) {
+		if (unique_attr && !strcasecmp(att, unique_attr)) {
 			signature.id.id = getLDAPAttributeValue(att, entry);
 			signature.id.objclass = ACTIVE_USER; // only users can authenticate
 		}
 
-		if (nonactive_attr && !stricmp(att, nonactive_attr)) {
+		if (nonactive_attr && !strcasecmp(att, nonactive_attr)) {
 			if (parseBool(getLDAPAttributeValue(att, entry)))
 				throw login_error("Cannot login as nonactive user");
 		}
@@ -2006,7 +2006,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 			 * We check the attribute for every match possible,
 			 * because an attribute can be used in multiple config options
 			 */
-			if (ldap_addressbook_hide_attr && !stricmp(att, ldap_addressbook_hide_attr)) {
+			if (ldap_addressbook_hide_attr && !strcasecmp(att, ldap_addressbook_hide_attr)) {
 				ldap_attr = getLDAPAttributeValue(att, entry);
 				sObjDetails.SetPropBool(OB_PROP_B_AB_HIDDEN, parseBool(ldap_attr.c_str()));
 			}
@@ -2019,7 +2019,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 				 * The value should be set to something, as protection to make sure
 				 * the name is a property tag all names should be prefixed with '0x'.
 				 */
-				if (stricmp(iter->szValue, att) != 0 || strncasecmp(iter->szName, "0x", strlen("0x")) != 0)
+				if (strcasecmp(iter->szValue, att) != 0 || strncasecmp(iter->szName, "0x", strlen("0x")) != 0)
 					continue;
 
 				ulPropTag = xtoi(iter->szName);
@@ -2125,52 +2125,52 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 			case NONACTIVE_ROOM:
 			case NONACTIVE_EQUIPMENT:
 			case NONACTIVE_CONTACT:
-				if (loginname_attr && !stricmp(att, loginname_attr)) {
+				if (loginname_attr && !strcasecmp(att, loginname_attr)) {
 					ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
 					sObjDetails.SetPropString(OB_PROP_S_LOGIN, ldap_attr);
 				}
 
-				if (user_fullname_attr && !stricmp(att, user_fullname_attr)) {
+				if (user_fullname_attr && !strcasecmp(att, user_fullname_attr)) {
 					ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
 					sObjDetails.SetPropString(OB_PROP_S_FULLNAME, ldap_attr);
 				}
 
-				if (password_attr && !stricmp(att, password_attr)) {
+				if (password_attr && !strcasecmp(att, password_attr)) {
 					ldap_attr = getLDAPAttributeValue(att, entry);
 					sObjDetails.SetPropString(OB_PROP_S_PASSWORD, ldap_attr);
 				}
 
-				if (emailaddress_attr && !stricmp(att, emailaddress_attr)) {
+				if (emailaddress_attr && !strcasecmp(att, emailaddress_attr)) {
 					ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
 					sObjDetails.SetPropString(OB_PROP_S_EMAIL, ldap_attr);
 				}
 
-				if (emailaliases_attr && !stricmp(att, emailaliases_attr)) {
+				if (emailaliases_attr && !strcasecmp(att, emailaliases_attr)) {
 					ldap_attrs = getLDAPAttributeValues(att, entry);
 					sObjDetails.SetPropListString(OB_PROP_LS_ALIASES, ldap_attrs);
 				}
 
-				if (isadmin_attr && !stricmp(att, isadmin_attr)) {
+				if (isadmin_attr && !strcasecmp(att, isadmin_attr)) {
 					ldap_attr = getLDAPAttributeValue(att, entry);
 					sObjDetails.SetPropInt(OB_PROP_I_ADMINLEVEL, min(2, atoi(ldap_attr.c_str())));
 				}
 
-				if (resource_type_attr && !stricmp(att, resource_type_attr)) {
+				if (resource_type_attr && !strcasecmp(att, resource_type_attr)) {
 					ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
 					sObjDetails.SetPropString(OB_PROP_S_RESOURCE_DESCRIPTION, ldap_attr);
 				}
 
-				if (resource_capacity_attr && !stricmp(att, resource_capacity_attr)) {
+				if (resource_capacity_attr && !strcasecmp(att, resource_capacity_attr)) {
 					ldap_attr = getLDAPAttributeValue(att, entry);
 					sObjDetails.SetPropInt(OB_PROP_I_RESOURCE_CAPACITY, atoi(ldap_attr.c_str()));
 				}
 
-				if (usercert_attr && !stricmp(att, usercert_attr)) {
+				if (usercert_attr && !strcasecmp(att, usercert_attr)) {
 					ldap_attrs = getLDAPAttributeValues(att, entry);
 					sObjDetails.SetPropListString(OB_PROP_LS_CERTIFICATE, ldap_attrs);
 				}
 
-				if (sendas_attr && !stricmp(att, sendas_attr)) {
+				if (sendas_attr && !strcasecmp(att, sendas_attr)) {
 					postaction p;
 
 					p.objectid = objectid;
@@ -2189,7 +2189,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 				}
 
 #ifdef WITH_MULTISERVER
-				if (user_server_attr && !stricmp(att, user_server_attr)) {
+				if (user_server_attr && !strcasecmp(att, user_server_attr)) {
 					ldap_attr = getLDAPAttributeValue(att, entry);
 					sObjDetails.SetPropString(OB_PROP_S_SERVERNAME, ldap_attr);
 				}
@@ -2197,23 +2197,23 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 				break;
 			case DISTLIST_GROUP:
 			case DISTLIST_SECURITY:
-				if (group_fullname_attr && !stricmp(att, group_fullname_attr)) {
+				if (group_fullname_attr && !strcasecmp(att, group_fullname_attr)) {
 					ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
 					sObjDetails.SetPropString(OB_PROP_S_LOGIN, ldap_attr);
 					sObjDetails.SetPropString(OB_PROP_S_FULLNAME, ldap_attr);
 				}
 
-				if (emailaddress_attr && !stricmp(att, emailaddress_attr)) {
+				if (emailaddress_attr && !strcasecmp(att, emailaddress_attr)) {
 					ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
 					sObjDetails.SetPropString(OB_PROP_S_EMAIL, ldap_attr);
 				}
 
-				if (emailaliases_attr && !stricmp(att, emailaliases_attr)) {
+				if (emailaliases_attr && !strcasecmp(att, emailaliases_attr)) {
 					ldap_attrs = getLDAPAttributeValues(att, entry);
 					sObjDetails.SetPropListString(OB_PROP_LS_ALIASES, ldap_attrs);
 				}
 
-				if (sendas_attr && !stricmp(att, sendas_attr)) {
+				if (sendas_attr && !strcasecmp(att, sendas_attr)) {
 					postaction p;
 
 					p.objectid = objectid;
@@ -2232,37 +2232,37 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 				}
 				break;
 			case DISTLIST_DYNAMIC:
-				if (dynamicgroup_name_attr && !stricmp(att, dynamicgroup_name_attr)) {
+				if (dynamicgroup_name_attr && !strcasecmp(att, dynamicgroup_name_attr)) {
 					ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
 					sObjDetails.SetPropString(OB_PROP_S_LOGIN, ldap_attr);
 					sObjDetails.SetPropString(OB_PROP_S_FULLNAME, ldap_attr);
 				}
 
-				if (emailaddress_attr && !stricmp(att, emailaddress_attr)) {
+				if (emailaddress_attr && !strcasecmp(att, emailaddress_attr)) {
 					ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
 					sObjDetails.SetPropString(OB_PROP_S_EMAIL, ldap_attr);
 				}
 
-				if (emailaliases_attr && !stricmp(att, emailaliases_attr)) {
+				if (emailaliases_attr && !strcasecmp(att, emailaliases_attr)) {
 					ldap_attrs = getLDAPAttributeValues(att, entry);
 					sObjDetails.SetPropListString(OB_PROP_LS_ALIASES, ldap_attrs);
 				}
 				break;
 			case CONTAINER_COMPANY:
-				if (company_fullname_attr && !stricmp(att, company_fullname_attr)) {
+				if (company_fullname_attr && !strcasecmp(att, company_fullname_attr)) {
 					ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
 					sObjDetails.SetPropString(OB_PROP_S_LOGIN, ldap_attr);
 					sObjDetails.SetPropString(OB_PROP_S_FULLNAME, ldap_attr);
 				}
 
 #ifdef WITH_MULTISERVER
-				if (company_server_attr && !stricmp(att, company_server_attr)) {
+				if (company_server_attr && !strcasecmp(att, company_server_attr)) {
 					ldap_attr = getLDAPAttributeValue(att, entry);
 					sObjDetails.SetPropString(OB_PROP_S_SERVERNAME, ldap_attr);
 				}
 #endif
 
-				if (sysadmin_attr && !stricmp(att, sysadmin_attr)) {
+				if (sysadmin_attr && !strcasecmp(att, sysadmin_attr)) {
 					postaction p;
 
 					p.objectid = objectid;
@@ -2278,7 +2278,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 
 				break;
 			case CONTAINER_ADDRESSLIST:
-				if (addresslist_name_attr && !stricmp(att, addresslist_name_attr)) {
+				if (addresslist_name_attr && !strcasecmp(att, addresslist_name_attr)) {
 					ldap_attr = m_iconv->convert(getLDAPAttributeValue(att, entry));
 					sObjDetails.SetPropString(OB_PROP_S_LOGIN, ldap_attr);
 					sObjDetails.SetPropString(OB_PROP_S_FULLNAME, ldap_attr);
@@ -2578,13 +2578,13 @@ LDAPUserPlugin::getParentObjectsForObject(userobject_relation_t relation,
 	if(member_attr_rel == NULL  || strlen(member_attr_rel) == 0)
 		member_attr_rel = unique_attr;
 
-	if (member_attr_type && stricmp(member_attr_type, LDAP_DATA_TYPE_DN) == 0) {
+	if (member_attr_type && strcasecmp(member_attr_type, LDAP_DATA_TYPE_DN) == 0) {
 		//ads
 		member_data = objectUniqueIDtoObjectDN(childobject);
 	} else { //LDAP_DATA_TYPE_ATTRIBUTE
 		//posix ldap
 		// FIXME: No binary support for member_attr_rel
-		if (stricmp(member_attr_rel, unique_attr) == 0)
+		if (strcasecmp(member_attr_rel, unique_attr) == 0)
 			member_data = childobject.id;
 		else
 			member_data = objectUniqueIDtoAttributeData(childobject, member_attr_rel);
@@ -2749,7 +2749,7 @@ LDAPUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 		// Get the DN for each of the returned entries
 		FOREACH_ENTRY(res) {
 			FOREACH_ATTR(entry) {
-				if (member_attr && !stricmp(att, member_attr))
+				if (member_attr && !strcasecmp(att, member_attr))
 					memberlist = getLDAPAttributeValues(att, entry);
 			}
 			END_FOREACH_ATTR
@@ -2765,9 +2765,9 @@ LDAPUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 			dn = GetLDAPEntryDN(entry);
 
 			FOREACH_ATTR(entry) {
-				if (member_attr && !stricmp(att, member_attr))
+				if (member_attr && !strcasecmp(att, member_attr))
 					ldap_member_filter = getLDAPAttributeValue(att, entry);
-				if (base_attr && !stricmp(att, base_attr))
+				if (base_attr && !strcasecmp(att, base_attr))
 					ldap_basedn = getLDAPAttributeValue(att, entry);
 			}
 			END_FOREACH_ATTR
@@ -2907,7 +2907,7 @@ std::unique_ptr<objectdetails_t> LDAPUserPlugin::getPublicStoreDetails(void)
 	}
 
 	FOREACH_ATTR(entry) {
-		if (unique_attr && !stricmp(att, unique_attr))
+		if (unique_attr && !strcasecmp(att, unique_attr))
 			details->SetPropString(OB_PROP_S_SERVERNAME, m_iconv->convert(getLDAPAttributeValue(att, entry)));
 	}
 	END_FOREACH_ATTR
@@ -2950,7 +2950,7 @@ std::unique_ptr<serverlist_t> LDAPUserPlugin::getServers(void)
     FOREACH_ENTRY(res)
     {
     	FOREACH_ATTR(entry) {
-            if (name_attr && !stricmp(att, name_attr)) {
+            if (name_attr && !strcasecmp(att, name_attr)) {
                 strName = m_iconv->convert(getLDAPAttributeValue(att, entry));
                 serverlist->push_back(strName);
             }
@@ -3026,19 +3026,19 @@ LDAPUserPlugin::getServerDetails(const std::string &server)
 	}
 
 	FOREACH_ATTR(entry) {
-		if (address_attr && !stricmp(att, address_attr)) {
+		if (address_attr && !strcasecmp(att, address_attr)) {
 			strAddress = m_iconv->convert(getLDAPAttributeValue(att, entry));
 		}
-		if (http_port_attr && !stricmp(att, http_port_attr)) {
+		if (http_port_attr && !strcasecmp(att, http_port_attr)) {
 			strHttpPort = m_iconv->convert(getLDAPAttributeValue(att, entry));
 		}
-		if (ssl_port_attr && !stricmp(att, ssl_port_attr)) {
+		if (ssl_port_attr && !strcasecmp(att, ssl_port_attr)) {
 			strSslPort = m_iconv->convert(getLDAPAttributeValue(att, entry));
 		}
-		if (file_path_attr && !stricmp(att, file_path_attr)) {
+		if (file_path_attr && !strcasecmp(att, file_path_attr)) {
 			strFilePath = m_iconv->convert(getLDAPAttributeValue(att, entry));
 		}
-		if (proxy_path_attr && !stricmp(att, proxy_path_attr)) {
+		if (proxy_path_attr && !strcasecmp(att, proxy_path_attr)) {
 		    strProxyPath = m_iconv->convert(getLDAPAttributeValue(att, entry));
         }
 	}
@@ -3154,14 +3154,14 @@ std::unique_ptr<quotadetails_t> LDAPUserPlugin::getQuota(const objectid_t &id,
 	// work parsing the results from the ber structs.
 	FOREACH_ENTRY(res) {
 		FOREACH_ATTR(entry) {
-			if (usedefaults_attr && !stricmp(att, usedefaults_attr)) {
+			if (usedefaults_attr && !strcasecmp(att, usedefaults_attr)) {
 				// Workarround quotaoverride == !usedefaultquota
 				quotaDetails->bUseDefaultQuota = !parseBool(getLDAPAttributeValue(att, entry));
-			} else if (warnquota_attr && !stricmp(att, warnquota_attr)) {
+			} else if (warnquota_attr && !strcasecmp(att, warnquota_attr)) {
 				quotaDetails->llWarnSize = fromstring<string, long long>(getLDAPAttributeValue(att, entry)) * multiplier;
-			} else if (id.objclass != CONTAINER_COMPANY && softquota_attr && !stricmp(att, softquota_attr)) {
+			} else if (id.objclass != CONTAINER_COMPANY && softquota_attr && !strcasecmp(att, softquota_attr)) {
 				quotaDetails->llSoftSize = fromstring<string, long long>(getLDAPAttributeValue(att, entry)) * multiplier;
-			} else if (id.objclass != CONTAINER_COMPANY && hardquota_attr && !stricmp(att, hardquota_attr)) {
+			} else if (id.objclass != CONTAINER_COMPANY && hardquota_attr && !strcasecmp(att, hardquota_attr)) {
 				quotaDetails->llHardSize = fromstring<string, long long>(getLDAPAttributeValue(att, entry)) * multiplier;
 			}
 		}
