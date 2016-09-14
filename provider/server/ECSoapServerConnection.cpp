@@ -83,19 +83,19 @@ static int create_pipe_socket(const char *unix_socket, ECConfig *lpConfig,
 	er = chmod(unix_socket,mode);
 	if(er) {
 		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to chmod socket %s. Error: %s", unix_socket, strerror(errno));
-		closesocket(s);
+		close(s);
 		return -1;
 	}
 
 	if(er) {
 		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to chown socket %s, to %s:%s. Error: %s", unix_socket, lpConfig->GetSetting("run_as_user"), lpConfig->GetSetting("run_as_group"), strerror(errno));
-		closesocket(s);
+		close(s);
 		return -1;
 	}
 	
 	if (listen(s, SOMAXCONN) == -1) {
 		lpLogger->Log(EC_LOGLEVEL_FATAL, "Can't listen on unix socket %s", unix_socket);
-		closesocket(s);
+		close(s);
 		return -1;
 	}
 

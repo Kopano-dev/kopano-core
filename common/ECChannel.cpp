@@ -239,7 +239,7 @@ ECChannel::~ECChannel() {
 		SSL_free(lpSSL);
 		lpSSL = NULL;
 	}
-	closesocket(fd);
+	close(fd);
 }
 
 HRESULT ECChannel::HrEnableTLS(ECLogger *const lpLogger) {
@@ -967,7 +967,7 @@ exit:
 	if (sock_res != NULL)
 		freeaddrinfo(sock_res);
 	if (hr != hrSuccess && fd >= 0)
-		closesocket(fd);
+		close(fd);
 	return hr;
 }
 

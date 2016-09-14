@@ -129,7 +129,7 @@ ECRESULT ECChannelClient::ConnectSocket()
 
 exit:
 	if (er != erSuccess && fd != -1)
-		closesocket(fd);
+		close(fd);
 
 	return er;
 }
@@ -163,7 +163,7 @@ ECRESULT ECChannelClient::ConnectHttp()
 		if (connect(fd, sock_addr->ai_addr,
 		    sock_addr->ai_addrlen) < 0) {
 			int saved_errno = errno;
-			closesocket(fd);
+			close(fd);
 			fd = -1;
 			errno = saved_errno;
 			continue;
@@ -184,7 +184,7 @@ exit:
 	if (sock_res != NULL)
 		freeaddrinfo(sock_res);
 	if (er != erSuccess && fd != -1)
-		closesocket(fd);
+		close(fd);
 
 	return er;
 }
