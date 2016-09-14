@@ -673,9 +673,6 @@ time_t GetProcessTime();
  **/
 #define __LIKE_PRINTF(_fmt, _va) __attribute__((format(printf, _fmt, _va)))
 
-#define z_tms tms
-#define z_times times
-
 std::vector<std::string> get_backtrace();
 
 #endif // PLATFORM_LINUX_H
