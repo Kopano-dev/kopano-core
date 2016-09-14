@@ -544,7 +544,7 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 			goto exit;
 		}
 		lpPropVal->__union = SOAP_UNION_propValData_li;
-		lpPropVal->Value.li = _atoi64(lpRow[FIELD_NR_LONGINT]);
+		lpPropVal->Value.li = atoll(lpRow[FIELD_NR_LONGINT]);
 		break;
 	case PT_STRING8:
 	case PT_UNICODE:
@@ -709,7 +709,7 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 		ulLastPos = 0;
 		for (gsoap_size_t i = 0; i < lpPropVal->Value.mvli.__size; ++i) {
 			ParseMVProp(lpRow[FIELD_NR_LONGINT], lpLen[FIELD_NR_LONGINT], &ulLastPos, &strData);
-			lpPropVal->Value.mvli.__ptr[i] = _atoi64(strData.c_str());
+			lpPropVal->Value.mvli.__ptr[i] = atoll(strData.c_str());
 		}
 		break;
 	default:

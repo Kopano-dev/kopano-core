@@ -1642,7 +1642,7 @@ static ECRESULT GetFolderSize(ECDatabase *lpDatabase, unsigned int ulFolderId,
 	if(lpDBRow == NULL || lpDBRow[0] == NULL)
 		llSize = 0;
 	else
-		llSize = _atoi64(lpDBRow[0]);
+		llSize = atoll(lpDBRow[0]);
 
 	// Free results
 	if(lpDBResult) { lpDatabase->FreeResult(lpDBResult); lpDBResult = NULL; }

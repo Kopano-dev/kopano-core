@@ -329,7 +329,7 @@ ECRESULT SerializeDatabasePropVal(LPCSTREAMCAPS lpStreamCaps, DB_ROW lpRow, DB_L
 			er = KCERR_NOT_FOUND;
 			goto exit;
 		}
-		li = _atoi64(lpRow[FIELD_NR_LONGINT]);
+		li = atoll(lpRow[FIELD_NR_LONGINT]);
 		er = lpSink->Write(&li, sizeof(li), 1);
 		break;
 	case PT_STRING8:
@@ -496,7 +496,7 @@ ECRESULT SerializeDatabasePropVal(LPCSTREAMCAPS lpStreamCaps, DB_ROW lpRow, DB_L
 		ulLastPos = 0;
 		for (unsigned int x = 0; er == erSuccess && x < ulCount; ++x) {
 			ParseMVProp(lpRow[FIELD_NR_LONGINT], lpLen[FIELD_NR_LONGINT], &ulLastPos, &strData);
-			li = _atoi64(strData.c_str());
+			li = atoll(strData.c_str());
 			er = lpSink->Write(&li, sizeof(li), 1);
 		}
 		break;

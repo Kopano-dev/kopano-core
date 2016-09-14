@@ -805,20 +805,20 @@ std::unique_ptr<quotadetails_t> DBPlugin::getQuota(const objectid_t &objectid,
 
 		if (bGetUserDefault) {
 			if (objectid.objclass != CONTAINER_COMPANY && strcmp(lpDBRow[0], OP_UD_HARDQUOTA) == 0)
-				lpDetails->llHardSize = _atoi64(lpDBRow[1]);
+				lpDetails->llHardSize = atoll(lpDBRow[1]);
 			else if(objectid.objclass != CONTAINER_COMPANY && strcmp(lpDBRow[0], OP_UD_SOFTQUOTA) == 0)
-				lpDetails->llSoftSize = _atoi64(lpDBRow[1]);
+				lpDetails->llSoftSize = atoll(lpDBRow[1]);
 			else if(strcmp(lpDBRow[0], OP_UD_WARNQUOTA) == 0)
-				lpDetails->llWarnSize = _atoi64(lpDBRow[1]);
+				lpDetails->llWarnSize = atoll(lpDBRow[1]);
 			else if(strcmp(lpDBRow[0], OP_UD_USEDEFAULTQUOTA) == 0)
 				lpDetails->bUseDefaultQuota = !!atoi(lpDBRow[1]);
 		} else {
 			if (objectid.objclass != CONTAINER_COMPANY && strcmp(lpDBRow[0], OP_HARDQUOTA) == 0)
-				lpDetails->llHardSize = _atoi64(lpDBRow[1]);
+				lpDetails->llHardSize = atoll(lpDBRow[1]);
 			else if(objectid.objclass != CONTAINER_COMPANY && strcmp(lpDBRow[0], OP_SOFTQUOTA) == 0)
-				lpDetails->llSoftSize = _atoi64(lpDBRow[1]);
+				lpDetails->llSoftSize = atoll(lpDBRow[1]);
 			else if(strcmp(lpDBRow[0], OP_WARNQUOTA) == 0)
-				lpDetails->llWarnSize = _atoi64(lpDBRow[1]);
+				lpDetails->llWarnSize = atoll(lpDBRow[1]);
 			else if(strcmp(lpDBRow[0], OP_USEDEFAULTQUOTA) == 0)
 				lpDetails->bUseDefaultQuota = !!atoi(lpDBRow[1]);
 		}

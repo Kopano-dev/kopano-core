@@ -2585,25 +2585,25 @@ int main(int argc, char* argv[])
 				break;
 				// Make values from Mb to bytes which the server wants
 			case OPT_USER_QUOTA_HARD:
-				quotahard = _atoi64(optarg) *1024*1024;
+				quotahard = atoll(optarg) *1024*1024;
 				break;
 			case OPT_USER_QUOTA_SOFT:
-				quotasoft = _atoi64(optarg) *1024*1024;
+				quotasoft = atoll(optarg) *1024*1024;
 				break;
 			case OPT_USER_QUOTA_WARN:
-				quotawarn = _atoi64(optarg) *1024*1024;
+				quotawarn = atoll(optarg) *1024*1024;
 				break;
 			case OPT_USER_QUOTA_OVERRIDE:
 				quota = parse_yesno(optarg);
 				break;
 			case OPT_USER_DEFAULT_QUOTA_HARD:
-				ud_quotahard = _atoi64(optarg) * 1024 * 1024;
+				ud_quotahard = atoll(optarg) * 1024 * 1024;
 				break;
 			case OPT_USER_DEFAULT_QUOTA_SOFT:
-				ud_quotasoft = _atoi64(optarg) * 1024 * 1024;
+				ud_quotasoft = atoll(optarg) * 1024 * 1024;
 				break;
 			case OPT_USER_DEFAULT_QUOTA_WARN:
-				ud_quotawarn = _atoi64(optarg) * 1024 * 1024;
+				ud_quotawarn = atoll(optarg) * 1024 * 1024;
 				break;
 			case OPT_USER_DEFAULT_QUOTA_OVERRIDE:
 				ud_quota = parse_yesno(optarg);
