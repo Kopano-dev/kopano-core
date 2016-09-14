@@ -47,7 +47,6 @@
 #include <kopano/mapiext.h>
 #include <kopano/Util.h>
 #include <kopano/ECRestriction.h>
-#include <kopano/ECABEntryID.h>
 #include <kopano/charset/convert.h>
 #include "ConsoleTable.h"
 #include <kopano/mapi_ptr.h>

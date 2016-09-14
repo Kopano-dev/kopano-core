@@ -36,8 +36,6 @@
 
 #include "freebusyguid.h"
 
-#include <kopano/stringutil.h>
-
 #include <iostream>
 #include <sstream>
 #include <kopano/mapi_ptr.h>

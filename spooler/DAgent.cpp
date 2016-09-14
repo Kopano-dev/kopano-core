@@ -60,7 +60,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <climits>
 #include <sys/mman.h>
 #include <pwd.h>
 #include "spmain.h"
@@ -101,7 +100,6 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/Util.h>
 #include <kopano/ECLogger.h>
-#include <kopano/MAPIErrors.h>
 #include <kopano/my_getopt.h>
 #include <kopano/restrictionutil.h>
 #include "rules.h"
@@ -120,7 +118,6 @@
 #include <kopano/UnixUtil.h>
 #include "LMTP.h"
 #include <kopano/ecversion.h>
-#include <kopano/platform.h>
 #include <csignal>
 #include "SSLUtil.h"
 #include "StatsClient.h"

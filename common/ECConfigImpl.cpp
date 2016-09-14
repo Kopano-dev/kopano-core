@@ -23,7 +23,6 @@
 #include <algorithm>
 #include <cassert>
 #include <climits>
-#include <algorithm>
 #include <kopano/stringutil.h>
 #include "ECConfigImpl.h"
 

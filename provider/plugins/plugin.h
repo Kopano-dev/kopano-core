@@ -32,7 +32,6 @@
 #include <stdexcept>
 #include <iostream>
 #include <sstream>
-#include <memory>
 #include <pthread.h>
 #include <kopano/ECPluginSharedData.h>
 

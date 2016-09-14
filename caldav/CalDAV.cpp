@@ -19,7 +19,6 @@
 #include <kopano/platform.h>
 #include <climits>
 #include "mapidefs.h"
-#include <kopano/ECChannel.h>
 #include <mapix.h>
 #include <kopano/MAPIErrors.h>
 #include "Http.h"

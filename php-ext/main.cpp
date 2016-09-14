@@ -190,7 +190,6 @@ ZEND_END_ARG_INFO()
 #include "util.h"
 #include "rtfutil.h"
 #include <kopano/CommonUtil.h>
-#include <kopano/ECLogger.h>
 
 #include "ECImportContentsChangesProxy.h"
 #include "ECImportHierarchyChangesProxy.h"

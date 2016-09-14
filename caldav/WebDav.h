@@ -21,7 +21,6 @@
 #include <libxml/tree.h>
 #include <libxml/xmlwriter.h>
 #include <libxml/parser.h>
-#include <libxml/tree.h>
 
 #include <mapi.h>
 #include <map>

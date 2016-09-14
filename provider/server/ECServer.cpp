@@ -28,7 +28,6 @@
 #include <kopano/ECLogger.h>
 
 #include <kopano/ECConfig.h>
-#include "ECDatabase.h"
 #include "ECPluginFactory.h"
 #include "ECNotificationManager.h"
 #include "ECSessionManager.h"

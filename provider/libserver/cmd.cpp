@@ -73,7 +73,6 @@
 #include "ECTPropsPurge.h"
 #include "versions.h"
 #include "ECTestProtocol.h"
-#include "ECTPropsPurge.h"
 
 #include <kopano/ECDefs.h>
 #include <kopano/EMSAbTag.h>

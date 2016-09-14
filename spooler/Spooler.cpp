@@ -61,7 +61,6 @@
 #include <kopano/ECLogger.h>
 #include <kopano/ECConfig.h>
 #include <kopano/UnixUtil.h>
-#include <kopano/MAPIErrors.h>
 #include <kopano/my_getopt.h>
 #include <kopano/ecversion.h>
 #include <kopano/Util.h>

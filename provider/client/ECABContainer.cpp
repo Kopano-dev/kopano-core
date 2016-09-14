@@ -24,8 +24,6 @@
 #include <kopano/ECGuid.h>
 #include <kopano/ECDebug.h>
 
-#include "ECMAPITable.h"
-
 #include "ECDisplayTable.h"
 
 #include <kopano/CommonUtil.h>

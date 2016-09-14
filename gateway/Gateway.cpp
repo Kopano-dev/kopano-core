@@ -49,7 +49,6 @@
 #include <kopano/ecversion.h>
 
 #include "SSLUtil.h"
-#include <kopano/stringutil.h>
 
 #include "TmpPath.h"
 #include <kopano/UnixUtil.h>

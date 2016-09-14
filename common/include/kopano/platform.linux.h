@@ -93,7 +93,6 @@ inline int _vsnprintf_l(char *str, size_t size, const char *format, locale_t loc
 #define closesocket(fd) close(fd)
 
 /* base types */
-#include <sys/types.h>
 typedef void			VOID;
 typedef unsigned char	BYTE;
 typedef unsigned char	UCHAR;
