@@ -515,7 +515,7 @@ ULONG   ECMemStream::xStream::Release()
 HRESULT ECMemStream::xStream::QueryInterface(REFIID refiid, LPVOID *lppInterface)
 {
 	char szGuidId[1024+1];
-	_snprintf(szGuidId, 1024, "{%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X}", refiid.Data1, refiid.Data2, refiid.Data3, refiid.Data4[0], refiid.Data4[1], refiid.Data4[2], refiid.Data4[3], refiid.Data4[4], refiid.Data4[5], refiid.Data4[6], refiid.Data4[7]);
+	snprintf(szGuidId, 1024, "{%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X}", refiid.Data1, refiid.Data2, refiid.Data3, refiid.Data4[0], refiid.Data4[1], refiid.Data4[2], refiid.Data4[3], refiid.Data4[4], refiid.Data4[5], refiid.Data4[6], refiid.Data4[7]);
 	
 	TRACE_STREAM(TRACE_ENTRY, "IStream::QueryInterface", "%s", szGuidId);
 	METHOD_PROLOGUE_(ECMemStream, Stream);

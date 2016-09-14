@@ -59,7 +59,6 @@
 #define _ASSERT assert
 
 #define _vsnprintf vsnprintf
-#define _snprintf snprintf
 #ifdef HAVE_VSNPRINTF_L
 #define _vsnprintf_l vsnprintf_l
 #else
@@ -83,7 +82,6 @@ inline int _vsnprintf_l(char *str, size_t size, const char *format, locale_t loc
 #define STDAPI_(__type) __type __stdcall
 
 /* Defines for some windows function that have a different name in Linux */
-#define _snprintf snprintf
 #define strnicmp strncasecmp
 #define stricmp strcasecmp
 

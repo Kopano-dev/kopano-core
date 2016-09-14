@@ -388,7 +388,7 @@ std::string GetMAPIErrorDescription(HRESULT hResult)
 
 	char szResult[DEBUGBUFSIZE+1];
 
-	_snprintf(szResult, DEBUGBUFSIZE, "0x%08X", hResult);
+	snprintf(szResult, DEBUGBUFSIZE, "0x%08X", hResult);
 
 	return szResult;
 }
@@ -2715,7 +2715,7 @@ std::string DBGGUIDToString(REFIID iid)
 	}
 
 	if (guidIDD.empty()) {
-		_snprintf(szGuidId, DEBUGBUFSIZE, "{%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X}", iid.Data1, iid.Data2, iid.Data3, iid.Data4[0], iid.Data4[1], iid.Data4[2], iid.Data4[3], iid.Data4[4], iid.Data4[5], iid.Data4[6], iid.Data4[7]);
+		snprintf(szGuidId, DEBUGBUFSIZE, "{%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X}", iid.Data1, iid.Data2, iid.Data3, iid.Data4[0], iid.Data4[1], iid.Data4[2], iid.Data4[3], iid.Data4[4], iid.Data4[5], iid.Data4[6], iid.Data4[7]);
 		guidIDD = "Unknown ";
 		guidIDD+=szGuidId;
 	}
