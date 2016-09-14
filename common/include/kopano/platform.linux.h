@@ -601,8 +601,6 @@ static inline LPWSTR lstrcpyW(LPWSTR dst, LPCWSTR src)
 #define _tcsicmp strcasecmp
 #endif
 
-inline int strcmp_ci(const char *s1, const char *s2) { return strcasecmp(s1, s2); }
-
 void Sleep(unsigned int usec);
 
 /* because the flags are not used linux, they do not match the windows flags! */

@@ -123,7 +123,7 @@ ECRESULT ECAttachmentStorage::CreateAttachmentStorage(ECDatabase *lpDatabase,
 	}
 	if (ans != NULL && strcmp(ans, "files") == 0) {
 		const char *const sync_files_par = lpConfig->GetSetting("attachment_files_fsync");
-		bool sync_files = sync_files_par == NULL || strcmp_ci(sync_files_par, "yes") == 0;
+		bool sync_files = sync_files_par == NULL || strcasecmp(sync_files_par, "yes") == 0;
 		const char *comp = lpConfig->GetSetting("attachment_compression");
 		unsigned int complvl = (comp == NULL) ? 0 : strtoul(comp, NULL, 0);
 

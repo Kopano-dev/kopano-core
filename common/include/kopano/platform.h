@@ -89,8 +89,6 @@ ULONG	CreateIntTime(ULONG seconds, ULONG minutes, ULONG hours);
 extern ULONG FileTimeToIntDate(const FILETIME &);
 ULONG	SecondsToIntTime(ULONG seconds);
 
-int strcmp_ci(const char *s1, const char *s2);
-
 inline double difftimeval(struct timeval *ptstart, struct timeval *ptend) {
 	return 1000000 * (ptend->tv_sec - ptstart->tv_sec) + (ptend->tv_usec - ptstart->tv_usec);
 }
