@@ -572,8 +572,6 @@ HRESULT CoCreateGuid(LPGUID);
 void GetSystemTimeAsFileTime(FILETIME *ft);
 DWORD GetTempPath(DWORD inLen, char *lpBuffer);
 
-#define utf32len wcslen
-
 /* Some wrappers to map Windows unicode functions */
 static inline int lstrcmpW(LPCWSTR str1, LPCWSTR str2)
 {
