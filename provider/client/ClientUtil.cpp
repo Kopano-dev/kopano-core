@@ -1043,11 +1043,11 @@ HRESULT HrGetServerURLFromStoreEntryId(ULONG cbEntryId, LPENTRYID lpEntryId, std
 
 	if (ulSize >= ulMaxSize)
 		return MAPI_E_NOT_FOUND;
-	if (strnicmp(lpTmpServerName, "pseudo://", 9) == 0)
+	if (strncasecmp(lpTmpServerName, "pseudo://", 9) == 0)
 		bIsPseudoUrl = true;
-	else if (strnicmp(lpTmpServerName, "http://", 7) && 
-			 strnicmp(lpTmpServerName, "https://", 8) && 
-			 strnicmp(lpTmpServerName, "file://", 7))
+	else if (strncasecmp(lpTmpServerName, "http://", 7) && 
+			 strncasecmp(lpTmpServerName, "https://", 8) && 
+			 strncasecmp(lpTmpServerName, "file://", 7))
 		return MAPI_E_NOT_FOUND;
 
 	rServerPath = lpTmpServerName;

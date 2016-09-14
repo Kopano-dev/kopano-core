@@ -320,8 +320,8 @@ bool UnixUserPlugin::matchUserObject(struct passwd *pw, const string &match, uns
 			(stricmp((char*)m_iconv->convert(pw->pw_gecos).c_str(), (char*)match.c_str()) == 0);
 	} else {
 		matched =
-			(strnicmp(pw->pw_name, (char*)match.c_str(), match.size()) == 0) ||
-			(strnicmp((char*)m_iconv->convert(pw->pw_gecos).c_str(), (char*)match.c_str(), match.size()) == 0);
+			(strncasecmp(pw->pw_name, (char*)match.c_str(), match.size()) == 0) ||
+			(strncasecmp((char*)m_iconv->convert(pw->pw_gecos).c_str(), (char*)match.c_str(), match.size()) == 0);
 	}
 
 	if (matched)
@@ -331,7 +331,7 @@ bool UnixUserPlugin::matchUserObject(struct passwd *pw, const string &match, uns
 	if(ulFlags & EMS_AB_ADDRESS_LOOKUP)
 		matched = (email == match);
 	else
-		matched = (strnicmp((char*)email.c_str(), (char*)match.c_str(), match.size()) == 0);
+		matched = (strncasecmp((char*)email.c_str(), (char*)match.c_str(), match.size()) == 0);
 
 	return matched;
 }
@@ -343,7 +343,7 @@ bool UnixUserPlugin::matchGroupObject(struct group *gr, const string &match, uns
 	if(ulFlags & EMS_AB_ADDRESS_LOOKUP)
 		matched = stricmp(gr->gr_name, (char*)match.c_str()) == 0;
 	else
-		matched = strnicmp(gr->gr_name, (char*)match.c_str(), match.size()) == 0;
+		matched = strncasecmp(gr->gr_name, (char*)match.c_str(), match.size()) == 0;
 
 	return matched;
 }

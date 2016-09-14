@@ -2831,7 +2831,7 @@ static std::string fix_content_type_charset(const char *in)
 			while (isspace(*in))	/* skip WS after ';' */
 				++in;
 		}
-		if (strnicmp(in, "charset=", 8) == 0) {
+		if (strncasecmp(in, "charset=", 8) == 0) {
 			in += 8;
 			cset = in;
 			while (!isspace(*in) && *in != ';' && *in != '\0')
@@ -3067,7 +3067,7 @@ HRESULT VMIMEToMAPI::postWriteFixups(IMessage *lpMessage)
 	if (hr != hrSuccess)
 		goto exit;
 
-	if (strnicmp(lpMessageClass->Value.lpszA, "IPM.Schedule.Meeting.", strlen( "IPM.Schedule.Meeting." )) == 0)
+	if (strncasecmp(lpMessageClass->Value.lpszA, "IPM.Schedule.Meeting.", strlen( "IPM.Schedule.Meeting." )) == 0)
 	{
 		// IPM.Schedule.Meeting.*
 

@@ -815,11 +815,11 @@ HRESULT MAPIToVMIME::BuildNoteMessage(IMessage *lpMessage, bool bSkipContent, vm
 					std::string name = vmField->getName();
 
 					// Received checks start of string to accept Received-SPF
-					if (strnicmp(name.c_str(), vmime::fields::RECEIVED, strlen(vmime::fields::RECEIVED)) == 0 ||
+					if (strncasecmp(name.c_str(), vmime::fields::RECEIVED, strlen(vmime::fields::RECEIVED)) == 0 ||
 						stricmp(name.c_str(), vmime::fields::RETURN_PATH) == 0) {
 						// Insert in same order at start of headers
 						vmHeader->insertFieldBefore(j++, vmField);
-					} else if (strnicmp(name.c_str(), "list-", strlen("list-")) == 0 ||
+					} else if (strncasecmp(name.c_str(), "list-", strlen("list-")) == 0 ||
 							   stricmp(name.c_str(), "precedence") == 0) {
 						// Just append at the end of this list, order is not important
 						vmHeader->appendField(vmField->clone().dynamicCast<vmime::headerField>());
@@ -1116,7 +1116,7 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage, vmime::ref<vmime::m
 		m_vmCharset = MAPI_CHARSET_STRING;
 	}
 
-	if (strnicmp(lpMsgClass->Value.lpszA, "IPM.Note", 8) && strnicmp(lpMsgClass->Value.lpszA, "REPORT.IPM.Note", 15)) {
+	if (strncasecmp(lpMsgClass->Value.lpszA, "IPM.Note", 8) && strncasecmp(lpMsgClass->Value.lpszA, "REPORT.IPM.Note", 15)) {
 		// Outlook sets some other incorrect charset for meeting requests and such,
 		// so for non-email we upgrade this to utf-8
 		m_vmCharset = MAPI_CHARSET_STRING;
@@ -2258,7 +2258,7 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
 			strTnefReason = "Force TNEF on request";
 
 		// currently no task support for ical
-		if (iUseTnef <= 0 && lpMessageClass && strnicmp("IPM.Task", lpMessageClass->Value.lpszA, 8) == 0) {
+		if (iUseTnef <= 0 && lpMessageClass && strncasecmp("IPM.Task", lpMessageClass->Value.lpszA, 8) == 0) {
 			iUseTnef = 1;
 			strTnefReason = "Force TNEF because of task request";
 		}
@@ -2283,7 +2283,7 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
 		if (iUseTnef == 1 ||
 			(lpSendAsICal && lpSendAsICal->Value.b) || 
 			(lpSendAsICal && lpOutlookVersion && strcmp(lpOutlookVersion->Value.lpszA, "9.0") == 0) ||
-			(lpMessageClass && (strnicmp("IPM.Note", lpMessageClass->Value.lpszA, 8) != 0) ) || 
+			(lpMessageClass && (strncasecmp("IPM.Note", lpMessageClass->Value.lpszA, 8) != 0) ) || 
 			bestBody == realRTF)
 		{
 		    // Send either TNEF or iCal data
@@ -2295,7 +2295,7 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
 			 * Send TNEF information for this message if we really need to, or otherwise iCal
 			 */
 			
-			if (lstOLEAttach.size() == 0 && iUseTnef <= 0 && lpMessageClass && (strnicmp("IPM.Note", lpMessageClass->Value.lpszA, 8) != 0)) {
+			if (lstOLEAttach.size() == 0 && iUseTnef <= 0 && lpMessageClass && (strncasecmp("IPM.Note", lpMessageClass->Value.lpszA, 8) != 0)) {
 				// iCAL
 				string ical, method;
 				vmime::ref<mapiAttachment> vmAttach = NULL;

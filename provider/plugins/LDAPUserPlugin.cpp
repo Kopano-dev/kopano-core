@@ -1728,22 +1728,22 @@ objectsignature_t LDAPUserPlugin::authenticateUserPassword(const string &usernam
 	if (signature.id.id.empty())
 		throw login_error("Trying to authenticate failed: uniqueid is empty or unreadable");
 
-	if (!strnicmp("{CRYPT}", strCryptedpw.c_str(), 7)) {
+	if (!strncasecmp("{CRYPT}", strCryptedpw.c_str(), 7)) {
 		if(checkPassword(PASSWORD_CRYPT, strPasswordConverted.c_str(), &(strCryptedpw.c_str()[7])) != 0)
 			throw login_error("Trying to authenticate failed: wrong username or password");
-	} else if (!strnicmp("{MD5}", strCryptedpw.c_str(), 5)) {
+	} else if (!strncasecmp("{MD5}", strCryptedpw.c_str(), 5)) {
 		if(checkPassword(PASSWORD_MD5, strPasswordConverted.c_str(), &(strCryptedpw.c_str()[5])) != 0)
 			throw login_error("Trying to authenticate failed: wrong username or password");
-	} else if (!strnicmp("{SMD5}", strCryptedpw.c_str(), 6)) {
+	} else if (!strncasecmp("{SMD5}", strCryptedpw.c_str(), 6)) {
 		if(checkPassword(PASSWORD_SMD5, strPasswordConverted.c_str(), &(strCryptedpw.c_str()[6])) != 0)
 			throw login_error("Trying to authenticate failed: wrong username or password");
-	} else if (!strnicmp("{SSHA}", strCryptedpw.c_str(), 6)) {
+	} else if (!strncasecmp("{SSHA}", strCryptedpw.c_str(), 6)) {
 		if(checkPassword(PASSWORD_SSHA, strPasswordConverted.c_str(), &(strCryptedpw.c_str()[6])) != 0)
 			throw login_error("Trying to authenticate failed: wrong username or password");
-	} else if (!strnicmp("{SHA}", strCryptedpw.c_str(), 5)) {
+	} else if (!strncasecmp("{SHA}", strCryptedpw.c_str(), 5)) {
 		if(checkPassword(PASSWORD_SHA, strPasswordConverted.c_str(), &(strCryptedpw.c_str()[5])) != 0)
 			throw login_error("Trying to authenticate failed: wrong username or password");
-	} else if(!strnicmp("{MD5CRYPT}", strCryptedpw.c_str(), 10)) {
+	} else if(!strncasecmp("{MD5CRYPT}", strCryptedpw.c_str(), 10)) {
 		throw login_error("Trying to authenticate failed: unsupported encryption scheme");
 	} else {
 		if(strcmp(strCryptedpw.c_str(), strPasswordConverted.c_str()) != 0) { //Plain password
@@ -2019,7 +2019,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 				 * The value should be set to something, as protection to make sure
 				 * the name is a property tag all names should be prefixed with '0x'.
 				 */
-				if (stricmp(iter->szValue, att) != 0 || strnicmp(iter->szName, "0x", strlen("0x")) != 0)
+				if (stricmp(iter->szValue, att) != 0 || strncasecmp(iter->szName, "0x", strlen("0x")) != 0)
 					continue;
 
 				ulPropTag = xtoi(iter->szName);

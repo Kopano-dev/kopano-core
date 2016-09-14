@@ -182,7 +182,7 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 			details.SetPropString(OB_PROP_O_SYSADMIN, lpDBRow[3]);
 		} else if (strcmp(lpDBRow[2], OB_AB_HIDDEN) == 0)
 			details.SetPropString(OB_PROP_B_AB_HIDDEN, lpDBRow[3]);
-		else if (strnicmp(lpDBRow[2], "0x", strlen("0x")) == 0) {
+		else if (strncasecmp(lpDBRow[2], "0x", strlen("0x")) == 0) {
 			unsigned int key = xtoi(lpDBRow[2]);
 			if (PROP_TYPE(key) == PT_BINARY)
 				details.SetPropString((property_key_t)key, base64_decode(lpDBRow[3]));
@@ -231,7 +231,7 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 
 		lastid = curid;
 
-		if (strnicmp(lpDBRow[0], "0x", strlen("0x")) == 0) {
+		if (strncasecmp(lpDBRow[0], "0x", strlen("0x")) == 0) {
 			unsigned int key = xtoi(lpDBRow[0]);
 			if (PROP_TYPE(key) == PT_BINARY || PROP_TYPE(key) == PT_MV_BINARY)
 				iterDetails->second.AddPropString((property_key_t)key, base64_decode(lpDBRow[1]));

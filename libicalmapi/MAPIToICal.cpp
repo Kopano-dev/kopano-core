@@ -163,7 +163,7 @@ HRESULT MapiToICalImpl::AddMessage(LPMESSAGE lpMessage, const std::string &strSr
 
 	if (stricmp(lpMessageClass->Value.lpszA, "IPM.Task") == 0) {
 		lpVEC = new VTodoConverter(m_lpAdrBook, &m_tzMap, m_lpNamedProps, m_strCharset, blCensor, false, NULL);
-	} else if (stricmp(lpMessageClass->Value.lpszA, "IPM.Appointment") == 0 || strnicmp(lpMessageClass->Value.lpszA, "IPM.Schedule", strlen("IPM.Schedule")) == 0) {
+	} else if (stricmp(lpMessageClass->Value.lpszA, "IPM.Appointment") == 0 || strncasecmp(lpMessageClass->Value.lpszA, "IPM.Schedule", strlen("IPM.Schedule")) == 0) {
 		lpVEC = new VEventConverter(m_lpAdrBook, &m_tzMap, m_lpNamedProps, m_strCharset, blCensor, false, NULL);
 	} else {
 		hr = MAPI_E_TYPE_NO_SUPPORT;

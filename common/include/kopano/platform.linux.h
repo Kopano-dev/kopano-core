@@ -82,7 +82,6 @@ inline int _vsnprintf_l(char *str, size_t size, const char *format, locale_t loc
 #define STDAPI_(__type) __type __stdcall
 
 /* Defines for some windows function that have a different name in Linux */
-#define strnicmp strncasecmp
 #define stricmp strcasecmp
 
 /* base types */

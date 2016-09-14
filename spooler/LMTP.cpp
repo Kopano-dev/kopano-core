@@ -70,17 +70,17 @@ HRESULT LMTP::HrGetCommand(const string &strCommand, LMTP_Command &eCommand)
 {
 	HRESULT hr = hrSuccess;
 	
-	if (strnicmp(strCommand.c_str(), "LHLO", strlen("LHLO")) == 0)
+	if (strncasecmp(strCommand.c_str(), "LHLO", strlen("LHLO")) == 0)
 		eCommand = LMTP_Command_LHLO;
-	else if (strnicmp(strCommand.c_str(), "MAIL FROM:", strlen("MAIL FROM:")) == 0)
+	else if (strncasecmp(strCommand.c_str(), "MAIL FROM:", strlen("MAIL FROM:")) == 0)
 		eCommand = LMTP_Command_MAIL_FROM;
-	else if (strnicmp(strCommand.c_str(), "RCPT TO:", strlen("RCPT TO:")) == 0)
+	else if (strncasecmp(strCommand.c_str(), "RCPT TO:", strlen("RCPT TO:")) == 0)
 		eCommand = LMTP_Command_RCPT_TO;
-	else if (strnicmp(strCommand.c_str(), "DATA", strlen("DATA")) == 0)
+	else if (strncasecmp(strCommand.c_str(), "DATA", strlen("DATA")) == 0)
 		eCommand = LMTP_Command_DATA;
-	else if (strnicmp(strCommand.c_str(), "RSET", strlen("RSET")) == 0)
+	else if (strncasecmp(strCommand.c_str(), "RSET", strlen("RSET")) == 0)
 		eCommand = LMTP_Command_RSET;
-	else if (strnicmp(strCommand.c_str(), "QUIT", strlen("QUIT")) == 0)
+	else if (strncasecmp(strCommand.c_str(), "QUIT", strlen("QUIT")) == 0)
 		eCommand = LMTP_Command_QUIT;
 	else
 		hr = MAPI_E_CALL_FAILED;

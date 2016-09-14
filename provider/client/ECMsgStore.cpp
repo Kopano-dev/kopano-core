@@ -3284,7 +3284,7 @@ HRESULT ECMsgStore::MsgStoreDnToPseudoUrl(const utf8string &strMsgStoreDN, utf8s
 
 	// Check if the for last part starts with 'cn='
 	++riPart;
-	if (strnicmp(riPart->c_str(), "cn=", 3) != 0)
+	if (strncasecmp(riPart->c_str(), "cn=", 3) != 0)
 		return MAPI_E_INVALID_PARAMETER;
 
 	// If the server has no home server information for a user, the servername will be set to 'Unknown'

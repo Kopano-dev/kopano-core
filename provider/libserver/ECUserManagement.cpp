@@ -4369,7 +4369,7 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap, unsigned
 			if(lpSession)
 				lpSession->GetClientApp(&strApp);
 			
-			if(strnicmp(strApp.c_str(), "blackberry", 10) == 0) {
+			if(strncasecmp(strApp.c_str(), "blackberry", 10) == 0) {
 				// For blackberry, we pose as being the Exchange AddressList. We have to do this
 				// since it searches for the GAB by restricting by this GUID, otherwise the Lookup
 				// function will not function properly.
