@@ -364,7 +364,7 @@ int CreatePath(const char *createpath)
 		}
 
 		// Create the actual directory
-		int ret = CreateDir(createpath, 0700);
+		int ret = mkdir(createpath, 0700);
 		free(path);
 		return ret;
 	}

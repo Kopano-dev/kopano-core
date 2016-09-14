@@ -87,8 +87,6 @@ inline int _vsnprintf_l(char *str, size_t size, const char *format, locale_t loc
 
 #define _atoi64 atoll
 
-#define CreateDir(dir, mode) mkdir(dir, mode)
-
 /* base types */
 #include <sys/types.h>
 typedef void			VOID;
