@@ -590,7 +590,7 @@ def main():
 
     # parse and check command-line options
     options, args = parser.parse_args()
-    options.foreground = True
+    options.service = False
     if options.restore or options.stats or options.index:
         assert len(args) == 1 and os.path.isdir(args[0]), 'please specify path to backup data'
     else:

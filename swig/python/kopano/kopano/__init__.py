@@ -4016,8 +4016,6 @@ def daemon_helper(func, service, log):
             log.info('stopping %s', service.name)
 
 def daemonize(func, options=None, foreground=False, log=None, config=None, service=None):
-    if log and service:
-        log.info('starting %s', service.logname or service.name)
     uid = gid = None
     working_directory = '/'
     pidfile = None
@@ -4048,9 +4046,6 @@ def daemonize(func, options=None, foreground=False, log=None, config=None, servi
         for h in log.handlers:
             if isinstance(h, logging.handlers.WatchedFileHandler):
                 os.chown(h.baseFilename, uid, gid)
-    if options and options.foreground:
-        foreground = options.foreground
-        working_directory = os.getcwd()
     with daemon.DaemonContext(
             pidfile=pidfile,
             uid=uid,
@@ -4058,7 +4053,7 @@ def daemonize(func, options=None, foreground=False, log=None, config=None, servi
             working_directory=working_directory,
             files_preserve=[h.stream for h in log.handlers if isinstance(h, logging.handlers.WatchedFileHandler)] if log else None,
             prevent_core=False,
-            detach_process=not foreground,
+            detach_process=True,
             stdout=sys.stdout,
             stderr=sys.stderr,
         ):
@@ -4517,6 +4512,8 @@ Encapsulates everything to create a simple service, such as:
             config2.update(config)
         if getattr(options, 'config_file', None):
             options.config_file = os.path.abspath(options.config_file) # XXX useful during testing. could be generalized with optparse callback?
+        if getattr(options, 'service', True) == False:
+            options.foreground = True
         self.config = Config(config2, service=name, options=options)
         self.config.data['server_socket'] = os.getenv("KOPANO_SOCKET") or self.config.data['server_socket']
         if getattr(options, 'worker_processes', None):
@@ -4541,8 +4538,13 @@ Encapsulates everything to create a simple service, such as:
         for sig in (signal.SIGTERM, signal.SIGINT):
             signal.signal(sig, lambda *args: sys.exit(-sig))
         signal.signal(signal.SIGHUP, signal.SIG_IGN) # XXX long term, reload config?
+
+        self.log.info('starting %s', self.logname or self.name)
         with log_exc(self.log):
-            daemonize(self.main, options=self.options, log=self.log, config=self.config, service=self)
+            if getattr(self.options, 'service', True): # do not run-as-service (eg backup)
+                daemonize(self.main, options=self.options, log=self.log, config=self.config, service=self)
+            else:
+                daemon_helper(self.main, self, self.log)
 
 class Worker(Process):
     def __init__(self, service, name, **kwargs):
