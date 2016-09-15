@@ -4046,6 +4046,9 @@ def daemonize(func, options=None, foreground=False, log=None, config=None, servi
         for h in log.handlers:
             if isinstance(h, logging.handlers.WatchedFileHandler):
                 os.chown(h.baseFilename, uid, gid)
+    if options and options.foreground:
+        foreground = options.foreground
+        working_directory = os.getcwd()
     with daemon.DaemonContext(
             pidfile=pidfile,
             uid=uid,
@@ -4053,7 +4056,7 @@ def daemonize(func, options=None, foreground=False, log=None, config=None, servi
             working_directory=working_directory,
             files_preserve=[h.stream for h in log.handlers if isinstance(h, logging.handlers.WatchedFileHandler)] if log else None,
             prevent_core=False,
-            detach_process=True,
+            detach_process=not foreground,
             stdout=sys.stdout,
             stderr=sys.stderr,
         ):
