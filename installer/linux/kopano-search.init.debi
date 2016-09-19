@@ -63,7 +63,7 @@ case "$1" in
 	$0 start
 	;;
   status)
-	status_of_proc "$SEARCH" "$NAME" && exit 0 || exit $?
+	status_of_proc -p $PIDFILE "$SEARCH" "$NAME" && exit 0 || exit $?
 	;;
   reload|force-reload)
 	log_begin_msg "Reloading $DESC: $NAME"
