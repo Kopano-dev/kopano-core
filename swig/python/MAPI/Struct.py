@@ -215,6 +215,20 @@ class ACTIONS(MAPIStruct):
     def __repr__(self):
         return 'ACTIONS(%r,%r)' % (self.ulVersion, self.lpAction)
     
+# pylint (let's replace the horror which comes after this with a simple list)
+MAPIErrorNotFound = None
+MAPIErrorInterfaceNotSupported = None
+MAPIErrorNotEnoughMemory = None
+MAPIErrorNoSupport = None
+MAPIErrorInvalidParameter = None
+MAPIErrorNoAccess = None
+MAPIErrorInvalidEntryid = None
+MAPIErrorUnknownEntryid = None
+MAPIErrorNoSupport = None
+MAPIErrorNetworkError = None
+MAPIErrorDiskError = None
+MAPIErrorLogonFailed = None
+
 class MAPIError(Exception):
     _errormap = {}
     

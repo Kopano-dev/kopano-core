@@ -22,7 +22,6 @@ def b2m(bytes):
 def main():
     options, args = opt_args()
     users = list(kopano.Server(options).users())
-    data = []
 
     fig, ax = plt.subplots() 
 
