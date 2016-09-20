@@ -155,5 +155,6 @@ void give_filesize_hint(const int fd, const off_t len);
 
 bool force_buffers_to_disk(const int fd);
 extern int ec_relocate_fd(int);
+extern int kc_reexec_with_allocator(char **, const char *);
 
 #endif // PLATFORM_H

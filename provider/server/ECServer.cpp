@@ -80,7 +80,7 @@ void *CleanupSyncedMessagesTable(void *lpTmpMain);
 // Reports information on the current state of the license
 void* ReportLicense(void *);
 
-int running_server(char *szName, const char *config, int argc, char *argv[]);
+static int running_server(char *, const char *, int, char **, int, char **);
 
 int					g_Quit = 0;
 int					daemonize = 1;
@@ -753,7 +753,8 @@ int main(int argc, char* argv[])
 			break;
 		};
 	}
-	nReturn = running_server(argv[0], config, argc - optind, &argv[optind]);
+	nReturn = running_server(argv[0], config, argc, argv,
+	          argc - optind, &argv[optind]);
 	return nReturn;
 }
 
@@ -766,7 +767,8 @@ static void InitBindTextDomain(void)
 	bind_textdomain_codeset("kopano", "UTF-8");
 }
 
-int running_server(char *szName, const char *szConfig, int argc, char *argv[])
+static int running_server(char *szName, const char *szConfig,
+    int argc, char **argv, int trim_argc, char **trim_argv)
 {
 	int retval = -1;
 	ECRESULT		er = erSuccess;
@@ -815,6 +817,7 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 		{ "run_as_group",			"kopano" },
 		{ "pid_file",					"/var/run/kopano/server.pid" },
 		{ "running_path",			"/var/lib/kopano" },
+		{"allocator_library", "libtcmalloc_minimal.so.4"},
 		{ "coredump_enabled",			"yes" },
 
 		{ "license_path",			"/etc/kopano/license", CONFIGSETTING_UNUSED },
@@ -975,10 +978,18 @@ int running_server(char *szName, const char *szConfig, int argc, char *argv[])
 	// Load settings
 	g_lpConfig = ECConfig::Create(lpDefaults);
 	
-	if (!g_lpConfig->LoadSettings(szConfig) || !g_lpConfig->ParseParams(argc, argv, NULL) || (!m_bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors()) ) {
+	if (!g_lpConfig->LoadSettings(szConfig) ||
+	    !g_lpConfig->ParseParams(trim_argc, trim_argv, NULL) ||
+	    (!m_bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors()) ) {
 		g_lpLogger = new ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false); // create info logger without a timestamp to stderr
 		ec_log_set(g_lpLogger);
 		LogConfigErrors(g_lpConfig);
+		er = MAPI_E_UNCONFIGURED;
+		goto exit;
+	}
+
+	if (kc_reexec_with_allocator(argv,
+	    g_lpConfig->GetSetting("allocator_library")) < 0) {
 		er = MAPI_E_UNCONFIGURED;
 		goto exit;
 	}

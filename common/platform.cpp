@@ -16,15 +16,18 @@
  */
 
 #include <kopano/platform.h>
+#include <cerrno>
+#include <cstdlib>
 #include <fcntl.h>
 #include <mapidefs.h>
 #include <mapicode.h>
 #include <climits>
 #include <pthread.h>
+#include <unistd.h>
 
 #include <sys/stat.h>
 #include <sys/time.h> /* gettimeofday */
-
+#include <kopano/ECLogger.h>
 #include "TmpPath.h"
 
 HRESULT UnixTimeToFileTime(time_t t, FILETIME *ft)
@@ -451,4 +454,39 @@ void give_filesize_hint(const int fd, const off_t len)
 	// pattern as it knows how much date is going to be
 	// inserted
 	posix_fallocate(fd, 0, len);
+}
+
+/**
+ * Restart the program with a new preloaded library.
+ * @argv:	full argv of current invocation
+ * @lib:	library to load via LD_PRELOAD
+ *
+ * As every program under Linux is linked to libc and symbol resolution is done
+ * breadth-first, having just libkcserver.so linked to the alternate allocator
+ * is not enough to ensure the allocator is being used in favor of libc malloc.
+ *
+ * A program built against glibc will have a record for e.g.
+ * "malloc@GLIBC_2.2.5". The use of LD_PRELOAD appears to relax the version
+ * requirement, though; the benefit would be that libtcmalloc's malloc will
+ * take over _all_ malloc calls.
+ */
+int kc_reexec_with_allocator(char **argv, const char *lib)
+{
+	if (lib == NULL || *lib == '\0')
+		return 0;
+	const char *s = getenv("KC_ALLOCATOR_DONE");
+	if (s != NULL)
+		/* avoid reexecing ourselves */
+		return 0;
+	s = getenv("LD_PRELOAD");
+	if (s == NULL)
+		setenv("LD_PRELOAD", lib, true);
+	else
+		setenv("LD_PRELOAD", (std::string(s) + ":" + lib).c_str(), true);
+	setenv("KC_ALLOCATOR_DONE", lib, true);
+	ec_log_debug("Reexecing with %s", lib);
+	execv("/proc/self/exe", argv);
+	int ret = -errno;
+	ec_log_info("Failed to reexec self: %s. Continuing with standard allocator.", strerror(errno));
+	return ret;
 }
