@@ -10,7 +10,7 @@ AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) $(BOOST_CPPFLAGS) \
 	-I$(top_srcdir)/libfreebusy
 
 libkcicalmapi_la_LDFLAGS = ${AM_LDFLAGS} \
-	-version-info 0:0:0 \
+	-no-undefined -version-info 0:0:0 \
 	-Wl,--version-script=${top_builddir}/default.sym
 EXTRA_libkcicalmapi_la_DEPENDENCIES = ${top_builddir}/default.sym
 
