@@ -478,6 +478,14 @@ int kc_reexec_with_allocator(char **argv, const char *lib)
 	if (s != NULL)
 		/* avoid reexecing ourselves */
 		return 0;
+	void *handle = dlopen(lib, RTLD_LAZY | RTLD_LOCAL);
+	if (handle == NULL)
+		/*
+		 * Ignore libraries that won't load anyway. This avoids
+		 * ld.so emitting a scary warning if we did re-exec.
+		 */
+		return 0;
+	dlclose(handle);
 	s = getenv("LD_PRELOAD");
 	if (s == NULL)
 		setenv("LD_PRELOAD", lib, true);
