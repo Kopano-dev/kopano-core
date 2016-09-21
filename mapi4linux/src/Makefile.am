@@ -29,6 +29,10 @@ libmapi_la_SOURCES = common.cpp mapidefs.cpp mapispi.cpp mapiutil.cpp mapix.cpp 
 
 libkchl_la_SOURCES = hl.cpp
 libkchl_la_LIBADD = libmapi.la
+libkchl_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined -version-info 0:0:0 \
+	-Wl,--version-script=${top_builddir}/default.sym
+EXTRA_libmapi_la_DEPENDENCIES = ${top_builddir}/default.sym
+
 
 check-syntax:
 	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) \
