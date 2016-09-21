@@ -31,7 +31,7 @@ libkcinetmapi_la_LIBADD = \
 #CXXLD=--tag=none gcc
 
 libinetmapidir = $(includedir)/inetmapi
-libinetmapi_HEADERS = ECMapiUtils.h ECVMIMEUtils.h	\
+noinst_HEADERS = ECMapiUtils.h ECVMIMEUtils.h	\
 		MAPIToVMIME.h VMIMEToMAPI.h \
 		outputStreamMAPIAdapter.h					\
 		inputStreamMAPIAdapter.h					\
