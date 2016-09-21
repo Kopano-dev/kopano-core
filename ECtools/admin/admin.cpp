@@ -2434,9 +2434,6 @@ int main(int argc, char* argv[])
 	unsigned int loglevel = EC_LOGLEVEL_NONE;
 
 	ECLogger *lpLogger = NULL;
-
-	InputValidator validateInput;
-
 	const configsetting_t lpDefaults[] = {
 		{ "server_socket", "default:" },
 		{ "sslkey_file", "" },
@@ -2460,6 +2457,7 @@ int main(int argc, char* argv[])
 
 	int c;
 	while (1) {
+		InputValidator validateInput;
 		c = getopt_long(argc, argv, "VlLsc:u:d:U:Pp:f:e:a:h:g:G:b:B:i:I:n:v", long_options, NULL);
 		if (c == -1)
 			break;
