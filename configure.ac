@@ -742,22 +742,14 @@ AC_SUBST([PYTHON_INCLUDES])
 # Output files
 #
 AC_CONFIG_FILES([Makefile
-		mapi4linux/Makefile
 		mapi4linux/include/Makefile
-		mapi4linux/src/Makefile
-		m4lcommon/Makefile
 		m4lcommon/include/kopano/Makefile
 		php-ext/Makefile php7-ext/Makefile
-		provider/Makefile
 		provider/include/Makefile
-		inetmapi/Makefile
 		inetmapi/include/inetmapi/Makefile
-		spooler/Makefile
 		spooler/python/Makefile
 		spooler/python/plugins/Makefile
-		common/Makefile
 		common/include/kopano/Makefile
-		ECtools/Makefile
 		ECtools/archiver/include/kopano/Makefile
 		ECtools/backup/Makefile
 		ECtools/presence/Makefile
@@ -780,19 +772,12 @@ AC_CONFIG_FILES([Makefile
 		installer/quotamail/Makefile
 		installer/searchscripts/Makefile
 		po/Makefile
-		doc/Makefile
-		gateway/Makefile
-		libfreebusy/Makefile
-		libicalmapi/Makefile
-		caldav/Makefile
 		swig/Makefile
 		swig/include/kopano/Makefile
 		swig/python/Makefile
 		swig/python/include/kopano/Makefile
 		swig/python/kopano/Makefile
 		swig/python/zarafa/Makefile
-		libsync/Makefile
-
 		common/kopano.pc
 		default.sym
 		mapi4linux/src/libmapi.sym

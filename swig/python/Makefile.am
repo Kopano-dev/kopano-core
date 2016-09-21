@@ -15,7 +15,7 @@ CLEANFILES = ${noinst_DATA}
 
 # disable warnings since code is mostly generated
 AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) \
-	-I$(top_srcdir)/mapi4linux/include -I$(top_srcdir)/provider/common \
+	-I${top_srcdir}/mapi4linux/include -I${top_srcdir}/provider/common \
 	-I${top_srcdir}/common -I${top_srcdir}/m4lcommon \
 	$(PYTHON_INCLUDES) -I${top_srcdir}/swig -w \
 	-DSWIG_PYTHON_OUTPUT_TUPLE -DSWIG_TYPE_TABLE=MAPI
@@ -23,7 +23,7 @@ AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) \
 libkcpyconv_la_SOURCES = conversion.cpp
 libkcpyconv_la_LDFLAGS = -Wl,--version-script=${top_builddir}/default.sym
 libkcpyconv_la_LIBADD  = ${PYTHON_LIBS} \
-	${top_builddir}/mapi4linux/src/libmapi.la
+	${top_builddir}/libmapi.la
 libkcpydirector_la_SOURCES = ../director_util.cpp
 libkcpydirector_la_LDFLAGS = -Wl,--version-script=${top_builddir}/default.sym
 libkcpydirector_la_LIBADD  = -lpthread
@@ -31,71 +31,73 @@ libkcpydirector_la_LIBADD  = -lpthread
 _MAPICore_la_CPPFLAGS = ${AM_CPPFLAGS} -I${top_srcdir}/libsync
 _MAPICore_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version
 _MAPICore_la_LIBADD = libkcpyconv.la libkcpydirector.la \
-	${top_builddir}/mapi4linux/src/libmapi.la \
-	${top_builddir}/common/libkcmapi.la \
-	${top_builddir}/common/libkcutil.la \
-	${top_builddir}/libsync/libkcsync.la \
+	${top_builddir}/libmapi.la \
+	${top_builddir}/libkcmapi.la \
+	${top_builddir}/libkcutil.la \
+	${top_builddir}/libkcsync.la \
 	$(XML2_LIBS) $(PROG_LIBS) $(PYTHON_LIBS)
 
 _inetmapi_la_CPPFLAGS = ${AM_CPPFLAGS} -I${top_srcdir}/inetmapi
 _inetmapi_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version
 _inetmapi_la_LIBADD = libkcpyconv.la \
-	${top_builddir}/mapi4linux/src/libmapi.la \
-	${top_builddir}/common/libkcmapi.la \
-	${top_builddir}/common/libkcutil.la \
-	${top_builddir}/inetmapi/libkcinetmapi.la \
+	${top_builddir}/libmapi.la \
+	${top_builddir}/libkcmapi.la \
+	${top_builddir}/libkcutil.la \
+	${top_builddir}/libkcinetmapi.la \
 	$(PROG_LIBS) $(PYTHON_LIBS)
 
-_icalmapi_la_CPPFLAGS = ${AM_CPPFLAGS} -I${top_srcdir}/libicalmapi -I${top_srcdir}/libfreebusy
+_icalmapi_la_CPPFLAGS = ${AM_CPPFLAGS} -I${top_srcdir}/libicalmapi \
+	-I${top_srcdir}/libfreebusy
 _icalmapi_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version
 _icalmapi_la_LIBADD = libkcpyconv.la \
-	${top_builddir}/mapi4linux/src/libmapi.la \
-	${top_builddir}/libicalmapi/libkcicalmapi.la \
-	${top_builddir}/common/libkcmapi.la \
-	${top_builddir}/common/libkcutil.la \
-	${top_builddir}/libfreebusy/libkcfreebusy.la \
+	${top_builddir}/libmapi.la \
+	${top_builddir}/libkcicalmapi.la \
+	${top_builddir}/libkcmapi.la \
+	${top_builddir}/libkcutil.la \
+	${top_builddir}/libkcfreebusy.la \
 	$(ICAL_LIBS) $(PROG_LIBS) $(PYTHON_LIBS)
 
 _archiver_la_CPPFLAGS = ${AM_CPPFLAGS} -I${top_srcdir}/ECtools/archiver
 _archiver_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version -rpath '$(libdir)'
 _archiver_la_LIBADD = \
-	${top_builddir}/ECtools/libkcarchiver.la \
-	${top_builddir}/ECtools/libkcarchivercore.la \
+	${top_builddir}/libkcarchiver.la \
+	${top_builddir}/libkcarchivercore.la \
 	$(PROG_LIBS) $(PYTHON_LIBS)
 
-_licenseclient_la_CPPFLAGS = ${AM_CPPFLAGS} -I${top_srcdir}/provider/common -I${top_builddir}/provider/soap ${GSOAP_CFLAGS}
+_licenseclient_la_CPPFLAGS = ${AM_CPPFLAGS} -I${top_srcdir}/provider/common \
+	-I${top_builddir}/provider/soap ${GSOAP_CFLAGS}
 _licenseclient_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version
-_licenseclient_la_LIBADD = ${top_builddir}/provider/libkccommon.la \
-						${GSOAP_LIBS} \
-						${top_builddir}/provider/libkcsoapclient.la \
-						${top_builddir}/common/libkcmapi.la \
-						${top_builddir}/common/libkcutil.la \
-						${top_builddir}/common/libkcssl.la \
-						${top_builddir}/mapi4linux/src/libmapi.la \
-						$(PROG_LIBS) $(SSL_LIBS) $(PYTHON_LIBS)
+_licenseclient_la_LIBADD = ${top_builddir}/libkccommon.la \
+	${GSOAP_LIBS} \
+	${top_builddir}/libkcsoapclient.la \
+	${top_builddir}/libkcmapi.la \
+	${top_builddir}/libkcutil.la \
+	${top_builddir}/libkcssl.la \
+	${top_builddir}/libmapi.la \
+	$(PROG_LIBS) $(SSL_LIBS) $(PYTHON_LIBS)
 
 
 # noinst_ and rpath will generate the _libcommon.so file
 _libcommon_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version -rpath '$(libdir)'
-_libcommon_la_LIBADD = libkcpyconv.la ${top_builddir}/mapi4linux/src/libmapi.la \
-					   ${top_builddir}/common/libkcmapi.la \
-					   ${top_builddir}/common/libkcutil.la \
-				  	   $(PROG_LIBS) $(PYTHON_LIBS)
+_libcommon_la_LIBADD = libkcpyconv.la ${top_builddir}/libmapi.la \
+	${top_builddir}/libkcmapi.la \
+	${top_builddir}/libkcutil.la \
+	$(PROG_LIBS) $(PYTHON_LIBS)
 
 _RecurrenceState_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version -rpath '$(libdir)'
 _RecurrenceState_la_LIBADD = libkcpyconv.la \
-	${top_builddir}/mapi4linux/src/libmapi.la \
-	${top_builddir}/common/libkcmapi.la \
-	${top_builddir}/common/libkcutil.la \
+	${top_builddir}/libmapi.la \
+	${top_builddir}/libkcmapi.la \
+	${top_builddir}/libkcutil.la \
 	$(PROG_LIBS) $(PYTHON_LIBS)
 
 _libfreebusy_la_CPPFLAGS = ${AM_CPPFLAGS} -I${top_srcdir}/libfreebusy
 _libfreebusy_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version
-_libfreebusy_la_LIBADD = libkcpyconv.la ${top_builddir}/mapi4linux/src/libmapi.la \
-	${top_builddir}/libfreebusy/libkcfreebusy.la \
-						 ${top_builddir}/common/libkcmapi.la \
-                         ${top_builddir}/common/libkcutil.la \
-                         $(PROG_LIBS) $(PYTHON_LIBS)
+_libfreebusy_la_LIBADD = libkcpyconv.la ${top_builddir}/libmapi.la \
+	${top_builddir}/libkcfreebusy.la \
+	${top_builddir}/libkcmapi.la \
+        ${top_builddir}/libkcutil.la \
+	$(PROG_LIBS) $(PYTHON_LIBS)
 
 
 BUILT_SOURCES = mapi_wrap.cxx \
