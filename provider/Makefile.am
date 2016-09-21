@@ -224,8 +224,7 @@ libkcserver_la_SOURCES = \
 libkcserver_la_LIBADD = \
 	../common/libkcutil.la libkccommon.la \
 	-lpthread ${icu_i18n_LIBS} ${icu_uc_LIBS} \
-	${KRB5_LIBS} ${MYSQL_LIBS} ${PAM_LIBS} ${SSL_LIBS} \
-	${TCMALLOC_LIBS} ${s3_LIBS}
+	${KRB5_LIBS} ${MYSQL_LIBS} ${PAM_LIBS} ${SSL_LIBS} ${s3_LIBS}
 libkcserver_la_LDFLAGS = ${AM_LDFLAGS} \
 	-Wl,--version-script=${top_builddir}/default.sym
 EXTRA_libkcserver_la_DEPENDENCIES = ${top_builddir}/default.sym

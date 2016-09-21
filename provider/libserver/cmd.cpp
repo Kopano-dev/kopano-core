@@ -89,9 +89,9 @@
 #include "logontime.hpp"
 
 #if defined(HAVE_GPERFTOOLS_MALLOC_EXTENSION_H)
-#	include <gperftools/malloc_extension.h>
+#	include <gperftools/malloc_extension_c.h>
 #elif defined(HAVE_GOOGLE_MALLOC_EXTENSION_H)
-#	include <google/malloc_extension.h>
+#	include <google/malloc_extension_c.h>
 #endif
 
 #define STRIN_FIX(s) (bSupportUnicode ? (s) : ECStringCompat::WTF1252_to_UTF8(soap, (s)))
@@ -5707,7 +5707,12 @@ SOAP_ENTRY_START(purgeCache, *result, unsigned int ulFlags, unsigned int *result
     er = g_lpSessionManager->GetCacheManager()->PurgeCache(ulFlags);
 
 #ifdef HAVE_TCMALLOC
-	MallocExtension::instance()->ReleaseFreeMemory();
+	{
+		auto rfm = reinterpret_cast<decltype(MallocExtension_ReleaseFreeMemory) *>
+			(dlsym(NULL, "MallocExtension_ReleaseFreeMemory"));
+		if (rfm != NULL)
+			rfm();
+	}
 #endif
 
 	g_lpStatsCollector->SetTime(SCN_SERVER_LAST_CACHECLEARED, time(NULL));
