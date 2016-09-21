@@ -1,3 +1,4 @@
+#include <chrono>
 #include <cerrno>
 #include <csignal>
 #include <cstdio>
@@ -8,7 +9,6 @@
 #include <kopano/ECLogger.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/charset/convert.h>
-#include "hx-time.h"
 
 struct mpt_stat_entry {
 	struct timespec start, stop;
@@ -27,12 +27,14 @@ static void mpt_stat_dump(int s = 0)
 		return;
 	const struct mpt_stat_entry &first = *mpt_stat_list.begin();
 	const struct mpt_stat_entry &last  = *mpt_stat_list.rbegin();
-	struct timespec delta;
-	HX_timespec_sub(&delta, &last.stop, &first.start);
-	double dt = delta.tv_sec + delta.tv_nsec / 1000000000.0;
-	if (dt == 0)
+	typedef std::chrono::seconds sec;
+	typedef std::chrono::nanoseconds nsec;
+	auto dt = std::chrono::duration<double>(
+	          sec(last.stop.tv_sec) + nsec(last.stop.tv_nsec) -
+	          (sec(first.start.tv_sec) + nsec(first.start.tv_nsec)));
+	if (dt.count() == 0)
 		return;
-	printf("\r\e[2K%.1f per second", z / dt);
+	printf("\r\e[2K%.1f per second", z / dt.count());
 	fflush(stdout);
 }
 

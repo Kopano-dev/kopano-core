@@ -197,7 +197,7 @@ libkcarchivercore_la_LIBADD = \
 EXTRA_libkcarchivercore_la_DEPENDENCIES = \
 	${top_builddir}/default.sym
 
-mapitime_SOURCES = mapitime.cpp hx-time.c
+mapitime_SOURCES = mapitime.cpp
 mapitime_LDADD = -lrt ${top_builddir}/mapi4linux/src/libmapi.la \
 	${top_builddir}/common/libkcmapi.la \
 	${top_builddir}/common/libkcutil.la
