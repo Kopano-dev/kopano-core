@@ -7,7 +7,7 @@ AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) $(BOOST_CPPFLAGS) \
 	-I$(top_srcdir)/mapi4linux/include -I$(top_srcdir)/provider/common \
 	-I${top_srcdir}/common -I${top_srcdir}/m4lcommon \
 	-I${top_srcdir}/libfreebusy -I${top_srcdir}/libicalmapi \
-	-I/usr/include/libxml2
+	${XML2_CFLAGS}
 
 lib_LTLIBRARIES = libkcinetmapi.la
 noinst_DATA = libkcinetmapi.ldd
