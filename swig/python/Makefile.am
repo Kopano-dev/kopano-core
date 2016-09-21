@@ -62,7 +62,7 @@ _archiver_la_LIBADD = \
 	${top_builddir}/ECtools/libkcarchivercore.la \
 	$(PROG_LIBS) $(PYTHON_LIBS)
 
-_licenseclient_la_CPPFLAGS = ${AM_CPPFLAGS} -I${top_srcdir}/provider/common -I${top_builddir}/provider/soap -I${top_srcdir}/provider/soap ${GSOAP_CFLAGS}
+_licenseclient_la_CPPFLAGS = ${AM_CPPFLAGS} -I${top_srcdir}/provider/common -I${top_builddir}/provider/soap ${GSOAP_CFLAGS}
 _licenseclient_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version
 _licenseclient_la_LIBADD = ${top_builddir}/provider/libkccommon.la \
 						${GSOAP_LIBS} \

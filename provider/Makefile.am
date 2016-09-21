@@ -15,7 +15,6 @@ AM_CPPFLAGS = ${ZCPPFLAGS} ${DEBUGFLAGS} \
 	-I${top_srcdir}/provider/include \
 	-I${top_srcdir}/provider/libserver \
 	-I${top_srcdir}/provider/plugins \
-	-I${top_srcdir}/provider/soap \
 	${BOOST_CPPFLAGS} ${GSOAP_CFLAGS} ${KRB5_CFLAGS} ${LDAP_FLAGS} \
 	${MYSQL_INCLUDES} ${SSL_CFLAGS} ${s3_CFLAGS} ${TCMALLOC_CFLAGS}
 AM_CXXFLAGS = ${ZCXXFLAGS} -Wno-sign-compare

@@ -38,7 +38,7 @@ kopano_archiver_SOURCES = \
 	archiver/main.cpp
 kopano_archiver_CPPFLAGS = \
 	${AM_CPPFLAGS} -I${top_srcdir}/provider/client \
-	-I${top_srcdir}/provider/include -I${top_srcdir}/provider/soap \
+	-I${top_srcdir}/provider/include \
 	-I${top_builddir}/provider/soap -I${top_srcdir}/ECtools/archiver \
 	${GSOAP_CFLAGS} ${MYSQL_INCLUDES}
 kopano_archiver_LDADD = \
