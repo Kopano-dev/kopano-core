@@ -91,13 +91,6 @@ stamp-h2
 /installer/userscripts/createcompany
 /installer/userscripts/deletecompany
 
-# /php-webclient-ajax/
-/php-webclient-ajax/debug.txt
-/php-webclient-ajax/errors.txt
-/php-webclient-ajax/debug_xml
-/php-webclient-ajax/tmp
-/php-webclient-ajax/config.php
-
 /provider/kopano-server
 
 # /provider/soap/
