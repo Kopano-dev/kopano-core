@@ -846,12 +846,11 @@ static void print_user_settings(IMsgStore *lpStore, const ECUSER *lpECUser,
 	if (lpECUser->lpszServername != NULL && *reinterpret_cast<LPSTR>(lpECUser->lpszServername) != '\0')
 		cout << "Home server:\t\t" << (LPSTR)lpECUser->lpszServername << endl;
 
-	adm_oof_status(lpProps);
-
 	if (lpProps) {
 		time_t logon = 0, logoff = 0;
 		char d[64];
 
+		adm_oof_status(lpProps);
 		if(lpProps[0].ulPropTag == PR_LAST_LOGON_TIME)
 			FileTimeToUnixTime(lpProps[0].Value.ft, &logon);
 		if(lpProps[1].ulPropTag == PR_LAST_LOGOFF_TIME)
