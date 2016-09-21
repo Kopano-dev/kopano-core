@@ -495,7 +495,7 @@ ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis, 
 
 				for (j = 0, iterBS = iterSD->second.busystates.begin();
 				     iterBS != iterSD->second.busystates.end(); ++j, ++iterBS) {
-					const char *szState;
+					const char *szState = "";
 					if(iterBS->state == SESSION_STATE_PROCESSING)
 						szState = "P";
 					else if(iterBS->state == SESSION_STATE_SENDING)
