@@ -535,7 +535,7 @@ bool ECConfigImpl::CopyConfigSetting(const configsetting_t *lpsSetting, settingk
 		return false;
 
 	memset(lpsKey, 0, sizeof(*lpsKey));
-	strncpy(lpsKey->s, lpsSetting->szName, sizeof(lpsKey->s));
+	kc_strlcpy(lpsKey->s, lpsSetting->szName, sizeof(lpsKey->s));
 	lpsKey->ulFlags = lpsSetting->ulFlags;
 	lpsKey->ulGroup = lpsSetting->ulGroup;
 
@@ -571,7 +571,7 @@ bool ECConfigImpl::AddSetting(const configsetting_t *lpsConfig, unsigned int ulF
 	if (szAlias) {
 		if (!(ulFlags & LOADSETTING_INITIALIZING))
 			warnings.push_back("Option '" + string(lpsConfig->szName) + "' is deprecated! New name for option is '" + szAlias + "'.");
-		strncpy(s.s, szAlias, sizeof(s.s));
+		kc_strlcpy(s.s, szAlias, sizeof(s.s));
 	}
 
 	pthread_rwlock_wrlock(&m_settingsRWLock);

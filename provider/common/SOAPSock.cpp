@@ -19,6 +19,7 @@
 #include "SOAPSock.h"
 #include <sys/un.h>
 #include "SOAPUtils.h"
+#include <kopano/stringutil.h>
 #include <kopano/threadutil.h>
 #include <kopano/CommonUtil.h>
 #include <string>
@@ -83,9 +84,7 @@ static int gsoap_connect_pipe(struct soap *soap, const char *endpoint,
 	// >= because there also needs to be room for the 0x00
 	if (strlen(socket_name) >= sizeof(saddr.sun_path))
 		return SOAP_EOF;
-
-	strncpy(saddr.sun_path, socket_name, sizeof(saddr.sun_path));
-
+	kc_strlcpy(saddr.sun_path, socket_name, sizeof(saddr.sun_path));
 	connect(fd, (struct sockaddr *)&saddr, sizeof(struct sockaddr_un));
 
  	soap->sendfd = soap->recvfd = SOAP_INVALID_SOCKET;

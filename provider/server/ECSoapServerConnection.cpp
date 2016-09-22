@@ -71,7 +71,7 @@ static int create_pipe_socket(const char *unix_socket, ECConfig *lpConfig,
 	}
 	memset(&saddr,0,sizeof(saddr));
 	saddr.sun_family = AF_UNIX;
-	strncpy(saddr.sun_path, unix_socket, sizeof(saddr.sun_path));
+	kc_strlcpy(saddr.sun_path, unix_socket, sizeof(saddr.sun_path));
 	unlink(unix_socket);
 
 	if (bind(s, (struct sockaddr*)&saddr, 2 + strlen(unix_socket)) == -1) {

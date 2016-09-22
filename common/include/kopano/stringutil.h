@@ -179,5 +179,6 @@ _Tp join(_InputIterator __first, _InputIterator __last, _Tp __sep)
 }
 
 std::string format(const char *const fmt, ...) __LIKE_PRINTF(1, 2);
+extern "C" char *kc_strlcpy(char *, const char *, size_t);
 
 #endif

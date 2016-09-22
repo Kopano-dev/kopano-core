@@ -812,7 +812,7 @@ HRESULT HrListen(ECLogger *lpLogger, const char *szPath, int *lpulListenSocket)
 
 	memset(&sun_addr, 0, sizeof(sun_addr));
 	sun_addr.sun_family = AF_UNIX;
-	strncpy(sun_addr.sun_path, szPath, sizeof(sun_addr.sun_path));
+	kc_strlcpy(sun_addr.sun_path, szPath, sizeof(sun_addr.sun_path));
 
 	if ((fd = socket(PF_UNIX, SOCK_STREAM, 0)) == -1) {
 		if (lpLogger)
