@@ -476,8 +476,20 @@ int kc_reexec_with_allocator(char **argv, const char *lib)
 		return 0;
 	const char *s = getenv("KC_ALLOCATOR_DONE");
 	if (s != NULL)
-		/* avoid reexecing ourselves */
+		/* avoid repeatedly reexecing ourselves */
 		return 0;
+	s = getenv("LD_PRELOAD");
+	if (s == NULL)
+		setenv("LD_PRELOAD", lib, true);
+	else if (strstr(s, "/valgrind/") != NULL)
+		/*
+		 * Within vg, everything is a bit different — since it catches
+		 * execve itself. Execing /proc/self/exe therefore won't work,
+		 * we would need to use argv[0]. But… don't bother.
+		 */
+		return 0;
+	else
+		setenv("LD_PRELOAD", (std::string(s) + ":" + lib).c_str(), true);
 	void *handle = dlopen(lib, RTLD_LAZY | RTLD_LOCAL);
 	if (handle == NULL)
 		/*
@@ -486,11 +498,6 @@ int kc_reexec_with_allocator(char **argv, const char *lib)
 		 */
 		return 0;
 	dlclose(handle);
-	s = getenv("LD_PRELOAD");
-	if (s == NULL)
-		setenv("LD_PRELOAD", lib, true);
-	else
-		setenv("LD_PRELOAD", (std::string(s) + ":" + lib).c_str(), true);
 	setenv("KC_ALLOCATOR_DONE", lib, true);
 	ec_log_debug("Reexecing with %s", lib);
 	execv("/proc/self/exe", argv);
