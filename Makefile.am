@@ -12,14 +12,16 @@ endif
 SUBDIRS += ECtools spooler gateway caldav installer po doc swig
 
 EXTRA_DIST = version versionheader.sh \
-	LICENSE.txt CONTRIBUTORS.txt AGPL-3 \
+	LICENSE.txt AGPL-3 \
 	lddcheck global.am pwdcheck.sh
 
 BUILT_SOURCES = source-moved-check common/include/kopano/ecversion.h
 
-sbin_SCRIPTS = tools/python-scripts/kopano-cachestat.py
+dist_sbin_SCRIPTS = tools/python-scripts/kopano-cachestat.py
 gdbautoloaddir = ${datadir}/gdb/auto-load/${libdir}
-gdbautoload_DATA = tools/libmapi.so.1.0.0-gdb.py
+dist_gdbautoload_DATA = tools/libmapi.so.1.0.0-gdb.py
+
+DISTCHECK_CONFIGURE_FLAGS = CC=gcc-6 CXX=g++-6 --with-dcprefix='$${prefix}'
 
 .PHONY: source-moved-check
 source-moved-check:

@@ -9,10 +9,15 @@ EXTRA_DIST = setup.py		\
 	kopano_search/xmltotext.xslt
 
 install-exec-local:
-	cd ${srcdir} && ${PYTHON} setup.py install -f \
-		$${DESTDIR+--root=${DESTDIR}} \
+	cd ${srcdir} && ${PYTHON} setup.py \
+		build --build-base="${abs_builddir}/build" \
+		install -f $${DESTDIR+--root=${DESTDIR}} \
 		--prefix="${prefix}" --install-purelib ${pythondir}
 	rm -Rf build
 
 install-data-local:
 	mkdir -p "${DESTDIR}${localstatedir}/lib/kopano/search"
+
+uninstall-local:
+	rm -Rf ${DESTDIR}${pythondir}/kopano_search \
+		${DESTDIR}${pythondir}/kopano_search-0*.egg-info

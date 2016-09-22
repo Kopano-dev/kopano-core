@@ -11,6 +11,7 @@ AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) $(BOOST_CPPFLAGS) \
 
 lib_LTLIBRARIES = libkcinetmapi.la
 noinst_DATA = libkcinetmapi.ldd
+CLEANFILES = ${noinst_DATA}
 
 # Add '-z now' -> -Wl,-z, -Wl,now to LD flags so that we do early binding of symbols. This fixes
 # a problem in which libvmime attempts to resolve a symbol in libinetmapi.so during the unload

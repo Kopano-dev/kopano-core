@@ -10,7 +10,7 @@ AM_CXXFLAGS = ${ZCXXFLAGS} ${ZPHPCXXFLAGS}
 
 phplib_LTLIBRARIES = mapi.la
 
-phplibdir = ${PHP_EXTENSION_DIR}
+phplibdir = ${dcprefix}${PHP_EXTENSION_DIR}
 
 mapi_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version \
 	$(PHP_LDFLAGS)
@@ -37,8 +37,8 @@ datadir = ${datarootdir}/php/mapi
 # If we install our config file into that location, it will only be available
 # to only apache2-mod_php5 and not php-cli, php-fpm, etc.
 #
-sysconfdir = ${PHP_SYSCONF_DIR}
-dist_sysconf_DATA = mapi.ini
+phpconfdir = ${dcprefix}${PHP_SYSCONF_DIR}
+dist_phpconf_DATA = mapi.ini
 
 sampleconfdir = ${docdir}/example-config
 sampleconf_DATA = mapi.ini

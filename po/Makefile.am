@@ -11,3 +11,8 @@ install-data-local:
 		mkdir -p $$sub; \
 		msgfmt -f -v -o $$sub/kopano.mo ${top_srcdir}/po/$$po; \
 	done
+
+uninstall-local:
+	for po in ${EXTRA_DIST}; do \
+		rm -f "${DESTDIR}${datadir}/$${po%.po}/LC_MESSAGES/kopano.mo"; \
+	done

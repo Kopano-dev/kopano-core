@@ -216,6 +216,13 @@ AC_ARG_WITH([tmpfilesdir],
 	])
 AC_SUBST([tmpfilesdir])
 
+dnl Not all files will be installed to ${prefix}, so we need to cheat a bit
+dnl to make "distcheck" succeed.
+AC_ARG_WITH([dcprefix],
+	[AS_HELP_STRING([Extra path inserted for distcheck])],
+	[dcprefix="$withval"])
+AC_SUBST([dcprefix])
+
 # stats client requires ncurses(w) for --top
 # check wide version before non-wide version
 AC_DEFUN([LIBNCURSES_WITH_CONFIG],[
@@ -759,7 +766,6 @@ AC_CONFIG_FILES([Makefile
 		ECtools/backup/Makefile
 		ECtools/presence/Makefile
 		ECtools/search/Makefile
-		ECtools/pst-import/Makefile
 		installer/Makefile
 		installer/linux/Makefile
 		installer/userscripts/Makefile

@@ -9,6 +9,7 @@ AM_CPPFLAGS = ${ZCPPFLAGS} ${DEBUGFLAGS} ${BOOST_CPPFLAGS} ${SSL_CFLAGS} \
 
 sbin_PROGRAMS = kopano-ical
 noinst_DATA = kopano-ical.ldx
+CLEANFILES = ${noinst_DATA}
 
 kopano_ical_SOURCES = CalDAV.cpp \
 	CalDavProto.cpp CalDavProto.h \

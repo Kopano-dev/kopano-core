@@ -1,1 +1,1 @@
-bindir = $(USERSCRIPTDIR)/deletegroup.d
+bindir = ${dcprefix}${USERSCRIPTDIR}/deletegroup.d

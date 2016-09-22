@@ -11,6 +11,7 @@ noinst_LTLIBRARIES = _libcommon.la _archiver.la _libfreebusy.la _RecurrenceState
 noinst_DATA = libkcpyconv.ldd _MAPICore.ldd _inetmapi.ldd _icalmapi.ldd \
 	_libcommon.ldd _archiver.ldd _libfreebusy.ldd _RecurrenceState.ldd \
 	_licenseclient.ldd
+CLEANFILES = ${noinst_DATA}
 
 # disable warnings since code is mostly generated
 AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) \
@@ -19,11 +20,11 @@ AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) \
 	$(PYTHON_INCLUDES) -I${top_srcdir}/swig -w \
 	-DSWIG_PYTHON_OUTPUT_TUPLE -DSWIG_TYPE_TABLE=MAPI
 
-libkcpyconv_la_SOURCES = conversion.cpp conversion.h
+libkcpyconv_la_SOURCES = conversion.cpp
 libkcpyconv_la_LDFLAGS = -Wl,--version-script=${top_builddir}/default.sym
 libkcpyconv_la_LIBADD  = ${PYTHON_LIBS} \
 	${top_builddir}/mapi4linux/src/libmapi.la
-libkcpydirector_la_SOURCES = ../director_util.cpp ../director_util.h
+libkcpydirector_la_SOURCES = ../director_util.cpp
 libkcpydirector_la_LDFLAGS = -Wl,--version-script=${top_builddir}/default.sym
 libkcpydirector_la_LIBADD  = -lpthread
 
@@ -108,7 +109,7 @@ BUILT_SOURCES = mapi_wrap.cxx \
 				RecurrenceState_wrap.cxx
 
 
-CLEANFILES = $(BUILT_SOURCES) \
+CLEANFILES += ${BUILT_SOURCES} \
 			 MAPICore.py \
 			 inetmapi.py \
 			 icalmapi.py \
@@ -177,9 +178,14 @@ check-syntax:
 
 install-exec-local:
 	test "$(DISTRO)" = "suse" -o "$(DISTRO)" = "sles" && pyrpm="--record-rpm=INSTALLED_FILES"; \
-	cd ${srcdir} && ${PYTHON} setup.py install -f \
-		$${DESTDIR+--root=${DESTDIR}} \
+	cd ${srcdir} && ${PYTHON} setup.py \
+		build --build-base="${abs_builddir}/build" \
+		install -f $${DESTDIR+--root=${DESTDIR}} \
 		--prefix="${prefix}" --install-purelib ${pythondir} $${pyrpm}
 	rm -Rf build
+
+uninstall-local:
+	rm -Rf ${DESTDIR}${pythondir}/MAPI \
+		${DESTDIR}${pythondir}/MAPI-1*.egg-info
 
 include ../../global.am

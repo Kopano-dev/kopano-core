@@ -2,6 +2,7 @@
 
 lib_LTLIBRARIES = libkcicalmapi.la
 noinst_DATA = libkcicalmapi.ldd
+CLEANFILES = ${noinst_DATA}
 
 AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) $(BOOST_CPPFLAGS) \
 	$(ICAL_CFLAGS) \

@@ -12,6 +12,7 @@ AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) $(BOOST_CPPFLAGS) $(PYTHON_INCLUDES) \
 
 sbin_PROGRAMS = kopano-dagent kopano-spooler
 noinst_DATA = kopano-dagent.ldx kopano-spooler.ldx
+CLEANFILES = ${noinst_DATA}
 
 kopano_dagent_LDADD = ${top_builddir}/inetmapi/libkcinetmapi.la \
 	${top_builddir}/mapi4linux/src/libmapi.la \
@@ -40,8 +41,7 @@ kopano_spooler_SOURCES = \
 	PyMapiPlugin.cpp PyMapiPlugin.h PythonSWIGRuntime.h
 
 BUILT_SOURCES=PythonSWIGRuntime.h
-
-CLEANFILES=PythonSWIGRuntime.h
+CLEANFILES += PythonSWIGRuntime.h
 EXTRA_DIST=PythonSWIGRuntime.h
 
 PythonSWIGRuntime.h:

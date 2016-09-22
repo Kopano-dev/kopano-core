@@ -21,6 +21,7 @@ noinst_DATA = \
 	libkcarchiver.ldd libkcarchivercore.ldd \
 	kopano-archiver.ldx kopano-cfgchecker.ldx \
 	kopano-monitor.ldx kopano-passwd.ldx kopano-stats.ldx
+CLEANFILES = ${noinst_DATA}
 
 
 kopano_admin_SOURCES = \

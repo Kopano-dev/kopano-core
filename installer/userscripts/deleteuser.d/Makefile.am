@@ -1,2 +1,2 @@
 dist_bin_SCRIPTS = 
-bindir = $(USERSCRIPTDIR)/deleteuser.d
+bindir = ${dcprefix}${USERSCRIPTDIR}/deleteuser.d

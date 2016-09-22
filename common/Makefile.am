@@ -16,6 +16,7 @@ lib_LTLIBRARIES = \
 noinst_DATA = \
 	libkcutil.ldd libkcmapi.ldd \
 	libkcssl.ldd libkcservice.ldd
+CLEANFILES = ${noinst_DATA}
 
 #
 # libkcutil

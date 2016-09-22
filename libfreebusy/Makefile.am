@@ -6,6 +6,7 @@ AM_CPPFLAGS = ${ZCPPFLAGS} ${DEBUGFLAGS} ${BOOST_CPPFLAGS} \
 
 lib_LTLIBRARIES = libkcfreebusy.la
 noinst_DATA = libkcfreebusy.ldd
+CLEANFILES = ${noinst_DATA}
 
 libkcfreebusy_la_includedir = $(includedir)/libfreebusy
 

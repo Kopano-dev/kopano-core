@@ -6,6 +6,7 @@ genpages = \
 	kopano-admin.8 \
 	kopano-archiver.8 kopano-archiver.cfg.5 \
 	kopano-autorespond.8 \
+	kopano-cfgchecker.8 \
 	kopano-dagent.8 kopano-dagent.cfg.5 \
 	kopano-mr-accept.8 kopano-mr-process.8 \
 	kopano-fsck.1 \

@@ -1,1 +1,1 @@
-bindir = $(USERSCRIPTDIR)/creategroup.d
+bindir = ${dcprefix}${USERSCRIPTDIR}/creategroup.d

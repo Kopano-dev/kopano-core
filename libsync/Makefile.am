@@ -7,6 +7,7 @@ AM_CPPFLAGS = ${ZCPPFLAGS} ${DEBUGFLAGS} ${BOOST_CPPFLAGS} \
 
 lib_LTLIBRARIES = libkcsync.la
 noinst_DATA = libkcsync.ldd
+CLEANFILES = ${noinst_DATA}
 
 libkcsync_la_LIBADD = \
 	${top_builddir}/common/libkcmapi.la \

@@ -8,6 +8,7 @@ AM_CPPFLAGS = ${ZCPPFLAGS} ${DEBUGFLAGS} \
 
 sbin_PROGRAMS = kopano-gateway
 noinst_DATA = kopano-gateway.ldx
+CLEANFILES = ${noinst_DATA}
 
 kopano_gateway_LDADD = ${top_builddir}/inetmapi/libkcinetmapi.la \
 	${top_builddir}/mapi4linux/src/libmapi.la \

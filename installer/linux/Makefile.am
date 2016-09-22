@@ -1,11 +1,15 @@
 # -*- Makefile -*-
 
-systemunit_DATA = kopano-dagent.service kopano-gateway.service \
+systemunitdir = ${dcprefix}@systemunitdir@
+sysusersdir = ${dcprefix}@sysusersdir@
+tmpfilesdir = ${dcprefix}@tmpfilesdir@
+
+dist_systemunit_DATA = kopano-dagent.service kopano-gateway.service \
                   kopano-ical.service kopano-monitor.service \
                   kopano-presence.service kopano-search.service \
                   kopano-server.service kopano-spooler.service
-sysusers_DATA = kopano-sysusers.conf
-tmpfiles_DATA = kopano-tmpfiles.conf
+dist_sysusers_DATA = kopano-sysusers.conf
+dist_tmpfiles_DATA = kopano-tmpfiles.conf
 
 config_files = \
 	server.cfg unix.cfg ldap.propmap.cfg presence.cfg \
@@ -60,7 +64,9 @@ dist_doc_DATA = \
 	db-calc-storesize db-convert-attachments-to-files \
 	createuser.dotforward ssl-certificates.sh ldap-switch-sendas.pl \
 	audit-parse.pl db-remove-orphaned-attachments \
-	${top_srcdir}/tools/python-scripts/optimize-imap.py ${top_srcdir}/tools/python-scripts/update-resource-recipients
+	${top_srcdir}/tools/python-scripts/update-resource-recipients
+kgwdocdir = ${docdir}/../kopano-gateway
+dist_kgwdoc_DATA = ${top_srcdir}/tools/python-scripts/optimize-imap.py
 
 BUILT_SOURCES = ldap.openldap.cfg ldap.active-directory.cfg
 
@@ -90,7 +96,7 @@ dist_sysconf_bc_DATA = kopano-bash-completion.sh
 sysconf_certdir = ${sysconfdir}/kopano/report-ca
 
 config_files += $(BUILT_SOURCES)
-EXTRA_DIST = $(BUILT_SOURCES) \
+EXTRA_DIST = ${BUILT_SOURCES} ldap.m4 \
 	$(rhel_initscript_files) $(suse_initscript_files) $(cbs4_initscript_files) $(alt_initscript_files) \
 	sysconfig.txt
 
@@ -108,6 +114,16 @@ install-data-hook:
 		newf=`echo "$$f" | sed -e 's/\(kopano-.*\).init.*/\1/'`; \
 		mv -v "${DESTDIR}${sysconf_initdir}/$$f" "${DESTDIR}${sysconf_initdir}/$$newf"; \
 	done
-	mkdir -p ${DESTDIR}/${docdir}/../kopano-gateway
-	mv -v ${DESTDIR}/${docdir}/optimize-imap.py ${DESTDIR}/${docdir}/../kopano-gateway
-	rm -f ${DESTDIR}/${sysconf_configdir}/example-msr.cfg
+
+uninstall-local:
+	rm -f "${DESTDIR}${sysconf_rotatedir}/kopano" \
+		"${DESTDIR}${sysconf_crondir}/kopano-client-update"
+	if test ${DISTRO} = "sles" -o ${DISTRO} = "suse"; then \
+		rm -f "${DESTDIR}${sysconf_sysconfigdir}/sysconfig.kopano"; \
+	elif test ${DISTRO} = "rhel" -o ${DISTRO} = "alt"; then \
+		rm -f "${DESTDIR}${sysconf_sysconfigdir}/kopano"; \
+	fi
+	for f in ${sysconf_init_SCRIPTS}; do \
+		newf=$$(echo "$$f" | sed -e 's/\(kopano-.*\).init.*/\1/'); \
+		rm -f "${DESTDIR}${sysconf_initdir}/$$newf"; \
+	done

@@ -9,6 +9,7 @@ AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) $(BOOST_CPPFLAGS) \
 
 lib_LTLIBRARIES = libmapi.la libkchl.la
 noinst_DATA = libmapi.ldd libkchl.ldd
+CLEANFILES = ${noinst_DATA}
 
 libmapi_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined -version-info 1:0:0 \
 	-Wl,--version-script=libmapi.sym ${BOOST_FILESYSTEM_LDFLAGS}
@@ -31,7 +32,7 @@ libkchl_la_SOURCES = hl.cpp
 libkchl_la_LIBADD = libmapi.la
 libkchl_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined -version-info 0:0:0 \
 	-Wl,--version-script=${top_builddir}/default.sym
-EXTRA_libmapi_la_DEPENDENCIES = ${top_builddir}/default.sym
+EXTRA_libkchl_la_DEPENDENCIES = ${top_builddir}/default.sym
 
 
 check-syntax:

@@ -27,8 +27,9 @@ pkginclude_HEADERS = \
 	common/include/kopano/pcuser.hpp \
 	libserver/include/kopano/ECPluginSharedData.h
 noinst_DATA = kopano-server.ldx libkcclient.ldd libkccontacts.ldd
+CLEANFILES = ${noinst_DATA}
 #noinst_DATA += libkccommon.ldd libkcserver.ldd \
-	libkcsoapclient.ldd libkcsoapserver.ldd
+#	libkcsoapclient.ldd libkcsoapserver.ldd
 sysconf_configdir = ${MAPICONFIGDIR}
 dist_sysconf_config_DATA = client/kopano.inf contacts/zcontacts.inf
 
@@ -82,7 +83,7 @@ libkcclient_la_SOURCES = \
 	client/ECICS.h \
 	client/ECMAPIContainer.cpp client/ECMAPIContainer.h \
 	client/ECMAPIFolder.cpp client/ECMAPIFolder.h \
-	client/ECMAPIFolderPublic.cpp client/ECMAPI FolderPublic.h \
+	client/ECMAPIFolderPublic.cpp client/ECMAPIFolderPublic.h \
 	client/ECMAPIProp.cpp client/ECMAPIProp.h \
 	client/ECMAPITable.cpp client/ECMAPITable.h \
 	client/ECMSProvider.cpp client/ECMSProvider.h \
@@ -140,7 +141,7 @@ libkccommon_la_SOURCES = \
 	common/SOAPSock.cpp common/SOAPSock.h \
 	common/SOAPUtils.cpp common/SOAPUtils.h \
 	common/pcuser.cpp common/pcutil.cpp common/pcutil.hpp \
-	common/soapctor.cpp
+	common/soapctor.cpp common/versions.h
 libkccommon_la_LIBADD = \
 	../common/libkcutil.la ../common/libkcmapi.la libkcsoapclient.la \
 	../common/libkcssl.la ${GSOAP_LIBS} ${SSL_LIBS}
@@ -191,7 +192,7 @@ libkcserver_la_SOURCES = \
 	libserver/ECNotificationManager.cpp libserver/ECNotificationManager.h \
 	libserver/ECPamAuth.cpp libserver/ECPamAuth.h \
 	libserver/ECPluginFactory.cpp libserver/ECPluginFactory.h \
-	libserver/ECPluginSharedData.cpp libserver/ECPluginSharedData.h \
+	libserver/ECPluginSharedData.cpp \
 	libserver/ECS3Attachment.cpp libserver/ECS3Attachment.h \
 	libserver/ECSearchFolders.cpp libserver/ECSearchFolders.h \
 	libserver/ECSearchObjectTable.cpp libserver/ECSearchObjectTable.h \
@@ -255,7 +256,7 @@ soap/ns.xsd: ${SOAPHEADER}
 	soapcpp2 -z1 -x -Iinclude/ -d soap/ $<
 
 BUILT_SOURCES = soap/ns.xsd ${SOAP_CPP_SRC}
-CLEANFILES = ${SOAP_CPP_SRC} soap/*.req.xml soap/*.res.xml soap/*.wsdl \
+CLEANFILES += ${SOAP_CPP_SRC} soap/*.req.xml soap/*.res.xml soap/*.wsdl \
 	soap/*.nsmap soap/*.xsd soap/*Proxy\.h soap/*~
 
 COMMON_PLUGIN_FILES = plugins/plugin.h
