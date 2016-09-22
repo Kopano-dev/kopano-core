@@ -2,6 +2,8 @@
 #ifdef HAVE_LIBS3_H
 #include <kopano/platform.h>
 #include <algorithm>
+#include <mutex>
+#include <stdexcept>
 #include <cerrno>
 #include <pthread.h>
 #include <unistd.h>
@@ -38,6 +40,18 @@ struct s3_cdw {
 	ECS3Attachment *caller;
 	void *cbdata;
 };
+
+static void *ec_libs3_handle;
+#define W(n) static decltype(S3_ ## n) *DY_ ## n;
+W(put_object)
+W(initialize)
+W(status_is_retryable)
+W(deinitialize)
+W(get_status_name)
+W(head_object)
+W(delete_object)
+W(get_object)
+#undef W
 
 /**
  * Static function used to forward the response properties callback to the
@@ -101,9 +115,42 @@ int ECS3Attachment::put_obj_cb(int bufferSize, char *buffer, void *cbdata)
 ECRESULT ECS3Attachment::StaticInit(ECConfig *cf)
 {
 	ec_log_info("Initializing S3 Attachment Storage");
-	S3Status status = S3_initialize("Kopano Mail", S3_INIT_ALL, cf->GetSetting("attachment_s3_hostname"));
+
+	/*
+	 * Do a dlopen of libs3.so.2 so that the implicit pull-in of
+	 * libldap-2.4.so.2 symbols does not pollute our namespace of
+	 * libldap_r-2.4.so.2 symbols.
+	 */
+	void *h = ec_libs3_handle = dlopen("libs3.so.2", RTLD_LAZY | RTLD_LOCAL);
+	const char *err;
+	if (ec_libs3_handle == NULL) {
+		ec_log_warn("dlopen libs3.so.2: %s", (err = dlerror()) ? err : "<none>");
+		return KCERR_DATABASE_ERROR;
+	}
+#define W(n) do { \
+		DY_ ## n = reinterpret_cast<decltype(DY_ ## n)>(dlsym(h, "S3_" #n)); \
+		if (DY_ ## n == NULL) { \
+			ec_log_warn("dlsym S3_" #n ": %s", (err = dlerror()) ? err : "<none>"); \
+			dlclose(h); \
+			ec_libs3_handle = NULL; \
+			return KCERR_DATABASE_ERROR; \
+		} \
+	} while (false)
+
+	W(put_object);
+	W(initialize);
+	W(status_is_retryable);
+	W(deinitialize);
+	W(get_status_name);
+	W(head_object);
+	W(delete_object);
+	W(get_object);
+#undef W
+
+	S3Status status = DY_initialize("Kopano Mail", S3_INIT_ALL, cf->GetSetting("attachment_s3_hostname"));
 	if (status != S3StatusOK) {
-		ec_log_err("Error while initializing S3 Attachment Storage, error type: %s", S3_get_status_name(status));
+		ec_log_err("Error while initializing S3 Attachment Storage, error type: %s",
+			DY_get_status_name(status));
 		return KCERR_NETWORK_ERROR;
 	}
 	return erSuccess;
@@ -113,7 +160,10 @@ ECRESULT ECS3Attachment::StaticDeinit(void)
 {
 	ec_log_info("Deinitializing S3 Attachment Storage");
 	/* Deinitialize the S3 storage environment */
-	S3_deinitialize();
+	if (ec_libs3_handle != NULL) {
+		DY_deinitialize();
+		dlclose(ec_libs3_handle);
+	}
 	return erSuccess;
 }
 
@@ -239,15 +289,15 @@ void ECS3Attachment::response_complete(S3Status status,
 	struct s3_cd *data = reinterpret_cast<struct s3_cd *>(cbdata);
 	data->status = status;
 
-	ec_log_debug("Response completed: %s.", S3_get_status_name(status));
+	ec_log_debug("Response completed: %s.", DY_get_status_name(status));
 	if (status == S3StatusOK)
 		return;
 	if (error == 0) {
-		ec_log_err("Amazon S3 return status %s", S3_get_status_name(status));
+		ec_log_err("Amazon S3 return status %s", DY_get_status_name(status));
 		return;
 	}
 	ec_log_err("Amazon S3 return status %s, error: %s, resource: \"%s\"",
-		S3_get_status_name(status),
+		DY_get_status_name(status),
 		error->message ? error->message : "<unknown>",
 		error->resource ? error->resource : "<none>");
 	if (error->furtherDetails != NULL)
@@ -374,13 +424,15 @@ bool ECS3Attachment::ExistAttachmentInstance(ULONG ins_id)
 	 */
 	cdp->retries = S3_RETRIES;
 	do {
-		S3_head_object(&m_bucket_ctx, filename.c_str(), 0,
+		DY_head_object(&m_bucket_ctx, filename.c_str(), 0,
 			&m_response_handler, &cwdata);
-		if (S3_status_is_retryable(cdp->status))
-			ec_log_debug("Existence check result in while: %s", S3_get_status_name(cdp->status));
-	} while (S3_status_is_retryable(cdp->status) && should_retry(cdp));
+		if (DY_status_is_retryable(cdp->status))
+			ec_log_debug("Existence check result in while: %s",
+				DY_get_status_name(cdp->status));
+	} while (DY_status_is_retryable(cdp->status) && should_retry(cdp));
 
-	ec_log_debug("Result of the existence check: %s", S3_get_status_name(cdp->status));
+	ec_log_debug("Result of the existence check: %s",
+		DY_get_status_name(cdp->status));
 	return cdp->status == S3StatusOK;
 }
 
@@ -422,16 +474,16 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(struct soap *soap,
 	 */
 	cdp->retries = S3_RETRIES;
 	do {
-		S3_get_object(&m_bucket_ctx, filename.c_str(),
+		DY_get_object(&m_bucket_ctx, filename.c_str(),
 			&m_get_conditions, /*startByte*/ 0, /*byteCount*/ 0, 0,
 			&m_get_obj_handler, &cwdata);
-		if (S3_status_is_retryable(cdp->status))
+		if (DY_status_is_retryable(cdp->status))
 			ec_log_debug("Load instance result in while: %s",
-				S3_get_status_name(cdp->status));
-	} while (S3_status_is_retryable(cdp->status) && should_retry(cdp));
+				DY_get_status_name(cdp->status));
+	} while (DY_status_is_retryable(cdp->status) && should_retry(cdp));
 
 	ec_log_debug("Result of the load instance: %s",
-		S3_get_status_name(cdp->status));
+		DY_get_status_name(cdp->status));
 
 	if (cdp->size != cdp->processed) {
 		ec_log_err("Short read while reading attachment data, key: %s", filename.c_str());
@@ -495,14 +547,16 @@ ECRESULT ECS3Attachment::LoadAttachmentInstance(ULONG ins_id, size_t *size_p, EC
 	 */
 	cdp->retries = S3_RETRIES;
 	do {
-		S3_get_object(&m_bucket_ctx, filename.c_str(),
+		DY_get_object(&m_bucket_ctx, filename.c_str(),
 			&m_get_conditions, /*startByte*/ 0, /*byteCount*/ 0, 0,
 			&m_get_obj_handler, &cwdata);
-		if (S3_status_is_retryable(cdp->status))
-			ec_log_debug("Load instance result in while: %s", S3_get_status_name(cdp->status));
-	} while (S3_status_is_retryable(cdp->status) && should_retry(cdp));
+		if (DY_status_is_retryable(cdp->status))
+			ec_log_debug("Load instance result in while: %s",
+				DY_get_status_name(cdp->status));
+	} while (DY_status_is_retryable(cdp->status) && should_retry(cdp));
 
-	ec_log_debug("Result of the load instance: %s", S3_get_status_name(cdp->status));
+	ec_log_debug("Result of the load instance: %s",
+		DY_get_status_name(cdp->status));
 	if (cdp->size != cdp->processed) {
 		ec_log_err("Short read while reading attachment data from S3, key: %s", filename.c_str());
 		ret = KCERR_DATABASE_ERROR;
@@ -557,14 +611,15 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
 	 */
 	cdp->retries = S3_RETRIES;
 	do {
-		S3_put_object(&m_bucket_ctx, filename.c_str(), size, NULL,
+		DY_put_object(&m_bucket_ctx, filename.c_str(), size, NULL,
 			NULL, &m_put_obj_handler, &cwdata);
-		if (S3_status_is_retryable(cdp->status))
+		if (DY_status_is_retryable(cdp->status))
 			ec_log_debug("Save attachment result in while: %s",
-				S3_get_status_name(cdp->status));
-	} while (S3_status_is_retryable(cdp->status) && should_retry(cdp));
+				DY_get_status_name(cdp->status));
+	} while (DY_status_is_retryable(cdp->status) && should_retry(cdp));
 
-	ec_log_debug("Result of the save attachment: %s", S3_get_status_name(cdp->status));
+	ec_log_debug("Result of the save attachment: %s",
+		DY_get_status_name(cdp->status));
 	/* set in transaction before disk full check to remove empty file */
 	if (m_transact)
 		m_new_att.insert(ins_id);
@@ -615,16 +670,16 @@ ECRESULT ECS3Attachment::SaveAttachmentInstance(ULONG ins_id, ULONG propid,
 	 */
 	cdp->retries = S3_RETRIES;
 	do {
-		S3_put_object(&m_bucket_ctx, filename.c_str(), size, NULL,
+		DY_put_object(&m_bucket_ctx, filename.c_str(), size, NULL,
 			NULL, &m_put_obj_handler, &cwdata);
-		if (S3_status_is_retryable(cdp->status))
+		if (DY_status_is_retryable(cdp->status))
 			ec_log_debug("Save attachment result in while: %s",
-				S3_get_status_name(cdp->status));
+				DY_get_status_name(cdp->status));
 	}
-	while (S3_status_is_retryable(cdp->status) && should_retry(cdp));
+	while (DY_status_is_retryable(cdp->status) && should_retry(cdp));
 
 	ec_log_debug("Result of the save attachment: %s",
-		S3_get_status_name(cdp->status));
+		DY_get_status_name(cdp->status));
 	/* set in transaction before disk full check to remove empty file */
 	if (m_transact)
 		m_new_att.insert(ins_id);
@@ -715,14 +770,15 @@ ECRESULT ECS3Attachment::del_marked_att(ULONG ins_id)
 	 */
 	cdp->retries = S3_RETRIES;
 	do {
-		S3_delete_object(&m_bucket_ctx, filename.c_str(), 0,
+		DY_delete_object(&m_bucket_ctx, filename.c_str(), 0,
 			&m_response_handler, &cwdata);
+		if (DY_status_is_retryable(cdp->status))
+			ec_log_debug("Delete marked attachment result in while: %s",
+				DY_get_status_name(cdp->status));
+	} while (DY_status_is_retryable(cdp->status) && should_retry(cdp));
 
-		if (S3_status_is_retryable(cdp->status))
-			ec_log_debug("Delete marked attachment result in while: %s", S3_get_status_name(cdp->status));
-	} while (S3_status_is_retryable(cdp->status) && should_retry(cdp));
-
-	ec_log_debug("Result of the delete marked attachment: %s", S3_get_status_name(cdp->status));
+	ec_log_debug("Result of the delete marked attachment: %s",
+		DY_get_status_name(cdp->status));
 	if (cdp->status == S3StatusOK)
 		return erSuccess;
 	return KCERR_NOT_FOUND;
@@ -831,15 +887,15 @@ ECRESULT ECS3Attachment::GetSizeInstance(ULONG ins_id, size_t *size_p,
 	 */
 	cdp->retries = S3_RETRIES;
 	do {
-		S3_head_object(&m_bucket_ctx, filename.c_str(), 0,
+		DY_head_object(&m_bucket_ctx, filename.c_str(), 0,
 			&m_response_handler, &cwdata);
-		if (S3_status_is_retryable(cdp->status))
+		if (DY_status_is_retryable(cdp->status))
 			ec_log_debug("Get size attachment result in while: %s",
-				S3_get_status_name(cdp->status));
-	} while (S3_status_is_retryable(cdp->status) && should_retry(cdp));
+				DY_get_status_name(cdp->status));
+	} while (DY_status_is_retryable(cdp->status) && should_retry(cdp));
 
 	ec_log_debug("Get size of attachment: %s -> %d",
-		S3_get_status_name(cdp->status), cdp->size);
+		DY_get_status_name(cdp->status), cdp->size);
 
 	if (cdp->status == S3StatusOK) {
 		*size_p = cdp->size;

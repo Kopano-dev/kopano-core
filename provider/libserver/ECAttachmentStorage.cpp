@@ -130,7 +130,8 @@ ECRESULT ECAttachmentStorage::CreateAttachmentStorage(ECDatabase *lpDatabase,
 		lpAttachmentStorage = new ECFileAttachment(lpDatabase, dir, complvl, sync_files);
 #ifdef HAVE_LIBS3_H
 	} else if (ans != NULL && strcmp(ans, "s3") == 0) {
-		lpAttachmentStorage = new ECS3Attachment(lpDatabase,
+		try {
+			lpAttachmentStorage = new ECS3Attachment(lpDatabase,
 					lpConfig->GetSetting("attachment_s3_protocol"),
 					lpConfig->GetSetting("attachment_s3_uristyle"),
 					lpConfig->GetSetting("attachment_s3_accesskeyid"),
@@ -138,6 +139,10 @@ ECRESULT ECAttachmentStorage::CreateAttachmentStorage(ECDatabase *lpDatabase,
 					lpConfig->GetSetting("attachment_s3_bucketname"),
 					lpConfig->GetSetting("attachment_path"),
 					strtol(lpConfig->GetSetting("attachment_compression"), NULL, 0));
+		} catch (std::runtime_error &e) {
+			ec_log_warn("Cannot instantiate ECS3Attachment: %s", e.what());
+			return KCERR_DATABASE_ERROR;
+		}
 #endif
 	} else {
 		lpAttachmentStorage = new ECDatabaseAttachment(lpDatabase);
