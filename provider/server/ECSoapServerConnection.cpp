@@ -249,10 +249,12 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char* lpServerName, int nServer
 			ssl_neg = true;
 		}
 
-		if (strcasecmp(ssl_name, SSL_TXT_SSLV2) == 0)
-			ssl_proto = 0x01;
-		else if (strcasecmp(ssl_name, SSL_TXT_SSLV3) == 0)
+		if (strcasecmp(ssl_name, SSL_TXT_SSLV3) == 0)
 			ssl_proto = 0x02;
+#ifdef SSL_TXT_SSLV2
+		else if (strcasecmp(ssl_name, SSL_TXT_SSLV2) == 0)
+			ssl_proto = 0x01;
+#endif
 		else if (strcasecmp(ssl_name, SSL_TXT_TLSV1) == 0)
 			ssl_proto = 0x04;
 #ifdef SSL_TXT_TLSV1_1
