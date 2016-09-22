@@ -4327,14 +4327,13 @@
 			<term><option>server_ssl_protocols</option></term>
 			<listitem>
 			  <para>Disabled or enabled protocol names. Supported protocol names
-			  are <replaceable>SSLv2</replaceable>, <replaceable>SSLv3</replaceable>
+			  are <replaceable>SSLv3</replaceable>
 			  and <replaceable>TLSv1</replaceable>. If Kopano was linked against
 			  OpenSSL 1.0.1 or later there is additional support for the new protocols
 			  <replaceable>TLSv1.1</replaceable> and <replaceable>TLSv1.2</replaceable>.
-			  To exclude both, SSLv2 and SSLv3 set <option>server_ssl_protocols</option>
-			  to <replaceable>!SSLv2 !SSLv3</replaceable>. SSLv2 is considered unsafe
-			  and these connections should not be accepted.</para>
-			  <para>Default: <replaceable>!SSLv2</replaceable></para>
+			  To exclude both SSLv3 and TLSv1, set <option>server_ssl_protocols</option>
+			  to <replaceable>!SSLv3 !TLSv1</replaceable>.</para>
+			  <para>Default: SSLv2 being disabled</para>
 			</listitem>
 		  </varlistentry>
 
@@ -7984,14 +7983,13 @@
 			<term><option>ssl_protocols</option></term>
 			<listitem>
 			  <para>Disabled or enabled protocol names. Supported protocol names
-			  are <replaceable>SSLv2</replaceable>, <replaceable>SSLv3</replaceable>
+			  are <replaceable>SSLv3</replaceable>
 			  and <replaceable>TLSv1</replaceable>. If Kopano was linked against
 			  OpenSSL 1.0.1 or later there is additional support for the new protocols
 			  <replaceable>TLSv1.1</replaceable> and <replaceable>TLSv1.2</replaceable>.
-			  To exclude both, SSLv2 and SSLv3 set <option>ssl_protocols</option>
-			  to <replaceable>!SSLv2 !SSLv3</replaceable>. SSLv2 is considered unsafe
-			  and these connections should not be accepted.</para>
-			  <para>Default: <replaceable>!SSLv2</replaceable></para>
+			  To exclude both SSLv3 and TLSv1, set <option>server_ssl_protocols</option>
+			  to <replaceable>!SSLv3 !TLSv1</replaceable>.</para>
+			  <para>Default: SSLv2 being disabled</para>
 			</listitem>
 		  </varlistentry>
 
@@ -9257,14 +9255,13 @@
 			<term><option>ssl_protocols</option></term>
 			<listitem>
 			  <para>Disabled or enabled protocol names. Supported protocol names
-			  are <replaceable>SSLv2</replaceable>, <replaceable>SSLv3</replaceable>
+			  are <replaceable>SSLv3</replaceable>
 			  and <replaceable>TLSv1</replaceable>. If Kopano was linked against
 			  OpenSSL 1.0.1 or later there is additional support for the new protocols
 			  <replaceable>TLSv1.1</replaceable> and <replaceable>TLSv1.2</replaceable>.
-			  To exclude both, SSLv2 and SSLv3 set <option>ssl_protocols</option>
-			  to <replaceable>!SSLv2 !SSLv3</replaceable>. SSLv2 is considered unsafe
-			  and these connections should not be accepted.</para>
-			  <para>Default: <replaceable>!SSLv2</replaceable></para>
+			  To exclude both SSLv3 and TLSv1, set <option>server_ssl_protocols</option>
+			  to <replaceable>!SSLv3 !TLSv1</replaceable>.</para>
+			  <para>Default: SSLv2 being disabled</para>
 			</listitem>
 		  </varlistentry>
 

@@ -58,6 +58,7 @@
 #include "TmpPath.h"
 
 #include <boost/filesystem.hpp>
+#include <openssl/ssl.h>
 namespace bfs = boost::filesystem;
 
 // The following value is based on:
@@ -832,7 +833,11 @@ static int running_server(char *szName, const char *szConfig,
 		{ "server_ssl_key_pass",		"server",	CONFIGSETTING_EXACT },
 		{ "server_ssl_ca_file",			"/etc/kopano/ssl/cacert.pem" },
 		{ "server_ssl_ca_path",			"" },
+#ifdef SSL_TXT_SSLV2
 		{ "server_ssl_protocols",		"!SSLv2" },
+#else
+		{"server_ssl_protocols", ""},
+#endif
 		{ "server_ssl_ciphers",			"ALL:!LOW:!SSLv2:!EXP:!aNULL" },
 		{ "server_ssl_prefer_server_ciphers",	"no" },
 		{ "sslkeys_path",				"/etc/kopano/sslkeys" },	// login keys
