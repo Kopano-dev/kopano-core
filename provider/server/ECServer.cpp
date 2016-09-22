@@ -1366,14 +1366,8 @@ static int running_server(char *szName, const char *szConfig,
 		pthread_join(signal_thread, NULL);
 	}
 exit:
-	if (er != erSuccess || retval != 0) {
-		std::string msg;
-
-		if (er != erSuccess)
-			msg = format("An error occurred (%x).", er);
-		else
-			msg = "An error occurred.";
-
+	if (er != erSuccess) {
+		auto msg = format("An error occurred (%x).", er);
 		if (g_lpConfig)
 			msg += format(" Please check %s for details.", g_lpConfig->GetSetting("log_file"));
 		else
