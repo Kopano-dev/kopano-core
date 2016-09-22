@@ -21,7 +21,9 @@ Fixes:
 * python: avoid terminal exception when handling a date past year 9999 [KC-184]
 * caldav: Lightning workaround is not to apply to Apple mail client [KC-145]
 * search: continue even if xapian db cannot be opened [KC-174]
+* search: cure an infinite loop [KC-157]
 * backup: miscellaneous [KC-161, KC-162, KC-192]
+* init: classic init scripts showed wrong status for python daemons [KC-220]
 Enhancements:
 * PHP7 support [KC-130, KC-131, KC-134, KC-158]
 * server: add ICS log messages [KC-18]
@@ -42,7 +44,10 @@ Enhancements:
 * Add scripts (source tarball only) to inspect/delete stale search folders
   which slow down kopano-server startup and message modification when too many
   have accumulated [KC-140]
+* server: the allocator library is now switchable [KC-191, KC-216],
+  there is a new option "allocator_library" in server.cfg to control it.
 Changes:
 * search: no longer do indexing on root and Draft folders [KC-57]
 * search: index junk folders, but skip updating suggestion list [KC-57]
 * Python 2.5 support is removed
+* server: libs3 is now dlopened to workaround libldap effects [KC-64]
