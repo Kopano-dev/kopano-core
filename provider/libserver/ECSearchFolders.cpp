@@ -1153,15 +1153,19 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 			strQuery = "SELECT hierarchy.id from hierarchy WHERE hierarchy.parent = " + stringify(*iterFolders) + " AND hierarchy.type=3 AND hierarchy.flags & " + stringify(MSGFLAG_DELETED|MSGFLAG_ASSOCIATED) + " = 0 ORDER by hierarchy.id DESC";
 
 			er = lpDatabase->DoSelect(strQuery, &lpDBResult);
-			if(er != erSuccess)
-				continue; // Try to continue if the query failed ..
+			if(er == erSuccess) {
+				while((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL) {
+					if(lpDBRow && lpDBRow[0])
+						lstFolders.push_back(atoi(lpDBRow[0]));
+				}
+			} else
+				ec_log_crit("ECSearchFolders::Search() could not expand target folders: 0x%x", er);
 
-			while((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL) {
-				if(lpDBRow && lpDBRow[0])
-					lstFolders.push_back(atoi(lpDBRow[0]));
+			if(lpDBResult) {
+				lpDatabase->FreeResult(lpDBResult);
+				lpDBResult = NULL;
 			}
 
-			if(lpDBResult){ lpDatabase->FreeResult(lpDBResult); lpDBResult = NULL; }
 			++iterFolders;
 		}
 	}
