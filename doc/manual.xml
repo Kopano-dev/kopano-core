@@ -3923,6 +3923,23 @@
 			</listitem>
 		  </varlistentry>
 
+		  <varlistentry>
+		  <term><option>allocator_library</option></term>
+		  <listitem>
+
+		  <para>This setting allows to preload a special library (such
+		  as an allocator). On startup, the server will set the
+		  LD_PRELOAD environment variable for itself and then
+		  re-execute itself to get it loaded with high priority. If
+		  this option is empty, the default system allocator (from
+		  libc) will be used instead, which is probably a better choice
+		  when debugging with gdb, valgrind or ASAN/UBSAN. The
+		  environment variable KC_ALLOCATOR_DONE may also be set to a
+		  non-empty value to disable re-exec.</para>
+
+		  <para>Default: <replaceable>libtcmalloc_minimal.so.4</replaceable></para>
+		  </listitem>
+		  </varlistentry>
 		</variablelist>
 	  </refsection>
 
