@@ -5333,7 +5333,7 @@ ZEND_FUNCTION(mapi_zarafa_getuserlistofgroup)
 	IECUnknown		*lpUnknown = NULL;
 	IECServiceAdmin *lpServiceAdmin = NULL;
 	ULONG			ulUsers;
-	ECUSER *lpsUsers;
+	ECUSER *lpsUsers = NULL;
 	unsigned int	i;
 
 	RETVAL_FALSE;

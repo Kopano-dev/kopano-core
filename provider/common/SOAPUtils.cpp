@@ -16,7 +16,7 @@
  */
 
 #include <kopano/platform.h>
-
+#include <cstring>
 #include <mapidefs.h>
 #include <mapitags.h>
 #include <edkmdb.h>
@@ -1752,6 +1752,7 @@ ECRESULT CopySearchCriteria(struct soap *soap,
 		return KCERR_NOT_FOUND;
 
 	lpDst = new searchCriteria;
+	memset(lpDst, '\0', sizeof(*lpDst));
 	if(lpSrc->lpRestrict) {
     	er = CopyRestrictTable(soap, lpSrc->lpRestrict, &lpDst->lpRestrict);
 		if (er != erSuccess)

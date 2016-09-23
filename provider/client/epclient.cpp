@@ -432,6 +432,7 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 	d.provadm = lpAdminProvider;
 	d.profsect = lpProfSect;
 	d.count = d.eid_size = 0;
+	d.transport = NULL;
 
 	if (d.provadm != NULL) {
 		hr = GetServiceName(d.provadm, &strServiceName);
