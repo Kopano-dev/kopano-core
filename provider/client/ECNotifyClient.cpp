@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <kopano/platform.h>
+#include <stdexcept>
 #include <mapispi.h>
 #include <mapix.h>
 #include <kopano/ECDebug.h>
@@ -53,18 +54,18 @@ ECNotifyClient::ECNotifyClient(ULONG ulProviderType, void *lpProvider, ULONG ulF
 	else if(m_ulProviderType == MAPI_ADDRBOOK)
 		m_lpTransport = ((ECABLogon*)m_lpProvider)->m_lpTransport;
 	else
-		ASSERT(FALSE);
+		throw std::runtime_error("Unknown m_ulProviderType");
 
     /* Get the sessiongroup ID of the provider that we will be handling notifications for */
 	if (m_lpTransport->HrGetSessionId(&ecSessionId, &m_ecSessionGroupId) != hrSuccess)
-		ASSERT(FALSE);
+		throw std::runtime_error("ECNotifyClient/HrGetSessionId failed");
 
     /* Get the session group that this session belongs to */
 	if (g_ecSessionManager.GetSessionGroupData(m_ecSessionGroupId, m_lpTransport->GetProfileProps(), &m_lpSessionGroup) != hrSuccess)
-		ASSERT(FALSE);
+		throw std::runtime_error("ECNotifyClient/GetSessionGroupData failed");
 
 	if (m_lpSessionGroup->GetOrCreateNotifyMaster(&m_lpNotifyMaster) != hrSuccess)
-		ASSERT(FALSE);
+		throw std::runtime_error("ECNotifyClient/GetOrCreateNotifyMaster failed");
 
 	m_lpNotifyMaster->AddSession(this);
 }
