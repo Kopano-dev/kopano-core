@@ -722,7 +722,7 @@ static HRESULT CreateForwardCopy(ECLogger *lpLogger, LPADRBOOK lpAdrBook,
 		sForwardProps[cfp++].Value.lpszW = LPWSTR(bDoPreserveSender ? L"redirect" : L"forward");
 	}
 
-	hr = lpFwdMsg->SetProps(cfp, (LPSPropValue)&sForwardProps, NULL);
+	hr = lpFwdMsg->SetProps(cfp, sForwardProps, NULL);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -789,7 +789,7 @@ static HRESULT HrDelegateMessage(IMAPIProp *lpMessage)
 	sNewProps[1].ulPropTag = PR_DELETE_AFTER_SUBMIT;
 	sNewProps[1].Value.b = TRUE;
 
-	hr = lpMessage->SetProps(2, (LPSPropValue)&sNewProps, NULL);
+	hr = lpMessage->SetProps(2, sNewProps, NULL);
 	if (hr != hrSuccess)
 		goto exit;
 		
@@ -1222,7 +1222,7 @@ nextrule:
 		GetSystemTimeAsFileTime(&sForwardProps[2].Value.ft);
 
 		// set forward in msg flag
-		hr = (*lppMessage)->SetProps(3, (LPSPropValue)&sForwardProps, NULL);
+		hr = (*lppMessage)->SetProps(3, sForwardProps, NULL);
 	}
 
 exit:

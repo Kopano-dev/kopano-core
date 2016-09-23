@@ -1425,7 +1425,7 @@ HRESULT CalDAV::HrHandleMkCal(WEBDAVPROP *lpsDavProp)
 	sPropValSet[1].ulPropTag = PR_COMMENT_A;
 	sPropValSet[1].Value.lpszA = const_cast<char *>("Created by CalDAV Gateway");
 
-	hr = lpUsrFld->SetProps(2, (LPSPropValue)&sPropValSet, NULL);
+	hr = lpUsrFld->SetProps(2, sPropValSet, NULL);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "CalDAV::HrHandleMkCal SetProps failed: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;

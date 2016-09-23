@@ -1761,7 +1761,7 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::ref<vmime::header> vmHeader,
 		sAttProps[2].ulPropTag = PR_ATTACH_FLAGS;
 		sAttProps[2].Value.ul = 0;
 
-		hr = ptrAttach->SetProps(3, (LPSPropValue)sAttProps, NULL);
+		hr = ptrAttach->SetProps(3, sAttProps, NULL);
 		if (hr != hrSuccess) {
 			lpLogger->Log(EC_LOGLEVEL_ERROR, "dissect_ical-1811: Unable to create message attachment for ical data: %s (%x)", GetMAPIErrorMessage(hr), hr);
 			goto exit;
