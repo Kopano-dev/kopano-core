@@ -14,6 +14,7 @@
 #include <mapidefs.h>
 class I {
 	public:
+	virtual ~I(void) {}
 	/* ptr-to-non-const on purpose */
 	virtual void SetProps(SPropValue *, size_t) {}
 };
@@ -46,5 +47,7 @@ int main(void)
 	else
 		obj = new Y();
 	obj->SetProps(prop, ARRAY_SIZE(prop));
+	memset(prop, '\0', sizeof(prop));
+	delete obj;
 	return 0;
 }

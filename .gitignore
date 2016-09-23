@@ -62,6 +62,7 @@ stamp-h2
 
 # /common/
 /common/config.h*
+/common/cov-scope
 /common/ecversion.h
 /common/include/kopano/ecversion.h
 /common/include/kopano/zconfig.h
