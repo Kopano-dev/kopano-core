@@ -514,7 +514,12 @@ def change_process_owner(uid, gid):
 
         """
     try:
-        os.setgroups([])
+        # KC custom modification of python-daemon.
+        # If we cannot get rid of the groups, leave them.
+        try:
+            os.setgroups([])
+        except Exception, exc:
+            pass
         os.setgid(gid)
         os.setuid(uid)
     except Exception, exc:
