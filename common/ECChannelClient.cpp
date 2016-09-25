@@ -158,16 +158,20 @@ ECRESULT ECChannelClient::ConnectHttp()
 		fd = socket(sock_addr->ai_family, sock_addr->ai_socktype,
 		     sock_addr->ai_protocol);
 		if (fd < 0)
+			/* Socket type could not be created */
 			continue;
 
 		if (connect(fd, sock_addr->ai_addr,
 		    sock_addr->ai_addrlen) < 0) {
+			/* No route */
 			int saved_errno = errno;
 			closesocket(fd);
 			fd = -1;
 			errno = saved_errno;
 			continue;
 		}
+		/* Good connected socket, use it */
+		break;
 	}
 	if (fd < 0) {
 		er = KCERR_NETWORK_ERROR;
