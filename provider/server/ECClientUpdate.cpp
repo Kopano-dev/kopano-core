@@ -70,7 +70,7 @@ int HandleClientUpdate(struct soap *soap)
 
 	ECLicenseClient *lpLicenseClient = NULL;
 	unsigned int ulLicenseResponse = 0;
-	unsigned char *lpLicenseResponse = NULL;
+	void *lpLicenseResponse = NULL;
 	ECRESULT er = erSuccess;
 	ClientVersion currentVersion = {0};
 	ClientVersion latestVersion = {0};
@@ -109,7 +109,7 @@ int HandleClientUpdate(struct soap *soap)
 			goto exit;
 		}
 
-		strLicenseResponse = base64_encode(lpLicenseResponse, ulLicenseResponse);
+		strLicenseResponse = base64_encode(static_cast<const unsigned char *>(lpLicenseResponse), ulLicenseResponse);
 
 		soap->http_content = "binary";
 		soap_response(soap, SOAP_FILE);
@@ -187,7 +187,7 @@ int HandleClientUpdate(struct soap *soap)
 	nRet = SOAP_OK;
 
 exit:
-	delete[] lpLicenseResponse;
+	free(lpLicenseResponse);
 	delete lpLicenseClient;
 
 	if (fd)
@@ -405,7 +405,7 @@ int ns__getClientUpdate(struct soap *soap, struct clientUpdateInfoRequest sClien
 	ClientVersion sCurrentVersion = {0};
 	ClientVersion sLatestVersion;
 	unsigned int ulLicenseResponse = 0;
-	unsigned char *lpLicenseResponse = NULL;
+	void *lpLicenseResponse = NULL;
 	ECLicenseClient *lpLicenseClient = NULL;
 	std::string strClientMSIName;
 	std::string strPath;
@@ -600,8 +600,7 @@ exit:
 	}
 
 	lpsResponse->er = er;
-
-	delete[] lpLicenseResponse;
+	free(lpLicenseResponse);
 	delete lpLicenseClient;
 
 	if (er && fd)

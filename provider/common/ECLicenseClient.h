@@ -33,7 +33,7 @@ public:
     ECRESULT QueryCapability(unsigned int ulServiceType, const std::string &strCapability, bool *lpbResult);
     ECRESULT GetSerial(unsigned int ulServiceType, std::string &lpstrSerial, std::vector<std::string> &lstCALs);
     ECRESULT GetInfo(unsigned int ulServiceType, unsigned int *lpulUserCount);
-    ECRESULT Auth(const unsigned char *lpData, unsigned int ulSize, unsigned char **lpResponse, unsigned int *lpulResponseSize);
+    ECRESULT Auth(const unsigned char *lpData, unsigned int ulSize, void **ret, unsigned int *retsize);
     ECRESULT SetSerial(unsigned int ulServiceType, const std::string &strSerial, const std::vector<std::string> &lstCALs);
 
 private:

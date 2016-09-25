@@ -195,5 +195,5 @@ public:
 		}
 	}
 	
-	ECRESULT Auth(unsigned char *lpData, unsigned int ulSize, unsigned char **lpResponse, unsigned int *lpulResponseSize);
+	ECRESULT Auth(unsigned char *lpData, unsigned int ulSize, void **, unsigned int *);
 };

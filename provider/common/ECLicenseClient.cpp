@@ -19,6 +19,7 @@
 
 #include <string>
 #include <vector>
+#include <cstdlib>
 #include <sys/un.h>
 #include <sys/socket.h>
 #include <kopano/ECDefs.h>
@@ -125,15 +126,10 @@ typedef struct {
 } LICENSERESPONSE;
 
 ECRESULT ECLicenseClient::Auth(const unsigned char *lpData,
-    unsigned int ulSize, unsigned char **lppResponse,
-    unsigned int *lpulResponseSize)
+    unsigned int ulSize, void **lppResponse, unsigned int *lpulResponseSize)
 {
-	LICENSERESPONSE *lpResponse = new LICENSERESPONSE;
-	memset(lpResponse, 0, sizeof(LICENSERESPONSE));
-
-	*lppResponse = (unsigned char *)lpResponse;
+	*lppResponse = calloc(1, sizeof(LICENSERESPONSE));
 	*lpulResponseSize = sizeof(LICENSERESPONSE);
-
 	return erSuccess;
 }
 

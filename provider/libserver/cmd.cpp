@@ -10442,7 +10442,7 @@ SOAP_ENTRY_END()
 SOAP_ENTRY_START(getLicenseAuth, lpsResponse->er, struct xsd__base64Binary sAuthData, struct getLicenseAuthResponse *lpsResponse)
 {
 	ECLicenseClient *lpLicenseClient = new ECLicenseClient();
-	unsigned char *data = NULL;
+	void *data = NULL;
 
 	er = lpLicenseClient->Auth(sAuthData.__ptr, sAuthData.__size, &data, reinterpret_cast<unsigned int *>(&lpsResponse->sAuthResponse.__size));
 	if (er != erSuccess)
@@ -10452,7 +10452,7 @@ SOAP_ENTRY_START(getLicenseAuth, lpsResponse->er, struct xsd__base64Binary sAuth
 	memcpy(lpsResponse->sAuthResponse.__ptr, data, lpsResponse->sAuthResponse.__size);
 
 exit:
-	delete[] data;
+	free(data);
 	delete lpLicenseClient;
 }
 SOAP_ENTRY_END()
