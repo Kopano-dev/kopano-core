@@ -307,14 +307,13 @@ HRESULT VConverter::HrMakeBinaryUID(const std::string &strUid, void *base, SProp
 	// Caller sets .ulPropTag
 	sPropValue.Value.bin.cb = strBinUid.size();
 	if ((hr = MAPIAllocateMore(sPropValue.Value.bin.cb, base, (void**)&sPropValue.Value.bin.lpb)) != hrSuccess)
-		goto exit;
+		return hr;
 	memcpy(sPropValue.Value.bin.lpb, strBinUid.data(), sPropValue.Value.bin.cb);
 
 	// set return value
-	*lpPropValue = sPropValue;
-
-exit:
-	return hr;
+	lpPropValue->Value.bin.cb  = sPropValue.Value.bin.cb;
+	lpPropValue->Value.bin.lpb = sPropValue.Value.bin.lpb;
+	return hrSuccess;
 }
 
 /**

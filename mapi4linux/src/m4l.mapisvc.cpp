@@ -232,6 +232,7 @@ HRESULT INFLoader::MakeProperty(const std::string& strTag, const std::string& st
 	HRESULT hr;
 	SPropValue sProp;
 
+	memset(&sProp, 0, sizeof(sProp));
 	sProp.ulPropTag = DefinitionFromString(strTag, true);
 	switch (PROP_TYPE(sProp.ulPropTag)) {
 	case PT_LONG:
