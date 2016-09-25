@@ -44,9 +44,9 @@ bool operator <(const SBinary &a, const SBinary &b);
 const char *GetServerUnixSocket(const char *szPreferred = NULL);
 std::string GetServerFQDN();
 
-HRESULT HrOpenECAdminSession(ECLogger *const lpLogger, IMAPISession **lppSession, const char *const app_version, const char *const app_misc, const char *szPath = NULL, ULONG ulProfileFlags = 0, const char *sslkey_file = NULL, const char *sslkey_password = NULL);
+HRESULT __attribute__((nonnull(1))) HrOpenECAdminSession(ECLogger *const lpLogger, IMAPISession **lppSession, const char *const app_version, const char *const app_misc, const char *szPath = NULL, ULONG ulProfileFlags = 0, const char *sslkey_file = NULL, const char *sslkey_password = NULL);
 
-HRESULT HrOpenECSession(ECLogger *const lpLogger, IMAPISession **lppSession, const char *const app_version, const char *const app_misc, const WCHAR *szUsername, const WCHAR *szPassword, const char *szPath = NULL, ULONG ulProfileFlags = 0, const char *sslkey_file = NULL, const char *sslkey_password = NULL, const char *profname = NULL);
+HRESULT __attribute__((nonnull(1))) HrOpenECSession(ECLogger *const lpLogger, IMAPISession **lppSession, const char *const app_version, const char *const app_misc, const WCHAR *szUsername, const WCHAR *szPassword, const char *szPath = NULL, ULONG ulProfileFlags = 0, const char *sslkey_file = NULL, const char *sslkey_password = NULL, const char *profname = NULL);
 
 HRESULT HrSearchECStoreEntryId(IMAPISession *lpMAPISession, BOOL bPublic, ULONG *lpcbEntryID, LPENTRYID *lppEntryID);
 
@@ -76,7 +76,7 @@ HRESULT DoSentMail(IMAPISession *lpSession, IMsgStore *lpMDB, ULONG ulFlags, IMe
 
 HRESULT GetClientVersion(unsigned int* ulVersion);
 
-HRESULT CreateProfileTemp(ECLogger *const lpLogger, const WCHAR *username, const WCHAR *password, const char *path, const char* szProfName, ULONG ulProfileFlags, const char *sslkey_file, const char *sslkey_password, const char *app_version, const char *app_misc);
+HRESULT __attribute__((nonnull(1))) CreateProfileTemp(ECLogger *const lpLogger, const WCHAR *username, const WCHAR *password, const char *path, const char* szProfName, ULONG ulProfileFlags, const char *sslkey_file, const char *sslkey_password, const char *app_version, const char *app_misc);
 HRESULT DeleteProfileTemp(char *szProfName);
 
 HRESULT OpenSubFolder(LPMDB lpMDB, const WCHAR *folder, WCHAR psep, ECLogger *lpLogger, bool bIsPublic, bool bCreateFolder, LPMAPIFOLDER *lppSubFolder);

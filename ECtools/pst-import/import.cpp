@@ -5,7 +5,7 @@
 #include <kopano/platform.h>
 
 #include <iostream>
-
+#include <kopano/ECLogger.h>
 #include <libpff/error.h>
 #include <libpff.h>
 #include <kopano/charset/convert.h>
@@ -503,7 +503,7 @@ int main(int argc, char *argv[]) {
             return 1;
         }
 
-        hr = HrOpenECSession(NULL, &lpSession, "PST importer", PROJECT_SVN_REV_STR, convert_to<std::wstring>(username).c_str(), L"", "default:");
+        hr = HrOpenECSession(ec_log_get(), &lpSession, "PST importer", PROJECT_SVN_REV_STR, convert_to<std::wstring>(username).c_str(), L"", "default:");
         if(hr != hrSuccess) {
             wcerr << "Unable to open MAPI session\n";
             return 1;
