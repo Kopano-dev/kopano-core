@@ -688,7 +688,7 @@ namespace PrivatePipe {
 	static int PipePassLoop(int readfd, ECLogger_File *lpFileLogger,
 	    ECConfig *lpConfig)
 	{
-		int ret = 0;
+		ssize_t ret;
 		char buffer[_LOG_BUFSIZE] = {0};
 		std::string complete;
 		const char *p = NULL;
@@ -746,7 +746,8 @@ namespace PrivatePipe {
 			do {
 				// if we don't read anything from the fd, it was the end
 				ret = read(readfd, buffer, sizeof buffer);
-
+				if (ret <= 0)
+					break;
 				complete.append(buffer,ret);
 			} while (ret == sizeof buffer);
 
