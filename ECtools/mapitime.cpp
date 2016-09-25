@@ -50,6 +50,7 @@ static int mpt_setup_tick(void)
 	struct sigaction sa;
 	sa.sa_handler = mpt_stat_dump;
 	sa.sa_flags = SA_RESTART;
+	sigemptyset(&sa.sa_mask);
 	if (sigaction(SIGALRM, &sa, NULL) < 0) {
 		perror("sigaction");
 		return -errno;

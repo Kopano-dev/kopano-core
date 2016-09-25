@@ -699,8 +699,8 @@ HRESULT ECQuotaMonitor::CreateMailFromTemplate(TemplateVariables *lpVars, string
  * @retval	MAPI_E_NOT_ENOUGH_MEMORY	unable to allocate more memory
  */
 HRESULT ECQuotaMonitor::CreateMessageProperties(ECUSER *lpecToUser,
-    ECUSER *lpecFromUser, std::string strSubject, std::string strBody,
-    ULONG *lpcPropSize, LPSPropValue *lppPropArray)
+    ECUSER *lpecFromUser, const std::string &strSubject,
+    const std::string &strBody, ULONG *lpcPropSize, LPSPropValue *lppPropArray)
 {
 	HRESULT hr = hrSuccess;
 	LPSPropValue lpPropArray = NULL;

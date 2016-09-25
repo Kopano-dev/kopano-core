@@ -49,7 +49,7 @@ public:
 
 private:
 	HRESULT CreateMailFromTemplate(TemplateVariables *lpVars, std::string *lpstrSubject, std::string *lpstrBody);
-	HRESULT CreateMessageProperties(ECUSER *lpecToUser, ECUSER *lpecFromUser, std::string strSubject, std::string strBody, ULONG *lpcPropSize, LPSPropValue *lppPropArray);
+	HRESULT CreateMessageProperties(ECUSER *touesr, ECUSER *fromuser, const std::string &subj, const std::string &body, ULONG *lpcPropSize, LPSPropValue *lppPropArray);
 	HRESULT CreateRecipientList(ULONG cToUsers, ECUSER *lpToUsers, LPADRLIST *lppAddrList);
 
 	HRESULT SendQuotaWarningMail(IMsgStore* lpMDB, ULONG cPropSize, LPSPropValue lpPropArray, LPADRLIST lpAddrList);
