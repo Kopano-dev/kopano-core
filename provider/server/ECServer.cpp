@@ -988,11 +988,7 @@ static int running_server(char *szName, const char *szConfig,
 		goto exit;
 	}
 
-	if (kc_reexec_with_allocator(argv,
-	    g_lpConfig->GetSetting("allocator_library")) < 0) {
-		er = MAPI_E_UNCONFIGURED;
-		goto exit;
-	}
+	kc_reexec_with_allocator(argv, g_lpConfig->GetSetting("allocator_library"));
 
 	// setup logging
 	g_lpLogger = CreateLogger(g_lpConfig, szName, "KopanoServer");

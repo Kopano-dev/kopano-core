@@ -499,8 +499,24 @@ int kc_reexec_with_allocator(char **argv, const char *lib)
 		return 0;
 	dlclose(handle);
 	setenv("KC_ALLOCATOR_DONE", lib, true);
-	ec_log_debug("Reexecing with %s", lib);
-	execv("/proc/self/exe", argv);
+
+	/* Resolve "exe" symlink before exec to please the sysadmin */
+	std::vector<char> linkbuf(16);
+	ssize_t linklen;
+	while (true) {
+		linklen = readlink("/proc/self/exe", &linkbuf[0], linkbuf.size());
+		if (linklen < 0 || static_cast<size_t>(linklen) < linkbuf.size())
+			break;
+		linkbuf.resize(linkbuf.size() * 2);
+	}
+	if (linklen < 0) {
+		int ret = -errno;
+		ec_log_warn("kc_reexec_with_allocator: readlink: %s", strerror(errno));
+		return ret;
+	}
+	linkbuf[linklen] = '\0';
+	ec_log_debug("Reexecing %s with %s", &linkbuf[0], lib);
+	execv(&linkbuf[0], argv);
 	int ret = -errno;
 	ec_log_info("Failed to reexec self: %s. Continuing with standard allocator.", strerror(errno));
 	return ret;
