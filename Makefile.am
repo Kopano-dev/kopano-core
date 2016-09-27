@@ -21,7 +21,7 @@ dist_sbin_SCRIPTS = tools/python-scripts/kopano-cachestat.py
 gdbautoloaddir = ${datadir}/gdb/auto-load/${libdir}
 dist_gdbautoload_DATA = tools/libmapi.so.1.0.0-gdb.py
 
-DISTCHECK_CONFIGURE_FLAGS = CC=gcc-6 CXX=g++-6 --with-dcprefix='$${prefix}'
+DISTCHECK_CONFIGURE_FLAGS = --with-dcprefix='$${prefix}'
 
 .PHONY: source-moved-check
 source-moved-check:
