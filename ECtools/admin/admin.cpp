@@ -329,6 +329,7 @@ static void print_help(const char *name)
 	cout << endl;
 	cout << "Global options: [-h|--host path]" << endl;
 	ct.Resize(4,2);
+	ct.AddColumn(0, "--config file"); ct.AddColumn(1, "Use a configuration file");
 	ct.AddColumn(0, "-h path"); ct.AddColumn(1, "Connect through <path>, e.g. file:///var/run/socket");
 	ct.AddColumn(0, "--node name"); ct.AddColumn(1, "Execute the command on cluster node <name>");
 	ct.AddColumn(0, "-v"); ct.AddColumn(1, "Increase verbosity. A maximum of 7 is possible where 1=fatal errors only, 6=debug and 7=everything.");
