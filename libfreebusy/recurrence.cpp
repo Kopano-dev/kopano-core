@@ -61,22 +61,31 @@ HRESULT recurrence::HrGetRecurrenceState(char **lppData, unsigned int *lpulLen, 
 	struct tm tm;
 
 	// VALIDATION ONLY, not auto-correcting .. you should enter data correctly!
-	if (m_sRecState.ulRecurFrequency != 0x200A && m_sRecState.ulRecurFrequency != 0x200B &&
-		m_sRecState.ulRecurFrequency != 0x200C && m_sRecState.ulRecurFrequency != 0x200D)
+	if (m_sRecState.ulRecurFrequency != RF_DAILY &&
+	    m_sRecState.ulRecurFrequency != RF_WEEKLY &&
+	    m_sRecState.ulRecurFrequency != RF_MONTHLY &&
+	    m_sRecState.ulRecurFrequency != RF_YEARLY)
 		return MAPI_E_CORRUPT_DATA;
 
-	if (m_sRecState.ulPatternType != 0x0000 && m_sRecState.ulPatternType != 0x0001 && 
-		m_sRecState.ulPatternType != 0x0002 && m_sRecState.ulPatternType != 0x0003 && m_sRecState.ulPatternType != 0x0004 && 
-		m_sRecState.ulPatternType != 0x000A && m_sRecState.ulPatternType != 0x000B && m_sRecState.ulPatternType != 0x000C)
+	if (m_sRecState.ulPatternType != PT_DAY &&
+	    m_sRecState.ulPatternType != PT_WEEK &&
+	    m_sRecState.ulPatternType != PT_MONTH &&
+	    m_sRecState.ulPatternType != PT_MONTH_NTH &&
+	    m_sRecState.ulPatternType != PT_MONTH_END && 
+	    m_sRecState.ulPatternType != PT_HJ_MONTH &&
+	    m_sRecState.ulPatternType != PT_HJ_MONTH_NTH &&
+	    m_sRecState.ulPatternType != PT_HJ_MONTH_END)
 		return MAPI_E_CORRUPT_DATA;
 
-	if (m_sRecState.ulEndType != 0x2021 && m_sRecState.ulEndType != 0x2022 && m_sRecState.ulEndType != 0x2023)
+	if (m_sRecState.ulEndType != ET_DATE &&
+	    m_sRecState.ulEndType != ET_NUMBER &&
+	    m_sRecState.ulEndType != ET_NEVER)
 		return MAPI_E_CORRUPT_DATA;
 
 	// calculate ulFirstDateTime
 	switch (m_sRecState.ulRecurFrequency) {
 	case RF_DAILY:
-		if (m_sRecState.ulPatternType == 1)
+		if (m_sRecState.ulPatternType == PT_WEEK)
 			m_sRecState.ulFirstDateTime = 6 * 24 * 60;
 		else
 			m_sRecState.ulFirstDateTime = m_sRecState.ulStartDate % m_sRecState.ulPeriod;
@@ -182,22 +191,22 @@ HRESULT recurrence::setFrequency(freq_type ft)
 	switch (ft) {
 	case DAILY:
 		m_sRecState.ulRecurFrequency = RF_DAILY;
-		m_sRecState.ulPatternType = 0;
+		m_sRecState.ulPatternType = PT_DAY;
 		m_sRecState.ulPeriod = 60*24; // stored in minutes
 		break;
 	case WEEKLY:
 		m_sRecState.ulRecurFrequency = RF_WEEKLY;
-		m_sRecState.ulPatternType = 1;
+		m_sRecState.ulPatternType = PT_WEEK;
 		m_sRecState.ulPeriod = 1;
 		break;
 	case MONTHLY:
 		m_sRecState.ulRecurFrequency = RF_MONTHLY;
-		m_sRecState.ulPatternType = 2;
+		m_sRecState.ulPatternType = PT_MONTH;
 		m_sRecState.ulPeriod = 1;
 		break;
 	case YEARLY:
 		m_sRecState.ulRecurFrequency = RF_YEARLY;
-		m_sRecState.ulPatternType = 2; // every Nth month
+		m_sRecState.ulPatternType = PT_MONTH; // every Nth month
 		m_sRecState.ulPeriod = 12;
 		break;
 	default:
@@ -340,7 +349,7 @@ ULONG recurrence::getInterval()
 {
 	ULONG rv;
 
-	if (m_sRecState.ulPatternType == 0) {
+	if (m_sRecState.ulPatternType == PT_DAY) {
 		// day pattern type, period stored in minutes per day
 		rv = m_sRecState.ulPeriod / (60*24);
 	} else if (getFrequency() == recurrence::YEARLY) {
@@ -383,7 +392,7 @@ HRESULT recurrence::setFirstDOW(ULONG ulFirstDOW)
 UCHAR recurrence::getWeekDays()
 {
 	// valid ulPatternTypes: 1 2 4 a c
-	if (m_sRecState.ulPatternType == 0)
+	if (m_sRecState.ulPatternType == PT_DAY)
 		return 0;
 	return m_sRecState.ulWeekDays;
 }
@@ -391,8 +400,8 @@ UCHAR recurrence::getWeekDays()
 HRESULT recurrence::setWeekDays(UCHAR d)
 {
 	// if setWeekDays is called on a daily event, update the pattern type
-	if (m_sRecState.ulPatternType == 0) {
-		m_sRecState.ulPatternType = 1;
+	if (m_sRecState.ulPatternType == PT_DAY) {
+		m_sRecState.ulPatternType = PT_WEEK;
 		m_sRecState.ulPeriod = m_sRecState.ulPeriod / (24*60); // convert period from daily to "weekly"
 	}
 
@@ -402,7 +411,10 @@ HRESULT recurrence::setWeekDays(UCHAR d)
 
 UCHAR recurrence::getDayOfMonth()
 {
-	if ( m_sRecState.ulRecurFrequency != RF_YEARLY && m_sRecState.ulRecurFrequency != RF_MONTHLY && (m_sRecState.ulPatternType != 2 || m_sRecState.ulPatternType != 4))
+	if (m_sRecState.ulRecurFrequency != RF_YEARLY &&
+	    m_sRecState.ulRecurFrequency != RF_MONTHLY &&
+	    (m_sRecState.ulPatternType != PT_MONTH ||
+	    m_sRecState.ulPatternType != PT_MONTH_END))
 		return 0;
 	return m_sRecState.ulDayOfMonth;
 }
@@ -442,7 +454,8 @@ HRESULT recurrence::setMonth(UCHAR m)
 // only valid in monthly type 0x3 and 0xb
 UCHAR recurrence::getWeekNumber()
 {
-	if (m_sRecState.ulPatternType != 3 && m_sRecState.ulPatternType != 0xB)
+	if (m_sRecState.ulPatternType != PT_MONTH_NTH &&
+	    m_sRecState.ulPatternType != PT_HJ_MONTH_NTH)
 		return 0;
 	return m_sRecState.ulWeekNumber;
 }
@@ -450,7 +463,7 @@ UCHAR recurrence::getWeekNumber()
 HRESULT recurrence::setWeekNumber(UCHAR s)
 {
 	// we should be handling monthly recurrence items here, calendar type 0xB (hijri) is not supported
-	m_sRecState.ulPatternType = 3;
+	m_sRecState.ulPatternType = PT_MONTH_NTH;
 	m_sRecState.ulWeekNumber = s;
 	return S_OK;
 }
@@ -1216,7 +1229,7 @@ time_t recurrence::calcEndDate()
 
 	switch (m_sRecState.ulRecurFrequency) {
 	case RF_DAILY:
-		if (m_sRecState.ulPatternType == 0) {
+		if (m_sRecState.ulPatternType == PT_DAY) {
 			// really daily, not every weekday
 			// -1 because the first day already counts (from 1-1-1980 to 1-1-1980 is 1 occurrence)
 			tEnd += ((m_sRecState.ulPeriod * 60) * (m_sRecState.ulOccurrenceCount - 1) );
@@ -1270,7 +1283,7 @@ time_t recurrence::calcEndDate()
 		tm.tm_year += 1900;
 		++tm.tm_mon;
 
-		if (m_sRecState.ulPatternType == 2) {
+		if (m_sRecState.ulPatternType == PT_MONTH) {
 			// month, (monthend?)
 
 			// compensation between 28 and 31
@@ -1280,7 +1293,7 @@ time_t recurrence::calcEndDate()
 				else
 					tEnd += (DaysInMonth(tm.tm_year, tm.tm_mon) - tm.tm_mday) * 24 * 60 * 60;
 			}
-		} else if (m_sRecState.ulPatternType == 3) {
+		} else if (m_sRecState.ulPatternType == PT_MONTH_NTH) {
 			// month Nth
 			if (m_sRecState.ulWeekNumber == 5) {
 				// last day of month
@@ -1337,7 +1350,7 @@ ULONG recurrence::calcCount()
 
 	switch (m_sRecState.ulRecurFrequency) {
 	case RF_DAILY:
-		if (m_sRecState.ulPatternType == 1) {
+		if (m_sRecState.ulPatternType == PT_WEEK) {
 			// every weekday item
 			// ulPeriod is stored in days (so this is always 1, right?)
 			ulCount = (getEndDate() - getStartDate()) / (24*60*60) / m_sRecState.ulPeriod;
@@ -1561,8 +1574,7 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd, ECLogger *lpLogger,
 		if(m_sRecState.ulPeriod <= 0)
 			m_sRecState.ulPeriod = 1440;
 
-		if(m_sRecState.ulPatternType == 0)
-		{
+		if (m_sRecState.ulPatternType == PT_DAY) {
                         if (last) {
                                 remainder = (tsDayEnd-tsDayStart) % (m_sRecState.ulPeriod * 60);
                                 for(tsNow = tsDayEnd-remainder; tsNow >= tsDayStart; tsNow -= m_sRecState.ulPeriod * 60) {

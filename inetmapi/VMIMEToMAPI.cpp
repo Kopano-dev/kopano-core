@@ -3174,7 +3174,7 @@ HRESULT VMIMEToMAPI::postWriteFixups(IMessage *lpMessage)
 			// Set the values depending on the type
 			switch(rec.ulRecurFrequency) {
 				case RF_DAILY:
-					if(rec.ulPatternType == 0) {
+					if (rec.ulPatternType == PT_DAY) {
 						// Daily
 						sMeetingProps[4].Value.i = rec.ulPeriod / 1440; // DayInterval
 						sMeetingProps[11].Value.i = 64;					// RecurrenceType
@@ -3192,7 +3192,7 @@ HRESULT VMIMEToMAPI::postWriteFixups(IMessage *lpMessage)
 					break;
 				case RF_MONTHLY:
 					sMeetingProps[6].Value.i = rec.ulPeriod;			// MonthInterval
-					if(rec.ulPatternType == 3) { // Every Nth [weekday] of the month
+					if (rec.ulPatternType == PT_MONTH_NTH) { // Every Nth [weekday] of the month
 						sMeetingProps[5].Value.ul = rec.ulWeekNumber;	// WeekInterval
 						sMeetingProps[8].Value.ul = rec.ulWeekDays;		// DayOfWeekMask
 						sMeetingProps[11].Value.i = 56;					// RecurrenceType
@@ -3218,7 +3218,7 @@ HRESULT VMIMEToMAPI::postWriteFixups(IMessage *lpMessage)
 					 */
 					sMeetingProps[10].Value.ul = 1 << ((rec.ulFirstDateTime/(24*60*29)) % 12); // month of year (minutes since beginning of the year)
 					
-					if(rec.ulPatternType == 3) { // Every Nth [weekday] in Month X
+					if (rec.ulPatternType == PT_MONTH_NTH) { // Every Nth [weekday] in Month X
 						sMeetingProps[5].Value.ul = rec.ulWeekNumber;	// WeekInterval
 						sMeetingProps[8].Value.ul = rec.ulWeekDays;		// DayOfWeekMask
 						sMeetingProps[11].Value.i = 51;					// RecurrenceType

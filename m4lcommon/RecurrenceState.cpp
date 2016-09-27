@@ -201,7 +201,7 @@ RecurrenceState::RecurrenceState()
 	ulWriterVersion = 0x3004;
 
 	ulRecurFrequency = 0x0000;	// invalid value
-	ulPatternType = 0x0000;
+	ulPatternType = PT_DAY;
 	ulCalendarType = 0x0000;
 	ulFirstDateTime = 0x0000;
 	ulPeriod = 0x0000;
@@ -213,7 +213,7 @@ RecurrenceState::RecurrenceState()
 
 	ulEndType = 0x0000;
 	ulOccurrenceCount = 0x0000;
-	ulFirstDOW = 0x0001;		// default outlook, monday
+	ulFirstDOW = DOW_MONDAY; /* default outlook */
 	ulDeletedInstanceCount = 0;
 	ulModifiedInstanceCount = 0;
 
@@ -265,13 +265,15 @@ HRESULT RecurrenceState::ParseBlob(char *lpData, unsigned int ulLen, ULONG ulFla
     READLONG(ulPeriod);
     READLONG(ulSlidingFlag);
     
-    if(ulPatternType == 0x0000) {
+    if (ulPatternType == PT_DAY) {
         // No patterntype specific
-    } else if(ulPatternType == 0x0001) {
+    } else if (ulPatternType == PT_WEEK) {
         READLONG(ulWeekDays);
-    } else if(ulPatternType == 0x0002 || ulPatternType == 0x0004 || ulPatternType == 0x000a || ulPatternType == 0x000c) {
+    } else if (ulPatternType == PT_MONTH || ulPatternType == PT_MONTH_END ||
+        ulPatternType == PT_HJ_MONTH || ulPatternType == PT_HJ_MONTH_END) {
         READLONG(ulDayOfMonth);
-    } else if(ulPatternType == 0x0003 || ulPatternType == 0x000b) {
+    } else if (ulPatternType == PT_MONTH_NTH ||
+        ulPatternType == PT_HJ_MONTH_NTH) {
         READLONG(ulWeekDays);
         READLONG(ulWeekNumber);
     }
@@ -489,13 +491,15 @@ HRESULT RecurrenceState::GetBlob(char **lppData, unsigned int *lpulLen, void *ba
     WRITELONG(ulPeriod);
     WRITELONG(ulSlidingFlag);
     
-    if(ulPatternType == 0x0000) {
+    if (ulPatternType == PT_DAY) {
         // No data
-    } else if(ulPatternType == 0x0001) {
+    } else if (ulPatternType == PT_WEEK) {
         WRITELONG(ulWeekDays);
-    } else if(ulPatternType == 0x0002 || ulPatternType == 0x0004 || ulPatternType == 0x000a || ulPatternType == 0x000c) {
+    } else if (ulPatternType == PT_MONTH || ulPatternType == PT_MONTH_END ||
+        ulPatternType == PT_HJ_MONTH || ulPatternType == PT_HJ_MONTH_END) {
         WRITELONG(ulDayOfMonth);
-    } else if(ulPatternType == 0x0003 || ulPatternType == 0x000b) {
+    } else if (ulPatternType == PT_MONTH_NTH ||
+        ulPatternType == PT_HJ_MONTH_NTH) {
         WRITELONG(ulWeekDays);
         WRITELONG(ulWeekNumber);
     }
