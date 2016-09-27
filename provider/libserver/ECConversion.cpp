@@ -270,7 +270,11 @@ SOAP_FMAC3 struct entryList52X * SOAP_FMAC4 soap_in_entryList52X(struct soap *so
 		{	soap->error = SOAP_TAG_MISMATCH;
 			if (soap_flag___ptr && soap->error == SOAP_TAG_MISMATCH)
 			{	unsigned int *p;
+#if GSOAP_VERSION >= 20835
+				soap_alloc_block(soap);
+#else
 				soap_new_block(soap);
+#endif
 				for (a->__size = 0; !soap_element_begin_in(soap, "item", 1, type); ++a->__size) {
 					p = (unsigned int *)soap_push_block(soap, NULL, sizeof(unsigned int));
 					soap_default_unsignedInt(soap, p);
