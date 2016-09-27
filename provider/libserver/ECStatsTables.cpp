@@ -39,6 +39,9 @@
 #elif defined(HAVE_GOOGLE_MALLOC_EXTENSION_H)
 #	include <google/malloc_extension_c.h>
 #endif
+#ifdef HAVE_MALLOC_H
+#	include <malloc.h>
+#endif
 
 /*
   System stats
@@ -130,6 +133,11 @@ ECRESULT ECSystemStatsTable::Load()
 		gnp("tcmalloc.current_total_thread_cache_bytes", &value);
 		GetStatsCollectorData("tc_threadcache_cur", "Current allocated memory in bytes for thread cache", stringify_int64(value), this);
 	}
+#ifdef HAVE_MALLINFO
+	/* parallel threaded allocator */
+	struct mallinfo malloc_info = mallinfo();
+	GetStatsCollectorData("pt_allocated", "Current allocated memory by libc ptmalloc, in bytes", stringify_int64(malloc_info.uordblks), this);
+#endif
 
 #ifdef DEBUG
 	char test[2048] = {0};

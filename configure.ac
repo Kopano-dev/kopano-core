@@ -249,8 +249,8 @@ AC_DEFUN([LIBNCURSES_WITH_CONFIG],[
 ])
 LIBNCURSES_WITH_CONFIG
 
-AC_CHECK_HEADERS([syslog.h sys/un.h sys/stat.h])
-AC_CHECK_FUNCS([timegm getpeereid getpwnam_r vsyslog vsnprintf_l])
+AC_CHECK_HEADERS([syslog.h sys/un.h sys/stat.h malloc.h])
+AC_CHECK_FUNCS([mallinfo timegm getpeereid getpwnam_r vsyslog vsnprintf_l])
 
 
 #
