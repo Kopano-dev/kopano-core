@@ -2729,6 +2729,13 @@
 			  </para>
 			</listitem>
 		  </varlistentry>
+
+		<varlistentry>
+			<term><option>--utf8</option></term>
+			<listitem>
+			  <para>Force the current locale to UTF-8</para>
+			</listitem>
+		</varlistentry>
 		</variablelist>
 
 		<para>
