@@ -6924,8 +6924,9 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 	if(MAPI_G(hr) != hrSuccess)
 		goto exit;
 
-        i = 0;
-        ZEND_HASH_FOREACH_VAL(target_hash, entry) {
+	i = 0;
+	ZEND_HASH_FOREACH_VAL(target_hash, entry) {
+		ZVAL_DEREF(entry);
 		data = HASH_OF(entry);
 		zend_hash_internal_pointer_reset(data);
 
@@ -6951,7 +6952,7 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 		}
 		++i;
 
-        } ZEND_HASH_FOREACH_END();
+	} ZEND_HASH_FOREACH_END();
 
 	cBlocks = zend_hash_num_elements(target_hash);
 	MAPI_G(hr) = lpFBUpdate->PublishFreeBusy(lpBlocks, cBlocks);
