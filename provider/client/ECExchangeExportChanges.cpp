@@ -485,7 +485,7 @@ HRESULT ECExchangeExportChanges::Synchronize(ULONG FAR * lpulSteps, ULONG FAR * 
 	}
 
 	if (*lpulProgress == 0 && m_lpLogger->Log(EC_LOGLEVEL_DEBUG))
-		m_clkStart = z_times(&m_tmsStart);
+		m_clkStart = times(&m_tmsStart);
 
 	if(m_ulSyncType == ICS_SYNC_CONTENTS){
 		hr = ExportMessageChanges();
@@ -548,17 +548,17 @@ progress:
 
 			if(m_ulChanges) {
 				if (m_lpLogger->Log(EC_LOGLEVEL_DEBUG)) {
-					struct z_tms	tmsEnd = {0};
-					clock_t		clkEnd = z_times(&tmsEnd);
+					struct tms	tmsEnd = {0};
+					clock_t		clkEnd = times(&tmsEnd);
 					double		dblDuration = 0;
 					char		szDuration[64] = {0};
 
 					// Calculate diff
 					dblDuration = (double)(clkEnd - m_clkStart) / TICKS_PER_SEC;
 					if (dblDuration >= 60)
-						_snprintf(szDuration, sizeof(szDuration), "%u:%02u.%03u min.", (unsigned)(dblDuration / 60), (unsigned)dblDuration % 60, (unsigned)(dblDuration * 1000 + .5) % 1000);
+						snprintf(szDuration, sizeof(szDuration), "%u:%02u.%03u min.", (unsigned)(dblDuration / 60), (unsigned)dblDuration % 60, (unsigned)(dblDuration * 1000 + .5) % 1000);
 					else
-						_snprintf(szDuration, sizeof(szDuration), "%u.%03u s.", (unsigned)dblDuration % 60, (unsigned)(dblDuration * 1000 + .5) % 1000);
+						snprintf(szDuration, sizeof(szDuration), "%u.%03u s.", (unsigned)dblDuration % 60, (unsigned)(dblDuration * 1000 + .5) % 1000);
 
 					m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "folder changes synchronized in %s", szDuration);
 				} else

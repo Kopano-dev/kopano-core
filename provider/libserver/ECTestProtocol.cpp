@@ -31,7 +31,7 @@ ECRESULT TestPerform(struct soap *soap, ECSession *lpSession, char *szCommand, u
 {
     ECRESULT er = erSuccess;
 
-    if(stricmp(szCommand, "purge_deferred") == 0) {
+    if(strcasecmp(szCommand, "purge_deferred") == 0) {
         while (1) {
             unsigned int ulFolderId = 0;
 			ECDatabase *lpDatabase = NULL;
@@ -51,21 +51,21 @@ ECRESULT TestPerform(struct soap *soap, ECSession *lpSession, char *szCommand, u
                 return er;
         }
             
-    } else if (stricmp(szCommand, "indexer_syncrun") == 0) {
+    } else if (strcasecmp(szCommand, "indexer_syncrun") == 0) {
 		if (parseBool(g_lpSessionManager->GetConfig()->GetSetting("search_enabled"))) {
 			er = ECSearchClient(
 				g_lpSessionManager->GetConfig()->GetSetting("search_socket"),
 				60 * 10 /* 10 minutes should be enough for everyone */
 			).SyncRun();
 		}
-	} else if (stricmp(szCommand, "run_searchfolders") == 0) {
+	} else if (strcasecmp(szCommand, "run_searchfolders") == 0) {
 		lpSession->GetSessionManager()->GetSearchFolders()->FlushAndWait();
-	} else if (stricmp(szCommand, "kill_sessions") == 0) {
+	} else if (strcasecmp(szCommand, "kill_sessions") == 0) {
 	    ECSESSIONID id = lpSession->GetSessionId();
 	    
 	    // Remove all sessions except our own
 	    er = lpSession->GetSessionManager()->CancelAllSessions(id);
-    } else if(stricmp(szCommand, "sleep") == 0) {
+    } else if(strcasecmp(szCommand, "sleep") == 0) {
         if(ulArgs == 1 && args[0])
             Sleep(atoui(args[0]) * 1000);
     }
@@ -76,13 +76,13 @@ ECRESULT TestSet(struct soap *soap, ECSession *lpSession, char *szVarName, char 
 {
     ECRESULT er = erSuccess;
 
-    if(stricmp(szVarName, "cell_cache_disabled") == 0) {
+    if(strcasecmp(szVarName, "cell_cache_disabled") == 0) {
         if(atoi(szValue) > 0)
             g_lpSessionManager->GetCacheManager()->DisableCellCache();
         else
             g_lpSessionManager->GetCacheManager()->EnableCellCache();
             
-    } else if (stricmp(szVarName, "search_enabled") == 0) {
+    } else if (strcasecmp(szVarName, "search_enabled") == 0) {
 		// Since there's no object that represents the indexer, it's probably cleanest to
 		// update the configuration.
 		if (atoi(szValue) > 0)
@@ -98,7 +98,7 @@ ECRESULT TestGet(struct soap *soap, ECSession *lpSession, char *szVarName, char 
 {
     ECRESULT er = erSuccess;
     
-    if(!stricmp(szVarName, "ping")) {
+    if(!strcasecmp(szVarName, "ping")) {
         *szValue = s_strcpy(soap, "pong");
     } else {
         er = KCERR_NOT_FOUND;

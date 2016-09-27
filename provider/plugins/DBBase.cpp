@@ -182,7 +182,7 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 			details.SetPropString(OB_PROP_O_SYSADMIN, lpDBRow[3]);
 		} else if (strcmp(lpDBRow[2], OB_AB_HIDDEN) == 0)
 			details.SetPropString(OB_PROP_B_AB_HIDDEN, lpDBRow[3]);
-		else if (strnicmp(lpDBRow[2], "0x", strlen("0x")) == 0) {
+		else if (strncasecmp(lpDBRow[2], "0x", strlen("0x")) == 0) {
 			unsigned int key = xtoi(lpDBRow[2]);
 			if (PROP_TYPE(key) == PT_BINARY)
 				details.SetPropString((property_key_t)key, base64_decode(lpDBRow[3]));
@@ -231,7 +231,7 @@ DBPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 
 		lastid = curid;
 
-		if (strnicmp(lpDBRow[0], "0x", strlen("0x")) == 0) {
+		if (strncasecmp(lpDBRow[0], "0x", strlen("0x")) == 0) {
 			unsigned int key = xtoi(lpDBRow[0]);
 			if (PROP_TYPE(key) == PT_BINARY || PROP_TYPE(key) == PT_MV_BINARY)
 				iterDetails->second.AddPropString((property_key_t)key, base64_decode(lpDBRow[1]));
@@ -394,7 +394,7 @@ void DBPlugin::changeObject(const objectid_t &objectid, const objectdetails_t &d
 	while (sValidProps[i].column != NULL) {
 		string propvalue = details.GetPropString(sValidProps[i].id);
 
-		if (stricmp(sValidProps[i].column, OP_PASSWORD) == 0 && !propvalue.empty()) {
+		if (strcasecmp(sValidProps[i].column, OP_PASSWORD) == 0 && !propvalue.empty()) {
 			// Password value has special treatment
 			if (CreateMD5Hash(propvalue, &propvalue) != erSuccess) // WARNING input and output point to the same data
 				throw runtime_error(string("db_changeUser: create md5"));
@@ -805,20 +805,20 @@ std::unique_ptr<quotadetails_t> DBPlugin::getQuota(const objectid_t &objectid,
 
 		if (bGetUserDefault) {
 			if (objectid.objclass != CONTAINER_COMPANY && strcmp(lpDBRow[0], OP_UD_HARDQUOTA) == 0)
-				lpDetails->llHardSize = _atoi64(lpDBRow[1]);
+				lpDetails->llHardSize = atoll(lpDBRow[1]);
 			else if(objectid.objclass != CONTAINER_COMPANY && strcmp(lpDBRow[0], OP_UD_SOFTQUOTA) == 0)
-				lpDetails->llSoftSize = _atoi64(lpDBRow[1]);
+				lpDetails->llSoftSize = atoll(lpDBRow[1]);
 			else if(strcmp(lpDBRow[0], OP_UD_WARNQUOTA) == 0)
-				lpDetails->llWarnSize = _atoi64(lpDBRow[1]);
+				lpDetails->llWarnSize = atoll(lpDBRow[1]);
 			else if(strcmp(lpDBRow[0], OP_UD_USEDEFAULTQUOTA) == 0)
 				lpDetails->bUseDefaultQuota = !!atoi(lpDBRow[1]);
 		} else {
 			if (objectid.objclass != CONTAINER_COMPANY && strcmp(lpDBRow[0], OP_HARDQUOTA) == 0)
-				lpDetails->llHardSize = _atoi64(lpDBRow[1]);
+				lpDetails->llHardSize = atoll(lpDBRow[1]);
 			else if(objectid.objclass != CONTAINER_COMPANY && strcmp(lpDBRow[0], OP_SOFTQUOTA) == 0)
-				lpDetails->llSoftSize = _atoi64(lpDBRow[1]);
+				lpDetails->llSoftSize = atoll(lpDBRow[1]);
 			else if(strcmp(lpDBRow[0], OP_WARNQUOTA) == 0)
-				lpDetails->llWarnSize = _atoi64(lpDBRow[1]);
+				lpDetails->llWarnSize = atoll(lpDBRow[1]);
 			else if(strcmp(lpDBRow[0], OP_USEDEFAULTQUOTA) == 0)
 				lpDetails->bUseDefaultQuota = !!atoi(lpDBRow[1]);
 		}
@@ -1076,7 +1076,7 @@ objectid_t DBPlugin::CreateObject(const objectdetails_t &details)
 		throw runtime_error(string("db_query: ") + strerror(er));
 
 	while ((lpDBRow = m_lpDatabase->FetchRow(lpResult)) != NULL)
-		if (lpDBRow[1] != NULL && stricmp(lpDBRow[1], strPropValue.c_str()) == 0)
+		if (lpDBRow[1] != NULL && strcasecmp(lpDBRow[1], strPropValue.c_str()) == 0)
 			throw collision_error(string("Object exist: ") + strPropValue);
 
 	if (CoCreateGuid(&guidExternId) != S_OK)

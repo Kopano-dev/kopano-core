@@ -158,7 +158,7 @@ StatsClient::~StatsClient() {
 	}
 	pthread_mutex_destroy(&mapsLock);
 
-	closesocket(fd);
+	close(fd);
 
 	logger -> Log(EC_LOGLEVEL_DEBUG, "StatsClient terminated");
 }

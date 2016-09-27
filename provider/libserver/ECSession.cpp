@@ -801,7 +801,7 @@ ECRESULT ECAuthSession::ValidateUserLogon(const char* lpszName, const char* lpsz
 	}
 
 	// SYSTEM can't login with user/pass
-	if (stricmp(lpszName, KOPANO_ACCOUNT_SYSTEM) == 0)
+	if (strcasecmp(lpszName, KOPANO_ACCOUNT_SYSTEM) == 0)
 		return KCERR_NO_ACCESS;
 	er = m_lpUserManagement->AuthUserAndSync(lpszName, lpszPassword, &m_ulUserID);
 	if(er != erSuccess)
@@ -840,7 +840,7 @@ ECRESULT ECAuthSession::ValidateUserSocket(int socket, const char* lpszName, con
 		goto exit;
 	}
 	p = m_lpSessionManager->GetConfig()->GetSetting("allow_local_users");
-	if (p && !stricmp(p, "yes")) {
+	if (p && !strcasecmp(p, "yes")) {
 		allowLocalUsers = true;
 	}
 
@@ -1264,7 +1264,7 @@ ECRESULT ECAuthSession::ValidateSSOData_KRB5(struct soap* soap, const char* lpsz
 	if (pos != string::npos)
 		strUsername.erase(pos);
 
-	if (stricmp(strUsername.c_str(), lpszName) == 0) {
+	if (strcasecmp(strUsername.c_str(), lpszName) == 0) {
 		er = m_lpUserManagement->ResolveObjectAndSync(ACTIVE_USER, lpszName, &m_ulUserID);
 		// don't check NONACTIVE, since those shouldn't be able to login
 		if(er != erSuccess)
@@ -1520,7 +1520,7 @@ retry:
 		if(er != erSuccess)
 			return er;
 
-		if (stricmp(lpszName, strAnswer.c_str()) != 0) {
+		if (strcasecmp(lpszName, strAnswer.c_str()) != 0) {
 			// cannot open another user without password
 			// or should we check permissions ?
 			ec_log_warn("Single Sign-On: User \"%s\" authenticated, but user \"%s\" requested.", strAnswer.c_str(), lpszName);

@@ -1192,14 +1192,14 @@ ECRESULT ECUserManagement::ResolveObjectAndSync(objectclass_t objclass, const ch
 	if ((OBJECTCLASS_TYPE(objclass) == OBJECTTYPE_UNKNOWN ||
 		 objclass == OBJECTCLASS_USER ||
 		 objclass == ACTIVE_USER) &&
-		stricmp(szName, KOPANO_ACCOUNT_SYSTEM) == 0)
+		strcasecmp(szName, KOPANO_ACCOUNT_SYSTEM) == 0)
 	{
 		*lpulObjectId = KOPANO_UID_SYSTEM;
 		return er;
 	} else if ((OBJECTCLASS_TYPE(objclass) == OBJECTTYPE_UNKNOWN ||
 				objclass == OBJECTCLASS_DISTLIST ||
 				objclass == DISTLIST_SECURITY) &&
-			   stricmp(szName, KOPANO_FULLNAME_EVERYONE) == 0)
+			   strcasecmp(szName, KOPANO_FULLNAME_EVERYONE) == 0)
 	{
 		*lpulObjectId = KOPANO_UID_EVERYONE;
 		return er;
@@ -1693,7 +1693,7 @@ ECRESULT ECUserManagement::SearchObjectAndSync(const char* szSearchString, unsig
 		return er;
 
 	// Special case: SYSTEM
-	if (stricmp(szSearchString, KOPANO_ACCOUNT_SYSTEM) == 0) {
+	if (strcasecmp(szSearchString, KOPANO_ACCOUNT_SYSTEM) == 0) {
 		// Hide user SYSTEM when requested
 		if (lpSecurity->GetUserId() != KOPANO_UID_SYSTEM) {
 			szHideSystem = m_lpConfig->GetSetting("hide_system");
@@ -1703,7 +1703,7 @@ ECRESULT ECUserManagement::SearchObjectAndSync(const char* szSearchString, unsig
 
 		*lpulID = KOPANO_UID_SYSTEM;
 		return erSuccess;
-	} else if (stricmp(szSearchString, KOPANO_ACCOUNT_EVERYONE) == 0) {
+	} else if (strcasecmp(szSearchString, KOPANO_ACCOUNT_EVERYONE) == 0) {
 		// Hide group everyone when requested
 		if (lpSecurity->GetUserId() != KOPANO_UID_SYSTEM) {
 			szHideEveryone = m_lpConfig->GetSetting("hide_everyone");
@@ -2688,7 +2688,7 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 	case NONACTIVE_ROOM:
 	case NONACTIVE_EQUIPMENT:
 		strUserServer = details.GetPropString(OB_PROP_S_SERVERNAME);
-		if (!bDistributed || stricmp(strUserServer.c_str(), strThisServer.c_str()) == 0) {
+		if (!bDistributed || strcasecmp(strUserServer.c_str(), strThisServer.c_str()) == 0) {
 			execute_script(m_lpConfig->GetSetting("createuser_script"),
 						   "KOPANO_USER", details.GetPropString(OB_PROP_S_LOGIN).c_str(),
 						   NULL);
@@ -2702,7 +2702,7 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 		break;
 	case CONTAINER_COMPANY:
 		strUserServer = details.GetPropString(OB_PROP_S_SERVERNAME);
-		if (!bDistributed || stricmp(strUserServer.c_str(), strThisServer.c_str()) == 0) {
+		if (!bDistributed || strcasecmp(strUserServer.c_str(), strThisServer.c_str()) == 0) {
 			execute_script(m_lpConfig->GetSetting("createcompany_script"),
 						   "KOPANO_COMPANY", details.GetPropString(OB_PROP_S_FULLNAME).c_str(),
 						   NULL);
@@ -4369,7 +4369,7 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap, unsigned
 			if(lpSession)
 				lpSession->GetClientApp(&strApp);
 			
-			if(strnicmp(strApp.c_str(), "blackberry", 10) == 0) {
+			if(strncasecmp(strApp.c_str(), "blackberry", 10) == 0) {
 				// For blackberry, we pose as being the Exchange AddressList. We have to do this
 				// since it searches for the GAB by restricting by this GUID, otherwise the Lookup
 				// function will not function properly.

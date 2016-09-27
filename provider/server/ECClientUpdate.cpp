@@ -498,7 +498,7 @@ int ns__getClientUpdate(struct soap *soap, struct clientUpdateInfoRequest sClien
 			goto exit;
 		}
 
-		if (stricmp(strServerName.c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) != 0) {
+		if (strcasecmp(strServerName.c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) != 0) {
 			string	strServerPath;
 
 			er = GetBestServerPath(soap, lpecSession, strServerName, &strServerPath);

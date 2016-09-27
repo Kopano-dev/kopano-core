@@ -32,7 +32,7 @@ using namespace std;
 bool isFeature(const char* feature)
 {
 	for (size_t i = 0; i < arraySize(kopano_features); ++i)
-		if (stricmp(feature, kopano_features[i]) == 0)
+		if (strcasecmp(feature, kopano_features[i]) == 0)
 			return true;
 	return false;
 }
@@ -51,7 +51,7 @@ HRESULT hasFeature(const char* feature, LPSPropValue lpProps)
 		return MAPI_E_INVALID_PARAMETER;
 
 	for (ULONG i = 0; i < lpProps->Value.MVszA.cValues; ++i)
-		if (stricmp(lpProps->Value.MVszA.lppszA[i], feature) == 0)
+		if (strcasecmp(lpProps->Value.MVszA.lppszA[i], feature) == 0)
 			return hrSuccess;
 	return MAPI_E_NOT_FOUND;
 }

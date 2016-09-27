@@ -127,7 +127,7 @@ private:
 
 	ECLogger			*m_lpLogger;
 	clock_t				m_clkStart;
-	struct z_tms			m_tmsStart;
+	struct tms			m_tmsStart;
 	
 	HRESULT AddProcessedChanges(ChangeList &lstChanges);
 	

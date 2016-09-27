@@ -27,10 +27,10 @@
 /*
  * Comparison handler for case-insensitive keys in maps
  */
-struct stricmp_comparison {
+struct strcasecmp_comparison {
 	bool operator()(const std::string &left, const std::string &right) const
 	{
-		return left.size() < right.size() || (left.size() == right.size() && stricmp(left.c_str(), right.c_str()) < 0);
+		return left.size() < right.size() || (left.size() == right.size() && strcasecmp(left.c_str(), right.c_str()) < 0);
 	}
 };
 

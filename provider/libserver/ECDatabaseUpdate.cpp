@@ -1514,7 +1514,7 @@ ECRESULT UpdateDatabaseMVPropertiesPrimarykey(ECDatabase *lpDatabase)
 		if (lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL)
 			continue;
 
-		if(stricmp(lpDBRow[2], "hi") == 0) {
+		if(strcasecmp(lpDBRow[2], "hi") == 0) {
 			bUpdate = true;
 			break;
 		}

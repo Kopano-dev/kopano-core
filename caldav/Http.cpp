@@ -784,7 +784,7 @@ HRESULT Http::HrFlushHeaders()
 	strftime(lpszChar, 127, "%a, %d %b %Y %H:%M:%S GMT", gmtime_safe(&tmCurrenttime, &dummy));
 
 	HrResponseHeader("Date", lpszChar);
-	if (m_ulKeepAlive != 0 && stricmp(strConnection.c_str(), "keep-alive") == 0) {
+	if (m_ulKeepAlive != 0 && strcasecmp(strConnection.c_str(), "keep-alive") == 0) {
 		HrResponseHeader("Connection", "Keep-Alive");
 		HrResponseHeader("Keep-Alive", stringify(m_ulKeepAlive, false));
 	}

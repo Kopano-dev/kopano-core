@@ -1247,7 +1247,7 @@ ECRESULT ECSecurity::GetStoreSize(unsigned int ulObjId, long long* lpllStoreSize
 		goto exit;
 	}
 
-	*lpllStoreSize = _atoi64(lpDBRow[0]);
+	*lpllStoreSize = atoll(lpDBRow[0]);
 
 exit:
 	if(lpDBResult)
@@ -1306,7 +1306,7 @@ ECRESULT ECSecurity::GetUserSize(unsigned int ulUserId, long long* lpllUserSize)
 	if (lpDBRow[0] == NULL)
 		llUserSize = 0;
 	else
-		llUserSize = _atoi64(lpDBRow[0]);
+		llUserSize = atoll(lpDBRow[0]);
 
 	*lpllUserSize = llUserSize;
 
@@ -1455,11 +1455,11 @@ ECRESULT ECSecurity::GetUserQuota(unsigned int ulUserId, bool bGetUserDefault, q
 	quotadetails.bUseDefaultQuota = true;
 	quotadetails.bIsUserDefaultQuota = false;
 	if (lpszWarnQuota)
-		quotadetails.llWarnSize = _atoi64(lpszWarnQuota) * 1024 * 1024;
+		quotadetails.llWarnSize = atoll(lpszWarnQuota) * 1024 * 1024;
 	if (lpszSoftQuota)
-		quotadetails.llSoftSize = _atoi64(lpszSoftQuota) * 1024 * 1024;
+		quotadetails.llSoftSize = atoll(lpszSoftQuota) * 1024 * 1024;
 	if (lpszHardQuota)
-		quotadetails.llHardSize = _atoi64(lpszHardQuota) * 1024 * 1024;
+		quotadetails.llHardSize = atoll(lpszHardQuota) * 1024 * 1024;
 
 exit:
 	if (er == erSuccess)

@@ -111,7 +111,7 @@ HRESULT HrGetCharsetByCP(ULONG codepage, const char **lppszCharset)
 HRESULT HrGetCPByCharset(const char *lpszCharset,ULONG *codepage)
 {
     for (size_t i = 0; i < ARRAY_SIZE(CPMAP); ++i) {
-        if(stricmp(CPMAP[i].charset, lpszCharset) == 0) {
+        if(strcasecmp(CPMAP[i].charset, lpszCharset) == 0) {
             *codepage = CPMAP[i].codepage;
             return hrSuccess;
         }

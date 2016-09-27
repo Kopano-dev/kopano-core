@@ -135,11 +135,11 @@ HRESULT ArchiveControlImpl::Init()
 		return MAPI_E_INVALID_PARAMETER;
 	}
 
-	if (stricmp(lpszCleanupAction, "delete") == 0)
+	if (strcasecmp(lpszCleanupAction, "delete") == 0)
 		m_cleanupAction = caDelete;
-	else if (stricmp(lpszCleanupAction, "store") == 0)
+	else if (strcasecmp(lpszCleanupAction, "store") == 0)
 		m_cleanupAction = caStore;
-	else if (stricmp(lpszCleanupAction, "none") == 0)
+	else if (strcasecmp(lpszCleanupAction, "none") == 0)
 		m_cleanupAction = caNone;
 	else {
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unknown cleanup_action specified in config: '%s'", lpszCleanupAction);

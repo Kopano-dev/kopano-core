@@ -7788,7 +7788,7 @@ ZEND_FUNCTION(mapi_feature)
     if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &szFeature, &cbFeature) == FAILURE) return;
     
 	for (unsigned int i = 0; i < arraySize(features); ++i)
-        if(stricmp(features[i], szFeature) == 0) {
+        if(strcasecmp(features[i], szFeature) == 0) {
             RETVAL_TRUE;
             break;
 	}

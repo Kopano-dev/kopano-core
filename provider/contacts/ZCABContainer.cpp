@@ -377,7 +377,7 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 
 			if (
 				((ulFlags & MAPI_UNICODE) && wcscasecmp(ptrRows[i].lpProps[I_MESSAGE_CLASS].Value.lpszW, L"IPM.Contact") == 0) ||
-				((ulFlags & MAPI_UNICODE) == 0 && stricmp(ptrRows[i].lpProps[I_MESSAGE_CLASS].Value.lpszA, "IPM.Contact") == 0)
+				((ulFlags & MAPI_UNICODE) == 0 && strcasecmp(ptrRows[i].lpProps[I_MESSAGE_CLASS].Value.lpszA, "IPM.Contact") == 0)
 				)
 			{
 				lpColData[O_DISPLAY_TYPE].ulPropTag = PR_DISPLAY_TYPE;
@@ -390,7 +390,7 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 				lpColData[O_ADDRTYPE].Value = ptrRows[i].lpProps[I_NAMEDSTART + ulOffset + 1].Value;
 			} else if (
 					   ((ulFlags & MAPI_UNICODE) && wcscasecmp(ptrRows[i].lpProps[I_MESSAGE_CLASS].Value.lpszW, L"IPM.DistList") == 0) ||
-					   ((ulFlags & MAPI_UNICODE) == 0 && stricmp(ptrRows[i].lpProps[I_MESSAGE_CLASS].Value.lpszA, "IPM.DistList") == 0)
+					   ((ulFlags & MAPI_UNICODE) == 0 && strcasecmp(ptrRows[i].lpProps[I_MESSAGE_CLASS].Value.lpszA, "IPM.DistList") == 0)
 					   )
 			{
 				lpColData[O_DISPLAY_TYPE].ulPropTag = PR_DISPLAY_TYPE;

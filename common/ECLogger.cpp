@@ -878,13 +878,13 @@ ECLogger* CreateLogger(ECConfig *lpConfig, const char *argv0,
 
 	loglevel = strtol(lpConfig->GetSetting((prepend+"log_level").c_str()), NULL, 0);
 
-	if (stricmp(lpConfig->GetSetting((prepend+"log_method").c_str()), "syslog") == 0) {
+	if (strcasecmp(lpConfig->GetSetting((prepend+"log_method").c_str()), "syslog") == 0) {
 		char *argzero = strdup(argv0);
 		lpLogger = new ECLogger_Syslog(loglevel, basename(argzero), syslog_facility);
 		free(argzero);
-	} else if (stricmp(lpConfig->GetSetting((prepend+"log_method").c_str()), "eventlog") == 0) {
+	} else if (strcasecmp(lpConfig->GetSetting((prepend+"log_method").c_str()), "eventlog") == 0) {
 		fprintf(stderr, "eventlog logging is only available on windows.\n");
-	} else if (stricmp(lpConfig->GetSetting((prepend+"log_method").c_str()), "file") == 0) {
+	} else if (strcasecmp(lpConfig->GetSetting((prepend+"log_method").c_str()), "file") == 0) {
 		int ret = 0;
 		const struct passwd *pw = NULL;
 		const struct group *gr = NULL;

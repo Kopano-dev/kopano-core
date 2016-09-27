@@ -354,8 +354,8 @@ static HRESULT HrSetupListeners(int *lpulNormal, int *lpulSecure)
 	int ulSecureSocket = 0;
 
 	// setup sockets
-	bListenSecure = (stricmp(g_lpConfig->GetSetting("icals_enable"), "yes") == 0);
-	bListen = (stricmp(g_lpConfig->GetSetting("ical_enable"), "yes") == 0);
+	bListenSecure = (strcasecmp(g_lpConfig->GetSetting("icals_enable"), "yes") == 0);
+	bListen = (strcasecmp(g_lpConfig->GetSetting("ical_enable"), "yes") == 0);
 
 	if (!bListen && !bListenSecure) {
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "No ports to open for listening.");
