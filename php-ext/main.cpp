@@ -7654,8 +7654,6 @@ ZEND_FUNCTION(mapi_inetmapi_imtoinet)
     sending_options sopt;
     ECMemStream *lpMemStream = NULL;
     IStream *lpStream = NULL;
-    ECLogger_Null logger;
-    
     char *lpBuffer = NULL;
     
     imopt_default_sending_options(&sopt);
@@ -7678,7 +7676,7 @@ ZEND_FUNCTION(mapi_inetmapi_imtoinet)
     if(MAPI_G(hr) != hrSuccess)
         goto exit;
     
-    MAPI_G(hr) = IMToINet(lpMAPISession, lpAddrBook, lpMessage, &lpBuffer, sopt, &logger);
+    MAPI_G(hr) = IMToINet(lpMAPISession, lpAddrBook, lpMessage, &lpBuffer, sopt);
     if(MAPI_G(hr) != hrSuccess)
         goto exit;
         
@@ -7709,7 +7707,6 @@ ZEND_FUNCTION(mapi_inetmapi_imtomapi)
     zval *resAddrBook;
     zval *resMessage;
     zval *resOptions;
-    ECLogger_Null logger;
     delivery_options dopt;
     ULONG cbString = 0;
     char *szString = NULL;
@@ -7737,7 +7734,7 @@ ZEND_FUNCTION(mapi_inetmapi_imtomapi)
     if(MAPI_G(hr) != hrSuccess)
         goto exit; 
    
-    MAPI_G(hr) = IMToMAPI(lpMAPISession, lpMsgStore, lpAddrBook, lpMessage, strInput, dopt, &logger);
+    MAPI_G(hr) = IMToMAPI(lpMAPISession, lpMsgStore, lpAddrBook, lpMessage, strInput, dopt);
 
     if(MAPI_G(hr) != hrSuccess)
         goto exit;

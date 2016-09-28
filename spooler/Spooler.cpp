@@ -329,7 +329,11 @@ static HRESULT GetErrorObjects(const SendData &sSendData,
 	}
 
 	if (*lppMailer == NULL) {
-		*lppMailer = CreateSender(g_lpLogger, "localhost", 25); // SMTP server does not matter here, we just use the object for the error body
+		/*
+		 * SMTP server does not matter here, we just use the
+		 * object for the error body.
+		 */
+		*lppMailer = CreateSender("localhost", 25);
 		if (! (*lppMailer)) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to create error object for error mail, skipping.");
 			goto exit;

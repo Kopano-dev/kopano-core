@@ -84,7 +84,6 @@ static const char im_charset_unspec[] = "unspecified";
  */
 VMIMEToMAPI::VMIMEToMAPI()
 {
-	lpLogger = new ECLogger_Null();
 	imopt_default_delivery_options(&m_dopt);
 	m_dopt.use_received_date = false; // use Date header
 	m_lpAdrBook = NULL;
@@ -95,26 +94,17 @@ VMIMEToMAPI::VMIMEToMAPI()
  * Adds user set addressbook (to minimize opens on this object) and delivery options.
  * 
  * @param[in]	lpAdrBook	Addressbook of a user.
- * @param[in]	newlogger	ECLogger object for convert error messages.
  * @param[in]	dopt		delivery options handle differences in DAgent and Gateway behaviour.
  */
-VMIMEToMAPI::VMIMEToMAPI(LPADRBOOK lpAdrBook, ECLogger *newlogger, delivery_options dopt)
+VMIMEToMAPI::VMIMEToMAPI(LPADRBOOK lpAdrBook, delivery_options dopt)
 {
-	lpLogger = newlogger;
 	m_dopt = dopt;
-	if (!lpLogger)
-		lpLogger = new ECLogger_Null();
-	else
-		lpLogger->AddRef();
-
 	m_lpAdrBook = lpAdrBook;
 	m_lpDefaultDir = NULL;
 }
 
 VMIMEToMAPI::~VMIMEToMAPI()
 {
-	lpLogger->Release();
-		
 	if (m_lpDefaultDir)
 		m_lpDefaultDir->Release();
 }
@@ -279,7 +269,7 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 
 			hr = lpMessage->SetProps(1, &sPropSMIMEClass, NULL);
 			if (hr != hrSuccess) {
-				lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to set message class");
+				ec_log_err("Unable to set message class");
 				goto exit;
 			}
 		}
@@ -316,17 +306,17 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 		}
 	}
 	catch (vmime::exception& e) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "VMIME exception: %s", e.what());
+		ec_log_err("VMIME exception: %s", e.what());
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 	catch (std::exception& e) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "STD exception: %s", e.what());
+		ec_log_err("STD exception: %s", e.what());
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 	catch (...) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Unknown generic exception occurred");
+		ec_log_err("Unknown generic exception occurred");
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
@@ -382,7 +372,7 @@ HRESULT VMIMEToMAPI::fillMAPIMail(vmime::ref<vmime::message> vmMessage, IMessage
 
 	hr = lpMessage->SetProps(3, sPropDefaults, NULL);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to set default mail properties");
+		ec_log_err("Unable to set default mail properties");
 		return hr;
 	}
 
@@ -397,14 +387,14 @@ HRESULT VMIMEToMAPI::fillMAPIMail(vmime::ref<vmime::message> vmMessage, IMessage
 		// pass recipients somewhere else 
 		hr = handleRecipients(vmHeader, lpMessage);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to parse mail recipients");
+			ec_log_err("Unable to parse mail recipients");
 			return hr;
 		}
 
 		// Headers
 		hr = handleHeaders(vmHeader, lpMessage);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to parse mail headers");
+			ec_log_err("Unable to parse mail headers");
 			return hr;
 		}
 
@@ -428,7 +418,7 @@ HRESULT VMIMEToMAPI::fillMAPIMail(vmime::ref<vmime::message> vmMessage, IMessage
 				{
 					hr = dissect_body(bPart->getHeader(), bPart->getBody(), lpMessage);
 					if (hr != hrSuccess) {
-						lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to parse MDN mail body");
+						ec_log_err("Unable to parse MDN mail body");
 						return hr;
 					}
 					// we have a body, lets skip the other parts
@@ -451,28 +441,28 @@ HRESULT VMIMEToMAPI::fillMAPIMail(vmime::ref<vmime::message> vmMessage, IMessage
 
 			hr = lpMessage->SetProps(2, sPropDefaults, NULL);
 			if (hr != hrSuccess) {
-				lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to set MDN mail properties");
+				ec_log_err("Unable to set MDN mail properties");
 				return hr;
 			}
 		} else {
 			// multiparts are handled in disectBody, if any
 			hr = dissect_body(vmHeader, vmBody, lpMessage);
 			if (hr != hrSuccess) {
-				lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to parse mail body");
+				ec_log_err("Unable to parse mail body");
 				return hr;
 			}
 		}
 	}
 	catch (vmime::exception& e) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "VMIME exception on create message: %s", e.what());
+		ec_log_err("VMIME exception on create message: %s", e.what());
 		return MAPI_E_CALL_FAILED;
 	}
 	catch (std::exception& e) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "STD exception on create message: %s", e.what());
+		ec_log_err("STD exception on create message: %s", e.what());
 		return MAPI_E_CALL_FAILED;
 	}
 	catch (...) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Unknown generic exception occurred on create message");
+		ec_log_err("Unknown generic exception occurred on create message");
 		return MAPI_E_CALL_FAILED;
 	}
 
@@ -994,17 +984,17 @@ next:
 		}
 	}
 	catch (vmime::exception& e) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "VMIME exception on parsing headers: %s", e.what());
+		ec_log_err("VMIME exception on parsing headers: %s", e.what());
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 	catch (std::exception& e) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "STD exception on parsing headers: %s", e.what());
+		ec_log_err("STD exception on parsing headers: %s", e.what());
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 	catch (...) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Unknown generic exception occurred on parsing headers");
+		ec_log_err("Unknown generic exception occurred on parsing headers");
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
@@ -1140,17 +1130,17 @@ HRESULT VMIMEToMAPI::handleRecipients(vmime::ref<vmime::header> vmHeader, IMessa
 
 	}
 	catch (vmime::exception& e) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "VMIME exception on recipients: %s", e.what());
+		ec_log_err("VMIME exception on recipients: %s", e.what());
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 	catch (std::exception& e) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "STD exception on recipients: %s", e.what());
+		ec_log_err("STD exception on recipients: %s", e.what());
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 	catch (...) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Unknown generic exception occurred on recipients");
+		ec_log_err("Unknown generic exception occurred on recipients");
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
@@ -1228,17 +1218,17 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients, vmime::ref<vmim
 			}
 		}
 		catch (vmime::exception& e) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "VMIME exception on modify recipient: %s", e.what());
+			ec_log_err("VMIME exception on modify recipient: %s", e.what());
 			hr = MAPI_E_CALL_FAILED;
 			goto exit;
 		}
 		catch (std::exception& e) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "STD exception on modify recipient: %s", e.what());
+			ec_log_err("STD exception on modify recipient: %s", e.what());
 			hr = MAPI_E_CALL_FAILED;
 			goto exit;
 		}
 		catch (...) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Unknown generic exception occurred on modify recipient");
+			ec_log_err("Unknown generic exception occurred on modify recipient");
 			hr = MAPI_E_CALL_FAILED;
 			goto exit;
 		}
@@ -1427,7 +1417,7 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals, ULONG *lpu
 		sRecipProps[cValues].ulPropTag = lpPropsList->aulPropTag[0]; // PR_xxx_ADDRTYPE;
 		ASSERT(lpProp);
 		if (!lpProp) {
-			lpLogger->Log(EC_LOGLEVEL_WARNING, "Missing PR_ADDRTYPE_W for search entry: email %s, fullname %ls", email ? email : "null", fullname ? fullname : L"null");
+			ec_log_warn("Missing PR_ADDRTYPE_W for search entry: email %s, fullname %ls", email ? email : "null", fullname ? fullname : L"null");
 			sRecipProps[cValues].Value.lpszW = const_cast<wchar_t *>(L"ZARAFA");
 		} else {
 			sRecipProps[cValues].Value.lpszW = lpProp->Value.lpszW;
@@ -1587,7 +1577,7 @@ HRESULT VMIMEToMAPI::dissect_multipart(vmime::ref<vmime::header> vmHeader,
 		// a lonely attachment in a multipart, may not be empty when it's a signed part.
 		hr = handleAttachment(vmHeader, vmBody, lpMessage);
 		if (hr != hrSuccess)
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "dissect_multipart: Unable to save attachment");
+			ec_log_err("dissect_multipart: Unable to save attachment");
 		return hr;
 	}
 
@@ -1616,7 +1606,7 @@ HRESULT VMIMEToMAPI::dissect_multipart(vmime::ref<vmime::header> vmHeader,
 
 			hr = dissect_body(vmBodyPart->getHeader(), vmBodyPart->getBody(), lpMessage, bFilterDouble, bAppendBody);
 			if (hr != hrSuccess) {
-				lpLogger->Log(EC_LOGLEVEL_ERROR, "dissect_multipart: Unable to parse sub multipart %d of mail body", i);
+				ec_log_err("dissect_multipart: Unable to parse sub multipart %d of mail body", i);
 				return hr;
 			}
 		}
@@ -1638,7 +1628,7 @@ HRESULT VMIMEToMAPI::dissect_multipart(vmime::ref<vmime::header> vmHeader,
 	}
 	/* If lBodies was empty, we could get here, with hr being hrSuccess. */
 	if (hr != hrSuccess)
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to parse all alternative multiparts of mail body");
+		ec_log_err("Unable to parse all alternative multiparts of mail body");
 	return hr;
 }
 
@@ -1740,13 +1730,13 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::ref<vmime::header> vmHeader,
 
 		hr = lpMessage->CreateAttach(NULL, 0, &ulAttNr, &ptrAttach);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "dissect_ical-1790: Unable to create attachment for ical data: %s (%x)", GetMAPIErrorMessage(hr), hr);
+			ec_log_err("dissect_ical-1790: Unable to create attachment for ical data: %s (%x)", GetMAPIErrorMessage(hr), hr);
 			goto exit;
 		}
 
 		hr = ptrAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY, &ptrNewMessage);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "dissect_ical-1796: Unable to create message attachment for ical data: %s (%x)", GetMAPIErrorMessage(hr), hr);
+			ec_log_err("dissect_ical-1796: Unable to create message attachment for ical data: %s (%x)", GetMAPIErrorMessage(hr), hr);
 			goto exit;
 		}
 
@@ -1761,7 +1751,7 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::ref<vmime::header> vmHeader,
 
 		hr = ptrAttach->SetProps(3, sAttProps, NULL);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "dissect_ical-1811: Unable to create message attachment for ical data: %s (%x)", GetMAPIErrorMessage(hr), hr);
+			ec_log_err("dissect_ical-1811: Unable to create message attachment for ical data: %s (%x)", GetMAPIErrorMessage(hr), hr);
 			goto exit;
 		}
 
@@ -1770,13 +1760,13 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::ref<vmime::header> vmHeader,
 
 	hr = CreateICalToMapi(lpMessage, m_lpAdrBook, true, &lpIcalMapi);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "dissect_ical-1820: Unable to create ical converter: %s (%x)", GetMAPIErrorMessage(hr), hr);
+		ec_log_err("dissect_ical-1820: Unable to create ical converter: %s (%x)", GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
 
 	hr = lpIcalMapi->ParseICal(icaldata, strCharset, "UTC" , NULL, 0);
 	if (hr != hrSuccess || lpIcalMapi->GetItemCount() != 1) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "dissect_ical-1826: Unable to parse ical information: %s (%x), items: %d, adding as normal attachment",
+		ec_log_err("dissect_ical-1826: Unable to parse ical information: %s (%x), items: %d, adding as normal attachment",
 			GetMAPIErrorMessage(hr), hr, lpIcalMapi->GetItemCount());
 		hr = handleAttachment(vmHeader, vmBody, lpMessage);
 		goto exit;
@@ -1784,7 +1774,7 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::ref<vmime::header> vmHeader,
 
 	hr = lpIcalMapi->GetItem(0, IC2M_NO_RECIPIENTS | IC2M_APPEND_ONLY, lpIcalMessage);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "dissect_ical-1834: Error while converting ical to mapi: %s (%x)", GetMAPIErrorMessage(hr), hr);
+		ec_log_err("dissect_ical-1834: Error while converting ical to mapi: %s (%x)", GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
 	if (!bIsAttachment)
@@ -1801,12 +1791,12 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::ref<vmime::header> vmHeader,
 
 	hr = ptrNewMessage->SaveChanges(0);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "dissect_ical-1851: Unable to save ical message: %s (%x)", GetMAPIErrorMessage(hr), hr);
+		ec_log_err("dissect_ical-1851: Unable to save ical message: %s (%x)", GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
 	hr = ptrAttach->SaveChanges(0);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "dissect_ical-1856: Unable to save ical message attachment: %s (%x)", GetMAPIErrorMessage(hr), hr);
+		ec_log_err("dissect_ical-1856: Unable to save ical message attachment: %s (%x)", GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
 
@@ -1876,7 +1866,7 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::ref<vmime::header> vmHeader,
 			vmBody->getContents()->getEncoding().getEncoder();
 		} catch (vmime::exceptions::no_encoder_available &) {
 			/* RFC 2045 §6.4 page 17 */
-			lpLogger->Log(EC_LOGLEVEL_DEBUG, "Encountered unknown Content-Transfer-Encoding \"%s\".",
+			ec_log_debug("Encountered unknown Content-Transfer-Encoding \"%s\".",
 				vmBody->getContents()->getEncoding().getName().c_str());
 			force_raw = true;
 		}
@@ -1898,7 +1888,7 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::ref<vmime::header> vmHeader,
 				// subtype guaranteed html or plain.
 				hr = handleHTMLTextpart(vmHeader, vmBody, lpMessage, bAppendBody);
 				if (hr != hrSuccess) {
-					lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to parse mail HTML text");
+					ec_log_err("Unable to parse mail HTML text");
 					goto exit;
 				}
 			} else {
@@ -1928,9 +1918,9 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::ref<vmime::header> vmHeader,
 			if (hr == hrSuccess) {
 				hr = tnef.Finish();
 				if (hr != hrSuccess)
-					lpLogger->Log(EC_LOGLEVEL_WARNING, "TNEF attachment saving failed: 0x%08X", hr);
+					ec_log_warn("TNEF attachment saving failed: 0x%08X", hr);
 			} else {
-				lpLogger->Log(EC_LOGLEVEL_WARNING, "TNEF attachment parsing failed: 0x%08X", hr);
+				ec_log_warn("TNEF attachment parsing failed: 0x%08X", hr);
 			}
 			hr = hrSuccess;
 		} else if (mt->getType() == vmime::mediaTypes::TEXT && mt->getSubType() == "calendar") {
@@ -1963,7 +1953,7 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::ref<vmime::header> vmHeader,
 
 			hr = lpMessage->SetProps(1, &sPropSMIMEClass, NULL);
 			if (hr != hrSuccess) {
-				lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to set message class");
+				ec_log_err("Unable to set message class");
 				goto exit;
 			}
 		} else if (mt->getType() == vmime::mediaTypes::APPLICATION && mt->getSubType() == vmime::mediaTypes::APPLICATION_OCTET_STREAM) {
@@ -1996,17 +1986,17 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::ref<vmime::header> vmHeader,
 		}
 	}
 	catch (vmime::exception& e) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "VMIME exception on parsing body: %s", e.what());
+		ec_log_err("VMIME exception on parsing body: %s", e.what());
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 	catch (std::exception& e) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "STD exception on parsing body: %s", e.what());
+		ec_log_err("STD exception on parsing body: %s", e.what());
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 	catch (...) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Unknown generic exception occurred on parsing body");
+		ec_log_err("Unknown generic exception occurred on parsing body");
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
@@ -2037,8 +2027,7 @@ VMIMEToMAPI::content_transfer_decode(vmime::ref<vmime::body> im_body) const
 	try {
 		im_cont->extract(str_adap);
 	} catch (vmime::exceptions::no_encoder_available &e) {
-		lpLogger->Log(EC_LOGLEVEL_WARNING,
-			"VMIME could not process the Content-Transfer-Encoding \"%s\" (%s). Reading part raw.",
+		ec_log_warn("VMIME could not process the Content-Transfer-Encoding \"%s\" (%s). Reading part raw.",
 			im_cont->getEncoding().generate().c_str(), e.what());
 		im_cont->extractRaw(str_adap);
 	}
@@ -2091,9 +2080,7 @@ int VMIMEToMAPI::renovate_encoding(std::string &data,
 			data = m_converter.convert_to<std::string>(
 			       (cs[i] + "//NOIGNORE").c_str(),
 			       data, rawsize(data), name);
-			lpLogger->Log(EC_LOGLEVEL_DEBUG,
-				"renovate_encoding: reading data using charset \"%s\" succeeded.",
-				name);
+			ec_log_debug("renovate_encoding: reading data using charset \"%s\" succeeded.", name);
 			return i;
 		} catch (illegal_sequence_exception &ce) {
 			/*
@@ -2106,11 +2093,10 @@ int VMIMEToMAPI::renovate_encoding(std::string &data,
 			unsigned int lvl = EC_LOGLEVEL_DEBUG;
 			if (i == 0)
 				lvl = EC_LOGLEVEL_WARNING;
-			lpLogger->Log(lvl,
-				"renovate_encoding: reading data using charset \"%s\" produced partial results: %s",
+			ec_log(lvl, "renovate_encoding: reading data using charset \"%s\" produced partial results: %s",
 				name, ce.what());
 		} catch (unknown_charset_exception &) {
-			lpLogger->Log(EC_LOGLEVEL_WARNING, "renovate_encoding: unknown charset \"%s\", skipping", name);
+			ec_log_warn("renovate_encoding: unknown charset \"%s\", skipping", name);
 		}
 	}
 	/*
@@ -2125,8 +2111,7 @@ int VMIMEToMAPI::renovate_encoding(std::string &data,
 		} catch (unknown_charset_exception &) {
 			continue;
 		}
-		lpLogger->Log(EC_LOGLEVEL_DEBUG,
-			"renovate_encoding: forced interpretation as charset \"%s\".", name);
+		ec_log_debug("renovate_encoding: forced interpretation as charset \"%s\".", name);
 		return i;
 	}
 	return -1;
@@ -2153,7 +2138,7 @@ HRESULT VMIMEToMAPI::handleTextpart(vmime::ref<vmime::header> vmHeader, vmime::r
 		// we already had a plaintext or html body, so attach this text part
 		hr = handleAttachment(vmHeader, vmBody, lpMessage);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to parse attached text mail");
+			ec_log_err("Unable to parse attached text mail");
 			return hr;
 		}
 		return hrSuccess;
@@ -2169,18 +2154,18 @@ HRESULT VMIMEToMAPI::handleTextpart(vmime::ref<vmime::header> vmHeader, vmime::r
 		if (mime_charset == im_charset_unspec) {
 			if (m_mailState.mime_vtag_nest == 0) {
 				/* RFC 2045 §4 page 9 */
-				lpLogger->Log(EC_LOGLEVEL_DEBUG, "No charset (case #1). Defaulting to \"%s\".", m_dopt.default_charset);
+				ec_log_debug("No charset (case #1). Defaulting to \"%s\".", m_dopt.default_charset);
 				mime_charset = m_dopt.default_charset;
 			} else {
 				/* RFC 2045 §5.2 */
-				lpLogger->Log(EC_LOGLEVEL_DEBUG, "No charset (case #2). Defaulting to \"us-ascii\".");
+				ec_log_debug("No charset (case #2). Defaulting to \"us-ascii\".");
 				mime_charset = vmime::charsets::US_ASCII;
 			}
 		}
 		mime_charset = vtm_upgrade_charset(mime_charset);
 		if (!ValidateCharset(mime_charset.getName().c_str())) {
 			/* RFC 2049 §2 item 6 subitem 5 */
-			lpLogger->Log(EC_LOGLEVEL_DEBUG, "Unknown Content-Type charset \"%s\". Storing as attachment instead.", mime_charset.getName().c_str());
+			ec_log_debug("Unknown Content-Type charset \"%s\". Storing as attachment instead.", mime_charset.getName().c_str());
 			return handleAttachment(vmHeader, vmBody, lpMessage, true);
 		}
 		/*
@@ -2236,17 +2221,17 @@ HRESULT VMIMEToMAPI::handleTextpart(vmime::ref<vmime::header> vmHeader, vmime::r
 			goto exit;
 	}
 	catch (vmime::exception &e) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "VMIME exception on text body: %s", e.what());
+		ec_log_err("VMIME exception on text body: %s", e.what());
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 	catch (std::exception &e) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "STD exception on text body: %s", e.what());
+		ec_log_err("STD exception on text body: %s", e.what());
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 	catch (...) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Unknown generic exception occurred on text body");
+		ec_log_err("Unknown generic exception occurred on text body");
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
@@ -2351,7 +2336,7 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::ref<vmime::header> vmHeader, vmim
 		// already found html as body, so this is an attachment
 		hr = handleAttachment(vmHeader, vmBody, lpMessage);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to parse attached text mail");
+			ec_log_err("Unable to parse attached text mail");
 			return hr;
 		}
 		return hrSuccess;
@@ -2373,28 +2358,28 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::ref<vmime::header> vmHeader, vmim
 			 * This is not actually a problem, it can
 			 * happen when an MTA transcodes it.
 			 */
-			lpLogger->Log(EC_LOGLEVEL_DEBUG, "MIME headers declare charset \"%s\", while HTML meta tag declares \"%s\".",
+			ec_log_debug("MIME headers declare charset \"%s\", while HTML meta tag declares \"%s\".",
 				mime_charset.getName().c_str(),
 				html_charset.getName().c_str());
 
 		if (mime_charset == im_charset_unspec &&
 		    html_charset == im_charset_unspec) {
 			if (m_mailState.mime_vtag_nest > 0) {
-				lpLogger->Log(EC_LOGLEVEL_DEBUG, "No charset (case #3), defaulting to \"us-ascii\".");
+				ec_log_debug("No charset (case #3), defaulting to \"us-ascii\".");
 				mime_charset = html_charset = vmime::charsets::US_ASCII;
 			} else if (html_analyze < 0) {
 				/*
 				 * No HTML structure found when assuming ASCII,
 				 * so we can just directly fallback to default_charset.
 				 */
-				lpLogger->Log(EC_LOGLEVEL_DEBUG, "No charset (case #4), defaulting to \"%s\".", m_dopt.default_charset);
+				ec_log_debug("No charset (case #4), defaulting to \"%s\".", m_dopt.default_charset);
 				mime_charset = html_charset = m_dopt.default_charset;
 			} else if (vtm_ascii_compatible(m_dopt.default_charset)) {
 				/*
 				 * HTML structure recognized when interpreting as ASCII.
 				 * If default_charset is compatible, that is our pick.
 				 */
-				lpLogger->Log(EC_LOGLEVEL_DEBUG, "No charset (case #5), defaulting to \"%s\".", m_dopt.default_charset);
+				ec_log_debug("No charset (case #5), defaulting to \"%s\".", m_dopt.default_charset);
 				mime_charset = html_charset = m_dopt.default_charset;
 			} else {
 				/*
@@ -2402,16 +2387,16 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::ref<vmime::header> vmHeader, vmim
 				 * default_charset is not compatible, so cannot be
 				 * the actual encoding.
 				 */
-				lpLogger->Log(EC_LOGLEVEL_DEBUG, "No charset (case #6), defaulting to \"us-ascii\".");
+				ec_log_debug("No charset (case #6), defaulting to \"us-ascii\".");
 				mime_charset = html_charset = vmime::charsets::US_ASCII;
 			}
 		} else if (mime_charset == im_charset_unspec) {
 			/* only place to name cset is <meta> */
-			lpLogger->Log(EC_LOGLEVEL_DEBUG, "Charset is \"%s\" (case #7).", html_charset.getName().c_str());
+			ec_log_debug("Charset is \"%s\" (case #7).", html_charset.getName().c_str());
 			mime_charset = html_charset;
 		} else if (html_charset == im_charset_unspec) {
 			/* only place to name cset is MIME header */
-			lpLogger->Log(EC_LOGLEVEL_DEBUG, "Charset is \"%s\" (case #8).", mime_charset.getName().c_str());
+			ec_log_debug("Charset is \"%s\" (case #8).", mime_charset.getName().c_str());
 			html_charset = mime_charset;
 		}
 
@@ -2426,7 +2411,7 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::ref<vmime::header> vmHeader, vmim
 		}
 		int cs_best = renovate_encoding(strHTML, cs_cand);
 		if (cs_best < 0) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "HTML part not readable in any charset. Storing as attachment instead.");
+			ec_log_err("HTML part not readable in any charset. Storing as attachment instead.");
 			return handleAttachment(vmHeader, vmBody, lpMessage, true);
 		}
 		/*
@@ -2439,7 +2424,7 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::ref<vmime::header> vmHeader, vmim
 			/* Win32 does not know the charset — change encoding to something it knows. */
 			sCodepage.Value.ul = 65001;
 			strHTML = m_converter.convert_to<std::string>("UTF-8", strHTML, rawsize(strHTML), cs_cand[cs_best].c_str());
-			lpLogger->Log(EC_LOGLEVEL_INFO, "No Win32 CPID for \"%s\" - upgrading text/html MIME body to UTF-8", cs_cand[cs_best].c_str());
+			ec_log_info("No Win32 CPID for \"%s\" - upgrading text/html MIME body to UTF-8", cs_cand[cs_best].c_str());
 		}
 
 		if (bAppendBody && m_mailState.bodyLevel == BODY_HTML && m_mailState.ulLastCP && sCodepage.Value.ul != m_mailState.ulLastCP) {
@@ -2494,17 +2479,17 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::ref<vmime::header> vmHeader, vmim
 		}
 	}
 	catch (vmime::exception &e) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "VMIME exception on html body: %s", e.what());
+		ec_log_err("VMIME exception on html body: %s", e.what());
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 	catch (std::exception &e) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "STD exception on html body: %s", e.what());
+		ec_log_err("STD exception on html body: %s", e.what());
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 	catch (...) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Unknown generic exception occurred on html body");
+		ec_log_err("Unknown generic exception occurred on html body");
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
@@ -2516,7 +2501,7 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::ref<vmime::header> vmHeader, vmim
 
 	hr = lpMessage->OpenProperty(PR_HTML, &IID_IStream, STGM_TRANSACTED, ulFlags, (LPUNKNOWN *)&lpHTMLStream);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "OpenProperty PR_HTML failed: %s", GetMAPIErrorMessage(hr));
+		ec_log_err("OpenProperty PR_HTML failed: %s", GetMAPIErrorMessage(hr));
 		goto exit;
 	}
 
@@ -2609,7 +2594,7 @@ HRESULT VMIMEToMAPI::handleAttachment(vmime::ref<vmime::header> vmHeader, vmime:
 				goto exit;
 
 			if (stat.cbSize.QuadPart == 0) {
-				lpLogger->Log(EC_LOGLEVEL_ERROR, "Empty attachment found when not allowed, dropping empty attachment.");
+				ec_log_err("Empty attachment found when not allowed, dropping empty attachment.");
 				hr = MAPI_E_NOT_FOUND;
 				goto exit;
 			}
@@ -2717,17 +2702,17 @@ HRESULT VMIMEToMAPI::handleAttachment(vmime::ref<vmime::header> vmHeader, vmime:
 			goto exit;
 	}
 	catch (vmime::exception& e) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "VMIME exception on attachment: %s", e.what());
+		ec_log_err("VMIME exception on attachment: %s", e.what());
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 	catch (std::exception& e) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "STD exception on attachment: %s", e.what());
+		ec_log_err("STD exception on attachment: %s", e.what());
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 	catch (...) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Unknown generic exception occurred on attachment");
+		ec_log_err("Unknown generic exception occurred on attachment");
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
@@ -2738,7 +2723,7 @@ HRESULT VMIMEToMAPI::handleAttachment(vmime::ref<vmime::header> vmHeader, vmime:
 
 exit:
 	if (hr != hrSuccess)
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to create attachment");
+		ec_log_err("Unable to create attachment");
 
 	if (lpAtt)
 		lpAtt->Release();
@@ -2880,7 +2865,7 @@ int VMIMEToMAPI::getCharsetFromHTML(const string &strHTML, vmime::charset *htmlC
 	 */
 	lpDoc = htmlReadMemory(strHTML.c_str(), strHTML.length(), "", NULL, HTML_PARSE_RECOVER | HTML_PARSE_NOWARNING | HTML_PARSE_NOERROR);
 	if (!lpDoc) {
-		lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to parse HTML document");
+		ec_log_warn("Unable to parse HTML document");
 		ret = -1;
 		goto exit;
 	}
@@ -2892,13 +2877,13 @@ int VMIMEToMAPI::getCharsetFromHTML(const string &strHTML, vmime::charset *htmlC
 	 */
 	root = xmlDocGetRootElement(lpDoc);
 	if (root == NULL) {
-		lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to parse HTML document");
+		ec_log_warn("Unable to parse HTML document");
 		ret = -1;
 		goto exit;
 	}
 	lpNode = find_node(root, "head");
 	if (!lpNode) {
-		lpLogger->Log(EC_LOGLEVEL_DEBUG, "HTML document contains no HEAD tag");
+		ec_log_debug("HTML document contains no HEAD tag");
 		goto exit;
 	}
 
@@ -2914,7 +2899,7 @@ int VMIMEToMAPI::getCharsetFromHTML(const string &strHTML, vmime::charset *htmlC
 			xmlFree(lpValue);
 			lpValue = xmlGetProp(lpNode, (const xmlChar*)"content");
 			if (lpValue) {
-				lpLogger->Log(EC_LOGLEVEL_DEBUG, "HTML4 meta tag found: charset=\"%s\"", lpValue);
+				ec_log_debug("HTML4 meta tag found: charset=\"%s\"", lpValue);
 				charset = fix_content_type_charset(reinterpret_cast<const char *>(lpValue));
 			}
 			break;
@@ -2926,18 +2911,18 @@ int VMIMEToMAPI::getCharsetFromHTML(const string &strHTML, vmime::charset *htmlC
 		// HTML 5, <meta charset="...">
 		lpValue = xmlGetProp(lpNode, (const xmlChar*)"charset");
 		if (lpValue) {
-			lpLogger->Log(EC_LOGLEVEL_DEBUG, "HTML5 meta tag found: charset=\"%s\"", lpValue);
+			ec_log_debug("HTML5 meta tag found: charset=\"%s\"", lpValue);
 			charset = reinterpret_cast<char *>(lpValue);
 			break;
 		}
 	}
 	if (!lpValue) {
-		lpLogger->Log(EC_LOGLEVEL_DEBUG, "HTML body does not contain meta charset information");
+		ec_log_debug("HTML body does not contain meta charset information");
 		goto exit;
 	}
 	*htmlCharset = charset.size() != 0 ? vtm_upgrade_charset(charset) :
 	               vmime::charsets::US_ASCII;
-	lpLogger->Log(EC_LOGLEVEL_DEBUG, "HTML charset adjusted to \"%s\"", htmlCharset->getName().c_str());
+	ec_log_debug("HTML charset adjusted to \"%s\"", htmlCharset->getName().c_str());
 	ret = 1;
 
 exit:
@@ -3618,7 +3603,7 @@ HRESULT VMIMEToMAPI::messagePartToStructure(const string &input, vmime::ref<vmim
 		}
 	}
 	catch (vmime::exception &e) {
-		lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to create optimized bodystructure: %s", e.what());
+		ec_log_warn("Unable to create optimized bodystructure: %s", e.what());
 	}
 
 	// add () around results?

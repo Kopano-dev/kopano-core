@@ -1832,7 +1832,7 @@ static HRESULT HrStringToMAPIMessage(const string &strMail,
 	lpArgs->sDeliveryOpts.add_imap_data = lpRecip->bHasIMAP;
 
 	// Set the properties on the object
-	hr = IMToMAPI(lpSession, lpMsgStore, lpAdrBook, lpMessage, strMail, lpArgs->sDeliveryOpts, g_lpLogger);
+	hr = IMToMAPI(lpSession, lpMsgStore, lpAdrBook, lpMessage, strMail, lpArgs->sDeliveryOpts);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "E-mail parsing failed: 0x%08X. Starting fallback delivery.", hr);
 

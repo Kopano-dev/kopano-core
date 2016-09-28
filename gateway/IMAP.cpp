@@ -1893,7 +1893,7 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 		goto exit;
 	}
 
-	hr = IMToMAPI(lpSession, lpStore, lpAddrBook, lpMessage, strData, dopt, lpLogger);
+	hr = IMToMAPI(lpSession, lpStore, lpAddrBook, lpMessage, strData, dopt);
 	if (hr != hrSuccess) {
 		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "APPEND error converting message");
 		goto exit;
@@ -4295,7 +4295,7 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 				if (hr != hrSuccess) {
 					ASSERT(lpMessage);
 					if (oss.tellp() == ostringstream::pos_type(0)) { // already converted in previous loop?
-						if (!lpMessage || IMToINet(lpSession, lpAddrBook, lpMessage, oss, sopt, lpLogger) != hrSuccess) {
+						if (lpMessage == NULL || IMToINet(lpSession, lpAddrBook, lpMessage, oss, sopt) != hrSuccess) {
 							vProps.push_back(item);
 							vProps.push_back("NIL");
 							lpLogger->Log(EC_LOGLEVEL_WARNING, "Error in generating message %d for user %ls in folder %ls", ulMailnr+1, m_strwUsername.c_str(), strCurrentFolder.c_str());

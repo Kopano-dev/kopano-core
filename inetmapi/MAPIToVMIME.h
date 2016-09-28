@@ -25,7 +25,6 @@
 #include <vmime/mailbox.hpp>
 #include <inetmapi/options.h>
 #include <mapidefs.h>
-#include <kopano/ECLogger.h>
 #include <kopano/charset/convert.h>
 #include "SMIMEMessage.h"
 
@@ -33,14 +32,13 @@ class MAPIToVMIME
 {
 public:
 	MAPIToVMIME();
-	MAPIToVMIME(IMAPISession *lpSession, IAddrBook *lpAddrBook, ECLogger *newlogger, sending_options sopt);
+	MAPIToVMIME(IMAPISession *, IAddrBook *, sending_options);
 	~MAPIToVMIME();
 
 	HRESULT convertMAPIToVMIME(IMessage *lpMessage, vmime::ref<vmime::message> *lpvmMessage);
 	std::wstring getConversionError(void) const;
 
 private:
-	ECLogger *lpLogger;
 	sending_options sopt;
 	LPADRBOOK m_lpAdrBook;
 	LPMAPISESSION m_lpSession;

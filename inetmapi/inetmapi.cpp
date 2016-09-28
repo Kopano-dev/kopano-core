@@ -63,20 +63,11 @@ bool ValidateCharset(const char *charset)
 	return true;
 }
 
-ECSender::ECSender(ECLogger *newlpLogger, const std::string &strSMTPHost, int port) {
-	lpLogger = newlpLogger;
-	if (!lpLogger)
-		lpLogger = new ECLogger_Null();
-	else
-		lpLogger->AddRef();
-
+ECSender::ECSender(const std::string &strSMTPHost, int port)
+{
 	smtpresult = 0;
 	smtphost = strSMTPHost;
 	smtpport = port;
-}
-
-ECSender::~ECSender() {
-	lpLogger->Release();
 }
 
 int ECSender::getSMTPResult() {
@@ -127,12 +118,15 @@ static string generateRandomMessageId()
 #undef IDLEN
 }
 
-INETMAPI_API ECSender* CreateSender(ECLogger *lpLogger, const std::string &smtp, int port) {
-	return new ECVMIMESender(lpLogger, smtp, port);
+INETMAPI_API ECSender *CreateSender(const std::string &smtp, int port)
+{
+	return new ECVMIMESender(smtp, port);
 }
 
 // parse rfc822 input, and set props in lpMessage
-INETMAPI_API HRESULT IMToMAPI(IMAPISession *lpSession, IMsgStore *lpMsgStore, IAddrBook *lpAddrBook, IMessage *lpMessage, const string &input, delivery_options dopt, ECLogger *lpLogger)
+INETMAPI_API HRESULT IMToMAPI(IMAPISession *lpSession, IMsgStore *lpMsgStore,
+    IAddrBook *lpAddrBook, IMessage *lpMessage, const string &input,
+    delivery_options dopt)
 {
 	HRESULT hr = hrSuccess;
 	VMIMEToMAPI *VMToM = NULL;
@@ -140,13 +134,10 @@ INETMAPI_API HRESULT IMToMAPI(IMAPISession *lpSession, IMsgStore *lpMsgStore, IA
 	// Sanitize options
 	if(!ValidateCharset(dopt.default_charset)) {
 		const char *charset = "iso-8859-15";
-		if(lpLogger)
-			lpLogger->Log(EC_LOGLEVEL_WARNING, "Configured default_charset '%s' is invalid. Reverting to '%s'", dopt.default_charset, charset);
+		ec_log_warn("Configured default_charset '%s' is invalid. Reverting to '%s'", dopt.default_charset, charset);
 		dopt.default_charset = charset;
 	}
-
-	VMToM = new VMIMEToMAPI(lpAddrBook, lpLogger, dopt);
-
+	VMToM = new VMIMEToMAPI(lpAddrBook, dopt);
 	InitializeVMime();
 
 	// fill mapi object from buffer
@@ -158,13 +149,12 @@ INETMAPI_API HRESULT IMToMAPI(IMAPISession *lpSession, IMsgStore *lpMsgStore, IA
 }
 
 // Read properties from lpMessage object and fill a buffer with internet rfc822 format message
-INETMAPI_API HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook, IMessage *lpMessage, char** lppbuf, sending_options sopt, ECLogger *lpLogger)
+INETMAPI_API HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
+    IMessage *lpMessage, char **lppbuf, sending_options sopt)
 {
-	HRESULT hr;
 	std::ostringstream oss;
 	char *lpszData = NULL;
-
-	hr = IMToINet(lpSession, lpAddrBook, lpMessage, oss, sopt, lpLogger);
+	HRESULT hr = IMToINet(lpSession, lpAddrBook, lpMessage, oss, sopt);
 	if (hr != hrSuccess)
 		return hr;
         
@@ -175,12 +165,13 @@ INETMAPI_API HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook, IM
 	return hr;
 }
 
-INETMAPI_API HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook, IMessage *lpMessage, std::ostream &os, sending_options sopt, ECLogger *lpLogger)
+INETMAPI_API HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
+    IMessage *lpMessage, std::ostream &os, sending_options sopt)
 {
 	HRESULT			hr			= hrSuccess;
 	LPSPropValue	lpTime		= NULL;
 	LPSPropValue	lpMessageId	= NULL;
-	MAPIToVMIME*	mToVM		= new MAPIToVMIME(lpSession, lpAddrBook, lpLogger, sopt);
+	auto mToVM = new MAPIToVMIME(lpSession, lpAddrBook, sopt);
 	vmime::ref<vmime::message>	lpVMMessage	= NULL;
 	vmime::utility::outputStreamAdapter adapter(os);
 
@@ -221,10 +212,11 @@ exit:
 
 // Read properties from lpMessage object and to internet rfc2822 format message
 // then send it using the provided ECSender object
-INETMAPI_API HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook, IMessage *lpMessage, ECSender *mailer_base, sending_options sopt, ECLogger *lpLogger)
+INETMAPI_API HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
+    IMessage *lpMessage, ECSender *mailer_base, sending_options sopt)
 {
 	HRESULT			hr	= hrSuccess;
-	MAPIToVMIME		*mToVM	= new MAPIToVMIME(lpSession, lpAddrBook, lpLogger, sopt);
+	auto mToVM = new MAPIToVMIME(lpSession, lpAddrBook, sopt);
 	vmime::ref<vmime::message>	vmMessage;
 	ECVMIMESender		*mailer	= dynamic_cast<ECVMIMESender*>(mailer_base);
 	wstring			wstrError;
@@ -262,7 +254,7 @@ INETMAPI_API HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook, IM
 		}
 		hr = hrSuccess;
 		vmMessage->getHeader()->MessageId()->setValue(msgId);
-		lpLogger->Log(EC_LOGLEVEL_DEBUG, "Sending message with Message-ID: " + msgId.getId());
+		ec_log_debug("Sending message with Message-ID: " + msgId.getId());
 	}
 	catch (vmime::exception& e) {
 		mailer->setError(e.what());

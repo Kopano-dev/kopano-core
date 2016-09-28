@@ -500,7 +500,7 @@ HRESULT POP3::HrCmdRetr(unsigned int ulMailNr) {
 	}
 	if (hr != hrSuccess) {
 		// unable to load streamed version, so try full conversion.
-		hr = IMToINet(lpSession, lpAddrBook, lpMessage, &szMessage, sopt, lpLogger);
+		hr = IMToINet(lpSession, lpAddrBook, lpMessage, &szMessage, sopt);
 		if (hr != hrSuccess) {
 			lpLogger->Log(EC_LOGLEVEL_ERROR, "Error converting MAPI to MIME: 0x%08x", hr);
 			HrResponse(POP3_RESP_PERMFAIL, "Converting MAPI to MIME error");
@@ -700,7 +700,7 @@ HRESULT POP3::HrCmdTop(unsigned int ulMailNr, unsigned int ulLines) {
 		hr = Util::HrStreamToString(lpStream, strMessage);
 	if (hr != hrSuccess) {
 		// unable to load streamed version, so try full conversion.
-		hr = IMToINet(lpSession, lpAddrBook, lpMessage, &szMessage, sopt, lpLogger);
+		hr = IMToINet(lpSession, lpAddrBook, lpMessage, &szMessage, sopt);
 		if (hr != hrSuccess) {
 			lpLogger->Log(EC_LOGLEVEL_ERROR, "Error converting MAPI to MIME: 0x%08x", hr);
 			HrResponse(POP3_RESP_PERMFAIL, "Converting MAPI to MIME error");

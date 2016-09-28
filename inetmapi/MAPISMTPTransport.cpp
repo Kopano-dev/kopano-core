@@ -86,8 +86,7 @@ namespace smtp {
 MAPISMTPTransport::MAPISMTPTransport(ref <session> sess, ref <security::authenticator> auth, const bool secured)
 	: transport(sess, getInfosInstance(), auth), m_socket(NULL),
 	  m_authentified(false), m_extendedSMTP(false), m_timeoutHandler(NULL),
-	  m_isSMTPS(secured), m_secured(false), m_lpLogger(NULL),
-	  m_bDSNRequest(false)
+	  m_isSMTPS(secured), m_secured(false), m_bDSNRequest(false)
 {
 }
 
@@ -104,8 +103,6 @@ MAPISMTPTransport::~MAPISMTPTransport()
 	{
 		// Ignore
 	}
-	if (m_lpLogger != NULL)
-		m_lpLogger->Release();
 }
 
 void MAPISMTPTransport::connect()
@@ -146,13 +143,9 @@ void MAPISMTPTransport::connect()
 		m_cntInfos = vmime::create <defaultConnectionInfos>(address, port);
 	}
 
-	if (m_lpLogger && m_lpLogger->Log(EC_LOGLEVEL_DEBUG))
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "SMTP connecting to %s:%d", address.c_str(), port);
-
+	ec_log_debug("SMTP connecting to %s:%d", address.c_str(), port);
 	m_socket->connect(address, port);
-
-	if (m_lpLogger && m_lpLogger->Log(EC_LOGLEVEL_DEBUG))
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "SMTP server connected.");
+	ec_log_debug("SMTP server connected.");
 
 	// Connection
 	//
@@ -564,7 +557,7 @@ void MAPISMTPTransport::send(const mailbox& expeditor, const mailboxList& recipi
 	bool bDSN = m_bDSNRequest;
 	
 	if(bDSN && m_extensions.find("DSN") == m_extensions.end()) {
-		if (m_lpLogger) m_lpLogger->Log(EC_LOGLEVEL_NOTICE, "SMTP server does not support Delivery Status Notifications (DSN)");
+		ec_log_notice("SMTP server does not support Delivery Status Notifications (DSN)");
 		bDSN = false; // Disable DSN because the server does not support this.
 	}
 
@@ -665,19 +658,9 @@ void MAPISMTPTransport::send(const mailbox& expeditor, const mailboxList& recipi
 		// postfix: 2.0.0 Ok: queued as B36E73608E
 		// qmail: ok 1295860788 qp 29154
 		// exim: OK id=1PhIZ9-0002Ko-Q8
-		if (!m_lpLogger->Log(EC_LOGLEVEL_DEBUG)) // prevent double logging
-			m_lpLogger->Log(EC_LOGLEVEL_WARNING, "SMTP: %s", resp->getText().c_str());
+		ec_log_debug("SMTP: %s", resp->getText().c_str());
 	}
 }
-
-void MAPISMTPTransport::setLogger(ECLogger *lpLogger)
-{                              
-	if (m_lpLogger != NULL)
-		m_lpLogger->Release();
-	m_lpLogger = lpLogger;
-	if (m_lpLogger != NULL)
-		m_lpLogger->AddRef();
-}                              
 
 void MAPISMTPTransport::requestDSN(BOOL bRequest, const std::string &strTrackid)
 {
@@ -687,8 +670,7 @@ void MAPISMTPTransport::requestDSN(BOOL bRequest, const std::string &strTrackid)
 
 void MAPISMTPTransport::sendRequest(const string& buffer, const bool end)
 {
-	if (m_lpLogger && m_lpLogger->Log(EC_LOGLEVEL_DEBUG))
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "< %s", buffer.c_str());
+	ec_log_debug("< %s", buffer.c_str());
 	if (end)
 		m_socket->send(buffer + "\r\n");
 	else
@@ -698,8 +680,7 @@ void MAPISMTPTransport::sendRequest(const string& buffer, const bool end)
 ref <SMTPResponse> MAPISMTPTransport::readResponse()
 {
 	ref <SMTPResponse> resp = SMTPResponse::readResponse(m_socket, m_timeoutHandler);
-	if (m_lpLogger && m_lpLogger->Log(EC_LOGLEVEL_DEBUG))
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "> %d %s", resp->getCode(), resp->getText().c_str());
+	ec_log_debug("> %d %s", resp->getCode(), resp->getText().c_str());
 	return resp;
 }
 

@@ -25,6 +25,7 @@
 #include "ECVMIMEUtils.h"
 #include "MAPISMTPTransport.h"
 #include <kopano/CommonUtil.h>
+#include <kopano/ECLogger.h>
 #include <kopano/charset/convert.h>
 
 #include <kopano/stringutil.h>
@@ -68,9 +69,8 @@ public:
 	};
 };
 
-ECVMIMESender::ECVMIMESender(ECLogger *newlpLogger,
-    const std::string &strSMTPHost, int port) :
-	ECSender(newlpLogger, strSMTPHost, port)
+ECVMIMESender::ECVMIMESender(const std::string &host, int port) :
+    ECSender(host, port)
 {
 }
 
@@ -111,7 +111,7 @@ HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpT
 			if (setRecips.find(strEmail) == setRecips.end()) {
 				recipients.appendMailbox(vmime::create<vmime::mailbox>(convert_to<string>(strEmail)));
 				setRecips.insert(strEmail);
-				lpLogger->Log(EC_LOGLEVEL_DEBUG, "RCPT TO: %ls", strEmail.c_str());	
+				ec_log_debug("RCPT TO: %ls", strEmail.c_str());	
 			}
 		}
 		else if (lpPropObjectType->Value.ul == MAPI_DISTLIST) {
@@ -127,7 +127,7 @@ HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpT
 				bool bEveryone = false;
 				
 				if(EntryIdIsEveryone(lpGroupEntryID->Value.bin.cb, (LPENTRYID)lpGroupEntryID->Value.bin.lpb, &bEveryone) == hrSuccess && bEveryone) {
-					lpLogger->Log(EC_LOGLEVEL_ERROR, "Denying send to Everyone");
+					ec_log_err("Denying send to Everyone");
 					error = std::wstring(L"You are not allowed to send to the 'Everyone' group");
 					hr = MAPI_E_NO_ACCESS;
 					goto exit;
@@ -143,7 +143,8 @@ HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpT
 					hr = hrSuccess;
 				} else if (hr != hrSuccess) {
 					// eg. MAPI_E_NOT_FOUND
-					lpLogger->Log(EC_LOGLEVEL_ERROR, "Error while expanding group. Group: %ls, error: 0x%08x", lpGroupName ? lpGroupName->Value.lpszW : L"<unknown>", hr);
+					ec_log_err("Error while expanding group. Group: %ls, error: 0x%08x",
+						lpGroupName ? lpGroupName->Value.lpszW : L"<unknown>", hr);
 					error = std::wstring(L"Error in group '") + (lpGroupName ? lpGroupName->Value.lpszW : L"<unknown>") + L"', unable to send e-mail";
 					goto exit;
 				}
@@ -151,8 +152,8 @@ HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpT
 				if (setRecips.find(strEmail) == setRecips.end()) {
 					recipients.appendMailbox(vmime::create<vmime::mailbox>(convert_to<string>(strEmail)));
 					setRecips.insert(strEmail);
-
-					lpLogger->Log(EC_LOGLEVEL_DEBUG, "Sending to group-address %s instead of expanded list", convert_to<std::string>(strEmail).c_str());
+					ec_log_debug("Sending to group-address %s instead of expanded list",
+						convert_to<std::string>(strEmail).c_str());
 				}
 			}
 		}
@@ -229,7 +230,7 @@ HRESULT ECVMIMESender::HrExpandGroup(LPADRBOOK lpAdrBook, LPSPropValue lpGroupNa
 			goto exit;
 			
 		if(ulType != MAPI_DISTLIST) {
-			lpLogger->Log(EC_LOGLEVEL_DEBUG, "Expected group, but opened type %d", ulType);	
+			ec_log_debug("Expected group, but opened type %d", ulType);
 			hr = MAPI_E_INVALID_PARAMETER;
 			goto exit;
 		}
@@ -399,16 +400,13 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage, vmime:
 		const string& str(oss.str()); // copy?
 		vmime::utility::inputStreamStringAdapter isAdapter(str); // direct oss.str() ?
 		
-		if (mapiTransport)
-			mapiTransport->setLogger(lpLogger);
-
 		// send the email already!
 		bool ok = false;
 		try {
 			vmTransport->connect();
 		} catch (vmime::exception &e) {
 			// special error, smtp server not respoding, so try later again
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Connect to SMTP: %s. E-Mail will be tried again later.", e.what());
+			ec_log_err("Connect to SMTP: %s. E-Mail will be tried again later.", e.what());
 			return MAPI_W_NO_SERVICE;
 		}
 
@@ -422,7 +420,7 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage, vmime:
 				mPermanentFailedRecipients = mapiTransport->getPermanentFailedRecipients();
 				mTemporaryFailedRecipients = mapiTransport->getTemporaryFailedRecipients();
 			}
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "SMTP: %s Response: %s", e.what(), e.response().c_str());
+			ec_log_err("SMTP: %s Response: %s", e.what(), e.response().c_str());
 			smtpresult = atoi(e.response().substr(0, e.response().find_first_of(" ")).c_str());
 			error = convert_to<wstring>(e.response());
 			// message should be cancelled, unsendable, test by smtp result code.
@@ -433,7 +431,7 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage, vmime:
 				mPermanentFailedRecipients = mapiTransport->getPermanentFailedRecipients();
 				mTemporaryFailedRecipients = mapiTransport->getTemporaryFailedRecipients();
 			}
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "SMTP: %s Name: %s", e.what(), e.name());
+			ec_log_err("SMTP: %s Name: %s", e.what(), e.name());
 			//smtpresult = atoi(e.response().substr(0, e.response().find_first_of(" ")).c_str());
 			//error = convert_to<wstring>(e.response());
 			// message should be cancelled, unsendable, test by smtp result code.
@@ -469,12 +467,12 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage, vmime:
 	}
 	catch (vmime::exception& e) {
 		// connection_greeting_error, ...?
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "%s", e.what());
+		ec_log_err("%s", e.what());
 		error = convert_to<wstring>(e.what());
 		return MAPI_E_NETWORK_ERROR;
 	}
 	catch (std::exception& e) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "%s",e.what());
+		ec_log_err("%s", e.what());
 		error = convert_to<wstring>(e.what());
 		return MAPI_E_NETWORK_ERROR;
 	}

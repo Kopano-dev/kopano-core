@@ -2599,7 +2599,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	}
 
 	// Now hand message to library which will send it, inetmapi will handle addressbook
-	hr = IMToINet(lpUserSession, lpAddrBook, lpMessage, lpMailer, sopt, g_lpLogger);
+	hr = IMToINet(lpUserSession, lpAddrBook, lpMessage, lpMailer, sopt);
 
 	// log using fatal, all other log messages are otherwise somewhat meaningless
 	if (hr == MAPI_W_NO_SERVICE) {
@@ -2696,7 +2696,7 @@ HRESULT ProcessMessageForked(const wchar_t *szUsername, const char *szSMTP,
 	IMessage		*lpMessage = NULL;
 	ECUSER *lpUserAdmin = NULL; // for error message
 	
-	lpMailer = CreateSender(g_lpLogger, szSMTP, ulPort);
+	lpMailer = CreateSender(szSMTP, ulPort);
 	if (!lpMailer) {
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "ProcessMessageForked(): CreateSender failed: %s (%x)",
