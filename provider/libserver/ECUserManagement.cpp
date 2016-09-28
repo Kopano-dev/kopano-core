@@ -1959,6 +1959,8 @@ ECRESULT ECUserManagement::QueryHierarchyRowData(struct soap *soap, ECObjectTabl
 	ASSERT(lpRowList != NULL);
 
 	lpsRowSet = s_alloc<struct rowSet>(soap);
+	if (lpsRowSet == NULL)
+		return KCERR_NOT_ENOUGH_MEMORY;
 	lpsRowSet->__size = 0;
 	lpsRowSet->__ptr = NULL;
 
@@ -2003,7 +2005,7 @@ ECRESULT ECUserManagement::QueryHierarchyRowData(struct soap *soap, ECObjectTabl
 	*lppRowSet = lpsRowSet;
 
 exit:
-	if (er != erSuccess && lpsRowSet != NULL) {
+	if (er != erSuccess) {
 		s_free(soap, lpsRowSet->__ptr);
 		s_free(soap, lpsRowSet);
 	}

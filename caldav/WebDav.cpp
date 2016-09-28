@@ -1234,7 +1234,10 @@ HRESULT WebDav::HrWriteItems(xmlTextWriter *xmlWriter,
 void WebDav::HrSetDavPropName(WEBDAVPROPNAME *lpsDavPropName, xmlNode *lpXmlNode)
 {
 	lpsDavPropName->strPropname.assign((const char*)lpXmlNode->name);
-	lpsDavPropName->strNS.assign((const char*)lpXmlNode->ns->href);
+	if (lpXmlNode->ns != NULL && lpXmlNode->ns->href != NULL)
+		lpsDavPropName->strNS.assign(reinterpret_cast<const char *>(lpXmlNode->ns->href));
+	else
+		lpsDavPropName->strNS.clear();
 	if(!lpsDavPropName->strNS.empty())
 		m_mapNs[lpsDavPropName->strNS] = "";
 

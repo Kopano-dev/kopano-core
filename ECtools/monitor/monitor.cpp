@@ -73,10 +73,13 @@ static void sighandle(int sig)
 	signal(SIGTERM , sighandle);
 	signal(SIGINT  , sighandle);	// CTRL+C
 
-	if (m_lpThreadMonitor && m_lpThreadMonitor->bShutdown == false)// do not log multimple shutdown messages
-		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_NOTICE, "Termination requested, shutting down.");
+	if (m_lpThreadMonitor) {
+		if (!m_lpThreadMonitor->bShutdown)
+			/* do not log multimple shutdown messages */
+			m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_NOTICE, "Termination requested, shutting down.");
 	
-	m_lpThreadMonitor->bShutdown = true;
+		m_lpThreadMonitor->bShutdown = true;
+	}
 	m_hExitSignal.notify_one();
 }
 
