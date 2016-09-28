@@ -111,7 +111,7 @@ convstring::convstring(const char *lpsz, bool bCheapCopy)
 : m_lpsz(reinterpret_cast<const TCHAR*>(lpsz))
 , m_ulFlags(0)
 {
-	if (!bCheapCopy && !m_lpsz) {
+	if (!bCheapCopy && m_lpsz != NULL) {
 		m_str.assign(m_lpsz);
 		m_lpsz = m_str.c_str();
 	}
@@ -133,7 +133,7 @@ convstring::convstring(const wchar_t *lpsz, bool bCheapCopy)
 : m_lpsz(reinterpret_cast<const TCHAR*>(lpsz))
 , m_ulFlags(MAPI_UNICODE)
 {
-	if (!bCheapCopy && !m_lpsz) {
+	if (!bCheapCopy && m_lpsz != NULL) {
 		m_str.assign(m_lpsz);
 		m_lpsz = m_str.c_str();
 	}
@@ -161,7 +161,7 @@ convstring::convstring(const TCHAR *lpsz, ULONG ulFlags, bool bCheapCopy)
 : m_lpsz(lpsz)
 , m_ulFlags(ulFlags)
 {
-	if (!bCheapCopy && !m_lpsz) {
+	if (!bCheapCopy && m_lpsz != NULL) {
 		m_str.assign(m_lpsz);
 		m_lpsz = m_str.c_str();
 	}
