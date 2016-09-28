@@ -32,7 +32,7 @@ private:
 	HRESULT HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpTable, vmime::mailboxList &recipients, std::set<std::wstring> &setGroups, std::set<std::wstring> &setRecips, bool bAllowEveryone, bool bAlwaysExpandDistrList);
 
 public:
-	ECVMIMESender(ECLogger *newlpLogger, std::string strSMTPHost, int port);
+	ECVMIMESender(ECLogger *, const std::string &host, int port);
 	HRESULT sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage, vmime::ref<vmime::message> vmMessage, bool bAllowEveryone, bool bAlwaysExpandDistrList);
 };
 

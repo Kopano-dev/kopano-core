@@ -1666,11 +1666,9 @@ exit:
  */
 HRESULT ECExchangeExportChanges::AddProcessedChanges(ChangeList &lstChanges)
 {
-	ChangeListIter iterChange;
-
-	for (iterChange = lstChanges.begin(); iterChange != lstChanges.end(); ++iterChange)
-		m_setProcessedChanges.insert(std::pair<unsigned int, std::string>(iterChange->ulChangeId, std::string((char *)iterChange->sSourceKey.lpb, iterChange->sSourceKey.cb)));
-
+	for (const auto &i : lstChanges)
+		m_setProcessedChanges.insert(std::pair<unsigned int, std::string>(i.ulChangeId,
+			std::string(reinterpret_cast<const char *>(i.sSourceKey.lpb), i.sSourceKey.cb)));
 	return hrSuccess;
 }
 

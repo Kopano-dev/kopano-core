@@ -787,7 +787,8 @@ HRESULT HrCopyFBBlockSet(OccrInfo *lpDest, OccrInfo *lpSrc, ULONG ulcValues)
  * @param[out]		lpcValues		number of occurrences in array
  * @return			HRESULT
  */
-HRESULT HrAddFBBlock(OccrInfo sOccrInfo, OccrInfo **lppsOccrInfo, ULONG *lpcValues)
+HRESULT HrAddFBBlock(const OccrInfo &sOccrInfo, OccrInfo **lppsOccrInfo,
+    ULONG *lpcValues)
 {
 	HRESULT hr = hrSuccess;
 	OccrInfo *lpsNewOccrInfo = NULL;

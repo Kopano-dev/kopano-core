@@ -68,7 +68,10 @@ public:
 	};
 };
 
-ECVMIMESender::ECVMIMESender(ECLogger *newlpLogger, std::string strSMTPHost, int port) : ECSender(newlpLogger, strSMTPHost, port) {
+ECVMIMESender::ECVMIMESender(ECLogger *newlpLogger,
+    const std::string &strSMTPHost, int port) :
+	ECSender(newlpLogger, strSMTPHost, port)
+{
 }
 
 /**

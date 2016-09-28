@@ -373,7 +373,7 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 	//mapi property mapping for requested properties.
 	//FIXME what if the property mapping is not found.
 	i = 4;
-	for (const auto sDavProperty : sDavProp.lstProps)
+	for (const auto &sDavProperty : sDavProp.lstProps)
 		lpPropTagArr->aulPropTag[i++] = GetPropIDForXMLProp(m_lpUsrFld, sDavProperty.sPropName, m_converter);
 
 	hr = m_lpUsrFld->GetProps((LPSPropTagArray)lpPropTagArr, 0, &cValues, &lpProps);

@@ -44,7 +44,7 @@ std::string GetDebugFBBlock(LONG celt, FBBlock_1* pblk);
 std::string GetFbStatus(FBStatus &fbstatus);
 
 HRESULT HrCopyFBBlockSet(OccrInfo *lpDest, OccrInfo *lpSrc, ULONG ulcValues);
-HRESULT	HrAddFBBlock(OccrInfo sOccrInfo, OccrInfo **lppsOccrInfo, ULONG *lpcValues);
+extern HRESULT HrAddFBBlock(const OccrInfo &sOccrInfo, OccrInfo **lppsOccrInfo, ULONG *lpcValues);
 
 #endif // ECFREEBUSYUTIL_H
 
