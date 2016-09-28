@@ -210,34 +210,32 @@ KPropertyRestriction::operator SRestriction(void) const
 	return r;
 }
 
-KSession::KSession(void) :
-	m_log(new ECLogger_File(EC_LOGLEVEL_DEBUG, false, "-", 0))
+KSession::KSession(void)
 {
 	m_session = NULL;
 	const char *sock = getenv("KOPANO_SOCKET");
 	if (sock == NULL)
 		sock = "default:";
-	int ret = HrOpenECSession(m_log, &m_session, "app_vers", "app_misc",
+	int ret = HrOpenECSession(&m_session, "app_vers", "app_misc",
 	          L"SYSTEM", L"", sock, 0, 0, 0);
 	if (ret != hrSuccess)
 		throw KMAPIError(ret);
 }
 
-KSession::KSession(const wchar_t *user, const wchar_t *pass) :
-	m_log(new ECLogger_File(EC_LOGLEVEL_DEBUG, false, "-", 0))
+KSession::KSession(const wchar_t *user, const wchar_t *pass)
 {
 	m_session = NULL;
 	const char *sock = getenv("KOPANO_SOCKET");
 	if (sock == NULL)
 		sock = "default:";
-	int ret = HrOpenECSession(m_log, &m_session, "app_vers", "app_misc",
+	int ret = HrOpenECSession(&m_session, "app_vers", "app_misc",
 	          user, pass, sock, 0, 0, 0);
 	if (ret != hrSuccess)
 		throw KMAPIError(ret);
 }
 
 KSession::KSession(IMAPISession *session) :
-	m_log(NULL), m_session(session)
+	m_session(session)
 {
 }
 
@@ -245,8 +243,6 @@ KSession::~KSession(void)
 {
 	if (m_session != NULL)
 		m_session->Release();
-	if (m_log != NULL)
-		m_log->Release();
 }
 
 KStore KSession::open_default_store(void)

@@ -102,7 +102,11 @@ static HRESULT UpdatePassword(const char *lpPath, const char *lpUsername,
 		lpLogger = new ECLogger_File(EC_LOGLEVEL_FATAL, 0, "-", false);
 	else
 		lpLogger = new ECLogger_Null();
-	hr = HrOpenECSession(lpLogger, &lpSession, "kopano-passwd", PROJECT_SVN_REV_STR, strwUsername.c_str(), strwPassword.c_str(), lpPath, EC_PROFILE_FLAGS_NO_NOTIFICATIONS | EC_PROFILE_FLAGS_NO_PUBLIC_STORE, NULL, NULL);
+	ec_log_set(lpLogger);
+	hr = HrOpenECSession(&lpSession, "kopano-passwd", PROJECT_SVN_REV_STR,
+	     strwUsername.c_str(), strwPassword.c_str(), lpPath,
+	     EC_PROFILE_FLAGS_NO_NOTIFICATIONS | EC_PROFILE_FLAGS_NO_PUBLIC_STORE,
+	     NULL, NULL);
 	lpLogger->Release();
 	if(hr != hrSuccess) {
 		cerr << "Wrong username or password." << endl;

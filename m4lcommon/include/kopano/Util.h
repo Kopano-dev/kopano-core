@@ -27,8 +27,6 @@
 
 #include <kopano/ustringutil.h>
 
-class ECLogger;
-
 /*
  * This class only exists to satisfy the %extend directive in swig/libcommon.i.
  * It screams for replacement with a namespace Util {}

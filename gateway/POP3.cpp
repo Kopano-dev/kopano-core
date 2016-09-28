@@ -766,7 +766,9 @@ HRESULT POP3::HrLogin(const std::string &strUsername, const std::string &strPass
 		goto exit;
 	}
 	
-	hr = HrOpenECSession(lpLogger, &lpSession, "gateway/pop3", PROJECT_SVN_REV_STR, strwUsername.c_str(), strwPassword.c_str(), m_strPath.c_str(), EC_PROFILE_FLAGS_NO_NOTIFICATIONS, NULL, NULL);
+	hr = HrOpenECSession(&lpSession, "gateway/pop3", PROJECT_SVN_REV_STR,
+	     strwUsername.c_str(), strwPassword.c_str(), m_strPath.c_str(),
+	     EC_PROFILE_FLAGS_NO_NOTIFICATIONS, NULL, NULL);
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to login from %s with invalid username \"%s\" or wrong password. Error: 0x%X",
 					  lpChannel->peer_addr(), strUsername.c_str(), hr);

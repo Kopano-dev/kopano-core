@@ -36,7 +36,9 @@ using namespace std;
 HRESULT HrAuthenticate(ECLogger *const lpLogger, const std::string & appVersion, const std::string & appMisc, const std::wstring &wstrUser, const std::wstring &wstrPass, std::string strPath, IMAPISession **lppSession)
 {
 	// @todo: if login with utf8 username is not possible, lookup user from addressbook? but how?
-	return HrOpenECSession(lpLogger, lppSession, appVersion.c_str(), appMisc.c_str(), wstrUser.c_str(), wstrPass.c_str(), strPath.c_str(), 0, NULL, NULL, NULL);
+	return HrOpenECSession(lppSession, appVersion.c_str(), appMisc.c_str(),
+	       wstrUser.c_str(), wstrPass.c_str(), strPath.c_str(),
+	       0, NULL, NULL, NULL);
 }
 
 /**

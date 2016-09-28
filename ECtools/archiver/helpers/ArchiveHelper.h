@@ -25,6 +25,8 @@
 #include <kopano/CommonUtil.h>
 #include "ArchiverSessionPtr.h"     // For ArchiverSessionPtr
 
+class ECLogger;
+
 namespace za { namespace helpers {
 
 class ArchiveHelper;

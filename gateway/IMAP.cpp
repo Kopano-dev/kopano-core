@@ -919,7 +919,9 @@ HRESULT IMAP::HrCmdLogin(const string &strTag, const string &strUser, const stri
 	}
 
 	// do not disable notifications for imap connections, may be idle and sessions on the storage server will disappear.
-	hr = HrOpenECSession(lpLogger, &lpSession, "gateway/imap", PROJECT_SVN_REV_STR, strwUsername.c_str(), strwPassword.c_str(), m_strPath.c_str(), EC_PROFILE_FLAGS_NO_COMPRESSION, NULL, NULL);
+	hr = HrOpenECSession(&lpSession, "gateway/imap", PROJECT_SVN_REV_STR,
+	     strwUsername.c_str(), strwPassword.c_str(), m_strPath.c_str(),
+	     EC_PROFILE_FLAGS_NO_COMPRESSION, NULL, NULL);
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed to login from %s with invalid username \"%s\" or wrong password. Error: 0x%08X",
 					  lpChannel->peer_addr(), strUsername.c_str(), hr);

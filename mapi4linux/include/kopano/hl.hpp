@@ -7,7 +7,6 @@
 #include <string>
 #include <mapidefs.h>
 
-class ECLogger_File;
 struct IAttach;
 struct IMAPIFolder;
 struct IMAPISession;
@@ -132,7 +131,6 @@ class KSession {
 	KStore open_default_store(void);
 
 	protected:
-	ECLogger_File *m_log;
 	IMAPISession *m_session;
 };
 

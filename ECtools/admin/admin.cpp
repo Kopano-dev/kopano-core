@@ -3121,7 +3121,10 @@ int main(int argc, char* argv[])
 		path = GetServerUnixSocket(path);
 	}
 
-	hr = HrOpenECAdminSession(lpLogger, &lpSession, "admin", PROJECT_SVN_REV_STR, path, EC_PROFILE_FLAGS_NO_NOTIFICATIONS, lpsConfig->GetSetting("sslkey_file", "", NULL), lpsConfig->GetSetting("sslkey_pass", "", NULL));
+	hr = HrOpenECAdminSession(&lpSession, "admin", PROJECT_SVN_REV_STR,
+	     path, EC_PROFILE_FLAGS_NO_NOTIFICATIONS,
+	     lpsConfig->GetSetting("sslkey_file", "", NULL),
+	     lpsConfig->GetSetting("sslkey_pass", "", NULL));
 	if(hr != hrSuccess) {
 		cerr << "Unable to open Admin session: " <<
 			GetMAPIErrorMessage(hr) << " (" <<

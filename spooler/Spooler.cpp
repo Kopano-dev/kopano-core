@@ -739,9 +739,10 @@ static HRESULT ProcessQueue(const char *szSMTP, int ulPort, const char *szPath)
 	
 	SSortOrderSet sSort = { 1, 0, 0, { { PR_EC_HIERARCHYID, TABLE_SORT_ASCEND } } };
 
-	hr = HrOpenECAdminSession(g_lpLogger, &lpAdminSession, "kopano-spooler:system", PROJECT_SVN_REV_STR, szPath, EC_PROFILE_FLAGS_NO_PUBLIC_STORE,
-							  g_lpConfig->GetSetting("sslkey_file", "", NULL),
-							  g_lpConfig->GetSetting("sslkey_pass", "", NULL));
+	hr = HrOpenECAdminSession(&lpAdminSession, "kopano-spooler:system",
+	     PROJECT_SVN_REV_STR, szPath, EC_PROFILE_FLAGS_NO_PUBLIC_STORE,
+	     g_lpConfig->GetSetting("sslkey_file", "", NULL),
+	     g_lpConfig->GetSetting("sslkey_pass", "", NULL));
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open admin session. Error 0x%08X", hr);
 		goto exit;

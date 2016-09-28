@@ -188,7 +188,7 @@ HRESULT PublishFreeBusy::HrGetResctItems(IMAPITable **lppTable)
 	SPropValue lpsPropIsRecc;
 	SPropValue lpsPropReccEnd;
 		
-	hr = HrOpenDefaultCalendar(m_lpDefStore, m_lpLogger, &lpDefCalendar);
+	hr = HrOpenDefaultCalendar(m_lpDefStore, &lpDefCalendar);
 	if(hr != hrSuccess)
 		goto exit;
 

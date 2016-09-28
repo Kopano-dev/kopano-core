@@ -24,10 +24,9 @@
 
 #include <mapidefs.h>
 #include <mapix.h>
-class ECLogger;
 
-HRESULT GetArchivedUserList(ECLogger *lpLogger, IMAPISession *lpMapiSession, const char *lpSSLKey, const char *lpSSLPass, std::list<std::string> *lplstUsers, bool bLocalOnly = false);
-HRESULT GetArchivedUserList(ECLogger *lpLogger, IMAPISession *lpMapiSession, const char *lpSSLKey, const char *lpSSLPass, std::list<std::wstring> *lplstUsers, bool bLocalOnly = false);
+extern HRESULT GetArchivedUserList(IMAPISession *lpMapiSession, const char *lpSSLKey, const char *lpSSLPass, std::list<std::string> *lplstUsers, bool bLocalOnly = false);
+extern HRESULT GetArchivedUserList(IMAPISession *lpMapiSession, const char *lpSSLKey, const char *lpSSLPass, std::list<std::wstring> *lplstUsers, bool bLocalOnly = false);
 
 class DataCollector
 {
@@ -37,6 +36,6 @@ public:
 	virtual HRESULT CollectData(LPMAPITABLE lpStoreTable) = 0;
 };
 
-HRESULT GetMailboxData(ECLogger *lpLogger, IMAPISession *lpMapiSession, const char *lpSSLKey, const char *lpSSLPass, bool bLocalOnly, DataCollector *lpCollector);
+extern HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey, const char *lpSSLPass, bool bLocalOnly, DataCollector *lpCollector);
 
 #endif

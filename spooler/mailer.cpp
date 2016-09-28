@@ -2705,9 +2705,10 @@ HRESULT ProcessMessageForked(const wchar_t *szUsername, const char *szSMTP,
 	}
 
 	// The Admin session is used for checking delegates and archiving
-	hr = HrOpenECAdminSession(g_lpLogger, &lpAdminSession, "spooler/mailer:admin", PROJECT_SVN_REV_STR, szPath, EC_PROFILE_FLAGS_NO_PUBLIC_STORE,
-							  g_lpConfig->GetSetting("sslkey_file", "", NULL),
-							  g_lpConfig->GetSetting("sslkey_pass", "", NULL));
+	hr = HrOpenECAdminSession(&lpAdminSession, "spooler/mailer:admin",
+	     PROJECT_SVN_REV_STR, szPath, EC_PROFILE_FLAGS_NO_PUBLIC_STORE,
+	     g_lpConfig->GetSetting("sslkey_file", "", NULL),
+	     g_lpConfig->GetSetting("sslkey_pass", "", NULL));
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open admin session: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
@@ -2722,9 +2723,11 @@ HRESULT ProcessMessageForked(const wchar_t *szUsername, const char *szSMTP,
 	 * usersession for email sending we will let the server handle all
 	 * permissions and can correctly resolve everything.
 	 */
-	hr = HrOpenECSession(g_lpLogger, &lpUserSession, "spooler/mailer", PROJECT_SVN_REV_STR, szUsername, L"", szPath, EC_PROFILE_FLAGS_NO_PUBLIC_STORE,
-						 g_lpConfig->GetSetting("sslkey_file", "", NULL),
-						 g_lpConfig->GetSetting("sslkey_pass", "", NULL));
+	hr = HrOpenECSession(&lpUserSession, "spooler/mailer",
+	     PROJECT_SVN_REV_STR, szUsername, L"", szPath,
+	     EC_PROFILE_FLAGS_NO_PUBLIC_STORE,
+	     g_lpConfig->GetSetting("sslkey_file", "", NULL),
+	     g_lpConfig->GetSetting("sslkey_pass", "", NULL));
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open user session: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);

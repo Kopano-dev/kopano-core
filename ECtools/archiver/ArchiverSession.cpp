@@ -161,7 +161,10 @@ HRESULT ArchiverSession::Init(const char *lpszServerPath, const char *lpszSslPat
 {
 	HRESULT hr;
 	
-	hr = HrOpenECAdminSession(m_lpLogger, &m_ptrSession, "kopano-archiver:system", PROJECT_SVN_REV_STR, (char*)lpszServerPath, EC_PROFILE_FLAGS_NO_NOTIFICATIONS, (char*)lpszSslPath, (char*)lpszSslPass);
+	hr = HrOpenECAdminSession(&m_ptrSession, "kopano-archiver:system",
+	     PROJECT_SVN_REV_STR, const_cast<char *>(lpszServerPath),
+	     EC_PROFILE_FLAGS_NO_NOTIFICATIONS, const_cast<char *>(lpszSslPath),
+	     const_cast<char *>(lpszSslPass));
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Unable to open Admin ArchiverSession.");
 		switch (hr) {

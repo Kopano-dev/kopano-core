@@ -167,7 +167,11 @@ exit:
  *
  * @return		HRESULT		Mapi error code.
  */
-HRESULT CreateProfileTemp(ECLogger *const lpLogger, const WCHAR *username, const WCHAR *password, const char *path, const char* szProfName, ULONG ulProfileFlags, const char *sslkey_file, const char *sslkey_password, const char *app_version, const char *app_misc) {
+HRESULT CreateProfileTemp(const wchar_t *username, const wchar_t *password,
+    const char *path, const char* szProfName, ULONG ulProfileFlags,
+    const char *sslkey_file, const char *sslkey_password,
+    const char *app_version, const char *app_misc)
+{
 	HRESULT hr = hrSuccess;
 	IProfAdmin *lpProfAdmin = NULL;
 	LPSERVICEADMIN lpServiceAdmin = NULL;
@@ -182,26 +186,26 @@ HRESULT CreateProfileTemp(ECLogger *const lpLogger, const WCHAR *username, const
 //-- create profile
 	hr = MAPIAdminProfiles(0, &lpProfAdmin);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "CreateProfileTemp(): MAPIAdminProfiles failed %x: %s", hr, GetMAPIErrorMessage(hr));
+		ec_log_crit("CreateProfileTemp(): MAPIAdminProfiles failed %x: %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
 	}
 
 	lpProfAdmin->DeleteProfile((LPTSTR)szProfName, 0);
 	hr = lpProfAdmin->CreateProfile((LPTSTR)szProfName, (LPTSTR)"", 0, 0);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "CreateProfileTemp(): CreateProfile failed %x: %s", hr, GetMAPIErrorMessage(hr));
+		ec_log_crit("CreateProfileTemp(): CreateProfile failed %x: %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
 	}
 
 	hr = lpProfAdmin->AdminServices((LPTSTR)szProfName, (LPTSTR)"", 0, 0, &lpServiceAdmin);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "CreateProfileTemp(): AdminServices failed %x: %s", hr, GetMAPIErrorMessage(hr));
+		ec_log_crit("CreateProfileTemp(): AdminServices failed %x: %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
 	}
 	
 	hr = lpServiceAdmin->CreateMsgService((LPTSTR)"ZARAFA6", (LPTSTR)"", 0, 0);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "CreateProfileTemp(): CreateMsgService ZARAFA6 failed: %s (%x)", GetMAPIErrorMessage(hr), hr);
+		ec_log_crit("CreateProfileTemp(): CreateMsgService ZARAFA6 failed: %s (%x)", GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
 
@@ -209,7 +213,7 @@ HRESULT CreateProfileTemp(ECLogger *const lpLogger, const WCHAR *username, const
 	// the table. (see MSDN help page of CreateMsgService at the bottom of the page)
 	hr = lpServiceAdmin->GetMsgServiceTable(0, &lpTable);
 	if(hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "CreateProfileTemp(): GetMsgServiceTable failed %x: %s", hr, GetMAPIErrorMessage(hr));
+		ec_log_crit("CreateProfileTemp(): GetMsgServiceTable failed %x: %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
 	}
 
@@ -218,7 +222,7 @@ HRESULT CreateProfileTemp(ECLogger *const lpLogger, const WCHAR *username, const
 		hr = lpTable->QueryRows(1, 0, &lpRows);
 		
 		if(hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_FATAL, "CreateProfileTemp(): QueryRows failed %x: %s", hr, GetMAPIErrorMessage(hr));
+			ec_log_crit("CreateProfileTemp(): QueryRows failed %x: %s", hr, GetMAPIErrorMessage(hr));
 			goto exit;
 		}
 			
@@ -236,7 +240,7 @@ HRESULT CreateProfileTemp(ECLogger *const lpLogger, const WCHAR *username, const
 	}
 	
 	if(lpRows->cRows != 1) {
-		lpLogger->Log(EC_LOGLEVEL_WARNING, "CreateProfileTemp(): no rows found");
+		ec_log_warn("CreateProfileTemp(): no rows found");
 		hr = MAPI_E_NOT_FOUND;
 		goto exit;
 	}
@@ -244,7 +248,7 @@ HRESULT CreateProfileTemp(ECLogger *const lpLogger, const WCHAR *username, const
 	// Get the PR_SERVICE_UID from the row
 	lpServiceUID = PpropFindProp(lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues, PR_SERVICE_UID);
 	if(!lpServiceUID) {
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "CreateProfileTemp(): PpropFindProp failed %x: %s", hr, GetMAPIErrorMessage(hr));
+		ec_log_crit("CreateProfileTemp(): PpropFindProp failed %x: %s", hr, GetMAPIErrorMessage(hr));
 		hr = MAPI_E_NOT_FOUND;
 		goto exit;
 	}
@@ -297,7 +301,7 @@ HRESULT CreateProfileTemp(ECLogger *const lpLogger, const WCHAR *username, const
 
 	hr = lpServiceAdmin->ConfigureMsgService((MAPIUID *)lpServiceUID->Value.bin.lpb, 0, 0, i, sProps);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "CreateProfileTemp(): ConfigureMsgService failed %x: %s", hr, GetMAPIErrorMessage(hr));
+		ec_log_crit("CreateProfileTemp(): ConfigureMsgService failed %x: %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
 	}
 
@@ -343,12 +347,19 @@ exit:
 	return hr;
 }
 
-HRESULT HrOpenECAdminSession(ECLogger *const lpLogger, IMAPISession **lppSession, const char *const app_version, const char *const app_misc, const char *szPath, ULONG ulProfileFlags, const char *sslkey_file, const char *sslkey_password)
+HRESULT HrOpenECAdminSession(IMAPISession **lppSession,
+    const char *const app_version, const char *const app_misc,
+    const char *szPath, ULONG ulProfileFlags, const char *sslkey_file,
+    const char *sslkey_password)
 {
-	return HrOpenECSession(lpLogger, lppSession, app_version, app_misc, KOPANO_SYSTEM_USER_W, KOPANO_SYSTEM_USER_W, szPath, ulProfileFlags, sslkey_file, sslkey_password);
+	return HrOpenECSession(lppSession, app_version, app_misc, KOPANO_SYSTEM_USER_W, KOPANO_SYSTEM_USER_W, szPath, ulProfileFlags, sslkey_file, sslkey_password);
 }
 
-HRESULT HrOpenECSession(ECLogger *const lpLogger, IMAPISession **lppSession, const char *const app_version, const char *const app_misc, const WCHAR *szUsername, const WCHAR *szPassword, const char *szPath, ULONG ulProfileFlags, const char *sslkey_file, const char *sslkey_password, const char *profname)
+HRESULT HrOpenECSession(IMAPISession **lppSession,
+    const char *const app_version, const char *const app_misc,
+    const wchar_t *szUsername, const wchar_t *szPassword, const char *szPath,
+    ULONG ulProfileFlags, const char *sslkey_file, const char *sslkey_password,
+    const char *profname)
 {
 	HRESULT		hr = hrSuccess;
 	ULONG		ulProfNum = 0;
@@ -366,7 +377,7 @@ HRESULT HrOpenECSession(ECLogger *const lpLogger, IMAPISession **lppSession, con
 	if (sslkey_file != NULL) {
 		FILE *ssltest = fopen(sslkey_file, "r");
 		if (!ssltest) {
-			lpLogger->Log(EC_LOGLEVEL_FATAL, "Cannot access %s: %s", sslkey_file, strerror(errno));
+			ec_log_crit("Cannot access %s: %s", sslkey_file, strerror(errno));
 
 			// do not pass sslkey if the file does not exist
 			// otherwise normal connections do not work either
@@ -379,16 +390,16 @@ HRESULT HrOpenECSession(ECLogger *const lpLogger, IMAPISession **lppSession, con
 		}
 	}
 
-	hr = CreateProfileTemp(lpLogger, szUsername, szPassword, szPath, (const char*)szProfName, ulProfileFlags, sslkey_file, sslkey_password, app_version, app_misc);
+	hr = CreateProfileTemp(szUsername, szPassword, szPath, (const char*)szProfName, ulProfileFlags, sslkey_file, sslkey_password, app_version, app_misc);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_WARNING, "CreateProfileTemp failed: %x: %s", hr, GetMAPIErrorMessage(hr));
+		ec_log_warn("CreateProfileTemp failed: %x: %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
 	}
 
 	// Log on the the profile
 	hr = MAPILogonEx(0, (LPTSTR)szProfName, (LPTSTR)"", MAPI_EXTENDED | MAPI_NEW_SESSION | MAPI_NO_MAIL, &lpMAPISession);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_WARNING, "MAPILogonEx failed: %x: %s", hr, GetMAPIErrorMessage(hr));
+		ec_log_warn("MAPILogonEx failed: %x: %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
 	}
 
@@ -2357,16 +2368,16 @@ exit:
  * @param[in]	folder	The name of the folder you want to open. Can be at any depth, eg. INBOX/folder name1/folder name2. Pass / as separator.
  *						Pass NULL to open the IPM subtree of the passed store.
  * @param[in]	psep	The foldername separator in the folder parameter.
- * @param[in]	lpLogger	Optional logobject to send specific errors to during the function.
  * @param[in]	bIsPublic	The lpMDB parameter is the public store if true, otherwise false.
  * @param[in]	bCreateFolder	Create the subfolders if they are not found, otherwise returns MAPI_E_NOT_FOUND if a folder is not present.
  * @param[out]	lppSubFolder	The final opened subfolder.
  * @return	MAPI error code
  * @retval	MAPI_E_NOT_FOUND, MAPI_E_NO_ACCESS, other.
  */
-HRESULT OpenSubFolder(LPMDB lpMDB, const WCHAR *folder, WCHAR psep, ECLogger *lpLogger, bool bIsPublic, bool bCreateFolder, LPMAPIFOLDER *lppSubFolder) {
+HRESULT OpenSubFolder(LPMDB lpMDB, const wchar_t *folder, wchar_t psep,
+    bool bIsPublic, bool bCreateFolder, LPMAPIFOLDER *lppSubFolder)
+{
 	HRESULT			hr = hrSuccess;
-	ECLogger*		lpNullLogger = new ECLogger_Null();
 	LPSPropValue	lpPropIPMSubtree = NULL;
 	LPMAPITABLE		lpTable = NULL;
 	ULONG			ulObjType;
@@ -2375,14 +2386,11 @@ HRESULT OpenSubFolder(LPMDB lpMDB, const WCHAR *folder, WCHAR psep, ECLogger *lp
 	LPMAPIFOLDER	lpNewFolder = NULL;
 	const WCHAR*	ptr = NULL;
 
-	if (lpLogger == NULL)
-		lpLogger = lpNullLogger;
-
 	if(bIsPublic)
 	{
 		hr = HrGetOneProp(lpMDB, PR_IPM_PUBLIC_FOLDERS_ENTRYID, &lpPropIPMSubtree);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to find PR_IPM_PUBLIC_FOLDERS_ENTRYID object, error code: 0x%08X", hr);
+			ec_log_crit("Unable to find PR_IPM_PUBLIC_FOLDERS_ENTRYID object, error code: 0x%08X", hr);
 			goto exit;
 		}
 	}
@@ -2390,7 +2398,7 @@ HRESULT OpenSubFolder(LPMDB lpMDB, const WCHAR *folder, WCHAR psep, ECLogger *lp
 	{
 		hr = HrGetOneProp(lpMDB, PR_IPM_SUBTREE_ENTRYID, &lpPropIPMSubtree);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to find IPM_SUBTREE object, error code: 0x%08X", hr);
+			ec_log_crit("Unable to find IPM_SUBTREE object, error code: 0x%08X", hr);
 			goto exit;
 		}
 	}
@@ -2398,7 +2406,7 @@ HRESULT OpenSubFolder(LPMDB lpMDB, const WCHAR *folder, WCHAR psep, ECLogger *lp
 	hr = lpMDB->OpenEntry(lpPropIPMSubtree->Value.bin.cb, (LPENTRYID)lpPropIPMSubtree->Value.bin.lpb,
 						  &IID_IMAPIFolder, 0, &ulObjType, (LPUNKNOWN*)&lpFoundFolder);
 	if (hr != hrSuccess || ulObjType != MAPI_FOLDER) {
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open IPM_SUBTREE object, error code: 0x%08X", hr);
+		ec_log_crit("Unable to open IPM_SUBTREE object, error code: 0x%08X", hr);
 		goto exit;
 	}
 
@@ -2419,7 +2427,7 @@ HRESULT OpenSubFolder(LPMDB lpMDB, const WCHAR *folder, WCHAR psep, ECLogger *lp
 
 		hr = lpFoundFolder->GetHierarchyTable(0, &lpTable);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to view folder, error code: 0x%08X", hr);
+			ec_log_crit("Unable to view folder, error code: 0x%08X", hr);
 			goto exit;
 		}
 
@@ -2427,7 +2435,7 @@ HRESULT OpenSubFolder(LPMDB lpMDB, const WCHAR *folder, WCHAR psep, ECLogger *lp
 		if (hr == MAPI_E_NOT_FOUND && bCreateFolder) {
 			hr = lpFoundFolder->CreateFolder(FOLDER_GENERIC, (LPTSTR)subfld.c_str(), (LPTSTR)L"Auto-created by Kopano", &IID_IMAPIFolder, MAPI_UNICODE | OPEN_IF_EXISTS, &lpNewFolder);
 			if (hr != hrSuccess) {
-				lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to create folder '%ls', error code: 0x%08X", subfld.c_str(), hr);
+				ec_log_crit("Unable to create folder \"%ls\", error code: 0x%08X", subfld.c_str(), hr);
 				goto exit;
 			}
 		} else if (hr != hrSuccess)
@@ -2447,7 +2455,7 @@ HRESULT OpenSubFolder(LPMDB lpMDB, const WCHAR *folder, WCHAR psep, ECLogger *lp
 			hr = lpMDB->OpenEntry(lpPropFolder->Value.bin.cb, (LPENTRYID)lpPropFolder->Value.bin.lpb,
 								  &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*)&lpFoundFolder);
 			if (hr != hrSuccess) {
-				lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open folder '%ls', error code: 0x%08X", subfld.c_str(), hr);
+				ec_log_crit("Unable to open folder \"%ls\", error code: 0x%08X", subfld.c_str(), hr);
 				goto exit;
 			}
 		}
@@ -2460,7 +2468,6 @@ found:
 	}
 
 exit:
-	lpNullLogger->Release();
 	MAPIFreeBuffer(lpPropFolder);
 	MAPIFreeBuffer(lpPropIPMSubtree);
 	if (lpFoundFolder)
@@ -2625,29 +2632,24 @@ exit:
  * Opens the Default Calendar folder of the store.
  *
  * @param[in]	lpMsgStore			Users Store. 
- * @param[in]	lpLogger			Optional logger. 
  * @param[out]	lppFolder			Default Calendar Folder of the store. 
  * @return		HRESULT 
  * @retval		MAPI_E_NOT_FOUND	Default Folder not found. 
  * @retval		MAPI_E_NO_ACCESS	Insufficient permissions to open the folder.  
  */
-HRESULT HrOpenDefaultCalendar(LPMDB lpMsgStore, ECLogger *lpLogger, LPMAPIFOLDER *lppFolder)
+HRESULT HrOpenDefaultCalendar(LPMDB lpMsgStore, LPMAPIFOLDER *lppFolder)
 {
 	HRESULT hr = hrSuccess;
-	ECLogger *lpNullLogger = new ECLogger_Null();
 	LPSPropValue lpPropDefFld = NULL;
 	LPMAPIFOLDER lpRootFld = NULL;
 	LPMAPIFOLDER lpDefaultFolder = NULL;
 	ULONG ulType = 0;
 	
-	if (lpLogger == NULL)
-		lpLogger = lpNullLogger;
-		
 	//open Root Container.
 	hr = lpMsgStore->OpenEntry(0, NULL, NULL, 0, &ulType, (LPUNKNOWN*)&lpRootFld);
 	if (hr != hrSuccess || ulType != MAPI_FOLDER) 
 	{
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open Root Container, error code: 0x%08X", hr);
+		ec_log_crit("Unable to open Root Container, error code: 0x%08X", hr);
 		goto exit;
 	}
 
@@ -2655,14 +2657,14 @@ HRESULT HrOpenDefaultCalendar(LPMDB lpMsgStore, ECLogger *lpLogger, LPMAPIFOLDER
 	hr = HrGetOneProp(lpRootFld, PR_IPM_APPOINTMENT_ENTRYID, &lpPropDefFld);
 	if (hr != hrSuccess) 
 	{
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to find PR_IPM_APPOINTMENT_ENTRYID, error code: 0x%08X", hr);
+		ec_log_crit("Unable to find PR_IPM_APPOINTMENT_ENTRYID, error code: 0x%08X", hr);
 		goto exit;
 	}
 	
 	hr = lpMsgStore->OpenEntry(lpPropDefFld->Value.bin.cb, (LPENTRYID)lpPropDefFld->Value.bin.lpb, NULL, MAPI_MODIFY, &ulType, (LPUNKNOWN*)&lpDefaultFolder);
 	if (hr != hrSuccess || ulType != MAPI_FOLDER) 
 	{
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open IPM_SUBTREE object, error code: 0x%08X", hr);
+		ec_log_crit("Unable to open IPM_SUBTREE object, error code: 0x%08X", hr);
 		goto exit;
 	}
 
@@ -2670,9 +2672,6 @@ HRESULT HrOpenDefaultCalendar(LPMDB lpMsgStore, ECLogger *lpLogger, LPMAPIFOLDER
 	lpDefaultFolder = NULL;
 
 exit:
-	if (lpNullLogger)
-		lpNullLogger->Release();
-
 	if (lpDefaultFolder)
 		lpDefaultFolder->Release();
 

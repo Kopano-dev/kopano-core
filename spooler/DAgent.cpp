@@ -1178,7 +1178,9 @@ static HRESULT HrGetDeliveryStoreAndFolder(IMAPISession *lpSession,
 	};
 
 	if (!strDeliveryFolder.empty() && lpArgs->ulDeliveryMode != DM_JUNK) {
-		hr = OpenSubFolder(lpDeliveryStore, strDeliveryFolder.c_str(), lpArgs->szPathSeperator, g_lpLogger, bPublicStore, lpArgs->bCreateFolder, &lpSubFolder);
+		hr = OpenSubFolder(lpDeliveryStore, strDeliveryFolder.c_str(),
+		     lpArgs->szPathSeperator, bPublicStore,
+		     lpArgs->bCreateFolder, &lpSubFolder);
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Subfolder not found, using normal Inbox. Error code 0x%08X", hr);
 			// folder not found, use inbox
@@ -2321,7 +2323,10 @@ static HRESULT HrGetSession(const DeliveryArgs *lpArgs,
 	struct passwd *pwd = NULL;
 	string strUnixUser;
 
-	hr = HrOpenECSession(g_lpLogger, lppSession, "spooler/dagent", PROJECT_SVN_REV_STR, szUsername, L"", lpArgs->strPath.c_str(), 0, g_lpConfig->GetSetting("sslkey_file","",NULL), g_lpConfig->GetSetting("sslkey_pass","",NULL));
+	hr = HrOpenECSession(lppSession, "spooler/dagent", PROJECT_SVN_REV_STR,
+	     szUsername, L"", lpArgs->strPath.c_str(), 0,
+	     g_lpConfig->GetSetting("sslkey_file", "", NULL),
+	     g_lpConfig->GetSetting("sslkey_pass", "", NULL));
 	if (hr == hrSuccess)
 		return hrSuccess;
 	// if connecting fails, the mailer should try to deliver again.
@@ -2374,7 +2379,11 @@ static HRESULT HrPostDeliveryProcessing(PyMapiPlugin *lppyMapiPlugin,
 	IMAPISession *lpUserSession = NULL;
 	SPropValuePtr ptrProp;
 
-	hr = HrOpenECSession(g_lpLogger, &lpUserSession, "spooler/dagent:delivery", PROJECT_SVN_REV_STR, lpRecip->wstrUsername.c_str(), L"", lpArgs->strPath.c_str(), EC_PROFILE_FLAGS_NO_NOTIFICATIONS, g_lpConfig->GetSetting("sslkey_file","",NULL), g_lpConfig->GetSetting("sslkey_pass","",NULL));
+	hr = HrOpenECSession(&lpUserSession, "spooler/dagent:delivery",
+	     PROJECT_SVN_REV_STR, lpRecip->wstrUsername.c_str(), L"",
+	     lpArgs->strPath.c_str(), EC_PROFILE_FLAGS_NO_NOTIFICATIONS,
+	     g_lpConfig->GetSetting("sslkey_file", "", NULL),
+	     g_lpConfig->GetSetting("sslkey_pass", "", NULL));
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -2670,8 +2679,7 @@ static HRESULT ProcessDeliveryToRecipient(PyMapiPlugin *lppyMapiPlugin,
 			else {
 				const char *server = g_lpConfig->GetSetting("server_socket");
 				server = GetServerUnixSocket(server); // let environment override if present
-
-				hr = HrOpenECAdminSession(g_lpLogger, &ptrAdminSession, "spooler/dagent:system", PROJECT_SVN_REV_STR, server, EC_PROFILE_FLAGS_NO_NOTIFICATIONS, g_lpConfig->GetSetting("sslkey_file", "", NULL), g_lpConfig->GetSetting("sslkey_pass", "", NULL));
+				hr = HrOpenECAdminSession(&ptrAdminSession, "spooler/dagent:system", PROJECT_SVN_REV_STR, server, EC_PROFILE_FLAGS_NO_NOTIFICATIONS, g_lpConfig->GetSetting("sslkey_file", "", NULL), g_lpConfig->GetSetting("sslkey_pass", "", NULL));
 			}
 			if (hr != hrSuccess) {
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open admin session for archive access: 0x%08X", hr);
@@ -2805,7 +2813,11 @@ static HRESULT ProcessDeliveryToServer(PyMapiPlugin *lppyMapiPlugin,
 	if (lpUserSession)
 		hr = lpUserSession->QueryInterface(IID_IMAPISession, (void **)&lpSession);
 	else
-		hr = HrOpenECAdminSession(g_lpLogger, &lpSession, "spooler/dagent/delivery:system", PROJECT_SVN_REV_STR, strServer.c_str(), EC_PROFILE_FLAGS_NO_NOTIFICATIONS, g_lpConfig->GetSetting("sslkey_file","",NULL), g_lpConfig->GetSetting("sslkey_pass","",NULL));
+		hr = HrOpenECAdminSession(&lpSession, "spooler/dagent/delivery:system",
+		     PROJECT_SVN_REV_STR, strServer.c_str(),
+		     EC_PROFILE_FLAGS_NO_NOTIFICATIONS,
+		     g_lpConfig->GetSetting("sslkey_file", "", NULL),
+		     g_lpConfig->GetSetting("sslkey_pass", "", NULL));
 	if (hr != hrSuccess || (hr = HrOpenDefaultStore(lpSession, &lpStore)) != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open default store for system account, error code: 0x%08X", hr);
 

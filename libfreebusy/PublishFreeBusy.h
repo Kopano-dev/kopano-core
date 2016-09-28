@@ -25,6 +25,8 @@
 #include "freebusy.h"
 #include <kopano/CommonUtil.h>
 
+class ECLogger;
+
 typedef struct{
 	ULONG ulType;
 	time_t tsTime;
