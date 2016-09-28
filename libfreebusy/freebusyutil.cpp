@@ -790,7 +790,6 @@ HRESULT HrCopyFBBlockSet(OccrInfo *lpDest, OccrInfo *lpSrc, ULONG ulcValues)
 HRESULT HrAddFBBlock(const OccrInfo &sOccrInfo, OccrInfo **lppsOccrInfo,
     ULONG *lpcValues)
 {
-	HRESULT hr = hrSuccess;
 	OccrInfo *lpsNewOccrInfo = NULL;
 	OccrInfo *lpsInputOccrInfo = *lppsOccrInfo;
 	ULONG ulModVal = 0;
@@ -800,21 +799,22 @@ HRESULT HrAddFBBlock(const OccrInfo &sOccrInfo, OccrInfo **lppsOccrInfo,
 	else
 		ulModVal = 1;
 
-	if ((hr = MAPIAllocateBuffer(sizeof(sOccrInfo) * ulModVal, (void **)&lpsNewOccrInfo)) != hrSuccess)
-		goto exit;
+	HRESULT hr = MAPIAllocateBuffer(sizeof(sOccrInfo) * ulModVal,
+	             reinterpret_cast<void **>(&lpsNewOccrInfo));
+	if (hr != hrSuccess)
+		return hr;
 	
 	if(lpsInputOccrInfo)
 		hr = HrCopyFBBlockSet(lpsNewOccrInfo, lpsInputOccrInfo, (*lpcValues));
 	
-	if(hr != hrSuccess)
-		goto exit;
-
+	if (hr != hrSuccess) {
+		MAPIFreeBuffer(lpsNewOccrInfo);
+		return hr;
+	}
 	(*lpcValues) = ulModVal;
 	lpsNewOccrInfo[ulModVal -1] = sOccrInfo;
 	*lppsOccrInfo = lpsNewOccrInfo;
-
-exit:
 	MAPIFreeBuffer(lpsInputOccrInfo);
-	return hr;
+	return hrSuccess;
 }
 
