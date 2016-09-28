@@ -28,14 +28,13 @@
 
 class convstring _zcp_final {
 public:
-	static convstring from_SPropValue(const SPropValue *lpsPropVal, bool bCheapCopy = true);
-	static convstring from_SPropValue(const SPropValue &sPropVal, bool bCheapCopy = true);
-
+	static convstring from_SPropValue(const SPropValue *lpsPropVal);
+	static convstring from_SPropValue(const SPropValue &sPropVal);
 	convstring();
 	convstring(const convstring &other);
-	convstring(const char *lpsz, bool bCheapCopy = true);
-	convstring(const wchar_t *lpsz, bool bCheapCopy = true);
-	convstring(const TCHAR *lpsz, ULONG ulFlags, bool bCheapCopy = true);
+	convstring(const char *lpsz);
+	convstring(const wchar_t *lpsz);
+	convstring(const TCHAR *lpsz, ULONG ulFlags);
 	
 	bool null_or_empty() const;
 	
