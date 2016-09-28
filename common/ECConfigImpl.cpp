@@ -168,7 +168,7 @@ bool ECConfigImpl::AddSetting(const char *szName, const char *szValue, const uns
 	return AddSetting(&sSetting, ulGroup ? LOADSETTING_OVERWRITE_GROUP : LOADSETTING_OVERWRITE);
 }
 
-static void freeSettings(settingmap_t::value_type entry)
+static void freeSettings(settingmap_t::value_type &entry)
 {
 	// see InsertOrReplace
 	delete [] entry.second;
