@@ -665,10 +665,9 @@ ECRESULT ECGenericObjectTable::SetSortOrder(struct sortOrderArray *lpsSortOrder,
 	}
 	
 	// Check validity of tags
-	if (lpsSortOrder != NULL)
-		for (gsoap_size_t i = 0; i < lpsSortOrder->__size; ++i)
-			if ((PROP_TYPE(lpsSortOrder->__ptr[i].ulPropTag) & MVI_FLAG) == MV_FLAG)
-				return KCERR_TOO_COMPLEX;
+	for (gsoap_size_t i = 0; i < lpsSortOrder->__size; ++i)
+		if ((PROP_TYPE(lpsSortOrder->__ptr[i].ulPropTag) & MVI_FLAG) == MV_FLAG)
+			return KCERR_TOO_COMPLEX;
 	
 	m_ulCategories = ulCategories;
 	m_ulExpanded = ulExpanded;

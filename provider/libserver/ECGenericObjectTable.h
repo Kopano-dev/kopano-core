@@ -148,7 +148,7 @@ public:
 	ECRESULT	GetRowCount(unsigned int *lpulRowCount, unsigned int *lpulCurrentRow);
 	ECRESULT	SetColumns(struct propTagArray *lpsPropTags, bool bDefaultSet);
 	ECRESULT	GetColumns(struct soap *soap, ULONG ulFlags, struct propTagArray **lpsPropTags);
-	ECRESULT	SetSortOrder(struct sortOrderArray *lpsSortOrder, unsigned int ulCategories, unsigned int ulExpanded);
+	ECRESULT SetSortOrder(struct sortOrderArray *, unsigned int categ, unsigned int expanded) __attribute__((nonnull));
 	ECRESULT	Restrict(struct restrictTable *lpsRestrict);
 	ECRESULT	QueryRows(struct soap *soap, unsigned int ulRowCount, unsigned int ulFlags, struct rowSet **lppRowSet);
 	ECRESULT	CreateBookmark(unsigned int* lpulbkPosition);

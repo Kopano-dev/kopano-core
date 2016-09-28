@@ -62,9 +62,7 @@ public:
 	// get the store owner, you can give every object id
 	virtual ECRESULT GetStoreOwner(unsigned int ulObjId, unsigned int* lpulOwnerId);
 	virtual ECRESULT GetStoreOwnerAndType(unsigned int ulObjId, unsigned int* lpulOwnerId, unsigned int* lpulStoreType);
-	
-	virtual ECRESULT GetObjectPermission(unsigned int ulObjId, unsigned int* lpulRights);
-
+	virtual ECRESULT GetObjectPermission(unsigned int id, unsigned int *rights) __attribute__((nonnull));
 	virtual unsigned int GetUserId(unsigned int ulObjId = 0);
 	virtual ECRESULT IsOwner(unsigned int ulObjId);
 	virtual ECRESULT IsStoreOwner(unsigned int ulStoreId);

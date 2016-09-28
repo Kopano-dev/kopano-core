@@ -220,8 +220,7 @@ ECRESULT ECSecurity::GetObjectPermission(unsigned int ulObjId, unsigned int* lpu
 	bool 			bFoundACL = false;
 	unsigned int	ulDepth = 0;
 
-	if(lpulRights)
-		*lpulRights = 0;
+	*lpulRights = 0;
 
 	// Get the deepest GRANT ACL that applies to this user or groups that this user is in
 	// WARNING we totally ignore DENY ACL's here. This means that the deepest GRANT counts. In practice

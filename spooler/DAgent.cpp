@@ -1865,15 +1865,12 @@ static HRESULT HrStringToMAPIMessage(const string &strMail,
 	*lpbFallbackDelivery = bFallback;
 
 exit:
+	sc->countInc("DAgent", "string_to_mapi");
 
-	if (lpMessage) {
-		sc -> countInc("DAgent", "string_to_mapi");
-
-		// count attachments
-		LPMAPITABLE lppAttTable = NULL;
-		lpMessage -> GetAttachmentTable(0, &lppAttTable);
-
-		if (lppAttTable) {
+	// count attachments
+	LPMAPITABLE lppAttTable = NULL;
+	lpMessage->GetAttachmentTable(0, &lppAttTable);
+	if (lppAttTable != NULL) {
 		ULONG countAtt = 0;
 		lppAttTable -> GetRowCount(0, &countAtt);
 
@@ -1883,21 +1880,18 @@ exit:
 		}
 
 		lppAttTable->Release();
-		}
+	}
 
-		// count recipients
-		LPMAPITABLE lppRecipTable = NULL;
-		lpMessage -> GetRecipientTable(0, &lppRecipTable);
-
-		if (lppRecipTable) {
+	// count recipients
+	LPMAPITABLE lppRecipTable = NULL;
+	lpMessage->GetRecipientTable(0, &lppRecipTable);
+	if (lppRecipTable != NULL) {
 		ULONG countRecip = 0;
 			lppRecipTable -> GetRowCount(0, &countRecip);
 		sc -> countAdd("DAgent", "recipients", int64_t(countRecip));
 
 		lppRecipTable->Release();
 	}
-	}
-
 	if (lpFallbackMessage)
 		lpFallbackMessage->Release();
 	return hr;
