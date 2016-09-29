@@ -4672,6 +4672,7 @@ ZEND_FUNCTION(mapi_zarafa_setquota)
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
 
+	ZVAL_DEREF(array);
 	data = HASH_OF(array);
 	zend_hash_internal_pointer_reset(data);
 
@@ -6342,6 +6343,7 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 		goto exit;
 	}
 
+	ZVAL_DEREF(perms);
 	target_hash = HASH_OF(perms);
 	if (!target_hash) {
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -6515,6 +6517,7 @@ ZEND_FUNCTION(mapi_freebusysupport_loaddata)
 
 	ZEND_FETCH_RESOURCE_C(lpFBSupport, IFreeBusySupport*, &resFBSupport, -1, name_fb_support, le_freebusy_support);
 
+	ZVAL_DEREF(resUsers);
 	target_hash = HASH_OF(resUsers);
 	if (!target_hash) {
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -6595,6 +6598,7 @@ ZEND_FUNCTION(mapi_freebusysupport_loadupdate)
 
 	ZEND_FETCH_RESOURCE_C(lpFBSupport, IFreeBusySupport*, &resFBSupport, -1, name_fb_support, le_freebusy_support);
 
+	ZVAL_DEREF(resUsers);
 	target_hash = HASH_OF(resUsers);
 	if (!target_hash) {
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -6914,6 +6918,7 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 
 	ZEND_FETCH_RESOURCE_C(lpFBUpdate, IFreeBusyUpdate*, &resFBUpdate, -1, name_fb_update, le_freebusy_update);
 
+	ZVAL_DEREF(aBlocks);
 	target_hash = HASH_OF(aBlocks);
 	if (!target_hash) {
 		MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
