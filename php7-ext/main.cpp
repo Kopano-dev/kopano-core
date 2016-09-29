@@ -6920,6 +6920,7 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 		goto exit;
 	}
 
+	cBlocks = zend_hash_num_elements(target_hash);
 	MAPI_G(hr) = MAPIAllocateBuffer(sizeof(FBBlock_1)*cBlocks, (void**)&lpBlocks);
 	if(MAPI_G(hr) != hrSuccess)
 		goto exit;
@@ -6953,8 +6954,6 @@ ZEND_FUNCTION(mapi_freebusyupdate_publish)
 		++i;
 
 	} ZEND_HASH_FOREACH_END();
-
-	cBlocks = zend_hash_num_elements(target_hash);
 	MAPI_G(hr) = lpFBUpdate->PublishFreeBusy(lpBlocks, cBlocks);
 	if(MAPI_G(hr) != hrSuccess)
 		goto exit;
