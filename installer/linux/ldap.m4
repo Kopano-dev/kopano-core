@@ -463,8 +463,8 @@ ldap_addressbook_hide_attribute = kopanoHidden
 # between non-kopano and kopano objects.
 # Default: empty
 # ADS recommended: (anr=%s)
-# OpenLDAP optional: (|(mail=%s*)(uid=%s*)(cn=*%s*)(fullname=*%s*)(givenname=*%s*)(lastname=*%s*)(sn=*%s*))
-ldap_object_search_filter = ifelse(TYPE,`OPENLDAP',`',`(anr=%s)')
+# OpenLDAP optional: (|(mail=%s*)(uid=%s*)(givenName=*%s*)(sn=*%s*))
+ldap_object_search_filter = ifelse(TYPE,`OPENLDAP',`(|(givenName=*%s*)(sn=*%s*))',`(anr=%s)')
 
 # If a request want more objects than this value, it will download the
 # full ldap tree (from the base with the search filter) and discard
