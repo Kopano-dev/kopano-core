@@ -497,10 +497,7 @@ exit:
 
 	if(lpRecipTable)
 		lpRecipTable->Release();
-
-	if(lpMessage)
-		lpMessage->Release();
-
+	lpMessage->Release();
 	return hr;
 }
 

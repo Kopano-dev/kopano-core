@@ -398,7 +398,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
 
 			// Handle PR_DEPTH
 			if(ulPropTag == PR_DEPTH) {
-				if (lpThis == NULL || lpThis->GetComputedDepth(soap, lpSession, row.ulObjId, &lpsRowSet->__ptr[i].__ptr[k]) != erSuccess) {
+				if (lpThis->GetComputedDepth(soap, lpSession, row.ulObjId, &lpsRowSet->__ptr[i].__ptr[k]) != erSuccess) {
 					lpsRowSet->__ptr[i].__ptr[k].__union = SOAP_UNION_propValData_ul;
 					lpsRowSet->__ptr[i].__ptr[k].ulPropTag = PR_DEPTH;
 					lpsRowSet->__ptr[i].__ptr[k].Value.ul = 0;

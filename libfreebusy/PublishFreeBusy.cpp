@@ -370,9 +370,7 @@ HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBl
 			}
 	
 		}
-
-		if(lpRowSet)
-			FreeProws(lpRowSet);
+		FreeProws(lpRowSet);
 		lpRowSet = NULL;
 	}
 	
@@ -480,7 +478,7 @@ HRESULT PublishFreeBusy::HrMergeBlocks(FBBlock_1 **lppfbBlocks, ULONG *lpcValues
 	}
 
 	// Free previously allocated memory
-	if(lppfbBlocks && *lppfbBlocks) {
+	if (*lppfbBlocks != NULL) {
 		MAPIFreeBuffer(*lppfbBlocks);
 		*lppfbBlocks = NULL;
 	}

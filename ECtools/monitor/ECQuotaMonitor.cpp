@@ -132,7 +132,8 @@ void* ECQuotaMonitor::Create(void* lpVoid)
 
 	// Release session and store (Reference on ECQuotaMonitor)
 	if(lpMDBAdmin){ lpMDBAdmin->Release(); lpMDBAdmin = NULL;}
-	if(lpMAPIAdminSession){ lpMAPIAdminSession->Release(); lpMAPIAdminSession = NULL;}
+	lpMAPIAdminSession->Release();
+	lpMAPIAdminSession = NULL;
 
 	// Check the quota of allstores
 	tmStart = GetProcessTime();
@@ -540,9 +541,7 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
 			if (hr != hrSuccess)
 				++m_ulFailed;
 		}
-
-		if (lpRowSet)
-			FreeProws(lpRowSet);
+		FreeProws(lpRowSet);
 		lpRowSet = NULL;
 	}
 

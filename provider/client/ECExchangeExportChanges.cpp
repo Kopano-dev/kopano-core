@@ -972,11 +972,8 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 			FreeProws(lpRows);
 			lpRows = NULL;
 		}
-
-		if(lpTable){
-			lpTable->Release();
-			lpTable = NULL;
-		}
+		lpTable->Release();
+		lpTable = NULL;
 
 		//delete every attachment
 		hr = lpDestMessage->GetAttachmentTable(0, &lpTable);
@@ -1004,16 +1001,10 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 				goto exit;
 			}
 		}
-
-		if(lpRows){
-			FreeProws(lpRows);
-			lpRows = NULL;
-		}
-
-		if(lpTable){
-			lpTable->Release();
-			lpTable = NULL;
-		}
+		FreeProws(lpRows);
+		lpRows = NULL;
+		lpTable->Release();
+		lpTable = NULL;
 
 		//add every attachment
 		hr = lpSourceMessage->GetAttachmentTable(0, &lpTable);
@@ -1052,26 +1043,15 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 				ZLOG_DEBUG(m_lpLogger, "SaveChanges() failed for destination attachment");
 				goto exit;
 			}
-
-			if(lpSourceAttach){
-				lpSourceAttach->Release();
-				lpSourceAttach = NULL;
-			}
-
+			lpSourceAttach->Release();
+			lpSourceAttach = NULL;
 			lpDestAttach->Release();
 			lpDestAttach = NULL;
 		}
-
-		if(lpRows){
-			FreeProws(lpRows);
-			lpRows = NULL;
-		}
-
-		if(lpTable){
-			lpTable->Release();
-			lpTable = NULL;
-		}
-
+		FreeProws(lpRows);
+		lpRows = NULL;
+		lpTable->Release();
+		lpTable = NULL;
 		MAPIFreeBuffer(lpPropTagArray);
 		lpPropTagArray = NULL;
 

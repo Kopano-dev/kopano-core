@@ -523,11 +523,8 @@ HRESULT ECMAPIFolderPublic::CopyFolder(ULONG cbEntryID, LPENTRYID lpEntryID, LPC
 		// if the entryid a a publicfolders entryid just change the entryid to a server entryid
 		if(((ECMsgStorePublic*)GetMsgStore())->ComparePublicEntryId(ePE_PublicFolders, lpPropArray[0].Value.bin.cb, (LPENTRYID)lpPropArray[0].Value.bin.lpb, &ulResult) == hrSuccess && ulResult == TRUE)
 		{
-			if(lpPropArray) {
-				ECFreeBuffer(lpPropArray);
-				lpPropArray = NULL;
-			}
-
+			ECFreeBuffer(lpPropArray);
+			lpPropArray = NULL;
 			hr = HrGetOneProp(lpMapiFolder, PR_ORIGINAL_ENTRYID, &lpPropArray);
 			if(hr != hrSuccess)
 				goto exit;
@@ -574,12 +571,8 @@ HRESULT ECMAPIFolderPublic::DeleteFolder(ULONG cbEntryID, LPENTRYID lpEntryID, U
 		hr = HrGetOneProp(lpFolder, PR_SOURCE_KEY, &lpProp);
 		if (hr != hrSuccess)
 			goto exit;
-
-		if (lpFolder) {
-			lpFolder->Release();
-			lpFolder = NULL;
-		}
-
+		lpFolder->Release();
+		lpFolder = NULL;
 		hr = ((ECMsgStorePublic*)GetMsgStore())->GetDefaultShortcutFolder(&lpShortcutFolder);
 		if (hr != hrSuccess)
 			goto exit;

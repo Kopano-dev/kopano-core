@@ -242,12 +242,8 @@ HRESULT iCal::HrHandleIcalPost()
 					mpSrvTimes[strUidString] = lpRows->aRow[i].lpProps[1].Value.ft;				
 			}
 		}
-
-		if(lpRows)
-		{
-			FreeProws(lpRows);
-			lpRows = NULL;
-		}
+		FreeProws(lpRows);
+		lpRows = NULL;
 	}
 
 	mpIterI = mpIcalEntries.cbegin();
@@ -639,13 +635,8 @@ HRESULT iCal::HrGetIcal(IMAPITable *lpTable, bool blCensorPrivate, std::string *
 			lpMessage->Release();
 			lpMessage = NULL;
 		}
-		
-		if(lpRows)
-		{
-			FreeProws(lpRows);
-			lpRows = NULL;
-		}
-
+		FreeProws(lpRows);
+		lpRows = NULL;
 	}
 	
 	hr = lpMtIcal->Finalize(0, NULL, lpstrIcal);

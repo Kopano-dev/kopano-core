@@ -1437,12 +1437,8 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 
 	// Get the time to add to the message as PR_CLIENT_SUBMIT_TIME
     GetSystemTimeAsFileTime(&ft);
-
-    if(lpsPropArray) {
         ECFreeBuffer(lpsPropArray);
         lpsPropArray = NULL;
-    }
-
 	hr = ECAllocateBuffer(sizeof(SPropValue)*2, (void**)&lpsPropArray);
 	if (hr != hrSuccess)
 		goto exit;

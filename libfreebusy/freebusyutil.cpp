@@ -236,8 +236,10 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 		if(hr != hrSuccess)
 			goto exit;
 
-		if(lpMailUser){ lpMailUser->Release(); lpMailUser = NULL; }
-		if(lpAdrBook){ lpAdrBook->Release(); lpAdrBook = NULL; }
+		lpMailUser->Release();
+		lpMailUser = NULL;
+		lpAdrBook->Release();
+		lpAdrBook = NULL;
 
 		//Set the displayname with accountname 
 		lpPropName->ulPropTag = PR_DISPLAY_NAME;

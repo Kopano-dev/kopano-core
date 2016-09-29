@@ -454,12 +454,8 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 			lpsWebMStatus->lstResp.push_back(sWebResponse);
 			sWebResponse.lstsPropStat.clear();
 		}
-
-		if(lpRowSet)
-		{
-			FreeProws(lpRowSet);
-			lpRowSet = NULL;
-		}
+		FreeProws(lpRowSet);
+		lpRowSet = NULL;
 	}
 
 exit:
@@ -846,11 +842,8 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 			sWebResponse.lstsPropStat.clear();
 
 		}
-		if (lpValRows)
-		{
-			FreeProws(lpValRows);
-			lpValRows = NULL;
-		}
+		FreeProws(lpValRows);
+		lpValRows = NULL;
 	}
 
 	hr = hrSuccess;
@@ -1616,13 +1609,8 @@ nowaste:
 			lpsMulStatus->lstResp.push_back(sDavResponse);
 			sDavResponse.lstsPropStat.clear();
 		}
-
-		if(lpRowsALL)
-		{
-			FreeProws(lpRowsALL);
-			lpRowsALL = NULL;
-		}
-
+		FreeProws(lpRowsALL);
+		lpRowsALL = NULL;
 		if(lpRowsDeleted)
 		{
 			FreeProws(lpRowsDeleted);

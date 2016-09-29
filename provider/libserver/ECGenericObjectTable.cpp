@@ -346,10 +346,8 @@ ECRESULT ECGenericObjectTable::FindRow(struct restrictTable *lpsRestrict, unsign
 			break;
 
 		// Free memory
-		if(lpRowSet){
-			FreeRowSet(lpRowSet, true);
-			lpRowSet = NULL;
-		}
+		FreeRowSet(lpRowSet, true);
+		lpRowSet = NULL;
 		
 		if(lpSubResults)
 			FreeSubRestrictionResults(lpSubResults);
@@ -1024,11 +1022,8 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 			FreeSubRestrictionResults(lpSubResults);
 			lpSubResults = NULL;
 		}
-
-		if(lpRowSet) {
-			FreeRowSet(lpRowSet, true);
-			lpRowSet = NULL;
-		}
+		FreeRowSet(lpRowSet, true);
+		lpRowSet = NULL;
 	}
 
 	if(lpulLoaded)

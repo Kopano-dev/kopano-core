@@ -1169,8 +1169,7 @@ HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 			if(hr != hrSuccess)
 				goto exit;
 		}
-		if (lpsRows)
-			FreeProws(lpsRows);
+		FreeProws(lpsRows);
 	}
 
 	hr = lpTable->HrGetView(createLocaleFromName(""), ulFlags, &lpTableView);

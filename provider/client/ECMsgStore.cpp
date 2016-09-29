@@ -2206,9 +2206,8 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 		hr = lpecMsgStore->SetProps(cValues, lpPropValue, NULL);
 		if(hr != hrSuccess)
 			goto exit;
-
-		if(lpPropValue){ ECFreeBuffer(lpPropValue); lpPropValue = NULL; }
-
+		ECFreeBuffer(lpPropValue);
+		lpPropValue = NULL;
 	}else if(ulStoreType == ECSTORE_TYPE_PRIVATE) { //Private folder
 
 		// Create Folder COMMON_VIEWS into the rootfolder
@@ -2265,7 +2264,8 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 		if(hr != hrSuccess)
 			goto exit;
 
-		if(lpPropValue){ ECFreeBuffer(lpPropValue); lpPropValue = NULL; }
+		ECFreeBuffer(lpPropValue);
+		lpPropValue = NULL;
 
 		hr = lpInboxFolder->QueryInterface(IID_ECMAPIFolder, (void**)&lpECMapiFolderInbox);
 		if(hr != hrSuccess)
@@ -2399,8 +2399,8 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 		hr = lpecMsgStore->SetProps(cValues, lpPropValue, NULL);
 		if(hr != hrSuccess)
 			goto exit;
-
-		if(lpPropValue){ ECFreeBuffer(lpPropValue); lpPropValue = NULL; }
+		ECFreeBuffer(lpPropValue);
+		lpPropValue = NULL;
 	}
 
 	*lpcbStoreId = cbStoreId;

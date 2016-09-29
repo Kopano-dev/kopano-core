@@ -439,7 +439,8 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags, LPSPropTagArray lpPropTagArray, 
 
 	skip:
 		if(lpPropArray){ ECFreeBuffer(lpPropArray); lpPropArray = NULL; }
-		if(lpIMailUser){ lpIMailUser->Release(); lpIMailUser = NULL; }
+		lpIMailUser->Release();
+		lpIMailUser = NULL;
 	}
 
 	// Always succeeded on this point

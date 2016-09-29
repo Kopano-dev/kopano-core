@@ -834,10 +834,8 @@ HRESULT HrRemoveECMailBox(LPPROVIDERADMIN lpProviderAdmin, LPMAPIUID lpsProvider
 		if(hr != hrSuccess)
 			goto exit;	
 	}
-
-	
-	if(lpGlobalProfSect){ lpGlobalProfSect->Release(); lpGlobalProfSect = NULL; }
-
+	lpGlobalProfSect->Release();
+	lpGlobalProfSect = NULL;
 	//Remove Store
 	hr = lpProviderAdmin->DeleteProvider(lpsProviderUID);
 	//FIXME: unknown error 0x80070005 by delete (HACK)

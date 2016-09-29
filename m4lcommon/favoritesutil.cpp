@@ -246,8 +246,8 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 
 	strSourceKey.assign((char*)lpRows->aRow[0].lpProps[1].Value.bin.lpb, lpRows->aRow[0].lpProps[1].Value.bin.cb);
 	listSourceKey.push_back(strSourceKey);
-
-	if (lpRows){ FreeProws(lpRows); lpRows = NULL; }
+	FreeProws(lpRows);
+	lpRows = NULL;
 	FREE_RESTRICTION(lpRestriction);
 
 	for (const auto &sk : listSourceKey) {
@@ -292,7 +292,8 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 		} //while(true)
 
 		FREE_RESTRICTION(lpRestriction);
-		if (lpRows){ FreeProws(lpRows); lpRows = NULL; }
+		FreeProws(lpRows);
+		lpRows = NULL;
 	}
 
 	hr = lpShortcutFolder->DeleteMessages(lpsMsgList,  0, NULL, 0);
