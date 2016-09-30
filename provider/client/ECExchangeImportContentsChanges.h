@@ -25,6 +25,8 @@
 #include <kopano/ECUnknown.h>
 #include <IECImportContentsChanges.h>
 
+class ECLogger;
+
 class ECExchangeImportContentsChanges : public ECUnknown {
 protected:
 	ECExchangeImportContentsChanges(ECMAPIFolder *lpFolder);

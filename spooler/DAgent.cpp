@@ -3544,14 +3544,14 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 
 	g_lpLogger->Log(EC_LOGLEVEL_INFO, "Maximum LMTP threads set to %d", nMaxThreads);
 	// Setup sockets
-	hr = HrListen(g_lpLogger, g_lpConfig->GetSetting("server_bind"),
+	hr = HrListen(g_lpConfig->GetSetting("server_bind"),
 	              atoi(g_lpConfig->GetSetting("lmtp_port")), &ulListenLMTP);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "running_service(): HrListen failed %x", hr);
 		goto exit;
 	}
 		
-	err = zcp_bindtodevice(g_lpLogger, ulListenLMTP,
+	err = zcp_bindtodevice(ulListenLMTP,
 	      g_lpConfig->GetSetting("server_bind_intf"));
 	if (err < 0) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SO_BINDTODEVICE: %s",
@@ -3591,19 +3591,19 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 	}
 
 	if (parseBool(g_lpConfig->GetSetting("coredump_enabled")))
-		unix_coredump_enable(g_lpLogger);
+		unix_coredump_enable();
 
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
-	if (unix_runas(g_lpConfig, g_lpLogger))
+	if (unix_runas(g_lpConfig))
 		goto exit;
-	if (bDaemonize && unix_daemonize(g_lpConfig, g_lpLogger))
+	if (bDaemonize && unix_daemonize(g_lpConfig))
 		goto exit;
 	
 	if (!bDaemonize)
 		setsid();
 
-	unix_create_pidfile(servicename, g_lpConfig, g_lpLogger);
+	unix_create_pidfile(servicename, g_lpConfig);
 	g_lpLogger = StartLoggerProcess(g_lpConfig, g_lpLogger); // maybe replace logger
 	ec_log_set(g_lpLogger);
 
@@ -3654,7 +3654,7 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 		*lpDeliveryArgs = *lpArgs;
 
 		if (FD_ISSET(ulListenLMTP, &readfds)) {
-			hr = HrAccept(g_lpLogger, ulListenLMTP, &lpDeliveryArgs->lpChannel);
+			hr = HrAccept(ulListenLMTP, &lpDeliveryArgs->lpChannel);
 			
 			if (hr != hrSuccess) {
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "running_service(): HrAccept failed %x", hr);

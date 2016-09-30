@@ -306,7 +306,7 @@ HRESULT POP3::HrCmdStarttls() {
 	HRESULT hr = HrResponse(POP3_RESP_OK, "Begin TLS negotiation now");
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpChannel->HrEnableTLS(lpLogger);
+	hr = lpChannel->HrEnableTLS();
 	if (hr != hrSuccess) {
 		HrResponse(POP3_RESP_ERR, "Error switching to secure SSL/TLS connection");
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Error switching to SSL in STLS");

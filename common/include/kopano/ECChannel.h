@@ -43,9 +43,7 @@ class ECChannel _zcp_final {
 public:
 	ECChannel(int socket);
 	~ECChannel();
-
-	HRESULT HrEnableTLS(ECLogger *const lpLogger);
-
+	HRESULT HrEnableTLS(void);
 	HRESULT HrGets(char *szBuffer, ULONG ulBufSize, ULONG *lpulRead);
 	HRESULT HrReadLine(std::string * strBuffer, ULONG ulMaxBuffer = 65536);
 	HRESULT HrWriteString(const char *szBuffer);
@@ -65,7 +63,7 @@ public:
 	bool UsingSsl(void) const { return lpSSL != NULL; }
 	bool sslctx(void) const { return lpCTX != NULL; }
 
-	static HRESULT HrSetCtx(ECConfig * lpConfig, ECLogger * lpLogger);
+	static HRESULT HrSetCtx(ECConfig *);
 	static HRESULT HrFreeCtx();
 
 private:
@@ -81,14 +79,14 @@ private:
 };
 
 /* helpers to open socket */
-HRESULT HrListen(ECLogger *lpLogger, const char *szPath, int *lpulListenSocket);
-HRESULT HrListen(ECLogger *lpLogger, const char *szBind, uint16_t ulPort, int *lpulListenSocket);
+extern HRESULT HrListen(const char *path, int *fd);
+extern HRESULT HrListen(const char *bind, uint16_t port, int *fd);
 /* accept data on connection */
-HRESULT HrAccept(ECLogger *lpLogger, int ulListenFD, ECChannel **lppChannel);
+extern HRESULT HrAccept(int fd, ECChannel **ch);
 
 extern "C" {
 
-extern int zcp_bindtodevice(ECLogger *log, int fd, const char *iface);
+extern int zcp_bindtodevice(int fd, const char *iface);
 extern int zcp_peeraddr_is_local(const struct sockaddr *, socklen_t);
 extern int zcp_peerfd_is_local(int);
 

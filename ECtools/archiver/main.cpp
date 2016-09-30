@@ -464,7 +464,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    ptrArchiver->GetLogger()->Log(EC_LOGLEVEL_FATAL, "Startup command: %s", strCmdLine.c_str());
+    ec_log_crit("Startup command: %s", strCmdLine.c_str());
     ptrArchiver->GetLogger(Archiver::LogOnly)->Log(EC_LOGLEVEL_FATAL, "Version: %s", PROJECT_VERSION_ARCHIVER_STR);
 
     lSettings = ptrArchiver->GetConfig()->GetAllSettings();
@@ -478,10 +478,10 @@ int main(int argc, char *argv[])
 			filelogger->Log(EC_LOGLEVEL_FATAL, "*  %s = '%s'", s.szName, s.szValue);
 
     if (mode == MODE_ARCHIVE || mode == MODE_CLEANUP)
-        if (unix_create_pidfile(argv[0], ptrArchiver->GetConfig(), ptrArchiver->GetLogger(), false) != 0)
+        if (unix_create_pidfile(argv[0], ptrArchiver->GetConfig(), false) != 0)
             return 1;
 
-    ptrArchiver->GetLogger()->Log(EC_LOGLEVEL_DEBUG, "Archiver mode: %d: (%s)", mode, modename(mode));
+    ec_log_debug("Archiver mode: %d: (%s)", mode, modename(mode));
     switch (mode) {
     case MODE_ATTACH: {
         ArchiveManagePtr ptr;

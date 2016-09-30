@@ -54,7 +54,8 @@ openssl req -new -x509 -key privkey.pem -out cacert.pem -days 1095
 // because of statics
 SSL_CTX* ECChannel::lpCTX = NULL;
 
-HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig, ECLogger *lpLogger) {
+HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
+{
 	HRESULT hr = hrSuccess;
 	const char *szFile = NULL;
 	const char *szPath = NULL;
@@ -67,7 +68,7 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig, ECLogger *lpLogger) {
 #endif
 
 	if (lpConfig == NULL) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "ECChannel::HrSetCtx(): invalid parameters");
+		ec_log_err("ECChannel::HrSetCtx(): invalid parameters");
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
@@ -110,7 +111,7 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig, ECLogger *lpLogger) {
 			ssl_proto = 0x10;
 #endif
 		else {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Unknown protocol '%s' in ssl_protocols setting", ssl_name);
+			ec_log_err("Unknown protocol \"%s\" in ssl_protocols setting", ssl_name);
 			hr = MAPI_E_CALL_FAILED;
 			goto exit;
 		}
@@ -158,7 +159,7 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig, ECLogger *lpLogger) {
 #endif
 
 	if (ssl_ciphers && SSL_CTX_set_cipher_list(lpCTX, ssl_ciphers) != 1) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Can not set SSL cipher list to '%s': %s", ssl_ciphers, ERR_error_string(ERR_get_error(), 0));
+		ec_log_err("Can not set SSL cipher list to \"%s\": %s", ssl_ciphers, ERR_error_string(ERR_get_error(), 0));
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
@@ -170,19 +171,19 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig, ECLogger *lpLogger) {
 	SSL_CTX_set_default_verify_paths(lpCTX);
 
 	if (SSL_CTX_use_certificate_chain_file(lpCTX, lpConfig->GetSetting("ssl_certificate_file")) != 1) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "SSL CTX certificate file error: %s", ERR_error_string(ERR_get_error(), 0));
+		ec_log_err("SSL CTX certificate file error: %s", ERR_error_string(ERR_get_error(), 0));
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 
 	if (SSL_CTX_use_PrivateKey_file(lpCTX, lpConfig->GetSetting("ssl_private_key_file"), SSL_FILETYPE_PEM) != 1) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "SSL CTX private key file error: %s", ERR_error_string(ERR_get_error(), 0));
+		ec_log_err("SSL CTX private key file error: %s", ERR_error_string(ERR_get_error(), 0));
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 
 	if (SSL_CTX_check_private_key(lpCTX) != 1) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "SSL CTX check private key error: %s", ERR_error_string(ERR_get_error(), 0));
+		ec_log_err("SSL CTX check private key error: %s", ERR_error_string(ERR_get_error(), 0));
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
@@ -201,7 +202,7 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig, ECLogger *lpLogger) {
 
 	if (szFile || szPath) {
 		if (SSL_CTX_load_verify_locations(lpCTX, szFile, szPath) != 1)
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "SSL CTX error loading verify locations: %s", ERR_error_string(ERR_get_error(), 0));
+			ec_log_err("SSL CTX error loading verify locations: %s", ERR_error_string(ERR_get_error(), 0));
 	}
 
 exit:
@@ -242,19 +243,20 @@ ECChannel::~ECChannel() {
 	close(fd);
 }
 
-HRESULT ECChannel::HrEnableTLS(ECLogger *const lpLogger) {
+HRESULT ECChannel::HrEnableTLS(void)
+{
 	int rc = -1;
 	HRESULT hr = hrSuccess;
 
 	if (lpSSL || lpCTX == NULL) {
 		hr = MAPI_E_CALL_FAILED;
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "ECChannel::HrEnableTLS(): invalid parameters");
+		ec_log_err("ECChannel::HrEnableTLS(): invalid parameters");
 		goto exit;
 	}
 
 	lpSSL = SSL_new(lpCTX);
 	if (!lpSSL) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "ECChannel::HrEnableTLS(): SSL_new failed");
+		ec_log_err("ECChannel::HrEnableTLS(): SSL_new failed");
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
@@ -262,14 +264,14 @@ HRESULT ECChannel::HrEnableTLS(ECLogger *const lpLogger) {
 	SSL_clear(lpSSL);
 
 	if (SSL_set_fd(lpSSL, fd) != 1) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "ECChannel::HrEnableTLS(): SSL_set_fd failed");
+		ec_log_err("ECChannel::HrEnableTLS(): SSL_set_fd failed");
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 
 	SSL_set_accept_state(lpSSL);
 	if ((rc = SSL_accept(lpSSL)) != 1) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "ECChannel::HrEnableTLS(): SSL_accept failed: %d", SSL_get_error(lpSSL, rc));
+		ec_log_err("ECChannel::HrEnableTLS(): SSL_accept failed: %d", SSL_get_error(lpSSL, rc));
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
@@ -797,7 +799,7 @@ static struct addrinfo *reorder_addrinfo_ipv6(struct addrinfo *node)
 	return v6head.ai_next;
 }
 
-HRESULT HrListen(ECLogger *lpLogger, const char *szPath, int *lpulListenSocket)
+HRESULT HrListen(const char *szPath, int *lpulListenSocket)
 {
 	HRESULT hr = hrSuccess;
 	int fd = -1;
@@ -815,8 +817,7 @@ HRESULT HrListen(ECLogger *lpLogger, const char *szPath, int *lpulListenSocket)
 	kc_strlcpy(sun_addr.sun_path, szPath, sizeof(sun_addr.sun_path));
 
 	if ((fd = socket(PF_UNIX, SOCK_STREAM, 0)) == -1) {
-		if (lpLogger)
-			lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to create AF_UNIX socket.");
+		ec_log_crit("Unable to create AF_UNIX socket");
 		hr = MAPI_E_NETWORK_ERROR;
 		goto exit;
 	}
@@ -827,16 +828,14 @@ HRESULT HrListen(ECLogger *lpLogger, const char *szPath, int *lpulListenSocket)
 	prevmask = umask(0111);
 
 	if (bind(fd, (struct sockaddr *)&sun_addr, sizeof(sun_addr)) == -1) {
-                if (lpLogger)
-			lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to bind to socket %s (%s). This is usually caused by another process (most likely another kopano-server) already using this port. This program will terminate now.", szPath, strerror(errno));
+		ec_log_crit("Unable to bind to socket %s (%s). This is usually caused by another process (most likely another kopano-server) already using this port. This program will terminate now.", szPath, strerror(errno));
                 kill(0, SIGTERM);
                 exit(1);
         }
 
 	// TODO: backlog of SOMAXCONN should be configurable
 	if (listen(fd, SOMAXCONN) == -1) {
-		if (lpLogger)
-			lpLogger->Log(EC_LOGLEVEL_CRIT, "Unable to start listening on socket \"%s\".", szPath);
+		ec_log_crit("Unable to start listening on socket \"%s\".", szPath);
 		hr = MAPI_E_NETWORK_ERROR;
 		goto exit;
 	}
@@ -851,21 +850,18 @@ exit:
 	return hr;
 }
 
-int zcp_bindtodevice(ECLogger *log, int fd, const char *i)
+int zcp_bindtodevice(int fd, const char *i)
 {
 	if (i == NULL || strcmp(i, "any") == 0 || strcmp(i, "all") == 0 ||
 	    strcmp(i, "") == 0)
 		return 0;
 	if (setsockopt(fd, SOL_SOCKET, SO_BINDTODEVICE, i, strlen(i)) >= 0)
 		return 0;
-
-	log->Log(EC_LOGLEVEL_ERROR, "Unable to bind to interface %s: %s",
-	         i, strerror(errno));
+	ec_log_err("Unable to bind to interface %s: %s", i, strerror(errno));
 	return -errno;
 }
 
-HRESULT HrListen(ECLogger *lpLogger, const char *szBind, uint16_t ulPort,
-    int *lpulListenSocket)
+HRESULT HrListen(const char *szBind, uint16_t ulPort, int *lpulListenSocket)
 {
 	HRESULT hr = hrSuccess;
 	int fd = -1, opt = 1, ret;
@@ -890,7 +886,7 @@ HRESULT HrListen(ECLogger *lpLogger, const char *szBind, uint16_t ulPort,
 	      port_string, &sock_hints, &sock_res);
 	if (ret != 0) {
 		hr = MAPI_E_INVALID_PARAMETER;
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "getaddrinfo(%s,%u): %s", szBind, ulPort, gai_strerror(ret));
+		ec_log_err("getaddrinfo(%s,%u): %s", szBind, ulPort, gai_strerror(ret));
 		goto exit;
 	}
 	sock_res = reorder_addrinfo_ipv6(sock_res);
@@ -907,8 +903,7 @@ HRESULT HrListen(ECLogger *lpLogger, const char *szBind, uint16_t ulPort,
 
 		if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR,
 		    reinterpret_cast<const char *>(&opt), sizeof(opt)) < 0)
-			lpLogger->Log(EC_LOGLEVEL_WARNING,
-				"Unable to set reuseaddr socket option: %s",
+			ec_log_warn("Unable to set reuseaddr socket option: %s",
 				strerror(errno));
 
 		ret = bind(fd, sock_addr->ai_addr, sock_addr->ai_addrlen);
@@ -933,8 +928,7 @@ HRESULT HrListen(ECLogger *lpLogger, const char *szBind, uint16_t ulPort,
 		}
 
 		if (listen(fd, SOMAXCONN) < 0) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR,
-				"Unable to start listening on port %d: %s",
+			ec_log_err("Unable to start listening on port %d: %s",
 				ulPort, strerror(errno));
 			hr = MAPI_E_NETWORK_ERROR;
 			goto exit;
@@ -949,14 +943,13 @@ HRESULT HrListen(ECLogger *lpLogger, const char *szBind, uint16_t ulPort,
 		break;
 	}
 	if (fd < 0 && sock_last != NULL) {
-		lpLogger->Log(EC_LOGLEVEL_CRIT,
-			"Unable to create socket(%u,%u,%u) port %s: %s",
+		ec_log_crit("Unable to create socket(%u,%u,%u) port %s: %s",
 			sock_last->ai_family, sock_last->ai_socktype,
 			sock_last->ai_protocol, port_string, strerror(errno));
 		hr = MAPI_E_NETWORK_ERROR;
 		goto exit;
 	} else if (fd < 0) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "no sockets proposed");
+		ec_log_err("no sockets proposed");
 		hr = MAPI_E_NETWORK_ERROR;
 		goto exit;
 	}
@@ -971,7 +964,7 @@ exit:
 	return hr;
 }
 
-HRESULT HrAccept(ECLogger *lpLogger, int ulListenFD, ECChannel **lppChannel)
+HRESULT HrAccept(int ulListenFD, ECChannel **lppChannel)
 {
 	HRESULT hr = hrSuccess;
 	int socket = 0;
@@ -981,8 +974,7 @@ HRESULT HrAccept(ECLogger *lpLogger, int ulListenFD, ECChannel **lppChannel)
 
 	if (ulListenFD < 0 || lppChannel == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
-		if (lpLogger)
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "HrAccept: invalid parameters");
+		ec_log_err("HrAccept: invalid parameters");
 		goto exit;
 	}
 #ifdef TCP_FASTOPEN
@@ -995,16 +987,13 @@ HRESULT HrAccept(ECLogger *lpLogger, int ulListenFD, ECChannel **lppChannel)
 	socket = accept(ulListenFD, (struct sockaddr *)&client, &len);
 
 	if (socket == -1) {
-		if (lpLogger)
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to accept(): %s", strerror(errno));
+		ec_log_err("Unable to accept(): %s", strerror(errno));
 		hr = MAPI_E_NETWORK_ERROR;
 		goto exit;
 	}
 	lpChannel = new ECChannel(socket);
 	lpChannel->SetIPAddress(reinterpret_cast<const struct sockaddr *>(&client), len);
-	if (lpLogger)
-		lpLogger->Log(EC_LOGLEVEL_INFO, "Accepted connection from %s", lpChannel->peer_addr());
-
+	ec_log_info("Accepted connection from %s", lpChannel->peer_addr());
 	*lppChannel = lpChannel;
 
 exit:

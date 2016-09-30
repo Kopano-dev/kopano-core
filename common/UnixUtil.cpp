@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/ECLogger.h>
 #include <kopano/UnixUtil.h>
 
 #include <unistd.h>
@@ -51,7 +52,8 @@ static int unix_runpath(ECConfig *conf)
 	return ret;
 }
 
-int unix_runas(ECConfig *lpConfig, ECLogger *lpLogger) {
+int unix_runas(ECConfig *lpConfig)
+{
 	const char *group = lpConfig->GetSetting("run_as_group");
 	const char *user  = lpConfig->GetSetting("run_as_user");
 	int ret;
@@ -66,11 +68,11 @@ int unix_runas(ECConfig *lpConfig, ECLogger *lpLogger) {
 	if (group != NULL && *group != '\0') {
 		const struct group *gr = getgrnam(group);
 		if (!gr) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Looking up group \"%s\" failed: %s", group, strerror(errno));
+			ec_log_err("Looking up group \"%s\" failed: %s", group, strerror(errno));
 			return -1;
 		}
 		if (getgid() != gr->gr_gid && setgid(gr->gr_gid) != 0) {
-			lpLogger->Log(EC_LOGLEVEL_CRIT, "Changing to group \"%s\" failed: %s", gr->gr_name, strerror(errno));
+			ec_log_crit("Changing to group \"%s\" failed: %s", gr->gr_name, strerror(errno));
 			return -1;
 		}
 	}
@@ -78,11 +80,11 @@ int unix_runas(ECConfig *lpConfig, ECLogger *lpLogger) {
 	if (user != NULL && *user != '\0') {
 		const struct passwd *pw = getpwnam(user);
 		if (!pw) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Looking up user \"%s\" failed: %s", user, strerror(errno));
+			ec_log_err("Looking up user \"%s\" failed: %s", user, strerror(errno));
 			return -1;
 		}
 		if (getuid() != pw->pw_uid && setuid(pw->pw_uid) != 0) {
-			lpLogger->Log(EC_LOGLEVEL_CRIT, "Changing to user \"%s\" failed: %s", pw->pw_name, strerror(errno));
+			ec_log_crit("Changing to user \"%s\" failed: %s", pw->pw_name, strerror(errno));
 			return -1;
 		}
 	}
@@ -115,18 +117,17 @@ int unix_chown(const char *filename, const char *username, const char *groupname
 	return chown(filename, uid, gid);
 }
 
-void unix_coredump_enable(ECLogger *logger)
+void unix_coredump_enable(void)
 {
 	struct rlimit limit;
 
 	limit.rlim_cur = RLIM_INFINITY;
 	limit.rlim_max = RLIM_INFINITY;
-	if (setrlimit(RLIMIT_CORE, &limit) < 0 && logger != NULL)
-		logger->Log(EC_LOGLEVEL_ERROR, "Unable to raise coredump filesize limit: %s", strerror(errno));
+	if (setrlimit(RLIMIT_CORE, &limit) < 0)
+		ec_log_err("Unable to raise coredump filesize limit: %s", strerror(errno));
 }
 
-int unix_create_pidfile(const char *argv0, ECConfig *lpConfig,
-    ECLogger *lpLogger, bool bForce)
+int unix_create_pidfile(const char *argv0, ECConfig *lpConfig, bool bForce)
 {
 	string pidfilename = "/var/run/kopano/" + string(argv0) + ".pid";
 	FILE *pidfile;
@@ -159,9 +160,9 @@ int unix_create_pidfile(const char *argv0, ECConfig *lpConfig,
 			}
 
 			if (running) {
-				lpLogger->Log(EC_LOGLEVEL_FATAL, "Warning: Process %s is probably already running.", argv0);
+				ec_log_crit("Warning: Process %s is probably already running.", argv0);
 				if (!bForce) {
-					lpLogger->Log(EC_LOGLEVEL_FATAL, "If you are sure the process is stopped, please remove pidfile %s", pidfilename.c_str());
+					ec_log_crit("If you are sure the process is stopped, please remove pidfile %s", pidfilename.c_str());
 					return -1;
 				}
 			}
@@ -170,7 +171,7 @@ int unix_create_pidfile(const char *argv0, ECConfig *lpConfig,
 
 	pidfile = fopen(pidfilename.c_str(), "w");
 	if (!pidfile) {
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open pidfile '%s'", pidfilename.c_str());
+		ec_log_crit("Unable to open pidfile '%s'", pidfilename.c_str());
 		return 1;
 	}
 
@@ -179,7 +180,8 @@ int unix_create_pidfile(const char *argv0, ECConfig *lpConfig,
 	return 0;
 }
 
-int unix_daemonize(ECConfig *lpConfig, ECLogger *lpLogger) {
+int unix_daemonize(ECConfig *lpConfig)
+{
 	int ret;
 
 	// make sure we daemonize in an always existing directory
@@ -189,7 +191,7 @@ int unix_daemonize(ECConfig *lpConfig, ECLogger *lpLogger) {
 
 	ret = fork();
 	if (ret == -1) {
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Daemonizing failed on 1st step");
+		ec_log_crit("Daemonizing failed on 1st step");
 		return -1;
 	}
 	if (ret)
@@ -199,7 +201,7 @@ int unix_daemonize(ECConfig *lpConfig, ECLogger *lpLogger) {
 
 	ret = fork();
 	if (ret == -1) {
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Daemonizing failed on 2nd step");
+		ec_log_crit("Daemonizing failed on 2nd step");
 		return -1;
 	}
 	if (ret)

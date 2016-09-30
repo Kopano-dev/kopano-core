@@ -268,13 +268,13 @@ int main(int argc, char **argv) {
 
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
-	if (unix_runas(g_lpConfig, g_lpLogger))
+	if (unix_runas(g_lpConfig))
 		goto exit;
-	if (g_bDaemonize && unix_daemonize(g_lpConfig, g_lpLogger))
+	if (g_bDaemonize && unix_daemonize(g_lpConfig))
 		goto exit;
 	if (!g_bDaemonize)
 		setsid();
-	unix_create_pidfile(argv[0], g_lpConfig, g_lpLogger);
+	unix_create_pidfile(argv[0], g_lpConfig);
 	if (g_bThreads == false)
 		g_lpLogger = StartLoggerProcess(g_lpConfig, g_lpLogger);
 	else
@@ -367,7 +367,7 @@ static HRESULT HrSetupListeners(int *lpulNormal, int *lpulSecure)
 
 	// start listening on normal port
 	if (bListen) {
-		hr = HrListen(g_lpLogger, g_lpConfig->GetSetting("server_bind"), ulPortICal, &ulNormalSocket);
+		hr = HrListen(g_lpConfig->GetSetting("server_bind"), ulPortICal, &ulNormalSocket);
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Could not listen on port %d. (0x%08X %s)", ulPortICal, hr, GetMAPIErrorMessage(hr));
 			bListen = false;
@@ -378,9 +378,9 @@ static HRESULT HrSetupListeners(int *lpulNormal, int *lpulSecure)
 
 	// start listening on secure port
 	if (bListenSecure) {
-		hr = ECChannel::HrSetCtx(g_lpConfig, g_lpLogger);
+		hr = ECChannel::HrSetCtx(g_lpConfig);
 		if (hr == hrSuccess) {
-			hr = HrListen(g_lpLogger, g_lpConfig->GetSetting("server_bind"), ulPortICalS, &ulSecureSocket);
+			hr = HrListen(g_lpConfig->GetSetting("server_bind"), ulPortICalS, &ulSecureSocket);
 			if (hr != hrSuccess) {
 				g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Could not listen on secure port %d. (0x%08X %s)", ulPortICalS, hr, GetMAPIErrorMessage(hr));
 				bListenSecure = false;
@@ -459,7 +459,7 @@ static HRESULT HrProcessConnections(int ulNormalSocket, int ulSecureSocket)
 		if (ulNormalSocket && FD_ISSET(ulNormalSocket, &readfds)) {
 			g_lpLogger->Log(EC_LOGLEVEL_INFO, "Connection waiting on port %d.", atoi(g_lpConfig->GetSetting("ical_port")));
 			bUseSSL = false;
-			hr = HrAccept(g_lpLogger, ulNormalSocket, &lpChannel);
+			hr = HrAccept(ulNormalSocket, &lpChannel);
 			if (hr != hrSuccess) {
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Could not accept incoming connection on port %d. (0x%08X)", atoi(g_lpConfig->GetSetting("ical_port")), hr);
 				continue;
@@ -468,7 +468,7 @@ static HRESULT HrProcessConnections(int ulNormalSocket, int ulSecureSocket)
 		} else if (ulSecureSocket && FD_ISSET(ulSecureSocket, &readfds)) {
 			g_lpLogger->Log(EC_LOGLEVEL_INFO, "Connection waiting on secure port %d.", atoi(g_lpConfig->GetSetting("icals_port")));
 			bUseSSL = true;
-			hr = HrAccept(g_lpLogger, ulSecureSocket, &lpChannel);
+			hr = HrAccept(ulSecureSocket, &lpChannel);
 			if (hr != hrSuccess) {
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Could not accept incoming secure connection on port %d. (0x%08X %s)", atoi(g_lpConfig->GetSetting("ical_port")), hr, GetMAPIErrorMessage(hr));
 				continue;
@@ -551,7 +551,7 @@ static void *HandlerClient(void *lpArg)
 
 	delete lpHandlerArgs;
 
-	if (bUseSSL && lpChannel->HrEnableTLS(g_lpLogger) != hrSuccess) {
+	if (bUseSSL && lpChannel->HrEnableTLS() != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to negotiate SSL connection");
 		goto exit;
     }

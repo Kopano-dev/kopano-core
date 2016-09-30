@@ -1269,15 +1269,15 @@ int main(int argc, char *argv[]) {
 
 	bQuit = bMessagesWaiting = false;
 	if (parseBool(g_lpConfig->GetSetting("coredump_enabled")))
-		unix_coredump_enable(g_lpLogger);
+		unix_coredump_enable();
 
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
-	if (unix_runas(g_lpConfig, g_lpLogger)) {
+	if (unix_runas(g_lpConfig)) {
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "main(): run-as failed");
 		goto exit;
 	}
-	if (daemonize && unix_daemonize(g_lpConfig, g_lpLogger)) {
+	if (daemonize && unix_daemonize(g_lpConfig)) {
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "main(): failed daemonizing");
 		goto exit;
 	}
@@ -1285,7 +1285,7 @@ int main(int argc, char *argv[]) {
 	if (!daemonize)
 		setsid();
 
-	if (bForked == false && unix_create_pidfile(argv[0], g_lpConfig, g_lpLogger, false) < 0) {
+	if (bForked == false && unix_create_pidfile(argv[0], g_lpConfig, false) < 0) {
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "main(): Failed creating PID file");
 		goto exit;
 	}

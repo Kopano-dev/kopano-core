@@ -26,8 +26,6 @@
 
 #include <kopano/platform.h>
 
-class ECLogger;
-
 template<typename Key>
 class KeyEntry _zcp_final {
 public:

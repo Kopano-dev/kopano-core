@@ -771,7 +771,7 @@ HRESULT IMAP::HrCmdStarttls(const string &strTag) {
 	if (hr != hrSuccess)
 		return hr;
 
-	hr = lpChannel->HrEnableTLS(lpLogger);
+	hr = lpChannel->HrEnableTLS();
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_BAD, strTag, "[ALERT] Error switching to secure SSL/TLS connection");
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Error switching to SSL in STARTTLS");

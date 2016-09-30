@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/ECLogger.h>
 #include "instanceidmapper.h"
 #include "Archiver.h"
 #include "ECDatabase.h"
@@ -64,7 +65,7 @@ exit:
 }
 
 InstanceIdMapper::InstanceIdMapper(ECLogger *lpLogger)
-: m_ptrDatabase(new ECDatabase(lpLogger))
+: m_ptrDatabase(new ECDatabase())
 { }
 
 HRESULT InstanceIdMapper::Init(ECConfig *lpConfig)
@@ -73,12 +74,12 @@ HRESULT InstanceIdMapper::Init(ECConfig *lpConfig)
 	
 	er = m_ptrDatabase->Connect(lpConfig);
 	if (er == KCERR_DATABASE_NOT_FOUND) {
-		m_ptrDatabase->GetLogger()->Log(EC_LOGLEVEL_INFO, "Database not found, creating database.");
+		ec_log_info("Database not found, creating database.");
 		er = m_ptrDatabase->CreateDatabase(lpConfig);
 	}
 	
 	if (er != erSuccess)
-		m_ptrDatabase->GetLogger()->Log(EC_LOGLEVEL_FATAL, "Database connection failed: %s", m_ptrDatabase->GetError());
+		ec_log_crit("Database connection failed: %s", m_ptrDatabase->GetError());
 
 	return kcerr_to_mapierr(er);
 }
@@ -119,20 +120,20 @@ HRESULT InstanceIdMapper::GetMappedInstanceId(const SBinary &sourceServerUID, UL
 
 		default:	// This should be impossible.
 			hr = MAPI_E_DISK_ERROR;	// MAPI version of KCERR_DATABASE_ERROR
-			m_ptrDatabase->GetLogger()->Log(EC_LOGLEVEL_FATAL, "InstanceIdMapper::GetMappedInstanceId(): GetNumRows failed");
+			ec_log_crit("InstanceIdMapper::GetMappedInstanceId(): GetNumRows failed");
 			goto exit;
 	}
 
 	lpDBRow = m_ptrDatabase->FetchRow(lpResult);
 	if (lpDBRow == NULL || lpDBRow[0] == NULL) {
-		m_ptrDatabase->GetLogger()->Log(EC_LOGLEVEL_FATAL, "InstanceIdMapper::GetMappedInstanceId(): FetchRow failed");
+		ec_log_crit("InstanceIdMapper::GetMappedInstanceId(): FetchRow failed");
 		hr = MAPI_E_DISK_ERROR;	// MAPI version of KCERR_DATABASE_ERROR
 		goto exit;
 	}
 
 	lpLengths = m_ptrDatabase->FetchRowLengths(lpResult);
 	if (lpLengths == NULL || lpLengths[0] == 0) {
-		m_ptrDatabase->GetLogger()->Log(EC_LOGLEVEL_FATAL, "InstanceIdMapper::GetMappedInstanceId(): FetchRowLengths failed");
+		ec_log_crit("InstanceIdMapper::GetMappedInstanceId(): FetchRowLengths failed");
 		hr = MAPI_E_DISK_ERROR;	// MAPI version of KCERR_DATABASE_ERROR
 		goto exit;
 	}
