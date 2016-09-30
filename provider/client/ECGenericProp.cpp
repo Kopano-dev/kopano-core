@@ -738,9 +738,11 @@ HRESULT ECGenericProp::HrLoadProps()
 		m_sMapiObject = NULL;
 
 		// only remove my own properties: keep recipients and attachment tables
-		for (auto &p : *lstProps)
-			p.second.DeleteProperty();
-		lstProps->clear();
+		if (lstProps != NULL) {
+			for (auto &p : *lstProps)
+				p.second.DeleteProperty();
+			lstProps->clear();
+		}
 		m_setDeletedProps.clear();
 	}
 

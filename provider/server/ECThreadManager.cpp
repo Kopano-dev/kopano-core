@@ -743,11 +743,11 @@ ECRESULT ECDispatcherSelect::MainLoop()
 				continue;
 			ACTIVESOCKET sActive;
 			auto newsoap = soap_copy(p.second);
-			kopano_new_soap_connection(SOAP_CONNECTION_TYPE(p.second), newsoap);
 			if (newsoap == NULL) {
 				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to accept new connection: out of memory");
 				continue;
 			}
+			kopano_new_soap_connection(SOAP_CONNECTION_TYPE(p.second), newsoap);
 			// Record last activity (now)
 			time(&sActive.ulLastActivity);
 			ulType = SOAP_CONNECTION_TYPE(p.second);
