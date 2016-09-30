@@ -1674,18 +1674,18 @@ HRESULT ECExchangeExportChanges::AddProcessedChanges(ChangeList &lstChanges)
 
 void ECExchangeExportChanges::LogMessageProps(int loglevel, ULONG cValues, LPSPropValue lpPropArray)
 {
-	if (m_lpLogger->Log(loglevel)) {
-		LPSPropValue lpPropEntryID = PpropFindProp(lpPropArray, cValues, PR_ENTRYID);
-		LPSPropValue lpPropSK = PpropFindProp(lpPropArray, cValues, PR_SOURCE_KEY);
-		LPSPropValue lpPropFlags = PpropFindProp(lpPropArray, cValues, PR_MESSAGE_FLAGS);
-		LPSPropValue lpPropHierarchyId = PpropFindProp(lpPropArray, cValues, PR_EC_HIERARCHYID);
-		LPSPropValue lpPropParentId = PpropFindProp(lpPropArray, cValues, PR_EC_PARENT_HIERARCHYID);
+	if (!m_lpLogger->Log(loglevel))
+		return;
+	LPSPropValue lpPropEntryID = PpropFindProp(lpPropArray, cValues, PR_ENTRYID);
+	LPSPropValue lpPropSK = PpropFindProp(lpPropArray, cValues, PR_SOURCE_KEY);
+	LPSPropValue lpPropFlags = PpropFindProp(lpPropArray, cValues, PR_MESSAGE_FLAGS);
+	LPSPropValue lpPropHierarchyId = PpropFindProp(lpPropArray, cValues, PR_EC_HIERARCHYID);
+	LPSPropValue lpPropParentId = PpropFindProp(lpPropArray, cValues, PR_EC_PARENT_HIERARCHYID);
 
-		m_lpLogger->Log(loglevel, "ExportFast:   Message info: id=%u, parentid=%u, msgflags=%x, entryid=%s, sourcekey=%s",
-						(lpPropHierarchyId ? lpPropHierarchyId->Value.ul : 0),
-						(lpPropParentId ? lpPropParentId->Value.ul : 0),
-						(lpPropFlags ? lpPropFlags->Value.ul : 0),
-						(lpPropEntryID ? bin2hex(lpPropEntryID->Value.bin.cb, lpPropEntryID->Value.bin.lpb).c_str() : "<Unknown>"),
-						(lpPropSK ? bin2hex(lpPropSK->Value.bin.cb, lpPropSK->Value.bin.lpb).c_str() : "<Unknown>"));
-	}
+	m_lpLogger->Log(loglevel, "ExportFast:   Message info: id=%u, parentid=%u, msgflags=%x, entryid=%s, sourcekey=%s",
+		lpPropHierarchyId != NULL ? lpPropHierarchyId->Value.ul : 0,
+		lpPropParentId != NULL ? lpPropParentId->Value.ul : 0,
+		lpPropFlags != NULL ? lpPropFlags->Value.ul : 0,
+		lpPropEntryID != NULL ? bin2hex(lpPropEntryID->Value.bin.cb, lpPropEntryID->Value.bin.lpb).c_str() : "<Unknown>",
+		lpPropSK != NULL ? bin2hex(lpPropSK->Value.bin.cb, lpPropSK->Value.bin.lpb).c_str() : "<Unknown>");
 }

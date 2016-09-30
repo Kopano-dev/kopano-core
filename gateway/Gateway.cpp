@@ -162,11 +162,9 @@ static void *Handler(void *lpArg)
 	bool bQuit = false;
 	int timeouts = 0;
 
-	if (bUseSSL) {
-		if (lpChannel->HrEnableTLS() != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to negotiate SSL connection");
-			goto exit;
-		}
+	if (bUseSSL && lpChannel->HrEnableTLS() != hrSuccess) {
+		lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to negotiate SSL connection");
+		goto exit;
 	}
 
 	hr = client->HrSendGreeting(g_strHostString);
