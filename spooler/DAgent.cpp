@@ -1592,6 +1592,7 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 			else
 				unlink(szTemp);	// ignore headers, but still try oof script
 			close(fd);
+			fd = -1;
 		}
 	}
 	
