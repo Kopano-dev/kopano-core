@@ -1865,8 +1865,6 @@ static HRESULT HrStringToMAPIMessage(const string &strMail,
 	*lpbFallbackDelivery = bFallback;
 
 exit:
-	if (lpFallbackMessage)
-		lpFallbackMessage->Release();
 
 	if (lpMessage) {
 		sc -> countInc("DAgent", "string_to_mapi");
@@ -1900,6 +1898,8 @@ exit:
 	}
 	}
 
+	if (lpFallbackMessage)
+		lpFallbackMessage->Release();
 	return hr;
 }
 
