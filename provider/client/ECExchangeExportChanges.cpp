@@ -1614,19 +1614,19 @@ HRESULT ECExchangeExportChanges::ChangesToEntrylist(std::list<ICSCHANGE> * lpLst
 	if(lpEntryList->cValues > 0){
 		if ((hr = MAPIAllocateMore(sizeof(SBinary) * lpEntryList->cValues, lpEntryList, (LPVOID *)&lpEntryList->lpbin)) != hrSuccess)
 			goto exit;
+		ulCount = 0;
+		for (const auto &change : *lpLstChanges) {
+			lpEntryList->lpbin[ulCount].cb = change.sSourceKey.cb;
+			hr = MAPIAllocateMore(change.sSourceKey.cb, lpEntryList,
+			     reinterpret_cast<void **>(&lpEntryList->lpbin[ulCount].lpb));
+			if (hr != hrSuccess)
+				goto exit;
+			memcpy(lpEntryList->lpbin[ulCount].lpb, change.sSourceKey.lpb, change.sSourceKey.cb);
+			++ulCount;
+		}
 	}else{
 		lpEntryList->lpbin = NULL;
 	}
-	ulCount = 0;
-	for (const auto &change : *lpLstChanges) {
-		lpEntryList->lpbin[ulCount].cb = change.sSourceKey.cb;
-		hr = MAPIAllocateMore(change.sSourceKey.cb, lpEntryList, reinterpret_cast<void **>(&lpEntryList->lpbin[ulCount].lpb));
-		if (hr != hrSuccess)
-			goto exit;
-		memcpy(lpEntryList->lpbin[ulCount].lpb, change.sSourceKey.lpb, change.sSourceKey.cb);
-		++ulCount;
-	}
-
 	lpEntryList->cValues = ulCount;
 
 	*lppEntryList = lpEntryList;

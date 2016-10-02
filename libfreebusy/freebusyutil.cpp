@@ -807,13 +807,14 @@ HRESULT HrAddFBBlock(const OccrInfo &sOccrInfo, OccrInfo **lppsOccrInfo,
 		return hr;
 	
 	if(lpsInputOccrInfo)
-		hr = HrCopyFBBlockSet(lpsNewOccrInfo, lpsInputOccrInfo, (*lpcValues));
+		hr = HrCopyFBBlockSet(lpsNewOccrInfo, lpsInputOccrInfo, ulModVal);
 	
 	if (hr != hrSuccess) {
 		MAPIFreeBuffer(lpsNewOccrInfo);
 		return hr;
 	}
-	(*lpcValues) = ulModVal;
+	if (lpcValues != NULL)
+		*lpcValues = ulModVal;
 	lpsNewOccrInfo[ulModVal -1] = sOccrInfo;
 	*lppsOccrInfo = lpsNewOccrInfo;
 	MAPIFreeBuffer(lpsInputOccrInfo);

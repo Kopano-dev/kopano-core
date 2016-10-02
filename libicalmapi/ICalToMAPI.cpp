@@ -237,7 +237,8 @@ HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string&
 	// find all "messages" vevent, vtodo, vjournal, ...?
 	lpicComponent = icalcomponent_get_first_component(lpicCalendar, ICAL_ANY_COMPONENT);
 	while (lpicComponent) {
-		switch (icalcomponent_isa(lpicComponent)) {
+		auto type = icalcomponent_isa(lpicComponent);
+		switch (type) {
 		case ICAL_VEVENT_COMPONENT:
 			lpVEC = new VEventConverter(m_lpAdrBook, &tzMap, m_lpNamedProps, strCharset, false, m_bNoRecipients, lpMailUser);
 			hr = hrSuccess;
@@ -258,7 +259,7 @@ HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string&
 		if (hr != hrSuccess)
 			goto next;
 
-		switch(icalcomponent_isa(lpicComponent)) {			
+		switch (type) {
 		case ICAL_VFREEBUSY_COMPONENT:
 			hr = HrGetFbInfo(lpicComponent, &m_tFbStart, &m_tFbEnd, &m_strUID, &m_lstUsers);
 			if (hr == hrSuccess)
