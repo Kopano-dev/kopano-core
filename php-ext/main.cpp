@@ -633,7 +633,8 @@ PHP_MSHUTDOWN_FUNCTION(mapi)
 		lpLogger->Log(EC_LOGLEVEL_INFO, "PHP-MAPI shutdown");
 
 	MAPIUninitialize();
-	lpLogger->Release();
+	if (lpLogger != NULL)
+		lpLogger->Release();
 	lpLogger = NULL;
 	return SUCCESS;
 }

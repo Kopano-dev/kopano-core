@@ -2693,14 +2693,12 @@ HRESULT ECMsgStore::CreateSpecialFolder(LPMAPIFOLDER lpFolderParent,
 	LPMAPIFOLDER	lpMAPIFolder = NULL;
 	LPSPropValue	lpPropValue = NULL;
 
+	if (lpFolderParent == NULL)
+		return MAPI_E_INVALID_PARAMETER;
+
 	// Add a referention at the folders
 	lpFolderParent->AddRef();
 	if(lpFolderPropSet) { lpFolderPropSet->AddRef(); }
-
-	if(lpFolderParent == NULL){
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
 
 	// Create the folder
 	hr = lpFolderParent->CreateFolder(FOLDER_GENERIC,
