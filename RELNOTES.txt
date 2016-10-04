@@ -1,5 +1,5 @@
-Release notes for 8.1.0
-=======================
+Release notes for 8.1.0 [2016-10-05]
+====================================
 Fixes:
 * server: A fast-growing memory leak was resolved [KC-12]
 * sql schema: all PRIMARY keys need to be NOT NULL, otherwise a UNIQUE
@@ -25,7 +25,6 @@ Fixes:
 * backup: miscellaneous [KC-161, KC-162, KC-192]
 * init: classic init scripts showed wrong status for python daemons [KC-220]
 Enhancements:
-* PHP7 support [KC-130, KC-131, KC-134, KC-158]
 * server: add ICS log messages [KC-18]
 * server: ship example config files for ldap multi-server [KC-65]
 * server: speed up REPLACE-type sql queries [KC-58]
@@ -46,6 +45,8 @@ Enhancements:
   have accumulated [KC-140]
 * server: the allocator library is now switchable [KC-191, KC-216],
   there is a new option "allocator_library" in server.cfg to control it.
+* Initial PHP7 support [KC-130, KC-131, KC-134, KC-158]
+  (not complete for Z-Push yet)
 Changes:
 * search: no longer do indexing on root and Draft folders [KC-57]
 * search: index junk folders, but skip updating suggestion list [KC-57]
