@@ -128,6 +128,9 @@ HRESULT CreateSoapTransport(ULONG ulUIFlags,
 	soap_set_omode(lpCmd->soap, iSoapoMode);
 
 	lpCmd->endpoint = strdup(strServerPath);
+#if GSOAP_VERSION >= 20831
+	lpCmd->soap->sndbuf = lpCmd->soap->rcvbuf = 0;
+#endif
 
 	// default allow SSLv3, TLSv1, TLSv1.1 and TLSv1.2
 	lpCmd->soap->ctx = SSL_CTX_new(SSLv23_method());
