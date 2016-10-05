@@ -50,7 +50,7 @@ HRESULT HrFileLFtoCRLF(FILE *fin, FILE** fout)
 {
 	char	bufferin[BLOCKSIZE / 2];
 	char	bufferout[BLOCKSIZE+1];
-	size_t	sizebufferout, readsize;
+	size_t sizebufferout;
 	FILE*	fTmp = NULL;
 
 	if(fin == NULL || fout == NULL)
@@ -63,7 +63,7 @@ HRESULT HrFileLFtoCRLF(FILE *fin, FILE** fout)
 	}
 
 	while (!feof(fin)) {
-		readsize = fread(bufferin, 1, BLOCKSIZE / 2, fin);
+		size_t readsize = fread(bufferin, 1, BLOCKSIZE / 2, fin);
 		if (ferror(fin)) {
 			perror("Read error");//FIXME: What an error?, what now?
 			fclose(fTmp);
@@ -111,7 +111,6 @@ HRESULT HrMapFileToBuffer(FILE *f, char **lppBuffer, int *lpSize, bool *lpImmap)
 	char *lpBuffer = NULL;
 	int offset = 0;
 	long ulBufferSize = BLOCKSIZE;
-	long ulReadsize;
 	struct stat stat;
 	int fd = fileno(f);
 
@@ -135,7 +134,7 @@ HRESULT HrMapFileToBuffer(FILE *f, char **lppBuffer, int *lpSize, bool *lpImmap)
 	/* mmap failed (probably reading from STDIN as a stream), just read the file into memory, and return that */
 	lpBuffer = (char*)malloc(BLOCKSIZE); // will be deleted as soon as possible
 	while (!feof(f)) {
-		ulReadsize = fread(lpBuffer+offset, 1, BLOCKSIZE, f);
+		long ulReadsize = fread(lpBuffer+offset, 1, BLOCKSIZE, f);
 		if (ferror(f)) {
 			perror("Read error");
 			break;
