@@ -102,7 +102,6 @@ UnicodeString UTF32ToUnicode(const UChar32 *utf32)
 {
 	UnicodeString result;
 	const int32_t length = wcslen((wchar_t*)utf32);
-	int32_t capacity = length > 512 ? length + (length >> 4) + 4 : 512;
 
 	for (int32_t index = 0; index < length; ++index)
 		result.append(utf32[index]);

@@ -512,10 +512,6 @@ std::list<time_t> recurrence::getDeletedExceptions() {
 std::list<time_t> recurrence::getModifiedOccurrences() {
 	time_t tDayModified;
 	std::list<time_t> lstModified;
-	std::vector<unsigned int> lstModifiedInstanceDates;
-
-	// make copy of struct info
-	lstModifiedInstanceDates = m_sRecState.lstModifiedInstanceDates;
 
 	for (const auto &exc : m_sRecState.lstExceptions) {
 		RTimeToUnixTime(exc.ulOriginalStartDate, &tDayModified);
@@ -629,7 +625,6 @@ HRESULT recurrence::addModifiedException(time_t tStart, time_t tEnd, time_t tOri
 {
 	HRESULT hr = S_OK;
 	LONG rStart, rEnd, rOrig, rDayStart;
-	vector<ULONG>::reverse_iterator i;
 	ULONG id = 0;
 	RecurrenceState::Exception sException = {0};
 	RecurrenceState::ExtendedException sExtException = {0};
