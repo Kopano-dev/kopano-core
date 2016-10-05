@@ -107,11 +107,9 @@ ECNotifyClient::~ECNotifyClient()
 
 HRESULT ECNotifyClient::Create(ULONG ulProviderType, void *lpProvider, ULONG ulFlags, LPMAPISUP lpSupport, ECNotifyClient**lppNotifyClient)
 {
-	HRESULT hr			= hrSuccess;
-
 	ECNotifyClient *lpNotifyClient = new ECNotifyClient(ulProviderType, lpProvider, ulFlags, lpSupport);
 
-	hr = lpNotifyClient->QueryInterface(IID_ECNotifyClient, (void **)lppNotifyClient);
+	HRESULT hr = lpNotifyClient->QueryInterface(IID_ECNotifyClient, (void **)lppNotifyClient);
 	if (hr != hrSuccess)
 		delete lpNotifyClient;
 
@@ -281,11 +279,10 @@ exit:
 
 HRESULT ECNotifyClient::UnRegisterAdvise(ULONG ulConnection)
 {
-	HRESULT hr;
 	/*
 	 * Release connection from Master
 	 */
-	hr = m_lpNotifyMaster->DropConnection(ulConnection);
+	HRESULT hr = m_lpNotifyMaster->DropConnection(ulConnection);
 	if (hr != hrSuccess)
 		return hr;
 

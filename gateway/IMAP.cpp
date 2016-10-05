@@ -4137,7 +4137,6 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 	// 4. BODY* or body part requested
 	// 5. RFC822* requested
 	// and ! cached
-	bSkipOpen = true;
 	for (auto iFetch = lstDataItems.cbegin();
 	     bSkipOpen && iFetch != lstDataItems.cend(); ++iFetch)
 	{
@@ -4450,7 +4449,6 @@ std::string IMAP::HrEnvelopeRecipients(LPSRowSet lpRows, ULONG ulType, std::stri
 {
 	ULONG ulCount;
 	std::string strResponse;
-	std::string strPart;
 	std::string::size_type ulPos;
 	enum { EMAIL_ADDRESS, DISPLAY_NAME, RECIPIENT_TYPE, ADDRTYPE, ENTRYID, NUM_COLS };
 
@@ -7060,7 +7058,6 @@ bool IMAP::MatchFolderPath(wstring strFolder, const wstring& strPattern)
 void IMAP::HrParseHeaders(const string &strHeaders, list<pair<string, string> > &lstHeaders)
 {
     size_t pos = 0;
-    size_t end = 0;
     string strLine;
     string strField;
     string strData;
@@ -7070,7 +7067,7 @@ void IMAP::HrParseHeaders(const string &strHeaders, list<pair<string, string> > 
     iterLast = lstHeaders.end();
     
     while(1) {
-        end = strHeaders.find("\r\n", pos);
+        size_t end = strHeaders.find("\r\n", pos);
         
 		if (end == string::npos)
 			strLine = strHeaders.substr(pos);

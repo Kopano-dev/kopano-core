@@ -190,13 +190,12 @@ static HRESULT GetIMsgStoreObject(BOOL bOffline, std::string strProfname,
     BOOL bModify, ECMapProvider *lpmapProviders, IMAPISupport *lpMAPISup,
     ULONG cbEntryId, LPENTRYID lpEntryId, LPMDB *lppIMsgStore)
 {
-	HRESULT hr = hrSuccess;
 	PROVIDER_INFO sProviderInfo;
 	LPPROFSECT lpProfSect = NULL;
 	LPSPropValue lpsPropValue = NULL;
 	char *lpszProfileName = NULL;
 
-	hr = lpMAPISup->OpenProfileSection((LPMAPIUID)&MUID_PROFILE_INSTANCE, 0, &lpProfSect);
+	HRESULT hr = lpMAPISup->OpenProfileSection((LPMAPIUID)&MUID_PROFILE_INSTANCE, 0, &lpProfSect);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -318,11 +317,9 @@ HRESULT	ECMsgStore::Create(const char *lpszProfname, LPMAPISUP lpSupport,
     BOOL fIsSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore,
     ECMsgStore **lppECMsgStore)
 {
-	HRESULT hr = hrSuccess;
-
 	ECMsgStore *lpStore = new ECMsgStore(lpszProfname, lpSupport, lpTransport, fModify, ulProfileFlags, fIsSpooler, fIsDefaultStore, bOfflineStore);
 
-	hr = lpStore->QueryInterface(IID_ECMsgStore, (void **)lppECMsgStore);
+	HRESULT hr = lpStore->QueryInterface(IID_ECMsgStore, (void **)lppECMsgStore);
 
 	if(hr != hrSuccess)
 		delete lpStore;
@@ -332,9 +329,7 @@ HRESULT	ECMsgStore::Create(const char *lpszProfname, LPMAPISUP lpSupport,
 
 HRESULT ECMsgStore::SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray *lppProblems)
 {
-	HRESULT hr;
-
-	hr = ECMAPIProp::SetProps(cValues, lpPropArray, lppProblems);
+	HRESULT hr = ECMAPIProp::SetProps(cValues, lpPropArray, lppProblems);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -343,9 +338,7 @@ HRESULT ECMsgStore::SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropPro
 
 HRESULT ECMsgStore::DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray FAR * lppProblems)
 {
-	HRESULT hr;
-
-	hr = ECMAPIProp::DeleteProps(lpPropTagArray, lppProblems);
+	HRESULT hr = ECMAPIProp::DeleteProps(lpPropTagArray, lppProblems);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -1380,9 +1373,8 @@ HRESULT	ECMsgStore::SetPropHandler(ULONG ulPropTag, void* lpProvider, LPSPropVal
 
 HRESULT ECMsgStore::SetEntryId(ULONG cbEntryId, LPENTRYID lpEntryId)
 {
-	HRESULT hr;
 	assert(m_lpNotifyClient == NULL);
-	hr = ECGenericProp::SetEntryId(cbEntryId, lpEntryId);
+	HRESULT hr = ECGenericProp::SetEntryId(cbEntryId, lpEntryId);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -1945,12 +1937,11 @@ HRESULT ECMsgStore::CreateAdditionalFolder(IMAPIFolder *lpRootFolder,
     const TCHAR *lpszFolderName, const TCHAR *lpszComment,
     const TCHAR *lpszContainerType, bool fHidden)
 {
-	HRESULT hr = hrSuccess;
 	IMAPIFolder *lpMAPIFolder = NULL;
 	LPSPropValue lpPropValueEID = NULL;
 	SPropValue sPropValue;
 	
-	hr = lpSubTreeFolder->CreateFolder(FOLDER_GENERIC,
+	HRESULT hr = lpSubTreeFolder->CreateFolder(FOLDER_GENERIC,
 	     const_cast<LPTSTR>(lpszFolderName),
 	     const_cast<LPTSTR>(lpszComment), &IID_IMAPIFolder,
 	     OPEN_IF_EXISTS | fMapiUnicode, &lpMAPIFolder);
@@ -2597,11 +2588,10 @@ HRESULT ECMsgStore::RemoveStore(LPGUID lpGuid)
 
 HRESULT ECMsgStore::ResolveStore(LPGUID lpGuid, ULONG *lpulUserID, ULONG* lpcbStoreID, LPENTRYID* lppStoreID)
 {
-	HRESULT			hr = hrSuccess;
 	ULONG			cbStoreEntryID = 0;
 	LPENTRYID		lpStoreEntryID = NULL;
 
-	hr = lpTransport->HrResolveStore(lpGuid, lpulUserID, &cbStoreEntryID, &lpStoreEntryID);
+	HRESULT hr = lpTransport->HrResolveStore(lpGuid, lpulUserID, &cbStoreEntryID, &lpStoreEntryID);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -2614,13 +2604,12 @@ exit:
 
 HRESULT ECMsgStore::SetSpecialEntryIdOnFolder(LPMAPIFOLDER lpFolder, ECMAPIProp *lpFolderPropSet, unsigned int ulPropTag, unsigned int ulMVPos)
 {
-	HRESULT hr = hrSuccess;
 	LPSPropValue	lpPropValue = NULL;
 	LPSPropValue	lpPropMVValue = NULL;
 	LPSPropValue	lpPropMVValueNew = NULL;
 
 	// Get entryid of the folder
-	hr = HrGetOneProp(lpFolder, PR_ENTRYID, &lpPropValue);
+	HRESULT hr = HrGetOneProp(lpFolder, PR_ENTRYID, &lpPropValue);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -3024,12 +3013,11 @@ HRESULT ECMsgStore::ResolvePseudoUrl(const char *lpszPseudoUrl,
 
 HRESULT ECMsgStore::GetPublicStoreEntryID(ULONG ulFlags, ULONG* lpcbStoreID, LPENTRYID* lppStoreID)
 {
-	HRESULT hr;
 	ULONG cbStoreID;
 	EntryIdPtr ptrStoreID;
 	std::string strRedirServer;
 
-	hr = lpTransport->HrGetPublicStore(ulFlags, &cbStoreID, &ptrStoreID, &strRedirServer);
+	HRESULT hr = lpTransport->HrGetPublicStore(ulFlags, &cbStoreID, &ptrStoreID, &strRedirServer);
 	if (hr == MAPI_E_UNABLE_TO_COMPLETE) {
 		WSTransportPtr ptrTransport;
 
@@ -3081,11 +3069,10 @@ HRESULT ECMsgStore::ResetFolderCount(ULONG cbEntryId, LPENTRYID lpEntryId, ULONG
 // This is almost the same as getting a 'normal' outgoing table, except we pass NULL as PEID for the store
 HRESULT ECMsgStore::GetMasterOutgoingTable(ULONG ulFlags, IMAPITable ** lppOutgoingTable)
 {
-	HRESULT hr = hrSuccess;
 	ECMAPITable *lpTable = NULL;
 	WSTableOutGoingQueue *lpTableOps = NULL;
 
-	hr = ECMAPITable::Create("Master outgoing queue", this->m_lpNotifyClient, 0, &lpTable);
+	HRESULT hr = ECMAPITable::Create("Master outgoing queue", this->m_lpNotifyClient, 0, &lpTable);
 
 	if(hr != hrSuccess)
 		goto exit;
@@ -3300,7 +3287,6 @@ HRESULT ECMsgStore::MsgStoreDnToPseudoUrl(const utf8string &strMsgStoreDN, utf8s
  */
 HRESULT ECMsgStore::ExportMessageChangesAsStream(ULONG ulFlags, ULONG ulPropTag, std::vector<ICSCHANGE> &sChanges, ULONG ulStart, ULONG ulCount, LPSPropTagArray lpsProps, WSMessageStreamExporter **lppsStreamExporter)
 {
-	HRESULT hr;
 	WSMessageStreamExporterPtr ptrStreamExporter;
 	WSTransportPtr ptrTransport;
 
@@ -3315,7 +3301,7 @@ HRESULT ECMsgStore::ExportMessageChangesAsStream(ULONG ulFlags, ULONG ulPropTag,
 	// while the streaming is going on; you should be able to intermix Synchronize() calls on the exporter
 	// with other MAPI calls which would normally be impossible since the stream is kept open between
 	// Synchronize() calls.
-	hr = GetMsgStore()->lpTransport->CloneAndRelogon(&ptrTransport);
+	HRESULT hr = GetMsgStore()->lpTransport->CloneAndRelogon(&ptrTransport);
 	if (hr != hrSuccess)
 		return hr;
 

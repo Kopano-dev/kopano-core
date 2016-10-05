@@ -1447,7 +1447,6 @@ HRESULT MAPIToVMIME::getMailBox(LPSRow lpRow, vmime::ref<vmime::address> *lpvmMa
 HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder *lpVMMessageBuilder, eBestBody *bestBody) {
 	std::string strHTMLOut, strRtf, strBodyConverted;
 	std::wstring strBody;
-	HRESULT		hr						= hrSuccess;
 	IStream*	lpCompressedRTFStream	= NULL; 
 	IStream*	lpUncompressedRTFStream	= NULL; 
 	IStream*	lpBody					= NULL;
@@ -1463,7 +1462,8 @@ HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder 
 	*bestBody = plaintext;
 
 	// grabbing rtf
-	hr = lpMessage->OpenProperty(PR_RTF_COMPRESSED, &IID_IStream, 0, 0, (LPUNKNOWN *)&lpCompressedRTFStream);
+	HRESULT hr = lpMessage->OpenProperty(PR_RTF_COMPRESSED, &IID_IStream,
+	             0, 0, reinterpret_cast<LPUNKNOWN *>(&lpCompressedRTFStream));
 	if(hr == hrSuccess) {
 
 		hr = WrapCompressedRTFStream(lpCompressedRTFStream, 0, &lpUncompressedRTFStream);
@@ -1915,7 +1915,6 @@ exit:
  * @return Mapi error code
  */
 HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage, vmime::ref<vmime::header> vmHeader) {
-	HRESULT hr = hrSuccess;
 	ULONG cValues;
 	LPSPropValue lpProps = NULL;
 	LPSPropTagArray lpPropTags = NULL;
@@ -1925,7 +1924,8 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage, vmime::ref<vmime::hea
 	std::wstring strEmail, strName, strType;
 	std::wstring strResEmail, strResName, strResType;
 
-	hr = MAPIAllocateBuffer(CbNewSPropTagArray(4), (void**)&lpPropTags);
+	HRESULT hr = MAPIAllocateBuffer(CbNewSPropTagArray(4),
+	             reinterpret_cast<void **>(&lpPropTags));
 	if (hr != hrSuccess)
 		goto exit;
 

@@ -183,7 +183,6 @@ exit:
 }
 
 HRESULT dump_message( libpff_item_t *item, IMAPIFolder *lpFolder) {
-    HRESULT hr = hrSuccess;
     MessagePtr lpMessage;
     
     IAttach *lpAttach = NULL;
@@ -195,7 +194,7 @@ HRESULT dump_message( libpff_item_t *item, IMAPIFolder *lpFolder) {
     mapi_rowset_ptr<SRow> props, recipprops, attachprops;
     libpff_item_t *attachment = NULL, *attachments = NULL;
     
-    hr = item_to_srowset(item, &props);
+    HRESULT hr = item_to_srowset(item, &props);
     if(hr != hrSuccess) {
         wcerr << "Unable to get properties\n";
         goto exit;
@@ -360,7 +359,6 @@ exit:
 }
 
 HRESULT dump_folder(libpff_file_t *file, libpff_item_t *item, IMAPIFolder *lpFolder) {
-    HRESULT hr = hrSuccess;
     int folders, messages;
     libpff_error_t *error = NULL;
     std::wstring wstrDisplay;
@@ -371,7 +369,10 @@ HRESULT dump_folder(libpff_file_t *file, libpff_item_t *item, IMAPIFolder *lpFol
     
     wcerr << "Processing folder " << wstrDisplay << endl;
     
-    hr = lpFolder->CreateFolder(FOLDER_GENERIC, (TCHAR *)wstrDisplay.c_str(), (TCHAR *)L"", &IID_IMAPIFolder, MAPI_UNICODE | OPEN_IF_EXISTS, &lpSubFolder);
+    HRESULT hr = lpFolder->CreateFolder(FOLDER_GENERIC,
+                 reinterpret_cast<TCHAR *>(wstrDisplay.c_str()),
+                 reinterpret_cast<TCHAR *>(const_cast<wchar_t *>(L"")),
+                 &IID_IMAPIFolder, MAPI_UNICODE | OPEN_IF_EXISTS, &lpSubFolder);
     if(hr != hrSuccess) {
         wcerr << "Unable to create folder '" << wstrDisplay << "'\n";
         goto exit;

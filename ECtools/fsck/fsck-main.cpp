@@ -48,10 +48,8 @@ static bool ReadYesNoMessage(const std::string &strMessage,
 
 static HRESULT DeleteEntry(LPMAPIFOLDER lpFolder, LPSPropValue lpItemProperty)
 {
-	HRESULT hr = hrSuccess;
 	LPENTRYLIST lpEntryList = NULL;
-
-	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), (void**)&lpEntryList);
+	HRESULT hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), reinterpret_cast<void **>(&lpEntryList));
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -199,12 +197,11 @@ exit:
 static HRESULT ProcessFolder(Fsck *lpFsck, LPMAPIFOLDER lpFolder,
     const std::string &strName)
 {
-	HRESULT hr = hrSuccess;
 	LPMAPITABLE lpTable = NULL;
 	LPSRowSet lpRows = NULL;
 	ULONG ulCount;
 
-	hr = lpFolder->GetContentsTable(0, &lpTable);
+	HRESULT hr = lpFolder->GetContentsTable(0, &lpTable);
  	if(hr != hrSuccess) {
 		cout << "Failed to open Folder table." << endl;
 		goto exit;
@@ -270,12 +267,10 @@ Fsck::Fsck()
 HRESULT Fsck::ValidateMessage(LPMESSAGE lpMessage,
     const std::string &strName, const std::string &strClass)
 {
-	HRESULT hr = hrSuccess;
-
 	cout << "Validating entry: \"" << strName << "\"" << endl;
 
 	++this->ulEntries;
-	hr = this->ValidateItem(lpMessage, strClass);
+	HRESULT hr = this->ValidateItem(lpMessage, strClass);
 
 	cout << "Validating of entry \"" << strName << "\" ended" << endl;
 
@@ -285,13 +280,10 @@ HRESULT Fsck::ValidateMessage(LPMESSAGE lpMessage,
 HRESULT Fsck::ValidateFolder(LPMAPIFOLDER lpFolder,
     const std::string &strName)
 {
-	HRESULT hr = hrSuccess;
-
 	cout << "Validating folder \"" << strName << "\"" << endl;
 
 	++this->ulFolders;
-	hr = ProcessFolder(this, lpFolder, strName);
-
+	HRESULT hr = ProcessFolder(this, lpFolder, strName);
 	cout << "Validating of folder \"" << strName << "\" ended" << endl;
 
 	return hr;
@@ -487,7 +479,6 @@ exit:
 
 HRESULT Fsck::ValidateDuplicateRecipients(LPMESSAGE lpMessage, bool &bChanged)
 {
-	HRESULT hr = hrSuccess;
 	LPMAPITABLE lpTable = NULL;
 	ULONG cRows = 0;
 	std::set<std::string> mapRecip;
@@ -498,7 +489,7 @@ HRESULT Fsck::ValidateDuplicateRecipients(LPMESSAGE lpMessage, bool &bChanged)
 
 	SizedSPropTagArray(5, sptaProps) = {5, {PR_ROWID, PR_DISPLAY_NAME_A, PR_EMAIL_ADDRESS_A, PR_RECIPIENT_TYPE, PR_ENTRYID}};
 
-	hr = lpMessage->GetRecipientTable(0, &lpTable);
+	HRESULT hr = lpMessage->GetRecipientTable(0, &lpTable);
 	if (hr != hrSuccess)
 		goto exit;
 

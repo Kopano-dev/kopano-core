@@ -103,11 +103,10 @@ exit:
  */
 HRESULT HrAddProperty(IMsgStore *lpMsgStore, SBinary sbEid, ULONG ulPropertyId, bool bIsFldID, std::wstring *lpwstrProperty )
 {
-	HRESULT hr = hrSuccess;
 	IMAPIFolder *lpUsrFld = NULL;
 	ULONG ulObjType = 0;
-	
-	hr = lpMsgStore->OpenEntry(sbEid.cb, (LPENTRYID)sbEid.lpb, NULL, MAPI_BEST_ACCESS, &ulObjType, (LPUNKNOWN *) &lpUsrFld);
+	HRESULT hr = lpMsgStore->OpenEntry(sbEid.cb, reinterpret_cast<ENTRYID *>(sbEid.lpb),
+	             NULL, MAPI_BEST_ACCESS, &ulObjType, reinterpret_cast<LPUNKNOWN *>(&lpUsrFld));
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -472,12 +471,11 @@ std::string StripGuid(const std::string &strInput)
  */
 HRESULT HrGetOwner(IMAPISession *lpSession, IMsgStore *lpDefStore, IMailUser **lppImailUser)
 {
-	HRESULT hr = hrSuccess;
 	SPropValuePtr ptrSProp;
 	IMailUser *lpMailUser = NULL;
 	ULONG ulObjType = 0;
 
-	hr = HrGetOneProp(lpDefStore, PR_MAILBOX_OWNER_ENTRYID, &ptrSProp);
+	HRESULT hr = HrGetOneProp(lpDefStore, PR_MAILBOX_OWNER_ENTRYID, &ptrSProp);
 	if(hr != hrSuccess)
 		goto exit;
 	
@@ -565,7 +563,6 @@ exit:
  */
 bool HasDelegatePerm(IMsgStore *lpDefStore, IMsgStore *lpSharedStore)
 {
-	HRESULT hr = hrSuccess;
 	LPMESSAGE lpFbMessage = NULL;
 	LPSPropValue lpProp = NULL;
 	LPSPropValue lpMailBoxEid = NULL;
@@ -576,7 +573,7 @@ bool HasDelegatePerm(IMsgStore *lpDefStore, IMsgStore *lpSharedStore)
 	bool blFound = false;
 	bool blDelegatePerm = false; // no permission
 
-	hr = HrGetOneProp(lpDefStore, PR_MAILBOX_OWNER_ENTRYID, &lpMailBoxEid);
+	HRESULT hr = HrGetOneProp(lpDefStore, PR_MAILBOX_OWNER_ENTRYID, &lpMailBoxEid);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -648,11 +645,10 @@ exit:
  */
 bool IsPrivate(LPMESSAGE lpMessage, ULONG ulPropIDPrivate)
 {
-	HRESULT hr = hrSuccess;
 	LPSPropValue lpPropPrivate = NULL;
 	bool bIsPrivate = false;
 
-	hr = HrGetOneProp(lpMessage, ulPropIDPrivate, &lpPropPrivate);
+	HRESULT hr = HrGetOneProp(lpMessage, ulPropIDPrivate, &lpPropPrivate);
 	if (hr != hrSuccess)
 		goto exit;
 	
@@ -738,7 +734,6 @@ exit:
  */
 HRESULT HrFindAndGetMessage(std::string strGuid, IMAPIFolder *lpUsrFld, LPSPropTagArray lpNamedProps, IMessage **lppMessage)
 {
-	HRESULT hr = hrSuccess;
 	SBinary sbEid = {0,0};
 	SRestriction *lpsRoot = NULL;
 	SRowSet *lpValRows = NULL;
@@ -747,7 +742,7 @@ HRESULT HrFindAndGetMessage(std::string strGuid, IMAPIFolder *lpUsrFld, LPSPropT
 	ULONG ulObjType = 0;
 	SizedSPropTagArray(1, sPropTagArr) = {1, {PR_ENTRYID}};
 	
-	hr = HrMakeRestriction(strGuid, lpNamedProps, &lpsRoot);
+	HRESULT hr = HrMakeRestriction(strGuid, lpNamedProps, &lpsRoot);
 	if (hr != hrSuccess)
 		goto exit;
 	
@@ -817,7 +812,6 @@ exit:
  */
 HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, IAddrBook *lpAddrBook, std::list<std::string> *lplstUsers, WEBDAVFBINFO *lpFbInfo)
 {
-	HRESULT hr = hrSuccess;
 	FBUser *lpUsers = NULL;
 	IEnumFBBlock *lpEnumBlock = NULL;
 	IFreeBusyData **lppFBData = NULL;
@@ -841,7 +835,7 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 	ULONG ulObj			= 0;
 	ABContainerPtr ptrABDir;
 
-	hr = lpAddrBook->GetDefaultDir(&cbEntryId, &ptrEntryId);
+	HRESULT hr = lpAddrBook->GetDefaultDir(&cbEntryId, &ptrEntryId);
 	if (hr != hrSuccess)
 		goto exit;
 

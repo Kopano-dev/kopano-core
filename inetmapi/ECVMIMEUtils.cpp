@@ -89,11 +89,9 @@ ECVMIMESender::ECVMIMESender(const std::string &host, int port) :
  */
 HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpTable, vmime::mailboxList &recipients, std::set<std::wstring> &setGroups, std::set<std::wstring> &setRecips, bool bAllowEveryone, bool bAlwaysExpandDistributionList)
 {
-	HRESULT hr = hrSuccess;
 	LPSRowSet lpRowSet = NULL;
 	std::wstring strName, strEmail, strType;
-
-	hr = lpTable->QueryRows(-1, 0, &lpRowSet);
+	HRESULT hr = lpTable->QueryRows(-1, 0, &lpRowSet);
 	if (hr != hrSuccess)
 		goto exit;
 

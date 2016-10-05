@@ -359,15 +359,14 @@ exit:
  */
 HRESULT iCal::HrModify( ICalToMapi *lpIcal2Mapi, SBinary sbSrvEid, ULONG ulPos, bool blCensor)
 {
-	HRESULT hr = hrSuccess;
 	LPMESSAGE lpMessage = NULL;
 	ULONG ulObjType=0;
 	ULONG ulTagPrivate = 0;
 
 	ulTagPrivate = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_PRIVATE], PT_BOOLEAN);
 
-	hr = m_lpUsrFld->OpenEntry(sbSrvEid.cb, (LPENTRYID) sbSrvEid.lpb, NULL, MAPI_BEST_ACCESS,
-			&ulObjType, (LPUNKNOWN *) &lpMessage);
+	HRESULT hr = m_lpUsrFld->OpenEntry(sbSrvEid.cb, reinterpret_cast<ENTRYID *>(sbSrvEid.lpb),
+	             NULL, MAPI_BEST_ACCESS, &ulObjType, reinterpret_cast<LPUNKNOWN *>(&lpMessage));
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -398,10 +397,8 @@ exit:
  */
 HRESULT iCal::HrAddMessage(ICalToMapi *lpIcal2Mapi, ULONG ulPos)
 {
-	HRESULT hr = hrSuccess;
 	LPMESSAGE lpMessage = NULL;
-
-	hr = m_lpUsrFld->CreateMessage(NULL, 0, &lpMessage);
+	HRESULT hr = m_lpUsrFld->CreateMessage(NULL, 0, &lpMessage);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -434,7 +431,6 @@ exit:
  */
 HRESULT iCal::HrDelMessage(SBinary sbEid, bool blCensor)
 {
-	HRESULT hr = hrSuccess;
 	LPENTRYLIST lpEntryList = NULL;
 	LPMESSAGE lpMessage = NULL;
 	ULONG ulObjType = 0;
@@ -442,7 +438,7 @@ HRESULT iCal::HrDelMessage(SBinary sbEid, bool blCensor)
 	
 	ulTagPrivate = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_PRIVATE], PT_BOOLEAN);
 
-	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), (void**)&lpEntryList);
+	HRESULT hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), reinterpret_cast<void **>(&lpEntryList));
 	if (hr != hrSuccess)
 	{
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR,"Error allocating memory, error code : 0x%08X",hr);
