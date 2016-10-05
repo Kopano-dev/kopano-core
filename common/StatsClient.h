@@ -19,6 +19,7 @@
 #define __STATSCLIENT_H__
 
 #include <kopano/zcdefs.h>
+#include <atomic>
 #include <map>
 #include <mutex>
 #include <string>
@@ -39,7 +40,7 @@ private:
 
 	pthread_t countsSubmitThread;
 public:
-	volatile bool terminate; // older compilers don't do atomic_bool
+	std::atomic<bool> terminate;
 	std::mutex mapsLock;
 	std::map<std::string, double> countsMapDouble;
 	std::map<std::string, int64_t> countsMapInt64;
