@@ -70,7 +70,6 @@ HRESULT iCal::HrHandleIcalGet(const std::string &strMethod)
 	std::string strModtime;
 	LPSPropValue lpProp = NULL;
 	LPMAPITABLE lpContents = NULL;
-	bool blIsWholeCal = true;
 	bool blCensorFlag = 0;
 
 	if ((m_ulFolderFlag & SHARED_FOLDER) && !HasDelegatePerm(m_lpDefStore, m_lpActiveStore))
@@ -106,10 +105,7 @@ exit:
 			m_lpRequest->HrResponseHeader(204, "No Content");
 		} else {
 			m_lpRequest->HrResponseHeader(200, "OK");
-			if(!blIsWholeCal)
-				strMsg = "attachment; filename=\"" + W2U(m_wstrFldName) + "\"";
-			else
-				strMsg = "attachment; filename=\"" + (m_wstrFldName.empty() ? "Calendar" : W2U(m_wstrFldName.substr(0,10))) + ".ics\"";
+			strMsg = "attachment; filename=\"" + (m_wstrFldName.empty() ? "Calendar" : W2U(m_wstrFldName.substr(0,10))) + ".ics\"";
 			m_lpRequest->HrResponseHeader("Content-Disposition", strMsg);
 		}
 		if (strMethod.compare("GET") == 0)
@@ -246,12 +242,8 @@ HRESULT iCal::HrHandleIcalPost()
 					mpSrvTimes[strUidString] = lpRows->aRow[i].lpProps[1].Value.ft;				
 			}
 		}
-
-		if(lpRows)
-		{
-			FreeProws(lpRows);
-			lpRows = NULL;
-		}
+		FreeProws(lpRows);
+		lpRows = NULL;
 	}
 
 	mpIterI = mpIcalEntries.cbegin();
@@ -643,13 +635,8 @@ HRESULT iCal::HrGetIcal(IMAPITable *lpTable, bool blCensorPrivate, std::string *
 			lpMessage->Release();
 			lpMessage = NULL;
 		}
-		
-		if(lpRows)
-		{
-			FreeProws(lpRows);
-			lpRows = NULL;
-		}
-
+		FreeProws(lpRows);
+		lpRows = NULL;
 	}
 	
 	hr = lpMtIcal->Finalize(0, NULL, lpstrIcal);

@@ -633,7 +633,8 @@ PHP_MSHUTDOWN_FUNCTION(mapi)
 		lpLogger->Log(EC_LOGLEVEL_INFO, "PHP-MAPI shutdown");
 
 	MAPIUninitialize();
-	lpLogger->Release();
+	if (lpLogger != NULL)
+		lpLogger->Release();
 	lpLogger = NULL;
 	return SUCCESS;
 }
@@ -3152,6 +3153,7 @@ ZEND_FUNCTION(mapi_openpropertytostream)
 		ZEND_FETCH_RESOURCE_C(lpMapiProp, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
 	} else {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unknown resource type");
+		goto exit;
 	}
 
 	if (guidStr == NULL) {
@@ -3555,23 +3557,24 @@ ZEND_FUNCTION(mapi_savechanges)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &res, &flags) == FAILURE) return;
 
-	if (res->type == IS_RESOURCE) {
-		zend_list_find(res->value.lval, &type);
-
-		if(type == le_mapi_message) {
-			ZEND_FETCH_RESOURCE_C(lpMapiProp, LPMESSAGE, &res, -1, name_mapi_message, le_mapi_message);
-		} else if (type == le_mapi_folder) {
-			ZEND_FETCH_RESOURCE_C(lpMapiProp, LPMAPIFOLDER, &res, -1, name_mapi_folder, le_mapi_folder);
-		} else if (type == le_mapi_attachment) {
-			ZEND_FETCH_RESOURCE_C(lpMapiProp, LPATTACH, &res, -1, name_mapi_attachment, le_mapi_attachment);
-		} else if (type == le_mapi_msgstore) {
-			ZEND_FETCH_RESOURCE_C(lpMapiProp, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
-		} else if (type == le_mapi_property) {
-			ZEND_FETCH_RESOURCE_C(lpMapiProp, LPMAPIPROP, &res, -1, name_mapi_property, le_mapi_property);
-		} else {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Resource does not exist...");
-			goto exit;
-		}
+	if (res->type != IS_RESOURCE) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unsupported case !IS_RESOURCE.");
+		goto exit;
+	}
+	zend_list_find(res->value.lval, &type);
+	if (type == le_mapi_message) {
+		ZEND_FETCH_RESOURCE_C(lpMapiProp, LPMESSAGE, &res, -1, name_mapi_message, le_mapi_message);
+	} else if (type == le_mapi_folder) {
+		ZEND_FETCH_RESOURCE_C(lpMapiProp, LPMAPIFOLDER, &res, -1, name_mapi_folder, le_mapi_folder);
+	} else if (type == le_mapi_attachment) {
+		ZEND_FETCH_RESOURCE_C(lpMapiProp, LPATTACH, &res, -1, name_mapi_attachment, le_mapi_attachment);
+	} else if (type == le_mapi_msgstore) {
+		ZEND_FETCH_RESOURCE_C(lpMapiProp, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
+	} else if (type == le_mapi_property) {
+		ZEND_FETCH_RESOURCE_C(lpMapiProp, LPMAPIPROP, &res, -1, name_mapi_property, le_mapi_property);
+	} else {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Resource does not exist...");
+		goto exit;
 	}
 
 	MAPI_G(hr) = lpMapiProp->SaveChanges(flags);

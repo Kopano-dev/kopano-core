@@ -180,9 +180,8 @@ ECRESULT ECDatabaseMySQL::Close()
 // Get database ownership
 bool ECDatabaseMySQL::Lock()
 {
-	m_hMutexMySql.lock();
 	m_bLocked = true;
-
+	m_hMutexMySql.lock();
 	return m_bLocked;
 }
 

@@ -2373,7 +2373,7 @@ HRESULT M4LAddrBook::SetPAB(ULONG cbEntryID, LPENTRYID lpEntryID) {
  */
 HRESULT M4LAddrBook::GetDefaultDir(ULONG* lpcbEntryID, LPENTRYID* lppEntryID) {
     TRACE_MAPILIB(TRACE_ENTRY, "M4LAddrBook::GetDefaultDir", "");
-	HRESULT hr = hrSuccess;
+	HRESULT hr = MAPI_E_INVALID_PARAMETER;
 	ULONG objType;
 	LPABCONT lpABContainer = NULL;
 	LPSPropValue propEntryID = NULL;
@@ -2384,8 +2384,10 @@ HRESULT M4LAddrBook::GetDefaultDir(ULONG* lpcbEntryID, LPENTRYID* lppEntryID) {
 	LPSPropValue lpProp = NULL;
 
 	if (lpcbEntryID == NULL || lppEntryID == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
 		ec_log_err("M4LAddrBook::GetDefaultDir(): invalid parameters");
+		goto exit;
+	} else if (m_lABProviders.size() == 0) {
+		ec_log_err("M4LAddrBook::GetDefaultDir(): no ABs to search");
 		goto exit;
 	}
 

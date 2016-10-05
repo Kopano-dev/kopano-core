@@ -346,10 +346,8 @@ ECRESULT ECGenericObjectTable::FindRow(struct restrictTable *lpsRestrict, unsign
 			break;
 
 		// Free memory
-		if(lpRowSet){
-			FreeRowSet(lpRowSet, true);
-			lpRowSet = NULL;
-		}
+		FreeRowSet(lpRowSet, true);
+		lpRowSet = NULL;
 		
 		if(lpSubResults)
 			FreeSubRestrictionResults(lpSubResults);
@@ -667,10 +665,9 @@ ECRESULT ECGenericObjectTable::SetSortOrder(struct sortOrderArray *lpsSortOrder,
 	}
 	
 	// Check validity of tags
-	if (lpsSortOrder != NULL)
-		for (gsoap_size_t i = 0; i < lpsSortOrder->__size; ++i)
-			if ((PROP_TYPE(lpsSortOrder->__ptr[i].ulPropTag) & MVI_FLAG) == MV_FLAG)
-				return KCERR_TOO_COMPLEX;
+	for (gsoap_size_t i = 0; i < lpsSortOrder->__size; ++i)
+		if ((PROP_TYPE(lpsSortOrder->__ptr[i].ulPropTag) & MVI_FLAG) == MV_FLAG)
+			return KCERR_TOO_COMPLEX;
 	
 	m_ulCategories = ulCategories;
 	m_ulExpanded = ulExpanded;
@@ -1024,11 +1021,8 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 			FreeSubRestrictionResults(lpSubResults);
 			lpSubResults = NULL;
 		}
-
-		if(lpRowSet) {
-			FreeRowSet(lpRowSet, true);
-			lpRowSet = NULL;
-		}
+		FreeRowSet(lpRowSet, true);
+		lpRowSet = NULL;
 	}
 
 	if(lpulLoaded)

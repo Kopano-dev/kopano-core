@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <mutex>
+#include <stdexcept>
 #include <mapidefs.h>
 #include <mapitags.h>
 #include <kopano/mapiext.h>
@@ -1958,6 +1959,8 @@ ECRESULT ECUserManagement::QueryHierarchyRowData(struct soap *soap, ECObjectTabl
 	ASSERT(lpRowList != NULL);
 
 	lpsRowSet = s_alloc<struct rowSet>(soap);
+	if (lpsRowSet == NULL)
+		return KCERR_NOT_ENOUGH_MEMORY;
 	lpsRowSet->__size = 0;
 	lpsRowSet->__ptr = NULL;
 
@@ -2002,7 +2005,7 @@ ECRESULT ECUserManagement::QueryHierarchyRowData(struct soap *soap, ECObjectTabl
 	*lppRowSet = lpsRowSet;
 
 exit:
-	if (er != erSuccess && lpsRowSet != NULL) {
+	if (er != erSuccess) {
 		s_free(soap, lpsRowSet->__ptr);
 		s_free(soap, lpsRowSet);
 	}
@@ -4622,10 +4625,9 @@ ECRESULT ECUserManagement::CreateABEntryID(struct soap *soap,
 	gsoap_size_t ulSize = 0;
 	std::string	strEncExId;
 	
-	ASSERT(ulVersion == 0 || ulVersion == 1);
-	
 	if (IsInternalObject(ulObjId)) {
-		ASSERT(ulVersion == 0); // Internal objects always have version 0 ABEIDs
+		if (ulVersion != 0)
+			throw std::runtime_error("Internal objects must always have v0 ABEIDs");
 		lpEid = reinterpret_cast<ABEID *>(s_alloc<unsigned char>(soap, sizeof(ABEID)));
 		memset(lpEid, 0, sizeof(ABEID));
 		ulSize = sizeof(ABEID);
@@ -4647,6 +4649,8 @@ ECRESULT ECUserManagement::CreateABEntryID(struct soap *soap,
 
 			// avoid FORTIFY_SOURCE checks in strcpy to an address that the compiler thinks is 1 size large
 			memcpy(lpEid->szExId, strEncExId.c_str(), strEncExId.length()+1);
+		} else {
+			throw std::runtime_error("Unknown user entry version " + stringify(ulVersion));
 		}
 	}
 

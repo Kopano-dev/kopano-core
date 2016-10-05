@@ -4602,8 +4602,6 @@ SOAP_SOCKET WSTransport::RefuseConnect(struct soap* soap, const char* endpoint, 
 
 HRESULT WSTransport::HrCancelIO()
 {
-	HRESULT hr = hrSuccess;
-
 	/* This looks like an ugly hack, but in practice it works very well: we want
 	 * to make sure that no blocking call is running or will run in this class instance
 	 * after HrCancelIO() returns.
@@ -4634,19 +4632,17 @@ HRESULT WSTransport::HrCancelIO()
 	 *		on the send/recv calls but we want to STOP them.
 	 *		fstop() on a TCP socket will work as expected and shutsdown all blocking send/recv calls.
 	 */
+	if (m_lpCmd == NULL || m_lpCmd->soap == NULL)
+		return hrSuccess;
 
 	// Override the SOAP connect (fopen) so that all new connections will fail with a network error
 	m_lpCmd->soap->fopen = WSTransport::RefuseConnect;
 
 	// If there is a socket currently open, close it now
-	if(m_lpCmd && m_lpCmd->soap) {
-		int s = m_lpCmd->soap->socket;
-		if (s != SOAP_INVALID_SOCKET) {
-			m_lpCmd->soap->fshutdownsocket(m_lpCmd->soap, (SOAP_SOCKET)s, 2);
-		}
-	}
-
-	return hr;
+	int s = m_lpCmd->soap->socket;
+	if (s != SOAP_INVALID_SOCKET)
+		m_lpCmd->soap->fshutdownsocket(m_lpCmd->soap, (SOAP_SOCKET)s, 2);
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrGetNotify(struct notificationArray **lppsArrayNotifications)

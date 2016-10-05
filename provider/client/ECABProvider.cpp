@@ -84,8 +84,6 @@ HRESULT ECABProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 	ECABLogon*		lpABLogon = NULL;
 	LPSPropValue lpProviderUid = NULL;
 	LPSPropValue lpSectionUid = NULL;
-	IProfSect *lpProfSect = NULL;
-	IProfSect *lpProfSectSection = NULL;
 	LPSPropValue lpUidService = NULL;
 	sGlobalProfileProps	sProfileProps;
 	LPMAPIUID	lpGuid = NULL;
@@ -134,12 +132,6 @@ exit:
 	MAPIFreeBuffer(lpUidService);
 	MAPIFreeBuffer(lpProviderUid);
 	MAPIFreeBuffer(lpSectionUid);
-	if (lpProfSect)
-		lpProfSect->Release();
-
-	if (lpProfSectSection)
-		lpProfSectSection->Release();
-
 	if(lpABLogon)
 		lpABLogon->Release();
 

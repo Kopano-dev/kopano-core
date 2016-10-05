@@ -527,7 +527,6 @@ static void dumptable(eTableType eTable, LPMDB lpStore, bool humanreadable)
 {
 	HRESULT hr = hrSuccess;
 	IMAPITable *lpTable = NULL;
-	LPSRowSet lpRowSet = NULL;
 
 	hr = lpStore->OpenProperty(ulTableProps[eTable], &IID_IMAPITable, 0, MAPI_DEFERRED_ERRORS, (LPUNKNOWN*)&lpTable);
 	if (hr != hrSuccess) {
@@ -546,9 +545,6 @@ static void dumptable(eTableType eTable, LPMDB lpStore, bool humanreadable)
 	hr = MAPITablePrint(lpTable, humanreadable);
 
 exit:
-	if (lpRowSet)
-		FreeProws(lpRowSet);
-
 	if (lpTable)
 		lpTable->Release();
 }

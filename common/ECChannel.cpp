@@ -56,6 +56,11 @@ SSL_CTX* ECChannel::lpCTX = NULL;
 
 HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 {
+	if (lpConfig == NULL) {
+		ec_log_err("ECChannel::HrSetCtx(): invalid parameters");
+		return MAPI_E_CALL_FAILED;
+	}
+
 	HRESULT hr = hrSuccess;
 	const char *szFile = NULL;
 	const char *szPath = NULL;
@@ -66,12 +71,6 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 #if !defined(OPENSSL_NO_ECDH) && defined(NID_X9_62_prime256v1)
 	EC_KEY *ecdh;
 #endif
-
-	if (lpConfig == NULL) {
-		ec_log_err("ECChannel::HrSetCtx(): invalid parameters");
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
 
 	if (lpCTX) {
 		SSL_CTX_free(lpCTX);

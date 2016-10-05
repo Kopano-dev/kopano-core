@@ -236,8 +236,10 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 		if(hr != hrSuccess)
 			goto exit;
 
-		if(lpMailUser){ lpMailUser->Release(); lpMailUser = NULL; }
-		if(lpAdrBook){ lpAdrBook->Release(); lpAdrBook = NULL; }
+		lpMailUser->Release();
+		lpMailUser = NULL;
+		lpAdrBook->Release();
+		lpAdrBook = NULL;
 
 		//Set the displayname with accountname 
 		lpPropName->ulPropTag = PR_DISPLAY_NAME;
@@ -790,7 +792,6 @@ HRESULT HrCopyFBBlockSet(OccrInfo *lpDest, OccrInfo *lpSrc, ULONG ulcValues)
 HRESULT HrAddFBBlock(const OccrInfo &sOccrInfo, OccrInfo **lppsOccrInfo,
     ULONG *lpcValues)
 {
-	HRESULT hr = hrSuccess;
 	OccrInfo *lpsNewOccrInfo = NULL;
 	OccrInfo *lpsInputOccrInfo = *lppsOccrInfo;
 	ULONG ulModVal = 0;
@@ -800,21 +801,23 @@ HRESULT HrAddFBBlock(const OccrInfo &sOccrInfo, OccrInfo **lppsOccrInfo,
 	else
 		ulModVal = 1;
 
-	if ((hr = MAPIAllocateBuffer(sizeof(sOccrInfo) * ulModVal, (void **)&lpsNewOccrInfo)) != hrSuccess)
-		goto exit;
+	HRESULT hr = MAPIAllocateBuffer(sizeof(sOccrInfo) * ulModVal,
+	             reinterpret_cast<void **>(&lpsNewOccrInfo));
+	if (hr != hrSuccess)
+		return hr;
 	
 	if(lpsInputOccrInfo)
-		hr = HrCopyFBBlockSet(lpsNewOccrInfo, lpsInputOccrInfo, (*lpcValues));
+		hr = HrCopyFBBlockSet(lpsNewOccrInfo, lpsInputOccrInfo, ulModVal);
 	
-	if(hr != hrSuccess)
-		goto exit;
-
-	(*lpcValues) = ulModVal;
+	if (hr != hrSuccess) {
+		MAPIFreeBuffer(lpsNewOccrInfo);
+		return hr;
+	}
+	if (lpcValues != NULL)
+		*lpcValues = ulModVal;
 	lpsNewOccrInfo[ulModVal -1] = sOccrInfo;
 	*lppsOccrInfo = lpsNewOccrInfo;
-
-exit:
 	MAPIFreeBuffer(lpsInputOccrInfo);
-	return hr;
+	return hrSuccess;
 }
 

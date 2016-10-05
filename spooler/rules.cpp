@@ -1184,10 +1184,8 @@ nextact:
 			break;
 
 nextrule:
-		if (lpRowSet) {
-			FreeProws(lpRowSet);
-			lpRowSet = NULL;
-		}
+		FreeProws(lpRowSet);
+		lpRowSet = NULL;
 	}
 
 	if (bAddFwdFlag) {

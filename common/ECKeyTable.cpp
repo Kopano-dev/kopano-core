@@ -550,7 +550,7 @@ ECRESULT ECKeyTable::UpdateRow(UpdateType ulType,
 
 				if(er != erSuccess){
 					// Delete the unused new node
-					if(lpNewRow) delete lpNewRow;
+					delete lpNewRow;
 					return er;
 				}
 			}

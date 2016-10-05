@@ -1375,7 +1375,7 @@ HRESULT IMAP::HrCmdRename(const string &strTag, const string &strExistingFolderP
 			if (!strFolder.empty())
 				hr = lpMakeFolder->CreateFolder(FOLDER_GENERIC, (TCHAR *) strFolder.c_str(), NULL, NULL, MAPI_UNICODE | OPEN_IF_EXISTS, &lpSubFolder);
 
-			if (hr != hrSuccess) {
+			if (hr != hrSuccess || lpSubFolder == NULL) {
 				hr2 = HrResponse(RESP_TAGGED_NO, strTag, "RENAME error creating folder");
 				goto exit;
 			}

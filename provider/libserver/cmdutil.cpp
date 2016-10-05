@@ -1142,7 +1142,8 @@ ECRESULT DeleteObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt *
 	if (!(ulFlags&EC_DELETE_STORE))
 		DeleteObjectNotifications(lpSession, ulFlags, lstDeleted);
 exit:
-	if(er != erSuccess && !bNoTransaction && !(ulFlags & EC_DELETE_HARD_DELETE))
+	if (er != erSuccess && lpDatabase != NULL && !bNoTransaction &&
+	    !(ulFlags & EC_DELETE_HARD_DELETE))
 		lpDatabase->Rollback();
 
 	FreeDeletedItems(&lstDeleteItems);

@@ -470,11 +470,8 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 
 		for (ULONG i = 0; i < lpRows->cRows; ++i)
 			RunFolderValidation(setFolderIgnore, lpRootFolder, &lpRows->aRow[i], checkmap);
-
-		if (lpRows) {
-			FreeProws(lpRows);
-			lpRows = NULL;
-		}
+		FreeProws(lpRows);
+		lpRows = NULL;
 	}
 
 exit:

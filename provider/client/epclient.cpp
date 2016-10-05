@@ -512,7 +512,7 @@ exit:
 	//Free allocated memory
 	if (d.transport != NULL && d.transport != transport)
 		d.transport->Release(); /* implies logoff */
-	else
+	else if (d.transport != NULL)
 		d.transport->logoff_nd();
 	if (hr == MAPI_S_SPECIAL_OK)
 		return hrSuccess;

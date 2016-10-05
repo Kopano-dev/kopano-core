@@ -2851,11 +2851,8 @@ HRESULT Util::CopyHierarchy(LPMAPIFOLDER lpSrc, LPMAPIFOLDER lpDest, ULONG ulFla
 			lpSrc->DeleteFolder(lpRowSet->aRow[0].lpProps[1].Value.bin.cb, (LPENTRYID)lpRowSet->aRow[0].lpProps[1].Value.bin.lpb, 0, NULL, 0);
 
 next_folder:
-		if (lpRowSet) {
-			FreeProws(lpRowSet);
-			lpRowSet = NULL;
-		}
-
+		FreeProws(lpRowSet);
+		lpRowSet = NULL;
 		if (lpSrcFolder) {
 			lpSrcFolder->Release();
 			lpSrcFolder = NULL;
@@ -2986,11 +2983,8 @@ next_item:
 			if (lpSrc->DeleteMessages(lpDeleteEntries, 0, NULL, 0) != hrSuccess)
 				bPartial = true;
 		}
-
-		if (lpRowSet) {
-			FreeProws(lpRowSet);
-			lpRowSet = NULL;
-		}
+		FreeProws(lpRowSet);
+		lpRowSet = NULL;
 	}
 
 	if (bPartial)
