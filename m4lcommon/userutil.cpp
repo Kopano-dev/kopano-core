@@ -64,9 +64,9 @@ private:
 	wstring	m_strName;
 };
 
-static HRESULT GetMailboxDataPerServer(ECLogger *lpLogger, const char *lpszPath, const char *lpSSLKey, const char *lpSSLPass, DataCollector *lpCollector);
-static HRESULT GetMailboxDataPerServer(ECLogger *lpLogger, IMAPISession *lpSession, const char *lpszPath, DataCollector *lpCollector);
-static HRESULT UpdateServerList(ECLogger *lpLogger, IABContainer *lpContainer, std::set<servername> &listServers);
+static HRESULT GetMailboxDataPerServer(const char *lpszPath, const char *lpSSLKey, const char *lpSSLPass, DataCollector *lpCollector);
+static HRESULT GetMailboxDataPerServer(IMAPISession *lpSession, const char *lpszPath, DataCollector *lpCollector);
+static HRESULT UpdateServerList(IABContainer *lpContainer, std::set<servername> &listServers);
 
 class UserCountCollector _zcp_final : public DataCollector
 {
@@ -203,27 +203,32 @@ void UserListCollector<std::wstring, PR_ACCOUNT_W>::push_back(LPSPropValue lpPro
 	m_lstUsers.push_back(lpPropAccount->Value.lpszW);
 }
 
-HRESULT GetArchivedUserList(ECLogger *lpLogger, IMAPISession *lpMapiSession, const char *lpSSLKey, const char *lpSSLPass, std::list<std::string> *lplstUsers, bool bLocalOnly)
+HRESULT GetArchivedUserList(IMAPISession *lpMapiSession, const char *lpSSLKey,
+    const char *lpSSLPass, std::list<std::string> *lplstUsers, bool bLocalOnly)
 {
 	UserListCollector<std::string, PR_ACCOUNT_A> collector(lpMapiSession);
-	HRESULT hr = GetMailboxData(lpLogger, lpMapiSession, lpSSLKey, lpSSLPass, bLocalOnly, &collector);
+	HRESULT hr = GetMailboxData(lpMapiSession, lpSSLKey, lpSSLPass,
+	             bLocalOnly, &collector);
 	if (hr != hrSuccess)
 		return hr;
 	collector.swap_result(lplstUsers);
 	return hrSuccess;
 }
 
-HRESULT GetArchivedUserList(ECLogger *lpLogger, IMAPISession *lpMapiSession, const char *lpSSLKey, const char *lpSSLPass, std::list<std::wstring> *lplstUsers, bool bLocalOnly)
+HRESULT GetArchivedUserList(IMAPISession *lpMapiSession, const char *lpSSLKey,
+    const char *lpSSLPass, std::list<std::wstring> *lplstUsers, bool bLocalOnly)
 {
 	UserListCollector<std::wstring, PR_ACCOUNT_W> collector(lpMapiSession);
-	HRESULT hr = GetMailboxData(lpLogger, lpMapiSession, lpSSLKey, lpSSLPass, bLocalOnly, &collector);
+	HRESULT hr = GetMailboxData(lpMapiSession, lpSSLKey, lpSSLPass,
+	             bLocalOnly, &collector);
 	if (hr != hrSuccess)
 		return hr;
 	collector.swap_result(lplstUsers);
 	return hrSuccess;
 }
 
-HRESULT GetMailboxData(ECLogger *lpLogger, IMAPISession *lpMapiSession, const char *lpSSLKey, const char *lpSSLPass, bool bLocalOnly, DataCollector *lpCollector)
+HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
+    const char *lpSSLPass, bool bLocalOnly, DataCollector *lpCollector)
 {
 	HRESULT			hr = S_OK;
 
@@ -248,39 +253,39 @@ HRESULT GetMailboxData(ECLogger *lpLogger, IMAPISession *lpMapiSession, const ch
 
 	SizedSPropTagArray(1, sCols) = {1, { PR_ENTRYID } };
 
-	if (!lpLogger || !lpMapiSession || !lpCollector) {
+	if (lpMapiSession == NULL || lpCollector == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
 
 	hr = lpMapiSession->OpenAddressBook(0, &IID_IAddrBook, 0, &ptrAdrBook);
 	if(hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open addressbook: 0x%08X", hr);
+		ec_log_crit("Unable to open addressbook: 0x%08X", hr);
 		goto exit;
 	}
 
 	hr = ptrAdrBook->GetDefaultDir(&cbDDEntryID, &ptrDDEntryID);
 	if(hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open default addressbook: 0x%08X", hr);
+		ec_log_crit("Unable to open default addressbook: 0x%08X", hr);
 		goto exit;
 	}
 
 	hr = ptrAdrBook->OpenEntry(cbDDEntryID, ptrDDEntryID, NULL, 0, &ulObj, (LPUNKNOWN*)&ptrDefaultDir);
 	if(hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open GAB: 0x%08X", hr);
+		ec_log_crit("Unable to open GAB: 0x%08X", hr);
 		goto exit;
 	}
 
 	/* Open Hierarchy Table to see if we are running in multi-tenancy mode or not */
 	hr = ptrDefaultDir->GetHierarchyTable(0, &ptrHierarchyTable);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open hierarchy table: 0x%08X", hr);
+		ec_log_crit("Unable to open hierarchy table: 0x%08X", hr);
 		goto exit;
 	}
 
 	hr = ptrHierarchyTable->GetRowCount(0, &ulCompanyCount);
 	if(hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get hierarchy row count: 0x%08X", hr);
+		ec_log_crit("Unable to get hierarchy row count: 0x%08X", hr);
 		goto exit;
 	}
 
@@ -288,7 +293,7 @@ HRESULT GetMailboxData(ECLogger *lpLogger, IMAPISession *lpMapiSession, const ch
 
 		hr = ptrHierarchyTable->SetColumns((LPSPropTagArray)&sCols, TBL_BATCH);
 		if(hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to set set columns on user table: 0x%08X", hr);
+			ec_log_crit("Unable to set set columns on user table: 0x%08X", hr);
 			goto exit;
 		}
 
@@ -299,34 +304,34 @@ HRESULT GetMailboxData(ECLogger *lpLogger, IMAPISession *lpMapiSession, const ch
 		
 		for (unsigned int i = 0; i < ptrRows.size(); ++i) {
 			if (ptrRows[i].lpProps[0].ulPropTag != PR_ENTRYID) {
-				lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get entryid to open tenancy Address Book");
+				ec_log_crit("Unable to get entryid to open tenancy Address Book");
 				hr = MAPI_E_INVALID_PARAMETER;
 				goto exit;
 			}
 			
 			hr = ptrAdrBook->OpenEntry(ptrRows[i].lpProps[0].Value.bin.cb, (LPENTRYID)ptrRows[i].lpProps[0].Value.bin.lpb, NULL, 0, &ulObj, (LPUNKNOWN*)&ptrCompanyDir);
 			if (hr != hrSuccess) {
-				lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open tenancy Address Book: 0x%08X", hr);
+				ec_log_crit("Unable to open tenancy Address Book: 0x%08X", hr);
 				goto exit;
 			}
 
-			hr = UpdateServerList(lpLogger, ptrCompanyDir, listServers);
+			hr = UpdateServerList(ptrCompanyDir, listServers);
 			if(hr != hrSuccess) {
-				lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to create tenancy server list");
+				ec_log_crit("Unable to create tenancy server list");
 				goto exit;
 			}
 		}
 	} else {
-		hr = UpdateServerList(lpLogger, ptrDefaultDir, listServers);
+		hr = UpdateServerList(ptrDefaultDir, listServers);
 		if(hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to create server list");
+			ec_log_crit("Unable to create server list");
 			goto exit;
 		}
 	}
 
 	hr = HrOpenDefaultStore(lpMapiSession, &ptrStore);
 	if(hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open default store: 0x%08X", hr);
+		ec_log_crit("Unable to open default store: 0x%08X", hr);
 		goto exit;
 	}
 
@@ -351,16 +356,16 @@ HRESULT GetMailboxData(ECLogger *lpLogger, IMAPISession *lpMapiSession, const ch
 	hr = ptrServiceAdmin->GetServerDetails(lpSrvNameList, MAPI_UNICODE, &lpSrvList);
 	if (hr == MAPI_E_NETWORK_ERROR) {
 		//support single server
-		hr = GetMailboxDataPerServer(lpLogger, lpMapiSession, "", lpCollector);
+		hr = GetMailboxDataPerServer(lpMapiSession, "", lpCollector);
 		if (hr != hrSuccess)
 			goto exit;
 
 	} else if (FAILED(hr)) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get server details: 0x%08X", hr);
+		ec_log_err("Unable to get server details: 0x%08X", hr);
 		if (hr == MAPI_E_NOT_FOUND) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Details for one or more requested servers was not found.");
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "This usually indicates a misconfigured home server for a user.");
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Requested servers:");
+			ec_log_err("Details for one or more requested servers was not found.");
+			ec_log_err("This usually indicates a misconfigured home server for a user.");
+			ec_log_err("Requested servers:");
 			for (const auto &i : listServers)
 				ec_log_err("* %ls", i.c_str());
 		}
@@ -370,13 +375,13 @@ HRESULT GetMailboxData(ECLogger *lpLogger, IMAPISession *lpMapiSession, const ch
 		for (ULONG i = 0; i < lpSrvList->cServers; ++i) {
 			wchar_t *wszPath = NULL;
 
-			lpLogger->Log(EC_LOGLEVEL_INFO, "Check server: '%ls' ssl='%ls' flag=%08x", 
+			ec_log_info("Check server: \"%ls\" ssl=\"%ls\" flag=%08x",
 				(lpSrvList->lpsaServer[i].lpszName)?lpSrvList->lpsaServer[i].lpszName : L"<UNKNOWN>", 
 				(lpSrvList->lpsaServer[i].lpszSslPath)?lpSrvList->lpsaServer[i].lpszSslPath : L"<UNKNOWN>", 
 				lpSrvList->lpsaServer[i].ulFlags);
 
 			if (bLocalOnly && (lpSrvList->lpsaServer[i].ulFlags & EC_SDFLAG_IS_PEER) == 0) {
-				lpLogger->Log(EC_LOGLEVEL_INFO, "Skipping remote server: '%ls'.", 
+				ec_log_info("Skipping remote server: \"%ls\".",
 					(lpSrvList->lpsaServer[i].lpszName)?lpSrvList->lpsaServer[i].lpszName : L"<UNKNOWN>");
 				continue;
 			}
@@ -387,16 +392,16 @@ HRESULT GetMailboxData(ECLogger *lpLogger, IMAPISession *lpMapiSession, const ch
 			}
 			if (wszPath == NULL) {
 				if(lpSrvList->lpsaServer[i].lpszSslPath == NULL) {
-					lpLogger->Log(EC_LOGLEVEL_ERROR, "No SSL or File path found for server: '%ls', please fix your configuration.", lpSrvList->lpsaServer[i].lpszName);
+					ec_log_err("No SSL or File path found for server: \"%ls\", please fix your configuration.", lpSrvList->lpsaServer[i].lpszName);
 					goto exit;
 				} else {
 					wszPath = lpSrvList->lpsaServer[i].lpszSslPath;
 				}
 			}
 
-			hr = GetMailboxDataPerServer(lpLogger, converter.convert_to<char *>(wszPath), lpSSLKey, lpSSLPass, lpCollector);
+			hr = GetMailboxDataPerServer(converter.convert_to<char *>(wszPath), lpSSLKey, lpSSLPass, lpCollector);
 			if(FAILED(hr)) {
-				lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to collect data from server: '%ls', hr: 0x%08x", wszPath, hr);
+				ec_log_err("Failed to collect data from server: \"%ls\", hr: 0x%08x", wszPath, hr);
 				goto exit;
 			}
 		}
@@ -410,16 +415,18 @@ exit:
 	return hr;
 }
 
-HRESULT GetMailboxDataPerServer(ECLogger *lpLogger, const char *lpszPath,
-    const char *lpSSLKey, const char *lpSSLPass, DataCollector *lpCollector)
+HRESULT GetMailboxDataPerServer(const char *lpszPath, const char *lpSSLKey,
+    const char *lpSSLPass, DataCollector *lpCollector)
 {
 	MAPISessionPtr  ptrSessionServer;
-	HRESULT hr = HrOpenECAdminSession(lpLogger, &ptrSessionServer, "userutil.cpp", "GetMailboxDataPerServer", lpszPath, 0, lpSSLKey, lpSSLPass);
+	HRESULT hr = HrOpenECAdminSession(&ptrSessionServer, "userutil.cpp",
+	             "GetMailboxDataPerServer", lpszPath, 0, lpSSLKey,
+	             lpSSLPass);
 	if(hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open admin session on server '%s': 0x%08X", lpszPath, hr);
+		ec_log_crit("Unable to open admin session on server \"%s\": 0x%08X", lpszPath, hr);
 		return hr;
 	}
-	return GetMailboxDataPerServer(lpLogger, ptrSessionServer, lpszPath, lpCollector);
+	return GetMailboxDataPerServer(ptrSessionServer, lpszPath, lpCollector);
 }
 
 /**
@@ -430,8 +437,8 @@ HRESULT GetMailboxDataPerServer(ECLogger *lpLogger, const char *lpszPath,
  *
  * @return Mapi errors
  */
-HRESULT GetMailboxDataPerServer(ECLogger *lpLogger, IMAPISession *lpSession,
-    const char *lpszPath, DataCollector *lpCollector)
+HRESULT GetMailboxDataPerServer(IMAPISession *lpSession, const char *lpszPath,
+    DataCollector *lpCollector)
 {
 	MsgStorePtr		ptrStoreAdmin;
 	MAPITablePtr	ptrStoreTable;
@@ -442,7 +449,7 @@ HRESULT GetMailboxDataPerServer(ECLogger *lpLogger, IMAPISession *lpSession,
 
 	HRESULT hr = HrOpenDefaultStore(lpSession, &ptrStoreAdmin);
 	if(hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open default store on server '%s': 0x%08X", lpszPath, hr);
+		ec_log_crit("Unable to open default store on server \"%s\": 0x%08X", lpszPath, hr);
 		return hr;
 	}
 
@@ -477,7 +484,8 @@ HRESULT GetMailboxDataPerServer(ECLogger *lpLogger, IMAPISession *lpSession,
  *
  * @return MAPI error codes
  */
-HRESULT UpdateServerList(ECLogger *lpLogger, IABContainer *lpContainer, std::set<servername> &listServers)
+HRESULT UpdateServerList(IABContainer *lpContainer,
+    std::set<servername> &listServers)
 {
 	SRowSetPtr ptrRows;
 	MAPITablePtr ptrTable;
@@ -510,20 +518,20 @@ HRESULT UpdateServerList(ECLogger *lpLogger, IABContainer *lpContainer, std::set
 
 	HRESULT hr = lpContainer->GetContentsTable(MAPI_DEFERRED_ERRORS, &ptrTable);
 	if(hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open contents table: 0x%08X", hr);
+		ec_log_crit("Unable to open contents table: 0x%08X", hr);
 		return hr;
 	}
 
 	hr = ptrTable->SetColumns((LPSPropTagArray)&sCols, TBL_BATCH);
 	if(hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to set set columns on user table: 0x%08X", hr);
+		ec_log_crit("Unable to set set columns on user table: 0x%08X", hr);
 		return hr;
 	}
 
 	// Restrict to users (not groups) 
 	hr = ptrTable->Restrict(&sResAllUsers, TBL_BATCH);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get total user count: 0x%08X", hr);
+		ec_log_crit("Unable to get total user count: 0x%08X", hr);
 		return hr;
 	}
 
@@ -539,7 +547,7 @@ HRESULT UpdateServerList(ECLogger *lpLogger, IABContainer *lpContainer, std::set
 				listServers.insert(ptrRows[i].lpProps[0].Value.lpszW);
 
 				if(ptrRows[i].lpProps[1].ulPropTag == PR_DISPLAY_NAME_W)
-					lpLogger->Log(EC_LOGLEVEL_INFO, "User: %ls on server '%ls'", ptrRows[i].lpProps[1].Value.lpszW, ptrRows[i].lpProps[0].Value.lpszW);
+					ec_log_info("User: %ls on server \"%ls\"", ptrRows[i].lpProps[1].Value.lpszW, ptrRows[i].lpProps[0].Value.lpszW);
 			}
 		}
 	}

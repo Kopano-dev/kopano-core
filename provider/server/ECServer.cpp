@@ -1114,8 +1114,8 @@ static int running_server(char *szName, const char *szConfig,
 	}
 
 	if (parseBool(g_lpConfig->GetSetting("coredump_enabled")))
-		unix_coredump_enable(g_lpLogger);
-	if (unix_runas(g_lpConfig, g_lpLogger)) {
+		unix_coredump_enable();
+	if (unix_runas(g_lpConfig)) {
 		er = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
@@ -1156,14 +1156,13 @@ static int running_server(char *szName, const char *szConfig,
 	distributed = parseBool(g_lpConfig->GetSetting("enable_distributed_kopano"));
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
-	if (daemonize && unix_daemonize(g_lpConfig, g_lpLogger)) {
+	if (daemonize && unix_daemonize(g_lpConfig)) {
 		er = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 	if (!daemonize)
 		setsid();
-	unix_create_pidfile(szName, g_lpConfig, g_lpLogger);
-
+	unix_create_pidfile(szName, g_lpConfig);
 	mainthread = pthread_self();
 
 	// SIGSEGV backtrace support

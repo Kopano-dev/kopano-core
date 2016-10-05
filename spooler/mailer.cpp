@@ -2599,7 +2599,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	}
 
 	// Now hand message to library which will send it, inetmapi will handle addressbook
-	hr = IMToINet(lpUserSession, lpAddrBook, lpMessage, lpMailer, sopt, g_lpLogger);
+	hr = IMToINet(lpUserSession, lpAddrBook, lpMessage, lpMailer, sopt);
 
 	// log using fatal, all other log messages are otherwise somewhat meaningless
 	if (hr == MAPI_W_NO_SERVICE) {
@@ -2696,7 +2696,7 @@ HRESULT ProcessMessageForked(const wchar_t *szUsername, const char *szSMTP,
 	IMessage		*lpMessage = NULL;
 	ECUSER *lpUserAdmin = NULL; // for error message
 	
-	lpMailer = CreateSender(g_lpLogger, szSMTP, ulPort);
+	lpMailer = CreateSender(szSMTP, ulPort);
 	if (!lpMailer) {
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "ProcessMessageForked(): CreateSender failed: %s (%x)",
@@ -2705,9 +2705,10 @@ HRESULT ProcessMessageForked(const wchar_t *szUsername, const char *szSMTP,
 	}
 
 	// The Admin session is used for checking delegates and archiving
-	hr = HrOpenECAdminSession(g_lpLogger, &lpAdminSession, "spooler/mailer:admin", PROJECT_SVN_REV_STR, szPath, EC_PROFILE_FLAGS_NO_PUBLIC_STORE,
-							  g_lpConfig->GetSetting("sslkey_file", "", NULL),
-							  g_lpConfig->GetSetting("sslkey_pass", "", NULL));
+	hr = HrOpenECAdminSession(&lpAdminSession, "spooler/mailer:admin",
+	     PROJECT_SVN_REV_STR, szPath, EC_PROFILE_FLAGS_NO_PUBLIC_STORE,
+	     g_lpConfig->GetSetting("sslkey_file", "", NULL),
+	     g_lpConfig->GetSetting("sslkey_pass", "", NULL));
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open admin session: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
@@ -2722,9 +2723,11 @@ HRESULT ProcessMessageForked(const wchar_t *szUsername, const char *szSMTP,
 	 * usersession for email sending we will let the server handle all
 	 * permissions and can correctly resolve everything.
 	 */
-	hr = HrOpenECSession(g_lpLogger, &lpUserSession, "spooler/mailer", PROJECT_SVN_REV_STR, szUsername, L"", szPath, EC_PROFILE_FLAGS_NO_PUBLIC_STORE,
-						 g_lpConfig->GetSetting("sslkey_file", "", NULL),
-						 g_lpConfig->GetSetting("sslkey_pass", "", NULL));
+	hr = HrOpenECSession(&lpUserSession, "spooler/mailer",
+	     PROJECT_SVN_REV_STR, szUsername, L"", szPath,
+	     EC_PROFILE_FLAGS_NO_PUBLIC_STORE,
+	     g_lpConfig->GetSetting("sslkey_file", "", NULL),
+	     g_lpConfig->GetSetting("sslkey_pass", "", NULL));
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open user session: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);

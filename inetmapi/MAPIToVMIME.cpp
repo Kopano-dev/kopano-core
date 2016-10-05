@@ -141,7 +141,6 @@ SizedSPropTagArray(54, sptaExclude) = {
 MAPIToVMIME::MAPIToVMIME()
 {
 	srand((unsigned)time(NULL));
-	lpLogger = new ECLogger_Null();
 	m_lpAdrBook = NULL;
 	imopt_default_sending_options(&sopt);
 }
@@ -152,15 +151,10 @@ MAPIToVMIME::MAPIToVMIME()
  * @param[in]	newlogger	logger object
  * @param[in]	sopt		struct with optional settings to change conversion
  */
-MAPIToVMIME::MAPIToVMIME(IMAPISession *lpSession, IAddrBook *lpAddrBook, ECLogger *newlogger, sending_options sopt)
+MAPIToVMIME::MAPIToVMIME(IMAPISession *lpSession, IAddrBook *lpAddrBook,
+    sending_options sopt)
 {
 	srand((unsigned)time(NULL));
-	lpLogger = newlogger;
-	if (!lpLogger)
-		lpLogger = new ECLogger_Null();
-	else
-		lpLogger->AddRef();
-	
 	this->sopt = sopt;
 	if (lpSession && !lpAddrBook) {
 		lpSession->OpenAddressBook(0, NULL, AB_NO_DIALOG, &m_lpAdrBook);
@@ -174,8 +168,6 @@ MAPIToVMIME::MAPIToVMIME(IMAPISession *lpSession, IAddrBook *lpAddrBook, ECLogge
 
 MAPIToVMIME::~MAPIToVMIME()
 {
-	lpLogger->Release();
-
 	if (m_lpAdrBook)
 		m_lpAdrBook->Release();
 }
@@ -205,19 +197,19 @@ HRESULT MAPIToVMIME::processRecipients(IMessage *lpMessage, vmime::messageBuilde
 
 	hr = lpMessage->GetRecipientTable(MAPI_UNICODE | MAPI_DEFERRED_ERRORS, &lpRecipientTable);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open recipient table. Error: 0x%08X", hr);
+		ec_log_err("Unable to open recipient table. Error: 0x%08X", hr);
 		goto exit;
 	}
 
 	hr = lpRecipientTable->SetColumns((LPSPropTagArray)&sPropRecipColumns, 0);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to set columns on recipient table. Error: 0x%08X", hr);
+		ec_log_err("Unable to set columns on recipient table. Error: 0x%08X", hr);
 		goto exit;
 	}
 
 	hr = HrQueryAllRows(lpRecipientTable, NULL, NULL, NULL, 0, &pRows);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to read recipient table. Error: 0x%08X", hr);
+		ec_log_err("Unable to read recipient table. Error: 0x%08X", hr);
 		goto exit;
 	}
 
@@ -230,7 +222,7 @@ HRESULT MAPIToVMIME::processRecipients(IMessage *lpMessage, vmime::messageBuilde
 				pPropDispl = PpropFindProp(pRows->aRow[i].lpProps, pRows->aRow[i].cValues, PR_DISPLAY_NAME_W);
 				pPropAType = PpropFindProp(pRows->aRow[i].lpProps, pRows->aRow[i].cValues, PR_ADDRTYPE_W);
 				pPropEAddr = PpropFindProp(pRows->aRow[i].lpProps, pRows->aRow[i].cValues, PR_EMAIL_ADDRESS_W);
-				lpLogger->Log(EC_LOGLEVEL_ERROR, "No recipient type set for recipient. DisplayName: %ls, AddrType: %ls, Email: %ls",
+				ec_log_err("No recipient type set for recipient. DisplayName: %ls, AddrType: %ls, Email: %ls",
 							  pPropDispl?pPropDispl->Value.lpszW:L"(none)",
 							  pPropAType?pPropAType->Value.lpszW:L"(none)",
 							  pPropEAddr?pPropEAddr->Value.lpszW:L"(none)");
@@ -263,7 +255,7 @@ HRESULT MAPIToVMIME::processRecipients(IMessage *lpMessage, vmime::messageBuilde
 		if (!fToFound) {
 			if (!hasRecips && sopt.no_recipients_workaround == false) {
 				// spooler will exit here, gateway will continue with the workaround
-				lpLogger->Log(EC_LOGLEVEL_ERROR, "No valid recipients found.");
+				ec_log_err("No valid recipients found.");
 				hr = MAPI_E_NOT_FOUND;
 				goto exit;
 			}
@@ -275,17 +267,17 @@ HRESULT MAPIToVMIME::processRecipients(IMessage *lpMessage, vmime::messageBuilde
 			
 	}
 	catch (vmime::exception& e) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "VMIME exception: %s", e.what());
+		ec_log_err("VMIME exception: %s", e.what());
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 	catch (std::exception& e) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "STD exception on recipients: %s", e.what());
+		ec_log_err("STD exception on recipients: %s", e.what());
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 	catch (...) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Unknown generic exception occurred on recipients");
+		ec_log_err("Unknown generic exception occurred on recipients");
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
@@ -341,7 +333,7 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 
 	pPropAttachNum = PpropFindProp(lpRow->lpProps, lpRow->cValues, PR_ATTACH_NUM);
 	if (pPropAttachNum == NULL) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Attachment in table not correct, no attachment number present.");
+		ec_log_err("Attachment in table not correct, no attachment number present.");
 		hr = MAPI_E_NOT_FOUND;
 		goto exit;
 	}
@@ -352,7 +344,7 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 	ulAttachmentMethod = ATTACH_BY_VALUE;
 	pPropAttachType	= PpropFindProp(lpRow->lpProps, lpRow->cValues, PR_ATTACH_METHOD);
 	if (pPropAttachType == NULL) {
-		lpLogger->Log(EC_LOGLEVEL_WARNING, "Attachment method not present for attachment %d, assuming default value", ulAttachmentNum);
+		ec_log_warn("Attachment method not present for attachment %d, assuming default value", ulAttachmentNum);
 	} else {
 		ulAttachmentMethod = pPropAttachType->Value.ul;
 	}
@@ -364,13 +356,13 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 
 		hr = lpMessage->OpenAttach(ulAttachmentNum, NULL, MAPI_BEST_ACCESS, &lpAttach);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Could not open message attachment %d. Error: 0x%08X", ulAttachmentNum, hr);
+			ec_log_err("Could not open message attachment %d. Error: 0x%08X", ulAttachmentNum, hr);
 			goto exit;
 		}
 
 		hr = lpAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_DEFERRED_ERRORS, (LPUNKNOWN *)&lpAttachedMessage);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Could not open data of message attachment %d. Error: 0x%08X", ulAttachmentNum, hr);
+			ec_log_err("Could not open data of message attachment %d. Error: 0x%08X", ulAttachmentNum, hr);
 			goto exit;
 		}
 
@@ -413,7 +405,7 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 	} else if (ulAttachmentMethod == ATTACH_BY_VALUE) {
 		hr = lpMessage->OpenAttach(ulAttachmentNum, NULL, MAPI_BEST_ACCESS, &lpAttach);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Could not open attachment %d. Error: 0x%08X", ulAttachmentNum, hr);
+			ec_log_err("Could not open attachment %d. Error: 0x%08X", ulAttachmentNum, hr);
 			goto exit;
 		}
 		
@@ -432,7 +424,7 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
         else {
             hr = lpAttach->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, 0, MAPI_DEFERRED_ERRORS, (LPUNKNOWN *)&lpStream);
             if (hr != hrSuccess) {
-                lpLogger->Log(EC_LOGLEVEL_ERROR, "Could not open data of attachment %d. Error: 0x%08X", ulAttachmentNum, hr);
+                ec_log_err("Could not open data of attachment %d. Error: 0x%08X", ulAttachmentNum, hr);
                 goto exit;
             }
         }
@@ -478,24 +470,24 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 			}
 		}
 		catch (vmime::exception& e) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "VMIME exception: %s", e.what());
+			ec_log_err("VMIME exception: %s", e.what());
 			hr = MAPI_E_CALL_FAILED;
 			goto exit;
 		}
 		catch (std::exception& e) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "STD exception on attachment: %s", e.what());
+			ec_log_err("STD exception on attachment: %s", e.what());
 			hr = MAPI_E_CALL_FAILED;
 			goto exit;
 		}
 		catch (...) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Unknown generic exception occurred on attachment");
+			ec_log_err("Unknown generic exception occurred on attachment");
 			hr = MAPI_E_CALL_FAILED;
 			goto exit;
 		}
 	} else if (ulAttachmentMethod == ATTACH_OLE) {
 	    // Ignore ATTACH_OLE attachments, they are handled in handleTNEF()
 	} else {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Attachment %d contains invalid method %d.", ulAttachmentNum, ulAttachmentMethod);
+		ec_log_err("Attachment %d contains invalid method %d.", ulAttachmentNum, ulAttachmentMethod);
 		hr = MAPI_E_INVALID_PARAMETER;
 	}
 
@@ -669,13 +661,13 @@ HRESULT MAPIToVMIME::handleAttachments(IMessage* lpMessage, vmime::messageBuilde
 	// get attachment table
 	hr = lpMessage->GetAttachmentTable(0, &lpAttachmentTable);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open attachment table. Error: 0x%08X", hr);
+		ec_log_err("Unable to open attachment table. Error: 0x%08X", hr);
 		goto exit;
 	}
 
 	hr = HrQueryAllRows(lpAttachmentTable, NULL, NULL, (LPSSortOrderSet)&sosRTFSeq, 0, &pRows);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to fetch rows of attachment table. Error: 0x%08X", hr);
+		ec_log_err("Unable to fetch rows of attachment table. Error: 0x%08X", hr);
 		goto exit;
 	}
 	
@@ -780,7 +772,7 @@ HRESULT MAPIToVMIME::BuildNoteMessage(IMessage *lpMessage, bool bSkipContent, vm
 		// add reply to email, ignore errors
 		hr = handleReplyTo(lpMessage, vmHeader);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to set reply-to address");
+			ec_log_warn("Unable to set reply-to address");
 			hr = hrSuccess;
 		}
 
@@ -826,7 +818,7 @@ HRESULT MAPIToVMIME::BuildNoteMessage(IMessage *lpMessage, bool bSkipContent, vm
 					}
 				}
 			} catch (vmime::exception& e) {
-				lpLogger->Log(EC_LOGLEVEL_WARNING, "VMIME exception adding extra headers: %s", e.what());
+				ec_log_warn("VMIME exception adding extra headers: %s", e.what());
 			}
 			catch(...) { 
 				// If we can't parse, just ignore
@@ -846,17 +838,17 @@ HRESULT MAPIToVMIME::BuildNoteMessage(IMessage *lpMessage, bool bSkipContent, vm
 		handleXHeaders(lpMessage, vmHeader);
 	}
 	catch (vmime::exception& e) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "VMIME exception: %s", e.what());
+		ec_log_err("VMIME exception: %s", e.what());
 		hr = MAPI_E_CALL_FAILED; // set real error
 		goto exit;
 	}
 	catch (std::exception& e) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "STD exception on note message: %s", e.what());
+		ec_log_err("STD exception on note message: %s", e.what());
 		hr = MAPI_E_CALL_FAILED; // set real error
 		goto exit;
 	}
 	catch (...) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Unknown generic exception on note message");
+		ec_log_err("Unknown generic exception on note message");
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
@@ -923,19 +915,19 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage, vmime::ref<vmime::mess
 		// Create Recipient
 		hr = lpMessage->GetRecipientTable(MAPI_DEFERRED_ERRORS, &lpRecipientTable);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open MDN recipient table. Error: 0x%08X", hr);
+			ec_log_err("Unable to open MDN recipient table. Error: 0x%08X", hr);
 			goto exit;
 		}
 
 		hr = HrQueryAllRows(lpRecipientTable, NULL, NULL, NULL, 0, &pRows);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to read MDN recipient table. Error: 0x%08X", hr);
+			ec_log_err("Unable to read MDN recipient table. Error: 0x%08X", hr);
 			goto exit;
 		}
 
 		if (pRows->cRows == 0) {
 			if (sopt.no_recipients_workaround == false) {
-				lpLogger->Log(EC_LOGLEVEL_ERROR, "No MDN recipient found");
+				ec_log_err("No MDN recipient found");
 				hr = MAPI_E_NOT_FOUND;
 				goto exit;
 			} else {
@@ -951,7 +943,7 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage, vmime::ref<vmime::mess
 		// if vmRecipientbox is a vmime::mailboxGroup the dynamicCast to vmime::mailbox failed,
 		// so never send a MDN to a group.
 		if (vmRecipientbox->isGroup()) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Not possible to send a MDN to a group");
+			ec_log_err("Not possible to send a MDN to a group");
 			hr = MAPI_E_CORRUPT_DATA;
 			goto exit;
 		}
@@ -970,7 +962,7 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage, vmime::ref<vmime::mess
 		dispo.setSendingMode(vmime::dispositionSendingModes::SENT_MANUALLY);
 
 		if (HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &lpMsgClass) != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "MDN message has no class.");
+			ec_log_err("MDN message has no class.");
 			hr = MAPI_E_CORRUPT_DATA;
 			goto exit;
 		}
@@ -987,7 +979,7 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage, vmime::ref<vmime::mess
 			std::wstring strBuffer;
 			hr = Util::HrStreamToString(lpBodyStream, strBuffer);
 			if (hr != hrSuccess) {
-				lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to read MDN message body.");
+				ec_log_err("Unable to read MDN message body.");
 				goto exit;
 			}
 			strMDNText = m_converter.convert_to<string>(m_strCharset.c_str(), strBuffer, rawsize(strBuffer), CHARSET_WCHAR);
@@ -996,7 +988,7 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage, vmime::ref<vmime::mess
 		// Store owner, actual sender
 		hr = HrGetAddress(m_lpAdrBook, lpMessage, PR_SENDER_ENTRYID, PR_SENDER_NAME_W, PR_SENDER_ADDRTYPE_W, PR_SENDER_EMAIL_ADDRESS_W, strName, strType, strEmailAdd);
 		if(hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get MDN sender information. Error: 0x%08X", hr);
+			ec_log_err("Unable to get MDN sender information. Error: 0x%08X", hr);
 			goto exit;
 		}
 		
@@ -1032,17 +1024,17 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage, vmime::ref<vmime::mess
 
 	}
 	catch (vmime::exception& e) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "VMIME exception: %s", e.what());
+		ec_log_err("VMIME exception: %s", e.what());
 		hr = MAPI_E_CALL_FAILED; // set real error
 		goto exit;
 	}
 	catch (std::exception& e) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "STD exception on MDN message: %s", e.what());
+		ec_log_err("STD exception on MDN message: %s", e.what());
 		hr = MAPI_E_CALL_FAILED; // set real error
 		goto exit;
 	}
 	catch (...) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Unknown generic exception on MDN message");
+		ec_log_err("Unknown generic exception on MDN message");
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
@@ -1146,20 +1138,20 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage, vmime::ref<vmime::m
 
 		hr = lpMessage->GetAttachmentTable(0, &lpAttachmentTable);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Could not get attachment table of signed attachment. Error: 0x%08X", hr);
+			ec_log_err("Could not get attachment table of signed attachment. Error: 0x%08X", hr);
 			goto exit;
 		}
 
 		// set columns to get pr attach mime tag and pr attach num only.
 		hr = lpAttachmentTable->SetColumns((LPSPropTagArray)&sPropAttachColumns, 0);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Could set table contents of attachment table of signed attachment. Error: 0x%08X", hr);
+			ec_log_err("Could set table contents of attachment table of signed attachment. Error: 0x%08X", hr);
 			goto exit;
 		}
 
 		hr = HrQueryAllRows(lpAttachmentTable, NULL, NULL, NULL, 0, &lpRows);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Could not get table contents of attachment table of signed attachment. Error: 0x%08X", hr);
+			ec_log_err("Could not get table contents of attachment table of signed attachment. Error: 0x%08X", hr);
 			goto exit;
 		}
 
@@ -1176,19 +1168,19 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage, vmime::ref<vmime::m
 
 		hr = lpMessage->OpenAttach(lpPropAttach->Value.ul, NULL, MAPI_BEST_ACCESS, &lpAttach);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Could not open signed attachment. Error: 0x%08X", hr);
+			ec_log_err("Could not open signed attachment. Error: 0x%08X", hr);
 			goto exit;
 		}
 
 		hr = lpAttach->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, 0, MAPI_DEFERRED_ERRORS, (LPUNKNOWN *)&lpStream);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Could not open data of signed attachment. Error: 0x%08X", hr);
+			ec_log_err("Could not open data of signed attachment. Error: 0x%08X", hr);
 			goto exit;
 		}
 
 		hr = lpStream->Stat(&sStreamStat, 0);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Could not find size of signed attachment. Error: 0x%08X", hr);
+			ec_log_err("Could not find size of signed attachment. Error: 0x%08X", hr);
 			goto exit;
 		}
 
@@ -1196,7 +1188,7 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage, vmime::ref<vmime::m
 
 		hr = lpStream->Read(lpszRawSMTP, (ULONG)sStreamStat.cbSize.QuadPart, NULL);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Could not read data of signed attachment. Error: 0x%08X", hr);
+			ec_log_err("Could not read data of signed attachment. Error: 0x%08X", hr);
 			goto exit;
 		}
 		lpszRawSMTP[(ULONG)sStreamStat.cbSize.QuadPart] = '\0';
@@ -1230,7 +1222,7 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage, vmime::ref<vmime::m
 
 			hr = MAPIAllocateBuffer(sizeof(MAPINAMEID), (void**)&lpNameID);
 			if (hr != hrSuccess) {
-				lpLogger->Log(EC_LOGLEVEL_ERROR, "Not enough memory. Error: 0x%08X", hr);
+				ec_log_err("Not enough memory. Error: 0x%08X", hr);
 				goto exit;
 			}
 
@@ -1240,7 +1232,7 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage, vmime::ref<vmime::m
 
 			hr = lpMessage->GetIDsFromNames(1, &lpNameID, MAPI_CREATE, &lpPropTags);
 			if (hr != hrSuccess) {
-				lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to read encrypted mail properties. Error: 0x%08X", hr);
+				ec_log_err("Unable to read encrypted mail properties. Error: 0x%08X", hr);
 				goto exit;
 			}
 
@@ -1351,7 +1343,7 @@ HRESULT MAPIToVMIME::fillVMIMEMail(IMessage *lpMessage, bool bSkipContent, vmime
 		std::wstring strName, strType, strEmAdd;
 		hr = HrGetAddress(m_lpAdrBook, lpMessage, PR_SENDER_ENTRYID, PR_SENDER_NAME_W, PR_SENDER_ADDRTYPE_W, PR_SENDER_EMAIL_ADDRESS_W, strName, strType, strEmAdd);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get sender information. Error: 0x%08X", hr);
+			ec_log_err("Unable to get sender information. Error: 0x%08X", hr);
 			goto exit;
 		}
 
@@ -1363,17 +1355,17 @@ HRESULT MAPIToVMIME::fillVMIMEMail(IMessage *lpMessage, bool bSkipContent, vmime
 		// sender and reply-to is set elsewhere because it can only be done on a message object...
 	}
 	catch (vmime::exception& e) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "VMIME exception: %s", e.what());
+		ec_log_err("VMIME exception: %s", e.what());
 		hr = MAPI_E_CALL_FAILED; // set real error
 		goto exit;
 	}
 	catch (std::exception& e) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "STD exception on fill message: %s", e.what());
+		ec_log_err("STD exception on fill message: %s", e.what());
 		hr = MAPI_E_CALL_FAILED; // set real error
 		goto exit;
 	}
 	catch (...) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Unknown generic exception  on fill message");
+		ec_log_err("Unknown generic exception  on fill message");
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
@@ -1406,7 +1398,7 @@ HRESULT MAPIToVMIME::getMailBox(LPSRow lpRow, vmime::ref<vmime::address> *lpvmMa
 
 	hr = HrGetAddress(m_lpAdrBook, lpRow->lpProps, lpRow->cValues, PR_ENTRYID, PR_DISPLAY_NAME_W, PR_ADDRTYPE_W, PR_EMAIL_ADDRESS_W, strName, strType, strEmail);
 	if(hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to create mailbox. Error: %08X", hr);
+		ec_log_err("Unable to create mailbox. Error: %08X", hr);
 		return hr;
 	}
 
@@ -1430,13 +1422,13 @@ HRESULT MAPIToVMIME::getMailBox(LPSRow lpRow, vmime::ref<vmime::address> *lpvmMa
 		if (strEmail.empty()) {
 			// not an email address and not a group: invalid
 			m_strError = L"Invalid email address in recipient list found: \"" + strName + L"\". Email Address is empty.";
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "%ls", m_strError.c_str());
+			ec_log_err("%ls", m_strError.c_str());
 			return MAPI_E_INVALID_PARAMETER;
 		}
 
 		// we only want to have this recipient fail, and not the whole message, if the user has a username
 		m_strError = L"Invalid email address in recipient list found: \"" + strName + L"\" <" + strEmail + L">.";
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "%ls", m_strError.c_str());
+		ec_log_err("%ls", m_strError.c_str());
 		return MAPI_E_INVALID_PARAMETER;
 	}
 
@@ -1476,13 +1468,13 @@ HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder 
 
 		hr = WrapCompressedRTFStream(lpCompressedRTFStream, 0, &lpUncompressedRTFStream);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to create RTF-text stream. Error: 0x%08X", hr);
+			ec_log_warn("Unable to create RTF-text stream. Error: 0x%08X", hr);
 			goto exit;
 		}
 
 		hr = Util::HrStreamToString(lpUncompressedRTFStream, strRtf);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to read RTF-text stream. Error: 0x%08X", hr);
+			ec_log_err("Unable to read RTF-text stream. Error: 0x%08X", hr);
 			goto exit;
 		}
 
@@ -1493,7 +1485,7 @@ HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder 
 			if (hr == hrSuccess) {
 				hr = Util::HrStreamToString(lpHTMLStream, strHTMLOut);
 				if (hr != hrSuccess) {
-					lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to read HTML-text stream. Error: 0x%08X", hr);
+					ec_log_warn("Unable to read HTML-text stream. Error: 0x%08X", hr);
 					goto exit;
 				}
 
@@ -1502,7 +1494,7 @@ HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder 
 				lpHTMLStream->Release(); lpHTMLStream = NULL;
 				*bestBody = html;
 			} else {
-				lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to open HTML-text stream. Error: 0x%08X", hr);
+				ec_log_warn("Unable to open HTML-text stream. Error: 0x%08X", hr);
 				// continue with plaintext
 			}
 		} else if (isrtftext(strRtf.c_str(), strRtf.size())) {
@@ -1513,7 +1505,7 @@ HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder 
 		}
 	} else {
 		if (hr != MAPI_E_NOT_FOUND)
-			lpLogger->Log(EC_LOGLEVEL_INFO, "Unable to open rtf-text stream. Error: 0x%08X", hr);
+			ec_log_info("Unable to open rtf-text stream. Error: 0x%08X", hr);
 		hr = hrSuccess;
 	}
 	
@@ -1524,7 +1516,7 @@ HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder 
 			lpBody->Release(); lpBody = NULL;
 		} else {
 			if (hr != MAPI_E_NOT_FOUND)
-				lpLogger->Log(EC_LOGLEVEL_INFO, "Unable to open plain-text stream. Error: 0x%08X", hr);
+				ec_log_info("Unable to open plain-text stream. Error: 0x%08X", hr);
 			hr = hrSuccess;
 		}
 
@@ -1568,24 +1560,24 @@ HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder 
 		}
 	}
 	catch (vmime::exception& e) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "VMIME exception: %s", e.what());
+		ec_log_err("VMIME exception: %s", e.what());
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 	catch (std::exception& e) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "STD exception on text part: %s", e.what());
+		ec_log_err("STD exception on text part: %s", e.what());
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 	catch (...) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Unknown generic exception on text part");
+		ec_log_err("Unknown generic exception on text part");
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
 
 exit:
 	if (hr != hrSuccess)
-		lpLogger->Log(EC_LOGLEVEL_WARNING, "Could not parse mail body");
+		ec_log_warn("Could not parse mail body");
 
 	if (lpHTMLStream)
 		lpHTMLStream->Release();
@@ -1880,7 +1872,7 @@ HRESULT MAPIToVMIME::handleContactEntryID(ULONG cValues, LPSPropValue lpProps, w
 
 	hr = MAPIAllocateBuffer(sizeof(LPMAPINAMEID) * (ulNames), (void**)&lppNames);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "No memory for named ids from contact");
+		ec_log_err("No memory for named ids from contact");
 		goto exit;
 	}
 
@@ -1952,7 +1944,7 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage, vmime::ref<vmime::hea
 		// Store owner, actual sender
 		hr = HrGetAddress(m_lpAdrBook, lpProps, cValues, PR_SENDER_ENTRYID, PR_SENDER_NAME_W, PR_SENDER_ADDRTYPE_W, PR_SENDER_EMAIL_ADDRESS_W, strName, strType, strEmail);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get sender information. Error: 0x%08X", hr);
+			ec_log_err("Unable to get sender information. Error: 0x%08X", hr);
 			goto exit;
 		}
 	}
@@ -1975,13 +1967,13 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage, vmime::ref<vmime::hea
 	if (hr != hrSuccess) {
 		hr = HrGetAddress(m_lpAdrBook, lpProps, cValues, PR_SENT_REPRESENTING_ENTRYID, PR_SENT_REPRESENTING_NAME_W, PR_SENT_REPRESENTING_ADDRTYPE_W, PR_SENT_REPRESENTING_EMAIL_ADDRESS_W, strResName, strResType, strResEmail);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to get representing information. Error: 0x%08X", hr);
+			ec_log_warn("Unable to get representing information. Error: 0x%08X", hr);
 			// ignore error, since we still have enough information to send, maybe not just under the correct name
 			hr = hrSuccess;
 		}
 		if (sopt.no_recipients_workaround == false && strResEmail.empty() && PROP_TYPE(lpProps[0].ulPropTag) != PT_ERROR) {
 			m_strError = L"Representing email address is empty";
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "%ls", m_strError.c_str());
+			ec_log_err("%ls", m_strError.c_str());
 			hr = MAPI_E_NOT_FOUND;
 			goto exit;
 		}
@@ -2175,7 +2167,7 @@ bool MAPIToVMIME::is_voting_request(IMessage *lpMessage)
 
 	hr = lpMessage->GetIDsFromNames(1, &named_proplist, MAPI_CREATE, &lpPropTags);
 	if (hr != hrSuccess)
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to read voting property. Error: %s (0x%08X)",
+		ec_log_err("Unable to read voting property. Error: %s (0x%08X)",
 			GetMAPIErrorMessage(hr), hr);
 	else
 		hr = HrGetOneProp(lpMessage, CHANGE_PROP_TYPE(lpPropTags->aulPropTag[0], PT_BINARY), &lpPropContentType);
@@ -2299,19 +2291,19 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
 				string ical, method;
 				vmime::ref<mapiAttachment> vmAttach = NULL;
 
-				lpLogger->Log(EC_LOGLEVEL_INFO, "Adding ICS attachment for extra information");
+				ec_log_info("Adding ICS attachment for extra information");
 
 				CreateMapiToICal(m_lpAdrBook, "utf-8", &mapiical);
 
 				hr = mapiical->AddMessage(lpMessage, std::string(), 0);
 				if (hr != hrSuccess) {
-					lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to create ical object, sending as TNEF");
+					ec_log_warn("Unable to create ical object, sending as TNEF");
 					goto tnef_anyway;
 				}
 
 				hr = mapiical->Finalize(0, &method, &ical);
 				if (hr != hrSuccess) {
-					lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to create ical object, sending as TNEF");
+					ec_log_warn("Unable to create ical object, sending as TNEF");
 					goto tnef_anyway;
 				}
 
@@ -2324,16 +2316,16 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
 
 			} else {
 				if (lstOLEAttach.size())
-					lpLogger->Log(EC_LOGLEVEL_INFO, "TNEF because of OLE attachments");
+					ec_log_info("TNEF because of OLE attachments");
 				else if (iUseTnef == 0)
-					lpLogger->Log(EC_LOGLEVEL_INFO, "TNEF because of RTF body");
+					ec_log_info("TNEF because of RTF body");
 				else
-					lpLogger->Log(EC_LOGLEVEL_INFO, strTnefReason);
+					ec_log_info(strTnefReason);
 
 tnef_anyway:
 				hr = CreateStreamOnHGlobal(NULL, TRUE, &lpStream);
 				if (hr != hrSuccess) {
-					lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to create stream for TNEF attachment. Error 0x%08X", hr);
+					ec_log_err("Unable to create stream for TNEF attachment. Error 0x%08X", hr);
 					goto exit;
 				}
 			 
@@ -2342,7 +2334,7 @@ tnef_anyway:
 				// Encode the properties now, add all message properties except for the exclude list
 				hr = tnef.AddProps(TNEF_PROP_EXCLUDE, (LPSPropTagArray)&sptaExclude);
 				if(hr != hrSuccess) {
-					lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to exclude properties from TNEF object");
+					ec_log_err("Unable to exclude properties from TNEF object");
 					goto exit;
 				}
 			
@@ -2353,7 +2345,7 @@ tnef_anyway:
 
 					hr = tnef.AddProps(TNEF_PROP_INCLUDE, (LPSPropTagArray)&sptaBestBodyInclude);
 					if(hr != hrSuccess) {
-						lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to include body property 0x%08x to TNEF object", sptaBestBodyInclude.aulPropTag[0]);
+						ec_log_err("Unable to include body property 0x%08x to TNEF object", sptaBestBodyInclude.aulPropTag[0]);
 						goto exit;
 					}
 				}
@@ -2379,17 +2371,17 @@ tnef_anyway:
 		}
 	}
 	catch (vmime::exception& e) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "VMIME exception: %s", e.what());
+		ec_log_err("VMIME exception: %s", e.what());
 	    hr = MAPI_E_CALL_FAILED; // set real error
 	    goto exit;
 	}
 	catch (std::exception& e) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "STD exception on fill message: %s", e.what());
+		ec_log_err("STD exception on fill message: %s", e.what());
 	    hr = MAPI_E_CALL_FAILED; // set real error
 	    goto exit;
 	}
 	catch (...) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Unknown generic exception on fill message");
+		ec_log_err("Unknown generic exception on fill message");
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}

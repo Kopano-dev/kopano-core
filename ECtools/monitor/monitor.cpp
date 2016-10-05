@@ -262,13 +262,13 @@ int main(int argc, char *argv[]) {
 
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
-	if (unix_runas(m_lpThreadMonitor->lpConfig, m_lpThreadMonitor->lpLogger))
+	if (unix_runas(m_lpThreadMonitor->lpConfig))
 		goto exit;
-	if (daemonize && unix_daemonize(m_lpThreadMonitor->lpConfig, m_lpThreadMonitor->lpLogger))
+	if (daemonize && unix_daemonize(m_lpThreadMonitor->lpConfig))
 		goto exit;
 	if (!daemonize)
 		setsid();
-	if (unix_create_pidfile(argv[0], m_lpThreadMonitor->lpConfig, m_lpThreadMonitor->lpLogger, false) < 0)
+	if (unix_create_pidfile(argv[0], m_lpThreadMonitor->lpConfig, false) < 0)
 		goto exit;
 
 	// Init exit threads

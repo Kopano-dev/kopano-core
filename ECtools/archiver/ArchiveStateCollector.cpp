@@ -187,7 +187,9 @@ HRESULT ArchiveStateCollector::GetArchiveStateUpdater(ArchiveStateUpdaterPtr *lp
 	if (hr != hrSuccess)
 		return hr;
 
-	hr = GetMailboxData(m_lpLogger, m_ptrSession->GetMAPISession(), m_ptrSession->GetSSLPath(), m_ptrSession->GetSSLPass(), false, &mdc);
+	hr = GetMailboxData(m_ptrSession->GetMAPISession(),
+	     m_ptrSession->GetSSLPath(), m_ptrSession->GetSSLPass(),
+	     false, &mdc);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Failed to get mailbox data. hr=0x%08x", hr);
 		return hr;

@@ -21,7 +21,6 @@
 #include <string>
 #include <set>
 #include <kopano/zcdefs.h>
-#include <kopano/ECLogger.h>
 #include <vmime/vmime.hpp>
 #include <inetmapi/inetmapi.h>
 
@@ -32,7 +31,7 @@ private:
 	HRESULT HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpTable, vmime::mailboxList &recipients, std::set<std::wstring> &setGroups, std::set<std::wstring> &setRecips, bool bAllowEveryone, bool bAlwaysExpandDistrList);
 
 public:
-	ECVMIMESender(ECLogger *, const std::string &host, int port);
+	ECVMIMESender(const std::string &host, int port);
 	HRESULT sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage, vmime::ref<vmime::message> vmMessage, bool bAllowEveryone, bool bAlwaysExpandDistrList);
 };
 

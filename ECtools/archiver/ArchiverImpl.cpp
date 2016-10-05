@@ -175,7 +175,7 @@ ECLogger* ArchiverImpl::GetLogger(eLogType which) const
     ECLogger* retval = NULL;
 	switch (which) {
 		case DefaultLog:
-            retval = m_lpLogger;
+            retval = ec_log_get();
             break;
 		case LogOnly:
             retval = m_lpLogLogger;

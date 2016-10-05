@@ -21,12 +21,9 @@
 #include <kopano/zcdefs.h>
 #include "ECDatabaseMySQL.h"
 
-class lpLogger;
-
 class ECDatabase _zcp_final : public ECDatabaseMySQL {
 public:
-    ECDatabase(ECLogger *lpLogger) : ECDatabaseMySQL(lpLogger) {}
-        
+    ECDatabase(void) : ECDatabaseMySQL() {}
     const sSQLDatabase_t *GetDatabaseDefs(void) _zcp_override;
 };
 

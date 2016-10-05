@@ -21,6 +21,7 @@
 #include "ECDatabaseMySQL.h"
 #include "mysqld_error.h"
 
+#include <kopano/ECLogger.h>
 #include <kopano/stringutil.h>
 #include <kopano/ECDefs.h>
 #include <kopano/ecversion.h>
@@ -36,27 +37,24 @@
 // size of a single entry in the database.
 #define MAX_ALLOWED_PACKET			16777216
 
-ECDatabaseMySQL::ECDatabaseMySQL(ECLogger *lpLogger)
+ECDatabaseMySQL::ECDatabaseMySQL(void)
 {
 	m_bMysqlInitialize	= false;
 	m_bConnected		= false;
 	m_bLocked			= false;
 	m_bAutoLock			= true;
-	m_lpLogger			= lpLogger;
-	m_lpLogger->AddRef();
 }
 
 ECDatabaseMySQL::~ECDatabaseMySQL()
 {
 	Close();
-	m_lpLogger->Release();
 }
 
 ECRESULT ECDatabaseMySQL::InitEngine()
 {
 	//Init mysql and make a connection
 	if (!m_bMysqlInitialize && mysql_init(&m_lpMySQL) == NULL) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "ECDatabaseMySQL::InitEngine() mysql_init failed");
+		ec_log_crit("ECDatabaseMySQL::InitEngine() mysql_init failed");
 		return KCERR_DATABASE_ERROR;
 	}
 
@@ -69,12 +67,6 @@ ECRESULT ECDatabaseMySQL::InitEngine()
 	return erSuccess;
 }
 
-ECLogger* ECDatabaseMySQL::GetLogger()
-{
-	ASSERT(m_lpLogger);
-	return m_lpLogger;
-}
-
 ECRESULT ECDatabaseMySQL::Connect(ECConfig *lpConfig)
 {
 	ECRESULT		er = erSuccess;
@@ -85,7 +77,7 @@ ECRESULT ECDatabaseMySQL::Connect(ECConfig *lpConfig)
 
 	er = InitEngine();
 	if (er != erSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "ECDatabaseMySQL::Connect(): InitEngine failed %d", er);
+		ec_log_crit("ECDatabaseMySQL::Connect(): InitEngine failed %d", er);
 		goto exit;
 	}
 
@@ -101,7 +93,7 @@ ECRESULT ECDatabaseMySQL::Connect(ECConfig *lpConfig)
 		else
 			er = KCERR_DATABASE_ERROR;
 
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "ECDatabaseMySQL::Connect(): database access error %d, mysql error: %s", er, mysql_error(&m_lpMySQL));
+		ec_log_crit("ECDatabaseMySQL::Connect(): database access error %d, mysql error: %s", er, mysql_error(&m_lpMySQL));
 
 		goto exit;
 	}
@@ -110,13 +102,13 @@ ECRESULT ECDatabaseMySQL::Connect(ECConfig *lpConfig)
 	strQuery = "SHOW tables";
 	er = DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "ECDatabaseMySQL::Connect(): \"SHOW tables\" failed %d", er);
+		ec_log_crit("ECDatabaseMySQL::Connect(): \"SHOW tables\" failed %d", er);
 		goto exit;
 	}
 
 	if(GetNumRows(lpDBResult) == 0) {
 		er = KCERR_DATABASE_NOT_FOUND;
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "ECDatabaseMySQL::Connect(): database missing %d", er);
+		ec_log_crit("ECDatabaseMySQL::Connect(): database missing %d", er);
 		goto exit;
 	}
 
@@ -128,14 +120,14 @@ ECRESULT ECDatabaseMySQL::Connect(ECConfig *lpConfig)
 	strQuery = "SHOW variables LIKE 'max_allowed_packet'";
 	er = DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "ECDatabaseMySQL::Connect(): max_allowed_packet retrieval failed %d", er);
+		ec_log_crit("ECDatabaseMySQL::Connect(): max_allowed_packet retrieval failed %d", er);
 		goto exit;
 	}
 
 	lpDBRow = FetchRow(lpDBResult);
 	/* lpDBRow[0] has the variable name, [1] the value */
 	if (lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to retrieve max_allowed_packet value. Assuming 16M");
+		ec_log_crit("Unable to retrieve max_allowed_packet value. Assuming 16M");
 		m_ulMaxAllowedPacket = (unsigned int)MAX_ALLOWED_PACKET;
 	} else {
 		m_ulMaxAllowedPacket = atoui(lpDBRow[1]);
@@ -146,13 +138,13 @@ ECRESULT ECDatabaseMySQL::Connect(ECConfig *lpConfig)
 	strQuery = "SET SESSION group_concat_max_len = " + stringify((unsigned int)MAX_GROUP_CONCAT_LEN);
 	if(Query(strQuery) != 0 ) {
 		er = KCERR_DATABASE_ERROR;
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "ECDatabaseMySQL::Connect(): group_concat_max_len set fail %d", er);
+		ec_log_crit("ECDatabaseMySQL::Connect(): group_concat_max_len set fail %d", er);
 		goto exit;
 	}
 
 	if(Query("SET NAMES 'utf8'") != 0) {
 		er = KCERR_DATABASE_ERROR;
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "ECDatabaseMySQL::Connect(): set names to utf8 failed %d", er);
+		ec_log_crit("ECDatabaseMySQL::Connect(): set names to utf8 failed %d", er);
 		goto exit;
 	}
 
@@ -213,7 +205,7 @@ int ECDatabaseMySQL::Query(const string &strQuery) {
 
 #ifdef DEBUG_SQL
 #if DEBUG_SQL
-	m_lpLogger->Log(EC_LOGLEVEL_FATAL, "%p: DO_SQL: \"%s;\"", (void*)&m_lpMySQL, strQuery.c_str());
+	ec_log_crit("%p: DO_SQL: \"%s;\"", (void*)&m_lpMySQL, strQuery.c_str());
 #endif
 #endif
 
@@ -221,7 +213,7 @@ int ECDatabaseMySQL::Query(const string &strQuery) {
 	err = mysql_real_query( &m_lpMySQL, strQuery.c_str(), strQuery.length() );
 
 	if (err)
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "%p: SQL Failed: %s, Query: \"%s\"", (void*)&m_lpMySQL, mysql_error(&m_lpMySQL), strQuery.c_str());
+		ec_log_crit("%p: SQL Failed: %s, Query: \"%s\"", (void*)&m_lpMySQL, mysql_error(&m_lpMySQL), strQuery.c_str());
 
 	return err;
 }
@@ -238,7 +230,7 @@ ECRESULT ECDatabaseMySQL::DoSelect(const string &strQuery, DB_RESULT *lpResult, 
 
 	if (Query(strQuery) != 0) {
 		er = KCERR_DATABASE_ERROR;
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "ECDatabaseMySQL::DoSelect(): Failed invoking '%s'", strQuery.c_str());
+		ec_log_crit("ECDatabaseMySQL::DoSelect(): Failed invoking '%s'", strQuery.c_str());
 		goto exit;
 	}
 
@@ -249,7 +241,7 @@ ECRESULT ECDatabaseMySQL::DoSelect(const string &strQuery, DB_RESULT *lpResult, 
 
 	if (*lpResult == NULL) {
 		er = KCERR_DATABASE_ERROR;
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "%p: SQL result failed: %s, Query: \"%s\"", (void*)&m_lpMySQL, mysql_error(&m_lpMySQL), strQuery.c_str());
+		ec_log_crit("%p: SQL result failed: %s, Query: \"%s\"", (void*)&m_lpMySQL, mysql_error(&m_lpMySQL), strQuery.c_str());
 	}
 
 exit:
@@ -282,7 +274,7 @@ ECRESULT ECDatabaseMySQL::_Update(const string &strQuery, unsigned int *lpulAffe
 	if (Query(strQuery) != 0) {
 		// FIXME: Add the mysql error system ?
 		// er = nMysqlError;
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "ECDatabaseMySQL::_Update(): Failed invoking '%s'", strQuery.c_str());
+		ec_log_crit("ECDatabaseMySQL::_Update(): Failed invoking '%s'", strQuery.c_str());
 		return KCERR_DATABASE_ERROR;
 	}
 
@@ -345,7 +337,7 @@ ECRESULT ECDatabaseMySQL::DoSequence(const std::string &strSeqName, unsigned int
 	// Attempt to update the sequence in an atomic fashion
 	er = DoUpdate("UPDATE settings SET value=LAST_INSERT_ID(value+1)+" + stringify(ulCount-1) + " WHERE name = '" + strSeqName + "'", &ulAffected);
 	if(er != erSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "ECDatabaseMySQL::DoSequence() UPDATE failed %d", er);
+		ec_log_crit("ECDatabaseMySQL::DoSequence() UPDATE failed %d", er);
 		return er;
 	}
 
@@ -353,7 +345,7 @@ ECRESULT ECDatabaseMySQL::DoSequence(const std::string &strSeqName, unsigned int
 	if(ulAffected == 0) {
 		er = Query("INSERT INTO settings (name, value) VALUES('" + strSeqName + "',LAST_INSERT_ID(1)+" + stringify(ulCount-1) + ")");
 		if(er != erSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "ECDatabaseMySQL::DoSequence() INSERT INTO failed %d", er);
+			ec_log_crit("ECDatabaseMySQL::DoSequence() INSERT INTO failed %d", er);
 			return er;
 		}
 	}
@@ -484,7 +476,7 @@ ECRESULT ECDatabaseMySQL::IsInnoDBSupported()
 
 	er = DoSelect("SHOW ENGINES", &lpResult);
 	if(er != erSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to query supported database engines. Error: %s", GetError());
+		ec_log_crit("Unable to query supported database engines. Error: %s", GetError());
 		goto exit;
 	}
 
@@ -494,19 +486,19 @@ ECRESULT ECDatabaseMySQL::IsInnoDBSupported()
 
 		if (strcasecmp(lpDBRow[1], "DISABLED") == 0) {
 			// mysql has run with innodb enabled once, but disabled this.. so check your log.
-			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "INNODB engine is disabled. Please re-enable the INNODB engine. Check your MySQL log for more information or comment out skip-innodb in the mysql configuration file.");
+			ec_log_crit("INNODB engine is disabled. Please re-enable the INNODB engine. Check your MySQL log for more information or comment out skip-innodb in the mysql configuration file.");
 			er = KCERR_DATABASE_ERROR;
 			goto exit;
 		} else if (strcasecmp(lpDBRow[1], "YES") != 0 && strcasecmp(lpDBRow[1], "DEFAULT") != 0) {
 			// mysql is incorrectly configured or compiled.
-			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "INNODB engine is not supported. Please enable the INNODB engine in the mysql configuration file.");
+			ec_log_crit("INNODB engine is not supported. Please enable the INNODB engine in the mysql configuration file.");
 			er = KCERR_DATABASE_ERROR;
 			goto exit;
 		}
 		break;
 	}
 	if (lpDBRow == NULL) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to find 'InnoDB' engine from the mysql server. Probably INNODB is not supported.");
+		ec_log_crit("Unable to find 'InnoDB' engine from the mysql server. Probably INNODB is not supported.");
 		er = KCERR_DATABASE_ERROR;
 		goto exit;
 	}
@@ -549,16 +541,16 @@ ECRESULT ECDatabaseMySQL::CreateDatabase(ECConfig *lpConfig)
 			0
         ) == NULL)
 	{
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL,"Failed to connect to database: Error: %s", mysql_error(&m_lpMySQL));
+		ec_log_crit("Failed to connect to database: Error: %s", mysql_error(&m_lpMySQL));
 		return KCERR_DATABASE_ERROR;
 	}
 
 	if(lpDatabase == NULL) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL,"Unable to create database: Unknown database");
+		ec_log_crit("Unable to create database: Unknown database");
 		return KCERR_DATABASE_ERROR;
 	}
 
-	m_lpLogger->Log(EC_LOGLEVEL_NOTICE,"Create database %s", lpDatabase);
+	ec_log_info("Create database %s", lpDatabase);
 
 	er = IsInnoDBSupported();
 	if(er != erSuccess)
@@ -566,7 +558,7 @@ ECRESULT ECDatabaseMySQL::CreateDatabase(ECConfig *lpConfig)
 
 	strQuery = "CREATE DATABASE IF NOT EXISTS `"+std::string(lpConfig->GetSetting("mysql_database"))+"`";
 	if(Query(strQuery) != erSuccess){
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL,"Unable to create database: %s", GetError());
+		ec_log_crit("Unable to create database: %s", GetError());
 		return KCERR_DATABASE_ERROR;
 	}
 
@@ -577,12 +569,12 @@ ECRESULT ECDatabaseMySQL::CreateDatabase(ECConfig *lpConfig)
 
 	// Database tables
 	for (unsigned int i = 0; sDatabaseTables[i].lpSQL != NULL; ++i) {
-		m_lpLogger->Log(EC_LOGLEVEL_NOTICE,"Create table: %s", sDatabaseTables[i].lpComment);
+		ec_log_info("Create table: %s", sDatabaseTables[i].lpComment);
 		er = DoInsert(sDatabaseTables[i].lpSQL);
 		if(er != erSuccess)
 			return er;
 	}
 
-	m_lpLogger->Log(EC_LOGLEVEL_NOTICE,"Database is created");
+	ec_log_info("Database is created");
 	return erSuccess;
 }

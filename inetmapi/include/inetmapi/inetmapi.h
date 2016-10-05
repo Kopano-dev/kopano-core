@@ -26,8 +26,6 @@
 #include <vector>
 #include <inetmapi/options.h>
 
-class ECLogger;
-
 # define INETMAPI_API
 
 typedef struct _sFailedRecip {
@@ -49,12 +47,9 @@ protected:
 	std::vector<sFailedRecip> mTemporaryFailedRecipients;
 	std::vector<sFailedRecip> mPermanentFailedRecipients;
 
-	ECLogger *lpLogger;
-
 public:
-	ECSender(ECLogger *newlpLogger, const std::string &strSMTPHost, int port);
-	virtual	~ECSender();
-
+	ECSender(const std::string &strSMTPHost, int port);
+	virtual	~ECSender(void) {}
 	virtual int getSMTPResult();
 	virtual const WCHAR* getErrorString();
 	virtual void setError(const std::wstring &newError);
@@ -68,23 +63,23 @@ public:
 bool ValidateCharset(const char *charset);
 
 /* c wrapper to create object */
-INETMAPI_API ECSender* CreateSender(ECLogger *lpLogger, const std::string &smtp, int port);
+extern INETMAPI_API ECSender *CreateSender(const std::string &smtp, int port);
 
 // Read char Buffer and set properties on open lpMessage object
-INETMAPI_API HRESULT IMToMAPI(IMAPISession *lpSession, IMsgStore *lpMsgStore, IAddrBook *lpAddrBook, IMessage *lpMessage, const std::string &input, delivery_options dopt, ECLogger *lpLogger = NULL);
+extern INETMAPI_API HRESULT IMToMAPI(IMAPISession *, IMsgStore *, IAddrBook *, IMessage *, const std::string &input, delivery_options dopt);
 
 // Read properties from lpMessage object and fill a buffer with internet rfc822 format message
 // Use this one for retrieving messages not in outgoing que, they already have PR_SENDER_EMAIL/NAME
 // This can be used in making pop3 / imap server
 
 // Read properties from lpMessage object and fill buffer with internet rfc822 format message
-INETMAPI_API HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook, IMessage *lpMessage, char** lppbuf, sending_options sopt, ECLogger *lpLogger = NULL);
+extern INETMAPI_API HRESULT IMToINet(IMAPISession *, IAddrBook *, IMessage *, char **lppbuf, sending_options);
 
 // Read properties from lpMessage object and output to stream with internet rfc822 format message
-INETMAPI_API HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook, IMessage *lpMessage, std::ostream &os, sending_options sopt, ECLogger *lpLogger = NULL);
+extern INETMAPI_API HRESULT IMToINet(IMAPISession *, IAddrBook *, IMessage *, std::ostream &, sending_options);
 
 // Read properties from lpMessage object and send using  lpSMTPHost
-INETMAPI_API HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook, IMessage *lpMessage, ECSender *mailer, sending_options sopt, ECLogger *lpLogger);
+extern INETMAPI_API HRESULT IMToINet(IMAPISession *, IAddrBook *, IMessage *, ECSender *mailer, sending_options);
 
 // Parse the RFC822 input and create IMAP Envelope, Body and Bodystructure property values
 INETMAPI_API HRESULT createIMAPProperties(const std::string &input, std::string *lpEnvelope, std::string *lpBody, std::string *lpBodyStructure);

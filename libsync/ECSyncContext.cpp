@@ -118,21 +118,14 @@ static HRESULT HrCreateECChangeAdviseSink(ECSyncContext *lpsSyncContext,
     ECChangeAdviseSink::NOTIFYCALLBACK fnCallback,
     IECChangeAdviseSink **lppAdviseSink)
 {
-	HRESULT				hr = hrSuccess;
-	ECChangeAdviseSink	*lpAdviseSink = NULL;
-
-	// we cannot use nothrow new as it clashes with MFC's DEBUG_NEW
-	try { lpAdviseSink = new ECChangeAdviseSink(lpsSyncContext, fnCallback); }
-	catch (std::bad_alloc &) {
-		hr = MAPI_E_NOT_ENOUGH_MEMORY;
-		goto exit;
-	}
-
-	hr = lpAdviseSink->QueryInterface(IID_IECChangeAdviseSink, (void**)lppAdviseSink);
+	ECChangeAdviseSink *lpAdviseSink =
+		new(std::nothrow) ECChangeAdviseSink(lpsSyncContext, fnCallback);
+	if (lpAdviseSink == NULL)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
+	HRESULT hr = lpAdviseSink->QueryInterface(IID_IECChangeAdviseSink,
+		reinterpret_cast<void **>(lppAdviseSink));
 	if (hr == hrSuccess)
 		lpAdviseSink = NULL;
-
-exit:
 	if (lpAdviseSink)
 		lpAdviseSink->Release();
 

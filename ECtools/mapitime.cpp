@@ -102,12 +102,12 @@ static int mpt_main_login(void)
 		return EXIT_FAILURE;
 
 	IMAPISession *ses;
-	ECLogger *log = ec_log_get();
 	struct mpt_stat_entry dp;
 
 	while (mpt_repeat-- > 0) {
 		clock_gettime(CLOCK_MONOTONIC, &dp.start);
-		ret = HrOpenECSession(log, &ses, "mapitime", "", mpt_user, mpt_pass, mpt_socket, 0, NULL, NULL);
+		ret = HrOpenECSession(&ses, "mapitime", "", mpt_user, mpt_pass,
+		      mpt_socket, 0, NULL, NULL);
 		clock_gettime(CLOCK_MONOTONIC, &dp.stop);
 		if (ret != hrSuccess) {
 			fprintf(stderr, "Logon failed: %s\n", GetMAPIErrorMessage(ret));
@@ -134,12 +134,12 @@ static int mpt_main_lilo(void)
 		return EXIT_FAILURE;
 
 	IMAPISession *ses;
-	ECLogger *log = ec_log_get();
 	struct mpt_stat_entry dp;
 
 	while (mpt_repeat-- > 0) {
 		clock_gettime(CLOCK_MONOTONIC, &dp.start);
-		ret = HrOpenECSession(log, &ses, "mapitime", "", mpt_user, mpt_pass, mpt_socket, 0, NULL, NULL);
+		ret = HrOpenECSession(&ses, "mapitime", "", mpt_user, mpt_pass,
+		      mpt_socket, 0, NULL, NULL);
 		if (ret != hrSuccess) {
 			fprintf(stderr, "Logon failed: %s\n", GetMAPIErrorMessage(ret));
 			sleep(1);

@@ -178,7 +178,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 	/*
 	 * Set m_lpIPMSubtree, used for CopyFolder, CreateFolder, DeleteFolder
 	 */
-	hr = OpenSubFolder(m_lpActiveStore, NULL, '/', m_lpLogger, bIsPublic, false, &m_lpIPMSubtree);
+	hr = OpenSubFolder(m_lpActiveStore, NULL, '/', bIsPublic, false, &m_lpIPMSubtree);
 	if(hr != hrSuccess)
 	{
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error opening IPM SUBTREE, using user %ls, error code : 0x%08X", m_wstrUser.c_str(), hr);
@@ -209,7 +209,8 @@ HRESULT ProtocolBase::HrInitializeClass()
 	if (strMethod.compare("MKCALENDAR") == 0 && (m_ulUrlFlag & SERVICE_CALDAV))
 	{
 		// created in the IPM_SUBTREE
-		hr = OpenSubFolder(m_lpActiveStore, NULL, '/', m_lpLogger, bIsPublic, false, &m_lpUsrFld);
+		hr = OpenSubFolder(m_lpActiveStore, NULL, '/', bIsPublic,
+		     false, &m_lpUsrFld);
 		if(hr != hrSuccess)
 		{
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error opening IPM_SUBTREE folder of user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);

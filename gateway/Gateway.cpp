@@ -162,11 +162,9 @@ static void *Handler(void *lpArg)
 	bool bQuit = false;
 	int timeouts = 0;
 
-	if (bUseSSL) {
-		if (lpChannel->HrEnableTLS(lpLogger) != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to negotiate SSL connection");
-			goto exit;
-		}
+	if (bUseSSL && lpChannel->HrEnableTLS() != hrSuccess) {
+		lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to negotiate SSL connection");
+		goto exit;
 	}
 
 	hr = client->HrSendGreeting(g_strHostString);
@@ -427,7 +425,7 @@ static int gw_listen_on(const char *service, const char *interface,
 		ec_log_crit("\"%s\" is not an acceptable port number", port_str);
 		return E_FAIL;
 	}
-	HRESULT hr = HrListen(ec_log_get(), interface, port, fd);
+	HRESULT hr = HrListen(interface, port, fd);
 	if (hr != hrSuccess) {
 		ec_log_crit("Unable to listen on port %u", port);
 		return E_FAIL;
@@ -485,7 +483,8 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 	bListenIMAPs = (strcmp(g_lpConfig->GetSetting("imaps_enable"), "yes") == 0);
 
 	// Setup ssl context
-	if ((bListenPOP3s || bListenIMAPs) && ECChannel::HrSetCtx(g_lpConfig, g_lpLogger) != hrSuccess) {
+	if ((bListenPOP3s || bListenIMAPs) &&
+	    ECChannel::HrSetCtx(g_lpConfig) != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error loading SSL context, POP3S and IMAPS will be disabled");
 		bListenPOP3s = false;
 		bListenIMAPs = false;
@@ -553,17 +552,17 @@ static HRESULT running_service(const char *szPath, const char *servicename)
     }        
 
 	if (parseBool(g_lpConfig->GetSetting("coredump_enabled")))
-		unix_coredump_enable(g_lpLogger);
+		unix_coredump_enable();
 
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
-	if (unix_runas(g_lpConfig, g_lpLogger))
+	if (unix_runas(g_lpConfig))
 		goto exit;
-	if (daemonize && unix_daemonize(g_lpConfig, g_lpLogger))
+	if (daemonize && unix_daemonize(g_lpConfig))
 		goto exit;
 	if (!daemonize)
 		setsid();
-	unix_create_pidfile(servicename, g_lpConfig, g_lpLogger);
+	unix_create_pidfile(servicename, g_lpConfig);
 	if (bThreads == false)
 		g_lpLogger = StartLoggerProcess(g_lpConfig, g_lpLogger); // maybe replace logger
 	ec_log_set(g_lpLogger);
@@ -624,10 +623,10 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			// Incoming POP3(s) connection
 			if (bListenPOP3s && FD_ISSET(ulListenPOP3s, &readfds)) {
 				usessl = true;
-				hr = HrAccept(g_lpLogger, ulListenPOP3s, &lpHandlerArgs->lpChannel);
+				hr = HrAccept(ulListenPOP3s, &lpHandlerArgs->lpChannel);
 			} else {
 				usessl = false;
-				hr = HrAccept(g_lpLogger, ulListenPOP3, &lpHandlerArgs->lpChannel);
+				hr = HrAccept(ulListenPOP3, &lpHandlerArgs->lpChannel);
 			}
 			if (hr != hrSuccess) {
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to accept POP3 socket connection.");
@@ -681,10 +680,10 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 			// Incoming IMAP(s) connection
 			if (bListenIMAPs && FD_ISSET(ulListenIMAPs, &readfds)) {
 				usessl = true;
-				hr = HrAccept(g_lpLogger, ulListenIMAPs, &lpHandlerArgs->lpChannel);
+				hr = HrAccept(ulListenIMAPs, &lpHandlerArgs->lpChannel);
 			} else {
 				usessl = false;
-				hr = HrAccept(g_lpLogger, ulListenIMAP, &lpHandlerArgs->lpChannel);
+				hr = HrAccept(ulListenIMAP, &lpHandlerArgs->lpChannel);
 			}
 			if (hr != hrSuccess) {
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to accept IMAP socket connection.");

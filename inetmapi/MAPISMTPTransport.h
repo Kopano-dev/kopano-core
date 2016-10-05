@@ -91,7 +91,6 @@ public:
 	// additional functions
 	const std::vector<sFailedRecip> &getPermanentFailedRecipients(void) const { return mPermanentFailedRecipients; }
 	const std::vector<sFailedRecip> &getTemporaryFailedRecipients(void) const { return mTemporaryFailedRecipients; }
-	void setLogger(ECLogger *lpLogger);
 	void requestDSN(BOOL bRequest, const std::string &strTrackid);
 
 private:
@@ -131,8 +130,6 @@ private:
 	// additional data
 	std::vector<sFailedRecip> mTemporaryFailedRecipients;
 	std::vector<sFailedRecip> mPermanentFailedRecipients;
-
-	ECLogger *m_lpLogger;
 	bool m_bDSNRequest;
 	std::string m_strDSNTrackid;
 };

@@ -300,11 +300,9 @@ HRESULT ArchiveControlImpl::ProcessAll(bool bLocalOnly, fnProcess_t fnProcess)
 	UserList lstUserEntries;
 	bool bHaveErrors = false;
 
-	hr = GetArchivedUserList(m_lpLogger, 
-							 m_ptrSession->GetMAPISession(),
-							 m_ptrSession->GetSSLPath(),
-							 m_ptrSession->GetSSLPass(),
-							 &lstUsers, bLocalOnly);
+	hr = GetArchivedUserList(m_ptrSession->GetMAPISession(),
+	     m_ptrSession->GetSSLPath(), m_ptrSession->GetSSLPass(),
+	     &lstUsers, bLocalOnly);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to obtain user list. (hr=0x%08x)", hr);
 		goto exit;

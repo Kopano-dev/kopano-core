@@ -25,7 +25,6 @@
 #include <mutex>
 #include <kopano/platform.h>
 #include <kopano/ECConfig.h>
-#include <kopano/ECLogger.h>
 #include <kopano/kcodes.h>
 #include <mysql.h>
 #include <string>
@@ -47,7 +46,7 @@ typedef struct _sDatabase {
 class ECDatabaseMySQL
 {
 public:
-	ECDatabaseMySQL(ECLogger *lpLogger);
+	ECDatabaseMySQL(void);
 	virtual ~ECDatabaseMySQL();
 
 	ECRESULT		Connect(ECConfig *lpConfig);
@@ -80,8 +79,6 @@ public:
 	// Database maintenance function(s)
 	ECRESULT		CreateDatabase(ECConfig *lpConfig);
 
-	ECLogger*		GetLogger();
-
 	// Freememory method(s)
 	void			FreeResult(DB_RESULT sResult);
 
@@ -109,7 +106,6 @@ private:
 	bool				m_bAutoLock;
 	unsigned int 		m_ulMaxAllowedPacket;
 	bool				m_bLocked;
-	ECLogger*			m_lpLogger;
 };
 
 #endif

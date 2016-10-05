@@ -329,7 +329,11 @@ static HRESULT GetErrorObjects(const SendData &sSendData,
 	}
 
 	if (*lppMailer == NULL) {
-		*lppMailer = CreateSender(g_lpLogger, "localhost", 25); // SMTP server does not matter here, we just use the object for the error body
+		/*
+		 * SMTP server does not matter here, we just use the
+		 * object for the error body.
+		 */
+		*lppMailer = CreateSender("localhost", 25);
 		if (! (*lppMailer)) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to create error object for error mail, skipping.");
 			goto exit;
@@ -739,9 +743,10 @@ static HRESULT ProcessQueue(const char *szSMTP, int ulPort, const char *szPath)
 	
 	SSortOrderSet sSort = { 1, 0, 0, { { PR_EC_HIERARCHYID, TABLE_SORT_ASCEND } } };
 
-	hr = HrOpenECAdminSession(g_lpLogger, &lpAdminSession, "kopano-spooler:system", PROJECT_SVN_REV_STR, szPath, EC_PROFILE_FLAGS_NO_PUBLIC_STORE,
-							  g_lpConfig->GetSetting("sslkey_file", "", NULL),
-							  g_lpConfig->GetSetting("sslkey_pass", "", NULL));
+	hr = HrOpenECAdminSession(&lpAdminSession, "kopano-spooler:system",
+	     PROJECT_SVN_REV_STR, szPath, EC_PROFILE_FLAGS_NO_PUBLIC_STORE,
+	     g_lpConfig->GetSetting("sslkey_file", "", NULL),
+	     g_lpConfig->GetSetting("sslkey_pass", "", NULL));
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open admin session. Error 0x%08X", hr);
 		goto exit;
@@ -1264,15 +1269,15 @@ int main(int argc, char *argv[]) {
 
 	bQuit = bMessagesWaiting = false;
 	if (parseBool(g_lpConfig->GetSetting("coredump_enabled")))
-		unix_coredump_enable(g_lpLogger);
+		unix_coredump_enable();
 
 	// fork if needed and drop privileges as requested.
 	// this must be done before we do anything with pthreads
-	if (unix_runas(g_lpConfig, g_lpLogger)) {
+	if (unix_runas(g_lpConfig)) {
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "main(): run-as failed");
 		goto exit;
 	}
-	if (daemonize && unix_daemonize(g_lpConfig, g_lpLogger)) {
+	if (daemonize && unix_daemonize(g_lpConfig)) {
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "main(): failed daemonizing");
 		goto exit;
 	}
@@ -1280,7 +1285,7 @@ int main(int argc, char *argv[]) {
 	if (!daemonize)
 		setsid();
 
-	if (bForked == false && unix_create_pidfile(argv[0], g_lpConfig, g_lpLogger, false) < 0) {
+	if (bForked == false && unix_create_pidfile(argv[0], g_lpConfig, false) < 0) {
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "main(): Failed creating PID file");
 		goto exit;
 	}

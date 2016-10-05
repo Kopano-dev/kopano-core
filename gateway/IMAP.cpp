@@ -771,7 +771,7 @@ HRESULT IMAP::HrCmdStarttls(const string &strTag) {
 	if (hr != hrSuccess)
 		return hr;
 
-	hr = lpChannel->HrEnableTLS(lpLogger);
+	hr = lpChannel->HrEnableTLS();
 	if (hr != hrSuccess) {
 		HrResponse(RESP_TAGGED_BAD, strTag, "[ALERT] Error switching to secure SSL/TLS connection");
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Error switching to SSL in STARTTLS");
@@ -919,7 +919,9 @@ HRESULT IMAP::HrCmdLogin(const string &strTag, const string &strUser, const stri
 	}
 
 	// do not disable notifications for imap connections, may be idle and sessions on the storage server will disappear.
-	hr = HrOpenECSession(lpLogger, &lpSession, "gateway/imap", PROJECT_SVN_REV_STR, strwUsername.c_str(), strwPassword.c_str(), m_strPath.c_str(), EC_PROFILE_FLAGS_NO_COMPRESSION, NULL, NULL);
+	hr = HrOpenECSession(&lpSession, "gateway/imap", PROJECT_SVN_REV_STR,
+	     strwUsername.c_str(), strwPassword.c_str(), m_strPath.c_str(),
+	     EC_PROFILE_FLAGS_NO_COMPRESSION, NULL, NULL);
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_WARNING, "Failed to login from %s with invalid username \"%s\" or wrong password. Error: 0x%08X",
 					  lpChannel->peer_addr(), strUsername.c_str(), hr);
@@ -1891,7 +1893,7 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 		goto exit;
 	}
 
-	hr = IMToMAPI(lpSession, lpStore, lpAddrBook, lpMessage, strData, dopt, lpLogger);
+	hr = IMToMAPI(lpSession, lpStore, lpAddrBook, lpMessage, strData, dopt);
 	if (hr != hrSuccess) {
 		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "APPEND error converting message");
 		goto exit;
@@ -4293,7 +4295,7 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 				if (hr != hrSuccess) {
 					ASSERT(lpMessage);
 					if (oss.tellp() == ostringstream::pos_type(0)) { // already converted in previous loop?
-						if (!lpMessage || IMToINet(lpSession, lpAddrBook, lpMessage, oss, sopt, lpLogger) != hrSuccess) {
+						if (lpMessage == NULL || IMToINet(lpSession, lpAddrBook, lpMessage, oss, sopt) != hrSuccess) {
 							vProps.push_back(item);
 							vProps.push_back("NIL");
 							lpLogger->Log(EC_LOGLEVEL_WARNING, "Error in generating message %d for user %ls in folder %ls", ulMailnr+1, m_strwUsername.c_str(), strCurrentFolder.c_str());

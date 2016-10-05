@@ -644,7 +644,9 @@ int main(int argc, char *argv[])
 	strwUsername = convert_to<wstring>(user ? user : "SYSTEM");
 	strwPassword = convert_to<wstring>(pass ? pass : "");
 
-	hr = HrOpenECSession(lpLogger, &lpSession, "kopano-stats", PROJECT_SVN_REV_STR, strwUsername.c_str(), strwPassword.c_str(), host, EC_PROFILE_FLAGS_NO_NOTIFICATIONS | EC_PROFILE_FLAGS_NO_PUBLIC_STORE);
+	hr = HrOpenECSession(&lpSession, "kopano-stats", PROJECT_SVN_REV_STR,
+	     strwUsername.c_str(), strwPassword.c_str(), host,
+	     EC_PROFILE_FLAGS_NO_NOTIFICATIONS | EC_PROFILE_FLAGS_NO_PUBLIC_STORE);
 	if (hr != hrSuccess) {
 		cout << "Cannot open admin session on host " << (host ? host : "localhost") << ", username " << (user ? user : "SYSTEM") << endl;
 		goto exit;

@@ -737,11 +737,8 @@ eResult ArchiveManageImpl::ListAttachedUsers(UserList *lplstUsers)
 	if (lplstUsers == NULL)
 		return MAPIErrorToArchiveError(MAPI_E_INVALID_PARAMETER);
 
-	hr = GetArchivedUserList(m_lpLogger, 
-							 m_ptrSession->GetMAPISession(),
-							 m_ptrSession->GetSSLPath(),
-							 m_ptrSession->GetSSLPass(),
-							 &lstUsers);
+	hr = GetArchivedUserList(m_ptrSession->GetMAPISession(),
+	     m_ptrSession->GetSSLPath(), m_ptrSession->GetSSLPass(), &lstUsers);
 	if (hr != hrSuccess)
 		return MAPIErrorToArchiveError(hr);
 

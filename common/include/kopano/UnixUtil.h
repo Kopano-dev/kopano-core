@@ -19,8 +19,6 @@
 #define __UNIXUTIL_H
 
 #include <sys/resource.h>
-
-#include <kopano/ECLogger.h>
 #include <kopano/ECConfig.h>
 
 struct popen_rlimit {
@@ -40,11 +38,11 @@ struct _popen_rlimit_array_ ## _name \
 	struct popen_rlimit sLimit[_climit]; \
 } _name
 
-int unix_runas(ECConfig *lpConfig, ECLogger *lpLogger);
+extern int unix_runas(ECConfig *);
 int unix_chown(const char *filename, const char *username, const char *groupname);
-extern void unix_coredump_enable(ECLogger *);
-int unix_create_pidfile(const char *argv0, ECConfig *lpConfig, ECLogger *lpLogger, bool bForce = true);
-int unix_daemonize(ECConfig *lpConfig, ECLogger *lpLogger);
+extern void unix_coredump_enable(void);
+extern int unix_create_pidfile(const char *argv0, ECConfig *, bool force = true);
+extern int unix_daemonize(ECConfig *);
 int unix_fork_function(void*(func)(void*), void *param, int nCloseFDs, int *pCloseFDs);
 extern bool unix_system(const char *szLogName, const char *command, const char **env);
 

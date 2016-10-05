@@ -22,7 +22,6 @@
 #include <list>
 #include <mapix.h>
 #include <mapidefs.h>
-#include <kopano/ECLogger.h>
 #include <inetmapi/options.h>
 #include <kopano/charset/convert.h>
 
@@ -61,14 +60,13 @@ class VMIMEToMAPI
 {
 public:
 	VMIMEToMAPI();
-	VMIMEToMAPI(LPADRBOOK lpAdrBook, ECLogger *newlogger, delivery_options dopt);
+	VMIMEToMAPI(LPADRBOOK lpAdrBook, delivery_options dopt);
 	virtual	~VMIMEToMAPI();
 
 	HRESULT convertVMIMEToMAPI(const std::string &input, IMessage *lpMessage);
 	HRESULT createIMAPProperties(const std::string &input, std::string *lpEnvelope, std::string *lpBody, std::string *lpBodyStructure);
 
 private:
-	ECLogger *lpLogger;
 	delivery_options m_dopt;
 	LPADRBOOK m_lpAdrBook;
 	IABContainer *m_lpDefaultDir;
