@@ -22,6 +22,7 @@
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <list>
+#include <mutex>
 #include <pthread.h>
 #include <csignal>
 #include <cstdarg>
@@ -96,7 +97,7 @@ enum logprefix { LP_NONE, LP_TID, LP_PID };
  */
 class ECLogger {
 	private:
-		pthread_mutex_t m_mutex;
+		std::mutex m_mutex;
 		unsigned m_ulRef;
 
 	protected:

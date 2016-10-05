@@ -16,7 +16,7 @@
  */
 
 #include <kopano/platform.h>
-
+#include <mutex>
 #include <mapidefs.h>
 #include <mapitags.h>
 #include <kopano/mapiext.h>
@@ -47,9 +47,6 @@
 
 #include <kopano/charset/convert.h>
 #include <kopano/charset/utf8string.h>
-
-#include <kopano/threadutil.h>
-
 #include <boost/algorithm/string.hpp>
 namespace ba = boost::algorithm;
 
@@ -157,19 +154,6 @@ ECUserManagement::ECUserManagement(BTSession *lpSession,
 	this->m_lpSession = lpSession;
 	this->m_lpPluginFactory = lpPluginFactory;
 	this->m_lpConfig = lpConfig;
-
-	pthread_mutexattr_t attr;
-	pthread_mutexattr_init(&attr);
-	pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
-
-	pthread_mutex_init(&m_hMutex, &attr);
-
-	pthread_mutexattr_destroy(&attr);
-}
-
-ECUserManagement::~ECUserManagement(void)
-{
-	pthread_mutex_destroy(&m_hMutex);
 }
 
 // Authenticate a user (NOTE: ECUserManagement will never authenticate SYSTEM unless it is actually
@@ -4411,11 +4395,11 @@ ECRESULT ECUserManagement::GetUserCount(usercount_t *lpUserCount)
 	if (lpUserCount)
 		lpUserCount->assign(ulActive, ulNonActiveUser, ulRoom, ulEquipment, ulContact);
 
-    pthread_mutex_lock(&m_hMutex);
-    m_userCount.assign(ulActive, ulNonActiveUser, ulRoom, ulEquipment, ulContact);
-    m_usercount_ts = time(NULL);
-    pthread_mutex_unlock(&m_hMutex);
-
+	{
+		std::lock_guard<std::recursive_mutex> lock(m_hMutex);
+		m_userCount.assign(ulActive, ulNonActiveUser, ulRoom, ulEquipment, ulContact);
+		m_usercount_ts = time(NULL);
+	}
 exit:
     if(lpResult)
         lpDatabase->FreeResult(lpResult);
@@ -4425,7 +4409,7 @@ exit:
 
 ECRESULT ECUserManagement::GetCachedUserCount(usercount_t *lpUserCount)
 {
-	scoped_lock lock(m_hMutex);
+	std::lock_guard<std::recursive_mutex> lock(m_hMutex);
 
 	if (!m_userCount.isValid() || m_usercount_ts - time(NULL) > 5*60)
 		return GetUserCount(lpUserCount);

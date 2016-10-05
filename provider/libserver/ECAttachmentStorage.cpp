@@ -21,7 +21,7 @@
 #include <cerrno>
 
 #include <algorithm>
-
+#include <kopano/lockhelper.hpp>
 #include <fcntl.h>
 
 #include <zlib.h>
@@ -68,7 +68,6 @@ ECAttachmentStorage::ECAttachmentStorage(ECDatabase *lpDatabase, unsigned int ul
 	: m_lpDatabase(lpDatabase)
 {
 	m_ulRef = 0;
-	pthread_mutex_init(&m_refcnt_lock, NULL);
 	m_bFileCompression = ulCompressionLevel != 0;
 
 	if (ulCompressionLevel > Z_BEST_COMPRESSION)
@@ -78,16 +77,14 @@ ECAttachmentStorage::ECAttachmentStorage(ECDatabase *lpDatabase, unsigned int ul
 }
 
 ULONG ECAttachmentStorage::AddRef() {
-	pthread_mutex_lock(&m_refcnt_lock);
-	ULONG ret = ++m_ulRef;
-	pthread_mutex_unlock(&m_refcnt_lock);
-	return ret;
+	scoped_lock lk(m_refcnt_lock);
+	return ++m_ulRef;
 }
 
 ULONG ECAttachmentStorage::Release() {
-	pthread_mutex_lock(&m_refcnt_lock);
+	ulock_normal l_ref(m_refcnt_lock);
 	ULONG ulRef = --m_ulRef;
-	pthread_mutex_unlock(&m_refcnt_lock);
+	l_ref.unlock();
 	if (m_ulRef == 0)
 		delete this;
 

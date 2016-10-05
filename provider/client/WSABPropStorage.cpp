@@ -33,12 +33,14 @@
  * This is a PropStorage object for use with the WebServices storage platform
  */
 
-WSABPropStorage::WSABPropStorage(ULONG cbEntryId, LPENTRYID lpEntryId, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, WSTransport *lpTransport) : ECUnknown("WSABPropStorage")
+WSABPropStorage::WSABPropStorage(ULONG cbEntryId, LPENTRYID lpEntryId,
+    KCmd *lpCmd, std::recursive_mutex &data_lock, ECSESSIONID ecSessionId,
+    WSTransport *lpTransport) :
+	ECUnknown("WSABPropStorage"), lpDataLock(data_lock)
 {
 	CopyMAPIEntryIdToSOAPEntryId(cbEntryId, lpEntryId, &m_sEntryId);
 
 	this->lpCmd = lpCmd;
-	this->lpDataLock = lpDataLock;
 	this->ecSessionId = ecSessionId;
 	this->m_lpTransport = lpTransport;
 	
@@ -62,7 +64,9 @@ HRESULT WSABPropStorage::QueryInterface(REFIID refiid, void **lppInterface)
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
-HRESULT WSABPropStorage::Create(ULONG cbEntryId, LPENTRYID lpEntryId, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, WSTransport *lpTransport, WSABPropStorage **lppPropStorage)
+HRESULT WSABPropStorage::Create(ULONG cbEntryId, LPENTRYID lpEntryId,
+    KCmd *lpCmd, std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId,
+    WSTransport *lpTransport, WSABPropStorage **lppPropStorage)
 {
 	HRESULT hr = hrSuccess;
 	WSABPropStorage *lpStorage = NULL;
@@ -309,7 +313,7 @@ IECPropStorage* WSABPropStorage::GetServerStorage()
 
 HRESULT WSABPropStorage::LockSoap()
 {
-	pthread_mutex_lock(lpDataLock);
+	lpDataLock.lock();
 	return erSuccess;
 }
 
@@ -320,8 +324,7 @@ HRESULT WSABPropStorage::UnLockSoap()
 		soap_destroy(lpCmd->soap);
 		soap_end(lpCmd->soap);
 	}
-
-	pthread_mutex_unlock(lpDataLock);
+	lpDataLock.unlock();
 	return erSuccess;
 }
 

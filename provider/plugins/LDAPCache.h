@@ -18,9 +18,11 @@
 #ifndef LDAPCACHE_H
 #define LDAPCACHE_H
 
+#include <kopano/zcdefs.h>
 #include <memory>
 #include <list>
 #include <map>
+#include <mutex>
 #include <string>
 
 #include <kopano/ECDefs.h>
@@ -45,27 +47,17 @@ typedef std::list<std::string> dn_list_t;
  * LDAP Cache which collects DNs with the matching
  * objectid and name.
  */
-class LDAPCache {
+class LDAPCache _kc_final {
 private:
 	/* Protect mutex from being overriden */
-	pthread_mutex_t m_hMutex;
-	pthread_mutexattr_t m_hMutexAttrib;
-
+	std::recursive_mutex m_hMutex;
 	std::unique_ptr<dn_cache_t> m_lpCompanyCache;		/* CONTAINER_COMPANY */
 	std::unique_ptr<dn_cache_t> m_lpGroupCache;		/* OBJECTCLASS_DISTLIST */
 	std::unique_ptr<dn_cache_t> m_lpUserCache;		/* OBJECTCLASS_USER */
 	std::unique_ptr<dn_cache_t> m_lpAddressListCache; /* CONTAINER_ADDRESSLIST */
 
 public:
-	/**
-	 * Default constructor
-	 */
 	LDAPCache();
-
-	/**
-	 * Destructor
-	 */
-	~LDAPCache();
 
 	/**
 	 * Check if the requested objclass class is cached.

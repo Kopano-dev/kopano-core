@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/lockhelper.hpp>
 #include "ECParentStorage.h"
 
 #include "Mem.h"
@@ -108,13 +109,10 @@ HRESULT ECParentStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 
 	if (!m_lpParentObject)
 		return MAPI_E_INVALID_OBJECT;
-		
-	pthread_mutex_lock(&m_lpParentObject->m_hMutexMAPIObject);
-		
-	if (!m_lpParentObject->m_sMapiObject) {
-		hr = MAPI_E_INVALID_OBJECT;
-		goto exit;
-	}
+
+	scoped_rlock lock(m_lpParentObject->m_hMutexMAPIObject);
+	if (m_lpParentObject->m_sMapiObject == NULL)
+		return MAPI_E_INVALID_OBJECT;
 
 	// type is either attachment or message-in-message
 	{
@@ -125,17 +123,10 @@ HRESULT ECParentStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 			iterSObj = m_lpParentObject->m_sMapiObject->lstChildren->find(&findAtt);
 	}
     	
-	if (iterSObj == m_lpParentObject->m_sMapiObject->lstChildren->cend()) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
+	if (iterSObj == m_lpParentObject->m_sMapiObject->lstChildren->cend())
+		return MAPI_E_NOT_FOUND;
 	// make a complete copy of the object, because of close / re-open
 	*lppsMapiObject = new MAPIOBJECT(*iterSObj);
-
-exit:
-	pthread_mutex_unlock(&m_lpParentObject->m_hMutexMAPIObject);
-
 	return hr;
 }
 

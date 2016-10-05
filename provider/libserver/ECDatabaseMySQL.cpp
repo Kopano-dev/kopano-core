@@ -359,24 +359,14 @@ ECDatabaseMySQL::ECDatabaseMySQL(ECConfig *lpConfig)
 	m_bAutoLock			= true;
 	m_lpConfig			= lpConfig;
 	m_bSuppressLockErrorLogging = false;
-
-	// Create a mutex handle for mysql
-	pthread_mutexattr_t mattr;
-	pthread_mutexattr_init(&mattr);
-	pthread_mutexattr_settype(&mattr, PTHREAD_MUTEX_RECURSIVE);
-	pthread_mutex_init(&m_hMutexMySql, &mattr);
-
 #ifdef DEBUG
 	m_ulTransactionState = 0;
 #endif	
-
 }
 
 ECDatabaseMySQL::~ECDatabaseMySQL()
 {
 	Close();
-	// Close the mutex handle of mysql
-	pthread_mutex_destroy(&m_hMutexMySql);
 }
 
 ECRESULT ECDatabaseMySQL::InitLibrary(const char *lpDatabaseDir,
@@ -699,13 +689,13 @@ ECRESULT ECDatabaseMySQL::Close()
 // Get database ownership
 void ECDatabaseMySQL::Lock()
 {
-	pthread_mutex_lock(&m_hMutexMySql);
+	m_hMutexMySql.lock();
 }
 
 // Release the database ownership
 void ECDatabaseMySQL::UnLock()
 {
-	pthread_mutex_unlock(&m_hMutexMySql);
+	m_hMutexMySql.unlock();
 }
 
 bool ECDatabaseMySQL::isConnected() {

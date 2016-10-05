@@ -23,16 +23,17 @@
 #define WSABTABLEVIEW_H
 
 #include <kopano/zcdefs.h>
+#include <mutex>
 #include <kopano/ECUnknown.h>
 #include "WSTableView.h"
 #include "ECABLogon.h"
 
 class WSABTableView _kc_final : public WSTableView {
 protected:
-	WSABTableView(ULONG ulType, ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId, ECABLogon* lpABLogon, WSTransport *lpTransport);
+	WSABTableView(ULONG ulType, ULONG ulFlags, KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, ECABLogon *, WSTransport *);
 
 public:
-	static HRESULT Create(ULONG ulType, ULONG ulFlags, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId, ECABLogon* lpABLogon, WSTransport *lpTransport, WSTableView **lppTableView);
+	static HRESULT Create(ULONG ulType, ULONG ulFlags, KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, ECABLogon *, WSTransport *, WSTableView **);
 	virtual	HRESULT	QueryInterface(REFIID refiid, void **lppInterface);
 
 };

@@ -18,9 +18,8 @@
 #ifndef ECSYNCSETTINGS_INCLUDED
 #define ECSYNCSETTINGS_INCLUDED
 
+#include <mutex>
 #include "ECLibSync.h"
-#include <pthread.h>
-
 
 #define EC_SYNC_OPT_STREAM			1
 #define EC_SYNC_OPT_CHANGENOTIF		2
@@ -68,11 +67,10 @@ private:
 	ULONG	m_ulStreamBufferSize;
 	ULONG	m_ulStreamBatchSize;
 
-	static pthread_mutex_t s_hMutex;
+	static std::mutex s_hMutex;
 	static ECSyncSettings *s_lpInstance;
 
 	struct __initializer {
-		__initializer();
 		~__initializer();
 	};
 	static __initializer __i;

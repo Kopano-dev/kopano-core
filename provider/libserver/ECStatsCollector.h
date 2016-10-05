@@ -21,7 +21,7 @@
 #include <kopano/zcdefs.h>
 #include <string>
 #include <map>
-#include <pthread.h>
+#include <mutex>
 
 enum SCName {
 	/* server stats */
@@ -61,7 +61,7 @@ typedef struct _ECStat {
 	SCType type;
 	const char *name;
 	const char *description;
-	pthread_mutex_t lock;
+	std::mutex lock;
 } ECStat;
 
 typedef std::map<SCName, ECStat> SCMap;
@@ -74,7 +74,6 @@ typedef struct _ECStrings {
 class ECStatsCollector _zcp_final {
 public:
 	ECStatsCollector();
-	~ECStatsCollector();
 
 	void Increment(SCName name, float inc);
 	void Increment(SCName name, int inc = 1);
@@ -113,7 +112,7 @@ private:
 	void AddStat(SCName index, SCType type, const char *name, const char *description);
 
 	SCMap m_StatData;
-	pthread_mutex_t m_StringsLock;
+	std::mutex m_StringsLock;
 	std::map<std::string, ECStrings> m_StatStrings;
 };
 

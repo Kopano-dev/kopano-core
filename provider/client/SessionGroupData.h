@@ -18,8 +18,8 @@
 #ifndef ECSESSIONGROUPDATA_H
 #define ECSESSIONGROUPDATA_H
 
-#include <pthread.h>
-
+#include <kopano/zcdefs.h>
+#include <mutex>
 #include <mapispi.h>
 
 #include <kopano/kcodes.h>
@@ -28,7 +28,7 @@
 class ECNotifyMaster;
 class WSTransport;
 
-class ECSessionGroupInfo {
+class ECSessionGroupInfo _kc_final {
 public:
 	std::string strServer;
 	std::string strProfile;
@@ -67,12 +67,11 @@ private:
 	ECNotifyMaster*		m_lpNotifyMaster;
 
 	/* Mutex */
-	pthread_mutex_t		m_hMutex;
-	pthread_mutexattr_t	m_hMutexAttrib;
+	std::recursive_mutex m_hMutex;
 	sGlobalProfileProps m_sProfileProps;
 
 	/* Refcounting */
-	pthread_mutex_t		m_hRefMutex;
+	std::recursive_mutex m_hRefMutex;
 	ULONG				m_cRef;
 
 public:

@@ -18,16 +18,16 @@
 #ifndef __M4L_COMMON_IMPL_H
 #define __M4L_COMMON_IMPL_H
 
-#include <pthread.h>
+#include <mutex>
 
 class M4LUnknown : public IUnknown {
 private:
     ULONG ref;
-    pthread_mutex_t mutex;
+	std::mutex mutex;
     
 public:
     M4LUnknown();
-    virtual ~M4LUnknown();
+	virtual ~M4LUnknown(void) {}
 
     virtual ULONG __stdcall AddRef();
     virtual ULONG __stdcall Release();

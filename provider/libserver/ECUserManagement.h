@@ -21,9 +21,8 @@
 #include <kopano/zcdefs.h>
 #include <list>
 #include <map>
+#include <mutex>
 #include <ctime>
-#include <pthread.h>
-
 #include <kopano/kcodes.h>
 #include <kopano/pcuser.hpp>
 #include <kopano/ECConfig.h>
@@ -139,7 +138,7 @@ private:
 class ECUserManagement {
 public:
 	ECUserManagement(BTSession *lpSession, ECPluginFactory *lpPluginFactory, ECConfig *lpConfig);
-	virtual ~ECUserManagement();
+	virtual ~ECUserManagement(void) {}
 
 	// Authenticate a user
 	virtual ECRESULT	AuthUserAndSync(const char* szUsername, const char* szPassword, unsigned int* lpulUserId);
@@ -284,7 +283,7 @@ protected:
 	ECConfig			*m_lpConfig;
 
 private:
-	pthread_mutex_t				m_hMutex;
+	std::recursive_mutex m_hMutex;
 	usercount_t 				m_userCount;
 	time_t m_usercount_ts;
 };

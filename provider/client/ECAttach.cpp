@@ -16,7 +16,7 @@
  */
 
 #include <kopano/platform.h>
-
+#include <kopano/lockhelper.hpp>
 #include <mapiguid.h>
 #include <mapicode.h>
 #include <mapiutil.h>
@@ -108,8 +108,7 @@ HRESULT ECAttach::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceO
 	ULONG			ulAttachType = 0;
 	BOOL			fNew = FALSE;
 	ULONG			ulObjId = 0;
-
-	pthread_mutex_lock(&m_hMutexMAPIObject);
+	scoped_rlock lock(m_hMutexMAPIObject);
 
 	if (lpiid == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
@@ -210,9 +209,6 @@ exit:
 
 	if(lpMapiUID)
 		ECFreeBuffer(lpMapiUID);
-
-	pthread_mutex_unlock(&m_hMutexMAPIObject);
-
 	return hr;
 }
 
@@ -291,45 +287,28 @@ HRESULT ECAttach::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArray
  */
 HRESULT ECAttach::HrSetRealProp(LPSPropValue lpProp)
 {
-	HRESULT hr = hrSuccess;
+	scoped_rlock lock(m_hMutexMAPIObject);
 
-	pthread_mutex_lock(&m_hMutexMAPIObject);
-
-	if (lpStorage == NULL) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
-	if (!fModify) {
-		hr = MAPI_E_NO_ACCESS;
-		goto exit;
-	}
-
-	hr = ECMAPIProp::HrSetRealProp(lpProp);
-	
-exit:
-	pthread_mutex_unlock(&m_hMutexMAPIObject);
-
-	return hr;
+	if (lpStorage == NULL)
+		return MAPI_E_NOT_FOUND;
+	if (!fModify)
+		return MAPI_E_NO_ACCESS;
+	return ECMAPIProp::HrSetRealProp(lpProp);
 }
 
 HRESULT ECAttach::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject)
 {
-	HRESULT hr = hrSuccess;
 	ECMapiObjects::const_iterator iterSObj;
-
-	pthread_mutex_lock(&m_hMutexMAPIObject);
+	scoped_rlock lock(m_hMutexMAPIObject);
 
 	if (!m_sMapiObject) {
 		ASSERT(m_sMapiObject != NULL);
 		AllocNewMapiObject(0, 0, MAPI_MESSAGE, &m_sMapiObject);
 	}
 
-	if (lpsMapiObject->ulObjType != MAPI_MESSAGE) {
+	if (lpsMapiObject->ulObjType != MAPI_MESSAGE)
 		// can only save messages in an attachment
-		hr = MAPI_E_INVALID_OBJECT;
-		goto exit;
-	}
+		return MAPI_E_INVALID_OBJECT;
 
 	// attachments can only have 1 sub-message
 	iterSObj = m_sMapiObject->lstChildren->cbegin();
@@ -339,11 +318,7 @@ HRESULT ECAttach::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject)
 	}
 
 	m_sMapiObject->lstChildren->insert(new MAPIOBJECT(lpsMapiObject));
-
-exit:
-	pthread_mutex_unlock(&m_hMutexMAPIObject);
-
-	return hr;
+	return hrSuccess;
 }
 
 // Proxy routines for IAttach

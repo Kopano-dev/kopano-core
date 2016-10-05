@@ -16,36 +16,23 @@
  */
 
 #include <kopano/platform.h>
-
-#include <pthread.h>
+#include <kopano/lockhelper.hpp>
 #include "LDAPCache.h"
 #include "LDAPUserPlugin.h"
 #include <kopano/stringutil.h>
 
 LDAPCache::LDAPCache()
 {
-	pthread_mutexattr_init(&m_hMutexAttrib);
-	pthread_mutexattr_settype(&m_hMutexAttrib, PTHREAD_MUTEX_RECURSIVE);
-
-	pthread_mutex_init(&m_hMutex, &m_hMutexAttrib);
-
 	m_lpCompanyCache = std::unique_ptr<dn_cache_t>(new dn_cache_t());
 	m_lpGroupCache = std::unique_ptr<dn_cache_t>(new dn_cache_t());
 	m_lpUserCache = std::unique_ptr<dn_cache_t>(new dn_cache_t());
 	m_lpAddressListCache = std::unique_ptr<dn_cache_t>(new dn_cache_t());
 }
 
-LDAPCache::~LDAPCache()
-{
-	pthread_mutex_destroy(&m_hMutex);
-	pthread_mutexattr_destroy(&m_hMutexAttrib);
-}
-
 bool LDAPCache::isObjectTypeCached(objectclass_t objclass)
 {
 	bool bCached = false;
-
-	pthread_mutex_lock(&m_hMutex);
+	scoped_rlock biglock(m_hMutex);
 
 	switch (objclass) {
 	case OBJECTCLASS_USER:
@@ -71,9 +58,6 @@ bool LDAPCache::isObjectTypeCached(objectclass_t objclass)
 	default:
 		break;
 	}
-
-	pthread_mutex_unlock(&m_hMutex);
-
 	return bCached;
 }
 
@@ -89,8 +73,7 @@ void LDAPCache::setObjectDNCache(objectclass_t objclass,
 		(*lpTmp)[i.first] = i.second;
 	lpCache = std::move(lpTmp);
 
-	pthread_mutex_lock(&m_hMutex);
-
+	scoped_rlock biglock(m_hMutex);
 	switch (objclass) {
 	case OBJECTCLASS_USER:
 	case ACTIVE_USER:
@@ -115,16 +98,13 @@ void LDAPCache::setObjectDNCache(objectclass_t objclass,
 	default:
 		break;
 	}
-
-	pthread_mutex_unlock(&m_hMutex);
 }
 
 std::unique_ptr<dn_cache_t>
 LDAPCache::getObjectDNCache(LDAPUserPlugin *lpPlugin, objectclass_t objclass)
 {
 	std::unique_ptr<dn_cache_t> cache;
-
-	pthread_mutex_lock(&m_hMutex);
+	scoped_rlock biglock(m_hMutex);
 
 	/* If item was not yet cached, make sure it is done now. */
 	if (!isObjectTypeCached(objclass) && lpPlugin)
@@ -154,9 +134,6 @@ LDAPCache::getObjectDNCache(LDAPUserPlugin *lpPlugin, objectclass_t objclass)
 	default:
 		break;
 	}
-
-	pthread_mutex_unlock(&m_hMutex);
-
 	return cache;
 }
 

@@ -16,14 +16,14 @@
  */
 
 #include <kopano/zcdefs.h>
+#include <kopano/lockhelper.hpp>
 #include <kopano/platform.h>
 #include <kopano/ECGetText.h>
 #include <kopano/charset/convert.h>
 
 #include <map>
+#include <mutex>
 #include <string>
-
-#include <pthread.h>
 #include <cassert>
 
 namespace detail {
@@ -45,13 +45,11 @@ namespace detail {
 		 * @return	The global converter instance.
 		 */
 		static converter *getInstance() {
-			pthread_mutex_lock(&s_hInstanceLock);
+			scoped_lock locker(s_hInstanceLock);
 			if (!s_lpInstance) {
 				s_lpInstance = new converter;
 				atexit(&destroy);
 			}
-			pthread_mutex_unlock(&s_hInstanceLock);
-
 			return s_lpInstance;
 		}
 
@@ -62,16 +60,12 @@ namespace detail {
 		 * @return	The converted string.
 		 */
 		const wchar_t *convert(const char *lpsz) {
-			pthread_mutex_lock(&m_hCacheLock);
-
+			scoped_lock l_cache(m_hCacheLock);
 			auto insResult = m_cache.insert(cache_type::value_type(lpsz, std::wstring()));
 			if (insResult.second == true)	// successful insert, so not found in cache
 				insResult.first->second.assign(m_converter.convert_to<std::wstring>(lpsz));
 			
 			const wchar_t *lpszW = insResult.first->second.c_str();
-
-			pthread_mutex_unlock(&m_hCacheLock);
-
 			return lpszW;
 		}
 
@@ -85,33 +79,18 @@ namespace detail {
 			s_lpInstance = NULL;
 		}
 
-		/**
-		 * Constructor
-		 */
-		converter() {
-			pthread_mutex_init(&m_hCacheLock, NULL);
-		}
-
-		/**
-		 * Destructor
-		 */
-		~converter() {
-			pthread_mutex_destroy(&m_hCacheLock);
-		}
-
 	private:
 		static converter		*s_lpInstance;
-		static pthread_mutex_t	s_hInstanceLock;
+		static std::mutex s_hInstanceLock;
 
 		typedef std::map<const char *, std::wstring>	cache_type;
 		convert_context	m_converter;
 		cache_type		m_cache;
-		pthread_mutex_t	m_hCacheLock;
+		std::mutex m_hCacheLock;
 	};
 
+	std::mutex converter::s_hInstanceLock;
 	converter* converter::s_lpInstance = NULL;
-	pthread_mutex_t converter::s_hInstanceLock = PTHREAD_MUTEX_INITIALIZER;
-
 } // namespace detail
 
 /**

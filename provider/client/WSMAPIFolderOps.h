@@ -19,6 +19,7 @@
 #define WSMAPIFOLDEROPS_H
 
 #include <kopano/ECUnknown.h>
+#include <mutex>
 #include "kcore.hpp"
 #include <kopano/kcodes.h>
 #include "soapKCmdProxy.h"
@@ -28,7 +29,6 @@
 
 #include <mapi.h>
 #include <mapispi.h>
-#include <pthread.h>
 
 class WSTransport;
 class utf8string;
@@ -36,12 +36,11 @@ class utf8string;
 class WSMAPIFolderOps : public ECUnknown
 {
 protected:
-	WSMAPIFolderOps(KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId, WSTransport *lpTransport);
+	WSMAPIFolderOps(KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, WSTransport *);
 	virtual ~WSMAPIFolderOps();
 
 public:
-	static HRESULT Create(KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId, WSTransport *lpTransport, WSMAPIFolderOps **lppFolderOps);
-
+	static HRESULT Create(KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, WSTransport *, WSMAPIFolderOps **);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface);
 	
 	// Creates a folder object with only a PR_DISPLAY_NAME and type
@@ -83,7 +82,7 @@ private:
 private:
 	entryId			m_sEntryId;		// Entryid of the folder
 	KCmd*		lpCmd;			// command object
-	pthread_mutex_t *lpDataLock;		//
+	std::recursive_mutex &lpDataLock;
 	ECSESSIONID		ecSessionId;	// Id of the session
 	ULONG			m_ulSessionReloadCallback;
 	WSTransport *	m_lpTransport;

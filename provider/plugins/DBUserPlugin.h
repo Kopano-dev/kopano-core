@@ -20,6 +20,7 @@
 #define DBUSERPLUGIN_H
 
 #include <memory>
+#include <mutex>
 #include <stdexcept>
 #include <string>
 #include <kopano/zcdefs.h>
@@ -47,7 +48,7 @@ public:
 	 *					The singleton shared plugin data.
 	 * @throw notsupported When multi-server support is enabled
 	 */
-	DBUserPlugin(pthread_mutex_t *pluginlock, ECPluginSharedData *shareddata);
+	DBUserPlugin(std::mutex &, ECPluginSharedData *shareddata);
     /**
 	 * Initialize plugin
 	 *
@@ -185,7 +186,7 @@ public:
 };
 
 extern "C" {
-	extern UserPlugin* getUserPluginInstance(pthread_mutex_t*, ECPluginSharedData*);
+	extern UserPlugin *getUserPluginInstance(std::mutex &, ECPluginSharedData*);
 	extern void deleteUserPluginInstance(UserPlugin*);
 	extern int getUserPluginVersion();
 }

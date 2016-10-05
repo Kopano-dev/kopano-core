@@ -16,7 +16,7 @@
  */
 
 #include <kopano/platform.h>
-
+#include <kopano/lockhelper.hpp>
 #include <mapidefs.h>
 #include <mapiutil.h>
 #include <mapitags.h>
@@ -847,8 +847,7 @@ HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	LPSPropValue lpPropID = NULL;
 	LPSPropValue lpPropType = NULL;
 	LPSPropTagArray lpPropTagArray = NULL;
-
-	pthread_mutex_lock(&m_hMutexMAPIObject);
+	scoped_rlock lock(m_hMutexMAPIObject);
 
 	if(lstProps == NULL) {
 		hr = HrLoadProps();
@@ -959,8 +958,6 @@ HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 
 exit:
 	MAPIFreeBuffer(lpPropTagArray);
-	pthread_mutex_unlock(&m_hMutexMAPIObject);
-
 	return hr;
 }
 
@@ -1136,8 +1133,7 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	HRESULT hr = hrSuccess;
 	ECMemTableView *lpView = NULL;
 	LPSPropTagArray lpPropTagArray = NULL;
-
-	pthread_mutex_lock(&m_hMutexMAPIObject);
+	scoped_rlock lock(m_hMutexMAPIObject);
 
 	if(lstProps == NULL) {
 		hr = HrLoadProps();
@@ -1239,8 +1235,6 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	lpView->Release();
 exit:
 	MAPIFreeBuffer(lpPropTagArray);
-	pthread_mutex_unlock(&m_hMutexMAPIObject);
-
 	return hr;
 }
 
@@ -1785,8 +1779,7 @@ HRESULT ECMessage::SaveRecips()
 						j = 0;
 	ULONG				ulRealObjType;
 	LPSPropValue		lpObjType = NULL;
-
-	pthread_mutex_lock(&m_hMutexMAPIObject);
+	scoped_rlock lock(m_hMutexMAPIObject);
 
 	// Get any changes and set it in the child list of this message
 	hr = lpRecips->HrGetAllWithStatus(&lpRowSet, &lpObjIDs, &lpulStatus);
@@ -1857,9 +1850,6 @@ exit:
 
 	if(lpulStatus)
 		ECFreeBuffer(lpulStatus);
-
-	pthread_mutex_unlock(&m_hMutexMAPIObject);
-
 	return hr;
 }
 
@@ -1878,8 +1868,7 @@ BOOL ECMessage::HasAttachment()
 	HRESULT hr = hrSuccess;
 	BOOL bRet = TRUE;
 	ECMapiObjects::const_iterator iterObjects;
-
-	pthread_mutex_lock(&m_hMutexMAPIObject);
+	scoped_rlock lock(m_hMutexMAPIObject);
 
 	if(lstProps == NULL) {
 		hr = HrLoadProps();
@@ -1901,9 +1890,6 @@ BOOL ECMessage::HasAttachment()
 exit:
 	if(hr != hrSuccess)
 		bRet = FALSE;
-
-	pthread_mutex_unlock(&m_hMutexMAPIObject);
-
 	return bRet;
 }
 
@@ -1917,8 +1903,7 @@ HRESULT ECMessage::SyncAttachments()
 	LPULONG				lpulStatus = NULL;
 	unsigned int		i = 0;
 	LPSPropValue		lpObjType = NULL;
-
-	pthread_mutex_lock(&m_hMutexMAPIObject);
+	scoped_rlock lock(m_hMutexMAPIObject);
 
 	// Get any changes and set it in the child list of this message
 	// Although we only need to know the deleted attachments, I also need to know the PR_ATTACH_NUM, which is in the rowset
@@ -1960,9 +1945,6 @@ exit:
 
 	if(lpulStatus)
 		ECFreeBuffer(lpulStatus);
-
-	pthread_mutex_unlock(&m_hMutexMAPIObject);
-
 	return hr;
 }
 
@@ -1977,8 +1959,7 @@ HRESULT ECMessage::UpdateTable(ECMemTable *lpTable, ULONG ulObjType, ULONG ulObj
 	ULONG cValues = 0;
 	ULONG ulProps = 0;
 	ULONG i = 0;
-
-	pthread_mutex_lock(&m_hMutexMAPIObject);
+	scoped_rlock lock(m_hMutexMAPIObject);
 
 	if (!m_sMapiObject) {
 		hr = MAPI_E_INVALID_PARAMETER;
@@ -2042,8 +2023,6 @@ exit:
 	MAPIFreeBuffer(lpAllProps);
 	MAPIFreeBuffer(lpNewProps);
 	MAPIFreeBuffer(lpProps);
-	pthread_mutex_unlock(&m_hMutexMAPIObject);
-
 	return hr;
 }
 
@@ -2053,8 +2032,7 @@ HRESULT ECMessage::SaveChanges(ULONG ulFlags)
 	LPSPropTagArray		lpPropTagArray = NULL;
 	LPSPropValue		lpsPropMessageFlags = NULL;
 	ULONG				cValues = 0;
-
-	pthread_mutex_lock(&m_hMutexMAPIObject);
+	scoped_rlock lock(m_hMutexMAPIObject);
 
 	// could not have modified (easy way out of my bug)
 	if (!fModify) {
@@ -2140,9 +2118,6 @@ exit:
 
 	if (lpsPropMessageFlags)
 		ECFreeBuffer(lpsPropMessageFlags);
-
-	pthread_mutex_unlock(&m_hMutexMAPIObject);
-
 	return hr;
 }
 
@@ -2793,8 +2768,7 @@ HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 	LPSPropValue lpPropID = NULL;
 	LPSPropValue lpPropObjType = NULL;
 	ULONG i;
-
-	pthread_mutex_lock(&m_hMutexMAPIObject);
+	scoped_rlock lock(m_hMutexMAPIObject);
 
 	if (lpsMapiObject->ulObjType != MAPI_ATTACH) {
 		// can only save attachments as child objects
@@ -2890,8 +2864,6 @@ HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 exit:
 	if (lpProps)
 		ECFreeBuffer(lpProps);
-
-	pthread_mutex_unlock(&m_hMutexMAPIObject);
 	return hr;
 }
 

@@ -20,7 +20,6 @@
 #include <sys/un.h>
 #include "SOAPUtils.h"
 #include <kopano/stringutil.h>
-#include <kopano/threadutil.h>
 #include <kopano/CommonUtil.h>
 #include <string>
 #include <map>

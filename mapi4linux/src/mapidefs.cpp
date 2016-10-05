@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <new>
+#include <kopano/lockhelper.hpp>
 #include "m4l.mapidefs.h"
 #include "m4l.mapix.h"
 #include "m4l.debug.h"
@@ -652,10 +653,8 @@ HRESULT M4LProviderAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable)
 	SPropValue sPropID;
 	int n = 0;
 	LPSPropTagArray lpPropTagArray = NULL;
-
 	SizedSPropTagArray(8, sptaProviderCols) = {8, {PR_MDB_PROVIDER, PR_INSTANCE_KEY, PR_RECORD_KEY, PR_ENTRYID, PR_DISPLAY_NAME_A, PR_OBJECT_TYPE, PR_RESOURCE_TYPE, PR_PROVIDER_UID} };
-	
-	pthread_mutex_lock(&msa->m_mutexserviceadmin);
+	ulock_rec l_srv(msa->m_mutexserviceadmin);
 
 	hr = Util::HrCopyUnicodePropTagArray(ulFlags, (LPSPropTagArray)&sptaProviderCols, &lpPropTagArray);
 	if(hr != hrSuccess)
@@ -697,7 +696,7 @@ HRESULT M4LProviderAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable)
 	hr = lpTableView->QueryInterface(IID_IMAPITable, (void **)lppTable);
 	
 exit:
-	pthread_mutex_unlock(&msa->m_mutexserviceadmin);
+	l_srv.unlock();
 	MAPIFreeBuffer(lpPropTagArray);
 	if (lpTableView)
 		lpTableView->Release();
@@ -735,8 +734,7 @@ HRESULT M4LProviderAdmin::CreateProvider(LPTSTR lpszProvider, ULONG cValues, LPS
 	ULONG cProviderProps = 0;
 	LPSPropValue lpProviderProps = NULL;
 	HRESULT hr = hrSuccess;
-
-	pthread_mutex_lock(&msa->m_mutexserviceadmin);
+	ulock_rec l_srv(msa->m_mutexserviceadmin);
 
 	if(szService == NULL) {
 		hr = MAPI_E_NO_ACCESS;
@@ -839,8 +837,7 @@ HRESULT M4LProviderAdmin::CreateProvider(LPTSTR lpszProvider, ULONG cValues, LPS
 	// another rumor is that that is only called once per service, not once per created provider. huh?
 	
 exit:
-	pthread_mutex_unlock(&msa->m_mutexserviceadmin);
-
+	l_srv.unlock();
 	if (entry) {
 		if (entry->profilesection)
 			entry->profilesection->Release();
@@ -877,8 +874,7 @@ HRESULT M4LProviderAdmin::OpenProfileSection(LPMAPIUID lpUID, LPCIID lpInterface
 	providerEntry *provider = NULL;
 	// See provider/client/guid.h
 	unsigned char globalGuid[] =    { 0x13,0xDB,0xB0,0xC8,0xAA,0x05,0x10,0x1A,0x9B,0xB0,0x00,0xAA,0x00,0x2F,0xC4,0x5A };
-	
-	pthread_mutex_lock(&msa->m_mutexserviceadmin);
+	scoped_rlock l_srv(msa->m_mutexserviceadmin);
 
 	// Special ID: the global guid opens the profile's global profile section instead of a local profile
 	if(memcmp(lpUID,&globalGuid,sizeof(MAPIUID)) == 0) {
@@ -893,10 +889,7 @@ HRESULT M4LProviderAdmin::OpenProfileSection(LPMAPIUID lpUID, LPCIID lpInterface
 	}
 
 	hr = provider->profilesection->QueryInterface(lpInterface ? (*lpInterface) : IID_IProfSect, (void**)lppProfSect);
-
 exit:
-	pthread_mutex_unlock(&msa->m_mutexserviceadmin);
-
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LProviderAdmin::OpenProfileSection", "0x%08x", hr);
 	return hr;
 }

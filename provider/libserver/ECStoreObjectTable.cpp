@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/lockhelper.hpp>
 
 /* Returns the rows for a contents- or hierarchytable
  *
@@ -158,8 +159,7 @@ ECRESULT ECStoreObjectTable::GetColumnsAll(ECListInt* lplstProps)
 	ECDatabase*		lpDatabase = NULL;
 	ECODStore*		lpODStore = (ECODStore*)m_lpObjectData;
 	ULONG			ulPropID = 0;
-
-	pthread_mutex_lock(&m_hLock);
+	ulock_rec biglock(m_hLock);
 
 	ASSERT(lplstProps != NULL);
 
@@ -213,8 +213,7 @@ ECRESULT ECStoreObjectTable::GetColumnsAll(ECListInt* lplstProps)
 	lplstProps->push_back(PR_ACCESS);
 
 exit:
-	pthread_mutex_unlock(&m_hLock);
-
+	biglock.unlock();
 	if(lpDBResult)
 		lpDatabase->FreeResult(lpDBResult);
 
@@ -1019,8 +1018,7 @@ ECRESULT ECStoreObjectTable::GetMVRowCount(unsigned int ulObjId, unsigned int *l
 	int j;
 	ECObjectTableList listRows;
 	ECDatabase *lpDatabase = NULL;
-
-	pthread_mutex_lock(&m_hLock);
+	ulock_rec biglock(m_hLock);
 
 	er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
@@ -1055,8 +1053,7 @@ ECRESULT ECStoreObjectTable::GetMVRowCount(unsigned int ulObjId, unsigned int *l
 	*lpulCount = atoi(lpRow[0]);
 
 exit:
-	pthread_mutex_unlock(&m_hLock);
-
+	biglock.unlock();
 	if(lpDBResult)
            lpDatabase->FreeResult(lpDBResult);
 	return er;
@@ -1208,8 +1205,7 @@ ECRESULT ECStoreObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int *
  
     ASSERT(!bOverride); // Default implementation never has override enabled, so we should never see this
     ASSERT(lpOverride == NULL);
-    
-	pthread_mutex_lock(&m_hLock);
+	ulock_rec biglock(m_hLock);
 	
     // Use normal table update code if:
     //  - not an initial load (but a table update)
@@ -1261,8 +1257,7 @@ ECRESULT ECStoreObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int *
 	}
 	
 exit:
-	pthread_mutex_unlock(&m_hLock);
-	
+	biglock.unlock();
 	if(lpNewRestrict)
 		FreeRestrictTable(lpNewRestrict);
 

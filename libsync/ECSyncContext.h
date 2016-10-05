@@ -18,9 +18,8 @@
 #ifndef ECSYNCCONTEXT_H
 #define ECSYNCCONTEXT_H
 
+#include <mutex>
 #include <mapidefs.h>
-
-#include <pthread.h>
 #include "../provider/client/ECICS.h"
 
 #include <map>
@@ -327,8 +326,7 @@ private:	// members
 	StatusStreamMap			m_mapSyncStatus;
 	SyncStateMap			m_mapStates;
 	NotifiedSyncIdMap		m_mapNotifiedSyncIds;
-
-	pthread_mutex_t			m_hMutex;
+	std::mutex m_hMutex;
 };
 
 #endif // ndef ECSYNCCONTEXT_H

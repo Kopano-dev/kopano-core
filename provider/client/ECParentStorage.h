@@ -34,7 +34,6 @@
 
 #include <mapi.h>
 #include <mapispi.h>
-#include <pthread.h>
 
 class ECParentStorage : public ECUnknown
 {

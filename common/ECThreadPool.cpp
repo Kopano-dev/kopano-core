@@ -15,10 +15,11 @@
  *
  */
 
+#include <chrono>
+#include <condition_variable>
 #include <kopano/platform.h>
 #include <kopano/ECThreadPool.h>
-#include <kopano/threadutil.h>
-
+#include <kopano/lockhelper.hpp>
 #include <algorithm>
 #include <sys/time.h> /* gettimeofday */
 
@@ -55,11 +56,6 @@ static inline struct timeval operator-(const struct timeval &lhs, const struct t
 ECThreadPool::ECThreadPool(unsigned ulThreadCount)
 : m_ulTermReq(0)
 {
-	pthread_mutex_init(&m_hMutex, NULL);
-	pthread_cond_init(&m_hCondition, NULL);
-	pthread_cond_init(&m_hCondTerminated, NULL);
-	pthread_cond_init(&m_hCondTaskDone, NULL);
-
 	setThreadCount(ulThreadCount);	
 }
 
@@ -70,11 +66,6 @@ ECThreadPool::ECThreadPool(unsigned ulThreadCount)
 ECThreadPool::~ECThreadPool()
 {
 	setThreadCount(0, true);
-
-	pthread_cond_destroy(&m_hCondTaskDone);
-	pthread_cond_destroy(&m_hCondTerminated);
-	pthread_cond_destroy(&m_hCondition);
-	pthread_mutex_destroy(&m_hMutex);
 }
 
 /**
@@ -91,14 +82,10 @@ bool ECThreadPool::dispatch(ECTask *lpTask, bool bTakeOwnership)
 	
 	gettimeofday(&sTaskInfo.tvQueueTime, NULL);
 	
-	pthread_mutex_lock(&m_hMutex);
+	ulock_normal locker(m_hMutex);
 	m_listTasks.push_back(sTaskInfo);
-	pthread_cond_signal(&m_hCondition);
-	
-	joinTerminated();
-	
-	pthread_mutex_unlock(&m_hMutex);
-	
+	m_hCondition.notify_one();
+	joinTerminated(locker);
 	return true;
 }
 
@@ -111,16 +98,16 @@ bool ECThreadPool::dispatch(ECTask *lpTask, bool bTakeOwnership)
  */
 void ECThreadPool::setThreadCount(unsigned ulThreadCount, bool bWait)
 {
-	pthread_mutex_lock(&m_hMutex);
+	ulock_normal locker(m_hMutex);
 	
 	if (ulThreadCount == threadCount() - 1) {
 		++m_ulTermReq;
-		pthread_cond_signal(&m_hCondition);
+		m_hCondition.notify_one();
 	}
 	
 	else if (ulThreadCount < threadCount()) {
 		m_ulTermReq += (threadCount() - ulThreadCount);
-		pthread_cond_broadcast(&m_hCondition);
+		m_hCondition.notify_all();
 	}
 
 	else {
@@ -144,15 +131,13 @@ void ECThreadPool::setThreadCount(unsigned ulThreadCount, bool bWait)
 	}
 	
 	while (bWait && m_setThreads.size() > ulThreadCount) {
-		pthread_cond_wait(&m_hCondTerminated, &m_hMutex);
-		joinTerminated();
+		m_hCondTerminated.wait(locker);
+		joinTerminated(locker);
 	}
 
 	
 	ASSERT(threadCount() == ulThreadCount);	
-	
-	joinTerminated();
-	pthread_mutex_unlock(&m_hMutex);
+	joinTerminated(locker);
 }
 
 /**
@@ -164,14 +149,11 @@ struct timeval ECThreadPool::queueAge() const
 {
 	struct timeval tvAge = {0, 0};
 	struct timeval tvQueueTime = {0, 0};
-
-	pthread_mutex_lock(&m_hMutex);
+	ulock_normal biglock(m_hMutex);
 	
 	if (!m_listTasks.empty())
 		tvQueueTime = m_listTasks.front().tvQueueTime;
-
-	pthread_mutex_unlock(&m_hMutex);
-	
+	biglock.unlock();
 	if (isSet(tvQueueTime)) {
 		struct timeval tvNow;
 		
@@ -187,20 +169,20 @@ bool ECThreadPool::waitForAllTasks(time_t timeout) const
 	bool empty = false;
 
 	do {
-		scoped_lock lock(m_hMutex);
+		ulock_normal lock(m_hMutex);
 		empty = m_listTasks.empty();
 
 		if (empty)
 			break;
 
 		if (timeout) {
-			struct timespec ts = GetDeadline(timeout * 1000);
-			if (pthread_cond_timedwait(&m_hCondTaskDone, &m_hMutex, &ts) == ETIMEDOUT) {
+			if (m_hCondTaskDone.wait_for(lock, std::chrono::milliseconds(timeout)) ==
+			    std::cv_status::timeout) {
 				empty = m_listTasks.empty();
 				break;
 			}
 		} else {
-			pthread_cond_wait(&m_hCondTaskDone, &m_hMutex);
+			m_hCondTaskDone.wait(lock);
 		}
 	} while (true);
 
@@ -218,14 +200,14 @@ bool ECThreadPool::waitForAllTasks(time_t timeout) const
  * @retval	true	The next task was successfully obtained.
  * @retval	false	The thread was requested to exit.
  */
-bool ECThreadPool::getNextTask(STaskInfo *lpsTaskInfo)
+bool ECThreadPool::getNextTask(STaskInfo *lpsTaskInfo, ulock_normal &locker)
 {
-	ASSERT(pthread_mutex_trylock(&m_hMutex) != 0);
+	ASSERT(!locker.try_lock());
 	ASSERT(lpsTaskInfo != NULL);
 	
 	bool bTerminate = false;
 	while ((bTerminate = (m_ulTermReq > 0)) == false && m_listTasks.empty())
-		pthread_cond_wait(&m_hCondition, &m_hMutex);
+		m_hCondition.wait(locker);
 		
 	if (bTerminate) {
 		auto iThread = std::find_if(m_setThreads.cbegin(), m_setThreads.cend(), &isCurrentThread);
@@ -234,8 +216,7 @@ bool ECThreadPool::getNextTask(STaskInfo *lpsTaskInfo)
 		m_setTerminated.insert(*iThread);
 		m_setThreads.erase(iThread);
 		--m_ulTermReq;
-	
-		pthread_cond_signal(&m_hCondTerminated);
+		m_hCondTerminated.notify_one();
 		return false;
 	}
 	
@@ -248,9 +229,9 @@ bool ECThreadPool::getNextTask(STaskInfo *lpsTaskInfo)
 /**
  * Call pthread_join on all terminated threads for cleanup.
  */
-void ECThreadPool::joinTerminated()
+void ECThreadPool::joinTerminated(ulock_normal &locker)
 {
-	ASSERT(pthread_mutex_trylock(&m_hMutex) != 0);
+	ASSERT(!locker.try_lock());
 	for (auto thr : m_setTerminated)
 		pthread_join(thr, NULL);
 	
@@ -280,12 +261,9 @@ void* ECThreadPool::threadFunc(void *lpVoid)
 		STaskInfo sTaskInfo = {NULL, false};
 		bool bResult = false;
 	
-		pthread_mutex_lock(&lpPool->m_hMutex);
-		
-		bResult = lpPool->getNextTask(&sTaskInfo);
-		
-		pthread_mutex_unlock(&lpPool->m_hMutex);
-		
+		ulock_normal locker(lpPool->m_hMutex);
+		bResult = lpPool->getNextTask(&sTaskInfo, locker);
+		locker.unlock();
 		if (!bResult)
 			break;
 			
@@ -293,7 +271,7 @@ void* ECThreadPool::threadFunc(void *lpVoid)
 		sTaskInfo.lpTask->execute();
 		if (sTaskInfo.bDelete)
 			delete sTaskInfo.lpTask;
-		pthread_cond_signal(&lpPool->m_hCondTaskDone);
+		lpPool->m_hCondTaskDone.notify_one();
 	}
 	
 	return NULL;
@@ -313,8 +291,6 @@ void ECTask::execute()
 ECWaitableTask::ECWaitableTask()
 : m_state(Idle)
 {
-	pthread_mutex_init(&m_hMutex, NULL);
-	pthread_cond_init(&m_hCondition, NULL);
 }
 
 /** 
@@ -323,9 +299,6 @@ ECWaitableTask::ECWaitableTask()
 ECWaitableTask::~ECWaitableTask()
 {
 	wait(WAIT_INFINITE, Idle|Done);
-
-	pthread_cond_destroy(&m_hCondition);
-	pthread_mutex_destroy(&m_hMutex);
 }
 
 /**
@@ -334,17 +307,17 @@ ECWaitableTask::~ECWaitableTask()
  */
 void ECWaitableTask::execute()
 {
-	pthread_mutex_lock(&m_hMutex);
+	ulock_normal big(m_hMutex);
 	m_state = Running;
-	pthread_cond_broadcast(&m_hCondition);
-	pthread_mutex_unlock(&m_hMutex);
+	m_hCondition.notify_all();
+	big.unlock();
 
 	ECTask::execute();
 	
-	pthread_mutex_lock(&m_hMutex);
+	big.lock();
 	m_state = Done;
-	pthread_cond_broadcast(&m_hCondition);
-	pthread_mutex_unlock(&m_hMutex);
+	m_hCondition.notify_all();
+	big.unlock();
 }
 
 /**
@@ -358,8 +331,7 @@ void ECWaitableTask::execute()
 bool ECWaitableTask::wait(unsigned timeout, unsigned waitMask) const
 {
 	bool bResult = false;
-
-	pthread_mutex_lock(&m_hMutex);
+	ulock_normal locker(m_hMutex);
 	
 	switch (timeout) {
 	case 0:
@@ -367,26 +339,17 @@ bool ECWaitableTask::wait(unsigned timeout, unsigned waitMask) const
 		break;
 		
 	case WAIT_INFINITE:
-		while (!(m_state & waitMask))
-			pthread_cond_wait(&m_hCondition, &m_hMutex);
+		m_hCondition.wait(locker, [&](void) { return m_state & waitMask; });
 		bResult = true;
 		break;
 		
 	default: 
-		{
-			struct timespec ts = GetDeadline(timeout);
-			
-			while (!(m_state & waitMask)) {
-				if (pthread_cond_timedwait(&m_hCondition, &m_hMutex, &ts) == ETIMEDOUT)
-					break;
-			}
-			
-			bResult = ((m_state & waitMask) != 0);
-		}		
+		while (!(m_state & waitMask))
+			if (m_hCondition.wait_for(locker, std::chrono::milliseconds(timeout)) ==
+			    std::cv_status::timeout)
+				break;
+		bResult = ((m_state & waitMask) != 0);
 		break;
 	}
-	
-	pthread_mutex_unlock(&m_hMutex);
-	
 	return bResult;
 }

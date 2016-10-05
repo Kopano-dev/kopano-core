@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/lockhelper.hpp>
 #include <mapidefs.h>
 #include <mapicode.h>
 #include <mapitags.h>
@@ -86,8 +87,6 @@ WSTransport::WSTransport(ULONG ulUIFlags)
 : ECUnknown("WSTransport")
 , m_ResolveResultCache("ResolveResult", 4096, 300), m_has_session(false)
 {
-    pthread_mutexattr_t attr;
-    
 	m_lpCmd = NULL;
 	m_ecSessionGroupId = 0;
 	m_ecSessionId = 0;
@@ -96,23 +95,12 @@ WSTransport::WSTransport(ULONG ulUIFlags)
 	m_llFlags = 0;
 	m_ulUIFlags = ulUIFlags;
 	memset(&m_sServerGuid, 0, sizeof(m_sServerGuid));
-
-	pthread_mutexattr_init(&attr);
-	pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
-	pthread_mutex_init(&m_hDataLock, &attr);
-	pthread_mutex_init(&m_mutexSessionReload, &attr);
-	pthread_mutex_init(&m_ResolveResultCacheMutex, &attr);
 }
 
 WSTransport::~WSTransport()
 {
-	if(m_lpCmd) {
+	if (m_lpCmd != NULL)
 		this->HrLogOff();
-	}
-
-	pthread_mutex_destroy(&m_hDataLock);
-	pthread_mutex_destroy(&m_mutexSessionReload);
-	pthread_mutex_destroy(&m_ResolveResultCacheMutex);
 }
 
 HRESULT WSTransport::QueryInterface(REFIID refiid, void **lppInterface)
@@ -193,7 +181,7 @@ exit:
 
 HRESULT WSTransport::LockSoap()
 {
-	pthread_mutex_lock(&m_hDataLock);
+	m_hDataLock.lock();
 	return erSuccess;
 }
 
@@ -204,8 +192,7 @@ HRESULT WSTransport::UnLockSoap()
 		soap_destroy(m_lpCmd->soap);
 		soap_end(m_lpCmd->soap);
 	}
-
-	pthread_mutex_unlock(&m_hDataLock);
+	m_hDataLock.unlock();
 	return erSuccess;
 }
 
@@ -464,10 +451,9 @@ HRESULT WSTransport::HrReLogon()
 		return hr;
 
 	// Notify new session to listeners
-	pthread_mutex_lock(&m_mutexSessionReload);
+	scoped_rlock lock(m_mutexSessionReload);
 	for (const auto &p : m_mapSessionReload)
 		p.second.second(p.second.first, this->m_ecSessionId);
-	pthread_mutex_unlock(&m_mutexSessionReload);
 	return hrSuccess;
 }
 
@@ -764,7 +750,9 @@ HRESULT WSTransport::HrOpenPropStorage(ULONG cbParentEntryID, LPENTRYID lpParent
 	if(hr != hrSuccess)
 		goto exit;
 
-	hr = WSMAPIPropStorage::Create(cbUnWrapParentID, lpUnWrapParentID, cbUnWrapEntryID, lpUnWrapEntryID, ulFlags, m_lpCmd, &m_hDataLock, m_ecSessionId, this->m_ulServerCapabilities, this, &lpPropStorage);
+	hr = WSMAPIPropStorage::Create(cbUnWrapParentID, lpUnWrapParentID,
+	     cbUnWrapEntryID, lpUnWrapEntryID, ulFlags, m_lpCmd, m_hDataLock,
+	     m_ecSessionId, this->m_ulServerCapabilities, this, &lpPropStorage);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -813,8 +801,8 @@ HRESULT WSTransport::HrOpenABPropStorage(ULONG cbEntryID, LPENTRYID lpEntryID, I
 	if(hr != hrSuccess)
 		goto exit;
 
-	hr = WSABPropStorage::Create(cbUnWrapStoreID, lpUnWrapStoreID, m_lpCmd, &m_hDataLock, m_ecSessionId, this, &lpPropStorage);
-
+	hr = WSABPropStorage::Create(cbUnWrapStoreID, lpUnWrapStoreID, m_lpCmd,
+	     m_hDataLock, m_ecSessionId, this, &lpPropStorage);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -846,8 +834,8 @@ HRESULT WSTransport::HrOpenFolderOps(ULONG cbEntryID, LPENTRYID lpEntryID, WSMAP
 	if(hr != hrSuccess)
 		goto exit;
 
-	hr = WSMAPIFolderOps::Create(m_lpCmd, &m_hDataLock, m_ecSessionId, cbUnWrapStoreID, lpUnWrapStoreID, this, lppFolderOps);
-
+	hr = WSMAPIFolderOps::Create(m_lpCmd, m_hDataLock, m_ecSessionId,
+	     cbUnWrapStoreID, lpUnWrapStoreID, this, lppFolderOps);
 exit:
 	if(lpUnWrapStoreID)
 		ECFreeBuffer(lpUnWrapStoreID);
@@ -863,7 +851,9 @@ HRESULT WSTransport::HrOpenTableOps(ULONG ulType, ULONG ulFlags, ULONG cbEntryID
 	if (peid->ulType != MAPI_FOLDER && peid->ulType != MAPI_MESSAGE)
 		return MAPI_E_INVALID_ENTRYID;
 	*/
-	return WSStoreTableView::Create(ulType, ulFlags, m_lpCmd, &m_hDataLock, m_ecSessionId, cbEntryID, lpEntryID, lpMsgStore, this, lppTableOps);
+	return WSStoreTableView::Create(ulType, ulFlags, m_lpCmd, m_hDataLock,
+	       m_ecSessionId, cbEntryID, lpEntryID, lpMsgStore, this,
+	       lppTableOps);
 }
 
 HRESULT WSTransport::HrOpenABTableOps(ULONG ulType, ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID, ECABLogon* lpABLogon, WSTableView **lppTableOps)
@@ -871,7 +861,9 @@ HRESULT WSTransport::HrOpenABTableOps(ULONG ulType, ULONG ulFlags, ULONG cbEntry
 	/*if (peid->ulType != MAPI_FOLDER && peid->ulType != MAPI_MESSAGE)
 		return MAPI_E_INVALID_ENTRYID;
 	*/
-	return WSABTableView::Create(ulType, ulFlags, m_lpCmd, &m_hDataLock, m_ecSessionId, cbEntryID, lpEntryID, lpABLogon, this, lppTableOps);
+	return WSABTableView::Create(ulType, ulFlags, m_lpCmd, m_hDataLock,
+	       m_ecSessionId, cbEntryID, lpEntryID, lpABLogon, this,
+	       lppTableOps);
 }
 
 HRESULT WSTransport::HrOpenMailBoxTableOps(ULONG ulFlags, ECMsgStore *lpMsgStore, WSTableView **lppTableView)
@@ -879,8 +871,8 @@ HRESULT WSTransport::HrOpenMailBoxTableOps(ULONG ulFlags, ECMsgStore *lpMsgStore
 	HRESULT hr = hrSuccess;
 	WSTableMailBox *lpWSTable = NULL;
 	
-
-	hr = WSTableMailBox::Create(ulFlags, m_lpCmd, &m_hDataLock, m_ecSessionId, lpMsgStore, this, &lpWSTable);
+	hr = WSTableMailBox::Create(ulFlags, m_lpCmd, m_hDataLock,
+	     m_ecSessionId, lpMsgStore, this, &lpWSTable);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -905,9 +897,9 @@ HRESULT WSTransport::HrOpenTableOutGoingQueueOps(ULONG cbStoreEntryID, LPENTRYID
 		if(hr != hrSuccess)
 			goto exit;
 	}
-
-	hr = WSTableOutGoingQueue::Create(m_lpCmd, &m_hDataLock, m_ecSessionId, cbUnWrapStoreID, lpUnWrapStoreID, lpMsgStore, this, lppTableOutGoingQueueOps);
-
+	hr = WSTableOutGoingQueue::Create(m_lpCmd, m_hDataLock, m_ecSessionId,
+	     cbUnWrapStoreID, lpUnWrapStoreID, lpMsgStore, this,
+	     lppTableOutGoingQueueOps);
 exit:
 	if(lpUnWrapStoreID)
 		ECFreeBuffer(lpUnWrapStoreID);
@@ -3993,7 +3985,7 @@ HRESULT WSTransport::HrResolvePseudoUrl(const char *lpszPseudoUrl, char **lppszS
 	}
 
 	// First try the cache
-	pthread_mutex_lock(&m_ResolveResultCacheMutex);
+	ulock_rec l_cache(m_ResolveResultCacheMutex);
 	er = m_ResolveResultCache.GetCacheItem(lpszPseudoUrl, &lpCachedResult);
 	if (er == erSuccess) {
 		hr = lpCachedResult->hr;
@@ -4006,10 +3998,9 @@ HRESULT WSTransport::HrResolvePseudoUrl(const char *lpszPseudoUrl, char **lppszS
 				*lpbIsPeer = lpCachedResult->isPeer;
 			}
 		}
-		pthread_mutex_unlock(&m_ResolveResultCacheMutex);
 		return hr;	// Early exit
 	}
-	pthread_mutex_unlock(&m_ResolveResultCacheMutex);
+	l_cache.unlock();
 
 	// Cache failed. Try the server
 	LockSoap();
@@ -4029,9 +4020,10 @@ HRESULT WSTransport::HrResolvePseudoUrl(const char *lpszPseudoUrl, char **lppszS
 		cachedResult.serverPath = sResponse.lpszServerPath;
 	}
 
-	pthread_mutex_lock(&m_ResolveResultCacheMutex);
-	m_ResolveResultCache.AddCacheItem(lpszPseudoUrl, cachedResult);
-	pthread_mutex_unlock(&m_ResolveResultCacheMutex);
+	{
+		scoped_rlock lock(m_ResolveResultCacheMutex);
+		m_ResolveResultCache.AddCacheItem(lpszPseudoUrl, cachedResult);
+	}
 
 	ulLen = strlen(sResponse.lpszServerPath) + 1;
 	hr = ECAllocateBuffer(ulLen, (void**)&lpszServerPath);
@@ -4296,7 +4288,9 @@ HRESULT WSTransport::HrOpenMultiStoreTable(LPENTRYLIST lpMsgList, ULONG ulFlags,
 		goto exit;
 	}
 
-	hr = WSTableMultiStore::Create(ulFlags, m_lpCmd, &m_hDataLock, m_ecSessionId, cbEntryID, lpEntryID, lpMsgStore, this, &lpMultiStoreTable);
+	hr = WSTableMultiStore::Create(ulFlags, m_lpCmd, m_hDataLock,
+	     m_ecSessionId, cbEntryID, lpEntryID, lpMsgStore, this,
+	     &lpMultiStoreTable);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -4326,7 +4320,9 @@ HRESULT WSTransport::HrOpenMiscTable(ULONG ulTableType, ULONG ulFlags, ULONG cbE
 		goto exit;
 	}
 
-	hr = WSTableMisc::Create(ulTableType, ulFlags, m_lpCmd, &m_hDataLock, m_ecSessionId, cbEntryID, lpEntryID, lpMsgStore, this, &lpMiscTable);
+	hr = WSTableMisc::Create(ulTableType, ulFlags, m_lpCmd, m_hDataLock,
+	     m_ecSessionId, cbEntryID, lpEntryID, lpMsgStore, this,
+	     &lpMiscTable);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -4583,32 +4579,19 @@ HRESULT WSTransport::GetServerGUID(LPGUID lpsServerGuid)
 HRESULT WSTransport::AddSessionReloadCallback(void *lpParam, SESSIONRELOADCALLBACK callback, ULONG *lpulId)
 {
 	SESSIONRELOADLIST::mapped_type data(lpParam, callback);
+	scoped_rlock lock(m_mutexSessionReload);
 
-	pthread_mutex_lock(&m_mutexSessionReload);
 	m_mapSessionReload[m_ulReloadId] = data;
 	if(lpulId)
 		*lpulId = m_ulReloadId;
 	++m_ulReloadId;
-	pthread_mutex_unlock(&m_mutexSessionReload);
-
 	return hrSuccess;
 }
 
 HRESULT WSTransport::RemoveSessionReloadCallback(ULONG ulId)
 {
-	HRESULT hr = hrSuccess;
-	
-	pthread_mutex_lock(&m_mutexSessionReload);
-
-	if (m_mapSessionReload.erase(ulId) == 0) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
-exit:
-	pthread_mutex_unlock(&m_mutexSessionReload);
-
-	return hr;
+	scoped_rlock lock(m_mutexSessionReload);
+	return m_mapSessionReload.erase(ulId) == 0 ? MAPI_E_NOT_FOUND : hrSuccess;
 }
 
 SOAP_SOCKET WSTransport::RefuseConnect(struct soap* soap, const char* endpoint, const char* host, int port)

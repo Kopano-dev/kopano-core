@@ -16,22 +16,19 @@
  */
 
 #include <kopano/platform.h>
+#include <mutex>
+#include <kopano/lockhelper.hpp>
 #include "ECSyncSettings.h"
-
-#include <pthread.h>
 #include <mapix.h>
 
 #include <kopano/ECLogger.h>
 
 ECSyncSettings* ECSyncSettings::GetInstance()
 {
-	pthread_mutex_lock(&s_hMutex);
+	scoped_lock lock(s_hMutex);
 
 	if (s_lpInstance == NULL)
 		s_lpInstance = new ECSyncSettings;
-
-	pthread_mutex_unlock(&s_hMutex);
-
 	return s_lpInstance;
 }
 
@@ -184,16 +181,11 @@ ULONG ECSyncSettings::SetStreamBatchSize(ULONG ulBatchSize) {
 	return ulPrev;
 }
 
-pthread_mutex_t ECSyncSettings::s_hMutex;
+std::mutex ECSyncSettings::s_hMutex;
 ECSyncSettings* ECSyncSettings::s_lpInstance = NULL;
-
-ECSyncSettings::__initializer::__initializer() {
-	pthread_mutex_init(&ECSyncSettings::s_hMutex, NULL);
-}
 
 ECSyncSettings::__initializer::~__initializer() {
 	delete ECSyncSettings::s_lpInstance;
-	pthread_mutex_destroy(&ECSyncSettings::s_hMutex);
 }
 
 ECSyncSettings::__initializer ECSyncSettings::__i;

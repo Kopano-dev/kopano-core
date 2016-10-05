@@ -44,21 +44,12 @@ ECDatabaseMySQL::ECDatabaseMySQL(ECLogger *lpLogger)
 	m_bAutoLock			= true;
 	m_lpLogger			= lpLogger;
 	m_lpLogger->AddRef();
-
-	// Create a mutex handle for mysql
-	pthread_mutexattr_t mattr;
-	pthread_mutexattr_init(&mattr);
-	pthread_mutexattr_settype(&mattr, PTHREAD_MUTEX_RECURSIVE);
-	pthread_mutex_init(&m_hMutexMySql, &mattr);
 }
 
 ECDatabaseMySQL::~ECDatabaseMySQL()
 {
 	Close();
 	m_lpLogger->Release();
-
-	// Close the mutex handle of mysql
-	pthread_mutex_destroy(&m_hMutexMySql);
 }
 
 ECRESULT ECDatabaseMySQL::InitEngine()
@@ -197,9 +188,7 @@ ECRESULT ECDatabaseMySQL::Close()
 // Get database ownership
 bool ECDatabaseMySQL::Lock()
 {
-
-	pthread_mutex_lock(&m_hMutexMySql);
-
+	m_hMutexMySql.lock();
 	m_bLocked = true;
 
 	return m_bLocked;
@@ -208,8 +197,7 @@ bool ECDatabaseMySQL::Lock()
 // Release the database ownership
 bool ECDatabaseMySQL::UnLock()
 {
-	pthread_mutex_unlock(&m_hMutexMySql);
-
+	m_hMutexMySql.unlock();
 	m_bLocked = false;
 
 	return m_bLocked;

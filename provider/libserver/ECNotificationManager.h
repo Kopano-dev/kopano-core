@@ -19,6 +19,9 @@
 #define ECNOTIFICATIONMANAGER_H
 
 #include <kopano/zcdefs.h>
+#include <condition_variable>
+#include <mutex>
+#include <pthread.h>
 #include "ECSession.h"
 #include <kopano/ECLogger.h>
 #include <kopano/ECConfig.h>
@@ -67,9 +70,9 @@ private:
     // (a session is in here for only very short periods of time, and contains only a few sessions even if the load is high)
     std::set<ECSESSIONID> 					m_setActiveSessions;
     
-    pthread_mutex_t m_mutexRequests;
-    pthread_mutex_t m_mutexSessions;
-    pthread_cond_t m_condSessions;
+	std::mutex m_mutexRequests;
+	std::mutex m_mutexSessions;
+	std::condition_variable m_condSessions;
 };
 
 extern ECSessionManager *g_lpSessionManager;

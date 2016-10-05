@@ -19,6 +19,7 @@
 #define ECGENERICPROP_H
 
 #include <kopano/zcdefs.h>
+#include <mutex>
 #include <kopano/ECUnknown.h>
 #include "IECPropStorage.h"
 #include "ECPropertyEntry.h"
@@ -180,7 +181,7 @@ public:
 	LPENTRYID				m_lpEntryId;
 
 	MAPIOBJECT				*m_sMapiObject;
-	pthread_mutex_t			m_hMutexMAPIObject;	///< Mutex for locking the MAPIObject
+	std::recursive_mutex m_hMutexMAPIObject; /* Mutex for locking the MAPIObject */
 	BOOL					m_bReload;
 	BOOL					m_bLoading;
 

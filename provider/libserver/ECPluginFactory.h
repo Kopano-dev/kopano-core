@@ -20,9 +20,9 @@
 #define ECPLUGINFACTORY_H
 
 #include <kopano/zcdefs.h>
+#include <mutex>
 #include <kopano/kcodes.h>
 #include "plugin.h"
-#include <pthread.h>
 
 class ECConfig;
 class ECPluginSharedData;
@@ -37,13 +37,12 @@ public:
 	void		SignalPlugins(int signal);
 
 private:
-	UserPlugin* (*m_getUserPluginInstance)(pthread_mutex_t*, ECPluginSharedData*);
+	UserPlugin* (*m_getUserPluginInstance)(std::mutex &, ECPluginSharedData*);
 	void (*m_deleteUserPluginInstance)(UserPlugin*);
 
 	ECPluginSharedData *m_shareddata;
 	ECConfig *m_config;
-	pthread_mutex_t m_plugin_lock;
-
+	std::mutex m_plugin_lock;
 	DLIB m_dl;
 };
 

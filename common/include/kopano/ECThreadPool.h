@@ -18,6 +18,8 @@
 #ifndef ECThreadPool_INCLUDED
 #define ECThreadPool_INCLUDED
 
+#include <condition_variable>
+#include <mutex>
 #include <pthread.h>
 #include <set>
 #include <list>
@@ -54,8 +56,8 @@ public:
 	bool waitForAllTasks(time_t timeout) const;
 	
 private:	// methods
-	virtual bool getNextTask(STaskInfo *lpsTaskInfo);
-	void joinTerminated();
+	virtual bool getNextTask(STaskInfo *lpsTaskInfo, std::unique_lock<std::mutex> &);
+	void joinTerminated(std::unique_lock<std::mutex> &);
 	
 private:	// static methods
 	static void *threadFunc(void *lpVoid);
@@ -66,10 +68,10 @@ private:	// members
 	ThreadSet	m_setTerminated;
 	TaskList	m_listTasks;
 	
-	mutable pthread_mutex_t	m_hMutex;
-	pthread_cond_t			m_hCondition;
-	pthread_cond_t			m_hCondTerminated;
-	mutable pthread_cond_t	m_hCondTaskDone;
+	mutable std::mutex m_hMutex;
+	std::condition_variable m_hCondition;
+	std::condition_variable m_hCondTerminated;
+	mutable std::condition_variable m_hCondTaskDone;
 
 private:
 	ECThreadPool(const ECThreadPool &) = delete;
@@ -153,8 +155,8 @@ protected:
 	ECWaitableTask();
 
 private:
-	mutable pthread_mutex_t	m_hMutex;
-	mutable pthread_cond_t	m_hCondition;
+	mutable std::mutex m_hMutex;
+	mutable std::condition_variable m_hCondition;
 	State					m_state;
 };
 

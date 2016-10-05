@@ -19,6 +19,8 @@
 #define ECSCHEDULER_H
 
 #include <kopano/zcdefs.h>
+#include <condition_variable>
+#include <mutex>
 #include <kopano/ECLogger.h>
 
 #include <pthread.h>
@@ -60,9 +62,9 @@ private:
 	ECLogger *			m_lpLogger;
 
 	bool				m_bExit;
-	pthread_mutex_t     m_hExitMutex;			// Mutex needed for the release signal
-	pthread_cond_t		m_hExitSignal;			// Signal that should be send to the Scheduler when to exit 
-	pthread_mutex_t		m_hSchedulerMutex;		// Mutex for the locking of the Scheduler
+	std::mutex m_hExitMutex; /* Mutex needed for the release signal */
+	std::condition_variable m_hExitSignal; /* Signal that should be send to the Scheduler when to exit */
+	std::recursive_mutex m_hSchedulerMutex; /* Mutex for the locking of the scheduler */
 	pthread_t			m_hMainThread;			// Thread that is used for the Scheduler
 };
 

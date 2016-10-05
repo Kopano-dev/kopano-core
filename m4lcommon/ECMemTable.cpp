@@ -17,7 +17,7 @@
 
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
-
+#include <kopano/lockhelper.hpp>
 #include <mapidefs.h>
 #include <mapicode.h>
 #include <mapiutil.h>
@@ -67,20 +67,13 @@ ECMemTable::ECMemTable(SPropTagArray *lpsPropTags, ULONG ulRowPropTag) : ECUnkno
 	this->lpsColumns = (LPSPropTagArray) new BYTE[CbSPropTagArray(lpsPropTags)];
 	this->lpsColumns->cValues = lpsPropTags->cValues;
 	memcpy(&this->lpsColumns->aulPropTag, &lpsPropTags->aulPropTag, lpsPropTags->cValues * sizeof(ULONG));
-
 	this->ulRowPropTag = ulRowPropTag;
-
-	pthread_mutexattr_t mattr;
-	pthread_mutexattr_init(&mattr);
-	pthread_mutexattr_settype(&mattr, PTHREAD_MUTEX_RECURSIVE);
-	pthread_mutex_init(&m_hDataMutex, &mattr);
 }
 
 ECMemTable::~ECMemTable()
 {
 	HrClear();
 	delete[] this->lpsColumns;
-	pthread_mutex_destroy(&m_hDataMutex);
 }
 
 HRESULT ECMemTable::Create(LPSPropTagArray lpsColumns, ULONG ulRowPropTag, ECMemTable **lppECMemTable)
@@ -113,8 +106,7 @@ HRESULT ECMemTable::HrGetAllWithStatus(LPSRowSet *lppRowSet, LPSPropValue *lppID
 	LPSPropValue lpIDs = NULL;
 	LPULONG lpulStatus = NULL;
 	int n = 0;
-
-	pthread_mutex_lock(&m_hDataMutex);
+	ulock_rec l_data(m_hDataMutex);
 
 	hr = MAPIAllocateBuffer(CbNewSRowSet(mapRows.size()), (void **) &lpRowSet);
 	if(hr != hrSuccess)
@@ -161,8 +153,7 @@ HRESULT ECMemTable::HrGetAllWithStatus(LPSRowSet *lppRowSet, LPSPropValue *lppID
 	*lppulStatus = lpulStatus;
 
 exit:
-	pthread_mutex_unlock(&m_hDataMutex);
-
+	l_data.unlock();
 	if (hr != hrSuccess) {
 		MAPIFreeBuffer(lpRowSet);
 		MAPIFreeBuffer(lpIDs);
@@ -173,40 +164,26 @@ exit:
 
 HRESULT ECMemTable::HrGetRowID(LPSPropValue lpRow, LPSPropValue *lppID)
 {
-	HRESULT hr = hrSuccess;
-	LPSPropValue lpID = NULL;
 
 	std::map<unsigned int, ECTableEntry>::const_iterator iterRows;
+	scoped_rlock l_data(m_hDataMutex);
 
-	pthread_mutex_lock(&m_hDataMutex);
-
-	if(lpRow->ulPropTag != this->ulRowPropTag) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (lpRow->ulPropTag != this->ulRowPropTag)
+		return MAPI_E_INVALID_PARAMETER;
 	iterRows = mapRows.find(lpRow->Value.ul);
-	if (iterRows == mapRows.cend() || iterRows->second.lpsID == NULL) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
-	hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **)&lpID);
-
+	if (iterRows == mapRows.cend() || iterRows->second.lpsID == NULL)
+		return MAPI_E_NOT_FOUND;
+	LPSPropValue lpID = NULL;
+	HRESULT hr = MAPIAllocateBuffer(sizeof(SPropValue),
+		reinterpret_cast<void **>(&lpID));
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = Util::HrCopyProperty(lpID, iterRows->second.lpsID, lpID);
-
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	*lppID = lpID;
-
-exit:
-	pthread_mutex_unlock(&m_hDataMutex);
-
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECMemTable::HrGetRowData(LPSPropValue lpRow, ULONG *lpcValues, LPSPropValue *lppRowData)
@@ -215,8 +192,7 @@ HRESULT ECMemTable::HrGetRowData(LPSPropValue lpRow, ULONG *lpcValues, LPSPropVa
 	ULONG cValues = 0;
 	LPSPropValue lpRowData = NULL;
 	std::map<unsigned int, ECTableEntry>::const_iterator iterRows;
-
-	pthread_mutex_lock(&m_hDataMutex);
+	ulock_rec l_data(m_hDataMutex);
 
 	if(lpRow->ulPropTag != this->ulRowPropTag) {
 		hr = MAPI_E_INVALID_PARAMETER;
@@ -239,7 +215,7 @@ HRESULT ECMemTable::HrGetRowData(LPSPropValue lpRow, ULONG *lpcValues, LPSPropVa
 	lpRowData = NULL;
 
 exit:
-	pthread_mutex_unlock(&m_hDataMutex);
+	l_data.unlock();
 	MAPIFreeBuffer(lpRowData);
 	return hr;
 }
@@ -253,8 +229,7 @@ HRESULT ECMemTable::HrSetClean()
 
 	map<unsigned int, ECTableEntry>::iterator iterRows;
 	map<unsigned int, ECTableEntry>::iterator iterNext;
-
-	pthread_mutex_lock(&m_hDataMutex);
+	scoped_rlock l_data(m_hDataMutex);
 
 	for (iterRows = mapRows.begin(); iterRows != mapRows.end(); iterRows = iterNext) {
 		iterNext = iterRows;
@@ -270,44 +245,27 @@ HRESULT ECMemTable::HrSetClean()
 			iterRows->second.fNew = false;
 		}
 	}
-
-	pthread_mutex_unlock(&m_hDataMutex);
-
 	return hr;
 }
 
 HRESULT ECMemTable::HrUpdateRowID(LPSPropValue lpId, LPSPropValue lpProps, ULONG cValues)
 {
-    HRESULT hr = hrSuccess;
-	std::map<unsigned int, ECTableEntry>::const_iterator iterRows;
     LPSPropValue lpUniqueProp = NULL;
-    
-	pthread_mutex_lock(&m_hDataMutex);
+	scoped_rlock l_data(m_hDataMutex);
 
-    lpUniqueProp = PpropFindProp(lpProps, cValues, ulRowPropTag);
-    
-    if(lpUniqueProp == NULL) {
-        hr = MAPI_E_INVALID_PARAMETER;
-        goto exit;
-    }
-    
-    iterRows = mapRows.find(lpUniqueProp->Value.ul);
-	if (iterRows == mapRows.cend()) {
-        hr = MAPI_E_NOT_FOUND;
-        goto exit;
-    }
+	lpUniqueProp = PpropFindProp(lpProps, cValues, ulRowPropTag);
+	if (lpUniqueProp == NULL)
+		return MAPI_E_INVALID_PARAMETER;
+	auto iterRows = mapRows.find(lpUniqueProp->Value.ul);
+	if (iterRows == mapRows.cend())
+		return MAPI_E_NOT_FOUND;
     
     MAPIFreeBuffer(iterRows->second.lpsID);
-    hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **)&iterRows->second.lpsID);
+	HRESULT hr = MAPIAllocateBuffer(sizeof(SPropValue),
+		reinterpret_cast<void **>(&iterRows->second.lpsID));
 	if(hr != hrSuccess)
-		goto exit;
-
-    hr = Util::HrCopyProperty(iterRows->second.lpsID, lpId, iterRows->second.lpsID);
-
-exit:
-	pthread_mutex_unlock(&m_hDataMutex);
-
-    return hr;
+		return hr;
+	return Util::HrCopyProperty(iterRows->second.lpsID, lpId, iterRows->second.lpsID);
 }
 
 /*
@@ -330,17 +288,12 @@ HRESULT ECMemTable::HrModifyRow(ULONG ulUpdateType, SPropValue *lpsID, SPropValu
 	ECTableEntry entry;
 	LPSPropValue lpsRowID = NULL;
 	std::map<unsigned int, ECTableEntry>::iterator iterRows;
-
-	pthread_mutex_lock(&m_hDataMutex);
+	scoped_rlock l_data(m_hDataMutex);
 
 	lpsRowID = PpropFindProp(lpPropVals, cValues, ulRowPropTag);
-
-	if(lpsRowID == NULL) {
+	if (lpsRowID == NULL)
 		// you must specify a row number
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-
-	}
+		return MAPI_E_INVALID_PARAMETER;
 
 	iterRows = mapRows.find(lpsRowID->Value.ul);
 	if (ulUpdateType == ECKeyTable::TABLE_ROW_ADD && iterRows != mapRows.cend())
@@ -349,11 +302,9 @@ HRESULT ECMemTable::HrModifyRow(ULONG ulUpdateType, SPropValue *lpsID, SPropValu
 	if (ulUpdateType == ECKeyTable::TABLE_ROW_MODIFY && iterRows == mapRows.cend())
 		// Row not found, move to add
 		ulUpdateType = ECKeyTable::TABLE_ROW_ADD;
-	if (ulUpdateType == ECKeyTable::TABLE_ROW_DELETE && iterRows == mapRows.cend()) {
+	if (ulUpdateType == ECKeyTable::TABLE_ROW_DELETE && iterRows == mapRows.cend())
 		// Row to delete is nonexistent
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+		return MAPI_E_NOT_FOUND;
 
 	if(ulUpdateType == ECKeyTable::TABLE_ROW_DELETE) {
 		iterRows->second.fDeleted = TRUE;
@@ -379,7 +330,7 @@ HRESULT ECMemTable::HrModifyRow(ULONG ulUpdateType, SPropValue *lpsID, SPropValu
 			hr = Util::HrCopyPropertyArray(lpPropVals, cValues, &iterRows->second.lpsPropVal, &iterRows->second.cValues, /* exclude PT_ERRORs */ true);
 			
 			if(hr != hrSuccess)
-			    goto exit;
+				return hr;
 
 			// Free old row
 			MAPIFreeBuffer(lpOldPropVal);
@@ -390,7 +341,7 @@ HRESULT ECMemTable::HrModifyRow(ULONG ulUpdateType, SPropValue *lpsID, SPropValu
 
 		hr = Util::HrCopyPropertyArray(lpPropVals, cValues, &entry.lpsPropVal, &entry.cValues);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		entry.fDeleted = FALSE;
 		entry.fDirty = TRUE;
@@ -399,11 +350,10 @@ HRESULT ECMemTable::HrModifyRow(ULONG ulUpdateType, SPropValue *lpsID, SPropValu
 		if(lpsID) {
 			hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **)&entry.lpsID);
 			if(hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			hr = Util::HrCopyProperty(entry.lpsID, lpsID, entry.lpsID);
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 		} else {
 			entry.lpsID = NULL;
 		}
@@ -415,46 +365,29 @@ HRESULT ECMemTable::HrModifyRow(ULONG ulUpdateType, SPropValue *lpsID, SPropValu
 	for (auto viewp : lstViews) {
 		hr = viewp->UpdateRow(ulUpdateType, lpsRowID->Value.ul);
 		if(hr != hrSuccess)
-			break;
+			return hr;
 	}
-
-	if(hr != hrSuccess)
-		goto exit;
-
-exit:
-	pthread_mutex_unlock(&m_hDataMutex);
-
 	return hr;
 }
 
 HRESULT ECMemTable::HrGetView(const ECLocale &locale, ULONG ulFlags, ECMemTableView **lppView)
 {
-	HRESULT hr = hrSuccess;
 	ECMemTableView *lpView = NULL;
+	scoped_rlock l_data(m_hDataMutex);
 
-	
-	pthread_mutex_lock(&m_hDataMutex);
-
-	hr = ECMemTableView::Create(this, locale, ulFlags, &lpView);
-
-	if(hr != hrSuccess)
-		goto exit;
+	HRESULT hr = ECMemTableView::Create(this, locale, ulFlags, &lpView);
+	if (hr != hrSuccess)
+		return hr;
 
 	lstViews.push_back(lpView);
-
 	AddChild(lpView);
-
 	*lppView = lpView;
-	
-exit:
-	pthread_mutex_unlock(&m_hDataMutex);
-
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECMemTable::HrDeleteAll()
 {
-	pthread_mutex_lock(&m_hDataMutex);
+	scoped_rlock l_data(m_hDataMutex);
 	for (auto &rowp : mapRows) {
 		rowp.second.fDeleted = TRUE;
 		rowp.second.fDirty = FALSE;
@@ -462,14 +395,12 @@ HRESULT ECMemTable::HrDeleteAll()
 	}
 	for (auto viewp : lstViews)
 		viewp->Clear();
-	pthread_mutex_unlock(&m_hDataMutex);
-
 	return hrSuccess;
 }
 
 HRESULT ECMemTable::HrClear()
 {
-	pthread_mutex_lock(&m_hDataMutex);
+	scoped_rlock l_data(m_hDataMutex);
 	for (const auto &rowp : mapRows) {
 		MAPIFreeBuffer(rowp.second.lpsPropVal);
 		MAPIFreeBuffer(rowp.second.lpsID);
@@ -481,8 +412,6 @@ HRESULT ECMemTable::HrClear()
 	// Update views
 	for (auto viewp : lstViews)
 		viewp->Clear();
-	pthread_mutex_unlock(&m_hDataMutex);
-
 	return hrSuccess;
 }
 

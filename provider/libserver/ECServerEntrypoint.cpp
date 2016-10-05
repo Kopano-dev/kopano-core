@@ -16,8 +16,10 @@
  */
 
 #include <kopano/platform.h>
-
+#include <mutex>
+#include <pthread.h>
 #include <kopano/ECLogger.h>
+#include <kopano/lockhelper.hpp>
 #include "ECSessionManager.h"
 #include "ECStatsCollector.h"
 
@@ -34,28 +36,22 @@ pthread_key_t plugin_key;
 ECSessionManager*		g_lpSessionManager = NULL;
 ECStatsCollector*		g_lpStatsCollector = NULL;
 static std::set<ECDatabase *> g_lpDBObjectList;
-static pthread_mutex_t g_hMutexDBObjectList;
+static std::mutex g_hMutexDBObjectList;
 static bool g_bInitLib = false;
 
 void AddDatabaseObject(ECDatabase* lpDatabase)
 {
-	pthread_mutex_lock(&g_hMutexDBObjectList);
-
+	scoped_lock lk(g_hMutexDBObjectList);
 	g_lpDBObjectList.insert(std::set<ECDatabase*>::value_type(lpDatabase));
-
-	pthread_mutex_unlock(&g_hMutexDBObjectList);
 }
 
 static void database_destroy(void *lpParam)
 {
 	ECDatabase *lpDatabase = (ECDatabase *)lpParam;
-
-	pthread_mutex_lock(&g_hMutexDBObjectList);
+	ulock_normal l_obj(g_hMutexDBObjectList);
 
 	g_lpDBObjectList.erase(std::set<ECDatabase*>::key_type(lpDatabase));
-
-	pthread_mutex_unlock(&g_hMutexDBObjectList);
-
+	l_obj.unlock();
 	lpDatabase->ThreadEnd();
 	delete lpDatabase;
 }
@@ -81,7 +77,6 @@ ECRESULT kopano_initlibrary(const char *lpDatabaseDir, const char *lpConfigFile)
 	pthread_key_create(&plugin_key, plugin_destroy); // same goes for the userDB-plugin
 
 	// Init mutex for database object list
-	pthread_mutex_init(&g_hMutexDBObjectList, NULL);
 	er = ECDatabaseMySQL::InitLibrary(lpDatabaseDir, lpConfigFile);
 	g_lpStatsCollector = new ECStatsCollector();
 	
@@ -103,8 +98,7 @@ ECRESULT kopano_unloadlibrary(void)
 	pthread_key_delete(plugin_key);
 
 	// Remove all exist database objects
-	pthread_mutex_lock(&g_hMutexDBObjectList);
-
+	ulock_normal l_obj(g_hMutexDBObjectList);
 	auto iterDBObject = g_lpDBObjectList.cbegin();
 	while (iterDBObject != g_lpDBObjectList.cend())
 	{
@@ -116,11 +110,9 @@ ECRESULT kopano_unloadlibrary(void)
 
 		iterDBObject = iNext;
 	}
-
-	pthread_mutex_unlock(&g_hMutexDBObjectList);
+	l_obj.unlock();
 
 	// remove mutex for database object list
-	pthread_mutex_destroy(&g_hMutexDBObjectList);
 	ECDatabaseMySQL::UnloadLibrary();
 	g_bInitLib = false;
 	return erSuccess;
@@ -174,11 +166,9 @@ ECRESULT kopano_exit()
 	g_lpStatsCollector = NULL;
 
 	// Close all database connections
-	pthread_mutex_lock(&g_hMutexDBObjectList);
-
+	scoped_lock l_obj(g_hMutexDBObjectList);
 	for (auto dbobjp : g_lpDBObjectList)
 		dbobjp->Close();
-	pthread_mutex_unlock(&g_hMutexDBObjectList);
 	return erSuccess;
 }
 

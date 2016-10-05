@@ -19,6 +19,7 @@
 #define ECMAPITABLE_H
 
 #include <kopano/zcdefs.h>
+#include <mutex>
 #include <kopano/ECUnknown.h>
 #include "WSTransport.h"
 #include "ECNotifyClient.h"
@@ -103,14 +104,14 @@ public:
 	} m_xMAPITable;
 
 private:
-	pthread_mutex_t		m_hLock;
+	std::recursive_mutex m_hLock;
 	WSTableView			*lpTableOps;
 	ECNotifyClient		*lpNotifyClient;
 	LPSPropTagArray		lpsPropTags;
 	LPSSortOrderSet		lpsSortOrderSet;
 	ULONG				ulFlags; // Currently unused
 	std::set<ULONG>		m_ulConnectionList;
-	pthread_mutex_t		m_hMutexConnectionList;
+	std::recursive_mutex m_hMutexConnectionList;
 	
 	// Deferred calls
 	ULONG				m_ulDeferredFlags;

@@ -16,7 +16,7 @@
  */
 
 #include <kopano/platform.h>
-
+#include <kopano/lockhelper.hpp>
 #include <kopano/ECGuid.h>
 #include <ECSyncLog.h>
 #include <kopano/ECDebug.h>
@@ -52,8 +52,6 @@ ECChangeAdvisor::ECChangeAdvisor(ECMsgStore *lpMsgStore)
 	, m_ulFlags(0)
 	, m_ulReloadId(0)
 { 
-	pthread_mutexattr_t attr;
-
 	ECSyncLog::GetLogger(&m_lpLogger);
 
 	m_lpMsgStore->AddRef();
@@ -64,10 +62,6 @@ ECChangeAdvisor::ECChangeAdvisor(ECMsgStore *lpMsgStore)
  	// WSTransport::HrGetSyncStates(....)
  	// ECChangeAdvisor::PurgeStates()
  	// ECChangeAdvisor::UpdateState(IStream * lpStream)
-
-	pthread_mutexattr_init(&attr);
-	pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
-	pthread_mutex_init(&m_hConnectionLock, &attr);
 }
 
 ECChangeAdvisor::~ECChangeAdvisor()
@@ -84,8 +78,6 @@ ECChangeAdvisor::~ECChangeAdvisor()
 		
 	if (m_lpLogger)
 		m_lpLogger->Release();
-
-	pthread_mutex_destroy(&m_hConnectionLock);
 	m_lpMsgStore->Release();
 }
 
@@ -289,22 +281,15 @@ HRESULT ECChangeAdvisor::UpdateState(LPSTREAM lpStream)
 	ULARGE_INTEGER			uliSize = {{0}};
 	ULONG					ulVal = 0;
 	SyncStateMap			mapChangeId;
+	scoped_rlock lock(m_hConnectionLock);
 
-	pthread_mutex_lock(&m_hConnectionLock);
-
-	if (m_lpChangeAdviseSink == NULL && !(m_ulFlags & SYNC_CATCHUP)) {
-		hr = MAPI_E_UNCONFIGURED;
-		goto exit;
-	}
-
-	if (lpStream == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (m_lpChangeAdviseSink == NULL && !(m_ulFlags & SYNC_CATCHUP))
+		return MAPI_E_UNCONFIGURED;
+	if (lpStream == NULL)
+		return MAPI_E_INVALID_PARAMETER;
 	hr = PurgeStates();
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Since m_mapSyncStates are related m_mapConnection the maps should
 	// be equal in size.
@@ -328,10 +313,7 @@ HRESULT ECChangeAdvisor::UpdateState(LPSTREAM lpStream)
 		// changeid
 		lpStream->Write(&m_mapSyncStates[p.first], sizeof(SyncStateMap::key_type), NULL);
 	}
-
-exit:
-	pthread_mutex_unlock(&m_hConnectionLock);
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECChangeAdvisor::AddKeys(LPENTRYLIST lpEntryList)
@@ -346,8 +328,7 @@ HRESULT ECChangeAdvisor::AddKeys(LPENTRYLIST lpEntryList)
 	if (lpEntryList == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
-	pthread_mutex_lock(&m_hConnectionLock);
-
+	scoped_rlock lock(m_hConnectionLock);
 	ZLOG_DEBUG(m_lpLogger, "Adding %u keys", lpEntryList->cValues);
 	
 	for (ULONG i = 0; hr == hrSuccess && i < lpEntryList->cValues; ++i) {
@@ -379,8 +360,6 @@ HRESULT ECChangeAdvisor::AddKeys(LPENTRYLIST lpEntryList)
 		m_mapConnections.insert(listConnections.begin(), listConnections.end());
 		std::transform(listSyncStates.begin(), listSyncStates.end(), std::inserter(m_mapSyncStates, m_mapSyncStates.begin()), &ConvertSyncState);
 	}
-
-	pthread_mutex_unlock(&m_hConnectionLock);
 	return hr;
 }
 
@@ -395,7 +374,7 @@ HRESULT ECChangeAdvisor::RemoveKeys(LPENTRYLIST lpEntryList)
 	if (lpEntryList == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
-	pthread_mutex_lock(&m_hConnectionLock);
+	scoped_rlock lock(m_hConnectionLock);
 	
 	for (ULONG i = 0; hr == hrSuccess && i < lpEntryList->cValues; ++i) {
 		if (lpEntryList->lpbin[i].cb >= sizeof(SSyncState)) {
@@ -417,10 +396,7 @@ HRESULT ECChangeAdvisor::RemoveKeys(LPENTRYLIST lpEntryList)
 			m_mapConnections.erase(iterConnection);
 		}
 	}
-
-	hr = m_lpMsgStore->m_lpNotifyClient->Unadvise(listConnections);
-	pthread_mutex_unlock(&m_hConnectionLock);
-	return hr;
+	return m_lpMsgStore->m_lpNotifyClient->Unadvise(listConnections);
 }
 
 HRESULT ECChangeAdvisor::IsMonitoringSyncId(syncid_t ulSyncId)
@@ -432,21 +408,12 @@ HRESULT ECChangeAdvisor::IsMonitoringSyncId(syncid_t ulSyncId)
 
 HRESULT ECChangeAdvisor::UpdateSyncState(syncid_t ulSyncId, changeid_t ulChangeId)
 {
-	HRESULT hr = hrSuccess;
-
-	pthread_mutex_lock(&m_hConnectionLock);
+	scoped_rlock lock(m_hConnectionLock);
 	auto iSyncState = m_mapSyncStates.find(ulSyncId);
-	if (iSyncState == m_mapSyncStates.cend()) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (iSyncState == m_mapSyncStates.cend())
+		return MAPI_E_INVALID_PARAMETER;
 	iSyncState->second = ulChangeId;
-
-exit:
-	pthread_mutex_unlock(&m_hConnectionLock);
-
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECChangeAdvisor::Reload(void *lpParam, ECSESSIONID /*newSessionId*/)
@@ -456,16 +423,12 @@ HRESULT ECChangeAdvisor::Reload(void *lpParam, ECSESSIONID /*newSessionId*/)
 	ECLISTSYNCSTATE		listSyncStates;
 	ECLISTCONNECTION	listConnections;
 
-	if (lpParam == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpParam == NULL)
+		return MAPI_E_INVALID_PARAMETER;
 
-	pthread_mutex_lock(&lpChangeAdvisor->m_hConnectionLock);
-
+	scoped_rlock lock(lpChangeAdvisor->m_hConnectionLock);
 	if ((lpChangeAdvisor->m_ulFlags & SYNC_CATCHUP))
-		goto exit;
-
+		return hrSuccess;
 	/**
 	 * Here we will reregister all change notifications.
 	 **/
@@ -480,12 +443,6 @@ HRESULT ECChangeAdvisor::Reload(void *lpParam, ECSESSIONID /*newSessionId*/)
 	hr = lpChangeAdvisor->m_lpMsgStore->m_lpNotifyClient->Advise(listSyncStates, lpChangeAdvisor->m_lpChangeAdviseSink, &listConnections);
 	if (hr == hrSuccess)
 		lpChangeAdvisor->m_mapConnections.insert(listConnections.begin(), listConnections.end());
-
-	
-exit:
-	if (lpChangeAdvisor)
-		pthread_mutex_unlock(&lpChangeAdvisor->m_hConnectionLock);
-
 	return hr;
 }
 

@@ -20,8 +20,7 @@
 
 #include <kopano/zcdefs.h>
 #include <map>
-#include <pthread.h>
-
+#include <mutex>
 #include "ECDatabaseFactory.h"
 #include "ECDatabaseUtils.h"
 #include "ECGenericObjectTable.h"	// ECListInt
@@ -594,9 +593,9 @@ private:
 
 private:
 	ECDatabaseFactory*	m_lpDatabaseFactory;
-	pthread_mutex_t		m_hCacheMutex;			// Store, Object, User, ACL, server cache
-	pthread_mutex_t		m_hCacheCellsMutex;		// Cell cache
-	pthread_mutex_t		m_hCacheIndPropMutex;	// Indexed properties cache
+	std::recursive_mutex m_hCacheMutex; /* Store, Object, User, ACL, server cache */
+	std::recursive_mutex m_hCacheCellsMutex; /* Cell cache */
+	std::recursive_mutex m_hCacheIndPropMutex; /* Indexed properties cache */
 	
 	// Quota cache, to reduce the impact of the user plugin
 	// m_mapQuota contains user and company cache, except when it's the company user default quota
@@ -631,7 +630,7 @@ private:
 	
 	// Properties from kopano-search
 	std::set<unsigned int> 		m_setExcludedIndexProperties;
-	pthread_mutex_t				m_hExcludedIndexPropertiesMutex;
+	std::mutex m_hExcludedIndexPropertiesMutex;
 	
 	// Testing
 	bool						m_bCellCacheDisabled;

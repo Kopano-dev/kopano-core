@@ -19,8 +19,8 @@
 #define ECPLUGINSHAREDDATA_H
 
 #include <kopano/zcdefs.h>
+#include <mutex>
 #include <kopano/ECConfig.h>
-#include <pthread.h>
 
 class ECStatsCollector;
 
@@ -41,12 +41,12 @@ private:
 	/**
 	 * Lock for m_lpSingleton access
 	 */
-	static pthread_mutex_t m_SingletonLock;
+	static std::mutex m_SingletonLock;
 
 	/**
 	 * Lock for CreateConfig
 	 */
-	static pthread_mutex_t m_CreateConfigLock;
+	static std::mutex m_CreateConfigLock;
 
 	/**
 	 * Reference count, used to destroy object when no users are left.

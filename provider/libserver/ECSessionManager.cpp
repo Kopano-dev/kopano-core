@@ -15,10 +15,13 @@
  */
 #include <kopano/platform.h>
 #include <algorithm>
+#include <chrono>
 #include <new>
 #include <typeinfo>
+#include <pthread.h>
 #include <mapidefs.h>
 #include <mapitags.h>
+#include <kopano/lockhelper.hpp>
 #include "ECMAPI.h"
 #include "ECDatabase.h"
 #include "ECSessionGroup.h"
@@ -52,14 +55,6 @@ ECSessionManager::ECSessionManager(ECConfig *lpConfig, ECLogger *lpAudit,
 	// Create a rwlock with no initial owner.
 	pthread_rwlock_init(&m_hCacheRWLock, NULL);
 	pthread_rwlock_init(&m_hGroupLock, NULL);
-	pthread_mutex_init(&m_hExitMutex, NULL);
-	pthread_mutex_init(&m_mutexPersistent, NULL);
-	pthread_mutex_init(&m_mutexTableSubscriptions, NULL);
-	pthread_mutex_init(&m_mutexObjectSubscriptions, NULL);
-
-	//Terminate Event
-	pthread_cond_init(&m_hExitSignal, NULL);
-
 	m_lpDatabaseFactory = new ECDatabaseFactory(lpConfig);
 	m_lpPluginFactory = new ECPluginFactory(lpConfig, g_lpStatsCollector, bHostedKopano, bDistributedKopano);
 	m_lpECCacheManager = new ECCacheManager(lpConfig, m_lpDatabaseFactory);
@@ -73,9 +68,6 @@ ECSessionManager::ECSessionManager(ECConfig *lpConfig, ECLogger *lpAudit,
 
 	m_ulSeqIMAP = 0;
 	m_ulSeqIMAPQueue = 0;
-
-	pthread_mutex_init(&m_hSourceKeyAutoIncrementMutex, NULL);
-	pthread_mutex_init(&m_hSeqMutex, NULL);
 
 	// init ssl randomness for session id's
 	ssl_random_init();
@@ -92,11 +84,10 @@ ECSessionManager::ECSessionManager(ECConfig *lpConfig, ECLogger *lpAudit,
 
 ECSessionManager::~ECSessionManager()
 {
-	pthread_mutex_lock(&m_hExitMutex);
+	ulock_normal l_exit(m_hExitMutex);
 	bExit = TRUE;
-	pthread_cond_signal(&m_hExitSignal);
-
-	pthread_mutex_unlock(&m_hExitMutex);
+	m_hExitSignal.notify_one();
+	l_exit.unlock();
 	delete m_lpTPropsPurge;
 	delete m_lpDatabase;
 	delete m_lpDatabaseFactory;
@@ -132,22 +123,9 @@ ECSessionManager::~ECSessionManager()
 	if (m_lpAudit != NULL)
 		m_lpAudit->Release();
 
-	// Release ownership of the rwlock object.
 	pthread_rwlock_unlock(&m_hCacheRWLock);
-
 	pthread_rwlock_destroy(&m_hCacheRWLock);
 	pthread_rwlock_destroy(&m_hGroupLock);
-
-	pthread_mutex_destroy(&m_hSourceKeyAutoIncrementMutex);
-	pthread_mutex_destroy(&m_hSeqMutex);
-
-	pthread_mutex_destroy(&m_hExitMutex);
-	pthread_mutex_destroy(&m_mutexPersistent);
-	
-	pthread_mutex_destroy(&m_mutexTableSubscriptions);
-	pthread_mutex_destroy(&m_mutexObjectSubscriptions);	
-
-	pthread_cond_destroy(&m_hExitSignal);
 }
 
 ECRESULT ECSessionManager::LoadSettings(){
@@ -411,10 +389,9 @@ ECRESULT ECSessionManager::CancelAllSessions(ECSESSIONID sessionIDException)
 // used by ECStatsTable
 ECRESULT ECSessionManager::ForEachSession(void(*callback)(ECSession*, void*), void *obj)
 {
-	pthread_rwlock_rdlock(&m_hCacheRWLock);
+	scoped_shared_rwlock lk(m_hCacheRWLock);
 	for (const auto &p : m_mapSessions)
 		callback(dynamic_cast<ECSession *>(p.second), obj);
-	pthread_rwlock_unlock(&m_hCacheRWLock);
 	return erSuccess;
 }
 
@@ -745,9 +722,8 @@ ECRESULT ECSessionManager::AddNotification(notification *notifyItem, unsigned in
 			return hr;
 	}
 
-	pthread_mutex_lock(&m_mutexObjectSubscriptions);
-
 	// Send notification to subscribed sessions
+	ulock_normal l_sub(m_mutexObjectSubscriptions);
 	auto iterObjectSubscription = m_mapObjectSubscriptions.lower_bound(ulStore);
 	while (iterObjectSubscription != m_mapObjectSubscriptions.cend() &&
 	       iterObjectSubscription->first == ulStore) {
@@ -755,16 +731,14 @@ ECRESULT ECSessionManager::AddNotification(notification *notifyItem, unsigned in
 		setGroups.insert(iterObjectSubscription->second);
 		++iterObjectSubscription;
 	}
-	
-	pthread_mutex_unlock(&m_mutexObjectSubscriptions);
+	l_sub.unlock();
 
 	// Send each subscribed session group one notification
 	for (const auto &grp : setGroups) {
-		pthread_rwlock_rdlock(&m_hGroupLock);
+		scoped_shared_rwlock grplk(m_hGroupLock);
 		auto iIterator = m_mapSessionGroups.find(grp);
 		if (iIterator != m_mapSessionGroups.cend())
 			iIterator->second->AddNotification(notifyItem, ulKey, ulStore);
-		pthread_rwlock_unlock(&m_hGroupLock);
 	}
 	
 	// Next, do an internal notification to update searchfolder views for message updates.
@@ -806,9 +780,6 @@ void* ECSessionManager::SessionCleaner(void *lpTmpSessionManager)
 {
 	time_t					lCurTime;
 	ECSessionManager*		lpSessionManager = (ECSessionManager *)lpTmpSessionManager;
-	int						lResult;
-	struct timeval			now;
-	struct timespec			timeout;
 	list<BTSession*>		lstSessions;
 
 	if(lpSessionManager == NULL) {
@@ -861,25 +832,15 @@ void* ECSessionManager::SessionCleaner(void *lpTmpSessionManager)
 		kcsrv::sync_logon_times(db);
 
 		// Wait for a terminate signal or return after a few minutes
-		pthread_mutex_lock(&lpSessionManager->m_hExitMutex);
+		ulock_normal l_exit(lpSessionManager->m_hExitMutex);
 		if(lpSessionManager->bExit) {
-			pthread_mutex_unlock(&lpSessionManager->m_hExitMutex);
+			l_exit.unlock();
 			break;
 		}
-
-		gettimeofday(&now,NULL); // null==timezone
-		timeout.tv_sec = now.tv_sec + 5;
-		timeout.tv_nsec = now.tv_usec * 1000;
-
-		lResult = pthread_cond_timedwait(&lpSessionManager->m_hExitSignal, &lpSessionManager->m_hExitMutex, &timeout);
-
-		if (lResult != ETIMEDOUT) {
-			pthread_mutex_unlock(&lpSessionManager->m_hExitMutex);
+		if (lpSessionManager->m_hExitSignal.wait_for(l_exit,
+		    std::chrono::seconds(5)) != std::cv_status::timeout)
 			break;
-		}
-		pthread_mutex_unlock(&lpSessionManager->m_hExitMutex);
 	}
-
 	return NULL;
 }
 
@@ -927,7 +888,7 @@ ECRESULT ECSessionManager::UpdateSubscribedTables(ECKeyTable::UpdateType ulType,
 	BTSession	*lpBTSession = NULL;
 		
     // Find out which sessions our interested in this event by looking at our subscriptions
-    pthread_mutex_lock(&m_mutexTableSubscriptions);
+	ulock_normal l_sub(m_mutexTableSubscriptions);
     
 	auto iterSubscriptions = m_mapTableSubscriptions.find(sSubscription);
 	while (iterSubscriptions != m_mapTableSubscriptions.cend() &&
@@ -935,8 +896,7 @@ ECRESULT ECSessionManager::UpdateSubscribedTables(ECKeyTable::UpdateType ulType,
         setSessions.insert(iterSubscriptions->second);
         ++iterSubscriptions;
     }
-    
-    pthread_mutex_unlock(&m_mutexTableSubscriptions);
+	l_sub.unlock();
 
     // We now have a set of sessions that are interested in the notification. This list is normally quite small since not that many
     // sessions have the same table opened at one time.
@@ -1189,13 +1149,12 @@ exit:
 
 ECRESULT ECSessionManager::NotificationChange(const set<unsigned int> &syncIds, unsigned int ulChangeId, unsigned int ulChangeType)
 {
-	pthread_rwlock_rdlock(&m_hGroupLock);
+	scoped_shared_rwlock grplk(m_hGroupLock);
 
 	// Send the notification to all sessionsgroups so that any client listening for these
 	// notifications can receive them
 	for (const auto &p : m_mapSessionGroups)
 		p.second->AddChangeNotification(syncIds, ulChangeId, ulChangeType);
-	pthread_rwlock_unlock(&m_hGroupLock);
 	return erSuccess;
 }
 
@@ -1266,32 +1225,24 @@ void ECSessionManager::GetStats(sSessionManagerStats &sStats)
 	pthread_rwlock_unlock(&m_hGroupLock);
 
 	// persistent connections/sessions
-	pthread_mutex_lock(&m_mutexPersistent);
-
+	ulock_normal l_per(m_mutexPersistent);
 	sStats.ulPersistentByConnection = m_mapPersistentByConnection.size();
 	sStats.ulPersistentByConnectionSize = MEMORY_USAGE_HASHMAP(sStats.ulPersistentByConnection, PERSISTENTBYCONNECTION);
-
 	sStats.ulPersistentBySession = m_mapPersistentBySession.size();
 	sStats.ulPersistentBySessionSize = MEMORY_USAGE_HASHMAP(sStats.ulPersistentBySession, PERSISTENTBYSESSION);
-
-	pthread_mutex_unlock(&m_mutexPersistent);
+	l_per.unlock();
 
 	// Table subscriptions
-	pthread_mutex_lock(&m_mutexTableSubscriptions);
-	
+	ulock_normal l_tblsub(m_mutexTableSubscriptions);
 	sStats.ulTableSubscriptions = m_mapTableSubscriptions.size();
 	sStats.ulTableSubscriptionSize = MEMORY_USAGE_MULTIMAP(sStats.ulTableSubscriptions, TABLESUBSCRIPTIONMULTIMAP);
-
-	pthread_mutex_unlock(&m_mutexTableSubscriptions);
+	l_tblsub.unlock();
 
 	// Object subscriptions
-	pthread_mutex_lock(&m_mutexObjectSubscriptions);
-
+	ulock_normal l_objsub(m_mutexObjectSubscriptions);
 	sStats.ulObjectSubscriptions = m_mapObjectSubscriptions.size();
 	sStats.ulObjectSubscriptionSize = MEMORY_USAGE_MULTIMAP(sStats.ulObjectSubscriptions, OBJECTSUBSCRIPTIONSMULTIMAP);
-
-	pthread_mutex_unlock(&m_mutexObjectSubscriptions);
-
+	l_objsub.unlock();
 }
 
 /**
@@ -1356,21 +1307,17 @@ ECRESULT ECSessionManager::GetNewSourceKey(SOURCEKEY* lpSourceKey){
 	if (lpSourceKey == NULL)
 		return KCERR_INVALID_PARAMETER;
 	
-	pthread_mutex_lock(&m_hSourceKeyAutoIncrementMutex);
-	
+	scoped_lock l_inc(m_hSourceKeyAutoIncrementMutex);
 	if (m_ulSourceKeyQueue == 0) {
 		er = SaveSourceKeyAutoIncrement(m_ullSourceKeyAutoIncrement + 50);
-		if(er != erSuccess) {
-			pthread_mutex_unlock(&m_hSourceKeyAutoIncrementMutex);
+		if (er != erSuccess)
 			return er;
-		}
 		m_ulSourceKeyQueue = 50;
 	}
 
 	*lpSourceKey = SOURCEKEY(*m_lpServerGuid, m_ullSourceKeyAutoIncrement + 1);
 	++m_ullSourceKeyAutoIncrement;
 	--m_ulSourceKeyQueue;
-	pthread_mutex_unlock(&m_hSourceKeyAutoIncrementMutex);
 	return erSuccess;
 }
 
@@ -1389,52 +1336,38 @@ ECRESULT ECSessionManager::SaveSourceKeyAutoIncrement(unsigned long long ullNewS
 
 ECRESULT ECSessionManager::SetSessionPersistentConnection(ECSESSIONID sessionID, unsigned int ulPersistentConnectionId)
 {
-	ECRESULT er = erSuccess;
-
-	pthread_mutex_lock(&m_mutexPersistent);
-
+	scoped_lock lock(m_mutexPersistent);
 	// maintain a bi-map of connection <-> session here
 	m_mapPersistentByConnection[ulPersistentConnectionId] = sessionID;
 	m_mapPersistentBySession[sessionID] = ulPersistentConnectionId;
-
-	pthread_mutex_unlock(&m_mutexPersistent);
-
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECSessionManager::RemoveSessionPersistentConnection(unsigned int ulPersistentConnectionId)
 {
 	ECRESULT er = erSuccess;
 	PERSISTENTBYSESSION::const_iterator iterSession;
-
-	pthread_mutex_lock(&m_mutexPersistent);
+	scoped_lock lock(m_mutexPersistent);
 
 	auto iterConnection = m_mapPersistentByConnection.find(ulPersistentConnectionId);
-	if (iterConnection == m_mapPersistentByConnection.cend()) {
-		er = KCERR_NOT_FOUND; // shouldn't really happen
-		goto exit;
-	}
+	if (iterConnection == m_mapPersistentByConnection.cend())
+		// shouldn't really happen
+		return KCERR_NOT_FOUND;
 
 	iterSession = m_mapPersistentBySession.find(iterConnection->second);
-	if (iterSession == m_mapPersistentBySession.cend()) {
-		er = KCERR_NOT_FOUND; // really really shouldn't happen
-		goto exit;
-	}
+	if (iterSession == m_mapPersistentBySession.cend())
+		// really really shouldn't happen
+		return KCERR_NOT_FOUND;
 
 	m_mapPersistentBySession.erase(iterSession);
 	m_mapPersistentByConnection.erase(iterConnection);
-
-exit:
-	pthread_mutex_unlock(&m_mutexPersistent);
-
 	return er;
 }
 
 BOOL ECSessionManager::IsSessionPersistent(ECSESSIONID sessionID)
 {
-	pthread_mutex_lock(&m_mutexPersistent);
+	scoped_lock lock(m_mutexPersistent);
 	auto iterSession = m_mapPersistentBySession.find(sessionID);
-	pthread_mutex_unlock(&m_mutexPersistent);
 	return iterSession != m_mapPersistentBySession.cend();
 }
 
@@ -1453,20 +1386,16 @@ ECRESULT ECSessionManager::GetNewSequence(SEQUENCE seq, unsigned long long *lpll
 	else
 		return KCERR_INVALID_PARAMETER;
 
-	pthread_mutex_lock(&m_hSeqMutex);
+	scoped_lock lock(m_hSeqMutex);
 	if (m_ulSeqIMAPQueue == 0)
 	{
 		er = m_lpDatabase->DoSequence(strSeqName, 50, &m_ulSeqIMAP);
-		if (er != erSuccess) {
-			pthread_mutex_unlock(&m_hSeqMutex);
+		if (er != erSuccess)
 			return er;
-		}
 		m_ulSeqIMAPQueue = 50;
 	}
 	--m_ulSeqIMAPQueue;
 	*lpllSeqId = m_ulSeqIMAP++;
-
-	pthread_mutex_unlock(&m_hSeqMutex);
 	return erSuccess;
 }
 
@@ -1489,8 +1418,7 @@ ECRESULT ECSessionManager::SubscribeTableEvents(TABLE_ENTRY::TABLE_TYPE ulType, 
 {
     ECRESULT er = erSuccess;
     TABLESUBSCRIPTION sSubscription;
-    
-    pthread_mutex_lock(&m_mutexTableSubscriptions);
+	scoped_lock lock(m_mutexTableSubscriptions);
     
     sSubscription.ulType = ulType;
     sSubscription.ulRootObjectId = ulTableRootObjectId;
@@ -1498,9 +1426,6 @@ ECRESULT ECSessionManager::SubscribeTableEvents(TABLE_ENTRY::TABLE_TYPE ulType, 
     sSubscription.ulObjectFlags = ulObjectFlags;
     
     m_mapTableSubscriptions.insert(std::pair<TABLESUBSCRIPTION, ECSESSIONID>(sSubscription, sessionID));
-    
-    pthread_mutex_unlock(&m_mutexTableSubscriptions);
-    
     return er;
 }
 
@@ -1508,8 +1433,7 @@ ECRESULT ECSessionManager::UnsubscribeTableEvents(TABLE_ENTRY::TABLE_TYPE ulType
 {
     ECRESULT er = erSuccess;
     TABLESUBSCRIPTION sSubscription;
-    
-    pthread_mutex_lock(&m_mutexTableSubscriptions);
+	scoped_lock lock(m_mutexTableSubscriptions);
     
     sSubscription.ulType = ulType;
     sSubscription.ulRootObjectId = ulTableRootObjectId;
@@ -1528,27 +1452,21 @@ ECRESULT ECSessionManager::UnsubscribeTableEvents(TABLE_ENTRY::TABLE_TYPE ulType
         m_mapTableSubscriptions.erase(iter);
     else
         er = KCERR_NOT_FOUND;
-    pthread_mutex_unlock(&m_mutexTableSubscriptions);
-    
     return er;
 }
 
 // Subscribes for all object notifications in store ulStoreID for session group sessionID
 ECRESULT ECSessionManager::SubscribeObjectEvents(unsigned int ulStoreId, ECSESSIONGROUPID sessionID)
 {
-    ECRESULT er = erSuccess;
-    
-    pthread_mutex_lock(&m_mutexObjectSubscriptions);
+	scoped_lock lock(m_mutexObjectSubscriptions);
     m_mapObjectSubscriptions.insert(std::pair<unsigned int, ECSESSIONGROUPID>(ulStoreId, sessionID));
-    pthread_mutex_unlock(&m_mutexObjectSubscriptions);
-    
-    return er;
+    return erSuccess;
 }
 
 ECRESULT ECSessionManager::UnsubscribeObjectEvents(unsigned int ulStoreId, ECSESSIONGROUPID sessionID)
 {
     ECRESULT er = erSuccess;
-    pthread_mutex_lock(&m_mutexObjectSubscriptions);
+	scoped_lock lock(m_mutexObjectSubscriptions);
 	auto i = m_mapObjectSubscriptions.find(ulStoreId);
 	while (i != m_mapObjectSubscriptions.cend() && i->first == ulStoreId &&
 	       i->second != sessionID)
@@ -1556,8 +1474,6 @@ ECRESULT ECSessionManager::UnsubscribeObjectEvents(unsigned int ulStoreId, ECSES
     
 	if (i != m_mapObjectSubscriptions.cend())
 		m_mapObjectSubscriptions.erase(i);
-    pthread_mutex_unlock(&m_mutexObjectSubscriptions);
-    
     return er;
 }
 

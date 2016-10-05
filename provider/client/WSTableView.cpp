@@ -32,15 +32,14 @@
 		goto exit;
 
 WSTableView::WSTableView(ULONG ulType, ULONG ulFlags, KCmd *lpCmd,
-    pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId,
+    std::recursive_mutex &data_lock, ECSESSIONID ecSessionId, ULONG cbEntryId,
     LPENTRYID lpEntryId, WSTransport *lpTransport, const char *szClassName) :
-	ECUnknown(szClassName)
+	ECUnknown(szClassName), lpDataLock(data_lock)
 {
 	this->ulType = ulType;
 	this->ulFlags = ulFlags;
 
 	this->lpCmd = lpCmd;
-	this->lpDataLock = lpDataLock;
 	this->ecSessionId = ecSessionId;
 	this->ulTableId = 0;
 	this->m_lpTransport = lpTransport;
@@ -714,7 +713,7 @@ exit:
 //FIXME: one lock/unlock function
 HRESULT WSTableView::LockSoap()
 {
-	pthread_mutex_lock(lpDataLock);
+	lpDataLock.lock();
 	return erSuccess;
 }
 
@@ -725,8 +724,7 @@ HRESULT WSTableView::UnLockSoap()
 		soap_destroy(lpCmd->soap);
 		soap_end(lpCmd->soap);
 	}
-
-	pthread_mutex_unlock(lpDataLock);
+	lpDataLock.unlock();
 	return erSuccess;
 }
 
@@ -767,11 +765,18 @@ HRESULT WSTableView::SetReloadCallback(RELOADCALLBACK callback, void *lpParam)
 }
 
 // WSTableOutGoingQueue view
-WSTableOutGoingQueue::WSTableOutGoingQueue(KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport) : WSStoreTableView(MAPI_MESSAGE, 0, lpCmd, lpDataLock, ecSessionId, cbEntryId, lpEntryId, lpMsgStore, lpTransport)
+WSTableOutGoingQueue::WSTableOutGoingQueue(KCmd *lpCmd,
+    std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId,
+    LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport) :
+	WSStoreTableView(MAPI_MESSAGE, 0, lpCmd, lpDataLock, ecSessionId,
+	    cbEntryId, lpEntryId, lpMsgStore, lpTransport)
 {
 }
 
-HRESULT WSTableOutGoingQueue::Create(KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId, LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport, WSTableOutGoingQueue **lppTableOutGoingQueue)
+HRESULT WSTableOutGoingQueue::Create(KCmd *lpCmd,
+    std::recursive_mutex &lpDataLock, ECSESSIONID ecSessionId, ULONG cbEntryId,
+    LPENTRYID lpEntryId, ECMsgStore *lpMsgStore, WSTransport *lpTransport,
+    WSTableOutGoingQueue **lppTableOutGoingQueue)
 {
 	HRESULT hr = hrSuccess;
 	WSTableOutGoingQueue *lpTableOutGoingQueue = NULL; 

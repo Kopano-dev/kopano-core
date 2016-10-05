@@ -24,8 +24,7 @@ CLEANFILES = ${noinst_DATA}
 noinst_HEADERS = \
 	ConsoleTable.h ECACL.h ECCache.h ECConfigImpl.h \
 	ECFifoBuffer.h ECSerializer.h StatsClient.h \
-	SymmetricCrypt.h TimeUtil.h TmpPath.h \
-	fileutil.h pthreadutil.h utf8.h \
+	SymmetricCrypt.h TimeUtil.h TmpPath.h fileutil.h utf8.h \
 	charset/utf32string.h charset/localeutil.h \
 	ustringutil/utfutil.h \
 	utf8/checked.h utf8/core.h utf8/unchecked.h
@@ -35,8 +34,7 @@ libkcutil_la_SOURCES = \
 	ECScheduler.cpp ECSerializer.cpp ECThreadPool.cpp StatsClient.cpp \
 	SymmetricCrypt.cpp TimeUtil.cpp TmpPath.cpp Trace.cpp UnixUtil.cpp \
 	base64.cpp fileutil.cpp md5.cpp my_getopt.cpp \
-	platform.cpp platform.linux.cpp \
-	stringutil.cpp threadutil.cpp ustringutil.cpp \
+	platform.cpp platform.linux.cpp stringutil.cpp ustringutil.cpp \
 	charset/convert.cpp charset/convstring.cpp charset/traits.cpp \
 	charset/localeutil.cpp
 libkcutil_la_LIBADD = \

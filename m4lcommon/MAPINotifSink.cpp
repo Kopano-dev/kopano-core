@@ -15,14 +15,15 @@
  *
  */
 
+#include <chrono>
 #include <kopano/platform.h>
+#include <kopano/lockhelper.hpp>
 #include "MAPINotifSink.h"
 
 #include <kopano/Util.h>
 
 #include <mapi.h>
 #include <mapix.h>
-#include <pthread.h>
 
 /**
  * This is a special advisesink so that we can do notifications in Perl. What it does
@@ -204,16 +205,11 @@ HRESULT MAPINotifSink::Create(MAPINotifSink **lppSink)
 MAPINotifSink::MAPINotifSink() {
     m_bExit = false;
     m_cRef = 0;
-    pthread_mutex_init(&m_hMutex, NULL);
-    pthread_cond_init(&m_hCond, NULL);
 }
 
 MAPINotifSink::~MAPINotifSink() {
     m_bExit = true;
-    pthread_cond_broadcast(&m_hCond);
-    
-    pthread_cond_destroy(&m_hCond);
-    pthread_mutex_destroy(&m_hMutex);
+	m_hCond.notify_all();
 	for (auto n : m_lstNotifs)
 		MAPIFreeBuffer(n);
 	m_lstNotifs.clear();
@@ -223,10 +219,8 @@ MAPINotifSink::~MAPINotifSink() {
 ULONG MAPINotifSink::OnNotify(ULONG cNotifications, LPNOTIFICATION lpNotifications)
 {
 	ULONG rc = 0;
-
 	LPNOTIFICATION lpNotif;
-    
-	pthread_mutex_lock(&m_hMutex);
+	ulock_normal biglock(m_hMutex);
 	for (unsigned int i = 0; i < cNotifications; ++i) {
 		if (MAPIAllocateBuffer(sizeof(NOTIFICATION), (LPVOID*)&lpNotif) != hrSuccess) {
 			rc = 1;
@@ -236,11 +230,8 @@ ULONG MAPINotifSink::OnNotify(ULONG cNotifications, LPNOTIFICATION lpNotificatio
 		if (CopyNotification(&lpNotifications[i], lpNotif, lpNotif) == 0)
 			m_lstNotifs.push_back(lpNotif);
 	}
-    
-	pthread_mutex_unlock(&m_hMutex);
-    
-	pthread_cond_broadcast(&m_hCond);
-    
+	biglock.unlock();
+	m_hCond.notify_all();
 	return rc;
 }
 
@@ -257,14 +248,13 @@ HRESULT MAPINotifSink::GetNotifications(ULONG *lpcNotif, LPNOTIFICATION *lppNoti
     t.tv_sec = now;
     t.tv_nsec = (now-t.tv_sec) * 1000000000.0;
 
-	pthread_mutex_lock(&m_hMutex);
-
+	ulock_normal biglock(m_hMutex);
 	if (!fNonBlock) {
 		while(m_lstNotifs.empty() && !m_bExit && (timeout == 0 || GetTimeOfDay() < now)) {
 			if (timeout > 0)
-				pthread_cond_timedwait(&m_hCond, &m_hMutex, &t);
+				m_hCond.wait_for(biglock, std::chrono::milliseconds(timeout));
 			else
-				pthread_cond_wait(&m_hCond, &m_hMutex);
+				m_hCond.wait(biglock);
 		}
 	}
     
@@ -279,9 +269,7 @@ HRESULT MAPINotifSink::GetNotifications(ULONG *lpcNotif, LPNOTIFICATION *lppNoti
 	}
 
 	m_lstNotifs.clear();
-    
-	pthread_mutex_unlock(&m_hMutex);       
-
+	biglock.unlock();
     *lppNotifications = lpNotifications;
     *lpcNotif = cNotifs;
 

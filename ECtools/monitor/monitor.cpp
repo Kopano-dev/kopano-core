@@ -16,6 +16,8 @@
  */
 
 #include <kopano/platform.h>
+#include <condition_variable>
+#include <mutex>
 #include <climits>
 #include <cstdio>
 #include <cstdlib>
@@ -31,6 +33,7 @@
 #include <cctype>
 
 #include <kopano/ECScheduler.h>
+#include <kopano/lockhelper.hpp>
 #include <kopano/my_getopt.h>
 #include "ECMonitorDefs.h"
 #include "ECQuotaMonitor.h"
@@ -58,8 +61,8 @@ static void deleteThreadMonitor(ECTHREADMONITOR *lpThreadMonitor,
 
 static ECTHREADMONITOR *m_lpThreadMonitor;
 
-static pthread_mutex_t		m_hExitMutex;
-static pthread_cond_t		m_hExitSignal;
+static std::mutex m_hExitMutex;
+static std::condition_variable m_hExitSignal;
 static pthread_t			mainthread;
 
 static HRESULT running_service(const char *szPath);
@@ -74,8 +77,7 @@ static void sighandle(int sig)
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_NOTICE, "Termination requested, shutting down.");
 	
 	m_lpThreadMonitor->bShutdown = true;
-
-	pthread_cond_signal(&m_hExitSignal);
+	m_hExitSignal.notify_one();
 }
 
 static void sighup(int signr)
@@ -270,8 +272,6 @@ int main(int argc, char *argv[]) {
 		goto exit;
 
 	// Init exit threads
-	pthread_mutex_init(&m_hExitMutex, NULL);
-	pthread_cond_init(&m_hExitSignal, NULL);
 	hr = running_service(szPath);
 exit:
 	if(m_lpThreadMonitor)
@@ -286,6 +286,7 @@ static HRESULT running_service(const char *szPath)
 	ECScheduler*	lpECScheduler = NULL;
 	unsigned int	ulInterval = 0;
 	bool			bMapiInit = false;
+	ulock_normal l_exit(m_hExitMutex, std::defer_lock_t());
 	
 	hr = MAPIInitialize(NULL);
 	if (hr != hrSuccess) {
@@ -309,12 +310,9 @@ static HRESULT running_service(const char *szPath)
 		goto exit;
 	}
 
-	pthread_mutex_lock(&m_hExitMutex);
-
-	pthread_cond_wait(&m_hExitSignal, &m_hExitMutex);
-
-	pthread_mutex_unlock(&m_hExitMutex);
-
+	l_exit.lock();
+	m_hExitSignal.wait(l_exit);
+	l_exit.unlock();
 exit:
 	delete lpECScheduler;
 	if (bMapiInit)

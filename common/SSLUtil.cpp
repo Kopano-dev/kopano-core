@@ -14,8 +14,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <mutex>
 #include <kopano/platform.h>
+#include <kopano/lockhelper.hpp>
 #include "SSLUtil.h"
 #include <pthread.h>
 #include <openssl/bn.h>
@@ -24,15 +25,14 @@
 #include <openssl/conf.h>
 #include <openssl/engine.h>
 
-static pthread_mutex_t *ssl_locks;
+static std::recursive_mutex *ssl_locks;
 
 static void ssl_lock(int mode, int n, const char *file, int line)
 {
-	if (mode & CRYPTO_LOCK) {
-		pthread_mutex_lock(&ssl_locks[n]);
-	} else {
-		pthread_mutex_unlock(&ssl_locks[n]);
-	}
+	if (mode & CRYPTO_LOCK)
+		ssl_locks[n].lock();
+	else
+		ssl_locks[n].unlock();
 }
 
 static unsigned long ssl_id_function(void)
@@ -43,13 +43,8 @@ static unsigned long ssl_id_function(void)
 void ssl_threading_setup() {
 	if (ssl_locks)
 		return;
-	pthread_mutexattr_t mattr;
 	// make recursive, because of openssl bug http://rt.openssl.org/Ticket/Display.html?id=2813&user=guest&pass=guest
-	pthread_mutexattr_init(&mattr);
-	pthread_mutexattr_settype(&mattr, PTHREAD_MUTEX_RECURSIVE);
-	ssl_locks = new pthread_mutex_t[CRYPTO_num_locks()];
-	for (int i = 0; i < CRYPTO_num_locks(); ++i)
-		pthread_mutex_init(&ssl_locks[i], &mattr);
+	ssl_locks = new std::recursive_mutex[CRYPTO_num_locks()];
 	CRYPTO_set_locking_callback(ssl_lock);
 	CRYPTO_set_id_callback(ssl_id_function);
 }
@@ -57,8 +52,6 @@ void ssl_threading_setup() {
 void ssl_threading_cleanup() {
 	if (!ssl_locks)
 		return;
-	for (int i = 0; i < CRYPTO_num_locks(); ++i)
-		pthread_mutex_destroy(&ssl_locks[i]);
 	delete [] ssl_locks;
 	ssl_locks = NULL;
 	CRYPTO_set_id_callback(NULL);

@@ -16,7 +16,9 @@
  */
 
 #include <kopano/platform.h>
+#include <mutex>
 #include <new>
+#include <kopano/lockhelper.hpp>
 #include "m4l.mapix.h"
 #include "m4l.mapispi.h"
 #include "m4l.debug.h"
@@ -25,7 +27,6 @@
 
 #include <mapi.h>
 #include <mapiutil.h>
-#include <pthread.h>
 #include <cstring>
 
 #include <kopano/Util.h>
@@ -116,31 +117,15 @@ static void HrFreeM4LServices(void)
 // ---
 // M4LProfAdmin
 // ---
-
-M4LProfAdmin::M4LProfAdmin() {
-    pthread_mutexattr_t attr;
-    
-    pthread_mutexattr_init(&attr);
-    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
-    pthread_mutex_init(&m_mutexProfiles, &attr);
-    
-    pthread_mutexattr_destroy(&attr);
-}
-
 M4LProfAdmin::~M4LProfAdmin() {
 	std::list<profEntry *>::const_iterator i;
-    
-	pthread_mutex_lock(&m_mutexProfiles);
+	scoped_rlock l_prof(m_mutexProfiles);
 
 	for (i = profiles.begin(); i != profiles.end(); ++i) {
 		(*i)->serviceadmin->Release();
 		delete *i;
 	}
     profiles.clear();
-    
-	pthread_mutex_unlock(&m_mutexProfiles);
-
-    pthread_mutex_destroy(&m_mutexProfiles);
 }
 
 list<profEntry*>::iterator M4LProfAdmin::findProfile(LPTSTR lpszProfileName) {
@@ -177,10 +162,8 @@ HRESULT M4LProfAdmin::GetProfileTable(ULONG ulFlags, LPMAPITABLE* lppTable) {
 	SPropValue sProps[3];
 	int n = 0;
 	std::wstring wDisplayName;
-
 	SizedSPropTagArray(2, sptaProfileCols) = {2, {PR_DEFAULT_PROFILE, PR_DISPLAY_NAME}};
-
-	pthread_mutex_lock(&m_mutexProfiles);
+	ulock_rec l_prof(m_mutexProfiles);
 
 	if (ulFlags & MAPI_UNICODE)
 		sptaProfileCols.aulPropTag[1] = CHANGE_PROP_TYPE(PR_DISPLAY_NAME_W, PT_UNICODE);
@@ -229,8 +212,7 @@ HRESULT M4LProfAdmin::GetProfileTable(ULONG ulFlags, LPMAPITABLE* lppTable) {
 	}
 
 exit:
-	pthread_mutex_unlock(&m_mutexProfiles);
-
+	l_prof.unlock();
 	if (lpTableView)
 		lpTableView->Release();
 
@@ -259,8 +241,7 @@ HRESULT M4LProfAdmin::CreateProfile(LPTSTR lpszProfileName, LPTSTR lpszPassword,
     profEntry* entry = NULL;
 	M4LProfSect *profilesection = NULL;
 	SPropValue sPropValue;
-
-    pthread_mutex_lock(&m_mutexProfiles);
+	ulock_rec l_prof(m_mutexProfiles);
     
     if(lpszProfileName == NULL) {
 		ec_log_err("M4LProfAdmin::CreateProfile(): invalid parameters");
@@ -312,8 +293,7 @@ HRESULT M4LProfAdmin::CreateProfile(LPTSTR lpszProfileName, LPTSTR lpszPassword,
     profiles.push_back(entry);
     
 exit:
-    pthread_mutex_unlock(&m_mutexProfiles);
-
+	l_prof.unlock();
 	if (profilesection)
 		profilesection->Release();
     
@@ -332,8 +312,7 @@ exit:
 HRESULT M4LProfAdmin::DeleteProfile(LPTSTR lpszProfileName, ULONG ulFlags) {
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LProfAdmin::DeleteProfile", "");
     HRESULT hr = hrSuccess;
-
-    pthread_mutex_lock(&m_mutexProfiles);
+	scoped_rlock l_prof(m_mutexProfiles);
     
 	auto i = findProfile(lpszProfileName);
 	if (i != profiles.cend()) {
@@ -343,9 +322,6 @@ HRESULT M4LProfAdmin::DeleteProfile(LPTSTR lpszProfileName, ULONG ulFlags) {
     } else {
         hr = MAPI_E_NOT_FOUND;
     }
-
-    pthread_mutex_unlock(&m_mutexProfiles);
-    
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LProfAdmin::DeleteProfile", "0x%08x", hr);
     return hr;
 }
@@ -394,8 +370,7 @@ HRESULT M4LProfAdmin::AdminServices(LPTSTR lpszProfileName, LPTSTR lpszPassword,
 	TRACE_MAPILIB2(TRACE_ENTRY, "M4LProfAdmin::AdminServices", "name=%s - password=%s", (char*)lpszProfileName, (lpszPassword)?(char*)lpszPassword:"NULL");
     HRESULT hr = hrSuccess;									
     list<profEntry*>::const_iterator i;
-    
-    pthread_mutex_lock(&m_mutexProfiles);
+	scoped_rlock l_prof(m_mutexProfiles);
 
     if(lpszProfileName == NULL) {
     	hr = MAPI_E_INVALID_PARAMETER;
@@ -415,7 +390,6 @@ HRESULT M4LProfAdmin::AdminServices(LPTSTR lpszProfileName, LPTSTR lpszPassword,
 		ec_log_err("M4LProfAdmin::AdminServices QueryInterface failed %x: %s", hr, GetMAPIErrorMessage(hr));
 
 exit:
-    pthread_mutex_unlock(&m_mutexProfiles);
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LProfAdmin::AdminServices", "0x%08x", hr);
     return hr;
 }
@@ -457,18 +431,10 @@ M4LMsgServiceAdmin::M4LMsgServiceAdmin(M4LProfSect *profilesection) {
 	this->profilesection = profilesection;
 
 	profilesection->AddRef();
-
-	pthread_mutexattr_t attr;
-
-	pthread_mutexattr_init(&attr);
-	pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
-	pthread_mutex_init(&m_mutexserviceadmin, &attr);
-
-	pthread_mutexattr_destroy(&attr);
 }
 
 M4LMsgServiceAdmin::~M4LMsgServiceAdmin() {
-	pthread_mutex_lock(&m_mutexserviceadmin);
+	scoped_rlock l_srv(m_mutexserviceadmin);
 
 	for (auto serv : services) {
 		serv->provideradmin->Release();
@@ -483,11 +449,6 @@ M4LMsgServiceAdmin::~M4LMsgServiceAdmin() {
     providers.clear();
 
 	profilesection->Release();
-
-	pthread_mutex_unlock(&m_mutexserviceadmin);
-
-	pthread_mutex_destroy(&m_mutexserviceadmin);
-
 }
     
 serviceEntry* M4LMsgServiceAdmin::findServiceAdmin(LPTSTR lpszServiceName) {
@@ -537,11 +498,9 @@ HRESULT M4LMsgServiceAdmin::GetMsgServiceTable(ULONG ulFlags, LPMAPITABLE* lppTa
 	int n = 0;
 	std::wstring wServiceName, wDisplayName;
 	convert_context converter;
-
 	SizedSPropTagArray(3, sptaProviderColsUnicode) = {3, {PR_SERVICE_UID, PR_SERVICE_NAME_W, PR_DISPLAY_NAME_W} };
 	SizedSPropTagArray(3, sptaProviderColsAscii) = {3, {PR_SERVICE_UID, PR_SERVICE_NAME_A, PR_DISPLAY_NAME_A} };
-	
-	pthread_mutex_lock(&m_mutexserviceadmin);
+	ulock_rec l_srv(m_mutexserviceadmin);
 
 	if (ulFlags & MAPI_UNICODE)
 		hr = ECMemTable::Create((LPSPropTagArray)&sptaProviderColsUnicode, PR_ROWID, &lpTable);
@@ -595,8 +554,7 @@ HRESULT M4LMsgServiceAdmin::GetMsgServiceTable(ULONG ulFlags, LPMAPITABLE* lppTa
 	}
 
 exit:
-	pthread_mutex_unlock(&m_mutexserviceadmin);
-
+	l_srv.unlock();
 	if (lpTableView)
 		lpTableView->Release();
 
@@ -625,8 +583,7 @@ HRESULT M4LMsgServiceAdmin::CreateMsgService(LPTSTR lpszService, LPTSTR lpszDisp
 	serviceEntry* entry = NULL;
 	SVCService* service = NULL;
 	LPSPropValue lpProp = NULL;
-
-	pthread_mutex_lock(&m_mutexserviceadmin);
+	scoped_rlock l_srv(m_mutexserviceadmin);
 	
 	if(lpszService == NULL || lpszDisplayName == NULL) {
 		ec_log_err("M4LMsgServiceAdmin::CreateMsgService(): invalid parameters");
@@ -685,8 +642,6 @@ HRESULT M4LMsgServiceAdmin::CreateMsgService(LPTSTR lpszService, LPTSTR lpszDisp
 
 	entry->bInitialize = false;
 exit:
-	pthread_mutex_unlock(&m_mutexserviceadmin);
-
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LMsgServiceAdmin::CreateMsgService", "0x%08x", hr);
     return hr;
 }
@@ -706,8 +661,7 @@ HRESULT M4LMsgServiceAdmin::DeleteMsgService(LPMAPIUID lpUID) {
     list<serviceEntry*>::iterator i;
     list<providerEntry*>::iterator p;
     list<providerEntry*>::iterator pNext;
-    
-	pthread_mutex_lock(&m_mutexserviceadmin);
+	scoped_rlock l_srv(m_mutexserviceadmin);
 
 	for (i = services.begin(); i != services.end(); ++i) {
 		if (memcmp(&(*i)->muid, lpUID, sizeof(MAPIUID)) == 0) {
@@ -738,8 +692,6 @@ HRESULT M4LMsgServiceAdmin::DeleteMsgService(LPMAPIUID lpUID) {
     }
 
 exit:
-	pthread_mutex_unlock(&m_mutexserviceadmin);
-
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LMsgServiceAdmin::DeleteMsgService", "0x%08x", hr);
     return hr;
 }
@@ -774,8 +726,7 @@ HRESULT M4LMsgServiceAdmin::ConfigureMsgService(LPMAPIUID lpUID, ULONG ulUIParam
 	HRESULT hr = hrSuccess;
 	M4LProviderAdmin *lpProviderAdmin = NULL;
     serviceEntry* entry;
-
-	pthread_mutex_lock(&m_mutexserviceadmin);
+	ulock_rec l_srv(m_mutexserviceadmin);
 	
 	if (lpUID == NULL) {
 		ec_log_err("M4LMsgServiceAdmin::ConfigureMsgService() invalid parameters");
@@ -804,7 +755,7 @@ HRESULT M4LMsgServiceAdmin::ConfigureMsgService(LPMAPIUID lpUID, ULONG ulUIParam
 	entry->bInitialize = true;
 
 exit:
-	pthread_mutex_unlock(&m_mutexserviceadmin);
+	l_srv.unlock();
 	if(lpProviderAdmin)
 		lpProviderAdmin->Release();
 
@@ -828,8 +779,7 @@ HRESULT M4LMsgServiceAdmin::OpenProfileSection(LPMAPIUID lpUID, LPCIID lpInterfa
 	LPSPropValue lpsPropVal = NULL;
 	IMAPIProp *lpMapiProp = NULL;
 	providerEntry* entry;
-	
-	pthread_mutex_lock(&m_mutexserviceadmin);
+	ulock_rec l_srv(m_mutexserviceadmin);
 
 	if(lpUID && memcmp(lpUID, pbGlobalProfileSectionGuid, sizeof(MAPIUID)) == 0) {
 		hr = this->profilesection->QueryInterface( (lpInterface)?*lpInterface:IID_IProfSect, (void**)lppProfSect);
@@ -883,7 +833,7 @@ HRESULT M4LMsgServiceAdmin::OpenProfileSection(LPMAPIUID lpUID, LPCIID lpInterfa
 		ec_log_err("M4LMsgServiceAdmin::OpenProfileSection(): QueryInterface fail(2) %x: %s", hr, GetMAPIErrorMessage(hr));
 
 exit:
-	pthread_mutex_unlock(&m_mutexserviceadmin);
+	l_srv.unlock();
 	MAPIFreeBuffer(lpsPropVal);
 	if (lpMapiProp)
 		lpMapiProp->Release();
@@ -913,8 +863,7 @@ HRESULT M4LMsgServiceAdmin::AdminProviders(LPMAPIUID lpUID, ULONG ulFlags, LPPRO
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LMsgServiceAdmin::AdminProviders", "");
 	HRESULT hr = hrSuccess;
 	serviceEntry* entry = NULL;
-
-	pthread_mutex_lock(&m_mutexserviceadmin);
+	scoped_rlock l_srv(m_mutexserviceadmin);
 
 	entry = findServiceAdmin(lpUID);
 	if (!entry) {
@@ -928,8 +877,6 @@ HRESULT M4LMsgServiceAdmin::AdminProviders(LPMAPIUID lpUID, ULONG ulFlags, LPPRO
 		ec_log_err("M4LMsgServiceAdmin::AdminProviders(): QueryInterface fail %x: %s", hr, GetMAPIErrorMessage(hr));
 
 exit:
-	pthread_mutex_unlock(&m_mutexserviceadmin);
-
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LMsgServiceAdmin::AdminProviders", "0x%08x", hr);
 	return hr;
 }
@@ -964,8 +911,7 @@ HRESULT M4LMsgServiceAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTabl
 	SizedSPropTagArray(11, sptaProviderCols) = {11, {PR_MDB_PROVIDER, PR_AB_PROVIDER_ID, PR_INSTANCE_KEY, PR_RECORD_KEY, PR_ENTRYID,
 												   PR_DISPLAY_NAME_A, PR_OBJECT_TYPE, PR_PROVIDER_UID, PR_RESOURCE_TYPE,
 												   PR_PROVIDER_DISPLAY_A, PR_SERVICE_UID}};
-
-	pthread_mutex_lock(&m_mutexserviceadmin);
+	ulock_rec l_srv(m_mutexserviceadmin);
 	
 	for (auto serv : services) {
 		if (serv->bInitialize == false) {
@@ -1033,7 +979,7 @@ HRESULT M4LMsgServiceAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTabl
 		ec_log_err("M4LMsgServiceAdmin::GetProviderTable(): QueryInterface(2) fail %x: %s", hr, GetMAPIErrorMessage(hr));
 
 exit:
-	pthread_mutex_unlock(&m_mutexserviceadmin);
+	l_srv.unlock();
 	MAPIFreeBuffer(lpPropTagArray);
 	if (lpTableView)
 		lpTableView->Release();
@@ -1082,16 +1028,12 @@ M4LMAPISession::M4LMAPISession(LPTSTR new_profileName, M4LMsgServiceAdmin *new_s
 	serviceAdmin->AddRef();
 	m_cValuesStatus = 0;
 	m_lpPropsStatus = NULL;
-	pthread_mutex_init(&m_mutexStatusRow, NULL);
 }
 
 M4LMAPISession::~M4LMAPISession() {
 	for (const auto &p : mapStores)
 		p.second->Release();
-
 	MAPIFreeBuffer(m_lpPropsStatus);
-	pthread_mutex_destroy(&m_mutexStatusRow);
-
 	serviceAdmin->Release();
 }
 
@@ -1128,8 +1070,7 @@ HRESULT M4LMAPISession::GetMsgStoresTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 	SizedSPropTagArray(11, sptaProviderCols) = {11, {PR_MDB_PROVIDER, PR_INSTANCE_KEY, PR_RECORD_KEY, PR_ENTRYID,
 												   PR_DISPLAY_NAME_A, PR_OBJECT_TYPE, PR_RESOURCE_TYPE, PR_PROVIDER_UID,
 												   PR_RESOURCE_FLAGS, PR_DEFAULT_STORE, PR_PROVIDER_DISPLAY_A}};
-	
-	pthread_mutex_lock(&serviceAdmin->m_mutexserviceadmin);
+	ulock_rec l_srv(serviceAdmin->m_mutexserviceadmin);
 
 	hr = Util::HrCopyUnicodePropTagArray(ulFlags, (LPSPropTagArray)&sptaProviderCols, &lpPropTagArray);
 	if(hr != hrSuccess) {
@@ -1190,7 +1131,7 @@ next:
 	}
 	
 exit:
-	pthread_mutex_unlock(&serviceAdmin->m_mutexserviceadmin);
+	l_srv.unlock();
 	MAPIFreeBuffer(lpPropTagArray);
 	if (lpTableView)
 		lpTableView->Release();
@@ -1765,8 +1706,7 @@ HRESULT M4LMAPISession::QueryIdentity(ULONG* lpcbEntryID, LPENTRYID* lppEntryID)
 	HRESULT hr = hrSuccess;
 	LPSPropValue lpProp = NULL;
 	LPENTRYID lpEntryID = NULL;
-
-	pthread_mutex_lock(&m_mutexStatusRow);
+	scoped_lock l_srv(m_mutexStatusRow);
 
 	lpProp = PpropFindProp(this->m_lpPropsStatus, this->m_cValuesStatus, PR_IDENTITY_ENTRYID);
 	if(lpProp == NULL) {
@@ -1782,9 +1722,7 @@ HRESULT M4LMAPISession::QueryIdentity(ULONG* lpcbEntryID, LPENTRYID* lppEntryID)
 
 	*lppEntryID = lpEntryID;
 	*lpcbEntryID = lpProp->Value.bin.cb;
-
 exit:
-	pthread_mutex_unlock(&m_mutexStatusRow);
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPISession::QueryIdentity", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
 }
@@ -1852,21 +1790,15 @@ HRESULT M4LMAPISession::QueryInterface(REFIID refiid, void **lpvoid) {
 
 HRESULT M4LMAPISession::setStatusRow(ULONG cValues, LPSPropValue lpProps)
 {
-	HRESULT hr = hrSuccess;
-
-	pthread_mutex_lock(&m_mutexStatusRow);
+	scoped_lock l_status(m_mutexStatusRow);
 	MAPIFreeBuffer(m_lpPropsStatus);
 	m_lpPropsStatus = NULL;
 	m_cValuesStatus = 0;
 
-	hr = Util::HrCopyPropertyArray(lpProps, cValues, &m_lpPropsStatus, &m_cValuesStatus, true);
-	if(hr != hrSuccess) {
-		ec_log_err("M4LMAPISession::setStatusRow(): Util::HrCopyPropertyArray fail %x: %s", hr, GetMAPIErrorMessage(hr));
-		goto exit;
-	}
-
-exit:
-	pthread_mutex_unlock(&m_mutexStatusRow);
+	HRESULT hr = Util::HrCopyPropertyArray(lpProps, cValues, &m_lpPropsStatus, &m_cValuesStatus, true);
+	if (hr != hrSuccess)
+		ec_log_err("M4LMAPISession::setStatusRow(): Util::HrCopyPropertyArray fail %x: %s",
+			hr, GetMAPIErrorMessage(hr));
 	return hr;
 }
 
@@ -2809,8 +2741,8 @@ HRESULT M4LAddrBook::QueryInterface(REFIID refiid, void **lpvoid) {
 // ---------------------------------------
 
 // Memory map list
-map<void*, list<void*>* > _memlist;
-pthread_mutex_t _memlist_lock;
+static std::map<void *, std::list<void *> *> _memlist;
+static std::mutex _memlist_lock;
 
 #define _MAPI_MEM_DEBUG 0
 #define _MAPI_MEM_MORE_DEBUG 0
@@ -2852,10 +2784,8 @@ SCODE __stdcall MAPIAllocateBuffer(ULONG cbSize, LPVOID* lppBuffer)
 	if (hr != hrSuccess)
 		return hr;
 
-	pthread_mutex_lock(&_memlist_lock);
+	scoped_lock lock(_memlist_lock);
 	_memlist.insert(map<void*, list<void *>* >::value_type(*lppBuffer, new list<void *>()));
-	pthread_mutex_unlock(&_memlist_lock);
-
 #if _MAPI_MEM_DEBUG
 		fprintf(stderr, "New buffer: %p\n", buffer);
 #endif
@@ -2887,8 +2817,7 @@ SCODE __stdcall MAPIAllocateMore(ULONG cbSize, LPVOID lpObject, LPVOID* lppBuffe
 		return hr;
 	}
 
-	pthread_mutex_lock(&_memlist_lock);
-
+	scoped_lock lock(_memlist_lock);
 #if _MAPI_MEM_MORE_DEBUG
 	for (mlptr = _memlist.cbegin(); mlptr != _memlist.cend(); ++mlptr)
 		for (auto lp : *mlptr->second)
@@ -2915,9 +2844,6 @@ SCODE __stdcall MAPIAllocateMore(ULONG cbSize, LPVOID lpObject, LPVOID* lppBuffe
 		/* add to list */
 		mlptr->second->push_back(*lppBuffer);
 	}
-
-	pthread_mutex_unlock(&_memlist_lock);
-
 #if _MAPI_MEM_DEBUG
 	fprintf(stderr, "Extra buffer: %p on %p\n", *lppBuffer, lpObject);
 #endif
@@ -2938,8 +2864,7 @@ ULONG __stdcall MAPIFreeBuffer(LPVOID lpBuffer) {
 	if (!lpBuffer)
 		return S_OK;
 
-	pthread_mutex_lock(&_memlist_lock);
-
+	scoped_lock lock(_memlist_lock);
 #if _MAPI_MEM_DEBUG
 	fprintf(stderr, "Freeing: %p\n", lpBuffer);
 #endif
@@ -2963,8 +2888,6 @@ ULONG __stdcall MAPIFreeBuffer(LPVOID lpBuffer) {
 		// item was not allocated by  MAPIAllocateBuffer
 		ASSERT(FALSE);
 	}
-
-	pthread_mutex_unlock(&_memlist_lock);
 	return 0;
  }
 
@@ -3082,8 +3005,8 @@ exit:
  * _MAPIInitializeCount simply counts the number of times MAPIInitialize is called, and will
  * not cleanup anything in MAPIUnitialize until the counter is back to 0.
  */
-int _MAPIInitializeCount = 0;
-pthread_mutex_t g_MAPILock = PTHREAD_MUTEX_INITIALIZER;
+static int _MAPIInitializeCount = 0;
+static std::mutex g_MAPILock;
 
 /**
  * MAPIInitialize is the first function called.
@@ -3101,8 +3024,7 @@ pthread_mutex_t g_MAPILock = PTHREAD_MUTEX_INITIALIZER;
 HRESULT __stdcall MAPIInitialize(LPVOID lpMapiInit) {
 	TRACE_MAPILIB(TRACE_ENTRY, "MAPIInitialize", "");
 	HRESULT hr = hrSuccess;
-
-	pthread_mutex_lock(&g_MAPILock);
+	scoped_lock l_mapi(g_MAPILock);
 
 	if (_MAPIInitializeCount++) {
 		assert(localProfileAdmin);
@@ -3116,9 +3038,6 @@ HRESULT __stdcall MAPIInitialize(LPVOID lpMapiInit) {
 		ec_log_err("MAPIInitialize(): HrCreateM4LServices fail %x: %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
 	}
-
-	// also static init?
-	pthread_mutex_init(&_memlist_lock, NULL);
 
 	// Loads the mapisvc.inf, and finds all providers and entry point functions
 	m4l_lpMAPISVC = new MAPISVC();
@@ -3138,8 +3057,6 @@ HRESULT __stdcall MAPIInitialize(LPVOID lpMapiInit) {
 	}
 
 exit:
-	pthread_mutex_unlock(&g_MAPILock);
-
 	TRACE_MAPILIB2(TRACE_RETURN, "MAPIInitialize", "%d, 0x%08x", _MAPIInitializeCount, hr);
 	return hr;
 }
@@ -3153,8 +3070,7 @@ exit:
  */
 void __stdcall MAPIUninitialize(void) {
 	TRACE_MAPILIB(TRACE_ENTRY, "MAPIUninitialize", "");
-
-	pthread_mutex_lock(&g_MAPILock);
+	scoped_lock l_mapi(g_MAPILock);
 
 	if (_MAPIInitializeCount == 0)
 		abort();
@@ -3170,11 +3086,6 @@ void __stdcall MAPIUninitialize(void) {
 		localProfileAdmin = NULL;
 
 		HrFreeM4LServices();
-
-		pthread_mutex_destroy(&_memlist_lock);
 	}
-
-	pthread_mutex_unlock(&g_MAPILock);
-
 	TRACE_MAPILIB2(TRACE_RETURN, "MAPIUninitialize", "%d, 0x%08x", _MAPIInitializeCount, hrSuccess);
 }

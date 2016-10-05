@@ -19,6 +19,7 @@
 #define WSABPROPSTORAGE_H
 
 #include <kopano/zcdefs.h>
+#include <mutex>
 #include <kopano/ECUnknown.h>
 #include "IECPropStorage.h"
 
@@ -28,18 +29,16 @@
 
 #include <mapi.h>
 #include <mapispi.h>
-#include <pthread.h>
 
 class WSABPropStorage : public ECUnknown
 {
 
 protected:
-	WSABPropStorage(ULONG cbEntryId, LPENTRYID lpEntryId, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, WSTransport *lpTransport);
+	WSABPropStorage(ULONG cbEntryId, LPENTRYID, KCmd *, std::recursive_mutex &, ECSESSIONID, WSTransport *);
 	virtual ~WSABPropStorage();
 
 public:
-	static HRESULT Create(ULONG cbEntryId, LPENTRYID lpEntryId, KCmd *lpCmd, pthread_mutex_t *lpDataLock, ECSESSIONID ecSessionId, WSTransport *lpTransport, WSABPropStorage **lppPropStorage);
-
+	static HRESULT Create(ULONG cbEntryId, LPENTRYID, KCmd *, std::recursive_mutex &, ECSESSIONID, WSTransport *, WSABPropStorage **);
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface);
 	
 	static HRESULT Reload(void *lpParam, ECSESSIONID sessionId);
@@ -90,7 +89,7 @@ public:
 private:
 	entryId			m_sEntryId;
 	KCmd*		lpCmd;
-	pthread_mutex_t *lpDataLock;
+	std::recursive_mutex &lpDataLock;
 	ECSESSIONID		ecSessionId;
 	WSTransport*	m_lpTransport;
 	ULONG			m_ulSessionReloadCallback;

@@ -23,7 +23,7 @@
 #define ECDATABASEMYSQL_H
 
 #include <kopano/zcdefs.h>
-#include <pthread.h>
+#include <mutex>
 #include <mysql.h>
 #include <string>
 
@@ -130,7 +130,7 @@ private:
 	bool				m_bMysqlInitialize;
 	bool				m_bConnected;
 	MYSQL				m_lpMySQL;
-	pthread_mutex_t		m_hMutexMySql;
+	std::recursive_mutex m_hMutexMySql;
 	bool				m_bAutoLock;
 	unsigned int 		m_ulMaxAllowedPacket;
 	bool				m_bFirstResult;

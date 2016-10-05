@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/lockhelper.hpp>
 #include <mapidefs.h>
 #include "WSTransport.h"
 #include "ECGenericProp.h"
@@ -48,12 +49,6 @@ ECGenericProp::ECGenericProp(void *lpProvider, ULONG ulObjType, BOOL fModify,
 	this->m_sMapiObject = NULL;
 	this->m_ulMaxPropSize = 8192;
 
-	pthread_mutexattr_t mattr;
-	pthread_mutexattr_init(&mattr);
-	pthread_mutexattr_settype(&mattr, PTHREAD_MUTEX_RECURSIVE);
-
-	pthread_mutex_init(&m_hMutexMAPIObject, &mattr);
-
 	m_lpEntryId = NULL;
 	m_cbEntryId = 0;
 	m_bReload = FALSE;
@@ -81,7 +76,6 @@ ECGenericProp::~ECGenericProp()
 	if(lpStorage)
 		lpStorage->Release();
 	MAPIFreeBuffer(m_lpEntryId);
-	pthread_mutex_destroy(&m_hMutexMAPIObject);
 }
 
 HRESULT ECGenericProp::QueryInterface(REFIID refiid, void **lppInterface)
@@ -510,8 +504,7 @@ exit:
 HRESULT ECGenericProp::SaveChanges(ULONG ulFlags)
 {
 	HRESULT			hr = hrSuccess;
-
-	pthread_mutex_lock(&m_hMutexMAPIObject);
+	scoped_rlock l_obj(m_hMutexMAPIObject);
 
 	if (!fModify) {
 		hr = MAPI_E_NO_ACCESS;
@@ -611,16 +604,11 @@ HRESULT ECGenericProp::SaveChanges(ULONG ulFlags)
 
 exit:
 	if (hr == hrSuccess)
-	{
 		// Unless the user requests to continue with modify access, switch
 		// down to read-only access. This means that specifying neither of
 		// the KEEP_OPEN flags means the same thing as KEEP_OPEN_READONLY.
 		if (!(ulFlags & (KEEP_OPEN_READWRITE|FORCE_SAVE)))
 			fModify = FALSE;
-	}
-
-	pthread_mutex_unlock(&m_hMutexMAPIObject);
-
 	return hr;
 }
 
@@ -718,16 +706,13 @@ HRESULT ECGenericProp::HrSetPropStorage(IECPropStorage *lpStorage, BOOL fLoadPro
 
 HRESULT ECGenericProp::HrLoadEmptyProps()
 {
-	pthread_mutex_lock(&m_hMutexMAPIObject);
+	scoped_rlock lock(m_hMutexMAPIObject);
 
 	ASSERT(lstProps == NULL);
 	ASSERT(m_sMapiObject == NULL);
 
 	lstProps = new ECPropertyEntryMap;
 	AllocNewMapiObject(0, 0, ulObjType, &m_sMapiObject);
-
-	pthread_mutex_unlock(&m_hMutexMAPIObject);
-
 	return hrSuccess;
 }
 
@@ -739,7 +724,7 @@ HRESULT ECGenericProp::HrLoadProps()
 	if(lpStorage == NULL)
 		return MAPI_E_CALL_FAILED;
 
-	pthread_mutex_lock(&m_hMutexMAPIObject);
+	scoped_rlock lock(m_hMutexMAPIObject);
 
 	if(lstProps != NULL && m_bReload == FALSE) {
 		goto exit; // already loaded
@@ -800,9 +785,6 @@ exit:
 	dwLastError = hr;
 	m_bReload = FALSE;
 	m_bLoading = FALSE;
-
-	pthread_mutex_unlock(&m_hMutexMAPIObject);
-
 	return hr;
 }
 
@@ -819,7 +801,7 @@ HRESULT ECGenericProp::HrLoadProp(ULONG ulPropTag)
 
 	ulPropTag = NormalizePropTag(ulPropTag);
 
-	pthread_mutex_lock(&m_hMutexMAPIObject);
+	scoped_rlock lock(m_hMutexMAPIObject);
 
 	if(lstProps == NULL || m_bReload == TRUE) {
 		hr = HrLoadProps();
@@ -854,9 +836,6 @@ HRESULT ECGenericProp::HrLoadProp(ULONG ulPropTag)
 exit:
 	if(lpsPropVal)
 		ECFreeBuffer(lpsPropVal);
-
-	pthread_mutex_unlock(&m_hMutexMAPIObject);
-
 	return hr;
 }
 
@@ -1141,42 +1120,23 @@ HRESULT ECGenericProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID FAR * lppP
 // Interface IECSingleInstance
 HRESULT ECGenericProp::GetSingleInstanceId(ULONG *lpcbInstanceID, LPSIEID *lppInstanceID)
 {
-	HRESULT hr = hrSuccess;
+	scoped_rlock lock(m_hMutexMAPIObject);
 
-	pthread_mutex_lock(&m_hMutexMAPIObject);
-
-	if (!m_sMapiObject) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
-	if (!lpcbInstanceID || !lppInstanceID) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	hr = Util::HrCopyEntryId(m_sMapiObject->cbInstanceID, (LPENTRYID)m_sMapiObject->lpInstanceID,
-							 lpcbInstanceID, (LPENTRYID *)lppInstanceID);
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	pthread_mutex_unlock(&m_hMutexMAPIObject);
-
-	return hr;
+	if (m_sMapiObject == NULL)
+		return MAPI_E_NOT_FOUND;
+	if (lpcbInstanceID == NULL || lppInstanceID == NULL)
+		return MAPI_E_INVALID_PARAMETER;
+	return Util::HrCopyEntryId(m_sMapiObject->cbInstanceID,
+	       reinterpret_cast<ENTRYID *>(m_sMapiObject->lpInstanceID),
+	       lpcbInstanceID, reinterpret_cast<ENTRYID **>(lppInstanceID));
 }
 
 HRESULT ECGenericProp::SetSingleInstanceId(ULONG cbInstanceID, LPSIEID lpInstanceID)
 {
-	HRESULT hr = hrSuccess;
+	scoped_rlock lock(m_hMutexMAPIObject);
 
-	pthread_mutex_lock(&m_hMutexMAPIObject);
-
-	if (!m_sMapiObject) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
+	if (m_sMapiObject == NULL)
+		return MAPI_E_NOT_FOUND;
 	if (m_sMapiObject->lpInstanceID)
 		ECFreeBuffer(m_sMapiObject->lpInstanceID);
 
@@ -1184,16 +1144,13 @@ HRESULT ECGenericProp::SetSingleInstanceId(ULONG cbInstanceID, LPSIEID lpInstanc
 	m_sMapiObject->cbInstanceID = 0;
 	m_sMapiObject->bChangedInstance = false;
 
-	hr = Util::HrCopyEntryId(cbInstanceID, (LPENTRYID)lpInstanceID,
-							 &m_sMapiObject->cbInstanceID, (LPENTRYID *)&m_sMapiObject->lpInstanceID);
+	HRESULT hr = Util::HrCopyEntryId(cbInstanceID,
+		reinterpret_cast<ENTRYID *>(lpInstanceID),
+		&m_sMapiObject->cbInstanceID,
+		reinterpret_cast<ENTRYID **>(&m_sMapiObject->lpInstanceID));
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	m_sMapiObject->bChangedInstance = true;
-
-exit:
-	pthread_mutex_unlock(&m_hMutexMAPIObject);
-
 	return hr;
 }
 

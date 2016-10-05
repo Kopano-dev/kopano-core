@@ -18,6 +18,7 @@
 #include <kopano/platform.h>
 
 #include "kcore.hpp"
+#include <kopano/lockhelper.hpp>
 #include <kopano/kcodes.h>
 
 #include <mapidefs.h>
@@ -102,8 +103,7 @@ ECRESULT ECABObjectTable::GetColumnsAll(ECListInt* lplstProps)
 {
 	ECRESULT		er = erSuccess;
 	ECODAB *lpODAB = (ECODAB*)m_lpObjectData;
-
-	pthread_mutex_lock(&m_hLock);
+	scoped_rlock lock(m_hLock);
 
 	ASSERT(lplstProps != NULL);
 	
@@ -131,9 +131,6 @@ ECRESULT ECABObjectTable::GetColumnsAll(ECListInt* lplstProps)
 	    // Contents table
 	    lplstProps->push_back(PR_SMTP_ADDRESS);
 	}
-
-	pthread_mutex_unlock(&m_hLock);
-
 	return er;
 }
 
@@ -147,9 +144,8 @@ ECRESULT ECABObjectTable::ReloadTableMVData(ECObjectTableList* lplistRows, ECLis
 
 ECRESULT ECABObjectTable::GetMVRowCount(unsigned int ulObjId, unsigned int *lpulCount)
 {
-	pthread_mutex_lock(&m_hLock);
+	scoped_rlock lock(m_hLock);
 	*lpulCount = 0;
-	pthread_mutex_unlock(&m_hLock);
 	return erSuccess;
 }
 

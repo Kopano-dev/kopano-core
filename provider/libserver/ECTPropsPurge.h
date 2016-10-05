@@ -19,6 +19,8 @@
 #define ECTPROPSPURGE_H
 
 #include <kopano/zcdefs.h>
+#include <mutex>
+#include <pthread.h>
 
 class ECDatabase;
 class ECConfig;
@@ -44,8 +46,8 @@ private:
     
     static void *Thread(void *param);
 
-    pthread_mutex_t		m_hMutexExit;
-    pthread_cond_t		m_hCondExit;
+	std::mutex m_hMutexExit;
+	std::condition_variable m_hCondExit;
     pthread_t			m_hThread;
     bool				m_bExit;
 

@@ -16,8 +16,8 @@
  */
 
 #include <kopano/platform.h>
-
 #include <iostream>
+#include <mutex>
 #include <string>
 #include <stdexcept>
 #include <sys/types.h>
@@ -39,6 +39,7 @@
 #include <kopano/ECDefs.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ECPluginSharedData.h>
+#include <kopano/lockhelper.hpp>
 #include <kopano/stringutil.h>
 
 using namespace std;
@@ -53,9 +54,12 @@ using namespace std;
 #define PWBUFSIZE 16384
 
 extern "C" {
-	UserPlugin* getUserPluginInstance(pthread_mutex_t *pluginlock, ECPluginSharedData *shareddata) {
-		return new UnixUserPlugin(pluginlock, shareddata);
-	}
+
+UserPlugin *getUserPluginInstance(std::mutex &pluginlock,
+    ECPluginSharedData *shareddata)
+{
+	return new UnixUserPlugin(pluginlock, shareddata);
+}
 
 	void deleteUserPluginInstance(UserPlugin *up) {
 		delete up;
@@ -66,7 +70,7 @@ extern "C" {
 	}
 }
 
-UnixUserPlugin::UnixUserPlugin(pthread_mutex_t *pluginlock, ECPluginSharedData *shareddata)
+UnixUserPlugin::UnixUserPlugin(std::mutex &pluginlock, ECPluginSharedData *shareddata)
 	: DBPlugin(pluginlock, shareddata), m_iconv(NULL)
 {
 	const configsetting_t lpDefaults [] = {
@@ -454,7 +458,7 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 	}
 
 	// use mutex to protect thread-unsafe setpwent()/setgrent() calls
-	pthread_mutex_lock(m_plugin_lock);
+	ulock_normal biglock(m_plugin_lock);
 	switch (OBJECTCLASS_TYPE(objclass)) {
 	case OBJECTTYPE_UNKNOWN:
 		objects = getAllUserObjects();
@@ -471,13 +475,11 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 		objectlist->merge(*objects.get());
 		break;
 	case OBJECTTYPE_CONTAINER:
-		pthread_mutex_unlock(m_plugin_lock);
 		throw notsupported("objecttype not supported " + stringify(objclass));
 	default:
-		pthread_mutex_unlock(m_plugin_lock);
 		throw runtime_error("Unknown object type " + stringify(objclass));
 	}
-	pthread_mutex_unlock(m_plugin_lock);
+	biglock.unlock();
 
 	// Cleanup old entries from deleted users/groups
 	if (objectlist->empty())
@@ -698,7 +700,7 @@ UnixUserPlugin::getParentObjectsForObject(userobject_relation_t relation,
 
 	// This is a rather expensive operation: loop through all the
 	// groups, and check each member for each group.
-	pthread_mutex_lock(m_plugin_lock);
+	ulock_normal biglock(m_plugin_lock);
 	setgrent();
 	while (true) {
 		if (getgrent_r(&grs, buffer, PWBUFSIZE, &gr) != 0)
@@ -720,7 +722,7 @@ UnixUserPlugin::getParentObjectsForObject(userobject_relation_t relation,
 			}
 	}
 	endgrent();
-	pthread_mutex_unlock(m_plugin_lock);
+	biglock.unlock();
 
 	// because users can be explicitly listed in their default group
 	objectlist->sort();
@@ -762,7 +764,7 @@ UnixUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 	transform(exceptuids.begin(), exceptuids.end(), inserter(exceptuidset, exceptuidset.begin()), fromstring<const std::string,uid_t>);
 
 	// iterate through /etc/passwd users to find default group (eg. users) and add it to the list
-	pthread_mutex_lock(m_plugin_lock);
+	ulock_normal biglock(m_plugin_lock);
 	setpwent();
 	while (true) {
 		if (getpwent_r(&pws, buffer, PWBUFSIZE, &pw) != 0)
@@ -788,7 +790,7 @@ UnixUserPlugin::getSubObjectsForObject(userobject_relation_t relation,
 		}
 	}
 	endpwent();
-	pthread_mutex_unlock(m_plugin_lock);
+	biglock.unlock();
 
 	// because users can be explicitly listed in their default group
 	objectlist->sort();
@@ -821,12 +823,12 @@ UnixUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 
 	LOG_PLUGIN_DEBUG("%s %s flags:%x", __FUNCTION__, match.c_str(), ulFlags);
 
-	pthread_mutex_lock(m_plugin_lock);
+	ulock_normal biglock(m_plugin_lock);
 	objects = getAllUserObjects(match, ulFlags);
 	objectlist->merge(*objects.get());
 	objects = getAllGroupObjects(match, ulFlags);
 	objectlist->merge(*objects.get());
-	pthread_mutex_unlock(m_plugin_lock);
+	biglock.unlock();
 
 	// See if we get matches based on database details as well
 	try {

@@ -22,12 +22,11 @@
 #ifndef ECDATABASEMYSQL_H
 #define ECDATABASEMYSQL_H
 
+#include <mutex>
 #include <kopano/platform.h>
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
 #include <kopano/kcodes.h>
-
-#include <pthread.h>
 #include <mysql.h>
 #include <string>
 
@@ -106,7 +105,7 @@ private:
 	bool				m_bMysqlInitialize;
 	bool				m_bConnected;
 	MYSQL				m_lpMySQL;
-	pthread_mutex_t		m_hMutexMySql;
+	std::recursive_mutex m_hMutexMySql;
 	bool				m_bAutoLock;
 	unsigned int 		m_ulMaxAllowedPacket;
 	bool				m_bLocked;

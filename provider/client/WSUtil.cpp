@@ -42,8 +42,6 @@
 #include <kopano/charset/utf8string.h>
 #include "EntryPoint.h"
 #include <kopano/ECGetText.h>
-
-#include <kopano/threadutil.h>
 #include "SOAPSock.h"
 
 using namespace std;

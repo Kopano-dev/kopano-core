@@ -16,14 +16,14 @@
  */
 
 #include <kopano/zcdefs.h>
+#include <mutex>
 #include <kopano/platform.h>
+#include <kopano/lockhelper.hpp>
 
 #include "ECSyncContext.h"
 #include "ECOfflineABImporter.h"
 #include "ECSyncUtil.h"
 #include "ECSyncSettings.h"
-#include <kopano/threadutil.h>
-
 #include <IECExportAddressbookChanges.h>
 #include <IECExportChanges.h>
 #include <IECChangeAdvisor.h>
@@ -146,8 +146,6 @@ ECSyncContext::ECSyncContext(LPMDB lpStore, ECLogger *lpLogger)
 	, m_lpChangeAdvisor(NULL)
 	, m_lpChangeAdviseSink(NULL)
 {
-	pthread_mutex_init(&m_hMutex, NULL);
-
 	m_lpLogger->AddRef();
 	m_lpStore->AddRef();
 
@@ -167,7 +165,6 @@ ECSyncContext::~ECSyncContext()
 		m_lpStore->Release();
 
 	m_lpLogger->Release();
-	pthread_mutex_destroy(&m_hMutex);
 }
 
 HRESULT ECSyncContext::HrGetMsgStore(LPMDB *lppMsgStore)
@@ -207,21 +204,18 @@ exit:
 
 HRESULT ECSyncContext::HrGetChangeAdvisor(IECChangeAdvisor **lppChangeAdvisor)
 {
-	HRESULT	hr = hrSuccess;
-
-	pthread_mutex_lock(&m_hMutex);
+	std::unique_lock<std::mutex> lk(m_hMutex);
 
 	if (!m_lpSettings->ChangeNotificationsEnabled())
-		hr = MAPI_E_NO_SUPPORT;
-
-	else if (!m_lpChangeAdvisor)
-		hr = m_lpStore->OpenProperty(PR_EC_CHANGE_ADVISOR, &IID_IECChangeAdvisor, 0, 0, (LPUNKNOWN*)&m_lpChangeAdvisor);
-		// Check for error after releasing lock
-
-	pthread_mutex_unlock(&m_hMutex);
-
-	if (hr != hrSuccess)
-		return hr;
+		return MAPI_E_NO_SUPPORT;
+	if (m_lpChangeAdvisor == NULL) {
+		HRESULT hr = m_lpStore->OpenProperty(PR_EC_CHANGE_ADVISOR,
+			&IID_IECChangeAdvisor, 0, 0,
+			reinterpret_cast<LPUNKNOWN *>(&m_lpChangeAdvisor));
+		if (hr != hrSuccess)
+			return hr;
+	}
+	lk.unlock();
 	return m_lpChangeAdvisor->QueryInterface(IID_IECChangeAdvisor,
 	       reinterpret_cast<void **>(lppChangeAdvisor));
 }
@@ -395,21 +389,18 @@ HRESULT ECSyncContext::HrGetSteps(SBinary *lpEntryID, SBinary *lpSourceKey, ULON
 
 	hr = lpECA->IsMonitoringSyncId(sSyncState.ulSyncId);
 	if (hr == hrSuccess) {
-		pthread_mutex_lock(&m_hMutex);
+		std::unique_lock<std::mutex> lk(m_hMutex);
 
 		auto iterNotifiedSyncId = m_mapNotifiedSyncIds.find(sSyncState.ulSyncId);
 		if (iterNotifiedSyncId == m_mapNotifiedSyncIds.cend()) {
 			*lpulSteps = 0;
 			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "GetSteps: sourcekey=%s, syncid=%u, notified=yes, steps=0 (unsignalled)", bin2hex(lpSourceKey->cb, lpSourceKey->lpb).c_str(), sSyncState.ulSyncId);
-
-			pthread_mutex_unlock(&m_hMutex);
+			lk.unlock();
 			goto exit;
 		}
 
 		ulChangeId = iterNotifiedSyncId->second;	// Remember for later.
 		bNotified = true;
-
-		pthread_mutex_unlock(&m_hMutex);
 	} else if (hr == MAPI_E_NOT_FOUND) {
 		SBinary	sEntry = { sizeof(sSyncState), (LPBYTE)&sSyncState };
 		SBinaryArray sEntryList = { 1, &sEntry };
@@ -450,12 +441,9 @@ fallback:
 	// to remove it from the list. However there could have been a change in the mean time, so we need to check if
 	// m_mapNotifiedSyncIds was updated for this syncid.
 	if (bNotified && ulChangeCount == 0) {
-		pthread_mutex_lock(&m_hMutex);
-
+		std::lock_guard<std::mutex> lock(m_hMutex);
 		if (m_mapNotifiedSyncIds[sSyncState.ulSyncId] <= ulChangeId)
 			m_mapNotifiedSyncIds.erase(sSyncState.ulSyncId);
-
-		pthread_mutex_unlock(&m_hMutex);
 	}
 
 	*lpulSteps = ulChangeCount;
@@ -492,12 +480,12 @@ HRESULT ECSyncContext::HrUpdateChangeId(LPSTREAM lpStream)
 	if (hr != hrSuccess)
 		return hr;
 
-	pthread_mutex_lock(&m_hMutex);
-
-	if (m_mapNotifiedSyncIds[ulSyncId] <= ulChangeId)
-		m_mapNotifiedSyncIds.erase(ulSyncId);
-
-	pthread_mutex_unlock(&m_hMutex);
+	m_hMutex.lock();
+	{
+		std::lock_guard<std::mutex> lock(m_hMutex);
+		if (m_mapNotifiedSyncIds[ulSyncId] <= ulChangeId)
+			m_mapNotifiedSyncIds.erase(ulSyncId);
+	}
 
 	if(m_lpChangeAdvisor) {
 		// Now inform the change advisor of our accomplishment
@@ -825,8 +813,7 @@ ULONG ECSyncContext::OnChange(ULONG ulFlags, LPENTRYLIST lpEntryList)
 {
 	ULONG ulSyncId = 0;
 	ULONG ulChangeId = 0;
-
-	pthread_mutex_lock(&m_hMutex);
+	std::lock_guard<std::mutex> lock(m_hMutex);
 
 	for (unsigned i = 0; i < lpEntryList->cValues; ++i) {
 		if (lpEntryList->lpbin[i].cb < 8) {
@@ -840,8 +827,5 @@ ULONG ECSyncContext::OnChange(ULONG ulFlags, LPENTRYLIST lpEntryList)
 
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "change notification: syncid=%u, changeid=%u", ulSyncId, ulChangeId);
 	}
-
-	pthread_mutex_unlock(&m_hMutex);
-
 	return 0;
 }

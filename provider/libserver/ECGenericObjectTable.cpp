@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/lockhelper.hpp>
 
 /* Returns the rows for a contents- or hierarchytable
  *
@@ -155,11 +156,6 @@ ECGenericObjectTable::ECGenericObjectTable(ECSession *lpSession, unsigned int ul
 	m_bMVSort = false;
 
 	m_ulTableId = -1;
-
-	pthread_mutexattr_t mattr;
-	pthread_mutexattr_init(&mattr);
-	pthread_mutexattr_settype(&mattr, PTHREAD_MUTEX_RECURSIVE);
-	pthread_mutex_init(&m_hLock, &mattr);
 }
 
 /**
@@ -180,8 +176,6 @@ ECGenericObjectTable::~ECGenericObjectTable()
 		
 	for (const auto &p : m_mapCategories)
 		delete p.second;
-
-	pthread_mutex_destroy(&m_hLock);
 }
 
 /**
@@ -203,27 +197,18 @@ ECGenericObjectTable::~ECGenericObjectTable()
  */
 ECRESULT ECGenericObjectTable::SeekRow(unsigned int ulBookmark, int lSeekTo, int *lplRowsSought)
 {
-	ECRESULT er = erSuccess;
-
-	pthread_mutex_lock(&m_hLock);
-
-	er = Populate();
+	scoped_rlock biglock(m_hLock);
+	ECRESULT er = Populate();
 	if(er != erSuccess)
-	    goto exit;
+		return er;
 
 	if(lpsSortOrderArray == NULL) {
 		er = SetSortOrder(&sDefaultSortOrder, 0, 0);
 
 		if(er != erSuccess)
-			goto exit;
+			return er;
 	}
-
-	er = lpKeyTable->SeekRow(ulBookmark, lSeekTo, lplRowsSought);
-
-exit:
-	pthread_mutex_unlock(&m_hLock);
-
-	return er;
+	return lpKeyTable->SeekRow(ulBookmark, lSeekTo, lplRowsSought);
 }
 
 /**
@@ -238,7 +223,6 @@ exit:
  */
 ECRESULT ECGenericObjectTable::FindRow(struct restrictTable *lpsRestrict, unsigned int ulBookmark, unsigned int ulFlags)
 {
-	ECRESULT		er = erSuccess;
 	bool			fMatch = false;
 	int				ulSeeked = 0;
 	unsigned int	ulRow = 0;
@@ -253,10 +237,9 @@ ECRESULT ECGenericObjectTable::FindRow(struct restrictTable *lpsRestrict, unsign
 	sObjectTableKey		sRowItem;
 
 	entryId				sEntryId;
+	ulock_rec biglock(m_hLock);
 
-	pthread_mutex_lock(&m_hLock);
-	
-	er = Populate();
+	ECRESULT er = Populate();
 	if(er != erSuccess)
 	    goto exit;
 	
@@ -380,8 +363,7 @@ ECRESULT ECGenericObjectTable::FindRow(struct restrictTable *lpsRestrict, unsign
     }
 
 exit:
-	pthread_mutex_unlock(&m_hLock);
-
+	biglock.unlock();
 	if(lpSubResults)
 		FreeSubRestrictionResults(lpSubResults);
 	    
@@ -407,27 +389,18 @@ exit:
  */
 ECRESULT ECGenericObjectTable::GetRowCount(unsigned int *lpulRowCount, unsigned int *lpulCurrentRow)
 {
-	ECRESULT er = erSuccess;
-
-	pthread_mutex_lock(&m_hLock);
-
-	er = Populate();
+	scoped_rlock biglock(m_hLock);
+	ECRESULT er = Populate();
 	if(er != erSuccess)
-	    goto exit;
+		return er;
 	    
 	if(lpsSortOrderArray == NULL) {
 		er = SetSortOrder(&sDefaultSortOrder, 0, 0);
 
 		if(er != erSuccess)
-			goto exit;
+			return er;
 	}
-
-	er = lpKeyTable->GetRowCount(lpulRowCount, lpulCurrentRow);
-
-exit:
-	pthread_mutex_unlock(&m_hLock);
-
-	return er;
+	return lpKeyTable->GetRowCount(lpulRowCount, lpulCurrentRow);
 }
 
 ECRESULT ECGenericObjectTable::ReloadTableMVData(ECObjectTableList* lplistRows, ECListInt* lplistMVPropTag)
@@ -473,9 +446,7 @@ ECRESULT ECGenericObjectTable::ReloadTable(enumReloadType eType)
 
 	ECObjectTableList			listRows;
 	ECListInt					listMVPropTag;
-
-	
-	pthread_mutex_lock(&m_hLock);
+	scoped_rlock biglock(m_hLock);
 
 	//Scan for MVI columns
 	for (gsoap_size_t i = 0; lpsPropTagArray != NULL && i < lpsPropTagArray->__size; ++i) {
@@ -507,8 +478,8 @@ ECRESULT ECGenericObjectTable::ReloadTable(enumReloadType eType)
 	{
 		if(eType == RELOAD_TYPE_SORTORDER)
 			er = ReloadKeyTable();
-
-		goto exit; 				// no MVprops or already sorted, skip MV sorts
+		/* No MVprops or already sorted, skip MV sorts. */
+		return er;
 	}
 
 	m_listMVSortCols = listMVPropTag;
@@ -525,7 +496,7 @@ ECRESULT ECGenericObjectTable::ReloadTable(enumReloadType eType)
 		// Expand rows to contain all MVI expansions (listRows is appended to)
 		er = ReloadTableMVData(&listRows, &listMVPropTag);
 		if(er != erSuccess)
-			goto exit;
+			return er;
 	}
 
 	// Clear row data	
@@ -541,10 +512,6 @@ ECRESULT ECGenericObjectTable::ReloadTable(enumReloadType eType)
 skip:
 	m_bMVCols = bMVColsNew;
 	m_bMVSort = bMVSortNew;
-
-exit:
-	pthread_mutex_unlock(&m_hLock);
-
 	return er;
 }
 
@@ -577,13 +544,12 @@ ECRESULT ECGenericObjectTable::GetMVRowCount(unsigned int ulObjId, unsigned int 
  */
 ECRESULT ECGenericObjectTable::SetColumns(struct propTagArray *lpsPropTags, bool bDefaultSet)
 {
-	ECRESULT er = erSuccess;
 	//FIXME: check the lpsPropTags array, 0x????xxxx -> xxxx must be checked
 
 	// Remember the columns for later use (in QueryRows)
 	// This is a very very quick operation, as we only save the information.
 
-	pthread_mutex_lock(&m_hLock);
+	scoped_rlock biglock(m_hLock);
 
 	// Delete the old column set
 	if(this->lpsPropTagArray)
@@ -604,12 +570,7 @@ ECRESULT ECGenericObjectTable::SetColumns(struct propTagArray *lpsPropTags, bool
 	} else
 		memcpy(lpsPropTagArray->__ptr, lpsPropTags->__ptr, sizeof(unsigned int) * lpsPropTags->__size);
 	
-
-	er = ReloadTable(RELOAD_TYPE_SETCOLUMNS);
-
-	pthread_mutex_unlock(&m_hLock);
-	
-	return er;
+	return ReloadTable(RELOAD_TYPE_SETCOLUMNS);
 }
 
 ECRESULT ECGenericObjectTable::GetColumns(struct soap *soap, ULONG ulFlags, struct propTagArray **lppsPropTags)
@@ -618,17 +579,17 @@ ECRESULT ECGenericObjectTable::GetColumns(struct soap *soap, ULONG ulFlags, stru
 	int					n = 0;
 	ECListInt			lstProps;
 	struct propTagArray *lpsPropTags;
-	pthread_mutex_lock(&m_hLock);
+	scoped_rlock biglock(m_hLock);
 
 	if(ulFlags & TBL_ALL_COLUMNS) {
 		// All columns were requested. Simply get a unique list of all the proptags used in all the objects in this table
         er = Populate();
         if(er != erSuccess)
-            goto exit;
+			return er;
 
 		er = GetColumnsAll(&lstProps);
 		if(er != erSuccess)
-			goto exit;
+			return er;
 	
 		// Make sure we have a unique list
 		lstProps.sort();
@@ -664,19 +625,13 @@ ECRESULT ECGenericObjectTable::GetColumns(struct soap *soap, ULONG ulFlags, stru
 	}
 
 	*lppsPropTags = lpsPropTags;
-
-exit:
-	pthread_mutex_unlock(&m_hLock);
-
 	return er;
 }
 
 ECRESULT ECGenericObjectTable::ReloadKeyTable()
 {
-	ECRESULT		er = erSuccess;
 	ECObjectTableList listRows;
-
-	pthread_mutex_lock(&m_hLock);
+	scoped_rlock biglock(m_hLock);
 
 	// Get all the Row ID's from the ID map
 	for (const auto &p : mapObjects)
@@ -692,15 +647,7 @@ ECRESULT ECGenericObjectTable::ReloadKeyTable()
 	m_mapSortedCategories.clear();
 
 	// Load the keys with sort data from the table
-	er = AddRowKey(&listRows, NULL, 0, true, false, NULL);
-
-	if(er != erSuccess)
-		goto exit;
-
-exit:
-	pthread_mutex_unlock(&m_hLock);
-
-	return er;
+	return AddRowKey(&listRows, NULL, 0, true, false, NULL);
 }
 
 ECRESULT ECGenericObjectTable::SetSortOrder(struct sortOrderArray *lpsSortOrder, unsigned int ulCategories, unsigned int ulExpanded)
@@ -711,22 +658,19 @@ ECRESULT ECGenericObjectTable::SetSortOrder(struct sortOrderArray *lpsSortOrder,
 	// The current row is reset to point to the row it was pointing to in the first place.
 	// This is pretty easy as it is pointing at the same object ID as it was before we
 	// reloaded.
-
-	pthread_mutex_lock(&m_hLock);
+	scoped_rlock biglock(m_hLock);
 
 	if(m_ulCategories == ulCategories && m_ulExpanded == ulExpanded && this->lpsSortOrderArray && CompareSortOrderArray(this->lpsSortOrderArray, lpsSortOrder) == 0) {
 		// Sort requested was already set, return OK
 		this->SeekRow(BOOKMARK_BEGINNING, 0, NULL);
-		goto exit;
+		return er;
 	}
 	
 	// Check validity of tags
 	if (lpsSortOrder != NULL)
 		for (gsoap_size_t i = 0; i < lpsSortOrder->__size; ++i)
-			if ((PROP_TYPE(lpsSortOrder->__ptr[i].ulPropTag) & MVI_FLAG) == MV_FLAG) {
-				er = KCERR_TOO_COMPLEX;
-				goto exit;
-			}
+			if ((PROP_TYPE(lpsSortOrder->__ptr[i].ulPropTag) & MVI_FLAG) == MV_FLAG)
+				return KCERR_TOO_COMPLEX;
 	
 	m_ulCategories = ulCategories;
 	m_ulExpanded = ulExpanded;
@@ -747,15 +691,10 @@ ECRESULT ECGenericObjectTable::SetSortOrder(struct sortOrderArray *lpsSortOrder,
 	er = ReloadTable(RELOAD_TYPE_SORTORDER);
 	
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	// FIXME When you change the sort order, current row should be equal to previous row ID
-	er = lpKeyTable->SeekRow(0, 0, NULL);
-
-exit:
-	pthread_mutex_unlock(&m_hLock);
-
-	return er;
+	return lpKeyTable->SeekRow(0, 0, NULL);
 }
 
 ECRESULT ECGenericObjectTable::GetBinarySortKey(struct propVal *lpsPropVal, unsigned int *lpSortLen, unsigned char **lppSortData)
@@ -888,20 +827,18 @@ ECRESULT ECGenericObjectTable::GetSortFlags(unsigned int ulPropTag, unsigned cha
 ECRESULT ECGenericObjectTable::Restrict(struct restrictTable *lpsRestrict)
 {
 	ECRESULT er = erSuccess;
-
-	pthread_mutex_lock(&m_hLock);
+	scoped_rlock biglock(m_hLock);
 
 	if(lpsSortOrderArray == NULL) {
 		er = SetSortOrder(&sDefaultSortOrder, 0, 0);
 
 		if(er != erSuccess)
-			goto exit;
+			return er;
 	}
 
 	// No point turning off a restriction that's already off
-	if(this->lpsRestrict == NULL && lpsRestrict == NULL) {
-		goto exit;
-    }
+	if (this->lpsRestrict == NULL && lpsRestrict == NULL)
+		return er;
 
 	// Copy the restriction so we can remember it
 	if(this->lpsRestrict)
@@ -912,20 +849,16 @@ ECRESULT ECGenericObjectTable::Restrict(struct restrictTable *lpsRestrict)
 		er = CopyRestrictTable(NULL, lpsRestrict, &this->lpsRestrict);
 
 		if(er != erSuccess)
-			goto exit;
+			return er;
 	}
 
 	er = ReloadKeyTable();
 
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	// Seek to row 0 (according to spec)
 	this->SeekRow(BOOKMARK_BEGINNING, 0, NULL);
-
-exit:
-	pthread_mutex_unlock(&m_hLock);
-
 	return er;
 }
 
@@ -968,8 +901,7 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 	sObjectTableKey					sRowItem;
 	
 	ECCategory		*lpCategory = NULL;
-	
-	pthread_mutex_lock(&m_hLock);
+	ulock_rec biglock(m_hLock);
 
 	if (lpRows->empty()) {
 		// nothing todo
@@ -1103,8 +1035,7 @@ ECRESULT ECGenericObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int
 		*lpulLoaded = ulLoaded;
 
 exit:
-	pthread_mutex_unlock(&m_hLock);
-
+	biglock.unlock();
 	if(lpSubResults)
 		FreeSubRestrictionResults(lpSubResults);
 
@@ -1192,29 +1123,26 @@ ECRESULT ECGenericObjectTable::QueryRows(struct soap *soap, unsigned int ulRowCo
 {
 	// Retrieve the keyset from our KeyTable, and use that to retrieve the other columns
 	// specified by SetColumns
-
-	ECRESULT		er = erSuccess;
 	struct rowSet	*lpRowSet = NULL;
-
 	ECObjectTableList	ecRowList;
+	scoped_rlock biglock(m_hLock);
 
-	pthread_mutex_lock(&m_hLock);
-	er = Populate();
+	ECRESULT er = Populate();
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	if(lpsSortOrderArray == NULL) {
 		er = SetSortOrder(&sDefaultSortOrder, 0, 0);
 
 		if(er != erSuccess)
-			goto exit;
+			return er;
 	}
 
 	// Get the keys per row
 	er = lpKeyTable->QueryRows(ulRowCount, &ecRowList, false, ulFlags);
 
 	if(er != erSuccess)
-		goto exit;
+		return er;
 
 	ASSERT(ecRowList.size() <= this->mapObjects.size() + this->m_mapCategories.size());
 
@@ -1230,52 +1158,26 @@ ECRESULT ECGenericObjectTable::QueryRows(struct soap *soap, unsigned int ulRowCo
 	}
 
 	if(er != erSuccess)
-		goto exit;
-		
+		return er;
 	*lppRowSet = lpRowSet;
-
-exit:
-	pthread_mutex_unlock(&m_hLock);
-
 	return er;
 }
 
 ECRESULT ECGenericObjectTable::CreateBookmark(unsigned int* lpulbkPosition)
 {
-	ECRESULT		er = erSuccess;
-	
-	pthread_mutex_lock(&m_hLock);
-
-	er = lpKeyTable->CreateBookmark(lpulbkPosition);
-	if(er != erSuccess)
-		goto exit;
-
-exit:
-	pthread_mutex_unlock(&m_hLock);
-
-	return er;
+	scoped_rlock biglock(m_hLock);
+	return lpKeyTable->CreateBookmark(lpulbkPosition);
 }
 
 ECRESULT ECGenericObjectTable::FreeBookmark(unsigned int ulbkPosition)
 {
-	ECRESULT		er = erSuccess;
-	
-	pthread_mutex_lock(&m_hLock);
-
-	er = lpKeyTable->FreeBookmark(ulbkPosition);
-	if(er != erSuccess)
-		goto exit;
-
-exit:
-	pthread_mutex_unlock(&m_hLock);
-
-	return er;
+	scoped_rlock biglock(m_hLock);
+	return lpKeyTable->FreeBookmark(ulbkPosition);
 }
 
 // Expand the category identified by sInstanceKey
 ECRESULT ECGenericObjectTable::ExpandRow(struct soap *soap, xsd__base64Binary sInstanceKey, unsigned int ulRowCount, unsigned int ulFlags, struct rowSet **lppRowSet, unsigned int *lpulRowsLeft)
 {
-    ECRESULT er = erSuccess;
     sObjectTableKey sKey;
     sObjectTableKey sPrevRow;
     ECCategoryMap::const_iterator iterCategory;
@@ -1283,33 +1185,28 @@ ECRESULT ECGenericObjectTable::ExpandRow(struct soap *soap, xsd__base64Binary sI
     ECObjectTableList lstUnhidden;
     unsigned int ulRowsLeft = 0;
     struct rowSet *lpRowSet = NULL;
+	scoped_rlock biglock(m_hLock);
     
-    pthread_mutex_lock(&m_hLock);
-    
-    er = Populate();
+	ECRESULT er = Populate();
     if(er != erSuccess)
-        goto exit;
+		return er;
 
-    if(sInstanceKey.__size != sizeof(sObjectTableKey)) {
-        er = KCERR_INVALID_PARAMETER;
-        goto exit;
-    }
+	if (sInstanceKey.__size != sizeof(sObjectTableKey))
+		return KCERR_INVALID_PARAMETER;
 
     sKey.ulObjId = *((unsigned int *)sInstanceKey.__ptr);
     sKey.ulOrderId = *((unsigned int *)sInstanceKey.__ptr+1);
     
     iterCategory = m_mapCategories.find(sKey);
-    if (iterCategory == m_mapCategories.cend()) {
-        er = KCERR_NOT_FOUND;
-        goto exit;
-    }
+	if (iterCategory == m_mapCategories.cend())
+		return KCERR_NOT_FOUND;
 
     lpCategory = iterCategory->second;
 
     // Unhide all rows under this category
     er = lpKeyTable->UnhideRows(&sKey, &lstUnhidden);
     if(er != erSuccess)
-        goto exit;
+		return er;
 
     // Only return a maximum of ulRowCount rows
     if(ulRowCount < lstUnhidden.size()) {
@@ -1332,7 +1229,7 @@ ECRESULT ECGenericObjectTable::ExpandRow(struct soap *soap, xsd__base64Binary sI
     	}
 
     	if(er != erSuccess)
-	    	goto exit;
+			return er;
     }
 
     lpCategory->m_fExpanded = true;
@@ -1341,49 +1238,39 @@ ECRESULT ECGenericObjectTable::ExpandRow(struct soap *soap, xsd__base64Binary sI
         *lppRowSet = lpRowSet;
     if(lpulRowsLeft)
         *lpulRowsLeft = ulRowsLeft;
-    
-exit:
-    pthread_mutex_unlock(&m_hLock);
-    
     return er;
 }
 
 // Collapse the category row identified by sInstanceKey
 ECRESULT ECGenericObjectTable::CollapseRow(xsd__base64Binary sInstanceKey, unsigned int ulFlags, unsigned int *lpulRows)
 {
-    ECRESULT er = erSuccess;
     sObjectTableKey sKey;
     sObjectTableKey sPrevRow;
     ECCategoryMap::const_iterator iterCategory;
     ECCategory *lpCategory = NULL;
     ECObjectTableList lstHidden;
-
-	pthread_mutex_lock(&m_hLock);
+	scoped_rlock biglock(m_hLock);
     
-    if(sInstanceKey.__size != sizeof(sObjectTableKey)) {
-        er = KCERR_INVALID_PARAMETER;
-        goto exit;
-    }
+	if (sInstanceKey.__size != sizeof(sObjectTableKey))
+		return KCERR_INVALID_PARAMETER;
     
-    er = Populate();
+	ECRESULT er = Populate();
     if(er != erSuccess)
-        goto exit;
+		return er;
 
     sKey.ulObjId = *((unsigned int *)sInstanceKey.__ptr);
     sKey.ulOrderId = *((unsigned int *)sInstanceKey.__ptr+1);
     
     iterCategory = m_mapCategories.find(sKey);
-    if (iterCategory == m_mapCategories.cend()) {
-        er = KCERR_NOT_FOUND;
-        goto exit;
-    }
+	if (iterCategory == m_mapCategories.cend())
+		return KCERR_NOT_FOUND;
 
     lpCategory = iterCategory->second;
 
     // Hide the rows under this category
     er = lpKeyTable->HideRows(&sKey, &lstHidden);
     if(er != erSuccess)
-        goto exit;
+		return er;
     
     // Mark the category as collapsed
     lpCategory->m_fExpanded = false;
@@ -1399,10 +1286,6 @@ ECRESULT ECGenericObjectTable::CollapseRow(xsd__base64Binary sInstanceKey, unsig
 
     if(lpulRows)
         *lpulRows = lstHidden.size();
-
-exit:    
-	pthread_mutex_unlock(&m_hLock);
-
     return er;
 }
 
@@ -1416,8 +1299,7 @@ ECRESULT ECGenericObjectTable::GetCollapseState(struct soap *soap, struct xsd__b
     struct rowSet *lpsRowSet = NULL;
     
     struct soap xmlsoap;	// static, so c++ inits struct, no need for soap init
-
-	pthread_mutex_lock(&m_hLock);
+	ulock_rec biglock(m_hLock);
     
     er = Populate();
     if(er != erSuccess)
@@ -1485,8 +1367,7 @@ exit:
 	soap_destroy(&xmlsoap);
 	soap_end(&xmlsoap);
 	// static struct, so c++ destructor frees memory
-	pthread_mutex_unlock(&m_hLock);
-
+	biglock.unlock();
     return er;
 }
 
@@ -1501,8 +1382,7 @@ ECRESULT ECGenericObjectTable::SetCollapseState(struct xsd__base64Binary sCollap
     unsigned char *lpSortFlags = NULL;
 	sObjectTableKey sKey;
     struct xsd__base64Binary sInstanceKey;
-
-	pthread_mutex_lock(&m_hLock);
+	ulock_rec giblock(m_hLock);
     
     lpCollapseState = new collapseState;
     
@@ -1615,8 +1495,7 @@ next:
 exit:
 	soap_destroy(&xmlsoap);
 	soap_end(&xmlsoap);
-	pthread_mutex_unlock(&m_hLock);
-
+	giblock.unlock();
         delete lpCollapseState;
         delete [] lpSortLen;
         delete [] lpSortData;
@@ -1682,8 +1561,7 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
 	ECObjectTableList		ecRowsItem;
 	ECObjectTableList		ecRowsDeleted;
 	sObjectTableKey		sRow;
-	
-	pthread_mutex_lock(&m_hLock);
+	scoped_rlock biglock(m_hLock);
 
 	// Perform security checks for this object
 	switch(ulType) {
@@ -1709,7 +1587,7 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
 		er = SetSortOrder(&sDefaultSortOrder, 0, 0);
 
 		if(er != erSuccess)
-			goto exit;
+			return er;
 	}
 
 	// Update a row in the keyset as having changed. Get the data from the DB and send it to the KeyTable.
@@ -1787,8 +1665,7 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
 		// Add/modify the key in the keytable
 		er = AddRowKey(&ecRowsItem, &ulRead, ulFlags, bLoad, false, NULL);
 		if(er != erSuccess)
-			goto exit;
-
+			return er;
 		break;
 	case ECKeyTable::TABLE_CHANGE:
 		// The whole table needs to be reread
@@ -1799,10 +1676,6 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
 
 		break;
 	}
-	
-exit:
-	pthread_mutex_unlock(&m_hLock);
-
 	return er;
 }
 
@@ -2416,7 +2289,7 @@ void ECGenericObjectTable::SetTableId(unsigned int ulTableId)
 
 ECRESULT ECGenericObjectTable::Clear()
 {
-	pthread_mutex_lock(&m_hLock);
+	scoped_rlock biglock(m_hLock);
 
 	// Clear old entries
 	mapObjects.clear();
@@ -2427,9 +2300,6 @@ ECRESULT ECGenericObjectTable::Clear()
 		delete p.second;
 	m_mapCategories.clear();
 	m_mapSortedCategories.clear();
-    
-	pthread_mutex_unlock(&m_hLock);
-
 	return hrSuccess;
 }
 
@@ -2440,21 +2310,11 @@ ECRESULT ECGenericObjectTable::Load()
 
 ECRESULT ECGenericObjectTable::Populate()
 {
-	ECRESULT er = erSuccess;
-
-	pthread_mutex_lock(&m_hLock);
-
+	scoped_rlock biglock(m_hLock);
 	if(m_bPopulated)
-		goto exit;
-
+		return erSuccess;
 	m_bPopulated = true;
-
-	er = Load();
-
-exit:
-	pthread_mutex_unlock(&m_hLock);
-
-	return er;
+	return Load();
 }
 
 // Sort functions, overide this functions as you used a caching system
@@ -3149,8 +3009,7 @@ ECRESULT ECGenericObjectTable::CheckPermissions(unsigned int ulObjId)
 size_t ECGenericObjectTable::GetObjectSize(void)
 {
 	size_t ulSize = sizeof(*this);
-
-	pthread_mutex_lock(&m_hLock);
+	scoped_rlock biglock(m_hLock);
 
 	ulSize += SortOrderArraySize(lpsSortOrderArray);
 	ulSize += PropTagArraySize(lpsPropTagArray);
@@ -3165,9 +3024,6 @@ size_t ECGenericObjectTable::GetObjectSize(void)
 		ulSize += p.second->GetObjectSize();
 	
 	ulSize += MEMORY_USAGE_MAP(m_mapLeafs.size(), ECLeafMap);
-
-	pthread_mutex_unlock(&m_hLock);
-
 	return ulSize;
 }
 

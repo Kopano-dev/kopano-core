@@ -16,11 +16,13 @@
  */
 
 #include <kopano/platform.h>
+#include <mutex>
 #include "ECThreadManager.h"
 
 #include <cmath>
 #include <cstdlib>
 #include <algorithm>
+#include <kopano/lockhelper.hpp>
 #include <kopano/stringutil.h>
 
 #ifdef HAVE_EPOLL_CREATE
@@ -274,14 +276,11 @@ ECThreadManager::ECThreadManager(ECLogger *lpLogger, ECDispatcher *lpDispatcher,
     m_lpDispatcher = lpDispatcher;
     m_ulThreads = ulThreads;
 
-    pthread_mutex_init(&m_mutexThreads, NULL);
-
-    pthread_mutex_lock(&m_mutexThreads);
+	scoped_lock l_thr(m_mutexThreads);
     // Start our worker threads
 	m_lpPrioWorker = new ECPriorityWorkerThread(m_lpLogger, this, lpDispatcher);
 	for (unsigned int i = 0; i < ulThreads; ++i)
 		m_lstThreads.push_back(new ECWorkerThread(m_lpLogger, this, lpDispatcher));
-    pthread_mutex_unlock(&m_mutexThreads);
 }
 
 ECThreadManager::~ECThreadManager()
@@ -290,9 +289,9 @@ ECThreadManager::~ECThreadManager()
 
     // Wait for the threads to exit
     while(1) {
-        pthread_mutex_lock(&m_mutexThreads);
-        ulThreads = m_lstThreads.size();
-        pthread_mutex_unlock(&m_mutexThreads);
+		ulock_normal l_thr(m_mutexThreads);
+		ulThreads = m_lstThreads.size();
+		l_thr.unlock();
         if(ulThreads > 0) {
             m_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Still waiting for %d worker threads to exit", ulThreads);
             Sleep(1000);
@@ -302,47 +301,36 @@ ECThreadManager::~ECThreadManager()
     }    
 	delete m_lpPrioWorker;
 	m_lpLogger->Release();
-	pthread_mutex_destroy(&m_mutexThreads);
 }
     
 ECRESULT ECThreadManager::ForceAddThread(int nThreads)
 {
-    pthread_mutex_lock(&m_mutexThreads);
+	scoped_lock l_thr(m_mutexThreads);
 	for (int i = 0; i < nThreads; ++i)
 		m_lstThreads.push_back(new ECWorkerThread(m_lpLogger, this, m_lpDispatcher));
-    pthread_mutex_unlock(&m_mutexThreads);
-    
-    return erSuccess;
+	return erSuccess;
 }
 
 ECRESULT ECThreadManager::GetThreadCount(unsigned int *lpulThreads)
 {
-    unsigned int ulThreads;
-    
-    pthread_mutex_lock(&m_mutexThreads);
-    ulThreads = m_lstThreads.size();
-    pthread_mutex_unlock(&m_mutexThreads);
-    
-    *lpulThreads = ulThreads;
-    
-    return erSuccess;
+	unsigned int ulThreads;
+	scoped_lock l_thr(m_mutexThreads);
+	ulThreads = m_lstThreads.size();
+	*lpulThreads = ulThreads;
+	return erSuccess;
 }
 
 ECRESULT ECThreadManager::SetThreadCount(unsigned int ulThreads)
 {
     // If we're under the number of threads at the moment, start new ones
-    pthread_mutex_lock(&m_mutexThreads);
+	scoped_lock l_thr(m_mutexThreads);
 
     // Set the default thread count
     m_ulThreads = ulThreads;
 
     while(ulThreads > m_lstThreads.size())
         m_lstThreads.push_back(new ECWorkerThread(m_lpLogger, this, m_lpDispatcher));
-    
-    pthread_mutex_unlock(&m_mutexThreads);
-    
     // If we are OVER the number of threads, then the code in NotifyIdle() will bring this down
-    
     return erSuccess;
 }
 
@@ -350,16 +338,15 @@ ECRESULT ECThreadManager::SetThreadCount(unsigned int ulThreads)
 // deleted.
 ECRESULT ECThreadManager::NotifyIdle(ECWorkerThread *lpThread, bool *lpfStop)
 {
-	ECRESULT er = erSuccess;
 	std::list<ECWorkerThread *>::iterator iterThreads;
     *lpfStop = false;
         
-    pthread_mutex_lock(&m_mutexThreads);
+	scoped_lock l_thr(m_mutexThreads);
 	// special case for priority worker
 	if (lpThread == m_lpPrioWorker) {
 		// exit requested?
 		*lpfStop = (m_ulThreads == 0);
-		goto exit;
+		return erSuccess;
 	}
     if(m_ulThreads < m_lstThreads.size()) {
         // We are currently running more threads than we want, so tell the thread to stop
@@ -367,8 +354,7 @@ ECRESULT ECThreadManager::NotifyIdle(ECWorkerThread *lpThread, bool *lpfStop)
         if(iterThreads == m_lstThreads.end()) {
             // HUH
             m_lpLogger->Log(EC_LOGLEVEL_FATAL, "A thread that we don't know is idle ...");
-            er = KCERR_NOT_FOUND;
-            goto exit;
+			return KCERR_NOT_FOUND;
         }
         // Remove the thread from our running thread list
         m_lstThreads.erase(iterThreads);
@@ -376,11 +362,7 @@ ECRESULT ECThreadManager::NotifyIdle(ECWorkerThread *lpThread, bool *lpfStop)
         // Tell the thread to exit. The thread will self-cleanup; we therefore needn't delete the object nor join with the running thread
         *lpfStop = true;
     }
-            
-exit:
-    pthread_mutex_unlock(&m_mutexThreads);
-        
-    return er;
+	return erSuccess;
 }
 
 ECWatchDog::ECWatchDog(ECConfig *lpConfig, ECLogger *lpLogger, ECDispatcher *lpDispatcher, ECThreadManager *lpThreadManager)
@@ -391,9 +373,6 @@ ECWatchDog::ECWatchDog(ECConfig *lpConfig, ECLogger *lpLogger, ECDispatcher *lpD
     m_lpDispatcher = lpDispatcher;
     m_lpThreadManager = lpThreadManager;
     m_bExit = false;
-    
-    pthread_mutex_init(&m_mutexExit, NULL);
-    pthread_cond_init(&m_condExit, NULL);
     
     if(pthread_create(&m_thread, NULL, ECWatchDog::Watch, this) != 0) {
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to start watchdog thread: %s", strerror(errno));
@@ -407,15 +386,12 @@ ECWatchDog::~ECWatchDog()
 {
     void *ret;
     
-    pthread_mutex_lock(&m_mutexExit);
-    m_bExit = true;
-    pthread_cond_signal(&m_condExit);
-    pthread_mutex_unlock(&m_mutexExit);
+	ulock_normal l_exit(m_mutexExit);
+	m_bExit = true;
+	m_condExit.notify_one();
+	l_exit.unlock();
     
     pthread_join(m_thread, &ret);
-    
-    pthread_mutex_destroy(&m_mutexExit);
-    pthread_cond_destroy(&m_condExit);
     m_lpLogger->Release();
 }
 
@@ -423,7 +399,6 @@ void *ECWatchDog::Watch(void *lpParam)
 {
     ECWatchDog *lpThis = (ECWatchDog *)lpParam;
     double dblAge;
-    struct timespec timeout;
     
     while(1) {
 		if(lpThis->m_bExit == true)
@@ -438,19 +413,12 @@ void *ECWatchDog::Watch(void *lpParam)
             lpThis->m_lpThreadManager->ForceAddThread(1);
 
         // Check to see if exit flag is set, and limit rate to dblMaxFreq Hz
-        pthread_mutex_lock(&lpThis->m_mutexExit);
+		ulock_normal l_exit(lpThis->m_mutexExit);
         if(lpThis->m_bExit == false) {
-            double dblWait = 1/dblMaxFreq;
-            clock_gettime(CLOCK_REALTIME, &timeout);
-            timeout.tv_sec += dblWait;
-            timeout.tv_nsec += 1000000000.0*(dblWait-floor(dblWait));
-            pthread_cond_timedwait(&lpThis->m_condExit, &lpThis->m_mutexExit, &timeout);
-            if(lpThis->m_bExit == true) {
-                pthread_mutex_unlock(&lpThis->m_mutexExit);
-                break;
-            }
+			lpThis->m_condExit.wait_for(l_exit, std::chrono::duration<double>(1 / dblMaxFreq));
+			if (lpThis->m_bExit == true)
+				break;
         }
-        pthread_mutex_unlock(&lpThis->m_mutexExit);
     }
     
     return NULL;
@@ -469,13 +437,6 @@ ECDispatcher::ECDispatcher(ECLogger *lpLogger, ECConfig *lpConfig, CREATEPIPESOC
 	m_nSendTimeout = atoi(m_lpConfig->GetSetting("server_send_timeout"));
     
     m_ulIdle = 0;
-        
-    pthread_mutex_init(&m_mutexItems, NULL);
-    pthread_mutex_init(&m_mutexSockets, NULL);
-    pthread_mutex_init(&m_mutexIdle, NULL);
-    pthread_cond_init(&m_condItems, NULL);
-    pthread_cond_init(&m_condPrioItems, NULL);
-    
     m_bExit = false;
 	m_lpCreatePipeSocketCallback = lpCallback;
 	m_lpCreatePipeSocketParam = lpParam;
@@ -483,12 +444,6 @@ ECDispatcher::ECDispatcher(ECLogger *lpLogger, ECConfig *lpConfig, CREATEPIPESOC
 
 ECDispatcher::~ECDispatcher()
 {
-    // Cleanup
-    pthread_mutex_destroy(&m_mutexItems);
-    pthread_mutex_destroy(&m_mutexSockets);
-    pthread_mutex_destroy(&m_mutexIdle);
-    pthread_cond_destroy(&m_condItems);
-    pthread_cond_destroy(&m_condPrioItems);
     m_lpLogger->Release();
 }
 
@@ -507,28 +462,22 @@ ECRESULT ECDispatcher::GetFrontItemAge(double *lpdblAge)
     double dblNow = GetTimeOfDay();
     double dblAge = 0;
     
-    pthread_mutex_lock(&m_mutexItems);
+	scoped_lock lock(m_mutexItems);
     if(m_queueItems.empty() && m_queuePrioItems.empty())
         dblAge = 0;
     else if (m_queueItems.empty()) // normal items queue is more important when checking queue age
         dblAge = dblNow - m_queuePrioItems.front()->dblReceiveStamp;
 	else
         dblAge = dblNow - m_queueItems.front()->dblReceiveStamp;
-        
-    pthread_mutex_unlock(&m_mutexItems);
-    
     *lpdblAge = dblAge;
-    
     return erSuccess;
 }
 
 ECRESULT ECDispatcher::GetQueueLength(unsigned int *lpulLength)
 {
     unsigned int ulLength = 0;
-    pthread_mutex_lock(&m_mutexItems);
+	scoped_lock lock(m_mutexItems);
     ulLength = m_queueItems.size() + m_queuePrioItems.size();
-    pthread_mutex_unlock(&m_mutexItems);
-    
     *lpulLength = ulLength;
     return erSuccess;
 }
@@ -553,16 +502,14 @@ ECRESULT ECDispatcher::QueueItem(struct soap *soap)
 	item->dblReceiveStamp = GetTimeOfDay();
 	ulType = SOAP_CONNECTION_TYPE(soap);
 
-	pthread_mutex_lock(&m_mutexItems);
+	scoped_lock lock(m_mutexItems);
 	if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY) {
 		m_queuePrioItems.push(item);
-		pthread_cond_signal(&m_condPrioItems);
+		m_condPrioItems.notify_one();
 	} else {
 		m_queueItems.push(item);
-		pthread_cond_signal(&m_condItems);
+		m_condItems.notify_one();
 	}
-	pthread_mutex_unlock(&m_mutexItems);
-
 	return erSuccess;
 }
 
@@ -581,9 +528,8 @@ ECRESULT ECDispatcher::GetNextWorkItem(WORKITEM **lppItem, bool bWait, bool bPri
     WORKITEM *lpItem = NULL;
     ECRESULT er = erSuccess;
 	std::queue<WORKITEM *>* queue = bPrio ? &m_queuePrioItems : &m_queueItems;
-    pthread_cond_t *condItems = bPrio ? &m_condPrioItems : &m_condItems;
-
-    pthread_mutex_lock(&m_mutexItems);
+	auto &condItems = bPrio ? m_condPrioItems : m_condItems;
+	ulock_normal l_item(m_mutexItems);
 
     // Check the queue
     if(!queue->empty()) {
@@ -593,36 +539,30 @@ ECRESULT ECDispatcher::GetNextWorkItem(WORKITEM **lppItem, bool bWait, bool bPri
     } else {
         // No item waiting
         if(bWait && !m_bExit) {
-            pthread_mutex_lock(&m_mutexIdle);
-            ++m_ulIdle;
-            pthread_mutex_unlock(&m_mutexIdle);
-            
-            // If requested, wait until item is available
-            pthread_cond_wait(condItems, &m_mutexItems);
-            
-            pthread_mutex_lock(&m_mutexIdle);
-            --m_ulIdle;
-            pthread_mutex_unlock(&m_mutexIdle);
+			ulock_normal l_idle(m_mutexIdle);
+			++m_ulIdle;
+			l_idle.unlock();
+
+			/* If requested, wait until item is available */
+			condItems.wait(l_item);
+			l_idle.lock();
+			--m_ulIdle;
+			l_idle.unlock();
 
             if(!queue->empty() && !m_bExit) {
                 lpItem = queue->front();
                 queue->pop();
             } else {
                 // Condition fired, but still nothing there. Probably exit requested or wrong queue signal
-                er = KCERR_NOT_FOUND;
-                goto exit;
+				return KCERR_NOT_FOUND;
             }
         } else {
             // No wait requested, return not found
-            er = KCERR_NOT_FOUND;
-            goto exit;
+			return KCERR_NOT_FOUND;
         }
     }
     
     *lppItem = lpItem;
-exit:
-    pthread_mutex_unlock(&m_mutexItems);
-    
     return er;
 }
 
@@ -645,10 +585,9 @@ ECRESULT ECDispatcher::NotifyDone(struct soap *soap)
             sActive.soap = soap;
             time(&sActive.ulLastActivity);
             
-            pthread_mutex_lock(&m_mutexSockets);
-            m_setSockets.insert(std::make_pair(soap->socket, sActive));
-            pthread_mutex_unlock(&m_mutexSockets);
-        
+			ulock_normal l_sock(m_mutexSockets);
+			m_setSockets.insert(std::make_pair(soap->socket, sActive));
+			l_sock.unlock();
             // Notify select restart, send socket number which is done
 			NotifyRestart(socket);
         } else {
@@ -674,9 +613,8 @@ ECRESULT ECDispatcher::SetThreadCount(unsigned int ulThreads)
     // Since the threads may be blocking while waiting for the next queue item, broadcast
     // a wakeup for all threads so that they re-check their idle state (and exit if the thread count
     // is now lower)
-    pthread_mutex_lock(&m_mutexItems);
-    pthread_cond_broadcast(&m_condItems);
-    pthread_mutex_unlock(&m_mutexItems);
+	scoped_lock l_item(m_mutexItems);
+	m_condItems.notify_all();
 	return erSuccess;
 }
 
@@ -734,9 +672,9 @@ ECRESULT ECDispatcherSelect::MainLoop()
         // Listen on rescan trigger
         FD_SET(m_fdRescanRead, &readfds);
         maxfds = m_fdRescanRead;
-        pthread_mutex_lock(&m_mutexSockets);
 
         // Listen on active sockets
+		ulock_normal l_sock(m_mutexSockets);
 		for (const auto &p : m_setSockets) {
 			ulType = SOAP_CONNECTION_TYPE(p.second.soap);
 			if (ulType != CONNECTION_TYPE_NAMED_PIPE &&
@@ -753,7 +691,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
 			FD_SET(p.second->socket, &readfds);
 			maxfds = max(maxfds, p.second->socket);
         }
-        pthread_mutex_unlock(&m_mutexSockets);
+		l_sock.unlock();
         		
         // Wait for at most 1 second, so that we can close inactive sockets
         tv.tv_sec = 1;
@@ -770,9 +708,8 @@ ECRESULT ECDispatcherSelect::MainLoop()
             read(m_fdRescanRead, s, sizeof(s));
         } 
 
-        pthread_mutex_lock(&m_mutexSockets);
-        
         // Search for activity on active sockets
+		l_sock.lock();
 	auto iterSockets = m_setSockets.cbegin();
 	while (n != 0 && iterSockets != m_setSockets.cend()) {
 		if (!FD_ISSET(iterSockets->second.soap->socket, &readfds)) {
@@ -798,8 +735,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
 		// N holds the number of descriptors set in readfds, so decrease by one since we handled that one.
 		--n;
 	}
-
-        pthread_mutex_unlock(&m_mutexSockets);
+		l_sock.unlock();
 
         // Search for activity on listen sockets
 		for (const auto &p : m_setListenSockets) {
@@ -849,9 +785,9 @@ ECRESULT ECDispatcherSelect::MainLoop()
 			g_lpStatsCollector->Max(SCN_MAX_SOCKET_NUMBER, (LONGLONG)newsoap->socket);
 			g_lpStatsCollector->Increment(SCN_SERVER_CONNECTIONS);
 			sActive.soap = newsoap;
-			pthread_mutex_lock(&m_mutexSockets);
+			l_sock.lock();
 			m_setSockets.insert(std::make_pair(sActive.soap->socket, sActive));
-			pthread_mutex_unlock(&m_mutexSockets);
+			l_sock.unlock();
 		}
 	}
 
@@ -862,20 +798,20 @@ ECRESULT ECDispatcherSelect::MainLoop()
     m_lpThreadManager->SetThreadCount(0);
 
     // Notify threads that they should re-query their idle state (and exit)
-    pthread_mutex_lock(&m_mutexItems);
-    pthread_cond_broadcast(&m_condItems);
-    pthread_cond_broadcast(&m_condPrioItems);
-    pthread_mutex_unlock(&m_mutexItems);
+    ulock_normal l_item(m_mutexItems);
+    m_condItems.notify_all();
+    m_condPrioItems.notify_all();
+    l_item.unlock();
     
     // Delete thread manager (waits for threads to become idle). During this time
     // the threads may report back a workitem as being done. If this is the case, we directly close that socket too.
     delete m_lpThreadManager;
     
     // Empty the queue
-    pthread_mutex_lock(&m_mutexItems);
+	l_item.lock();
     while(!m_queueItems.empty()) { kopano_end_soap_connection(m_queueItems.front()->soap); soap_free(m_queueItems.front()->soap); m_queueItems.pop(); }
     while(!m_queuePrioItems.empty()) { kopano_end_soap_connection(m_queuePrioItems.front()->soap); soap_free(m_queuePrioItems.front()->soap); m_queuePrioItems.pop(); }
-    pthread_mutex_unlock(&m_mutexItems);
+	l_item.unlock();
 
 	// Close all listener sockets. 
 	for (const auto &p : m_setListenSockets) {
@@ -883,13 +819,12 @@ ECRESULT ECDispatcherSelect::MainLoop()
 		soap_free(p.second);
 	}
 	// Close all sockets. This will cause all that we were listening on clients to get an EOF
-	pthread_mutex_lock(&m_mutexSockets);
+	ulock_normal l_sock(m_mutexSockets);
 	for (const auto &p : m_setSockets) {
 		kopano_end_soap_connection(p.second.soap);
 		soap_free(p.second.soap);
 	}
-	pthread_mutex_unlock(&m_mutexSockets);
-    
+	l_sock.unlock();
     return er;
 }
 
@@ -960,7 +895,7 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 		time(&now);
 
 		// find timedout sockets once per second
-		pthread_mutex_lock(&m_mutexSockets);
+		ulock_normal l_sock(m_mutexSockets);
 		if(now > last) {
             iterSockets = m_setSockets.begin();
             while (iterSockets != m_setSockets.end()) {
@@ -973,10 +908,10 @@ ECRESULT ECDispatcherEPoll::MainLoop()
             }
             last = now;
         }
-		pthread_mutex_unlock(&m_mutexSockets);
+		l_sock.unlock();
 
 		n = epoll_wait(m_epFD, epevents, m_fdMax, 1000); // timeout -1 is wait indefinitely
-		pthread_mutex_lock(&m_mutexSockets);
+		l_sock.lock();
 		for (int i = 0; i < n; ++i) {
 			iterListenSockets = m_setListenSockets.find(epevents[i].data.fd);
 
@@ -1054,7 +989,7 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 				}
 			}
 		}
-		pthread_mutex_unlock(&m_mutexSockets);
+		l_sock.unlock();
 	}
 
 	// Delete the watchdog. This makes sure no new threads will be started.
@@ -1064,18 +999,17 @@ ECRESULT ECDispatcherEPoll::MainLoop()
     m_lpThreadManager->SetThreadCount(0);
 
     // Notify threads that they should re-query their idle state (and exit)
-    pthread_mutex_lock(&m_mutexItems);
-    pthread_cond_broadcast(&m_condItems);
-    pthread_cond_broadcast(&m_condPrioItems);
-    pthread_mutex_unlock(&m_mutexItems);
-
+	ulock_normal l_item(m_mutexItems);
+	m_condItems.notify_all();
+	m_condPrioItems.notify_all();
+	l_item.unlock();
 	delete m_lpThreadManager;
 
     // Empty the queue
-    pthread_mutex_lock(&m_mutexItems);
+	l_item.lock();
     while(!m_queueItems.empty()) { kopano_end_soap_connection(m_queueItems.front()->soap); soap_free(m_queueItems.front()->soap); m_queueItems.pop(); }
     while(!m_queuePrioItems.empty()) { kopano_end_soap_connection(m_queuePrioItems.front()->soap); soap_free(m_queuePrioItems.front()->soap); m_queuePrioItems.pop(); }
-    pthread_mutex_unlock(&m_mutexItems);
+	l_item.unlock();
 
 	// Close all listener sockets.
 	for (iterListenSockets = m_setListenSockets.begin();
@@ -1085,16 +1019,13 @@ ECRESULT ECDispatcherEPoll::MainLoop()
         soap_free(iterListenSockets->second);
     }
     // Close all sockets. This will cause all that we were listening on clients to get an EOF
-	pthread_mutex_lock(&m_mutexSockets);
+	ulock_normal l_sock(m_mutexSockets);
     for (iterSockets = m_setSockets.begin(); iterSockets != m_setSockets.end(); ++iterSockets) {
         kopano_end_soap_connection(iterSockets->second.soap);
         soap_free(iterSockets->second.soap);
     }
-	pthread_mutex_unlock(&m_mutexSockets);
-    
-
+	l_sock.unlock();
 	delete [] epevents;
-
 	return er;
 }
 

@@ -21,6 +21,7 @@
 #define MAX_SORTKEY_LEN 4096
 
 #include <kopano/zcdefs.h>
+#include <mutex>
 #include "soapH.h"
 
 #include <list>
@@ -216,7 +217,7 @@ protected:
 	unsigned int				m_ulTableId;	// Id of the table from ECTableManager
 	void*						m_lpObjectData;
 
-	pthread_mutex_t				m_hLock;		// Lock for locked internals
+	std::recursive_mutex m_hLock; /* Lock for locked internals */
 
 	// Locked internals
 	struct sortOrderArray*		lpsSortOrderArray;	// Stored sort order
