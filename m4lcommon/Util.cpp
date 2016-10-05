@@ -1736,6 +1736,7 @@ HRESULT Util::HrMAPIErrorToText(HRESULT hr, LPTSTR *lppszError, void *lpBase)
  */
 bool Util::ValidatePropTagArray(const SPropTagArray *lpPropTagArray)
 {
+	bool bResult = false;
 	unsigned int i;
 
 	if (lpPropTagArray == NULL)
@@ -1773,12 +1774,13 @@ bool Util::ValidatePropTagArray(const SPropTagArray *lpPropTagArray)
 			case PT_MV_CLSID:
 			case PT_MV_I8:
 			case PT_ERROR:
-				return true;
+				bResult = true;
+				break;
 			default:
 				return false;
 		}
 	}
-	return false;
+	return bResult;
 }
 
 /** 
