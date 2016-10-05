@@ -165,7 +165,9 @@ ECRESULT ECSoapServerConnection::ListenTCP(const char* lpServerName, int nServer
 
 	if (bEnableGET)
 		lpsSoap->fget = http_get;
-
+#if GSOAP_VERSION >= 20831
+	lpsSoap->sndbuf = lpsSoap->rcvbuf = 0;
+#endif
 	lpsSoap->bind_flags = SO_REUSEADDR;
 	lpsSoap->socket = socket = soap_bind(lpsSoap, *lpServerName == '\0' ? NULL : lpServerName, nServerPort, 100);
         if (socket == -1) {
@@ -211,6 +213,9 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char* lpServerName, int nServer
 
 	if (bEnableGET)
 		lpsSoap->fget = http_get;
+#if GSOAP_VERSION >= 20831
+	lpsSoap->sndbuf = lpsSoap->rcvbuf = 0;
+#endif
 
 	if (soap_ssl_server_context(
 			lpsSoap,
@@ -358,6 +363,9 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriori
 	
 	// Create a unix or windows pipe
 	m_strPipeName = lpPipeName;
+#if GSOAP_VERSION >= 20831
+	lpsSoap->sndbuf = lpsSoap->rcvbuf = 0;
+#endif
 	// set the mode stricter for the priority socket: let only the same unix user or root connect on the priority socket, users should not be able to abuse the socket
 	lpsSoap->socket = sPipe = create_pipe_socket(m_strPipeName.c_str(), m_lpConfig, m_lpLogger, true, bPriority ? 0660 : 0666);
 	// This just marks the socket as being a pipe, which triggers some slightly different behaviour

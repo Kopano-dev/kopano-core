@@ -130,7 +130,7 @@ struct propTagArray {
 };
 
 struct entryList {
-	unsigned int __size;
+	int __size;
 	entryId *__ptr;
 };
 
