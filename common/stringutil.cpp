@@ -250,8 +250,7 @@ std::string GetServerPortFromPath(const char *szPath) {
 	pos = path.rfind('/');
 	if (pos != std::string::npos)
 		path.erase(pos, std::string::npos);
-
-	return path.c_str();
+	return path;
 }
 
 std::string shell_escape(const std::string &str)
