@@ -54,10 +54,10 @@ typedef struct FOLDERINFO {
     SortKey sortKey;				// List of collation keys of the folder names.
     
     bool operator < (const FOLDERINFO &a) {
-		SortKey::const_iterator iKeyThis = sortKey.begin();
-		SortKey::const_iterator iKeyOther = a.sortKey.begin();
+		SortKey::const_iterator iKeyThis = sortKey.cbegin();
+		SortKey::const_iterator iKeyOther = a.sortKey.cbegin();
 
-		while (iKeyThis != sortKey.end() && iKeyOther != a.sortKey.end()) {
+		while (iKeyThis != sortKey.cend() && iKeyOther != a.sortKey.cend()) {
 			int res = iKeyThis->compareTo(*iKeyOther);
 			if (res < 0) return true;
 			if (res > 0) return false;
@@ -114,16 +114,16 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 	lstFolders.push_back(sRoot);
 	mapSortKey[ulFolderId] = sRoot.sortKey;
 
-	iterFolders = lstFolders.begin();
-	while (iterFolders != lstFolders.end()) {
+	iterFolders = lstFolders.cbegin();
+	while (iterFolders != lstFolders.cend()) {
 		strQuery = "SELECT hierarchy.id, hierarchy.parent, hierarchy.owner, hierarchy.flags, hierarchy.type, properties.val_string FROM hierarchy LEFT JOIN properties ON properties.hierarchyid = hierarchy.id AND properties.tag = 12289  AND properties.type = 30 WHERE hierarchy.type = " +  stringify(MAPI_FOLDER) + " AND hierarchy.flags & "+stringify(MSGFLAG_DELETED)+" = " + stringify(ulFlags&MSGFLAG_DELETED);
 
 		strQuery += " AND hierarchy.parent IN(";
 		
-		while(iterFolders != lstFolders.end()) {
+		while (iterFolders != lstFolders.cend()) {
 		    strQuery += stringify(iterFolders->ulFolderId);
 		    ++iterFolders;
-		    if(iterFolders != lstFolders.end())
+		    if (iterFolders != lstFolders.cend())
     		    strQuery += ",";
         }
         

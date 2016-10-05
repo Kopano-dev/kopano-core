@@ -494,16 +494,11 @@ ECDispatcher::~ECDispatcher()
 
 ECRESULT ECDispatcher::GetThreadCount(unsigned int *lpulThreads, unsigned int *lpulIdleThreads)
 {
-    ECRESULT er = erSuccess;
-    
-    er = m_lpThreadManager->GetThreadCount(lpulThreads);
-    if(er != erSuccess)
-        goto exit;
-        
-    *lpulIdleThreads = m_ulIdle;
-    
-exit:
-    return er;
+	ECRESULT er = m_lpThreadManager->GetThreadCount(lpulThreads);
+	if (er != erSuccess)
+		return er;
+	*lpulIdleThreads = m_ulIdle;
+	return erSuccess;
 }
 
 // Get the age (in seconds) of the next-in-line item in the queue, or 0 if the queue is empty
@@ -669,15 +664,12 @@ ECRESULT ECDispatcher::NotifyDone(struct soap *soap)
 // Set the nominal thread count
 ECRESULT ECDispatcher::SetThreadCount(unsigned int ulThreads)
 {
-    ECRESULT er = erSuccess;
-
 	// if we receive a signal before the MainLoop() has started, we don't have thread manager yet
 	if (m_lpThreadManager == NULL)
-		goto exit;
-    
-    er = m_lpThreadManager->SetThreadCount(ulThreads);
-    if(er != erSuccess)
-        goto exit;
+		return erSuccess;
+	ECRESULT er = m_lpThreadManager->SetThreadCount(ulThreads);
+	if (er != erSuccess)
+		return er;
         
     // Since the threads may be blocking while waiting for the next queue item, broadcast
     // a wakeup for all threads so that they re-check their idle state (and exit if the thread count
@@ -685,9 +677,7 @@ ECRESULT ECDispatcher::SetThreadCount(unsigned int ulThreads)
     pthread_mutex_lock(&m_mutexItems);
     pthread_cond_broadcast(&m_condItems);
     pthread_mutex_unlock(&m_mutexItems);
-        
-exit:
-    return er;
+	return erSuccess;
 }
 
 ECRESULT ECDispatcher::DoHUP()
@@ -720,8 +710,6 @@ ECRESULT ECDispatcherSelect::MainLoop()
 {
 	ECRESULT er = erSuccess;
 	ECWatchDog *lpWatchDog = NULL;
-	std::map<int, ACTIVESOCKET>::iterator iterSockets;
-	std::map<int, struct soap *>::const_iterator iterListenSockets;
     int maxfds = 0;
     char s = 0;
     time_t now;
@@ -749,24 +737,21 @@ ECRESULT ECDispatcherSelect::MainLoop()
         pthread_mutex_lock(&m_mutexSockets);
 
         // Listen on active sockets
-        iterSockets = m_setSockets.begin();
-        while(iterSockets != m_setSockets.end()) {
-            ulType = SOAP_CONNECTION_TYPE(iterSockets->second.soap);
-            if(ulType != CONNECTION_TYPE_NAMED_PIPE && ulType != CONNECTION_TYPE_NAMED_PIPE_PRIORITY && (now - (time_t)iterSockets->second.ulLastActivity > m_nRecvTimeout)) {
-                // Socket has been inactive for more than server_recv_timeout seconds, close the socket
-				shutdown(iterSockets->second.soap->socket, SHUT_RDWR);
-            }
+		for (const auto &p : m_setSockets) {
+			ulType = SOAP_CONNECTION_TYPE(p.second.soap);
+			if (ulType != CONNECTION_TYPE_NAMED_PIPE &&
+			    ulType != CONNECTION_TYPE_NAMED_PIPE_PRIORITY &&
+				now - static_cast<time_t>(p.second.ulLastActivity) > m_nRecvTimeout)
+				// Socket has been inactive for more than server_recv_timeout seconds, close the socket
+				shutdown(p.second.soap->socket, SHUT_RDWR);
             
-            FD_SET(iterSockets->second.soap->socket, &readfds);
-            maxfds = max(maxfds, iterSockets->second.soap->socket);
-            ++iterSockets;
+			FD_SET(p.second.soap->socket, &readfds);
+			maxfds = max(maxfds, p.second.soap->socket);
         }
         // Listen on listener sockets
-        for (iterListenSockets = m_setListenSockets.begin();
-             iterListenSockets != m_setListenSockets.end();
-             ++iterListenSockets) {
-			FD_SET(iterListenSockets->second->socket, &readfds);
-            maxfds = max(maxfds, iterListenSockets->second->socket);
+		for (const auto &p : m_setListenSockets) {
+			FD_SET(p.second->socket, &readfds);
+			maxfds = max(maxfds, p.second->socket);
         }
         pthread_mutex_unlock(&m_mutexSockets);
         		
@@ -788,99 +773,87 @@ ECRESULT ECDispatcherSelect::MainLoop()
         pthread_mutex_lock(&m_mutexSockets);
         
         // Search for activity on active sockets
-        iterSockets = m_setSockets.begin();
-        while(n && iterSockets != m_setSockets.end()) {
-            if(FD_ISSET(iterSockets->second.soap->socket, &readfds)) {
-                // Activity on a TCP/pipe socket
-                
-                // First, check for EOF
-                if(recv(iterSockets->second.soap->socket, &s, 1, MSG_PEEK) == 0) {
-                    // EOF occurred, just close the socket and remove it from the socket list
-					kopano_end_soap_connection(iterSockets->second.soap);
-                    soap_free(iterSockets->second.soap);
-                    m_setSockets.erase(iterSockets++);
-                } else {
-                    // Actual data waiting, push it on the processing queue
-					QueueItem(iterSockets->second.soap);
-                    
-                    // Remove socket from listen list for now, since we're already handling data there and don't
-                    // want to interfere with the thread that is now handling that socket. It will be passed back
-                    // to us when the request is done.
-                    m_setSockets.erase(iterSockets++);
-                }
-                
-                // N holds the number of descriptors set in readfds, so decrease by one since we handled that one.
+	auto iterSockets = m_setSockets.cbegin();
+	while (n != 0 && iterSockets != m_setSockets.cend()) {
+		if (!FD_ISSET(iterSockets->second.soap->socket, &readfds)) {
+			++iterSockets;
+			continue;
+		}
+		// Activity on a TCP/pipe socket
+		// First, check for EOF
+		if (recv(iterSockets->second.soap->socket, &s, 1, MSG_PEEK) == 0) {
+			// EOF occurred, just close the socket and remove it from the socket list
+			kopano_end_soap_connection(iterSockets->second.soap);
+			soap_free(iterSockets->second.soap);
+			m_setSockets.erase(iterSockets++);
+		} else {
+			// Actual data waiting, push it on the processing queue
+			QueueItem(iterSockets->second.soap);
+			
+			// Remove socket from listen list for now, since we're already handling data there and don't
+			// want to interfere with the thread that is now handling that socket. It will be passed back
+			// to us when the request is done.
+			m_setSockets.erase(iterSockets++);
+		}
+		// N holds the number of descriptors set in readfds, so decrease by one since we handled that one.
 		--n;
-            } else {
-		++iterSockets;
-            }
-        }
+	}
 
         pthread_mutex_unlock(&m_mutexSockets);
 
         // Search for activity on listen sockets
-        for (iterListenSockets = m_setListenSockets.begin();
-             iterListenSockets != m_setListenSockets.end();
-             ++iterListenSockets)
-        {
-            if(FD_ISSET(iterListenSockets->second->socket, &readfds)) {
-                struct soap *newsoap;
-                ACTIVESOCKET sActive;
-                
-                newsoap = soap_copy(iterListenSockets->second);
-                kopano_new_soap_connection(SOAP_CONNECTION_TYPE(iterListenSockets->second), newsoap);
-                
-                if(newsoap == NULL) {
-                    m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to accept new connection: out of memory");
-                    continue;
-                }
-                
-                // Record last activity (now)
-                time(&sActive.ulLastActivity);
-
-        		ulType = SOAP_CONNECTION_TYPE(iterListenSockets->second);
-                if(ulType == CONNECTION_TYPE_NAMED_PIPE || ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY) {
-                    int socket = accept(newsoap->master, NULL, 0);
-                    newsoap->socket = socket;
-                } else {
-                    soap_accept(newsoap);
-                }
-                    
-                if(newsoap->socket == SOAP_INVALID_SOCKET) {
-					if (m_lpLogger->Log(EC_LOGLEVEL_DEBUG)) {
-						if (ulType == CONNECTION_TYPE_NAMED_PIPE)
-							m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Error accepting incoming connection from file://%s", m_lpConfig->GetSetting("server_pipe_name"));
-						else if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
-							m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Error accepting incoming connection from file://%s", m_lpConfig->GetSetting("server_pipe_priority"));
-						else
-							m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Error accepting incoming connection from network.");
-					}
-					kopano_end_soap_connection(newsoap);
-                    soap_free(newsoap);
-                } else {
-					if (m_lpLogger->Log(EC_LOGLEVEL_DEBUG)) {
-						if (ulType == CONNECTION_TYPE_NAMED_PIPE)
-							m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Accepted incoming connection from file://%s", m_lpConfig->GetSetting("server_pipe_name"));
-						else if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
-							m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Accepted incoming connection from file://%s", m_lpConfig->GetSetting("server_pipe_priority"));
-						else
-							m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Accepted incoming%sconnection from %s",
-											ulType == CONNECTION_TYPE_SSL ? " SSL ":" ",
-											newsoap->host);
-					}
-					newsoap->socket = ec_relocate_fd(newsoap->socket);
-					g_lpStatsCollector->Max(SCN_MAX_SOCKET_NUMBER, (LONGLONG)newsoap->socket);
-
-					g_lpStatsCollector->Increment(SCN_SERVER_CONNECTIONS);
-
-                    sActive.soap = newsoap;
-                    pthread_mutex_lock(&m_mutexSockets);
-                    m_setSockets.insert(std::make_pair(sActive.soap->socket, sActive));
-                    pthread_mutex_unlock(&m_mutexSockets);
-                }
-            }
-        }
-    }
+		for (const auto &p : m_setListenSockets) {
+			if (!FD_ISSET(p.second->socket, &readfds))
+				continue;
+			ACTIVESOCKET sActive;
+			auto newsoap = soap_copy(p.second);
+			kopano_new_soap_connection(SOAP_CONNECTION_TYPE(p.second), newsoap);
+			if (newsoap == NULL) {
+				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to accept new connection: out of memory");
+				continue;
+			}
+			// Record last activity (now)
+			time(&sActive.ulLastActivity);
+			ulType = SOAP_CONNECTION_TYPE(p.second);
+			if (ulType == CONNECTION_TYPE_NAMED_PIPE ||
+			    ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY) {
+				int socket = accept(newsoap->master, NULL, 0);
+				newsoap->socket = socket;
+			} else {
+				soap_accept(newsoap);
+			}
+			if (newsoap->socket == SOAP_INVALID_SOCKET) {
+				if (m_lpLogger->Log(EC_LOGLEVEL_DEBUG)) {
+					if (ulType == CONNECTION_TYPE_NAMED_PIPE)
+						m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Error accepting incoming connection from file://%s", m_lpConfig->GetSetting("server_pipe_name"));
+					else if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
+						m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Error accepting incoming connection from file://%s", m_lpConfig->GetSetting("server_pipe_priority"));
+					else
+						m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Error accepting incoming connection from network.");
+				}
+				kopano_end_soap_connection(newsoap);
+				soap_free(newsoap);
+				continue;
+			}
+			if (m_lpLogger->Log(EC_LOGLEVEL_DEBUG)) {
+				if (ulType == CONNECTION_TYPE_NAMED_PIPE)
+					m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Accepted incoming connection from file://%s", m_lpConfig->GetSetting("server_pipe_name"));
+				else if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
+					m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Accepted incoming connection from file://%s", m_lpConfig->GetSetting("server_pipe_priority"));
+				else
+					m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Accepted incoming%sconnection from %s",
+									ulType == CONNECTION_TYPE_SSL ? " SSL ":" ",
+									newsoap->host);
+			}
+			newsoap->socket = ec_relocate_fd(newsoap->socket);
+			g_lpStatsCollector->Max(SCN_MAX_SOCKET_NUMBER, (LONGLONG)newsoap->socket);
+			g_lpStatsCollector->Increment(SCN_SERVER_CONNECTIONS);
+			sActive.soap = newsoap;
+			pthread_mutex_lock(&m_mutexSockets);
+			m_setSockets.insert(std::make_pair(sActive.soap->socket, sActive));
+			pthread_mutex_unlock(&m_mutexSockets);
+		}
+	}
 
     // Delete the watchdog. This makes sure no new threads will be started.
     delete lpWatchDog;
@@ -905,19 +878,15 @@ ECRESULT ECDispatcherSelect::MainLoop()
     pthread_mutex_unlock(&m_mutexItems);
 
 	// Close all listener sockets. 
-	for (iterListenSockets = m_setListenSockets.begin();
-	     iterListenSockets != m_setListenSockets.end();
-	     ++iterListenSockets) {
-		kopano_end_soap_listener(iterListenSockets->second); 
-		soap_free(iterListenSockets->second);
+	for (const auto &p : m_setListenSockets) {
+		kopano_end_soap_listener(p.second);
+		soap_free(p.second);
 	}
 	// Close all sockets. This will cause all that we were listening on clients to get an EOF
 	pthread_mutex_lock(&m_mutexSockets);
-	for (iterSockets = m_setSockets.begin();
-	     iterSockets != m_setSockets.end();
-	     ++iterSockets) {
-		kopano_end_soap_connection(iterSockets->second.soap); 
-		soap_free(iterSockets->second.soap);
+	for (const auto &p : m_setSockets) {
+		kopano_end_soap_connection(p.second.soap);
+		soap_free(p.second.soap);
 	}
 	pthread_mutex_unlock(&m_mutexSockets);
     

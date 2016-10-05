@@ -98,14 +98,11 @@ BOOL ECMAPITable::IsDeferred()
 ECMAPITable::~ECMAPITable()
 {
 	TRACE_MAPI(TRACE_ENTRY, "ECMAPITable::~ECMAPITable","");
-	std::set<ULONG>::const_iterator iterMapInt;
-	std::set<ULONG>::const_iterator iterMapIntDel;
 
 	// Remove all advises	
-	iterMapInt = m_ulConnectionList.begin();
-	while( iterMapInt != m_ulConnectionList.end() )
-	{
-		iterMapIntDel = iterMapInt;
+	auto iterMapInt = m_ulConnectionList.cbegin();
+	while (iterMapInt != m_ulConnectionList.cend()) {
+		auto iterMapIntDel = iterMapInt;
 		++iterMapInt;
 		Unadvise(*iterMapIntDel);
 	}
@@ -198,7 +195,6 @@ exit:
 HRESULT ECMAPITable::Unadvise(ULONG ulConnection)
 {
 	HRESULT hr = hrSuccess;
-	std::set<ULONG>::const_iterator iterMapInt;
 
 	pthread_mutex_lock(&m_hLock);
 
@@ -682,7 +678,6 @@ HRESULT ECMAPITable::Reload(void *lpParam)
 {
 	HRESULT hr = hrSuccess;
 	ECMAPITable *lpThis = (ECMAPITable *)lpParam;
-	std::set<ULONG>::const_iterator iter;
 
 	// Locking m_hLock is not allowed here since when we are called, the SOAP transport in lpTableOps  
 	// will be locked. Since normally m_hLock is locked before SOAP, locking m_hLock *after* SOAP here  
@@ -692,9 +687,8 @@ HRESULT ECMAPITable::Reload(void *lpParam)
 
 	// The underlying data has been reloaded, therefore we must re-register the advises. This is called
 	// after the transport has re-established its state
-	for (iter = lpThis->m_ulConnectionList.begin();
-	     iter != lpThis->m_ulConnectionList.end(); ++iter) {
-		hr = lpThis->lpNotifyClient->Reregister(*iter, 4, (BYTE *)&lpThis->lpTableOps->ulTableId);
+	for (auto conn_id : lpThis->m_ulConnectionList) {
+		hr = lpThis->lpNotifyClient->Reregister(conn_id, 4, reinterpret_cast<BYTE *>(&lpThis->lpTableOps->ulTableId));
 		if(hr != hrSuccess)
 			goto exit;
 	}

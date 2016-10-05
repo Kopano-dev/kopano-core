@@ -51,12 +51,12 @@ bool entryid_t::unwrap(std::string *lpstrPath)
 	if (!isWrapped())
 		return false;
 	
-	std::vector<BYTE>::iterator iter = std::find(m_vEntryId.begin(), m_vEntryId.end(), 0);
-	if (iter == m_vEntryId.end())
+	auto iter = std::find(m_vEntryId.begin(), m_vEntryId.end(), 0);
+	if (iter == m_vEntryId.cend())
 		return false;
 		
 	if (lpstrPath)
-		lpstrPath->assign((char*)&m_vEntryId.front(), iter - m_vEntryId.begin());
+		lpstrPath->assign((char*)&m_vEntryId.front(), iter - m_vEntryId.cbegin());
 	
 	m_vEntryId.erase(m_vEntryId.begin(), ++iter);
 	return true;

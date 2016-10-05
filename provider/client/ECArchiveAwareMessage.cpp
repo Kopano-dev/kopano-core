@@ -388,8 +388,7 @@ HRESULT ECArchiveAwareMessage::MapNamedProps()
 	PROPMAP_INIT(&this->m_xMAPIProp);
 
 	m_bNamedPropsMapped = true;
-
-exit:
+ exitpm:
 	return hr;
 }
 

@@ -141,7 +141,6 @@ ECRESULT RunSubRestriction(ECSession *lpSession, void *lpECODStore, struct restr
     ECObjectTableList::const_iterator iterObject;
     ECObjectTableList lstSubObjects;
     std::map<unsigned int, unsigned int> mapParent;
-    std::map<unsigned int, unsigned int>::const_iterator iterParent;
     SUBRESTRICTIONRESULT *lpResult = new SUBRESTRICTIONRESULT;
     struct rowSet *lpRowSet = NULL;
     bool fMatch = false;
@@ -177,8 +176,8 @@ ECRESULT RunSubRestriction(ECSession *lpSession, void *lpECODStore, struct restr
     // Get the subobject id's we're querying from the database
     strQuery = "SELECT hierarchy.parent, hierarchy.id FROM hierarchy WHERE hierarchy.type = " + stringify(ulType) + " AND hierarchy.parent IN (";
     
-    for (iterObject = lpObjects->begin(); iterObject != lpObjects->end(); ++iterObject) {
-        strQuery += stringify(iterObject->ulObjId);
+    for (const auto &ob : *lpObjects) {
+        strQuery += stringify(ob.ulObjId);
         strQuery += ",";
     }
     
@@ -224,7 +223,7 @@ ECRESULT RunSubRestriction(ECSession *lpSession, void *lpECODStore, struct restr
     if(er != erSuccess)
         goto exit;
         
-    iterObject = lstSubObjects.begin();
+    iterObject = lstSubObjects.cbegin();
     // Loop through all the rows, see if they match
     for (gsoap_size_t i = 0; i < lpRowSet->__size; ++i) {
         er = ECGenericObjectTable::MatchRowRestrict(lpSession->GetSessionManager()->GetCacheManager(), &lpRowSet->__ptr[i], lpRestrict->lpSubObject, NULL, locale, &fMatch);
@@ -232,12 +231,11 @@ ECRESULT RunSubRestriction(ECSession *lpSession, void *lpECODStore, struct restr
             goto exit;
             
         if(fMatch) {
-            iterParent = mapParent.find(iterObject->ulObjId);
-            if(iterParent != mapParent.end()) {
+            auto iterParent = mapParent.find(iterObject->ulObjId);
+            if (iterParent != mapParent.cend())
                 // Remember the id of the message one of whose subobjects matched
 
                 lpResult->insert(iterParent->second);
-            }
         }
         
         // Optimisation possibility: if one of the subobjects matches, we shouldn't bother checking
@@ -268,13 +266,8 @@ exit:
 // Frees a SUBRESTRICTIONRESULTS object
 ECRESULT FreeSubRestrictionResults(SUBRESTRICTIONRESULTS *lpResults) {
     ECRESULT er = erSuccess;
-    
-    SUBRESTRICTIONRESULTS::const_iterator iterResults;
-    
-	for (iterResults = lpResults->begin(); iterResults != lpResults->end();
-	     ++iterResults)
-		delete *iterResults;
-    
+	for (const auto &r : *lpResults)
+		delete r;
     delete lpResults;
     
     return er;

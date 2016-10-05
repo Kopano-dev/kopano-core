@@ -440,9 +440,7 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 	ECRESULT er = erSuccess;
 	std::unique_ptr<signatures_t> objectlist(new signatures_t());
 	std::unique_ptr<signatures_t> objects;
-	signatures_t::const_iterator iterObjs;
 	map<objectclass_t, string> objectstrings;
-	std::map<objectclass_t, string>::const_iterator iterStrings;
 	DB_RESULT_AUTOFREE lpResult(m_lpDatabase);
 	DB_ROW lpDBRow = NULL;
 	string strQuery;
@@ -486,17 +484,17 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 		return objectlist;
 
 	// Distribute all objects over the various types
-	for (iterObjs = objectlist->begin(); iterObjs != objectlist->end(); ++iterObjs) {
-		if (!objectstrings[iterObjs->id.objclass].empty())
-			objectstrings[iterObjs->id.objclass] += ", ";
-		objectstrings[iterObjs->id.objclass] += iterObjs->id.id;
+	for (const auto &obj : *objectlist) {
+		if (!objectstrings[obj.id.objclass].empty())
+			objectstrings[obj.id.objclass] += ", ";
+		objectstrings[obj.id.objclass] += obj.id.id;
 	}
 
 	// make list of obsolete objects
 	strQuery = "SELECT id, objectclass FROM " + (string)DB_OBJECT_TABLE + " WHERE ";
-	for (iterStrings = objectstrings.begin();
-	     iterStrings != objectstrings.end(); ++iterStrings) {
-		if (iterStrings != objectstrings.begin())
+	for (auto iterStrings = objectstrings.cbegin();
+	     iterStrings != objectstrings.cend(); ++iterStrings) {
+		if (iterStrings != objectstrings.cbegin())
 			strQuery += "AND ";
 		strQuery +=
 			"(externid NOT IN (" + iterStrings->second + ") "
@@ -506,13 +504,13 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 	er = m_lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess) {
 		ec_log_err("Unix plugin: Unable to cleanup old entries");
-		goto exit;
+		return objectlist;
 	}
 
 	// check if we have obsolute objects
 	ulRows = m_lpDatabase->GetNumRows(lpResult);
 	if (!ulRows)
-		goto exit;
+		return objectlist;
 
 	// clear our stringlist containing the valid entries and fill it with the deleted item ids
 	objectstrings.clear();
@@ -525,9 +523,9 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 
 	// remove obsolete objects
 	strQuery = "DELETE FROM " + (string)DB_OBJECT_TABLE + " WHERE ";
-	for (iterStrings = objectstrings.begin();
-	     iterStrings != objectstrings.end(); ++iterStrings) {
-		if (iterStrings != objectstrings.begin())
+	for (auto iterStrings = objectstrings.cbegin();
+	     iterStrings != objectstrings.cend(); ++iterStrings) {
+		if (iterStrings != objectstrings.cbegin())
 			strQuery += "OR ";
 		strQuery += "(externid IN (" + iterStrings->second + ") AND objectclass = " + stringify(iterStrings->first) + ")";
 	}
@@ -535,7 +533,7 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 	er = m_lpDatabase->DoDelete(strQuery, &ulRows);
 	if (er != erSuccess) {
 		ec_log_err("Unix plugin: Unable to cleanup old entries in object table");
-		goto exit;
+		return objectlist;
 	} else if (ulRows > 0) {
 		ec_log_info("Unix plugin: Cleaned up %d old entries from object table", ulRows);
 	}
@@ -545,9 +543,9 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 		"SELECT o.id "
 		"FROM " + (string)DB_OBJECT_TABLE + " AS o "
 		"WHERE ";
-	for (iterStrings = objectstrings.begin();
-	     iterStrings != objectstrings.end(); ++iterStrings) {
-		if (iterStrings != objectstrings.begin())
+	for (auto iterStrings = objectstrings.cbegin();
+	     iterStrings != objectstrings.cend(); ++iterStrings) {
+		if (iterStrings != objectstrings.cbegin())
 			strSubQuery += "OR ";
 		strSubQuery += "(o.externid IN (" + iterStrings->second + ") AND o.objectclass = " + stringify(iterStrings->first) + ")";
 	}
@@ -559,7 +557,7 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 	er = m_lpDatabase->DoDelete(strQuery, &ulRows);
 	if (er != erSuccess) {
 		ec_log_err("Unix plugin: Unable to cleanup old entries in objectproperty table");
-		goto exit;
+		return objectlist;
 	} else if (ulRows > 0) {
 		ec_log_info("Unix plugin: Cleaned up %d old entries from objectproperty table", ulRows);
 	}
@@ -571,12 +569,10 @@ UnixUserPlugin::getAllObjects(const objectid_t &companyid,
 	er = m_lpDatabase->DoDelete(strQuery, &ulRows);
 	if (er != erSuccess) {
 		ec_log_err("Unix plugin: Unable to cleanup old entries in objectrelation table");
-		goto exit;
+		return objectlist;
 	} else if (ulRows > 0) {
 		ec_log_info("Unix plugin: Cleaned-up %d old entries from objectrelation table", ulRows);
 	}
-
-exit:
 	return objectlist;
 }
 
@@ -837,17 +833,15 @@ UnixUserPlugin::searchObject(const std::string &match, unsigned int ulFlags)
 		const char *search_props[] = { OP_EMAILADDRESS, NULL };
 		objects = DBPlugin::searchObjects(match, search_props, NULL, ulFlags);
 
-		for (signatures_t::const_iterator iter = objects->begin();
-		     iter != objects->end(); ++iter)
-		{
+		for (const auto &sig : *objects) {
 			// the DBPlugin returned the DB signature, so we need to prepend this with the gecos signature
-			int ret = getpwuid_r(atoi(iter->id.id.c_str()), &pws, buffer, PWBUFSIZE, &pw);
+			int ret = getpwuid_r(atoi(sig.id.id.c_str()), &pws, buffer, PWBUFSIZE, &pw);
 			if (ret != 0)
-				errnoCheck(iter->id.id, ret);
+				errnoCheck(sig.id.id, ret);
 			if (pw == NULL)	// object not found anymore
 				continue;
 
-			objectlist->push_back(objectsignature_t(iter->id, iter->signature + pw->pw_gecos + pw->pw_name));
+			objectlist->push_back(objectsignature_t(sig.id, sig.signature + pw->pw_gecos + pw->pw_name));
 		}
 	} catch (objectnotfound &e) {
 			// Ignore exception, we will check lObjects.empty() later.
@@ -883,22 +877,20 @@ UnixUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 {
 	std::unique_ptr<std::map<objectid_t, objectdetails_t> > mapdetails(new map<objectid_t, objectdetails_t>());
 	std::unique_ptr<objectdetails_t> uDetails;
-	list<objectid_t>::const_iterator iterID;
 	objectdetails_t details;
 
 	if (objectids.empty())
 		return mapdetails;
 
-	for (iterID = objectids.begin(); iterID != objectids.end(); ++iterID) {
+	for (const auto &id : objectids) {
 		try {
-			uDetails = this->getObjectDetails(*iterID);
+			uDetails = this->getObjectDetails(id);
 		}
 		catch (objectnotfound &e) {
 			// ignore not found error
 			continue;
 		}
-
-		(*mapdetails)[*iterID] = (*uDetails.get());
+		(*mapdetails)[id] = (*uDetails.get());
 	}
     
     return mapdetails;

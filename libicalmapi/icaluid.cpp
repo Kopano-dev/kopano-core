@@ -42,21 +42,18 @@ bool IsOutlookUid(const std::string &strUid)
  */
 HRESULT HrGenerateUid(std::string *lpStrData)
 {
-	HRESULT hr = hrSuccess;
 	std::string strByteArrayID = "040000008200E00074C5B7101A82E008";
 	std::string strBinUid;
 	GUID sGuid;
 	FILETIME ftNow;
 	ULONG ulSize = 1;
 
-	hr = CoCreateGuid(&sGuid);
+	HRESULT hr = CoCreateGuid(&sGuid);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = UnixTimeToFileTime(time(NULL), &ftNow);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	strBinUid = strByteArrayID;	// Outlook Guid
 	strBinUid += "00000000";	// InstanceDate
 	strBinUid += bin2hex(sizeof(FILETIME), (LPBYTE)&ftNow);
@@ -65,9 +62,7 @@ HRESULT HrGenerateUid(std::string *lpStrData)
 	strBinUid += bin2hex(sizeof(GUID), (LPBYTE)&sGuid);	// new guid
 
 	lpStrData->swap(strBinUid);
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**

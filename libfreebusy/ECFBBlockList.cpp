@@ -34,30 +34,19 @@ void ECFBBlockList::Copy(ECFBBlockList *lpfbBlkList)
 
 HRESULT ECFBBlockList::Add(FBBlock_1* lpFBBlock)
 {
-	HRESULT hr = hrSuccess;
-
-	if(lpFBBlock == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (lpFBBlock == NULL)
+		return MAPI_E_INVALID_PARAMETER;
 	m_FBMap.insert(mapFB::value_type(lpFBBlock->m_tmStart, *lpFBBlock));
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECFBBlockList::Merge(FBBlock_1* lpFBBlock)
 {
-	HRESULT hr = hrSuccess;
-	mapFB::iterator	FBIter;	
+	if (lpFBBlock == NULL)
+		return MAPI_E_INVALID_PARAMETER;
 
-	if(lpFBBlock == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	for (FBIter = m_FBMap.begin(); FBIter != m_FBMap.end(); ++FBIter) {
+	auto FBIter = m_FBMap.begin();
+	for (; FBIter != m_FBMap.cend(); ++FBIter) {
 		if(FBIter->second.m_tmEnd == lpFBBlock->m_tmStart)
 		{
 			FBIter->second.m_tmEnd = lpFBBlock->m_tmEnd;
@@ -65,24 +54,15 @@ HRESULT ECFBBlockList::Merge(FBBlock_1* lpFBBlock)
 		}
 	}
 
-	if(FBIter == m_FBMap.end())
-	{
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
-exit:
-	return hr;
+	if (FBIter == m_FBMap.cend())
+		return MAPI_E_NOT_FOUND;
+	return hrSuccess;
 }
 
 HRESULT ECFBBlockList::Next(FBBlock_1* pblk)
 {
-	HRESULT hr = hrSuccess;
-
-	if(pblk == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (pblk == NULL)
+		return MAPI_E_INVALID_PARAMETER;
 
 	// Set iter on the begin of the list
 	if(m_bInitIter == false) {
@@ -90,11 +70,8 @@ HRESULT ECFBBlockList::Next(FBBlock_1* pblk)
 	}
 
 	// Check if you are at the end of the list or the item doesn't matched with the restriction
-	if(m_FBIter == m_FBMap.end() || (m_tmRestictEnd != 0 && (ULONG)m_FBIter->second.m_tmStart > (ULONG)m_tmRestictEnd) )
-	{
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+	if (m_FBIter == m_FBMap.cend() || (m_tmRestictEnd != 0 && static_cast<ULONG>(m_FBIter->second.m_tmStart) > static_cast<ULONG>(m_tmRestictEnd)))
+		return MAPI_E_NOT_FOUND;
 
 	*pblk = (*m_FBIter).second;
 	// blocks before the start time get capped on the start time
@@ -102,8 +79,7 @@ HRESULT ECFBBlockList::Next(FBBlock_1* pblk)
 		pblk->m_tmStart = m_tmRestictStart;
 
 	++m_FBIter;
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECFBBlockList::Reset()
@@ -121,7 +97,7 @@ HRESULT ECFBBlockList::Skip(LONG items)
 
 	for (LONG i = 0; i < items; ++i) {
 		// Check if you are at the end of the list or the item doesn't matched with the restriction
-		if(m_FBIter == m_FBMap.end() || (m_tmRestictEnd != 0 && (ULONG)m_FBIter->second.m_tmStart > (ULONG)m_tmRestictEnd) )
+		if (m_FBIter == m_FBMap.cend() || (m_tmRestictEnd != 0 && (ULONG)m_FBIter->second.m_tmStart > (ULONG)m_tmRestictEnd) )
 			break; //FIXME: gives a error or always oke?
 		++m_FBIter;
 	}
@@ -138,8 +114,7 @@ HRESULT ECFBBlockList::Restrict(LONG tmStart, LONG tmEnd)
 	m_bInitIter = true;
 
 	// seek to the first matched item
-	while(m_tmRestictStart != 0 && m_FBIter != m_FBMap.end()) {
-		
+	while (m_tmRestictStart != 0 && m_FBIter != m_FBMap.cend()) {
 		if( (ULONG)m_FBIter->second.m_tmEnd > (ULONG)m_tmRestictStart )
 			break;
 		++m_FBIter;
@@ -164,21 +139,17 @@ void ECFBBlockList::Clear()
 ULONG ECFBBlockList::Size()
 {
 	ULONG			size = 0;
-	mapFB::const_iterator FBIter;
-
-	FBIter = m_FBMap.begin();
+	auto FBIter = m_FBMap.cbegin();
 	
 	// seek to the first matched item
-	while(m_tmRestictStart != 0 && FBIter != m_FBMap.end()) {
-		
+	while (m_tmRestictStart != 0 && FBIter != m_FBMap.cend()) {
 		if( (ULONG)FBIter->second.m_tmEnd > (ULONG)m_tmRestictStart )
 			break;
 		++FBIter;
 	}
 
 	// loop while you reached end of list or doesn't mached with the restriction
-	while(FBIter != m_FBMap.end() && (m_tmRestictEnd == 0 || (ULONG)FBIter->second.m_tmStart <= (ULONG)m_tmRestictEnd))
-	{
+	while (FBIter != m_FBMap.cend() && (m_tmRestictEnd == 0 || static_cast<ULONG>(FBIter->second.m_tmStart) <= static_cast<ULONG>(m_tmRestictEnd))) {
 		++size;
 		++FBIter;
 	}	
@@ -188,29 +159,21 @@ ULONG ECFBBlockList::Size()
 
 HRESULT ECFBBlockList::GetEndTime(LONG *lprtmEnd)
 {
-	HRESULT			hr = hrSuccess;
-	mapFB::const_iterator FBIter;
 	LONG			ulEnd = 0;
 	bool			bFound = false;
 
-	if(lprtmEnd == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lprtmEnd == NULL)
+		return MAPI_E_INVALID_PARAMETER;
 
-	FBIter = m_FBMap.begin();
-	while(FBIter != m_FBMap.end() && (m_tmRestictEnd == 0 || (ULONG)FBIter->second.m_tmStart <= (ULONG)m_tmRestictEnd))
-	{
+	auto FBIter = m_FBMap.cbegin();
+	while (FBIter != m_FBMap.cend() && (m_tmRestictEnd == 0 || static_cast<ULONG>(FBIter->second.m_tmStart) <= static_cast<ULONG>(m_tmRestictEnd))) {
 		ulEnd = FBIter->second.m_tmEnd;	
 		++FBIter;
 		bFound = true;
 	}	
 
-	if(bFound)
-		*lprtmEnd = ulEnd;
-	else
-		hr = MAPI_E_NOT_FOUND;
-
-exit:
-	return hr;
+	if (!bFound)
+		return MAPI_E_NOT_FOUND;
+	*lprtmEnd = ulEnd;
+	return hrSuccess;
 }

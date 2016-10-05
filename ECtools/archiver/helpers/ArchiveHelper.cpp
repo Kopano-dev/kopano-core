@@ -161,8 +161,7 @@ HRESULT ArchiveHelper::Init()
 	PROPMAP_INIT_NAMED_ID(ATTACH_TYPE, PT_LONG, PSETID_Archive, dispidAttachType)
 	PROPMAP_INIT_NAMED_ID(SPECIAL_FOLDER_ENTRYIDS, PT_MV_BINARY, PSETID_Archive, dispidSpecialFolderEntryIds);
 	PROPMAP_INIT(m_ptrArchiveStore)
-	
-exit:
+ exitpm:
 	return hr;
 }
 
@@ -483,8 +482,8 @@ HRESULT ArchiveHelper::GetArchiveFolderFor(MAPIFolderPtr &ptrSourceFolder, Archi
 	} else if (hr != hrSuccess)
 		return hr;
 	
-	iArchiveFolder = find_if(lstFolderArchives.begin(), lstFolderArchives.end(), StoreCompare(ptrStoreEntryId->Value.bin));
-	if (iArchiveFolder != lstFolderArchives.end())
+	iArchiveFolder = find_if(lstFolderArchives.cbegin(), lstFolderArchives.cend(), StoreCompare(ptrStoreEntryId->Value.bin));
+	if (iArchiveFolder != lstFolderArchives.cend())
 		hr = m_ptrArchiveStore->OpenEntry(iArchiveFolder->sItemEntryId.size(), iArchiveFolder->sItemEntryId, &ptrArchiveFolder.iid, MAPI_BEST_ACCESS|fMapiDeferredErrors, &ulType, &ptrArchiveFolder);
 
 	else {

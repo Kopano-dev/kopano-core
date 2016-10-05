@@ -469,7 +469,6 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 
 HRESULT ECExchangeExportChanges::Synchronize(ULONG FAR * lpulSteps, ULONG FAR * lpulProgress){
 	HRESULT			hr = hrSuccess;
-	PROCESSEDCHANGESSET::const_iterator iterProcessedChange;
 
 	if(!m_bConfiged){
 		ZLOG_DEBUG(m_lpLogger, "Config() not called before Synchronize()");
@@ -1291,7 +1290,6 @@ HRESULT ECExchangeExportChanges::ExportMessageFlags(){
 	HRESULT			hr = hrSuccess;
 	LPREADSTATE		lpReadState = NULL;
 	ULONG			ulCount;
-	std::list<ICSCHANGE>::const_iterator lpChange;
 
 	if(m_lstFlag.empty())
 		goto exit;
@@ -1300,12 +1298,13 @@ HRESULT ECExchangeExportChanges::ExportMessageFlags(){
 		goto exit;
 
 	ulCount = 0;
-	for (lpChange = m_lstFlag.begin(); lpChange != m_lstFlag.end(); ++lpChange) {
-		if ((hr = MAPIAllocateMore(lpChange->sSourceKey.cb, lpReadState, (LPVOID *)&lpReadState[ulCount].pbSourceKey)) != hrSuccess)
+	for (const auto &change : m_lstFlag) {
+		hr = MAPIAllocateMore(change.sSourceKey.cb, lpReadState, reinterpret_cast<LPVOID *>(&lpReadState[ulCount].pbSourceKey));
+		if (hr != hrSuccess)
 			goto exit;
-		lpReadState[ulCount].cbSourceKey = lpChange->sSourceKey.cb;
-		memcpy(lpReadState[ulCount].pbSourceKey, lpChange->sSourceKey.lpb, lpChange->sSourceKey.cb );
-		lpReadState[ulCount].ulFlags = lpChange->ulFlags;
+		lpReadState[ulCount].cbSourceKey = change.sSourceKey.cb;
+		memcpy(lpReadState[ulCount].pbSourceKey, change.sSourceKey.lpb, change.sSourceKey.cb);
+		lpReadState[ulCount].ulFlags = change.ulFlags;
 		++ulCount;
 	}
 
@@ -1320,8 +1319,8 @@ HRESULT ECExchangeExportChanges::ExportMessageFlags(){
 		}
 
 		// Mark the flag changes as processed
-		for (lpChange = m_lstFlag.begin(); lpChange != m_lstFlag.end(); ++lpChange)
-			m_setProcessedChanges.insert(std::pair<unsigned int, std::string>(lpChange->ulChangeId, std::string((char *)lpChange->sSourceKey.lpb, lpChange->sSourceKey.cb)));
+		for (const auto &change : m_lstFlag)
+			m_setProcessedChanges.insert(std::pair<unsigned int, std::string>(change.ulChangeId, std::string(reinterpret_cast<const char *>(change.sSourceKey.lpb), change.sSourceKey.cb)));
 	}
 
 exit:
@@ -1566,7 +1565,6 @@ HRESULT ECExchangeExportChanges::UpdateStream(LPSTREAM lpStream){
 	ULONG ulChangeCount = 0;
 	ULONG ulChangeId = 0;
 	ULONG ulSourceKeySize = 0;
-	PROCESSEDCHANGESSET::const_iterator iterProcessedChange;
 	
 	if(lpStream == NULL)
 		goto exit;
@@ -1598,22 +1596,16 @@ HRESULT ECExchangeExportChanges::UpdateStream(LPSTREAM lpStream){
 		if(hr != hrSuccess)
 			goto exit;
 
-		for (iterProcessedChange = m_setProcessedChanges.begin();
-		     iterProcessedChange != m_setProcessedChanges.end();
-		     ++iterProcessedChange)
-		{
-			ulChangeId = iterProcessedChange->first;
+		for (const auto &pc : m_setProcessedChanges) {
+			ulChangeId = pc.first;
 			hr = lpStream->Write(&ulChangeId, 4, &ulSize);
 			if(hr != hrSuccess)
 				goto exit;
-
-			ulSourceKeySize = iterProcessedChange->second.size();
-
+			ulSourceKeySize = pc.second.size();
 			hr = lpStream->Write(&ulSourceKeySize, 4, &ulSize);
 			if(hr != hrSuccess)
 				goto exit;
-
-			hr = lpStream->Write(iterProcessedChange->second.c_str(), iterProcessedChange->second.size(), &ulSize);
+			hr = lpStream->Write(pc.second.c_str(), pc.second.size(), &ulSize);
 			if(hr != hrSuccess)
 				goto exit;
 		}
@@ -1634,7 +1626,6 @@ HRESULT ECExchangeExportChanges::ChangesToEntrylist(std::list<ICSCHANGE> * lpLst
 	HRESULT 		hr = hrSuccess;
 	LPENTRYLIST		lpEntryList = NULL;
 	ULONG			ulCount = 0;
-	std::list<ICSCHANGE>::const_iterator lpChange;
 
 	if ((hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), (LPVOID *)&lpEntryList)) != hrSuccess)
 		goto exit;
@@ -1647,11 +1638,12 @@ HRESULT ECExchangeExportChanges::ChangesToEntrylist(std::list<ICSCHANGE> * lpLst
 		lpEntryList->lpbin = NULL;
 	}
 	ulCount = 0;
-	for (lpChange = lpLstChanges->begin(); lpChange != lpLstChanges->end(); ++lpChange) {
-		lpEntryList->lpbin[ulCount].cb = lpChange->sSourceKey.cb;
-		if ((hr = MAPIAllocateMore(lpChange->sSourceKey.cb, lpEntryList, (void **)&lpEntryList->lpbin[ulCount].lpb)) != hrSuccess)
+	for (const auto &change : *lpLstChanges) {
+		lpEntryList->lpbin[ulCount].cb = change.sSourceKey.cb;
+		hr = MAPIAllocateMore(change.sSourceKey.cb, lpEntryList, reinterpret_cast<void **>(&lpEntryList->lpbin[ulCount].lpb));
+		if (hr != hrSuccess)
 			goto exit;
-		memcpy(lpEntryList->lpbin[ulCount].lpb, lpChange->sSourceKey.lpb, lpChange->sSourceKey.cb);
+		memcpy(lpEntryList->lpbin[ulCount].lpb, change.sSourceKey.lpb, change.sSourceKey.cb);
 		++ulCount;
 	}
 

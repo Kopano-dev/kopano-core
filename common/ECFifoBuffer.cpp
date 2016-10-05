@@ -163,7 +163,7 @@ ECRESULT ECFifoBuffer::Read(void *lpBuf, size_type cbBuf, unsigned int ulTimeout
 		}
 
 		const size_type cbNow = std::min(cbBuf - cbRead, m_storage.size());
-		storage_type::iterator iEndNow = m_storage.begin() + cbNow;
+		auto iEndNow = m_storage.begin() + cbNow;
 		std::copy(m_storage.begin(), iEndNow, lpData + cbRead);
 		m_storage.erase(m_storage.begin(), iEndNow);
 		pthread_cond_signal(&m_hCondNotFull);

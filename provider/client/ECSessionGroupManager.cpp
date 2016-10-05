@@ -59,14 +59,12 @@ ECSessionGroupManager::~ECSessionGroupManager()
 
 ECSESSIONGROUPID ECSessionGroupManager::GetSessionGroupId(const sGlobalProfileProps &sProfileProps)
 {
-	std::pair<SESSIONGROUPIDMAP::iterator, bool> result;
 	ECSESSIONGROUPID ecSessionGroupId;
 
 	pthread_mutex_lock(&m_hMutex);
 
     ECSessionGroupInfo ecSessionGroup = ECSessionGroupInfo(sProfileProps.strServerPath, sProfileProps.strProfileName);
-
-	result = m_mapSessionGroupIds.insert(SESSIONGROUPIDMAP::value_type(ecSessionGroup, 0));
+	auto result = m_mapSessionGroupIds.insert(SESSIONGROUPIDMAP::value_type(ecSessionGroup, 0));
 	if (result.second == true) {
         // Not found, generate one now
     	ssl_random((sizeof(ecSessionGroupId) == 8), &ecSessionGroupId);
@@ -100,11 +98,9 @@ HRESULT ECSessionGroupManager::GetSessionGroupData(ECSESSIONGROUPID ecSessionGro
 	HRESULT hr = hrSuccess;
 	ECSessionGroupInfo ecSessionGroup = ECSessionGroupInfo(sProfileProps.strServerPath, sProfileProps.strProfileName);
 	SessionGroupData *lpData = NULL;
-	std::pair<SESSIONGROUPMAP::iterator, bool> result;
 
 	pthread_mutex_lock(&m_hMutex);
-
-	result = m_mapSessionGroups.insert(SESSIONGROUPMAP::value_type(ecSessionGroup, NULL));
+	auto result = m_mapSessionGroups.insert(SESSIONGROUPMAP::value_type(ecSessionGroup, NULL));
 	if (result.second == true) {
         hr = SessionGroupData::Create(ecSessionGroupId, &ecSessionGroup, sProfileProps, &lpData);
         if (hr == hrSuccess)
@@ -130,8 +126,8 @@ HRESULT ECSessionGroupManager::DeleteSessionGroupDataIfOrphan(ECSESSIONGROUPID e
 
 	pthread_mutex_lock(&m_hMutex);
 
-	SESSIONGROUPMAP::iterator iter = find_if(m_mapSessionGroups.begin(), m_mapSessionGroups.end(), findSessionGroupId(ecSessionGroupId));
-    if (iter != m_mapSessionGroups.end()) {
+	auto iter = find_if(m_mapSessionGroups.cbegin(), m_mapSessionGroups.cend(), findSessionGroupId(ecSessionGroupId));
+	if (iter != m_mapSessionGroups.cend()) {
         if(iter->second->IsOrphan()) {
             // If the group is an orphan now, we can delete it safely since the only way
             // a new session would connect to the sessiongroup would be through us, and we 

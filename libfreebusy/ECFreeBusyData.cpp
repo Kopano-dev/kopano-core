@@ -28,14 +28,8 @@ ECFreeBusyData::ECFreeBusyData(void)
 
 HRESULT ECFreeBusyData::Init(LONG rtmStart, LONG rtmEnd, ECFBBlockList* lpfbBlockList)
 {
-	HRESULT hr = hrSuccess;
-
 	if(lpfbBlockList == NULL)
-	{
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
+		return MAPI_E_INVALID_PARAMETER;
 	m_rtmStart = rtmStart;
 	m_rtmEnd = rtmEnd;
 
@@ -52,9 +46,7 @@ HRESULT ECFreeBusyData::Init(LONG rtmStart, LONG rtmEnd, ECFBBlockList* lpfbBloc
 	// Update the end time if missing.
 	if (m_rtmEnd == 0)
 		m_fbBlockList.GetEndTime(&m_rtmEnd);
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECFreeBusyData::Create(ECFreeBusyData **lppECFreeBusyData)
@@ -143,15 +135,13 @@ exit:
  */
 HRESULT ECFreeBusyData::FindFreeBlock(LONG ulBegin, LONG ulMinutes, LONG ulNumber, BOOL bA, LONG ulEnd, LONG ulUnknown, LONG ulMinutesPerDay, FBBlock_1 *lpBlock)
 {
-	HRESULT hr = hrSuccess;
+	HRESULT hr;
 	FBBlock_1 sBlock;
 	BOOL bOverlap = false;
 
-	if(ulBegin+1+ulMinutes > ulEnd) {
+	if (ulBegin + 1 + ulMinutes > ulEnd)
 		// Requested slot can never fit between start and end
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+		return MAPI_E_NOT_FOUND;
 
 	m_fbBlockList.Reset();
 
@@ -178,8 +168,6 @@ HRESULT ECFreeBusyData::FindFreeBlock(LONG ulBegin, LONG ulMinutes, LONG ulNumbe
 	} else {
 		hr = MAPI_E_NOT_FOUND;
 	}
-
-exit:
 	return hr;
 }
 
@@ -192,19 +180,11 @@ HRESULT ECFreeBusyData::SetFBRange(LONG rtmStart, LONG rtmEnd)
 
 HRESULT ECFreeBusyData::GetFBPublishRange(LONG *prtmStart, LONG *prtmEnd)
 {
-	HRESULT hr = S_OK;
-
 	if(prtmStart == NULL || prtmEnd == NULL)
-	{
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
+		return MAPI_E_INVALID_PARAMETER;
 	*prtmStart = m_rtmStart;
 	*prtmEnd = m_rtmEnd;
-
-exit:
-	return hr;
+	return S_OK;
 }
 
 // Interfaces

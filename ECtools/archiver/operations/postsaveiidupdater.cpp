@@ -129,13 +129,11 @@ PostSaveInstanceIdUpdater::PostSaveInstanceIdUpdater(ULONG ulPropTag, const Inst
 
 HRESULT PostSaveInstanceIdUpdater::Execute()
 {
-	typedef TaskList::const_iterator iterator;
-
 	HRESULT hr = hrSuccess;
 	bool bFailure = false;
 
-	for (iterator i = m_lstDeferred.begin(); i != m_lstDeferred.end(); ++i) {
-		hr = (*i)->Execute(m_ulPropTag, m_ptrMapper);
+	for (const auto &i : m_lstDeferred) {
+		hr = i->Execute(m_ulPropTag, m_ptrMapper);
 		if (hr != hrSuccess)
 			bFailure = true;
 	}

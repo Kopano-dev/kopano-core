@@ -118,13 +118,12 @@ public:
 			HRESULT hr = MAPIAllocateBuffer(cb, (void **)&buffer);
 
 			if(hr != hrSuccess)
-				goto exit;			
+				return hr;
 
 			self->Read(buffer, cb, ulRead);
 
 			*lpOutput = buffer;
-		exit:
-			return hr;
+			return hrSuccess;
 		}
     }
     virtual HRESULT Seek(LARGE_INTEGER dlibMove, DWORD dwOrigin, ULARGE_INTEGER *plibNewPosition) = 0;

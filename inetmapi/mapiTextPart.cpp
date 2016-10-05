@@ -135,33 +135,31 @@ void mapiTextPart::generateIn(ref <bodyPart> /* message */, ref <bodyPart> paren
 		relPart->getBody()->appendPart(htmlPart);
 
 		// Also add objects into this part
-		for (std::vector <ref <embeddedObject> >::const_iterator it = m_objects.begin() ;
-		     it != m_objects.end() ; ++it)
-		{
+		for (auto obj : m_objects) {
 			ref <bodyPart> objPart = vmime::create <bodyPart>();
 			relPart->getBody()->appendPart(objPart);
 
-			string id = (*it)->getId();
-			string name = (*it)->getName();
+			std::string id = obj->getId();
+			std::string name = obj->getName();
 
 			if (id.substr(0, 4) == "CID:")
 				id = id.substr(4);
 
 			// throw an error when id and location are empty?
 
-			objPart->getHeader()->ContentType()->setValue((*it)->getType());
+			objPart->getHeader()->ContentType()->setValue(obj->getType());
 			if (!id.empty())
 				objPart->getHeader()->ContentId()->setValue(messageId("<" + id + ">"));
 			objPart->getHeader()->ContentDisposition()->setValue(contentDisposition(contentDispositionTypes::INLINE));
-			objPart->getHeader()->ContentTransferEncoding()->setValue((*it)->getEncoding());
-			if (!(*it)->getLocation().empty())
-				objPart->getHeader()->ContentLocation()->setValue((*it)->getLocation());
+			objPart->getHeader()->ContentTransferEncoding()->setValue(obj->getEncoding());
+			if (!obj->getLocation().empty())
+				objPart->getHeader()->ContentLocation()->setValue(obj->getLocation());
 			//encoding(encodingTypes::BASE64);
 
 			if (!name.empty())
 				objPart->getHeader()->ContentDisposition().dynamicCast<contentDispositionField>()->setFilename(name);
 
-			objPart->getBody()->setContents((*it)->getData()->clone());
+			objPart->getBody()->setContents(obj->getData()->clone());
 		}
 	}
 	else
@@ -285,36 +283,30 @@ void mapiTextPart::parse(ref <const bodyPart> message, ref <const bodyPart> pare
 
 	// Extract embedded objects. The algorithm is quite simple: for each previously
 	// found inline part, we check if its CID/Location is contained in the HTML text.
-	for (std::vector <ref <const bodyPart> >::const_iterator p = cidParts.begin() ; p != cidParts.end() ; ++p)
-	{
+	for (const auto &part : cidParts) {
 		const ref <const headerField> midField =
-			(*p)->getHeader()->findField(fields::CONTENT_ID);
+			part->getHeader()->findField(fields::CONTENT_ID);
 
 		const messageId mid = *midField->getValue().dynamicCast <const messageId>();
 
 		if (data.find("CID:" + mid.getId()) != string::npos ||
 		    data.find("cid:" + mid.getId()) != string::npos)
-		{
 			// This part is referenced in the HTML text.
 			// Add it to the embedded object list.
-			addEmbeddedObject(**p, mid.getId());
-		}
+			addEmbeddedObject(*part, mid.getId());
 	}
 
-	for (std::vector <ref <const bodyPart> >::const_iterator p = locParts.begin() ; p != locParts.end() ; ++p)
-	{
+	for (const auto &part : locParts) {
 		const ref <const headerField> locField =
-			(*p)->getHeader()->findField(fields::CONTENT_LOCATION);
+			part->getHeader()->findField(fields::CONTENT_LOCATION);
 
 		const text loc = *locField->getValue().dynamicCast <const text>();
 		const string locStr = loc.getWholeBuffer();
 
 		if (data.find(locStr) != string::npos)
-		{
 			// This part is referenced in the HTML text.
 			// Add it to the embedded object list.
-			addEmbeddedObject(**p, locStr);
-		}
+			addEmbeddedObject(*part, locStr);
 	}
 
 	// Extract plain text, if any.
@@ -446,13 +438,9 @@ const ref <const mapiTextPart::embeddedObject> mapiTextPart::findObject(const st
 {
 	const string id = cleanId(id_);
 
-	for (std::vector <ref <embeddedObject> >::const_iterator o = m_objects.begin() ;
-	     o != m_objects.end() ; ++o)
-	{
-		if ((*o)->getId() == id)
-			return *o;
-	}
-
+	for (const auto &obj : m_objects)
+		if (obj->getId() == id)
+			return obj;
 	throw exceptions::no_object_found();
 }
 
@@ -460,13 +448,9 @@ bool mapiTextPart::hasObject(const string& id_) const
 {
 	const string id = cleanId(id_);
 
-	for (std::vector <ref <embeddedObject> >::const_iterator o = m_objects.begin() ;
-	     o != m_objects.end() ; ++o)
-	{
-		if ((*o)->getId() == id)
+	for (const auto &obj : m_objects)
+		if (obj->getId() == id)
 			return true;
-	}
-
 	return false;
 }
 

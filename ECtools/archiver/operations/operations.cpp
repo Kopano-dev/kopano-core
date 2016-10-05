@@ -76,12 +76,12 @@ HRESULT ArchiveOperationBase::GetRestriction(LPMAPIPROP lpMapiProp, LPSRestricti
 
 	if (lppRestriction == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
+		goto exitpm;
 	}
 
 	if (m_ulAge < 0) {
 		hr = MAPI_E_NOT_FOUND;
-		goto exit;
+		goto exitpm;
 	}
 
 	li.LowPart = m_ftCurrent.dwLowDateTime;
@@ -106,8 +106,7 @@ HRESULT ArchiveOperationBase::GetRestriction(LPMAPIPROP lpMapiProp, LPSRestricti
 	);
 
 	hr = resResult.CreateMAPIRestriction(lppRestriction);
-
-exit:
+ exitpm:
 	return hr;
 }
 

@@ -181,26 +181,25 @@ void* ECScheduler::ScheduleThread(void* lpTmpScheduler)
 		}
 		pthread_mutex_unlock(&lpScheduler->m_hExitMutex);
 
-		for (iterScheduleList = lpScheduler->m_listScheduler.begin(); iterScheduleList != lpScheduler->m_listScheduler.end(); ++iterScheduleList)
-		{
+		for (auto &sl : lpScheduler->m_listScheduler) {
 			pthread_mutex_lock(&lpScheduler->m_hSchedulerMutex);
 
 			//TODO If load on server high, check only items with a high priority
 
 			time(&ttime);
  
-			if (hasExpired(ttime, &(*iterScheduleList))) {
+			if (hasExpired(ttime, &sl)) {
 				//Create task thread
 				int err = 0;
 				
-				if((err = pthread_create(&hThread, NULL, iterScheduleList->lpFunction, (void*)iterScheduleList->lpData)) != 0) {
+				if((err = pthread_create(&hThread, NULL, sl.lpFunction, static_cast<void *>(sl.lpData))) != 0) {
 				    lpScheduler->m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to spawn new thread: %s", strerror(err));
 					goto task_fail;
 				}
 
 				set_thread_name(hThread, "ECScheduler:worker");
 
-				iterScheduleList->tLastRunTime = ttime;
+				sl.tLastRunTime = ttime;
 
 				if((err = pthread_join(hThread, (void**)&lperThread)) != 0) {
 				    lpScheduler->m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to join thread: %s", strerror(err));

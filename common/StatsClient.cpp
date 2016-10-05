@@ -34,30 +34,15 @@ static void submitThreadDo(void *p)
 
 	time_t now = time(NULL);
 
-		pthread_mutex_lock(&psc -> mapsLock);
-
-	std::map<std::string, double>::iterator doubleIterator = psc -> countsMapDouble.begin();
-		for (; doubleIterator != psc->countsMapDouble.end(); ++doubleIterator) {
-		std::string key = doubleIterator -> first;
-			double v = doubleIterator -> second;
-
-		psc -> submit(key, now, v);
-		}
-
-		psc -> countsMapDouble.clear();
-
-	std::map<std::string, int64_t>::iterator int64Iterator = psc -> countsMapInt64.begin();
-		for (; int64Iterator != psc->countsMapInt64.end(); ++int64Iterator) {
-		std::string key = int64Iterator -> first;
-			int64_t v = int64Iterator -> second;
-
-		psc -> submit(key, now, v);
-		}
-
-		psc -> countsMapInt64.clear();
-
-		pthread_mutex_unlock(&psc -> mapsLock);
-	}
+	pthread_mutex_lock(&psc -> mapsLock);
+	for (const auto &it : psc->countsMapDouble)
+		psc->submit(it.first, now, it.second);
+	psc->countsMapDouble.clear();
+	for (const auto &it : psc->countsMapInt64)
+		psc->submit(it.first, now, it.second);
+	psc->countsMapInt64.clear();
+	pthread_mutex_unlock(&psc -> mapsLock);
+}
 
 static void *submitThread(void *p)
 {
@@ -204,9 +189,8 @@ void StatsClient::countAdd(const std::string & key, const std::string & key_sub,
 
 	pthread_mutex_lock(&mapsLock);
 
-	std::map<std::string, double>::iterator doubleIterator = countsMapDouble.find(kp);
-
-	if (doubleIterator == countsMapDouble.end())
+	auto doubleIterator = countsMapDouble.find(kp);
+	if (doubleIterator == countsMapDouble.cend())
 		countsMapDouble.insert(std::pair<std::string, double>(kp, n));
 	else
 		doubleIterator -> second += n;
@@ -219,9 +203,8 @@ void StatsClient::countAdd(const std::string & key, const std::string & key_sub,
 
 	pthread_mutex_lock(&mapsLock);
 
-	std::map<std::string, int64_t>::iterator int64Iterator = countsMapInt64.find(kp);
-
-	if (int64Iterator == countsMapInt64.end())
+	auto int64Iterator = countsMapInt64.find(kp);
+	if (int64Iterator == countsMapInt64.cend())
 		countsMapInt64.insert(std::pair<std::string, int64_t>(kp, n));
 	else
 		int64Iterator -> second += n;

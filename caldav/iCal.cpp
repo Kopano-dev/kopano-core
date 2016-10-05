@@ -254,16 +254,15 @@ HRESULT iCal::HrHandleIcalPost()
 		}
 	}
 
-	mpIterI = mpIcalEntries.begin();
-	mpIterJ = mpSrvEntries.begin();
+	mpIterI = mpIcalEntries.cbegin();
+	mpIterJ = mpSrvEntries.cbegin();
 	//Iterate through entries and perform ADD, DELETE, Modify.
 	while(1)
 	{
-		if(mpIterJ == mpSrvEntries.end() && mpIterI == mpIcalEntries.end())
+		if (mpIterJ == mpSrvEntries.cend() && mpIterI == mpIcalEntries.cend())
 			break;
 		
-		if(mpIcalEntries.end() == mpIterI && mpSrvEntries.end() != mpIterJ )
-		{
+		if (mpIcalEntries.cend() == mpIterI && mpSrvEntries.cend() != mpIterJ) {
 			hr = HrDelMessage(mpIterJ->second, blCensorPrivate);
 			if(hr != hrSuccess)
 			{
@@ -271,9 +270,7 @@ HRESULT iCal::HrHandleIcalPost()
 				goto exit;
 			}
 			++mpIterJ;
-		}
-		else if(mpIcalEntries.end() != mpIterI && mpSrvEntries.end() == mpIterJ)
-		{
+		} else if (mpIcalEntries.cend() != mpIterI && mpSrvEntries.cend() == mpIterJ) {
 			hr = HrAddMessage(lpICalToMapi, mpIterI->second);
 			if(hr != hrSuccess)
 			{
@@ -281,9 +278,7 @@ HRESULT iCal::HrHandleIcalPost()
 				goto exit;
 			}
 			++mpIterI;
-		}
-		else if(mpSrvEntries.end() != mpIterJ && mpIcalEntries.end() != mpIterI )
-		{
+		} else if (mpSrvEntries.cend() != mpIterJ && mpIcalEntries.cend() != mpIterI) {
 			if(!mpIterI->first.compare(mpIterJ->first))
 			{
 
@@ -341,7 +336,7 @@ exit:
 	else
 		m_lpRequest->HrResponseHeader(500,"Internal Server Error");
 
-	for (mpIterJ = mpSrvEntries.begin(); mpIterJ != mpSrvEntries.end(); ++mpIterJ)
+	for (mpIterJ = mpSrvEntries.cbegin(); mpIterJ != mpSrvEntries.cend(); ++mpIterJ)
 		MAPIFreeBuffer(mpIterJ->second.lpb);
 	
 	if(lpContTable)

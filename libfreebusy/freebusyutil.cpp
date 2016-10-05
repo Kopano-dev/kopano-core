@@ -36,14 +36,10 @@ BOOL leapyear(short year)
 
 HRESULT getMaxMonthMinutes(short year, short month, short* minutes)
 {
-	HRESULT hr = hrSuccess;
 	short days = 0;
 
 	if(month < 0 || month >11 || year < 1601)
-	{
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+		return MAPI_E_INVALID_PARAMETER;
 
 	switch(month+1)
 	{
@@ -70,9 +66,7 @@ HRESULT getMaxMonthMinutes(short year, short month, short* minutes)
 	}
 
 	*minutes = days * (24*60);
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT GetFreeBusyFolder(IMsgStore* lpPublicStore, IMAPIFolder** lppFreeBusyFolder)
@@ -388,8 +382,6 @@ exit:
 
 HRESULT ParseFBEvents(FBStatus fbSts, LPSPropValue lpMonth, LPSPropValue lpEvent, ECFBBlockList* lpfbBlockList)
 {
-	HRESULT hr = S_OK;
-
 	ULONG		cEvents;
 	sfbEvent*	lpfbEvents = NULL;
 	struct tm	tmTmp;
@@ -402,10 +394,7 @@ HRESULT ParseFBEvents(FBStatus fbSts, LPSPropValue lpMonth, LPSPropValue lpEvent
 	// Check varibales
 	if(lpEvent == NULL || lpMonth == NULL || lpfbBlockList == NULL ||
 		lpEvent->Value.MVbin.cValues != lpMonth->Value.MVl.cValues)
-	{
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+		return MAPI_E_INVALID_PARAMETER;
 
 	memset(&fbBlock, 0, sizeof(fbBlock));
 
@@ -456,9 +445,7 @@ HRESULT ParseFBEvents(FBStatus fbSts, LPSPropValue lpMonth, LPSPropValue lpEvent
 		}
 
 	}
-
-exit:
-	return hr;
+	return S_OK;
 }
 
 HRESULT GetFreeBusyMessageData(IMessage* lpMessage, LONG* lprtmStart, LONG* lprtmEnd, ECFBBlockList	*lpfbBlockList)

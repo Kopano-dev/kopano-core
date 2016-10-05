@@ -570,11 +570,9 @@ HRESULT ECMsgStore::Reload(void *lpParam, ECSESSIONID sessionid)
 {
 	HRESULT hr = hrSuccess;
 	ECMsgStore *lpThis = (ECMsgStore *)lpParam;
-	std::set<ULONG>::const_iterator iter;
 
-	for (iter = lpThis->m_setAdviseConnections.begin();
-	     iter != lpThis->m_setAdviseConnections.end(); ++iter)
-		lpThis->m_lpNotifyClient->Reregister(*iter);
+	for (auto conn_id : lpThis->m_setAdviseConnections)
+		lpThis->m_lpNotifyClient->Reregister(conn_id);
 	return hr;
 }
 
@@ -1128,7 +1126,6 @@ HRESULT ECMsgStore::SetLockState(LPMESSAGE lpMessage, ULONG ulLockState)
 		goto exit;
 
 exit:
-
 	if(lpsPropArray)
 		ECFreeBuffer(lpsPropArray);
 
@@ -3029,7 +3026,8 @@ exit:
 	return hr;
 }
 
-HRESULT ECMsgStore::ResolvePseudoUrl(char *lpszPseudoUrl, char **lppszServerPath, bool *lpbIsPeer)
+HRESULT ECMsgStore::ResolvePseudoUrl(const char *lpszPseudoUrl,
+    char **lppszServerPath, bool *lpbIsPeer)
 {
 	return lpTransport->HrResolvePseudoUrl(lpszPseudoUrl, lppszServerPath, lpbIsPeer);
 }
@@ -3278,7 +3276,7 @@ HRESULT ECMsgStore::MsgStoreDnToPseudoUrl(const utf8string &strMsgStoreDN, utf8s
 		return MAPI_E_INVALID_PARAMETER;
 
 	// Check if the last part equals 'cn=Microsoft Private MDB'
-	riPart = parts.rbegin();
+	riPart = parts.crbegin();
 	if (strcasecmp(riPart->c_str(), "cn=Microsoft Private MDB") != 0)
 		return MAPI_E_INVALID_PARAMETER;
 
@@ -4115,7 +4113,8 @@ HRESULT ECMsgStore::xECServiceAdmin::OpenUserStoresTable(ULONG ulFlags, LPMAPITA
 	return pThis->OpenUserStoresTable(ulFlags, lppTable);
 }
 
-HRESULT ECMsgStore::xECServiceAdmin::ResolvePseudoUrl(char *lpszPseudoUrl, char **lppszServerPath, bool *lpbIsPeer)
+HRESULT ECMsgStore::xECServiceAdmin::ResolvePseudoUrl(const char *lpszPseudoUrl,
+    char **lppszServerPath, bool *lpbIsPeer)
 {
 	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::ResolvePseudoUrl", "");
 	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);

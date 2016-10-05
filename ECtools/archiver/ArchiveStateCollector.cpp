@@ -67,7 +67,7 @@ namespace details {
 
 		hr = MAPIAllocateBuffer(CbNewSPropTagArray(4), &ptrPropTagArray);
 		if (hr != hrSuccess)
-			goto exit;
+			goto exitpm;
 
 		ptrPropTagArray->cValues = 4;
 		ptrPropTagArray->aulPropTag[0] = PR_ENTRYID;
@@ -76,7 +76,7 @@ namespace details {
 		ptrPropTagArray->aulPropTag[3] = PROP_ITEM_ENTRYIDS;
 
 		*lppPropTagArray = ptrPropTagArray.release();
-	exit:
+	exitpm:
 		return hr;
 	}
 
@@ -96,7 +96,6 @@ namespace details {
 				break;
 
 			for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
-				std::pair<ArchiveStateCollector::ArchiveInfoMap::iterator, bool> res;
 				bool bComplete = true;
 				abentryid_t userId;
 
@@ -116,7 +115,7 @@ namespace details {
 				}
 
 				userId.assign(ptrRows[i].lpProps[IDX_MAILBOX_OWNER_ENTRYID].Value.bin);
-				res = m_mapArchiveInfo.insert(std::make_pair(userId, ArchiveStateCollector::ArchiveInfo()));
+				auto res = m_mapArchiveInfo.insert(std::make_pair(userId, ArchiveStateCollector::ArchiveInfo()));
 				if (res.second == true)
 					m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Inserting row for user id %s", userId.tostring().c_str());
 				else
@@ -288,8 +287,6 @@ HRESULT ArchiveStateCollector::PopulateFromContainer(LPABCONT lpContainer)
 			break;
 
 		for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
-			ArchiveInfoMap::iterator iterator;
-			
 			if (ptrRows[i].lpProps[IDX_ENTRYID].ulPropTag != PR_ENTRYID) {
 				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get entryid from address list. hr=0x%08x", ptrRows[i].lpProps[IDX_ACCOUNT].Value.err);
 				continue;
@@ -301,8 +298,7 @@ HRESULT ArchiveStateCollector::PopulateFromContainer(LPABCONT lpContainer)
 			}
 
 			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Inserting row for user '" TSTRING_PRINTF "'", ptrRows[i].lpProps[IDX_ACCOUNT].Value.LPSZ);
-			iterator = m_mapArchiveInfo.insert(std::make_pair(abentryid_t(ptrRows[i].lpProps[IDX_ENTRYID].Value.bin), ArchiveInfo())).first;
-
+			auto iterator = m_mapArchiveInfo.insert(std::make_pair(abentryid_t(ptrRows[i].lpProps[IDX_ENTRYID].Value.bin), ArchiveInfo())).first;
 			iterator->second.userName.assign(ptrRows[i].lpProps[IDX_ACCOUNT].Value.LPSZ);
 
 			if (ptrRows[i].lpProps[IDX_EC_ARCHIVE_SERVERS].ulPropTag == PR_EC_ARCHIVE_SERVERS) {

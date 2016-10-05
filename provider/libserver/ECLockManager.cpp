@@ -89,10 +89,9 @@ ECLockManager::~ECLockManager() {
 ECRESULT ECLockManager::LockObject(unsigned int ulObjId, ECSESSIONID sessionId, ECObjectLock *lpObjectLock)
 {
 	ECRESULT er = erSuccess;
-	pair<LockMap::const_iterator, bool> res;
 	scoped_exclusive_rwlock lock(m_hRwLock);
 
-	res = m_mapLocks.insert(LockMap::value_type(ulObjId, sessionId));
+	auto res = m_mapLocks.insert(LockMap::value_type(ulObjId, sessionId));
 	if (res.second == false && res.first->second != sessionId)
 		er = KCERR_NO_ACCESS;
 
@@ -105,11 +104,10 @@ ECRESULT ECLockManager::LockObject(unsigned int ulObjId, ECSESSIONID sessionId, 
 ECRESULT ECLockManager::UnlockObject(unsigned int ulObjId, ECSESSIONID sessionId)
 {
 	ECRESULT er = erSuccess;
-	LockMap::iterator i;
 	scoped_exclusive_rwlock lock(m_hRwLock);
 
-	i = m_mapLocks.find(ulObjId);
-	if (i == m_mapLocks.end())
+	auto i = m_mapLocks.find(ulObjId);
+	if (i == m_mapLocks.cend())
 		er = KCERR_NOT_FOUND;
 	else if (i->second != sessionId)
 		er = KCERR_NO_ACCESS;
@@ -121,11 +119,9 @@ ECRESULT ECLockManager::UnlockObject(unsigned int ulObjId, ECSESSIONID sessionId
 
 bool ECLockManager::IsLocked(unsigned int ulObjId, ECSESSIONID *lpSessionId)
 {
-	LockMap::const_iterator i;
-	
 	scoped_shared_rwlock lock(m_hRwLock);
-	i = m_mapLocks.find(ulObjId);
-	if (i != m_mapLocks.end() && lpSessionId)
+	auto i = m_mapLocks.find(ulObjId);
+	if (i != m_mapLocks.cend() && lpSessionId != NULL)
 		*lpSessionId = i->second;
 
 	return i != m_mapLocks.end();

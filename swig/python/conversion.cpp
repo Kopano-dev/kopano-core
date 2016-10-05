@@ -112,12 +112,12 @@ void Init()
 
 	if(!lpMAPIStruct) {
 		PyErr_SetString(PyExc_RuntimeError, "Unable to import MAPI.Struct");
-		goto exit;
+		return;
 	}
 
 	if(!lpMAPITime) {
 		PyErr_SetString(PyExc_RuntimeError, "Unable to import MAPI.Time");
-		goto exit;
+		return;
 	}
 
 	PyTypeSPropValue = PyObject_GetAttrString(lpMAPIStruct, "SPropValue");
@@ -165,9 +165,6 @@ void Init()
 	PyTypeACTIONS = PyObject_GetAttrString(lpMAPIStruct, "ACTIONS");
 
 	PyTypeFiletime = PyObject_GetAttrString(lpMAPITime, "FileTime");
-
-exit:
-	;
 }
 
 // Coerce PyObject into PyUnicodeObject, copy and zero-terminate
@@ -234,7 +231,7 @@ FILETIME Object_to_FILETIME(PyObject *object)
 	PyObject *filetime = PyObject_GetAttrString(object, "filetime");
 	if (!filetime) {
 		PyErr_Format(PyExc_TypeError, "PT_SYSTIME object does not have 'filetime' attribute");
-		goto exit;
+		return ft;
 	}
 
 	#if PY_MAJOR_VERSION >= 3
@@ -244,8 +241,6 @@ FILETIME Object_to_FILETIME(PyObject *object)
 	#endif
 	ft.dwHighDateTime = periods >> 32;
 	ft.dwLowDateTime = periods & 0xffffffff;
-
-exit:
 	return ft;
 }
 
@@ -1197,7 +1192,7 @@ LPSRestriction	Object_to_LPSRestriction(PyObject *object, void *lpBase)
 		return NULL;
 
 	if (MAPIAllocateBuffer(sizeof(SRestriction), (void **)&lpRestriction) != hrSuccess)
-		goto exit;
+		return NULL;
 
 	Object_to_LPSRestriction(object, lpRestriction);
 
@@ -1205,8 +1200,6 @@ LPSRestriction	Object_to_LPSRestriction(PyObject *object, void *lpBase)
 		MAPIFreeBuffer(lpRestriction);
 		return NULL;
 	}
-
-exit:
 	return lpRestriction;
 }
 
@@ -2276,7 +2269,7 @@ PyObject *		Object_from_LPNOTIFICATION(NOTIFICATION *lpNotif)
 			proptags = List_from_LPSPropTagArray(lpNotif->info.obj.lpPropTagArray);
 
 			if(!proptags)
-				goto exit;
+				return NULL;
 
 			elem = PyObject_CallFunction(PyTypeOBJECT_NOTIFICATION, "(ls#ls#s#s#O)",
 												lpNotif->ulEventType,
@@ -2292,16 +2285,13 @@ PyObject *		Object_from_LPNOTIFICATION(NOTIFICATION *lpNotif)
 		case fnevTableModified:
 			index = Object_from_LPSPropValue(&lpNotif->info.tab.propIndex);
 			if(!index)
-				goto exit;
-
+				return NULL;
 			prior = Object_from_LPSPropValue(&lpNotif->info.tab.propPrior);
 			if(!prior)
-				goto exit;
-
+				return NULL;
 			row = List_from_LPSPropValue(lpNotif->info.tab.row.lpProps, lpNotif->info.tab.row.cValues);
 			if(!row)
-				goto exit;
-
+				return NULL;
 			elem = PyObject_CallFunction(PyTypeTABLE_NOTIFICATION, "(lIOOO)", lpNotif->info.tab.ulTableEvent, lpNotif->info.tab.hResult, index, prior, row);
 
 			Py_DECREF(index);
@@ -2321,8 +2311,6 @@ PyObject *		Object_from_LPNOTIFICATION(NOTIFICATION *lpNotif)
 			PyErr_Format(PyExc_RuntimeError, "Bad notification type %x", lpNotif->ulEventType);
 			break;
 	}
-
-exit:
 	return elem;
 }
 
@@ -3435,11 +3423,8 @@ SYSTEMTIME Object_to_SYSTEMTIME(PyObject *object)
 	SYSTEMTIME st = {0};
 
 	if (object == Py_None)
-		goto exit;
+		return st;
 
 	process_conv_out_array(&st, object, conv_info, NULL, 0);
-
-exit:
-
 	return st;
 }

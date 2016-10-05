@@ -84,7 +84,8 @@ HRESULT ECXPProvider::TransportLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTST
 	iterMap = g_mapProviders.find(tstrProfileName);
 
 	// Online if: no entry in map, OR map specifies online mode
-	if(iterMap == g_mapProviders.end() || iterMap->second.ulConnectType == CT_ONLINE) {
+	if (iterMap == g_mapProviders.cend() ||
+	    iterMap->second.ulConnectType == CT_ONLINE) {
 		// Online
 		hr = WSTransport::HrOpenTransport(lpMAPISup, &lpTransport, FALSE);
 		bOffline = FALSE;

@@ -46,19 +46,15 @@ ECMemTablePublic::ECMemTablePublic(ECMAPIFolderPublic *lpECParentFolder, SPropTa
 
 ECMemTablePublic::~ECMemTablePublic(void)
 {
-	ECMAPFolderRelation::iterator	iterFolder;
-
 	if (m_lpShortcutTable)
 		m_lpShortcutTable->Release();
 
 	if (m_lpShortCutAdviseSink)
 		m_lpShortCutAdviseSink->Release();
-
-	for (iterFolder = m_mapRelation.begin(); iterFolder != m_mapRelation.end(); ++iterFolder) {
-		if (iterFolder->second.ulAdviseConnectionId > 0)
-			m_lpECParentFolder->GetMsgStore()->Unadvise(iterFolder->second.ulAdviseConnectionId);
-
-		FreeRelation(&iterFolder->second);
+	for (auto &p : m_mapRelation) {
+		if (p.second.ulAdviseConnectionId > 0)
+			m_lpECParentFolder->GetMsgStore()->Unadvise(p.second.ulAdviseConnectionId);
+		FreeRelation(&p.second);
 	}
 
 	if (m_lpECParentFolder)
@@ -161,7 +157,6 @@ static LONG __stdcall AdviseFolderCallback(void *lpContext, ULONG cNotif,
 		return S_OK;
 	}
 
-	ECMemTablePublic::ECMAPFolderRelation::const_iterator iterFolder;
 	ECMemTablePublic *lpMemTablePublic = (ECMemTablePublic*)lpContext;
 	ULONG ulResult;
 	SBinary sInstanceKey;
@@ -173,15 +168,11 @@ static LONG __stdcall AdviseFolderCallback(void *lpContext, ULONG cNotif,
 		{
 			case fnevObjectModified:
 			case fnevObjectDeleted:
-				for (iterFolder = lpMemTablePublic->m_mapRelation.begin();
-				     iterFolder != lpMemTablePublic->m_mapRelation.end();
-				     ++iterFolder)
-				{
-					if (lpMemTablePublic->m_lpECParentFolder->GetMsgStore()->CompareEntryIDs(iterFolder->second.cbEntryID, iterFolder->second.lpEntryID,lpNotif[i].info.obj.cbEntryID, lpNotif[i].info.obj.lpEntryID, 0, &ulResult) == hrSuccess && ulResult == TRUE)
+				for (const auto &p : lpMemTablePublic->m_mapRelation)
+					if (lpMemTablePublic->m_lpECParentFolder->GetMsgStore()->CompareEntryIDs(p.second.cbEntryID, p.second.lpEntryID, lpNotif[i].info.obj.cbEntryID, lpNotif[i].info.obj.lpEntryID, 0, &ulResult) == hrSuccess && ulResult == TRUE)
 					{
-
-						sInstanceKey.cb = iterFolder->first.size();
-						sInstanceKey.lpb = (LPBYTE)iterFolder->first.c_str();
+						sInstanceKey.cb = p.first.size();
+						sInstanceKey.lpb = reinterpret_cast<BYTE *>(const_cast<char *>(p.first.c_str()));
 
 						switch (lpNotif[i].ulEventType)
 						{
@@ -197,7 +188,6 @@ static LONG __stdcall AdviseFolderCallback(void *lpContext, ULONG cNotif,
 						
 						break;
 					}
-				}
 				break;
 			//TODO: Move (Unknown what to update)
 		}
@@ -342,8 +332,7 @@ HRESULT ECMemTablePublic::ModifyRow(SBinary* lpInstanceKey, LPSRow lpsRow)
 
 	iterRel = m_mapRelation.find(strInstanceKey);
 
-	if (iterRel != m_mapRelation.end() ) {
-
+	if (iterRel != m_mapRelation.cend()) {
 		sRelFolder = iterRel->second;
 		ulRowId = sRelFolder.ulRowID;
 
@@ -569,8 +558,7 @@ HRESULT ECMemTablePublic::DelRow(SBinary* lpInstanceKey)
 	strInstanceKey.assign((char*)lpInstanceKey->lpb, lpInstanceKey->cb);
 
 	iterRel = m_mapRelation.find(strInstanceKey);
-
-	if (iterRel == m_mapRelation.end() )
+	if (iterRel == m_mapRelation.cend())
 		return hrSuccess;
 
 	sKeyProp.ulPropTag = PR_ROWID;

@@ -187,7 +187,6 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 	LPENTRYLIST lpsMsgList = NULL;
 	SizedSPropTagArray(2, sPropDelFavo) = {2, { PR_ENTRYID, PR_FAV_PUBLIC_SOURCE_KEY }};
 	std::list<string>	listSourceKey;
-	std::list<std::string>::const_iterator ilistSourceKey;
 	string strSourceKey;
 	SPropValue sPropSourceKey;
 	ULONG ulMaxRows = 0;
@@ -251,12 +250,10 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 	if (lpRows){ FreeProws(lpRows); lpRows = NULL; }
 	FREE_RESTRICTION(lpRestriction);
 
-	for (ilistSourceKey = listSourceKey.begin();
-	     ilistSourceKey != listSourceKey.end(); ++ilistSourceKey)
-	{
+	for (const auto &sk : listSourceKey) {
 		sPropSourceKey.ulPropTag = PR_FAV_PUBLIC_SOURCE_KEY;
-		sPropSourceKey.Value.bin.cb = ilistSourceKey->size();
-		sPropSourceKey.Value.bin.lpb = (LPBYTE)ilistSourceKey->c_str();
+		sPropSourceKey.Value.bin.cb = sk.size();
+		sPropSourceKey.Value.bin.lpb = const_cast<BYTE *>(reinterpret_cast<const BYTE *>(sk.c_str()));
 
 		CREATE_RESTRICTION(lpRestriction);
 		CREATE_RES_AND(lpRestriction, lpRestriction, 1);

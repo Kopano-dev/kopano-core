@@ -310,7 +310,6 @@ static HRESULT ExpandRecipients(LPADRBOOK lpAddrBook, IMessage *lpMessage)
 {
 	HRESULT hr = hrSuccess;
 	list<SBinary> lExpandedGroups;
-	std::list<SBinary>::const_iterator iterGroups;
 	IMAPITable *lpTable = NULL;
 	LPSRestriction lpRestriction = NULL;
 	LPSRestriction lpEntryRestriction = NULL;
@@ -407,9 +406,8 @@ static HRESULT ExpandRecipients(LPADRBOOK lpAddrBook, IMessage *lpMessage)
 	}
 
 exit:
-	for (iterGroups = lExpandedGroups.begin();
-	     iterGroups != lExpandedGroups.end(); ++iterGroups)
-		MAPIFreeBuffer(iterGroups->lpb);
+	for (const auto &g : lExpandedGroups)
+		MAPIFreeBuffer(g.lpb);
 
 	if (lpTable)
 		lpTable->Release();
@@ -1823,14 +1821,12 @@ static HRESULT HrCheckAllowedEntryIDArray(const char *szFunc,
 		if (hr == hrSuccess && ulCmpRes == TRUE) {
 			*lpulObjType = ulObjType;
 			*lpbAllowed = true;
-			goto exit;
+			// always return success, since lpbAllowed is always written
+			return hrSuccess;
 		}
 	}
 
 	*lpbAllowed = false;
-
-exit:
-	// always return success, since lpbAllowed is always written
 	return hrSuccess;
 }
 

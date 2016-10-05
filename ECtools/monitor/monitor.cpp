@@ -84,23 +84,22 @@ static void sighup(int signr)
 	// not needed or required.
 	if (pthread_equal(pthread_self(), mainthread)==0)
 		return;
-	if (m_lpThreadMonitor) {
-		if (m_lpThreadMonitor->lpConfig) {
-			if (!m_lpThreadMonitor->lpConfig->ReloadSettings() && m_lpThreadMonitor->lpLogger)
-				m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to reload configuration file, continuing with current settings.");
-		}
-
-		if (m_lpThreadMonitor->lpLogger) {
-			if (m_lpThreadMonitor->lpConfig) {
-				const char *ll = m_lpThreadMonitor->lpConfig->GetSetting("log_level");
-				int new_ll = ll ? atoi(ll) : EC_LOGLEVEL_WARNING;
-				m_lpThreadMonitor->lpLogger->SetLoglevel(new_ll);
-			}
-
-			m_lpThreadMonitor->lpLogger->Reset();
-			m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_WARNING, "Log connection was reset");
-		}
+	if (m_lpThreadMonitor == NULL)
+		return;
+	if (m_lpThreadMonitor->lpConfig != NULL &&
+	    !m_lpThreadMonitor->lpConfig->ReloadSettings() &&
+	    m_lpThreadMonitor->lpLogger != NULL)
+		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to reload configuration file, continuing with current settings.");
+	if (m_lpThreadMonitor->lpLogger == NULL)
+		return;
+	if (m_lpThreadMonitor->lpConfig) {
+		const char *ll = m_lpThreadMonitor->lpConfig->GetSetting("log_level");
+		int new_ll = ll ? atoi(ll) : EC_LOGLEVEL_WARNING;
+		m_lpThreadMonitor->lpLogger->SetLoglevel(new_ll);
 	}
+
+	m_lpThreadMonitor->lpLogger->Reset();
+	m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_WARNING, "Log connection was reset");
 }
 
 // SIGSEGV catcher

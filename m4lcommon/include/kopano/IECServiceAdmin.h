@@ -97,7 +97,7 @@ public:
 
 	// Multiserver functions
 	virtual HRESULT __stdcall GetServerDetails(ECSVRNAMELIST *lpServerNameList, ULONG ulFlags, ECSERVERLIST **lppsServerList) = 0;
-	virtual HRESULT __stdcall ResolvePseudoUrl(char *lpszPseudoUrl, char **lppszServerPath, bool *lpbIsPeer) = 0;
+	virtual HRESULT __stdcall ResolvePseudoUrl(const char *url, char **path, bool *ispeer) = 0;
 
 	// Public store function(s)
 	virtual HRESULT __stdcall GetPublicStoreEntryID(ULONG ulFlags, ULONG* lpcbStoreID, LPENTRYID* lppStoreID) = 0;

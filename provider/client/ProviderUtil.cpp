@@ -113,13 +113,11 @@ HRESULT RemoveAllProviders(ECMapProvider* lpmapProvider)
 	if (lpmapProvider == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
-	for (iterProvider = lpmapProvider->begin();
-	     iterProvider != lpmapProvider->end(); ++iterProvider) {
-		if (iterProvider->second.lpMSProviderOnline)
-			iterProvider->second.lpMSProviderOnline->Release();
-
-		if (iterProvider->second.lpABProviderOnline)
-			iterProvider->second.lpABProviderOnline->Release();
+	for (const auto &p : *lpmapProvider) {
+		if (p.second.lpMSProviderOnline)
+			p.second.lpMSProviderOnline->Release();
+		if (p.second.lpABProviderOnline)
+			p.second.lpABProviderOnline->Release();
 	}
 	return hrSuccess;
 }
@@ -144,8 +142,7 @@ HRESULT GetProviders(ECMapProvider* lpmapProvider, IMAPISupport *lpMAPISup, cons
 	}
 
 	iterProvider = lpmapProvider->find(lpszProfileName);
-	if (iterProvider != lpmapProvider->end())
-	{
+	if (iterProvider != lpmapProvider->cend()) {
 		*lpsProviderInfo = iterProvider->second;
 		goto exit;
 	}

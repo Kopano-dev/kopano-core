@@ -59,7 +59,6 @@ HRESULT HrCopyString(convert_context& converter, std::string& strCharset, void *
 
 HRESULT HrCopyString(void *base, const WCHAR* lpwszSrc, WCHAR** lppwszDst)
 {
-	HRESULT hr = hrSuccess;
 	WCHAR* lpwszDst = NULL;
 	std::wstring strText;
 
@@ -68,16 +67,14 @@ HRESULT HrCopyString(void *base, const WCHAR* lpwszSrc, WCHAR** lppwszDst)
 	else
 		strText = lpwszSrc;
 
-	hr = MAPIAllocateMore((strText.length()+1) * sizeof(WCHAR), base, (void**)&lpwszDst);
+	HRESULT hr = MAPIAllocateMore((strText.length() + 1) * sizeof(WCHAR),
+	             base, reinterpret_cast<void **>(&lpwszDst));
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	wcsncpy(lpwszDst, strText.c_str(), strText.length()+1);
 
 	*lppwszDst = lpwszDst;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -235,26 +232,16 @@ exit:
  */
 HRESULT VConverter::HrGetUID(icalcomponent *lpEvent, std::string *strUid)
 {
-	HRESULT hr = hrSuccess;
-	icalproperty *icProp = NULL;
 	const char *uid = NULL;
-
-	icProp = icalcomponent_get_first_property(lpEvent, ICAL_UID_PROPERTY);
-	if (!icProp) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+	icalproperty *icProp = icalcomponent_get_first_property(lpEvent,
+	                       ICAL_UID_PROPERTY);
+	if (icProp == NULL)
+		return MAPI_E_NOT_FOUND;
 	uid = icalproperty_get_uid(icProp);
-
-	if (!uid || strcmp(uid,"") == 0) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
+	if (uid == NULL || strcmp(uid,"") == 0)
+		return MAPI_E_NOT_FOUND;
 	*strUid = uid;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -287,7 +274,6 @@ exit:
  */
 HRESULT VConverter::HrMakeBinaryUID(const std::string &strUid, void *base, SPropValue *lpPropValue)
 {
-	HRESULT hr = hrSuccess;
 	SPropValue sPropValue;
 	std::string strBinUid;
 	std::string strByteArrayID = "040000008200E00074C5B7101A82E008";
@@ -306,7 +292,9 @@ HRESULT VConverter::HrMakeBinaryUID(const std::string &strUid, void *base, SProp
 
 	// Caller sets .ulPropTag
 	sPropValue.Value.bin.cb = strBinUid.size();
-	if ((hr = MAPIAllocateMore(sPropValue.Value.bin.cb, base, (void**)&sPropValue.Value.bin.lpb)) != hrSuccess)
+	HRESULT hr = MAPIAllocateMore(sPropValue.Value.bin.cb, base,
+	             reinterpret_cast<void **>(&sPropValue.Value.bin.lpb));
+	if (hr != hrSuccess)
 		return hr;
 	memcpy(sPropValue.Value.bin.lpb, strBinUid.data(), sPropValue.Value.bin.cb);
 
@@ -361,7 +349,6 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 	ULONG cbDDEntryID;
 	IABContainer *lpAddrFolder = NULL;
 	FlagList *lpFlagList = NULL;
-	std::list<icalrecip>::const_iterator iIcalRecip;
 	icalrecip icalRecipient;
 	ULONG ulRecpCnt = 0;
 	ULONG ulRetn = 0;
@@ -390,8 +377,8 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 
 	lpAdrList->cEntries = ulRecpCnt;
 
-	for (iIcalRecip = lplstIcalRecip->begin(), ulRecpCnt = 0;
-	     iIcalRecip != lplstIcalRecip->end(); ++iIcalRecip, ++ulRecpCnt) {
+	ulRecpCnt = 0;
+	for (const auto &recip : *lplstIcalRecip) {
 		lpAdrList->aEntries[ulRecpCnt].cValues = 1;
 
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **) &lpAdrList->aEntries[ulRecpCnt].rgPropVals);
@@ -399,8 +386,8 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 			goto exit;
 
 		lpAdrList->aEntries[ulRecpCnt].rgPropVals[0].ulPropTag = PR_DISPLAY_NAME_W;
-		lpAdrList->aEntries[ulRecpCnt].rgPropVals[0].Value.lpszW = (WCHAR *)iIcalRecip->strEmail.c_str();
-		lpFlagList->ulFlag[ulRecpCnt] = MAPI_UNRESOLVED;
+		lpAdrList->aEntries[ulRecpCnt].rgPropVals[0].Value.lpszW = const_cast<wchar_t *>(recip.strEmail.c_str());
+		lpFlagList->ulFlag[ulRecpCnt++] = MAPI_UNRESOLVED;
 	}
 
 	hr = m_lpAdrBook->GetDefaultDir(&cbDDEntryID, &lpDDEntryID);
@@ -519,7 +506,6 @@ exit:
  */
 HRESULT VConverter::HrAddUids(icalcomponent *lpicEvent, icalitem *lpIcalItem)
 {
-	HRESULT hr = hrSuccess;
 	SPropValue sPropValue;
 	std::string strUid;
 	
@@ -527,20 +513,20 @@ HRESULT VConverter::HrAddUids(icalcomponent *lpicEvent, icalitem *lpIcalItem)
 	// CleanGlobalObjectID -> it has UID value
 
 	// Get Unique ID of ical item, or create new
-	hr = HrGetUID(lpicEvent, &strUid);
+	HRESULT hr = HrGetUID(lpicEvent, &strUid);
 	if (hr != hrSuccess)
 		hr = HrGenerateUid(&strUid);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	hr = HrMakeBinaryUID(strUid, lpIcalItem->base, &sPropValue);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	
 	// sets exception date in GUID from recurrence-id
 	hr = HrHandleExceptionGuid(lpicEvent, lpIcalItem->base, &sPropValue);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// set as dispidGlobalObjectID ...
 	sPropValue.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY);
@@ -553,16 +539,14 @@ HRESULT VConverter::HrAddUids(icalcomponent *lpicEvent, icalitem *lpIcalItem)
 
 	hr = HrMakeBinaryUID(strUid, lpIcalItem->base, &sPropValue);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// set as dispidCleanGlobalObjectID...
 	sPropValue.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_CLEANID], PT_BINARY);
 	lpIcalItem->lstMsgProps.push_back(sPropValue);
 	// save the strUid to lookup for occurrences
 	lpIcalItem->sBinGuid = sPropValue;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -578,23 +562,17 @@ exit:
  */
 HRESULT VConverter::HrHandleExceptionGuid(icalcomponent *lpiEvent, void *base, SPropValue *lpsProp)
 {
-	HRESULT hr = hrSuccess;
 	std::string strUid;
 	std::string strBinUid;
 	icalproperty *icProp = NULL;
 	icaltimetype icTime;
 	char strHexDate[] = "00000000";
 	
-	if (!lpsProp) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (lpsProp == NULL)
+		return MAPI_E_INVALID_PARAMETER;
 	icProp = icalcomponent_get_first_property(lpiEvent, ICAL_RECURRENCEID_PROPERTY);
-	if (!icProp) {
-		hr = hrSuccess; //ignoring Recurrence-ID.
-		goto exit;
-	}
+	if (icProp == NULL)
+		return hrSuccess; //ignoring Recurrence-ID.
 
 	strUid = bin2hex(lpsProp->Value.bin.cb, lpsProp->Value.bin.lpb);
 
@@ -606,12 +584,12 @@ HRESULT VConverter::HrHandleExceptionGuid(icalcomponent *lpiEvent, void *base, S
 	strBinUid = hex2bin(strUid);
 
 	lpsProp->Value.bin.cb = strBinUid.size();
-	if ((hr = MAPIAllocateMore(strBinUid.size(), base, (void**)&lpsProp->Value.bin.lpb)) != hrSuccess)
-		goto exit;
+	HRESULT hr = MAPIAllocateMore(strBinUid.size(), base,
+	             reinterpret_cast<void **>(&lpsProp->Value.bin.lpb));
+	if (hr != hrSuccess)
+		return hr;
 	memcpy(lpsProp->Value.bin.lpb, strBinUid.data(), lpsProp->Value.bin.cb);
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -623,15 +601,11 @@ exit:
  */
 HRESULT VConverter::HrAddRecurrenceID(icalcomponent *lpiEvent, icalitem *lpIcalItem)
 {
-	HRESULT hr = hrSuccess;
 	SPropValue sPropVal;
-	icalproperty *icProp = NULL;
-	
-	icProp = icalcomponent_get_first_property(lpiEvent, ICAL_RECURRENCEID_PROPERTY);
-	if (!icProp) {
-		hr = hrSuccess;
-		goto exit;
-	}
+	icalproperty *icProp = icalcomponent_get_first_property(lpiEvent,
+	                       ICAL_RECURRENCEID_PROPERTY);
+	if (icProp == NULL)
+		return hrSuccess;
 
 	// if RECURRENCE-ID is date then series is all day,
 	// so set the following properties as a flag to know if series is all day or not.
@@ -661,9 +635,7 @@ HRESULT VConverter::HrAddRecurrenceID(icalcomponent *lpiEvent, icalitem *lpIcalI
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ISEXCEPTION], PT_BOOLEAN);
 	sPropVal.Value.b = true;
 	lpIcalItem->lstMsgProps.push_back(sPropVal);
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -831,7 +803,6 @@ HRESULT VConverter::HrAddBusyStatus(icalcomponent *lpicEvent, icalproperty_metho
 	HRESULT hr = hrSuccess;
 	SPropValue sPropVal;
 	icalproperty* lpicProp = NULL;
-	std::list<icalrecip>::const_iterator iIcalRecip;
 
 	// default: busy
 	// 0: free
@@ -1042,19 +1013,17 @@ HRESULT VConverter::HrAddXHeaders(icalcomponent *lpicEvent, icalitem *lpIcalItem
  */
 HRESULT VConverter::HrAddCategories(icalcomponent *lpicEvent, icalitem *lpIcalItem)
 {
-	HRESULT hr = hrSuccess;
 	SPropValue sPropVal;
 	icalproperty *lpicProp = NULL;
 	const char* lpszCategories = NULL;
 	std::vector<std::string> vCategories;
-	std::vector<std::string>::const_iterator iCats;
 	int i;
 
 	// Set keywords / CATEGORIES
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_CATEGORIES_PROPERTY);
 	if (!lpicProp) {
 		lpIcalItem->lstDelPropTags.push_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_KEYWORDS], PT_MV_STRING8));
-		goto exit;
+		return hrSuccess;
 	}
 
 	while (lpicProp != NULL && (lpszCategories = icalproperty_get_categories(lpicProp)) != NULL) {
@@ -1062,26 +1031,24 @@ HRESULT VConverter::HrAddCategories(icalcomponent *lpicEvent, icalitem *lpIcalIt
 		lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_CATEGORIES_PROPERTY);
 	}
 
-	hr = MAPIAllocateMore(vCategories.size() * sizeof(LPSTR), lpIcalItem->base, (void**)&sPropVal.Value.MVszA.lppszA);
+	HRESULT hr = MAPIAllocateMore(vCategories.size() * sizeof(LPSTR),
+	            lpIcalItem->base, reinterpret_cast<void **>(&sPropVal.Value.MVszA.lppszA));
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
-	for (i = 0, iCats = vCategories.begin();
-	     iCats != vCategories.end(); ++iCats, ++i) {
-		int length = iCats->length() + 1;
+	i = 0;
+	for (const auto &cat : vCategories) {
+		int length = cat.length() + 1;
 		hr = MAPIAllocateMore(length, lpIcalItem->base, (void **) &sPropVal.Value.MVszA.lppszA[i]);
 		if (hr != hrSuccess)
-			goto exit;
-
-		memcpy(sPropVal.Value.MVszA.lppszA[i], iCats->c_str(), length);
+			return hr;
+		memcpy(sPropVal.Value.MVszA.lppszA[i++], cat.c_str(), length);
 	}
 
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_KEYWORDS], PT_MV_STRING8);
 	sPropVal.Value.MVszA.cValues = vCategories.size();
 	lpIcalItem->lstMsgProps.push_back(sPropVal);
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -1099,7 +1066,6 @@ exit:
  */
 HRESULT VConverter::HrAddOrganizer(icalitem *lpIcalItem, std::list<SPropValue> *lplstMsgProps, const std::wstring &strEmail, const std::wstring &strName, const std::string &strType, ULONG cbEntryID, LPENTRYID lpEntryID)
 {
-	HRESULT hr = hrSuccess;
 	std::string strSearchKey;
 	SPropValue sPropVal;
 
@@ -1107,9 +1073,10 @@ HRESULT VConverter::HrAddOrganizer(icalitem *lpIcalItem, std::list<SPropValue> *
 	transform(strSearchKey.begin(), strSearchKey.end(), strSearchKey.begin(), ::toupper);
 
 	sPropVal.ulPropTag = PR_SENDER_ADDRTYPE_W;
-	hr = HrCopyString(m_converter, m_strCharset, lpIcalItem->base, strType.c_str(), &sPropVal.Value.lpszW);
+	HRESULT hr = HrCopyString(m_converter, m_strCharset, lpIcalItem->base,
+	             strType.c_str(), &sPropVal.Value.lpszW);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	lplstMsgProps->push_back(sPropVal);
 
 	sPropVal.ulPropTag = PR_SENT_REPRESENTING_ADDRTYPE;
@@ -1118,7 +1085,7 @@ HRESULT VConverter::HrAddOrganizer(icalitem *lpIcalItem, std::list<SPropValue> *
 	sPropVal.ulPropTag = PR_SENDER_EMAIL_ADDRESS_W;
 	hr = HrCopyString(lpIcalItem->base, strEmail.c_str(), &sPropVal.Value.lpszW);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	lplstMsgProps->push_back(sPropVal);
 
 	sPropVal.ulPropTag = PR_SENT_REPRESENTING_EMAIL_ADDRESS;
@@ -1127,7 +1094,7 @@ HRESULT VConverter::HrAddOrganizer(icalitem *lpIcalItem, std::list<SPropValue> *
 	sPropVal.ulPropTag = PR_SENDER_NAME_W;
 	hr = HrCopyString(lpIcalItem->base, strName.c_str(), &sPropVal.Value.lpszW);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	lplstMsgProps->push_back(sPropVal);
 
 	sPropVal.ulPropTag = PR_SENT_REPRESENTING_NAME;
@@ -1136,7 +1103,7 @@ HRESULT VConverter::HrAddOrganizer(icalitem *lpIcalItem, std::list<SPropValue> *
 	sPropVal.ulPropTag = PR_SENDER_SEARCH_KEY;
 	hr = Util::HrCopyBinary(strSearchKey.length() + 1, (LPBYTE)strSearchKey.c_str(), &sPropVal.Value.bin.cb, &sPropVal.Value.bin.lpb, lpIcalItem->base);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	lplstMsgProps->push_back(sPropVal);
 
 	sPropVal.ulPropTag = PR_SENT_REPRESENTING_SEARCH_KEY;
@@ -1145,16 +1112,14 @@ HRESULT VConverter::HrAddOrganizer(icalitem *lpIcalItem, std::list<SPropValue> *
 	// re-allocate memory to list with lpIcalItem
 	hr = Util::HrCopyBinary(cbEntryID, (LPBYTE)lpEntryID, &sPropVal.Value.bin.cb, &sPropVal.Value.bin.lpb, lpIcalItem->base);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	sPropVal.ulPropTag = PR_SENDER_ENTRYID;
 	lplstMsgProps->push_back(sPropVal);
 
 	sPropVal.ulPropTag = PR_SENT_REPRESENTING_ENTRYID;
 	lplstMsgProps->push_back(sPropVal);
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -1420,7 +1385,6 @@ exit:
  */
 HRESULT VConverter::HrAddReminder(icalcomponent *lpicEventRoot, icalcomponent *lpicEvent, icalitem *lpIcalItem)
 {
-	HRESULT hr = hrSuccess;
 	SPropValue sPropVal;
 	SPropValue sPropMozAck;
 	icalcomponent *lpicAlarm = NULL;
@@ -1446,15 +1410,15 @@ HRESULT VConverter::HrAddReminder(icalcomponent *lpicEventRoot, icalcomponent *l
 		lpIcalItem->lstDelPropTags.push_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERNEXTTIME], PT_SYSTIME));
 		lpIcalItem->lstDelPropTags.push_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERMINUTESBEFORESTART], PT_LONG));
 
-		goto exit; // No alarms found, so we can safely exit here.
+		/* No alarms found, so we can safely exit here. */
+		return hrSuccess;
 	}
 
-	hr = HrParseVAlarm(lpicAlarm, &ulRemindBefore, &ttReminderTime, &bReminderSet);
-	if (hr != hrSuccess) {
+	HRESULT hr = HrParseVAlarm(lpicAlarm, &ulRemindBefore, &ttReminderTime,
+	             &bReminderSet);
+	if (hr != hrSuccess)
 		// just skip the reminder
-		hr = hrSuccess;
-		goto exit;
-	}
+		return hrSuccess;
 
 	// Handle Sunbird's dismiss/snooze, see: https://wiki.mozilla.org/Calendar:Feature_Implementations:Alarms
 	// X-MOZ-SNOOZE-TIME-1231250400000000:20090107T132846Z
@@ -1495,8 +1459,10 @@ HRESULT VConverter::HrAddReminder(icalcomponent *lpicEventRoot, icalcomponent *l
 			sPropVal.ulPropTag = PR_RTF_COMPRESSED;
 			sPropVal.Value.bin.cb = rtf.size();
 			
-			if ((hr = MAPIAllocateMore(sPropVal.Value.bin.cb, lpIcalItem->base, (LPVOID*)&sPropVal.Value.bin.lpb)) != hrSuccess)
-				goto exit;
+			hr = MAPIAllocateMore(sPropVal.Value.bin.cb,
+			     lpIcalItem->base, reinterpret_cast<void **>(&sPropVal.Value.bin.lpb));
+			if (hr != hrSuccess)
+				return hr;
 			memcpy(sPropVal.Value.bin.lpb, (LPBYTE)rtf.c_str(), sPropVal.Value.bin.cb);
 
 			lpIcalItem->lstMsgProps.push_back(sPropVal);
@@ -1530,10 +1496,8 @@ HRESULT VConverter::HrAddReminder(icalcomponent *lpicEventRoot, icalcomponent *l
 		// get starttime from item
 		// DTSTART must be available
 		lpicDTStartProp = icalcomponent_get_first_property(lpicEvent, ICAL_DTSTART_PROPERTY);
-		if (!lpicDTStartProp) {
-			hr = MAPI_E_INVALID_PARAMETER;
-			goto exit;
-		}
+		if (lpicDTStartProp == NULL)
+			return MAPI_E_INVALID_PARAMETER;
 		ttReminderTime = ICalTimeTypeToUTC(lpicEventRoot, lpicDTStartProp);
 	}
 	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERTIME], PT_SYSTIME);
@@ -1551,9 +1515,7 @@ HRESULT VConverter::HrAddReminder(icalcomponent *lpicEventRoot, icalcomponent *l
 			lpIcalItem->lstDelPropTags.push_back(CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERNEXTTIME], PT_SYSTIME));
 		}
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -1569,12 +1531,11 @@ exit:
  */
 HRESULT VConverter::HrAddRecurrence(icalcomponent *lpicEventRoot, icalcomponent *lpicEvent, bool bIsAllday, icalitem *lpIcalItem)
 {
-	HRESULT hr = hrSuccess;
 	ICalRecurrence icRecClass;
-	icalproperty *lpicProp = NULL;
 	SPropValue spSpropVal = {0};
 
-	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_RRULE_PROPERTY);
+	icalproperty *lpicProp = icalcomponent_get_first_property(lpicEvent,
+	                         ICAL_RRULE_PROPERTY);
 	if (lpicProp == NULL) {
 
 		// set isRecurring to false , property required by BlackBerry.
@@ -1590,18 +1551,16 @@ HRESULT VConverter::HrAddRecurrence(icalcomponent *lpicEventRoot, icalcomponent 
 		lpIcalItem->lpRecurrence = NULL;
 
 		// remove all exception attachments from existing message, done in ICal2Mapi.cpp
-		goto exit;
+		return hrSuccess;
 	}
 
-	if (m_iCurrentTimeZone == m_mapTimeZones->end()) {
+	if (m_iCurrentTimeZone == m_mapTimeZones->end())
 		// if we have an RRULE, we must have a timezone
-		hr = MAPI_E_CORRUPT_DATA;
-		goto exit;
-	}
+		return MAPI_E_CORRUPT_DATA;
 
-	hr = icRecClass.HrParseICalRecurrenceRule(m_iCurrentTimeZone->second, lpicEventRoot, lpicEvent, bIsAllday, m_lpNamedProps, lpIcalItem);
+	HRESULT hr = icRecClass.HrParseICalRecurrenceRule(m_iCurrentTimeZone->second, lpicEventRoot, lpicEvent, bIsAllday, m_lpNamedProps, lpIcalItem);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_X_PROPERTY);
 	while (lpicProp) {
@@ -1613,9 +1572,7 @@ HRESULT VConverter::HrAddRecurrence(icalcomponent *lpicEventRoot, icalcomponent 
 		}
 		lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_X_PROPERTY);
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -1631,44 +1588,37 @@ exit:
  */
 HRESULT VConverter::HrAddException(icalcomponent *lpEventRoot, icalcomponent *lpEvent, bool bIsAllday, icalitem *lpPrevItem)
 {
-	HRESULT hr = hrSuccess;
+	HRESULT hr;
 	ICalRecurrence cRec;
 	icalitem::exception ex;
 	icalproperty_method icMethod = ICAL_METHOD_NONE;
 
 	hr = HrCompareUids(lpPrevItem, lpEvent);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
-	if (!lpPrevItem->lpRecurrence) {
+	if (lpPrevItem->lpRecurrence == NULL)
 		// can't add exceptions if the previous item did not have an RRULE
-		hr = MAPI_E_CORRUPT_DATA;
-		goto exit;
-	}
+		return MAPI_E_CORRUPT_DATA;
 
 	icMethod = icalcomponent_get_method(lpEventRoot);
 
 	// it's the same item, handle exception
 	hr = cRec.HrMakeMAPIException(lpEventRoot, lpEvent, lpPrevItem, bIsAllday, m_lpNamedProps, m_strCharset, &ex);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = HrAddRecipients(lpEvent, lpPrevItem, &ex.lstMsgProps, &ex.lstRecips);
 	if (hr != hrSuccess)
-		goto exit;
-	
+		return hr;
 	hr = HrResolveUser(lpPrevItem->base, &ex.lstRecips);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = HrAddBaseProperties(icMethod, lpEvent, lpPrevItem->base, true, &ex.lstMsgProps);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lpPrevItem->lstExceptionAttachments.push_back(ex);
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -1839,20 +1789,13 @@ HRESULT VConverter::HrSetTimeProperty(time_t tStamp, bool bDateOnly, icaltimezon
 */
 HRESULT VConverter::HrSetTimeProperty(time_t tStamp, bool bDateOnly, icaltimezone *lpicTZinfo, const std::string &strTZid, icalproperty_kind icalkind, icalcomponent *lpicEvent)
 {
-	HRESULT hr = hrSuccess;
-	icalproperty *lpicProp = NULL;
+	icalproperty *lpicProp = icalproperty_new(icalkind);
+	if (lpicProp == NULL)
+		return MAPI_E_INVALID_PARAMETER;
 
-	lpicProp = icalproperty_new(icalkind);
-	if (!lpicProp) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	hr = HrSetTimeProperty(tStamp, bDateOnly, lpicTZinfo, strTZid, icalkind, lpicProp);
-
+	HRESULT hr = HrSetTimeProperty(tStamp, bDateOnly, lpicTZinfo, strTZid,
+	             icalkind, lpicProp);
 	icalcomponent_add_property(lpicEvent, lpicProp);
-
-exit:
 	return hr;
 }
 
@@ -2493,7 +2436,7 @@ HRESULT VConverter::HrSetVAlarm(ULONG ulProps, LPSPropValue lpProps, icalcompone
 	// find bool, skip if error or false
 	lpPropVal = PpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERSET], PT_BOOLEAN));
 	if (!lpPropVal || lpPropVal->Value.b == FALSE)
-		goto exit;
+		return hrSuccess;
 
 	lpPropVal = PpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERMINUTESBEFORESTART], PT_LONG));
 	if (lpPropVal)
@@ -2509,7 +2452,7 @@ HRESULT VConverter::HrSetVAlarm(ULONG ulProps, LPSPropValue lpProps, icalcompone
 
 	hr = HrParseReminder(lRemindBefore, ttReminderTime, bTask, &lpAlarm);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	icalcomponent_add_component(lpicEvent, lpAlarm);
 
@@ -2560,7 +2503,7 @@ HRESULT VConverter::HrSetVAlarm(ULONG ulProps, LPSPropValue lpProps, icalcompone
 		FileTimeToUnixTime(lpPropVal->Value.ft, &ttLastAckTime);
 		//do not send X-MOZ-LASTACK if reminder older than last ack time
 		if(ttLastAckTime > ttSnooze && !blxmozgen)
-			goto exit;
+			return hrSuccess;
 		icModTime = icaltime_from_timet_with_zone(ttLastAckTime, false, icaltimezone_get_utc_timezone());
 		lpicValue = icalvalue_new_datetime(icModTime);
 
@@ -2571,9 +2514,7 @@ HRESULT VConverter::HrSetVAlarm(ULONG ulProps, LPSPropValue lpProps, icalcompone
 		icalcomponent_add_property(lpicEvent, lpicProp);
 		icalvalue_free(lpicValue);
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -2659,7 +2600,6 @@ HRESULT VConverter::HrSetItemSpecifics(ULONG ulProps, LPSPropValue lpProps, ical
  */
 HRESULT VConverter::HrSetRecurrenceID(LPSPropValue lpMsgProps, ULONG ulMsgProps, icaltimezone *lpicTZinfo, const std::string &strTZid, icalcomponent *lpEvent)
 {
-	HRESULT hr = hrSuccess;
 	bool bIsSeriesAllDay = false;
 	LPSPropValue lpPropVal = NULL;
 	LPSPropValue lpPropClean = NULL;
@@ -2675,17 +2615,14 @@ HRESULT VConverter::HrSetRecurrenceID(LPSPropValue lpMsgProps, ULONG ulMsgProps,
 	if (!lpPropVal || lpPropVal->Value.b == FALSE) {
 		lpPropGlobal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY));
 		if (!lpPropGlobal)
-			goto exit;
-
+			return hrSuccess;
 		lpPropClean = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_CLEANID], PT_BINARY));
 		if (!lpPropClean)
-			goto exit;
-
+			return hrSuccess;
 		if (lpPropClean->Value.bin.cb != lpPropGlobal->Value.bin.cb)
-			goto exit;
-
+			return hrSuccess;
 		if (memcmp(lpPropClean->Value.bin.lpb, lpPropGlobal->Value.bin.lpb, lpPropGlobal->Value.bin.cb) == 0)
-			goto exit;
+			return hrSuccess;
 
 		// different timestamp in dispidGlobalObjectID, export RECURRENCE-ID
 	}
@@ -2715,15 +2652,13 @@ HRESULT VConverter::HrSetRecurrenceID(LPSPropValue lpMsgProps, ULONG ulMsgProps,
 		// combine this date with time from dispidStartRecurrenceTime and set it as RECURRENCE-ID
 		lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY));
 		if (!lpPropVal)
-			goto exit;
-
+			return hrSuccess;
 		// @todo don't do this calculation using a std::string
 		strUid = bin2hex(lpPropVal->Value.bin.cb, lpPropVal->Value.bin.lpb);
 		if(!IsOutlookUid(strUid))
-			goto exit;
-		
+			return hrSuccess;
 		if(strUid.substr(32, 8).compare("00000000") == 0 && ulRecurStartTime == (ULONG)-1)
-			goto exit;
+			return hrSuccess;
 
 		icTime.year = strtol(strUid.substr(32, 4).c_str(), NULL, 16);
 		icTime.month = strtol(strUid.substr(36, 2).c_str(), NULL, 16);
@@ -2743,10 +2678,8 @@ HRESULT VConverter::HrSetRecurrenceID(LPSPropValue lpMsgProps, ULONG ulMsgProps,
 		tRecId = FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime);	
 	}
 	
-	hr = HrSetTimeProperty(tRecId, bIsSeriesAllDay, lpicTZinfo, strTZid, ICAL_RECURRENCEID_PROPERTY, lpEvent);
-		
-exit:
-	return hr;
+	return HrSetTimeProperty(tRecId, bIsSeriesAllDay, lpicTZinfo, strTZid,
+	       ICAL_RECURRENCEID_PROPERTY, lpEvent);
 }
 
 /**
@@ -3107,16 +3040,13 @@ exit:
  */
 HRESULT VConverter::HrUpdateReminderTime(icalcomponent *lpicEvent, LONG lReminder)
 {
-	HRESULT hr = hrSuccess;
 	icalcomponent *lpicAlarm = NULL;
 	icalproperty *lpicProp = NULL;
 	icaltriggertype sittTrigger;
 
 	lpicAlarm = icalcomponent_get_first_component(lpicEvent, ICAL_VALARM_COMPONENT);
-	if (lpicAlarm == NULL) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+	if (lpicAlarm == NULL)
+		return MAPI_E_NOT_FOUND;
 
 	memset(&sittTrigger, 0, sizeof(icaltriggertype));
 	sittTrigger.duration = icaldurationtype_from_int(-1 * lReminder * 60); // set seconds
@@ -3127,9 +3057,7 @@ HRESULT VConverter::HrUpdateReminderTime(icalcomponent *lpicEvent, LONG lReminde
 		icalproperty_free(lpicProp);
 	}
 	icalcomponent_add_property(lpicAlarm, icalproperty_new_trigger(sittTrigger));
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -3228,7 +3156,6 @@ exit:
  */
 HRESULT VConverter::HrAddTimeZone(icalproperty *lpicProp, icalitem *lpIcalItem)
 {
-	HRESULT hr = hrSuccess;
 	icalparameter* lpicTZParam = NULL;
 	const char *lpszTZID = NULL;
 	std::string strTZ;
@@ -3237,44 +3164,40 @@ HRESULT VConverter::HrAddTimeZone(icalproperty *lpicProp, icalitem *lpIcalItem)
 	// Take the timezone from DTSTART and set that as the item timezone
 	lpicTZParam = icalproperty_get_first_parameter(lpicProp, ICAL_TZID_PARAMETER);
 	// All day recurring items may not have timezone data.
-	if (lpicTZParam || lpicProp) 
-	{
-		sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TIMEZONE], PT_UNICODE);
-		if(lpicTZParam) {
-			strTZ = urlDecode(icalparameter_get_tzid(lpicTZParam));
-			lpszTZID = strTZ.c_str();
-		}
-		else if (!m_mapTimeZones->empty())
-			lpszTZID = (m_mapTimeZones->begin()->first).c_str();
-		else
-			goto exit;
+	if (lpicTZParam == NULL && lpicProp == NULL)
+		return hrSuccess;
 
-		HrCopyString(m_converter, m_strCharset, lpIcalItem->base, lpszTZID, &sPropVal.Value.lpszW);
-		lpIcalItem->lstMsgProps.push_back(sPropVal);
-
-		// keep found timezone also as current timezone. will be used in recurrence
-		m_iCurrentTimeZone = m_mapTimeZones->find(lpszTZID);
-		if (m_iCurrentTimeZone != m_mapTimeZones->end()) {
-			sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TIMEZONEDATA], PT_BINARY);
-			sPropVal.Value.bin.cb = sizeof(TIMEZONE_STRUCT);
-
-			hr = MAPIAllocateMore(sizeof(TIMEZONE_STRUCT), lpIcalItem->base, (void**)&sPropVal.Value.bin.lpb);
-			if (hr != hrSuccess)
-				goto exit;
-			memcpy(sPropVal.Value.bin.lpb, &m_iCurrentTimeZone->second, sizeof(TIMEZONE_STRUCT));
-			lpIcalItem->lstMsgProps.push_back(sPropVal);
-
-			// save timezone in icalitem
-			lpIcalItem->tTZinfo = m_iCurrentTimeZone->second;
-		} else {
-			//.. huh? did find a timezone id, but not the actual timezone?? FAIL!
-			hr = MAPI_E_NOT_FOUND;
-			goto exit;
-		}
+	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TIMEZONE], PT_UNICODE);
+	if (lpicTZParam != NULL) {
+		strTZ = urlDecode(icalparameter_get_tzid(lpicTZParam));
+		lpszTZID = strTZ.c_str();
+	} else if (!m_mapTimeZones->empty()) {
+		lpszTZID = (m_mapTimeZones->begin()->first).c_str();
+	} else {
+		return hrSuccess;
 	}
 
-exit:
-	return hr;
+	HrCopyString(m_converter, m_strCharset, lpIcalItem->base, lpszTZID, &sPropVal.Value.lpszW);
+	lpIcalItem->lstMsgProps.push_back(sPropVal);
+
+	// keep found timezone also as current timezone. will be used in recurrence
+	m_iCurrentTimeZone = m_mapTimeZones->find(lpszTZID);
+	if (m_iCurrentTimeZone == m_mapTimeZones->cend())
+		//.. huh? did find a timezone id, but not the actual timezone?? FAIL!
+		return MAPI_E_NOT_FOUND;
+		
+	sPropVal.ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TIMEZONEDATA], PT_BINARY);
+	sPropVal.Value.bin.cb = sizeof(TIMEZONE_STRUCT);
+
+	HRESULT hr = MAPIAllocateMore(sizeof(TIMEZONE_STRUCT), lpIcalItem->base, (void**)&sPropVal.Value.bin.lpb);
+	if (hr != hrSuccess)
+		return hr;
+	memcpy(sPropVal.Value.bin.lpb, &m_iCurrentTimeZone->second, sizeof(TIMEZONE_STRUCT));
+	lpIcalItem->lstMsgProps.push_back(sPropVal);
+
+	// save timezone in icalitem
+	lpIcalItem->tTZinfo = m_iCurrentTimeZone->second;
+	return hrSuccess;
 }
 
 /**

@@ -50,7 +50,7 @@ struct subscribeItem {
 	unsigned int ulEventMask;
 };
 
-typedef std::list<ECNotification> NOTIFICATIONLIST;
+typedef std::list<ECNotification> ECNOTIFICATIONLIST;
 typedef std::map<unsigned int, subscribeItem> SUBSCRIBEMAP;
 typedef std::multimap<unsigned int, unsigned int> SUBSCRIBESTOREMULTIMAP;
 
@@ -129,7 +129,7 @@ private:
 	pthread_mutex_t		m_hSessionMapLock;
 
 	/* Notifications */
-	NOTIFICATIONLIST	m_listNotification;
+	ECNOTIFICATIONLIST m_listNotification;
 	double				m_dblLastQueryTime;
 
 	/* Notifications lock/event */

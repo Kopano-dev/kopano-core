@@ -133,15 +133,10 @@ ECTNEF::ECTNEF(ULONG ulFlags, IMessage *lpMessage, IStream *lpStream)
  */
 ECTNEF::~ECTNEF()
 {
-	std::list<SPropValue *>::const_iterator iterProps;
-	std::list<tnefattachment *>::const_iterator iterAttach;
-
-	for (iterProps = lstProps.begin();
-	     iterProps != lstProps.end(); ++iterProps)
-		MAPIFreeBuffer(*iterProps);
-	for (iterAttach = lstAttachments.begin();
-	     iterAttach != lstAttachments.end(); ++iterAttach)
-		FreeAttachmentData(*iterAttach);
+	for (const auto p : lstProps)
+		MAPIFreeBuffer(p);
+	for (const auto a : lstAttachments)
+		FreeAttachmentData(a);
 }
 
 /** 
@@ -152,13 +147,9 @@ ECTNEF::~ECTNEF()
  */
 void ECTNEF::FreeAttachmentData(tnefattachment* lpTnefAtt)
 {
-	std::list<SPropValue *>::const_iterator iterProps;
-
 	delete[] lpTnefAtt->data;
-	for (iterProps = lpTnefAtt->lstProps.begin();
-	     iterProps != lpTnefAtt->lstProps.end(); ++iterProps)
-		MAPIFreeBuffer(*iterProps);
-
+	for (const auto p : lpTnefAtt->lstProps)
+		MAPIFreeBuffer(p);
 	delete lpTnefAtt;
 }
 
@@ -557,15 +548,12 @@ exit:
  */
 HRESULT ECTNEF::HrWritePropStream(IStream *lpStream, std::list<SPropValue *> &proplist)
 {
-	HRESULT hr;
-	std::list<SPropValue *>::const_iterator iterProps;
-
-	hr = HrWriteDWord(lpStream, proplist.size());
+	HRESULT hr = HrWriteDWord(lpStream, proplist.size());
 	if(hr != hrSuccess)
 		return hr;
 
-	for (iterProps = proplist.begin(); iterProps != proplist.end(); ++iterProps) {
-		hr = HrWriteSingleProp(lpStream, *iterProps);
+	for (const auto p : proplist) {
+		hr = HrWriteSingleProp(lpStream, p);
 		if (hr != hrSuccess)
 			return hr;
 	}
@@ -1565,7 +1553,6 @@ exit:
 HRESULT ECTNEF::Finish()
 {
 	HRESULT hr = hrSuccess;
-	std::list<SPropValue *>::const_iterator iterProps;
 	IStream *lpPropStream = NULL;
 	STATSTG sStat;
 	ULONG ulChecksum;
@@ -1577,61 +1564,53 @@ HRESULT ECTNEF::Finish()
 	LPSTREAM lpAttStream = NULL;
 	LPMESSAGE lpAttMessage = NULL;
 	IStream *lpSubStream = NULL;
-	std::list<tnefattachment *>::const_iterator iterAttach;
 	SPropValue sProp;
 
 	if(ulFlags == TNEF_DECODE) {
 		// Write properties to message
-		for (iterProps = lstProps.begin(); iterProps != lstProps.end(); ++iterProps) {
-			auto id = PROP_ID((*iterProps)->ulPropTag);
-
-			if (id == PROP_ID(PR_MESSAGE_CLASS) ||
-			    !FPropExists(m_lpMessage, (*iterProps)->ulPropTag) ||
-			    id == PROP_ID(PR_RTF_COMPRESSED) ||
-			    id == PROP_ID(PR_HTML) ||
-			    id == PROP_ID(PR_INTERNET_CPID))
-  				m_lpMessage->SetProps(1, *iterProps, NULL);
+		for (const auto p : lstProps) {
+			if (PROP_ID(p->ulPropTag) == PROP_ID(PR_MESSAGE_CLASS) ||
+			    !FPropExists(m_lpMessage, p->ulPropTag) ||
+			    PROP_ID(p->ulPropTag) == PROP_ID(PR_RTF_COMPRESSED) ||
+			    PROP_ID(p->ulPropTag) == PROP_ID(PR_HTML) ||
+			    PROP_ID(p->ulPropTag) == PROP_ID(PR_INTERNET_CPID))
+  				m_lpMessage->SetProps(1, p, NULL);
 			// else, Property already exists, do *not* overwrite it
 
 		}
 		// Add all found attachments to message
-		for (iterAttach = lstAttachments.begin();
-		     iterAttach != lstAttachments.end(); ++iterAttach)
-		{
+		for (const auto att : lstAttachments) {
 			bool has_obj = false;
 
 			hr = m_lpMessage->CreateAttach(NULL, 0, &ulAttachNum, &lpAttach);
 			if (hr != hrSuccess)
 				goto exit;
 				
-            sProp.ulPropTag = PR_ATTACH_METHOD;
-            sProp.Value.ul = (*iterAttach)->rdata.usType == AttachTypeOle ? ATTACH_OLE : (*iterAttach)->lstProps.empty() ? ATTACH_BY_VALUE : ATTACH_EMBEDDED_MSG;
-            lpAttach->SetProps(1, &sProp, NULL);
+			sProp.ulPropTag = PR_ATTACH_METHOD;
+			sProp.Value.ul = att->rdata.usType == AttachTypeOle ? ATTACH_OLE : att->lstProps.empty() ? ATTACH_BY_VALUE : ATTACH_EMBEDDED_MSG;
+			lpAttach->SetProps(1, &sProp, NULL);
+
+			sProp.ulPropTag = PR_RENDERING_POSITION;
+			sProp.Value.ul = att->rdata.ulPosition;
+			lpAttach->SetProps(1, &sProp, NULL);
             
-            sProp.ulPropTag = PR_RENDERING_POSITION;
-            sProp.Value.ul = (*iterAttach)->rdata.ulPosition;
-            lpAttach->SetProps(1, &sProp, NULL);
-            
-			for (iterProps = (*iterAttach)->lstProps.begin();
-			     iterProps != (*iterAttach)->lstProps.end();
-			     ++iterProps)
-			{
+			for (const auto p : att->lstProps) {
 				// must not set PR_ATTACH_NUM by ourselves
-				if (PROP_ID((*iterProps)->ulPropTag) == PROP_ID(PR_ATTACH_NUM))
+				if (PROP_ID(p->ulPropTag) == PROP_ID(PR_ATTACH_NUM))
 					continue;
 
-				if ((*iterProps)->ulPropTag != PR_ATTACH_DATA_OBJ) {
-					hr = lpAttach->SetProps(1, *iterProps, NULL);
+				if (p->ulPropTag != PR_ATTACH_DATA_OBJ) {
+					hr = lpAttach->SetProps(1, p, NULL);
 					if (hr != hrSuccess)
 						goto exit;
 				} else {
 					// message in PT_OBJECT, was saved in Value.bin
-                    if((*iterAttach)->rdata.usType == AttachTypeOle) {
-                        hr = lpAttach->OpenProperty((*iterProps)->ulPropTag, &IID_IStream, 0, MAPI_CREATE|MAPI_MODIFY, (IUnknown **)&lpSubStream);
+					if (att->rdata.usType == AttachTypeOle) {
+						hr = lpAttach->OpenProperty(p->ulPropTag, &IID_IStream, 0, MAPI_CREATE | MAPI_MODIFY, reinterpret_cast<IUnknown **>(&lpSubStream));
                         if(hr != hrSuccess)
                             goto exit;
                         
-                        hr = lpSubStream->Write((*iterProps)->Value.bin.lpb, (*iterProps)->Value.bin.cb, NULL);
+					hr = lpSubStream->Write(p->Value.bin.lpb, p->Value.bin.cb, NULL);
                         if(hr != hrSuccess)
                             goto exit;
                         
@@ -1648,7 +1627,7 @@ HRESULT ECTNEF::Finish()
                         if (hr != hrSuccess)
                             goto exit;
 
-                        hr = lpSubStream->Write((*iterProps)->Value.bin.lpb, (*iterProps)->Value.bin.cb, NULL);
+                        hr = lpSubStream->Write(p->Value.bin.lpb, p->Value.bin.cb, NULL);
                         if (hr != hrSuccess)
                             goto exit;
 
@@ -1680,12 +1659,12 @@ HRESULT ECTNEF::Finish()
                     }
 				}
 			}
-			if (!has_obj && (*iterAttach)->data) {
+			if (!has_obj && att->data != NULL) {
 				hr = lpAttach->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, STGM_WRITE|STGM_TRANSACTED, MAPI_CREATE|MAPI_MODIFY, (LPUNKNOWN *)&lpAttStream);
 				if (hr != hrSuccess)
 					goto exit;
 
-				hr = lpAttStream->Write((*iterAttach)->data,(*iterAttach)->size,NULL);
+				hr = lpAttStream->Write(att->data, att->size,NULL);
 				if (hr != hrSuccess)
 					goto exit;
 				hr = lpAttStream->Commit(0);
@@ -1756,17 +1735,15 @@ HRESULT ECTNEF::Finish()
 			goto exit;
 		
 		// Write attachments	
-        for (iterAttach = lstAttachments.begin();
-             iterAttach != lstAttachments.end(); ++iterAttach)
-        {
-            // Write attachment start block
-            hr = HrWriteBlock(m_lpStream, (char *)&(*iterAttach)->rdata, sizeof(AttachRendData), 0x00069002, 2);
+		for (const auto att : lstAttachments) {
+			/* Write attachment start block */
+			hr = HrWriteBlock(m_lpStream, reinterpret_cast<char *>(&att->rdata), sizeof(AttachRendData), 0x00069002, 2);
             if(hr != hrSuccess)
                 goto exit;
                 
             // Write attachment data block if available
-            if((*iterAttach)->data) {
-                hr = HrWriteBlock(m_lpStream, (char *)(*iterAttach)->data, (*iterAttach)->size, 0x0006800f, 2);
+			if (att->data != NULL) {
+				hr = HrWriteBlock(m_lpStream, reinterpret_cast<char *>(att->data), att->size, 0x0006800f, 2);
                 if(hr != hrSuccess)
                     goto exit;
             }
@@ -1776,7 +1753,7 @@ HRESULT ECTNEF::Finish()
             if(hr != hrSuccess)
                 goto exit;
 
-            hr = HrWritePropStream(lpPropStream, (*iterAttach)->lstProps);
+			hr = HrWritePropStream(lpPropStream, att->lstProps);
             if(hr != hrSuccess)
                 goto exit;
                 

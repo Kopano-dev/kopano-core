@@ -228,8 +228,8 @@ bool ECThreadPool::getNextTask(STaskInfo *lpsTaskInfo)
 		pthread_cond_wait(&m_hCondition, &m_hMutex);
 		
 	if (bTerminate) {
-		ThreadSet::iterator iThread = std::find_if(m_setThreads.begin(), m_setThreads.end(), &isCurrentThread);
-		ASSERT(iThread != m_setThreads.end());
+		auto iThread = std::find_if(m_setThreads.cbegin(), m_setThreads.cend(), &isCurrentThread);
+		ASSERT(iThread != m_setThreads.cend());
 		
 		m_setTerminated.insert(*iThread);
 		m_setThreads.erase(iThread);
@@ -251,11 +251,8 @@ bool ECThreadPool::getNextTask(STaskInfo *lpsTaskInfo)
 void ECThreadPool::joinTerminated()
 {
 	ASSERT(pthread_mutex_trylock(&m_hMutex) != 0);
-	
-	ThreadSet::iterator iThread;
-	
-	for (iThread = m_setTerminated.begin(); iThread != m_setTerminated.end(); ++iThread)
-		pthread_join(*iThread, NULL);
+	for (auto thr : m_setTerminated)
+		pthread_join(thr, NULL);
 	
 	m_setTerminated.clear();
 }

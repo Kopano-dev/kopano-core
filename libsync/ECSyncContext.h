@@ -30,7 +30,7 @@
 #include <IECChangeAdvisor.h>
 #include <IECChangeAdviseSink.h>
 
-typedef	std::map<std::string,LPSTREAM>		StatusStreamMap;
+typedef	std::map<std::string, IStream *> StatusStreamMap;
 typedef std::map<std::string,SSyncState>	SyncStateMap;
 typedef	std::map<ULONG,ULONG>				NotifiedSyncIdMap;
 

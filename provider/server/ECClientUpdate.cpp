@@ -198,13 +198,12 @@ exit:
 
 bool ConvertAndValidatePath(const char *lpszClientUpdatePath, const std::string &strMSIName, std::string *lpstrDownloadFile)
 {
-	bool bRet = false;
 	size_t nTempLen = 0;
 	std::string strFile;
 	char cPathSeparator = '/';
 
 	if (lpstrDownloadFile == NULL || lpszClientUpdatePath == NULL)
-		goto exit;
+		return false;
 
 	strFile = lpszClientUpdatePath;
 	nTempLen = strFile.length();
@@ -213,7 +212,7 @@ bool ConvertAndValidatePath(const char *lpszClientUpdatePath, const std::string 
 	if (strstr(strFile.c_str(), "/.."))
 	{
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Client update: Update path contains invalid .. to previous path.");
-		goto exit;
+		return false;
 	}
 
 	if (strFile[nTempLen - 1] != cPathSeparator)
@@ -221,10 +220,7 @@ bool ConvertAndValidatePath(const char *lpszClientUpdatePath, const std::string 
 
 	strFile += strMSIName;
 	*lpstrDownloadFile = strFile;
-	bRet = true;
-
-exit:
-	return bRet;
+	return true;
 }
 
 //<Major>.<Minor>.<Update>.<Build No.>
@@ -313,13 +309,13 @@ static bool GetLatestVersionAtServer(const char *szUpdatePath,
 	bool bRet = false;
 
 	if (szUpdatePath == NULL)
-		goto exit;
+		return false;
 
 	try {
 		bfs::path updatesdir = szUpdatePath;
 		if (!bfs::exists(updatesdir)) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Client update: trackid: 0x%08X, Unable to open client_update_path directory", ulTrackid);
-			goto exit;
+			return false;
 		}
 
 		bfs::directory_iterator update_last;
@@ -359,8 +355,6 @@ static bool GetLatestVersionAtServer(const char *szUpdatePath,
 
 	if (bRet)
 		*lpLatestVersion = latestVersion;
-
-exit:
 	return bRet;
 }
 

@@ -92,7 +92,7 @@ HRESULT Copier::Helper::GetArchiveFolder(const SObjectEntry &archiveEntry, LPMAP
 		return MAPI_E_INVALID_PARAMETER;
 	
 	iArchiveFolder = m_mapArchiveFolders.find(archiveEntry.sStoreEntryId);
-	if (iArchiveFolder == m_mapArchiveFolders.end()) {
+	if (iArchiveFolder == m_mapArchiveFolders.cend()) {
 		ArchiveHelperPtr ptrArchiveHelper;
 
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive folder not found in cache");
@@ -152,7 +152,7 @@ HRESULT Copier::Helper::ArchiveMessage(LPMESSAGE lpSource, const SObjectEntry *l
 	// @todo: What to do with warnings?
 	if (FAILED(hr)) {
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to copy message. (hr=%s)", stringify(hr, true).c_str());
-		goto exit;
+		goto exitpm;
 	}
 
 	hr = UpdateIIDs(lpSource, lpDest, &ptrPSAction);
@@ -167,26 +167,25 @@ HRESULT Copier::Helper::ArchiveMessage(LPMESSAGE lpSource, const SObjectEntry *l
 	hr = lpDest->SetProps(1, &sPropArchFlags, NULL);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to set flags on archive message. (hr=%s)", stringify(hr, true).c_str());
-		goto exit;
+		goto exitpm;
 	}
 
 	hr = MAPIPropHelper::Create(MAPIPropPtr(lpDest, true), &ptrMsgHelper);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to create prop helper. (hr=%s)", stringify(hr, true).c_str());
-		goto exit;
+		goto exitpm;
 	}
 
 	if (lpMsgEntry) {
 		hr = ptrMsgHelper->SetReference(*lpMsgEntry);
 		if (hr != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to set reference to original message. (hr=%s)", stringify(hr, true).c_str());
-			goto exit;
+			goto exitpm;
 		}
 	}
 
 	lpptrPSAction->swap(ptrPSAction);
-
-exit:
+ exitpm:
 	return hr;
 }
 
@@ -429,7 +428,7 @@ HRESULT Copier::GetRestriction(LPMAPIPROP lpMapiProp, LPSRestriction *lppRestric
 	// old enough to be processed.
 	hr = ArchiveOperationBaseEx::GetRestriction(lpMapiProp, &ptrRestriction);
 	if (hr != hrSuccess)
-		goto exit;
+		goto exitpm;
 	resResult.append(ECRawRestriction(ptrRestriction));
 
 	// A reason to process a message before being old enough is when
@@ -439,8 +438,7 @@ HRESULT Copier::GetRestriction(LPMAPIPROP lpMapiProp, LPSRestriction *lppRestric
 	resResult.append(ECExistRestriction(PROP_ORIGINAL_SOURCE_KEY));
 
 	hr = resResult.CreateMAPIRestriction(lppRestriction);
-
-exit:
+ exitpm:
 	return hr;
 }
 
@@ -474,7 +472,6 @@ HRESULT Copier::DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps)
 	MAPIPropHelperPtr ptrMsgHelper;
 	MessageState state;
 	ObjectEntryList lstMsgArchives;
-	ObjectEntryList::const_iterator iArchive;
 	HRESULT hrTemp;
 	ObjectEntryList lstNewMsgArchives;
 	TransactionList lstTransactions;
@@ -560,11 +557,11 @@ HRESULT Copier::DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps)
 		}
 	}
 		
-	for (iArchive = m_lstArchives.begin(); iArchive != m_lstArchives.end(); ++iArchive) {
+	for (const auto &arc : m_lstArchives) {
 		TransactionPtr ptrTransaction;
-		ObjectEntryList::const_iterator iArchivedMsg = find_if(lstMsgArchives.begin(), lstMsgArchives.end(), StoreCompare(*iArchive));
+		auto iArchivedMsg = find_if(lstMsgArchives.cbegin(), lstMsgArchives.cend(), StoreCompare(arc));
 		// Check if this message is archived to the current archive.
-		if (iArchivedMsg == lstMsgArchives.end()) {
+		if (iArchivedMsg == lstMsgArchives.cend()) {
 			// It's possible to have a dirty message that has not been archived to the current archive if at the time of the
 			// previous archiver run, this archive was unavailable for some reason.
 			// If this happens, we'll can't do much more than just archive the current version of the message to the archive.
@@ -572,8 +569,8 @@ HRESULT Copier::DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps)
 			// Alternatively we could get the previous version from another archive and copy that to this archive if the
 			// configuration dictates that old archives are linked. We won't do that though!
 
-			Logger()->Log(EC_LOGLEVEL_DEBUG, "Message not yet archived to archive (%s)", iArchive->sStoreEntryId.tostring().c_str());
-			hr = DoInitialArchive(ptrMessage, *iArchive, refObjectEntry, &ptrTransaction);
+			Logger()->Log(EC_LOGLEVEL_DEBUG, "Message not yet archived to archive (%s)", arc.sStoreEntryId.tostring().c_str());
+			hr = DoInitialArchive(ptrMessage, arc, refObjectEntry, &ptrTransaction);
 
 		} else if (state.isDirty()) {
 			// We found an archived version for the current message. However, the message is marked dirty...
@@ -593,7 +590,7 @@ HRESULT Copier::DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps)
 				// DoTrackAndRearchive will do that when it detects that the passed
 				// refObjectEntry is different than the stored reference it the most
 				// recent archive.
-				hr = DoTrackAndRearchive(ptrMessage, *iArchive, *iArchivedMsg, refObjectEntry, state.isMove(), &ptrTransaction);
+				hr = DoTrackAndRearchive(ptrMessage, arc, *iArchivedMsg, refObjectEntry, state.isMove(), &ptrTransaction);
 
 			} else if (!state.isMove()) {
 				Logger()->Log(EC_LOGLEVEL_DEBUG, "Updating archived message.");
@@ -602,7 +599,7 @@ HRESULT Copier::DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps)
 				Logger()->Log(EC_LOGLEVEL_DEBUG, "Updating and moving archived message.");
 				// We could do a move and update here, but since we're not tracking history
 				// we can just make a new archived message and get rid of the old one.
-				hr = DoInitialArchive(ptrMessage, *iArchive, refObjectEntry, &ptrTransaction);
+				hr = DoInitialArchive(ptrMessage, arc, refObjectEntry, &ptrTransaction);
 				if (hr == hrSuccess)
 					hr = ptrTransaction->Delete(*iArchivedMsg);
 			}
@@ -612,7 +609,7 @@ HRESULT Copier::DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps)
 			ptrTransaction.reset(new Transaction(*iArchivedMsg));
 		} else {	// Moved
 			Logger()->Log(EC_LOGLEVEL_DEBUG, "Moving archived message.");
-			hr = DoMoveArchive(*iArchive, *iArchivedMsg, refObjectEntry, &ptrTransaction);
+			hr = DoMoveArchive(arc, *iArchivedMsg, refObjectEntry, &ptrTransaction);
 		}
 		if (hr != hrSuccess)
 			return hr;
@@ -623,15 +620,15 @@ HRESULT Copier::DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps)
 	// Once we reach this point all messages have been created and/or updated. We need to
 	// save them now. When a transaction is saved it will return a Rollback object we can
 	// use to undo the changes when a later save fails.
-	for (TransactionList::const_iterator iTransaction = lstTransactions.begin(); iTransaction != lstTransactions.end(); ++iTransaction) {
+	for (const auto &ta : lstTransactions) {
 		RollbackPtr ptrRollback;
-		hr = (*iTransaction)->SaveChanges(m_ptrSession, &ptrRollback);
+		hr = ta->SaveChanges(m_ptrSession, &ptrRollback);
 		if (FAILED(hr)) {
 			Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to save changes into archive, Rolling back. hr=0x%08x", hr);
 
 			// Rollback
-			for (RollbackList::const_iterator iRollback = lstRollbacks.begin(); iRollback != lstRollbacks.end(); ++iRollback) {
-				HRESULT hrTmp = (*iRollback)->Execute(m_ptrSession);
+			for (const auto &rb : lstRollbacks) {
+				HRESULT hrTmp = rb->Execute(m_ptrSession);
 				if (hrTmp != hrSuccess)
 					Logger()->Log(EC_LOGLEVEL_ERROR, "Failed to rollback transaction. The archive is consistent, but possibly cluttered. hr=0x%08x", hrTmp);
 			}
@@ -639,7 +636,7 @@ HRESULT Copier::DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps)
 		}
 		hr = hrSuccess;
 		lstRollbacks.push_back(ptrRollback);
-		lstNewMsgArchives.push_back((*iTransaction)->GetObjectEntry());
+		lstNewMsgArchives.push_back(ta->GetObjectEntry());
 	}
 
 	if (state.isDirty()) {
@@ -659,8 +656,8 @@ HRESULT Copier::DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps)
 		return hr;
 	}
 
-	for (TransactionList::const_iterator iTransaction = lstTransactions.begin(); iTransaction != lstTransactions.end(); ++iTransaction) {
-		HRESULT hrTmp = (*iTransaction)->PurgeDeletes(m_ptrSession, m_ptrTransaction);
+	for (const auto &ta : lstTransactions) {
+		HRESULT hrTmp = ta->PurgeDeletes(m_ptrSession, m_ptrTransaction);
 		if (hrTmp != hrSuccess)
 			Logger()->Log(EC_LOGLEVEL_ERROR, "Failed to remove old archives. (hr=0x%08x)", hrTmp);
 	}
@@ -932,8 +929,6 @@ HRESULT Copier::DoMoveArchive(const SObjectEntry &archiveRootEntry, const SObjec
 HRESULT Copier::ExecuteSubOperations(LPMESSAGE lpMessage, LPMAPIFOLDER lpFolder, ULONG cProps, const LPSPropValue lpProps)
 {
 	HRESULT hr = hrSuccess;
-	list<ArchiveOperationPtr>::const_iterator iOp;
-
 	ASSERT(lpMessage != NULL);
 	ASSERT(lpFolder != NULL);
 	if (lpMessage == NULL || lpFolder == NULL)

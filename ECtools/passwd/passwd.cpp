@@ -315,7 +315,6 @@ int main(int argc, char* argv[])
 	};
 
 exit:
-
 	MAPIUninitialize();
 	if (hr == hrSuccess)
 		return 0;

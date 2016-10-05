@@ -128,9 +128,7 @@ public:
 
 	ECRESULT RemoveCacheItem(const key_type &key) 
 	{
-		typename _MapType::iterator iter;
-
-		iter = m_map.find(key);
+		auto iter = m_map.find(key);
 		if (iter == m_map.end())
 			return KCERR_NOT_FOUND;
 
@@ -144,9 +142,7 @@ public:
 	{
 		ECRESULT er = erSuccess;
 		time_t	tNow  = GetProcessTime();
-		typename _MapType::iterator iter;
-
-		iter = m_map.find(key);
+		auto iter = m_map.find(key);
 		
 		if (iter != m_map.end()) {
 			// Cache age of the cached item, if expired remove the item from the cache
@@ -163,8 +159,8 @@ public:
 				for (iter = m_map.begin(); iter != m_map.end(); ++iter)
 					if ((long)(tNow - iter->second.ulLastAccess) >= MaxAge())
 						dl.push_back(iter->first);
-				for (typename std::vector<key_type>::const_iterator i = dl.begin(); i != dl.end(); ++i)
-					m_map.erase(*i);
+				for (const auto &i : dl)
+					m_map.erase(i);
 				er = KCERR_NOT_FOUND;
 			} else {
 				*lppValue = &iter->second;
@@ -189,11 +185,9 @@ public:
 
 	ECRESULT GetCacheRange(const key_type &lower, const key_type &upper, std::list<typename _MapType::value_type> *values)
 	{
-		typedef typename _MapType::iterator iterator;
-
-		iterator iLower = m_map.lower_bound(lower);
-		iterator iUpper = m_map.upper_bound(upper);
-		for (iterator i = iLower; i != iUpper; ++i)
+		auto iLower = m_map.lower_bound(lower);
+		auto iUpper = m_map.upper_bound(upper);
+		for (auto i = iLower; i != iUpper; ++i)
 			values->push_back(*i);
 
 		return erSuccess;
@@ -202,14 +196,11 @@ public:
 	ECRESULT AddCacheItem(const key_type &key, const mapped_type &value)
 	{
 		typedef typename _MapType::value_type value_type;
-		typedef typename _MapType::iterator iterator;
-		std::pair<iterator,bool> result;
 
 		if (MaxSize() == 0)
 			return erSuccess;
 
-		result = m_map.insert(value_type(key, value));
-
+		auto result = m_map.insert(value_type(key, value));
 		if (result.second == false) {
 			// The key already exists but its value is unmodified. So update it now
 			m_ulSize += GetCacheAdditionalSize(value);
@@ -241,14 +232,11 @@ private:
 	ECRESULT PurgeCache(float ratio)
 	{
 		std::list<KeyEntry<key_type> > lstEntries;
-		typename std::list<KeyEntry<key_type> >::iterator iterEntry;
-		typename _MapType::iterator iterMap;
 
-		for (iterMap = m_map.begin(); iterMap != m_map.end(); ++iterMap) {
+		for (const auto &im : m_map) {
 			KeyEntry<key_type> k;
-			k.key = iterMap->first;
-			k.ulLastAccess = iterMap->second.ulLastAccess;
-
+			k.key = im.first;
+			k.ulLastAccess = im.second.ulLastAccess;
 			lstEntries.push_back(k);
 		}
 
@@ -259,8 +247,10 @@ private:
 
 		// Remove the oldest ulDelete entries from the cache, removing [ratio] % of all
 		// cache entries.
-		for (iterEntry = lstEntries.begin(); iterEntry != lstEntries.end() && ulDelete > 0; ++iterEntry, --ulDelete) {
-			iterMap = m_map.find(iterEntry->key);
+		for (auto iterEntry = lstEntries.cbegin();
+		     iterEntry != lstEntries.cend() && ulDelete > 0;
+		     ++iterEntry, --ulDelete) {
+			auto iterMap = m_map.find(iterEntry->key);
 			assert(iterMap != m_map.end());
 			m_ulSize -= GetCacheAdditionalSize(iterMap->second);
 			m_ulSize -= GetCacheAdditionalSize(iterMap->first);

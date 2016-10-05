@@ -101,7 +101,6 @@ ECRESULT ECABObjectTable::Create(ECSession *lpSession, unsigned int ulABId, unsi
 ECRESULT ECABObjectTable::GetColumnsAll(ECListInt* lplstProps)
 {
 	ECRESULT		er = erSuccess;
-	ECObjectTableMap::const_iterator iterObjects;
 	ECODAB *lpODAB = (ECODAB*)m_lpObjectData;
 
 	pthread_mutex_lock(&m_hLock);
@@ -140,28 +139,18 @@ ECRESULT ECABObjectTable::GetColumnsAll(ECListInt* lplstProps)
 
 ECRESULT ECABObjectTable::ReloadTableMVData(ECObjectTableList* lplistRows, ECListInt* lplistMVPropTag)
 {
-	ECRESULT			er = erSuccess;
-
 	ASSERT(lplistMVPropTag->size() <2); //FIXME: Limit of one 1 MV column
-
 	// scan for MV-props and add rows
-
 	// Add items to list
-
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECABObjectTable::GetMVRowCount(unsigned int ulObjId, unsigned int *lpulCount)
 {
-	ECRESULT er = erSuccess;
-
 	pthread_mutex_lock(&m_hLock);
-
 	*lpulCount = 0;
-
 	pthread_mutex_unlock(&m_hLock);
-
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECABObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList* lpRowList, struct propTagArray *lpsPropTagArray, void* lpObjectData, struct rowSet **lppRowSet, bool bTableData, bool bTableLimit)
@@ -423,7 +412,6 @@ ECRESULT ECABObjectTable::Load()
 	sObjectTableKey sRowItem;
 
 	std::list<localobjectdetails_t> *lpObjects = NULL;
-	std::list<localobjectdetails_t>::const_iterator iterObjects;
 	std::list<unsigned int> lstObjects;
 	unsigned int ulObjectId = 0;
 	unsigned int ulObjectFilter = 0;
@@ -531,12 +519,11 @@ ECRESULT ECABObjectTable::Load()
 		}
 	}
 
-	for (iterObjects = lpObjects->begin(); iterObjects != lpObjects->end(); ++iterObjects) {
+	for (const auto &obj : *lpObjects) {
 		/* Only add visible items */
-		if (lpSession->GetSecurity()->IsUserObjectVisible(iterObjects->ulId) != erSuccess)
+		if (lpSession->GetSecurity()->IsUserObjectVisible(obj.ulId) != erSuccess)
 			continue;
-
-		lstObjects.push_back(iterObjects->ulId);
+		lstObjects.push_back(obj.ulId);
 	}
 
 	er = LoadRows(&lstObjects, 0);

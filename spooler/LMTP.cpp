@@ -185,7 +185,7 @@ HRESULT LMTP::HrCommandRCPTTO(const string &strTo, string *strUnresolved)
  */
 HRESULT LMTP::HrCommandDATA(FILE *tmp)
 {
-	HRESULT hr = hrSuccess;
+	HRESULT hr;
 	std::string inBuffer;
 	std::string message;
 	int offset;
@@ -195,7 +195,7 @@ HRESULT LMTP::HrCommandDATA(FILE *tmp)
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error during DATA communication with client: %s (%x).",
 			GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 
 	// Now the mail body needs to be read line by line until <CRLF>.<CRLF> is encountered
@@ -204,7 +204,7 @@ HRESULT LMTP::HrCommandDATA(FILE *tmp)
 		if (hr != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error during DATA communication with client: %s (%x).",
 				GetMAPIErrorMessage(hr), hr);
-			goto exit;
+			return hr;
 		}
 
 			if (inBuffer == ".")
@@ -219,25 +219,21 @@ HRESULT LMTP::HrCommandDATA(FILE *tmp)
 		if (ret != to_write) {
             m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error during DATA communication "
                 "with client: %s", strerror(errno));
-            hr = MAPI_E_FAILURE;
-            goto exit;
+			return MAPI_E_FAILURE;
 		}
 
 		// The data from HrReadLine does not contain the CRLF, so add that here
 		if (fwrite("\r\n", 1, 2, tmp) != 2) {
             m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error during DATA communication "
                 "with client: %s", strerror(errno));
-			hr = MAPI_E_FAILURE;
-			goto exit;
+			return MAPI_E_FAILURE;
 		}
 
 		message += inBuffer + "\r\n";
 	}
 	if (m_lpLogger->Log(EC_LOGLEVEL_DEBUG + 1)) // really hidden output (limited to 10k in logger)
 			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Received message:\n" + message);
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 

@@ -297,7 +297,6 @@ HRESULT ECQuotaMonitor::CheckCompanyQuota(ECCOMPANY *lpecCompany)
 	set<string> setServers;
 	const char *lpszServersConfig;
 	std::set<string, strcasecmp_comparison> setServersConfig;
-	set<string>::const_iterator iServers;
 	char *lpszConnection = NULL;
 	bool bIsPeer = false;
 
@@ -344,19 +343,19 @@ HRESULT ECQuotaMonitor::CheckCompanyQuota(ECCOMPANY *lpecCompany)
 			setServersConfig.erase(string());
 		}
 
-		for (iServers = setServers.begin(); iServers != setServers.end(); ++iServers)
-		{
-                        if(!setServersConfig.empty() && setServersConfig.find((*iServers).c_str()) == setServersConfig.end())
+		for (const auto &server : setServers) {
+			if (!setServersConfig.empty() &&
+			    setServersConfig.find(server.c_str()) == setServersConfig.cend())
                                 continue;
  
-			hr = lpServiceAdmin->ResolvePseudoUrl((char*)string("pseudo://"+ (*iServers)).c_str(), &lpszConnection, &bIsPeer);
+			hr = lpServiceAdmin->ResolvePseudoUrl(std::string("pseudo://" + server).c_str(), &lpszConnection, &bIsPeer);
 			if (hr != hrSuccess) {
-				m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to resolve servername %s, error code 0x%08X", iServers->c_str(), hr);
+				m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to resolve servername %s, error code 0x%08X", server.c_str(), hr);
 				++m_ulFailed;
 				goto next;
 			}
 
-			m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_INFO, "Connecting to server %s using url %s", iServers->c_str(), lpszConnection);
+			m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_INFO, "Connecting to server %s using url %s", server.c_str(), lpszConnection);
 
 			// call server function with new lpMDBAdmin / lpServiceAdmin
 			if (bIsPeer) {

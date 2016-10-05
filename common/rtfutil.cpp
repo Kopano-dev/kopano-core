@@ -272,8 +272,8 @@ HRESULT HrExtractHTMLFromRTF(const std::string &lpStrRTFIn,
 					sState[ulState].ulFont = lArg;
 
 					if(!sState[ulState].bInFontTbl) {
-						fontmap_t::iterator i = mapFontToCharset.find(lArg);
-						if (i == mapFontToCharset.end())
+						fontmap_t::const_iterator i = mapFontToCharset.find(lArg);
+						if (i == mapFontToCharset.cend())
 							continue;
 
 						// Output any data before this point
@@ -531,8 +531,8 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 					sState[ulState].ulFont = lArg;
 
 					if(!sState[ulState].bInFontTbl) {
-						fontmap_t::iterator i = mapFontToCharset.find(lArg);
-						if (i == mapFontToCharset.end())
+						fontmap_t::const_iterator i = mapFontToCharset.find(lArg);
+						if (i == mapFontToCharset.cend())
 							continue;
 
 						// Output any data before this point
@@ -839,8 +839,8 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 					sState[ulState].ulFont = lArg;
 
 					if(!sState[ulState].bInFontTbl) {
-						fontmap_t::iterator i = mapFontToCharset.find(lArg);
-						if (i == mapFontToCharset.end())
+						fontmap_t::const_iterator i = mapFontToCharset.find(lArg);
+						if (i == mapFontToCharset.cend())
 							continue;
 
 						// Output any data before this point
@@ -1171,8 +1171,8 @@ HRESULT HrExtractBODYFromTextRTF(const std::string &lpStrRTFIn,
 					sState[ulState].ulFont = lArg;
 
 					if(!sState[ulState].bInFontTbl) {
-						fontmap_t::iterator i = mapFontToCharset.find(lArg);
-						if (i == mapFontToCharset.end())
+						fontmap_t::const_iterator i = mapFontToCharset.find(lArg);
+						if (i == mapFontToCharset.cend())
 							continue;
 
 						// Output any data before this point

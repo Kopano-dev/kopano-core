@@ -232,9 +232,8 @@ void ECConfigImpl::InsertOrReplace(settingmap_t *lpMap, const settingkey_t &s, c
 	char* data = NULL;
 	size_t len = std::min((size_t)1023, strlen(szValue));
 
-	settingmap_t::iterator i = lpMap->find(s);
-
-	if(i == lpMap->end()) {
+	auto i = lpMap->find(s);
+	if (i == lpMap->cend()) {
 		// Insert new value
 		data = new char[1024];
 		lpMap->insert(make_pair(s, data));
@@ -268,8 +267,8 @@ const char *ECConfigImpl::GetMapEntry(const settingmap_t *lpMap,
 	strcpy(key.s, szName);
 	pthread_rwlock_rdlock(&m_settingsRWLock);
 
-	settingmap_t::const_iterator itor = lpMap->find(key);
-	if (itor != lpMap->end())
+	auto itor = lpMap->find(key);
+	if (itor != lpMap->cend())
 		retval = itor->second;
 	pthread_rwlock_unlock(&m_settingsRWLock);
 	return retval;
@@ -298,9 +297,8 @@ const char *ECConfigImpl::GetSetting(const char *szName, const char *equal,
 const wchar_t *ECConfigImpl::GetSettingW(const char *szName)
 {
 	const char *value = GetSetting(szName);
-	pair<ConvertCache::iterator, bool> result = m_convertCache.insert(ConvertCache::value_type(value, L""));
-	ConvertCache::iterator iter = result.first;
-
+	auto result = m_convertCache.insert(ConvertCache::value_type(value, L""));
+	auto iter = result.first;
 	if (result.second)
 		iter->second = convert_to<wstring>(value);
 
@@ -322,13 +320,10 @@ list<configsetting_t> ECConfigImpl::GetSettingGroup(unsigned int ulGroup)
 	list<configsetting_t> lGroup;
 	configsetting_t sSetting;
 
-	for (settingmap_t::iterator iter = m_mapSettings.begin(); iter != m_mapSettings.end(); ++iter) {
-		if ((iter->first.ulGroup & ulGroup) == ulGroup) {
-			if (CopyConfigSetting(&iter->first, iter->second, &sSetting))
-				lGroup.push_back(sSetting);
-		}
-	}
-
+	for (const auto &s : m_mapSettings)
+		if ((s.first.ulGroup & ulGroup) == ulGroup &&
+		    CopyConfigSetting(&s.first, s.second, &sSetting))
+			lGroup.push_back(sSetting);
 	return lGroup;
 }
 
@@ -337,11 +332,9 @@ std::list<configsetting_t> ECConfigImpl::GetAllSettings()
 	list<configsetting_t> lSettings;
 	configsetting_t sSetting;
 
-	for (settingmap_t::iterator iter = m_mapSettings.begin(); iter != m_mapSettings.end(); ++iter) {
-		if (CopyConfigSetting(&iter->first, iter->second, &sSetting))
+	for (const auto &s : m_mapSettings)
+		if (CopyConfigSetting(&s.first, s.second, &sSetting))
 			lSettings.push_back(sSetting);
-	}
-
 	return lSettings;
 }
 
@@ -489,8 +482,8 @@ bool ECConfigImpl::HandleDirective(const string &strLine, unsigned int ulFlags)
 	for (int i = 0; s_sDirectives[i].lpszDirective != NULL; ++i) {
 		if (strName.compare(s_sDirectives[i].lpszDirective) == 0) {
 			/* Check if this directive is supported */
-			list<string>::iterator f = find(m_lDirectives.begin(), m_lDirectives.end(), strName);
-			if (f != m_lDirectives.end())
+			auto f = find(m_lDirectives.cbegin(), m_lDirectives.cend(), strName);
+			if (f != m_lDirectives.cend())
 				return (this->*s_sDirectives[i].fExecute)(strLine.substr(pos).c_str(), ulFlags);
 
 			warnings.push_back("Unsupported directive '" + strName + "' found!");
@@ -556,7 +549,7 @@ bool ECConfigImpl::CopyConfigSetting(const settingkey_t *lpsKey, const char *szV
 
 bool ECConfigImpl::AddSetting(const configsetting_t *lpsConfig, unsigned int ulFlags)
 {
-	settingmap_t::iterator iterSettings;
+	settingmap_t::const_iterator iterSettings;
 	settingkey_t s;
 	char *valid = NULL;
 	const char *szAlias = NULL;
@@ -577,7 +570,7 @@ bool ECConfigImpl::AddSetting(const configsetting_t *lpsConfig, unsigned int ulF
 
 	iterSettings = m_mapSettings.find(s);
 
-	if (iterSettings == m_mapSettings.end()) {
+	if (iterSettings == m_mapSettings.cend()) {
 		// new items from file are illegal, add error
 		if (!(ulFlags & LOADSETTING_UNKNOWN)) {
 			errors.push_back("Unknown option '" + string(lpsConfig->szName) + "' found!");
@@ -667,17 +660,13 @@ bool ECConfigImpl::HasWarnings() {
 }
 
 bool ECConfigImpl::HasErrors() {
-	settingmap_t::iterator iterSettings;
-
 	/* First validate the configuration settings */
 	pthread_rwlock_rdlock(&m_settingsRWLock);
 
-	for (iterSettings = m_mapSettings.begin(); iterSettings != m_mapSettings.end(); ++iterSettings) {
-		if (iterSettings->first.ulFlags & CONFIGSETTING_NONEMPTY) {
-			if (!iterSettings->second || strlen(iterSettings->second) == 0)
-				errors.push_back("Option '" + string(iterSettings->first.s) + "' cannot be empty!");
-		}
-	}
+	for (const auto &s : m_mapSettings)
+		if (s.first.ulFlags & CONFIGSETTING_NONEMPTY)
+			if (!s.second || strlen(s.second) == 0)
+				errors.push_back("Option '" + string(s.first.s) + "' cannot be empty!");
 	
 	pthread_rwlock_unlock(&m_settingsRWLock);
 
@@ -753,19 +742,12 @@ bool ECConfigImpl::WriteSettingsToFile(const char* szFileName)
 
 	// open temp output file
 	ofstream out(path_to_string(pathOutFile.string()).c_str());
-
-	settingmap_t::iterator iterSettings;
 	const char* szName = NULL;
 	const char* szValue = NULL;
 
-	for(iterSettings = m_mapSettings.begin(); 
-		iterSettings != m_mapSettings.end();
-		++iterSettings)
-	{
-
-		szName = iterSettings->first.s;
-		szValue = iterSettings->second;
-
+	for (const auto &s : m_mapSettings) {
+		szName  = s.first.s;
+		szValue = s.second;
 		this->WriteLinesToFile(szName, szValue, in, out, false);
 	}
 	in.close();

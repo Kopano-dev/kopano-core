@@ -85,12 +85,9 @@ M4LMAPISupport::M4LMAPISupport(LPMAPISESSION new_session, LPMAPIUID lpUid, SVCSe
 }
 
 M4LMAPISupport::~M4LMAPISupport() {
-	M4LSUPPORTADVISES::const_iterator i;
-
 	delete lpsProviderUID;
-	for (i = m_advises.begin(); i != m_advises.end(); ++i)
-		MAPIFreeBuffer(i->second.lpKey);
-
+	for (const auto &i : m_advises)
+		MAPIFreeBuffer(i.second.lpKey);
 	pthread_mutex_destroy(&m_advises_mutex);
 }
 
@@ -145,7 +142,7 @@ HRESULT M4LMAPISupport::Unsubscribe(ULONG ulConnection) {
 	pthread_mutex_lock(&m_advises_mutex);
 
 	i = m_advises.find(ulConnection);
-	if (i != m_advises.end()) {
+	if (i != m_advises.cend()) {
 		MAPIFreeBuffer(i->second.lpKey);
 		m_advises.erase(i);
 	} else
@@ -161,12 +158,11 @@ HRESULT M4LMAPISupport::Notify(LPNOTIFKEY lpKey, ULONG cNotification, LPNOTIFICA
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPISupport::Notify", "");
 	HRESULT hr = hrSuccess;
 	LPMAPIADVISESINK lpAdviseSink = NULL;
-	M4LSUPPORTADVISES::const_iterator iter;
 
 	pthread_mutex_lock(&m_advises_mutex);
 
-	iter = find_if(m_advises.begin(), m_advises.end(), findKey(lpKey));
-	if (iter == m_advises.end()) {
+	auto iter = find_if(m_advises.cbegin(), m_advises.cend(), findKey(lpKey));
+	if (iter == m_advises.cend()) {
 		pthread_mutex_unlock(&m_advises_mutex);
 		/* Should this be reported as error? */
 		goto exit;

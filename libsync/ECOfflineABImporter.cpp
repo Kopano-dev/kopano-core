@@ -78,8 +78,6 @@ HRESULT OfflineABImporter::ImportABChange(ULONG ulObjType, ULONG cbObjId, LPENTR
 	ECCOMPANY *lpsCheckDstCompany = NULL;
 	std::list<ECENTRYID> lstSrcMembers;
 	std::list<ECENTRYID> lstDstMembers;
-	std::list<ECENTRYID>::const_iterator iterSrcMembers;
-	std::list<ECENTRYID>::const_iterator iterDstMembers;
 	ULONG cDstUsers = 0;		
 	ECUSER *lpDstUsers = NULL;
 	ULONG cSrcUsers = 0;
@@ -187,9 +185,9 @@ HRESULT OfflineABImporter::ImportABChange(ULONG ulObjType, ULONG cbObjId, LPENTR
 		
 		/* We now have lstDstMembers, and lstSrcMembers. We now have to bring lstDstMembers into
 		 * sync with lstSrcMembers */
-		iterDstMembers = lstDstMembers.begin();
-		iterSrcMembers = lstSrcMembers.begin();
-		while (iterDstMembers != lstDstMembers.end() && iterSrcMembers != lstSrcMembers.end()) {
+		auto iterDstMembers = lstDstMembers.cbegin();
+		auto iterSrcMembers = lstSrcMembers.cbegin();
+		while (iterDstMembers != lstDstMembers.cend() && iterSrcMembers != lstSrcMembers.cend()) {
 			if(*iterSrcMembers == *iterDstMembers) {
 				++iterDstMembers;
 				++iterSrcMembers;
@@ -217,7 +215,7 @@ HRESULT OfflineABImporter::ImportABChange(ULONG ulObjType, ULONG cbObjId, LPENTR
 			}
 		}
 		
-		for (; iterSrcMembers != lstSrcMembers.end(); ++iterSrcMembers) {
+		for (; iterSrcMembers != lstSrcMembers.cend(); ++iterSrcMembers) {
 			/* Anything left in 'src' shoul de added to 'dst' */
 			ZLOG_DEBUG(m_lpLogger, "ImportABChange: AddGroupUser (to destination) id=%s", bin2hex(iterSrcMembers->cb, (LPBYTE)iterSrcMembers->lpb).c_str());
 			hr = m_lpDstServiceAdmin->AddGroupUser(lpsSrcGroup->sGroupId.cb, (LPENTRYID)lpsSrcGroup->sGroupId.lpb, iterSrcMembers->cb, (LPENTRYID)iterSrcMembers->lpb);
@@ -227,7 +225,7 @@ HRESULT OfflineABImporter::ImportABChange(ULONG ulObjType, ULONG cbObjId, LPENTR
 			}
 		}
 		
-		for (; iterDstMembers != lstDstMembers.end(); ++iterDstMembers) {
+		for (; iterDstMembers != lstDstMembers.cend(); ++iterDstMembers) {
 			/* Anything left in 'dst should be deleted */
 			ZLOG_DEBUG(m_lpLogger, "ImportABChange: AddGroupUser (from destination) id=%s", bin2hex(iterDstMembers->cb, (LPBYTE)iterDstMembers->lpb).c_str());
 			hr = m_lpDstServiceAdmin->DeleteGroupUser(lpsSrcGroup->sGroupId.cb, (LPENTRYID)lpsSrcGroup->sGroupId.lpb, iterDstMembers->cb, (LPENTRYID)iterDstMembers->lpb);

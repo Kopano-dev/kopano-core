@@ -122,15 +122,13 @@ public:
 				mapi_memory_ptr<SPropValue> ptrPropValue;
 
 				if (HrGetOneProp(m_lpObject, PR_EC_OBJECT, &ptrPropValue) != hrSuccess)
-					goto exit;	// hr is still MAPI_E_INTERFACE_NOT_SUPPORTED
+					return hr; // hr is still MAPI_E_INTERFACE_NOT_SUPPORTED
 
 				hr = ((IECUnknown*)ptrPropValue->Value.lpszA)->QueryInterface(_U::iid, (void**)&lpNewObject);
 				if (hr == hrSuccess)
 					refResult.reset(lpNewObject, false);
 			}
 		}
-
-	exit:
 		return hr;
 	}
 

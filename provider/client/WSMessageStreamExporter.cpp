@@ -106,7 +106,7 @@ HRESULT WSMessageStreamExporter::GetSerializedMessage(ULONG ulIndex, WSSerialize
 		return MAPI_E_INVALID_PARAMETER;
 
 	iStreamInfo = m_mapStreamInfo.find(ulIndex);
-	if (iStreamInfo == m_mapStreamInfo.end()) {
+	if (iStreamInfo == m_mapStreamInfo.cend()) {
 		++m_ulExpectedIndex;
 		return SYNC_E_OBJECT_DELETED;
 	}
@@ -139,6 +139,6 @@ WSMessageStreamExporter::~WSMessageStreamExporter()
 		m_ptrTransport->m_lpCmd->soap->fshutdownsocket(m_ptrTransport->m_lpCmd->soap, m_ptrTransport->m_lpCmd->soap->socket, 0);
 	}
 
-	for (StreamInfoMap::const_iterator i = m_mapStreamInfo.begin(); i != m_mapStreamInfo.end(); ++i)
-		delete i->second;
+	for (const auto &i : m_mapStreamInfo)
+		delete i.second;
 }

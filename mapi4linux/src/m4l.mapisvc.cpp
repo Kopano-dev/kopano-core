@@ -81,10 +81,8 @@ HRESULT INFLoader::LoadINFs()
 	HRESULT hr;
 	vector<string> paths = GetINFPaths();
 
-	for (std::vector<std::string>::const_iterator i = paths.begin();
-	     i != paths.end(); ++i)
-	{
-		bfs::path infdir(*i);
+	for (const auto &path : paths) {
+		bfs::path infdir(path);
 		if (!bfs::exists(infdir))
 			// silently continue or print init error?
 			continue;
@@ -159,15 +157,14 @@ HRESULT INFLoader::LoadINF(const char *filename)
 				if (pos == string::npos)
 					continue;	// skip line
 				strName = strLine.substr(1, pos-1);
-
-				pair<inf::iterator, bool> rv = m_mapSections.insert(make_pair(strName, inf_section()));
+				auto rv = m_mapSections.insert(make_pair(strName, inf_section()));
 				iSection = rv.first;
 			}
 			// always continue with next line.
 			continue;
 		}
 
-		if (iSection == m_mapSections.end())
+		if (iSection == m_mapSections.cend())
 			continue;
 
 		// Parse strName in a property, else leave name?
@@ -190,10 +187,8 @@ exit:
  */
 const inf_section* INFLoader::GetSection(const string& strSectionName) const
 {
-	inf::const_iterator iSection;
-
-	iSection = m_mapSections.find(strSectionName);
-	if (iSection == m_mapSections.end()) {
+	inf::const_iterator iSection = m_mapSections.find(strSectionName);
+	if (iSection == m_mapSections.cend()) {
 		static inf_section empty;
 		return &empty;
 	}
@@ -241,9 +236,8 @@ HRESULT INFLoader::MakeProperty(const std::string& strTag, const std::string& st
 		set<string> vValues;
 		sProp.Value.ul = 0;
 		ba::split(vValues, strData, ba::is_any_of("| \t"), ba::token_compress_on);
-		for (std::set<std::string>::const_iterator i = vValues.begin();
-		     i != vValues.end(); ++i)
-			sProp.Value.ul |= DefinitionFromString(*i, false);
+		for (const auto &val : vValues)
+			sProp.Value.ul |= DefinitionFromString(val, false);
 		break;
 	}
 	case PT_UNICODE:
@@ -278,12 +272,11 @@ HRESULT INFLoader::MakeProperty(const std::string& strTag, const std::string& st
  */
 ULONG INFLoader::DefinitionFromString(const std::string& strDef, bool bProp) const
 {
-	std::map<std::string, unsigned int>::const_iterator i;
 	char *end;
 	unsigned int hex;
 
-	i = m_mapDefs.find(strDef);
-	if (i != m_mapDefs.end())
+	std::map<std::string, unsigned int>::const_iterator i = m_mapDefs.find(strDef);
+	if (i != m_mapDefs.cend())
 		return i->second;
 	// parse strProp as hex
 	hex = strtoul(strDef.c_str(), &end, 16);
@@ -317,17 +310,15 @@ void SVCProvider::GetProps(ULONG *lpcValues, LPSPropValue *lppPropValues)
 
 HRESULT SVCProvider::Init(const INFLoader& cINF, const inf_section* infProvider)
 {
-	HRESULT hr;
-	inf_section::const_iterator iSection;
-
-	hr = MAPIAllocateBuffer(sizeof(SPropValue) * infProvider->size(), (void**)&m_lpProps);
+	HRESULT hr = MAPIAllocateBuffer(sizeof(SPropValue) * infProvider->size(),
+		reinterpret_cast<void **>(&m_lpProps));
 	if (hr != hrSuccess)
 		return hr;
 
-	for (m_cValues = 0, iSection = infProvider->begin();
-	     iSection != infProvider->end(); ++iSection)
+	m_cValues = 0;
+	for (const auto &sp : *infProvider)
 		// add properties to list
-		if (cINF.MakeProperty(iSection->first, iSection->second, m_lpProps, &m_lpProps[m_cValues]) == hrSuccess)
+		if (cINF.MakeProperty(sp.first, sp.second, m_lpProps, &m_lpProps[m_cValues]) == hrSuccess)
 			++m_cValues;
 	return hrSuccess;
 }
@@ -351,9 +342,8 @@ SVCService::~SVCService()
 		dlclose(m_dl);
 #endif
 	MAPIFreeBuffer(m_lpProps);
-	for (std::map<std::string, SVCProvider *>::iterator i = m_sProviders.begin();
-	     i != m_sProviders.end(); ++i)
-		delete i->second;
+	for (const auto &i : m_sProviders)
+		delete i.second;
 }
 
 /** 
@@ -369,7 +359,6 @@ SVCService::~SVCService()
 HRESULT SVCService::Init(const INFLoader& cINF, const inf_section* infService)
 {
 	HRESULT hr;
-	inf_section::const_iterator iSection;
 	const inf_section* infProvider = NULL;
 	vector<string> prop;
 	LPSPropValue lpSO;
@@ -380,20 +369,18 @@ HRESULT SVCService::Init(const INFLoader& cINF, const inf_section* infService)
 	if (hr != hrSuccess)
 		return hr;
 
-	for (m_cValues = 0, iSection = infService->begin();
-	     iSection != infService->end(); ++iSection) {
+	m_cValues = 0;
+	for (const auto &sp : *infService) {
 		// convert section to class
-		if (iSection->first.compare("Providers") == 0) {
+		if (sp.first.compare("Providers") == 0) {
 			// make new providers list
 			// *new function, new loop
-			ba::split(prop, iSection->second, ba::is_any_of(", \t"), ba::token_compress_on);
+			ba::split(prop, sp.second, ba::is_any_of(", \t"), ba::token_compress_on);
 
-			for (std::vector<std::string>::const_iterator i = prop.begin();
-			     i != prop.end(); ++i)
-			{
-				infProvider = cINF.GetSection(*i);
+			for (const auto &i : prop) {
+				infProvider = cINF.GetSection(i);
 
-				std::pair<std::map<std::string, SVCProvider *>::const_iterator, bool> prov = m_sProviders.insert(make_pair(*i, new SVCProvider()));
+				auto prov = m_sProviders.insert(make_pair(i, new SVCProvider));
 				if (prov.second == false)
 					continue;	// already exists
 
@@ -401,7 +388,7 @@ HRESULT SVCService::Init(const INFLoader& cINF, const inf_section* infService)
 			}
 		} else {
 			// add properties to list
-			if (cINF.MakeProperty(iSection->first, iSection->second, m_lpProps, &m_lpProps[m_cValues]) == hrSuccess)
+			if (cINF.MakeProperty(sp.first, sp.second, m_lpProps, &m_lpProps[m_cValues]) == hrSuccess)
 				++m_cValues;
 		}
 	}
@@ -450,12 +437,9 @@ HRESULT SVCService::Init(const INFLoader& cINF, const inf_section* infService)
  */
 HRESULT SVCService::CreateProviders(IProviderAdmin *lpProviderAdmin)
 {
-	HRESULT hr;
-	std::map<std::string, SVCProvider *>::const_iterator i;
-
-	for (i = m_sProviders.begin(); i != m_sProviders.end(); ++i)  {
+	for (const auto &i : m_sProviders) {
 		// CreateProvider will find the provider properties itself. the property parameters can be used for other properties.
-		hr = lpProviderAdmin->CreateProvider((TCHAR*)i->first.c_str(), 0, NULL, 0, 0, NULL);
+		HRESULT hr = lpProviderAdmin->CreateProvider(const_cast<TCHAR *>(reinterpret_cast<const TCHAR *>(i.first.c_str())), 0, NULL, 0, 0, NULL);
 		if (hr != hrSuccess)
 			return hr;
 	}
@@ -470,7 +454,7 @@ LPSPropValue SVCService::GetProp(ULONG ulPropTag)
 SVCProvider* SVCService::GetProvider(LPTSTR lpszProvider, ULONG ulFlags)
 {
 	std::map<std::string, SVCProvider*>::const_iterator i = m_sProviders.find(reinterpret_cast<const char *>(lpszProvider));
-	if (i == m_sProviders.end())
+	if (i == m_sProviders.cend())
 		return NULL;
 	return i->second;
 }
@@ -479,9 +463,8 @@ vector<SVCProvider*> SVCService::GetProviders()
 {
 	vector<SVCProvider*> ret;
 
-	for (std::map<std::string, SVCProvider *>::const_iterator i = m_sProviders.begin();
-	     i != m_sProviders.end(); ++i)
-		ret.push_back(i->second);
+	for (const auto &i : m_sProviders)
+		ret.push_back(i.second);
 	return ret;
 }
 
@@ -506,9 +489,8 @@ MAPISVC::MAPISVC()
 
 MAPISVC::~MAPISVC()
 {
-	for (std::map<std::string, SVCService *>::const_iterator i = m_sServices.begin();
-	     i != m_sServices.end(); ++i)
-		delete i->second;
+	for (const auto &i : m_sServices)
+		delete i.second;
 }
 
 HRESULT MAPISVC::Init()
@@ -516,7 +498,6 @@ HRESULT MAPISVC::Init()
 	HRESULT hr;
 	INFLoader inf;
 	const inf_section* infServices = NULL;
-	inf_section::const_iterator iServices;
 	const inf_section* infService = NULL;
 
 	hr = inf.LoadINFs();
@@ -525,11 +506,10 @@ HRESULT MAPISVC::Init()
 
 	infServices = inf.GetSection("Services");
 
-	for (iServices = infServices->begin(); iServices != infServices->end(); ++iServices) {
+	for (const auto &sp : *infServices) {
 		// ZARAFA6, ZCONTACTS
-		infService = inf.GetSection(iServices->first);
-
-		pair<std::map<std::string, SVCService*>::iterator, bool> i = m_sServices.insert(make_pair(iServices->first, new SVCService()));
+		infService = inf.GetSection(sp.first);
+		auto i = m_sServices.insert(make_pair(sp.first, new SVCService()));
 		if (i.second == false)
 			continue;			// already exists
 
@@ -558,7 +538,7 @@ HRESULT MAPISVC::GetService(LPTSTR lpszService, ULONG ulFlags, SVCService **lppS
 	std::map<std::string, SVCService *>::const_iterator i;
 	
 	i = m_sServices.find((char*)lpszService);
-	if (i == m_sServices.end())
+	if (i == m_sServices.cend())
 		return MAPI_E_NOT_FOUND;
 
 	*lppService = i->second;
@@ -577,15 +557,14 @@ HRESULT MAPISVC::GetService(LPTSTR lpszService, ULONG ulFlags, SVCService **lppS
  */
 HRESULT MAPISVC::GetService(char* lpszDLLName, SVCService **lppService)
 {
-	std::map<std::string, SVCService *>::const_iterator i;
 	LPSPropValue lpDLLName;
 
-	for (i = m_sServices.begin(); i != m_sServices.end(); ++i) {
-		lpDLLName = i->second->GetProp(PR_SERVICE_DLL_NAME_A);
+	for (const auto &i : m_sServices) {
+		lpDLLName = i.second->GetProp(PR_SERVICE_DLL_NAME_A);
 		if (!lpDLLName || !lpDLLName->Value.lpszA)
 			continue;
 		if (strcmp(lpDLLName->Value.lpszA, lpszDLLName) == 0) {
-			*lppService = i->second;
+			*lppService = i.second;
 			return hrSuccess;
 		}
 	}

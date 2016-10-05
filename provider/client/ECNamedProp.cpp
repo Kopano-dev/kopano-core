@@ -94,12 +94,10 @@ ECNamedProp::ECNamedProp(WSTransport *lpTransport)
 
 ECNamedProp::~ECNamedProp()
 {
-	std::map<MAPINAMEID *, ULONG, ltmap>::const_iterator iterMap;
-
 	// Clear all the cached names
-	for (iterMap = mapNames.begin(); iterMap != mapNames.end(); ++iterMap)
-		if(iterMap->first)
-			ECFreeBuffer(iterMap->first);
+	for (const auto &p : mapNames)
+		if (p.first)
+			ECFreeBuffer(p.first);
 	if(lpTransport)
 		lpTransport->Release();
 }
@@ -317,18 +315,17 @@ HRESULT ECNamedProp::ResolveLocal(MAPINAMEID *lpName, ULONG *ulPropTag)
 HRESULT ECNamedProp::ResolveReverseCache(ULONG ulId, LPGUID lpGuid, ULONG ulFlags, void *lpBase, MAPINAMEID **lppName)
 {
 	HRESULT hr = MAPI_E_NOT_FOUND;
-	std::map<MAPINAMEID *, ULONG, ltmap>::const_iterator iterMap;
 
 	// Loop through the map to find the reverse-lookup of the named property. This could be speeded up by
 	// used a bimap (bi-directional map)
 
-	for (iterMap = mapNames.begin(); iterMap != mapNames.end(); ++iterMap)
-		if(iterMap->second == ulId) { // FIXME match GUID
+	for (const auto &p : mapNames)
+		if (p.second == ulId) { // FIXME match GUID
 			if(lpGuid) {
-				ASSERT(memcmp(lpGuid, iterMap->first->lpguid, sizeof(GUID)) == 0); // TEST michel
+				ASSERT(memcmp(lpGuid, p.first->lpguid, sizeof(GUID)) == 0); // TEST michel
 			}
 			// found it
-			hr = HrCopyNameId(iterMap->first, lppName, lpBase);
+			hr = HrCopyNameId(p.first, lppName, lpBase);
 			break;
 		}
 
@@ -337,14 +334,11 @@ HRESULT ECNamedProp::ResolveReverseCache(ULONG ulId, LPGUID lpGuid, ULONG ulFlag
 
 HRESULT ECNamedProp::ResolveReverseLocal(ULONG ulId, LPGUID lpGuid, ULONG ulFlags, void *lpBase, MAPINAMEID **lppName)
 {
-	HRESULT		hr = hrSuccess;
 	MAPINAMEID*	lpName = NULL; 
 
 	// Local mapping is only for MNID_ID
-	if(ulFlags & MAPI_NO_IDS) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+	if (ulFlags & MAPI_NO_IDS)
+		return MAPI_E_NOT_FOUND;
 
 	// Loop through the local names to see if we can reverse-map the id
 	for (size_t i = 0; i < ARRAY_SIZE(sLocalNames); ++i) {
@@ -360,13 +354,10 @@ HRESULT ECNamedProp::ResolveReverseLocal(ULONG ulId, LPGUID lpGuid, ULONG ulFlag
 			break;
 		}
 	}
-
-	if(lpName)
-		*lppName = lpName;
-	else
-		hr = MAPI_E_NOT_FOUND;
-exit:
-	return hr;
+	if (lpName == NULL)
+		return MAPI_E_NOT_FOUND;
+	*lppName = lpName;
+	return hrSuccess;
 }
 
 // Update the cache with the given data
@@ -401,7 +392,7 @@ HRESULT ECNamedProp::ResolveCache(MAPINAMEID *lpName, ULONG *lpulPropTag)
 
 	iterMap = mapNames.find(lpName);
 
-	if (iterMap == mapNames.end())
+	if (iterMap == mapNames.cend())
 		return MAPI_E_NOT_FOUND;
 	*lpulPropTag = PROP_TAG(PT_UNSPECIFIED, iterMap->second);
 	return hrSuccess;

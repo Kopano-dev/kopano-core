@@ -94,7 +94,7 @@ HRESULT StoreHelper::Init()
 	
 	hr = MAPIPropHelper::Init();
 	if (hr != hrSuccess)
-		goto exit;
+		goto exitpm;
 	
 	PROPMAP_INIT_NAMED_ID(ARCHIVE_STORE_ENTRYIDS, PT_MV_BINARY, PSETID_Archive, dispidStoreEntryIds)
 	PROPMAP_INIT_NAMED_ID(ARCHIVE_ITEM_ENTRYIDS, PT_MV_BINARY, PSETID_Archive, dispidItemEntryIds)
@@ -105,8 +105,7 @@ HRESULT StoreHelper::Init()
 	PROPMAP_INIT_NAMED_ID(FLAGS, PT_LONG, PSETID_Archive, dispidFlags)
 	PROPMAP_INIT_NAMED_ID(VERSION, PT_LONG, PSETID_Archive, dispidVersion)
 	PROPMAP_INIT(m_ptrMsgStore)
-	
-exit:
+ exitpm:
 	return hr;
 }
 
@@ -802,12 +801,12 @@ HRESULT StoreHelper::GetArchiveCheckRestriction(ECAndRestriction *lpresArchiveCh
 
 	// Build the restriction that checks that the message has been archived to all archives.
 	resArchiveCheck.append(ECExistRestriction(PROP_ARCHIVE_STORE_ENTRYIDS));
-	for (ObjectEntryList::const_iterator iArchive = lstArchives.begin(); iArchive != lstArchives.end(); ++iArchive) {
+	for (const auto &arc : lstArchives) {
 		SPropValue sPropFolderEntryId;
 
 		sPropFolderEntryId.ulPropTag = (PROP_ARCHIVE_STORE_ENTRYIDS & ~MV_FLAG);
-		sPropFolderEntryId.Value.bin.cb = iArchive->sStoreEntryId.size();
-		sPropFolderEntryId.Value.bin.lpb = iArchive->sStoreEntryId;
+		sPropFolderEntryId.Value.bin.cb  = arc.sStoreEntryId.size();
+		sPropFolderEntryId.Value.bin.lpb = arc.sStoreEntryId;
 
 		resArchiveCheck.append(ECPropertyRestriction(RELOP_EQ, PROP_ARCHIVE_STORE_ENTRYIDS, &sPropFolderEntryId));
 	}

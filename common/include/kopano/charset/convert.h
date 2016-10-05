@@ -596,7 +596,7 @@ private:
 	details::iconv_context<_To_Type, _From_Type> *get_context() {
 		context_key key(create_key<_To_Type, _From_Type>(NULL, NULL));
 		context_map::const_iterator iContext = m_contexts.find(key);
-		if (iContext == m_contexts.end()) {
+		if (iContext == m_contexts.cend()) {
 			details::iconv_context_base *lpContext = new details::iconv_context<_To_Type, _From_Type>();
 			iContext = m_contexts.insert(context_map::value_type(key, lpContext)).first;
 		}
@@ -617,7 +617,7 @@ private:
 	details::iconv_context<_To_Type, _From_Type> *get_context(const char *fromcode) {
 		context_key key(create_key<_To_Type, _From_Type>(NULL, fromcode));
 		context_map::const_iterator iContext = m_contexts.find(key);
-		if (iContext == m_contexts.end()) {
+		if (iContext == m_contexts.cend()) {
 			details::iconv_context_base *lpContext = new details::iconv_context<_To_Type, _From_Type>(fromcode);
 			
 			// Before we store it, we need to copy the fromcode as we don't know what the
@@ -643,7 +643,7 @@ private:
 	details::iconv_context<_To_Type, _From_Type> *get_context(const char *tocode, const char *fromcode) {
 		context_key key(create_key<_To_Type, _From_Type>(tocode, fromcode));
 		context_map::const_iterator iContext = m_contexts.find(key);
-		if (iContext == m_contexts.end()) {
+		if (iContext == m_contexts.cend()) {
 			details::iconv_context_base *lpContext = new details::iconv_context<_To_Type, _From_Type>(tocode, fromcode);
 			
 			// Before we store it, we need to copy the fromcode as we don't know what the

@@ -68,7 +68,6 @@ HRESULT Deleter::PurgeQueuedMessages()
 {
 	HRESULT hr;
 	EntryListPtr ptrEntryList;
-	list<entryid_t>::const_iterator iEntryId;
 	ULONG ulIdx = 0;
 	
 	if (m_lstEntryIds.empty())
@@ -81,9 +80,9 @@ HRESULT Deleter::PurgeQueuedMessages()
 		return hr;
 		
 	ptrEntryList->cValues = m_lstEntryIds.size();
-	for (iEntryId = m_lstEntryIds.begin(); iEntryId != m_lstEntryIds.end(); ++iEntryId, ++ulIdx) {
-		ptrEntryList->lpbin[ulIdx].cb = iEntryId->size();
-		ptrEntryList->lpbin[ulIdx].lpb = *iEntryId;
+	for (const auto &e : m_lstEntryIds) {
+		ptrEntryList->lpbin[ulIdx].cb = e.size();
+		ptrEntryList->lpbin[ulIdx++].lpb = e;
 	}
 	
 	hr = CurrentFolder()->DeleteMessages(ptrEntryList, 0, NULL, 0);

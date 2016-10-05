@@ -198,13 +198,13 @@ HRESULT CalDAV::HrHandlePropfind(WEBDAVREQSTPROPS *lpsDavProp, WEBDAVMULTISTATUS
 HRESULT CalDAV::HrHandlePropfindRoot(WEBDAVREQSTPROPS *sDavReqstProps, WEBDAVMULTISTATUS *lpsDavMulStatus)
 {
 	HRESULT hr = hrSuccess;
-	std::list<WEBDAVPROPERTY>::const_iterator iter;
 	WEBDAVPROP *lpsDavProp = NULL;
 	WEBDAVRESPONSE sDavResp;
 	IMAPIProp *lpMapiProp = NULL;
 	LPSPropTagArray lpPropTagArr = NULL;
 	LPSPropValue lpSpropVal = NULL;
 	ULONG cbsize = 0;
+	int i = 0;
 
 	lpsDavProp = &(sDavReqstProps->sProp);
 
@@ -227,9 +227,8 @@ HRESULT CalDAV::HrHandlePropfindRoot(WEBDAVREQSTPROPS *sDavReqstProps, WEBDAVMUL
 	lpPropTagArr->cValues = cbsize;
 	
 	// Get corresponding mapi properties.
-	iter = lpsDavProp->lstProps.begin();
-	for(int i = 0; iter != lpsDavProp->lstProps.end(); ++iter, ++i)
-		lpPropTagArr->aulPropTag[i] = GetPropIDForXMLProp(lpMapiProp, iter->sPropName, m_converter);
+	for (const auto &iter : lpsDavProp->lstProps)
+		lpPropTagArr->aulPropTag[i++] = GetPropIDForXMLProp(lpMapiProp, iter.sPropName, m_converter);
 
 	hr = lpMapiProp->GetProps((LPSPropTagArray)lpPropTagArr, 0, &cbsize, &lpSpropVal);
 	if (FAILED(hr)) {
@@ -284,9 +283,7 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 	ULONG ulTagGOID = 0;
 	ULONG ulTagTsRef = 0;
 	ULONG ulTagPrivate = 0;
-	std::list<WEBDAVPROPERTY>::const_iterator iter;
 	WEBDAVPROP sDavProp;
-	WEBDAVPROPERTY sDavProperty;
 	WEBDAVRESPONSE sWebResponse;
 	bool blCensorPrivate = false;
 	ULONG ulCensorFlag = 0;
@@ -295,6 +292,7 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 	SRestriction *lpsRestriction = NULL;
 	SPropValue sResData;
 	ULONG ulItemCount = 0;
+	int i;
 
 	ulTagGOID = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY);
 	ulTagTsRef = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTTSREF], PT_UNICODE);
@@ -372,16 +370,11 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 	lpPropTagArr->aulPropTag[1] = ulTagGOID;
 	lpPropTagArr->aulPropTag[2] = PR_ENTRYID;
 	lpPropTagArr->aulPropTag[3] = ulTagPrivate;
-	
-	iter = sDavProp.lstProps.begin();
-
 	//mapi property mapping for requested properties.
 	//FIXME what if the property mapping is not found.
-	for (int i = 4; iter != sDavProp.lstProps.end(); ++iter, ++i)
-	{
-		sDavProperty = *iter;
-		lpPropTagArr->aulPropTag[i] = GetPropIDForXMLProp(m_lpUsrFld, sDavProperty.sPropName, m_converter);
-	}
+	i = 4;
+	for (const auto sDavProperty : sDavProp.lstProps)
+		lpPropTagArr->aulPropTag[i++] = GetPropIDForXMLProp(m_lpUsrFld, sDavProperty.sPropName, m_converter);
 
 	hr = m_lpUsrFld->GetProps((LPSPropTagArray)lpPropTagArr, 0, &cValues, &lpProps);
 	if (FAILED(hr)) {
@@ -508,13 +501,12 @@ HRESULT CalDAV::HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWeb
 	LPSPropTagArray lpPropTagArr = NULL;
 	MapiToICal *lpMtIcal = NULL;
 	std::string strReqUrl;
-	std::list<WEBDAVPROPERTY>::const_iterator iter;
 	SRestriction * lpsRoot = NULL;
 	ULONG cbsize = 0;
 	WEBDAVPROP sDavProp;
-	WEBDAVPROPERTY sDavProperty;
 	WEBDAVRESPONSE sWebResponse;
 	bool blCensorPrivate = false;
+	int i;
 
 	m_lpRequest->HrGetRequestUrl(&strReqUrl);
 	if (strReqUrl.empty() || *--strReqUrl.end() != '/')
@@ -546,12 +538,9 @@ HRESULT CalDAV::HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWeb
 	lpPropTagArr->cValues = cbsize;
 	lpPropTagArr->aulPropTag[0] = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY);
 	lpPropTagArr->aulPropTag[1] = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_PRIVATE], PT_BOOLEAN);
-	
-	iter = sDavProp.lstProps.begin();
-	for (int i = 2; iter != sDavProp.lstProps.end(); ++iter, ++i) {
-		sDavProperty = *iter;
-		lpPropTagArr->aulPropTag[i] = GetPropIDForXMLProp(m_lpUsrFld, sDavProperty.sPropName, m_converter);
-	}
+	i = 2;
+	for (const auto &sDavProperty : sDavProp.lstProps)
+		lpPropTagArr->aulPropTag[i++] = GetPropIDForXMLProp(m_lpUsrFld, sDavProperty.sPropName, m_converter);
 
 	hr = lpTable->SetColumns((LPSPropTagArray)lpPropTagArr, 0);
 	if(hr != hrSuccess)
@@ -725,14 +714,13 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 	ULONG cbsize = 0;
 	ULONG ulPropTag = 0;
 	ULONG ulTagPrivate = 0;
-	std::list<WEBDAVPROPERTY>::const_iterator iter;
 	std::list<WEBDAVVALUE>::const_iterator iterWebVal;
 	SBinary sbEid = {0, NULL};
 	WEBDAVPROP sDavProp;
-	WEBDAVPROPERTY sDavProperty;
 	WEBDAVRESPONSE sWebResponse;
 	ULONG ulObjType = 0;
 	std::string strReq;	
+	int i;
 
 	m_lpRequest->HrGetRequestUrl(&strReq);
 
@@ -764,10 +752,9 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 	// create restriction
 	CREATE_RESTRICTION(lpsRoot);
 	CREATE_RES_OR(lpsRoot, lpsRoot, sWebRMGet->lstWebVal.size()); // max: or guid or raw or entryid
-	iterWebVal = sWebRMGet->lstWebVal.begin();
+	iterWebVal = sWebRMGet->lstWebVal.cbegin();
 
-	for (int i = 0; i < (int)sWebRMGet->lstWebVal.size(); ++i, ++iterWebVal)
-	{
+	for (size_t i = 0; i < sWebRMGet->lstWebVal.size(); ++i, ++iterWebVal) {
 		wstring content = U2W(iterWebVal->strValue);
 
 		hr = MAPIAllocateMore(sizeof(SPropValue), lpsRoot, (void**)&lpsPropVal);
@@ -807,12 +794,9 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 	lpPropTagArr->aulPropTag[0] = ulPropTag;
 	lpPropTagArr->aulPropTag[1] = ulTagPrivate;
 	lpPropTagArr->aulPropTag[2] = PR_ACCOUNT;
-
-	iter = sDavProp.lstProps.begin();
-	for (int i = 3; iter != sDavProp.lstProps.end(); ++iter, ++i) {
-		sDavProperty = *iter;
-		lpPropTagArr->aulPropTag[i] = GetPropIDForXMLProp(lpAbCont, sDavProperty.sPropName, m_converter);
-	}
+	i = 3;
+	for (const auto &sDavProperty : sDavProp.lstProps)
+		lpPropTagArr->aulPropTag[i++] = GetPropIDForXMLProp(lpAbCont, sDavProperty.sPropName, m_converter);
 
 	hr = lpTable->SetColumns((LPSPropTagArray)lpPropTagArr, 0);
 	if (hr != hrSuccess) {
@@ -1394,14 +1378,14 @@ HRESULT CalDAV::HrHandleMkCal(WEBDAVPROP *lpsDavProp)
 	std::string strContainerClass = "IPF.Appointment";
 
 	// @todo handle other props as in proppatch command
-	for (list<WEBDAVPROPERTY>::const_iterator i = lpsDavProp->lstProps.begin(); i != lpsDavProp->lstProps.end(); ++i) {
-		if (i->sPropName.strPropname.compare("displayname") == 0) {
-			wstrNewFldName = U2W(i->strValue);
-		} else if (i->sPropName.strPropname.compare("supported-calendar-component-set") == 0) {
-			if (i->strValue.compare("VTODO") == 0)
+	for (const auto &p : lpsDavProp->lstProps) {
+		if (p.sPropName.strPropname.compare("displayname") == 0) {
+			wstrNewFldName = U2W(p.strValue);
+		} else if (p.sPropName.strPropname.compare("supported-calendar-component-set") == 0) {
+			if (p.strValue.compare("VTODO") == 0)
 				strContainerClass = "IPF.Task";
-			else if (i->strValue.compare("VEVENT") != 0) {
-				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to create folder for supported-calendar-component-set type: %s", i->strValue.c_str());
+			else if (p.strValue.compare("VEVENT") != 0) {
+				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to create folder for supported-calendar-component-set type: %s", p.strValue.c_str());
 				hr = MAPI_E_INVALID_PARAMETER;
 				goto exit;
 			}
@@ -1483,9 +1467,9 @@ HRESULT CalDAV::HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lp
 	ULONG ulObjType = 0;
 	ULONG ulCmp = 0;
 	ULONG ulDelEntries = 0;
-	std::list<WEBDAVPROPERTY>::const_iterator iter;
 	WEBDAVRESPONSE sDavResponse;
 	std::string strReqUrl;
+	int i;
 
 	// @todo, check input url not to have 3rd level path? .. see input/output list above.
 
@@ -1509,10 +1493,9 @@ HRESULT CalDAV::HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lp
 	lpPropTagArr->cValues = (ULONG)cbsize;
 	lpPropTagArr->aulPropTag[0] = PR_ENTRYID;
 	lpPropTagArr->aulPropTag[1] = ulPropTagFldId;
-
-	iter = lpsDavProp->lstProps.begin();
-	for (int i = 2; iter != lpsDavProp->lstProps.end(); ++iter, ++i)
-		lpPropTagArr->aulPropTag[i] = GetPropIDForXMLProp(m_lpUsrFld, iter->sPropName, m_converter);
+	i = 2;
+	for (const auto &iter : lpsDavProp->lstProps)
+		lpPropTagArr->aulPropTag[i++] = GetPropIDForXMLProp(m_lpUsrFld, iter.sPropName, m_converter);
 
 	if (m_ulFolderFlag & SINGLE_FOLDER)
 	{
@@ -1628,9 +1611,6 @@ nowaste:
 
 			HrSetDavPropName(&(sDavResponse.sHRef.sPropName), "href", lpsDavProp->sPropName.strNS);
 			sDavResponse.sHRef.strValue = strReqUrl + W2U(wstrFldPath);
-
-			iter = lpsDavProp->lstProps.begin();
-			
 			HrMapValtoStruct(m_lpUsrFld, lpRowsALL->aRow[i].lpProps, lpRowsALL->aRow[i].cValues, NULL, 0, true, &lpsDavProp->lstProps, &sDavResponse);
 
 			lpsMulStatus->lstResp.push_back(sDavResponse);
@@ -1696,7 +1676,6 @@ exit:
 HRESULT CalDAV::HrHandlePropPatch(WEBDAVPROP *lpsDavProp, WEBDAVMULTISTATUS *lpsMultiStatus)
 {
 	HRESULT hr;
-	std::list<WEBDAVPROPERTY>::const_iterator iter;
 	std::wstring wstrConvProp;
 	SPropValue sProp;
 	WEBDAVRESPONSE sDavResponse;
@@ -1724,60 +1703,53 @@ HRESULT CalDAV::HrHandlePropPatch(WEBDAVPROP *lpsDavProp, WEBDAVMULTISTATUS *lps
 	sPropStatusCollision.sStatus.strValue = "HTTP/1.1 409 Conflict";
 	HrSetDavPropName(&sPropStatusCollision.sProp.sPropName, "prop", WEBDAVNS);
 	
-
-	for (iter = lpsDavProp->lstProps.begin(); iter != lpsDavProp->lstProps.end(); ++iter)
-	{
+	for (const auto &iter : lpsDavProp->lstProps) {
 		WEBDAVPROPERTY sDavProp;
-		sDavProp.sPropName = iter->sPropName; // only copy the propname + namespace part, value is empty
-
+		sDavProp.sPropName = iter.sPropName; // only copy the propname + namespace part, value is empty
 		sProp.ulPropTag = PR_NULL;
-
-		if (iter->sPropName.strPropname == "displayname") {
+		if (iter.sPropName.strPropname == "displayname") {
 			// deny rename of default Calendar
 			if (!m_blFolderAccess) {
 				sPropStatusForbidden.sProp.lstProps.push_back(sDavProp);
 				continue;
 			}
-		} else if (iter->sPropName.strPropname == "calendar-free-busy-set") {
+		} else if (iter.sPropName.strPropname == "calendar-free-busy-set") {
 			// not allowed to select which calendars give freebusy information
 			sPropStatusForbidden.sProp.lstProps.push_back(sDavProp);
 			continue;
-		} else {
-			if (iter->sPropName.strNS.compare(WEBDAVNS) == 0) {
-				// only DAV:displayname may be modified, the rest is read-only
-				sPropStatusForbidden.sProp.lstProps.push_back(sDavProp);
-				continue;
-			}
+		} else if (iter.sPropName.strNS.compare(WEBDAVNS) == 0) {
+			// only DAV:displayname may be modified, the rest is read-only
+			sPropStatusForbidden.sProp.lstProps.push_back(sDavProp);
+			continue;
 		}
 
-		sProp.ulPropTag = GetPropIDForXMLProp(m_lpUsrFld, iter->sPropName, m_converter, MAPI_CREATE);
+		sProp.ulPropTag = GetPropIDForXMLProp(m_lpUsrFld, iter.sPropName, m_converter, MAPI_CREATE);
 		if (sProp.ulPropTag == PR_NULL) {
 			sPropStatusForbidden.sProp.lstProps.push_back(sDavProp);
 			continue;
 		}
 
 		if (PROP_TYPE(sProp.ulPropTag) == PT_UNICODE) {
-			wstrConvProp = U2W(iter->strValue);
+			wstrConvProp = U2W(iter.strValue);
 			sProp.Value.lpszW = (WCHAR*)wstrConvProp.c_str();
 		} else {
-			sProp.Value.bin.cb = iter->strValue.size();
-			sProp.Value.bin.lpb = (BYTE*)iter->strValue.data();
+			sProp.Value.bin.cb = iter.strValue.size();
+			sProp.Value.bin.lpb = reinterpret_cast<BYTE *>(const_cast<char *>(iter.strValue.data()));
 		}
 
 		hr = m_lpUsrFld->SetProps(1, &sProp, NULL);
-		if (hr != hrSuccess) {
-			if (hr == MAPI_E_COLLISION) {
-				// set error 409 collision
-				sPropStatusCollision.sProp.lstProps.push_back(sDavProp);
-				// returned on folder rename, directly return an error and skip all other properties, see note above
-				return hr;
-			} else {
-				// set error 403 forbidden
-				sPropStatusForbidden.sProp.lstProps.push_back(sDavProp);
-			}
-		} else {
+		if (hr == hrSuccess) {
 			sPropStatusOK.sProp.lstProps.push_back(sDavProp);
+			continue;
 		}
+		if (hr == MAPI_E_COLLISION) {
+			// set error 409 collision
+			sPropStatusCollision.sProp.lstProps.push_back(sDavProp);
+			// returned on folder rename, directly return an error and skip all other properties, see note above
+			return hr;
+		}
+		// set error 403 forbidden
+		sPropStatusForbidden.sProp.lstProps.push_back(sDavProp);
 	}
 
 	// @todo, maybe only do this for certain Mac iCal app versions?
@@ -2011,7 +1983,6 @@ HRESULT CalDAV::HrHandleMeeting(ICalToMapi *lpIcalToMapi)
 	}
 
 exit:
-	
 	if(hr == hrSuccess)
 		m_lpRequest->HrResponseHeader(200, "Ok");
 	else
@@ -2066,7 +2037,6 @@ HRESULT CalDAV::HrConvertToIcal(LPSPropValue lpEid, MapiToICal *lpMtIcal, ULONG 
 	lpMtIcal->ResetObject();
 
 exit:
-	
 	if(lpMessage)
 		lpMessage->Release();
 	
@@ -2091,9 +2061,7 @@ exit:
 HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG ulPropCount, MapiToICal *lpMtIcal, ULONG ulFlags, bool bPropsFirst, std::list<WEBDAVPROPERTY> *lstDavProps, WEBDAVRESPONSE *lpsResponse)
 {
 	HRESULT hr;
-	std::list<WEBDAVPROPERTY>::const_iterator iterProperty;
 	WEBDAVPROPERTY sWebProperty;
-	std::string strProperty;
 	std::string strIcal;
 	std::string strOwnerURL;
 	std::string strCurrentUserURL;
@@ -2140,15 +2108,14 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 
 	HrSetDavPropName(&(sWebProp.sPropName), "prop", WEBDAVNS);
 	HrSetDavPropName(&(sWebPropNotFound.sPropName), "prop", WEBDAVNS);
-	for (iterProperty = lstDavProps->begin(); iterProperty != lstDavProps->end(); ++iterProperty)
-	{
+	for (const auto &iterprop : *lstDavProps) {
 		WEBDAVVALUE sWebVal;
 
 		sWebProperty.lstItems.clear();
 		sWebProperty.lstValues.clear();
 		
-		sWebProperty = *iterProperty;
-		strProperty = sWebProperty.sPropName.strPropname;
+		sWebProperty = iterprop;
+		const std::string &strProperty = sWebProperty.sPropName.strPropname;
 
 		lpFoundProp = PpropFindProp(lpProps, ulPropCount, GetPropIDForXMLProp(lpObj, sWebProperty.sPropName, m_converter));
 		if (strProperty == "resourcetype") {

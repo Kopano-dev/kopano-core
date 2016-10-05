@@ -42,7 +42,6 @@ using namespace std;
 static HRESULT GetRecipStrings(LPMESSAGE lpMessage, std::wstring &wstrTo,
     std::wstring &wstrCc, std::wstring &wstrBcc)
 {
-	HRESULT hr = hrSuccess;
 	SRowSetPtr ptrRows;
 	MAPITablePtr ptrRecips;
 	SizedSPropTagArray(2, sptaDisplay)  = {2, { PR_DISPLAY_NAME_W, PR_RECIPIENT_TYPE } };
@@ -51,18 +50,17 @@ static HRESULT GetRecipStrings(LPMESSAGE lpMessage, std::wstring &wstrTo,
 	wstrCc.clear();
 	wstrBcc.clear();
 	
-	hr = lpMessage->GetRecipientTable(MAPI_UNICODE, &ptrRecips);
+	HRESULT hr = lpMessage->GetRecipientTable(MAPI_UNICODE, &ptrRecips);
 	if(hr != hrSuccess)
-		goto exit;
-		
+		return hr;
 	hr = ptrRecips->SetColumns((LPSPropTagArray)&sptaDisplay, TBL_BATCH);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 		
 	while(1) {
 		hr = ptrRecips->QueryRows(1, 0, &ptrRows);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 			
 		if(ptrRows.size() == 0)
 			break;
@@ -85,14 +83,11 @@ static HRESULT GetRecipStrings(LPMESSAGE lpMessage, std::wstring &wstrTo,
 				break;
 		}
 	}
-
-exit:	
-	return hr;
+	return hrSuccess;
 }
 
 static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 {
-	HRESULT hr = hrSuccess;
 	SPropArrayPtr ptrBodies;
 	SizedSPropTagArray (4, sBody) = { 4, {
 			PR_BODY_W,
@@ -118,9 +113,9 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 	wstring strForwardText;
 	wstring wstrTo, wstrCc, wstrBcc;
 
-	hr = lpOrigMessage->GetProps((LPSPropTagArray)&sBody, 0, &cValues, &ptrBodies);
+	HRESULT hr = lpOrigMessage->GetProps((LPSPropTagArray)&sBody, 0, &cValues, &ptrBodies);
 	if (FAILED(hr))
-		goto exit;
+		return hr;
 		
 	if (PROP_TYPE(ptrBodies[3].ulPropTag) != PT_ERROR)
 		ulCharset = ptrBodies[3].Value.ul;
@@ -144,11 +139,10 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 	
 	hr = GetRecipStrings(lpOrigMessage, wstrTo, wstrCc, wstrBcc);
 	if (FAILED(hr))
-		goto exit;
-
+		return hr;
 	hr = lpOrigMessage->GetProps((LPSPropTagArray)&sInfo, 0, &cValues, &ptrInfo);
 	if (FAILED(hr))
-		goto exit;
+		return hr;
 
 	if (bPlain) {
 		// Plain text body
@@ -268,10 +262,7 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 	}
 
 	// set new body with forward markers
-	hr = lpMessage->SetProps(1, &sNewBody, NULL);
-
-exit:
-	return hr;
+	return lpMessage->SetProps(1, &sNewBody, NULL);
 }
 
 static HRESULT CreateOutboxMessage(LPMDB lpOrigStore, LPMESSAGE *lppMessage)
@@ -334,22 +325,20 @@ static HRESULT CreateReplyCopy(LPMAPISESSION lpSession, LPMDB lpOrigStore,
 
 	hr = CreateOutboxMessage(lpOrigStore, &lpReplyMessage);
 	if (hr != hrSuccess)
-		goto exit;
-
+		goto exitpm;
 	hr = lpTemplate->CopyTo(0, NULL, NULL, 0, NULL, &IID_IMessage, lpReplyMessage, 0, NULL);
 	if (hr != hrSuccess)
-		goto exit;
-
+		goto exitpm;
 	// set "sent mail" folder entryid for spooler
 	hr = HrGetOneProp(lpOrigStore, PR_IPM_SENTMAIL_ENTRYID, &lpSentMailEntryID);
 	if (hr != hrSuccess)
-		goto exit;
+		goto exitpm;
 
 	lpSentMailEntryID->ulPropTag = PR_SENTMAIL_ENTRYID;
 
 	hr = HrSetOneProp(lpReplyMessage, lpSentMailEntryID);
 	if (hr != hrSuccess)
-		goto exit;
+		goto exitpm;
 
 	// set a sensible subject
 	hr = HrGetOneProp(lpReplyMessage, PR_SUBJECT_W, &lpProp);
@@ -362,7 +351,7 @@ static HRESULT CreateReplyCopy(LPMAPISESSION lpSession, LPMDB lpOrigStore,
 			lpProp->Value.lpszW = (WCHAR*)strwSubject.c_str();
 			hr = HrSetOneProp(lpReplyMessage, lpProp);
 			if (hr != hrSuccess)
-				goto exit;
+				goto exitpm;
 		}
 	}
 	MAPIFreeBuffer(lpProp);
@@ -374,7 +363,7 @@ static HRESULT CreateReplyCopy(LPMAPISESSION lpSession, LPMDB lpOrigStore,
 		lpProp->ulPropTag = PR_IN_REPLY_TO_ID;
 		hr = HrSetOneProp(lpReplyMessage, lpProp);
 		if (hr != hrSuccess)
-			goto exit;
+			goto exitpm;
 	}
 	MAPIFreeBuffer(lpProp);
 	lpProp = NULL;
@@ -383,7 +372,7 @@ static HRESULT CreateReplyCopy(LPMAPISESSION lpSession, LPMDB lpOrigStore,
 	// set From to self
 	hr = lpOrigMessage->GetProps((LPSPropTagArray)&sFrom, 0, &cValues, &lpFrom);
 	if (FAILED(hr))
-		goto exit;
+		goto exitpm;
 
 	lpFrom[0].ulPropTag = CHANGE_PROP_TYPE(PR_SENT_REPRESENTING_ENTRYID, PROP_TYPE(lpFrom[0].ulPropTag));
 	lpFrom[1].ulPropTag = CHANGE_PROP_TYPE(PR_SENT_REPRESENTING_NAME, PROP_TYPE(lpFrom[1].ulPropTag));
@@ -393,7 +382,7 @@ static HRESULT CreateReplyCopy(LPMAPISESSION lpSession, LPMDB lpOrigStore,
 
 	hr = lpReplyMessage->SetProps(5, lpFrom, NULL);
 	if (FAILED(hr))
-		goto exit;
+		goto exitpm;
 
 	if (parseBool(g_lpConfig->GetSetting("set_rule_headers", NULL, "yes"))) {
 		SPropValue sPropVal;
@@ -407,14 +396,14 @@ static HRESULT CreateReplyCopy(LPMAPISESSION lpSession, LPMDB lpOrigStore,
 
 		hr = HrSetOneProp(lpReplyMessage, &sPropVal);
 		if (hr != hrSuccess)
-			goto exit;
+			goto exitpm;
 	}
 
 	// append To with original sender
 	// @todo get Reply-To ?
 	hr = lpOrigMessage->GetProps((LPSPropTagArray)&sReplyRecipient, 0, &cValues, &lpReplyRecipient);
 	if (FAILED(hr))
-		goto exit;
+		goto exitpm;
 
 	// obvious loop is being obvious
 	if (PROP_TYPE(lpReplyRecipient[0].ulPropTag) != PT_ERROR && PROP_TYPE(lpFrom[0].ulPropTag ) != PT_ERROR) {
@@ -422,7 +411,7 @@ static HRESULT CreateReplyCopy(LPMAPISESSION lpSession, LPMDB lpOrigStore,
 										lpFrom[0].Value.bin.cb, (LPENTRYID)lpFrom[0].Value.bin.lpb, 0, &ulCmp);
 		if (hr == hrSuccess && ulCmp == TRUE) {
 			hr = MAPI_E_UNABLE_TO_COMPLETE;
-			goto exit;
+			goto exitpm;
 		}
 	}
 
@@ -441,12 +430,11 @@ static HRESULT CreateReplyCopy(LPMAPISESSION lpSession, LPMDB lpOrigStore,
 
 	hr = lpReplyMessage->ModifyRecipients(MODRECIP_ADD, &sRecip);
 	if (FAILED(hr))
-		goto exit;
+		goto exitpm;
 
 	// return message
 	hr = lpReplyMessage->QueryInterface(IID_IMessage, (void**)lppMessage);
-
-exit:
+ exitpm:
 	if (lpReplyMessage)
 		lpReplyMessage->Release();
 	MAPIFreeBuffer(lpProp);
@@ -601,23 +589,22 @@ static HRESULT CreateForwardCopy(ECLogger *lpLogger, LPADRBOOK lpAdrBook,
 	if (lpRuleRecipients == NULL || lpRuleRecipients->cEntries == 0) {
 	    lpLogger->Log(EC_LOGLEVEL_FATAL, "No rule recipient");
 		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
+		goto exitpm;
 	}
 
 	hr = CheckRecipients(lpLogger, lpAdrBook, lpOrigMessage, lpRuleRecipients, bOpDelegate, bDoNotMunge, &lpRecipients);
 	if (hr == MAPI_E_UNABLE_TO_COMPLETE)
-		goto exit;
+		goto exitpm;
 	if (hr != hrSuccess)
 		// use rule recipients without filter
 		lpRecipients = lpRuleRecipients;
 
 	hr = HrGetOneProp(lpOrigStore, PR_IPM_SENTMAIL_ENTRYID, &lpSentMailEntryID);
 	if (hr != hrSuccess)
-		goto exit;
-
+		goto exitpm;
 	hr = CreateOutboxMessage(lpOrigStore, &lpFwdMsg);
 	if (hr != hrSuccess)
-		goto exit;
+		goto exitpm;
 
 	// If we're doing a redirect, copy over the original PR_SENT_REPRESENTING_*, otherwise don't
 	if(bDoPreserveSender)
@@ -639,13 +626,13 @@ static HRESULT CreateForwardCopy(ECLogger *lpLogger, LPADRBOOK lpAdrBook,
 		--lpExclude->cValues; // strip PR_MESSAGE_RECIPIENTS, since original recipients should be used
         hr = HrSetOneProp(lpFwdMsg, &sPropResend);
         if(hr != hrSuccess)
-            goto exit;
+		goto exitpm;
     }
 
 	if (bForwardAsAttachment) {
 		hr = lpFwdMsg->CreateAttach(NULL, 0, &ulANr, &lpAttach);
 		if (hr != hrSuccess)
-			goto exit;
+			goto exitpm;
 
 		SPropValue sAttachMethod;
 
@@ -654,24 +641,19 @@ static HRESULT CreateForwardCopy(ECLogger *lpLogger, LPADRBOOK lpAdrBook,
 
 		hr = lpAttach->SetProps(1, &sAttachMethod, NULL);
 		if (hr != hrSuccess)
-			goto exit;
-
+			goto exitpm;
 		hr = lpAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY, (LPUNKNOWN *)&lpAttachMsg);
 		if (hr != hrSuccess)
-			goto exit;
-
+			goto exitpm;
 		hr = lpOrigMessage->CopyTo(0, NULL,  (LPSPropTagArray)&sExcludeFromAttachedForward, 0, NULL, &IID_IMessage, lpAttachMsg, 0, NULL);
 		if (hr != hrSuccess)
-			goto exit;
-
+			goto exitpm;
 		hr = lpAttachMsg->SaveChanges(0);
 		if (hr != hrSuccess)
-			goto exit;
-
+			goto exitpm;
 		hr = lpAttach->SaveChanges(0);
 		if (hr != hrSuccess)
-			goto exit;
-
+			goto exitpm;
 		lpAttachMsg->Release();
 		lpAttachMsg = NULL;
 
@@ -681,13 +663,12 @@ static HRESULT CreateForwardCopy(ECLogger *lpLogger, LPADRBOOK lpAdrBook,
 	else {	
 		hr = lpOrigMessage->CopyTo(0, NULL, lpExclude, 0, NULL, &IID_IMessage, lpFwdMsg, 0, NULL);
 		if (hr != hrSuccess)
-			goto exit;
+			goto exitpm;
 	}
 
 	hr = lpFwdMsg->ModifyRecipients(MODRECIP_ADD, lpRecipients);
 	if (hr != hrSuccess)
-		goto exit;
-
+		goto exitpm;
 	// set from email ??
 
 	hr = HrGetOneProp(lpOrigMessage, PR_SUBJECT, &lpOrigSubject);
@@ -724,7 +705,7 @@ static HRESULT CreateForwardCopy(ECLogger *lpLogger, LPADRBOOK lpAdrBook,
 
 	hr = lpFwdMsg->SetProps(cfp, sForwardProps, NULL);
 	if (hr != hrSuccess)
-		goto exit;
+		goto exitpm;
 
 	if (!bDoNotMunge && !bForwardAsAttachment) {
 		// because we're forwarding this as a new message, clear the old received message id
@@ -732,14 +713,12 @@ static HRESULT CreateForwardCopy(ECLogger *lpLogger, LPADRBOOK lpAdrBook,
 
 		hr = lpFwdMsg->DeleteProps((LPSPropTagArray)&sptaDeleteProps, NULL);
 		if(hr != hrSuccess)
-			goto exit;
-
+			goto exitpm;
 		MungeForwardBody(lpFwdMsg, lpOrigMessage);
 	}
 
 	*lppMessage = lpFwdMsg;
-
-exit:
+ exitpm:
 	MAPIFreeBuffer(lpSentMailEntryID);
 	MAPIFreeBuffer(lpOrigSubject);
 	if (lpRecipients && lpRecipients != lpRuleRecipients)
@@ -848,51 +827,51 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
     hr = lpOrigInbox->OpenProperty(PR_RULES_TABLE, &IID_IExchangeModifyTable, 0, 0, (LPUNKNOWN *)&lpTable);
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrProcessRules(): OpenProperty failed %x", hr);
-        goto exit;
+		goto exitpm;
 	}
 
 	hr = lpTable->QueryInterface(IID_IECExchangeModifyTable, (void**)&lpECModifyTable);
 	if(hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrProcessRules(): QueryInterface failed %x", hr);
-		goto exit;
+		goto exitpm;
 	}
 
 	hr = lpECModifyTable->DisablePushToServer();
 	if(hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrProcessRules(): DisablePushToServer failed %x", hr);
-		goto exit;
+		goto exitpm;
 	}
 
 	hr = pyMapiPlugin->RulesProcessing("PreRuleProcess", lpSession, lpAdrBook, lpOrigStore, lpTable, &ulResult);
 	if(hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrProcessRules(): RulesProcessing failed %x", hr);
-		goto exit;
+		goto exitpm;
 	}
 
 	//TODO do something with ulResults
     hr = lpTable->GetTable(0, &lpView);
 	if(hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrProcessRules(): GetTable failed %x", hr);
-        goto exit;
+		goto exitpm;
 	}
         
     hr = lpView->SetColumns((LPSPropTagArray)&sptaRules, 0);
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrProcessRules(): SetColumns failed %x", hr);
-        goto exit;
+		goto exitpm;
 	}
 
 	hr = lpView->SortTable((LPSSortOrderSet)&sosRules, 0);
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrProcessRules(): SortTable failed %x", hr);
-        goto exit;
+		goto exitpm;
 	}
 
 	while (TRUE) {
         hr = lpView->QueryRows(1, 0, &lpRowSet);
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrProcessRules(): QueryRows failed %x", hr);
-			goto exit;
+			goto exitpm;
 	}
 
         if (lpRowSet->cRows == 0)
@@ -989,14 +968,14 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 				if(hr != hrSuccess) {
 					std::string msg = "Unable to create e-mail for rule " + strRule + ": %s (%x)";
 					lpLogger->Log(EC_LOGLEVEL_ERROR, msg.c_str(), GetMAPIErrorMessage(hr), hr);
-					goto exit;
+					goto exitpm;
 				}
 					
 				hr = (*lppMessage)->CopyTo(0, NULL, NULL, 0, NULL, &IID_IMessage, lpNewMessage, 0, NULL);
 				if(hr != hrSuccess) {
 					std::string msg = "Unable to copy e-mail for rule " + strRule + ": %s (%x)";
 					lpLogger->Log(EC_LOGLEVEL_ERROR, msg.c_str(), GetMAPIErrorMessage(hr), hr);
-					goto exit;
+					goto exitpm;
 				}
 
 				hr = Util::HrCopyIMAPData((*lppMessage), lpNewMessage);
@@ -1005,7 +984,7 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 					std::string msg = "Unable to copy IMAP data e-mail for rule " + strRule + ", continuing: %s (%x)";
 					lpLogger->Log(EC_LOGLEVEL_ERROR, msg.c_str(), GetMAPIErrorMessage(hr), hr);
 					hr = hrSuccess;
-					goto exit;
+					goto exitpm;
 				}
 
 				// Save the copy in its new location
@@ -1168,7 +1147,7 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 				// The error code will become hrSuccess automatically after returning from the post processing function.
 				lpLogger->Log(EC_LOGLEVEL_DEBUG, "Rule action: deleting e-mail");
 				hr = MAPI_E_CANCEL;
-				goto exit;
+				goto exitpm;
 				break;
 			case OP_MARK_AS_READ:
 					sc -> countInc("rules", "mark_read");
@@ -1224,8 +1203,7 @@ nextrule:
 		// set forward in msg flag
 		hr = (*lppMessage)->SetProps(3, sForwardProps, NULL);
 	}
-
-exit:
+ exitpm:
 	if (hr != hrSuccess && hr != MAPI_E_CANCEL)
 		lpLogger->Log(EC_LOGLEVEL_INFO, "Error while processing rules: 0x%08X", hr);
 

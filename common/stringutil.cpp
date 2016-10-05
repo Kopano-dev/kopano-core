@@ -256,12 +256,10 @@ std::string GetServerPortFromPath(const char *szPath) {
 
 std::string shell_escape(const std::string &str)
 {
-	std::string::const_iterator start;
-	std::string::const_iterator ptr;
 	std::string escaped;
-
-	start = ptr = str.begin();
-	while (ptr != str.end()) {
+	auto start = str.cbegin();
+	auto ptr   = start;
+	while (ptr != str.cend()) {
 		while (ptr != str.end() && *ptr != '\'')
 			++ptr;
 
@@ -573,18 +571,15 @@ void BufferLFtoCRLF(size_t size, const char *input, char *output, size_t *outsiz
  */
 void StringTabtoSpaces(const std::wstring &strInput, std::wstring *lpstrOutput) {
 
-	std::wstring::const_iterator iInput(strInput.begin());
 	std::wstring strOutput;
 
 	strOutput.reserve(strInput.length());
 
-	for (; iInput != strInput.end(); ++iInput) {
-		if (*iInput == '\t') {
+	for (auto c : strInput)
+		if (c == '\t')
 			strOutput.append(4, ' ');
-		} else {
-			strOutput.append(1, *iInput);
-		}
-	}
+		else
+			strOutput.append(1, c);
 
 	lpstrOutput->swap(strOutput);
 }

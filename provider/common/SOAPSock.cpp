@@ -115,13 +115,10 @@ HRESULT CreateSoapTransport(ULONG ulUIFlags,
 	int				iSoapoMode,
 	KCmd **lppCmd)
 {
-	HRESULT		hr = hrSuccess;
 	KCmd*	lpCmd = NULL;
 
-	if (strServerPath == NULL || *strServerPath == '\0' || lppCmd == NULL) {
-		hr = E_INVALIDARG;
-		goto exit;
-	}
+	if (strServerPath == NULL || *strServerPath == '\0' || lppCmd == NULL)
+		return E_INVALIDARG;
 
 	lpCmd = new KCmd();
 
@@ -142,14 +139,14 @@ HRESULT CreateSoapTransport(ULONG ulUIFlags,
 								strSSLKeyPass != NULL && *strSSLKeyPass != '\0' ? strSSLKeyPass : NULL,
 								NULL, NULL,
 								NULL)) {
-			hr = E_INVALIDARG;
-			goto exit;
+			free(const_cast<char *>(lpCmd->endpoint));
+			delete lpCmd;
+			return E_INVALIDARG;
 		}
 
 		// set connection string as callback information
-		if (ssl_zvcb_index == -1) {
+		if (ssl_zvcb_index == -1)
 			ssl_zvcb_index = SSL_get_ex_new_index(0, NULL, NULL, NULL, NULL);
-		}
 		// callback data will be set right before tcp_connect()
 
 		// set our own certificate check function
@@ -176,14 +173,7 @@ HRESULT CreateSoapTransport(ULONG ulUIFlags,
 	}
 
 	*lppCmd = lpCmd;
-exit:
-	if (hr != hrSuccess && lpCmd) {
-		/* strdup'd them earlier */
-		free(const_cast<char *>(lpCmd->endpoint));
-		delete lpCmd;
-	}
-
-	return hr;
+	return hrSuccess;
 }
 
 VOID DestroySoapTransport(KCmd *lpCmd)

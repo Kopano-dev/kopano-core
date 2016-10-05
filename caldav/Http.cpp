@@ -69,7 +69,7 @@ HRESULT HrParseURL(const std::string &strUrl, ULONG *lpulFlag, std::string *lpst
 		goto exit;
 	}
 
-	iterToken = vcUrlTokens.begin();
+	iterToken = vcUrlTokens.cbegin();
 
 	strService = *iterToken++;
 
@@ -83,7 +83,7 @@ HRESULT HrParseURL(const std::string &strUrl, ULONG *lpulFlag, std::string *lpst
 	else
 		ulFlag |= SERVICE_UNKNOWN;
 
-	if (iterToken == vcUrlTokens.end())
+	if (iterToken == vcUrlTokens.cend())
 		goto exit;
 
 	strUrlUser = *iterToken++;
@@ -97,7 +97,7 @@ HRESULT HrParseURL(const std::string &strUrl, ULONG *lpulFlag, std::string *lpst
 	if (!strUrlUser.compare("public"))
 		ulFlag |= REQ_PUBLIC;
 
-	if (iterToken == vcUrlTokens.end())
+	if (iterToken == vcUrlTokens.cend())
 		goto exit;
 
 	// @todo subfolder/folder/ is not allowed! only subfolder/item.ics
@@ -163,7 +163,6 @@ HRESULT Http::HrReadHeaders()
 		} else {
 			std::string::size_type pos = strBuffer.find(':');
 			std::string::size_type start = 0;
-			std::pair<std::map<std::string, std::string>::iterator, bool> r;
 
 			if (strBuffer[0] == ' ' || strBuffer[0] == '\t') {
 				if (iHeader == mapHeaders.end())
@@ -174,7 +173,7 @@ HRESULT Http::HrReadHeaders()
 				iHeader->second += strBuffer.substr(start);
 			} else {
 				// new header
-				r = mapHeaders.insert(make_pair<string,string>(strBuffer.substr(0,pos), strBuffer.substr(pos+2)));
+				auto r = mapHeaders.insert(make_pair<string,string>(strBuffer.substr(0,pos), strBuffer.substr(pos+2)));
 				iHeader = r.first;
 			}
 		}
@@ -208,8 +207,6 @@ HRESULT Http::HrParseHeaders()
 	std::string strUserAgent;
 
 	std::vector<std::string> items;
-	std::map<std::string, std::string>::const_iterator iHeader = mapHeaders.end();
-
 	std::string user_pass;
 	size_t colon_pos;
 
@@ -397,8 +394,6 @@ bool Http::CheckIfMatch(LPMAPIPROP lpProp)
 	bool invert = false;
 	string strIf;
 	SPropValuePtr ptrLastModTime;
-	vector<string> vMatches;
-	vector<string>::iterator i;
 	string strValue;
 
 	if (lpProp) {
@@ -425,11 +420,10 @@ bool Http::CheckIfMatch(LPMAPIPROP lpProp)
 	}
 
 	// check all etags for a match
-	vMatches = tokenize(strIf, ',', true);
-	for (i = vMatches.begin(); i != vMatches.end(); ++i) {
-		if (i->at(0) == '"' || i->at(0) == '\'')
-			i->assign(i->begin()+1, i->end()-1);
-		if (i->compare(strValue) == 0) {
+	for (auto &i : tokenize(strIf, ',', true)) {
+		if (i.at(0) == '"' || i.at(0) == '\'')
+			i.assign(i.begin() + 1, i.end() - 1);
+		if (i.compare(strValue) == 0) {
 			ret = true;
 			break;
 		}
@@ -770,7 +764,6 @@ HRESULT Http::HrRequestAuth(std::string strMsg)
 HRESULT Http::HrFlushHeaders()
 {
 	HRESULT hr = hrSuccess;
-	std::list<std::string>::const_iterator h;
 	std::string strOutput;
 	char lpszChar[128];
 	time_t tmCurrenttime = time(NULL);
@@ -803,9 +796,9 @@ HRESULT Http::HrFlushHeaders()
 	strOutput += m_strRespHeader + "\r\n";
 	m_strRespHeader.clear();
 
-	for (h = m_lstHeaders.begin(); h != m_lstHeaders.end(); ++h) {
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "> " + *h);
-		strOutput += *h + "\r\n";
+	for (const auto &h : m_lstHeaders) {
+		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "> " + h);
+		strOutput += h + "\r\n";
 	}
 	m_lstHeaders.clear();
 
@@ -824,8 +817,8 @@ HRESULT Http::X2W(const std::string &strIn, std::wstring *lpstrOut)
 
 HRESULT Http::HrGetHeaderValue(const std::string &strHeader, std::string *strValue)
 {
-	std::map<std::string, std::string>::const_iterator iHeader = mapHeaders.find(strHeader);
-	if (iHeader == mapHeaders.end())
+	auto iHeader = mapHeaders.find(strHeader);
+	if (iHeader == mapHeaders.cend())
 		return MAPI_E_NOT_FOUND;
 	*strValue = iHeader->second;
 	return hrSuccess;

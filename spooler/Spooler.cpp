@@ -226,7 +226,6 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
     BYTE *lpStoreEntryId, ULONG cbMsgEntryId, BYTE *lpMsgEntryId,
     ULONG ulFlags)
 {
-	HRESULT hr = hrSuccess;
 	SendData sSendData;
 	pid_t pid;
 	bool bDoSentMail = ulFlags & EC_SUBMIT_DOSENTMAIL;
@@ -234,10 +233,11 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 
 	// place pid with entryid copy in map
 	sSendData.cbStoreEntryId = cbStoreEntryId;
-	hr = MAPIAllocateBuffer(cbStoreEntryId, (void**)&sSendData.lpStoreEntryId);
+	HRESULT hr = MAPIAllocateBuffer(cbStoreEntryId,
+	             reinterpret_cast<void **>(&sSendData.lpStoreEntryId));
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "StartSpoolerFork(): MAPIAllocateBuffer failed(1) %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	memcpy(sSendData.lpStoreEntryId, lpStoreEntryId, cbStoreEntryId);
@@ -245,7 +245,7 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 	hr = MAPIAllocateBuffer(cbMsgEntryId, (void**)&sSendData.lpMessageEntryId);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "StartSpoolerFork(): MAPIAllocateBuffer failed(2) %x", hr);
-		goto exit;
+		return hr;
 	}
 	memcpy(sSendData.lpMessageEntryId, lpMsgEntryId, cbMsgEntryId);
 	sSendData.ulFlags = ulFlags;
@@ -255,8 +255,7 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 	pid = vfork();
 	if (pid < 0) {
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, string("Unable to start new spooler process: ") + strerror(errno));
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
 
 	if (pid == 0) {
@@ -294,9 +293,7 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
 
 	// process is started, place in map
 	mapSendData[pid] = sSendData;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -396,7 +393,6 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
     IECSpooler *lpSpooler)
 {
 	HRESULT hr = hrSuccess;
-	std::map<pid_t, int>::const_iterator i;
 	SendData sSendData;
 	bool bErrorMail;
 	map<pid_t, int> finished; // exit status of finished processes
@@ -425,11 +421,11 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 	g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Cleaning %d messages from queue", (int)finished.size());
 
 	// process finished entries
-	for (i = finished.begin(); i != finished.end(); ++i) {
-		sSendData = mapSendData[i->first];
+	for (const auto &i : finished) {
+		sSendData = mapSendData[i.first];
 
 		/* Find exit status, and decide to remove mail from queue or not */
-		status = i->second;
+		status = i.second;
 
 		bErrorMail = false;
 
@@ -455,20 +451,20 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 		}
 		else if(WIFSIGNALED(status)) {        /* Child was killed by a signal */
 			bErrorMail = true;
-			g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Spooler process %d was killed by signal %d", i->first, WTERMSIG(status));
+			g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Spooler process %d was killed by signal %d", i.first, WTERMSIG(status));
 			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Message for user %ls will be removed from queue", sSendData.strUsername.c_str());
 			sc -> countInc("Spooler", "sig_killed");
 		}
 		else {								/* Something strange happened */
 			bErrorMail = true;
-			g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Spooler process %d terminated abnormally", i->first);
+			g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Spooler process %d terminated abnormally", i.first);
 			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Message for user %ls will be removed from queue", sSendData.strUsername.c_str());
 			sc -> countInc("Spooler", "abnormal_terminate");
 		}
 #else
 		if (status) {
 			bErrorMail = true;
-			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Spooler process %d exited with status %d", i->first, status);
+			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Spooler process %d exited with status %d", i.first, status);
 		}
 #endif
 
@@ -514,7 +510,7 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 
 		MAPIFreeBuffer(sSendData.lpStoreEntryId);
 		MAPIFreeBuffer(sSendData.lpMessageEntryId);
-		mapSendData.erase(i->first);
+		mapSendData.erase(i.first);
 	}
 
 	if (lpAddrBook)
@@ -645,14 +641,12 @@ static HRESULT ProcessAllEntries(IMAPISession *lpAdminSession,
 		strUsername = lpsRowSet->aRow[0].lpProps[0].Value.lpszW;
 		// Check if there is already an active process for this message
 		bool bMatch = false;
-		for (std::map<pid_t, SendData>::const_iterator i = mapSendData.begin();
-		     i != mapSendData.end(); ++i) {
-			if (i->second.cbMessageEntryId == lpsRowSet->aRow[0].lpProps[2].Value.bin.cb &&
-				memcmp(i->second.lpMessageEntryId, lpsRowSet->aRow[0].lpProps[2].Value.bin.lpb, i->second.cbMessageEntryId) == 0) {
+		for (const auto &i : mapSendData)
+			if (i.second.cbMessageEntryId == lpsRowSet->aRow[0].lpProps[2].Value.bin.cb &&
+			    memcmp(i.second.lpMessageEntryId, lpsRowSet->aRow[0].lpProps[2].Value.bin.lpb, i.second.cbMessageEntryId) == 0) {
 				bMatch = true;
 				break;
 			}
-		}
 		if (bMatch)
 			continue;
 

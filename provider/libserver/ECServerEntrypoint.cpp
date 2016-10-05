@@ -92,8 +92,6 @@ ECRESULT kopano_initlibrary(const char *lpDatabaseDir, const char *lpConfigFile)
 
 ECRESULT kopano_unloadlibrary(void)
 {
-	std::set<ECDatabase *>::const_iterator iterDBObject, iNext;
-
 	if (!g_bInitLib)
 		return KCERR_NOT_INITIALIZED;
 
@@ -107,10 +105,10 @@ ECRESULT kopano_unloadlibrary(void)
 	// Remove all exist database objects
 	pthread_mutex_lock(&g_hMutexDBObjectList);
 
-	iterDBObject = g_lpDBObjectList.begin();
-	while( iterDBObject != g_lpDBObjectList.end())
+	auto iterDBObject = g_lpDBObjectList.cbegin();
+	while (iterDBObject != g_lpDBObjectList.cend())
 	{
-		iNext = iterDBObject;
+		auto iNext = iterDBObject;
 		++iNext;
 		delete (*iterDBObject);
 
@@ -158,8 +156,6 @@ void kopano_removeallsessions()
 
 ECRESULT kopano_exit()
 {
-	std::set<ECDatabase *>::const_iterator iterDBObject;
-
 	if (!g_bInitLib)
 		return KCERR_NOT_INITIALIZED;
 
@@ -180,9 +176,8 @@ ECRESULT kopano_exit()
 	// Close all database connections
 	pthread_mutex_lock(&g_hMutexDBObjectList);
 
-	for (iterDBObject = g_lpDBObjectList.begin();
-	     iterDBObject != g_lpDBObjectList.end(); ++iterDBObject)
-		(*iterDBObject)->Close();		
+	for (auto dbobjp : g_lpDBObjectList)
+		dbobjp->Close();
 	pthread_mutex_unlock(&g_hMutexDBObjectList);
 	return erSuccess;
 }
@@ -222,16 +217,16 @@ void kopano_new_soap_connection(CONNECTION_TYPE ulType, struct soap *soap)
 	lpInfo->bProxy = false;
 	soap->user = (void *)lpInfo;
 	
-	if (szProxy[0]) {
-		if(strcmp(szProxy, "*") == 0) {
-			// Assume everything is proxied
-			lpInfo->bProxy = true; 
-		} else {
-			// Parse headers to determine if the connection is proxied
-			lpInfo->fparsehdr = soap->fparsehdr; // daisy-chain the existing code
-			soap->fparsehdr = kopano_fparsehdr;
-		}
+	if (szProxy[0] == '\0')
+		return;
+	if (strcmp(szProxy, "*") == 0) {
+		// Assume everything is proxied
+		lpInfo->bProxy = true;
+		return;
 	}
+	// Parse headers to determine if the connection is proxied
+	lpInfo->fparsehdr = soap->fparsehdr; // daisy-chain the existing code
+	soap->fparsehdr = kopano_fparsehdr;
 }
 
 void kopano_end_soap_connection(struct soap *soap)

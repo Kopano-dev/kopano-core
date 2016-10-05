@@ -871,16 +871,16 @@ static void print_user_settings(IMsgStore *lpStore, const ECUSER *lpECUser,
 
 	if (!lstArchives.empty()) {
 		cout << "Attached archives:\t" << lstArchives.size() << endl;
-		for (ArchiveList::const_iterator iArchive = lstArchives.begin(); iArchive != lstArchives.end(); ++iArchive) {
-			cout << "\t" << iArchive->FolderName << " in " << iArchive->StoreName << " (" << iArchive->StoreGuid << ")";
+		for (const auto &arc : lstArchives) {
+			cout << "\t" << arc.FolderName << " in " << arc.StoreName << " (" << arc.StoreGuid << ")";
 
-			if (iArchive->Rights != ARCHIVE_RIGHTS_ABSENT) {
-				if (iArchive->Rights == ROLE_OWNER)
+			if (arc.Rights != ARCHIVE_RIGHTS_ABSENT) {
+				if (arc.Rights == ROLE_OWNER)
 					cout << " [Read Write]";
-				else if (iArchive->Rights == ROLE_REVIEWER)
+				else if (arc.Rights == ROLE_REVIEWER)
 					cout << " [Read Only]";
 				else
-					cout << " [Modified: " << AclRightsToString(iArchive->Rights) << "]";
+					cout << " [Modified: " << AclRightsToString(arc.Rights) << "]";
 			}
 
 			cout << endl;
@@ -1991,14 +1991,13 @@ static HRESULT ForceResync(LPMAPISESSION lpSession, LPMDB lpAdminStore,
     const list<string> &lstUsernames)
 {
 	HRESULT hr = hrSuccess;
-	list<string>::const_iterator iUsername;
 	bool bFail = false;
 
-	for (iUsername = lstUsernames.begin(); iUsername != lstUsernames.end(); ++iUsername) {
-		hr = ForceResyncFor(lpSession, lpAdminStore, iUsername->c_str(), NULL);
+	for (const auto &user : lstUsernames) {
+		hr = ForceResyncFor(lpSession, lpAdminStore, user.c_str(), NULL);
 		if (hr != hrSuccess) {
 			cerr << "Failed to force resync for user " <<
-				*iUsername << ": " << GetMAPIErrorMessage(hr) <<
+				user << ": " << GetMAPIErrorMessage(hr) <<
 				" (" << stringify(hr, true) << ")" << endl;
 			bFail = true;
 			continue;
@@ -2274,8 +2273,8 @@ class InputValidator {
 			if (TryConvert(szInput, strInput) != hrSuccess)
 				return NULL;
 
-			for (wstring::const_iterator i = strInput.begin(); i != strInput.end(); ++i)
-				if (!iswprint(*i))
+			for (auto c : strInput)
+				if (!iswprint(c))
 					return NULL;
 			m_bFailure = false;
 			return szInput;
@@ -2310,10 +2309,10 @@ static HRESULT fillMVPropmap(ECUSER &sECUser, ULONG ulPropTag, int index,
 			cerr << "Memory error" << endl;
 			return hr;
 		}
-		int n;
-		set<string, lstr>::const_iterator i;
+		int n = 0;
+		auto i = sFeatures.cbegin();
 		// @note we store char* data in a LPTSTR (whcar_t by -DUNICODE) pointer.
-		for (i = sFeatures.begin(), n = 0; i != sFeatures.end(); ++i, ++n)
+		for (n = 0; i != sFeatures.cend(); ++i, ++n)
 			sECUser.sMVPropmap.lpEntries[index].lpszValues[n] = (TCHAR*)i->c_str();
 	}
 	return hrSuccess;

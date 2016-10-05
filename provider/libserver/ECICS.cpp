@@ -84,8 +84,8 @@ static ECRESULT FilterUserIdsByCompany(ECDatabase *lpDatabase, const std::set<un
 	ASSERT(!sUserIds.empty());
 
 	strQuery = "SELECT id FROM users where company=" + stringify(ulCompanyFilter) + " AND id IN (";
-	for (std::set<unsigned int>::const_iterator i = sUserIds.begin(); i != sUserIds.end(); ++i)
-		strQuery.append(stringify(*i) + ",");
+	for (const auto i : sUserIds)
+		strQuery.append(stringify(i) + ",");
 	strQuery.resize(strQuery.size() - 1);
 	strQuery.append(1, ')');
 
@@ -591,11 +591,8 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 	unsigned char	*lpSourceKeyData = NULL;
 	unsigned int	cbSourceKeyData = 0;
 	list<unsigned int> lstFolderIds;
-	list<unsigned int>::const_iterator lpFolderId;
-
 	// Contains a list of change IDs
 	list<unsigned int> lstChanges;
-	list<unsigned int>::const_iterator iterChanges;
 
 	ECGetContentChangesHelper *lpHelper = NULL;
 	
@@ -779,14 +776,13 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
         lstFolderIds.push_back(ulFolderId);
 
 		// Recursive loop through all folders
-		for (lpFolderId = lstFolderIds.begin();
-		     lpFolderId != lstFolderIds.end(); ++lpFolderId) {
-			if(*lpFolderId == 0) {
+		for (auto folder_id : lstFolderIds) {
+			if (folder_id == 0) {
 			    if(lpSession->GetSecurity()->GetAdminLevel() != ADMIN_LEVEL_SYSADMIN) {
 			        er = KCERR_NO_ACCESS;
 			        goto exit;
                 }
-            } else if(lpSession->GetSecurity()->CheckPermission(*lpFolderId, ecSecurityFolderVisible) != erSuccess){
+            } else if (lpSession->GetSecurity()->CheckPermission(folder_id, ecSecurityFolderVisible) != erSuccess) {
                 // We cannot traverse folders that we have no permission to. This means that changes under the inaccessible folder
                 // will disappear - this will cause the sync peer to go out-of-sync. Fix would be to remember changes in security
                 // as deletes and adds.
@@ -795,10 +791,10 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 
 			if(ulChangeId != 0){
 			
-			    if(*lpFolderId != 0) {
-    				if(g_lpSessionManager->GetCacheManager()->GetPropFromObject(PROP_ID(PR_SOURCE_KEY), *lpFolderId, NULL, &cbSourceKeyData, &lpSourceKeyData) != erSuccess)
+			    if (folder_id != 0) {
+				if (g_lpSessionManager->GetCacheManager()->GetPropFromObject(PROP_ID(PR_SOURCE_KEY), folder_id, NULL, &cbSourceKeyData, &lpSourceKeyData) != erSuccess)
 	    				goto nextFolder; // Item is hard deleted?
-                }
+			    }
 
 				// Search folder changed folders
 				strQuery = 	"SELECT changes.id "
@@ -809,9 +805,8 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 							"  AND changes.change_type & " + stringify(ICS_FOLDER) + " != 0" +				// Change is a folder change
 							"  AND changes.sourcesync != " + stringify(ulSyncId);
 							
-                if(*lpFolderId != 0) {
+                if (folder_id != 0)
                     strQuery += "  AND parentsourcekey=" + lpDatabase->EscapeBinary(lpSourceKeyData, cbSourceKeyData);
-                }
 
 				er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 				if(er != erSuccess)
@@ -836,9 +831,9 @@ nextFolder:
 				lpSourceKeyData = NULL;
 			}
 
-			if(*lpFolderId != 0) {
+			if (folder_id != 0) {
                 // Get subfolders for recursion
-                strQuery = "SELECT id FROM hierarchy WHERE parent = " + stringify(*lpFolderId) + " AND type = " + stringify(MAPI_FOLDER) + " AND flags = " + stringify(FOLDER_GENERIC);
+                strQuery = "SELECT id FROM hierarchy WHERE parent = " + stringify(folder_id) + " AND type = " + stringify(MAPI_FOLDER) + " AND flags = " + stringify(FOLDER_GENERIC);
 
                 if(ulFlags & SYNC_NO_SOFT_DELETIONS) {
                     strQuery += " AND hierarchy.flags & 1024 = 0";
@@ -898,17 +893,15 @@ nextFolder:
 			i = 0;
 			
 			if((ulFlags & SYNC_CATCHUP) == 0) {
-                for (lpFolderId = lstFolderIds.begin();
-                     lpFolderId != lstFolderIds.end(); ++lpFolderId) {
-
-                    if(*lpFolderId == ulFolderId)
+                for (auto folder_id : lstFolderIds) {
+                    if (folder_id == ulFolderId)
                         continue; // don't send the folder itself as a change
 
                     strQuery = 	"SELECT sourcekey.val_binary, parentsourcekey.val_binary "
                                 "FROM hierarchy "
                                 "JOIN indexedproperties AS sourcekey ON hierarchy.id=sourcekey.hierarchyid AND sourcekey.tag=" + stringify(PROP_ID(PR_SOURCE_KEY)) + " "
                                 "JOIN indexedproperties AS parentsourcekey ON hierarchy.parent=parentsourcekey.hierarchyid AND parentsourcekey.tag=" + stringify(PROP_ID(PR_SOURCE_KEY)) + " "
-                                "WHERE hierarchy.id=" + stringify(*lpFolderId);
+                                "WHERE hierarchy.id=" + stringify(folder_id);
 
                     if(lpDBResult)
                         lpDatabase->FreeResult(lpDBResult);
@@ -952,9 +945,8 @@ nextFolder:
 			lpChanges->__size = lstChanges.size();
 
 			i = 0;
-			for (iterChanges = lstChanges.begin();
-			     iterChanges != lstChanges.end(); ++iterChanges) {
-				strQuery = "SELECT changes.id, changes.sourcekey, changes.parentsourcekey, changes.change_type, changes.flags FROM changes WHERE changes.id="+stringify(*iterChanges);
+			for (auto chg_id : lstChanges) {
+				strQuery = "SELECT changes.id, changes.sourcekey, changes.parentsourcekey, changes.change_type, changes.flags FROM changes WHERE changes.id=" + stringify(chg_id);
 
 				er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 				if(er != erSuccess)
@@ -1056,25 +1048,25 @@ nextFolder:
             memset(lpChanges->__ptr, 0, sizeof(icsChange) * ulChanges);
 
             i=0;
-			for (ABChangeRecordList::const_iterator iter = lstChanges.begin(); iter != lstChanges.end(); ++iter) {
-				unsigned int ulUserId = reinterpret_cast<const ABEID *>(iter->strItem.data())->ulId;
+			for (const auto &iter : lstChanges) {
+				unsigned int ulUserId = reinterpret_cast<const ABEID *>(iter.strItem.data())->ulId;
 
-				if (iter->change_type != ICS_AB_DELETE && sUserIds.find(ulUserId) == sUserIds.end())
+				if (iter.change_type != ICS_AB_DELETE && sUserIds.find(ulUserId) == sUserIds.end())
 					continue;
 
-				er = ConvertABEntryIDToSoapSourceKey(soap, lpSession, bAcceptABEID, iter->strItem.size(), (char*)iter->strItem.data(), &lpChanges->__ptr[i].sSourceKey);
+				er = ConvertABEntryIDToSoapSourceKey(soap, lpSession, bAcceptABEID, iter.strItem.size(), const_cast<char *>(iter.strItem.data()), &lpChanges->__ptr[i].sSourceKey);
                 if (er != erSuccess) {
                     er = erSuccess;
                     continue;
                 }
 
-				lpChanges->__ptr[i].ulChangeId = iter->id;
-                lpChanges->__ptr[i].sParentSourceKey.__ptr = (unsigned char *)s_memcpy(soap, iter->strParent.data(), iter->strParent.size());
-                lpChanges->__ptr[i].sParentSourceKey.__size = iter->strParent.size();
-                lpChanges->__ptr[i].ulChangeType = iter->change_type;
+				lpChanges->__ptr[i].ulChangeId = iter.id;
+				lpChanges->__ptr[i].sParentSourceKey.__ptr = reinterpret_cast<unsigned char *>(s_memcpy(soap, iter.strParent.data(), iter.strParent.size()));
+				lpChanges->__ptr[i].sParentSourceKey.__size = iter.strParent.size();
+				lpChanges->__ptr[i].ulChangeType = iter.change_type;
 
-                if(iter->id > ulMaxChange)
-                    ulMaxChange = iter->id;
+				if (iter.id > ulMaxChange)
+					ulMaxChange = iter.id;
                 ++i;
             }
 

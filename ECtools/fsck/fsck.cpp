@@ -48,8 +48,6 @@ string auto_del;
  */
 typedef pair<string, Fsck* > CHECKMAP_P;
 typedef map<string, Fsck* > CHECKMAP;
-typedef map<string, Fsck* >::iterator CHECKMAP_I;
-typedef map<string, Fsck* >::const_iterator CHECKMAP_CI;
 
 enum {
 	OPT_HELP = UCHAR_MAX + 1,
@@ -320,9 +318,9 @@ RunFolderValidation(const std::set<std::string> &setFolderIgnore,
 		goto exit;
 	}
 
-	for (CHECKMAP_CI i = checkmap.begin(); i != checkmap.end(); ++i)
-		if (i->first == strClass) {
-			lpFsck = i->second;
+	for (const auto &i : checkmap)
+		if (i.first == strClass) {
+			lpFsck = i.second;
 			break;
 		}
 
@@ -642,9 +640,8 @@ int main(int argc, char *argv[])
 	if (hr == hrSuccess)
 		cout << endl << "Statistics:" << endl;
 
-	for (CHECKMAP_I i = checkmap.begin(); i != checkmap.end();
-	     i = checkmap.begin())
-	{
+	for (auto i = checkmap.begin(); i != checkmap.end();
+	     i = checkmap.begin()) {
 		Fsck *lpFsck = i->second;
 		
 		if (hr == hrSuccess)

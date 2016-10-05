@@ -44,9 +44,8 @@
 // ---
 
 M4LMAPIProp::~M4LMAPIProp() {
-	std::list<LPSPropValue>::const_iterator i;
-	for (i = properties.begin(); i != properties.end(); ++i)
-		MAPIFreeBuffer(*i);
+	for (auto pvp : properties)
+		MAPIFreeBuffer(pvp);
 	properties.clear();
 }
 
@@ -646,7 +645,6 @@ HRESULT M4LProviderAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable)
 	HRESULT hr = hrSuccess;
 	ULONG cValues = 0;
 	LPSPropValue lpsProps = NULL;
-	list<providerEntry *>::const_iterator i;
 	ECMemTable *lpTable = NULL;
 	ECMemTableView *lpTableView = NULL;
 	LPSPropValue lpDest = NULL;
@@ -668,13 +666,12 @@ HRESULT M4LProviderAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable)
 		goto exit;
 	
 	// Loop through all providers, add each to the table
-	for (i = msa->providers.begin(); i != msa->providers.end(); ++i) {
-		if(szService) {
-			if(strcmp(szService, (*i)->servicename.c_str()) != 0)
-				continue;
-		}
+	for (auto prov : msa->providers) {
+		if (szService != NULL &&
+		    strcmp(szService, prov->servicename.c_str()) != 0)
+			continue;
 		
-		hr = (*i)->profilesection->GetProps((LPSPropTagArray)&sptaProviderCols, 0, &cValues, &lpsProps);
+		hr = prov->profilesection->GetProps(reinterpret_cast<SPropTagArray *>(&sptaProviderCols), 0, &cValues, &lpsProps);
 		if (FAILED(hr))
 			goto exit;
 		
@@ -1095,20 +1092,19 @@ HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 	HRESULT hr = hrSuccess;
 	ECMemTable *lpTable = NULL;
 	ECMemTableView *lpTableView = NULL;
-	std::list<abEntry>::const_iterator iter;
 	ULONG n = 0;
 
 	// make a list of all hierarchy tables, and create the combined column list
 	std::list<LPMAPITABLE> lHierarchies;
 	std::set<ULONG> stProps;
 	LPSPropTagArray lpColumns = NULL;
-	for (iter = m_lABEntries.begin(); iter != m_lABEntries.end(); ++iter) {
+	for (const auto &abe : m_lABEntries) {
 		ULONG ulObjType;
 		LPABCONT lpABContainer = NULL;
 		LPMAPITABLE lpABHierarchy = NULL;
 		LPSPropTagArray lpPropArray = NULL;
 
-		hr = iter->lpABLogon->OpenEntry(0, NULL, &IID_IABContainer, 0, &ulObjType, (IUnknown**)&lpABContainer);
+		hr = abe.lpABLogon->OpenEntry(0, NULL, &IID_IABContainer, 0, &ulObjType, reinterpret_cast<IUnknown **>(&lpABContainer));
 		if (hr != hrSuccess)
 			goto next_container;
 
@@ -1155,17 +1151,15 @@ HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 	++lpColumns->cValues;
 
 	n = 0;
-	for (std::list<LPMAPITABLE>::const_iterator i = lHierarchies.begin();
-	     i != lHierarchies.end(); ++i)
-	{
+	for (const auto mt : lHierarchies) {
 		LPSRowSet lpsRows = NULL;
 
-		hr = (*i)->SetColumns(lpColumns, 0);
+		hr = mt->SetColumns(lpColumns, 0);
 		if (hr != hrSuccess)
 			goto exit;
 
 		while (true) {
-			hr = (*i)->QueryRows(1, 0, &lpsRows);
+			hr = mt->QueryRows(1, 0, &lpsRows);
 			if (hr != hrSuccess)
 				goto exit;
 			if (lpsRows->cRows == 0)
@@ -1193,9 +1187,8 @@ HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 	hr = lpTableView->QueryInterface(IID_IMAPITable, (void **)lppTable);
 
 exit:
-	for (std::list<LPMAPITABLE>::const_iterator i = lHierarchies.begin();
-	     i != lHierarchies.end(); ++i)
-		(*i)->Release();
+	for (const auto mt : lHierarchies)
+		mt->Release();
 	MAPIFreeBuffer(lpColumns);
 	if (lpTableView)
 		lpTableView->Release();
@@ -1207,7 +1200,6 @@ exit:
 }
 
 HRESULT M4LABContainer::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG* lpulObjType, LPUNKNOWN* lppUnk) {
-	std::list<abEntry>::const_iterator iter;
 	LPABLOGON lpABLogon = NULL;
 	MAPIUID muidEntry;
 
@@ -1218,13 +1210,11 @@ HRESULT M4LABContainer::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID l
 	memcpy(&muidEntry, (LPBYTE)lpEntryID + 4, sizeof(MAPIUID));
 
 	// locate provider
-	for (iter = m_lABEntries.begin(); iter != m_lABEntries.end(); ++iter) {
-		if (memcmp(&muidEntry, &iter->muid, sizeof(MAPIUID)) == 0)
-		{
-			lpABLogon = iter->lpABLogon;
+	for (const auto &abe : m_lABEntries)
+		if (memcmp(&muidEntry, &abe.muid, sizeof(MAPIUID)) == 0) {
+			lpABLogon = abe.lpABLogon;
 			break;
 		}
-	}
 	if (lpABLogon == NULL)
 		return MAPI_E_UNKNOWN_ENTRYID;
 	// open root container of provider

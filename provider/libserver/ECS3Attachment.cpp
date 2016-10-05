@@ -709,10 +709,8 @@ ECRESULT ECS3Attachment::DeleteAttachmentInstances(const std::list<ULONG> &lstDe
 {
 	ECRESULT ret = erSuccess;
 	int errors = 0;
-	std::list<ULONG>::const_iterator iterDel;
-
-	for (iterDel = lstDeleteInstances.begin(); iterDel != lstDeleteInstances.end(); ++iterDel) {
-		ret = this->DeleteAttachmentInstance(*iterDel, bReplace);
+	for (auto del_id : lstDeleteInstances) {
+		ret = this->DeleteAttachmentInstance(del_id, bReplace);
 		if (ret != erSuccess)
 			++errors;
 	}
@@ -923,7 +921,6 @@ ECRESULT ECS3Attachment::Begin(void)
 
 ECRESULT ECS3Attachment::Commit(void)
 {
-	std::set<ULONG>::const_iterator i;
 	bool error = false;
 
 	ec_log_debug("Commit transaction");
@@ -935,12 +932,12 @@ ECRESULT ECS3Attachment::Commit(void)
 	/* Disable the transaction */
 	m_transact = false;
 	/* Delete the attachments */
-	for (i = m_deleted_att.begin(); i != m_deleted_att.end(); ++i)
-		if (DeleteAttachmentInstance(*i, false) != erSuccess)
+	for (auto att_id : m_deleted_att)
+		if (DeleteAttachmentInstance(att_id, false) != erSuccess)
 			error = true;
 	/* Delete marked attachments */
-	for (i = m_marked_att.begin(); i != m_marked_att.end(); ++i)
-		if (del_marked_att(*i) != erSuccess)
+	for (auto att_id : m_marked_att)
+		if (del_marked_att(att_id) != erSuccess)
 			error = true;
 
 	m_new_att.clear();
@@ -951,7 +948,6 @@ ECRESULT ECS3Attachment::Commit(void)
 
 ECRESULT ECS3Attachment::Rollback(void)
 {
-	std::set<ULONG>::const_iterator i;
 	bool error = false;
 
 	ec_log_debug("Rollback transaction");
@@ -965,12 +961,12 @@ ECRESULT ECS3Attachment::Rollback(void)
 	/* Do not delete the attachments */
 	m_deleted_att.clear();
 	/* Remove the created attachments */
-	for (i = m_new_att.begin(); i != m_new_att.end(); ++i)
-		if (DeleteAttachmentInstance(*i, false) != erSuccess)
+	for (auto att_id : m_new_att)
+		if (DeleteAttachmentInstance(att_id, false) != erSuccess)
 			error = true;
 	/* Restore marked attachment */
-	for (i = m_marked_att.begin(); i != m_marked_att.end(); ++i)
-		if (restore_marked_att(*i) != erSuccess)
+	for (auto att_id : m_marked_att)
+		if (restore_marked_att(att_id) != erSuccess)
 			error = true;
 
 	m_new_att.clear();

@@ -132,18 +132,16 @@ int main(int argc, char* argv[])
 			   strMulti[0] == 't' || strMulti[0] == 'T' ||
 			   strMulti[0] == '1');
 
-	for (list<ECConfigCheck *>::const_iterator it = check.begin(); it != check.end(); ++it) {
-		if ((*it)->isDirty())
+	for (const auto &it : check) {
+		if (it->isDirty())
 			continue;
-
-		(*it)->setHosted(bHosted);
-		(*it)->setMulti(bMulti);
-		(*it)->loadChecks();
-		(*it)->validate();
-
+		it->setHosted(bHosted);
+		it->setMulti(bMulti);
+		it->loadChecks();
+		it->validate();
 		/* We are only looping through the list once, just cleanup
 		 * and don't care about leaving broken pointers in the list. */
-		delete *it;
+		delete it;
 	}
 
 	return 0;

@@ -119,7 +119,7 @@ int LDAPConfigCheck::testLdapQuery(const config_check_t *check)
 	 *      ((a=1)(a=2))    => Requires '|' or '&' to combine the 2 queries
 	 *      (&a=1)          => '|' and '&' should only be present in front of '('
 	 */
-	for (std::string::const_iterator i = check->value1.begin() + 1; i != check->value1.end(); ++i) {
+	for (auto i = check->value1.cbegin() + 1; i != check->value1.cend(); ++i) {
 		if (stack.empty())
 			goto error_exit;
 

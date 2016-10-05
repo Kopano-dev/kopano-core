@@ -7768,7 +7768,6 @@ ZEND_FUNCTION(mapi_inetmapi_imtomapi)
     RETVAL_TRUE;
     
 exit:
-
 	LOG_END();
     THROW_ON_ERROR();
     return;

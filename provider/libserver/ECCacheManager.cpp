@@ -341,11 +341,10 @@ ECRESULT ECCacheManager::GetOwner(unsigned int ulObjId, unsigned int *ulOwner)
 	er = GetObject(ulObjId, NULL, ulOwner, NULL);
 
 exit:
-	if (er) {
+	if (er != erSuccess)
 		LOG_CACHE_DEBUG("Get Owner for id %d error 0x%08X", ulObjId, er);
-	} else {
+	else
 		LOG_CACHE_DEBUG("Get Owner for id %d result [%s]: owner %d", ulObjId, ((bCacheResult)?"C":"D"), *ulOwner);
-	}
 	return er;
 }
 
@@ -442,13 +441,10 @@ ECRESULT ECCacheManager::GetObject(unsigned int ulObjId, unsigned int *lpulParen
 exit:
 	if (lpDBResult)
 		lpDatabase->FreeResult(lpDBResult);
-
-	if (er != erSuccess) {
+	if (er != erSuccess)
 		LOG_CACHE_DEBUG("Get object id %d error 0x%08x", ulObjId, er);
-	} else {
+	else
 		LOG_CACHE_DEBUG("Get object id %d result [%s]: parent %d owner %d flags %d type %d", ulObjId, ((bCacheResult)?"C":"D"), ulParent, ulOwner, ulFlags, ulType);
-	}
-
 	return er;
 
 }
@@ -465,9 +461,7 @@ ECRESULT ECCacheManager::GetObjects(const std::list<sObjectTableKey> &lstObjects
 	sObjectTableKey key;
 	ECsObjects  *lpsObject = NULL;
 	ECsObjects	sObject;
-	std::list<sObjectTableKey>::const_iterator i;
 	std::set<sObjectTableKey> setUncached;
-	std::set<sObjectTableKey>::const_iterator j;
 
 	er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
 
@@ -478,21 +472,19 @@ ECRESULT ECCacheManager::GetObjects(const std::list<sObjectTableKey> &lstObjects
         // Get everything from the cache that we can
     	scoped_lock lock(m_hCacheMutex);
 
-        for (i = lstObjects.begin(); i != lstObjects.end(); ++i) {
-            if(m_ObjectsCache.GetCacheItem(i->ulObjId, &lpsObject) == erSuccess) {
-                mapObjects[*i] = *lpsObject;
-            } else {
-                setUncached.insert(*i);
-            }
-        }
+	for (const auto &key : lstObjects)
+		if (m_ObjectsCache.GetCacheItem(key.ulObjId, &lpsObject) == erSuccess)
+			mapObjects[key] = *lpsObject;
+		else
+			setUncached.insert(key);
     }
 
     if(!setUncached.empty()) {
         // Get uncached items from SQL
         strQuery = "SELECT id, parent, owner, flags, type FROM hierarchy WHERE id IN(";
         
-        for (j = setUncached.begin(); j != setUncached.end(); ++j) {
-            strQuery += stringify(j->ulObjId);
+		for (const auto &key : setUncached) {
+			strQuery += stringify(key.ulObjId);
             strQuery += ",";
         }
         
@@ -524,13 +516,11 @@ ECRESULT ECCacheManager::GetObjects(const std::list<sObjectTableKey> &lstObjects
 exit:
 	if (lpDBResult != NULL)
 		lpDatabase->FreeResult(lpDBResult);
-    
-	if (er)	 {
+	if (er != erSuccess)
 		LOG_CACHE_DEBUG("Get object ids error 0x%08x", er);
-	} else {
+	else
 		LOG_CACHE_DEBUG("Get object ids total ids %lu from disk %lu", lstObjects.size(), setUncached.size());
-	}
-    return er;
+	return er;
 }
 
 ECRESULT ECCacheManager::GetObjectsFromProp(unsigned int ulTag,
@@ -670,13 +660,10 @@ found:
 exit:
 	if(lpDBResult)
 		lpDatabase->FreeResult(lpDBResult);
-
-	if (er) {
+	if (er != erSuccess)
 		LOG_CACHE_DEBUG("Get store and type %d error 0x%08x", ulObjId, er);
-	} else {
+	else
 		LOG_CACHE_DEBUG("Get store and type %d result [%s]: store %d, type %d, guid %s", ulObjId, ((bCacheResult)?"C":"D"), ulStore, ulType, bin2hex(sizeof(GUID), (const unsigned char*)&guid).c_str());
-	}
-
 	return er;
 }
 
@@ -747,13 +734,10 @@ ECRESULT ECCacheManager::GetUserObject(unsigned int ulUserId, objectid_t *lpExte
 exit:
 	if(lpDBResult)
 		lpDatabase->FreeResult(lpDBResult);
-
-	if (er) {
+	if (er != erSuccess)
 		LOG_USERCACHE_DEBUG("Get user object for user %d error 0x%08x", ulUserId, er);
-	} else {
+	else
 		LOG_USERCACHE_DEBUG("Get user object for user %d result [%s]: externid '%s', class %d, companyid %d, signature '%s'", ulUserId, ((bCacheResult)?"C":"D"), bin2hex(externid).c_str(), ulClass, ((lpulCompanyId)?*lpulCompanyId:-1), ((lpstrSignature)?bin2hex(*lpstrSignature).c_str():"-") );
-	}
-
 	return er;
 }
 
@@ -764,13 +748,10 @@ ECRESULT ECCacheManager::GetUserDetails(unsigned int ulUserId, objectdetails_t *
 	er = _GetUserObjectDetails(ulUserId, details);
 
 	// on error, ECUserManagement will update the cache
-	
-	if (er != erSuccess) {
+	if (er != erSuccess)
 		LOG_USERCACHE_DEBUG("Get user details for userid %d not found, error 0x%08x", ulUserId, er);
-	} else {
+	else
 		LOG_USERCACHE_DEBUG("Get user details for userid %d result: %s", ulUserId, details->ToStr().c_str() );
-	}
-
 	return er;
 }
 
@@ -858,13 +839,10 @@ ECRESULT ECCacheManager::GetUserObject(const objectid_t &sExternId, unsigned int
 exit:
 	if(lpDBResult)
 		lpDatabase->FreeResult(lpDBResult);
-
-	if (er) {
+	if (er != erSuccess)
 		LOG_USERCACHE_DEBUG("Get user object done. error 0x%08X", er);
-	} else {
+	else
 		LOG_USERCACHE_DEBUG("Get user object from externid '%s', class %d result [%s]: company %d, userid %d, signature '%s'" , bin2hex(sExternId.id).c_str(), sExternId.objclass, ((bCacheResult)?"C":"D"), ((lpulCompanyId)?*lpulCompanyId:-1), ((lpulUserId)?*lpulUserId:-1), ((lpstrSignature)?bin2hex(*lpstrSignature).c_str():"-") );
-	}
-
 	return er;
 }
 
@@ -887,12 +865,15 @@ ECRESULT ECCacheManager::GetUserObjects(const list<objectid_t> &lstExternObjIds,
 	// everything we couldn't find must be collected from the database
 	LOG_USERCACHE_DEBUG("Get User Objects. requested objects %lu", lstExternObjIds.size() );
 
-	for (iter = lstExternObjIds.begin(); iter != lstExternObjIds.end(); ++iter) {
-		LOG_USERCACHE_DEBUG(" Get user objects from externid '%s', class %d" , bin2hex(iter->id).c_str(), iter->objclass);
-		if (_GetUEIdObject(iter->id, iter->objclass, NULL, &ulLocalId, NULL) == erSuccess)
-			lpmapLocalObjIds->insert(make_pair(*iter, ulLocalId)); // object was found in cache
+	for (const auto &objid : lstExternObjIds) {
+		LOG_USERCACHE_DEBUG(" Get user objects from externid \"%s\", class %d",
+			bin2hex(objid.id).c_str(), objid.objclass);
+		if (_GetUEIdObject(objid.id, objid.objclass, NULL, &ulLocalId, NULL) == erSuccess)
+			/* Object was found in cache. */
+			lpmapLocalObjIds->insert(make_pair(objid, ulLocalId));
 		else
-			lstExternIds.push_back(*iter); // object was not found in cache
+			/* Object was not found in cache. */
+			lstExternIds.push_back(objid);
 	}
 
 	// Check if all objects have been collected from the cache
@@ -904,8 +885,9 @@ ECRESULT ECCacheManager::GetUserObjects(const list<objectid_t> &lstExternObjIds,
 		goto exit;
 
 	strQuery = "SELECT id, externid, objectclass, signature, company FROM users WHERE ";
-	for (iter = lstExternIds.begin(); iter != lstExternIds.end(); ++iter) {
-		if (iter != lstExternIds.begin())
+	for (auto iter = lstExternIds.cbegin();
+	     iter != lstExternIds.cend(); ++iter) {
+		if (iter != lstExternIds.cbegin())
 			strQuery += " OR ";
 		strQuery +=
 			"(" + OBJECTCLASS_COMPARE_SQL("objectclass", iter->objclass) +
@@ -944,13 +926,10 @@ ECRESULT ECCacheManager::GetUserObjects(const list<objectid_t> &lstExternObjIds,
 exit:
 	if(lpDBResult)
 		lpDatabase->FreeResult(lpDBResult);
-
-	if (er) {
+	if (er != erSuccess)
 		LOG_USERCACHE_DEBUG("Get User Objects done. Error 0x%08X", er);
-	} else {
+	else
 		LOG_USERCACHE_DEBUG("Get User Objects done. Returned objects %lu", lpmapLocalObjIds->size());
-	}
-
 	return er;
 }
 
@@ -1431,12 +1410,11 @@ ECRESULT ECCacheManager::GetCell(const sObjectTableKey *lpsRowItem,
     }
 
 exit:
-	if (er) {
+	if (er != erSuccess)
 		LOG_CELLCACHE_DEBUG("Get cell object %d tag 0x%08X item not found", lpsRowItem->ulObjId, ulPropTag);
-	} else {
+	else
 		LOG_CELLCACHE_DEBUG("Get cell object %d tag 0x%08X result found", lpsRowItem->ulObjId, ulPropTag);
-	}
-    return er;
+	return er;
 }
 
 ECRESULT ECCacheManager::SetCell(const sObjectTableKey *lpsRowItem,
@@ -1469,12 +1447,11 @@ ECRESULT ECCacheManager::SetCell(const sObjectTableKey *lpsRowItem,
     }
 
 exit:
-	if (er) {
+	if (er != erSuccess)
 		LOG_CELLCACHE_DEBUG("Set cell object %d tag 0x%08X error 0x%08X", lpsRowItem->ulObjId, ulPropTag, er);
-	} else {
+	else
 		LOG_CELLCACHE_DEBUG("Set cell object %d tag 0x%08X", lpsRowItem->ulObjId, ulPropTag);
-	}
-    return er;
+	return er;
 }
 
 ECRESULT ECCacheManager::SetComplete(unsigned int ulObjId)
@@ -1492,13 +1469,11 @@ ECRESULT ECCacheManager::SetComplete(unsigned int ulObjId)
     }
 
 exit:
-	if (er) {
+	if (er != erSuccess)
 		LOG_CELLCACHE_DEBUG("Set cell complete for object %d failed cell not found", ulObjId);
-	} else {
+	else
 		LOG_CELLCACHE_DEBUG("Set cell complete for object %d", ulObjId);
-	}
-
-    return er;
+	return er;
 }
 
 ECRESULT ECCacheManager::UpdateCell(unsigned int ulObjId, unsigned int ulPropTag, int lDelta)
@@ -1516,12 +1491,11 @@ ECRESULT ECCacheManager::UpdateCell(unsigned int ulObjId, unsigned int ulPropTag
     }
 
 exit:
-	if (er) {
+	if (er != erSuccess)
 		LOG_CELLCACHE_DEBUG("Update cell object %d tag 0x%08X, delta %d failed cell not found", ulObjId, ulPropTag, lDelta);
-	} else {
+	else
 		LOG_CELLCACHE_DEBUG("Update cell object %d tag 0x%08X, delta %d", ulObjId, ulPropTag, lDelta);
-	}
-    return er;
+	return er;
 }
 
 ECRESULT ECCacheManager::UpdateCell(unsigned int ulObjId, unsigned int ulPropTag, unsigned int ulMask, unsigned int ulValue)
@@ -1539,12 +1513,11 @@ ECRESULT ECCacheManager::UpdateCell(unsigned int ulObjId, unsigned int ulPropTag
     }
 
 exit:
-	if (er) {
+	if (er != erSuccess)
 		LOG_CELLCACHE_DEBUG("Update cell object %d tag 0x%08X, mask 0x%08X, value %d failed cell not found", ulObjId, ulPropTag, ulMask, ulValue);
-	} else {
+	else
 		LOG_CELLCACHE_DEBUG("Update cell object %d tag 0x%08X, mask 0x%08X, value %d", ulObjId, ulPropTag, ulMask, ulValue);
-	}
-    return er;
+	return er;
 }
 
 ECRESULT ECCacheManager::_DelCell(unsigned int ulObjId)
@@ -1596,10 +1569,7 @@ ECRESULT ECCacheManager::RemoveIndexData(unsigned int ulObjId)
 {
 	ECRESULT				er = erSuccess;
 	ECsIndexObject	sObjectKeyLower, sObjectKeyUpper;
-	ECMapPropToObject::const_iterator iterPropToObj;
-
 	std::list<ECMapObjectToProp::value_type> lstItems;
-	std::list<ECMapObjectToProp::value_type>::const_iterator iItem;
 
 	// Get all records with specified hierarchyid and all tags (0 -> 0xffffffff)
 	sObjectKeyLower.ulObjId = ulObjId;
@@ -1610,9 +1580,9 @@ ECRESULT ECCacheManager::RemoveIndexData(unsigned int ulObjId)
 	scoped_lock lock(m_hCacheIndPropMutex);
 
 	er = m_ObjectToPropCache.GetCacheRange(sObjectKeyLower, sObjectKeyUpper, &lstItems);
-	for (iItem = lstItems.begin(); iItem != lstItems.end(); ++iItem) {
-		m_ObjectToPropCache.RemoveCacheItem(iItem->first);
-		m_PropToObjectCache.RemoveCacheItem(iItem->second);
+	for (const auto &p : lstItems) {
+		m_ObjectToPropCache.RemoveCacheItem(p.first);
+		m_PropToObjectCache.RemoveCacheItem(p.second);
 	}
 
 	return er;
@@ -1815,18 +1785,15 @@ ECRESULT ECCacheManager::GetObjectFromProp(unsigned int ulTag, unsigned int cbDa
 	*lpulObjId = sNewIndexObject.ulObjId;
 
 exit:
-
 	if (lpDBResult)
 		lpDatabase->FreeResult(lpDBResult);
 
 	sObject.lpData = NULL; // Remove reference
 
-	if (er) {
+	if (er != erSuccess)
 		LOG_CACHE_DEBUG("Get object from prop tag 0x%04X, data %s error 0x%08x", ulTag, bin2hex(cbData, lpData).c_str(), er);
-	} else {
+	else
 		LOG_CACHE_DEBUG("Get object from prop tag 0x%04X, data %s result [%s]: objectid %d", ulTag, bin2hex(cbData, lpData).c_str(), ((bCacheResult)?"C":"D"), *lpulObjId);
-	}
-
 	return er;
 }
 
@@ -1989,7 +1956,6 @@ ECRESULT ECCacheManager::GetEntryListFromObjectList(ECListInt* lplObjectList, st
 {
 	ECRESULT		er = erSuccess;
 	bool			bPartialCompletion = false;
-	ECListInt::const_iterator iterList;
 	entryList*		lpEntryList = s_alloc<entryList>(soap);
 
 	if(lplObjectList == NULL || lppEntryList == NULL) {
@@ -2000,8 +1966,8 @@ ECRESULT ECCacheManager::GetEntryListFromObjectList(ECListInt* lplObjectList, st
 	lpEntryList->__ptr = s_alloc<entryId>(soap, lplObjectList->size());
 	lpEntryList->__size = 0;
 
-	for (iterList = lplObjectList->begin(); iterList != lplObjectList->end(); ++iterList) {
-		if(GetEntryIdFromObject(*iterList, soap, 0, &lpEntryList->__ptr[lpEntryList->__size]) != erSuccess) {
+	for (auto xint : *lplObjectList) {
+		if (GetEntryIdFromObject(xint, soap, 0, &lpEntryList->__ptr[lpEntryList->__size]) != erSuccess) {
 			bPartialCompletion = true;
 			continue; // Unknown entryid, next item
 		}

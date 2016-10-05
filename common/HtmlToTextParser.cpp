@@ -242,7 +242,7 @@ void CHtmlToTextParser::parseTag(const WCHAR* &lpwHTML)
 				if (*lpwHTML == ' ') {
 					bTagName = false;
 					iterTag = tagMap.find(tagName);
-					if(iterTag != tagMap.end())
+					if (iterTag != tagMap.cend())
 						bParseAttrs = iterTag->second.bParseAttrs;
 				}else {
 					tagName.push_back(towlower(*lpwHTML));
@@ -257,7 +257,7 @@ void CHtmlToTextParser::parseTag(const WCHAR* &lpwHTML)
 	}
 
 	// Parse tag
-	if (!bTagName && iterTag != tagMap.end()) {
+	if (!bTagName && iterTag != tagMap.cend()) {
 		(this->*iterTag->second.parserMethod)();
 		fTextMode = false;
 	}
