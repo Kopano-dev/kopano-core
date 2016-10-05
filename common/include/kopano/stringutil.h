@@ -56,7 +56,6 @@ std::string stringify(unsigned int x, bool usehex = false, bool _signed = false)
 std::string stringify_int64(int64_t x, bool usehex = false);
 std::string stringify_float(float x);
 std::string stringify_double(double x, int prec = 18, bool bLocale = false);
-std::string stringify_datetime(time_t x);
 
 std::wstring wstringify(unsigned int x, bool usehex = false, bool _signed = false);
 std::wstring wstringify_int64(int64_t x, bool usehex = false);

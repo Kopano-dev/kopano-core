@@ -77,29 +77,6 @@ std::string stringify_double(double x, int prec, bool bLocale) {
 	return s.str();
 }
 
-/* Convert time_t to string representation
- *
- * String is in format YYYY-MM-DD mm:hh in the local timezone
- *
- * @param time_t x Timestamp to convert
- * @return string String representation
- */
-std::string stringify_datetime(time_t x) {
-	char date[128];
-	struct tm *tm;
-	
-	tm = localtime(&x);
-	if(!tm){
-		x = 0;
-		tm = localtime(&x);
-	}
-	
-	//strftime(date, 128, "%Y-%m-%d %H:%M:%S", tm);
-	snprintf(date,128,"%d-%02d-%02d %.2d:%.2d:%.2d",tm->tm_year+1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
-	
-	return date;
-}
-
 // FIXME support only unsigned int!!!
 std::wstring wstringify(unsigned int x, bool usehex, bool _signed)
 {
