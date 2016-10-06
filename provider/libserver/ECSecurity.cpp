@@ -267,26 +267,18 @@ ECRESULT ECSecurity::GetObjectPermission(unsigned int ulObjId, unsigned int* lpu
 
 		// There were no ACLs or no ACLs for us, go to the parent and try there
 		er = m_lpSession->GetSessionManager()->GetCacheManager()->GetParent(ulCurObj, &ulCurObj);
-		if(er != erSuccess) {
+		if (er != erSuccess)
 			// No more parents, break (with ulRights = 0)
-			er = erSuccess;
-			goto exit;
-		}
+			return erSuccess;
 		
 		// This can really only happen if you have a broken tree in the database, eg a record which has
 		// parent == id. To break out of the loop we limit the depth to 64 which is very deep in practice. This means
 		// that you never have any rights for folders that are more than 64 levels of folders away from their ACL ..
 		if (++ulDepth > MAX_PARENT_LIMIT) {
 			ec_log_err("Maximum depth reached for object %d, deepest object: %d", ulObjId, ulCurObj);
-			er = erSuccess;
-			goto exit;
+			return erSuccess;
 		}
 	}
-
-exit:
-	if(lpRights)
-		FreeRightsArray(lpRights);
-
 	return er;
 }
 
