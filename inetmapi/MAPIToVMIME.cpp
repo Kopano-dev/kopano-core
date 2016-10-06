@@ -143,6 +143,7 @@ MAPIToVMIME::MAPIToVMIME()
 	srand((unsigned)time(NULL));
 	m_lpAdrBook = NULL;
 	imopt_default_sending_options(&sopt);
+	m_lpSession = NULL;
 }
 
 /**
