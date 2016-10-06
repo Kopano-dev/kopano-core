@@ -801,7 +801,6 @@ AC_CONFIG_FILES([Makefile
 		default.sym
 		mapi4linux/src/libmapi.sym
 		version
-		specialbuild
 ])
 dnl non-oss files
 

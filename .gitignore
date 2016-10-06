@@ -25,7 +25,6 @@ stamp-h2
 /configure
 /libtool
 /python-config
-/specialbuild
 /version
 
 /default.sym

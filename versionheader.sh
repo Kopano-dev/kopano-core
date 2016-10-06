@@ -22,7 +22,6 @@ major_version=$(sed <version -e 's;^\([^.]*\).*;\1;')
 minor_version=$(sed <version -e 's;^[^.]*\.\([^.]*\).*;\1;')
 micro_version=$(sed <version -e 's;^[^.]*\.[^.]*\.\([^.]*\).*;\1;')
 comma_version="$major_version,$minor_version,$micro_version,$svnrev"
-specialbuild=`cat specialbuild`
 
 cat << EOF
 #define PROJECT_VERSION_SERVER          $comma_version
@@ -41,7 +40,6 @@ cat << EOF
 #define PROJECT_VERSION_SEARCH_STR      "$comma_version"
 #define PROJECT_VERSION_ARCHIVER_STR    "$comma_version"
 #define PROJECT_VERSION_DOT_STR         "$dot_version"
-#define PROJECT_SPECIALBUILD            "$specialbuild"
 #define PROJECT_SVN_REV_STR             "$svnrev"
 #define PROJECT_VERSION_MAJOR           $major_version
 #define PROJECT_VERSION_MINOR           $minor_version
