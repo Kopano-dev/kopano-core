@@ -520,12 +520,6 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 
 	delete lpMailer;
 	MAPIFreeBuffer(lpUserAdmin);
-	if (lpUserStore)
-		lpUserStore->Release();
-
-	if (lpMessage)
-		lpMessage->Release();
-
 	return hr;
 }
 
