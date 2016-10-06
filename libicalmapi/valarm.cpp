@@ -44,15 +44,11 @@
  */
 HRESULT HrParseReminder(LONG lRemindBefore, time_t ttReminderTime, bool bTask, icalcomponent **lppAlarm)
 {
-	HRESULT hr = hrSuccess;
 	icalcomponent *lpVAlarm = NULL;
 	icaltriggertype sittTrigger;
 
-	if (lppAlarm == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (lppAlarm == NULL)
+		return MAPI_E_INVALID_PARAMETER;
 	if (lRemindBefore == 1525252321) // OL sets this value for default 15 mins time.
 		lRemindBefore = 15;
 
@@ -70,13 +66,7 @@ HRESULT HrParseReminder(LONG lRemindBefore, time_t ttReminderTime, bool bTask, i
 	icalcomponent_add_property(lpVAlarm, icalproperty_new_description("Reminder"));
 
 	*lppAlarm = lpVAlarm;
-	lpVAlarm = NULL;
-
-exit:
-	if (lpVAlarm)
-		icalcomponent_free(lpVAlarm);
-
-	return hr;
+	return hrSuccess;
 }
 
 /**
