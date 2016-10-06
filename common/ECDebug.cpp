@@ -1919,7 +1919,6 @@ std::string FuzzyLevelToString(ULONG ulFuzzyLevel)
 	std::string strResult;
 
 	if((ulFuzzyLevel&0xFFFF) == FL_FULLSTRING){
-		if(i>0) strResult += ", ";
 		strResult += "FL_FULLSTRING";
 		ulFuzzyLevel&=~FL_FULLSTRING;
 		++i;

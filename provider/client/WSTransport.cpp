@@ -1470,9 +1470,6 @@ HRESULT WSTransport::HrGetReceiveFolder(ULONG cbStoreEntryID, LPENTRYID lpStoreE
 		hr = hrSuccess;
 		goto exitm;
 	}
-
-	if(hr != hrSuccess)
-		goto exitm;
 	hr = CopySOAPEntryIdToMAPIEntryId(&sReceiveFolderTable.sReceiveFolder.sEntryId, &cbEntryID, &lpEntryID, NULL);
 	if(hr != hrSuccess)
 		goto exitm;

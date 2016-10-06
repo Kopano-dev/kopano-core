@@ -1012,9 +1012,6 @@ nextFolder:
 			while ((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL) {
 				lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
 
-				if (lpDBRow == NULL)
-                    break;
-
                 if (lpDBRow == NULL || lpDBRow[0] == NULL || lpDBRow[1] == NULL || lpDBRow[2] == NULL || lpDBRow[3] == NULL) {
                     er = KCERR_DATABASE_ERROR; // this should never happen
 			ec_log_crit("%s:%d unexpected null pointer", __FUNCTION__, __LINE__);

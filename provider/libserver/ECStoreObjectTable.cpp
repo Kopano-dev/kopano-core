@@ -900,9 +900,6 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 		goto exit;
 		
 	while((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL) {
-		if(lpDBRow == NULL)
-			break;
-			
 		lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
 			
 		if(lpDBRow[FIELD_NR_MAX] == NULL || lpDBRow[FIELD_NR_MAX+1] == NULL || lpDBRow[FIELD_NR_TAG] == NULL || lpDBRow[FIELD_NR_TYPE] == NULL)
