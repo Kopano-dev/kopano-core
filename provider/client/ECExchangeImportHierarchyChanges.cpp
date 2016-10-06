@@ -503,10 +503,6 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderDeletion(ULONG ulFlags, LP
 		if(hr !=  hrSuccess)
 			goto exit;
 	}
-	
-	if(hr != hrSuccess)
-		goto exit;
-
 exit:
 	MAPIFreeBuffer(lpEntryId);
 	return hr;
