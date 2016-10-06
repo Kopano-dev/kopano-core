@@ -241,7 +241,7 @@ static HRESULT GetPluginObject(ECLogger *lpLogger,
 	PyMapiPlugin *lpPyMapiPlugin = NULL;
 
 	if (!lpLogger || !lpPyMapiPluginFactory || !lppPyMapiPlugin) {
-		ASSERT(FALSE);
+		assert(false);
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}

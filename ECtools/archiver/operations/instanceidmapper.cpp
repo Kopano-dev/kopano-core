@@ -57,7 +57,7 @@ HRESULT InstanceIdMapper::Create(ECLogger *lpLogger, ECConfig *lpConfig, Instanc
 exit:
 	delete lpMapper;
 	if (lpConfig == NULL) {
-		ASSERT(lpLocalConfig != NULL);
+		assert(lpLocalConfig != NULL);
 		delete lpLocalConfig;
 	}
 

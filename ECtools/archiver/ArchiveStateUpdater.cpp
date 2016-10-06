@@ -416,7 +416,7 @@ HRESULT ArchiveStateUpdater::AddCouplingBased(const tstring &userName, const std
 		return hr;
 
 	lpManage = dynamic_cast<ArchiveManageImpl*>(ptrManage.get());
-	ASSERT(lpManage != NULL);
+	assert(lpManage != NULL);
 	if (lpManage == NULL) {
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to dynamic cast to ArchiveManageImpl pointer.");
 		return MAPI_E_CALL_FAILED;
@@ -468,7 +468,7 @@ HRESULT ArchiveStateUpdater::AddServerBased(const tstring &userName, const abent
 		return hr;
 
 	lpManage = dynamic_cast<ArchiveManageImpl*>(ptrManage.get());
-	ASSERT(lpManage != NULL);
+	assert(lpManage != NULL);
 	if (lpManage == NULL) {
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to dynamic cast to ArchiveManageImpl pointer.");
 		return MAPI_E_CALL_FAILED;

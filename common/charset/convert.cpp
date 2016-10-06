@@ -194,7 +194,7 @@ namespace details {
 						err = iconv(m_cd, ICONV_HACK(&lpEntity), &cbEntity, &lpDst, &cbDst);
 						
 						if(err == (size_t)(-1)) {
-							ASSERT(false); // This will should never fail
+							assert(false); // This will should never fail
 						}
 						
 						lpSrc += sizeof(wchar_t);

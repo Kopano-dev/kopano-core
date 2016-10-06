@@ -171,7 +171,7 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 		else if (ulStoreType == ECSTORE_TYPE_ARCHIVE)
 			memcpy(&guidMDBProvider, &KOPANO_STORE_ARCHIVE_GUID, sizeof(MAPIUID));
 		else {
-			ASSERT(FALSE);
+			assert(false);
 			hr = MAPI_E_NO_SUPPORT;
 			goto exit;
 		}
@@ -398,7 +398,7 @@ HRESULT ECMSProvider::LogonByEntryID(WSTransport **lppTransport, sGlobalProfileP
 	bool		bIsPseudoUrl = false;
 	WSTransport	*lpTransport = NULL;
 
-	ASSERT(lppTransport && *lppTransport);
+	assert(lppTransport != NULL && *lppTransport != NULL);
 	lpTransport = *lppTransport;
 
 	hr = HrGetServerURLFromStoreEntryId(cbEntryID, lpEntryID, extractedServerPath, &bIsPseudoUrl);

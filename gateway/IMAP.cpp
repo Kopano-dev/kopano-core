@@ -4293,7 +4293,7 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 				}
 				// no full imap email in database available, so regenerate all
 				if (hr != hrSuccess) {
-					ASSERT(lpMessage);
+					assert(lpMessage);
 					if (oss.tellp() == ostringstream::pos_type(0)) { // already converted in previous loop?
 						if (lpMessage == NULL || IMToINet(lpSession, lpAddrBook, lpMessage, oss, sopt) != hrSuccess) {
 							vProps.push_back(item);

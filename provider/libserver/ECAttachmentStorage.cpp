@@ -1221,7 +1221,7 @@ ECFileAttachment::~ECFileAttachment()
 	if (m_dirp != NULL)
 		closedir(m_dirp);
 	if (m_bTransaction)
-		ASSERT(FALSE);
+		assert(false);
 }
 
 /** 
@@ -2041,7 +2041,7 @@ ECRESULT ECFileAttachment::DeleteAttachmentInstance(ULONG ulInstanceId, bool bRe
 		if (bReplace) {
 			er = MarkAttachmentForDeletion(ulInstanceId);
 			if (er != erSuccess && er != KCERR_NOT_FOUND) {
-				ASSERT(FALSE);
+				assert(false);
 				return er;
 			} else if(er != KCERR_NOT_FOUND) {
 				 m_setMarkedAttachment.insert(ulInstanceId);
@@ -2190,7 +2190,7 @@ ECRESULT ECFileAttachment::Begin()
 {
 	if(m_bTransaction) {
 		// Possible a duplicate begin call, don't destroy the data in production
-		ASSERT(FALSE);
+		assert(false);
 		return erSuccess;
 	}
 
@@ -2208,7 +2208,7 @@ ECRESULT ECFileAttachment::Commit()
 	bool bError = false;
 	
 	if(!m_bTransaction) {
-		ASSERT(FALSE);
+		assert(false);
 		return erSuccess;
 	}
 
@@ -2225,7 +2225,7 @@ ECRESULT ECFileAttachment::Commit()
 			bError = true;
 
 	if (bError) {
-		ASSERT(FALSE);
+		assert(false);
 		er = KCERR_DATABASE_ERROR;
 		ec_log_err("ECFileAttachment::Commit() error during commit");
 	}
@@ -2242,7 +2242,7 @@ ECRESULT ECFileAttachment::Rollback()
 	bool bError = false;
 
 	if(!m_bTransaction) {
-		ASSERT(FALSE);
+		assert(false);
 		return erSuccess;
 	}
 
@@ -2265,7 +2265,7 @@ ECRESULT ECFileAttachment::Rollback()
 	m_setMarkedAttachment.clear();
 	
 	if (bError) {
-		ASSERT(FALSE);
+		assert(false);
 		er = KCERR_DATABASE_ERROR;
 		ec_log_err("ECFileAttachment::Rollback() error");
 	}

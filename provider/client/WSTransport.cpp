@@ -233,8 +233,7 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 		lpCmd = m_lpCmd;
 	}
 
-	ASSERT(!sProfileProps.strProfileName.empty());
-
+	assert(!sProfileProps.strProfileName.empty());
 	// Attach session to sessiongroup
 	m_ecSessionGroupId = g_ecSessionManager.GetSessionGroupId(sProfileProps);
 
@@ -3611,9 +3610,8 @@ HRESULT WSTransport::HrResolveNames(LPSPropTagArray lpPropTagArray, ULONG ulFlag
 	}
 	END_SOAP_CALL
 	
-	ASSERT(sResponse.aFlags.__size == lpFlagList->cFlags);
-	ASSERT((ULONG)sResponse.sRowSet.__size == lpAdrList->cEntries);
-
+	assert(sResponse.aFlags.__size == lpFlagList->cFlags);
+	assert(static_cast<ULONG>(sResponse.sRowSet.__size) == lpAdrList->cEntries);
 	for (gsoap_size_t i = 0; i < sResponse.aFlags.__size; ++i) {
 		// Set the resolved items
 		if(lpFlagList->ulFlag[i] == MAPI_UNRESOLVED && sResponse.aFlags.__ptr[i] == MAPI_RESOLVED)
@@ -4237,8 +4235,7 @@ HRESULT WSTransport::HrGetSyncStates(const ECLISTSYNCID &lstSyncId, ECLISTSYNCST
 	getSyncStatesReponse sResponse{__gszeroinit};
 	SSyncState						sSyncState = {0};
 
-	ASSERT(lplstSyncState != NULL);
-
+	assert(lplstSyncState != NULL);
 	LockSoap();
 
 	if (lstSyncId.empty())

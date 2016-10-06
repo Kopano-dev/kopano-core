@@ -41,7 +41,7 @@ ECRESULT CreateObject(ECSession *lpecSession, ECDatabase *lpDatabase, unsigned i
 	unsigned int	ulOwner = 0;
 	std::string		strQuery;
 
-	ASSERT(ulParentType == MAPI_FOLDER || ulParentType == MAPI_MESSAGE || ulParentType == MAPI_ATTACH);
+	assert(ulParentType == MAPI_FOLDER || ulParentType == MAPI_MESSAGE || ulParentType == MAPI_ATTACH);
 	//
     // We skip quota checking because we do this during writeProps.
 

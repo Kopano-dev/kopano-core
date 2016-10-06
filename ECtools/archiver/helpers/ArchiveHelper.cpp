@@ -845,7 +845,7 @@ HRESULT ArchiveHelper::CreateSpecialFolder(eSpecFolder sfWhich, LPMAPIFOLDER *lp
 			break;
 
 		default:
-			ASSERT(FALSE);
+			assert(false);
 			return MAPI_E_INVALID_PARAMETER;
 	}
 

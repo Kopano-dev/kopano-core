@@ -241,7 +241,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 					ZLOG_DEBUG(m_lpLogger, "Exporter supports enhanced ICS, checking importer...");
 					hr = lpCollector->QueryInterface(IID_IECImportContentsChanges, (LPVOID*) &m_lpImportStreamedContents);
 					if (hr == MAPI_E_INTERFACE_NOT_SUPPORTED) {
-						ASSERT(m_lpImportStreamedContents == NULL);
+						assert(m_lpImportStreamedContents == NULL);
 						hr = hrSuccess;
 						ZLOG_DEBUG(m_lpLogger, "Importer doesn't support enhanced ICS");
 					} else
@@ -461,7 +461,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 		 * case the ulChangeId can't be enything other then 0. As ulChangeId is assigned to m_ulChangeId and neither
 		 * of them changes in this function, m_ulChangeId can't be anything other than 0 when we reach this point.
 		 **/
-		ASSERT(m_ulChangeId == 0);
+		assert(m_ulChangeId == 0);
 		UpdateState(NULL);
 	}
 	return hrSuccess;
@@ -657,7 +657,7 @@ HRESULT ECExchangeExportChanges::ConfigSelective(ULONG ulPropTag, LPENTRYLIST lp
 			ZLOG_DEBUG(m_lpLogger, "Exporter supports enhanced ICS, checking importer...");
 			hr = lpCollector->QueryInterface(IID_IECImportContentsChanges, (LPVOID*) &m_lpImportStreamedContents);
 			if (hr == MAPI_E_INTERFACE_NOT_SUPPORTED) {
-				ASSERT(m_lpImportStreamedContents == NULL);
+				assert(m_lpImportStreamedContents == NULL);
 				hr = hrSuccess;
 				ZLOG_DEBUG(m_lpLogger, "Importer doesn't support enhanced ICS");
 			} else
@@ -797,7 +797,7 @@ HRESULT ECExchangeExportChanges::xECExportChanges::SetLogger(ECLogger *lpLogger)
 }
 
 HRESULT ECExchangeExportChanges::ExportMessageChanges() {
-	ASSERT(m_lpImportContents != NULL);
+	assert(m_lpImportContents != NULL);
 	if (m_lpImportStreamedContents != NULL)
 		return ExportMessageChangesFast();
 	else

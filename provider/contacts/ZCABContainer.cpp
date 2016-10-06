@@ -44,8 +44,7 @@ ZCABContainer::ZCABContainer(std::vector<zcabFolderEntry> *lpFolders,
     const char *szClassName) :
 	ECUnknown(szClassName)
 {
-	ASSERT(!(lpFolders && lpContacts));
-
+	assert(!(lpFolders != NULL && lpContacts != NULL));
 	m_lpFolders = lpFolders;
 	m_lpContactFolder = lpContacts;
 	m_lpMAPISup = lpMAPISup;

@@ -135,9 +135,8 @@ ECRESULT FixRestrictionEncoding(struct soap *soap, const ECStringCompat &stringC
 {
 	ECRESULT er = erSuccess;
 
-	ASSERT(soap != NULL);
-	ASSERT(lpRestrict != NULL);
-
+	assert(soap != NULL);
+	assert(lpRestrict != NULL);
 	switch (lpRestrict->ulType) {
 	case RES_AND:
 		for (gsoap_size_t i = 0; er == erSuccess && i < lpRestrict->lpAnd->__size; ++i)

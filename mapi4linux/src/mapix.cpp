@@ -2832,8 +2832,7 @@ SCODE __stdcall MAPIAllocateMore(ULONG cbSize, LPVOID lpObject, LPVOID* lppBuffe
 	mlptr = _memlist.find(lpObject);
 	if (mlptr == _memlist.cend()) {
 		/* lpObject was not allocatated with MAPIAllocateBuffer() */
-		ASSERT(FALSE);
-
+		assert(false);
 		/*
 		 * Workaround: add lpObject and lppBuffer to the map,
 		 * but be aware that we will memleak because MAPIFreeBuffer()
@@ -2888,7 +2887,7 @@ ULONG __stdcall MAPIFreeBuffer(LPVOID lpBuffer) {
 		_memlist.erase(mlptr);
 	} else {
 		// item was not allocated by  MAPIAllocateBuffer
-		ASSERT(FALSE);
+		assert(false);
 	}
 	return 0;
  }

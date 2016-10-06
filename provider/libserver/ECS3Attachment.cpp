@@ -239,7 +239,7 @@ ECS3Attachment::ECS3Attachment(ECDatabase *database, const char *protocol,
 
 ECS3Attachment::~ECS3Attachment(void)
 {
-	ASSERT(!m_transact);
+	assert(!m_transact);
 }
 
 /**
@@ -801,7 +801,7 @@ ECRESULT ECS3Attachment::DeleteAttachmentInstance(ULONG ins_id,
 
 	ret = mark_att_for_del(ins_id);
 	if (ret != erSuccess && ret != KCERR_NOT_FOUND) {
-		ASSERT(FALSE);
+		assert(false);
 		return ret;
 	}
 	return erSuccess;
@@ -909,7 +909,7 @@ ECRESULT ECS3Attachment::Begin(void)
 	ec_log_debug("Begin transaction");
 	if (m_transact) {
 		/* Possible a duplicate begin call, don't destroy the data in production */
-		ASSERT(FALSE);
+		assert(false);
 		return erSuccess;
 	}
 	m_new_att.clear();
@@ -925,7 +925,7 @@ ECRESULT ECS3Attachment::Commit(void)
 
 	ec_log_debug("Commit transaction");
 	if (!m_transact) {
-		ASSERT(FALSE);
+		assert(false);
 		return erSuccess;
 	}
 
@@ -952,7 +952,7 @@ ECRESULT ECS3Attachment::Rollback(void)
 
 	ec_log_debug("Rollback transaction");
 	if (!m_transact) {
-		ASSERT(FALSE);
+		assert(false);
 		return erSuccess;
 	}
 

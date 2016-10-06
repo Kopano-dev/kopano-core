@@ -301,7 +301,7 @@ HRESULT WSMAPIPropStorage::HrUpdateSoapObject(MAPIOBJECT *lpsMapiObject, struct 
 				 * modProps.size+1 > lpsMapiObject->lstModified->size()
 				 * (a+1>b) transformed to (a>=b)
 				 */
-				ASSERT(FALSE);
+				assert(false);
 				return MAPI_E_NOT_ENOUGH_MEMORY;
 			}
 
@@ -313,7 +313,7 @@ HRESULT WSMAPIPropStorage::HrUpdateSoapObject(MAPIOBJECT *lpsMapiObject, struct 
 		}
 
 		// Broken single instance ID without data.
-		ASSERT(!(iterProps == lpsMapiObject->lstModified->cend()));
+		assert(iterProps != lpsMapiObject->lstModified->cend());
 	}
 
 	for (gsoap_size_t i = 0; i < lpsSaveObj->__size; ++i) {
@@ -428,7 +428,7 @@ HRESULT WSMAPIPropStorage::HrUpdateMapiObject(MAPIOBJECT *lpClientObj, struct sa
 			}
 			if (i == lpsServerObj->__size) {
 				// huh?
-				ASSERT(false);
+				assert(false);
 				return MAPI_E_NOT_FOUND;
 			}
 
@@ -581,14 +581,14 @@ HRESULT WSMAPIPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 	LockSoap();
 
 	if (!lppsMapiObject) {
-		ASSERT(FALSE);
+		assert(false);
 		er = KCERR_INVALID_PARAMETER;
 		goto exit;
 	}
 
 	if (*lppsMapiObject) {
 		// memleak detected
-		ASSERT(FALSE);
+		assert(false);
 		er = KCERR_INVALID_PARAMETER;
 		goto exit;
 	}

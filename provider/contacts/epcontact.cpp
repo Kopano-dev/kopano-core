@@ -46,7 +46,7 @@ HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst, LPMALLOC lpMalloc,
 		break;
 	case MSG_SERVICE_PROVIDER_CREATE:
 		// we never get here in linux (see M4LProviderAdmin::CreateProvider)
-		ASSERT(FALSE);
+		assert(false);
 		hr = hrSuccess;
 		break;
 	case MSG_SERVICE_PROVIDER_DELETE:

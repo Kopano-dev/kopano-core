@@ -1406,7 +1406,7 @@ ECRESULT ECSecurity::GetUserQuota(unsigned int ulUserId, bool bGetUserDefault, q
 	if (er != erSuccess)
 		goto exit;
 
-	ASSERT(!bGetUserDefault || sExternId.objclass == CONTAINER_COMPANY);
+	assert(!bGetUserDefault || sExternId.objclass == CONTAINER_COMPANY);
 
 	/* Not all objectclasses support quota */
 	if ((sExternId.objclass == NONACTIVE_CONTACT) ||

@@ -31,7 +31,7 @@
 #include <kopano/mapi_ptr.h>
 
 M4LMAPIGetSession::M4LMAPIGetSession(LPMAPISESSION new_session) {
-	ASSERT(new_session);
+	assert(new_session != NULL);
 	session = new_session;
 	session->AddRef();
 }

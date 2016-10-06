@@ -256,7 +256,7 @@ HRESULT ECSyncContext::HrResetChangeAdvisor()
 
 HRESULT ECSyncContext::HrGetChangeAdviseSink(IECChangeAdviseSink **lppChangeAdviseSink)
 {
-	ASSERT(m_lpChangeAdviseSink != NULL);
+	assert(m_lpChangeAdviseSink != NULL);
 	return m_lpChangeAdviseSink->QueryInterface(IID_IECChangeAdviseSink, (void**)lppChangeAdviseSink);
 }
 
@@ -267,8 +267,7 @@ HRESULT ECSyncContext::HrQueryHierarchyTable(LPSPropTagArray lpsPropTags, LPSRow
 	ULONG			ulType = 0;
 	LPMAPITABLE		lpTable = NULL;
 
-	ASSERT(lppRows != NULL);
-
+	assert(lppRows != NULL);
 	hr = m_lpStore->OpenEntry(0, NULL, &IID_IMAPIFolder, MAPI_DEFERRED_ERRORS, &ulType, (LPUNKNOWN*)&lpRootFolder);
 	if (hr != hrSuccess)
 		goto exit;
@@ -297,8 +296,7 @@ HRESULT ECSyncContext::HrOpenRootFolder(LPMAPIFOLDER *lppRootFolder, LPMDB *lppM
 	LPMAPIFOLDER	lpRootFolder = NULL;
 	SBinary			sEntryID = {0};
 
-	ASSERT(lppRootFolder != NULL);
-
+	assert(lppRootFolder != NULL);
 	hr = HrOpenFolder(&sEntryID, &lpRootFolder);
 	if (hr != hrSuccess)
 		goto exit;
@@ -325,9 +323,8 @@ HRESULT ECSyncContext::HrOpenFolder(SBinary *lpsEntryID, LPMAPIFOLDER *lppFolder
 	LPMAPIFOLDER	lpFolder = NULL;
 	ULONG			ulType = 0;
 
-	ASSERT(lpsEntryID != NULL);
-	ASSERT(lppFolder != NULL);
-
+	assert(lpsEntryID != NULL);
+	assert(lppFolder != NULL);
 	hr = m_lpStore->OpenEntry(lpsEntryID->cb, (LPENTRYID)lpsEntryID->lpb, &IID_IMAPIFolder, MAPI_DEFERRED_ERRORS|MAPI_MODIFY, &ulType, (LPUNKNOWN*)&lpFolder);
 	if (hr != hrSuccess)
 		goto exit;
@@ -362,7 +359,7 @@ HRESULT ECSyncContext::HrGetSteps(SBinary *lpEntryID, SBinary *lpSourceKey, ULON
 	IECChangeAdvisor *lpECA = NULL;
 	bool bNotified = false;
 
-	ASSERT(lpulSteps != NULL);
+	assert(lpulSteps != NULL);
 
 	// First see if the changeadvisor is monitoring the requested folder.
 	if (m_lpChangeAdvisor == NULL)
@@ -467,8 +464,7 @@ HRESULT ECSyncContext::HrUpdateChangeId(LPSTREAM lpStream)
 	changeid_t	ulChangeId = 0;
 	ECChangeAdvisorPtr	ptrECA;
 
-	ASSERT(lpStream != NULL);
-
+	assert(lpStream != NULL);
 	HRESULT hr = HrDecodeSyncStateStream(lpStream, &ulSyncId, &ulChangeId);
 	if (hr != hrSuccess)
 		return hr;
@@ -502,7 +498,7 @@ HRESULT ECSyncContext::HrGetSyncStateFromSourceKey(SBinary *lpSourceKey, SSyncSt
 	// First check the sourcekey to syncid map.
 	auto iterSyncState = m_mapStates.find(strSourceKey);
 	if (iterSyncState != m_mapStates.cend()) {
-		ASSERT(iterSyncState->second.ulSyncId != 0);
+		assert(iterSyncState->second.ulSyncId != 0);
 		*lpsSyncState = iterSyncState->second;
 		goto exit;
 	}
@@ -553,8 +549,7 @@ HRESULT ECSyncContext::HrLoadSyncStatus(SBinary *lpsSyncState)
 	std::string strSourceKey;
 	LPSTREAM lpStream = NULL;
 
-	ASSERT(lpsSyncState != NULL);
-
+	assert(lpsSyncState != NULL);
 	if (lpsSyncState->cb < 8)
 		return MAPI_E_CORRUPT_DATA;
 	HrClearSyncStatus();
@@ -610,8 +605,7 @@ HRESULT ECSyncContext::HrSaveSyncStatus(LPSPropValue *lppSyncStatusProp)
 	STATSTG sStat;
 	LPSPropValue lpSyncStatusProp = NULL;
 
-	ASSERT(lppSyncStatusProp != NULL);
-
+	assert(lppSyncStatusProp != NULL);
 	strSyncStatus.assign((char*)&ulVersion, 4);
 	ulSize = m_mapSyncStatus.size();
 	strSyncStatus.append((char*)&ulSize, 4);

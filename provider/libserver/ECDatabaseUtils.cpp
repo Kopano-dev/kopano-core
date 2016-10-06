@@ -370,8 +370,7 @@ ECRESULT ParseMVProp(const char *lpRowData, ULONG ulSize,
 	ULONG   ulLen = 0;
 	char	*lpEnd = NULL;
 	// lpRowData -> length:datalength:data
-
-	ASSERT(ulPos < ulSize);
+	assert(ulPos < ulSize);
 
 	if (ulPos >= ulSize)
 		return KCERR_INVALID_PARAMETER;

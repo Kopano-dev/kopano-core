@@ -638,7 +638,7 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 				// Add item to struct
 				memcpy(lpPropFBDataArray[1].Value.MVbin.lpbin[iMonth].lpb+lpPropFBDataArray[1].Value.MVbin.lpbin[iMonth].cb, &fbEvent, sizeof(sfbEvent));
 				lpPropFBDataArray[1].Value.MVbin.lpbin[iMonth].cb += sizeof(sfbEvent);
-				ASSERT(lpPropFBDataArray[1].Value.MVbin.lpbin[iMonth].cb <= ulMaxItemDataSize);
+				assert(lpPropFBDataArray[1].Value.MVbin.lpbin[iMonth].cb <= ulMaxItemDataSize);
 
 				ulDiffMonths = DiffYearMonthToMonth(&tmStart, &tmEnd);
 
@@ -668,7 +668,7 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 					// Add item to struct
 					memcpy(lpPropFBDataArray[1].Value.MVbin.lpbin[iMonth].lpb+lpPropFBDataArray[1].Value.MVbin.lpbin[iMonth].cb, &fbEvent, sizeof(sfbEvent));
 					lpPropFBDataArray[1].Value.MVbin.lpbin[iMonth].cb += sizeof(sfbEvent);
-					ASSERT(lpPropFBDataArray[1].Value.MVbin.lpbin[iMonth].cb <= ulMaxItemDataSize);
+					assert(lpPropFBDataArray[1].Value.MVbin.lpbin[iMonth].cb <= ulMaxItemDataSize);
 				}
 
 				++iMonth;
@@ -699,11 +699,11 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 			ulLastMonth = tmEnd.tm_mon;
 
 			bFound = true;
-			ASSERT(lpPropFBDataArray[1].Value.MVbin.lpbin[iMonth].cb <= ulMaxItemDataSize);
+			assert(lpPropFBDataArray[1].Value.MVbin.lpbin[iMonth].cb <= ulMaxItemDataSize);
 		}
-		ASSERT(iMonth == -1 || (iMonth >= 0 && static_cast<ULONG>(iMonth) < (ulMonths+1)));
-		ASSERT(lpPropFBDataArray[1].Value.MVbin.cValues <= (ulMonths+1));
-		ASSERT(lpPropFBDataArray[0].Value.MVl.cValues <= (ulMonths+1));
+		assert(iMonth == -1 || (iMonth >= 0 && static_cast<ULONG>(iMonth) < ulMonths + 1));
+		assert(lpPropFBDataArray[1].Value.MVbin.cValues <= ulMonths + 1);
+		assert(lpPropFBDataArray[0].Value.MVl.cValues <= ulMonths + 1);
 	}
 
 	if(bFound == false)

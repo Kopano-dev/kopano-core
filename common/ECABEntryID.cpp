@@ -134,13 +134,13 @@ HRESULT GeneralizeEntryIdInPlace(unsigned int cbEntryId, ENTRYID *lpEntryId)
 			if (lpAbeid->szExId[0])	// remove the 'legacy ulId field'
 				lpAbeid->ulId = 0;			
 			else {								// downgrade to version 0
-				ASSERT(cbEntryId == sizeof(ABEID));
+				assert(cbEntryId == sizeof(ABEID));
 				lpAbeid->ulVersion = 0;
 			}
 			break;
 
 		default:
-			ASSERT(FALSE);
+			assert(false);
 			break;
 	}
 	return hrSuccess;

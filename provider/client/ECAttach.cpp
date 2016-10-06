@@ -302,7 +302,7 @@ HRESULT ECAttach::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject)
 	scoped_rlock lock(m_hMutexMAPIObject);
 
 	if (!m_sMapiObject) {
-		ASSERT(m_sMapiObject != NULL);
+		assert(m_sMapiObject != NULL);
 		AllocNewMapiObject(0, 0, MAPI_MESSAGE, &m_sMapiObject);
 	}
 

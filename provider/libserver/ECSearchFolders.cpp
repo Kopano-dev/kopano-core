@@ -800,7 +800,7 @@ ECRESULT ECSearchFolders::ProcessMessageChange(unsigned int ulStoreId, unsigned 
 		
 		if (ulAttempts == 0) {
 			// The only way to get here is if all attempts failed with an SQL error.
-			ASSERT(er != KCERR_DATABASE_ERROR);
+			assert(er != KCERR_DATABASE_ERROR);
 			g_lpStatsCollector->Increment(SCN_SEARCHFOLDER_UPDATE_FAIL);
 		}
     }
@@ -860,7 +860,7 @@ ECRESULT ECSearchFolders::ProcessCandidateRows(ECDatabase *lpDatabase,
 	std::list<unsigned int> lstMatches;
 	std::list<unsigned int> lstFlags;
 	
-	ASSERT(lpPropTags->__ptr[0] == PR_MESSAGE_FLAGS);
+	assert(lpPropTags->__ptr[0] == PR_MESSAGE_FLAGS);
 	auto iterRows = ecRows.cbegin();
     if(bNotify) {
         er = lpDatabase->Begin();
@@ -1381,8 +1381,7 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulStoreId, unsigned int ulFold
     DB_RESULT lpDBResult = NULL;
     DB_ROW lpDBRow = NULL;
     
-    ASSERT((ulFlags &~ MSGFLAG_READ) == 0);
-    
+    assert((ulFlags &~ MSGFLAG_READ) == 0);
     er = GetThreadLocalDatabase(this->m_lpDatabaseFactory, &lpDatabase);
     if(er != erSuccess) {
 		ec_log_crit("ECSearchFolders::AddResults(): GetThreadLocalDatabase failed 0x%x", er);
@@ -1431,8 +1430,7 @@ ECRESULT ECSearchFolders::AddResults(unsigned int ulStoreId, unsigned int ulFold
     unsigned int ulInserted = 0;
     unsigned int ulModified = 0;
     
-    ASSERT(lstObjId.size() == lstFlags.size());
-    
+	assert(lstObjId.size() == lstFlags.size());
     if(lstObjId.empty())
 		return erSuccess;
     
@@ -1751,7 +1749,7 @@ ECRESULT ECSearchFolders::SaveSearchCriteria(ECDatabase *lpDatabase, unsigned in
 	soap_end_send(&xmlsoap);
 
 	// Make sure we're linking with the correct SOAP (c++ version)
-	ASSERT(!xml.str().empty());
+	assert(!xml.str().empty());
 
 	// xml now contains XML version of search criteria
 

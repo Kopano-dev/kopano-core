@@ -209,7 +209,7 @@ ECRESULT ECCacheManager::_GetObject(unsigned int ulObjId, unsigned int *ulParent
 	if(er != erSuccess)
 		return er;
 
-	ASSERT((sObject->ulType != MAPI_FOLDER && (sObject->ulFlags & ~(MAPI_ASSOCIATED | MSGFLAG_DELETED)) == 0) || sObject->ulType == MAPI_FOLDER);
+	assert((sObject->ulType != MAPI_FOLDER && (sObject->ulFlags & ~(MAPI_ASSOCIATED | MSGFLAG_DELETED)) == 0) || sObject->ulType == MAPI_FOLDER);
 
 	if(ulParent)
 		*ulParent = sObject->ulParent;
@@ -233,7 +233,7 @@ ECRESULT ECCacheManager::SetObject(unsigned int ulObjId, unsigned int ulParent, 
 	if(ulParent == 0 || ulObjId == 0 || ulOwner == 0)
 		return 1;
 
-	ASSERT((ulType != MAPI_FOLDER && (ulFlags & ~(MAPI_ASSOCIATED | MSGFLAG_DELETED)) == 0) || ulType == MAPI_FOLDER);
+	assert((ulType != MAPI_FOLDER && (ulFlags & ~(MAPI_ASSOCIATED | MSGFLAG_DELETED)) == 0) || ulType == MAPI_FOLDER);
 
 	sObjects.ulParent	= ulParent;
 	sObjects.ulOwner	= ulOwner;
@@ -756,7 +756,7 @@ ECRESULT ECCacheManager::GetUserObject(const objectid_t &sExternId, unsigned int
 
 	if (sExternId.id.empty()) {
 		er = KCERR_DATABASE_ERROR;
-		//ASSERT(FALSE);
+		//assert(false);
 		goto exit;
 	}
 

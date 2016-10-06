@@ -100,7 +100,7 @@ public:
 
 	void set(ucIndex index, unsigned int ulValue) {
 		if (index != ucNonActiveTotal) {
-			ASSERT(index >= 0 && index < ucMAX);
+			assert(index >= 0 && index < ucMAX);
 			m_ulCounts[index] = ulValue;
 			m_bValid = true;
 		}
@@ -109,8 +109,7 @@ public:
 	unsigned int operator[](ucIndex index) const {
 		if (index == ucNonActiveTotal)
 			return m_ulCounts[ucNonActiveUser] + m_ulCounts[ucRoom] + m_ulCounts[ucEquipment];	// Contacts don't count for non-active stores.
-
-		ASSERT(index >= 0 && index < ucMAX);
+		assert(index >= 0 && index < ucMAX);
 		return m_ulCounts[index];
 	}
 

@@ -352,7 +352,7 @@ initprov_mapi_store(struct initprov &d, const sGlobalProfileProps &profprop)
 		if (ret != hrSuccess)
 			return ret;
 	} else {
-		ASSERT(FALSE); // unknown GUID?
+		assert(false); // unknown GUID?
 		return hrSuccess;
 	}
 
@@ -487,7 +487,7 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 			goto exit;
 	} else {
 		if(ulResourceType != MAPI_TRANSPORT_PROVIDER) {
-			ASSERT(FALSE);
+			assert(false);
 		}
 		goto exit;
 	}
@@ -549,7 +549,7 @@ static HRESULT UpdateProviders(LPPROVIDERADMIN lpAdminProviders,
 		lpsProviderUID = PpropFindProp(ptrRows[curRow].lpProps, ptrRows[curRow].cValues, PR_PROVIDER_UID);
 		if(lpsProviderUID == NULL || lpsProviderUID->Value.bin.cb == 0) {
 			// Provider without a provider uid,  just move to the next
-			ASSERT(FALSE);
+			assert(false);
 			continue;
 		}
 
@@ -622,7 +622,7 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
 	if (psup) {
 		hr = psup->GetMemAllocRoutines(&_pfnAllocBuf, &_pfnAllocMore, &_pfnFreeBuf);
 		if(hr != hrSuccess) {
-			ASSERT(FALSE);
+			assert(false);
 		}
 	} else {
 		// Support object not available on linux at this time... TODO: fix mapi4linux?
@@ -766,7 +766,7 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
 				bShowDialog = true;
 			} else if(hr != erSuccess){ // Big error?
 				bShowDialog = true;
-				ASSERT(FALSE);
+				assert(false);
 			}else {
 				//Update global profile
 				if( bGlobalProfileUpdate == true) {

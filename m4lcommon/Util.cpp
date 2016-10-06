@@ -3701,9 +3701,7 @@ next_include_check:
 			 PROP_ID(lpProps[i].ulPropTag) == PROP_ID(PR_HTML) ||
 			 PROP_ID(lpProps[i].ulPropTag) == PROP_ID(PR_RTF_COMPRESSED)) ))
 		{
-
-			ASSERT(PROP_ID(lpIncludeProps->aulPropTag[i]) == PROP_ID(lpProps[i].ulPropTag));
-			
+			assert(PROP_ID(lpIncludeProps->aulPropTag[i]) == PROP_ID(lpProps[i].ulPropTag));
 			hr = Util::TryOpenProperty(PROP_TYPE(lpIncludeProps->aulPropTag[i]), lpProps[i].ulPropTag, lpSrcProp, lpsDestTagArray->aulPropTag[i], lpDestProp, &lpSrcStream, &lpDestStream);
 			if (hr != hrSuccess) {
 				// TODO: check, partial or problemarray?
@@ -3991,7 +3989,7 @@ HRESULT Util::HrDeleteResidualProps(LPMESSAGE lpDestMsg, LPMESSAGE lpSourceMsg, 
 		goto exit;
 
 	// Reuse lpsPropArray to hold the properties we're going to delete
-	ASSERT(lpsPropArray->cValues >= sPropTagSet.size());
+	assert(lpsPropArray->cValues >= sPropTagSet.size());
 	memset(lpsPropArray->aulPropTag, 0, lpsPropArray->cValues * sizeof *lpsPropArray->aulPropTag);
 	lpsPropArray->cValues = 0;
 

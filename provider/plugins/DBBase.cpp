@@ -885,7 +885,7 @@ DBPlugin::CreateSignatureList(const std::string &query)
 		objclass = objectclass_t(atoi(lpDBRow[1]));
 
 		lpDBLen = m_lpDatabase->FetchRowLengths(lpResult);
-		ASSERT(lpDBLen != NULL);
+		assert(lpDBLen != NULL);
 		if (lpDBLen[0] == 0)
 			throw runtime_error(string("db_row_failed: object empty"));
 

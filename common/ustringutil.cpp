@@ -1235,9 +1235,8 @@ ECLocale createLocaleFromName(const char *lpszLocale)
 ECRESULT LocaleIdToLCID(const char *lpszLocaleID, ULONG *lpulLcid)
 {
 	const struct localemap *lpMapEntry = NULL;
-
-	ASSERT(lpszLocaleID != NULL);
-	ASSERT(lpulLcid != NULL);
+	assert(lpszLocaleID != NULL);
+	assert(lpulLcid != NULL);
 
 	for (unsigned i = 0; !lpMapEntry && i < arraySize(localeMap); ++i)
 		if (strcasecmp(localeMap[i].lpszLocaleID, lpszLocaleID) == 0)
@@ -1252,8 +1251,7 @@ ECRESULT LocaleIdToLCID(const char *lpszLocaleID, ULONG *lpulLcid)
 ECRESULT LCIDToLocaleId(ULONG ulLcid, const char **lppszLocaleID)
 {
 	const struct localemap *lpMapEntry = NULL;
-
-	ASSERT(lppszLocaleID != NULL);
+	assert(lppszLocaleID != NULL);
 
 	for (unsigned i = 0; !lpMapEntry && i < arraySize(localeMap); ++i)
 		if (localeMap[i].ulLCID == ulLcid)
@@ -1268,9 +1266,8 @@ ECRESULT LCIDToLocaleId(ULONG ulLcid, const char **lppszLocaleID)
 ECRESULT LocaleIdToLocaleName(const char *lpszLocaleID, const char **lppszLocaleName)
 {
 	const struct localemap *lpMapEntry = NULL;
-
-	ASSERT(lpszLocaleID != NULL);
-	ASSERT(lppszLocaleName != NULL);
+	assert(lpszLocaleID != NULL);
+	assert(lppszLocaleName != NULL);
 
 	for (unsigned i = 0; !lpMapEntry && i < arraySize(localeMap); ++i)
 		if (strcasecmp(localeMap[i].lpszLocaleID, lpszLocaleID) == 0)
@@ -1353,9 +1350,9 @@ static void createSortKeyData(const UnicodeString &s, int nCap, const ECLocale &
  */
 void createSortKeyData(const char *s, int nCap, const ECLocale &locale, unsigned int *lpcbKey, unsigned char **lppKey)
 {
-	ASSERT(s != NULL);
-	ASSERT(lpcbKey != NULL);
-	ASSERT(lppKey != NULL);
+	assert(s != NULL);
+	assert(lpcbKey != NULL);
+	assert(lppKey != NULL);
 
 #ifdef ZCP_USES_ICU
 	createSortKeyData(UnicodeString(s), nCap, locale, lpcbKey, lppKey);
@@ -1377,16 +1374,16 @@ void createSortKeyData(const char *s, int nCap, const ECLocale &locale, unsigned
  */
 void createSortKeyData(const wchar_t *s, int nCap, const ECLocale &locale, unsigned int *lpcbKey, unsigned char **lppKey)
 {
-	ASSERT(s != NULL);
-	ASSERT(lpcbKey != NULL);
-	ASSERT(lppKey != NULL);
+	assert(s != NULL);
+	assert(lpcbKey != NULL);
+	assert(lppKey != NULL);
 
 #ifdef ZCP_USES_ICU
 	UnicodeString ustring;
 	ustring = UTF32ToUnicode((const UChar32*)s);
 	createSortKeyData(ustring, nCap, locale, lpcbKey, lppKey);
 #else
-	ASSERT((locale_t)locale != NULL);
+	assert((locale_t)locale != NULL);
 
 	unsigned int cbKey = 1 + wcsxfrm_l(NULL, s, 0, locale);
 	wchar_t *lpKey = new wchar_t[cbKey];
@@ -1411,9 +1408,9 @@ void createSortKeyData(const wchar_t *s, int nCap, const ECLocale &locale, unsig
  */
 void createSortKeyDataFromUTF8(const char *s, int nCap, const ECLocale &locale, unsigned int *lpcbKey, unsigned char **lppKey)
 {
-	ASSERT(s != NULL);
-	ASSERT(lpcbKey != NULL);
-	ASSERT(lppKey != NULL);
+	assert(s != NULL);
+	assert(lpcbKey != NULL);
+	assert(lppKey != NULL);
 
 #ifdef ZCP_USES_ICU
 	createSortKeyData(UTF8ToUnicode(s), nCap, locale, lpcbKey, lppKey);
@@ -1436,7 +1433,7 @@ void createSortKeyDataFromUTF8(const char *s, int nCap, const ECLocale &locale, 
  */
 ECSortKey createSortKeyFromUTF8(const char *s, int nCap, const ECLocale &locale)
 {
-	ASSERT(s != NULL);
+	assert(s != NULL);
 
 #ifdef ZCP_USES_ICU
 	return createSortKey(UTF8ToUnicode(s), nCap, locale);
@@ -1463,8 +1460,8 @@ ECSortKey createSortKeyFromUTF8(const char *s, int nCap, const ECLocale &locale)
  */
 int compareSortKeys(unsigned int cbKey1, const unsigned char *lpKey1, unsigned int cbKey2, const unsigned char *lpKey2)
 {
-	ASSERT(!(cbKey1 != 0 && lpKey1 == NULL));
-	ASSERT(!(cbKey2 != 0 && lpKey2 == NULL));
+	assert(!(cbKey1 != 0 && lpKey1 == NULL));
+	assert(!(cbKey2 != 0 && lpKey2 == NULL));
 
 #ifdef ZCP_USES_ICU
 	CollationKey ckA(lpKey1, cbKey1);
@@ -1484,10 +1481,9 @@ int compareSortKeys(unsigned int cbKey1, const unsigned char *lpKey1, unsigned i
 	else if (cbKey2 == 0)
 		return 1;
 
-	ASSERT(wcslen((wchar_t*)lpKey1) == (cbKey1 / sizeof(wchar_t)) - 1);
-	ASSERT(wcslen((wchar_t*)lpKey2) == (cbKey2 / sizeof(wchar_t)) - 1);
-
-	return wcscmp((wchar_t*)lpKey1, (wchar_t*)lpKey2);	
+	assert(wcslen(reinterpret_cast<wchar_t *>(lpKey1)) == (cbKey1 / sizeof(wchar_t)) - 1);
+	assert(wcslen(reinterpret_cast<wchar_t *>(lpKey2)) == (cbKey2 / sizeof(wchar_t)) - 1);
+	return wcscmp((wchar_t*)lpKey1, (wchar_t*)lpKey2);
 #endif
 }
 
@@ -1496,7 +1492,7 @@ ECLocale::ECLocale()
 : m_locale(createlocale(LC_ALL, ""))
 , m_category(LC_ALL)
 {
-	ASSERT(m_locale != NULL);
+	assert(m_locale != NULL);
 }
 
 ECLocale::ECLocale(int category, const char *locale)
@@ -1530,7 +1526,7 @@ ECLocale::ECLocale(int category, const char *locale)
 			m_locale = createlocale_real(category, m_localeid.c_str());
 		}
 	}
-	ASSERT(m_locale != NULL);
+	assert(m_locale != NULL);
 }
 
 ECLocale::ECLocale(const ECLocale &other)
@@ -1538,7 +1534,7 @@ ECLocale::ECLocale(const ECLocale &other)
 , m_category(other.m_category)
 , m_localeid(other.m_localeid)
 {
-	ASSERT(m_locale != NULL);
+	assert(m_locale != NULL);
 }
 
 ECLocale::~ECLocale() {

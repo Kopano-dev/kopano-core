@@ -312,7 +312,7 @@ HRESULT __stdcall ECExchangeModifyTable::ModifyTable(ULONG ulFlags, LPROWLIST lp
 		// FIXME: if username not exist, just resolve
 
 	} else {
-		ASSERT(FALSE);
+		assert(false);
 		hr = MAPI_E_CALL_FAILED;
 	}
 

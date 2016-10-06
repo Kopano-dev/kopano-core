@@ -499,7 +499,7 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 										ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup, (void *)lpStreamData, &lpStream);
 				break;
 			default:
-				ASSERT(false);
+				assert(false);
 				hr = MAPI_E_NOT_FOUND;
 				delete lpStreamData;
 				break;
@@ -919,7 +919,7 @@ HRESULT ECMAPIProp::SetParentID(ULONG cbParentID, LPENTRYID lpParentID)
 {
 	HRESULT hr;
 
-	ASSERT(m_lpParentID == NULL);
+	assert(m_lpParentID == NULL);
 	if (lpParentID == NULL || cbParentID == 0)
 		return MAPI_E_INVALID_PARAMETER;
 

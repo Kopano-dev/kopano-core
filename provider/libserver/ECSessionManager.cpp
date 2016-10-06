@@ -745,7 +745,7 @@ ECRESULT ECSessionManager::AddNotification(notification *notifyItem, unsigned in
 	if(notifyItem->obj && notifyItem->obj->ulObjType == MAPI_MESSAGE) {
 		if (ulFolderId == 0 && ulFlags == 0 ) {
 			if(GetCacheManager()->GetObject(ulKey, &ulFolderId, NULL, &ulFlags, NULL) != erSuccess) {
-				ASSERT(FALSE);
+				assert(false);
 				return hr;
 			}
 		}
@@ -1600,7 +1600,7 @@ ECRESULT ECSessionManager::RemoveBusyState(ECSESSIONID ecSessionId, pthread_t th
 	lpECSession = dynamic_cast<ECSession *>(lpSession);
 	
 	if(!lpECSession) {
-		ASSERT(lpECSession != NULL);
+		assert(lpECSession != NULL);
 		goto exit;
 	}
 	

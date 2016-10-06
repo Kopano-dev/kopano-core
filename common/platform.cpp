@@ -91,7 +91,7 @@ static const LONGLONG UnitsPerHalfMinute = 300000000;
 
 void RTimeToFileTime(LONG rtime, FILETIME *pft)
 {
-	// ASSERT(pft != NULL);
+	// assert(pft != NULL);
 	ULONGLONG q = rtime;
 	q *= UnitsPerMinute;
 	pft->dwLowDateTime  = q & 0xFFFFFFFF;
@@ -100,9 +100,8 @@ void RTimeToFileTime(LONG rtime, FILETIME *pft)
  
 void FileTimeToRTime(const FILETIME *pft, LONG *prtime)
 {
-	// ASSERT(pft != NULL);
-	// ASSERT(prtime != NULL);
-
+	// assert(pft != NULL);
+	// assert(prtime != NULL);
 	ULONGLONG q = pft->dwHighDateTime;
 	q <<= 32;
 	q |= pft->dwLowDateTime;

@@ -242,8 +242,7 @@ objectclass_t objectdetails_t::GetClass() const {
 }
 
 void objectdetails_t::MergeFrom(const objectdetails_t &from) {
-	ASSERT(this->m_objclass == from.m_objclass);
-
+	assert(this->m_objclass == from.m_objclass);
 	for (auto fi = from.m_mapProps.cbegin();
 	     fi != from.m_mapProps.cend(); ++fi)
 		this->m_mapProps[fi->first].assign(fi->second);

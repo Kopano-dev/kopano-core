@@ -290,7 +290,7 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 			return hr;
 		}
 
-		ASSERT(ptrSourceRows.size() == ptrDestRows.size());
+		assert(ptrSourceRows.size() == ptrDestRows.size());
 		for (SRowSetPtr::size_type i = 0; i < ptrSourceRows.size(); ++i) {
 			HRESULT hrTmp = hrSuccess;
 			AttachPtr ptrSourceAttach;
@@ -687,9 +687,8 @@ HRESULT Copier::DoInitialArchive(LPMESSAGE lpMessage, const SObjectEntry &archiv
 	PostSaveActionPtr ptrPSAction;
 	TransactionPtr ptrTransaction;
 
-	ASSERT(lpMessage != NULL);
-	ASSERT(lpptrTransaction != NULL);
-	
+	assert(lpMessage != NULL);
+	assert(lpptrTransaction != NULL);
 	hr = m_ptrHelper->CreateArchivedMessage(lpMessage, archiveRootEntry, refMsgEntry, &ptrNewArchive, &ptrPSAction);
 	if (hr != hrSuccess)
 		return hr;
@@ -727,9 +726,8 @@ HRESULT Copier::DoTrackAndRearchive(LPMESSAGE lpMessage, const SObjectEntry &arc
 	PostSaveActionPtr ptrPSAction;
 	TransactionPtr ptrTransaction;
 
-	ASSERT(lpMessage != NULL);
-	ASSERT(lpptrTransaction != NULL);
-
+	assert(lpMessage != NULL);
+	assert(lpptrTransaction != NULL);
 	hr = m_ptrHelper->CreateArchivedMessage(lpMessage, archiveRootEntry, refMsgEntry, &ptrNewArchive, &ptrPSAction);
 	if (hr != hrSuccess)
 		return hr;
@@ -770,8 +768,7 @@ HRESULT Copier::DoTrackAndRearchive(LPMESSAGE lpMessage, const SObjectEntry &arc
 	}
 
 	if (bUpdateHistory) {
-		ASSERT(ptrMovedMessage);
-
+		assert(ptrMovedMessage);
 		// Since the first history message was just moved but not yet saved, we'll set that
 		// reference here. The other history messages do exist on the server, so those can
 		// be updated through UpdateHistoryRefs.
@@ -807,9 +804,8 @@ HRESULT Copier::DoUpdateArchive(LPMESSAGE lpMessage, const SObjectEntry &archive
 	PostSaveActionPtr ptrPSAction;
 	TransactionPtr ptrTransaction;
 
-	ASSERT(lpMessage != NULL);
-	ASSERT(lpptrTransaction != NULL);
-
+	assert(lpMessage != NULL);
+	assert(lpptrTransaction != NULL);
 	hr = m_ptrSession->OpenStore(archiveMsgEntry.sStoreEntryId, &ptrArchiveStore);
 	if (hr != hrSuccess) {
 		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to open archive store. (hr=%s)", stringify(hr, true).c_str());
@@ -880,8 +876,7 @@ HRESULT Copier::DoMoveArchive(const SObjectEntry &archiveRootEntry, const SObjec
 	SObjectEntry objectEntry;
 	TransactionPtr ptrTransaction;
 
-	ASSERT(lpptrTransaction != NULL);
-
+	assert(lpptrTransaction != NULL);
 	hr = m_ptrHelper->GetArchiveFolder(archiveRootEntry, &ptrArchiveFolder);
 	if (hr != hrSuccess)
 		return hr;
@@ -929,8 +924,8 @@ HRESULT Copier::DoMoveArchive(const SObjectEntry &archiveRootEntry, const SObjec
 HRESULT Copier::ExecuteSubOperations(LPMESSAGE lpMessage, LPMAPIFOLDER lpFolder, ULONG cProps, const LPSPropValue lpProps)
 {
 	HRESULT hr = hrSuccess;
-	ASSERT(lpMessage != NULL);
-	ASSERT(lpFolder != NULL);
+	assert(lpMessage != NULL);
+	assert(lpFolder != NULL);
 	if (lpMessage == NULL || lpFolder == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 

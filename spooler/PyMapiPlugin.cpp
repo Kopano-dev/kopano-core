@@ -28,15 +28,9 @@
 #include <kopano/stringutil.h>
 #include "frameobject.h"
 
-/**
- * workaround compile issue with ASSERT macro in vs 2008
- *
- * It's not possible to compile in visual studio 2008 with 
- * ASSERT in macro using this function will fix it
- */
 static void assertbreak(void)
 {
-	ASSERT(FALSE);
+	assert(false);
 }
 
 #define NEW_SWIG_INTERFACE_POINTER_OBJ(pyswigobj, objpointer, typeobj) {\

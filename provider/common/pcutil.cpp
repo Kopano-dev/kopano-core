@@ -320,8 +320,7 @@ ECRESULT SIIDToEntryID(struct soap *soap, LPGUID guidServer, unsigned int ulInst
 	LPSIEID lpInstanceEid = NULL;
 	ULONG ulSize = 0;
 
-	ASSERT(ulPropId < 0x0000FFFF);
-
+	assert(ulPropId < 0x0000FFFF);
 	if (lpsInstanceId == NULL)
 		return KCERR_INVALID_PARAMETER;
 

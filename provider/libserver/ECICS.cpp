@@ -80,8 +80,7 @@ static ECRESULT FilterUserIdsByCompany(ECDatabase *lpDatabase, const std::set<un
 	DB_RESULT			lpDBResult = NULL;
 	std::string			strQuery;
 	unsigned int		ulRows = 0;
-
-	ASSERT(!sUserIds.empty());
+	assert(!sUserIds.empty());
 
 	strQuery = "SELECT id FROM users where company=" + stringify(ulCompanyFilter) + " AND id IN (";
 	for (const auto i : sUserIds)
@@ -1236,8 +1235,7 @@ ECRESULT GetSyncStates(struct soap *soap, ECSession *lpSession, mv_long ulaSyncI
 		lpsaSyncState->__ptr[lpsaSyncState->__size].ulSyncId = atoui(lpDBRow[0]);
 		lpsaSyncState->__ptr[lpsaSyncState->__size++].ulChangeId = atoui(lpDBRow[1]);
 	}
-	ASSERT(lpsaSyncState->__size == ulResults);
-
+	assert(lpsaSyncState->__size == ulResults);
 exit:
 	if (lpDBResult != NULL)
 		lpDatabase->FreeResult(lpDBResult);

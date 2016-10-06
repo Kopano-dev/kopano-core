@@ -44,7 +44,7 @@ HRESULT Stubber::ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps, const LPSProp
 	MessagePtr ptrMessage;
 	ULONG ulType = 0;
 
-	ASSERT(lpFolder != NULL);
+	assert(lpFolder != NULL);
 	if (lpFolder == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	
@@ -81,7 +81,7 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 
 	SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ATTACH_NUM}};
 
-	ASSERT(lpMessage != NULL);
+	assert(lpMessage != NULL);
 	if (lpMessage == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 

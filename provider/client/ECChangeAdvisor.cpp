@@ -293,7 +293,7 @@ HRESULT ECChangeAdvisor::UpdateState(LPSTREAM lpStream)
 
 	// Since m_mapSyncStates are related m_mapConnection the maps should
 	// be equal in size.
-	ASSERT(m_mapConnections.size() == m_mapSyncStates.size());
+	assert(m_mapConnections.size() == m_mapSyncStates.size());
 
 	// Create the status stream
 	lpStream->Seek(liPos, STREAM_SEEK_SET, NULL);

@@ -30,7 +30,7 @@ public:
 
 	MAPIContainerPtr& dereference() const
 	{
-		ASSERT(m_ptrCurrent && "attempt to dereference end iterator");
+		assert(m_ptrCurrent != NULL && "attempt to dereference end iterator");
 		return const_cast<MAPIContainerPtr&>(m_ptrCurrent);
 	}
 
@@ -89,7 +89,7 @@ protected:
 
 	UnknownPtr& dereference() const
 	{
-		ASSERT(m_ptrCurrent && "attempt to dereference end iterator");
+		assert(m_ptrCurrent != NULL && "attempt to dereference end iterator");
 		return const_cast<UnknownPtr&>(m_ptrCurrent);
 	}
 

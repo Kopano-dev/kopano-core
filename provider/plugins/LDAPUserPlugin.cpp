@@ -191,8 +191,7 @@ public:
 	attrArray(unsigned int ulSize)
 	{
 		lpAttrs = new const char *[ulSize + 1]; /* +1 for NULL entry */
-		ASSERT(lpAttrs);
-
+		assert(lpAttrs != NULL);
 		/* Make sure all entries are NULL */
 		memset(lpAttrs, 0, sizeof(const char *) * ulSize);
 
@@ -207,7 +206,7 @@ public:
 
 	void add(const char *lpAttr)
 	{
-		ASSERT(ulAttrs < ulMaxAttrs);
+		assert(ulAttrs < ulMaxAttrs);
 		lpAttrs[ulAttrs++] = lpAttr;
 		lpAttrs[ulAttrs] = NULL;
 	}
@@ -563,7 +562,7 @@ void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char 
 
 	// filter must be NULL to request everything (becomes (objectClass=*) in ldap library)
 	if (filter[0] == '\0') {
-		ASSERT(scope == LDAP_SCOPE_BASE);
+		assert(scope == LDAP_SCOPE_BASE);
 		filter = NULL;
 	}
 
@@ -2310,7 +2309,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 			try {
 			    // Currently not supported for multivalued arrays. This would require multiple calls to objectUniqueIDtoAttributeData
 			    // which is inefficient, and it is currently unused.
-			    ASSERT(p.result_attr.empty());
+				assert(p.result_attr.empty());
 				std::unique_ptr<signatures_t> lstSignatures = resolveObjectsFromAttributeType(p.objclass, p.ldap_attrs, p.relAttr, p.relAttrType);
 				if (lstSignatures->size() != p.ldap_attrs.size()) {
 					// try to rat out the object causing the failed ldap query

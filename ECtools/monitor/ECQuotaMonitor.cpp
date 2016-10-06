@@ -924,9 +924,7 @@ HRESULT ECQuotaMonitor::CreateMessageProperties(ECUSER *lpecToUser,
 	/* Delivery time */
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_MESSAGE_DELIVERY_TIME;
 	lpPropArray[ulPropArrayCur++].Value.ft = ft;
-
-	ASSERT(ulPropArrayCur <= ulPropArrayMax);
-
+	assert(ulPropArrayCur <= ulPropArrayMax);
 	*lppPropArray = lpPropArray;
 	*lpcPropSize = ulPropArrayCur;
 

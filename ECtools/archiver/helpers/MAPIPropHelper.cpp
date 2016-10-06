@@ -141,7 +141,7 @@ HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageSt
 
 	// Determine copy / move state.
 	if (PROP_TYPE(ptrMessageProps[IDX_ORIGINAL_SOURCEKEY].ulPropTag) == PT_ERROR) {
-		ASSERT(ptrMessageProps[IDX_ORIGINAL_SOURCEKEY].Value.err == MAPI_E_NOT_FOUND);
+		assert(ptrMessageProps[IDX_ORIGINAL_SOURCEKEY].Value.err == MAPI_E_NOT_FOUND);
 		// No way to determine of message was copied/moved, so assume it's not.
 		return hr;
 	}

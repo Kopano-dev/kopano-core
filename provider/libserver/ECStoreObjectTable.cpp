@@ -161,8 +161,7 @@ ECRESULT ECStoreObjectTable::GetColumnsAll(ECListInt* lplstProps)
 	ULONG			ulPropID = 0;
 	ulock_rec biglock(m_hLock);
 
-	ASSERT(lplstProps != NULL);
-
+	assert(lplstProps != NULL);
 	er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
 		goto exit;
@@ -235,8 +234,7 @@ ECRESULT ECStoreObjectTable::ReloadTableMVData(ECObjectTableList* lplistRows, EC
 	if (er != erSuccess)
 		goto exit;
 
-	ASSERT(lplistMVPropTag->size() <2); //FIXME: Limit of one 1 MV column
-
+	assert(lplistMVPropTag->size() < 2); //FIXME: Limit of one 1 MV column
 	// scan for MV-props and add rows
 	strQuery = "SELECT h.id, orderid FROM hierarchy as h";
 	j = 0;
@@ -327,8 +325,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
 
 	std::list<unsigned int> propList;
 
-	ASSERT(lpRowList != NULL);
-
+	assert(lpRowList != NULL);
 	er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
 		goto exit;
@@ -628,8 +625,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
 	std::string strPropColOrder = bTableLimit ? PROPCOLORDER_TRUNCATED : PROPCOLORDER;
 	std::string strMVIPropColOrder = bTableLimit ? MVIPROPCOLORDER_TRUNCATED : MVIPROPCOLORDER;
 	
-	ASSERT(lpsRowSet != NULL);
-
+	assert(lpsRowSet != NULL);
 	er = lpSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess)
 		goto exit;
@@ -736,7 +732,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
             
         while((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != 0) {
             if(lpDBRow[1] == NULL || lpDBRow[2] == NULL) {
-                ASSERT(false);
+                assert(false);
                 continue;
             }
             
@@ -781,7 +777,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByRow(ECGenericObjectTable *lpThis,
     }
 
 	for (const auto &col : mapColumns) {
-		ASSERT(lpsRowSet->__ptr[ulRowNum].__ptr[col.second].ulPropTag == 0);
+		assert(lpsRowSet->__ptr[ulRowNum].__ptr[col.second].ulPropTag == 0);
 		CopyEmptyCellToSOAPPropVal(soap, col.first, &lpsRowSet->__ptr[ulRowNum].__ptr[col.second]);
 		lpSession->GetSessionManager()->GetCacheManager()->SetCell(&sKey, col.first, &lpsRowSet->__ptr[ulRowNum].__ptr[col.second]);
 	}
@@ -927,7 +923,7 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
 		if(ulType & MVI_FLAG)
 			iterObjIds = mapObjIds.find(key);
 		else {
-			ASSERT(key.ulOrderId == 0);
+			assert(key.ulOrderId == 0);
 			iterObjIds = mapObjIds.lower_bound(key);
 		}
 			
@@ -1203,8 +1199,8 @@ ECRESULT ECStoreObjectTable::AddRowKey(ECObjectTableList* lpRows, unsigned int *
     struct restrictTable *lpNewRestrict = NULL;
     std::string suggestion;
  
-    ASSERT(!bOverride); // Default implementation never has override enabled, so we should never see this
-    ASSERT(lpOverride == NULL);
+	assert(!bOverride); // Default implementation never has override enabled, so we should never see this
+	assert(lpOverride == NULL);
 	ulock_rec biglock(m_hLock);
 	
     // Use normal table update code if:

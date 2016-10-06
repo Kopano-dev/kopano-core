@@ -49,7 +49,7 @@ HRESULT WebDav::HrParseXml()
 	HRESULT hr = hrSuccess;
 	std::string strBody;
 
-	ASSERT(m_lpXmlDoc == NULL);
+	assert(m_lpXmlDoc == NULL);
 	if (m_lpXmlDoc != NULL)
 		return hr;
 

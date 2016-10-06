@@ -470,7 +470,7 @@ HRESULT ECMsgStorePublic::BuildIPMSubTree()
 			PR_OBJECT_TYPE, PR_FOLDER_TYPE} };
 
 	if (m_lpIPMSubTree != NULL){
-		ASSERT(FALSE);
+		assert(false);
 		goto exit;
 	}
 
@@ -568,8 +568,7 @@ HRESULT ECMsgStorePublic::BuildIPMSubTree()
 	if (hr != hrSuccess)
 		goto exit;
 
-	ASSERT(cProps <= cMaxProps);
-
+	assert(cProps <= cMaxProps);
 	MAPIFreeBuffer(lpProps);
 	lpProps = NULL;
 
@@ -665,8 +664,7 @@ HRESULT ECMsgStorePublic::BuildIPMSubTree()
 	if (hr != hrSuccess)
 		goto exit;
 
-	ASSERT(cProps <= cMaxProps);
-
+	assert(cProps <= cMaxProps);
 	MAPIFreeBuffer(lpProps);
 	lpProps = NULL;
 
@@ -679,8 +677,7 @@ exit:
 
 ECMemTable *ECMsgStorePublic::GetIPMSubTree()
 {
-	ASSERT(m_lpIPMSubTree != NULL);
-
+	assert(m_lpIPMSubTree != NULL);
 	return m_lpIPMSubTree;
 }
 

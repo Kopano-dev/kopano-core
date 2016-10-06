@@ -457,7 +457,7 @@ void ECDatabaseMySQL::UnloadLibrary(void)
 
 ECRESULT ECDatabaseMySQL::InitEngine()
 {
-	_ASSERT(m_bMysqlInitialize == false);
+	assert(!m_bMysqlInitialize);
 
 	//Init mysql and make a connection
 	if(mysql_init(&m_lpMySQL) == NULL) {
@@ -478,7 +478,7 @@ ECRESULT ECDatabaseMySQL::InitEngine()
 
 std::string ECDatabaseMySQL::GetDatabaseDir()
 {
-	ASSERT(!m_strDatabaseDir.empty());
+	assert(!m_strDatabaseDir.empty());
 	return m_strDatabaseDir;
 }
 
@@ -744,7 +744,7 @@ ECRESULT ECDatabaseMySQL::Query(const string &strQuery) {
 		er = KCERR_DATABASE_ERROR;
 		// Don't assert on ER_NO_SUCH_TABLE because it's an anticipated error in the db upgrade code.
 		if (mysql_errno(&m_lpMySQL) != ER_NO_SUCH_TABLE)
-			ASSERT(false);
+			assert(false);
 	}
 	return er;
 }
@@ -769,8 +769,7 @@ ECRESULT ECDatabaseMySQL::DoSelect(const string &strQuery, DB_RESULT *lppResult,
 
 	ECRESULT er = erSuccess;
 	DB_RESULT lpResult = NULL;
-
-	_ASSERT(strQuery.length()!= 0);
+	assert(strQuery.length() != 0);
 
 	// Autolock, lock data
 	if(m_bAutoLock)
@@ -816,8 +815,7 @@ exit:
 ECRESULT ECDatabaseMySQL::DoSelectMulti(const string &strQuery) {
 
 	ECRESULT er = erSuccess;
-
-	_ASSERT(strQuery.length()!= 0);
+	assert(strQuery.length() != 0);
 
 	// Autolock, lock data
 	if(m_bAutoLock)
@@ -1078,7 +1076,7 @@ ECRESULT ECDatabaseMySQL::DoSequence(const std::string &strSeqName, unsigned int
 #ifdef DEBUG
 #if DEBUG_TRANSACTION
 	if(m_ulTransactionState != 0) {
-		ASSERT(FALSE);
+		assert(false);
 	}		
 #endif
 #endif
@@ -1116,9 +1114,7 @@ unsigned int ECDatabaseMySQL::GetInsertId() {
 }
 
 void ECDatabaseMySQL::FreeResult(DB_RESULT sResult) {
-
-	_ASSERT(sResult != NULL);
-
+	assert(sResult != NULL);
 	if(sResult)
 		mysql_free_result((MYSQL_RES *)sResult);
 }
@@ -1297,7 +1293,7 @@ ECRESULT ECDatabaseMySQL::Begin() {
 	ec_log_debug("%08X: BEGIN", &m_lpMySQL);
 	if(m_ulTransactionState != 0) {
 		ec_log_debug("BEGIN ALREADY ISSUED");
-		ASSERT(("BEGIN ALREADY ISSUED", FALSE));
+		assert(("BEGIN ALREADY ISSUED", false));
 	}
 	m_ulTransactionState = 1;
 #endif
@@ -1315,7 +1311,7 @@ ECRESULT ECDatabaseMySQL::Commit() {
 	ec_log_debug("%08X: COMMIT", &m_lpMySQL);
 	if(m_ulTransactionState != 1) {
 		ec_log_debug("NO BEGIN ISSUED");
-		ASSERT(("NO BEGIN ISSUED", FALSE));
+		assert(("NO BEGIN ISSUED", false));
 	}
 	m_ulTransactionState = 0;
 #endif
@@ -1332,7 +1328,7 @@ ECRESULT ECDatabaseMySQL::Rollback() {
 	ec_log_debug("%08X: ROLLBACK", &m_lpMySQL);
 	if(m_ulTransactionState != 1) {
 		ec_log_debug("NO BEGIN ISSUED");
-		ASSERT(("NO BEGIN ISSUED", FALSE));
+		assert(("NO BEGIN ISSUED", false));
 	}
 	m_ulTransactionState = 0;
 #endif

@@ -676,7 +676,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 		}
 		
 		if (lpszIpmSubtreeSubstitude && ulCompareResult == TRUE) {
-			ASSERT(lpszIpmSubtreeSubstitude != NULL);
+			assert(lpszIpmSubtreeSubstitude != NULL);
 			entry.FolderName = lpszIpmSubtreeSubstitude;
 		} else {
 			hrTmp = HrGetOneProp(ptrArchiveFolder, PR_DISPLAY_NAME_A, &ptrPropValue);
@@ -843,7 +843,7 @@ HRESULT ArchiveManageImpl::GetRights(LPMAPIFOLDER lpFolder, unsigned *lpulRights
 		return hr;
 
 	if (ptrRows.empty()) {
-		ASSERT(false);
+		assert(false);
 		return MAPI_E_NOT_FOUND;
 	}
 

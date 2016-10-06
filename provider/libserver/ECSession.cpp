@@ -478,7 +478,7 @@ void ECSession::UpdateBusyState(pthread_t threadId, int state)
 	if (i != m_mapBusyStates.cend())
 		i->second.state = state;
 	else
-		ASSERT(FALSE);
+		assert(false);
 }
 
 void ECSession::RemoveBusyState(pthread_t threadId)
@@ -496,11 +496,11 @@ void ECSession::RemoveBusyState(pthread_t threadId)
 
 			AddClocks(timespec2dbl(end) - timespec2dbl(i->second.threadstart), 0, GetTimeOfDay() - i->second.start);
 		} else {
-			ASSERT(FALSE);
+			assert(false);
 		}
 		m_mapBusyStates.erase(threadId);
 	} else {
-		ASSERT(FALSE);
+		assert(false);
 	}
 }
 

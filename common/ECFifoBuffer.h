@@ -69,7 +69,7 @@ inline bool ECFifoBuffer::IsClosed(ULONG flags) const {
 	case cfRead|cfWrite:
 		return m_bReaderClosed && m_bWriterClosed;
 	default:
-		ASSERT(FALSE);
+		assert(false);
 		return false;
 	}
 }

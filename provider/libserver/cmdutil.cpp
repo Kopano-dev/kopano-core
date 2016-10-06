@@ -147,7 +147,7 @@ ECRESULT ValidateDeleteObject(ECSession *lpSession, bool bCheckPermission, unsig
 		break;
 	default:
 		// Unknown object type? We'll delete it anyway so we don't get frustrating non-deletable items
-		ASSERT(FALSE); // Only frustrating developers!
+		assert(false); // Only frustrating developers!
 		break;
 	}
 	return erSuccess;
@@ -452,7 +452,7 @@ ECRESULT DeleteObjectStoreSize(ECSession *lpSession, ECDatabase *lpDatabase, uns
 			(di.ulFlags & MSGFLAG_DELETED) != MSGFLAG_DELETED;
 		if (!k)
 			continue;
-		ASSERT(di.ulStoreId != 0);
+		assert(di.ulStoreId != 0);
 		if (mapStoreSize.find(di.ulStoreId) != mapStoreSize.end() )
 			mapStoreSize[di.ulStoreId] += di.ulObjSize;
 		else
@@ -643,7 +643,7 @@ ECRESULT DeleteObjectHard(ECSession *lpSession, ECDatabase *lpDatabase, ECAttach
 	}
 
 	if (bNoTransaction && lpAttachmentStorage == NULL) {
-		ASSERT(FALSE);
+		assert(false);
 		er = KCERR_INVALID_PARAMETER;
 		goto exit;
 	}
@@ -1053,7 +1053,7 @@ ECRESULT DeleteObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt *
 
 	if ((bNoTransaction && (ulFlags & EC_DELETE_HARD_DELETE)) || 
 		(bNoTransaction && (ulFlags&EC_DELETE_STORE)) ) {
-		ASSERT(FALSE); // This means that the caller has a transaction but that's not allowed
+		assert(false); // This means that the caller has a transaction but that's not allowed
 		er = KCERR_INVALID_PARAMETER;
 		goto exit;
 	}
@@ -1287,7 +1287,7 @@ ECRESULT UpdateFolderCount(ECDatabase *lpDatabase, unsigned int ulFolderId, unsi
 		return er;
 	if (ulType != MAPI_FOLDER) {
 		ec_log_info("Not updating folder count %d for non-folder object %d type %d", lDelta, ulFolderId, ulType);
-		ASSERT(ulType == MAPI_FOLDER);
+		assert(ulType == MAPI_FOLDER);
 		return erSuccess;
 	}
 
@@ -1531,8 +1531,7 @@ ECRESULT WriteSingleProp(ECDatabase *lpDatabase, unsigned int ulObjId, unsigned 
 	std::string		strQueryAppend;
 	unsigned int ulColId = 0;
 	
-	ASSERT(PROP_TYPE(lpPropVal->ulPropTag) != PT_UNICODE);
-
+	assert(PROP_TYPE(lpPropVal->ulPropTag) != PT_UNICODE);
 	er = CopySOAPPropValToDatabasePropVal(lpPropVal, &ulColId, strColData, lpDatabase, bColumnProp);
 	if(er != erSuccess)
 		return erSuccess; // Data from client was bogus, ignore it.
@@ -1791,7 +1790,7 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId, unsigned i
     }
     
     // Trigger an assertion since in practice this should never happen
-//    ASSERT(false);
+//	assert(false);
 	g_lpStatsCollector->Increment(SCN_DATABASE_COUNTER_RESYNCS);
 
 	er = lpSession->GetSessionManager()->GetCacheManager()->GetParent(ulObjId, &ulParent);
@@ -2004,14 +2003,14 @@ static ECRESULT BeginLockFolders(ECDatabase *lpDatabase, unsigned int ulTag,
 			else if (eid.type() == MAPI_MESSAGE)
 				setMessages.insert(ulId);
 			else
-				ASSERT(false);
+				assert(false);
 		} catch (runtime_error &e) {
 			ec_log_err("eid.type(): %s\n", e.what());
-			ASSERT(false);
+			assert(false);
 		}
             }
             else {
-                ASSERT(false);
+                assert(false);
             }
         } else {
             setUncached.insert(s);

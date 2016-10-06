@@ -2798,7 +2798,7 @@ int main(int argc, char* argv[])
 
 	// --force-resync takes all left over arguments as usernames
 	if (mode == MODE_FORCE_RESYNC) {
-		ASSERT(optind <= argc);
+		assert(optind <= argc);
 		std::copy(argv + optind, argv + argc, std::back_inserter(lstUsernames));
 		optind = argc;
 	}

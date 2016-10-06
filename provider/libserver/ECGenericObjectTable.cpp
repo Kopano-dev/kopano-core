@@ -320,8 +320,7 @@ ECRESULT ECGenericObjectTable::FindRow(struct restrictTable *lpsRestrict, unsign
         if(er != erSuccess)
             goto exit;
 
-		ASSERT(lpRowSet->__size == (int)ecRowList.size());
-
+		assert(lpRowSet->__size == static_cast<gsoap_size_t>(ecRowList.size()));
 		for (gsoap_size_t i = 0; i < lpRowSet->__size; ++i) {
 			// Match the row
 			er = MatchRowRestrict(lpSession->GetSessionManager()->GetCacheManager(), &lpRowSet->__ptr[i], lpsRestrict, lpSubResults, m_locale, &fMatch);
@@ -450,7 +449,7 @@ ECRESULT ECGenericObjectTable::ReloadTable(enumReloadType eType)
 	for (gsoap_size_t i = 0; lpsPropTagArray != NULL && i < lpsPropTagArray->__size; ++i) {
 		if((PROP_TYPE(lpsPropTagArray->__ptr[i]) &MVI_FLAG) == MVI_FLAG) {
 			if(bMVColsNew == true)
-				ASSERT(FALSE); //FIXME: error 1 mv prop set!!!
+				assert(false); //FIXME: error 1 mv prop set!!!
 
 			bMVColsNew = true;
 			listMVPropTag.push_back(lpsPropTagArray->__ptr[i]);
@@ -461,7 +460,7 @@ ECRESULT ECGenericObjectTable::ReloadTable(enumReloadType eType)
 	for (gsoap_size_t i = 0; lpsSortOrderArray != NULL && i < lpsSortOrderArray->__size; ++i) {
 		if((PROP_TYPE(lpsSortOrderArray->__ptr[i].ulPropTag)&MVI_FLAG) == MVI_FLAG) {
 			if(bMVSortNew == true)
-				ASSERT(FALSE);
+				assert(false);
 
 			bMVSortNew = true;
 			listMVPropTag.push_back(lpsSortOrderArray->__ptr[i].ulPropTag);
@@ -1138,8 +1137,7 @@ ECRESULT ECGenericObjectTable::QueryRows(struct soap *soap, unsigned int ulRowCo
 	if(er != erSuccess)
 		return er;
 
-	ASSERT(ecRowList.size() <= this->mapObjects.size() + this->m_mapCategories.size());
-
+	assert(ecRowList.size() <= this->mapObjects.size() + this->m_mapCategories.size());
 	if(ecRowList.empty()) {
 		lpRowSet = s_alloc<rowSet>(soap);
 		lpRowSet->__size = 0;
@@ -1618,7 +1616,7 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
                 // get new mvprop count
                 er = GetMVRowCount(obj_id, &cMVNew);
                 if(er != erSuccess){
-                    ASSERT(FALSE);// What now???
+                    assert(false);// What now???
                 }
 
                 // get old mvprops count
@@ -1892,7 +1890,7 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager* lpCacheManager, 
 			PROP_TYPE(ulPropTagRestrict) != PT_MV_BINARY &&
 			lpsRestrict->lpContent->lpProp != NULL)
 		{
-			ASSERT(FALSE);
+			assert(false);
 			fMatch = false;
 			break;
 		}
@@ -2083,7 +2081,7 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager* lpCacheManager, 
 				er = CompareMVPropWithProp(lpProp, lpsRestrict->lpProp->lpProp, lpsRestrict->lpProp->ulType, locale, &fMatch);
 				if(er != erSuccess)
 				{
-					ASSERT(FALSE);
+					assert(false);
 					er = erSuccess;
 					fMatch = false;
 					break;	
@@ -2092,7 +2090,7 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager* lpCacheManager, 
 				er = CompareProp(lpProp, lpsRestrict->lpProp->lpProp, locale, &lCompare);
 				if(er != erSuccess)
 				{
-					ASSERT(FALSE);
+					assert(false);
 					er = erSuccess;
 					fMatch = false;
 					break;	
@@ -2142,7 +2140,7 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager* lpCacheManager, 
 		er = CompareProp(lpProp, lpProp2, locale, &lCompare);
 		if(er != erSuccess)
 		{
-			ASSERT(FALSE);
+			assert(false);
 			er = erSuccess;
 			fMatch = false;
 			break;
@@ -2320,7 +2318,7 @@ ECRESULT ECGenericObjectTable::IsSortKeyExist(const sObjectTableKey* lpsRowItem,
 
 ECRESULT ECGenericObjectTable::GetSortKey(sObjectTableKey* lpsRowItem, unsigned int ulPropTag, unsigned int *lpSortLen, unsigned char **lppSortData)
 {
-	ASSERT(FALSE);
+	assert(false);
 	return KCERR_NO_SUPPORT;
 }
 
@@ -2470,7 +2468,7 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
 		++i;
     	
         if (iterCategoriesSorted == m_mapSortedCategories.cend()) {
-     		ASSERT(fNewLeaf); // The leaf must be new if the category is new       
+		assert(fNewLeaf); // The leaf must be new if the category is new       
 
             // Category not available yet, add it now
             sCatRow.ulObjId = 0;
@@ -2495,8 +2493,7 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
             	lpCategory->IncUnread();
 
 			// Add the category into our sorted-category list and numbered-category list
-            ASSERT(m_mapSortedCategories.find(row) == m_mapSortedCategories.end());
-
+            assert(m_mapSortedCategories.find(row) == m_mapSortedCategories.end());
             m_mapCategories[sCatRow] = lpCategory;
             lpCategory->iSortedCategory = m_mapSortedCategories.insert(std::make_pair(row, sCatRow)).first;
 
@@ -2518,7 +2515,7 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
             
 			auto iterCategory = m_mapCategories.find(sCatRow);
 			if (iterCategory == m_mapCategories.cend()) {
-				ASSERT(FALSE);
+				assert(false);
 				er = KCERR_NOT_FOUND;
 				goto exit;
 			}
@@ -2602,9 +2599,7 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
         
 	if(lppCategory)
 		*lppCategory = lpCategory;
-
-    ASSERT(m_mapCategories.size() == m_mapSortedCategories.size());
-    
+	assert(m_mapCategories.size() == m_mapSortedCategories.size());
 exit:
 	delete[] lpSortLen;
     if(lppSortKeys) {
@@ -2681,8 +2676,7 @@ ECRESULT ECGenericObjectTable::UpdateKeyTableRow(ECCategory *lpCategory, sObject
     struct sortOrderArray sSortSimple = { &sSortHierarchy, 1 };
     int n = 0;
     
-    ASSERT(cValues <= (unsigned int)lpsSortOrderArray->__size);
-
+    assert(cValues <= static_cast<unsigned int>(lpsSortOrderArray->__size));
     if(cValues == 0) {
 		// No sort columns. We use the object ID as the sorting
 		// key. This is fairly arbitrary as any sort order would be okay seen as no sort order was specified. However, sorting
@@ -2821,7 +2815,7 @@ ECRESULT ECGenericObjectTable::RemoveCategoryAfterRemoveRow(sObjectTableKey sObj
 			// Removing from a min/max category
 			er = lpCategory->UpdateMinMaxRemove(sObjKey, ulDepth+1, lpsSortOrderArray->__ptr[ulDepth+1].ulOrder == EC_TABLE_SORT_CATEG_MAX, &fModified);
 			if(er != erSuccess) {
-				ASSERT(false);
+				assert(false);
 				goto exit;
 			}
 			
@@ -2870,7 +2864,7 @@ ECRESULT ECGenericObjectTable::RemoveCategoryAfterRemoveRow(sObjectTableKey sObj
             
             er = lpKeyTable->GetRow(&sCatRow, &lpRow);
             if(er != erSuccess) {
-            	ASSERT(false);
+		assert(false);
             	goto exit;
 			}
         	
@@ -2881,7 +2875,7 @@ ECRESULT ECGenericObjectTable::RemoveCategoryAfterRemoveRow(sObjectTableKey sObj
             lpKeyTable->UpdateRow(ECKeyTable::TABLE_ROW_DELETE, &sCatRow, 0, NULL, NULL, NULL, NULL, false, &ulAction);
 
             // Remove the category from the category map
-            ASSERT(m_mapCategories.find(sCatRow) != m_mapCategories.end());
+            assert(m_mapCategories.find(sCatRow) != m_mapCategories.end());
             m_mapCategories.erase(sCatRow);
             
             // Free the category itself
@@ -2911,8 +2905,7 @@ ECRESULT ECGenericObjectTable::RemoveCategoryAfterRemoveRow(sObjectTableKey sObj
     m_mapLeafs.erase(iterLeafs);
         
     // All done
-    ASSERT(m_mapCategories.size() == m_mapSortedCategories.size());
-
+	assert(m_mapCategories.size() == m_mapSortedCategories.size());
 exit:
 	delete[] lpSortKey;
 	FreePropVal(&sProp, false);
@@ -3085,9 +3078,7 @@ ECRESULT ECCategory::GetProp(struct soap *soap, unsigned int ulPropTag, struct p
 ECRESULT ECCategory::SetProp(unsigned int i, struct propVal* lpPropVal)
 {
     ECRESULT er = erSuccess;
-    
-    ASSERT(i < m_cProps);
-    
+    assert(i < m_cProps);
     FreePropVal(&m_lpProps[i], false);
     
     er = CopyPropVal(lpPropVal, &m_lpProps[i], NULL);

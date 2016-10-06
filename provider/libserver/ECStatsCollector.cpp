@@ -112,9 +112,7 @@ void ECStatsCollector::Increment(SCName name, float inc) {
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
 		return;
-
-	ASSERT(iSD->second.type == SCDT_FLOAT);
-
+	assert(iSD->second.type == SCDT_FLOAT);
 	scoped_lock lk(iSD->second.lock);
 	iSD->second.data.f += inc;
 }
@@ -127,9 +125,7 @@ void ECStatsCollector::Increment(SCName name, LONGLONG inc) {
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
 		return;
-
-	ASSERT(iSD->second.type == SCDT_LONGLONG);
-
+	assert(iSD->second.type == SCDT_LONGLONG);
 	scoped_lock lk(iSD->second.lock);
 	iSD->second.data.ll += inc;
 }
@@ -138,9 +134,7 @@ void ECStatsCollector::Set(SCName name, float set) {
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
 		return;
-
-	ASSERT(iSD->second.type == SCDT_FLOAT);
-
+	assert(iSD->second.type == SCDT_FLOAT);
 	scoped_lock lk(iSD->second.lock);
 	iSD->second.data.f = set;
 }
@@ -149,9 +143,7 @@ void ECStatsCollector::Set(SCName name, LONGLONG set) {
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
 		return;
-
-	ASSERT(iSD->second.type == SCDT_LONGLONG);
-
+	assert(iSD->second.type == SCDT_LONGLONG);
 	scoped_lock lk(iSD->second.lock);
 	iSD->second.data.ll = set;
 }
@@ -160,9 +152,7 @@ void ECStatsCollector::SetTime(SCName name, time_t set) {
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
 		return;
-
-	ASSERT(iSD->second.type == SCDT_TIMESTAMP);
-
+	assert(iSD->second.type == SCDT_TIMESTAMP);
 	scoped_lock lk(iSD->second.lock);
 	iSD->second.data.ts = set;
 }
@@ -172,9 +162,7 @@ void ECStatsCollector::Min(SCName name, float min)
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
 		return;
-
-	ASSERT(iSD->second.type == SCDT_FLOAT);
-
+	assert(iSD->second.type == SCDT_FLOAT);
 	scoped_lock lk(iSD->second.lock);
 	if (iSD->second.data.f > min)
 		iSD->second.data.f = min;
@@ -185,9 +173,7 @@ void ECStatsCollector::Min(SCName name, LONGLONG min)
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
 		return;
-
-	ASSERT(iSD->second.type == SCDT_LONGLONG);
-
+	assert(iSD->second.type == SCDT_LONGLONG);
 	scoped_lock lk(iSD->second.lock);
 	if (iSD->second.data.ll > min)
 		iSD->second.data.ll = min;
@@ -198,9 +184,7 @@ void ECStatsCollector::MinTime(SCName name, time_t min)
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
 		return;
-
-	ASSERT(iSD->second.type == SCDT_TIMESTAMP);
-
+	assert(iSD->second.type == SCDT_TIMESTAMP);
 	scoped_lock lk(iSD->second.lock);
 	if (iSD->second.data.ts > min)
 		iSD->second.data.ts = min;
@@ -211,9 +195,7 @@ void ECStatsCollector::Max(SCName name, float max)
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
 		return;
-
-	ASSERT(iSD->second.type == SCDT_FLOAT);
-
+	assert(iSD->second.type == SCDT_FLOAT);
 	scoped_lock(iSD->second.lock);
 	if (iSD->second.data.f < max)
 		iSD->second.data.f = max;
@@ -224,9 +206,7 @@ void ECStatsCollector::Max(SCName name, LONGLONG max)
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
 		return;
-
-	ASSERT(iSD->second.type == SCDT_LONGLONG);
-
+	assert(iSD->second.type == SCDT_LONGLONG);
 	scoped_lock(iSD->second.lock);
 	if (iSD->second.data.ll < max)
 		iSD->second.data.ll = max;
@@ -237,9 +217,7 @@ void ECStatsCollector::MaxTime(SCName name, time_t max)
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
 		return;
-
-	ASSERT(iSD->second.type == SCDT_TIMESTAMP);
-
+	assert(iSD->second.type == SCDT_TIMESTAMP);
 	scoped_lock lk(iSD->second.lock);
 	if (iSD->second.data.ts < max)
 		iSD->second.data.ts = max;
@@ -250,9 +228,7 @@ void ECStatsCollector::Avg(SCName name, float add)
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
 		return;
-
-	ASSERT(iSD->second.type == SCDT_FLOAT);
-
+	assert(iSD->second.type == SCDT_FLOAT);
 	scoped_lock lk(iSD->second.lock);
 	iSD->second.data.f = ((add - iSD->second.data.f) / iSD->second.avginc) + iSD->second.data.f;
 	++iSD->second.avginc;
@@ -265,9 +241,7 @@ void ECStatsCollector::Avg(SCName name, LONGLONG add)
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
 		return;
-
-	ASSERT(iSD->second.type == SCDT_LONGLONG);
-
+	assert(iSD->second.type == SCDT_LONGLONG);
 	scoped_lock lk(iSD->second.lock);
 	iSD->second.data.ll = ((add - iSD->second.data.ll) / iSD->second.avginc) + iSD->second.data.ll;
 	++iSD->second.avginc;
@@ -280,9 +254,7 @@ void ECStatsCollector::AvgTime(SCName name, time_t add)
 	auto iSD = m_StatData.find(name);
 	if (iSD == m_StatData.cend())
 		return;
-
-	ASSERT(iSD->second.type == SCDT_TIMESTAMP);
-
+	assert(iSD->second.type == SCDT_TIMESTAMP);
 	scoped_lock lk(iSD->second.lock);
 	iSD->second.data.ts = ((add - iSD->second.data.ts) / iSD->second.avginc) + iSD->second.data.ts;
 	++iSD->second.avginc;

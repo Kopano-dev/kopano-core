@@ -33,7 +33,7 @@ ECUnknown::ECUnknown(const char *szClassName)
 
 ECUnknown::~ECUnknown() {
 	if(this->lpParent) {
-		ASSERT(FALSE);	// apparently, we're being destructed with delete() while
+		assert(false);	// apparently, we're being destructed with delete() while
 						// a parent was set up, so we should be deleted via Suicide() !
 	}
 }
@@ -49,7 +49,7 @@ ULONG ECUnknown::Release() {
 	ulock_normal locker(mutex);
 	ULONG nRef = --this->m_cRef;
 	if((int)m_cRef == -1)
-		ASSERT(FALSE);
+		assert(false);
 		
 	bLastRef = this->lstChildren.empty() && this->m_cRef == 0;
 	locker.unlock();
@@ -102,8 +102,7 @@ HRESULT ECUnknown::RemoveChild(ECUnknown *lpChild) {
 
 HRESULT ECUnknown::SetParent(ECUnknown *lpParent) {
 	// Parent object may only be set once
-	ASSERT (this->lpParent==NULL);
-
+	assert(this->lpParent == NULL);
 	this->lpParent = lpParent;
 
 	return hrSuccess;

@@ -428,7 +428,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECODStore *lpODS
 			er = lpSession->GetSessionManager()->GetCacheManager()->GetEntryIdFromObject(ulObjId, soap, ulEidFlags, &sEntryId);
 			if(er != erSuccess) {
 				// happens on recipients, attachments and msg-in-msg .. TODO: add strict type checking?
-				//ASSERT(FALSE);
+				//assert(false);
 				er = KCERR_NOT_FOUND;
 				goto exit;
 			}

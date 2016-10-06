@@ -43,7 +43,7 @@ static SSortOrderSet sSortDefault = {0, 0};
 
 class FixStringType _zcp_final {
 public:
-	FixStringType(ULONG ulFlags): m_ulFlags(ulFlags) { ASSERT((m_ulFlags & ~MAPI_UNICODE) == 0); }
+	FixStringType(ULONG ulFlags) : m_ulFlags(ulFlags) { assert((m_ulFlags & ~MAPI_UNICODE) == 0); }
 	ULONG operator()(ULONG ulPropTag) const
 	{
 		if ((PROP_TYPE(ulPropTag) & 0x0ffe) == 0x1e) 	// Any string type
@@ -82,7 +82,7 @@ HRESULT ECMemTable::Create(LPSPropTagArray lpsColumns, ULONG ulRowPropTag, ECMem
 	
 	if(PROP_TYPE(ulRowPropTag) != PT_I8 && PROP_TYPE(ulRowPropTag) != PT_LONG)
 	{
-		ASSERT(FALSE);
+		assert(false);
 		return MAPI_E_INVALID_TYPE;
 	}
 
@@ -532,7 +532,7 @@ HRESULT ECMemTableView::Unadvise(ULONG ulConnection)
 		
 		m_mapAdvise.erase(iterAdvise);
 	} else {
-		ASSERT(FALSE);
+		assert(false);
 	}
 	
 	return hr;
@@ -1107,7 +1107,7 @@ HRESULT ECMemTableView::QueryRowData(ECObjectTableList *lpsRowList, LPSRowSet *l
 
 	if (lpsRowList == NULL || lppRows == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
-		ASSERT(FALSE);
+		assert(false);
 		goto exit;
 	}
 

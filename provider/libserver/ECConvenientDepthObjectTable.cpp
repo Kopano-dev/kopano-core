@@ -211,7 +211,7 @@ ECRESULT ECConvenientDepthObjectTable::GetComputedDepth(struct soap *soap, ECSes
 		er = lpSession->GetSessionManager()->GetCacheManager()->GetObject(ulObjId, &ulObjId, NULL, NULL, &ulObjType);
 		if(er != erSuccess) {
 			// should never happen
-			ASSERT(FALSE);
+			assert(false);
 			return KCERR_NOT_FOUND;
 		}
 		if (ulObjType != MAPI_FOLDER)

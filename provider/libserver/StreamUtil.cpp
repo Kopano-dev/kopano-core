@@ -113,7 +113,7 @@ private:
 NamedPropertyMapper::NamedPropertyMapper(ECDatabase *lpDatabase)
 	: m_lpDatabase(lpDatabase) 
 {
-	ASSERT(lpDatabase != NULL);
+	assert(lpDatabase != NULL);
 }
 
 ECRESULT NamedPropertyMapper::GetId(const GUID &guid, unsigned int ulNameId, unsigned int *lpulId)
@@ -552,11 +552,11 @@ ECRESULT SerializePropVal(LPCSTREAMCAPS lpStreamCaps, const struct propVal &sPro
 		ulPropTag = CHANGE_PROP_TYPE(ulPropTag, PT_MV_STRING8);
 
 	if (PROP_ID(ulPropTag) > 0x8500) {
-		ASSERT(lpNamedPropDefs);
+		assert(lpNamedPropDefs != NULL);
 		if (!lpNamedPropDefs)
 			return KCERR_INVALID_TYPE;
 		iNamedPropDef = lpNamedPropDefs->find(ulPropTag);
-		ASSERT(iNamedPropDef != lpNamedPropDefs->cend());
+		assert(iNamedPropDef != lpNamedPropDefs->cend());
 		if (iNamedPropDef == lpNamedPropDefs->cend())
 			return KCERR_NOT_FOUND;
 	}
@@ -682,7 +682,7 @@ ECRESULT SerializePropVal(LPCSTREAMCAPS lpStreamCaps, const struct propVal &sPro
 	
 	// If property is named property in the dynamic range we need to add some extra info
 	if (PROP_ID(sPropVal.ulPropTag) > 0x8500) {
-		ASSERT(lpNamedPropDefs && iNamedPropDef != lpNamedPropDefs->cend());
+		assert(lpNamedPropDefs != NULL && iNamedPropDef != lpNamedPropDefs->cend());
 		// Send out the GUID.
 		er = lpSink->Write(&iNamedPropDef->second.guid, 1, sizeof(iNamedPropDef->second.guid));
 		if (er == erSuccess)
@@ -776,8 +776,7 @@ static ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 
 	std::list<struct propVal> sPropValList;
 
-	ASSERT(lpStreamCaps != NULL);
-	
+	assert(lpStreamCaps != NULL);
 	er = ECMemStream::Create(NULL, 0, STGM_SHARE_EXCLUSIVE | STGM_WRITE, NULL, NULL, NULL, &lpStream);
 	if (er != erSuccess)
 		goto exit;
@@ -1377,7 +1376,7 @@ ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtta
 
 	for (unsigned i = 0; i < ulCount; ++i) {
 		// We'll (ab)use a soap structure as a memory pool.
-		ASSERT(soap == NULL);
+		assert(soap == NULL);
 		soap = soap_new();
 
 		er = DeserializePropVal(soap, lpStreamCaps, namedPropertyMapper, &lpsPropval, lpSource);
@@ -1395,7 +1394,7 @@ ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtta
 		if (lpsPropval->ulPropTag == PR_MESSAGE_FLAGS) {
 		    // ulFlags is obtained from the hierarchy table, which should only contain
 		    // 'unsettable' flags
-		    ASSERT((ulFlags & ~MSGFLAG_UNSETTABLE) == 0);
+			assert((ulFlags & ~MSGFLAG_UNSETTABLE) == 0);
 
 			// Normalize PR_MESSAGE_FLAGS so that the user cannot change flags that are also
 			// stored in the hierarchy table.
@@ -1564,7 +1563,7 @@ next_property:
 	g_lpSessionManager->GetCacheManager()->SetObject(ulObjId, ulParentId, ulOwner, ulFlags, ulObjType);
 	
 	if (lpPropValArray) {
-		ASSERT(lppPropValArray != NULL);
+		assert(lppPropValArray != NULL);
 		*lppPropValArray = lpPropValArray;
 		lpPropValArray = NULL;
 	}
@@ -1750,12 +1749,12 @@ ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtt
 			}
 
 		} else {
-			ASSERT(FALSE);
+			assert(false);
 		}
 	}
 	
 	if (lpPropValArray) {
-		ASSERT(lppPropValArray != NULL);
+		assert(lppPropValArray != NULL);
 		*lppPropValArray = lpPropValArray;
 		lpPropValArray = NULL;
 	}

@@ -192,7 +192,7 @@ ECRESULT ECSessionGroup::DelAdvise(ECSESSIONID ulSessionId, unsigned int ulConne
 				// Remove from our list
 				m_mapSubscribedStores.erase(iterSubscribed);
 			} else
-				ASSERT(false); // Unsubscribe for something that was not subscribed
+				assert(false); // Unsubscribe for something that was not subscribed
 		}
 		m_mapSubscribe.erase(iterSubscription);
 	}

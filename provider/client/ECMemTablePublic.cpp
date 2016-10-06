@@ -99,7 +99,7 @@ static LONG __stdcall AdviseShortCutCallback(void *lpContext, ULONG cNotif,
 	for (ULONG i = 0; i < cNotif; ++i) {
 		if(lpNotif[i].ulEventType != fnevTableModified)
 		{
-			ASSERT(FALSE);
+			assert(false);
 			continue;
 		}
 
@@ -323,7 +323,7 @@ HRESULT ECMemTablePublic::ModifyRow(SBinary* lpInstanceKey, LPSRow lpsRow)
 	SizedSPropTagArray(11, sPropsFolderReal) = {11, { PR_ACCESS, PR_ACCESS_LEVEL, PR_STORE_ENTRYID, PR_STORE_RECORD_KEY, PR_STORE_SUPPORT_MASK, PR_ACCESS_LEVEL, PR_CONTENT_COUNT, PR_CONTENT_UNREAD, PR_CONTAINER_CLASS, PR_ENTRYID } };
 
 	if (lpInstanceKey == NULL) {
-		ASSERT(FALSE);
+		assert(false);
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
@@ -345,7 +345,7 @@ HRESULT ECMemTablePublic::ModifyRow(SBinary* lpInstanceKey, LPSRow lpsRow)
 		ulUpdateType = ECKeyTable::TABLE_ROW_ADD;
 
 		if (lpsRow == NULL || lpsRow->lpProps[SC_FAV_PUBLIC_SOURCE_KEY].ulPropTag != PR_FAV_PUBLIC_SOURCE_KEY) {
-			ASSERT(FALSE);
+			assert(false);
 			hr = MAPI_E_INVALID_PARAMETER;
 			goto exit;
 		}
@@ -459,7 +459,7 @@ HRESULT ECMemTablePublic::ModifyRow(SBinary* lpInstanceKey, LPSRow lpsRow)
 	}else if (lpsRow != NULL && lpsRow->cValues == SHORTCUT_NUM && lpsRow->lpProps[SC_FAV_DISPLAY_NAME].ulPropTag == PR_FAV_DISPLAY_NAME) {
 		lpProps[cProps++].Value.lpszA = lpsRow->lpProps[SC_FAV_DISPLAY_NAME].Value.lpszA;
 	} else {
-		ASSERT(FALSE);
+		assert(false);
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}

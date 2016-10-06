@@ -1748,7 +1748,7 @@ HRESULT DoSentMail(IMAPISession *lpSession, IMsgStore *lpMDBParam, ULONG ulFlags
 	enum esPropDoSentMail{ DSM_ENTRYID, DSM_PARENT_ENTRYID, DSM_SENTMAIL_ENTRYID, DSM_DELETE_AFTER_SUBMIT, DSM_STORE_ENTRYID};
 	SizedSPropTagArray(5, sPropDoSentMail) = {5, {PR_ENTRYID, PR_PARENT_ENTRYID, PR_SENTMAIL_ENTRYID, PR_DELETE_AFTER_SUBMIT, PR_STORE_ENTRYID} };
 
-	ASSERT(lpSession || lpMDBParam);
+	assert(lpSession != NULL || lpMDBParam != NULL);
     
 	// Check incomming parameter
 	if(lpMessage == NULL) {
@@ -2740,7 +2740,7 @@ HRESULT HrGetAllProps(IMAPIProp *lpProp, ULONG ulFlags, ULONG *lpcValues, LPSPro
 					lpProps[i].Value.bin.cb = strData.size();
 					break;
 				default:
-					ASSERT(false);
+					assert(false);
 			}
 		}
 	}

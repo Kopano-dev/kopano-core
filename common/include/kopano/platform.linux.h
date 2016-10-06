@@ -54,10 +54,6 @@
 #endif
 
 #include <cassert>
-/* windows compatible asserts ? */
-#define ASSERT assert
-#define _ASSERT assert
-
 #define _vsnprintf vsnprintf
 #ifdef HAVE_VSNPRINTF_L
 #define _vsnprintf_l vsnprintf_l

@@ -161,9 +161,7 @@ exit:
 ECRESULT ECDatabaseMySQL::Close()
 {
 	ECRESULT er = erSuccess;
-
-	_ASSERT(m_bLocked == false);
-
+	assert(m_bLocked == false);
 	//INFO: No locking here
 
 	m_bConnected = false;
@@ -220,9 +218,7 @@ int ECDatabaseMySQL::Query(const string &strQuery) {
 ECRESULT ECDatabaseMySQL::DoSelect(const string &strQuery, DB_RESULT *lpResult, bool bStream) {
 
 	ECRESULT er = erSuccess;
-
-	_ASSERT(strQuery.length()!= 0 && lpResult != NULL);
-
+	assert(strQuery.length()!= 0 && lpResult != NULL);
 	// Autolock, lock data
 	if(m_bAutoLock)
 		Lock();
@@ -364,9 +360,7 @@ unsigned int ECDatabaseMySQL::GetInsertId() {
 }
 
 void ECDatabaseMySQL::FreeResult(DB_RESULT sResult) {
-
-	_ASSERT(sResult != NULL);
-
+	assert(sResult != NULL);
 	if(sResult)
 		mysql_free_result((MYSQL_RES *)sResult);
 }

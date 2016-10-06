@@ -135,8 +135,7 @@ void ECThreadPool::setThreadCount(unsigned ulThreadCount, bool bWait)
 		joinTerminated(locker);
 	}
 
-	
-	ASSERT(threadCount() == ulThreadCount);	
+	assert(threadCount() == ulThreadCount);
 	joinTerminated(locker);
 }
 
@@ -202,17 +201,15 @@ bool ECThreadPool::waitForAllTasks(time_t timeout) const
  */
 bool ECThreadPool::getNextTask(STaskInfo *lpsTaskInfo, ulock_normal &locker)
 {
-	ASSERT(!locker.try_lock());
-	ASSERT(lpsTaskInfo != NULL);
-	
+	assert(!locker.try_lock());
+	assert(lpsTaskInfo != NULL);
 	bool bTerminate = false;
 	while ((bTerminate = (m_ulTermReq > 0)) == false && m_listTasks.empty())
 		m_hCondition.wait(locker);
 		
 	if (bTerminate) {
 		auto iThread = std::find_if(m_setThreads.cbegin(), m_setThreads.cend(), &isCurrentThread);
-		ASSERT(iThread != m_setThreads.cend());
-		
+		assert(iThread != m_setThreads.cend());
 		m_setTerminated.insert(*iThread);
 		m_setThreads.erase(iThread);
 		--m_ulTermReq;
@@ -231,7 +228,7 @@ bool ECThreadPool::getNextTask(STaskInfo *lpsTaskInfo, ulock_normal &locker)
  */
 void ECThreadPool::joinTerminated(ulock_normal &locker)
 {
-	ASSERT(!locker.try_lock());
+	assert(!locker.try_lock());
 	for (auto thr : m_setTerminated)
 		pthread_join(thr, NULL);
 	
@@ -267,7 +264,7 @@ void* ECThreadPool::threadFunc(void *lpVoid)
 		if (!bResult)
 			break;
 			
-		ASSERT(sTaskInfo.lpTask != NULL);
+		assert(sTaskInfo.lpTask != NULL);
 		sTaskInfo.lpTask->execute();
 		if (sTaskInfo.bDelete)
 			delete sTaskInfo.lpTask;

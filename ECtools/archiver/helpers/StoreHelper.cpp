@@ -156,10 +156,9 @@ HRESULT StoreHelper::UpdateSearchFolders()
 	if (hr != hrSuccess)
 		return hr;
 	
-	ASSERT(ptrSearchArchiveFolder);
-	ASSERT(ptrSearchDeleteFolder);
-	ASSERT(ptrSearchStubFolder);
-
+	assert(ptrSearchArchiveFolder);
+	assert(ptrSearchDeleteFolder);
+	assert(ptrSearchStubFolder);
 	hr = HrGetOneProp(ptrSearchArchiveFolder, PR_ENTRYID, &ptrSearchArchiveEntryId);
 	if (hr != hrSuccess)
 		return hr;
@@ -293,11 +292,10 @@ HRESULT StoreHelper::GetSearchFolders(LPMAPIFOLDER *lppSearchArchiveFolder, LPMA
 		SPropValuePtr ptrSearchArchiveEntryId;
 		SPropValuePtr ptrSearchDeleteEntryId;
 		SPropValuePtr ptrSearchStubEntryId;
-		
-		ASSERT(ptrSearchArchiveFolder);
-		ASSERT(ptrSearchDeleteFolder);
-		ASSERT(ptrSearchStubFolder);
 
+		assert(ptrSearchArchiveFolder);
+		assert(ptrSearchDeleteFolder);
+		assert(ptrSearchStubFolder);
 		hr = HrGetOneProp(ptrSearchArchiveFolder, PR_ENTRYID, &ptrSearchArchiveEntryId);
 		if (hr != hrSuccess)
 			return hr;

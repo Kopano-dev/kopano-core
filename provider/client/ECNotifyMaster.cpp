@@ -67,9 +67,7 @@ ECNotifyMaster::ECNotifyMaster(SessionGroupData *lpData)
 ECNotifyMaster::~ECNotifyMaster(void)
 {
 	TRACE_NOTIFY(TRACE_ENTRY, "ECNotifyMaster::~ECNotifyMaster", "");
-
-	ASSERT(m_listNotifyClients.empty());
-
+	assert(m_listNotifyClients.empty());
 	/* Disable Notifications */
 	StopNotifyWatch();
 
@@ -139,7 +137,7 @@ HRESULT ECNotifyMaster::AddSession(ECNotifyClient* lpClient)
 
 	/* Enable Notifications */
 	if (StartNotifyWatch() != hrSuccess)
-		ASSERT(FALSE);
+		assert(false);
 	TRACE_NOTIFY(TRACE_RETURN, "ECNotifyMaster::AddSession", "");
 	return hrSuccess;
 }
@@ -288,7 +286,7 @@ void* ECNotifyMaster::NotifyWatch(void *pTmpNotifyMaster)
 	TRACE_NOTIFY(TRACE_ENTRY, "NotifyWatch", "");
 
 	ECNotifyMaster*		pNotifyMaster = (ECNotifyMaster *)pTmpNotifyMaster;
-	ASSERT(pNotifyMaster != NULL);
+	assert(pNotifyMaster != NULL);
 
 	HRESULT							hr = hrSuccess;
 	NOTIFYCONNECTIONMAP				mapNotifications;

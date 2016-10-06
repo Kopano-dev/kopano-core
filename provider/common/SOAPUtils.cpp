@@ -371,9 +371,9 @@ static ECRESULT CompareABEID(const struct propVal *lpProp1,
 	ECRESULT er = erSuccess;
 	int iResult = 0;
 
-	ASSERT(lpProp1 != NULL && PROP_TYPE(lpProp1->ulPropTag) == PT_BINARY);
-	ASSERT(lpProp2 != NULL && PROP_TYPE(lpProp2->ulPropTag) == PT_BINARY);
-	ASSERT(lpCompareResult != NULL);
+	assert(lpProp1 != NULL && PROP_TYPE(lpProp1->ulPropTag) == PT_BINARY);
+	assert(lpProp2 != NULL && PROP_TYPE(lpProp2->ulPropTag) == PT_BINARY);
+	assert(lpCompareResult != NULL);
 	auto peid1 = reinterpret_cast<const ABEID *>(lpProp1->Value.bin->__ptr);
 	auto peid2 = reinterpret_cast<const ABEID *>(lpProp2->Value.bin->__ptr);
 
@@ -1907,8 +1907,7 @@ ECRESULT CopyUserDetailsToSoap(unsigned int ulId, entryId *lpUserEid, const obje
 	ECRESULT er = erSuccess;
 	const objectclass_t objClass = details.GetClass();
 
-	// ASSERT(OBJECTCLASS_TYPE(objClass) == OBJECTTYPE_MAILUSER);
-
+	// assert(OBJECTCLASS_TYPE(objClass) == OBJECTTYPE_MAILUSER);
 	lpUser->ulUserId = ulId;
 	lpUser->lpszUsername = s_strcpy(soap, details.GetPropString(OB_PROP_S_LOGIN).c_str());
 	lpUser->ulIsNonActive = (objClass == ACTIVE_USER ? 0 : 1);	// Needed for pre 6.40 clients
@@ -1975,8 +1974,7 @@ ECRESULT CopyGroupDetailsToSoap(unsigned int ulId, entryId *lpGroupEid, const ob
 {
 	ECRESULT er = erSuccess;
 
-	// ASSERT(OBJECTCLASS_TYPE(details.GetClass()) == OBJECTTYPE_DISTLIST);
-
+	// assert(OBJECTCLASS_TYPE(details.GetClass()) == OBJECTTYPE_DISTLIST);
 	lpGroup->ulGroupId = ulId;
 	lpGroup->lpszGroupname = s_strcpy(soap, details.GetPropString(OB_PROP_S_LOGIN).c_str());
 	lpGroup->lpszFullname = s_strcpy(soap, details.GetPropString(OB_PROP_S_FULLNAME).c_str());
@@ -2022,8 +2020,7 @@ ECRESULT CopyCompanyDetailsToSoap(unsigned int ulId, entryId *lpCompanyEid, unsi
 {
 	ECRESULT er = erSuccess;
 
-	// ASSERT(details.GetClass() == CONTAINER_COMPANY);
-
+	// assert(details.GetClass() == CONTAINER_COMPANY);
 	lpCompany->ulCompanyId = ulId;
 	lpCompany->lpszCompanyname = s_strcpy(soap, details.GetPropString(OB_PROP_S_FULLNAME).c_str());
 	lpCompany->ulAdministrator = ulAdmin;

@@ -88,9 +88,7 @@ HRESULT ECGenericProp::QueryInterface(REFIID refiid, void **lppInterface)
 HRESULT ECGenericProp::SetProvider(void* lpProvider)
 {
 	HRESULT hr = hrSuccess;
-	
-	ASSERT(this->lpProvider == NULL);
-
+	assert(this->lpProvider == NULL);
 	this->lpProvider = lpProvider;
 	
 	return hr;
@@ -98,7 +96,7 @@ HRESULT ECGenericProp::SetProvider(void* lpProvider)
 
 HRESULT ECGenericProp::SetEntryId(ULONG cbEntryId, LPENTRYID lpEntryId)
 {
-	ASSERT(m_lpEntryId == NULL);
+	assert(m_lpEntryId == NULL);
 	return Util::HrCopyEntryId(cbEntryId, lpEntryId, &m_cbEntryId, &m_lpEntryId);
 }
 
@@ -110,7 +108,9 @@ HRESULT ECGenericProp::HrAddPropHandlers(ULONG ulPropTag, GetPropCallBack lpfnGe
 	PROPCALLBACK			sCallBack;
 
 	// Check if the handler defines the right type, If Unicode you should never define a PT_STRING8 as handler!
-	ASSERT( (PROP_TYPE(ulPropTag) == PT_STRING8 || PROP_TYPE(ulPropTag) == PT_UNICODE)?PROP_TYPE(ulPropTag) == PT_TSTRING: TRUE);
+	assert(PROP_TYPE(ulPropTag) == PT_STRING8 ||
+	       PROP_TYPE(ulPropTag) == PT_UNICODE ?
+	       PROP_TYPE(ulPropTag) == PT_TSTRING : true);
 
 	// Only Support properties on ID, different types are not supported.
 	iterCallBack = lstCallBack.find(PROP_ID(ulPropTag));
@@ -325,7 +325,7 @@ HRESULT	ECGenericProp::DefaultGetProp(ULONG ulPropTag,  void* lpProvider, ULONG 
 				lpsPropValue->ulPropTag = PR_ENTRYID;
 				lpsPropValue->Value.bin.cb = lpProp->m_cbEntryId;
 				if(lpBase == NULL)
-					ASSERT(FALSE);
+					assert(false);
 
 				ECAllocateMore(lpProp->m_cbEntryId, lpBase, (void **)&lpsPropValue->Value.bin.lpb);
 				memcpy(lpsPropValue->Value.bin.lpb, lpProp->m_lpEntryId, lpProp->m_cbEntryId);
@@ -708,9 +708,8 @@ HRESULT ECGenericProp::HrLoadEmptyProps()
 {
 	scoped_rlock lock(m_hMutexMAPIObject);
 
-	ASSERT(lstProps == NULL);
-	ASSERT(m_sMapiObject == NULL);
-
+	assert(lstProps == NULL);
+	assert(m_sMapiObject == NULL);
 	lstProps = new ECPropertyEntryMap;
 	AllocNewMapiObject(0, 0, ulObjType, &m_sMapiObject);
 	return hrSuccess;

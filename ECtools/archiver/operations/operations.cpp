@@ -150,7 +150,7 @@ HRESULT ArchiveOperationBaseEx::ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps
 	bool bReloadFolder = false;
 	ULONG ulType = 0;
 
-	ASSERT(lpFolder != NULL);
+	assert(lpFolder != NULL);
 	if (lpFolder == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	

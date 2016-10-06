@@ -788,7 +788,7 @@ HRESULT Http::HrFlushHeaders()
 	}
 
 	// create headers packet
-	ASSERT(m_ulRetCode != 0);
+	assert(m_ulRetCode != 0);
 	if (m_ulRetCode == 0)
 		HrResponseHeader(500, "Request handled incorrectly");
 

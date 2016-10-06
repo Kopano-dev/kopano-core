@@ -104,8 +104,7 @@ ECRESULT ECABObjectTable::GetColumnsAll(ECListInt* lplstProps)
 	ECRESULT		er = erSuccess;
 	ECODAB *lpODAB = (ECODAB*)m_lpObjectData;
 	scoped_rlock lock(m_hLock);
-
-	ASSERT(lplstProps != NULL);
+	assert(lplstProps != NULL);
 	
 	//List always empty
 	lplstProps->clear();
@@ -136,7 +135,7 @@ ECRESULT ECABObjectTable::GetColumnsAll(ECListInt* lplstProps)
 
 ECRESULT ECABObjectTable::ReloadTableMVData(ECObjectTableList* lplistRows, ECListInt* lplistMVPropTag)
 {
-	ASSERT(lplistMVPropTag->size() <2); //FIXME: Limit of one 1 MV column
+	assert(lplistMVPropTag->size() < 2); //FIXME: Limit of one 1 MV column
 	// scan for MV-props and add rows
 	// Add items to list
 	return erSuccess;
@@ -154,8 +153,7 @@ ECRESULT ECABObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct soap
 	ECRESULT er = erSuccess;
 	ECODAB *lpODAB = (ECODAB*)lpObjectData;
 	struct rowSet	*lpsRowSet = NULL;
-
-	ASSERT(lpRowList != NULL);
+	assert(lpRowList != NULL);
 
 	if (lpODAB->ulABType == MAPI_ABCONT)
 		er = lpSession->GetUserManagement()->QueryHierarchyRowData(soap, lpRowList, lpsPropTagArray, &lpsRowSet);

@@ -149,8 +149,7 @@ ECMsgStore::ECMsgStore(const char *lpszProfname, LPMAPISUP lpSupport,
 	this->m_ulClientVersion = 0;
 
 	GetClientVersion(&this->m_ulClientVersion); //Ignore errors
-
-	ASSERT(lpszProfname != NULL);
+	assert(lpszProfname != NULL);
 	if(lpszProfname)
 		this->m_strProfname = lpszProfname;
 }
@@ -482,8 +481,7 @@ HRESULT ECMsgStore::InternalAdvise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG u
 		goto exit;
 	}
 
-	ASSERT(m_lpNotifyClient != NULL && (lpEntryID != NULL || this->m_lpEntryId != NULL));
-
+	assert(m_lpNotifyClient != NULL && (lpEntryID != NULL || this->m_lpEntryId != NULL));
 	if(lpEntryID == NULL) {
 
 		// never sent the client store entry
@@ -525,8 +523,7 @@ HRESULT ECMsgStore::Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulEventMa
 		goto exit;
 	}
 
-	ASSERT(m_lpNotifyClient != NULL && (lpEntryID != NULL || this->m_lpEntryId != NULL));
-
+	assert(m_lpNotifyClient != NULL && (lpEntryID != NULL || this->m_lpEntryId != NULL));
 	if(lpEntryID == NULL) {
 
 		// never sent the client store entry
@@ -559,9 +556,7 @@ exit:
 HRESULT ECMsgStore::Unadvise(ULONG ulConnection) {
 	if (m_ulProfileFlags & EC_PROFILE_FLAGS_NO_NOTIFICATIONS)
 		return MAPI_E_NO_SUPPORT;
-
-	ASSERT(m_lpNotifyClient != NULL);
-
+	assert(m_lpNotifyClient != NULL);
 	m_lpNotifyClient->Unadvise(ulConnection);
 	return hrSuccess;
 }
@@ -1386,9 +1381,7 @@ HRESULT	ECMsgStore::SetPropHandler(ULONG ulPropTag, void* lpProvider, LPSPropVal
 HRESULT ECMsgStore::SetEntryId(ULONG cbEntryId, LPENTRYID lpEntryId)
 {
 	HRESULT hr;
-
-	ASSERT(m_lpNotifyClient == NULL);
-
+	assert(m_lpNotifyClient == NULL);
 	hr = ECGenericProp::SetEntryId(cbEntryId, lpEntryId);
 	if(hr != hrSuccess)
 		return hr;
@@ -1396,7 +1389,7 @@ HRESULT ECMsgStore::SetEntryId(ULONG cbEntryId, LPENTRYID lpEntryId)
 	if(! (m_ulProfileFlags & EC_PROFILE_FLAGS_NO_NOTIFICATIONS)) {
 		// Create Notifyclient
 		hr = ECNotifyClient::Create(MAPI_STORE, this, m_ulProfileFlags, lpSupport, &m_lpNotifyClient);
-		ASSERT(m_lpNotifyClient != NULL);
+		assert(m_lpNotifyClient != NULL);
 		if(hr != hrSuccess)
 			return hr;
 	}
@@ -1626,8 +1619,7 @@ HRESULT ECMsgStore::GetMailboxTable(LPTSTR lpszServerName, LPMAPITABLE *lppTable
 			goto exit;
 	}
 
-	ASSERT(lpMsgStore != NULL);
-
+	assert(lpMsgStore != NULL);
 	hr = ECMAPITable::Create("Mailbox table", lpMsgStore->GetMsgStore()->m_lpNotifyClient, 0, &lpTable);
 	if(hr != hrSuccess)
 		goto exit;

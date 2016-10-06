@@ -1472,7 +1472,7 @@ HRESULT ArchiveControlImpl::MoveAndDetachMessages(ArchiveHelperPtr ptrArchiveHel
 		}
 		ptrMessageList->lpbin[ptrMessageList->cValues].cb = e.size();
 		ptrMessageList->lpbin[ptrMessageList->cValues++].lpb = e;
-		ASSERT(ptrMessageList->cValues <= setEIDs.size());
+		assert(ptrMessageList->cValues <= setEIDs.size());
 	}
 
 	hr = lpArchiveFolder->CopyMessages(ptrMessageList, &ptrDelItemsFolder.iid, ptrDelItemsFolder, 0, NULL, MESSAGE_MOVE);

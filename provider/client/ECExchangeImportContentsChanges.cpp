@@ -428,8 +428,8 @@ bool ECExchangeImportContentsChanges::IsProcessed(LPSPropValue lpRemoteCK, LPSPr
 	if (!lpRemoteCK || !lpLocalPCL)
 		return false;
 
-	ASSERT(lpRemoteCK->ulPropTag == PR_CHANGE_KEY);
-	ASSERT(lpLocalPCL->ulPropTag == PR_PREDECESSOR_CHANGE_LIST);
+	assert(lpRemoteCK->ulPropTag == PR_CHANGE_KEY);
+	assert(lpLocalPCL->ulPropTag == PR_PREDECESSOR_CHANGE_LIST);
 
 	const std::string strChangeList((char*)lpLocalPCL->Value.bin.lpb, lpLocalPCL->Value.bin.cb);
 	size_t ulPos = 0;
@@ -478,9 +478,8 @@ bool ECExchangeImportContentsChanges::IsConflict(LPSPropValue lpLocalCK, LPSProp
 	if (!lpLocalCK || !lpRemotePCL)
 		return false;
 
-	ASSERT(lpLocalCK->ulPropTag == PR_CHANGE_KEY);
-	ASSERT(lpRemotePCL->ulPropTag == PR_PREDECESSOR_CHANGE_LIST);
-
+	assert(lpLocalCK->ulPropTag == PR_CHANGE_KEY);
+	assert(lpRemotePCL->ulPropTag == PR_PREDECESSOR_CHANGE_LIST);
 	bool bConflict = false;
 	bool bGuidFound = false;
 	const std::string strChangeList((char*)lpRemotePCL->Value.bin.lpb, lpRemotePCL->Value.bin.cb);

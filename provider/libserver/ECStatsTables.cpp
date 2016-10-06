@@ -500,7 +500,7 @@ ECRESULT ECSessionStatsTable::QueryRowData(ECGenericObjectTable *lpGenericThis, 
 					else if (bs.state == SESSION_STATE_SENDING)
 						szState = "S";
 					else
-						ASSERT(false);
+						assert(false);
 					lpsRowSet->__ptr[i].__ptr[k].Value.mvszA.__ptr[j++] = s_strcpy(soap, szState);
 				}
 				break;

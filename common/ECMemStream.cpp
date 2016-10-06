@@ -371,7 +371,7 @@ HRESULT ECMemStream::CopyTo(IStream *pstm, ULARGE_INTEGER cb, ULARGE_INTEGER *pc
 	if(hr != hrSuccess)
 		return hr;
 
-	ASSERT(liPos.u.HighPart == 0);
+	assert(liPos.u.HighPart == 0);
 	ulOffset = liPos.u.LowPart;
 
 	while(cb.QuadPart && ulSize > ulOffset) {

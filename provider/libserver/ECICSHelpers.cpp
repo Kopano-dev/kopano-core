@@ -184,8 +184,7 @@ std::string FullQueryCreator::CreateBaseQuery()
 {
 	std::string strQuery;
 
-	ASSERT(!m_sFolderSourceKey.empty());
-	
+	assert(!m_sFolderSourceKey.empty());
 	strQuery =  "SELECT changes.id as id, sourcekey.val_binary as sourcekey, parentsourcekey.val_binary, " + stringify(ICS_MESSAGE_NEW) + ", NULL, hierarchy.flags, changes.sourcesync "
 				"FROM hierarchy "
 				"JOIN indexedproperties as sourcekey ON sourcekey.hierarchyid = hierarchy.id AND sourcekey.tag=" + stringify(PROP_ID(PR_SOURCE_KEY)) + " "
@@ -276,9 +275,9 @@ NonLegacyIncrementalProcessor::NonLegacyIncrementalProcessor(unsigned int ulMaxC
 ECRESULT NonLegacyIncrementalProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags)
 {
 	// Since all changes are truly new changes, we'll just set the changetype to whatever we receive
-	ASSERT(lpulChangeType);
-	ASSERT(lpDBRow && lpDBRow[icsChangeType]);
-	ASSERT(lpDBRow && lpDBRow[icsID]);
+	assert(lpulChangeType != NULL);
+	assert(lpDBRow != NULL && lpDBRow[icsChangeType] != NULL);
+	assert(lpDBRow != NULL && lpDBRow[icsID] != NULL);
 	
 	*lpulChangeType = atoui(lpDBRow[icsChangeType]);
 	*lpulFlags = lpDBRow[icsFlags] ? atoui(lpDBRow[icsFlags]) : 0;
@@ -291,8 +290,7 @@ ECRESULT NonLegacyIncrementalProcessor::ProcessRejected(DB_ROW lpDBRow, DB_LENGT
 {
 	// Since no restriction can be applied when using this processor, we'll never get a reject.
 	// We'll set the changetype to 0 anyway.
-	ASSERT(FALSE);
-	
+	assert(false);
 	*lpulChangeType = 0;
 	ec_log(EC_LOGLEVEL_ICS, "NonLegacyIncrementalRejected: sourcekey=%s, changetype=0", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str());
 	return erSuccess;
@@ -333,9 +331,9 @@ ECRESULT NonLegacyFullProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDB
 	// This processor will allways be used with the FullQueryGenerator, which means that the provided
 	// changetype is allways ICS_MESSAGE_NEW. However, we do have the message flags so we can see if
 	// a message is deleted.
-	ASSERT(lpulChangeType);
-	ASSERT(lpDBRow && lpDBRow[icsChangeType] && lpDBRow[icsMsgFlags]);
-	ASSERT(atoui(lpDBRow[icsChangeType]) == ICS_MESSAGE_NEW);
+	assert(lpulChangeType != NULL);
+	assert(lpDBRow != NULL && lpDBRow[icsChangeType] != NULL && lpDBRow[icsMsgFlags] != NULL);
+	assert(atoui(lpDBRow[icsChangeType]) == ICS_MESSAGE_NEW);
 
 	unsigned int ulChange = (lpDBRow[icsID] ? atoui(lpDBRow[icsID]) : 0);
 	if (atoui(lpDBRow[icsMsgFlags]) & MSGFLAG_DELETED) {
@@ -360,7 +358,7 @@ ECRESULT NonLegacyFullProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDB
 ECRESULT NonLegacyFullProcessor::ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType)
 {
 	// We assume the client has all messages, so we need to send a delete for any non-matching message.
-	ASSERT(lpulChangeType);
+	assert(lpulChangeType != NULL);
 
 	unsigned int ulChange = (lpDBRow[icsID] ? atoui(lpDBRow[icsID]) : 0);
 	if (ulChange <= m_ulChangeId)
@@ -414,9 +412,9 @@ ECRESULT LegacyProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, un
 	// When we get here we're accepting a message that has matched the restriction (or if there was no
 	// restriction). However since we have legacy, this messages might be present already, in which
 	// case we need to do nothing unless its deleted or changed since the last check.
-	ASSERT(lpulChangeType);
-	ASSERT(lpDBRow && lpDBRow[icsSourceKey] && lpDBRow[icsChangeType] && lpDBRow[icsMsgFlags]);
-	ASSERT(atoui(lpDBRow[icsChangeType]) == ICS_MESSAGE_NEW);
+	assert(lpulChangeType != NULL);
+	assert(lpDBRow != NULL && lpDBRow[icsSourceKey] != NULL && lpDBRow[icsChangeType] && lpDBRow[icsMsgFlags] != NULL);
+	assert(atoui(lpDBRow[icsChangeType]) == ICS_MESSAGE_NEW);
 	
 	*lpulFlags = 0;
 	ulMsgFlags = atoui(lpDBRow[icsMsgFlags]);
@@ -460,9 +458,9 @@ ECRESULT LegacyProcessor::ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, un
 	// When we get here we're rejecting a message that has not-matched the restriction. 
 	// However since we have legacy, this messages might not be present anyway, in which
 	// case we need to do nothing.
-	ASSERT(lpulChangeType);
-	ASSERT(lpDBRow && lpDBRow[icsSourceKey] && lpDBRow[icsChangeType] && lpDBRow[icsMsgFlags]);
-	ASSERT(atoui(lpDBRow[icsChangeType]) == ICS_MESSAGE_NEW);
+	assert(lpulChangeType != NULL);
+	assert(lpDBRow != NULL && lpDBRow[icsSourceKey] != NULL && lpDBRow[icsChangeType] && lpDBRow[icsMsgFlags] != NULL);
+	assert(atoui(lpDBRow[icsChangeType]) == ICS_MESSAGE_NEW);
 	
 	auto iterMessage = m_setMessages.find(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey]));
 	if (iterMessage == m_setMessages.cend()) {
@@ -484,7 +482,7 @@ ECRESULT LegacyProcessor::ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, un
 
 ECRESULT LegacyProcessor::GetResidualMessages(LPMESSAGESET lpsetResiduals)
 {
-	ASSERT(lpsetResiduals);
+	assert(lpsetResiduals != NULL);
 	std::copy(m_setMessages.begin(), m_setMessages.end(), std::inserter(*lpsetResiduals, lpsetResiduals->begin()));
 	return erSuccess;
 }
@@ -518,9 +516,9 @@ ECRESULT FirstSyncProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen,
 	// This processor will allways be used with the FullQueryGenerator, which means that the provided
 	// changetype is allways ICS_MESSAGE_NEW. However, we do have the message flags so we can see if
 	// a message is deleted.
-	ASSERT(lpulChangeType);
-	ASSERT(lpDBRow && lpDBRow[icsChangeType] && lpDBRow[icsMsgFlags]);
-	ASSERT(atoui(lpDBRow[icsChangeType]) == ICS_MESSAGE_NEW);
+	assert(lpulChangeType != NULL);
+	assert(lpDBRow != NULL && lpDBRow[icsChangeType] != NULL && lpDBRow[icsMsgFlags] != NULL);
+	assert(atoui(lpDBRow[icsChangeType]) == ICS_MESSAGE_NEW);
 	
 	*lpulFlags = 0; // Only useful for ICS_FLAG type changes
 	if (atoui(lpDBRow[icsMsgFlags]) & MSGFLAG_DELETED)
@@ -534,8 +532,7 @@ ECRESULT FirstSyncProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen,
 
 ECRESULT FirstSyncProcessor::ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType)
 {
-	ASSERT(lpulChangeType);
-	
+	assert(lpulChangeType != NULL);
 	*lpulChangeType = 0;	// Ignore
 
 	ec_log(EC_LOGLEVEL_ICS, "FirstSyncRejected: sourcekey=%s, changetype=0", bin2hex(SOURCEKEY(lpDBLen[icsSourceKey], lpDBRow[icsSourceKey])).c_str());
@@ -553,8 +550,7 @@ ECRESULT ECGetContentChangesHelper::Create(struct soap *soap, ECSession *lpSessi
 	er = lpHelper->Init();
 	if (er != erSuccess)
 		goto exit;
-		
-	ASSERT(lppHelper);
+	assert(lppHelper != NULL);
 	*lppHelper = lpHelper;
 	lpHelper = NULL;
 	
@@ -586,8 +582,7 @@ ECRESULT ECGetContentChangesHelper::Init()
 	DB_ROW		lpDBRow;
 	std::string	strQuery;
 
-	ASSERT(m_lpDatabase);
-
+	assert(m_lpDatabase != NULL);
 	if (m_sFolderSourceKey.empty() && m_ulChangeId == 0 && (m_ulFlags & SYNC_CATCHUP) != SYNC_CATCHUP) {
 		// Disallow full initial exports on server level since they are insanely large
 		er = KCERR_NO_SUPPORT;
@@ -622,7 +617,7 @@ ECRESULT ECGetContentChangesHelper::Init()
 		 */
 	    if(m_sFolderSourceKey.empty()) {
 			// Optimization: when doing SYNC_CATCHUP on a non-filtered sync, we can skip looking for any changes
-  		    ASSERT((m_ulFlags & SYNC_CATCHUP) == SYNC_CATCHUP);
+			assert((m_ulFlags & SYNC_CATCHUP) == SYNC_CATCHUP);
 			m_lpQueryCreator = new NullQueryCreator();
 		} else {
 			m_lpQueryCreator = new FullQueryCreator(m_lpDatabase, m_sFolderSourceKey, m_ulFlags, m_ulSyncId);
@@ -705,11 +700,11 @@ ECRESULT ECGetContentChangesHelper::QueryDatabase(DB_RESULT *lppDBResult)
 	std::string		strQuery;
 	unsigned int	ulChanges = 0;
 
-	ASSERT(m_lpQueryCreator);
+	assert(m_lpQueryCreator != NULL);
 	strQuery = m_lpQueryCreator->CreateQuery();
 	
 	if(!strQuery.empty()) {
-		ASSERT(m_lpDatabase);
+		assert(m_lpDatabase != NULL);
 		er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
 		if (er != erSuccess)
 			return er;
@@ -726,8 +721,7 @@ ECRESULT ECGetContentChangesHelper::QueryDatabase(DB_RESULT *lppDBResult)
 	m_lpChanges = (icsChangesArray*)soap_malloc(m_soap, sizeof *m_lpChanges);
 	m_lpChanges->__ptr = (icsChange*)soap_malloc(m_soap, sizeof *m_lpChanges->__ptr * ulChanges);
 	m_lpChanges->__size = 0;
-	
-	ASSERT(lppDBResult);
+	assert(lppDBResult != NULL);
 	*lppDBResult = lpDBResult;
 	return erSuccess;
 }
@@ -742,13 +736,13 @@ ECRESULT ECGetContentChangesHelper::ProcessRows(const std::vector<DB_ROW> &db_ro
 	std::set<SOURCEKEY> matches;
 
 	if (m_lpsRestrict) {
-		ASSERT(m_lpSession);
+		assert(m_lpSession != NULL);
 		er = MatchRestrictions(db_rows, db_lengths, m_lpsRestrict, &matches);
 		if (er != erSuccess)
 			return er;
 	}
 
-	ASSERT(m_lpMsgProcessor);
+	assert(m_lpMsgProcessor != NULL);
 	for (size_t i = 0; i < db_rows.size(); ++i) {
 		bool fMatch = true;
 
@@ -800,7 +794,7 @@ ECRESULT ECGetContentChangesHelper::ProcessResidualMessages()
 	ECRESULT er;
 	MESSAGESET				setResiduals;
 
-	ASSERT(m_lpMsgProcessor);
+	assert(m_lpMsgProcessor != NULL);
 	er = m_lpMsgProcessor->GetResidualMessages(&setResiduals);
 	if (er != erSuccess)
 		return er;
@@ -836,13 +830,11 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 	DB_RESULT					lpDBResult	= NULL;
 	DB_ROW						lpDBRow;
 	
-	ASSERT(lppChanges);
-	ASSERT(lpulMaxChange);
-	
+	assert(lppChanges != NULL);
+	assert(lpulMaxChange != NULL);
 	m_lpChanges->__size = m_ulChangeCnt;
 	*lppChanges = m_lpChanges;
-	
-	ASSERT(m_lpMsgProcessor != NULL);
+	assert(m_lpMsgProcessor != NULL);
 	ulMaxChange = m_lpMsgProcessor->GetMaxChangeId();
 
 	if(m_ulFlags & 0x80000) {
@@ -855,7 +847,7 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 	// stop doing work here. Also, if we have converted from a non-restricted to a restricted set, we have to write
 	// the new set of messages, even if there are no changes.
 	if (m_ulChangeCnt == 0 && m_ulChangeId > 0 && !(m_setLegacyMessages.empty() && m_lpsRestrict) ) {
-		ASSERT(ulMaxChange >= m_ulChangeId);
+		assert(ulMaxChange >= m_ulChangeId);
 		*lpulMaxChange = ulMaxChange;
 		
 		// Delete all entries that have a changeid that are greater to the new change id.
@@ -878,10 +870,9 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 		er = m_lpDatabase->DoInsert(strQuery, &ulNewChange);
 		if (er != erSuccess)
 			goto exit;
-			
-		ASSERT(ulNewChange > ulMaxChange);
+		assert(ulNewChange > ulMaxChange);
 		ulMaxChange = ulNewChange;
-		ASSERT(ulMaxChange > m_ulChangeId);
+		assert(ulMaxChange > m_ulChangeId);
 	}
 	
 	/**
@@ -949,8 +940,7 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 			std::copy(setChangeIds.begin(), iter, std::inserter(setDeleteIds, setDeleteIds.begin()));
 
 			if (!setDeleteIds.empty()) {
-				ASSERT(setChangeIds.size() - setDeleteIds.size() <= 9);
-				
+				assert(setChangeIds.size() - setDeleteIds.size() <= 9);
 				strQuery = "DELETE FROM syncedmessages WHERE sync_id=" + stringify(m_ulSyncId) + " AND change_id IN (";
 				for (auto del_id : setDeleteIds) {
 					strQuery.append(stringify(del_id));
@@ -1041,7 +1031,7 @@ ECRESULT ECGetContentChangesHelper::MatchRestrictions(const std::vector<DB_ROW> 
 	if (er != erSuccess)
 		goto exit;
 
-	ASSERT(m_lpSession);
+	assert(m_lpSession != NULL);
 	// NULL for soap, not m_soap. We'll free this ourselves
 	er = ECStoreObjectTable::QueryRowData(NULL, NULL, m_lpSession, &lstRows, lpPropTags, &sODStore, &lpRowSet, false, false);
 	if (er != erSuccess)
@@ -1091,7 +1081,7 @@ ECRESULT ECGetContentChangesHelper::GetSyncedMessages(unsigned int ulSyncId, uns
 			"LEFT JOIN changes as c "
 				"ON m.sourcekey=c.sourcekey AND m.parentsourcekey=c.parentsourcekey AND c.id > " + stringify(ulChangeId) + " AND c.sourcesync != " + stringify(ulSyncId) + " "
 		"WHERE sync_id=" + stringify(ulSyncId) + " AND change_id=" + stringify(ulChangeId);
-	ASSERT(m_lpDatabase);
+	assert(m_lpDatabase != NULL);
 	er = m_lpDatabase->DoSelect(strQuery, &lpDBResult);
 	if (er != erSuccess)
 		goto exit;

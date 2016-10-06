@@ -374,10 +374,10 @@ HRESULT ECExportAddressbookChanges::UpdateState(LPSTREAM lpStream)
 bool ECExportAddressbookChanges::LeftPrecedesRight(const ICSCHANGE &left, const ICSCHANGE &right)
 {
 	ULONG ulTypeLeft = ((ABEID*)left.sSourceKey.lpb)->ulType;
-	ASSERT(ulTypeLeft == MAPI_MAILUSER || ulTypeLeft == MAPI_DISTLIST || ulTypeLeft == MAPI_ABCONT);
+	assert(ulTypeLeft == MAPI_MAILUSER || ulTypeLeft == MAPI_DISTLIST || ulTypeLeft == MAPI_ABCONT);
 
 	ULONG ulTypeRight = ((ABEID*)right.sSourceKey.lpb)->ulType;
-	ASSERT(ulTypeRight == MAPI_MAILUSER || ulTypeRight == MAPI_DISTLIST || ulTypeRight == MAPI_ABCONT);
+	assert(ulTypeRight == MAPI_MAILUSER || ulTypeRight == MAPI_DISTLIST || ulTypeRight == MAPI_ABCONT);
 
 	if (ulTypeLeft == ulTypeRight)
 		return SortCompareABEID(left.sSourceKey.cb, (LPENTRYID)left.sSourceKey.lpb, right.sSourceKey.cb, (LPENTRYID)right.sSourceKey.lpb) < 0;

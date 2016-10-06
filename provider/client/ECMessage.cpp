@@ -409,8 +409,7 @@ HRESULT ECMessage::SyncPlainToRtf()
 	StreamPtr ptrUncompressedRtfStream;
 
 	ULARGE_INTEGER emptySize = {{0,0}};
-
-	ASSERT(m_bInhibitSync == FALSE);
+	assert(m_bInhibitSync == false);
 	m_bInhibitSync = TRUE;
 
 	hr = ECMAPIProp::OpenProperty(PR_BODY_W, &IID_IStream, 0, 0, &ptrBodyStream);
@@ -467,8 +466,7 @@ HRESULT ECMessage::SyncPlainToHtml()
 	StreamPtr ptrHtmlStream;
 
 	ULARGE_INTEGER emptySize = {{0,0}};
-
-	ASSERT(m_bInhibitSync == FALSE);
+	assert(m_bInhibitSync == false);
 	m_bInhibitSync = TRUE;
 
 	hr = ECMAPIProp::OpenProperty(PR_BODY_W, &IID_IStream, 0, 0, &ptrBodyStream);
@@ -523,8 +521,7 @@ HRESULT ECMessage::SyncRtf()
 
 	ULARGE_INTEGER emptySize = {{0,0}};
 	LARGE_INTEGER moveBegin = {{0,0}};
-
-	ASSERT(m_bInhibitSync == FALSE);
+	assert(m_bInhibitSync == false);
 	m_bInhibitSync = TRUE;
 
 	hr = GetRtfData(&strRTF);
@@ -660,7 +657,7 @@ HRESULT ECMessage::SyncHtmlToPlain()
 
 	ULARGE_INTEGER emptySize = {{0,0}};
 
-	ASSERT(m_bInhibitSync == FALSE);
+	assert(m_bInhibitSync == FALSE);
 	m_bInhibitSync = TRUE;
 
 	hr = ECMAPIProp::OpenProperty(PR_HTML, &IID_IStream, 0, 0, &ptrHtmlStream);
@@ -704,8 +701,7 @@ HRESULT ECMessage::SyncHtmlToRtf()
 	unsigned int ulCodePage;
 
 	ULARGE_INTEGER emptySize = {{0,0}};
-
-	ASSERT(m_bInhibitSync == FALSE);
+	assert(!m_bInhibitSync);
 	m_bInhibitSync = TRUE;
 
 	hr = ECMAPIProp::OpenProperty(PR_HTML, &IID_IStream, 0, 0, &ptrHtmlStream);
@@ -1794,7 +1790,7 @@ HRESULT ECMessage::SaveRecips()
 
 		lpRowId = PpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_ROWID); // unique value of recipient
 		if (!lpRowId) {
-			ASSERT(lpRowId);
+			assert(lpRowId != NULL);
 			continue;
 		}
 
@@ -1917,7 +1913,7 @@ HRESULT ECMessage::SyncAttachments()
 
 		lpAttachNum = PpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_ATTACH_NUM); // unique value of attachment
 		if (!lpAttachNum) {
-			ASSERT(lpAttachNum);
+			assert(lpAttachNum != NULL);
 			continue;
 		}
 
@@ -2040,8 +2036,7 @@ HRESULT ECMessage::SaveChanges(ULONG ulFlags)
  	if (this->lstProps == NULL)
  		goto exit;
 
-	ASSERT(m_sMapiObject != NULL); // the actual bug .. keep open on submessage
-
+	assert(m_sMapiObject != NULL); // the actual bug .. keep open on submessage
 	if (this->lpRecips) {
 		hr = SaveRecips();
 		if (hr != hrSuccess)
@@ -2079,7 +2074,7 @@ HRESULT ECMessage::SaveChanges(ULONG ulFlags)
 	}
 
 	// don't re-sync bodies that are returned from server
-	ASSERT(m_bInhibitSync == FALSE);
+	assert(!m_bInhibitSync);
 	m_bInhibitSync = TRUE;
 
 	hr = ECMAPIProp::SaveChanges(ulFlags);
@@ -2180,7 +2175,7 @@ HRESULT ECMessage::SyncSubject()
 			else
 				lpPropArray[0].Value.lpszW[sizePrefix1] = 0; // "fwd:"
 
-			ASSERT(lpPropArray[0].Value.lpszW[sizePrefix1-1] == L':');
+			assert(lpPropArray[0].Value.lpszW[sizePrefix1-1] == L':');
 			lpPropArray[1].Value.lpszW = lpPropArray[0].Value.lpszW;
 
 			wcstol(lpPropArray[1].Value.lpszW, &lpszEnd, 10);
@@ -2789,7 +2784,7 @@ HRESULT ECMessage::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
 
 	if (!m_sMapiObject) {
 		// when does this happen? .. just a simple precaution for now
-		ASSERT(m_sMapiObject != NULL);
+		assert(m_sMapiObject != NULL);
 		hr = MAPI_E_NOT_FOUND;
 		goto exit;
 	}

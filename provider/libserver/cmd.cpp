@@ -2025,7 +2025,7 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 			//Write mv properties
 			nMVItems = GetMVItemCount(&lpPropValArray->__ptr[i]);
 			for (gsoap_size_t j = 0; j < nMVItems; ++j) {
-				ASSERT(PROP_TYPE(lpPropValArray->__ptr[i].ulPropTag) != PT_MV_UNICODE);
+				assert(PROP_TYPE(lpPropValArray->__ptr[i].ulPropTag) != PT_MV_UNICODE);
 
 				// Make sure string propvals are in UTF8
 				if (PROP_TYPE(lpPropValArray->__ptr[i].ulPropTag) == PT_MV_STRING8)
@@ -2458,25 +2458,25 @@ static unsigned int SaveObject(struct soap *soap, ECSession *lpecSession,
 		// Collect recursive parent objects, validate item and check the permissions
 		er = ExpandDeletedItems(lpecSession, lpDatabase, &lstDel, ulDelFlags, false, &lstDeleteItems);
 		if (er != erSuccess) {
-			ASSERT(FALSE);
+			assert(false);
 			goto exit;
 		}
 
 		er = DeleteObjectHard(lpecSession, lpDatabase, lpAttachmentStorage, ulDelFlags, lstDeleteItems, true, lstDeleted);
 		if (er != erSuccess) {
-			ASSERT(FALSE);
+			assert(false);
 			goto exit;
 		}
 
 		er = DeleteObjectStoreSize(lpecSession, lpDatabase, ulDelFlags, lstDeleted);
 		if (er != erSuccess) {
-			ASSERT(FALSE);
+			assert(false);
 			goto exit;
 		}
 
 		er = DeleteObjectCacheUpdate(lpecSession, ulDelFlags, lstDeleted);
 		if (er != erSuccess) {
-			ASSERT(FALSE);
+			assert(false);
 			goto exit;
 		}
 
@@ -2620,7 +2620,7 @@ static unsigned int SaveObject(struct soap *soap, ECSession *lpecSession,
 						goto exit;
 				}
 			} else {
-				ASSERT(FALSE);
+				assert(false);
 			}
 		}
 
@@ -7411,7 +7411,7 @@ SOAP_ENTRY_START(resolveUserStore, lpsResponse->er, char *szUserName, unsigned i
 		}
 
 		else {
-			ASSERT(FALSE);
+			assert(false);
 			er = KCERR_NOT_FOUND;
 			goto exit;
 		}
@@ -8750,7 +8750,7 @@ SOAP_ENTRY_START(copyFolder, *result, entryId sEntryId, entryId sDestFolderId, c
 
 	if(ulDestStoreId != ulSourceStoreId) {
 		ec_log_err("SOAP::copyFolder copy from/to different stores (from %u to %u) is not supported", ulSourceStoreId, ulDestStoreId);
-		ASSERT(FALSE);
+		assert(false);
 		er = KCERR_NO_SUPPORT;
 		goto exit;
 	}
@@ -10637,8 +10637,7 @@ static ECRESULT SerializeObject(void *arg)
 	ECSerializer		*lpSink = NULL;
 
 	lpStreamInfo = (LPMTOMStreamInfo)arg;
-	ASSERT(lpStreamInfo != NULL);
-
+	assert(lpStreamInfo != NULL);
 	lpStreamInfo->lpSessionInfo->lpSharedDatabase->ThreadInit();
 
 	lpSink = new ECFifoSerializer(lpStreamInfo->lpFifoBuffer, ECFifoSerializer::serialize);
@@ -10659,8 +10658,7 @@ static void *MTOMReadOpen(struct soap *soap, void *handle, const char *id,
 	LPMTOMStreamInfo	lpStreamInfo = NULL;
 
 	lpStreamInfo = (LPMTOMStreamInfo)handle;
-	ASSERT(lpStreamInfo != NULL);
-
+	assert(lpStreamInfo != NULL);
 	if (lpStreamInfo->lpSessionInfo->er != erSuccess) {
 		soap->error = SOAP_FATAL_ERROR;
 		return NULL;
@@ -10700,8 +10698,7 @@ static size_t MTOMRead(struct soap * /*soap*/, void *handle,
 	LPMTOMStreamInfo		lpStreamInfo = (LPMTOMStreamInfo)handle;
 	ECFifoBuffer::size_type	cbRead = 0;
 	
-	ASSERT(lpStreamInfo->lpFifoBuffer != NULL);
-
+	assert(lpStreamInfo->lpFifoBuffer != NULL);
 	er = lpStreamInfo->lpFifoBuffer->Read(buf, len, STR_DEF_TIMEOUT, &cbRead);
 	if (er != erSuccess)
 		ec_log_err("Failed to read data. er=%s", stringify(er).c_str());
@@ -10712,8 +10709,7 @@ static void MTOMReadClose(struct soap *soap, void *handle)
 { 
 	LPMTOMStreamInfo		lpStreamInfo = (LPMTOMStreamInfo)handle;
 	
-	ASSERT(lpStreamInfo->lpFifoBuffer != NULL);
-	
+	assert(lpStreamInfo->lpFifoBuffer != NULL);
 	lpStreamInfo->lpSessionInfo->lpCurrentReadStream = NULL; // Cleanup done
 
 	// We get here when the last call to MTOMRead returned 0 OR when
@@ -10874,7 +10870,7 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
             }
             
             if (ulParentId != ulParentCheck) {
-                ASSERT(false);
+                assert(false);
                 goto next_object;
             }
         }
@@ -10940,8 +10936,7 @@ next_object:
 	if (er != erSuccess)
 	    goto exit;
 	    
-    ASSERT(lpRowSet->__size == (int)ulObjCnt);
-    
+	assert(lpRowSet->__size == static_cast<gsoap_size_t>(ulObjCnt));
 	for (gsoap_size_t i = 0; i < lpRowSet->__size; ++i)
 		lpsResponse->sMsgStreams.__ptr[i].sPropVals = lpRowSet->__ptr[i];
 
@@ -10972,8 +10967,7 @@ static ECRESULT DeserializeObject(void *arg)
 	ECRESULT			er = erSuccess;
 
 	lpStreamInfo = (LPMTOMStreamInfo)arg;
-	ASSERT(lpStreamInfo != NULL);
-
+	assert(lpStreamInfo != NULL);
 	lpSource = new ECFifoSerializer(lpStreamInfo->lpFifoBuffer, ECFifoSerializer::deserialize);
 	er = DeserializeObject(lpStreamInfo->lpSessionInfo->lpecSession, lpStreamInfo->lpSessionInfo->lpDatabase, lpStreamInfo->lpSessionInfo->lpAttachmentStorage, NULL, lpStreamInfo->ulObjectId, lpStreamInfo->ulStoreId, &lpStreamInfo->sGuid, lpStreamInfo->bNewItem, lpStreamInfo->ullIMAP, lpSource, &lpStreamInfo->lpPropValArray);
 	delete lpSource;
@@ -11010,7 +11004,7 @@ static int MTOMWrite(struct soap *soap, void *handle,
 	LPMTOMStreamInfo	lpStreamInfo = NULL;
 	
 	lpStreamInfo = (LPMTOMStreamInfo)handle;
-	ASSERT(lpStreamInfo != NULL);
+	assert(lpStreamInfo != NULL);
 
 	// Only write data if a reader thread is available
 	if (lpStreamInfo->lpTask) {
@@ -11030,8 +11024,7 @@ static void MTOMWriteClose(struct soap *soap, void *handle)
 
 	LPMTOMStreamInfo	lpStreamInfo = NULL;
 	lpStreamInfo = (LPMTOMStreamInfo)handle;
-	ASSERT(lpStreamInfo != NULL);
-	
+	assert(lpStreamInfo != NULL);
 	lpStreamInfo->lpSessionInfo->lpCurrentWriteStream = NULL; // Since we are cleaning up ourselves, another cleanup is not necessary
 
 	lpStreamInfo->lpFifoBuffer->Close(ECFifoBuffer::cfWrite);
@@ -11153,28 +11146,28 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags, unsigne
 		// Collect recursive parent objects, validate item and check the permissions
 		er = ExpandDeletedItems(lpecSession, lpDatabase, &lObjectList, ulDeleteFlags, true, &lstDeleteItems);
 		if (er != erSuccess) {
-			ASSERT(FALSE);
+			assert(false);
 			goto exit;
 		}
 
 		// Delete the items hard
 		er = DeleteObjectHard(lpecSession, lpDatabase, lpAttachmentStorage, ulDeleteFlags, lstDeleteItems, true, lstDeleted);
 		if (er != erSuccess) {
-			ASSERT(FALSE);
+			assert(false);
 			goto exit;
 		}
 
 		// Update storesize
 		er = DeleteObjectStoreSize(lpecSession, lpDatabase, ulDeleteFlags, lstDeleted);
 		if (er != erSuccess) {
-			ASSERT(FALSE);
+			assert(false);
 			goto exit;
 		}
 
 		// Update cache
 		er = DeleteObjectCacheUpdate(lpecSession, ulDeleteFlags, lstDeleted);
 		if (er != erSuccess) {
-			ASSERT(FALSE);
+			assert(false);
 			goto exit;
 		}
 

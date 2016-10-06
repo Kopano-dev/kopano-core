@@ -26,12 +26,12 @@
 //
 DEF_INVARIANT_CHECK(ECPropertyEntry) {
 	// There should always be a proptag set.
-	ASSERT(ulPropTag != 0);
-	ASSERT(PROP_ID(ulPropTag) != 0);
+	assert(ulPropTag != 0);
+	assert(PROP_ID(ulPropTag) != 0);
 
 	// PT_STRING8 and PT_MV_STRING8 are never stored.
-	ASSERT(PROP_TYPE(ulPropTag) != PT_STRING8);
-	ASSERT(PROP_TYPE(ulPropTag) != PT_MV_STRING8);
+	assert(PROP_TYPE(ulPropTag) != PT_STRING8);
+	assert(PROP_TYPE(ulPropTag) != PT_MV_STRING8);
 }
 
 ECPropertyEntry::ECPropertyEntry(ULONG ulPropTag)
@@ -63,9 +63,8 @@ HRESULT ECPropertyEntry::HrSetProp(LPSPropValue lpsPropValue)
 	DEBUG_GUARD;
 
 	HRESULT hr = hrSuccess;
-
-	ASSERT(this->ulPropTag != 0);
-	ASSERT(this->ulPropTag == lpsPropValue->ulPropTag);
+	assert(this->ulPropTag != 0);
+	assert(this->ulPropTag == lpsPropValue->ulPropTag);
 
 	if(this->lpProperty)
 		this->lpProperty->CopyFrom(lpsPropValue);
@@ -83,8 +82,8 @@ HRESULT ECPropertyEntry::HrSetProp(ECProperty *property)
 
 	HRESULT hr = hrSuccess;
 
-	ASSERT(property->GetPropTag() != 0);
-	ASSERT(this->lpProperty == NULL);
+	assert(property->GetPropTag() != 0);
+	assert(this->lpProperty == NULL);
 	this->lpProperty = property;
 	this->fDirty = TRUE;
 
@@ -117,18 +116,18 @@ void ECPropertyEntry::DeleteProperty()
 //
 DEF_INVARIANT_CHECK(ECProperty) {
 	// There should always be a proptag set.
-	ASSERT(ulPropTag != 0);
-	ASSERT(PROP_ID(ulPropTag) != 0);
+	assert(ulPropTag != 0);
+	assert(PROP_ID(ulPropTag) != 0);
 
 	// PT_STRING8 and PT_MV_STRING8 are never stored.
-	ASSERT(PROP_TYPE(ulPropTag) != PT_STRING8);
-	ASSERT(PROP_TYPE(ulPropTag) != PT_MV_STRING8);
+	assert(PROP_TYPE(ulPropTag) != PT_STRING8);
+	assert(PROP_TYPE(ulPropTag) != PT_MV_STRING8);
 }
 
 ECProperty::ECProperty(const ECProperty &Property) {
 	SPropValue sPropValue;
 
-	ASSERT(Property.ulPropTag != 0);
+	assert(Property.ulPropTag != 0);
 	sPropValue.ulPropTag = Property.ulPropTag;
 	sPropValue.Value = Property.Value;
 
@@ -143,9 +142,7 @@ ECProperty::ECProperty(const ECProperty &Property) {
 ECProperty::ECProperty(LPSPropValue lpsProp) {
 	memset(&this->Value, 0, sizeof(union _PV));
 	this->ulSize = 0;
-
-	ASSERT(lpsProp->ulPropTag != 0);
-
+	assert(lpsProp->ulPropTag != 0);
 	CopyFromInternal(lpsProp);
 
 	DEBUG_CHECK_INVARIANT;
@@ -165,7 +162,7 @@ HRESULT ECProperty::CopyFromInternal(LPSPropValue lpsProp) {
 
 	this->dwLastError = 0;
 	this->ulPropTag = lpsProp->ulPropTag;
-	ASSERT(lpsProp->ulPropTag != 0);
+	assert(lpsProp->ulPropTag != 0);
 
 	switch(PROP_TYPE(lpsProp->ulPropTag)) {
 	case PT_I2:
@@ -617,7 +614,7 @@ HRESULT ECProperty::CopyFromInternal(LPSPropValue lpsProp) {
 		break;
 	default:
 		// Unknown type (PR_NULL not include)
-		ASSERT(FALSE);
+		assert(false);
 		dwLastError = MAPI_E_INVALID_PARAMETER;
 		break;
 	}
@@ -644,7 +641,7 @@ ECProperty::~ECProperty()
 			delete[] this->Value.bin.lpb;
 			break;
 		case PT_STRING8:
-			ASSERT(("We should never have PT_STRING8 storage", 0));
+			assert(("We should never have PT_STRING8 storage", 0));
 			// Deliberate fallthrough
 		case PT_UNICODE:
 			delete [] this->Value.lpszW;
@@ -680,7 +677,7 @@ ECProperty::~ECProperty()
 			break;
 		}
 		case PT_MV_STRING8:
-			ASSERT(("We should never have PT_MV_STRING8 storage", 0));
+			assert(("We should never have PT_MV_STRING8 storage", 0));
 			// Deliberate fallthrough
 		case PT_MV_UNICODE: {
 			for (unsigned int i = 0; i < this->Value.MVszW.cValues; ++i)
@@ -720,7 +717,7 @@ HRESULT ECProperty::CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulRequestPr
 
 	HRESULT hr = hrSuccess;
 
-	ASSERT
+	assert
 	(
 		PROP_TYPE(ulRequestPropTag) == PROP_TYPE(this->ulPropTag) ||
 		((PROP_TYPE(ulRequestPropTag) == PT_STRING8 || PROP_TYPE(ulRequestPropTag) == PT_UNICODE) && PROP_TYPE(this->ulPropTag) == PT_UNICODE) ||
@@ -773,7 +770,7 @@ HRESULT ECProperty::CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulRequestPr
 		break;
 	}
 	case PT_STRING8:
-		ASSERT(("We should never have PT_STRING8 storage", 0));
+		assert(("We should never have PT_STRING8 storage", 0));
 		// Deliberate fallthrough
 	case PT_UNICODE: {
 		if (PROP_TYPE(ulRequestPropTag) == PT_UNICODE) {
@@ -928,7 +925,7 @@ HRESULT ECProperty::CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulRequestPr
 		break;
 	}
 	case PT_MV_STRING8:
-		ASSERT(("We should never have PT_MV_STRING8 storage", 0));
+		assert(("We should never have PT_MV_STRING8 storage", 0));
 		// Deliberate fallthrough
 	case PT_MV_UNICODE: {
 		if (PROP_TYPE(ulRequestPropTag) == PT_MV_STRING8) {
@@ -1002,7 +999,7 @@ HRESULT ECProperty::CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulRequestPr
 		lpsProp->Value.err = this->Value.err;
 		break;
 	default: // I hope there are no pointers involved here!
-		ASSERT(FALSE);
+		assert(false);
 		lpsProp->Value = this->Value;
 		break;
 	}

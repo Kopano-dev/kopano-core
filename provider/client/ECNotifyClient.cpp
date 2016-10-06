@@ -309,8 +309,6 @@ HRESULT ECNotifyClient::UnRegisterAdvise(ULONG ulConnection)
 
 			MAPIFreeBuffer(iIterChangeAdvise->second);
 			m_mapChangeAdvise.erase(iIterChangeAdvise);
-		} else {
-			//ASSERT(FALSE);	
 		}
 	}
 	return hr;

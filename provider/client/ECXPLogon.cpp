@@ -527,8 +527,7 @@ HRESULT ECXPLogon::SetOutgoingProps (LPMESSAGE lpMessage)
         lpspvSender = NULL; // So that we may recover and continue using default values
     }
 
-    ASSERT (2 == ulValues);
-
+    assert(ulValues == 2);
     // If no sender has been stamped on the message use the identity of the transport
     if (!lpspvSender || PR_SENDER_ENTRYID != lpspvSender[0].ulPropTag)
     {
@@ -572,7 +571,7 @@ HRESULT ECXPLogon::SetOutgoingProps (LPMESSAGE lpMessage)
     spvProps[i].ulPropTag = PR_PROVIDER_SUBMIT_TIME;
     spvProps[i++].Value.ft = ft;
 
-    ASSERT (i <= NUM_OUTGOING_PROPS);
+    assert (i <= NUM_OUTGOING_PROPS);
     hr = lpMessage->SetProps (i, spvProps, NULL);
 
 	if(lpspvSender)
