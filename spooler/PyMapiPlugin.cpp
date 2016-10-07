@@ -28,11 +28,6 @@
 #include <kopano/stringutil.h>
 #include "frameobject.h"
 
-static void assertbreak(void)
-{
-	assert(false);
-}
-
 #define NEW_SWIG_INTERFACE_POINTER_OBJ(pyswigobj, objpointer, typeobj) {\
 	if (objpointer) {\
 		pyswigobj = SWIG_NewPointerObj((void*)objpointer, typeobj, SWIG_POINTER_OWN | 0);\
@@ -48,7 +43,7 @@ static void assertbreak(void)
 #define BUILD_SWIG_TYPE(pyswigobj, type) {\
 	pyswigobj = SWIG_TypeQuery(type);\
 	if (!pyswigobj) {\
-		assertbreak();\
+		assert(false);\
 		hr = S_FALSE;\
 		goto exitm;\
 	}\
@@ -101,7 +96,7 @@ static HRESULT PyHandleError(ECLogger *lpLogger, PyObject *pyobj)
 
 			PyErr_Clear();
 		} 
-		assertbreak(); 
+		assert(false); 
 		hr = S_FALSE; 
 	}
 
