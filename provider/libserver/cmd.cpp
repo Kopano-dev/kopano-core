@@ -89,8 +89,10 @@
 
 #if defined(HAVE_GPERFTOOLS_MALLOC_EXTENSION_H)
 #	include <gperftools/malloc_extension_c.h>
+#	define HAVE_TCMALLOC 1
 #elif defined(HAVE_GOOGLE_MALLOC_EXTENSION_H)
 #	include <google/malloc_extension_c.h>
+#	define HAVE_TCMALLOC 1
 #endif
 
 #define STRIN_FIX(s) (bSupportUnicode ? (s) : ECStringCompat::WTF1252_to_UTF8(soap, (s)))
@@ -5686,6 +5688,16 @@ exit:
 }
 SOAP_ENTRY_END()
 
+static inline void kc_purge_cache_tcmalloc(void)
+{
+#ifdef HAVE_TCMALLOC
+	auto rfm = reinterpret_cast<decltype(MallocExtension_ReleaseFreeMemory) *>
+		(dlsym(NULL, "MallocExtension_ReleaseFreeMemory"));
+	if (rfm != NULL)
+		rfm();
+#endif
+}
+
 SOAP_ENTRY_START(purgeCache, *result, unsigned int ulFlags, unsigned int *result)
 {
     if(lpecSession->GetSecurity()->GetAdminLevel() < ADMIN_LEVEL_SYSADMIN) {
@@ -5694,16 +5706,7 @@ SOAP_ENTRY_START(purgeCache, *result, unsigned int ulFlags, unsigned int *result
     }
 
     er = g_lpSessionManager->GetCacheManager()->PurgeCache(ulFlags);
-
-#ifdef HAVE_TCMALLOC
-	{
-		auto rfm = reinterpret_cast<decltype(MallocExtension_ReleaseFreeMemory) *>
-			(dlsym(NULL, "MallocExtension_ReleaseFreeMemory"));
-		if (rfm != NULL)
-			rfm();
-	}
-#endif
-
+	kc_purge_cache_tcmalloc();
 	g_lpStatsCollector->SetTime(SCN_SERVER_LAST_CACHECLEARED, time(NULL));
 exit:
     ;
