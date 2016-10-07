@@ -23,12 +23,12 @@
 class ECImportContentsChangesProxy  : public IExchangeImportContentsChanges {
 private:
     ULONG m_cRef;
-    zval *m_lpObj;
+	zval m_lpObj;
 #ifdef ZTS
 	TSRMLS_D;
 #endif
 public:
-    ECImportContentsChangesProxy(zval *objTarget TSRMLS_DC);
+	ECImportContentsChangesProxy(const zval *v TSRMLS_DC);
     ~ECImportContentsChangesProxy();
 
     virtual ULONG 	__stdcall AddRef();

@@ -68,21 +68,18 @@ extern "C" {
 static char *name_mapi_message;
 static int le_mapi_message;
 
-ECImportContentsChangesProxy::ECImportContentsChangesProxy(zval *lpObj TSRMLS_DC) {
-    this->m_cRef = 1; // Object is in use when created!
-    this->m_lpObj = lpObj;
-#if ZEND_MODULE_API_NO >= 20071006
-    Z_ADDREF_P(m_lpObj);
-#else
-    ZVAL_ADDREF(m_lpObj);
-#endif
+ECImportContentsChangesProxy::ECImportContentsChangesProxy(const zval *v TSRMLS_DC)
+{
+	ZVAL_OBJ(&m_lpObj, Z_OBJ_P(v));
+	Z_ADDREF(m_lpObj);
+	this->m_cRef = 1; // Object is in use when created!
 #ifdef ZTS
 	this->TSRMLS_C = TSRMLS_C;
 #endif
 }
 
 ECImportContentsChangesProxy::~ECImportContentsChangesProxy() {
-    zval_ptr_dtor(m_lpObj);
+	Z_DELREF(m_lpObj);
 }
 
 ULONG 	ECImportContentsChangesProxy::AddRef() {
@@ -126,8 +123,7 @@ HRESULT ECImportContentsChangesProxy::Config(LPSTREAM lpStream, ULONG ulFlags) {
     ZVAL_LONG(&pvalArgs[1], ulFlags);
     
     ZVAL_STRING(&pvalFuncName, "Config");
-    
-    if(call_user_function(NULL, m_lpObj, &pvalFuncName, &pvalReturn, 2, pvalArgs TSRMLS_CC) == FAILURE) {
+    if (call_user_function(NULL, &m_lpObj, &pvalFuncName, &pvalReturn, 2, pvalArgs TSRMLS_CC) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "Config method not present on ImportContentsChanges object");
         return MAPI_E_CALL_FAILED;
     }
@@ -149,8 +145,7 @@ HRESULT ECImportContentsChangesProxy::UpdateState(LPSTREAM lpStream) {
     }
     
     ZVAL_STRING(&pvalFuncName, "UpdateState");
-    
-    if(call_user_function(NULL, m_lpObj, &pvalFuncName, &pvalReturn, 1, pvalArgs TSRMLS_CC) == FAILURE) {
+    if (call_user_function(NULL, &m_lpObj, &pvalFuncName, &pvalReturn, 1, pvalArgs TSRMLS_CC) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "UpdateState method not present on ImportContentsChanges object");
         return MAPI_E_CALL_FAILED;
     }
@@ -175,8 +170,7 @@ HRESULT ECImportContentsChangesProxy::ImportMessageChange(ULONG cValues, LPSProp
     ZVAL_NULL(&pvalArgs[2]);
     
     ZVAL_STRING(&pvalFuncName, "ImportMessageChange");
-    
-    if(call_user_function(NULL, m_lpObj, &pvalFuncName, &pvalReturn, 3, pvalArgs TSRMLS_CC) == FAILURE) {
+    if (call_user_function(NULL, &m_lpObj, &pvalFuncName, &pvalReturn, 3, pvalArgs TSRMLS_CC) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "ImportMessageChange method not present on ImportContentsChanges object");
         return MAPI_E_CALL_FAILED;
     }
@@ -208,8 +202,7 @@ HRESULT ECImportContentsChangesProxy::ImportMessageDeletion(ULONG ulFlags, LPENT
     SBinaryArraytoPHPArray(lpSourceEntryList, &pvalArgs[1] TSRMLS_CC);
 
     ZVAL_STRING(&pvalFuncName, "ImportMessageDeletion");
-    
-    if(call_user_function(NULL, m_lpObj, &pvalFuncName, &pvalReturn, 2, pvalArgs TSRMLS_CC) == FAILURE) {
+    if (call_user_function(NULL, &m_lpObj, &pvalFuncName, &pvalReturn, 2, pvalArgs TSRMLS_CC) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "ImportMessageDeletion method not present on ImportContentsChanges object");
         return MAPI_E_CALL_FAILED;
     }
@@ -226,8 +219,7 @@ HRESULT ECImportContentsChangesProxy::ImportPerUserReadStateChange(ULONG cElemen
     ReadStateArraytoPHPArray(cElements, lpReadState, &pvalArgs[0] TSRMLS_CC);
 
     ZVAL_STRING(&pvalFuncName, "ImportPerUserReadStateChange");
-    
-    if(call_user_function(NULL, m_lpObj, &pvalFuncName, &pvalReturn, 1, pvalArgs TSRMLS_CC) == FAILURE) {
+    if (call_user_function(NULL, &m_lpObj, &pvalFuncName, &pvalReturn, 1, pvalArgs TSRMLS_CC) == FAILURE) {
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "ImportPerUserReadStateChange method not present on ImportContentsChanges object");
         return MAPI_E_CALL_FAILED;
     }
