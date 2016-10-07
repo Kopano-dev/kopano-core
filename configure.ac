@@ -121,9 +121,6 @@ if test "$want_unicode" = "yes"; then
 fi
 AC_SUBST([SWIG_FLAGS])
 
-AC_ARG_ENABLE([tcmalloc], AS_HELP_STRING([--enable-tcmalloc], [enable use of tcmalloc minimal lib]),
-  [want_tcmalloc=${enableval}],[want_tcmalloc=no])
-
 AC_MSG_CHECKING([specified Linux distribution name])
 AC_ARG_WITH([distro], AS_HELP_STRING([--with-distro], [set distribution name, used for sysconfig and initscripts only. available: rhel, alt, suse or sles]),
   [with_distro=${withval}],[with_distro=rhel])
@@ -448,13 +445,12 @@ AC_ARG_WITH(ical-prefix,
 AC_SUBST(ICAL_CFLAGS)
 AC_SUBST(ICAL_LIBS)
 
-if test "$want_tcmalloc" = "yes"; then
+PKG_CHECK_EXISTS([libtcmalloc_minimal], [
 	PKG_CHECK_MODULES([TCMALLOC], [libtcmalloc_minimal])
 	CPPFLAGS="$CPPFLAGS $TCMALLOC_CFLAGS"
 	AC_CHECK_HEADERS([gperftools/malloc_extension.h google/malloc_extension.h])
 	CPPFLAGS="$CPPFLAGS_system"
-	AC_DEFINE(HAVE_TCMALLOC, [1], [Google TCMalloc enabled])
-fi
+])
 
 #
 # Check for user plugin required libraries
