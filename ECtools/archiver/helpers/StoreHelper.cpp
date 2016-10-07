@@ -376,7 +376,7 @@ HRESULT StoreHelper::GetSubFolder(MAPIFolderPtr &ptrFolder, const tstring &strFo
 	hr = ptrFolder->GetHierarchyTable(fMapiDeferredErrors, &ptrTable);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrTable->SetColumns((LPSPropTagArray)&sptaFolderProps, TBL_BATCH);
+	hr = ptrTable->SetColumns(sptaFolderProps, TBL_BATCH);
 	if (hr != hrSuccess)
 		return hr;
 	

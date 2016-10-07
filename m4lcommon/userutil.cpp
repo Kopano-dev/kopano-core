@@ -99,7 +99,7 @@ private:
 
 HRESULT	DataCollector::GetRequiredPropTags(LPMAPIPROP /*lpProp*/, LPSPropTagArray *lppPropTagArray) const {
 	static SizedSPropTagArray(1, sptaDefaultProps) = {1, {PR_DISPLAY_NAME}};
-	return Util::HrCopyPropTagArray((LPSPropTagArray)&sptaDefaultProps, lppPropTagArray);
+	return Util::HrCopyPropTagArray(sptaDefaultProps, lppPropTagArray);
 }
 
 HRESULT DataCollector::GetRestriction(LPMAPIPROP lpProp, LPSRestriction *lppRestriction) {
@@ -151,7 +151,7 @@ UserListCollector<string_type, prAccount>::UserListCollector(IMAPISession *lpSes
 template<typename string_type, ULONG prAccount>
 HRESULT	UserListCollector<string_type, prAccount>::GetRequiredPropTags(LPMAPIPROP /*lpProp*/, LPSPropTagArray *lppPropTagArray) const {
 	static SizedSPropTagArray(1, sptaDefaultProps) = {1, {PR_MAILBOX_OWNER_ENTRYID}};
-	return Util::HrCopyPropTagArray((LPSPropTagArray)&sptaDefaultProps, lppPropTagArray);
+	return Util::HrCopyPropTagArray(sptaDefaultProps, lppPropTagArray);
 }
 
 template<typename string_type, ULONG prAccount>
@@ -290,8 +290,7 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 	}
 
 	if( ulCompanyCount > 0) {
-
-		hr = ptrHierarchyTable->SetColumns((LPSPropTagArray)&sCols, TBL_BATCH);
+		hr = ptrHierarchyTable->SetColumns(sCols, TBL_BATCH);
 		if(hr != hrSuccess) {
 			ec_log_crit("Unable to set set columns on user table: 0x%08X", hr);
 			goto exit;
@@ -521,8 +520,7 @@ HRESULT UpdateServerList(IABContainer *lpContainer,
 		ec_log_crit("Unable to open contents table: 0x%08X", hr);
 		return hr;
 	}
-
-	hr = ptrTable->SetColumns((LPSPropTagArray)&sCols, TBL_BATCH);
+	hr = ptrTable->SetColumns(sCols, TBL_BATCH);
 	if(hr != hrSuccess) {
 		ec_log_crit("Unable to set set columns on user table: 0x%08X", hr);
 		return hr;

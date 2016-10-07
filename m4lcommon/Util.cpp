@@ -2421,7 +2421,7 @@ ULONG Util::GetBestBody(IMAPIProp* lpPropObj, ULONG ulFlags)
 		} };
 	ULONG cValues = 0;
 
-	hr = lpPropObj->GetProps((LPSPropTagArray)&sBodyTags, 0, &cValues, &ptrBodies);
+	hr = lpPropObj->GetProps(sBodyTags, 0, &cValues, &ptrBodies);
 	if (FAILED(hr))
 		return PR_NULL;
 	return GetBestBody(&ptrBodies[0], &ptrBodies[1], &ptrBodies[2], &ptrBodies[3], ulFlags);
@@ -2813,8 +2813,7 @@ HRESULT Util::CopyHierarchy(LPMAPIFOLDER lpSrc, LPMAPIFOLDER lpDest, ULONG ulFla
 	hr = lpSrc->GetHierarchyTable(MAPI_UNICODE, &lpTable);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = lpTable->SetColumns((LPSPropTagArray)&sptaName, 0);
+	hr = lpTable->SetColumns(sptaName, 0);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -2915,8 +2914,7 @@ HRESULT Util::CopyContents(ULONG ulWhat, LPMAPIFOLDER lpSrc, LPMAPIFOLDER lpDest
 	hr = lpSrc->GetContentsTable(MAPI_UNICODE | ulWhat, &lpTable);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = lpTable->SetColumns((LPSPropTagArray)&sptaEntryID, 0);
+	hr = lpTable->SetColumns(sptaEntryID, 0);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -3239,7 +3237,7 @@ HRESULT Util::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj, ULONG ciidExclude
 		for (ULONG i = 0; i < lpSPropTagArray->cValues; ++i) {
 			if (lpExcludeProps && Util::FindPropInArray(lpExcludeProps, CHANGE_PROP_TYPE(lpSPropTagArray->aulPropTag[i], PT_UNSPECIFIED)) != -1)
 				lpSPropTagArray->aulPropTag[i] = PR_NULL;
-			else if (Util::FindPropInArray((LPSPropTagArray)&sExtraExcludes, CHANGE_PROP_TYPE(lpSPropTagArray->aulPropTag[i], PT_UNSPECIFIED)) != -1)
+			else if (Util::FindPropInArray(sExtraExcludes, CHANGE_PROP_TYPE(lpSPropTagArray->aulPropTag[i], PT_UNSPECIFIED)) != -1)
 				lpSPropTagArray->aulPropTag[i] = PR_NULL;
 		}
 	}
@@ -3826,7 +3824,7 @@ HRESULT Util::HrCopyIMAPData(LPMESSAGE lpSrcMsg, LPMESSAGE lpDstMsg)
 			Util::CopyInstanceIds(lpSrcMsg, lpDstMsg);
 
 			// Since we have a copy of the original email body, copy the other properties for IMAP too
-			hr = lpSrcMsg->GetProps((LPSPropTagArray)&sptaIMAP, 0, &cValues, &lpIMAPProps);
+			hr = lpSrcMsg->GetProps(sptaIMAP, 0, &cValues, &lpIMAPProps);
 			if (FAILED(hr))
 				goto exit;
 
@@ -3858,7 +3856,7 @@ HRESULT Util::HrDeleteIMAPData(LPMESSAGE lpMsg)
 		}
 	};
 
-	return lpMsg->DeleteProps((SPropTagArray*)&sptaIMAP, NULL);
+	return lpMsg->DeleteProps(sptaIMAP, NULL);
 }
 
 /** 
@@ -3884,7 +3882,7 @@ HRESULT Util::HrGetQuotaStatus(IMsgStore *lpMsgStore, ECQUOTA *lpsQuota,
 		goto exit;
 	}
 	
-	hr = lpMsgStore->GetProps((LPSPropTagArray)&sptaProps, 0, &cValues, &lpProps);
+	hr = lpMsgStore->GetProps(sptaProps, 0, &cValues, &lpProps);
 	if (hr != hrSuccess)
 		goto exit;
 		
@@ -4062,7 +4060,7 @@ HRESULT Util::HrDeleteAttachments(LPMESSAGE lpMsg)
 	HRESULT hr = lpMsg->GetAttachmentTable(0, &ptrAttachTable);
 	if (hr != hrSuccess)
 		return hr;
-	hr = HrQueryAllRows(ptrAttachTable, (LPSPropTagArray)&sptaAttachNum, NULL, NULL, 0, &ptrRows);
+	hr = HrQueryAllRows(ptrAttachTable, sptaAttachNum, NULL, NULL, 0, &ptrRows);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -4086,8 +4084,7 @@ HRESULT Util::HrDeleteRecipients(LPMESSAGE lpMsg)
 	HRESULT hr = lpMsg->GetRecipientTable(0, &ptrRecipTable);
 	if (hr != hrSuccess)
 		return hr;
-	hr = HrQueryAllRows(ptrRecipTable, reinterpret_cast<SPropTagArray *>(&sptaRowId),
-	     NULL, NULL, 0, &ptrRows);
+	hr = HrQueryAllRows(ptrRecipTable, sptaRowId, NULL, NULL, 0, &ptrRows);
 	if (hr != hrSuccess)
 		return hr;
 	return lpMsg->ModifyRecipients(MODRECIP_REMOVE, (LPADRLIST)ptrRows.get());
@@ -4105,8 +4102,7 @@ HRESULT Util::HrDeleteMessage(IMAPISession *lpSession, IMessage *lpMessage)
 	SizedSPropTagArray(3, sptaMessageProps) = {3, {PR_ENTRYID, PR_STORE_ENTRYID, PR_PARENT_ENTRYID}};
 	enum {IDX_ENTRYID, IDX_STORE_ENTRYID, IDX_PARENT_ENTRYID};
 
-	HRESULT hr = lpMessage->GetProps(reinterpret_cast<SPropTagArray *>(&sptaMessageProps),
-	             0, &cMsgProps, &ptrMsgProps);
+	HRESULT hr = lpMessage->GetProps(sptaMessageProps, 0, &cMsgProps, &ptrMsgProps);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpSession->OpenMsgStore(0, ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.cb, (LPENTRYID)ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.lpb, &ptrStore.iid, MDB_WRITE, &ptrStore);

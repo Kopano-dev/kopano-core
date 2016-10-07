@@ -568,8 +568,8 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictMessageOnly(LPMESSAGE lpM
 	hr = lpConflictFolder->CreateMessage(NULL, 0, &lpConflictMessage);
 	if(hr != hrSuccess)
 		goto exit;
-
-	hr = lpMessage->CopyTo(0, NULL, (LPSPropTagArray)&excludeProps, 0, NULL, &IID_IMessage, lpConflictMessage, 0, NULL);
+	hr = lpMessage->CopyTo(0, NULL, excludeProps, 0, NULL, &IID_IMessage,
+	     lpConflictMessage, 0, NULL);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -1103,7 +1103,7 @@ HRESULT ECExchangeImportContentsChanges::HrUpdateSearchReminders(LPMAPIFOLDER lp
 
 	SizedSPropTagArray(2, sptaREMProps) = {2, {PR_REM_ONLINE_ENTRYID, PR_REM_OFFLINE_ENTRYID}};
 
-	hr = lpRootFolder->GetProps((LPSPropTagArray)&sptaREMProps, 0, &cREMProps, &ptrREMProps);
+	hr = lpRootFolder->GetProps(sptaREMProps, 0, &cREMProps, &ptrREMProps);
 	if (FAILED(hr))
 		return hr;
 

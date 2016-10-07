@@ -473,8 +473,7 @@ HRESULT ECMsgStorePublic::BuildIPMSubTree()
 		assert(false);
 		goto exit;
 	}
-
-	hr = ECMemTable::Create((LPSPropTagArray)&sPropsHierarchyColumns, PR_ROWID, &lpIPMSubTree);
+	hr = ECMemTable::Create(sPropsHierarchyColumns, PR_ROWID, &lpIPMSubTree);
 	if(hr != hrSuccess)
 		goto exit;
 

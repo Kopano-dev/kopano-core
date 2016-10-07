@@ -450,8 +450,7 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open stats table for quota sizes, error 0x%08X", hr);
 		goto exit;
 	}
-
-	hr = lpTable->SetColumns((LPSPropTagArray)&sCols, MAPI_DEFERRED_ERRORS);
+	hr = lpTable->SetColumns(sCols, MAPI_DEFERRED_ERRORS);
 	if (hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to set columns on stats table for quota sizes, error 0x%08X", hr);
 		goto exit;

@@ -119,7 +119,7 @@ HRESULT Copier::Helper::GetArchiveFolder(const SObjectEntry &archiveEntry, LPMAP
 		
 		SPropArrayPtr props;
 		ULONG cb;
-		HRESULT hrTmp = ptrArchiveFolder->GetProps((LPSPropTagArray)&sptaProps, 0, &cb, &props);
+		HRESULT hrTmp = ptrArchiveFolder->GetProps(sptaProps, 0, &cb, &props);
 		if (!FAILED(hrTmp)) {
 			if (PROP_TYPE(props[0].ulPropTag) != PT_ERROR)
 				m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive folder: %s", props[0].Value.lpszA);
@@ -228,8 +228,7 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to get source attachment table. hr=0x%08x", hr);
 		return hr;
 	}
-
-	hr = ptrSourceTable->SetColumns((LPSPropTagArray)&sptaAttachProps, TBL_BATCH);
+	hr = ptrSourceTable->SetColumns(sptaAttachProps, TBL_BATCH);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to set source attachment columns. hr=0x%08x", hr);
 		return hr;
@@ -251,8 +250,7 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to get dest attachment table. hr=0x%08x", hr);
 		return hr;
 	}
-
-	hr = ptrDestTable->SetColumns((LPSPropTagArray)&sptaAttachProps, TBL_BATCH);
+	hr = ptrDestTable->SetColumns(sptaAttachProps, TBL_BATCH);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to set dest attachment columns. hr=0x%08x", hr);
 		return hr;

@@ -262,11 +262,10 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 	};
 
 	ulFlags = ulFlags & MAPI_UNICODE;
-
-	hr = Util::HrCopyUnicodePropTagArray(ulFlags, (LPSPropTagArray)&inputCols, &ptrInputCols);
+	hr = Util::HrCopyUnicodePropTagArray(ulFlags, inputCols, &ptrInputCols);
 	if (hr != hrSuccess)
 		goto exit;
-	hr = Util::HrCopyUnicodePropTagArray(ulFlags, (LPSPropTagArray)&outputCols, &ptrOutputCols);
+	hr = Util::HrCopyUnicodePropTagArray(ulFlags, outputCols, &ptrOutputCols);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -525,7 +524,7 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 	SPropValue sKey;
 	mapi_object_ptr<ZCMAPIProp> ptrZCMAPIProp;
 
-	hr = Util::HrCopyUnicodePropTagArray(ulFlags, (LPSPropTagArray)&sptaCols, &ptrCols);
+	hr = Util::HrCopyUnicodePropTagArray(ulFlags, sptaCols, &ptrCols);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -683,8 +682,7 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 
 	if ((ulFlags & MAPI_UNICODE) == 0)
 		sptaCols.aulPropTag[DISPLAY_NAME] = PR_DISPLAY_NAME_A;
-
-	hr = ECMemTable::Create((LPSPropTagArray)&sptaCols, PR_ROWID, &lpTable);
+	hr = ECMemTable::Create(sptaCols, PR_ROWID, &lpTable);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -1046,15 +1044,10 @@ HRESULT ZCABContainer::ResolveNames(LPSPropTagArray lpPropTagArray, ULONG ulFlag
 	ULONG i;
 	SRowSetPtr	ptrRows;
 
-	if (lpPropTagArray == NULL) {
-		if(ulFlags & MAPI_UNICODE)
-			lpPropTagArray = (LPSPropTagArray)&sptaUnicode;
-		else
-			lpPropTagArray = (LPSPropTagArray)&sptaDefault;
-	}
+	if (lpPropTagArray == NULL)
+		lpPropTagArray = (ulFlags & MAPI_UNICODE) ? sptaUnicode : sptaDefault;
 
 	// in this container table, find given PR_DISPLAY_NAME
-
 	if (m_lpFolders) {
 		// return MAPI_E_NO_SUPPORT ? since you should not query on this level
 

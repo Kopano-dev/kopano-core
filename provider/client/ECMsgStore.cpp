@@ -926,8 +926,7 @@ HRESULT ECMsgStore::GetReceiveFolderTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-
-	hr = Util::HrCopyUnicodePropTagArray(ulFlags, (LPSPropTagArray)&sPropRFTColumns, &lpPropTagArray);
+	hr = Util::HrCopyUnicodePropTagArray(ulFlags, sPropRFTColumns, &lpPropTagArray);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -1054,7 +1053,7 @@ HRESULT ECMsgStore::SetLockState(LPMESSAGE lpMessage, ULONG ulLockState)
 		goto exit;
 	}
 
-	hr = lpMessage->GetProps((LPSPropTagArray)&sptaMessageProps, 0, &cValue, &lpsPropArray);
+	hr = lpMessage->GetProps(sptaMessageProps, 0, &cValue, &lpsPropArray);
 	if(HR_FAILED(hr))
 		goto exit;
 

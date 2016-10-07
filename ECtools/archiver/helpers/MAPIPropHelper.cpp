@@ -107,7 +107,7 @@ HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageSt
 
 	if (lpState == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	hr = m_ptrMapiProp->GetProps((LPSPropTagArray)&sptaMessageProps, 0, &cMessageProps, &ptrMessageProps);
+	hr = m_ptrMapiProp->GetProps(sptaMessageProps, 0, &cMessageProps, &ptrMessageProps);
 	if (FAILED(hr))
 		return hr;
 	if (PROP_TYPE(ptrMessageProps[IDX_ENTRYID].ulPropTag) == PT_ERROR)
@@ -266,7 +266,7 @@ HRESULT MAPIPropHelper::GetArchiveList(ObjectEntryList *lplstArchives, bool bIgn
 		IDX_SOURCE_KEY
 	};
 	
-	hr = m_ptrMapiProp->GetProps((LPSPropTagArray)&sptaArchiveProps, 0, &cbValues, &ptrPropArray);
+	hr = m_ptrMapiProp->GetProps(sptaArchiveProps, 0, &cbValues, &ptrPropArray);
 	if (FAILED(hr))
 		return hr;
 		
@@ -434,7 +434,7 @@ HRESULT MAPIPropHelper::ClearReference(bool bExplicitCommit)
 	HRESULT hr;
 	SizedSPropTagArray(2, sptaReferenceProps) = {2, {PROP_REF_STORE_ENTRYID, PROP_REF_ITEM_ENTRYID}};
 
-	hr = m_ptrMapiProp->DeleteProps((LPSPropTagArray)&sptaReferenceProps, NULL);
+	hr = m_ptrMapiProp->DeleteProps(sptaReferenceProps, NULL);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -456,7 +456,7 @@ HRESULT MAPIPropHelper::GetReference(SObjectEntry *lpEntry)
 	if (lpEntry == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
-	hr = m_ptrMapiProp->GetProps((LPSPropTagArray)&sptaMessageProps, 0, &cMessageProps, &ptrMessageProps);
+	hr = m_ptrMapiProp->GetProps(sptaMessageProps, 0, &cMessageProps, &ptrMessageProps);
 	if (FAILED(hr))
 		return hr;
 	if (PROP_TYPE(ptrMessageProps[IDX_REF_STORE_ENTRYID].ulPropTag) == PT_ERROR)
@@ -523,13 +523,13 @@ HRESULT MAPIPropHelper::OpenPrevious(ArchiverSessionPtr ptrSession, LPMESSAGE *l
 HRESULT MAPIPropHelper::RemoveStub()
 {
 	SizedSPropTagArray(1, sptaArchiveProps) = {1, {PROP_STUBBED}};
-	return m_ptrMapiProp->DeleteProps((LPSPropTagArray)&sptaArchiveProps, NULL);
+	return m_ptrMapiProp->DeleteProps(sptaArchiveProps, NULL);
 }
 
 HRESULT MAPIPropHelper::SetClean()
 {
 	SizedSPropTagArray(1, sptaDirtyProps) = {1, {PROP_DIRTY}};
-	return m_ptrMapiProp->DeleteProps((LPSPropTagArray)&sptaDirtyProps, NULL);
+	return m_ptrMapiProp->DeleteProps(sptaDirtyProps, NULL);
 }
 
 /**
@@ -539,7 +539,7 @@ HRESULT MAPIPropHelper::SetClean()
 HRESULT MAPIPropHelper::DetachFromArchives()
 {
 	SizedSPropTagArray(5, sptaArchiveProps) = {5, {PROP_ARCHIVE_STORE_ENTRYIDS, PROP_ARCHIVE_ITEM_ENTRYIDS, PROP_STUBBED, PROP_DIRTY, PROP_ORIGINAL_SOURCEKEY}};
-	return m_ptrMapiProp->DeleteProps((LPSPropTagArray)&sptaArchiveProps, NULL);
+	return m_ptrMapiProp->DeleteProps(sptaArchiveProps, NULL);
 }
 
 /**
@@ -566,7 +566,7 @@ HRESULT MAPIPropHelper::GetParentFolder(ArchiverSessionPtr ptrSession, LPMAPIFOL
 		return MAPI_E_INVALID_PARAMETER;
 	
 	// We can't just open a folder on the session (at least not in Linux). So we open the store first
-	hr = m_ptrMapiProp->GetProps((LPSPropTagArray)&sptaProps, 0, &cValues, &ptrPropArray);
+	hr = m_ptrMapiProp->GetProps(sptaProps, 0, &cValues, &ptrPropArray);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrSession->OpenStore(ptrPropArray[1].Value.bin, &ptrMsgStore);

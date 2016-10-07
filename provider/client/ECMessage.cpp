@@ -856,7 +856,8 @@ HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	}
 
 	if (this->lpAttachments == NULL) {
-		hr = Util::HrCopyUnicodePropTagArray(ulFlags, (LPSPropTagArray)&sPropAttachColumns, &lpPropTagArray);
+		hr = Util::HrCopyUnicodePropTagArray(ulFlags,
+		     sPropAttachColumns, &lpPropTagArray);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -1142,7 +1143,8 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	}
 
 	if (this->lpRecips == NULL) {
-		hr = Util::HrCopyUnicodePropTagArray(ulFlags, (LPSPropTagArray)&sPropRecipColumns, &lpPropTagArray);
+		hr = Util::HrCopyUnicodePropTagArray(ulFlags,
+		     sPropRecipColumns, &lpPropTagArray);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -1694,9 +1696,7 @@ HRESULT ECMessage::SyncRecips()
 		hr = GetRecipientTable(fMapiUnicode, &lpTable);
 		if (hr != hrSuccess)
 			goto exit;
-
-		hr = lpTable->SetColumns((LPSPropTagArray)&sPropDisplay, 0);
-
+		hr = lpTable->SetColumns(sPropDisplay, 0);
 		while (TRUE) {
 			hr = lpTable->QueryRows(1, 0, &lpRows);
 			if (hr != hrSuccess || lpRows->cRows != 1)
@@ -2146,7 +2146,7 @@ HRESULT ECMessage::SyncSubject()
 
 	// Check if subject and prefix in sync
 
-	hr = ECMAPIProp::GetProps((LPSPropTagArray)&sPropSubjects, 0, &cValues, &lpPropArray);
+	hr = ECMAPIProp::GetProps(sPropSubjects, 0, &cValues, &lpPropArray);
 	if(HR_FAILED(hr))
 		goto exit;
 
@@ -2639,8 +2639,7 @@ HRESULT ECMessage::HrLoadProps()
 	 * We won't generate any body except the best body if it wasn't returned by the
 	 * server, which is actually wrong.
 	 */
-
-	hr = ECMAPIProp::GetProps((LPSPropTagArray)&sPropBodyTags, 0, &cValues, &lpsBodyProps);
+	hr = ECMAPIProp::GetProps(sPropBodyTags, 0, &cValues, &lpsBodyProps);
 	if (HR_FAILED(hr))
 		goto exit;
 

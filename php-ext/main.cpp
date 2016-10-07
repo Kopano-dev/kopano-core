@@ -4139,8 +4139,7 @@ ZEND_FUNCTION(mapi_rules_gettable) {
 	MAPI_G(hr) = lpRulesTable->GetTable(0, &lpRulesView);
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
-
-	MAPI_G(hr) = lpRulesView->SetColumns((LPSPropTagArray)&sptaRules, 0);
+	MAPI_G(hr) = lpRulesView->SetColumns(sptaRules, 0);
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
 

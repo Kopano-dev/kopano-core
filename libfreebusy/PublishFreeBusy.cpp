@@ -304,8 +304,7 @@ HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBl
 	lpsPrpTagArr->aulPropTag[4] = PROP_APPT_RECURRINGSTATE;
 	lpsPrpTagArr->aulPropTag[5] = PROP_APPT_CLIPEND;
 	lpsPrpTagArr->aulPropTag[6] = PROP_APPT_TIMEZONESTRUCT;
-
-	hr = lpTable->SetColumns((LPSPropTagArray)lpsPrpTagArr, 0);
+	hr = lpTable->SetColumns(lpsPrpTagArr, 0);
 	if(hr != hrSuccess)
 		goto exit;
 

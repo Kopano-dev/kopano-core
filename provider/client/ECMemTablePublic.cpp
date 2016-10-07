@@ -65,7 +65,8 @@ ECMemTablePublic::~ECMemTablePublic(void)
 HRESULT ECMemTablePublic::Create(ECMAPIFolderPublic *lpECParentFolder, ECMemTablePublic **lppECMemTable)
 {
 	SizedSPropTagArray(12, sPropsHierarchyColumns) = {12, { PR_ENTRYID, PR_DISPLAY_NAME, PR_CONTENT_COUNT, PR_CONTENT_UNREAD, PR_STORE_ENTRYID, PR_STORE_RECORD_KEY, PR_STORE_SUPPORT_MASK, PR_INSTANCE_KEY, PR_RECORD_KEY, PR_ACCESS, PR_ACCESS_LEVEL, PR_CONTAINER_CLASS} };
-	ECMemTablePublic *lpMemTable = new ECMemTablePublic(lpECParentFolder, (LPSPropTagArray)&sPropsHierarchyColumns, PR_ROWID);
+	ECMemTablePublic *lpMemTable = new ECMemTablePublic(lpECParentFolder,
+		sPropsHierarchyColumns, PR_ROWID);
 	return lpMemTable->QueryInterface(IID_ECMemTablePublic, reinterpret_cast<void **>(lppECMemTable));
 }
 
@@ -464,7 +465,7 @@ HRESULT ECMemTablePublic::ModifyRow(SBinary* lpInstanceKey, LPSRow lpsRow)
 		goto exit;
 	}
 
-	hr = lpFolderReal->GetProps((LPSPropTagArray)&sPropsFolderReal, m_ulFlags, &ulPropsFolder, &lpPropsFolder);
+	hr = lpFolderReal->GetProps(sPropsFolderReal, m_ulFlags, &ulPropsFolder, &lpPropsFolder);
 	if (FAILED(hr))
 		goto exit;
 	else

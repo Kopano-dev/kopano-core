@@ -394,13 +394,9 @@ HRESULT ECABContainer::ResolveNames(LPSPropTagArray lpPropTagArray, ULONG ulFlag
 
 	SizedSPropTagArray(11, sptaDefaultUnicode) = {11, {PR_ADDRTYPE_W, PR_DISPLAY_NAME_W, PR_DISPLAY_TYPE, PR_EMAIL_ADDRESS_W, PR_SMTP_ADDRESS_W, PR_ENTRYID,
 												       PR_INSTANCE_KEY, PR_OBJECT_TYPE, PR_RECORD_KEY, PR_SEARCH_KEY, PR_EC_SENDAS_USER_ENTRYIDS}};
-
-	if (lpPropTagArray == NULL) {
-		if(ulFlags & MAPI_UNICODE)
-			lpPropTagArray = (LPSPropTagArray)&sptaDefaultUnicode;
-		else
-			lpPropTagArray = (LPSPropTagArray)&sptaDefault;
-	}
+	if (lpPropTagArray == NULL)
+		lpPropTagArray = (ulFlags & MAPI_UNICODE) ?
+		                 sptaDefaultUnicode : sptaDefault;
 	return ((ECABLogon*)lpProvider)->m_lpTransport->HrResolveNames(lpPropTagArray, ulFlags, lpAdrList, lpFlagList);
 }
 

@@ -882,7 +882,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 				ZLOG_DEBUG(m_lpLogger, "Unable to open message with entryid %s", bin2hex(cbEntryID, (unsigned char *)lpEntryID).c_str());
 				goto exit;
 			}
-			hr = lpSourceMessage->GetProps((LPSPropTagArray)&sptImportProps, 0, &ulCount, &lpPropArray);
+			hr = lpSourceMessage->GetProps(sptImportProps, 0, &ulCount, &lpPropArray);
 			if(FAILED(hr)) {
 				ZLOG_DEBUG(m_lpLogger, "Unable to get properties from source message");
 				goto exit;
@@ -930,8 +930,8 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 			// SYNC_E_IGNORE. This is required for the BES ICS exporter
 			goto next;
 		}
-
-		hr = lpSourceMessage->CopyTo(0, NULL, (LPSPropTagArray)&sptMessageExcludes, 0, NULL, &IID_IMessage, lpDestMessage, 0, NULL);
+		hr = lpSourceMessage->CopyTo(0, NULL, sptMessageExcludes, 0,
+		     NULL, &IID_IMessage, lpDestMessage, 0, NULL);
 		if(hr != hrSuccess) {
 			ZLOG_DEBUG(m_lpLogger, "Unable to copy to imported message");
 			goto exit;
@@ -981,8 +981,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 			ZLOG_DEBUG(m_lpLogger, "Unable to get destination's attachment table");
 			goto exit;
 		}
-
-		hr = lpTable->SetColumns((LPSPropTagArray)&sptAttach, 0);
+		hr = lpTable->SetColumns(sptAttach, 0);
 		if(hr !=  hrSuccess) {
 			ZLOG_DEBUG(m_lpLogger, "Unable to set destination's attachment table's column set");
 			goto exit;
@@ -1010,8 +1009,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 		hr = lpSourceMessage->GetAttachmentTable(0, &lpTable);
 		if(hr !=  hrSuccess)
 			goto exit;
-
-		hr = lpTable->SetColumns((LPSPropTagArray)&sptAttach, 0);
+		hr = lpTable->SetColumns(sptAttach, 0);
 		if(hr !=  hrSuccess)
 			goto exit;
 
@@ -1031,8 +1029,8 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 				ZLOG_DEBUG(m_lpLogger, "Unable to create attachment");
 				goto exit;
 			}
-
-			hr = lpSourceAttach->CopyTo(0, NULL, (LPSPropTagArray)&sptAttach, 0, NULL, &IID_IAttachment, lpDestAttach, 0, NULL);
+			hr = lpSourceAttach->CopyTo(0, NULL, sptAttach, 0,
+			     NULL, &IID_IAttachment, lpDestAttach, 0, NULL);
 			if(hr !=  hrSuccess) {
 				ZLOG_DEBUG(m_lpLogger, "Unable to copy attachment");
 				goto exit;
@@ -1182,7 +1180,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 		PR_ENTRYID
 	} };
 
-	LPSPropTagArray lpImportProps = m_sourcekey.empty() ? (LPSPropTagArray)&sptImportPropsServerWide : (LPSPropTagArray)&sptImportProps;
+	SPropTagArray *lpImportProps = m_sourcekey.empty() ? sptImportPropsServerWide : sptImportProps;
 
 	// No more changes (add/modify).
 	ZLOG_DEBUG(m_lpLogger, "ExportFast: At step %u, changeset contains %lu items)",

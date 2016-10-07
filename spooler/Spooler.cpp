@@ -769,8 +769,7 @@ static HRESULT ProcessQueue(const char *szSMTP, int ulPort, const char *szPath)
 			GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
-
-	hr = lpTable->SetColumns((LPSPropTagArray)&sOutgoingCols, 0);
+	hr = lpTable->SetColumns(sOutgoingCols, 0);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to setColumns() on OutgoingQueue: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);

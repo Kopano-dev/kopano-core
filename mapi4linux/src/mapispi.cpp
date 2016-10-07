@@ -453,8 +453,8 @@ HRESULT M4LMAPISupport::CopyFolder(LPCIID lpSrcInterface, LPVOID lpSrcFolder, UL
 	hr = lpDest->CreateFolder(FOLDER_GENERIC, lpszNewFolderName, NULL, &IID_IMAPIFolder, ulFolderFlags, &lpSubFolder);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = this->DoCopyTo(&IID_IMAPIFolder, lpFolder, 0, NULL, (LPSPropTagArray)&sExcludeProps, ulUIParam, lpProgress, &IID_IMAPIFolder, lpSubFolder, ulFlags, NULL);
+	hr = this->DoCopyTo(&IID_IMAPIFolder, lpFolder, 0, NULL, sExcludeProps,
+	     ulUIParam, lpProgress, &IID_IMAPIFolder, lpSubFolder, ulFlags, NULL);
 	if (hr != hrSuccess)
 		goto exit;
 

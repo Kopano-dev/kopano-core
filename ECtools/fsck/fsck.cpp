@@ -230,9 +230,7 @@ static HRESULT DetectFolderDetails(LPMAPIFOLDER lpFolder, string *lpName,
 		}
 	};
 
-	hr = lpFolder->GetProps((LPSPropTagArray)&PropertyTagArray,
-			      0,
-			      &ulPropertyCount,
+	hr = lpFolder->GetProps(PropertyTagArray, 0, &ulPropertyCount,
 			      &lpPropertyArray);
 	if (FAILED(hr)) {
 		cout << "Failed to obtain all properties." << endl;

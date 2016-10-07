@@ -656,7 +656,7 @@ HRESULT M4LProviderAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable)
 	SizedSPropTagArray(8, sptaProviderCols) = {8, {PR_MDB_PROVIDER, PR_INSTANCE_KEY, PR_RECORD_KEY, PR_ENTRYID, PR_DISPLAY_NAME_A, PR_OBJECT_TYPE, PR_RESOURCE_TYPE, PR_PROVIDER_UID} };
 	ulock_rec l_srv(msa->m_mutexserviceadmin);
 
-	hr = Util::HrCopyUnicodePropTagArray(ulFlags, (LPSPropTagArray)&sptaProviderCols, &lpPropTagArray);
+	hr = Util::HrCopyUnicodePropTagArray(ulFlags, sptaProviderCols, &lpPropTagArray);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -670,7 +670,8 @@ HRESULT M4LProviderAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable)
 		    strcmp(szService, prov->servicename.c_str()) != 0)
 			continue;
 		
-		hr = prov->profilesection->GetProps(reinterpret_cast<SPropTagArray *>(&sptaProviderCols), 0, &cValues, &lpsProps);
+		hr = prov->profilesection->GetProps(sptaProviderCols, 0,
+		     &cValues, &lpsProps);
 		if (FAILED(hr))
 			goto exit;
 		

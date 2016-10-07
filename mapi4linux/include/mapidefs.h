@@ -251,6 +251,7 @@ struct _SPropTagArray_ ## _name \
 { \
     ULONG   cValues; \
     ULONG   aulPropTag[_ctag]; \
+    operator SPropTagArray *(void) const { return const_cast<SPropTagArray *>(reinterpret_cast<const SPropTagArray *>(this)); } \
 } _name
 
 

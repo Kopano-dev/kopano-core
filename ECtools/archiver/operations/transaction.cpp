@@ -127,7 +127,7 @@ HRESULT Rollback::Delete(ArchiverSessionPtr ptrSession, IMessage *lpMessage)
 	if (lpMessage == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
-	hr = lpMessage->GetProps((LPSPropTagArray)&sptaMsgProps, 0, &cMsgProps, &ptrMsgProps);
+	hr = lpMessage->GetProps(sptaMsgProps, 0, &cMsgProps, &ptrMsgProps);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrSession->GetMAPISession()->OpenEntry(ptrMsgProps[IDX_PARENT_ENTRYID].Value.bin.cb, (LPENTRYID)ptrMsgProps[IDX_PARENT_ENTRYID].Value.bin.lpb, &entry.ptrFolder.iid, MAPI_MODIFY, &ulType, &entry.ptrFolder);

@@ -47,7 +47,7 @@ HRESULT TaskBase::Execute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper)
 	hr = m_ptrDestMsg->GetAttachmentTable(MAPI_DEFERRED_ERRORS, &ptrTable);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrTable->SetColumns((LPSPropTagArray)&sptaTableProps, TBL_BATCH);
+	hr = ptrTable->SetColumns(sptaTableProps, TBL_BATCH);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrTable->SeekRow(BOOKMARK_BEGINNING, m_ulDestAttachIdx, NULL);

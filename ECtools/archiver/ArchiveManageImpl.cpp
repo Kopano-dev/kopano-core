@@ -624,7 +624,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 			continue;
 		}
 		
-		hrTmp = ptrArchiveStore->GetProps((LPSPropTagArray)&sptaStoreProps, 0, &cStoreProps, &ptrStoreProps);
+		hrTmp = ptrArchiveStore->GetProps(sptaStoreProps, 0, &cStoreProps, &ptrStoreProps);
 		if (FAILED(hrTmp))
 			entry.StoreName = entry.StoreOwner = "Unknown (" + stringify(hrTmp, true) + ")";
 		else {
@@ -825,7 +825,7 @@ HRESULT ArchiveManageImpl::GetRights(LPMAPIFOLDER lpFolder, unsigned *lpulRights
 	hr = ptrACLModifyTable->GetTable(0, &ptrACLTable);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrACLTable->SetColumns((LPSPropTagArray)&sptaTableProps, TBL_BATCH);
+	hr = ptrACLTable->SetColumns(sptaTableProps, TBL_BATCH);
 	if (hr != hrSuccess)
 		return hr;
 

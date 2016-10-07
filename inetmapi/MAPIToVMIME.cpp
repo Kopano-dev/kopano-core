@@ -201,8 +201,7 @@ HRESULT MAPIToVMIME::processRecipients(IMessage *lpMessage, vmime::messageBuilde
 		ec_log_err("Unable to open recipient table. Error: 0x%08X", hr);
 		goto exit;
 	}
-
-	hr = lpRecipientTable->SetColumns((LPSPropTagArray)&sPropRecipColumns, 0);
+	hr = lpRecipientTable->SetColumns(sPropRecipColumns, 0);
 	if (hr != hrSuccess) {
 		ec_log_err("Unable to set columns on recipient table. Error: 0x%08X", hr);
 		goto exit;
@@ -1144,7 +1143,7 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage, vmime::ref<vmime::m
 		}
 
 		// set columns to get pr attach mime tag and pr attach num only.
-		hr = lpAttachmentTable->SetColumns((LPSPropTagArray)&sPropAttachColumns, 0);
+		hr = lpAttachmentTable->SetColumns(sPropAttachColumns, 0);
 		if (hr != hrSuccess) {
 			ec_log_err("Could set table contents of attachment table of signed attachment. Error: 0x%08X", hr);
 			goto exit;
@@ -2214,8 +2213,7 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
 	    hr = lpMessage->GetAttachmentTable(0, &lpAttachTable);
 	    if(hr != hrSuccess)
 	        goto exit;
-	    
-        hr = HrQueryAllRows(lpAttachTable, (LPSPropTagArray)&sptaAttachProps, NULL, (LPSSortOrderSet)&sosRTFSeq, 0, &lpAttachRows);
+	    hr = HrQueryAllRows(lpAttachTable, sptaAttachProps, NULL, (LPSSortOrderSet)&sosRTFSeq, 0, &lpAttachRows);
         if(hr != hrSuccess)
             goto exit;
             
@@ -2333,7 +2331,7 @@ tnef_anyway:
 				ECTNEF tnef(TNEF_ENCODE, lpMessage, lpStream);
 			
 				// Encode the properties now, add all message properties except for the exclude list
-				hr = tnef.AddProps(TNEF_PROP_EXCLUDE, (LPSPropTagArray)&sptaExclude);
+				hr = tnef.AddProps(TNEF_PROP_EXCLUDE, sptaExclude);
 				if(hr != hrSuccess) {
 					ec_log_err("Unable to exclude properties from TNEF object");
 					goto exit;
@@ -2344,7 +2342,7 @@ tnef_anyway:
 					if (bestBody == html) sptaBestBodyInclude.aulPropTag[0] = PR_HTML;
 					else if (bestBody == realRTF) sptaBestBodyInclude.aulPropTag[0] = PR_RTF_COMPRESSED;
 
-					hr = tnef.AddProps(TNEF_PROP_INCLUDE, (LPSPropTagArray)&sptaBestBodyInclude);
+					hr = tnef.AddProps(TNEF_PROP_INCLUDE, sptaBestBodyInclude);
 					if(hr != hrSuccess) {
 						ec_log_err("Unable to include body property 0x%08x to TNEF object", sptaBestBodyInclude.aulPropTag[0]);
 						goto exit;
@@ -2353,7 +2351,7 @@ tnef_anyway:
 				
 				// Add all OLE attachments
 				for (const auto atnum : lstOLEAttach)
-					tnef.FinishComponent(0x00002000, atnum, reinterpret_cast<SPropTagArray *>(&sptaOLEAttachProps));
+					tnef.FinishComponent(0x00002000, atnum, sptaOLEAttachProps);
 		
 				// Write the stream
 				hr = tnef.Finish();

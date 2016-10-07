@@ -110,7 +110,7 @@ HRESULT ECArchiveAwareMessage::HrLoadProps()
 
 			hr = lpStore->OpenItemFromArchive(m_ptrStoreEntryIDs, m_ptrItemEntryIDs, &m_ptrArchiveMsg);
 			if (hr != hrSuccess) {
-				hr = CreateInfoMessage((LPSPropTagArray)&sptaDeleteProps, CreateErrorBodyUtf8(hr));
+				hr = CreateInfoMessage(sptaDeleteProps, CreateErrorBodyUtf8(hr));
 				goto exit;
 			}
 		}
@@ -124,14 +124,14 @@ HRESULT ECArchiveAwareMessage::HrLoadProps()
 		// We need to temporary enable write access on the underlying objects in order for the following
 		// 5 calls to succeed.
 		this->fModify = TRUE;
-
-		hr = DeleteProps((LPSPropTagArray)&sptaDeleteProps, NULL);
+		hr = DeleteProps(sptaDeleteProps, NULL);
 		if (hr != hrSuccess) {
 			this->fModify = fModifyCopy;
 			goto exit;
 		}
-
-		hr = Util::DoCopyProps(&IID_IMAPIProp, &m_ptrArchiveMsg->m_xMAPIProp, (LPSPropTagArray)&sptaRestoreProps, 0, NULL, &IID_IMAPIProp, &this->m_xMAPIProp, 0, NULL);
+		hr = Util::DoCopyProps(&IID_IMAPIProp, &m_ptrArchiveMsg->m_xMAPIProp,
+		     sptaRestoreProps, 0, NULL, &IID_IMAPIProp,
+		     &this->m_xMAPIProp, 0, NULL);
 		if (hr != hrSuccess) {
 			this->fModify = fModifyCopy;
 			goto exit;
@@ -337,7 +337,7 @@ HRESULT ECArchiveAwareMessage::SaveChanges(ULONG ulFlags)
 
 	// From here on we're no longer stubbed.
 	if (m_bNamedPropsMapped) {
-		hr = DeleteProps((LPSPropTagArray)&sptaStubbedProp, NULL);
+		hr = DeleteProps(sptaStubbedProp, NULL);
 		if (hr != hrSuccess)
 			return hr;
 	}

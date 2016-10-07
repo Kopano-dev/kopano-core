@@ -138,8 +138,7 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to get attachment table. (hr=%s)", stringify(hr, true).c_str());
 		return hr;
 	}
-	
-	hr = HrQueryAllRows(ptrAttTable, (LPSPropTagArray)&sptaTableProps, NULL, NULL, 0, &ptrRowSet);
+	hr = HrQueryAllRows(ptrAttTable, sptaTableProps, NULL, NULL, 0, &ptrRowSet);
 	if (hr != hrSuccess) {
 		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to get attachment numbers. (hr=%s)", stringify(hr, true).c_str());
 		return hr;
