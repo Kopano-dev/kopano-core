@@ -101,6 +101,7 @@ import _MAPICore
 import inetmapi
 import icalmapi
 
+
 try:
     REV_TYPE
 except NameError:
@@ -476,6 +477,8 @@ def _encode(s):
 
 def _decode(s):
     return s.decode(getattr(sys.stdin, 'encoding', 'utf8') or 'utf8')
+
+from kopano.restriction import Restriction
 
 def _permissions(obj):
         try:
@@ -1967,13 +1970,16 @@ class Folder(object):
         item.mapiobj = _openentry_raw(self.store.mapiobj, entryid.decode('hex'), MAPI_MODIFY | self.content_flag)
         return item
 
-    def items(self):
+    def items(self, restriction=None):
         """ Return all :class:`items <Item>` in folder, reverse sorted on received date """
 
         try:
             table = self.mapiobj.GetContentsTable(self.content_flag)
         except MAPIErrorNoSupport:
             return
+
+        if restriction:
+            table.Restrict(restriction.mapires, 0) #XXX: what is 0?:
 
         table.SortTable(SSortOrderSet([SSort(PR_MESSAGE_DELIVERY_TIME, TABLE_SORT_DESCEND)], 0, 0), 0) # XXX configure
         while True:
@@ -2700,6 +2706,16 @@ class Item(object):
                 sopt.no_recipients_workaround = True
                 self.emlfile = inetmapi.IMToINet(self.store.server.mapisession, None, self.mapiobj, sopt)
         return self.emlfile
+
+    def match(self, restriction):
+        mapires = SAndRestriction([restriction.mapires, Restriction('sourcekey == %s' % self.sourcekey).mapires])
+
+        print mapires
+        try:
+            self.folder.items(Restriction(mapires=mapires)).next()
+            return True
+        except StopIteration:
+            return False
 
     def vcf(self): # XXX don't we have this builtin somewhere? very basic for now
         import vobject
@@ -3879,12 +3895,18 @@ class Quota(object):
     def __repr__(self):
         return _encode(unicode(self))
 
+
 class Rule(object):
     def __init__(self, mapirow):
         self.mapirow = mapirow
         name, state = mapirow[PR_RULE_NAME], mapirow[PR_RULE_STATE]
         self.name = unicode(name)
         self.active = bool(state & ST_ENABLED)
+
+    @property
+    def restriction(self):
+        # The MAPI Restriction
+        return Restriction(mapires=self.mapirow[PR_RULE_CONDITION])
 
     def __unicode__(self):
         return u"Rule('%s')" % self.name
