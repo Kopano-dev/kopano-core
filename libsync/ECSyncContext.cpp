@@ -473,7 +473,6 @@ HRESULT ECSyncContext::HrUpdateChangeId(LPSTREAM lpStream)
 	if (hr != hrSuccess)
 		return hr;
 
-	m_hMutex.lock();
 	{
 		std::lock_guard<std::mutex> lock(m_hMutex);
 		if (m_mapNotifiedSyncIds[ulSyncId] <= ulChangeId)
