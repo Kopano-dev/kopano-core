@@ -227,8 +227,8 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChange(ULONG cValue, LPSPr
 	auto lpMessageSourceKey = PCpropFindProp(lpPropArray, cValue, PR_SOURCE_KEY);
 	auto lpMessageFlags = PCpropFindProp(lpPropArray, cValue, PR_MESSAGE_FLAGS);
 	auto lpMessageAssociated = PCpropFindProp(lpPropArray, cValue, PR_ASSOCIATED);
-	auto lpRemotePCL = PpropFindProp(lpPropArray, cValue, PR_PREDECESSOR_CHANGE_LIST);
-	auto lpRemoteCK = PpropFindProp(lpPropArray, cValue, PR_CHANGE_KEY);
+	auto lpRemotePCL = PCpropFindProp(lpPropArray, cValue, PR_PREDECESSOR_CHANGE_LIST);
+	auto lpRemoteCK = PCpropFindProp(lpPropArray, cValue, PR_CHANGE_KEY);
 
 	ULONG ulObjType = 0;
 	bool bAssociatedMessage = false;

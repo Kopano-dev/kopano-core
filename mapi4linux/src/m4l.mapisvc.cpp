@@ -448,7 +448,7 @@ HRESULT SVCService::CreateProviders(IProviderAdmin *lpProviderAdmin)
 
 const SPropValue *SVCService::GetProp(ULONG ulPropTag)
 {
-	return PpropFindProp(m_lpProps, m_cValues, ulPropTag);
+	return PCpropFindProp(m_lpProps, m_cValues, ulPropTag);
 }
 
 SVCProvider* SVCService::GetProvider(LPTSTR lpszProvider, ULONG ulFlags)

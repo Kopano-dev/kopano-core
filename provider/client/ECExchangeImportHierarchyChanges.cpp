@@ -213,7 +213,7 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPr
 	auto lpPropFolderType = PCpropFindProp(lpPropArray, cValue, PR_FOLDER_TYPE);
 	auto lpPropChangeList = PCpropFindProp(lpPropArray, cValue, PR_PREDECESSOR_CHANGE_LIST);
 	auto lpPropEntryId = PCpropFindProp(lpPropArray, cValue, PR_ENTRYID);
-	auto lpPropAdditionalREN = PpropFindProp(lpPropArray, cValue, PR_ADDITIONAL_REN_ENTRYIDS);
+	auto lpPropAdditionalREN = PCpropFindProp(lpPropArray, cValue, PR_ADDITIONAL_REN_ENTRYIDS);
 	memory_ptr<SPropValue> lpPropVal;
 	memory_ptr<ENTRYID> lpEntryId, lpDestEntryId;
 	ULONG cbEntryId;

@@ -485,7 +485,7 @@ ULONG UlRelease(LPVOID lpunk);
 /* Related to the MAPI interface */
 
 extern _kc_export HRESULT HrGetOneProp(LPMAPIPROP mprop, ULONG tag, LPSPropValue *ret);
-extern _kc_export HRESULT HrSetOneProp(LPMAPIPROP mprop, LPSPropValue prop);
+extern _kc_export HRESULT HrSetOneProp(LPMAPIPROP mprop, const SPropValue *prop);
 extern _kc_export BOOL FPropExists(LPMAPIPROP mprop, ULONG tag);
 extern _kc_export LPSPropValue PpropFindProp(LPSPropValue props, ULONG vals, ULONG tag);
 extern _kc_export const SPropValue *PCpropFindProp(const SPropValue *, ULONG vals, ULONG tag);

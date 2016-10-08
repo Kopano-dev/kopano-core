@@ -263,7 +263,8 @@ HRESULT ECMemTable::HrUpdateRowID(LPSPropValue lpId, LPSPropValue lpProps, ULONG
  *
  */
 
-HRESULT ECMemTable::HrModifyRow(ULONG ulUpdateType, SPropValue *lpsID, SPropValue *lpPropVals, ULONG cValues)
+HRESULT ECMemTable::HrModifyRow(ULONG ulUpdateType, const SPropValue *lpsID,
+    const SPropValue *lpPropVals, ULONG cValues)
 {
 	HRESULT hr = hrSuccess;
 	ECTableEntry entry;

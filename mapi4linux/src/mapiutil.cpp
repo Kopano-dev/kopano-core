@@ -401,7 +401,7 @@ exit:
 	return hr;
 }
 
-HRESULT __stdcall HrSetOneProp(LPMAPIPROP lpMapiProp, LPSPropValue lpProp)
+HRESULT __stdcall HrSetOneProp(LPMAPIPROP lpMapiProp, const SPropValue *lpProp)
 {
 	TRACE_MAPILIB1(TRACE_ENTRY, "HrSetOneProp", "%s", PropNameFromPropArray(1, lpProp).c_str());
 	HRESULT hr = hrSuccess;

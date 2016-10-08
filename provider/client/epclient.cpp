@@ -550,7 +550,7 @@ static HRESULT UpdateProviders(LPPROVIDERADMIN lpAdminProviders,
 	// Scan the rows for message stores
 	for (ULONG curRow = 0; curRow < ptrRows.size(); ++curRow) {
 		//Get de UID of the provider to open the profile section
-		auto lpsProviderUID = PpropFindProp(ptrRows[curRow].lpProps, ptrRows[curRow].cValues, PR_PROVIDER_UID);
+		auto lpsProviderUID = PCpropFindProp(ptrRows[curRow].lpProps, ptrRows[curRow].cValues, PR_PROVIDER_UID);
 		if(lpsProviderUID == NULL || lpsProviderUID->Value.bin.cb == 0) {
 			// Provider without a provider uid,  just move to the next
 			assert(false);
@@ -649,7 +649,7 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
 		break;
 	case MSG_SERVICE_PROVIDER_CREATE:
 		if(cvals && pvals) {
-			LPSPropValue lpsPropName = NULL;
+			const SPropValue *lpsPropName = NULL;
 			auto lpsPropValueFind = PCpropFindProp(pvals, cvals, PR_PROVIDER_UID);
 			if(lpsPropValueFind == NULL || lpsPropValueFind->Value.bin.cb == 0)
 			{
@@ -659,7 +659,7 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
 			}
 
 			// PR_EC_USERNAME is the user we're adding ...
-			lpsPropName = PpropFindProp(pvals, cvals, CHANGE_PROP_TYPE(PR_EC_USERNAME_A, PT_UNSPECIFIED));
+			lpsPropName = PCpropFindProp(pvals, cvals, CHANGE_PROP_TYPE(PR_EC_USERNAME_A, PT_UNSPECIFIED));
 			if(lpsPropName == NULL || lpsPropName->Value.bin.cb == 0)
 			{
 				hr = MAPI_E_UNCONFIGURED;
