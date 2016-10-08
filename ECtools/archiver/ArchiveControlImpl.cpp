@@ -1331,7 +1331,7 @@ HRESULT ArchiveControlImpl::CleanupHierarchy(ArchiveHelperPtr ptrArchiveHelper, 
 	hr = ptrTable->Restrict(&resHierarchy, TBL_BATCH);
 	if (hr != hrSuccess)
 		goto exitpm;
-	hr = ptrTable->SortTable((LPSSortOrderSet)&ssosHierarchy, TBL_BATCH);
+	hr = ptrTable->SortTable(ssosHierarchy, TBL_BATCH);
 	if (hr != hrSuccess)
 		goto exitpm;
 	

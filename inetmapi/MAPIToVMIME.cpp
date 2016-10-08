@@ -665,7 +665,7 @@ HRESULT MAPIToVMIME::handleAttachments(IMessage* lpMessage, vmime::messageBuilde
 		goto exit;
 	}
 
-	hr = HrQueryAllRows(lpAttachmentTable, NULL, NULL, (LPSSortOrderSet)&sosRTFSeq, 0, &pRows);
+	hr = HrQueryAllRows(lpAttachmentTable, NULL, NULL, sosRTFSeq, 0, &pRows);
 	if (hr != hrSuccess) {
 		ec_log_err("Unable to fetch rows of attachment table. Error: 0x%08X", hr);
 		goto exit;
@@ -2213,7 +2213,8 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
 	    hr = lpMessage->GetAttachmentTable(0, &lpAttachTable);
 	    if(hr != hrSuccess)
 	        goto exit;
-	    hr = HrQueryAllRows(lpAttachTable, sptaAttachProps, NULL, (LPSSortOrderSet)&sosRTFSeq, 0, &lpAttachRows);
+	    hr = HrQueryAllRows(lpAttachTable, sptaAttachProps, NULL,
+	         sosRTFSeq, 0, &lpAttachRows);
         if(hr != hrSuccess)
             goto exit;
             

@@ -857,8 +857,7 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrProcessRules(): SetColumns failed %x", hr);
 		goto exitpm;
 	}
-
-	hr = lpView->SortTable((LPSSortOrderSet)&sosRules, 0);
+	hr = lpView->SortTable(sosRules, 0);
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrProcessRules(): SortTable failed %x", hr);
 		goto exitpm;

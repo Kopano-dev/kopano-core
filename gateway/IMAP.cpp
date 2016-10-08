@@ -3512,8 +3512,7 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, bool bS
 	hr = lpTable->SetColumns(spt, TBL_BATCH);
 	if (hr != hrSuccess)
 		goto exit;
-
-    hr = lpTable->SortTable((LPSSortOrderSet)&sSortUID, TBL_BATCH);
+	hr = lpTable->SortTable(sSortUID, TBL_BATCH);
     if (hr != hrSuccess)
         goto exit;
 
@@ -3971,7 +3970,7 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
             
         // Messages are usually requested in UID order, so sort the table in UID order too. This improves
         // the row prefetch hit ratio.
-        hr = m_lpTable->SortTable((LPSSortOrderSet)&sSortUID, TBL_BATCH);
+        hr = m_lpTable->SortTable(sSortUID, TBL_BATCH);
         if(hr != hrSuccess)
             goto exit;
 

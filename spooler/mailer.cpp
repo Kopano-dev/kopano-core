@@ -633,8 +633,7 @@ static HRESULT UniqueRecipients(IMessage *lpMessage)
 	hr = lpTable->SetColumns(sptaColumns, 0);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = lpTable->SortTable((LPSSortOrderSet)&sosOrder, 0);
+	hr = lpTable->SortTable(sosOrder, 0);
 	if (hr != hrSuccess)
 		goto exit;
 

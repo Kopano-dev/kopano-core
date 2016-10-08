@@ -1034,7 +1034,7 @@ static HRESULT GetOrphanStoreInfo(IECServiceAdmin *lpServiceAdmin,
 	hr = lpServiceAdmin->OpenUserStoresTable(MAPI_UNICODE, &ptrTable);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrTable->SortTable((LPSSortOrderSet)&tableSort, 0);
+	hr = ptrTable->SortTable(tableSort, 0);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -1278,8 +1278,7 @@ static HRESULT list_orphans(IECServiceAdmin *lpServiceAdmin)
 		cerr << "Unable to open user/stores table" << endl;
 		goto exit;
 	}
-
-	hr = lpTable->SortTable((LPSSortOrderSet)&tableSort, 0);
+	hr = lpTable->SortTable(tableSort, 0);
 	if (hr != hrSuccess) {
 		cerr << "Unable to sort user/stores table" << endl;
 		goto exit;

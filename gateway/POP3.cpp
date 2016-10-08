@@ -857,8 +857,7 @@ HRESULT POP3::HrMakeMailList() {
 	hr = lpTable->SetColumns(spt, 0);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = lpTable->SortTable((LPSSortOrderSet)&tableSort, 0);
+	hr = lpTable->SortTable(tableSort, 0);
 	if (hr != hrSuccess) {
 		goto exit;
 	}
