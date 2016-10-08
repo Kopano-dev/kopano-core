@@ -2492,36 +2492,36 @@ HRESULT ECMessage::SetPropHandler(ULONG ulPropTag, void* lpProvider, LPSPropValu
 {
 	ECMessage *lpMessage = (ECMessage *)lpParam;
 	HRESULT hr = hrSuccess;
-	char* lpData = NULL;
 
 	switch(ulPropTag) {
 	case PR_HTML:
 		hr = lpMessage->HrSetRealProp(lpsPropValue);
 		break;
-	case PR_BODY_HTML:
+	case PR_BODY_HTML: {
 		// Set PR_BODY_HTML to PR_HTML
-		lpsPropValue->ulPropTag = PR_HTML;
-		lpData = lpsPropValue->Value.lpszA;
+		SPropValue copy;
+		copy.ulPropTag = PR_HTML;
+		auto lpData = copy.Value.lpszA;
 
 		if(lpData) {
-			lpsPropValue->Value.bin.cb = strlen(lpData);
-			lpsPropValue->Value.bin.lpb = (LPBYTE)lpData;
+			copy.Value.bin.cb = strlen(lpData);
+			copy.Value.bin.lpb = (LPBYTE)lpData;
 		}
 		else {
-			lpsPropValue->Value.bin.cb = 0;
+			copy.Value.bin.cb = 0;
 		}
 
-		hr = lpMessage->HrSetRealProp(lpsPropValue);
+		hr = lpMessage->HrSetRealProp(&copy);
 		break;
+	}
 	case PR_MESSAGE_FLAGS:
 		if (lpMessage->m_sMapiObject == NULL || lpMessage->m_sMapiObject->ulObjId == 0) {
 			// filter any invalid flags
-			lpsPropValue->Value.l &= 0x03FF;
-
+			SPropValue copy = *lpsPropValue;
+			copy.Value.l &= 0x03FF;
 			if (lpMessage->HasAttachment())
-				lpsPropValue->Value.l |= MSGFLAG_HASATTACH;
-
-			hr = lpMessage->HrSetRealProp(lpsPropValue);
+				copy.Value.l |= MSGFLAG_HASATTACH;
+			hr = lpMessage->HrSetRealProp(&copy);
 		}
 		break;
 	case PR_SOURCE_KEY:
