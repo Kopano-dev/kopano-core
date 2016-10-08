@@ -354,12 +354,10 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage,
 		mapiTransport = vmime::dynamicCast<vmime::net::smtp::MAPISMTPTransport>(vmTransport);
 
 		// get expeditor for 'mail from:' smtp command
-		try {
+		if (vmMessage->getHeader()->hasField(vmime::fields::FROM))
 			expeditor = *vmime::dynamicCast<vmime::mailbox>(vmMessage->getHeader()->findField(vmime::fields::FROM)->getValue());
-		}
-		catch (vmime::exceptions::no_such_field&) {
+		else
 			throw vmime::exceptions::no_expeditor();
-		}
 
 		if (expeditor.isEmpty()) {
 			// cancel this message as unsendable, would otherwise be thrown out of transport::send()
