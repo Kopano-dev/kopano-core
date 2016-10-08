@@ -28,10 +28,10 @@
 class ECProperty _kc_final {
 public:
 	ECProperty(const ECProperty &Property);
-	ECProperty(LPSPropValue lpsProp);
+	ECProperty(const SPropValue *);
 	~ECProperty();
 
-	HRESULT CopyFrom(LPSPropValue lpsProp);
+	HRESULT CopyFrom(const SPropValue *);
 	HRESULT CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulPropTag);
 	HRESULT CopyToByRef(LPSPropValue lpsProp) const;
 	
@@ -46,7 +46,7 @@ public:
 
 private:
 	DECL_INVARIANT_GUARD(ECProperty)
-	HRESULT CopyFromInternal(LPSPropValue lpsProp);
+	HRESULT CopyFromInternal(const SPropValue *);
 
 private:
 	ULONG ulSize;
@@ -64,7 +64,7 @@ public:
 	~ECPropertyEntry();
 
 	HRESULT			HrSetProp(ECProperty *property);
-	HRESULT			HrSetProp(LPSPropValue lpsPropValue);
+	HRESULT HrSetProp(const SPropValue *);
 	HRESULT			HrSetClean();
 
 	ECProperty *	GetProperty() { return lpProperty; }
