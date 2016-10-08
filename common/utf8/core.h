@@ -137,7 +137,7 @@ namespace internal
 
     enum utf_error {UTF8_OK, NOT_ENOUGH_ROOM, INVALID_LEAD, INCOMPLETE_SEQUENCE, OVERLONG_SEQUENCE, INVALID_CODE_POINT};
 
-    /// get_sequence_x functions decode utf-8 sequences of the length x
+    /// get_sequence_x functions decode UTF-8 sequences of the length x
 
     template <typename octet_iterator>
     utf_error get_sequence_1(octet_iterator& it, octet_iterator end, uint32_t* code_point)

@@ -46,7 +46,7 @@ using namespace std;
  * @param[out]	lppszDst	Destination char pointer, cannot be NULL
  * @return		MAPI error code
  */
-// expect input to be utf-8 from libical ?
+// expect input to be UTF-8 from libical ?
 HRESULT HrCopyString(convert_context& converter, std::string& strCharset, void *base, const char* lpszSrc, WCHAR** lppszDst)
 {
 	std::wstring strWide;
@@ -1775,10 +1775,10 @@ HRESULT VConverter::HrSetTimeProperty(time_t tStamp, bool bDateOnly, icaltimezon
 }
 
 /**
- * Converts the unix timestamp to ical information and adds a new ical
+ * Converts the Unix timestamp to iCal information and adds a new iCal
  * property to the given ical component.
  *
- * @param[in]  tStamp The unix timestamp value to set in the ical property
+ * @param[in]  tStamp The Unix timestamp value to set in the iCal property
  * @param[in]  bDateOnly true if only the date should be set (all day events) or false for full time conversion
  * @param[in]  lpicTZinfo Pointer to ical timezone for this property (required for recurring events). If NULL, UTC will be used.
  * @param[in]  strTZid Human readable name of the timezone

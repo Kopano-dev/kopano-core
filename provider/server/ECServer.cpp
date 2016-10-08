@@ -133,7 +133,7 @@ static void process_signal(int sig)
 
 	if (!m_bNPTL)
 	{
-		// Win32 has unix semantics and therefore requires us to reset the signal handler.
+		// Win32 has Unix semantics and therefore requires us to reset the signal handler.
 		signal(sig, process_signal);
 		if(pthread_equal(pthread_self(), mainthread)==0)
 			return;					// soap threads do not handle this signal
@@ -812,7 +812,7 @@ static int running_server(char *szName, const char *szConfig,
 		{ "server_send_timeout",		"60", CONFIGSETTING_RELOADABLE },
 		{ "server_max_keep_alive_requests",	"100" },
 		{ "thread_stacksize",			"512" },
-		{ "allow_local_users",			"yes", CONFIGSETTING_RELOADABLE },			// allow any user connect through the unix socket
+		{ "allow_local_users",			"yes", CONFIGSETTING_RELOADABLE },			// allow any user connect through the Unix socket
 		{ "local_admin_users",			"root", CONFIGSETTING_RELOADABLE },			// this local user is admin
 		{ "run_as_user",			"kopano" }, // drop root privileges, and run as this user/group
 		{ "run_as_group",			"kopano" },
@@ -1080,7 +1080,7 @@ static int running_server(char *szName, const char *szConfig,
 	// setup connection handler
 	g_lpSoapServerConn = new ECSoapServerConnection(g_lpConfig, g_lpLogger);
 
-	// Setup a tcp connection
+	// Setup a TCP connection
 	if (bTCPEnabled)
 	{
 		er = g_lpSoapServerConn->ListenTCP(g_lpConfig->GetSetting("server_bind"), atoi(g_lpConfig->GetSetting("server_tcp_port")),
@@ -1090,7 +1090,7 @@ static int running_server(char *szName, const char *szConfig,
 		}
 	}
 
-	// Setup ssl connection
+	// Setup SSL connection
 	if (bSSLEnabled) {
 		er = g_lpSoapServerConn->ListenSSL(g_lpConfig->GetSetting("server_bind"),		// servername
 							atoi(g_lpConfig->GetSetting("server_ssl_port")),		// sslPort

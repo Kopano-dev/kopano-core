@@ -29,7 +29,7 @@
 typedef std::map<std::string, TIMEZONE_STRUCT> timezone_map;
 typedef std::map<std::string, TIMEZONE_STRUCT>::iterator timezone_map_iterator;
 
-/* converts ical property like DTSTART to unix timestamp in UTC */
+/* converts ical property like DTSTART to Unix timestamp in UTC */
 time_t ICalTimeTypeToUTC(icalcomponent *lpicRoot, icalproperty *lpicProp);
 
 /* Function to convert time to local - used for All day events*/

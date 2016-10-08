@@ -2336,7 +2336,7 @@
 		      remove the store and create a new one.</para><para>To
 		      unhook a public store, use the <option>--type</option>
 		      group/company option to influence the name type in the
-		      <replaceable>username</replaceable> argument. Use a companyname with type
+		      <replaceable>username</replaceable> argument. Use a company name with type
 		      company or 'Everyone' with type group to unhook the
 		      public.</para><para>To unhook an archive store, use
 		      <option>--type</option>

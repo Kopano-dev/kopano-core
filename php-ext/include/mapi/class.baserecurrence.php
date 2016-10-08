@@ -116,8 +116,8 @@
 		*
 		* type		- type of recurrence: day=10, week=11, month=12, year=13
 		* subtype	- type of day recurrence: 2=monthday (ie 21st day of month), 3=nday'th weekdays (ie. 2nd Tuesday and Wednesday)
-		* start	- unix timestamp of first occurrence
-		* end		- unix timestamp of last occurrence (up to and including), so when start == end -> occurrences = 1
+		* start	- Unix timestamp of first occurrence
+		* end		- Unix timestamp of last occurrence (up to and including), so when start == end -> occurrences = 1
 		* numoccur     - occurrences (may be very large when there is no end data)
 		*
 		* then, for each type:
@@ -359,7 +359,7 @@
 				$data = unpack("Vstartdate/Venddate/Vbasedate", $rdata);
 				$rdata = substr($rdata, 12);
 
-				// Convert recurtimestamp to unix timestamp
+				// Convert recurtimestamp to Unix timestamp
 				$startdate = $this->recurDataToUnixData($data["startdate"]);
 				$enddate = $this->recurDataToUnixData($data["enddate"]);
 				$basedate = $this->recurDataToUnixData($data["basedate"]);
@@ -512,7 +512,7 @@
 
 			for($i=0;$i<$nexceptions;$i++) 
 			{
-				// subject and location in ucs-2 to utf-8
+				// subject and location in UCS-2 to UTF-8
 				if ($writerversion >= 0x3009) {
 					$data = unpack("Vsize/Vvalue", $rdata); // size includes sizeof(value)==4
 					$rdata = substr($rdata, 4 + $data["size"]);
@@ -533,7 +533,7 @@
 
 				// ARO_SUBJECT
 				if ($exc_changed_details[$i]["bitmask"] & 0x01) {
-					// decode ucs2 string to utf-8
+					// decode UCS-2 string to UTF-8
 					$data = unpack("vlength", $rdata);
 					$rdata = substr($rdata, 2);
 					$length = $data["length"];
@@ -546,7 +546,7 @@
 
 				// ARO_LOCATION
 				if ($exc_changed_details[$i]["bitmask"] & 0x10) {
-					// decode ucs2 string to utf-8
+					// decode UCS-2 string to UTF-8
 					$data = unpack("vlength", $rdata);
 					$rdata = substr($rdata, 2);
 					$length = $data["length"];
@@ -1277,7 +1277,7 @@
 
 				// Set "subject"
 				if(isset($changed_item["subject"]))	{
-					// convert utf-8 to non-unicode blob string (us-ascii?)
+					// convert UTF-8 to non-unicode blob string (US-ASCII?)
 					$subject = iconv("UTF-8", "windows-1252//TRANSLIT", $changed_item["subject"]);
 					$length = strlen($subject);
 					$rdata .= pack("vv", $length + 1, $length);
@@ -1361,7 +1361,7 @@
 		}
 
 		/**
-		* Function which converts a recurrence date timestamp to an unix date timestamp.
+		* Function which converts a recurrence date timestamp to an Unix date timestamp.
 		* @author Steve Hardy
 		* @param Int $rdate the date which will be converted
 		* @return Int the converted date
@@ -1372,7 +1372,7 @@
 		}
 
 		/**
-		* Function which converts an unix date timestamp to recurrence date timestamp.
+		* Function which converts an Unix date timestamp to recurrence date timestamp.
 		* @author Johnny Biemans
 		* @param Date $date the date which will be converted
 		* @return Int the converted date in minutes

@@ -270,7 +270,7 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 	}
 
 	// We'll go through the table one row at a time (from each table) and assume the attachments
-	// are sorted the same. We'll do a sanity check on the size propertie though.
+	// are sorted the same. We will do a sanity check on the size property, though.
 	while (true) {
 		SRowSetPtr ptrSourceRows;
 		SRowSetPtr ptrDestRows;
@@ -583,7 +583,7 @@ HRESULT Copier::DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps)
 			Logger()->Log(EC_LOGLEVEL_INFO, "Found archive for dirty message.");
 			if (parseBool(m_lpConfig->GetSetting("track_history"))) {
 				Logger()->Log(EC_LOGLEVEL_DEBUG, "Creating new archived message.");
-				// DoTrackAndRearchive will allways place the new archive in the
+				// DoTrackAndRearchive will always place the new archive in the
 				// correct folder and place the old ones in the history folder.
 				// However, when the message has moved, the ref entryids need to
 				// be updated in the old messages.

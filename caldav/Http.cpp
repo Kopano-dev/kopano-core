@@ -228,7 +228,7 @@ HRESULT Http::HrParseHeaders()
 	if (hr == hrSuccess && m_strCharSet.find("charset") != std::string::npos)
 		m_strCharSet = m_strCharSet.substr(m_strCharSet.find("charset")+ strlen("charset") + 1, m_strCharSet.length());
 	else
-		m_strCharSet = m_lpConfig->GetSetting("default_charset"); // really should be utf-8
+		m_strCharSet = m_lpConfig->GetSetting("default_charset"); // really should be UTF-8
 
 	hr = HrGetHeaderValue("User-Agent", &strUserAgent);
 	if (hr == hrSuccess) {

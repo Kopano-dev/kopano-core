@@ -290,7 +290,7 @@ exit:
 
 /*
 	lpInstanceKey	Instance key of the item
-	lpsRow			is a propertie array from the shortcuts
+	lpsRow		is a property array from the shortcuts
 */
 HRESULT ECMemTablePublic::ModifyRow(SBinary* lpInstanceKey, LPSRow lpsRow)
 {

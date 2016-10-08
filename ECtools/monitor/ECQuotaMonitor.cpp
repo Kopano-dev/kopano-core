@@ -135,7 +135,7 @@ void* ECQuotaMonitor::Create(void* lpVoid)
 	lpMAPIAdminSession->Release();
 	lpMAPIAdminSession = NULL;
 
-	// Check the quota of allstores
+	// Check the quota of all stores
 	tmStart = GetProcessTime();
 	hr = lpecQuotaMonitor->CheckQuota();
 	tmEnd = GetProcessTime();
@@ -342,7 +342,7 @@ HRESULT ECQuotaMonitor::CheckCompanyQuota(ECCOMPANY *lpecCompany)
 	} else {
 		lpszServersConfig = m_lpThreadMonitor->lpConfig->GetSetting("servers","",NULL);
 		if(lpszServersConfig) {
-			// split approach taken from varafa-backup/backup.cpp
+			// split approach taken from kopano-backup/backup.cpp
 			boost::algorithm::split(setServersConfig, lpszServersConfig, boost::algorithm::is_any_of("\t "), boost::algorithm::token_compress_on);
 			setServersConfig.erase(string());
 		}

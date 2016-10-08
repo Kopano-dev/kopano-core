@@ -1673,7 +1673,7 @@ HRESULT PropValueArraytoPHPArray(ULONG cValues, LPSPropValue pPropValueArray, zv
 			break;
 
 		case PT_SYSTIME:
-			// convert time to unix timestamp
+			// convert time to Unix timestamp
 			add_assoc_long(zval_prop_value, pulproptag,
 						   FileTimeToUnixTime(pPropValue->Value.ft.dwHighDateTime,pPropValue->Value.ft.dwLowDateTime));
 			break;

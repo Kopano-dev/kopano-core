@@ -1231,7 +1231,7 @@ HRESULT WSTransport::HrGetIDsFromNames(LPMAPINAMEID *lppPropNames, ULONG cNames,
 			*sNamedProps.__ptr[i].lpId = lppPropNames[i]->Kind.lID;
 			break;
 		case MNID_STRING: {
-			// The string is actually utf-8, not windows-1252. This enables full support for wide char strings.
+			// The string is actually UTF-8, not windows-1252. This enables full support for wide char strings.
 			utf8string strNameUTF8 = convertContext.convert_to<utf8string>(lppPropNames[i]->Kind.lpwstrName);
 
 			ECAllocateMore(strNameUTF8.length()+1, sNamedProps.__ptr,(void **)&sNamedProps.__ptr[i].lpString);

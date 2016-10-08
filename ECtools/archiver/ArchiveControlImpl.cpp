@@ -536,7 +536,7 @@ HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
 	}
 
 	if (ptrDeleteOp) {
-		// First delete all messages that are elegible for deletion, so we don't unneccesary stub them first
+		// First delete all messages that are eligible for deletion, so we do not unneccesary stub them first
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Deleting old messages");
 		hr = ProcessFolder(ptrSearchDeleteFolder, ptrDeleteOp);
 		if (FAILED(hr)) {
@@ -551,7 +551,7 @@ HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
 	}
 
 	if (ptrStubOp) {
-		// Now stub the remaing messages (if they're old enough)
+		// Now stub the remaining messages (if they are old enough)
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Stubbing messages");
 		hr = ProcessFolder(ptrSearchStubFolder, ptrStubOp);
 		if (FAILED(hr)) {
@@ -1355,7 +1355,7 @@ HRESULT ArchiveControlImpl::CleanupHierarchy(ArchiveHelperPtr ptrArchiveHelper, 
 			// If the cleanup action is delete, we don't want to delete a folder that's not empty because it might contain messages that
 			// have been moved in the primary store before the original folder was deleted. If we were to delete the folder in the archive
 			// we would lose that data.
-			// But if the cleanup action is store, we do want to move the folder with content so the hierarchy is preserverd.
+			// But if the cleanup action is store, we do want to move the folder with content so the hierarchy is preserved.
 			
 			if (m_cleanupAction == caDelete) {
 				// The content count and folder child count should always exist. If not we'll skip the folder

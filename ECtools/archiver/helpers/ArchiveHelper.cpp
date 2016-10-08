@@ -123,7 +123,7 @@ HRESULT ArchiveHelper::Create(ArchiverSessionPtr ptrSession, const SObjectEntry 
 	}
 	
 	// We pass a NULL to the lpszServerPath argument, indicating that it's local. However, it was already
-	// remotly opened by ptrSession->OpenStore(). Effectively this causes ptrArchiveHelper->GetArchiveEntry()
+	// remotely opened by ptrSession->OpenStore(). Effectively this causes ptrArchiveHelper->GetArchiveEntry()
 	// to malfunction (it won't wrap the entryid with the serverpath). This is not an issue as we don't use
 	// that here anyway.
 	hr = ArchiveHelper::Create(ptrArchiveStore, ptrArchiveRootFolder, NULL, &ptrArchiveHelper);

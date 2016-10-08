@@ -23,7 +23,7 @@ LDAPConfigCheck::LDAPConfigCheck(const char *lpszConfigFile) : ECConfigCheck("LD
 
 void LDAPConfigCheck::loadChecks()
 {
-	// TODO: add check for ldap_host is resolveable ip address
+	// TODO: add check for ldap_host is resolvable IP address
 	// TODO: add check for ldap_port on ldap_host is reachable
 	addCheck("ldap_bind_user", CONFIG_MANDATORY);
 	addCheck("ldap_last_modification_attribute", CONFIG_MANDATORY);

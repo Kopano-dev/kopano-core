@@ -168,7 +168,7 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 		// get raw headers
 		posHeaderEnd = input.find("\r\n\r\n");
 		if (posHeaderEnd == std::string::npos) {
-			// input was not rfc compliant, try unix enters
+			// input was not rfc compliant, try Unix enters
 			posHeaderEnd = input.find("\n\n");
 			bUnix = true;
 		}
@@ -176,7 +176,7 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 			SPropValue sPropHeaders;
 			std::string strHeaders = input.substr(0, posHeaderEnd);
 
-			// make sure we have us-ascii headers
+			// make sure we have US-ASCII headers
 			if (bUnix)
 				StringLFtoCRLF(strHeaders);
 
@@ -363,7 +363,7 @@ HRESULT VMIMEToMAPI::fillMAPIMail(vmime::ref<vmime::message> vmMessage, IMessage
 	// Default codepage is UTF-8, might be overwritten when writing
 	// the body (plain or html). So this is only in effect when an
 	// e-mail does not specify its charset.  We use UTF-8 since it is
-	// compatible with us-ascii, and the conversion from plain-text
+	// compatible with US-ASCII, and the conversion from plain-text
 	// only to HTML by the client will use this codepage. This makes
 	// sure the generated HTML version of plaintext only mails
 	// contains all characters.
@@ -1715,11 +1715,11 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::ref<vmime::header> vmHeader,
 	ICalToMapi *lpIcalMapi = NULL;
 	SPropValuePtr ptrSubject;
 
-	// Some senders send utf-8 iCalendar information without a charset (Exchange does this). Default
-	// to utf-8 if no charset was specified
+	// Some senders send UTF-8 iCalendar information without a charset (Exchange does this). Default
+	// to UTF-8 if no charset was specified
 	strCharset = vmBody->getCharset().getName();
 	if (strCharset == "us-ascii")
-		// We can safely upgrade from us-ascii to utf-8 since it is compatible
+		// We can safely upgrade from US-ASCII to UTF-8 since it is compatible
 		strCharset = "utf-8";
 
 	vmBody->getContents()->extract(os);
@@ -2429,7 +2429,7 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::ref<vmime::header> vmHeader, vmim
 
 		if (bAppendBody && m_mailState.bodyLevel == BODY_HTML && m_mailState.ulLastCP && sCodepage.Value.ul != m_mailState.ulLastCP) {
 			// we're appending but the new body part has a different codepage than the previous one. To support this
-			// we have to upgrade the old data to utf-8, convert the new data to utf-8 and append that.
+			// we have to upgrade the old data to UTF-8, convert the new data to UTF-8 and append that.
 
 			if(m_mailState.ulLastCP != 65001) {
 				hr = HrGetCharsetByCP(m_mailState.ulLastCP, &lpszCharset);
@@ -2438,7 +2438,7 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::ref<vmime::header> vmHeader, vmim
 					goto exit;
 				}
 
-				// Convert previous body part to utf-8
+				// Convert previous body part to UTF-8
 				std::string strCurrentHTML;
 
 				hr = Util::ReadProperty(lpMessage, PR_HTML, strCurrentHTML);
@@ -2453,11 +2453,11 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::ref<vmime::header> vmHeader, vmim
 			}
 
 			if(sCodepage.Value.ul != 65001) {
-				// Convert new body part to utf-8
+				// Convert new body part to UTF-8
 				strHTML = m_converter.convert_to<std::string>("UTF-8", strHTML, rawsize(strHTML), mime_charset.getName().c_str());
 			}
 
-			// Everything is utf-8 now
+			// Everything is UTF-8 now
 			sCodepage.Value.ul = 65001;
 			mime_charset = "utf-8";
 		}

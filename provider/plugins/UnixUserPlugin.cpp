@@ -74,7 +74,7 @@ UnixUserPlugin::UnixUserPlugin(std::mutex &pluginlock, ECPluginSharedData *share
 	: DBPlugin(pluginlock, shareddata), m_iconv(NULL)
 {
 	const configsetting_t lpDefaults [] = {
-		{ "fullname_charset", "iso-8859-15" },		// us-ascii compatible with support for high characters
+		{ "fullname_charset", "iso-8859-15" }, // US-ASCII compatible with support for high characters
 		{ "default_domain", "localhost" },			// no sane default
 		{ "non_login_shell", "/bin/false", CONFIGSETTING_RELOADABLE },	// create a non-login box when a user has this shell
 		{ "min_user_uid", "1000", CONFIGSETTING_RELOADABLE },

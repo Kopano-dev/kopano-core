@@ -719,7 +719,7 @@ exit:
  *
  * @param[in]	szSMTP	The SMTP server to send to.
  * @param[in]	ulPort	The SMTP port to sent to.
- * @param[in]	szPath	URI of storage server to connect to, must be file:// or https:// with valid ssl certificates.
+ * @param[in]	szPath	URI of storage server to connect to, must be file:// or https:// with valid SSL certificates.
  * @return		HRESULT
  */
 static HRESULT ProcessQueue(const char *szSMTP, int ulPort, const char *szPath)
@@ -994,7 +994,7 @@ static void *signal_handler(void *)
  *
  * @param[in]	szSMTP	The SMTP server to send to.
  * @param[in]	ulPort	The SMTP port to send to.
- * @param[in]	szPath	URI of storage server to connect to, must be file:// or https:// with valid ssl certificates.
+ * @param[in]	szPath	URI of storage server to connect to, must be file:// or https:// with valid SSL certificates.
  * @return		HRESULT
  */
 static HRESULT running_server(const char *szSMTP, int ulPort,

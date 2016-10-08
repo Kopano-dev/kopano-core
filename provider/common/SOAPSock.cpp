@@ -55,7 +55,7 @@ http_post(struct soap *soap, const char *endpoint, const char *host, int port, c
   return soap->fposthdr(soap, NULL, NULL);
 }
 
-// This function wraps the GSOAP fopen call to support "file:///var/run/socket" unix-socket URI's
+// This function wraps the GSOAP fopen call to support "file:///var/run/socket" Unix socket URIs
 static int gsoap_connect_pipe(struct soap *soap, const char *endpoint,
     const char *host, int port)
 {
@@ -200,7 +200,7 @@ int ssl_verify_callback_kopano_silent(int ok, X509_STORE_CTX *store)
 
 	if (ok == 0)
 	{
-		// Get the last ssl error
+		// Get the last SSL error
 		sslerr = X509_STORE_CTX_get_error(store);
 		switch (sslerr)
 		{

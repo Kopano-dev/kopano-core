@@ -328,8 +328,8 @@ NonLegacyFullProcessor::NonLegacyFullProcessor(unsigned int ulChangeId, unsigned
 
 ECRESULT NonLegacyFullProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags)
 {
-	// This processor will allways be used with the FullQueryGenerator, which means that the provided
-	// changetype is allways ICS_MESSAGE_NEW. However, we do have the message flags so we can see if
+	// This processor will always be used with the FullQueryGenerator, which means that the provided
+	// changetype is always ICS_MESSAGE_NEW. However, we do have the message flags so we can see if
 	// a message is deleted.
 	assert(lpulChangeType != NULL);
 	assert(lpDBRow != NULL && lpDBRow[icsChangeType] != NULL && lpDBRow[icsMsgFlags] != NULL);
@@ -513,8 +513,8 @@ FirstSyncProcessor::FirstSyncProcessor(unsigned int ulMaxFolderChange)
 
 ECRESULT FirstSyncProcessor::ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags)
 {
-	// This processor will allways be used with the FullQueryGenerator, which means that the provided
-	// changetype is allways ICS_MESSAGE_NEW. However, we do have the message flags so we can see if
+	// This processor will always be used with the FullQueryGenerator, which means that the provided
+	// changetype is always ICS_MESSAGE_NEW. However, we do have the message flags so we can see if
 	// a message is deleted.
 	assert(lpulChangeType != NULL);
 	assert(lpDBRow != NULL && lpDBRow[icsChangeType] != NULL && lpDBRow[icsMsgFlags] != NULL);

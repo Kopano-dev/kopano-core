@@ -652,7 +652,7 @@ static void print_users(unsigned int cUsers, const ECUSER *lpECUsers,
 			if (lpECUsers[i].lpszServername != NULL && *reinterpret_cast<LPSTR>(lpECUsers[i].lpszServername) != '\0')
 				ct.SetColumn(i, 2, (LPSTR)lpECUsers[i].lpszServername);
 			else
-				// make sure we fill-in all table parts. not using "<unknown>" tag,
+				// make sure we fill in all table parts. not using "<unknown>" tag,
 				// since bShowHomeServer can be set to true even on non-multiserver environments
 				ct.SetColumn(i, 2, string());
 		}
@@ -1110,7 +1110,7 @@ static HRESULT OpenDeletedStoresFolder(LPMDB lpPublicStore,
 	if (hr != hrSuccess)
 		goto exit;
 
-	// Work around for companties, because a company is a delegate store!
+	// Workaround for companies, because a company is a delegate store!
 	if (lpsPropMDB->Value.bin.cb == sizeof(MAPIUID) && memcmp(lpsPropMDB->Value.bin.lpb, &KOPANO_STORE_PUBLIC_GUID, sizeof(MAPIUID)) == 0)
 		ulPropTagSubtree = PR_IPM_PUBLIC_FOLDERS_ENTRYID;
 	else
@@ -2820,7 +2820,7 @@ int main(int argc, char* argv[])
 		return 0;
 	}
 
-	// For the following modes we need a companyname.
+	// For the following modes we need a company name.
 	if (!companyname &&
 			(mode == MODE_ADD_VIEW || mode == MODE_DEL_VIEW || mode == MODE_LIST_VIEW ||
 			 mode == MODE_ADD_ADMIN || mode == MODE_DEL_ADMIN || mode == MODE_LIST_ADMIN ||
@@ -3365,7 +3365,7 @@ int main(int argc, char* argv[])
 					goto exit;
 				}
 
-				// Open the root containter for copy the folders
+				// Open the root container for copy the folders
 				hr = lpUserStore->OpenEntry(0, NULL, NULL, MAPI_BEST_ACCESS, &ulObjType, (IUnknown**)&lpRootFolder);
 				if (hr != hrSuccess) {
 					cerr << "Unable to open root folder of the orphan store, " << getMapiCodeString(hr) << endl;

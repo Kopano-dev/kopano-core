@@ -593,7 +593,7 @@ void MAPISMTPTransport::send(const mailbox& expeditor, const mailboxList& recipi
 		code = resp->getCode();
 
 		sFailedRecip entry;
-		entry.strRecipName = (WCHAR*)mbox.getName().getConvertedText(charset(CHARSET_WCHAR)).c_str(); // does this work?, or convert to utf-8 then wstring?
+		entry.strRecipName = (WCHAR*)mbox.getName().getConvertedText(charset(CHARSET_WCHAR)).c_str(); // does this work?, or convert to UTF-8 then wstring?
 		entry.strRecipEmail = mbox.getEmail();
 		entry.ulSMTPcode = code;
 		entry.strSMTPResponse = resp->getText();

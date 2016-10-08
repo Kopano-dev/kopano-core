@@ -219,7 +219,7 @@ int unix_daemonize(ECConfig *lpConfig)
 }
 
 /**
- * Starts a new unix process and calls the given function. Optionally
+ * Starts a new Unix process and calls the given function. Optionally
  * closes some given file descriptors. The child process does not
  * return from this function.
  *

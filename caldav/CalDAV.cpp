@@ -326,9 +326,8 @@ exit:
 	delete g_lpConfig;
 	DeleteLogger(g_lpLogger);
 
-	SSL_library_cleanup(); // Remove ssl data for the main application and other related libraries
-
-	// Cleanup ssl parts
+	SSL_library_cleanup(); // Remove SSL data for the main application and other related libraries
+	// Cleanup SSL parts
 	ssl_threading_cleanup();
 
 	// Cleanup libxml2 library
@@ -611,7 +610,7 @@ static HRESULT HrHandleRequest(ECChannel *lpChannel)
 	// ignore Empty Body
 	lpRequest->HrReadBody();
 
-	// no error, defaults to utf-8
+	// no error, defaults to UTF-8
 	lpRequest->HrGetCharSet(&strCharset);
 	// ignore Empty User field.
 	lpRequest->HrGetUser(&wstrUser);

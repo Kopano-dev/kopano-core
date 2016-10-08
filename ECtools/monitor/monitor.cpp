@@ -69,7 +69,7 @@ static HRESULT running_service(const char *szPath);
 
 static void sighandle(int sig)
 {
-	// Win32 has unix semantics and therefore requires us to reset the signal handler.
+	// Win32 has Unix semantics and therefore requires us to reset the signal handler.
 	signal(SIGTERM , sighandle);
 	signal(SIGINT  , sighandle);	// CTRL+C
 

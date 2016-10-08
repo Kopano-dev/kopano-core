@@ -33,7 +33,7 @@ class ECRestrictionList;
 class ECRestriction {
 public:
 	enum {
-		Cheap	= 1,	// Stores the passes LPSPropValue pointer.
+		Cheap	= 1, // Stores the passed LPSPropValue pointer.
 		Shallow = 2		// Creates a new SPropValue, but point to the embedded data from the original structure.
 	};
 

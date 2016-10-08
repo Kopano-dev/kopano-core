@@ -120,7 +120,7 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 	if (PROP_TYPE(ptrBodies[3].ulPropTag) != PT_ERROR)
 		ulCharset = ptrBodies[3].Value.ul;
 	else
-		ulCharset = 20127;		// us-ascii
+		ulCharset = 20127; // US-ASCII
 
 	if (PROP_TYPE(ptrBodies[0].ulPropTag) == PT_ERROR && PROP_TYPE(ptrBodies[1].ulPropTag) == PT_ERROR) {
 		// plain and html not found, check sync flag

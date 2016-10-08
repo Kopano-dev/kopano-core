@@ -273,7 +273,7 @@ attributetype (1.3.6.1.4.1.47732.1.4.4.2
 
 attributetype (1.3.6.1.4.1.47732.1.4.4.3
 	NAME 'kopanoFilePath'
-	DESC 'KOPANO: The unix socket or named pipe to the server'
+	DESC 'KOPANO: The Unix socket or named pipe to the server'
 	EQUALITY caseIgnoreMatch
 	SUBSTR caseIgnoreSubstringsMatch
 	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 SINGLE-VALUE )

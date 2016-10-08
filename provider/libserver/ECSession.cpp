@@ -55,7 +55,7 @@ namespace bfs = boost::filesystem;
 #define WHITESPACE L" \t\n\r"
 #endif
 
-// possible missing ssl function
+// possible missing SSL function
 #ifndef HAVE_EVP_PKEY_CMP
 static int EVP_PKEY_cmp(EVP_PKEY *a, EVP_PKEY *b)
     {
@@ -929,7 +929,7 @@ ECRESULT ECAuthSession::ValidateUserCertificate(struct soap* soap, const char* l
 
 	cert = SSL_get_peer_certificate(soap->ssl);
 	if (!cert) {
-		// windows client without ssl certificate
+		// Windows client without SSL certificate
 		ec_log_info("No certificate in SSL connection.");
 		goto exit;
 	}

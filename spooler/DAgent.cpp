@@ -470,8 +470,8 @@ static HRESULT HrAutoAccept(ECLogger *lpLogger, IMAPISession *lpMAPISession,
 	strEntryID = bin2hex(lpEntryID->Value.bin.cb, lpEntryID->Value.bin.lpb);
 
 	// We cannot rely on the 'current locale' to be able to represent the username in wstrUsername. We therefore
-	// force utf-8 output on the username. This means that the autoaccept script must also interpret the username
-	// in utf-8, *not* in the current locale.
+	// force UTF-8 output on the username. This means that the autoaccept script must also interpret the username
+	// in UTF-8, *not* in the current locale.
 	strCmdLine = (std::string)autoresponder + " \"" + convert_to<string>("UTF-8", lpRecip->wstrUsername, rawsize(lpRecip->wstrUsername), CHARSET_WCHAR) + "\" \"" + g_lpConfig->GetSettingsPath() + "\" \"" + strEntryID + "\"";
 	g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Starting autoaccept with command line %s", strCmdLine.c_str());
 	if (!unix_system(autoresponder, strCmdLine.c_str(), const_cast<const char **>(environ))) {
@@ -555,8 +555,8 @@ static HRESULT HrAutoProcess(ECLogger *lpLogger, IMAPISession *lpMAPISession,
 	strEntryID = bin2hex(lpEntryID->Value.bin.cb, lpEntryID->Value.bin.lpb);
 
 	// We cannot rely on the 'current locale' to be able to represent the username in wstrUsername. We therefore
-	// force utf-8 output on the username. This means that the autoaccept script must also interpret the username
-	// in utf-8, *not* in the current locale.
+	// force UTF-8 output on the username. This means that the autoaccept script must also interpret the username
+	// in UTF-8, *not* in the current locale.
 	strCmdLine = (std::string)autoprocessor + " \"" + convert_to<string>("UTF-8", lpRecip->wstrUsername, rawsize(lpRecip->wstrUsername), CHARSET_WCHAR) + "\" \"" + g_lpConfig->GetSettingsPath() + "\" \"" + strEntryID + "\"";
 	g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Starting autoaccept with command line %s", strCmdLine.c_str());
 	if (!unix_system(autoprocessor, strCmdLine.c_str(), const_cast<const char **>(environ)))
@@ -2333,7 +2333,7 @@ static HRESULT HrGetSession(const DeliveryArgs *lpArgs,
 
 	// MAPI_E_NO_ACCESS or MAPI_E_LOGON_FAILED are fatal (user does not exist)
 	case MAPI_E_LOGON_FAILED:
-		// running dagent as unix user != lpRecip->strUsername and ! listed in local_admin_user, which gives this error too
+		// running dagent as Unix user != lpRecip->strUsername and ! listed in local_admin_user, which gives this error too
 		if (!bSuppress)
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Access denied or connection failed for user %ls, using socket: '%s', error code: 0x%08X", szUsername, lpArgs->strPath.c_str(), hr);
 		// so also log userid we're running as
@@ -3513,7 +3513,7 @@ exit:
  * connection.  Only accepts the incoming connection when the maximum
  * number of processes hasn't been reached.
  * 
- * @param[in]	servicename	Name of the service, used to create a unix pidfile.
+ * @param[in]	servicename	Name of the service, used to create a Unix pidfile.
  * @param[in]	bDaemonize	Starts a forked process in this loop to run in the background if true.
  * @param[in]	lpArgs		Struct containing delivery parameters
  * @retval MAPI error code	
@@ -3749,7 +3749,7 @@ static HRESULT deliver_recipient(PyMapiPlugin *lppyMapiPlugin,
 	
 	// Always try to resolve the user unless we just stripped an email address.
 	if (!bStringEmail) {
-		// only suppress error when it has no meaning (eg. delivery of unix user to itself)
+		// only suppress error when it has no meaning (eg. delivery of Unix user to itself)
 		hr = HrGetSession(lpArgs, KOPANO_SYSTEM_USER_W, &lpSession, !lpArgs->bResolveAddress);
 		if (hr == hrSuccess) {
 			hr = OpenResolveAddrFolder(lpSession, &lpAdrBook, &lpAddrDir);

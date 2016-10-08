@@ -26,12 +26,12 @@
 using namespace std;
 
 /**
- * Converts icaltimetype to unix timestamp.
+ * Converts icaltimetype to Unix timestamp.
  * Here server zone refers to timezone with which the server started,
  * not the config file option in ical.cfg
  *
  * @param[in]	tt		icaltimetype
- * @return		unix timestamp
+ * @return		Unix timestamp
  */
 time_t icaltime_as_timet_with_server_zone(const struct icaltimetype tt)
 {
@@ -65,11 +65,11 @@ time_t icaltime_as_timet_with_server_zone(const struct icaltimetype tt)
 }
 
 /**
- * Converts icaltimetype to UTC unix timestamp
+ * Converts icaltimetype to UTC Unix timestamp
  *
  * @param[in]	lpicRoot		root icalcomponent to get timezone
  * @param[in]	lpicProp		icalproperty containing time
- * @return		UTC unix timestamp
+ * @return		UTC Unix timestamp
  */
 time_t ICalTimeTypeToUTC(icalcomponent *lpicRoot, icalproperty *lpicProp)
 {
@@ -90,12 +90,12 @@ time_t ICalTimeTypeToUTC(icalcomponent *lpicRoot, icalproperty *lpicProp)
 }
 
 /**
- * Converts icaltimetype to local unix timestamp.
+ * Converts icaltimetype to local Unix timestamp.
  * Here local refers to timezone with which the server started, 
  * not the config file option in ical.cfg
  *
  * @param[in]	lpicProp	icalproperty containing time
- * @return		local unix timestamp
+ * @return		local Unix timestamp
  */
 time_t ICalTimeTypeToLocal(icalproperty *lpicProp)
 {

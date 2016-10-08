@@ -1845,7 +1845,7 @@ bool recurrence::isOccurrenceValid(time_t tsPeriodStart, time_t tsPeriodEnd, tim
 
 /**
  * checks if the Occurrence is deleted.
- * @param	tsOccDate	Occurrence unix timestamp
+ * @param	tsOccDate	Occurrence Unix timestamp
  * @return	bool
  */
 bool recurrence::isDeletedOccurrence(time_t tsOccDate)
@@ -1858,7 +1858,7 @@ bool recurrence::isDeletedOccurrence(time_t tsOccDate)
 
 /**
  * checks if the Occurrence is a modified ocurrence
- * @param	tsOccDate	Occurrence unix timestamp
+ * @param	tsOccDate	Occurrence Unix timestamp
  * @return	bool
  */
 bool recurrence::isException(time_t tsOccDate)

@@ -1156,8 +1156,8 @@ DB_LENGTHS ECDatabaseMySQL::FetchRowLengths(DB_RESULT sResult) {
 }
 
 /** 
- * For some reason, MySQL only supports up to 3 bytes of utf-8 data. This means
- * that data outside the BMP is not supported. This function filters the passed utf-8 string
+ * For some reason, MySQL only supports up to 3 bytes of UTF-8 data. This means
+ * that data outside the BMP is not supported. This function filters the passed UTF-8 string
  * and removes the non-BMP characters. Since it should be extremely uncommon to have useful
  * data outside the BMP, this should be acceptable.
  *
@@ -1174,7 +1174,7 @@ std::string ECDatabaseMySQL::FilterBMP(const std::string &strToFilter)
 	std::string strFiltered;
 
 	while(pos < strToFilter.size()) {
-		// Copy 1, 2, and 3-byte utf-8 sequences
+		// Copy 1, 2, and 3-byte UTF-8 sequences
 		int len;
 		
 		if((c[pos] & 0x80) == 0)
@@ -1190,7 +1190,7 @@ std::string ECDatabaseMySQL::FilterBMP(const std::string &strToFilter)
 		else if((c[pos] & 0xFE) == 0xFC)
 			len = 6;
 		else {
-			// Invalid utf-8 ?
+			// Invalid UTF-8 ?
 			len = 1;
 		}
 		

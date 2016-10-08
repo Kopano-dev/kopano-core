@@ -285,7 +285,7 @@ static ECRESULT PeerIsServer(struct soap *soap,
 	if (soap == NULL || lpbResult == NULL)
 		return KCERR_INVALID_PARAMETER;
 
-	// First check if we're connecting through unix-socket/named-pipe and if the request url matches this server
+	// First check if we are connecting through Unix socket/named pipe and if the request URL matches this server
 	if (SOAP_CONNECTION_TYPE_NAMED_PIPE(soap) &&
 			strcasecmp(strServerName.c_str(), g_lpSessionManager->GetConfig()->GetSetting("server_name")) == 0)
 		bResult = true;
@@ -2489,7 +2489,7 @@ static unsigned int SaveObject(struct soap *soap, ECSession *lpecSession,
 	// ------
 	{
 
-	    // Don't delete properties if this is a new object: this avoids any delete queries that cause unneccessary locks on the tables
+		// Do not delete properties if this is a new object: this avoids any delete queries that cause unnecessary locks on the tables
 		if (lpsSaveObj->delProps.__size > 0 && !fNewItem) {
 			er = DeleteProps(lpecSession, lpDatabase, lpsReturnObj->ulServerId, &lpsSaveObj->delProps, lpAttachmentStorage);
 			if (er != erSuccess)

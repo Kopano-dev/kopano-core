@@ -4603,7 +4603,7 @@ HRESULT IMAP::HrGetMessageEnvelope(string &strResponse, LPMESSAGE lpMessage) {
 		strCharset = lpszCharset;
 		bIgnoreCharsetErrors = true;
 	} else {
-		// default to utf-8 if not set
+		// default to UTF-8 if not set
 		strCharset = "UTF-8";
 	}
 

@@ -358,7 +358,7 @@ typedef EID * PEID;
 //
 // Logon flags, sent with ns__logon()
 //
-// Don't allow uid based authentication (unix socket only)
+// Don't allow uid based authentication (Unix socket only)
 #define KOPANO_LOGON_NO_UID_AUTH		0x0001
 
 // MTOM IDs

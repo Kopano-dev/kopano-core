@@ -424,7 +424,7 @@ static void showtop(LPMDB lpStore, bool bLocal)
 			}
 			if (bColumns[3]) {
 				wmove(win, 5 + line, ofs);
-				// the .24 caps off 24 bytes, not characters, so multi-byte utf-8 is capped earlier than you might expect
+				// the .24 caps off 24 bytes, not characters, so multi-byte UTF-8 is capped earlier than you might expect
 				wprintw(win, "%.24s", ses.strUser.c_str());
 				ofs += cols[4];
 			}

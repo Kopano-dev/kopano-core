@@ -32,7 +32,7 @@ namespace detail {
 	 * This class performs the actual conversion and caching of the translated messages.
 	 * Results are cached based on the pointer value, not the string content. This implies
 	 * two assumptions:
-	 * 1. Gettext allways returns the same pointer for a particular translation.
+	 * 1. Gettext always returns the same pointer for a particular translation.
 	 * 2. If there's no translation, the original pointer is returned. So we assume that the
 	 *    compiler optimized string literals to have the same address if they're equal. If
 	 *    this assumption is false, this will lead to more conversions, and more memory usage

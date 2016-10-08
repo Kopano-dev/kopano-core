@@ -69,7 +69,7 @@ ECSessionManager::ECSessionManager(ECConfig *lpConfig, ECLogger *lpAudit,
 	m_ulSeqIMAP = 0;
 	m_ulSeqIMAPQueue = 0;
 
-	// init ssl randomness for session id's
+	// init SSL randomness for session IDs
 	ssl_random_init();
 
 	//Create session clean up thread
@@ -520,7 +520,7 @@ ECRESULT ECSessionManager::CreateSession(struct soap *soap, char *szName, char *
 	if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY) {
 		from = string("file://") + m_lpConfig->GetSetting("server_pipe_priority");
 	} else if (ulType == CONNECTION_TYPE_NAMED_PIPE) {
-		// connected through unix socket
+		// connected through Unix socket
 		from = string("file://") + m_lpConfig->GetSetting("server_pipe_name");
 	} else {
 		// connected over network

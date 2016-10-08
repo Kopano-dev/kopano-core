@@ -457,7 +457,7 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 				// add inline object to html part
 				vmime::mapiTextPart& textPart = dynamic_cast<vmime::mapiTextPart&>(*lpVMMessageBuilder->getTextPart());
 				// had szFilename .. but how, on inline?
-				// @todo find out how Content-Disposition receives highchar filename... always utf-8?
+				// @todo find out how Content-Disposition receives highchar filename... always UTF-8?
 				textPart.addObject(vmime::create<vmime::streamContentHandler>(inputDataStream, 0), vmime::encoding("base64"), vmMIMEType, strContentId, string(), strContentLocation);
 			} else {
 				vmMapiAttach = vmime::create<mapiAttachment>(vmime::create<vmime::streamContentHandler>(inputDataStream, 0),
@@ -1104,13 +1104,13 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage, vmime::ref<vmime::m
 		else
 			m_vmCharset = m_strHTMLCharset;
 	} else {
-		// default to utf-8 if not set
+		// default to UTF-8 if not set
 		m_vmCharset = MAPI_CHARSET_STRING;
 	}
 
 	if (strncasecmp(lpMsgClass->Value.lpszA, "IPM.Note", 8) && strncasecmp(lpMsgClass->Value.lpszA, "REPORT.IPM.Note", 15)) {
 		// Outlook sets some other incorrect charset for meeting requests and such,
-		// so for non-email we upgrade this to utf-8
+		// so for non-email we upgrade this to UTF-8
 		m_vmCharset = MAPI_CHARSET_STRING;
 	} else if (m_vmCharset == "us-ascii") {
 		// silently upgrade, since recipients and attachment filenames may contain high-chars, while the body does not.

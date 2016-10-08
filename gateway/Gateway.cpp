@@ -247,7 +247,7 @@ exit:
 		delete g_lpConfig;
 	}
 
-	/** free ssl error data **/
+	/** free SSL error data **/
 	ERR_remove_state(0);
 
 	if (bThreads)
@@ -441,7 +441,7 @@ static int gw_listen_on(const char *service, const char *interface,
  * incoming connections on any configured service.
  *
  * @param[in]	szPath		Unused, should be removed.
- * @param[in]	servicename	Name of the service, used to create a unix pidfile.
+ * @param[in]	servicename	Name of the service, used to create a Unix pidfile.
  */
 static HRESULT running_service(const char *szPath, const char *servicename)
 {
@@ -482,7 +482,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 	bListenIMAP = (strcmp(g_lpConfig->GetSetting("imap_enable"), "yes") == 0);
 	bListenIMAPs = (strcmp(g_lpConfig->GetSetting("imaps_enable"), "yes") == 0);
 
-	// Setup ssl context
+	// Setup SSL context
 	if ((bListenPOP3s || bListenIMAPs) &&
 	    ECChannel::HrSetCtx(g_lpConfig) != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error loading SSL context, POP3S and IMAPS will be disabled");
@@ -757,9 +757,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 
 exit:
 	ECChannel::HrFreeCtx();
-
-	SSL_library_cleanup(); // Remove ssl data for the main application and other related libraries
-
+	SSL_library_cleanup(); // Remove SSL data for the main application and other related libraries
 	if (bThreads)
 		pthread_attr_destroy(&ThreadAttr);
 	free(st.ss_sp);

@@ -275,7 +275,7 @@ HRESULT CreateProfileTemp(const wchar_t *username, const wchar_t *password,
 	++i;
 
 	if (sslkey_file) {
-		// always add ssl keys info as we might be redirected to an ssl connection
+		// always add SSL keys info as we might be redirected to an SSL connection
 		sProps[i].ulPropTag = PR_EC_SSLKEY_FILE;
 		sProps[i].Value.lpszA = (char*)sslkey_file;
 		++i;

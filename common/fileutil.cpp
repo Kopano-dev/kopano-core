@@ -222,7 +222,7 @@ exit:
  * Duplicate a file, to a given location
  *
  * @param[in]	lpFile Pointer to the source file
- * @param[in]	strFileName	The new file name
+ * @param[in]	strFileName	The new filename
  *
  * @return The result of the duplication of the file
  *

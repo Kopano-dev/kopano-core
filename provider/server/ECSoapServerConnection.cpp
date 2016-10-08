@@ -226,7 +226,7 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char* lpServerName, int nServer
 			lpszCAPath,			// CA certificate path of thrusted sources
 			NULL,				// dh file, null == rsa
 			NULL,				// create random data on the fly (/dev/urandom is slow .. create file?)
-			"EC")			// unique name for ssl session cache
+			"EC") // unique name for SSL session cache
 		)
 	{
 		soap_set_fault(lpsSoap);
@@ -361,12 +361,12 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriori
 	else
 		kopano_new_soap_listener(CONNECTION_TYPE_NAMED_PIPE, lpsSoap);
 	
-	// Create a unix or windows pipe
+	// Create a Unix or Windows pipe
 	m_strPipeName = lpPipeName;
 #if GSOAP_VERSION >= 20831
 	lpsSoap->sndbuf = lpsSoap->rcvbuf = 0;
 #endif
-	// set the mode stricter for the priority socket: let only the same unix user or root connect on the priority socket, users should not be able to abuse the socket
+	// set the mode stricter for the priority socket: let only the same Unix user or root connect on the priority socket, users should not be able to abuse the socket
 	lpsSoap->socket = sPipe = create_pipe_socket(m_strPipeName.c_str(), m_lpConfig, m_lpLogger, true, bPriority ? 0660 : 0666);
 	// This just marks the socket as being a pipe, which triggers some slightly different behaviour
 	strcpy(lpsSoap->path,"pipe");
