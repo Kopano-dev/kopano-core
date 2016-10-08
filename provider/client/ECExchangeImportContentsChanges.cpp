@@ -391,7 +391,8 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageMove(ULONG cbSourceKeySrcF
  * @return	true	The change has been processed before.
  * @return	false	The change hasn't been processed yet.
  */
-bool ECExchangeImportContentsChanges::IsProcessed(LPSPropValue lpRemoteCK, LPSPropValue lpLocalPCL)
+bool ECExchangeImportContentsChanges::IsProcessed(const SPropValue *lpRemoteCK,
+    const SPropValue *lpLocalPCL)
 {
 	if (!lpRemoteCK || !lpLocalPCL)
 		return false;
@@ -441,7 +442,8 @@ bool ECExchangeImportContentsChanges::IsProcessed(LPSPropValue lpRemoteCK, LPSPr
  * @retval	true	The change conflicts with a local change
  * @retval	false	The change doesn't conflict with a local change.
  */
-bool ECExchangeImportContentsChanges::IsConflict(LPSPropValue lpLocalCK, LPSPropValue lpRemotePCL)
+bool ECExchangeImportContentsChanges::IsConflict(const SPropValue *lpLocalCK,
+    const SPropValue *lpRemotePCL)
 {
 	if (!lpLocalCK || !lpRemotePCL)
 		return false;
@@ -977,7 +979,8 @@ HrVerifyRemindersRestriction(const SRestriction *lpRestriction,
 	return HrRestrictionContains(lpRestriction, lstEntryIds);
 }
 
-HRESULT ECExchangeImportContentsChanges::HrUpdateSearchReminders(LPMAPIFOLDER lpRootFolder, LPSPropValue lpAdditionalREN)
+HRESULT ECExchangeImportContentsChanges::HrUpdateSearchReminders(LPMAPIFOLDER lpRootFolder,
+    const SPropValue *lpAdditionalREN)
 {
 	HRESULT hr;
 	ULONG cREMProps;

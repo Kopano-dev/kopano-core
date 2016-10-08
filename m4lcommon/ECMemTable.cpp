@@ -829,7 +829,9 @@ HRESULT ECMemTableView::FreeBookmark(BOOKMARK bkPosition)
 }
 
 // This is the client version of ECGenericObjectTable::GetBinarySortKey()
-HRESULT ECMemTableView::GetBinarySortKey(LPSPropValue lpsPropVal, unsigned int *lpSortLen, unsigned char *lpFlags, unsigned char **lppSortData)
+HRESULT ECMemTableView::GetBinarySortKey(const SPropValue *lpsPropVal,
+    unsigned int *lpSortLen, unsigned char *lpFlags,
+    unsigned char **lppSortData)
 {
 	unsigned char	*lpSortData = NULL;
 	unsigned int	ulSortLen = 0;

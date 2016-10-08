@@ -339,7 +339,7 @@ std::wstring ProtocolBase::U2W(const std::string &strUtfChar)
  * @param[in]	lpSprop		SPropValue to be converted
  * @return		string
  */
-std::string ProtocolBase::SPropValToString(SPropValue * lpSprop)
+std::string ProtocolBase::SPropValToString(const SPropValue *lpSprop)
 {
 	time_t tmUnixTime;
 	std::string strRetVal;

@@ -57,8 +57,7 @@ protected:
 	std::string W2U(const std::wstring&); //!< convert widestring to UTF-8
 	std::string W2U(const WCHAR* lpwWideChar);
 	std::wstring U2W(const std::string&); //!< convert UTF-8 to widestring
-	std::string SPropValToString(SPropValue * lpSprop);
-
+	std::string SPropValToString(const SPropValue *lpSprop);
 	std::string strAgent;
 };
 

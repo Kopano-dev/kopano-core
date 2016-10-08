@@ -447,7 +447,7 @@ HRESULT SVCService::CreateProviders(IProviderAdmin *lpProviderAdmin)
 	return hrSuccess;
 }
 
-LPSPropValue SVCService::GetProp(ULONG ulPropTag)
+const SPropValue *SVCService::GetProp(ULONG ulPropTag)
 {
 	return PpropFindProp(m_lpProps, m_cValues, ulPropTag);
 }
@@ -558,10 +558,8 @@ HRESULT MAPISVC::GetService(LPTSTR lpszService, ULONG ulFlags, SVCService **lppS
  */
 HRESULT MAPISVC::GetService(char* lpszDLLName, SVCService **lppService)
 {
-	LPSPropValue lpDLLName;
-
 	for (const auto &i : m_sServices) {
-		lpDLLName = i.second->GetProp(PR_SERVICE_DLL_NAME_A);
+		const SPropValue *lpDLLName = i.second->GetProp(PR_SERVICE_DLL_NAME_A);
 		if (!lpDLLName || !lpDLLName->Value.lpszA)
 			continue;
 		if (strcmp(lpDLLName->Value.lpszA, lpszDLLName) == 0) {

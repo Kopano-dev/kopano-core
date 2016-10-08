@@ -686,7 +686,7 @@ HRESULT M4LMAPISupport::WrapStoreEntryID(ULONG cbOrigEntry, LPENTRYID lpOrigEntr
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPISupport::WrapStoreEntryID", "");
 	// get the dll name from SVCService
 	HRESULT hr = hrSuccess;
-	LPSPropValue lpDLLName = NULL;
+	const SPropValue *lpDLLName = NULL;
 
 	if (!service) {
 		// addressbook provider doesn't have the SVCService object

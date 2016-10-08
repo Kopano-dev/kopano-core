@@ -74,8 +74,8 @@ public:
 	} m_xECImportContentsChanges;
 
 private:
-	bool	IsProcessed(LPSPropValue lpRemoteCK, LPSPropValue lpLocalPCL);
-	bool	IsConflict(LPSPropValue lpLocalCK, LPSPropValue lpRemotePCL);
+	bool IsProcessed(const SPropValue *remote_ck, const SPropValue *local_pcl);
+	bool IsConflict(const SPropValue *local_ck, const SPropValue *remote_pcl);
 
 	HRESULT CreateConflictMessage(LPMESSAGE lpMessage);
 	HRESULT CreateConflictMessageOnly(LPMESSAGE lpMessage, LPSPropValue *lppConflictItems);
@@ -85,7 +85,7 @@ private:
 	HRESULT ImportMessageCreateAsStream(ULONG cValue, LPSPropValue lpPropArray, WSMessageStreamImporter **lppMessageImporter);
 	HRESULT ImportMessageUpdateAsStream(ULONG cbEntryId, LPENTRYID lpEntryId, ULONG cValue, LPSPropValue lpPropArray, WSMessageStreamImporter **lppMessageImporter);
 
-	static HRESULT HrUpdateSearchReminders(LPMAPIFOLDER lpRootFolder, LPSPropValue lpAdditionalREN);
+	static HRESULT HrUpdateSearchReminders(LPMAPIFOLDER lpRootFolder, const SPropValue *);
 	friend class ECExchangeImportHierarchyChanges;
 
 private:

@@ -49,7 +49,8 @@ static bool ReadYesNoMessage(const std::string &strMessage,
 	return (strReply[0] == 'y' || strReply[0] == 'Y');
 }
 
-static HRESULT DeleteEntry(LPMAPIFOLDER lpFolder, LPSPropValue lpItemProperty)
+static HRESULT DeleteEntry(LPMAPIFOLDER lpFolder,
+    const SPropValue *lpItemProperty)
 {
 	memory_ptr<ENTRYLIST> lpEntryList;
 	HRESULT hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~lpEntryList);
@@ -343,7 +344,8 @@ HRESULT Fsck::DeleteRecipientList(LPMESSAGE lpMessage, std::list<unsigned int> &
 	return hrSuccess;
 }
 
-HRESULT Fsck::DeleteMessage(LPMAPIFOLDER lpFolder, LPSPropValue lpItemProperty)
+HRESULT Fsck::DeleteMessage(LPMAPIFOLDER lpFolder,
+    const SPropValue *lpItemProperty)
 {
 	HRESULT hr = hrSuccess;
 

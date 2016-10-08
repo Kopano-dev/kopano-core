@@ -54,10 +54,7 @@ public:
 	HRESULT ReplaceProperty(LPMESSAGE lpMessage, const std::string &strName, ULONG ulTag, const std::string &strError, __UPV Value);
 
 	HRESULT DeleteRecipientList(LPMESSAGE lpMessage, std::list<unsigned int> &mapiReciptDel, bool &bChanged);
-
-	HRESULT DeleteMessage(LPMAPIFOLDER lpFolder,
-			      LPSPropValue lpItemProperty);
-
+	HRESULT DeleteMessage(LPMAPIFOLDER folder, const SPropValue *prop);
 	HRESULT ValidateRecursiveDuplicateRecipients(LPMESSAGE lpMessage, bool &bChanged);
 	HRESULT ValidateDuplicateRecipients(LPMESSAGE lpMessage, bool &bChanged);
 

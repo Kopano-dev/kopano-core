@@ -592,7 +592,7 @@ HRESULT M4LMsgServiceAdmin::CreateMsgService(LPTSTR lpszService, LPTSTR lpszDisp
 	HRESULT hr = hrSuccess;
 	serviceEntry* entry = NULL;
 	SVCService* service = NULL;
-	LPSPropValue lpProp = NULL;
+	const SPropValue *lpProp = NULL;
 	scoped_rlock l_srv(m_mutexserviceadmin);
 	
 	if(lpszService == NULL || lpszDisplayName == NULL) {

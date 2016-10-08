@@ -1792,7 +1792,8 @@ exit:
  * @param[out]	strIcal		ical string output
  * @return		HRESULT
  */
-HRESULT CalDAV::HrConvertToIcal(LPSPropValue lpEid, MapiToICal *lpMtIcal, ULONG ulFlags, std::string *lpstrIcal)
+HRESULT CalDAV::HrConvertToIcal(const SPropValue *lpEid, MapiToICal *lpMtIcal,
+    ULONG ulFlags, std::string *lpstrIcal)
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<IMessage> lpMessage;

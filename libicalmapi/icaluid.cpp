@@ -126,7 +126,7 @@ exit:
  * @param[out]	lpStrUid	returned ical string UID 
  * @return		MAPI error code
  */
-HRESULT HrGetICalUidFromBinUid(SBinary &sBin, std::string *lpStrUid)
+HRESULT HrGetICalUidFromBinUid(const SBinary &sBin, std::string *lpStrUid)
 {
 	HRESULT hr = hrSuccess;
 	std::string strUid;

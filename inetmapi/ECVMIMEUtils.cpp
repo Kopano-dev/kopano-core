@@ -182,7 +182,10 @@ exit:
  * lpGroupEntryID may be NULL, in which case lpGroupName is used to resolve the group via the addressbook. If
  * both parameters are set, lpGroupEntryID is used, and lpGroupName is ignored.
  */
-HRESULT ECVMIMESender::HrExpandGroup(LPADRBOOK lpAdrBook, LPSPropValue lpGroupName, LPSPropValue lpGroupEntryID, vmime::mailboxList &recipients, std::set<std::wstring> &setGroups, std::set<std::wstring> &setRecips, bool bAllowEveryone)
+HRESULT ECVMIMESender::HrExpandGroup(LPADRBOOK lpAdrBook,
+    const SPropValue *lpGroupName, const SPropValue *lpGroupEntryID,
+    vmime::mailboxList &recipients, std::set<std::wstring> &setGroups,
+    std::set<std::wstring> &setRecips, bool bAllowEveryone)
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<IDistList> lpGroup;

@@ -47,7 +47,7 @@ bool isFeature(const char* feature)
  * 
  * @return MAPI Error code
  */
-HRESULT hasFeature(const char* feature, LPSPropValue lpProps)
+HRESULT hasFeature(const char *feature, const SPropValue *lpProps)
 {
 	if (!feature || !lpProps || PROP_TYPE(lpProps->ulPropTag) != PT_MV_STRING8)
 		return MAPI_E_INVALID_PARAMETER;
@@ -66,7 +66,7 @@ HRESULT hasFeature(const char* feature, LPSPropValue lpProps)
  * 
  * @return MAPI Error code
  */
-HRESULT hasFeature(const WCHAR* feature, LPSPropValue lpProps)
+HRESULT hasFeature(const wchar_t *feature, const SPropValue *lpProps)
 {
 	if (!feature || !lpProps || PROP_TYPE(lpProps->ulPropTag) != PT_MV_UNICODE)
 		return MAPI_E_INVALID_PARAMETER;
