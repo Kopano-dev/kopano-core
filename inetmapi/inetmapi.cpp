@@ -91,6 +91,8 @@ bool ECSender::haveError() {
 }
 
 static std::mutex vmInitLock;
+static bool vmimeInitialized = false;
+
 static void InitializeVMime()
 {
 	scoped_lock l_vm(vmInitLock);
@@ -99,11 +101,14 @@ static void InitializeVMime()
 	}
 	catch (vmime::exceptions::no_platform_handler &) {
 		vmime::platform::setHandler<vmime::platforms::posix::posixHandler>();
-		// need to have a unique indentifier in the mediaType
-		vmime::textPartFactory::getInstance()->registerType<vmime::mapiTextPart>(vmime::mediaType(vmime::mediaTypes::TEXT, "mapi"));
-		// init our random engine for random message id generation
-		rand_init();
 	}
+	if (vmimeInitialized)
+		return;
+	// need to have a unique indentifier in the mediaType
+	vmime::textPartFactory::getInstance()->registerType<vmime::mapiTextPart>(vmime::mediaType(vmime::mediaTypes::TEXT, "mapi"));
+	// init our random engine for random message id generation
+	rand_init();
+	vmimeInitialized = true;
 }
 
 static string generateRandomMessageId()
