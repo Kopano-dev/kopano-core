@@ -334,7 +334,6 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 
 	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpUsrEidProp;
-	LPSPropValue lpMappedProp = NULL;
 	LPADRLIST lpAdrList	= NULL;	
 	memory_ptr<ENTRYID> lpDDEntryID;
 	ULONG cbDDEntryID;
@@ -394,13 +393,13 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 	     ulRecpCnt < lplstIcalRecip->size(); ++ulRecpCnt) {
 		if (lpFlagList->ulFlag[ulRecpCnt] == MAPI_RESOLVED)
 		{
-			lpMappedProp = PpropFindProp(lpAdrList->aEntries[ulRecpCnt].rgPropVals, lpAdrList->aEntries[ulRecpCnt].cValues, PR_DISPLAY_NAME_W);
+			auto lpMappedProp = PCpropFindProp(lpAdrList->aEntries[ulRecpCnt].rgPropVals, lpAdrList->aEntries[ulRecpCnt].cValues, PR_DISPLAY_NAME_W);
 			if (lpMappedProp)
 				icalRecipient.strName = lpMappedProp->Value.lpszW;
 		}
 		
 		//save the logged in user's satus , used in setting FB status  
-		lpMappedProp = PpropFindProp(lpAdrList->aEntries[ulRecpCnt].rgPropVals, lpAdrList->aEntries[ulRecpCnt].cValues, PR_ENTRYID);
+		auto lpMappedProp = PCpropFindProp(lpAdrList->aEntries[ulRecpCnt].rgPropVals, lpAdrList->aEntries[ulRecpCnt].cValues, PR_ENTRYID);
 		if (lpMappedProp && lpUsrEidProp)
 			hr = m_lpAdrBook->CompareEntryIDs(lpUsrEidProp->Value.bin.cb, (LPENTRYID)lpUsrEidProp->Value.bin.lpb, lpMappedProp->Value.bin.cb, (LPENTRYID)lpMappedProp->Value.bin.lpb , 0 , &ulRetn);
 		if (hr == hrSuccess && ulRetn == TRUE)
@@ -1602,9 +1601,6 @@ HRESULT VConverter::HrAddException(icalcomponent *lpEventRoot, icalcomponent *lp
 HRESULT VConverter::HrFindTimezone(ULONG ulProps, LPSPropValue lpProps, std::string *lpstrTZid, TIMEZONE_STRUCT *lpTZinfo, icaltimezone **lppicTZinfo)
 {
 	HRESULT hr = hrSuccess;
-	LPSPropValue lpPropTimeZoneString = NULL;
-	LPSPropValue lpPropTimeZoneStruct = NULL;
-	LPSPropValue lpProp = NULL;
 	string strTZid;
 	string::size_type pos;
 	TIMEZONE_STRUCT ttTZinfo = {0};
@@ -1616,12 +1612,12 @@ HRESULT VConverter::HrFindTimezone(ULONG ulProps, LPSPropValue lpProps, std::str
 	// but since I haven't seen this, I'll be lazy and do a convert to us-ascii strings.
 
 	// Retrieve timezone. If available (outlook fills this in for recurring items), place it in lpMapTimeZones
-	lpPropTimeZoneString = PpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TIMEZONE], PT_UNICODE));
+	auto lpPropTimeZoneString = PCpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TIMEZONE], PT_UNICODE));
 	if (lpPropTimeZoneString == NULL) {
 		// use all dates/times as UTC
 		strTZid = "(GMT+0000)";
 		
-		lpProp = PpropFindProp(lpProps, ulProps, PR_MESSAGE_CLASS_W);
+		auto lpProp = PCpropFindProp(lpProps, ulProps, PR_MESSAGE_CLASS_W);
 		if(lpProp && (wcscasecmp(lpProp->Value.lpszW, L"IPM.Task") == 0) && !m_mapTimeZones->empty())
 		{
 			m_iCurrentTimeZone = m_mapTimeZones->begin();
@@ -1656,7 +1652,7 @@ HRESULT VConverter::HrFindTimezone(ULONG ulProps, LPSPropValue lpProps, std::str
 		// already used this timezone before
 		ttTZinfo = m_iCurrentTimeZone->second;
 	} else {
-		lpPropTimeZoneStruct = PpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TIMEZONEDATA], PT_BINARY));
+		auto lpPropTimeZoneStruct = PCpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TIMEZONEDATA], PT_BINARY));
 		if (lpPropTimeZoneStruct && lpPropTimeZoneStruct->Value.bin.cb >= sizeof(TIMEZONE_STRUCT) && lpPropTimeZoneStruct->Value.bin.lpb) {
 			ttTZinfo = *(TIMEZONE_STRUCT*)lpPropTimeZoneStruct->Value.bin.lpb;
 			(*m_mapTimeZones)[strTZid] = ttTZinfo;
@@ -1796,7 +1792,6 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 	wstring strRepsSenderName, strRepsSenderType, strRepsSenderEmailAddr;
 	object_ptr<IMAPITable> lpTable;
 	LPSRowSet lpRows = NULL;
-	LPSPropValue lpPropVal = NULL;
 	memory_ptr<SPropValue> lpSpropVal;
 	icalproperty *lpicProp = NULL;
 	icalparameter *lpicParam = NULL;
@@ -1805,7 +1800,7 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 	ULONG ulMeetingStatus = 0;
 	bool bCounterProposal = false;
 
-	lpPropVal = PpropFindProp(lpProps, ulProps, m_lpNamedProps->aulPropTag[PROP_COUNTERPROPOSAL]);
+	auto lpPropVal = PCpropFindProp(lpProps, ulProps, m_lpNamedProps->aulPropTag[PROP_COUNTERPROPOSAL]);
 	if(lpPropVal && PROP_TYPE(lpPropVal->ulPropTag) == PT_BOOLEAN && lpPropVal->Value.b)
 		bCounterProposal = true;
 	
@@ -1827,7 +1822,7 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 
 	// PR_SENT_REPRESENTING_ENTRYID is the owner of the meeting.
 	// PR_SENDER_ENTRYID can be a delegate/owner
-	lpPropVal = PpropFindProp(lpProps, ulProps, PR_SENT_REPRESENTING_ENTRYID);
+	lpPropVal = PCpropFindProp(lpProps, ulProps, PR_SENT_REPRESENTING_ENTRYID);
 	if (lpPropVal) // ignore error
 		HrGetAddress(m_lpAdrBook, (LPENTRYID)lpPropVal->Value.bin.lpb, lpPropVal->Value.bin.cb, strRepsSenderName, strRepsSenderType, strRepsSenderEmailAddr);
 
@@ -1840,7 +1835,7 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 		goto exit;
 
 	// get class to find method and type for attendees and organizer
-	lpPropVal = PpropFindProp(lpProps, ulProps, PR_MESSAGE_CLASS_W);
+	lpPropVal = PCpropFindProp(lpProps, ulProps, PR_MESSAGE_CLASS_W);
 	if (lpPropVal == NULL) {
 		hr = MAPI_E_NOT_FOUND;
 		goto exit;
@@ -1928,7 +1923,7 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 			ulMeetingStatus = 1;
 
 		// a normal calendar item has meeting status == 0, all other types != 0
-		lpPropVal = PpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MEETINGSTATUS], PT_LONG));
+		lpPropVal = PCpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MEETINGSTATUS], PT_LONG));
 		if (lpPropVal)
 			ulMeetingStatus = lpPropVal->Value.ul;
 		else if (HrGetOneProp(lpParentMsg, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MEETINGSTATUS], PT_LONG), &~lpSpropVal) == hrSuccess)
@@ -1951,7 +1946,7 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 				goto exit;
 
 			//Set this property to force thunderbird to send invitations mails.
-			lpPropVal = PpropFindProp (lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MOZSENDINVITE], PT_BOOLEAN));
+			lpPropVal = PCpropFindProp (lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MOZSENDINVITE], PT_BOOLEAN));
 			if (lpPropVal && !lpPropVal->Value.b) 
 				lpicProp = icalproperty_new_x("FALSE");
 			else
@@ -2006,12 +2001,11 @@ HRESULT VConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMsgProp
 {
 	HRESULT hr = hrSuccess;
 	icalproperty *lpProp = NULL;
-	LPSPropValue lpPropVal = NULL;
 	icaltimetype ittICalTime;
 	bool bHasOwnerCriticalChange = false;
 
 	// Set creation time / CREATED
-	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, PR_CREATION_TIME);
+	auto lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, PR_CREATION_TIME);
 	if (lpPropVal) {
 		ittICalTime = icaltime_from_timet(FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime), 0);
 		ittICalTime.is_utc = 1;
@@ -2021,7 +2015,7 @@ HRESULT VConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMsgProp
 	}
 
 	// exchange 2003 is using DTSTAMP for 'X-MICROSOFT-CDO-OWNER-CRITICAL-CHANGE'
-	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_OWNERCRITICALCHANGE], PT_SYSTIME));
+	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_OWNERCRITICALCHANGE], PT_SYSTIME));
 	if (lpPropVal) {
 		ittICalTime = icaltime_from_timet_with_zone(FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime), false, icaltimezone_get_utc_timezone());
 
@@ -2032,7 +2026,7 @@ HRESULT VConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMsgProp
 	}
 
 	// Set modification time / LAST-MODIFIED + DTSTAMP
-	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, PR_LAST_MODIFICATION_TIME);
+	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, PR_LAST_MODIFICATION_TIME);
 	if (lpPropVal) {
 		ittICalTime = icaltime_from_timet(FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime), 0);
 		ittICalTime.is_utc = 1;
@@ -2066,7 +2060,6 @@ HRESULT VConverter::HrSetICalAttendees(LPMESSAGE lpMessage, const std::wstring &
 	icalparameter *lpParam = NULL;
 	object_ptr<IMAPITable> lpTable;
 	LPSRowSet lpRows = NULL;
-	LPSPropValue lpPropVal = NULL;
 	ULONG ulCount = 0;
 	wstring strName, strType, strEmailAddress;
 	SizedSPropTagArray(7, sptaRecipProps) = {7, { PR_ENTRYID, PR_DISPLAY_NAME_W, PR_ADDRTYPE_A, PR_EMAIL_ADDRESS_A,
@@ -2097,11 +2090,11 @@ HRESULT VConverter::HrSetICalAttendees(LPMESSAGE lpMessage, const std::wstring &
 			continue;
 
 		// flags set to 3 is organizer, so skip that entry
-		lpPropVal = PpropFindProp(lpRows->aRow[ulCount].lpProps, lpRows->aRow[ulCount].cValues, PR_RECIPIENT_FLAGS);
+		auto lpPropVal = PCpropFindProp(lpRows->aRow[ulCount].lpProps, lpRows->aRow[ulCount].cValues, PR_RECIPIENT_FLAGS);
 		if (lpPropVal != NULL && lpPropVal->Value.ul == 3)
 			continue;
 
-		lpPropVal = PpropFindProp(lpRows->aRow[ulCount].lpProps, lpRows->aRow[ulCount].cValues, PR_RECIPIENT_TYPE);
+		lpPropVal = PCpropFindProp(lpRows->aRow[ulCount].lpProps, lpRows->aRow[ulCount].cValues, PR_RECIPIENT_TYPE);
 		if (lpPropVal == NULL)
 			continue;
 
@@ -2124,7 +2117,7 @@ HRESULT VConverter::HrSetICalAttendees(LPMESSAGE lpMessage, const std::wstring &
 		lpProp = icalproperty_new_attendee(m_converter.convert_to<string>(m_strCharset.c_str(), strEmailAddress, rawsize(strEmailAddress), CHARSET_WCHAR).c_str());
 		icalproperty_add_parameter(lpProp, lpParam);
 
-		lpPropVal = PpropFindProp(lpRows->aRow[ulCount].lpProps, lpRows->aRow[ulCount].cValues, PR_RECIPIENT_TRACKSTATUS);
+		lpPropVal = PCpropFindProp(lpRows->aRow[ulCount].lpProps, lpRows->aRow[ulCount].cValues, PR_RECIPIENT_TRACKSTATUS);
 		if (lpPropVal != NULL) {
 			if (lpPropVal->Value.ul == 2)
 				icalproperty_add_parameter(lpProp, icalparameter_new_partstat(ICAL_PARTSTAT_TENTATIVE));
@@ -2225,7 +2218,6 @@ HRESULT VConverter::HrSetBusyStatus(LPMESSAGE lpMessage, ULONG ulBusyStatus, ica
  */
 HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPMESSAGE lpMessage, icalcomponent *lpEvent)
 {
-	LPSPropValue lpPropVal = NULL;
 	icaltimetype icCriticalChange;
 	icalvalue *lpicValue = NULL;
 	icalproperty *lpProp = NULL;
@@ -2237,7 +2229,7 @@ HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPM
 
 	// set X-MICROSOFT-CDO & X-MOZ properties 
 	// X-MICROSOFT-CDO-OWNER-CRITICAL-CHANGE
-	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_OWNERCRITICALCHANGE], PT_SYSTIME));
+	auto lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_OWNERCRITICALCHANGE], PT_SYSTIME));
 	if (lpPropVal) {
 		FileTimeToUnixTime(lpPropVal->Value.ft, &ttCriticalChange);
 	}else {
@@ -2254,7 +2246,7 @@ HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPM
 	icalvalue_free(lpicValue);
 
 	// X-MICROSOFT-CDO-ATTENDEE-CRITICAL-CHANGE
-	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ATTENDEECRITICALCHANGE], PT_SYSTIME));
+	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ATTENDEECRITICALCHANGE], PT_SYSTIME));
 	if (lpPropVal) {
 		FileTimeToUnixTime(lpPropVal->Value.ft, &ttCriticalChange);
 	}else {
@@ -2272,7 +2264,7 @@ HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPM
 	icalvalue_free(lpicValue);
 	
 	// X-MICROSOFT-CDO-APPT-SEQUENCE
-	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTSEQNR], PT_LONG));
+	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTSEQNR], PT_LONG));
 	if (lpPropVal) {
 		ulApptSeqNo = lpPropVal->Value.ul;
 	}else {
@@ -2287,7 +2279,7 @@ HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPM
 	icalvalue_free(lpicValue);
 
 	// X-MICROSOFT-CDO-OWNERAPPTID
-	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, PR_OWNER_APPT_ID);
+	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, PR_OWNER_APPT_ID);
 	if (lpPropVal) {
 		ulOwnerApptID = lpPropVal->Value.ul;
 	}else {
@@ -2302,7 +2294,7 @@ HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPM
 	icalvalue_free(lpicValue);
 
 	// X-MOZ-GENERATION
-	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps,  CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MOZGEN], PT_LONG));
+	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps,  CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MOZGEN], PT_LONG));
 	if (lpPropVal)
 	{
 		LONG ulXmozGen = 0;
@@ -2319,7 +2311,7 @@ HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPM
 	}
 
 	// X-MICROSOFT-CDO-ALLDAYEVENT
-	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps,  CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ALLDAYEVENT], PT_BOOLEAN));
+	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps,  CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ALLDAYEVENT], PT_BOOLEAN));
 	if (lpPropVal){
 		blIsAllday = (lpPropVal->Value.b == TRUE);
 	}
@@ -2332,7 +2324,7 @@ HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPM
 	icalcomponent_add_property(lpEvent, lpProp);
 	icalvalue_free(lpicValue);
 
-	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, PR_RTF_COMPRESSED);
+	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, PR_RTF_COMPRESSED);
 	if (lpPropVal && Util::GetBestBody(lpMsgProps, ulMsgProps, fMapiUnicode) == PR_RTF_COMPRESSED) {
 		string rtf;
 		LPSTREAM lpStream = NULL;
@@ -2373,7 +2365,6 @@ HRESULT VConverter::HrSetXHeaders(ULONG ulMsgProps, LPSPropValue lpMsgProps, LPM
 HRESULT VConverter::HrSetVAlarm(ULONG ulProps, LPSPropValue lpProps, icalcomponent *lpicEvent)
 {
 	HRESULT hr = hrSuccess;
-	LPSPropValue lpPropVal = NULL;
 	icalcomponent *lpAlarm = NULL;
 	icalproperty *lpicProp = NULL;
 	time_t ttSnooze = 0;
@@ -2386,19 +2377,16 @@ HRESULT VConverter::HrSetVAlarm(ULONG ulProps, LPSPropValue lpProps, icalcompone
 	bool bTask = false;
 	
 	// find bool, skip if error or false
-	lpPropVal = PpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERSET], PT_BOOLEAN));
+	auto lpPropVal = PCpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERSET], PT_BOOLEAN));
 	if (!lpPropVal || lpPropVal->Value.b == FALSE)
 		return hrSuccess;
-
-	lpPropVal = PpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERMINUTESBEFORESTART], PT_LONG));
+	lpPropVal = PCpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERMINUTESBEFORESTART], PT_LONG));
 	if (lpPropVal)
 		lRemindBefore = lpPropVal->Value.l;
-
-	lpPropVal = PpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERTIME], PT_SYSTIME));
+	lpPropVal = PCpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERTIME], PT_SYSTIME));
 	if (lpPropVal)
 		FileTimeToUnixTime(lpPropVal->Value.ft, &ttReminderTime);
-
-	lpPropVal = PpropFindProp(lpProps, ulProps, PR_MESSAGE_CLASS);
+	lpPropVal = PCpropFindProp(lpProps, ulProps, PR_MESSAGE_CLASS);
 	if (lpPropVal && _tcsicmp(lpPropVal->Value.LPSZ, _T("IPM.Task")) == 0)
 		bTask = true;
 
@@ -2407,17 +2395,16 @@ HRESULT VConverter::HrSetVAlarm(ULONG ulProps, LPSPropValue lpProps, icalcompone
 		return hr;
 
 	icalcomponent_add_component(lpicEvent, lpAlarm);
-
-	lpPropVal = PpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRING], PT_BOOLEAN));
+	lpPropVal = PCpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRING], PT_BOOLEAN));
 	if(lpPropVal && lpPropVal->Value.b == TRUE)
 		blisItemReccr = true;
 
 	// retrieve the suffix time for property X-MOZ-SNOOZE-TIME
-	lpPropVal = PpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MOZ_SNOOZE_SUFFIX], PT_SYSTIME));
+	lpPropVal = PCpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MOZ_SNOOZE_SUFFIX], PT_SYSTIME));
 	if(lpPropVal)
 		FileTimeToUnixTime(lpPropVal->Value.ft, &ttSnoozeSuffix);	
 	// check latest snooze time
-	lpPropVal = PpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERNEXTTIME], PT_SYSTIME));
+	lpPropVal = PCpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERNEXTTIME], PT_SYSTIME));
 	if (lpPropVal) {
 		icaltimetype icSnooze;
 		icalvalue *lpicValue = NULL;
@@ -2440,12 +2427,12 @@ HRESULT VConverter::HrSetVAlarm(ULONG ulProps, LPSPropValue lpProps, icalcompone
 		icalvalue_free(lpicValue);
 	}
 
-	lpPropVal = PpropFindProp(lpProps, ulProps,  CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MOZGEN], PT_LONG));
+	lpPropVal = PCpropFindProp(lpProps, ulProps,  CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MOZGEN], PT_LONG));
 	if (lpPropVal)
 		blxmozgen = true;
 
 	// send X-MOZ-LASTACK
-	lpPropVal = PpropFindProp(lpProps, ulProps,  CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MOZLASTACK], PT_SYSTIME));
+	lpPropVal = PCpropFindProp(lpProps, ulProps,  CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MOZLASTACK], PT_SYSTIME));
 	if (lpPropVal)
 	{
 		time_t ttLastAckTime = 0;
@@ -2543,9 +2530,6 @@ HRESULT VConverter::HrSetItemSpecifics(ULONG ulProps, LPSPropValue lpProps, ical
 HRESULT VConverter::HrSetRecurrenceID(LPSPropValue lpMsgProps, ULONG ulMsgProps, icaltimezone *lpicTZinfo, const std::string &strTZid, icalcomponent *lpEvent)
 {
 	bool bIsSeriesAllDay = false;
-	LPSPropValue lpPropVal = NULL;
-	LPSPropValue lpPropClean = NULL;
-	LPSPropValue lpPropGlobal = NULL;
 	icaltimetype icTime = {0};
 	std::string strUid;
 	time_t tRecId = 0;
@@ -2553,12 +2537,12 @@ HRESULT VConverter::HrSetRecurrenceID(LPSPropValue lpMsgProps, ULONG ulMsgProps,
 	ULONG ulRecurEndTime = -1;		// as 0 states start of day	
 
 	// We cannot check if PROP_ISEXCEPTION is set to TRUE, since Outlook sends accept messages on excetions with that property set to false.
-	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ISEXCEPTION], PT_BOOLEAN));
+	auto lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ISEXCEPTION], PT_BOOLEAN));
 	if (!lpPropVal || lpPropVal->Value.b == FALSE) {
-		lpPropGlobal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY));
+		auto lpPropGlobal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY));
 		if (!lpPropGlobal)
 			return hrSuccess;
-		lpPropClean = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_CLEANID], PT_BINARY));
+		auto lpPropClean = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_CLEANID], PT_BINARY));
 		if (!lpPropClean)
 			return hrSuccess;
 		if (lpPropClean->Value.bin.cb != lpPropGlobal->Value.bin.cb)
@@ -2569,11 +2553,10 @@ HRESULT VConverter::HrSetRecurrenceID(LPSPropValue lpMsgProps, ULONG ulMsgProps,
 		// different timestamp in dispidGlobalObjectID, export RECURRENCE-ID
 	}
 
-	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURSTARTTIME], PT_LONG));
+	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURSTARTTIME], PT_LONG));
 	if (lpPropVal)
 		ulRecurStartTime = lpPropVal->Value.ul;
-
-	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURENDTIME], PT_LONG));
+	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURENDTIME], PT_LONG));
 	if (lpPropVal)
 		ulRecurEndTime = lpPropVal->Value.ul;
 
@@ -2586,13 +2569,13 @@ HRESULT VConverter::HrSetRecurrenceID(LPSPropValue lpMsgProps, ULONG ulMsgProps,
 		bIsSeriesAllDay = true;
 
 	// set Recurrence-ID for exception msg if dispidRecurringbase prop is present	
-	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRINGBASE], PT_SYSTIME));
+	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRINGBASE], PT_SYSTIME));
 	if (!lpPropVal) {
 		// This code happens when we're sending acceptance mail for an exception.
 
 		// if RecurringBase prop is not present then retrieve date from GlobalObjId from 16-19th bytes
 		// combine this date with time from dispidStartRecurrenceTime and set it as RECURRENCE-ID
-		lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY));
+		lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY));
 		if (!lpPropVal)
 			return hrSuccess;
 		// @todo don't do this calculation using a std::string
@@ -2748,8 +2731,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 		
 		SPropValuePtr  lpMsgProps;
 		ULONG ulMsgProps = 0;
-		LPSPropValue lpProp = NULL;
-
+		const SPropValue *lpProp = NULL;
 		icalproperty_method icMethod = ICAL_METHOD_NONE;
 
 		ulModifications = cRecurrence.getModifiedFlags(i);
@@ -2781,7 +2763,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 			icalvalue *lpicValue = NULL;
 			char *lpszTemp = NULL;
 			
-			lpProp = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ALLDAYEVENT], PT_BOOLEAN));
+			lpProp = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ALLDAYEVENT], PT_BOOLEAN));
 			if (lpProp)
 				bIsAllDayException = (lpProp->Value.b == TRUE);
 			
@@ -2812,9 +2794,9 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 		hr = HrSetTimeProperty(tNewTime, bIsAllDayException, lpicTZinfo, strTZid, ICAL_DTEND_PROPERTY, lpicException);
 		if (hr != hrSuccess)
 			continue;
-		lpProp = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRINGBASE], PT_SYSTIME));
+		lpProp = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRINGBASE], PT_SYSTIME));
 		if (!lpProp)
-			lpProp = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_OLDSTART], PT_SYSTIME));
+			lpProp = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_OLDSTART], PT_SYSTIME));
 
 		if (lpProp) {
 			tNewTime = FileTimeToUnixTime(lpProp->Value.ft.dwHighDateTime, lpProp->Value.ft.dwLowDateTime);
@@ -2853,10 +2835,10 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 			LONG lRemindBefore = 0;
 			time_t ttReminderTime = 0;
 			if (ulModifications & ARO_REMINDERDELTA) {
-				lpProp = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERMINUTESBEFORESTART], PT_LONG));
+				lpProp = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERMINUTESBEFORESTART], PT_LONG));
 				lRemindBefore = lpProp ? lpProp->Value.l : 15;
 
-				lpProp = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERTIME], PT_LONG));
+				lpProp = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_REMINDERTIME], PT_LONG));
 				if (lpProp)
 					FileTimeToUnixTime(lpProp->Value.ft, &ttReminderTime);
 			}
@@ -2983,7 +2965,7 @@ HRESULT VConverter::HrGetExceptionMessage(LPMESSAGE lpMessage, time_t tStart, LP
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPITable> lpAttachTable;
 	LPSRowSet lpRows = NULL;
-	LPSPropValue lpPropVal = NULL;
+	const SPropValue *lpPropVal = nullptr;
 	object_ptr<IAttach> lpAttach;
 	LPMESSAGE lpAttachedMessage = NULL;
 	SPropValue sStart = {0};
@@ -3019,7 +3001,7 @@ HRESULT VConverter::HrGetExceptionMessage(LPMESSAGE lpMessage, time_t tStart, LP
 		goto exit;
 	}
 
-	lpPropVal = PpropFindProp(lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues, PR_ATTACH_NUM);
+	lpPropVal = PCpropFindProp(lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues, PR_ATTACH_NUM);
 	if (lpPropVal == NULL) {
 		hr = MAPI_E_NOT_FOUND;
 		goto exit;
@@ -3232,7 +3214,7 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 	HRESULT hr = hrSuccess;
 	icalproperty_method icMethod = ICAL_METHOD_NONE;
 	icalproperty *lpProp = NULL;
-	LPSPropValue lpPropVal = NULL;
+	const SPropValue *lpPropVal = nullptr;
 	memory_ptr<SPropValue> lpMsgProps;
 	ULONG ulMsgProps = 0;
 	TIMEZONE_STRUCT ttTZinfo = {0};
@@ -3258,7 +3240,7 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 	}
 
 	// Set show_time_as / TRANSP
-	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_BUSYSTATUS], PT_LONG));
+	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_BUSYSTATUS], PT_LONG));
 	if (!m_bCensorPrivate && lpPropVal)
 		HrSetBusyStatus(lpMessage, lpPropVal->Value.ul, lpEvent);
 	
@@ -3278,7 +3260,7 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 		icalcomponent_add_property(lpEvent, lpProp);
 	}
 	else {
-		lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, PR_SUBJECT_W);
+		lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, PR_SUBJECT_W);
 		if (lpPropVal && lpPropVal->Value.lpszW[0] != '\0') {
 			lpProp = icalproperty_new_summary(m_converter.convert_to<string>(m_strCharset.c_str(), lpPropVal->Value.lpszW, rawsize(lpPropVal->Value.lpszW), CHARSET_WCHAR).c_str());
 			icalcomponent_add_property(lpEvent, lpProp);
@@ -3286,7 +3268,7 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 	}
 
 	// Set location / LOCATION
-	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_LOCATION], PT_UNICODE));
+	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_LOCATION], PT_UNICODE));
 	if (!m_bCensorPrivate && lpPropVal && lpPropVal->Value.lpszW[0] != '\0') {
 		lpProp = icalproperty_new_location(m_converter.convert_to<string>(m_strCharset.c_str(), lpPropVal->Value.lpszW, rawsize(lpPropVal->Value.lpszW), CHARSET_WCHAR).c_str());
 		icalcomponent_add_property(lpEvent, lpProp);
@@ -3294,7 +3276,7 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 
 	// Set body / DESCRIPTION
 	if(!m_bCensorPrivate) {
-		lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, PR_BODY_W);
+		lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, PR_BODY_W);
 		if (lpPropVal && lpPropVal->Value.lpszW[0] != '\0') {
 			std::wstring strBody;
 
@@ -3313,12 +3295,12 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 	}
 
 	// Set priority - use PR_IMPORTANCE or PR_PRIORITY
-	lpPropVal = PpropFindProp (lpMsgProps, ulMsgProps, PR_IMPORTANCE);
+	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, PR_IMPORTANCE);
 	if (!m_bCensorPrivate && lpPropVal) {
 		lpProp = icalproperty_new_priority(5 - ((lpPropVal->Value.l - 1) * 4));
 		icalcomponent_add_property(lpEvent, lpProp);
 	} else {
-		lpPropVal = PpropFindProp (lpMsgProps, ulMsgProps, PR_PRIORITY);
+		lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, PR_PRIORITY);
 		if (!m_bCensorPrivate && lpPropVal && lpPropVal->Value.l != 0) {
 			lpProp = icalproperty_new_priority(5 - (lpPropVal->Value.l * 4));
 			icalcomponent_add_property(lpEvent, lpProp);
@@ -3326,7 +3308,7 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 	}
 
 	// Set keywords / CATEGORIES
-	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_KEYWORDS], PT_MV_UNICODE));
+	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_KEYWORDS], PT_MV_UNICODE));
 	if (lpPropVal && lpPropVal->Value.MVszA.cValues > 0) {
 		// The categories need to be comma-separated
 		wstrBuf.reserve(lpPropVal->Value.MVszW.cValues * 50); // 50 chars per category is a wild guess, but more than enough
@@ -3343,14 +3325,14 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 	}
 
 	// Set url
-	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_NETSHOWURL], PT_UNICODE));
+	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_NETSHOWURL], PT_UNICODE));
 	if (lpPropVal && lpPropVal->Value.lpszW[0] != '\0') {
 		lpProp = icalproperty_new_url(m_converter.convert_to<string>(m_strCharset.c_str(), lpPropVal->Value.lpszW, rawsize(lpPropVal->Value.lpszW), CHARSET_WCHAR).c_str());
 		icalcomponent_add_property(lpEvent, lpProp);
 	}
 
 	// Set contacts
-	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_CONTACTS], PT_MV_UNICODE));
+	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_CONTACTS], PT_MV_UNICODE));
 	if (lpPropVal) {
 		for (ulCount = 0; ulCount < lpPropVal->Value.MVszW.cValues; ++ulCount) {
 			lpProp = icalproperty_new_contact(m_converter.convert_to<string>(m_strCharset.c_str(), lpPropVal->Value.MVszW.lppszW[ulCount], rawsize(lpPropVal->Value.MVszW.lppszW[ulCount]), CHARSET_WCHAR).c_str());
@@ -3359,7 +3341,7 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 	}
 
 	// Set sensivity / CLASS
-	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, PR_SENSITIVITY);
+	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, PR_SENSITIVITY);
 	if (lpPropVal) {
 		switch (lpPropVal->Value.ul) {
 		case 1: //Personal
@@ -3380,9 +3362,9 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 	// Global Object ID
 	//   In Microsoft Office Outlook 2003 Service Pack 1 (SP1) and earlier versions, the Global Object ID is generated when an organizer first sends a meeting request.
 	//   Earlier versions of Outlook do not generate a Global Object ID for unsent meetings or for appointments that have no recipients.
-	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY));
+	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY));
 	if (lpPropVal == NULL)
-		lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_CLEANID], PT_BINARY));
+		lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_CLEANID], PT_BINARY));
 
 	// If lpPropVal is 0, the global object id and cleanglobal id haven't been found.
 	// The iCal UID is saved into both the global object id and cleanglobal id.
@@ -3407,7 +3389,7 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 		// otherwise, ignore the error
 		hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
 		if (hr == E_ACCESSDENIED) {
-			lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, PR_ENTRYID);
+			lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, PR_ENTRYID);
 			if (lpPropVal)
 				strUid = bin2hex(lpPropVal->Value.bin.cb,lpPropVal->Value.bin.lpb);
 		}
@@ -3427,7 +3409,7 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 		return hr;
 
 	//Sequence
-	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTSEQNR], PT_LONG));
+	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTSEQNR], PT_LONG));
 	if(lpPropVal)
 	{
 		lpProp = icalproperty_new_sequence(lpPropVal->Value.ul);

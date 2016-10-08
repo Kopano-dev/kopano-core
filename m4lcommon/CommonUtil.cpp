@@ -182,9 +182,8 @@ HRESULT CreateProfileTemp(const wchar_t *username, const wchar_t *password,
 	HRESULT hr = hrSuccess;
 	object_ptr<IProfAdmin> lpProfAdmin;
 	object_ptr<IMsgServiceAdmin> lpServiceAdmin;
-	LPSPropValue lpServiceUID = NULL;
+	const SPropValue *lpServiceUID = nullptr;
 	SPropValue sProps[9];	// server, username, password and profile -name and -flags, optional sslkey file with sslkey password
-	LPSPropValue lpServiceName = NULL;
 	object_ptr<IMAPITable> lpTable;
 	LPSRowSet	lpRows = NULL;
 	int i;
@@ -234,8 +233,7 @@ HRESULT CreateProfileTemp(const wchar_t *username, const wchar_t *password,
 		if(lpRows->cRows != 1)
 			break;
 	
-		lpServiceName = PpropFindProp(lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues, PR_SERVICE_NAME_A);
-		
+		auto lpServiceName = PCpropFindProp(lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues, PR_SERVICE_NAME_A);
 		if(lpServiceName && strcmp(lpServiceName->Value.lpszA, "ZARAFA6") == 0)
 			break;
 			
@@ -251,9 +249,9 @@ HRESULT CreateProfileTemp(const wchar_t *username, const wchar_t *password,
 	}
 
 	// Get the PR_SERVICE_UID from the row
-	lpServiceUID = PpropFindProp(lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues, PR_SERVICE_UID);
+	lpServiceUID = PCpropFindProp(lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues, PR_SERVICE_UID);
 	if(!lpServiceUID) {
-		ec_log_crit("CreateProfileTemp(): PpropFindProp failed %x: %s", hr, GetMAPIErrorMessage(hr));
+		ec_log_crit("CreateProfileTemp(): PCpropFindProp failed %x: %s", hr, GetMAPIErrorMessage(hr));
 		hr = MAPI_E_NOT_FOUND;
 		goto exit;
 	}
@@ -404,8 +402,7 @@ HRESULT HrSearchECStoreEntryId(IMAPISession *lpMAPISession, BOOL bPublic, ULONG 
 	HRESULT			hr = hrSuccess;
 	LPSRowSet		lpRows = NULL;
 	object_ptr<IMAPITable> lpStoreTable;
-	LPSPropValue	lpStoreProp = NULL;
-	LPSPropValue	lpEntryIDProp = NULL;
+	const SPropValue *lpEntryIDProp = nullptr;
 
 	// Get the default store by searching through the message store table and finding the
 	// store with PR_MDB_PROVIDER set to the kopano public store GUID
@@ -422,11 +419,11 @@ HRESULT HrSearchECStoreEntryId(IMAPISession *lpMAPISession, BOOL bPublic, ULONG 
 			}
 
 			if (bPublic) {
-				lpStoreProp = PpropFindProp(lpRows->aRow[0].lpProps,lpRows->aRow[0].cValues, PR_MDB_PROVIDER);
+				auto lpStoreProp = PCpropFindProp(lpRows->aRow[0].lpProps,lpRows->aRow[0].cValues, PR_MDB_PROVIDER);
 				if (lpStoreProp != NULL && memcmp(lpStoreProp->Value.bin.lpb, &KOPANO_STORE_PUBLIC_GUID, sizeof(MAPIUID)) == 0 )
 					break;
 			} else {
-				lpStoreProp = PpropFindProp(lpRows->aRow[0].lpProps,lpRows->aRow[0].cValues, PR_RESOURCE_FLAGS);
+				auto lpStoreProp = PCpropFindProp(lpRows->aRow[0].lpProps,lpRows->aRow[0].cValues, PR_RESOURCE_FLAGS);
 				if (lpStoreProp != NULL && lpStoreProp->Value.ul & STATUS_DEFAULT_STORE)
 					break;
 			}
@@ -438,7 +435,7 @@ HRESULT HrSearchECStoreEntryId(IMAPISession *lpMAPISession, BOOL bPublic, ULONG 
 	if (hr != hrSuccess)
 		goto exit;
 
-	lpEntryIDProp = PpropFindProp(lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues, PR_ENTRYID);
+	lpEntryIDProp = PCpropFindProp(lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues, PR_ENTRYID);
 	if (lpEntryIDProp == NULL) {
 		hr = MAPI_E_NOT_FOUND;
 		goto exit;
@@ -579,7 +576,7 @@ HRESULT HrGetECProviderAdmin(LPMAPISESSION lpSession, LPPROVIDERADMIN *lppProvid
 	SRestriction	sRestrict;
 	SPropValue		sPropRestrict;
 	LPSRowSet		lpsRowSet = NULL;
-	LPSPropValue	lpProviderUID = NULL;
+	const SPropValue *lpProviderUID = NULL;
 
 	// Get the service admin
 	hr = lpSession->AdminServices(0, &~lpMsgServiceAdmin);
@@ -616,7 +613,7 @@ HRESULT HrGetECProviderAdmin(LPMAPISESSION lpSession, LPPROVIDERADMIN *lppProvid
 	}
 
 	// Get the Service UID
-	lpProviderUID = PpropFindProp(lpsRowSet->aRow[0].lpProps, lpsRowSet->aRow[0].cValues, PR_SERVICE_UID);
+	lpProviderUID = PCpropFindProp(lpsRowSet->aRow[0].lpProps, lpsRowSet->aRow[0].cValues, PR_SERVICE_UID);
 	if(lpProviderUID == NULL){
 		hr = MAPI_E_NOT_FOUND;
 		goto exit;
@@ -1319,7 +1316,7 @@ static HRESULT HrResolveToSMTP(LPADRBOOK lpAdrBook,
 {
     HRESULT hr = hrSuccess;
     LPADRLIST lpAdrList = NULL;
-    LPSPropValue lpEntryID = NULL;
+	const SPropValue *lpEntryID = NULL;
     ULONG ulType = 0;
 	object_ptr<IMAPIProp> lpMailUser;
 	memory_ptr<SPropValue> lpSMTPAddress, lpEmailAddress;
@@ -1347,7 +1344,7 @@ static HRESULT HrResolveToSMTP(LPADRBOOK lpAdrBook,
         goto exit;
     }
     
-    lpEntryID = PpropFindProp(lpAdrList->aEntries[0].rgPropVals, lpAdrList->aEntries[0].cValues, PR_ENTRYID);
+    lpEntryID = PCpropFindProp(lpAdrList->aEntries[0].rgPropVals, lpAdrList->aEntries[0].cValues, PR_ENTRYID);
     if(!lpEntryID) {
         hr = MAPI_E_NOT_FOUND;
         goto exit;
@@ -1414,10 +1411,10 @@ HRESULT HrGetAddress(LPADRBOOK lpAdrBook, LPSPropValue lpProps, ULONG cValues, U
 					 std::wstring &strName, std::wstring &strType, std::wstring &strEmailAddress)
 {
 	HRESULT hr = hrSuccess;
-	LPSPropValue lpEntryID = NULL;
-	LPSPropValue lpName = NULL;
-	LPSPropValue lpType = NULL;
-	LPSPropValue lpAddress = NULL;
+	const SPropValue *lpEntryID = NULL;
+	const SPropValue *lpName = NULL;
+	const SPropValue *lpType = NULL;
+	const SPropValue *lpAddress = NULL;
 	std::wstring strSMTPAddress;
 	convert_context converter;
 
@@ -1426,10 +1423,10 @@ HRESULT HrGetAddress(LPADRBOOK lpAdrBook, LPSPropValue lpProps, ULONG cValues, U
 	strEmailAddress.clear();
 
 	if (lpProps && cValues) {
-		lpEntryID	= PpropFindProp(lpProps, cValues, ulPropTagEntryID);
-		lpName		= PpropFindProp(lpProps, cValues, ulPropTagName);
-		lpType		= PpropFindProp(lpProps, cValues, ulPropTagType);
-		lpAddress	= PpropFindProp(lpProps, cValues, ulPropTagEmailAddress);
+		lpEntryID	= PCpropFindProp(lpProps, cValues, ulPropTagEntryID);
+		lpName		= PCpropFindProp(lpProps, cValues, ulPropTagName);
+		lpType		= PCpropFindProp(lpProps, cValues, ulPropTagType);
+		lpAddress	= PCpropFindProp(lpProps, cValues, ulPropTagEmailAddress);
 		if (lpEntryID && PROP_TYPE(lpEntryID->ulPropTag) != PT_BINARY)
 			lpEntryID = NULL;
 		if (lpName && PROP_TYPE(lpName->ulPropTag) != PT_STRING8 && PROP_TYPE(lpName->ulPropTag) != PT_UNICODE)
@@ -1616,7 +1613,6 @@ public:
 		BOOL bError;
 		ULONG i = 0;
 		LPSPropValue lpProps = NULL;
-		LPSPropValue lpFind = NULL;
 		convert_context converter;
 
 		if ((hr = MAPIAllocateBuffer(sizeof(SPropValue) * lpTags->cValues, (void **) &lpProps)) != hrSuccess)
@@ -1624,7 +1620,7 @@ public:
 
 		for (i = 0; i<lpTags->cValues; ++i) {
 			bError = FALSE;
-			lpFind = PpropFindProp(m_lpProps, m_cValues, CHANGE_PROP_TYPE(lpTags->aulPropTag[i], PT_UNSPECIFIED));
+			auto lpFind = PCpropFindProp(m_lpProps, m_cValues, CHANGE_PROP_TYPE(lpTags->aulPropTag[i], PT_UNSPECIFIED));
 			if(lpFind && PROP_TYPE(lpFind->ulPropTag) != PT_ERROR) {
 				
 				if (PROP_TYPE(lpFind->ulPropTag) == PT_STRING8 && PROP_TYPE(lpTags->aulPropTag[i]) == PT_UNICODE) {
@@ -3048,7 +3044,6 @@ HRESULT GetConfigMessage(LPMDB lpStore, const char* szMessageName, IMessage **lp
 	MAPITablePtr ptrTable;
 	SPropValue propSubject;
 	SRowSetPtr ptrRows;
-	LPSPropValue lpEntryID = NULL;
 	MessagePtr ptrMessage;
 	SizedSPropTagArray(2, sptaTreeProps) = {2, {PR_NON_IPM_SUBTREE_ENTRYID, PR_IPM_SUBTREE_ENTRYID}};
 
@@ -3082,7 +3077,7 @@ HRESULT GetConfigMessage(LPMDB lpStore, const char* szMessageName, IMessage **lp
 
 	if (!ptrRows.empty()) {
 		// message found, open it
-		lpEntryID = PpropFindProp(ptrRows[0].lpProps, ptrRows[0].cValues, PR_ENTRYID);
+		auto lpEntryID = PCpropFindProp(ptrRows[0].lpProps, ptrRows[0].cValues, PR_ENTRYID);
 		if (lpEntryID == NULL)
 			return MAPI_E_INVALID_ENTRYID;
 		hr = ptrFolder->OpenEntry(lpEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryID->Value.bin.lpb), NULL, MAPI_MODIFY, &ulType, &~ptrMessage);

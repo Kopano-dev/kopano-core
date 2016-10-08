@@ -746,8 +746,7 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 
 		for (ULONG i = 0; i < lpValRows->cRows; ++i) {
 			WEBDAVVALUE sWebDavVal;
-			
-			auto lpsPropVal = PpropFindProp(lpValRows->aRow[i].lpProps, lpValRows->aRow[i].cValues, PR_ACCOUNT_W);
+			auto lpsPropVal = PCpropFindProp(lpValRows->aRow[i].lpProps, lpValRows->aRow[i].cValues, PR_ACCOUNT_W);
 			if (!lpsPropVal)
 				continue;		// user without account name is useless
 
@@ -1848,7 +1847,6 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 	std::string strCurrentUserURL;
 	std::string strPrincipalURL;
 	std::string strCalHome;
-	LPSPropValue lpFoundProp;
 	WEBDAVPROP sWebProp;
 	WEBDAVPROP sWebPropNotFound;
 	WEBDAVPROPSTAT sPropStat;
@@ -1856,7 +1854,7 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 	SPropValuePtr ptrEmail;
 	SPropValuePtr ptrFullname;
 
-	lpFoundProp = PpropFindProp(lpProps, ulPropCount, PR_CONTAINER_CLASS_A);
+	auto lpFoundProp = PCpropFindProp(lpProps, ulPropCount, PR_CONTAINER_CLASS_A);
 	if (lpFoundProp && !strncmp (lpFoundProp->Value.lpszA, "IPF.Appointment", strlen("IPF.Appointment")))
 		ulFolderType = CALENDAR_FOLDER;
 	else if (lpFoundProp && !strncmp (lpFoundProp->Value.lpszA, "IPF.Task", strlen("IPF.Task")))
@@ -1880,7 +1878,7 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 		if (!m_wstrFldName.empty()) {
 			strCalHome = strPrincipalURL + urlEncode(m_wstrFldName, "utf-8") + "/";
 		} else {
-			lpFoundProp = PpropFindProp(lpProps, ulPropCount, PR_DISPLAY_NAME_W);
+			lpFoundProp = PCpropFindProp(lpProps, ulPropCount, PR_DISPLAY_NAME_W);
 			if (lpFoundProp)
 				strCalHome = strPrincipalURL + urlEncode(lpFoundProp->Value.lpszW, "utf-8") + "/";
 		}
@@ -1897,7 +1895,7 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 		sWebProperty = iterprop;
 		const std::string &strProperty = sWebProperty.sPropName.strPropname;
 
-		lpFoundProp = PpropFindProp(lpProps, ulPropCount, GetPropIDForXMLProp(lpObj, sWebProperty.sPropName, m_converter));
+		lpFoundProp = PCpropFindProp(lpProps, ulPropCount, GetPropIDForXMLProp(lpObj, sWebProperty.sPropName, m_converter));
 		if (strProperty == "resourcetype") {
 			
 			// do not set resourcetype for REPORT request(ical data)
@@ -2006,7 +2004,7 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 		} else if (strProperty == "calendar-order") {
 			
 			if (ulFolderType == CALENDAR_FOLDER) {
-				lpFoundProp = PpropFindProp(lpProps, ulPropCount, PR_ENTRYID);
+				lpFoundProp = PCpropFindProp(lpProps, ulPropCount, PR_ENTRYID);
 				if (lpFoundProp)
 					HrGetCalendarOrder(lpFoundProp->Value.bin, &sWebProperty.strValue);
 

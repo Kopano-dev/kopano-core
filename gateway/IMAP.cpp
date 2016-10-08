@@ -2433,10 +2433,10 @@ exit:
  */
 std::string IMAP::PropsToFlags(LPSPropValue lpProps, unsigned int cValues, bool bRecent, bool bRead) {
 	string strFlags;
-	const SPropValue *lpMessageFlags = PpropFindProp(lpProps, cValues, PR_MESSAGE_FLAGS);
-	const SPropValue *lpFlagStatus = PpropFindProp(lpProps, cValues, PR_FLAG_STATUS);
-	const SPropValue *lpMsgStatus = PpropFindProp(lpProps, cValues, PR_MSG_STATUS);
-	const SPropValue *lpLastVerb = PpropFindProp(lpProps, cValues, PR_LAST_VERB_EXECUTED);
+	auto lpMessageFlags = PCpropFindProp(lpProps, cValues, PR_MESSAGE_FLAGS);
+	auto lpFlagStatus = PCpropFindProp(lpProps, cValues, PR_FLAG_STATUS);
+	auto lpMsgStatus = PCpropFindProp(lpProps, cValues, PR_MSG_STATUS);
+	auto lpLastVerb = PCpropFindProp(lpProps, cValues, PR_LAST_VERB_EXECUTED);
 
 	if ((lpMessageFlags != NULL &&
 	    lpMessageFlags->Value.ul & MSGFLAG_READ) || bRead)
@@ -3609,7 +3609,6 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 		{1, 0, 0, {{PR_EC_IMAP_ID, TABLE_SORT_ASCEND}}};
 	bool bMarkAsRead = false;
 	memory_ptr<ENTRYLIST> lpEntryList;
-	LPSPropValue lpProp = NULL; // non-free
 
 	if (strCurrentFolder.empty() || !lpSession) {
 		hr = MAPI_E_CALL_FAILED;
@@ -3741,7 +3740,7 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
     
 	// Loop through all requested rows, and get the data for each (FIXME: slow for large requests)
 	for (auto mail_idx : lstMails) {
-		lpProp = NULL;			// by default: no need to mark-as-read
+		const SPropValue *lpProp = NULL; // non-free // by default: no need to mark-as-read
 
 		sPropVal.Value.bin.cb = lstFolderMailEIDs[mail_idx].sInstanceKey.cb;
 		sPropVal.Value.bin.lpb = lstFolderMailEIDs[mail_idx].sInstanceKey.lpb;
@@ -3778,7 +3777,7 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 		    if(lpRow) {
 				// possebly add message to mark-as-read
 				if (bMarkAsRead) {
-					lpProp = PpropFindProp(lpRow->lpProps, lpRow->cValues, PR_MESSAGE_FLAGS);
+					lpProp = PCpropFindProp(lpRow->lpProps, lpRow->cValues, PR_MESSAGE_FLAGS);
 					if (!lpProp || (lpProp->Value.ul & MSGFLAG_READ) == 0) {
 						lpEntryList->lpbin[lpEntryList->cValues].cb = lstFolderMailEIDs[mail_idx].sEntryID.cb;
 						lpEntryList->lpbin[lpEntryList->cValues].lpb = lstFolderMailEIDs[mail_idx].sEntryID.lpb;
@@ -3840,7 +3839,6 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 	string strItem;
 	string strParts;
 	string::size_type ulPos;
-	LPSPropValue lpProp = NULL; // non-free
 	char szBuffer[IMAP_RESP_MAX + 1];
 	IMessage *lpMessage = NULL;
 	ULONG ulObjType = 0;
@@ -3872,17 +3870,17 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 	     bSkipOpen && iFetch != lstDataItems.cend(); ++iFetch)
 	{
 		if (iFetch->compare("BODY") == 0)
-			bSkipOpen = PpropFindProp(lpProps, cValues, PR_EC_IMAP_BODY) != NULL;
+			bSkipOpen = PCpropFindProp(lpProps, cValues, PR_EC_IMAP_BODY) != NULL;
 		else if (iFetch->compare("BODYSTRUCTURE") == 0)
-			bSkipOpen = PpropFindProp(lpProps, cValues, PR_EC_IMAP_BODYSTRUCTURE) != NULL;
+			bSkipOpen = PCpropFindProp(lpProps, cValues, PR_EC_IMAP_BODYSTRUCTURE) != NULL;
 		else if (iFetch->compare("ENVELOPE") == 0)
-			bSkipOpen = PpropFindProp(lpProps, cValues, m_lpsIMAPTags->aulPropTag[0]) != NULL;
+			bSkipOpen = PCpropFindProp(lpProps, cValues, m_lpsIMAPTags->aulPropTag[0]) != NULL;
 		else if (iFetch->compare("RFC822.SIZE") == 0)
-			bSkipOpen = PpropFindProp(lpProps, cValues, PR_EC_IMAP_EMAIL_SIZE) != NULL;
+			bSkipOpen = PCpropFindProp(lpProps, cValues, PR_EC_IMAP_EMAIL_SIZE) != NULL;
 		else if (strstr(iFetch->c_str(), "HEADER") != NULL)
 			// we can only use PR_TRANSPORT_MESSAGE_HEADERS when we have the full email.
-			bSkipOpen = (PpropFindProp(lpProps, cValues, PR_TRANSPORT_MESSAGE_HEADERS_A) != NULL &&
-						 PpropFindProp(lpProps, cValues, PR_EC_IMAP_EMAIL_SIZE) != NULL);
+			bSkipOpen = (PCpropFindProp(lpProps, cValues, PR_TRANSPORT_MESSAGE_HEADERS_A) != NULL &&
+						 PCpropFindProp(lpProps, cValues, PR_EC_IMAP_EMAIL_SIZE) != NULL);
 		// full/partial body fetches, or size
 		else if (Prefix(*iFetch, "BODY") || Prefix(*iFetch, "RFC822"))
 			bSkipOpen = false;
@@ -3902,17 +3900,16 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 				strFlags += ")";
 			}
 		} else if (item.compare("XAOL.SIZE") == 0) {
-			lpProp = PpropFindProp(lpProps, cValues, PR_MESSAGE_SIZE);
+			auto lpProp = PCpropFindProp(lpProps, cValues, PR_MESSAGE_SIZE);
 			vProps.push_back(item);
 			vProps.push_back(lpProp ? stringify(lpProp->Value.ul) : "NIL");
 		} else if (item.compare("INTERNALDATE") == 0) {
 			vProps.push_back(item);
-
-			lpProp = PpropFindProp(lpProps, cValues, PR_MESSAGE_DELIVERY_TIME);
+			auto lpProp = PCpropFindProp(lpProps, cValues, PR_MESSAGE_DELIVERY_TIME);
 			if (!lpProp)
-				lpProp = PpropFindProp(lpProps, cValues, PR_CLIENT_SUBMIT_TIME);
+				lpProp = PCpropFindProp(lpProps, cValues, PR_CLIENT_SUBMIT_TIME);
 			if (!lpProp)
-				lpProp = PpropFindProp(lpProps, cValues, PR_CREATION_TIME);
+				lpProp = PCpropFindProp(lpProps, cValues, PR_CREATION_TIME);
 
 			if (lpProp != NULL)
 				vProps.push_back("\"" + FileTimeToString(lpProp->Value.ft) + "\"");
@@ -3922,7 +3919,7 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 			vProps.push_back(item);
 			vProps.push_back(stringify(lstFolderMailEIDs[ulMailnr].ulUid));
 		} else if (item.compare("ENVELOPE") == 0) {
-			lpProp = PpropFindProp(lpProps, cValues, m_lpsIMAPTags->aulPropTag[0]);
+			auto lpProp = PCpropFindProp(lpProps, cValues, m_lpsIMAPTags->aulPropTag[0]);
 			if (lpProp) {
 				vProps.push_back(item);
 				vProps.push_back(string("(") + lpProp->Value.lpszA + ")");
@@ -3936,18 +3933,18 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 			}
 		} else if (bSkipOpen && item.compare("BODY") == 0) {
 			// table version
-			lpProp = PpropFindProp(lpProps, cValues, PR_EC_IMAP_BODY);
+			auto lpProp = PCpropFindProp(lpProps, cValues, PR_EC_IMAP_BODY);
 			vProps.push_back(item);
 			vProps.push_back(lpProp ? lpProp->Value.lpszA : "NIL");
 		} else if (bSkipOpen && item.compare("BODYSTRUCTURE") == 0) {
 			// table version
-			lpProp = PpropFindProp(lpProps, cValues, PR_EC_IMAP_BODYSTRUCTURE);
+			auto lpProp = PCpropFindProp(lpProps, cValues, PR_EC_IMAP_BODYSTRUCTURE);
 			vProps.push_back(item);
 			vProps.push_back(lpProp ? lpProp->Value.lpszA : "NIL");
 		} else if (Prefix(item, "BODY") || Prefix(item, "RFC822")) {
 			// the only exceptions when we don't need to generate anything yet.
 			if (item.compare("RFC822.SIZE") == 0) {
-				lpProp = PpropFindProp(lpProps, cValues, PR_EC_IMAP_EMAIL_SIZE);
+				auto lpProp = PCpropFindProp(lpProps, cValues, PR_EC_IMAP_EMAIL_SIZE);
 				if (lpProp) {
 					vProps.push_back(item);
 					vProps.push_back(stringify(lpProp->Value.ul));
@@ -3972,10 +3969,11 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 				 * BODYSTRUCTURE
 				 *        The [MIME-IMB] body structure of the message.
 				 */
+				const SPropValue *lpProp;
 				if (item.length() > 4)
-					lpProp = PpropFindProp(lpProps, cValues, PR_EC_IMAP_BODYSTRUCTURE);
+					lpProp = PCpropFindProp(lpProps, cValues, PR_EC_IMAP_BODYSTRUCTURE);
 				else
-					lpProp = PpropFindProp(lpProps, cValues, PR_EC_IMAP_BODY);
+					lpProp = PCpropFindProp(lpProps, cValues, PR_EC_IMAP_BODY);
 
 				if (lpProp) {
 					vProps.push_back(item);
@@ -3999,7 +3997,7 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 				// vmime regenerated messages.
 
 				if (sopt.headers_only && bSkipOpen) {
-					lpProp = PpropFindProp(lpProps, cValues, PR_TRANSPORT_MESSAGE_HEADERS_A);
+					auto lpProp = PCpropFindProp(lpProps, cValues, PR_TRANSPORT_MESSAGE_HEADERS_A);
 					if (lpProp != NULL)
 						strMessage = lpProp->Value.lpszA;
 					else
@@ -4007,7 +4005,7 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 						hr = MAPI_E_NOT_FOUND;
 				} else {
 					// If we have the full body, download that property
-					lpProp = PpropFindProp(lpProps, cValues, PR_EC_IMAP_EMAIL_SIZE);
+					auto lpProp = PCpropFindProp(lpProps, cValues, PR_EC_IMAP_EMAIL_SIZE);
 					if (lpProp) {
 						// we have PR_EC_IMAP_EMAIL_SIZE, so we also have PR_EC_IMAP_EMAIL
 						object_ptr<IStream> lpStream;

@@ -312,7 +312,6 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
 	HRESULT			hr = hrSuccess;
 	ULONG			cPropsRecip;
 	LPSPropValue	rgpropvalsRecip;
-	LPSPropValue	lpPropVal = NULL;
 	ABEID *lpABeid = NULL;
 	ULONG			cbABeid;
 	ULONG			cValues;
@@ -329,7 +328,7 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
 		cPropsRecip		= lpRecipList->aEntries[i].cValues;
 
 		// For each recipient, find its entryid
-		lpPropVal = PpropFindProp( rgpropvalsRecip, cPropsRecip, PR_ENTRYID );
+		auto lpPropVal = PCpropFindProp(rgpropvalsRecip, cPropsRecip, PR_ENTRYID);
 		if(!lpPropVal)
 			continue; // no
 		
@@ -359,7 +358,7 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
 			lpPropVal = NULL;
 
 			if(PROP_TYPE(lpPropArray[j].ulPropTag) == PT_ERROR)
-				lpPropVal = PpropFindProp( rgpropvalsRecip, cPropsRecip, lpPropTagArray->aulPropTag[j]);
+				lpPropVal = PCpropFindProp(rgpropvalsRecip, cPropsRecip, lpPropTagArray->aulPropTag[j]);
 
 			if(lpPropVal == NULL)
 				lpPropVal = &lpPropArray[j];
@@ -370,7 +369,7 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
 		}
 
 		for (j = 0; j < cPropsRecip; ++j) {
-			if ( PpropFindProp(lpNewPropArray, cValues, rgpropvalsRecip[j].ulPropTag ) ||
+			if (PCpropFindProp(lpNewPropArray, cValues, rgpropvalsRecip[j].ulPropTag) ||
 				PROP_TYPE( rgpropvalsRecip[j].ulPropTag ) == PT_ERROR )
 				continue;
 			

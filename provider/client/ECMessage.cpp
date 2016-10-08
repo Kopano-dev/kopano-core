@@ -1660,13 +1660,10 @@ HRESULT ECMessage::SaveRecips()
 	HRESULT				hr = hrSuccess;
 	LPSRowSet			lpRowSet = NULL;
 	LPSPropValue		lpObjIDs = NULL;
-	LPSPropValue		lpRowId = NULL;
 	LPULONG				lpulStatus = NULL;
-	LPSPropValue		lpEntryID = NULL;
 	unsigned int		i = 0,
 						j = 0;
 	ULONG				ulRealObjType;
-	LPSPropValue		lpObjType = NULL;
 	scoped_rlock lock(m_hMutexMAPIObject);
 
 	// Get any changes and set it in the child list of this message
@@ -1678,13 +1675,13 @@ HRESULT ECMessage::SaveRecips()
 		MAPIOBJECT *mo = NULL;
 
 		// Get the right object type for a DistList
-		lpObjType = PpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_OBJECT_TYPE);
+		auto lpObjType = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_OBJECT_TYPE);
 		if(lpObjType != NULL)
 			ulRealObjType = lpObjType->Value.ul; // MAPI_MAILUSER or MAPI_DISTLIST
 		else
 			ulRealObjType = MAPI_MAILUSER; // add in list?
 
-		lpRowId = PpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_ROWID); // unique value of recipient
+		auto lpRowId = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_ROWID); // unique value of recipient
 		if (!lpRowId) {
 			assert(lpRowId != NULL);
 			continue;
@@ -1693,7 +1690,7 @@ HRESULT ECMessage::SaveRecips()
 		AllocNewMapiObject(lpRowId->Value.ul, lpObjIDs[i].Value.ul, ulRealObjType, &mo);
 
 		// Move any PR_ENTRYIDs to PR_EC_CONTACT_ENTRYID
-		lpEntryID = PpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_ENTRYID);
+		auto lpEntryID = PpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_ENTRYID);
 		if(lpEntryID)
 			lpEntryID->ulPropTag = PR_EC_CONTACT_ENTRYID;
 
@@ -1787,10 +1784,10 @@ HRESULT ECMessage::SyncAttachments()
 	HRESULT				hr = hrSuccess;
 	LPSRowSet			lpRowSet = NULL;
 	LPSPropValue		lpObjIDs = NULL;
-	LPSPropValue		lpAttachNum = NULL;
+//	LPSPropValue		lpAttachNum = NULL;
 	LPULONG				lpulStatus = NULL;
 	unsigned int		i = 0;
-	LPSPropValue		lpObjType = NULL;
+//	LPSPropValue		lpObjType = NULL;
 	scoped_rlock lock(m_hMutexMAPIObject);
 
 	// Get any changes and set it in the child list of this message
@@ -1803,11 +1800,11 @@ HRESULT ECMessage::SyncAttachments()
 		if (lpulStatus[i] != ECROW_DELETED)
 			continue;
 
-		lpObjType = PpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_OBJECT_TYPE);
+		auto lpObjType = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_OBJECT_TYPE);
 		if(lpObjType == NULL || lpObjType->Value.ul != MAPI_ATTACH)
 			continue;
 
-		lpAttachNum = PpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_ATTACH_NUM); // unique value of attachment
+		auto lpAttachNum = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_ATTACH_NUM); // unique value of attachment
 		if (!lpAttachNum) {
 			assert(lpAttachNum != NULL);
 			continue;
@@ -2075,11 +2072,8 @@ exit:
 HRESULT ECMessage::SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray *lppProblems)
 {
 	HRESULT hr = hrSuccess;
-	LPSPropValue pvalSubject;
-	LPSPropValue pvalSubjectPrefix;
-	LPSPropValue pvalRtf;
-	LPSPropValue pvalHtml;
-	LPSPropValue pvalBody;
+	const SPropValue *pvalSubject, *pvalSubjectPrefix;
+	const SPropValue *pvalRtf, *pvalHtml, *pvalBody;
 
 	const BOOL bInhibitSyncOld = m_bInhibitSync;
 	m_bInhibitSync = TRUE; // We want to override the logic in ECMessage::HrSetRealProp.
@@ -2096,17 +2090,17 @@ HRESULT ECMessage::SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProb
 	 * 2) PR_SUBJECT is modified, and PR_SUBJECT_PREFIX was modified by a previous SyncSubject() call
 	 * If the caller ever does a SetProps on the PR_SUBJECT_PREFIX itself, we must never touch it ourselves again, until SaveChanges().
 	 */
-	pvalSubject = PpropFindProp(lpPropArray, cValues, CHANGE_PROP_TYPE(PR_SUBJECT, PT_UNSPECIFIED));
-	pvalSubjectPrefix = PpropFindProp(lpPropArray, cValues, CHANGE_PROP_TYPE(PR_SUBJECT_PREFIX, PT_UNSPECIFIED));
+	pvalSubject = PCpropFindProp(lpPropArray, cValues, CHANGE_PROP_TYPE(PR_SUBJECT, PT_UNSPECIFIED));
+	pvalSubjectPrefix = PCpropFindProp(lpPropArray, cValues, CHANGE_PROP_TYPE(PR_SUBJECT_PREFIX, PT_UNSPECIFIED));
 	if (pvalSubjectPrefix)
 		m_bExplicitSubjectPrefix = TRUE;
 	if (pvalSubject && m_bExplicitSubjectPrefix == FALSE)
 		SyncSubject();
 
 	// Now, sync RTF
-	pvalRtf = PpropFindProp(lpPropArray, cValues, PR_RTF_COMPRESSED);
-	pvalHtml = PpropFindProp(lpPropArray, cValues, PROP_TAG(PT_UNSPECIFIED, PROP_ID(PR_BODY_HTML)) );
-	pvalBody = PpropFindProp(lpPropArray, cValues, PROP_TAG(PT_UNSPECIFIED, PROP_ID(PR_BODY)) );
+	pvalRtf = PCpropFindProp(lpPropArray, cValues, PR_RTF_COMPRESSED);
+	pvalHtml = PCpropFindProp(lpPropArray, cValues, PROP_TAG(PT_UNSPECIFIED, PROP_ID(PR_BODY_HTML)) );
+	pvalBody = PCpropFindProp(lpPropArray, cValues, PROP_TAG(PT_UNSPECIFIED, PROP_ID(PR_BODY)) );
 
 	// IF the user sets both the body and the RTF, assume RTF overrides
 	if (pvalRtf) {

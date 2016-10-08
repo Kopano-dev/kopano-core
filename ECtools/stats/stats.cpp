@@ -149,8 +149,7 @@ static SortFuncPtr sortfunc;
 static std::string GetString(LPSPropValue lpProps, ULONG cValues,
     ULONG ulPropTag)
 {
-    LPSPropValue lpProp = PpropFindProp(lpProps, cValues, ulPropTag);
-    
+	auto lpProp = PCpropFindProp(lpProps, cValues, ulPropTag);
     if(lpProp == NULL)
         return "";
         
@@ -177,8 +176,7 @@ static std::string GetString(LPSPropValue lpProps, ULONG cValues,
 static unsigned long long GetLongLong(LPSPropValue lpProps, ULONG cValues,
     ULONG ulPropTag)
 {
-    LPSPropValue lpProp = PpropFindProp(lpProps, cValues, ulPropTag);
-    
+	auto lpProp = PCpropFindProp(lpProps, cValues, ulPropTag);
     if(lpProp == NULL)
         return -1;
         
@@ -192,8 +190,7 @@ static unsigned long long GetLongLong(LPSPropValue lpProps, ULONG cValues,
 
 static double GetDouble(LPSPropValue lpProps, ULONG cValues, ULONG ulPropTag)
 {
-    LPSPropValue lpProp = PpropFindProp(lpProps, cValues, ulPropTag);
-    
+	auto lpProp = PCpropFindProp(lpProps, cValues, ulPropTag);
     if(lpProp == NULL)
         return 0;
         
@@ -266,9 +263,8 @@ static void showtop(LPMDB lpStore)
         dblLast = GetTimeOfDay();
             
         for (ULONG i = 0; i < lpsRowSet->cRows; ++i) {
-            LPSPropValue lpName = PpropFindProp(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_DISPLAY_NAME_A);
-            LPSPropValue lpValue = PpropFindProp(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_EC_STATS_SYSTEM_VALUE);
-            
+		auto lpName = PCpropFindProp(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_DISPLAY_NAME_A);
+		auto lpValue = PCpropFindProp(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, PR_EC_STATS_SYSTEM_VALUE);
             if(lpName && lpValue) {
                 mapDiffStats[lpName->Value.lpszA] = atof(lpValue->Value.lpszA) - atof(mapStats[lpName->Value.lpszA].c_str());
                 mapStats[lpName->Value.lpszA] = lpValue->Value.lpszA;

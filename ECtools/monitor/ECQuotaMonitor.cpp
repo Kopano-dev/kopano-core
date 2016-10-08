@@ -425,18 +425,12 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
 			break;
 
 		for (i = 0; i < lpRowSet->cRows; ++i) {
-			LPSPropValue lpUsername = NULL;
-			LPSPropValue lpStoreSize = NULL;
-			LPSPropValue lpQuotaWarn = NULL;
-			LPSPropValue lpQuotaSoft = NULL;
-			LPSPropValue lpQuotaHard = NULL;
 			MsgStorePtr ptrStore;
-
-			lpUsername = PpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_EC_USERNAME_A);
-			lpStoreSize = PpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_MESSAGE_SIZE_EXTENDED);
-			lpQuotaWarn = PpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_QUOTA_WARNING_THRESHOLD);
-			lpQuotaSoft = PpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_QUOTA_SEND_THRESHOLD);
-			lpQuotaHard = PpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_QUOTA_RECEIVE_THRESHOLD);
+			auto lpUsername = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_EC_USERNAME_A);
+			auto lpStoreSize = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_MESSAGE_SIZE_EXTENDED);
+			auto lpQuotaWarn = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_QUOTA_WARNING_THRESHOLD);
+			auto lpQuotaSoft = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_QUOTA_SEND_THRESHOLD);
+			auto lpQuotaHard = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_QUOTA_RECEIVE_THRESHOLD);
 
 			if (!lpUsername || !lpStoreSize)
 				continue;		// don't log error: could be for several valid reasons (contacts, other server, etc)

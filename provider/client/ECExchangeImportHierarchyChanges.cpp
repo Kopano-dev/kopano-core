@@ -205,16 +205,15 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPr
 	HRESULT hr = hrSuccess;
 
 	////The array must contain at least the PR_PARENT_SOURCE_KEY, PR_SOURCE_KEY, PR_CHANGE_KEY, PR_PREDECESSOR_CHANGE_LIST, and MAPI PR_DISPLAY_NAME properties.
-	
-	LPSPropValue lpPropParentSourceKey = PpropFindProp(lpPropArray, cValue, PR_PARENT_SOURCE_KEY);
-	LPSPropValue lpPropSourceKey = PpropFindProp(lpPropArray, cValue, PR_SOURCE_KEY);
-	LPSPropValue lpPropDisplayName = PpropFindProp(lpPropArray, cValue, PR_DISPLAY_NAME);
-	LPSPropValue lpPropComment = PpropFindProp(lpPropArray, cValue, PR_COMMENT);
-	LPSPropValue lpPropChangeKey = PpropFindProp(lpPropArray, cValue, PR_CHANGE_KEY);
-	LPSPropValue lpPropFolderType = PpropFindProp(lpPropArray, cValue, PR_FOLDER_TYPE);
-	LPSPropValue lpPropChangeList = PpropFindProp(lpPropArray, cValue, PR_PREDECESSOR_CHANGE_LIST);
-	LPSPropValue lpPropEntryId = PpropFindProp(lpPropArray, cValue, PR_ENTRYID);
-	LPSPropValue lpPropAdditionalREN = PpropFindProp(lpPropArray, cValue, PR_ADDITIONAL_REN_ENTRYIDS);
+	auto lpPropParentSourceKey = PCpropFindProp(lpPropArray, cValue, PR_PARENT_SOURCE_KEY);
+	auto lpPropSourceKey = PCpropFindProp(lpPropArray, cValue, PR_SOURCE_KEY);
+	auto lpPropDisplayName = PCpropFindProp(lpPropArray, cValue, PR_DISPLAY_NAME);
+	auto lpPropComment = PCpropFindProp(lpPropArray, cValue, PR_COMMENT);
+	auto lpPropChangeKey = PCpropFindProp(lpPropArray, cValue, PR_CHANGE_KEY);
+	auto lpPropFolderType = PCpropFindProp(lpPropArray, cValue, PR_FOLDER_TYPE);
+	auto lpPropChangeList = PCpropFindProp(lpPropArray, cValue, PR_PREDECESSOR_CHANGE_LIST);
+	auto lpPropEntryId = PCpropFindProp(lpPropArray, cValue, PR_ENTRYID);
+	auto lpPropAdditionalREN = PpropFindProp(lpPropArray, cValue, PR_ADDITIONAL_REN_ENTRYIDS);
 	memory_ptr<SPropValue> lpPropVal;
 	memory_ptr<ENTRYID> lpEntryId, lpDestEntryId;
 	ULONG cbEntryId;
@@ -227,7 +226,7 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPr
 	utf8string strFolderComment;
 	ULONG cbOrigEntryId = 0;
 	BYTE *lpOrigEntryId = NULL;
-	LPSBinary lpOrigSourceKey = NULL;
+	const SBinary *lpOrigSourceKey = NULL;
 
 	std::string strChangeList;
 	ULONG ulPos = 0;

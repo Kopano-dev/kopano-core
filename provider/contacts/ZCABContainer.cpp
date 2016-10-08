@@ -773,7 +773,7 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 
 			for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
 				// use PR_STORE_ENTRYID field to set instance key, since that is always MAPI_E_NOT_FOUND (see above)
-				LPSPropValue lpProp = PpropFindProp(ptrRows[i].lpProps, ptrRows[i].cValues, CHANGE_PROP_TYPE(PR_STORE_ENTRYID, PT_ERROR));
+				auto lpProp = PpropFindProp(ptrRows[i].lpProps, ptrRows[i].cValues, CHANGE_PROP_TYPE(PR_STORE_ENTRYID, PT_ERROR));
 				if (lpProp == nullptr)
 					continue;
 				lpProp->ulPropTag = PR_ROWID;
@@ -977,7 +977,7 @@ HRESULT ZCABContainer::ResolveNames(const SPropTagArray *lpPropTagArray,
 
 		for (i = 0; i < ptrRows.size(); ++i) {
 			ABContainerPtr ptrContainer;
-			LPSPropValue lpEntryID = PpropFindProp(ptrRows[i].lpProps, ptrRows[i].cValues, PR_ENTRYID);
+			auto lpEntryID = PCpropFindProp(ptrRows[i].lpProps, ptrRows[i].cValues, PR_ENTRYID);
 			ULONG ulObjType;
 
 			if (!lpEntryID)
@@ -1015,8 +1015,8 @@ HRESULT ZCABContainer::ResolveNames(const SPropTagArray *lpPropTagArray,
 			return hr;
 
 		for (i = 0; i < lpAdrList->cEntries; ++i) {
-			LPSPropValue lpDisplayNameA = PpropFindProp(lpAdrList->aEntries[i].rgPropVals, lpAdrList->aEntries[i].cValues, PR_DISPLAY_NAME_A);
-			LPSPropValue lpDisplayNameW = PpropFindProp(lpAdrList->aEntries[i].rgPropVals, lpAdrList->aEntries[i].cValues, PR_DISPLAY_NAME_W);
+			auto lpDisplayNameA = PCpropFindProp(lpAdrList->aEntries[i].rgPropVals, lpAdrList->aEntries[i].cValues, PR_DISPLAY_NAME_A);
+			auto lpDisplayNameW = PCpropFindProp(lpAdrList->aEntries[i].rgPropVals, lpAdrList->aEntries[i].cValues, PR_DISPLAY_NAME_W);
 
 			if (!lpDisplayNameA && !lpDisplayNameW)
 				continue;

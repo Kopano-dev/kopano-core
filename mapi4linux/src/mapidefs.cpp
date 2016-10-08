@@ -741,7 +741,7 @@ HRESULT M4LProviderAdmin::CreateProvider(LPTSTR lpszProvider, ULONG cValues, LPS
     TRACE_MAPILIB(TRACE_ENTRY, "M4LProviderAdmin::CreateProvider", "");
 	SPropValue sProps[10];
 	ULONG nProps = 0;
-	LPSPropValue lpResource = NULL;
+	const SPropValue *lpResource = nullptr;
 	memory_ptr<SPropValue> lpsPropValProfileName;
 	providerEntry *entry = NULL;
 	serviceEntry* lpService = NULL;
@@ -812,14 +812,12 @@ HRESULT M4LProviderAdmin::CreateProvider(LPTSTR lpszProvider, ULONG cValues, LPS
 	sProps[nProps].Value.bin.cb = sizeof(GUID);
 	++nProps;
 
-	lpResource = PpropFindProp(lpProviderProps, cProviderProps, PR_RESOURCE_TYPE);
+	lpResource = PCpropFindProp(lpProviderProps, cProviderProps, PR_RESOURCE_TYPE);
 	if (!lpResource || lpResource->Value.ul == MAPI_STORE_PROVIDER) {
 		sProps[nProps].ulPropTag = PR_OBJECT_TYPE;
 		sProps[nProps].Value.ul = MAPI_STORE;
 		++nProps;
-
-		lpResource = PpropFindProp(lpProviderProps, cProviderProps, PR_RESOURCE_FLAGS);
-
+		lpResource = PCpropFindProp(lpProviderProps, cProviderProps, PR_RESOURCE_FLAGS);
 		sProps[nProps].ulPropTag = PR_DEFAULT_STORE;
 		sProps[nProps].Value.b = (lpResource && (lpResource->Value.ul & STATUS_DEFAULT_STORE) == STATUS_DEFAULT_STORE);
 		++nProps;

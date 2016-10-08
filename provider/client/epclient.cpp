@@ -532,7 +532,6 @@ static HRESULT UpdateProviders(LPPROVIDERADMIN lpAdminProviders,
 	ProfSectPtr		ptrProfSect;
 	MAPITablePtr	ptrTable;
 	SRowSetPtr		ptrRows;
-	LPSPropValue	lpsProviderUID;
 
 	// Get the provider table
 	hr = lpAdminProviders->GetProviderTable(0, &~ptrTable);
@@ -551,7 +550,7 @@ static HRESULT UpdateProviders(LPPROVIDERADMIN lpAdminProviders,
 	// Scan the rows for message stores
 	for (ULONG curRow = 0; curRow < ptrRows.size(); ++curRow) {
 		//Get de UID of the provider to open the profile section
-		lpsProviderUID = PpropFindProp(ptrRows[curRow].lpProps, ptrRows[curRow].cValues, PR_PROVIDER_UID);
+		auto lpsProviderUID = PpropFindProp(ptrRows[curRow].lpProps, ptrRows[curRow].cValues, PR_PROVIDER_UID);
 		if(lpsProviderUID == NULL || lpsProviderUID->Value.bin.cb == 0) {
 			// Provider without a provider uid,  just move to the next
 			assert(false);
@@ -613,7 +612,6 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
 	MAPIERROR		*lpMapiError = NULL;
 	memory_ptr<BYTE> lpDelegateStores;
 	ULONG			cDelegateStores = 0;
-	LPSPropValue	lpsPropValueFind = NULL;
 	ULONG 			cValueIndex = 0;
 	convert_context	converter;
 
@@ -651,10 +649,8 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
 		break;
 	case MSG_SERVICE_PROVIDER_CREATE:
 		if(cvals && pvals) {
-
 			LPSPropValue lpsPropName = NULL;
-			
-			lpsPropValueFind = PpropFindProp(pvals, cvals, PR_PROVIDER_UID);
+			auto lpsPropValueFind = PCpropFindProp(pvals, cvals, PR_PROVIDER_UID);
 			if(lpsPropValueFind == NULL || lpsPropValueFind->Value.bin.cb == 0)
 			{
 				//FIXME: give the right error?

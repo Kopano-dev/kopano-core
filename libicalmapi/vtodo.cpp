@@ -277,7 +277,6 @@ exit:
  */
 HRESULT VTodoConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMsgProps, icaltimezone *lpicTZinfo, const std::string &strTZid, icalcomponent *lpEvent)
 {
-	LPSPropValue lpPropVal = NULL;
 	HRESULT hr = VConverter::HrSetTimeProperties(lpMsgProps, ulMsgProps,
 	             lpicTZinfo, strTZid, lpEvent);
 	if (hr != hrSuccess)
@@ -287,7 +286,7 @@ HRESULT VTodoConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMsg
 	// Uses CommonStart/CommonEnd as its stores UTC time
 
 	// Set start time / DTSTART	
-	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_COMMONSTART], PT_SYSTIME));
+	auto lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_COMMONSTART], PT_SYSTIME));
 	if (lpPropVal != NULL) {
 		time_t ttTime = FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime);
 
@@ -297,7 +296,7 @@ HRESULT VTodoConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMsg
 	}
 
 	// Set end time / DUE
-	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_COMMONEND], PT_SYSTIME));
+	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_COMMONEND], PT_SYSTIME));
 	if (lpPropVal) {
 		time_t ttTime = FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime);
 
@@ -308,7 +307,7 @@ HRESULT VTodoConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMsg
 	// else duration ?
 
 	// Set Completion time
-	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TASK_COMPLETED_DATE], PT_SYSTIME));
+	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TASK_COMPLETED_DATE], PT_SYSTIME));
 	if (lpPropVal) {
 		time_t ttTime = FileTimeToUnixTime(lpPropVal->Value.ft.dwHighDateTime, lpPropVal->Value.ft.dwLowDateTime);
 
@@ -334,16 +333,15 @@ HRESULT VTodoConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMsg
 HRESULT VTodoConverter::HrSetItemSpecifics(ULONG ulProps, LPSPropValue lpProps, icalcomponent *lpicEvent)
 {
 	HRESULT hr = hrSuccess;
-	LPSPropValue lpPropVal = NULL;
 	double pc = 0.0;
 	ULONG ulStatus = 0;
 
-	lpPropVal = PpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TASK_PERCENTCOMPLETE], PT_DOUBLE));
+	auto lpPropVal = PCpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TASK_PERCENTCOMPLETE], PT_DOUBLE));
 	if (lpPropVal)
 		pc = lpPropVal->Value.dbl;
 	icalcomponent_add_property(lpicEvent, icalproperty_new_percentcomplete(pc * 100));
 
-	lpPropVal = PpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TASK_STATUS], PT_LONG));
+	lpPropVal = PCpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TASK_STATUS], PT_LONG));
 	if (lpPropVal)
 		ulStatus = lpPropVal->Value.ul;
 

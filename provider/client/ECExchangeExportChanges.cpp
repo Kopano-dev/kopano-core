@@ -991,7 +991,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 	WSSerializedMessagePtr ptrSerializedMessage;
 	ULONG cbProps = 0;
 	SPropValuePtr ptrProps;
-	LPSPropValue lpPropVal = NULL;
+	const SPropValue *lpPropVal = NULL;
 	ULONG ulFlags = 0;
 	StreamPtr ptrDestStream;
 
@@ -1058,7 +1058,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 		goto exit;
 	}
 
-	lpPropVal = PpropFindProp(ptrProps, cbProps, PR_MESSAGE_FLAGS);
+	lpPropVal = PCpropFindProp(ptrProps, cbProps, PR_MESSAGE_FLAGS);
 	if (lpPropVal != NULL && (lpPropVal->Value.ul & MSGFLAG_ASSOCIATED))
 		ulFlags |= SYNC_ASSOCIATED;
 	if ((m_lstChange.at(m_ulStep).ulChangeType & ICS_ACTION_MASK) == ICS_NEW)
@@ -1446,11 +1446,11 @@ void ECExchangeExportChanges::LogMessageProps(int loglevel, ULONG cValues, LPSPr
 {
 	if (!m_lpLogger->Log(loglevel))
 		return;
-	LPSPropValue lpPropEntryID = PpropFindProp(lpPropArray, cValues, PR_ENTRYID);
-	LPSPropValue lpPropSK = PpropFindProp(lpPropArray, cValues, PR_SOURCE_KEY);
-	LPSPropValue lpPropFlags = PpropFindProp(lpPropArray, cValues, PR_MESSAGE_FLAGS);
-	LPSPropValue lpPropHierarchyId = PpropFindProp(lpPropArray, cValues, PR_EC_HIERARCHYID);
-	LPSPropValue lpPropParentId = PpropFindProp(lpPropArray, cValues, PR_EC_PARENT_HIERARCHYID);
+	auto lpPropEntryID = PCpropFindProp(lpPropArray, cValues, PR_ENTRYID);
+	auto lpPropSK = PCpropFindProp(lpPropArray, cValues, PR_SOURCE_KEY);
+	auto lpPropFlags = PCpropFindProp(lpPropArray, cValues, PR_MESSAGE_FLAGS);
+	auto lpPropHierarchyId = PCpropFindProp(lpPropArray, cValues, PR_EC_HIERARCHYID);
+	auto lpPropParentId = PCpropFindProp(lpPropArray, cValues, PR_EC_PARENT_HIERARCHYID);
 
 	m_lpLogger->Log(loglevel, "ExportFast:   Message info: id=%u, parentid=%u, msgflags=%x, entryid=%s, sourcekey=%s",
 		lpPropHierarchyId != NULL ? lpPropHierarchyId->Value.ul : 0,

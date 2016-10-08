@@ -365,9 +365,6 @@ HRESULT ECExchangeModifyTable::SaveACLS(ECMAPIProp *lpecMapiProp, ECMemTable *lp
 	LPSRowSet		lpRowSet = NULL;
 	memory_ptr<SPropValue> lpIDs;
 	memory_ptr<ULONG> lpulStatus;
-	LPSPropValue lpMemberEntryID = NULL; //do not free
-	LPSPropValue lpMemberRights = NULL; //do not free
-	LPSPropValue lpMemberID = NULL; //do not free
 	memory_ptr<ECPERMISSION> lpECPermissions;
 	ULONG			cECPerm = 0;
 
@@ -401,9 +398,9 @@ HRESULT ECExchangeModifyTable::SaveACLS(ECMAPIProp *lpecMapiProp, ECMemTable *lp
 		else if (lpulStatus[i] == ECROW_MODIFIED)
 			lpECPermissions[cECPerm].ulState |= RIGHT_MODIFY;
 
-		lpMemberID = PpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_MEMBER_ID);
-		lpMemberEntryID = PpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_MEMBER_ENTRYID);
-		lpMemberRights = PpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_MEMBER_RIGHTS);
+		auto lpMemberID = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_MEMBER_ID);
+		auto lpMemberEntryID = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_MEMBER_ENTRYID);
+		auto lpMemberRights = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_MEMBER_RIGHTS);
 
 		if (lpMemberID == NULL || lpMemberRights == NULL || (lpMemberID->Value.ul != 0 && lpMemberEntryID == NULL))
 			continue;

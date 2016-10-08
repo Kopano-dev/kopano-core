@@ -60,9 +60,17 @@ void __stdcall DeinitMapiUtil(void)
 	TRACE_MAPILIB(TRACE_RETURN, "DeInitMAPIUtil", "");
 }
 
-LPSPropValue __stdcall PpropFindProp(LPSPropValue lpPropArray, ULONG cValues, ULONG ulPropTag) {
+SPropValue * __stdcall PpropFindProp(SPropValue *lpPropArray, ULONG cValues,
+    ULONG ulPropTag)
+{
+	return const_cast<SPropValue *>(PCpropFindProp(lpPropArray, cValues, ulPropTag));
+}
+
+const SPropValue * __stdcall PCpropFindProp(const SPropValue *lpPropArray,
+    ULONG cValues, ULONG ulPropTag)
+{
 	TRACE_MAPILIB1(TRACE_ENTRY, "PpropFindProp", "%08x", ulPropTag);
-	LPSPropValue lpValue = NULL;
+	const SPropValue *lpValue = NULL;
 
 	if (lpPropArray == NULL)
 		goto exit;

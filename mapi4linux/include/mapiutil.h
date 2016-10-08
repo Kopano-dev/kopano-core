@@ -488,6 +488,7 @@ extern _kc_export HRESULT HrGetOneProp(LPMAPIPROP mprop, ULONG tag, LPSPropValue
 extern _kc_export HRESULT HrSetOneProp(LPMAPIPROP mprop, LPSPropValue prop);
 extern _kc_export BOOL FPropExists(LPMAPIPROP mprop, ULONG tag);
 extern _kc_export LPSPropValue PpropFindProp(LPSPropValue props, ULONG vals, ULONG tag);
+extern _kc_export const SPropValue *PCpropFindProp(const SPropValue *, ULONG vals, ULONG tag);
 extern _kc_export void FreePadrlist(LPADRLIST);
 extern _kc_export void FreeProws(LPSRowSet rows);
 extern _kc_export HRESULT HrQueryAllRows(LPMAPITABLE table, const SPropTagArray *tags, LPSRestriction, const SSortOrderSet *, LONG rows_max, LPSRowSet *rows);

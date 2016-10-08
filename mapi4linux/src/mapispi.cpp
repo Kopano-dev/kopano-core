@@ -550,8 +550,8 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 		goto exit;
 
 	while (true) {
-		LPSPropValue lpAddrType = NULL;
-		LPSPropValue lpDLEntryID = NULL;
+		const SPropValue *lpAddrType = NULL;
+		const SPropValue *lpDLEntryID = NULL;
 		ULONG ulObjType;
 		DistListPtr ptrDistList;
 		MAPITablePtr ptrMemberTable;
@@ -564,14 +564,14 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 		if (ptrRow.size() == 0)
 			break;
 
-		lpAddrType = PpropFindProp(ptrRow[0].lpProps, ptrRow[0].cValues, PR_ADDRTYPE);
+		lpAddrType = PCpropFindProp(ptrRow[0].lpProps, ptrRow[0].cValues, PR_ADDRTYPE);
 		if (!lpAddrType)
 			continue;
 
 		if (_tcscmp(lpAddrType->Value.LPSZ, _T("MAPIPDL")))
 			continue;
 
-		lpDLEntryID = PpropFindProp(ptrRow[0].lpProps, ptrRow[0].cValues, PR_ENTRYID);
+		lpDLEntryID = PCpropFindProp(ptrRow[0].lpProps, ptrRow[0].cValues, PR_ENTRYID);
 		if (!lpDLEntryID)
 			continue;
 
@@ -610,13 +610,11 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 		// ModifyRecipients() will actually copy the data
 		for (ULONG c = 0; c < ptrMembers.size(); ++c) {
 			for (ULONG i = 0; i < ptrMembers[c].cValues; ++i) {
-				LPSPropValue lpRecipProp = NULL;
-
 				if (PROP_TYPE(ptrMembers[c].lpProps[i].ulPropTag) != PT_ERROR)
 					continue;
 
 				// prop is unknown, find prop in recip, and copy value
-				lpRecipProp = PpropFindProp(ptrRow[0].lpProps, ptrRow[0].cValues, CHANGE_PROP_TYPE(ptrMembers[c].lpProps[i].ulPropTag, PT_UNSPECIFIED));
+				auto lpRecipProp = PCpropFindProp(ptrRow[0].lpProps, ptrRow[0].cValues, CHANGE_PROP_TYPE(ptrMembers[c].lpProps[i].ulPropTag, PT_UNSPECIFIED));
 				if (lpRecipProp)
 					ptrMembers[c].lpProps[i] = *lpRecipProp;
 				// else: leave property unknown

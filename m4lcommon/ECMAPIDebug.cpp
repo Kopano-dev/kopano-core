@@ -29,7 +29,6 @@ HRESULT Dump(std::ostream &os, LPMAPIPROP lpProp, const std::string &strPrefix)
 	ULONG cValues;
 	SPropArrayPtr ptrProps;
 	std::string strObjType = "MAPIProp";
-	LPSPropValue lpObjType = NULL;
 	
 	if (lpProp == NULL)
 		return MAPI_E_INVALID_PARAMETER;
@@ -37,7 +36,7 @@ HRESULT Dump(std::ostream &os, LPMAPIPROP lpProp, const std::string &strPrefix)
 	if (FAILED(hr))
 		return hr;
 
-	lpObjType = PpropFindProp(ptrProps.get(), cValues, PR_OBJECT_TYPE);
+	auto lpObjType = PCpropFindProp(ptrProps.get(), cValues, PR_OBJECT_TYPE);
 	if (lpObjType) {
 		switch (lpObjType->Value.l) {
 			case MAPI_MESSAGE:
@@ -86,7 +85,7 @@ HRESULT Dump(std::ostream &os, LPMAPIPROP lpProp, const std::string &strPrefix)
 					break;
 
 				for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
-					LPSPropValue lpRowId = PpropFindProp(ptrRows[i].lpProps, ptrRows[i].cValues, PR_ROWID);
+					auto lpRowId = PCpropFindProp(ptrRows[i].lpProps, ptrRows[i].cValues, PR_ROWID);
 
 					os << strPrefix << "  Recipient: ";
 					if (lpRowId)

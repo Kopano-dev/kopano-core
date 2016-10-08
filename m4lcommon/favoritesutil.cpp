@@ -278,10 +278,6 @@ HRESULT AddToFavorite(IMAPIFolder *lpShortcutFolder, ULONG ulLevel, LPCTSTR lpsz
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<IMessage> lpMessage;
-	LPSPropValue lpPropSourceKey = NULL;
-	LPSPropValue lpPropParentSourceKey = NULL;
-	LPSPropValue lpPropDisplayName = NULL;
-	LPSPropValue lpPropMessageClass = NULL;
 	object_ptr<IMAPITable> lpTable;
 	memory_ptr<SPropValue> lpNewPropArray;
 	ULONG cPropArray = 0;
@@ -290,10 +286,10 @@ HRESULT AddToFavorite(IMAPIFolder *lpShortcutFolder, ULONG ulLevel, LPCTSTR lpsz
 	if (lpShortcutFolder == nullptr || lpPropArray == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 	
-	lpPropSourceKey = PpropFindProp(lpPropArray, cValues, PR_SOURCE_KEY);
-	lpPropParentSourceKey = PpropFindProp(lpPropArray, cValues, PR_PARENT_SOURCE_KEY);
-	lpPropDisplayName = PpropFindProp(lpPropArray, cValues, PR_DISPLAY_NAME);
-	lpPropMessageClass = PpropFindProp(lpPropArray, cValues, PR_CONTAINER_CLASS);
+	auto lpPropSourceKey = PCpropFindProp(lpPropArray, cValues, PR_SOURCE_KEY);
+	auto lpPropParentSourceKey = PCpropFindProp(lpPropArray, cValues, PR_PARENT_SOURCE_KEY);
+	auto lpPropDisplayName = PCpropFindProp(lpPropArray, cValues, PR_DISPLAY_NAME);
+	auto lpPropMessageClass = PCpropFindProp(lpPropArray, cValues, PR_CONTAINER_CLASS);
 	
 	if (lpPropSourceKey == NULL || lpPropParentSourceKey == NULL || lpPropDisplayName == NULL)
 		return MAPI_E_CORRUPT_DATA;
@@ -375,8 +371,6 @@ HRESULT AddFavoriteFolder(LPMAPIFOLDER lpShortcutFolder, LPMAPIFOLDER lpFolder, 
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPITable> lpTable;
 	memory_ptr<SPropValue> lpsPropArray;
-	LPSPropValue lpPropDepth = NULL; // No free needed
-
 	SRowSet *lpRows = NULL;
 
 	ULONG ulFolderFlags = 0;
@@ -421,7 +415,7 @@ HRESULT AddFavoriteFolder(LPMAPIFOLDER lpShortcutFolder, LPMAPIFOLDER lpFolder, 
 		if (lpRows->cRows == 0)
 			break;
 
-		lpPropDepth = PpropFindProp(lpRows->aRow[0].lpProps,lpRows->aRow[0].cValues, PR_DEPTH);
+		auto lpPropDepth = PCpropFindProp(lpRows->aRow[0].lpProps,lpRows->aRow[0].cValues, PR_DEPTH);
 		if (lpPropDepth == NULL) {
 			hr = MAPI_E_CORRUPT_DATA;// Break the action
 			goto exit;

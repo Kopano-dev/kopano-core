@@ -451,8 +451,6 @@ HRESULT Copier::LeaveFolder()
 HRESULT Copier::DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps)
 {
 	HRESULT hr;
-	LPSPropValue lpEntryId = NULL;
-	LPSPropValue lpStoreEntryId = NULL;
 	SObjectEntry refObjectEntry;
 	MessagePtr ptrMessageRaw;
 	MessagePtr ptrMessage;
@@ -468,13 +466,13 @@ HRESULT Copier::DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps)
 	if (!m_ptrMapper)
 		return MAPI_E_UNCONFIGURED;
 
-	lpEntryId = PpropFindProp(lpProps, cProps, PR_ENTRYID);
+	auto lpEntryId = PCpropFindProp(lpProps, cProps, PR_ENTRYID);
 	if (lpEntryId == NULL) {
 		Logger()->Log(EC_LOGLEVEL_FATAL, "PR_ENTRYID missing");
 		return MAPI_E_NOT_FOUND;
 	}
 
-	lpStoreEntryId = PpropFindProp(lpProps, cProps, PR_STORE_ENTRYID);
+	auto lpStoreEntryId = PCpropFindProp(lpProps, cProps, PR_STORE_ENTRYID);
 	if (lpStoreEntryId == NULL) {
 		Logger()->Log(EC_LOGLEVEL_FATAL, "PR_STORE_ENTRYID missing");
 		return MAPI_E_NOT_FOUND;

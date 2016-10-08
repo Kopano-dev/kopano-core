@@ -592,10 +592,8 @@ HRESULT MAPIPropHelper::GetArchiveList(MAPIPropPtr ptrMapiProp, LPSPropValue lpP
 	ObjectEntryList lstArchives;
 	int result = 0;
 
-	LPSPropValue lpPropStoreEIDs = NULL;
-	LPSPropValue lpPropItemEIDs = NULL;
-	LPSPropValue lpPropOrigSK = NULL;
-	LPSPropValue lpPropSourceKey = NULL;
+	const SPropValue *lpPropStoreEIDs = NULL, *lpPropItemEIDs = NULL;
+	const SPropValue *lpPropOrigSK = NULL, *lpPropSourceKey = NULL;
 
 	PROPMAP_START(3)
 		PROPMAP_NAMED_ID(ARCHIVE_STORE_ENTRYIDS, PT_MV_BINARY, PSETID_Archive, dispidStoreEntryIds)
@@ -603,10 +601,10 @@ HRESULT MAPIPropHelper::GetArchiveList(MAPIPropPtr ptrMapiProp, LPSPropValue lpP
 		PROPMAP_NAMED_ID(ORIGINAL_SOURCEKEY, PT_BINARY, PSETID_Archive, dispidOrigSourceKey)
 	PROPMAP_INIT(ptrMapiProp)
 
-	lpPropStoreEIDs = PpropFindProp(lpProps, cbProps, PROP_ARCHIVE_STORE_ENTRYIDS);
-	lpPropItemEIDs = PpropFindProp(lpProps, cbProps, PROP_ARCHIVE_ITEM_ENTRYIDS);
-	lpPropOrigSK = PpropFindProp(lpProps, cbProps, PROP_ORIGINAL_SOURCEKEY);
-	lpPropSourceKey = PpropFindProp(lpProps, cbProps, PR_SOURCE_KEY);
+	lpPropStoreEIDs = PCpropFindProp(lpProps, cbProps, PROP_ARCHIVE_STORE_ENTRYIDS);
+	lpPropItemEIDs = PCpropFindProp(lpProps, cbProps, PROP_ARCHIVE_ITEM_ENTRYIDS);
+	lpPropOrigSK = PCpropFindProp(lpProps, cbProps, PROP_ORIGINAL_SOURCEKEY);
+	lpPropSourceKey = PCpropFindProp(lpProps, cbProps, PR_SOURCE_KEY);
 
 	if (!lpPropStoreEIDs || !lpPropItemEIDs || !lpPropOrigSK || !lpPropSourceKey) {
 		/**

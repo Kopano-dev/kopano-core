@@ -232,10 +232,9 @@ HRESULT ECMemTable::HrSetClean()
 
 HRESULT ECMemTable::HrUpdateRowID(LPSPropValue lpId, LPSPropValue lpProps, ULONG cValues)
 {
-    LPSPropValue lpUniqueProp = NULL;
 	scoped_rlock l_data(m_hDataMutex);
 
-	lpUniqueProp = PpropFindProp(lpProps, cValues, ulRowPropTag);
+	auto lpUniqueProp = PCpropFindProp(lpProps, cValues, ulRowPropTag);
 	if (lpUniqueProp == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	auto iterRows = mapRows.find(lpUniqueProp->Value.ul);
@@ -268,11 +267,10 @@ HRESULT ECMemTable::HrModifyRow(ULONG ulUpdateType, SPropValue *lpsID, SPropValu
 {
 	HRESULT hr = hrSuccess;
 	ECTableEntry entry;
-	LPSPropValue lpsRowID = NULL;
 	std::map<unsigned int, ECTableEntry>::iterator iterRows;
 	scoped_rlock l_data(m_hDataMutex);
 
-	lpsRowID = PpropFindProp(lpPropVals, cValues, ulRowPropTag);
+	auto lpsRowID = PCpropFindProp(lpPropVals, cValues, ulRowPropTag);
 	if (lpsRowID == NULL)
 		// you must specify a row number
 		return MAPI_E_INVALID_PARAMETER;
@@ -961,7 +959,6 @@ HRESULT ECMemTableView::ModifyRowKey(sObjectTableKey *lpsRowItem, sObjectTableKe
 	std::unique_ptr<unsigned int[]> lpulSortLen;
 	std::unique_ptr<unsigned char *[]> lpSortKeys;
 	std::unique_ptr<unsigned char[]> lpFlags;
-	LPSPropValue lpsSortID = NULL;
 	ULONG j;
 
 	// FIXME: mvprops?
@@ -993,7 +990,7 @@ HRESULT ECMemTableView::ModifyRowKey(sObjectTableKey *lpsRowItem, sObjectTableKe
 
 	// Get all the sort columns and package them as binary keys
 	for (j = 0; j < lpsSortOrderSet->cSorts; ++j) {
-		lpsSortID = PpropFindProp(iterData->second.lpsPropVal, iterData->second.cValues, lpsSortOrderSet->aSort[j].ulPropTag);
+		auto lpsSortID = PCpropFindProp(iterData->second.lpsPropVal, iterData->second.cValues, lpsSortOrderSet->aSort[j].ulPropTag);
 		if (lpsSortID == NULL || GetBinarySortKey(lpsSortID, &lpulSortLen[j], &lpFlags[j], &lpSortKeys[j]) != hrSuccess) {
 			lpulSortLen[j] = 0;
 			lpSortKeys[j] = NULL;
@@ -1074,8 +1071,6 @@ HRESULT ECMemTableView::QueryRows(LONG lRowCount, ULONG ulFlags, LPSRowSet *lppR
 HRESULT ECMemTableView::QueryRowData(ECObjectTableList *lpsRowList, LPSRowSet *lppRows)
 {
 	HRESULT hr = hrSuccess;
-
-	LPSPropValue lpsProp = NULL;
 	unsigned int i=0,j=0;
 	memory_ptr<SRowSet> lpRows;
 	convert_context converter;
@@ -1133,7 +1128,7 @@ HRESULT ECMemTableView::QueryRowData(ECObjectTableList *lpsRowList, LPSRowSet *l
 				continue;
 			}
 			// Find the property in the data (locate the property by property ID, since we may need conversion)
-			lpsProp = PpropFindProp(iterRows->second.lpsPropVal, iterRows->second.cValues, PROP_TAG(PT_UNSPECIFIED, PROP_ID(lpsPropTags->aulPropTag[j])));
+			auto lpsProp = PCpropFindProp(iterRows->second.lpsPropVal, iterRows->second.cValues, PROP_TAG(PT_UNSPECIFIED, PROP_ID(lpsPropTags->aulPropTag[j])));
 			if (lpsProp == nullptr) {
 				/* Not found */
 				lpRows->aRow[i].lpProps[j].ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpsPropTags->aulPropTag[j]));

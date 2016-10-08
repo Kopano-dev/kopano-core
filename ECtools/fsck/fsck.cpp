@@ -254,7 +254,6 @@ RunFolderValidation(const std::set<std::string> &setFolderIgnore,
     LPMAPIFOLDER lpRootFolder, LPSRow lpRow, CHECKMAP checkmap)
 {
 	HRESULT hr = hrSuccess;
-	LPSPropValue lpItemProperty = NULL;
 	object_ptr<IMAPIFolder> lpFolder;
 	Fsck *lpFsck = NULL;
 	ULONG ulObjectType = 0;
@@ -262,7 +261,7 @@ RunFolderValidation(const std::set<std::string> &setFolderIgnore,
 	string strClass;
 	ULONG ulFolderType = 0;
 
-	lpItemProperty = PpropFindProp(lpRow->lpProps, lpRow->cValues, PR_ENTRYID);
+	auto lpItemProperty = PCpropFindProp(lpRow->lpProps, lpRow->cValues, PR_ENTRYID);
 	if (!lpItemProperty) {
 		cout << "Row does not contain an EntryID." << endl;
 		return hr;

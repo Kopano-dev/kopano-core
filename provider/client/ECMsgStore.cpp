@@ -1390,10 +1390,8 @@ HRESULT ECMsgStore::CreateStoreEntryID(LPTSTR lpszMsgStoreDN, LPTSTR lpszMailbox
 
 HRESULT ECMsgStore::CreateStoreEntryID2(ULONG cValues, LPSPropValue lpProps, ULONG ulFlags, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
 {
-	LPSPropValue lpMsgStoreDN, lpMailboxDN;
-
-	lpMsgStoreDN = PpropFindProp(lpProps, cValues, PR_PROFILE_MDB_DN);
-	lpMailboxDN = PpropFindProp(lpProps, cValues, PR_PROFILE_MAILBOX);
+	auto lpMsgStoreDN = PCpropFindProp(lpProps, cValues, PR_PROFILE_MDB_DN);
+	auto lpMailboxDN = PCpropFindProp(lpProps, cValues, PR_PROFILE_MAILBOX);
 
 	if (lpMsgStoreDN == NULL || lpMailboxDN == NULL)
 		return MAPI_E_INVALID_PARAMETER;

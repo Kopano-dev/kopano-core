@@ -588,8 +588,7 @@ static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
 		}
 
         if(bIncludeAsP1) {
-            LPSPropValue lpRecipType = PpropFindProp(lpRecipients->aEntries[lpRecipients->cEntries].rgPropVals, lpRecipients->aEntries[lpRecipients->cEntries].cValues, PR_RECIPIENT_TYPE);
-            
+			auto lpRecipType = PpropFindProp(lpRecipients->aEntries[lpRecipients->cEntries].rgPropVals, lpRecipients->aEntries[lpRecipients->cEntries].cValues, PR_RECIPIENT_TYPE);
             if(!lpRecipType) {
                 ec_log_crit("Attempt to add recipient with no PR_RECIPIENT_TYPE");
                 hr = MAPI_E_INVALID_PARAMETER;
@@ -919,10 +918,7 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 		PR_RULE_LEVEL, PR_RULE_PROVIDER_DATA}};
 	static constexpr const SizedSSortOrderSet(1, sosRules) =
 		{1, 0, 0, {{PR_RULE_SEQUENCE, TABLE_SORT_ASCEND}}};
-    LPSPropValue lpRuleName = NULL;
-    LPSPropValue lpRuleState = NULL;
 	std::string strRule;
-    LPSPropValue lpProp = NULL;
     LPSRestriction lpCondition = NULL;
     ACTIONS* lpActions = NULL;
 
@@ -972,6 +968,7 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 	}
 
 	while (TRUE) {
+		const SPropValue *lpProp = NULL;
         hr = lpView->QueryRows(1, 0, &lpRowSet);
 	if (hr != hrSuccess) {
 		ec_log_err("HrProcessRules(): QueryRows failed %x", hr);
@@ -981,14 +978,14 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
             break;
 
 		sc -> countAdd("rules", "n_rules", int64_t(lpRowSet->cRows));
-		lpRuleName = PpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, CHANGE_PROP_TYPE(PR_RULE_NAME, PT_STRING8));
+		auto lpRuleName = PCpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, CHANGE_PROP_TYPE(PR_RULE_NAME, PT_STRING8));
 		if (lpRuleName)
 			strRule = lpRuleName->Value.lpszA;
 		else
 			strRule = "(no name)";
 
 		ec_log_debug("Processing rule %s for %s", strRule.c_str(), recip.c_str());
-		lpRuleState = PpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_RULE_STATE);
+		auto lpRuleState = PCpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_RULE_STATE);
 		if (lpRuleState != nullptr && !(lpRuleState->Value.i & ST_ENABLED)) {
 			ec_log_debug("Rule '%s' is disabled, skipping...", strRule.c_str());
 			goto nextrule;		// rule is disabled
@@ -997,7 +994,7 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 		lpCondition = NULL;
 		lpActions = NULL;
 
-		lpProp = PpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_RULE_CONDITION);
+		lpProp = PCpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_RULE_CONDITION);
 		if (lpProp)
 			// NOTE: object is placed in Value.lpszA, not Value.x
 			lpCondition = (LPSRestriction)lpProp->Value.lpszA;
@@ -1006,7 +1003,7 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 			goto nextrule;
 		}
 
-		lpProp = PpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_RULE_ACTIONS);
+		lpProp = PCpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_RULE_ACTIONS);
 		if (lpProp)
 			// NOTE: object is placed in Value.lpszA, not Value.x
 			lpActions = (ACTIONS*)lpProp->Value.lpszA;

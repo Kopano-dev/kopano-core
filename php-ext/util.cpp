@@ -41,8 +41,7 @@ HRESULT mapi_util_createprof(const char *szProfName, const char *szServiceName,
 	object_ptr<IMsgServiceAdmin> lpServiceAdmin;
 	object_ptr<IMAPITable> lpTable;
 	LPSRowSet		lpRows = NULL;
-	LPSPropValue	lpServiceUID = NULL;
-	LPSPropValue	lpServiceName = NULL;
+	const SPropValue *lpServiceUID = nullptr;
 	SizedSPropTagArray(2, sptaMsgServiceCols) = { 2, { PR_SERVICE_NAME_A, PR_SERVICE_UID }};
 
 	// Get the MAPI Profile administration object
@@ -104,8 +103,7 @@ HRESULT mapi_util_createprof(const char *szProfName, const char *szServiceName,
 			goto exit;
 		}
 
-		lpServiceName = PpropFindProp(lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues, PR_SERVICE_NAME_A);
-		
+		auto lpServiceName = PCpropFindProp(lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues, PR_SERVICE_NAME_A);
 		if(lpServiceName && strcmp(lpServiceName->Value.lpszA, szServiceName) == 0)
 			break;
 			
@@ -115,8 +113,7 @@ HRESULT mapi_util_createprof(const char *szProfName, const char *szServiceName,
 	}
 
 	// Get the PR_SERVICE_UID from the row
-	lpServiceUID = PpropFindProp(lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues, PR_SERVICE_UID);
-
+	lpServiceUID = PCpropFindProp(lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues, PR_SERVICE_UID);
 	if(!lpServiceUID) {
 		hr = MAPI_E_NOT_FOUND;
 		last_error = "Unable to find service UID";

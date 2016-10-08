@@ -486,7 +486,6 @@ exit:
 HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMsgProps, icaltimezone *lpicTZinfo, const std::string &strTZid, icalcomponent *lpEvent)
 {
 	bool bIsAllDay = false;
-	LPSPropValue lpPropVal = NULL;
 	bool bCounterProposal = false;
 	ULONG ulStartIndex = PROP_APPTSTARTWHOLE;
 	ULONG ulEndIndex = PROP_APPTENDWHOLE;
@@ -497,15 +496,14 @@ HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMs
 		return hr;
 
 	// vevent extra
-
-	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, m_lpNamedProps->aulPropTag[PROP_COUNTERPROPOSAL]);
+	auto lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, m_lpNamedProps->aulPropTag[PROP_COUNTERPROPOSAL]);
 	if(lpPropVal && PROP_TYPE(lpPropVal->ulPropTag) == PT_BOOLEAN && lpPropVal->Value.b) {
 		bCounterProposal = true;
 		ulStartIndex = PROP_PROPOSEDSTART;
 		ulEndIndex = PROP_PROPOSEDEND;
 	}
  	
-	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ALLDAYEVENT], PT_BOOLEAN));
+	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ALLDAYEVENT], PT_BOOLEAN));
 	if (lpPropVal)
 		bIsAllDay = (lpPropVal->Value.b == TRUE);
 	// @note If bIsAllDay == true, the item is an allday event "in the timezone it was created in" (and the user selected the allday event option)
@@ -513,7 +511,7 @@ HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMs
 	// However, in ICal, you cannot specify a timezone for a date, so ICal will show this as an allday event in every timezone your client is in.
 
 	// Set start time / DTSTART
-	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[ulStartIndex], PT_SYSTIME));
+	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[ulStartIndex], PT_SYSTIME));
 	if (lpPropVal == NULL)
 		// do not create calendar items without start/end date, which is invalid.
 		return MAPI_E_CORRUPT_DATA;
@@ -524,7 +522,7 @@ HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMs
 		return hr;
 
 	// Set end time / DTEND
-	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[ulEndIndex], PT_SYSTIME));
+	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[ulEndIndex], PT_SYSTIME));
 	if (lpPropVal == NULL) {
 		// do not create calendar items without start/end date, which is invalid.
 		return MAPI_E_CORRUPT_DATA;
@@ -543,7 +541,7 @@ HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMs
 	icalproperty *lpProp = NULL;
 
 	// Set original start time / DTSTART
-	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTSTARTWHOLE], PT_SYSTIME));
+	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTSTARTWHOLE], PT_SYSTIME));
 	if (lpPropVal == NULL) {
 		// do not create calendar items without start/end date, which is invalid.
 		return MAPI_E_CORRUPT_DATA;
@@ -558,7 +556,7 @@ HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMs
 	icalcomponent_add_property(lpEvent, lpProp);
 
 	// Set original end time / DTEND
-	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTENDWHOLE], PT_SYSTIME));
+	lpPropVal = PCpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTENDWHOLE], PT_SYSTIME));
 	if (lpPropVal == NULL) {
 		// do not create calendar items without start/end date, which is invalid.
 		return MAPI_E_CORRUPT_DATA;

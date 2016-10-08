@@ -362,7 +362,6 @@ HRESULT SVCService::Init(const INFLoader& cINF, const inf_section* infService)
 	HRESULT hr;
 	const inf_section* infProvider = NULL;
 	vector<string> prop;
-	LPSPropValue lpSO;
 	void **cf;
 	char filename[PATH_MAX + 1];
 
@@ -395,9 +394,9 @@ HRESULT SVCService::Init(const INFLoader& cINF, const inf_section* infService)
 	}
 
 	// find PR_SERVICE_SO_NAME / PR_SERVICE_DLL_NAME, load library
-	lpSO = PpropFindProp(m_lpProps, m_cValues, PR_SERVICE_SO_NAME_A);
+	auto lpSO = PCpropFindProp(m_lpProps, m_cValues, PR_SERVICE_SO_NAME_A);
 	if (!lpSO)
-		lpSO = PpropFindProp(m_lpProps, m_cValues, PR_SERVICE_DLL_NAME_A);
+		lpSO = PCpropFindProp(m_lpProps, m_cValues, PR_SERVICE_DLL_NAME_A);
 	if (lpSO == NULL)
 		return MAPI_E_NOT_FOUND;
 

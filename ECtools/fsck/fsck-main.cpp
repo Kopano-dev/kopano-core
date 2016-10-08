@@ -151,13 +151,12 @@ static HRESULT ProcessFolderEntry(Fsck *lpFsck, LPMAPIFOLDER lpFolder,
     LPSRow lpRow)
 {
 	HRESULT hr = hrSuccess;
-	LPSPropValue lpItemProperty = NULL;
 	object_ptr<IMessage> lpMessage;
 	ULONG ulObjectType = 0;
 	string strName;
 	string strClass;
 
-	lpItemProperty = PpropFindProp(lpRow->lpProps, lpRow->cValues, PR_ENTRYID);
+	auto lpItemProperty = PCpropFindProp(lpRow->lpProps, lpRow->cValues, PR_ENTRYID);
 	if (!lpItemProperty) {
 		cout << "Row does not contain an EntryID." << endl;
 		goto exit;
