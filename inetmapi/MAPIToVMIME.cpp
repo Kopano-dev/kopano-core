@@ -714,15 +714,10 @@ exit:
 HRESULT MAPIToVMIME::setBoundaries(vmime::shared_ptr<vmime::header> vmHeader,
     vmime::shared_ptr<vmime::body> vmBody, const std::string& boundary)
 {
-	vmime::shared_ptr<vmime::contentTypeField> vmCTF;
-
-	try {
-		vmCTF = vmime::dynamicCast<vmime::contentTypeField>(vmHeader->findField(vmime::fields::CONTENT_TYPE));
-	}
-	catch (vmime::exceptions::no_such_field) {
+	if (!vmHeader->hasField(vmime::fields::CONTENT_TYPE))
 		return hrSuccess;
-	}
 
+	auto vmCTF = vmime::dynamicCast<vmime::contentTypeField>(vmHeader->findField(vmime::fields::CONTENT_TYPE));
 	if (vmime::dynamicCast<vmime::mediaType>(vmCTF->getValue())->getType() == vmime::mediaTypes::MULTIPART) {
 		// This is a multipart, so set the boundary for this part
 		vmCTF->setBoundary(boundary);
@@ -1681,13 +1676,8 @@ HRESULT MAPIToVMIME::handleXHeaders(IMessage *lpMessage,
 					str = new char[18];
 					strcpy(str, "X-Original-Mailer");
 				}
-
-				try {
-					vmHeader->findField(str);
-				}
-				catch (vmime::exceptions::no_such_field) {
+				if (!vmHeader->hasField(str))
 					vmHeader->appendField(hff->create(str, lpPropArray[i].Value.lpszA));
-				}
 			}
 			delete [] str;
 		}

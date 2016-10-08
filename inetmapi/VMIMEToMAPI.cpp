@@ -619,14 +619,13 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 		vmime::datetime date = vmime::datetime::now();
 		bool found_date = false;
 		if (m_dopt.use_received_date || m_mailState.ulMsgInMsg) {
-			try {
+			if (vmHeader->hasField("Received")) {
 				auto recv = vmime::dynamicCast<vmime::relay>(vmHeader->findField("Received")->getValue());
 				if (recv) {
 					date = recv->getDate();
 					found_date = true;
 				}
-			}
-			catch (...) {
+			} else {
 				if (m_mailState.ulMsgInMsg) {
 					date = *vmime::dynamicCast<vmime::datetime>(vmHeader->Date()->getValue());
 					found_date = true;
@@ -3648,15 +3647,14 @@ HRESULT VMIMEToMAPI::bodyPartToStructure(const string &input,
 	list<string> lBodyStructure;
 	string buffer;
 	vmime::utility::outputStreamStringAdapter os(buffer);
-	auto vmHeaderPart = vmBodyPart->getHeader();
 	vmime::shared_ptr<vmime::contentTypeField> ctf;
 	vmime::shared_ptr<vmime::mediaType> mt;
 
-	try {
+	auto vmHeaderPart = vmBodyPart->getHeader();
+	if (vmHeaderPart->hasField(vmime::fields::CONTENT_TYPE)) {
 		ctf = vmime::dynamicCast<vmime::contentTypeField>(vmHeaderPart->findField(vmime::fields::CONTENT_TYPE));
 		mt = vmime::dynamicCast<vmime::mediaType>(ctf->getValue());
-	}
-	catch (vmime::exception &e) {
+	} else {
 		// create with text/plain; charset=us-ascii ?
 		lBody.push_back("NIL");
 		lBodyStructure.push_back("NIL");
@@ -3669,29 +3667,26 @@ HRESULT VMIMEToMAPI::bodyPartToStructure(const string &input,
 	// if string == () force add charset.
 	lBody.push_back(parameterizedFieldToStructure(ctf));
 
-	try {
+	if (vmHeaderPart->hasField(vmime::fields::CONTENT_ID)) {
 		buffer = vmime::dynamicCast<vmime::messageId>(vmHeaderPart->findField(vmime::fields::CONTENT_ID)->getValue())->getId();
 		lBody.push_back(buffer.empty() ? "NIL" : "\"<" + buffer + ">\"");
-	}
-	catch (vmime::exception &e) {
+	} else {
 		lBody.push_back("NIL");
 	}
 
-	try {
+	if (vmHeaderPart->hasField(vmime::fields::CONTENT_DESCRIPTION)) {
 		buffer.clear();
 		vmHeaderPart->findField(vmime::fields::CONTENT_DESCRIPTION)->getValue()->generate(os);
 		lBody.push_back(buffer.empty() ? "NIL" : "\"" + buffer + "\"");
-	}
-	catch (vmime::exception &e) {
+	} else {
 		lBody.push_back("NIL");
 	}
 
-	try {
+	if (vmHeaderPart->hasField(vmime::fields::CONTENT_TRANSFER_ENCODING)) {
 		buffer.clear();
 		vmHeaderPart->findField(vmime::fields::CONTENT_TRANSFER_ENCODING)->getValue()->generate(os);
 		lBody.push_back(buffer.empty() ? "NIL" : "\"" + buffer + "\"");
-	}
-	catch (vmime::exception &e) {
+	} else {
 		lBody.push_back("NIL");
 	}
 
@@ -3771,13 +3766,12 @@ std::string VMIMEToMAPI::getStructureExtendedFields(vmime::shared_ptr<vmime::hea
 	vmime::utility::outputStreamStringAdapter os(buffer);
 
 	// content-disposition header
-	try {
+	if (vmHeaderPart->hasField(vmime::fields::CONTENT_DISPOSITION)) {
 		// use findField because we want an exception when missing
 		auto cdf = vmime::dynamicCast<vmime::contentDispositionField>(vmHeaderPart->findField(vmime::fields::CONTENT_DISPOSITION));
 		auto cd = vmime::dynamicCast<vmime::contentDisposition>(cdf->getValue());
 		lItems.push_back("(\"" + cd->getName() + "\" " + parameterizedFieldToStructure(cdf) + ")");
-	}
-	catch (vmime::exception &e) {
+	} else {
 		lItems.push_back("NIL");
 	}
 

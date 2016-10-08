@@ -191,26 +191,10 @@ void mapiTextPart::findEmbeddedParts(const bodyPart& part,
 
 		// For a part to be an embedded object, it must have a
 		// Content-Id field or a Content-Location field.
-		try
-		{
-			p->getHeader()->findField(fields::CONTENT_ID);
+		if (p->getHeader()->hasField(fields::CONTENT_ID))
 			cidParts.push_back(p);
-		}
-		catch (exceptions::no_such_field)
-		{
-			// No "Content-id" field.
-		}
-
-		try
-		{
-			p->getHeader()->findField(fields::CONTENT_LOCATION);
+		if (p->getHeader()->hasField(fields::CONTENT_LOCATION))
 			locParts.push_back(p);
-		}
-		catch (exceptions::no_such_field)
-		{
-			// No "Content-Location" field.
-		}
-
 		findEmbeddedParts(*p, cidParts, locParts);
 	}
 }
@@ -259,18 +243,9 @@ void mapiTextPart::parse(const vmime::shared_ptr<const vmime::bodyPart> &message
 
 	m_text = textPart->getBody()->getContents()->clone();
 
-	try
-	{
+	if (textPart->getHeader()->hasField(fields::CONTENT_TYPE)) {
 		auto ctf = vmime::dynamicCast<vmime::contentTypeField>(textPart->getHeader()->findField(fields::CONTENT_TYPE));
 		m_charset = ctf->getCharset();
-	}
-	catch (exceptions::no_such_field)
-	{
-		// No "Content-type" field.
-	}
-	catch (std::out_of_range)
-	{
-		// No "charset" parameter.
 	}
 
 	// Extract embedded objects. The algorithm is quite simple: for each previously
@@ -307,8 +282,7 @@ void mapiTextPart::parse(const vmime::shared_ptr<const vmime::bodyPart> &message
 bool mapiTextPart::findPlainTextPart(const bodyPart& part, const bodyPart& parent, const bodyPart& textPart)
 {
 	// We search for the nearest "multipart/alternative" part.
-	try
-	{
+	if (part.getHeader()->hasField(fields::CONTENT_TYPE)) {
 		auto ctf = part.getHeader()->findField(fields::CONTENT_TYPE);
 		auto type = *vmime::dynamicCast<const vmime::mediaType>(ctf->getValue());
 
@@ -333,9 +307,7 @@ bool mapiTextPart::findPlainTextPart(const bodyPart& part, const bodyPart& paren
 				// Now, search for the alternative plain text part
 				for (size_t i = 0; !found && i < part.getBody()->getPartCount(); ++i) {
 					auto p = part.getBody()->getPartAt(i);
-
-					try
-					{
+					if (p->getHeader()->hasField(fields::CONTENT_TYPE)) {
 						auto ctf = p->getHeader()->findField(fields::CONTENT_TYPE);
 						auto type = *vmime::dynamicCast<const vmime::mediaType>(ctf->getValue());
 
@@ -346,10 +318,6 @@ bool mapiTextPart::findPlainTextPart(const bodyPart& part, const bodyPart& paren
 							found = true;
 						}
 					}
-					catch (exceptions::no_such_field)
-					{
-						// No "Content-type" field.
-					}
 				}
 
 				// If we don't have found the plain text part here, it means that
@@ -358,10 +326,6 @@ bool mapiTextPart::findPlainTextPart(const bodyPart& part, const bodyPart& paren
 				return found;
 			}
 		}
-	}
-	catch (exceptions::no_such_field)
-	{
-		// No "Content-type" field.
 	}
 
 	bool found = false;
