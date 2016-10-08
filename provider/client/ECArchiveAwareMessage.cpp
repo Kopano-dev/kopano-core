@@ -160,7 +160,10 @@ exit:
 HRESULT	ECArchiveAwareMessage::HrSetRealProp(SPropValue *lpsPropValue)
 {
 	HRESULT hr;
+	SPropValue copy;
 
+	if (lpsPropValue != nullptr)
+		copy = *lpsPropValue;
 	/*
 	 * m_bLoading: This is where we end up if we're called through HrLoadProps. So this
 	 * is where we check if the loaded message is unarchived, archived or stubbed.
@@ -204,13 +207,13 @@ HRESULT	ECArchiveAwareMessage::HrSetRealProp(SPropValue *lpsPropValue)
 		}
 
 		else if (lpsPropValue->ulPropTag == PROP_STUBBED) {
-			if (lpsPropValue->Value.b != FALSE)
+			if (lpsPropValue->Value.b == TRUE)
 				m_mode = MODE_STUBBED;
 
 			// The message is not stubbed once destubbed.
 			// This fixes all kind of weird copy issues where the stubbed property does not
 			// represent the actual state of the message.
-			lpsPropValue->Value.b = FALSE;
+			copy.Value.b = FALSE;
 		}
 
 		else if (lpsPropValue->ulPropTag == PROP_DIRTY) {
@@ -219,7 +222,7 @@ HRESULT	ECArchiveAwareMessage::HrSetRealProp(SPropValue *lpsPropValue)
 		}
 	}
 
-	hr = ECMessage::HrSetRealProp(lpsPropValue);
+	hr = ECMessage::HrSetRealProp(lpsPropValue != nullptr ? &copy : nullptr);
 	if (hr == hrSuccess && !m_bLoading)
 		/*
 		 * This is where we end up if a property is actually altered through SetProps.
