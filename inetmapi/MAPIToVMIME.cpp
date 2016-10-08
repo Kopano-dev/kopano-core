@@ -64,8 +64,6 @@ using namespace std;
  * - Not part of an outgoing message (PR_TRANSPORT_MESSAGE_HEADERS)
  */
 
-SizedSPropTagArray(1, sptaBestBodyInclude) = {1, {PR_RTF_COMPRESSED} };
-
 // Since UNICODE is defined, the strings will be PT_UNICODE, as required by ECTNEF::AddProps()
 SizedSPropTagArray(54, sptaExclude) = {
     54, 	{
@@ -2350,6 +2348,8 @@ tnef_anyway:
 			
 				// plaintext is never added to TNEF, only HTML or "real" RTF
 				if (bestBody != plaintext) {
+					SizedSPropTagArray(1, sptaBestBodyInclude) = {1, {PR_RTF_COMPRESSED}};
+
 					if (bestBody == html) sptaBestBodyInclude.aulPropTag[0] = PR_HTML;
 					else if (bestBody == realRTF) sptaBestBodyInclude.aulPropTag[0] = PR_RTF_COMPRESSED;
 
