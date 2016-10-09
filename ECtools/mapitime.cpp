@@ -9,6 +9,7 @@
 #include <kopano/ECLogger.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/charset/convert.h>
+#include <kopano/ECMemTable.h>
 
 struct mpt_stat_entry {
 	struct timespec start, stop;
@@ -153,6 +154,51 @@ static int mpt_main_lilo(void)
 	return EXIT_SUCCESS;
 }
 
+static int mpt_main_vft(void)
+{
+	HRESULT ret = MAPIInitialize(NULL);
+	if (ret != hrSuccess) {
+		perror("MAPIInitialize");
+		return EXIT_FAILURE;
+	}
+
+	int err = mpt_setup_tick();
+	if (err < 0)
+		return EXIT_FAILURE;
+
+	struct mpt_stat_entry dp;
+	SPropTagArray spta = {1, {PR_ENTRYID}};
+	ECMemTable *mt;
+	ret = ECMemTable::Create(&spta, PT_LONG, &mt);
+	if (ret != hrSuccess) {
+		ec_log_err("ECMemTable::Create died");
+		return EXIT_FAILURE;
+	}
+	ECMemTableView *view;
+	ret = mt->HrGetView(createLocaleFromName(""), 0, &view);
+	if (ret != hrSuccess) {
+		ec_log_err("HrGetView died");
+		return EXIT_FAILURE;
+	}
+
+	while (mpt_repeat-- > 0) {
+		clock_gettime(CLOCK_MONOTONIC, &dp.start);
+		IMAPITable *imt = NULL;
+		IUnknown *iunk = NULL;
+		view->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(&imt));
+		view->QueryInterface(IID_IUnknown, reinterpret_cast<void **>(&iunk));
+		imt->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(&imt));
+		imt->QueryInterface(IID_IUnknown, reinterpret_cast<void **>(&iunk));
+		iunk->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(&imt));
+		iunk->QueryInterface(IID_IUnknown, reinterpret_cast<void **>(&iunk));
+		clock_gettime(CLOCK_MONOTONIC, &dp.stop);
+		mpt_stat_record(dp);
+	}
+	mt->Release();
+	MAPIUninitialize();
+	return EXIT_SUCCESS;
+}
+
 static void mpt_usage(void)
 {
 	fprintf(stderr, "mapitime [-p pass] [-s server] [-u username] [-z count] {init|lilo}\n");
@@ -160,6 +206,7 @@ static void mpt_usage(void)
 	fprintf(stderr, "Benchmark choices:\n");
 	fprintf(stderr, "  init        Just the library initialization\n");
 	fprintf(stderr, "  lilo        Send login and logoff RPCs to the server\n");
+	fprintf(stderr, "  vft         Measure C++ class dispatching\n");
 }
 
 static int mpt_option_parse(int argc, char **argv)
@@ -215,6 +262,8 @@ int main(int argc, char **argv)
 		return mpt_main_login();
 	else if (strcmp(argv[1], "lilo") == 0)
 		return mpt_main_lilo();
+	else if (strcmp(argv[1], "vft") == 0)
+		return mpt_main_vft();
 
 	mpt_usage();
 	return EXIT_FAILURE;
