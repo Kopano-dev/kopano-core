@@ -501,7 +501,7 @@ extern _kc_export BOOL FPropExists(LPMAPIPROP mprop, ULONG tag);
 extern _kc_export LPSPropValue PpropFindProp(LPSPropValue props, ULONG vals, ULONG tag);
 extern _kc_export void FreePadrlist(LPADRLIST);
 extern _kc_export void FreeProws(LPSRowSet rows);
-extern _kc_export HRESULT HrQueryAllRows(LPMAPITABLE table, LPSPropTagArray tags, LPSRestriction, LPSSortOrderSet, LONG rows_max, LPSRowSet *rows);
+extern _kc_export HRESULT HrQueryAllRows(LPMAPITABLE table, LPSPropTagArray tags, LPSRestriction, const SSortOrderSet *, LONG rows_max, LPSRowSet *rows);
 
 /* Create or validate the IPM folder tree in a message store */
 

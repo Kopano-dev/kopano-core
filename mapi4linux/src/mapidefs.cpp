@@ -549,7 +549,8 @@ HRESULT M4LMAPITable::FreeBookmark(BOOKMARK bkPosition) {
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LMAPITable::SortTable(LPSSortOrderSet lpSortCriteria, ULONG ulFlags) {
+HRESULT M4LMAPITable::SortTable(const SSortOrderSet *, ULONG flags)
+{
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPITable::SortTable", "");
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPITable::SortTable", "0x%08x", MAPI_E_NO_SUPPORT);
 	return MAPI_E_NO_SUPPORT;

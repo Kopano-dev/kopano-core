@@ -100,7 +100,7 @@ public:
 	virtual HRESULT __stdcall Restrict(LPSRestriction lpRestriction, ULONG flags) _kc_override;
 	virtual HRESULT __stdcall CreateBookmark(BOOKMARK *lpbkPosition) _kc_override;
 	virtual HRESULT __stdcall FreeBookmark(BOOKMARK bkPosition) _kc_override;
-	virtual HRESULT __stdcall SortTable(LPSSortOrderSet lpSortCriteria, ULONG flags) _kc_override;
+	virtual HRESULT __stdcall SortTable(const SSortOrderSet *sort_crit, ULONG flags) _kc_override;
 	virtual HRESULT __stdcall QuerySortOrder(LPSSortOrderSet *lppSortCriteria) _kc_override;
 	virtual HRESULT __stdcall QueryRows(LONG lRowCount, ULONG flags, LPSRowSet *lppRows) _kc_override;
 	virtual HRESULT __stdcall Abort(void) _kc_override;
