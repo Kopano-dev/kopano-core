@@ -153,12 +153,21 @@ static int mpt_main_lilo(void)
 	return EXIT_SUCCESS;
 }
 
+static void mpt_usage(void)
+{
+	fprintf(stderr, "mapitime [-p pass] [-s server] [-u username] [-z count] {init|lilo}\n");
+	fprintf(stderr, "  -z count    Run this many iterations (default: finite but almost forever)\n");
+	fprintf(stderr, "Benchmark choices:\n");
+	fprintf(stderr, "  init        Just the library initialization\n");
+	fprintf(stderr, "  lilo        Send login and logoff RPCs to the server\n");
+}
+
 static int mpt_option_parse(int argc, char **argv)
 {
 	char *user = NULL, *pass = NULL;
 	int c;
 	if (argc < 2) {
-		fprintf(stderr, "Need to specify a benchmark to run (init, login)\n");
+		mpt_usage();
 		return EXIT_FAILURE;
 	}
 	while ((c = getopt(argc, argv, "p:s:u:z:")) != -1) {
@@ -170,8 +179,10 @@ static int mpt_option_parse(int argc, char **argv)
 			mpt_socket = optarg;
 		else if (c == 'z')
 			mpt_repeat = strtoul(optarg, NULL, 0);
-		else
+		else {
 			fprintf(stderr, "Error: unknown option -%c\n", c);
+			mpt_usage();
+		}
 	}
 	if (user == NULL) {
 		user = "foo";
@@ -205,6 +216,6 @@ int main(int argc, char **argv)
 	else if (strcmp(argv[1], "lilo") == 0)
 		return mpt_main_lilo();
 
-	fprintf(stderr, "Unknown benchmark\n");
+	mpt_usage();
 	return EXIT_FAILURE;
 }
