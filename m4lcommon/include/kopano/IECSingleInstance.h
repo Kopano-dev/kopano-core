@@ -23,7 +23,7 @@
 
 namespace KC {
 
-class IECSingleInstance : public IUnknown {
+class IECSingleInstance : public virtual IUnknown {
 public:
 	virtual HRESULT __stdcall GetSingleInstanceId(ULONG *lpcbInstanceID, LPENTRYID *lppInstanceID) = 0;
 	virtual HRESULT __stdcall SetSingleInstanceId(ULONG cbInstanceID, LPENTRYID lpInstanceID) = 0;

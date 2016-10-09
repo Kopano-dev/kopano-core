@@ -147,7 +147,7 @@ typedef struct FBUser *LPFBUser;
  * Provided by: Free/busy provider 
  * Interface identifier: IID_IFreeBusyUpdate
  */
-class IFreeBusyUpdate : public IUnknown {
+class IFreeBusyUpdate : public virtual IUnknown {
 public:
 	/**
 	 * Unknown function, Possible reload the freebusydata ?
@@ -227,8 +227,7 @@ public:
  * a user through IFreeBusyData. 
  * 
  */
-class IEnumFBBlock : public IUnknown {
-
+class IEnumFBBlock : public virtual IUnknown {
 public:
 	/**
 	 * Gets the next specified number of blocks of free/busy data in an enumeration.
@@ -299,7 +298,7 @@ public:
  * use of Outlook and are subject to change. Free/busy providers must implement them only 
  * as specified, returning only the specified return values.
  */
-class IFreeBusyData : public IUnknown {
+class IFreeBusyData : public virtual IUnknown {
 public:
 	
 	/**
@@ -402,7 +401,7 @@ public:
  *	only as specified, returning only the specified return values.
  *
  */
-class IFreeBusySupport : public IUnknown {
+class IFreeBusySupport : public virtual IUnknown {
 public:
 
 	/**
@@ -611,7 +610,7 @@ public:
  *	Missing call is CleanTombstone. This is not support in outlook 2000
  *
  */
-class IFreeBusySupportOutlook2000 : public IUnknown {
+class IFreeBusySupportOutlook2000 : public virtual IUnknown {
 public:
 
 	/*! @copydoc IFreeBusySupport::Open */

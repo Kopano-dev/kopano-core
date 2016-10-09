@@ -114,8 +114,7 @@
 #define MNID_ID                 0
 #define MNID_STRING             1
 
-
-class IMAPIProp : public IUnknown {
+class IMAPIProp : public virtual IUnknown {
 public:
     //    virtual ~IMAPIProp() = 0;
 
@@ -149,7 +148,7 @@ public:
 #define FOREGROUND_SEARCH       (0x00000010)
 #define BACKGROUND_SEARCH       (0x00000020)
 
-class IMAPIContainer : public IMAPIProp {
+class IMAPIContainer : public virtual IMAPIProp {
 public:
     //    virtual ~IMAPIContainer() = 0;
 
@@ -285,7 +284,7 @@ public:
 	}
 };
 
-class IProxyStoreObject : public IUnknown {
+class IProxyStoreObject : public virtual IUnknown {
 public:
     virtual HRESULT PlaceHolder1() = 0;
     virtual HRESULT PlaceHolder2() = 0;
@@ -329,7 +328,7 @@ public:
 #define FLDSTATUS_HIDDEN        (0x00000004)
 #define FLDSTATUS_DELMARKED     (0x00000008)
 
-class IMAPIFolder : public IMAPIContainer {
+class IMAPIFolder : public virtual IMAPIContainer {
 public:
     //    virtual ~IMAPIFolder() = 0;
 
@@ -388,7 +387,7 @@ public:
 #define IMPORTANCE_NORMAL       (1)
 #define IMPORTANCE_HIGH         (2)
 
-class IMessage : public IMAPIProp {
+class IMessage : public virtual IMAPIProp {
 public:
     //    virtual ~IMessage() = 0;
 
@@ -413,7 +412,7 @@ public:
 #define ATTACH_EMBEDDED_MSG     (0x00000005)
 #define ATTACH_OLE              (0x00000006)
 
-class IAttach : public IMAPIProp {
+class IAttach : public virtual IMAPIProp {
 public:
 	%extend {
 		~IAttach() { self->Release(); }
@@ -433,7 +432,7 @@ public:
 #define MAPI_AMBIGUOUS          (0x00000001)
 #define MAPI_RESOLVED           (0x00000002)
 
-class IABContainer : public IMAPIContainer {
+class IABContainer : public virtual IMAPIContainer {
 public:
     virtual HRESULT CreateEntry(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulCreateFlags, LPMAPIPROP* OUTPUT /*lppMAPIPropEntry*/) = 0;
     virtual HRESULT CopyEntries(LPENTRYLIST lpEntries, ULONG ulUIParam, IMAPIProgress * lpProgress, ULONG ulFlags) = 0;
@@ -512,7 +511,7 @@ public:
 	}
 };
 
-class IDistList : public IMAPIContainer {
+class IDistList : public virtual IMAPIContainer {
 public:
     virtual HRESULT CreateEntry(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulCreateFlags, LPMAPIPROP* OUTPUT /*lppMAPIPropEntry*/) = 0;
     virtual HRESULT CopyEntries(LPENTRYLIST lpEntries, ULONG ulUIParam, IMAPIProgress * lpProgress, ULONG ulFlags) = 0;
@@ -607,7 +606,7 @@ typedef ULONG       BOOKMARK;
 
 #define TBL_NOADVANCE       0x00000001
 
-class IMAPITable : public IUnknown {
+class IMAPITable : public virtual IUnknown {
 public:
     //    virtual ~IMAPITable() = 0;
 
@@ -701,7 +700,7 @@ public:
 #define FLUSH_NO_UI         (0x00000010)
 #define FLUSH_ASYNC_OK      (0x00000020)
 
-class IProfSect : public IMAPIProp {
+class IProfSect : public virtual IMAPIProp {
 public:
 	%extend {
 		~IProfSect() { self->Release(); }

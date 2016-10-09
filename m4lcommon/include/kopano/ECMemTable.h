@@ -71,7 +71,7 @@ protected:
 	virtual ~ECMemTable();
 public:
 	static HRESULT Create(const SPropTagArray *lpsPropTagArray, ULONG ulRowPropTag, ECMemTable **lppRecipTable);
-	_kc_hidden virtual HRESULT QueryInterface(REFIID refiid, void **iface) _kc_override;
+	virtual HRESULT QueryInterface(REFIID refiid, void **iface) _kc_override;
 	virtual HRESULT HrGetView(const ECLocale &locale, ULONG ulFlags, ECMemTableView **lpView);
 	virtual HRESULT HrModifyRow(ULONG flags, const SPropValue *id, const SPropValue *prop, ULONG n);
 	virtual HRESULT HrUpdateRowID(LPSPropValue lpId, LPSPropValue lpProps, ULONG cValues);

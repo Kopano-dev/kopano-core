@@ -28,7 +28,7 @@
 
 namespace KC {
 
-class IECServiceAdmin : public IUnknown {
+class IECServiceAdmin : public virtual IUnknown {
 public:
 	// Create/Delete stores
 	virtual HRESULT __stdcall CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, ULONG* lpcbStoreId, LPENTRYID* lppStoreId, ULONG* lpcbRootId, LPENTRYID *lppRootId) = 0;

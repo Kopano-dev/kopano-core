@@ -27,7 +27,7 @@ namespace KC {
 /**
  * IECChangeAdvisor: Interface for registering change notifications on folders.
  */
-class IECChangeAdvisor : public IUnknown{
+class IECChangeAdvisor : public virtual IUnknown {
 public:
 	virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
 

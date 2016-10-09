@@ -22,7 +22,7 @@ namespace KC {
 
 class IECImportAddressbookChanges;
 
-class IECExportAddressbookChanges : public IUnknown {
+class IECExportAddressbookChanges : public virtual IUnknown {
 public:
 	virtual HRESULT __stdcall Config(LPSTREAM lpState, ULONG ulFlags, IECImportAddressbookChanges *lpCollector) = 0;
 	virtual HRESULT __stdcall Synchronize(ULONG *lpulSteps, ULONG *lpulProgress) = 0;

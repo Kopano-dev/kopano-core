@@ -128,7 +128,7 @@ enum STATFLAG {
 }
 
 /* IStream Interface */
-class ISequentialStream : public IUnknown {
+class ISequentialStream : public virtual IUnknown {
 public:
 	// Hard to typemap so using other method below
     // virtual HRESULT Read(void *OUTPUT, ULONG cb, ULONG *OUTPUT) = 0;
@@ -174,7 +174,7 @@ public:
 
 %feature("notabstract") IStream;
 
-class IStream : public ISequentialStream {
+class IStream : public virtual ISequentialStream {
 public:
     virtual HRESULT Seek(LARGE_INTEGER dlibMove, DWORD dwOrigin, ULARGE_INTEGER *plibNewPosition) = 0;
     virtual HRESULT SetSize(ULARGE_INTEGER libNewSize) = 0;

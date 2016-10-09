@@ -9,7 +9,7 @@
 #include "IECImportHierarchyChanges.h"
 %}
 
-class IECChangeAdvisor : public IUnknown {
+class IECChangeAdvisor : public virtual IUnknown {
 public:
 	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
 	virtual HRESULT Config(IStream * lpStream, GUID * lpGUID, IECChangeAdviseSink* lpAdviseSink, ULONG ulFlags) = 0;
@@ -23,7 +23,7 @@ public:
 	}
 };
 
-class IECChangeAdviseSink : public IUnknown {
+class IECChangeAdviseSink : public virtual IUnknown {
 public:
 	virtual ULONG OnNotify(ULONG ulFlags, LPENTRYLIST lpEntryList) = 0;
 	%extend {
@@ -48,8 +48,7 @@ public:
 	}
 };
 
-
-class IECSingleInstance : public IUnknown {
+class IECSingleInstance : public virtual IUnknown {
 public:
 	virtual HRESULT GetSingleInstanceId(ULONG *OUTPUT /*lpcbInstanceID*/, LPENTRYID *OUTPUT /*lppInstanceID*/) = 0;
 	virtual HRESULT SetSingleInstanceId(ULONG cbInstanceID, LPENTRYID lpInstanceID) = 0;

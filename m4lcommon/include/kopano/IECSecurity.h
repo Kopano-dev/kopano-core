@@ -24,7 +24,7 @@
 
 namespace KC {
 
-class IECSecurity : public IUnknown {
+class IECSecurity : public virtual IUnknown {
 public:
 	virtual HRESULT GetOwner(ULONG *lpcbOwner, LPENTRYID *lppOwner) = 0;
 	virtual HRESULT GetUserList(ULONG cbCompanyId, LPENTRYID lpCompanyId, ULONG ulFlags, ULONG *lpcUsers, ECUSER **lppsUsers) = 0;

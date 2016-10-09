@@ -20,7 +20,7 @@
 
 namespace KC {
 
-class IECTestProtocol : public IUnknown {
+class IECTestProtocol : public virtual IUnknown {
 public:
 	virtual HRESULT __stdcall TestPerform(const char *cmd, unsigned int argc, char **args) = 0;
 	virtual HRESULT __stdcall TestSet(const char *name, const char *value) = 0;
