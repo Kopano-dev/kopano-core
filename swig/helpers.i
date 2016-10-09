@@ -1,6 +1,5 @@
 %{
 #include <kopano/ECTags.h>
-#include <kopano/IECUnknown.h>
 %}
 
 // Pull in the language-specific helpers
@@ -27,7 +26,7 @@
 %inline %{
 HRESULT UnwrapObject(IMAPIProp *lpWrapped, LPCIID USE_IID_FOR_OUTPUT, LPUNKNOWN* OUTPUT_USE_IID) {
 	HRESULT hr = hrSuccess;
-	IECUnknown* lpUnwrapped = NULL;
+	IUnknown *lpUnwrapped = NULL;
 	LPSPropValue lpPropValue = NULL;
 
 	if (lpWrapped == NULL || OUTPUT_USE_IID == NULL) {
@@ -36,8 +35,7 @@ HRESULT UnwrapObject(IMAPIProp *lpWrapped, LPCIID USE_IID_FOR_OUTPUT, LPUNKNOWN*
 	}
 
 	if (HrGetOneProp(lpWrapped, PR_EC_OBJECT, &lpPropValue) == hrSuccess) {
-
-		lpUnwrapped = (IECUnknown *)lpPropValue->Value.lpszA;
+		lpUnwrapped = reinterpret_cast<IUnknown *>(lpPropValue->Value.lpszA);
 		if (lpUnwrapped == NULL) {
 			hr = MAPI_E_INVALID_PARAMETER;
 			goto exit;

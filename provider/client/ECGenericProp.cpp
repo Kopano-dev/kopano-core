@@ -323,7 +323,7 @@ HRESULT	ECGenericProp::DefaultGetProp(ULONG ulPropTag,  void* lpProvider, ULONG 
 		 * machines.
 		 */
 		lpsPropValue->ulPropTag = PR_EC_OBJECT;
-		lpsPropValue->Value.lpszA = reinterpret_cast<char *>(static_cast<IECUnknown *>(lpProp));
+		lpsPropValue->Value.lpszA = reinterpret_cast<char *>(static_cast<IUnknown *>(lpProp));
 		break;
 	case PROP_ID(PR_NULL):
 		// outlook with export contacts to csv (IMessage)(0x00000000) <- skip this one

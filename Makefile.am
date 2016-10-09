@@ -728,7 +728,6 @@ libmapi_la_SOURCES = \
 	m4lcommon/include/kopano/xclsfrag/IECPropStorage.hpp \
 	m4lcommon/include/kopano/xclsfrag/IECSecurity.hpp \
 	m4lcommon/include/kopano/xclsfrag/IECSingleInstance.hpp \
-	m4lcommon/include/kopano/xclsfrag/IECUnknown.hpp \
 	m4lcommon/include/kopano/xclsfrag/IExchangeExportChanges.hpp \
 	m4lcommon/include/kopano/xclsfrag/IExchangeManageStore.hpp \
 	m4lcommon/include/kopano/xclsfrag/IExchangeModifyTable.hpp \

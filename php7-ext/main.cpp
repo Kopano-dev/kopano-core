@@ -193,7 +193,6 @@ ZEND_END_ARG_INFO()
 
 #include <kopano/IECServiceAdmin.h>
 #include <kopano/IECSecurity.h>
-#include <kopano/IECUnknown.h>
 #include "IECExportChanges.h"
 #include "IECMultiStoreTable.h"
 #include <kopano/IECLicense.h>
@@ -713,13 +712,13 @@ static void _php_free_mapi_rowset(zend_resource *rsrc TSRMLS_DC)
 }
 
 static HRESULT GetECObject(LPMAPIPROP lpMapiProp,
-    IECUnknown **lppIECUnknown TSRMLS_DC)
+    IUnknown **lppIECUnknown TSRMLS_DC)
 {
 	PMEASURE_FUNC;
 	memory_ptr<SPropValue> lpPropVal;
 	MAPI_G(hr) = HrGetOneProp(lpMapiProp, PR_EC_OBJECT, &~lpPropVal);
 	if (MAPI_G(hr) == hrSuccess)
-		*lppIECUnknown = (IECUnknown *)lpPropVal->Value.lpszA;
+		*lppIECUnknown = reinterpret_cast<IUnknown *>(lpPropVal->Value.lpszA);
 	return MAPI_G(hr);
 }
 
@@ -2616,7 +2615,7 @@ ZEND_FUNCTION(mapi_msgstore_openmultistoretable)
 	// locals
 	object_ptr<IECMultiStoreTable> lpECMST;
 	memory_ptr<ENTRYLIST> lpEntryList;
-	IECUnknown		*lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -4136,7 +4135,7 @@ ZEND_FUNCTION(mapi_zarafa_createuser)
 	memory_ptr<ENTRYID> lpUserId;
 
 	// local
-	IECUnknown		*lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	ECUSER			sUser = { 0 };
 
@@ -4204,7 +4203,7 @@ ZEND_FUNCTION(mapi_zarafa_setuser)
 	long			ulIsAdmin = 0;
 
 	// local
-	IECUnknown		*lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	ECUSER			sUser;
 
@@ -4266,7 +4265,7 @@ ZEND_FUNCTION(mapi_zarafa_deleteuser)
 	size_t ulUserName;
 
 	// local
-	IECUnknown		*lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 
 	RETVAL_FALSE;
@@ -4316,7 +4315,7 @@ ZEND_FUNCTION(mapi_zarafa_createstore)
 	LPENTRYID		lpUserId = NULL;
 	size_t cbUserId = 0;
 	// local
-	IECUnknown		*lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	memory_ptr<ENTRYID> lpStoreID, lpRootID;
 	ULONG			cbStoreID = 0;
@@ -4375,7 +4374,7 @@ ZEND_FUNCTION(mapi_zarafa_getuserlist)
 	// local
 	ULONG		nUsers, i;
 	memory_ptr<ECUSER> lpUsers;
-	IECUnknown	*lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 	object_ptr<IECSecurity> lpSecurity;
 
 	RETVAL_FALSE;
@@ -4435,7 +4434,7 @@ ZEND_FUNCTION(mapi_zarafa_getquota)
 	// return value
 
 	// local
-	IECUnknown      *lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	memory_ptr<ECQUOTA> lpQuota;
 
@@ -4491,7 +4490,7 @@ ZEND_FUNCTION(mapi_zarafa_setquota)
 	// return value
 
 	// local
-	IECUnknown      *lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	memory_ptr<ECQUOTA> lpQuota;
 	HashTable		*data = NULL;
@@ -4587,7 +4586,7 @@ ZEND_FUNCTION(mapi_zarafa_getuser_by_name)
 
 	// local
 	memory_ptr<ECUSER> lpUsers;
-	IECUnknown		*lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	memory_ptr<ENTRYID> lpUserId;
 	unsigned int	cbUserId = 0;
@@ -4652,7 +4651,7 @@ ZEND_FUNCTION(mapi_zarafa_getuser_by_id)
 
 	// local
 	memory_ptr<ECUSER> lpUsers;
-	IECUnknown		*lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 
 	RETVAL_FALSE;
@@ -4703,7 +4702,7 @@ ZEND_FUNCTION(mapi_zarafa_creategroup)
 	memory_ptr<ENTRYID> lpGroupId;
 	unsigned int	cbGroupId = 0;
 	// locals
-	IECUnknown		*lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 
 	RETVAL_FALSE;
@@ -4747,7 +4746,7 @@ ZEND_FUNCTION(mapi_zarafa_deletegroup)
 	size_t cbGroupname;
 	// return value
 	// locals
-	IECUnknown		*lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	memory_ptr<ENTRYID> lpGroupId;
 	unsigned int	cbGroupId = 0;
@@ -4797,7 +4796,7 @@ ZEND_FUNCTION(mapi_zarafa_addgroupmember)
 	size_t cbUserId = 0;
 	// return value
 	// locals
-	IECUnknown	*lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	IMsgStore	*lpMsgStore = NULL;
 
@@ -4840,7 +4839,7 @@ ZEND_FUNCTION(mapi_zarafa_deletegroupmember)
 	size_t cbUserId = 0;
 	// return value
 	// locals
-	IECUnknown	*lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	IMsgStore	*lpMsgStore = NULL;
 
@@ -4885,7 +4884,7 @@ ZEND_FUNCTION(mapi_zarafa_setgroup)
 
 	// return value
 	// locals
-	IECUnknown		*lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	ECGROUP			sGroup;
 
@@ -4931,7 +4930,7 @@ ZEND_FUNCTION(mapi_zarafa_getgroup_by_id)
 	size_t cbGroupId = 0;
 	// return value
 	// locals
-	IECUnknown		*lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	memory_ptr<ECGROUP> lpsGroup;
 
@@ -4973,7 +4972,7 @@ ZEND_FUNCTION(mapi_zarafa_getgroup_by_name)
 	size_t ulGroupname;
 	// locals
 	LPMDB lpMsgStore = NULL;
-	IECUnknown		*lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	memory_ptr<ECGROUP> lpsGroup;
 	// return value
@@ -5026,7 +5025,7 @@ ZEND_FUNCTION(mapi_zarafa_getgrouplist)
 	// locals
 	zval			zval_data_value;
 	LPMDB			lpMsgStore = NULL;
-	IECUnknown		*lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	ULONG			ulGroups;
 	memory_ptr<ECGROUP> lpsGroups;
@@ -5078,7 +5077,7 @@ ZEND_FUNCTION(mapi_zarafa_getgrouplistofuser)
 	// locals
 	zval			zval_data_value;
 	LPMDB			lpMsgStore = NULL;
-	IECUnknown		*lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	ULONG			ulGroups;
 	memory_ptr<ECGROUP> lpsGroups;
@@ -5130,7 +5129,7 @@ ZEND_FUNCTION(mapi_zarafa_getuserlistofgroup)
 	// locals
 	zval			zval_data_value;
 	LPMDB			lpMsgStore = NULL;
-	IECUnknown		*lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	ULONG			ulUsers;
 	memory_ptr<ECUSER> lpsUsers;
@@ -5187,7 +5186,7 @@ ZEND_FUNCTION(mapi_zarafa_createcompany)
 	memory_ptr<ENTRYID> lpCompanyId;
 	unsigned int	cbCompanyId = 0;
 	// locals
-	IECUnknown		*lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 
 	RETVAL_FALSE;
@@ -5230,7 +5229,7 @@ ZEND_FUNCTION(mapi_zarafa_deletecompany)
 	size_t cbCompanyname;
 	// return value
 	// locals
-	IECUnknown		*lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	memory_ptr<ENTRYID> lpCompanyId;
 	unsigned int	cbCompanyId = 0;
@@ -5280,7 +5279,7 @@ ZEND_FUNCTION(mapi_zarafa_getcompany_by_id)
 	size_t cbCompanyId = 0;
 	// return value
 	// locals
-	IECUnknown *lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	memory_ptr<ECCOMPANY> lpsCompany;
 
@@ -5326,7 +5325,7 @@ ZEND_FUNCTION(mapi_zarafa_getcompany_by_name)
 	unsigned int cbCompanyId = 0;
 	// return value
 	// locals
-	IECUnknown *lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	memory_ptr<ECCOMPANY> lpsCompany;
 
@@ -5377,7 +5376,7 @@ ZEND_FUNCTION(mapi_zarafa_getcompanylist)
 	// local
 	ULONG nCompanies, i;
 	memory_ptr<ECCOMPANY> lpCompanies;
-	IECUnknown *lpUnknown = NULL;;
+	IUnknown *lpUnknown = nullptr;
 	object_ptr<IECSecurity> lpSecurity;
 
 	RETVAL_FALSE;
@@ -5425,7 +5424,7 @@ ZEND_FUNCTION(mapi_zarafa_add_company_remote_viewlist)
 	size_t cbCompanyId = 0;
 
 	/* Locals */
-	IECUnknown		*lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	IMsgStore		*lpMsgStore = NULL;
 
@@ -5468,7 +5467,7 @@ ZEND_FUNCTION(mapi_zarafa_del_company_remote_viewlist)
 	size_t cbCompanyId = 0;
 
 	/* Locals */
-	IECUnknown		*lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	IMsgStore		*lpMsgStore = NULL;
 
@@ -5510,7 +5509,7 @@ ZEND_FUNCTION(mapi_zarafa_get_remote_viewlist)
 
 	/* Locals */
 	zval			zval_data_value;
-	IECUnknown		*lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	IMsgStore		*lpMsgStore = NULL;
 	ULONG			ulCompanies = 0;
@@ -5561,7 +5560,7 @@ ZEND_FUNCTION(mapi_zarafa_add_user_remote_adminlist)
 	size_t cbCompanyId = 0;
 
 	/* Locals */
-	IECUnknown		*lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	IMsgStore		*lpMsgStore = NULL;
 
@@ -5604,7 +5603,7 @@ ZEND_FUNCTION(mapi_zarafa_del_user_remote_adminlist)
 	size_t cbCompanyId = 0;
 
 	/* Locals */
-	IECUnknown		*lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	IMsgStore		*lpMsgStore = NULL;
 
@@ -5646,7 +5645,7 @@ ZEND_FUNCTION(mapi_zarafa_get_remote_adminlist)
 
 	/* Locals */
 	zval			zval_data_value;
-	IECUnknown		*lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	IMsgStore		*lpMsgStore = NULL;
 	ULONG			ulUsers = 0;
@@ -5698,7 +5697,7 @@ ZEND_FUNCTION(mapi_zarafa_add_quota_recipient)
 	long			ulType = 0;
 
 	/* Locals */
-	IECUnknown		*lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 	IECServiceAdmin	*lpServiceAdmin = NULL;
 	IMsgStore		*lpMsgStore = NULL;
 
@@ -5743,7 +5742,7 @@ ZEND_FUNCTION(mapi_zarafa_del_quota_recipient)
 	long			ulType = 0;
 
 	/* Locals */
-	IECUnknown		*lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 	IECServiceAdmin	*lpServiceAdmin = NULL;
 	IMsgStore		*lpMsgStore = NULL;
 
@@ -5786,7 +5785,7 @@ ZEND_FUNCTION(mapi_zarafa_get_quota_recipientlist)
 
 	/* Locals */
 	zval			zval_data_value;
-	IECUnknown		*lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 	IECServiceAdmin	*lpServiceAdmin = NULL;
 	IMsgStore		*lpMsgStore = NULL;
 	ULONG			ulUsers = 0;
@@ -5835,7 +5834,7 @@ ZEND_FUNCTION(mapi_zarafa_check_license)
 	IMsgStore *lpMsgStore = NULL;
 	char *szFeature = NULL;
 	size_t cbFeature = 0;
-	IECUnknown *lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 	object_ptr<IECLicense> lpLicense;
 	memory_ptr<char *> lpszCapas;
 	unsigned int ulCapas = 0;
@@ -5874,7 +5873,7 @@ ZEND_FUNCTION(mapi_zarafa_getcapabilities)
 	LOG_BEGIN();
 	zval *res = NULL;
 	IMsgStore *lpMsgStore = NULL;
-	IECUnknown *lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 	object_ptr<IECLicense> lpLicense;
 	memory_ptr<char *> lpszCapas;
 	unsigned int ulCapas = 0;
@@ -5921,7 +5920,7 @@ ZEND_FUNCTION(mapi_zarafa_getpermissionrules)
 
 	// local
 	int type = -1;
-	IECUnknown	*lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 	IECSecurity *lpSecurity = NULL;
 	ULONG i;
 
@@ -5987,7 +5986,7 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 
 	// local
 	int type = -1;
-	IECUnknown	*lpUnknown = NULL;
+	IUnknown *lpUnknown = nullptr;
 	object_ptr<IECSecurity> lpSecurity;
 	ULONG cPerms = 0;
 	memory_ptr<ECPERMISSION> lpECPerms;

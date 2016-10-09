@@ -94,7 +94,7 @@ private:
 
 public:
 	class xECPropStorage _kc_final : public IECPropStorage {
-		#include <kopano/xclsfrag/IECUnknown.hpp>
+		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IECPropStorage.hpp>
 	} m_xECPropStorage;
 

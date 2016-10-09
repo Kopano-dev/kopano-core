@@ -153,7 +153,10 @@
 #define PR_EC_STATS_SERVER_HTTPSURL		PROP_TAG(PT_STRING8, 	PR_EC_BASE+0xF7)
 #define PR_EC_STATS_SERVER_FILEURL		PROP_TAG(PT_STRING8,	PR_EC_BASE+0xF8)
 
-// The hidden object property which can be used to access the underlying IECUnknown object though a pointer in lpszA
+/*
+ * The hidden object property which can be used to access the underlying
+ * IUnknown object though a pointer in lpszA.
+ */
 #define PR_EC_OBJECT				PROP_TAG(PT_OBJECT,	PR_EC_BASE+0x7f)
 
 // Contains the 'flags' column in the outgoing queue (EC_SUBMIT_{MASTER,LOCAL,DOSENTMAIL})

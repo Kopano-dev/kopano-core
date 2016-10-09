@@ -3155,7 +3155,7 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, void *lpSrcObj,
 {
 	HRESULT hr = hrSuccess;
 	LPUNKNOWN lpUnkSrc = (LPUNKNOWN)lpSrcObj, lpUnkDest = (LPUNKNOWN)lpDestObj;
-	object_ptr<IECUnknown> lpKopano;
+	object_ptr<IUnknown> lpKopano;
 	memory_ptr<SPropValue> lpZObj, lpProps;
 	bool bPartial = false;
 
@@ -3195,7 +3195,7 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, void *lpSrcObj,
 	// take some shortcuts if we're dealing with a Kopano message destination
 	if (HrGetOneProp(lpDestProp, PR_EC_OBJECT, &~lpZObj) == hrSuccess &&
 	    lpZObj->Value.lpszA != NULL)
-		reinterpret_cast<IECUnknown *>(lpZObj->Value.lpszA)->QueryInterface(IID_ECMessage, &~lpKopano);
+		reinterpret_cast<IUnknown *>(lpZObj->Value.lpszA)->QueryInterface(IID_ECMessage, &~lpKopano);
 
 	/* remember which props not to copy */
 	hr = MAPIAllocateBuffer(CbNewSPropTagArray(inclprop->cValues), &~lpIncludeProps);

@@ -6,6 +6,6 @@ nobase_pkginclude_HEADERS = \
 	ECRestriction.h ECTags.h EMSAbTag.h \
 	IECLicense.h IECServiceAdmin.h IECSecurity.h \
 	IECSingleInstance.h \
-	IECUnknown.h RecurrenceState.h \
+	RecurrenceState.h \
 	Util.h mapiext.h mapiguidext.h mapi_ptr.h namedprops.h \
 	userutil.h

@@ -19,8 +19,6 @@
 #define ECUNKNOWN_H
 
 #include <kopano/zcdefs.h>
-#include <kopano/IECUnknown.h>
-
 #include <list>
 #include <mutex>
 #include <mapi.h>
@@ -75,7 +73,7 @@ namespace KC {
 		} \
 	} while (false)
 
-class _kc_export ECUnknown : public IECUnknown {
+class _kc_export ECUnknown : public IUnknown {
 public:
 	ECUnknown(const char *szClassName = NULL);
 	virtual ~ECUnknown(void);

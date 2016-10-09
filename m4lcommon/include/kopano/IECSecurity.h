@@ -18,14 +18,13 @@
 #ifndef IECSECURITY_H
 #define IECSECURITY_H
 
-#include <kopano/IECUnknown.h>
 #include <kopano/ECDefs.h>
 
 #include <mapidefs.h>
 
 namespace KC {
 
-class IECSecurity : public IECUnknown {
+class IECSecurity : public IUnknown {
 public:
 	virtual HRESULT GetOwner(ULONG *lpcbOwner, LPENTRYID *lppOwner) = 0;
 	virtual HRESULT GetUserList(ULONG cbCompanyId, LPENTRYID lpCompanyId, ULONG ulFlags, ULONG *lpcUsers, ECUSER **lppsUsers) = 0;

@@ -31,8 +31,6 @@
 #include <kopano/automapi.hpp>
 #include <kopano/IECServiceAdmin.h>
 #include <kopano/IECSecurity.h>
-#include <kopano/IECUnknown.h>
-
 #include "SSLUtil.h"
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
@@ -924,12 +922,12 @@ static void print_user_settings(IMsgStore *lpStore, const ECUSER *lpECUser,
  * Print archive store details on local server
  *
  * @param[in]	lpSession		MAPI session of the internal Kopano System adminstrator user
- * @param[in]	lpECMsgStore	The IECUnknown PR_EC_OBJECT pointer, used as IECServiceAdmin and IExchangeManageStore interface
+ * @param[in]	lpECMsgStore	The IUnknown PR_EC_OBJECT pointer, used as IECServiceAdmin and IExchangeManageStore interface
  * @param[in]	lpszName		Name to resolve, using type in ulClass
  * @return		MAPI error code
  */
 static HRESULT print_archive_details(LPMAPISESSION lpSession,
-    IECUnknown *lpECMsgStore, const char *lpszName)
+    IUnknown *lpECMsgStore, const char *lpszName)
 {
 	HRESULT hr;
 	ECServiceAdminPtr ptrServiceAdmin;
@@ -1083,7 +1081,7 @@ static HRESULT OpenDeletedStoresFolder(LPMDB lpPublicStore,
 	object_ptr<IMAPIFolder> lpFolderSubTree, lpFolderAdmin, lpFolderDeletedStores;
 	memory_ptr<SPropValue> lpsPropSubTree, lpPropValue, lpsPropMDB;
 	ULONG ulObjType;
-	IECUnknown *lpECFolder = NULL; // non reference
+	IUnknown *lpECFolder = nullptr; // non reference
 	ECPERMISSION sPermission = {0};
 	object_ptr<IECSecurity> lpSecurity;
 	ULONG ulPropTagSubtree = 0;
@@ -1115,7 +1113,7 @@ static HRESULT OpenDeletedStoresFolder(LPMDB lpPublicStore,
 		hr = HrGetOneProp(lpFolderAdmin, PR_EC_OBJECT, &~lpPropValue);
 		if(hr != hrSuccess)
 			return hr;
-		lpECFolder = reinterpret_cast<IECUnknown *>(lpPropValue->Value.lpszA);
+		lpECFolder = reinterpret_cast<IUnknown *>(lpPropValue->Value.lpszA);
 		hr = lpECFolder->QueryInterface(IID_IECSecurity, &~lpSecurity);
 		if (hr != hrSuccess)
 			return hr;
@@ -1312,12 +1310,12 @@ static LPMVPROPMAPENTRY FindMVPropmapEntry(ECUSER *lpUser, ULONG ulPropTag)
  * print the details of the object if found.
  *
  * @param[in]	lpSession		MAPI session of the internal Kopano System adminstrator user
- * @param[in]	lpECMsgStore	The IECUnknown PR_EC_OBJECT pointer, used as IECServiceAdmin and IExchangeManageStore interface
+ * @param[in]	lpECMsgStore	The IUnknown PR_EC_OBJECT pointer, used as IECServiceAdmin and IExchangeManageStore interface
  * @param[in]	ulClass			addressbook objectclass of input lpszName
  * @param[in]	lpszName		Name to resolve, using type in ulClass
  * @return		MAPI error code
  */
-static HRESULT print_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore,
+static HRESULT print_details(LPMAPISESSION lpSession, IUnknown *lpECMsgStore,
     objectclass_t ulClass, const char *lpszName)
 {
 	HRESULT hr = hrSuccess;
@@ -1549,7 +1547,7 @@ static HRESULT print_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore,
 	for (int i = 0; i < lpArchiveServers->cValues; ++i) {
 		MsgStorePtr ptrRemoteAdminStore;
 		SPropValuePtr ptrPropValue;
-		IECUnknown *lpECRemoteAdminStore = NULL;
+		IUnknown *lpECRemoteAdminStore = nullptr;
 		HRESULT hrTmp;
 
 		cout << "Archive details on node '" << (LPSTR)lpArchiveServers->lpszValues[i] << "':" << endl;
@@ -1568,7 +1566,7 @@ static HRESULT print_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore,
 			return hr;
 		}
 
-		lpECRemoteAdminStore = reinterpret_cast<IECUnknown *>(ptrPropValue->Value.lpszA);
+		lpECRemoteAdminStore = reinterpret_cast<IUnknown *>(ptrPropValue->Value.lpszA);
 		print_archive_details(lpSession, lpECRemoteAdminStore, lpszName);
 		cout << endl;
 	}
@@ -2174,7 +2172,7 @@ int main(int argc, char* argv[])
 	HRESULT hr = hrSuccess;
 	AutoMAPI mapiinit;
 	object_ptr<IMAPISession> lpSession;
-	object_ptr<IECUnknown> lpECMsgStore;
+	object_ptr<IUnknown> lpECMsgStore;
 	object_ptr<IMsgStore> lpMsgStore;
 	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	ULONG cbUserId = 0;
@@ -3013,7 +3011,7 @@ int main(int argc, char* argv[])
 		goto exit;
 	}
 
-	lpECMsgStore.reset(reinterpret_cast<IECUnknown *>(lpPropValue->Value.lpszA));
+	lpECMsgStore.reset(reinterpret_cast<IUnknown *>(lpPropValue->Value.lpszA));
 	hr = lpECMsgStore->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
 	if(hr != hrSuccess) {
 		cerr << "Admin object query error." << endl;

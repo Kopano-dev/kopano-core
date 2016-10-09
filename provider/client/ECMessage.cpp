@@ -2302,7 +2302,7 @@ HRESULT ECMessage::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
     ULONG ulFlags, SPropProblemArray **lppProblems)
 {
 	HRESULT hr = hrSuccess;
-	object_ptr<IECUnknown> lpECUnknown;
+	object_ptr<IUnknown> lpECUnknown;
 	memory_ptr<SPropValue> lpECObject;
 	object_ptr<ECMAPIProp> lpECMAPIProp;
 	ECMAPIProp *lpDestTop = NULL;
@@ -2315,7 +2315,7 @@ HRESULT ECMessage::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
 
 	// Wrap mapi object to kopano object
 	if (HrGetOneProp((LPMAPIPROP)lpDestObj, PR_EC_OBJECT, &~lpECObject) == hrSuccess)
-		lpECUnknown.reset(reinterpret_cast<IECUnknown *>(lpECObject->Value.lpszA));
+		lpECUnknown.reset(reinterpret_cast<IUnknown *>(lpECObject->Value.lpszA));
 
 	// Deny copying within the same object. This is not allowed in exchange either and is required to deny
 	// creating large recursive objects.
