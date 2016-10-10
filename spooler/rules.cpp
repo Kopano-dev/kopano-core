@@ -869,7 +869,7 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 		goto exitpm;
 	}
 
-	while (TRUE) {
+	while (1) {
 		hr = lpView->QueryRows(1, 0, &lpRowSet);
 		if (hr != hrSuccess) {
 			lpLogger->Log(EC_LOGLEVEL_ERROR, "HrProcessRules(): QueryRows failed %x", hr);
