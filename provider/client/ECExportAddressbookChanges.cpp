@@ -18,6 +18,7 @@
 #include <kopano/platform.h>
 
 #include <kopano/ECGuid.h>
+#include <kopano/ECInterfaceDefs.h>
 #include "ics.h"
 #include "pcutil.hpp"
 
@@ -391,45 +392,9 @@ bool ECExportAddressbookChanges::LeftPrecedesRight(const ICSCHANGE &left, const 
 	return false;
 }
 
-ULONG ECExportAddressbookChanges::xECExportAddressbookChanges::AddRef()
-{
-    METHOD_PROLOGUE_(ECExportAddressbookChanges, ECExportAddressbookChanges);
-    TRACE_MAPI(TRACE_ENTRY, "IECExportAddressbookChanges::AddRef", "");
-    return pThis->AddRef();
-}
-
-ULONG ECExportAddressbookChanges::xECExportAddressbookChanges::Release()
-{
-    METHOD_PROLOGUE_(ECExportAddressbookChanges, ECExportAddressbookChanges);
-    TRACE_MAPI(TRACE_ENTRY, "IECExportAddressbookChanges::Release", "");
-    return pThis->Release();
-}
-
-HRESULT ECExportAddressbookChanges::xECExportAddressbookChanges::QueryInterface(REFIID refiid, void **lppInterface)
-{
-    METHOD_PROLOGUE_(ECExportAddressbookChanges, ECExportAddressbookChanges);
-    TRACE_MAPI(TRACE_ENTRY, "IECExportAddressbookChanges::QueryInterface", "");
-    return pThis->QueryInterface(refiid, lppInterface);
-}
-
-HRESULT ECExportAddressbookChanges::xECExportAddressbookChanges::Config(LPSTREAM lpStream, ULONG ulFlags, IECImportAddressbookChanges *lpCollector)
-{
-    METHOD_PROLOGUE_(ECExportAddressbookChanges, ECExportAddressbookChanges);
-    TRACE_MAPI(TRACE_ENTRY, "IECExportAddressbookChanges::Config", "");
-    return pThis->Config(lpStream, ulFlags, lpCollector);
-}
-
-HRESULT ECExportAddressbookChanges::xECExportAddressbookChanges::Synchronize(ULONG *lpulSteps, ULONG *lpulProgress)
-{
-    METHOD_PROLOGUE_(ECExportAddressbookChanges, ECExportAddressbookChanges);
-    TRACE_MAPI(TRACE_ENTRY, "IECExportAddressbookChanges::Synchronize", "");
-    return pThis->Synchronize(lpulSteps, lpulProgress);
-}
-
-HRESULT ECExportAddressbookChanges::xECExportAddressbookChanges::UpdateState(LPSTREAM lpStream)
-{
-    METHOD_PROLOGUE_(ECExportAddressbookChanges, ECExportAddressbookChanges);
-    TRACE_MAPI(TRACE_ENTRY, "IECExportAddressbookChanges::UpdateState", "");
-    return pThis->UpdateState(lpStream);
-}
-
+DEF_ULONGMETHOD1(TRACE_MAPI, ECExportAddressbookChanges, ECExportAddressbookChanges, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECExportAddressbookChanges, ECExportAddressbookChanges, Release, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECExportAddressbookChanges, ECExportAddressbookChanges, QueryInterface, (REFIID, refiid), (void **, lppInterface))
+DEF_HRMETHOD1(TRACE_MAPI, ECExportAddressbookChanges, ECExportAddressbookChanges, Config, (LPSTREAM, lpStream), (ULONG, ulFlags), (IECImportAddressbookChanges *, lpCollector))
+DEF_HRMETHOD1(TRACE_MAPI, ECExportAddressbookChanges, ECExportAddressbookChanges, Synchronize, (ULONG *, lpulSteps), (ULONG *, lpulProgress))
+DEF_HRMETHOD1(TRACE_MAPI, ECExportAddressbookChanges, ECExportAddressbookChanges, UpdateState, (LPSTREAM, lpStream))

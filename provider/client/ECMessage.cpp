@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
+#include <kopano/ECInterfaceDefs.h>
 #include <mapidefs.h>
 #include <mapiutil.h>
 #include <mapitags.h>
@@ -2951,194 +2952,25 @@ HRESULT ECMessage::CopyProps(LPSPropTagArray lpIncludeProps, ULONG ulUIParam, LP
 	return Util::DoCopyProps(&IID_IMessage, &this->m_xMessage, lpIncludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
 }
 
-HRESULT ECMessage::xMessage::QueryInterface(REFIID refiid , void** lppInterface)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMessage::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
-	METHOD_PROLOGUE_(ECMessage, Message);
-	HRESULT hr = pThis->QueryInterface(refiid, lppInterface);
-	TRACE_MAPI(TRACE_RETURN, "IMessage::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-ULONG ECMessage::xMessage::AddRef()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMessage::AddRef", "");
-	METHOD_PROLOGUE_(ECMessage, Message);
-	return pThis->AddRef();
-}
-
-ULONG ECMessage::xMessage::Release()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMessage::Release", "");
-	METHOD_PROLOGUE_(ECMessage, Message);
-	return pThis->Release();
-}
-
-HRESULT ECMessage::xMessage::GetLastError(HRESULT hError, ULONG ulFlags, LPMAPIERROR * lppMapiError)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMessage::GetLastError", "");
-	METHOD_PROLOGUE_(ECMessage, Message);
-	return pThis->GetLastError(hError, ulFlags, lppMapiError);
-}
-
-HRESULT ECMessage::xMessage::SaveChanges(ULONG ulFlags)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMessage::SaveChanges", "flags=%d", ulFlags);
-	METHOD_PROLOGUE_(ECMessage, Message);
-	HRESULT hr = pThis->SaveChanges(ulFlags);
-	TRACE_MAPI(TRACE_RETURN, "IMessage::SaveChanges", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMessage::xMessage::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG FAR * lpcValues, LPSPropValue FAR * lppPropArray)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMessage::GetProps", "PropTagArray[%d]=%s\nfFlags=0x%08X", lpPropTagArray ? lpPropTagArray->cValues : 0, PropNameFromPropTagArray(lpPropTagArray).c_str(), ulFlags);
-	METHOD_PROLOGUE_(ECMessage, Message);
-	HRESULT hr = pThis->GetProps(lpPropTagArray, ulFlags, lpcValues, lppPropArray);
-	TRACE_MAPI(TRACE_RETURN, "IMessage::GetProps", "%s\n %s", GetMAPIErrorDescription(hr).c_str(), PropNameFromPropArray(*lpcValues, *lppPropArray).c_str());
-	return hr;
-}
-
-HRESULT ECMessage::xMessage::GetPropList(ULONG ulFlags, LPSPropTagArray FAR * lppPropTagArray)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMessage::GetPropList", "flags=0x%08X", ulFlags);
-	METHOD_PROLOGUE_(ECMessage, Message);
-	HRESULT hr = pThis->GetPropList(ulFlags, lppPropTagArray);
-	TRACE_MAPI(TRACE_RETURN, "IMessage::GetPropList", "%s tags=%s", GetMAPIErrorDescription(hr).c_str(), (lppPropTagArray)?PropNameFromPropTagArray(*lppPropTagArray).c_str() : "NULL");
-	return hr;
-}
-
-HRESULT ECMessage::xMessage::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN FAR * lppUnk)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMessage::OpenProperty", "proptag=%s, flags=0x%08X, lpiid=%s, InterfaceOptions=0x%08X", PropNameFromPropTag(ulPropTag).c_str(), ulFlags, (lpiid)?DBGGUIDToString(*lpiid).c_str():"NULL", ulInterfaceOptions);
-	METHOD_PROLOGUE_(ECMessage, Message);
-	HRESULT hr = pThis->OpenProperty(ulPropTag,lpiid, ulInterfaceOptions, ulFlags, lppUnk);
-	TRACE_MAPI(TRACE_RETURN, "IMessage::OpenProperty", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMessage::xMessage::SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray FAR * lppProblems)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMessage::SetProps", "%s", PropNameFromPropArray(cValues, lpPropArray).c_str());
-	METHOD_PROLOGUE_(ECMessage, Message);
-	HRESULT hr = pThis->SetProps(cValues, lpPropArray, lppProblems);
-	TRACE_MAPI(TRACE_RETURN, "IMessage::SetProps", "%s: problems %s", GetMAPIErrorDescription(hr).c_str(), lppProblems && *lppProblems ? ProblemArrayToString(*lppProblems).c_str() : "<none>");
-	return hr;
-}
-
-HRESULT ECMessage::xMessage::DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray FAR * lppProblems)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMessage::DeleteProps", "%s", PropNameFromPropTagArray(lpPropTagArray).c_str());
-	METHOD_PROLOGUE_(ECMessage, Message);
-	HRESULT hr = pThis->DeleteProps(lpPropTagArray, lppProblems);
-	TRACE_MAPI(TRACE_RETURN, "IMessage::DeleteProps", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMessage::xMessage::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArray lpExcludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray FAR * lppProblems)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMessage::CopyTo", "ciidExclude=%d, lpExcludeProps=%s, lpDestInterface=%s, ulFlags=0x%X", ciidExclude, PropNameFromPropTagArray(lpExcludeProps).c_str(), (lpInterface)?DBGGUIDToString(*lpInterface).c_str():"NULL", ulFlags);
-	METHOD_PROLOGUE_(ECMessage, Message);
-	HRESULT hr = pThis->CopyTo(ciidExclude, rgiidExclude, lpExcludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
-	TRACE_MAPI(TRACE_RETURN, "IMessage::CopyTo", "%s %s", GetMAPIErrorDescription(hr).c_str(), lppProblems && *lppProblems ? ProblemArrayToString(*lppProblems).c_str() : "<null>");
-	return hr;
-}
-
-HRESULT ECMessage::xMessage::CopyProps(LPSPropTagArray lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray FAR * lppProblems)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMessage::CopyProps", "");
-	METHOD_PROLOGUE_(ECMessage, Message);
-	HRESULT hr = pThis->CopyProps(lpIncludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
-	TRACE_MAPI(TRACE_RETURN, "IMessage::CopyProps", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMessage::xMessage::GetNamesFromIDs(LPSPropTagArray * pptaga, LPGUID lpguid, ULONG ulFlags, ULONG * pcNames, LPMAPINAMEID ** pppNames)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMessage::GetNamesFromIDs", "");
-	METHOD_PROLOGUE_(ECMessage, Message);
-	HRESULT hr = pThis->GetNamesFromIDs(pptaga, lpguid, ulFlags, pcNames, pppNames);
-	TRACE_MAPI(TRACE_RETURN, "IMessage::GetNamesFromIDs", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMessage::xMessage::GetIDsFromNames(ULONG cNames, LPMAPINAMEID * ppNames, ULONG ulFlags, LPSPropTagArray * pptaga)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMessage::GetIDsFromNames", "");
-	METHOD_PROLOGUE_(ECMessage, Message);
-	HRESULT hr = pThis->GetIDsFromNames(cNames, ppNames, ulFlags, pptaga);
-	TRACE_MAPI(TRACE_RETURN, "IMessage::GetIDsFromNames", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMessage::xMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMessage::GetAttachmentTable", "");
-	METHOD_PROLOGUE_(ECMessage, Message);
-	HRESULT hr = pThis->GetAttachmentTable(ulFlags, lppTable);
-	TRACE_MAPI(TRACE_RETURN, "IMessage::GetAttachmentTable", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMessage::xMessage::OpenAttach(ULONG ulAttachmentNum, LPCIID lpInterface, ULONG ulFlags, LPATTACH *lppAttach)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMessage::OpenAttach", "attachNum=%d, interface=%s, flags=0x%0X", ulAttachmentNum, (lpInterface)?DBGGUIDToString(*lpInterface).c_str():"NULL", ulFlags);
-	METHOD_PROLOGUE_(ECMessage, Message);
-	HRESULT hr = pThis->OpenAttach(ulAttachmentNum, lpInterface, ulFlags, lppAttach);
-	TRACE_MAPI(TRACE_RETURN, "IMessage::OpenAttach", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMessage::xMessage::CreateAttach(LPCIID lpInterface, ULONG ulFlags, ULONG *lpulAttachmentNum, LPATTACH *lppAttach)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMessage::CreateAttach", "flags=%d", ulFlags);
-	METHOD_PROLOGUE_(ECMessage, Message);
-	HRESULT hr = pThis->CreateAttach(lpInterface, ulFlags, lpulAttachmentNum, lppAttach);
-	TRACE_MAPI(TRACE_RETURN, "IMessage::CreateAttach", "%s: attachNum=%d", GetMAPIErrorDescription(hr).c_str(), *lpulAttachmentNum);
-	return hr;
-}
-
-HRESULT ECMessage::xMessage::DeleteAttach(ULONG ulAttachmentNum, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMessage::DeleteAttach", "");
-	METHOD_PROLOGUE_(ECMessage, Message);
-	HRESULT hr = pThis->DeleteAttach(ulAttachmentNum, ulUIParam, lpProgress, ulFlags);
-	TRACE_MAPI(TRACE_RETURN, "IMessage::DeleteAttach", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMessage::xMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMessage::GetRecipientTable", "");
-	METHOD_PROLOGUE_(ECMessage, Message);
-	HRESULT hr = pThis->GetRecipientTable(ulFlags, lppTable);
-	TRACE_MAPI(TRACE_RETURN, "IMessage::GetRecipientTable", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMessage::xMessage::ModifyRecipients(ULONG ulFlags, LPADRLIST lpMods)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMessage::ModifyRecipients", "flags %d, %s", ulFlags, RowSetToString((LPSRowSet)lpMods).c_str());
-	METHOD_PROLOGUE_(ECMessage, Message);
-	HRESULT hr = pThis->ModifyRecipients(ulFlags, lpMods);
-	TRACE_MAPI(TRACE_RETURN, "IMessage::ModifyRecipients", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMessage::xMessage::SubmitMessage(ULONG ulFlags)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMessage::SubmitMessage", "flags=0x%08X", ulFlags);
-	METHOD_PROLOGUE_(ECMessage, Message);
-	HRESULT hr = pThis->SubmitMessage(ulFlags);
-	TRACE_MAPI(TRACE_RETURN, "IMessage::SubmitMessage", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMessage::xMessage::SetReadFlag(ULONG ulFlags)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMessage::SetReadFlag", "flags=0x%08X", ulFlags);
-	METHOD_PROLOGUE_(ECMessage, Message);
-	HRESULT hr = pThis->SetReadFlag(ulFlags);
-	TRACE_MAPI(TRACE_RETURN, "IMessage::SetReadFlag", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
+DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, QueryInterface, (REFIID, refiid), (void **, lppInterface))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMessage, Message, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMessage, Message, Release, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, GetLastError, (HRESULT, hError), (ULONG, ulFlags), (LPMAPIERROR *, lppMapiError))
+DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, SaveChanges, (ULONG, ulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, GetProps, (LPSPropTagArray, lpPropTagArray), (ULONG, ulFlags), (ULONG FAR *, lpcValues, LPSPropValue FAR *, lppPropArray))
+DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, GetPropList, (ULONG, ulFlags), (LPSPropTagArray FAR *, lppPropTagArray))
+DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, OpenProperty, (ULONG, ulPropTag), (LPCIID, lpiid), (ULONG, ulInterfaceOptions), (ULONG, ulFlags), (LPUNKNOWN FAR *, lppUnk))
+DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, SetProps, (ULONG, cValues, LPSPropValue, lpPropArray), (LPSPropProblemArray FAR *, lppProblems))
+DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, DeleteProps, (LPSPropTagArray, lpPropTagArray), (LPSPropProblemArray FAR *, lppProblems))
+DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, CopyTo, (ULONG, ciidExclude, LPCIID, rgiidExclude), (LPSPropTagArray, lpExcludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (LPVOID, lpDestObj), (ULONG, ulFlags), (LPSPropProblemArray FAR *, lppProblems))
+DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, CopyProps, (LPSPropTagArray, lpIncludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (LPVOID, lpDestObj), (ULONG, ulFlags), (LPSPropProblemArray FAR *, lppProblems))
+DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, GetNamesFromIDs, (LPSPropTagArray *, pptaga), (LPGUID, lpguid), (ULONG, ulFlags), (ULONG *, pcNames, LPMAPINAMEID **, pppNames))
+DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, GetIDsFromNames, (ULONG, cNames, LPMAPINAMEID *, ppNames), (ULONG, ulFlags), (LPSPropTagArray *, pptaga))
+DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, GetAttachmentTable, (ULONG, ulFlags), (LPMAPITABLE *, lppTable))
+DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, OpenAttach, (ULONG, ulAttachmentNum), (LPCIID, lpInterface), (ULONG, ulFlags), (LPATTACH *, lppAttach))
+DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, CreateAttach, (LPCIID, lpInterface), (ULONG, ulFlags), (ULONG *, lpulAttachmentNum), (LPATTACH *, lppAttach))
+DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, DeleteAttach, (ULONG, ulAttachmentNum), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (ULONG, ulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, GetRecipientTable, (ULONG, ulFlags), (LPMAPITABLE *, lppTable))
+DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, ModifyRecipients, (ULONG, ulFlags), (LPADRLIST, lpMods))
+DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, SubmitMessage, (ULONG, ulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, SetReadFlag, (ULONG, ulFlags))

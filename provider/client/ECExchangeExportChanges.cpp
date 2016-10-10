@@ -16,7 +16,7 @@
  */
 
 #include <kopano/platform.h>
-
+#include <kopano/ECInterfaceDefs.h>
 #include "ECExchangeExportChanges.h"
 #include "WSMessageStreamExporter.h"
 #include "WSSerializedMessage.h"
@@ -702,95 +702,17 @@ HRESULT ECExchangeExportChanges::SetMessageInterface(REFIID refiid) {
 	return hrSuccess;
 }
 
-ULONG ECExchangeExportChanges::xECExportChanges::AddRef(){
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeExportChanges::AddRef", "");
-	METHOD_PROLOGUE_(ECExchangeExportChanges, ECExportChanges);
-	return pThis->AddRef();
-}
-
-ULONG ECExchangeExportChanges::xECExportChanges::Release()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeExportChanges::Release", "");
-	METHOD_PROLOGUE_(ECExchangeExportChanges, ECExportChanges);
-	return pThis->Release();
-}
-
-HRESULT ECExchangeExportChanges::xECExportChanges::QueryInterface(REFIID refiid, void **lppInterface)
-{
-	HRESULT hr;
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeExportChanges::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
-	METHOD_PROLOGUE_(ECExchangeExportChanges, ECExportChanges);
-	hr = pThis->QueryInterface(refiid, lppInterface);
-	TRACE_MAPI(TRACE_RETURN, "IExchangeExportChanges::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECExchangeExportChanges::xECExportChanges::GetLastError(HRESULT hError, ULONG ulFlags, LPMAPIERROR * lppMapiError)
-{
-	HRESULT hr;
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeExportChanges::GetLastError", "");
-	METHOD_PROLOGUE_(ECExchangeExportChanges, ECExportChanges);
-	hr = pThis->GetLastError(hError, ulFlags, lppMapiError);
-	TRACE_MAPI(TRACE_RETURN, "IExchangeExportChanges::GetLastError", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECExchangeExportChanges::xECExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKNOWN lpCollector, LPSRestriction lpRestriction, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize){
-	HRESULT hr;
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeExportChanges::Config", "lpStream=%08x, ulFlags=%d, lpCollector=0x%08x, lpRestriction = %08x, lpIncludeProps = %08x, lpExcludeProps = %08x, ulBufferSize = %d", lpStream, ulFlags, lpCollector, lpRestriction, lpIncludeProps, lpExcludeProps, ulBufferSize);
-	METHOD_PROLOGUE_(ECExchangeExportChanges, ECExportChanges);
-	hr =  pThis->Config(lpStream, ulFlags, lpCollector, lpRestriction, lpIncludeProps, lpExcludeProps, ulBufferSize);
-	TRACE_MAPI(TRACE_RETURN, "IExchangeExportChanges::Config", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECExchangeExportChanges::xECExportChanges::ConfigSelective(ULONG ulPropTag, LPENTRYLIST lpEntries, LPENTRYLIST lpParents, ULONG ulFlags, LPUNKNOWN lpCollector, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize)
-{
-	HRESULT hr;
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeExportChanges::ConfigSelective", "");
-	METHOD_PROLOGUE_(ECExchangeExportChanges, ECExportChanges);
-	hr =  pThis->ConfigSelective(ulPropTag, lpEntries, lpParents, ulFlags, lpCollector, lpIncludeProps, lpExcludeProps, ulBufferSize);
-	TRACE_MAPI(TRACE_RETURN, "IExchangeExportChanges::ConfigSelective", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECExchangeExportChanges::xECExportChanges::Synchronize(ULONG FAR * pulSteps, ULONG FAR * pulProgress){
-	HRESULT hr;
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeExportChanges::Synchronize", "");
-	METHOD_PROLOGUE_(ECExchangeExportChanges, ECExportChanges);
-	hr = pThis->Synchronize(pulSteps, pulProgress);
-	TRACE_MAPI(TRACE_RETURN, "IExchangeExportChanges::Synchronize", "%s", (hr != SYNC_W_PROGRESS) ? GetMAPIErrorDescription(hr).c_str() : "SYNC_W_PROGRESS");
-	return hr;
-}
-
-HRESULT ECExchangeExportChanges::xECExportChanges::UpdateState(LPSTREAM lpStream){
-	HRESULT hr;
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeExportChanges::UpdateState", "");
-	METHOD_PROLOGUE_(ECExchangeExportChanges, ECExportChanges);
-	hr = pThis->UpdateState(lpStream);
-	TRACE_MAPI(TRACE_RETURN, "IExchangeExportChanges::UpdateState", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECExchangeExportChanges::xECExportChanges::GetChangeCount(ULONG *lpcChanges) {
-	TRACE_MAPI(TRACE_ENTRY, "IECExportChanges::GetChangeCount", "");
-	METHOD_PROLOGUE_(ECExchangeExportChanges, ECExportChanges);
-	return pThis->GetChangeCount(lpcChanges);
-}
-
-HRESULT ECExchangeExportChanges::xECExportChanges::SetMessageInterface(REFIID refiid)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECExportChanges::SetMessageInterface", "%s", DBGGUIDToString(refiid).c_str());
-	METHOD_PROLOGUE_(ECExchangeExportChanges, ECExportChanges);
-	return pThis->SetMessageInterface(refiid);
-}
-
-HRESULT ECExchangeExportChanges::xECExportChanges::SetLogger(ECLogger *lpLogger)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECExportChanges::SetLogger", "");
-	METHOD_PROLOGUE_(ECExchangeExportChanges, ECExportChanges);
-	return pThis->SetLogger(lpLogger);
-}
+DEF_ULONGMETHOD1(TRACE_MAPI, ECExchangeExportChanges, ECExportChanges, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECExchangeExportChanges, ECExportChanges, Release, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECExchangeExportChanges, ECExportChanges, QueryInterface, (REFIID, refiid), (void **, lppInterface))
+DEF_HRMETHOD1(TRACE_MAPI, ECExchangeExportChanges, ECExportChanges, GetLastError, (HRESULT, hError), (ULONG, ulFlags), (LPMAPIERROR *, lppMapiError))
+DEF_HRMETHOD1(TRACE_MAPI, ECExchangeExportChanges, ECExportChanges, Config, (LPSTREAM, lpStream), (ULONG, ulFlags), (LPUNKNOWN, lpCollector), (LPSRestriction, lpRestriction), (LPSPropTagArray, lpIncludeProps), (LPSPropTagArray, lpExcludeProps), (ULONG, ulBufferSize))
+DEF_HRMETHOD1(TRACE_MAPI, ECExchangeExportChanges, ECExportChanges, ConfigSelective, (ULONG, ulPropTag), (LPENTRYLIST, lpEntries), (LPENTRYLIST, lpParents), (ULONG, ulFlags), (LPUNKNOWN, lpCollector), (LPSPropTagArray, lpIncludeProps), (LPSPropTagArray, lpExcludeProps), (ULONG, ulBufferSize))
+DEF_HRMETHOD1(TRACE_MAPI, ECExchangeExportChanges, ECExportChanges, Synchronize, (ULONG FAR *, pulSteps), (ULONG FAR *, pulProgress))
+DEF_HRMETHOD1(TRACE_MAPI, ECExchangeExportChanges, ECExportChanges, UpdateState, (LPSTREAM, lpStream))
+DEF_HRMETHOD1(TRACE_MAPI, ECExchangeExportChanges, ECExportChanges, GetChangeCount, (ULONG *, lpcChanges))
+DEF_HRMETHOD1(TRACE_MAPI, ECExchangeExportChanges, ECExportChanges, SetMessageInterface, (REFIID, refiid))
+DEF_HRMETHOD1(TRACE_MAPI, ECExchangeExportChanges, ECExportChanges, SetLogger, (ECLogger *, lpLogger))
 
 HRESULT ECExchangeExportChanges::ExportMessageChanges() {
 	assert(m_lpImportContents != NULL);

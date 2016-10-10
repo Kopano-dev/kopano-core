@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/ECInterfaceDefs.h>
 #include <mapi.h>
 #include <mapiutil.h>
 #include <mapispi.h>
@@ -144,43 +145,8 @@ exit:
 	return hr;
 }
 
-HRESULT __stdcall ECABProviderSwitch::xABProvider::QueryInterface(REFIID refiid, void ** lppInterface)
-{
-	TRACE_MAPI(TRACE_ENTRY, "ECABProviderSwitch::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
-	METHOD_PROLOGUE_(ECABProviderSwitch , ABProvider);
-	HRESULT hr = pThis->QueryInterface(refiid, lppInterface);
-	TRACE_MAPI(TRACE_RETURN, "ECABProviderSwitch::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-ULONG __stdcall ECABProviderSwitch::xABProvider::AddRef()
-{
-	TRACE_MAPI(TRACE_ENTRY, "ECABProviderSwitch::AddRef", "");
-	METHOD_PROLOGUE_(ECABProviderSwitch , ABProvider);
-	return pThis->AddRef();
-}
-
-ULONG __stdcall ECABProviderSwitch::xABProvider::Release()
-{
-	TRACE_MAPI(TRACE_ENTRY, "ECABProviderSwitch::Release", "");
-	METHOD_PROLOGUE_(ECABProviderSwitch , ABProvider);
-	ULONG ulRef = pThis->Release();
-	TRACE_MAPI(TRACE_RETURN, "ECABProviderSwitch::Release", "%d", ulRef);
-	return ulRef;
-}
-
-HRESULT ECABProviderSwitch::xABProvider::Shutdown(ULONG *lpulFlags)
-{
-	TRACE_MAPI(TRACE_ENTRY, "ECABProviderSwitch::Shutdown", "");
-	METHOD_PROLOGUE_(ECABProviderSwitch , ABProvider);
-	return pThis->Shutdown(lpulFlags);
-}
-
-HRESULT ECABProviderSwitch::xABProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG ulFlags, ULONG * lpulcbSecurity, LPBYTE * lppbSecurity, LPMAPIERROR * lppMAPIError, LPABLOGON * lppABLogon)
-{
-	TRACE_MAPI(TRACE_ENTRY, "ECABProviderSwitch::Logon", "");
-	METHOD_PROLOGUE_(ECABProviderSwitch , ABProvider);
-	HRESULT hr = pThis->Logon(lpMAPISup, ulUIParam, lpszProfileName, ulFlags, lpulcbSecurity, lppbSecurity, lppMAPIError, lppABLogon);
-	TRACE_MAPI(TRACE_RETURN, "ECABProviderSwitch::Logon", "%s", GetMAPIErrorDescription(hr).c_str());
-	return  hr;
-}
+DEF_HRMETHOD1(TRACE_MAPI, ECABProviderSwitch, ABProvider, QueryInterface, (REFIID, refiid), (void **, lppInterface))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECABProviderSwitch, ABProvider, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECABProviderSwitch, ABProvider, Release, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECABProviderSwitch, ABProvider, Shutdown, (ULONG *, lpulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECABProviderSwitch, ABProvider, Logon, (LPMAPISUP, lpMAPISup), (ULONG, ulUIParam), (LPTSTR, lpszProfileName), (ULONG, ulFlags), (ULONG *, lpulcbSecurity), (LPBYTE *, lppbSecurity), (LPMAPIERROR *, lppMAPIError), (LPABLOGON *, lppABLogon))

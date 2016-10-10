@@ -16,7 +16,7 @@
  */
 
 #include <kopano/platform.h>
-
+#include <kopano/ECInterfaceDefs.h>
 #include <mapidefs.h>
 #include <mapicode.h>
 #include <mapitags.h>
@@ -907,191 +907,28 @@ HRESULT ECMAPIProp::SetParentID(ULONG cbParentID, LPENTRYID lpParentID)
 }
 
 // Interface IMAPIProp
-HRESULT __stdcall ECMAPIProp::xMAPIProp::QueryInterface(REFIID refiid, void **lppInterface)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMAPIProp::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
-	METHOD_PROLOGUE_(ECMAPIProp , MAPIProp);
-	HRESULT hr = pThis->QueryInterface(refiid, lppInterface);
-	TRACE_MAPI(TRACE_RETURN, "IMAPIProp::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-ULONG __stdcall ECMAPIProp::xMAPIProp::AddRef()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMAPIProp::AddRef", "");
-	METHOD_PROLOGUE_(ECMAPIProp , MAPIProp);
-	return pThis->AddRef();
-}
-
-ULONG __stdcall ECMAPIProp::xMAPIProp::Release()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMAPIProp::Release", "");
-	METHOD_PROLOGUE_(ECMAPIProp , MAPIProp);
-	ULONG ulRef = pThis->Release();
-	TRACE_MAPI(TRACE_RETURN, "IMAPIProp::Release", "%d", ulRef);
-	return ulRef;
-}
-
-HRESULT __stdcall ECMAPIProp::xMAPIProp::GetLastError(HRESULT hError, ULONG ulFlags,
-    LPMAPIERROR * lppMapiError)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMAPIProp::GetLastError", "");
-	METHOD_PROLOGUE_(ECMAPIProp , MAPIProp);
-	HRESULT hr = pThis->GetLastError(hError, ulFlags, lppMapiError);
-	TRACE_MAPI(TRACE_RETURN, "IMAPIProp::GetLastError", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECMAPIProp::xMAPIProp::SaveChanges(ULONG ulFlags)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMAPIProp::SaveChanges", "");
-	METHOD_PROLOGUE_(ECMAPIProp , MAPIProp);
-	HRESULT hr = pThis->SaveChanges(ulFlags);
-	TRACE_MAPI(TRACE_RETURN, "IMAPIProp::SaveChanges", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECMAPIProp::xMAPIProp::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG FAR * lpcValues, LPSPropValue FAR * lppPropArray)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMAPIProp::GetProps", "%s, flags=%08X", PropNameFromPropTagArray(lpPropTagArray).c_str(), ulFlags);
-	METHOD_PROLOGUE_(ECMAPIProp , MAPIProp);
-	HRESULT hr = pThis->GetProps(lpPropTagArray, ulFlags, lpcValues, lppPropArray);
-	TRACE_MAPI(TRACE_RETURN, "IMAPIProp::GetProps", "%s\n %s", GetMAPIErrorDescription(hr).c_str(), PropNameFromPropArray(*lpcValues, *lppPropArray).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECMAPIProp::xMAPIProp::GetPropList(ULONG ulFlags, LPSPropTagArray FAR * lppPropTagArray)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMAPIProp::GetPropList", "");
-	METHOD_PROLOGUE_(ECMAPIProp , MAPIProp);
-	HRESULT hr = pThis->GetPropList(ulFlags, lppPropTagArray);
-	TRACE_MAPI(TRACE_RETURN, "IMAPIProp::GetPropList", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECMAPIProp::xMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN FAR * lppUnk)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMAPIProp::OpenProperty", "proptag=%s, flags=%d, lpiid=%s, InterfaceOptions=%d", PropNameFromPropTag(ulPropTag).c_str(), ulFlags, (lpiid)?DBGGUIDToString(*lpiid).c_str():"NULL", ulInterfaceOptions);
-	METHOD_PROLOGUE_(ECMAPIProp , MAPIProp);
-	HRESULT hr = pThis->OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
-	TRACE_MAPI(TRACE_RETURN, "IMAPIProp::OpenProperty", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECMAPIProp::xMAPIProp::SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray FAR * lppProblems)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMAPIProp::SetProps", "%s", PropNameFromPropArray(cValues, lpPropArray).c_str());
-	METHOD_PROLOGUE_(ECMAPIProp , MAPIProp);
-	HRESULT hr = pThis->SetProps(cValues, lpPropArray, lppProblems);
-	TRACE_MAPI(TRACE_RETURN, "IMAPIProp::SetProps", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECMAPIProp::xMAPIProp::DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray FAR * lppProblems)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMAPIProp::DeleteProps", "%s", PropNameFromPropTagArray(lpPropTagArray).c_str());
-	METHOD_PROLOGUE_(ECMAPIProp , MAPIProp);
-	HRESULT hr = pThis->DeleteProps(lpPropTagArray, lppProblems);
-	TRACE_MAPI(TRACE_RETURN, "IMAPIProp::DeleteProps", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECMAPIProp::xMAPIProp::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArray lpExcludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray FAR * lppProblems)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMAPIProp::CopyTo", "");
-	METHOD_PROLOGUE_(ECMAPIProp , MAPIProp);
-	HRESULT hr = pThis->CopyTo(ciidExclude, rgiidExclude, lpExcludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
-	TRACE_MAPI(TRACE_RETURN, "IMAPIProp::CopyTo", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECMAPIProp::xMAPIProp::CopyProps(LPSPropTagArray lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray FAR * lppProblems)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMAPIProp::CopyProps", "");
-	METHOD_PROLOGUE_(ECMAPIProp , MAPIProp);
-	HRESULT hr = pThis->CopyProps(lpIncludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
-	TRACE_MAPI(TRACE_RETURN, "IMAPIProp::CopyProps", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECMAPIProp::xMAPIProp::GetNamesFromIDs(LPSPropTagArray * pptaga, LPGUID lpguid, ULONG ulFlags, ULONG * pcNames, LPMAPINAMEID ** pppNames)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMAPIProp::GetNamesFromIDs", "");
-	METHOD_PROLOGUE_(ECMAPIProp , MAPIProp);
-	HRESULT hr = pThis->GetNamesFromIDs(pptaga, lpguid, ulFlags, pcNames, pppNames);
-	TRACE_MAPI(TRACE_RETURN, "IMAPIProp::GetNamesFromIDs", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECMAPIProp::xMAPIProp::GetIDsFromNames(ULONG cNames, LPMAPINAMEID * ppNames, ULONG ulFlags, LPSPropTagArray * pptaga)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMAPIProp::GetIDsFromNames", "");
-	METHOD_PROLOGUE_(ECMAPIProp , MAPIProp);
-	HRESULT hr = pThis->GetIDsFromNames(cNames, ppNames, ulFlags, pptaga);
-	TRACE_MAPI(TRACE_RETURN, "IMAPIProp::GetIDsFromNames", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
+DEF_HRMETHOD1(TRACE_MAPI, ECMAPIProp, MAPIProp, QueryInterface, (REFIID, refiid), (void **, lppInterface))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMAPIProp, MAPIProp, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMAPIProp, MAPIProp, Release, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECMAPIProp, MAPIProp, GetLastError, (HRESULT, hError), (ULONG, ulFlags), (LPMAPIERROR *, lppMapiError))
+DEF_HRMETHOD1(TRACE_MAPI, ECMAPIProp, MAPIProp, SaveChanges, (ULONG, ulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECMAPIProp, MAPIProp, GetProps, (LPSPropTagArray, lpPropTagArray), (ULONG, ulFlags), (ULONG FAR *, lpcValues, LPSPropValue FAR *, lppPropArray))
+DEF_HRMETHOD1(TRACE_MAPI, ECMAPIProp, MAPIProp, GetPropList, (ULONG, ulFlags), (LPSPropTagArray FAR *, lppPropTagArray))
+DEF_HRMETHOD1(TRACE_MAPI, ECMAPIProp, MAPIProp, OpenProperty, (ULONG, ulPropTag), (LPCIID, lpiid), (ULONG, ulInterfaceOptions), (ULONG, ulFlags), (LPUNKNOWN FAR *, lppUnk))
+DEF_HRMETHOD1(TRACE_MAPI, ECMAPIProp, MAPIProp, SetProps, (ULONG, cValues, LPSPropValue, lpPropArray), (LPSPropProblemArray FAR *, lppProblems))
+DEF_HRMETHOD1(TRACE_MAPI, ECMAPIProp, MAPIProp, DeleteProps, (LPSPropTagArray, lpPropTagArray), (LPSPropProblemArray FAR *, lppProblems))
+DEF_HRMETHOD1(TRACE_MAPI, ECMAPIProp, MAPIProp, CopyTo, (ULONG, ciidExclude, LPCIID, rgiidExclude), (LPSPropTagArray, lpExcludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (LPVOID, lpDestObj), (ULONG, ulFlags), (LPSPropProblemArray FAR *, lppProblems))
+DEF_HRMETHOD1(TRACE_MAPI, ECMAPIProp, MAPIProp, CopyProps, (LPSPropTagArray, lpIncludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (LPVOID, lpDestObj), (ULONG, ulFlags), (LPSPropProblemArray FAR *, lppProblems))
+DEF_HRMETHOD1(TRACE_MAPI, ECMAPIProp, MAPIProp, GetNamesFromIDs, (LPSPropTagArray *, pptaga), (LPGUID, lpguid), (ULONG, ulFlags), (ULONG *, pcNames, LPMAPINAMEID **, pppNames))
+DEF_HRMETHOD1(TRACE_MAPI, ECMAPIProp, MAPIProp, GetIDsFromNames, (ULONG, cNames, LPMAPINAMEID *, ppNames), (ULONG, ulFlags), (LPSPropTagArray *, pptaga))
 
 // Interface ECSecurity
-HRESULT ECMAPIProp::xECSecurity::QueryInterface(REFIID refiid, void ** lppInterface)
-{
-	METHOD_PROLOGUE_(ECMAPIProp , ECSecurity);
-	return pThis->QueryInterface(refiid, lppInterface);
-}
-
-ULONG ECMAPIProp::xECSecurity::AddRef()
-{
-	METHOD_PROLOGUE_(ECMAPIProp , ECSecurity);
-	return pThis->AddRef();
-}
-
-ULONG ECMAPIProp::xECSecurity::Release()
-{
-	METHOD_PROLOGUE_(ECMAPIProp , ECSecurity);
-	return pThis->Release();
-}
-
-HRESULT ECMAPIProp::xECSecurity::GetOwner(ULONG *lpcbOwner, LPENTRYID *lppOwner)
-{
-	METHOD_PROLOGUE_(ECMAPIProp , ECSecurity);
-	return pThis->GetOwner(lpcbOwner, lppOwner);
-}
-
-HRESULT ECMAPIProp::xECSecurity::GetUserList(ULONG cbCompanyId,
-    LPENTRYID lpCompanyId, ULONG ulFlags, ULONG *lpcUsers, ECUSER **lpsUsers)
-{
-	METHOD_PROLOGUE_(ECMAPIProp, ECSecurity);
-	return pThis->GetUserList(cbCompanyId, lpCompanyId, ulFlags, lpcUsers, lpsUsers);
-}
-
-HRESULT ECMAPIProp::xECSecurity::GetGroupList(ULONG cbCompanyId,
-    LPENTRYID lpCompanyId, ULONG ulFlags, ULONG *lpcGroups,
-    ECGROUP **lppsGroups)
-{
-	METHOD_PROLOGUE_(ECMAPIProp, ECSecurity);
-	return pThis->GetGroupList(cbCompanyId, lpCompanyId, ulFlags, lpcGroups, lppsGroups);
-}
-
-HRESULT ECMAPIProp::xECSecurity::GetCompanyList(ULONG ulFlags,
-    ULONG *lpcCompanies, ECCOMPANY **lppsCompanies)
-{
-	METHOD_PROLOGUE_(ECMAPIProp, ECSecurity);
-	return pThis->GetCompanyList(ulFlags, lpcCompanies, lppsCompanies);
-}
-
-HRESULT ECMAPIProp::xECSecurity::GetPermissionRules(int ulType,
-    ULONG *lpcPermissions, ECPERMISSION **lppECPermissions)
-{
-	METHOD_PROLOGUE_(ECMAPIProp, ECSecurity);
-	return pThis->GetPermissionRules(ulType, lpcPermissions, lppECPermissions);
-}
-
-HRESULT ECMAPIProp::xECSecurity::SetPermissionRules(ULONG cPermissions,
-    ECPERMISSION *lpECPermissions)
-{
-	METHOD_PROLOGUE_(ECMAPIProp, ECSecurity);
-	TRACE_MAPI(TRACE_ENTRY, "IMAPIProp::IECSecurity::SetPermissionRules", "%s", PermissionRulesToString(cPermissions, lpECPermissions).c_str());
-	HRESULT hr = pThis->SetPermissionRules(cPermissions, lpECPermissions);
-	TRACE_MAPI(TRACE_RETURN, "IMAPIProp::IECSecurity::SetPermissionRules", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
+DEF_HRMETHOD0(ECMAPIProp, ECSecurity, QueryInterface, (REFIID, refiid), (void **, lppInterface))
+DEF_ULONGMETHOD0(ECMAPIProp, ECSecurity, AddRef, (void))
+DEF_ULONGMETHOD0(ECMAPIProp, ECSecurity, Release, (void))
+DEF_HRMETHOD0(ECMAPIProp, ECSecurity, GetOwner, (ULONG *, lpcbOwner), (LPENTRYID *, lppOwner))
+DEF_HRMETHOD0(ECMAPIProp, ECSecurity, GetUserList, (ULONG, cbCompanyId), (LPENTRYID, lpCompanyId), (ULONG, ulFlags), (ULONG *, lpcUsers), (ECUSER **, lpsUsers))
+DEF_HRMETHOD0(ECMAPIProp, ECSecurity, GetGroupList, (ULONG, cbCompanyId), (LPENTRYID, lpCompanyId), (ULONG, ulFlags), (ULONG *, lpcGroups), (ECGROUP **, lppsGroups))
+DEF_HRMETHOD0(ECMAPIProp, ECSecurity, GetCompanyList, (ULONG, ulFlags), (ULONG *, lpcCompanies), (ECCOMPANY **, lppsCompanies))
+DEF_HRMETHOD0(ECMAPIProp, ECSecurity, GetPermissionRules, (int, ulType), (ULONG *, lpcPermissions), (ECPERMISSION **, lppECPermissions))
+DEF_HRMETHOD1(TRACE_MAPI, ECMAPIProp, ECSecurity, SetPermissionRules, (ULONG, cPermissions), (ECPERMISSION *, lpECPermissions))

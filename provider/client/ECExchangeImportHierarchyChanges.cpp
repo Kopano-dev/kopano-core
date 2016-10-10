@@ -16,7 +16,7 @@
  */
 
 #include <kopano/platform.h>
-
+#include <kopano/ECInterfaceDefs.h>
 #include "ECExchangeImportHierarchyChanges.h"
 #include "ECExchangeImportContentsChanges.h"
 
@@ -498,53 +498,11 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderDeletion(ULONG ulFlags, LP
 	return hr;
 }
 
-ULONG ECExchangeImportHierarchyChanges::xExchangeImportHierarchyChanges::AddRef(){
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeImportHierarchyChanges::AddRef", "");
-	METHOD_PROLOGUE_(ECExchangeImportHierarchyChanges, ExchangeImportHierarchyChanges);
-	return pThis->AddRef();
-}
-
-ULONG ECExchangeImportHierarchyChanges::xExchangeImportHierarchyChanges::Release()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeImportHierarchyChanges::Release", "");
-	METHOD_PROLOGUE_(ECExchangeImportHierarchyChanges, ExchangeImportHierarchyChanges);
-	return pThis->Release();
-}
-
-HRESULT ECExchangeImportHierarchyChanges::xExchangeImportHierarchyChanges::QueryInterface(REFIID refiid, void **lppInterface)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeImportHierarchyChanges::QueryInterface", "");
-	METHOD_PROLOGUE_(ECExchangeImportHierarchyChanges, ExchangeImportHierarchyChanges);
-	return pThis->QueryInterface(refiid, lppInterface);
-}
-
-HRESULT ECExchangeImportHierarchyChanges::xExchangeImportHierarchyChanges::GetLastError(HRESULT hError, ULONG ulFlags, LPMAPIERROR * lppMapiError)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeImportHierarchyChanges::GetLastError", "");
-	METHOD_PROLOGUE_(ECExchangeImportHierarchyChanges, ExchangeImportHierarchyChanges);
-	return pThis->GetLastError(hError, ulFlags, lppMapiError);
-}
-
-HRESULT ECExchangeImportHierarchyChanges::xExchangeImportHierarchyChanges::Config(LPSTREAM lpStream, ULONG ulFlags){
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeImportHierarchyChanges::Config", "");
-	METHOD_PROLOGUE_(ECExchangeImportHierarchyChanges, ExchangeImportHierarchyChanges);
-	return pThis->Config(lpStream, ulFlags);
-}
-
-HRESULT ECExchangeImportHierarchyChanges::xExchangeImportHierarchyChanges::UpdateState(LPSTREAM lpStream){
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeImportHierarchyChanges::UpdateState", "");
-	METHOD_PROLOGUE_(ECExchangeImportHierarchyChanges, ExchangeImportHierarchyChanges);
-	return pThis->UpdateState(lpStream);
-}
-
-HRESULT ECExchangeImportHierarchyChanges::xExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPropValue lpPropArray){
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeImportHierarchyChanges::ImportFolderChange", "");
-	METHOD_PROLOGUE_(ECExchangeImportHierarchyChanges, ExchangeImportHierarchyChanges);
-	return pThis->ImportFolderChange(cValue, lpPropArray);
-}
-
-HRESULT ECExchangeImportHierarchyChanges::xExchangeImportHierarchyChanges::ImportFolderDeletion(ULONG ulFlags, LPENTRYLIST lpSourceEntryList){
-		TRACE_MAPI(TRACE_ENTRY, "IExchangeImportHierarchyChanges::ImportFolderDeletion", "");
-	METHOD_PROLOGUE_(ECExchangeImportHierarchyChanges, ExchangeImportHierarchyChanges);
-	return pThis->ImportFolderDeletion(ulFlags, lpSourceEntryList);
-}
+DEF_ULONGMETHOD1(TRACE_MAPI, ECExchangeImportHierarchyChanges, ExchangeImportHierarchyChanges, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECExchangeImportHierarchyChanges, ExchangeImportHierarchyChanges, Release, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportHierarchyChanges, ExchangeImportHierarchyChanges, QueryInterface, (REFIID, refiid), (void **, lppInterface))
+DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportHierarchyChanges, ExchangeImportHierarchyChanges, GetLastError, (HRESULT, hError), (ULONG, ulFlags), (LPMAPIERROR *, lppMapiError))
+DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportHierarchyChanges, ExchangeImportHierarchyChanges, Config, (LPSTREAM, lpStream), (ULONG, ulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportHierarchyChanges, ExchangeImportHierarchyChanges, UpdateState, (LPSTREAM, lpStream))
+DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportHierarchyChanges, ExchangeImportHierarchyChanges, ImportFolderChange, (ULONG, cValue), (LPSPropValue, lpPropArray))
+DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportHierarchyChanges, ExchangeImportHierarchyChanges, ImportFolderDeletion, (ULONG, ulFlags), (LPENTRYLIST, lpSourceEntryList))

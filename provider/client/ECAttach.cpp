@@ -321,21 +321,9 @@ HRESULT ECAttach::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject)
 }
 
 // Proxy routines for IAttach
-ULONG __stdcall ECAttach::xAttach::AddRef()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IAttach::AddRef", "");
-	METHOD_PROLOGUE_(ECAttach , Attach);
-	return pThis->AddRef();
-}
-
-ULONG __stdcall ECAttach::xAttach::Release()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IAttach::Release", "");
-	METHOD_PROLOGUE_(ECAttach , Attach);
-	return pThis->Release();
-}
-
 DEF_HRMETHOD(TRACE_MAPI, ECAttach, Attach, QueryInterface, (REFIID, refiid), (void **, lppInterface))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECAttach, Attach, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECAttach, Attach, Release, (void))
 DEF_HRMETHOD(TRACE_MAPI, ECAttach, Attach, GetLastError, (HRESULT, hError), (ULONG, ulFlags), (LPMAPIERROR *, lppMapiError))
 DEF_HRMETHOD(TRACE_MAPI, ECAttach, Attach, SaveChanges, (ULONG, ulFlags))
 DEF_HRMETHOD(TRACE_MAPI, ECAttach, Attach, GetProps, (LPSPropTagArray, lpPropTagArray), (ULONG, ulFlags), (ULONG FAR *, lpcValues, LPSPropValue FAR *, lppPropArray))

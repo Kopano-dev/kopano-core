@@ -18,6 +18,7 @@
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
 #include <kopano/ECGuid.h>
+#include <kopano/ECInterfaceDefs.h>
 #include <ECSyncLog.h>
 #include <kopano/ECDebug.h>
 #include <kopano/ECLogger.h>
@@ -447,74 +448,13 @@ HRESULT ECChangeAdvisor::Reload(void *lpParam, ECSESSIONID /*newSessionId*/)
 }
 
 // IECChangeAdvisor interface
-ULONG ECChangeAdvisor::xECChangeAdvisor::AddRef() {
-	TRACE_MAPI(TRACE_ENTRY, "IECChangeAdvisor::AddRef", "");
-	METHOD_PROLOGUE_(ECChangeAdvisor, ECChangeAdvisor);
-	return pThis->AddRef();
-}
-
-ULONG ECChangeAdvisor::xECChangeAdvisor::Release() {
-	TRACE_MAPI(TRACE_ENTRY, "IECChangeAdvisor::Release", "");
-	METHOD_PROLOGUE_(ECChangeAdvisor, ECChangeAdvisor);
-	return pThis->Release();
-}
-
-HRESULT ECChangeAdvisor::xECChangeAdvisor::QueryInterface(REFIID refiid, void **lppInterface) {
-	TRACE_MAPI(TRACE_ENTRY, "IECChangeAdvisor::QueryInterface", "");
-	METHOD_PROLOGUE_(ECChangeAdvisor, ECChangeAdvisor);
-	return pThis->QueryInterface(refiid, lppInterface);
-}
-
-HRESULT ECChangeAdvisor::xECChangeAdvisor::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) {
-	TRACE_MAPI(TRACE_ENTRY, "IECChangeAdvisor::GetLastError", "%s, %x", GetMAPIErrorDescription(hResult).c_str(), ulFlags);
-	METHOD_PROLOGUE_(ECChangeAdvisor, ECChangeAdvisor);
-	HRESULT hr = pThis->GetLastError(hResult, ulFlags, lppMAPIError);
-	TRACE_MAPI(TRACE_RETURN, "IECChangeAdvisor::GetLastError", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECChangeAdvisor::xECChangeAdvisor::Config(LPSTREAM lpStream,
-    LPGUID lpGUID, IECChangeAdviseSink *lpAdviseSink, ULONG ulFlags)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECChangeAdvisor::Config", "%s, %x", lpGUID ? DBGGUIDToString(*lpGUID).c_str() : "NULL", ulFlags);
-	METHOD_PROLOGUE_(ECChangeAdvisor, ECChangeAdvisor);
-	HRESULT hr = pThis->Config(lpStream, lpGUID, lpAdviseSink, ulFlags);
-	TRACE_MAPI(TRACE_RETURN, "IECChangeAdvisor::Config", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECChangeAdvisor::xECChangeAdvisor::UpdateState(LPSTREAM lpStream) {
-	TRACE_MAPI(TRACE_ENTRY, "IECChangeAdvisor::UpdateState", "");
-	METHOD_PROLOGUE_(ECChangeAdvisor, ECChangeAdvisor);
-	HRESULT hr = pThis->UpdateState(lpStream);
-	TRACE_MAPI(TRACE_RETURN, "IECChangeAdvisor::UpdateState", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECChangeAdvisor::xECChangeAdvisor::AddKeys(LPENTRYLIST lpEntryList) {
-	TRACE_MAPI(TRACE_ENTRY, "IECChangeAdvisor::AddKeys", "");
-	METHOD_PROLOGUE_(ECChangeAdvisor, ECChangeAdvisor);
-	HRESULT hr = pThis->AddKeys(lpEntryList);
-	TRACE_MAPI(TRACE_RETURN, "IECChangeAdvisor::AddKeys", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECChangeAdvisor::xECChangeAdvisor::RemoveKeys(LPENTRYLIST lpEntryList) {
-	TRACE_MAPI(TRACE_ENTRY, "IECChangeAdvisor::RemoveKeys", "");
-	METHOD_PROLOGUE_(ECChangeAdvisor, ECChangeAdvisor);
-	HRESULT hr = pThis->RemoveKeys(lpEntryList);
-	TRACE_MAPI(TRACE_RETURN, "IECChangeAdvisor::RemoveKeys", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECChangeAdvisor::xECChangeAdvisor::IsMonitoringSyncId(syncid_t ulSyncId) {
-	TRACE_MAPI(TRACE_ENTRY, "IECChangeAdvisor::IsMonitoringSyncId", "%u", ulSyncId);
-	METHOD_PROLOGUE_(ECChangeAdvisor, ECChangeAdvisor);
-	return pThis->IsMonitoringSyncId(ulSyncId);
-}
-
-HRESULT ECChangeAdvisor::xECChangeAdvisor::UpdateSyncState(syncid_t ulSyncId, changeid_t ulChangeId) {
-	TRACE_MAPI(TRACE_ENTRY, "IECChangeAdvisor::UpdateSyncState", "%u, %u", ulSyncId, ulChangeId);
-	METHOD_PROLOGUE_(ECChangeAdvisor, ECChangeAdvisor);
-	return pThis->UpdateSyncState(ulSyncId, ulChangeId);
-}
+DEF_ULONGMETHOD1(TRACE_MAPI, ECChangeAdvisor, ECChangeAdvisor, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECChangeAdvisor, ECChangeAdvisor, Release, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECChangeAdvisor, ECChangeAdvisor, QueryInterface, (REFIID, refiid), (void **, lppInterface))
+DEF_HRMETHOD1(TRACE_MAPI, ECChangeAdvisor, ECChangeAdvisor, GetLastError, (HRESULT, hResult), (ULONG, ulFlags), (LPMAPIERROR *, lppMAPIError))
+DEF_HRMETHOD1(TRACE_MAPI, ECChangeAdvisor, ECChangeAdvisor, Config, (LPSTREAM, lpStream), (LPGUID, lpGUID), (IECChangeAdviseSink *, lpAdviseSink), (ULONG, ulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECChangeAdvisor, ECChangeAdvisor, UpdateState, (LPSTREAM, lpStream))
+DEF_HRMETHOD1(TRACE_MAPI, ECChangeAdvisor, ECChangeAdvisor, AddKeys, (LPENTRYLIST, lpEntryList))
+DEF_HRMETHOD1(TRACE_MAPI, ECChangeAdvisor, ECChangeAdvisor, RemoveKeys, (LPENTRYLIST, lpEntryList))
+DEF_HRMETHOD1(TRACE_MAPI, ECChangeAdvisor, ECChangeAdvisor, IsMonitoringSyncId, (syncid_t, ulSyncId))
+DEF_HRMETHOD1(TRACE_MAPI, ECChangeAdvisor, ECChangeAdvisor, UpdateSyncState, (syncid_t, ulSyncId), (changeid_t, ulChangeId))
