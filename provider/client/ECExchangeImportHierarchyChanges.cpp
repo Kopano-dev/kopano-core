@@ -492,18 +492,16 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderDeletion(ULONG ulFlags, LP
 		MAPIFreeBuffer(lpEntryId);
 		lpEntryId = NULL;
 		hr = m_lpFolder->GetMsgStore()->lpTransport->HrEntryIDFromSourceKey(m_lpFolder->GetMsgStore()->m_cbEntryId, m_lpFolder->GetMsgStore()->m_lpEntryId, lpSourceEntryList->lpbin[ulSKNr].cb, lpSourceEntryList->lpbin[ulSKNr].lpb, 0, NULL, &cbEntryId, &lpEntryId);
-		if(hr == MAPI_E_NOT_FOUND){
+		if (hr == MAPI_E_NOT_FOUND) {
 			hr = hrSuccess;
 			continue;
 		}
-		if(hr != hrSuccess)
-			goto exit;
-
+		if (hr != hrSuccess)
+			break;
 		hr = m_lpFolder->lpFolderOps->HrDeleteFolder(cbEntryId, lpEntryId, DEL_FOLDERS | DEL_MESSAGES, m_ulSyncId);
-		if(hr !=  hrSuccess)
-			goto exit;
+		if (hr != hrSuccess)
+			break;
 	}
-exit:
 	MAPIFreeBuffer(lpEntryId);
 	return hr;
 }
