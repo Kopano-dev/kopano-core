@@ -94,14 +94,14 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 			PR_HTML,
 			PR_RTF_IN_SYNC,
 			PR_INTERNET_CPID
-		} };
+	} };
 	SPropArrayPtr ptrInfo;
 	SizedSPropTagArray (4, sInfo) = { 4, {
 			PR_SENT_REPRESENTING_NAME_W,
 			PR_SENT_REPRESENTING_EMAIL_ADDRESS_W,
 			PR_MESSAGE_DELIVERY_TIME,
 			PR_SUBJECT_W
-		} };
+	} };
 	ULONG ulCharset;
 	ULONG cValues;
 	bool bPlain = false;
@@ -791,8 +791,8 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
     StatsClient *const sc)
 {
 	HRESULT hr = hrSuccess;
-    IExchangeModifyTable *lpTable = NULL;
-    IMAPITable *lpView = NULL;
+	IExchangeModifyTable *lpTable = NULL;
+	IMAPITable *lpView = NULL;
 
 	LPMDB lpDestStore = NULL;
 	LPMAPIFOLDER lpDestFolder = NULL;
@@ -804,19 +804,21 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 	bool bMoved = false;
 	IMessage *lpNewMessage = NULL;
 
-    LPSRowSet lpRowSet = NULL;
-    SizedSPropTagArray(11, sptaRules) = {11,
-										 { PR_RULE_ID, PR_RULE_IDS, PR_RULE_SEQUENCE, PR_RULE_STATE,
-										   PR_RULE_USER_FLAGS, PR_RULE_CONDITION, PR_RULE_ACTIONS,
-										   PR_RULE_PROVIDER, CHANGE_PROP_TYPE(PR_RULE_NAME, PT_STRING8), PR_RULE_LEVEL, PR_RULE_PROVIDER_DATA } };
+	LPSRowSet lpRowSet = NULL;
+	SizedSPropTagArray(11, sptaRules) = {11, {
+	  PR_RULE_ID, PR_RULE_IDS, PR_RULE_SEQUENCE, PR_RULE_STATE,
+	  PR_RULE_USER_FLAGS, PR_RULE_CONDITION, PR_RULE_ACTIONS,
+	  PR_RULE_PROVIDER, CHANGE_PROP_TYPE(PR_RULE_NAME, PT_STRING8), PR_RULE_LEVEL, PR_RULE_PROVIDER_DATA
+	} };
+
 	SizedSSortOrderSet(1, sosRules) = {1, 0, 0, { {PR_RULE_SEQUENCE, TABLE_SORT_ASCEND} } };
-    LPSPropValue lpRuleName = NULL;
-    LPSPropValue lpRuleState = NULL;
+	LPSPropValue lpRuleName = NULL;
+	LPSPropValue lpRuleState = NULL;
 	LPSPropValue lpPropRule = NULL;
 	std::string strRule;
-    LPSPropValue lpProp = NULL;
-    LPSRestriction lpCondition = NULL;
-    ACTIONS* lpActions = NULL;
+	LPSPropValue lpProp = NULL;
+	LPSRestriction lpCondition = NULL;
+	ACTIONS* lpActions = NULL;
 
 	SPropValue sForwardProps[4];
 	IECExchangeModifyTable *lpECModifyTable = NULL;
@@ -824,7 +826,7 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 
 	sc -> countInc("rules", "invocations");
 
-    hr = lpOrigInbox->OpenProperty(PR_RULES_TABLE, &IID_IExchangeModifyTable, 0, 0, (LPUNKNOWN *)&lpTable);
+	hr = lpOrigInbox->OpenProperty(PR_RULES_TABLE, &IID_IExchangeModifyTable, 0, 0, (LPUNKNOWN *)&lpTable);
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrProcessRules(): OpenProperty failed %x", hr);
 		goto exitpm;
@@ -849,13 +851,13 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 	}
 
 	//TODO do something with ulResults
-    hr = lpTable->GetTable(0, &lpView);
+	hr = lpTable->GetTable(0, &lpView);
 	if(hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrProcessRules(): GetTable failed %x", hr);
 		goto exitpm;
 	}
         
-    hr = lpView->SetColumns((LPSPropTagArray)&sptaRules, 0);
+	hr = lpView->SetColumns((LPSPropTagArray)&sptaRules, 0);
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrProcessRules(): SetColumns failed %x", hr);
 		goto exitpm;
@@ -868,18 +870,19 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 	}
 
 	while (TRUE) {
-        hr = lpView->QueryRows(1, 0, &lpRowSet);
-	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrProcessRules(): QueryRows failed %x", hr);
-			goto exitpm;
-	}
+		hr = lpView->QueryRows(1, 0, &lpRowSet);
+		if (hr != hrSuccess) {
+			lpLogger->Log(EC_LOGLEVEL_ERROR, "HrProcessRules(): QueryRows failed %x", hr);
+				goto exitpm;
+		}
 
-        if (lpRowSet->cRows == 0)
-            break;
+		if (lpRowSet->cRows == 0)
+		    break;
 
 		sc -> countAdd("rules", "n_rules", int64_t(lpRowSet->cRows));
 
-        lpRuleName = PpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, CHANGE_PROP_TYPE(PR_RULE_NAME, PT_STRING8));
+		lpRuleName = PpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, CHANGE_PROP_TYPE(PR_RULE_NAME, PT_STRING8));
+
 		if (lpRuleName)
 			strRule = lpRuleName->Value.lpszA;
 		else
@@ -931,7 +934,7 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 			switch(lpActions->lpAction[n].acttype) {
 			case OP_MOVE:
 			case OP_COPY:
-					sc -> countInc("rules", "copy_move");
+				sc -> countInc("rules", "copy_move");
 
 				if (lpActions->lpAction[n].acttype == OP_COPY)
 					lpLogger->Log(EC_LOGLEVEL_DEBUG, "Rule action: copying e-mail");
@@ -1002,7 +1005,7 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 
 			case OP_REPLY:
 			case OP_OOF_REPLY:
-					sc -> countInc("rules", "reply_and_oof");
+				sc -> countInc("rules", "reply_and_oof");
 				if (lpActions->lpAction[n].acttype == OP_REPLY)
 					lpLogger->Log(EC_LOGLEVEL_DEBUG, "Rule action: replying e-mail");
 				else
@@ -1033,7 +1036,7 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 				break;
 
 			case OP_FORWARD:
-					sc -> countInc("rules", "forward");
+				sc -> countInc("rules", "forward");
 				// TODO: test lpActions->lpAction[n].ulActionFlavor
 				// FWD_PRESERVE_SENDER			1
 				// FWD_DO_NOT_MUNGE_MSG			2
@@ -1085,7 +1088,7 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 				break;
 
 			case OP_BOUNCE:
-					sc -> countInc("rules", "bounce");
+				sc -> countInc("rules", "bounce");
 				// scBounceCode?
 				// TODO:
 				// 1. make copy of lpMessage, needs CopyTo() function
@@ -1095,7 +1098,7 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 				break;
 
 			case OP_DELEGATE:
-					sc -> countInc("rules", "delegate");
+				sc -> countInc("rules", "delegate");
 				
 				if (lpActions->lpAction[n].lpadrlist->cEntries == 0) {
 					lpLogger->Log(EC_LOGLEVEL_DEBUG, "Delegating rule doesn't have recipients");
@@ -1141,7 +1144,7 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 				lpLogger->Log(EC_LOGLEVEL_WARNING, (std::string)"Rule "+strRule+": TAG actions are currently unsupported");
 				break;
 			case OP_DELETE:
-					sc -> countInc("rules", "delete");
+				sc -> countInc("rules", "delete");
 				// since *lppMessage wasn't yet saved in the server, we can just return a special MAPI Error code here,
 				// this will trigger the out-of-office mail (according to microsoft), but not save the message and drop it.
 				// The error code will become hrSuccess automatically after returning from the post processing function.
@@ -1150,7 +1153,7 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 				goto exitpm;
 				break;
 			case OP_MARK_AS_READ:
-					sc -> countInc("rules", "mark_read");
+				sc -> countInc("rules", "mark_read");
 				// add prop read
 				lpLogger->Log(EC_LOGLEVEL_WARNING, (std::string)"Rule "+strRule+": MARK AS READ actions are currently unsupported");
 				break;
