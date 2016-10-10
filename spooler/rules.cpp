@@ -917,8 +917,9 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 		
 		// test if action should be done...
 		// @todo: Create the correct locale for the current store.
-		if (TestRestriction(lpCondition, *lppMessage, createLocaleFromName("")) != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_INFO, (std::string)"Rule " + strRule + " doesn't match");
+		hr = TestRestriction(lpCondition, *lppMessage, createLocaleFromName(""));
+		if (hr != hrSuccess) {
+			lpLogger->Log(EC_LOGLEVEL_INFO, "Rule %s doesn't match: 0x%08x", strRule.c_str(), hr);
 			goto nextrule;
 		}	
 
