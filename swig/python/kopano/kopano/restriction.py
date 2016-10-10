@@ -33,12 +33,7 @@ propmap = {
 
 # List of token names.   This is always required
 tokens = [
-   'GREATER',
-   'LESS',
-   'GREATER_EQUAL',
-   'LESS_EQUAL',
-   'EQUAL',
-   'NOT_EQUAL',
+   'OPERATOR',
    'VALUE',
    'ID',
 ]
@@ -53,12 +48,7 @@ tokens = tokens + list(reserved.values())
 # A string containing ignored characters (spaces and tabs)
 t_ignore  = ' \t'
 # Regular expression rules for simple tokens
-t_GREATER       = r'>'
-t_GREATER_EQUAL = r'>='
-t_LESS          = r'<'
-t_LESS_EQUAL    = r'<='
-t_EQUAL         = r'=='
-t_NOT_EQUAL     = r'!='
+t_OPERATOR = r'(!=|==|<=|<|>|>=)'
 t_VALUE         = r'[0-9]+'
 
 def t_ID(t):
@@ -74,7 +64,9 @@ def t_error(t):
 # Build the lexer
 lexer = lex.lex()
 
-def parse_expr(p):
+def p_expression_operator(p):
+    'expression : VALUE OPERATOR VALUE'
+
     left_side = p[1]
     operator = mapping.get(p[2])
     right_side = p[3]
@@ -88,44 +80,14 @@ def parse_expr(p):
     else:
         raise ParseError('non supported property %s or %s used' % (right_side, left_side))
 
-    # XXX: use property class? or some conversion magic
+    # XXX: use property class? Yes if we make mapiobj_parent optional and
+    # create a Property with SPropValue(), then use property.strval
     if PROP_TYPE(proptag) == PT_BINARY:
         value = value.decode('hex')
     elif PROP_TYPE(proptag) == PT_LONG:
         value = int(value)
 
-    return SPropertyRestriction(operator, proptag, SPropValue(proptag, value))
-
-
-def p_expression_greater(p):
-    'expression : VALUE GREATER VALUE'
-
-    p[0] = parse_expr(p)
-
-def p_expression_less(p):
-    'expression : VALUE LESS VALUE'
-
-    p[0] = parse_expr(p)
-
-def p_expression_not_equal(p):
-    'expression : VALUE NOT_EQUAL VALUE'
-
-    p[0] = parse_expr(p)
-
-def p_expression_equal(p):
-    'expression : VALUE EQUAL VALUE'
-
-    p[0] = parse_expr(p)
-
-def p_expression_less_equal(p):
-    'expression : VALUE LESS_EQUAL VALUE'
-
-    p[0] = parse_expr(p)
-
-def p_expression_greater_equal(p):
-    'expression : VALUE GREATER_EQUAL VALUE'
-
-    p[0] = parse_expr(p)
+    p[0] = SPropertyRestriction(operator, proptag, SPropValue(proptag, value))
 
 def p_expression_and(p):
     'expression : expression AND expression'
