@@ -26,8 +26,7 @@
 #include "ZCMAPIProp.h"
 
 /* should be derived from IMAPIProp, but since we don't do anything with those functions, let's skip the red tape. */
-class ZCABContainer : public ECUnknown
-{
+class ZCABContainer _kc_final : public ECUnknown {
 protected:
 	ZCABContainer(std::vector<zcabFolderEntry> *lpFolders, IMAPIFolder *lpContacts, LPMAPISUP lpMAPISup, void *lpProvider, const char *szClassName);
 	virtual ~ZCABContainer();

@@ -18,9 +18,11 @@
 #ifndef ECIMPORTCONTENTSCHANGESPROXY_H
 #define ECIMPORTCONTENTSCHANGESPROXY_H
 
+#include <kopano/zcdefs.h>
 #include <edkmdb.h>
 
-class ECImportContentsChangesProxy  : public IExchangeImportContentsChanges {
+class ECImportContentsChangesProxy _kc_final :
+    public IExchangeImportContentsChanges {
 private:
     ULONG m_cRef;
     zval *m_lpObj;

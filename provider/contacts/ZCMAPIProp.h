@@ -25,8 +25,7 @@
 
 #include <map>
 
-class ZCMAPIProp : public ECUnknown
-{
+class ZCMAPIProp _kc_final : public ECUnknown {
 protected:
 	ZCMAPIProp(ULONG ulObjType, const char *szClassName = NULL);
 	virtual ~ZCMAPIProp();

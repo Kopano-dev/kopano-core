@@ -18,6 +18,7 @@
 #ifndef _HTTP_H_
 #define _HTTP_H_
 
+#include <kopano/zcdefs.h>
 #include <mapidefs.h>
 #include <mapicode.h>
 #include <kopano/base64.h>
@@ -44,10 +45,8 @@
 
 HRESULT HrParseURL(const std::string &stUrl, ULONG *lpulFlag, std::string *lpstrUrlUser = NULL, std::string *lpstrFolder = NULL);
 
-class Http
-{
+class Http _kc_final {
 public:
-
 	Http(ECChannel *lpChannel, ECLogger *lpLogger, ECConfig *lpConfig);
 	~Http();
 

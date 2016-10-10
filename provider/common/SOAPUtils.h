@@ -20,6 +20,7 @@
 
 #include "soapH.h"
 #include "SOAPAlloc.h"
+#include <kopano/zcdefs.h>
 #include <kopano/kcodes.h>
 #include <kopano/pcuser.hpp>
 #include <kopano/ustringutil.h>
@@ -111,7 +112,7 @@ size_t NotificationStructSize(const notification *);
 size_t PropTagArraySize(const struct propTagArray *);
 size_t SortOrderArraySize(const struct sortOrderArray *);
 
-class DynamicPropValArray {
+class DynamicPropValArray _kc_final {
 public:
     DynamicPropValArray(struct soap *soap, unsigned int ulHint = 10);
     ~DynamicPropValArray();
@@ -131,7 +132,7 @@ private:
     unsigned int m_ulPropCount;
 };
 
-class DynamicPropTagArray {
+class DynamicPropTagArray _kc_final {
 public:
     DynamicPropTagArray(struct soap *soap);
     ~DynamicPropTagArray();

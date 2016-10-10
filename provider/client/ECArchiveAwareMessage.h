@@ -110,7 +110,7 @@ private:
 	ECMessagePtr	m_ptrArchiveMsg;
 };
 
-class ECArchiveAwareMessageFactory : public IMessageFactory {
+class ECArchiveAwareMessageFactory _kc_final : public IMessageFactory {
 public:
 	HRESULT Create(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFlags, BOOL bEmbedded, ECMAPIProp *lpRoot, ECMessage **lppMessage) const;
 };

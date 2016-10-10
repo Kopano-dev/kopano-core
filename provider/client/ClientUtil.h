@@ -23,6 +23,7 @@
 #include <kopano/ECTags.h>
 #include <edkmdb.h>
 #include <kopano/tstring.h>
+#include <kopano/zcdefs.h>
 
 class WSTransport;
 
@@ -105,7 +106,7 @@ struct sGlobalProfileProps
 	std::string		strClientAppMisc;
 };
 
-class ClientUtil {
+class ClientUtil _kc_final {
 public:
 	static HRESULT	HrInitializeStatusRow (const char * lpszProviderDisplay, ULONG ulResourceType, LPMAPISUP lpMAPISup, LPSPropValue lpspvIdentity, ULONG ulFlags);
 	static HRESULT	HrSetIdentity(WSTransport *lpTransport, LPMAPISUP lpMAPISup, LPSPropValue* lppIdentityProps);

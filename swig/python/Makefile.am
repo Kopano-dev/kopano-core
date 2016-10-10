@@ -149,7 +149,7 @@ noinst_datadir = libcommon.py RecurrenceState.py
 mapi_wrap.h: mapi_wrap.cxx
 mapi_wrap.cxx: ../mapi.i ../mapiutil.i ../mapidefs.i ../mapicode.i ../mapix.i ../mapinotifsink.i ../mapiutil.i ../include/kopano/typemap.i ../helpers.i ../edkmdb.i ../IECServiceAdmin.i ../ecdefs.i include/kopano/typemap_python.i helpers_python.i
 	if test "x$(SWIG_EXEC)" = "x"; then echo "swig is required for 'make dist'"; exit 1; fi
-	${SWIG_EXEC} -I${top_srcdir}/libsync ${SWIG_FLAGS} ${SWIG_CXXFLAGS} -o $@ $<
+	${SWIG_EXEC} -I${top_srcdir}/common/include -I${top_srcdir}/libsync ${SWIG_FLAGS} ${SWIG_CXXFLAGS} -o $@ $<
 
 inetmapi_wrap.cxx: ../inetmapi.i ../include/kopano/typemap.i ../inetmapi.i include/kopano/typemap_python.i helpers_python.i
 	${SWIG_EXEC} ${SWIG_CXXFLAGS} -o $@ $<

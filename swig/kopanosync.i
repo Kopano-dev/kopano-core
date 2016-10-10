@@ -16,6 +16,7 @@
 %include "ECLogger.i"
 #endif
 
+%include <kopano/zcdefs.h>
 %include "ECLibSync.h"
 %include "ECSyncSettings.h"
 %include "ECSyncLog.h"

@@ -55,14 +55,14 @@ struct hash_map {
 
 class ECSessionManager;
 
-class ECsStores : public ECsCacheEntry {
+class ECsStores _kc_final : public ECsCacheEntry {
 public:
 	unsigned int	ulStore;
 	GUID			guidStore;
 	unsigned int	ulType;
 };
 
-class ECsUserObject : public ECsCacheEntry {
+class ECsUserObject _kc_final : public ECsCacheEntry {
 public:
 	objectclass_t		ulClass;
 	std::string			strExternId;

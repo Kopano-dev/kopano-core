@@ -18,6 +18,7 @@
 #ifndef WSSerializedMessage_INCLUDED
 #define WSSerializedMessage_INCLUDED
 
+#include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
 #include "soapStub.h"
 #include <kopano/mapi_ptr.h>
@@ -26,8 +27,7 @@
 /**
  * This object represents one exported message stream. It is responsible for requesting the MTOM attachments from soap.
  */
-class WSSerializedMessage : public ECUnknown
-{
+class WSSerializedMessage _kc_final : public ECUnknown {
 public:
 	WSSerializedMessage(soap *lpSoap, const std::string strStreamId, ULONG cbProps, LPSPropValue lpProps);
 

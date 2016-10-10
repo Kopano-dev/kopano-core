@@ -18,6 +18,7 @@
 #ifndef SMIMEMESSAGE_H
 #define SMIMEMESSAGE_H
 
+#include <kopano/zcdefs.h>
 #include <vmime/message.hpp>
 #include <vmime/utility/stream.hpp>
 
@@ -42,7 +43,7 @@
  * Note that any other body data set will be override by the SMIMEBody.
  *
  */
-class SMIMEMessage : public vmime::message {
+class SMIMEMessage _kc_final : public vmime::message {
 public:
     SMIMEMessage();
 

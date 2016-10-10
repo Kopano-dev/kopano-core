@@ -21,8 +21,7 @@
 #include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
 
-class ECXPProvider : public ECUnknown
-{
+class ECXPProvider _kc_final : public ECUnknown {
 protected:
 	ECXPProvider();
 	virtual ~ECXPProvider();

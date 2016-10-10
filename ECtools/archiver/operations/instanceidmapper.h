@@ -19,6 +19,7 @@
 #define instanceidmapper_INCLUDED
 
 #include <memory>
+#include <kopano/zcdefs.h>
 #include "instanceidmapper_fwd.h"
 #include <mapidefs.h>
 
@@ -29,8 +30,7 @@ typedef std::shared_ptr<ECDatabaseMySQL> DatabasePtr;
 
 namespace za { namespace operations {
 
-class InstanceIdMapper
-{
+class InstanceIdMapper _kc_final {
 	public:
 		static HRESULT Create(ECLogger *lpLogger, ECConfig *lpConfig, InstanceIdMapperPtr *lpptrMapper);
 		HRESULT GetMappedInstanceId(const SBinary &sourceServerUID, ULONG cbSourceInstanceID, LPENTRYID lpSourceInstanceID, const SBinary &destServerUID, ULONG *lpcbDestInstanceID, LPENTRYID *lppDestInstanceID);

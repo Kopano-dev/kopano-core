@@ -19,13 +19,13 @@
 #define ECSYNCLOG_INCLUDED
 
 #include <mutex>
+#include <kopano/zcdefs.h>
 #include "ECLibSync.h"
 #include <pthread.h>
 
 class ECLogger;
 
-class ECSyncLog
-{
+class ECSyncLog _kc_final {
 public:
 	static HRESULT ECLIBSYNC_API GetLogger(ECLogger **lppLogger);
 	static HRESULT ECLIBSYNC_API SetLogger(ECLogger *lpLogger);

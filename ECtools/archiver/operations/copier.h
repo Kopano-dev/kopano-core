@@ -19,6 +19,7 @@
 #define copier_INCLUDED
 
 #include <memory>
+#include <kopano/zcdefs.h>
 #include "operations.h"
 #include "postsaveaction.h"
 #include "transaction_fwd.h"
@@ -35,8 +36,7 @@ namespace za { namespace operations {
 /**
  * Performs the copy part of the archive operation.
  */
-class Copier : public ArchiveOperationBaseEx
-{
+class Copier _kc_final : public ArchiveOperationBaseEx {
 public:
 	Copier(ArchiverSessionPtr ptrSession, ECConfig *lpConfig, ECArchiverLogger *lpLogger, const ObjectEntryList &lstArchives, LPSPropTagArray lpExcludeProps, int ulAge, bool bProcessUnread);
 	~Copier();

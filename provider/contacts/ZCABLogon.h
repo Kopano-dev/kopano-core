@@ -31,8 +31,7 @@ typedef struct _s_zcabFolderEntry {
 	std::wstring strwDisplayName;
 } zcabFolderEntry;
 
-class ZCABLogon : public ECUnknown
-{
+class ZCABLogon _kc_final : public ECUnknown {
 protected:
 	ZCABLogon(LPMAPISUP lpMAPISup, ULONG ulProfileFlags, GUID *lpGUID);
 	virtual ~ZCABLogon();

@@ -19,6 +19,7 @@
 #define WSSTORETABLEVIEW_H
 
 #include <mutex>
+#include <kopano/zcdefs.h>
 #include "WSTableView.h"
 
 class WSStoreTableView : public WSTableView
@@ -33,8 +34,7 @@ public:
 
 };
 
-class WSTableOutGoingQueue : public WSStoreTableView
-{
+class WSTableOutGoingQueue _kc_final : public WSStoreTableView {
 protected:
 	WSTableOutGoingQueue(KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, ECMsgStore *, WSTransport *);
 
@@ -46,8 +46,7 @@ public:
 	virtual HRESULT HrOpenTable();
 };
 
-class WSTableMultiStore : public WSStoreTableView
-{
+class WSTableMultiStore _kc_final : public WSStoreTableView {
 protected:
 	WSTableMultiStore(ULONG ulFlags, KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, ECMsgStore *, WSTransport *);
     virtual ~WSTableMultiStore();

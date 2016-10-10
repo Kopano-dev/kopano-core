@@ -18,9 +18,10 @@
 #ifndef EC_MULTISTORE_TABLE_H
 #define EC_MULTISTORE_TABLE_H
 
+#include <kopano/zcdefs.h>
 #include "ECStoreObjectTable.h"
 
-class ECMultiStoreTable : public ECStoreObjectTable {
+class ECMultiStoreTable _kc_final : public ECStoreObjectTable {
 protected:
 	ECMultiStoreTable(ECSession *lpSession, unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale);
 

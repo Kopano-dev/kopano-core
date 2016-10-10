@@ -30,9 +30,7 @@
 #include <mapi.h>
 #include <mapispi.h>
 
-class WSABPropStorage : public ECUnknown
-{
-
+class WSABPropStorage _kc_final : public ECUnknown {
 protected:
 	WSABPropStorage(ULONG cbEntryId, LPENTRYID, KCmd *, std::recursive_mutex &, ECSESSIONID, WSTransport *);
 	virtual ~WSABPropStorage();

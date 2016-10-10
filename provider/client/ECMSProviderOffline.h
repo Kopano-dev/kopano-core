@@ -22,8 +22,7 @@
 #include <kopano/ECUnknown.h>
 #include "ECMSProvider.h"
 
-class ECMSProviderOffline : public ECMSProvider
-{
+class ECMSProviderOffline _kc_final : public ECMSProvider {
 protected:
 	ECMSProviderOffline(ULONG ulFlags);
 

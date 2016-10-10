@@ -25,7 +25,7 @@
 #include <edkmdb.h>
 #include "IECExchangeModifyTable.h"
 
-class ECExchangeModifyTable : public ECUnknown {
+class ECExchangeModifyTable _kc_final : public ECUnknown {
 public:
 	ECExchangeModifyTable(ULONG ulUniqueTag, ECMemTable *table, ECMAPIProp *lpParent, ULONG ulStartRuleId, ULONG ulFlags);
 	virtual ~ECExchangeModifyTable();

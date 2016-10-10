@@ -19,6 +19,7 @@
 #define postsaveiidupdater_INCLUDED
 
 #include <memory>
+#include <kopano/zcdefs.h>
 #include "postsaveaction.h"
 #include <kopano/mapi_ptr.h>
 #include "instanceidmapper_fwd.h"
@@ -45,15 +46,13 @@ private:
 typedef std::shared_ptr<TaskBase> TaskPtr;
 typedef std::list<TaskPtr> TaskList;
 
-
-class TaskMapInstanceId : public TaskBase {
+class TaskMapInstanceId _kc_final : public TaskBase {
 public:
 	TaskMapInstanceId(const AttachPtr &ptrSourceAttach, const MessagePtr &ptrDestMsg, ULONG ulDestAttachNum);
 	HRESULT DoExecute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper, const SBinary &sourceServerUID, ULONG cbSourceInstanceID, LPENTRYID lpSourceInstanceID, const SBinary &destServerUID, ULONG cbDestInstanceID, LPENTRYID lpDestInstanceID);
 };
 
-
-class TaskVerifyAndUpdateInstanceId : public TaskBase {
+class TaskVerifyAndUpdateInstanceId _kc_final : public TaskBase {
 public:
 	TaskVerifyAndUpdateInstanceId(const AttachPtr &ptrSourceAttach, const MessagePtr &ptrDestMsg, ULONG ulDestAttachNum, ULONG cbDestInstanceID, LPENTRYID lpDestInstanceID);
 	HRESULT DoExecute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper, const SBinary &sourceServerUID, ULONG cbSourceInstanceID, LPENTRYID lpSourceInstanceID, const SBinary &destServerUID, ULONG cbDestInstanceID, LPENTRYID lpDestInstanceID);
@@ -62,8 +61,7 @@ private:
 	entryid_t m_destInstanceID;
 };
 
-
-class PostSaveInstanceIdUpdater : public IPostSaveAction {
+class PostSaveInstanceIdUpdater _kc_final : public IPostSaveAction {
 public:
 
 	PostSaveInstanceIdUpdater(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper, const TaskList &lstDeferred);

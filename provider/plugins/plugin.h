@@ -22,6 +22,7 @@
 // define to see which exception is thrown from a plugin
 //#define EXCEPTION_DEBUG
 
+#include <kopano/zcdefs.h>
 #include <kopano/ECDefs.h>
 #include <kopano/pcuser.hpp>
 
@@ -53,7 +54,7 @@ class ECStatsCollector;
  * sync. This way ECUserManagement can cache things like the
  * object details without constantly accessing the plugin.
  */
-class objectsignature_t {
+class objectsignature_t _kc_final {
 public:
 	/**
 	 * Constructor for combining objectid and signature
@@ -529,7 +530,7 @@ public:
  * or multi-server function is called while this feature is
  * disabled.
  */
-class notsupported : public runtime_error {
+class notsupported _kc_final : public runtime_error {
 public:
 	/**
 	 * @param[in]	arg

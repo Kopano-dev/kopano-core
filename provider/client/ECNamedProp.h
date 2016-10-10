@@ -18,6 +18,7 @@
 #ifndef ECNAMEDPROP_H
 #define ECNAMEDPROP_H
 
+#include <kopano/zcdefs.h>
 #include <mapidefs.h>
 #include <map>
 
@@ -51,7 +52,7 @@ struct ltmap {
 	}
 };
 
-class ECNamedProp {
+class ECNamedProp _kc_final {
 public:
 	ECNamedProp(WSTransport *lpTransport);
 	virtual ~ECNamedProp();

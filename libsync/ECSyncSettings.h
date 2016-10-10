@@ -19,6 +19,7 @@
 #define ECSYNCSETTINGS_INCLUDED
 
 #include <mutex>
+#include <kopano/zcdefs.h>
 #include "ECLibSync.h"
 
 #define EC_SYNC_OPT_STREAM			1
@@ -28,8 +29,7 @@
 #define EC_SYNC_OPT_ALL				(EC_SYNC_OPT_STREAM | EC_SYNC_OPT_CHANGENOTIF | EC_SYNC_OPT_STATECOLLECT)
 
 
-class ECLIBSYNC_API ECSyncSettings
-{
+class ECLIBSYNC_API ECSyncSettings _kc_final {
 public:
 	static ECSyncSettings* GetInstance();
 

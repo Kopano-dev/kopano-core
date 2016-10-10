@@ -19,8 +19,9 @@
 #define MAPIPROPHELPER_INCLUDED
 
 #include <memory>
-
+#include <kopano/zcdefs.h>
 #include <mapix.h>
+
 #include <kopano/mapi_ptr.h>
 
 #include <kopano/CommonUtil.h>
@@ -77,9 +78,7 @@ private:
 	PROPMAP_DEF_NAMED_ID(REF_PREV_ENTRYID)
 };
 
-
-class MessageState
-{
+class MessageState _kc_final {
 public:
 	MessageState(): m_ulState(0) {}
 

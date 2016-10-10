@@ -30,7 +30,7 @@
  * tables implementations
  */
 
-class ECMAPITable : public ECUnknown {
+class ECMAPITable _kc_final : public ECUnknown {
 protected:
 	ECMAPITable(std::string strName, ECNotifyClient *lpNotifyClient, ULONG ulFlags);
 	virtual ~ECMAPITable();

@@ -20,13 +20,14 @@
 
 #include <string>
 #include <vector>
+#include <kopano/zcdefs.h>
 #include <kopano/ECChannel.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ECConfig.h>
 
 enum LMTP_Command {LMTP_Command_LHLO, LMTP_Command_MAIL_FROM, LMTP_Command_RCPT_TO, LMTP_Command_DATA, LMTP_Command_RSET, LMTP_Command_QUIT };
 
-class LMTP {
+class LMTP _kc_final {
 public:
 	LMTP(ECChannel *lpChan, const char *szServerPath, ECLogger *lpLog, ECConfig *lpConf);
 	HRESULT HrGetCommand(const std::string &strCommand, LMTP_Command &eCommand);

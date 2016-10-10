@@ -24,6 +24,7 @@
 #include <set>
 using namespace std;
 
+#include <kopano/zcdefs.h>
 #include <mapidefs.h>
 
 /*
@@ -63,7 +64,7 @@ public:
 	void PrintStatistics(const std::string &title);
 };
 
-class FsckCalendar : public Fsck {
+class FsckCalendar _kc_final : public Fsck {
 private:
 	HRESULT ValidateItem(LPMESSAGE lpMessage, const std::string &strClass);
 	HRESULT ValidateMinimalNamedFields(LPMESSAGE lpMessage);
@@ -71,13 +72,13 @@ private:
 	HRESULT ValidateRecurrence(LPMESSAGE lpMessage);
 };
 
-class FsckContact : public Fsck {
+class FsckContact _kc_final : public Fsck {
 private:
 	HRESULT ValidateItem(LPMESSAGE lpMessage, const std::string &strClass);
 	HRESULT ValidateContactNames(LPMESSAGE lpMessage);
 };
 
-class FsckTask : public Fsck {
+class FsckTask _kc_final : public Fsck {
 private:
 	HRESULT ValidateItem(LPMESSAGE lpMessage, const std::string &strClass);
 	HRESULT ValidateMinimalNamedFields(LPMESSAGE lpMessage);

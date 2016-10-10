@@ -23,7 +23,7 @@
 #include "ECMAPIFolder.h"
 #include <kopano/ECUnknown.h>
 
-class ECExchangeImportHierarchyChanges : public ECUnknown {
+class ECExchangeImportHierarchyChanges _kc_final : public ECUnknown {
 protected:
 	ECExchangeImportHierarchyChanges(ECMAPIFolder *lpFolder);
 	virtual ~ECExchangeImportHierarchyChanges();

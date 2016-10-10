@@ -20,13 +20,12 @@
 
 #include <map>
 #include <vector>
-
+#include <kopano/zcdefs.h>
 #include <mapidefs.h>
 #include <edkmdb.h>
 
 class ECResyncSetIterator;
-class ECResyncSet
-{
+class ECResyncSet _kc_final {
 public:
 	typedef std::vector<BYTE>						array_type;
 	struct storage_type {
@@ -54,8 +53,7 @@ private:
 	friend class ECResyncSetIterator;
 };
 
-class ECResyncSetIterator
-{
+class ECResyncSetIterator _kc_final {
 public:
 	ECResyncSetIterator(ECResyncSet &resyncSet);
 	ECResyncSetIterator(ECResyncSet &resyncSet, const SBinary &sBinSourceKey);

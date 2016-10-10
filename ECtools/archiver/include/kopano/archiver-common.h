@@ -21,6 +21,7 @@
 #include <list>
 #include <vector>
 #include <memory>
+#include <kopano/zcdefs.h>
 #include <kopano/ECDebugPrint.h>
 #include <kopano/ArchiveControl.h>
 
@@ -59,8 +60,7 @@
 /**
  * Utility class for easy handling of non-addressbook entryids.
  */
-class entryid_t
-{
+class entryid_t _kc_final {
 public:
 	/**
 	 * Constructs an empty entryid.
@@ -288,8 +288,7 @@ private:
 /**
  * Utility class for easy handling of addressbook entryids.
  */
-class abentryid_t
-{
+class abentryid_t _kc_final {
 public:
 	/**
 	 * Constructs an empty entryid.
@@ -528,8 +527,7 @@ static inline bool operator<(const SObjectEntry &lhs, const SObjectEntry &rhs) {
  * This class is used as the predicate argument in find_if. If one of the
  * entryid's is wrapped, it will be unwrapped before the comparison.
  */
-class StoreCompare
-{
+class StoreCompare _kc_final {
 public:
 	/**
 	 * This constructor takes the store entryid from an SObjectEntry.
@@ -569,8 +567,7 @@ private:
  *
  * This class is used as the predicate argument in find_if. 
  */
-class IsNotWrapped
-{
+class IsNotWrapped _kc_final {
 public:
 	/**
 	 * This method is called for each SObjectEntry for which the store entryid needs to be

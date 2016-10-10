@@ -32,9 +32,7 @@
 
 class convert_context;
 
-class WSMAPIPropStorage : public ECUnknown
-{
-
+class WSMAPIPropStorage _kc_final : public ECUnknown {
 protected:
 	WSMAPIPropStorage(ULONG cbParentEntryId, LPENTRYID lpParentEntryId, ULONG cbEntryId, LPENTRYID, ULONG ulFlags, KCmd *, std::recursive_mutex &, ECSESSIONID, unsigned int ulServerCapabilities, WSTransport *);
 	virtual ~WSMAPIPropStorage();

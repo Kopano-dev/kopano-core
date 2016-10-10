@@ -17,6 +17,7 @@
 
 #pragma once
 
+#include <kopano/zcdefs.h>
 #include <mapidefs.h>
 
 #include "ECABProp.h"
@@ -25,6 +26,5 @@
 /**
  * Helper class for creating the displaytable contents in the Outlook Address Book
  */
-class ECDisplayTable
-{
+class ECDisplayTable _kc_final {
 };

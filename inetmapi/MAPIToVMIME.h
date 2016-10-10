@@ -18,6 +18,7 @@
 #ifndef MAPITOVMIME
 #define MAPITOVMIME
 
+#include <kopano/zcdefs.h>
 #include <mapix.h>
 
 #include <string>
@@ -28,8 +29,7 @@
 #include <kopano/charset/convert.h>
 #include "SMIMEMessage.h"
 
-class MAPIToVMIME
-{
+class MAPIToVMIME _kc_final {
 public:
 	MAPIToVMIME();
 	MAPIToVMIME(IMAPISession *, IAddrBook *, sending_options);

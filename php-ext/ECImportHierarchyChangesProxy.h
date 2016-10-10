@@ -18,9 +18,11 @@
 #ifndef ECIMPORTHIERARCHYCHANGESPROXY_H
 #define ECIMPORTHIERARCHYCHANGESPROXY_H
 
+#include <kopano/zcdefs.h>
 #include <edkmdb.h>
 
-class ECImportHierarchyChangesProxy  : public IExchangeImportHierarchyChanges {
+class ECImportHierarchyChangesProxy _kc_final :
+    public IExchangeImportHierarchyChanges {
 private:
     ULONG m_cRef;
     zval *m_lpObj;

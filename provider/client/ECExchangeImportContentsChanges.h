@@ -27,7 +27,7 @@
 
 class ECLogger;
 
-class ECExchangeImportContentsChanges : public ECUnknown {
+class ECExchangeImportContentsChanges _kc_final : public ECUnknown {
 protected:
 	ECExchangeImportContentsChanges(ECMAPIFolder *lpFolder);
 	virtual ~ECExchangeImportContentsChanges();

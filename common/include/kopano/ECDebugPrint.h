@@ -20,6 +20,7 @@
 
 // @todo: Cleanup 'n' Document
 
+#include <kopano/zcdefs.h>
 #include <mapidefs.h>
 #include <kopano/stringutil.h>
 #include <kopano/ECDebug.h>
@@ -27,7 +28,7 @@
 #include <boost/type_traits/is_convertible.hpp>
 #include <boost/utility/enable_if.hpp>
 
-class ECDebugPrintBase {
+class ECDebugPrintBase _kc_final {
 public:
 	enum DerefMode {
 		Deref,

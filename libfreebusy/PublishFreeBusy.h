@@ -18,6 +18,7 @@
 #ifndef _PublishFreeBusy_H_
 #define _PublishFreeBusy_H_
 
+#include <kopano/zcdefs.h>
 #include <mapix.h>
 #include <mapidefs.h>
 #include <ctime>
@@ -35,8 +36,7 @@ typedef struct{
 
 HRESULT HrPublishDefaultCalendar(IMAPISession *lpSession, IMsgStore *lpDefStore, time_t tsStart, ULONG ulMonths, ECLogger *lpLogger);
 
-class PublishFreeBusy
-{
+class PublishFreeBusy _kc_final {
 public:
 	PublishFreeBusy(IMAPISession *lpSession, IMsgStore *lpDefStore, time_t tsStart, ULONG ulMonths, ECLogger *lpLogger);
 	~PublishFreeBusy();

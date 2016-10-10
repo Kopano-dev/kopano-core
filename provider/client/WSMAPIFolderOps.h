@@ -19,6 +19,7 @@
 #define WSMAPIFOLDEROPS_H
 
 #include <kopano/ECUnknown.h>
+#include <kopano/zcdefs.h>
 #include <mutex>
 #include "kcore.hpp"
 #include <kopano/kcodes.h>
@@ -33,8 +34,7 @@
 class WSTransport;
 class utf8string;
 
-class WSMAPIFolderOps : public ECUnknown
-{
+class WSMAPIFolderOps _kc_final : public ECUnknown {
 protected:
 	WSMAPIFolderOps(KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, WSTransport *);
 	virtual ~WSMAPIFolderOps();

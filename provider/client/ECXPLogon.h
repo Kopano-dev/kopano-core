@@ -32,8 +32,7 @@
 */
 class ECXPProvider;
 
-class ECXPLogon : public ECUnknown
-{
+class ECXPLogon _kc_final : public ECUnknown {
 protected:
 	ECXPLogon(const std::string &strProfileName, BOOL bOffline, ECXPProvider *lpXPProvider, LPMAPISUP lpMAPISup);
 	virtual ~ECXPLogon();

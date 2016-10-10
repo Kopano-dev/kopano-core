@@ -19,15 +19,14 @@
 #define IMAP_H
 
 #include <mutex>
-#include "ClientProto.h"
-
 #include <string>
 #include <vector>
 #include <list>
 #include <set>
-
+#include <kopano/zcdefs.h>
 #include <kopano/ECIConv.h>
 #include <kopano/ECChannel.h>
+#include "ClientProto.h"
 
 using namespace std;
 
@@ -53,7 +52,7 @@ using namespace std;
 
 LONG __stdcall IMAPIdleAdviseCallback(void *lpContext, ULONG cNotif, LPNOTIFICATION lpNotif);
 
-class BinaryArray {
+class BinaryArray _kc_final {
 public:
 	BinaryArray(void) : lpb(NULL), cb(0), bcheap(false) {}
 	BinaryArray(BYTE *lpData, ULONG cbData, bool bcheap = false)
@@ -142,7 +141,7 @@ struct lessBinaryArray {
 };
 
 // FLAGS: \Seen \Answered \Flagged \Deleted \Draft \Recent
-class IMAP : public ClientProto {
+class IMAP _kc_final : public ClientProto {
 public:
 	IMAP(const char *szServerPath, ECChannel *lpChannel, ECLogger *lpLogger, ECConfig *lpConfig);
 	~IMAP();

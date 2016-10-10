@@ -18,6 +18,7 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
+#include <kopano/zcdefs.h>
 #include <kopano/ECLogger.h>
 #include <kopano/tstring.h>
 
@@ -52,9 +53,7 @@ private:
 	tstring		m_strFolder;
 };
 
-
-class ScopedUserLogging
-{
+class ScopedUserLogging _kc_final {
 public:
 	ScopedUserLogging(ECArchiverLogger *lpLogger, const tstring &strUser);
 	~ScopedUserLogging();
@@ -68,9 +67,7 @@ private:
 	const tstring m_strPrevUser;
 };
 
-
-class ScopedFolderLogging
-{
+class ScopedFolderLogging _kc_final {
 public:
 	ScopedFolderLogging(ECArchiverLogger *lpLogger, const tstring &strFolder);
 	~ScopedFolderLogging();

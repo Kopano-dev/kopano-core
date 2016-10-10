@@ -21,12 +21,12 @@
 #ifndef ARCHIVERIMPL_H_INCLUDED
 #define ARCHIVERIMPL_H_INCLUDED
 
+#include <kopano/zcdefs.h>
 #include "Archiver.h"               // for declaration of class Archiver
 #include "AutoMAPI.h"               // for declaration of AutoMAPI
 #include "ArchiverSessionPtr.h"     // For ArchiverSessionPtr
 
-class ArchiverImpl : public Archiver
-{
+class ArchiverImpl _kc_final : public Archiver {
 public:
 	ArchiverImpl();
 	~ArchiverImpl();

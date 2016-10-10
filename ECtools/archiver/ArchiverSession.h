@@ -18,6 +18,7 @@
 #ifndef ARCHIVERSESSION_H_INCLUDED
 #define ARCHIVERSESSION_H_INCLUDED
 
+#include <kopano/zcdefs.h>
 #include "ArchiverSessionPtr.h"
 #include <kopano/mapi_ptr.h>
 #include <kopano/tstring.h>
@@ -31,8 +32,7 @@ class ECLogger;
  * The ArchiverSession class wraps the MAPISession an provides commonly used operations. It also
  * checks the license. This way the license doesn't need to be checked all over the place.
  */
-class ArchiverSession
-{
+class ArchiverSession _kc_final {
 public:
 	static HRESULT Create(ECConfig *lpConfig, ECLogger *lpLogger, ArchiverSessionPtr *lpptrSession);
 	static HRESULT Create(const MAPISessionPtr &ptrSession, ECLogger *lpLogger, ArchiverSessionPtr *lpptrSession);

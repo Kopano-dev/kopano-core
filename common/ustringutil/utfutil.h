@@ -20,9 +20,6 @@
 
 #include <unicode/unistr.h>
 
-class UTF8Iterator;
-class UTF32Iterator;
-
 #if U_ICU_VERSION_MAJOR_NUM < 4 || (U_ICU_VERSION_MAJOR_NUM == 4 && U_ICU_VERSION_MINOR_NUM < 2)
 
 UnicodeString UTF8ToUnicode(const char *utf8);

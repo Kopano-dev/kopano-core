@@ -35,8 +35,7 @@
 #include <mapi.h>
 #include <mapispi.h>
 
-class ECParentStorage : public ECUnknown
-{
+class ECParentStorage _kc_final : public ECUnknown {
 	/*
 	  lpParentObject:	The property object of the parent (eg. ECMessage for ECAttach)
 	  ulUniqueId:		A unique client-side to find the object in the children list on the parent (PR_ATTACH_NUM (attachments) or PR_ROWID (recipients))

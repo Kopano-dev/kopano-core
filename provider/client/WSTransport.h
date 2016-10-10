@@ -46,7 +46,7 @@ class WSMessageStreamImporter;
 typedef HRESULT (*SESSIONRELOADCALLBACK)(void *lpParam, ECSESSIONID newSessionId);
 typedef std::map<ULONG, std::pair<void *, SESSIONRELOADCALLBACK> > SESSIONRELOADLIST;
 
-class ECsResolveResult : public ECsCacheEntry {
+class ECsResolveResult _kc_final : public ECsCacheEntry {
 public:
 	HRESULT	hr;
 	std::string serverPath;

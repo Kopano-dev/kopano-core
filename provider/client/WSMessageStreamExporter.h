@@ -18,6 +18,7 @@
 #ifndef WSMessageStreamExporter_INCLUDED
 #define WSMessageStreamExporter_INCLUDED
 
+#include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
 #include "soapStub.h"
 #include <kopano/mapi_ptr.h>
@@ -32,8 +33,7 @@ class WSSerializedMessage;
  * This object encapsulates an set of exported streams. It allows the user to request each individual stream. The
  * streams must be requested in the correct sequence.
  */
-class WSMessageStreamExporter : public ECUnknown
-{
+class WSMessageStreamExporter _kc_final : public ECUnknown {
 public:
 	static HRESULT Create(ULONG ulOffset, ULONG ulCount, const messageStreamArray &streams, WSTransport *lpTransport, WSMessageStreamExporter **lppStreamExporter);
 

@@ -18,6 +18,7 @@
 #ifndef __DAGENT_ARCHIVE_H
 #define __DAGENT_ARCHIVE_H
 
+#include <kopano/zcdefs.h>
 #include <mapidefs.h>
 #include <mapix.h>
 
@@ -29,7 +30,7 @@
 
 class ECLogger;
 
-class ArchiveResult {
+class ArchiveResult _kc_final {
 public:
 	void AddMessage(MessagePtr ptrMessage);
 	void Undo(IMAPISession *lpSession);
@@ -42,7 +43,7 @@ private:
 class Archive;
 typedef std::unique_ptr<Archive> ArchivePtr;
 
-class Archive {
+class Archive _kc_final {
 public:
 	static HRESULT Create(IMAPISession *lpSession, ECLogger *lpLogger, ArchivePtr *lpptrArchive);
 	~Archive();

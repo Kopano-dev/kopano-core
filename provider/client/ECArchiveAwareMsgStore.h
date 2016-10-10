@@ -18,6 +18,7 @@
 #ifndef ECARCHIVEAWAREMSGSTORE_H
 #define ECARCHIVEAWAREMSGSTORE_H
 
+#include <kopano/zcdefs.h>
 #include "ECMsgStore.h"
 #include <kopano/mapi_ptr/mapi_object_ptr.h>
 #include <kopano/ECGuid.h>
@@ -28,7 +29,7 @@
 
 class ECMessage;
 
-class ECArchiveAwareMsgStore : public ECMsgStore {
+class ECArchiveAwareMsgStore _kc_final : public ECMsgStore {
 public:
 	ECArchiveAwareMsgStore(char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags, BOOL fIsSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore);
 

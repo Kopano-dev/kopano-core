@@ -18,10 +18,11 @@
 #ifndef OUTPUT_STREAM_MAPI_ADAPTER_H
 #define OUTPUT_STREAM_MAPI_ADAPTER_H
 
+#include <kopano/zcdefs.h>
 #include <mapidefs.h>
 #include <vmime/utility/stream.hpp>
 
-class outputStreamMAPIAdapter : public vmime::utility::outputStream {
+class outputStreamMAPIAdapter _kc_final : public vmime::utility::outputStream {
 public:
 	outputStreamMAPIAdapter(IStream *lpStream);
 	virtual ~outputStreamMAPIAdapter();

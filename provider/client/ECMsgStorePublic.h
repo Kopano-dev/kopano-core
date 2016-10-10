@@ -18,6 +18,7 @@
 #ifndef ECMSGSTOREPUBLIC_H
 #define ECMSGSTOREPUBLIC_H
 
+#include <kopano/zcdefs.h>
 #include <mapidefs.h>
 #include <mapispi.h>
 
@@ -27,8 +28,7 @@
 #include "ClientUtil.h"
 #include <kopano/ECMemTable.h>
 
-class ECMsgStorePublic : public ECMsgStore
-{
+class ECMsgStorePublic _kc_final : public ECMsgStore {
 protected:
 	ECMsgStorePublic(char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags, BOOL fIsSpooler, BOOL bOfflineStore);
 	~ECMsgStorePublic(void);

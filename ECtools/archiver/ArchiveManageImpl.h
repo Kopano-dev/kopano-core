@@ -18,6 +18,7 @@
 #ifndef ARCHIVEMANAGEIMPL_H_INCLUDED
 #define ARCHIVEMANAGEIMPL_H_INCLUDED
 
+#include <kopano/zcdefs.h>
 #include "ArchiverSessionPtr.h"     // For ArchiverSessionPtr
 #include "helpers/ArchiveHelper.h"
 #include "ECArchiverLogger.h"
@@ -26,8 +27,7 @@
 /**
  * The ArchiveManager is used to attach, detach and list archives for users.
  */
-class ArchiveManageImpl : public ArchiveManage
-{
+class ArchiveManageImpl _kc_final : public ArchiveManage {
 public:
 	static HRESULT Create(ArchiverSessionPtr ptrSession, ECConfig *lpConfig, const TCHAR *lpszUser, ECLogger *lpLogger, ArchiveManagePtr *lpptrArchiveManage);
 

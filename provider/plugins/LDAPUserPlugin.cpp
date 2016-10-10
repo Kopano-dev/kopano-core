@@ -15,6 +15,7 @@
  *
  */
 
+#include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 
 #include <iostream>
@@ -186,7 +187,7 @@ typedef auto_free<struct berval*, auto_free_dealloc<struct berval**, void, ldap_
 	}\
 }
 
-class attrArray {
+class attrArray _kc_final {
 public:
 	attrArray(unsigned int ulSize)
 	{

@@ -21,7 +21,9 @@
 #ifndef AUTOMAPI_H_INCLUDED
 #define AUTOMAPI_H_INCLUDED
 
-class AutoMAPI {
+#include <kopano/zcdefs.h>
+
+class AutoMAPI _kc_final {
 public:
 	AutoMAPI() : m_bInitialized(false) {}
 	~AutoMAPI() {

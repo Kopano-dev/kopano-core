@@ -78,7 +78,7 @@ private:
 	ULONG ulAttachNum;
 };
 
-class ECAttachFactory : public IAttachFactory{
+class ECAttachFactory _kc_final : public IAttachFactory {
 public:
 	HRESULT Create(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, ULONG ulAttachNum, ECMAPIProp *lpRoot, ECAttach **lppAttach) const;
 };

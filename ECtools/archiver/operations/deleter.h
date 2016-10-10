@@ -18,6 +18,7 @@
 #ifndef deleter_INCLUDED
 #define deleter_INCLUDED
 
+#include <kopano/zcdefs.h>
 #include "operations.h"
 #include <kopano/archiver-common.h>
 #include <list>
@@ -27,8 +28,7 @@ namespace za { namespace operations {
 /**
  * Performs the delete part of the archive operation.
  */
-class Deleter : public ArchiveOperationBaseEx
-{
+class Deleter _kc_final : public ArchiveOperationBaseEx {
 public:
 	Deleter(ECArchiverLogger *lpLogger, int ulAge, bool bProcessUnread);
 	~Deleter();

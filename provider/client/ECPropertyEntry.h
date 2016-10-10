@@ -18,13 +18,14 @@
 #ifndef ECPROPERTYENTRY_H
 #define ECPROPERTYENTRY_H
 
+#include <kopano/zcdefs.h>
 #include <mapidefs.h>
 #include <mapicode.h>
 
 #include "ECInvariantChecker.h"
 
 // C++ class to represent a property in the property list.
-class ECProperty {
+class ECProperty _kc_final {
 public:
 	ECProperty(const ECProperty &Property);
 	ECProperty(LPSPropValue lpsProp);
@@ -57,7 +58,7 @@ private:
 
 // A class representing a property we have in-memory, a list of which is held by ECMAPIProp
 // Deleting a property just sets the property as deleted
-class ECPropertyEntry {
+class ECPropertyEntry _kc_final {
 public:
 	ECPropertyEntry(ULONG ulPropTag);
 	ECPropertyEntry(ECProperty *property);

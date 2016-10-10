@@ -18,12 +18,13 @@
 #ifndef ARCHIVESTATEUPDATER_H_INCLUDED
 #define ARCHIVESTATEUPDATER_H_INCLUDED
 
+#include <kopano/zcdefs.h>
 #include "ArchiveStateCollector.h"
 
 /**
  * This class updates the current archive state to the should-be state.
  */
-class ArchiveStateUpdater {
+class ArchiveStateUpdater _kc_final {
 public:
 	typedef ArchiveStateCollector::ArchiveInfo		ArchiveInfo;
 	typedef ArchiveStateCollector::ArchiveInfoMap	ArchiveInfoMap;

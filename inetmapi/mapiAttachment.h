@@ -19,11 +19,11 @@
 #ifndef MAPIATTACHMENT_H
 #define MAPIATTACHMENT_H
 
+#include <kopano/zcdefs.h>
 #include <vmime/defaultAttachment.hpp>
 #include <string>
 
-class mapiAttachment : public vmime::defaultAttachment
-{
+class mapiAttachment _kc_final : public vmime::defaultAttachment {
 public:
 
 	mapiAttachment(vmime::ref <const vmime::contentHandler> data,

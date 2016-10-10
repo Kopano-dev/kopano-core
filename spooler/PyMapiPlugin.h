@@ -19,6 +19,7 @@
 #define _PYMAPIPLUGIN_H
 
 #include <Python.h>
+#include <kopano/zcdefs.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ECConfig.h>
 #include "PythonSWIGRuntime.h"
@@ -45,9 +46,7 @@ typedef auto_free<PyObject, auto_free_dealloc<PyObject*, void, my_DECREF> >PyObj
 #define MP_EXIT				4	// Exit the all the hook calls and go futher with the mail process.
 #define MP_RETRY_LATER		5	// Stop Process and retry later
 
-
-class PyMapiPlugin
-{
+class PyMapiPlugin _kc_final {
 public:
 	PyMapiPlugin(void);
 	virtual ~PyMapiPlugin(void);
@@ -75,10 +74,7 @@ private:
 	PyMapiPlugin &operator=(const PyMapiPlugin &) = delete;
 };
 
-
-
-class PyMapiPluginFactory
-{
+class PyMapiPluginFactory _kc_final {
 public:
 	PyMapiPluginFactory();
 	HRESULT Init(ECConfig* lpConfig, ECLogger *lpLogger);

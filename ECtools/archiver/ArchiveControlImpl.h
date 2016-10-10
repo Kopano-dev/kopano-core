@@ -19,6 +19,7 @@
 #define ARCHIVECONTROLIMPL_H_INCLUDED
 
 #include <set>
+#include <kopano/zcdefs.h>
 #include "operations/operations_fwd.h"
 #include "helpers/ArchiveHelper.h"
 
@@ -105,8 +106,7 @@ class ECArchiverLogger;
  * This way necessary steps will be executed on a message, regardless of searchfolder
  * timing.
  */
-class ArchiveControlImpl : public ArchiveControl
-{
+class ArchiveControlImpl _kc_final : public ArchiveControl {
 public:
 	static HRESULT Create(ArchiverSessionPtr ptrSession, ECConfig *lpConfig, ECLogger *lpLogger, bool bForceCleanup, ArchiveControlPtr *lpptrArchiveControl);
 

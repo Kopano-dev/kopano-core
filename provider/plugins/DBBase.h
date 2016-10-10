@@ -19,6 +19,7 @@
 #ifndef __DBBASE_H
 #define __DBBASE_H
 
+#include <kopano/zcdefs.h>
 #include "plugin.h"
 #include <memory>
 #include <mutex>
@@ -72,7 +73,7 @@
  *
  * @todo move the class DB_RESULT_AUTOFREE to a common place
  */
-class DB_RESULT_AUTOFREE {
+class DB_RESULT_AUTOFREE _kc_final {
 public:
 	/**
 	 * @param[in]	lpDatabase

@@ -19,6 +19,7 @@
 #define ECNOTIFYCLIENT_H
 
 #include <mutex>
+#include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
 #include <IECChangeAdviseSink.h>
 
@@ -53,8 +54,7 @@ typedef std::list<std::pair<syncid_t,connection_t> > ECLISTCONNECTION;
 
 class SessionGroupData;
 
-class ECNotifyClient : public ECUnknown
-{
+class ECNotifyClient _kc_final : public ECUnknown {
 protected:
 	ECNotifyClient(ULONG ulProviderType, void *lpProvider, ULONG ulFlags, LPMAPISUP lpSupport);
 	virtual ~ECNotifyClient();

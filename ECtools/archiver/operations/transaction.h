@@ -18,6 +18,7 @@
 #ifndef TRANSACTION_INCLUDED
 #define TRANSACTION_INCLUDED
 
+#include <kopano/zcdefs.h>
 #include "transaction_fwd.h"
 #include "ArchiverSessionPtr.h"     // For ArchiverSessionPtr
 #include <kopano/archiver-common.h>
@@ -27,7 +28,7 @@
 
 namespace za { namespace operations {
 
-class Transaction {
+class Transaction _kc_final {
 public:
 	Transaction(const SObjectEntry &objectEntry);
 	HRESULT SaveChanges(ArchiverSessionPtr ptrSession, RollbackPtr *lpptrRollback);
@@ -61,10 +62,7 @@ inline const SObjectEntry& Transaction::GetObjectEntry() const
 	return m_objectEntry;
 }
 
-
-
-
-class Rollback {
+class Rollback _kc_final {
 public:
 	HRESULT Delete(ArchiverSessionPtr ptrSession, IMessage *lpMessage);
 	HRESULT Execute(ArchiverSessionPtr ptrSession);

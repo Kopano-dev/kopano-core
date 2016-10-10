@@ -20,6 +20,7 @@
 
 #include <map>
 #include <memory>
+#include <kopano/zcdefs.h>
 #include "archivestateupdater_fwd.h"
 #include "ArchiverSessionPtr.h"     // For ArchiverSessionPtr
 #include <kopano/tstring.h>
@@ -35,7 +36,7 @@ typedef std::shared_ptr<ArchiveStateCollector> ArchiveStateCollectorPtr;
  * should-be archive state, which is the set of attached archives for each
  * primary store as specified in LDAP/ADS.
  */
-class ArchiveStateCollector {
+class ArchiveStateCollector _kc_final {
 public:
 	static HRESULT Create(const ArchiverSessionPtr &ptrSession, ECLogger *lpLogger, ArchiveStateCollectorPtr *lpptrCollector);
 

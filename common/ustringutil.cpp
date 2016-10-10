@@ -80,7 +80,6 @@ At some point we need to rewqrite these functions to do all the conversion on th
 
 #include "ustringutil/utfutil.h"
 
-typedef UTF32Iterator	WCharIterator;
 typedef std::unique_ptr<Collator> unique_ptr_Collator;
 
 #else /* ZCP_USES_ICU */

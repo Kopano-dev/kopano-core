@@ -26,8 +26,7 @@
 
 class WSTransport;
 
-class ECABLogon : public ECUnknown
-{
+class ECABLogon _kc_final : public ECUnknown {
 protected:
 	ECABLogon(LPMAPISUP lpMAPISup, WSTransport* lpTransport, ULONG ulProfileFlags, GUID *lpGUID);
 	virtual ~ECABLogon();

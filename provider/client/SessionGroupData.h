@@ -56,8 +56,7 @@ static inline bool operator<(const ECSessionGroupInfo &a, const ECSessionGroupIn
 			((a.strServer.compare(b.strServer) == 0) && (a.strProfile.compare(b.strProfile) < 0));
 }
 
-class SessionGroupData
-{
+class SessionGroupData _kc_final {
 private:
 	/* SessionGroup ID to which this data belongs */
 	ECSESSIONGROUPID	m_ecSessionGroupId;

@@ -18,8 +18,9 @@
 #ifndef VMIMETOMAPI
 #define VMIMETOMAPI
 
-#include <vmime/vmime.hpp>
 #include <list>
+#include <kopano/zcdefs.h>
+#include <vmime/vmime.hpp>
 #include <mapix.h>
 #include <mapidefs.h>
 #include <inetmapi/options.h>
@@ -56,8 +57,7 @@ typedef struct sMailState {
 
 void ignoreError(void *ctx, const char *msg, ...);
 
-class VMIMEToMAPI
-{
+class VMIMEToMAPI _kc_final {
 public:
 	VMIMEToMAPI();
 	VMIMEToMAPI(LPADRBOOK lpAdrBook, delivery_options dopt);

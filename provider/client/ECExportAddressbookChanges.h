@@ -26,7 +26,7 @@
 class IECImportAddressbookChanges;
 class ECLogger;
 
-class ECExportAddressbookChanges : public ECUnknown {
+class ECExportAddressbookChanges _kc_final : public ECUnknown {
 public:
 	ECExportAddressbookChanges(ECMsgStore *lpContainer);
 	virtual ~ECExportAddressbookChanges();

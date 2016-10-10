@@ -23,7 +23,7 @@
 
 #include <mapidefs.h>
 
-class ECRulesTableProxy : public ECUnknown {
+class ECRulesTableProxy _kc_final : public ECUnknown {
 protected:
 	ECRulesTableProxy(LPMAPITABLE lpTable);
 	virtual ~ECRulesTableProxy();
