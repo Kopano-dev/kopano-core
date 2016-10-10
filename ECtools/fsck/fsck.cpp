@@ -363,7 +363,6 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 	LPSPropValue lpAddRenProp = NULL;
 	ULONG cbEntryIDSrc = 0;
 	LPENTRYID lpEntryIDSrc = NULL;
-	ECLogger *const lpLogger = new ECLogger_File(EC_LOGLEVEL_FATAL, 0, "-", false);
 
 	hr = MAPIInitialize(NULL);
 	if (hr != hrSuccess) {
@@ -381,7 +380,6 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 
 	hr = HrOpenECSession(&lpSession, "kopano-fsck", PROJECT_SVN_REV_STR,
 	     strwUsername.c_str(), strwPassword.c_str(), strHost, 0, NULL, NULL);
-	lpLogger->Release();
 	if(hr != hrSuccess) {
 		cout << "Wrong username or password." << endl;
 		goto exit;
@@ -499,7 +497,6 @@ exit:
 
 	if (lpSession)
 		lpSession->Release();
-
 	MAPIUninitialize();
 
 	return hr;
