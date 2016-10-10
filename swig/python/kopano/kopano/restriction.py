@@ -2,7 +2,7 @@ from kopano import _encode, REV_TAG
 
 # Restriction
 from MAPI.Tags import RELOP_EQ, RELOP_LE, RELOP_LT, RELOP_GE, RELOP_NE, RELOP_RE, RELOP_GT
-from MAPI.Util import SPropertyRestriction, SAndRestriction, SOrRestriction, SPropValue, RES_PROPERTY, PROP_TYPE, PT_BINARY
+from MAPI.Util import SPropertyRestriction, SAndRestriction, SOrRestriction, SPropValue, RES_PROPERTY, PROP_TYPE, PT_BINARY, PT_LONG
 
 # Proptags
 from MAPI.Tags import PR_MESSAGE_SIZE, PR_SUBJECT, PR_SOURCE_KEY
@@ -91,6 +91,8 @@ def parse_expr(p):
     # XXX: use property class? or some conversion magic
     if PROP_TYPE(proptag) == PT_BINARY:
         value = value.decode('hex')
+    elif PROP_TYPE(proptag) == PT_LONG:
+        value = int(value)
 
     return SPropertyRestriction(operator, proptag, SPropValue(proptag, value))
 
