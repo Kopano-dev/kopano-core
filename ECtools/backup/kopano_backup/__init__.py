@@ -166,12 +166,13 @@ class FolderImporter:
         """ deleted item from 'items' and 'index' databases """
 
         with log_exc(self.log, self.stats):
-            self.log.debug('folder %s: deleted document with sourcekey %s' % (self.folder.sourcekey, item.sourcekey))
-            with closing(dbopen(self.folder_path+'/items')) as db:
-                del db[item.sourcekey]
-            with closing(dbopen(self.folder_path+'/index')) as db:
-                del db[item.sourcekey]
-            self.stats['deletes'] += 1
+            with closing(dbopen(self.folder_path+'/items')) as db_items:
+                with closing(dbopen(self.folder_path+'/index')) as db_index:
+                    if item.sourcekey in db_items: # ICS can generate delete events without update events..
+                        self.log.debug('folder %s: deleted document with sourcekey %s' % (self.folder.sourcekey, item.sourcekey))
+                        del db_items[item.sourcekey]
+                        del db_index[item.sourcekey]
+                        self.stats['deletes'] += 1
 
 class Service(kopano.Service):
     """ main backup process """
