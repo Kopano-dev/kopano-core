@@ -305,7 +305,6 @@ def _prop(self, mapiobj, proptag):
         raise MAPIErrorNotFound
 
 def _props(mapiobj, namespace=None):
-    # XXX show and stream large properties
     proptags = mapiobj.GetPropList(MAPI_UNICODE)
     sprops = mapiobj.GetProps(proptags, MAPI_UNICODE)
     props = [Property(mapiobj, sprop) for sprop in sprops]
@@ -338,14 +337,17 @@ def _sync(server, syncobj, importer, state, log, max_changes, associated=False, 
     restriction = None
     if window:
         # sync window of last N seconds
-        restriction = SPropertyRestriction(RELOP_GE, PR_MESSAGE_DELIVERY_TIME, SPropValue(PR_MESSAGE_DELIVERY_TIME, MAPI.Time.unixtime(int(time.time()) - window)))
+        propval = SPropValue(PR_MESSAGE_DELIVERY_TIME, MAPI.Time.unixtime(int(time.time()) - window))
+        restriction = SPropertyRestriction(RELOP_GE, PR_MESSAGE_DELIVERY_TIME, propval)
 
     elif begin or end:
         restrs = []
         if begin:
-            restrs.append(SPropertyRestriction(RELOP_GE, PR_MESSAGE_DELIVERY_TIME, SPropValue(PR_MESSAGE_DELIVERY_TIME, MAPI.Time.unixtime(time.mktime(begin.timetuple())))))
+            propval = SPropValue(PR_MESSAGE_DELIVERY_TIME, MAPI.Time.unixtime(time.mktime(begin.timetuple())))
+            restrs.append(SPropertyRestriction(RELOP_GE, PR_MESSAGE_DELIVERY_TIME, propval))
         if end:
-            restrs.append(SPropertyRestriction(RELOP_LT, PR_MESSAGE_DELIVERY_TIME, SPropValue(PR_MESSAGE_DELIVERY_TIME, MAPI.Time.unixtime(time.mktime(end.timetuple())))))
+            propval = SPropValue(PR_MESSAGE_DELIVERY_TIME, MAPI.Time.unixtime(time.mktime(end.timetuple())))
+            restrs.append(SPropertyRestriction(RELOP_LT, PR_MESSAGE_DELIVERY_TIME, propval))
         if len(restrs) == 1:
             restriction = restrs[0]
         else:
@@ -396,9 +398,7 @@ def _sync(server, syncobj, importer, state, log, max_changes, associated=False, 
     exporter.UpdateState(stream)
 
     stream.Seek(0, MAPI.STREAM_SEEK_SET)
-    state = bin2hex(stream.Read(0xFFFFF))
-
-    return state
+    return bin2hex(stream.Read(0xFFFFF))
 
 def _openentry_raw(mapistore, entryid, flags): # avoid underwater action for archived items
     try:
@@ -581,7 +581,7 @@ class PersistentList(list):
             return ret
         return _func
 
-def timed_cache(seconds=0, minutes=0, hours=0, days=0):
+def _timed_cache(seconds=0, minutes=0, hours=0, days=0):
     # used with permission from will mcgugan, https://www.willmcgugan.com
     time_delta = datetime.timedelta(seconds=seconds, minutes=minutes, hours=hours, days=days)
 
@@ -625,12 +625,8 @@ class SPropDelayedValue(SPropValue):
                 self._Value = None
         return self._Value
 
-
 class Property(object):
-    """ 
-Wrapper around MAPI properties 
-
-"""
+    """Property class"""
 
     def __init__(self, parent_mapiobj, mapiobj): # XXX rethink attributes, names.. add guidname..?
         self._parent_mapiobj = parent_mapiobj
@@ -733,10 +729,7 @@ Wrapper around MAPI properties
         return _repr(self)
 
 class Table(object):
-    """
-    Wrapper around MAPI tables
-
-"""
+    """Table class"""
 
     def __init__(self, server, mapitable, proptag, restriction=None, order=None, columns=None):
         self.server = server
@@ -811,23 +804,22 @@ class Table(object):
         return u'Table(%s)' % REV_TAG.get(self.proptag)
 
 class Server(object):
-    """ 
-Server class 
+    """Server class 
 
-By default, tries to connect to a storage server as configured in ``/etc/kopano/admin.cfg`` or at UNIX socket ``/var/run/kopano/server.sock``
+    By default, tries to connect to a storage server as configured in ``/etc/kopano/admin.cfg`` or 
+    at UNIX socket ``/var/run/kopano/server.sock``
 
-Looks at command-line to see if another server address or other related options were given (such as -c, -s, -k, -p)
+    Looks at command-line to see if another server address or other related options were given (such as -c, -s, -k, -p)
 
-:param server_socket: similar to 'server_socket' option in config file
-:param sslkey_file: similar to 'sslkey_file' option in config file
-:param sslkey_pass: similar to 'sslkey_pass' option in config file
-:param config: path of configuration file containing common server options, for example ``/etc/kopano/admin.cfg``
-:param auth_user: username to user for user authentication
-:param auth_pass: password to use for user authentication
-:param log: logger object to receive useful (debug) information
-:param options: OptionParser instance to get settings from (see :func:`parser`)
-
-"""
+    :param server_socket: similar to 'server_socket' option in config file
+    :param sslkey_file: similar to 'sslkey_file' option in config file
+    :param sslkey_pass: similar to 'sslkey_pass' option in config file
+    :param config: path of configuration file containing common server options, for example ``/etc/kopano/admin.cfg``
+    :param auth_user: username to user for user authentication
+    :param auth_pass: password to use for user authentication
+    :param log: logger object to receive useful (debug) information
+    :param options: OptionParser instance to get settings from (see :func:`parser`)
+    """
 
     def __init__(self, options=None, config=None, sslkey_file=None, sslkey_pass=None, server_socket=None, auth_user=None, auth_pass=None, log=None, service=None, mapisession=None):
         self.options = options
@@ -948,7 +940,7 @@ Looks at command-line to see if another server address or other related options 
         return bin2hex(HrGetOneProp(self.mapistore, PR_MAPPING_SIGNATURE).Value)
 
     def user(self, name=None, email=None, create=False):
-        """ Return :class:`user <User>` with given name; raise exception if not found """
+        """ Return :class:`user <User>` with given name """
 
         try:
             return User(name, email=email, server=self)
@@ -1062,6 +1054,8 @@ Looks at command-line to see if another server address or other related options 
 
     @property
     def multitenant(self):
+        """ Return boolean showing if the server is multitenant """
+
         try:
             self._companylist()
             return True
@@ -1112,10 +1106,14 @@ Looks at command-line to see if another server address or other related options 
         return self._store_cache[storeid]
 
     def groups(self):
+        """ Return all :class:`groups <Group>` on server """
+
         for name in MAPI.Util.AddressBook.GetGroupList(self.mapisession, None, MAPI_UNICODE):
             yield Group(name, self)
 
     def group(self, name):
+        """ Return :class:`group <Group>` with given name """
+
         return Group(name, self)
 
     def create_group(self, name, fullname='', email='', hidden = False, groupid = None):
@@ -1131,7 +1129,7 @@ Looks at command-line to see if another server address or other related options 
         self.sa.DeleteGroup(group._ecgroup.GroupID)
 
     def store(self, guid=None, entryid=None):
-        """ Return :class:`store <Store>` with given GUID; raise exception if not found """
+        """ Return :class:`store <Store>` with given GUID """
 
         if guid == 'public':
             if not self.public_store:
@@ -1213,7 +1211,7 @@ Looks at command-line to see if another server address or other related options 
         importer.store = None
         return _sync(self, self.mapistore, importer, state, log or self.log, max_changes, window=window, begin=begin, end=end, stats=stats)
 
-    @timed_cache(minutes=60)
+    @_timed_cache(minutes=60)
     def _resolve_email(self, entryid=None):
         try:
             mailuser = self.mapisession.OpenEntry(entryid, None, 0)
@@ -1244,6 +1242,8 @@ def companies(*args, **kwargs):
     return Server().companies(*args, **kwargs)
 
 class Group(object):
+    """Group class"""
+
     def __init__(self, name, server=None):
         self.server = server or Server()
         self._name = unicode(name)
@@ -1257,17 +1257,17 @@ class Group(object):
         return bin2hex(self._ecgroup.GroupID)
 
     def users(self):
-        '''Users in group'''
+        """Users in group"""
 
         return self.members(groups=False)
 
     def groups(self):
-        ''' Groups in group'''
+        """Groups in group"""
 
         return self.members(users=False)
 
     def members(self, groups=True, users=True):
-        '''All members in group, users or groups'''
+        """All members in group, users or groups"""
 
         for ecuser in self.server.sa.GetUserListOfGroup(self._ecgroup.GroupID, MAPI_UNICODE):
             if ecuser.Username == 'SYSTEM':
@@ -1354,7 +1354,7 @@ class Group(object):
 
 
 class Company(object):
-    """ Company class """
+    """Company class"""
 
     def __init__(self, name, server=None):
         self._name = name = unicode(name)
@@ -1490,10 +1490,7 @@ class Company(object):
         return _repr(self)
 
 class Store(object):
-    """ 
-    Item store
-    
-    """
+    """Store class"""
 
     def __init__(self, guid=None, entryid=None, mapiobj=None, server=None):
         self.server = server or Server()
@@ -1684,10 +1681,10 @@ class Store(object):
             pass
 
     def delete(self, props):
-        '''Delete properties from an Store
+        """Delete properties from an Store
 
         :param props: The properties to remove
-        '''
+        """
 
         if isinstance(props, Property):
             props = [props]
@@ -1898,10 +1895,7 @@ class Store(object):
         return _repr(self)
 
 class Folder(object):
-    """
-    Item Folder
-
-    """
+    """Folder class"""
 
     def __init__(self, store, entryid=None, associated=False, deleted=False, mapiobj=None): # XXX entryid not hex-encoded!?
         self.store = store
@@ -1930,12 +1924,12 @@ class Folder(object):
     @property
     def parent(self):
         """Return :class:`parent <Folder>` or None"""
-        if self.entryid == self.store.root.entryid:
-            return None
-        try:
-            return Folder(self.store, self.prop(PR_PARENT_ENTRYID).value)
-        except MAPIErrorNotFound: # XXX: Should not happen
-            return None
+
+        if self.entryid != self.store.root.entryid:
+            try:
+                return Folder(self.store, self.prop(PR_PARENT_ENTRYID).value)
+            except MAPIErrorNotFound: # XXX: Should not happen
+                pass
 
     @property
     def hierarchyid(self):
@@ -1947,7 +1941,7 @@ class Folder(object):
 
     @property
     def subfolder_count(self):
-        ''' Number of direct subfolders '''
+        """ Number of direct subfolders """
 
         return self.prop(PR_FOLDER_CHILD_COUNT).value
 
@@ -1979,7 +1973,7 @@ class Folder(object):
 
     @property
     def container_class(self):
-        '''
+        """
         Property which describes the type of items a folder holds, possible values
         * IPF.Appointment
         * IPF.Contact
@@ -1989,7 +1983,7 @@ class Folder(object):
         * IPF.Task
 
         https://msdn.microsoft.com/en-us/library/aa125193(v=exchg.65).aspx
-        '''
+        """
 
         try:
             return self.prop(PR_CONTAINER_CLASS_W).value
@@ -2003,7 +1997,7 @@ class Folder(object):
 
     @property
     def unread(self):
-        ''' Number of unread items '''
+        """ Number of unread items """
 
         return self.prop(PR_CONTENT_UNREAD).value
 
@@ -2420,7 +2414,7 @@ class Folder(object):
         return _repr(self)
 
 class Item(object):
-    """ Item """
+    """Item class"""
 
     def __init__(self, parent=None, eml=None, ics=None, vcf=None, load=None, loads=None, attachments=True, create=False, mapiobj=None):
         # TODO: self.folder fix this!
@@ -2557,7 +2551,7 @@ class Item(object):
     @message_class.setter
     def message_class(self, messageclass):
         # FIXME: Add all possible PR_MESSAGE_CLASS values
-        '''
+        """
         MAPI Message classes:
         * IPM.Note.SMIME.MultipartSigned - smime signed email
         * IMP.Note                       - normal email
@@ -2565,7 +2559,7 @@ class Item(object):
         * IPM.StickyNote                 - note
         * IPM.Appointment                - appointment
         * IPM.Task                       - task
-        '''
+        """
         self.mapiobj.SetProps([SPropValue(PR_MESSAGE_CLASS_W, unicode(messageclass))])
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
@@ -2661,13 +2655,12 @@ class Item(object):
 
     @importance.setter
     def importance(self, value):
-        ''' Set importance '''
+        """ Set importance
 
-        '''
         PR_IMPORTANCE_LOW
         PR_IMPORTANCE_MEDIUM
         PR_IMPORTANCE_HIGH
-        '''
+        """
 
         self.mapiobj.SetProps([SPropValue(PR_IMPORTANCE, value)])
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
@@ -2706,11 +2699,11 @@ class Item(object):
                     yield Attachment(att)
 
     def create_attachment(self, name, data):
-        '''Create a new attachment
+        """Create a new attachment
 
         :param name: the attachment name
         :param data: string containing the attachment data
-        '''
+        """
 
         # XXX: use file object instead of data?
         (id_, attach) = self.mapiobj.CreateAttach(None, 0)
@@ -2784,14 +2777,16 @@ class Item(object):
     def sender(self):
         """ Sender :class:`Address` """
 
-        args = [self.get_prop(p).value if self.get_prop(p) else None for p in (PR_SENDER_ADDRTYPE_W, PR_SENDER_NAME_W, PR_SENDER_EMAIL_ADDRESS_W, PR_SENDER_ENTRYID)]
+        addrprops = (PR_SENDER_ADDRTYPE_W, PR_SENDER_NAME_W, PR_SENDER_EMAIL_ADDRESS_W, PR_SENDER_ENTRYID)
+        args = [self.get_prop(p).value if self.get_prop(p) else None for p in addrprops]
         return Address(self.server, *args)
 
     @property
     def from_(self):
         """ From :class:`Address` """
 
-        args = [self.get_prop(p).value if self.get_prop(p) else None for p in (PR_SENT_REPRESENTING_ADDRTYPE_W, PR_SENT_REPRESENTING_NAME_W, PR_SENT_REPRESENTING_EMAIL_ADDRESS_W, PR_SENT_REPRESENTING_ENTRYID)]
+        addrprops= (PR_SENT_REPRESENTING_ADDRTYPE_W, PR_SENT_REPRESENTING_NAME_W, PR_SENT_REPRESENTING_EMAIL_ADDRESS_W, PR_SENT_REPRESENTING_ENTRYID)
+        args = [self.get_prop(p).value if self.get_prop(p) else None for p in addrprops]
         return Address(self.server, *args)
 
     @from_.setter
@@ -2900,10 +2895,10 @@ class Item(object):
         self.mapiobj.SaveChanges(KEEP_OPEN_READWRITE) # XXX needed?
 
     def delete(self, items):
-        '''Delete properties or attachments from an Item
+        """Delete properties or attachments from an Item
 
         :param items: The Attachments or Properties
-        '''
+        """
 
         if isinstance(items, (Attachment, Property)):
             items = [items]
@@ -3008,7 +3003,8 @@ class Item(object):
                 if log:
                     log.error('could not serialize attachment')
                 if skip_broken:
-                    log.error(traceback.format_exc(e))
+                    if log:
+                        log.error(traceback.format_exc(e))
                     if service and service.stats:
                         service.stats['errors'] += 1
                 else:
@@ -3134,7 +3130,7 @@ class Item(object):
         return _repr(self)
 
 class Body:
-    """ Body """
+    """Item Body class"""
 
     # XXX XXX setters!
 
@@ -3393,8 +3389,7 @@ class Recurrence:
 
 
 class Outofoffice(object):
-    """
-    Outofoffice class
+    """Outofoffice class
 
     Class which contains a :class:`store <Store>` out of office properties and
     can set out-of-office status, message and subject.
@@ -3452,7 +3447,7 @@ class Outofoffice(object):
         try:
             return self.store.prop(PR_EC_OUTOFOFFICE_FROM).value
         except MAPIErrorNotFound:
-            return None
+            pass
 
     @start.setter
     def start(self, value):
@@ -3469,7 +3464,7 @@ class Outofoffice(object):
         try:
             return self.store.prop(PR_EC_OUTOFOFFICE_UNTIL).value
         except MAPIErrorNotFound:
-            return None
+            pass
 
     @end.setter
     def end(self, value):
@@ -3493,7 +3488,7 @@ class Outofoffice(object):
             setattr(self, key, val)
 
 class Address:
-    """ Address """
+    """Address class"""
 
     def __init__(self, server=None, addrtype=None, name=None, email=None, entryid=None):
         self.server = server
@@ -3524,7 +3519,7 @@ class Address:
         return _repr(self)
 
 class Attachment(object):
-    """ Attachment """
+    """Attachment class"""
 
     def __init__(self, mapiobj):
         self.mapiobj = mapiobj
@@ -3601,7 +3596,7 @@ class Attachment(object):
         return _repr(self)
 
 class User(object):
-    """ User class """
+    """User class"""
 
     def __init__(self, name=None, server=None, email=None):
         server = server or Server()
@@ -3696,18 +3691,18 @@ class User(object):
         self._update()
 
     def add_feature(self, feature):
-        ''' Add a feature for a user
+        """ Add a feature for a user
 
         :param feature: the new feature
-        '''
+        """
 
         self.features = self.features + [unicode(feature)]
 
     def remove_feature(self, feature):
-        ''' Remove a feature for a user
+        """ Remove a feature for a user
 
         :param feature: the to be removed feature
-        '''
+        """
 
         # Copy features otherwise we will miss an disabled feature.
         # XXX: improvement?
@@ -3849,11 +3844,9 @@ class User(object):
             return getattr(store, x)
 
 class Quota(object):
-    """
-    Quota class
+    """Quota class
 
     Quota limits are stored in bytes.
-
     """
 
     def __init__(self, server, userid):
@@ -3943,6 +3936,8 @@ class Rule(object):
         return _repr(self)
 
 class Permission(object):
+    """Permission class"""
+
     def __init__(self, mapitable, mapirow, server): # XXX fix args
         self.mapitable = mapitable
         self.mapirow = mapirow
@@ -4049,7 +4044,7 @@ class TrackingContentsImporter(ECImportContentsChanges):
     def UpdateState(self, stream):
         pass
 
-def daemon_helper(func, service, log):
+def _daemon_helper(func, service, log):
     try:
         if not service or isinstance(service, Service):
             if isinstance(service, Service): # XXX
@@ -4065,7 +4060,7 @@ def daemon_helper(func, service, log):
         if log and service:
             log.info('stopping %s', service.name)
 
-def daemonize(func, options=None, foreground=False, log=None, config=None, service=None):
+def _daemonize(func, options=None, foreground=False, log=None, config=None, service=None):
     uid = gid = None
     working_directory = '/'
     pidfile = None
@@ -4110,7 +4105,7 @@ def daemonize(func, options=None, foreground=False, log=None, config=None, servi
             stdout=sys.stdout,
             stderr=sys.stderr,
         ):
-        daemon_helper(func, service, log)
+        _daemon_helper(func, service, log)
 
 def _loglevel(options, config):
     if options and getattr(options, 'loglevel', None):
@@ -4280,10 +4275,10 @@ def _bytes_to_human(b):
     return '%s %s' % (f, suffixes[i])
 
 def _human_to_bytes(s):
-    '''
+    """
     Author: Giampaolo Rodola' <g.rodola [AT] gmail [DOT] com>
     License: MIT
-    '''
+    """
     s = s.lower()
     init = s
     num = ""
@@ -4595,9 +4590,9 @@ Encapsulates everything to create a simple service, such as:
         self.log.info('starting %s', self.logname or self.name)
         with log_exc(self.log):
             if getattr(self.options, 'service', True): # do not run-as-service (eg backup)
-                daemonize(self.main, options=self.options, log=self.log, config=self.config, service=self)
+                _daemonize(self.main, options=self.options, log=self.log, config=self.config, service=self)
             else:
-                daemon_helper(self.main, self, self.log)
+                _daemon_helper(self.main, self, self.log)
 
 class Worker(Process):
     def __init__(self, service, name, **kwargs):
