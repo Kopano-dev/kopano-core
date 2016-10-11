@@ -27,14 +27,23 @@ stamp-h2
 
 /default.sym
 
-/ECtools/kopano-admin
-/ECtools/kopano-archiver
-/ECtools/kopano-cfgchecker
-/ECtools/kopano-fsck
-/ECtools/kopano-monitor
-/ECtools/kopano-passwd
-/ECtools/kopano-stats
-/ECtools/mapitime
+/doc/*.[0-9]
+/spooler/PythonSWIGRuntime.h
+/kopano-admin
+/kopano-archiver
+/kopano-cfgchecker
+/kopano-dagent
+/kopano-fsck
+/kopano-gateway
+/kopano-ical
+/kopano-monitor
+/kopano-passwd
+/kopano-server
+/kopano-spooler
+/kopano-stats
+/mapitime
+/mapi4linux/src/libmapi.sym
+/provider/soap/
 /ECtools/backup/build/
 /ECtools/presence/build/
 /ECtools/search/build/
@@ -54,9 +63,6 @@ stamp-h2
 /autoconf/ylwrap
 /autoconf/compile
 
-# /caldav/
-/caldav/kopano-ical
-
 # /common/
 /common/config.h*
 /common/cov-scope
@@ -71,8 +77,6 @@ stamp-h2
 ## /doc/php-ext/
 #/doc/php-ext/*html
 #
-# /gateway/
-/gateway/kopano-gateway
 
 # /installer/
 /installer/kopano.ldif
@@ -90,29 +94,6 @@ stamp-h2
 /installer/userscripts/deleteuser
 /installer/userscripts/createcompany
 /installer/userscripts/deletecompany
-
-/provider/kopano-server
-
-# /provider/soap/
-/provider/soap/*res.xml
-/provider/soap/*req.xml
-/provider/soap/ns.xsd
-/provider/soap/KCmd.wsdl
-/provider/soap/KCmd.nsmap
-/provider/soap/soapClient.cpp
-/provider/soap/soapServer.cpp
-/provider/soap/soapStub.h
-/provider/soap/soapC.cpp
-/provider/soap/soapH.h
-/provider/soap/soapClientLib.cpp
-/provider/soap/soapServerLib.cpp
-/provider/soap/soapKCmdProxy.h
-/provider/soap/soapKCmdObject.h
-
-# /spooler/
-/spooler/kopano-spooler
-/spooler/kopano-dagent
-/spooler/PythonSWIGRuntime.h
 
 # /swig/python/
 /swig/python/build/

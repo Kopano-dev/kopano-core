@@ -1,9 +1,9 @@
 # -*- Makefile -*-
 
 AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) $(BOOST_CPPFLAGS) \
-	-I$(top_srcdir)/mapi4linux/include \
-	-I$(top_srcdir)/libfreebusy \
-	-I$(top_srcdir)/inetmapi \
+	-I${top_srcdir}/mapi4linux/include \
+	-I${top_srcdir}/libfreebusy \
+	-I${top_srcdir}/inetmapi \
 	-I${top_srcdir}/common -I${top_srcdir}/m4lcommon \
 	$(PHP_INCLUDES)
 AM_CXXFLAGS = ${ZCXXFLAGS} ${ZPHPCXXFLAGS}
@@ -16,11 +16,11 @@ mapi_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version \
 	$(PHP_LDFLAGS)
 
 mapi_la_LIBADD = \
-	${top_builddir}/mapi4linux/src/libmapi.la \
-	${top_builddir}/common/libkcmapi.la \
-	${top_builddir}/common/libkcutil.la \
-	${top_builddir}/libfreebusy/libkcfreebusy.la \
-	${top_builddir}/inetmapi/libkcinetmapi.la \
+	${top_builddir}/libmapi.la \
+	${top_builddir}/libkcmapi.la \
+	${top_builddir}/libkcutil.la \
+	${top_builddir}/libkcfreebusy.la \
+	${top_builddir}/libkcinetmapi.la \
 	$(PROG_LIBS) -lpthread
 
 # it seems linking libraries with -pthread will not contain -lpthread.
