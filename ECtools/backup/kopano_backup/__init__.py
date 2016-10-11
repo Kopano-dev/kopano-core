@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import binascii
 import csv
 from contextlib import closing
 import cPickle as pickle
@@ -71,11 +72,11 @@ class BackupWorker(kopano.Worker):
 
                 # backup user and store properties
                 if not options.folders:
-                    file(path+'/store', 'w').write(dump_props(store.props()))
+                    file(path+'/store', 'w').write(dump_props(store.props(), stats, self.log))
                     if user:
-                        file(path+'/user', 'w').write(dump_props(user.props()))
+                        file(path+'/user', 'w').write(dump_props(user.props(), stats, self.log))
                         if not options.skip_meta:
-                            file(path+'/delegates', 'w').write(dump_delegates(user, server, self.log))
+                            file(path+'/delegates', 'w').write(dump_delegates(user, server, stats, self.log))
 
                 # check command-line options and backup folders
                 t0 = time.time()
@@ -118,10 +119,10 @@ class BackupWorker(kopano.Worker):
 
         # backup folder properties, path, metadata
         file(data_path+'/path', 'w').write(folder.path.encode('utf8'))
-        file(data_path+'/folder', 'w').write(dump_props(folder.props()))
+        file(data_path+'/folder', 'w').write(dump_props(folder.props(), stats, self.log))
         if not options.skip_meta:
-            file(data_path+'/acl', 'w').write(dump_acl(folder, user, server, self.log))
-            file(data_path+'/rules', 'w').write(dump_rules(folder, user, server, self.log))
+            file(data_path+'/acl', 'w').write(dump_acl(folder, user, server, stats, self.log))
+            file(data_path+'/rules', 'w').write(dump_rules(folder, user, server, stats, self.log))
         if options.only_meta:
             return
 
@@ -233,7 +234,7 @@ class Service(kopano.Service):
                         store.mapiobj.SetProps([SPropValue(proptag, value)])
                 store.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
             if os.path.exists('%s/delegates' % self.data_path):
-                load_delegates(user, self.server, file('%s/delegates' % self.data_path).read(), self.log)
+                load_delegates(user, self.server, file('%s/delegates' % self.data_path).read(), stats, self.log)
 
         # determine stored and specified folders
         path_folder = folder_struct(self.data_path, self.options)
@@ -312,8 +313,8 @@ class Service(kopano.Service):
 
             # restore metadata
             if not self.options.skip_meta:
-                load_acl(folder, user, server, file(data_path+'/acl').read(), self.log)
-                load_rules(folder, user, server, file(data_path+'/rules').read(), self.log)
+                load_acl(folder, user, server, file(data_path+'/acl').read(), stats, self.log)
+                load_rules(folder, user, server, file(data_path+'/rules').read(), stats, self.log)
             if self.options.only_meta:
                 return
 
@@ -437,97 +438,105 @@ def show_contents(data_path, options):
             for key, d in items:
                 writer.writerow([key, path.encode(sys.stdout.encoding or 'utf8'), d['last_modified'], d['subject'].encode(sys.stdout.encoding or 'utf8')])
 
-def dump_props(props):
+def dump_props(props, stats, log):
     """ dump given MAPI properties """
 
-    return pickle.dumps(dict((prop.proptag, prop.mapiobj.Value) for prop in props))
+    data = {}
+    with log_exc(stats, log):
+        data = dict((prop.proptag, prop.mapiobj.Value) for prop in props)
+    return pickle.dumps(data)
 
-def dump_acl(folder, user, server, log):
+def dump_acl(folder, user, server, stats, log):
     """ dump acl for given folder """
 
     rows = []
-    acl_table = folder.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, 0)
-    table = acl_table.GetTable(0)
-    for row in table.QueryRows(-1,0):
-        try:
-            row[1].Value = ('user', server.sa.GetUser(row[1].Value, MAPI_UNICODE).Username)
-        except MAPIErrorNotFound:
+    with log_exc(stats, log):
+        acl_table = folder.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, 0)
+        table = acl_table.GetTable(0)
+        for row in table.QueryRows(-1,0):
             try:
-                row[1].Value = ('group', server.sa.GetGroup(row[1].Value, MAPI_UNICODE).Groupname)
+                row[1].Value = ('user', server.sa.GetUser(row[1].Value, MAPI_UNICODE).Username)
             except MAPIErrorNotFound:
-                log.warning("skipping access control entry for unknown user/group '%s'" % row[1].Value)
-                continue
-        rows.append(row)
+                try:
+                    row[1].Value = ('group', server.sa.GetGroup(row[1].Value, MAPI_UNICODE).Groupname)
+                except MAPIErrorNotFound:
+                    log.warning("skipping access control entry for unknown user/group '%s'" % row[1].Value)
+                    continue
+            rows.append(row)
     return pickle.dumps(rows)
 
-def load_acl(folder, user, server, data, log):
+def load_acl(folder, user, server, data, stats, log):
     """ load acl for given folder """
 
-    data = pickle.loads(data)
-    rows = []
-    for row in data:
-        try:
-            member_type, value = row[1].Value
-            if member_type == 'user':
-                entryid = server.user(value).userid
-            else:
-                entryid = server.group(value).groupid
-            row[1].Value = entryid.decode('hex')
-            rows.append(row)
-        except kopano.NotFoundError:
-            log.warning("skipping access control entry for unknown user/group '%s'" % row[1].Value)
-    acltab = folder.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, MAPI_MODIFY)
-    acltab.ModifyTable(0, [ROWENTRY(ROW_ADD, row) for row in rows])
+    with log_exc(stats, log):
+        data = pickle.loads(data)
+        rows = []
+        for row in data:
+            try:
+                member_type, value = row[1].Value
+                if member_type == 'user':
+                    entryid = server.user(value).userid
+                else:
+                    entryid = server.group(value).groupid
+                row[1].Value = entryid.decode('hex')
+                rows.append(row)
+            except kopano.NotFoundError:
+                log.warning("skipping access control entry for unknown user/group '%s'" % row[1].Value)
+        acltab = folder.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, MAPI_MODIFY)
+        acltab.ModifyTable(0, [ROWENTRY(ROW_ADD, row) for row in rows])
 
-def dump_rules(folder, user, server, log):
+def dump_rules(folder, user, server, stats, log):
     """ dump rules for given folder """
 
-    try:
-        ruledata = folder.prop(PR_RULES_DATA).value
-    except MAPIErrorNotFound:
-        ruledata = None
-    else:
-        etxml = ElementTree.fromstring(ruledata)
-        for actions in etxml.findall('./item/item/actions'):
-            for movecopy in actions.findall('.//moveCopy'):
-                try:
-                    s = movecopy.findall('store')[0]
-                    store = server.mapisession.OpenMsgStore(0, s.text.decode('base64'), None, 0)
-                    guid = HrGetOneProp(store, PR_STORE_RECORD_KEY).Value.encode('hex')
-                    store = server.store(guid)
-                    if store.public:
-                        s.text = 'public'
-                    else:
-                        s.text = store.user.name if store != user.store else ''
-                    f = movecopy.findall('folder')[0]
-                    path = store.folder(entryid=f.text.decode('base64').encode('hex')).path
-                    f.text = path
-                except kopano.NotFoundError:
-                    log.warning("skipping rule for unknown store/folder")
-        ruledata = ElementTree.tostring(etxml)
+    ruledata = None
+    with log_exc(stats, log):
+        try:
+            ruledata = folder.prop(PR_RULES_DATA).value
+        except MAPIErrorNotFound:
+            pass
+        else:
+            etxml = ElementTree.fromstring(ruledata)
+            for actions in etxml.findall('./item/item/actions'):
+                for movecopy in actions.findall('.//moveCopy'):
+                    try:
+                        s = movecopy.findall('store')[0]
+                        store = server.mapisession.OpenMsgStore(0, s.text.decode('base64'), None, 0)
+                        guid = HrGetOneProp(store, PR_STORE_RECORD_KEY).Value.encode('hex')
+                        store = server.store(guid)
+                        if store.public:
+                            s.text = 'public'
+                        else:
+                            s.text = store.user.name if store != user.store else ''
+                        f = movecopy.findall('folder')[0]
+                        path = store.folder(entryid=f.text.decode('base64').encode('hex')).path
+                        f.text = path
+                    except (kopano.NotFoundError, MAPIErrorNotFound, binascii.Error):
+                        log.warning("cannot serialize rule for unknown store/folder")
+            ruledata = ElementTree.tostring(etxml)
     return pickle.dumps(ruledata)
 
-def load_rules(folder, user, server, data, log):
+def load_rules(folder, user, server, data, stats, log):
     """ load rules for given folder """
 
-    data = pickle.loads(data)
-    if data:
-        etxml = ElementTree.fromstring(data)
-        for actions in etxml.findall('./item/item/actions'):
-            for movecopy in actions.findall('.//moveCopy'):
-                try:
-                    s = movecopy.findall('store')[0]
-                    if s.text == 'public':
-                        store = server.public_store
-                    else:
-                        store = server.user(s.text).store if s.text else user.store
-                    s.text = store.entryid.decode('hex').encode('base64').strip()
-                    f = movecopy.findall('folder')[0]
-                    f.text = store.folder(f.text).entryid.decode('hex').encode('base64').strip()
-                except kopano.NotFoundError:
-                    log.warning("skipping rule for unknown store/folder")
-        etxml = ElementTree.tostring(etxml)
-        folder.create_prop(PR_RULES_DATA, etxml)
+    with log_exc(stats, log):
+        data = pickle.loads(data)
+        if data:
+            etxml = ElementTree.fromstring(data)
+            for actions in etxml.findall('./item/item/actions'):
+                for movecopy in actions.findall('.//moveCopy'):
+                    try:
+                        s = movecopy.findall('store')[0]
+                        if s.text == 'public':
+                            store = server.public_store
+                        else:
+                            store = server.user(s.text).store if s.text else user.store
+                        s.text = store.entryid.decode('hex').encode('base64').strip()
+                        f = movecopy.findall('folder')[0]
+                        f.text = store.folder(f.text).entryid.decode('hex').encode('base64').strip()
+                    except kopano.NotFoundError:
+                        log.warning("skipping rule for unknown store/folder")
+            etxml = ElementTree.tostring(etxml)
+            folder.create_prop(PR_RULES_DATA, etxml)
 
 def _get_fbf(user, flags, log):
     try:
@@ -536,39 +545,42 @@ def _get_fbf(user, flags, log):
     except MAPIErrorNotFound:
         log.warning("skipping delegation because of missing freebusy data")
 
-def dump_delegates(user, server, log):
+def dump_delegates(user, server, stats, log):
     """ dump delegate users for given user """
 
-    fbf = _get_fbf(user, 0, log)
-    delegate_uids = []
-    try:
-        if fbf:
-            delegate_uids = HrGetOneProp(fbf, PR_SCHDINFO_DELEGATE_ENTRYIDS).Value
-    except MAPIErrorNotFound:
-        pass
-
     usernames = []
-    for uid in delegate_uids:
+    with log_exc(stats, log):
+        fbf = _get_fbf(user, 0, log)
+        delegate_uids = []
         try:
-            usernames.append(server.sa.GetUser(uid, MAPI_UNICODE).Username)
+            if fbf:
+                delegate_uids = HrGetOneProp(fbf, PR_SCHDINFO_DELEGATE_ENTRYIDS).Value
         except MAPIErrorNotFound:
-            log.warning("skipping delegate user for unknown userid")
+            pass
+
+        for uid in delegate_uids:
+            try:
+                usernames.append(server.sa.GetUser(uid, MAPI_UNICODE).Username)
+            except MAPIErrorNotFound:
+                log.warning("skipping delegate user for unknown userid")
+
     return pickle.dumps(usernames)
 
-def load_delegates(user, server, data, log):
+def load_delegates(user, server, data, stats, log):
     """ load delegate users for given user """
 
-    userids = []
-    for name in pickle.loads(data):
-        try:
-            userids.append(server.user(name).userid.decode('hex'))
-        except kopano.NotFoundError:
-            log.warning("skipping delegation for unknown user '%s'" % name)
+    with log_exc(stats, log):
+        userids = []
+        for name in pickle.loads(data):
+            try:
+                userids.append(server.user(name).userid.decode('hex'))
+            except kopano.NotFoundError:
+                log.warning("skipping delegation for unknown user '%s'" % name)
 
-    fbf = _get_fbf(user, MAPI_MODIFY, log)
-    if fbf:
-        fbf.SetProps([SPropValue(PR_SCHDINFO_DELEGATE_ENTRYIDS, userids)])
-        fbf.SaveChanges(0)
+        fbf = _get_fbf(user, MAPI_MODIFY, log)
+        if fbf:
+            fbf.SetProps([SPropValue(PR_SCHDINFO_DELEGATE_ENTRYIDS, userids)])
+            fbf.SaveChanges(0)
 
 def main():
     # select common options
