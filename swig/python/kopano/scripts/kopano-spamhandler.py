@@ -16,7 +16,6 @@ import datetime
 import kopano
 delcounter = 0
 
-
 def main():
     global delcounter
     learncounter = 0
@@ -37,7 +36,7 @@ def main():
                             p = subprocess.Popen(spamcommand, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
                             learn, output_err = p.communicate(item.eml())
                         except:
-                            print('failed to run [%s] [%s]' % (SPAM, output_err))
+                            print('failed to run [%s] [%s]' % (spamcommand, output_err))
                         if learn:
                             print("%s : learned [%s]" % (user.name, learn.rstrip('\n')))
                             delmsg = 'delete after learn'

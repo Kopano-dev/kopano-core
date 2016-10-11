@@ -79,6 +79,8 @@ HRESULT GetShortcutFolder(IMAPISession *lpSession, LPTSTR lpszFolderName, LPTSTR
 HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSourceKey);
 HRESULT AddFavoriteFolder(IMAPIFolder *lpShortcutFolder, IMAPIFolder *lpFolder, LPTSTR lpszAliasName, ULONG ulFlags);
 
+HRESULT GetConfigMessage(IMsgStore *lpStore, char *szMessageName, IMessage **OUTPUT);
+
 // functions from common/Util.h
 class Util {
 public:

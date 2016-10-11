@@ -62,13 +62,13 @@ class Monitor(kopano.Service):
                 log.info('start check')
                 for user in server.users():
                     for limit in ('hard', 'soft', 'warning'): # XXX add quota_status to API?
-                        if 0 < getattr(user.quota, limit+'_limit') < u.store.size:
-                            log.warning('Mailbox of user %s has exceeded its %s limit' % (u.name, limit))
-                            if self.check_quota_interval(u):
+                        if 0 < getattr(user.quota, limit+'_limit') < user.store.size:
+                            log.warning('Mailbox of user %s has exceeded its %s limit' % (user.name, limit))
+                            if self.check_quota_interval(user):
                                 mail = open(self.config['userquota_warning_template']).readlines()
                                 mail = ''.join(mail)
-                                mail = self.replace_template(mail, u)
-                                for r in u.quota.recipients:
+                                mail = self.replace_template(mail, user)
+                                for r in user.quota.recipients:
                                     r.store.inbox.create_item(eml=mail)
                 log.info('check done')
             time.sleep(config['quota_check_interval']*60)

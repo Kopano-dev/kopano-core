@@ -302,7 +302,7 @@ def _prop(self, mapiobj, proptag):
         for prop in self.props(namespace=namespace): # XXX sloow, streaming
             if prop.name == name:
                 return prop
-        raise MAPIErrorNotFound
+        raise MAPIErrorNotFound()
 
 def _props(mapiobj, namespace=None):
     proptags = mapiobj.GetPropList(MAPI_UNICODE)
@@ -970,7 +970,7 @@ class Server(object):
                 if '*' in username or '?' in username: # XXX unicode.. need to use something like boost::wregex in ZCP?
                     regex = username.replace('*', '.*').replace('?', '.')
                     restriction = SPropertyRestriction(RELOP_RE, PR_DISPLAY_NAME_A, SPropValue(PR_DISPLAY_NAME_A, regex))
-                    for match in AddressBook.GetAbObjectList(self.mapisession, restriction):
+                    for match in MAPI.Util.AddressBook.GetAbObjectList(self.mapisession, restriction):
                         if fnmatch.fnmatch(match, username):
                             yield User(match, self)
                 else:
@@ -981,7 +981,7 @@ class Server(object):
                 for user in Company(name, self).users(): # XXX remote/system check
                     yield user
         except MAPIErrorNoSupport:
-            for username in AddressBook.GetUserList(self.mapisession, None, MAPI_UNICODE):
+            for username in MAPI.Util.AddressBook.GetUserList(self.mapisession, None, MAPI_UNICODE):
                 user = User(username, self)
                 if system or username != u'SYSTEM':
                     if remote or user._ecuser.Servername in (self.name, ''):
@@ -1447,7 +1447,7 @@ class Company(object):
                 yield User(username, self.server)
             return
 
-        for username in AddressBook.GetUserList(self.server.mapisession, self._name if self._name != u'Default' else None, MAPI_UNICODE): # XXX serviceadmin?
+        for username in MAPI.Util.AddressBook.GetUserList(self.server.mapisession, self._name if self._name != u'Default' else None, MAPI_UNICODE): # XXX serviceadmin?
             if username != 'SYSTEM':
                 yield User(username, self.server)
 
@@ -1749,7 +1749,7 @@ class Store(object):
 
     def config_item(self, name):
         item = Item()
-        item.mapiobj = libcommon.GetConfigMessage(self.mapiobj, 'Kopano.Quota')
+        item.mapiobj = libcommon.GetConfigMessage(self.mapiobj, name)
         return item
 
     @property
@@ -4610,6 +4610,9 @@ Encapsulates everything to create a simple service, such as:
         self.stats = collections.defaultdict(int, {'errors': 0})
         self._server = None
 
+    def main(self):
+        raise Error('Service.main not implemented')
+
     @property
     def server(self):
         if self._server is None:
@@ -4644,6 +4647,9 @@ class Worker(Process):
             qh.setLevel(loglevel)
             self.log.addHandler(qh)
             self.log.setLevel(loglevel)
+
+    def main(self):
+        raise Error('Worker.main not implemented')
 
     def run(self):
         self.service._server = None # do not re-use "forked" session
