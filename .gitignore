@@ -11,17 +11,15 @@ Makefile.in
 .dirstamp
 stamp-h1
 stamp-h2
-@
 
 # /
+/@
 /aclocal.m4
 /autom4te.cache/
 /build-arch-stamp
 /build-indep-stamp
 /compile
-/config.log
-/config.status
-/config.cache
+/config.*
 /configure
 /libtool
 /python-config
