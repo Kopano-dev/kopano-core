@@ -19,9 +19,9 @@
 #include <algorithm>
 
 #include <sys/stat.h>
-#include <memory.h>
 #include <cstdlib>
 #include <cstdio>
+#include <cstring>
 
 using namespace std;
 

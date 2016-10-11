@@ -16,8 +16,6 @@
  */
 
 #include <kopano/platform.h>
-
-#include <memory.h>
 #include <mapi.h>
 #include <mapiutil.h>
 #include <mapispi.h>
