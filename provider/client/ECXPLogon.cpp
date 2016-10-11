@@ -22,6 +22,7 @@
 #include <mapiutil.h>
 #include <kopano/mapiguidext.h>
 #include <kopano/ECGuid.h>
+#include <kopano/ECInterfaceDefs.h>
 #include <kopano/mapiext.h>
 #include <edkmdb.h>
 #include <edkguid.h>
@@ -678,150 +679,24 @@ HRESULT ECXPLogon::HrUpdateTransportStatus()
     return hResult;
 }
 
-HRESULT ECXPLogon::xXPLogon::QueryInterface(REFIID refiid, void ** lppInterface)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IXPLogon::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
-	METHOD_PROLOGUE_(ECXPLogon , XPLogon);
-	HRESULT hr = pThis->QueryInterface(refiid, lppInterface);
-	TRACE_MAPI(TRACE_RETURN, "IXPLogon::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
+DEF_HRMETHOD1(TRACE_MAPI, ECXPLogon, XPLogon, QueryInterface, (REFIID, refiid), (void **, lppInterface))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECXPLogon, XPLogon, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECXPLogon, XPLogon, Release, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECXPLogon, XPLogon, AddressTypes, (ULONG *, lpulFlags), (ULONG *, lpcAdrType), (LPTSTR **, lpppszAdrTypeArray), (ULONG *, lpcMAPIUID), (LPMAPIUID **, lpppUIDArray))
+DEF_HRMETHOD1(TRACE_MAPI, ECXPLogon, XPLogon, RegisterOptions, (ULONG *, lpulFlags), (ULONG *, lpcOptions), (LPOPTIONDATA *, lppOptions))
+DEF_HRMETHOD1(TRACE_MAPI, ECXPLogon, XPLogon, TransportNotify, (ULONG *, lpulFlags), (LPVOID *, lppvData))
+DEF_HRMETHOD1(TRACE_MAPI, ECXPLogon, XPLogon, Idle, (ULONG, ulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECXPLogon, XPLogon, TransportLogoff, (ULONG, ulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECXPLogon, XPLogon, SubmitMessage, (ULONG, ulFlags), (LPMESSAGE, lpMessage), (ULONG *, lpulMsgRef), (ULONG *, lpulReturnParm))
+DEF_HRMETHOD1(TRACE_MAPI, ECXPLogon, XPLogon, EndMessage, (ULONG, ulMsgRef), (ULONG *, lpulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECXPLogon, XPLogon, Poll, (ULONG *, lpulIncoming))
+DEF_HRMETHOD1(TRACE_MAPI, ECXPLogon, XPLogon, StartMessage, (ULONG, ulFlags), (LPMESSAGE, lpMessage), (ULONG *, lpulMsgRef))
+DEF_HRMETHOD1(TRACE_MAPI, ECXPLogon, XPLogon, OpenStatusEntry, (LPCIID, lpInterface), (ULONG, ulFlags), (ULONG *, lpulObjType), (LPMAPISTATUS *, lppEntry))
+DEF_HRMETHOD1(TRACE_MAPI, ECXPLogon, XPLogon, ValidateState, (ULONG, ulUIParam), (ULONG, ulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECXPLogon, XPLogon, FlushQueues, (ULONG, ulUIParam), (ULONG, cbTargetTransport), (LPENTRYID, lpTargetTransport), (ULONG, ulFlags))
 
-ULONG ECXPLogon::xXPLogon::AddRef()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IXPLogon::AddRef", "");
-	METHOD_PROLOGUE_(ECXPLogon , XPLogon);
-	HRESULT hr = pThis->AddRef();
-	TRACE_MAPI(TRACE_RETURN, "IXPLogon::AddRef", "");
-	return hr;
-}
-
-ULONG ECXPLogon::xXPLogon::Release()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IXPLogon::Release", "");
-	METHOD_PROLOGUE_(ECXPLogon , XPLogon);
-	HRESULT hr = pThis->Release();
-	TRACE_MAPI(TRACE_RETURN, "IXPLogon::Release", "");
-	return hr;
-}
-
-HRESULT ECXPLogon::xXPLogon::AddressTypes(ULONG * lpulFlags, ULONG * lpcAdrType, LPTSTR ** lpppszAdrTypeArray, ULONG * lpcMAPIUID, LPMAPIUID ** lpppUIDArray)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IXPLogon::AddressTypes", "");
-	METHOD_PROLOGUE_(ECXPLogon , XPLogon);
-	HRESULT hr = pThis->AddressTypes(lpulFlags, lpcAdrType, lpppszAdrTypeArray, lpcMAPIUID, lpppUIDArray);
-	TRACE_MAPI(TRACE_RETURN, "IXPLogon::AddressTypes", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECXPLogon::xXPLogon::RegisterOptions(ULONG * lpulFlags, ULONG * lpcOptions, LPOPTIONDATA * lppOptions)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IXPLogon::RegisterOptions", "");
-	METHOD_PROLOGUE_(ECXPLogon , XPLogon);
-	HRESULT hr = pThis->RegisterOptions(lpulFlags, lpcOptions, lppOptions);
-	TRACE_MAPI(TRACE_RETURN, "IXPLogon::RegisterOptions", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECXPLogon::xXPLogon::TransportNotify(ULONG * lpulFlags, LPVOID * lppvData)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IXPLogon::TransportNotify", "");
-	METHOD_PROLOGUE_(ECXPLogon , XPLogon);
-	HRESULT hr = pThis->TransportNotify(lpulFlags, lppvData);
-	TRACE_MAPI(TRACE_RETURN, "IXPLogon::TransportNotify", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECXPLogon::xXPLogon::Idle(ULONG ulFlags)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IXPLogon::Idle", "flags=%d", ulFlags);
-	METHOD_PROLOGUE_(ECXPLogon , XPLogon);
-	HRESULT hr = pThis->Idle(ulFlags);
-	TRACE_MAPI(TRACE_RETURN, "IXPLogon::Idle", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECXPLogon::xXPLogon::TransportLogoff(ULONG ulFlags)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IXPLogon::TransportLogoff", "flags=%d", ulFlags);
-	METHOD_PROLOGUE_(ECXPLogon , XPLogon);
-	HRESULT hr = pThis->TransportLogoff(ulFlags);
-	TRACE_MAPI(TRACE_RETURN, "IXPLogon::TransportLogoff", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECXPLogon::xXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpulMsgRef, ULONG * lpulReturnParm)
-{
-	HRESULT hr;
-	TRACE_MAPI(TRACE_ENTRY, "IXPLogon::SubmitMessage", "flags=%d", ulFlags);
-	METHOD_PROLOGUE_(ECXPLogon , XPLogon);
-	hr = pThis->SubmitMessage(ulFlags, lpMessage, lpulMsgRef, lpulReturnParm);
-	TRACE_MAPI(TRACE_RETURN, "IXPLogon::SubmitMessage", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECXPLogon::xXPLogon::EndMessage(ULONG ulMsgRef, ULONG * lpulFlags)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IXPLogon::EndMessage", "ulMsgRef=%d", ulMsgRef);
-	METHOD_PROLOGUE_(ECXPLogon , XPLogon);
-	HRESULT hr = pThis->EndMessage(ulMsgRef, lpulFlags);
-	TRACE_MAPI(TRACE_RETURN, "IXPLogon::EndMessage", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECXPLogon::xXPLogon::Poll(ULONG * lpulIncoming)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IXPLogon::Poll", "");
-	METHOD_PROLOGUE_(ECXPLogon , XPLogon);
-	HRESULT hr = pThis->Poll(lpulIncoming);
-	TRACE_MAPI(TRACE_RETURN, "IXPLogon::Poll", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECXPLogon::xXPLogon::StartMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpulMsgRef)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IXPLogon::StartMessage", "flags=%d", ulFlags);
-	METHOD_PROLOGUE_(ECXPLogon , XPLogon);
-	HRESULT hr = pThis->StartMessage(ulFlags, lpMessage, lpulMsgRef);
-	TRACE_MAPI(TRACE_RETURN, "IXPLogon::StartMessage", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECXPLogon::xXPLogon::OpenStatusEntry(LPCIID lpInterface, ULONG ulFlags, ULONG * lpulObjType, LPMAPISTATUS * lppEntry)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IXPLogon::OpenStatusEntry", "flags=%d, lpiid=%s", ulFlags, DBGGUIDToString(*lpInterface).c_str());
-	METHOD_PROLOGUE_(ECXPLogon , XPLogon);
-	HRESULT hr = pThis->OpenStatusEntry(lpInterface, ulFlags, lpulObjType, lppEntry);
-	TRACE_MAPI(TRACE_RETURN, "IXPLogon::OpenStatusEntry", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECXPLogon::xXPLogon::ValidateState(ULONG ulUIParam, ULONG ulFlags)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IXPLogon::ValidateState", "flags=%d", ulFlags);
-	METHOD_PROLOGUE_(ECXPLogon , XPLogon);
-	HRESULT hr = pThis->ValidateState(ulUIParam, ulFlags);
-	TRACE_MAPI(TRACE_RETURN, "IXPLogon::ValidateState", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECXPLogon::xXPLogon::FlushQueues(ULONG ulUIParam, ULONG cbTargetTransport, LPENTRYID lpTargetTransport, ULONG ulFlags)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IXPLogon::FlushQueues", "flags=%d", ulFlags);
-	METHOD_PROLOGUE_(ECXPLogon , XPLogon);
-	HRESULT hr = pThis->FlushQueues(ulUIParam, cbTargetTransport, lpTargetTransport, ulFlags);
-	TRACE_MAPI(TRACE_RETURN, "IXPLogon::FlushQueues", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-ULONG __stdcall ECXPLogon::xMAPIAdviseSink::OnNotify(ULONG cNotif, LPNOTIFICATION lpNotifs) {
-	METHOD_PROLOGUE_(ECXPLogon, MAPIAdviseSink);
-	return pThis->OnNotify(cNotif, lpNotifs);
-}
-
-HRESULT __stdcall ECXPLogon::xMAPIAdviseSink::QueryInterface(REFIID refiid, void ** lppInterface) {
-	return MAPI_E_INTERFACE_NOT_SUPPORTED;
-}
+DEF_ULONGMETHOD1(TRACE_MAPI, ECXPLogon, MAPIAdviseSink, OnNotify, (ULONG, cNotif), (LPNOTIFICATION, lpNotifs))
+DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ECXPLogon, MAPIAdviseSink, QueryInterface, (REFIID, refiid), (void **, lppInterface))
 
 ULONG __stdcall ECXPLogon::xMAPIAdviseSink::AddRef(){
 	return 1;

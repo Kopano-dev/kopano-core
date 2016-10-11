@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
+#include <kopano/ECInterfaceDefs.h>
 #include <mapidefs.h>
 #include "WSTransport.h"
 #include "ECGenericProp.h"
@@ -1149,114 +1150,25 @@ HRESULT ECGenericProp::SetSingleInstanceId(ULONG cbInstanceID, LPSIEID lpInstanc
 }
 
 // Interface IMAPIProp
-HRESULT __stdcall ECGenericProp::xMAPIProp::QueryInterface(REFIID refiid, void ** lppInterface)
-{
-	METHOD_PROLOGUE_(ECGenericProp , MAPIProp);
-	return pThis->QueryInterface(refiid, lppInterface);
-}
-
-ULONG __stdcall ECGenericProp::xMAPIProp::AddRef()
-{
-	METHOD_PROLOGUE_(ECGenericProp , MAPIProp);
-	return pThis->AddRef();
-}
-
-ULONG __stdcall ECGenericProp::xMAPIProp::Release()
-{
-	METHOD_PROLOGUE_(ECGenericProp , MAPIProp);
-	return pThis->Release();
-}
-
-HRESULT __stdcall ECGenericProp::xMAPIProp::GetLastError(HRESULT hError, ULONG ulFlags,
-    LPMAPIERROR * lppMapiError)
-{
-	METHOD_PROLOGUE_(ECGenericProp , MAPIProp);
-	return pThis->GetLastError(hError, ulFlags, lppMapiError);
-}
-
-HRESULT __stdcall ECGenericProp::xMAPIProp::SaveChanges(ULONG ulFlags)
-{
-	METHOD_PROLOGUE_(ECGenericProp , MAPIProp);
-	return pThis->SaveChanges(ulFlags);
-}
-
-HRESULT __stdcall ECGenericProp::xMAPIProp::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG FAR * lpcValues, LPSPropValue FAR * lppPropArray)
-{
-	METHOD_PROLOGUE_(ECGenericProp , MAPIProp);
-	return pThis->GetProps(lpPropTagArray, ulFlags, lpcValues, lppPropArray);
-}
-
-HRESULT __stdcall ECGenericProp::xMAPIProp::GetPropList(ULONG ulFlags, LPSPropTagArray FAR * lppPropTagArray)
-{
-	METHOD_PROLOGUE_(ECGenericProp , MAPIProp);
-	return pThis->GetPropList(ulFlags, lppPropTagArray);
-}
-
-HRESULT __stdcall ECGenericProp::xMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN FAR * lppUnk)
-{
-	METHOD_PROLOGUE_(ECGenericProp , MAPIProp);
-	return pThis->OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
-}
-
-HRESULT __stdcall ECGenericProp::xMAPIProp::SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray FAR * lppProblems)
-{
-	METHOD_PROLOGUE_(ECGenericProp , MAPIProp);
-	return pThis->SetProps(cValues, lpPropArray, lppProblems);
-}
-
-HRESULT __stdcall ECGenericProp::xMAPIProp::DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray FAR * lppProblems)
-{
-	METHOD_PROLOGUE_(ECGenericProp , MAPIProp);
-	return pThis->DeleteProps(lpPropTagArray, lppProblems);
-}
-
-HRESULT __stdcall ECGenericProp::xMAPIProp::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArray lpExcludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray FAR * lppProblems)
-{
-	METHOD_PROLOGUE_(ECGenericProp , MAPIProp);
-	return pThis->CopyTo(ciidExclude, rgiidExclude, lpExcludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
-}
-
-HRESULT __stdcall ECGenericProp::xMAPIProp::CopyProps(LPSPropTagArray lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray FAR * lppProblems)
-{
-	METHOD_PROLOGUE_(ECGenericProp , MAPIProp);
-	return pThis->CopyProps(lpIncludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
-}
-
-HRESULT __stdcall ECGenericProp::xMAPIProp::GetNamesFromIDs(LPSPropTagArray * pptaga, LPGUID lpguid, ULONG ulFlags, ULONG * pcNames, LPMAPINAMEID ** pppNames)
-{
-	METHOD_PROLOGUE_(ECGenericProp , MAPIProp);
-	return pThis->GetNamesFromIDs(pptaga, lpguid, ulFlags, pcNames, pppNames);
-}
-
-HRESULT __stdcall ECGenericProp::xMAPIProp::GetIDsFromNames(ULONG cNames, LPMAPINAMEID * ppNames, ULONG ulFlags, LPSPropTagArray * pptaga)
-{
-	METHOD_PROLOGUE_(ECGenericProp , MAPIProp);
-	return pThis->GetIDsFromNames(cNames, ppNames, ulFlags, pptaga);
-}
+DEF_HRMETHOD0(ECGenericProp, MAPIProp, QueryInterface, (REFIID, refiid), (void **, lppInterface))
+DEF_ULONGMETHOD0(ECGenericProp, MAPIProp, AddRef, (void))
+DEF_ULONGMETHOD0(ECGenericProp, MAPIProp, Release, (void))
+DEF_HRMETHOD0(ECGenericProp, MAPIProp, GetLastError, (HRESULT, hError), (ULONG, ulFlags), (LPMAPIERROR *, lppMapiError))
+DEF_HRMETHOD0(ECGenericProp, MAPIProp, SaveChanges, (ULONG, ulFlags))
+DEF_HRMETHOD0(ECGenericProp, MAPIProp, GetProps, (LPSPropTagArray, lpPropTagArray), (ULONG, ulFlags), (ULONG FAR *, lpcValues), (LPSPropValue FAR *, lppPropArray))
+DEF_HRMETHOD0(ECGenericProp, MAPIProp, GetPropList, (ULONG, ulFlags), (LPSPropTagArray FAR *, lppPropTagArray))
+DEF_HRMETHOD0(ECGenericProp, MAPIProp, OpenProperty, (ULONG, ulPropTag), (LPCIID, lpiid), (ULONG, ulInterfaceOptions), (ULONG, ulFlags), (LPUNKNOWN FAR *, lppUnk))
+DEF_HRMETHOD0(ECGenericProp, MAPIProp, SetProps, (ULONG, cValues), (LPSPropValue, lpPropArray), (LPSPropProblemArray FAR *, lppProblems))
+DEF_HRMETHOD0(ECGenericProp, MAPIProp, DeleteProps, (LPSPropTagArray, lpPropTagArray), (LPSPropProblemArray FAR *, lppProblems))
+DEF_HRMETHOD0(ECGenericProp, MAPIProp, CopyTo, (ULONG, ciidExclude), (LPCIID, rgiidExclude), (LPSPropTagArray, lpExcludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (LPVOID, lpDestObj), (ULONG, ulFlags), (LPSPropProblemArray FAR *, lppProblems))
+DEF_HRMETHOD0(ECGenericProp, MAPIProp, CopyProps, (LPSPropTagArray, lpIncludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (LPVOID, lpDestObj), (ULONG, ulFlags), (LPSPropProblemArray FAR *, lppProblems))
+DEF_HRMETHOD0(ECGenericProp, MAPIProp, GetNamesFromIDs, (LPSPropTagArray *, pptaga), (LPGUID, lpguid), (ULONG, ulFlags), (ULONG *, pcNames), (LPMAPINAMEID **, pppNames))
+DEF_HRMETHOD0(ECGenericProp, MAPIProp, GetIDsFromNames, (ULONG, cNames), (LPMAPINAMEID *, ppNames), (ULONG, ulFlags), (LPSPropTagArray *, pptaga))
 
 // Proxy routines for IECSingleInstance
-HRESULT __stdcall ECGenericProp::xECSingleInstance::QueryInterface(REFIID refiid, void ** lppInterface)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECSingleInstance::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
-	METHOD_PROLOGUE_(ECGenericProp , ECSingleInstance);
-	HRESULT hr = pThis->QueryInterface(refiid, lppInterface);
-	TRACE_MAPI(TRACE_RETURN, "IECSingleInstance::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-ULONG __stdcall ECGenericProp::xECSingleInstance::AddRef()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECSingleInstance::AddRef", "");
-	METHOD_PROLOGUE_(ECGenericProp , ECSingleInstance);
-	return pThis->AddRef();
-}
-
-ULONG __stdcall ECGenericProp::xECSingleInstance::Release()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECSingleInstance::Release", "");
-	METHOD_PROLOGUE_(ECGenericProp , ECSingleInstance);
-	return pThis->Release();
-}
+DEF_HRMETHOD1(TRACE_MAPI, ECGenericProp, ECSingleInstance, QueryInterface, (REFIID, refiid), (void **, lppInterface))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECGenericProp, ECSingleInstance, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECGenericProp, ECSingleInstance, Release, (void))
 
 HRESULT __stdcall ECGenericProp::xECSingleInstance::GetSingleInstanceId(ULONG *lpcbInstanceID, LPENTRYID *lppInstanceID)
 {

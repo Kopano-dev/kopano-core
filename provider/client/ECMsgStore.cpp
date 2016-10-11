@@ -16,7 +16,7 @@
  */
 
 #include <kopano/platform.h>
-
+#include <kopano/ECInterfaceDefs.h>
 #include <mapiutil.h>
 #include <edkguid.h>
 #include <list>
@@ -3305,1079 +3305,144 @@ HRESULT ECMsgStore::ExportMessageChangesAsStream(ULONG ulFlags, ULONG ulPropTag,
 }
 
 // IMsgStore interface
-ULONG ECMsgStore::xMsgStore::AddRef() {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStore::AddRef", "");
-	METHOD_PROLOGUE_(ECMsgStore, MsgStore);
-	return pThis->AddRef();
-}
-
-ULONG ECMsgStore::xMsgStore::Release() {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStore::Release", "");
-	METHOD_PROLOGUE_(ECMsgStore, MsgStore);
-	ULONG ulReturn = pThis->Release();
-	TRACE_MAPI(TRACE_RETURN, "IMsgStore::Release", "%d", ulReturn);
-	return ulReturn;
-}
-
-HRESULT ECMsgStore::xMsgStore::QueryInterface(REFIID refiid, void **lppInterface) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStore::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
-	METHOD_PROLOGUE_(ECMsgStore, MsgStore);
-	HRESULT hr = pThis->QueryInterface(refiid, lppInterface);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStore::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStore::Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStore::Advise", "entryid=%s, eventmask=%08X", bin2hex(cbEntryID, (BYTE*)lpEntryID).c_str(), ulEventMask);
-	METHOD_PROLOGUE_(ECMsgStore, MsgStore);
-	return pThis->Advise(cbEntryID, lpEntryID, ulEventMask, lpAdviseSink, lpulConnection);
-}
-
-HRESULT ECMsgStore::xMsgStore::Unadvise(ULONG ulConnection) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStore::Unadvise", "");
-	METHOD_PROLOGUE_(ECMsgStore, MsgStore);
-	return pThis->Unadvise(ulConnection);
-}
-
-HRESULT ECMsgStore::xMsgStore::CompareEntryIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2, ULONG ulFlags, ULONG *lpulResult) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStore::CompareEntryIDs", "flags: %d\ncb=%d  entryid1: %s\n cb=%d entryid2: %s", ulFlags, cbEntryID1, bin2hex(cbEntryID1, (BYTE*)lpEntryID1).c_str(), cbEntryID2, bin2hex(cbEntryID2, (BYTE*)lpEntryID2).c_str());
-	METHOD_PROLOGUE_(ECMsgStore, MsgStore);
-	HRESULT hr = pThis->CompareEntryIDs(cbEntryID1, lpEntryID1, cbEntryID2, lpEntryID2, ulFlags, lpulResult);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStore::CompareEntryIDs", "%s result=%s", GetMAPIErrorDescription(hr).c_str(), (lpulResult)?((*lpulResult == TRUE)?"TRUE":"FALSE") : "NULL");
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStore::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPUNKNOWN *lppUnk) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStore::OpenEntry", "interface=%s, cb=%d, EntryId=%s, flags=0x%08X", (lpInterface)?DBGGUIDToString(*lpInterface).c_str():"", cbEntryID, bin2hex(cbEntryID, (BYTE*)lpEntryID).c_str(), ulFlags);
-	METHOD_PROLOGUE_(ECMsgStore, MsgStore);
-	HRESULT hr = pThis->OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStore::OpenEntry", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStore::SetReceiveFolder(LPTSTR lpszMessageClass, ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStore::SetReceiveFolder", "msgclass=%s, flags=0x%08X, cb=%d, EntryId=%s,", (lpszMessageClass)?(char*)lpszMessageClass :"NULL", ulFlags, cbEntryID, bin2hex(cbEntryID, (BYTE*)lpEntryID).c_str());
-	METHOD_PROLOGUE_(ECMsgStore, MsgStore);
-	HRESULT hr =pThis->SetReceiveFolder(lpszMessageClass, ulFlags, cbEntryID, lpEntryID);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStore::SetReceiveFolder", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStore::GetReceiveFolder(LPTSTR lpszMessageClass, ULONG ulFlags, ULONG *lpcbEntryID, LPENTRYID *lppEntryID, LPTSTR *lppszExplicitClass) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStore::GetReceiveFolder", "%s", (lpszMessageClass)?(char*)lpszMessageClass:"NULL");
-	METHOD_PROLOGUE_(ECMsgStore, MsgStore);
-	HRESULT hr = pThis->GetReceiveFolder(lpszMessageClass, ulFlags, lpcbEntryID, lppEntryID,lppszExplicitClass);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStore::GetReceiveFolder", "%s, entryid=%s", GetMAPIErrorDescription(hr).c_str(), (hr == hrSuccess && lppEntryID)?bin2hex(*lpcbEntryID, (BYTE*)*lppEntryID).c_str():"NULL");
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStore::GetReceiveFolderTable(ULONG ulFlags, LPMAPITABLE *lppTable) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStore::GetReceiveFolderTable", "");
-	METHOD_PROLOGUE_(ECMsgStore, MsgStore);
-	HRESULT hr = pThis->GetReceiveFolderTable(ulFlags, lppTable);;
-	TRACE_MAPI(TRACE_RETURN, "IMsgStore::GetReceiveFolderTable", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStore::StoreLogoff(ULONG *lpulFlags) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStore::StoreLogoff", "");
-	METHOD_PROLOGUE_(ECMsgStore, MsgStore);
-	return pThis->StoreLogoff(lpulFlags);
-}
-
-HRESULT ECMsgStore::xMsgStore::AbortSubmit(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStore::AbortSubmit", "");
-	METHOD_PROLOGUE_(ECMsgStore, MsgStore);
-	HRESULT hr = pThis->AbortSubmit(cbEntryID, lpEntryID, ulFlags);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStore::AbortSubmit", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStore::GetOutgoingQueue(ULONG ulFlags, LPMAPITABLE *lppTable) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStore::GetOutgoingQueue", "");
-	METHOD_PROLOGUE_(ECMsgStore, MsgStore);
-	HRESULT hr = pThis->GetOutgoingQueue(ulFlags, lppTable);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStore::GetOutgoingQueue", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStore::SetLockState(LPMESSAGE lpMessage,ULONG ulLockState) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStore::SetLockState", "");
-	METHOD_PROLOGUE_(ECMsgStore, MsgStore);
-	HRESULT hr = pThis->SetLockState(lpMessage, ulLockState);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStore::SetLockState", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStore::FinishedMsg(ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStore::FinishedMsg", "");
-	METHOD_PROLOGUE_(ECMsgStore, MsgStore);
-	HRESULT hr = pThis->FinishedMsg(ulFlags, cbEntryID, lpEntryID);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStore::FinishedMsg", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStore::NotifyNewMail(LPNOTIFICATION lpNotification) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStore::NotifyNewMail", "");
-	METHOD_PROLOGUE_(ECMsgStore, MsgStore);
-	HRESULT hr = pThis->NotifyNewMail(lpNotification);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStore::NotifyNewMail", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStore::GetLastError(HRESULT hError, ULONG ulFlags, LPMAPIERROR * lppMapiError) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStore::GetLastError", "");
-	METHOD_PROLOGUE_(ECMsgStore, MsgStore);
-	HRESULT hr = pThis->GetLastError(hError, ulFlags, lppMapiError);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStore::GetLastError", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStore::SaveChanges(ULONG ulFlags) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStore::SaveChanges", "flags=0x%08x", ulFlags);
-	METHOD_PROLOGUE_(ECMsgStore, MsgStore);
-	HRESULT hr =  pThis->SaveChanges(ulFlags);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStore::SaveChanges", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStore::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG FAR * lpcValues, LPSPropValue FAR * lppPropArray) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStore::GetProps", "0x%08x %s", ulFlags, PropNameFromPropTagArray(lpPropTagArray).c_str());
-	METHOD_PROLOGUE_(ECMsgStore, MsgStore);
-	HRESULT hr = pThis->GetProps(lpPropTagArray, ulFlags, lpcValues, lppPropArray);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStore::GetProps", "%s: %s", GetMAPIErrorDescription(hr).c_str(), PropNameFromPropArray(*lpcValues, *lppPropArray).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStore::GetPropList(ULONG ulFlags, LPSPropTagArray FAR * lppPropTagArray) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStore::GetPropList", "");
-	METHOD_PROLOGUE_(ECMsgStore, MsgStore);
-	HRESULT hr = pThis->GetPropList(ulFlags, lppPropTagArray);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStore::GetPropList", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStore::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN FAR * lppUnk) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStore::OpenProperty", "PropTag=%s, lpiid=%s", PropNameFromPropTag(ulPropTag).c_str(), DBGGUIDToString(*lpiid).c_str());
-	METHOD_PROLOGUE_(ECMsgStore, MsgStore);
-	HRESULT hr = pThis->OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStore::OpenProperty", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStore::SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray FAR * lppProblems) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStore::SetProps", "%s", PropNameFromPropArray(cValues, lpPropArray).c_str());
-	METHOD_PROLOGUE_(ECMsgStore, MsgStore);
-	HRESULT hr = pThis->SetProps(cValues, lpPropArray, lppProblems);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStore::SetProps", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStore::DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray FAR * lppProblems) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStore::DeleteProps", "%s", PropNameFromPropTagArray(lpPropTagArray).c_str());
-	METHOD_PROLOGUE_(ECMsgStore, MsgStore);
-	HRESULT hr = pThis->DeleteProps(lpPropTagArray, lppProblems);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStore::DeleteProps", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStore::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArray lpExcludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray FAR * lppProblems) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStore::CopyTo", "");
-	METHOD_PROLOGUE_(ECMsgStore, MsgStore);
-	HRESULT hr = pThis->CopyTo(ciidExclude, rgiidExclude, lpExcludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStore::CopyTo", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStore::CopyProps(LPSPropTagArray lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray FAR * lppProblems) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStore::CopyProps", "");
-	METHOD_PROLOGUE_(ECMsgStore, MsgStore);
-	HRESULT hr = pThis->CopyProps(lpIncludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStore::CopyProps", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStore::GetNamesFromIDs(LPSPropTagArray * pptaga, LPGUID lpguid, ULONG ulFlags, ULONG * pcNames, LPMAPINAMEID ** pppNames) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStore::GetNamesFromIDs", "");
-	METHOD_PROLOGUE_(ECMsgStore, MsgStore);
-	HRESULT hr = pThis->GetNamesFromIDs(pptaga, lpguid, ulFlags, pcNames, pppNames);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStore::GetNamesFromIDs", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStore::GetIDsFromNames(ULONG cNames,
-    MAPINAMEID **ppNames, ULONG ulFlags, LPSPropTagArray *pptaga)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStore::GetIDsFromNames", "");
-	METHOD_PROLOGUE_(ECMsgStore, MsgStore);
-	HRESULT hr = pThis->GetIDsFromNames(cNames, ppNames, ulFlags, pptaga);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStore::GetIDsFromNames", "%s\n%s",
-		GetMAPIErrorDescription(hr).c_str(),
-		MapiNameIdListToString(cNames,
-			const_cast<const MAPINAMEID *const *>(ppNames),
-			hr == hrSuccess ? *pptaga : NULL).c_str());
-	return hr;
-}
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, Release, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, QueryInterface, (REFIID, refiid), (void **, lppInterface))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, Advise, (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (ULONG, ulEventMask), (LPMAPIADVISESINK, lpAdviseSink), (ULONG *, lpulConnection))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, Unadvise, (ULONG, ulConnection))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, CompareEntryIDs, (ULONG, cbEntryID1), (LPENTRYID, lpEntryID1), (ULONG, cbEntryID2), (LPENTRYID, lpEntryID2), (ULONG, ulFlags), (ULONG *, lpulResult))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, OpenEntry, (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (LPCIID, lpInterface), (ULONG, ulFlags), (ULONG *, lpulObjType), (LPUNKNOWN *, lppUnk))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, SetReceiveFolder, (LPTSTR, lpszMessageClass), (ULONG, ulFlags), (ULONG, cbEntryID), (LPENTRYID, lpEntryID))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, GetReceiveFolder, (LPTSTR, lpszMessageClass), (ULONG, ulFlags), (ULONG *, lpcbEntryID), (LPENTRYID *, lppEntryID), (LPTSTR *, lppszExplicitClass))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, GetReceiveFolderTable, (ULONG, ulFlags), (LPMAPITABLE *, lppTable))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, StoreLogoff, (ULONG *, lpulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, AbortSubmit, (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (ULONG, ulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, GetOutgoingQueue, (ULONG, ulFlags), (LPMAPITABLE *, lppTable))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, SetLockState, (LPMESSAGE, lpMessage), (ULONG, ulLockState))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, FinishedMsg, (ULONG, ulFlags), (ULONG, cbEntryID), (LPENTRYID, lpEntryID))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, NotifyNewMail, (LPNOTIFICATION, lpNotification))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, GetLastError, (HRESULT, hError), (ULONG, ulFlags), (LPMAPIERROR *, lppMapiError))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, SaveChanges, (ULONG, ulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, GetProps, (LPSPropTagArray, lpPropTagArray), (ULONG, ulFlags), (ULONG FAR *, lpcValues), (LPSPropValue FAR *, lppPropArray))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, GetPropList, (ULONG, ulFlags), (LPSPropTagArray FAR *, lppPropTagArray))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, OpenProperty, (ULONG, ulPropTag), (LPCIID, lpiid), (ULONG, ulInterfaceOptions), (ULONG, ulFlags), (LPUNKNOWN FAR *, lppUnk))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, SetProps, (ULONG, cValues), (LPSPropValue, lpPropArray), (LPSPropProblemArray FAR *, lppProblems))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, DeleteProps, (LPSPropTagArray, lpPropTagArray), (LPSPropProblemArray FAR *, lppProblems))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, CopyTo, (ULONG, ciidExclude), (LPCIID, rgiidExclude), (LPSPropTagArray, lpExcludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (LPVOID, lpDestObj), (ULONG, ulFlags), (LPSPropProblemArray FAR *, lppProblems))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, CopyProps, (LPSPropTagArray, lpIncludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (LPVOID, lpDestObj), (ULONG, ulFlags), (LPSPropProblemArray FAR *, lppProblems))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, GetNamesFromIDs, (LPSPropTagArray *, pptaga), (LPGUID, lpguid), (ULONG, ulFlags), (ULONG *, pcNames), (LPMAPINAMEID **, pppNames))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStore, GetIDsFromNames, (ULONG, cNames), (MAPINAMEID **, ppNames), (ULONG, ulFlags), (LPSPropTagArray *, pptaga))
 
 /*
- *
  * IExchangeManageStore interface
- *
- *
  */
-
-ULONG ECMsgStore::xExchangeManageStore::AddRef() {
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeManageStore::AddRef", "");
-	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStore);
-	return pThis->AddRef();
-}
-
-ULONG ECMsgStore::xExchangeManageStore::Release() {
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeManageStore::Release", "");
-	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStore);
-	ULONG ulRef = pThis->Release();
-	TRACE_MAPI(TRACE_RETURN, "IExchangeManageStore::Release", "%d", ulRef);
-	return ulRef;
-}
-
-HRESULT ECMsgStore::xExchangeManageStore::QueryInterface(REFIID refiid, void **lppInterface)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeManageStore::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
-	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStore);
-	HRESULT hr = pThis->QueryInterface(refiid, lppInterface);
-	TRACE_MAPI(TRACE_RETURN, "IExchangeManageStore::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xExchangeManageStore::CreateStoreEntryID(LPTSTR lpszMsgStoreDN, LPTSTR lpszMailboxDN, ULONG ulFlags, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeManageStore::CreateStoreEntryID","msgStoreDN=%s , MailboxDN=%s , flags=0x%08X", (lpszMsgStoreDN)?(char*)lpszMsgStoreDN: "NULL", (lpszMailboxDN)?(char*)lpszMailboxDN:"NULL", ulFlags);
-	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStore);
-	HRESULT hr = pThis->CreateStoreEntryID(lpszMsgStoreDN, lpszMailboxDN, ulFlags, lpcbEntryID, lppEntryID);
-	TRACE_MAPI(TRACE_RETURN, "IExchangeManageStore::CreateStoreEntryID","%s, cb=%d, data=%s", GetMAPIErrorDescription(hr).c_str(), (lpcbEntryID)?*lpcbEntryID:0, (lppEntryID)?bin2hex(*lpcbEntryID, (BYTE*)*lppEntryID).c_str():"NULL");
-	return hr;
-}
-
-HRESULT ECMsgStore::xExchangeManageStore::EntryIDFromSourceKey(ULONG cFolderKeySize, BYTE *lpFolderSourceKey,	ULONG cMessageKeySize, BYTE *lpMessageSourceKey, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeManageStore::EntryIDFromSourceKey","");
-	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStore);
-	return pThis->EntryIDFromSourceKey(cFolderKeySize, lpFolderSourceKey, cMessageKeySize, lpMessageSourceKey, lpcbEntryID, lppEntryID);
-}
-
-HRESULT ECMsgStore::xExchangeManageStore::GetRights(ULONG cbUserEntryID, LPENTRYID lpUserEntryID, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG *lpulRights)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeManageStore::GetRights","");
-	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStore);
-	return pThis->GetRights(cbUserEntryID, lpUserEntryID, cbEntryID, lpEntryID, lpulRights);
-}
-
-HRESULT ECMsgStore::xExchangeManageStore::GetMailboxTable(LPTSTR lpszServerName, LPMAPITABLE *lppTable, ULONG ulFlags)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeManageStore::GetMailboxTable","");
-	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStore);
-	return pThis->GetMailboxTable(lpszServerName, lppTable, ulFlags);
-}
-
-HRESULT ECMsgStore::xExchangeManageStore::GetPublicFolderTable(LPTSTR lpszServerName, LPMAPITABLE *lppTable, ULONG ulFlags)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeManageStore::GetPublicFolderTable","");
-	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStore);
-	return pThis->GetPublicFolderTable(lpszServerName, lppTable, ulFlags);
-}
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ExchangeManageStore, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ExchangeManageStore, Release, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ExchangeManageStore, QueryInterface, (REFIID, refiid), (void **, lppInterface))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ExchangeManageStore, CreateStoreEntryID, (LPTSTR, lpszMsgStoreDN), (LPTSTR, lpszMailboxDN), (ULONG, ulFlags), (ULONG *, lpcbEntryID), (LPENTRYID *, lppEntryID))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ExchangeManageStore, EntryIDFromSourceKey, (ULONG, cFolderKeySize), (BYTE *, lpFolderSourceKey), (ULONG, cMessageKeySize), (BYTE *, lpMessageSourceKey), (ULONG *, lpcbEntryID), (LPENTRYID *, lppEntryID))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ExchangeManageStore, GetRights, (ULONG, cbUserEntryID), (LPENTRYID, lpUserEntryID), (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (ULONG *, lpulRights))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ExchangeManageStore, GetMailboxTable, (LPTSTR, lpszServerName), (LPMAPITABLE *, lppTable), (ULONG, ulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ExchangeManageStore, GetPublicFolderTable, (LPTSTR, lpszServerName), (LPMAPITABLE *, lppTable), (ULONG, ulFlags))
 
 // IECServiceAdmin
-HRESULT __stdcall ECMsgStore::xECServiceAdmin::QueryInterface(REFIID refiid, void ** lppInterface)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
-	METHOD_PROLOGUE_(ECMsgStore , ECServiceAdmin);
-	HRESULT hr = pThis->QueryInterface(refiid, lppInterface);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-ULONG __stdcall ECMsgStore::xECServiceAdmin::AddRef()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::AddRef", "");
-	METHOD_PROLOGUE_(ECMsgStore , ECServiceAdmin);
-	return pThis->AddRef();
-
-}
-
-ULONG __stdcall ECMsgStore::xECServiceAdmin::Release()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::Release", "");
-	METHOD_PROLOGUE_(ECMsgStore , ECServiceAdmin);
-	ULONG ulRef = pThis->Release();
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::Release", "%d", ulRef);
-	return ulRef;
-
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, ULONG* lpcbStoreId, LPENTRYID* lppStoreId, ULONG* lpcbRootId, LPENTRYID *lppRootId)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::CreateStore", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->CreateStore(ulStoreType, cbUserId, lpUserId, lpcbStoreId, lppStoreId, lpcbRootId, lppRootId);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::CreateStore", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::CreateEmptyStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, ULONG ulFlags, ULONG* lpcbStoreId, LPENTRYID* lppStoreId, ULONG* lpcbRootId, LPENTRYID *lppRootId)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::CreateEmptyStore", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->CreateEmptyStore(ulStoreType, cbUserId, lpUserId, ulFlags, lpcbStoreId, lppStoreId, lpcbRootId, lppRootId);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::CreateEmptyStore", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::HookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId, LPGUID lpGuid)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::HookStore", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->HookStore(ulStoreType, cbUserId, lpUserId, lpGuid);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::HookStore", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::UnhookStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpUserId)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::UnhookStore", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->UnhookStore(ulStoreType, cbUserId, lpUserId);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::UnhookStore", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::RemoveStore(LPGUID lpGuid)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::RemoveStore", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->RemoveStore(lpGuid);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::RemoveStore", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::ResolveStore(LPGUID lpGuid, ULONG *lpulUserID, ULONG* lpcbStoreID, LPENTRYID* lppStoreID)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::ResolveStore", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->ResolveStore(lpGuid, lpulUserID, lpcbStoreID, lppStoreID);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::ResolveStore", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::CreateUser(ECUSER *lpECUser,
-    ULONG ulFlags, ULONG *lpcbUserId, LPENTRYID *lppUserId)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::CreateUser", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->CreateUser(lpECUser, ulFlags, lpcbUserId, lppUserId);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::CreateUser", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::SetUser(ECUSER *lpECUser, ULONG ulFlags)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::SetUser", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->SetUser(lpECUser, ulFlags);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::SetUser", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::GetUser(ULONG cbUserId,
-    LPENTRYID lpUserId, ULONG ulFlags, ECUSER **lppECUser)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::GetUser", "userid=%d", ABEID_ID(lpUserId));
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->GetUser(cbUserId, lpUserId, ulFlags, lppECUser);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::GetUser", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::DeleteUser(ULONG cbUserId, LPENTRYID lpUserId)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::DeleteUser", "user=%d", ABEID_ID(lpUserId));
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->DeleteUser(cbUserId, lpUserId);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::DeleteUser", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::GetUserList(ULONG cbCompanyId,
-    LPENTRYID lpCompanyId, ULONG ulFlags, ULONG *lpcUsers, ECUSER **lpsUsers)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::GetUserList", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->GetUserList(cbCompanyId, lpCompanyId, ulFlags, lpcUsers, lpsUsers);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::GetUserList", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::GetSendAsList(ULONG cbUserId,
-    LPENTRYID lpUserId, ULONG ulFlags, ULONG *lpcSenders, ECUSER **lppSenders)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::GetSendAsList", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->GetSendAsList(cbUserId, lpUserId, ulFlags, lpcSenders, lppSenders);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::GetSendAsList", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::AddSendAsUser(ULONG cbUserId, LPENTRYID lpUserId, ULONG cbSenderId, LPENTRYID lpSenderId)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::AddSendAsUser", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->AddSendAsUser(cbUserId, lpUserId, cbSenderId, lpSenderId);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::AddSendAsUser", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::DelSendAsUser(ULONG cbUserId, LPENTRYID lpUserId, ULONG cbSenderId, LPENTRYID lpSenderId)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::DelSendAsUser", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->DelSendAsUser(cbUserId, lpUserId, cbSenderId, lpSenderId);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::DelSendAsUser", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::GetUserClientUpdateStatus(ULONG cbUserId,
-    LPENTRYID lpUserId, ULONG ulFlags, ECUSERCLIENTUPDATESTATUS **lppECUCUS)
-{
-    TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::GetUserClientUpdateStatus", "");
-    METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-    HRESULT hr = pThis->GetUserClientUpdateStatus(cbUserId, lpUserId, ulFlags, lppECUCUS);
-    TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::GetUserClientUpdateStatus", "%s", GetMAPIErrorDescription(hr).c_str());
-    return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::RemoveAllObjects(ULONG cbUserId, LPENTRYID lpUserId)
-{	
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::RemoveAllObjects", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->RemoveAllObjects(cbUserId, lpUserId);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::RemoveAllObjects", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::ResolveGroupName(LPCTSTR lpszGroupName, ULONG ulFlags, ULONG *lpcbGroupId, LPENTRYID *lppGroupId)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::ResolveGroupName", "groupname=%s", (lpszGroupName)?lpszGroupName:(LPTSTR)"NULL");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->ResolveGroupName(lpszGroupName, ulFlags, lpcbGroupId, lppGroupId);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::ResolveGroupName", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::ResolveUserName(LPCTSTR lpszUserName, ULONG ulFlags, ULONG *lpcbUserId, LPENTRYID *lppUserId)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::ResolveUserName", "username=%s", (lpszUserName)?lpszUserName:(LPTSTR)"NULL");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->ResolveUserName(lpszUserName, ulFlags, lpcbUserId, lppUserId);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::ResolveUserName", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::CreateGroup(ECGROUP *lpECGroup,
-    ULONG ulFlags, ULONG *lpcbGroupId, LPENTRYID *lppGroupId)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::CreateGroup", "%s", (lpECGroup->lpszGroupname)?lpECGroup->lpszGroupname:(LPTSTR)"NULL");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->CreateGroup(lpECGroup, ulFlags, lpcbGroupId, lppGroupId);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::CreateGroup", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::SetGroup(ECGROUP *lpECGroup,
-    ULONG ulFlags)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::SetGroup", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->SetGroup(lpECGroup, ulFlags);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::SetGroup", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::GetGroup(ULONG cbGroupId,
-    LPENTRYID lpGroupId, ULONG ulFlags, ECGROUP **lppECGroup)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::GetGroup", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->GetGroup(cbGroupId, lpGroupId, ulFlags, lppECGroup);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::GetGroup", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::DeleteGroup(ULONG cbGroupId, LPENTRYID lpGroupId)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::DeleteGroup", "%d", ABEID_ID(lpGroupId));
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->DeleteGroup(cbGroupId, lpGroupId);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::DeleteGroup", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::GetGroupList(ULONG cbCompanyId,
-    LPENTRYID lpCompanyId, ULONG ulFlags, ULONG *lpcGroups,
-    ECGROUP **lppsGroups)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::GetGroupList", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->GetGroupList(cbCompanyId, lpCompanyId, ulFlags, lpcGroups, lppsGroups);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::GetGroupList", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, QueryInterface, (REFIID, refiid), (void **, lppInterface))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, Release, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, CreateStore, (ULONG, ulStoreType), (ULONG, cbUserId), (LPENTRYID, lpUserId), (ULONG*, lpcbStoreId), (LPENTRYID*, lppStoreId), (ULONG*, lpcbRootId), (LPENTRYID *, lppRootId))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, CreateEmptyStore, (ULONG, ulStoreType), (ULONG, cbUserId), (LPENTRYID, lpUserId), (ULONG, ulFlags), (ULONG*, lpcbStoreId), (LPENTRYID*, lppStoreId), (ULONG*, lpcbRootId), (LPENTRYID *, lppRootId))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, HookStore, (ULONG, ulStoreType), (ULONG, cbUserId), (LPENTRYID, lpUserId), (LPGUID, lpGuid))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, UnhookStore, (ULONG, ulStoreType), (ULONG, cbUserId), (LPENTRYID, lpUserId))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, RemoveStore, (LPGUID, lpGuid))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, ResolveStore, (LPGUID, lpGuid), (ULONG *, lpulUserID), (ULONG*, lpcbStoreID), (LPENTRYID*, lppStoreID))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, CreateUser, (ECUSER *, lpECUser), (ULONG, ulFlags), (ULONG *, lpcbUserId), (LPENTRYID *, lppUserId))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, SetUser, (ECUSER *, lpECUser), (ULONG, ulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetUser, (ULONG, cbUserId), (LPENTRYID, lpUserId), (ULONG, ulFlags), (ECUSER **, lppECUser))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, DeleteUser, (ULONG, cbUserId), (LPENTRYID, lpUserId))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetUserList, (ULONG, cbCompanyId), (LPENTRYID, lpCompanyId), (ULONG, ulFlags), (ULONG *, lpcUsers), (ECUSER **, lpsUsers))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetSendAsList, (ULONG, cbUserId), (LPENTRYID, lpUserId), (ULONG, ulFlags), (ULONG *, lpcSenders), (ECUSER **, lppSenders))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, AddSendAsUser, (ULONG, cbUserId), (LPENTRYID, lpUserId), (ULONG, cbSenderId), (LPENTRYID, lpSenderId))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, DelSendAsUser, (ULONG, cbUserId), (LPENTRYID, lpUserId), (ULONG, cbSenderId), (LPENTRYID, lpSenderId))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetUserClientUpdateStatus, (ULONG, cbUserId), (LPENTRYID, lpUserId), (ULONG, ulFlags), (ECUSERCLIENTUPDATESTATUS **, lppECUCUS))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, RemoveAllObjects, (ULONG, cbUserId), (LPENTRYID, lpUserId))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, ResolveGroupName, (LPCTSTR, lpszGroupName), (ULONG, ulFlags), (ULONG *, lpcbGroupId), (LPENTRYID *, lppGroupId))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, ResolveUserName, (LPCTSTR, lpszUserName), (ULONG, ulFlags), (ULONG *, lpcbUserId), (LPENTRYID *, lppUserId))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, CreateGroup, (ECGROUP *, lpECGroup), (ULONG, ulFlags), (ULONG *, lpcbGroupId), (LPENTRYID *, lppGroupId))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, SetGroup, (ECGROUP *, lpECGroup), (ULONG, ulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetGroup, (ULONG, cbGroupId), (LPENTRYID, lpGroupId), (ULONG, ulFlags), (ECGROUP **, lppECGroup))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, DeleteGroup, (ULONG, cbGroupId), (LPENTRYID, lpGroupId))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetGroupList, (ULONG, cbCompanyId), (LPENTRYID, lpCompanyId), (ULONG, ulFlags), (ULONG *, lpcGroups), (ECGROUP **, lppsGroups))
 
 //Group and user functions
-HRESULT ECMsgStore::xECServiceAdmin::DeleteGroupUser(ULONG cbGroupId, LPENTRYID lpGroupId, ULONG cbUserId, LPENTRYID lpUserId)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::DeleteGroupUser", "group=%d, user=%d", ABEID_ID(lpGroupId), ABEID_ID(lpUserId));
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->DeleteGroupUser(cbGroupId, lpGroupId, cbUserId, lpUserId);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::DeleteGroupUser", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::AddGroupUser(ULONG cbGroupId, LPENTRYID lpGroupId, ULONG cbUserId, LPENTRYID lpUserId)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::AddGroupUser", "group=%s, user=%s", bin2hex(cbGroupId, (unsigned char*)lpGroupId).c_str(), bin2hex(cbUserId, (unsigned char*)lpUserId).c_str());
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->AddGroupUser(cbGroupId, lpGroupId, cbUserId, lpUserId);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::AddGroupUser", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::GetUserListOfGroup(ULONG cbGroupId,
-    LPENTRYID lpGroupId, ULONG ulFlags, ULONG *lpcUsers, ECUSER **lppsUsers)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::GetUserListOfGroup", "group=%s", bin2hex(cbGroupId, (unsigned char*)lpGroupId).c_str());
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->GetUserListOfGroup(cbGroupId, lpGroupId, ulFlags, lpcUsers, lppsUsers);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::GetUserListOfGroup", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::GetGroupListOfUser(ULONG cbUserId,
-    LPENTRYID lpUserId, ULONG ulFlags, ULONG *lpcGroups, ECGROUP **lppsGroups)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::GetGroupListOfUser", "user=%d", ABEID_ID(lpUserId));
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->GetGroupListOfUser(cbUserId, lpUserId, ulFlags, lpcGroups, lppsGroups);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::GetGroupListOfUser", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::CreateCompany(ECCOMPANY *lpECCompany,
-    ULONG ulFlags, ULONG *lpcbCompanyId, LPENTRYID *lppCompanyId)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::CreateCompany", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->CreateCompany(lpECCompany, ulFlags, lpcbCompanyId, lppCompanyId);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::CreateCompany", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::DeleteCompany(ULONG cbCompanyId, LPENTRYID lpCompanyId)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::DeleteCompany", "%d", ABEID_ID(lpCompanyId));
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->DeleteCompany(cbCompanyId, lpCompanyId);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::DeleteCompany", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr; 
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::SetCompany(ECCOMPANY *lpECCompany,
-    ULONG ulFlags)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::SetCompany", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->SetCompany(lpECCompany, ulFlags);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::SetCompany", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::GetCompany(ULONG cbCompanyId,
-    LPENTRYID lpCompanyId, ULONG ulFlags, ECCOMPANY **lppECCompany)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::GetCompany", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->GetCompany(cbCompanyId, lpCompanyId, ulFlags, lppECCompany);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::GetCompany", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::ResolveCompanyName(LPCTSTR lpszCompanyName, ULONG ulFlags, ULONG *lpcbCompanyId, LPENTRYID *lppCompanyId)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::ResolveCompanyName", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->ResolveCompanyName(lpszCompanyName, ulFlags, lpcbCompanyId, lppCompanyId);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::ResolveCompanyName", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::GetCompanyList(ULONG ulFlags,
-    ULONG *lpcCompanies, ECCOMPANY **lppsCompanies)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::GetCompanyList", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->GetCompanyList(ulFlags, lpcCompanies, lppsCompanies);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::GetCompanyList", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::AddCompanyToRemoteViewList(ULONG cbSetCompanyId, LPENTRYID lpSetCompanyId, ULONG cbCompanyId, LPENTRYID lpCompanyId)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::AddCompanyToRemoteViewList", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->AddCompanyToRemoteViewList(cbSetCompanyId, lpSetCompanyId, cbCompanyId, lpCompanyId);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::AddCompanyToRemoteViewList", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::DelCompanyFromRemoteViewList(ULONG cbSetCompanyId, LPENTRYID lpSetCompanyId, ULONG cbCompanyId, LPENTRYID lpCompanyId)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::DelCompanyFromRemoteViewList", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->DelCompanyFromRemoteViewList(cbSetCompanyId, lpSetCompanyId, cbCompanyId, lpCompanyId);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::DelCompanyFromRemoteViewList", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::GetRemoteViewList(ULONG cbCompanyId,
-    LPENTRYID lpCompanyId, ULONG ulFlags, ULONG *lpcCompanies,
-    ECCOMPANY **lppsCompanies)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::GetRemoteViewList", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->GetRemoteViewList(cbCompanyId, lpCompanyId, ulFlags, lpcCompanies, lppsCompanies);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::GetRemoteViewList", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::AddUserToRemoteAdminList(ULONG cbUserId, LPENTRYID lpUserId, ULONG cbCompanyId, LPENTRYID lpCompanyId)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::AddCompanyToRemoteAdminList", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->AddUserToRemoteAdminList(cbUserId, lpUserId, cbCompanyId, lpCompanyId);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::AddCompanyToRemoteAdminList", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::DelUserFromRemoteAdminList(ULONG cbUserId, LPENTRYID lpUserId, ULONG cbCompanyId, LPENTRYID lpCompanyId)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::DelCompanyFromRemoteAdminList", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->DelUserFromRemoteAdminList(cbUserId, lpUserId, cbCompanyId, lpCompanyId);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::DelCompanyFromRemoteAdminList", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::GetRemoteAdminList(ULONG cbCompanyId,
-    LPENTRYID lpCompanyId, ULONG ulFlags, ULONG *lpcUsers, ECUSER **lppsUsers)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::GetRemoteAdminList", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->GetRemoteAdminList(cbCompanyId, lpCompanyId, ulFlags, lpcUsers, lppsUsers);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::GetRemoteAdminList", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::SyncUsers(ULONG cbCompanyId, LPENTRYID lpCompanyId)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::SyncUsers", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->SyncUsers(cbCompanyId, lpCompanyId);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::SyncUsers", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::GetQuota(ULONG cbUserId,
-    LPENTRYID lpUserId, bool bGetUserDefault, ECQUOTA **lppsQuota)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::GetQuota", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->GetQuota(cbUserId, lpUserId, bGetUserDefault, lppsQuota);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::GetQuota", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::SetQuota(ULONG cbUserId,
-    LPENTRYID lpUserId, ECQUOTA *lpsQuota)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::SetQuota", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	HRESULT hr = pThis->SetQuota(cbUserId, lpUserId, lpsQuota);
-	TRACE_MAPI(TRACE_RETURN, "IECServiceAdmin::SetQuota", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::AddQuotaRecipient(ULONG cbCompanyId, LPENTRYID lpCompanyId, ULONG cbRecipientId, LPENTRYID lpRecipientId, ULONG ulType)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::AddQuotaRecipient", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	return pThis->AddQuotaRecipient(cbCompanyId, lpCompanyId, cbRecipientId, lpRecipientId, ulType);
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::DeleteQuotaRecipient(ULONG cbCompanyId, LPENTRYID lpCmopanyId, ULONG cbRecipientId, LPENTRYID lpRecipientId, ULONG ulType)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::DeleteQuotaRecipient", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	return pThis->DeleteQuotaRecipient(cbCompanyId, lpCmopanyId, cbRecipientId, lpRecipientId, ulType);
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::GetQuotaRecipients(ULONG cbUserId,
-    LPENTRYID lpUserId, ULONG ulFlags, ULONG *lpcUsers, ECUSER **lppsUsers)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::GetQuotarecipients", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	return pThis->GetQuotaRecipients(cbUserId, lpUserId, ulFlags, lpcUsers, lppsUsers);
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::GetQuotaStatus(ULONG cbUserId,
-    LPENTRYID lpUserId, ECQUOTASTATUS **lppsQuotaStatus)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::GetQuotaStatus", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	return pThis->GetQuotaStatus(cbUserId, lpUserId, lppsQuotaStatus);
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::PurgeCache(ULONG ulFlags)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::PurgeCache", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	return pThis->PurgeCache(ulFlags);
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::PurgeSoftDelete(ULONG ulDays)
-{
-    TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::PurgeSoftDelete", "");
-    METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-    return pThis->PurgeSoftDelete(ulDays);
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::PurgeDeferredUpdates(ULONG *lpulRemaining)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::PurgeDeferredUpdates", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	return pThis->PurgeDeferredUpdates(lpulRemaining);
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::GetServerDetails(ECSVRNAMELIST *lpServerNameList,
-    ULONG ulFlags, ECSERVERLIST **lppsServerList)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::GetServerDetails", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	return pThis->GetServerDetails(lpServerNameList, ulFlags, lppsServerList);
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::OpenUserStoresTable(ULONG ulFlags, LPMAPITABLE *lppTable)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::OpenUserStoresTable", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	return pThis->OpenUserStoresTable(ulFlags, lppTable);
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::ResolvePseudoUrl(const char *lpszPseudoUrl,
-    char **lppszServerPath, bool *lpbIsPeer)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::ResolvePseudoUrl", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	return pThis->ResolvePseudoUrl(lpszPseudoUrl, lppszServerPath, lpbIsPeer);
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::GetPublicStoreEntryID(ULONG ulFlags, ULONG* lpcbStoreID, LPENTRYID* lppStoreID)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::GetPublicStoreEntryID", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	return pThis->GetPublicStoreEntryID(ulFlags, lpcbStoreID, lppStoreID);
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::GetArchiveStoreEntryID(LPCTSTR lpszUserName, LPCTSTR lpszServerName, ULONG ulFlags, ULONG* lpcbStoreID, LPENTRYID* lppStoreID)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::GetArchiveStoreEntryID", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	return pThis->GetArchiveStoreEntryID(lpszUserName, lpszServerName, ulFlags, lpcbStoreID, lppStoreID);
-}
-
-HRESULT ECMsgStore::xECServiceAdmin::ResetFolderCount(ULONG cbEntryId, LPENTRYID lpEntryId, ULONG *lpulUpdates)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECServiceAdmin::ResetFolderCount", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECServiceAdmin);
-	return pThis->ResetFolderCount(cbEntryId, lpEntryId, lpulUpdates);
-}
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, DeleteGroupUser, (ULONG, cbGroupId), (LPENTRYID, lpGroupId), (ULONG, cbUserId), (LPENTRYID, lpUserId))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, AddGroupUser, (ULONG, cbGroupId), (LPENTRYID, lpGroupId), (ULONG, cbUserId), (LPENTRYID, lpUserId))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetUserListOfGroup, (ULONG, cbGroupId), (LPENTRYID, lpGroupId), (ULONG, ulFlags), (ULONG *, lpcUsers), (ECUSER **, lppsUsers))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetGroupListOfUser, (ULONG, cbUserId), (LPENTRYID, lpUserId), (ULONG, ulFlags), (ULONG *, lpcGroups), (ECGROUP **, lppsGroups))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, CreateCompany, (ECCOMPANY *, lpECCompany), (ULONG, ulFlags), (ULONG *, lpcbCompanyId), (LPENTRYID *, lppCompanyId))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, DeleteCompany, (ULONG, cbCompanyId), (LPENTRYID, lpCompanyId))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, SetCompany, (ECCOMPANY *, lpECCompany), (ULONG, ulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetCompany, (ULONG, cbCompanyId), (LPENTRYID, lpCompanyId), (ULONG, ulFlags), (ECCOMPANY **, lppECCompany))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, ResolveCompanyName, (LPCTSTR, lpszCompanyName), (ULONG, ulFlags), (ULONG *, lpcbCompanyId), (LPENTRYID *, lppCompanyId))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetCompanyList, (ULONG, ulFlags), (ULONG *, lpcCompanies), (ECCOMPANY **, lppsCompanies))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, AddCompanyToRemoteViewList, (ULONG, cbSetCompanyId), (LPENTRYID, lpSetCompanyId), (ULONG, cbCompanyId), (LPENTRYID, lpCompanyId))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, DelCompanyFromRemoteViewList, (ULONG, cbSetCompanyId), (LPENTRYID, lpSetCompanyId), (ULONG, cbCompanyId), (LPENTRYID, lpCompanyId))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetRemoteViewList, (ULONG, cbCompanyId), (LPENTRYID, lpCompanyId), (ULONG, ulFlags), (ULONG *, lpcCompanies), (ECCOMPANY **, lppsCompanies))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, AddUserToRemoteAdminList, (ULONG, cbUserId), (LPENTRYID, lpUserId), (ULONG, cbCompanyId), (LPENTRYID, lpCompanyId))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, DelUserFromRemoteAdminList, (ULONG, cbUserId), (LPENTRYID, lpUserId), (ULONG, cbCompanyId), (LPENTRYID, lpCompanyId))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetRemoteAdminList, (ULONG, cbCompanyId), (LPENTRYID, lpCompanyId), (ULONG, ulFlags), (ULONG *, lpcUsers), (ECUSER **, lppsUsers))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, SyncUsers, (ULONG, cbCompanyId), (LPENTRYID, lpCompanyId))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetQuota, (ULONG, cbUserId), (LPENTRYID, lpUserId), (bool, bGetUserDefault), (ECQUOTA **, lppsQuota))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, SetQuota, (ULONG, cbUserId), (LPENTRYID, lpUserId), (ECQUOTA *, lpsQuota))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, AddQuotaRecipient, (ULONG, cbCompanyId), (LPENTRYID, lpCompanyId), (ULONG, cbRecipientId), (LPENTRYID, lpRecipientId), (ULONG, ulType))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, DeleteQuotaRecipient, (ULONG, cbCompanyId), (LPENTRYID, lpCmopanyId), (ULONG, cbRecipientId), (LPENTRYID, lpRecipientId), (ULONG, ulType))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetQuotaRecipients, (ULONG, cbUserId), (LPENTRYID, lpUserId), (ULONG, ulFlags), (ULONG *, lpcUsers), (ECUSER **, lppsUsers))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetQuotaStatus, (ULONG, cbUserId), (LPENTRYID, lpUserId), (ECQUOTASTATUS **, lppsQuotaStatus))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, PurgeCache, (ULONG, ulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, PurgeSoftDelete, (ULONG, ulDays))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, PurgeDeferredUpdates, (ULONG *, lpulRemaining))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetServerDetails, (ECSVRNAMELIST *, lpServerNameList), (ULONG, ulFlags), (ECSERVERLIST **, lppsServerList))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, OpenUserStoresTable, (ULONG, ulFlags), (LPMAPITABLE *, lppTable))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, ResolvePseudoUrl, (const char *, lpszPseudoUrl), (char **, lppszServerPath), (bool *, lpbIsPeer))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetPublicStoreEntryID, (ULONG, ulFlags), (ULONG*, lpcbStoreID), (LPENTRYID*, lppStoreID))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, GetArchiveStoreEntryID, (LPCTSTR, lpszUserName), (LPCTSTR, lpszServerName), (ULONG, ulFlags), (ULONG*, lpcbStoreID), (LPENTRYID*, lppStoreID))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECServiceAdmin, ResetFolderCount, (ULONG, cbEntryId), (LPENTRYID, lpEntryId), (ULONG *, lpulUpdates))
 
 // IECSpooler
-HRESULT ECMsgStore::xECSpooler::QueryInterface(REFIID refiid , void** lppInterface)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECSpooler::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
-	METHOD_PROLOGUE_(ECMsgStore, ECSpooler);
-	HRESULT hr = pThis->QueryInterface(refiid, lppInterface);
-	TRACE_MAPI(TRACE_RETURN, "IECSpooler::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-ULONG ECMsgStore::xECSpooler::AddRef()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECSpooler::AddRef", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECSpooler);
-	return pThis->AddRef();
-}
-
-ULONG ECMsgStore::xECSpooler::Release()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECSpooler::Release", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECSpooler);
-	return pThis->Release();
-}
-
-HRESULT ECMsgStore::xECSpooler::GetMasterOutgoingTable(ULONG ulFlags, IMAPITable ** lppOutgoingTable)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECSpooler::GetMasterOutgoingTable", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECSpooler);
-	return pThis->GetMasterOutgoingTable(ulFlags, lppOutgoingTable);
-}
-
-HRESULT ECMsgStore::xECSpooler::DeleteFromMasterOutgoingTable(ULONG cbEntryID,
-    const ENTRYID *lpEntryID, ULONG ulFlags)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECSpooler::DeleteFromMasterOutgoingTable", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECSpooler);
-	HRESULT hr = pThis->DeleteFromMasterOutgoingTable(cbEntryID, lpEntryID, ulFlags);
-	TRACE_MAPI(TRACE_RETURN, "IECSpooler::DeleteFromMasterOutgoingTable", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECSpooler, QueryInterface, (REFIID, refiid), (void**, lppInterface))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ECSpooler, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ECSpooler, Release, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECSpooler, GetMasterOutgoingTable, (ULONG, ulFlags), (IMAPITable **, lppOutgoingTable))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECSpooler, DeleteFromMasterOutgoingTable, (ULONG, cbEntryID), (const ENTRYID *, lpEntryID), (ULONG, ulFlags))
 
 // Interface IMAPIOfflineMgr
-ULONG ECMsgStore::xMAPIOfflineMgr::AddRef()
-{
-	METHOD_PROLOGUE_(ECMsgStore, MAPIOfflineMgr);
-	TRACE_MAPI(TRACE_ENTRY, "IMAPIOfflineMgr::AddRef", "");
-	return pThis->AddRef();
-}
-
-ULONG ECMsgStore::xMAPIOfflineMgr::Release()
-{
-	METHOD_PROLOGUE_(ECMsgStore, MAPIOfflineMgr);
-	TRACE_MAPI(TRACE_ENTRY, "IMAPIOfflineMgr::Release", "");
-
-	return pThis->Release();
-}
-
-HRESULT ECMsgStore::xMAPIOfflineMgr::QueryInterface(REFIID refiid, void **lppInterface)
-{
-	METHOD_PROLOGUE_(ECMsgStore, MAPIOfflineMgr);
-	TRACE_MAPI(TRACE_ENTRY, "IMAPIOfflineMgr::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
-	HRESULT hr = pThis->QueryInterface(refiid, lppInterface);
-	TRACE_MAPI(TRACE_RETURN, "IMAPIOfflineMgr::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMAPIOfflineMgr::SetCurrentState(ULONG ulFlags, ULONG ulMask, ULONG ulState, void* pReserved)
-{
-	METHOD_PROLOGUE_(ECMsgStore, MAPIOfflineMgr);
-	TRACE_MAPI(TRACE_ENTRY, "IMAPIOfflineMgr::SetCurrentState", "flags=0x%08X, mask=0x%08X, state=0x%08X", ulFlags, ulMask, ulState);
-	HRESULT hr = pThis->SetCurrentState(ulFlags, ulMask, ulState, pReserved);
-	TRACE_MAPI(TRACE_RETURN, "IMAPIOfflineMgr::SetCurrentState", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMAPIOfflineMgr::GetCapabilities(ULONG *pulCapabilities)
-{
-	METHOD_PROLOGUE_(ECMsgStore, MAPIOfflineMgr);
-	TRACE_MAPI(TRACE_ENTRY, "IMAPIOfflineMgr::GetCapabilities", "");
-	HRESULT hr = pThis->GetCapabilities(pulCapabilities);
-	TRACE_MAPI(TRACE_RETURN, "IMAPIOfflineMgr::GetCapabilities", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMAPIOfflineMgr::GetCurrentState(ULONG* pulState)
-{
-	METHOD_PROLOGUE_(ECMsgStore, MAPIOfflineMgr);
-	TRACE_MAPI(TRACE_ENTRY, "IMAPIOfflineMgr::GetCurrentState", "");
-	HRESULT hr = pThis->GetCurrentState(pulState);
-	TRACE_MAPI(TRACE_RETURN, "IMAPIOfflineMgr::GetCurrentState", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMAPIOfflineMgr::Placeholder1(void* ulTest)
-{
-	METHOD_PROLOGUE_(ECMsgStore, MAPIOfflineMgr);
-	TRACE_MAPI(TRACE_ENTRY, "IMAPIOfflineMgr::Placeholder1", "");
-
-	HRESULT hr = MAPI_E_NO_SUPPORT;
-
-	TRACE_MAPI(TRACE_RETURN, "IMAPIOfflineMgr::Placeholder1", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMAPIOfflineMgr::Advise(ULONG ulFlags, MAPIOFFLINE_ADVISEINFO* pAdviseInfo, ULONG* pulAdviseToken)
-{
-	METHOD_PROLOGUE_(ECMsgStore, MAPIOfflineMgr);
-	TRACE_MAPI(TRACE_ENTRY, "IMAPIOfflineMgr::Advise", "0x%08X", ulFlags);
-	HRESULT hr = pThis->Advise(ulFlags, pAdviseInfo, pulAdviseToken);
-	TRACE_MAPI(TRACE_RETURN, "IMAPIOfflineMgr::Advise", "%s, AdviseToken=0x%08X", GetMAPIErrorDescription(hr).c_str(), (pulAdviseToken)?pulAdviseToken:0);
-	return hr;
-}
-
-HRESULT ECMsgStore::xMAPIOfflineMgr::Unadvise(ULONG ulFlags, ULONG ulAdviseToken)
-{
-	METHOD_PROLOGUE_(ECMsgStore, MAPIOfflineMgr);
-	TRACE_MAPI(TRACE_ENTRY, "IMAPIOfflineMgr::Unadvise", "0x%08X", ulFlags);
-	HRESULT hr = pThis->Unadvise(ulFlags, ulAdviseToken);
-	TRACE_MAPI(TRACE_RETURN, "IMAPIOfflineMgr::Unadvise", "%s, AdviseToken=0x%08X", GetMAPIErrorDescription(hr).c_str(), ulAdviseToken);
-	return hr;
-}
-
-HRESULT ECMsgStore::xMAPIOfflineMgr::Placeholder2()
-{
-	METHOD_PROLOGUE_(ECMsgStore, MAPIOfflineMgr);
-	TRACE_MAPI(TRACE_ENTRY, "IMAPIOfflineMgr::Placeholder2", "");
-
-	HRESULT hr = MAPI_E_NO_SUPPORT;
-
-	TRACE_MAPI(TRACE_RETURN, "IMAPIOfflineMgr::Placeholder2", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMAPIOfflineMgr::Placeholder3()
-{
-	METHOD_PROLOGUE_(ECMsgStore, MAPIOfflineMgr);
-	TRACE_MAPI(TRACE_ENTRY, "IMAPIOfflineMgr::Placeholder3", "");
-
-	HRESULT hr = MAPI_E_NO_SUPPORT;
-
-	TRACE_MAPI(TRACE_RETURN, "IMAPIOfflineMgr::Placeholder3", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMAPIOfflineMgr::Placeholder4()
-{
-	METHOD_PROLOGUE_(ECMsgStore, MAPIOfflineMgr);
-	TRACE_MAPI(TRACE_ENTRY, "IMAPIOfflineMgr::Placeholder4", "");
-
-	HRESULT hr = MAPI_E_NO_SUPPORT;
-
-	TRACE_MAPI(TRACE_RETURN, "IMAPIOfflineMgr::Placeholder4", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-HRESULT ECMsgStore::xMAPIOfflineMgr::Placeholder5()
-{
-	METHOD_PROLOGUE_(ECMsgStore, MAPIOfflineMgr);
-	TRACE_MAPI(TRACE_ENTRY, "IMAPIOfflineMgr::Placeholder5", "");
-
-	HRESULT hr = MAPI_E_NO_SUPPORT;
-
-	TRACE_MAPI(TRACE_RETURN, "IMAPIOfflineMgr::Placeholder5", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-HRESULT ECMsgStore::xMAPIOfflineMgr::Placeholder6()
-{
-	METHOD_PROLOGUE_(ECMsgStore, MAPIOfflineMgr);
-	TRACE_MAPI(TRACE_ENTRY, "IMAPIOfflineMgr::Placeholder6", "");
-
-	HRESULT hr = MAPI_E_NO_SUPPORT;
-
-	TRACE_MAPI(TRACE_RETURN, "IMAPIOfflineMgr::Placeholder6", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-HRESULT ECMsgStore::xMAPIOfflineMgr::Placeholder7()
-{
-	METHOD_PROLOGUE_(ECMsgStore, MAPIOfflineMgr);
-	TRACE_MAPI(TRACE_ENTRY, "IMAPIOfflineMgr::Placeholder7", "");
-
-	HRESULT hr = MAPI_E_NO_SUPPORT;
-
-	TRACE_MAPI(TRACE_RETURN, "IMAPIOfflineMgr::Placeholder7", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMAPIOfflineMgr::Placeholder8()
-{
-	METHOD_PROLOGUE_(ECMsgStore, MAPIOfflineMgr);
-	TRACE_MAPI(TRACE_ENTRY, "IMAPIOfflineMgr::Placeholder8", "");
-
-	HRESULT hr = MAPI_E_NO_SUPPORT;
-
-	TRACE_MAPI(TRACE_RETURN, "IMAPIOfflineMgr::Placeholder8", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, Release, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, QueryInterface, (REFIID, refiid), (void **, lppInterface))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, SetCurrentState, (ULONG, ulFlags), (ULONG, ulMask), (ULONG, ulState), (void*, pReserved))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, GetCapabilities, (ULONG *, pulCapabilities))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, GetCurrentState, (ULONG*, pulState))
+DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, Placeholder1, (void*, ulTest))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, Advise, (ULONG, ulFlags), (MAPIOFFLINE_ADVISEINFO*, pAdviseInfo), (ULONG*, pulAdviseToken))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, Unadvise, (ULONG, ulFlags), (ULONG, ulAdviseToken))
+DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, Placeholder2, (void))
+DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, Placeholder3, (void))
+DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, Placeholder4, (void))
+DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, Placeholder5, (void))
+DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, Placeholder6, (void))
+DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, Placeholder7, (void))
+DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, Placeholder8, (void))
 
 // Interface IProxyStoreObject
-ULONG ECMsgStore::xProxyStoreObject::AddRef() 
-{
-	METHOD_PROLOGUE_(ECMsgStore, ProxyStoreObject);
-	TRACE_MAPI(TRACE_ENTRY, "IProxyStoreObject::AddRef", "");
-	ULONG ulRef = pThis->AddRef();
-	TRACE_MAPI(TRACE_RETURN, "IProxyStoreObject::AddRef", "%d", ulRef);
-	return ulRef;
-}
-
-ULONG ECMsgStore::xProxyStoreObject::Release()
-{
-	METHOD_PROLOGUE_(ECMsgStore, ProxyStoreObject);
-	TRACE_MAPI(TRACE_ENTRY, "IProxyStoreObject::Release", "");
-	ULONG ulRef = pThis->Release();
-	TRACE_MAPI(TRACE_RETURN, "IProxyStoreObject::Release", "%d", ulRef);
-	return ulRef;
-}
-
-HRESULT ECMsgStore::xProxyStoreObject::QueryInterface(REFIID refiid, void **lppInterface)
-{
-	METHOD_PROLOGUE_(ECMsgStore, ProxyStoreObject);
-	TRACE_MAPI(TRACE_ENTRY, "IProxyStoreObject::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
-	HRESULT hr = pThis->QueryInterface(refiid, lppInterface);
-	TRACE_MAPI(TRACE_RETURN, "IProxyStoreObject::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xProxyStoreObject::PlaceHolder1()
-{
-	METHOD_PROLOGUE_(ECMsgStore, ProxyStoreObject);
-	TRACE_MAPI(TRACE_ENTRY, "IProxyStoreObject::PlaceHolder1", "");
-	
-	HRESULT hr = MAPI_E_NO_SUPPORT;
-
-	TRACE_MAPI(TRACE_RETURN, "IProxyStoreObject::PlaceHolder1", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xProxyStoreObject::UnwrapNoRef(LPVOID *ppvObject)
-{
-	METHOD_PROLOGUE_(ECMsgStore, ProxyStoreObject);
-	TRACE_MAPI(TRACE_ENTRY, "IProxyStoreObject::UnwrapNoRef", "");
-	HRESULT hr = pThis->UnwrapNoRef(ppvObject);
-	TRACE_MAPI(TRACE_RETURN, "IProxyStoreObject::UnwrapNoRef", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xProxyStoreObject::PlaceHolder2()
-{
-	METHOD_PROLOGUE_(ECMsgStore, ProxyStoreObject);
-	TRACE_MAPI(TRACE_ENTRY, "IProxyStoreObject::PlaceHolder2", "");
-	
-	HRESULT hr = MAPI_E_NO_SUPPORT;
-
-	TRACE_MAPI(TRACE_RETURN, "IProxyStoreObject::PlaceHolder2", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ProxyStoreObject, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ProxyStoreObject, Release, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ProxyStoreObject, QueryInterface, (REFIID, refiid), (void **, lppInterface))
+DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ECMsgStore, ProxyStoreObject, PlaceHolder1, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ProxyStoreObject, UnwrapNoRef, (LPVOID *, ppvObject))
+DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ECMsgStore, ProxyStoreObject, PlaceHolder2, (void))
 
 // IMsgStoreProxy interface
-ULONG ECMsgStore::xMsgStoreProxy::AddRef() {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStoreProxy::AddRef", "");
-	METHOD_PROLOGUE_(ECMsgStore, MsgStoreProxy);
-	return pThis->AddRef();
-}
-
-ULONG ECMsgStore::xMsgStoreProxy::Release() {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStoreProxy::Release", "");
-	METHOD_PROLOGUE_(ECMsgStore, MsgStoreProxy);
-	ULONG ulReturn = pThis->Release();
-	TRACE_MAPI(TRACE_RETURN, "IMsgStoreProxy::Release", "%d", ulReturn);
-	return ulReturn;
-}
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, Release, (void))
 
 HRESULT ECMsgStore::xMsgStoreProxy::QueryInterface(REFIID refiid, void **lppInterface) {
 	TRACE_MAPI(TRACE_ENTRY, "IMsgStoreProxy::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
@@ -4387,206 +3452,34 @@ HRESULT ECMsgStore::xMsgStoreProxy::QueryInterface(REFIID refiid, void **lppInte
 	return hr;
 }
 
-HRESULT ECMsgStore::xMsgStoreProxy::Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStoreProxy::Advise", "");
-	METHOD_PROLOGUE_(ECMsgStore, MsgStoreProxy);
-	return pThis->Advise(cbEntryID, lpEntryID, ulEventMask, lpAdviseSink, lpulConnection);
-}
-
-HRESULT ECMsgStore::xMsgStoreProxy::Unadvise(ULONG ulConnection) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStoreProxy::Unadvise", "");
-	METHOD_PROLOGUE_(ECMsgStore, MsgStoreProxy);
-	return pThis->Unadvise(ulConnection);
-}
-
-HRESULT ECMsgStore::xMsgStoreProxy::CompareEntryIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2, ULONG ulFlags, ULONG *lpulResult) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStoreProxy::CompareEntryIDs", "flags: %d\ncb=%d  entryid1: %s\n cb=%d entryid2: %s", ulFlags, cbEntryID1, bin2hex(cbEntryID1, (BYTE*)lpEntryID1).c_str(), cbEntryID2, bin2hex(cbEntryID2, (BYTE*)lpEntryID2).c_str());
-	METHOD_PROLOGUE_(ECMsgStore, MsgStoreProxy);
-	HRESULT hr = pThis->CompareEntryIDs(cbEntryID1, lpEntryID1, cbEntryID2, lpEntryID2, ulFlags, lpulResult);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStoreProxy::CompareEntryIDs", "%s result=%s", GetMAPIErrorDescription(hr).c_str(), (lpulResult)?((*lpulResult == TRUE)?"TRUE":"FALSE") : "NULL");
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStoreProxy::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPUNKNOWN *lppUnk) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStoreProxy::OpenEntry", "interface=%s, cb=%d, EntryId=%s, flags=0x%08X", (lpInterface)?DBGGUIDToString(*lpInterface).c_str():"", cbEntryID, bin2hex(cbEntryID, (BYTE*)lpEntryID).c_str(), ulFlags);
-	METHOD_PROLOGUE_(ECMsgStore, MsgStoreProxy);
-	HRESULT hr = pThis->OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStoreProxy::OpenEntry", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStoreProxy::SetReceiveFolder(LPTSTR lpszMessageClass, ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStoreProxy::SetReceiveFolder", "");
-	METHOD_PROLOGUE_(ECMsgStore, MsgStoreProxy);
-	HRESULT hr =pThis->SetReceiveFolder(lpszMessageClass, ulFlags, cbEntryID, lpEntryID);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStoreProxy::SetReceiveFolder", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStoreProxy::GetReceiveFolder(LPTSTR lpszMessageClass, ULONG ulFlags, ULONG *lpcbEntryID, LPENTRYID *lppEntryID, LPTSTR *lppszExplicitClass) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStoreProxy::GetReceiveFolder", "%s", (lpszMessageClass)?(char*)lpszMessageClass:"NULL");
-	METHOD_PROLOGUE_(ECMsgStore, MsgStoreProxy);
-	HRESULT hr = pThis->GetReceiveFolder(lpszMessageClass, ulFlags, lpcbEntryID, lppEntryID,lppszExplicitClass);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStoreProxy::GetReceiveFolder", "%s, entryid=%s", GetMAPIErrorDescription(hr).c_str(), (hr == hrSuccess && lppEntryID)?bin2hex(*lpcbEntryID, (BYTE*)*lppEntryID).c_str():"NULL");
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStoreProxy::GetReceiveFolderTable(ULONG ulFlags, LPMAPITABLE *lppTable) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStoreProxy::GetReceiveFolderTable", "");
-	METHOD_PROLOGUE_(ECMsgStore, MsgStoreProxy);
-	HRESULT hr = pThis->GetReceiveFolderTable(ulFlags, lppTable);;
-	TRACE_MAPI(TRACE_RETURN, "IMsgStoreProxy::GetReceiveFolderTable", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStoreProxy::StoreLogoff(ULONG *lpulFlags) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStoreProxy::StoreLogoff", "");
-	METHOD_PROLOGUE_(ECMsgStore, MsgStoreProxy);
-	return pThis->StoreLogoff(lpulFlags);
-}
-
-HRESULT ECMsgStore::xMsgStoreProxy::AbortSubmit(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStoreProxy::AbortSubmit", "");
-	METHOD_PROLOGUE_(ECMsgStore, MsgStoreProxy);
-	HRESULT hr = pThis->AbortSubmit(cbEntryID, lpEntryID, ulFlags);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStoreProxy::AbortSubmit", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStoreProxy::GetOutgoingQueue(ULONG ulFlags, LPMAPITABLE *lppTable) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStoreProxy::GetOutgoingQueue", "");
-	METHOD_PROLOGUE_(ECMsgStore, MsgStoreProxy);
-	HRESULT hr = pThis->GetOutgoingQueue(ulFlags, lppTable);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStoreProxy::GetOutgoingQueue", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStoreProxy::SetLockState(LPMESSAGE lpMessage,ULONG ulLockState) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStoreProxy::SetLockState", "");
-	METHOD_PROLOGUE_(ECMsgStore, MsgStoreProxy);
-	HRESULT hr = pThis->SetLockState(lpMessage, ulLockState);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStoreProxy::SetLockState", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStoreProxy::FinishedMsg(ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStoreProxy::FinishedMsg", "");
-	METHOD_PROLOGUE_(ECMsgStore, MsgStoreProxy);
-	HRESULT hr = pThis->FinishedMsg(ulFlags, cbEntryID, lpEntryID);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStoreProxy::FinishedMsg", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStoreProxy::NotifyNewMail(LPNOTIFICATION lpNotification) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStoreProxy::NotifyNewMail", "");
-	METHOD_PROLOGUE_(ECMsgStore, MsgStoreProxy);
-	HRESULT hr = pThis->NotifyNewMail(lpNotification);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStoreProxy::NotifyNewMail", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStoreProxy::GetLastError(HRESULT hError, ULONG ulFlags, LPMAPIERROR * lppMapiError) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStoreProxy::GetLastError", "");
-	METHOD_PROLOGUE_(ECMsgStore, MsgStoreProxy);
-	HRESULT hr = pThis->GetLastError(hError, ulFlags, lppMapiError);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStoreProxy::GetLastError", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStoreProxy::SaveChanges(ULONG ulFlags) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStoreProxy::SaveChanges", "flags=%d", ulFlags);
-	METHOD_PROLOGUE_(ECMsgStore, MsgStoreProxy);
-	HRESULT hr =  pThis->SaveChanges(ulFlags);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStoreProxy::SaveChanges", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStoreProxy::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG FAR * lpcValues, LPSPropValue FAR * lppPropArray) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStoreProxy::GetProps", "%s", PropNameFromPropTagArray(lpPropTagArray).c_str());
-	METHOD_PROLOGUE_(ECMsgStore, MsgStoreProxy);
-	HRESULT hr = pThis->GetProps(lpPropTagArray, ulFlags, lpcValues, lppPropArray);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStoreProxy::GetProps", "%s: %s", GetMAPIErrorDescription(hr).c_str(), PropNameFromPropArray(*lpcValues, *lppPropArray).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStoreProxy::GetPropList(ULONG ulFlags, LPSPropTagArray FAR * lppPropTagArray) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStoreProxy::GetPropList", "");
-	METHOD_PROLOGUE_(ECMsgStore, MsgStoreProxy);
-	HRESULT hr = pThis->GetPropList(ulFlags, lppPropTagArray);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStoreProxy::GetPropList", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStoreProxy::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN FAR * lppUnk) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStoreProxy::OpenProperty", "PropTag=%s, lpiid=%s", PropNameFromPropTag(ulPropTag).c_str(), DBGGUIDToString(*lpiid).c_str());
-	METHOD_PROLOGUE_(ECMsgStore, MsgStoreProxy);
-	HRESULT hr = pThis->OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStoreProxy::OpenProperty", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStoreProxy::SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray FAR * lppProblems) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStoreProxy::SetProps", "%s", PropNameFromPropArray(cValues, lpPropArray).c_str());
-	METHOD_PROLOGUE_(ECMsgStore, MsgStoreProxy);
-	HRESULT hr = pThis->SetProps(cValues, lpPropArray, lppProblems);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStoreProxy::SetProps", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStoreProxy::DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray FAR * lppProblems) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStoreProxy::DeleteProps", "%s", PropNameFromPropTagArray(lpPropTagArray).c_str());
-	METHOD_PROLOGUE_(ECMsgStore, MsgStoreProxy);
-	HRESULT hr = pThis->DeleteProps(lpPropTagArray, lppProblems);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStoreProxy::DeleteProps", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStoreProxy::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArray lpExcludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray FAR * lppProblems) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStoreProxy::CopyTo", "");
-	METHOD_PROLOGUE_(ECMsgStore, MsgStoreProxy);
-	HRESULT hr = pThis->CopyTo(ciidExclude, rgiidExclude, lpExcludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStoreProxy::CopyTo", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStoreProxy::CopyProps(LPSPropTagArray lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray FAR * lppProblems) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStoreProxy::CopyProps", "");
-	METHOD_PROLOGUE_(ECMsgStore, MsgStoreProxy);
-	HRESULT hr = pThis->CopyProps(lpIncludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStoreProxy::CopyProps", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStoreProxy::GetNamesFromIDs(LPSPropTagArray * pptaga, LPGUID lpguid, ULONG ulFlags, ULONG * pcNames, LPMAPINAMEID ** pppNames) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStoreProxy::GetNamesFromIDs", "");
-	METHOD_PROLOGUE_(ECMsgStore, MsgStoreProxy);
-	HRESULT hr = pThis->GetNamesFromIDs(pptaga, lpguid, ulFlags, pcNames, pppNames);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStoreProxy::GetNamesFromIDs", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xMsgStoreProxy::GetIDsFromNames(ULONG cNames, LPMAPINAMEID * ppNames, ULONG ulFlags, LPSPropTagArray * pptaga) {
-	TRACE_MAPI(TRACE_ENTRY, "IMsgStoreProxy::GetIDsFromNames", "");
-	METHOD_PROLOGUE_(ECMsgStore, MsgStoreProxy);
-	HRESULT hr = pThis->GetIDsFromNames(cNames, ppNames, ulFlags, pptaga);
-	TRACE_MAPI(TRACE_RETURN, "IMsgStoreProxy::GetIDsFromNames", "%s\n%s", GetMAPIErrorDescription(hr).c_str(), MapiNameIdListToString(cNames, ppNames, (hr==hrSuccess)?(*pptaga):NULL).c_str());
-	return hr;
-}
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, Advise, (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (ULONG, ulEventMask), (LPMAPIADVISESINK, lpAdviseSink), (ULONG *, lpulConnection))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, Unadvise, (ULONG, ulConnection))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, CompareEntryIDs, (ULONG, cbEntryID1), (LPENTRYID, lpEntryID1), (ULONG, cbEntryID2), (LPENTRYID, lpEntryID2), (ULONG, ulFlags), (ULONG *, lpulResult))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, OpenEntry, (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (LPCIID, lpInterface), (ULONG, ulFlags), (ULONG *, lpulObjType), (LPUNKNOWN *, lppUnk))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, SetReceiveFolder, (LPTSTR, lpszMessageClass), (ULONG, ulFlags), (ULONG, cbEntryID), (LPENTRYID, lpEntryID))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, GetReceiveFolder, (LPTSTR, lpszMessageClass), (ULONG, ulFlags), (ULONG *, lpcbEntryID), (LPENTRYID *, lppEntryID), (LPTSTR *, lppszExplicitClass))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, GetReceiveFolderTable, (ULONG, ulFlags), (LPMAPITABLE *, lppTable))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, StoreLogoff, (ULONG *, lpulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, AbortSubmit, (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (ULONG, ulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, GetOutgoingQueue, (ULONG, ulFlags), (LPMAPITABLE *, lppTable))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, SetLockState, (LPMESSAGE, lpMessage), (ULONG, ulLockState))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, FinishedMsg, (ULONG, ulFlags), (ULONG, cbEntryID), (LPENTRYID, lpEntryID))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, NotifyNewMail, (LPNOTIFICATION, lpNotification))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, GetLastError, (HRESULT, hError), (ULONG, ulFlags), (LPMAPIERROR *, lppMapiError))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, SaveChanges, (ULONG, ulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, GetProps, (LPSPropTagArray, lpPropTagArray), (ULONG, ulFlags), (ULONG FAR *, lpcValues), (LPSPropValue FAR *, lppPropArray))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, GetPropList, (ULONG, ulFlags), (LPSPropTagArray FAR *, lppPropTagArray))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, OpenProperty, (ULONG, ulPropTag), (LPCIID, lpiid), (ULONG, ulInterfaceOptions), (ULONG, ulFlags), (LPUNKNOWN FAR *, lppUnk))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, SetProps, (ULONG, cValues), (LPSPropValue, lpPropArray), (LPSPropProblemArray FAR *, lppProblems))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, DeleteProps, (LPSPropTagArray, lpPropTagArray), (LPSPropProblemArray FAR *, lppProblems))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, CopyTo, (ULONG, ciidExclude), (LPCIID, rgiidExclude), (LPSPropTagArray, lpExcludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (LPVOID, lpDestObj), (ULONG, ulFlags), (LPSPropProblemArray FAR *, lppProblems))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, CopyProps, (LPSPropTagArray, lpIncludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (LPVOID, lpDestObj), (ULONG, ulFlags), (LPSPropProblemArray FAR *, lppProblems))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, GetNamesFromIDs, (LPSPropTagArray *, pptaga), (LPGUID, lpguid), (ULONG, ulFlags), (ULONG *, pcNames), (LPMAPINAMEID **, pppNames))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MsgStoreProxy, GetIDsFromNames, (ULONG, cNames), (LPMAPINAMEID *, ppNames), (ULONG, ulFlags), (LPSPropTagArray *, pptaga))
 
 // IECMultiStoreTable interface
-ULONG ECMsgStore::xECMultiStoreTable::AddRef() {
-	TRACE_MAPI(TRACE_ENTRY, "IECMultiStoreTable::AddRef", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECMultiStoreTable);
-	return pThis->AddRef();
-}
-
-ULONG ECMsgStore::xECMultiStoreTable::Release() {
-	TRACE_MAPI(TRACE_ENTRY, "IECMultiStoreTable::Release", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECMultiStoreTable);
-	ULONG ulReturn = pThis->Release();
-	TRACE_MAPI(TRACE_RETURN, "IECMultiStoreTable::Release", "%d", ulReturn);
-	return ulReturn;
-}
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ECMultiStoreTable, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ECMultiStoreTable, Release, (void))
 
 HRESULT ECMsgStore::xECMultiStoreTable::QueryInterface(REFIID refiid, void **lppInterface) {
 	TRACE_MAPI(TRACE_ENTRY, "IECMultiStoreTable::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
@@ -4596,28 +3489,11 @@ HRESULT ECMsgStore::xECMultiStoreTable::QueryInterface(REFIID refiid, void **lpp
 	return hr;
 }
 
-HRESULT ECMsgStore::xECMultiStoreTable::OpenMultiStoreTable(LPENTRYLIST lpMsgList, ULONG ulFlags, LPMAPITABLE *lppTable) {
-	TRACE_MAPI(TRACE_ENTRY, "IECMultiStoreTable::OpenMultiStoreTable", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECMultiStoreTable);
-	HRESULT hr = pThis->OpenMultiStoreTable(lpMsgList, ulFlags, lppTable);
-	TRACE_MAPI(TRACE_RETURN, "IECMultiStoreTable::OpenMultiStoreTable", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECMultiStoreTable, OpenMultiStoreTable, (LPENTRYLIST, lpMsgList), (ULONG, ulFlags), (LPMAPITABLE *, lppTable))
 
 // IECLicense interface
-ULONG ECMsgStore::xECLicense::AddRef() {
-	TRACE_MAPI(TRACE_ENTRY, "IECLicense::AddRef", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECLicense);
-	return pThis->AddRef();
-}
-
-ULONG ECMsgStore::xECLicense::Release() {
-	TRACE_MAPI(TRACE_ENTRY, "IECLicense::Release", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECLicense);
-	ULONG ulReturn = pThis->Release();
-	TRACE_MAPI(TRACE_RETURN, "IECLicense::Release", "%d", ulReturn);
-	return ulReturn;
-}
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ECLicense, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ECLicense, Release, (void))
 
 HRESULT ECMsgStore::xECLicense::QueryInterface(REFIID refiid, void **lppInterface) {
 	TRACE_MAPI(TRACE_ENTRY, "IECLicense::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
@@ -4627,45 +3503,13 @@ HRESULT ECMsgStore::xECLicense::QueryInterface(REFIID refiid, void **lppInterfac
 	return hr;
 }
 
-HRESULT ECMsgStore::xECLicense::LicenseAuth(unsigned char *lpData, unsigned int ulSize, unsigned char **lppResponse, unsigned int *lpulResponseSize) {
-	TRACE_MAPI(TRACE_ENTRY, "IECLicense::LicenseAuth","");
-	METHOD_PROLOGUE_(ECMsgStore, ECLicense);
-	HRESULT hr = pThis->LicenseAuth(lpData, ulSize, lppResponse, lpulResponseSize);
-	TRACE_MAPI(TRACE_RETURN, "IECLicense::LicenseAuth","");
-	return hr;
-}
-
-HRESULT ECMsgStore::xECLicense::LicenseCapa(unsigned int ulServiceType, char ***lppszData, unsigned int *lpulSize) {
-	TRACE_MAPI(TRACE_ENTRY, "IECLicense::LicenseCapa","");
-	METHOD_PROLOGUE_(ECMsgStore, ECLicense);
-	HRESULT hr = pThis->LicenseCapa(ulServiceType, lppszData, lpulSize);
-	TRACE_MAPI(TRACE_RETURN, "IECLicense::LicenseCapa","");
-	return hr;
-}
-
-HRESULT ECMsgStore::xECLicense::LicenseUsers(unsigned int ulServiceType, unsigned int *lpulUsers)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECLicense::LicenseUsers","");
-	METHOD_PROLOGUE_(ECMsgStore, ECLicense);
-	HRESULT hr = pThis->LicenseUsers(ulServiceType, lpulUsers);
-	TRACE_MAPI(TRACE_RETURN, "IECLicense::LicenseUsers","");
-	return hr;
-}
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECLicense, LicenseAuth, (unsigned char *, lpData), (unsigned int, ulSize), (unsigned char **, lppResponse), (unsigned int *, lpulResponseSize))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECLicense, LicenseCapa, (unsigned int, ulServiceType), (char ***, lppszData), (unsigned int *, lpulSize))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECLicense, LicenseUsers, (unsigned int, ulServiceType), (unsigned int *, lpulUsers))
 
 // IECTestProtocol interface
-ULONG ECMsgStore::xECTestProtocol::AddRef() {
-	TRACE_MAPI(TRACE_ENTRY, "IECTestProtocol::AddRef", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECTestProtocol);
-	return pThis->AddRef();
-}
-
-ULONG ECMsgStore::xECTestProtocol::Release() {
-	TRACE_MAPI(TRACE_ENTRY, "IECTestProtocol::Release", "");
-	METHOD_PROLOGUE_(ECMsgStore, ECTestProtocol);
-	ULONG ulReturn = pThis->Release();
-	TRACE_MAPI(TRACE_RETURN, "IECTestProtocol::Release", "%d", ulReturn);
-	return ulReturn;
-}
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ECTestProtocol, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ECTestProtocol, Release, (void))
 
 HRESULT ECMsgStore::xECTestProtocol::QueryInterface(REFIID refiid, void **lppInterface) {
 	TRACE_MAPI(TRACE_ENTRY, "IECTestProtocol::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
@@ -4675,29 +3519,9 @@ HRESULT ECMsgStore::xECTestProtocol::QueryInterface(REFIID refiid, void **lppInt
 	return hr;
 }
 
-HRESULT ECMsgStore::xECTestProtocol::TestPerform(char *szCommand, unsigned int ulArgs, char **szArgs) {
-	TRACE_MAPI(TRACE_ENTRY, "IECTestProtocol::TestPerform", "%s, %d", szCommand, ulArgs);
-	METHOD_PROLOGUE_(ECMsgStore, ECTestProtocol);
-	HRESULT hr = pThis->TestPerform(szCommand, ulArgs, szArgs);
-	TRACE_MAPI(TRACE_RETURN, "IECTestProtocol::TestPerform", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECTestProtocol::TestSet(char *szName, char *szValue) {
-	TRACE_MAPI(TRACE_ENTRY, "IECTestProtocol::TestSet", "%s, %s", szName, szValue);
-	METHOD_PROLOGUE_(ECMsgStore, ECTestProtocol);
-	HRESULT hr = pThis->TestSet(szName, szValue);
-	TRACE_MAPI(TRACE_RETURN, "IECTestProtocol::TestSet", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xECTestProtocol::TestGet(char *szName, char **szValue) {
-	TRACE_MAPI(TRACE_ENTRY, "IECTestProtocol::TestGet", "%s", szName);
-	METHOD_PROLOGUE_(ECMsgStore, ECTestProtocol);
-	HRESULT hr = pThis->TestGet(szName, szValue);
-	TRACE_MAPI(TRACE_RETURN, "IECTestProtocol::TestGet", "%s %s", GetMAPIErrorDescription(hr).c_str(), szValue ? *szValue : "<null>");
-	return hr;
-}
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECTestProtocol, TestPerform, (char *, szCommand), (unsigned int, ulArgs), (char **, szArgs))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECTestProtocol, TestSet, (char *, szName), (char *, szValue))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECTestProtocol, TestGet, (char *, szName), (char **, szValue))
 
 ECMSLogon::ECMSLogon(ECMsgStore *lpStore)
 {
@@ -4757,147 +3581,26 @@ HRESULT ECMSLogon::OpenStatusEntry(LPCIID lpInterface, ULONG ulFlags, ULONG *lpu
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT __stdcall ECMSLogon::xMSLogon::QueryInterface(REFIID refiid, void ** lppInterface)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMSLogon::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
-	METHOD_PROLOGUE_(ECMSLogon , MSLogon);
-	HRESULT hr = pThis->QueryInterface(refiid, lppInterface);
-	TRACE_MAPI(TRACE_RETURN, "IMSLogon::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-ULONG __stdcall ECMSLogon::xMSLogon::AddRef()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMSLogon::AddRef", "");
-	METHOD_PROLOGUE_(ECMSLogon , MSLogon);
-	return pThis->AddRef();
-
-}
-
-ULONG __stdcall ECMSLogon::xMSLogon::Release()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMSLogon::Release", "");
-	METHOD_PROLOGUE_(ECMSLogon , MSLogon);
-	return pThis->Release();
-}
-
-HRESULT ECMSLogon::xMSLogon::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMSLogon::GetLastError", "");
-	METHOD_PROLOGUE_(ECMSLogon, MSLogon);
-	HRESULT hr = pThis->GetLastError(hResult, ulFlags, lppMAPIError);
-	TRACE_MAPI(TRACE_RETURN, "IMSLogon::GetLastError", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMSLogon::xMSLogon::Logoff(ULONG *lpulFlags)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMSLogon::Logoff", "");
-	METHOD_PROLOGUE_(ECMSLogon, MSLogon);
-	return pThis->Logoff(lpulFlags);
-}
-
-HRESULT ECMSLogon::xMSLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPUNKNOWN *lppUnk)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMSLogon::OpenEntry", "interface=%s, cb=%d, EntryId=%s, flags=0x%08X", (lpInterface)?DBGGUIDToString(*lpInterface).c_str():"", cbEntryID, bin2hex(cbEntryID, (BYTE*)lpEntryID).c_str(), ulFlags);
-	METHOD_PROLOGUE_(ECMSLogon, MSLogon);
-	HRESULT hr = pThis->OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
-	TRACE_MAPI(TRACE_RETURN, "IMSLogon::OpenEntry", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMSLogon::xMSLogon::CompareEntryIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2, ULONG ulFlags, ULONG *lpulResult)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMSLogon::CompareEntryIDs", "flags: %d\ncb=%d  entryid1: %s\n cb=%d entryid2: %s", ulFlags, cbEntryID1, bin2hex(cbEntryID1, (BYTE*)lpEntryID1).c_str(), cbEntryID2, bin2hex(cbEntryID2, (BYTE*)lpEntryID2).c_str());
-	METHOD_PROLOGUE_(ECMSLogon, MSLogon);
-	HRESULT hr = pThis->CompareEntryIDs(cbEntryID1, lpEntryID1, cbEntryID2, lpEntryID2, ulFlags, lpulResult);
-	TRACE_MAPI(TRACE_RETURN, "IMSLogon::CompareEntryIDs", "%s, result=%s", GetMAPIErrorDescription(hr).c_str(), (lpulResult)?((*lpulResult == TRUE)?"TRUE":"FALSE") : "NULL");
-	return hr;
-}
-
-HRESULT ECMSLogon::xMSLogon::Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMSLogon::Advise", "");
-	METHOD_PROLOGUE_(ECMSLogon, MSLogon);
-	return pThis->Advise(cbEntryID, lpEntryID, ulEventMask, lpAdviseSink, lpulConnection);
-}
-
-HRESULT ECMSLogon::xMSLogon::Unadvise(ULONG ulConnection)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMSLogon::Unadvise", "");
-	METHOD_PROLOGUE_(ECMSLogon, MSLogon);
-	return pThis->Unadvise(ulConnection);
-}
-
-HRESULT ECMSLogon::xMSLogon::OpenStatusEntry(LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPVOID *lppEntry)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMSLogon::OpenStatusEntry", "");
-	METHOD_PROLOGUE_(ECMSLogon, MSLogon);
-	HRESULT hr = pThis->OpenStatusEntry(lpInterface, ulFlags, lpulObjType, lppEntry);
-	TRACE_MAPI(TRACE_RETURN, "IMSLogon::OpenStatusEntry", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
+DEF_HRMETHOD1(TRACE_MAPI, ECMSLogon, MSLogon, QueryInterface, (REFIID, refiid), (void **, lppInterface))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMSLogon, MSLogon, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMSLogon, MSLogon, Release, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECMSLogon, MSLogon, GetLastError, (HRESULT, hResult), (ULONG, ulFlags), (LPMAPIERROR *, lppMAPIError))
+DEF_HRMETHOD1(TRACE_MAPI, ECMSLogon, MSLogon, Logoff, (ULONG *, lpulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECMSLogon, MSLogon, OpenEntry, (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (LPCIID, lpInterface), (ULONG, ulFlags), (ULONG *, lpulObjType), (LPUNKNOWN *, lppUnk))
+DEF_HRMETHOD1(TRACE_MAPI, ECMSLogon, MSLogon, CompareEntryIDs, (ULONG, cbEntryID1), (LPENTRYID, lpEntryID1), (ULONG, cbEntryID2), (LPENTRYID, lpEntryID2), (ULONG, ulFlags), (ULONG *, lpulResult))
+DEF_HRMETHOD1(TRACE_MAPI, ECMSLogon, MSLogon, Advise, (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (ULONG, ulEventMask), (LPMAPIADVISESINK, lpAdviseSink), (ULONG *, lpulConnection))
+DEF_HRMETHOD1(TRACE_MAPI, ECMSLogon, MSLogon, Unadvise, (ULONG, ulConnection))
+DEF_HRMETHOD1(TRACE_MAPI, ECMSLogon, MSLogon, OpenStatusEntry, (LPCIID, lpInterface), (ULONG, ulFlags), (ULONG *, lpulObjType), (LPVOID *, lppEntry))
 
 // IExchangeManageStore6
-ULONG ECMsgStore::xExchangeManageStore6::AddRef() {
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeManageStore6::AddRef", "");
-	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStore6);
-	return pThis->AddRef();
-}
-
-ULONG ECMsgStore::xExchangeManageStore6::Release() {
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeManageStore6::Release", "");
-	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStore6);
-	ULONG ulRef = pThis->Release();
-	TRACE_MAPI(TRACE_RETURN, "IExchangeManageStore6::Release", "%d", ulRef);
-	return ulRef;
-}
-
-HRESULT ECMsgStore::xExchangeManageStore6::QueryInterface(REFIID refiid, void **lppInterface)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeManageStore6::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
-	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStore6);
-	HRESULT hr = pThis->QueryInterface(refiid, lppInterface);
-	TRACE_MAPI(TRACE_RETURN, "IExchangeManageStore6::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xExchangeManageStore6::CreateStoreEntryID(LPTSTR lpszMsgStoreDN, LPTSTR lpszMailboxDN, ULONG ulFlags, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeManageStore6::CreateStoreEntryID","msgStoreDN=%s , MailboxDN=%s , flags=0x%08X", (lpszMsgStoreDN)?(char*)lpszMsgStoreDN: "NULL", (lpszMailboxDN)?(char*)lpszMailboxDN:"NULL", ulFlags);
-	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStore6);
-	HRESULT hr = pThis->CreateStoreEntryID(lpszMsgStoreDN, lpszMailboxDN, ulFlags, lpcbEntryID, lppEntryID);
-	TRACE_MAPI(TRACE_RETURN, "IExchangeManageStore6::CreateStoreEntryID","%s, cb=%d, data=%s", GetMAPIErrorDescription(hr).c_str(), (lpcbEntryID)?*lpcbEntryID:0, (lppEntryID)?bin2hex(*lpcbEntryID, (BYTE*)*lppEntryID).c_str():"NULL");
-	return hr;
-}
-
-HRESULT ECMsgStore::xExchangeManageStore6::EntryIDFromSourceKey(ULONG cFolderKeySize, BYTE *lpFolderSourceKey,	ULONG cMessageKeySize, BYTE *lpMessageSourceKey, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeManageStore6::EntryIDFromSourceKey","");
-	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStore6);
-	return pThis->EntryIDFromSourceKey(cFolderKeySize, lpFolderSourceKey, cMessageKeySize, lpMessageSourceKey, lpcbEntryID, lppEntryID);
-}
-
-HRESULT ECMsgStore::xExchangeManageStore6::GetRights(ULONG cbUserEntryID, LPENTRYID lpUserEntryID, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG *lpulRights)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeManageStore6::GetRights","");
-	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStore6);
-	return pThis->GetRights(cbUserEntryID, lpUserEntryID, cbEntryID, lpEntryID, lpulRights);
-}
-
-HRESULT ECMsgStore::xExchangeManageStore6::GetMailboxTable(LPTSTR lpszServerName, LPMAPITABLE *lppTable, ULONG ulFlags)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeManageStore6::GetMailboxTable","");
-	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStore6);
-	return pThis->GetMailboxTable(lpszServerName, lppTable, ulFlags);
-}
-
-HRESULT ECMsgStore::xExchangeManageStore6::GetPublicFolderTable(LPTSTR lpszServerName, LPMAPITABLE *lppTable, ULONG ulFlags)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeManageStore6::GetPublicFolderTable","");
-	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStore6);
-	return pThis->GetPublicFolderTable(lpszServerName, lppTable, ulFlags);
-}
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ExchangeManageStore6, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ExchangeManageStore6, Release, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ExchangeManageStore6, QueryInterface, (REFIID, refiid), (void **, lppInterface))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ExchangeManageStore6, CreateStoreEntryID, (LPTSTR, lpszMsgStoreDN), (LPTSTR, lpszMailboxDN), (ULONG, ulFlags), (ULONG *, lpcbEntryID), (LPENTRYID *, lppEntryID))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ExchangeManageStore6, EntryIDFromSourceKey, (ULONG, cFolderKeySize), (BYTE *, lpFolderSourceKey), (ULONG, cMessageKeySize), (BYTE *, lpMessageSourceKey), (ULONG *, lpcbEntryID), (LPENTRYID *, lppEntryID))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ExchangeManageStore6, GetRights, (ULONG, cbUserEntryID), (LPENTRYID, lpUserEntryID), (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (ULONG *, lpulRights))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ExchangeManageStore6, GetMailboxTable, (LPTSTR, lpszServerName), (LPMAPITABLE *, lppTable), (ULONG, ulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ExchangeManageStore6, GetPublicFolderTable, (LPTSTR, lpszServerName), (LPMAPITABLE *, lppTable), (ULONG, ulFlags))
 
 HRESULT ECMsgStore::xExchangeManageStore6::CreateStoreEntryIDEx(LPTSTR lpszMsgStoreDN, LPTSTR lpszEmail, LPTSTR lpszMailboxDN, ULONG ulFlags, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
 {
@@ -4909,72 +3612,12 @@ HRESULT ECMsgStore::xExchangeManageStore6::CreateStoreEntryIDEx(LPTSTR lpszMsgSt
 }
 
 // IExchangeManageStoreEx
-ULONG ECMsgStore::xExchangeManageStoreEx::AddRef() {
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeManageStoreEx::AddRef", "");
-	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStoreEx);
-	return pThis->AddRef();
-}
-
-ULONG ECMsgStore::xExchangeManageStoreEx::Release() {
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeManageStoreEx::Release", "");
-	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStoreEx);
-	ULONG ulRef = pThis->Release();
-	TRACE_MAPI(TRACE_RETURN, "IExchangeManageStoreEx::Release", "%d", ulRef);
-	return ulRef;
-}
-
-HRESULT ECMsgStore::xExchangeManageStoreEx::QueryInterface(REFIID refiid, void **lppInterface)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeManageStoreEx::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
-	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStoreEx);
-	HRESULT hr = pThis->QueryInterface(refiid, lppInterface);
-	TRACE_MAPI(TRACE_RETURN, "IExchangeManageStoreEx::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMsgStore::xExchangeManageStoreEx::CreateStoreEntryID(LPTSTR lpszMsgStoreDN, LPTSTR lpszMailboxDN, ULONG ulFlags, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeManageStoreEx::CreateStoreEntryID","msgStoreDN=%s , MailboxDN=%s , flags=0x%08X", (lpszMsgStoreDN)?(char*)lpszMsgStoreDN: "NULL", (lpszMailboxDN)?(char*)lpszMailboxDN:"NULL", ulFlags);
-	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStoreEx);
-	HRESULT hr = pThis->CreateStoreEntryID(lpszMsgStoreDN, lpszMailboxDN, ulFlags, lpcbEntryID, lppEntryID);
-	TRACE_MAPI(TRACE_RETURN, "IExchangeManageStoreEx::CreateStoreEntryID","%s, cb=%d, data=%s", GetMAPIErrorDescription(hr).c_str(), (lpcbEntryID)?*lpcbEntryID:0, (lppEntryID)?bin2hex(*lpcbEntryID, (BYTE*)*lppEntryID).c_str():"NULL");
-	return hr;
-}
-
-HRESULT ECMsgStore::xExchangeManageStoreEx::EntryIDFromSourceKey(ULONG cFolderKeySize, BYTE *lpFolderSourceKey,	ULONG cMessageKeySize, BYTE *lpMessageSourceKey, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeManageStoreEx::EntryIDFromSourceKey","");
-	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStoreEx);
-	return pThis->EntryIDFromSourceKey(cFolderKeySize, lpFolderSourceKey, cMessageKeySize, lpMessageSourceKey, lpcbEntryID, lppEntryID);
-}
-
-HRESULT ECMsgStore::xExchangeManageStoreEx::GetRights(ULONG cbUserEntryID, LPENTRYID lpUserEntryID, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG *lpulRights)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeManageStoreEx::GetRights","");
-	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStoreEx);
-	return pThis->GetRights(cbUserEntryID, lpUserEntryID, cbEntryID, lpEntryID, lpulRights);
-}
-
-HRESULT ECMsgStore::xExchangeManageStoreEx::GetMailboxTable(LPTSTR lpszServerName, LPMAPITABLE *lppTable, ULONG ulFlags)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeManageStoreEx::GetMailboxTable","");
-	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStoreEx);
-	return pThis->GetMailboxTable(lpszServerName, lppTable, ulFlags);
-}
-
-HRESULT ECMsgStore::xExchangeManageStoreEx::GetPublicFolderTable(LPTSTR lpszServerName, LPMAPITABLE *lppTable, ULONG ulFlags)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeManageStoreEx::GetPublicFolderTable","");
-	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStoreEx);
-	return pThis->GetPublicFolderTable(lpszServerName, lppTable, ulFlags);
-}
-
-HRESULT ECMsgStore::xExchangeManageStoreEx::CreateStoreEntryID2(ULONG cValues, LPSPropValue lpProps, ULONG ulFlags, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeManageStoreEx::CreateStoreEntryID2","cValues=%d , flags=0x%08X", cValues, ulFlags);
-	METHOD_PROLOGUE_(ECMsgStore, ExchangeManageStoreEx);
-	HRESULT hr = pThis->CreateStoreEntryID2(cValues, lpProps, ulFlags, lpcbEntryID, lppEntryID);
-	TRACE_MAPI(TRACE_RETURN, "IExchangeManageStoreEx::CreateStoreEntryID2","%s, cb=%d, data=%s", GetMAPIErrorDescription(hr).c_str(), (lpcbEntryID)?*lpcbEntryID:0, (lppEntryID)?bin2hex(*lpcbEntryID, (BYTE*)*lppEntryID).c_str():"NULL");
-	return hr;
-}
-
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ExchangeManageStoreEx, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ExchangeManageStoreEx, Release, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ExchangeManageStoreEx, QueryInterface, (REFIID, refiid), (void **, lppInterface))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ExchangeManageStoreEx, CreateStoreEntryID, (LPTSTR, lpszMsgStoreDN), (LPTSTR, lpszMailboxDN), (ULONG, ulFlags), (ULONG *, lpcbEntryID), (LPENTRYID *, lppEntryID))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ExchangeManageStoreEx, EntryIDFromSourceKey, (ULONG, cFolderKeySize), (BYTE *, lpFolderSourceKey), (ULONG, cMessageKeySize), (BYTE *, lpMessageSourceKey), (ULONG *, lpcbEntryID), (LPENTRYID *, lppEntryID))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ExchangeManageStoreEx, GetRights, (ULONG, cbUserEntryID), (LPENTRYID, lpUserEntryID), (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (ULONG *, lpulRights))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ExchangeManageStoreEx, GetMailboxTable, (LPTSTR, lpszServerName), (LPMAPITABLE *, lppTable), (ULONG, ulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ExchangeManageStoreEx, GetPublicFolderTable, (LPTSTR, lpszServerName), (LPMAPITABLE *, lppTable), (ULONG, ulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ExchangeManageStoreEx, CreateStoreEntryID2, (ULONG, cValues), (LPSPropValue, lpProps), (ULONG, ulFlags), (ULONG *, lpcbEntryID), (LPENTRYID *, lppEntryID))

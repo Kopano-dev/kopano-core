@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/ECInterfaceDefs.h>
 #include <mapi.h>
 #include <mapiutil.h>
 #include <mapispi.h>
@@ -63,35 +64,10 @@ HRESULT ECMSProviderOffline::QueryInterface(REFIID refiid, void **lppInterface)
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
-ULONG ECMSProviderOffline::xMSProvider::AddRef() 
-{
-	TRACE_MAPI(TRACE_ENTRY, "ECMSProviderOffline::AddRef", "");
-	METHOD_PROLOGUE_(ECMSProviderOffline, MSProvider);
-	return pThis->AddRef();
-}
-
-ULONG ECMSProviderOffline::xMSProvider::Release()
-{
-	TRACE_MAPI(TRACE_ENTRY, "ECMSProviderOffline::Release", "");
-	METHOD_PROLOGUE_(ECMSProviderOffline, MSProvider);
-	return pThis->Release();
-}
-
-HRESULT ECMSProviderOffline::xMSProvider::QueryInterface(REFIID refiid, void **lppInterface)
-{
-	TRACE_MAPI(TRACE_ENTRY, "ECMSProviderOffline::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
-	METHOD_PROLOGUE_(ECMSProviderOffline, MSProvider);
-	HRESULT hr = pThis->QueryInterface(refiid, lppInterface);
-	TRACE_MAPI(TRACE_RETURN, "ECMSProviderOffline::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMSProviderOffline::xMSProvider::Shutdown(ULONG *lpulFlags)
-{
-	TRACE_MAPI(TRACE_ENTRY, "ECMSProviderOffline::Shutdown", "");
-	METHOD_PROLOGUE_(ECMSProviderOffline, MSProvider);
-	return pThis->Shutdown(lpulFlags);
-}
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMSProviderOffline, MSProvider, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMSProviderOffline, MSProvider, Release, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECMSProviderOffline, MSProvider, QueryInterface, (REFIID, refiid), (void **, lppInterface))
+DEF_HRMETHOD1(TRACE_MAPI, ECMSProviderOffline, MSProvider, Shutdown, (ULONG *, lpulFlags))
 
 HRESULT ECMSProviderOffline::xMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface, ULONG *lpcbSpoolSecurity, LPBYTE *lppbSpoolSecurity, LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
 {
@@ -111,11 +87,4 @@ HRESULT ECMSProviderOffline::xMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULON
 	return hr;
 }
 
-HRESULT ECMSProviderOffline::xMSProvider::CompareStoreIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2, ULONG ulFlags, ULONG *lpulResult)
-{
-	TRACE_MAPI(TRACE_ENTRY, "ECMSProviderOffline::CompareStoreIDs", "flags: %d\ncb=%d  entryid1: %s\n cb=%d entryid2: %s", ulFlags, cbEntryID1, bin2hex(cbEntryID1, (BYTE*)lpEntryID1).c_str(), cbEntryID2, bin2hex(cbEntryID2, (BYTE*)lpEntryID2).c_str());
-	METHOD_PROLOGUE_(ECMSProviderOffline, MSProvider);
-	HRESULT hr = pThis->CompareStoreIDs(cbEntryID1, lpEntryID1, cbEntryID2, lpEntryID2, ulFlags, lpulResult);
-	TRACE_MAPI(TRACE_RETURN, "ECMSProviderOffline::CompareStoreIDs", "%s %s",GetMAPIErrorDescription(hr).c_str(), (*lpulResult == TRUE)?"TRUE": "FALSE");
-	return hr;
-}
+DEF_HRMETHOD1(TRACE_MAPI, ECMSProviderOffline, MSProvider, CompareStoreIDs, (ULONG, cbEntryID1), (LPENTRYID, lpEntryID1), (ULONG, cbEntryID2), (LPENTRYID, lpEntryID2), (ULONG, ulFlags), (ULONG *, lpulResult))
