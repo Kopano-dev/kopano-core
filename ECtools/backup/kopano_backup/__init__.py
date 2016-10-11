@@ -48,7 +48,7 @@ kopano-backup --index user1 -f Inbox/subfolder --recursive --period-begin 2014-0
 def dbopen(path): # XXX unfortunately dbhash.open doesn't seem to accept unicode
     return dbhash.open(path.encode(sys.stdout.encoding or 'utf8'), 'c')
 
-def _decode(s): # XXX make optparse give us unicode
+def _decode(s):
     return s.decode(sys.stdout.encoding or 'utf8')
 
 class BackupWorker(kopano.Worker):
@@ -210,7 +210,7 @@ class Service(kopano.Service):
         self.log.info('starting restore of %s' % self.data_path)
         username = os.path.split(self.data_path)[1]
         if self.options.users:
-            store = self._store(_decode(self.options.users[0]))
+            store = self._store(self.options.users[0])
         elif self.options.stores:
             store = self.server.store(self.options.stores[0])
         else:
@@ -239,7 +239,7 @@ class Service(kopano.Service):
 
         # determine stored and specified folders
         path_folder = folder_struct(self.data_path, self.options)
-        paths = [_decode(f) for f in self.options.folders] or sorted(path_folder.keys())
+        paths = self.options.folders or sorted(path_folder.keys())
         if self.options.recursive:
             paths = [path2 for path2 in path_folder for path in paths if (path2+'//').startswith(path+'/')]
 
@@ -264,7 +264,7 @@ class Service(kopano.Service):
     def create_jobs(self):
         """ check command-line options and determine which stores should be backed up """
 
-        output_dir = _decode(self.options.output_dir) if self.options.output_dir else ''
+        output_dir = self.options.output_dir or u''
         jobs = []
 
         # specified companies/all users
@@ -406,7 +406,7 @@ def show_contents(data_path, options):
     # setup CSV writer, perform basic checks
     writer = csv.writer(sys.stdout)
     path_folder = folder_struct(data_path, options)
-    paths = [_decode(f) for f in options.folders] or sorted(path_folder)
+    paths = options.folders or sorted(path_folder)
     for path in paths:
         if path not in path_folder:
             print 'no such folder:', path
