@@ -445,12 +445,11 @@ AC_ARG_WITH(ical-prefix,
 AC_SUBST(ICAL_CFLAGS)
 AC_SUBST(ICAL_LIBS)
 
-PKG_CHECK_EXISTS([libtcmalloc_minimal], [
-	PKG_CHECK_MODULES([TCMALLOC], [libtcmalloc_minimal])
-	CPPFLAGS="$CPPFLAGS $TCMALLOC_CFLAGS"
-	AC_CHECK_HEADERS([gperftools/malloc_extension.h google/malloc_extension.h])
-	CPPFLAGS="$CPPFLAGS_system"
-])
+PKG_CHECK_MODULES([TCMALLOC], [libtcmalloc_minimal], [], [:])
+CPPFLAGS="$CPPFLAGS $TCMALLOC_CFLAGS"
+AC_CHECK_HEADERS([gperftools/malloc_extension.h google/malloc_extension.h])
+CPPFLAGS="$CPPFLAGS_system"
+
 
 #
 # Check for user plugin required libraries
