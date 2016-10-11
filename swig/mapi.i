@@ -104,6 +104,12 @@ typedef enum tagSTATFLAG {
     STATFLAG_NOOPEN     = 2
 } STATFLAG;
 
+%typemap(argout) (char **lpOutput, ULONG *ulRead) {
+  if (*$1) {
+    %append_output(PyBytes_FromStringAndSize(*$1, *$2));
+  }
+}
+
 /* IStream Interface */
 class ISequentialStream : public IUnknown {
 public:

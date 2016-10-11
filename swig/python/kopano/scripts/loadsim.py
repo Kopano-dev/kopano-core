@@ -10,8 +10,8 @@ import kopano
 
 parser = kopano.parser('skpc', usage='loadsim [options]')
 parser.add_option('-u', '--user', dest='user', action='store', help='user to send mails to')
-parser.add_option('-N', '--n-write-workers', dest='n_write_workers', action='store', help='number of write workers to start')
-parser.add_option('-n', '--n-read-workers', dest='n_read_workers', action='store', help='number of read workers to start')
+parser.add_option('-N', '--n-write-workers', dest='n_write_workers', action='store', help='number of write workers to start', default=1)
+parser.add_option('-n', '--n-read-workers', dest='n_read_workers', action='store', help='number of read workers to start', default=1)
 parser.add_option('-r', '--new-session', dest='restart_session', action='store_false', help='start a new session for each iteration')
 parser.add_option('-R', '--random-new-session', dest='random_restart_session', action='store_false', help='randomly start a new session for an iteration')
 parser.add_option('-e', '--eml', dest='eml', action='store', help='eml-file to use')
@@ -19,7 +19,7 @@ parser.add_option('-e', '--eml', dest='eml', action='store', help='eml-file to u
 o, a = parser.parse_args()
 
 if o.eml == None:
-	print 'EML file missing'
+	print('EML file missing')
 	sys.exit(1)
 
 eml_file_data = open(o.eml).read()
@@ -44,7 +44,7 @@ def read_worker():
 			return
 
 		except Exception as e:
-			print e
+			print(e)
 
 def write_worker():
 	server = None
@@ -60,11 +60,11 @@ def write_worker():
 			return
 
 		except Exception as e:
-			print e
+			print(e)
 
 pids = []
 
-print 'Starting %s writers' % o.n_write_workers
+print('Starting %s writers' % o.n_write_workers)
 for i in range(int(o.n_write_workers)):
 	pid = os.fork()
 
@@ -73,12 +73,12 @@ for i in range(int(o.n_write_workers)):
 		sys.exit(0)
 
 	elif pid == -1:
-		print 'fork failed'
+		print('fork failed')
 		break;
 
 	pids.append(pid)
 
-print 'Starting %s readers' % o.n_read_workers
+print('Starting %s readers' % o.n_read_workers)
 for i in range(int(o.n_read_workers)):
 	pid = os.fork()
 
@@ -87,12 +87,12 @@ for i in range(int(o.n_read_workers)):
 		sys.exit(0)
 
 	elif pid == -1:
-		print 'fork failed'
+		print('fork failed')
 		break;
 
 	pids.append(pid)
 
-print 'Child processes started'
+print('Child processes started')
 
 try:
 	while True:
@@ -101,7 +101,7 @@ try:
 except:
 	pass
 
-print 'Terminating...'
+print('Terminating...')
 
 for pid in pids:
 	try:
@@ -110,4 +110,4 @@ for pid in pids:
 	except:
 		pass
 
-print 'Finished.'
+print('Finished.')

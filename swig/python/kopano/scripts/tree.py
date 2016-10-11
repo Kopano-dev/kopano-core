@@ -8,14 +8,14 @@ import kopano
 
 server = kopano.Server()
 for company in server.companies(): # checks -c/--company command-line option
-    print company
+    print(company)
     for user in company.users(): # checks -u/--user command-line option
                                  # server.users() gives all users
-         print '  ' + user.name
+         print('  ' + user.name)
          for folder in user.store.folders():
              indent = (folder.depth + 2) * '  '
-             print indent + unicode(folder)
+             print(indent + str(folder))
              for item in folder:
-                 print indent + '  ' + unicode(item)
+                 print(indent + '  ' + str(item))
                  for attachment in item.attachments():
-                     print indent + '    ' + attachment.filename
+                     print(indent + '    ' + attachment.filename)

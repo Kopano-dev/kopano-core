@@ -69,7 +69,7 @@ class ZaraPy(object):
         itemname= dict(item=item)
         foldername= dict(folder=folder)
         html=''
-        print itemname['item'] + "\n"
+        print(itemname['item'] + "\n")
         html = '<html><h1>Company: %s <br>User: %s</h1>' % (company['company'],user['user'])
         #html = html + "<table><tr><th>prop.name</th><th>prop.value</th><tr>\n"
         if itemname['item']:
@@ -77,10 +77,10 @@ class ZaraPy(object):
             for folder in kopano.Server().company(company['company']).user(user['user']).store.folders():
                 if folder.entryid == foldername['folder']:
                     for item in folder.items():
-                        print "curr %s" , item.entryid.encode('hex')
-                        print "look %s", itemname['item']
+                        print("curr %s" , item.entryid.encode('hex'))
+                        print("look %s", itemname['item'])
                         if item.entryid.encode('hex')==itemname['item']:
-                            print "match"
+                            print("match")
                             for prop in item.props():
                                 if (prop.idname == 'PR_HTML') or (prop.idname=='PR_BODY'):
                                     try:

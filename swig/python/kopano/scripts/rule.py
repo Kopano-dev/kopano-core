@@ -14,7 +14,7 @@ class importer:
 
     def update(self, item, flags):
         if 'spam' in item.subject:
-            print 'trashing..', item
+            print('trashing..', item)
             self.folder.move(item, self.target)
 
     def delete(self, item, flags):

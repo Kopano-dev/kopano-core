@@ -38,9 +38,9 @@ class ZFilesystem(fuse.Fuse):
             st = fuse.Stat()
             st.st_nlink = 1
             if last == '' or last.startswith('User(') or last.startswith('Folder(') or last.startswith('Item('):
-                st.st_mode = stat.S_IFDIR | 0755
+                st.st_mode = stat.S_IFDIR | 0o755
             elif last == 'eml':
-                st.st_mode = stat.S_IFREG | 0644
+                st.st_mode = stat.S_IFREG | 0o644
                 item = self.path_object[parentpath]
                 st.st_size = len(item.eml()) # XXX cache data
             else:

@@ -40,21 +40,14 @@ def main():
         return
 
     if options.sort:
-        ax.plot(sorted(data.values()))
+        ax.plot(sorted(list(data.values())))
         users = sorted(data, key=data.__getitem__)
 
     else:
         ax.plot(data.values())
-    plt.xlabel('Users')
 
-    # TODO: find a more elegant solution
-    labels = [item.get_text() for item in ax.get_xticklabels()]
-    for i, user in enumerate(users):
-        if options.sort:
-            labels[i] = user
-        else:
-            labels[i] = user.name
-    ax.set_xticklabels(labels)
+    plt.xlabel('Users')
+    plt.xticks(range(len(users)), [user.name for user in users], size='small')
 
     if options.save:
         plt.savefig(options.save)

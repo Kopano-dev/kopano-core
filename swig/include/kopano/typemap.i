@@ -14,9 +14,14 @@
 
 %include "cstring.i"
 %include "cwstring.i"
-%cstring_input_binary(const char *pv, ULONG cb);
-%cstring_input_binary(const void *pv, ULONG cb);
 %cstring_output_allocate_size(char **lpOutput, ULONG *ulRead, MAPIFreeBuffer(*$1));
+
+%typemap(in) (const void *pv, ULONG cb) (int res, char *buf = 0, Py_ssize_t size, int alloc = 0)
+{
+  PyBytes_AsStringAndSize($input, &buf, &size);
+  $1 = %reinterpret_cast(buf, $1_ltype);
+  $2 = %numeric_cast(size, $2_ltype);
+}
 
 // HRESULT
 %include "exception.i"
@@ -119,7 +124,7 @@
 %typemap(argout,fragment="SWIG_FromCharPtrAndSize") (ULONG *OUTPUT, LPENTRYID *OUTPUT)
 {
   if (*$2) {
-    %append_output(SWIG_FromCharPtrAndSize((const char *)*$2,*$1));
+    %append_output(PyBytes_FromStringAndSize((const char *)*$2,*$1));
   }
 }
 %typemap(freearg) (ULONG *OUTPUT, LPENTRYID *OUTPUT) {
@@ -147,7 +152,7 @@
 %typemap(argout,fragment="SWIG_FromCharPtrAndSize") (ULONG *OPTINOUT, LPENTRYID *OPTINOUT)
 {
   if (*$2) {
-    %append_output(SWIG_FromCharPtrAndSize((const char *)*$2,*$1));
+    %append_output(PyBytes_FromStringAndSize((const char *)*$2,*$1));
   }
 }
 %typemap(freearg) (ULONG *OPTINOUT, LPENTRYID *OPTINOUT) {
@@ -218,7 +223,7 @@
 
 %typemap(argout) LPMAPIUID OUTPUT
 {
-	%append_output(SWIG_FromCharPtrAndSize((const char *)$1,sizeof(MAPIUID)));
+	%append_output(PyBytes_FromStringAndSize((const char *)$1,sizeof(MAPIUID)));
 }
 
 // ULONG ulFlags
