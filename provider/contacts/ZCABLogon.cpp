@@ -23,6 +23,7 @@
 #include <kopano/ECDebug.h>
 #include <kopano/ECDebugPrint.h>
 #include <kopano/ECGuid.h>
+#include <kopano/ECInterfaceDefs.h>
 #include "kcore.hpp"
 #include <mapix.h>
 #include <edkmdb.h>
@@ -309,117 +310,16 @@ HRESULT ZCABLogon::PrepareRecips(ULONG ulFlags, LPSPropTagArray lpPropTagArray, 
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT ZCABLogon::xABLogon::QueryInterface(REFIID refiid, void ** lppInterface)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IABLogon::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
-	METHOD_PROLOGUE_(ZCABLogon , ABLogon);
-	HRESULT hr = pThis->QueryInterface(refiid, lppInterface);
-	TRACE_MAPI(TRACE_RETURN, "IABLogon::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-ULONG ZCABLogon::xABLogon::AddRef()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IABLogon::AddRef", "");
-	METHOD_PROLOGUE_(ZCABLogon , ABLogon);
-	return pThis->AddRef();
-}
-
-ULONG ZCABLogon::xABLogon::Release()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IABLogon::Release", "");
-	METHOD_PROLOGUE_(ZCABLogon , ABLogon);
-	ULONG ulRef = pThis->Release();
-	TRACE_MAPI(TRACE_RETURN, "IABLogon::Release", "%d", ulRef);
-	return ulRef;
-}
-
-HRESULT ZCABLogon::xABLogon::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IABLogon::GetLastError", "");
-	METHOD_PROLOGUE_(ZCABLogon , ABLogon);
-	HRESULT hr = pThis->GetLastError(hResult, ulFlags, lppMAPIError);
-	TRACE_MAPI(TRACE_RETURN, "IABLogon::GetLastError", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ZCABLogon::xABLogon::Logoff(ULONG ulFlags)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IABLogon::Logoff", "");
-	METHOD_PROLOGUE_(ZCABLogon, ABLogon);
-	HRESULT hr = pThis->Logoff(ulFlags);
-	TRACE_MAPI(TRACE_RETURN, "IABLogon::Logoff", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ZCABLogon::xABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPUNKNOWN *lppUnk) 
-{
-	TRACE_MAPI(TRACE_ENTRY, "IABLogon::OpenEntry", "cbEntryID=%d, type=%d, id=%d, interface=%s, flags=0x%08X", cbEntryID, ABEID_TYPE(lpEntryID), ABEID_ID(lpEntryID), (lpInterface)?DBGGUIDToString(*lpInterface).c_str():"", ulFlags);
-	METHOD_PROLOGUE_(ZCABLogon, ABLogon);
-	HRESULT hr = pThis->OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
-	TRACE_MAPI(TRACE_RETURN, "IABLogon::OpenEntry", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ZCABLogon::xABLogon::CompareEntryIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2, ULONG ulFlags, ULONG *lpulResult) 
-{
-	TRACE_MAPI(TRACE_ENTRY, "IABLogon::CompareEntryIDs", "flags: %d\nentryid1: %s\nentryid2: %s", ulFlags, bin2hex(cbEntryID1, (BYTE*)lpEntryID1).c_str(), bin2hex(cbEntryID2, (BYTE*)lpEntryID2).c_str());
-	METHOD_PROLOGUE_(ZCABLogon, ABLogon);
-	HRESULT hr = pThis->CompareEntryIDs(cbEntryID1, lpEntryID1, cbEntryID2, lpEntryID2, ulFlags, lpulResult);
-	TRACE_MAPI(TRACE_RETURN, "IABLogon::CompareEntryIDs", "%s, result=%s", GetMAPIErrorDescription(hr).c_str(), (lpulResult)?((*lpulResult == TRUE)?"TRUE":"FALSE") : "NULL");
-	return hr;
-}
-
-HRESULT ZCABLogon::xABLogon::Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection) 
-{
-	TRACE_MAPI(TRACE_ENTRY, "IABLogon::Advise", "");
-	METHOD_PROLOGUE_(ZCABLogon, ABLogon);
-	HRESULT hr = pThis->Advise(cbEntryID, lpEntryID, ulEventMask, lpAdviseSink, lpulConnection);
-	TRACE_MAPI(TRACE_RETURN, "IABLogon::Advise", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ZCABLogon::xABLogon::Unadvise(ULONG ulConnection)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IABLogon::Unadvise", "");
-	METHOD_PROLOGUE_(ZCABLogon, ABLogon);
-	HRESULT hr = pThis->Unadvise(ulConnection);
-	TRACE_MAPI(TRACE_RETURN, "IABLogon::Unadvise", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ZCABLogon::xABLogon::OpenStatusEntry(LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPMAPISTATUS * lppMAPIStatus)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IABLogon::OpenStatusEntry", "");
-	METHOD_PROLOGUE_(ZCABLogon, ABLogon);
-	HRESULT hr = pThis->OpenStatusEntry(lpInterface, ulFlags, lpulObjType, lppMAPIStatus);
-	TRACE_MAPI(TRACE_RETURN, "IABLogon::OpenStatusEntry", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ZCABLogon::xABLogon::OpenTemplateID(ULONG cbTemplateID, LPENTRYID lpTemplateID, ULONG ulTemplateFlags, LPMAPIPROP lpMAPIPropData, LPCIID lpInterface, LPMAPIPROP * lppMAPIPropNew, LPMAPIPROP lpMAPIPropSibling)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IABLogon::OpenTemplateID", "");
-	METHOD_PROLOGUE_(ZCABLogon, ABLogon);
-	HRESULT hr = pThis->OpenTemplateID(cbTemplateID, lpTemplateID, ulTemplateFlags, lpMAPIPropData, lpInterface, lppMAPIPropNew, lpMAPIPropSibling);
-	TRACE_MAPI(TRACE_RETURN, "IABLogon::OpenTemplateID", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ZCABLogon::xABLogon::GetOneOffTable(ULONG ulFlags, LPMAPITABLE * lppTable)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IABLogon::GetOneOffTable", "flags=0x%08X", ulFlags);
-	METHOD_PROLOGUE_(ZCABLogon, ABLogon);
-	HRESULT hr = pThis->GetOneOffTable(ulFlags, lppTable);
-	TRACE_MAPI(TRACE_RETURN, "IABLogon::GetOneOffTable", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ZCABLogon::xABLogon::PrepareRecips(ULONG ulFlags, LPSPropTagArray lpPropTagArray, LPADRLIST lpRecipList)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IABLogon::PrepareRecips", "flags=0x%08X, PropTagArray=%s\nin=%s", ulFlags, PropNameFromPropTagArray(lpPropTagArray).c_str(), RowSetToString((LPSRowSet)lpRecipList).c_str());
-	METHOD_PROLOGUE_(ZCABLogon, ABLogon);
-	HRESULT hr = pThis->PrepareRecips(ulFlags, lpPropTagArray, lpRecipList);
-	TRACE_MAPI(TRACE_RETURN, "IABLogon::PrepareRecips", "%s\nout=%s", GetMAPIErrorDescription(hr).c_str(), RowSetToString((LPSRowSet)lpRecipList).c_str() );
-	return hr;
-}
+DEF_HRMETHOD1(TRACE_MAPI, ZCABLogon, ABLogon, QueryInterface, (REFIID, refiid), (void **, lppInterface))
+DEF_ULONGMETHOD1(TRACE_MAPI, ZCABLogon, ABLogon, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ZCABLogon, ABLogon, Release, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ZCABLogon, ABLogon, GetLastError, (HRESULT, hResult), (ULONG, ulFlags), (LPMAPIERROR *, lppMAPIError))
+DEF_HRMETHOD1(TRACE_MAPI, ZCABLogon, ABLogon, Logoff, (ULONG, ulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ZCABLogon, ABLogon, OpenEntry, (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (LPCIID, lpInterface), (ULONG, ulFlags), (ULONG *, lpulObjType), (LPUNKNOWN *, lppUnk))
+DEF_HRMETHOD1(TRACE_MAPI, ZCABLogon, ABLogon, CompareEntryIDs, (ULONG, cbEntryID1), (LPENTRYID, lpEntryID1), (ULONG, cbEntryID2), (LPENTRYID, lpEntryID2), (ULONG, ulFlags), (ULONG *, lpulResult))
+DEF_HRMETHOD1(TRACE_MAPI, ZCABLogon, ABLogon, Advise, (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (ULONG, ulEventMask), (LPMAPIADVISESINK, lpAdviseSink), (ULONG *, lpulConnection))
+DEF_HRMETHOD1(TRACE_MAPI, ZCABLogon, ABLogon, Unadvise, (ULONG, ulConnection))
+DEF_HRMETHOD1(TRACE_MAPI, ZCABLogon, ABLogon, OpenStatusEntry, (LPCIID, lpInterface), (ULONG, ulFlags), (ULONG *, lpulObjType), (LPMAPISTATUS *, lppMAPIStatus))
+DEF_HRMETHOD1(TRACE_MAPI, ZCABLogon, ABLogon, OpenTemplateID, (ULONG, cbTemplateID), (LPENTRYID, lpTemplateID), (ULONG, ulTemplateFlags), (LPMAPIPROP, lpMAPIPropData), (LPCIID, lpInterface), (LPMAPIPROP *, lppMAPIPropNew), (LPMAPIPROP, lpMAPIPropSibling))
+DEF_HRMETHOD1(TRACE_MAPI, ZCABLogon, ABLogon, GetOneOffTable, (ULONG, ulFlags), (LPMAPITABLE *, lppTable))
+DEF_HRMETHOD1(TRACE_MAPI, ZCABLogon, ABLogon, PrepareRecips, (ULONG, ulFlags), (LPSPropTagArray, lpPropTagArray), (LPADRLIST, lpRecipList))

@@ -24,6 +24,7 @@
 #include <mapiguid.h>
 
 #include <kopano/ECGuid.h>
+#include <kopano/ECInterfaceDefs.h>
 #include <kopano/ECDebug.h>
 #include <kopano/Trace.h>
 
@@ -102,43 +103,8 @@ exit:
 	return hr;
 }
 
-ULONG ZCABProvider::xABProvider::AddRef()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IABProvider::AddRef", "");
-	METHOD_PROLOGUE_(ZCABProvider, ABProvider);
-	return pThis->AddRef();
-}
-
-ULONG ZCABProvider::xABProvider::Release()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IABProvider::Release", "");
-	METHOD_PROLOGUE_(ZCABProvider, ABProvider);
-	return pThis->Release();
-}
-
-HRESULT ZCABProvider::xABProvider::QueryInterface(REFIID refiid, void **lppInterface)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IABProvider::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
-	METHOD_PROLOGUE_(ZCABProvider , ABProvider);
-	HRESULT hr = pThis->QueryInterface(refiid, lppInterface);
-	TRACE_MAPI(TRACE_RETURN, "IABProvider::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ZCABProvider::xABProvider::Shutdown(ULONG * lpulFlags)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IABProvider::Shutdown", "");
-	METHOD_PROLOGUE_(ZCABProvider, ABProvider);
-	HRESULT hr = pThis->Shutdown(lpulFlags);
-	TRACE_MAPI(TRACE_RETURN, "IABProvider::Shutdown", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ZCABProvider::xABProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG ulFlags, ULONG * lpulcbSecurity, LPBYTE * lppbSecurity, LPMAPIERROR * lppMAPIError, LPABLOGON * lppABLogon)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IABProvider::Logon", "");
-	METHOD_PROLOGUE_(ZCABProvider, ABProvider);
-	HRESULT hr = pThis->Logon(lpMAPISup, ulUIParam, lpszProfileName, ulFlags, lpulcbSecurity, lppbSecurity, lppMAPIError, lppABLogon);
-	TRACE_MAPI(TRACE_RETURN, "IABProvider::Logon", "%s", GetMAPIErrorDescription(hr).c_str());
-	return  hr;
-}
+DEF_ULONGMETHOD1(TRACE_MAPI, ZCABProvider, ABProvider, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ZCABProvider, ABProvider, Release, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ZCABProvider, ABProvider, QueryInterface, (REFIID, refiid), (void **, lppInterface))
+DEF_HRMETHOD1(TRACE_MAPI, ZCABProvider, ABProvider, Shutdown, (ULONG *, lpulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ZCABProvider, ABProvider, Logon, (LPMAPISUP, lpMAPISup), (ULONG, ulUIParam), (LPTSTR, lpszProfileName), (ULONG, ulFlags), (ULONG *, lpulcbSecurity), (LPBYTE *, lppbSecurity), (LPMAPIERROR *, lppMAPIError), (LPABLOGON *, lppABLogon))

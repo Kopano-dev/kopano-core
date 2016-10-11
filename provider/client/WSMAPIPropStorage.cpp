@@ -17,6 +17,7 @@
 #include "WSMAPIPropStorage.h"
 #include "Mem.h"
 #include <kopano/ECGuid.h>
+#include <kopano/ECInterfaceDefs.h>
 #include "SOAPUtils.h"
 #include "WSUtil.h"
 #include <kopano/Util.h>
@@ -659,59 +660,15 @@ HRESULT WSMAPIPropStorage::Reload(void *lpParam, ECSESSIONID sessionId) {
 }
 
 // Interface IECPropStorage
-ULONG WSMAPIPropStorage::xECPropStorage::AddRef()
-{
-	METHOD_PROLOGUE_(WSMAPIPropStorage, ECPropStorage);
-	return pThis->AddRef();
-}
-
-ULONG WSMAPIPropStorage::xECPropStorage::Release()
-{
-	METHOD_PROLOGUE_(WSMAPIPropStorage, ECPropStorage);
-	return pThis->Release();
-}
-
-HRESULT WSMAPIPropStorage::xECPropStorage::QueryInterface(REFIID refiid , void** lppInterface)
-{
-	METHOD_PROLOGUE_(WSMAPIPropStorage, ECPropStorage);
-	return pThis->QueryInterface(refiid, lppInterface);
-}
-
-HRESULT WSMAPIPropStorage::xECPropStorage::HrReadProps(LPSPropTagArray *lppPropTags,ULONG *cValues, LPSPropValue *lppValues)
-{
-	METHOD_PROLOGUE_(WSMAPIPropStorage, ECPropStorage);
-	return pThis->HrReadProps(lppPropTags,cValues, lppValues);
-}
-			
-HRESULT WSMAPIPropStorage::xECPropStorage::HrLoadProp(ULONG ulObjId, ULONG ulPropTag, LPSPropValue *lppsPropValue)
-{
-	METHOD_PROLOGUE_(WSMAPIPropStorage, ECPropStorage);
-	return pThis->HrLoadProp(ulObjId, ulPropTag, lppsPropValue);
-}
-
-HRESULT WSMAPIPropStorage::xECPropStorage::HrWriteProps(ULONG cValues, LPSPropValue lpValues, ULONG ulFlags)
-{
-	METHOD_PROLOGUE_(WSMAPIPropStorage, ECPropStorage);
-	return pThis->HrWriteProps(cValues, lpValues, ulFlags);
-}	
-
-HRESULT WSMAPIPropStorage::xECPropStorage::HrDeleteProps(LPSPropTagArray lpsPropTagArray)
-{
-	METHOD_PROLOGUE_(WSMAPIPropStorage, ECPropStorage);
-	return pThis->HrDeleteProps(lpsPropTagArray);
-}
-
-HRESULT WSMAPIPropStorage::xECPropStorage::HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject)
-{
-	METHOD_PROLOGUE_(WSMAPIPropStorage, ECPropStorage);
-	return pThis->HrSaveObject(ulFlags, lpsMapiObject);
-}
-
-HRESULT WSMAPIPropStorage::xECPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
-{
-	METHOD_PROLOGUE_(WSMAPIPropStorage, ECPropStorage);
-	return pThis->HrLoadObject(lppsMapiObject);
-}
+DEF_ULONGMETHOD0(WSMAPIPropStorage, ECPropStorage, AddRef, (void))
+DEF_ULONGMETHOD0(WSMAPIPropStorage, ECPropStorage, Release, (void))
+DEF_HRMETHOD0(WSMAPIPropStorage, ECPropStorage, QueryInterface, (REFIID, refiid), (void **, lppInterface))
+DEF_HRMETHOD0(WSMAPIPropStorage, ECPropStorage, HrReadProps, (LPSPropTagArray *, lppPropTags), (ULONG *, cValues), (LPSPropValue *, lppValues))
+DEF_HRMETHOD0(WSMAPIPropStorage, ECPropStorage, HrLoadProp, (ULONG, ulObjId), (ULONG, ulPropTag), (LPSPropValue *, lppsPropValue))
+DEF_HRMETHOD0(WSMAPIPropStorage, ECPropStorage, HrWriteProps, (ULONG, cValues), (LPSPropValue, lpValues), (ULONG, ulFlags))
+DEF_HRMETHOD0(WSMAPIPropStorage, ECPropStorage, HrDeleteProps, (LPSPropTagArray, lpsPropTagArray))
+DEF_HRMETHOD0(WSMAPIPropStorage, ECPropStorage, HrSaveObject, (ULONG, ulFlags), (MAPIOBJECT *, lpsMapiObject))
+DEF_HRMETHOD0(WSMAPIPropStorage, ECPropStorage, HrLoadObject, (MAPIOBJECT **, lppsMapiObject))
 
 IECPropStorage* WSMAPIPropStorage::xECPropStorage::GetServerStorage()
 {
