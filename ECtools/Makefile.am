@@ -201,6 +201,6 @@ EXTRA_libkcarchivercore_la_DEPENDENCIES = \
 mapitime_SOURCES = mapitime.cpp
 mapitime_LDADD = -lrt ${top_builddir}/mapi4linux/src/libmapi.la \
 	${top_builddir}/common/libkcmapi.la \
-	${top_builddir}/common/libkcutil.la
+	${top_builddir}/common/libkcutil.la ${icu_uc_LIBS}
 
 include ../global.am
