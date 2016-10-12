@@ -1340,35 +1340,34 @@ HRESULT M4LMAPISession::OpenAddressBook(ULONG ulUIParam, LPCIID lpInterface, ULO
 		if (serv->service->ABProviderInit() == NULL)
 			continue;
 
-		if (serv->service->ABProviderInit()(0, NULL, MAPIAllocateBuffer, MAPIAllocateMore, MAPIFreeBuffer, ulFlags, CURRENT_SPI_VERSION, &abver, &lpABProvider) == hrSuccess) {
-			std::vector<SVCProvider *> vABProviders = serv->service->GetProviders();
-			LPSPropValue lpProps;
-			ULONG cValues;
-			for (const auto prov : vABProviders) {
-				LPSPropValue lpUID;
-				LPSPropValue lpProp;
-				std::string strDisplayName = "<unknown>";
-				prov->GetProps(&cValues, &lpProps);
-
-				lpProp = PpropFindProp(lpProps, cValues, PR_RESOURCE_TYPE);
-				lpUID = PpropFindProp(lpProps, cValues, PR_AB_PROVIDER_ID);
-				if (!lpUID || !lpProp || lpProp->Value.ul != MAPI_AB_PROVIDER)
-					continue;
-
-				lpProp = PpropFindProp(lpProps, cValues, PR_DISPLAY_NAME_A);
-				if (lpProp)
-					strDisplayName = lpProp->Value.lpszA;
-
-				if (myAddrBook->addProvider(profileName, strDisplayName, (LPMAPIUID)lpUID->Value.bin.lpb, lpABProvider) != hrSuccess)
-					hr = MAPI_W_ERRORS_RETURNED;
-			}
-
-			// lpAddrBook has the ref, not us
-			lpABProvider->Release();
-			lpABProvider = NULL;
-		} else {
+		if (serv->service->ABProviderInit()(0, NULL, MAPIAllocateBuffer, MAPIAllocateMore, MAPIFreeBuffer, ulFlags, CURRENT_SPI_VERSION, &abver, &lpABProvider) != hrSuccess) {
 			hr = MAPI_W_ERRORS_RETURNED;
+			continue;
 		}
+		std::vector<SVCProvider *> vABProviders = serv->service->GetProviders();
+		LPSPropValue lpProps;
+		ULONG cValues;
+		for (const auto prov : vABProviders) {
+			LPSPropValue lpUID;
+			LPSPropValue lpProp;
+			std::string strDisplayName = "<unknown>";
+			prov->GetProps(&cValues, &lpProps);
+
+			lpProp = PpropFindProp(lpProps, cValues, PR_RESOURCE_TYPE);
+			lpUID = PpropFindProp(lpProps, cValues, PR_AB_PROVIDER_ID);
+			if (!lpUID || !lpProp || lpProp->Value.ul != MAPI_AB_PROVIDER)
+				continue;
+
+			lpProp = PpropFindProp(lpProps, cValues, PR_DISPLAY_NAME_A);
+			if (lpProp)
+				strDisplayName = lpProp->Value.lpszA;
+
+			if (myAddrBook->addProvider(profileName, strDisplayName, (LPMAPIUID)lpUID->Value.bin.lpb, lpABProvider) != hrSuccess)
+				hr = MAPI_W_ERRORS_RETURNED;
+		}
+		// lpAddrBook got a ref in addProvider, drop this function's
+		lpABProvider->Release();
+		lpABProvider = NULL;
 	}
 
 exit:
