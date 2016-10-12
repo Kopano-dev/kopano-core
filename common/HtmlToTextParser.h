@@ -22,8 +22,7 @@
 #include <map>
 #include <stack>
 
-class CHtmlToTextParser _zcp_final
-{
+class CHtmlToTextParser _kc_final {
 public:
 	CHtmlToTextParser(void);
 	bool Parse(const WCHAR *lpwHTML);

@@ -33,9 +33,7 @@ class ECSession;
 
 #define EC_NO_IMPERSONATOR		((unsigned int)-1)
 
-class ECSecurity  
-{
-
+class ECSecurity {
 public:
 	ECSecurity(ECSession *lpSession, ECConfig *lpConfig, ECLogger *lpAudit);
 	virtual ~ECSecurity();

@@ -33,8 +33,7 @@
 %apply ICLASS *{IFreeBusySupport**, IFreeBusyData**, IFreeBusyUpdate**, IEnumFBBlock**}
 %apply long {time_t}
 
-enum FBStatus
-{
+enum FBStatus {
         fbFree  = 0,                                    /**< Free */
         fbTentative = fbFree + 1,               /**< Tentative */
         fbBusy  = fbTentative + 1,              /**< Busy */
@@ -77,9 +76,7 @@ LPCIID IIDFromType(const char *type)
 }
 %}
   
-
-class IFreeBusyUpdate : public IUnknown
-{
+class IFreeBusyUpdate : public IUnknown {
 public:
         virtual HRESULT Reload() = 0;
         virtual HRESULT PublishFreeBusy(FBBlock_1 *lpBlocks, ULONG nBlocks) = 0;
@@ -108,8 +105,7 @@ public:
         }
 };
 
-class IFreeBusyData  : public IUnknown
-{
+class IFreeBusyData : public IUnknown {
 public:
         virtual HRESULT Reload(void*) = 0;
         virtual HRESULT EnumBlocks(IEnumFBBlock **ppenumfb, FILETIME ftmStart, FILETIME ftmEnd) = 0;
@@ -127,8 +123,7 @@ public:
 
 %feature("notabstract") IFreeBusySupport;
 
-class IFreeBusySupport : public IUnknown
-{
+class IFreeBusySupport : public IUnknown {
 public:
         virtual HRESULT Open(IMAPISession* lpMAPISession, IMsgStore* lpMsgStore, BOOL bStore) = 0;
         virtual HRESULT Close() = 0;

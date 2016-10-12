@@ -22,8 +22,7 @@
 #include <kopano/zcdefs.h>
 #include "WSTableView.h"
 
-class WSStoreTableView : public WSTableView
-{
+class WSStoreTableView : public WSTableView {
 protected:
 	WSStoreTableView(ULONG ulType, ULONG ulFlags, KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, ECMsgStore *, WSTransport *);
 	virtual ~WSStoreTableView(void) {}

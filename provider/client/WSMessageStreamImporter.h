@@ -35,8 +35,7 @@ class WSMessageStreamImporter;
  * This class represents the data sink into which the stream data can be written.
  * It is returned from WSMessageStreamImporter::StartTransfer.
  */
-class WSMessageStreamSink _zcp_final : public ECUnknown
-{
+class WSMessageStreamSink _kc_final : public ECUnknown {
 public:
 	static HRESULT Create(ECFifoBuffer *lpFifoBuffer, ULONG ulTimeout, WSMessageStreamImporter *lpImporter, WSMessageStreamSink **lppSink);
 	HRESULT Write(LPVOID lpData, ULONG cbData);
@@ -60,8 +59,8 @@ typedef mapi_object_ptr<WSMessageStreamSink> WSMessageStreamSinkPtr;
  * data in the returned WSMessageStreamSink. Once the returned stream is deleted, GetAsyncResult can
  * be used to wait for the worker and obtain its return values.
  */
-class WSMessageStreamImporter _zcp_final : public ECUnknown, private ECWaitableTask
-{
+class WSMessageStreamImporter _kc_final :
+    public ECUnknown, private ECWaitableTask {
 public:
 	static HRESULT Create(ULONG ulFlags, ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG cbFolderEntryID, LPENTRYID lpFolderEntryID, bool bNewMessage, LPSPropValue lpConflictItems, WSTransport *lpTransport, WSMessageStreamImporter **lppStreamImporter);
 

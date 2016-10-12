@@ -31,8 +31,7 @@
  * getTrace() - n array of the backtrace()
  * getTraceAsString() - formated string of trace
  */
-class BaseException extends Exception
-{
+class BaseException extends Exception {
 	/**
 	 * Reference of previous exception, only used for PHP < 5.3
 	 * can't use $previous here as its a private variable of parent class

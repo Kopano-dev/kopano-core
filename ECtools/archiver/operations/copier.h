@@ -60,8 +60,7 @@ public:
 	void SetStubOperation(StubberPtr ptrStubOp);
 
 public:
-	class Helper // For lack of a better name
-	{
+	class Helper { // For lack of a better name
 	public:
 		Helper(ArchiverSessionPtr ptrSession, ECLogger *lpLogger, const InstanceIdMapperPtr &ptrMapper, LPSPropTagArray lpExcludeProps, LPMAPIFOLDER lpFolder);
 		~Helper(void);

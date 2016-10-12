@@ -26,8 +26,7 @@
 #include "SSLUtil.h"
 
 /* std::algorithm helper structures/functions */
-struct findSessionGroupId
-{
+struct findSessionGroupId {
 	ECSESSIONGROUPID ecSessionGroupId;
 
 	findSessionGroupId(ECSESSIONGROUPID ecSessionGroupId) : ecSessionGroupId(ecSessionGroupId)

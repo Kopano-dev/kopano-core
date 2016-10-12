@@ -72,8 +72,7 @@ typedef std::map<unsigned int, SEARCHFOLDER *> FOLDERIDSEARCH;
 typedef std::map<unsigned int, FOLDERIDSEARCH> STOREFOLDERIDSEARCH;
 typedef std::map<unsigned int, pthread_t> SEARCHTHREADMAP;
 
-typedef struct tagsSearchFolderStats
-{
+typedef struct tagsSearchFolderStats {
 	ULONG ulStores;
 	ULONG ulFolders;
 	ULONG ulEvents;

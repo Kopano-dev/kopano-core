@@ -18,8 +18,7 @@
 #ifndef ECCLIENTUPDATE_H
 #define ECCLIENTUPDATE_H
 
-struct ClientVersion
-{
+struct ClientVersion {
 	unsigned int nMajorVersion;
 	unsigned int nMinorVersion;
 	unsigned int nUpdateNumber;

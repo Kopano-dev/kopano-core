@@ -119,8 +119,7 @@ public:
 	~ArchiveControlImpl();
 
 private:
-	class ReferenceLessCompare 
-    {
+	class ReferenceLessCompare {
 	public:
 		typedef std::pair<entryid_t, entryid_t> value_type;
 		bool operator()(const value_type &lhs, const value_type &rhs) const

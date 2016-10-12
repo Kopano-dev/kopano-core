@@ -28,8 +28,7 @@
 class WSTransport;
 
 // Indexes of sptaKopanoProfile property array
-enum ePropOurProfileColumns
-{
+enum ePropOurProfileColumns {
 	PZP_EC_PATH,
 	PZP_PR_PROFILE_NAME,
 	PZP_EC_USERNAME_A,
@@ -84,8 +83,7 @@ const static SizedSPropTagArray(NUM_KOPANOPROFILE_PROPS, sptaKopanoProfile) = {
 	}
 };
 
-struct sGlobalProfileProps
-{
+struct sGlobalProfileProps {
 	std::string		strServerPath;
 	std::string		strProfileName;
 	std::wstring		strUserName;

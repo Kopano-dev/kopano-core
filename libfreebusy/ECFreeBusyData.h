@@ -60,8 +60,7 @@ public:
 	virtual HRESULT GetFBPublishRange(LONG *prtmStart, LONG *prtmEnd);
 
 public:
-	class xFreeBusyData _zcp_final : public IFreeBusyData
-	{
+	class xFreeBusyData _kc_final : public IFreeBusyData {
 		public:
 			// From IUnknown
 			virtual HRESULT __stdcall QueryInterface(REFIID refiid , void **lppInterface) _zcp_override;

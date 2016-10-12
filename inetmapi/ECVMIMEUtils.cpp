@@ -42,8 +42,7 @@
 
 using namespace std;
 
-class mapiTimeoutHandler : public vmime::net::timeoutHandler
-{
+class mapiTimeoutHandler : public vmime::net::timeoutHandler {
 public:
 	mapiTimeoutHandler() : m_last(0) {};
 	virtual ~mapiTimeoutHandler() {};
@@ -61,8 +60,7 @@ private:
 	unsigned int m_last;
 };
 
-class mapiTimeoutHandlerFactory : public vmime::net::timeoutHandlerFactory
-{
+class mapiTimeoutHandlerFactory : public vmime::net::timeoutHandlerFactory {
 public:
 	vmime::ref<vmime::net::timeoutHandler> create() {
 		return vmime::create<mapiTimeoutHandler>();

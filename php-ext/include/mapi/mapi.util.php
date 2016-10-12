@@ -22,8 +22,7 @@
 /**
  * Function to make a MAPIGUID from a php string. 
  * The C++ definition for the GUID is: 
- *  typedef struct _GUID 
- *  { 
+ *  typedef struct _GUID {
  *   unsigned long        Data1; 
  *   unsigned short       Data2; 
  *   unsigned short       Data3; 

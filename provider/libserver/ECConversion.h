@@ -19,15 +19,13 @@
 #define ECCONVERSION_H
 
 /* entryList */
-struct entryList52X
-{
+struct entryList52X {
 	unsigned int __size;	/* sequence of elements <item> */
 	unsigned int *__ptr;
 };
 
 /* searchCriteria */
-struct searchCriteria52X
-{
+struct searchCriteria52X {
 	struct restrictTable *lpRestrict;	/* optional element of type restrictTable */
 	struct entryList52X *lpFolders;	/* optional element of type entryList */
 	unsigned int ulFlags;	/* required element of type xsd:unsignedInt */

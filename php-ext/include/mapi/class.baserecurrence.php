@@ -23,8 +23,7 @@
 	 * this class is superclass for recurrence for appointments and tasks. This class provides all
 	 * basic features of recurrence.
 	 */
-	class BaseRecurrence
-	{
+	class BaseRecurrence {
 		/**
 		 * @var object Mapi Message Store (may be null if readonly)
 		 */

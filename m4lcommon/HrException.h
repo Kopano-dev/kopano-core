@@ -21,8 +21,7 @@
 #include <kopano/zcdefs.h>
 #include <exception>
 
-class HrException _zcp_final : public std::runtime_error
-{
+class HrException _kc_final : public std::runtime_error {
 public:
 	HrException(HRESULT hr, const std::string &message = std::string()): std::runtime_error(message), m_hr(hr) {}
 	HRESULT hr() const { return m_hr; }

@@ -29,9 +29,7 @@
 
 class ECMsgStore;
 
-
-class ECMAPIProp : public ECGenericProp
-{
+class ECMAPIProp : public ECGenericProp {
 protected:
 	ECMAPIProp(void *lpProvider, ULONG ulObjType, BOOL fModify, ECMAPIProp *lpRoot, const char *szClassName = NULL);
 	virtual ~ECMAPIProp();

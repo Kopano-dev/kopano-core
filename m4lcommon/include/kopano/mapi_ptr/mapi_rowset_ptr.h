@@ -80,9 +80,7 @@ namespace details {
 	};
 }
 
-template<typename _T>
-class mapi_rowset_ptr
-{
+template<typename _T> class mapi_rowset_ptr {
 public:
 	typedef unsigned	size_type;
 	typedef _T*			pointer;

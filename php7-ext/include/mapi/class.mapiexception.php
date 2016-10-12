@@ -24,8 +24,7 @@
 	 * any error occurs in mapi calls. this exception will only be thrown when severity bit is set in
 	 * error code that means it will be thrown only for mapi errors not for mapi warnings.
 	 */
-	class MAPIException extends BaseException
-	{
+	class MAPIException extends BaseException {
 		/**
 		 * Function will return display message of exception if its set by the calle.
 		 * if it is not set then we are generating some default display messages based

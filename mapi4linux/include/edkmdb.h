@@ -858,8 +858,7 @@ public:
 	virtual HRESULT __stdcall IsAttachmentBlocked(LPCWSTR pwszFileName, BOOL *pfBlocked) = 0;
 };
 
-typedef struct _ReadState
-{
+typedef struct _ReadState {
 	ULONG		cbSourceKey;
 	BYTE	*	pbSourceKey;
 	ULONG		ulFlags;

@@ -33,8 +33,7 @@ class ECConfig;
 class ECLogger;
 class zcp_versiontuple;
 
-class ECDatabaseMySQL _zcp_final : public ECDatabase
-{
+class ECDatabaseMySQL _kc_final : public ECDatabase {
 public:
 	ECDatabaseMySQL(ECConfig *lpConfig);
 	virtual ~ECDatabaseMySQL();

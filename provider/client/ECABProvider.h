@@ -21,9 +21,7 @@
 #include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
 
-
-class ECABProvider : public ECUnknown 
-{
+class ECABProvider : public ECUnknown {
 protected:
 	ECABProvider(ULONG ulFlags, const char *szClassName);
 	virtual ~ECABProvider(void) {}

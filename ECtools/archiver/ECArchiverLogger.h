@@ -22,8 +22,7 @@
 #include <kopano/ECLogger.h>
 #include <kopano/tstring.h>
 
-class ECArchiverLogger : public ECLogger
-{
+class ECArchiverLogger : public ECLogger {
 public:
 	ECArchiverLogger(ECLogger *lpLogger);
 	~ECArchiverLogger();

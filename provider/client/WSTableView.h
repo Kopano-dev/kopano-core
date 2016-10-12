@@ -14,11 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-/*
-	class WSTableView
-*/
-
 #ifndef WSTABLEVIEW_H
 #define WSTABLEVIEW_H
 
@@ -34,8 +29,7 @@ class WSTransport;
 
 typedef HRESULT (*RELOADCALLBACK)(void *lpParam);
 
-class WSTableView : public ECUnknown
-{
+class WSTableView : public ECUnknown {
 protected:
 	WSTableView(ULONG ulType, ULONG ulFlags, KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, WSTransport *, const char *szClassName = NULL);
 	virtual ~WSTableView();

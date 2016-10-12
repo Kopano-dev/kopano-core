@@ -37,8 +37,7 @@ template<typename T> static int twcmp(T a, T b)
 	return (a < b) ? -1 : (a == b) ? 0 : 1;
 }
 
-class MVPropProxy
-{
+class MVPropProxy {
 public:
 	MVPropProxy(struct propVal *lpMVProp): m_lpMVProp(lpMVProp)
 	{ }

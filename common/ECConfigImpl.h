@@ -42,8 +42,7 @@ struct settingkey_t {
 	unsigned short ulGroup;
 };
 
-struct settingcompare
-{
+struct settingcompare {
 	bool operator()(const settingkey_t &a, const settingkey_t &b) const
 	{
 		return strcmp(a.s, b.s) < 0;

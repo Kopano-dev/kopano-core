@@ -32,8 +32,7 @@
 /**
  * @brief	Exception class
  */
-class convert_exception : public std::runtime_error
-{
+class convert_exception : public std::runtime_error {
 public:
 	enum exception_type {
 		eUnknownCharset,
@@ -72,8 +71,7 @@ namespace details {
 	/** 
 	 * @brief	Performs the generic iconv processing.
 	 */
-	class iconv_context_base
-	{
+	class iconv_context_base {
 	public:
 		/**
 		 * @brief Destructor.
@@ -123,8 +121,7 @@ namespace details {
 	 * @brief	Default converter from one charset to another with string types.
 	 */
 	template <typename _To_Type, typename _From_Type>
-	class iconv_context _zcp_final : public iconv_context_base
-	{
+	class iconv_context _kc_final : public iconv_context_base {
 	public:
 		/**
 		 * @brief Contructor.

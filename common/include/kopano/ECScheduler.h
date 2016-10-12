@@ -35,8 +35,7 @@ enum eSchedulerType{
 	SCHEDULE_MONTH
 };
 
-typedef struct tagSchedule
-{
+typedef struct tagSchedule {
 	eSchedulerType	eType;
 	unsigned int	ulBeginCycle;
 	time_t			tLastRunTime;

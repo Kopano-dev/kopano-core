@@ -30,8 +30,7 @@ class IStream;
 #define STR_DEF_TIMEOUT 600000
 #endif
 
-class ECSerializer
-{
+class ECSerializer {
 public:
 	virtual ~ECSerializer() {};
 
@@ -46,8 +45,7 @@ public:
 	virtual ECRESULT Stat(ULONG *lpulRead, ULONG *lpulWritten) = 0;
 };
 
-class ECStreamSerializer _zcp_final : public ECSerializer
-{
+class ECStreamSerializer _kc_final : public ECSerializer {
 public:
 	ECStreamSerializer(IStream *lpBuffer);
 	ECRESULT SetBuffer(void *lpBuffer) _zcp_override;
@@ -63,8 +61,7 @@ private:
 	ULONG m_ulWritten;
 };
 
-class ECFifoSerializer _zcp_final : public ECSerializer
-{
+class ECFifoSerializer _kc_final : public ECSerializer {
 public:
 	enum eMode { serialize, deserialize };
 

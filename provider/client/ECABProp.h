@@ -25,8 +25,7 @@
 #include "ECABLogon.h"
 #include "WSTransport.h"
 
-class ECABProp : public ECGenericProp  
-{
+class ECABProp : public ECGenericProp {
 protected:
 	ECABProp(void* lpProvider, ULONG ulObjType, BOOL fModify, const char *szClassName = NULL);
 	virtual ~ECABProp(void) {}

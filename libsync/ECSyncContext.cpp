@@ -49,8 +49,7 @@ typedef mapi_object_ptr<IECChangeAdviseSink, IID_IECChangeAdviseSink> ECChangeAd
 #define EC_SYNC_STATUS_VERSION			1
 
 #define CALL_MEMBER_FN(object,ptrToMember)  ((object).*(ptrToMember))
-class ECChangeAdviseSink _zcp_final : public ECUnknown
-{
+class ECChangeAdviseSink _kc_final : public ECUnknown {
 public:
 	typedef ULONG(ECSyncContext::*NOTIFYCALLBACK)(ULONG,LPENTRYLIST);
 

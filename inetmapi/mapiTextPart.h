@@ -51,10 +51,7 @@
 
 #include "vmime/contentHandler.hpp"
 
-
-namespace vmime
-{
-
+namespace vmime {
 
 /** Text part of type 'text/html'.
   */
@@ -86,8 +83,7 @@ public:
 
 	/** Embedded object (eg: image for &lt;IMG> tag).
 	  */
-	class embeddedObject : public object
-	{
+	class embeddedObject _kc_final : public object {
 	public:
 
 		embeddedObject(ref <contentHandler> data, const encoding& enc,

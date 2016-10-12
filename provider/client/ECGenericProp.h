@@ -52,8 +52,7 @@ typedef ECPropCallBackMap::iterator				ECPropCallBackIterator;
 typedef std::map<short, ECPropertyEntry>		ECPropertyEntryMap;
 typedef ECPropertyEntryMap::iterator			ECPropertyEntryIterator;
 
-class ECGenericProp : public ECUnknown
-{
+class ECGenericProp : public ECUnknown {
 protected:
 	ECGenericProp(void *lpProvider, ULONG ulObjType, BOOL fModify, const char *szClassName = NULL);
 	virtual ~ECGenericProp();

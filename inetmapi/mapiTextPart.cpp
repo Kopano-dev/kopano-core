@@ -52,8 +52,7 @@
 #include "vmime/emptyContentHandler.hpp"
 #include "vmime/stringContentHandler.hpp"
 
-namespace vmime
-{
+namespace vmime {
 
 	/** Create a new object and return a reference to it.
 	 * vmime only goes as far as p4... 

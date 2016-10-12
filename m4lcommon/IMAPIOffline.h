@@ -42,9 +42,7 @@
 #define MAPIOFFLINE_STATE_OFFLINE				0x00000001  
 #define MAPIOFFLINE_STATE_ONLINE				0x00000002 
 
-
-typedef enum 
-{ 
+typedef enum { 
      MAPIOFFLINE_CALLBACK_TYPE_NOTIFY = 0
 } MAPIOFFLINE_CALLBACK_TYPE;
 
@@ -56,8 +54,7 @@ typedef enum {
 	MAPIOFFLINE_NOTIFY_TYPE_STATECHANGE_DONE = 3 
 } MAPIOFFLINE_NOTIFY_TYPE;
 
-typedef struct
-{
+typedef struct {
 	ULONG				ulSize;					// The size of MAPIOFFLINE_ADVISEINFO
 	ULONG				ulClientToken;			// A token defined by the client about a callback. It is the ulClientToken member of the MAPIOFFLINE_NOTIFY structure passed to IMAPIOfflineNotify::Notify.
 	MAPIOFFLINE_CALLBACK_TYPE	CallbackType;	// Type of callback to make.
@@ -66,14 +63,12 @@ typedef struct
 	ULONG				ulStateMask;			// The only supported state is MAPIOFFLINE_STATE_ALL
 } MAPIOFFLINE_ADVISEINFO;
 
-typedef struct 
-{
+typedef struct {
 	ULONG ulSize;								// Size of the MAPIOFFLINE_NOTIFY structure.		
 	MAPIOFFLINE_NOTIFY_TYPE NotifyType;			// Type of notification
 	ULONG ulClientToken;						// A token defined by the client in the MAPIOFFLINE_ADVISEINFO structure in IMAPIOfflineMgr::Advise
 	union {
-		struct
-		{
+		struct {
 			ULONG ulMask;						// The part of the connection state that has changed.
 			ULONG ulStateOld;					// The old connection state
 			ULONG ulStateNew;					// The new connection state
@@ -93,8 +88,7 @@ Interface identifier: IID_IMAPIOffline
 Remarks:
 The client must implement this interface and pass a pointer to it as a member in MAPIOFFLINE_ADVISEINFO when setting up callbacks using IMAPIOfflineMgr::Advise. Subsequently, Outlook will be able to use this interface to send notification callbacks to the client.
 */
-class IMAPIOffline : public IUnknown
-{
+class IMAPIOffline : public IUnknown {
 public:
 	/*
 	Sets the current state of an offline object to online or offline.
@@ -178,9 +172,7 @@ Interface identifier: IID_IMAPIOfflineNotify
 Remarks:
 The client must implement this interface and pass a pointer to it as a member in MAPIOFFLINE_ADVISEINFO when setting up callbacks using IMAPIOfflineMgr::Advise. Subsequently, Outlook will be able to use this interface to send notification callbacks to the client.
 */
-
-class IMAPIOfflineNotify : public IUnknown
-{
+class IMAPIOfflineNotify : public IUnknown {
 public:
 	/*
 	Sends notifications to the client about changes in connection state.
@@ -223,8 +215,7 @@ Remarks:
 	offline object (by calling IMAPIOffline::GetCapabilities), and choose to set up callbacks (by using IMAPIOfflineMgr::Advise).
 
 */
-class IMAPIOfflineMgr : public IMAPIOffline
-{
+class IMAPIOfflineMgr : public IMAPIOffline {
 public:
 	/*
 	Registers a client to receive callbacks on an offline object.

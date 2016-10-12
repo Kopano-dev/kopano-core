@@ -18,8 +18,7 @@
 #pragma once
 #include <kopano/zcdefs.h>
 
-class CHtmlEntity _zcp_final
-{
+class CHtmlEntity _kc_final {
 public:
 	static WCHAR toChar( const WCHAR *name );
 	static const WCHAR *toName( WCHAR c );

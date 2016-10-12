@@ -20,8 +20,7 @@
 <?php
 	require_once("class.baserecurrence.php");
 
-	class TaskRecurrence extends BaseRecurrence
-	{
+	class TaskRecurrence extends BaseRecurrence {
 		/**
 		 * Timezone info which is always false for task
 		 */

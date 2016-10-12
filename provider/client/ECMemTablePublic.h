@@ -24,8 +24,7 @@
 
 #include <mapidefs.h>
 
-class ECMemTablePublic _zcp_final : public ECMemTable
-{
+class ECMemTablePublic _kc_final : public ECMemTable {
 public:
 	typedef struct _sRelation {
 		unsigned int ulRowID;

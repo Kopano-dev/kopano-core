@@ -35,8 +35,7 @@ typedef unsigned int	DB_ERROR;
 
 
 // Abstract base class for databases
-class ECDatabase
-{
+class ECDatabase {
 protected:
 	std::string error;
 	bool m_bForceUpdate;

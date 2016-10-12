@@ -110,9 +110,7 @@ typedef struct MAPIOBJECT {
 
 typedef std::set<MAPIOBJECT*, MAPIOBJECT::CompareMAPIOBJECT>	ECMapiObjects;
 
-
-class IECPropStorage : public IECUnknown
-{
+class IECPropStorage : public IECUnknown {
 public:
 	// Get a list of the properties
 	virtual HRESULT HrReadProps(LPSPropTagArray *lppPropTags,ULONG *cValues, LPSPropValue *ppValues) = 0;

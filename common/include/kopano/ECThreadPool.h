@@ -95,8 +95,7 @@ inline unsigned ECThreadPool::threadCount() const {
  * has a free worker and all previously queued tasks have been processed. There's
  * no way of knowing when the task is done.
  */
-class ECTask
-{
+class ECTask {
 public:
 	virtual ~ECTask(void) {};
 	virtual void execute();
@@ -133,8 +132,7 @@ inline bool ECTask::dispatchOn(ECThreadPool *lpThreadPool, bool bTransferOwnersh
  * derived object. It's similar to an ECTask, but one can wait for the task
  * to be finished.
  */
-class ECWaitableTask : public ECTask
-{
+class ECWaitableTask : public ECTask {
 public:
 	static const unsigned WAIT_INFINITE = (unsigned)-1;
 	
@@ -175,8 +173,7 @@ inline bool ECWaitableTask::done() const {
  * To call a function with more than one argument boost::bind can be used.
  */
 template<typename _Rt, typename _Fn, typename _At>
-class ECDeferredFunc _zcp_final : public ECWaitableTask
-{
+class ECDeferredFunc _kc_final : public ECWaitableTask {
 public:
 	/**
 	 * Construct an ECDeferredFunc instance.

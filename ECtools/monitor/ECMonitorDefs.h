@@ -21,8 +21,7 @@
 #include <kopano/ECLogger.h>
 #include <kopano/ECConfig.h>
 
-typedef struct _sECMonitor
-{
+typedef struct _sECMonitor {
 	ECLogger*		lpLogger;
 	ECConfig*		lpConfig;
 	bool			bShutdown;

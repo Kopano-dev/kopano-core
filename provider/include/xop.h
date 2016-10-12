@@ -68,8 +68,8 @@ A commercial use license is available from Genivia, Inc., contact@genivia.com
 
 //gsoap xop schema import: http://www.w3.org/2004/08/xop/include
 
-struct _xop__Include
-{ unsigned char *__ptr;
+struct _xop__Include {
+  unsigned char *__ptr;
   int __size;
   char *id;
   char *type;

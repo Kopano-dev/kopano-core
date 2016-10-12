@@ -68,8 +68,7 @@ static HRESULT GetMailboxDataPerServer(const char *lpszPath, const char *lpSSLKe
 static HRESULT GetMailboxDataPerServer(IMAPISession *lpSession, const char *lpszPath, DataCollector *lpCollector);
 static HRESULT UpdateServerList(IABContainer *lpContainer, std::set<servername> &listServers);
 
-class UserCountCollector _zcp_final : public DataCollector
-{
+class UserCountCollector _kc_final : public DataCollector {
 public:
 	UserCountCollector();
 	virtual HRESULT CollectData(LPMAPITABLE lpStoreTable) _zcp_override;
@@ -80,8 +79,7 @@ private:
 };
 
 template <typename string_type, ULONG prAccount>
-class UserListCollector _zcp_final : public DataCollector
-{
+class UserListCollector _kc_final : public DataCollector {
 public:
 	UserListCollector(IMAPISession *lpSession);
 

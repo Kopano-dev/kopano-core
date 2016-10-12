@@ -28,8 +28,7 @@
 #include "ECSessionManager.h"
 #include "SOAPUtils.h"
 
-class FindChangeAdvise
-{
+class FindChangeAdvise {
 public:
 	FindChangeAdvise(ECSESSIONID ulSession, unsigned int ulConnection)
 		: m_ulSession(ulSession)

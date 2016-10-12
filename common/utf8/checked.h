@@ -48,8 +48,7 @@ DEALINGS IN THE SOFTWARE.
 #include "core.h"
 #include <stdexcept>
 
-namespace utf8
-{
+namespace utf8 {
     // Exceptions that may be thrown from the library functions.
     class invalid_code_point : public std::exception {
         uint32_t cp;

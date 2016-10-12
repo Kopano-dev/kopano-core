@@ -25,8 +25,7 @@
 	 * @author Steve Hardy <steve@zarafa.com>
 	 * @author Michel de Ron <michel@zarafa.com>
 	 */
-	class Recurrence extends BaseRecurrence
-	{
+	class Recurrence extends BaseRecurrence {
 		/*
 		 * ABOUT TIMEZONES
 		 *

@@ -85,8 +85,7 @@ public:
 
 public:
 	// Interface voor Outlook 2002 and up
-	class xFreeBusySupport _zcp_final : public IFreeBusySupport
-	{
+	class xFreeBusySupport _kc_final : public IFreeBusySupport {
 		public:
 			// From IUnknown
 			virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lppInterface) _zcp_override;

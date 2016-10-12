@@ -40,8 +40,7 @@ extern ECSessionManager*	g_lpSessionManager;
 /**
  * IDbQueryCreator: Interface to the database query creators
  **/
-class IDbQueryCreator
-{
+class IDbQueryCreator {
 public:
 	virtual ~IDbQueryCreator() {};
 	virtual std::string CreateQuery() = 0;
@@ -51,8 +50,7 @@ public:
  * CommonQueryCreator: Abstract implementation of IDBQueryCreator that handles the
  *                     common part of all queries.
  **/
-class CommonQueryCreator : public IDbQueryCreator
-{
+class CommonQueryCreator : public IDbQueryCreator {
 public:
 	CommonQueryCreator(unsigned int ulFlags);
 	
@@ -235,8 +233,7 @@ std::string NullQueryCreator::CreateOrderQuery()
 /**
  * IMessageProcessor: Interface to the message processors.
  **/
-class IMessageProcessor
-{
+class IMessageProcessor {
 public:
 	virtual ~IMessageProcessor() {};
 	virtual ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags) = 0;

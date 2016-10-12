@@ -32,8 +32,7 @@ namespace net {
 
 
 template <class S>
-class registeredServiceImpl : public serviceFactory::registeredService
-{
+class registeredServiceImpl : public serviceFactory::registeredService {
 public:
 
 	registeredServiceImpl(const string& name, const int type)
@@ -72,9 +71,7 @@ private:
 
 
 // Basic service registerer
-template <class S>
-class serviceRegisterer
-{
+template<class S> class serviceRegisterer {
 public:
 
 	serviceRegisterer(const string& protocol, const service::Type type)

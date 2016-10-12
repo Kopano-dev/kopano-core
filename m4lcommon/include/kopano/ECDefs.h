@@ -129,14 +129,12 @@ enum userobject_admin_level_t {
 	ADMIN_LEVEL_SYSADMIN = 2		/* System administrator (same rights as SYSTEM). */
 };
 
-typedef struct _sECEntryId
-{
+typedef struct _sECEntryId {
 	unsigned int	cb;
 	unsigned char*	lpb;
 } ECENTRYID;
 
-typedef struct _sECServerNameList
-{
+typedef struct _sECServerNameList {
 	unsigned int	cServers;
 	LPTSTR*			lpszaServer;
 } ECSVRNAMELIST;

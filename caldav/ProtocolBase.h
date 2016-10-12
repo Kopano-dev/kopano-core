@@ -21,8 +21,7 @@
 #include <mapi.h>
 #include "Http.h"
 
-class ProtocolBase
-{
+class ProtocolBase {
 public:
 	ProtocolBase(Http *lpRequest, IMAPISession *lpSession, ECLogger *lpLogger, std::string strSrvTz, std::string strCharset);
 	virtual ~ProtocolBase();

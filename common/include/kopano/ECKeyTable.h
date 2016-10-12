@@ -68,8 +68,7 @@ struct sObjectTableKey {
 	unsigned int ulOrderId;
 };
 
-struct ObjectTableKeyCompare
-{
+struct ObjectTableKeyCompare {
 	bool operator()(const sObjectTableKey& a, const sObjectTableKey& b) const
 	{
 		return a.ulObjId < b.ulObjId || (a.ulObjId == b.ulObjId && a.ulOrderId < b.ulOrderId);

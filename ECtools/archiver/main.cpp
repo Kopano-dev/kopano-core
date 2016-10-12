@@ -28,8 +28,7 @@
 #include "Archiver.h"
 #include "UnixUtil.cpp"
 
-enum modes
-{
+enum modes {
     MODE_INVALID = 0,
     MODE_ATTACH,
     MODE_DETACH,

@@ -29,9 +29,7 @@ typedef std::basic_string<unsigned short> utf16string;
 
 namespace std {
 
-template<>
-    struct char_traits<unsigned short>
-    {
+template<> struct char_traits<unsigned short> {
       typedef unsigned short    char_type;
       typedef wint_t            int_type;
       typedef streamoff         off_type;

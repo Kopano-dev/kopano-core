@@ -44,8 +44,7 @@ typedef struct _ECODStore {
 // For ulTableFlags
 #define TABLE_FLAG_OVERRIDE_HOME_MDB 0x00000001
 
-class ECStoreObjectTable : public ECGenericObjectTable
-{
+class ECStoreObjectTable : public ECGenericObjectTable {
 protected:
 	ECStoreObjectTable(ECSession *lpSession, unsigned int ulStoreId, GUID *lpGuid, unsigned int ulFolderId, unsigned int ulObjType, unsigned int ulFlags, unsigned int ulTableFlags, const ECLocale &locale);
 	virtual ~ECStoreObjectTable();

@@ -91,8 +91,7 @@ static inline bool operator<(const GUID &lhs, const GUID &rhs) {
 }
 
 // Helper class for mapping named properties from the stream to local proptags
-class NamedPropertyMapper
-{
+class NamedPropertyMapper {
 public:
 	NamedPropertyMapper(ECDatabase *lpDatabase);
 

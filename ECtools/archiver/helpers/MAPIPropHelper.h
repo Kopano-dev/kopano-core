@@ -40,8 +40,7 @@ class MessageState;
  * The MAPIPropHelper class provides some common utility functions that relate to IMAPIProp
  * objects in the archiver context.
  */
-class MAPIPropHelper
-{
+class MAPIPropHelper {
 public:
 	static HRESULT Create(MAPIPropPtr ptrMapiProp, MAPIPropHelperPtr *lpptrMAPIPropHelper);
 	virtual ~MAPIPropHelper(void) {}

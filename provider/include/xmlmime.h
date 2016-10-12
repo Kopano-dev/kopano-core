@@ -26,8 +26,8 @@ The xmlmime:contentType attribute can be used to associate a MIME type with
 binary content, as in:
 
 #import "xmlmime.h"
-struct ns__myBinaryData
-{ unsigned char *__ptr;
+struct ns__myBinaryData {
+  unsigned char *__ptr;
   int __size;
   @char *xmlmime__contentType;
 };

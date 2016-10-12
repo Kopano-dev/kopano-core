@@ -47,8 +47,7 @@ DEALINGS IN THE SOFTWARE.
 
 #include <iterator>
 
-namespace utf8
-{
+namespace utf8 {
     // The typedefs for 8-bit, 16-bit and 32-bit unsigned integers
     // You may need to change them to match your system.
     // These typedefs have the same names as ones from cstdint, or boost/cstdint
@@ -57,8 +56,7 @@ namespace utf8
     typedef unsigned int    uint32_t;
 
 // Helper code - not intended to be directly called by the library users. May be changed at any time
-namespace internal
-{
+namespace internal {
     // Unicode constants
     // Leading (high) surrogates: 0xd800 - 0xdbff
     // Trailing (low) surrogates: 0xdc00 - 0xdfff

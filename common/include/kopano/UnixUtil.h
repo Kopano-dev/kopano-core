@@ -32,8 +32,7 @@ struct popen_rlimit_array {
 };
 
 #define sized_popen_rlimit_array(_climit, _name) \
-struct _popen_rlimit_array_ ## _name \
-{ \
+struct _popen_rlimit_array_ ## _name { \
 	unsigned int cValues; \
 	struct popen_rlimit sLimit[_climit]; \
 } _name

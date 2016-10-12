@@ -36,8 +36,7 @@ class ECLogger;
  * ECChangeAdvisor: Implementation IECChangeAdvisor, which allows one to register for 
  *                  change notifications on folders.
  */
-class ECChangeAdvisor _zcp_final : public ECUnknown
-{
+class ECChangeAdvisor _kc_final : public ECUnknown {
 protected:
 	/**
 	 * Construct the ChangeAdvisor.

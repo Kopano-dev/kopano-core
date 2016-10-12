@@ -89,8 +89,7 @@ typedef struct tagSessionManagerStats {
 
 class SOURCEKEY;
 
-class ECSessionManager
-{
+class ECSessionManager {
 public:
 	ECSessionManager(ECConfig *lpConfig, ECLogger *audit, bool bHostedKopano, bool bDistributedKopano);
 	virtual ~ECSessionManager();

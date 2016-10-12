@@ -258,8 +258,7 @@ HRESULT MAPIPropHelper::GetArchiveList(ObjectEntryList *lplstArchives, bool bIgn
 	
 	SizedSPropTagArray (4, sptaArchiveProps) = {4, {PROP_ARCHIVE_STORE_ENTRYIDS, PROP_ARCHIVE_ITEM_ENTRYIDS, PROP_ORIGINAL_SOURCEKEY, PR_SOURCE_KEY}};
 
-	enum 
-	{
+	enum {
 		IDX_ARCHIVE_STORE_ENTRYIDS, 
 		IDX_ARCHIVE_ITEM_ENTRYIDS, 
 		IDX_ORIGINAL_SOURCEKEY,

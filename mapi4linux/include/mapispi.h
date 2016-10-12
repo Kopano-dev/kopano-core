@@ -80,8 +80,7 @@ typedef struct
 #define CbNewNOTIFKEY(_cb)      (offsetof(NOTIFKEY,ab) + (_cb))
 #define CbNOTIFKEY(_lpkey)      (offsetof(NOTIFKEY,ab) + (_lpkey)->cb)
 #define SizedNOTIFKEY(_cb, _name) \
-    struct _NOTIFKEY_ ## _name \
-{ \
+struct _NOTIFKEY_ ## _name { \
     ULONG       cb; \
     BYTE        ab[_cb]; \
 } _name
@@ -337,8 +336,7 @@ public:
 #define OPTION_TYPE_RECIPIENT       ((ULONG) 0x00000001)
 #define OPTION_TYPE_MESSAGE         ((ULONG) 0x00000002)
 
-typedef struct _OPTIONDATA
-{
+typedef struct _OPTIONDATA {
     ULONG           ulFlags;        /* MAPI_RECIPIENT, MAPI_MESSAGE */
     LPGUID          lpRecipGUID;    /* Same as returned by AddressTypes() */
     LPTSTR          lpszAdrType;    /* Same as returned by AddressTypes() */

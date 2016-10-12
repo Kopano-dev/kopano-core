@@ -31,8 +31,7 @@
 #define DEBUGBUFSIZE	1024
 #endif
 
-struct MAPIResultCodes
-{
+struct MAPIResultCodes {
 	HRESULT		hResult;
 	const char* error;
 };

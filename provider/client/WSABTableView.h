@@ -14,11 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-/*
-	class WSABTableView
-*/
-
 #ifndef WSABTABLEVIEW_H
 #define WSABTABLEVIEW_H
 

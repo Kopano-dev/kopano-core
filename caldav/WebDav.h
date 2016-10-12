@@ -111,8 +111,7 @@ typedef struct {
 #define WEBDAVNS "DAV:"
 #define CALDAVNS "urn:ietf:params:xml:ns:caldav"
 
-class WebDav: public ProtocolBase
-{
+class WebDav : public ProtocolBase {
 public:
 	WebDav(Http *lpRequest, IMAPISession *lpSession, ECLogger *lpLogger, std::string strSrvTz, std::string strCharset);
 	virtual ~WebDav();

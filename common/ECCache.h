@@ -50,8 +50,7 @@ public:
 	time_t 	ulLastAccess;
 };
 
-class ECCacheBase
-{
+class ECCacheBase {
 public:
 	typedef unsigned long		count_type;
 		typedef uint64_t	size_type;
@@ -93,9 +92,7 @@ private:
 };
 
 
-template<typename _MapType>
-class ECCache _zcp_final : public ECCacheBase
-{
+template<typename _MapType> class ECCache _kc_final : public ECCacheBase {
 public:
 	typedef typename _MapType::key_type		key_type;
 	typedef typename _MapType::mapped_type	mapped_type;

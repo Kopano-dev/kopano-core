@@ -22,8 +22,7 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <kopano/mapi_ptr.h>
 
-class ECHierarchyIteratorBase
-{
+class ECHierarchyIteratorBase {
 public:
 	ECHierarchyIteratorBase(): m_ulFlags(0), m_ulDepth(0), m_ulRowIndex(0) {}  // creates the "end" iterator
 	ECHierarchyIteratorBase(LPMAPICONTAINER lpContainer, ULONG ulFlags = 0, ULONG ulDepth = 0);
@@ -79,10 +78,7 @@ private:
 typedef ECHierarchyIterator<MAPIFolderPtr> ECFolderIterator;
 typedef ECHierarchyIterator<ABContainerPtr> ECABContainerIterator;
 
-
-
-class ECContentsIteratorBase
-{
+class ECContentsIteratorBase {
 protected:
 	ECContentsIteratorBase(): m_ulFlags(0), m_ulRowIndex(0) {}  // creates the "end" iterator
 	ECContentsIteratorBase(LPMAPICONTAINER lpContainer, LPSRestriction lpRestriction, ULONG ulFlags, bool bOwnRestriction);

@@ -30,8 +30,7 @@ namespace za { namespace operations {
 /**
  * IArchiveOperation specifies the interface to all archiver operations.
  */
-class IArchiveOperation
-{
+class IArchiveOperation {
 public:
 	/**
 	 * virtual destructor.
@@ -78,8 +77,7 @@ public:
  * It generates the restriction.
  * It contains the logger.
  */
-class ArchiveOperationBase : public IArchiveOperation
-{
+class ArchiveOperationBase : public IArchiveOperation {
 public:
 	ArchiveOperationBase(ECArchiverLogger *lpLogger, int ulAge, bool bProcessUnread, ULONG ulInhibitMask);
 	HRESULT GetRestriction(LPMAPIPROP LPMAPIPROP, LPSRestriction *lppRestriction);
@@ -105,8 +103,7 @@ private:
  * ArchiveOperationBaseEx is the base implementation of the IArchiveOperation interface. It's main functionality
  * is iterating through all the items in the folder passed to ProcessEntry.
  */
-class ArchiveOperationBaseEx : public ArchiveOperationBase
-{
+class ArchiveOperationBaseEx : public ArchiveOperationBase {
 public:
 	ArchiveOperationBaseEx(ECArchiverLogger *lpLogger, int ulAge, bool bProcessUnread, ULONG ulInhibitMask);
 	HRESULT ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps, const LPSPropValue lpProps);

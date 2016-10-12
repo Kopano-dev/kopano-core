@@ -35,8 +35,7 @@ enum eResult {
 	PartialCompletion
 };
 
-class ArchiveControl 
-{
+class ArchiveControl {
 public:
 	typedef std::unique_ptr<ArchiveControl> auto_ptr_type;
 

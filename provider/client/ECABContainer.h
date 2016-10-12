@@ -25,8 +25,7 @@
 #include "ECABLogon.h"
 #include "ECABProp.h"
 
-class ECABContainer : public ECABProp
-{
+class ECABContainer : public ECABProp {
 protected:
 	ECABContainer(void* lpProvider, ULONG ulObjType, BOOL fModify, const char *szClassName);
 	virtual ~ECABContainer();

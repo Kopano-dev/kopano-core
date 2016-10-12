@@ -47,10 +47,8 @@ DEALINGS IN THE SOFTWARE.
 
 #include "core.h"
 
-namespace utf8
-{
-    namespace unchecked 
-    {
+namespace utf8 {
+    namespace unchecked {
         template <typename octet_iterator>
         octet_iterator append(uint32_t cp, octet_iterator result)
         {

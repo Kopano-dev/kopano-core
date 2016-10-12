@@ -28,8 +28,7 @@
 #include <kopano/mapiext.h>
 #include <string>
 
-typedef struct tagMAPIErrorTranslateRecord
-{
+typedef struct tagMAPIErrorTranslateRecord {
 	HRESULT errorCode;
     const char* errorMessage;
 } MAPIErrorTranslateRecord;

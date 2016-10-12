@@ -21,8 +21,7 @@
 #include <mapidefs.h>
 
 // State information
-struct ECStreamInfo
-{
+struct ECStreamInfo {
 	unsigned long	ulStep;
 	unsigned long	cbPropVals;
 	LPSPropValue	lpsPropVals;

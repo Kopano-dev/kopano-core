@@ -19,8 +19,7 @@
 #define _M4L_IMESSAGE_H_
 #define _IMESSAGE_H_
 
-extern "C"
-{
+extern "C" {
 
 typedef struct _MSGSESS *LPMSGSESS;
 
@@ -43,8 +42,7 @@ STDAPI_(SCODE) OpenIMsgOnIStg(LPMSGSESS lpMsgSess, LPALLOCATEBUFFER lpAllocateBu
 
 #define PROPATTR_NOT_PRESENT	((ULONG) 0x00000008)
 
-typedef struct _SPropAttrArray
-{
+typedef struct _SPropAttrArray {
 	ULONG	cValues;							
 	ULONG	aPropAttr[MAPI_DIM];
 } SPropAttrArray, * LPSPropAttrArray;
@@ -56,8 +54,7 @@ typedef struct _SPropAttrArray
 	(UINT)((_lparray)->cValues)*sizeof(ULONG))
 
 #define SizedSPropAttrArray(_cattr, _name) \
-struct _SPropAttrArray_ ## _name \
-{ \
+struct _SPropAttrArray_ ## _name { \
 	ULONG	cValues; \
 	ULONG	aPropAttr[_cattr]; \
 } _name
