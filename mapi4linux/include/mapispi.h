@@ -153,7 +153,7 @@ typedef HRESULT (REMOVEPREPROCESSINFO)(LPMESSAGE lpMessage);
 //#warning "please correctly define LPSTORAGE!!"
 //#define LPSTORAGE void*
 
-class IMAPISupport : public IUnknown {
+class IMAPISupport : public virtual IUnknown {
 public:
     //    virtual ~IMAPISupport() = 0;
 

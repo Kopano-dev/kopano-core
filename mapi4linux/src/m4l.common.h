@@ -20,7 +20,7 @@
 
 #include <mutex>
 
-class M4LUnknown : public IUnknown {
+class M4LUnknown : public virtual IUnknown {
 private:
     ULONG ref;
 	std::mutex mutex;

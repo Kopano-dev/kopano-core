@@ -342,10 +342,12 @@ ULONG M4LMAPIProp::Release() {
 HRESULT M4LMAPIProp::QueryInterface(REFIID refiid, void **lpvoid) {
 	TRACE_MAPILIB(TRACE_ENTRY, "IMAPIProp::QueryInterface", "");
 	HRESULT hr = hrSuccess;
-	if (refiid == IID_IMAPIProp || refiid == IID_IUnknown) {
+	if (refiid == IID_IMAPIProp) {
 		AddRef();
-		*lpvoid = (IMAPIProp *)this;
-		hr = hrSuccess;
+		*lpvoid = static_cast<IMAPIProp *>(this);
+	} else if (refiid == IID_IUnknown) {
+		AddRef();
+		*lpvoid = static_cast<IUnknown *>(this);
 	} else
 		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 
@@ -445,10 +447,15 @@ HRESULT M4LProfSect::QueryInterface(REFIID refiid, void **lpvoid) {
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LProfSect::QueryInterface", "");
 	HRESULT hr = hrSuccess;
 
-	if (refiid == IID_IProfSect || refiid == IID_IMAPIProp || refiid == IID_IUnknown) {
+	if (refiid == IID_IProfSect) {
 		AddRef();
-		*lpvoid = (IProfSect *)this;
-		hr = hrSuccess;
+		*lpvoid = static_cast<IProfSect *>(this);
+	} else if (refiid == IID_IMAPIProp) {
+		AddRef();
+		*lpvoid = static_cast<IMAPIProp *>(this);
+	} else if (refiid == IID_IUnknown) {
+		AddRef();
+		*lpvoid = static_cast<IUnknown *>(this);
     } else
 		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 
@@ -610,10 +617,12 @@ HRESULT M4LMAPITable::QueryInterface(REFIID refiid, void **lpvoid) {
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPITable::QueryInterface", "");
 	HRESULT hr = hrSuccess;
 
-	if (refiid == IID_IMAPITable || refiid == IID_IUnknown) {
+	if (refiid == IID_IMAPITable) {
 		AddRef();
-		*lpvoid = (IMAPITable *)this;
-		hr = hrSuccess;
+		*lpvoid = static_cast<IMAPITable *>(this);
+	} else if (refiid == IID_IUnknown) {
+		AddRef();
+		*lpvoid = static_cast<IUnknown *>(this);
 	} else
 		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 
@@ -905,10 +914,12 @@ HRESULT M4LProviderAdmin::QueryInterface(REFIID refiid, void **lpvoid) {
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LProviderAdmin::QueryInterface", "");
 	HRESULT hr = hrSuccess;
 
-	if (refiid == IID_IProviderAdmin || refiid == IID_IUnknown) {
+	if (refiid == IID_IProviderAdmin) {
 		AddRef();
-		*lpvoid = (IProviderAdmin *)this;
-		hr = hrSuccess;
+		*lpvoid = static_cast<IProviderAdmin *>(this);
+	} else if (refiid == IID_IUnknown) {
+		AddRef();
+		*lpvoid = static_cast<IUnknown *>(this);
 	} else
 		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 
@@ -939,10 +950,12 @@ ULONG M4LMAPIAdviseSink::Release() {
 HRESULT M4LMAPIAdviseSink::QueryInterface(REFIID refiid, void **lpvoid) {
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPIAdviseSink::QueryInterface", "");
 	HRESULT hr = hrSuccess;
-	if (refiid == IID_IMAPIAdviseSink || refiid == IID_IUnknown) {
+	if (refiid == IID_IMAPIAdviseSink) {
 		AddRef();
-		*lpvoid = (IMAPIAdviseSink *)this;
-		hr = hrSuccess;
+		*lpvoid = static_cast<IMAPIAdviseSink *>(this);
+	} else if (refiid == IID_IUnknown) {
+		AddRef();
+		*lpvoid = static_cast<IUnknown *>(this);
 	} else
 		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 
@@ -1032,10 +1045,15 @@ ULONG M4LMAPIContainer::Release() {
 HRESULT M4LMAPIContainer::QueryInterface(REFIID refiid, void **lpvoid) {
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPIContainer::QueryInterface", "");
 	HRESULT hr = hrSuccess;
-	if (refiid == IID_IMAPIContainer || refiid == IID_IMAPIProp || refiid == IID_IUnknown) {
+	if (refiid == IID_IMAPIContainer) {
 		AddRef();
-		*lpvoid = (IMAPIContainer *)this;
-		hr = hrSuccess;
+		*lpvoid = static_cast<IMAPIContainer *>(this);
+	} else if (refiid == IID_IMAPIProp) {
+		AddRef();
+		*lpvoid = static_cast<IMAPIProp *>(this);
+	} else if (refiid == IID_IUnknown) {
+		AddRef();
+		*lpvoid = static_cast<IUnknown *>(this);
 	} else
 		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 
@@ -1280,10 +1298,18 @@ ULONG M4LABContainer::Release() {
 HRESULT M4LABContainer::QueryInterface(REFIID refiid, void **lpvoid) {
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LABContainer::QueryInterface", "");
 	HRESULT hr = hrSuccess;
-	if (refiid == IID_IABContainer || refiid == IID_IMAPIContainer || refiid == IID_IMAPIProp || refiid == IID_IUnknown) {
+	if (refiid == IID_IABContainer) {
 		AddRef();
-		*lpvoid = (IABContainer *)this;
-		hr = hrSuccess;
+		*lpvoid = static_cast<IABContainer *>(this);
+	} else if (refiid == IID_IMAPIContainer) {
+		AddRef();
+		*lpvoid = static_cast<IMAPIContainer *>(this);
+	} else if (refiid == IID_IMAPIProp) {
+		AddRef();
+		*lpvoid = static_cast<IMAPIProp *>(this);
+	} else if (refiid == IID_IUnknown) {
+		AddRef();
+		*lpvoid = static_cast<IUnknown *>(this);
 	} else
 		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 

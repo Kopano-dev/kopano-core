@@ -411,11 +411,13 @@ HRESULT M4LProfAdmin::QueryInterface(REFIID refiid, void **lpvoid) {
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LProfAdmin::QueryInterface", "");
 	HRESULT hr = hrSuccess;
 
-	if (refiid == IID_IProfAdmin || refiid == IID_IUnknown) {
+	if (refiid == IID_IProfAdmin) {
 		AddRef();
-		*lpvoid = (IProfAdmin *)this;
-	}
-	else {
+		*lpvoid = static_cast<IProfAdmin *>(this);
+	} else if (refiid == IID_IUnknown) {
+		AddRef();
+		*lpvoid = static_cast<IUnknown *>(this);
+	} else {
 		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 	}
 
@@ -1009,9 +1011,12 @@ HRESULT M4LMsgServiceAdmin::QueryInterface(REFIID refiid, void **lpvoid) {
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LMsgServiceAdmin::QueryInterface", "");
 	HRESULT hr = hrSuccess;
 
-	if (refiid == IID_IMsgServiceAdmin || refiid == IID_IUnknown) {
+	if (refiid == IID_IMsgServiceAdmin) {
 		AddRef();
-		*lpvoid = (IMsgServiceAdmin *)this;
+		*lpvoid = static_cast<IMsgServiceAdmin *>(this);
+	} else if (refiid == IID_IUnknown) {
+		AddRef();
+		*lpvoid = static_cast<IUnknown *>(this);
 	} else
 		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 
@@ -1777,9 +1782,12 @@ HRESULT M4LMAPISession::QueryInterface(REFIID refiid, void **lpvoid) {
 	TRACE_MAPILIB1(TRACE_ENTRY, "M4LMAPISession::QueryInterface", "%s", bin2hex(sizeof(GUID), (BYTE *)&refiid).c_str());
 	HRESULT hr = hrSuccess;
 
-	if (refiid == IID_IMAPISession || refiid == IID_IUnknown) {
+	if (refiid == IID_IMAPISession) {
 		AddRef();
-		*lpvoid = (IMAPISession *)this;
+		*lpvoid = static_cast<IMAPISession *>(this);
+	} else if (refiid == IID_IUnknown) {
+		AddRef();
+		*lpvoid = static_cast<IUnknown *>(this);
 	} else {
 		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 	}
@@ -2730,9 +2738,15 @@ HRESULT M4LAddrBook::QueryInterface(REFIID refiid, void **lpvoid) {
     TRACE_MAPILIB(TRACE_ENTRY, "M4LAddrBook::QueryInterface", "");
 	HRESULT hr = hrSuccess;
 
-	if (refiid == IID_IAddrBook || refiid == IID_IMAPIProp || refiid == IID_IUnknown) {
+	if (refiid == IID_IAddrBook) {
 		AddRef();
 		*lpvoid = (IAddrBook *)this;
+	} else if (refiid == IID_IMAPIProp) {
+		AddRef();
+		*lpvoid = static_cast<IMAPIProp *>(this);
+	} else if (refiid == IID_IUnknown) {
+		AddRef();
+		*lpvoid = static_cast<IUnknown *>(this);
 	} else
 		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 

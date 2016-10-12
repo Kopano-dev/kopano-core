@@ -60,10 +60,12 @@ HRESULT M4LMAPIGetSession::QueryInterface(REFIID refiid, void **lpvoid) {
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPISupport::QueryInterface", "");
 	HRESULT hr = hrSuccess;
 
-	if (refiid == IID_IMAPIGetSession || refiid == IID_IUnknown) {
+	if (refiid == IID_IMAPIGetSession) {
 		AddRef();
 		*lpvoid = static_cast<IMAPIGetSession *>(this);
-		hr = hrSuccess;
+	} else if (refiid == IID_IUnknown) {
+		AddRef();
+		*lpvoid = static_cast<IUnknown *>(this);
     } else
 		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 
@@ -758,10 +760,12 @@ HRESULT M4LMAPISupport::QueryInterface(REFIID refiid, void **lpvoid) {
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPISupport::QueryInterface", "");
 	HRESULT hr = hrSuccess;
 
-	if (refiid == IID_IMAPISup || refiid == IID_IUnknown) {
+	if (refiid == IID_IMAPISup) {
 		AddRef();
-		*lpvoid = (IMAPISupport *)this;
-		hr = hrSuccess;
+		*lpvoid = static_cast<IMAPISupport *>(this);
+	} else if (refiid == IID_IUnknown) {
+		AddRef();
+		*lpvoid = static_cast<IUnknown *>(this);
 	} else if (refiid == IID_IMAPIGetSession) {
 		IMAPIGetSession *lpGetSession = new M4LMAPIGetSession(session);
 		lpGetSession->AddRef();

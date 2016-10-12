@@ -157,7 +157,7 @@ MAPIADMINPROFILES MAPIAdminProfiles;
 #define MAPI_POST_MESSAGE       0x00000001  /* Selects post/send semantics */
 #define MAPI_NEW_MESSAGE        0x00000002  /* Governs copying during submission */
 
-class IMAPISession : public IUnknown {
+class IMAPISession : public virtual IUnknown {
 public:
     //    virtual ~IMAPISession() = 0;
 
@@ -192,7 +192,7 @@ public:
 /* IAddrBook Interface ----------------------------------------------------- */
 
 
-class IAddrBook : public IMAPIProp {
+class IAddrBook : public virtual IMAPIProp {
 public:
     //    virtual ~IAddrBook() = 0;
 
@@ -230,7 +230,7 @@ typedef IAddrBook* LPADRBOOK;
 #define MAPI_DEFAULT_SERVICES           0x00000001
 
 
-class IProfAdmin : public IUnknown {
+class IProfAdmin : public virtual IUnknown {
 public:
     //    virtual ~IProfAdmin() = 0;
 
@@ -263,7 +263,7 @@ public:
 #define SERVICE_NO_PRIMARY_IDENTITY 0x00000020
 
 
-class IMsgServiceAdmin : public IUnknown {
+class IMsgServiceAdmin : public virtual IUnknown {
 public:
     //    virtual ~IMsgServiceAdmin() = 0;
 

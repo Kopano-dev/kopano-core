@@ -29,7 +29,7 @@ using namespace std;
 
 class M4LMsgServiceAdmin;
 
-class M4LMAPIProp : public M4LUnknown, public IMAPIProp {
+class M4LMAPIProp : public M4LUnknown, public virtual IMAPIProp {
 private:
     // variables
     list<LPSPropValue> properties;
@@ -161,7 +161,7 @@ public:
 
 
 /* for ABContainer */
-class M4LMAPIContainer : public IMAPIContainer, public M4LMAPIProp {
+class M4LMAPIContainer : public M4LMAPIProp, public virtual IMAPIContainer {
 public:
     virtual HRESULT __stdcall GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable) _zcp_override;
     virtual HRESULT __stdcall GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable) _zcp_override;

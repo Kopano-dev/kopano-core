@@ -43,7 +43,7 @@ ULONG M4LUnknown::Release() {
 HRESULT M4LUnknown::QueryInterface(REFIID refiid, void **lpvoid) {
     if(refiid == IID_IUnknown) {
 		AddRef();
-		*lpvoid = (void *)this;
+		*lpvoid = static_cast<IUnknown *>(this);
 		return hrSuccess;
     }
 

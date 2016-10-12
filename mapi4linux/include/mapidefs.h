@@ -628,7 +628,7 @@ typedef struct _MAPINAMEID {
     } Kind;
 } MAPINAMEID, *LPMAPINAMEID;
 
-class IMAPIProp : public IUnknown {
+class IMAPIProp : public virtual IUnknown {
 public:
     //    virtual ~IMAPIProp() = 0;
 
@@ -666,7 +666,7 @@ public:
 #define FOREGROUND_SEARCH       ((ULONG) 0x00000010)
 #define BACKGROUND_SEARCH       ((ULONG) 0x00000020)
 
-class IMAPIContainer : public IMAPIProp {
+class IMAPIContainer : public virtual IMAPIProp {
 public:
     //    virtual ~IMAPIContainer() = 0;
 
@@ -801,7 +801,7 @@ typedef NOTIFCALLBACK *LPNOTIFCALLBACK;
 
 
 /* Interface used for registering and issuing notification callbacks. */
-class IMAPIAdviseSink : public IUnknown {
+class IMAPIAdviseSink : public virtual IUnknown {
 public:
     //    virtual ~IMAPIAdviseSink() = 0;
 
@@ -1058,7 +1058,7 @@ typedef struct _flaglist {
 #define MAPI_AMBIGUOUS          ((ULONG) 0x00000001)
 #define MAPI_RESOLVED           ((ULONG) 0x00000002)
 
-class IABContainer : public IMAPIContainer {
+class IABContainer : public virtual IMAPIContainer {
 public:
     //    virtual ~IABContainer() = 0;
 
@@ -1364,7 +1364,7 @@ typedef struct _SRestriction {
 
 #define TBL_NOADVANCE       ((ULONG) 0x00000001)
 
-class IMAPITable : public IUnknown {
+class IMAPITable : public virtual IUnknown {
 public:
     //    virtual ~IMAPITable() = 0;
 
@@ -1467,7 +1467,7 @@ public:
 #define FLUSH_NO_UI         ((ULONG) 0x00000010)
 #define FLUSH_ASYNC_OK      ((ULONG) 0x00000020)
 
-class IProfSect : public IMAPIProp {
+class IProfSect : public virtual IMAPIProp {
 public:
     //    virtual ~IProfSect() = 0;
 
@@ -1499,7 +1499,7 @@ public:
 #define SERVICE_UI_ALLOWED          0x00000010
 #define UI_CURRENT_PROVIDER_FIRST   0x00000004
 
-class IProviderAdmin : public IUnknown {
+class IProviderAdmin : public virtual IUnknown {
 public:
     //    virtual ~IProviderAdmin() = 0;
 
