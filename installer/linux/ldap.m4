@@ -1,6 +1,5 @@
 dnl m4 defines:
 dnl    TYPE == OPENLDAP or ADS
-dnl    MULTISERVER == 1, or other
 dnl
 ##############################################################
 #  LDAP/ACTIVE DIRECTORY USER PLUGIN SETTINGS
@@ -8,60 +7,13 @@ dnl
 # Any of these directives that are required, are only required if the
 # userplugin parameter is set to ldap.
 
-# LDAP host name/IP address
-# Optional, default = localhost
-ldap_host = ifelse(TYPE,`OPENLDAP',`localhost',`')
-
-# LDAP port
-# Optional, default = 389
-# Use 636 for ldaps
-ldap_port = 389
-
-# LDAP protocol
-# Optional, default = ldap
-# use 'ldaps' for SSL encryption. Make sure /etc/ldap/ldap.conf is
-# configured correctly with TLS_CACERT
-ldap_protocol = ldap
-
-# LDAP URI
-# Optional, override ldap_host, ldap_port and ldap_protocol if set
-# e.g. ldaps://servername:port. You may also specify multiple space-separated
-# URI's
-ldap_uri =
-
-# The charset that strings are stored in on the LDAP server. Normally this
-# is utf-8, but this can differ according to your setup. The charset specified
-# here must be supported by your iconv(1) setup. See iconv -l for all charset
-ldap_server_charset = utf-8
-
-# The DN of the user to bind as for normal operations (not used for
-# authentication if ldap_authentication_method is set to "bind"
-# Optional, default = empty (anonymous bind)
-# The userPassword attribute must be readable for this user if the
-# ldap_authentication_method option is set to password.
-ldap_bind_user = ifelse(TYPE,`OPENLDAP',`cn=admin',`cn=Administrator'),cn=users,dc=kopano,dc=com
-
-# LDAP bind password
-# Optional, default = empty (no password)
-ldap_bind_passwd = 
-
-# The timeout for network operations in seconds
-ldap_network_timeout = 30
-
 # When an object (user/group/company) is changed, this attribute will also change:
 # Active directory: uSNChanged
 # LDAP: modifyTimestamp
 ldap_last_modification_attribute = ifelse(TYPE,`OPENLDAP',`modifyTimestamp',`uSNChanged')
 
-# ldap_page_size limits the number of results from a query that will be downloaded at a time.
-# Default ADS MaxPageSize is 1000.
-ldap_page_size = 1000
-
 ##########
 # Object settings
-
-# Top level search base, every object should be available under this tree
-ldap_search_base = dc=kopano,dc=com
 
 # attribute name which is/(should: was) used in ldap_user_search_filter
 ldap_object_type_attribute = objectClass
@@ -71,7 +23,7 @@ ldap_contact_type_attribute_value = ifelse(TYPE,`OPENLDAP',`kopano-contact',`con
 ldap_company_type_attribute_value = organizationalUnit
 ldap_addresslist_type_attribute_value = ifelse(TYPE,`OPENLDAP',`kopano-addresslist',`kopanoAddresslist')
 ldap_dynamicgroup_type_attribute_value = ifelse(TYPE,`OPENLDAP',`kopano-dynamicgroup',`kopanoDynamicGroup')
-ifelse(MULTISERVER,`1',`ldap_server_type_attribute_value = ifelse(TYPE,`OPENLDAP',`ipHost',`computer')',`')
+ldap_server_type_attribute_value = ifelse(TYPE,`OPENLDAP',`ipHost',`computer')
 
 ##########
 # There should be no need to edit any values below this line
@@ -202,7 +154,7 @@ ldap_sendas_relation_attribute = ifelse(TYPE,`OPENLDAP',`',`distinguishedName')
 ldap_user_certificate_attribute = userCertificate`'ifelse(TYPE,`OPENLDAP',`;binary',`')
 
 # Load extra user properties from the propmap file
-!propmap /etc/kopano/ldap.propmap.cfg
+!propmap /usr/share/kopano/ldap.propmap.cfg
 
 ##########
 # Group settings
@@ -472,7 +424,6 @@ ldap_object_search_filter = ifelse(TYPE,`OPENLDAP',`(|(givenName=*%s*)(sn=*%s*))
 # Default: 1000
 ldap_filter_cutoff_elements = 1000
 
-ifelse(MULTISERVER,`1',,`m4exit(0)')dnl
 ##########
 # Multi-server settings
 
