@@ -955,15 +955,8 @@ extern "C" HRESULT  __cdecl ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMallo
 {
 	TRACE_MAPI(TRACE_ENTRY, "ABProviderInit", "");
 
-	HRESULT hr = hrSuccess;
-	ECABProviderSwitch	*lpABProvider = NULL;
-
 	if (ulMAPIVer < CURRENT_SPI_VERSION)
-	{
-		hr = MAPI_E_VERSION;
-		goto exit;
-	}
-
+		return MAPI_E_VERSION;
 	*lpulProviderVer = CURRENT_SPI_VERSION;
 	// Save the pointer to the allocation routines in global variables
 	_pmalloc = lpMalloc;
@@ -972,13 +965,10 @@ extern "C" HRESULT  __cdecl ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMallo
 	_pfnFreeBuf = lpFreeBuffer;
 	_hInstance = hInstance;
 
-	hr = ECABProviderSwitch::Create(&lpABProvider);
-	if(hr != hrSuccess)
-		goto exit;
-
-	hr = lpABProvider->QueryInterface(IID_IABProvider, (void **)lppABProvider);
-
-exit:
+	ECABProviderSwitch *lpABProvider = NULL;
+	HRESULT hr = ECABProviderSwitch::Create(&lpABProvider);
+	if (hr == hrSuccess)
+		hr = lpABProvider->QueryInterface(IID_IABProvider, reinterpret_cast<void **>(lppABProvider));
 	if(lpABProvider)
 		lpABProvider->Release();
 

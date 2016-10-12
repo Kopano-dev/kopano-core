@@ -393,24 +393,19 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 	STREAMDATA *lpStreamData = NULL;
 
 	if((ulFlags&MAPI_CREATE && !(ulFlags&MAPI_MODIFY)) || lpiid == NULL)
-	{
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+		return MAPI_E_INVALID_PARAMETER;
 	
 	// Only support certain property types
-	if(PROP_TYPE(ulPropTag) != PT_BINARY && PROP_TYPE(ulPropTag) != PT_UNICODE && PROP_TYPE(ulPropTag) != PT_STRING8) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-	if (*lpiid != IID_IStream && *lpiid != IID_IStorage) {
-		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
-		goto exit;
-	}
-	if (PROP_TYPE(ulPropTag) != PT_STRING8 && PROP_TYPE(ulPropTag) != PT_BINARY && PROP_TYPE(ulPropTag) != PT_UNICODE) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+	if (PROP_TYPE(ulPropTag) != PT_BINARY &&
+	    PROP_TYPE(ulPropTag) != PT_UNICODE &&
+	    PROP_TYPE(ulPropTag) != PT_STRING8)
+		return MAPI_E_INVALID_PARAMETER;
+	if (*lpiid != IID_IStream && *lpiid != IID_IStorage)
+		return MAPI_E_INTERFACE_NOT_SUPPORTED;
+	if (PROP_TYPE(ulPropTag) != PT_STRING8 &&
+	    PROP_TYPE(ulPropTag) != PT_BINARY &&
+	    PROP_TYPE(ulPropTag) != PT_UNICODE)
+		return MAPI_E_NOT_FOUND;
 
 	if (*lpiid == IID_IStream && this->lstProps == NULL &&
 	    PROP_TYPE(ulPropTag) == PT_BINARY && !(ulFlags & MAPI_MODIFY) &&
