@@ -1018,8 +1018,11 @@ static int running_server(char *szName, const char *szConfig,
 
 	if (strcmp(g_lpConfig->GetSetting("attachment_storage"), "files") == 0) {
 		// directory will be created using startup (probably root) and then chowned to the new 'runas' username
-		if (!bfs::create_directories(g_lpConfig->GetSetting("attachment_path"))) {
-			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to create attachment directory '%s'", g_lpConfig->GetSetting("attachment_path"));
+		boost::system::error_code ec;
+		if (!bfs::create_directories(g_lpConfig->GetSetting("attachment_path"), ec) && ec != 0) {
+			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to create attachment directory \"%s\": %s",
+				g_lpConfig->GetSetting("attachment_path"),
+				ec.message().c_str());
 			er = KCERR_DATABASE_ERROR;
 			goto exit;
 		}
