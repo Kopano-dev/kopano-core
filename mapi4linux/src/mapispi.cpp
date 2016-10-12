@@ -62,7 +62,7 @@ HRESULT M4LMAPIGetSession::QueryInterface(REFIID refiid, void **lpvoid) {
 
 	if (refiid == IID_IMAPIGetSession || refiid == IID_IUnknown) {
 		AddRef();
-		*lpvoid = (IMAPISupport *)this;
+		*lpvoid = static_cast<IMAPIGetSession *>(this);
 		hr = hrSuccess;
     } else
 		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
