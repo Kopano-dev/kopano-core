@@ -18,7 +18,7 @@
 #include <kopano/platform.h>
 
 #include <iostream>
-#include "ECDatabaseMySQL.h"
+#include "kcm_mysql.hpp"
 #include "mysqld_error.h"
 
 #include <kopano/ECLogger.h>
@@ -37,7 +37,7 @@
 // size of a single entry in the database.
 #define MAX_ALLOWED_PACKET			16777216
 
-ECDatabaseMySQL::ECDatabaseMySQL(void)
+KCMDatabaseMySQL::KCMDatabaseMySQL(void)
 {
 	m_bMysqlInitialize	= false;
 	m_bConnected		= false;
@@ -45,16 +45,16 @@ ECDatabaseMySQL::ECDatabaseMySQL(void)
 	m_bAutoLock			= true;
 }
 
-ECDatabaseMySQL::~ECDatabaseMySQL()
+KCMDatabaseMySQL::~KCMDatabaseMySQL(void)
 {
 	Close();
 }
 
-ECRESULT ECDatabaseMySQL::InitEngine()
+ECRESULT KCMDatabaseMySQL::InitEngine(void)
 {
 	//Init mysql and make a connection
 	if (!m_bMysqlInitialize && mysql_init(&m_lpMySQL) == NULL) {
-		ec_log_crit("ECDatabaseMySQL::InitEngine() mysql_init failed");
+		ec_log_crit("KCMDatabaseMySQL::InitEngine() mysql_init failed");
 		return KCERR_DATABASE_ERROR;
 	}
 
@@ -67,7 +67,7 @@ ECRESULT ECDatabaseMySQL::InitEngine()
 	return erSuccess;
 }
 
-ECRESULT ECDatabaseMySQL::Connect(ECConfig *lpConfig)
+ECRESULT KCMDatabaseMySQL::Connect(ECConfig *lpConfig)
 {
 	ECRESULT		er = erSuccess;
 	std::string		strQuery;
@@ -77,7 +77,7 @@ ECRESULT ECDatabaseMySQL::Connect(ECConfig *lpConfig)
 
 	er = InitEngine();
 	if (er != erSuccess) {
-		ec_log_crit("ECDatabaseMySQL::Connect(): InitEngine failed %d", er);
+		ec_log_crit("KCMDatabaseMySQL::Connect(): InitEngine failed %d", er);
 		goto exit;
 	}
 
@@ -93,8 +93,7 @@ ECRESULT ECDatabaseMySQL::Connect(ECConfig *lpConfig)
 		else
 			er = KCERR_DATABASE_ERROR;
 
-		ec_log_crit("ECDatabaseMySQL::Connect(): database access error %d, mysql error: %s", er, mysql_error(&m_lpMySQL));
-
+		ec_log_crit("KCMDatabaseMySQL::Connect(): database access error %d, mysql error: %s", er, mysql_error(&m_lpMySQL));
 		goto exit;
 	}
 
@@ -102,13 +101,13 @@ ECRESULT ECDatabaseMySQL::Connect(ECConfig *lpConfig)
 	strQuery = "SHOW tables";
 	er = DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess) {
-		ec_log_crit("ECDatabaseMySQL::Connect(): \"SHOW tables\" failed %d", er);
+		ec_log_crit("KCMDatabaseMySQL::Connect(): \"SHOW tables\" failed %d", er);
 		goto exit;
 	}
 
 	if(GetNumRows(lpDBResult) == 0) {
 		er = KCERR_DATABASE_NOT_FOUND;
-		ec_log_crit("ECDatabaseMySQL::Connect(): database missing %d", er);
+		ec_log_crit("KCMDatabaseMySQL::Connect(): database missing %d", er);
 		goto exit;
 	}
 
@@ -120,7 +119,7 @@ ECRESULT ECDatabaseMySQL::Connect(ECConfig *lpConfig)
 	strQuery = "SHOW variables LIKE 'max_allowed_packet'";
 	er = DoSelect(strQuery, &lpDBResult);
 	if(er != erSuccess) {
-		ec_log_crit("ECDatabaseMySQL::Connect(): max_allowed_packet retrieval failed %d", er);
+		ec_log_crit("KCMDatabaseMySQL::Connect(): max_allowed_packet retrieval failed %d", er);
 		goto exit;
 	}
 
@@ -138,13 +137,13 @@ ECRESULT ECDatabaseMySQL::Connect(ECConfig *lpConfig)
 	strQuery = "SET SESSION group_concat_max_len = " + stringify((unsigned int)MAX_GROUP_CONCAT_LEN);
 	if(Query(strQuery) != 0 ) {
 		er = KCERR_DATABASE_ERROR;
-		ec_log_crit("ECDatabaseMySQL::Connect(): group_concat_max_len set fail %d", er);
+		ec_log_crit("KCMDatabaseMySQL::Connect(): group_concat_max_len set fail %d", er);
 		goto exit;
 	}
 
 	if(Query("SET NAMES 'utf8'") != 0) {
 		er = KCERR_DATABASE_ERROR;
-		ec_log_crit("ECDatabaseMySQL::Connect(): set names to utf8 failed %d", er);
+		ec_log_crit("KCMDatabaseMySQL::Connect(): set names to utf8 failed %d", er);
 		goto exit;
 	}
 
@@ -158,7 +157,7 @@ exit:
 	return er;
 }
 
-ECRESULT ECDatabaseMySQL::Close()
+ECRESULT KCMDatabaseMySQL::Close(void)
 {
 	ECRESULT er = erSuccess;
 	assert(m_bLocked == false);
@@ -176,7 +175,7 @@ ECRESULT ECDatabaseMySQL::Close()
 }
 
 // Get database ownership
-bool ECDatabaseMySQL::Lock()
+bool KCMDatabaseMySQL::Lock(void)
 {
 	m_bLocked = true;
 	m_hMutexMySql.lock();
@@ -184,7 +183,7 @@ bool ECDatabaseMySQL::Lock()
 }
 
 // Release the database ownership
-bool ECDatabaseMySQL::UnLock()
+bool KCMDatabaseMySQL::UnLock(void)
 {
 	m_hMutexMySql.unlock();
 	m_bLocked = false;
@@ -192,12 +191,13 @@ bool ECDatabaseMySQL::UnLock()
 	return m_bLocked;
 }
 
-bool ECDatabaseMySQL::isConnected() {
-
+bool KCMDatabaseMySQL::isConnected(void)
+{
 	return m_bConnected;
 }
 
-int ECDatabaseMySQL::Query(const string &strQuery) {
+int KCMDatabaseMySQL::Query(const string &strQuery)
+{
 	int err;
 
 #ifdef DEBUG_SQL
@@ -215,7 +215,9 @@ int ECDatabaseMySQL::Query(const string &strQuery) {
 	return err;
 }
 
-ECRESULT ECDatabaseMySQL::DoSelect(const string &strQuery, DB_RESULT *lpResult, bool bStream) {
+ECRESULT KCMDatabaseMySQL::DoSelect(const string &strQuery,
+    DB_RESULT *lpResult, bool bStream)
+{
 
 	ECRESULT er = erSuccess;
 	assert(strQuery.length()!= 0 && lpResult != NULL);
@@ -225,7 +227,7 @@ ECRESULT ECDatabaseMySQL::DoSelect(const string &strQuery, DB_RESULT *lpResult, 
 
 	if (Query(strQuery) != 0) {
 		er = KCERR_DATABASE_ERROR;
-		ec_log_crit("ECDatabaseMySQL::DoSelect(): Failed invoking '%s'", strQuery.c_str());
+		ec_log_crit("KCMDatabaseMySQL::DoSelect(): Failed invoking '%s'", strQuery.c_str());
 		goto exit;
 	}
 
@@ -247,8 +249,9 @@ exit:
 	return er;
 }
 
-ECRESULT ECDatabaseMySQL::DoUpdate(const string &strQuery, unsigned int *lpulAffectedRows) {
-
+ECRESULT KCMDatabaseMySQL::DoUpdate(const string &strQuery,
+    unsigned int *lpulAffectedRows)
+{
 	ECRESULT er = erSuccess;
 
 	// Autolock, lock data
@@ -264,12 +267,13 @@ ECRESULT ECDatabaseMySQL::DoUpdate(const string &strQuery, unsigned int *lpulAff
 	return er;
 }
 
-ECRESULT ECDatabaseMySQL::_Update(const string &strQuery, unsigned int *lpulAffectedRows)
+ECRESULT KCMDatabaseMySQL::_Update(const string &strQuery,
+    unsigned int *lpulAffectedRows)
 {
 	if (Query(strQuery) != 0) {
 		// FIXME: Add the mysql error system ?
 		// er = nMysqlError;
-		ec_log_crit("ECDatabaseMySQL::_Update(): Failed invoking '%s'", strQuery.c_str());
+		ec_log_crit("KCMDatabaseMySQL::_Update(): Failed invoking '%s'", strQuery.c_str());
 		return KCERR_DATABASE_ERROR;
 	}
 
@@ -278,7 +282,8 @@ ECRESULT ECDatabaseMySQL::_Update(const string &strQuery, unsigned int *lpulAffe
 	return erSuccess;
 }
 
-ECRESULT ECDatabaseMySQL::DoInsert(const string &strQuery, unsigned int *lpulInsertId, unsigned int *lpulAffectedRows)
+ECRESULT KCMDatabaseMySQL::DoInsert(const string &strQuery,
+    unsigned int *lpulInsertId, unsigned int *lpulAffectedRows)
 {
 	ECRESULT er = erSuccess;
 
@@ -300,8 +305,9 @@ ECRESULT ECDatabaseMySQL::DoInsert(const string &strQuery, unsigned int *lpulIns
 	return er;
 }
 
-ECRESULT ECDatabaseMySQL::DoDelete(const string &strQuery, unsigned int *lpulAffectedRows) {
-
+ECRESULT KCMDatabaseMySQL::DoDelete(const string &strQuery,
+    unsigned int *lpulAffectedRows)
+{
 	ECRESULT er = erSuccess;
 
 	// Autolock, lock data
@@ -325,14 +331,16 @@ ECRESULT ECDatabaseMySQL::DoDelete(const string &strQuery, unsigned int *lpulAff
  * while waiting for this transaction to end. So, don't call Begin() before calling this function unless you really
  * know what you're doing.
  */
-ECRESULT ECDatabaseMySQL::DoSequence(const std::string &strSeqName, unsigned int ulCount, uint64_t *lpllFirstId) {
+ECRESULT KCMDatabaseMySQL::DoSequence(const std::string &strSeqName,
+    unsigned int ulCount, uint64_t *lpllFirstId)
+{
 	ECRESULT er;
 	unsigned int ulAffected = 0;
 
 	// Attempt to update the sequence in an atomic fashion
 	er = DoUpdate("UPDATE settings SET value=LAST_INSERT_ID(value+1)+" + stringify(ulCount-1) + " WHERE name = '" + strSeqName + "'", &ulAffected);
 	if(er != erSuccess) {
-		ec_log_crit("ECDatabaseMySQL::DoSequence() UPDATE failed %d", er);
+		ec_log_crit("KCMDatabaseMySQL::DoSequence() UPDATE failed %d", er);
 		return er;
 	}
 
@@ -340,7 +348,7 @@ ECRESULT ECDatabaseMySQL::DoSequence(const std::string &strSeqName, unsigned int
 	if(ulAffected == 0) {
 		er = Query("INSERT INTO settings (name, value) VALUES('" + strSeqName + "',LAST_INSERT_ID(1)+" + stringify(ulCount-1) + ")");
 		if(er != erSuccess) {
-			ec_log_crit("ECDatabaseMySQL::DoSequence() INSERT INTO failed %d", er);
+			ec_log_crit("KCMDatabaseMySQL::DoSequence() INSERT INTO failed %d", er);
 			return er;
 		}
 	}
@@ -349,38 +357,39 @@ ECRESULT ECDatabaseMySQL::DoSequence(const std::string &strSeqName, unsigned int
 	return er;
 }
 
-unsigned int ECDatabaseMySQL::GetAffectedRows() {
-
+unsigned int KCMDatabaseMySQL::GetAffectedRows(void)
+{
 	return (unsigned int)mysql_affected_rows(&m_lpMySQL);
 }
 
-unsigned int ECDatabaseMySQL::GetInsertId() {
-
+unsigned int KCMDatabaseMySQL::GetInsertId(void)
+{
 	return (unsigned int)mysql_insert_id(&m_lpMySQL);
 }
 
-void ECDatabaseMySQL::FreeResult(DB_RESULT sResult) {
+void KCMDatabaseMySQL::FreeResult(DB_RESULT sResult)
+{
 	assert(sResult != NULL);
 	if(sResult)
 		mysql_free_result((MYSQL_RES *)sResult);
 }
 
-unsigned int ECDatabaseMySQL::GetNumRows(DB_RESULT sResult) {
-
+unsigned int KCMDatabaseMySQL::GetNumRows(DB_RESULT sResult)
+{
 	return (unsigned int)mysql_num_rows((MYSQL_RES *)sResult);
 }
 
-DB_ROW ECDatabaseMySQL::FetchRow(DB_RESULT sResult) {
-
+DB_ROW KCMDatabaseMySQL::FetchRow(DB_RESULT sResult)
+{
 	return mysql_fetch_row((MYSQL_RES *)sResult);
 }
 
-DB_LENGTHS ECDatabaseMySQL::FetchRowLengths(DB_RESULT sResult) {
-
+DB_LENGTHS KCMDatabaseMySQL::FetchRowLengths(DB_RESULT sResult)
+{
 	return (DB_LENGTHS)mysql_fetch_lengths((MYSQL_RES *)sResult);
 }
 
-std::string ECDatabaseMySQL::Escape(const std::string &strToEscape)
+std::string KCMDatabaseMySQL::Escape(const std::string &strToEscape)
 {
 	ULONG size = strToEscape.length()*2+1;
 	char *szEscaped = new char[size];
@@ -397,7 +406,8 @@ std::string ECDatabaseMySQL::Escape(const std::string &strToEscape)
 	return escaped;
 }
 
-std::string ECDatabaseMySQL::EscapeBinary(const unsigned char *lpData, unsigned int ulLen)
+std::string KCMDatabaseMySQL::EscapeBinary(const unsigned char *lpData,
+    unsigned int ulLen)
 {
 	ULONG size = ulLen*2+1;
 	char *szEscaped = new char[size];
@@ -414,12 +424,12 @@ std::string ECDatabaseMySQL::EscapeBinary(const unsigned char *lpData, unsigned 
 	return "'" + escaped + "'";
 }
 
-std::string ECDatabaseMySQL::EscapeBinary(const std::string &strData)
+std::string KCMDatabaseMySQL::EscapeBinary(const std::string &strData)
 {
 	return EscapeBinary(reinterpret_cast<const unsigned char *>(strData.c_str()), strData.size());
 }
 
-const char *ECDatabaseMySQL::GetError(void)
+const char *KCMDatabaseMySQL::GetError(void)
 {
 	if (m_bMysqlInitialize == false)
 		return "MYSQL not initialized";
@@ -427,7 +437,8 @@ const char *ECDatabaseMySQL::GetError(void)
 	return mysql_error(&m_lpMySQL);
 }
 
-ECRESULT ECDatabaseMySQL::Begin() {
+ECRESULT KCMDatabaseMySQL::Begin(void)
+{
 	int err;
 	err = Query("BEGIN");
 
@@ -437,7 +448,8 @@ ECRESULT ECDatabaseMySQL::Begin() {
 	return erSuccess;
 }
 
-ECRESULT ECDatabaseMySQL::Commit() {
+ECRESULT KCMDatabaseMySQL::Commit(void)
+{
 	int err;
 	err = Query("COMMIT");
 
@@ -447,7 +459,8 @@ ECRESULT ECDatabaseMySQL::Commit() {
 	return erSuccess;
 }
 
-ECRESULT ECDatabaseMySQL::Rollback() {
+ECRESULT KCMDatabaseMySQL::Rollback(void)
+{
 	int err;
 	err = Query("ROLLBACK");
 
@@ -457,11 +470,12 @@ ECRESULT ECDatabaseMySQL::Rollback() {
 	return erSuccess;
 }
 
-unsigned int ECDatabaseMySQL::GetMaxAllowedPacket() {
+unsigned int KCMDatabaseMySQL::GetMaxAllowedPacket(void)
+{
     return m_ulMaxAllowedPacket;
 }
 
-ECRESULT ECDatabaseMySQL::IsInnoDBSupported()
+ECRESULT KCMDatabaseMySQL::IsInnoDBSupported(void)
 {
 	ECRESULT	er = erSuccess;
 	DB_RESULT	lpResult = NULL;
@@ -503,7 +517,7 @@ exit:
 	return er;
 }
 
-ECRESULT ECDatabaseMySQL::CreateDatabase(ECConfig *lpConfig)
+ECRESULT KCMDatabaseMySQL::CreateDatabase(ECConfig *lpConfig)
 {
 	ECRESULT er;
 	string		strQuery;
@@ -515,8 +529,7 @@ ECRESULT ECDatabaseMySQL::CreateDatabase(ECConfig *lpConfig)
 		lpMysqlSocket = NULL;
 
 	// Kopano archiver database tables
-	const sSQLDatabase_t *sDatabaseTables = GetDatabaseDefs();
-
+	auto sDatabaseTables = GetDatabaseDefs();
 	er = InitEngine();
 	if(er != erSuccess)
 		return er;

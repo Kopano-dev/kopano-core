@@ -16,9 +16,7 @@
  */
 
 #include <kopano/platform.h>
-
-#include "ECDatabase.h"
-
+#include "arc_database.hpp"
 #define ZA_TABLEDEF_SERVERS			"CREATE TABLE `za_servers` ( \
 										`id` int(11) unsigned NOT NULL auto_increment, \
 										`guid` binary(16) NOT NULL, \
@@ -44,15 +42,14 @@
 										FOREIGN KEY (`instance_id`, `tag`) REFERENCES za_instances(`id`, `tag`) ON UPDATE RESTRICT ON DELETE CASCADE \
 									) ENGINE=InnoDB"
 
-static const sSQLDatabase_t tables[] = 
-{
+static constexpr sKCMSQLDatabase_t tables[] = {
 	{"servers", ZA_TABLEDEF_SERVERS},
 	{"instances", ZA_TABLEDEF_INSTANCES},
 	{"mappings", ZA_TABLEDEF_MAPPINGS},
 	{NULL, NULL}
 };
 
-const sSQLDatabase_t *ECDatabase::GetDatabaseDefs(void)
+const sKCMSQLDatabase_t *ARCDatabase::GetDatabaseDefs(void)
 {
 	return tables;
 }

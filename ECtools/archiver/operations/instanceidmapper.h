@@ -25,8 +25,8 @@
 
 class ECConfig;
 class ECLogger;
-class ECDatabaseMySQL;
-typedef std::shared_ptr<ECDatabaseMySQL> DatabasePtr;
+class KCMDatabaseMySQL;
+typedef std::shared_ptr<KCMDatabaseMySQL> DatabasePtr;
 
 namespace za { namespace operations {
 

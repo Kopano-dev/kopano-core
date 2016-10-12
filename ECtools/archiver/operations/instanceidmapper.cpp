@@ -19,7 +19,7 @@
 #include <kopano/ECLogger.h>
 #include "instanceidmapper.h"
 #include "Archiver.h"
-#include "ECDatabase.h"
+#include "arc_database.hpp"
 #include <kopano/stringutil.h>
 #include <boost/utility.hpp>
 
@@ -64,8 +64,8 @@ exit:
 	return hr;
 }
 
-InstanceIdMapper::InstanceIdMapper(ECLogger *lpLogger)
-: m_ptrDatabase(new ECDatabase())
+InstanceIdMapper::InstanceIdMapper(ECLogger *lpLogger) :
+    m_ptrDatabase(new ARCDatabase())
 { }
 
 HRESULT InstanceIdMapper::Init(ECConfig *lpConfig)

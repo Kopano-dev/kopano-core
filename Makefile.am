@@ -303,7 +303,7 @@ libkcarchivercore_la_SOURCES = \
 	ECtools/archiver/operations/postsaveiidupdater.cpp \
 	ECtools/archiver/operations/postsaveiidupdater.h \
 	ECtools/archiver/ArchiveControlImpl.cpp ECtools/archiver/ArchiveControlImpl.h \
-	ECtools/archiver/ECDatabase.h ECtools/archiver/ECDatabase.cpp
+	ECtools/archiver/arc_database.hpp ECtools/archiver/arc_database.cpp
 libkcarchivercore_la_CPPFLAGS = ${kopano_archiver_CPPFLAGS}
 libkcarchivercore_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	-Wl,--version-script=${default_sym}
@@ -606,8 +606,8 @@ EXTRA_libkcmapi_la_DEPENDENCIES = ${default_sym}
 #
 # libkcservice
 #
-noinst_HEADERS += common/ECDatabaseMySQL.h
-libkcservice_la_SOURCES = common/ECDatabaseMySQL.cpp
+noinst_HEADERS += common/kcm_mysql.hpp
+libkcservice_la_SOURCES = common/kcm_mysql.cpp
 libkcservice_la_LIBADD = libkcutil.la -lpthread ${MYSQL_LIBS}
 libkcservice_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	-Wl,--version-script=${default_sym}

@@ -15,16 +15,16 @@
  *
  */
 
-#ifndef ECDATABASE_H
-#define ECDATABASE_H
+#ifndef ARC_DATABASE_H
+#define ARC_DATABASE_H 1
 
 #include <kopano/zcdefs.h>
-#include "ECDatabaseMySQL.h"
+#include "kcm_mysql.hpp"
 
-class ECDatabase _zcp_final : public ECDatabaseMySQL {
+class ARCDatabase _kc_final : public KCMDatabaseMySQL {
 public:
-    ECDatabase(void) : ECDatabaseMySQL() {}
-    const sSQLDatabase_t *GetDatabaseDefs(void) _zcp_override;
+	ARCDatabase(void) : KCMDatabaseMySQL() {}
+	const sKCMSQLDatabase_t *GetDatabaseDefs(void) _kc_override;
 };
 
 #endif

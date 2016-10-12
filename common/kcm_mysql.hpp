@@ -19,8 +19,8 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#ifndef ECDATABASEMYSQL_H
-#define ECDATABASEMYSQL_H
+#ifndef KCM_MYSQL_HPP
+#define KCM_MYSQL_HPP 1
 
 #include <mutex>
 #include <kopano/platform.h>
@@ -41,14 +41,12 @@ typedef unsigned long *	DB_LENGTHS;
 typedef struct _sDatabase {
 	const char *lpComment;
 	const char *lpSQL;
-} sSQLDatabase_t;
+} sKCMSQLDatabase_t;
 
-class ECDatabaseMySQL
-{
+class KCMDatabaseMySQL {
 public:
-	ECDatabaseMySQL(void);
-	virtual ~ECDatabaseMySQL();
-
+	KCMDatabaseMySQL(void);
+	virtual ~KCMDatabaseMySQL(void);
 	ECRESULT		Connect(ECConfig *lpConfig);
 	ECRESULT		Close();
 	ECRESULT		DoSelect(const std::string &strQuery, DB_RESULT *lpResult, bool bStream = false);
@@ -56,8 +54,7 @@ public:
 	ECRESULT		DoInsert(const std::string &strQuery, unsigned int *lpulInsertId = NULL, unsigned int *lpulAffectedRows = NULL);
 	ECRESULT		DoDelete(const std::string &strQuery, unsigned int *lpulAffectedRows = NULL);
 		ECRESULT		DoSequence(const std::string &strSeqName, unsigned int ulCount, uint64_t *lpllFirstId);
-	
-	virtual const sSQLDatabase_t *GetDatabaseDefs(void) = 0;
+	virtual const sKCMSQLDatabase_t *GetDatabaseDefs(void) = 0;
 
 	//Result functions
 	unsigned int	GetNumRows(DB_RESULT sResult);
