@@ -38,6 +38,7 @@ public:
     }
     EntryId(const EntryId &s) { 
         m_data = s.m_data;
+        updateStruct();
     }
     EntryId(const entryId *entryid) {
         if(entryid) 
