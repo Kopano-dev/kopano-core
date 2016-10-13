@@ -1160,17 +1160,6 @@ ECRESULT ECStoreObjectTable::CheckPermissions(unsigned int ulObjId)
 			return er;
         }
     } else if(m_ulObjType == MAPI_FOLDER) {
-	    // Check the folder type for searchfolders
-		er = lpSession->GetSessionManager()->GetCacheManager()->GetObject(ulObjId, NULL, NULL, &ulFolderFlags, NULL);
-		if(er != erSuccess)
-			return er;
-		
-		if (ulFolderFlags == FOLDER_SEARCH &&
-		    /* Searchfolders are only visible in the home store */
-		    lpSession->GetSecurity()->IsAdminOverOwnerOfObject(ulObjId) != erSuccess &&
-		    lpSession->GetSecurity()->IsStoreOwner(ulObjId) != erSuccess)
-			return KCERR_NO_ACCESS;
-
         er = lpSession->GetSecurity()->CheckPermission(ulObjId, ecSecurityFolderVisible);
         if(er != erSuccess)
 			return er;

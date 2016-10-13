@@ -1547,8 +1547,8 @@ class Store(object):
         """ :class:`Folder` designated as search-results root """
 
         try:
-            return self.root.folder('FINDER_ROOT')
-        except NotFoundError:
+            return Folder(self, HrGetOneProp(self.mapiobj, PR_FINDER_ENTRYID).Value)
+        except MAPIErrorNotFound:
             pass
 
     @property
@@ -2209,6 +2209,7 @@ class Folder(object):
 
         if self == self.store.subtree and path in ENGLISH_FOLDER_MAP: # XXX depth==0?
             path = getattr(self.store, ENGLISH_FOLDER_MAP[path]).name
+
         matches = [f for f in self.folders(recurse=recurse) if f.name == path]
         if len(matches) == 0:
             if create:
@@ -2367,7 +2368,7 @@ class Folder(object):
             yield item
         self.store.findroot.mapiobj.DeleteFolder(searchfolder.entryid.decode('hex'), 0, None, 0) # XXX store.findroot
 
-    def search_start(self, folder, text): # XXX RECURSIVE_SEARCH
+    def search_start(self, folders, text): # XXX RECURSIVE_SEARCH
         # specific restriction format, needed to reach indexer
         restriction = SOrRestriction([
                         SContentRestriction(FL_SUBSTRING | FL_IGNORECASE, PR_SUBJECT_W, SPropValue(PR_SUBJECT_W, unicode(text))),
@@ -2375,7 +2376,9 @@ class Folder(object):
                         SContentRestriction(FL_SUBSTRING | FL_IGNORECASE, PR_DISPLAY_TO_W, SPropValue(PR_DISPLAY_TO_W, unicode(text))),
                         # XXX add all default fields.. BUT perform full-text search by default!
         ])
-        self.mapiobj.SetSearchCriteria(restriction, [_unhex(folder.entryid)], 0)
+        if isinstance(folders, Folder):
+            folders = [folders]
+        self.mapiobj.SetSearchCriteria(restriction, [_unhex(f.entryid) for f in folders], 0)
 
     def search_wait(self):
         while True:

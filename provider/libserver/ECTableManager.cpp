@@ -307,13 +307,12 @@ ECRESULT ECTableManager::OpenGenericTable(unsigned int ulParent, unsigned int ul
 	        er = KCERR_NO_SUPPORT;
 	        goto exit;
         }
-	    if(lpSession->GetSecurity()->IsStoreOwner(ulParent) != erSuccess && lpSession->GetSecurity()->IsAdminOverOwnerOfObject(ulParent) != erSuccess) {
-	        // Search folders are not visible at all to other users, therefore NOT_FOUND, not NO_ACCESS
-            er = KCERR_NOT_FOUND; 
-            goto exit;
-	    } else {
+		er = lpSession->GetSecurity()->CheckPermission(ulParent, ecSecurityFolderVisible);
+		if(er != erSuccess)
+			goto exit;
+		else
 			er = ECSearchObjectTable::Create(lpSession, ulStoreId, &sGuid, ulParent, ulObjType, ulFlags, locale, (ECSearchObjectTable**)&lpTable);
-        }
+
 	} else if(ulObjType == MAPI_FOLDER && (ulFlags & CONVENIENT_DEPTH))
 		er = ECConvenientDepthObjectTable::Create(lpSession, ulStoreId, &sGuid, ulParent, ulObjType, ulFlags, locale, (ECConvenientDepthObjectTable**)&lpTable);
 	else

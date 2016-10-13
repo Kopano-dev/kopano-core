@@ -3210,15 +3210,6 @@ SOAP_ENTRY_START(loadObject, lpsLoadObjectResponse->er, entryId sEntryId, struct
 		
 		ulParentObjType = MAPI_FOLDER;
 	} else if(ulObjType == MAPI_FOLDER) {
-
-		// Disable searchfolder for delegate stores without admin permissions
-		if ( (ulObjFlags&FOLDER_SEARCH) && lpecSession->GetSecurity()->GetAdminLevel() == 0 && 
-			lpecSession->GetSecurity()->IsStoreOwner(ulObjId) != erSuccess)
-		{
-			er = KCERR_NOT_FOUND;
-			goto exit;
-		}
-
         er = g_lpSessionManager->GetCacheManager()->GetObject(ulParentId, NULL, NULL, NULL, &ulParentObjType);
 		if (er != erSuccess)
 			goto exit;
@@ -3288,14 +3279,6 @@ static ECRESULT CreateFolder(ECSession *lpecSession, ECDatabase *lpDatabase,
 	time_t			now = 0;
 	struct propVal  sProp;
     struct hiloLong sHilo;
-
-	// You're only allowed to create search folders in your own store
-	if (type == FOLDER_SEARCH &&
-	    lpecSession->GetSecurity()->IsStoreOwner(ulParentId) != erSuccess &&
-	    (lpecSession->GetSecurity()->IsAdminOverOwnerOfObject(ulParentId) != erSuccess)) {
-		er = KCERR_NO_ACCESS;
-		goto exit;
-	}
 
 	er = lpecSession->GetSessionManager()->GetCacheManager()->GetStore(ulParentId, &ulStoreId, &guid);
 	if(er != erSuccess)
@@ -9488,16 +9471,6 @@ SOAP_ENTRY_START(checkExistObject, *result, entryId sEntryId, unsigned int ulFla
 			goto exit;
 		}
 	}
-
-	// Deny open to non-store-owners of search folders
-	if(ulObjType == MAPI_FOLDER) {
-	    if(lpecSession->GetSecurity()->IsStoreOwner(ulObjId) != erSuccess && lpecSession->GetSecurity()->IsAdminOverOwnerOfObject(ulObjId) != erSuccess) {
-	    	if(ulDBFlags & FOLDER_SEARCH) {
-	    		er = KCERR_NOT_FOUND;
-	    		goto exit;
-			}
-        }
-    }
 exit:
     lpDatabase->Commit();
     

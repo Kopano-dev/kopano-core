@@ -254,6 +254,7 @@ typedef EID * PEID;
 // This is what we support for archive store
 #define EC_SUPPORTMASK_ARCHIVE \
 							STORE_ENTRYID_UNIQUE | \
+							STORE_SEARCH_OK | \
 							STORE_MODIFY_OK | \
 							STORE_CREATE_OK | \
 							STORE_ATTACH_OK | \
@@ -270,6 +271,7 @@ typedef EID * PEID;
 // This is what we support for delegate store
 #define EC_SUPPORTMASK_DELEGATE \
 							STORE_ENTRYID_UNIQUE | \
+							STORE_SEARCH_OK | \
 							STORE_MODIFY_OK | \
 							STORE_CREATE_OK | \
 							STORE_ATTACH_OK | \
@@ -287,6 +289,7 @@ typedef EID * PEID;
 // This is what we support for public store
 #define EC_SUPPORTMASK_PUBLIC \
 							STORE_ENTRYID_UNIQUE | \
+							STORE_SEARCH_OK | \
 							STORE_MODIFY_OK | \
 							STORE_CREATE_OK | \
 							STORE_ATTACH_OK | \

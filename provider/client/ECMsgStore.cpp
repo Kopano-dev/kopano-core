@@ -35,6 +35,7 @@
 
 #include <kopano/ECGuid.h>
 #include <kopano/ECDebug.h>
+#include <kopano/ECABEntryID.h>
 
 #include <kopano/mapiext.h>
 
@@ -1991,6 +1992,7 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 	LPMAPIFOLDER		lpFolderRootNST	= NULL;	// NON_IPM_SUBTREE
 	LPMAPIFOLDER		lpMAPIFolder	= NULL; // Temp folder
 	LPMAPIFOLDER		lpMAPIFolder2	= NULL; // Temp folder
+	LPMAPIFOLDER		lpMAPIFolder3	= NULL; // Temp folder
 	IECPropStorage		*lpStorage		= NULL;
 	ECMAPIFolder		*lpECMapiFolderInbox = NULL;
 	LPMAPIFOLDER		lpInboxFolder = NULL;
@@ -2094,8 +2096,31 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 
 		// Create Folder NON_IPM_SUBTREE into the rootfolder
 		hr = CreateSpecialFolder(lpFolderRoot, lpecMsgStore, _T("NON_IPM_SUBTREE"), _T(""), PR_NON_IPM_SUBTREE_ENTRYID, 0, NULL, &lpFolderRootNST);
+		if (hr != hrSuccess)
+			goto exit;
+
+		// Create Folder FINDER_ROOT into the rootfolder
+		hr = CreateSpecialFolder(lpFolderRoot, lpecMsgStore, _T("FINDER_ROOT"), _T(""), PR_FINDER_ENTRYID, 0, NULL, &lpMAPIFolder3);
+		if (hr != hrSuccess)
+			goto exit;
+
+		sPermission.ulRights = ecRightsFolderVisible|ecRightsReadAny|ecRightsCreateSubfolder|ecRightsEditOwned|ecRightsDeleteOwned;
+		sPermission.ulState = RIGHT_NEW|RIGHT_AUTOUPDATE_DENIED;
+		sPermission.ulType = ACCESS_TYPE_GRANT;
+		sPermission.sUserId.cb = g_cbEveryoneEid;
+		sPermission.sUserId.lpb = g_lpEveryoneEid;
+
+		hr = lpMAPIFolder3->QueryInterface(IID_IECSecurity, (void**)&lpECSecurity);
 		if(hr != hrSuccess)
 			goto exit;
+		hr = lpECSecurity->SetPermissionRules(1, &sPermission);
+		if (hr != hrSuccess)
+			goto exit;
+
+		lpMAPIFolder3->Release();
+		lpMAPIFolder3 = NULL;
+		lpECSecurity->Release();
+		lpECSecurity = NULL;
 
 		//Free busy time folder
 		hr = CreateSpecialFolder(lpFolderRootNST, lpecMsgStore,_T( "SCHEDULE+ FREE BUSY"), _T(""), PR_SPLUS_FREE_BUSY_ENTRYID, 0, NULL, &lpMAPIFolder);
@@ -2154,11 +2179,10 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 		sPermission.sUserId.lpb = (unsigned char*)lpUserId;
 
 		hr = lpFolderRootST->QueryInterface(IID_IECSecurity, (void**)&lpECSecurity);
-		if(hr != hrSuccess)
+		if (hr != hrSuccess)
 			goto exit;
-
 		hr = lpECSecurity->SetPermissionRules(1, &sPermission);
-		if(hr != hrSuccess)
+		if (hr != hrSuccess)
 			goto exit;
 
 		lpECSecurity->Release();
@@ -2196,10 +2220,28 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 			goto exit;
 
 		// Create Folder FINDER_ROOT into the rootfolder
-		// Place for searchfolders
-		hr = CreateSpecialFolder(lpFolderRoot, lpecMsgStore, _T("FINDER_ROOT"), _T(""), PR_FINDER_ENTRYID, 0, NULL, NULL);
+		hr = CreateSpecialFolder(lpFolderRoot, lpecMsgStore, _T("FINDER_ROOT"), _T(""), PR_FINDER_ENTRYID, 0, NULL, &lpMAPIFolder3);
 		if(hr != hrSuccess)
 			goto exit;
+
+		sPermission.ulRights = ecRightsFolderVisible|ecRightsReadAny|ecRightsCreateSubfolder|ecRightsEditOwned|ecRightsDeleteOwned;
+		sPermission.ulState = RIGHT_NEW|RIGHT_AUTOUPDATE_DENIED;
+		sPermission.ulType = ACCESS_TYPE_GRANT;
+		sPermission.sUserId.cb = g_cbEveryoneEid;
+		sPermission.sUserId.lpb = g_lpEveryoneEid;
+
+		hr = lpMAPIFolder3->QueryInterface(IID_IECSecurity, (void**)&lpECSecurity);
+		if(hr != hrSuccess)
+			goto exit;
+
+		hr = lpECSecurity->SetPermissionRules(1, &sPermission);
+		if(hr != hrSuccess)
+			goto exit;
+
+		lpMAPIFolder3->Release();
+		lpMAPIFolder3 = NULL;
+		lpECSecurity->Release();
+		lpECSecurity = NULL;
 
 		// Create Shortcuts
 		// Shortcuts for the favorites
