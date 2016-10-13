@@ -1,3 +1,34 @@
+Release notes for 8.2.0
+=======================
+Fixes:
+* backup: avoid exceptions on problematic rules/ACLs/delegates [KC-213]
+* The comment for server.cfg's "disabled_features" was wrong [KC-262]
+Enhancements:
+* Python 3 support [KC-48]
+* search: files are now compacted, and their uid/gid checked [KC-188]
+Changes:
+* Support for building with a no-SSLv2 OpenSSL 1.1. [KC-230]
+  If you run such a setup, be aware that a config setting like
+  "ssl_protocol = !SSLv2" in one or more of kopano-{server,gateway,ical}.cfg
+  can inhibit the process from starting.
+* Cleanup of the example LDAP configuration files. [KC-229]
+  /usr/share/doc/kopano/example-configs/ now has just a ldap.cfg,
+  and no more ldap{,ms}.{active-directory,ldap}.cfg.
+* The example LDAP config file now has a different proposed value for
+  ldap_object_search_filter for OpenLDAP. [KC-218]
+Developer/packager notes:
+* Support for building the source with newer gsoap
+  (upto and including 2.8.36) [KC-261]
+* KC 8.2 is the first to support 2.8.34+ at runtime. [KC-261]
+  Earlier KC releases only support gsoap < 2.8.30 because KC was using
+  undocumented behavior for which the generator changed the wire protocol.
+Internal:
+* Many "goto exit" were abolished and reordered [KC-87]
+* for() loop verbosity reduced by using range-based loops [KC-88]
+* pthread_mutex calls have been switched to std::mutex [KC-191]
+* Coverity report fixes and other possible NULL dereferences [KC-235]
+
+
 Release notes for 8.1.0 [2016-10-05]
 ====================================
 Fixes:
