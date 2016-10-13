@@ -326,6 +326,46 @@ struct timespec GetDeadline(unsigned int ulTimeoutMs)
 	return deadline;
 }
 
+// Does mkdir -p <path>
+// Needed because boost::filesystem::create_directories is too old on
+// RHEL6 for error handling
+int CreatePath(const char *createpath)
+{
+	struct stat s;
+	char *path = strdup(createpath);
+
+	// Remove trailing slashes
+	size_t len = strlen(path);
+	while (len > 0 && (path[len-1] == '/' || path[len-1] == '\\'))
+		path[--len] = 0;
+
+	if (stat(path, &s) == 0) {
+		free(path);
+		if (s.st_mode & S_IFDIR)
+			return 0; // Directory is already there
+		return -1; // Item is not a directory
+	}
+	// We need to create the directory
+	// First, create parent directories
+	char *trail = strrchr(path, '/') > strrchr(path, '\\') ?
+	              strrchr(path, '/') : strrchr(path, '\\');
+	if (trail == NULL) {
+		// Should only happen if you are trying to create /path/to/dir
+		// in win32 or \path\to\dir in linux
+		free(path);
+		return -1;
+	}
+	*trail = '\0';
+	if (CreatePath(path) != 0) {
+		free(path);
+		return -1;
+	}
+	// Create the actual directory
+	int ret = mkdir(createpath, 0700);
+	free(path);
+	return ret;
+}
+
 double GetTimeOfDay()
 {
 	struct timeval tv;

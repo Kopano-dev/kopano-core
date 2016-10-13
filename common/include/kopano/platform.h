@@ -118,6 +118,9 @@ time_t operator -(const FILETIME &, const FILETIME &);
 time_t timegm(struct tm *t);
 #endif
 
+// mkdir -p
+int CreatePath(const char *createpath);
+
 // Random-number generators
 void	rand_init();
 int		rand_mt();

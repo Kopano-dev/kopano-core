@@ -670,9 +670,7 @@ int ns__setClientUpdateStatus(struct soap *soap, struct clientUpdateStatusReques
 		strFilePath = lpszLogPath;
 		strFilePath+= "/";
 		strFilePath+= stringify(sClientUpdateStatus.ulTrackId, true) + "/";
-
-		boost::system::error_code ec;
-		if (!bfs::create_directories(strFilePath.c_str(), ec) && ec != 0) {
+		if (CreatePath(strFilePath.c_str()) != 0) {
 			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Client update: trackid: 0x%08X, Unable to create directory '%s'!", sClientUpdateStatus.ulTrackId, strFilePath.c_str());
 			er = KCERR_NO_ACCESS;
 			goto exit;

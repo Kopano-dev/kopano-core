@@ -310,7 +310,7 @@ static ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 		for (int i = 0; i < ATTACH_PATHDEPTH_LEVEL1; ++i)
 			for (int j = 0; j < ATTACH_PATHDEPTH_LEVEL2; ++j) {
 				string path = (string)g_lpConfig->GetSetting("attachment_path") + PATH_SEPARATOR + stringify(i) + PATH_SEPARATOR + stringify(j);
-				bfs::create_directories(path.c_str()); // FIXME: error handling..
+				CreatePath(path.c_str());
 			}
 
 exit:
@@ -1023,11 +1023,8 @@ static int running_server(char *szName, const char *szConfig,
 
 	if (strcmp(g_lpConfig->GetSetting("attachment_storage"), "files") == 0) {
 		// directory will be created using startup (probably root) and then chowned to the new 'runas' username
-		boost::system::error_code ec;
-		if (!bfs::create_directories(g_lpConfig->GetSetting("attachment_path"), ec) && ec != 0) {
-			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to create attachment directory \"%s\": %s",
-				g_lpConfig->GetSetting("attachment_path"),
-				ec.message().c_str());
+		if (CreatePath(g_lpConfig->GetSetting("attachment_path")) != 0) {
+			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to create attachment directory '%s'", g_lpConfig->GetSetting("attachment_path"));
 			er = KCERR_DATABASE_ERROR;
 			goto exit;
 		}
