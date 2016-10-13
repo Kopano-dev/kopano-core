@@ -39,11 +39,7 @@ ECABLogon::ECABLogon(LPMAPISUP lpMAPISup, WSTransport* lpTransport, ULONG ulProf
 	m_guid = MUIDECSAB;
 
 	// The specific GUID for *this* addressbook provider, if available
-	if (lpGUID) {
-		m_ABPGuid = *lpGUID;
-	} else {
-		m_ABPGuid = GUID_NULL;
-	}
+	m_ABPGuid = (lpGUID != nullptr) ? *lpGUID : GUID_NULL;
 
 	m_lpNotifyClient = NULL;
 

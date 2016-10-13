@@ -121,10 +121,10 @@ HRESULT ECAttach::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceO
 		ulAttachType = lpPropAttachType->Value.ul;
 
 		ECFreeBuffer(lpPropAttachType); lpPropAttachType = NULL;
-	} else {
-		// The client is creating a new attachment, which may be embedded. Fix for the next if check
-		if ((ulFlags & MAPI_CREATE) && PROP_ID(ulPropTag) == PROP_ID(PR_ATTACH_DATA_OBJ) && *lpiid == IID_IMessage)
-			ulAttachType = ATTACH_EMBEDDED_MSG;
+	}
+	// The client is creating a new attachment, which may be embedded. Fix for the next if check
+	else if ((ulFlags & MAPI_CREATE) && PROP_ID(ulPropTag) == PROP_ID(PR_ATTACH_DATA_OBJ) && *lpiid == IID_IMessage) {
+		ulAttachType = ATTACH_EMBEDDED_MSG;
 	}
 
 	if(ulAttachType == ATTACH_EMBEDDED_MSG && (PROP_ID(ulPropTag) == PROP_ID(PR_ATTACH_DATA_OBJ) && *lpiid == IID_IMessage)) {

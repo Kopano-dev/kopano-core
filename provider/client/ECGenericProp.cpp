@@ -245,13 +245,11 @@ HRESULT ECGenericProp::HrGetRealProp(ULONG ulPropTag, ULONG ulFlags, void *lpBas
 	}
 
 	// Check if a max. size was requested, if so, dont return unless smaller than max. size
-	if(ulMaxSize) {
-		if(iterProps->second.GetProperty()->GetSize() > ulMaxSize) {
-			lpsPropValue->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(ulPropTag));
-			lpsPropValue->Value.err = MAPI_E_NOT_ENOUGH_MEMORY;
-			hr = MAPI_W_ERRORS_RETURNED;
-			goto exit;
-		}
+	if (ulMaxSize != 0 && iterProps->second.GetProperty()->GetSize() > ulMaxSize) {
+		lpsPropValue->ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(ulPropTag));
+		lpsPropValue->Value.err = MAPI_E_NOT_ENOUGH_MEMORY;
+		hr = MAPI_W_ERRORS_RETURNED;
+		goto exit;
 	}
 
 	if (PROP_TYPE(ulPropTag) == PT_UNSPECIFIED) {
@@ -692,14 +690,12 @@ HRESULT ECGenericProp::HrSetPropStorage(IECPropStorage *lpStorage, BOOL fLoadPro
 		hr = HrLoadProps();
 		if(hr != hrSuccess)
 			return hr;
-			
-		if(HrGetRealProp(PR_OBJECT_TYPE, 0, NULL, &sPropValue, m_ulMaxPropSize) == hrSuccess) {
-			// The server sent a PR_OBJECT_TYPE, check if it is correct
-			if (this->ulObjType != sPropValue.Value.ul)
-				// Return NOT FOUND because the entryid given was the incorrect type. This means
-				// that the object was basically not found.
-				return MAPI_E_NOT_FOUND;
-		}
+		if (HrGetRealProp(PR_OBJECT_TYPE, 0, NULL, &sPropValue, m_ulMaxPropSize) == hrSuccess &&
+		    // The server sent a PR_OBJECT_TYPE, check if it is correct
+		    this->ulObjType != sPropValue.Value.ul)
+			// Return NOT FOUND because the entryid given was the incorrect type. This means
+			// that the object was basically not found.
+			return MAPI_E_NOT_FOUND;
 	}
 	return hrSuccess;
 }

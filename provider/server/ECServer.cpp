@@ -281,17 +281,15 @@ static ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 	}
 
 	lpRow = lpDatabase->FetchRow(lpResult);
-
-	if (lpRow && lpRow[0]) {
-		// check if the mode is the same as last time
-		if (strcmp(lpRow[0], g_lpConfig->GetSetting("attachment_storage")) != 0) {
-			if (!m_bIgnoreAttachmentStorageConflict) {
-				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Attachments are stored with option '%s', but '%s' is selected.", lpRow[0], g_lpConfig->GetSetting("attachment_storage"));
-				er = KCERR_DATABASE_ERROR;
-				goto exit;
-			} else {
-				g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Ignoring attachment storing conflict as requested. Attachments are now stored with option '%s'", g_lpConfig->GetSetting("attachment_storage"));
-			}
+	if (lpRow != nullptr && lpRow[0] != nullptr &&
+	    // check if the mode is the same as last time
+	    strcmp(lpRow[0], g_lpConfig->GetSetting("attachment_storage")) != 0) {
+		if (!m_bIgnoreAttachmentStorageConflict) {
+			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Attachments are stored with option '%s', but '%s' is selected.", lpRow[0], g_lpConfig->GetSetting("attachment_storage"));
+			er = KCERR_DATABASE_ERROR;
+			goto exit;
+		} else {
+			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Ignoring attachment storing conflict as requested. Attachments are now stored with option '%s'", g_lpConfig->GetSetting("attachment_storage"));
 		}
 	}
 

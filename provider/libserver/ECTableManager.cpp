@@ -353,17 +353,16 @@ exit:
 
 static void AuditStatsAccess(ECSession *lpSession, const char *access, const char *table)
 {
-	if (lpSession->GetSessionManager()->GetAudit()) {
-		std::string strUsername;
-		std::string strImpersonator;
-		
-		lpSession->GetSecurity()->GetUsername(&strUsername);
-		if (lpSession->GetSecurity()->GetImpersonator(&strImpersonator) == erSuccess) {
-			ZLOG_AUDIT(lpSession->GetSessionManager()->GetAudit(), "access %s table='%s stats' username=%s impersonator=%s", access, table, strUsername.c_str(), strImpersonator.c_str());
-		} else {
-			ZLOG_AUDIT(lpSession->GetSessionManager()->GetAudit(), "access %s table='%s stats' username=%s", access, table, strUsername.c_str());
-		}
-	}
+	if (!lpSession->GetSessionManager()->GetAudit())
+		return;
+	std::string strUsername;
+	std::string strImpersonator;
+	
+	lpSession->GetSecurity()->GetUsername(&strUsername);
+	if (lpSession->GetSecurity()->GetImpersonator(&strImpersonator) == erSuccess)
+		ZLOG_AUDIT(lpSession->GetSessionManager()->GetAudit(), "access %s table='%s stats' username=%s impersonator=%s", access, table, strUsername.c_str(), strImpersonator.c_str());
+	else
+		ZLOG_AUDIT(lpSession->GetSessionManager()->GetAudit(), "access %s table='%s stats' username=%s", access, table, strUsername.c_str());
 }
 
 ECRESULT ECTableManager::OpenStatsTable(unsigned int ulTableType, unsigned int ulFlags, unsigned int *lpulTableId)

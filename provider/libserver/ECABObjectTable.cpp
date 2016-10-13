@@ -473,14 +473,12 @@ ECRESULT ECABObjectTable::Load()
 			 */
 			if (objectid.objclass == CONTAINER_COMPANY && lpODAB->ulABParentType == MAPI_DISTLIST)
 				ulObjectFilter |= AB_FILTER_CONTACTS;
-		} else {
-			if (lpODAB->ulABParentId == KOPANO_UID_SYSTEM) {
-				objectid.objclass = ACTIVE_USER;
-			} else if (lpODAB->ulABParentId == KOPANO_UID_EVERYONE) {
-				objectid.objclass = DISTLIST_SECURITY;
-				/* Security distribution lists should not contain contacts */
-				ulObjectFilter |= AB_FILTER_CONTACTS;
-			}
+		} else if (lpODAB->ulABParentId == KOPANO_UID_SYSTEM) {
+			objectid.objclass = ACTIVE_USER;
+		} else if (lpODAB->ulABParentId == KOPANO_UID_EVERYONE) {
+			objectid.objclass = DISTLIST_SECURITY;
+			/* Security distribution lists should not contain contacts */
+			ulObjectFilter |= AB_FILTER_CONTACTS;
 		}
 
 		/*

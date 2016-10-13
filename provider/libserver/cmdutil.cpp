@@ -1397,15 +1397,8 @@ ECRESULT ProcessSubmitFlag(ECDatabase *lpDatabase, ULONG ulSyncId, ULONG ulStore
 			er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 			if (er != erSuccess)
 				goto exit;
-
-			if (lpDatabase->GetNumRows(lpDBResult) > 0) {
-				// Item is in the outgoing queue at the moment
-				ulPrevSubmitFlag = 1;
-			} else {
-				// Item is not in the queue at the moment
-				ulPrevSubmitFlag = 0;
-			}
-
+			// Item is (1)/is not (0) in the outgoing queue at the moment
+			ulPrevSubmitFlag = lpDatabase->GetNumRows(lpDBResult) > 0;
 			lpDatabase->FreeResult(lpDBResult);
 			lpDBResult = NULL;
 
@@ -1535,16 +1528,12 @@ ECRESULT WriteSingleProp(ECDatabase *lpDatabase, unsigned int ulObjId, unsigned 
 	er = CopySOAPPropValToDatabasePropVal(lpPropVal, &ulColId, strColData, lpDatabase, bColumnProp);
 	if(er != erSuccess)
 		return erSuccess; // Data from client was bogus, ignore it.
-	
-	if(strInsertQuery.empty()) {
-		if (bColumnProp) {
-			strQueryAppend = "REPLACE INTO tproperties (hierarchyid,tag,type,folderid," + (std::string)PROPCOLVALUEORDER(tproperties) + ") VALUES";
-		} else {
-			strQueryAppend = "REPLACE INTO properties (hierarchyid,tag,type," + (std::string)PROPCOLVALUEORDER(properties) + ") VALUES";
-		}
-	} else {
+	if (!strInsertQuery.empty())
 		strQueryAppend = ",";
-	}
+	else if (bColumnProp)
+		strQueryAppend = "REPLACE INTO tproperties (hierarchyid,tag,type,folderid," + (std::string)PROPCOLVALUEORDER(tproperties) + ") VALUES";
+	else
+		strQueryAppend = "REPLACE INTO properties (hierarchyid,tag,type," + (std::string)PROPCOLVALUEORDER(properties) + ") VALUES";
 		
 	strQueryAppend += "(" + stringify(ulObjId) + "," +
 							stringify(PROP_ID(lpPropVal->ulPropTag)) + "," +
@@ -1553,14 +1542,12 @@ ECRESULT WriteSingleProp(ECDatabase *lpDatabase, unsigned int ulObjId, unsigned 
 		strQueryAppend += stringify(ulFolderId) + ",";
 
 	for (unsigned int k = 0; k < VALUE_NR_MAX; ++k) {
-		if(k==ulColId) {
+		if (k == ulColId)
 			strQueryAppend += strColData;
-		} else {
-			if(k == VALUE_NR_HILO)
-				strQueryAppend += "null,null";
-			else
-				strQueryAppend += "null";
-		}
+		else if (k == VALUE_NR_HILO)
+			strQueryAppend += "null,null";
+		else
+			strQueryAppend += "null";
 		if(k != VALUE_NR_MAX-1) {
 			strQueryAppend += ",";
 		}

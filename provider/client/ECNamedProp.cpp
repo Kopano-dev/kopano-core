@@ -133,14 +133,12 @@ HRESULT ECNamedProp::GetNamesFromIDs(LPSPropTagArray FAR * lppPropTags, LPGUID l
 
 	// Pass 2, cache reverse mapping (FAST)
 	for (i = 0; i < lpsPropTags->cValues; ++i) {
-		if(lppPropNames[i] == NULL) {
-			if(PROP_ID(lpsPropTags->aulPropTag[i]) > SERVER_NAMED_OFFSET) {
-				ResolveReverseCache(PROP_ID(lpsPropTags->aulPropTag[i]), lpPropSetGuid, ulFlags, lppPropNames, &lppPropNames[i]);
-			} else {
-				// Hmmm, so here is a named property, which is < SERVER_NAMED_OFFSET, but CANNOT be 
-				// resolved internally. Looks like somebody's pulling our leg ... We just leave it unknown
-			}
-		}
+		if (lppPropNames[i] != NULL)
+			continue;
+		if (PROP_ID(lpsPropTags->aulPropTag[i]) > SERVER_NAMED_OFFSET)
+			ResolveReverseCache(PROP_ID(lpsPropTags->aulPropTag[i]), lpPropSetGuid, ulFlags, lppPropNames, &lppPropNames[i]);
+		// else { Hmmm, so here is a named property, which is < SERVER_NAMED_OFFSET, but CANNOT be
+		// resolved internally. Looks like somebody's pulling our leg ... We just leave it unknown }
 	}
 
 	ECAllocateBuffer(CbNewSPropTagArray(lpsPropTags->cValues), (void **)&lpsUnresolved);

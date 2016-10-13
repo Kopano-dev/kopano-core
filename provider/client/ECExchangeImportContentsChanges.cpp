@@ -437,12 +437,13 @@ bool ECExchangeImportContentsChanges::IsProcessed(LPSPropValue lpRemoteCK, LPSPr
 		size_t ulSize = strChangeList.at(ulPos++);
 		if (ulSize <= sizeof(GUID) ){
 			break;
-		} else if (lpRemoteCK->Value.bin.cb > sizeof(GUID) && memcmp(strChangeList.data() + ulPos, lpRemoteCK->Value.bin.lpb, sizeof(GUID)) == 0){
-			if (ulSize == lpRemoteCK->Value.bin.cb && memcmp(strChangeList.data() + ulPos, lpRemoteCK->Value.bin.lpb, ulSize) == 0) {
-				//remote changekey in our changelist
-				//we already have this change
-				return true;
-			}
+		} else if (lpRemoteCK->Value.bin.cb > sizeof(GUID) &&
+		    memcmp(strChangeList.data() + ulPos, lpRemoteCK->Value.bin.lpb, sizeof(GUID)) == 0 &&
+		    ulSize == lpRemoteCK->Value.bin.cb &&
+		    memcmp(strChangeList.data() + ulPos, lpRemoteCK->Value.bin.lpb, ulSize) == 0) {
+			//remote changekey in our changelist
+			//we already have this change
+			return true;
 		}
 		ulPos += ulSize;
 	}

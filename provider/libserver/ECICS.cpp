@@ -790,10 +790,8 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 
 			if(ulChangeId != 0){
 			
-			    if (folder_id != 0) {
-				if (g_lpSessionManager->GetCacheManager()->GetPropFromObject(PROP_ID(PR_SOURCE_KEY), folder_id, NULL, &cbSourceKeyData, &lpSourceKeyData) != erSuccess)
+			    if (folder_id != 0 && g_lpSessionManager->GetCacheManager()->GetPropFromObject(PROP_ID(PR_SOURCE_KEY), folder_id, NULL, &cbSourceKeyData, &lpSourceKeyData) != erSuccess)
 	    				goto nextFolder; // Item is hard deleted?
-			    }
 
 				// Search folder changed folders
 				strQuery = 	"SELECT changes.id "

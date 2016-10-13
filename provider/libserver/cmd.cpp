@@ -2874,6 +2874,7 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er, entryId sParentEntryId, 
 	}
 
 	if (lpsSaveObj->ulServerId == 0) {
+		gsoap_size_t rki;
 		er = MapEntryIdToObjectId(lpecSession, lpDatabase, sReturnObject.ulServerId, sEntryId);
 		if (er != erSuccess)
 			goto exit;
@@ -2881,19 +2882,16 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er, entryId sParentEntryId, 
 		ulObjId = sReturnObject.ulServerId;
 
 		// now that we have an entry id, find the generated PR_RECORD_KEY from SaveObject and override it with the PR_ENTRYID value (fixme, ZCP-6706)
-		{
-			gsoap_size_t rki;
-			for (rki = 0; rki < sReturnObject.modProps.__size; ++rki)
-				if (sReturnObject.modProps.__ptr[rki].ulPropTag == PR_RECORD_KEY)
-					break;
-			// @note static alloc of 8 props in SaveObject. we did not find the record key: make it now
-			if (rki == sReturnObject.modProps.__size && rki < 8) {
-				ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_RECORD_KEY, sReturnObject.ulServerId, 0, 0, ulParentObjId,
-													lpsSaveObj->ulObjType, &sReturnObject.modProps.__ptr[rki]);
-				++sReturnObject.modProps.__size;
-				sReturnObject.delProps.__ptr[rki] = PR_RECORD_KEY;
-				++sReturnObject.delProps.__size;
-			}
+		for (rki = 0; rki < sReturnObject.modProps.__size; ++rki)
+			if (sReturnObject.modProps.__ptr[rki].ulPropTag == PR_RECORD_KEY)
+				break;
+		// @note static alloc of 8 props in SaveObject. we did not find the record key: make it now
+		if (rki == sReturnObject.modProps.__size && rki < 8) {
+			ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_RECORD_KEY, sReturnObject.ulServerId, 0, 0, ulParentObjId,
+				lpsSaveObj->ulObjType, &sReturnObject.modProps.__ptr[rki]);
+			++sReturnObject.modProps.__size;
+			sReturnObject.delProps.__ptr[rki] = PR_RECORD_KEY;
+			++sReturnObject.delProps.__size;
 		}
 	} else {
 		ulObjId = lpsSaveObj->ulServerId;
@@ -10271,16 +10269,14 @@ SOAP_ENTRY_START(setSyncStatus, lpsResponse->er, struct xsd__base64Binary sSourc
     if(ulFolderId == 0) {
         if(lpecSession->GetSecurity()->GetAdminLevel() != ADMIN_LEVEL_SYSADMIN)
             er = KCERR_NO_ACCESS;
-    } else {
-        //Check security
-        if(ulChangeType == ICS_SYNC_CONTENTS){
-            er = lpecSession->GetSecurity()->CheckPermission(ulFolderId, ecSecurityRead);
-        }else if(ulChangeType == ICS_SYNC_HIERARCHY){
-            er = lpecSession->GetSecurity()->CheckPermission(ulFolderId, ecSecurityFolderVisible);
-        }else{
-            er = KCERR_INVALID_TYPE;
-        }
     }
+	// Check security
+	else if (ulChangeType == ICS_SYNC_CONTENTS)
+            er = lpecSession->GetSecurity()->CheckPermission(ulFolderId, ecSecurityRead);
+	else if (ulChangeType == ICS_SYNC_HIERARCHY)
+            er = lpecSession->GetSecurity()->CheckPermission(ulFolderId, ecSecurityFolderVisible);
+	else
+            er = KCERR_INVALID_TYPE;
 	if(er != erSuccess)
 		goto exit;
 
@@ -10575,11 +10571,9 @@ SOAP_ENTRY_START(getServerDetails, lpsResponse->er, struct mv_string8 szaSvrName
 				
 			if ((ulFlags & EC_SERVERDETAIL_SSLPATH) == EC_SERVERDETAIL_SSLPATH)
 				lpsResponse->sServerList.__ptr[i].lpszSslPath = STROUT_FIX_CPY(sDetails.GetSslPath().c_str());
-				
-			if ((ulFlags & EC_SERVERDETAIL_PREFEREDPATH) == EC_SERVERDETAIL_PREFEREDPATH) {
-				if (GetBestServerPath(soap, lpecSession, sDetails.GetServerName(), &strServerPath) == erSuccess)
-					lpsResponse->sServerList.__ptr[i].lpszPreferedPath = STROUT_FIX_CPY(strServerPath.c_str());
-			}
+			if ((ulFlags & EC_SERVERDETAIL_PREFEREDPATH) == EC_SERVERDETAIL_PREFEREDPATH &&
+			    GetBestServerPath(soap, lpecSession, sDetails.GetServerName(), &strServerPath) == erSuccess)
+				lpsResponse->sServerList.__ptr[i].lpszPreferedPath = STROUT_FIX_CPY(strServerPath.c_str());
 		}
 	}
 exit:

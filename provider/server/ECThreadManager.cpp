@@ -101,14 +101,14 @@ ECWorkerThread::ECWorkerThread(ECLogger *lpLogger, ECThreadManager *lpManager, E
 	m_lpManager = lpManager;
 	m_lpDispatcher = lpDispatcher;
 
-	if (!bDoNotStart) {
-		if(pthread_create(&m_thread, NULL, ECWorkerThread::Work, this) != 0) {
-			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to start thread: %s", strerror(errno));
-		} else {
-			set_thread_name(m_thread, "ECWorkerThread");
-			pthread_detach(m_thread);
-		}
+	if (bDoNotStart)
+		return;
+	if (pthread_create(&m_thread, NULL, ECWorkerThread::Work, this) != 0) {
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to start thread: %s", strerror(errno));
+		return;
 	}
+	set_thread_name(m_thread, "ECWorkerThread");
+	pthread_detach(m_thread);
 }
 
 ECPriorityWorkerThread::ECPriorityWorkerThread(ECLogger *lpLogger, ECThreadManager *lpManager, ECDispatcher *lpDispatcher) : ECWorkerThread(lpLogger, lpManager, lpDispatcher, true)
@@ -536,30 +536,27 @@ ECRESULT ECDispatcher::GetNextWorkItem(WORKITEM **lppItem, bool bWait, bool bPri
         // Item is waiting, return that
         lpItem = queue->front();
         queue->pop();
+    } else if (!bWait || m_bExit) {
+        // No wait requested, return not found
+		return KCERR_NOT_FOUND;
     } else {
         // No item waiting
-        if(bWait && !m_bExit) {
-			ulock_normal l_idle(m_mutexIdle);
-			++m_ulIdle;
-			l_idle.unlock();
+		ulock_normal l_idle(m_mutexIdle);
+		++m_ulIdle;
+		l_idle.unlock();
 
-			/* If requested, wait until item is available */
-			condItems.wait(l_item);
-			l_idle.lock();
-			--m_ulIdle;
-			l_idle.unlock();
+		/* If requested, wait until item is available */
+		condItems.wait(l_item);
+		l_idle.lock();
+		--m_ulIdle;
+		l_idle.unlock();
 
-            if(!queue->empty() && !m_bExit) {
-                lpItem = queue->front();
-                queue->pop();
-            } else {
-                // Condition fired, but still nothing there. Probably exit requested or wrong queue signal
-				return KCERR_NOT_FOUND;
-            }
-        } else {
-            // No wait requested, return not found
+        if (queue->empty() || m_bExit)
+            // Condition fired, but still nothing there. Probably exit requested or wrong queue signal
 			return KCERR_NOT_FOUND;
-        }
+
+        lpItem = queue->front();
+        queue->pop();
     }
     
     *lppItem = lpItem;

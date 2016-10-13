@@ -798,19 +798,20 @@ void* ECSessionManager::SessionCleaner(void *lpTmpSessionManager)
 		// Find a session that has timed out
 		auto iIterator = lpSessionManager->m_mapSessions.begin();
 		while (iIterator != lpSessionManager->m_mapSessions.cend()) {
-			if((iIterator->second->GetSessionTime()) < lCurTime && !lpSessionManager->IsSessionPersistent(iIterator->first)){
-				// Remember all the session to be deleted
-				lstSessions.push_back(iIterator->second);
-
-				auto iRemove = iIterator++;
-				// Remove the session from the list, no new threads can start on this session after this point.
-				g_lpStatsCollector->Increment(SCN_SESSIONS_TIMEOUT);
-				ec_log_info("End of session (timeout) %llu",
-					static_cast<unsigned long long>(iRemove->first));
-				lpSessionManager->m_mapSessions.erase(iRemove);
-			} else {
+			bool del = iIterator->second->GetSessionTime() < lCurTime &&
+			           !lpSessionManager->IsSessionPersistent(iIterator->first);
+			if (!del) {
 				++iIterator;
+				continue;
 			}
+			// Remember all the session to be deleted
+			lstSessions.push_back(iIterator->second);
+			auto iRemove = iIterator++;
+			// Remove the session from the list, no new threads can start on this session after this point.
+			g_lpStatsCollector->Increment(SCN_SESSIONS_TIMEOUT);
+			ec_log_info("End of session (timeout) %llu",
+				static_cast<unsigned long long>(iRemove->first));
+			lpSessionManager->m_mapSessions.erase(iRemove);
 		}
 
 		// Release ownership of the rwlock object. This makes sure all threads are free to run (and exit).

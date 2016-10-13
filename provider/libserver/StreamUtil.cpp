@@ -864,12 +864,8 @@ exit:
 		lpIStream->Release();
 
 	delete lpTempSink;
-
-	if (lpDatabase) {
-		if (lpDBResult)
-			lpDatabase->FreeResult(lpDBResult);
-	}
-	
+	if (lpDatabase != nullptr && lpDBResult != nullptr)
+		lpDatabase->FreeResult(lpDBResult);
 	if (soap) {
 		soap_destroy(soap);
 		soap_end(soap);

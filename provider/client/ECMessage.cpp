@@ -1012,11 +1012,8 @@ HRESULT ECMessage::OpenAttach(ULONG ulAttachmentNum, LPCIID lpInterface, ULONG u
 	lpAttach->Release();
 
 exit:
-    if(hr != hrSuccess) {
-        if(lpAttach)
-            lpAttach->Release();
-    }
-
+	if (hr != hrSuccess && lpAttach != nullptr)
+		lpAttach->Release();
 	if (lpParentStorage)
 		lpParentStorage->Release();
 
@@ -2281,18 +2278,16 @@ HRESULT ECMessage::TableRowGetProp(void* lpProvider, struct propVal *lpsPropValS
 	HRESULT hr = hrSuccess;
 	ECMsgStore *lpMsgStore = (ECMsgStore *)lpProvider;
 
-	if(lpsPropValSrc->ulPropTag == PR_SOURCE_KEY) {
-		if((lpMsgStore->m_ulProfileFlags & EC_PROFILE_FLAGS_TRUNCATE_SOURCEKEY) && lpsPropValSrc->Value.bin->__size > 22) {
-			lpsPropValSrc->Value.bin->__size = 22;
-			lpsPropValSrc->Value.bin->__ptr[lpsPropValSrc->Value.bin->__size-1] |= 0x80; // Set top bit
-			hr = CopySOAPPropValToMAPIPropVal(lpsPropValDst, lpsPropValSrc, lpBase);
-		} else {
-			hr = MAPI_E_NOT_FOUND;
-		}
+	if (lpsPropValSrc->ulPropTag != PR_SOURCE_KEY)
+		return MAPI_E_NOT_FOUND;
+	if ((lpMsgStore->m_ulProfileFlags & EC_PROFILE_FLAGS_TRUNCATE_SOURCEKEY) &&
+	    lpsPropValSrc->Value.bin->__size > 22) {
+		lpsPropValSrc->Value.bin->__size = 22;
+		lpsPropValSrc->Value.bin->__ptr[lpsPropValSrc->Value.bin->__size-1] |= 0x80; // Set top bit
+		hr = CopySOAPPropValToMAPIPropVal(lpsPropValDst, lpsPropValSrc, lpBase);
 	} else {
 		hr = MAPI_E_NOT_FOUND;
 	}
-
 	return hr;
 }
 
@@ -2661,14 +2656,11 @@ HRESULT ECMessage::HrLoadProps()
 		if (FAILED(hrTmp)) {
 			// eg. this fails then RTF property is present but empty
 			TRACE_MAPI(TRACE_WARNING, "GetBestBody", "Unable to determine body type based on RTF data, hr=0x%08x", hrTmp);
-		} else {
-			if ((m_ulBodyType == bodyTypePlain && !fBodyOK) ||
-				(m_ulBodyType == bodyTypeHTML && !fHTMLOK))
-			{
-				hr = SyncRtf();
-				if (hr != hrSuccess)
-					goto exit;
-			}
+		} else if ((m_ulBodyType == bodyTypePlain && !fBodyOK) ||
+		    (m_ulBodyType == bodyTypeHTML && !fHTMLOK)) {
+			hr = SyncRtf();
+			if (hr != hrSuccess)
+				goto exit;
 		}
 	}
 

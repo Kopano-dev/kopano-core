@@ -403,133 +403,114 @@ HRESULT ECMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
+	if (*lpiid != IID_IStream && *lpiid != IID_IStorage) {
+		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
+		goto exit;
+	}
+	if (PROP_TYPE(ulPropTag) != PT_STRING8 && PROP_TYPE(ulPropTag) != PT_BINARY && PROP_TYPE(ulPropTag) != PT_UNICODE) {
+		hr = MAPI_E_NOT_FOUND;
+		goto exit;
+	}
 
-	if(*lpiid == IID_IStream || *lpiid == IID_IStorage) {
-		if(PROP_TYPE(ulPropTag) != PT_STRING8 && PROP_TYPE(ulPropTag) != PT_BINARY && PROP_TYPE(ulPropTag) != PT_UNICODE) {
-			hr = MAPI_E_NOT_FOUND;
-			goto exit;
-		}
-
-		if(*lpiid == IID_IStream && this->lstProps == NULL && PROP_TYPE(ulPropTag) == PT_BINARY && !(ulFlags & MAPI_MODIFY)) {
-		    // Shortcut: don't load entire object if only one property is being requested for read-only. HrLoadProp() will return
-			// without querying the server if the server does not support this capability (introduced in 6.20.8). Main reason is
-			// calendar loading time with large recursive entries in outlook XP.
-			if(this->lpStorage->HrLoadProp(0, ulPropTag, &lpsPropValue) == erSuccess) {
-				lpStreamData = new STREAMDATA; // is freed by HrStreamCleanup, called by ECMemStream on refcount == 0
-				lpStreamData->ulPropTag = ulPropTag;
-				lpStreamData->lpProp = this;
-
-				hr = ECMemStream::Create((char*)lpsPropValue->Value.bin.lpb, lpsPropValue->Value.bin.cb, ulInterfaceOptions,
-												NULL, ECMAPIProp::HrStreamCleanup, (void *)lpStreamData, &lpStream);
-				if (hr != hrSuccess)
-					goto exit;
-
-				lpStream->QueryInterface(IID_IStream, (void **)lppUnk);
-				AddChild(lpStream);
-				
-				lpStream->Release();
-				
-				goto exit;
-			}
-			// If this fails, just fallback to the 'normal' way of loading properties.
-		}
-		
-		if (ulFlags & MAPI_MODIFY)
-			ulInterfaceOptions |= STGM_WRITE;
-
-		// IStream requested for a property
-
-		ECAllocateBuffer(sizeof(SPropValue), (void **) &lpsPropValue);
-
-		// Yank the property in from disk if it wasn't loaded yet
-		HrLoadProp(ulPropTag);
-
-		// For MAPI_CREATE, reset (or create) the property now
-		if(ulFlags & MAPI_CREATE) {
-			if(!this->fModify) {
-				hr = MAPI_E_NO_ACCESS;
-				goto exit;
-			}
-			
-			SPropValue sProp;
-			sProp.ulPropTag = ulPropTag;
-			
-			if(PROP_TYPE(ulPropTag) == PT_BINARY) {
-				sProp.Value.bin.cb = 0;
-				sProp.Value.bin.lpb = NULL;
-			} else {
-				// Handles lpszA and lpszW since they are the same field in the union
-				sProp.Value.lpszW = const_cast<wchar_t *>(L"");
-			}
-				
-			hr = HrSetRealProp(&sProp);
-			if(hr != hrSuccess)
-				goto exit;
-		}
-			
-		hr = HrGetRealProp(ulPropTag, ulFlags, lpsPropValue, lpsPropValue);
-
-		if(hr != hrSuccess) {
-			// Promote warnings from GetProps to error
-			hr = MAPI_E_NOT_FOUND;
-			goto exit;
-		}
-		
+	if (*lpiid == IID_IStream && this->lstProps == NULL &&
+	    PROP_TYPE(ulPropTag) == PT_BINARY && !(ulFlags & MAPI_MODIFY) &&
+	    // Shortcut: don't load entire object if only one property is being requested for read-only. HrLoadProp() will return
+		// without querying the server if the server does not support this capability (introduced in 6.20.8). Main reason is
+		// calendar loading time with large recursive entries in outlook XP.
+	    // If HrLoadProp failed, just fallback to the 'normal' way of loading properties.
+	    this->lpStorage->HrLoadProp(0, ulPropTag, &lpsPropValue) == erSuccess) {
 		lpStreamData = new STREAMDATA; // is freed by HrStreamCleanup, called by ECMemStream on refcount == 0
 		lpStreamData->ulPropTag = ulPropTag;
 		lpStreamData->lpProp = this;
-
-		if((ulFlags & MAPI_CREATE) == MAPI_CREATE)
-		{
-			hr = ECMemStream::Create(NULL, 0, ulInterfaceOptions,
-									 ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup, (void *)lpStreamData, &lpStream);
-		}else {
-
-			switch(PROP_TYPE(lpsPropValue->ulPropTag)) {
-			case PT_STRING8:
-				hr = ECMemStream::Create(lpsPropValue->Value.lpszA, strlen(lpsPropValue->Value.lpszA), ulInterfaceOptions,
-										ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup, (void *)lpStreamData, &lpStream);
-				break;
-			case PT_UNICODE:
-				hr = ECMemStream::Create((char*)lpsPropValue->Value.lpszW, wcslen(lpsPropValue->Value.lpszW)*sizeof(WCHAR), ulInterfaceOptions,
-										ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup, (void *)lpStreamData, &lpStream);
-				break;
-			case PT_BINARY:
-				hr = ECMemStream::Create((char *)lpsPropValue->Value.bin.lpb, lpsPropValue->Value.bin.cb, ulInterfaceOptions,
-										ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup, (void *)lpStreamData, &lpStream);
-				break;
-			default:
-				assert(false);
-				hr = MAPI_E_NOT_FOUND;
-				delete lpStreamData;
-				break;
-			}
-		}
-
-		if(hr != hrSuccess)
+		hr = ECMemStream::Create((char*)lpsPropValue->Value.bin.lpb, lpsPropValue->Value.bin.cb, ulInterfaceOptions,
+		     NULL, ECMAPIProp::HrStreamCleanup, (void *)lpStreamData, &lpStream);
+		if (hr != hrSuccess)
 			goto exit;
-
-		if(*lpiid == IID_IStorage ) {//*lpiid == IID_IStreamDocfile  || 
-			//FIXME: Unknown what to do with flag STGSTRM_CURRENT
-		
-			hr = GetMsgStore()->lpSupport->IStorageFromStream((LPUNKNOWN)&lpStream->m_xStream, NULL, ((ulFlags &MAPI_MODIFY)?STGSTRM_MODIFY : 0) | ((ulFlags & MAPI_CREATE)?STGSTRM_CREATE:0), (LPSTORAGE*)lppUnk);
-			if(hr != hrSuccess)
-				goto exit;
-		}else
-			hr = lpStream->QueryInterface(*lpiid, (void **)lppUnk);
-
-		// Release our copy
-		lpStream->Release();
-
-		if(hr != hrSuccess)
-			goto exit;
-
+		lpStream->QueryInterface(IID_IStream, (void **)lppUnk);
 		AddChild(lpStream);
+		lpStream->Release();
+		goto exit;
+	}
+	if (ulFlags & MAPI_MODIFY)
+		ulInterfaceOptions |= STGM_WRITE;
 
-	} else {
-		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
+	// IStream requested for a property
+	ECAllocateBuffer(sizeof(SPropValue), (void **) &lpsPropValue);
+
+	// Yank the property in from disk if it wasn't loaded yet
+	HrLoadProp(ulPropTag);
+
+	// For MAPI_CREATE, reset (or create) the property now
+	if (ulFlags & MAPI_CREATE) {
+		if (!this->fModify) {
+			hr = MAPI_E_NO_ACCESS;
+			goto exit;
+		}
+		SPropValue sProp;
+		sProp.ulPropTag = ulPropTag;
+		if (PROP_TYPE(ulPropTag) == PT_BINARY) {
+			sProp.Value.bin.cb = 0;
+			sProp.Value.bin.lpb = NULL;
+		} else {
+			// Handles lpszA and lpszW since they are the same field in the union
+			sProp.Value.lpszW = const_cast<wchar_t *>(L"");
+		}
+		hr = HrSetRealProp(&sProp);
+		if (hr != hrSuccess)
+			goto exit;
 	}
 
+	hr = HrGetRealProp(ulPropTag, ulFlags, lpsPropValue, lpsPropValue);
+	if (hr != hrSuccess) {
+		// Promote warnings from GetProps to error
+		hr = MAPI_E_NOT_FOUND;
+		goto exit;
+	}
+
+	lpStreamData = new STREAMDATA; // is freed by HrStreamCleanup, called by ECMemStream on refcount == 0
+	lpStreamData->ulPropTag = ulPropTag;
+	lpStreamData->lpProp = this;
+
+	if ((ulFlags & MAPI_CREATE) == MAPI_CREATE)
+	{
+		hr = ECMemStream::Create(NULL, 0, ulInterfaceOptions,
+		     ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup, (void *)lpStreamData, &lpStream);
+	} else {
+		switch (PROP_TYPE(lpsPropValue->ulPropTag)) {
+		case PT_STRING8:
+			hr = ECMemStream::Create(lpsPropValue->Value.lpszA, strlen(lpsPropValue->Value.lpszA), ulInterfaceOptions,
+			     ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup, (void *)lpStreamData, &lpStream);
+			break;
+		case PT_UNICODE:
+			hr = ECMemStream::Create((char*)lpsPropValue->Value.lpszW, wcslen(lpsPropValue->Value.lpszW)*sizeof(WCHAR), ulInterfaceOptions,
+			     ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup, (void *)lpStreamData, &lpStream);
+			break;
+		case PT_BINARY:
+			hr = ECMemStream::Create((char *)lpsPropValue->Value.bin.lpb, lpsPropValue->Value.bin.cb, ulInterfaceOptions,
+			     ECMAPIProp::HrStreamCommit, ECMAPIProp::HrStreamCleanup, (void *)lpStreamData, &lpStream);
+			break;
+		default:
+			assert(false);
+			hr = MAPI_E_NOT_FOUND;
+			delete lpStreamData;
+			break;
+		}
+	}
+	if (hr != hrSuccess)
+		goto exit;
+	if (*lpiid == IID_IStorage) { //*lpiid == IID_IStreamDocfile ||
+		//FIXME: Unknown what to do with flag STGSTRM_CURRENT
+		hr = GetMsgStore()->lpSupport->IStorageFromStream((LPUNKNOWN)&lpStream->m_xStream, NULL, ((ulFlags &MAPI_MODIFY)?STGSTRM_MODIFY : 0) | ((ulFlags & MAPI_CREATE)?STGSTRM_CREATE:0), (LPSTORAGE*)lppUnk);
+		if (hr != hrSuccess)
+			goto exit;
+	} else
+		hr = lpStream->QueryInterface(*lpiid, (void **)lppUnk);
+
+	// Release our copy
+	lpStream->Release();
+	if(hr != hrSuccess)
+		goto exit;
+	AddChild(lpStream);
 exit:	
 	if(lpsPropValue)
 		ECFreeBuffer(lpsPropValue);
@@ -693,28 +674,28 @@ HRESULT	ECMAPIProp::UpdateACLs(ULONG cNewPerms, ECPERMISSION *lpNewPerms)
 		if (lpMatch == lpNewPerms + cNewPerms) {
 			// Not in new set, so delete
 			ptrPerms[i].ulState = RIGHT_DELETED;
-		} else {
-			// Found an entry in the new set, check if it's different
-			if (ptrPerms[i].ulRights == lpMatch->ulRights &&
-				ptrPerms[i].ulType == lpMatch->ulType)
-			{
-				// Nothing changes, remove from set.
-				if (i < (cPerms - 1))
-					std::swap(ptrPerms[i], ptrPerms[cPerms - 1]);
-				--cPerms;
-				--i;
-				++cSparePerms;
-			} else {
-				ptrPerms[i].ulRights = lpMatch->ulRights;
-				ptrPerms[i].ulType = lpMatch->ulType;
-				ptrPerms[i].ulState = RIGHT_MODIFY;
-			}
-
-			// Remove from list of new permissions
-			if (lpMatch != &lpNewPerms[cNewPerms - 1])
-				std::swap(*lpMatch, lpNewPerms[cNewPerms - 1]);
-			--cNewPerms;
+			continue;
 		}
+		// Found an entry in the new set, check if it's different
+		if (ptrPerms[i].ulRights == lpMatch->ulRights &&
+			ptrPerms[i].ulType == lpMatch->ulType)
+		{
+			// Nothing changes, remove from set.
+			if (i < (cPerms - 1))
+				std::swap(ptrPerms[i], ptrPerms[cPerms - 1]);
+			--cPerms;
+			--i;
+			++cSparePerms;
+		} else {
+			ptrPerms[i].ulRights = lpMatch->ulRights;
+			ptrPerms[i].ulType = lpMatch->ulType;
+			ptrPerms[i].ulState = RIGHT_MODIFY;
+		}
+
+		// Remove from list of new permissions
+		if (lpMatch != &lpNewPerms[cNewPerms - 1])
+			std::swap(*lpMatch, lpNewPerms[cNewPerms - 1]);
+		--cNewPerms;
 	}
 
 	// Now see if there are still some new ACL's left. If enough spare space is available

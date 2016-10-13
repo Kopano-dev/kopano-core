@@ -71,12 +71,10 @@ static ECRESULT GetSubRestrictionRecursive(struct restrictTable *lpRestrict,
         case RES_COMMENT:
             break;
         case RES_SUBRESTRICTION:
-            if(lpulCount && lppSubRestrict) {
-                // Looking for a subrestriction
-                if(*lpulCount == ulSubRestriction) {
+            if (lpulCount != nullptr && lppSubRestrict != nullptr &&
+                /* Looking for a subrestriction */
+                *lpulCount == ulSubRestriction)
                     *lppSubRestrict = lpRestrict->lpSub;
-                }
-            }
             // Counting subrestrictions
             if(lpulCount)
 			++*lpulCount;

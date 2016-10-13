@@ -272,11 +272,9 @@ ECRESULT ECUserStoreTable::Load() {
 		sUserStore.strUsername.clear();
 		// find and override real username if possible
 		if (sUserStore.ulUserId != -1 && lpUserManagement->GetObjectDetails(sUserStore.ulUserId, &sUserDetails) == erSuccess) {
-			if (lpSession->GetSessionManager()->IsDistributedSupported()) {
-				if (sUserDetails.GetPropString(OB_PROP_S_SERVERNAME).compare(lpSession->GetSessionManager()->GetConfig()->GetSetting("server_name")) != 0)
-					continue;		// user not on this server
-			}
-
+			if (lpSession->GetSessionManager()->IsDistributedSupported() &&
+			    sUserDetails.GetPropString(OB_PROP_S_SERVERNAME).compare(lpSession->GetSessionManager()->GetConfig()->GetSetting("server_name")) != 0)
+				continue; // user not on this server
 			sUserStore.strUsername = sUserDetails.GetPropString(OB_PROP_S_LOGIN);
 		}
 

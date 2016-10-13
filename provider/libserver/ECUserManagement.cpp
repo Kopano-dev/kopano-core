@@ -1272,10 +1272,9 @@ ECRESULT ECUserManagement::GetLocalObjectDetails(unsigned int ulId, objectdetail
 		sDetails.SetPropString(OB_PROP_S_FULLNAME, KOPANO_FULLNAME_EVERYONE);
 		sDetails.SetPropBool(OB_PROP_B_AB_HIDDEN, parseBool(m_lpConfig->GetSetting("hide_everyone")) && lpSecurity->GetAdminLevel() == 0);
 	
-		if (m_lpSession->GetSessionManager()->IsDistributedSupported()) {
-			if (GetPublicStoreDetails(&sPublicStoreDetails) == erSuccess)
-				sDetails.SetPropString(OB_PROP_S_SERVERNAME, sPublicStoreDetails.GetPropString(OB_PROP_S_SERVERNAME));
-		}
+		if (m_lpSession->GetSessionManager()->IsDistributedSupported() &&
+		    GetPublicStoreDetails(&sPublicStoreDetails) == erSuccess)
+			sDetails.SetPropString(OB_PROP_S_SERVERNAME, sPublicStoreDetails.GetPropString(OB_PROP_S_SERVERNAME));
 	}
 
 	*lpDetails = sDetails;
@@ -1784,13 +1783,12 @@ done:
 			return KCERR_NOT_FOUND;
 
 		// mapMatches is already sorted numerically, so it's OBJECTTYPE_MAILUSER, OBJECTTYPE_DISTLIST, OBJECTTYPE_CONTAINER, NONACTIVE_CONTACT
-		if(mapMatches.begin()->second.size() == 1) {
-			ulId = *mapMatches.begin()->second.begin();
-		} else {
+		if(mapMatches.begin()->second.size() != 1) {
 			// size() cannot be 0. Otherwise, it would not be there at all. So apparently, it is > 1, so it is ambiguous.
 			ec_log_info("Resolved multiple users for search \"%s\".", szSearchString);
 			return KCERR_COLLISION;
 		}
+		ulId = *mapMatches.begin()->second.begin();
 	}
 
 	if(ulId == 0)

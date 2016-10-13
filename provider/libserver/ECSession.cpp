@@ -486,22 +486,21 @@ void ECSession::RemoveBusyState(pthread_t threadId)
 	scoped_lock lock(m_hStateLock);
 
 	auto i = m_mapBusyStates.find(threadId);
-	if (i != m_mapBusyStates.cend()) {
-		clockid_t clock;
-		struct timespec end;
+	if (i == m_mapBusyStates.cend()) {
+		assert(false);
+		return;
+	}
+	clockid_t clock;
+	struct timespec end;
 
-		// Since the specified thread is done now, record how much work it has done for us
-		if(pthread_getcpuclockid(threadId, &clock) == 0) {
-			clock_gettime(clock, &end);
-
-			AddClocks(timespec2dbl(end) - timespec2dbl(i->second.threadstart), 0, GetTimeOfDay() - i->second.start);
-		} else {
-			assert(false);
-		}
-		m_mapBusyStates.erase(threadId);
+	// Since the specified thread is done now, record how much work it has done for us
+	if(pthread_getcpuclockid(threadId, &clock) == 0) {
+		clock_gettime(clock, &end);
+		AddClocks(timespec2dbl(end) - timespec2dbl(i->second.threadstart), 0, GetTimeOfDay() - i->second.start);
 	} else {
 		assert(false);
 	}
+	m_mapBusyStates.erase(threadId);
 }
 
 void ECSession::GetBusyStates(std::list<BUSYSTATE> *lpStates)
@@ -861,13 +860,9 @@ ECRESULT ECAuthSession::ValidateUserSocket(int socket, const char* lpszName, con
 #else
 		pw = getpwnam(p);
 #endif
-
-		if (pw) {
-			if (pw->pw_uid == uid) {
-				// A local admin user connected - ok
-				goto userok;
-			}
-		}
+		if (pw != nullptr && pw->pw_uid == uid)
+			// A local admin user connected - ok
+			goto userok;
 		p = strtok_r(NULL, WHITESPACE, &ptr);
 	}
 	er = KCERR_LOGON_FAILED;

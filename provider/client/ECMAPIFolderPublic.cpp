@@ -470,16 +470,10 @@ HRESULT ECMAPIFolderPublic::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCI
 
 HRESULT ECMAPIFolderPublic::SetEntryId(ULONG cbEntryId, LPENTRYID lpEntryId)
 {
-	HRESULT hr = hrSuccess;
-	
-	if (m_ePublicEntryID == ePE_Favorites || m_ePublicEntryID == ePE_IPMSubtree) {
-		hr = ECGenericProp::SetEntryId(cbEntryId, lpEntryId);
-	}else {
-		// With notification handler
-		hr = ECMAPIFolder::SetEntryId(cbEntryId, lpEntryId);
-	}
-	
-	return hr;
+	if (m_ePublicEntryID == ePE_Favorites || m_ePublicEntryID == ePE_IPMSubtree)
+		return ECGenericProp::SetEntryId(cbEntryId, lpEntryId);
+	// With notification handler
+	return ECMAPIFolder::SetEntryId(cbEntryId, lpEntryId);
 }
 
 // @note if you change this function please look also at ECMAPIFolder::CopyFolder

@@ -2444,11 +2444,9 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
             // One of the category properties has changed, remove the row from the old category
             RemoveCategoryAfterRemoveRow(sObjKey, ulFlags);
             fNewLeaf = true; // We're re-adding the leaf
-        } else {
-            if(fUnread == iterLeafs->second.fUnread) {
+        } else if (fUnread == iterLeafs->second.fUnread) {
 	            // Nothing to do, the leaf was already in the correct category, and the readstate has not changed
 	            goto exit;
-			}
         }
     } else {
     	fNewLeaf = true;
@@ -2576,11 +2574,10 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
 					AddTableNotif(ulAction, obj, &sPrevRow);
 				}
 			}
-		} else {
+		}
 	        // Send notification if required (only the category header has changed)
-    	    if((ulFlags & OBJECTTABLE_NOTIFY) && !fHidden) {
-        	    AddTableNotif(ulAction, sCatRow, &sPrevRow);
-	        }
+		else if((ulFlags & OBJECTTABLE_NOTIFY) && !fHidden) {
+			AddTableNotif(ulAction, sCatRow, &sPrevRow);
 		}
     }
     

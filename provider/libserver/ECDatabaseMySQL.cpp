@@ -887,11 +887,8 @@ ECRESULT ECDatabaseMySQL::GetNextResult(DB_RESULT *lppResult) {
 
 	if (lppResult)
 		*lppResult = lpResult;
-	else {
-		if(lpResult)
-			FreeResult(lpResult);
-	}
-
+	else if (lpResult != nullptr)
+		FreeResult(lpResult);
 exit:
 	if (er != erSuccess) {
 		g_lpStatsCollector->Increment(SCN_DATABASE_FAILED_SELECTS);
@@ -1004,13 +1001,11 @@ ECRESULT ECDatabaseMySQL::DoInsert(const string &strQuery, unsigned int *lpulIns
 		Lock();
 	
 	er = _Update(strQuery, lpulAffectedRows);
-
-	if (er == erSuccess) {
-		if (lpulInsertId)
-			*lpulInsertId = GetInsertId();
-	} else {
+	if (er != erSuccess) {
 		g_lpStatsCollector->Increment(SCN_DATABASE_FAILED_INSERTS);
 		g_lpStatsCollector->SetTime(SCN_DATABASE_LAST_FAILED, time(NULL));
+	} else if (lpulInsertId != nullptr) {
+		*lpulInsertId = GetInsertId();
 	}
 
 	g_lpStatsCollector->Increment(SCN_DATABASE_INSERTS);

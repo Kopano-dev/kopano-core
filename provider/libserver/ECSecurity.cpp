@@ -183,21 +183,20 @@ ECRESULT ECSecurity::GetGroupsForUser(unsigned int ulUserId, std::list<localobje
 		 */
 		if (IsUserObjectVisible(iterGroups->ulId) != erSuccess || iterGroups->GetClass() == DISTLIST_DYNAMIC) {
 			lpGroups->erase(iterGroups++);
-		} else {
-			cSeenGroups.m_seen.insert(*iterGroups);
-
-			std::list<localobjectdetails_t> *lpGroupInGroups = NULL;
-
-			er = m_lpSession->GetUserManagement()->GetParentObjectsOfObjectAndSync(OBJECTRELATION_GROUP_MEMBER,
-																				   iterGroups->ulId, &lpGroupInGroups, USERMANAGEMENT_IDS_ONLY);
-			if (er == erSuccess) {
-				// Adds all groups from lpGroupInGroups to the main lpGroups list, except when already in cSeenGroups
-				remove_copy_if(lpGroupInGroups->begin(), lpGroupInGroups->end(), back_inserter(*lpGroups), cSeenGroups);
-				delete lpGroupInGroups;
-			}
-			// Ignore error (eg. cannot use that function on group Everyone)
-			++iterGroups;
+			continue;
 		}
+		cSeenGroups.m_seen.insert(*iterGroups);
+
+		std::list<localobjectdetails_t> *lpGroupInGroups = NULL;
+		er = m_lpSession->GetUserManagement()->GetParentObjectsOfObjectAndSync(OBJECTRELATION_GROUP_MEMBER,
+		     iterGroups->ulId, &lpGroupInGroups, USERMANAGEMENT_IDS_ONLY);
+		if (er == erSuccess) {
+			// Adds all groups from lpGroupInGroups to the main lpGroups list, except when already in cSeenGroups
+			remove_copy_if(lpGroupInGroups->begin(), lpGroupInGroups->end(), back_inserter(*lpGroups), cSeenGroups);
+			delete lpGroupInGroups;
+		}
+		// Ignore error (eg. cannot use that function on group Everyone)
+		++iterGroups;
 	}
 
 	*lppGroups = lpGroups;
@@ -417,12 +416,10 @@ ECRESULT ECSecurity::CheckPermission(unsigned int ulObjId, unsigned int ulecRigh
 
 	// Is the current user the owner of the store
 	if (GetStoreOwnerAndType(ulObjId, &ulStoreOwnerId, &ulStoreType) == erSuccess && ulStoreOwnerId == m_ulUserID) {
-		if (ulStoreType == ECSTORE_TYPE_ARCHIVE) {
-			if (ulecRights == ecSecurityFolderVisible || ulecRights == ecSecurityRead) {
-				er = erSuccess;
-				goto exit;
-			}
-		} else {
+		if (ulStoreType != ECSTORE_TYPE_ARCHIVE) {
+			er = erSuccess;
+			goto exit;
+		} else if (ulecRights == ecSecurityFolderVisible || ulecRights == ecSecurityRead) {
 			er = erSuccess;
 			goto exit;
 		}
@@ -437,11 +434,9 @@ ECRESULT ECSecurity::CheckPermission(unsigned int ulObjId, unsigned int ulecRigh
 				er = erSuccess;
 				goto exit;
 			}
-		} else {
-			if(ulecRights == ecSecurityFolderVisible || ulecRights == ecSecurityRead || ulecRights == ecSecurityCreate) {
-				er = erSuccess;
-				goto exit;
-			}
+		} else if(ulecRights == ecSecurityFolderVisible || ulecRights == ecSecurityRead || ulecRights == ecSecurityCreate) {
+			er = erSuccess;
+			goto exit;
 		}
 	}
 
@@ -450,12 +445,11 @@ ECRESULT ECSecurity::CheckPermission(unsigned int ulObjId, unsigned int ulecRigh
 		if(!m_bRestrictedAdmin) {
 			er = erSuccess;
 			goto exit;
-		} else {
-			// If restricted admin mode is set, admins only receive folder permissions.
-			if(ulecRights == ecSecurityFolderVisible || ulecRights == ecSecurityFolderAccess || ulecRights == ecSecurityCreateFolder) {
-				er = erSuccess;
-				goto exit;
-			}
+		}
+		// If restricted admin mode is set, admins only receive folder permissions.
+		if(ulecRights == ecSecurityFolderVisible || ulecRights == ecSecurityFolderAccess || ulecRights == ecSecurityCreateFolder) {
+			er = erSuccess;
+			goto exit;
 		}
 	}
 
@@ -538,16 +532,13 @@ exit:
 		m_lpSession->GetSessionManager()->GetCacheManager()->GetObject(ulObjId, NULL, NULL, NULL, &ulType);
 		if (er == KCERR_NO_ACCESS || ulStoreOwnerId != m_ulUserID) {
 			GetUsername(&strUsername);
-			if (ulStoreOwnerId != m_ulUserID) {
-				if (m_lpSession->GetUserManagement()->GetObjectDetails(ulStoreOwnerId, &sStoreDetails) != erSuccess) {
-					// should not really happen on store owners?
-					strStoreOwner = "<non-existing>";
-				} else {
-					strStoreOwner = sStoreDetails.GetPropString(OB_PROP_S_LOGIN);
-				}
-			} else {
+			if (ulStoreOwnerId == m_ulUserID)
 				strStoreOwner = strUsername;
-			}
+			else if (m_lpSession->GetUserManagement()->GetObjectDetails(ulStoreOwnerId, &sStoreDetails) != erSuccess)
+				// should not really happen on store owners?
+				strStoreOwner = "<non-existing>";
+			else
+				strStoreOwner = sStoreDetails.GetPropString(OB_PROP_S_LOGIN);
 		}
 
 		if (er == KCERR_NO_ACCESS) {

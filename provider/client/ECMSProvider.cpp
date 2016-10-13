@@ -283,11 +283,10 @@ HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR 
 		if(lpsPropArray[0].ulPropTag == PR_MDB_PROVIDER){
 				memcpy(&guidMDBProvider, lpsPropArray[0].Value.bin.lpb, sizeof(MAPIUID));
 		}
-		if(lpsPropArray[1].ulPropTag == PR_RESOURCE_FLAGS) {
-			if(!(lpsPropArray[1].Value.ul & STATUS_DEFAULT_STORE)) {
-				hr = MAPI_E_NOT_FOUND; // Deny spooler logon to any store that is not the default store
-				goto exit;
-			}
+		if (lpsPropArray[1].ulPropTag == PR_RESOURCE_FLAGS &&
+		    !(lpsPropArray[1].Value.ul & STATUS_DEFAULT_STORE)) {
+			hr = MAPI_E_NOT_FOUND; // Deny spooler logon to any store that is not the default store
+			goto exit;
 		}
 	}
 

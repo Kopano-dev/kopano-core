@@ -2144,36 +2144,32 @@ ECRESULT ECFileAttachment::GetSizeInstance(ULONG ulInstanceId, size_t *lpulSize,
 
 	if (!bCompressed) {
 		*lpulSize = st.st_size;
-	}
-	else { /* Compressed attachment */
+	} else if (st.st_size >= 4) {
+		/* Compressed attachment */
 		// a compressed file of only 4 bytes does not exist so we could
 		// make this minimum size bigger
-		if (st.st_size >= 4) {
-			if (lseek(fd, -4, SEEK_END) == -1) {
-				ec_log_err("ECFileAttachment::GetSizeInstance(): file \"%s\" fseek (compressed file) failed: %s", filename.c_str(), strerror(errno));
-				// FIXME er = KCERR_DATABASE_ERROR;
-				goto exit;
-			}
-
-			// FIXME endianness
-			uint32_t atsize;
-			if (read_retry(fd, &atsize, 4) != 4) {
-				ec_log_err("ECFileAttachment::GetSizeInstance(): file \"%s\" fread failed: %s", filename.c_str(), strerror(errno));
-				// FIXME er = KCERR_DATABASE_ERROR;
-				goto exit;
-			}
-
-			if (st.st_size >= 40 && atsize == 0) {
-				ec_log_warn("ECFileAttachment: %s seems to be an unsupported multi-stream gzip file (KC-64).", filename.c_str());
-				//er = KCERR_DATABASE_ERROR;
-				goto exit;
-			}
-			*lpulSize = atsize;
-		} else {
-			*lpulSize = 0;
-			ec_log_debug("ECFileAttachment::GetSizeInstance(): file \"%s\" is truncated!", filename.c_str());
-			// FIXME return some error
+		if (lseek(fd, -4, SEEK_END) == -1) {
+			ec_log_err("ECFileAttachment::GetSizeInstance(): file \"%s\" fseek (compressed file) failed: %s", filename.c_str(), strerror(errno));
+			// FIXME er = KCERR_DATABASE_ERROR;
+			goto exit;
 		}
+		// FIXME endianness
+		uint32_t atsize;
+		if (read_retry(fd, &atsize, 4) != 4) {
+			ec_log_err("ECFileAttachment::GetSizeInstance(): file \"%s\" fread failed: %s", filename.c_str(), strerror(errno));
+			// FIXME er = KCERR_DATABASE_ERROR;
+			goto exit;
+		}
+		if (st.st_size >= 40 && atsize == 0) {
+			ec_log_warn("ECFileAttachment: %s seems to be an unsupported multi-stream gzip file (KC-64).", filename.c_str());
+			//er = KCERR_DATABASE_ERROR;
+			goto exit;
+		}
+		*lpulSize = atsize;
+	} else {
+		*lpulSize = 0;
+		ec_log_debug("ECFileAttachment::GetSizeInstance(): file \"%s\" is truncated!", filename.c_str());
+		// FIXME return some error
 	}
 
 	if (lpbCompressed)
