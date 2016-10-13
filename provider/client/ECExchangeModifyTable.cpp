@@ -363,11 +363,10 @@ HRESULT ECExchangeModifyTable::OpenACLS(ECMAPIProp *lpecMapiProp, ULONG ulFlags,
 			    lpecMapiProp->GetMsgStore()->lpTransport->HrGetGroup(lpECPerms[i].sUserId.cb, (LPENTRYID)lpECPerms[i].sUserId.lpb, MAPI_UNICODE, &lpECGroup) != hrSuccess)
 				continue;
 
-			if (lpECGroup) {
+			if (lpECGroup != nullptr)
 				lpMemberName = (LPTSTR)((lpECGroup->lpszFullname)?lpECGroup->lpszFullname:lpECGroup->lpszGroupname);
-			} else {
+			else
 				lpMemberName = (LPTSTR)((lpECUser->lpszFullName)?lpECUser->lpszFullName:lpECUser->lpszUsername);
-			}
 
 			lpsPropMember[0].ulPropTag = PR_MEMBER_ID;
 
@@ -449,13 +448,12 @@ HRESULT ECExchangeModifyTable::SaveACLS(ECMAPIProp *lpecMapiProp, ECMemTable *lp
 		lpECPermissions[cECPerm].ulState = RIGHT_AUTOUPDATE_DENIED;
 		lpECPermissions[cECPerm].ulType = ACCESS_TYPE_GRANT;
 
-		if (lpulStatus[i] == ECROW_DELETED) {
+		if (lpulStatus[i] == ECROW_DELETED)
 			lpECPermissions[cECPerm].ulState |= RIGHT_DELETED;
-		} else if (lpulStatus[i] == ECROW_ADDED) {
+		else if (lpulStatus[i] == ECROW_ADDED)
 			lpECPermissions[cECPerm].ulState |= RIGHT_NEW;
-		}else if (lpulStatus[i] == ECROW_MODIFIED) {
+		else if (lpulStatus[i] == ECROW_MODIFIED)
 			lpECPermissions[cECPerm].ulState |= RIGHT_MODIFY;
-		}
 
 		lpMemberID = PpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_MEMBER_ID);
 		lpMemberEntryID = PpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_MEMBER_ENTRYID);

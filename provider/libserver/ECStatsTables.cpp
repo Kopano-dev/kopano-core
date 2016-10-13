@@ -299,10 +299,9 @@ void ECSessionStatsTable::GetSessionData(ECSession *lpSession, void *obj)
 	ECSessionStatsTable *lpThis = (ECSessionStatsTable*)obj;
 	sessiondata sd;
 
-	if (!lpSession) {
+	if (lpSession == nullptr)
 		// dynamic_cast failed
 		return;
-	}
 
 	sd.sessionid = lpSession->GetSessionId();
 	sd.sessiongroupid = lpSession->GetSessionGroupId();

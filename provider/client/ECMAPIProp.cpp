@@ -177,9 +177,8 @@ HRESULT	ECMAPIProp::DefaultMAPIGetProp(ULONG ulPropTag, void* lpProvider, ULONG 
 		
 	case PROP_ID(PR_MAPPING_SIGNATURE):
 		// get the mapping signature from the store
-		if(lpMsgStore == NULL || lpMsgStore->HrGetRealProp(PR_MAPPING_SIGNATURE, ulFlags, lpBase, lpsPropValue) != hrSuccess) {
+		if (lpMsgStore == NULL || lpMsgStore->HrGetRealProp(PR_MAPPING_SIGNATURE, ulFlags, lpBase, lpsPropValue) != hrSuccess)
 			hr = MAPI_E_NOT_FOUND;
-		}
 		break;
 
 	case PROP_ID(PR_STORE_RECORD_KEY):
@@ -191,15 +190,14 @@ HRESULT	ECMAPIProp::DefaultMAPIGetProp(ULONG ulPropTag, void* lpProvider, ULONG 
 
 	case PROP_ID(PR_STORE_SUPPORT_MASK):
 	case PROP_ID(PR_STORE_UNICODE_MASK):
-		if(CompareMDBProvider(&lpMsgStore->m_guidMDB_Provider, &KOPANO_STORE_PUBLIC_GUID))
+		if (CompareMDBProvider(&lpMsgStore->m_guidMDB_Provider, &KOPANO_STORE_PUBLIC_GUID))
 			lpsPropValue->Value.l = EC_SUPPORTMASK_PUBLIC;
-		else if(CompareMDBProvider(&lpMsgStore->m_guidMDB_Provider, &KOPANO_STORE_DELEGATE_GUID)){
+		else if (CompareMDBProvider(&lpMsgStore->m_guidMDB_Provider, &KOPANO_STORE_DELEGATE_GUID))
 			lpsPropValue->Value.l = EC_SUPPORTMASK_DELEGATE;
-		}else if(CompareMDBProvider(&lpMsgStore->m_guidMDB_Provider, &KOPANO_STORE_ARCHIVE_GUID)) {
+		else if (CompareMDBProvider(&lpMsgStore->m_guidMDB_Provider, &KOPANO_STORE_ARCHIVE_GUID))
 			lpsPropValue->Value.l = EC_SUPPORTMASK_ARCHIVE;
-		}else {
+		else
 			lpsPropValue->Value.l = EC_SUPPORTMASK_PRIVATE;
-		}
 
 		if(lpMsgStore->m_ulClientVersion == CLIENT_VERSION_OLK2000)
 			lpsPropValue->Value.l &=~STORE_HTML_OK; // Remove the flag, other way outlook 2000 crashed

@@ -694,10 +694,8 @@ HRESULT WSTableView::HrMulti(ULONG ulDeferredFlags, LPSPropTagArray lpsPropTagAr
 	}
 	END_SOAP_CALL
 
-    if(sResponse.ulTableId) {
-        ulTableId = sResponse.ulTableId;
-    }
-    
+	if (sResponse.ulTableId != 0)
+		ulTableId = sResponse.ulTableId;
 	if (lppRowSet)
 		hr = CopySOAPRowSetToMAPIRowSet(m_lpProvider, &sResponse.sRowSet, lppRowSet, this->ulType);
 
@@ -738,15 +736,12 @@ HRESULT WSTableView::Reload(void *lpParam, ECSESSIONID sessionId)
 	lpThis->ulTableId = 0;
 
 	// Restore state
-	if(lpThis->m_lpsPropTagArray) {
+	if (lpThis->m_lpsPropTagArray != nullptr)
+		// ignore error
 		lpThis->HrSetColumns(lpThis->m_lpsPropTagArray);
+	if (lpThis->m_lpsSortOrderSet != nullptr)
 		// ignore error
-	}
-
-	if(lpThis->m_lpsSortOrderSet) {
 		lpThis->HrSortTable(lpThis->m_lpsSortOrderSet);
-		// ignore error
-	}
 
 	// Call the reload callback if necessary
 	if(lpThis->m_lpCallback)

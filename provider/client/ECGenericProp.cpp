@@ -144,10 +144,8 @@ HRESULT ECGenericProp::HrSetRealProp(SPropValue *lpsPropValue)
 	if (m_bLoading == FALSE && m_sMapiObject) {
 		// Only reset instance id when we're being modified, not being reloaded
 		HrSIEntryIDToID(m_sMapiObject->cbInstanceID, (LPBYTE)m_sMapiObject->lpInstanceID, NULL, NULL, (unsigned int *)&ulPropId);
-
-		if (ulPropId == PROP_ID(lpsPropValue->ulPropTag)) {
+		if (ulPropId == PROP_ID(lpsPropValue->ulPropTag))
 			SetSingleInstanceId(0, NULL);
-		}
 	}
 
 	if(lstProps == NULL) {
@@ -253,11 +251,11 @@ HRESULT ECGenericProp::HrGetRealProp(ULONG ulPropTag, ULONG ulFlags, void *lpBas
 	}
 
 	if (PROP_TYPE(ulPropTag) == PT_UNSPECIFIED) {
-		if (PROP_TYPE(iterProps->second.GetPropTag()) == PT_UNICODE) {
+		if (PROP_TYPE(iterProps->second.GetPropTag()) == PT_UNICODE)
 			ulPropTag = CHANGE_PROP_TYPE(ulPropTag, ((ulFlags & MAPI_UNICODE) ? PT_UNICODE : PT_STRING8));
-		} else if (PROP_TYPE(iterProps->second.GetPropTag()) == PT_MV_UNICODE) {
+		else if (PROP_TYPE(iterProps->second.GetPropTag()) == PT_MV_UNICODE)
 			ulPropTag = CHANGE_PROP_TYPE(ulPropTag, ((ulFlags & MAPI_UNICODE) ? PT_MV_UNICODE : PT_MV_STRING8));
-		} else
+		else
 			ulPropTag = iterProps->second.GetPropTag();
 	}
 
@@ -721,9 +719,8 @@ HRESULT ECGenericProp::HrLoadProps()
 
 	scoped_rlock lock(m_hMutexMAPIObject);
 
-	if(lstProps != NULL && m_bReload == FALSE) {
+	if (lstProps != NULL && m_bReload == FALSE)
 		goto exit; // already loaded
-	}
 
 	m_bLoading = TRUE;
 
@@ -932,9 +929,9 @@ HRESULT ECGenericProp::GetPropList(ULONG ulFlags, LPSPropTagArray FAR * lppPropT
 		if((!HR_FAILED(hrT) || hrT == MAPI_E_NOT_ENOUGH_MEMORY) && (PROP_TYPE(lpsPropValue->ulPropTag) != PT_ERROR || lpsPropValue->Value.err == MAPI_E_NOT_ENOUGH_MEMORY)) {
 			ULONG ulPropTag = iterCallBack->second.ulPropTag;
 			
-			if(PROP_TYPE(ulPropTag) == PT_UNICODE || PROP_TYPE(ulPropTag) == PT_STRING8) {
+			if (PROP_TYPE(ulPropTag) == PT_UNICODE ||
+			    PROP_TYPE(ulPropTag) == PT_STRING8)
 				ulPropTag = CHANGE_PROP_TYPE(ulPropTag, ((ulFlags & MAPI_UNICODE) ? PT_UNICODE : PT_STRING8));
-			}
 			
 			lpPropTagArray->aulPropTag[n++] = ulPropTag;
 		}
@@ -997,11 +994,10 @@ HRESULT ECGenericProp::SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSProp
 			PROP_TYPE(lpPropArray[i].ulPropTag) == PT_ERROR)
 			continue;
 
-		if(HrGetHandler(lpPropArray[i].ulPropTag, &lpfnSetProp, NULL, &lpParam) == hrSuccess) {
+		if (HrGetHandler(lpPropArray[i].ulPropTag, &lpfnSetProp, NULL, &lpParam) == hrSuccess)
 			hrT = lpfnSetProp(lpPropArray[i].ulPropTag, this->lpProvider, &lpPropArray[i], lpParam);
-		} else {
+		else
 			hrT = HrSetRealProp(&lpPropArray[i]); // SC: TODO: this does a ref copy ?!
-		}
 
 		if(hrT != hrSuccess) {
 			lpProblems->aProblem[nProblem].scode = hrT;

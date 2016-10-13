@@ -297,10 +297,8 @@ HRESULT ECMsgStore::QueryInterfaceProxy(REFIID refiid, void **lppInterface)
 ULONG ECMsgStore::Release()
 {
 	// If a parent has requested a callback when we're going down, do it now.
-	if(m_cRef == 1 && this->lpfnCallback) {
+	if (m_cRef == 1 && this->lpfnCallback != nullptr)
 		lpfnCallback(this->lpCallbackObject, this);
-	}
-
 	return ECUnknown::Release();
 }
 
@@ -632,11 +630,9 @@ HRESULT ECMsgStore::CompareEntryIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULON
 	}
 
 	// Check if one or both of the entry identifiers contains the store guid.
-	if(memcmp(&lpStoreId->guid, &peid1->guid, sizeof(GUID)) != 0 ||
-		memcmp(&lpStoreId->guid, &peid2->guid, sizeof(GUID)) != 0)
-	{
+	if (memcmp(&lpStoreId->guid, &peid1->guid, sizeof(GUID)) != 0 ||
+	    memcmp(&lpStoreId->guid, &peid2->guid, sizeof(GUID)) != 0)
 		goto exit;
-	}
 
 	if(cbEntryID1 != cbEntryID2)
 		goto exit;
@@ -1061,10 +1057,8 @@ HRESULT ECMsgStore::SetLockState(LPMESSAGE lpMessage, ULONG ulLockState)
 		hr = lpsPropArray[IDX_ENTRYID].Value.err;
 		goto exit;
 	}
-
-	if (PROP_TYPE(lpsPropArray[IDX_SUBMIT_FLAGS].ulPropTag) != PT_ERROR) {
+	if (PROP_TYPE(lpsPropArray[IDX_SUBMIT_FLAGS].ulPropTag) != PT_ERROR)
 		ulSubmitFlag = lpsPropArray->Value.l;
-	}
 
 	// set the lock state, if the message is already in the correct state
 	// just get outta here
@@ -2036,16 +2030,13 @@ HRESULT ECMsgStore::CreateStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYID lpU
 
 	// Open the created messagestore
 	hr = ECMsgStore::Create("", lpSupport, lpTempTransport, true, MAPI_BEST_ACCESS, false, false, false, &lpecMsgStore);
-	if(hr != hrSuccess){
+	if (hr != hrSuccess)
 		//FIXME: wat te doen met de aangemaakte store ?
 		goto exit;
-	}
-
-	if(ulStoreType == ECSTORE_TYPE_PRIVATE) {
+	if (ulStoreType == ECSTORE_TYPE_PRIVATE)
 		memcpy(&lpecMsgStore->m_guidMDB_Provider, &KOPANO_SERVICE_GUID, sizeof(MAPIUID));
-	} else {
+	else
 		memcpy(&lpecMsgStore->m_guidMDB_Provider, &KOPANO_STORE_PUBLIC_GUID, sizeof(MAPIUID));
-	}
 
 	// Get user or company information depending on the store type.
 	if (ulStoreType == ECSTORE_TYPE_PRIVATE) {
@@ -2678,7 +2669,8 @@ HRESULT ECMsgStore::CreateSpecialFolder(LPMAPIFOLDER lpFolderParent,
 
 	// Add a referention at the folders
 	lpFolderParent->AddRef();
-	if(lpFolderPropSet) { lpFolderPropSet->AddRef(); }
+	if (lpFolderPropSet != nullptr)
+		lpFolderPropSet->AddRef();
 
 	// Create the folder
 	hr = lpFolderParent->CreateFolder(FOLDER_GENERIC,

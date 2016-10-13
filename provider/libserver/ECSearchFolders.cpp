@@ -1061,10 +1061,9 @@ ECRESULT ECSearchFolders::Search(unsigned int ulStoreId, unsigned int ulFolderId
 
 			er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 			if(er == erSuccess) {
-				while((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL) {
+				while ((lpDBRow = lpDatabase->FetchRow(lpDBResult)) != NULL)
 					if(lpDBRow && lpDBRow[0])
 						lstFolders.push_back(atoi(lpDBRow[0]));
-				}
 			} else
 				ec_log_crit("ECSearchFolders::Search() could not expand target folders: 0x%x", er);
 

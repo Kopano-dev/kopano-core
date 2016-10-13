@@ -152,11 +152,10 @@ ECRESULT CopySOAPPropValToDatabasePropVal(struct propVal *lpPropVal, unsigned in
 		if (lpPropVal->__union != SOAP_UNION_propValData_lpszA ||
 		    lpPropVal->Value.lpszA == NULL)
 			return KCERR_INVALID_PARAMETER;
-		if(bTruncate) {
+		if (bTruncate)
 			u8_ncpy(lpPropVal->Value.lpszA, TABLE_CAP_STRING, &strData);
-		} else {
+		else
 			strData = lpPropVal->Value.lpszA;
-		}
 		
 		strColData = "'" +  lpDatabase->Escape(lpDatabase->FilterBMP(strData)) + "'";
 		*lpulColNr = VALUE_NR_STRING;
@@ -169,11 +168,10 @@ ECRESULT CopySOAPPropValToDatabasePropVal(struct propVal *lpPropVal, unsigned in
 		    lpPropVal->Value.bin->__ptr == NULL)
 			return KCERR_INVALID_PARAMETER;
 
-		if(bTruncate && lpPropVal->Value.bin->__size > TABLE_CAP_BINARY) {
+		if (bTruncate && lpPropVal->Value.bin->__size > TABLE_CAP_BINARY)
 			ulSize = TABLE_CAP_BINARY;
-		} else {
+		else
 			ulSize = lpPropVal->Value.bin->__size;
-		}
 		
 		strColData = lpDatabase->EscapeBinary(lpPropVal->Value.bin->__ptr, ulSize);
 		*lpulColNr = VALUE_NR_BINARY;
@@ -461,10 +459,9 @@ ECRESULT CopyDatabasePropValToSOAPPropVal(struct soap *soap, DB_ROW lpRow, DB_LE
 	unsigned int ulPropTag;
 	locale_t loc = createlocale(LC_NUMERIC, "C");
 
-	if((type & MVI_FLAG) == MVI_FLAG) {
+	if ((type & MVI_FLAG) == MVI_FLAG)
 		// Treat MVI as normal property
 		type &= ~MVI_FLAG;
-	}
 
 	ulPropTag = PROP_TAG(type,atoi(lpRow[FIELD_NR_TAG]));
 

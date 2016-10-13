@@ -52,9 +52,8 @@
 static LONG __stdcall AdviseECFolderCallback(void *lpContext, ULONG cNotif,
     LPNOTIFICATION lpNotif)
 {
-	if (lpContext == NULL) {
+	if (lpContext == NULL)
 		return S_OK;
-	}
 
 	ECMAPIFolder *lpFolder = (ECMAPIFolder*)lpContext;
 
@@ -264,15 +263,12 @@ HRESULT ECMAPIFolder::HrSetPropStorage(IECPropStorage *lpStorage, BOOL fLoadProp
 		goto exit;
 
 	hr = GetMsgStore()->InternalAdvise(cbEntryId, lpEntryId, ulEventMask, m_lpFolderAdviseSink, &m_ulConnection);
-	if (hr == MAPI_E_NO_SUPPORT){
+	if (hr == MAPI_E_NO_SUPPORT)
 		hr = hrSuccess;			// there is no spoon
-	} else if (hr != hrSuccess) {
+	else if (hr != hrSuccess)
 		goto exit;
-	} else {
-
-		
+	else
 		lpMAPIPropStorage->RegisterAdvise(ulEventMask, m_ulConnection);
-	}
 	
 	hr = ECGenericProp::HrSetPropStorage(lpStorage, fLoadProps);
 
@@ -791,11 +787,10 @@ HRESULT ECMAPIFolder::SetReadFlags(LPENTRYLIST lpMsgList, ULONG ulUIParam, LPMAP
 			
 			// Progress bar
 			if((ulFlags&MESSAGE_DIALOG ) && lpProgress) {
-				if(ulPGFlags & MAPI_TOP_LEVEL) {
+				if (ulPGFlags & MAPI_TOP_LEVEL)
 					hr = lpProgress->Progress((int)((float)i * ulPGDelta / lpMsgList->cValues + ulPGMin), i, lpMsgList->cValues);
-				} else {
+				else
 					hr = lpProgress->Progress((int)((float)i * ulPGDelta / lpMsgList->cValues + ulPGMin), 0, 0);
-				}
 
 				if(hr == MAPI_E_USER_CANCEL) {// MAPI_E_USER_CANCEL is user click on the Cancel button.
 					hr = hrSuccess;

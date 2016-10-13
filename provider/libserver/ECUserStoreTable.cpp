@@ -292,9 +292,8 @@ ECRESULT ECUserStoreTable::Load() {
 		else
 			sUserStore.strGuessname.clear();
 
-		if (sUserStore.ulCompanyId > 0 && lpUserManagement->GetObjectDetails(sUserStore.ulCompanyId, &sDetails) == erSuccess) {
+		if (sUserStore.ulCompanyId > 0 && lpUserManagement->GetObjectDetails(sUserStore.ulCompanyId, &sDetails) == erSuccess)
 			sUserStore.strCompanyName = sDetails.GetPropString(OB_PROP_S_LOGIN);
-		}
 
 		if(lpDBRow[HIERARCHYID])
 			sUserStore.ulObjId = atoui(lpDBRow[HIERARCHYID]);

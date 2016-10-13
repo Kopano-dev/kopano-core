@@ -202,9 +202,7 @@ ECRESULT ECStoreObjectTable::GetColumnsAll(ECListInt* lplstProps)
 
 	// Add properties only in the contents tables
 	if(lpODStore->ulObjType == MAPI_MESSAGE && (lpODStore->ulFlags&MSGFLAG_ASSOCIATED) == 0)
-	{
 		lplstProps->push_back(PR_MSG_STATUS);
-	}
 	
 	lplstProps->push_back(PR_ACCESS_LEVEL);
 
@@ -367,12 +365,11 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
 	    		ulPropTag = lpsPropTagArray->__ptr[k];
 	    	
             // Get StoreId if needed
-            if(lpODStore->lpGuid == NULL) {
+            if (lpODStore->lpGuid == NULL)
                 // No store specified, so determine the store ID & guid from the object id
                 lpSession->GetSessionManager()->GetCacheManager()->GetStore(row.ulObjId, &ulRowStoreId, &sRowGuid);
-            } else {
+            else
                 ulRowStoreId = lpODStore->ulStoreId;
-            }
 
             // Handle category header rows
             if (row.ulObjId == 0) {
@@ -510,11 +507,10 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
 					auto iterObjects = mapObjects.find(row);
 					if (iterObjects != mapObjects.cend())
                 		ulFolderId = iterObjects->second.ulParent;
-					else {
+					else
                     	/* This will cause the request to fail, since no items are in folder id 0. However, this is what we want since
                     	 * the only thing we can do is return NOT_FOUND for each cell.*/
-                    	ulFolderId = 0;
-					}
+						ulFolderId = 0;
                 } else {
                 	ulFolderId = lpODStore->ulFolderId;
                 }
@@ -871,9 +867,8 @@ ECRESULT ECStoreObjectTable::QueryRowDataByColumn(ECGenericObjectTable *lpThis,
     }
 
 	// Get data
-	if(!strTags.empty()) {
+	if (!strTags.empty())
 		strQuery = "SELECT " PROPCOLORDER ", hierarchyid, 0 FROM tproperties AS properties FORCE INDEX(PRIMARY) WHERE folderid=" + stringify(ulFolderId) + " AND hierarchyid IN(" + strHierarchyIds + ") AND tag IN (" + strTags +") AND tag >= " + stringify(ulMin) + " AND tag <= " + stringify(ulMax);
-	}
 	if(!strMVTags.empty()) {
 		if(!strQuery.empty())
 			strQuery += " UNION ";

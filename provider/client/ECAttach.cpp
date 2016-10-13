@@ -238,12 +238,11 @@ HRESULT	ECAttach::GetPropHandler(ULONG ulPropTag, void *lpProvider, ULONG ulFlag
 		sPropArray.cValues = 1;
 		sPropArray.aulPropTag[0] = PR_ATTACH_METHOD;
 		hr = lpAttach->GetProps(&sPropArray, 0, &cValues, &lpProps);
-		if(lpProps[0].Value.ul == ATTACH_OLE) {
+		if (lpProps[0].Value.ul == ATTACH_OLE)
 			hr = MAPI_E_NOT_FOUND;
-		}else {
+		else
 			// 8k limit
 			hr = lpAttach->HrGetRealProp(PR_ATTACH_DATA_BIN, ulFlags, lpBase, lpsPropValue, 8192);
-		}
 		break;
 	case PR_ATTACH_NUM:
 		lpsPropValue->ulPropTag = PR_ATTACH_NUM;

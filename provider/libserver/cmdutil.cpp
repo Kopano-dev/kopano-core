@@ -276,11 +276,8 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 			if(sItem.ulObjType == MAPI_STORE || sItem.ulObjType == MAPI_FOLDER || sItem.ulObjType == MAPI_MESSAGE) {
 			
 				lpCacheManager->GetStore(sItem.ulId, &sItem.ulStoreId , NULL); //CHECKme:"oude gaf geen errors
-			
-				if (!(sItem.ulFlags&MSGFLAG_DELETED) ) {
+				if (!(sItem.ulFlags & MSGFLAG_DELETED))
 					GetObjectSize(lpDatabase, sItem.ulId, &sItem.ulObjSize);
-				}
-
 				lpCacheManager->GetEntryIdFromObject(sItem.ulId, NULL, 0, &sItem.sEntryId);//CHECKme:"oude gaf geen errors
 
 				GetSourceKey(sItem.ulId, &sItem.sSourceKey);
@@ -340,11 +337,8 @@ ECRESULT ExpandDeletedItems(ECSession *lpSession, ECDatabase *lpDatabase, ECList
 			if(sItem.ulObjType == MAPI_STORE || sItem.ulObjType == MAPI_FOLDER || (sItem.ulObjType == MAPI_MESSAGE && sItem.ulParentType == MAPI_FOLDER) ) {
 			
 				lpCacheManager->GetStore(sItem.ulId, &sItem.ulStoreId , NULL); //CHECKme:"oude gaf geen errors
-
-				if (!(sItem.ulFlags&MSGFLAG_DELETED) ) {
+				if (!(sItem.ulFlags & MSGFLAG_DELETED))
 					GetObjectSize(lpDatabase, sItem.ulId, &sItem.ulObjSize);
-				}
-
 				lpCacheManager->GetEntryIdFromObject(sItem.ulId, NULL, 0, &sItem.sEntryId);//CHECKme:"oude gaf geen errors
 
 				GetSourceKey(sItem.ulId, &sItem.sSourceKey);
@@ -1487,10 +1481,9 @@ ECRESULT CreateNotifications(ULONG ulObjId, ULONG ulObjType, ULONG ulParentId, U
 				g_lpSessionManager->GetCacheManager()->UpdateCell(ulParentId, PR_CONTENT_COUNT, 1);
 
 				struct propVal *lpPropMessageFlags = FindProp(lpModProps, PR_MESSAGE_FLAGS);			
-				if (lpPropMessageFlags && (lpPropMessageFlags->Value.ul & MSGFLAG_READ) == 0) {
-				    // Unread message
-    				g_lpSessionManager->GetCacheManager()->UpdateCell(ulParentId, PR_CONTENT_UNREAD, 1);
-				}
+				if (lpPropMessageFlags && (lpPropMessageFlags->Value.ul & MSGFLAG_READ) == 0)
+					// Unread message
+					g_lpSessionManager->GetCacheManager()->UpdateCell(ulParentId, PR_CONTENT_UNREAD, 1);
 			}
 			
 			g_lpSessionManager->NotificationModified(MAPI_FOLDER, ulParentId);
@@ -1548,9 +1541,8 @@ ECRESULT WriteSingleProp(ECDatabase *lpDatabase, unsigned int ulObjId, unsigned 
 			strQueryAppend += "null,null";
 		else
 			strQueryAppend += "null";
-		if(k != VALUE_NR_MAX-1) {
+		if (k != VALUE_NR_MAX-1)
 			strQueryAppend += ",";
-		}
 	}
 
 	strQueryAppend += ")";
@@ -1771,10 +1763,9 @@ ECRESULT ResetFolderCount(ECSession *lpSession, unsigned int ulObjId, unsigned i
     if(er != erSuccess)
         goto exit;
 
-    if (ulAffected == 0) {
+    if (ulAffected == 0)
         // Nothing updated
         goto exit;
-    }
     
     // Trigger an assertion since in practice this should never happen
 //	assert(false);
@@ -1877,9 +1868,8 @@ ECRESULT RemoveStaleIndexedProp(ECDatabase *lpDatabase, unsigned int ulPropTag, 
             goto exit;
 
         lpDBRow = lpDatabase->FetchRow(lpDBResult);
-        if(!lpDBRow || lpDBRow[0] == NULL) {
+        if (lpDBRow == nullptr || lpDBRow[0] == nullptr)
             bStale = true;
-        }        
     } else {
         // The item has no store. This means it's safe to re-use the indexed prop. Possibly the store is half-deleted at this time.
         bStale = true;
@@ -2168,15 +2158,15 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
     if(fDoQuery) {
 		// although we don't always use the names columns, we need to join anyway to check for existing nameids
 		// we may never stream propid's > 0x8500 without the names data
-		if (ulObjId) {
+		if (ulObjId != 0)
 			strQuery = "SELECT " PROPCOLORDER ", hierarchyid, names.nameid, names.namestring, names.guid "
 				"FROM properties FORCE INDEX (PRIMARY) ";
-		} else {
+		else
 			strQuery = "SELECT " PROPCOLORDER ", hierarchy.id, names.nameid, names.namestring, names.guid "
 				"FROM properties FORCE INDEX (PRIMARY) "
 				"JOIN hierarchy FORCE INDEX (parenttypeflags) "
 			        "ON properties.hierarchyid=hierarchy.id ";
-		}
+
 		strQuery +=
 		    "LEFT JOIN names "
 			    "ON (properties.tag-0x8501)=names.id ";
@@ -2281,27 +2271,26 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
     lpDBResult = NULL;
 
     if(fDoQuery) {
-		if (ulObjId) {
+		if (ulObjId != 0)
 			strQuery = "SELECT " MVPROPCOLORDER ", hierarchyid, names.nameid, names.namestring, names.guid "
 				"FROM mvproperties ";
-		} else {
+		else
 			strQuery = "SELECT " MVPROPCOLORDER ", hierarchy.id, names.nameid, names.namestring, names.guid "
 				"FROM mvproperties "
 				"JOIN hierarchy "
 				    "ON mvproperties.hierarchyid=hierarchy.id ";
-		}
+
 		strQuery +=
 			"LEFT JOIN names "
 			    "ON (mvproperties.tag-0x8501)=names.id ";
-        if(ulObjId) {
+        if (ulObjId != 0)
             strQuery +=	"WHERE hierarchyid=" + stringify(ulObjId) +
 				" AND (tag <= 0x8500 OR names.id IS NOT NULL) "
 				" GROUP BY hierarchyid, tag";
-        } else {
+        else
 			strQuery +=	"WHERE hierarchy.parent=" + stringify(ulParentId) +
 				" AND (tag <= 0x8500 OR names.id IS NOT NULL) "
 				"GROUP BY tag, mvproperties.type";
-		}
 
         er = lpDatabase->DoSelect(strQuery, &lpDBResult);
         if(er != erSuccess)

@@ -92,15 +92,11 @@ HRESULT ECArchiveAwareMsgStore::OpenItemFromArchive(LPSPropValue lpPropStoreEIDs
 		hr = GetArchiveStore(*iterStoreEID, &ptrArchiveStore);
 		if (hr == MAPI_E_NO_SUPPORT)
 			return hr;	// No need to try any other archives.
-		if (hr != hrSuccess) {
+		if (hr != hrSuccess)
 			continue;
-		}
-
 		hr = ptrArchiveStore->OpenEntry((*iterIterEID)->cb, (LPENTRYID)(*iterIterEID)->lpb, &IID_ECMessage, 0, &ulType, &ptrArchiveMessage);
-		if (hr != hrSuccess) {
+		if (hr != hrSuccess)
 			continue;
-		}
-
 		break;
 	}
 

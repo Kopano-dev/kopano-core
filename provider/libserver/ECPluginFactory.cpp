@@ -54,9 +54,8 @@ ECRESULT ECPluginFactory::CreateUserPlugin(UserPlugin **lppPlugin) {
         const char *pluginname = m_config->GetSetting("user_plugin");
         char filename[PATH_MAX + 1];
 
-        if (!pluginpath || !strcmp(pluginpath, "")) {
+        if (pluginpath == nullptr || strcmp(pluginpath, "") == 0)
             pluginpath = "";
-        }
         if (!pluginname || !strcmp(pluginname, "")) {
 			ec_log_crit("User plugin is unavailable.");
 			ec_log_crit("Please correct your configuration file and set the \"plugin_path\" and \"user_plugin\" options.");

@@ -315,9 +315,8 @@ ECRESULT ECSession::Shutdown(unsigned int ulTimeout)
 	ECRESULT er = erSuccess;
 
 	/* Shutdown blocking calls for this session on our session group */
-	if (m_lpSessionGroup) {
+	if (m_lpSessionGroup != nullptr)
 		m_lpSessionGroup->ShutdownSession(this);
-	}
 
 	/* Wait until there are no more running threads using this session */
 	std::unique_lock<std::mutex> lk(m_hThreadReleasedMutex);
@@ -325,11 +324,8 @@ ECRESULT ECSession::Shutdown(unsigned int ulTimeout)
 		if (m_hThreadReleased.wait_for(lk, std::chrono::milliseconds(ulTimeout)) == std::cv_status::timeout)
 			break;
 	lk.unlock();
-
-	if(IsLocked()) {
+	if (IsLocked())
 		er = KCERR_TIMEOUT;
-	}
-
 	return er;
 }
 
@@ -797,9 +793,8 @@ ECRESULT ECAuthSession::ValidateUserSocket(int socket, const char* lpszName, con
 		goto exit;
 	}
 	p = m_lpSessionManager->GetConfig()->GetSetting("allow_local_users");
-	if (p && !strcasecmp(p, "yes")) {
+	if (p != nullptr && strcasecmp(p, "yes") == 0)
 		allowLocalUsers = true;
-	}
 
 	// Authentication stage
 	localAdminUsers = strdup(m_lpSessionManager->GetConfig()->GetSetting("local_admin_users"));
@@ -833,10 +828,9 @@ ECRESULT ECAuthSession::ValidateUserSocket(int socket, const char* lpszName, con
 #endif // HAVE_GETPEEREID
 #endif // SO_PEERCRED
 
-	if (geteuid() == uid) {
+	if (geteuid() == uid)
 		// User connecting is connecting under same UID as the server is running under, allow this
 		goto userok;
-	}
 
 	// Lookup user name
 	pw = NULL;

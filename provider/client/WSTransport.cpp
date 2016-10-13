@@ -1723,11 +1723,8 @@ HRESULT WSTransport::HrResolveUserStore(const utf8string &strUserName, ULONG ulF
 	}
 	if(hr != hrSuccess)
 		goto exitm;
-
-	if(lpulUserID) {
+	if (lpulUserID != nullptr)
 		*lpulUserID = sResponse.ulUserId;
-	}
-
 	if(lpcbStoreID && lppStoreID) {
 
 		// Create a client store entry, add the servername
@@ -3967,9 +3964,8 @@ HRESULT WSTransport::HrResolvePseudoUrl(const char *lpszPseudoUrl, char **lppszS
 	ECsResolveResult				*lpCachedResult = NULL;
 	ECsResolveResult				cachedResult;
 
-	if (lpszPseudoUrl == NULL || lppszServerPath == NULL) {
+	if (lpszPseudoUrl == NULL || lppszServerPath == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	}
 
 	// First try the cache
 	ulock_rec l_cache(m_ResolveResultCacheMutex);

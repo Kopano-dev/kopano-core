@@ -1928,22 +1928,20 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
                     break;
 			}
 		}
-
-		if(lpPropValArray->__ptr[i].ulPropTag == PR_LAST_MODIFIER_NAME_W || lpPropValArray->__ptr[i].ulPropTag == PR_LAST_MODIFIER_ENTRYID) {
+		if (lpPropValArray->__ptr[i].ulPropTag == PR_LAST_MODIFIER_NAME_W ||
+		    lpPropValArray->__ptr[i].ulPropTag == PR_LAST_MODIFIER_ENTRYID)
 			if(!fNewItem && ulSyncId == 0)
-                continue;
-		}
+				continue;
 
 		// Same goes for flags in PR_MESSAGE_FLAGS
 		if(lpPropValArray->__ptr[i].ulPropTag == PR_MESSAGE_FLAGS) {
-			if (ulSyncId == 0) {
+			if (ulSyncId == 0)
 				// Normalize PR_MESSAGE_FLAGS so that the user cannot set things like MSGFLAG_ASSOCIATED 
 				lpPropValArray->__ptr[i].Value.ul = (lpPropValArray->__ptr[i].Value.ul & (MSGFLAG_SETTABLE_BY_USER | MSGFLAG_SETTABLE_BY_SPOOLER)) | ulFlags;
-			} else {
+			else
 				// Normalize PR_MESSAGE_FLAGS so that the user cannot change flags that are also
 				// stored in the hierarchy table.
 				lpPropValArray->__ptr[i].Value.ul = (lpPropValArray->__ptr[i].Value.ul & ~MSGFLAG_UNSETTABLE) | ulFlags;
-			}
 		}
 
 		// Make sure we dont have a colliding PR_SOURCE_KEY. This can happen if a user imports an exported message for example.
@@ -2791,11 +2789,10 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er, entryId sParentEntryId, 
                 
             lpDBRow = lpDatabase->FetchRow(lpDBResult);
             
-            if(!lpDBRow || !lpDBRow[0]) {
+            if (lpDBRow == nullptr || lpDBRow[0] == nullptr)
                 ulPrevReadState = 0;
-            } else {
+            else
                 ulPrevReadState = atoui(lpDBRow[0]) & MSGFLAG_READ;
-            }
             
             ulNewReadState = ulPrevReadState; // Copy read state, may be updated by SaveObject() later
                 
@@ -2825,13 +2822,12 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er, entryId sParentEntryId, 
 	}
 
 	// Check permissions
-	if(!fNewItem && ulObjType == MAPI_FOLDER) {
+	if (!fNewItem && ulObjType == MAPI_FOLDER)
 		er = lpecSession->GetSecurity()->CheckPermission(lpsSaveObj->ulServerId, ecSecurityFolderAccess);
-	}else if(fNewItem) {
+	else if(fNewItem)
 		er = lpecSession->GetSecurity()->CheckPermission(ulParentObjId, ecSecurityCreate);
-	} else {
+	else
 		er = lpecSession->GetSecurity()->CheckPermission(lpsSaveObj->ulServerId, ecSecurityEdit);
-	}
 	if(er != erSuccess)
 		goto exit;
 	
@@ -2905,11 +2901,10 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er, entryId sParentEntryId, 
 		GetSourceKey(ulParentObjId, &sParentSourceKey);
 
 		if (sReturnObject.ulObjType == MAPI_MESSAGE && ulParentObjType == MAPI_FOLDER) {
-			if (lpsSaveObj->ulServerId == 0) {
+			if (lpsSaveObj->ulServerId == 0)
 				AddChange(lpecSession, ulSyncId, sSourceKey, sParentSourceKey, ICS_MESSAGE_NEW, 0, !fHaveChangeKey, &strChangeKey, &strChangeList);
-			} else {
+			else
 				AddChange(lpecSession, ulSyncId, sSourceKey, sParentSourceKey, ICS_MESSAGE_CHANGE, 0, !fHaveChangeKey, &strChangeKey, &strChangeList);
-			}
 		} else if (lpsSaveObj->ulObjType == MAPI_FOLDER && !(ulFlags & FOLDER_SEARCH)) {
 			AddChange(lpecSession, ulSyncId, sSourceKey, sParentSourceKey, ICS_FOLDER_CHANGE, 0, !fHaveChangeKey, &strChangeKey, &strChangeList);
 		}
@@ -4390,10 +4385,8 @@ static ECRESULT DoNotifySubscribe(ECSession *lpecSession,
 	}
 
 	er = lpecSession->AddAdvise(notifySubscribe->ulConnection, ulKey, notifySubscribe->ulEventMask);
-	if(er == erSuccess){
+	if (er == erSuccess)
 		TRACE_SOAP(TRACE_INFO, "ns__notifySubscribe", "connectionId: %d SessionId: %d Mask: %d",notifySubscribe->ulConnection, ulSessionId, notifySubscribe->ulEventMask);
-	}
-
 exit:
 	if (lpTable)
 		lpTable->Release();
@@ -4990,11 +4983,9 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
         er = KCERR_INVALID_PARAMETER;
         goto exit;
     }
-
-	if(lpMessageList) {
+	if (lpMessageList != nullptr)
 		// Ignore errors
 		g_lpSessionManager->GetCacheManager()->GetEntryListToObjectList(lpMessageList, &lHierarchyIDs);
-	}
 
 	strQuery = "UPDATE properties SET ";
 
@@ -5016,12 +5007,9 @@ SOAP_ENTRY_START(setReadFlags, *result, unsigned int ulFlags, entryId* lpsEntryI
 		strQuery += (ulFlagsRemove!=0)?",":"";
 		strQuery += "val_ulong=val_ulong | " + stringify(ulFlagsAdd);
 	}
-
-	if(ulFlagsRemove == 0 && ulFlagsAdd == 0)
-	{
+	if (ulFlagsRemove == 0 && ulFlagsAdd == 0)
 		// Nothing to update
 		goto exit;
-	}
 
 	er = lpDatabase->Begin();
 	if(er != erSuccess)
@@ -8227,10 +8215,9 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 		} else {
 			// Message undeleted
 			er = UpdateFolderCount(lpDatabase, ulDestFolderId, PR_CONTENT_COUNT, 1);
-			if(er == erSuccess && (ulFlags & MSGFLAG_READ) == 0) {
+			if (er == erSuccess && (ulFlags & MSGFLAG_READ) == 0)
 				// Undeleted message was unread
 				er = UpdateFolderCount(lpDatabase, ulDestFolderId, PR_CONTENT_UNREAD, 1);
-			}
 		}
 		if (er != erSuccess) {
 			ec_log_err("CopyObject: UpdateFolderCount (%u) failed: %s (%x)", ulDestFolderId, GetMAPIErrorMessage(er), er);
@@ -10396,11 +10383,10 @@ SOAP_ENTRY_START(getEntryIDFromSourceKey, lpsResponse->er, entryId sStoreId, str
     }
 
 	// Check security
-	if(ulObjType == MAPI_FOLDER){
+	if (ulObjType == MAPI_FOLDER)
 		er = lpecSession->GetSecurity()->CheckPermission(ulObjId, ecSecurityFolderVisible);
-	}else{
+	else
 		er = lpecSession->GetSecurity()->CheckPermission(ulObjId, ecSecurityRead);
-	}
 	if(er != erSuccess)
 		goto exit;
 
@@ -10726,16 +10712,14 @@ static void MTOMSessionDone(struct soap *soap, void *param)
 {
 	MTOMSessionInfo *lpInfo = (MTOMSessionInfo *)param;
 
-	if(lpInfo->lpCurrentWriteStream) {
+	if (lpInfo->lpCurrentWriteStream != NULL)
 	    // Apparently a write stream was opened but not closed by gSOAP by calling MTOMWriteClose. Do it now.
 	    MTOMWriteClose(soap, lpInfo->lpCurrentWriteStream);
-    } else if(lpInfo->lpCurrentReadStream) {
+	else if (lpInfo->lpCurrentReadStream != NULL)
         // Same but for MTOMReadClose()
-        MTOMReadClose(soap, lpInfo->lpCurrentReadStream);
-    }
+		MTOMReadClose(soap, lpInfo->lpCurrentReadStream);
 
     // We can now safely remove sessions, etc since nobody is using them.
-
 	lpInfo->lpAttachmentStorage->Release();
 	lpInfo->lpecSession->Unlock();
 	
@@ -10869,9 +10853,8 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
             }
         }
         		
-		if ((ulObjFlags & MSGFLAG_DELETED) != (ulFlags & MSGFLAG_DELETED)) {
+		if ((ulObjFlags & MSGFLAG_DELETED) != (ulFlags & MSGFLAG_DELETED))
 			goto next_object;
-		}
 		
 		// Check security
 		er = lpecSession->GetSecurity()->CheckPermission(ulObjectId, ecSecurityRead);
@@ -11123,15 +11106,14 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags, unsigne
 			goto exit;
 
 		lpDBRow = lpDatabase->FetchRow(lpDBResult);
-		if (lpDBRow == NULL || lpDBRow[0] == NULL) {
+		if (lpDBRow == NULL || lpDBRow[0] == NULL)
 		    // Items created in previous versions of Kopano will not have a PR_EC_IMAP_ID. The rule
 		    // is that an item has a PR_EC_IMAP_ID that is equal to the hierarchyid in that case.
 		    ullIMAP = ulObjectId;
-		} else {
+		else
     		// atoui return a unsigned int at best, but since PR_EC_IMAP_ID is a PT_LONG, the same conversion
 	    	// will be done when getting the property through MAPI.
-    		ullIMAP = atoui(lpDBRow[0]);
-        }    		
+			ullIMAP = atoui(lpDBRow[0]);
 		FREE_DBRESULT()
 		
 		

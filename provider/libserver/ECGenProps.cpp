@@ -414,11 +414,8 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECODStore *lpODS
                 er = lpSession->GetSessionManager()->GetCacheManager()->GetObject(ulParentId, NULL, NULL, &ulFlags, &ulObjType);
                 if(er != erSuccess)
                     goto exit;
-
-                if(ulObjType == MAPI_FOLDER) {
+                if (ulObjType == MAPI_FOLDER)
                     ulObjId = ulParentId;
-                } // else PR_PARENT_ENTRYID == PR_ENTRYID
-					
 			}else if (ulPropTag == PR_STORE_ENTRYID || ulObjId == ulStoreId) {
 				ulObjId = ulStoreId;
 				if(lpODStore && lpODStore->ulTableFlags & TABLE_FLAG_OVERRIDE_HOME_MDB)
@@ -765,12 +762,9 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECODStore *lpODS
 
 					bOwner = lpSession->GetSecurity()->IsOwner(ulObjId) == erSuccess; // owner of this particular object in someone else's store
 				}
-
-				if(bAdmin == true || ulRights&ecRightsCreate || ulRights&ecRightsEditAny || ulRights&ecRightsDeleteAny || ulRights&ecRightsCreateSubfolder || 
-					(bOwner == true  && (ulRights&ecRightsEditOwned || ulRights&ecRightsDeleteOwned)) )
-				{
+				if (bAdmin || ulRights & ecRightsCreate || ulRights & ecRightsEditAny || ulRights & ecRightsDeleteAny || ulRights & ecRightsCreateSubfolder ||
+				   (bOwner && (ulRights & ecRightsEditOwned || ulRights & ecRightsDeleteOwned)))
 					sPropVal.Value.ul = MAPI_MODIFY;
-				}
 			}
 			break;
         case PROP_ID(PR_ROW_TYPE):

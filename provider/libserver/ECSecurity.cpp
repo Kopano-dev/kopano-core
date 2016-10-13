@@ -108,11 +108,10 @@ ECRESULT ECSecurity::SetUserContext(unsigned int ulUserId, unsigned int ulImpers
 		return er;
 
 	// Get the company we're assigned to
-	if(m_lpSession->GetSessionManager()->IsHostedSupported()) {
+	if (m_lpSession->GetSessionManager()->IsHostedSupported())
 		m_ulCompanyID = m_details.GetPropInt(OB_PROP_I_COMPANYID);
-	} else {
+	else
 		m_ulCompanyID = 0;
-	}
 
 	if (m_ulImpersonatorID != EC_NO_IMPERSONATOR) {
 		unsigned int ulAdminLevel = 0;
@@ -258,11 +257,9 @@ ECRESULT ECSecurity::GetObjectPermission(unsigned int ulObjId, unsigned int* lpu
 			FreeRightsArray(lpRights);
 			lpRights = NULL;
 		}
-
-		if(bFoundACL) {
+		if (bFoundACL)
 			// If any of the ACLs at this level were for us, then use these ACLs.
 			break;
-		}
 
 		// There were no ACLs or no ACLs for us, go to the parent and try there
 		er = m_lpSession->GetSessionManager()->GetCacheManager()->GetParent(ulCurObj, &ulCurObj);
@@ -515,11 +512,9 @@ ECRESULT ECSecurity::CheckPermission(unsigned int ulObjId, unsigned int ulecRigh
 	}
 
 exit:
-	if (er == erSuccess && (ulecRights == ecSecurityCreate || ulecRights == ecSecurityEdit || ulecRights == ecSecurityCreateFolder)) {
+	if (er == erSuccess && (ulecRights == ecSecurityCreate || ulecRights == ecSecurityEdit || ulecRights == ecSecurityCreateFolder))
 		// writing in a deleted parent is not allowed
 		er = CheckDeletedParent(ulObjId);
-	}
-
 	if(er != erSuccess)
 		TRACE_INTERNAL(TRACE_ENTRY,"Security","ECSecurity::CheckPermission","object=%d, rights=%d", ulObjId, ulecRights);
 
@@ -541,16 +536,15 @@ exit:
 				strStoreOwner = sStoreDetails.GetPropString(OB_PROP_S_LOGIN);
 		}
 
-		if (er == KCERR_NO_ACCESS) {
+		if (er == KCERR_NO_ACCESS)
 			m_lpAudit->Log(EC_LOGLEVEL_FATAL, "access denied objectid=%d type=%d ownername='%s' username='%s' rights='%s'",
 						   ulObjId, ulType, strStoreOwner.c_str(), strUsername.c_str(), RightsToString(ulecRights));
-		} else if (ulStoreOwnerId != m_ulUserID) {
+		else if (ulStoreOwnerId != m_ulUserID)
 			m_lpAudit->Log(EC_LOGLEVEL_FATAL, "access allowed objectid=%d type=%d ownername='%s' username='%s' rights='%s'",
 						   ulObjId, ulType, strStoreOwner.c_str(), strUsername.c_str(), RightsToString(ulecRights));
-		} else {
+		else
 			// you probably do not want to log all what a user does in their own store, do you?
 			m_lpAudit->Log(EC_LOGLEVEL_INFO, "access allowed objectid=%d type=%d userid=%d", ulObjId, ulType, m_ulUserID);
-		}
 	}
 
 	return er;
@@ -1111,9 +1105,8 @@ ECRESULT ECSecurity::IsAdminOverUserObject(unsigned int ulUserObjectId)
 	}
 
 	/* If hosted is enabled, system administrators are administrator over all users. */
-	if (m_details.GetPropInt(OB_PROP_I_ADMINLEVEL) == ADMIN_LEVEL_SYSADMIN) {
+	if (m_details.GetPropInt(OB_PROP_I_ADMINLEVEL) == ADMIN_LEVEL_SYSADMIN)
 		return erSuccess;
-	}
 
 	/*
 	 * Determine to which company the user belongs

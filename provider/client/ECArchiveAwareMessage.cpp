@@ -220,12 +220,11 @@ HRESULT	ECArchiveAwareMessage::HrSetRealProp(SPropValue *lpsPropValue)
 	}
 
 	hr = ECMessage::HrSetRealProp(lpsPropValue);
-	if (hr == hrSuccess && !m_bLoading) {
+	if (hr == hrSuccess && !m_bLoading)
 		/*
 		 * This is where we end up if a property is actually altered through SetProps.
 		 */
 		m_bChanged = true;
-	}
 	return hr;
 }
 
@@ -246,13 +245,10 @@ HRESULT ECArchiveAwareMessage::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG
 
 	hr = ECMessage::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
 	if (!m_bLoading && hr == hrSuccess && ((ulFlags & MAPI_MODIFY) || (fModify && (ulFlags & MAPI_BEST_ACCESS))))
-	{
 		// We have no way of knowing if the property will modified since it operates directly
 		// on the MAPIOBJECT data, which bypasses this subclass.
 		// @todo wrap the property to track if it was altered.
 		m_bChanged = true;
-	}
-
 	return hr;
 }
 
@@ -266,13 +262,10 @@ HRESULT ECArchiveAwareMessage::OpenAttach(ULONG ulAttachmentNum, LPCIID lpInterf
 	// if the parent object was openend with write access, we'll assume the object is changed the moment
 	// the attachment is openend.
 	if (hr == hrSuccess && ((ulFlags & MAPI_MODIFY) || fModify))
-	{
 		// We have no way of knowing if the attachment will modified since it operates directly
 		// on the MAPIOBJECT data, which bypasses this subclass.
 		// @todo wrap the attachment to track if it was altered.
 		m_bChanged = true;
-	}
-
 	return hr;
 }
 

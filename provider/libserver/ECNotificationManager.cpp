@@ -118,10 +118,9 @@ HRESULT ECNotificationManager::AddRequest(ECSESSIONID ecSessionId, struct soap *
         soap_default_ns_notifyResponse(iterRequest->second.soap, &notifications);
 #endif
         notifications.er = KCERR_NOT_FOUND; // Should be something like 'INTERRUPTED' or something
-        if(soapresponse(notifications, iterRequest->second.soap)) {
-            // Handle error on the response
-            soap_send_fault(iterRequest->second.soap);
-        }
+		if (soapresponse(notifications, iterRequest->second.soap))
+			// Handle error on the response
+			soap_send_fault(iterRequest->second.soap);
 		soap_destroy(iterRequest->second.soap);
 		soap_end(iterRequest->second.soap);
         lpItem = iterRequest->second.soap;
@@ -232,10 +231,9 @@ void *ECNotificationManager::Work() {
                 }
 
                 // Send the SOAP data
-				if(soapresponse(notifications, iterRequest->second.soap)) {
+				if (soapresponse(notifications, iterRequest->second.soap))
 					// Handle error on the response
 					soap_send_fault(iterRequest->second.soap);
-				}
 				// Free allocated SOAP data (in GetNotifyItems())
 				soap_destroy(iterRequest->second.soap);
 				soap_end(iterRequest->second.soap);

@@ -52,12 +52,11 @@ ECRESULT TestPerform(struct soap *soap, ECSession *lpSession, char *szCommand, u
         }
             
     } else if (strcasecmp(szCommand, "indexer_syncrun") == 0) {
-		if (parseBool(g_lpSessionManager->GetConfig()->GetSetting("search_enabled"))) {
+		if (parseBool(g_lpSessionManager->GetConfig()->GetSetting("search_enabled")))
 			er = ECSearchClient(
 				g_lpSessionManager->GetConfig()->GetSetting("search_socket"),
 				60 * 10 /* 10 minutes should be enough for everyone */
 			).SyncRun();
-		}
 	} else if (strcasecmp(szCommand, "run_searchfolders") == 0) {
 		lpSession->GetSessionManager()->GetSearchFolders()->FlushAndWait();
 	} else if (strcasecmp(szCommand, "kill_sessions") == 0) {
@@ -96,13 +95,10 @@ ECRESULT TestSet(struct soap *soap, ECSession *lpSession, char *szVarName, char 
 
 ECRESULT TestGet(struct soap *soap, ECSession *lpSession, char *szVarName, char **szValue)
 {
-    ECRESULT er = erSuccess;
-    
-    if(!strcasecmp(szVarName, "ping")) {
-        *szValue = s_strcpy(soap, "pong");
-    } else {
-        er = KCERR_NOT_FOUND;
-    }
-    
-    return er;
+	ECRESULT er = erSuccess;
+	if (strcasecmp(szVarName, "ping") == 0)
+		*szValue = s_strcpy(soap, "pong");
+	else
+		er = KCERR_NOT_FOUND;
+	return er;
 }

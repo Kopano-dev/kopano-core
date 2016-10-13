@@ -249,11 +249,10 @@ ECRESULT ECGenericObjectTable::FindRow(struct restrictTable *lpsRestrict, unsign
 		goto exit;
 
 	// Start searching at the right place
-	if(ulBookmark == BOOKMARK_END && ulFlags & DIR_BACKWARD) {
+	if (ulBookmark == BOOKMARK_END && ulFlags & DIR_BACKWARD)
 		er = SeekRow(ulBookmark, -1, NULL);
-	} else {
+	else
 		er = SeekRow(ulBookmark, 0, NULL);
-	}
 	if (er != erSuccess)
 		goto exit;
 
@@ -1073,9 +1072,8 @@ ECRESULT ECGenericObjectTable::DeleteRow(sObjectTableKey sRow, unsigned int ulFl
 		return er;
     
     // Send notification if required
-    if((ulFlags & OBJECTTABLE_NOTIFY) && ulAction == ECKeyTable::TABLE_ROW_DELETE ) {
-        AddTableNotif(ulAction, sRow, NULL);
-    }
+	if ((ulFlags & OBJECTTABLE_NOTIFY) && ulAction == ECKeyTable::TABLE_ROW_DELETE)
+		AddTableNotif(ulAction, sRow, NULL);
 	return erSuccess;
 }
 
@@ -1423,11 +1421,10 @@ ECRESULT ECGenericObjectTable::SetCollapseState(struct xsd__base64Binary sCollap
             sInstanceKey.__size = 8;
 			sInstanceKey.__ptr = (unsigned char *)&sKey;
             
-            if(lpCollapseState->sCategoryStates.__ptr[i].fExpanded) {
+            if (lpCollapseState->sCategoryStates.__ptr[i].fExpanded)
                 ExpandRow(NULL, sInstanceKey, 0, 0, NULL, NULL);
-            } else {
+            else
                 CollapseRow(sInstanceKey, 0, NULL);
-            }
         }
 next:        
         delete [] lpSortLen;
@@ -1615,9 +1612,8 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
             if(IsMVSet() == true) {
                 // get new mvprop count
                 er = GetMVRowCount(obj_id, &cMVNew);
-                if(er != erSuccess){
+                if (er != erSuccess)
                     assert(false);// What now???
-                }
 
                 // get old mvprops count
                 cMVOld = 0;
@@ -1949,35 +1945,25 @@ ECRESULT ECGenericObjectTable::MatchRowRestrict(ECCacheManager* lpCacheManager, 
 				switch(ulFuzzyLevel & 0xFFFF) {
 				case FL_FULLSTRING:
 					if(ulSearchDataSize == ulSearchStringSize)
-					{
 						if ((ulPropType == PT_TSTRING &&  (ulFuzzyLevel & FL_IGNORECASE) && u8_iequals(lpSearchData, lpSearchString, locale)) ||
 							(ulPropType == PT_TSTRING && ((ulFuzzyLevel & FL_IGNORECASE) == 0) && u8_equals(lpSearchData, lpSearchString, locale)) ||
 							(ulPropType != PT_TSTRING && memcmp(lpSearchData, lpSearchString, ulSearchDataSize) == 0))
-						{
 							fMatch = true;							
-						}
-					}
 					break;
 
 				case FL_PREFIX: 
 					if(ulSearchDataSize >= ulSearchStringSize)
-					{
 						if ((ulPropType == PT_TSTRING &&  (ulFuzzyLevel & FL_IGNORECASE) && u8_istartswith(lpSearchData, lpSearchString, locale)) ||
 							(ulPropType == PT_TSTRING && ((ulFuzzyLevel & FL_IGNORECASE) == 0) && u8_startswith(lpSearchData, lpSearchString, locale)) ||
 							(ulPropType != PT_TSTRING && memcmp(lpSearchData, lpSearchString, ulSearchStringSize) == 0))
-						{
 							fMatch = true;
-						}
-					}
 					break;
 
 				case FL_SUBSTRING: 
 					if ((ulPropType == PT_TSTRING &&  (ulFuzzyLevel & FL_IGNORECASE) && u8_icontains(lpSearchData, lpSearchString, locale)) ||
 						(ulPropType == PT_TSTRING && ((ulFuzzyLevel & FL_IGNORECASE) == 0) && u8_contains(lpSearchData, lpSearchString, locale)) ||
 						(ulPropType != PT_TSTRING && memsubstr(lpSearchData, ulSearchDataSize, lpSearchString, ulSearchStringSize) == 0))
-					{
 						fMatch = true;
-					}
 					break;
 				}
 
@@ -2432,10 +2418,8 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
                 
             // Otherwise, compare the properties
             er = CompareProp(&iterLeafs->second.lpCategory->m_lpProps[i], &lpProps[i], m_locale, &fResult);
-            if(er != erSuccess) {
+            if (er != erSuccess)
                 goto exit;
-            }
-                
             if(fResult != 0)
                 break;
         }
@@ -2569,10 +2553,8 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
 				     &sPrevRow, &fHidden, &ulAction);
 				if (er != erSuccess)
 					goto exit;
-					
-				if((ulFlags & OBJECTTABLE_NOTIFY) && !fHidden) {
+				if ((ulFlags & OBJECTTABLE_NOTIFY) && !fHidden)
 					AddTableNotif(ulAction, obj, &sPrevRow);
-				}
 			}
 		}
 	        // Send notification if required (only the category header has changed)
@@ -2701,10 +2683,9 @@ ECRESULT ECGenericObjectTable::UpdateKeyTableRow(ECCategory *lpCategory, sObject
 
 	for (unsigned int i = 0; i < cValues; ++i) {
 		if (ISMINMAX(lpsSortOrderArray->__ptr[i].ulOrder)) {
-			if(n == 0 || !lpCategory) {
+			if (n == 0 || !lpCategory)
 				// Min/max ignored if the row is not in a category
 				continue;
-			}
 			
 			// Swap around the current and the previous sorting order
 			lpOrderedProps[n] = lpOrderedProps[n-1];
@@ -2879,9 +2860,8 @@ ECRESULT ECGenericObjectTable::RemoveCategoryAfterRemoveRow(sObjectTableKey sObj
             delete lpCategory;
             
             // Send the notification
-            if(ulAction == ECKeyTable::TABLE_ROW_DELETE && (ulFlags & OBJECTTABLE_NOTIFY)) {
+            if (ulAction == ECKeyTable::TABLE_ROW_DELETE && (ulFlags & OBJECTTABLE_NOTIFY))
                 AddTableNotif(ulAction, sCatRow, NULL);
-            }
         } else {    
             if(ulFlags & OBJECTTABLE_NOTIFY) {
                 // The category row has changed; the counts have updated, send a notification

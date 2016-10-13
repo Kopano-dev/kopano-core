@@ -319,9 +319,8 @@ HRESULT ECNamedProp::ResolveReverseCache(ULONG ulId, LPGUID lpGuid, ULONG ulFlag
 
 	for (const auto &p : mapNames)
 		if (p.second == ulId) { // FIXME match GUID
-			if(lpGuid) {
+			if (lpGuid != nullptr)
 				assert(memcmp(lpGuid, p.first->lpguid, sizeof(GUID)) == 0); // TEST michel
-			}
 			// found it
 			hr = HrCopyNameId(p.first, lppName, lpBase);
 			break;

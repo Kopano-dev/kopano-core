@@ -113,12 +113,10 @@ ECWorkerThread::ECWorkerThread(ECLogger *lpLogger, ECThreadManager *lpManager, E
 
 ECPriorityWorkerThread::ECPriorityWorkerThread(ECLogger *lpLogger, ECThreadManager *lpManager, ECDispatcher *lpDispatcher) : ECWorkerThread(lpLogger, lpManager, lpDispatcher, true)
 {
-    if(pthread_create(&m_thread, NULL, ECWorkerThread::Work, this) != 0) {
+    if (pthread_create(&m_thread, NULL, ECWorkerThread::Work, this) != 0)
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to start thread: %s", strerror(errno));
-    }
-    else {
+    else
 	set_thread_name(m_thread, "ECPriorityWorkerThread");
-    }
 	// do not detach
 }
 
@@ -159,10 +157,9 @@ void *ECWorkerThread::Work(void *lpParam)
                 
             // Wait for next work item in the queue
             er = lpThis->m_lpDispatcher->GetNextWorkItem(&lpWorkItem, true, lpPrio != NULL);
-            if(er != erSuccess) {
+            if (er != erSuccess)
                 // This could happen because we were waken up because we are exiting
                 continue;
-            }
         }
 
 		set_thread_name(pthread_self(), format("z-s: %s", lpWorkItem->soap->host).c_str());
@@ -374,12 +371,10 @@ ECWatchDog::ECWatchDog(ECConfig *lpConfig, ECLogger *lpLogger, ECDispatcher *lpD
     m_lpThreadManager = lpThreadManager;
     m_bExit = false;
     
-    if(pthread_create(&m_thread, NULL, ECWatchDog::Watch, this) != 0) {
+    if (pthread_create(&m_thread, NULL, ECWatchDog::Watch, this) != 0)
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to start watchdog thread: %s", strerror(errno));
-    }
-    else {
+    else
 	set_thread_name(m_thread, "ECWatchDog");
-}
 }
 
 ECWatchDog::~ECWatchDog()
@@ -897,10 +892,11 @@ ECRESULT ECDispatcherEPoll::MainLoop()
             iterSockets = m_setSockets.begin();
             while (iterSockets != m_setSockets.end()) {
                 ulType = SOAP_CONNECTION_TYPE(iterSockets->second.soap);
-                if(ulType != CONNECTION_TYPE_NAMED_PIPE && ulType != CONNECTION_TYPE_NAMED_PIPE_PRIORITY && (now - (time_t)iterSockets->second.ulLastActivity > m_nRecvTimeout)) {
+                if (ulType != CONNECTION_TYPE_NAMED_PIPE &&
+                    ulType != CONNECTION_TYPE_NAMED_PIPE_PRIORITY &&
+                    now - static_cast<time_t>(iterSockets->second.ulLastActivity) > m_nRecvTimeout)
                     // Socket has been inactive for more than server_recv_timeout seconds, close the socket
                     shutdown(iterSockets->second.soap->socket, SHUT_RDWR);
-                }
                 ++iterSockets;
             }
             last = now;
@@ -924,11 +920,10 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 				time(&sActive.ulLastActivity);
 
 				ulType = SOAP_CONNECTION_TYPE(iterListenSockets->second);
-				if(ulType == CONNECTION_TYPE_NAMED_PIPE || ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY) {
+				if (ulType == CONNECTION_TYPE_NAMED_PIPE || ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
 					newsoap->socket = accept(newsoap->master, NULL, 0);
-				} else {
+				else
 					soap_accept(newsoap);
-				}
 
 				if(newsoap->socket == SOAP_INVALID_SOCKET) {
 					if (m_lpLogger->Log(EC_LOGLEVEL_DEBUG)) {

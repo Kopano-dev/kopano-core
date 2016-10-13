@@ -154,9 +154,8 @@ static LONG __stdcall AdviseShortCutCallback(void *lpContext, ULONG cNotif,
 static LONG __stdcall AdviseFolderCallback(void *lpContext, ULONG cNotif,
     LPNOTIFICATION lpNotif)
 {
-	if (lpContext == NULL) {
+	if (lpContext == NULL)
 		return S_OK;
-	}
 
 	ECMemTablePublic *lpMemTablePublic = (ECMemTablePublic*)lpContext;
 	ULONG ulResult;
@@ -479,10 +478,8 @@ HRESULT ECMemTablePublic::ModifyRow(SBinary* lpInstanceKey, LPSRow lpsRow)
 			lpPropsFolder[i].Value.ul &=~(MAPI_ACCESS_CREATE_HIERARCHY | MAPI_ACCESS_CREATE_ASSOCIATED);
 			lpPropsFolder[i].Value.ul |=MAPI_ACCESS_DELETE;
 		}
-
-		if (lpPropsFolder[i].ulPropTag == PR_ENTRYID) {
+		if (lpPropsFolder[i].ulPropTag == PR_ENTRYID)
 			((LPENTRYID)lpPropsFolder[i].Value.bin.lpb)->abFlags[3] = KOPANO_FAVORITE;
-		}
 
 		lpProps[cProps].ulPropTag = lpPropsFolder[i].ulPropTag;
 		lpProps[cProps++].Value = lpPropsFolder[i].Value;

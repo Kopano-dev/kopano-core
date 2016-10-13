@@ -188,9 +188,8 @@ static void AddChangeKeyToChangeList(std::string *strChangeList,
 		}
 		ulPos += ulSize + 1;
 	}
-	if(!bFound){
+	if (!bFound)
 		strChangeList->append(strChangeKey);
-	}
 }
 
 ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
@@ -255,11 +254,9 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 
 		lpDatabase->FreeResult(lpDBResult);
 		lpDBResult = NULL;
-
-		if (!bLogAllChanges && !bIgnored && syncids.empty()) {
+		if (!bLogAllChanges && !bIgnored && syncids.empty())
 			// nothing to do
 			goto exit;
-		}
     }
 
 	// Record the change
@@ -311,9 +308,9 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 		lpDBRow = lpDatabase->FetchRow(lpDBResult);
 		lpDBLen = lpDatabase->FetchRowLengths(lpDBResult);
 
-		if(lpDBRow && lpDBRow[0] && lpDBLen && lpDBLen[0] >16){
+		if (lpDBRow != nullptr && lpDBRow[0] != nullptr &&
+		    lpDBLen != nullptr && lpDBLen[0] > 16)
 			strChangeList.assign(lpDBRow[0], lpDBLen[0]);
-		}
 	}
 
 	if(lpDBResult){
@@ -391,13 +388,10 @@ ECRESULT AddChange(BTSession *lpSession, unsigned int ulSyncId,
 		key.ulObjId = ulObjId;
 		key.ulOrderId = 0;
 		lpSession->GetSessionManager()->GetCacheManager()->SetCell(&key, PR_CHANGE_KEY, &sProp);
-		
-		if(lpstrChangeKey){
+		if (lpstrChangeKey != nullptr)
 			lpstrChangeKey->assign(szChangeKey, sizeof(szChangeKey));
-		}
-		if(lpstrChangeList){
+		if (lpstrChangeList != nullptr)
 			lpstrChangeList->assign(strChangeList);
-		}
 	}
 
 exit:
@@ -697,13 +691,12 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
             if(lpSession->GetSecurity()->GetAdminLevel() != ADMIN_LEVEL_SYSADMIN)
                 er = KCERR_NO_ACCESS;
         } else {
-            if(ulChangeType == ICS_SYNC_CONTENTS) {
+            if (ulChangeType == ICS_SYNC_CONTENTS)
                 er = lpSession->GetSecurity()->CheckPermission(ulFolderId, ecSecurityRead);
-            }else if(ulChangeType == ICS_SYNC_HIERARCHY){
+            else if (ulChangeType == ICS_SYNC_HIERARCHY)
                 er = lpSession->GetSecurity()->CheckPermission(ulFolderId, ecSecurityFolderVisible);
-            }else{
+            else
                 er = KCERR_INVALID_TYPE;
-            }
         }
         
         if(er != erSuccess)
@@ -831,10 +824,8 @@ nextFolder:
 			if (folder_id != 0) {
                 // Get subfolders for recursion
                 strQuery = "SELECT id FROM hierarchy WHERE parent = " + stringify(folder_id) + " AND type = " + stringify(MAPI_FOLDER) + " AND flags = " + stringify(FOLDER_GENERIC);
-
-                if(ulFlags & SYNC_NO_SOFT_DELETIONS) {
+                if (ulFlags & SYNC_NO_SOFT_DELETIONS)
                     strQuery += " AND hierarchy.flags & 1024 = 0";
-                }
 
                 er = lpDatabase->DoSelect(strQuery, &lpDBResult);
                 if(er != erSuccess)
@@ -972,11 +963,10 @@ nextFolder:
 
 				lpChanges->__ptr[i].ulChangeType = atoui(lpDBRow[3]);
 
-				if(lpDBRow[4]) {
+				if (lpDBRow[4] != nullptr)
 					lpChanges->__ptr[i].ulFlags = atoui(lpDBRow[4]);
-				} else {
-					 lpChanges->__ptr[i].ulFlags = 0;
-				}
+				else
+					lpChanges->__ptr[i].ulFlags = 0;
 
 				if(lpDBResult)
 					lpDatabase->FreeResult(lpDBResult);
@@ -1075,7 +1065,7 @@ nextFolder:
                 goto exit;
                 
             lpDBRow = lpDatabase->FetchRow(lpDBResult);
-            if(!lpDBRow || !lpDBRow[0]) {
+            if (lpDBRow == nullptr || lpDBRow[0] == nullptr)
                 // You *should* always have something there if you have more than 0 users. However, just to make us compatible with
                 // people truncating the table and then doing a resync, we'll go to change ID 0. This means that at the next sync,
                 // we will do another full sync. We can't really fix that at the moment since going to change ID 1 would be even worse,
@@ -1083,9 +1073,8 @@ nextFolder:
                 // sync and before the second would skip any deletes. This is acceptable for now since it is rare to do this, and it's
                 // better than any other alternative.
                 ulMaxChange = 0;
-            } else {
+            else
                 ulMaxChange = atoui(lpDBRow[0]);
-            }
             
             lpDatabase->FreeResult(lpDBResult);
             lpDBResult = NULL;

@@ -486,9 +486,8 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 		if (hr != hrSuccess)
 			goto exit;
 	} else {
-		if(ulResourceType != MAPI_TRANSPORT_PROVIDER) {
+		if (ulResourceType != MAPI_TRANSPORT_PROVIDER)
 			assert(false);
-		}
 		goto exit;
 	}
 
@@ -621,9 +620,8 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
 
 	if (psup) {
 		hr = psup->GetMemAllocRoutines(&_pfnAllocBuf, &_pfnAllocMore, &_pfnFreeBuf);
-		if(hr != hrSuccess) {
+		if (hr != hrSuccess)
 			assert(false);
-		}
 	} else {
 		// Support object not available on linux at this time... TODO: fix mapi4linux?
 		_pfnAllocBuf = MAPIAllocateBuffer;
@@ -721,10 +719,11 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
 		}
 
 		hr = ClientUtil::GetGlobalProfileProperties(ptrGlobalProfSect, &sProfileProps);
-
-		if(sProfileProps.strServerPath.empty() || sProfileProps.strUserName.empty() || (sProfileProps.strPassword.empty() && sProfileProps.strSSLKeyFile.empty())) {
+		if (sProfileProps.strServerPath.empty() ||
+		    sProfileProps.strUserName.empty() ||
+		    (sProfileProps.strPassword.empty() &&
+		    sProfileProps.strSSLKeyFile.empty()))
 			bShowDialog = true;
-		}
 		//FIXME: check here offline path with the flags
 		if(!sProfileProps.strServerPath.empty()) {
 			strServerName = GetServerNameFromPath(sProfileProps.strServerPath.c_str());
@@ -746,11 +745,8 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
 			bGlobalProfileUpdate = false;
 			bUpdatedPageConnection = false;
 
-			if((bShowDialog && ulFlags & SERVICE_UI_ALLOWED) || ulFlags & SERVICE_UI_ALWAYS )
-			{
+			if ((bShowDialog && ulFlags & SERVICE_UI_ALLOWED) || ulFlags & SERVICE_UI_ALWAYS)
 				hr = MAPI_E_USER_CANCEL;
-			}// if(bShowDialog...)
-
 						
 			if(!(ulFlags & SERVICE_UI_ALLOWED || ulFlags & SERVICE_UI_ALWAYS) && (strServerName.empty() || sProfileProps.strUserName.empty())){
 				hr = MAPI_E_UNCONFIGURED;

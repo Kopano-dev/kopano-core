@@ -348,12 +348,12 @@ void* ECNotifyMaster::NotifyWatch(void *pTmpNotifyMaster)
 			 */
 			if (!pNotifyMaster->m_bThreadExit) {
 				TRACE_NOTIFY(TRACE_WARNING, "NotifyWatch::End of session", "reconnect");
-				while(pNotifyMaster->ConnectToSession() != hrSuccess && !pNotifyMaster->m_bThreadExit) {
+				while (pNotifyMaster->ConnectToSession() != hrSuccess &&
+				    !pNotifyMaster->m_bThreadExit)
 					// On Windows, the ConnectToSession() takes a while .. the windows kernel does 3 connect tries
 					// But on linux, this immediately returns a connection error when the server socket is closed
 					// so we wait before we try again
 					Sleep(1000);
-				}
 			}
 
 			if (pNotifyMaster->m_bThreadExit)

@@ -149,40 +149,32 @@ HRESULT ECXPLogon::RegisterOptions(ULONG * lpulFlags, ULONG * lpcOptions, LPOPTI
 
 HRESULT ECXPLogon::TransportNotify(ULONG * lpulFlags, LPVOID * lppvData)
 {
-	if(*lpulFlags & NOTIFY_ABORT_DEFERRED) {
+	if(*lpulFlags & NOTIFY_ABORT_DEFERRED)
 		//FIXME: m_ulTransportStatus 
 		// doe iets met lppvData
 		// Remove item, out the spooler list (outgoing queue ???)
-	}
-	if(*lpulFlags & NOTIFY_BEGIN_INBOUND) {
+		/* nothing */;
+	if (*lpulFlags & NOTIFY_BEGIN_INBOUND)
 		m_ulTransportStatus |= STATUS_INBOUND_ENABLED;
-	}
-	if(*lpulFlags & NOTIFY_BEGIN_INBOUND_FLUSH) {
+	if (*lpulFlags & NOTIFY_BEGIN_INBOUND_FLUSH)
 		m_ulTransportStatus |= STATUS_INBOUND_FLUSH;
-	}
-	if(*lpulFlags & NOTIFY_BEGIN_OUTBOUND) {
+	if (*lpulFlags & NOTIFY_BEGIN_OUTBOUND)
 		m_ulTransportStatus |= STATUS_OUTBOUND_ENABLED;
-	}
-	if(*lpulFlags & NOTIFY_BEGIN_OUTBOUND_FLUSH) {
+	if (*lpulFlags & NOTIFY_BEGIN_OUTBOUND_FLUSH)
 		m_ulTransportStatus |= STATUS_OUTBOUND_FLUSH;
-	}
-	if(*lpulFlags & NOTIFY_CANCEL_MESSAGE) {
+	if (*lpulFlags & NOTIFY_CANCEL_MESSAGE) {
 		scoped_lock lock(m_hExitMutex);
 		m_bCancel = true;
 		m_hExitSignal.notify_one();
 	}
-	if(*lpulFlags & NOTIFY_END_INBOUND) {
+	if (*lpulFlags & NOTIFY_END_INBOUND)
 		m_ulTransportStatus &= ~STATUS_INBOUND_ENABLED;
-	}
-	if(*lpulFlags & NOTIFY_END_INBOUND_FLUSH) {
+	if (*lpulFlags & NOTIFY_END_INBOUND_FLUSH)
 		m_ulTransportStatus &= ~STATUS_INBOUND_FLUSH;
-	}
-	if(*lpulFlags & NOTIFY_END_OUTBOUND) {
+	if (*lpulFlags & NOTIFY_END_OUTBOUND)
 		m_ulTransportStatus &= ~STATUS_OUTBOUND_ENABLED;
-	}
-	if(*lpulFlags & NOTIFY_END_OUTBOUND_FLUSH) {
+	if (*lpulFlags & NOTIFY_END_OUTBOUND_FLUSH)
 		m_ulTransportStatus &= ~STATUS_OUTBOUND_FLUSH;
-	}
 	return HrUpdateTransportStatus();
 }
 
@@ -456,12 +448,10 @@ HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpu
 			continue;
 
 		// Accept all SMTP-type addresses and set PR_RESPONSIBILITY set to TRUE
-		if(	_tcsicmp(lpsPropValue->Value.LPSZ, TRANSPORT_ADDRESS_TYPE_SMTP) == 0 ||
-			_tcsicmp(lpsPropValue->Value.LPSZ, TRANSPORT_ADDRESS_TYPE_ZARAFA) == 0 ||
-			_tcsicmp(lpsPropValue->Value.LPSZ, TRANSPORT_ADDRESS_TYPE_FAX) == 0)
-		{
+		if (_tcsicmp(lpsPropValue->Value.LPSZ, TRANSPORT_ADDRESS_TYPE_SMTP) == 0 ||
+		    _tcsicmp(lpsPropValue->Value.LPSZ, TRANSPORT_ADDRESS_TYPE_ZARAFA) == 0 ||
+		    _tcsicmp(lpsPropValue->Value.LPSZ, TRANSPORT_ADDRESS_TYPE_FAX) == 0)
 			lpsResponsibility->Value.b = TRUE;
-		}
 	}
 
 	hr = lpMessage->ModifyRecipients(MODRECIP_MODIFY, (LPADRLIST )lpRecipRows);
@@ -521,10 +511,8 @@ HRESULT ECXPLogon::SetOutgoingProps (LPMESSAGE lpMessage)
 	FILETIME ft;
 
 	hr = lpMessage->GetProps(sptOutMsgProps, 0, &ulValues, &lpspvSender);
-    if (FAILED(hr))
-    {
-        lpspvSender = NULL; // So that we may recover and continue using default values
-    }
+	if (FAILED(hr))
+		lpspvSender = NULL; // So that we may recover and continue using default values
 
     assert(ulValues == 2);
     // If no sender has been stamped on the message use the identity of the transport
@@ -611,16 +599,11 @@ HRESULT ECXPLogon::ValidateState(ULONG ulUIParam, ULONG ulFlags)
 HRESULT ECXPLogon::FlushQueues(ULONG ulUIParam, ULONG cbTargetTransport, LPENTRYID lpTargetTransport, ULONG ulFlags)
 {
 	//The outbound message queue or queues should be flushed. 
-	if (ulFlags & FLUSH_UPLOAD){
+	if (ulFlags & FLUSH_UPLOAD)
 		m_ulTransportStatus |= STATUS_OUTBOUND_FLUSH;
-	}
-
 	//The inbound message queue or queues should be flushed. 
 	if (ulFlags & FLUSH_DOWNLOAD)
-    {
 		m_ulTransportStatus |= STATUS_INBOUND_FLUSH;
-	}
-
 	return HrUpdateTransportStatus();
 }
 

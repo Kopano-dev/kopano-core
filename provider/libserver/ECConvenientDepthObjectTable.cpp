@@ -154,10 +154,8 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
             
             // Since we have this information, give the cache manager the hierarchy information for this object
 			lpSession->GetSessionManager()->GetCacheManager()->SetObject(atoui(lpDBRow[0]), atoui(lpDBRow[1]), atoui(lpDBRow[2]), atoui(lpDBRow[3]), atoui(lpDBRow[4]));
-
-			if (lpSession->GetSecurity()->CheckPermission(sFolderInfo.ulFolderId, ecSecurityFolderVisible) != erSuccess) {
+			if (lpSession->GetSecurity()->CheckPermission(sFolderInfo.ulFolderId, ecSecurityFolderVisible) != erSuccess)
 				continue;
-			}
 			
 			// Push folders onto end of list
             lstFolders.push_back(sFolderInfo);

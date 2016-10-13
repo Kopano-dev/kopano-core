@@ -351,9 +351,8 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 
 		FileTimeToUnixTime(lpSrcPropValue[RR_CLIENT_SUBMIT_TIME].Value.ft, &tt);
 		tm = localtime(&tt);
-		if(tm == NULL) {
+		if (tm == NULL)
 			tm = localtime(&zero);
-		}
 		strftime(szTime, 255, "%c", tm);
 
 		strBodyText+= convert_to<tstring>(szTime, strlen(szTime), CHARSET_CHAR);
@@ -366,9 +365,8 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 	
 	FileTimeToUnixTime(ft, &tt);
 	tm = localtime(&tt);
-	if(tm == NULL) {
+	if (tm == NULL)
 		tm = localtime(&zero);
-	}
 	strftime(szTime, 255, "%c", tm);
 
 	strBodyText+= convert_to<tstring>(szTime, strlen(szTime), CHARSET_CHAR);
@@ -676,9 +674,8 @@ HRESULT ClientUtil::GetGlobalProfileProperties(LPPROFSECT lpGlobalProfSect, stru
 		goto exit;
 	}
 
-	if(HrGetOneProp(lpGlobalProfSect, PR_PROFILE_UNRESOLVED_NAME, &lpPropEMS) == hrSuccess || g_ulLoadsim) {
+	if (HrGetOneProp(lpGlobalProfSect, PR_PROFILE_UNRESOLVED_NAME, &lpPropEMS) == hrSuccess || g_ulLoadsim)
 		bIsEMS = true;
-	}
 
 	if(bIsEMS) {
 		SizedSPropTagArray(4, sptaEMSProfile) = {4,{PR_PROFILE_NAME_A, PR_PROFILE_UNRESOLVED_SERVER, PR_PROFILE_UNRESOLVED_NAME, PR_PROFILE_USER}};
