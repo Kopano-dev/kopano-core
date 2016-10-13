@@ -22,8 +22,7 @@
 #include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
 #include <IECChangeAdviseSink.h>
-
-#include "ECICS.h"
+#include "ics_client.hpp"
 #include "ECNotifyMaster.h"
 #include <map>
 #include <list>

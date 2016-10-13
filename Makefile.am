@@ -341,7 +341,7 @@ libkcclient_la_SOURCES = \
 	provider/client/ECExportAddressbookChanges.cpp \
 	provider/client/ECExportAddressbookChanges.h \
 	provider/client/ECGenericProp.cpp provider/client/ECGenericProp.h \
-	provider/client/ECICS.h \
+	provider/client/ics_client.hpp \
 	provider/client/ECMAPIContainer.cpp provider/client/ECMAPIContainer.h \
 	provider/client/ECMAPIFolder.cpp provider/client/ECMAPIFolder.h \
 	provider/client/ECMAPIFolderPublic.cpp provider/client/ECMAPIFolderPublic.h \

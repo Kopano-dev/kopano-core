@@ -24,8 +24,7 @@
 #include "kcore.hpp"
 #include <kopano/kcodes.h>
 #include "soapKCmdProxy.h"
-#include "ECICS.h"
-
+#include "ics_client.hpp"
 #include <vector>
 
 #include <mapi.h>

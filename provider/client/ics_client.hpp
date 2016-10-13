@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef ECICS_H
-#define ECICS_H
+#ifndef KC_ICS_CLIENT_HPP
+#define KC_ICS_CLIENT_HPP 1
 
 #include <string>
 #include <list>
@@ -66,4 +66,4 @@ typedef std::list<syncid_t> ECLISTSYNCID;
 typedef std::list<SSyncState> ECLISTSYNCSTATE;
 typedef std::list<SSyncAdvise> ECLISTSYNCADVISE;
 
-#endif
+#endif /* KC_ICS_CLIENT_HPP */
