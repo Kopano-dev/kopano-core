@@ -112,7 +112,7 @@ HRESULT Dump(std::ostream &os, LPMAPIPROP lpProp, const std::string &strPrefix)
 		if (ulCount > 0) {
 			SizedSPropTagArray(1, sptaAttachProps) = {1, {PR_ATTACH_NUM}};
 
-			hr = ptrTable->SetColumns((LPSPropTagArray)&sptaAttachProps, TBL_BATCH);
+			hr = ptrTable->SetColumns(sptaAttachProps, TBL_BATCH);
 			if (hr != hrSuccess)
 				return hr;
 

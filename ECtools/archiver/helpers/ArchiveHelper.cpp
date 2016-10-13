@@ -511,7 +511,7 @@ HRESULT ArchiveHelper::GetArchiveFolderFor(MAPIFolderPtr &ptrSourceFolder, Archi
 				return hr;
 			
 			// We now have the parent of the folder we're looking for. Se we can just create the folder we need.
-			hr = ptrSourceFolder->GetProps((LPSPropTagArray)&sptaFolderPropsForCreate, 0, &cValues, &ptrPropArray);
+			hr = ptrSourceFolder->GetProps(sptaFolderPropsForCreate, 0, &cValues, &ptrPropArray);
 			if (FAILED(hr))
 				return hr;
 			
@@ -575,7 +575,7 @@ HRESULT ArchiveHelper::GetArchiveFolderFor(MAPIFolderPtr &ptrSourceFolder, Archi
 			return hr;
 
 		// Reference the source folder in the archive folder
-		hr = ptrSourceFolder->GetProps((LPSPropTagArray)&sptaFolderPropsForReference, 0, &cValues, &ptrPropArray);
+		hr = ptrSourceFolder->GetProps(sptaFolderPropsForReference, 0, &cValues, &ptrPropArray);
 		if (hr != hrSuccess)
 			return hr;
 

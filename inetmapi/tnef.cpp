@@ -1479,7 +1479,7 @@ HRESULT ECTNEF::FinishComponent(ULONG ulFlags, ULONG ulComponentID, LPSPropTagAr
         goto exit;
     
     // Get some properties we always need
-    hr = lpAttach->GetProps((LPSPropTagArray)&sptaTags, 0, &cValues, &lpAttachProps);
+    hr = lpAttach->GetProps(sptaTags, 0, &cValues, &lpAttachProps);
     if(FAILED(hr))
         goto exit;
         

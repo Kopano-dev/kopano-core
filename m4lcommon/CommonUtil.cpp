@@ -866,7 +866,7 @@ static HRESULT HrAddProfileUID(LPPROVIDERADMIN lpProviderAdmin, LPMAPIUID lpNewP
 		return hr;
 
 	// The prop value PR_STORE_PROVIDERS
-	hr = ptrGlobalProfSect->GetProps((LPSPropTagArray)&sptaGlobalProps, 0, &cValues, &ptrGlobalProps);
+	hr = ptrGlobalProfSect->GetProps(sptaGlobalProps, 0, &cValues, &ptrGlobalProps);
 	if (HR_FAILED(hr))
 		return hr;
 	if (ptrGlobalProps->ulPropTag != PR_STORE_PROVIDERS)
@@ -1275,7 +1275,7 @@ HRESULT HrNewMailNotification(IMsgStore* lpMDB, IMessage* lpMessage)
 	NOTIFICATION	sNotification;
 
 	// Get notify properties
-	hr = lpMessage->GetProps((LPSPropTagArray)&sPropNewMailColumns, 0, &cNewMailValues, &lpNewMailPropArray);
+	hr = lpMessage->GetProps(sPropNewMailColumns, 0, &cNewMailValues, &lpNewMailPropArray);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -1438,7 +1438,7 @@ HRESULT HrGetAddress(IMAPISession *lpSession, IMessage *lpMessage, ULONG ulPropT
 		goto exit;
 	}
 
-	hr = lpMessage->GetProps((LPSPropTagArray)&sptaProps, 0, &cValues, &lpProps);
+	hr = lpMessage->GetProps(sptaProps, 0, &cValues, &lpProps);
 	if(FAILED(hr))
 		goto exit;
 
@@ -1485,7 +1485,7 @@ HRESULT HrGetAddress(LPADRBOOK lpAdrBook, IMessage *lpMessage, ULONG ulPropTagEn
 		goto exit;
 	}
 
-	hr = lpMessage->GetProps((LPSPropTagArray)&sptaProps, 0, &cValues, &lpProps);
+	hr = lpMessage->GetProps(sptaProps, 0, &cValues, &lpProps);
 	if (FAILED(hr))
 		goto exit;
 
@@ -1709,7 +1709,7 @@ HRESULT HrGetAddress(LPADRBOOK lpAdrBook, LPENTRYID lpEntryID, ULONG cbEntryID, 
 	if (hr != hrSuccess)
 		goto exit;
 
-	hr = lpMailUser->GetProps((LPSPropTagArray)&sptaAddressProps, 0, &cMailUserValues, &lpMailUserProps);
+	hr = lpMailUser->GetProps(sptaAddressProps, 0, &cMailUserValues, &lpMailUserProps);
 
 	if (FAILED(hr))
 		goto exit;
@@ -1757,7 +1757,7 @@ HRESULT DoSentMail(IMAPISession *lpSession, IMsgStore *lpMDBParam, ULONG ulFlags
 	}
 
 	// Get Sentmail properties
-	hr = lpMessage->GetProps((LPSPropTagArray)&sPropDoSentMail, 0, &cValues, &lpPropValue);
+	hr = lpMessage->GetProps(sPropDoSentMail, 0, &cValues, &lpPropValue);
 	if(FAILED(hr) || 
 		(lpPropValue[DSM_SENTMAIL_ENTRYID].ulPropTag != PR_SENTMAIL_ENTRYID && 
 		lpPropValue[DSM_DELETE_AFTER_SUBMIT].ulPropTag != PR_DELETE_AFTER_SUBMIT)
@@ -2326,7 +2326,7 @@ HRESULT FindFolder(LPMAPITABLE lpTable, const WCHAR *folder, LPSPropValue *lppFo
 	ULONG nValues;
 	SizedSPropTagArray(2, sptaName) = { 2, { PR_DISPLAY_NAME_W, PR_ENTRYID } };
 
-	hr = lpTable->SetColumns((LPSPropTagArray)&sptaName, 0);
+	hr = lpTable->SetColumns(sptaName, 0);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -3270,7 +3270,7 @@ HRESULT GetAutoAcceptSettings(IMsgStore *lpMsgStore, bool *lpbAutoAccept, bool *
 
 	hr = OpenLocalFBMessage(dgFreebusydata, lpMsgStore, false, &lpLocalFBMessage);
 	if(hr == hrSuccess) {
-		hr = lpLocalFBMessage->GetProps((LPSPropTagArray)&sptaFBProps, 0, &cValues, &lpProps);
+		hr = lpLocalFBMessage->GetProps(sptaFBProps, 0, &cValues, &lpProps);
 		if(FAILED(hr))
 			goto exit;
 
@@ -3359,7 +3359,7 @@ HRESULT HrGetGAB(LPADRBOOK lpAddrBook, LPABCONT *lppGAB)
 	hr = ptrRoot->GetHierarchyTable(MAPI_DEFERRED_ERRORS, &ptrTable);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrTable->SetColumns((LPSPropTagArray)&sptaTableProps, TBL_BATCH);
+	hr = ptrTable->SetColumns(sptaTableProps, TBL_BATCH);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -3410,8 +3410,7 @@ HRESULT GetConfigMessage(LPMDB lpStore, const char* szMessageName, IMessage **lp
 	MessagePtr ptrMessage;
 	SizedSPropTagArray(2, sptaTreeProps) = {2, {PR_NON_IPM_SUBTREE_ENTRYID, PR_IPM_SUBTREE_ENTRYID}};
 
-	HRESULT hr = lpStore->GetProps(reinterpret_cast<SPropTagArray *>(&sptaTreeProps),
-	             0, &cValues, &ptrEntryIDs);
+	HRESULT hr = lpStore->GetProps(sptaTreeProps, 0, &cValues, &ptrEntryIDs);
 	if (FAILED(hr))
 		return hr;
 

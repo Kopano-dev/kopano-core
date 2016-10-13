@@ -170,7 +170,7 @@ HRESULT M4LProfAdmin::GetProfileTable(ULONG ulFlags, LPMAPITABLE* lppTable) {
 	else
 		sptaProfileCols.aulPropTag[1] = CHANGE_PROP_TYPE(PR_DISPLAY_NAME_A, PT_STRING8);
 		
-	hr = ECMemTable::Create((LPSPropTagArray)&sptaProfileCols, PR_ROWID, &lpTable);
+	hr = ECMemTable::Create(sptaProfileCols, PR_ROWID, &lpTable);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -505,9 +505,9 @@ HRESULT M4LMsgServiceAdmin::GetMsgServiceTable(ULONG ulFlags, LPMAPITABLE* lppTa
 	ulock_rec l_srv(m_mutexserviceadmin);
 
 	if (ulFlags & MAPI_UNICODE)
-		hr = ECMemTable::Create((LPSPropTagArray)&sptaProviderColsUnicode, PR_ROWID, &lpTable);
+		hr = ECMemTable::Create(sptaProviderColsUnicode, PR_ROWID, &lpTable);
 	else
-		hr = ECMemTable::Create((LPSPropTagArray)&sptaProviderColsAscii, PR_ROWID, &lpTable);
+		hr = ECMemTable::Create(sptaProviderColsAscii, PR_ROWID, &lpTable);
 	if (hr != hrSuccess) {
 		ec_log_err("M4LMsgServiceAdmin::GetMsgServiceTable(): failed to create memtable %x: %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
@@ -929,7 +929,7 @@ HRESULT M4LMsgServiceAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTabl
 		}
 	}
 
-	hr = Util::HrCopyUnicodePropTagArray(ulFlags, (LPSPropTagArray)&sptaProviderCols, &lpPropTagArray);
+	hr = Util::HrCopyUnicodePropTagArray(ulFlags, sptaProviderCols, &lpPropTagArray);
 	if(hr != hrSuccess) {
 		ec_log_err("M4LMsgServiceAdmin::GetProviderTable(): Util::HrCopyUnicodePropTagArray fail %x: %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
@@ -1076,8 +1076,7 @@ HRESULT M4LMAPISession::GetMsgStoresTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 												   PR_DISPLAY_NAME_A, PR_OBJECT_TYPE, PR_RESOURCE_TYPE, PR_PROVIDER_UID,
 												   PR_RESOURCE_FLAGS, PR_DEFAULT_STORE, PR_PROVIDER_DISPLAY_A}};
 	ulock_rec l_srv(serviceAdmin->m_mutexserviceadmin);
-
-	hr = Util::HrCopyUnicodePropTagArray(ulFlags, (LPSPropTagArray)&sptaProviderCols, &lpPropTagArray);
+	hr = Util::HrCopyUnicodePropTagArray(ulFlags, sptaProviderCols, &lpPropTagArray);
 	if(hr != hrSuccess) {
 		ec_log_err("M4LMAPISession::GetMsgStoresTable(): Util::HrCopyUnicodePropTagArray fail %x: %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
@@ -1206,8 +1205,7 @@ HRESULT M4LMAPISession::OpenMsgStore(ULONG ulUIParam, ULONG cbEntryID, LPENTRYID
 		ec_log_err("M4LMAPISession::OpenMsgStore() GetProviderTable failed %x: %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
 	}
-		
-	hr = lpTable->SetColumns((LPSPropTagArray)&sptaProviders, 0);
+	hr = lpTable->SetColumns(sptaProviders, 0);
 	if (hr != hrSuccess) {
 		ec_log_err("M4LMAPISession::OpenMsgStore() SetColumns failed %x: %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
@@ -1493,8 +1491,7 @@ HRESULT M4LMAPISession::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID l
 		ec_log_err("M4LMAPISession::OpenEntry() GetProviderTable fail %x: %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
 	}
-		
-	hr = lpTable->SetColumns((LPSPropTagArray)&sptaProviders, 0);
+	hr = lpTable->SetColumns(sptaProviders, 0);
 	if (hr != hrSuccess) {
 		ec_log_err("M4LMAPISession::OpenEntry() SetColumns fail %x: %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;

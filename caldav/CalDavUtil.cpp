@@ -227,8 +227,7 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder, LPSPropTa
 	hr = lpHichyTable->Restrict(lpRestrict,TBL_BATCH);
 	if(hr != hrSuccess)
 		goto exit;
-
-	hr = lpHichyTable->SetColumns((LPSPropTagArray)&sPropTagArr, 0);
+	hr = lpHichyTable->SetColumns(sPropTagArr, 0);
 	if(hr != hrSuccess)
 		goto exit;
 	
@@ -749,8 +748,7 @@ HRESULT HrFindAndGetMessage(std::string strGuid, IMAPIFolder *lpUsrFld, LPSPropT
 	hr = lpUsrFld->GetContentsTable(0, &lpTable);
 	if(hr != hrSuccess)
 		goto exit;
-
-	hr = lpTable->SetColumns((LPSPropTagArray)&sPropTagArr, 0);
+	hr = lpTable->SetColumns(sPropTagArr, 0);
 	if(hr != hrSuccess)
 		goto exit;
 

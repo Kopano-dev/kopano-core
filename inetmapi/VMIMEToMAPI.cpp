@@ -206,8 +206,7 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 			hr = lpMessage->GetAttachmentTable(0, &lpAttachTable);
 			if(hr != hrSuccess)
 				goto exit;
-				
-			hr = HrQueryAllRows(lpAttachTable, (LPSPropTagArray)&sptaAttach, NULL, NULL, -1, &lpAttachRows);
+			hr = HrQueryAllRows(lpAttachTable, sptaAttach, NULL, NULL, -1, &lpAttachRows);
 			if(hr != hrSuccess)
 				goto exit;
 				
@@ -652,7 +651,9 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::ref<vmime::header> vmHeader, IMessage*
 				wstrFromName = getWideFromVmimeText(vmHeader->From()->getValue().dynamicCast<vmime::mailbox>()->getName());
 			}
 
-			hr = modifyFromAddressBook(&lpRecipProps, &ulRecipProps, strFromEmail.c_str(), wstrFromName.c_str(), MAPI_ORIG, (LPSPropTagArray)&sptaRecipPropsSentRepr);
+			hr = modifyFromAddressBook(&lpRecipProps, &ulRecipProps,
+			     strFromEmail.c_str(), wstrFromName.c_str(),
+			     MAPI_ORIG, sptaRecipPropsSentRepr);
 			if (hr == hrSuccess) {
 				hr = lpMessage->SetProps(ulRecipProps, lpRecipProps, NULL);
 				if (hr != hrSuccess)
@@ -706,7 +707,9 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::ref<vmime::header> vmHeader, IMessage*
 				}
 			}
 
-			hr = modifyFromAddressBook(&lpRecipProps, &ulRecipProps, strSenderEmail.c_str(), wstrSenderName.c_str(), MAPI_ORIG, (LPSPropTagArray)&sptaRecipPropsSender);
+			hr = modifyFromAddressBook(&lpRecipProps, &ulRecipProps,
+			     strSenderEmail.c_str(), wstrSenderName.c_str(),
+			     MAPI_ORIG, sptaRecipPropsSender);
 			if (hr == hrSuccess) {
 				hr = lpMessage->SetProps(ulRecipProps, lpRecipProps, NULL);
 				if (hr != hrSuccess)
@@ -1241,7 +1244,9 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients, vmime::ref<vmim
 			strSearch = m_converter.convert_to<std::string>(wstrName);
 
 		// @todo: maybe make strSearch a wide string and check if we need to use the fullname argument for modifyFromAddressBook
-		hr = modifyFromAddressBook(&lpRecipients->aEntries[iRecipNum].rgPropVals, &lpRecipients->aEntries[iRecipNum].cValues, strSearch.c_str(), NULL, ulRecipType, (LPSPropTagArray)&sptaRecipientProps);
+		hr = modifyFromAddressBook(&lpRecipients->aEntries[iRecipNum].rgPropVals,
+		     &lpRecipients->aEntries[iRecipNum].cValues,
+		     strSearch.c_str(), NULL, ulRecipType, sptaRecipientProps);
 		if (hr != hrSuccess) {
 			// Fallback if the entry was not found (or errored) in the addressbook
 			int iNumTags = 8;
@@ -1397,8 +1402,8 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals, ULONG *lpu
 
 	lpFlagList->cFlags = 1;
 	lpFlagList->ulFlag[0] = MAPI_UNRESOLVED;
-
-	hr = m_lpDefaultDir->ResolveNames((LPSPropTagArray)&sptaAddress, EMS_AB_ADDRESS_LOOKUP, lpAdrList, lpFlagList);
+	hr = m_lpDefaultDir->ResolveNames(sptaAddress, EMS_AB_ADDRESS_LOOKUP,
+	     lpAdrList, lpFlagList);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -3055,7 +3060,7 @@ HRESULT VMIMEToMAPI::postWriteFixups(IMessage *lpMessage)
 
 		SizedSPropTagArray(6, sptaMeetingReqProps) = {6, {PROP_RESPONSESTATUS, PROP_RECURRING, PROP_ATTENDEECRITICALCHANGE, PROP_OWNERCRITICALCHANGE, PR_OWNER_APPT_ID, PR_CONVERSATION_INDEX }};
 
-		hr = lpMessage->GetProps((LPSPropTagArray)&sptaMeetingReqProps, 0, &cValues, &lpProps);
+		hr = lpMessage->GetProps(sptaMeetingReqProps, 0, &cValues, &lpProps);
 		if(FAILED(hr))
 			goto exitpm;
 
@@ -3116,7 +3121,7 @@ HRESULT VMIMEToMAPI::postWriteFixups(IMessage *lpMessage)
 			RecurrenceState rec;
 
 			// @todo, if all properties are not available: remove recurrence true marker
-			hr = lpMessage->GetProps((LPSPropTagArray)&sptaRecProps, 0, &cRecProps, &lpRecProps);
+			hr = lpMessage->GetProps(sptaRecProps, 0, &cRecProps, &lpRecProps);
 			if(hr != hrSuccess) // Warnings not accepted
 				goto exitpm;
 			

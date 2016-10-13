@@ -358,7 +358,7 @@ ArchiveControlImpl::purgesoftdeleteditems(LPMAPIFOLDER folder, const tstring& st
         m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get search folder contents table. (hr=%s)", stringify(hr, true).c_str());
     } else {
         SizedSPropTagArray(1, props) = {1, {PR_ENTRYID}};
-        if ((hr = table->SetColumns((LPSPropTagArray)&props, 0)) != hrSuccess) {
+        if ((hr = table->SetColumns(props, 0)) != hrSuccess) {
             m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to set columns on table. (hr=%s)", stringify(hr, true).c_str());
         } else {
             unsigned int found = 0;
@@ -504,7 +504,8 @@ HRESULT ArchiveControlImpl::DoArchive(const tstring& strUser)
 	// Create and hook the three dependent steps
 	if (m_bArchiveEnable && m_ulArchiveAfter >= 0) {
 		SizedSPropTagArray(5, sptaExcludeProps) = {5, {PROP_ARCHIVE_STORE_ENTRYIDS, PROP_ARCHIVE_ITEM_ENTRYIDS, PROP_STUBBED, PROP_DIRTY, PROP_ORIGINAL_SOURCEKEY}};
-		ptrCopyOp.reset(new Copier(m_ptrSession, m_lpConfig, m_lpLogger, lstArchives, (LPSPropTagArray)&sptaExcludeProps, m_ulArchiveAfter, true));
+		ptrCopyOp.reset(new Copier(m_ptrSession, m_lpConfig, m_lpLogger,
+			lstArchives, sptaExcludeProps, m_ulArchiveAfter, true));
 	}
 
 	if (m_bDeleteEnable && m_ulDeleteAfter >= 0) {
@@ -703,8 +704,7 @@ HRESULT ArchiveControlImpl::ProcessFolder(MAPIFolderPtr &ptrFolder, ArchiveOpera
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get search folder contents table. (hr=%s)", stringify(hr, true).c_str());
 		goto exit;
 	}
-
-	hr = ptrTable->SetColumns((LPSPropTagArray)&sptaProps, TBL_BATCH);
+	hr = ptrTable->SetColumns(sptaProps, TBL_BATCH);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to set columns on table. (hr=%s)", stringify(hr, true).c_str());
 		goto exit;
@@ -837,8 +837,7 @@ HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
 			bErrorOccurred = true;
 			continue;
 		}
-
-		hr = ptrFolderTable->SetColumns((LPSPropTagArray)&sptaFolderProps, TBL_BATCH);
+		hr = ptrFolderTable->SetColumns(sptaFolderProps, TBL_BATCH);
 		if (hr != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to select folder table columns. (hr=%s)", stringify(hr, true).c_str());
 			bErrorOccurred = true;
@@ -906,8 +905,7 @@ HRESULT ArchiveControlImpl::PurgeArchiveFolder(MsgStorePtr &ptrArchive, const en
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open contents table. (hr=%s)", stringify(hr, true).c_str());
 		return hr;
 	}
-
-	hr = ptrContentsTable->SetColumns((LPSPropTagArray)&sptaTableProps, TBL_BATCH);
+	hr = ptrContentsTable->SetColumns(sptaTableProps, TBL_BATCH);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to select table columns. (hr=%s)", stringify(hr, true).c_str());
 		return hr;
@@ -1135,7 +1133,7 @@ HRESULT ArchiveControlImpl::AppendAllReferences(LPMAPIFOLDER lpFolder, LPGUID lp
 		hr = lpFolder->GetContentsTable(ulFlagArray[i], &ptrTable);
 		if (hr != hrSuccess)
 			goto exitpm;
-		hr = ptrTable->SetColumns((LPSPropTagArray)&sptaContentProps, TBL_BATCH);
+		hr = ptrTable->SetColumns(sptaContentProps, TBL_BATCH);
 		if (hr != hrSuccess)
 			goto exitpm;
 		
@@ -1255,7 +1253,7 @@ HRESULT ArchiveControlImpl::AppendAllEntries(LPMAPIFOLDER lpArchive, LPSRestrict
 	hr = lpArchive->GetContentsTable(0, &ptrTable);
 	if (hr != hrSuccess)
 		goto exitpm;
-	hr = ptrTable->SetColumns((LPSPropTagArray)&sptaContentProps, TBL_BATCH);
+	hr = ptrTable->SetColumns(sptaContentProps, TBL_BATCH);
 	if (hr != hrSuccess)
 		goto exitpm;
 	hr = resContent.RestrictTable(ptrTable);
@@ -1327,13 +1325,13 @@ HRESULT ArchiveControlImpl::CleanupHierarchy(ArchiveHelperPtr ptrArchiveHelper, 
 	hr = lpArchiveRoot->GetHierarchyTable(CONVENIENT_DEPTH, &ptrTable);
 	if (hr != hrSuccess)
 		goto exitpm;
-	hr = ptrTable->SetColumns((LPSPropTagArray)&sptaHierarchyProps, TBL_BATCH);
+	hr = ptrTable->SetColumns(sptaHierarchyProps, TBL_BATCH);
 	if (hr != hrSuccess)
 		goto exitpm;
 	hr = ptrTable->Restrict(&resHierarchy, TBL_BATCH);
 	if (hr != hrSuccess)
 		goto exitpm;
-	hr = ptrTable->SortTable((LPSSortOrderSet)&ssosHierarchy, TBL_BATCH);
+	hr = ptrTable->SortTable(ssosHierarchy, TBL_BATCH);
 	if (hr != hrSuccess)
 		goto exitpm;
 	
@@ -1637,7 +1635,7 @@ HRESULT ArchiveControlImpl::AppendFolderEntries(LPMAPIFOLDER lpBase, EntryIDSet 
 	hr = lpBase->GetHierarchyTable(CONVENIENT_DEPTH, &ptrTable);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrTable->SetColumns((LPSPropTagArray)&sptaTableProps, TBL_BATCH);
+	hr = ptrTable->SetColumns(sptaTableProps, TBL_BATCH);
 	if (hr != hrSuccess)
 		return hr;
 	

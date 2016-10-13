@@ -230,7 +230,7 @@ HRESULT CalDAV::HrHandlePropfindRoot(WEBDAVREQSTPROPS *sDavReqstProps, WEBDAVMUL
 	for (const auto &iter : lpsDavProp->lstProps)
 		lpPropTagArr->aulPropTag[i++] = GetPropIDForXMLProp(lpMapiProp, iter.sPropName, m_converter);
 
-	hr = lpMapiProp->GetProps((LPSPropTagArray)lpPropTagArr, 0, &cbsize, &lpSpropVal);
+	hr = lpMapiProp->GetProps(lpPropTagArr, 0, &cbsize, &lpSpropVal);
 	if (FAILED(hr)) {
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error in GetProps for user %ls, error code: 0x%08X %s", m_wstrUser.c_str(), hr, GetMAPIErrorMessage(hr));
 		goto exit;
@@ -376,7 +376,7 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 	for (const auto &sDavProperty : sDavProp.lstProps)
 		lpPropTagArr->aulPropTag[i++] = GetPropIDForXMLProp(m_lpUsrFld, sDavProperty.sPropName, m_converter);
 
-	hr = m_lpUsrFld->GetProps((LPSPropTagArray)lpPropTagArr, 0, &cValues, &lpProps);
+	hr = m_lpUsrFld->GetProps(lpPropTagArr, 0, &cValues, &lpProps);
 	if (FAILED(hr)) {
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to receive folder properties, error 0x%08X %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
@@ -384,7 +384,7 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 
 	// @todo, add "start time" property and recurrence data to table and filter in loop
 	// if lpsWebRCalQry->sFilter.tStart is set.
-	hr = lpTable->SetColumns((LPSPropTagArray)lpPropTagArr, 0);
+	hr = lpTable->SetColumns(lpPropTagArr, 0);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -538,7 +538,7 @@ HRESULT CalDAV::HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWeb
 	for (const auto &sDavProperty : sDavProp.lstProps)
 		lpPropTagArr->aulPropTag[i++] = GetPropIDForXMLProp(m_lpUsrFld, sDavProperty.sPropName, m_converter);
 
-	hr = lpTable->SetColumns((LPSPropTagArray)lpPropTagArr, 0);
+	hr = lpTable->SetColumns(lpPropTagArr, 0);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -794,7 +794,7 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 	for (const auto &sDavProperty : sDavProp.lstProps)
 		lpPropTagArr->aulPropTag[i++] = GetPropIDForXMLProp(lpAbCont, sDavProperty.sPropName, m_converter);
 
-	hr = lpTable->SetColumns((LPSPropTagArray)lpPropTagArr, 0);
+	hr = lpTable->SetColumns(lpPropTagArr, 0);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "CalDAV::HrHandlePropertySearch SetColumns failed 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
@@ -923,7 +923,7 @@ HRESULT CalDAV::HrHandleDelete()
 		goto exit;
 	}
 
-	hr = m_lpUsrFld->GetProps((LPSPropTagArray)&lpPropTagArr, 0, &cValues, &lpProps);
+	hr = m_lpUsrFld->GetProps(lpPropTagArr, 0, &cValues, &lpProps);
 	if (FAILED(hr)) {
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "CalDAV::HrHandleDelete getprops failed 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
@@ -1922,7 +1922,7 @@ HRESULT CalDAV::HrHandleMeeting(ICalToMapi *lpIcalToMapi)
 		goto exit;
 	}
 
-	hr = m_lpDefStore->GetProps((LPSPropTagArray)&sPropTagArr, 0, &cValues, &lpsGetPropVal);
+	hr = m_lpDefStore->GetProps(sPropTagArr, 0, &cValues, &lpsGetPropVal);
 	if (hr != hrSuccess && cValues != 2) {
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "CalDAV::HrHandleMeeting GetProps failed: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;

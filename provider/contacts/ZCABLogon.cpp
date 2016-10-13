@@ -201,7 +201,7 @@ HRESULT ZCABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 		if (hr != hrSuccess)
 			goto exit;
 
-		hr = lpProfileSection->GetProps((LPSPropTagArray)&sptaFolderProps, 0, &cValues, &lpFolderProps);
+		hr = lpProfileSection->GetProps(sptaFolderProps, 0, &cValues, &lpFolderProps);
 		if (FAILED(hr))
 			goto exit;
 		hr = hrSuccess;

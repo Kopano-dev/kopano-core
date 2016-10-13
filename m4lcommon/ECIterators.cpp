@@ -68,8 +68,7 @@ void ECHierarchyIteratorBase::increment()
 			if (hr != hrSuccess)
 				goto exit;
 		}
-
-		hr = m_ptrTable->SetColumns((LPSPropTagArray)&sptaColumnProps, TBL_BATCH);
+		hr = m_ptrTable->SetColumns(sptaColumnProps, TBL_BATCH);
 		if (hr != hrSuccess)
 			goto exit;
 	}
@@ -130,8 +129,7 @@ void ECContentsIteratorBase::increment()
 		hr = m_ptrContainer->GetContentsTable(0, &m_ptrTable);
 		if (hr != hrSuccess)
 			goto exit;
-
-		hr = m_ptrTable->SetColumns((LPSPropTagArray)&sptaColumnProps, TBL_BATCH);
+		hr = m_ptrTable->SetColumns(sptaColumnProps, TBL_BATCH);
 		if (hr != hrSuccess)
 			goto exit;
 

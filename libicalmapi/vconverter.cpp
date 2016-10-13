@@ -1163,7 +1163,7 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 			SizedSPropTagArray(4, sPropTags) = {4, {PR_SMTP_ADDRESS_W, PR_DISPLAY_NAME_W, PR_ADDRTYPE_A, PR_ENTRYID} };
 			ULONG count;
 
-			hr = m_lpMailUser->GetProps((LPSPropTagArray)&sPropTags, 0, &count, &lpsPropVal);
+			hr = m_lpMailUser->GetProps(sPropTags, 0, &count, &lpsPropVal);
 			if (hr != hrSuccess)
 				goto exit;
 
@@ -1209,7 +1209,7 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 		SizedSPropTagArray(4, sPropTags) = {4, {PR_SMTP_ADDRESS_W, PR_DISPLAY_NAME_W, PR_ADDRTYPE_A, PR_ENTRYID} };
 		ULONG count;
 
-		hr = m_lpMailUser->GetProps((LPSPropTagArray)&sPropTags, 0, &count, &lpsPropVal);
+		hr = m_lpMailUser->GetProps(sPropTags, 0, &count, &lpsPropVal);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -2117,8 +2117,7 @@ HRESULT VConverter::HrSetICalAttendees(LPMESSAGE lpMessage, const std::wstring &
 	hr = lpMessage->GetRecipientTable(0, &lpTable);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = lpTable->SetColumns((LPSPropTagArray)&sptaRecipProps, 0);
+	hr = lpTable->SetColumns(sptaRecipProps, 0);
 	if (hr != hrSuccess)
 		goto exit;
 

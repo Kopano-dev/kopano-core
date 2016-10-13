@@ -393,7 +393,7 @@ HRESULT ArchiverSession::GetUserInfo(const tstring &strUser, abentryid_t *lpsEnt
 			return hr;
 		}
 
-		hr = ptrUser->GetProps((LPSPropTagArray)&sptaUserProps, 0, &cValues, &ptrUserProps);
+		hr = ptrUser->GetProps(sptaUserProps, 0, &cValues, &ptrUserProps);
 		if (FAILED(hr)) {
 			m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to obtain properties from user '" TSTRING_PRINTF "' (hr=0x%08x)", strUser.c_str(), hr);
 			return hr;
@@ -439,7 +439,7 @@ HRESULT ArchiverSession::GetUserInfo(const abentryid_t &sEntryId, tstring *lpstr
 	hr = m_ptrSession->OpenEntry(sEntryId.size(), sEntryId, NULL, MAPI_DEFERRED_ERRORS, &ulType, &ptrUser);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrUser->GetProps((LPSPropTagArray)&sptaUserProps, 0, &cUserProps, &ptrUserProps);
+	hr = ptrUser->GetProps(sptaUserProps, 0, &cUserProps, &ptrUserProps);
 	if (FAILED(hr))
 		return hr;
 
@@ -499,7 +499,7 @@ HRESULT ArchiverSession::GetGAL(LPABCONT *lppAbContainer)
 	sGALPropVal.Value.bin.cb = sizeof(GUID);
 	sGALPropVal.Value.bin.lpb = (LPBYTE)&MUIDECSAB;
 
-	hr = ptrABRCTable->SetColumns((LPSPropTagArray)&sGALProps, TBL_BATCH); 
+	hr = ptrABRCTable->SetColumns(sGALProps, TBL_BATCH); 
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrABRCTable->Restrict(&sGALRestrict, TBL_BATCH);

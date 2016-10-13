@@ -827,8 +827,7 @@ static void print_user_settings(IMsgStore *lpStore, const ECUSER *lpECUser,
 	SizedSPropTagArray(5, sptaProps) = {5, { PR_LAST_LOGON_TIME, PR_LAST_LOGOFF_TIME, PR_EC_OUTOFOFFICE, PR_EC_OUTOFOFFICE_FROM, PR_EC_OUTOFOFFICE_UNTIL } };
 	ULONG cValues = 0;
 
-	lpStore->GetProps((LPSPropTagArray)&sptaProps, 0, &cValues, &lpProps);
-
+	lpStore->GetProps(sptaProps, 0, &cValues, &lpProps);
 	cout << "Username:\t\t" << (LPSTR)lpECUser->lpszUsername << endl;
 	cout << "Fullname:\t\t" << (LPSTR)lpECUser->lpszFullName << endl;
 	cout << "Emailaddress:\t\t" << (LPSTR)lpECUser->lpszMailAddress << endl;
@@ -1035,7 +1034,7 @@ static HRESULT GetOrphanStoreInfo(IECServiceAdmin *lpServiceAdmin,
 	hr = lpServiceAdmin->OpenUserStoresTable(MAPI_UNICODE, &ptrTable);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrTable->SortTable((LPSSortOrderSet)&tableSort, 0);
+	hr = ptrTable->SortTable(tableSort, 0);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -1279,8 +1278,7 @@ static HRESULT list_orphans(IECServiceAdmin *lpServiceAdmin)
 		cerr << "Unable to open user/stores table" << endl;
 		goto exit;
 	}
-
-	hr = lpTable->SortTable((LPSSortOrderSet)&tableSort, 0);
+	hr = lpTable->SortTable(tableSort, 0);
 	if (hr != hrSuccess) {
 		cerr << "Unable to sort user/stores table" << endl;
 		goto exit;
@@ -1903,8 +1901,7 @@ static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 	hr = ECPropertyRestriction(RELOP_EQ, PR_AB_PROVIDER_ID, &sGALPropVal, ECRestriction::Cheap).CreateMAPIRestriction(&ptrRestrict, ECRestriction::Cheap);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = ptrTable->SetColumns((LPSPropTagArray)&sGALProps, TBL_BATCH);
+	hr = ptrTable->SetColumns(sGALProps, TBL_BATCH);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -1942,8 +1939,7 @@ static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 			).CreateMAPIRestriction(&ptrRestrict, ECRestriction::Cheap);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = ptrTable->SetColumns((LPSPropTagArray)&sContentsProps, TBL_BATCH);
+	hr = ptrTable->SetColumns(sContentsProps, TBL_BATCH);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -2047,7 +2043,7 @@ static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 	hr = ptrSystemTable->Restrict(ptrRestriction, TBL_BATCH);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrSystemTable->SetColumns((LPSPropTagArray)&sptaStatsProps, TBL_BATCH);
+	hr = ptrSystemTable->SetColumns(sptaStatsProps, TBL_BATCH);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrSystemTable->QueryRows(0xffff, 0, &ptrRows);
@@ -2215,8 +2211,7 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	hr = ptrRoot->GetHierarchyTable(CONVENIENT_DEPTH, &ptrTable);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = HrQueryAllRows(ptrTable, (LPSPropTagArray)&sptaTableProps, NULL, NULL, 0, &ptrRows);
+	hr = HrQueryAllRows(ptrTable, sptaTableProps, NULL, NULL, 0, &ptrRows);
 	if (hr != hrSuccess)
 		goto exit;
 

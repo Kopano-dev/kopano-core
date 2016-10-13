@@ -116,9 +116,7 @@ static HRESULT DetectFolderEntryDetails(LPMESSAGE lpMessage, string *lpName,
 		}
 	};
 
-	hr = lpMessage->GetProps((LPSPropTagArray)&PropertyTagArray,
-				 0,
-				 &ulPropertyCount,
+	hr = lpMessage->GetProps(PropertyTagArray, 0, &ulPropertyCount,
 				 &lpPropertyArray);
 	if (FAILED(hr)) {
 		cout << "Failed to obtain all properties." << endl;
@@ -400,8 +398,7 @@ HRESULT Fsck::ValidateRecursiveDuplicateRecipients(LPMESSAGE lpMessage, bool &bC
 
 	if (cRows == 0)
 		goto message;
-
-	hr = lpTable->SetColumns((LPSPropTagArray)&sptaProps, 0);
+	hr = lpTable->SetColumns(sptaProps, 0);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -502,7 +499,7 @@ HRESULT Fsck::ValidateDuplicateRecipients(LPMESSAGE lpMessage, bool &bChanged)
 		goto exit;
 	}
 
-	hr = lpTable->SetColumns((LPSPropTagArray)&sptaProps, 0);
+	hr = lpTable->SetColumns(sptaProps, 0);
 	if (hr != hrSuccess)
 		goto exit;
 

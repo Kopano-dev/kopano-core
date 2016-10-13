@@ -109,7 +109,7 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 		goto exit;
 	}
 
-	hr = lpMessage->GetProps((LPSPropTagArray)&sptaMessageProps, 0, &cMsgProps, &ptrMsgProps);
+	hr = lpMessage->GetProps(sptaMessageProps, 0, &cMsgProps, &ptrMsgProps);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Archive::HrArchiveMessageForDelivery(): GetProps failed %x", hr);
 		goto exit;
@@ -184,7 +184,8 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 		SPropArrayPtr ptrArchivedMsgProps;
 		SObjectEntry refArchiveEntry;
 
-		hr = msg.first->GetProps(reinterpret_cast<SPropTagArray *>(&sptaMessageProps), 0, &cArchivedMsgProps, &ptrArchivedMsgProps);
+		hr = msg.first->GetProps(sptaMessageProps, 0,
+		     &cArchivedMsgProps, &ptrArchivedMsgProps);
 		if (hr != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Archive::HrArchiveMessageForDelivery(): ArchivedMessage GetProps failed %x", hr);
 			goto exit;
@@ -251,7 +252,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *
 		goto exit;
 	}
 
-	hr = lpMessage->GetProps((LPSPropTagArray)&sptaMessageProps, 0, &cMsgProps, &ptrMsgProps);
+	hr = lpMessage->GetProps(sptaMessageProps, 0, &cMsgProps, &ptrMsgProps);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Archive::HrArchiveMessageForSending(): GetProps failed %x", hr);
 		goto exit;

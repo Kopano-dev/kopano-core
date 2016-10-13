@@ -318,8 +318,8 @@ HRESULT ECMAPIFolderPublic::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTabl
 			hr = MAPI_E_NO_SUPPORT;
 			goto exit;
 		}
-
-		hr = Util::HrCopyUnicodePropTagArray(ulFlags, (LPSPropTagArray)&sPropsContentColumns, &lpPropTagArray);
+		hr = Util::HrCopyUnicodePropTagArray(ulFlags,
+		     sPropsContentColumns, &lpPropTagArray);
 		if(hr != hrSuccess)
 			goto exit;
 

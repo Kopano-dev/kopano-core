@@ -90,8 +90,7 @@ HRESULT mapi_util_createprof(const char *szProfName, const char *szServiceName,
 		last_error = "Service table unavailable";
 		goto exit;
 	}
-	
-	hr = lpTable->SetColumns((LPSPropTagArray)&sptaMsgServiceCols, 0);
+	hr = lpTable->SetColumns(sptaMsgServiceCols, 0);
 	if(hr != hrSuccess) {
 		last_error = "Unable to set columns on service table";
 		goto exit;

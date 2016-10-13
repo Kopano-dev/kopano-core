@@ -1708,7 +1708,7 @@ HRESULT IMAP::HrCmdStatus(const string &strTag, const string &strFolder, string 
 		goto exit;
 	}
 
-	hr = lpStatusFolder->GetProps((LPSPropTagArray)&sPropsFolderCounters, 0, &cValues, &lpPropCounters);
+	hr = lpStatusFolder->GetProps(sPropsFolderCounters, 0, &cValues, &lpPropCounters);
 	if (FAILED(hr)) {
 		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "STATUS error fetching folder content counters");
 		goto exit;
@@ -1970,7 +1970,7 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 			HrSetOneProp(lpMessage, lpPropVal);
 
 			// remove "from" properties, and ignore error
-			lpMessage->DeleteProps((LPSPropTagArray)&delFrom, NULL);
+			lpMessage->DeleteProps(delFrom, NULL);
 		} else if (strFlag.compare("\\FLAGGED") == 0) {
 			if (lpPropVal == NULL) {
 				hr = MAPIAllocateBuffer(sizeof(SPropValue), (LPVOID *) & lpPropVal);
@@ -2743,8 +2743,7 @@ HRESULT IMAP::HrCmdIdle(const string &strTag) {
 		hr2 = HrResponse(RESP_CONTINUE, "Can't open selected contents table to idle in");
 		goto exit;
 	}
-
-	hr = m_lpIdleTable->SetColumns((LPSPropTagArray) &spt, 0);
+	hr = m_lpIdleTable->SetColumns(spt, 0);
 	if (hr != hrSuccess) {
 		hr2 = HrResponse(RESP_CONTINUE, "Can't select colums on selected contents table for idle information");
 		goto exit;
@@ -2868,7 +2867,7 @@ HRESULT IMAP::HrPrintQuotaRoot(const string& strTag)
 	LPSPropValue lpProps = NULL;
 	ULONG cValues = 0;
 
-	hr = lpStore->GetProps((LPSPropTagArray)&sStoreProps, 0, &cValues, &lpProps);
+	hr = lpStore->GetProps(sStoreProps, 0, &cValues, &lpProps);
 	if (hr != hrSuccess) {
 		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "GetQuota MAPI Error");
 		goto exit;
@@ -3089,7 +3088,7 @@ HRESULT IMAP::HrExpungeDeleted(const std::string &strTag,
 	DATA_RES_EXIST(lpRootRestrict, lpRootRestrict->res.resAnd.lpRes[0], PR_MSG_STATUS);
 	DATA_RES_BITMASK(lpRootRestrict, lpRootRestrict->res.resAnd.lpRes[1], BMR_NEZ, PR_MSG_STATUS, MSGSTATUS_DELMARKED); 
 
-	hr = HrQueryAllRows(lpTable, (LPSPropTagArray) &spt, lpRootRestrict, NULL, 0, &lpRows);
+	hr = HrQueryAllRows(lpTable, spt, lpRootRestrict, NULL, 0, &lpRows);
 	if (hr != hrSuccess) {
 		hr2 = HrResponse(RESP_TAGGED_NO, strTag, strCommand + " error queryring rows");
 		goto exit;
@@ -3386,7 +3385,7 @@ HRESULT IMAP::HrMakeSpecialsList() {
 		{ PR_IPM_APPOINTMENT_ENTRYID, PR_IPM_CONTACT_ENTRYID, PR_IPM_DRAFTS_ENTRYID,
 		  PR_IPM_JOURNAL_ENTRYID, PR_IPM_NOTE_ENTRYID, PR_IPM_TASK_ENTRYID } };
 
-	hr = lpStore->GetProps((LPSPropTagArray)&sPropsStore, 0, &cValues, &lpPropArrayStore);
+	hr = lpStore->GetProps(sPropsStore, 0, &cValues, &lpPropArrayStore);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -3405,7 +3404,7 @@ HRESULT IMAP::HrMakeSpecialsList() {
 	if (hr != hrSuccess)
 		goto exit;
 
-	hr = lpInbox->GetProps((LPSPropTagArray)&sPropsInbox, 0, &cValues, &lpPropArrayInbox);
+	hr = lpInbox->GetProps(sPropsInbox, 0, &cValues, &lpPropArrayInbox);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -3495,7 +3494,7 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, bool bS
 	if (hr != hrSuccess)
 		goto exit;
 
-	hr = lpFolder->GetProps((LPSPropTagArray)&sPropsFolderIDs, 0, &cValues, &lpFolderIDs);
+	hr = lpFolder->GetProps(sPropsFolderIDs, 0, &cValues, &lpFolderIDs);
 	if (FAILED(hr))
 		goto exit;
 
@@ -3510,12 +3509,10 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, bool bS
 	hr = lpFolder->GetContentsTable(MAPI_DEFERRED_ERRORS, &lpTable);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = lpTable->SetColumns((LPSPropTagArray) &spt, TBL_BATCH);
+	hr = lpTable->SetColumns(spt, TBL_BATCH);
 	if (hr != hrSuccess)
 		goto exit;
-
-    hr = lpTable->SortTable((LPSSortOrderSet)&sSortUID, TBL_BATCH);
+	hr = lpTable->SortTable(sSortUID, TBL_BATCH);
     if (hr != hrSuccess)
         goto exit;
 
@@ -3737,8 +3734,7 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &lstFolders, SBinary &sEntryID, wstring
 	hr = lpFolder->GetHierarchyTable(0, &lpTable);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = lpTable->SetColumns((LPSPropTagArray) &spt, 0);
+	hr = lpTable->SetColumns(spt, 0);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -3974,7 +3970,7 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
             
         // Messages are usually requested in UID order, so sort the table in UID order too. This improves
         // the row prefetch hit ratio.
-        hr = m_lpTable->SortTable((LPSSortOrderSet)&sSortUID, TBL_BATCH);
+        hr = m_lpTable->SortTable(sSortUID, TBL_BATCH);
         if(hr != hrSuccess)
             goto exit;
 
@@ -4537,8 +4533,7 @@ std::string IMAP::HrEnvelopeSender(LPMESSAGE lpMessage, ULONG ulTagName, ULONG u
 	ULONG ulProps;
 	SizedSPropTagArray(2, sPropTags) = { 2, {ulTagName, ulTagEmail} };
 
-	hr = lpMessage->GetProps((LPSPropTagArray)&sPropTags, 0, &ulProps, &lpPropValues);
-
+	hr = lpMessage->GetProps(sPropTags, 0, &ulProps, &lpPropValues);
 	strResponse = "((";
 	if (!FAILED(hr) && PROP_TYPE(lpPropValues[0].ulPropTag) != PT_ERROR) {
 		strResponse += EscapeString(lpPropValues[0].Value.lpszW, strCharset, bIgnore);
@@ -4638,8 +4633,7 @@ HRESULT IMAP::HrGetMessageEnvelope(string &strResponse, LPMESSAGE lpMessage) {
 	hr = lpMessage->GetRecipientTable(0, &lpTable);
 	if (hr != hrSuccess)
 		goto recipientsdone;
-
-	hr = lpTable->SetColumns((LPSPropTagArray) &spt, 0);
+	hr = lpTable->SetColumns(spt, 0);
 	if (hr != hrSuccess)
 		goto recipientsdone;
 
@@ -4713,7 +4707,7 @@ HRESULT IMAP::HrGetMessageFlags(string &strResponse, LPMESSAGE lpMessage, bool b
 		goto exit;
 	}
 
-	hr = lpMessage->GetProps((LPSPropTagArray)&sptaFlagProps, 0, &cValues, &lpProps);
+	hr = lpMessage->GetProps(sptaFlagProps, 0, &cValues, &lpProps);
 	if (FAILED(hr))
 		goto exit;
 	hr = hrSuccess;
@@ -6627,8 +6621,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 		goto exit;
 	sAndRestriction.res.resAnd.lpRes[0] = sPropertyRestriction;
 	sAndRestriction.res.resAnd.lpRes[1] = *lpRootRestrict;
-		
-	hr = HrQueryAllRows(lpTable, (LPSPropTagArray) &spt, &sAndRestriction, NULL, 0, &lpRows);
+	hr = HrQueryAllRows(lpTable, spt, &sAndRestriction, NULL, 0, &lpRows);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -7337,8 +7330,7 @@ HRESULT IMAP::HrFindSubFolder(IMAPIFolder *lpFolder, const wstring& strFolder, U
     hr = lpFolder->GetHierarchyTable(MAPI_DEFERRED_ERRORS, &lpTable);
     if(hr != hrSuccess)
         goto exit;
-     
-    hr = lpTable->SetColumns((LPSPropTagArray)&sptaCols, 0);
+    hr = lpTable->SetColumns(sptaCols, 0);
     if(hr != hrSuccess)
         goto exit;
         

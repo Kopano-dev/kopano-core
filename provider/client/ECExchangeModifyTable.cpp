@@ -110,7 +110,7 @@ HRESULT __stdcall ECExchangeModifyTable::CreateACLTable(ECMAPIProp *lpParent, UL
 
 	// Although PR_RULE_ID is PT_I8, it does not matter, since the low count comes first in memory
 	// This will break on a big-endian system though
-	hr = ECMemTable::Create((LPSPropTagArray)&sPropACLs, PR_MEMBER_ID, &lpecTable);
+	hr = ECMemTable::Create(sPropACLs, PR_MEMBER_ID, &lpecTable);
 	if (hr!=hrSuccess)
 		goto exit;
 
@@ -148,7 +148,7 @@ HRESULT __stdcall ECExchangeModifyTable::CreateRulesTable(ECMAPIProp *lpParent, 
 
 	// Although PR_RULE_ID is PT_I8, it does not matter, since the low count comes first in memory
 	// This will break on a big-endian system though
-	hr = ECMemTable::Create((LPSPropTagArray)&sPropRules, PR_RULE_ID, &ecTable);
+	hr = ECMemTable::Create(sPropRules, PR_RULE_ID, &ecTable);
 	if (hr!=hrSuccess)
 		goto exit;
 

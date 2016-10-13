@@ -339,7 +339,7 @@ static bool FNeedsAutoAccept(IMsgStore *lpStore, LPMESSAGE lpMessage)
 	ULONG cValues = 0;
 	bool bAutoAccept = false, bDeclineConflict = false, bDeclineRecurring = false;
 	
-	hr = lpMessage->GetProps((LPSPropTagArray)&sptaProps, 0, &cValues, &lpProps);
+	hr = lpMessage->GetProps(sptaProps, 0, &cValues, &lpProps);
 	if (FAILED(hr)) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "FNeedsAutoAccept(): GetProps failed %x", hr);
 		goto exit;
@@ -387,7 +387,7 @@ static bool FNeedsAutoProcessing(IMsgStore *lpStore, LPMESSAGE lpMessage)
 	LPSPropValue lpProps = NULL;
 	ULONG cValues = 0;
 
-	hr = lpMessage->GetProps((LPSPropTagArray)&sptaProps, 0, &cValues, &lpProps);
+	hr = lpMessage->GetProps(sptaProps, 0, &cValues, &lpProps);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "FNeedsAutoProcessing(): GetProps failed %x", hr);
 		goto exit;
@@ -760,7 +760,8 @@ static HRESULT ResolveUsers(const DeliveryArgs *lpArgs,
 	}
 
 	// MAPI_UNICODE flag here doesn't have any effect, since we give all proptags ourself
-	hr = lpAddrFolder->ResolveNames((LPSPropTagArray)&sptaAddress, MAPI_UNICODE | EMS_AB_ADDRESS_LOOKUP, lpAdrList, lpFlagList);
+	hr = lpAddrFolder->ResolveNames(sptaAddress,
+	     MAPI_UNICODE | EMS_AB_ADDRESS_LOOKUP, lpAdrList, lpFlagList);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -1533,7 +1534,7 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 
 	// @fixme need to stream PR_TRANSPORT_MESSAGE_HEADERS_A and PR_EC_OUTOFOFFICE_MSG_W if they're > 8Kb
 
-	hr = lpMDB->GetProps((LPSPropTagArray)&sptaStoreProps, 0, &cValues, &lpStoreProps);
+	hr = lpMDB->GetProps(sptaStoreProps, 0, &cValues, &lpStoreProps);
 	if (FAILED(hr)) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SendOutOfOffice(): GetProps failed(1) %x", hr);
 		goto exit;
@@ -1568,7 +1569,7 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 		szSubject = lpStoreProps[2].Value.lpszW;
 	}
 
-	hr = lpMessage->GetProps((LPSPropTagArray)&sptaMessageProps, 0, &cValues, &lpMessageProps);
+	hr = lpMessage->GetProps(sptaMessageProps, 0, &cValues, &lpMessageProps);
 	if (FAILED(hr)) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SendOutOfOffice(): GetProps failed(2) %x", hr);
 		goto exit;
@@ -1972,8 +1973,7 @@ static HRESULT HrOverrideRecipProps(IMessage *lpMessage, ECRecipient *lpRecip)
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "HrOverrideRecipProps(): GetRecipientTable failed %x", hr);
 		goto exit;
 	}
-
-	hr = lpRecipTable->SetColumns((LPSPropTagArray)&sptaColumns, 0);
+	hr = lpRecipTable->SetColumns(sptaColumns, 0);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "HrOverrideRecipProps(): SetColumns failed %x", hr);
 		goto exit;
@@ -2252,7 +2252,8 @@ static HRESULT HrCopyMessageForDelivery(IMessage *lpOrigMessage,
 	}
 
 	/* Copy message, exclude all previously set properties (Those are recipient dependent) */
-	hr = lpOrigMessage->CopyTo(0, NULL, (LPSPropTagArray)&sptaReceivedBy, 0, NULL, &IID_IMessage, lpMessage, 0, NULL);
+	hr = lpOrigMessage->CopyTo(0, NULL, sptaReceivedBy, 0, NULL,
+	     &IID_IMessage, lpMessage, 0, NULL);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "HrCopyMessageForDelivery(): CopyTo failed %x", hr);
 		goto exit;
@@ -2260,7 +2261,7 @@ static HRESULT HrCopyMessageForDelivery(IMessage *lpOrigMessage,
 		
 	// For a fallback, remove some more properties
 	if (bFallbackDelivery)
-		lpMessage->DeleteProps((LPSPropTagArray)&sptaFallback, 0);
+		lpMessage->DeleteProps(sptaFallback, 0);
 		
 	// Make sure the message is not attached to an archive
 	hr = za::helpers::MAPIPropHelper::Create(MAPIPropPtr(lpMessage, true), &ptrArchiveHelper);

@@ -53,7 +53,7 @@ static HRESULT GetRecipStrings(LPMESSAGE lpMessage, std::wstring &wstrTo,
 	HRESULT hr = lpMessage->GetRecipientTable(MAPI_UNICODE, &ptrRecips);
 	if(hr != hrSuccess)
 		return hr;
-	hr = ptrRecips->SetColumns((LPSPropTagArray)&sptaDisplay, TBL_BATCH);
+	hr = ptrRecips->SetColumns(sptaDisplay, TBL_BATCH);
 	if(hr != hrSuccess)
 		return hr;
 		
@@ -113,7 +113,7 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 	wstring strForwardText;
 	wstring wstrTo, wstrCc, wstrBcc;
 
-	HRESULT hr = lpOrigMessage->GetProps((LPSPropTagArray)&sBody, 0, &cValues, &ptrBodies);
+	HRESULT hr = lpOrigMessage->GetProps(sBody, 0, &cValues, &ptrBodies);
 	if (FAILED(hr))
 		return hr;
 		
@@ -140,7 +140,7 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 	hr = GetRecipStrings(lpOrigMessage, wstrTo, wstrCc, wstrBcc);
 	if (FAILED(hr))
 		return hr;
-	hr = lpOrigMessage->GetProps((LPSPropTagArray)&sInfo, 0, &cValues, &ptrInfo);
+	hr = lpOrigMessage->GetProps(sInfo, 0, &cValues, &ptrInfo);
 	if (FAILED(hr))
 		return hr;
 
@@ -370,7 +370,7 @@ static HRESULT CreateReplyCopy(LPMAPISESSION lpSession, LPMDB lpOrigStore,
 	hr = hrSuccess;
 
 	// set From to self
-	hr = lpOrigMessage->GetProps((LPSPropTagArray)&sFrom, 0, &cValues, &lpFrom);
+	hr = lpOrigMessage->GetProps(sFrom, 0, &cValues, &lpFrom);
 	if (FAILED(hr))
 		goto exitpm;
 
@@ -401,7 +401,7 @@ static HRESULT CreateReplyCopy(LPMAPISESSION lpSession, LPMDB lpOrigStore,
 
 	// append To with original sender
 	// @todo get Reply-To ?
-	hr = lpOrigMessage->GetProps((LPSPropTagArray)&sReplyRecipient, 0, &cValues, &lpReplyRecipient);
+	hr = lpOrigMessage->GetProps(sReplyRecipient, 0, &cValues, &lpReplyRecipient);
 	if (FAILED(hr))
 		goto exitpm;
 
@@ -607,10 +607,7 @@ static HRESULT CreateForwardCopy(ECLogger *lpLogger, LPADRBOOK lpAdrBook,
 		goto exitpm;
 
 	// If we're doing a redirect, copy over the original PR_SENT_REPRESENTING_*, otherwise don't
-	if(bDoPreserveSender)
-		lpExclude = (LPSPropTagArray)&sExcludeFromCopyRedirect;
-	else
-		lpExclude = (LPSPropTagArray)&sExcludeFromCopyForward;
+	lpExclude = bDoPreserveSender ? sExcludeFromCopyRedirect : sExcludeFromCopyForward;
 
     if(bDoNotMunge) {
         // The idea here is to enable 'resend' mode and to include the original recipient list. What will
@@ -645,7 +642,8 @@ static HRESULT CreateForwardCopy(ECLogger *lpLogger, LPADRBOOK lpAdrBook,
 		hr = lpAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY, (LPUNKNOWN *)&lpAttachMsg);
 		if (hr != hrSuccess)
 			goto exitpm;
-		hr = lpOrigMessage->CopyTo(0, NULL,  (LPSPropTagArray)&sExcludeFromAttachedForward, 0, NULL, &IID_IMessage, lpAttachMsg, 0, NULL);
+		hr = lpOrigMessage->CopyTo(0, NULL, sExcludeFromAttachedForward,
+		     0, NULL, &IID_IMessage, lpAttachMsg, 0, NULL);
 		if (hr != hrSuccess)
 			goto exitpm;
 		hr = lpAttachMsg->SaveChanges(0);
@@ -711,7 +709,7 @@ static HRESULT CreateForwardCopy(ECLogger *lpLogger, LPADRBOOK lpAdrBook,
 		// because we're forwarding this as a new message, clear the old received message id
 		SizedSPropTagArray(1, sptaDeleteProps) = { 1, { PR_INTERNET_MESSAGE_ID } };
 
-		hr = lpFwdMsg->DeleteProps((LPSPropTagArray)&sptaDeleteProps, NULL);
+		hr = lpFwdMsg->DeleteProps(sptaDeleteProps, NULL);
 		if(hr != hrSuccess)
 			goto exitpm;
 		MungeForwardBody(lpFwdMsg, lpOrigMessage);
@@ -746,7 +744,7 @@ static HRESULT HrDelegateMessage(IMAPIProp *lpMessage)
 	SizedSPropTagArray(1, sptaSentMail) = { 1, { PR_SENTMAIL_ENTRYID } };
 
 	// set PR_RCVD_REPRESENTING on original receiver
-	hr = lpMessage->GetProps((LPSPropTagArray)&sptaRecipProps, 0, &cValues, &lpProps);
+	hr = lpMessage->GetProps(sptaRecipProps, 0, &cValues, &lpProps);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -773,7 +771,7 @@ static HRESULT HrDelegateMessage(IMAPIProp *lpMessage)
 		goto exit;
 		
 	// Don't want to move to sent mail
-	hr = lpMessage->DeleteProps((LPSPropTagArray)&sptaSentMail, NULL);
+	hr = lpMessage->DeleteProps(sptaSentMail, NULL);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -854,14 +852,12 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrProcessRules(): GetTable failed %x", hr);
 		goto exitpm;
 	}
-        
-    hr = lpView->SetColumns((LPSPropTagArray)&sptaRules, 0);
+	hr = lpView->SetColumns(sptaRules, 0);
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrProcessRules(): SetColumns failed %x", hr);
 		goto exitpm;
 	}
-
-	hr = lpView->SortTable((LPSSortOrderSet)&sosRules, 0);
+	hr = lpView->SortTable(sosRules, 0);
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrProcessRules(): SortTable failed %x", hr);
 		goto exitpm;

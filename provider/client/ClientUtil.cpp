@@ -307,7 +307,7 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 		lpReportText = _("was read on");
 	}
 
-	hr = lpReadMessage->GetProps((LPSPropTagArray)&sPropReadReceipt, fMapiUnicode, &cSrcValues, &lpSrcPropValue);
+	hr = lpReadMessage->GetProps(sPropReadReceipt, fMapiUnicode, &cSrcValues, &lpSrcPropValue);
 	if(FAILED(hr) != hrSuccess)
 		goto exit;
 
@@ -684,7 +684,7 @@ HRESULT ClientUtil::GetGlobalProfileProperties(LPPROFSECT lpGlobalProfSect, stru
 		SizedSPropTagArray(4, sptaEMSProfile) = {4,{PR_PROFILE_NAME_A, PR_PROFILE_UNRESOLVED_SERVER, PR_PROFILE_UNRESOLVED_NAME, PR_PROFILE_USER}};
 
 		// This is an emulated MSEMS store. Get the properties we need and convert them to ZARAFA-style properties
-		hr = lpGlobalProfSect->GetProps((LPSPropTagArray)&sptaEMSProfile, 0, &cEMSValues, &lpsEMSPropArray);
+		hr = lpGlobalProfSect->GetProps(sptaEMSProfile, 0, &cEMSValues, &lpsEMSPropArray);
 		if(FAILED(hr))
 			goto exit;
 
@@ -693,7 +693,7 @@ HRESULT ClientUtil::GetGlobalProfileProperties(LPPROFSECT lpGlobalProfSect, stru
 			goto exit;
 	} else {
 		// Get the properties we need directly from the global profile section
-		hr = lpGlobalProfSect->GetProps((LPSPropTagArray)&sptaKopanoProfile, 0, &cValues, &lpsPropArray);
+		hr = lpGlobalProfSect->GetProps(sptaKopanoProfile, 0, &cValues, &lpsPropArray);
 		if(FAILED(hr))
 			goto exit;
 	}

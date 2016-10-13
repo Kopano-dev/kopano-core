@@ -87,7 +87,7 @@ HRESULT GetFreeBusyFolder(IMsgStore* lpPublicStore, IMAPIFolder** lppFreeBusyFol
 	enum eFreeBusyPos{ FBPOS_FREE_BUSY_FOR_LOCAL_SITE_ENTRYID};
 
 	// Get freebusy properies
-	hr = lpPublicStore->GetProps((LPSPropTagArray)&sPropsFreeBusy, 0, &cValuesFreeBusy, &lpPropArrayFreeBusy);
+	hr = lpPublicStore->GetProps(sPropsFreeBusy, 0, &cValuesFreeBusy, &lpPropArrayFreeBusy);
 	if (FAILED(hr))
 		goto exit;
 
@@ -185,8 +185,7 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 	hr = lpMapiTable->Restrict(&sRestriction, TBL_BATCH);
 	if(hr != hrSuccess)
 		goto exit;
-
-	hr = lpMapiTable->SetColumns((LPSPropTagArray)&sPropsFreebusyTable, TBL_BATCH);
+	hr = lpMapiTable->SetColumns(sPropsFreebusyTable, TBL_BATCH);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -488,7 +487,7 @@ HRESULT GetFreeBusyMessageData(IMessage* lpMessage, LONG* lprtmStart, LONG* lprt
 		goto exit;
 	}
 
-	hr = lpMessage->GetProps((LPSPropTagArray)&sPropsFreeBusyData, 0, &cValuesFBData, &lpPropArrayFBData);
+	hr = lpMessage->GetProps(sPropsFreeBusyData, 0, &cValuesFBData, &lpPropArrayFBData);
 	if(FAILED(hr))
 		goto exit;
 

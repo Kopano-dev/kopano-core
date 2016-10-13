@@ -122,7 +122,7 @@ static HRESULT ExpandRecipientsRecursive(LPADRBOOK lpAddrBook,
 		}
 	};
 
-	hr = lpTable->SetColumns((LPSPropTagArray)&sptaColumns, 0);
+	hr = lpTable->SetColumns(sptaColumns, 0);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ExpandRecipientsRecursive(): SetColumns failed %x", hr);
 		goto exit;
@@ -529,7 +529,7 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 					goto nextfax;
 				}
 
-				hr = lpFaxMailuser->GetProps((LPSPropTagArray)&sptaFaxNumbers, 0, &cValues, &lpFaxNumbers);
+				hr = lpFaxMailuser->GetProps(sptaFaxNumbers, 0, &cValues, &lpFaxNumbers);
 				if (FAILED(hr)) {
 					g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to convert FAX recipient, using %ls: %s (%x)",
 						lpEmailAddress->Value.lpszW, GetMAPIErrorMessage(hr), hr);
@@ -630,12 +630,10 @@ static HRESULT UniqueRecipients(IMessage *lpMessage)
 	hr = lpMessage->GetRecipientTable(0, &lpTable);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = lpTable->SetColumns((LPSPropTagArray)&sptaColumns, 0);
+	hr = lpTable->SetColumns(sptaColumns, 0);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = lpTable->SortTable((LPSSortOrderSet)&sosOrder, 0);
+	hr = lpTable->SortTable(sosOrder, 0);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -702,8 +700,7 @@ static HRESULT RewriteQuotedRecipients(IMessage *lpMessage)
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "RewriteQuotedRecipients(): GetRecipientTable failed %x", hr);
 		goto exit;
 	}
-
-	hr = lpTable->SetColumns((LPSPropTagArray)&sptaColumns, 0);
+	hr = lpTable->SetColumns(sptaColumns, 0);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "RewriteQuotedRecipients(): SetColumns failed %x", hr);
 		goto exit;
@@ -914,7 +911,7 @@ HRESULT SendUndeliverable(LPADRBOOK lpAddrBook, ECSender *lpMailer,
 	}
 
 	// Get properties from the original message
-	hr = lpMessage->GetProps((LPSPropTagArray)&sPropsOriginal, 0, &cValuesOriginal, &lpPropArrayOriginal);
+	hr = lpMessage->GetProps(sPropsOriginal, 0, &cValuesOriginal, &lpPropArrayOriginal);
 	if (FAILED(hr)) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SendUndeliverable(): GetPRops failed %x", hr);
 		goto exit;
@@ -1221,8 +1218,7 @@ HRESULT SendUndeliverable(LPADRBOOK lpAddrBook, ECSender *lpMailer,
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SendUndeliverable(): GetRecipientTable failed %x", hr);
 		goto exit;
 	}
-
-	hr = lpTableMods->SetColumns((LPSPropTagArray)&sPropTagRecipient, TBL_BATCH);
+	hr = lpTableMods->SetColumns(sPropTagRecipient, TBL_BATCH);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SendUndeliverable(): SetColumns failed %x", hr);
 		goto exit;
@@ -1640,8 +1636,7 @@ static HRESULT HrFindUserInGroup(LPADRBOOK lpAdrBook, ULONG ulOwnerCB,
 			GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
-
-	hr = lpMembersTable->SetColumns((LPSPropTagArray)&sptaIDProps, 0);
+	hr = lpMembersTable->SetColumns(sptaIDProps, 0);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "HrFindUserInGroup(): SetColumns failed: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
@@ -1886,7 +1881,7 @@ static HRESULT CheckSendAs(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 		goto exit;
 	}
 
-	hr = lpRepresenting->GetProps((LPSPropTagArray)&sptaIDProps, 0, &cValues, &lpRepresentProps);
+	hr = lpRepresenting->GetProps(sptaIDProps, 0, &cValues, &lpRepresentProps);
 	if (FAILED(hr)) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "CheckSendAs(): GetProps failed(1) %x", hr);
 		goto exit;
@@ -1900,7 +1895,7 @@ static HRESULT CheckSendAs(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 		goto exit;
 	}
 
-	hr = lpMailboxOwner->GetProps((LPSPropTagArray)&sptaIDProps, 0, &cValues, &lpOwnerProps);
+	hr = lpMailboxOwner->GetProps(sptaIDProps, 0, &cValues, &lpOwnerProps);
 	if (FAILED(hr)) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "CheckSendAs(): GetProps failed(2) %x", hr);
 		goto exit;
@@ -2496,14 +2491,14 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 
 	if (bAllowSendAs) {
 		// move PR_REPRESENTING to PR_SENDER_NAME
-		hr = lpMessage->GetProps((LPSPropTagArray)&sptaMoveReprProps, 0, &cValuesMoveProps, &lpMoveReprProps);
+		hr = lpMessage->GetProps(sptaMoveReprProps, 0, &cValuesMoveProps, &lpMoveReprProps);
 		if (FAILED(hr)) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to find sender information: %s (%x)",
 				GetMAPIErrorMessage(hr), hr);
 			goto exit;
 		}
 
-		hr = lpMessage->DeleteProps((LPSPropTagArray)&sptaMoveReprProps, NULL);
+		hr = lpMessage->DeleteProps(sptaMoveReprProps, NULL);
 		if (FAILED(hr)) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to remove sender information: %s (%x)",
 				GetMAPIErrorMessage(hr), hr);

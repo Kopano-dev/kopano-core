@@ -224,8 +224,7 @@ HRESULT ECXPLogon::ClearOldSubmittedMessages(LPMAPIFOLDER lpFolder)
 	hr = lpFolder->GetContentsTable(0, &ptrContentsTable);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = ptrContentsTable->SetColumns((LPSPropTagArray)&sptDelete, MAPI_DEFERRED_ERRORS);
+	hr = ptrContentsTable->SetColumns(sptDelete, MAPI_DEFERRED_ERRORS);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -381,8 +380,8 @@ HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpu
 	hr = lpSubmitFolder->CreateMessage(&IID_IMessage, 0, &lpSubmitMessage);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = lpMessage->CopyTo(0, NULL, (LPSPropTagArray)&sptExcludeProps, 0, NULL, &IID_IMessage, lpSubmitMessage, 0, NULL);
+	hr = lpMessage->CopyTo(0, NULL, sptExcludeProps, 0, NULL,
+	     &IID_IMessage, lpSubmitMessage, 0, NULL);
 	if (hr != hrSuccess)
 		goto exit;
 	
@@ -521,7 +520,7 @@ HRESULT ECXPLogon::SetOutgoingProps (LPMESSAGE lpMessage)
 	ULONG i = 0;
 	FILETIME ft;
 
-	hr = lpMessage->GetProps ((LPSPropTagArray)&sptOutMsgProps, 0, &ulValues, &lpspvSender);
+	hr = lpMessage->GetProps(sptOutMsgProps, 0, &ulValues, &lpspvSender);
     if (FAILED(hr))
     {
         lpspvSender = NULL; // So that we may recover and continue using default values

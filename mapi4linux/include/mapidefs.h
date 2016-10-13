@@ -249,6 +249,7 @@ typedef struct _SPropTagArray {
 struct _SPropTagArray_ ## _name { \
     ULONG   cValues; \
     ULONG   aulPropTag[_ctag]; \
+    operator SPropTagArray *(void) const { return const_cast<SPropTagArray *>(reinterpret_cast<const SPropTagArray *>(this)); } \
 } _name
 
 
@@ -904,6 +905,7 @@ struct _SSortOrderSet_ ## _name { \
     ULONG           cCategories;    \
     ULONG           cExpanded;      \
     SSortOrder      aSort[_csort];  \
+    operator SSortOrderSet *(void) const { return const_cast<SSortOrderSet *>(reinterpret_cast<const SSortOrderSet *>(this)); } \
 } _name
 
 

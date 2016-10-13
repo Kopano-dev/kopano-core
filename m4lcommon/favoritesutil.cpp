@@ -36,7 +36,7 @@ static SizedSPropTagArray(SHORTCUT_NUM, sPropsShortcuts) = {SHORTCUT_NUM, {
 	PR_FAV_CONTAINER_CLASS}};
 
 LPSPropTagArray GetShortCutTagArray() {
-	return (LPSPropTagArray)&sPropsShortcuts;
+	return sPropsShortcuts;
 }
 
 /** 
@@ -203,8 +203,7 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 	hr = lpTable->GetRowCount(0, &ulMaxRows);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = lpTable->SetColumns((LPSPropTagArray)&sPropDelFavo, 0);
+	hr = lpTable->SetColumns(sPropDelFavo, 0);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -458,7 +457,7 @@ HRESULT AddFavoriteFolder(LPMAPIFOLDER lpShortcutFolder, LPMAPIFOLDER lpFolder, 
 // FIXME: check vaiables
 
 	// Add folders to the shorcut folder
-	hr = lpFolder->GetProps((LPSPropTagArray)&sPropsFolderInfo, 0, &cValues, &lpsPropArray);
+	hr = lpFolder->GetProps(sPropsFolderInfo, 0, &cValues, &lpsPropArray);
 	if (FAILED(hr) != hrSuccess) //Gives always a warning
 		goto exit;
 
@@ -482,8 +481,7 @@ HRESULT AddFavoriteFolder(LPMAPIFOLDER lpShortcutFolder, LPMAPIFOLDER lpFolder, 
 	hr = lpFolder->GetHierarchyTable(ulFolderFlags, &lpTable);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = lpTable->SetColumns((LPSPropTagArray)&sPropsFolderInfo, 0);
+	hr = lpTable->SetColumns(sPropsFolderInfo, 0);
 	if (hr != hrSuccess)
 		goto exit;
 

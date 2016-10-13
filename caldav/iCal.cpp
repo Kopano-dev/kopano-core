@@ -204,9 +204,7 @@ HRESULT iCal::HrHandleIcalPost()
 	hr = m_lpUsrFld->GetContentsTable( 0, &lpContTable);
 	if(hr != hrSuccess)
 		goto exit;
-
-	
-	hr = lpContTable->SetColumns((LPSPropTagArray)lpPropTagArr, 0);
+	hr = lpContTable->SetColumns(lpPropTagArr, 0);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -516,8 +514,7 @@ HRESULT iCal::HrGetContents(LPMAPITABLE *lppTable)
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR,"Error retrieving calendar entries, error code : 0x%08X",hr);
 		goto exit;
 	}
-
-	hr = ptrContents->SetColumns((LPSPropTagArray)&sPropEntryIdcol, 0);
+	hr = ptrContents->SetColumns(sPropEntryIdcol, 0);
 	if (hr != hrSuccess)
 		goto exit;
 

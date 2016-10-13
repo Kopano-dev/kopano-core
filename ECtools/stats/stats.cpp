@@ -254,8 +254,7 @@ static void showtop(LPMDB lpStore, bool bLocal)
 		hr = lpStore->OpenProperty(PR_EC_STATSTABLE_SYSTEM, &IID_IMAPITable, 0, 0, (LPUNKNOWN*)&lpTable);
 		if(hr != hrSuccess)
 		    goto exit;
-
-		hr = lpTable->SetColumns((LPSPropTagArray)&sptaSystem, 0);
+		hr = lpTable->SetColumns(sptaSystem, 0);
 		if(hr != hrSuccess)
 			goto exit;
 		    

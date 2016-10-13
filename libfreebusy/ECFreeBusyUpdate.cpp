@@ -160,7 +160,7 @@ HRESULT ECFreeBusyUpdate::SaveChanges(FILETIME ftStart, FILETIME ftEnd)
 		goto exit;
 
 	// Delete all free/busy data properties	
-	hr = m_lpMessage->DeleteProps((LPSPropTagArray)&sPropsFBDelete, NULL);
+	hr = m_lpMessage->DeleteProps(sPropsFBDelete, NULL);
   	if(hr != hrSuccess)
 		goto exit;
 

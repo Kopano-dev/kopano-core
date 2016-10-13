@@ -273,7 +273,7 @@ HRESULT ArchiveStateCollector::PopulateFromContainer(LPABCONT lpContainer)
 	hr = lpContainer->GetContentsTable(0, &ptrTable);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrTable->SetColumns((LPSPropTagArray)&sptaUserProps, TBL_BATCH);
+	hr = ptrTable->SetColumns(sptaUserProps, TBL_BATCH);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrTable->Restrict(ptrRestriction, TBL_BATCH);
