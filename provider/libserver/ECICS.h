@@ -39,6 +39,11 @@ public:
             ulSize = s.ulSize;
         } 
     }
+	SOURCEKEY(SOURCEKEY &&o) :
+	    lpData(o.lpData), ulSize(o.ulSize)
+	{
+		o.lpData = nullptr;
+	}
     SOURCEKEY(unsigned int ulSize, const char *lpData) { 
 		if (lpData) {
 			this->lpData = new char[ulSize];
@@ -48,14 +53,16 @@ public:
 		}
 		this->ulSize = ulSize;
     }
-    SOURCEKEY(GUID guid, unsigned long long ullId) { 
+    SOURCEKEY(const GUID &guid, unsigned long long ullId)
+    {
         // Use 22-byte sourcekeys (16 bytes GUID + 6 bytes counter)
         ulSize = sizeof(GUID) + 6;
         lpData = new char [ulSize]; 
         memcpy(lpData, &guid, sizeof(guid));
         memcpy(lpData+sizeof(GUID), &ullId, ulSize - sizeof(GUID)); 
     }
-    SOURCEKEY(struct xsd__base64Binary &sourcekey) {
+    SOURCEKEY(const struct xsd__base64Binary &sourcekey)
+    {
         this->lpData = new char[sourcekey.__size];
         memcpy(this->lpData, sourcekey.__ptr, sourcekey.__size);
         this->ulSize = sourcekey.__size;
