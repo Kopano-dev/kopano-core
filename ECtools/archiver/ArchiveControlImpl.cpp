@@ -98,7 +98,7 @@ ArchiveControlImpl::ArchiveControlImpl(ArchiverSessionPtr ptrSession, ECConfig *
 , m_ulPurgeAfter(2555)
 , m_cleanupAction(caStore)
 , m_bCleanupFollowPurgeAfter(false)
-, m_bForceCleanup(bForceCleanup)
+, m_bForceCleanup(bForceCleanup), __propmap(5)
 { }
 
 ArchiveControlImpl::~ArchiveControlImpl()
@@ -1119,7 +1119,7 @@ HRESULT ArchiveControlImpl::AppendAllReferences(LPMAPIFOLDER lpFolder, LPGUID lp
 	
 	SizedSPropTagArray(1, sptaContentProps) = {1, {PT_NULL}};
 
-	PROPMAP_START
+	PROPMAP_START(1)
 	PROPMAP_NAMED_ID(ITEM_ENTRYIDS, PT_MV_BINARY, PSETID_Archive, dispidItemEntryIds)
 	PROPMAP_INIT(lpFolder)
 	
@@ -1242,7 +1242,7 @@ HRESULT ArchiveControlImpl::AppendAllEntries(LPMAPIFOLDER lpArchive, LPSRestrict
 	
 	SizedSPropTagArray(1, sptaContentProps) = {1, {PR_ENTRYID}};
 	
-	PROPMAP_START
+	PROPMAP_START(1)
 	PROPMAP_NAMED_ID(REF_ITEM_ENTRYID, PT_BINARY, PSETID_Archive, dispidRefItemEntryId)
 	PROPMAP_INIT(lpArchive)
 	
@@ -1307,7 +1307,7 @@ HRESULT ArchiveControlImpl::CleanupHierarchy(ArchiveHelperPtr ptrArchiveHelper, 
 	SizedSPropTagArray(5, sptaHierarchyProps) = {5, {PR_NULL, PR_ENTRYID, PR_CONTENT_COUNT, PR_FOLDER_CHILD_COUNT, PR_DISPLAY_NAME}};
 	enum {IDX_REF_ITEM_ENTRYID, IDX_ENTRYID, IDX_CONTENT_COUNT, IDX_FOLDER_CHILD_COUNT, IDX_DISPLAY_NAME};
 	
-	PROPMAP_START
+	PROPMAP_START(1)
 	PROPMAP_NAMED_ID(REF_ITEM_ENTRYID, PT_BINARY, PSETID_Archive, dispidRefItemEntryId)
 	PROPMAP_INIT(lpArchiveRoot)
 	

@@ -70,7 +70,7 @@ HRESULT ArchiveOperationBase::GetRestriction(LPMAPIPROP lpMapiProp, LPSRestricti
 		)
 	);
 
-	PROPMAP_START
+	PROPMAP_START(1)
 	PROPMAP_NAMED_ID(FLAGS, PT_LONG, PSETID_Archive, dispidFlags)
 	PROPMAP_INIT(lpMapiProp)
 

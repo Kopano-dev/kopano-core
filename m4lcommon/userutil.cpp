@@ -105,7 +105,7 @@ HRESULT DataCollector::GetRestriction(LPMAPIPROP lpProp, LPSRestriction *lppRest
 	SPropValue sPropOrphan;
 	ECAndRestriction resMailBox;
 
-	PROPMAP_START
+	PROPMAP_START(1)
 		PROPMAP_NAMED_ID(STORE_ENTRYIDS, PT_MV_BINARY, PSETID_Archive, "store-entryids")
 	PROPMAP_INIT(lpProp);
 

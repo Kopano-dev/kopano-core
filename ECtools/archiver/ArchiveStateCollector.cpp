@@ -60,7 +60,7 @@ namespace details {
 		HRESULT hr = hrSuccess;
 		SPropTagArrayPtr ptrPropTagArray;
 
-		PROPMAP_START
+		PROPMAP_START(2)
 			PROPMAP_NAMED_ID(STORE_ENTRYIDS, PT_MV_BINARY, PSETID_Archive, "store-entryids")
 			PROPMAP_NAMED_ID(ITEM_ENTRYIDS, PT_MV_BINARY, PSETID_Archive, "item-entryids")
 		PROPMAP_INIT(lpProp);

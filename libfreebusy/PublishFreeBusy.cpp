@@ -121,7 +121,9 @@ exit:
  * @param[in] ulMonths 
  * @param[in] lpLogger 
  */
-PublishFreeBusy::PublishFreeBusy(IMAPISession *lpSession, IMsgStore *lpDefStore, time_t tsStart, ULONG ulMonths, ECLogger *lpLogger)
+PublishFreeBusy::PublishFreeBusy(IMAPISession *lpSession, IMsgStore *lpDefStore,
+    time_t tsStart, ULONG ulMonths, ECLogger *lpLogger) :
+	__propmap(7)
 {
 	m_lpSession = lpSession;
 	m_lpDefStore = lpDefStore;

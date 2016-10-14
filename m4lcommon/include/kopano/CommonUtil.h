@@ -19,11 +19,11 @@
 #define COMMONUTIL_H
 
 #include <kopano/zcdefs.h>
+#include <vector>
 #include <mapidefs.h>
 #include <mapix.h>
 #include <string>
 #include <kopano/ECTags.h>
-#include <list>
 
 #include <kopano/ustringutil.h>
 
@@ -125,7 +125,7 @@ HRESULT HrGetGAB(LPADRBOOK lpAddrBook, LPABCONT *lppGAB);
  *
  * EXAMPLE
  *
- * PROPMAP_START
+ * PROPMAP_START(2)
  *  PROPMAP_NAMED_ID(RECURRING, PT_BOOLEAN, PSETID_Appointment, dispidRecurring)
  *  PROPMAP_NAMED_ID(START, 	PT_SYSTIME, PSETID_Appointment, dispidStart)
  * PROPMAP_INIT(lpMessage)
@@ -149,16 +149,17 @@ private:
 
 class ECPropMap _zcp_final {
 public:
-    ECPropMap();
-    void AddProp(ULONG *lpId, ULONG ulType, ECPropMapEntry entry);
+    ECPropMap(size_t = 0);
+    void AddProp(ULONG *lpId, ULONG ulType, const ECPropMapEntry &entry);
     HRESULT Resolve(IMAPIProp *lpMAPIProp);
 private:
-    std::list<ECPropMapEntry> lstNames;
-    std::list<ULONG *> lstVars;
-    std::list<ULONG> lstTypes;
+    std::vector<ECPropMapEntry> lstNames;
+    std::vector<ULONG *> lstVars;
+    std::vector<ULONG> lstTypes;
 };
 
-#define PROPMAP_START ECPropMap __propmap;
+#define PROPMAP_DECL() ECPropMap __propmap;
+#define PROPMAP_START(hint) ECPropMap __propmap(hint);
 #define PROPMAP_NAMED_ID(name,type,guid,id) ULONG PROP_##name; __propmap.AddProp(&PROP_##name, type, ECPropMapEntry(guid, id));
 #define PROPMAP_INIT(lpObject) hr = __propmap.Resolve(lpObject); if(hr != hrSuccess) goto exitpm;
 

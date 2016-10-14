@@ -2573,7 +2573,7 @@ ECPropMapEntry::ECPropMapEntry(const ECPropMapEntry &other) {
     }
 }
 
-ECPropMapEntry::ECPropMapEntry(ECPropMapEntry &&other) :
+ECPropMapEntry::ECPropMapEntry(ECPropMapEntry &&other)
 {
 	m_sMAPINameId.ulKind = other.m_sMAPINameId.ulKind;
 	m_sGuid = other.m_sGuid;
@@ -2596,10 +2596,15 @@ MAPINAMEID* ECPropMapEntry::GetMAPINameId() {
     return &m_sMAPINameId; 
 }
 
-ECPropMap::ECPropMap() { 
+ECPropMap::ECPropMap(size_t hint)
+{
+	lstNames.reserve(hint);
+	lstVars.reserve(hint);
+	lstTypes.reserve(hint);
 }
     
-void ECPropMap::AddProp(ULONG *lpId, ULONG ulType, ECPropMapEntry entry) {
+void ECPropMap::AddProp(ULONG *lpId, ULONG ulType, const ECPropMapEntry &entry)
+{
     // Add reference to proptag for later Resolve();
     lstNames.push_back(entry);
     lstVars.push_back(lpId);
@@ -2609,8 +2614,8 @@ void ECPropMap::AddProp(ULONG *lpId, ULONG ulType, ECPropMapEntry entry) {
 HRESULT ECPropMap::Resolve(IMAPIProp *lpMAPIProp) {
     HRESULT hr = hrSuccess;
     MAPINAMEID **lppNames = NULL;
-    std::list<ULONG *>::const_iterator j;
-    std::list<ULONG>::const_iterator k;
+    std::vector<ULONG *>::const_iterator j;
+    std::vector<ULONG>::const_iterator k;
     int n = 0;
     LPSPropTagArray lpPropTags = NULL;
 

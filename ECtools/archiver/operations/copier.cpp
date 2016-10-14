@@ -144,7 +144,7 @@ HRESULT Copier::Helper::ArchiveMessage(LPMESSAGE lpSource, const SObjectEntry *l
 	if (lpSource == NULL || lpDest == NULL)
 		return MAPI_E_INVALID_PARAMETER;	// Don't use goto so we can use the PROPMAP macros after checking lpDest
 
-	PROPMAP_START
+	PROPMAP_START(1)
 	PROPMAP_NAMED_ID(FLAGS, PT_LONG, PSETID_Archive, dispidFlags)
 	PROPMAP_INIT(lpDest)
 	
@@ -418,7 +418,7 @@ HRESULT Copier::GetRestriction(LPMAPIPROP lpMapiProp, LPSRestriction *lppRestric
 	ECOrRestriction resResult;
 	SRestrictionPtr ptrRestriction;
 
-	PROPMAP_START
+	PROPMAP_START(1)
 	PROPMAP_NAMED_ID(ORIGINAL_SOURCE_KEY, PT_BINARY, PSETID_Archive, dispidOrigSourceKey)
 	PROPMAP_INIT(lpMapiProp)
 
