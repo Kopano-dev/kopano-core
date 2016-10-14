@@ -19,7 +19,6 @@
 #define ECSTRINGCOMPAT_H
 
 #include <kopano/zcdefs.h>
-#include <boost/noncopyable.hpp>
 #include <kopano/kcodes.h>
 #include "kcore.hpp"
 #include "SOAPUtils.h"
@@ -37,15 +36,16 @@ struct company;
  * from the windows-1252 codepage encoded as UTF8. So the difference
  * with UTF8 is that is a string with true unicode code points.
  */
-class ECStringCompat _zcp_final : private boost::noncopyable {
+class ECStringCompat _kc_final {
 public:
 	static char *WTF1252_to_WINDOWS1252(soap *lpsoap, const char *szWTF1252, convert_context *lpConverter = NULL);
 	static char *WTF1252_to_UTF8(struct soap *lpsoap, const char *szWTF1252, convert_context *lpConverter = NULL);
 	static char *UTF8_to_WTF1252(struct soap *lpsoap, const char *szUTF8, convert_context *lpConverter = NULL);
 
 	ECStringCompat(bool fUnicode = false);
+	ECStringCompat(const ECStringCompat &) = delete;
 	~ECStringCompat();
-
+	void operator=(const ECStringCompat &) = delete;
 	/**
 	 * Convert the input data to true UTF8. If ulClientCaps contains
 	 * KOPANO_CAP_UNICODE, the input data is expected to be in UTF8,

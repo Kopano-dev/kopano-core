@@ -20,15 +20,14 @@
 #include "ECLockManager.h"
 #include <kopano/threadutil.h>
 
-#include <boost/utility.hpp>
-
 using namespace std;
 
-class ECObjectLockImpl : private boost::noncopyable {
+class ECObjectLockImpl {
 public:
 	ECObjectLockImpl(ECLockManagerPtr ptrLockManager, unsigned int ulObjId, ECSESSIONID sessionId);
+	ECObjectLockImpl(const ECObjectLockImpl &) = delete;
 	~ECObjectLockImpl();
-
+	void operator=(const ECObjectLockImpl &) = delete;
 	ECRESULT Unlock();
 
 private:
