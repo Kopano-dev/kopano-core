@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <kopano/platform.h>
+#include <kopano/ECInterfaceDefs.h>
 #include <mapi.h>
 #include <kopano/mapiext.h>
 #include <mapispi.h>
@@ -141,41 +142,8 @@ exit:
 	return hr;
 }
 
-HRESULT __stdcall ECABProvider::xABProvider::QueryInterface(REFIID refiid, void ** lppInterface)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IABProvider::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
-	METHOD_PROLOGUE_(ECABProvider , ABProvider);
-	HRESULT hr = pThis->QueryInterface(refiid, lppInterface);
-	TRACE_MAPI(TRACE_RETURN, "IABProvider::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-ULONG __stdcall ECABProvider::xABProvider::AddRef()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IABProvider::AddRef", "");
-	METHOD_PROLOGUE_(ECABProvider , ABProvider);
-	return pThis->AddRef();
-}
-
-ULONG __stdcall ECABProvider::xABProvider::Release()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IABProvider::Release", "");
-	METHOD_PROLOGUE_(ECABProvider , ABProvider);
-	return pThis->Release();
-}
-
-HRESULT ECABProvider::xABProvider::Shutdown(ULONG *lpulFlags)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IABProvider::Shutdown", "");
-	METHOD_PROLOGUE_(ECABProvider , ABProvider);
-	return pThis->Shutdown(lpulFlags);
-}
-
-HRESULT ECABProvider::xABProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG ulFlags, ULONG * lpulcbSecurity, LPBYTE * lppbSecurity, LPMAPIERROR * lppMAPIError, LPABLOGON * lppABLogon)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IABProvider::Logon", "");
-	METHOD_PROLOGUE_(ECABProvider , ABProvider);
-	HRESULT hr = pThis->Logon(lpMAPISup, ulUIParam, lpszProfileName, ulFlags, lpulcbSecurity, lppbSecurity, lppMAPIError, lppABLogon);
-	TRACE_MAPI(TRACE_RETURN, "IABProvider::Logon", "%s", GetMAPIErrorDescription(hr).c_str());
-	return  hr;
-}
+DEF_HRMETHOD1(TRACE_MAPI, ECABProvider, ABProvider, QueryInterface, (REFIID, refiid), (void **, lppInterface))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECABProvider, ABProvider, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECABProvider, ABProvider, Release, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECABProvider, ABProvider, Shutdown, (ULONG *, lpulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECABProvider, ABProvider, Logon, (LPMAPISUP, lpMAPISup), (ULONG, ulUIParam), (LPTSTR, lpszProfileName), (ULONG, ulFlags), (ULONG *, lpulcbSecurity), (LPBYTE *, lppbSecurity), (LPMAPIERROR *, lppMAPIError), (LPABLOGON *, lppABLogon))

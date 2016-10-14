@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/ECInterfaceDefs.h>
 #include <mapi.h>
 #include <mapiutil.h>
 #include <mapispi.h>
@@ -61,41 +62,8 @@ HRESULT ECABProviderOffline::QueryInterface(REFIID refiid, void **lppInterface)
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
-HRESULT __stdcall ECABProviderOffline::xABProvider::QueryInterface(REFIID refiid, void ** lppInterface)
-{
-	TRACE_MAPI(TRACE_ENTRY, "ECABProviderOffline::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
-	METHOD_PROLOGUE_(ECABProviderOffline , ABProvider);
-	HRESULT hr = pThis->QueryInterface(refiid, lppInterface);
-	TRACE_MAPI(TRACE_RETURN, "ECABProviderOffline::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-ULONG __stdcall ECABProviderOffline::xABProvider::AddRef()
-{
-	TRACE_MAPI(TRACE_ENTRY, "ECABProviderOffline::AddRef", "");
-	METHOD_PROLOGUE_(ECABProviderOffline , ABProvider);
-	return pThis->AddRef();
-}
-
-ULONG __stdcall ECABProviderOffline::xABProvider::Release()
-{
-	TRACE_MAPI(TRACE_ENTRY, "ECABProviderOffline::Release", "");
-	METHOD_PROLOGUE_(ECABProviderOffline , ABProvider);
-	return pThis->Release();
-}
-
-HRESULT ECABProviderOffline::xABProvider::Shutdown(ULONG *lpulFlags)
-{
-	TRACE_MAPI(TRACE_ENTRY, "ECABProviderOffline::Shutdown", "");
-	METHOD_PROLOGUE_(ECABProviderOffline , ABProvider);
-	return pThis->Shutdown(lpulFlags);
-}
-
-HRESULT ECABProviderOffline::xABProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG ulFlags, ULONG * lpulcbSecurity, LPBYTE * lppbSecurity, LPMAPIERROR * lppMAPIError, LPABLOGON * lppABLogon)
-{
-	TRACE_MAPI(TRACE_ENTRY, "ECABProviderOffline::Logon", "");
-	METHOD_PROLOGUE_(ECABProviderOffline , ABProvider);
-	HRESULT hr = pThis->Logon(lpMAPISup, ulUIParam, lpszProfileName, ulFlags, lpulcbSecurity, lppbSecurity, lppMAPIError, lppABLogon);
-	TRACE_MAPI(TRACE_RETURN, "ECABProviderOffline::Logon", "%s", GetMAPIErrorDescription(hr).c_str());
-	return  hr;
-}
+DEF_HRMETHOD1(TRACE_MAPI, ECABProviderOffline, ABProvider, QueryInterface, (REFIID, refiid), (void **, lppInterface))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECABProviderOffline, ABProvider, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECABProviderOffline, ABProvider, Release, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECABProviderOffline, ABProvider, Shutdown, (ULONG *, lpulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECABProviderOffline, ABProvider, Logon, (LPMAPISUP, lpMAPISup), (ULONG, ulUIParam), (LPTSTR, lpszProfileName), (ULONG, ulFlags), (ULONG *, lpulcbSecurity), (LPBYTE *, lppbSecurity), (LPMAPIERROR *, lppMAPIError), (LPABLOGON *, lppABLogon))

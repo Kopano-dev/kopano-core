@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
+#include <kopano/ECInterfaceDefs.h>
 #include <mapicode.h>
 #include <mapidefs.h>
 #include <mapitags.h>
@@ -515,20 +516,8 @@ HRESULT ECMAPITable::Reload(void *lpParam)
 	return hrSuccess;
 }
 
-ULONG ECMAPITable::xMAPITable::AddRef()
-{
-	METHOD_PROLOGUE_(ECMAPITable, MAPITable);
-	TRACE_MAPI(TRACE_ENTRY, "IMAPITable::AddRef", "table=%d name=%s",  pThis->lpTableOps->ulTableId, pThis->m_strName.c_str());
-	return pThis->AddRef();
-}
-
-ULONG ECMAPITable::xMAPITable::Release()
-{
-	METHOD_PROLOGUE_(ECMAPITable, MAPITable);
-	TRACE_MAPI(TRACE_ENTRY, "IMAPITable::Release", "table=%d name=%s",  pThis->lpTableOps->ulTableId, pThis->m_strName.c_str());	
-	return pThis->Release();
-}
-
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMAPITable, MAPITable, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMAPITable, MAPITable, Release, (void))
 DEF_HRMETHOD_EX2(TRACE_MAPI, ECMAPITable, MAPITable, "table=%d name=%s",  pThis->lpTableOps->ulTableId, pThis->m_strName.c_str(), QueryInterface, (REFIID, refiid), (void **, lppInterface))
 DEF_HRMETHOD_EX2(TRACE_MAPI, ECMAPITable, MAPITable, "table=%d name=%s",  pThis->lpTableOps->ulTableId, pThis->m_strName.c_str(), GetLastError, (HRESULT, hResult), (ULONG, ulFlags), (LPMAPIERROR *, lppMAPIError))
 DEF_HRMETHOD_EX2(TRACE_MAPI, ECMAPITable, MAPITable, "table=%d name=%s",  pThis->lpTableOps->ulTableId, pThis->m_strName.c_str(), Advise, (ULONG, ulEventMask), (LPMAPIADVISESINK, lpAdviseSink), (ULONG *, lpulConnection))

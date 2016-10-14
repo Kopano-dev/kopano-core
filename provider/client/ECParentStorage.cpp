@@ -21,7 +21,7 @@
 
 #include "Mem.h"
 #include <kopano/ECGuid.h>
-
+#include <kopano/ECInterfaceDefs.h>
 #include <mapiutil.h>
 #include "SOAPUtils.h"
 #include "WSUtil.h"
@@ -135,59 +135,15 @@ IECPropStorage* ECParentStorage::GetServerStorage() {
 }
 
 // Interface IECPropStorage
-ULONG ECParentStorage::xECPropStorage::AddRef()
-{
-	METHOD_PROLOGUE_(ECParentStorage, ECPropStorage);
-	return pThis->AddRef();
-}
-
-ULONG ECParentStorage::xECPropStorage::Release()
-{
-	METHOD_PROLOGUE_(ECParentStorage, ECPropStorage);
-	return pThis->Release();
-}
-
-HRESULT ECParentStorage::xECPropStorage::QueryInterface(REFIID refiid , void** lppInterface)
-{
-	METHOD_PROLOGUE_(ECParentStorage, ECPropStorage);
-	return pThis->QueryInterface(refiid, lppInterface);
-}
-
-HRESULT ECParentStorage::xECPropStorage::HrReadProps(LPSPropTagArray *lppPropTags,ULONG *cValues, LPSPropValue *lppValues)
-{
-	METHOD_PROLOGUE_(ECParentStorage, ECPropStorage);
-	return pThis->HrReadProps(lppPropTags,cValues, lppValues);
-}
-			
-HRESULT ECParentStorage::xECPropStorage::HrLoadProp(ULONG ulObjId, ULONG ulPropTag, LPSPropValue *lppsPropValue)
-{
-	METHOD_PROLOGUE_(ECParentStorage, ECPropStorage);
-	return pThis->HrLoadProp(ulObjId, ulPropTag, lppsPropValue);
-}
-
-HRESULT ECParentStorage::xECPropStorage::HrWriteProps(ULONG cValues, LPSPropValue lpValues, ULONG ulFlags)
-{
-	METHOD_PROLOGUE_(ECParentStorage, ECPropStorage);
-	return pThis->HrWriteProps(cValues, lpValues, ulFlags);
-}	
-
-HRESULT ECParentStorage::xECPropStorage::HrDeleteProps(LPSPropTagArray lpsPropTagArray)
-{
-	METHOD_PROLOGUE_(ECParentStorage, ECPropStorage);
-	return pThis->HrDeleteProps(lpsPropTagArray);
-}
-
-HRESULT ECParentStorage::xECPropStorage::HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject)
-{
-	METHOD_PROLOGUE_(ECParentStorage, ECPropStorage);
-	return pThis->HrSaveObject(ulFlags, lpsMapiObject);
-}
-
-HRESULT ECParentStorage::xECPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
-{
-	METHOD_PROLOGUE_(ECParentStorage, ECPropStorage);
-	return pThis->HrLoadObject(lppsMapiObject);
-}
+DEF_ULONGMETHOD0(ECParentStorage, ECPropStorage, AddRef, (void))
+DEF_ULONGMETHOD0(ECParentStorage, ECPropStorage, Release, (void))
+DEF_HRMETHOD0(ECParentStorage, ECPropStorage, QueryInterface, (REFIID, refiid), (void**, lppInterface))
+DEF_HRMETHOD0(ECParentStorage, ECPropStorage, HrReadProps, (LPSPropTagArray *, lppPropTags), (ULONG *, cValues), (LPSPropValue *, lppValues))
+DEF_HRMETHOD0(ECParentStorage, ECPropStorage, HrLoadProp, (ULONG, ulObjId), (ULONG, ulPropTag), (LPSPropValue *, lppsPropValue))
+DEF_HRMETHOD0(ECParentStorage, ECPropStorage, HrWriteProps, (ULONG, cValues), (LPSPropValue, lpValues), (ULONG, ulFlags))
+DEF_HRMETHOD0(ECParentStorage, ECPropStorage, HrDeleteProps, (LPSPropTagArray, lpsPropTagArray))
+DEF_HRMETHOD0(ECParentStorage, ECPropStorage, HrSaveObject, (ULONG, ulFlags), (MAPIOBJECT *, lpsMapiObject))
+DEF_HRMETHOD0(ECParentStorage, ECPropStorage, HrLoadObject, (MAPIOBJECT **, lppsMapiObject))
 
 IECPropStorage* ECParentStorage::xECPropStorage::GetServerStorage() {
 	METHOD_PROLOGUE_(ECParentStorage, ECPropStorage);

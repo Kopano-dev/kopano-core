@@ -18,7 +18,7 @@
 #include <mapispi.h>
 #include <mapiutil.h>
 #include <kopano/ECGuid.h>
-
+#include <kopano/ECInterfaceDefs.h>
 #include "kcore.hpp"
 #include "ECXPProvider.h"
 #include "ECXPLogon.h"
@@ -135,39 +135,8 @@ exit:
 	return hr;
 }
 
-HRESULT __stdcall ECXPProvider::xXPProvider::QueryInterface(REFIID refiid, void ** lppInterface)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IXPProvider::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
-	METHOD_PROLOGUE_(ECXPProvider , XPProvider);
-	HRESULT hr = pThis->QueryInterface(refiid, lppInterface);
-	TRACE_MAPI(TRACE_RETURN, "IXPProvider::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-ULONG __stdcall ECXPProvider::xXPProvider::AddRef()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IXPProvider::AddRef", "");
-	METHOD_PROLOGUE_(ECXPProvider , XPProvider);
-	return pThis->AddRef();
-}
-
-ULONG __stdcall ECXPProvider::xXPProvider::Release()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IXPProvider::Release", "");
-	METHOD_PROLOGUE_(ECXPProvider , XPProvider);
-	return pThis->Release();
-}
-
-HRESULT ECXPProvider::xXPProvider::Shutdown(ULONG *lpulFlags)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IXPProvider::Shutdown", "");
-	METHOD_PROLOGUE_(ECXPProvider , XPProvider);
-	return pThis->Shutdown(lpulFlags);
-}
-
-HRESULT ECXPProvider::xXPProvider::TransportLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG FAR * lpulFlags, LPMAPIERROR FAR * lppMAPIError, LPXPLOGON FAR * lppXPLogon)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IXPProvider::TransportLogon", "");
-	METHOD_PROLOGUE_(ECXPProvider , XPProvider);
-	return pThis->TransportLogon(lpMAPISup, ulUIParam, lpszProfileName, lpulFlags, lppMAPIError, lppXPLogon);
-}
+DEF_HRMETHOD1(TRACE_MAPI, ECXPProvider, XPProvider, QueryInterface, (REFIID, refiid), (void **, lppInterface))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECXPProvider, XPProvider, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECXPProvider, XPProvider, Release, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECXPProvider, XPProvider, Shutdown, (ULONG *, lpulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECXPProvider, XPProvider, TransportLogon, (LPMAPISUP, lpMAPISup), (ULONG, ulUIParam), (LPTSTR, lpszProfileName), (ULONG FAR *, lpulFlags), (LPMAPIERROR FAR *, lppMAPIError), (LPXPLOGON FAR *, lppXPLogon))

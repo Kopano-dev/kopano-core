@@ -139,39 +139,15 @@ ECMessageStreamImporterIStreamAdapter::~ECMessageStreamImporterIStreamAdapter()
 }
 
 // ISequentialStream proxies
-ULONG ECMessageStreamImporterIStreamAdapter::xSequentialStream::AddRef()
-{
-	METHOD_PROLOGUE_(ECMessageStreamImporterIStreamAdapter, SequentialStream);
-	TRACE_MAPI(TRACE_ENTRY, "ISequentialStream::AddRef", "");
-	return pThis->AddRef();
-}
-
-ULONG ECMessageStreamImporterIStreamAdapter::xSequentialStream::Release()
-{
-	METHOD_PROLOGUE_(ECMessageStreamImporterIStreamAdapter, SequentialStream);
-	TRACE_MAPI(TRACE_ENTRY, "ISequentialStream::Release", "");	
-	return pThis->Release();
-}
-
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMessageStreamImporterIStreamAdapter, SequentialStream, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMessageStreamImporterIStreamAdapter, SequentialStream, Release, (void))
 DEF_HRMETHOD(TRACE_MAPI, ECMessageStreamImporterIStreamAdapter, SequentialStream, QueryInterface, (REFIID, refiid), (void **, lppInterface))
 DEF_HRMETHOD(TRACE_MAPI, ECMessageStreamImporterIStreamAdapter, SequentialStream, Read, (void *, pv), (ULONG, cb), (ULONG *, pcbRead))
 DEF_HRMETHOD(TRACE_MAPI, ECMessageStreamImporterIStreamAdapter, SequentialStream, Write, (const void *, pv), (ULONG, cb), (ULONG *, pcbWritten))
 
 // IStream proxies
-ULONG ECMessageStreamImporterIStreamAdapter::xStream::AddRef()
-{
-	METHOD_PROLOGUE_(ECMessageStreamImporterIStreamAdapter, Stream);
-	TRACE_MAPI(TRACE_ENTRY, "IStream::AddRef", "");
-	return pThis->AddRef();
-}
-
-ULONG ECMessageStreamImporterIStreamAdapter::xStream::Release()
-{
-	METHOD_PROLOGUE_(ECMessageStreamImporterIStreamAdapter, Stream);
-	TRACE_MAPI(TRACE_ENTRY, "IStream::Release", "");	
-	return pThis->Release();
-}
-
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMessageStreamImporterIStreamAdapter, Stream, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMessageStreamImporterIStreamAdapter, Stream, Release, (void))
 DEF_HRMETHOD(TRACE_MAPI, ECMessageStreamImporterIStreamAdapter, Stream, QueryInterface, (REFIID, refiid), (void **, lppInterface))
 DEF_HRMETHOD(TRACE_MAPI, ECMessageStreamImporterIStreamAdapter, Stream, Read, (void *, pv), (ULONG, cb), (ULONG *, pcbRead))
 DEF_HRMETHOD(TRACE_MAPI, ECMessageStreamImporterIStreamAdapter, Stream, Write, (const void *, pv), (ULONG, cb), (ULONG *, pcbWritten))

@@ -194,6 +194,24 @@ ULONG __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIS
 	return ul;																									\
 }
 
+#define DEF_ULONGMETHOD1(_trace, _class, _iface, _method, ...) \
+ULONG __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__))	\
+{ \
+	_trace(TRACE_ENTRY, METHODSTR(_iface, _method), FORMAT_ARGS(__VA_ARGS__), PRINT_ARGS_IN( __VA_ARGS__)); \
+	ULONG ul = 0; \
+	METHOD_PROLOGUE_(_class, _iface); \
+	ul = pThis->_method(ARGS(__VA_ARGS__)); \
+	_trace(TRACE_RETURN, METHODSTR(_iface, _method), "SUCCESS: " FORMAT_ARGS(__VA_ARGS__), PRINT_ARGS_OUT(__VA_ARGS__)); \
+	return ul; \
+}
+
+#define DEF_ULONGMETHOD0(_class, _iface, _method, ...) \
+ULONG __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__))	\
+{ \
+	METHOD_PROLOGUE_(_class, _iface); \
+	return pThis->_method(ARGS(__VA_ARGS__)); \
+}
+
 #define DEF_HRMETHOD(_trace, _class, _iface, _method, ...)														\
 HRESULT __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__))	{			\
 	_trace(TRACE_ENTRY, METHODSTR(_iface, _method), FORMAT_ARGS(__VA_ARGS__), PRINT_ARGS_IN( __VA_ARGS__));			\
@@ -209,6 +227,28 @@ HRESULT __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGL
 	else																										\
 		_trace(TRACE_RETURN, METHODSTR(_iface, _method), "SUCCESS: " FORMAT_ARGS(__VA_ARGS__), PRINT_ARGS_OUT(__VA_ARGS__));	\
 	return hr;																									\
+}
+
+/* without exception passthrough */
+#define DEF_HRMETHOD1(_trace, _class, _iface, _method, ...)														\
+HRESULT __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__)) \
+{ \
+	_trace(TRACE_ENTRY, METHODSTR(_iface, _method), FORMAT_ARGS(__VA_ARGS__), PRINT_ARGS_IN( __VA_ARGS__)); \
+	METHOD_PROLOGUE_(_class, _iface); \
+	HRESULT hr = pThis->_method(ARGS(__VA_ARGS__)); \
+	if (FAILED(hr)) \
+		_trace(TRACE_RETURN, METHODSTR(_iface, _method), "FAILED: %s", GetMAPIErrorDescription(hr).c_str()); \
+	else \
+		_trace(TRACE_RETURN, METHODSTR(_iface, _method), "SUCCESS: " FORMAT_ARGS(__VA_ARGS__), PRINT_ARGS_OUT(__VA_ARGS__)); \
+	return hr; \
+}
+
+/* and without tracing */
+#define DEF_HRMETHOD0(_class, _iface, _method, ...) \
+HRESULT __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__)) \
+{ \
+	METHOD_PROLOGUE_(_class, _iface); \
+	return pThis->_method(ARGS(__VA_ARGS__)); \
 }
 
 #define DEF_HRMETHOD_EX(_trace, _class, _iface, _extra_fmt, _extra_arg, _method, ...)														\
@@ -267,4 +307,10 @@ HRESULT __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGL
 	HRESULT	hr = MAPI_E_NO_SUPPORT;																						\
 	_trace(TRACE_RETURN, METHODSTR(_iface, _method), "FAILED: %s", GetMAPIErrorDescription(hr).c_str());	\
 	return hr;																									\
+}
+
+#define DEF_HRMETHOD0_NOSUPPORT(_class, _iface, _method, ...) \
+HRESULT __stdcall CLASSMETHOD(_class, CLASSMETHOD(XCLASS(_iface), _method))(ARGLIST(__VA_ARGS__)) \
+{ \
+	return MAPI_E_NO_SUPPORT; \
 }

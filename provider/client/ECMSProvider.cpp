@@ -25,7 +25,7 @@
 #include "Mem.h"
 
 #include <kopano/ECGuid.h>
-
+#include <kopano/ECInterfaceDefs.h>
 #include "ECMSProvider.h"
 #include "ECMsgStore.h"
 #include "ECABProvider.h"
@@ -438,36 +438,12 @@ HRESULT ECMSProvider::LogonByEntryID(WSTransport **lppTransport, sGlobalProfileP
 	return hrSuccess;
 }
 
-ULONG ECMSProvider::xMSProvider::AddRef() 
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMSProvider::AddRef", "");
-	METHOD_PROLOGUE_(ECMSProvider, MSProvider);
-	return pThis->AddRef();
-}
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMSProvider, MSProvider, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMSProvider, MSProvider, Release, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECMSProvider, MSProvider, QueryInterface, (REFIID, refiid), (void **, lppInterface))
+DEF_HRMETHOD1(TRACE_MAPI, ECMSProvider, MSProvider, Shutdown, (ULONG *, lpulFlags))
 
-ULONG ECMSProvider::xMSProvider::Release()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMSProvider::Release", "");
-	METHOD_PROLOGUE_(ECMSProvider, MSProvider);
-	return pThis->Release();
-}
-
-HRESULT ECMSProvider::xMSProvider::QueryInterface(REFIID refiid, void **lppInterface)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMSProvider::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
-	METHOD_PROLOGUE_(ECMSProvider, MSProvider);
-	HRESULT hr = pThis->QueryInterface(refiid, lppInterface);
-	TRACE_MAPI(TRACE_RETURN, "IMSProvider::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMSProvider::xMSProvider::Shutdown(ULONG *lpulFlags)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMSProvider::Shutdown", "");
-	METHOD_PROLOGUE_(ECMSProvider, MSProvider);
-	return pThis->Shutdown(lpulFlags);
-}
-
+/* has 12 args, no macro deals with it atm */
 HRESULT ECMSProvider::xMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface, ULONG *lpcbSpoolSecurity, LPBYTE *lppbSpoolSecurity, LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
 {
 	TRACE_MAPI(TRACE_ENTRY, "IMSProvider::Logon", "flags=%x, cbEntryID=%d, lpEntryid=%s", ulFlags, cbEntryID, lpEntryID ? bin2hex(cbEntryID, (LPBYTE)lpEntryID).c_str() : "NULL");
@@ -486,12 +462,4 @@ HRESULT ECMSProvider::xMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG ulUIP
 	return hr;
 }
 
-HRESULT ECMSProvider::xMSProvider::CompareStoreIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2, ULONG ulFlags, ULONG *lpulResult)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMSProvider::CompareStoreIDs", "flags: %d\ncb=%d  entryid1: %s\n cb=%d entryid2: %s", ulFlags, cbEntryID1, bin2hex(cbEntryID1, (BYTE*)lpEntryID1).c_str(), cbEntryID2, bin2hex(cbEntryID2, (BYTE*)lpEntryID2).c_str());
-	METHOD_PROLOGUE_(ECMSProvider, MSProvider);
-	HRESULT hr = pThis->CompareStoreIDs(cbEntryID1, lpEntryID1, cbEntryID2, lpEntryID2, ulFlags, lpulResult);
-	TRACE_MAPI(TRACE_RETURN, "IMSProvider::CompareStoreIDs", "%s %s", GetMAPIErrorDescription(hr).c_str(), (*lpulResult == TRUE)?"TRUE": "FALSE");
-	return hr;
-}
-
+DEF_HRMETHOD1(TRACE_MAPI, ECMSProvider, MSProvider, CompareStoreIDs, (ULONG, cbEntryID1), (LPENTRYID, lpEntryID1), (ULONG, cbEntryID2), (LPENTRYID, lpEntryID2), (ULONG, ulFlags), (ULONG *, lpulResult))

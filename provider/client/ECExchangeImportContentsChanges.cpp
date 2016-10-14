@@ -17,7 +17,7 @@
 
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
-
+#include <kopano/ECInterfaceDefs.h>
 #include "ECExchangeImportContentsChanges.h"
 #include "WSMessageStreamImporter.h"
 #include "ECMessageStreamImporterIStreamAdapter.h"
@@ -1145,86 +1145,16 @@ HRESULT ECExchangeImportContentsChanges::HrUpdateSearchReminders(LPMAPIFOLDER lp
 	return ptrRemindersFolder->SetSearchCriteria(ptrPreRestriction, ptrOrigContainerList, RESTART_SEARCH | (ulOrigSearchState & (SEARCH_FOREGROUND | SEARCH_RECURSIVE)));
 }
 
-ULONG ECExchangeImportContentsChanges::xECImportContentsChanges::AddRef(){
-	TRACE_MAPI(TRACE_ENTRY, "IECImportContentsChanges::AddRef", "");
-	METHOD_PROLOGUE_(ECExchangeImportContentsChanges, ECImportContentsChanges);
-	return pThis->AddRef();
-}
-
-ULONG ECExchangeImportContentsChanges::xECImportContentsChanges::Release()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECImportContentsChanges::Release", "");
-	METHOD_PROLOGUE_(ECExchangeImportContentsChanges, ECImportContentsChanges);
-	return pThis->Release();
-}
-
-HRESULT ECExchangeImportContentsChanges::xECImportContentsChanges::QueryInterface(REFIID refiid, void **lppInterface)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECImportContentsChanges::QueryInterface", "%s", DBGGUIDToString(refiid).c_str());
-	METHOD_PROLOGUE_(ECExchangeImportContentsChanges, ECImportContentsChanges);
-	return pThis->QueryInterface(refiid, lppInterface);
-}
-
-HRESULT ECExchangeImportContentsChanges::xECImportContentsChanges::GetLastError(HRESULT hError, ULONG ulFlags, LPMAPIERROR * lppMapiError)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECImportContentsChanges::GetLastError", "");
-	METHOD_PROLOGUE_(ECExchangeImportContentsChanges, ECImportContentsChanges);
-	return pThis->GetLastError(hError, ulFlags, lppMapiError);
-}
-
-HRESULT ECExchangeImportContentsChanges::xECImportContentsChanges::Config(LPSTREAM lpStream, ULONG ulFlags){
-	TRACE_MAPI(TRACE_ENTRY, "IECImportContentsChanges::Config", "");
-	METHOD_PROLOGUE_(ECExchangeImportContentsChanges, ECImportContentsChanges);
-	return pThis->Config(lpStream, ulFlags);
-}
-
-HRESULT ECExchangeImportContentsChanges::xECImportContentsChanges::UpdateState(LPSTREAM lpStream){
-	TRACE_MAPI(TRACE_ENTRY, "IECImportContentsChanges::UpdateState", "");
-	METHOD_PROLOGUE_(ECExchangeImportContentsChanges, ECImportContentsChanges);
-	return pThis->UpdateState(lpStream);
-}
-
-HRESULT ECExchangeImportContentsChanges::xECImportContentsChanges::ImportMessageChange(ULONG cValue, LPSPropValue lpPropArray, ULONG ulFlags, LPMESSAGE * lppMessage){
-	TRACE_MAPI(TRACE_ENTRY, "IECImportContentsChanges::ImportMessageChange", "lpPropArray\n%s", PropNameFromPropArray(cValue,lpPropArray).c_str());
-	METHOD_PROLOGUE_(ECExchangeImportContentsChanges, ECImportContentsChanges);
-	return pThis->ImportMessageChange(cValue, lpPropArray, ulFlags, lppMessage);
-}
-
-HRESULT ECExchangeImportContentsChanges::xECImportContentsChanges::ImportMessageDeletion(ULONG ulFlags, LPENTRYLIST lpSourceEntryList){
-	TRACE_MAPI(TRACE_ENTRY, "IECImportContentsChanges::ImportMessageDeletion", "lpSourceEntryList\n%s", EntryListToString(lpSourceEntryList).c_str());
-	METHOD_PROLOGUE_(ECExchangeImportContentsChanges, ECImportContentsChanges);
-	return pThis->ImportMessageDeletion(ulFlags, lpSourceEntryList);
-}
-
-HRESULT ECExchangeImportContentsChanges::xECImportContentsChanges::ImportPerUserReadStateChange(ULONG cElements, LPREADSTATE lpReadState){
-	TRACE_MAPI(TRACE_ENTRY, "IECImportContentsChanges::ImportPerUserReadStateChange", "");
-	METHOD_PROLOGUE_(ECExchangeImportContentsChanges, ECImportContentsChanges);
-	return pThis->ImportPerUserReadStateChange(cElements, lpReadState);
-}
-
-HRESULT ECExchangeImportContentsChanges::xECImportContentsChanges::ImportMessageMove(ULONG cbSourceKeySrcFolder, BYTE FAR * pbSourceKeySrcFolder, ULONG cbSourceKeySrcMessage, BYTE FAR * pbSourceKeySrcMessage, ULONG cbPCLMessage, BYTE FAR * pbPCLMessage, ULONG cbSourceKeyDestMessage, BYTE FAR * pbSourceKeyDestMessage, ULONG cbChangeNumDestMessage, BYTE FAR * pbChangeNumDestMessage){
-	TRACE_MAPI(TRACE_ENTRY, "IECImportContentsChanges::ImportMessageMove", "");
-	METHOD_PROLOGUE_(ECExchangeImportContentsChanges, ECImportContentsChanges);
-	return pThis->ImportMessageMove(cbSourceKeySrcFolder, pbSourceKeySrcFolder, cbSourceKeySrcMessage, pbSourceKeySrcMessage, cbPCLMessage, pbPCLMessage, cbSourceKeyDestMessage, pbSourceKeyDestMessage, cbChangeNumDestMessage, pbChangeNumDestMessage);
-}
-
-HRESULT ECExchangeImportContentsChanges::xECImportContentsChanges::ConfigForConversionStream(LPSTREAM lpStream, ULONG ulFlags, ULONG cValuesConversion, LPSPropValue lpPropArrayConversion)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECImportContentsChanges::ConfigureForConversionStream", "");
-	METHOD_PROLOGUE_(ECExchangeImportContentsChanges, ECImportContentsChanges);
-	return pThis->ConfigForConversionStream(lpStream, ulFlags, cValuesConversion, lpPropArrayConversion);
-}
-
-HRESULT ECExchangeImportContentsChanges::xECImportContentsChanges::ImportMessageChangeAsAStream(ULONG cpvalChanges, LPSPropValue ppvalChanges, ULONG ulFlags, LPSTREAM *lppstream)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IECImportContentsChanges2::ImportMessageChangeAsAStream", "");
-	METHOD_PROLOGUE_(ECExchangeImportContentsChanges, ECImportContentsChanges);
-	return pThis->ImportMessageChangeAsAStream(cpvalChanges, ppvalChanges, ulFlags, lppstream);
-}
-
-HRESULT ECExchangeImportContentsChanges::xECImportContentsChanges::SetMessageInterface(REFIID refiid)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IExchangeImportContentsChanges::SetMessageInterface", "%s", DBGGUIDToString(refiid).c_str());
-	METHOD_PROLOGUE_(ECExchangeImportContentsChanges, ECImportContentsChanges);
-	return pThis->SetMessageInterface(refiid);
-}
+DEF_ULONGMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, Release, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, QueryInterface, (REFIID, refiid), (void **, lppInterface))
+DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, GetLastError, (HRESULT, hError), (ULONG, ulFlags), (LPMAPIERROR *, lppMapiError))
+DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, Config, (LPSTREAM, lpStream), (ULONG, ulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, UpdateState, (LPSTREAM, lpStream))
+DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, ImportMessageChange, (ULONG, cValue), (LPSPropValue, lpPropArray), (ULONG, ulFlags), (LPMESSAGE *, lppMessage))
+DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, ImportMessageDeletion, (ULONG, ulFlags), (LPENTRYLIST, lpSourceEntryList))
+DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, ImportPerUserReadStateChange, (ULONG, cElements), (LPREADSTATE, lpReadState))
+DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, ImportMessageMove, (ULONG, cbSourceKeySrcFolder), (BYTE FAR *, pbSourceKeySrcFolder), (ULONG, cbSourceKeySrcMessage), (BYTE FAR *, pbSourceKeySrcMessage), (ULONG, cbPCLMessage), (BYTE FAR *, pbPCLMessage), (ULONG, cbSourceKeyDestMessage), (BYTE FAR *, pbSourceKeyDestMessage), (ULONG, cbChangeNumDestMessage), (BYTE FAR *, pbChangeNumDestMessage))
+DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, ConfigForConversionStream, (LPSTREAM, lpStream), (ULONG, ulFlags), (ULONG, cValuesConversion), (LPSPropValue, lpPropArrayConversion))
+DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, ImportMessageChangeAsAStream, (ULONG, cpvalChanges), (LPSPropValue, ppvalChanges), (ULONG, ulFlags), (LPSTREAM *, lppstream))
+DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, SetMessageInterface, (REFIID, refiid))
