@@ -138,6 +138,7 @@ public:
     ECPropMapEntry(GUID guid, ULONG ulId);
     ECPropMapEntry(GUID guid, const char *strName);
     ECPropMapEntry(const ECPropMapEntry &other);
+	ECPropMapEntry(ECPropMapEntry &&);
     ~ECPropMapEntry();
     
     MAPINAMEID* GetMAPINameId();

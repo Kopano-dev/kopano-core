@@ -2573,6 +2573,19 @@ ECPropMapEntry::ECPropMapEntry(const ECPropMapEntry &other) {
     }
 }
 
+ECPropMapEntry::ECPropMapEntry(ECPropMapEntry &&other) :
+{
+	m_sMAPINameId.ulKind = other.m_sMAPINameId.ulKind;
+	m_sGuid = other.m_sGuid;
+	m_sMAPINameId.lpguid = &m_sGuid;
+	if (other.m_sMAPINameId.ulKind == MNID_ID) {
+		m_sMAPINameId.Kind.lID = other.m_sMAPINameId.Kind.lID;
+	} else {
+		m_sMAPINameId.Kind.lpwstrName = other.m_sMAPINameId.Kind.lpwstrName;
+		other.m_sMAPINameId.Kind.lpwstrName = nullptr;
+	}
+}
+
 ECPropMapEntry::~ECPropMapEntry()
 {
 	if (m_sMAPINameId.ulKind == MNID_STRING)
