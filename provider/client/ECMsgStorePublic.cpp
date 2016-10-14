@@ -110,9 +110,8 @@ HRESULT ECMsgStorePublic::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULON
 		break;
 	case PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID:
 		hr = lpStore->HrGetRealProp(PR_IPM_SUBTREE_ENTRYID, ulFlags, lpBase, lpsPropValue);
-		if (hr == hrSuccess) {
+		if (hr == hrSuccess)
 			lpsPropValue->ulPropTag = PR_EC_PUBLIC_IPM_SUBTREE_ENTRYID;
-		}
 		break;
 	default:
 		hr = MAPI_E_NOT_FOUND;

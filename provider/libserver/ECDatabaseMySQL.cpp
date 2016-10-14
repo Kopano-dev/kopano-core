@@ -636,9 +636,8 @@ ECRESULT ECDatabaseMySQL::Connect()
 		gcm = 1024;
 		
 	strQuery = (string)"SET SESSION group_concat_max_len = " + stringify(gcm);
-	if(Query(strQuery) != erSuccess ) {
+	if (Query(strQuery) != erSuccess)
 	    ec_log_warn("Unable to set group_concat_max_len value");
-	}
 
 	// changing the SESSION max_allowed_packet is removed since mysql 5.1, and GLOBAL is for SUPER users only, so just give a warning
 	if (m_ulMaxAllowedPacket < MAX_ALLOWED_PACKET)
@@ -887,11 +886,8 @@ ECRESULT ECDatabaseMySQL::GetNextResult(DB_RESULT *lppResult) {
 
 	if (lppResult)
 		*lppResult = lpResult;
-	else {
-		if(lpResult)
-			FreeResult(lpResult);
-	}
-
+	else if (lpResult != nullptr)
+		FreeResult(lpResult);
 exit:
 	if (er != erSuccess) {
 		g_lpStatsCollector->Increment(SCN_DATABASE_FAILED_SELECTS);
@@ -1004,13 +1000,11 @@ ECRESULT ECDatabaseMySQL::DoInsert(const string &strQuery, unsigned int *lpulIns
 		Lock();
 	
 	er = _Update(strQuery, lpulAffectedRows);
-
-	if (er == erSuccess) {
-		if (lpulInsertId)
-			*lpulInsertId = GetInsertId();
-	} else {
+	if (er != erSuccess) {
 		g_lpStatsCollector->Increment(SCN_DATABASE_FAILED_INSERTS);
 		g_lpStatsCollector->SetTime(SCN_DATABASE_LAST_FAILED, time(NULL));
+	} else if (lpulInsertId != nullptr) {
+		*lpulInsertId = GetInsertId();
 	}
 
 	g_lpStatsCollector->Increment(SCN_DATABASE_INSERTS);
@@ -1075,9 +1069,8 @@ ECRESULT ECDatabaseMySQL::DoSequence(const std::string &strSeqName, unsigned int
 
 #ifdef DEBUG
 #if DEBUG_TRANSACTION
-	if(m_ulTransactionState != 0) {
+	if (m_ulTransactionState != 0)
 		assert(false);
-	}		
 #endif
 #endif
 
@@ -1189,15 +1182,11 @@ std::string ECDatabaseMySQL::FilterBMP(const std::string &strToFilter)
 			len = 5;
 		else if((c[pos] & 0xFE) == 0xFC)
 			len = 6;
-		else {
+		else
 			// Invalid UTF-8 ?
 			len = 1;
-		}
-		
-		if(len < 4) {
+		if (len < 4)
 			strFiltered.append(&c[pos], len);
-		}
-		
 		pos += len;
 	}
 	
@@ -1702,14 +1691,12 @@ ECRESULT ECDatabaseMySQL::UpdateDatabase(bool bForceUpdate, std::string &strRepo
 	for (size_t i = ulDatabaseRevisionMin;
 	     i < ARRAY_SIZE(sUpdateList); ++i)
 	{
-		if ( (ulDatabaseRevisionMin > 0 && IsUpdateDone(sUpdateList[i].ulVersion) == hrSuccess) ||
-			(sUpdateList[i].ulVersionMin != 0 && stored_ver.v_schema >= sUpdateList[i].ulVersion &&
-			stored_ver.v_schema >= sUpdateList[i].ulVersionMin) ||
-			(sUpdateList[i].ulVersionMin != 0 && IsUpdateDone(sUpdateList[i].ulVersionMin, PROJECT_VERSION_REVISION) == hrSuccess))
-		{
+		if ((ulDatabaseRevisionMin > 0 && IsUpdateDone(sUpdateList[i].ulVersion) == hrSuccess) ||
+		    (sUpdateList[i].ulVersionMin != 0 && stored_ver.v_schema >= sUpdateList[i].ulVersion &&
+		    stored_ver.v_schema >= sUpdateList[i].ulVersionMin) ||
+		    (sUpdateList[i].ulVersionMin != 0 && IsUpdateDone(sUpdateList[i].ulVersionMin, PROJECT_VERSION_REVISION) == hrSuccess))
 			// Update already done, next
 			continue;
-		}
 
 		ec_log_info("Start: %s", sUpdateList[i].lpszLogComment);
 
@@ -1838,13 +1825,11 @@ ECRESULT ECDatabaseMySQL::ValidateTables()
 				break;
 			}
 		}
-		if(er != erSuccess) {
+		if (er != erSuccess)
 			ec_log_crit("Rebuild tables failed. Error code 0x%08x", er);
-		} else {
+		else
 			ec_log_notice("Rebuilding tables done.");
-		}
 	}//	if (!listErrorTables.empty())
-
 exit:
 	if(lpResult)
 		FreeResult(lpResult);

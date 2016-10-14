@@ -161,74 +161,70 @@ HRESULT	ECArchiveAwareMessage::HrSetRealProp(SPropValue *lpsPropValue)
 {
 	HRESULT hr;
 
-	if (m_bLoading) {
-		/*
-		 * This is where we end up if we're called through HrLoadProps. So this
-		 * is where we check if the loaded message is unarchived, archived or stubbed.
-		 */
-		if (lpsPropValue &&
-			PROP_TYPE(lpsPropValue->ulPropTag) != PT_ERROR &&
-			PROP_ID(lpsPropValue->ulPropTag) >= 0x8500)
-		{
-			// We have a named property that's in the not-hardcoded range (where
-			// the archive named properties are). We now need to check if that's
-			// one of the properties we're interested in.
-			// That might mean we need to first map the named properties now.
-			if (!m_bNamedPropsMapped) {
-				hr = MapNamedProps();
-				if (hr != hrSuccess)
-					return hr;
-			}
+	/*
+	 * m_bLoading: This is where we end up if we're called through HrLoadProps. So this
+	 * is where we check if the loaded message is unarchived, archived or stubbed.
+	 */
+	if (m_bLoading && lpsPropValue != nullptr &&
+	    PROP_TYPE(lpsPropValue->ulPropTag) != PT_ERROR &&
+	    PROP_ID(lpsPropValue->ulPropTag) >= 0x8500) {
+		// We have a named property that's in the not-hardcoded range (where
+		// the archive named properties are). We now need to check if that's
+		// one of the properties we're interested in.
+		// That might mean we need to first map the named properties now.
+		if (!m_bNamedPropsMapped) {
+			hr = MapNamedProps();
+			if (hr != hrSuccess)
+				return hr;
+		}
 
-			// Check the various props.
-			if (lpsPropValue->ulPropTag == PROP_ARCHIVE_STORE_ENTRYIDS) {
-				if (m_mode == MODE_UNARCHIVED)
-					m_mode = MODE_ARCHIVED;
+		// Check the various props.
+		if (lpsPropValue->ulPropTag == PROP_ARCHIVE_STORE_ENTRYIDS) {
+			if (m_mode == MODE_UNARCHIVED)
+				m_mode = MODE_ARCHIVED;
 
-				// Store list
-				hr = MAPIAllocateBuffer(sizeof(SPropValue), (LPVOID*)&m_ptrStoreEntryIDs);
-				if (hr == hrSuccess)
-					hr = Util::HrCopyProperty(m_ptrStoreEntryIDs, lpsPropValue, m_ptrStoreEntryIDs);
-				if (hr != hrSuccess)
-					return hr;
-			}
+			// Store list
+			hr = MAPIAllocateBuffer(sizeof(SPropValue), (LPVOID*)&m_ptrStoreEntryIDs);
+			if (hr == hrSuccess)
+				hr = Util::HrCopyProperty(m_ptrStoreEntryIDs, lpsPropValue, m_ptrStoreEntryIDs);
+			if (hr != hrSuccess)
+				return hr;
+		}
 
-			else if (lpsPropValue->ulPropTag == PROP_ARCHIVE_ITEM_ENTRYIDS) {
-				if (m_mode == MODE_UNARCHIVED)
-					m_mode = MODE_ARCHIVED;
+		else if (lpsPropValue->ulPropTag == PROP_ARCHIVE_ITEM_ENTRYIDS) {
+			if (m_mode == MODE_UNARCHIVED)
+				m_mode = MODE_ARCHIVED;
 
-				// Store list
-				hr = MAPIAllocateBuffer(sizeof(SPropValue), (LPVOID*)&m_ptrItemEntryIDs);
-				if (hr == hrSuccess)
-					hr = Util::HrCopyProperty(m_ptrItemEntryIDs, lpsPropValue, m_ptrItemEntryIDs);
-				if (hr != hrSuccess)
-					return hr;
-			}
+			// Store list
+			hr = MAPIAllocateBuffer(sizeof(SPropValue), (LPVOID*)&m_ptrItemEntryIDs);
+			if (hr == hrSuccess)
+				hr = Util::HrCopyProperty(m_ptrItemEntryIDs, lpsPropValue, m_ptrItemEntryIDs);
+			if (hr != hrSuccess)
+				return hr;
+		}
 
-			else if (lpsPropValue->ulPropTag == PROP_STUBBED) {
-				if (lpsPropValue->Value.b != FALSE)
-					m_mode = MODE_STUBBED;
+		else if (lpsPropValue->ulPropTag == PROP_STUBBED) {
+			if (lpsPropValue->Value.b != FALSE)
+				m_mode = MODE_STUBBED;
 
-				// The message is not stubbed once destubbed.
-				// This fixes all kind of weird copy issues where the stubbed property does not
-				// represent the actual state of the message.
-				lpsPropValue->Value.b = FALSE;
-			}
+			// The message is not stubbed once destubbed.
+			// This fixes all kind of weird copy issues where the stubbed property does not
+			// represent the actual state of the message.
+			lpsPropValue->Value.b = FALSE;
+		}
 
-			else if (lpsPropValue->ulPropTag == PROP_DIRTY) {
-				if (lpsPropValue->Value.b != FALSE)
-					m_mode = MODE_DIRTY;
-			}
+		else if (lpsPropValue->ulPropTag == PROP_DIRTY) {
+			if (lpsPropValue->Value.b != FALSE)
+				m_mode = MODE_DIRTY;
 		}
 	}
 
 	hr = ECMessage::HrSetRealProp(lpsPropValue);
-	if (hr == hrSuccess && !m_bLoading) {
+	if (hr == hrSuccess && !m_bLoading)
 		/*
 		 * This is where we end up if a property is actually altered through SetProps.
 		 */
 		m_bChanged = true;
-	}
 	return hr;
 }
 
@@ -249,13 +245,10 @@ HRESULT ECArchiveAwareMessage::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG
 
 	hr = ECMessage::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
 	if (!m_bLoading && hr == hrSuccess && ((ulFlags & MAPI_MODIFY) || (fModify && (ulFlags & MAPI_BEST_ACCESS))))
-	{
 		// We have no way of knowing if the property will modified since it operates directly
 		// on the MAPIOBJECT data, which bypasses this subclass.
 		// @todo wrap the property to track if it was altered.
 		m_bChanged = true;
-	}
-
 	return hr;
 }
 
@@ -269,13 +262,10 @@ HRESULT ECArchiveAwareMessage::OpenAttach(ULONG ulAttachmentNum, LPCIID lpInterf
 	// if the parent object was openend with write access, we'll assume the object is changed the moment
 	// the attachment is openend.
 	if (hr == hrSuccess && ((ulFlags & MAPI_MODIFY) || fModify))
-	{
 		// We have no way of knowing if the attachment will modified since it operates directly
 		// on the MAPIOBJECT data, which bypasses this subclass.
 		// @todo wrap the attachment to track if it was altered.
 		m_bChanged = true;
-	}
-
 	return hr;
 }
 

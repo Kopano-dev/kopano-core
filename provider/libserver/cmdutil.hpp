@@ -38,7 +38,13 @@ public:
     }
     EntryId(const EntryId &s) { 
         m_data = s.m_data;
+        updateStruct();
     }
+	EntryId(EntryId &&o) :
+	    m_data(std::move(o.m_data))
+	{
+		updateStruct();
+	}
     EntryId(const entryId *entryid) {
         if(entryid) 
             m_data = std::string((char *)entryid->__ptr, entryid->__size);

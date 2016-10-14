@@ -2043,6 +2043,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 				case 0x3A4E:	/* PR_MANAGER_NAME */
 					/* Rename to PR_EMS_AB_MANAGER */
 					ulPropTag = 0x8005001E;
+					/* fallthru */
 				case 0x8005:	/* PR_EMS_AB_MANAGER */
 				case 0x800C:	/* PR_EMS_AB_OWNER */
 				{

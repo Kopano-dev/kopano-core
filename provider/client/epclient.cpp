@@ -486,9 +486,8 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 		if (hr != hrSuccess)
 			goto exit;
 	} else {
-		if(ulResourceType != MAPI_TRANSPORT_PROVIDER) {
+		if (ulResourceType != MAPI_TRANSPORT_PROVIDER)
 			assert(false);
-		}
 		goto exit;
 	}
 
@@ -621,9 +620,8 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
 
 	if (psup) {
 		hr = psup->GetMemAllocRoutines(&_pfnAllocBuf, &_pfnAllocMore, &_pfnFreeBuf);
-		if(hr != hrSuccess) {
+		if (hr != hrSuccess)
 			assert(false);
-		}
 	} else {
 		// Support object not available on linux at this time... TODO: fix mapi4linux?
 		_pfnAllocBuf = MAPIAllocateBuffer;
@@ -721,10 +719,11 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
 		}
 
 		hr = ClientUtil::GetGlobalProfileProperties(ptrGlobalProfSect, &sProfileProps);
-
-		if(sProfileProps.strServerPath.empty() || sProfileProps.strUserName.empty() || (sProfileProps.strPassword.empty() && sProfileProps.strSSLKeyFile.empty())) {
+		if (sProfileProps.strServerPath.empty() ||
+		    sProfileProps.strUserName.empty() ||
+		    (sProfileProps.strPassword.empty() &&
+		    sProfileProps.strSSLKeyFile.empty()))
 			bShowDialog = true;
-		}
 		//FIXME: check here offline path with the flags
 		if(!sProfileProps.strServerPath.empty()) {
 			strServerName = GetServerNameFromPath(sProfileProps.strServerPath.c_str());
@@ -746,11 +745,8 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
 			bGlobalProfileUpdate = false;
 			bUpdatedPageConnection = false;
 
-			if((bShowDialog && ulFlags & SERVICE_UI_ALLOWED) || ulFlags & SERVICE_UI_ALWAYS )
-			{
+			if ((bShowDialog && ulFlags & SERVICE_UI_ALLOWED) || ulFlags & SERVICE_UI_ALWAYS)
 				hr = MAPI_E_USER_CANCEL;
-			}// if(bShowDialog...)
-
 						
 			if(!(ulFlags & SERVICE_UI_ALLOWED || ulFlags & SERVICE_UI_ALWAYS) && (strServerName.empty() || sProfileProps.strUserName.empty())){
 				hr = MAPI_E_UNCONFIGURED;
@@ -955,15 +951,8 @@ extern "C" HRESULT  __cdecl ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMallo
 {
 	TRACE_MAPI(TRACE_ENTRY, "ABProviderInit", "");
 
-	HRESULT hr = hrSuccess;
-	ECABProviderSwitch	*lpABProvider = NULL;
-
 	if (ulMAPIVer < CURRENT_SPI_VERSION)
-	{
-		hr = MAPI_E_VERSION;
-		goto exit;
-	}
-
+		return MAPI_E_VERSION;
 	*lpulProviderVer = CURRENT_SPI_VERSION;
 	// Save the pointer to the allocation routines in global variables
 	_pmalloc = lpMalloc;
@@ -972,13 +961,10 @@ extern "C" HRESULT  __cdecl ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMallo
 	_pfnFreeBuf = lpFreeBuffer;
 	_hInstance = hInstance;
 
-	hr = ECABProviderSwitch::Create(&lpABProvider);
-	if(hr != hrSuccess)
-		goto exit;
-
-	hr = lpABProvider->QueryInterface(IID_IABProvider, (void **)lppABProvider);
-
-exit:
+	ECABProviderSwitch *lpABProvider = NULL;
+	HRESULT hr = ECABProviderSwitch::Create(&lpABProvider);
+	if (hr == hrSuccess)
+		hr = lpABProvider->QueryInterface(IID_IABProvider, reinterpret_cast<void **>(lppABProvider));
 	if(lpABProvider)
 		lpABProvider->Release();
 

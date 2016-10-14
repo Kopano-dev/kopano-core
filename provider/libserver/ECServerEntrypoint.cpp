@@ -141,9 +141,8 @@ ECRESULT kopano_init(ECConfig *lpConfig, ECLogger *lpAudit, bool bHostedKopano, 
 
 void kopano_removeallsessions()
 {
-	if(g_lpSessionManager) {
+	if (g_lpSessionManager != nullptr)
 		g_lpSessionManager->RemoveAllSessions();
-	}
 }
 
 ECRESULT kopano_exit()
@@ -191,10 +190,8 @@ static int kopano_fparsehdr(struct soap *soap, const char *key,
     const char *val)
 {
 	const char *szProxy = g_lpSessionManager->GetConfig()->GetSetting("proxy_header");
-	if(strlen(szProxy) > 0 && strcasecmp(key, szProxy) == 0) {
+	if (strlen(szProxy) > 0 && strcasecmp(key, szProxy) == 0)
 		((SOAPINFO *)soap->user)->bProxy = true;
-	}
-	
 	return ((SOAPINFO *)soap->user)->fparsehdr(soap, key, val);
 }
 
@@ -241,22 +238,18 @@ void kopano_end_soap_listener(struct soap *soap)
 // open
 void kopano_disconnect_soap_connection(struct soap *soap)
 {
-	if(SOAP_CONNECTION_TYPE_NAMED_PIPE(soap)) {
+	if (SOAP_CONNECTION_TYPE_NAMED_PIPE(soap))
 		// Mark the persistent session as exited
 		g_lpSessionManager->RemoveSessionPersistentConnection((unsigned int)soap->socket);
-	}
 }
 
 // Export functions
 ECRESULT GetDatabaseObject(ECDatabase **lppDatabase)
 {
-	if(g_lpSessionManager == NULL) {
+	if (g_lpSessionManager == NULL)
 		return KCERR_UNKNOWN;
-	}
-
-	if(lppDatabase == NULL) {
+	if (lppDatabase == NULL)
 		return KCERR_INVALID_PARAMETER;
-	}
 
 	ECDatabaseFactory db(g_lpSessionManager->GetConfig());
 	return GetThreadLocalDatabase(&db, lppDatabase);

@@ -52,10 +52,8 @@ void ECNotification::Init()
 
 ECNotification& ECNotification::operator=(const ECNotification &x)
 {
-	if(this != &x){
+	if(this != &x)
 		CopyNotificationStruct(NULL, x.m_lpsNotification, *this->m_lpsNotification);
-	}
-
 	return *this;
 }
 

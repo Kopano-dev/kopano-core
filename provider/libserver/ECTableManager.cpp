@@ -202,11 +202,8 @@ ECRESULT ECTableManager::OpenOutgoingQueueTable(unsigned int ulStoreId, unsigned
 	lpEntry->sTable.sOutgoingQueue.ulFlags = ulStoreId ? EC_SUBMIT_LOCAL : EC_SUBMIT_MASTER;
 
 	AddTableEntry(lpEntry, lpulTableId);
-
-	if(lpTable->GetColumns(NULL, TBL_ALL_COLUMNS, &lpsPropTags) == erSuccess) {
+	if (lpTable->GetColumns(NULL, TBL_ALL_COLUMNS, &lpsPropTags) == erSuccess)
 		lpTable->SetColumns(lpsPropTags, false);
-	}
-
 	lpTable->SeekRow(BOOKMARK_BEGINNING, 0, NULL);
 
 exit:
@@ -338,12 +335,10 @@ ECRESULT ECTableManager::OpenGenericTable(unsigned int ulParent, unsigned int ul
 	AddTableEntry(lpEntry, lpulTableId);
 
 	// Load a default column set
-	if(ulObjType == MAPI_MESSAGE) {
+	if (ulObjType == MAPI_MESSAGE)
 		lpTable->SetColumns(&sPropTagArrayContents, true);
-	} else {
+	else
 		lpTable->SetColumns(&sPropTagArrayHierarchy, true);
-	}
-
 exit:
 	if (lpTable)
 		lpTable->Release();
@@ -353,17 +348,16 @@ exit:
 
 static void AuditStatsAccess(ECSession *lpSession, const char *access, const char *table)
 {
-	if (lpSession->GetSessionManager()->GetAudit()) {
-		std::string strUsername;
-		std::string strImpersonator;
-		
-		lpSession->GetSecurity()->GetUsername(&strUsername);
-		if (lpSession->GetSecurity()->GetImpersonator(&strImpersonator) == erSuccess) {
-			ZLOG_AUDIT(lpSession->GetSessionManager()->GetAudit(), "access %s table='%s stats' username=%s impersonator=%s", access, table, strUsername.c_str(), strImpersonator.c_str());
-		} else {
-			ZLOG_AUDIT(lpSession->GetSessionManager()->GetAudit(), "access %s table='%s stats' username=%s", access, table, strUsername.c_str());
-		}
-	}
+	if (!lpSession->GetSessionManager()->GetAudit())
+		return;
+	std::string strUsername;
+	std::string strImpersonator;
+	
+	lpSession->GetSecurity()->GetUsername(&strUsername);
+	if (lpSession->GetSecurity()->GetImpersonator(&strImpersonator) == erSuccess)
+		ZLOG_AUDIT(lpSession->GetSessionManager()->GetAudit(), "access %s table='%s stats' username=%s impersonator=%s", access, table, strUsername.c_str(), strImpersonator.c_str());
+	else
+		ZLOG_AUDIT(lpSession->GetSessionManager()->GetAudit(), "access %s table='%s stats' username=%s", access, table, strUsername.c_str());
 }
 
 ECRESULT ECTableManager::OpenStatsTable(unsigned int ulTableType, unsigned int ulFlags, unsigned int *lpulTableId)

@@ -123,10 +123,10 @@ std::string IncrementalQueryCreator::CreateBaseQuery()
 
 	strQuery =  "SELECT changes.id, changes.sourcekey, changes.parentsourcekey, changes.change_type, changes.flags, NULL, changes.sourcesync "
 				"FROM changes ";
-	if ((m_ulFlags & (SYNC_ASSOCIATED | SYNC_NORMAL)) != (SYNC_ASSOCIATED | SYNC_NORMAL)) {
+	if ((m_ulFlags & (SYNC_ASSOCIATED | SYNC_NORMAL)) != (SYNC_ASSOCIATED | SYNC_NORMAL))
 		strQuery +=	"LEFT JOIN indexedproperties ON indexedproperties.val_binary = changes.sourcekey AND indexedproperties.tag = " + stringify(PROP_ID(PR_SOURCE_KEY)) + " " +
 					"LEFT JOIN hierarchy ON hierarchy.id = indexedproperties.hierarchyid ";
-	}
+
 	strQuery +=	"WHERE changes.id > " + stringify(m_ulChangeId) + 																	/* Get changes from change ID N onwards */
 				"  AND changes.change_type & " + stringify(ICS_MESSAGE) +															/* And change type is message */
 				"  AND changes.sourcesync != " + stringify(m_ulSyncId);																/* And we didn't generate this change ourselves */
@@ -134,12 +134,11 @@ std::string IncrementalQueryCreator::CreateBaseQuery()
 	if(!m_sFolderSourceKey.empty()) 
 		strQuery += "  AND changes.parentsourcekey = " + m_lpDatabase->EscapeBinary(m_sFolderSourceKey, m_sFolderSourceKey.size());	/* Where change took place in Folder X */
 
-	if (m_ulFlags & SYNC_NO_DELETIONS) {
+	if (m_ulFlags & SYNC_NO_DELETIONS)
 		strQuery += " AND changes.change_type & " + stringify(ICS_ACTION_MASK) + " != " + stringify(ICS_SOFT_DELETE) +
 					" AND changes.change_type & " + stringify(ICS_ACTION_MASK) + " != " + stringify(ICS_HARD_DELETE);
-	} else if (m_ulFlags & SYNC_NO_SOFT_DELETIONS) {
+	else if (m_ulFlags & SYNC_NO_SOFT_DELETIONS)
 		strQuery += " AND changes.change_type & " + stringify(ICS_ACTION_MASK) + " != " + stringify(ICS_SOFT_DELETE);
-	}
 
 	if ((m_ulFlags & SYNC_READ_STATE) == 0)
 		strQuery += " AND changes.change_type & " + stringify(ICS_ACTION_MASK) + " != " + stringify(ICS_FLAG);
@@ -1092,9 +1091,8 @@ ECRESULT ECGetContentChangesHelper::GetSyncedMessages(unsigned int ulSyncId, uns
 		}
 
 		auto iResult = lpsetMessages->insert(MESSAGESET::value_type(SOURCEKEY(lpDBLen[0], lpDBRow[0]), SAuxMessageData(SOURCEKEY(lpDBLen[1], lpDBRow[1]), 1 << (lpDBRow[2]?atoui(lpDBRow[2]):0), lpDBRow[3]?atoui(lpDBRow[3]):0)));
-		if (iResult.second == false && lpDBRow[2]) {
+		if (iResult.second == false && lpDBRow[2] != nullptr)
 			iResult.first->second.ulChangeTypes |= 1 << (lpDBRow[2]?atoui(lpDBRow[2]):0);
-		}
 	}
 	
 exit:

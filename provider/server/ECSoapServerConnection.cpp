@@ -284,11 +284,9 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char* lpServerName, int nServer
 		ssl_name = strtok(NULL, " ");
 	}
 
-	if (ssl_include != 0) {
+	if (ssl_include != 0)
 		// Exclude everything, except those that are included (and let excludes still override those)
 		ssl_exclude |= 0x1f & ~ssl_include;
-	}
-
 	if ((ssl_exclude & 0x01) != 0)
 		ssl_op |= SSL_OP_NO_SSLv2;
 	if ((ssl_exclude & 0x02) != 0)
@@ -303,20 +301,15 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char* lpServerName, int nServer
 	if ((ssl_exclude & 0x10) != 0)
 		ssl_op |= SSL_OP_NO_TLSv1_2;
 #endif
-
-	if (server_ssl_protocols) {
+	if (server_ssl_protocols != nullptr)
 		SSL_CTX_set_options(lpsSoap->ctx, ssl_op);
-	}
-
 	if (server_ssl_ciphers && SSL_CTX_set_cipher_list(lpsSoap->ctx, server_ssl_ciphers) != 1) {
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Can not set SSL cipher list to '%s': %s", server_ssl_ciphers, ERR_error_string(ERR_get_error(), 0));
 		er = KCERR_CALL_FAILED;
 		goto exit;
 	}
-
-	if (parseBool(m_lpConfig->GetSetting("server_ssl_prefer_server_ciphers"))) {
+	if (parseBool(m_lpConfig->GetSetting("server_ssl_prefer_server_ciphers")))
 		SSL_CTX_set_options(lpsSoap->ctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
-	}
 
 	// request certificate from client, is OK if not present.
 	SSL_CTX_set_verify(lpsSoap->ctx, SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE, NULL);
@@ -337,11 +330,8 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char* lpServerName, int nServer
 
 exit:
 	free(server_ssl_protocols);
-
-	if (er != erSuccess && lpsSoap) {
+	if (er != erSuccess && lpsSoap != nullptr)
 		soap_free(lpsSoap);
-	}
-
 	return er;
 }
 
@@ -389,10 +379,8 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriori
 	m_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Listening for %spipe connections on %s", bPriority ? "priority " : "", lpPipeName);
 
 exit:
-	if (er != erSuccess && lpsSoap) {
+	if (er != erSuccess && lpsSoap != nullptr)
 		soap_free(lpsSoap);
-	}
-
 	return er;
 }
 

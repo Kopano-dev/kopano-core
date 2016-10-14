@@ -2204,15 +2204,13 @@ HRESULT CopySOAPNotificationToMAPINotification(void *lpProvider, struct notifica
 			hr = MAPI_E_INVALID_PARAMETER;
 			break;
 		case fnevNewMail://NEWMAIL_NOTIFICATION
-			if(lpSrc->newmail->pEntryId) {
+			if (lpSrc->newmail->pEntryId != nullptr)
 				// Ignore error now
 				// FIXME: This must exist, so maybe give an error or skip them
 				CopySOAPEntryIdToMAPIEntryId(lpSrc->newmail->pEntryId, &lpNotification->info.newmail.cbEntryID, &lpNotification->info.newmail.lpEntryID, (void **)lpNotification);
-			}
-			if(lpSrc->newmail->pParentId) {
+			if (lpSrc->newmail->pParentId != nullptr)
 				// Ignore error
 				CopySOAPEntryIdToMAPIEntryId(lpSrc->newmail->pParentId, &lpNotification->info.newmail.cbParentID, &lpNotification->info.newmail.lpParentID, (void **)lpNotification);
-			}
 
 			if(lpSrc->newmail->lpszMessageClass != NULL) {
 				nLen = strlen(lpSrc->newmail->lpszMessageClass)+1;
@@ -2234,26 +2232,17 @@ HRESULT CopySOAPNotificationToMAPINotification(void *lpProvider, struct notifica
 			lpNotification->info.obj.ulObjType = lpSrc->obj->ulObjType;
 
 			// All errors of CopySOAPEntryIdToMAPIEntryId are ignored
-			if(lpSrc->obj->pEntryId != NULL) {
+			if (lpSrc->obj->pEntryId != NULL)
 				CopySOAPEntryIdToMAPIEntryId(lpSrc->obj->pEntryId, &lpNotification->info.obj.cbEntryID, &lpNotification->info.obj.lpEntryID, (void **)lpNotification);
-			}
-
-			if(lpSrc->obj->pParentId != NULL) {
+			if (lpSrc->obj->pParentId != NULL)
 				CopySOAPEntryIdToMAPIEntryId(lpSrc->obj->pParentId, &lpNotification->info.obj.cbParentID, &lpNotification->info.obj.lpParentID, (void **)lpNotification);
-			}
-
-			if(lpSrc->obj->pOldId != NULL) {
+			if (lpSrc->obj->pOldId != NULL)
 				CopySOAPEntryIdToMAPIEntryId(lpSrc->obj->pOldId, &lpNotification->info.obj.cbOldID, &lpNotification->info.obj.lpOldID, (void **)lpNotification);
-			}
-
-			if(lpSrc->obj->pOldParentId != NULL){
+			if (lpSrc->obj->pOldParentId != NULL)
 				CopySOAPEntryIdToMAPIEntryId(lpSrc->obj->pOldParentId, &lpNotification->info.obj.cbOldParentID, &lpNotification->info.obj.lpOldParentID, (void **)lpNotification);
-			}
-
-			if(lpSrc->obj->pPropTagArray) {
+			if (lpSrc->obj->pPropTagArray != nullptr)
 				// ignore errors
 				CopySOAPPropTagArrayToMAPIPropTagArray(lpSrc->obj->pPropTagArray, &lpNotification->info.obj.lpPropTagArray, (void **)lpNotification);
-			}
 			break;
 		case fnevTableModified:// TABLE_NOTIFICATION
 			lpNotification->info.tab.ulTableEvent = lpSrc->tab->ulTableEvent;

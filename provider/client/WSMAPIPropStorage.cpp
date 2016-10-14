@@ -32,7 +32,8 @@
 #define START_SOAP_CALL retry:
 
 #define END_SOAP_CALL 	\
-	if(er == KCERR_END_OF_SESSION) { if(this->m_lpTransport->HrReLogon() == hrSuccess) goto retry; } \
+	if (er == KCERR_END_OF_SESSION && this->m_lpTransport->HrReLogon() == hrSuccess) \
+		goto retry; \
 	hr = kcerr_to_mapierr(er, MAPI_E_NOT_FOUND); \
 	if(hr != hrSuccess) \
 		goto exit;
@@ -418,27 +419,26 @@ HRESULT WSMAPIPropStorage::HrUpdateMapiObject(MAPIOBJECT *lpClientObj, struct sa
 			++iterObj;
 			FreeMapiObject(*iterDel);
 			lpClientObj->lstChildren->erase(iterDel);
-		} else if ((*iterObj)->bChanged) {
-			// find by client id, and set server id
-			gsoap_size_t i = 0;
-			while (i < lpsServerObj->__size) {
-				if ((*iterObj)->ulUniqueId == lpsServerObj->__ptr[i].ulClientId && (*iterObj)->ulObjType == lpsServerObj->__ptr[i].ulObjType)
-					break;
-				++i;
-			}
-			if (i == lpsServerObj->__size) {
-				// huh?
-				assert(false);
-				return MAPI_E_NOT_FOUND;
-			}
-
-			HrUpdateMapiObject(*iterObj, &lpsServerObj->__ptr[i]);
-
-			++iterObj;
-		} else {
-			++iterObj;
+			continue;
+		} else if (!(*iterObj)->bChanged) {
 			// this was never sent to the server, so it is not going to be in the server object
+			++iterObj;
+			continue;
 		}
+		// find by client id, and set server id
+		gsoap_size_t i = 0;
+		while (i < lpsServerObj->__size) {
+			if ((*iterObj)->ulUniqueId == lpsServerObj->__ptr[i].ulClientId && (*iterObj)->ulObjType == lpsServerObj->__ptr[i].ulObjType)
+				break;
+			++i;
+		}
+		if (i == lpsServerObj->__size) {
+			// huh?
+			assert(false);
+			return MAPI_E_NOT_FOUND;
+		}
+		HrUpdateMapiObject(*iterObj, &lpsServerObj->__ptr[i]);
+		++iterObj;
 	}
 	return hrSuccess;
 }
@@ -601,7 +601,8 @@ HRESULT WSMAPIPropStorage::HrLoadObject(MAPIOBJECT **lppsMapiObject)
 			er = sResponse.er;
 	}
 	//END_SOAP_CALL
-	if(er == KCERR_END_OF_SESSION) { if(m_lpTransport->HrReLogon() == hrSuccess) goto retry; }
+	if (er == KCERR_END_OF_SESSION && m_lpTransport->HrReLogon() == hrSuccess)
+		goto retry;
 	hr = kcerr_to_mapierr(er, MAPI_E_NOT_FOUND);
 	if (hr == MAPI_E_UNABLE_TO_COMPLETE)	// Store does not exist on this server
 		hr = MAPI_E_UNCONFIGURED;			// Force a reconfigure

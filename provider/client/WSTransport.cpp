@@ -78,7 +78,8 @@ using namespace std;
         goto exitm; \
     }
 #define END_SOAP_CALL 	\
-	if(er == KCERR_END_OF_SESSION) { if(HrReLogon() == hrSuccess) goto retry; } \
+	if (er == KCERR_END_OF_SESSION && HrReLogon() == hrSuccess) \
+		goto retry; \
 	hr = kcerr_to_mapierr(er, MAPI_E_NOT_FOUND); \
 	if(hr != hrSuccess) \
 		goto exitm;
@@ -222,15 +223,11 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 	else
 		bPipeConnection = false;
 
-	if(m_lpCmd == NULL) {
-		if (CreateSoapTransport(m_ulUIFlags, sProfileProps, &lpCmd) != hrSuccess)
-		{
-			hr = MAPI_E_INVALID_PARAMETER;
-			goto exit;
-		}
-	}
-	else {
+	if (m_lpCmd != nullptr) {
 		lpCmd = m_lpCmd;
+	} else if (CreateSoapTransport(m_ulUIFlags, sProfileProps, &lpCmd) != hrSuccess) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
 	}
 
 	assert(!sProfileProps.strProfileName.empty());
@@ -254,9 +251,8 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 		er = TrySSOLogon(lpCmd, GetServerNameFromPath(sProfileProps.strServerPath.c_str()).c_str(), strUserName, strImpersonateUser, ulCapabilities, m_ecSessionGroupId, (char *)GetAppName().c_str(), &ecSessionId, &ulServerCapabilities, &m_llFlags, &m_sServerGuid, sProfileProps.strClientAppVersion, sProfileProps.strClientAppMisc);
 		if (er == erSuccess)
 			goto auth;
-	} else {
-		if (sProfileProps.ulProfileFlags & EC_PROFILE_FLAGS_NO_UID_AUTH)
-			ulLogonFlags |= KOPANO_LOGON_NO_UID_AUTH;
+	} else if (sProfileProps.ulProfileFlags & EC_PROFILE_FLAGS_NO_UID_AUTH) {
+		ulLogonFlags |= KOPANO_LOGON_NO_UID_AUTH;
 	}
 	
 	// Login with username and password
@@ -342,16 +338,12 @@ auth: // User have a logon
 
 exit:
 	UnLockSoap();
-
-	if(hr != hrSuccess) {
+	if (hr != hrSuccess && lpCmd != nullptr && lpCmd != m_lpCmd)
 	    // UGLY FIX: due to the ugly code above that does lpCmd = m_lpCmd
 	    // we need to check that we're not deleting our m_lpCmd. We also cannot
 	    // set m_lpCmd to NULL since various functions in WSTransport rely on the
 	    // fact that m_lpCmd is good after a successful HrLogon() call.
-		if(lpCmd && lpCmd != m_lpCmd)
-			DestroySoapTransport(lpCmd);
-	}
-
+		DestroySoapTransport(lpCmd);
 	return hr;
 }
 
@@ -488,7 +480,8 @@ HRESULT WSTransport::HrGetPublicStore(ULONG ulFlags, ULONG* lpcbStoreID, LPENTRY
 			er = sResponse.er;
 	}
 	//END_SOAP_CALL
-	if(er == KCERR_END_OF_SESSION) { if(HrReLogon() == hrSuccess) goto retry; }
+	if (er == KCERR_END_OF_SESSION && HrReLogon() == hrSuccess)
+		goto retry;
 	hr = kcerr_to_mapierr(er, MAPI_E_NOT_FOUND);
 	if (hr == MAPI_E_UNABLE_TO_COMPLETE)
 	{
@@ -539,7 +532,8 @@ HRESULT WSTransport::HrGetStore(ULONG cbMasterID, LPENTRYID lpMasterID, ULONG* l
 			er = sResponse.er;
 	}
 	//END_SOAP_CALL
-	if(er == KCERR_END_OF_SESSION) { if(HrReLogon() == hrSuccess) goto retry; }
+	if (er == KCERR_END_OF_SESSION && HrReLogon() == hrSuccess)
+		goto retry;
 	hr = kcerr_to_mapierr(er, MAPI_E_NOT_FOUND);
 	if (hr == MAPI_E_UNABLE_TO_COMPLETE)
 	{
@@ -1479,11 +1473,8 @@ HRESULT WSTransport::HrGetReceiveFolder(ULONG cbStoreEntryID, LPENTRYID lpStoreE
 	*lppEntryID = lpEntryID;
 	*lpcbEntryID = cbEntryID;
  exitm:
-	if(hr != hrSuccess){
-		if(lpEntryID)
-			ECFreeBuffer(lpEntryID);
-	}
-
+	if (hr != hrSuccess && lpEntryID != nullptr)
+		ECFreeBuffer(lpEntryID);
 	if(lpUnWrapStoreID)
 		ECFreeBuffer(lpUnWrapStoreID);
 
@@ -1720,7 +1711,8 @@ HRESULT WSTransport::HrResolveUserStore(const utf8string &strUserName, ULONG ulF
 			er = sResponse.er;
 	}
 	//END_SOAP_CALL
-	if(er == KCERR_END_OF_SESSION) { if(HrReLogon() == hrSuccess) goto retry; }
+	if (er == KCERR_END_OF_SESSION && HrReLogon() == hrSuccess)
+		goto retry;
 	hr = kcerr_to_mapierr(er, MAPI_E_NOT_FOUND);
 	if (hr == MAPI_E_UNABLE_TO_COMPLETE)
 	{
@@ -1731,11 +1723,8 @@ HRESULT WSTransport::HrResolveUserStore(const utf8string &strUserName, ULONG ulF
 	}
 	if(hr != hrSuccess)
 		goto exitm;
-
-	if(lpulUserID) {
+	if (lpulUserID != nullptr)
 		*lpulUserID = sResponse.ulUserId;
-	}
-
 	if(lpcbStoreID && lppStoreID) {
 
 		// Create a client store entry, add the servername
@@ -3975,9 +3964,8 @@ HRESULT WSTransport::HrResolvePseudoUrl(const char *lpszPseudoUrl, char **lppszS
 	ECsResolveResult				*lpCachedResult = NULL;
 	ECsResolveResult				cachedResult;
 
-	if (lpszPseudoUrl == NULL || lppszServerPath == NULL) {
+	if (lpszPseudoUrl == NULL || lppszServerPath == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	}
 
 	// First try the cache
 	ulock_rec l_cache(m_ResolveResultCacheMutex);

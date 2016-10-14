@@ -82,6 +82,13 @@ public:
 			memcpy(lpb, old.lpb, cb);
 		}
 	}
+	BinaryArray(BinaryArray &&o) :
+	    lpb(o.lpb), cb(o.cb), bcheap(o.bcheap)
+	{
+		o.lpb = nullptr;
+		o.cb = 0;
+		o.bcheap = false;
+	}
 	BinaryArray(const SBinary &bin) {
 		bcheap = false;
 		if (bin.cb == 0) {
@@ -92,6 +99,12 @@ public:
 			memcpy(lpb, bin.lpb, bin.cb);
 			cb = bin.cb;
 		}
+	}
+	BinaryArray(SBinary &&o) :
+	    lpb(o.lpb), cb(o.cb), bcheap(false)
+	{
+		o.lpb = nullptr;
+		o.cb = 0;
 	}
 	~BinaryArray(void)
 	{

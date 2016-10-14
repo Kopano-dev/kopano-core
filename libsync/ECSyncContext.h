@@ -21,8 +21,7 @@
 #include <mutex>
 #include <kopano/zcdefs.h>
 #include <mapidefs.h>
-#include "../provider/client/ECICS.h"
-
+#include "../provider/client/ics_client.hpp"
 #include <map>
 #include <set>
 #include <string>

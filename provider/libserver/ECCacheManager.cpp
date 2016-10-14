@@ -1686,13 +1686,10 @@ ECRESULT ECCacheManager::GetPropFromObject(unsigned int ulTag, unsigned int ulOb
 exit:
 	if (lpDBResult)
 		lpDatabase->FreeResult(lpDBResult);
-
-	if (er != erSuccess || sObject == NULL) {
+	if (er != erSuccess || sObject == NULL)
 		LOG_CACHE_DEBUG("Get Prop From Object tag=0x%04X, objectid %d, error 0x%08x", ulTag, ulObjId, er);
-	} else {
+	else
 	    LOG_CACHE_DEBUG("Get Prop From Object tag=0x%04X, objectid %d, data %s", ulTag, ulObjId, bin2hex(sObject->cbData, sObject->lpData).c_str());
-	}
-
 	return er;
 }
 
@@ -1958,10 +1955,8 @@ exit:
 ECRESULT ECCacheManager::GetExcludedIndexProperties(std::set<unsigned int>& set)
 {
 	scoped_lock lock(m_hExcludedIndexPropertiesMutex);
-	
-	if(m_setExcludedIndexProperties.empty()) {
+	if (m_setExcludedIndexProperties.empty())
 		return KCERR_NOT_FOUND;
-	}
 	set = m_setExcludedIndexProperties;
 	
 	return erSuccess;

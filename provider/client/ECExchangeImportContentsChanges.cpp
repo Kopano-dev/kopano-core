@@ -266,16 +266,16 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChange(ULONG cValue, LPSPr
 		goto exit;
 	}
 
-	if((lpMessageFlags != NULL && (lpMessageFlags->Value.ul & MSGFLAG_ASSOCIATED)) || (lpMessageAssociated != NULL && lpMessageAssociated->Value.b)) {
+	if ((lpMessageFlags != NULL &&
+	    (lpMessageFlags->Value.ul & MSGFLAG_ASSOCIATED)) ||
+	    (lpMessageAssociated != NULL && lpMessageAssociated->Value.b))
 		bAssociatedMessage = true;
-	}
 
 	if(hr == MAPI_E_NOT_FOUND){
-		if(bAssociatedMessage == true){
+		if (bAssociatedMessage)
 		    ulNewFlags = MAPI_ASSOCIATED;
-		}else{
+		else
 		    ulNewFlags = 0;
-		}
 
 		lpPassedEntryId = PpropFindProp(lpPropArray, cValue, PR_ENTRYID);
 
@@ -390,11 +390,8 @@ HRESULT ECExchangeImportContentsChanges::ImportPerUserReadStateChange(ULONG cEle
 			hr = hrSuccess;
 			continue; // Message is delete or moved
 		}
-
-		if(hr != hrSuccess) {
+		if (hr != hrSuccess)
 			goto exit;
-		}
-
 		hr = m_lpFolder->GetMsgStore()->lpTransport->HrSetReadFlag(cbEntryId, lpEntryId, lpReadState[ulSKNr].ulFlags & MSGFLAG_READ ? 0 : CLEAR_READ_FLAG, m_ulSyncId);
 		if(hr != hrSuccess)
 			goto exit;
@@ -435,15 +432,15 @@ bool ECExchangeImportContentsChanges::IsProcessed(LPSPropValue lpRemoteCK, LPSPr
 	size_t ulPos = 0;
 	while (ulPos < strChangeList.size()) {
 		size_t ulSize = strChangeList.at(ulPos++);
-		if (ulSize <= sizeof(GUID) ){
+		if (ulSize <= sizeof(GUID))
 			break;
-		} else if (lpRemoteCK->Value.bin.cb > sizeof(GUID) && memcmp(strChangeList.data() + ulPos, lpRemoteCK->Value.bin.lpb, sizeof(GUID)) == 0){
-			if (ulSize == lpRemoteCK->Value.bin.cb && memcmp(strChangeList.data() + ulPos, lpRemoteCK->Value.bin.lpb, ulSize) == 0) {
-				//remote changekey in our changelist
-				//we already have this change
-				return true;
-			}
-		}
+		else if (lpRemoteCK->Value.bin.cb > sizeof(GUID) &&
+		    memcmp(strChangeList.data() + ulPos, lpRemoteCK->Value.bin.lpb, sizeof(GUID)) == 0 &&
+		    ulSize == lpRemoteCK->Value.bin.cb &&
+		    memcmp(strChangeList.data() + ulPos, lpRemoteCK->Value.bin.lpb, ulSize) == 0)
+			//remote changekey in our changelist
+			//we already have this change
+			return true;
 		ulPos += ulSize;
 	}
 

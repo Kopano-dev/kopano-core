@@ -36,7 +36,7 @@
 #include "WSMAPIPropStorage.h"
 #include "ECParentStorage.h"
 #include "ECABLogon.h"
-#include "ECICS.h"
+#include "ics_client.hpp"
 #include <ECCache.h>
 
 class utf8string;

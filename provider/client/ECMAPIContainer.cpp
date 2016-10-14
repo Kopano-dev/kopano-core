@@ -77,10 +77,8 @@ HRESULT ECMAPIContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	{
 		LPSPropValue lpDisplay;
 		HrGetOneProp(&this->m_xMAPIProp, PR_DISPLAY_NAME_A, &lpDisplay);
-
-		if(lpDisplay) {
+		if (lpDisplay != nullptr)
 			strName = lpDisplay->Value.lpszA;
-		}
 	}
 #endif
 
@@ -127,10 +125,8 @@ HRESULT ECMAPIContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	{
 		LPSPropValue lpDisplay;
 		HrGetOneProp(&this->m_xMAPIProp, PR_DISPLAY_NAME_A, &lpDisplay);
-
-		if(lpDisplay) {
+		if (lpDisplay != nullptr)
 			strName = lpDisplay->Value.lpszA;
-		}
 	}
 #endif
 

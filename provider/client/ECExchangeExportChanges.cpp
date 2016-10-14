@@ -522,11 +522,10 @@ HRESULT ECExchangeExportChanges::Synchronize(ULONG FAR * lpulSteps, ULONG FAR * 
 		return hr;
 
 	if(! (m_ulFlags & SYNC_CATCHUP)) {
-		if(m_ulSyncType == ICS_SYNC_CONTENTS){
+		if (m_ulSyncType == ICS_SYNC_CONTENTS)
 			hr = m_lpImportContents->UpdateState(NULL);
-		}else{
+		else
 			hr = m_lpImportHierarchy->UpdateState(NULL);
-		}
 		if(hr != hrSuccess) {
 			ZLOG_DEBUG(m_lpLogger, "Importer state update failed, hr=0x%08x", hr);
 			return hr;
@@ -576,11 +575,8 @@ HRESULT ECExchangeExportChanges::UpdateState(LPSTREAM lpStream){
 		ZLOG_DEBUG(m_lpLogger, "Config() not called before UpdateState()");
 		return MAPI_E_UNCONFIGURED;
 	}
-
-	if(lpStream == NULL) {
+	if (lpStream == NULL)
 		lpStream = m_lpStream;
-	}
-
 	return UpdateStream(lpStream);
 }
 
@@ -849,9 +845,8 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 
 	while(m_ulStep < m_lstChange.size() && (m_ulBufferSize == 0 || ulSteps < m_ulBufferSize)){
 		ulFlags = 0;
-		if((m_lstChange.at(m_ulStep).ulChangeType & ICS_ACTION_MASK) == ICS_NEW){
+		if ((m_lstChange.at(m_ulStep).ulChangeType & ICS_ACTION_MASK) == ICS_NEW)
 			ulFlags |= SYNC_NEW_MESSAGE;
-		}
 
 		if(!m_sourcekey.empty()) {
 			// Normal exporter, get the import properties we need by opening the source message
@@ -924,12 +919,10 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 			ZLOG_DEBUG(m_lpLogger, "Error during message import");
 			goto exit;
 		}
-
-		if(lpDestMessage == NULL) {
+		if (lpDestMessage == NULL)
 			// Import succeeded, but we have no message to export to. Treat this the same as
 			// SYNC_E_IGNORE. This is required for the BES ICS exporter
 			goto next;
-		}
 		hr = lpSourceMessage->CopyTo(0, NULL, sptMessageExcludes, 0,
 		     NULL, &IID_IMessage, lpDestMessage, 0, NULL);
 		if(hr != hrSuccess) {
@@ -1288,9 +1281,8 @@ HRESULT ECExchangeExportChanges::ExportMessageFlags(){
 
 	if(ulCount > 0){
 		hr = m_lpImportContents->ImportPerUserReadStateChange(ulCount, lpReadState);
-		if (hr == SYNC_E_IGNORE){
+		if (hr == SYNC_E_IGNORE)
 			hr = hrSuccess;
-		}
 		if(hr != hrSuccess) {
 			ZLOG_DEBUG(m_lpLogger, "Read state change failed");
 			goto exit;
@@ -1319,9 +1311,8 @@ HRESULT ECExchangeExportChanges::ExportMessageDeletes(){
 			goto exit;
 
 		hr = m_lpImportContents->ImportMessageDeletion(SYNC_SOFT_DELETE, lpEntryList);
-		if (hr == SYNC_E_IGNORE){
+		if (hr == SYNC_E_IGNORE)
 			hr = hrSuccess;
-		}
 		if(hr != hrSuccess) {
 			ZLOG_DEBUG(m_lpLogger, "Message deletion import failed");
 			goto exit;
@@ -1345,9 +1336,8 @@ HRESULT ECExchangeExportChanges::ExportMessageDeletes(){
 		}
 
 		hr = m_lpImportContents->ImportMessageDeletion(0, lpEntryList);
-		if (hr == SYNC_E_IGNORE){
+		if (hr == SYNC_E_IGNORE)
 			hr = hrSuccess;
-		}
 		if(hr != hrSuccess) {
 			ZLOG_DEBUG(m_lpLogger, "Message hard deletion failed");
 			goto exit;
@@ -1414,9 +1404,9 @@ HRESULT ECExchangeExportChanges::ExportFolderChanges(){
 			//assume the parent is the folder which it is syncing.
 
 			lpPropVal = PpropFindProp(lpPropArray, ulCount, PR_PARENT_SOURCE_KEY);
-			if(lpPropVal && m_sourcekey.size() == lpPropVal->Value.bin.cb && memcmp(lpPropVal->Value.bin.lpb, m_sourcekey.c_str(), m_sourcekey.size())==0){
+			if (lpPropVal != nullptr && m_sourcekey.size() == lpPropVal->Value.bin.cb &&
+			    memcmp(lpPropVal->Value.bin.lpb, m_sourcekey.c_str(), m_sourcekey.size()) == 0)
 				lpPropVal->Value.bin.cb = 0;
-			}
 
 			hr = m_lpImportHierarchy->ImportFolderChange(ulCount, lpPropArray);
 		} else {
@@ -1488,9 +1478,8 @@ HRESULT ECExchangeExportChanges::ExportFolderDeletes(){
 		}
 
 		hr = m_lpImportHierarchy->ImportFolderDeletion(SYNC_SOFT_DELETE, lpEntryList);
-		if (hr == SYNC_E_IGNORE){
+		if (hr == SYNC_E_IGNORE)
 			hr = hrSuccess;
-		}
 		if(hr != hrSuccess) {
 			ZLOG_DEBUG(m_lpLogger, "Unable to import folder deletions");
 			goto exit;
@@ -1514,9 +1503,8 @@ HRESULT ECExchangeExportChanges::ExportFolderDeletes(){
 		}
 
 		hr = m_lpImportHierarchy->ImportFolderDeletion(0, lpEntryList);
-		if (hr == SYNC_E_IGNORE){
+		if (hr == SYNC_E_IGNORE)
 			hr = hrSuccess;
-		}
 		if(hr != hrSuccess) {
 			ZLOG_DEBUG(m_lpLogger, "Hard delete folder import failed");
 			goto exit;
@@ -1558,10 +1546,8 @@ HRESULT ECExchangeExportChanges::UpdateStream(LPSTREAM lpStream){
 	hr = lpStream->Write(&m_ulSyncId, 4, &ulSize);
 	if(hr != hrSuccess)
 		goto exit;
-
-	if(m_ulSyncId == 0){
+	if (m_ulSyncId == 0)
 		m_ulChangeId = 0;
-	}
 
 	hr = lpStream->Write(&m_ulChangeId, 4, &ulSize);
 	if(hr != hrSuccess)

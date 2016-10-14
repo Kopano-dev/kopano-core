@@ -242,6 +242,7 @@ HRESULT INFLoader::MakeProperty(const std::string& strTag, const std::string& st
 	}
 	case PT_UNICODE:
 		sProp.ulPropTag = CHANGE_PROP_TYPE(sProp.ulPropTag, PT_STRING8);
+		/* fallthru */
 	case PT_STRING8:
 		hr = MAPIAllocateMore(strData.length() + 1, base, (void**)&sProp.Value.lpszA);
 		if (hr != hrSuccess)

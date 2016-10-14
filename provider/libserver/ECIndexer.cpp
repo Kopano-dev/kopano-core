@@ -54,15 +54,12 @@ static BOOL NormalizeRestrictionIsFalse(const struct restrictTable *lpRestrict)
     if(lpRestrict->ulType != RES_AND)
 		return false;
         
-    for (gsoap_size_t i = 0; i < lpRestrict->lpAnd->__size; ++i) {
+    for (gsoap_size_t i = 0; i < lpRestrict->lpAnd->__size; ++i)
         if (lpRestrict->lpAnd->__ptr[i]->ulType == RES_EXIST)
             setExist.insert(lpRestrict->lpAnd->__ptr[i]->lpExist->ulPropTag);
-        else if (lpRestrict->lpAnd->__ptr[i]->ulType == RES_NOT) {
-            if (lpRestrict->lpAnd->__ptr[i]->lpNot->lpNot->ulType == RES_EXIST) {
+        else if (lpRestrict->lpAnd->__ptr[i]->ulType == RES_NOT &&
+            lpRestrict->lpAnd->__ptr[i]->lpNot->lpNot->ulType == RES_EXIST)
                 setNotExist.insert(lpRestrict->lpAnd->__ptr[i]->lpNot->lpNot->lpExist->ulPropTag);
-            }
-        }
-    }
     
     set_intersection(setExist.begin(), setExist.end(), setNotExist.begin(), setNotExist.end(), inserter(setBoth, setBoth.begin()));
     

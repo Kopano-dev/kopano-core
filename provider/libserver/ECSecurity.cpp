@@ -108,11 +108,10 @@ ECRESULT ECSecurity::SetUserContext(unsigned int ulUserId, unsigned int ulImpers
 		return er;
 
 	// Get the company we're assigned to
-	if(m_lpSession->GetSessionManager()->IsHostedSupported()) {
+	if (m_lpSession->GetSessionManager()->IsHostedSupported())
 		m_ulCompanyID = m_details.GetPropInt(OB_PROP_I_COMPANYID);
-	} else {
+	else
 		m_ulCompanyID = 0;
-	}
 
 	if (m_ulImpersonatorID != EC_NO_IMPERSONATOR) {
 		unsigned int ulAdminLevel = 0;
@@ -183,21 +182,20 @@ ECRESULT ECSecurity::GetGroupsForUser(unsigned int ulUserId, std::list<localobje
 		 */
 		if (IsUserObjectVisible(iterGroups->ulId) != erSuccess || iterGroups->GetClass() == DISTLIST_DYNAMIC) {
 			lpGroups->erase(iterGroups++);
-		} else {
-			cSeenGroups.m_seen.insert(*iterGroups);
-
-			std::list<localobjectdetails_t> *lpGroupInGroups = NULL;
-
-			er = m_lpSession->GetUserManagement()->GetParentObjectsOfObjectAndSync(OBJECTRELATION_GROUP_MEMBER,
-																				   iterGroups->ulId, &lpGroupInGroups, USERMANAGEMENT_IDS_ONLY);
-			if (er == erSuccess) {
-				// Adds all groups from lpGroupInGroups to the main lpGroups list, except when already in cSeenGroups
-				remove_copy_if(lpGroupInGroups->begin(), lpGroupInGroups->end(), back_inserter(*lpGroups), cSeenGroups);
-				delete lpGroupInGroups;
-			}
-			// Ignore error (eg. cannot use that function on group Everyone)
-			++iterGroups;
+			continue;
 		}
+		cSeenGroups.m_seen.insert(*iterGroups);
+
+		std::list<localobjectdetails_t> *lpGroupInGroups = NULL;
+		er = m_lpSession->GetUserManagement()->GetParentObjectsOfObjectAndSync(OBJECTRELATION_GROUP_MEMBER,
+		     iterGroups->ulId, &lpGroupInGroups, USERMANAGEMENT_IDS_ONLY);
+		if (er == erSuccess) {
+			// Adds all groups from lpGroupInGroups to the main lpGroups list, except when already in cSeenGroups
+			remove_copy_if(lpGroupInGroups->begin(), lpGroupInGroups->end(), back_inserter(*lpGroups), cSeenGroups);
+			delete lpGroupInGroups;
+		}
+		// Ignore error (eg. cannot use that function on group Everyone)
+		++iterGroups;
 	}
 
 	*lppGroups = lpGroups;
@@ -259,11 +257,9 @@ ECRESULT ECSecurity::GetObjectPermission(unsigned int ulObjId, unsigned int* lpu
 			FreeRightsArray(lpRights);
 			lpRights = NULL;
 		}
-
-		if(bFoundACL) {
+		if (bFoundACL)
 			// If any of the ACLs at this level were for us, then use these ACLs.
 			break;
-		}
 
 		// There were no ACLs or no ACLs for us, go to the parent and try there
 		er = m_lpSession->GetSessionManager()->GetCacheManager()->GetParent(ulCurObj, &ulCurObj);
@@ -417,12 +413,10 @@ ECRESULT ECSecurity::CheckPermission(unsigned int ulObjId, unsigned int ulecRigh
 
 	// Is the current user the owner of the store
 	if (GetStoreOwnerAndType(ulObjId, &ulStoreOwnerId, &ulStoreType) == erSuccess && ulStoreOwnerId == m_ulUserID) {
-		if (ulStoreType == ECSTORE_TYPE_ARCHIVE) {
-			if (ulecRights == ecSecurityFolderVisible || ulecRights == ecSecurityRead) {
-				er = erSuccess;
-				goto exit;
-			}
-		} else {
+		if (ulStoreType != ECSTORE_TYPE_ARCHIVE) {
+			er = erSuccess;
+			goto exit;
+		} else if (ulecRights == ecSecurityFolderVisible || ulecRights == ecSecurityRead) {
 			er = erSuccess;
 			goto exit;
 		}
@@ -437,11 +431,9 @@ ECRESULT ECSecurity::CheckPermission(unsigned int ulObjId, unsigned int ulecRigh
 				er = erSuccess;
 				goto exit;
 			}
-		} else {
-			if(ulecRights == ecSecurityFolderVisible || ulecRights == ecSecurityRead || ulecRights == ecSecurityCreate) {
-				er = erSuccess;
-				goto exit;
-			}
+		} else if(ulecRights == ecSecurityFolderVisible || ulecRights == ecSecurityRead || ulecRights == ecSecurityCreate) {
+			er = erSuccess;
+			goto exit;
 		}
 	}
 
@@ -450,12 +442,11 @@ ECRESULT ECSecurity::CheckPermission(unsigned int ulObjId, unsigned int ulecRigh
 		if(!m_bRestrictedAdmin) {
 			er = erSuccess;
 			goto exit;
-		} else {
-			// If restricted admin mode is set, admins only receive folder permissions.
-			if(ulecRights == ecSecurityFolderVisible || ulecRights == ecSecurityFolderAccess || ulecRights == ecSecurityCreateFolder) {
-				er = erSuccess;
-				goto exit;
-			}
+		}
+		// If restricted admin mode is set, admins only receive folder permissions.
+		if(ulecRights == ecSecurityFolderVisible || ulecRights == ecSecurityFolderAccess || ulecRights == ecSecurityCreateFolder) {
+			er = erSuccess;
+			goto exit;
 		}
 	}
 
@@ -521,11 +512,9 @@ ECRESULT ECSecurity::CheckPermission(unsigned int ulObjId, unsigned int ulecRigh
 	}
 
 exit:
-	if (er == erSuccess && (ulecRights == ecSecurityCreate || ulecRights == ecSecurityEdit || ulecRights == ecSecurityCreateFolder)) {
+	if (er == erSuccess && (ulecRights == ecSecurityCreate || ulecRights == ecSecurityEdit || ulecRights == ecSecurityCreateFolder))
 		// writing in a deleted parent is not allowed
 		er = CheckDeletedParent(ulObjId);
-	}
-
 	if(er != erSuccess)
 		TRACE_INTERNAL(TRACE_ENTRY,"Security","ECSecurity::CheckPermission","object=%d, rights=%d", ulObjId, ulecRights);
 
@@ -538,28 +527,24 @@ exit:
 		m_lpSession->GetSessionManager()->GetCacheManager()->GetObject(ulObjId, NULL, NULL, NULL, &ulType);
 		if (er == KCERR_NO_ACCESS || ulStoreOwnerId != m_ulUserID) {
 			GetUsername(&strUsername);
-			if (ulStoreOwnerId != m_ulUserID) {
-				if (m_lpSession->GetUserManagement()->GetObjectDetails(ulStoreOwnerId, &sStoreDetails) != erSuccess) {
-					// should not really happen on store owners?
-					strStoreOwner = "<non-existing>";
-				} else {
-					strStoreOwner = sStoreDetails.GetPropString(OB_PROP_S_LOGIN);
-				}
-			} else {
+			if (ulStoreOwnerId == m_ulUserID)
 				strStoreOwner = strUsername;
-			}
+			else if (m_lpSession->GetUserManagement()->GetObjectDetails(ulStoreOwnerId, &sStoreDetails) != erSuccess)
+				// should not really happen on store owners?
+				strStoreOwner = "<non-existing>";
+			else
+				strStoreOwner = sStoreDetails.GetPropString(OB_PROP_S_LOGIN);
 		}
 
-		if (er == KCERR_NO_ACCESS) {
+		if (er == KCERR_NO_ACCESS)
 			m_lpAudit->Log(EC_LOGLEVEL_FATAL, "access denied objectid=%d type=%d ownername='%s' username='%s' rights='%s'",
 						   ulObjId, ulType, strStoreOwner.c_str(), strUsername.c_str(), RightsToString(ulecRights));
-		} else if (ulStoreOwnerId != m_ulUserID) {
+		else if (ulStoreOwnerId != m_ulUserID)
 			m_lpAudit->Log(EC_LOGLEVEL_FATAL, "access allowed objectid=%d type=%d ownername='%s' username='%s' rights='%s'",
 						   ulObjId, ulType, strStoreOwner.c_str(), strUsername.c_str(), RightsToString(ulecRights));
-		} else {
+		else
 			// you probably do not want to log all what a user does in their own store, do you?
 			m_lpAudit->Log(EC_LOGLEVEL_INFO, "access allowed objectid=%d type=%d userid=%d", ulObjId, ulType, m_ulUserID);
-		}
 	}
 
 	return er;
@@ -1120,9 +1105,8 @@ ECRESULT ECSecurity::IsAdminOverUserObject(unsigned int ulUserObjectId)
 	}
 
 	/* If hosted is enabled, system administrators are administrator over all users. */
-	if (m_details.GetPropInt(OB_PROP_I_ADMINLEVEL) == ADMIN_LEVEL_SYSADMIN) {
+	if (m_details.GetPropInt(OB_PROP_I_ADMINLEVEL) == ADMIN_LEVEL_SYSADMIN)
 		return erSuccess;
-	}
 
 	/*
 	 * Determine to which company the user belongs

@@ -131,13 +131,13 @@ WSMessageStreamExporter::WSMessageStreamExporter()
 
 WSMessageStreamExporter::~WSMessageStreamExporter()
 {
-	if(m_ulMaxIndex != m_ulExpectedIndex && m_ptrTransport->m_lpCmd) {
+	if (m_ulMaxIndex != m_ulExpectedIndex &&
+	    m_ptrTransport->m_lpCmd != nullptr)
 		// We are halfway through a sync batch, so there is data waiting for us. Since we have our
 		// own transport, we just drop the connection now, instead of letting the server output up to 254
 		// messages that we'd just discard. Probably we will need to reconnect very soon after this call, to LogOff()
 		// the transport's session, but that's better than receiving unwanted data.
 		m_ptrTransport->m_lpCmd->soap->fshutdownsocket(m_ptrTransport->m_lpCmd->soap, m_ptrTransport->m_lpCmd->soap->socket, 0);
-	}
 
 	for (const auto &i : m_mapStreamInfo)
 		delete i.second;

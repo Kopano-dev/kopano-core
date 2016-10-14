@@ -163,13 +163,12 @@ HRESULT ECMAPIFolderPublic::GetPropHandler(ULONG ulPropTag, void* lpProvider, UL
 	case PROP_ID(PR_DISPLAY_NAME):
 
 		// FIXME: Should be from the global profile and/or gettext (PR_FAVORITES_DEFAULT_NAME)
-		if (lpFolder->m_ePublicEntryID == ePE_PublicFolders) {
+		if (lpFolder->m_ePublicEntryID == ePE_PublicFolders)
 			lpszName = _("Public Folders");
-		} else if (lpFolder->m_ePublicEntryID == ePE_Favorites) {
+		else if (lpFolder->m_ePublicEntryID == ePE_Favorites)
 			lpszName = _("Favorites");
-		} else if (lpFolder->m_ePublicEntryID == ePE_IPMSubtree) {
+		else if (lpFolder->m_ePublicEntryID == ePE_IPMSubtree)
 			lpszName = _T("IPM_SUBTREE");
-		}
 
 		if (lpszName)
 		{
@@ -271,29 +270,27 @@ HRESULT ECMAPIFolderPublic::SetPropHandler(ULONG ulPropTag, void* lpProvider, LP
 
 	switch(PROP_ID(ulPropTag)) {
 	case PROP_ID(PR_DISPLAY_NAME):
-		if (lpFolder->m_ePublicEntryID == ePE_PublicFolders) {
+		if (lpFolder->m_ePublicEntryID == ePE_PublicFolders)
 			hr = MAPI_E_COMPUTED;
 			// FIXME: save in profile, #define PR_PROFILE_ALLPUB_DISPLAY_NAME    PROP_TAG(PT_STRING8, pidProfileMin+0x16)
-		} else if (lpFolder->m_ePublicEntryID == ePE_Favorites) {
+		else if (lpFolder->m_ePublicEntryID == ePE_Favorites)
 			hr = MAPI_E_COMPUTED;
 			// FIXME: save in profile, #define PR_PROFILE_FAVFLD_DISPLAY_NAME    PROP_TAG(PT_STRING8, pidProfileMin+0x0F)
-		} else if(lpFolder->m_ePublicEntryID == ePE_FavoriteSubFolder) {
+		else if (lpFolder->m_ePublicEntryID == ePE_FavoriteSubFolder)
 			hr = MAPI_E_COMPUTED;
 			// FIXME: Save the property to private shortcut folder message
-		}else {
+		else
 			hr = lpFolder->HrSetRealProp(lpsPropValue);
-		}
 		break;
 	case PROP_ID(PR_COMMENT):
-		if (lpFolder->m_ePublicEntryID == ePE_PublicFolders) {
+		if (lpFolder->m_ePublicEntryID == ePE_PublicFolders)
 			hr = MAPI_E_COMPUTED;
 			// FIXME: save in profile, #define PR_PROFILE_FAVFLD_COMMENT        PROP_TAG(PT_STRING8, pidProfileMin+0x15)
-		} else if (lpFolder->m_ePublicEntryID == ePE_Favorites) {
+		else if (lpFolder->m_ePublicEntryID == ePE_Favorites)
 			hr = MAPI_E_COMPUTED;
 			// FIXME: save in profile, #define PR_PROFILE_FAVFLD_COMMENT        PROP_TAG(PT_STRING8, pidProfileMin+0x15)
-		} else {
+		else
 			hr = lpFolder->HrSetRealProp(lpsPropValue);
-		}
 		break;
 	
 	default:
@@ -470,16 +467,10 @@ HRESULT ECMAPIFolderPublic::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCI
 
 HRESULT ECMAPIFolderPublic::SetEntryId(ULONG cbEntryId, LPENTRYID lpEntryId)
 {
-	HRESULT hr = hrSuccess;
-	
-	if (m_ePublicEntryID == ePE_Favorites || m_ePublicEntryID == ePE_IPMSubtree) {
-		hr = ECGenericProp::SetEntryId(cbEntryId, lpEntryId);
-	}else {
-		// With notification handler
-		hr = ECMAPIFolder::SetEntryId(cbEntryId, lpEntryId);
-	}
-	
-	return hr;
+	if (m_ePublicEntryID == ePE_Favorites || m_ePublicEntryID == ePE_IPMSubtree)
+		return ECGenericProp::SetEntryId(cbEntryId, lpEntryId);
+	// With notification handler
+	return ECMAPIFolder::SetEntryId(cbEntryId, lpEntryId);
 }
 
 // @note if you change this function please look also at ECMAPIFolder::CopyFolder

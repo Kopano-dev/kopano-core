@@ -322,9 +322,8 @@ static bool GetLatestVersionAtServer(const char *szUpdatePath,
 		for (bfs::directory_iterator update(updatesdir);
 		     update != update_last; ++update) {
 			const bfs::file_type file_type = update->status().type();
-			if (file_type != bfs::regular_file && file_type != bfs::symlink_file) {
+			if (file_type != bfs::regular_file && file_type != bfs::symlink_file)
 				continue;
-			}
 
 			const std::string strFilename = filename_from_path(update->path());
 			if (!ba::starts_with(strFilename, strFileStart)) {

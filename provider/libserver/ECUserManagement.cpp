@@ -186,12 +186,10 @@ ECRESULT ECUserManagement::AuthUserAndSync(const char* szLoginname, const char* 
 	er = GetUserAndCompanyFromLoginName(szLoginname, &username, &companyname);
 	if (er != erSuccess && er != KCWARN_PARTIAL_COMPLETION)
 		return er;
-
-	if(SymmetricIsCrypted(szPassword)) {
+	if (SymmetricIsCrypted(szPassword))
 		password = SymmetricDecrypt(szPassword);
-	} else {
+	else
 		password = szPassword;
-	}
 
 	if (bHosted && !companyname.empty()) {
 		er = ResolveObject(CONTAINER_COMPANY, companyname, objectid_t(), &sCompany);
@@ -1272,10 +1270,9 @@ ECRESULT ECUserManagement::GetLocalObjectDetails(unsigned int ulId, objectdetail
 		sDetails.SetPropString(OB_PROP_S_FULLNAME, KOPANO_FULLNAME_EVERYONE);
 		sDetails.SetPropBool(OB_PROP_B_AB_HIDDEN, parseBool(m_lpConfig->GetSetting("hide_everyone")) && lpSecurity->GetAdminLevel() == 0);
 	
-		if (m_lpSession->GetSessionManager()->IsDistributedSupported()) {
-			if (GetPublicStoreDetails(&sPublicStoreDetails) == erSuccess)
-				sDetails.SetPropString(OB_PROP_S_SERVERNAME, sPublicStoreDetails.GetPropString(OB_PROP_S_SERVERNAME));
-		}
+		if (m_lpSession->GetSessionManager()->IsDistributedSupported() &&
+		    GetPublicStoreDetails(&sPublicStoreDetails) == erSuccess)
+			sDetails.SetPropString(OB_PROP_S_SERVERNAME, sPublicStoreDetails.GetPropString(OB_PROP_S_SERVERNAME));
 	}
 
 	*lpDetails = sDetails;
@@ -1427,7 +1424,7 @@ ECRESULT ECUserManagement::GetLocalObjectIdList(objectclass_t objclass, unsigned
 		"WHERE " + OBJECTCLASS_COMPARE_SQL("objectclass", objclass);
 	/* As long as the Offline server has partial hosted support,
 	 * we must comment out this additional where statement... */
-	if (m_lpSession->GetSessionManager()->IsHostedSupported()) {
+	if (m_lpSession->GetSessionManager()->IsHostedSupported())
 		/* Everyone and SYSTEM don't have a company but must be
 		 * included by the query, so write exception case for them */
 		strQuery +=
@@ -1436,7 +1433,6 @@ ECRESULT ECUserManagement::GetLocalObjectIdList(objectclass_t objclass, unsigned
 				"OR id = " + stringify(ulCompanyId) + " "
 				"OR id = " + stringify(KOPANO_UID_SYSTEM) + " "
 				"OR id = " + stringify(KOPANO_UID_EVERYONE) + ")";
-	}
 
 	er = lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess)
@@ -1784,13 +1780,12 @@ done:
 			return KCERR_NOT_FOUND;
 
 		// mapMatches is already sorted numerically, so it's OBJECTTYPE_MAILUSER, OBJECTTYPE_DISTLIST, OBJECTTYPE_CONTAINER, NONACTIVE_CONTACT
-		if(mapMatches.begin()->second.size() == 1) {
-			ulId = *mapMatches.begin()->second.begin();
-		} else {
+		if(mapMatches.begin()->second.size() != 1) {
 			// size() cannot be 0. Otherwise, it would not be there at all. So apparently, it is > 1, so it is ambiguous.
 			ec_log_info("Resolved multiple users for search \"%s\".", szSearchString);
 			return KCERR_COLLISION;
 		}
+		ulId = *mapMatches.begin()->second.begin();
 	}
 
 	if(ulId == 0)
@@ -2610,11 +2605,10 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 	case NONACTIVE_ROOM:
 	case NONACTIVE_EQUIPMENT:
 		strUserServer = details.GetPropString(OB_PROP_S_SERVERNAME);
-		if (!bDistributed || strcasecmp(strUserServer.c_str(), strThisServer.c_str()) == 0) {
+		if (!bDistributed || strcasecmp(strUserServer.c_str(), strThisServer.c_str()) == 0)
 			execute_script(m_lpConfig->GetSetting("createuser_script"),
 						   "KOPANO_USER", details.GetPropString(OB_PROP_S_LOGIN).c_str(),
 						   NULL);
-		}
 		break;
 	case DISTLIST_GROUP:
 	case DISTLIST_SECURITY:
@@ -2624,11 +2618,10 @@ ECRESULT ECUserManagement::CreateLocalObject(const objectsignature_t &signature,
 		break;
 	case CONTAINER_COMPANY:
 		strUserServer = details.GetPropString(OB_PROP_S_SERVERNAME);
-		if (!bDistributed || strcasecmp(strUserServer.c_str(), strThisServer.c_str()) == 0) {
+		if (!bDistributed || strcasecmp(strUserServer.c_str(), strThisServer.c_str()) == 0)
 			execute_script(m_lpConfig->GetSetting("createcompany_script"),
 						   "KOPANO_COMPANY", details.GetPropString(OB_PROP_S_FULLNAME).c_str(),
 						   NULL);
-		}
 		break;
 	default:
 		break;
@@ -4268,17 +4261,15 @@ ECRESULT ECUserManagement::ConvertABContainerToProps(struct soap *soap, unsigned
 			lpSession = dynamic_cast<ECSession *>(m_lpSession);
 			if(lpSession)
 				lpSession->GetClientApp(&strApp);
-			
-			if(strncasecmp(strApp.c_str(), "blackberry", 10) == 0) {
+			if (strncasecmp(strApp.c_str(), "blackberry", 10) == 0)
 				// For blackberry, we pose as being the Exchange AddressList. We have to do this
 				// since it searches for the GAB by restricting by this GUID, otherwise the Lookup
 				// function will not function properly.
 				// Multiple blackberry binaries need to be able to access, including BlackBerryAgent.exe
 				// and BlackBerryMailStore.exe
 				memcpy(lpPropVal->Value.bin->__ptr, MUIDEMSAB, sizeof(GUID));
-			} else {
+			else
 				memcpy(lpPropVal->Value.bin->__ptr, &MUIDECSAB, sizeof(GUID));
-			}
 			break;
 		}
 		case PR_EMS_AB_IS_MASTER:

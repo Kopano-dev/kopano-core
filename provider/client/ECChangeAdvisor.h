@@ -24,7 +24,7 @@
 #include <mapispi.h>
 #include <kopano/ECUnknown.h>
 #include <IECChangeAdvisor.h>
-#include "ECICS.h"
+#include "ics_client.hpp"
 #include <kopano/kcodes.h>
 
 #include <map>

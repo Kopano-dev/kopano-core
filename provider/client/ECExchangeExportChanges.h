@@ -23,8 +23,7 @@
 #include <vector>
 #include <set>
 #include <string>
-
-#include "ECICS.h"
+#include "ics_client.hpp"
 #include "ECMAPIProp.h"
 
 #include <kopano/ECLogger.h>

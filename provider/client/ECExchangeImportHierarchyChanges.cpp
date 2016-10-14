@@ -199,11 +199,8 @@ HRESULT ECExchangeImportHierarchyChanges::UpdateState(LPSTREAM lpStream){
 	hr = lpStream->Write(&m_ulSyncId, 4, &ulLen);
 	if(hr != hrSuccess)
 		return hr;
-		
-	if(m_ulSyncId == 0){
+	if (m_ulSyncId == 0)
 		m_ulChangeId = 0;
-	}
-
 	return lpStream->Write(&m_ulChangeId, 4, &ulLen);
 }
 
@@ -258,18 +255,13 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPr
 		lpOrigEntryId = lpPropEntryId->Value.bin.lpb;
 	}
 
-	if (lpPropSourceKey) {
+	if (lpPropSourceKey != nullptr)
 		lpOrigSourceKey = &lpPropSourceKey->Value.bin;
-	}
-
-	if(lpPropFolderType){
+	if (lpPropFolderType != nullptr)
 		ulFolderType = lpPropFolderType->Value.ul;
-	}
-
-	if(ulFolderType == FOLDER_SEARCH){
+	if (ulFolderType == FOLDER_SEARCH)
 		//ignore search folder
 		goto exit;
-	}
 
 	hr = m_lpFolder->GetMsgStore()->lpTransport->HrEntryIDFromSourceKey(m_lpFolder->GetMsgStore()->m_cbEntryId, m_lpFolder->GetMsgStore()->m_lpEntryId, lpPropSourceKey->Value.bin.cb, lpPropSourceKey->Value.bin.lpb, 0, NULL, &cbEntryId, &lpEntryId);
 	if(hr == MAPI_E_NOT_FOUND){

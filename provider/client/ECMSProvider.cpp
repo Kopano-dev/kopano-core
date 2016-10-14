@@ -280,14 +280,12 @@ HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR 
 	hr = lpProfSect->GetProps(lpsPropTagArray, 0, &cValues, &lpsPropArray);
 	if(hr == hrSuccess || hr == MAPI_W_ERRORS_RETURNED)
 	{
-		if(lpsPropArray[0].ulPropTag == PR_MDB_PROVIDER){
+		if (lpsPropArray[0].ulPropTag == PR_MDB_PROVIDER)
 				memcpy(&guidMDBProvider, lpsPropArray[0].Value.bin.lpb, sizeof(MAPIUID));
-		}
-		if(lpsPropArray[1].ulPropTag == PR_RESOURCE_FLAGS) {
-			if(!(lpsPropArray[1].Value.ul & STATUS_DEFAULT_STORE)) {
-				hr = MAPI_E_NOT_FOUND; // Deny spooler logon to any store that is not the default store
-				goto exit;
-			}
+		if (lpsPropArray[1].ulPropTag == PR_RESOURCE_FLAGS &&
+		    !(lpsPropArray[1].Value.ul & STATUS_DEFAULT_STORE)) {
+			hr = MAPI_E_NOT_FOUND; // Deny spooler logon to any store that is not the default store
+			goto exit;
 		}
 	}
 
@@ -409,12 +407,11 @@ HRESULT ECMSProvider::LogonByEntryID(WSTransport **lppTransport, sGlobalProfileP
 		
 		sOtherProps.strServerPath = extractedServerPath;
 		hr = lpTransport->HrLogon(sOtherProps);
-		if(hr != hrSuccess) {
+		if (hr != hrSuccess)
 			// If we failed to open a non-pseudo-URL, fallback to using the server from the global
 			// profile section. We need this because some older versions wrote a non-pseudo URL, which
 			// we should still support - even when the hostname of the server changes for example.
 			hr = lpTransport->HrLogon(*lpsProfileProps);
-		}
 	} else {
 		string strServerPath;				// The resolved server path
 		bool bIsPeer;

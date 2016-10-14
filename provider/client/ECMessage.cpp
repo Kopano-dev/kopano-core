@@ -989,12 +989,10 @@ HRESULT ECMessage::OpenAttach(ULONG ulAttachmentNum, LPCIID lpInterface, ULONG u
 
 	sID.ulPropTag = PR_ATTACH_NUM;
 	sID.Value.ul = ulAttachmentNum;
-
-	if(lpAttachments->HrGetRowID(&sID, &lpObjId) == hrSuccess) {
+	if (lpAttachments->HrGetRowID(&sID, &lpObjId) == hrSuccess)
 		ulObjId = lpObjId->Value.ul;
-	} else {
+	else
 		ulObjId = 0;
-	}
 
 	hr = this->GetMsgStore()->lpTransport->HrOpenParentStorage(this, ulAttachmentNum, ulObjId, this->lpStorage->GetServerStorage(), &lpParentStorage);
 	if(hr != hrSuccess)
@@ -1012,11 +1010,8 @@ HRESULT ECMessage::OpenAttach(ULONG ulAttachmentNum, LPCIID lpInterface, ULONG u
 	lpAttach->Release();
 
 exit:
-    if(hr != hrSuccess) {
-        if(lpAttach)
-            lpAttach->Release();
-    }
-
+	if (hr != hrSuccess && lpAttach != nullptr)
+		lpAttach->Release();
 	if (lpParentStorage)
 		lpParentStorage->Release();
 
@@ -1186,14 +1181,13 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 				ECAllocateBuffer(sizeof(SPropValue)*(ulProps+2), (void**)&lpProps);
 				for (const auto &pv : *obj->lstProperties) {
 					pv.CopyToByRef(&lpProps[i]);
-					if (lpProps[i].ulPropTag == PR_ROWID) {
+					if (lpProps[i].ulPropTag == PR_ROWID)
 						lpPropID = &lpProps[i];
-					} else if (lpProps[i].ulPropTag == PR_OBJECT_TYPE) {
+					else if (lpProps[i].ulPropTag == PR_OBJECT_TYPE)
 						lpPropObjType = &lpProps[i];
-					} else if (lpProps[i].ulPropTag == PR_EC_CONTACT_ENTRYID) {
+					else if (lpProps[i].ulPropTag == PR_EC_CONTACT_ENTRYID)
 						// rename to PR_ENTRYID
 						lpProps[i].ulPropTag = PR_ENTRYID;
-					}
 					++i;
 				}
 
@@ -1458,18 +1452,14 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 	hr = this->GetMsgStore()->lpSupport->ExpandRecips(&this->m_xMessage, &ulPreprocessFlags);
 	if (hr != hrSuccess)
 		goto exit;
-
-	if(this->GetMsgStore()->IsOfflineStore()){
+	if (this->GetMsgStore()->IsOfflineStore())
 		ulPreprocessFlags |= NEEDS_SPOOLER;
-	}
 
 	// Setup PR_SUBMIT_FLAGS
-	if(ulPreprocessFlags & NEEDS_PREPROCESSING ) {
+	if (ulPreprocessFlags & NEEDS_PREPROCESSING)
 		ulSubmitFlag = SUBMITFLAG_PREPROCESS;
-	}
-	if(ulPreprocessFlags & NEEDS_SPOOLER ){
+	if (ulPreprocessFlags & NEEDS_SPOOLER)
 		ulSubmitFlag = 0L;
-	}
 
 	hr = ECAllocateBuffer(sizeof(SPropValue)*1, (void**)&lpsPropArray);
 
@@ -1641,11 +1631,10 @@ HRESULT ECMessage::SetReadFlag(ULONG ulFlags)
     if(hr != hrSuccess)
         goto exit;
 
-    if(ulFlags & CLEAR_READ_FLAG) {
+    if (ulFlags & CLEAR_READ_FLAG)
         lpPropFlags->Value.ul &= ~MSGFLAG_READ;
-    } else {
+    else
         lpPropFlags->Value.ul |= MSGFLAG_READ;
-    }
 
     hr = HrSetRealProp(lpPropFlags);
     if(hr != hrSuccess)
@@ -2281,18 +2270,16 @@ HRESULT ECMessage::TableRowGetProp(void* lpProvider, struct propVal *lpsPropValS
 	HRESULT hr = hrSuccess;
 	ECMsgStore *lpMsgStore = (ECMsgStore *)lpProvider;
 
-	if(lpsPropValSrc->ulPropTag == PR_SOURCE_KEY) {
-		if((lpMsgStore->m_ulProfileFlags & EC_PROFILE_FLAGS_TRUNCATE_SOURCEKEY) && lpsPropValSrc->Value.bin->__size > 22) {
-			lpsPropValSrc->Value.bin->__size = 22;
-			lpsPropValSrc->Value.bin->__ptr[lpsPropValSrc->Value.bin->__size-1] |= 0x80; // Set top bit
-			hr = CopySOAPPropValToMAPIPropVal(lpsPropValDst, lpsPropValSrc, lpBase);
-		} else {
-			hr = MAPI_E_NOT_FOUND;
-		}
+	if (lpsPropValSrc->ulPropTag != PR_SOURCE_KEY)
+		return MAPI_E_NOT_FOUND;
+	if ((lpMsgStore->m_ulProfileFlags & EC_PROFILE_FLAGS_TRUNCATE_SOURCEKEY) &&
+	    lpsPropValSrc->Value.bin->__size > 22) {
+		lpsPropValSrc->Value.bin->__size = 22;
+		lpsPropValSrc->Value.bin->__ptr[lpsPropValSrc->Value.bin->__size-1] |= 0x80; // Set top bit
+		hr = CopySOAPPropValToMAPIPropVal(lpsPropValDst, lpsPropValSrc, lpBase);
 	} else {
 		hr = MAPI_E_NOT_FOUND;
 	}
-
 	return hr;
 }
 
@@ -2661,14 +2648,11 @@ HRESULT ECMessage::HrLoadProps()
 		if (FAILED(hrTmp)) {
 			// eg. this fails then RTF property is present but empty
 			TRACE_MAPI(TRACE_WARNING, "GetBestBody", "Unable to determine body type based on RTF data, hr=0x%08x", hrTmp);
-		} else {
-			if ((m_ulBodyType == bodyTypePlain && !fBodyOK) ||
-				(m_ulBodyType == bodyTypeHTML && !fHTMLOK))
-			{
-				hr = SyncRtf();
-				if (hr != hrSuccess)
-					goto exit;
-			}
+		} else if ((m_ulBodyType == bodyTypePlain && !fBodyOK) ||
+		    (m_ulBodyType == bodyTypeHTML && !fHTMLOK)) {
+			hr = SyncRtf();
+			if (hr != hrSuccess)
+				goto exit;
 		}
 	}
 
@@ -2877,12 +2861,11 @@ HRESULT ECMessage::GetBodyType(eBodyType *lpulBodyType)
 		hr = lpRTFUncompressedStream->Read(szRtfBuf, sizeof(szRtfBuf), &cbRtfBuf);
 		if (hr != hrSuccess)
 			goto exit;
-
-		if(isrtftext(szRtfBuf, cbRtfBuf)) {
+		if (isrtftext(szRtfBuf, cbRtfBuf))
 			m_ulBodyType = bodyTypePlain;
-		} else if(isrtfhtml(szRtfBuf, cbRtfBuf)) {
+		else if (isrtfhtml(szRtfBuf, cbRtfBuf))
 			m_ulBodyType = bodyTypeHTML;
-		} else
+		else
 			m_ulBodyType = bodyTypeRTF;
 	}
 
@@ -2954,10 +2937,8 @@ HRESULT ECMessage::GetCodePage(unsigned int *lpulCodePage)
 		return hr;
 
 	if (HrGetRealProp(PR_INTERNET_CPID, 0, ptrPropValue, ptrPropValue) == hrSuccess &&
-		ptrPropValue->ulPropTag == PR_INTERNET_CPID )
-	{
+	    ptrPropValue->ulPropTag == PR_INTERNET_CPID)
 		*lpulCodePage = ptrPropValue->Value.ul;
-	}
 	else
 		*lpulCodePage = 0;
 

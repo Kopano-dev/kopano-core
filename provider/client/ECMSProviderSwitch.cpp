@@ -145,15 +145,10 @@ HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR l
 	lpsPropTagArray->aulPropTag[0] = PR_MDB_PROVIDER;
 	
 	hr = lpProfSect->GetProps(lpsPropTagArray, 0, &cValues, &lpsPropArray);
-	if (hr == hrSuccess)
-	{
-		if (lpsPropArray[0].ulPropTag == PR_MDB_PROVIDER){
-			if (CompareMDBProvider(lpsPropArray[0].Value.bin.lpb, &KOPANO_SERVICE_GUID) ||
-				CompareMDBProvider(lpsPropArray[0].Value.bin.lpb, &MSEMS_SERVICE_GUID)) {
-				bIsDefaultStore = true;
-			}
-		}
-	}
+	if (hr == hrSuccess && lpsPropArray[0].ulPropTag == PR_MDB_PROVIDER &&
+	    (CompareMDBProvider(lpsPropArray[0].Value.bin.lpb, &KOPANO_SERVICE_GUID) ||
+	     CompareMDBProvider(lpsPropArray[0].Value.bin.lpb, &MSEMS_SERVICE_GUID)))
+			bIsDefaultStore = true;
 	hr = hrSuccess;
 
 	hr = GetProviders(&g_mapProviders, lpMAPISup, tstrProfileName.c_str(), ulFlags, &sProviderInfo);

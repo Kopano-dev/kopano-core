@@ -514,18 +514,16 @@ ECRESULT ECSessionManager::CreateSession(struct soap *soap, char *szName, char *
 	ECSession		*lpSession	= NULL;
 	const char		*method = "error";
 	std::string		from;
-	CONNECTION_TYPE ulType;
+	CONNECTION_TYPE ulType = SOAP_CONNECTION_TYPE(soap);
 
-	ulType = SOAP_CONNECTION_TYPE(soap);
-	if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY) {
+	if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
 		from = string("file://") + m_lpConfig->GetSetting("server_pipe_priority");
-	} else if (ulType == CONNECTION_TYPE_NAMED_PIPE) {
+	else if (ulType == CONNECTION_TYPE_NAMED_PIPE)
 		// connected through Unix socket
 		from = string("file://") + m_lpConfig->GetSetting("server_pipe_name");
-	} else {
+	else
 		// connected over network
 		from = soap->host;
-	}
 
 	er = this->CreateAuthSession(soap, ulCapabilities, lpSessionID, &lpAuthSession, false, false);
 	if (er != erSuccess)
@@ -565,11 +563,10 @@ ECRESULT ECSessionManager::CreateSession(struct soap *soap, char *szName, char *
 
 authenticated:
 	ec_log_debug("User \"%s\" from \"%s\" authenticated through \"%s\" using program %s", szName, from.c_str(), method, szClientApp ? szClientApp : "<unknown>");
-	if (strcmp(KOPANO_SYSTEM_USER, szName) != 0) {
+	if (strcmp(KOPANO_SYSTEM_USER, szName) != 0)
 		/* Do not log successful SYSTEM logins */
 		ZLOG_AUDIT(m_lpAudit, "authenticate ok user='%s' from='%s' method='%s' program='%s'",
 				  szName, from.c_str(), method, szClientApp ? szClientApp : "<unknown>");
-	}
 
 	er = RegisterSession(lpAuthSession, sessionGroupID, szClientVersion, szClientApp, szClientAppVersion, szClientAppMisc, lpSessionID, &lpSession, fLockSession);
 	if (er != erSuccess) {
@@ -782,9 +779,8 @@ void* ECSessionManager::SessionCleaner(void *lpTmpSessionManager)
 	ECSessionManager*		lpSessionManager = (ECSessionManager *)lpTmpSessionManager;
 	list<BTSession*>		lstSessions;
 
-	if(lpSessionManager == NULL) {
+	if (lpSessionManager == NULL)
 		return 0;
-	}
 
 	ECDatabase *db = NULL;
 	if (GetThreadLocalDatabase(lpSessionManager->m_lpDatabaseFactory, &db) != erSuccess)
@@ -798,19 +794,20 @@ void* ECSessionManager::SessionCleaner(void *lpTmpSessionManager)
 		// Find a session that has timed out
 		auto iIterator = lpSessionManager->m_mapSessions.begin();
 		while (iIterator != lpSessionManager->m_mapSessions.cend()) {
-			if((iIterator->second->GetSessionTime()) < lCurTime && !lpSessionManager->IsSessionPersistent(iIterator->first)){
-				// Remember all the session to be deleted
-				lstSessions.push_back(iIterator->second);
-
-				auto iRemove = iIterator++;
-				// Remove the session from the list, no new threads can start on this session after this point.
-				g_lpStatsCollector->Increment(SCN_SESSIONS_TIMEOUT);
-				ec_log_info("End of session (timeout) %llu",
-					static_cast<unsigned long long>(iRemove->first));
-				lpSessionManager->m_mapSessions.erase(iRemove);
-			} else {
+			bool del = iIterator->second->GetSessionTime() < lCurTime &&
+			           !lpSessionManager->IsSessionPersistent(iIterator->first);
+			if (!del) {
 				++iIterator;
+				continue;
 			}
+			// Remember all the session to be deleted
+			lstSessions.push_back(iIterator->second);
+			auto iRemove = iIterator++;
+			// Remove the session from the list, no new threads can start on this session after this point.
+			g_lpStatsCollector->Increment(SCN_SESSIONS_TIMEOUT);
+			ec_log_info("End of session (timeout) %llu",
+				static_cast<unsigned long long>(iRemove->first));
+			lpSessionManager->m_mapSessions.erase(iRemove);
 		}
 
 		// Release ownership of the rwlock object. This makes sure all threads are free to run (and exit).
@@ -1562,9 +1559,8 @@ ECLocale ECSessionManager::GetSortLocale(ULONG ulStoreId)
 	LPCSTR			lpszLocaleId = NULL;
 
 	er = GetStoreSortLCID(ulStoreId, &ulLcid);
-	if (er == erSuccess) {
+	if (er == erSuccess)
 		er = LCIDToLocaleId(ulLcid, &lpszLocaleId);
-	}
 	if (er != erSuccess) {
 		lpszLocaleId = GetDefaultSortLocaleID();
 		if (lpszLocaleId == NULL || *lpszLocaleId == '\0')
