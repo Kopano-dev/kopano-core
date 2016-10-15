@@ -33,7 +33,9 @@
 
 using namespace std;
 
-iCal::iCal(Http *lpRequest, IMAPISession *lpSession, ECLogger *lpLogger, std::string strSrvTz, std::string strCharset) : ProtocolBase(lpRequest, lpSession, lpLogger, strSrvTz, strCharset)
+iCal::iCal(Http *lpRequest, IMAPISession *lpSession, std::string strSrvTz,
+    std::string strCharset) :
+	ProtocolBase(lpRequest, lpSession, strSrvTz, strCharset)
 {
 }
 
@@ -78,14 +80,14 @@ HRESULT iCal::HrHandleIcalGet(const std::string &strMethod)
 	// retrieve table and restrict as per request
 	hr = HrGetContents(&lpContents);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to retrieve contents of folder, error code: 0x%08X", hr);
+		ec_log_err("Unable to retrieve contents of folder, error code: 0x%08X", hr);
 		goto exit;
 	}
 
 	// convert table to ical data
 	hr = HrGetIcal(lpContents, blCensorFlag, &strIcal);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to retrieve ical data, error code: 0x%08X", hr);
+		ec_log_warn("Unable to retrieve ical data, error code: 0x%08X", hr);
 		goto exit;
 	}
 	
@@ -256,7 +258,7 @@ HRESULT iCal::HrHandleIcalPost()
 			hr = HrDelMessage(mpIterJ->second, blCensorPrivate);
 			if(hr != hrSuccess)
 			{
-				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to Delete Message : 0x%08X", hr);
+				ec_log_err("Unable to Delete Message: 0x%08X", hr);
 				goto exit;
 			}
 			++mpIterJ;
@@ -264,7 +266,7 @@ HRESULT iCal::HrHandleIcalPost()
 			hr = HrAddMessage(lpICalToMapi, mpIterI->second);
 			if(hr != hrSuccess)
 			{
-				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to Add New Message : 0x%08X", hr);
+				ec_log_err("Unable to Add New Message: 0x%08X", hr);
 				goto exit;
 			}
 			++mpIterI;
@@ -280,7 +282,7 @@ HRESULT iCal::HrHandleIcalPost()
 					hr = HrModify(lpICalToMapi, mpIterJ->second, mpIterI->second, blCensorPrivate);
 					if(hr != hrSuccess)
 					{
-						m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to Modify Message : 0x%08X", hr);
+						ec_log_err("Unable to Modify Message: 0x%08X", hr);
 						goto exit;
 					}
 				}
@@ -292,7 +294,7 @@ HRESULT iCal::HrHandleIcalPost()
 				hr = HrAddMessage(lpICalToMapi, mpIterI->second);
 				if(hr != hrSuccess)
 				{
-					m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to Add New Message : 0x%08X", hr);
+					ec_log_err("Unable to Add New Message: 0x%08X", hr);
 					goto exit;
 				}
 				++mpIterI;
@@ -302,7 +304,7 @@ HRESULT iCal::HrHandleIcalPost()
 				hr = HrDelMessage(mpIterJ->second, blCensorPrivate);
 				if(hr != hrSuccess)
 				{
-					m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to Delete Message : 0x%08X", hr);
+					ec_log_err("Unable to Delete Message: 0x%08X", hr);
 					goto exit;
 				}
 				++mpIterJ;
@@ -311,11 +313,11 @@ HRESULT iCal::HrHandleIcalPost()
 	}//while
 
 	if(m_ulFolderFlag & DEFAULT_FOLDER)
-		hr = HrPublishDefaultCalendar(m_lpSession, m_lpDefStore, time(NULL), FB_PUBLISH_DURATION, m_lpLogger);
+		hr = HrPublishDefaultCalendar(m_lpSession, m_lpDefStore, time(NULL), FB_PUBLISH_DURATION);
 
 	if(hr != hrSuccess) {
 		hr = hrSuccess;
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error publishing freebusy for user %ls", m_wstrUser.c_str());
+		ec_log_err("Error publishing freebusy for user %ls", m_wstrUser.c_str());
 	}
 
 exit:
@@ -402,13 +404,13 @@ HRESULT iCal::HrAddMessage(ICalToMapi *lpIcal2Mapi, ULONG ulPos)
 
 	hr = lpIcal2Mapi->GetItem(ulPos, 0, lpMessage);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR,"Error creating a new calendar entry, error code : 0x%08X",hr);
+		ec_log_err("Error creating a new calendar entry, error code: 0x%08X",hr);
 		goto exit;
 	}
 
 	hr = lpMessage->SaveChanges(0);
 	if (hr != hrSuccess)
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR,"Error saving a new calendar entry, error code : 0x%08X",hr);
+		ec_log_err("Error saving a new calendar entry, error code: 0x%08X",hr);
 
 exit:
 	if (lpMessage)
@@ -439,7 +441,7 @@ HRESULT iCal::HrDelMessage(SBinary sbEid, bool blCensor)
 	HRESULT hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), reinterpret_cast<void **>(&lpEntryList));
 	if (hr != hrSuccess)
 	{
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR,"Error allocating memory, error code : 0x%08X",hr);
+		ec_log_err("Error allocating memory, error code: 0x%08X",hr);
 		goto exit;
 	}
 
@@ -448,7 +450,7 @@ HRESULT iCal::HrDelMessage(SBinary sbEid, bool blCensor)
 	hr = MAPIAllocateMore(sizeof(SBinary), lpEntryList, (void**)&lpEntryList->lpbin);
 	if(hr != hrSuccess)
 	{
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR,"Error allocating memory, error code : 0x%08X",hr);
+		ec_log_err("Error allocating memory, error code: 0x%08X",hr);
 		goto exit;
 	}
 
@@ -471,7 +473,7 @@ HRESULT iCal::HrDelMessage(SBinary sbEid, bool blCensor)
 	hr = m_lpUsrFld->DeleteMessages(lpEntryList, 0, NULL, MESSAGE_DIALOG);
 	if(hr != hrSuccess)
 	{
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR,"Error while deleting a calendar entry, error code : 0x%08X",hr);
+		ec_log_err("Error while deleting a calendar entry, error code: 0x%08X",hr);
 		goto exit;
 	}
 
@@ -511,7 +513,7 @@ HRESULT iCal::HrGetContents(LPMAPITABLE *lppTable)
 
 	hr = m_lpUsrFld->GetContentsTable(0, &ptrContents);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR,"Error retrieving calendar entries, error code : 0x%08X",hr);
+		ec_log_err("Error retrieving calendar entries, error code: 0x%08X",hr);
 		goto exit;
 	}
 	hr = ptrContents->SetColumns(sPropEntryIdcol, 0);
@@ -528,7 +530,7 @@ HRESULT iCal::HrGetContents(LPMAPITABLE *lppTable)
 
 		hr = ptrContents->Restrict(lpsRestriction, TBL_BATCH);
 		if (hr != hrSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR,"Error restricting calendar entries, error code : 0x%08X",hr);
+			ec_log_err("Error restricting calendar entries, error code: 0x%08X",hr);
 			goto exit;
 		}
 
@@ -575,7 +577,7 @@ HRESULT iCal::HrGetIcal(IMAPITable *lpTable, bool blCensorPrivate, std::string *
 	
 	CreateMapiToICal(m_lpAddrBook, "utf-8", &lpMtIcal);
 	if (lpMtIcal == NULL) {
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR,"Error Creating MapiToIcal object, error code : 0x%08X",hr);
+		ec_log_err("Error Creating MapiToIcal object, error code: 0x%08X",hr);
 		hr = E_FAIL;
 		goto exit;
 	}
@@ -585,7 +587,7 @@ HRESULT iCal::HrGetIcal(IMAPITable *lpTable, bool blCensorPrivate, std::string *
 		hr = lpTable->QueryRows(50, 0, &lpRows);
 		if (hr != hrSuccess)
 		{
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error retrieving table rows, error code : 0x%08X", hr);
+			ec_log_err("Error retrieving table rows, error code: 0x%08X", hr);
 			goto exit;
 		}
 
@@ -605,8 +607,8 @@ HRESULT iCal::HrGetIcal(IMAPITable *lpTable, bool blCensorPrivate, std::string *
 									NULL, MAPI_BEST_ACCESS, &ulObjType, (LPUNKNOWN*)&lpMessage);
 			if (hr != hrSuccess)
 			{
-				m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Error opening message for ical conversion, error code : 0x%08X", hr);
-				m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "%d \n %s", sbEid.cb, bin2hex(sbEid.cb,sbEid.lpb).c_str());
+				ec_log_debug("Error opening message for ical conversion, error code: 0x%08X", hr);
+				ec_log_debug("%d \n %s", sbEid.cb, bin2hex(sbEid.cb,sbEid.lpb).c_str());
 				// Ignore error, just skip the message
 				hr = hrSuccess;
 				continue;
@@ -620,7 +622,7 @@ HRESULT iCal::HrGetIcal(IMAPITable *lpTable, bool blCensorPrivate, std::string *
 			hr = lpMtIcal->AddMessage(lpMessage, m_strSrvTz, ulFlag);
 			if (hr != hrSuccess)
 			{
-				m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Error converting mapi message to ical, error code : 0x%08X", hr);
+				ec_log_debug("Error converting mapi message to ical, error code: 0x%08X", hr);
 				// Ignore broken message
 				hr = hrSuccess;
 			}
@@ -634,7 +636,7 @@ HRESULT iCal::HrGetIcal(IMAPITable *lpTable, bool blCensorPrivate, std::string *
 	
 	hr = lpMtIcal->Finalize(0, NULL, lpstrIcal);
 	if (hr != hrSuccess)
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Unable to create ical output of calendar, error code 0x%08X", hr);
+		ec_log_debug("Unable to create ical output of calendar, error code 0x%08X", hr);
 
 exit:
 	if (lpRows)
@@ -679,7 +681,7 @@ HRESULT iCal::HrDelFolder()
 	hr = m_lpActiveStore->OpenEntry(lpWstBoxEid->Value.bin.cb, (LPENTRYID)lpWstBoxEid->Value.bin.lpb, NULL, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*)&lpWasteBoxFld);
 	if (hr != hrSuccess)
 	{
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error opening \"Deleted items\" folder, error code : 0x%08X", hr);
+		ec_log_err("Error opening \"Deleted items\" folder, error code: 0x%08X", hr);
 		goto exit;
 	}
 

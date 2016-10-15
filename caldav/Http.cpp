@@ -119,20 +119,13 @@ exit:
 	return hr;
 }
 
-Http::Http(ECChannel *lpChannel, ECLogger *lpLogger, ECConfig *lpConfig)
+Http::Http(ECChannel *lpChannel, ECConfig *lpConfig)
 {
 	m_lpChannel = lpChannel;
-	m_lpLogger = lpLogger;
-	m_lpLogger->AddRef();
 	m_lpConfig = lpConfig;
 
 	m_ulKeepAlive = 0;
 	m_ulRetCode = 0;
-}
-
-Http::~Http()
-{
-	m_lpLogger->Release();
 }
 
 /**
@@ -148,7 +141,7 @@ HRESULT Http::HrReadHeaders()
 	ULONG n = 0;
 	std::map<std::string, std::string>::iterator iHeader = mapHeaders.end();
 
-	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Receiving headers:");
+	ec_log_debug("Receiving headers:");
 	do
 	{
 		hr = m_lpChannel->HrReadLine(&strBuffer);
@@ -178,19 +171,17 @@ HRESULT Http::HrReadHeaders()
 			}
 		}
 
-		if (m_lpLogger->Log(EC_LOGLEVEL_DEBUG)) {
-			if (strBuffer.find("Authorization") != string::npos)
-				m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "< Authorization: <value hidden>");
-			else
-				m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "< "+strBuffer);
-		}
+		if (strBuffer.find("Authorization") != string::npos)
+			ec_log_debug("< Authorization: <value hidden>");
+		else
+			ec_log_debug("< "+strBuffer);
 		++n;
 
 	} while(hr == hrSuccess);
 
 	hr = HrParseHeaders();
 	if (hr != hrSuccess)
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "parsing headers failed: 0x%08X", hr);
+		ec_log_debug("parsing headers failed: 0x%08X", hr);
 	return hr;
 }
 
@@ -212,7 +203,7 @@ HRESULT Http::HrParseHeaders()
 
 	items = tokenize(m_strAction, ' ', true);
 	if (items.size() != 3) {
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "HrParseHeaders invalid != 3 tokens");
+		ec_log_debug("HrParseHeaders invalid != 3 tokens");
 		return MAPI_E_INVALID_PARAMETER;
 	}
 	m_strMethod = items[0];
@@ -254,13 +245,13 @@ HRESULT Http::HrParseHeaders()
 	items = tokenize(strAuthdata, ' ', true);
 	// we only support basic authentication
 	if (items.size() != 2 || items[0].compare("Basic") != 0) {
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "HrParseHeaders login failed");
+		ec_log_debug("HrParseHeaders login failed");
 		return MAPI_E_LOGON_FAILED;
 	}
 
 	user_pass = base64_decode(items[1]);
 	if((colon_pos = user_pass.find(":")) == std::string::npos) {
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "HrParseHeaders password missing");
+		ec_log_debug("HrParseHeaders password missing");
 		return MAPI_E_LOGON_FAILED;
 	}
 
@@ -474,20 +465,20 @@ HRESULT Http::HrGetDestination(std::string *strDestination)
 	// example:  Host: server:port
 	hr = HrGetHeaderValue("Host", &strHost);
 	if(hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Http::HrGetDestination host header missing");
+		ec_log_debug("Http::HrGetDestination host header missing");
 		return hr;
 	}
 
 	// example:  Destination: http://server:port/caldav/username/folderid/entry.ics
 	hr = HrGetHeaderValue("Destination", &strDest);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Http::HrGetDestination destination header missing");
+		ec_log_debug("Http::HrGetDestination destination header missing");
 		return hr;
 	}
 
 	pos = strDest.find(strHost);
 	if (pos == string::npos) {
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Refusing to move calendar item from %s to different host on url %s", strHost.c_str(), strDest.c_str());
+		ec_log_err("Refusing to move calendar item from %s to different host on url %s", strHost.c_str(), strDest.c_str());
 		return MAPI_E_CALL_FAILED;
 	}
 	strDest.erase(0, pos + strHost.length());
@@ -508,19 +499,19 @@ HRESULT Http::HrReadBody()
 
 	// find the Content-Length
 	if (HrGetHeaderValue("Content-Length", &strLength) != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Http::HrReadBody content-length missing");
+		ec_log_debug("Http::HrReadBody content-length missing");
 		return MAPI_E_NOT_FOUND;
 	}
 
 	ulContLength = atoi((char*)strLength.c_str());
 	if (ulContLength <= 0) {
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Http::HrReadBody content-length invalid %d", ulContLength);
+		ec_log_debug("Http::HrReadBody content-length invalid %d", ulContLength);
 		return MAPI_E_NOT_FOUND;
 	}
 
 	hr = m_lpChannel->HrReadBytes(&m_strReqBody, ulContLength);
-	if (m_lpLogger->Log(EC_LOGLEVEL_DEBUG) && !m_strUser.empty())
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Request body:\n%s\n", m_strReqBody.c_str());
+	if (!m_strUser.empty())
+		ec_log_debug("Request body:\n%s\n", m_strReqBody.c_str());
 
 	return hr;
 }
@@ -541,12 +532,12 @@ HRESULT Http::HrValidateReq()
 
 	if (m_strMethod.empty()) {
 		static const HRESULT hr = MAPI_E_INVALID_PARAMETER;
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "HTTP request method is empty: %08X", hr);
+		ec_log_err("HTTP request method is empty: %08X", hr);
 		return hr;
 	}
 
 	if (!parseBool(m_lpConfig->GetSetting("enable_ical_get")) && m_strMethod == "GET") {
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Denying iCalendar GET since it is disabled");
+		ec_log_err("Denying iCalendar GET since it is disabled");
 		return MAPI_E_NO_ACCESS;
 	}
 
@@ -559,14 +550,14 @@ HRESULT Http::HrValidateReq()
 
 	if (bFound == false) {
 		static const HRESULT hr = MAPI_E_INVALID_PARAMETER;
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "HTTP request '%s' not implemented: %08X", m_strMethod.c_str(), hr);
+		ec_log_err("HTTP request '%s' not implemented: %08X", m_strMethod.c_str(), hr);
 		return hr;
 	}
 
 	// validate authentication data
 	if (m_strUser.empty() || m_strPass.empty())
 		// hr still success, since http request is valid
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Request missing authorization data");
+		ec_log_debug("Request missing authorization data");
 
 	return hrSuccess;
 }
@@ -609,14 +600,13 @@ HRESULT Http::HrFinalize()
 	{
 		hr = HrFlushHeaders();
 		if (hr != hrSuccess && hr != MAPI_E_END_OF_SESSION) {
-			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Http::HrFinalize flush fail %d", hr);
+			ec_log_debug("Http::HrFinalize flush fail %d", hr);
 			goto exit;
 		}
 
 		if (!m_strRespBody.empty()) {
 			m_lpChannel->HrWriteString(m_strRespBody);
-			if (m_lpLogger->Log(EC_LOGLEVEL_DEBUG))
-				m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Response body:\n%s", m_strRespBody.c_str());
+			ec_log_debug("Response body:\n%s", m_strRespBody.c_str());
 		}
 	}
 	else 
@@ -631,7 +621,7 @@ HRESULT Http::HrFinalize()
 
 		hr = HrFlushHeaders();
 		if (hr != hrSuccess && hr != MAPI_E_END_OF_SESSION) {
-			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Http::HrFinalize flush fail(2) %d", hr);
+			ec_log_debug("Http::HrFinalize flush fail(2) %d", hr);
 			goto exit;
 		}
 
@@ -653,7 +643,7 @@ HRESULT Http::HrFinalize()
 		snprintf(lpstrLen, 10, "0\r\n");
 		m_lpChannel->HrWriteLine(lpstrLen);
 		// just the first part of the body in the log. header shows it's chunked.
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "%s", m_strRespBody.c_str());
+		ec_log_debug("%s", m_strRespBody.c_str());
 	}
 
 	// if http_log_enable?
@@ -666,7 +656,7 @@ HRESULT Http::HrFinalize()
 		// @todo we're in C LC_TIME locale to get the correct (month) format, but the timezone will be GMT, which is not wanted.
 		strftime(szTime, arraySize(szTime), "%d/%b/%Y:%H:%M:%S %z", &local);
 		HrGetHeaderValue("User-Agent", &strAgent);
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "%s - %s [%s] \"%s\" %d %d \"-\" \"%s\"", m_lpChannel->peer_addr(), m_strUser.empty() ? "-" : m_strUser.c_str(), szTime, m_strAction.c_str(), m_ulRetCode, (int)m_strRespBody.length(), strAgent.c_str());
+		ec_log_debug("%s - %s [%s] \"%s\" %d %d \"-\" \"%s\"", m_lpChannel->peer_addr(), m_strUser.empty() ? "-" : m_strUser.c_str(), szTime, m_strAction.c_str(), m_ulRetCode, (int)m_strRespBody.length(), strAgent.c_str());
 	}
 
 exit:
@@ -792,12 +782,12 @@ HRESULT Http::HrFlushHeaders()
 	if (m_ulRetCode == 0)
 		HrResponseHeader(500, "Request handled incorrectly");
 
-	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "> " + m_strRespHeader);
+	ec_log_debug("> " + m_strRespHeader);
 	strOutput += m_strRespHeader + "\r\n";
 	m_strRespHeader.clear();
 
 	for (const auto &h : m_lstHeaders) {
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "> " + h);
+		ec_log_debug("> " + h);
 		strOutput += h + "\r\n";
 	}
 	m_lstHeaders.clear();

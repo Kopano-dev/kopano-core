@@ -260,7 +260,7 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, ica
 		OccrInfo *lpOccrInfo = NULL;
 		ULONG cValues = 0;
 
-		hr = lpRec->HrGetItems(dtUTCStart, dtUTCUntil, NULL, sTimeZone, 0, &lpOccrInfo, &cValues, true);
+		hr = lpRec->HrGetItems(dtUTCStart, dtUTCUntil, sTimeZone, 0, &lpOccrInfo, &cValues, true);
 		if (hr == hrSuccess && cValues > 0) {
 			dtUTCUntil = lpOccrInfo[cValues-1].tBaseDate;
 			lpRec->setEndDate(UTCToLocal(dtUTCUntil, sTimeZone));
@@ -750,10 +750,9 @@ bool ICalRecurrence::HrValidateOccurrence(icalitem *lpItem, icalitem::exception 
 	time_t tStartDateStart = LocalToUTC(lpItem->lpRecurrence->StartOfDay(UTCToLocal(lpEx.tStartDate, lpItem->tTZinfo)), lpItem->tTZinfo);
 
 	if (tBaseDateStart < tStartDateStart) {
-
-		hr = lpItem->lpRecurrence->HrGetItems(tBaseDateStart, tStartDateStart + 1439 * 60 , NULL, lpItem->tTZinfo, lpItem->ulFbStatus, &lpFBBlocksAll, &cValues);
+		hr = lpItem->lpRecurrence->HrGetItems(tBaseDateStart, tStartDateStart + 1439 * 60, lpItem->tTZinfo, lpItem->ulFbStatus, &lpFBBlocksAll, &cValues);
 	} else {
-		hr = lpItem->lpRecurrence->HrGetItems(tStartDateStart, tBaseDateStart + 1439 * 60 , NULL, lpItem->tTZinfo, lpItem->ulFbStatus, &lpFBBlocksAll, &cValues);
+		hr = lpItem->lpRecurrence->HrGetItems(tStartDateStart, tBaseDateStart + 1439 * 60, lpItem->tTZinfo, lpItem->ulFbStatus, &lpFBBlocksAll, &cValues);
 	}
 
 	if (hr != hrSuccess)

@@ -33,7 +33,7 @@
 
 class CalDAV _kc_final : public WebDav {
 public:
-	CalDAV(Http *lpRequest, IMAPISession *lpSession, ECLogger *lpLogger, std::string strSrvTz, std::string strCharset);
+	CalDAV(Http *, IMAPISession *, std::string strSrvTz, std::string strCharset);
 	HRESULT HrHandleCommand(const std::string &strMethod);
 
 protected:

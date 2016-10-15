@@ -43,59 +43,50 @@ using namespace std;
  * @param[in] lpDefStore Store of user
  * @param[in] tsStart Start time to publish data of
  * @param[in] ulMonths Number of months to publish
- * @param[in] lpLogger Log object to send log messages to
  * 
  * @return MAPI Error code
  */
-HRESULT HrPublishDefaultCalendar(IMAPISession *lpSession, IMsgStore *lpDefStore, time_t tsStart, ULONG ulMonths, ECLogger *lpLogger)
+HRESULT HrPublishDefaultCalendar(IMAPISession *lpSession, IMsgStore *lpDefStore,
+    time_t tsStart, ULONG ulMonths)
 {
 	HRESULT hr = hrSuccess;
 	PublishFreeBusy *lpFreeBusy = NULL;
 	IMAPITable *lpTable = NULL;
 	FBBlock_1 *lpFBblocks = NULL;
 	ULONG cValues = 0;
-	ECLogger *lpNullLogger = NULL;
 
-	if (!lpLogger) {
-		lpNullLogger = new ECLogger_Null();
-		lpLogger = lpNullLogger;
-	}
-
-	lpLogger->Log(EC_LOGLEVEL_DEBUG, "current time %d", (int)tsStart);
-
-	lpFreeBusy = new PublishFreeBusy(lpSession, lpDefStore, tsStart, ulMonths, lpLogger);
-	
+	ec_log_debug("current time %d", (int)tsStart);
+	lpFreeBusy = new PublishFreeBusy(lpSession, lpDefStore, tsStart, ulMonths);
 	hr = lpFreeBusy->HrInit();
 	if (hr != hrSuccess)
 		goto exit;
 
 	hr = lpFreeBusy->HrGetResctItems(&lpTable);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_INFO, "Error while finding messages for free/busy publish, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
+		ec_log_info("Error while finding messages for free/busy publish, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
 	}
 
 	hr = lpFreeBusy->HrProcessTable(lpTable, &lpFBblocks, &cValues);
 	if(hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_INFO, "Error while finding free/busy blocks, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
+		ec_log_info("Error while finding free/busy blocks, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
 	}
 
 	if (cValues == 0) {
-		lpLogger->Log(EC_LOGLEVEL_DEBUG, "No messages for free/busy publish");
+		ec_log_info("No messages for free/busy publish");
 		goto exit;
 	}
 
 	hr = lpFreeBusy->HrMergeBlocks(&lpFBblocks, &cValues);
 	if(hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_INFO, "Error while merging free/busy blocks, entries: %d, error code: 0x%x %s", cValues, hr, GetMAPIErrorMessage(hr));
+		ec_log_info("Error while merging free/busy blocks, entries: %d, error code: 0x%x %s", cValues, hr, GetMAPIErrorMessage(hr));
 		goto exit;
 	}
-	lpLogger->Log(EC_LOGLEVEL_DEBUG, "Publishing %d free/busy blocks", cValues);
-
+	ec_log_debug("Publishing %d free/busy blocks", cValues);
 	hr = lpFreeBusy->HrPublishFBblocks(lpFBblocks, cValues);
 	if(hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_INFO, "Error while publishing free/busy blocks, entries: %d, error code: 0x%x %s", cValues, hr, GetMAPIErrorMessage(hr));
+		ec_log_info("Error while publishing free/busy blocks, entries: %d, error code: 0x%x %s", cValues, hr, GetMAPIErrorMessage(hr));
 		goto exit;
 	}
 	
@@ -105,9 +96,6 @@ exit:
 
 	delete lpFreeBusy;
 	MAPIFreeBuffer(lpFBblocks);
-	if(lpNullLogger)
-		lpNullLogger->Release();
-
 	return hr;
 }
 
@@ -119,26 +107,18 @@ exit:
  * @param[in] lpDefStore 
  * @param[in] tsStart 
  * @param[in] ulMonths 
- * @param[in] lpLogger 
  */
 PublishFreeBusy::PublishFreeBusy(IMAPISession *lpSession, IMsgStore *lpDefStore,
-    time_t tsStart, ULONG ulMonths, ECLogger *lpLogger) :
+    time_t tsStart, ULONG ulMonths) :
 	__propmap(7)
 {
 	m_lpSession = lpSession;
 	m_lpDefStore = lpDefStore;
-	m_lpLogger = lpLogger;
-	m_lpLogger->AddRef();
 	m_tsStart = tsStart;
 	m_tsEnd = tsStart + (ulMonths * (30*24*60*60));
 
 	UnixTimeToFileTime(m_tsStart, &m_ftStart);
 	UnixTimeToFileTime(m_tsEnd , &m_ftEnd);
-}
-
-PublishFreeBusy::~PublishFreeBusy()
-{
-	m_lpLogger->Release();
 }
 
 /** 
@@ -331,7 +311,7 @@ HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBl
 				{
 					hr = lpRecurrence.HrLoadRecurrenceState((char *)(lpRowSet->aRow[i].lpProps[4].Value.bin.lpb),lpRowSet->aRow[i].lpProps[4].Value.bin.cb, 0);
 					if(FAILED(hr)) {
-						m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error loading recurrence state, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
+						ec_log_err("Error loading recurrence state, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 						continue;
 					}
 
@@ -341,9 +321,9 @@ HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBl
 					if (lpRowSet->aRow[i].lpProps[2].ulPropTag == PROP_APPT_FBSTATUS)
 						ulFbStatus = lpRowSet->aRow[i].lpProps[2].Value.ul;
 
-					hr = lpRecurrence.HrGetItems( m_tsStart, m_tsEnd, m_lpLogger, ttzInfo, ulFbStatus, &lpOccrInfo, lpcValues);
+					hr = lpRecurrence.HrGetItems(m_tsStart, m_tsEnd, ttzInfo, ulFbStatus, &lpOccrInfo, lpcValues);
 					if (hr != hrSuccess || !lpOccrInfo) {
-						m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error expanding items for recurring item, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
+						ec_log_err("Error expanding items for recurring item, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 						continue;
 					}
 				}
@@ -365,7 +345,7 @@ HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBl
 				
 				hr = HrAddFBBlock(sOccrBlock, &lpOccrInfo, lpcValues);
 				if (hr != hrSuccess) {
-					m_lpLogger->Log( EC_LOGLEVEL_DEBUG, "Error adding occurrence block to list, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
+					ec_log_debug("Error adding occurrence block to list, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 					goto exit;
 				}
 			}
@@ -416,7 +396,7 @@ HRESULT PublishFreeBusy::HrMergeBlocks(FBBlock_1 **lppfbBlocks, ULONG *lpcValues
 	std::vector <FBBlock_1> vcFBblocks;
 	time_t tTemp = 0;
 
-	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Input blocks %ul", cValues);
+	ec_log_debug("Input blocks %ul", cValues);
 
 	lpFbBlocks = *lppfbBlocks;
 	for (ULONG i = 0; i < cValues; ++i) {
@@ -426,7 +406,7 @@ HRESULT PublishFreeBusy::HrMergeBlocks(FBBlock_1 **lppfbBlocks, ULONG *lpcValues
 		RTimeToUnixTime(sTsitem.tsTime, &tTemp);
 
 		// @note ctime adds \n character
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Blocks start %s", ctime(&tTemp));
+		ec_log_debug("Blocks start %s", ctime(&tTemp));
 
 		mpTimestamps[sTsitem.tsTime] = sTsitem;
 		
@@ -495,7 +475,7 @@ HRESULT PublishFreeBusy::HrMergeBlocks(FBBlock_1 **lppfbBlocks, ULONG *lpcValues
 	*lppfbBlocks = lpFbBlocks;
 	*lpcValues = vcFBblocks.size();
 
-	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Output blocks %d", *lpcValues);
+	ec_log_debug("Output blocks %d", *lpcValues);
 	return hrSuccess;
 }
 

@@ -26,9 +26,10 @@ using namespace std;
 /**
  * @param[in]	lpRequest	Pointer to http Request object
  * @param[in]	lpSession	Pointer to mapi session of the user
- * @param[in]	lpLogger	Pointer to logger object to log errors and information
  */
-WebDav::WebDav(Http *lpRequest, IMAPISession *lpSession, ECLogger *lpLogger, std::string strSrvTz, std::string strCharset):ProtocolBase(lpRequest, lpSession, lpLogger, strSrvTz, strCharset)
+WebDav::WebDav(Http *lpRequest, IMAPISession *lpSession, std::string strSrvTz,
+    std::string strCharset) :
+	ProtocolBase(lpRequest, lpSession, strSrvTz, strCharset)
 {	
 	m_lpXmlDoc  = NULL;
 }
@@ -140,7 +141,7 @@ HRESULT WebDav::HrPropfind()
 	hr = RespStructToXml(&sDavMStatus, &strXml);
 	if (hr != hrSuccess)
 	{
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Unable to convert response to xml: 0x%08X", hr);
+		ec_log_debug("Unable to convert response to xml: 0x%08X", hr);
 		goto exit;
 	}
 	
@@ -186,7 +187,7 @@ HRESULT WebDav::RespStructToXml(WEBDAVMULTISTATUS *sDavMStatus, std::string *str
 	if (xmlBuff == NULL)
 	{
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error allocating memory to xmlBuffer");
+		ec_log_err("Error allocating memory to xmlBuffer");
 		goto exit;
 	}
 
@@ -195,7 +196,7 @@ HRESULT WebDav::RespStructToXml(WEBDAVMULTISTATUS *sDavMStatus, std::string *str
 	if (xmlWriter == NULL)
 	{
 		hr = MAPI_E_CALL_FAILED;
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error Initializing xmlWriter");
+		ec_log_err("Error Initializing xmlWriter");
 		goto exit;
 	}
 
@@ -275,7 +276,7 @@ exit:
 
 xmlfail:
 	hr = MAPI_E_CALL_FAILED;
-	m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error writing xml data");
+	ec_log_err("Error writing xml data");
 	goto exit;
 }
 
@@ -467,7 +468,7 @@ HRESULT WebDav::HrHandleRptCalQry()
 				lpXmlChildNode = lpXmlChildNode->next;
 			}
 		} else {
-			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Skipping unknown XML element: %s", lpXmlNode->name);
+			ec_log_debug("Skipping unknown XML element: %s", lpXmlNode->name);
 		}
 		lpXmlNode = lpXmlNode->next;
 	}
@@ -492,7 +493,7 @@ HRESULT WebDav::HrHandleRptCalQry()
 exit:
 	if (hr != hrSuccess)
 	{
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Unable to process report calendar query: 0x%08X", hr);
+		ec_log_debug("Unable to process report calendar query: 0x%08X", hr);
 		m_lpRequest->HrResponseHeader(500, "Internal Server Error");
 	}
 
@@ -607,7 +608,7 @@ HRESULT WebDav::HrHandleRptMulGet()
 exit:
 	if(hr != hrSuccess)
 	{
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Unable to process report multi-get: 0x%08X", hr);
+		ec_log_debug("Unable to process report multi-get: 0x%08X", hr);
 		m_lpRequest->HrResponseHeader(500, "Internal Server Error");
 	}
 	
@@ -713,7 +714,7 @@ HRESULT WebDav::HrPropertySearch()
 exit:
 	if(hr != hrSuccess)
 	{
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Unable to process report multi-get: 0x%08X", hr);
+		ec_log_debug("Unable to process report multi-get: 0x%08X", hr);
 		m_lpRequest->HrResponseHeader(500, "Internal Server Error");
 	}
 	
@@ -1367,7 +1368,7 @@ HRESULT WebDav::HrPropPatch()
 	hr = RespStructToXml(&sDavMStatus, &strXml);
 	if (hr != hrSuccess)
 	{
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Unable to convert response to xml: 0x%08X", hr);
+		ec_log_debug("Unable to convert response to xml: 0x%08X", hr);
 		goto exit;
 	}
 
@@ -1417,7 +1418,7 @@ HRESULT WebDav::HrMkCalendar()
 	hr = HrParseXml();
 	if(hr != hrSuccess)
 	{
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR,"Parsing Error For MKCALENDAR");
+		ec_log_err("Parsing Error For MKCALENDAR");
 		goto exit;
 	}
 	

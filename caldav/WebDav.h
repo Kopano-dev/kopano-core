@@ -113,7 +113,7 @@ typedef struct {
 
 class WebDav : public ProtocolBase {
 public:
-	WebDav(Http *lpRequest, IMAPISession *lpSession, ECLogger *lpLogger, std::string strSrvTz, std::string strCharset);
+	WebDav(Http *, IMAPISession *, std::string strSrvTz, std::string strCharset);
 	virtual ~WebDav();
 
 protected:

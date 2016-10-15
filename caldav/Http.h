@@ -47,9 +47,7 @@ HRESULT HrParseURL(const std::string &stUrl, ULONG *lpulFlag, std::string *lpstr
 
 class Http _kc_final {
 public:
-	Http(ECChannel *lpChannel, ECLogger *lpLogger, ECConfig *lpConfig);
-	~Http();
-
+	Http(ECChannel *lpChannel, ECConfig *lpConfig);
 	HRESULT HrReadHeaders();
 	HRESULT HrValidateReq();
 	HRESULT HrReadBody();
@@ -82,7 +80,6 @@ public:
 
 private:
 	ECChannel *m_lpChannel;
-	ECLogger *m_lpLogger;
 	ECConfig *m_lpConfig;
 
 	/* request */

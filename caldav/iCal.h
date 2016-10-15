@@ -28,7 +28,7 @@
 
 class iCal _kc_final : public ProtocolBase {
 public:
-	iCal(Http *lpRequest, IMAPISession *lpSession, ECLogger *lpLogger, std::string strSrvTz, std::string strCharset);
+	iCal(Http *, IMAPISession *, std::string strSrvTz, std::string strCharset);
 	HRESULT HrHandleCommand(const std::string &strMethod);
 	
 private:

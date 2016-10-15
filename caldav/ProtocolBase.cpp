@@ -24,12 +24,11 @@
 
 using namespace std;
 
-ProtocolBase::ProtocolBase(Http *lpRequest, IMAPISession *lpSession, ECLogger *lpLogger, std::string strSrvTz, std::string strCharset) {
+ProtocolBase::ProtocolBase(Http *lpRequest, IMAPISession *lpSession,
+    std::string strSrvTz, std::string strCharset)
+{
 	m_lpRequest = lpRequest;
 	m_lpSession = lpSession;
-	m_lpLogger  = lpLogger;
-	m_lpLogger->AddRef();
-
 	m_lpUsrFld = NULL;
 	m_lpIPMSubtree = NULL;
 	m_lpDefStore = NULL;
@@ -68,7 +67,6 @@ ProtocolBase::~ProtocolBase()
 
 	if (m_lpActiveStore)
 		m_lpActiveStore->Release();
-	m_lpLogger->Release();
 }
 
 /**
@@ -121,7 +119,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 	hr = m_lpSession->OpenAddressBook(0, NULL, 0, &m_lpAddrBook);
 	if(hr != hrSuccess)
 	{
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error opening addressbook, error code : 0x%08X", hr);
+		ec_log_err("Error opening addressbook, error code: 0x%08X", hr);
 		goto exit;
 	}
 
@@ -129,7 +127,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 	hr = HrOpenDefaultStore(m_lpSession, &m_lpDefStore);
 	if(hr != hrSuccess)
 	{
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error opening default store of user %ls, error code : 0x%08X", m_wstrUser.c_str(), hr);
+		ec_log_err("Error opening default store of user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);
 		goto exit;
 	}
 
@@ -145,14 +143,14 @@ HRESULT ProtocolBase::HrInitializeClass()
 		// open public
 		hr = HrOpenECPublicStore(m_lpSession, &m_lpActiveStore);
 		if (hr != hrSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open public store with user %ls, error code : 0x%08X", m_wstrUser.c_str(), hr);
+			ec_log_err("Unable to open public store with user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);
 			goto exit;
 		}
 	} else if (wcscasecmp(m_wstrUser.c_str(), m_wstrFldOwner.c_str())) {
 		// open shared store
 		hr = HrOpenUserMsgStore(m_lpSession, (WCHAR*)m_wstrFldOwner.c_str(), &m_lpActiveStore);
 		if (hr != hrSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open store of user %ls with user %ls, error code : 0x%08X", m_wstrFldOwner.c_str(), m_wstrUser.c_str(), hr);
+			ec_log_err("Unable to open store of user %ls with user %ls, error code: 0x%08X", m_wstrFldOwner.c_str(), m_wstrUser.c_str(), hr);
 			goto exit;
 		}
 		m_ulFolderFlag |= SHARED_FOLDER;
@@ -181,7 +179,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 	hr = OpenSubFolder(m_lpActiveStore, NULL, '/', bIsPublic, false, &m_lpIPMSubtree);
 	if(hr != hrSuccess)
 	{
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error opening IPM SUBTREE, using user %ls, error code : 0x%08X", m_wstrUser.c_str(), hr);
+		ec_log_err("Error opening IPM SUBTREE, using user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);
 		goto exit;
 	}
 
@@ -189,7 +187,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 	hr = m_lpActiveStore->OpenEntry(0, NULL, NULL, 0, &ulType, &lpRoot);
 	if(hr != hrSuccess)
 	{
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error opening root container, using user %ls, error code : 0x%08X", m_wstrUser.c_str(), hr);
+		ec_log_err("Error opening root container, using user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);
 		goto exit;
 	}
 
@@ -198,7 +196,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 		hr = HrGetOneProp(lpRoot, PR_IPM_APPOINTMENT_ENTRYID, &lpDefaultProp);
 		if(hr != hrSuccess)
 		{
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error retrieving Entry id of Default calendar for user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);
+			ec_log_err("Error retrieving Entry id of Default calendar for user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);
 			goto exit;
 		}
 	}
@@ -213,17 +211,17 @@ HRESULT ProtocolBase::HrInitializeClass()
 		     false, &m_lpUsrFld);
 		if(hr != hrSuccess)
 		{
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error opening IPM_SUBTREE folder of user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);
+			ec_log_err("Error opening IPM_SUBTREE folder of user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);
 			goto exit;
 		}
 	}
 	else if(!m_wstrFldName.empty())
 	{
 		// @note, caldav allows creation of calendars for non-existing urls, but since this can also use id's, I'm not sure we want to.
-		hr = HrFindFolder(m_lpActiveStore, m_lpIPMSubtree, m_lpNamedProps, m_lpLogger, m_wstrFldName, &m_lpUsrFld);
+		hr = HrFindFolder(m_lpActiveStore, m_lpIPMSubtree, m_lpNamedProps, m_wstrFldName, &m_lpUsrFld);
 		if(hr != hrSuccess)
 		{
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error opening named folder of user %ls, folder %ls, error code: 0x%08X", m_wstrUser.c_str(), m_wstrFldName.c_str(), hr);
+			ec_log_err("Error opening named folder of user %ls, folder %ls, error code: 0x%08X", m_wstrUser.c_str(), m_wstrFldName.c_str(), hr);
 			goto exit;
 		}
 		m_ulFolderFlag |= SINGLE_FOLDER;
@@ -250,7 +248,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 			hr = m_lpActiveStore->OpenEntry(lpDefaultProp->Value.bin.cb, (LPENTRYID)lpDefaultProp->Value.bin.lpb, NULL, MAPI_BEST_ACCESS, &ulType, (LPUNKNOWN*)&m_lpUsrFld);
 			if (hr != hrSuccess)
 			{
-				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open default calendar for user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);
+				ec_log_err("Unable to open default calendar for user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);
 				goto exit;
 			}
 

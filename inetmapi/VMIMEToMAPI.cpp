@@ -22,7 +22,7 @@
 
 #include "VMIMEToMAPI.h"
 #include <kopano/ECGuid.h>
-
+#include <kopano/ECLogger.h>
 #include <algorithm>
 #include <string>
 #include <fstream>

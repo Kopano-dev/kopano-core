@@ -22,7 +22,6 @@
 #include <kopano/RecurrenceState.h>
 #include <mapidefs.h>
 #include <mapix.h>
-#include <kopano/ECLogger.h>
 #include <kopano/Util.h>
 #include <list>
 #include "TimeUtil.h"
@@ -36,9 +35,7 @@ public:
 	HRESULT HrGetRecurrenceState(char **lppData, unsigned int *lpulLen, void *base = NULL);
 
 	HRESULT HrGetHumanReadableString(std::string *lpstrHRS);
-
-	HRESULT HrGetItems(time_t tsStart, time_t tsEnd, ECLogger *lpLogger, TIMEZONE_STRUCT ttZinfo, ULONG ulBusyStatus, OccrInfo **lppFbBlock, ULONG *lpcValues, bool last=false);
-
+	HRESULT HrGetItems(time_t start, time_t end, TIMEZONE_STRUCT ttZinfo, ULONG ulBusyStatus, OccrInfo **lppFbBlock, ULONG *lpcValues, bool last = false);
 	typedef enum freq_type {DAILY, WEEKLY, MONTHLY, YEARLY} freq_type;
 	typedef enum term_type {DATE, NUMBER, NEVER} term_type;
 
@@ -189,8 +186,7 @@ private:
 */
 
 	ULONG calcBits(ULONG x);
-    bool CheckAddValidOccr(time_t tsNow, time_t tsStart, time_t tsEnd, ECLogger *lpLogger, TIMEZONE_STRUCT ttZinfo, ULONG ulBusyStatus, OccrInfo **lppOccrInfoAll, ULONG *lpcValues);
-
+	bool CheckAddValidOccr(time_t now, time_t start, time_t end, TIMEZONE_STRUCT ttZinfo, ULONG ulBusyStatus, OccrInfo **lppOccrInfoAll, ULONG *lpcValues);
 };
 
 #endif
