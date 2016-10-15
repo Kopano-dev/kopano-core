@@ -18,7 +18,7 @@
 #include <kopano/platform.h>
 
 #include <iostream>
-#include "kcm_mysql.hpp"
+#include "arc_mysql.hpp"
 #include "mysqld_error.h"
 
 #include <kopano/ECLogger.h>

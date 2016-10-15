@@ -19,8 +19,8 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-#ifndef KCM_MYSQL_HPP
-#define KCM_MYSQL_HPP 1
+#ifndef ARC_MYSQL_HPP
+#define ARC_MYSQL_HPP 1
 
 #include <mutex>
 #include <kopano/platform.h>

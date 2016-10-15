@@ -19,7 +19,7 @@
 #define ARC_DATABASE_H 1
 
 #include <kopano/zcdefs.h>
-#include "kcm_mysql.hpp"
+#include "arc_mysql.hpp"
 
 class ARCDatabase _kc_final : public KCMDatabaseMySQL {
 public:
