@@ -404,7 +404,7 @@ exit:
 	return hr;
 }
 
-HRESULT ECExchangeImportContentsChanges::ImportMessageMove(ULONG cbSourceKeySrcFolder, BYTE FAR * pbSourceKeySrcFolder, ULONG cbSourceKeySrcMessage, BYTE FAR * pbSourceKeySrcMessage, ULONG cbPCLMessage, BYTE FAR * pbPCLMessage, ULONG cbSourceKeyDestMessage, BYTE FAR * pbSourceKeyDestMessage, ULONG cbChangeNumDestMessage, BYTE FAR * pbChangeNumDestMessage){
+HRESULT ECExchangeImportContentsChanges::ImportMessageMove(ULONG cbSourceKeySrcFolder, BYTE *pbSourceKeySrcFolder, ULONG cbSourceKeySrcMessage, BYTE *pbSourceKeySrcMessage, ULONG cbPCLMessage, BYTE *pbPCLMessage, ULONG cbSourceKeyDestMessage, BYTE *pbSourceKeyDestMessage, ULONG cbChangeNumDestMessage, BYTE *pbChangeNumDestMessage){
 	return MAPI_E_NO_SUPPORT;
 }
 
@@ -1154,7 +1154,7 @@ DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChang
 DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, ImportMessageChange, (ULONG, cValue), (LPSPropValue, lpPropArray), (ULONG, ulFlags), (LPMESSAGE *, lppMessage))
 DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, ImportMessageDeletion, (ULONG, ulFlags), (LPENTRYLIST, lpSourceEntryList))
 DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, ImportPerUserReadStateChange, (ULONG, cElements), (LPREADSTATE, lpReadState))
-DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, ImportMessageMove, (ULONG, cbSourceKeySrcFolder), (BYTE FAR *, pbSourceKeySrcFolder), (ULONG, cbSourceKeySrcMessage), (BYTE FAR *, pbSourceKeySrcMessage), (ULONG, cbPCLMessage), (BYTE FAR *, pbPCLMessage), (ULONG, cbSourceKeyDestMessage), (BYTE FAR *, pbSourceKeyDestMessage), (ULONG, cbChangeNumDestMessage), (BYTE FAR *, pbChangeNumDestMessage))
+DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, ImportMessageMove, (ULONG, cbSourceKeySrcFolder), (BYTE *, pbSourceKeySrcFolder), (ULONG, cbSourceKeySrcMessage), (BYTE *, pbSourceKeySrcMessage), (ULONG, cbPCLMessage), (BYTE *, pbPCLMessage), (ULONG, cbSourceKeyDestMessage), (BYTE *, pbSourceKeyDestMessage), (ULONG, cbChangeNumDestMessage), (BYTE *, pbChangeNumDestMessage))
 DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, ConfigForConversionStream, (LPSTREAM, lpStream), (ULONG, ulFlags), (ULONG, cValuesConversion), (LPSPropValue, lpPropArrayConversion))
 DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, ImportMessageChangeAsAStream, (ULONG, cpvalChanges), (LPSPropValue, ppvalChanges), (ULONG, ulFlags), (LPSTREAM *, lppstream))
 DEF_HRMETHOD1(TRACE_MAPI, ECExchangeImportContentsChanges, ECImportContentsChanges, SetMessageInterface, (REFIID, refiid))

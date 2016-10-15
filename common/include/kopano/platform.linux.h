@@ -73,8 +73,6 @@ inline int _vsnprintf_l(char *str, size_t size, const char *format, locale_t loc
 /* compiler definitions */
 #define __stdcall
 #define __cdecl
-#define FAR
-
 #define STDAPI_(__type) __type __stdcall
 
 /* base types */
@@ -530,10 +528,10 @@ typedef SENS_QOCINFO* LPSENS_QOCINFO;
 /* IDispatch Interface */
 class IDispatch : public IUnknown {
 public:
-	virtual HRESULT GetTypeInfoCount(unsigned int FAR* pctinfo) = 0;
-	virtual HRESULT GetTypeInfo(unsigned int iTInfo, LCID lcid, ITypeInfo FAR* FAR* ppTInfo) = 0;
-	virtual HRESULT GetIDsOfNames(REFIID riid, OLECHAR FAR* FAR* rgszNames, unsigned int cNames, LCID lcid, DISPID FAR* rgDispId) = 0;
-	virtual HRESULT Invoke(DISPID dispIdMember, REFIID riid, LCID lcid, WORD wFlags, DISPPARAMS FAR* pDispParams, VARIANT FAR* parResult, EXCEPINFO FAR* pExcepInfo, unsigned int FAR* puArgErr) = 0;
+	virtual HRESULT GetTypeInfoCount(unsigned int *pctinfo) = 0;
+	virtual HRESULT GetTypeInfo(unsigned int iTInfo, LCID lcid, ITypeInfo **ppTInfo) = 0;
+	virtual HRESULT GetIDsOfNames(REFIID riid, OLECHAR **rgszNames, unsigned int cNames, LCID lcid, DISPID *rgDispId) = 0;
+	virtual HRESULT Invoke(DISPID dispIdMember, REFIID riid, LCID lcid, WORD wFlags, DISPPARAMS *pDispParams, VARIANT *parResult, EXCEPINFO *pExcepInfo, unsigned int *puArgErr) = 0;
 };
 
 /* ISensNetwork Interface */

@@ -473,7 +473,7 @@ exit:
 }
 
 HRESULT __stdcall OpenStreamOnFile(LPALLOCATEBUFFER lpAllocateBuffer, LPFREEBUFFER lpFreeBuffer, ULONG ulFlags,
-													 LPTSTR lpszFileName, LPTSTR lpszPrefix, LPSTREAM FAR * lppStream)
+    LPTSTR lpszFileName, LPTSTR lpszPrefix, LPSTREAM *lppStream)
 {
 	TRACE_MAPILIB(TRACE_ENTRY, "OpenStreamOnFile", "");
 	HRESULT hr = MAPI_E_NOT_FOUND;
@@ -482,10 +482,10 @@ HRESULT __stdcall OpenStreamOnFile(LPALLOCATEBUFFER lpAllocateBuffer, LPFREEBUFF
 }
 
 HRESULT __stdcall BuildDisplayTable(LPALLOCATEBUFFER lpAllocateBuffer, LPALLOCATEMORE lpAllocateMore,
-									LPFREEBUFFER lpFreeBuffer, LPMALLOC lpMalloc,
-									HINSTANCE hInstance, UINT cPages,
-									LPDTPAGE lpPage, ULONG ulFlags,
-									LPMAPITABLE * lppTable, LPTABLEDATA * lppTblData)
+	LPFREEBUFFER lpFreeBuffer, LPMALLOC lpMalloc,
+	HINSTANCE hInstance, UINT cPages,
+	LPDTPAGE lpPage, ULONG ulFlags,
+	LPMAPITABLE * lppTable, LPTABLEDATA * lppTblData)
 {
 	TRACE_MAPILIB(TRACE_ENTRY, "BuildDisplayTable", "");
 	HRESULT hr = MAPI_E_NO_SUPPORT;
@@ -502,9 +502,9 @@ typedef struct  {
 #pragma pack(pop)
 
 HRESULT __stdcall ScCreateConversationIndex (ULONG cbParent,
-						LPBYTE lpbParent,
-						ULONG FAR *	lpcbConvIndex,
-						LPBYTE FAR * lppbConvIndex)
+	LPBYTE lpbParent,
+	ULONG *lpcbConvIndex,
+	LPBYTE *lppbConvIndex)
 {
 	HRESULT hr;
 	TRACE_MAPILIB1(TRACE_ENTRY, "ScCreateConversationIndex", "%s", lpbParent ? bin2hex(cbParent, lpbParent).c_str() : "<null>");
@@ -549,7 +549,7 @@ HRESULT __stdcall ScCreateConversationIndex (ULONG cbParent,
 	return hrSuccess;
 }
 
-SCODE __stdcall ScDupPropset( int cprop,  LPSPropValue rgprop,  LPALLOCATEBUFFER lpAllocateBuffer,  LPSPropValue FAR * prgprop )
+SCODE __stdcall ScDupPropset( int cprop,  LPSPropValue rgprop,  LPALLOCATEBUFFER lpAllocateBuffer,  LPSPropValue *prgprop )
 {
 	TRACE_MAPILIB(TRACE_ENTRY, "ScDupPropset", "");
 
@@ -576,7 +576,7 @@ exit:
 	return hr;
 }
 
-SCODE __stdcall ScRelocProps(int cprop, LPSPropValue rgprop, LPVOID pvBaseOld, LPVOID pvBaseNew, ULONG FAR * pcb)
+SCODE __stdcall ScRelocProps(int cprop, LPSPropValue rgprop, LPVOID pvBaseOld, LPVOID pvBaseNew, ULONG *pcb)
 {
 	TRACE_MAPILIB(TRACE_ENTRY, "ScRelocProps", "");
 	TRACE_MAPILIB1(TRACE_RETURN, "ScRelocProps", "0x%08x", S_FALSE);
@@ -601,7 +601,7 @@ ULONG __stdcall CchOfEncoding(LPCSTR lpszEnd)
 	return 0;
 }
 
-SCODE __stdcall ScCopyProps( int cprop,  LPSPropValue rgprop,  LPVOID pvDst,  ULONG FAR * pcb )
+SCODE __stdcall ScCopyProps( int cprop,  LPSPropValue rgprop,  LPVOID pvDst,  ULONG *pcb )
 {
 	TRACE_MAPILIB1(TRACE_ENTRY, "ScCopyProps", "%s", PropNameFromPropArray(cprop, rgprop).c_str());
 	BYTE *lpHeap = (BYTE *)pvDst + sizeof(SPropValue) * cprop;

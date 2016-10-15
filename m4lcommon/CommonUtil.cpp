@@ -1839,7 +1839,7 @@ public:
 	ULONG __stdcall Release() { return 1; };
 	HRESULT __stdcall QueryInterface(const IID &iid, LPVOID *lpvoid) { return MAPI_E_INTERFACE_NOT_SUPPORTED; };
 
-	HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR FAR * lppMAPIError) { return MAPI_E_NOT_FOUND; }
+	HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) { return MAPI_E_NOT_FOUND; }
 	HRESULT __stdcall SaveChanges(ULONG ulFlags) { return MAPI_E_NO_SUPPORT; }
 	HRESULT __stdcall GetProps(LPSPropTagArray lpTags, ULONG ulFlags, ULONG *lpcValues, LPSPropValue *lppProps) { 
 		HRESULT hr = hrSuccess;
@@ -1894,10 +1894,10 @@ public:
 	HRESULT __stdcall OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk){ return MAPI_E_NO_SUPPORT; }
 	HRESULT __stdcall SetProps(ULONG cValues, LPSPropValue lpProps, LPSPropProblemArray *lppProblems) { return MAPI_E_NO_SUPPORT; }
 	HRESULT __stdcall DeleteProps(LPSPropTagArray lpToDelete, LPSPropProblemArray *lppProblems) { return MAPI_E_NO_SUPPORT; }
-	HRESULT __stdcall CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArray lpExcludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray FAR * lppProblems) { return MAPI_E_NO_SUPPORT; }
-	HRESULT __stdcall CopyProps(LPSPropTagArray lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray FAR * lppProblems) { return MAPI_E_NO_SUPPORT; }
-	HRESULT __stdcall GetNamesFromIDs( LPSPropTagArray FAR * lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG FAR * lpcPropNames, LPMAPINAMEID FAR * FAR * lpppPropNames) { return MAPI_E_NO_SUPPORT; }
-	HRESULT __stdcall GetIDsFromNames( ULONG cPropNames, LPMAPINAMEID FAR * lppPropNames, ULONG ulFlags, LPSPropTagArray FAR * lppPropTags) { return MAPI_E_NO_SUPPORT; }
+	HRESULT __stdcall CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArray lpExcludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems) { return MAPI_E_NO_SUPPORT; }
+	HRESULT __stdcall CopyProps(LPSPropTagArray lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems) { return MAPI_E_NO_SUPPORT; }
+	HRESULT __stdcall GetNamesFromIDs( LPSPropTagArray *lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG *lpcPropNames, LPMAPINAMEID **lpppPropNames) { return MAPI_E_NO_SUPPORT; }
+	HRESULT __stdcall GetIDsFromNames( ULONG cPropNames, LPMAPINAMEID *lppPropNames, ULONG ulFlags, LPSPropTagArray *lppPropTags) { return MAPI_E_NO_SUPPORT; }
 private:
 	ULONG			m_cValues;
 	LPSPropValue	m_lpProps;
