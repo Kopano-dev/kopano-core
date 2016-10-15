@@ -661,7 +661,7 @@ HRESULT recurrence::addModifiedException(time_t tStart, time_t tEnd, time_t tOri
 	return hr;
 }
 
-HRESULT recurrence::setModifiedSubject(ULONG id, std::wstring strSubject)
+HRESULT recurrence::setModifiedSubject(ULONG id, const std::wstring &strSubject)
 {
 	if (id >= m_sRecState.lstExceptions.size())
 		return S_FALSE;
@@ -706,7 +706,8 @@ HRESULT recurrence::setModifiedReminder(ULONG id, ULONG set)
 	return S_OK;
 }
 
-HRESULT recurrence::setModifiedLocation(ULONG id, std::wstring strLocation)
+HRESULT recurrence::setModifiedLocation(ULONG id,
+    const std::wstring &strLocation)
 {
 	if (id >= m_sRecState.lstExceptions.size())
 		return S_FALSE;

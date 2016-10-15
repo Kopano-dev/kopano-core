@@ -25,7 +25,7 @@
 using namespace std;
 
 ProtocolBase::ProtocolBase(Http *lpRequest, IMAPISession *lpSession,
-    std::string strSrvTz, std::string strCharset)
+    const std::string &strSrvTz, const std::string &strCharset)
 {
 	m_lpRequest = lpRequest;
 	m_lpSession = lpSession;

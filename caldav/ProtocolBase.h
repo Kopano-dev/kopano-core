@@ -23,7 +23,7 @@
 
 class ProtocolBase {
 public:
-	ProtocolBase(Http *, IMAPISession *, std::string strSrvTz, std::string strCharset);
+	ProtocolBase(Http *, IMAPISession *, const std::string &srv_tz, const std::string &charset);
 	virtual ~ProtocolBase();
 
 	HRESULT HrInitializeClass();

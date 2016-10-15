@@ -99,8 +99,8 @@ exit:
  * @param[in]	strSrvTz	String specifying the server timezone, set in ical.cfg
  * @param[in]	strCharset	String specifying the default charset of the http response
  */
-CalDAV::CalDAV(Http *lpRequest, IMAPISession *lpSession, std::string strSrvTz,
-    std::string strCharset) :
+CalDAV::CalDAV(Http *lpRequest, IMAPISession *lpSession,
+    const std::string &strSrvTz, const std::string &strCharset) :
 	WebDav(lpRequest, lpSession, strSrvTz, strCharset)
 {
 }

@@ -35,7 +35,7 @@ using namespace std;
  */
 HRESULT HrAuthenticate(const std::string &appVersion,
     const std::string &appMisc, const std::wstring &wstrUser,
-    const std::wstring &wstrPass, std::string strPath,
+    const std::wstring &wstrPass, const std::string &strPath,
     IMAPISession **lppSession)
 {
 	// @todo: if login with utf8 username is not possible, lookup user from addressbook? but how?
@@ -145,7 +145,7 @@ exit:
  * @todo	add some check to remove the dirty >50 length check
  */
 HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
-    SPropTagArray *lpNamedProps, std::wstring wstrFldId,
+    SPropTagArray *lpNamedProps, const std::wstring &wstrFldIdOrig,
     IMAPIFolder **lppUsrFld)
 {
 	HRESULT hr = hrSuccess;
@@ -164,6 +164,7 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 	LPENTRYID lpEntryID = NULL;
 	LPSPropValue lpOutbox = NULL;
 	SizedSPropTagArray(1, sPropTagArr) = {1, {PR_ENTRYID}};
+	auto wstrFldId = wstrFldIdOrig;
 
 	// wstrFldId can be:
 	//   FOLDER_PREFIX + hexed named folder id

@@ -107,11 +107,11 @@ public:
 	ULONG getModifiedSubType(ULONG id);
 
 	HRESULT addModifiedException(time_t tStart, time_t tEnd, time_t tOriginalStart, ULONG *id);
-	HRESULT setModifiedSubject(ULONG id, std::wstring strSubject);
+	HRESULT setModifiedSubject(ULONG id, const std::wstring &strSubject);
 	HRESULT setModifiedMeetingType(ULONG id, ULONG type);
 	HRESULT setModifiedReminderDelta(ULONG id, LONG delta);
 	HRESULT setModifiedReminder(ULONG id, ULONG set);
-	HRESULT setModifiedLocation(ULONG id, std::wstring strLocation);
+	HRESULT setModifiedLocation(ULONG id, const std::wstring &strLocation);
 	HRESULT setModifiedBusyStatus(ULONG id, ULONG status);
 	HRESULT setModifiedAttachment(ULONG id);
 	HRESULT setModifiedSubType(ULONG id, ULONG subtype);

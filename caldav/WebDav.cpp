@@ -27,8 +27,8 @@ using namespace std;
  * @param[in]	lpRequest	Pointer to http Request object
  * @param[in]	lpSession	Pointer to mapi session of the user
  */
-WebDav::WebDav(Http *lpRequest, IMAPISession *lpSession, std::string strSrvTz,
-    std::string strCharset) :
+WebDav::WebDav(Http *lpRequest, IMAPISession *lpSession,
+    const std::string &strSrvTz, const std::string &strCharset) :
 	ProtocolBase(lpRequest, lpSession, strSrvTz, strCharset)
 {	
 	m_lpXmlDoc  = NULL;

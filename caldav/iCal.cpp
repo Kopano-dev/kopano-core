@@ -33,8 +33,8 @@
 
 using namespace std;
 
-iCal::iCal(Http *lpRequest, IMAPISession *lpSession, std::string strSrvTz,
-    std::string strCharset) :
+iCal::iCal(Http *lpRequest, IMAPISession *lpSession,
+    const std::string &strSrvTz, const std::string &strCharset) :
 	ProtocolBase(lpRequest, lpSession, strSrvTz, strCharset)
 {
 }
