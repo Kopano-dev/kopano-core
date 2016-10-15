@@ -153,6 +153,9 @@ ZEND_END_ARG_INFO()
 #define ZEND_FETCH_RESOURCE_C(rsrc, rsrc_type, passed_id, default_id, resource_type_name, resource_type) \
 	ZEND_FETCH_RESOURCE((rsrc), rsrc_type, (passed_id), (default_id), const_cast<char *>(resource_type_name), (resource_type))
 
+#define UOBJ_REGISTER_RESOURCE(rv, obj, categ) \
+	ZEND_REGISTER_RESOURCE((rv), static_cast<IUnknown *>(obj), categ)
+
 // A very, very nice PHP #define that causes link errors in MAPI when you have multiple
 // files referencing MAPI....
 #undef inline
@@ -1055,10 +1058,10 @@ ZEND_FUNCTION(mapi_openentry)
 		goto exit;
 
 	if (ulObjType == MAPI_FOLDER) {
-		ZEND_REGISTER_RESOURCE(return_value, lpUnknown, le_mapi_folder);
+		UOBJ_REGISTER_RESOURCE(return_value, lpUnknown, le_mapi_folder);
 	}
 	else if(ulObjType == MAPI_MESSAGE) {
-		ZEND_REGISTER_RESOURCE(return_value, lpUnknown, le_mapi_message);
+		UOBJ_REGISTER_RESOURCE(return_value, lpUnknown, le_mapi_message);
 	} else {
 		if (lpUnknown)
 			lpUnknown->Release();
@@ -1134,8 +1137,7 @@ ZEND_FUNCTION(mapi_openaddressbook)
 	MAPI_G(hr) = lpSession->OpenAddressBook(0, NULL, AB_NO_DIALOG, &lpAddrBook);
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
-
-	ZEND_REGISTER_RESOURCE(return_value, lpAddrBook, le_mapi_addrbook);
+	UOBJ_REGISTER_RESOURCE(return_value, lpAddrBook, le_mapi_addrbook);
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
@@ -1168,13 +1170,13 @@ ZEND_FUNCTION(mapi_ab_openentry) {
 
 	switch (ulObjType) {
 	case MAPI_MAILUSER:
-		ZEND_REGISTER_RESOURCE(return_value, lpUnknown, le_mapi_mailuser);
+		UOBJ_REGISTER_RESOURCE(return_value, lpUnknown, le_mapi_mailuser);
 		break;
 	case MAPI_DISTLIST:
-		ZEND_REGISTER_RESOURCE(return_value, lpUnknown, le_mapi_distlist);
+		UOBJ_REGISTER_RESOURCE(return_value, lpUnknown, le_mapi_distlist);
 		break;
 	case MAPI_ABCONT:
-		ZEND_REGISTER_RESOURCE(return_value, lpUnknown, le_mapi_abcont);
+		UOBJ_REGISTER_RESOURCE(return_value, lpUnknown, le_mapi_abcont);
 		break;
 	default:
 		if (lpUnknown)
@@ -1294,8 +1296,7 @@ ZEND_FUNCTION(mapi_getmsgstorestable)
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to fetch the message store table: 0x%08X", MAPI_G(hr));
 		goto exit;
 	}
-
-	ZEND_REGISTER_RESOURCE(return_value, lpTable, le_mapi_table);
+	UOBJ_REGISTER_RESOURCE(return_value, lpTable, le_mapi_table);
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
@@ -1333,9 +1334,7 @@ ZEND_FUNCTION(mapi_openmsgstore)
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to open the messagestore: 0x%08X", MAPI_G(hr));
 		goto exit;
 	}
-
-	ZEND_REGISTER_RESOURCE(return_value, pMDB, le_mapi_msgstore);
-
+	UOBJ_REGISTER_RESOURCE(return_value, pMDB, le_mapi_msgstore);
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
@@ -1376,9 +1375,7 @@ ZEND_FUNCTION(mapi_openprofilesection)
 	MAPI_G(hr) = lpSession->OpenProfileSection(lpUID, &IID_IMAPIProp, 0, (LPPROFSECT*)&lpProfSectProp);
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
-
-	ZEND_REGISTER_RESOURCE(return_value, lpProfSectProp, le_mapi_property);
-
+	UOBJ_REGISTER_RESOURCE(return_value, lpProfSectProp, le_mapi_property);
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
@@ -1426,9 +1423,7 @@ ZEND_FUNCTION(mapi_folder_gethierarchytable)
 	// return the returncode
 	if (FAILED(MAPI_G(hr)))
 		goto exit;
-
-	ZEND_REGISTER_RESOURCE(return_value, lpTable, le_mapi_table);
-
+	UOBJ_REGISTER_RESOURCE(return_value, lpTable, le_mapi_table);
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
@@ -1477,8 +1472,7 @@ ZEND_FUNCTION(mapi_folder_getcontentstable)
 
 	if (FAILED(MAPI_G(hr)))
 		goto exit;
-
-	ZEND_REGISTER_RESOURCE(return_value, pTable, le_mapi_table);
+	UOBJ_REGISTER_RESOURCE(return_value, pTable, le_mapi_table);
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
@@ -1511,8 +1505,7 @@ ZEND_FUNCTION(mapi_folder_createmessage)
 
 	if (FAILED(MAPI_G(hr)))
 		goto exit;
-
-	ZEND_REGISTER_RESOURCE(return_value, pMessage, le_mapi_message);
+	UOBJ_REGISTER_RESOURCE(return_value, pMessage, le_mapi_message);
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
@@ -1681,9 +1674,7 @@ ZEND_FUNCTION(mapi_folder_createfolder) {
 	if (FAILED(MAPI_G(hr))) {
 		goto exit;
 	}
-
-	ZEND_REGISTER_RESOURCE(return_value, lpNewFolder, le_mapi_folder);
-
+	UOBJ_REGISTER_RESOURCE(return_value, lpNewFolder, le_mapi_folder);
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
@@ -1927,10 +1918,10 @@ ZEND_FUNCTION(mapi_msgstore_openentry)
 		goto exit;
 
 	if (ulObjType == MAPI_FOLDER) {
-		ZEND_REGISTER_RESOURCE(return_value, lpUnknown, le_mapi_folder);
+		UOBJ_REGISTER_RESOURCE(return_value, lpUnknown, le_mapi_folder);
 	}
 	else if(ulObjType == MAPI_MESSAGE) {
-		ZEND_REGISTER_RESOURCE(return_value, lpUnknown, le_mapi_message);
+		UOBJ_REGISTER_RESOURCE(return_value, lpUnknown, le_mapi_message);
 	} else {
 		if (lpUnknown)
 			lpUnknown->Release();
@@ -2055,8 +2046,7 @@ ZEND_FUNCTION(mapi_sink_create)
 	RETVAL_FALSE;
     
 	MAPI_G(hr) = MAPINotifSink::Create(&lpSink);
-    
-	ZEND_REGISTER_RESOURCE(return_value, lpSink, le_mapi_advisesink);
+	UOBJ_REGISTER_RESOURCE(return_value, lpSink, le_mapi_advisesink);
 	LOG_END();
 }
 
@@ -2618,9 +2608,7 @@ ZEND_FUNCTION(mapi_msgstore_getreceivefolder)
 
 	if(MAPI_G(hr) != hrSuccess)
 		goto exit;
-
-	ZEND_REGISTER_RESOURCE(return_value, lpFolder, le_mapi_folder);
-
+	UOBJ_REGISTER_RESOURCE(return_value, lpFolder, le_mapi_folder);
 exit:
 	MAPIFreeBuffer(lpEntryID);
 	LOG_END();
@@ -2677,9 +2665,7 @@ ZEND_FUNCTION(mapi_msgstore_openmultistoretable)
 	MAPI_G(hr) = lpECMST->OpenMultiStoreTable(lpEntryList, ulFlags, &lpMultiTable);
 	if (FAILED(MAPI_G(hr)))
 		goto exit;
-
-	ZEND_REGISTER_RESOURCE(return_value, lpMultiTable, le_mapi_table);
-
+	UOBJ_REGISTER_RESOURCE(return_value, lpMultiTable, le_mapi_table);
 exit:
 	if (lpECMST)
 		lpECMST->Release();
@@ -2790,8 +2776,7 @@ ZEND_FUNCTION(mapi_message_getattachmenttable)
 
 	if (FAILED(MAPI_G(hr)))
 		goto exit;
-
-	ZEND_REGISTER_RESOURCE(return_value, pTable, le_mapi_table);
+	UOBJ_REGISTER_RESOURCE(return_value, pTable, le_mapi_table);
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
@@ -2825,9 +2810,7 @@ ZEND_FUNCTION(mapi_message_openattach)
 
 	if (FAILED(MAPI_G(hr)))
 		goto exit;
-
-	ZEND_REGISTER_RESOURCE(return_value, pAttach, le_mapi_attachment);
-
+	UOBJ_REGISTER_RESOURCE(return_value, pAttach, le_mapi_attachment);
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
@@ -2857,8 +2840,7 @@ ZEND_FUNCTION(mapi_message_createattach)
 
 	if (FAILED(MAPI_G(hr)))
 		goto exit;
-
-	ZEND_REGISTER_RESOURCE(return_value, lpAttach, le_mapi_attachment);
+	UOBJ_REGISTER_RESOURCE(return_value, lpAttach, le_mapi_attachment);
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
@@ -3204,8 +3186,7 @@ ZEND_FUNCTION(mapi_message_getrecipienttable)
 
 	if (FAILED(MAPI_G(hr)))
 		goto exit;
-
-	ZEND_REGISTER_RESOURCE(return_value, pTable, le_mapi_table);
+	UOBJ_REGISTER_RESOURCE(return_value, pTable, le_mapi_table);
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
@@ -3266,7 +3247,7 @@ ZEND_FUNCTION(mapi_attach_openobj)
 	if (FAILED(MAPI_G(hr))) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Fetching attachmentdata as object failed");
 	} else {
-		ZEND_REGISTER_RESOURCE(return_value, lpMessage, le_mapi_message);
+		UOBJ_REGISTER_RESOURCE(return_value, lpMessage, le_mapi_message);
 	}
 
 	LOG_END();
@@ -3735,21 +3716,21 @@ ZEND_FUNCTION(mapi_openproperty)
 			ZEND_REGISTER_RESOURCE(return_value, lpUnk, le_istream);
 		}
 	} else if(*lpGUID == IID_IMAPITable) {
-		ZEND_REGISTER_RESOURCE(return_value, lpUnk, le_mapi_table);
+		UOBJ_REGISTER_RESOURCE(return_value, lpUnk, le_mapi_table);
 	} else if(*lpGUID == IID_IMessage) {
-		ZEND_REGISTER_RESOURCE(return_value, lpUnk, le_mapi_message);
+		UOBJ_REGISTER_RESOURCE(return_value, lpUnk, le_mapi_message);
 	} else if(*lpGUID == IID_IMAPIFolder) {
-		ZEND_REGISTER_RESOURCE(return_value, lpUnk, le_mapi_folder);
+		UOBJ_REGISTER_RESOURCE(return_value, lpUnk, le_mapi_folder);
 	} else if(*lpGUID == IID_IMsgStore) {
-		ZEND_REGISTER_RESOURCE(return_value, lpUnk, le_mapi_msgstore);
+		UOBJ_REGISTER_RESOURCE(return_value, lpUnk, le_mapi_msgstore);
 	} else if(*lpGUID == IID_IExchangeModifyTable) {
-		ZEND_REGISTER_RESOURCE(return_value, lpUnk, le_mapi_modifytable);
+		UOBJ_REGISTER_RESOURCE(return_value, lpUnk, le_mapi_modifytable);
 	} else if(*lpGUID == IID_IExchangeExportChanges) {
-		ZEND_REGISTER_RESOURCE(return_value, lpUnk, le_mapi_exportchanges);
+		UOBJ_REGISTER_RESOURCE(return_value, lpUnk, le_mapi_exportchanges);
 	} else if(*lpGUID == IID_IExchangeImportHierarchyChanges) {
-		ZEND_REGISTER_RESOURCE(return_value, lpUnk, le_mapi_importhierarchychanges);
+		UOBJ_REGISTER_RESOURCE(return_value, lpUnk, le_mapi_importhierarchychanges);
 	} else if(*lpGUID == IID_IExchangeImportContentsChanges) {
-		ZEND_REGISTER_RESOURCE(return_value, lpUnk, le_mapi_importcontentschanges);
+		UOBJ_REGISTER_RESOURCE(return_value, lpUnk, le_mapi_importcontentschanges);
 	} else {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "The openproperty call succeeded, but the PHP extension is unable to handle the requested interface");
 		lpUnk->Release();
@@ -4016,9 +3997,7 @@ ZEND_FUNCTION(mapi_folder_openmodifytable) {
 	MAPI_G(hr) = lpInbox->OpenProperty(PR_RULES_TABLE, &IID_IExchangeModifyTable, 0, 0, (LPUNKNOWN *)&lpRulesTable);
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
-
-	ZEND_REGISTER_RESOURCE(return_value, lpRulesTable, le_mapi_modifytable);
-
+	UOBJ_REGISTER_RESOURCE(return_value, lpRulesTable, le_mapi_modifytable);
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
@@ -4156,9 +4135,7 @@ ZEND_FUNCTION(mapi_rules_gettable) {
 	MAPI_G(hr) = lpRulesTableProxy->QueryInterface(IID_IMAPITable, (LPVOID*)&lpRulesView);
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
-
-	ZEND_REGISTER_RESOURCE(return_value, lpRulesView, le_mapi_table);
-
+	UOBJ_REGISTER_RESOURCE(return_value, lpRulesView, le_mapi_table);
 exit:
 	if (MAPI_G(hr) != hrSuccess && lpRulesView)
 		lpRulesView->Release();
@@ -6436,9 +6413,7 @@ ZEND_FUNCTION(mapi_freebusysupport_open)
 	MAPI_G(hr) = lpFBSupport->Open(lpSession, lpUserStore, (lpUserStore)?TRUE:FALSE);
 	if( MAPI_G(hr) != hrSuccess)
 		goto exit;
-
-	ZEND_REGISTER_RESOURCE(return_value, lpFBSupport, le_freebusy_support);
-
+	UOBJ_REGISTER_RESOURCE(return_value, lpFBSupport, le_freebusy_support);
 exit:
 	if (MAPI_G(hr) != hrSuccess && lpFBSupport)
 		lpFBSupport->Release();
@@ -6539,7 +6514,7 @@ ZEND_FUNCTION(mapi_freebusysupport_loaddata)
 		if(lppFBData[i])
 		{
 			// Set resource relation
-			rid = ZEND_REGISTER_RESOURCE(NULL, lppFBData[i], le_freebusy_data);
+			rid = UOBJ_REGISTER_RESOURCE(NULL, lppFBData[i], le_freebusy_data);
 			// Add item to return list
 			add_next_index_resource(return_value, rid);
 		}else {
@@ -6620,7 +6595,7 @@ ZEND_FUNCTION(mapi_freebusysupport_loadupdate)
 		if(lppFBUpdate[i])
 		{
 			// Set resource relation
-			rid = ZEND_REGISTER_RESOURCE(NULL, lppFBUpdate[i], le_freebusy_update);
+			rid = UOBJ_REGISTER_RESOURCE(NULL, lppFBUpdate[i], le_freebusy_update);
 			// Add item to return list
 			add_next_index_resource(return_value, rid);
 		}else {
@@ -6662,9 +6637,7 @@ ZEND_FUNCTION(mapi_freebusydata_enumblocks)
 	MAPI_G(hr) = lpFBData->EnumBlocks(&lpEnumBlock, ftmStart, ftmEnd);
 	if(MAPI_G(hr) != hrSuccess)
 		goto exit;
-
-	ZEND_REGISTER_RESOURCE(return_value, lpEnumBlock, le_freebusy_enumblock);
-
+	UOBJ_REGISTER_RESOURCE(return_value, lpEnumBlock, le_freebusy_enumblock);
 exit:
 	LOG_END();
 	THROW_ON_ERROR();
@@ -7335,9 +7308,7 @@ ZEND_FUNCTION(mapi_importcontentschanges_importmessagechange)
 	if(MAPI_G(hr) != hrSuccess) {
 		goto exit;
 	}
-
-	ZEND_REGISTER_RESOURCE(resMessage, lpMessage, le_mapi_message);
-
+	UOBJ_REGISTER_RESOURCE(resMessage, lpMessage, le_mapi_message);
 	RETVAL_TRUE;
 
 exit:
@@ -7613,7 +7584,7 @@ ZEND_FUNCTION(mapi_wrap_importcontentschanges)
     lpImportContentsChanges = new ECImportContentsChangesProxy(objImportContentsChanges TSRMLS_CC);
 
     // Simply return the wrapped object
-	ZEND_REGISTER_RESOURCE(return_value, lpImportContentsChanges, le_mapi_importcontentschanges);
+	UOBJ_REGISTER_RESOURCE(return_value, lpImportContentsChanges, le_mapi_importcontentschanges);
 	MAPI_G(hr) = hrSuccess;
 
 	LOG_END();
@@ -7636,7 +7607,7 @@ ZEND_FUNCTION(mapi_wrap_importhierarchychanges)
     lpImportHierarchyChanges = new ECImportHierarchyChangesProxy(objImportHierarchyChanges TSRMLS_CC);
 
     // Simply return the wrapped object
-	ZEND_REGISTER_RESOURCE(return_value, lpImportHierarchyChanges, le_mapi_importhierarchychanges);
+	UOBJ_REGISTER_RESOURCE(return_value, lpImportHierarchyChanges, le_mapi_importhierarchychanges);
 	MAPI_G(hr) = hrSuccess;
 
 	LOG_END();
