@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/ECInterfaceDefs.h>
 #include "ECFreeBusyData.h"
 
 #include "ECEnumFBBlock.h"
@@ -183,109 +184,15 @@ HRESULT ECFreeBusyData::GetFBPublishRange(LONG *prtmStart, LONG *prtmEnd)
 	return S_OK;
 }
 
-// Interfaces
-//		IUnknown
-//		IFreeBusyData
-HRESULT __stdcall ECFreeBusyData::xFreeBusyData::QueryInterface(REFIID refiid , void** lppInterface)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusyData::QueryInterface", "");
-	METHOD_PROLOGUE_(ECFreeBusyData, FreeBusyData);
-	HRESULT hr = pThis->QueryInterface(refiid, lppInterface);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusyData::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-ULONG __stdcall ECFreeBusyData::xFreeBusyData::AddRef()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusyData::AddRef", "");
-	METHOD_PROLOGUE_(ECFreeBusyData , FreeBusyData);
-	return pThis->AddRef();
-}
-
-ULONG __stdcall ECFreeBusyData::xFreeBusyData::Release()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusyData::Release", "");
-	METHOD_PROLOGUE_(ECFreeBusyData , FreeBusyData);
-	return pThis->Release();
-}
-
-HRESULT __stdcall ECFreeBusyData::xFreeBusyData::Reload(void* lpData)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusyData::Reload", "");
-	METHOD_PROLOGUE_(ECFreeBusyData , FreeBusyData);
-	HRESULT hr = pThis->Reload(lpData);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusyData::Reload", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusyData::xFreeBusyData::EnumBlocks(IEnumFBBlock **ppenumfb, FILETIME ftmStart, FILETIME ftmEnd)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusyData::EnumBlocks", "");
-	METHOD_PROLOGUE_(ECFreeBusyData , FreeBusyData);
-	HRESULT hr = pThis->EnumBlocks(ppenumfb, ftmStart, ftmEnd);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusyData::EnumBlocks", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusyData::xFreeBusyData::Merge(void* lpData)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusyData::Merge", "");
-	METHOD_PROLOGUE_(ECFreeBusyData , FreeBusyData);
-	HRESULT hr = pThis->Merge(lpData);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusyData::Placeholder2", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusyData::xFreeBusyData::GetDelegateInfo(void* lpData)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusyData::GetDelegateInfo", "");
-	METHOD_PROLOGUE_(ECFreeBusyData , FreeBusyData);
-	HRESULT hr = pThis->GetDelegateInfo(lpData);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusyData::GetDelegateInfo", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusyData::xFreeBusyData::FindFreeBlock(LONG ulBegin, LONG ulMinutes, LONG ulNumber, BOOL bA, LONG ulEnd, LONG ulUnknown, LONG ulMinutesPerDay, FBBlock_1 *lpData)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusyData::FindFreeBlock", "%x %x %x %s %x %x %x %x", ulBegin, ulMinutes, ulNumber, bA ? "true" : "false", ulEnd, ulUnknown, ulMinutesPerDay, lpData);
-	METHOD_PROLOGUE_(ECFreeBusyData , FreeBusyData);
-	HRESULT hr = pThis->FindFreeBlock(ulBegin, ulMinutes, ulNumber, bA, ulEnd, ulUnknown, ulMinutesPerDay, lpData);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusyData::FindFreeBlock", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusyData::xFreeBusyData::InterSect(void *lpData1, LONG ulA, void *lpData2)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusyData::InterSect", "");
-	METHOD_PROLOGUE_(ECFreeBusyData , FreeBusyData);
-	HRESULT hr = pThis->InterSect(lpData1, ulA, lpData2);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusyData::InterSect", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusyData::xFreeBusyData::SetFBRange(LONG rtmStart, LONG rtmEnd)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusyData::SetFBRange", "rtmStart=%d, rtmEnd=%d", rtmStart, rtmEnd);
-	METHOD_PROLOGUE_(ECFreeBusyData , FreeBusyData);
-	HRESULT hr = pThis->SetFBRange(rtmStart, rtmEnd);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusyData::SetFBRange", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusyData::xFreeBusyData::NextFBAppt(void *lpData1, ULONG ulA, void *lpData2, ULONG ulB, void *lpData3, void *lpData4)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusyData::NextFBAppt", "");
-	METHOD_PROLOGUE_(ECFreeBusyData , FreeBusyData);
-	HRESULT hr = pThis->NextFBAppt(lpData1, ulA, lpData2, ulB, lpData3, lpData4);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusyData::NextFBAppt", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusyData::xFreeBusyData::GetFBPublishRange(LONG *prtmStart, LONG *prtmEnd)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusyData::GetFBPublishRange", "");
-	METHOD_PROLOGUE_(ECFreeBusyData , FreeBusyData);
-	HRESULT hr = pThis->GetFBPublishRange(prtmStart, prtmEnd);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusyData::GetFBPublishRange", "%s, prtmStart=%d, prtmEnd=%d", GetMAPIErrorDescription(hr).c_str(), (prtmStart)?*prtmStart:0,(prtmEnd)?*prtmEnd : 0);
-	return hr;
-}
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusyData, FreeBusyData, QueryInterface, (REFIID, refiid), (void**, lppInterface))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECFreeBusyData, FreeBusyData, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECFreeBusyData, FreeBusyData, Release, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusyData, FreeBusyData, Reload, (void*, lpData))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusyData, FreeBusyData, EnumBlocks, (IEnumFBBlock **, ppenumfb), (FILETIME, ftmStart), (FILETIME, ftmEnd))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusyData, FreeBusyData, Merge, (void*, lpData))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusyData, FreeBusyData, GetDelegateInfo, (void*, lpData))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusyData, FreeBusyData, FindFreeBlock, (LONG, ulBegin), (LONG, ulMinutes), (LONG, ulNumber), (BOOL, bA), (LONG, ulEnd), (LONG, ulUnknown), (LONG, ulMinutesPerDay), (FBBlock_1 *, lpData))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusyData, FreeBusyData, InterSect, (void *, lpData1), (LONG, ulA), (void *, lpData2))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusyData, FreeBusyData, SetFBRange, (LONG, rtmStart), (LONG, rtmEnd))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusyData, FreeBusyData, NextFBAppt, (void *, lpData1), (ULONG, ulA), (void *, lpData2), (ULONG, ulB), (void *, lpData3), (void *, lpData4))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusyData, FreeBusyData, GetFBPublishRange, (LONG *, prtmStart), (LONG *, prtmEnd))

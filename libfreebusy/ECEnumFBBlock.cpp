@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/ECInterfaceDefs.h>
 #include "ECEnumFBBlock.h"
 #include "freebusyutil.h"
 #include <kopano/stringutil.h>
@@ -116,73 +117,11 @@ HRESULT ECEnumFBBlock::Restrict(FILETIME ftmStart, FILETIME ftmEnd)
 	return m_FBBlock.Restrict(rtmStart, rtmEnd);
 }
 
-// Interfaces
-//		IUnknown
-//		IEnumFBBlock
-HRESULT __stdcall ECEnumFBBlock::xEnumFBBlock::QueryInterface(REFIID refiid , void** lppInterface)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IEnumFBBlock::QueryInterface", "");
-	METHOD_PROLOGUE_(ECEnumFBBlock , EnumFBBlock);
-	HRESULT hr = pThis->QueryInterface(refiid, lppInterface);
-	TRACE_MAPI(TRACE_RETURN, "IEnumFBBlock::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-ULONG __stdcall ECEnumFBBlock::xEnumFBBlock::AddRef()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IEnumFBBlock::AddRef", "");
-	METHOD_PROLOGUE_(ECEnumFBBlock , EnumFBBlock);
-	return pThis->AddRef();
-}
-
-ULONG __stdcall ECEnumFBBlock::xEnumFBBlock::Release()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IEnumFBBlock::Release", "");
-	METHOD_PROLOGUE_(ECEnumFBBlock , EnumFBBlock);
-	return pThis->Release();
-}
-
-HRESULT __stdcall ECEnumFBBlock::xEnumFBBlock::Next(LONG celt, FBBlock_1 *pblk, LONG *pcfetch)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IEnumFBBlock::Next", "celt=%d", celt);
-	METHOD_PROLOGUE_(ECEnumFBBlock , EnumFBBlock);
-	HRESULT hr = pThis->Next(celt, pblk, pcfetch);
-	TRACE_MAPI(TRACE_RETURN, "IEnumFBBlock::Next", "%s\n %s", GetDebugFBBlock((pcfetch?(*pcfetch) : (celt == 1 && hr == hrSuccess)?1:0), pblk).c_str(), GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECEnumFBBlock::xEnumFBBlock::Skip(LONG celt)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IEnumFBBlock::Skip", "celt=%d", celt);
-	METHOD_PROLOGUE_(ECEnumFBBlock , EnumFBBlock);
-	HRESULT hr = pThis->Skip(celt);
-	TRACE_MAPI(TRACE_RETURN, "IEnumFBBlock::Skip", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECEnumFBBlock::xEnumFBBlock::Reset()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IEnumFBBlock::Reset", "");
-	METHOD_PROLOGUE_(ECEnumFBBlock , EnumFBBlock);
-	HRESULT hr = pThis->Reset();
-	TRACE_MAPI(TRACE_RETURN, "IEnumFBBlock::Reset", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECEnumFBBlock::xEnumFBBlock::Clone(IEnumFBBlock **ppclone)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IEnumFBBlock::Clone", "");
-	METHOD_PROLOGUE_(ECEnumFBBlock , EnumFBBlock);
-	HRESULT hr = pThis->Clone(ppclone);
-	TRACE_MAPI(TRACE_RETURN, "IEnumFBBlock::Clone", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECEnumFBBlock::xEnumFBBlock::Restrict(FILETIME ftmStart, FILETIME ftmEnd)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IEnumFBBlock::Restrict", "");
-	METHOD_PROLOGUE_(ECEnumFBBlock , EnumFBBlock);
-	HRESULT hr = pThis->Restrict(ftmStart, ftmEnd);
-	TRACE_MAPI(TRACE_RETURN, "IEnumFBBlock::Restrict", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
+DEF_HRMETHOD1(TRACE_MAPI, ECEnumFBBlock, EnumFBBlock, QueryInterface, (REFIID, refiid), (void**, lppInterface))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECEnumFBBlock, EnumFBBlock, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECEnumFBBlock, EnumFBBlock, Release, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECEnumFBBlock, EnumFBBlock, Next, (LONG, celt), (FBBlock_1 *, pblk), (LONG *, pcfetch))
+DEF_HRMETHOD1(TRACE_MAPI, ECEnumFBBlock, EnumFBBlock, Skip, (LONG, celt))
+DEF_HRMETHOD1(TRACE_MAPI, ECEnumFBBlock, EnumFBBlock, Reset, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECEnumFBBlock, EnumFBBlock, Clone, (IEnumFBBlock **, ppclone))
+DEF_HRMETHOD1(TRACE_MAPI, ECEnumFBBlock, EnumFBBlock, Restrict, (FILETIME, ftmStart), (FILETIME, ftmEnd))

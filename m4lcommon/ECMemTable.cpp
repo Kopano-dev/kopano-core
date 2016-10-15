@@ -18,6 +18,7 @@
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
+#include <kopano/ECInterfaceDefs.h>
 #include <mapidefs.h>
 #include <mapicode.h>
 #include <mapiutil.h>
@@ -1258,211 +1259,29 @@ HRESULT ECMemTableView::Clear()
 	return hr;
 }
 
-ULONG ECMemTableView::xMAPITable::AddRef()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMemTableView::AddRef", "");
-	METHOD_PROLOGUE_(ECMemTableView, MAPITable);
-	return pThis->AddRef();
-}
-
-ULONG ECMemTableView::xMAPITable::Release()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMemTableView::Release", "");
-	METHOD_PROLOGUE_(ECMemTableView, MAPITable);
-	return pThis->Release();
-}
-
-HRESULT ECMemTableView::xMAPITable::QueryInterface(REFIID refiid, void **lppInterface)
-{
- 	TRACE_MAPI(TRACE_ENTRY, "IMemTableView::QueryInterface", "{%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X}", refiid.Data1, refiid.Data2, refiid.Data3, refiid.Data4[0], refiid.Data4[1], refiid.Data4[2], refiid.Data4[3], refiid.Data4[4], refiid.Data4[5], refiid.Data4[6], refiid.Data4[7]);
-	METHOD_PROLOGUE_(ECMemTableView, MAPITable);
-	HRESULT hr = pThis->QueryInterface(refiid, lppInterface);
-	TRACE_MAPI(TRACE_RETURN, "IMemTableView::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMemTableView::xMAPITable::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMemTableView::GetLastError", "");
-	METHOD_PROLOGUE_(ECMemTableView, MAPITable);
-	return pThis->GetLastError(hResult, ulFlags, lppMAPIError);
-}
-
-HRESULT ECMemTableView::xMAPITable::Advise(ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG * lpulConnection)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMemTableView::Advise", "");
-	METHOD_PROLOGUE_(ECMemTableView, MAPITable);
-	return pThis->Advise(ulEventMask, lpAdviseSink, lpulConnection);
-}
-
-HRESULT ECMemTableView::xMAPITable::Unadvise(ULONG ulConnection)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMemTableView::Unadvise", "");
-	METHOD_PROLOGUE_(ECMemTableView, MAPITable);
-	return pThis->Unadvise(ulConnection);
-}
-
-HRESULT ECMemTableView::xMAPITable::GetStatus(ULONG *lpulTableStatus, ULONG *lpulTableType)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMemTableView::GetStatus", "");
-	METHOD_PROLOGUE_(ECMemTableView, MAPITable);
-	return pThis->GetStatus(lpulTableStatus, lpulTableType);
-}
-
-HRESULT ECMemTableView::xMAPITable::SetColumns(LPSPropTagArray lpPropTagArray, ULONG ulFlags)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMemTableView::SetColumns", "%s", PropNameFromPropTagArray(lpPropTagArray).c_str());
-	METHOD_PROLOGUE_(ECMemTableView, MAPITable);
-	return pThis->SetColumns(lpPropTagArray, ulFlags);
-}
-
-HRESULT ECMemTableView::xMAPITable::QueryColumns(ULONG ulFlags, LPSPropTagArray *lpPropTagArray)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMemTableView::QueryColumns", "");
-	METHOD_PROLOGUE_(ECMemTableView, MAPITable);
-	return pThis->QueryColumns(ulFlags, lpPropTagArray);
-}
-
-HRESULT ECMemTableView::xMAPITable::GetRowCount(ULONG ulFlags, ULONG *lpulCount)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMemTableView::GetRowCount", "");
-	METHOD_PROLOGUE_(ECMemTableView, MAPITable);
-	HRESULT hr = pThis->GetRowCount(ulFlags, lpulCount);
-	TRACE_MAPI(TRACE_RETURN, "IMemTableView::GetRowCount", "%s, count=%d", GetMAPIErrorDescription(hr).c_str(), (lpulCount)?*lpulCount:0);
-	return hr;
-}
-
-HRESULT ECMemTableView::xMAPITable::SeekRow(BOOKMARK bkOrigin, LONG lRowCount, LONG *lplRowsSought)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMemTableView::SeekRow", "%d %d", bkOrigin, lRowCount);
-	METHOD_PROLOGUE_(ECMemTableView, MAPITable);
-	HRESULT hr = pThis->SeekRow(bkOrigin, lRowCount, lplRowsSought);
-	TRACE_MAPI(TRACE_RETURN, "IMemTableView::SeekRow", "%s, lRowsSought= %d", GetMAPIErrorDescription(hr).c_str(), lplRowsSought ? *lplRowsSought : -1);
-	return hr;
-}
-
-HRESULT ECMemTableView::xMAPITable::SeekRowApprox(ULONG ulNumerator, ULONG ulDenominator)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMemTableView::SeekRowApprox", "");
-	METHOD_PROLOGUE_(ECMemTableView, MAPITable);
-	return pThis->SeekRowApprox(ulNumerator, ulDenominator);
-}
-
-HRESULT ECMemTableView::xMAPITable::QueryPosition(ULONG *lpulRow, ULONG *lpulNumerator, ULONG *lpulDenominator)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMemTableView::QueryPosition", "");
-	METHOD_PROLOGUE_(ECMemTableView, MAPITable);
-	return pThis->QueryPosition(lpulRow, lpulNumerator, lpulDenominator);
-}
-
-HRESULT ECMemTableView::xMAPITable::FindRow(LPSRestriction lpRestriction, BOOKMARK bkOrigin, ULONG ulFlags)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMemTableView::FindRow", "Restrict=%sbookmark=%d,flags=%d", RestrictionToString(lpRestriction).c_str(), bkOrigin, ulFlags);
-	METHOD_PROLOGUE_(ECMemTableView, MAPITable);
-	HRESULT hr = pThis->FindRow(lpRestriction, bkOrigin, ulFlags);
-	TRACE_MAPI(TRACE_RETURN, "IMemTableView::FindRow", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMemTableView::xMAPITable::Restrict(LPSRestriction lpRestriction, ULONG ulFlags)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMemTableView::Restrict", "flags=0x%08x  Restrict=%s", ulFlags, RestrictionToString(lpRestriction).c_str());
-	METHOD_PROLOGUE_(ECMemTableView, MAPITable);
-	HRESULT hr = pThis->Restrict(lpRestriction, ulFlags);
-	TRACE_MAPI(TRACE_RETURN, "IMemTableView::Restrict", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMemTableView::xMAPITable::CreateBookmark(BOOKMARK* lpbkPosition)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMemTableView::CreateBookmak", "");
-	METHOD_PROLOGUE_(ECMemTableView, MAPITable);
-	return pThis->CreateBookmark(lpbkPosition);
-}
-
-HRESULT ECMemTableView::xMAPITable::FreeBookmark(BOOKMARK bkPosition)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMemTableView::FreeBookmark", "");
-	METHOD_PROLOGUE_(ECMemTableView, MAPITable);
-	return pThis->FreeBookmark(bkPosition);
-}
-
-HRESULT ECMemTableView::xMAPITable::SortTable(LPSSortOrderSet lpSortCriteria, ULONG ulFlags)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMemTableView::SortTable", "");
-	METHOD_PROLOGUE_(ECMemTableView, MAPITable);
-	HRESULT hr = pThis->SortTable(lpSortCriteria, ulFlags);
-	TRACE_MAPI(TRACE_RETURN, "IMemTableView::SortTable", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMemTableView::xMAPITable::QuerySortOrder(LPSSortOrderSet *lppSortCriteria)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMemTableView::QuerySortOrder", "");
-	METHOD_PROLOGUE_(ECMemTableView, MAPITable);
-	return pThis->QuerySortOrder(lppSortCriteria);
-}
-
-HRESULT ECMemTableView::xMAPITable::QueryRows(LONG lRowCount, ULONG ulFlags, LPSRowSet *lppRows)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMemTableView::QueryRows", "rowcount=%d, Flags=0x%08x", lRowCount, ulFlags);
-	METHOD_PROLOGUE_(ECMemTableView, MAPITable);
-	HRESULT hr = pThis->QueryRows(lRowCount, ulFlags, lppRows);
-	TRACE_MAPI(TRACE_RETURN, "IMemTableView::QueryRows", "%s , %d rows returned %s", GetMAPIErrorDescription(hr).c_str(), (*lppRows) ? (*lppRows)->cRows : -1, RowSetToString(*lppRows).c_str());
-	return hr;
-}
-
-HRESULT ECMemTableView::xMAPITable::Abort()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMemTableView::Abort", "");
-	METHOD_PROLOGUE_(ECMemTableView, MAPITable);
-	HRESULT hr = pThis->Abort();
-	TRACE_MAPI(TRACE_RETURN, "IMemTableView::Abort", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMemTableView::xMAPITable::ExpandRow(ULONG cbInstanceKey, LPBYTE pbInstanceKey, ULONG ulRowCount, ULONG ulFlags, LPSRowSet * lppRows, ULONG *lpulMoreRows)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMemTableView::ExpandRow", "");
-	METHOD_PROLOGUE_(ECMemTableView, MAPITable);
-	HRESULT hr = pThis->ExpandRow(cbInstanceKey, pbInstanceKey, ulRowCount, ulFlags, lppRows, lpulMoreRows);
-	TRACE_MAPI(TRACE_RETURN, "IMemTableView::ExpandRow", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMemTableView::xMAPITable::CollapseRow(ULONG cbInstanceKey, LPBYTE pbInstanceKey, ULONG ulFlags, ULONG *lpulRowCount)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMemTableView::CollapseRow", "");
-	METHOD_PROLOGUE_(ECMemTableView, MAPITable);
-	HRESULT hr = pThis->CollapseRow(cbInstanceKey, pbInstanceKey, ulFlags, lpulRowCount);
-	TRACE_MAPI(TRACE_RETURN, "IMemTableView::CollapseRow", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMemTableView::xMAPITable::WaitForCompletion(ULONG ulFlags, ULONG ulTimeout, ULONG *lpulTableStatus)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMemTableView::WaitForCompletion", "");
-	METHOD_PROLOGUE_(ECMemTableView, MAPITable);
-	HRESULT hr = pThis->WaitForCompletion(ulFlags, ulTimeout, lpulTableStatus);
-	TRACE_MAPI(TRACE_RETURN, "IMemTableView::WaitForCompletion", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMemTableView::xMAPITable::GetCollapseState(ULONG ulFlags, ULONG cbInstanceKey, LPBYTE lpbInstanceKey, ULONG *lpcbCollapseState, LPBYTE *lppbCollapseState)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMemTableView::GetCollapseState", "");
-	METHOD_PROLOGUE_(ECMemTableView, MAPITable);
-	HRESULT hr = pThis->GetCollapseState(ulFlags, cbInstanceKey, lpbInstanceKey, lpcbCollapseState, lppbCollapseState);
-	TRACE_MAPI(TRACE_RETURN, "IMemTableView::GetCollapseState", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMemTableView::xMAPITable::SetCollapseState(ULONG ulFlags, ULONG cbCollapseState, LPBYTE pbCollapseState, BOOKMARK *lpbkLocation)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IMemTableView::SetCollapseState", "");
-	METHOD_PROLOGUE_(ECMemTableView, MAPITable);
-	HRESULT hr = pThis->SetCollapseState(ulFlags, cbCollapseState, pbCollapseState, lpbkLocation);
-	TRACE_MAPI(TRACE_RETURN, "IMemTableView::SetCollapseState", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, Release, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, QueryInterface, (REFIID, refiid), (void **, lppInterface))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, GetLastError, (HRESULT, hResult), (ULONG, ulFlags), (LPMAPIERROR *, lppMAPIError))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, Advise, (ULONG, ulEventMask), (LPMAPIADVISESINK, lpAdviseSink), (ULONG *, lpulConnection))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, Unadvise, (ULONG, ulConnection))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, GetStatus, (ULONG *, lpulTableStatus), (ULONG *, lpulTableType))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, SetColumns, (LPSPropTagArray, lpPropTagArray), (ULONG, ulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, QueryColumns, (ULONG, ulFlags), (LPSPropTagArray *, lpPropTagArray))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, GetRowCount, (ULONG, ulFlags), (ULONG *, lpulCount))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, SeekRow, (BOOKMARK, bkOrigin), (LONG, lRowCount), (LONG *, lplRowsSought))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, SeekRowApprox, (ULONG, ulNumerator), (ULONG, ulDenominator))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, QueryPosition, (ULONG *, lpulRow), (ULONG *, lpulNumerator), (ULONG *, lpulDenominator))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, FindRow, (LPSRestriction, lpRestriction), (BOOKMARK, bkOrigin), (ULONG, ulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, Restrict, (LPSRestriction, lpRestriction), (ULONG, ulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, CreateBookmark, (BOOKMARK*, lpbkPosition))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, FreeBookmark, (BOOKMARK, bkPosition))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, SortTable, (LPSSortOrderSet, lpSortCriteria), (ULONG, ulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, QuerySortOrder, (LPSSortOrderSet *, lppSortCriteria))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, QueryRows, (LONG, lRowCount), (ULONG, ulFlags), (LPSRowSet *, lppRows))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, Abort, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, ExpandRow, (ULONG, cbInstanceKey), (LPBYTE, pbInstanceKey), (ULONG, ulRowCount), (ULONG, ulFlags), (LPSRowSet *, lppRows), (ULONG *, lpulMoreRows))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, CollapseRow, (ULONG, cbInstanceKey), (LPBYTE, pbInstanceKey), (ULONG, ulFlags), (ULONG *, lpulRowCount))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, WaitForCompletion, (ULONG, ulFlags), (ULONG, ulTimeout), (ULONG *, lpulTableStatus))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, GetCollapseState, (ULONG, ulFlags), (ULONG, cbInstanceKey), (LPBYTE, lpbInstanceKey), (ULONG *, lpcbCollapseState), (LPBYTE *, lppbCollapseState))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, SetCollapseState, (ULONG, ulFlags), (ULONG, cbCollapseState), (LPBYTE, pbCollapseState), (BOOKMARK *, lpbkLocation))

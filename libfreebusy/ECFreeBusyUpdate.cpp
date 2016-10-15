@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/ECInterfaceDefs.h>
 #include "ECFreeBusyUpdate.h"
 #include "freebusytags.h"
 
@@ -210,100 +211,14 @@ exit:
 	return hr;
 }
 
-// Interfaces
-//		IUnknown
-//		IFreeBusyUpdate
-HRESULT __stdcall ECFreeBusyUpdate::xFreeBusyUpdate::QueryInterface(REFIID refiid, void** lppInterface)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusyUpdate::QueryInterface", "");
-	METHOD_PROLOGUE_(ECFreeBusyUpdate, FreeBusyUpdate);
-	HRESULT hr = pThis->QueryInterface(refiid, lppInterface);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusyUpdate::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-ULONG __stdcall ECFreeBusyUpdate::xFreeBusyUpdate::AddRef()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusyUpdate::AddRef", "");
-	METHOD_PROLOGUE_(ECFreeBusyUpdate , FreeBusyUpdate);
-	return pThis->AddRef();
-}
-
-ULONG __stdcall ECFreeBusyUpdate::xFreeBusyUpdate::Release()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusyUpdate::Release", "");
-	METHOD_PROLOGUE_(ECFreeBusyUpdate, FreeBusyUpdate);
-	return pThis->Release();
-}
-
-HRESULT __stdcall ECFreeBusyUpdate::xFreeBusyUpdate::Reload()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusyUpdate::Reload", "");
-	METHOD_PROLOGUE_(ECFreeBusyUpdate, FreeBusyUpdate);
-	HRESULT hr = pThis->Reload();
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusyUpdate::Reload", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusyUpdate::xFreeBusyUpdate::PublishFreeBusy(FBBlock_1 *lpBlocks, ULONG nBlocks)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusyUpdate::PublishFreeBusy", "%s", GetDebugFBBlock(nBlocks, lpBlocks).c_str());
-	METHOD_PROLOGUE_(ECFreeBusyUpdate, FreeBusyUpdate);
-	HRESULT hr = pThis->PublishFreeBusy(lpBlocks, nBlocks);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusyUpdate::PublishFreeBusy", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusyUpdate::xFreeBusyUpdate::RemoveAppt()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusyUpdate::RemoveAppt", "");
-	METHOD_PROLOGUE_(ECFreeBusyUpdate, FreeBusyUpdate);
-	HRESULT hr = pThis->RemoveAppt();
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusyUpdate::RemoveAppt", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusyUpdate::xFreeBusyUpdate::ResetPublishedFreeBusy()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusyUpdate::ResetPublishedFreeBusy", "");
-	METHOD_PROLOGUE_(ECFreeBusyUpdate, FreeBusyUpdate);
-	HRESULT hr = pThis->ResetPublishedFreeBusy();
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusyUpdate::ResetPublishedFreeBusy", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusyUpdate::xFreeBusyUpdate::ChangeAppt()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusyUpdate::ChangeAppt", "");
-	METHOD_PROLOGUE_(ECFreeBusyUpdate, FreeBusyUpdate);
-	HRESULT hr = pThis->ChangeAppt();
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusyUpdate::ChangeAppt", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusyUpdate::xFreeBusyUpdate::SaveChanges(FILETIME ftBegin, FILETIME ftEnd)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusyUpdate::SaveChanges", "");
-	METHOD_PROLOGUE_(ECFreeBusyUpdate, FreeBusyUpdate);
-	HRESULT hr = pThis->SaveChanges(ftBegin, ftEnd);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusyUpdate::SaveChanges", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusyUpdate::xFreeBusyUpdate::GetFBTimes()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusyUpdate::GetFBTimes", "");
-	METHOD_PROLOGUE_(ECFreeBusyUpdate, FreeBusyUpdate);
-	HRESULT hr = pThis->GetFBTimes();
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusyUpdate::GetFBTimes", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusyUpdate::xFreeBusyUpdate::Intersect()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusyUpdate::Intersect", "");
-	METHOD_PROLOGUE_(ECFreeBusyUpdate, FreeBusyUpdate);
-	HRESULT hr = pThis->Intersect();
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusyUpdate::Intersect", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusyUpdate, FreeBusyUpdate, QueryInterface, (REFIID, refiid), (void**, lppInterface))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECFreeBusyUpdate, FreeBusyUpdate, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECFreeBusyUpdate, FreeBusyUpdate, Release, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusyUpdate, FreeBusyUpdate, Reload, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusyUpdate, FreeBusyUpdate, PublishFreeBusy, (FBBlock_1 *, lpBlocks), (ULONG, nBlocks))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusyUpdate, FreeBusyUpdate, RemoveAppt, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusyUpdate, FreeBusyUpdate, ResetPublishedFreeBusy, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusyUpdate, FreeBusyUpdate, ChangeAppt, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusyUpdate, FreeBusyUpdate, SaveChanges, (FILETIME, ftBegin), (FILETIME, ftEnd))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusyUpdate, FreeBusyUpdate, GetFBTimes, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusyUpdate, FreeBusyUpdate, Intersect, (void))

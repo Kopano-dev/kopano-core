@@ -19,6 +19,7 @@
 
 #include <mapix.h>
 #include <kopano/ECGuid.h>
+#include <kopano/ECInterfaceDefs.h>
 #include "ECMemStream.h"
 #include <kopano/Trace.h>
 #include <kopano/ECDebug.h>
@@ -494,131 +495,17 @@ char* ECMemStream::GetBuffer()
 	return this->lpMemBlock->GetBuffer();
 }
 
-ULONG   ECMemStream::xStream::AddRef()
-{
-	TRACE_STREAM(TRACE_ENTRY, "IStream::AddRef", "");
-	METHOD_PROLOGUE_(ECMemStream, Stream);
-	ULONG ulRef =  pThis->AddRef();
-	TRACE_STREAM(TRACE_RETURN, "IStream::AddRef", "%d",  ulRef);
-	return ulRef;
-}
-
-ULONG   ECMemStream::xStream::Release()
-{
-	TRACE_STREAM(TRACE_ENTRY, "IStream::Release", "");
-	METHOD_PROLOGUE_(ECMemStream, Stream);
-	ULONG ulRef = pThis->Release();
-	TRACE_STREAM(TRACE_RETURN, "IStream::Release", "%d",  ulRef);
-	return ulRef;
-}
-
-HRESULT ECMemStream::xStream::QueryInterface(REFIID refiid, LPVOID *lppInterface)
-{
-	char szGuidId[1024+1];
-	snprintf(szGuidId, 1024, "{%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X}", refiid.Data1, refiid.Data2, refiid.Data3, refiid.Data4[0], refiid.Data4[1], refiid.Data4[2], refiid.Data4[3], refiid.Data4[4], refiid.Data4[5], refiid.Data4[6], refiid.Data4[7]);
-	
-	TRACE_STREAM(TRACE_ENTRY, "IStream::QueryInterface", "%s", szGuidId);
-	METHOD_PROLOGUE_(ECMemStream, Stream);
-	HRESULT hr = pThis->QueryInterface(refiid, lppInterface);
-	TRACE_STREAM(TRACE_RETURN, "IStream::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMemStream::xStream::Read(void *pv, ULONG cb, ULONG *pcbRead)
-{
-	TRACE_STREAM(TRACE_ENTRY, "IStream::Read", "size=%d", cb);
-	METHOD_PROLOGUE_(ECMemStream, Stream);
-	HRESULT hr = pThis->Read(pv, cb, pcbRead);
-	TRACE_STREAM(TRACE_RETURN, "IStream::Read", "read=%d, Result=%s", (pcbRead)?(*pcbRead):0, GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMemStream::xStream::Write(const void *pv, ULONG cb, ULONG *pcbWritten)
-{
-	TRACE_STREAM(TRACE_ENTRY, "IStream::Write", "size=%d", cb);
-	METHOD_PROLOGUE_(ECMemStream, Stream);
-	HRESULT hr =  pThis->Write(pv, cb, pcbWritten);
-	TRACE_STREAM(TRACE_RETURN, "IStream::Write", "written=%d, Result=%s", (pcbWritten)?*pcbWritten:0, GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMemStream::xStream::Seek(LARGE_INTEGER dlibmove, DWORD dwOrigin, ULARGE_INTEGER *plibNewPosition)
-{
-	TRACE_STREAM(TRACE_ENTRY, "IStream::Seek", "dlibmove=%d, dwOrigin=%d", (int)dlibmove.QuadPart, dwOrigin);
-	METHOD_PROLOGUE_(ECMemStream, Stream);
-	HRESULT hr = pThis->Seek(dlibmove, dwOrigin, plibNewPosition);
-	TRACE_STREAM(TRACE_RETURN, "IStream::Seek", "newPos=%d, Result=%s", (plibNewPosition)?(int)plibNewPosition->QuadPart:0, GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMemStream::xStream::SetSize(ULARGE_INTEGER libNewSize)
-{
-	TRACE_STREAM(TRACE_ENTRY, "IStream::SetSize", "%d",  (int)libNewSize.QuadPart);
-	METHOD_PROLOGUE_(ECMemStream, Stream);
-	HRESULT hr = pThis->SetSize(libNewSize);
-	TRACE_STREAM(TRACE_RETURN, "IStream::SetSize", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMemStream::xStream::CopyTo(IStream *pstm, ULARGE_INTEGER cb, ULARGE_INTEGER *pcbRead, ULARGE_INTEGER *pcbWritten)
-{
-	TRACE_STREAM(TRACE_ENTRY, "IStream::CopyTo", "cb=%d", cb.QuadPart);
-	METHOD_PROLOGUE_(ECMemStream, Stream);
-	HRESULT hr = pThis->CopyTo(pstm, cb, pcbRead, pcbWritten);
-	TRACE_STREAM(TRACE_RETURN, "IStream::CopyTo", "%s cbRead=%d, cbWritten=%d", GetMAPIErrorDescription(hr).c_str(), (pcbRead)?pcbRead->QuadPart: 0, (pcbWritten)?pcbWritten->QuadPart: 0 );
-	return hr;
-}
-
-HRESULT ECMemStream::xStream::Commit(DWORD grfCommitFlags)
-{
-	TRACE_STREAM(TRACE_ENTRY, "IStream::Commit", "grfCommitFlags=0x%08X", grfCommitFlags);
-	METHOD_PROLOGUE_(ECMemStream, Stream);
-	HRESULT hr = pThis->Commit(grfCommitFlags);
-	TRACE_STREAM(TRACE_RETURN, "IStream::Commit", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMemStream::xStream::Revert()
-{
-	TRACE_STREAM(TRACE_ENTRY, "IStream::Revert", "");
-	METHOD_PROLOGUE_(ECMemStream, Stream);
-	HRESULT hr = pThis->Revert();
-	TRACE_STREAM(TRACE_RETURN, "IStream::Revert", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMemStream::xStream::LockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType)
-{
-	TRACE_STREAM(TRACE_ENTRY, "IStream::LockRegion", "");
-	METHOD_PROLOGUE_(ECMemStream, Stream);
-	HRESULT hr = pThis->LockRegion(libOffset, cb, dwLockType);
-	TRACE_STREAM(TRACE_RETURN, "IStream::LockRegion", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMemStream::xStream::UnlockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType)
-{
-	TRACE_STREAM(TRACE_ENTRY, "IStream::UnLockRegion", "");
-	METHOD_PROLOGUE_(ECMemStream, Stream);
-	HRESULT hr = pThis->UnlockRegion(libOffset, cb, dwLockType);
-	TRACE_STREAM(TRACE_RETURN, "IStream::UnLockRegion", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMemStream::xStream::Stat(STATSTG *pstatstg, DWORD grfStatFlag)
-{
-	TRACE_STREAM(TRACE_ENTRY, "IStream::Stat", "grfStatFlag=0x%08X", grfStatFlag);
-	METHOD_PROLOGUE_(ECMemStream, Stream);
-	HRESULT hr = pThis->Stat(pstatstg, grfStatFlag);
-	TRACE_STREAM(TRACE_RETURN, "IStream::Stat", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT ECMemStream::xStream::Clone(IStream **ppstm)
-{
-	TRACE_STREAM(TRACE_ENTRY, "IStream::Clone", "");
-	METHOD_PROLOGUE_(ECMemStream, Stream);
-	HRESULT hr = pThis->Clone(ppstm);
-	TRACE_STREAM(TRACE_RETURN, "IStream::Clone", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMemStream, Stream, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECMemStream, Stream, Release, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemStream, Stream, QueryInterface, (REFIID, refiid), (LPVOID *, lppInterface))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemStream, Stream, Read, (void *, pv), (ULONG, cb), (ULONG *, pcbRead))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemStream, Stream, Write, (const void *, pv), (ULONG, cb), (ULONG *, pcbWritten))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemStream, Stream, Seek, (LARGE_INTEGER, dlibmove), (DWORD, dwOrigin), (ULARGE_INTEGER *, plibNewPosition))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemStream, Stream, SetSize, (ULARGE_INTEGER, libNewSize))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemStream, Stream, CopyTo, (IStream *, pstm), (ULARGE_INTEGER, cb), (ULARGE_INTEGER *, pcbRead), (ULARGE_INTEGER *, pcbWritten))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemStream, Stream, Commit, (DWORD, grfCommitFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemStream, Stream, Revert, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemStream, Stream, LockRegion, (ULARGE_INTEGER, libOffset), (ULARGE_INTEGER, cb), (DWORD, dwLockType))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemStream, Stream, UnlockRegion, (ULARGE_INTEGER, libOffset), (ULARGE_INTEGER, cb), (DWORD, dwLockType))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemStream, Stream, Stat, (STATSTG *, pstatstg), (DWORD, grfStatFlag))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemStream, Stream, Clone, (IStream **, ppstm))
