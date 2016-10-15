@@ -89,11 +89,7 @@ HRESULT ECEnumFBBlock::Next(LONG celt, FBBlock_1 *pblk, LONG *pcfetch)
 
 	if(pcfetch)
 		*pcfetch = cEltFound;
-
-	if(cEltFound == 0)
-		return S_FALSE;
-	else
-		return S_OK;
+	return cEltFound != 0;
 }
 
 /*! @copydoc IEnumFBBlock::Skip */

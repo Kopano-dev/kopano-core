@@ -387,12 +387,11 @@ bool Http::CheckIfMatch(LPMAPIPROP lpProp)
 	SPropValuePtr ptrLastModTime;
 	string strValue;
 
-	if (lpProp) {
-		if (HrGetOneProp(lpProp, PR_LAST_MODIFICATION_TIME, &ptrLastModTime) == hrSuccess) {
-			time_t stamp;
-			FileTimeToUnixTime(ptrLastModTime->Value.ft, &stamp);
-			strValue = stringify_int64(stamp, false);
-		}
+	if (lpProp != nullptr &&
+	    HrGetOneProp(lpProp, PR_LAST_MODIFICATION_TIME, &ptrLastModTime) == hrSuccess) {
+		time_t stamp;
+		FileTimeToUnixTime(ptrLastModTime->Value.ft, &stamp);
+		strValue = stringify_int64(stamp, false);
 	}
 
 	if (HrGetHeaderValue("If-Match", &strIf) == hrSuccess) {

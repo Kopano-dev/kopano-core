@@ -293,23 +293,22 @@ HRESULT ProtocolBase::HrInitializeClass()
 	/*
 	 * Check delete / rename access on folder, if not already blocked.
 	 */
-	if (m_blFolderAccess) {
-		// lpDefaultProp already should contain PR_IPM_APPOINTMENT_ENTRYID
-		if (lpDefaultProp) {
-			ULONG ulCmp;
+	if (m_blFolderAccess &&
+	    // lpDefaultProp already should contain PR_IPM_APPOINTMENT_ENTRYID
+	    lpDefaultProp != nullptr) {
+		ULONG ulCmp;
 
-			hr = HrGetOneProp(m_lpUsrFld, PR_ENTRYID, &lpFldProp);
-			if (hr != hrSuccess)
-				goto exit;
+		hr = HrGetOneProp(m_lpUsrFld, PR_ENTRYID, &lpFldProp);
+		if (hr != hrSuccess)
+			goto exit;
 
-			hr = m_lpSession->CompareEntryIDs(lpDefaultProp->Value.bin.cb, (LPENTRYID)lpDefaultProp->Value.bin.lpb,
-											  lpFldProp->Value.bin.cb, (LPENTRYID)lpFldProp->Value.bin.lpb, 0, &ulCmp);
-			if (hr != hrSuccess || ulCmp == TRUE)
-				m_blFolderAccess = false;
+		hr = m_lpSession->CompareEntryIDs(lpDefaultProp->Value.bin.cb, (LPENTRYID)lpDefaultProp->Value.bin.lpb,
+		     lpFldProp->Value.bin.cb, (LPENTRYID)lpFldProp->Value.bin.lpb, 0, &ulCmp);
+		if (hr != hrSuccess || ulCmp == TRUE)
+			m_blFolderAccess = false;
 
-			MAPIFreeBuffer(lpFldProp);
-			lpFldProp = NULL;
-		}
+		MAPIFreeBuffer(lpFldProp);
+		lpFldProp = NULL;
 	}
 	if (m_blFolderAccess) {
 		hr = HrGetOneProp(m_lpUsrFld, PR_SUBFOLDERS, &lpFldProp);

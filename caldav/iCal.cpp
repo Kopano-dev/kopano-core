@@ -222,25 +222,20 @@ HRESULT iCal::HrHandleIcalPost()
 			break;
 
 		for (ULONG i = 0; i < lpRows->cRows; ++i) {
-			if (lpRows->aRow[i].lpProps[0].ulPropTag == PR_ENTRYID)
-			{
-				if(lpRows->aRow[i].lpProps[2].ulPropTag == ulProptag)
-					sbUid = lpRows->aRow[i].lpProps[2].Value.bin;
-				else
-					continue;// skip new entries
-
-				sbEid.cb = lpRows->aRow[i].lpProps[0].Value.bin.cb;
-				if ((hr = MAPIAllocateBuffer(sbEid.cb,(void**)&sbEid.lpb)) != hrSuccess)
-					goto exit;
-				memcpy(sbEid.lpb, lpRows->aRow[i].lpProps[0].Value.bin.lpb, sbEid.cb);
-
-				strUidString =  bin2hex((ULONG)sbUid.cb,(LPBYTE)sbUid.lpb);
-			
-				mpSrvEntries[strUidString] = sbEid;
-				
-				if(lpRows->aRow[i].lpProps[1].ulPropTag == PR_LAST_MODIFICATION_TIME)
-					mpSrvTimes[strUidString] = lpRows->aRow[i].lpProps[1].Value.ft;				
-			}
+			if (lpRows->aRow[i].lpProps[0].ulPropTag != PR_ENTRYID)
+				continue;
+			if (lpRows->aRow[i].lpProps[2].ulPropTag == ulProptag)
+				sbUid = lpRows->aRow[i].lpProps[2].Value.bin;
+			else
+				continue; // skip new entries
+			sbEid.cb = lpRows->aRow[i].lpProps[0].Value.bin.cb;
+			if ((hr = MAPIAllocateBuffer(sbEid.cb, (void **)&sbEid.lpb)) != hrSuccess)
+				goto exit;
+			memcpy(sbEid.lpb, lpRows->aRow[i].lpProps[0].Value.bin.lpb, sbEid.cb);
+			strUidString = bin2hex((ULONG)sbUid.cb, (LPBYTE)sbUid.lpb);
+			mpSrvEntries[strUidString] = sbEid;
+			if (lpRows->aRow[i].lpProps[1].ulPropTag == PR_LAST_MODIFICATION_TIME)
+				mpSrvTimes[strUidString] = lpRows->aRow[i].lpProps[1].Value.ft;				
 		}
 		FreeProws(lpRows);
 		lpRows = NULL;

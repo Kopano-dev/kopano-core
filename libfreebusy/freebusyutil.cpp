@@ -428,11 +428,7 @@ HRESULT ParseFBEvents(FBStatus fbSts, LPSPropValue lpMonth, LPSPropValue lpEvent
 			UnixTimeToRTime(tmUnix, &rtmEnd);
 			
 			// Don't reset fbBlock.m_tmEnd
-			if(fbBlock.m_tmEnd == rtmStart) {
-				bMerge = true;
-			}else
-				bMerge = false;
-
+			bMerge = fbBlock.m_tmEnd == rtmStart;
 			fbBlock.m_fbstatus = fbSts;
 			fbBlock.m_tmStart = rtmStart;
 			fbBlock.m_tmEnd = rtmEnd;
@@ -793,13 +789,7 @@ HRESULT HrAddFBBlock(const OccrInfo &sOccrInfo, OccrInfo **lppsOccrInfo,
 {
 	OccrInfo *lpsNewOccrInfo = NULL;
 	OccrInfo *lpsInputOccrInfo = *lppsOccrInfo;
-	ULONG ulModVal = 0;
-
-	if(lpcValues)
-		ulModVal = (*lpcValues) + 1;
-	else
-		ulModVal = 1;
-
+	ULONG ulModVal = lpcValues != NULL ? *lpcValues + 1 : 1;
 	HRESULT hr = MAPIAllocateBuffer(sizeof(sOccrInfo) * ulModVal,
 	             reinterpret_cast<void **>(&lpsNewOccrInfo));
 	if (hr != hrSuccess)

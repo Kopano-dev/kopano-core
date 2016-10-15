@@ -159,16 +159,12 @@ HRESULT ECFreeBusyData::FindFreeBlock(LONG ulBegin, LONG ulMinutes, LONG ulNumbe
 			break;
 		}
 	}
-
-	if (!bOverlap) {
-		hr = hrSuccess;
-		lpBlock->m_fbstatus = fbFree;
-		lpBlock->m_tmStart = ulBegin+1;
-		lpBlock->m_tmEnd = lpBlock->m_tmStart + ulMinutes;
-	} else {
-		hr = MAPI_E_NOT_FOUND;
-	}
-	return hr;
+	if (bOverlap)
+		return MAPI_E_NOT_FOUND;
+	lpBlock->m_fbstatus = fbFree;
+	lpBlock->m_tmStart = ulBegin+1;
+	lpBlock->m_tmEnd = lpBlock->m_tmStart + ulMinutes;
+	return hrSuccess;
 }
 
 HRESULT ECFreeBusyData::SetFBRange(LONG rtmStart, LONG rtmEnd)

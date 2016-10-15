@@ -1273,13 +1273,10 @@ HRESULT CalDAV::HrPut()
 	}
 
 	// Publish freebusy only for default Calendar
-	if(m_ulFolderFlag & DEFAULT_FOLDER) {
-		if (HrPublishDefaultCalendar(m_lpSession, m_lpDefStore, time(NULL), FB_PUBLISH_DURATION) != hrSuccess) {
-			// @todo already logged, since we pass the logger in the publish function?
-			ec_log_err("Error Publishing Freebusy, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
-		}
-	}
-	
+	if (m_ulFolderFlag & DEFAULT_FOLDER &&
+	    HrPublishDefaultCalendar(m_lpSession, m_lpDefStore, time(NULL), FB_PUBLISH_DURATION) != hrSuccess)
+		// @todo already logged, since we pass the logger in the publish function?
+		ec_log_err("Error Publishing Freebusy, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 exit:
 	if (hr == hrSuccess && blNewEntry)
 		m_lpRequest->HrResponseHeader(201, "Created");
@@ -1374,14 +1371,16 @@ HRESULT CalDAV::HrHandleMkCal(WEBDAVPROP *lpsDavProp)
 	for (const auto &p : lpsDavProp->lstProps) {
 		if (p.sPropName.strPropname.compare("displayname") == 0) {
 			wstrNewFldName = U2W(p.strValue);
-		} else if (p.sPropName.strPropname.compare("supported-calendar-component-set") == 0) {
-			if (p.strValue.compare("VTODO") == 0)
-				strContainerClass = "IPF.Task";
-			else if (p.strValue.compare("VEVENT") != 0) {
-				ec_log_err("Unable to create folder for supported-calendar-component-set type: %s", p.strValue.c_str());
-				hr = MAPI_E_INVALID_PARAMETER;
-				goto exit;
-			}
+			continue;
+		}
+		if (p.sPropName.strPropname.compare("supported-calendar-component-set") != 0)
+			continue;
+		if (p.strValue.compare("VTODO") == 0)
+			strContainerClass = "IPF.Task";
+		else if (p.strValue.compare("VEVENT") != 0) {
+			ec_log_err("Unable to create folder for supported-calendar-component-set type: %s", p.strValue.c_str());
+			hr = MAPI_E_INVALID_PARAMETER;
+			goto exit;
 		}
 	}
 	if (wstrNewFldName.empty()) {
