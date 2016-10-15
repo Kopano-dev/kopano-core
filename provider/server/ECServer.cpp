@@ -105,7 +105,6 @@ ECSoapServerConnection*	g_lpSoapServerConn = NULL;
 
 pthread_t	signal_thread;
 sigset_t	signal_mask;
-bool 		m_bNPTL = true;
 bool m_bDatabaseUpdateIgnoreSignals = false;
 
 // This is the callback function for libserver/* so that it can notify that a delayed soap
@@ -131,14 +130,6 @@ void kopano_get_server_stats(unsigned int *lpulQueueLength,
 static void process_signal(int sig)
 {
 	ZLOG_AUDIT(g_lpAudit, "server signalled sig=%d", sig);
-
-	if (!m_bNPTL)
-	{
-		// Win32 has Unix semantics and therefore requires us to reset the signal handler.
-		signal(sig, process_signal);
-		if(pthread_equal(pthread_self(), mainthread)==0)
-			return;					// soap threads do not handle this signal
-	}
 
 	if (m_bDatabaseUpdateIgnoreSignals) {
 		g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "WARNING: Database upgrade is taking place.");
@@ -966,11 +957,6 @@ static int running_server(char *szName, const char *szConfig,
 		{ NULL, NULL },
 	};
 
-	char buffer[256];
-	confstr(_CS_GNU_LIBPTHREAD_VERSION, buffer, sizeof(buffer));
-	if (strncmp(buffer, "linuxthreads", strlen("linuxthreads")) == 0)
-		m_bNPTL = false;
-
 	// Init random generator
 	rand_init();
 
@@ -1181,34 +1167,23 @@ static int running_server(char *szName, const char *szConfig,
 	sigaction(SIGBUS , &act, NULL);
 	sigaction(SIGABRT, &act, NULL);
 
-	if (m_bNPTL) {
-		// normally ignore these signals
-		signal(SIGUSR1, SIG_IGN);
-		signal(SIGUSR2, SIG_IGN);
-		signal(SIGPIPE, SIG_IGN);
+	// normally ignore these signals
+	signal(SIGUSR1, SIG_IGN);
+	signal(SIGUSR2, SIG_IGN);
+	signal(SIGPIPE, SIG_IGN);
 
-		// block these signals to handle only in the thread by sigwait()
-		sigemptyset(&signal_mask);
-		sigaddset(&signal_mask, SIGINT);
-		sigaddset(&signal_mask, SIGTERM);
-		sigaddset(&signal_mask, SIGHUP);
+	// block these signals to handle only in the thread by sigwait()
+	sigemptyset(&signal_mask);
+	sigaddset(&signal_mask, SIGINT);
+	sigaddset(&signal_mask, SIGTERM);
+	sigaddset(&signal_mask, SIGHUP);
 
-		// valid for all threads afterwards
-		pthread_sigmask(SIG_BLOCK, &signal_mask, NULL);
-		// create signal handler thread, will handle all blocked signals
-		// must be done after the daemonize
-		pthread_create(&signal_thread, NULL, signal_handler, NULL);
-	        set_thread_name(signal_thread, "SignalHThread");
-	} else
-	{
-		// reset signals to normal server usage
-		signal(SIGTERM , process_signal);
-		signal(SIGINT  , process_signal);	//CTRL+C
-		signal(SIGHUP , process_signal);	// logrotate
-		signal(SIGUSR1, process_signal);
-		signal(SIGUSR2, process_signal);
-		signal(SIGPIPE, process_signal);
-	}
+	// valid for all threads afterwards
+	pthread_sigmask(SIG_BLOCK, &signal_mask, NULL);
+	// create signal handler thread, will handle all blocked signals
+	// must be done after the daemonize
+	pthread_create(&signal_thread, NULL, signal_handler, NULL);
+        set_thread_name(signal_thread, "SignalHThread");
 
 	// ignore ignorable signals that might stop the server during database upgrade
 	// all these signals will be reset after the database upgrade part.
@@ -1354,10 +1329,8 @@ static int running_server(char *szName, const char *szConfig,
 	}
 	// Close All sessions
 	kopano_removeallsessions();
-	if (m_bNPTL) {
-		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Joining signal thread");
-		pthread_join(signal_thread, NULL);
-	}
+	g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Joining signal thread");
+	pthread_join(signal_thread, NULL);
 exit:
 	if (er != erSuccess) {
 		auto msg = format("An error occurred (%x).", er);
