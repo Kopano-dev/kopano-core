@@ -278,9 +278,8 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 
 			ulMvItems = 4;
 			// Get current freebusy entryid array
-			if(HrGetOneProp(lpFolder, PR_FREEBUSY_ENTRYIDS, &lpPropfbEntryids) == hrSuccess) {
+			if (HrGetOneProp(lpFolder, PR_FREEBUSY_ENTRYIDS, &lpPropfbEntryids) == hrSuccess)
 				ulMvItems = (lpPropfbEntryids->Value.MVbin.cValues>ulMvItems)?lpPropfbEntryids->Value.MVbin.cValues:ulMvItems;
-			}
 
 			hr = MAPIAllocateBuffer(sizeof(SPropValue), (void**)&lpPropfbEntryidsNew);
 			if(hr != hrSuccess)
@@ -433,14 +432,11 @@ HRESULT ParseFBEvents(FBStatus fbSts, LPSPropValue lpMonth, LPSPropValue lpEvent
 			fbBlock.m_tmStart = rtmStart;
 			fbBlock.m_tmEnd = rtmEnd;
 
-			if(bMerge == true) {
+			if (bMerge)
 				lpfbBlockList->Merge(&fbBlock);
-			} else { 
+			else
 				lpfbBlockList->Add(&fbBlock);
-			}
-
 		}
-
 	}
 	return S_OK;
 }

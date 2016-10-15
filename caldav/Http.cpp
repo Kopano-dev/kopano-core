@@ -54,13 +54,12 @@ HRESULT HrParseURL(const std::string &strUrl, ULONG *lpulFlag, std::string *lpst
 		// root should be present, no flags are set. mostly used on OPTIONS command
 		goto exit;
 
-	if (vcUrlTokens.back().rfind(".ics") != string::npos) {
+	if (vcUrlTokens.back().rfind(".ics") != string::npos)
 		// Guid is retrieved using StripGuid().
 		vcUrlTokens.pop_back();
-	} else {
+	else
 		// request is for folder not a calendar entry
 		ulFlag |= REQ_COLLECTION;
-	}
 	if (vcUrlTokens.empty())
 		goto exit;
 	if (vcUrlTokens.size() > 3) {
@@ -87,10 +86,9 @@ HRESULT HrParseURL(const std::string &strUrl, ULONG *lpulFlag, std::string *lpst
 		goto exit;
 
 	strUrlUser = *iterToken++;
-	if (!strUrlUser.empty()) {
+	if (!strUrlUser.empty())
 		//change case of folder owner USER -> user, UseR -> user
 		std::transform(strUrlUser.begin(), strUrlUser.end(), strUrlUser.begin(), ::tolower);
-	}
 
 	// check if the request is for public folders and set the bool flag
 	// @note: request for public folder not have user's name in the url
@@ -395,15 +393,13 @@ bool Http::CheckIfMatch(LPMAPIPROP lpProp)
 	}
 
 	if (HrGetHeaderValue("If-Match", &strIf) == hrSuccess) {
-		if (strIf.compare("*") == 0 && !ptrLastModTime) {
+		if (strIf.compare("*") == 0 && !ptrLastModTime)
 			// we have an object without a last mod time, not allowed
 			return false;
-		}
 	} else if (HrGetHeaderValue("If-None-Match", &strIf) == hrSuccess) {
-		if (strIf.compare("*") == 0 && !!ptrLastModTime) {
+		if (strIf.compare("*") == 0 && !!ptrLastModTime)
 			// we have an object which has a last mod time, not allowed
 			return false;
-		}
 		invert = true;
 	} else {
 		return true;

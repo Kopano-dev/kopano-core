@@ -46,13 +46,12 @@ HRESULT ECFBBlockList::Merge(FBBlock_1* lpFBBlock)
 		return MAPI_E_INVALID_PARAMETER;
 
 	auto FBIter = m_FBMap.begin();
-	for (; FBIter != m_FBMap.cend(); ++FBIter) {
+	for (; FBIter != m_FBMap.cend(); ++FBIter)
 		if(FBIter->second.m_tmEnd == lpFBBlock->m_tmStart)
 		{
 			FBIter->second.m_tmEnd = lpFBBlock->m_tmEnd;
 			break;
 		}
-	}
 
 	if (FBIter == m_FBMap.cend())
 		return MAPI_E_NOT_FOUND;
@@ -65,9 +64,8 @@ HRESULT ECFBBlockList::Next(FBBlock_1* pblk)
 		return MAPI_E_INVALID_PARAMETER;
 
 	// Set iter on the begin of the list
-	if(m_bInitIter == false) {
+	if (!m_bInitIter)
 		Restrict(m_tmRestictStart, m_tmRestictEnd);
-	}
 
 	// Check if you are at the end of the list or the item doesn't matched with the restriction
 	if (m_FBIter == m_FBMap.cend() || (m_tmRestictEnd != 0 && static_cast<ULONG>(m_FBIter->second.m_tmStart) > static_cast<ULONG>(m_tmRestictEnd)))
@@ -91,9 +89,8 @@ HRESULT ECFBBlockList::Reset()
 
 HRESULT ECFBBlockList::Skip(LONG items)
 {
-	if(m_bInitIter == false) {
+	if (!m_bInitIter)
 		Restrict(m_tmRestictStart, m_tmRestictEnd);
-	}
 
 	for (LONG i = 0; i < items; ++i) {
 		// Check if you are at the end of the list or the item doesn't matched with the restriction

@@ -165,11 +165,10 @@ HRESULT ProtocolBase::HrInitializeClass()
 		goto exit;
 
 	// get active user info
-	if (bIsPublic) {
+	if (bIsPublic)
 		hr = m_lpLoginUser->QueryInterface(IID_IMailUser, (void**)&m_lpActiveUser);
-	} else {
+	else
 		hr = HrGetOwner(m_lpSession, m_lpActiveStore, &m_lpActiveUser);
-	}
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -366,9 +365,8 @@ std::string ProtocolBase::SPropValToString(SPropValue * lpSprop)
 	time_t tmUnixTime;
 	std::string strRetVal;
 	
-	if (lpSprop == NULL) {
+	if (lpSprop == NULL)
 		return std::string();
-	}
 
 	if (PROP_TYPE(lpSprop->ulPropTag) == PT_SYSTIME)
 	{

@@ -516,10 +516,8 @@ static HRESULT HrStartHandlerClient(ECChannel *lpChannel, bool bUseSSL,
 	if (g_bThreads) {
 		pthread_attr_init(&pThreadAttr);
 
-		if (pthread_attr_setdetachstate(&pThreadAttr, PTHREAD_CREATE_DETACHED) != 0) {
+		if (pthread_attr_setdetachstate(&pThreadAttr, PTHREAD_CREATE_DETACHED) != 0)
 			ec_log_warn("Could not set thread attribute to detached.");
-		}
-
 		if (pthread_create(&pThread, &pThreadAttr, HandlerClient, lpHandlerArgs) != 0) {
 			ec_log_err("Could not create thread.");
 			hr = E_FAIL;

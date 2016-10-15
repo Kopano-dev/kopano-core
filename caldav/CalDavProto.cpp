@@ -114,36 +114,24 @@ HRESULT CalDAV::HrHandleCommand(const std::string &strMethod)
 {
 	HRESULT hr = hrSuccess;
 
-	if(!strMethod.compare("PROPFIND")) {
+	if (!strMethod.compare("PROPFIND"))
 		hr = HrPropfind();
-	}
-	else if(!strMethod.compare("REPORT")) {
+	else if (!strMethod.compare("REPORT"))
 		hr = HrReport();
-	}
-	else if(!strMethod.compare("PUT")) {
+	else if (!strMethod.compare("PUT"))
 		hr = HrPut();
-	}
-	else if(!strMethod.compare("DELETE")) {
+	else if (!strMethod.compare("DELETE"))
 		hr = HrHandleDelete();
-	}
-	else if(!strMethod.compare("MKCALENDAR")) {
+	else if (!strMethod.compare("MKCALENDAR"))
 		hr = HrMkCalendar();
-	}
-	else if(!strMethod.compare("PROPPATCH")) {
+	else if (!strMethod.compare("PROPPATCH"))
 		hr = HrPropPatch();
-	}
 	else if (!strMethod.compare("POST"))
-	{
 		hr = HrHandlePost();
-	}
 	else if (!strMethod.compare("MOVE"))
-	{
 		hr = HrMove();
-	}
 	else
-	{
 		m_lpRequest->HrResponseHeader(501, "Not Implemented");
-	}
 
 	if (hr != hrSuccess)
 		m_lpRequest->HrResponseHeader(400, "Bad Request");
@@ -322,15 +310,10 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 
 		if (lpsWebRCalQry->sFilter.lstFilters.back() == "VTODO"
 			&& strncmp(lpsPropVal->Value.lpszA, "IPF.Task", strlen("IPF.Task")))
-		{
 				goto exit;
-		}
-	
 		if (lpsWebRCalQry->sFilter.lstFilters.back() == "VEVENT"
 			&& strncmp(lpsPropVal->Value.lpszA, "IPF.Appointment", strlen("IPF.Appointment")))
-		{
 			goto exit;
-		}
 	}
 
 	hr = m_lpUsrFld->GetContentsTable(0, &lpTable);
@@ -1268,9 +1251,8 @@ HRESULT CalDAV::HrPut()
 	}
 
 	// new modification time
-	if (HrGetOneProp(lpMessage, PR_LAST_MODIFICATION_TIME, &ptrPropModTime) == hrSuccess) {
+	if (HrGetOneProp(lpMessage, PR_LAST_MODIFICATION_TIME, &ptrPropModTime) == hrSuccess)
 		m_lpRequest->HrResponseHeader("Etag", SPropValToString(ptrPropModTime));
-	}
 
 	// Publish freebusy only for default Calendar
 	if (m_ulFolderFlag & DEFAULT_FOLDER &&

@@ -1343,9 +1343,9 @@ HRESULT WebDav::HrPropPatch()
 		else
 			HrSetDavPropName(&(sProperty.sPropName),(char *)lpXmlNode->name, WEBDAVNS);
 
-		if (lpXmlNode->children && lpXmlNode->children->content) {
+		if (lpXmlNode->children != nullptr &&
+		    lpXmlNode->children->content != nullptr)
 			sProperty.strValue = (char *)lpXmlNode->children->content;
-		}
 
 		sDavProp.lstProps.push_back(sProperty);
 
