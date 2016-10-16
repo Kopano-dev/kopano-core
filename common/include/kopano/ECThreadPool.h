@@ -198,7 +198,7 @@ public:
 	}
 	
 private:
-	_Rt	m_result;
+	_Rt m_result = 0;
 	_Fn m_fn;
 	_At m_arg;
 };

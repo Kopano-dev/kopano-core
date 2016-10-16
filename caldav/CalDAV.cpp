@@ -81,11 +81,9 @@ static void sighup(int)
 {
 	if (g_bThreads && pthread_equal(pthread_self(), mainthread)==0)
 		return;
-	if (g_lpConfig) {
-		if (!g_lpConfig->ReloadSettings() && g_lpLogger)
-			ec_log_crit("Unable to reload configuration file, continuing with current settings.");
-	}
-
+	if (g_lpConfig != nullptr && !g_lpConfig->ReloadSettings() &&
+	    g_lpLogger != nullptr)
+		ec_log_crit("Unable to reload configuration file, continuing with current settings.");
 	if (g_lpLogger) {
 		if (g_lpConfig) {
 			const char *ll = g_lpConfig->GetSetting("log_level");
@@ -518,10 +516,8 @@ static HRESULT HrStartHandlerClient(ECChannel *lpChannel, bool bUseSSL,
 	if (g_bThreads) {
 		pthread_attr_init(&pThreadAttr);
 
-		if (pthread_attr_setdetachstate(&pThreadAttr, PTHREAD_CREATE_DETACHED) != 0) {
+		if (pthread_attr_setdetachstate(&pThreadAttr, PTHREAD_CREATE_DETACHED) != 0)
 			ec_log_warn("Could not set thread attribute to detached.");
-		}
-
 		if (pthread_create(&pThread, &pThreadAttr, HandlerClient, lpHandlerArgs) != 0) {
 			ec_log_err("Could not create thread.");
 			hr = E_FAIL;

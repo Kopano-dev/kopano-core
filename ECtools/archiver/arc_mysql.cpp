@@ -18,7 +18,7 @@
 #include <kopano/platform.h>
 
 #include <iostream>
-#include "kcm_mysql.hpp"
+#include "arc_mysql.hpp"
 #include "mysqld_error.h"
 
 #include <kopano/ECLogger.h>
@@ -43,6 +43,8 @@ KCMDatabaseMySQL::KCMDatabaseMySQL(void)
 	m_bConnected		= false;
 	m_bLocked			= false;
 	m_bAutoLock			= true;
+	m_ulMaxAllowedPacket = MAX_ALLOWED_PACKET;
+	memset(&m_lpMySQL, 0, sizeof(m_lpMySQL));
 }
 
 KCMDatabaseMySQL::~KCMDatabaseMySQL(void)

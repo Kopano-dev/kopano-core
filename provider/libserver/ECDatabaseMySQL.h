@@ -126,18 +126,18 @@ private:
 	ECRESULT GetFirstUpdate(unsigned int *lpulDatabaseRevision);
 
 private:
-	bool				m_bMysqlInitialize;
-	bool				m_bConnected;
-	MYSQL				m_lpMySQL;
+	bool m_bMysqlInitialize = false;
+	bool m_bConnected = false;
+	MYSQL m_lpMySQL;
 	std::recursive_mutex m_hMutexMySql;
-	bool				m_bAutoLock;
-	unsigned int 		m_ulMaxAllowedPacket;
-	bool				m_bFirstResult;
+	bool m_bAutoLock = true;
+	unsigned int m_ulMaxAllowedPacket = 0;
+	bool m_bFirstResult = false;
 	static std::string	m_strDatabaseDir;
-	ECConfig *			m_lpConfig;
-	bool				m_bSuppressLockErrorLogging;
+	ECConfig *m_lpConfig = nullptr;
+	bool m_bSuppressLockErrorLogging = false;
 #ifdef DEBUG
-    unsigned int		m_ulTransactionState;
+	unsigned int m_ulTransactionState = 0;
 #endif
 };
 

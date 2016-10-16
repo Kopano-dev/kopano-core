@@ -81,15 +81,15 @@ private:
 	NOTIFYCONNECTIONCLIENTMAP	m_mapConnections;
 
 	/* Connection settings */
-	SessionGroupData*			m_lpSessionGroupData;
-	WSTransport*				m_lpTransport;
-	ULONG						m_ulConnection;
+	SessionGroupData *m_lpSessionGroupData;
+	WSTransport *m_lpTransport = nullptr;
+	ULONG m_ulConnection = 0;
 
 	/* Threading information */
 	std::recursive_mutex m_hMutex;
 	pthread_t					m_hThread;
-	BOOL						m_bThreadRunning;
-	BOOL						m_bThreadExit;
+	BOOL m_bThreadRunning = false;
+	BOOL m_bThreadExit = false;
 };
 
 #endif /* ECNOTIFYMASTER_H */

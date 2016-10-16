@@ -70,14 +70,14 @@ protected:
 	void parseTagDD();
 
 	std::wstring strText;
-	bool fScriptMode;
-	bool fHeadMode;
-	short cNewlines;
-	bool fStyleMode;
-	bool fTDTHMode;
-	bool fPreMode;
-	bool fTextMode;
-	bool fAddSpace; 
+	bool fScriptMode = false;
+	bool fHeadMode = false;
+	short cNewlines = 0;
+	bool fStyleMode = false;
+	bool fTDTHMode = false;
+	bool fPreMode = false;
+	bool fTextMode = false;
+	bool fAddSpace = false;
 
 	typedef void ( CHtmlToTextParser::*ParseMethodType )( void );
 
@@ -87,8 +87,8 @@ protected:
 			this->bParseAttrs = bParseAttrs;
 			this->parserMethod = parserMethod;
 		};
-		bool bParseAttrs;
-		ParseMethodType parserMethod;
+		bool bParseAttrs = false;
+		ParseMethodType parserMethod = nullptr;
 	};
 
 	struct _TableRow {
@@ -97,8 +97,8 @@ protected:
 
 	enum eListMode { lmDefinition, lmOrdered, lmUnordered };
 	struct ListInfo {
-		eListMode mode;
-		unsigned count;
+		eListMode mode = lmDefinition;
+		unsigned int count = 0;
 	};
 
 	typedef std::map<std::wstring, tagParser>		MapParser;

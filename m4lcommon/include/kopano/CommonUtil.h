@@ -163,7 +163,7 @@ private:
 #define PROPMAP_NAMED_ID(name,type,guid,id) ULONG PROP_##name; __propmap.AddProp(&PROP_##name, type, ECPropMapEntry(guid, id));
 #define PROPMAP_INIT(lpObject) hr = __propmap.Resolve(lpObject); if(hr != hrSuccess) goto exitpm;
 
-#define PROPMAP_DEF_NAMED_ID(name) ULONG PROP_##name;
+#define PROPMAP_DEF_NAMED_ID(name) ULONG PROP_##name = 0;
 #define PROPMAP_INIT_NAMED_ID(name,type,guid,id) __propmap.AddProp(&PROP_##name, type, ECPropMapEntry(guid, id));
 
 // Determine the size of an array

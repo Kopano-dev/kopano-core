@@ -631,15 +631,8 @@ ECAuthSession::ECAuthSession(const char *src_addr, ECSESSIONID sessionID,
 	BTSession(src_addr, sessionID, lpDatabaseFactory, lpSessionManager,
 	    ulCapabilities)
 {
-	m_ulUserID = 0;
-	m_bValidated = false;
 	m_ulSessionTimeout = 30;	// authenticate within 30 seconds, or else!
-
 	m_lpUserManagement = new ECUserManagement(this, m_lpSessionManager->GetPluginFactory(), m_lpSessionManager->GetConfig());
-
-	m_ulConnectingPid = 0;
-
-	m_NTLM_pid = -1;
 #ifdef HAVE_GSSAPI
 	m_gssServerCreds = GSS_C_NO_CREDENTIAL;
 	m_gssContext = GSS_C_NO_CONTEXT;

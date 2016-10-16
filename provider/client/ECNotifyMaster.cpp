@@ -51,14 +51,8 @@ inline bool ECNotifySink::IsClient(const ECNotifyClient *lpClient) const
 ECNotifyMaster::ECNotifyMaster(SessionGroupData *lpData)
 {
 	TRACE_NOTIFY(TRACE_ENTRY, "ECNotifyMaster::ECNotifyMaster", "");
-
-	/* Initialize threading */
-	m_bThreadRunning = false;
-	m_bThreadExit = false;
-
-	/* Initialize connection */
+	memset(&m_hThread, 0, sizeof(m_hThread));
 	m_lpSessionGroupData = lpData; /* DON'T AddRef() */
-	m_lpTransport = NULL;
 	m_ulConnection = 1;
 
 	TRACE_NOTIFY(TRACE_RETURN, "ECNotifyMaster::ECNotifyMaster", "");

@@ -32,10 +32,10 @@
 
 class StatsClient _zcp_final {
 private:
-	int fd;
+	int fd = -1;
 	struct sockaddr_un addr;
-	int addr_len;
-	bool thread_running;
+	int addr_len = 0;
+	bool thread_running = false;
 	ECLogger *const logger;
 
 	pthread_t countsSubmitThread;

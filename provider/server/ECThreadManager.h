@@ -204,7 +204,7 @@ public:
 protected:
     ECLogger *				m_lpLogger;
     ECConfig *				m_lpConfig;
-    ECThreadManager *		m_lpThreadManager;
+	ECThreadManager *m_lpThreadManager = nullptr;
 
 	std::mutex m_mutexItems;
 	std::queue<WORKITEM *> m_queueItems;
@@ -215,9 +215,9 @@ protected:
 	std::map<int, ACTIVESOCKET> m_setSockets;
 	std::map<int, struct soap *> m_setListenSockets;
 	std::mutex m_mutexSockets;
-	bool m_bExit;
+	bool m_bExit = false;
 	std::mutex m_mutexIdle;
-	unsigned int m_ulIdle;
+	unsigned int m_ulIdle = 0;
 	CREATEPIPESOCKETCALLBACK m_lpCreatePipeSocketCallback;
 	void *					m_lpCreatePipeSocketParam;
 

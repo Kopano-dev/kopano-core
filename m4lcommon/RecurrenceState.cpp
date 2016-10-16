@@ -195,43 +195,6 @@ private:
 		data.WriteString((x), (l)); \
 	} while (false)
 
-RecurrenceState::RecurrenceState()
-{
-	ulReaderVersion = 0x3004;
-	ulWriterVersion = 0x3004;
-
-	ulRecurFrequency = 0x0000;	// invalid value
-	ulPatternType = PT_DAY;
-	ulCalendarType = 0x0000;
-	ulFirstDateTime = 0x0000;
-	ulPeriod = 0x0000;
-	ulSlidingFlag = 0x0000;
-
-	ulWeekDays = 0x0000;
-	ulDayOfMonth = 0x0000;
-	ulWeekNumber = 0x0000;
-
-	ulEndType = 0x0000;
-	ulOccurrenceCount = 0x0000;
-	ulFirstDOW = DOW_MONDAY; /* default outlook */
-	ulDeletedInstanceCount = 0;
-	ulModifiedInstanceCount = 0;
-
-	ulStartDate = 0x0000;
-	ulEndType = 0x0000;
-
-	ulReaderVersion2 = 0x3006;
-	ulWriterVersion2 = 0x3008;	// can also be 3009, but outlook (2003) sets 3008
-	ulStartTimeOffset = 0x0000;	// max 1440-1
-	ulEndTimeOffset = 0x0000;	// max 1440-1
-
-	ulExceptionCount = 0;
-}
-
-RecurrenceState::~RecurrenceState() 
-{
-}
-
 /**
  * Reads exception data from outlook blob.
  *

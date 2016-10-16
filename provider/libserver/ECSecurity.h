@@ -95,16 +95,16 @@ protected:
 	ECLogger			*m_lpAudit;
 	ECConfig			*m_lpConfig;
 
-	unsigned int		m_ulUserID; // current user id
-    unsigned int        m_ulImpersonatorID; // id of user that is impersonating the current user
-	unsigned int		m_ulCompanyID; // Company to which the user belongs to
+	unsigned int m_ulUserID = 0; // current user id
+	unsigned int m_ulImpersonatorID = 0; // id of user that is impersonating the current user
+	unsigned int m_ulCompanyID = 0; // Company to which the user belongs to
 	objectdetails_t		m_details;
     objectdetails_t 	m_impersonatorDetails;
 	bool				m_bRestrictedAdmin; // True if restricted admin permissions enabled
 	bool 				m_bOwnerAutoFullAccess;
-	std::list<localobjectdetails_t> *m_lpGroups; // current user groups
-	std::list<localobjectdetails_t> *m_lpViewCompanies; // current visible companies
-	std::list<localobjectdetails_t> *m_lpAdminCompanies; // Companies where the user has admin rights on
+	std::list<localobjectdetails_t> *m_lpGroups = nullptr; // current user groups
+	std::list<localobjectdetails_t> *m_lpViewCompanies = nullptr; // current visible companies
+	std::list<localobjectdetails_t> *m_lpAdminCompanies = nullptr; // Companies where the user has admin rights on
 };
 
 #endif // #ifndef ECSECURITY

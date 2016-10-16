@@ -114,36 +114,24 @@ HRESULT CalDAV::HrHandleCommand(const std::string &strMethod)
 {
 	HRESULT hr = hrSuccess;
 
-	if(!strMethod.compare("PROPFIND")) {
+	if (!strMethod.compare("PROPFIND"))
 		hr = HrPropfind();
-	}
-	else if(!strMethod.compare("REPORT")) {
+	else if (!strMethod.compare("REPORT"))
 		hr = HrReport();
-	}
-	else if(!strMethod.compare("PUT")) {
+	else if (!strMethod.compare("PUT"))
 		hr = HrPut();
-	}
-	else if(!strMethod.compare("DELETE")) {
+	else if (!strMethod.compare("DELETE"))
 		hr = HrHandleDelete();
-	}
-	else if(!strMethod.compare("MKCALENDAR")) {
+	else if (!strMethod.compare("MKCALENDAR"))
 		hr = HrMkCalendar();
-	}
-	else if(!strMethod.compare("PROPPATCH")) {
+	else if (!strMethod.compare("PROPPATCH"))
 		hr = HrPropPatch();
-	}
 	else if (!strMethod.compare("POST"))
-	{
 		hr = HrHandlePost();
-	}
 	else if (!strMethod.compare("MOVE"))
-	{
 		hr = HrMove();
-	}
 	else
-	{
 		m_lpRequest->HrResponseHeader(501, "Not Implemented");
-	}
 
 	if (hr != hrSuccess)
 		m_lpRequest->HrResponseHeader(400, "Bad Request");
@@ -322,15 +310,10 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 
 		if (lpsWebRCalQry->sFilter.lstFilters.back() == "VTODO"
 			&& strncmp(lpsPropVal->Value.lpszA, "IPF.Task", strlen("IPF.Task")))
-		{
 				goto exit;
-		}
-	
 		if (lpsWebRCalQry->sFilter.lstFilters.back() == "VEVENT"
 			&& strncmp(lpsPropVal->Value.lpszA, "IPF.Appointment", strlen("IPF.Appointment")))
-		{
 			goto exit;
-		}
 	}
 
 	hr = m_lpUsrFld->GetContentsTable(0, &lpTable);
@@ -1268,18 +1251,14 @@ HRESULT CalDAV::HrPut()
 	}
 
 	// new modification time
-	if (HrGetOneProp(lpMessage, PR_LAST_MODIFICATION_TIME, &ptrPropModTime) == hrSuccess) {
+	if (HrGetOneProp(lpMessage, PR_LAST_MODIFICATION_TIME, &ptrPropModTime) == hrSuccess)
 		m_lpRequest->HrResponseHeader("Etag", SPropValToString(ptrPropModTime));
-	}
 
 	// Publish freebusy only for default Calendar
-	if(m_ulFolderFlag & DEFAULT_FOLDER) {
-		if (HrPublishDefaultCalendar(m_lpSession, m_lpDefStore, time(NULL), FB_PUBLISH_DURATION) != hrSuccess) {
-			// @todo already logged, since we pass the logger in the publish function?
-			ec_log_err("Error Publishing Freebusy, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
-		}
-	}
-	
+	if (m_ulFolderFlag & DEFAULT_FOLDER &&
+	    HrPublishDefaultCalendar(m_lpSession, m_lpDefStore, time(NULL), FB_PUBLISH_DURATION) != hrSuccess)
+		// @todo already logged, since we pass the logger in the publish function?
+		ec_log_err("Error Publishing Freebusy, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 exit:
 	if (hr == hrSuccess && blNewEntry)
 		m_lpRequest->HrResponseHeader(201, "Created");
@@ -1374,14 +1353,16 @@ HRESULT CalDAV::HrHandleMkCal(WEBDAVPROP *lpsDavProp)
 	for (const auto &p : lpsDavProp->lstProps) {
 		if (p.sPropName.strPropname.compare("displayname") == 0) {
 			wstrNewFldName = U2W(p.strValue);
-		} else if (p.sPropName.strPropname.compare("supported-calendar-component-set") == 0) {
-			if (p.strValue.compare("VTODO") == 0)
-				strContainerClass = "IPF.Task";
-			else if (p.strValue.compare("VEVENT") != 0) {
-				ec_log_err("Unable to create folder for supported-calendar-component-set type: %s", p.strValue.c_str());
-				hr = MAPI_E_INVALID_PARAMETER;
-				goto exit;
-			}
+			continue;
+		}
+		if (p.sPropName.strPropname.compare("supported-calendar-component-set") != 0)
+			continue;
+		if (p.strValue.compare("VTODO") == 0)
+			strContainerClass = "IPF.Task";
+		else if (p.strValue.compare("VEVENT") != 0) {
+			ec_log_err("Unable to create folder for supported-calendar-component-set type: %s", p.strValue.c_str());
+			hr = MAPI_E_INVALID_PARAMETER;
+			goto exit;
 		}
 	}
 	if (wstrNewFldName.empty()) {

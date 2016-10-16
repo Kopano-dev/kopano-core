@@ -196,7 +196,7 @@ void ECStatsCollector::Max(SCName name, float max)
 	if (iSD == m_StatData.cend())
 		return;
 	assert(iSD->second.type == SCDT_FLOAT);
-	scoped_lock(iSD->second.lock);
+	scoped_lock lk(iSD->second.lock);
 	if (iSD->second.data.f < max)
 		iSD->second.data.f = max;
 }
@@ -207,7 +207,7 @@ void ECStatsCollector::Max(SCName name, LONGLONG max)
 	if (iSD == m_StatData.cend())
 		return;
 	assert(iSD->second.type == SCDT_LONGLONG);
-	scoped_lock(iSD->second.lock);
+	scoped_lock lk(iSD->second.lock);
 	if (iSD->second.data.ll < max)
 		iSD->second.data.ll = max;
 }

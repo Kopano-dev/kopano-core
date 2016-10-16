@@ -64,7 +64,6 @@ typedef struct MAPIOBJECT {
 		}
 	};
 
-	/* copy constructor */
 	MAPIOBJECT(const MAPIOBJECT *lpSource)
 	{
 		this->bChanged = lpSource->bChanged;
@@ -93,19 +92,19 @@ typedef struct MAPIOBJECT {
 	};
 
 	/* data */
-	std::set<MAPIOBJECT*, CompareMAPIOBJECT>	*lstChildren;	/* ECSavedObjects */
-	std::list<ULONG>		*lstDeleted;	/* proptags client->server only */
-	std::list<ULONG>		*lstAvailable;	/* proptags server->client only */
-	std::list<ECProperty>	*lstModified;	/* propval client->server only */
-	std::list<ECProperty>	*lstProperties;	/* propval client->server but not serialized and server->client  */
-	LPSIEID					lpInstanceID;	/* Single Instance ID */
-	ULONG					cbInstanceID;	/* Single Instance ID length */
-	BOOL					bChangedInstance; /* Single Instance ID changed */
-	BOOL					bChanged;		/* this is a saved child, otherwise only loaded */
-	BOOL					bDelete;		/* delete this object completely */
-	ULONG					ulUniqueId;		/* PR_ROWID (recipients) or PR_ATTACH_NUM (attachments) only */
-	ULONG					ulObjId;		/* hierarchy id of recipients and attachments */
-	ULONG					ulObjType;
+	std::set<MAPIOBJECT *, CompareMAPIOBJECT> *lstChildren = nullptr; /* ECSavedObjects */
+	std::list<ULONG> *lstDeleted = nullptr; /* proptags client->server only */
+	std::list<ULONG> *lstAvailable = nullptr; /* proptags server->client only */
+	std::list<ECProperty> *lstModified = nullptr; /* propval client->server only */
+	std::list<ECProperty> *lstProperties = nullptr; /* propval client->server but not serialized and server->client  */
+	LPSIEID lpInstanceID = nullptr; /* Single Instance ID */
+	ULONG cbInstanceID = 0; /* Single Instance ID length */
+	BOOL bChangedInstance = false; /* Single Instance ID changed */
+	BOOL bChanged = false; /* this is a saved child, otherwise only loaded */
+	BOOL bDelete = false; /* delete this object completely */
+	ULONG ulUniqueId = 0; /* PR_ROWID (recipients) or PR_ATTACH_NUM (attachments) only */
+	ULONG ulObjId = 0; /* hierarchy id of recipients and attachments */
+	ULONG ulObjType = 0;
 } MAPIOBJECT;
 
 typedef std::set<MAPIOBJECT*, MAPIOBJECT::CompareMAPIOBJECT>	ECMapiObjects;

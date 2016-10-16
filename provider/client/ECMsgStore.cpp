@@ -96,8 +96,6 @@ ECMsgStore::ECMsgStore(const char *lpszProfname, LPMAPISUP lpSupport,
 	this->lpTransport = lpTransport;
 	lpTransport->AddRef();
 
-	m_lpNotifyClient = NULL;
-
 	// Add our property handlers
 	HrAddPropHandlers(PR_ENTRYID,			GetPropHandler,			DefaultSetPropComputed, (void *)this);
 	HrAddPropHandlers(PR_RECORD_KEY,		GetPropHandler,			DefaultSetPropComputed, (void *)this);
@@ -143,12 +141,7 @@ ECMsgStore::ECMsgStore(const char *lpszProfname, LPMAPISUP lpSupport,
 	m_fIsSpooler = fIsSpooler;
 	m_fIsDefaultStore = fIsDefaultStore;
 	m_bOfflineStore = bOfflineStore;
-
-	this->lpfnCallback = NULL;
 	this->isTransactedObject = FALSE;
-
-	this->m_ulClientVersion = 0;
-
 	GetClientVersion(&this->m_ulClientVersion); //Ignore errors
 	assert(lpszProfname != NULL);
 	if(lpszProfname)

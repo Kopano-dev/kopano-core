@@ -886,12 +886,10 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 
 	// Get the user entryids
 	for (cUsers = 0; cUsers < lpAdrList->cEntries; ++cUsers) {
-
-		if (ptrFlagList->ulFlag[cUsers] == MAPI_RESOLVED) {
+		if (ptrFlagList->ulFlag[cUsers] == MAPI_RESOLVED)
 			lpEntryID = PpropFindProp(lpAdrList->aEntries[cUsers].rgPropVals, lpAdrList->aEntries[cUsers].cValues, PR_ENTRYID);
-		} else {
+		else
 			lpEntryID = NULL;
-		}
 		if (lpEntryID) {
 			lpUsers[cUsers].m_cbEid = lpEntryID->Value.bin.cb;
 			hr = MAPIAllocateMore(lpEntryID->Value.bin.cb, lpUsers, (void**)&lpUsers[cUsers].m_lpEid);

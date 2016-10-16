@@ -37,23 +37,20 @@ class ECSessionManager;
 
 typedef struct SEARCHFOLDER _zcp_final {
 	SEARCHFOLDER(unsigned int ulStoreId, unsigned int ulFolderId) {
-		this->lpSearchCriteria = NULL;
-		/* sThreadId */
-		this->bThreadExit = false;
-		this->bThreadFree = true;
 		this->ulStoreId = ulStoreId;
 		this->ulFolderId = ulFolderId;
+		memset(&sThreadId, 0, sizeof(sThreadId));
 	}
 	~SEARCHFOLDER() {
 		if (this->lpSearchCriteria)
 			FreeSearchCriteria(this->lpSearchCriteria);
 	}
 
-    struct searchCriteria 	*lpSearchCriteria;
+	struct searchCriteria *lpSearchCriteria = nullptr;
     pthread_t 				sThreadId;
 	std::mutex mMutexThreadFree;
-    bool 					bThreadFree;
-    bool					bThreadExit;
+	bool bThreadFree = true;
+	bool bThreadExit = false;
     unsigned int			ulStoreId;
     unsigned int			ulFolderId;
 } SEARCHFOLDER;

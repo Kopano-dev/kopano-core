@@ -25,83 +25,6 @@
 #define RECURRENCE_STATE_CALENDAR	0x01
 #define RECURRENCE_STATE_TASKS		0x02
 
-class RecurrenceState _zcp_final {
-public:
-    RecurrenceState();
-    ~RecurrenceState();
-
-    HRESULT ParseBlob(char *lpData, unsigned int ulLen, ULONG ulFlags);
-    HRESULT GetBlob(char **lpData, unsigned int *lpulLen, void *base = NULL);
-
-    class Exception _zcp_final {
-    public:
-        unsigned int ulStartDateTime;
-        unsigned int ulEndDateTime;
-        unsigned int ulOriginalStartDate;
-        unsigned int ulOverrideFlags;
-        std::string strSubject;
-        unsigned int ulApptStateFlags;
-        unsigned int ulReminderDelta;
-        unsigned int ulReminderSet;
-        std::string strLocation;
-        unsigned int ulBusyStatus;
-        unsigned int ulAttachment;
-        unsigned int ulSubType;
-        unsigned int ulAppointmentColor;
-    };
-    
-    class ExtendedException _zcp_final {
-    public:
-        unsigned int ulChangeHighlightValue;
-        std::string strReserved;
-        std::string strReservedBlock1;
-        unsigned int ulStartDateTime;
-        unsigned int ulEndDateTime;
-        unsigned int ulOriginalStartDate;
-        std::wstring strWideCharSubject;
-        std::wstring strWideCharLocation;
-        std::string strReservedBlock2;
-    };
-
-
-    unsigned int ulReaderVersion;
-    unsigned int ulWriterVersion;
-    unsigned int ulRecurFrequency;
-    unsigned int ulPatternType;
-    unsigned int ulCalendarType;
-    unsigned int ulFirstDateTime;
-    unsigned int ulPeriod;
-    unsigned int ulSlidingFlag;
-
-	// pattern type specific:
-    unsigned int ulWeekDays;	// weekly, which day of week (see: WD_* bitmask)
-    unsigned int ulDayOfMonth;	// monthly, day in month
-    unsigned int ulWeekNumber;	// monthly, 1-4 or 5 for last
-
-    unsigned int ulEndType;
-    unsigned int ulOccurrenceCount;
-    unsigned int ulFirstDOW;
-    unsigned int ulDeletedInstanceCount;
-    std::vector<unsigned int> lstDeletedInstanceDates;
-    unsigned int ulModifiedInstanceCount;
-    std::vector<unsigned int> lstModifiedInstanceDates;
-    unsigned int ulStartDate;
-    unsigned int ulEndDate;
-
-    unsigned int ulReaderVersion2;
-    unsigned int ulWriterVersion2;
-    unsigned int ulStartTimeOffset;
-    unsigned int ulEndTimeOffset;
-
-    unsigned int ulExceptionCount;
-    std::vector<Exception> lstExceptions;
-    
-    std::string strReservedBlock1;
-    std::vector<ExtendedException> lstExtendedExceptions;
-    
-    std::string strReservedBlock2;
-};
-
 #define ARO_SUBJECT			0x0001
 #define ARO_MEETINGTYPE 	0x0002
 #define ARO_REMINDERDELTA 	0x0004
@@ -152,5 +75,76 @@ public:
 #define PT_HJ_MONTH			0xA
 #define PT_HJ_MONTH_NTH		0xB
 #define PT_HJ_MONTH_END		0xC
+
+class RecurrenceState _zcp_final {
+	public:
+	HRESULT ParseBlob(char *lpData, unsigned int ulLen, ULONG ulFlags);
+	HRESULT GetBlob(char **lpData, unsigned int *lpulLen, void *base = NULL);
+
+	class Exception _kc_final {
+		public:
+		unsigned int ulStartDateTime;
+		unsigned int ulEndDateTime;
+		unsigned int ulOriginalStartDate;
+		unsigned int ulOverrideFlags;
+		std::string strSubject;
+		unsigned int ulApptStateFlags;
+		unsigned int ulReminderDelta;
+		unsigned int ulReminderSet;
+		std::string strLocation;
+		unsigned int ulBusyStatus;
+		unsigned int ulAttachment;
+		unsigned int ulSubType;
+		unsigned int ulAppointmentColor;
+	};
+
+	class ExtendedException _kc_final {
+		public:
+		unsigned int ulChangeHighlightValue;
+		std::string strReserved;
+		std::string strReservedBlock1;
+		unsigned int ulStartDateTime;
+		unsigned int ulEndDateTime;
+		unsigned int ulOriginalStartDate;
+		std::wstring strWideCharSubject;
+		std::wstring strWideCharLocation;
+		std::string strReservedBlock2;
+	};
+
+	unsigned int ulReaderVersion = 0x3004;
+	unsigned int ulWriterVersion = 0x3004;
+	unsigned int ulRecurFrequency = 0; /* "invalid" */
+	unsigned int ulPatternType = PT_DAY;
+	unsigned int ulCalendarType = 0;
+	unsigned int ulFirstDateTime = 0;
+	unsigned int ulPeriod = 0;
+	unsigned int ulSlidingFlag = 0;
+
+	// pattern type specific:
+	unsigned int ulWeekDays = 0; // weekly, which day of week (see: WD_* bitmask)
+	unsigned int ulDayOfMonth = 0; // monthly, day in month
+	unsigned int ulWeekNumber = 0; // monthly, 1-4 or 5 for last
+
+	unsigned int ulEndType = 0;
+	unsigned int ulOccurrenceCount = 0;
+	unsigned int ulFirstDOW = DOW_MONDAY; /* default Outlook */
+	unsigned int ulDeletedInstanceCount = 0;
+	std::vector<unsigned int> lstDeletedInstanceDates;
+	unsigned int ulModifiedInstanceCount = 0;
+	std::vector<unsigned int> lstModifiedInstanceDates;
+	unsigned int ulStartDate = 0;
+	unsigned int ulEndDate = 0;
+
+	unsigned int ulReaderVersion2 = 0x3006;
+	unsigned int ulWriterVersion2 = 0x3008; /* can also be 3009, but Outlook (2003) sets 3008 */
+	unsigned int ulStartTimeOffset = 0; /* max 1440-1 */
+	unsigned int ulEndTimeOffset = 0; /* max 1440-1 */
+
+	unsigned int ulExceptionCount = 0;
+	std::vector<Exception> lstExceptions;
+	std::string strReservedBlock1;
+	std::vector<ExtendedException> lstExtendedExceptions;
+	std::string strReservedBlock2;
+};
 
 #endif

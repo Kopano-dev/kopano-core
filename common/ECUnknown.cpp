@@ -23,6 +23,7 @@
 
 #include <kopano/ECUnknown.h>
 #include <kopano/ECGuid.h>
+#include <kopano/ECInterfaceDefs.h>
 
 ECUnknown::ECUnknown(const char *szClassName)
 {
@@ -167,20 +168,6 @@ HRESULT ECUnknown::Suicide() {
 	return hr;
 }
 
-HRESULT __stdcall ECUnknown::xUnknown::QueryInterface(REFIID refiid, void ** lppInterface)
-{
-	METHOD_PROLOGUE_(ECUnknown , Unknown);
-	return pThis->QueryInterface(refiid, lppInterface);
-}
-
-ULONG __stdcall ECUnknown::xUnknown::AddRef()
-{
-	METHOD_PROLOGUE_(ECUnknown , Unknown);
-	return pThis->AddRef();
-}
-
-ULONG __stdcall ECUnknown::xUnknown::Release()
-{
-	METHOD_PROLOGUE_(ECUnknown , Unknown);
-	return pThis->Release();
-}
+DEF_HRMETHOD0(ECUnknown, Unknown, QueryInterface, (REFIID, refiid), (void **, lppInterface))
+DEF_ULONGMETHOD0(ECUnknown, Unknown, AddRef, (void))
+DEF_ULONGMETHOD0(ECUnknown, Unknown, Release, (void))

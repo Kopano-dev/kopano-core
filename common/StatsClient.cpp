@@ -65,8 +65,10 @@ static void *submitThread(void *p)
 }
 
 StatsClient::StatsClient(ECLogger *l) :
-	fd(-1), thread_running(false), logger(l), terminate(false)
+    logger(l), terminate(false)
 {
+	memset(&addr, 0, sizeof(addr));
+	memset(&countsSubmitThread, 0, sizeof(countsSubmitThread));
 }
 
 int StatsClient::startup(const std::string &collectorSocket)

@@ -29,16 +29,6 @@ ProtocolBase::ProtocolBase(Http *lpRequest, IMAPISession *lpSession,
 {
 	m_lpRequest = lpRequest;
 	m_lpSession = lpSession;
-	m_lpUsrFld = NULL;
-	m_lpIPMSubtree = NULL;
-	m_lpDefStore = NULL;
-	m_lpAddrBook = NULL;
-	m_lpActiveStore = NULL;
-	m_lpLoginUser = NULL;
-	m_lpActiveUser = NULL;
-	m_lpNamedProps = NULL;
-	m_blFolderAccess = true;
-	m_ulFolderFlag = 0;
 	m_strSrvTz = strSrvTz;
 	m_strCharset = strCharset;
 }
@@ -165,11 +155,10 @@ HRESULT ProtocolBase::HrInitializeClass()
 		goto exit;
 
 	// get active user info
-	if (bIsPublic) {
+	if (bIsPublic)
 		hr = m_lpLoginUser->QueryInterface(IID_IMailUser, (void**)&m_lpActiveUser);
-	} else {
+	else
 		hr = HrGetOwner(m_lpSession, m_lpActiveStore, &m_lpActiveUser);
-	}
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -293,23 +282,22 @@ HRESULT ProtocolBase::HrInitializeClass()
 	/*
 	 * Check delete / rename access on folder, if not already blocked.
 	 */
-	if (m_blFolderAccess) {
-		// lpDefaultProp already should contain PR_IPM_APPOINTMENT_ENTRYID
-		if (lpDefaultProp) {
-			ULONG ulCmp;
+	if (m_blFolderAccess &&
+	    // lpDefaultProp already should contain PR_IPM_APPOINTMENT_ENTRYID
+	    lpDefaultProp != nullptr) {
+		ULONG ulCmp;
 
-			hr = HrGetOneProp(m_lpUsrFld, PR_ENTRYID, &lpFldProp);
-			if (hr != hrSuccess)
-				goto exit;
+		hr = HrGetOneProp(m_lpUsrFld, PR_ENTRYID, &lpFldProp);
+		if (hr != hrSuccess)
+			goto exit;
 
-			hr = m_lpSession->CompareEntryIDs(lpDefaultProp->Value.bin.cb, (LPENTRYID)lpDefaultProp->Value.bin.lpb,
-											  lpFldProp->Value.bin.cb, (LPENTRYID)lpFldProp->Value.bin.lpb, 0, &ulCmp);
-			if (hr != hrSuccess || ulCmp == TRUE)
-				m_blFolderAccess = false;
+		hr = m_lpSession->CompareEntryIDs(lpDefaultProp->Value.bin.cb, (LPENTRYID)lpDefaultProp->Value.bin.lpb,
+		     lpFldProp->Value.bin.cb, (LPENTRYID)lpFldProp->Value.bin.lpb, 0, &ulCmp);
+		if (hr != hrSuccess || ulCmp == TRUE)
+			m_blFolderAccess = false;
 
-			MAPIFreeBuffer(lpFldProp);
-			lpFldProp = NULL;
-		}
+		MAPIFreeBuffer(lpFldProp);
+		lpFldProp = NULL;
 	}
 	if (m_blFolderAccess) {
 		hr = HrGetOneProp(m_lpUsrFld, PR_SUBFOLDERS, &lpFldProp);
@@ -367,9 +355,8 @@ std::string ProtocolBase::SPropValToString(SPropValue * lpSprop)
 	time_t tmUnixTime;
 	std::string strRetVal;
 	
-	if (lpSprop == NULL) {
+	if (lpSprop == NULL)
 		return std::string();
-	}
 
 	if (PROP_TYPE(lpSprop->ulPropTag) == PT_SYSTIME)
 	{

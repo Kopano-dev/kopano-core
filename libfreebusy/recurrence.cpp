@@ -350,17 +350,15 @@ ULONG recurrence::getInterval()
 {
 	ULONG rv;
 
-	if (m_sRecState.ulPatternType == PT_DAY) {
+	if (m_sRecState.ulPatternType == PT_DAY)
 		// day pattern type, period stored in minutes per day
 		rv = m_sRecState.ulPeriod / (60*24);
-	} else if (getFrequency() == recurrence::YEARLY) {
+	else if (getFrequency() == recurrence::YEARLY)
 		// yearly stored in months
 		rv = m_sRecState.ulPeriod / 12;
-	} else {
+	else
 		// either weeks or months, no conversion required
 		rv = m_sRecState.ulPeriod;
-	}
-
 	return rv;
 }
 
@@ -432,10 +430,8 @@ HRESULT recurrence::setDayOfMonth(UCHAR d)
  */
 UCHAR recurrence::getMonth()
 {
-	if (m_ulMonth > 0 && m_ulMonth < 13) {
+	if (m_ulMonth > 0 && m_ulMonth < 13)
 		return m_ulMonth;
-	}
-
 	struct tm tmMonth;
 	time_t tStart = getStartDate();
 	gmtime_safe(&tStart, &tmMonth);
@@ -1148,12 +1144,10 @@ time_t recurrence::calcStartDate()
 			// Move to the right month
 			if (m_sRecState.ulRecurFrequency == RF_YEARLY) {
 				unsigned int count = 0;
-
-				if (getMonth()-1 < tm.tm_mon || (getMonth()-1 == tm.tm_mon && bMoveMonth) ) {
+				if (getMonth() - 1 < tm.tm_mon || (getMonth() - 1 == tm.tm_mon && bMoveMonth))
 					count = 12 - tm.tm_mon + (getMonth()-1);
-				} else {
+				else
 					count = (getMonth()-1) - tm.tm_mon;
-				}
 
 				int curmonth = tm.tm_mon + 1;
 				int curyear = tm.tm_year + 1900;
@@ -1292,23 +1286,21 @@ time_t recurrence::calcEndDate()
 			}
 		} else if (m_sRecState.ulPatternType == PT_MONTH_NTH) {
 			// month Nth
-			if (m_sRecState.ulWeekNumber == 5) {
+			if (m_sRecState.ulWeekNumber == 5)
 				// last day of month
 				tEnd += (DaysInMonth(tm.tm_year, tm.tm_mon) - tm.tm_mday) * 24 * 60 * 60;
-			} else {
+			else
 				tEnd -= (tm.tm_mday-1) * 24 * 60 * 60;
-			}
 
 			for (daycount = 0; daycount < 7; ++daycount) {
 				gmtime_safe(&tEnd, &tm);
 				tm.tm_year += 1900;
 				++tm.tm_mon;
 
-				if (m_sRecState.ulWeekNumber == 5 && (1<<(tm.tm_wday - daycount)%7) & m_sRecState.ulWeekDays) {
+				if (m_sRecState.ulWeekNumber == 5 && (1 << (tm.tm_wday - daycount) % 7) & m_sRecState.ulWeekDays)
 					tEnd -= tm.tm_mday * 24 * 60 * 60;
-				} else if (m_sRecState.ulWeekNumber != 5 && (1<<(tm.tm_wday + daycount)%7) & m_sRecState.ulWeekDays) {
+				else if (m_sRecState.ulWeekNumber != 5 && (1 << (tm.tm_wday + daycount) % 7) & m_sRecState.ulWeekDays)
 					tEnd += (daycount + ((m_sRecState.ulWeekNumber-1)*7)) * 24 * 60 * 60;
-				}
 			}
 		}
 
@@ -1572,40 +1564,32 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
 		if (m_sRecState.ulPatternType == PT_DAY) {
                         if (last) {
                                 remainder = (tsDayEnd-tsDayStart) % (m_sRecState.ulPeriod * 60);
-                                for(tsNow = tsDayEnd-remainder; tsNow >= tsDayStart; tsNow -= m_sRecState.ulPeriod * 60) {
-                                        if (CheckAddValidOccr(tsNow, tsStart, tsEnd, ttZinfo, ulBusyStatus, &lpOccrInfoAll, lpcValues)) {
-                                            break;
-                                        }
-                                }
+				for (tsNow = tsDayEnd - remainder; tsNow >= tsDayStart; tsNow -= m_sRecState.ulPeriod * 60)
+					if (CheckAddValidOccr(tsNow, tsStart, tsEnd, ttZinfo, ulBusyStatus, &lpOccrInfoAll, lpcValues))
+						break;
                         } else {
-                                for(tsNow = tsDayStart ; tsNow <= tsDayEnd ; tsNow += (m_sRecState.ulPeriod *60)) { 
+				for (tsNow = tsDayStart; tsNow <= tsDayEnd; tsNow += m_sRecState.ulPeriod * 60)
 					CheckAddValidOccr(tsNow, tsStart, tsEnd, ttZinfo, ulBusyStatus, &lpOccrInfoAll, lpcValues);
-                                }
                         }
-		} else {
-			// daily, but every weekday (outlook)
-                        if (last) {
-                                remainder = (tsDayEnd-tsDayStart) % (60 * 1440); // shouldn't this be m_sRecState.ulPeriod * 60? (see above)
-                                for(tsNow = tsDayEnd-remainder; tsNow >= tsDayStart; tsNow -= 60 * 1440) { //604800 = 60*60*24*7 
-                                        tm sTm;
-                                        gmtime_safe(&tsNow, &sTm);
-
-                                        if(sTm.tm_wday > 0 && sTm.tm_wday < 6) {
-						if (CheckAddValidOccr(tsNow, tsStart, tsEnd, ttZinfo, ulBusyStatus, &lpOccrInfoAll, lpcValues)) {
-                                                        break;
-                                                }
-                                        }
-                                }
-                        } else {
-                                for(tsNow = tsDayStart ;tsNow <= tsDayEnd; tsNow += 60 * 1440) { //604800 = 60*60*24*7 
-                                        tm sTm;
-                                        gmtime_safe(&tsNow, &sTm);
-                            
-                                        if(sTm.tm_wday > 0 && sTm.tm_wday < 6)
-						CheckAddValidOccr(tsNow, tsStart, tsEnd, ttZinfo, ulBusyStatus, &lpOccrInfoAll, lpcValues);
-                                        }
-                                }
+		}
+		// daily, but every weekday (outlook)
+		else if (last) {
+			remainder = (tsDayEnd - tsDayStart) % (60 * 1440); // shouldn't this be m_sRecState.ulPeriod * 60? (see above)
+			for (tsNow = tsDayEnd - remainder; tsNow >= tsDayStart; tsNow -= 60 * 1440) { //604800 = 60*60*24*7
+				tm sTm;
+				gmtime_safe(&tsNow, &sTm);
+				if (sTm.tm_wday > 0 && sTm.tm_wday < 6 &&
+				    CheckAddValidOccr(tsNow, tsStart, tsEnd, ttZinfo, ulBusyStatus, &lpOccrInfoAll, lpcValues))
+					break;
 			}
+		} else {
+			for (tsNow = tsDayStart ;tsNow <= tsDayEnd; tsNow += 60 * 1440) { //604800 = 60*60*24*7
+				tm sTm;
+				gmtime_safe(&tsNow, &sTm);
+				if (sTm.tm_wday > 0 && sTm.tm_wday < 6)
+					CheckAddValidOccr(tsNow, tsStart, tsEnd, ttZinfo, ulBusyStatus, &lpOccrInfoAll, lpcValues);
+			}
+		}
 		break;// CASE : DAILY
 
 	case WEEKLY:
@@ -1624,16 +1608,14 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
 					ec_log_debug("Checking for weekly tsDayNow: %s", ctime(&tsDayNow));
                                         ulWday = WeekDayFromTime(tsDayNow);
                     
-                                        if(m_sRecState.ulWeekDays & (1 << ulWday)) {
-						if (CheckAddValidOccr(tsDayNow, tsStart, tsEnd, ttZinfo, ulBusyStatus, &lpOccrInfoAll, lpcValues)) {
-                                                        found=true;
-                                                        break;
-                                                }
-                                        }
+					if (m_sRecState.ulWeekDays & (1 << ulWday) &&
+					    CheckAddValidOccr(tsDayNow, tsStart, tsEnd, ttZinfo, ulBusyStatus, &lpOccrInfoAll, lpcValues)) {
+						found = true;
+						break;
+					}
                                 }
-                                if(found) {
-                                        break;
-                                }
+				if (found)
+					break;
                         }
                 } else {
                         for(tsNow = tsDayStart; tsNow <= tsDayEnd; tsNow += (m_sRecState.ulPeriod * 604800)) { //604800 = 60*60*24*7 
@@ -1644,10 +1626,8 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
                                         tsDayNow = tsNow + i * 1440 * 60; // 60 * 60 * 24 = 1440
 					ec_log_debug("Checking for weekly tsDayNow: %s", ctime(&tsDayNow));
                                         ulWday = WeekDayFromTime(tsDayNow);
-                            
-                                        if(m_sRecState.ulWeekDays & (1 << ulWday)) {
+					if (m_sRecState.ulWeekDays & (1 << ulWday))
 						CheckAddValidOccr(tsDayNow, tsStart, tsEnd, ttZinfo, ulBusyStatus, &lpOccrInfoAll, lpcValues);
-                                        }
                                 }
                         }            
 		}
@@ -1696,10 +1676,8 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
 				} else {
 					ulDaysOfMonths = DaysInMonth(YearFromTime(tsNow), MonthFromTime(tsNow));
 					tsDayNow = tsNow + (ulDaysOfMonths - 1) * 60 * 60 * 24;
-
-					while((m_sRecState.ulWeekDays & ( 1<< WeekDayFromTime(tsDayNow))) == 0) {
+					while ((m_sRecState.ulWeekDays & ( 1<< WeekDayFromTime(tsDayNow))) == 0)
 						tsDayNow -= 86400; // deduct 1 day
-					}
 				}
 			}
 
@@ -1751,10 +1729,8 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
 				}
 
 				tsDayNow = tsMonthNow + (ulValidDay + (getWeekNumber() - 1) * 7) * 60 * 60 * 24;
-			
-				while(StartOfMonth(tsDayNow) != StartOfMonth(tsMonthNow)) {
+				while (StartOfMonth(tsDayNow) != StartOfMonth(tsMonthNow))
 					tsDayNow -= 7 * 24 * 60 * 60;
-				}
 			}
 
 			if(isOccurrenceValid(tsStart, tsEnd, tsDayNow + getStartTimeOffset())){

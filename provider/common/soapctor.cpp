@@ -45,4 +45,7 @@ notifySyncState::notifySyncState(unsigned int a, unsigned int b) :
 
 rights::rights(unsigned int a, unsigned int b, unsigned int c, unsigned int d) :
 	ulUserid(a), ulType(b), ulRights(c), ulState(d)
-{}
+{
+	sUserId.__ptr = nullptr;
+	sUserId.__size = 0;
+}

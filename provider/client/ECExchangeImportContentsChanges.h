@@ -89,14 +89,14 @@ private:
 	friend class ECExchangeImportHierarchyChanges;
 
 private:
-	ECLogger*		m_lpLogger;
-	ECMAPIFolder*	m_lpFolder;
-	LPSPropValue	m_lpSourceKey;
-	LPSTREAM		m_lpStream;
-	ULONG			m_ulFlags;
-	ULONG			m_ulSyncId;
-	ULONG			m_ulChangeId;
-	IID				m_iidMessage;
+	ECLogger *m_lpLogger = nullptr;
+	ECMAPIFolder *m_lpFolder = nullptr;
+	SPropValue *m_lpSourceKey = nullptr;
+	IStream *m_lpStream = nullptr;
+	ULONG m_ulFlags;
+	ULONG m_ulSyncId;
+	ULONG m_ulChangeId;
+	IID m_iidMessage;
 };
 
 #endif // ECEXCHANGEIMPORTCONTENTSCHANGES_H

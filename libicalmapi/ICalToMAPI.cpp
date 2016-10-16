@@ -54,9 +54,8 @@ private:
 	HRESULT SaveAttendeesString(const std::list<icalrecip> *lplstRecip, LPMESSAGE lpMessage);
 	HRESULT SaveProps(const std::list<SPropValue> *lpPropList, LPMAPIPROP lpMapiProp);
 	HRESULT SaveRecipList(const std::list<icalrecip> *lplstRecip, ULONG ulFlag, LPMESSAGE lpMessage);
-	LPSPropTagArray m_lpNamedProps;
-	ULONG m_ulErrorCount;
-
+	SPropTagArray *m_lpNamedProps = nullptr;
+	ULONG m_ulErrorCount = 0;
 	TIMEZONE_STRUCT ttServerTZ;
 	std::string strServerTimeZone;
 
@@ -66,9 +65,9 @@ private:
 	std::vector<icalitem*> m_vMessages;
 
 	// freebusy information
-	bool m_bHaveFreeBusy;
-	time_t m_tFbStart;
-	time_t m_tFbEnd;
+	bool m_bHaveFreeBusy = false;
+	time_t m_tFbStart = 0;
+	time_t m_tFbEnd = 0;
 	std::string m_strUID;
 	std::list<std::string> m_lstUsers;
 };
@@ -102,7 +101,6 @@ HRESULT CreateICalToMapi(IMAPIProp *lpPropObj, LPADRBOOK lpAdrBook, bool bNoReci
  */
 ICalToMapiImpl::ICalToMapiImpl(IMAPIProp *lpPropObj, LPADRBOOK lpAdrBook, bool bNoRecipients) : ICalToMapi(lpPropObj, lpAdrBook, bNoRecipients)
 {
-	m_lpNamedProps = NULL;
 	memset(&ttServerTZ, 0, sizeof(TIMEZONE_STRUCT));
 }
 

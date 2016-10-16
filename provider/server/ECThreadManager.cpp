@@ -101,8 +101,10 @@ ECWorkerThread::ECWorkerThread(ECLogger *lpLogger, ECThreadManager *lpManager, E
 	m_lpManager = lpManager;
 	m_lpDispatcher = lpDispatcher;
 
-	if (bDoNotStart)
+	if (bDoNotStart) {
+		memset(&m_thread, 0, sizeof(m_thread));
 		return;
+	}
 	if (pthread_create(&m_thread, NULL, ECWorkerThread::Work, this) != 0) {
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to start thread: %s", strerror(errno));
 		return;
@@ -127,6 +129,7 @@ ECPriorityWorkerThread::~ECPriorityWorkerThread()
 
 ECWorkerThread::~ECWorkerThread()
 {
+	// thread is already detached
 	m_lpLogger->Release();
 }
 
@@ -430,9 +433,6 @@ ECDispatcher::ECDispatcher(ECLogger *lpLogger, ECConfig *lpConfig, CREATEPIPESOC
 	m_nRecvTimeout = atoi(m_lpConfig->GetSetting("server_recv_timeout"));
 	m_nReadTimeout = atoi(m_lpConfig->GetSetting("server_read_timeout"));
 	m_nSendTimeout = atoi(m_lpConfig->GetSetting("server_send_timeout"));
-    
-    m_ulIdle = 0;
-    m_bExit = false;
 	m_lpCreatePipeSocketCallback = lpCallback;
 	m_lpCreatePipeSocketParam = lpParam;
 }

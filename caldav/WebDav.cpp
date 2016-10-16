@@ -222,9 +222,9 @@ HRESULT WebDav::RespStructToXml(WEBDAVMULTISTATUS *sDavMStatus, std::string *str
 
 	//<multistatus>	
 	ulRet = xmlTextWriterStartElementNS(xmlWriter,
-								(const xmlChar *)strNsPrefix.c_str(),
-								(const xmlChar *)sDavMStatus->sPropName.strPropname.c_str(),
-								(const xmlChar *)sDavMStatus->sPropName.strNS.c_str());
+		(const xmlChar *)strNsPrefix.c_str(),
+		(const xmlChar *)sDavMStatus->sPropName.strPropname.c_str(),
+		(const xmlChar *)sDavMStatus->sPropName.strNS.c_str());
 	if (ulRet < 0)
 		goto xmlfail;
 
@@ -426,26 +426,19 @@ HRESULT WebDav::HrHandleRptCalQry()
 
 			// filter not done here.., time-range in lpXmlChildNode->children.
 			if (lpXmlChildNode->children) {
-				lpXmlChildNode = lpXmlChildNode->children;
-				while (lpXmlChildNode) {
-					if (xmlStrcmp(lpXmlChildNode->name, (const xmlChar *)"time-range") == 0) {
-
-						if (lpXmlChildNode->properties == NULL || lpXmlChildNode->properties->children == NULL) {
-							lpXmlChildNode = lpXmlChildNode->next;
-							continue;
-						}
-
-						lpXmlChildAttr = lpXmlChildNode->properties->children;
-						if (xmlStrcmp(lpXmlChildAttr->name, (const xmlChar *)"start") == 0) {
-							// timestamp from ical
-							icaltimetype iTime = icaltime_from_string((const char *)lpXmlChildAttr->content);
-							sReptQuery.sFilter.tStart = icaltime_as_timet(iTime);
-							// @note this is still being ignored in CalDavProto::HrListCalEntries
-						}
+				for (lpXmlChildNode = lpXmlChildNode->children; lpXmlChildNode != NULL; lpXmlChildNode = lpXmlChildNode->next) {
+					if (xmlStrcmp(lpXmlChildNode->name, (const xmlChar *)"time-range") != 0)
+						continue;
+					if (lpXmlChildNode->properties == NULL || lpXmlChildNode->properties->children == NULL)
+						continue;
+					lpXmlChildAttr = lpXmlChildNode->properties->children;
+					if (xmlStrcmp(lpXmlChildAttr->name, (const xmlChar *)"start") != 0)
 						// other lpXmlChildAttr->name .. like "end" maybe?
-					}
-					// other lpXmlChildNode->name ..  like, uh?
-					lpXmlChildNode = lpXmlChildNode->next;
+						continue;
+					// timestamp from ical
+					icaltimetype iTime = icaltime_from_string((const char *)lpXmlChildAttr->content);
+					sReptQuery.sFilter.tStart = icaltime_as_timet(iTime);
+					// @note this is still being ignored in CalDavProto::HrListCalEntries
 				}
 			}
 		}
@@ -828,8 +821,8 @@ HRESULT WebDav::WriteData(xmlTextWriter *xmlWriter, const WEBDAVVALUE &sWebVal,
 	if(strNs.empty())
 	{
 		ulRet = xmlTextWriterWriteElement(xmlWriter,
-										  (const xmlChar *)sWebVal.sPropName.strPropname.c_str(),
-										  (const xmlChar *)sWebVal.strValue.c_str());
+			(const xmlChar *)sWebVal.sPropName.strPropname.c_str(),
+			(const xmlChar *)sWebVal.strValue.c_str());
 		if (ulRet < 0)
 			return MAPI_E_CALL_FAILED;
 		return hrSuccess;
@@ -845,10 +838,10 @@ HRESULT WebDav::WriteData(xmlTextWriter *xmlWriter, const WEBDAVVALUE &sWebVal,
 	 *	<D:href>/caldav/user/calendar/entryGUID.ics</D:href>
 	 */
 	ulRet =	xmlTextWriterWriteElementNS(xmlWriter,
-										(const xmlChar *)szNsPrefix->c_str(),
-										(const xmlChar *)sWebVal.sPropName.strPropname.c_str(),
-										(const xmlChar *)(strNs.empty() ? NULL : strNs.c_str()),
-										(const xmlChar *)sWebVal.strValue.c_str());
+		(const xmlChar *)szNsPrefix->c_str(),
+		(const xmlChar *)sWebVal.sPropName.strPropname.c_str(),
+		(const xmlChar *)(strNs.empty() ? NULL : strNs.c_str()),
+		(const xmlChar *)sWebVal.strValue.c_str());
 	if (ulRet < 0)
 		return MAPI_E_CALL_FAILED;
 	return hrSuccess;
@@ -871,8 +864,8 @@ HRESULT WebDav::WriteNode(xmlTextWriter *xmlWriter,
 	
 	if(strNs.empty())
 	{
-		ulRet = xmlTextWriterStartElement	(xmlWriter,
-											(const xmlChar *)sWebPropName.strPropname.c_str());
+		ulRet = xmlTextWriterStartElement(xmlWriter,
+			(const xmlChar *)sWebPropName.strPropname.c_str());
 		if (ulRet < 0)
 			return MAPI_E_CALL_FAILED;
 		return hrSuccess;
@@ -887,10 +880,9 @@ HRESULT WebDav::WriteNode(xmlTextWriter *xmlWriter,
 	 * the end tag </D:propstat> is written by "xmlTextWriterEndElement(xmlWriter)"
 	 */
 	ulRet =	xmlTextWriterStartElementNS (xmlWriter,
-										(const xmlChar *)lpstrNsPrefix->c_str(),
-										(const xmlChar *)sWebPropName.strPropname.c_str(),
-										(const xmlChar *)(strNs.empty() ? NULL : strNs.c_str()));
-
+		(const xmlChar *)lpstrNsPrefix->c_str(),
+		(const xmlChar *)sWebPropName.strPropname.c_str(),
+		(const xmlChar *)(strNs.empty() ? NULL : strNs.c_str()));
 	if (ulRet < 0)
 		return MAPI_E_CALL_FAILED;
 	
@@ -1351,9 +1343,9 @@ HRESULT WebDav::HrPropPatch()
 		else
 			HrSetDavPropName(&(sProperty.sPropName),(char *)lpXmlNode->name, WEBDAVNS);
 
-		if (lpXmlNode->children && lpXmlNode->children->content) {
+		if (lpXmlNode->children != nullptr &&
+		    lpXmlNode->children->content != nullptr)
 			sProperty.strValue = (char *)lpXmlNode->children->content;
-		}
 
 		sDavProp.lstProps.push_back(sProperty);
 
@@ -1465,10 +1457,12 @@ HRESULT WebDav::HrMkCalendar()
 		if (sProperty.sPropName.strPropname.compare("supported-calendar-component-set") == 0) {
 			xmlNode *lpXmlChild = lpXmlNode->children;
 			while (lpXmlChild) {
-				if (lpXmlChild->type == XML_ELEMENT_NODE && xmlStrcmp(lpXmlChild->name, (const xmlChar *)"comp") == 0) {
-					if (lpXmlChild->properties && lpXmlChild->properties->children && lpXmlChild->properties->children->content)
-						sProperty.strValue = (char*)lpXmlChild->properties->children->content;
-				}
+				if (lpXmlChild->type == XML_ELEMENT_NODE &&
+				    xmlStrcmp(lpXmlChild->name, reinterpret_cast<const xmlChar *>("comp")) == 0 &&
+				    lpXmlChild->properties != nullptr &&
+				    lpXmlChild->properties->children != nullptr &&
+				    lpXmlChild->properties->children->content != nullptr)
+					sProperty.strValue = reinterpret_cast<char *>(lpXmlChild->properties->children->content);
 				lpXmlChild = lpXmlChild->next;
 			}
 		}

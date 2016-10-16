@@ -37,13 +37,7 @@
 
 ECExportAddressbookChanges::ECExportAddressbookChanges(ECMsgStore *lpStore) {
 	ECSyncLog::GetLogger(&m_lpLogger);
-
-    m_lpMsgStore = lpStore;
-	m_lpChanges = NULL;
-	m_lpRawChanges = NULL;
-	m_ulChangeId = 0;
-	m_ulThisChange = 0;
-	m_lpImporter = NULL;
+	m_lpMsgStore = lpStore;
 }
 
 ECExportAddressbookChanges::~ECExportAddressbookChanges() {

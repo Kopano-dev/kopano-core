@@ -136,9 +136,9 @@ typedef _dt delivery_mode;
 
 class DeliveryArgs {
 public:
-	DeliveryArgs()
+	DeliveryArgs(void)
 	{
-		lpChannel = NULL;
+		imopt_default_delivery_options(&sDeliveryOpts);
 	}
 
 	~DeliveryArgs()
@@ -147,7 +147,7 @@ public:
 	}
 
 	/* Channel for communication from MTA */
-	ECChannel *lpChannel;
+	ECChannel *lpChannel = nullptr;
 
 	/* Connection path to storage server */
 	std::string strPath;
@@ -156,19 +156,19 @@ public:
 	std::string strAutorespond;
 
 	/* Options for delivery into special subfolder */
-	bool bCreateFolder;
+	bool bCreateFolder = false;
 	std::wstring strDeliveryFolder;
-	WCHAR szPathSeperator;
+	WCHAR szPathSeperator = '\\';
 
 	/* Delivery options */
-	delivery_mode ulDeliveryMode;
+	delivery_mode ulDeliveryMode = DM_STORE;
 	delivery_options sDeliveryOpts;
 
 	/* Generate notifications regarding the new email */
-	bool bNewmailNotify;
+	bool bNewmailNotify = false;
 
 	/* Username is email address, resolve it to get username */
-	bool bResolveAddress;
+	bool bResolveAddress = false;
 };
 
 /**
@@ -182,11 +182,6 @@ public:
 		/* strRCPT much match recipient string from LMTP caller */
 		wstrRCPT = wstrName;
 		vwstrRecipients.push_back(wstrName);
-
-		ulDisplayType = 0;
-		ulAdminLevel = 0;
-		bHasIMAP = false;
-
 		sEntryId.cb = 0;
 		sEntryId.lpb = NULL;
 
@@ -225,13 +220,13 @@ public:
 	std::wstring wstrEmail;
 	std::wstring wstrServerDisplayName;
 	std::wstring wstrDeliveryStatus;
-	ULONG ulDisplayType;
-	ULONG ulAdminLevel;
+	ULONG ulDisplayType = 0;
+	ULONG ulAdminLevel = 0;
 	std::string strAddrType;
 	std::string strSMTP;
 	SBinary sEntryId;
 	SBinary sSearchKey;
-	bool bHasIMAP;
+	bool bHasIMAP = false;
 };
 
 static HRESULT GetPluginObject(ECLogger *lpLogger,

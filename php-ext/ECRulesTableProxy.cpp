@@ -205,18 +205,8 @@ HRESULT ECRulesTableProxy::SetCollapseState(ULONG ulFlags, ULONG cbCollapseState
 	return m_lpTable->SetCollapseState(ulFlags, cbCollapseState, pbCollapseState, lpbkLocation);
 }
 
-ULONG ECRulesTableProxy::xMAPITable::AddRef()
-{
-	METHOD_PROLOGUE_(ECRulesTableProxy, MAPITable);
-	return pThis->AddRef();
-}
-			
-ULONG ECRulesTableProxy::xMAPITable::Release()
-{
-	METHOD_PROLOGUE_(ECRulesTableProxy, MAPITable);
-	return pThis->Release();
-}
-
+DEF_ULONGMETHOD0(ECRulesTableProxy, MAPITable, AddRef, (void))
+DEF_ULONGMETHOD0(ECRulesTableProxy, MAPITable, Release, (void))
 DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, QueryInterface, (REFIID, refiid), (void **, lppInterface))
 DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, GetLastError, (HRESULT, hResult), (ULONG, ulFlags), (LPMAPIERROR *, lppMAPIError))
 DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, Advise, (ULONG, ulEventMask), (LPMAPIADVISESINK, lpAdviseSink), (ULONG *, lpulConnection))

@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/ECInterfaceDefs.h>
 #include "ECFreeBusySupport.h"
 
 #include "ECFreeBusyUpdate.h"
@@ -422,141 +423,24 @@ exit:
 	return hr;
 }
 
-// Interfaces
-//		IUnknown
-//		IFreeBusySupport
 // IUnknown
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupport::QueryInterface(REFIID refiid, void** lppInterface)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupport::QueryInterface", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport, FreeBusySupport);
-	HRESULT hr = pThis->QueryInterface(refiid, lppInterface);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupport::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-ULONG __stdcall ECFreeBusySupport::xFreeBusySupport::AddRef()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupport::AddRef", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupport);
-	return pThis->AddRef();
-}
-
-ULONG __stdcall ECFreeBusySupport::xFreeBusySupport::Release()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupport::Release", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupport);
-	return pThis->Release();
-}
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupport, QueryInterface, (REFIID, refiid), (void**, lppInterface))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupport, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupport, Release, (void))
 
 // IFreeBusySupport
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupport::Open(IMAPISession* lpMAPISession, IMsgStore* lpMsgStore, BOOL bStore)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupport::Open", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupport);
-	HRESULT hr = pThis->Open(lpMAPISession, lpMsgStore, bStore);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupport::Open", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupport::Close()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupport::Close", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupport);
-	HRESULT hr = pThis->Close();
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupport::Close", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupport::LoadFreeBusyData(ULONG cMax, FBUser *rgfbuser, IFreeBusyData **prgfbdata, HRESULT *phrStatus, ULONG *pcRead)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupport::LoadFreeBusyData", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupport);
-	HRESULT hr = pThis->LoadFreeBusyData(cMax, rgfbuser, prgfbdata, phrStatus, pcRead);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupport::LoadFreeBusyData", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupport::LoadFreeBusyUpdate(ULONG cUsers, FBUser *lpUsers, IFreeBusyUpdate **lppFBUpdate, ULONG *lpcFBUpdate, void *lpData4)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupport::LoadFreeBusyUpdate", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupport);
-	HRESULT hr = pThis->LoadFreeBusyUpdate(cUsers, lpUsers, lppFBUpdate, lpcFBUpdate, lpData4);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupport::LoadFreeBusyUpdate", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupport::CommitChanges()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupport::CommitChanges", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupport);
-	HRESULT hr = pThis->CommitChanges();
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupport::CommitChanges", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupport::GetDelegateInfo(FBUser fbUser, void *lpData)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupport::GetDelegateInfo", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupport);
-	HRESULT hr = pThis->GetDelegateInfo(fbUser, lpData);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupport::GetDelegateInfo", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupport::SetDelegateInfo(void *lpData)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupport::SetDelegateInfo", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupport);
-	HRESULT hr = pThis->SetDelegateInfo(lpData);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupport::SetDelegateInfo", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupport::AdviseFreeBusy(void *lpData)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupport::AdviseFreeBusy", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupport);
-	HRESULT hr = pThis->AdviseFreeBusy(lpData);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupport::AdviseFreeBusy", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupport::Reload(void *lpData)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupport::Reload", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupport);
-	HRESULT hr = pThis->Reload(lpData);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupport::Reload", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupport::GetFBDetailSupport(void **lppData, BOOL bData)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupport::GetFBDetailSupport", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupport);
-	HRESULT hr = pThis->GetFBDetailSupport(lppData, bData);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupport::GetFBDetailSupport", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupport::HrHandleServerSched(void *lpData)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupport::HrHandleServerSched", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupport);
-	HRESULT hr = pThis->HrHandleServerSched(lpData);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupport::HrHandleServerSched", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupport::HrHandleServerSchedAccess()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupport::HrHandleServerSchedAccess", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupport);
-	HRESULT hr = pThis->HrHandleServerSchedAccess();
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupport::HrHandleServerSchedAccess", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupport, Open, (IMAPISession*, lpMAPISession), (IMsgStore*, lpMsgStore), (BOOL, bStore))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupport, Close, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupport, LoadFreeBusyData, (ULONG, cMax), (FBUser *, rgfbuser), (IFreeBusyData **, prgfbdata), (HRESULT *, phrStatus), (ULONG *, pcRead))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupport, LoadFreeBusyUpdate, (ULONG, cUsers), (FBUser *, lpUsers), (IFreeBusyUpdate **, lppFBUpdate), (ULONG *, lpcFBUpdate), (void *, lpData4))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupport, CommitChanges, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupport, GetDelegateInfo, (FBUser, fbUser), (void *, lpData))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupport, SetDelegateInfo, (void *, lpData))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupport, AdviseFreeBusy, (void *, lpData))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupport, Reload, (void *, lpData))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupport, GetFBDetailSupport, (void **, lppData), (BOOL, bData))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupport, HrHandleServerSched, (void *, lpData))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupport, HrHandleServerSchedAccess, (void))
 
 BOOL __stdcall ECFreeBusySupport::xFreeBusySupport::FShowServerSched(BOOL bData)
 {
@@ -567,240 +451,36 @@ BOOL __stdcall ECFreeBusySupport::xFreeBusySupport::FShowServerSched(BOOL bData)
 	return b;
 }
 
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupport::HrDeleteServerSched()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupport::HrDeleteServerSched", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupport);
-	HRESULT hr = pThis->HrDeleteServerSched();
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupport::HrDeleteServerSched", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupport, HrDeleteServerSched, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupport, GetFReadOnly, (void *, lpData))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupport, SetLocalFB, (void *, lpData))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupport, PrepareForSync, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupport, GetFBPublishMonthRange, (void *, lpData))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupport, PublishRangeChanged, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupport, CleanTombstone, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupport, GetDelegateInfoEx, (FBUser, fbUser), (unsigned int *, lpData1), (unsigned int *, lpData2), (unsigned int *, lpData3))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupport, PushDelegateInfoToWorkspace, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupport, Placeholder21, (void *, lpData), (HWND, hwnd), (BOOL, bData))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupport, Placeholder22, (void))
 
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupport::GetFReadOnly(void *lpData)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupport::GetFReadOnly", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupport);
-	HRESULT hr = pThis->GetFReadOnly(lpData);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupport::GetFReadOnly", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupport::SetLocalFB(void *lpData)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupport::SetLocalFB", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupport);
-	HRESULT hr = pThis->SetLocalFB(lpData);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupport::SetLocalFB", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupport::PrepareForSync()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupport::PrepareForSync", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupport);
-	HRESULT hr = pThis->PrepareForSync();
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupport::PrepareForSync", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupport::GetFBPublishMonthRange(void *lpData)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupport::GetFBPublishMonthRange", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupport);
-	HRESULT hr = pThis->GetFBPublishMonthRange(lpData);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupport::GetFBPublishMonthRange", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupport::PublishRangeChanged()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupport::PublishRangeChanged", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupport);
-	HRESULT hr = pThis->PublishRangeChanged();
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupport::PublishRangeChanged", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupport::CleanTombstone()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupport::CleanTombstone", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupport);
-	HRESULT hr = pThis->CleanTombstone();
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupport::CleanTombstone", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupport::GetDelegateInfoEx(FBUser fbUser, unsigned int *lpData1, unsigned int *lpData2, unsigned int *lpData3)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupport::GetDelegateInfoEx", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupport);
-	HRESULT hr = pThis->GetDelegateInfoEx(fbUser, lpData1, lpData2, lpData3);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupport::GetDelegateInfoEx", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupport::PushDelegateInfoToWorkspace()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupport::PushDelegateInfoToWorkspace", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupport);
-	HRESULT hr = pThis->PushDelegateInfoToWorkspace();
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupport::PushDelegateInfoToWorkspace", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupport::Placeholder21(void *lpData, HWND hwnd, BOOL bData)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupport::Placeholder21", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupport);
-	HRESULT hr = pThis->Placeholder21(lpData, hwnd, bData);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupport::Placeholder21", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupport::Placeholder22()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupport::Placeholder22", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupport);
-	HRESULT hr = pThis->Placeholder22();
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupport::Placeholder22", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-// Interfaces
-//		IUnknown
-//		IFreeBusySupportOutlook2000
 // IUnknown
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupportOutlook2000::QueryInterface(REFIID refiid, void** lppInterface)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupportOutlook2000::QueryInterface", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport, FreeBusySupportOutlook2000);
-	HRESULT hr = pThis->QueryInterface(refiid, lppInterface);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupportOutlook2000::QueryInterface", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-ULONG __stdcall ECFreeBusySupport::xFreeBusySupportOutlook2000::AddRef()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupportOutlook2000::AddRef", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupportOutlook2000);
-	return pThis->AddRef();
-}
-
-ULONG __stdcall ECFreeBusySupport::xFreeBusySupportOutlook2000::Release()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupportOutlook2000::Release", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupportOutlook2000);
-	return pThis->Release();
-}
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, QueryInterface, (REFIID, refiid), (void**, lppInterface))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, AddRef, (void))
+DEF_ULONGMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, Release, (void))
 
 // IFreeBusySupport
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupportOutlook2000::Open(IMAPISession* lpMAPISession, IMsgStore* lpMsgStore, BOOL bStore)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupportOutlook2000::Open", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupportOutlook2000);
-	HRESULT hr = pThis->Open(lpMAPISession, lpMsgStore, bStore);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupportOutlook2000::Open", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupportOutlook2000::Close()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupportOutlook2000::Close", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupportOutlook2000);
-	HRESULT hr = pThis->Close();
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupportOutlook2000::Close", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupportOutlook2000::LoadFreeBusyData(ULONG cMax, FBUser *rgfbuser, IFreeBusyData **prgfbdata, HRESULT *phrStatus, ULONG *pcRead)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupportOutlook2000::LoadFreeBusyData", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupportOutlook2000);
-	HRESULT hr = pThis->LoadFreeBusyData(cMax, rgfbuser, prgfbdata, phrStatus, pcRead);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupportOutlook2000::LoadFreeBusyData", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupportOutlook2000::LoadFreeBusyUpdate(ULONG cUsers, FBUser *lpUsers, IFreeBusyUpdate **lppFBUpdate, ULONG *lpcFBUpdate, void *lpData4)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupportOutlook2000::LoadFreeBusyUpdate", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupportOutlook2000);
-	HRESULT hr = pThis->LoadFreeBusyUpdate(cUsers, lpUsers, lppFBUpdate, lpcFBUpdate, lpData4);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupportOutlook2000::LoadFreeBusyUpdate", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupportOutlook2000::CommitChanges()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupportOutlook2000::CommitChanges", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupportOutlook2000);
-	HRESULT hr = pThis->CommitChanges();
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupportOutlook2000::CommitChanges", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupportOutlook2000::GetDelegateInfo(FBUser fbUser, void *lpData)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupportOutlook2000::GetDelegateInfo", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupportOutlook2000);
-	HRESULT hr = pThis->GetDelegateInfo(fbUser, lpData);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupportOutlook2000::GetDelegateInfo", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupportOutlook2000::SetDelegateInfo(void *lpData)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupportOutlook2000::SetDelegateInfo", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupportOutlook2000);
-	HRESULT hr = pThis->SetDelegateInfo(lpData);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupportOutlook2000::SetDelegateInfo", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupportOutlook2000::AdviseFreeBusy(void *lpData)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupportOutlook2000::AdviseFreeBusy", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupportOutlook2000);
-	HRESULT hr = pThis->AdviseFreeBusy(lpData);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupportOutlook2000::AdviseFreeBusy", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupportOutlook2000::Reload(void *lpData)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupportOutlook2000::Reload", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupportOutlook2000);
-	HRESULT hr = pThis->Reload(lpData);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupportOutlook2000::Reload", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupportOutlook2000::GetFBDetailSupport(void **lppData, BOOL bData)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupportOutlook2000::GetFBDetailSupport", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupportOutlook2000);
-	HRESULT hr = pThis->GetFBDetailSupport(lppData, bData);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupportOutlook2000::GetFBDetailSupport", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupportOutlook2000::HrHandleServerSched(void *lpData)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupportOutlook2000::HrHandleServerSched", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupportOutlook2000);
-	HRESULT hr = pThis->HrHandleServerSched(lpData);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupportOutlook2000::HrHandleServerSched", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupportOutlook2000::HrHandleServerSchedAccess()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupportOutlook2000::HrHandleServerSchedAccess", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupportOutlook2000);
-	HRESULT hr = pThis->HrHandleServerSchedAccess();
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupportOutlook2000::HrHandleServerSchedAccess", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, Open, (IMAPISession*, lpMAPISession), (IMsgStore*, lpMsgStore), (BOOL, bStore))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, Close, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, LoadFreeBusyData, (ULONG, cMax), (FBUser *, rgfbuser), (IFreeBusyData **, prgfbdata), (HRESULT *, phrStatus), (ULONG *, pcRead))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, LoadFreeBusyUpdate, (ULONG, cUsers), (FBUser *, lpUsers), (IFreeBusyUpdate **, lppFBUpdate), (ULONG *, lpcFBUpdate), (void *, lpData4))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, CommitChanges, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, GetDelegateInfo, (FBUser, fbUser), (void *, lpData))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, SetDelegateInfo, (void *, lpData))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, AdviseFreeBusy, (void *, lpData))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, Reload, (void *, lpData))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, GetFBDetailSupport, (void **, lppData), (BOOL, bData))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, HrHandleServerSched, (void *, lpData))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, HrHandleServerSchedAccess, (void))
 
 BOOL __stdcall ECFreeBusySupport::xFreeBusySupportOutlook2000::FShowServerSched(BOOL bData)
 {
@@ -811,68 +491,14 @@ BOOL __stdcall ECFreeBusySupport::xFreeBusySupportOutlook2000::FShowServerSched(
 	return b;
 }
 
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupportOutlook2000::HrDeleteServerSched()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupportOutlook2000::HrDeleteServerSched", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupportOutlook2000);
-	HRESULT hr = pThis->HrDeleteServerSched();
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupportOutlook2000::HrDeleteServerSched", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupportOutlook2000::GetFReadOnly(void *lpData)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupportOutlook2000::GetFReadOnly", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupportOutlook2000);
-	HRESULT hr = pThis->GetFReadOnly(lpData);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupportOutlook2000::GetFReadOnly", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupportOutlook2000::SetLocalFB(void *lpData)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupportOutlook2000::SetLocalFB", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupportOutlook2000);
-	HRESULT hr = pThis->SetLocalFB(lpData);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupportOutlook2000::SetLocalFB", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupportOutlook2000::PrepareForSync()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupportOutlook2000::PrepareForSync", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupportOutlook2000);
-	HRESULT hr = pThis->PrepareForSync();
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupportOutlook2000::PrepareForSync", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupportOutlook2000::GetFBPublishMonthRange(void *lpData)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupportOutlook2000::GetFBPublishMonthRange", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupportOutlook2000);
-	HRESULT hr = pThis->GetFBPublishMonthRange(lpData);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupportOutlook2000::GetFBPublishMonthRange", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupportOutlook2000::PublishRangeChanged()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupportOutlook2000::PublishRangeChanged", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupportOutlook2000);
-	HRESULT hr = pThis->PublishRangeChanged();
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupportOutlook2000::PublishRangeChanged", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, HrDeleteServerSched, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, GetFReadOnly, (void *, lpData))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, SetLocalFB, (void *, lpData))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, PrepareForSync, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, GetFBPublishMonthRange, (void *, lpData))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, PublishRangeChanged, (void))
 /*
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupportOutlook2000::CleanTombstone()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupportOutlook2000::CleanTombstone", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupportOutlook2000);
-	HRESULT hr = pThis->CleanTombstone();
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupportOutlook2000::CleanTombstone", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, CleanTombstone, (void))
 */
 /*
 HRESULT __stdcall ECFreeBusySupport::xFreeBusySupportOutlook2000::PlaceholderRemoved1()
@@ -884,38 +510,7 @@ HRESULT __stdcall ECFreeBusySupport::xFreeBusySupportOutlook2000::PlaceholderRem
 	return hr;
 }
 */
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupportOutlook2000::GetDelegateInfoEx(FBUser fbUser, unsigned int *lpData1, unsigned int *lpData2, unsigned int *lpData3)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupportOutlook2000::GetDelegateInfoEx", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupportOutlook2000);
-	HRESULT hr = pThis->GetDelegateInfoEx(fbUser, lpData1, lpData2, lpData3);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupportOutlook2000::GetDelegateInfoEx", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupportOutlook2000::PushDelegateInfoToWorkspace()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupportOutlook2000::PushDelegateInfoToWorkspace", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupportOutlook2000);
-	HRESULT hr = pThis->PushDelegateInfoToWorkspace();
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupportOutlook2000::PushDelegateInfoToWorkspace", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupportOutlook2000::Placeholder21(void *lpData, HWND hwnd, BOOL bData)
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupportOutlook2000::Placeholder21", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupportOutlook2000);
-	HRESULT hr = pThis->Placeholder21(lpData, hwnd, bData);
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupportOutlook2000::Placeholder21", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupportOutlook2000::Placeholder22()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupportOutlook2000::Placeholder22", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupportOutlook2000);
-	HRESULT hr = pThis->Placeholder22();
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupportOutlook2000::Placeholder22", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, GetDelegateInfoEx, (FBUser, fbUser), (unsigned int *, lpData1), (unsigned int *, lpData2), (unsigned int *, lpData3))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, PushDelegateInfoToWorkspace, (void))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, Placeholder21, (void *, lpData), (HWND, hwnd), (BOOL, bData))
+DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, Placeholder22, (void))

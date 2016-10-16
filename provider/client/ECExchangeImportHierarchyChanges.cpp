@@ -40,7 +40,6 @@
 
 ECExchangeImportHierarchyChanges::ECExchangeImportHierarchyChanges(ECMAPIFolder *lpFolder){
 	m_lpFolder = lpFolder;
-	m_lpStream = NULL;
 	m_lpFolder->AddRef();
 }
 

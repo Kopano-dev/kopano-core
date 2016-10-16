@@ -278,9 +278,8 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 
 			ulMvItems = 4;
 			// Get current freebusy entryid array
-			if(HrGetOneProp(lpFolder, PR_FREEBUSY_ENTRYIDS, &lpPropfbEntryids) == hrSuccess) {
+			if (HrGetOneProp(lpFolder, PR_FREEBUSY_ENTRYIDS, &lpPropfbEntryids) == hrSuccess)
 				ulMvItems = (lpPropfbEntryids->Value.MVbin.cValues>ulMvItems)?lpPropfbEntryids->Value.MVbin.cValues:ulMvItems;
-			}
 
 			hr = MAPIAllocateBuffer(sizeof(SPropValue), (void**)&lpPropfbEntryidsNew);
 			if(hr != hrSuccess)
@@ -428,23 +427,16 @@ HRESULT ParseFBEvents(FBStatus fbSts, LPSPropValue lpMonth, LPSPropValue lpEvent
 			UnixTimeToRTime(tmUnix, &rtmEnd);
 			
 			// Don't reset fbBlock.m_tmEnd
-			if(fbBlock.m_tmEnd == rtmStart) {
-				bMerge = true;
-			}else
-				bMerge = false;
-
+			bMerge = fbBlock.m_tmEnd == rtmStart;
 			fbBlock.m_fbstatus = fbSts;
 			fbBlock.m_tmStart = rtmStart;
 			fbBlock.m_tmEnd = rtmEnd;
 
-			if(bMerge == true) {
+			if (bMerge)
 				lpfbBlockList->Merge(&fbBlock);
-			} else { 
+			else
 				lpfbBlockList->Add(&fbBlock);
-			}
-
 		}
-
 	}
 	return S_OK;
 }
@@ -793,13 +785,7 @@ HRESULT HrAddFBBlock(const OccrInfo &sOccrInfo, OccrInfo **lppsOccrInfo,
 {
 	OccrInfo *lpsNewOccrInfo = NULL;
 	OccrInfo *lpsInputOccrInfo = *lppsOccrInfo;
-	ULONG ulModVal = 0;
-
-	if(lpcValues)
-		ulModVal = (*lpcValues) + 1;
-	else
-		ulModVal = 1;
-
+	ULONG ulModVal = lpcValues != NULL ? *lpcValues + 1 : 1;
 	HRESULT hr = MAPIAllocateBuffer(sizeof(sOccrInfo) * ulModVal,
 	             reinterpret_cast<void **>(&lpsNewOccrInfo));
 	if (hr != hrSuccess)

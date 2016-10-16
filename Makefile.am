@@ -62,8 +62,7 @@ pkglibexec_PROGRAMS = mapitime
 #
 noinst_LTLIBRARIES = libkccommon.la libm4lcommon.la
 lib_LTLIBRARIES = \
-	libkcutil.la libkcmapi.la libkcservice.la libkcssl.la \
-	libmapi.la libkchl.la \
+	libkcutil.la libkcmapi.la libkcssl.la libmapi.la libkchl.la \
 	libkcfreebusy.la libkcsync.la \
 	libkcsoapclient.la libkcsoapserver.la libkcserver.la \
 	libkcicalmapi.la libkcinetmapi.la \
@@ -75,7 +74,7 @@ noinst_DATA = \
 	kopano-stats.ldx \
 	libkcarchiver.ldd libkcarchivercore.ldd libkcclient.ldd \
 	libkccontacts.ldd libkcfreebusy.ldd libkchl.ldd libkcicalmapi.ldd \
-	libkcinetmapi.ldd libkcmapi.ldd libkcservice.ldd libkcssl.ldd \
+	libkcinetmapi.ldd libkcmapi.ldd libkcssl.ldd \
 	libkcsync.ldd libkcutil.ldd libmapi.ldd
 #noinst_DATA += libkccommon.ldd libkcserver.ldd \
 #	libkcsoapclient.ldd libkcsoapserver.ldd
@@ -118,7 +117,7 @@ kopano_archiver_SOURCES = ECtools/archiver/main.cpp
 kopano_archiver_CPPFLAGS = -I${top_srcdir}/ECtools/archiver ${AM_CPPFLAGS}
 kopano_archiver_LDADD = \
 	libmapi.la libkcmapi.la libkcutil.la libkcarchiver.la \
-	libkcarchivercore.la libkcservice.la ${PROG_LIBS}
+	libkcarchivercore.la ${PROG_LIBS}
 
 
 #
@@ -303,12 +302,13 @@ libkcarchivercore_la_SOURCES = \
 	ECtools/archiver/operations/postsaveiidupdater.cpp \
 	ECtools/archiver/operations/postsaveiidupdater.h \
 	ECtools/archiver/ArchiveControlImpl.cpp ECtools/archiver/ArchiveControlImpl.h \
-	ECtools/archiver/arc_database.hpp ECtools/archiver/arc_database.cpp
+	ECtools/archiver/arc_database.cpp ECtools/archiver/arc_database.hpp \
+	ECtools/archiver/arc_mysql.cpp ECtools/archiver/arc_mysql.hpp
 libkcarchivercore_la_CPPFLAGS = ${kopano_archiver_CPPFLAGS}
 libkcarchivercore_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	-Wl,--version-script=${default_sym}
 libkcarchivercore_la_LIBADD = \
-	libmapi.la libkcmapi.la libkcservice.la libkcarchiver.la \
+	libmapi.la libkcmapi.la libkcarchiver.la \
 	${PROG_LIBS} ${SSL_LIBS} ${MYSQL_LIBS}
 EXTRA_libkcarchivercore_la_DEPENDENCIES = ${default_sym}
 
@@ -601,17 +601,6 @@ libkcmapi_la_LIBADD = libkcutil.la -lpthread
 libkcmapi_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	-Wl,--version-script=${default_sym}
 EXTRA_libkcmapi_la_DEPENDENCIES = ${default_sym}
-
-
-#
-# libkcservice
-#
-noinst_HEADERS += common/kcm_mysql.hpp
-libkcservice_la_SOURCES = common/kcm_mysql.cpp
-libkcservice_la_LIBADD = libkcutil.la -lpthread ${MYSQL_LIBS}
-libkcservice_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
-	-Wl,--version-script=${default_sym}
-EXTRA_libkcservice_la_DEPENDENCIES = ${default_sym}
 
 
 #
