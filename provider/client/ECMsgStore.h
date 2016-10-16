@@ -483,19 +483,18 @@ public:
 public:
 	LPMAPISUP			lpSupport;
 	WSTransport*		lpTransport;
-	ECNotifyClient*		m_lpNotifyClient;
+	ECNotifyClient *m_lpNotifyClient = nullptr;
 	ECNamedProp*		lpNamedProp;
 	ULONG				m_ulProfileFlags;
 	MAPIUID				m_guidMDB_Provider;
-
-	unsigned int		m_ulClientVersion;
+	unsigned int m_ulClientVersion = 0;
 
 private:
 	BOOL				m_fIsSpooler;
 	BOOL				m_fIsDefaultStore;
 	BOOL				m_bOfflineStore;
-	RELEASECALLBACK		lpfnCallback;
-	ECUnknown*			lpCallbackObject;
+	RELEASECALLBACK lpfnCallback = nullptr;
+	ECUnknown *lpCallbackObject = nullptr;
 	std::string			m_strProfname;
 	std::set<ULONG>		m_setAdviseConnections;
 };

@@ -19,9 +19,10 @@ KAttach::KAttach(IAttach *attach, unsigned int num) :
 }
 
 KAttach::KAttach(KAttach &&other) :
-	m_attach(other.m_attach)
+	m_attach(other.m_attach), m_num(other.m_num)
 {
 	other.m_attach = NULL;
+	other.m_num = 0;
 }
 
 KAttach::~KAttach(void)
@@ -33,6 +34,7 @@ KAttach::~KAttach(void)
 KAttach &KAttach::operator=(KAttach &&other)
 {
 	std::swap(m_attach, other.m_attach);
+	std::swap(m_num, other.m_num);
 	return *this;
 }
 
@@ -255,12 +257,12 @@ KStore KSession::open_default_store(void)
 }
 
 KStore::KStore(IMsgStore *store) :
-	m_store(store)
+	m_store(store), m_type(0)
 {
 }
 
 KStore::KStore(KStore &&other) :
-	m_store(other.m_store)
+	m_store(other.m_store), m_type(other.m_type)
 {
 	other.m_store = NULL;
 }
@@ -274,6 +276,7 @@ KStore::~KStore(void)
 KStore &KStore::operator=(KStore &&other)
 {
 	std::swap(m_store, other.m_store);
+	std::swap(m_type, other.m_type);
 	return *this;
 }
 

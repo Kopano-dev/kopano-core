@@ -430,9 +430,6 @@ ECDispatcher::ECDispatcher(ECLogger *lpLogger, ECConfig *lpConfig, CREATEPIPESOC
 	m_nRecvTimeout = atoi(m_lpConfig->GetSetting("server_recv_timeout"));
 	m_nReadTimeout = atoi(m_lpConfig->GetSetting("server_read_timeout"));
 	m_nSendTimeout = atoi(m_lpConfig->GetSetting("server_send_timeout"));
-    
-    m_ulIdle = 0;
-    m_bExit = false;
 	m_lpCreatePipeSocketCallback = lpCallback;
 	m_lpCreatePipeSocketParam = lpParam;
 }

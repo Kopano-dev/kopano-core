@@ -233,7 +233,7 @@ public:
 
 private:
 	std::string what;
-	unsigned long long start_ts;
+	unsigned long long start_ts = 0;
 };
 
 using namespace std;

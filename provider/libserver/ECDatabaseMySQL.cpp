@@ -352,16 +352,10 @@ int zcp_versiontuple::compare(const zcp_versiontuple &rhs) const
 	return 0;
 }
 
-ECDatabaseMySQL::ECDatabaseMySQL(ECConfig *lpConfig)
+ECDatabaseMySQL::ECDatabaseMySQL(ECConfig *cfg) :
+    m_lpConfig(cfg)
 {
-	m_bMysqlInitialize	= false;
-	m_bConnected		= false;
-	m_bAutoLock			= true;
-	m_lpConfig			= lpConfig;
-	m_bSuppressLockErrorLogging = false;
-#ifdef DEBUG
-	m_ulTransactionState = 0;
-#endif	
+	memset(&m_lpMySQL, 0, sizeof(m_lpMySQL));
 }
 
 ECDatabaseMySQL::~ECDatabaseMySQL()

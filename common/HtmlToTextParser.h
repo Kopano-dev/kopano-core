@@ -87,8 +87,8 @@ protected:
 			this->bParseAttrs = bParseAttrs;
 			this->parserMethod = parserMethod;
 		};
-		bool bParseAttrs;
-		ParseMethodType parserMethod;
+		bool bParseAttrs = false;
+		ParseMethodType parserMethod = nullptr;
 	};
 
 	struct _TableRow {

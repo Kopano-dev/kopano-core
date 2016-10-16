@@ -143,12 +143,7 @@ public:
 
 class ECsIndexProp _zcp_final : public ECsCacheEntry {
 public:
-    ECsIndexProp() : ECsCacheEntry() { 
-		lpData = NULL; 
-		ulTag = 0; 
-		cbData = 0;
-	}
-
+	ECsIndexProp(void) : ECsCacheEntry() {}
 	~ECsIndexProp() {
 		delete[] lpData;
 	}
@@ -244,9 +239,9 @@ protected:
 		dst->ulTag = src->ulTag;
 	}
 public:
-	unsigned int	ulTag;
-	unsigned char*	lpData;
-	unsigned int	cbData;
+	unsigned int ulTag = 0;
+	unsigned char *lpData = nullptr;
+	unsigned int cbData = 0;
 };
 
 class ECsCells _zcp_final : public ECsCacheEntry {
