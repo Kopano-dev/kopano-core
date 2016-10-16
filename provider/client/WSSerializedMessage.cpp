@@ -30,7 +30,6 @@ WSSerializedMessage::WSSerializedMessage(soap *lpSoap, const std::string strStre
 , m_strStreamId(strStreamId)
 , m_cbProps(cbProps)
 , m_lpProps(lpProps)
-, m_bUsed(false)
 {
 }
 

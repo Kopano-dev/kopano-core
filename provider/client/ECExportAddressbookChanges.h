@@ -56,16 +56,16 @@ private:
 	} m_xECExportAddressbookChanges;
 	
 private:
-	IECImportAddressbookChanges *m_lpImporter;
-	unsigned int				m_ulChangeId;
-	ECMsgStore					*m_lpMsgStore;
-	unsigned int				m_ulThisChange;
-	ULONG						m_ulChanges;
-	ULONG						m_ulMaxChangeId;
-	ICSCHANGE					*m_lpRawChanges; // Raw data from server
-	ICSCHANGE					*m_lpChanges;	 // Same data, but sorted (users, then groups)
+	IECImportAddressbookChanges *m_lpImporter = nullptr;
+	unsigned int m_ulChangeId = 0;
+	ECMsgStore *m_lpMsgStore = nullptr;
+	unsigned int m_ulThisChange = 0;
+	ULONG m_ulChanges = 0;
+	ULONG m_ulMaxChangeId =0;
+	ICSCHANGE *m_lpRawChanges = nullptr; // Raw data from server
+	ICSCHANGE *m_lpChanges = nullptr; // Same data, but sorted (users, then groups)
 	std::set<ULONG>				m_setProcessed;
-	ECLogger					*m_lpLogger;
+	ECLogger *m_lpLogger = nullptr;
 };
 
 #endif

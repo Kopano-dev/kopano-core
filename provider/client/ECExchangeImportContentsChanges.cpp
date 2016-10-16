@@ -50,9 +50,7 @@ ECExchangeImportContentsChanges::ECExchangeImportContentsChanges(ECMAPIFolder *l
 	ECSyncLog::GetLogger(&m_lpLogger);
 
 	m_lpFolder = lpFolder;
-	m_lpStream = NULL;
 	m_lpFolder->AddRef();
-	m_lpSourceKey = NULL;
 }
 
 ECExchangeImportContentsChanges::~ECExchangeImportContentsChanges(){

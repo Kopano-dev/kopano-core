@@ -68,11 +68,6 @@ ECSecurity::ECSecurity(ECSession *lpSession, ECConfig *lpConfig, ECLogger *lpAud
 	m_lpAudit = lpAudit;
 	if (m_lpAudit != NULL)
 		m_lpAudit->AddRef();
-	m_lpGroups = NULL;
-	m_lpViewCompanies = NULL;
-	m_lpAdminCompanies = NULL;
-	m_ulUserID = 0;
-	m_ulCompanyID = 0;
 	m_bRestrictedAdmin = parseBool(lpConfig->GetSetting("restrict_admin_permissions"));
 	m_bOwnerAutoFullAccess = parseBool(lpConfig->GetSetting("owner_auto_full_access"));
 }

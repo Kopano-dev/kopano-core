@@ -284,7 +284,7 @@ protected:
 private:
 	std::recursive_mutex m_hMutex;
 	usercount_t 				m_userCount;
-	time_t m_usercount_ts;
+	time_t m_usercount_ts = 0;
 };
 
 #define KOPANO_UID_EVERYONE 1

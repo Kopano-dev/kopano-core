@@ -52,9 +52,9 @@ private:
 	ULONG				m_cbProps;
 	LPSPropValue		m_lpProps;	//	Points to data from parent object.
 
-	bool				m_bUsed;
+	bool m_bUsed = false;
 	StreamPtr			m_ptrDestStream;
-	HRESULT				m_hr;
+	HRESULT m_hr = hrSuccess;
 };
 
 typedef mapi_object_ptr<WSSerializedMessage> WSSerializedMessagePtr;

@@ -231,12 +231,12 @@ public:
 	size_t GetObjectSize();
 
 protected:
-	unsigned int m_ulUserID;
-	unsigned int m_ulImpersonatorID;    // The ID of the user who's credentials were used to login when using impersonation
-	bool m_bValidated;
+	unsigned int m_ulUserID = 0;
+	unsigned int m_ulImpersonatorID = 0; // The ID of the user who's credentials were used to login when using impersonation
+	bool m_bValidated = false;
 	
 	AUTHMETHOD m_ulValidationMethod;
-	int m_ulConnectingPid;
+	int m_ulConnectingPid = 0;
 
 private:
 	/* SSO */
@@ -249,9 +249,9 @@ private:
 	ECRESULT ProcessImpersonation(const char* lpszImpersonateUser);
 
 	/* NTLM */
-	pid_t m_NTLM_pid;
+	pid_t m_NTLM_pid = -1;
 	int m_NTLM_stdin[2], m_NTLM_stdout[2], m_NTLM_stderr[2];
-	int m_stdin, m_stdout, m_stderr; /* shortcuts to the above */
+	int m_stdin = -1, m_stdout = -1, m_stderr = -1; /* shortcuts to the above */
 
 #ifdef HAVE_GSSAPI
 	/* KRB5 */

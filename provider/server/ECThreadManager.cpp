@@ -101,8 +101,10 @@ ECWorkerThread::ECWorkerThread(ECLogger *lpLogger, ECThreadManager *lpManager, E
 	m_lpManager = lpManager;
 	m_lpDispatcher = lpDispatcher;
 
-	if (bDoNotStart)
+	if (bDoNotStart) {
+		memset(&m_thread, 0, sizeof(m_thread));
 		return;
+	}
 	if (pthread_create(&m_thread, NULL, ECWorkerThread::Work, this) != 0) {
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to start thread: %s", strerror(errno));
 		return;
@@ -127,6 +129,7 @@ ECPriorityWorkerThread::~ECPriorityWorkerThread()
 
 ECWorkerThread::~ECWorkerThread()
 {
+	// thread is already detached
 	m_lpLogger->Release();
 }
 

@@ -31,29 +31,26 @@ public:
 	virtual HRESULT HrHandleCommand(const std::string &strMethod) = 0;
 	
 protected:
-	Http *m_lpRequest;
-	IMAPISession *m_lpSession;
+	Http *m_lpRequest = nullptr;
+	IMAPISession *m_lpSession = nullptr;
 	std::string m_strSrvTz;
 	std::string m_strCharset;
 
-	IMsgStore *m_lpDefStore;		//!< We always need the store of the user that is logged in.
-	IMsgStore *m_lpActiveStore;		//!< The store we're acting on
-	IAddrBook *m_lpAddrBook;
-	IMailUser *m_lpLoginUser;		//!< the logged in user
-	IMailUser *m_lpActiveUser;		//!< the owner of m_lpActiveStore
-	IMAPIFolder *m_lpUsrFld;		//!< The active folder (calendar, inbox, outbox)
-	IMAPIFolder *m_lpIPMSubtree;	//!< IPMSubtree of active store, used for CopyFolder/CreateFolder
-
-	SPropTagArray *m_lpNamedProps; //!< named properties of the active store
+	IMsgStore *m_lpDefStore = nullptr; //!< We always need the store of the user that is logged in.
+	IMsgStore *m_lpActiveStore = nullptr; //!< The store we're acting on
+	IAddrBook *m_lpAddrBook = nullptr;
+	IMailUser *m_lpLoginUser = nullptr; //!< the logged in user
+	IMailUser *m_lpActiveUser = nullptr; //!< the owner of m_lpActiveStore
+	IMAPIFolder *m_lpUsrFld = nullptr; //!< The active folder (calendar, inbox, outbox)
+	IMAPIFolder *m_lpIPMSubtree = nullptr; //!< IPMSubtree of active store, used for CopyFolder/CreateFolder
+	SPropTagArray *m_lpNamedProps = nullptr; //!< named properties of the active store
 	std::wstring m_wstrFldOwner;   //!< url owner part
 	std::wstring m_wstrFldName;	   //!< url foldername part
 
 	std::wstring m_wstrUser;	//!< login username (http auth user)
-
-	bool m_blFolderAccess;		//!< can we delete the current folder
-	ULONG m_ulUrlFlag;
-	ULONG m_ulFolderFlag;
-
+	bool m_blFolderAccess = true; //!< can we delete the current folder
+	ULONG m_ulUrlFlag = 0;
+	ULONG m_ulFolderFlag = 0;
 	convert_context m_converter;
 
 	std::string W2U(const std::wstring&); //!< convert widestring to UTF-8

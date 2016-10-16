@@ -29,16 +29,6 @@ ProtocolBase::ProtocolBase(Http *lpRequest, IMAPISession *lpSession,
 {
 	m_lpRequest = lpRequest;
 	m_lpSession = lpSession;
-	m_lpUsrFld = NULL;
-	m_lpIPMSubtree = NULL;
-	m_lpDefStore = NULL;
-	m_lpAddrBook = NULL;
-	m_lpActiveStore = NULL;
-	m_lpLoginUser = NULL;
-	m_lpActiveUser = NULL;
-	m_lpNamedProps = NULL;
-	m_blFolderAccess = true;
-	m_ulFolderFlag = 0;
 	m_strSrvTz = strSrvTz;
 	m_strCharset = strCharset;
 }

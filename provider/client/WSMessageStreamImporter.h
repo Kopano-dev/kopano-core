@@ -91,7 +91,7 @@ private:
 	propVal m_sConflictItems;
 	WSTransportPtr m_ptrTransport;
 
-	HRESULT m_hr;
+	HRESULT m_hr = hrSuccess;
 	ECFifoBuffer m_fifoBuffer;
 	ECThreadPool m_threadPool;
 	ULONG m_ulTimeout;
