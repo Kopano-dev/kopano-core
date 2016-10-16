@@ -127,14 +127,11 @@ HRESULT ECExchangeExportChanges::Create(ECMsgStore *lpStore, REFIID iid, const s
 
 HRESULT	ECExchangeExportChanges::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	REGISTER_INTERFACE(IID_ECExchangeExportChanges, this);
-	REGISTER_INTERFACE(IID_ECUnknown, this);
-
-	REGISTER_INTERFACE(IID_IExchangeExportChanges, &this->m_xECExportChanges);
-	REGISTER_INTERFACE(IID_IUnknown, &this->m_xECExportChanges);
-
-	REGISTER_INTERFACE(IID_IECExportChanges, &this->m_xECExportChanges);
-
+	REGISTER_INTERFACE2(ECExchangeExportChanges, this);
+	REGISTER_INTERFACE2(ECUnknown, this);
+	REGISTER_INTERFACE2(IExchangeExportChanges, &this->m_xECExportChanges);
+	REGISTER_INTERFACE2(IUnknown, &this->m_xECExportChanges);
+	REGISTER_INTERFACE2(IECExportChanges, &this->m_xECExportChanges);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

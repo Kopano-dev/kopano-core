@@ -81,10 +81,8 @@ WSMAPIPropStorage::~WSMAPIPropStorage()
 
 HRESULT WSMAPIPropStorage::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	REGISTER_INTERFACE(IID_WSMAPIPropStorage, this);
-
-	REGISTER_INTERFACE(IID_IECPropStorage, &this->m_xECPropStorage);
-
+	REGISTER_INTERFACE2(WSMAPIPropStorage, this);
+	REGISTER_INTERFACE2(IECPropStorage, &this->m_xECPropStorage);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

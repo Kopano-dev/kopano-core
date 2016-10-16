@@ -219,28 +219,26 @@ HRESULT ECMsgStore::QueryInterface(REFIID refiid, void **lppInterface)
 {
 	HRESULT hr = hrSuccess;
 
-	REGISTER_INTERFACE(IID_ECMsgStore, this);
-	REGISTER_INTERFACE(IID_ECMAPIProp, this);
-	REGISTER_INTERFACE(IID_ECUnknown, this);
-
-	REGISTER_INTERFACE(IID_IMsgStore, &this->m_xMsgStore);
-	REGISTER_INTERFACE(IID_IMAPIProp, &this->m_xMsgStore);
-	REGISTER_INTERFACE(IID_IUnknown, &this->m_xMsgStore);
-
-	REGISTER_INTERFACE(IID_ISelectUnicode, &this->m_xUnknown);
+	REGISTER_INTERFACE2(ECMsgStore, this);
+	REGISTER_INTERFACE2(ECMAPIProp, this);
+	REGISTER_INTERFACE2(ECUnknown, this);
+	REGISTER_INTERFACE2(IMsgStore, &this->m_xMsgStore);
+	REGISTER_INTERFACE2(IMAPIProp, &this->m_xMsgStore);
+	REGISTER_INTERFACE2(IUnknown, &this->m_xMsgStore);
+	REGISTER_INTERFACE3(ISelectUnicode, IUnknown, &this->m_xUnknown);
 
 	if (refiid == IID_IExchangeManageStore || refiid == IID_IExchangeManageStore6 || refiid == IID_IExchangeManageStoreEx) {
 		if (m_bOfflineStore == FALSE) {			
-			REGISTER_INTERFACE(IID_IExchangeManageStore, &this->m_xExchangeManageStore);
-			REGISTER_INTERFACE(IID_IExchangeManageStore6, &this->m_xExchangeManageStore6);
-			REGISTER_INTERFACE(IID_IExchangeManageStoreEx, &this->m_xExchangeManageStoreEx);
+			REGISTER_INTERFACE2(IExchangeManageStore, &this->m_xExchangeManageStore);
+			REGISTER_INTERFACE2(IExchangeManageStore6, &this->m_xExchangeManageStore6);
+			REGISTER_INTERFACE2(IExchangeManageStoreEx, &this->m_xExchangeManageStoreEx);
 		}
 	}
 
-	REGISTER_INTERFACE(IID_IECServiceAdmin, &this->m_xECServiceAdmin);
-	REGISTER_INTERFACE(IID_IECSpooler, &this->m_xECSpooler);
-	REGISTER_INTERFACE(IID_IECSecurity, &this->m_xECSecurity);
-	REGISTER_INTERFACE(IID_IProxyStoreObject, &this->m_xProxyStoreObject);
+	REGISTER_INTERFACE2(IECServiceAdmin, &this->m_xECServiceAdmin);
+	REGISTER_INTERFACE2(IECSpooler, &this->m_xECSpooler);
+	REGISTER_INTERFACE2(IECSecurity, &this->m_xECSecurity);
+	REGISTER_INTERFACE2(IProxyStoreObject, &this->m_xProxyStoreObject);
 
 	if (refiid == IID_ECMsgStoreOnline)
 	{
@@ -269,10 +267,9 @@ HRESULT ECMsgStore::QueryInterface(REFIID refiid, void **lppInterface)
 		return hrSuccess;
 	}
 	// is admin store?
-	REGISTER_INTERFACE(IID_IECMultiStoreTable, &this->m_xECMultiStoreTable);
-	REGISTER_INTERFACE(IID_IECLicense, &this->m_xECLicense);
-	REGISTER_INTERFACE(IID_IECTestProtocol, &this->m_xECTestProtocol);
-
+	REGISTER_INTERFACE2(IECMultiStoreTable, &this->m_xECMultiStoreTable);
+	REGISTER_INTERFACE2(IECLicense, &this->m_xECLicense);
+	REGISTER_INTERFACE2(IECTestProtocol, &this->m_xECTestProtocol);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
@@ -281,10 +278,9 @@ HRESULT ECMsgStore::QueryInterfaceProxy(REFIID refiid, void **lppInterface)
 	if (refiid == IID_IProxyStoreObject) // block recusive proxy calls
 		return MAPI_E_INTERFACE_NOT_SUPPORTED;
 
-	REGISTER_INTERFACE(IID_IMsgStore, &this->m_xMsgStoreProxy);
-	REGISTER_INTERFACE(IID_IMAPIProp, &this->m_xMsgStoreProxy);
-	REGISTER_INTERFACE(IID_IUnknown, &this->m_xMsgStoreProxy);
-
+	REGISTER_INTERFACE2(IMsgStore, &this->m_xMsgStoreProxy);
+	REGISTER_INTERFACE2(IMAPIProp, &this->m_xMsgStoreProxy);
+	REGISTER_INTERFACE2(IUnknown, &this->m_xMsgStoreProxy);
 	return QueryInterface(refiid, lppInterface);
 }
 
@@ -3575,9 +3571,8 @@ HRESULT ECMSLogon::Create(ECMsgStore *lpStore, ECMSLogon **lppECMSLogon)
 
 HRESULT ECMSLogon::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	REGISTER_INTERFACE(IID_ECMSLogon, this);
-	REGISTER_INTERFACE(IID_IMSLogon, &this->m_xMSLogon);
-	
+	REGISTER_INTERFACE2(ECMSLogon, this);
+	REGISTER_INTERFACE2(IMSLogon, &this->m_xMSLogon);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

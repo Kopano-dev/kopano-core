@@ -121,14 +121,11 @@ ECMAPIProp::~ECMAPIProp()
 
 HRESULT ECMAPIProp::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	REGISTER_INTERFACE(IID_ECMAPIProp, this);
-	REGISTER_INTERFACE(IID_ECUnknown, this);
-
-	REGISTER_INTERFACE(IID_IMAPIProp, &this->m_xMAPIProp);
-	REGISTER_INTERFACE(IID_IUnknown, &this->m_xMAPIProp);
-
-	REGISTER_INTERFACE(IID_IECSecurity, &this->m_xECSecurity);
-
+	REGISTER_INTERFACE2(ECMAPIProp, this);
+	REGISTER_INTERFACE2(ECUnknown, this);
+	REGISTER_INTERFACE2(IMAPIProp, &this->m_xMAPIProp);
+	REGISTER_INTERFACE2(IUnknown, &this->m_xMAPIProp);
+	REGISTER_INTERFACE2(IECSecurity, &this->m_xECSecurity);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

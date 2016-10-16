@@ -71,8 +71,7 @@ ECMAPIFolderPublic::ECMAPIFolderPublic(ECMsgStore *lpMsgStore, BOOL fModify, WSM
 
 HRESULT	ECMAPIFolderPublic::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	REGISTER_INTERFACE(IID_ECMAPIFolderPublic, this);
-
+	REGISTER_INTERFACE2(ECMAPIFolderPublic, this);
 	return ECMAPIFolder::QueryInterface(refiid, lppInterface);
 }
 

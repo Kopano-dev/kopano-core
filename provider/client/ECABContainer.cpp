@@ -63,14 +63,13 @@ ECABContainer::~ECABContainer()
 
 HRESULT	ECABContainer::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	REGISTER_INTERFACE(IID_ECABContainer, this);
-	REGISTER_INTERFACE(IID_ECABProp, this);
-	REGISTER_INTERFACE(IID_ECUnknown, this);
-	REGISTER_INTERFACE(IID_IABContainer, &this->m_xABContainer);
-	REGISTER_INTERFACE(IID_IMAPIContainer, &this->m_xABContainer);
-	REGISTER_INTERFACE(IID_IMAPIProp, &this->m_xABContainer);
-	REGISTER_INTERFACE(IID_IUnknown, &this->m_xABContainer);
-
+	REGISTER_INTERFACE2(ECABContainer, this);
+	REGISTER_INTERFACE2(ECABProp, this);
+	REGISTER_INTERFACE2(ECUnknown, this);
+	REGISTER_INTERFACE2(IABContainer, &this->m_xABContainer);
+	REGISTER_INTERFACE2(IMAPIContainer, &this->m_xABContainer);
+	REGISTER_INTERFACE2(IMAPIProp, &this->m_xABContainer);
+	REGISTER_INTERFACE2(IUnknown, &this->m_xABContainer);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

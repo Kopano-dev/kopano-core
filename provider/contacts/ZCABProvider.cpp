@@ -51,12 +51,10 @@ HRESULT ZCABProvider::Create(ZCABProvider **lppZCABProvider)
 
 HRESULT ZCABProvider::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	REGISTER_INTERFACE(IID_ZCABProvider, this);
-	REGISTER_INTERFACE(IID_ECUnknown, this);
-
-	REGISTER_INTERFACE(IID_IABProvider, &this->m_xABProvider);
-	REGISTER_INTERFACE(IID_IUnknown, &this->m_xABProvider);
-
+	REGISTER_INTERFACE2(ZCABProvider, this);
+	REGISTER_INTERFACE2(ECUnknown, this);
+	REGISTER_INTERFACE2(IABProvider, &this->m_xABProvider);
+	REGISTER_INTERFACE2(IUnknown, &this->m_xABProvider);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

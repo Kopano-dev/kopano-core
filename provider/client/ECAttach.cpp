@@ -58,17 +58,14 @@ HRESULT ECAttach::Create(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, 
 
 HRESULT ECAttach::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	REGISTER_INTERFACE(IID_ECAttach, this);
-	REGISTER_INTERFACE(IID_ECMAPIProp, this);
-	REGISTER_INTERFACE(IID_ECUnknown, this);
-
-	REGISTER_INTERFACE(IID_IAttachment, &this->m_xAttach);
-	REGISTER_INTERFACE(IID_IMAPIProp, &this->m_xAttach);
-	REGISTER_INTERFACE(IID_IUnknown, &this->m_xAttach);
+	REGISTER_INTERFACE2(ECAttach, this);
+	REGISTER_INTERFACE2(ECMAPIProp, this);
+	REGISTER_INTERFACE2(ECUnknown, this);
+	REGISTER_INTERFACE3(IAttachment, IAttach, &this->m_xAttach);
+	REGISTER_INTERFACE2(IMAPIProp, &this->m_xAttach);
+	REGISTER_INTERFACE2(IUnknown, &this->m_xAttach);
 	// @todo add IID_ISelectUnicode ?
-
-	REGISTER_INTERFACE(IID_IECSingleInstance, &this->m_xECSingleInstance);
-
+	REGISTER_INTERFACE2(IECSingleInstance, &this->m_xECSingleInstance);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

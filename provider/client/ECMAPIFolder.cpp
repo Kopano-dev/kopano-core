@@ -223,22 +223,17 @@ HRESULT ECMAPIFolder::TableRowGetProp(void* lpProvider, struct propVal *lpsPropV
 
 HRESULT	ECMAPIFolder::QueryInterface(REFIID refiid, void **lppInterface) 
 {
-	REGISTER_INTERFACE(IID_ECMAPIFolder, this);
-	REGISTER_INTERFACE(IID_ECMAPIContainer, this);
-	REGISTER_INTERFACE(IID_ECMAPIProp, this);
-	REGISTER_INTERFACE(IID_ECUnknown, this);
-
-	REGISTER_INTERFACE(IID_IMAPIFolder, &this->m_xMAPIFolder);
-	REGISTER_INTERFACE(IID_IMAPIContainer, &this->m_xMAPIFolder);
-	REGISTER_INTERFACE(IID_IMAPIProp, &this->m_xMAPIFolder);
-	REGISTER_INTERFACE(IID_IUnknown, &this->m_xMAPIFolder);
-
-	REGISTER_INTERFACE(IID_IFolderSupport, &this->m_xFolderSupport);
-
-	REGISTER_INTERFACE(IID_IECSecurity, &this->m_xECSecurity);
-
-	REGISTER_INTERFACE(IID_ISelectUnicode, &this->m_xUnknown);
-
+	REGISTER_INTERFACE2(ECMAPIFolder, this);
+	REGISTER_INTERFACE2(ECMAPIContainer, this);
+	REGISTER_INTERFACE2(ECMAPIProp, this);
+	REGISTER_INTERFACE2(ECUnknown, this);
+	REGISTER_INTERFACE2(IMAPIFolder, &this->m_xMAPIFolder);
+	REGISTER_INTERFACE2(IMAPIContainer, &this->m_xMAPIFolder);
+	REGISTER_INTERFACE2(IMAPIProp, &this->m_xMAPIFolder);
+	REGISTER_INTERFACE2(IUnknown, &this->m_xMAPIFolder);
+	REGISTER_INTERFACE2(IFolderSupport, &this->m_xFolderSupport);
+	REGISTER_INTERFACE2(IECSecurity, &this->m_xECSecurity);
+	REGISTER_INTERFACE3(ISelectUnicode, IUnknown, &this->m_xUnknown);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

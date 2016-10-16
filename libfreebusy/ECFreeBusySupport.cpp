@@ -69,15 +69,14 @@ HRESULT ECFreeBusySupport::Create(ECFreeBusySupport **lppECFreeBusySupport)
 
 HRESULT ECFreeBusySupport::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	REGISTER_INTERFACE(IID_ECFreeBusySupport, this);
-	REGISTER_INTERFACE(IID_ECUnknown, this);
-
+	REGISTER_INTERFACE2(ECFreeBusySupport, this);
+	REGISTER_INTERFACE2(ECUnknown, this);
 	if (m_ulOutlookVersion == CLIENT_VERSION_OLK2000) {
 		REGISTER_INTERFACE(IID_IFreeBusySupport, &this->m_xFreeBusySupportOutlook2000);
-		REGISTER_INTERFACE(IID_IUnknown, &this->m_xFreeBusySupportOutlook2000);
+		REGISTER_INTERFACE2(IUnknown, &this->m_xFreeBusySupportOutlook2000);
 	} else {
-		REGISTER_INTERFACE(IID_IFreeBusySupport, &this->m_xFreeBusySupport);
-		REGISTER_INTERFACE(IID_IUnknown, &this->m_xFreeBusySupport);
+		REGISTER_INTERFACE2(IFreeBusySupport, &this->m_xFreeBusySupport);
+		REGISTER_INTERFACE2(IUnknown, &this->m_xFreeBusySupport);
 	}
 
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;

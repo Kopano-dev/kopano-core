@@ -38,16 +38,14 @@ ECDistList::ECDistList(void* lpProvider, BOOL fModify) : ECABContainer(lpProvide
 
 HRESULT	ECDistList::QueryInterface(REFIID refiid, void **lppInterface) 
 {
-	REGISTER_INTERFACE(IID_ECDistList, this);
-	REGISTER_INTERFACE(IID_ECABContainer, this);
-	REGISTER_INTERFACE(IID_ECABProp, this);
-	REGISTER_INTERFACE(IID_ECUnknown, this);
-
-	REGISTER_INTERFACE(IID_IDistList, &this->m_xDistList);
+	REGISTER_INTERFACE2(ECDistList, this);
+	REGISTER_INTERFACE2(ECABContainer, this);
+	REGISTER_INTERFACE2(ECABProp, this);
+	REGISTER_INTERFACE2(ECUnknown, this);
+	REGISTER_INTERFACE2(IDistList, &this->m_xDistList);
 	REGISTER_INTERFACE(IID_IABContainer, &this->m_xDistList);
-	REGISTER_INTERFACE(IID_IMAPIProp, &this->m_xDistList);
-	REGISTER_INTERFACE(IID_IUnknown, &this->m_xDistList);
-
+	REGISTER_INTERFACE2(IMAPIProp, &this->m_xDistList);
+	REGISTER_INTERFACE2(IUnknown, &this->m_xDistList);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

@@ -70,8 +70,7 @@ HRESULT	ECMemBlock::Create(char *buffer, ULONG ulDataLen, ULONG ulFlags, ECMemBl
 
 HRESULT ECMemBlock::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	REGISTER_INTERFACE(IID_ECMemBlock, this);
-
+	REGISTER_INTERFACE2(ECMemBlock, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
@@ -216,13 +215,11 @@ ECMemStream::~ECMemStream()
 
 HRESULT ECMemStream::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	REGISTER_INTERFACE(IID_IStream, &this->m_xStream);
-	REGISTER_INTERFACE(IID_ISequentialStream, &this->m_xStream);
-	REGISTER_INTERFACE(IID_IUnknown, &this->m_xStream);
-
-	REGISTER_INTERFACE(IID_ECMemStream, this);
-	REGISTER_INTERFACE(IID_ECUnknown, this);
-
+	REGISTER_INTERFACE2(IStream, &this->m_xStream);
+	REGISTER_INTERFACE2(ISequentialStream, &this->m_xStream);
+	REGISTER_INTERFACE2(IUnknown, &this->m_xStream);
+	REGISTER_INTERFACE2(ECMemStream, this);
+	REGISTER_INTERFACE2(ECUnknown, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

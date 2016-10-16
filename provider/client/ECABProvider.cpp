@@ -63,14 +63,11 @@ HRESULT ECABProvider::Create(ECABProvider **lppECABProvider)
 
 HRESULT ECABProvider::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	REGISTER_INTERFACE(IID_ECABProvider, this);
-	REGISTER_INTERFACE(IID_ECUnknown, this);
-
-	REGISTER_INTERFACE(IID_IABProvider, &this->m_xABProvider);
-	REGISTER_INTERFACE(IID_IUnknown, &this->m_xABProvider);
-
-	REGISTER_INTERFACE(IID_ISelectUnicode, &this->m_xUnknown);
-
+	REGISTER_INTERFACE2(ECABProvider, this);
+	REGISTER_INTERFACE2(ECUnknown, this);
+	REGISTER_INTERFACE2(IABProvider, &this->m_xABProvider);
+	REGISTER_INTERFACE2(IUnknown, &this->m_xABProvider);
+	REGISTER_INTERFACE3(ISelectUnicode, IUnknown, &this->m_xUnknown);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

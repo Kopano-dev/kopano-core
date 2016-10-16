@@ -79,8 +79,7 @@ HRESULT WSMAPIFolderOps::Create(KCmd *lpCmd, std::recursive_mutex &lpDataLock,
 
 HRESULT WSMAPIFolderOps::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	REGISTER_INTERFACE(IID_ECMAPIFolderOps, this);
-
+	REGISTER_INTERFACE3(ECMAPIFolderOps, WSMAPIFolderOps, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 	

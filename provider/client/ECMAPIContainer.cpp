@@ -36,14 +36,12 @@ ECMAPIContainer::ECMAPIContainer(ECMsgStore *lpMsgStore, ULONG ulObjType,
 
 HRESULT	ECMAPIContainer::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	REGISTER_INTERFACE(IID_ECMAPIContainer, this);
-	REGISTER_INTERFACE(IID_ECMAPIProp, this);
-	REGISTER_INTERFACE(IID_ECUnknown, this);
-
-	REGISTER_INTERFACE(IID_IMAPIContainer, &this->m_xMAPIContainer);
-	REGISTER_INTERFACE(IID_IMAPIProp, &this->m_xMAPIContainer);
-	REGISTER_INTERFACE(IID_IUnknown, &this->m_xMAPIContainer);
-
+	REGISTER_INTERFACE2(ECMAPIContainer, this);
+	REGISTER_INTERFACE2(ECMAPIProp, this);
+	REGISTER_INTERFACE2(ECUnknown, this);
+	REGISTER_INTERFACE2(IMAPIContainer, &this->m_xMAPIContainer);
+	REGISTER_INTERFACE2(IMAPIProp, &this->m_xMAPIContainer);
+	REGISTER_INTERFACE2(IUnknown, &this->m_xMAPIContainer);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

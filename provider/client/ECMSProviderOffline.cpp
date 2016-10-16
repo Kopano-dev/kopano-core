@@ -56,11 +56,9 @@ HRESULT ECMSProviderOffline::Create(ULONG ulFlags, ECMSProviderOffline **lppMSPr
 HRESULT ECMSProviderOffline::QueryInterface(REFIID refiid, void **lppInterface)
 {
 	/* refiid == IID_ECMSProviderOffline */
-	REGISTER_INTERFACE(IID_ECUnknown, this);
-
-	REGISTER_INTERFACE(IID_IMSProvider, &this->m_xMSProvider);
-	REGISTER_INTERFACE(IID_IUnknown, &this->m_xMSProvider);
-
+	REGISTER_INTERFACE2(ECUnknown, this);
+	REGISTER_INTERFACE2(IMSProvider, &this->m_xMSProvider);
+	REGISTER_INTERFACE2(IUnknown, &this->m_xMSProvider);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

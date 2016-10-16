@@ -61,7 +61,6 @@ HRESULT WSABTableView::Create(ULONG ulType, ULONG ulFlags, KCmd *lpCmd,
 
 HRESULT WSABTableView::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	REGISTER_INTERFACE(IID_ECTableView, this);
-
+	REGISTER_INTERFACE3(ECTableView, WSTableView, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }

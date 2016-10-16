@@ -52,10 +52,8 @@ ECParentStorage::~ECParentStorage()
 
 HRESULT ECParentStorage::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	REGISTER_INTERFACE(IID_ECParentStorage, this);
-
-	REGISTER_INTERFACE(IID_IECPropStorage, &this->m_xECPropStorage);
-
+	REGISTER_INTERFACE2(ECParentStorage, this);
+	REGISTER_INTERFACE2(IECPropStorage, &this->m_xECPropStorage);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

@@ -40,6 +40,23 @@
 		} \
 	} while (false)
 
+#define REGISTER_INTERFACE2(cls, interface)	\
+	do { \
+		if (refiid == (IID_ ## cls)) { \
+			AddRef(); \
+			*lppInterface = static_cast<cls *>(interface); \
+			return hrSuccess; \
+		} \
+	} while (false)
+#define REGISTER_INTERFACE3(guid, cls, interface)	\
+	do { \
+		if (refiid == (IID_ ## guid)) { \
+			AddRef(); \
+			*lppInterface = static_cast<cls *>(interface); \
+			return hrSuccess; \
+		} \
+	} while (false)
+
 /**
  * Return interface pointer on a specific interface query without incrementing the refcount.
  * @param[in]	_guid	The interface guid.

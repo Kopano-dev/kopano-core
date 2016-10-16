@@ -63,9 +63,8 @@ ULONG ECUnknown::Release() {
 }
 
 HRESULT ECUnknown::QueryInterface(REFIID refiid, void **lppInterface) {
-	REGISTER_INTERFACE(IID_ECUnknown, this);
-	REGISTER_INTERFACE(IID_IUnknown, &this->m_xUnknown);
-
+	REGISTER_INTERFACE2(ECUnknown, this);
+	REGISTER_INTERFACE2(IUnknown, &this->m_xUnknown);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
