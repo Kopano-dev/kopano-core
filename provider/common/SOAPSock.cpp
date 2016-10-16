@@ -72,6 +72,7 @@ static int gsoap_connect_pipe(struct soap *soap, const char *endpoint,
 	if (strncmp(endpoint, "file://", 7) != 0)
 		return SOAP_EOF;
 	const char *socket_name = strchr(endpoint + 7, '/');
+	// >= because there also needs to be room for the 0x00
 	if (socket_name == NULL ||
 	    strlen(socket_name) >= sizeof(saddr.sun_path))
 		return SOAP_EOF;
@@ -81,13 +82,11 @@ static int gsoap_connect_pipe(struct soap *soap, const char *endpoint,
 		return SOAP_EOF;
 
 	saddr.sun_family = AF_UNIX;
-
-	// >= because there also needs to be room for the 0x00
-	if (strlen(socket_name) >= sizeof(saddr.sun_path))
-		return SOAP_EOF;
 	kc_strlcpy(saddr.sun_path, socket_name, sizeof(saddr.sun_path));
-	if (connect(fd, (struct sockaddr *)&saddr, sizeof(struct sockaddr_un)) < 0)
+	if (connect(fd, (struct sockaddr *)&saddr, sizeof(struct sockaddr_un)) < 0) {
+		close(fd);
 		return SOAP_EOF;
+	}
 
  	soap->sendfd = soap->recvfd = SOAP_INVALID_SOCKET;
 	soap->socket = fd;
