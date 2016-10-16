@@ -1482,10 +1482,11 @@ HRESULT ECMsgStore::CreateStoreEntryID(LPTSTR lpszMsgStoreDN, LPTSTR lpszMailbox
 			goto exit;
 		
 		// Pseudo URL successfully resolved
-		if (bIsPeer)
+		if (bIsPeer) {
 			hr = lpTransport->HrResolveUserStore(tstrMailboxDN, OPENSTORE_OVERRIDE_HOME_MDB, NULL, &cbStoreEntryID, &lpStoreEntryID);
-
-		else {
+			if (hr != hrSuccess)
+				goto exit;
+		} else {
 			hr = lpTransport->CreateAndLogonAlternate(ptrServerPath, &lpTmpTransport);
 			if (hr != hrSuccess)
 				goto exit;
@@ -1493,8 +1494,7 @@ HRESULT ECMsgStore::CreateStoreEntryID(LPTSTR lpszMsgStoreDN, LPTSTR lpszMailbox
 			hr = lpTmpTransport->HrResolveUserStore(tstrMailboxDN, OPENSTORE_OVERRIDE_HOME_MDB, NULL, &cbStoreEntryID, &lpStoreEntryID);
 			if (hr != hrSuccess)
 				goto exit;
-
-			hr = lpTmpTransport->HrLogOff();
+			lpTmpTransport->HrLogOff();
 		}
 	}
 	

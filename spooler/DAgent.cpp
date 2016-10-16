@@ -3414,9 +3414,7 @@ static void *HandlerLMTP(void *lpArg)
 					// During delivery lpArgs->ulDeliveryMode can be set to DM_JUNK. However it won't reset it
 					// if required. So make sure to reset it here so we can safely reuse the LMTP connection
 					delivery_mode ulDeliveryMode = lpArgs->ulDeliveryMode;
-
-					hr = ProcessDeliveryToList(ptrPyMapiPlugin, lpSession, tmp, &mapRCPT, lpArgs);
-
+					ProcessDeliveryToList(ptrPyMapiPlugin, lpSession, tmp, &mapRCPT, lpArgs);
 					SaveRawMessage(tmp, "LMTP");
 					lpArgs->ulDeliveryMode = ulDeliveryMode;
 				}

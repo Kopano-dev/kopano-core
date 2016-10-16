@@ -312,6 +312,7 @@ HRESULT __stdcall ECExchangeModifyTable::ModifyTable(ULONG ulFlags, LPROWLIST lp
 	} else {
 		assert(false);
 		hr = MAPI_E_CALL_FAILED;
+		goto exit;
 	}
 
 done:

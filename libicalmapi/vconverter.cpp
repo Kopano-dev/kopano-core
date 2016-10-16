@@ -704,6 +704,8 @@ HRESULT VConverter::HrAddSimpleHeaders(icalcomponent *lpicEvent, icalitem *lpIca
 	if (lpicProp){
 		sPropVal.ulPropTag = PR_SUBJECT_W;
 		hr = HrCopyString(m_converter, m_strCharset, lpIcalItem->base, icalcomponent_get_summary(lpicEvent), &sPropVal.Value.lpszW);
+		if (hr != hrSuccess)
+			sPropVal.Value.lpszW = const_cast<wchar_t *>(L"");
 		lpIcalItem->lstMsgProps.push_back(sPropVal);
 	} else {
 		lpIcalItem->lstDelPropTags.push_back(PR_SUBJECT);

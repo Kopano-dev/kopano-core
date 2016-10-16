@@ -147,6 +147,8 @@ HRESULT ProtocolBase::HrInitializeClass()
 	} else {
 		// @todo, make auto pointers
 		hr = m_lpDefStore->QueryInterface(IID_IMsgStore, (void**)&m_lpActiveStore);
+		if (hr != hrSuccess)
+			goto exit;
 	}
 
 	// Retrieve named properties

@@ -219,7 +219,7 @@ static void *Handler(void *lpArg)
 			// we asked the client for more data, do not parse the buffer, but send it "to the previous command"
 			// that last part is currently only HrCmdAuthenticate(), so no difficulties here.
 			// also, PLAIN is the only supported auth method.
-			hr = client->HrProcessContinue(inBuffer);
+			client->HrProcessContinue(inBuffer);
 			// no matter what happens, we continue handling the connection.
 			continue;
 		}

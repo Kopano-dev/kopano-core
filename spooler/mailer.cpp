@@ -513,7 +513,7 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 					lpContabEntryID->email_offset < 3 ||
 					lpContabEntryID->email_offset > 5)
 				{
-					hr = MAPI_E_INVALID_PARAMETER;
+					/*hr = MAPI_E_INVALID_PARAMETER;*/
 					g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to convert FAX recipient, using %ls", lpEmailAddress->Value.lpszW);
 					goto nextfax;
 				}
@@ -2049,7 +2049,10 @@ static HRESULT CheckDelegate(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 	}
 
 	hr = HrCheckAllowedEntryIDArray("delegate", lpRepOwnerName ? lpRepOwnerName->Value.lpszW : L"<no name>", lpAddrBook, ulOwnerCB, lpOwnerEID, lpDelegates->Value.MVbin.cValues, lpDelegates->Value.MVbin.lpbin, &ulObjType, &bAllowed);
-
+	if (hr != hrSuccess) {
+		ec_log_err("CheckDelegate() HrCheckAllowedEntryIDArray failed %x %s", hr, GetMAPIErrorMessage(hr));
+		goto exit;
+	}
 	if (bAllowed) {
 		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Mail for user '%ls' is allowed on behalf of user '%ls'%s",
 						lpUserOwnerName ? lpUserOwnerName->Value.lpszW : L"<no name>",
