@@ -230,9 +230,7 @@ INETMAPI_API HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
 	}
 
 	InitializeVMime();
-
-	hr = mToVM->convertMAPIToVMIME(lpMessage, &vmMessage);
-
+	hr = mToVM->convertMAPIToVMIME(lpMessage, &vmMessage, MTV_SPOOL);
 	if (hr != hrSuccess) {
 		wstrError = mToVM->getConversionError();
 		if (wstrError.empty())

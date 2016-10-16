@@ -19,6 +19,7 @@
 
 #include "recurrence.h"
 #include <cmath>
+#include <kopano/ECLogger.h>
 #include <mapicode.h>
 #include <kopano/stringutil.h>
 #include <kopano/ECIConv.h>
@@ -660,7 +661,7 @@ HRESULT recurrence::addModifiedException(time_t tStart, time_t tEnd, time_t tOri
 	return hr;
 }
 
-HRESULT recurrence::setModifiedSubject(ULONG id, std::wstring strSubject)
+HRESULT recurrence::setModifiedSubject(ULONG id, const std::wstring &strSubject)
 {
 	if (id >= m_sRecState.lstExceptions.size())
 		return S_FALSE;
@@ -705,7 +706,8 @@ HRESULT recurrence::setModifiedReminder(ULONG id, ULONG set)
 	return S_OK;
 }
 
-HRESULT recurrence::setModifiedLocation(ULONG id, std::wstring strLocation)
+HRESULT recurrence::setModifiedLocation(ULONG id,
+    const std::wstring &strLocation)
 {
 	if (id >= m_sRecState.lstExceptions.size())
 		return S_FALSE;
@@ -1498,18 +1500,21 @@ ULONG recurrence::MonthDayFromTime(time_t t)
 	return lpT.tm_mday;
 }
 
-bool recurrence::CheckAddValidOccr(time_t tsNow, time_t tsStart, time_t tsEnd, ECLogger *lpLogger, TIMEZONE_STRUCT ttZinfo, ULONG ulBusyStatus, OccrInfo **lppOccrInfoAll, ULONG *lpcValues) {
+bool recurrence::CheckAddValidOccr(time_t tsNow, time_t tsStart, time_t tsEnd,
+    TIMEZONE_STRUCT ttZinfo, ULONG ulBusyStatus, OccrInfo **lppOccrInfoAll,
+    ULONG *lpcValues)
+{
 	time_t tsOccStart = 0;
 	time_t tsOccEnd = 0;
-        lpLogger->Log(EC_LOGLEVEL_DEBUG, "Testing match: %lu ==> %s", tsNow, ctime(&tsNow));
+	ec_log_debug("Testing match: %lu ==> %s", tsNow, ctime(&tsNow));
         if(isOccurrenceValid(UTCToLocal(tsStart, ttZinfo), UTCToLocal(tsEnd, ttZinfo) , tsNow + getStartTimeOffset())) {
                 tsOccStart = LocalToUTC(tsNow + getStartTimeOffset(), ttZinfo);
                 tsOccEnd = LocalToUTC(tsNow + getEndTimeOffset(), ttZinfo);
-                lpLogger->Log(EC_LOGLEVEL_DEBUG, "Adding match: %lu ==> %s", tsOccStart, ctime(&tsOccStart));
+		ec_log_debug("Adding match: %lu ==> %s", tsOccStart, ctime(&tsOccStart));
                 AddValidOccr(tsOccStart, tsOccEnd, ulBusyStatus, lppOccrInfoAll, lpcValues);
                 return true;
         } else {
-                lpLogger->Log(EC_LOGLEVEL_DEBUG, "Skipping match: %lu ==> %s", tsNow, ctime(&tsNow));
+		ec_log_debug("Skipping match: %lu ==> %s", tsNow, ctime(&tsNow));
                 return false;
         }
 }
@@ -1518,7 +1523,6 @@ bool recurrence::CheckAddValidOccr(time_t tsNow, time_t tsStart, time_t tsEnd, E
  * Calculates occurrences of a recurrence between a specified period
  * @param[in]	tsStart			starting time of period
  * @param[in]	tsEnd			ending time of period
- * @param[in]	lpLogger		optional logger
  * @param[in]	ttZinfo			timezone struct of the recurrence
  * @param[in]	ulBusyStatus	freebusy status of the recurrence
  * @param[in]	last	        only return last occurrence (fast)
@@ -1527,10 +1531,11 @@ bool recurrence::CheckAddValidOccr(time_t tsNow, time_t tsStart, time_t tsEnd, E
  *
  * @return		HRESULT
  */
-HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd, ECLogger *lpLogger, TIMEZONE_STRUCT ttZinfo, ULONG ulBusyStatus, OccrInfo **lppOccrInfo, ULONG *lpcValues, bool last)
+HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd,
+    TIMEZONE_STRUCT ttZinfo, ULONG ulBusyStatus, OccrInfo **lppOccrInfo,
+    ULONG *lpcValues, bool last)
 {
 	HRESULT hr = 0;
-	ECLogger *lpNullLogger = new ECLogger_Null();
 	time_t tsNow = 0;
 	time_t tsDayNow = 0;
 	time_t tsOccStart = 0;
@@ -1545,9 +1550,6 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd, ECLogger *lpLogger,
 	std::vector<RecurrenceState::Exception> lstExceptions;
 	RecurrenceState::Exception lpException;
 
-	if (lpLogger == NULL)
-		lpLogger = lpNullLogger;
-
 	tsDayStart = getStartDate();
 
 	if(getEndType() == NEVER || tsEnd < getEndDateTime())
@@ -1557,12 +1559,10 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd, ECLogger *lpLogger,
 	
 	tsDayEnd = StartOfDay(UTCToLocal(tsRangeEnd, ttZinfo));
 
-	lpLogger->Log(EC_LOGLEVEL_DEBUG,"DURATION START TIME : %lu ==> %s", tsStart, ctime(&tsStart));
-	lpLogger->Log(EC_LOGLEVEL_DEBUG,"DURATIION END TIME : %lu ==> %s", tsEnd, ctime(&tsEnd));
-	
-	lpLogger->Log(EC_LOGLEVEL_DEBUG,"Rec Start TIME : %lu ==> %s", tsDayStart, ctime(&tsDayStart));
-	lpLogger->Log(EC_LOGLEVEL_DEBUG,"Rec End TIME : %lu ==> %s", tsDayEnd, ctime(&tsDayEnd));
-	
+	ec_log_debug("DURATION START TIME: %lu ==> %s", tsStart, ctime(&tsStart));
+	ec_log_debug("DURATIION END TIME: %lu ==> %s", tsEnd, ctime(&tsEnd));
+	ec_log_debug("Rec Start TIME: %lu ==> %s", tsDayStart, ctime(&tsDayStart));
+	ec_log_debug("Rec End TIME: %lu ==> %s", tsDayEnd, ctime(&tsDayEnd));
 	switch (getFrequency())
 	{
 	case DAILY:
@@ -1573,13 +1573,13 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd, ECLogger *lpLogger,
                         if (last) {
                                 remainder = (tsDayEnd-tsDayStart) % (m_sRecState.ulPeriod * 60);
                                 for(tsNow = tsDayEnd-remainder; tsNow >= tsDayStart; tsNow -= m_sRecState.ulPeriod * 60) {
-                                        if(CheckAddValidOccr(tsNow, tsStart, tsEnd, lpLogger, ttZinfo, ulBusyStatus, &lpOccrInfoAll, lpcValues)) {
+                                        if (CheckAddValidOccr(tsNow, tsStart, tsEnd, ttZinfo, ulBusyStatus, &lpOccrInfoAll, lpcValues)) {
                                             break;
                                         }
                                 }
                         } else {
                                 for(tsNow = tsDayStart ; tsNow <= tsDayEnd ; tsNow += (m_sRecState.ulPeriod *60)) { 
-                                        CheckAddValidOccr(tsNow, tsStart, tsEnd, lpLogger, ttZinfo, ulBusyStatus, &lpOccrInfoAll, lpcValues);
+					CheckAddValidOccr(tsNow, tsStart, tsEnd, ttZinfo, ulBusyStatus, &lpOccrInfoAll, lpcValues);
                                 }
                         }
 		} else {
@@ -1591,7 +1591,7 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd, ECLogger *lpLogger,
                                         gmtime_safe(&tsNow, &sTm);
 
                                         if(sTm.tm_wday > 0 && sTm.tm_wday < 6) {
-                                                if(CheckAddValidOccr(tsNow, tsStart, tsEnd, lpLogger, ttZinfo, ulBusyStatus, &lpOccrInfoAll, lpcValues)) {
+						if (CheckAddValidOccr(tsNow, tsStart, tsEnd, ttZinfo, ulBusyStatus, &lpOccrInfoAll, lpcValues)) {
                                                         break;
                                                 }
                                         }
@@ -1602,7 +1602,7 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd, ECLogger *lpLogger,
                                         gmtime_safe(&tsNow, &sTm);
                             
                                         if(sTm.tm_wday > 0 && sTm.tm_wday < 6)
-                                                CheckAddValidOccr(tsNow, tsStart, tsEnd, lpLogger, ttZinfo, ulBusyStatus, &lpOccrInfoAll, lpcValues);
+						CheckAddValidOccr(tsNow, tsStart, tsEnd, ttZinfo, ulBusyStatus, &lpOccrInfoAll, lpcValues);
                                         }
                                 }
 			}
@@ -1621,11 +1621,11 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd, ECLogger *lpLogger,
                                         ULONG ulWday = 0;
                     
                                         tsDayNow = tsNow + i * 1440 * 60; // 60 * 60 * 24 = 1440
-                                        lpLogger->Log(EC_LOGLEVEL_DEBUG,"Checking for weekly tsDayNow : %s", ctime(&tsDayNow));
+					ec_log_debug("Checking for weekly tsDayNow: %s", ctime(&tsDayNow));
                                         ulWday = WeekDayFromTime(tsDayNow);
                     
                                         if(m_sRecState.ulWeekDays & (1 << ulWday)) {
-                                                if(CheckAddValidOccr(tsDayNow, tsStart, tsEnd, lpLogger, ttZinfo, ulBusyStatus, &lpOccrInfoAll, lpcValues)) {
+						if (CheckAddValidOccr(tsDayNow, tsStart, tsEnd, ttZinfo, ulBusyStatus, &lpOccrInfoAll, lpcValues)) {
                                                         found=true;
                                                         break;
                                                 }
@@ -1642,11 +1642,11 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd, ECLogger *lpLogger,
                                         ULONG ulWday = 0;
                             
                                         tsDayNow = tsNow + i * 1440 * 60; // 60 * 60 * 24 = 1440
-                                        lpLogger->Log(EC_LOGLEVEL_DEBUG,"Checking for weekly tsDayNow : %s", ctime(&tsDayNow));
+					ec_log_debug("Checking for weekly tsDayNow: %s", ctime(&tsDayNow));
                                         ulWday = WeekDayFromTime(tsDayNow);
                             
                                         if(m_sRecState.ulWeekDays & (1 << ulWday)) {
-                                                CheckAddValidOccr(tsDayNow, tsStart, tsEnd, lpLogger, ttZinfo, ulBusyStatus, &lpOccrInfoAll, lpcValues);
+						CheckAddValidOccr(tsDayNow, tsStart, tsEnd, ttZinfo, ulBusyStatus, &lpOccrInfoAll, lpcValues);
                                         }
                                 }
                         }            
@@ -1658,8 +1658,7 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd, ECLogger *lpLogger,
 			m_sRecState.ulPeriod = 1;
 		
 		tsNow = StartOfMonth(tsDayStart);
-		lpLogger->Log(EC_LOGLEVEL_DEBUG, "Monthly Recurrence");
-
+		ec_log_debug("Monthly Recurrence");
 		while(tsNow < tsDayEnd) {
 			ULONG ulDiffrence = 0;
 			ULONG ulDaysOfMonths = 0;
@@ -1718,9 +1717,7 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd, ECLogger *lpLogger,
 		if(m_sRecState.ulPeriod <= 0)
 			m_sRecState.ulPeriod = 12;
 		tsNow = StartOfYear(tsDayStart);
-		
-		lpLogger->Log(EC_LOGLEVEL_DEBUG, "Recurrence Type Yearly");
-
+		ec_log_debug("Recurrence Type Yearly");
 		while(tsNow < tsDayEnd) {
 
 			ULONG ulMonthDay = 0;
@@ -1741,7 +1738,7 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd, ECLogger *lpLogger,
 			} else if( m_sRecState.ulWeekNumber != 0 && m_sRecState.ulWeekDays != 0) {
 				
 				tsMonthNow = tsNow + DaysTillMonth(tsNow, getMonth()-1) * 24 * 60 * 60;
-				lpLogger->Log(EC_LOGLEVEL_DEBUG, "Checking yearly nth Weekday Occrrence ulMonthNow: %s",ctime(&tsMonthNow));		
+				ec_log_debug("Checking yearly nth Weekday Occrrence ulMonthNow: %s", ctime(&tsMonthNow));
 				for (int ulDay = 0; ulDay < 7; ++ulDay) {
 
 					tsDayNow = tsMonthNow + ulDay * 60 * 60 * 24;
@@ -1783,7 +1780,7 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd, ECLogger *lpLogger,
 		RTimeToUnixTime(lpException.ulStartDateTime, &tsOccStart);	// tsOccStart == localtime
 		tsOccStart = LocalToUTC(tsOccStart, ttZinfo);
 		if(tsOccStart > tsEnd) {									// tsStart, tsEnd == gmtime
-			lpLogger->Log(EC_LOGLEVEL_DEBUG, "Skipping exception start match: %lu ==> %s", tsOccStart, ctime(&tsOccStart));
+			ec_log_debug("Skipping exception start match: %lu ==> %s", tsOccStart, ctime(&tsOccStart));
 			goto next;
 		}
 		UnixTimeToRTime(tsOccStart, &sOccrInfo.fbBlock.m_tmStart);	// gmtime in rtime, is this correct?
@@ -1792,7 +1789,7 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd, ECLogger *lpLogger,
 		RTimeToUnixTime(lpException.ulEndDateTime, &tsOccEnd);
 		tsOccEnd = LocalToUTC(tsOccEnd, ttZinfo);
 		if(tsOccEnd < tsStart) {
-			lpLogger->Log(EC_LOGLEVEL_DEBUG, "Skipping exception end match: %lu ==> %s", tsOccEnd, ctime(&tsOccEnd));
+			ec_log_debug("Skipping exception end match: %lu ==> %s", tsOccEnd, ctime(&tsOccEnd));
 			goto next;
 		}
 		UnixTimeToRTime(tsOccEnd, &sOccrInfo.fbBlock.m_tmEnd);
@@ -1802,18 +1799,13 @@ HRESULT recurrence::HrGetItems(time_t tsStart, time_t tsEnd, ECLogger *lpLogger,
 
 		// Freebusy status
 		RTimeToUnixTime(lpException.ulOriginalStartDate, &sOccrInfo.tBaseDate);
-
-		lpLogger->Log(EC_LOGLEVEL_DEBUG, "Adding exception match: %lu ==> %s", sOccrInfo.tBaseDate, ctime(&sOccrInfo.tBaseDate));
-
+		ec_log_debug("Adding exception match: %lu ==> %s", sOccrInfo.tBaseDate, ctime(&sOccrInfo.tBaseDate));
 		hr = HrAddFBBlock(sOccrInfo, &lpOccrInfoAll, lpcValues);
 next:
 		lstExceptions.pop_back();
 	}
 
 	*lppOccrInfo = lpOccrInfoAll;
-
-	lpNullLogger->Release();
-
 	return hr;
 }
 

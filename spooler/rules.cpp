@@ -387,7 +387,7 @@ static HRESULT CreateReplyCopy(LPMAPISESSION lpSession, LPMDB lpOrigStore,
 	if (parseBool(g_lpConfig->GetSetting("set_rule_headers", NULL, "yes"))) {
 		SPropValue sPropVal;
 
-		PROPMAP_START
+		PROPMAP_START(1)
 		PROPMAP_NAMED_ID(KopanoRuleAction, PT_UNICODE, PS_INTERNET_HEADERS, "x-kopano-rule-action")
 		PROPMAP_INIT(lpReplyMessage);
 
@@ -693,7 +693,7 @@ static HRESULT CreateForwardCopy(ECLogger *lpLogger, LPADRBOOK lpAdrBook,
 	}
 
 	if (parseBool(g_lpConfig->GetSetting("set_rule_headers", NULL, "yes"))) {
-		PROPMAP_START
+		PROPMAP_START(1)
 		PROPMAP_NAMED_ID(KopanoRuleAction, PT_UNICODE, PS_INTERNET_HEADERS, "x-kopano-rule-action")
 		PROPMAP_INIT(lpFwdMsg);
 
@@ -1045,7 +1045,7 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 
 				if(parseBool(g_lpConfig->GetSetting("no_double_forward"))) {
 					// Loop protection, when header 'x-kopano-rule-action' is added to the message it will stop to forward or redirect the message.
-					PROPMAP_START
+					PROPMAP_START(1)
 					PROPMAP_NAMED_ID(KopanoRuleAction, PT_UNICODE, PS_INTERNET_HEADERS, "x-kopano-rule-action")
 					PROPMAP_INIT( (*lppMessage) );
 

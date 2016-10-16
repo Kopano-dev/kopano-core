@@ -963,7 +963,7 @@ HRESULT IMAP::HrCmdLogin(const string &strTag, const string &strUser, const stri
 	m_strwUsername = strwUsername;
 
 	{
-		PROPMAP_START;
+		PROPMAP_START(1)
 		PROPMAP_NAMED_ID(ENVELOPE, PT_STRING8, PS_EC_IMAP, dispidIMAPEnvelope);
 		PROPMAP_INIT(lpStore);
 

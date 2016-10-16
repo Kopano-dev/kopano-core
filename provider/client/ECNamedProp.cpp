@@ -102,7 +102,7 @@ ECNamedProp::~ECNamedProp()
 		lpTransport->Release();
 }
 
-HRESULT ECNamedProp::GetNamesFromIDs(LPSPropTagArray FAR * lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG FAR * lpcPropNames, LPMAPINAMEID FAR * FAR * lpppPropNames)
+HRESULT ECNamedProp::GetNamesFromIDs(LPSPropTagArray *lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG *lpcPropNames, LPMAPINAMEID **lpppPropNames)
 {
 	HRESULT			hr = hrSuccess;
 	unsigned int	i = 0;
@@ -198,7 +198,7 @@ exit:
 	return hr;
 }
 
-HRESULT ECNamedProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID FAR * lppPropNames, ULONG ulFlags, LPSPropTagArray FAR * lppPropTags)
+HRESULT ECNamedProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropNames, ULONG ulFlags, LPSPropTagArray *lppPropTags)
 {
 	HRESULT			hr = hrSuccess;
 	unsigned int	i=0;

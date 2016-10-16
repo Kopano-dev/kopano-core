@@ -687,27 +687,17 @@ namespace PrivatePipe {
 		const char *p = NULL;
 		int s;
 		int l;
-		bool bNPTL = true;
-
-		confstr(_CS_GNU_LIBPTHREAD_VERSION, buffer, sizeof(buffer));
-		if (strncmp(buffer, "linuxthreads", strlen("linuxthreads")) == 0)
-			bNPTL = false;
 
 		m_lpConfig = lpConfig;
 		m_lpFileLogger = lpFileLogger;
 		m_lpFileLogger->AddRef();
 
-		if (bNPTL) {
-			sigemptyset(&signal_mask);
-			sigaddset(&signal_mask, SIGHUP);
-			sigaddset(&signal_mask, SIGPIPE);
-			pthread_sigmask(SIG_BLOCK, &signal_mask, NULL);
-			pthread_create(&signal_thread, NULL, signal_handler, NULL);
-			set_thread_name(signal_thread, "ECLogger:SigThrd");
-		} else {
-			signal(SIGHUP, sighup);
-			signal(SIGPIPE, sigpipe);
-		}
+		sigemptyset(&signal_mask);
+		sigaddset(&signal_mask, SIGHUP);
+		sigaddset(&signal_mask, SIGPIPE);
+		pthread_sigmask(SIG_BLOCK, &signal_mask, NULL);
+		pthread_create(&signal_thread, NULL, signal_handler, NULL);
+		set_thread_name(signal_thread, "ECLogger:SigThrd");
 		// ignore stop signals to keep logging until the very end
 		signal(SIGTERM, SIG_IGN);
 		signal(SIGINT, SIG_IGN);
@@ -766,13 +756,7 @@ namespace PrivatePipe {
 		}
 		// we need to stop fetching signals
 		kill(getpid(), SIGPIPE);
-
-		if (bNPTL) {
-			pthread_join(signal_thread, NULL);
-		} else {
-			signal(SIGHUP, SIG_DFL);
-			signal(SIGPIPE, SIG_DFL);
-		}
+		pthread_join(signal_thread, NULL);
 		m_lpFileLogger->Log(EC_LOGLEVEL_INFO, "[%5d] Log process is done", getpid());
 		m_lpFileLogger->Release();
 		return ret;

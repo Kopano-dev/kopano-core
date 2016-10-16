@@ -29,13 +29,22 @@
 #include <kopano/charset/convert.h>
 #include "SMIMEMessage.h"
 
+/**
+ * %MTV_SPOOL:	add X-Mailer headers on message
+ */
+enum {
+	MTV_NONE = 0,
+	MTV_SPOOL = 1 << 0,
+	MTV_SKIP_CONTENT = 1 << 1,
+};
+
 class MAPIToVMIME _kc_final {
 public:
 	MAPIToVMIME();
 	MAPIToVMIME(IMAPISession *, IAddrBook *, sending_options);
 	~MAPIToVMIME();
 
-	HRESULT convertMAPIToVMIME(IMessage *lpMessage, vmime::ref<vmime::message> *lpvmMessage);
+	HRESULT convertMAPIToVMIME(IMessage *in, vmime::ref<vmime::message> *out, unsigned int = MTV_NONE);
 	std::wstring getConversionError(void) const;
 
 private:
@@ -55,7 +64,7 @@ private:
 	HRESULT handleTextparts(IMessage* lpMessage, vmime::messageBuilder* lpVMMessageBuilder, eBestBody *bestBody);
 	HRESULT getMailBox(LPSRow lpRow, vmime::ref<vmime::address> *lpvmMailbox);
 	HRESULT processRecipients(IMessage* lpMessage, vmime::messageBuilder* lpVMMessageBuilder);
-	HRESULT handleExtraHeaders(IMessage *lpMessage, vmime::ref<vmime::header> vmHeader);
+	HRESULT handleExtraHeaders(IMessage *in, vmime::ref<vmime::header> out, unsigned int);
 	HRESULT handleReplyTo(IMessage* lpMessage, vmime::ref<vmime::header> vmHeader);
 	HRESULT handleContactEntryID(ULONG cValues, LPSPropValue lpProps, std::wstring &strName, std::wstring &strType, std::wstring &strEmail);
 	HRESULT handleSenderInfo(IMessage* lpMessage, vmime::ref<vmime::header> vmHeader);
@@ -64,11 +73,11 @@ private:
 	HRESULT handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, vmime::messageBuilder* lpVMMessageBuilder);
 	HRESULT parseMimeTypeFromFilename(std::wstring strFilename, vmime::mediaType *lpMT, bool *lpbSendBinary);
 	HRESULT setBoundaries(vmime::ref<vmime::header> vmHeader, vmime::ref<vmime::body> vmBody, const std::string& boundary);
-	HRESULT handleXHeaders(IMessage* lpMessage, vmime::ref<vmime::header> vmHeader);
+	HRESULT handleXHeaders(IMessage *in, vmime::ref<vmime::header> out, unsigned int);
 	HRESULT handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVMMessageBuilder, eBestBody bestBody);
 
 	// build Messages
-	HRESULT BuildNoteMessage(IMessage *lpMessage, bool bSkipContent, vmime::ref<vmime::message> *lpvmMessage);
+	HRESULT BuildNoteMessage(IMessage *in, vmime::ref<vmime::message> *out, unsigned int = MTV_NONE);
 	HRESULT BuildMDNMessage(IMessage *lpMessage, vmime::ref<vmime::message> *lpvmMessage);
 
 	// util

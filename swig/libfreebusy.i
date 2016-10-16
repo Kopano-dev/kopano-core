@@ -174,17 +174,3 @@ public:
         }        
 
 };
-
-
-
-%inline %{
-
-HRESULT HrPublishDefaultCalendar(IMAPISession *lpSession, IMsgStore *lpStore, time_t tsStart, ULONG ulMonths)
-{
-    return HrPublishDefaultCalendar(lpSession, lpStore, tsStart, ulMonths, NULL);
-}
-
-%}
-
-
-

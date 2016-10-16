@@ -467,7 +467,8 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 	return hrSuccess;
 }
 
-HRESULT ECExchangeExportChanges::Synchronize(ULONG FAR * lpulSteps, ULONG FAR * lpulProgress){
+HRESULT ECExchangeExportChanges::Synchronize(ULONG *lpulSteps, ULONG *lpulProgress)
+{
 	HRESULT			hr = hrSuccess;
 
 	if(!m_bConfiged){
@@ -708,7 +709,7 @@ DEF_HRMETHOD1(TRACE_MAPI, ECExchangeExportChanges, ECExportChanges, QueryInterfa
 DEF_HRMETHOD1(TRACE_MAPI, ECExchangeExportChanges, ECExportChanges, GetLastError, (HRESULT, hError), (ULONG, ulFlags), (LPMAPIERROR *, lppMapiError))
 DEF_HRMETHOD1(TRACE_MAPI, ECExchangeExportChanges, ECExportChanges, Config, (LPSTREAM, lpStream), (ULONG, ulFlags), (LPUNKNOWN, lpCollector), (LPSRestriction, lpRestriction), (LPSPropTagArray, lpIncludeProps), (LPSPropTagArray, lpExcludeProps), (ULONG, ulBufferSize))
 DEF_HRMETHOD1(TRACE_MAPI, ECExchangeExportChanges, ECExportChanges, ConfigSelective, (ULONG, ulPropTag), (LPENTRYLIST, lpEntries), (LPENTRYLIST, lpParents), (ULONG, ulFlags), (LPUNKNOWN, lpCollector), (LPSPropTagArray, lpIncludeProps), (LPSPropTagArray, lpExcludeProps), (ULONG, ulBufferSize))
-DEF_HRMETHOD1(TRACE_MAPI, ECExchangeExportChanges, ECExportChanges, Synchronize, (ULONG FAR *, pulSteps), (ULONG FAR *, pulProgress))
+DEF_HRMETHOD1(TRACE_MAPI, ECExchangeExportChanges, ECExportChanges, Synchronize, (ULONG *, pulSteps), (ULONG *, pulProgress))
 DEF_HRMETHOD1(TRACE_MAPI, ECExchangeExportChanges, ECExportChanges, UpdateState, (LPSTREAM, lpStream))
 DEF_HRMETHOD1(TRACE_MAPI, ECExchangeExportChanges, ECExportChanges, GetChangeCount, (ULONG *, lpcChanges))
 DEF_HRMETHOD1(TRACE_MAPI, ECExchangeExportChanges, ECExportChanges, SetMessageInterface, (REFIID, refiid))

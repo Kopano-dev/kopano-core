@@ -45,7 +45,7 @@
 #define TASKS_FOLDER	0x03
 
 //Performs login to the Kopano server and returns Session.
-HRESULT HrAuthenticate(ECLogger *const lpLogger, const std::string & appVersion, const std::string & appMisc, const std::wstring &wstrUser, const std::wstring &wstrPass, std::string strPath, IMAPISession **lpSession);
+extern HRESULT HrAuthenticate(const std::string &app_vers, const std::string &app_misc, const std::wstring &user, const std::wstring &pass, const std::string &path, IMAPISession **);
 
 //Adds property FolderID to the folder if not present else returns it.
 HRESULT HrAddProperty(IMsgStore *lpMsgStore, SBinary sbEid, ULONG ulPropertyId, bool bIsFldID, std::wstring *wstrProperty);
@@ -54,7 +54,7 @@ HRESULT HrAddProperty(IMsgStore *lpMsgStore, SBinary sbEid, ULONG ulPropertyId, 
 HRESULT HrAddProperty(IMAPIProp *lpMapiProp, ULONG ulPropertyId, bool bIsFldID, std::wstring *wstrProperty);
 
 //Finds folder from hierarchy table refering to the Folder ID, entryid or folder name
-HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder, LPSPropTagArray lpNamedProps, ECLogger *lpLogger, std::wstring wstrFldId,IMAPIFolder **lppUsrFld);
+extern HRESULT HrFindFolder(IMsgStore *, IMAPIFolder *root, SPropTagArray *lpNamedProps, const std::wstring &wstrFldId, IMAPIFolder **ufld);
 
 //Adds data to structure for acl request.
 HRESULT HrBuildACL(WEBDAVPROPERTY *lpsProperty);

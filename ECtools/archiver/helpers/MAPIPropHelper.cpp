@@ -60,8 +60,8 @@ HRESULT MAPIPropHelper::Create(MAPIPropPtr ptrMapiProp, MAPIPropHelperPtr *lpptr
 	return hrSuccess;
 }
 
-MAPIPropHelper::MAPIPropHelper(MAPIPropPtr ptrMapiProp)
-: m_ptrMapiProp(ptrMapiProp)
+MAPIPropHelper::MAPIPropHelper(MAPIPropPtr ptrMapiProp) :
+    m_ptrMapiProp(ptrMapiProp), __propmap(8)
 { }
 
 /**
@@ -605,7 +605,7 @@ HRESULT MAPIPropHelper::GetArchiveList(MAPIPropPtr ptrMapiProp, LPSPropValue lpP
 	LPSPropValue lpPropOrigSK = NULL;
 	LPSPropValue lpPropSourceKey = NULL;
 
-	PROPMAP_START
+	PROPMAP_START(3)
 		PROPMAP_NAMED_ID(ARCHIVE_STORE_ENTRYIDS, PT_MV_BINARY, PSETID_Archive, dispidStoreEntryIds)
 		PROPMAP_NAMED_ID(ARCHIVE_ITEM_ENTRYIDS, PT_MV_BINARY, PSETID_Archive, dispidItemEntryIds)
 		PROPMAP_NAMED_ID(ORIGINAL_SOURCEKEY, PT_BINARY, PSETID_Archive, dispidOrigSourceKey)

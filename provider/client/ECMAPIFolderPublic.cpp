@@ -431,7 +431,7 @@ HRESULT ECMAPIFolderPublic::SetProps(ULONG cValues, LPSPropValue lpPropArray, LP
 	return hrSuccess;
 }
 
-HRESULT ECMAPIFolderPublic::DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray FAR * lppProblems)
+HRESULT ECMAPIFolderPublic::DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray *lppProblems)
 {
 	HRESULT hr;
 

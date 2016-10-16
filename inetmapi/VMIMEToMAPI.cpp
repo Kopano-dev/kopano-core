@@ -22,7 +22,7 @@
 
 #include "VMIMEToMAPI.h"
 #include <kopano/ECGuid.h>
-
+#include <kopano/ECLogger.h>
 #include <algorithm>
 #include <string>
 #include <fstream>
@@ -3020,7 +3020,7 @@ HRESULT VMIMEToMAPI::postWriteFixups(IMessage *lpMessage)
 	ULONG cbConversationIndex = 0;
 	LPBYTE lpConversationIndex = NULL;
 
-	PROPMAP_START
+	PROPMAP_START(21)
 		PROPMAP_NAMED_ID(RECURRENCESTATE,			PT_BINARY,	PSETID_Appointment, dispidRecurrenceState)
 
 		PROPMAP_NAMED_ID(RESPONSESTATUS,			PT_LONG,	PSETID_Appointment, dispidResponseStatus)
@@ -3359,7 +3359,7 @@ HRESULT VMIMEToMAPI::createIMAPEnvelope(vmime::ref<vmime::message> vmMessage, IM
 	std::string buffer;
 	SPropValue sEnvelope;
 
-	PROPMAP_START;
+	PROPMAP_START(1)
 	PROPMAP_NAMED_ID(ENVELOPE, PT_STRING8, PS_EC_IMAP, dispidIMAPEnvelope);
 	PROPMAP_INIT(lpMessage);
 

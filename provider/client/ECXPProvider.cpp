@@ -139,4 +139,4 @@ DEF_HRMETHOD1(TRACE_MAPI, ECXPProvider, XPProvider, QueryInterface, (REFIID, ref
 DEF_ULONGMETHOD1(TRACE_MAPI, ECXPProvider, XPProvider, AddRef, (void))
 DEF_ULONGMETHOD1(TRACE_MAPI, ECXPProvider, XPProvider, Release, (void))
 DEF_HRMETHOD1(TRACE_MAPI, ECXPProvider, XPProvider, Shutdown, (ULONG *, lpulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ECXPProvider, XPProvider, TransportLogon, (LPMAPISUP, lpMAPISup), (ULONG, ulUIParam), (LPTSTR, lpszProfileName), (ULONG FAR *, lpulFlags), (LPMAPIERROR FAR *, lppMAPIError), (LPXPLOGON FAR *, lppXPLogon))
+DEF_HRMETHOD1(TRACE_MAPI, ECXPProvider, XPProvider, TransportLogon, (LPMAPISUP, lpMAPISup), (ULONG, ulUIParam), (LPTSTR, lpszProfileName), (ULONG *, lpulFlags), (LPMAPIERROR *, lppMAPIError), (LPXPLOGON *, lppXPLogon))

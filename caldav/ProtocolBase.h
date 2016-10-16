@@ -23,7 +23,7 @@
 
 class ProtocolBase {
 public:
-	ProtocolBase(Http *lpRequest, IMAPISession *lpSession, ECLogger *lpLogger, std::string strSrvTz, std::string strCharset);
+	ProtocolBase(Http *, IMAPISession *, const std::string &srv_tz, const std::string &charset);
 	virtual ~ProtocolBase();
 
 	HRESULT HrInitializeClass();
@@ -33,7 +33,6 @@ public:
 protected:
 	Http *m_lpRequest;
 	IMAPISession *m_lpSession;
-	ECLogger *m_lpLogger;
 	std::string m_strSrvTz;
 	std::string m_strCharset;
 

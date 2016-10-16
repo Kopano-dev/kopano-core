@@ -3397,10 +3397,10 @@ static void *HandlerLMTP(void *lpArg)
 				char timeStr[4096];
 				strftime(timeStr, sizeof timeStr, "%a, %d %b %Y %T %z (%Z)", tm);
 
-				fprintf(tmp, "Received: from %s (%s)\r\n\tby %s (kopano-spooler) with LMTP\r\n\tfor <%s>; %s\r\n",
+				fprintf(tmp, "Received: from %s (%s)\r\n\tby %s (kopano-dagent) with LMTP\r\n\tfor <%s>; %s\r\n",
 					heloName.c_str(), lpArgs->lpChannel->peer_addr(),
 					serverName.c_str(),
-					curFrom.c_str(),
+					strMailAddress.c_str(),
 					timeStr);
 
 				hr = lmtp.HrCommandDATA(tmp);

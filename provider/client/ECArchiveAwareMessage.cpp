@@ -63,7 +63,7 @@ HRESULT ECArchiveAwareMessageFactory::Create(ECMsgStore *lpMsgStore, BOOL fNew, 
 ECArchiveAwareMessage::ECArchiveAwareMessage(ECArchiveAwareMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFlags)
 : ECMessage(lpMsgStore, fNew, fModify, ulFlags, FALSE, NULL)
 , m_bLoading(false)
-, m_bNamedPropsMapped(false)
+, m_bNamedPropsMapped(false), __propmap(5)
 , m_mode(MODE_UNARCHIVED)
 , m_bChanged(false)
 {
@@ -239,7 +239,7 @@ HRESULT	ECArchiveAwareMessage::HrDeleteRealProp(ULONG ulPropTag, BOOL fOverwrite
 	return hr;
 }
 
-HRESULT ECArchiveAwareMessage::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN FAR * lppUnk)
+HRESULT ECArchiveAwareMessage::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk)
 {
 	HRESULT hr = hrSuccess;
 

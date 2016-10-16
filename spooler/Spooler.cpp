@@ -105,7 +105,6 @@ ECLogger *g_lpLogger = NULL;
 
 static pthread_t signal_thread;
 static sigset_t signal_mask;
-static bool bNPTL = true;
 
 // notification
 static bool bMessagesWaiting = false;
@@ -1213,19 +1212,6 @@ int main(int argc, char *argv[]) {
 	if (!TmpPath::getInstance() -> OverridePath(g_lpConfig))
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Ignoring invalid path-setting!");
 
-	// detect linuxthreads, which is too broken to correctly run the spooler
-	if (!bForked) {
-		char buffer[256] = { 0 };
-		confstr(_CS_GNU_LIBPTHREAD_VERSION, buffer, sizeof(buffer));
-
-		if (strncmp(buffer, "linuxthreads", strlen("linuxthreads")) == 0) {
-			bNPTL = false;
-			g_lpConfig->AddSetting("max_threads","1");
-			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: your system is running with outdated linuxthreads.");
-			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: the kopano-spooler will only be able to send one message at a time.");
-		}
-	}
-
 	// set socket filename
 	if (!szPath)
 		szPath = g_lpConfig->GetSetting("server_socket");
@@ -1294,21 +1280,12 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (!bForked) {
-		if (bNPTL) {
-			// valid for all threads afterwards
-			pthread_sigmask(SIG_BLOCK, &signal_mask, NULL);
-			// create signal handler thread, will handle all blocked signals
-			// must be done after the daemonize
-			pthread_create(&signal_thread, NULL, signal_handler, NULL);
-			set_thread_name(signal_thread, "SignalHandler");
-		} else {
-			// signal thread not possible, so register all signals separately
-			signal(SIGTERM, process_signal);
-			signal(SIGINT, process_signal);
-			signal(SIGCHLD, process_signal);
-			signal(SIGHUP, process_signal);
-			signal(SIGUSR2, process_signal);
-		}
+		// valid for all threads afterwards
+		pthread_sigmask(SIG_BLOCK, &signal_mask, NULL);
+		// create signal handler thread, will handle all blocked signals
+		// must be done after the daemonize
+		pthread_create(&signal_thread, NULL, signal_handler, NULL);
+		set_thread_name(signal_thread, "SignalHandler");
 	}
 
 	sc = new StatsClient(g_lpLogger);
@@ -1321,15 +1298,9 @@ int main(int argc, char *argv[]) {
 	delete sc;
 
 	if (!bForked) {
-		if (bNPTL) {
-			g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Joining signal thread");
-			pthread_join(signal_thread, NULL);
-			g_lpLogger->Log(EC_LOGLEVEL_INFO, "Spooler shutdown complete");
-		}
-		else {
-			// ignore the death of the pipe logger
-			signal(SIGCHLD, SIG_IGN);
-		}
+		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Joining signal thread");
+		pthread_join(signal_thread, NULL);
+		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Spooler shutdown complete");
 	}
 	MAPIUninitialize();
 

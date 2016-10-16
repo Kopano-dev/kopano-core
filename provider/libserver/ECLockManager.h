@@ -38,6 +38,7 @@ public:
 	ECObjectLock();
 	ECObjectLock(ECLockManagerPtr ptrLockManager, unsigned int ulObjId, ECSESSIONID sessionId);
 	ECObjectLock(const ECObjectLock &other);
+	ECObjectLock(ECObjectLock &&);
 
 	ECObjectLock& operator=(const ECObjectLock &other);
 	void swap(ECObjectLock &other);
@@ -45,8 +46,7 @@ public:
 	ECRESULT Unlock();
 
 private:
-	typedef std::shared_ptr<ECObjectLockImpl> ImplPtr;
-	ImplPtr	m_ptrImpl;
+	std::shared_ptr<ECObjectLockImpl> m_ptrImpl;
 };
 
 ///////////////////////
@@ -55,6 +55,8 @@ private:
 inline ECObjectLock::ECObjectLock() {}
 
 inline ECObjectLock::ECObjectLock(const ECObjectLock &other): m_ptrImpl(other.m_ptrImpl) {}
+
+inline ECObjectLock::ECObjectLock(ECObjectLock &&other) : m_ptrImpl(std::move(other.m_ptrImpl)) {}
 
 inline ECObjectLock& ECObjectLock::operator=(const ECObjectLock &other) {
 	if (&other != this) {

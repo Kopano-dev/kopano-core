@@ -33,7 +33,10 @@ using namespace std;
  * @return		HRESULT
  * @retval		MAPI_E_LOGON_FAILED		Unable to login with the specified user-name and password
  */
-HRESULT HrAuthenticate(ECLogger *const lpLogger, const std::string & appVersion, const std::string & appMisc, const std::wstring &wstrUser, const std::wstring &wstrPass, std::string strPath, IMAPISession **lppSession)
+HRESULT HrAuthenticate(const std::string &appVersion,
+    const std::string &appMisc, const std::wstring &wstrUser,
+    const std::wstring &wstrPass, const std::string &strPath,
+    IMAPISession **lppSession)
 {
 	// @todo: if login with utf8 username is not possible, lookup user from addressbook? but how?
 	return HrOpenECSession(lppSession, appVersion.c_str(), appMisc.c_str(),
@@ -133,7 +136,6 @@ exit:
  * @param[in]	lpMsgStore		Pointer to users store (used for inbox/outbox)
  * @param[in]	lpRootFolder	Pointer to users root container (starting point in hierarchy, IPMSubtree most likely)
  * @param[in]	lpNamedProps	Named property tag array
- * @param[in]	lpLogger		Pointer to ECLogger	object 
  * @param[in]	wstrFldId		Folder-id of the folder to be searched
  * @param[out]	lppUsrFld		Return pointer for the folder found
  *
@@ -142,7 +144,9 @@ exit:
  *
  * @todo	add some check to remove the dirty >50 length check
  */
-HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder, LPSPropTagArray lpNamedProps, ECLogger *lpLogger, std::wstring wstrFldId, IMAPIFolder **lppUsrFld)
+HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
+    SPropTagArray *lpNamedProps, const std::wstring &wstrFldIdOrig,
+    IMAPIFolder **lppUsrFld)
 {
 	HRESULT hr = hrSuccess;
 	std::string strBinEid;
@@ -160,6 +164,7 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder, LPSPropTa
 	LPENTRYID lpEntryID = NULL;
 	LPSPropValue lpOutbox = NULL;
 	SizedSPropTagArray(1, sPropTagArr) = {1, {PR_ENTRYID}};
+	auto wstrFldId = wstrFldIdOrig;
 
 	// wstrFldId can be:
 	//   FOLDER_PREFIX + hexed named folder id
@@ -173,13 +178,13 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder, LPSPropTa
 	if (wstrFldId.compare(L"Inbox") == 0) {
 		hr = lpMsgStore->GetReceiveFolder(const_cast<TCHAR *>(_T("IPM")), fMapiUnicode, &cbEntryID, &lpEntryID, NULL);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Cannot open Inbox Folder, no Receive Folder EntryID: 0x%08X", hr);
+			ec_log_err("Cannot open Inbox Folder, no Receive Folder EntryID: 0x%08X", hr);
 			goto exit;
 		}
 	} else if (wstrFldId.compare(L"Outbox") == 0) {
 		hr = HrGetOneProp(lpMsgStore, PR_IPM_OUTBOX_ENTRYID, &lpOutbox);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Cannot open Outbox Folder, no PR_IPM_OUTBOX_ENTRYID: 0x%08X", hr);
+			ec_log_err("Cannot open Outbox Folder, no PR_IPM_OUTBOX_ENTRYID: 0x%08X", hr);
 			goto exit;
 		}
 		cbEntryID = lpOutbox->Value.bin.cb;
@@ -188,7 +193,7 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder, LPSPropTa
 	if (cbEntryID && lpEntryID) {
 		hr = lpMsgStore->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, MAPI_BEST_ACCESS, &ulObjType, (LPUNKNOWN*)lppUsrFld);
 		if (hr != hrSuccess)
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Cannot open %ls Folder: 0x%08X", wstrFldId.c_str(), hr);
+			ec_log_err("Cannot open %ls Folder: 0x%08X", wstrFldId.c_str(), hr);
 		// we're done either way
 		goto exit;
 	}

@@ -46,7 +46,7 @@ public:
 	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
 	virtual HRESULT Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKNOWN lpCollector, LPSRestriction lpRestriction, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize);
 	virtual HRESULT ConfigSelective(ULONG ulPropTag, LPENTRYLIST lpEntries, LPENTRYLIST lpParents, ULONG ulFlags, LPUNKNOWN lpCollector, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize);
-	virtual HRESULT Synchronize(ULONG FAR * pulSteps, ULONG FAR * pulProgress);
+	virtual HRESULT Synchronize(ULONG *pulSteps, ULONG *pulProgress);
 	virtual HRESULT UpdateState(LPSTREAM lpStream);
 	
 	virtual HRESULT GetChangeCount(ULONG *lpcChanges);
@@ -66,7 +66,7 @@ private:
 		// IExchangeExportChanges
 		virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
 		virtual HRESULT __stdcall Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKNOWN lpCollector, LPSRestriction lpRestriction, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize);
-		virtual HRESULT __stdcall Synchronize(ULONG FAR * pulSteps, ULONG FAR * pulProgress);
+		virtual HRESULT __stdcall Synchronize(ULONG *pulSteps, ULONG *pulProgress);
 		virtual HRESULT __stdcall UpdateState(LPSTREAM lpStream);
 
 		virtual HRESULT __stdcall ConfigSelective(ULONG ulPropTag, LPENTRYLIST lpEntries, LPENTRYLIST lpParents, ULONG ulFlags, LPUNKNOWN lpCollector, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize) _zcp_override;
