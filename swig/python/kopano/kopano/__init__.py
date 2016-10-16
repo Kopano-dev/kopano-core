@@ -4199,6 +4199,12 @@ def _parse_date(option, opt_str, value, parser):
 def _parse_loglevel(option, opt_str, value, parser):
     setattr(parser.values, option.dest, value.upper())
 
+def _parse_str(option, opt_str, value, parser):
+    setattr(parser.values, option.dest, _decode(value))
+
+def _parse_list_str(option, opt_str, value, parser):
+    getattr(parser.values, option.dest).append(_decode(value))
+
 def parser(options='cskpUPufmvCSlbe', usage=None):
     """
 Return OptionParser instance from the standard ``optparse`` module, containing common kopano command-line options
@@ -4248,21 +4254,25 @@ Available options:
 
     parser = optparse.OptionParser(formatter=optparse.IndentedHelpFormatter(max_help_position=42), usage=usage)
 
-    if 'c' in options: parser.add_option('-c', '--config', dest='config_file', help='load settings from FILE', metavar='FILE')
+    kw_str = {'type': 'str', 'action': 'callback', 'callback': _parse_str}
+    kw_date = {'type': 'str', 'action': 'callback', 'callback': _parse_date}
+    kw_list_str = {'type': 'str', 'action': 'callback', 'callback': _parse_list_str}
 
-    if 's' in options: parser.add_option('-s', '--server-socket', dest='server_socket', help='connect to server SOCKET', metavar='SOCKET')
-    if 'k' in options: parser.add_option('-k', '--ssl-key', dest='sslkey_file', help='SSL key file', metavar='FILE')
-    if 'p' in options: parser.add_option('-p', '--ssl-pass', dest='sslkey_pass', help='SSL key password', metavar='PASS')
-    if 'U' in options: parser.add_option('-U', '--auth-user', dest='auth_user', help='login as user', metavar='NAME')
-    if 'P' in options: parser.add_option('-P', '--auth-pass', dest='auth_pass', help='login with password', metavar='PASS')
+    if 'c' in options: parser.add_option('-c', '--config', dest='config_file', help='load settings from FILE', metavar='FILE', **kw_str)
 
-    if 'C' in options: parser.add_option('-C', '--company', dest='companies', action='append', default=[], help='run program for specific company', metavar='NAME')
-    if 'u' in options: parser.add_option('-u', '--user', dest='users', action='append', default=[], help='run program for specific user', metavar='NAME')
-    if 'S' in options: parser.add_option('-S', '--store', dest='stores', action='append', default=[], help='run program for specific store', metavar='GUID')
-    if 'f' in options: parser.add_option('-f', '--folder', dest='folders', action='append', default=[], help='run program for specific folder', metavar='NAME')
+    if 's' in options: parser.add_option('-s', '--server-socket', dest='server_socket', help='connect to server SOCKET', metavar='SOCKET', **kw_str)
+    if 'k' in options: parser.add_option('-k', '--ssl-key', dest='sslkey_file', help='SSL key file', metavar='FILE', **kw_str)
+    if 'p' in options: parser.add_option('-p', '--ssl-pass', dest='sslkey_pass', help='SSL key password', metavar='PASS', **kw_str)
+    if 'U' in options: parser.add_option('-U', '--auth-user', dest='auth_user', help='login as user', metavar='NAME', **kw_str)
+    if 'P' in options: parser.add_option('-P', '--auth-pass', dest='auth_pass', help='login with password', metavar='PASS', **kw_str)
 
-    if 'b' in options: parser.add_option('-b', '--period-begin', dest='period_begin', action='callback', help='run program for specific period', callback=_parse_date, metavar='DATE', type='str')
-    if 'e' in options: parser.add_option('-e', '--period-end', dest='period_end', action='callback', help='run program for specific period', callback=_parse_date, metavar='DATE', type='str')
+    if 'C' in options: parser.add_option('-C', '--company', dest='companies', default=[], help='run program for specific company', metavar='NAME', **kw_list_str)
+    if 'u' in options: parser.add_option('-u', '--user', dest='users', default=[], help='run program for specific user', metavar='NAME', **kw_list_str)
+    if 'S' in options: parser.add_option('-S', '--store', dest='stores', default=[], help='run program for specific store', metavar='GUID', **kw_list_str)
+    if 'f' in options: parser.add_option('-f', '--folder', dest='folders', default=[], help='run program for specific folder', metavar='NAME', **kw_list_str)
+
+    if 'b' in options: parser.add_option('-b', '--period-begin', dest='period_begin', help='run program for specific period', metavar='DATE', **kw_date)
+    if 'e' in options: parser.add_option('-e', '--period-end', dest='period_end', help='run program for specific period', metavar='DATE', **kw_date)
 
     if 'F' in options: parser.add_option('-F', '--foreground', dest='foreground', action='store_true', help='run program in foreground')
 
@@ -4273,8 +4283,8 @@ Available options:
 
     if 'w' in options: parser.add_option('-w', '--worker-processes', dest='worker_processes', help='number of parallel worker processes', metavar='N', type='int')
 
-    if 'I' in options: parser.add_option('-I', '--input-dir', dest='input_dir', help='specify input directory', metavar='PATH')
-    if 'O' in options: parser.add_option('-O', '--output-dir', dest='output_dir', help='specify output directory', metavar='PATH')
+    if 'I' in options: parser.add_option('-I', '--input-dir', dest='input_dir', help='specify input directory', metavar='PATH', **kw_str)
+    if 'O' in options: parser.add_option('-O', '--output-dir', dest='output_dir', help='specify output directory', metavar='PATH', **kw_str)
 
     return parser
 
@@ -4584,7 +4594,8 @@ Encapsulates everything to create a simple service, such as:
         self.name = name
         self.__dict__.update(kwargs)
         if not options:
-            options, args = parser('cskpUPufmvVFw').parse_args() # XXX store args?
+            options, args = parser('cskpUPufmvVFw').parse_args()
+            args = [_decode(arg) for arg in args]
         self.options, self.args = options, args
         self.name = name
         self.logname = logname
