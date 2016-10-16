@@ -52,7 +52,7 @@ bool entryid_t::unwrap(std::string *lpstrPath)
 		return false;
 	
 	auto iter = std::find(m_vEntryId.begin(), m_vEntryId.end(), 0);
-	if (iter == m_vEntryId.cend())
+	if (iter == m_vEntryId.end())
 		return false;
 		
 	if (lpstrPath)
