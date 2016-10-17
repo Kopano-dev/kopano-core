@@ -918,11 +918,9 @@ static void process_signal(int sig)
 	}
 
 	case SIGHUP:
-		if (g_lpConfig) {
-			if (!g_lpConfig->ReloadSettings() && g_lpLogger)
-				g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to reload configuration file, continuing with current settings.");
-		}
-
+		if (g_lpConfig != nullptr && !g_lpConfig->ReloadSettings() &&
+		    g_lpLogger != nullptr)
+			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to reload configuration file, continuing with current settings.");
 		if (g_lpLogger) {
 			if (g_lpConfig) {
 				const char *ll = g_lpConfig->GetSetting("log_level");
