@@ -43,7 +43,7 @@ bin_PROGRAMS = kopano-fsck kopano-passwd kopano-stats
 dist_bin_SCRIPTS = ECtools/utils/kopano-set-oof
 sbin_PROGRAMS = \
 	kopano-admin kopano-archiver kopano-dagent kopano-gateway kopano-ical \
-	kopano-monitor kopano-server kopano-spooler
+	kopano-monitor kopano-pst-import kopano-server kopano-spooler
 dist_sbin_SCRIPTS = ECtools/utils/kopano-mailbox-permissions \
 	ECtools/archiver/scripts/kopano-archiver-aclset \
 	ECtools/archiver/scripts/kopano-archiver-aclsync \
@@ -205,6 +205,13 @@ kopano_monitor_LDADD = libmapi.la libkcmapi.la libkcutil.la ${PROG_LIBS}
 #
 kopano_passwd_SOURCES = ECtools/passwd/passwd.cpp
 kopano_passwd_LDADD = libmapi.la libkcmapi.la libkcutil.la ${PROG_LIBS}
+
+
+#
+# kopano-pst-import
+#
+kopano_pst_import_SOURCES = ECtools/pst-import/import.cpp
+kopano_pst_import_LDADD = libkcmapi.la libkcutil.la libmapi.la ${pff_LIBS}
 
 
 #

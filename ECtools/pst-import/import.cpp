@@ -370,7 +370,7 @@ HRESULT dump_folder(libpff_file_t *file, libpff_item_t *item, IMAPIFolder *lpFol
     wcerr << "Processing folder " << wstrDisplay << endl;
     
     HRESULT hr = lpFolder->CreateFolder(FOLDER_GENERIC,
-                 reinterpret_cast<TCHAR *>(wstrDisplay.c_str()),
+                 reinterpret_cast<TCHAR *>(const_cast<wchar_t *>(wstrDisplay.c_str())),
                  reinterpret_cast<TCHAR *>(const_cast<wchar_t *>(L"")),
                  &IID_IMAPIFolder, MAPI_UNICODE | OPEN_IF_EXISTS, &lpSubFolder);
     if(hr != hrSuccess) {
@@ -504,7 +504,7 @@ int main(int argc, char *argv[]) {
             return 1;
         }
 
-        hr = HrOpenECSession(ec_log_get(), &lpSession, "PST importer", PROJECT_SVN_REV_STR, convert_to<std::wstring>(username).c_str(), L"", "default:");
+        hr = HrOpenECSession(&lpSession, "PST importer", PROJECT_SVN_REV_STR, convert_to<std::wstring>(username).c_str(), L"", "default:");
         if(hr != hrSuccess) {
             wcerr << "Unable to open MAPI session\n";
             return 1;

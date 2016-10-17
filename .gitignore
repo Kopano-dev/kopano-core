@@ -38,6 +38,7 @@ stamp-h2
 /kopano-ical
 /kopano-monitor
 /kopano-passwd
+/kopano-pst-import
 /kopano-server
 /kopano-spooler
 /kopano-stats
