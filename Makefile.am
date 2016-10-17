@@ -43,7 +43,10 @@ bin_PROGRAMS = kopano-fsck kopano-passwd kopano-stats
 dist_bin_SCRIPTS = ECtools/utils/kopano-set-oof
 sbin_PROGRAMS = \
 	kopano-admin kopano-archiver kopano-dagent kopano-gateway kopano-ical \
-	kopano-monitor kopano-pst-import kopano-server kopano-spooler
+	kopano-monitor kopano-server kopano-spooler
+if HAVE_LIBPFF
+sbin_PROGRAMS += kopano-pst-import
+endif
 dist_sbin_SCRIPTS = ECtools/utils/kopano-mailbox-permissions \
 	ECtools/archiver/scripts/kopano-archiver-aclset \
 	ECtools/archiver/scripts/kopano-archiver-aclsync \
