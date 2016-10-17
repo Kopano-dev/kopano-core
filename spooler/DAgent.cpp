@@ -1006,12 +1006,11 @@ static HRESULT ResolveServerToPath(IMAPISession *lpSession,
 
 	lpSrvNameList->cServers = 0;
 	for (const auto &iter : *lpServerNameRecips) {
-		if (iter.first.empty()) {
+		if (iter.first.empty())
 			// recipient doesn't have a home server.
 			// don't try to resolve since that will break the GetServerDetails call
 			// and thus fail all recipients, not just this one
 			continue;
-		}
 
 		hr = MAPIAllocateMore((iter.first.size() + 1) * sizeof(wchar_t),
 		     lpSrvNameList, reinterpret_cast<LPVOID *>(&lpSrvNameList->lpszaServer[lpSrvNameList->cServers]));
@@ -1559,9 +1558,8 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 	}
 
 	// Possibly override default subject
-	if (lpStoreProps[2].ulPropTag == PR_EC_OUTOFOFFICE_SUBJECT_W) {
+	if (lpStoreProps[2].ulPropTag == PR_EC_OUTOFOFFICE_SUBJECT_W)
 		szSubject = lpStoreProps[2].Value.lpszW;
-	}
 
 	hr = lpMessage->GetProps(sptaMessageProps, 0, &cValues, &lpMessageProps);
 	if (FAILED(hr)) {
@@ -1654,12 +1652,11 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 		goto exit;
 	}
 
-	if (lpMessageProps[3].ulPropTag == PR_SUBJECT_W) {
+	if (lpMessageProps[3].ulPropTag == PR_SUBJECT_W)
 		// convert as one string because of [] characters
 		swprintf(szwHeader, PATH_MAX, L"%ls [%ls]", szSubject, lpMessageProps[3].Value.lpszW);
-	} else {
+	else
 		swprintf(szwHeader, PATH_MAX, L"%ls", szSubject);
-	}
 	quoted = ToQuotedBase64Header(szwHeader);
 	snprintf(szHeader, PATH_MAX, "\nSubject: %s", quoted.c_str());
 	hr = WriteOrLogError(fd, szHeader, strlen(szHeader));
@@ -2422,10 +2419,8 @@ static HRESULT HrPostDeliveryProcessing(PyMapiPlugin *lppyMapiPlugin,
 	// do not send vacation message for junk messages
 	if (lpArgs->ulDeliveryMode != DM_JUNK &&
 	// do not send vacation message on delegated messages
-		(HrGetOneProp(*lppMessage, PR_DELEGATED_BY_RULE, &ptrProp) != hrSuccess || ptrProp->Value.b == FALSE) )
-	{
+	    (HrGetOneProp(*lppMessage, PR_DELEGATED_BY_RULE, &ptrProp) != hrSuccess || ptrProp->Value.b == FALSE))
 		SendOutOfOffice(lpAdrBook, lpStore, *lppMessage, lpRecip, lpArgs->strAutorespond);
-	}
 exit:
 	if (lpUserSession)
 		lpUserSession->Release();
@@ -2643,11 +2638,11 @@ static HRESULT ProcessDeliveryToRecipient(PyMapiPlugin *lppyMapiPlugin,
 		// Save message changes, message becomes visible for the user
 		hr = lpDeliveryMessage->SaveChanges(KEEP_OPEN_READWRITE);
 		if (hr != hrSuccess) {
-			if (hr == MAPI_E_STORE_FULL) {
+			if (hr == MAPI_E_STORE_FULL)
 				// make sure the error is printed on stderr, so this will be bounced as error by the MTA.
 				// use cerr to avoid quiet mode.
 				fprintf(stderr, "Store of user %ls is over quota limit.\n", lpRecip->wstrUsername.c_str());
-			} else
+			else
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to commit message: 0x%08X", hr);
 			goto exit;
 		}
@@ -2865,22 +2860,18 @@ static HRESULT ProcessDeliveryToServer(PyMapiPlugin *lppyMapiPlugin,
 		}
 
 		if (lpMessageTmp) {
-			if (lpOrigMessage == NULL) {
+			if (lpOrigMessage == NULL)
 				// If we delivered the message for the first time,
 				// we keep the intermediate message to make copies of.
 				lpMessageTmp->QueryInterface(IID_IMessage, (void**)&lpOrigMessage);
-			}
 			bFallbackDelivery = bFallbackDeliveryTmp;
 
 			lpMessageTmp->Release();
 		}
 		lpMessageTmp = NULL;
 	}
-
-	if (lppMessage && lpOrigMessage) {
+	if (lppMessage != nullptr && lpOrigMessage)
 		lpOrigMessage->QueryInterface(IID_IMessage, (void**)lppMessage);
-	}
-
 	if (lpbFallbackDelivery)
 		*lpbFallbackDelivery = bFallbackDelivery;
 
@@ -3017,10 +3008,9 @@ static HRESULT ProcessDeliveryToCompany(PyMapiPlugin *lppyMapiPlugin,
 
 		/* lpMessage is our base message which we will copy to each server/recipient */
 		if (lpMessageTmp) {
-			if (lpMasterMessage == NULL) {
+			if (lpMasterMessage == NULL)
 				// keep message to make copies of on the same server
 				lpMessageTmp->QueryInterface(IID_IMessage, (void**)&lpMasterMessage);
-			}
 			bFallbackDelivery = bFallbackDeliveryTmp;
 			lpMessageTmp->Release();
 		}
@@ -3526,10 +3516,8 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
     memset(&act, 0, sizeof(act));
 
 	nMaxThreads = atoui(g_lpConfig->GetSetting("lmtp_max_threads"));
-	if (nMaxThreads == 0 || nMaxThreads == INT_MAX) {
+	if (nMaxThreads == 0 || nMaxThreads == INT_MAX)
 		nMaxThreads = 20;
-	}
-
 	g_lpLogger->Log(EC_LOGLEVEL_INFO, "Maximum LMTP threads set to %d", nMaxThreads);
 	// Setup sockets
 	hr = HrListen(g_lpConfig->GetSetting("server_bind"),
@@ -3574,10 +3562,8 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 	file_limit.rlim_cur = FD_SETSIZE;
 	file_limit.rlim_max = FD_SETSIZE;
 
-	if(setrlimit(RLIMIT_NOFILE, &file_limit) < 0) {
+	if (setrlimit(RLIMIT_NOFILE, &file_limit) < 0)
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "WARNING: setrlimit(RLIMIT_NOFILE, %d) failed, you will only be able to connect up to %d sockets. Either start the process as root, or increase user limits for open file descriptors (%s)", FD_SETSIZE, getdtablesize(), strerror(errno));
-	}
-
 	if (parseBool(g_lpConfig->GetSetting("coredump_enabled")))
 		unix_coredump_enable();
 
@@ -3654,10 +3640,9 @@ static HRESULT running_service(const char *servicename, bool bDaemonize,
 
 			sc -> countInc("DAgent", "incoming_session");
 
-			if (unix_fork_function(HandlerLMTP, lpDeliveryArgs, nCloseFDs, pCloseFDs) < 0) {
+			if (unix_fork_function(HandlerLMTP, lpDeliveryArgs, nCloseFDs, pCloseFDs) < 0)
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Can't create LMTP process.");
 				// just keep running
-			}
 			// main handler always closes information it doesn't need
 			delete lpDeliveryArgs;
 			hr = hrSuccess;
@@ -3733,10 +3718,9 @@ static HRESULT deliver_recipient(PyMapiPlugin *lppyMapiPlugin,
 	}
 
 	strUsername = recipient;
-	if (bStringEmail) {
+	if (bStringEmail)
 		// we have to strip off the @domainname.tld to get the username
 		strUsername = strUsername.substr(0, strUsername.find_first_of("@"));
-	}
 
 	lpSingleRecip = new ECRecipient(convert_to<wstring>(strUsername));
 	
@@ -3792,14 +3776,13 @@ static HRESULT deliver_recipient(PyMapiPlugin *lppyMapiPlugin,
 	hr = HrGetSession(lpArgs, lpSingleRecip->wstrUsername.c_str(), &lpSession);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "deliver_recipient(): HrGetSession failed %x", hr);
-		if (hr == MAPI_E_LOGON_FAILED) {
+		if (hr == MAPI_E_LOGON_FAILED)
 			// This is a hard failure, two things could have happened
 			// * strUsername does not exist
 			// * user does exist, but dagent is not running with the correct SYSTEM privileges, or user doesn't have a store
 			// Since we cannot detect the difference, we're handling both of these situations
 			// as hard errors
 			g_bTempfail = false;
-		}
 		goto exit;
 	}
 	
@@ -4093,14 +4076,13 @@ int main(int argc, char *argv[]) {
 
 			// ParseParams always return true.
 			g_lpConfig->ParseParams(argc - optind, &argv[optind], &argidx);
-			if (argidx > 0) {
+			if (argidx > 0)
 				// If one overrides the config, it is assumed that the
 				// config is explicit. This causes errors from
 				// ECConfig::ParseParams to be logged. Besides that
 				// it doesn't make sense to override your config if
 				// you don't know whats in it.
 				bExplicitConfig = true;
-			}
 
 			// ECConfig::ParseParams returns the index in the passed array,
 			// after some shuffling, where it stopped parsing. optind is

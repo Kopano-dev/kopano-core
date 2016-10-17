@@ -598,10 +598,9 @@ static HRESULT ProcessAllEntries(IMAPISession *lpAdminSession,
 			time_t sendat;
 			
 			FileTimeToUnixTime(lpsRowSet->aRow[0].lpProps[4].Value.ft, &sendat);
-			if (now < sendat) {
+			if (now < sendat)
 				// if we ever add logging here, it should trigger just once for this mail
 				continue;
-			}
 		}
 
 		// Check whether the row contains the entryid and store id

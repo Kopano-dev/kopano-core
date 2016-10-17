@@ -542,9 +542,8 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 			strFaxMail = lpFaxNumbers[lpContabEntryID->email_offset].Value.lpszA;
 		}
 		strFaxMail += string("@") + lpszFaxDomain;
-		if (strFaxMail[0] == '+' && lpszFaxInternational) {
+		if (strFaxMail[0] == '+' && lpszFaxInternational != nullptr)
 			strFaxMail = lpszFaxInternational + strFaxMail.substr(1, strFaxMail.length());
-		}
 
 		wstrFaxMail = convert_to<wstring>(strFaxMail);
 		wstrOldFaxMail = lpEmailAddress->Value.lpszW; // keep old string for logging
@@ -1658,17 +1657,16 @@ static HRESULT HrFindUserInGroup(LPADRBOOK lpAdrBook, ULONG ulOwnerCB,
 		if (lpRowSet->aRow[0].lpProps[0].ulPropTag != PR_ENTRYID || lpRowSet->aRow[0].lpProps[1].ulPropTag != PR_OBJECT_TYPE)
 			continue;
 
-		if (lpRowSet->aRow[0].lpProps[1].Value.ul == MAPI_MAILUSER) {
+		if (lpRowSet->aRow[0].lpProps[1].Value.ul == MAPI_MAILUSER)
 			hr = lpAdrBook->CompareEntryIDs(ulOwnerCB, lpOwnerEID,
 			     lpRowSet->aRow[0].lpProps[0].Value.bin.cb, (LPENTRYID)lpRowSet->aRow[0].lpProps[0].Value.bin.lpb,
 			     0, &ulCmp);
-		} else if (lpRowSet->aRow[0].lpProps[1].Value.ul == MAPI_DISTLIST) {
+		else if (lpRowSet->aRow[0].lpProps[1].Value.ul == MAPI_DISTLIST)
 			hr = HrFindUserInGroup(lpAdrBook, ulOwnerCB, lpOwnerEID, 
 			     lpRowSet->aRow[0].lpProps[0].Value.bin.cb, (LPENTRYID)lpRowSet->aRow[0].lpProps[0].Value.bin.lpb,
 			     &ulCmp, level+1);
-		} else {
-			// unknown row
-		}
+		else
+			/* unknown row */;
 		if (hr == hrSuccess && ulCmp == TRUE)
 			break;
 	}
@@ -1904,23 +1902,18 @@ static HRESULT CheckSendAs(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 	}
 
 	bHasStore = (lpRepresentProps[2].Value.l == DT_MAILUSER);
-
-	if (lpRepresentProps[1].ulPropTag != PR_EC_SENDAS_USER_ENTRYIDS) {
+	if (lpRepresentProps[1].ulPropTag != PR_EC_SENDAS_USER_ENTRYIDS)
 		// No sendas, therefore no sendas permissions, but we don't fail
-		goto exit;
-	}
 
 	hr = HrCheckAllowedEntryIDArray("sendas",
 	     lpRepresentProps[0].ulPropTag == PR_DISPLAY_NAME_W ? lpRepresentProps[0].Value.lpszW : L"<no name>",
 	     lpAddrBook, ulOwnerCB, lpOwnerEID,
 	     lpRepresentProps[1].Value.MVbin.cValues, lpRepresentProps[1].Value.MVbin.lpbin, &ulObjType, &bAllowed);
-	if (bAllowed) {
+	if (bAllowed)
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Mail for user '%ls' is sent as %s '%ls'",
 			lpOwnerProps[0].ulPropTag == PR_DISPLAY_NAME_W ? lpOwnerProps[0].Value.lpszW : L"<no name>",
 			(ulObjType != MAPI_DISTLIST)?"user":"group",
 			lpRepresentProps[0].ulPropTag == PR_DISPLAY_NAME_W ? lpRepresentProps[0].Value.lpszW : L"<no name>");
-	}
-
 exit:
 	if (!bAllowed) {
 		if (lpRepresentProps && PROP_TYPE(lpRepresentProps[0].ulPropTag) != PT_ERROR)
@@ -1934,9 +1927,9 @@ exit:
 			(lpRepresentProps && PROP_TYPE(lpRepresentProps[0].ulPropTag) != PT_ERROR) ? lpRepresentProps[0].Value.lpszW : L"<unknown>");
 	}
 
-	if (bAllowed && bHasStore) {
+	if (bAllowed && bHasStore)
 		hr = HrOpenRepresentStore(lpAddrBook, lpUserStore, lpAdminSession, ulRepresentCB, lpRepresentEID, lppRepStore);
-	} else
+	else
 		*lppRepStore = NULL;
 
 	*lpbAllowed = bAllowed;
@@ -2047,13 +2040,11 @@ static HRESULT CheckDelegate(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 		ec_log_err("CheckDelegate() HrCheckAllowedEntryIDArray failed %x %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
 	}
-	if (bAllowed) {
+	if (bAllowed)
 		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Mail for user '%ls' is allowed on behalf of user '%ls'%s",
 						lpUserOwnerName ? lpUserOwnerName->Value.lpszW : L"<no name>",
 						lpRepOwnerName ? lpRepOwnerName->Value.lpszW : L"<no name>",
 						(ulObjType != MAPI_DISTLIST)?"":" because of group");
-	}
-
 exit:
 	*lpbAllowed = bAllowed;
 	// when any step failed, delegate is not setup correctly, so bAllowed == false
@@ -2468,12 +2459,12 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		goto exit;
 	}
 
-	if (lpRepStore && parseBool(g_lpConfig->GetSetting("copy_delegate_mails",NULL,"yes"))) {
+	if (lpRepStore != nullptr &&
+	    parseBool(g_lpConfig->GetSetting("copy_delegate_mails", NULL, "yes")))
 		// copy the original message with the actual sender data
 		// so you see the "on behalf of" in the sent-items version, even when send-as is used (see below)
 		CopyDelegateMessageToSentItems(lpMessage, lpRepStore, &lpRepMessage);
 		// possible error is logged in function.
-	}
 
 	if (bAllowSendAs) {
 		// move PR_REPRESENTING to PR_SENDER_NAME
