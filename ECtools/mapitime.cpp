@@ -35,7 +35,7 @@ static void mpt_stat_dump(int s = 0)
 	          (sec(first.start.tv_sec) + nsec(first.start.tv_nsec)));
 	if (dt.count() == 0)
 		return;
-	printf("\r\e[2K%.1f per second", z / dt.count());
+	printf("\r\x1b\x5b""2K%.1f per second", z / dt.count());
 	fflush(stdout);
 }
 

@@ -1136,7 +1136,6 @@ ECRESULT ECStoreObjectTable::CheckPermissions(unsigned int ulObjId)
 {
     ECRESULT er = erSuccess;
     unsigned int ulParent = 0;
-    unsigned int ulFolderFlags = 0;
     ECODStore	*lpData = (ECODStore *)m_lpObjectData;
 
     if(m_ulObjType == MAPI_MESSAGE) {
