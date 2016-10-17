@@ -37,11 +37,9 @@ HRESULT ECMessageStreamImporterIStreamAdapter::Create(WSMessageStreamImporter *l
 
 HRESULT ECMessageStreamImporterIStreamAdapter::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	REGISTER_INTERFACE(IID_ECUnknown, this);
-
-	REGISTER_INTERFACE(IID_ISequentialStream, &this->m_xSequentialStream);
-	REGISTER_INTERFACE(IID_IStream, &this->m_xStream);
-
+	REGISTER_INTERFACE2(ECUnknown, this);
+	REGISTER_INTERFACE2(ISequentialStream, &this->m_xSequentialStream);
+	REGISTER_INTERFACE2(IStream, &this->m_xStream);
 	return ECUnknown::QueryInterface(refiid, lppInterface);
 }
 

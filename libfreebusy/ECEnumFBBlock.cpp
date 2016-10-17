@@ -67,12 +67,10 @@ HRESULT ECEnumFBBlock::Create(ECFBBlockList* lpFBBlock, ECEnumFBBlock **lppEnumF
  */
 HRESULT ECEnumFBBlock::QueryInterface(REFIID refiid , void** lppInterface)
 {
-	REGISTER_INTERFACE(IID_ECEnumFBBlock, this);
-	REGISTER_INTERFACE(IID_ECUnknown, this);
-
-	REGISTER_INTERFACE(IID_IEnumFBBlock, &this->m_xEnumFBBlock);
-	REGISTER_INTERFACE(IID_IUnknown, &this->m_xEnumFBBlock);
-
+	REGISTER_INTERFACE2(ECEnumFBBlock, this);
+	REGISTER_INTERFACE2(ECUnknown, this);
+	REGISTER_INTERFACE2(IEnumFBBlock, &this->m_xEnumFBBlock);
+	REGISTER_INTERFACE2(IUnknown, &this->m_xEnumFBBlock);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

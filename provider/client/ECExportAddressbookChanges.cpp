@@ -50,11 +50,9 @@ ECExportAddressbookChanges::~ECExportAddressbookChanges() {
 }
 
 HRESULT ECExportAddressbookChanges::QueryInterface(REFIID refiid, void **lppInterface) {
-	REGISTER_INTERFACE(IID_ECUnknown, this);
-
-	REGISTER_INTERFACE(IID_IECExportAddressbookChanges, &this->m_xECExportAddressbookChanges);
-	REGISTER_INTERFACE(IID_IUnknown, &this->m_xECExportAddressbookChanges);
-
+	REGISTER_INTERFACE2(ECUnknown, this);
+	REGISTER_INTERFACE2(IECExportAddressbookChanges, &this->m_xECExportAddressbookChanges);
+	REGISTER_INTERFACE2(IUnknown, &this->m_xECExportAddressbookChanges);
     return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

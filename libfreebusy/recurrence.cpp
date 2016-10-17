@@ -495,7 +495,7 @@ std::list<time_t> recurrence::getDeletedExceptions() {
 		auto d = find(lstDeletedInstanceDates.begin(),
 		         lstDeletedInstanceDates.end(),
 		         exc.ulOriginalStartDate - (exc.ulOriginalStartDate % 1440));
-		if (d != lstDeletedInstanceDates.cend())
+		if (d != lstDeletedInstanceDates.end())
 			lstDeletedInstanceDates.erase(d);
 	}
 	for (const auto &d : lstDeletedInstanceDates) {

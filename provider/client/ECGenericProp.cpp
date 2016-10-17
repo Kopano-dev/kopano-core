@@ -81,8 +81,7 @@ ECGenericProp::~ECGenericProp()
 
 HRESULT ECGenericProp::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	REGISTER_INTERFACE(IID_ECUnknown, this);
-
+	REGISTER_INTERFACE2(ECUnknown, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

@@ -494,91 +494,84 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 		if (!(lpEmailAddress && lpAddrType && lpEntryID && lpEmailName))
 			continue;
 
-		if (wcscmp(lpAddrType->Value.lpszW, L"FAX") == 0)
-		{
-			// rewrite FAX address to <number>@<faxdomain>
-			wstring wstrName, wstrType, wstrEmailAddress;
+		if (wcscmp(lpAddrType->Value.lpszW, L"FAX") != 0)
+			continue;
 
-			if (ECParseOneOff((LPENTRYID)lpEntryID->Value.bin.lpb, lpEntryID->Value.bin.cb, wstrName, wstrType, wstrEmailAddress) == hrSuccess) {
-				// user entered manual fax address
-				strFaxMail = convert_to<string>(wstrEmailAddress);
-			} else {
-				// check if entry is in contacts folder
-				LPCONTAB_ENTRYID lpContabEntryID = (LPCONTAB_ENTRYID)lpEntryID->Value.bin.lpb;
-				GUID* guid = (GUID*)&lpContabEntryID->muid;
+		// rewrite FAX address to <number>@<faxdomain>
+		wstring wstrName, wstrType, wstrEmailAddress;
 
-				// check validity of lpContabEntryID
-				if (sizeof(CONTAB_ENTRYID) > lpEntryID->Value.bin.cb ||
-					*guid != PSETID_CONTACT_FOLDER_RECIPIENT ||
-					lpContabEntryID->email_offset < 3 ||
-					lpContabEntryID->email_offset > 5)
-				{
-					hr = MAPI_E_INVALID_PARAMETER;
-					g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to convert FAX recipient, using %ls", lpEmailAddress->Value.lpszW);
-					goto nextfax;
-				}
+		if (ECParseOneOff((LPENTRYID)lpEntryID->Value.bin.lpb, lpEntryID->Value.bin.cb, wstrName, wstrType, wstrEmailAddress) == hrSuccess) {
+			// user entered manual fax address
+			strFaxMail = convert_to<string>(wstrEmailAddress);
+		} else {
+			// check if entry is in contacts folder
+			LPCONTAB_ENTRYID lpContabEntryID = (LPCONTAB_ENTRYID)lpEntryID->Value.bin.lpb;
+			GUID* guid = (GUID*)&lpContabEntryID->muid;
 
-				// 0..2 == reply to email offsets
-				// 3..5 == fax email offsets
-				lpContabEntryID->email_offset -= 3;
-
-				hr = lpMAPISession->OpenEntry(lpContabEntryID->cbeid, (LPENTRYID)lpContabEntryID->abeid, NULL, 0, &ulObjType, (LPUNKNOWN*)&lpFaxMailuser);
-				if (hr != hrSuccess) {
-					g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to convert FAX recipient, using %ls: %s (%x)",
-						lpEmailAddress->Value.lpszW, GetMAPIErrorMessage(hr), hr);
-					goto nextfax;
-				}
-
-				hr = lpFaxMailuser->GetProps(sptaFaxNumbers, 0, &cValues, &lpFaxNumbers);
-				if (FAILED(hr)) {
-					g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to convert FAX recipient, using %ls: %s (%x)",
-						lpEmailAddress->Value.lpszW, GetMAPIErrorMessage(hr), hr);
-					goto nextfax;
-				}
-
-				if (lpFaxNumbers[lpContabEntryID->email_offset].ulPropTag != sptaFaxNumbers.aulPropTag[lpContabEntryID->email_offset]) {
-					g_lpLogger->Log(EC_LOGLEVEL_ERROR, "No suitable FAX number found, using %ls", lpEmailAddress->Value.lpszW);
-					goto nextfax;
-				}
-
-				strFaxMail = lpFaxNumbers[lpContabEntryID->email_offset].Value.lpszA;
-			}
-
-			strFaxMail += string("@") + lpszFaxDomain;
-			if (strFaxMail[0] == '+' && lpszFaxInternational) {
-				strFaxMail = lpszFaxInternational + strFaxMail.substr(1, strFaxMail.length());
-			}
-
-			wstrFaxMail = convert_to<wstring>(strFaxMail);
-			wstrOldFaxMail = lpEmailAddress->Value.lpszW; // keep old string for logging
-			// hack values in lpRowSet
-			lpEmailAddress->Value.lpszW = (WCHAR*)wstrFaxMail.c_str();
-			lpAddrType->Value.lpszW = const_cast<wchar_t *>(L"SMTP");
-			// old value is stuck to the row allocation, so we can override it, but we also must free the new!
-			ECCreateOneOff((LPTSTR)lpEmailName->Value.lpszW, (LPTSTR)L"SMTP", (LPTSTR)wstrFaxMail.c_str(), MAPI_UNICODE, &cbNewEntryID, &lpNewEntryID);
-			lpEntryID->Value.bin.lpb = (LPBYTE)lpNewEntryID;
-			lpEntryID->Value.bin.cb = cbNewEntryID;
-
-			hr = lpMessage->ModifyRecipients(MODRECIP_MODIFY, (LPADRLIST)lpRowSet);
-			if (hr != hrSuccess) {
-				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to set new FAX mail address for '%ls' to '%s': %s (%x)",
-					wstrOldFaxMail.c_str(), strFaxMail.c_str(), GetMAPIErrorMessage(hr), hr);
+			// check validity of lpContabEntryID
+			if (sizeof(CONTAB_ENTRYID) > lpEntryID->Value.bin.cb ||
+				*guid != PSETID_CONTACT_FOLDER_RECIPIENT ||
+				lpContabEntryID->email_offset < 3 ||
+				lpContabEntryID->email_offset > 5)
+			{
+				/*hr = MAPI_E_INVALID_PARAMETER;*/
+				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to convert FAX recipient, using %ls", lpEmailAddress->Value.lpszW);
 				goto nextfax;
 			}
 
-			g_lpLogger->Log(EC_LOGLEVEL_INFO, "Using new FAX mail address %s", strFaxMail.c_str());
+			// 0..2 == reply to email offsets
+			// 3..5 == fax email offsets
+			lpContabEntryID->email_offset -= 3;
 
-nextfax:
-			hr = hrSuccess;
-			MAPIFreeBuffer(lpNewEntryID);
-			lpNewEntryID = NULL;
-
-			if (lpFaxMailuser)
-				lpFaxMailuser->Release();
-			lpFaxMailuser = NULL;
-			MAPIFreeBuffer(lpFaxNumbers);
-			lpFaxNumbers = NULL;
+			hr = lpMAPISession->OpenEntry(lpContabEntryID->cbeid, (LPENTRYID)lpContabEntryID->abeid, NULL, 0, &ulObjType, (LPUNKNOWN*)&lpFaxMailuser);
+			if (hr != hrSuccess) {
+				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to convert FAX recipient, using %ls: %s (%x)",
+					lpEmailAddress->Value.lpszW, GetMAPIErrorMessage(hr), hr);
+				goto nextfax;
+			}
+			hr = lpFaxMailuser->GetProps(sptaFaxNumbers, 0, &cValues, &lpFaxNumbers);
+			if (FAILED(hr)) {
+				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to convert FAX recipient, using %ls: %s (%x)",
+					lpEmailAddress->Value.lpszW, GetMAPIErrorMessage(hr), hr);
+				goto nextfax;
+			}
+			if (lpFaxNumbers[lpContabEntryID->email_offset].ulPropTag != sptaFaxNumbers.aulPropTag[lpContabEntryID->email_offset]) {
+				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "No suitable FAX number found, using %ls", lpEmailAddress->Value.lpszW);
+				goto nextfax;
+			}
+			strFaxMail = lpFaxNumbers[lpContabEntryID->email_offset].Value.lpszA;
 		}
+		strFaxMail += string("@") + lpszFaxDomain;
+		if (strFaxMail[0] == '+' && lpszFaxInternational != nullptr)
+			strFaxMail = lpszFaxInternational + strFaxMail.substr(1, strFaxMail.length());
+
+		wstrFaxMail = convert_to<wstring>(strFaxMail);
+		wstrOldFaxMail = lpEmailAddress->Value.lpszW; // keep old string for logging
+		// hack values in lpRowSet
+		lpEmailAddress->Value.lpszW = (WCHAR*)wstrFaxMail.c_str();
+		lpAddrType->Value.lpszW = const_cast<wchar_t *>(L"SMTP");
+		// old value is stuck to the row allocation, so we can override it, but we also must free the new!
+		ECCreateOneOff((LPTSTR)lpEmailName->Value.lpszW, (LPTSTR)L"SMTP", (LPTSTR)wstrFaxMail.c_str(), MAPI_UNICODE, &cbNewEntryID, &lpNewEntryID);
+		lpEntryID->Value.bin.lpb = (LPBYTE)lpNewEntryID;
+		lpEntryID->Value.bin.cb = cbNewEntryID;
+
+		hr = lpMessage->ModifyRecipients(MODRECIP_MODIFY, (LPADRLIST)lpRowSet);
+		if (hr != hrSuccess) {
+			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to set new FAX mail address for '%ls' to '%s': %s (%x)",
+				wstrOldFaxMail.c_str(), strFaxMail.c_str(), GetMAPIErrorMessage(hr), hr);
+			goto nextfax;
+		}
+
+		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Using new FAX mail address %s", strFaxMail.c_str());
+nextfax:
+		hr = hrSuccess;
+		MAPIFreeBuffer(lpNewEntryID);
+		lpNewEntryID = NULL;
+		if (lpFaxMailuser)
+			lpFaxMailuser->Release();
+		lpFaxMailuser = NULL;
+		MAPIFreeBuffer(lpFaxNumbers);
+		lpFaxNumbers = NULL;
 	}
 
 exit:
@@ -1664,17 +1657,16 @@ static HRESULT HrFindUserInGroup(LPADRBOOK lpAdrBook, ULONG ulOwnerCB,
 		if (lpRowSet->aRow[0].lpProps[0].ulPropTag != PR_ENTRYID || lpRowSet->aRow[0].lpProps[1].ulPropTag != PR_OBJECT_TYPE)
 			continue;
 
-		if (lpRowSet->aRow[0].lpProps[1].Value.ul == MAPI_MAILUSER) {
+		if (lpRowSet->aRow[0].lpProps[1].Value.ul == MAPI_MAILUSER)
 			hr = lpAdrBook->CompareEntryIDs(ulOwnerCB, lpOwnerEID,
-											lpRowSet->aRow[0].lpProps[0].Value.bin.cb, (LPENTRYID)lpRowSet->aRow[0].lpProps[0].Value.bin.lpb,
-											0, &ulCmp);
-		} else if (lpRowSet->aRow[0].lpProps[1].Value.ul == MAPI_DISTLIST) {
+			     lpRowSet->aRow[0].lpProps[0].Value.bin.cb, (LPENTRYID)lpRowSet->aRow[0].lpProps[0].Value.bin.lpb,
+			     0, &ulCmp);
+		else if (lpRowSet->aRow[0].lpProps[1].Value.ul == MAPI_DISTLIST)
 			hr = HrFindUserInGroup(lpAdrBook, ulOwnerCB, lpOwnerEID, 
-								   lpRowSet->aRow[0].lpProps[0].Value.bin.cb, (LPENTRYID)lpRowSet->aRow[0].lpProps[0].Value.bin.lpb,
-								   &ulCmp, level+1);
-		} else {
-			// unknown row
-		}
+			     lpRowSet->aRow[0].lpProps[0].Value.bin.cb, (LPENTRYID)lpRowSet->aRow[0].lpProps[0].Value.bin.lpb,
+			     &ulCmp, level+1);
+		else
+			/* unknown row */;
 		if (hr == hrSuccess && ulCmp == TRUE)
 			break;
 	}
@@ -1910,23 +1902,18 @@ static HRESULT CheckSendAs(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 	}
 
 	bHasStore = (lpRepresentProps[2].Value.l == DT_MAILUSER);
-
-	if (lpRepresentProps[1].ulPropTag != PR_EC_SENDAS_USER_ENTRYIDS) {
+	if (lpRepresentProps[1].ulPropTag != PR_EC_SENDAS_USER_ENTRYIDS)
 		// No sendas, therefore no sendas permissions, but we don't fail
-		goto exit;
-	}
 
 	hr = HrCheckAllowedEntryIDArray("sendas",
-									lpRepresentProps[0].ulPropTag == PR_DISPLAY_NAME_W ? lpRepresentProps[0].Value.lpszW : L"<no name>",
-									lpAddrBook, ulOwnerCB, lpOwnerEID,
-									lpRepresentProps[1].Value.MVbin.cValues, lpRepresentProps[1].Value.MVbin.lpbin, &ulObjType, &bAllowed);
-	if (bAllowed) {
+	     lpRepresentProps[0].ulPropTag == PR_DISPLAY_NAME_W ? lpRepresentProps[0].Value.lpszW : L"<no name>",
+	     lpAddrBook, ulOwnerCB, lpOwnerEID,
+	     lpRepresentProps[1].Value.MVbin.cValues, lpRepresentProps[1].Value.MVbin.lpbin, &ulObjType, &bAllowed);
+	if (bAllowed)
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Mail for user '%ls' is sent as %s '%ls'",
-						lpOwnerProps[0].ulPropTag == PR_DISPLAY_NAME_W ? lpOwnerProps[0].Value.lpszW : L"<no name>",
-						(ulObjType != MAPI_DISTLIST)?"user":"group",
-						lpRepresentProps[0].ulPropTag == PR_DISPLAY_NAME_W ? lpRepresentProps[0].Value.lpszW : L"<no name>");
-	}
-
+			lpOwnerProps[0].ulPropTag == PR_DISPLAY_NAME_W ? lpOwnerProps[0].Value.lpszW : L"<no name>",
+			(ulObjType != MAPI_DISTLIST)?"user":"group",
+			lpRepresentProps[0].ulPropTag == PR_DISPLAY_NAME_W ? lpRepresentProps[0].Value.lpszW : L"<no name>");
 exit:
 	if (!bAllowed) {
 		if (lpRepresentProps && PROP_TYPE(lpRepresentProps[0].ulPropTag) != PT_ERROR)
@@ -1935,14 +1922,14 @@ exit:
 			lpMailer->setError(_("The user or group you try to send as could not be found."));
 
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "User '%ls' is not allowed to send as user or group '%ls'. "
-						"You may enable all outgoing addresses by enabling the always_send_delegates option.",
-						(lpOwnerProps && PROP_TYPE(lpOwnerProps[0].ulPropTag) != PT_ERROR) ? lpOwnerProps[0].Value.lpszW : L"<unknown>",
-						(lpRepresentProps && PROP_TYPE(lpRepresentProps[0].ulPropTag) != PT_ERROR) ? lpRepresentProps[0].Value.lpszW : L"<unknown>");
+			"You may enable all outgoing addresses by enabling the always_send_delegates option.",
+			(lpOwnerProps && PROP_TYPE(lpOwnerProps[0].ulPropTag) != PT_ERROR) ? lpOwnerProps[0].Value.lpszW : L"<unknown>",
+			(lpRepresentProps && PROP_TYPE(lpRepresentProps[0].ulPropTag) != PT_ERROR) ? lpRepresentProps[0].Value.lpszW : L"<unknown>");
 	}
 
-	if (bAllowed && bHasStore) {
+	if (bAllowed && bHasStore)
 		hr = HrOpenRepresentStore(lpAddrBook, lpUserStore, lpAdminSession, ulRepresentCB, lpRepresentEID, lppRepStore);
-	} else
+	else
 		*lppRepStore = NULL;
 
 	*lpbAllowed = bAllowed;
@@ -2049,14 +2036,15 @@ static HRESULT CheckDelegate(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 	}
 
 	hr = HrCheckAllowedEntryIDArray("delegate", lpRepOwnerName ? lpRepOwnerName->Value.lpszW : L"<no name>", lpAddrBook, ulOwnerCB, lpOwnerEID, lpDelegates->Value.MVbin.cValues, lpDelegates->Value.MVbin.lpbin, &ulObjType, &bAllowed);
-
-	if (bAllowed) {
+	if (hr != hrSuccess) {
+		ec_log_err("CheckDelegate() HrCheckAllowedEntryIDArray failed %x %s", hr, GetMAPIErrorMessage(hr));
+		goto exit;
+	}
+	if (bAllowed)
 		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Mail for user '%ls' is allowed on behalf of user '%ls'%s",
 						lpUserOwnerName ? lpUserOwnerName->Value.lpszW : L"<no name>",
 						lpRepOwnerName ? lpRepOwnerName->Value.lpszW : L"<no name>",
 						(ulObjType != MAPI_DISTLIST)?"":" because of group");
-	}
-
 exit:
 	*lpbAllowed = bAllowed;
 	// when any step failed, delegate is not setup correctly, so bAllowed == false
@@ -2335,7 +2323,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 			strftime(timestring, 256, "%c", &tmp);
 
 			g_lpLogger->Log(EC_LOGLEVEL_INFO, "E-mail for user %ls, subject '%ls', should be sent later at '%s'",
-							lpUser->lpszUsername, lpSubject ? lpSubject->Value.lpszW : L"<none>", timestring);
+				lpUser->lpszUsername, lpSubject ? lpSubject->Value.lpszW : L"<none>", timestring);
 
 			hr = MAPI_E_WAIT;
 			goto exit;
@@ -2345,11 +2333,11 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	// fatal, all other log messages are otherwise somewhat meaningless
 	if (g_lpLogger->Log(EC_LOGLEVEL_DEBUG)) {
 		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Sending e-mail for user %ls, subject: '%ls', size: %d",
-					lpUser->lpszUsername, lpSubject ? lpSubject->Value.lpszW : L"<none>",
-					lpMsgSize ? lpMsgSize->Value.ul : 0);
+			lpUser->lpszUsername, lpSubject ? lpSubject->Value.lpszW : L"<none>",
+			lpMsgSize ? lpMsgSize->Value.ul : 0);
 	} else {
 		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Sending e-mail for user %ls, size: %d",
-						lpUser->lpszUsername, lpMsgSize ? lpMsgSize->Value.ul : 0);
+			lpUser->lpszUsername, lpMsgSize ? lpMsgSize->Value.ul : 0);
 	}
 
 	/* 
@@ -2384,7 +2372,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 				GetMAPIErrorMessage(hr2), hr2);
 			goto exit;
 		}
-	} else {
+	}
 		// requested that mail is sent as somebody else
 		// since we can have SMTP and ZARAFA entry id's, we'll open it, and get the
 
@@ -2392,67 +2380,56 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		// this can be misused by MAPI client that just set PR_AUTO_FORWARDED. Since it would have been just as
 		// easy for the client just to spoof their 'from' address via SMTP, we're allowing this for now. You can
 		// completely turn it off via the 'allow_redirect_spoofing' setting.
-		if (strcmp(g_lpConfig->GetSetting("allow_redirect_spoofing"), "yes") == 0 &&
-			HrGetOneProp(lpMessage, PR_AUTO_FORWARDED, &lpAutoForward) == hrSuccess && lpAutoForward->Value.b)
-		{
+	else if (strcmp(g_lpConfig->GetSetting("allow_redirect_spoofing"), "yes") == 0 &&
+	    HrGetOneProp(lpMessage, PR_AUTO_FORWARDED, &lpAutoForward) == hrSuccess && lpAutoForward->Value.b) {
 			bAllowSendAs = true;
-		} else {
-
-			hr = HrGetOneProp(lpUserStore, PR_MAILBOX_OWNER_ENTRYID, &lpPropOwner);
-			if (hr != hrSuccess) {
-				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get Kopano mailbox owner id, error code: 0x%08X", hr);
-				goto exit;
-			}
-
-			hr = lpAddrBook->CompareEntryIDs(lpPropOwner->Value.bin.cb, (LPENTRYID)lpPropOwner->Value.bin.lpb,
-											 lpRepEntryID->Value.bin.cb, (LPENTRYID)lpRepEntryID->Value.bin.lpb, 0, &ulCmpRes);
-			if (hr == hrSuccess && ulCmpRes == FALSE) {
-
-				if (strcmp(g_lpConfig->GetSetting("always_send_delegates"), "yes") == 0) {
-					// pre 6.20 behaviour
-					bAllowDelegate = true;
-					HrOpenRepresentStore(lpAddrBook, lpUserStore, lpAdminSession, lpRepEntryID->Value.bin.cb, (LPENTRYID)lpRepEntryID->Value.bin.lpb, &lpRepStore);
-					// ignore error if unable to open, just the copy of the mail might possibily not be done.
-				} else 	if(strcmp(g_lpConfig->GetSetting("allow_delegate_meeting_request"), "yes") == 0 &&
-							HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &lpMsgClass) == hrSuccess &&
-							((strcasecmp(lpMsgClass->Value.lpszA, "IPM.Schedule.Meeting.Request" ) == 0) ||
-							 (strcasecmp(lpMsgClass->Value.lpszA, "IPM.Schedule.Meeting.Canceled" ) == 0))) {
-					// Meeting request can always sent as 'on behalf of' (Zarafa and SMTP user).
-					// This is needed if a user forward a meeting request. If you have permissions on a calendar,
-					// you can always sent with 'on behalve of'. This behavior is like exchange.
-
-					bAllowDelegate = true;
-				} else {
-					hr = CheckDelegate(lpAddrBook, lpUserStore, lpAdminSession, lpPropOwner->Value.bin.cb, (LPENTRYID)lpPropOwner->Value.bin.lpb,
-									  lpRepEntryID->Value.bin.cb, (LPENTRYID)lpRepEntryID->Value.bin.lpb, &bAllowDelegate, &lpRepStore);
-					if (hr != hrSuccess)
-						goto exit;
-				}
-
-				if (!bAllowDelegate) {
-
-					hr = CheckSendAs(lpAddrBook, lpUserStore, lpAdminSession, lpMailer, lpPropOwner->Value.bin.cb, (LPENTRYID)lpPropOwner->Value.bin.lpb,
-									lpRepEntryID->Value.bin.cb, (LPENTRYID)lpRepEntryID->Value.bin.lpb, &bAllowSendAs, &lpRepStore);
-					if (hr != hrSuccess)
-						goto exit;
-
-					if (!bAllowSendAs) {
-						g_lpLogger->Log(EC_LOGLEVEL_WARNING, "E-mail for user %ls may not be sent, notifying user", lpUser->lpszUsername);
-
-						HRESULT hr2 = SendUndeliverable(lpAddrBook, lpMailer, lpUserStore, lpUserAdmin, lpMessage);
-						if (hr2 != hrSuccess)
-							g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to create undeliverable message for user %ls: %s (%x)",
-								lpUser->lpszUsername, GetMAPIErrorMessage(hr2), hr2);
-
-						// note: hr == hrSuccess, parent process will not send the undeliverable too
-						goto exit;
-					}
-					// else {}: we are allowed to directly send
-				}
-				// else {}: allowed with 'on behalf of'
-			}
-			// else {}: owner and representing are the same, send as normal mail
+	} else {
+		hr = HrGetOneProp(lpUserStore, PR_MAILBOX_OWNER_ENTRYID, &lpPropOwner);
+		if (hr != hrSuccess) {
+			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get Kopano mailbox owner id, error code: 0x%08X", hr);
+			goto exit;
 		}
+		hr = lpAddrBook->CompareEntryIDs(lpPropOwner->Value.bin.cb, (LPENTRYID)lpPropOwner->Value.bin.lpb,
+		     lpRepEntryID->Value.bin.cb, (LPENTRYID)lpRepEntryID->Value.bin.lpb, 0, &ulCmpRes);
+		if (hr == hrSuccess && ulCmpRes == FALSE) {
+			if (strcmp(g_lpConfig->GetSetting("always_send_delegates"), "yes") == 0) {
+				// pre 6.20 behaviour
+				bAllowDelegate = true;
+				HrOpenRepresentStore(lpAddrBook, lpUserStore, lpAdminSession, lpRepEntryID->Value.bin.cb, (LPENTRYID)lpRepEntryID->Value.bin.lpb, &lpRepStore);
+				// ignore error if unable to open, just the copy of the mail might possibily not be done.
+			} else if(strcmp(g_lpConfig->GetSetting("allow_delegate_meeting_request"), "yes") == 0 &&
+			    HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &lpMsgClass) == hrSuccess &&
+			    ((strcasecmp(lpMsgClass->Value.lpszA, "IPM.Schedule.Meeting.Request" ) == 0) ||
+			    (strcasecmp(lpMsgClass->Value.lpszA, "IPM.Schedule.Meeting.Canceled" ) == 0))) {
+				// Meeting request can always sent as 'on behalf of' (Zarafa and SMTP user).
+				// This is needed if a user forward a meeting request. If you have permissions on a calendar,
+				// you can always sent with 'on behalve of'. This behavior is like exchange.
+				bAllowDelegate = true;
+			} else {
+				hr = CheckDelegate(lpAddrBook, lpUserStore, lpAdminSession, lpPropOwner->Value.bin.cb, (LPENTRYID)lpPropOwner->Value.bin.lpb,
+				     lpRepEntryID->Value.bin.cb, (LPENTRYID)lpRepEntryID->Value.bin.lpb, &bAllowDelegate, &lpRepStore);
+				if (hr != hrSuccess)
+					goto exit;
+			}
+			if (!bAllowDelegate) {
+				hr = CheckSendAs(lpAddrBook, lpUserStore, lpAdminSession, lpMailer, lpPropOwner->Value.bin.cb, (LPENTRYID)lpPropOwner->Value.bin.lpb,
+				     lpRepEntryID->Value.bin.cb, (LPENTRYID)lpRepEntryID->Value.bin.lpb, &bAllowSendAs, &lpRepStore);
+				if (hr != hrSuccess)
+					goto exit;
+				if (!bAllowSendAs) {
+					g_lpLogger->Log(EC_LOGLEVEL_WARNING, "E-mail for user %ls may not be sent, notifying user", lpUser->lpszUsername);
+					HRESULT hr2 = SendUndeliverable(lpAddrBook, lpMailer, lpUserStore, lpUserAdmin, lpMessage);
+					if (hr2 != hrSuccess)
+						g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to create undeliverable message for user %ls: %s (%x)",
+							lpUser->lpszUsername, GetMAPIErrorMessage(hr2), hr2);
+					// note: hr == hrSuccess, parent process will not send the undeliverable too
+					goto exit;
+				}
+				// else {}: we are allowed to directly send
+			}
+			// else {}: allowed with 'on behalf of'
+		}
+		// else {}: owner and representing are the same, send as normal mail
 	}
 
 	// put storeowner info in PR_SENDER_ props, forces correct From data
@@ -2482,12 +2459,12 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		goto exit;
 	}
 
-	if (lpRepStore && parseBool(g_lpConfig->GetSetting("copy_delegate_mails",NULL,"yes"))) {
+	if (lpRepStore != nullptr &&
+	    parseBool(g_lpConfig->GetSetting("copy_delegate_mails", NULL, "yes")))
 		// copy the original message with the actual sender data
 		// so you see the "on behalf of" in the sent-items version, even when send-as is used (see below)
 		CopyDelegateMessageToSentItems(lpMessage, lpRepStore, &lpRepMessage);
 		// possible error is logged in function.
-	}
 
 	if (bAllowSendAs) {
 		// move PR_REPRESENTING to PR_SENDER_NAME

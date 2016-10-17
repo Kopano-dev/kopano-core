@@ -106,7 +106,7 @@ WSTransport::~WSTransport()
 
 HRESULT WSTransport::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	REGISTER_INTERFACE(IID_ECTransport, this);
+	REGISTER_INTERFACE3(ECTransport, WSTransport, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

@@ -338,16 +338,13 @@ exit:
 
 HRESULT ZCMAPIProp::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	REGISTER_INTERFACE(IID_ZCMAPIProp, this);
-	REGISTER_INTERFACE(IID_ECUnknown, this);
-
-	REGISTER_INTERFACE(IID_IMAPIProp, &this->m_xMAPIProp);
-	REGISTER_INTERFACE(IID_IUnknown, &this->m_xMAPIProp);
-
+	REGISTER_INTERFACE2(ZCMAPIProp, this);
+	REGISTER_INTERFACE2(ECUnknown, this);
+	REGISTER_INTERFACE2(IMAPIProp, &this->m_xMAPIProp);
+	REGISTER_INTERFACE2(IUnknown, &this->m_xMAPIProp);
 	if (m_ulObject == MAPI_MAILUSER) {
 		REGISTER_INTERFACE(IID_IMailUser, &this->m_xMAPIProp);
 	}
-
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

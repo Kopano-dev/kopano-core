@@ -450,7 +450,7 @@ HRESULT PublishFreeBusy::HrMergeBlocks(FBBlock_1 **lppfbBlocks, ULONG *lpcValues
 			--ulLevel;
 			if(!vctStatus.empty()){
 				auto iterStatus = std::find(vctStatus.begin(), vctStatus.end(), sTsitem.ulStatus);
-				if (iterStatus != vctStatus.cend())
+				if (iterStatus != vctStatus.end())
 					vctStatus.erase(iterStatus);
 			}
 			tsLastTime = sTsitem.tsTime;

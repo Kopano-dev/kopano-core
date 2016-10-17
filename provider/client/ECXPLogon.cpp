@@ -96,10 +96,8 @@ HRESULT ECXPLogon::Create(const std::string &strProfileName, BOOL bOffline, ECXP
 
 HRESULT ECXPLogon::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	REGISTER_INTERFACE(IID_ECXPLogon, this);
-
-	REGISTER_INTERFACE(IID_IXPLogon, &this->m_xXPLogon);
-
+	REGISTER_INTERFACE2(ECXPLogon, this);
+	REGISTER_INTERFACE2(IXPLogon, &this->m_xXPLogon);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

@@ -84,12 +84,10 @@ ECChangeAdvisor::~ECChangeAdvisor()
 
 HRESULT ECChangeAdvisor::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	REGISTER_INTERFACE(IID_ECChangeAdvisor, this);
-	REGISTER_INTERFACE(IID_ECUnknown, this);
-
-	REGISTER_INTERFACE(IID_IECChangeAdvisor, &this->m_xECChangeAdvisor);
-	REGISTER_INTERFACE(IID_IUnknown, &this->m_xECChangeAdvisor);
-
+	REGISTER_INTERFACE2(ECChangeAdvisor, this);
+	REGISTER_INTERFACE2(ECUnknown, this);
+	REGISTER_INTERFACE2(IECChangeAdvisor, &this->m_xECChangeAdvisor);
+	REGISTER_INTERFACE2(IUnknown, &this->m_xECChangeAdvisor);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

@@ -51,14 +51,12 @@ HRESULT ECMailUser::Create(void* lpProvider, BOOL fModify, ECMailUser** lppMailU
 
 HRESULT	ECMailUser::QueryInterface(REFIID refiid, void **lppInterface) 
 {
-	REGISTER_INTERFACE(IID_ECMailUser, this);
-	REGISTER_INTERFACE(IID_ECABProp, this);
-	REGISTER_INTERFACE(IID_ECUnknown, this);
-
-	REGISTER_INTERFACE(IID_IMailUser, &this->m_xMailUser);
-	REGISTER_INTERFACE(IID_IMAPIProp, &this->m_xMailUser);
-	REGISTER_INTERFACE(IID_IUnknown, &this->m_xMailUser);
-
+	REGISTER_INTERFACE2(ECMailUser, this);
+	REGISTER_INTERFACE2(ECABProp, this);
+	REGISTER_INTERFACE2(ECUnknown, this);
+	REGISTER_INTERFACE2(IMailUser, &this->m_xMailUser);
+	REGISTER_INTERFACE2(IMAPIProp, &this->m_xMailUser);
+	REGISTER_INTERFACE2(IUnknown, &this->m_xMailUser);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

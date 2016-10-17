@@ -55,10 +55,8 @@ HRESULT ECXPProvider::Create(ECXPProvider **lppECXPProvider) {
 
 HRESULT ECXPProvider::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	REGISTER_INTERFACE(IID_ECXPProvider, this);
-
-	REGISTER_INTERFACE(IID_IXPProvider, &this->m_xXPProvider);
-
+	REGISTER_INTERFACE2(ECXPProvider, this);
+	REGISTER_INTERFACE2(IXPProvider, &this->m_xXPProvider);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

@@ -67,12 +67,10 @@ HRESULT ZCABLogon::Create(LPMAPISUP lpMAPISup, ULONG ulProfileFlags, GUID *lpGui
 
 HRESULT ZCABLogon::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	REGISTER_INTERFACE(IID_ZCABLogon, this);
-	REGISTER_INTERFACE(IID_ECUnknown, this);
-
-	REGISTER_INTERFACE(IID_IABLogon, &this->m_xABLogon);
-	REGISTER_INTERFACE(IID_IUnknown, &this->m_xABLogon);
-
+	REGISTER_INTERFACE2(ZCABLogon, this);
+	REGISTER_INTERFACE2(ECUnknown, this);
+	REGISTER_INTERFACE2(IABLogon, &this->m_xABLogon);
+	REGISTER_INTERFACE2(IUnknown, &this->m_xABLogon);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

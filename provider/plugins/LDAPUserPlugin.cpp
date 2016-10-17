@@ -1920,7 +1920,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 			objectclass_t objclass = iter->objclass;
 
 			ldap_filter += "(&" + getSearchFilter(iter->objclass) + "(|";
-			while (iter != setObjectIds.end() && objclass == iter->objclass) {
+			while (iter != setObjectIds.cend() && objclass == iter->objclass) {
 				switch (objclass) {
 				case OBJECTCLASS_USER:
 				case ACTIVE_USER:

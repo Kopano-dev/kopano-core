@@ -68,7 +68,7 @@ WSTableView::~WSTableView()
 
 HRESULT WSTableView::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	REGISTER_INTERFACE(IID_ECTableView, this);
+	REGISTER_INTERFACE3(ECTableView, WSTableView, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
@@ -789,7 +789,7 @@ HRESULT WSTableOutGoingQueue::Create(KCmd *lpCmd,
 
 HRESULT	WSTableOutGoingQueue::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	REGISTER_INTERFACE(IID_ECTableOutGoingQueue, this);
+	REGISTER_INTERFACE3(ECTableOutGoingQueue, WSTableOutGoingQueue, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

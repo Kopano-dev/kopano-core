@@ -72,9 +72,8 @@ HRESULT ECMemTablePublic::Create(ECMAPIFolderPublic *lpECParentFolder, ECMemTabl
 
 HRESULT ECMemTablePublic::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	REGISTER_INTERFACE(IID_ECMemTable, this);
-	REGISTER_INTERFACE(IID_ECMemTablePublic, this);
-
+	REGISTER_INTERFACE2(ECMemTable, this);
+	REGISTER_INTERFACE2(ECMemTablePublic, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

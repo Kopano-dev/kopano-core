@@ -58,12 +58,10 @@ HRESULT ECExchangeImportHierarchyChanges::Create(ECMAPIFolder *lpFolder, LPEXCHA
 
 HRESULT	ECExchangeImportHierarchyChanges::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	REGISTER_INTERFACE(IID_ECExchangeImportHierarchyChanges, this);
-	REGISTER_INTERFACE(IID_ECUnknown, this);
-
-	REGISTER_INTERFACE(IID_IExchangeImportHierarchyChanges, &this->m_xExchangeImportHierarchyChanges);
-	REGISTER_INTERFACE(IID_IUnknown, &this->m_xExchangeImportHierarchyChanges);
-
+	REGISTER_INTERFACE2(ECExchangeImportHierarchyChanges, this);
+	REGISTER_INTERFACE2(ECUnknown, this);
+	REGISTER_INTERFACE2(IExchangeImportHierarchyChanges, &this->m_xExchangeImportHierarchyChanges);
+	REGISTER_INTERFACE2(IUnknown, &this->m_xExchangeImportHierarchyChanges);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

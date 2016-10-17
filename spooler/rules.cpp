@@ -122,12 +122,11 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 	else
 		ulCharset = 20127; // US-ASCII
 
-	if (PROP_TYPE(ptrBodies[0].ulPropTag) == PT_ERROR && PROP_TYPE(ptrBodies[1].ulPropTag) == PT_ERROR) {
+	if (PROP_TYPE(ptrBodies[0].ulPropTag) == PT_ERROR && PROP_TYPE(ptrBodies[1].ulPropTag) == PT_ERROR)
 		// plain and html not found, check sync flag
 		bPlain = (ptrBodies[2].Value.b == FALSE);
-	} else {
+	else
 		bPlain = PROP_TYPE(ptrBodies[1].ulPropTag) == PT_ERROR && ptrBodies[1].Value.err == MAPI_E_NOT_FOUND;
-	}
 	sNewBody.ulPropTag = bPlain ? PR_BODY_W : PR_HTML;
 
 	// From: <fullname>
@@ -184,9 +183,8 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 
 		if (ptrBodies[0].ulPropTag == PT_ERROR) {
 			hr = lpOrigMessage->OpenProperty(PR_BODY_W, &IID_IStream, 0, 0, &ptrStream);
-			if (hr == hrSuccess) {
+			if (hr == hrSuccess)
 				hr = Util::HrStreamToString(ptrStream, wstrBody);
-			}
 			// stream
 			strForwardText.append(wstrBody);
 		} else {
@@ -201,9 +199,8 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 		const char* pos;
 
 		hr = lpOrigMessage->OpenProperty(PR_HTML, &IID_IStream, 0, 0, &ptrStream);
-		if (hr == hrSuccess) {
+		if (hr == hrSuccess)
 			hr = Util::HrStreamToString(ptrStream, strHTML);
-		}
 		// icase <body> tag 
 		pos = str_ifind(strHTML.c_str(), strFind.c_str());
 		pos = pos ? pos + strFind.length() : strHTML.c_str();

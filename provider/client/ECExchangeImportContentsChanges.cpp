@@ -85,20 +85,17 @@ HRESULT	ECExchangeImportContentsChanges::QueryInterface(REFIID refiid, void **lp
 {
 	BOOL	bCanStream = FALSE;
 
-	REGISTER_INTERFACE(IID_ECExchangeImportContentsChanges, this);
-	REGISTER_INTERFACE(IID_ECUnknown, this);
+	REGISTER_INTERFACE2(ECExchangeImportContentsChanges, this);
+	REGISTER_INTERFACE2(ECUnknown, this);
 
 	if (refiid == IID_IECImportContentsChanges) {
 		m_lpFolder->GetMsgStore()->lpTransport->HrCheckCapabilityFlags(KOPANO_CAP_ENHANCED_ICS, &bCanStream);
 		if (bCanStream == FALSE)
 			return MAPI_E_INTERFACE_NOT_SUPPORTED;
-
-		REGISTER_INTERFACE(IID_IECImportContentsChanges, &this->m_xECImportContentsChanges);
+		REGISTER_INTERFACE2(IECImportContentsChanges, &this->m_xECImportContentsChanges);
 	}
-
-	REGISTER_INTERFACE(IID_IExchangeImportContentsChanges, &this->m_xECImportContentsChanges);
-	REGISTER_INTERFACE(IID_IUnknown, &this->m_xECImportContentsChanges);
-
+	REGISTER_INTERFACE2(IExchangeImportContentsChanges, &this->m_xECImportContentsChanges);
+	REGISTER_INTERFACE2(IUnknown, &this->m_xECImportContentsChanges);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

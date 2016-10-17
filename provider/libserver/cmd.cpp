@@ -1576,6 +1576,8 @@ SOAP_ENTRY_START(loadProp, lpsResponse->er, entryId sEntryId, unsigned int ulObj
 		memset(lpsResponse->lpPropVal,0,sizeof(struct propVal));
 
 		er = CopyDatabasePropValToSOAPPropVal(soap, lpDBRow, lpDBLen, lpsResponse->lpPropVal);
+		if (er != erSuccess)
+			goto exit;
 	} else {
 
 		lpsResponse->lpPropVal = s_alloc<propVal>(soap);
@@ -3595,9 +3597,11 @@ static ECRESULT OpenTable(ECSession *lpecSession, entryId sEntryId,
 				return er;
 
 			// If an extern id is present, we should get an object based on that.
-			if (!sExternId.id.empty())
+			if (!sExternId.id.empty()) {
 				er = g_lpSessionManager->GetCacheManager()->GetUserObject(sExternId, &ulId, NULL, NULL);
-				
+				if (er != erSuccess)
+					return er;
+			}
 			er = lpecSession->GetTableManager()->OpenABTable(ulId, ulTypeId, ulType, ulFlags, &ulTableId);
 			if( er != erSuccess)
 				return er;

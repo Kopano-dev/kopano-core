@@ -71,20 +71,19 @@ ZCABContainer::~ZCABContainer()
 HRESULT	ZCABContainer::QueryInterface(REFIID refiid, void **lppInterface)
 {
 	if (m_lpDistList == NULL) {
-		REGISTER_INTERFACE(IID_ZCABContainer, this);
+		REGISTER_INTERFACE2(ZCABContainer, this);
 	} else {
 		REGISTER_INTERFACE(IID_ZCDistList, this);
 	}
-	REGISTER_INTERFACE(IID_ECUnknown, this);
+	REGISTER_INTERFACE2(ECUnknown, this);
 
 	if (m_lpDistList == NULL) {
-		REGISTER_INTERFACE(IID_IABContainer, &this->m_xABContainer);
+		REGISTER_INTERFACE2(IABContainer, &this->m_xABContainer);
 	} else {
 		REGISTER_INTERFACE(IID_IDistList, &this->m_xABContainer);
 	}
-	REGISTER_INTERFACE(IID_IMAPIProp, &this->m_xABContainer);
-	REGISTER_INTERFACE(IID_IUnknown, &this->m_xABContainer);
-
+	REGISTER_INTERFACE2(IMAPIProp, &this->m_xABContainer);
+	REGISTER_INTERFACE2(IUnknown, &this->m_xABContainer);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

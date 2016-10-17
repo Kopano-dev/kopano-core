@@ -67,12 +67,11 @@ HRESULT ECFreeBusyData::Create(ECFreeBusyData **lppECFreeBusyData)
 
 HRESULT ECFreeBusyData::QueryInterface(REFIID refiid, void** lppInterface)
 {
-	REGISTER_INTERFACE(IID_ECFreeBusyData, this);
-	REGISTER_INTERFACE(IID_ECUnknown, this);
-
-	REGISTER_INTERFACE(IID_IFreeBusyData, &this->m_xFreeBusyData);
+	REGISTER_INTERFACE2(ECFreeBusyData, this);
+	REGISTER_INTERFACE2(ECUnknown, this);
+	REGISTER_INTERFACE2(IFreeBusyData, &this->m_xFreeBusyData);
 	REGISTER_INTERFACE(IID_ECUnknown, &this->m_xFreeBusyData);
-
+/*NEW*/	REGISTER_INTERFACE2(IUnknown, &this->m_xFreeBusyData);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

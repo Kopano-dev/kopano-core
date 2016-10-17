@@ -94,8 +94,7 @@ HRESULT ECMemTable::Create(LPSPropTagArray lpsColumns, ULONG ulRowPropTag, ECMem
 
 HRESULT ECMemTable::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	REGISTER_INTERFACE(IID_ECMemTable, this);
-
+	REGISTER_INTERFACE2(ECMemTable, this);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 
@@ -486,12 +485,10 @@ HRESULT ECMemTableView::Create(ECMemTable *lpMemTable, const ECLocale &locale, U
 
 HRESULT ECMemTableView::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	REGISTER_INTERFACE(IID_ECMemTableView, this);
-	REGISTER_INTERFACE(IID_ECUnknown, this);
-
-	REGISTER_INTERFACE(IID_IMAPITable, &this->m_xMAPITable);
-	REGISTER_INTERFACE(IID_IUnknown, &this->m_xMAPITable);
-	
+	REGISTER_INTERFACE2(ECMemTableView, this);
+	REGISTER_INTERFACE2(ECUnknown, this);
+	REGISTER_INTERFACE2(IMAPITable, &this->m_xMAPITable);
+	REGISTER_INTERFACE2(IUnknown, &this->m_xMAPITable);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 

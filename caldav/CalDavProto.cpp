@@ -572,9 +572,11 @@ HRESULT CalDAV::HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWeb
 				ulCensorFlag = 0;
 		}
 
-		if(hr == hrSuccess)
+		if(hr == hrSuccess) {
 			hr = HrMapValtoStruct(m_lpUsrFld, lpValRows->aRow[0].lpProps, lpValRows->aRow[0].cValues, lpMtIcal, ulCensorFlag, true, &sDavProp.lstProps, &sWebResponse);
-		else {
+			if (hr != hrSuccess)
+				goto exit;
+		} else {
 			// no: "status" can only be in <D:propstat xmlns:D="DAV:"> tag, so fix in HrMapValtoStruct
 			HrSetDavPropName(&(sWebResponse.sStatus.sPropName), "status", WEBDAVNS);
 			sWebResponse.sStatus.strValue = "HTTP/1.1 404 Not Found";
