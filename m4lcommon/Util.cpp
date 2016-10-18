@@ -2976,11 +2976,9 @@ next_item:
 				lpSrcMessage = NULL;
 			}
 		}
-
-		if ((ulFlags & MAPI_MOVE) && lpDeleteEntries->cValues > 0) {
-			if (lpSrc->DeleteMessages(lpDeleteEntries, 0, NULL, 0) != hrSuccess)
-				bPartial = true;
-		}
+		if (ulFlags & MAPI_MOVE && lpDeleteEntries->cValues > 0 &&
+		    lpSrc->DeleteMessages(lpDeleteEntries, 0, NULL, 0) != hrSuccess)
+			bPartial = true;
 		FreeProws(lpRowSet);
 		lpRowSet = NULL;
 	}
@@ -3414,10 +3412,9 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, LPVOID lpSrcObj, LPSPropTagArra
 		goto exit;
 
 	// take some shortcuts if we're dealing with a Kopano message destination
-	if (HrGetOneProp(lpDestProp, PR_EC_OBJECT, &lpZObj) == hrSuccess) {
-		if (lpZObj->Value.lpszA != NULL)
-			((IECUnknown*)lpZObj->Value.lpszA)->QueryInterface(IID_ECMessage, (void**)&lpKopano);
-	}
+	if (HrGetOneProp(lpDestProp, PR_EC_OBJECT, &lpZObj) == hrSuccess &&
+	    lpZObj->Value.lpszA != NULL)
+		((IECUnknown*)lpZObj->Value.lpszA)->QueryInterface(IID_ECMessage, (void**)&lpKopano);
 
 	if (ulFlags & MAPI_NOREPLACE) {
 		hr = lpDestProp->GetPropList(MAPI_UNICODE, &lpsDestPropArray);
@@ -3670,17 +3667,17 @@ next_include_check:
 
 		// make new lookup map for lpProps[] -> lpsDestNameTag[]
 		for (ULONG i = 0, j = 0; i < cValues && j < cNames; ++i) {
-			if (PROP_ID(lpProps[i].ulPropTag) == PROP_ID(lpsSrcNameTagArray->aulPropTag[j])) {
-				if (PROP_TYPE(lpsDestNameTagArray->aulPropTag[j]) != PT_ERROR) {
-					// replace with new proptag, so we can open the correct property
-					lpsDestTagArray->aulPropTag[i] = PROP_TAG(PROP_TYPE(lpProps[i].ulPropTag), PROP_ID(lpsDestNameTagArray->aulPropTag[j]));
-				} else {
-					// leave on PT_ERROR, so we don't copy the property
-					lpsDestTagArray->aulPropTag[i] = PROP_TAG(PT_ERROR, PROP_ID(lpsDestNameTagArray->aulPropTag[j]));
-					// don't even return a warning because although not all data could be copied
-				}
-				++j;
+			if (PROP_ID(lpProps[i].ulPropTag) != PROP_ID(lpsSrcNameTagArray->aulPropTag[j]))
+				continue;
+			if (PROP_TYPE(lpsDestNameTagArray->aulPropTag[j]) != PT_ERROR) {
+				// replace with new proptag, so we can open the correct property
+				lpsDestTagArray->aulPropTag[i] = PROP_TAG(PROP_TYPE(lpProps[i].ulPropTag), PROP_ID(lpsDestNameTagArray->aulPropTag[j]));
+			} else {
+				// leave on PT_ERROR, so we don't copy the property
+				lpsDestTagArray->aulPropTag[i] = PROP_TAG(PT_ERROR, PROP_ID(lpsDestNameTagArray->aulPropTag[j]));
+				// don't even return a warning because although not all data could be copied
 			}
+			++j;
 		}
 	}
 
@@ -3751,15 +3748,13 @@ exit:
 	if (bPartial)
 		hr = MAPI_W_PARTIAL_COMPLETION;
 
-	if (hr != hrSuccess) {
+	if (hr != hrSuccess)
 		// may not return a problem set when we have an warning/error code in hr
 		MAPIFreeBuffer(lpProblems);
-	} else {
-		if (lppProblems)
-			*lppProblems = lpProblems;
-		else
-			MAPIFreeBuffer(lpProblems);
-	}
+	else if (lppProblems != nullptr)
+		*lppProblems = lpProblems;
+	else
+		MAPIFreeBuffer(lpProblems);
 
 	MAPIFreeBuffer(lppNames);
 	MAPIFreeBuffer(lpsSrcNameTagArray);
@@ -4200,42 +4195,35 @@ HRESULT Util::ExtractAdditionalRenEntryID(LPSPropValue lpPropBlob, unsigned shor
 	LPBYTE lpEnd = lpPropBlob->Value.bin.lpb + lpPropBlob->Value.bin.cb;
 		
 	while (true) {
-		if (lpPos + 8 <= lpEnd) {
-			if (*reinterpret_cast<unsigned short *>(lpPos) == 0)
-				return MAPI_E_NOT_FOUND;
-			if (*(unsigned short*)lpPos == usBlockType) {
-				unsigned short usLen = 0;
-
-				lpPos += 4;	// Skip ID + total length
-				if (*reinterpret_cast<unsigned short *>(lpPos) != RSF_ELID_ENTRYID)
-					return MAPI_E_CORRUPT_DATA;
-				lpPos += 2;	// Skip check
-				usLen = *(unsigned short*)lpPos;
-
-				lpPos += 2;
-				if (lpPos + usLen > lpEnd)
-					return MAPI_E_CORRUPT_DATA;
-				hr = MAPIAllocateBuffer(usLen, (LPVOID*)lppEntryID);
-				if (hr != hrSuccess)
-					return hr;
-
-				memcpy(*lppEntryID, lpPos, usLen);
-				*lpcbEntryID = usLen;
-				return hrSuccess;
-			} else {
-				unsigned short usLen = 0;
-
-				lpPos += 2;	// Skip ID
-				usLen = *(unsigned short*)lpPos;
-				
-				lpPos += 2;
-				if (lpPos + usLen > lpEnd)
-					return MAPI_E_CORRUPT_DATA;
-				lpPos += usLen;
-			}
-		} else {
+		if (lpPos + 8 > lpEnd)
 			return MAPI_E_NOT_FOUND;
+		if (*reinterpret_cast<unsigned short *>(lpPos) == 0)
+			return MAPI_E_NOT_FOUND;
+		if (*(unsigned short *)lpPos != usBlockType) {
+			unsigned short usLen = 0;
+			lpPos += 2;	// Skip ID
+			usLen = *(unsigned short*)lpPos;
+			lpPos += 2;
+			if (lpPos + usLen > lpEnd)
+				return MAPI_E_CORRUPT_DATA;
+			lpPos += usLen;
+			continue;
 		}
+		unsigned short usLen = 0;
+		lpPos += 4;	// Skip ID + total length
+		if (*reinterpret_cast<unsigned short *>(lpPos) != RSF_ELID_ENTRYID)
+			return MAPI_E_CORRUPT_DATA;
+		lpPos += 2;	// Skip check
+		usLen = *(unsigned short *)lpPos;
+		lpPos += 2;
+		if (lpPos + usLen > lpEnd)
+			return MAPI_E_CORRUPT_DATA;
+		hr = MAPIAllocateBuffer(usLen, (LPVOID*)lppEntryID);
+		if (hr != hrSuccess)
+			return hr;
+		memcpy(*lppEntryID, lpPos, usLen);
+		*lpcbEntryID = usLen;
+		return hrSuccess;
 	}
 	return hrSuccess;
 }

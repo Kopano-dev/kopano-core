@@ -1368,28 +1368,24 @@ HRESULT IMAP::HrCmdRename(const string &strTag, const string &strExistingFolderP
 		deliPos = strPath.find(IMAP_HIERARCHY_DELIMITER);
 		if (deliPos == string::npos) {
 			strFolder = strPath;
-		} else {
-			strFolder = strPath.substr(0, deliPos);
-			strPath = strPath.substr(deliPos + 1);
-
-			if (!strFolder.empty())
-				hr = lpMakeFolder->CreateFolder(FOLDER_GENERIC, (TCHAR *) strFolder.c_str(), NULL, NULL, MAPI_UNICODE | OPEN_IF_EXISTS, &lpSubFolder);
-
-			if (hr != hrSuccess || lpSubFolder == NULL) {
-				hr2 = HrResponse(RESP_TAGGED_NO, strTag, "RENAME error creating folder");
-				goto exit;
-			}
-
-			sFolderClass.ulPropTag = PR_CONTAINER_CLASS_A;
-			sFolderClass.Value.lpszA = const_cast<char *>("IPF.Note");
-			hr = HrSetOneProp(lpSubFolder, &sFolderClass);
-			if (hr != hrSuccess)
-				goto exit;
-
-			lpMakeFolder->Release();
-			lpMakeFolder = lpSubFolder;
-			lpSubFolder = NULL;
+			continue;
 		}
+		strFolder = strPath.substr(0, deliPos);
+		strPath = strPath.substr(deliPos + 1);
+		if (!strFolder.empty())
+			hr = lpMakeFolder->CreateFolder(FOLDER_GENERIC, (TCHAR *) strFolder.c_str(), NULL, NULL, MAPI_UNICODE | OPEN_IF_EXISTS, &lpSubFolder);
+		if (hr != hrSuccess || lpSubFolder == NULL) {
+			hr2 = HrResponse(RESP_TAGGED_NO, strTag, "RENAME error creating folder");
+			goto exit;
+		}
+		sFolderClass.ulPropTag = PR_CONTAINER_CLASS_A;
+		sFolderClass.Value.lpszA = const_cast<char *>("IPF.Note");
+		hr = HrSetOneProp(lpSubFolder, &sFolderClass);
+		if (hr != hrSuccess)
+			goto exit;
+		lpMakeFolder->Release();
+		lpMakeFolder = lpSubFolder;
+		lpSubFolder = NULL;
 	} while (deliPos != string::npos);
 
 	if (HrGetOneProp(lpParentFolder, PR_ENTRYID, &lppvFromEntryID) != hrSuccess || HrGetOneProp(lpMakeFolder, PR_ENTRYID, &lppvDestEntryID) != hrSuccess) {
@@ -1401,7 +1397,7 @@ HRESULT IMAP::HrCmdRename(const string &strTag, const string &strExistingFolderP
 	if (lppvFromEntryID->Value.bin.cb != lppvDestEntryID->Value.bin.cb || memcmp(lppvFromEntryID->Value.bin.lpb, lppvDestEntryID->Value.bin.lpb, lppvDestEntryID->Value.bin.cb) != 0) {
 	    // Do the real move
 		hr = lpParentFolder->CopyFolder(cbMovFolder, lpMovFolder, &IID_IMAPIFolder, lpMakeFolder,
-										(TCHAR *) strFolder.c_str(), 0, NULL, MAPI_UNICODE | FOLDER_MOVE);
+		     (TCHAR *) strFolder.c_str(), 0, NULL, MAPI_UNICODE | FOLDER_MOVE);
 	} else {
 		// from is same as dest folder, use SetProps(PR_DISPLAY_NAME)
 		SPropValue propName;
@@ -1409,7 +1405,7 @@ HRESULT IMAP::HrCmdRename(const string &strTag, const string &strExistingFolderP
 		propName.Value.lpszW = (WCHAR*)strFolder.c_str();
 
 		hr = lpSession->OpenEntry(cbMovFolder, lpMovFolder, &IID_IMAPIFolder, MAPI_MODIFY,
-								&ulObjType,	(LPUNKNOWN *) &lpSubFolder);
+		     &ulObjType, (LPUNKNOWN *)&lpSubFolder);
 		if (hr != hrSuccess) {
 			hr2 = HrResponse(RESP_TAGGED_NO, strTag, "RENAME error opening folder");
 			goto exit;
@@ -3566,25 +3562,22 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, bool bS
                 if (ulUnseen == 0 &&
                     lpRows->aRow[ulMailnr].lpProps[FLAGS].ulPropTag == PR_MESSAGE_FLAGS && (lpRows->aRow[ulMailnr].lpProps[FLAGS].Value.ul & MSGFLAG_READ) == 0)
                         ulUnseen = lstFolderMailEIDs.size()-1+1; // size()-1 = last offset, mail ID = position + 1
-            } else {
-                // Check flags
-                std::string strFlags = PropsToFlags(lpRows->aRow[ulMailnr].lpProps, lpRows->aRow[ulMailnr].cValues, lstFolderMailEIDs[iterUID->second].bRecent, false);
-                
-                if(lstFolderMailEIDs[iterUID->second].strFlags != strFlags) {
-                    // Flags have changed, notify it
-                    if(bShowUID)
-                        hr = HrResponse(RESP_UNTAGGED, stringify(iterUID->second+1) + " FETCH (UID " + stringify(lpRows->aRow[ulMailnr].lpProps[IMAPID].Value.ul) + " FLAGS (" + strFlags + "))");
-                    else
-                        hr = HrResponse(RESP_UNTAGGED, stringify(iterUID->second+1) + " FETCH (FLAGS (" + strFlags + "))");
-					if (hr != hrSuccess)
-						goto exit;
-                    lstFolderMailEIDs[iterUID->second].strFlags = strFlags;
-                }
-                    
-                // We already had this message, remove it from setUIDs
-                mapUIDs.erase(iterUID);
+				continue;
             }
-        
+            // Check flags
+            std::string strFlags = PropsToFlags(lpRows->aRow[ulMailnr].lpProps, lpRows->aRow[ulMailnr].cValues, lstFolderMailEIDs[iterUID->second].bRecent, false);
+			if (lstFolderMailEIDs[iterUID->second].strFlags != strFlags) {
+				// Flags have changed, notify it
+				if (bShowUID)
+					hr = HrResponse(RESP_UNTAGGED, stringify(iterUID->second + 1) + " FETCH (UID " + stringify(lpRows->aRow[ulMailnr].lpProps[IMAPID].Value.ul) + " FLAGS (" + strFlags + "))");
+				else
+					hr = HrResponse(RESP_UNTAGGED, stringify(iterUID->second+1) + " FETCH (FLAGS (" + strFlags + "))");
+				if (hr != hrSuccess)
+					goto exit;
+				lstFolderMailEIDs[iterUID->second].strFlags = strFlags;
+			}
+			// We already had this message, remove it from setUIDs
+			mapUIDs.erase(iterUID);
 		}
 
 		if (lpRows)
@@ -4916,12 +4909,12 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
             for (const auto &field : lstFields) {
                 std::string strFieldUpper = field.first;
                 ToUpper(strFieldUpper);
-                if (setFields.find(strFieldUpper) == setFields.cend()) {
-                    strMessagePart += field.first;
-                    strMessagePart += ": ";
-                    strMessagePart += field.second;
-                    strMessagePart += "\r\n";
-                }
+                if (setFields.find(strFieldUpper) != setFields.cend())
+                    continue;
+                strMessagePart += field.first;
+                strMessagePart += ": ";
+                strMessagePart += field.second;
+                strMessagePart += "\r\n";
             }
         } else {
             vector<string> lstReqFields;
@@ -4935,13 +4928,13 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
                 if (!seen.insert(reqfield).second)
                     continue;
                 for (const auto &field : lstFields) {
-                    if(CaseCompare(reqfield, field.first)) {
-                        strMessagePart += field.first;
-                        strMessagePart += ": ";
-                        strMessagePart += field.second;
-                        strMessagePart += "\r\n";
-						break;
-                    }
+                    if (!CaseCompare(reqfield, field.first))
+                        continue;
+                    strMessagePart += field.first;
+                    strMessagePart += ": ";
+                    strMessagePart += field.second;
+                    strMessagePart += "\r\n";
+                    break;
                 }
             }
         }

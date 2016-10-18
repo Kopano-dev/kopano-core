@@ -383,10 +383,9 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 				continue;
 			}
 
-			if(lpSrvList->lpsaServer[i].ulFlags & EC_SDFLAG_IS_PEER) {
-				if(lpSrvList->lpsaServer[i].lpszFilePath)
-					wszPath = lpSrvList->lpsaServer[i].lpszFilePath;
-			}
+			if (lpSrvList->lpsaServer[i].ulFlags & EC_SDFLAG_IS_PEER &&
+			    lpSrvList->lpsaServer[i].lpszFilePath != nullptr)
+				wszPath = lpSrvList->lpsaServer[i].lpszFilePath;
 			if (wszPath == NULL) {
 				if(lpSrvList->lpsaServer[i].lpszSslPath == NULL) {
 					ec_log_err("No SSL or File path found for server: \"%ls\", please fix your configuration.", lpSrvList->lpsaServer[i].lpszName);

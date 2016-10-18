@@ -1637,10 +1637,14 @@ HRESULT HrGetAddress(LPADRBOOK lpAdrBook, LPSPropValue lpProps, ULONG cValues, U
 		lpName		= PpropFindProp(lpProps, cValues, ulPropTagName);
 		lpType		= PpropFindProp(lpProps, cValues, ulPropTagType);
 		lpAddress	= PpropFindProp(lpProps, cValues, ulPropTagEmailAddress);
-		if (lpEntryID && PROP_TYPE(lpEntryID->ulPropTag) != PT_BINARY) lpEntryID = NULL;
-		if (lpName && PROP_TYPE(lpName->ulPropTag) != PT_STRING8 && PROP_TYPE(lpName->ulPropTag) != PT_UNICODE) lpName = NULL;
-		if (lpType && PROP_TYPE(lpType->ulPropTag) != PT_STRING8 && PROP_TYPE(lpType->ulPropTag) != PT_UNICODE) lpType = NULL;
-		if (lpAddress && PROP_TYPE(lpAddress->ulPropTag) != PT_STRING8 && PROP_TYPE(lpAddress->ulPropTag) != PT_UNICODE) lpAddress = NULL;
+		if (lpEntryID && PROP_TYPE(lpEntryID->ulPropTag) != PT_BINARY)
+			lpEntryID = NULL;
+		if (lpName && PROP_TYPE(lpName->ulPropTag) != PT_STRING8 && PROP_TYPE(lpName->ulPropTag) != PT_UNICODE)
+			lpName = NULL;
+		if (lpType && PROP_TYPE(lpType->ulPropTag) != PT_STRING8 && PROP_TYPE(lpType->ulPropTag) != PT_UNICODE)
+			lpType = NULL;
+		if (lpAddress && PROP_TYPE(lpAddress->ulPropTag) != PT_STRING8 && PROP_TYPE(lpAddress->ulPropTag) != PT_UNICODE)
+			lpAddress = NULL;
 	}
 
 	if (lpEntryID == NULL || lpAdrBook == NULL ||
@@ -1668,11 +1672,10 @@ HRESULT HrGetAddress(LPADRBOOK lpAdrBook, LPSPropValue lpProps, ULONG cValues, U
     }
     		
     // If we don't have an SMTP address yet, try to resolve the item to get the SMTP address
-    if (lpAdrBook && lpType && lpAddress && wcscasecmp(strType.c_str(), L"SMTP") != 0) {
-        if (HrResolveToSMTP(lpAdrBook, strEmailAddress, EMS_AB_ADDRESS_LOOKUP, strSMTPAddress) == hrSuccess)
-            strEmailAddress = strSMTPAddress;
-    }
-
+	if (lpAdrBook != nullptr && lpType != nullptr &&
+	    lpAddress != nullptr && wcscasecmp(strType.c_str(), L"SMTP") != 0 &&
+	    HrResolveToSMTP(lpAdrBook, strEmailAddress, EMS_AB_ADDRESS_LOOKUP, strSMTPAddress) == hrSuccess)
+		strEmailAddress = strSMTPAddress;
 	return hr;
 }
 

@@ -791,9 +791,9 @@ HRESULT ECMemTableView::FindRow(LPSRestriction lpRestriction, BOOKMARK bkOrigin,
 		if (sRowList.empty())
 			return MAPI_E_NOT_FOUND;
 		if(TestRestriction(lpRestriction, 
-							this->lpMemTable->mapRows[sRowList.begin()->ulObjId].cValues,
-							this->lpMemTable->mapRows[sRowList.begin()->ulObjId].lpsPropVal,
-							m_locale) == hrSuccess)  {
+		    this->lpMemTable->mapRows[sRowList.begin()->ulObjId].cValues,
+		    this->lpMemTable->mapRows[sRowList.begin()->ulObjId].lpsPropVal,
+		    m_locale) == hrSuccess) {
 			if(ulFlags & DIR_BACKWARD) {
 				er = SeekRow(BOOKMARK_CURRENT, 1, NULL);
 			} else {
@@ -999,14 +999,12 @@ HRESULT ECMemTableView::ModifyRowKey(sObjectTableKey *lpsRowItem, sObjectTableKe
 	}
 
 	// Check if there is a restriction in place, and if so, apply it
-	if(this->lpsRestriction) {
-		if(TestRestriction(this->lpsRestriction, iterData->second.cValues, iterData->second.lpsPropVal, m_locale) != hrSuccess) {
-			// no match
-			
-			// Remove the row, ignore error
-			lpKeyTable->UpdateRow(ECKeyTable::TABLE_ROW_DELETE, lpsRowItem, 0, NULL, NULL, NULL, lpsPrevRow, false, (ECKeyTable::UpdateType*)lpulAction);
-			goto exit;
-		}
+	if (this->lpsRestriction != nullptr &&
+	    TestRestriction(this->lpsRestriction, iterData->second.cValues, iterData->second.lpsPropVal, m_locale) != hrSuccess) {
+		// no match
+		// Remove the row, ignore error
+		lpKeyTable->UpdateRow(ECKeyTable::TABLE_ROW_DELETE, lpsRowItem, 0, NULL, NULL, NULL, lpsPrevRow, false, (ECKeyTable::UpdateType*)lpulAction);
+		goto exit;
 	}
 
 	// Get all the sort columns and package them as binary keys
