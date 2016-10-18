@@ -1004,6 +1004,9 @@ HRESULT ECMemTableView::ModifyRowKey(sObjectTableKey *lpsRowItem, sObjectTableKe
 		goto exit;
 	}
 
+	if (lpsSortOrderSet == nullptr)
+		goto exit;
+
 	// Get all the sort columns and package them as binary keys
 	for (j = 0; j < lpsSortOrderSet->cSorts; ++j) {
 		lpsSortID = PpropFindProp(iterData->second.lpsPropVal, iterData->second.cValues, lpsSortOrderSet->aSort[j].ulPropTag);

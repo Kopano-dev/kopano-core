@@ -19,6 +19,7 @@
 #define SWIG_IUNKNOWN_H
 
 #include <set>
+#include <stdexcept>
 #include <cstdio>
 
 /**
@@ -44,7 +45,11 @@ public:
 		gstate = PyGILState_Ensure();
 		
 		Swig::Director *director = dynamic_cast<Swig::Director *>(this);
+		if (director == nullptr)
+			throw std::runtime_error("dynamic_cast<> yielded a nullptr");
 		PyObject *o = director->swig_get_self();
+		if (o == nullptr)
+			throw std::runtime_error("swig_get_self yielded a nullptr");
 		Py_INCREF(o);
 
 		PyGILState_Release(gstate);
@@ -56,7 +61,11 @@ public:
 		gstate = PyGILState_Ensure();
 		
 		Swig::Director *director = dynamic_cast<Swig::Director *>(this);
+		if (director == nullptr)
+			throw std::runtime_error("dynamic_cast<> yielded a nullptr");
 		PyObject *o = director->swig_get_self();
+		if (o == nullptr)
+			throw std::runtime_error("swig_get_self yielded a nullptr");
 		ULONG cnt = o->ob_refcnt;
 		Py_DECREF(o); // Will delete this because python object will have refcount 0, which deletes this object
 
