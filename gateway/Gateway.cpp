@@ -179,10 +179,9 @@ static void *Handler(void *lpArg)
 			/* signalled - reevaluate bQuit */
 			continue;
 		if (hr == MAPI_E_TIMEOUT) {
-			if (++timeouts < client->getTimeoutMinutes()) {
+			if (++timeouts < client->getTimeoutMinutes())
 				// ignore select() timeout for 5 (POP3) or 30 (IMAP) minutes
 				continue;
-			}
 			// close idle first, so we don't have a race condition with the channel
 			client->HrCloseConnection("BYE Connection closed because of timeout");
 			lpLogger->Log(EC_LOGLEVEL_ERROR, "Connection closed because of timeout");
@@ -661,13 +660,11 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 				set_thread_name(POP3Thread, "ZGateway " + std::string(method));
 			}
 			else {
-				if (unix_fork_function(Handler, lpHandlerArgs, nCloseFDs, pCloseFDs) < 0) {
+				if (unix_fork_function(Handler, lpHandlerArgs, nCloseFDs, pCloseFDs) < 0)
 					g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Can't create %s %s.", method, model);
 					// just keep running
-				}
-				else {
+				else
 					++nChildren;
-				}
 				// main handler always closes information it doesn't need
 				delete lpHandlerArgs->lpChannel;
 				delete lpHandlerArgs;
@@ -718,13 +715,11 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 				set_thread_name(IMAPThread, "ZGateway " + std::string(method));
 			}
 			else {
-				if (unix_fork_function(Handler, lpHandlerArgs, nCloseFDs, pCloseFDs) < 0) {
+				if (unix_fork_function(Handler, lpHandlerArgs, nCloseFDs, pCloseFDs) < 0)
 					g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Could not create %s %s.", method, model);
 					// just keep running
-				}
-				else {
+				else
 					++nChildren;
-				}
 				// main handler always closes information it doesn't need
 				delete lpHandlerArgs->lpChannel;
 				delete lpHandlerArgs;

@@ -771,13 +771,11 @@ HRESULT ECMemTableView::FindRow(LPSRestriction lpRestriction, BOOKMARK bkOrigin,
 		sRowItem.ulOrderId = 0; // FIXME:mvprops ?
 		return kcerr_to_mapierr(this->lpKeyTable->SeekId(&sRowItem));
 	}
-
-	if(bkOrigin == BOOKMARK_END && ulFlags & DIR_BACKWARD) {
+	if (bkOrigin == BOOKMARK_END && ulFlags & DIR_BACKWARD)
 		// Loop through the rows
 		er = SeekRow(bkOrigin, -1, NULL);
-	} else {
+	else
 		er = SeekRow(bkOrigin, 0, NULL);
-	}
 	hr = kcerr_to_mapierr(er);
 	if(hr != hrSuccess)
 		return hr;
@@ -794,11 +792,10 @@ HRESULT ECMemTableView::FindRow(LPSRestriction lpRestriction, BOOKMARK bkOrigin,
 		    this->lpMemTable->mapRows[sRowList.begin()->ulObjId].cValues,
 		    this->lpMemTable->mapRows[sRowList.begin()->ulObjId].lpsPropVal,
 		    m_locale) == hrSuccess) {
-			if(ulFlags & DIR_BACKWARD) {
+			if (ulFlags & DIR_BACKWARD)
 				er = SeekRow(BOOKMARK_CURRENT, 1, NULL);
-			} else {
+			else
 				er = SeekRow(BOOKMARK_CURRENT, -1, NULL);
-			}
 			hr = kcerr_to_mapierr(er);
 			break;
 		}

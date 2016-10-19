@@ -334,10 +334,8 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 
 	//@todo use PT_OBJECT to queryinterface
 	hr = ptrStore->QueryInterface(IID_IECServiceAdmin, &ptrServiceAdmin);
-	if (hr != hrSuccess) {
+	if (hr != hrSuccess)
 		goto exit;
-	}
-
 	hr = MAPIAllocateBuffer(sizeof(ECSVRNAMELIST), (LPVOID *)&lpSrvNameList);
 	if (hr != hrSuccess)
 		goto exit;

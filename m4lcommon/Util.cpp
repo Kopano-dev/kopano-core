@@ -114,15 +114,10 @@ HRESULT Util::HrAddToPropertyArray(const SPropValue *lpSrc, ULONG cValues,
 	}
 
 	lpFind = PpropFindProp(lpDest, n, lpToAdd->ulPropTag);
-
-	if(lpFind) {
+	if (lpFind != nullptr)
 		hr = HrCopyProperty(lpFind, lpToAdd, lpDest);
-	} else {
-
-		hr = HrCopyProperty(&lpDest[n], lpToAdd, lpDest);
-		++n;
-	}
-
+	else
+		hr = HrCopyProperty(&lpDest[n++], lpToAdd, lpDest);
 	if(hr != hrSuccess)
 		return hr;
 	*lppDest = lpDest;
@@ -1060,9 +1055,9 @@ HRESULT Util::CompareProp(const SPropValue *lpProp1, const SPropValue *lpProp2,
 		break;
 	case PT_UNICODE:
 		if (lpProp1->Value.lpszW && lpProp2->Value.lpszW)
-			if(lpProp2->ulPropTag == PR_ANR) {
+			if (lpProp2->ulPropTag == PR_ANR)
 				nCompareResult = wcs_icontains(lpProp1->Value.lpszW, lpProp2->Value.lpszW, locale);
-			} else
+			else
 				nCompareResult = wcs_icompare(lpProp1->Value.lpszW, lpProp2->Value.lpszW, locale);
 		else
 			nCompareResult = lpProp1->Value.lpszW != lpProp2->Value.lpszW;
@@ -1157,11 +1152,10 @@ HRESULT Util::CompareProp(const SPropValue *lpProp1, const SPropValue *lpProp2,
 			nCompareResult = lpProp1->Value.MVcur.cValues == lpProp2->Value.MVcur.cValues;
 		break;
 	case PT_MV_CLSID:
-		if (lpProp1->Value.MVguid.cValues == lpProp2->Value.MVguid.cValues) {
+		if (lpProp1->Value.MVguid.cValues == lpProp2->Value.MVguid.cValues)
 			nCompareResult = memcmp(lpProp1->Value.MVguid.lpguid, lpProp2->Value.MVguid.lpguid, sizeof(GUID)*lpProp1->Value.MVguid.cValues);
-		} else {
+		else
 			nCompareResult = twcmp(lpProp1->Value.MVguid.cValues, lpProp2->Value.MVguid.cValues);
-		}
 		break;
 	case PT_MV_BINARY:
 		if (lpProp1->Value.MVbin.cValues == lpProp2->Value.MVbin.cValues) {
@@ -2035,10 +2029,8 @@ HRESULT Util::HrHtmlToRtf(const WCHAR *lpwHTML, std::string &strRTF)
 			} else if(StrCaseCompare(lpwHTML, L"</PLAIN", pos)) {
 				type = RTF_TAG_TYPE_FONT;
 			}
-	        
-			if(StrCaseCompare(lpwHTML, L"</", pos)) {
+			if (StrCaseCompare(lpwHTML, L"</", pos))
 				type |= RTF_FLAG_CLOSE;
-			}
 		}
 
         // Set correct state flag if closing tag (RTF_IN*)
@@ -2154,9 +2146,8 @@ HRESULT Util::HrHtmlToRtf(const WCHAR *lpwHTML, std::string &strRTF)
                 continue;
             }
         } else {
-            if(!inTag && bFirstText) {
+            if (!inTag && bFirstText)
                 bFirstText = false;
-            }
             strRTF += lpwHTML[pos];
         }
 
@@ -2191,17 +2182,13 @@ HRESULT Util::HrHtmlToRtf(const WCHAR *lpwHTML, std::string &strRTF)
                 strRTF += "\r\n{\\*\\htmltag" + stringify(RTF_TAG_TYPE_UNK | stackTag.top()) + " ";
             } 
             
-            if(!ulStyleMode && !ulCommentMode) {
+            if (!ulStyleMode && !ulCommentMode)
                 // Normal text must have \*\htmltag64 to suppress <p> in the final html output
                 strRTF += "{\\*\\htmltag64}";
-            }            
-            
             inTag = false;
-
-            if(bPlainCRLF && !ulCommentMode && !ulStyleMode) {
+            if (bPlainCRLF && !ulCommentMode && !ulStyleMode)
                 // Add a plaintext newline if needed, but only for non-style and non-comment parts
                 strRTF += "\\htmlrtf \\par \\htmlrtf0 ";
-            }
         }
         
         
@@ -3028,9 +3015,8 @@ HRESULT Util::TryOpenProperty(ULONG ulPropType, ULONG ulSrcPropTag, LPMAPIPROP l
 
 	// some mapi functions/providers don't implement STGM_TRANSACTED, retry again without this flag
 	hr = lpPropDest->OpenProperty(PROP_TAG(ulPropType, PROP_ID(ulDestPropTag)), &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, (LPUNKNOWN*)&lpDest);
-	if (hr != hrSuccess) {
+	if (hr != hrSuccess)
 		hr = lpPropDest->OpenProperty(PROP_TAG(ulPropType, PROP_ID(ulDestPropTag)), &IID_IStream, STGM_WRITE, MAPI_CREATE | MAPI_MODIFY, (LPUNKNOWN*)&lpDest);
-	}
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -3221,10 +3207,8 @@ HRESULT Util::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj, ULONG ciidExclude
 	hr = QueryInterfaceMapiPropOrValidFallback(lpUnkDest, lpDestInterface, (IUnknown**)&lpPropDest);
 	if (hr != hrSuccess)
 		goto exit;
-
-	if(!FHasHTML(lpPropDest)) {
+	if (!FHasHTML(lpPropDest))
 		sExtraExcludes.aulPropTag[sExtraExcludes.cValues++] = PR_HTML;
-	}
 
 	hr = lpPropSrc->GetPropList(MAPI_UNICODE, &lpSPropTagArray);
 	if (FAILED(hr))
@@ -3472,16 +3456,14 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, LPVOID lpSrcObj, LPSPropTagArra
 			PROP_ID(lpIncludeProps->aulPropTag[i]) == PROP_ID(PR_ATTACH_DATA_BIN)) {
 			// if IMessage: PR_MESSAGE_RECIPIENTS, PR_MESSAGE_ATTACHMENTS
 			if (*lpSrcInterface == IID_IMessage) {
-
-				if (lpIncludeProps->aulPropTag[i] == PR_MESSAGE_RECIPIENTS) {
+				if (lpIncludeProps->aulPropTag[i] == PR_MESSAGE_RECIPIENTS)
 					// TODO: add ulFlags, and check for MAPI_NOREPLACE
 					hr = Util::CopyRecipients((LPMESSAGE)lpSrcObj, (LPMESSAGE)lpDestObj);
-				} else if (lpIncludeProps->aulPropTag[i] == PR_MESSAGE_ATTACHMENTS) {
+				else if (lpIncludeProps->aulPropTag[i] == PR_MESSAGE_ATTACHMENTS)
 					// TODO: add ulFlags, and check for MAPI_NOREPLACE
 					hr = Util::CopyAttachments((LPMESSAGE)lpSrcObj, (LPMESSAGE)lpDestObj, NULL);
-				} else {
+				else
 					hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
-				}
 				if (hr != hrSuccess) {
 					isProblem = true;
 					goto next_include_check;
@@ -3501,11 +3483,10 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, LPVOID lpSrcObj, LPSPropTagArra
 
 				// In attachments, IID_IMessage can be present!  for PR_ATTACH_DATA_OBJ
 				// find method and copy this PT_OBJECT
-				if (HrGetOneProp(lpSrcProp, PR_ATTACH_METHOD, &lpAttachMethod) != hrSuccess) {
+				if (HrGetOneProp(lpSrcProp, PR_ATTACH_METHOD, &lpAttachMethod) != hrSuccess)
 					ulAttachMethod = ATTACH_BY_VALUE;
-				} else {
+				else
 					ulAttachMethod = lpAttachMethod->Value.ul;
-				}
 				switch (ulAttachMethod) {
 				case ATTACH_BY_VALUE:
 				case ATTACH_OLE:
@@ -3669,14 +3650,13 @@ next_include_check:
 		for (ULONG i = 0, j = 0; i < cValues && j < cNames; ++i) {
 			if (PROP_ID(lpProps[i].ulPropTag) != PROP_ID(lpsSrcNameTagArray->aulPropTag[j]))
 				continue;
-			if (PROP_TYPE(lpsDestNameTagArray->aulPropTag[j]) != PT_ERROR) {
+			if (PROP_TYPE(lpsDestNameTagArray->aulPropTag[j]) != PT_ERROR)
 				// replace with new proptag, so we can open the correct property
 				lpsDestTagArray->aulPropTag[i] = PROP_TAG(PROP_TYPE(lpProps[i].ulPropTag), PROP_ID(lpsDestNameTagArray->aulPropTag[j]));
-			} else {
+			else
 				// leave on PT_ERROR, so we don't copy the property
 				lpsDestTagArray->aulPropTag[i] = PROP_TAG(PT_ERROR, PROP_ID(lpsDestNameTagArray->aulPropTag[j]));
 				// don't even return a warning because although not all data could be copied
-			}
 			++j;
 		}
 	}

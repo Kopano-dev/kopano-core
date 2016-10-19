@@ -291,41 +291,25 @@ HRESULT RecurrenceState::ParseBlob(char *lpData, unsigned int ulLen, ULONG ulFla
             READSHORT(ulSubjectLength2);
             READSTRING(sException.strSubject, ulSubjectLength2);
         }
-        
-        if(sException.ulOverrideFlags & ARO_MEETINGTYPE) {
+        if (sException.ulOverrideFlags & ARO_MEETINGTYPE)
             READLONG(sException.ulApptStateFlags);
-        }
-        
-        if(sException.ulOverrideFlags & ARO_REMINDERDELTA) {
+        if (sException.ulOverrideFlags & ARO_REMINDERDELTA)
             READLONG(sException.ulReminderDelta);
-        }
-        
-        if(sException.ulOverrideFlags & ARO_REMINDERSET) {
+        if (sException.ulOverrideFlags & ARO_REMINDERSET)
             READLONG(sException.ulReminderSet);
-        }
-             
         if(sException.ulOverrideFlags & ARO_LOCATION) {
             READSHORT(ulLocationLength);
             READSHORT(ulLocationLength2);
             READSTRING(sException.strLocation, ulLocationLength2);
         }
-        
-        if(sException.ulOverrideFlags & ARO_BUSYSTATUS) {
+        if (sException.ulOverrideFlags & ARO_BUSYSTATUS)
             READLONG(sException.ulBusyStatus);
-        }
-        
-        if(sException.ulOverrideFlags & ARO_ATTACHMENT) {
+        if (sException.ulOverrideFlags & ARO_ATTACHMENT)
             READLONG(sException.ulAttachment);
-        }
-        
-        if(sException.ulOverrideFlags & ARO_SUBTYPE) {
+        if (sException.ulOverrideFlags & ARO_SUBTYPE)
             READLONG(sException.ulSubType);
-        }
-
-        if(sException.ulOverrideFlags & ARO_APPTCOLOR) {
+        if (sException.ulOverrideFlags & ARO_APPTCOLOR)
             READLONG(sException.ulAppointmentColor);
-        }
-        
         lstExceptions.push_back(sException);
     }
     

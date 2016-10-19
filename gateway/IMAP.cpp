@@ -507,11 +507,10 @@ HRESULT IMAP::HrProcessCommand(const std::string &strInput)
 		else
 			hr = HrCmdList(strTag, strvResult[0], strvResult[1], false);
 	} else if (strCommand.compare("LSUB") == 0) {
-		if (strvResult.size() != 2) {
+		if (strvResult.size() != 2)
 			hr = HrResponse(RESP_TAGGED_BAD, strTag, "LSUB must have 2 arguments");
-		} else {
+		else
 			hr = HrCmdList(strTag, strvResult[0], strvResult[1], true);
-		}
 	} else if (strCommand.compare("STATUS") == 0) {
 		if (strvResult.size() != 2)
 			hr = HrResponse(RESP_TAGGED_BAD, strTag, "STATUS must have 2 arguments");
@@ -2322,10 +2321,9 @@ HRESULT IMAP::HrCmdFetch(const string &strTag, const string &strSeqSet, const st
 
 	HrGetDataItems(strMsgDataItemNames, lstDataItems);
 	if (bUidMode) {
-		for (ulCurrent = 0; !bFound && ulCurrent < lstDataItems.size(); ++ulCurrent) {
+		for (ulCurrent = 0; !bFound && ulCurrent < lstDataItems.size(); ++ulCurrent)
 			if (lstDataItems[ulCurrent].compare("UID") == 0)
 				bFound = true;
-		}
 		if (!bFound)
 			lstDataItems.push_back("UID");
 	}
@@ -3147,9 +3145,8 @@ HRESULT IMAP::HrGetFolderList(list<SFolder> &lstFolders) {
 	lstFolders.clear();
 
 	hr = HrGetOneProp(lpStore, PR_IPM_SUBTREE_ENTRYID, &lpPropVal);
-	if (hr != hrSuccess) {
+	if (hr != hrSuccess)
 		goto exit;
-	}
 
 	// make folders list from IPM_SUBTREE
 	hr = HrGetSubTree(lstFolders, lpPropVal->Value.bin, wstring(), lstFolders.end());
@@ -3409,10 +3406,8 @@ HRESULT IMAP::HrMakeSpecialsList() {
 			lstSpecialEntryIDs.insert(BinaryArray(lpPropArrayInbox[i].Value.bin.lpb, lpPropArrayInbox[i].Value.bin.cb));
 
 	if (HrGetOneProp(lpInbox, PR_ADDITIONAL_REN_ENTRYIDS, &lpPropVal) == hrSuccess &&
-		lpPropVal->Value.MVbin.cValues >= 5 && lpPropVal->Value.MVbin.lpbin[4].cb != 0)
-	{
+	    lpPropVal->Value.MVbin.cValues >= 5 && lpPropVal->Value.MVbin.lpbin[4].cb != 0)
 		lstSpecialEntryIDs.insert(BinaryArray(lpPropVal->Value.MVbin.lpbin[4].lpb, lpPropVal->Value.MVbin.lpbin[4].cb));
-	}
 	
 	MAPIFreeBuffer(lpPropVal);
 	lpPropVal = NULL;
@@ -3700,9 +3695,8 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &lstFolders, SBinary &sEntryID, wstring
 		goto exit;
 	}
 
-	while (strFolderName.find(IMAP_HIERARCHY_DELIMITER) != string::npos) {
+	while (strFolderName.find(IMAP_HIERARCHY_DELIMITER) != string::npos)
 		strFolderName.erase(strFolderName.find(IMAP_HIERARCHY_DELIMITER), 1);
-	}
 
 	iFolder = find(m_vSubscriptions.cbegin(), m_vSubscriptions.cend(), BinaryArray(sEntryID));
 	sFolder.bActive = iFolder != m_vSubscriptions.cend();
@@ -4453,11 +4447,10 @@ std::string IMAP::HrEnvelopeRecipients(LPSRowSet lpRows, ULONG ulType, std::stri
 		 * mailbox name, and host name.""" RFC 3501 §2.3.5 p.76.
 		 */
 		strResponse += "(";
-		if (pr[DISPLAY_NAME].ulPropTag == PR_DISPLAY_NAME_W) {
+		if (pr[DISPLAY_NAME].ulPropTag == PR_DISPLAY_NAME_W)
 			strResponse += EscapeString(pr[DISPLAY_NAME].Value.lpszW, strCharset, bIgnore);
-		} else {
+		else
 			strResponse += "NIL";
-		}
 
 		strResponse += " NIL ";
 		bool has_email = pr[EMAIL_ADDRESS].ulPropTag == PR_EMAIL_ADDRESS_A;
@@ -4528,11 +4521,10 @@ std::string IMAP::HrEnvelopeSender(LPMESSAGE lpMessage, ULONG ulTagName, ULONG u
 
 	hr = lpMessage->GetProps(sPropTags, 0, &ulProps, &lpPropValues);
 	strResponse = "((";
-	if (!FAILED(hr) && PROP_TYPE(lpPropValues[0].ulPropTag) != PT_ERROR) {
+	if (!FAILED(hr) && PROP_TYPE(lpPropValues[0].ulPropTag) != PT_ERROR)
 		strResponse += EscapeString(lpPropValues[0].Value.lpszW, strCharset, bIgnore);
-	} else {
+	else
 		strResponse += "NIL";
-	}
 
 	strResponse += " NIL ";
 
@@ -4610,9 +4602,8 @@ HRESULT IMAP::HrGetMessageEnvelope(string &strResponse, LPMESSAGE lpMessage) {
 	lpPropVal = NULL;
 
 	// subject
-	if (HrGetOneProp(lpMessage, PR_SUBJECT_W, &lpPropVal) == hrSuccess) {
+	if (HrGetOneProp(lpMessage, PR_SUBJECT_W, &lpPropVal) == hrSuccess)
 		strResponse += EscapeString(lpPropVal->Value.lpszW, strCharset, bIgnoreCharsetErrors);
-	}
 	strResponse += " ";
 
 	// from
@@ -4648,11 +4639,10 @@ recipientsdone:
 	lpPropVal = NULL;
 
 	// in reply to
-	if (HrGetOneProp(lpMessage, PR_IN_REPLY_TO_ID_A, &lpPropVal) == hrSuccess) {
+	if (HrGetOneProp(lpMessage, PR_IN_REPLY_TO_ID_A, &lpPropVal) == hrSuccess)
 		strResponse += EscapeStringQT(lpPropVal->Value.lpszA);
-	} else {
+	else
 		strResponse += "NIL";
-	}
 
 	strResponse += " ";
 
@@ -4660,11 +4650,10 @@ recipientsdone:
 	lpPropVal = NULL;
 
 	// internet message id
-	if (HrGetOneProp(lpMessage, PR_INTERNET_MESSAGE_ID_A, &lpPropVal) == hrSuccess) {
+	if (HrGetOneProp(lpMessage, PR_INTERNET_MESSAGE_ID_A, &lpPropVal) == hrSuccess)
 		strResponse += EscapeStringQT(lpPropVal->Value.lpszA);
-	} else {
+	else
 		strResponse += "NIL";
-	}
 
 	strResponse += ")";
 
@@ -4762,11 +4751,10 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
 	    
 	    // Find subsection
 		ulPos = strPartName.find(".");
-		if (ulPos == string::npos) { // first section
+		if (ulPos == string::npos) // first section
 			ulPartnr = strtoul(strPartName.c_str(), NULL, 0);
-		} else { // sub section
+		else // sub section
 			ulPartnr = strtoul(strPartName.substr(0, ulPos).c_str(), NULL, 0);
-		}
 
 		// Find the correct part
 		end = str_ifind((char*)strMessage.c_str(), "\r\n\r\n");
@@ -4821,12 +4809,11 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
 			if(strNextPart.compare("MIME") == 0) {
 			    // Handle MIME request
                 ulPos = strMessage.find("\r\n\r\n");
-                if (ulPos != string::npos) {
+                if (ulPos != string::npos)
                     strMessagePart = strMessage.substr(0, ulPos+4); // include trailing \r\n\r\n (+4)
-                } else {
+                else
                     // Only headers in the message
                     strMessagePart = strMessage + "\r\n\r\n";
-                }
 
                 // All done
 				return hrSuccess;
@@ -4842,12 +4829,11 @@ HRESULT IMAP::HrGetMessagePart(string &strMessagePart, string &strMessage, strin
         // Handle any other request (HEADER, TEXT or 'empty'). This means we first skip the MIME-IMB headers
         // and process the rest from there.
         ulPos = strMessage.find("\r\n\r\n");
-        if (ulPos != string::npos) {
+        if (ulPos != string::npos)
             strMessage.erase(0, ulPos + 4);
-        } else {
+        else
             // The message only has headers ?
             strMessage.clear();
-        }
         // Handle HEADER and TEXT if requested        
         if (!strNextPart.empty())
             HrGetMessagePart(strMessagePart, strMessage, strNextPart);
@@ -7076,15 +7062,12 @@ void IMAP::HrParseHeaders(const string &strHeaders, list<pair<string, string> > 
                 strData = strLine.substr(colon+1);
                 
                 // Remove leading spaces
-                while(strData[0] == ' ') {
+                while (strData[0] == ' ')
                     strData.erase(0,1);
-                }
-                
                 lstHeaders.push_back(pair<string, string>(strField, strData));
                 iterLast = --lstHeaders.end();
-            } else {
-                // Broken header ? (no :)
             }
+            // else: Broken header ? (no :)
         }    
         
         if(end == string::npos)

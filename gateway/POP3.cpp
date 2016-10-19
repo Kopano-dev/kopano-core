@@ -142,11 +142,10 @@ HRESULT POP3::HrProcessCommand(const std::string &strInput)
 		if (vWords.size() != 1)
 			return HrResponse(POP3_RESP_ERR,
 			       "STLS command must have 0 arguments");
-		if (HrCmdStarttls() != hrSuccess) {
+		if (HrCmdStarttls() != hrSuccess)
 			// log ?
 			// let the gateway quit from the socket read loop
 			hr = MAPI_E_END_OF_SESSION;
-		}
 	} else if (strCommand.compare("USER") == 0) {
 		if (vWords.size() != 2)
 			return HrResponse(POP3_RESP_ERR,
@@ -176,11 +175,10 @@ HRESULT POP3::HrProcessCommand(const std::string &strInput)
 		if (vWords.size() > 2)
 			return HrResponse(POP3_RESP_ERR,
 			       "List must have 0 or 1 arguments");
-		if (vWords.size() == 2) {
+		if (vWords.size() == 2)
 			hr = HrCmdList(strtoul(vWords[1].c_str(), NULL, 0));
-		} else {
+		else
 			hr = HrCmdList();
-		}
 	} else if (strCommand.compare("RETR") == 0) {
 		if (vWords.size() != 2)
 			return HrResponse(POP3_RESP_ERR,
@@ -210,11 +208,10 @@ HRESULT POP3::HrProcessCommand(const std::string &strInput)
 		if (vWords.size() > 2)
 			return HrResponse(POP3_RESP_ERR,
 			       "UIDL must have 0 or 1 arguments");
-		if (vWords.size() == 2) {
+		if (vWords.size() == 2)
 			hr = HrCmdUidl(strtoul(vWords[1].c_str(), NULL, 0));
-		} else {
+		else
 			hr = HrCmdUidl();
-		}
 	} else {
 		hr = HrResponse(POP3_RESP_ERR, "Function not (yet) implemented");
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "non-existing function called: %s", vWords[0].c_str());
@@ -858,10 +855,8 @@ HRESULT POP3::HrMakeMailList() {
 	if (hr != hrSuccess)
 		goto exit;
 	hr = lpTable->SortTable(tableSort, 0);
-	if (hr != hrSuccess) {
+	if (hr != hrSuccess)
 		goto exit;
-	}
-
 	hr = lpTable->QueryRows(-1, 0, &lpRows);
 	if (hr != hrSuccess)
 		goto exit;
