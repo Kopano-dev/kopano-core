@@ -332,7 +332,7 @@ ECRESULT ECStoreObjectTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
 	lpsRowSet->__size = 0;
 	lpsRowSet->__ptr = NULL;
 
-	if(lpRowList->empty()) {
+	if (lpRowList == nullptr || lpRowList->empty()) {
 		*lppRowSet = lpsRowSet;
 		lpsRowSet = NULL;
 		goto exit; // success
