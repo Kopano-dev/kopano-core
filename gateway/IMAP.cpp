@@ -3574,9 +3574,7 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, bool bS
 			// We already had this message, remove it from setUIDs
 			mapUIDs.erase(iterUID);
 		}
-
-		if (lpRows)
-			FreeProws(lpRows);
+		FreeProws(lpRows);
 		lpRows = NULL;
     }
 

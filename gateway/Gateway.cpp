@@ -154,8 +154,9 @@ static void *Handler(void *lpArg)
 	delete lpHandlerArgs;
 
 	// make sure the pipe logger does not exit when this handler exits, but only frees the memory.
-	if (dynamic_cast<ECLogger_Pipe*>(lpLogger) != NULL)
-		dynamic_cast<ECLogger_Pipe*>(lpLogger)->Disown();
+	auto pipelog = dynamic_cast<ECLogger_Pipe *>(lpLogger);
+	if (pipelog != nullptr)
+		pipelog->Disown();
 
 	std::string inBuffer;
 	HRESULT hr;
