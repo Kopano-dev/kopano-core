@@ -201,7 +201,7 @@ bool ECThreadPool::waitForAllTasks(time_t timeout) const
  */
 bool ECThreadPool::getNextTask(STaskInfo *lpsTaskInfo, ulock_normal &locker)
 {
-	assert(!locker.try_lock());
+	assert(locker.owns_lock());
 	assert(lpsTaskInfo != NULL);
 	bool bTerminate = false;
 	while ((bTerminate = (m_ulTermReq > 0)) == false && m_listTasks.empty())
@@ -228,7 +228,7 @@ bool ECThreadPool::getNextTask(STaskInfo *lpsTaskInfo, ulock_normal &locker)
  */
 void ECThreadPool::joinTerminated(ulock_normal &locker)
 {
-	assert(!locker.try_lock());
+	assert(locker.owns_lock());
 	for (auto thr : m_setTerminated)
 		pthread_join(thr, NULL);
 	
