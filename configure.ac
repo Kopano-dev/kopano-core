@@ -673,7 +673,6 @@ AC_SUBST(EPOLL_CFLAGS)
 BOOST_REQUIRE([1.35])
 BOOST_SMART_PTR
 BOOST_FILESYSTEM([mt])
-BOOST_DATE_TIME([mt])
 
 dnl The "Locale" class is in icu-uc.
 dnl The "CollationKey" class is in icu-i18n.
