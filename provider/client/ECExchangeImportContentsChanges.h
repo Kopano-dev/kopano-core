@@ -93,9 +93,9 @@ private:
 	ECMAPIFolder *m_lpFolder = nullptr;
 	SPropValue *m_lpSourceKey = nullptr;
 	IStream *m_lpStream = nullptr;
-	ULONG m_ulFlags;
-	ULONG m_ulSyncId;
-	ULONG m_ulChangeId;
+	ULONG m_ulFlags = 0;
+	ULONG m_ulSyncId = 0;
+	ULONG m_ulChangeId = 0;
 	IID m_iidMessage;
 };
 

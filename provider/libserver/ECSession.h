@@ -234,8 +234,7 @@ protected:
 	unsigned int m_ulUserID = 0;
 	unsigned int m_ulImpersonatorID = 0; // The ID of the user who's credentials were used to login when using impersonation
 	bool m_bValidated = false;
-	
-	AUTHMETHOD m_ulValidationMethod;
+	AUTHMETHOD m_ulValidationMethod = METHOD_NONE;
 	int m_ulConnectingPid = 0;
 
 private:

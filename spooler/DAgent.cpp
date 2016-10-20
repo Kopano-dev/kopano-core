@@ -207,7 +207,7 @@ public:
 			return this->bHasIMAP && !r.bHasIMAP;
 	}
 
-	ULONG ulResolveFlags;
+	ULONG ulResolveFlags = MAPI_UNRESOLVED;
 
 	/* Information from LMTP caller */
 	std::wstring wstrRCPT;

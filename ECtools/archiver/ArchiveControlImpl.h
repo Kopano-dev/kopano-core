@@ -170,29 +170,22 @@ private:
 	enum eCleanupAction { caDelete, caStore, caNone };
 
 	ArchiverSessionPtr m_ptrSession;
-	ECConfig *m_lpConfig;
-	ECArchiverLogger *m_lpLogger;
-
+	ECConfig *m_lpConfig = nullptr;
+	ECArchiverLogger *m_lpLogger = nullptr;
 	FILETIME m_ftCurrent;
-	bool m_bArchiveEnable;
-	int m_ulArchiveAfter;
-
-	bool m_bDeleteEnable;
-	bool m_bDeleteUnread;
-	int m_ulDeleteAfter;
-
-	bool m_bStubEnable;
-	bool m_bStubUnread;
-	int m_ulStubAfter;
-
-	bool m_bPurgeEnable;
-	int m_ulPurgeAfter;
-
+	bool m_bArchiveEnable = true;
+	int m_ulArchiveAfter = 30;
+	bool m_bDeleteEnable = false;
+	bool m_bDeleteUnread = false;
+	int m_ulDeleteAfter = 0;
+	bool m_bStubEnable = false;
+	bool m_bStubUnread = false;
+	int m_ulStubAfter = 0;
+	bool m_bPurgeEnable = false;
+	int m_ulPurgeAfter = 2555;
 	eCleanupAction m_cleanupAction;
 	bool m_bCleanupFollowPurgeAfter;
 	bool m_bForceCleanup;
-
-    bool PurgeSoftdeleted;
 	
 	PROPMAP_DECL()
 	PROPMAP_DEF_NAMED_ID(ARCHIVE_STORE_ENTRYIDS)

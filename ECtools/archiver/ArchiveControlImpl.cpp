@@ -86,20 +86,13 @@ ArchiveControlImpl::ArchiveControlImpl(ArchiverSessionPtr ptrSession, ECConfig *
 : m_ptrSession(ptrSession)
 , m_lpConfig(lpConfig)
 , m_lpLogger(new ECArchiverLogger(lpLogger))
-, m_bArchiveEnable(true)
-, m_ulArchiveAfter(30)
-, m_bDeleteEnable(false)
-, m_bDeleteUnread(false)
-, m_ulDeleteAfter(0)
-, m_bStubEnable(false)
-, m_bStubUnread(false)
-, m_ulStubAfter(0)
-, m_bPurgeEnable(false)
-, m_ulPurgeAfter(2555)
 , m_cleanupAction(caStore)
 , m_bCleanupFollowPurgeAfter(false)
 , m_bForceCleanup(bForceCleanup), __propmap(5)
-{ }
+{
+	m_ftCurrent.dwLowDateTime = 0;
+	m_ftCurrent.dwHighDateTime = 0;
+}
 
 ArchiveControlImpl::~ArchiveControlImpl()
 {
