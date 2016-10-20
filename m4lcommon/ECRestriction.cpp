@@ -272,10 +272,8 @@ ECContentRestriction::ECContentRestriction(ULONG ulFuzzyLevel, ULONG ulPropTag, 
 {
 	if (ulFlags & ECRestriction::Cheap)
 		m_ptrProp.reset(lpProp, &ECRestriction::DummyFree);
-	else {
-		if (CopyProp(lpProp, NULL, ulFlags, &lpProp) == hrSuccess)
-			m_ptrProp.reset(lpProp, &MAPIFreeBuffer);
-	}
+	else if (CopyProp(lpProp, NULL, ulFlags, &lpProp) == hrSuccess)
+		m_ptrProp.reset(lpProp, &MAPIFreeBuffer);
 }
 
 ECContentRestriction::ECContentRestriction(ULONG ulFuzzyLevel, ULONG ulPropTag, PropPtr ptrProp)
@@ -337,10 +335,8 @@ ECPropertyRestriction::ECPropertyRestriction(ULONG relop, ULONG ulPropTag, LPSPr
 {
 	if (ulFlags & ECRestriction::Cheap)
 		m_ptrProp.reset(lpProp, &ECRestriction::DummyFree);
-	else {
-		if (CopyProp(lpProp, NULL, ulFlags, &lpProp) == hrSuccess)
-			m_ptrProp.reset(lpProp, &MAPIFreeBuffer);
-	}
+	else if (CopyProp(lpProp, NULL, ulFlags, &lpProp) == hrSuccess)
+		m_ptrProp.reset(lpProp, &MAPIFreeBuffer);
 }
 
 ECPropertyRestriction::ECPropertyRestriction(ULONG relop, ULONG ulPropTag, PropPtr ptrProp)
@@ -466,10 +462,8 @@ ECCommentRestriction::ECCommentRestriction(const ECRestriction &restriction, ULO
 {
 	if (ulFlags & ECRestriction::Cheap)
 		m_ptrProp.reset(lpProp, &ECRestriction::DummyFree);
-	else {
-		if (CopyProp(lpProp, NULL, ulFlags, &lpProp) == hrSuccess)
-			m_ptrProp.reset(lpProp, &MAPIFreeBuffer);
-	}
+	else if (CopyProp(lpProp, NULL, ulFlags, &lpProp) == hrSuccess)
+		m_ptrProp.reset(lpProp, &MAPIFreeBuffer);
 }
 
 ECCommentRestriction::ECCommentRestriction(ResPtr ptrRestriction, ULONG cValues, PropPtr ptrProp)

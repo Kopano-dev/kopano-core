@@ -1388,11 +1388,10 @@ HRESULT HrGetAddress(IMAPISession *lpSession, LPSPropValue lpProps, ULONG cValue
 	
 	// If entryid is invalid, there is no need in opening the addressbook,
 	// though we still call HrGetAddress with lpAdrBook
-	if (PpropFindProp(lpProps, cValues, ulPropTagEntryID)) {
+	if (PpropFindProp(lpProps, cValues, ulPropTagEntryID))
 		// First, try through the entryid
 		lpSession->OpenAddressBook(0, NULL, AB_NO_DIALOG, &lpAdrBook);
 		// fallthrough .. don't mind if no Addressbook could not be created (probably never happens)
-	}
 	 
 	hr = HrGetAddress(lpAdrBook, lpProps, cValues, ulPropTagEntryID, ulPropTagName, ulPropTagType, ulPropTagEmailAddress, strName, strType, strEmailAddress);
 
@@ -1552,10 +1551,8 @@ static HRESULT HrResolveToSMTP(LPADRBOOK lpAdrBook,
     }
     
     hr = lpAdrBook->OpenEntry(lpEntryID->Value.bin.cb, (LPENTRYID)lpEntryID->Value.bin.lpb, &IID_IMAPIProp, 0, &ulType, (LPUNKNOWN *)&lpMailUser);
-    if(hr != hrSuccess) {
+    if (hr != hrSuccess)
         goto exit;
-    }
-    
     hr = HrGetOneProp(lpMailUser, PR_SMTP_ADDRESS_W, &lpSMTPAddress);
     if(hr != hrSuccess) {
         // Not always an error
@@ -1637,10 +1634,14 @@ HRESULT HrGetAddress(LPADRBOOK lpAdrBook, LPSPropValue lpProps, ULONG cValues, U
 		lpName		= PpropFindProp(lpProps, cValues, ulPropTagName);
 		lpType		= PpropFindProp(lpProps, cValues, ulPropTagType);
 		lpAddress	= PpropFindProp(lpProps, cValues, ulPropTagEmailAddress);
-		if (lpEntryID && PROP_TYPE(lpEntryID->ulPropTag) != PT_BINARY) lpEntryID = NULL;
-		if (lpName && PROP_TYPE(lpName->ulPropTag) != PT_STRING8 && PROP_TYPE(lpName->ulPropTag) != PT_UNICODE) lpName = NULL;
-		if (lpType && PROP_TYPE(lpType->ulPropTag) != PT_STRING8 && PROP_TYPE(lpType->ulPropTag) != PT_UNICODE) lpType = NULL;
-		if (lpAddress && PROP_TYPE(lpAddress->ulPropTag) != PT_STRING8 && PROP_TYPE(lpAddress->ulPropTag) != PT_UNICODE) lpAddress = NULL;
+		if (lpEntryID && PROP_TYPE(lpEntryID->ulPropTag) != PT_BINARY)
+			lpEntryID = NULL;
+		if (lpName && PROP_TYPE(lpName->ulPropTag) != PT_STRING8 && PROP_TYPE(lpName->ulPropTag) != PT_UNICODE)
+			lpName = NULL;
+		if (lpType && PROP_TYPE(lpType->ulPropTag) != PT_STRING8 && PROP_TYPE(lpType->ulPropTag) != PT_UNICODE)
+			lpType = NULL;
+		if (lpAddress && PROP_TYPE(lpAddress->ulPropTag) != PT_STRING8 && PROP_TYPE(lpAddress->ulPropTag) != PT_UNICODE)
+			lpAddress = NULL;
 	}
 
 	if (lpEntryID == NULL || lpAdrBook == NULL ||
@@ -1668,11 +1669,10 @@ HRESULT HrGetAddress(LPADRBOOK lpAdrBook, LPSPropValue lpProps, ULONG cValues, U
     }
     		
     // If we don't have an SMTP address yet, try to resolve the item to get the SMTP address
-    if (lpAdrBook && lpType && lpAddress && wcscasecmp(strType.c_str(), L"SMTP") != 0) {
-        if (HrResolveToSMTP(lpAdrBook, strEmailAddress, EMS_AB_ADDRESS_LOOKUP, strSMTPAddress) == hrSuccess)
-            strEmailAddress = strSMTPAddress;
-    }
-
+	if (lpAdrBook != nullptr && lpType != nullptr &&
+	    lpAddress != nullptr && wcscasecmp(strType.c_str(), L"SMTP") != 0 &&
+	    HrResolveToSMTP(lpAdrBook, strEmailAddress, EMS_AB_ADDRESS_LOOKUP, strSMTPAddress) == hrSuccess)
+		strEmailAddress = strSMTPAddress;
 	return hr;
 }
 
@@ -2183,14 +2183,11 @@ HRESULT TestRestriction(LPSRestriction lpCondition, IMAPIProp *lpMessage, const 
 			break;
 		}
 		hr = HrGetOneProp(lpMessage, lpCondition->res.resCompareProps.ulPropTag1, &lpProp);
-		if (hr != hrSuccess) {
+		if (hr != hrSuccess)
 			break;
-		}
 		hr = HrGetOneProp(lpMessage, lpCondition->res.resCompareProps.ulPropTag2, &lpProp2);
-		if (hr != hrSuccess) {
+		if (hr != hrSuccess)
 			break;
-		}
-
 		Util::CompareProp(lpProp, lpProp2, locale, &result);
 		hr = TestRelop(lpCondition->res.resProperty.relop, result, &fMatch);
 		break;
@@ -2200,27 +2197,24 @@ HRESULT TestRestriction(LPSRestriction lpCondition, IMAPIProp *lpMessage, const 
 			break;
 		}
 		hr = HrGetOneProp(lpMessage, lpCondition->res.resBitMask.ulPropTag, &lpProp);
-		if (hr != hrSuccess) {
+		if (hr != hrSuccess)
 			break;
-		}
 		fMatch = (lpProp->Value.ul & lpCondition->res.resBitMask.ulMask) == 0;
 		if (lpCondition->res.resBitMask.relBMR == BMR_NEZ)
 			fMatch = !fMatch;
 		break;
 	case RES_SIZE:
 		hr = HrGetOneProp(lpMessage, lpCondition->res.resSize.ulPropTag, &lpProp);
-		if (hr != hrSuccess) {
+		if (hr != hrSuccess)
 			break;
-		}
 		ulSize = Util::PropSize(lpProp);
 		result = ulSize - lpCondition->res.resSize.cb;
 		hr = TestRelop(lpCondition->res.resSize.relop, result, &fMatch);
 		break;
 	case RES_EXIST:
 		hr = HrGetOneProp(lpMessage, lpCondition->res.resExist.ulPropTag, &lpProp);
-		if (hr != hrSuccess) {
+		if (hr != hrSuccess)
 			break;
-		}
 		fMatch = true;
 		break;
 	case RES_SUBRESTRICTION:

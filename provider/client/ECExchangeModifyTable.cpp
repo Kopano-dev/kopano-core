@@ -87,8 +87,8 @@ ECExchangeModifyTable::ECExchangeModifyTable(ULONG ulUniqueTag, ECMemTable *tabl
 	m_lpParent = lpParent;
 
 	m_bPushToServer = true;
-
-	m_lpParent->AddRef();
+	if (m_lpParent != nullptr)
+		m_lpParent->AddRef();
 }
 
 ECExchangeModifyTable::~ECExchangeModifyTable() {
@@ -152,26 +152,25 @@ HRESULT __stdcall ECExchangeModifyTable::CreateRulesTable(ECMAPIProp *lpParent, 
 	if (hr!=hrSuccess)
 		goto exit;
 
-	if(lpParent) {
-		// PR_RULES_DATA can grow quite large. GetProps() only supports until size 8192, larger is not returned
-		if(lpParent->OpenProperty(PR_RULES_DATA, &IID_IStream, 0, 0, (LPUNKNOWN *)&lpRulesData) == hrSuccess) {
-			lpRulesData->Stat(&statRulesData, 0);
-			szXML = new char [statRulesData.cbSize.LowPart+1];
-			// TODO: Loop to read all data?
-			hr = lpRulesData->Read(szXML, statRulesData.cbSize.LowPart, &ulRead);
-			if (hr != hrSuccess || ulRead == 0)
-				goto empty;
-			szXML[statRulesData.cbSize.LowPart] = 0;
-			hr = HrDeserializeTable(szXML, ecTable, &ulRuleId);
-			/*
-			 * If the data was corrupted, or imported from
-			 * Exchange, it is incompatible, so return an
-			 * empty table.
-			 */
-			if (hr != hrSuccess) {
-				ecTable->HrClear(); // just to be sure
-				goto empty;
-			}
+	// PR_RULES_DATA can grow quite large. GetProps() only supports until size 8192, larger is not returned
+	if (lpParent != nullptr &&
+	    lpParent->OpenProperty(PR_RULES_DATA, &IID_IStream, 0, 0, reinterpret_cast<LPUNKNOWN *>(&lpRulesData)) == hrSuccess) {
+		lpRulesData->Stat(&statRulesData, 0);
+		szXML = new char [statRulesData.cbSize.LowPart+1];
+		// TODO: Loop to read all data?
+		hr = lpRulesData->Read(szXML, statRulesData.cbSize.LowPart, &ulRead);
+		if (hr != hrSuccess || ulRead == 0)
+			goto empty;
+		szXML[statRulesData.cbSize.LowPart] = 0;
+		hr = HrDeserializeTable(szXML, ecTable, &ulRuleId);
+		/*
+		 * If the data was corrupted, or imported from
+		 * Exchange, it is incompatible, so return an
+		 * empty table.
+		 */
+		if (hr != hrSuccess) {
+			ecTable->HrClear(); // just to be sure
+			goto empty;
 		}
 	}
 	

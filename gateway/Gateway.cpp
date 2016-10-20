@@ -83,10 +83,9 @@ static void sighup(int sig)
 	// not needed or required.
 	if (bThreads && pthread_equal(pthread_self(), mainthread)==0)
 		return;
-	if (g_lpConfig) {
-		if (!g_lpConfig->ReloadSettings() && g_lpLogger)
-			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to reload configuration file, continuing with current settings.");
-	}
+	if (g_lpConfig != nullptr && !g_lpConfig->ReloadSettings() &&
+	    g_lpLogger != nullptr)
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to reload configuration file, continuing with current settings.");
 
 	if (g_lpLogger) {
 		if (g_lpConfig) {
@@ -155,8 +154,9 @@ static void *Handler(void *lpArg)
 	delete lpHandlerArgs;
 
 	// make sure the pipe logger does not exit when this handler exits, but only frees the memory.
-	if (dynamic_cast<ECLogger_Pipe*>(lpLogger) != NULL)
-		dynamic_cast<ECLogger_Pipe*>(lpLogger)->Disown();
+	auto pipelog = dynamic_cast<ECLogger_Pipe *>(lpLogger);
+	if (pipelog != nullptr)
+		pipelog->Disown();
 
 	std::string inBuffer;
 	HRESULT hr;
@@ -180,10 +180,9 @@ static void *Handler(void *lpArg)
 			/* signalled - reevaluate bQuit */
 			continue;
 		if (hr == MAPI_E_TIMEOUT) {
-			if (++timeouts < client->getTimeoutMinutes()) {
+			if (++timeouts < client->getTimeoutMinutes())
 				// ignore select() timeout for 5 (POP3) or 30 (IMAP) minutes
 				continue;
-			}
 			// close idle first, so we don't have a race condition with the channel
 			client->HrCloseConnection("BYE Connection closed because of timeout");
 			lpLogger->Log(EC_LOGLEVEL_ERROR, "Connection closed because of timeout");
@@ -662,13 +661,11 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 				set_thread_name(POP3Thread, "ZGateway " + std::string(method));
 			}
 			else {
-				if (unix_fork_function(Handler, lpHandlerArgs, nCloseFDs, pCloseFDs) < 0) {
+				if (unix_fork_function(Handler, lpHandlerArgs, nCloseFDs, pCloseFDs) < 0)
 					g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Can't create %s %s.", method, model);
 					// just keep running
-				}
-				else {
+				else
 					++nChildren;
-				}
 				// main handler always closes information it doesn't need
 				delete lpHandlerArgs->lpChannel;
 				delete lpHandlerArgs;
@@ -719,13 +716,11 @@ static HRESULT running_service(const char *szPath, const char *servicename)
 				set_thread_name(IMAPThread, "ZGateway " + std::string(method));
 			}
 			else {
-				if (unix_fork_function(Handler, lpHandlerArgs, nCloseFDs, pCloseFDs) < 0) {
+				if (unix_fork_function(Handler, lpHandlerArgs, nCloseFDs, pCloseFDs) < 0)
 					g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Could not create %s %s.", method, model);
 					// just keep running
-				}
-				else {
+				else
 					++nChildren;
-				}
 				// main handler always closes information it doesn't need
 				delete lpHandlerArgs->lpChannel;
 				delete lpHandlerArgs;

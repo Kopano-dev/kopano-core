@@ -66,22 +66,18 @@ HRESULT GetShortcutFolder(LPMAPISESSION lpSession, LPTSTR lpszFolderName, LPTSTR
 	// Get shortcut entryid
 	hr = HrGetOneProp(lpMsgStore, PR_IPM_FAVORITES_ENTRYID, &lpPropValue);
 	if(hr != hrSuccess) {
-
-		if(hr == MAPI_E_NOT_FOUND && (ulFlags&MAPI_CREATE)) {
+		if (hr == MAPI_E_NOT_FOUND && ulFlags & MAPI_CREATE)
 			// Propety not found, re-create the shortcut folder
 			hr = CreateShortcutFolder(lpMsgStore, lpszFolderName, lpszFolderComment, ulFlags & MAPI_UNICODE, lppShortcutFolder);
-		}
 		goto exit;
 	}
 
 	// Open Shortcut folder
 	hr = lpMsgStore->OpenEntry(lpPropValue->Value.bin.cb, (LPENTRYID)lpPropValue->Value.bin.lpb, &IID_IMAPIFolder, MAPI_BEST_ACCESS, &ulObjType, (LPUNKNOWN *)&lpFolder);
 	if (hr != hrSuccess) {
-		if(hr == MAPI_E_NOT_FOUND && (ulFlags&MAPI_CREATE)) {
+		if (hr == MAPI_E_NOT_FOUND && ulFlags & MAPI_CREATE)
 			// Folder not found, re-create the shortcut folder
 			hr = CreateShortcutFolder(lpMsgStore, lpszFolderName, lpszFolderComment, ulFlags & MAPI_UNICODE, lppShortcutFolder);
-		}
-
 		goto exit;
 	}
 
@@ -502,11 +498,9 @@ HRESULT AddFavoriteFolder(LPMAPIFOLDER lpShortcutFolder, LPMAPIFOLDER lpFolder, 
 		}
 
 		hr = AddToFavorite(lpShortcutFolder, lpPropDepth->Value.ul + 1, NULL, 0, lpRows->aRow[0].cValues, lpRows->aRow[0].lpProps);
-		if (hr != hrSuccess) {
+		if (hr != hrSuccess)
 			// Break the action
 			goto exit;
-		}
-
 		FreeProws(lpRows);
 		lpRows = NULL;
 

@@ -110,7 +110,8 @@ HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpT
 				ec_log_debug("RCPT TO: %ls", strEmail.c_str());	
 			}
 		}
-		else if (lpPropObjectType->Value.ul == MAPI_DISTLIST) {
+		else if (lpPropObjectType != nullptr &&
+		    lpPropObjectType->Value.ul == MAPI_DISTLIST) {
 			// Group
 			LPSPropValue lpGroupName = PpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_EMAIL_ADDRESS_W);
 			LPSPropValue lpGroupEntryID = PpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_ENTRYID);

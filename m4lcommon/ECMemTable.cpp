@@ -771,13 +771,11 @@ HRESULT ECMemTableView::FindRow(LPSRestriction lpRestriction, BOOKMARK bkOrigin,
 		sRowItem.ulOrderId = 0; // FIXME:mvprops ?
 		return kcerr_to_mapierr(this->lpKeyTable->SeekId(&sRowItem));
 	}
-
-	if(bkOrigin == BOOKMARK_END && ulFlags & DIR_BACKWARD) {
+	if (bkOrigin == BOOKMARK_END && ulFlags & DIR_BACKWARD)
 		// Loop through the rows
 		er = SeekRow(bkOrigin, -1, NULL);
-	} else {
+	else
 		er = SeekRow(bkOrigin, 0, NULL);
-	}
 	hr = kcerr_to_mapierr(er);
 	if(hr != hrSuccess)
 		return hr;
@@ -791,14 +789,13 @@ HRESULT ECMemTableView::FindRow(LPSRestriction lpRestriction, BOOKMARK bkOrigin,
 		if (sRowList.empty())
 			return MAPI_E_NOT_FOUND;
 		if(TestRestriction(lpRestriction, 
-							this->lpMemTable->mapRows[sRowList.begin()->ulObjId].cValues,
-							this->lpMemTable->mapRows[sRowList.begin()->ulObjId].lpsPropVal,
-							m_locale) == hrSuccess)  {
-			if(ulFlags & DIR_BACKWARD) {
+		    this->lpMemTable->mapRows[sRowList.begin()->ulObjId].cValues,
+		    this->lpMemTable->mapRows[sRowList.begin()->ulObjId].lpsPropVal,
+		    m_locale) == hrSuccess) {
+			if (ulFlags & DIR_BACKWARD)
 				er = SeekRow(BOOKMARK_CURRENT, 1, NULL);
-			} else {
+			else
 				er = SeekRow(BOOKMARK_CURRENT, -1, NULL);
-			}
 			hr = kcerr_to_mapierr(er);
 			break;
 		}
@@ -999,15 +996,16 @@ HRESULT ECMemTableView::ModifyRowKey(sObjectTableKey *lpsRowItem, sObjectTableKe
 	}
 
 	// Check if there is a restriction in place, and if so, apply it
-	if(this->lpsRestriction) {
-		if(TestRestriction(this->lpsRestriction, iterData->second.cValues, iterData->second.lpsPropVal, m_locale) != hrSuccess) {
-			// no match
-			
-			// Remove the row, ignore error
-			lpKeyTable->UpdateRow(ECKeyTable::TABLE_ROW_DELETE, lpsRowItem, 0, NULL, NULL, NULL, lpsPrevRow, false, (ECKeyTable::UpdateType*)lpulAction);
-			goto exit;
-		}
+	if (this->lpsRestriction != nullptr &&
+	    TestRestriction(this->lpsRestriction, iterData->second.cValues, iterData->second.lpsPropVal, m_locale) != hrSuccess) {
+		// no match
+		// Remove the row, ignore error
+		lpKeyTable->UpdateRow(ECKeyTable::TABLE_ROW_DELETE, lpsRowItem, 0, NULL, NULL, NULL, lpsPrevRow, false, (ECKeyTable::UpdateType*)lpulAction);
+		goto exit;
 	}
+
+	if (lpsSortOrderSet == nullptr)
+		goto exit;
 
 	// Get all the sort columns and package them as binary keys
 	for (j = 0; j < lpsSortOrderSet->cSorts; ++j) {

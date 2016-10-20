@@ -843,6 +843,12 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 			// Import succeeded, but we have no message to export to. Treat this the same as
 			// SYNC_E_IGNORE. This is required for the BES ICS exporter
 			goto next;
+		if (lpSourceMessage == nullptr)
+			/*
+			 * Well this is getting silly. If we do not have a
+			 * source message, where the heck should we copy from?
+			 */
+			goto next;
 		hr = lpSourceMessage->CopyTo(0, NULL, sptMessageExcludes, 0,
 		     NULL, &IID_IMessage, lpDestMessage, 0, NULL);
 		if(hr != hrSuccess) {
