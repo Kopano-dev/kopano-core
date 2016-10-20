@@ -441,8 +441,9 @@ HRESULT ECMAPIFolder::CreateMessageWithEntryID(LPCIID lpInterface, ULONG ulFlags
 
 	//Set defaults
 	// Same as ECAttach::OpenProperty
-	ECAllocateBuffer(sizeof(MAPIUID), (void **) &lpMapiUID);
-
+	hr = ECAllocateBuffer(sizeof(MAPIUID), reinterpret_cast<void **>(&lpMapiUID));
+	if (hr != hrSuccess)
+		goto exit;
 	hr = this->GetMsgStore()->lpSupport->NewUID(lpMapiUID);
 	if(hr != hrSuccess)
 		goto exit;
