@@ -1,20 +1,8 @@
 #!/bin/bash
 
+svnrev=0
 if [ -f revision ]; then
-	svnrev=$(sed 's/[^0-9].*//g' <revision)
-	if [ -z "$svnrev" ]; then
-		svnrev=0
-	fi
-else
-	svnrev=$(svnversion -nc `dirname "$0"` | awk -F: '{print $NF}' | sed 's/[^0-9]//g')
-	if [ -z "$svnrev" ]; then
-	    if [ -f ".git/svn/.metadata" ]; then
-		svnrev=$(git svn info | grep Revision | awk '{print $2}')
-	    else
-		svnrev=0
-	    fi
-	fi
-
+	svnrev=$(cat revision)
 fi
 
 dot_version=`cat version`
