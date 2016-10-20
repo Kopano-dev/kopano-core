@@ -6,6 +6,7 @@ Fixes:
 * php: fix crash by adding missing pointer type conversions [KC-274]
 * dagent: the "Received" debugging header had the wrong target address
 * gateway: do not emit an X-Mailer field when retrieving mail [KC-277]
+* server/ldap: report empty ldap_search_base setting
 Enhancements:
 * Python 3 support [KC-48,KC-267]
 * search: files are now compacted, and their uid/gid checked [KC-188]

@@ -593,7 +593,7 @@ void LDAPUserPlugin::my_ldap_search_s(char *base, int scope, char *filter, char 
 	}
 
 	if(result != LDAP_SUCCESS) {
-		ec_log_err("LDAP query failed: %s %s (result=0x%02x, %s)", base, filter, result, ldap_err2string(result));
+		ec_log_err("LDAP query in \"%s\" failed: %s (result=0x%02x, %s)", base, filter, result, ldap_err2string(result));
 
 		if(LDAP_API_ERROR(result)) {
 		    // Some kind of API error occurred (error is not from the server). Unbind the connection so any next try will re-bind
