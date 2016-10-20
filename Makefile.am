@@ -30,6 +30,7 @@ AM_CPPFLAGS = ${ZCPPFLAGS} ${DEBUGFLAGS} -DLDAP_THREAD_SAFE \
 	-I${top_srcdir}/provider/plugins \
 	-I${top_srcdir}/libfreebusy \
 	-I${top_srcdir}/libicalmapi \
+	-I${top_srcdir}/ECtools/archiver \
 	${BOOST_CPPFLAGS} ${CRYPTO_CFLAGS} ${GSOAP_CFLAGS} ${ICAL_CFLAGS} \
 	${KRB5_CFLAGS} ${LDAP_FLAGS} ${MYSQL_INCLUDES} ${SSL_CFLAGS} \
 	${s3_CFLAGS} ${TCMALLOC_CFLAGS} ${VMIME_CFLAGS} ${XML2_CFLAGS}
@@ -107,7 +108,6 @@ default_sym = ${top_builddir}/default.sym
 # kopano-admin
 #
 kopano_admin_SOURCES = ECtools/admin/admin.cpp
-kopano_admin_CPPFLAGS = -I${top_srcdir}/ECtools/archiver ${AM_CPPFLAGS}
 kopano_admin_LDADD = \
 	libmapi.la libkcmapi.la libkcutil.la libkcssl.la libkcarchiver.la \
 	${PROG_LIBS} ${SSL_LIBS}
@@ -117,7 +117,6 @@ kopano_admin_LDADD = \
 # kopano-archiver
 #
 kopano_archiver_SOURCES = ECtools/archiver/main.cpp
-kopano_archiver_CPPFLAGS = -I${top_srcdir}/ECtools/archiver ${AM_CPPFLAGS}
 kopano_archiver_LDADD = \
 	libmapi.la libkcmapi.la libkcutil.la libkcarchiver.la \
 	libkcarchivercore.la ${PROG_LIBS}
@@ -144,7 +143,7 @@ kopano_cfgchecker_LDADD = libkcutil.la libkcmapi.la libmapi.la ${PROG_LIBS}
 # kopano-dagent
 #
 kopano_dagent_CPPFLAGS = \
-	-I${top_srcdir}/ECtools/archiver -Ispooler ${AM_CPPFLAGS} ${PYTHON_INCLUDES} \
+	${AM_CPPFLAGS} -Ispooler ${PYTHON_INCLUDES} \
 	-DSWIG_TYPE_TABLE=MAPI
 kopano_dagent_SOURCES = \
 	spooler/DAgent.cpp spooler/LMTP.cpp spooler/LMTP.h \
@@ -279,7 +278,6 @@ libkcarchiver_la_SOURCES = \
 	ECtools/archiver/helpers/StoreHelper.cpp ECtools/archiver/helpers/StoreHelper.h \
 	ECtools/archiver/helpers/MAPIPropHelper.cpp ECtools/archiver/helpers/MAPIPropHelper.h \
 	ECtools/archiver/ECArchiverLogger.cpp ECtools/archiver/ECArchiverLogger.h
-libkcarchiver_la_CPPFLAGS = ${kopano_archiver_CPPFLAGS}
 libkcarchiver_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	-Wl,--version-script=${default_sym}
 libkcarchiver_la_LIBADD = libmapi.la libkcmapi.la libkcutil.la
@@ -314,7 +312,6 @@ libkcarchivercore_la_SOURCES = \
 	ECtools/archiver/ArchiveControlImpl.cpp ECtools/archiver/ArchiveControlImpl.h \
 	ECtools/archiver/arc_database.cpp ECtools/archiver/arc_database.hpp \
 	ECtools/archiver/arc_mysql.cpp ECtools/archiver/arc_mysql.hpp
-libkcarchivercore_la_CPPFLAGS = ${kopano_archiver_CPPFLAGS}
 libkcarchivercore_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	-Wl,--version-script=${default_sym}
 libkcarchivercore_la_LIBADD = \
