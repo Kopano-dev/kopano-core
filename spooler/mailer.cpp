@@ -56,13 +56,13 @@
 
 using namespace std;
 
-static HRESULT GetPluginObject(ECLogger *lpLogger,
-    PyMapiPluginFactory *lpPyMapiPluginFactory, PyMapiPlugin **lppPyMapiPlugin)
+static HRESULT GetPluginObject(PyMapiPluginFactory *lpPyMapiPluginFactory,
+    PyMapiPlugin **lppPyMapiPlugin)
 {
     HRESULT hr = hrSuccess;
     PyMapiPlugin *lpPyMapiPlugin = NULL;
 
-    if (!lpLogger || !lpPyMapiPluginFactory || !lppPyMapiPlugin) {
+    if (lpPyMapiPluginFactory == nullptr || lppPyMapiPlugin == nullptr) {
         assert(false);
         hr = MAPI_E_INVALID_PARAMETER;
         goto exit;
@@ -70,7 +70,7 @@ static HRESULT GetPluginObject(ECLogger *lpLogger,
 
 	hr = lpPyMapiPluginFactory->CreatePlugin("SpoolerPluginManager", &lpPyMapiPlugin);
 	if (hr != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to initialize plugin system, please check your configuration: %s (%x).",
+		ec_log_crit("Unable to initialize plugin system, please check your configuration: %s (%x).",
 			GetMAPIErrorMessage(hr), hr);
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
@@ -2267,8 +2267,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to instantiate plugin factory, hr=0x%08x", hr);
 		goto exit;
 	}
-	
-	hr = GetPluginObject(g_lpLogger, &pyMapiPluginFactory, &ptrPyMapiPlugin);
+	hr = GetPluginObject(&pyMapiPluginFactory, &ptrPyMapiPlugin);
 	if (hr != hrSuccess)
 		goto exit; // Error logged in GetPluginObject
 
@@ -2556,7 +2555,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	if (parseBool(g_lpConfig->GetSetting("archive_on_send"))) {
 		ArchivePtr ptrArchive;
 		
-		hr = Archive::Create(lpAdminSession, g_lpLogger, &ptrArchive);
+		hr = Archive::Create(lpAdminSession, &ptrArchive);
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to instantiate archive object: 0x%08X", hr);
 			goto exit;

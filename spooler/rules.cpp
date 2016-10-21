@@ -447,9 +447,9 @@ static HRESULT CreateReplyCopy(LPMAPISESSION lpSession, LPMDB lpOrigStore,
  * 
  * @return MAPI error code
  */
-static HRESULT CheckRecipients(ECLogger *lpLogger, LPADRBOOK lpAdrBook,
-    IMAPIProp *lpMessage, LPADRLIST lpRuleRecipients, bool bOpDelegate,
-    bool bIncludeAsP1, LPADRLIST *lppNewRecipients)
+static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMAPIProp *lpMessage,
+    LPADRLIST lpRuleRecipients, bool bOpDelegate, bool bIncludeAsP1,
+    LPADRLIST *lppNewRecipients)
 {
 	HRESULT hr = hrSuccess;
 	LPADRLIST lpRecipients = NULL;
@@ -462,13 +462,13 @@ static HRESULT CheckRecipients(ECLogger *lpLogger, LPADRBOOK lpAdrBook,
 	     PR_SENT_REPRESENTING_ADDRTYPE_W, PR_SENT_REPRESENTING_EMAIL_ADDRESS_W,
 	     strFromName, strFromType, strFromAddress);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get from address 0x%08X", hr);
+		ec_log_err("Unable to get from address 0x%08X", hr);
 		goto exit;
 	}
 
 	hr = MAPIAllocateBuffer(CbNewADRLIST(lpRuleRecipients->cEntries), (void**)&lpRecipients);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "CheckRecipients(): MAPIAllocateBuffer failed %x", hr);
+		ec_log_err("CheckRecipients(): MAPIAllocateBuffer failed %x", hr);
 		goto exit;
 	}
 
@@ -481,14 +481,14 @@ static HRESULT CheckRecipients(ECLogger *lpLogger, LPADRBOOK lpAdrBook,
 		     CHANGE_PROP_TYPE(PR_DISPLAY_NAME, PT_UNSPECIFIED), CHANGE_PROP_TYPE(PR_ADDRTYPE, PT_UNSPECIFIED), CHANGE_PROP_TYPE(PR_SMTP_ADDRESS, PT_UNSPECIFIED),
 		     strRuleName, strRuleType, strRuleAddress);
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get rule address 0x%08X", hr);
+			ec_log_err("Unable to get rule address 0x%08X", hr);
 			goto exit;
 		}
 		if (strFromAddress == strRuleAddress &&
 		    // Hack for Meeting requests
 		    (!bOpDelegate || lpMsgClass == nullptr ||
 		    strstr(lpMsgClass->Value.lpszA, "IPM.Schedule.Meeting.") == nullptr)) {
-			lpLogger->Log(EC_LOGLEVEL_INFO, "Same user found in From and rule, blocking for loop protection");
+			ec_log_info("Same user found in From and rule, blocking for loop protection");
 			continue;
 		}
 
@@ -496,7 +496,7 @@ static HRESULT CheckRecipients(ECLogger *lpLogger, LPADRBOOK lpAdrBook,
 		hr = Util::HrCopyPropertyArray(lpRuleRecipients->aEntries[i].rgPropVals, lpRuleRecipients->aEntries[i].cValues, &lpRecipients->aEntries[lpRecipients->cEntries].rgPropVals, &lpRecipients->aEntries[lpRecipients->cEntries].cValues, true);
 
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_ERROR, "CheckRecipients(): Util::HrCopyPropertyArray failed %x", hr);
+			ec_log_err("CheckRecipients(): Util::HrCopyPropertyArray failed %x", hr);
 			goto exit;
 		}
 
@@ -504,7 +504,7 @@ static HRESULT CheckRecipients(ECLogger *lpLogger, LPADRBOOK lpAdrBook,
             LPSPropValue lpRecipType = PpropFindProp(lpRecipients->aEntries[lpRecipients->cEntries].rgPropVals, lpRecipients->aEntries[lpRecipients->cEntries].cValues, PR_RECIPIENT_TYPE);
             
             if(!lpRecipType) {
-                lpLogger->Log(EC_LOGLEVEL_FATAL, "Attempt to add recipient with no PR_RECIPIENT_TYPE");
+                ec_log_crit("Attempt to add recipient with no PR_RECIPIENT_TYPE");
                 hr = MAPI_E_INVALID_PARAMETER;
                 goto exit;
             }
@@ -515,13 +515,13 @@ static HRESULT CheckRecipients(ECLogger *lpLogger, LPADRBOOK lpAdrBook,
 	}
 
 	if (lpRecipients->cEntries == 0) {
-		lpLogger->Log(EC_LOGLEVEL_WARNING, "Loop protection blocked all recipients, skipping rule");
+		ec_log_warn("Loop protection blocked all recipients, skipping rule");
 		hr = MAPI_E_UNABLE_TO_COMPLETE;
 		goto exit;
 	}
 
 	if (lpRecipients->cEntries != lpRuleRecipients->cEntries)
-		lpLogger->Log(EC_LOGLEVEL_INFO, "Loop protection blocked some recipients");
+		ec_log_info("Loop protection blocked some recipients");
 
 	*lppNewRecipients = lpRecipients;
 	lpRecipients = NULL;
@@ -533,10 +533,10 @@ exit:
 	return hr;
 }
 
-static HRESULT CreateForwardCopy(ECLogger *lpLogger, LPADRBOOK lpAdrBook,
-    LPMDB lpOrigStore, LPMESSAGE lpOrigMessage, LPADRLIST lpRuleRecipients,
+static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
+    IMessage *lpOrigMessage, LPADRLIST lpRuleRecipients,
     bool bOpDelegate, bool bDoPreserveSender, bool bDoNotMunge,
-    bool bForwardAsAttachment, LPMESSAGE *lppMessage)
+    bool bForwardAsAttachment, IMessage **lppMessage)
 {
 	HRESULT hr = hrSuccess;
 	LPMESSAGE lpFwdMsg = NULL;
@@ -576,12 +576,12 @@ static HRESULT CreateForwardCopy(ECLogger *lpLogger, LPADRBOOK lpAdrBook,
 	wstring strSubject;
 
 	if (lpRuleRecipients == NULL || lpRuleRecipients->cEntries == 0) {
-	    lpLogger->Log(EC_LOGLEVEL_FATAL, "No rule recipient");
+		ec_log_crit("No rule recipient");
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exitpm;
 	}
 
-	hr = CheckRecipients(lpLogger, lpAdrBook, lpOrigMessage, lpRuleRecipients, bOpDelegate, bDoNotMunge, &lpRecipients);
+	hr = CheckRecipients(lpAdrBook, lpOrigMessage, lpRuleRecipients, bOpDelegate, bDoNotMunge, &lpRecipients);
 	if (hr == MAPI_E_UNABLE_TO_COMPLETE)
 		goto exitpm;
 	if (hr != hrSuccess)
@@ -720,7 +720,7 @@ static HRESULT CreateForwardCopy(ECLogger *lpLogger, LPADRBOOK lpAdrBook,
 	return hr;
 }
 
-// HRESULT HrDelegateMessage(LPMAPISESSION lpSession, LPEXCHANGEMANAGESTORE lpIEMS, IMAPIProp *lpMessage, LPADRENTRY lpAddress, ECLogger *lpLogger)
+// HRESULT HrDelegateMessage(LPMAPISESSION lpSession, LPEXCHANGEMANAGESTORE lpIEMS, IMAPIProp *lpMessage, LPADRENTRY lpAddress)
 static HRESULT HrDelegateMessage(IMAPIProp *lpMessage)
 {
 	HRESULT hr = hrSuccess;
@@ -773,9 +773,8 @@ exit:
 
 // lpMessage: gets EntryID, maybe pass this and close message in DAgent.cpp
 HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
-    LPMAPISESSION lpSession, LPADRBOOK lpAdrBook, LPMDB lpOrigStore,
-    LPMAPIFOLDER lpOrigInbox, IMessage **lppMessage, ECLogger *lpLogger,
-    StatsClient *const sc)
+    IMAPISession *lpSession, IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
+    IMAPIFolder *lpOrigInbox, IMessage **lppMessage, StatsClient *const sc)
 {
 	HRESULT hr = hrSuccess;
     IExchangeModifyTable *lpTable = NULL;
@@ -813,49 +812,49 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 
     hr = lpOrigInbox->OpenProperty(PR_RULES_TABLE, &IID_IExchangeModifyTable, 0, 0, (LPUNKNOWN *)&lpTable);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrProcessRules(): OpenProperty failed %x", hr);
+		ec_log_err("HrProcessRules(): OpenProperty failed %x", hr);
 		goto exitpm;
 	}
 
 	hr = lpTable->QueryInterface(IID_IECExchangeModifyTable, (void**)&lpECModifyTable);
 	if(hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrProcessRules(): QueryInterface failed %x", hr);
+		ec_log_err("HrProcessRules(): QueryInterface failed %x", hr);
 		goto exitpm;
 	}
 
 	hr = lpECModifyTable->DisablePushToServer();
 	if(hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrProcessRules(): DisablePushToServer failed %x", hr);
+		ec_log_err("HrProcessRules(): DisablePushToServer failed %x", hr);
 		goto exitpm;
 	}
 
 	hr = pyMapiPlugin->RulesProcessing("PreRuleProcess", lpSession, lpAdrBook, lpOrigStore, lpTable, &ulResult);
 	if(hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrProcessRules(): RulesProcessing failed %x", hr);
+		ec_log_err("HrProcessRules(): RulesProcessing failed %x", hr);
 		goto exitpm;
 	}
 
 	//TODO do something with ulResults
     hr = lpTable->GetTable(0, &lpView);
 	if(hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrProcessRules(): GetTable failed %x", hr);
+		ec_log_err("HrProcessRules(): GetTable failed %x", hr);
 		goto exitpm;
 	}
 	hr = lpView->SetColumns(sptaRules, 0);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrProcessRules(): SetColumns failed %x", hr);
+		ec_log_err("HrProcessRules(): SetColumns failed %x", hr);
 		goto exitpm;
 	}
 	hr = lpView->SortTable(sosRules, 0);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrProcessRules(): SortTable failed %x", hr);
+		ec_log_err("HrProcessRules(): SortTable failed %x", hr);
 		goto exitpm;
 	}
 
 	while (TRUE) {
         hr = lpView->QueryRows(1, 0, &lpRowSet);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrProcessRules(): QueryRows failed %x", hr);
+		ec_log_err("HrProcessRules(): QueryRows failed %x", hr);
 			goto exitpm;
 	}
 
@@ -869,10 +868,10 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 		else
 			strRule = "(no name)";
 
-		lpLogger->Log(EC_LOGLEVEL_DEBUG, "Processing rule %s for %s", strRule.c_str(), recip.c_str());
+		ec_log_debug("Processing rule %s for %s", strRule.c_str(), recip.c_str());
 		lpRuleState = PpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_RULE_STATE);
 		if (lpRuleState != nullptr && !(lpRuleState->Value.i & ST_ENABLED)) {
-			lpLogger->Log(EC_LOGLEVEL_DEBUG, "Rule '%s' is disabled, skipping...", strRule.c_str());
+			ec_log_debug("Rule '%s' is disabled, skipping...", strRule.c_str());
 			goto nextrule;		// rule is disabled
 		}
 
@@ -884,7 +883,7 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 			// NOTE: object is placed in Value.lpszA, not Value.x
 			lpCondition = (LPSRestriction)lpProp->Value.lpszA;
 		if (!lpCondition) {
-			lpLogger->Log(EC_LOGLEVEL_DEBUG, "Rule '%s' has no contition, skipping...", strRule.c_str());
+			ec_log_debug("Rule '%s' has no contition, skipping...", strRule.c_str());
 			goto nextrule;
 		}
 
@@ -893,7 +892,7 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 			// NOTE: object is placed in Value.lpszA, not Value.x
 			lpActions = (ACTIONS*)lpProp->Value.lpszA;
 		if (!lpActions) {
-			lpLogger->Log(EC_LOGLEVEL_DEBUG, "Rule '%s' has no action, skipping...", strRule.c_str());
+			ec_log_debug("Rule '%s' has no action, skipping...", strRule.c_str());
 			goto nextrule;
 		}
 		
@@ -901,11 +900,11 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 		// @todo: Create the correct locale for the current store.
 		hr = TestRestriction(lpCondition, *lppMessage, createLocaleFromName(""));
 		if (hr != hrSuccess) {
-			lpLogger->Log(EC_LOGLEVEL_INFO, "Rule %s doesn't match: 0x%08x", strRule.c_str(), hr);
+			ec_log_info("Rule %s doesn't match: 0x%08x", strRule.c_str(), hr);
 			goto nextrule;
 		}	
 
-		lpLogger->Log(EC_LOGLEVEL_INFO, (std::string)"Rule " + strRule + " matches");
+		ec_log_info((std::string)"Rule " + strRule + " matches");
 		sc -> countAdd("rules", "n_actions", int64_t(lpActions->cActions));
 
 		for (ULONG n = 0; n < lpActions->cActions; ++n) {
@@ -915,9 +914,9 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 			case OP_COPY:
 				sc->countInc("rules", "copy_move");
 				if (lpActions->lpAction[n].acttype == OP_COPY)
-					lpLogger->Log(EC_LOGLEVEL_DEBUG, "Rule action: copying e-mail");
+					ec_log_debug("Rule action: copying e-mail");
 				else
-					lpLogger->Log(EC_LOGLEVEL_DEBUG, "Rule action: moving e-mail");
+					ec_log_debug("Rule action: moving e-mail");
 
 				// First try to open the folder on the session as that will just work if we have the store open
 				hr = lpSession->OpenEntry(lpActions->lpAction[n].actMoveCopy.cbFldEntryId,
@@ -925,13 +924,13 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 				     (IUnknown**)&lpDestFolder);
 				if (hr != hrSuccess) {
 					std::string msg = std::string("Rule ") + strRule + ": Unable to open folder through session, trying through store: %s (%x)";
-					lpLogger->Log(EC_LOGLEVEL_INFO, msg.c_str(), GetMAPIErrorMessage(hr), hr);
+					ec_log_info(msg.c_str(), GetMAPIErrorMessage(hr), hr);
 
 					hr = lpSession->OpenMsgStore(0, lpActions->lpAction[n].actMoveCopy.cbStoreEntryId,
 					     lpActions->lpAction[n].actMoveCopy.lpStoreEntryId, NULL, MAPI_BEST_ACCESS, &lpDestStore);
 					if (hr != hrSuccess) {
 						std::string msg = std::string("Rule ") + strRule + ": Unable to open destination store: %s (%x)";
-						lpLogger->Log(EC_LOGLEVEL_ERROR, msg.c_str(), GetMAPIErrorMessage(hr), hr);
+						ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
 						goto nextact;
 					}
 
@@ -940,7 +939,7 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 					     (IUnknown**)&lpDestFolder);
 					if (hr != hrSuccess || ulObjType != MAPI_FOLDER) {
 						std::string msg = std::string("Rule ") + strRule + ": Unable to open destination folder: %s (%x)";
-						lpLogger->Log(EC_LOGLEVEL_ERROR, msg.c_str(), GetMAPIErrorMessage(hr), hr);
+						ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
 						goto nextact;
 					}
 				}
@@ -948,14 +947,14 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 				hr = lpDestFolder->CreateMessage(NULL, 0, &lpNewMessage);
 				if(hr != hrSuccess) {
 					std::string msg = "Unable to create e-mail for rule " + strRule + ": %s (%x)";
-					lpLogger->Log(EC_LOGLEVEL_ERROR, msg.c_str(), GetMAPIErrorMessage(hr), hr);
+					ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
 					goto exitpm;
 				}
 					
 				hr = (*lppMessage)->CopyTo(0, NULL, NULL, 0, NULL, &IID_IMessage, lpNewMessage, 0, NULL);
 				if(hr != hrSuccess) {
 					std::string msg = "Unable to copy e-mail for rule " + strRule + ": %s (%x)";
-					lpLogger->Log(EC_LOGLEVEL_ERROR, msg.c_str(), GetMAPIErrorMessage(hr), hr);
+					ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
 					goto exitpm;
 				}
 
@@ -963,7 +962,7 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 				// the function only returns errors on get/setprops, not when the data is just missing
 				if (hr != hrSuccess) {
 					std::string msg = "Unable to copy IMAP data e-mail for rule " + strRule + ", continuing: %s (%x)";
-					lpLogger->Log(EC_LOGLEVEL_ERROR, msg.c_str(), GetMAPIErrorMessage(hr), hr);
+					ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
 					hr = hrSuccess;
 					goto exitpm;
 				}
@@ -972,7 +971,7 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 				hr = lpNewMessage->SaveChanges(0);
 				if (hr != hrSuccess) {
 					std::string msg = std::string("Rule ") + strRule + ": Unable to copy/move message: %s (%x)";
-					lpLogger->Log(EC_LOGLEVEL_ERROR, msg.c_str(), GetMAPIErrorMessage(hr), hr);
+					ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
 					goto nextact;
 				}
 				if (lpActions->lpAction[n].acttype == OP_MOVE)
@@ -985,30 +984,30 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 			case OP_OOF_REPLY:
 				sc->countInc("rules", "reply_and_oof");
 				if (lpActions->lpAction[n].acttype == OP_REPLY)
-					lpLogger->Log(EC_LOGLEVEL_DEBUG, "Rule action: replying e-mail");
+					ec_log_debug("Rule action: replying e-mail");
 				else
-					lpLogger->Log(EC_LOGLEVEL_DEBUG, "Rule action: OOF replying e-mail");
+					ec_log_debug("Rule action: OOF replying e-mail");
 
 				hr = lpOrigInbox->OpenEntry(lpActions->lpAction[n].actReply.cbEntryId,
 				     lpActions->lpAction[n].actReply.lpEntryId, &IID_IMessage, 0, &ulObjType,
 				     (IUnknown**)&lpTemplate);
 				if (hr != hrSuccess) {
 					std::string msg = std::string("Rule ") + strRule + ": Unable to open reply message: %s (%x)";
-					lpLogger->Log(EC_LOGLEVEL_ERROR, msg.c_str(), GetMAPIErrorMessage(hr), hr);
+					ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
 					goto nextact;
 				}
 
 				hr = CreateReplyCopy(lpSession, lpOrigStore, *lppMessage, lpTemplate, &lpReplyMsg);
 				if (hr != hrSuccess) {
 					std::string msg = std::string("Rule ") + strRule + ": Unable to create reply message: %s (%x)";
-					lpLogger->Log(EC_LOGLEVEL_ERROR, msg.c_str(), GetMAPIErrorMessage(hr), hr);
+					ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
 					goto nextact;
 				}
 
 				hr = lpReplyMsg->SubmitMessage(0);
 				if (hr != hrSuccess) {
 					std::string msg = std::string("Rule ") + strRule + ": Unable to send reply message: %s (%x)";
-					lpLogger->Log(EC_LOGLEVEL_ERROR, msg.c_str(), GetMAPIErrorMessage(hr), hr);
+					ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
 					goto nextact;
 				}
 				break;
@@ -1023,7 +1022,7 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 				// redirect == 3
 
 				if (lpActions->lpAction[n].lpadrlist->cEntries == 0) {
-					lpLogger->Log(EC_LOGLEVEL_DEBUG, "Forwarding rule doesn't have recipients");
+					ec_log_debug("Forwarding rule doesn't have recipients");
 					continue; // Nothing todo
 				}
 
@@ -1035,14 +1034,14 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 
 					if (HrGetOneProp(*lppMessage, PROP_KopanoRuleAction, &lpPropRule) == hrSuccess) {
 						MAPIFreeBuffer(lpPropRule);
-						lpLogger->Log(EC_LOGLEVEL_WARNING, (std::string)"Rule "+strRule+": FORWARD loop protection. Message will not be forwarded or redirected because it includes header 'x-kopano-rule-action'");
+						ec_log_warn((std::string)"Rule "+strRule+": FORWARD loop protection. Message will not be forwarded or redirected because it includes header 'x-kopano-rule-action'");
 						continue;
 					}
 				}
 
-				lpLogger->Log(EC_LOGLEVEL_DEBUG, "Rule action: %s e-mail", (lpActions->lpAction[n].ulActionFlavor & FWD_PRESERVE_SENDER) ? "redirecting" : "forwarding");
+				ec_log_debug("Rule action: %s e-mail", (lpActions->lpAction[n].ulActionFlavor & FWD_PRESERVE_SENDER) ? "redirecting" : "forwarding");
 
-				hr = CreateForwardCopy(lpLogger, lpAdrBook, lpOrigStore, *lppMessage, lpActions->lpAction[n].lpadrlist,
+				hr = CreateForwardCopy(lpAdrBook, lpOrigStore, *lppMessage, lpActions->lpAction[n].lpadrlist,
 				     false,
 				     lpActions->lpAction[n].ulActionFlavor & FWD_PRESERVE_SENDER,
 				     lpActions->lpAction[n].ulActionFlavor & FWD_DO_NOT_MUNGE_MSG,
@@ -1050,14 +1049,14 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 				     &lpFwdMsg);
 				if (hr != hrSuccess) {
 					std::string msg = std::string("Rule ") + strRule + ": FORWARD Unable to create forward message: %s (%x)";
-					lpLogger->Log(EC_LOGLEVEL_ERROR, msg.c_str(), GetMAPIErrorMessage(hr), hr);
+					ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
 					goto nextact;
 				}
 
 				hr = lpFwdMsg->SubmitMessage(0);
 				if (hr != hrSuccess) {
 					std::string msg = std::string("Rule ") + strRule + ": FORWARD Unable to send forward message: %s (%x)";
-					lpLogger->Log(EC_LOGLEVEL_ERROR, msg.c_str(), GetMAPIErrorMessage(hr), hr);
+					ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
 					goto nextact;
 				}
 
@@ -1072,21 +1071,20 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 				// 1. make copy of lpMessage, needs CopyTo() function
 				// 2. copy From: to To:
 				// 3. SubmitMessage()
-				lpLogger->Log(EC_LOGLEVEL_WARNING, (std::string)"Rule "+strRule+": BOUNCE actions are currently unsupported");
+				ec_log_warn((std::string)"Rule "+strRule+": BOUNCE actions are currently unsupported");
 				break;
 
 			case OP_DELEGATE:
 				sc -> countInc("rules", "delegate");
 				if (lpActions->lpAction[n].lpadrlist->cEntries == 0) {
-					lpLogger->Log(EC_LOGLEVEL_DEBUG, "Delegating rule doesn't have recipients");
+					ec_log_debug("Delegating rule doesn't have recipients");
 					continue; // Nothing todo
 				}
-				lpLogger->Log(EC_LOGLEVEL_DEBUG, "Rule action: delegating e-mail");
-
-				hr = CreateForwardCopy(lpLogger, lpAdrBook, lpOrigStore, *lppMessage, lpActions->lpAction[n].lpadrlist, true, true, true, false, &lpFwdMsg);
+				ec_log_debug("Rule action: delegating e-mail");
+				hr = CreateForwardCopy(lpAdrBook, lpOrigStore, *lppMessage, lpActions->lpAction[n].lpadrlist, true, true, true, false, &lpFwdMsg);
 				if (hr != hrSuccess) {
 					std::string msg = std::string("Rule ") + strRule + ": DELEGATE Unable to create delegate message: %s (%x)";
-					lpLogger->Log(EC_LOGLEVEL_ERROR, msg.c_str(), GetMAPIErrorMessage(hr), hr);
+					ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
 					goto nextact;
 				}
 
@@ -1094,14 +1092,14 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 				hr = HrDelegateMessage(lpFwdMsg);
 				if (hr != hrSuccess) {
 					std::string msg = std::string("Rule ") + strRule + ": DELEGATE Unable to modify delegate message: %s (%x)";
-					lpLogger->Log(EC_LOGLEVEL_ERROR, msg.c_str(), GetMAPIErrorMessage(hr), hr);
+					ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
 					goto nextact;
 				}
 
 				hr = lpFwdMsg->SubmitMessage(0);
 				if (hr != hrSuccess) {
 					std::string msg = std::string("Rule ") + strRule + ": DELEGATE Unable to send delegate message: %s (%x)";
-					lpLogger->Log(EC_LOGLEVEL_ERROR, msg.c_str(), GetMAPIErrorMessage(hr), hr);
+					ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
 					goto nextact;
 				}
 
@@ -1113,26 +1111,26 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 			case OP_DEFER_ACTION:
 				sc -> countInc("rules", "defer");
 				// DAM crud, but outlook doesn't check these messages... yet
-				lpLogger->Log(EC_LOGLEVEL_WARNING, (std::string)"Rule "+strRule+": DEFER client actions are currently unsupported");
+				ec_log_warn((std::string)"Rule "+strRule+": DEFER client actions are currently unsupported");
 				break;
 			case OP_TAG:
 				sc -> countInc("rules", "tag");
 				// sure. WHEN YOU STOP WITH THE FRIGGIN' DEFER ACTION MESSAGES!!
-				lpLogger->Log(EC_LOGLEVEL_WARNING, (std::string)"Rule "+strRule+": TAG actions are currently unsupported");
+				ec_log_warn((std::string)"Rule "+strRule+": TAG actions are currently unsupported");
 				break;
 			case OP_DELETE:
 				sc -> countInc("rules", "delete");
 				// since *lppMessage wasn't yet saved in the server, we can just return a special MAPI Error code here,
 				// this will trigger the out-of-office mail (according to microsoft), but not save the message and drop it.
 				// The error code will become hrSuccess automatically after returning from the post processing function.
-				lpLogger->Log(EC_LOGLEVEL_DEBUG, "Rule action: deleting e-mail");
+				ec_log_debug("Rule action: deleting e-mail");
 				hr = MAPI_E_CANCEL;
 				goto exitpm;
 				break;
 			case OP_MARK_AS_READ:
 				sc -> countInc("rules", "mark_read");
 				// add prop read
-				lpLogger->Log(EC_LOGLEVEL_WARNING, (std::string)"Rule "+strRule+": MARK AS READ actions are currently unsupported");
+				ec_log_warn((std::string)"Rule "+strRule+": MARK AS READ actions are currently unsupported");
 				break;
 			};
 
@@ -1183,7 +1181,7 @@ nextrule:
 	}
  exitpm:
 	if (hr != hrSuccess && hr != MAPI_E_CANCEL)
-		lpLogger->Log(EC_LOGLEVEL_INFO, "Error while processing rules: 0x%08X", hr);
+		ec_log_info("Error while processing rules: 0x%08X", hr);
 
 	// The message was moved to another folder(s), do not save it in the inbox anymore, so cancel it.
 	if (hr == hrSuccess && bMoved)
