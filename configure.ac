@@ -453,9 +453,6 @@ AC_ARG_WITH(ical-prefix,
 AC_SUBST(ICAL_CFLAGS)
 AC_SUBST(ICAL_LIBS)
 
-have_libpff=0
-PKG_CHECK_MODULES([pff], [libpff], [have_libpff=1], [:])
-AM_CONDITIONAL([HAVE_LIBPFF], [test "$have_libpff" = 1])
 PKG_CHECK_MODULES([TCMALLOC], [libtcmalloc_minimal], [], [:])
 CPPFLAGS="$CPPFLAGS $TCMALLOC_CFLAGS"
 AC_CHECK_HEADERS([gperftools/malloc_extension.h google/malloc_extension.h])
@@ -763,6 +760,7 @@ AC_CONFIG_FILES([Makefile
 		ECtools/backup/Makefile
 		ECtools/presence/Makefile
 		ECtools/search/Makefile
+		ECtools/pst/Makefile
 		installer/Makefile
 		installer/linux/Makefile
 		installer/userscripts/Makefile
