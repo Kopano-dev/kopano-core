@@ -781,8 +781,7 @@ provider/soap/ns.xsd: ${SOAPHEADER}
 	fi
 
 BUILT_SOURCES += provider/soap/ns.xsd ${SOAP_CPP_SRC}
-CLEANFILES += ${SOAP_CPP_SRC} provider/soap/*.req.xml provider/soap/*.res.xml provider/soap/*.wsdl \
-	soap/*.nsmap provider/soap/*.xsd provider/soap/*Proxy\.h provider/soap/*~
+CLEANFILES += ${SOAP_CPP_SRC} provider/soap/*
 
 
 #
@@ -889,6 +888,7 @@ EXTRA_DIST += version versionheader.sh \
 	common/include/kopano/ecversion.h
 
 BUILT_SOURCES += source-moved-check common/include/kopano/ecversion.h
+CLEANFILES += common/include/kopano/ecversion.h
 
 dist_sbin_SCRIPTS += tools/python-scripts/kopano-cachestat.py
 gdbautoloaddir = ${datadir}/gdb/auto-load/${libdir}
