@@ -771,6 +771,62 @@ exit:
 	return hr;
 }
 
+static int proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,
+    const ACTION &act, const std::string &rule, StatsClient *sc,
+    bool &bAddFwdFlag, IMessage **lppMessage, IMessage *&lpFwdMsg)
+{
+	HRESULT hr;
+
+	sc->countInc("rules", "forward");
+	// TODO: test act.lpAction[n].ulActionFlavor
+	// FWD_PRESERVE_SENDER			1
+	// FWD_DO_NOT_MUNGE_MSG			2
+	// FWD_AS_ATTACHMENT			4
+
+	// redirect == 3
+	if (act.lpadrlist->cEntries == 0) {
+		ec_log_debug("Forwarding rule doesn't have recipients");
+		return 0; // Nothing todo
+	}
+	if (parseBool(g_lpConfig->GetSetting("no_double_forward"))) {
+		/*
+		 * Loop protection. When header is added to the message, it
+		 * will stop to forward or redirect the message.
+		 */
+		PROPMAP_START(1)
+		PROPMAP_NAMED_ID(KopanoRuleAction, PT_UNICODE, PS_INTERNET_HEADERS, "x-kopano-rule-action")
+		PROPMAP_INIT((*lppMessage));
+
+		SPropValue *lpPropRule = nullptr;
+		if (HrGetOneProp(*lppMessage, PROP_KopanoRuleAction, &lpPropRule) == hrSuccess) {
+			MAPIFreeBuffer(lpPropRule);
+			ec_log_warn((std::string)"Rule " + rule + ": FORWARD loop protection. Message will not be forwarded or redirected because it includes header \"x-kopano-rule-action\"");
+			return 0;
+		}
+	}
+	ec_log_debug("Rule action: %s e-mail", (act.ulActionFlavor & FWD_PRESERVE_SENDER) ? "redirecting" : "forwarding");
+	hr = CreateForwardCopy(abook, orig_store, *lppMessage,
+	     act.lpadrlist, false, act.ulActionFlavor & FWD_PRESERVE_SENDER,
+	     act.ulActionFlavor & FWD_DO_NOT_MUNGE_MSG,
+	     act.ulActionFlavor & FWD_AS_ATTACHMENT, &lpFwdMsg);
+	if (hr != hrSuccess) {
+		std::string msg = std::string("Rule ") + rule + ": FORWARD Unable to create forward message: %s (%x)";
+		ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
+		return 1;
+	}
+	hr = lpFwdMsg->SubmitMessage(0);
+	if (hr != hrSuccess) {
+		std::string msg = std::string("Rule ") + rule + ": FORWARD Unable to send forward message: %s (%x)";
+		ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
+		return 1;
+	}
+	// update original message, set as forwarded
+	bAddFwdFlag = true;
+	return 2;
+ exitpm:
+	return -1;
+}
+
 // lpMessage: gets EntryID, maybe pass this and close message in DAgent.cpp
 HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
     IMAPISession *lpSession, IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
@@ -798,7 +854,6 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 	SizedSSortOrderSet(1, sosRules) = {1, 0, 0, { {PR_RULE_SEQUENCE, TABLE_SORT_ASCEND} } };
     LPSPropValue lpRuleName = NULL;
     LPSPropValue lpRuleState = NULL;
-	LPSPropValue lpPropRule = NULL;
 	std::string strRule;
     LPSPropValue lpProp = NULL;
     LPSRestriction lpCondition = NULL;
@@ -813,51 +868,50 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
     hr = lpOrigInbox->OpenProperty(PR_RULES_TABLE, &IID_IExchangeModifyTable, 0, 0, (LPUNKNOWN *)&lpTable);
 	if (hr != hrSuccess) {
 		ec_log_err("HrProcessRules(): OpenProperty failed %x", hr);
-		goto exitpm;
+		goto exit;
 	}
 
 	hr = lpTable->QueryInterface(IID_IECExchangeModifyTable, (void**)&lpECModifyTable);
 	if(hr != hrSuccess) {
 		ec_log_err("HrProcessRules(): QueryInterface failed %x", hr);
-		goto exitpm;
+		goto exit;
 	}
 
 	hr = lpECModifyTable->DisablePushToServer();
 	if(hr != hrSuccess) {
 		ec_log_err("HrProcessRules(): DisablePushToServer failed %x", hr);
-		goto exitpm;
+		goto exit;
 	}
 
 	hr = pyMapiPlugin->RulesProcessing("PreRuleProcess", lpSession, lpAdrBook, lpOrigStore, lpTable, &ulResult);
 	if(hr != hrSuccess) {
 		ec_log_err("HrProcessRules(): RulesProcessing failed %x", hr);
-		goto exitpm;
+		goto exit;
 	}
 
 	//TODO do something with ulResults
     hr = lpTable->GetTable(0, &lpView);
 	if(hr != hrSuccess) {
 		ec_log_err("HrProcessRules(): GetTable failed %x", hr);
-		goto exitpm;
+		goto exit;
 	}
 	hr = lpView->SetColumns(sptaRules, 0);
 	if (hr != hrSuccess) {
 		ec_log_err("HrProcessRules(): SetColumns failed %x", hr);
-		goto exitpm;
+		goto exit;
 	}
 	hr = lpView->SortTable(sosRules, 0);
 	if (hr != hrSuccess) {
 		ec_log_err("HrProcessRules(): SortTable failed %x", hr);
-		goto exitpm;
+		goto exit;
 	}
 
 	while (TRUE) {
         hr = lpView->QueryRows(1, 0, &lpRowSet);
 	if (hr != hrSuccess) {
 		ec_log_err("HrProcessRules(): QueryRows failed %x", hr);
-			goto exitpm;
+			goto exit;
 	}
-
         if (lpRowSet->cRows == 0)
             break;
 
@@ -948,14 +1002,14 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 				if(hr != hrSuccess) {
 					std::string msg = "Unable to create e-mail for rule " + strRule + ": %s (%x)";
 					ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
-					goto exitpm;
+					goto exit;
 				}
 					
 				hr = (*lppMessage)->CopyTo(0, NULL, NULL, 0, NULL, &IID_IMessage, lpNewMessage, 0, NULL);
 				if(hr != hrSuccess) {
 					std::string msg = "Unable to copy e-mail for rule " + strRule + ": %s (%x)";
 					ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
-					goto exitpm;
+					goto exit;
 				}
 
 				hr = Util::HrCopyIMAPData((*lppMessage), lpNewMessage);
@@ -964,7 +1018,7 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 					std::string msg = "Unable to copy IMAP data e-mail for rule " + strRule + ", continuing: %s (%x)";
 					ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
 					hr = hrSuccess;
-					goto exitpm;
+					goto exit;
 				}
 
 				// Save the copy in its new location
@@ -1012,58 +1066,16 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 				}
 				break;
 
-			case OP_FORWARD:
-				sc -> countInc("rules", "forward");
-				// TODO: test lpActions->lpAction[n].ulActionFlavor
-				// FWD_PRESERVE_SENDER			1
-				// FWD_DO_NOT_MUNGE_MSG			2
-				// FWD_AS_ATTACHMENT			4
-
-				// redirect == 3
-
-				if (lpActions->lpAction[n].lpadrlist->cEntries == 0) {
-					ec_log_debug("Forwarding rule doesn't have recipients");
-					continue; // Nothing todo
-				}
-
-				if(parseBool(g_lpConfig->GetSetting("no_double_forward"))) {
-					// Loop protection, when header 'x-kopano-rule-action' is added to the message it will stop to forward or redirect the message.
-					PROPMAP_START(1)
-					PROPMAP_NAMED_ID(KopanoRuleAction, PT_UNICODE, PS_INTERNET_HEADERS, "x-kopano-rule-action")
-					PROPMAP_INIT( (*lppMessage) );
-
-					if (HrGetOneProp(*lppMessage, PROP_KopanoRuleAction, &lpPropRule) == hrSuccess) {
-						MAPIFreeBuffer(lpPropRule);
-						ec_log_warn((std::string)"Rule "+strRule+": FORWARD loop protection. Message will not be forwarded or redirected because it includes header 'x-kopano-rule-action'");
-						continue;
-					}
-				}
-
-				ec_log_debug("Rule action: %s e-mail", (lpActions->lpAction[n].ulActionFlavor & FWD_PRESERVE_SENDER) ? "redirecting" : "forwarding");
-
-				hr = CreateForwardCopy(lpAdrBook, lpOrigStore, *lppMessage, lpActions->lpAction[n].lpadrlist,
-				     false,
-				     lpActions->lpAction[n].ulActionFlavor & FWD_PRESERVE_SENDER,
-				     lpActions->lpAction[n].ulActionFlavor & FWD_DO_NOT_MUNGE_MSG,
-				     lpActions->lpAction[n].ulActionFlavor & FWD_AS_ATTACHMENT,
-				     &lpFwdMsg);
-				if (hr != hrSuccess) {
-					std::string msg = std::string("Rule ") + strRule + ": FORWARD Unable to create forward message: %s (%x)";
-					ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
+			case OP_FORWARD: {
+				auto ret = proc_op_fwd(lpAdrBook, lpOrigStore, lpActions->lpAction[n], strRule, sc, bAddFwdFlag, lppMessage, lpFwdMsg);
+				if (ret == -1)
+					goto exit;
+				else if (ret == 0)
+					continue;
+				else if (ret == 1)
 					goto nextact;
-				}
-
-				hr = lpFwdMsg->SubmitMessage(0);
-				if (hr != hrSuccess) {
-					std::string msg = std::string("Rule ") + strRule + ": FORWARD Unable to send forward message: %s (%x)";
-					ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
-					goto nextact;
-				}
-
-				// update original message, set as forwarded
-				bAddFwdFlag = true;
 				break;
-
+			}
 			case OP_BOUNCE:
 				sc -> countInc("rules", "bounce");
 				// scBounceCode?
@@ -1125,7 +1137,7 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 				// The error code will become hrSuccess automatically after returning from the post processing function.
 				ec_log_debug("Rule action: deleting e-mail");
 				hr = MAPI_E_CANCEL;
-				goto exitpm;
+				goto exit;
 				break;
 			case OP_MARK_AS_READ:
 				sc -> countInc("rules", "mark_read");
@@ -1179,7 +1191,7 @@ nextrule:
 		// set forward in msg flag
 		hr = (*lppMessage)->SetProps(3, sForwardProps, NULL);
 	}
- exitpm:
+ exit:
 	if (hr != hrSuccess && hr != MAPI_E_CANCEL)
 		ec_log_info("Error while processing rules: 0x%08X", hr);
 
