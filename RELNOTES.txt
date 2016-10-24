@@ -60,6 +60,7 @@ Fixes:
 * search: cure an infinite loop [KC-157]
 * backup: miscellaneous [KC-161, KC-162, KC-192]
 * init: classic init scripts showed wrong status for python daemons [KC-220]
+* client: do check SSL certificate subject names [KC-156]
 Enhancements:
 * server: add ICS log messages [KC-18]
 * server: ship example config files for ldap multi-server [KC-65]
