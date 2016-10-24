@@ -11,7 +11,7 @@ class Service(kopano.Service):
         props2 = []
         for k, v in props.items():
             propid, proptype, value = k, v.wPropType, v.value
-            if proptype == PT_SYSTIME: # XXX into pyko?
+            if proptype == PT_SYSTIME:
                 value = MAPI.Time.unixtime(time.mktime(value.timetuple()))
             nameid = self.propid_nameid.get(propid)
             if nameid:
@@ -23,22 +23,27 @@ class Service(kopano.Service):
     def import_attachments(self, message, message2):
         for attachment in message.subattachments:
             attachment = message.get_attachment(attachment)
-            attachment2 = message2.create_attachment(attachment.Filename, attachment.data) # XXX other methods
+            attachment2 = message2.create_attachment(attachment.Filename, attachment.data) # XXX other methods?
             self.import_props(attachment.pc.props, attachment2)
 
     def import_recipients(self, message, message2):
-        recipients = [] # XXX entryid?
+        recipients = [] # XXX group etc entryid?, exchange user?
         for r in message.subrecipients:
-            recipients.append([
+            props = [
                 SPropValue(PR_RECIPIENT_TYPE, r.RecipientType),
                 SPropValue(PR_DISPLAY_NAME_W, r.DisplayName),
                 SPropValue(PR_ADDRTYPE_W, r.AddressType),
                 SPropValue(PR_EMAIL_ADDRESS_W, r.EmailAddress),
-            ])
+            ]
+            if r.AddressType == 'ZARAFA' and r.ObjectType==6 and not '@' in r.EmailAddress: # XXX broken props?
+                user = kopano.user(r.EmailAddress)
+                props.append(SPropValue(PR_ENTRYID, user.userid.decode('hex')))
+            recipients.append(props)
+
         message2.mapiobj.ModifyRecipients(0, recipients)
         message2.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
-    def import_pst(self, pst, user): # XXX named props, embedded msgs?
+    def import_pst(self, pst, user): # XXX check embedded msgs
         for folder in pst.folder_generator():
             path = folder.path.replace('\\', '/')[1:] # XXX escaping
             if self.options.folders and path not in self.options.folders:
