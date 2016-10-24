@@ -774,6 +774,10 @@ ${SOAP_CPP_SRC}: provider/soap/ns.xsd
 provider/soap/ns.xsd: ${SOAPHEADER}
 	${MKDIR_P} provider/soap
 	soapcpp2 -z1 -x -Iinclude/ -d provider/soap/ $<
+	if ! grep -q 'propVal\[\]' provider/soap/soapC*; then \
+		echo "ERROR: This gsoap generator did not produce an acceptable wire protocol. http://sf.net/p/gsoap2/bugs/1075/"; \
+		exit 1; \
+	fi
 
 BUILT_SOURCES += provider/soap/ns.xsd ${SOAP_CPP_SRC}
 CLEANFILES += ${SOAP_CPP_SRC} provider/soap/*.req.xml provider/soap/*.res.xml provider/soap/*.wsdl \
