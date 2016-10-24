@@ -13,7 +13,10 @@ class Service(kopano.Service):
             propid, proptype, value = k, v.wPropType, v.value
             if proptype == PT_SYSTIME: # XXX into pyko?
                 value = MAPI.Time.unixtime(time.mktime(value.timetuple()))
-            props2.append(SPropValue(PROP_TAG(proptype,propid), value))
+            nameid = self.propid_nameid.get(propid)
+            if nameid:
+                propid = PROP_ID(message2.mapiobj.GetIDsFromNames([MAPINAMEID(*nameid)], 0)[0])
+            props2.append(SPropValue(PROP_TAG(proptype, propid), value))
         message2.mapiobj.SetProps(props2)
         message2.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
@@ -38,8 +41,12 @@ class Service(kopano.Service):
     def import_pst(self, pst, user): # XXX named props, embedded msgs?
         for folder in pst.folder_generator():
             path = folder.path.replace('\\', '/')[1:] # XXX escaping
+            if self.options.folders and path not in self.options.folders:
+                continue
             self.log.info("importing folder '%s'" % path)
             folder2 = user.folder(path, create=True)
+            if folder.ContainerClass:
+                folder2.container_class = folder.ContainerClass
             for message in pst.message_generator(folder):
                 self.log.debug("importing message '%s'" % message.Subject)
                 message2 = folder2.create_item()
@@ -47,10 +54,21 @@ class Service(kopano.Service):
                 self.import_attachments(message, message2)
                 self.import_recipients(message, message2)
 
+    def get_named_property_map(self, pst):
+        propid_nameid = {}
+        for nameid in pst.messaging.nameid_entries:
+            propid_nameid[nameid.NPID] = (
+                nameid.guid,
+                MNID_STRING if nameid.N==1 else MNID_ID,
+                nameid.name if nameid.N==1 else nameid.dwPropertyID
+            )
+        return propid_nameid
+
     def main(self):
         for arg in self.args:
             self.log.info("importing file '%s'" % arg)
             p = pst.PST(arg)
+            self.propid_nameid = self.get_named_property_map(p)
             for name in self.options.users:
                 self.log.info("importing to user '%s'" % name)
                 self.import_pst(p, kopano.user(name))
@@ -62,6 +80,7 @@ def main():
 #    parser.add_option('', '--stats', dest='stats', action='store_true', help='list folders for PATH')
 #    parser.add_option('', '--index', dest='index', action='store_true', help='list items for PATH')
 #    parser.add_option('', '--recursive', dest='recursive', action='store_true', help='backup/restore folders recursively')
+#    empty respective folders before import?
 
     options, args = parser.parse_args()
     options.service = False
