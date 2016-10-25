@@ -251,6 +251,7 @@ def UserAccountsToEntryIDs(session, users):
     addrlist = []
     flaglist = []
     for user in users:
+        user = unicode(user)
         addrlist.append([SPropValue(PR_DISPLAY_NAME_W, user)])
         flaglist.append(MAPI_UNRESOLVED)
 
