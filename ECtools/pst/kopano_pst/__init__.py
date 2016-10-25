@@ -7,24 +7,37 @@ import MAPI.Time
 
 class Service(kopano.Service):
 
-    def import_props(self, props, message2):
+    def import_props(self, parent, mapiobj): # XXX fully recurse
         props2 = []
-        for k, v in props.items():
+        for k, v in parent.pc.props.items():
             propid, proptype, value = k, v.wPropType, v.value
             if proptype == PT_SYSTIME:
                 value = MAPI.Time.unixtime(time.mktime(value.timetuple()))
             nameid = self.propid_nameid.get(propid)
             if nameid:
-                propid = PROP_ID(message2.mapiobj.GetIDsFromNames([MAPINAMEID(*nameid)], 0)[0])
-            props2.append(SPropValue(PROP_TAG(proptype, propid), value))
-        message2.mapiobj.SetProps(props2)
-        message2.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+                propid = PROP_ID(mapiobj.GetIDsFromNames([MAPINAMEID(*nameid)], 0)[0])
+            if propid == PR_ATTACH_DATA_OBJ >> 16 and len(value) == 4: # XXX why not 4
+                subnode_nid = struct.unpack('I', value)[0]
+                message = pst.Message(subnode_nid, self.ltp, self.nbd, parent)
+                message2 = mapiobj.OpenProperty(PR_ATTACH_DATA_OBJ, IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY)
+                subprops = []
+                for l, w in message.pc.props.items():
+                    value = w.value
+                    if w.wPropType == PT_SYSTIME:
+                        value = MAPI.Time.unixtime(time.mktime(value.timetuple()))
+                    subprops.append(SPropValue(PROP_TAG(w.wPropType, l), value))
+                message2.SetProps(subprops)
+                message2.SaveChanges(KEEP_OPEN_READWRITE)
+            else:
+                props2.append(SPropValue(PROP_TAG(proptype, propid), value))
+        mapiobj.SetProps(props2)
+        mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     def import_attachments(self, message, message2):
         for attachment in message.subattachments:
             attachment = message.get_attachment(attachment)
-            attachment2 = message2.create_attachment(attachment.Filename, attachment.data) # XXX other methods?
-            self.import_props(attachment.pc.props, attachment2)
+            (id_, attachment2) = message2.mapiobj.CreateAttach(None, 0)
+            self.import_props(attachment, attachment2)
 
     def import_recipients(self, message, message2):
         recipients = [] # XXX group etc entryid?, exchange user?
@@ -33,13 +46,13 @@ class Service(kopano.Service):
                 SPropValue(PR_RECIPIENT_TYPE, r.RecipientType),
                 SPropValue(PR_DISPLAY_NAME_W, r.DisplayName),
                 SPropValue(PR_ADDRTYPE_W, r.AddressType),
-                SPropValue(PR_EMAIL_ADDRESS_W, r.EmailAddress),
             ]
+            if r.EmailAddress:
+                props.append(SPropValue(PR_EMAIL_ADDRESS_W, r.EmailAddress))
             if r.AddressType == 'ZARAFA' and r.ObjectType==6 and not '@' in r.EmailAddress: # XXX broken props?
                 user = kopano.user(r.EmailAddress)
                 props.append(SPropValue(PR_ENTRYID, user.userid.decode('hex')))
             recipients.append(props)
-
         message2.mapiobj.ModifyRecipients(0, recipients)
         message2.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
@@ -55,7 +68,7 @@ class Service(kopano.Service):
             for message in pst.message_generator(folder):
                 self.log.debug("importing message '%s'" % message.Subject)
                 message2 = folder2.create_item()
-                self.import_props(message.pc.props, message2)
+                self.import_props(message, message2.mapiobj)
                 self.import_attachments(message, message2)
                 self.import_recipients(message, message2)
 
@@ -73,6 +86,7 @@ class Service(kopano.Service):
         for arg in self.args:
             self.log.info("importing file '%s'" % arg)
             p = pst.PST(arg)
+            self.nbd, self.ltp = p.nbd, p.ltp
             self.propid_nameid = self.get_named_property_map(p)
             for name in self.options.users:
                 self.log.info("importing to user '%s'" % name)
