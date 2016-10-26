@@ -115,12 +115,17 @@ static SOAP_SOCKET kc_client_connect(struct soap *soap, const char *ep,
     const char *host, int port)
 {
 	auto si = reinterpret_cast<struct KCmdData *>(soap->user);
-	if (si == NULL)
+	if (si == NULL) {
+		ec_log_err("K-2740: kc_client_connect unexpectedly called");
 		return -1;
+	}
 	auto fopen = si->orig_fopen;
 	delete si;
-	if (fopen == NULL)
+	if (fopen == NULL) {
+		ec_log_err("K-2741: kc_client_connect has no fopen");
 		return -1;
+	}
+	soap->fopen = fopen;
 	soap->user = NULL;
 	if (soap->ctx != NULL)
 		SSL_CTX_set_ex_data(soap->ctx, ssl_zvcb_index,
