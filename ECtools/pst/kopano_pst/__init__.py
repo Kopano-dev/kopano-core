@@ -58,7 +58,7 @@ class Service(kopano.Service):
 
     def import_pst(self, pst, user): # XXX check embedded msgs
         for folder in pst.folder_generator():
-            path = folder.path.replace('\\', '/')[1:] # XXX escaping
+            path = folder.path[1:]
             if self.options.folders and path not in self.options.folders:
                 continue
             self.log.info("importing folder '%s'" % path)

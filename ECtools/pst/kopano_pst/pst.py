@@ -1254,7 +1254,7 @@ class Folder:
             raise PSTException('Invalid Folder NID Type: %s' % nid.nidType)
         self.pc = ltp.get_pc_by_nid(nid)
         self.DisplayName = self.pc.getval(PropIdEnum.PidTagDisplayName)
-        self.path = parent_path+'\\'+self.DisplayName
+        self.path = parent_path+'/'+self.DisplayName.replace('/', '\\/')
 
         #print 'FOLDER DEBUG', self.DisplayName, self.pc
 
