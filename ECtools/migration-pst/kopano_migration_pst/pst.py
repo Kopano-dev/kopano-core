@@ -606,6 +606,7 @@ class BTH:
                 bth_working_stack = bth_record_list
                 while bth_working_stack:
                     bth_intermediate = bth_working_stack.pop()
+                    bytes = hn.get_hid_data(bth_intermediate.hidNextLevel)
                     bth_record_list = self.get_bth_records(bytes, bth_intermediate.bIdxLevel - 1)
                     if bth_intermediate.bIdxLevel - 1 == 0: # leafs
                         self.bth_datas.extend(bth_record_list)
@@ -794,7 +795,7 @@ class PType:
         elif self.ptype == PTypeEnum.PtypNull:
             return None
         elif self.ptype == PTypeEnum.PtypObject:
-            return bytes
+            return bytes[:4]
         else:
             raise PSTException('Invalid PTypeEnum for value %s ' % self.ptype)
 
@@ -1148,7 +1149,7 @@ class LTP:
             PTypeEnum.PtypMultipleBinary:PType(PTypeEnum.PtypMultipleBinary, 2, False, True),
             PTypeEnum.PtypUnspecified:PType(PTypeEnum.PtypUnspecified, 0, False, False),
             PTypeEnum.PtypNull:PType(PTypeEnum.PtypNull, 0, False, False),
-            PTypeEnum.PtypObject:PType(PTypeEnum.PtypObject, 0, False, False)
+            PTypeEnum.PtypObject:PType(PTypeEnum.PtypObject, 4, False, True)
         }
 
 
@@ -1253,7 +1254,7 @@ class Folder:
             raise PSTException('Invalid Folder NID Type: %s' % nid.nidType)
         self.pc = ltp.get_pc_by_nid(nid)
         self.DisplayName = self.pc.getval(PropIdEnum.PidTagDisplayName)
-        self.path = parent_path+'\\'+self.DisplayName
+        self.path = parent_path+'/'+self.DisplayName.replace('/', '\\/')
 
         #print 'FOLDER DEBUG', self.DisplayName, self.pc
 
@@ -1346,12 +1347,18 @@ class Message:
     afStorage = 0x06
 
 
-    def __init__(self, nid, ltp):
+    def __init__(self, nid, ltp, nbd=None, parent_message=None):
 
-        if nid.nidType != NID.NID_TYPE_NORMAL_MESSAGE:
-            raise PSTException('Invalid Message NID Type: %s' % nid_pc.nidType)
         self.ltp = ltp
-        self.pc = ltp.get_pc_by_nid(nid)
+        if parent_message:
+            subnode = parent_message.pc.hn.subnodes[nid]
+            datas = nbd.fetch_all_block_data(subnode.bidData)
+            hn = HN(subnode, ltp, datas)
+            self.pc = PC(hn)
+        else:
+            if nid.nidType != NID.NID_TYPE_NORMAL_MESSAGE:
+                raise PSTException('Invalid Message NID Type: %s' % nid_pc.nidType)
+            self.pc = ltp.get_pc_by_nid(nid)
         self.MessageClass = self.pc.getval(PropIdEnum.PidTagMessageClassW)
         self.Subject = ltp.strip_SubjectPrefix(self.pc.getval(PropIdEnum.PidTagSubjectW))
         self.ClientSubmitTime = self.pc.getval(PropIdEnum.PidTagClientSubmitTime)
@@ -1494,6 +1501,14 @@ class Messaging:
             if nameid.N == 1:
                 name_len = struct.unpack('I', nameid_stringstream[nameid.dwPropertyID:nameid.dwPropertyID+4])[0]
                 nameid.name = nameid_stringstream[nameid.dwPropertyID+4:nameid.dwPropertyID+4+name_len].decode('utf-16-le') # unicode
+            if nameid.wGuid == 0:
+                nameid.guid = None
+            elif nameid.wGuid == 1: # PS_MAPI
+                nameid.guid = '(\x03\x02\x00\x00\x00\x00\x00\xc0\x00\x00\x00\x00\x00\x00F'
+            elif nameid.wGuid == 2: # PS_PUBLIC_STRINGS
+                nameid.guid = ')\x03\x02\x00\x00\x00\x00\x00\xc0\x00\x00\x00\x00\x00\x00F'
+            else:
+                nameid.guid = nameid_guidstream[16*(nameid.wGuid-3):16*(nameid.wGuid-2)]
 
 
     def get_folder(self, entryid, parent_path=''):
@@ -2130,10 +2145,11 @@ def get_safe_filename(filename):
 
 
 def log_error(e):
+    raise e
 
-    global error_log_list
-    error_log_list.append(e.message)
-    sys.stderr.write(e.message+'\n')
+#    global error_log_list
+#    error_log_list.append(e.message)
+#    sys.stderr.write(e.message+'\n')
 
 
 
