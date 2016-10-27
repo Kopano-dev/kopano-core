@@ -494,9 +494,10 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 				// Entry was moved rather then created, this means that in our localIdList we have
 				// an entry which matches this object.
 				if (bMoved)
-					for (const auto &sitl : mapSignatureIdToLocal)
-						if (sitl.second.first == ulObjectId) {
-							mapSignatureIdToLocal.erase(iterSignatureIdToLocal);
+					for (auto i = mapSignatureIdToLocal.begin();
+					     i != mapSignatureIdToLocal.cend(); ++i)
+						if (i->second.first == ulObjectId) {
+							mapSignatureIdToLocal.erase(i);
 							break;
 						}
 			} else {
