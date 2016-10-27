@@ -1,12 +1,14 @@
 #!/usr/bin/python
 import time
-import pst
-import kopano
+
 from MAPI.Util import *
 import MAPI.Time
+import kopano
+from kopano import log_exc
+
+import pst
 
 class Service(kopano.Service):
-
     def import_props(self, parent, mapiobj): # XXX fully recurse
         props2 = []
         for k, v in parent.pc.props.items():
@@ -56,21 +58,24 @@ class Service(kopano.Service):
         message2.mapiobj.ModifyRecipients(0, recipients)
         message2.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
-    def import_pst(self, pst, user): # XXX check embedded msgs
+    def import_pst(self, pst, user):
         for folder in pst.folder_generator():
-            path = folder.path[1:]
-            if self.options.folders and path not in self.options.folders:
-                continue
-            self.log.info("importing folder '%s'" % path)
-            folder2 = user.folder(path, create=True)
-            if folder.ContainerClass:
-                folder2.container_class = folder.ContainerClass
-            for message in pst.message_generator(folder):
-                self.log.debug("importing message '%s'" % message.Subject)
-                message2 = folder2.create_item()
-                self.import_props(message, message2.mapiobj)
-                self.import_attachments(message, message2)
-                self.import_recipients(message, message2)
+            with log_exc(self.log, self.stats):
+                path = folder.path[1:]
+                if self.options.folders and path not in self.options.folders:
+                    continue
+                self.log.info("importing folder '%s'" % path)
+                folder2 = user.folder(path, create=True)
+                if folder.ContainerClass:
+                    folder2.container_class = folder.ContainerClass
+                for message in pst.message_generator(folder):
+                    with log_exc(self.log, self.stats):
+                        self.log.debug("importing message '%s'" % message.Subject)
+                        message2 = folder2.create_item()
+                        self.import_props(message, message2.mapiobj)
+                        self.import_attachments(message, message2)
+                        self.import_recipients(message, message2)
+                        self.stats['messages'] += 1
 
     def get_named_property_map(self, pst):
         propid_nameid = {}
@@ -83,6 +88,8 @@ class Service(kopano.Service):
         return propid_nameid
 
     def main(self):
+        self.stats = {'messages': 0, 'errors': 0}
+        t0 = time.time()
         for arg in self.args:
             self.log.info("importing file '%s'" % arg)
             p = pst.PST(arg)
@@ -91,6 +98,9 @@ class Service(kopano.Service):
             for name in self.options.users:
                 self.log.info("importing to user '%s'" % name)
                 self.import_pst(p, kopano.user(name))
+        self.log.info('imported %d items in %.2f seconds (%.2f/sec, %d errors)' %
+            (self.stats['messages'], time.time()-t0, self.stats['messages']/(time.time()-t0), self.stats['errors']))
+
 
 def main():
     parser = kopano.parser('cflskpUPu', usage='kopano-pst PATH -u NAME')

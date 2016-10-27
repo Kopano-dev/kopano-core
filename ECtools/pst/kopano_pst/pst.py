@@ -2145,10 +2145,11 @@ def get_safe_filename(filename):
 
 
 def log_error(e):
+    raise e
 
-    global error_log_list
-    error_log_list.append(e.message)
-    sys.stderr.write(e.message+'\n')
+#    global error_log_list
+#    error_log_list.append(e.message)
+#    sys.stderr.write(e.message+'\n')
 
 
 
