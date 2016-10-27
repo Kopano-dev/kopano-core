@@ -1,5 +1,7 @@
 #!/usr/bin/python
+import csv
 import time
+import sys
 
 from MAPI.Util import *
 import MAPI.Time
@@ -7,6 +9,9 @@ import kopano
 from kopano import log_exc
 
 import pst
+
+def _encode(s):
+    return s.encode(sys.stdout.encoding or 'utf8')
 
 class Service(kopano.Service):
     def import_props(self, parent, mapiobj): # XXX fully recurse
@@ -52,7 +57,7 @@ class Service(kopano.Service):
             if r.EmailAddress:
                 props.append(SPropValue(PR_EMAIL_ADDRESS_W, r.EmailAddress))
             if r.AddressType == 'ZARAFA' and r.ObjectType==6 and not '@' in r.EmailAddress: # XXX broken props?
-                user = kopano.user(r.EmailAddress)
+                user = self.server.user(r.EmailAddress)
                 props.append(SPropValue(PR_ENTRYID, user.userid.decode('hex')))
             recipients.append(props)
         message2.mapiobj.ModifyRecipients(0, recipients)
@@ -62,9 +67,15 @@ class Service(kopano.Service):
         for folder in pst.folder_generator():
             with log_exc(self.log, self.stats):
                 path = folder.path[1:]
+                if (path+'/').startswith('Top of Outlook data file/'):
+                    path = path[25:]
+                if not path:
+                    continue
                 if self.options.folders and path not in self.options.folders:
                     continue
                 self.log.info("importing folder '%s'" % path)
+                if self.options.import_root:
+                    path = self.options.import_root + '/' + path
                 folder2 = user.folder(path, create=True)
                 if folder.ContainerClass:
                     folder2.container_class = folder.ContainerClass
@@ -97,27 +108,46 @@ class Service(kopano.Service):
             self.propid_nameid = self.get_named_property_map(p)
             for name in self.options.users:
                 self.log.info("importing to user '%s'" % name)
-                self.import_pst(p, kopano.user(name))
+                self.import_pst(p, self.server.user(name))
         self.log.info('imported %d items in %.2f seconds (%.2f/sec, %d errors)' %
             (self.stats['messages'], time.time()-t0, self.stats['messages']/(time.time()-t0), self.stats['errors']))
 
 
+def show_contents(args, options):
+    writer = csv.writer(sys.stdout)
+    for arg in args:
+        p = pst.PST(arg)
+        for folder in p.folder_generator():
+            path = folder.path[1:]
+            if (path+'/').startswith('Top of Outlook data file/'): # XXX copy-paste
+                path = path[25:]
+            if not path:
+                continue
+            if options.folders and path not in options.folders:
+                continue
+            if options.stats:
+                writer.writerow([_encode(path), folder.ContentCount])
+            elif options.index:
+                for message in p.message_generator(folder):
+                    writer.writerow([_encode(path), _encode(message.Subject)])
+
 def main():
     parser = kopano.parser('cflskpUPu', usage='kopano-pst PATH -u NAME')
-
-#    parser.add_option('', '--restore-root', dest='restore_root', help='restore under specific folder', metavar='PATH')
-#    parser.add_option('', '--stats', dest='stats', action='store_true', help='list folders for PATH')
-#    parser.add_option('', '--index', dest='index', action='store_true', help='list items for PATH')
-#    parser.add_option('', '--recursive', dest='recursive', action='store_true', help='backup/restore folders recursively')
-#    empty respective folders before import?
+    parser.add_option('', '--stats', dest='stats', action='store_true', help='list folders for PATH')
+    parser.add_option('', '--index', dest='index', action='store_true', help='list items for PATH')
+    parser.add_option('', '--import-root', dest='import_root', action='store', help='list items for PATH', metavar='PATH')
 
     options, args = parser.parse_args()
     options.service = False
 
     assert args, 'please specify path(s) to .pst file(s)'
-    assert options.users, 'please specify user(s) to import to'
+    if not (options.stats or options.index):
+        assert options.users, 'please specify user(s) to import to'
 
-    Service('pst', options=options, args=args).start()
+    if options.stats or options.index:
+        show_contents(args, options)
+    else:
+        Service('pst', options=options, args=args).start()
 
 if __name__ == '__main__':
     main()
