@@ -142,7 +142,7 @@ def main():
     if options.stats or options.index:
         show_contents(args, options)
     else:
-        Service('pst', options=options, args=args).start()
+        Service('migration-pst', options=options, args=args).start()
 
 if __name__ == '__main__':
     main()
