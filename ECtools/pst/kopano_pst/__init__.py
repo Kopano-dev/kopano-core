@@ -14,7 +14,7 @@ def _encode(s):
     return s.encode(sys.stdout.encoding or 'utf8')
 
 class Service(kopano.Service):
-    def import_props(self, parent, mapiobj): # XXX fully recurse
+    def import_props(self, parent, mapiobj):
         props2 = []
         for k, v in parent.pc.props.items():
             propid, proptype, value = k, v.wPropType, v.value
@@ -25,28 +25,23 @@ class Service(kopano.Service):
                 propid = PROP_ID(mapiobj.GetIDsFromNames([MAPINAMEID(*nameid)], 0)[0])
             if propid == PR_ATTACH_DATA_OBJ >> 16 and len(value) == 4: # XXX why not 4
                 subnode_nid = struct.unpack('I', value)[0]
-                message = pst.Message(subnode_nid, self.ltp, self.nbd, parent)
-                message2 = mapiobj.OpenProperty(PR_ATTACH_DATA_OBJ, IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY)
-                subprops = []
-                for l, w in message.pc.props.items():
-                    value = w.value
-                    if w.wPropType == PT_SYSTIME:
-                        value = MAPI.Time.unixtime(time.mktime(value.timetuple()))
-                    subprops.append(SPropValue(PROP_TAG(w.wPropType, l), value))
-                message2.SetProps(subprops)
-                message2.SaveChanges(KEEP_OPEN_READWRITE)
+                submessage = pst.Message(subnode_nid, self.ltp, self.nbd, parent)
+                submapiobj = mapiobj.OpenProperty(PR_ATTACH_DATA_OBJ, IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY)
+                self.import_props(submessage, submapiobj)
+                self.import_attachments(submessage, submapiobj)
+                self.import_recipients(submessage, submapiobj)
             else:
                 props2.append(SPropValue(PROP_TAG(proptype, propid), value))
         mapiobj.SetProps(props2)
         mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
-    def import_attachments(self, message, message2):
+    def import_attachments(self, message, mapiobj):
         for attachment in message.subattachments:
             attachment = message.get_attachment(attachment)
-            (id_, attachment2) = message2.mapiobj.CreateAttach(None, 0)
+            (id_, attachment2) = mapiobj.CreateAttach(None, 0)
             self.import_props(attachment, attachment2)
 
-    def import_recipients(self, message, message2):
+    def import_recipients(self, message, mapiobj):
         recipients = [] # XXX group etc entryid?, exchange user?
         for r in message.subrecipients:
             props = [
@@ -60,8 +55,8 @@ class Service(kopano.Service):
                 user = self.server.user(r.EmailAddress)
                 props.append(SPropValue(PR_ENTRYID, user.userid.decode('hex')))
             recipients.append(props)
-        message2.mapiobj.ModifyRecipients(0, recipients)
-        message2.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+        mapiobj.ModifyRecipients(0, recipients)
+        mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     def import_pst(self, pst, user):
         for folder in pst.folder_generator():
@@ -84,8 +79,8 @@ class Service(kopano.Service):
                         self.log.debug("importing message '%s'" % message.Subject)
                         message2 = folder2.create_item()
                         self.import_props(message, message2.mapiobj)
-                        self.import_attachments(message, message2)
-                        self.import_recipients(message, message2)
+                        self.import_attachments(message, message2.mapiobj)
+                        self.import_recipients(message, message2.mapiobj)
                         self.stats['messages'] += 1
 
     def get_named_property_map(self, pst):
