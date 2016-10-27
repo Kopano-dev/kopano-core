@@ -3945,6 +3945,7 @@ int main(int argc, char *argv[]) {
 		{ "no_double_forward", "no", CONFIGSETTING_RELOADABLE },
 		{ "z_statsd_stats", "/var/run/kopano/statsd.sock" },
 		{ "tmp_path", "/tmp" },
+		{"forward_whitelist_domains", "*"},
 		{ NULL, NULL },
 	};
 

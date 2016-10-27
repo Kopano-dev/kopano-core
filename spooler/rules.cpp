@@ -32,7 +32,7 @@
 #include <kopano/MAPIErrors.h>
 #include <kopano/mapi_ptr.h>
 #include <kopano/mapiguidext.h>
-
+#include <kopano/charset/convert.h>
 #include "IECExchangeModifyTable.h"
 #include "PyMapiPlugin.h"
 #include "spmain.h"
@@ -435,6 +435,52 @@ static HRESULT CreateReplyCopy(LPMAPISESSION lpSession, LPMDB lpOrigStore,
 	return hr;
 }
 
+/**
+ * @pat:	pattern
+ * @subj:	subject string (domain part of an e-mail address)
+ *
+ * This _is_ different from kc_wildcard_cmp in that cmp2 allows
+ * the asterisk to match dots.
+ */
+static bool kc_wildcard_cmp2(const char *pat, const char *subj)
+{
+	while (*pat != '\0' && *subj != '\0') {
+		if (*pat == '*') {
+			++pat;
+			for (; *subj != '\0'; ++subj)
+				if (kc_wildcard_cmp2(pat, subj))
+					return true;
+			continue;
+		}
+		if (tolower(*pat) != tolower(*subj))
+			return false;
+		++pat;
+		++subj;
+	}
+	return *pat == '\0' && *subj == '\0';
+}
+
+static bool proc_fwd_allowed(const std::vector<std::string> &wdomlist,
+    const char *addr)
+{
+	const char *p = strchr(addr, '@');
+	if (p == nullptr) {
+		ec_log_err("K-1900: Address \"%s\" had no '@', aborting forward because we could not possibly match it to a domain whitelist.", addr);
+		return false;
+	}
+	addr = p + 1;
+	for (const auto &wdomstr : wdomlist) {
+		const char *wdom = wdomstr.c_str();
+		if (strcmp(wdom, "*") == 0 /* fastpath */ ||
+		    kc_wildcard_cmp2(wdom, addr)) {
+			ec_log_info("K-1901: proc_fwd_allowed: \"%s\" whitelist match on \"%s\"", addr, wdom);
+			return true;
+		}
+	}
+	ec_log_info("K-1902: proc_fwd_allowed: \"%s\" matched nothing on the whitelist", addr);
+	return false;
+}
+
 /** 
  * Checks the rule recipient list for a possible loop, and filters
  * that recipient. Returns an error when no recipients are left after
@@ -463,15 +509,17 @@ static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMAPIProp *lpMessage,
 	     strFromName, strFromType, strFromAddress);
 	if (hr != hrSuccess) {
 		ec_log_err("Unable to get from address 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = MAPIAllocateBuffer(CbNewADRLIST(lpRuleRecipients->cEntries), (void**)&lpRecipients);
 	if (hr != hrSuccess) {
 		ec_log_err("CheckRecipients(): MAPIAllocateBuffer failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
+	std::vector<std::string> fwd_whitelist =
+		tokenize(g_lpConfig->GetSetting("forward_whitelist_domains"), " ");
 	HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &lpMsgClass); //ignore errors
 
 	lpRecipients->cEntries = 0;
@@ -482,6 +530,10 @@ static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMAPIProp *lpMessage,
 		     strRuleName, strRuleType, strRuleAddress);
 		if (hr != hrSuccess) {
 			ec_log_err("Unable to get rule address 0x%08X", hr);
+			goto exit;
+		}
+		if (!proc_fwd_allowed(fwd_whitelist, convert_to<std::string>(strRuleAddress).c_str())) {
+			hr = MAPI_E_NO_ACCESS;
 			goto exit;
 		}
 		if (strFromAddress == strRuleAddress &&
@@ -582,6 +634,10 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 	}
 
 	hr = CheckRecipients(lpAdrBook, lpOrigMessage, lpRuleRecipients, bOpDelegate, bDoNotMunge, &lpRecipients);
+	if (hr == MAPI_E_NO_ACCESS) {
+		ec_log_info("K-1904: Forwarding not permitted. Ending rule processing.");
+		goto exitpm;
+	}
 	if (hr == MAPI_E_UNABLE_TO_COMPLETE)
 		goto exitpm;
 	if (hr != hrSuccess)
@@ -812,7 +868,7 @@ static int proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,
 	if (hr != hrSuccess) {
 		std::string msg = std::string("Rule ") + rule + ": FORWARD Unable to create forward message: %s (%x)";
 		ec_log_err(msg.c_str(), GetMAPIErrorMessage(hr), hr);
-		return 1;
+		return hr == MAPI_E_NO_ACCESS ? -1 : 1;
 	}
 	hr = lpFwdMsg->SubmitMessage(0);
 	if (hr != hrSuccess) {
