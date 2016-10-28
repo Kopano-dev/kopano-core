@@ -43,15 +43,13 @@
 
 #include <memory>
 #include "mapiTextPart.h"
-#include "vmime/exception.hpp"
-
-#include "vmime/contentTypeField.hpp"
-#include "vmime/contentDisposition.hpp"
-#include "vmime/contentDispositionField.hpp"
-#include "vmime/text.hpp"
-
-#include "vmime/emptyContentHandler.hpp"
-#include "vmime/stringContentHandler.hpp"
+#include <vmime/exception.hpp>
+#include <vmime/contentTypeField.hpp>
+#include <vmime/contentDisposition.hpp>
+#include <vmime/contentDispositionField.hpp>
+#include <vmime/text.hpp>
+#include <vmime/emptyContentHandler.hpp>
+#include <vmime/stringContentHandler.hpp>
 #include <vmime/utility/outputStreamAdapter.hpp>
 
 namespace vmime {

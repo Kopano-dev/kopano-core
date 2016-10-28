@@ -46,11 +46,10 @@
 
 #include <kopano/zcdefs.h>
 #include <memory>
-#include "vmime/textPart.hpp"
-#include "vmime/messageId.hpp"
-#include "vmime/encoding.hpp"
-
-#include "vmime/contentHandler.hpp"
+#include <vmime/textPart.hpp>
+#include <vmime/messageId.hpp>
+#include <vmime/encoding.hpp>
+#include <vmime/contentHandler.hpp>
 
 namespace vmime {
 

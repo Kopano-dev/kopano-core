@@ -22,8 +22,7 @@
 //
 
 #include <memory>
-#include "vmime/net/serviceFactory.hpp"
-
+#include <vmime/net/serviceFactory.hpp>
 
 #ifndef VMIME_BUILDING_DOC
 

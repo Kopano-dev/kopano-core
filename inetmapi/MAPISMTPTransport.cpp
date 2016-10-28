@@ -44,29 +44,26 @@
 #include <kopano/platform.h>
 #include <kopano/stringutil.h>
 #include "MAPISMTPTransport.h"
-#include "vmime/net/smtp/SMTPResponse.hpp"
-
-#include "vmime/exception.hpp"
-#include "vmime/platform.hpp"
-#include "vmime/mailboxList.hpp"
-
-#include "vmime/utility/filteredStream.hpp"
+#include <vmime/net/smtp/SMTPResponse.hpp>
+#include <vmime/exception.hpp>
+#include <vmime/platform.hpp>
+#include <vmime/mailboxList.hpp>
+#include <vmime/utility/filteredStream.hpp>
 #include <vmime/utility/outputStreamSocketAdapter.hpp>
 #include <vmime/utility/streamUtils.hpp>
-#include "vmime/utility/stringUtils.hpp"
-#include "vmime/net/defaultConnectionInfos.hpp"
-
+#include <vmime/utility/stringUtils.hpp>
+#include <vmime/net/defaultConnectionInfos.hpp>
 #include <kopano/ECDebugPrint.h>
 #include <kopano/ECLogger.h>
 #include <kopano/charset/traits.h>
 
 #if VMIME_HAVE_SASL_SUPPORT
-	#include "vmime/security/sasl/SASLContext.hpp"
+#	include <vmime/security/sasl/SASLContext.hpp>
 #endif // VMIME_HAVE_SASL_SUPPORT
 
 #if VMIME_HAVE_TLS_SUPPORT
-	#include "vmime/net/tls/TLSSession.hpp"
-	#include "vmime/net/tls/TLSSecuredConnectionInfos.hpp"
+#	include <vmime/net/tls/TLSSession.hpp>
+#	include <vmime/net/tls/TLSSecuredConnectionInfos.hpp>
 #endif // VMIME_HAVE_TLS_SUPPORT
 
 // Helpers for service properties

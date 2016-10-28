@@ -29,10 +29,10 @@
 #include <cstdlib>
 
 // vmime
-#include "vmime/vmime.hpp"
-#include "vmime/textPartFactory.hpp"
+#include <vmime/vmime.hpp>
+#include <vmime/textPartFactory.hpp>
 #include "mapiTextPart.h"
-#include "vmime/platforms/posix/posixHandler.hpp"
+#include <vmime/platforms/posix/posixHandler.hpp>
 
 // mapi
 #include <mapix.h>

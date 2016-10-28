@@ -45,15 +45,12 @@
 #define MAPI_NET_SMTP_SMTPTRANSPORT_HPP_INCLUDED
 
 #include <kopano/zcdefs.h>
-#include "vmime/config.hpp"
-
-#include "vmime/net/transport.hpp"
-#include "vmime/net/socket.hpp"
-#include "vmime/net/timeoutHandler.hpp"
-
+#include <vmime/config.hpp>
+#include <vmime/net/transport.hpp>
+#include <vmime/net/socket.hpp>
+#include <vmime/net/timeoutHandler.hpp>
 #include <vmime/net/smtp/SMTPResponse.hpp>
-#include "vmime/net/smtp/SMTPServiceInfos.hpp"
-
+#include <vmime/net/smtp/SMTPServiceInfos.hpp>
 #include <inetmapi/inetmapi.h>
 
 namespace vmime {
