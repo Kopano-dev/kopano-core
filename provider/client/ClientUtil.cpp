@@ -1044,7 +1044,8 @@ HRESULT HrGetServerURLFromStoreEntryId(ULONG cbEntryId, LPENTRYID lpEntryId, std
 		bIsPseudoUrl = true;
 	else if (strncasecmp(lpTmpServerName, "http://", 7) && 
 			 strncasecmp(lpTmpServerName, "https://", 8) && 
-			 strncasecmp(lpTmpServerName, "file://", 7))
+			 strncasecmp(lpTmpServerName, "file://", 7) &&
+			 strncasecmp(lpTmpServerName, "default:", 8))
 		return MAPI_E_NOT_FOUND;
 
 	rServerPath = lpTmpServerName;
