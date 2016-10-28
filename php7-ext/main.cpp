@@ -30,6 +30,8 @@
 #include <kopano/mapi_ptr.h>
 #include <kopano/MAPIErrors.h>
 #include "ECRulesTableProxy.h"
+#include <ICalToMAPI.h>
+#include <MAPIToICal.h>
 
 #define LOGFILE_PATH "/var/log/kopano"
 
@@ -451,6 +453,9 @@ zend_function_entry mapi_functions[] =
 
 	ZEND_FE(mapi_inetmapi_imtoinet, NULL)
 	ZEND_FE(mapi_inetmapi_imtomapi, NULL)
+
+	ZEND_FE(mapi_icaltomapi, nullptr)
+	ZEND_FE(mapi_mapitoical, nullptr)
 	
 	ZEND_FE(mapi_enable_exceptions, NULL)
 
@@ -7739,6 +7744,99 @@ exit:
     THROW_ON_ERROR();
     return;
 }    
+
+ZEND_FUNCTION(mapi_icaltomapi)
+{
+	zval *resSession;
+	zval *resStore;
+	zval *resAddrBook;
+	zval *resMessage;
+	zend_bool *noRecipients;
+	ULONG cbString = 0;
+	char *szString = nullptr;
+	IMAPISession *lpMAPISession = nullptr;
+	IAddrBook *lpAddrBook = nullptr;
+	IMessage *lpMessage = nullptr;
+	IMsgStore *lpMsgStore = nullptr;
+	ICalToMapi *lpIcalToMapi = nullptr;
+
+	RETVAL_FALSE;
+	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rrrrsb",
+	    &resSession, &resStore, &resAddrBook, &resMessage, &szString,
+	    &cbString, &noRecipients) == FAILURE)
+		return;
+	ZEND_FETCH_RESOURCE_C(lpMAPISession, IMAPISession *, &resSession, -1, name_mapi_session, le_mapi_session);
+	ZEND_FETCH_RESOURCE_C(lpMsgStore, IMsgStore *, &resStore, -1, name_mapi_msgstore, le_mapi_msgstore);
+	ZEND_FETCH_RESOURCE_C(lpAddrBook, IAddrBook *, &resAddrBook, -1, name_mapi_addrbook, le_mapi_addrbook);
+	ZEND_FETCH_RESOURCE_C(lpMessage, IMessage *, &resMessage, -1, name_mapi_message, le_mapi_message);
+
+	std::string icalMsg(szString, cbString);
+
+	// noRecpients, skip recipients from ical.
+	// Used for DAgent, which uses the mail recipients
+	CreateICalToMapi(lpMsgStore, lpAddrBook, noRecipients, &lpIcalToMapi);
+	if (lpIcalToMapi == nullptr) {
+		MAPI_G(hr) = MAPI_E_NOT_ENOUGH_MEMORY;
+		goto exit;
+	}
+	// Set the default timezone to UTC if none is set, replicating the
+	// behaviour of VMIMEToMAPI.
+	MAPI_G(hr) = lpIcalToMapi->ParseICal(icalMsg, "utf-8", "UTC", nullptr, 0);
+	if (MAPI_G(hr) != hrSuccess)
+		goto exit;
+	MAPI_G(hr) = lpIcalToMapi->GetItem(0, 0, lpMessage);
+	if (MAPI_G(hr) != hrSuccess)
+		goto exit;
+ exit:
+	delete lpIcalToMapi;
+	RETVAL_TRUE;
+	LOG_END();
+    	THROW_ON_ERROR();
+	return;
+}
+
+ZEND_FUNCTION(mapi_mapitoical)
+{
+	PMEASURE_FUNC;
+	LOG_BEGIN();
+	zval *resSession;
+	zval *resAddrBook;
+	zval *resMessage;
+	zval *resOptions;
+	IMAPISession *lpMAPISession = nullptr;
+	IAddrBook *lpAddrBook = nullptr;
+	IMessage *lpMessage = nullptr;
+	MapiToICal *lpMtIcal = nullptr;
+	std::string strical("");
+	std::string method("");
+	zend_string *str;
+
+	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rrra",
+	    &resSession, &resAddrBook, &resMessage, &resOptions) == FAILURE)
+		return;
+	ZEND_FETCH_RESOURCE_C(lpMAPISession, IMAPISession *, &resSession, -1, name_mapi_session, le_mapi_session);
+	ZEND_FETCH_RESOURCE_C(lpAddrBook, IAddrBook *, &resAddrBook, -1, name_mapi_addrbook, le_mapi_addrbook);
+	ZEND_FETCH_RESOURCE_C(lpMessage, IMessage *, &resMessage, -1, name_mapi_message, le_mapi_message);
+
+	// set HR
+	CreateMapiToICal(lpAddrBook, "utf-8", &lpMtIcal);
+	if (lpMtIcal == nullptr) {
+		MAPI_G(hr) = MAPI_E_NOT_ENOUGH_MEMORY;
+		goto exit;
+	}
+	MAPI_G(hr) = lpMtIcal->AddMessage(lpMessage, "", 0);
+	if (MAPI_G(hr) != hrSuccess)
+		goto exit;
+	MAPI_G(hr) = lpMtIcal->Finalize(0, &method, &strical);
+	str = zend_string_init(strical.c_str(), strlen(strical.c_str()), 0);
+ exit:
+	delete lpMtIcal;
+	LOG_END();
+	THROW_ON_ERROR();
+	RETURN_STR(str);
+}
 
 ZEND_FUNCTION(mapi_enable_exceptions)
 {

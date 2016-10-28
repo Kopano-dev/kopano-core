@@ -806,7 +806,7 @@ mapi_la_CPPFLAGS = ${AM_CPPFLAGS} ${PHP_INCLUDES}
 mapi_la_CXXFLAGS = ${AM_CXXFLAGS} ${ZPHPCXXFLAGS}
 mapi_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version ${PHP_LDFLAGS}
 mapi_la_LIBADD = libmapi.la libkcmapi.la libkcutil.la libkcfreebusy.la \
-	libkcinetmapi.la ${PROG_LIBS} -lpthread
+	libkcinetmapi.la libkcicalmapi.la ${PROG_LIBS} -lpthread
 
 
 #
