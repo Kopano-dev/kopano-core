@@ -19,6 +19,7 @@
 #define MAPITOVMIME
 
 #include <kopano/zcdefs.h>
+#include <memory>
 #include <mapix.h>
 
 #include <string>
@@ -44,7 +45,7 @@ public:
 	MAPIToVMIME(IMAPISession *, IAddrBook *, sending_options);
 	~MAPIToVMIME();
 
-	HRESULT convertMAPIToVMIME(IMessage *in, vmime::ref<vmime::message> *out, unsigned int = MTV_NONE);
+	HRESULT convertMAPIToVMIME(IMessage *in, vmime::shared_ptr<vmime::message> *out, unsigned int = MTV_NONE);
 	std::wstring getConversionError(void) const;
 
 private:
@@ -62,23 +63,23 @@ private:
 	HRESULT fillVMIMEMail(IMessage *lpMessage, bool bSkipContent, vmime::messageBuilder* lpVMMessageBuilder);
 
 	HRESULT handleTextparts(IMessage* lpMessage, vmime::messageBuilder* lpVMMessageBuilder, eBestBody *bestBody);
-	HRESULT getMailBox(LPSRow lpRow, vmime::ref<vmime::address> *lpvmMailbox);
+	HRESULT getMailBox(LPSRow lpRow, vmime::shared_ptr<vmime::address> *mbox);
 	HRESULT processRecipients(IMessage* lpMessage, vmime::messageBuilder* lpVMMessageBuilder);
-	HRESULT handleExtraHeaders(IMessage *in, vmime::ref<vmime::header> out, unsigned int);
-	HRESULT handleReplyTo(IMessage* lpMessage, vmime::ref<vmime::header> vmHeader);
+	HRESULT handleExtraHeaders(IMessage *in, vmime::shared_ptr<vmime::header> out, unsigned int);
+	HRESULT handleReplyTo(IMessage *in, vmime::shared_ptr<vmime::header> hdr);
 	HRESULT handleContactEntryID(ULONG cValues, LPSPropValue lpProps, std::wstring &strName, std::wstring &strType, std::wstring &strEmail);
-	HRESULT handleSenderInfo(IMessage* lpMessage, vmime::ref<vmime::header> vmHeader);
+	HRESULT handleSenderInfo(IMessage* lpMessage, vmime::shared_ptr<vmime::header>);
 
 	HRESULT handleAttachments(IMessage* lpMessage, vmime::messageBuilder* lpVMMessageBuilder);
 	HRESULT handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, vmime::messageBuilder* lpVMMessageBuilder);
 	HRESULT parseMimeTypeFromFilename(std::wstring strFilename, vmime::mediaType *lpMT, bool *lpbSendBinary);
-	HRESULT setBoundaries(vmime::ref<vmime::header> vmHeader, vmime::ref<vmime::body> vmBody, const std::string& boundary);
-	HRESULT handleXHeaders(IMessage *in, vmime::ref<vmime::header> out, unsigned int);
+	HRESULT setBoundaries(vmime::shared_ptr<vmime::header> hdr, vmime::shared_ptr<vmime::body> body, const std::string &boundary);
+	HRESULT handleXHeaders(IMessage *in, vmime::shared_ptr<vmime::header> out, unsigned int);
 	HRESULT handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVMMessageBuilder, eBestBody bestBody);
 
 	// build Messages
-	HRESULT BuildNoteMessage(IMessage *in, vmime::ref<vmime::message> *out, unsigned int = MTV_NONE);
-	HRESULT BuildMDNMessage(IMessage *lpMessage, vmime::ref<vmime::message> *lpvmMessage);
+	HRESULT BuildNoteMessage(IMessage *in, vmime::shared_ptr<vmime::message> *out, unsigned int = MTV_NONE);
+	HRESULT BuildMDNMessage(IMessage *in, vmime::shared_ptr<vmime::message> *out);
 
 	// util
 	void capitalize(char *s);

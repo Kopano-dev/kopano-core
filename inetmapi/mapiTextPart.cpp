@@ -41,6 +41,7 @@
 // the GNU General Public License cover the whole combination.
 //
 
+#include <memory>
 #include "mapiTextPart.h"
 #include "vmime/exception.hpp"
 
@@ -51,24 +52,14 @@
 
 #include "vmime/emptyContentHandler.hpp"
 #include "vmime/stringContentHandler.hpp"
+#include <vmime/utility/outputStreamAdapter.hpp>
 
 namespace vmime {
 
-	/** Create a new object and return a reference to it.
-	 * vmime only goes as far as p4... 
-	 * @return reference to the new object
-	 */
-	template <class T, class P0, class P1, class P2, class P3, class P4, class P5>
-	static ref <T> create(const P0& p0, const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5) { 
-		return ref <T>::fromPtr(new T(p0, p1, p2, p3, p4, p5));
-	}
-                                            
-                                            
-
 mapiTextPart::mapiTextPart()
-	: m_plainText(vmime::create <emptyContentHandler>()),
-	  m_text(vmime::create <emptyContentHandler>()),
-	  m_otherText(vmime::create <emptyContentHandler>())
+	: m_plainText(vmime::make_shared<emptyContentHandler>()),
+	  m_text(vmime::make_shared<emptyContentHandler>()),
+	  m_otherText(vmime::make_shared<emptyContentHandler>())
 {
 	m_bHaveOtherCharset = false;
 }
@@ -82,7 +73,7 @@ const mediaType mapiTextPart::getType() const
 		return (mediaType(mediaTypes::TEXT, mediaTypes::TEXT_HTML));
 }
 
-int mapiTextPart::getPartCount() const
+size_t mapiTextPart::getPartCount() const
 {
 	int count = 0;
 	if (!m_plainText->isEmpty())
@@ -94,13 +85,14 @@ int mapiTextPart::getPartCount() const
 	return count;
 }
 
-void mapiTextPart::generateIn(ref <bodyPart> /* message */, ref <bodyPart> parent) const
+void mapiTextPart::generateIn(vmime::shared_ptr<bodyPart> /* message */,
+    vmime::shared_ptr<bodyPart> parent) const
 {
 	// Plain text
 	if (!m_plainText->isEmpty())
 	{
 		// -- Create a new part
-		ref <bodyPart> part = vmime::create <bodyPart>();
+		auto part = vmime::make_shared<bodyPart>();
 		parent->getBody()->appendPart(part);
 
 		// -- Set contents
@@ -113,7 +105,7 @@ void mapiTextPart::generateIn(ref <bodyPart> /* message */, ref <bodyPart> paren
 	// -- Create a new part
 	if (!m_text->isEmpty())
 	{
-	ref <bodyPart> htmlPart = vmime::create <bodyPart>();
+		auto htmlPart = vmime::make_shared<bodyPart>();
 
 	// -- Set contents
 	htmlPart->getBody()->setContents(m_text,
@@ -124,7 +116,7 @@ void mapiTextPart::generateIn(ref <bodyPart> /* message */, ref <bodyPart> paren
 	if (!m_objects.empty())
 	{
 		// Create a "multipart/related" body part
-		ref <bodyPart> relPart = vmime::create <bodyPart>();
+		auto relPart = vmime::make_shared<bodyPart>();
 		parent->getBody()->appendPart(relPart);
 
 		relPart->getHeader()->ContentType()->
@@ -135,7 +127,7 @@ void mapiTextPart::generateIn(ref <bodyPart> /* message */, ref <bodyPart> paren
 
 		// Also add objects into this part
 		for (auto obj : m_objects) {
-			ref <bodyPart> objPart = vmime::create <bodyPart>();
+			auto objPart = vmime::make_shared<bodyPart>();
 			relPart->getBody()->appendPart(objPart);
 
 			std::string id = obj->getId();
@@ -156,7 +148,7 @@ void mapiTextPart::generateIn(ref <bodyPart> /* message */, ref <bodyPart> paren
 			//encoding(encodingTypes::BASE64);
 
 			if (!name.empty())
-				objPart->getHeader()->ContentDisposition().dynamicCast<contentDispositionField>()->setFilename(name);
+				vmime::dynamicCast<vmime::contentDispositionField>(objPart->getHeader()->ContentDisposition())->setFilename(vmime::word(name));
 
 			objPart->getBody()->setContents(obj->getData()->clone());
 		}
@@ -172,16 +164,15 @@ void mapiTextPart::generateIn(ref <bodyPart> /* message */, ref <bodyPart> paren
 	if (!m_otherText->isEmpty())
 	{
 		// -- Create a new part
-		ref <bodyPart> otherPart = vmime::create <bodyPart>();
-
+		auto otherPart = vmime::make_shared<bodyPart>();
 		parent->getBody()->appendPart(otherPart);
 
 		// used by ical
 		if (!m_otherMethod.empty())
 		{
-			vmime::ref<vmime::parameter> p = vmime::create<parameter>("method");
-			p->parse(m_otherMethod);
-			otherPart->getHeader()->ContentType().dynamicCast<contentTypeField>()->appendParameter(p);
+			auto p = vmime::make_shared<vmime::parameter>("method");
+			p->component::parse(m_otherMethod);
+			vmime::dynamicCast<contentTypeField>(otherPart->getHeader()->ContentType())->appendParameter(p);
 		}
 
 		// -- Set contents
@@ -190,34 +181,19 @@ void mapiTextPart::generateIn(ref <bodyPart> /* message */, ref <bodyPart> paren
 }
 
 void mapiTextPart::findEmbeddedParts(const bodyPart& part,
-	std::vector <ref <const bodyPart> >& cidParts, std::vector <ref <const bodyPart> >& locParts)
+	std::vector<vmime::shared_ptr<const bodyPart> > &cidParts,
+	std::vector<vmime::shared_ptr<const bodyPart> > &locParts)
 {
-	for (int i = 0 ; i < part.getBody()->getPartCount() ; ++i)
+	for (size_t i = 0 ; i < part.getBody()->getPartCount() ; ++i)
 	{
-		ref <const bodyPart> p = part.getBody()->getPartAt(i);
+		auto p = part.getBody()->getPartAt(i);
 
 		// For a part to be an embedded object, it must have a
 		// Content-Id field or a Content-Location field.
-		try
-		{
-			p->getHeader()->findField(fields::CONTENT_ID);
+		if (p->getHeader()->hasField(fields::CONTENT_ID))
 			cidParts.push_back(p);
-		}
-		catch (exceptions::no_such_field)
-		{
-			// No "Content-id" field.
-		}
-
-		try
-		{
-			p->getHeader()->findField(fields::CONTENT_LOCATION);
+		if (p->getHeader()->hasField(fields::CONTENT_LOCATION))
 			locParts.push_back(p);
-		}
-		catch (exceptions::no_such_field)
-		{
-			// No "Content-Location" field.
-		}
-
 		findEmbeddedParts(*p, cidParts, locParts);
 	}
 }
@@ -233,24 +209,26 @@ void mapiTextPart::addEmbeddedObject(const bodyPart& part, const string& id)
 
 	try
 	{
-		const ref <const headerField> ctf = part.getHeader()->ContentType();
-		type = *ctf->getValue().dynamicCast <const mediaType>();
+		auto ctf = part.getHeader()->ContentType();
+		type = *vmime::dynamicCast<const vmime::mediaType>(ctf->getValue());
 	}
 	catch (exceptions::no_such_field)
 	{
 		// No "Content-type" field: assume "application/octet-stream".
 	}
 
-	m_objects.push_back(vmime::create <embeddedObject>
-		(part.getBody()->getContents()->clone().dynamicCast <contentHandler>(),
-		 part.getBody()->getEncoding(), id, type, string(), string()));
+	m_objects.push_back(vmime::make_shared<embeddedObject>(
+		vmime::dynamicCast<vmime::contentHandler>(part.getBody()->getContents()->clone()),
+		part.getBody()->getEncoding(), id, type, string(), string()));
 }
 
-void mapiTextPart::parse(ref <const bodyPart> message, ref <const bodyPart> parent, ref <const bodyPart> textPart)
+void mapiTextPart::parse(vmime::shared_ptr<const vmime::bodyPart> message,
+    vmime::shared_ptr<const vmime::bodyPart> parent,
+    vmime::shared_ptr<const vmime::bodyPart> textPart)
 {
 	// Search for possible embedded objects in the _whole_ message.
-	std::vector <ref <const bodyPart> > cidParts;
-	std::vector <ref <const bodyPart> > locParts;
+	std::vector<vmime::shared_ptr<const vmime::bodyPart> > cidParts;
+	std::vector<vmime::shared_ptr<const vmime::bodyPart> > locParts;
 
 	findEmbeddedParts(*message, cidParts, locParts);
 
@@ -264,29 +242,16 @@ void mapiTextPart::parse(ref <const bodyPart> message, ref <const bodyPart> pare
 
 	m_text = textPart->getBody()->getContents()->clone();
 
-	try
-	{
-		const ref <const contentTypeField> ctf =
-			textPart->getHeader()->findField(fields::CONTENT_TYPE).dynamicCast <contentTypeField>();
-
+	if (textPart->getHeader()->hasField(fields::CONTENT_TYPE)) {
+		auto ctf = vmime::dynamicCast<vmime::contentTypeField>(textPart->getHeader()->findField(fields::CONTENT_TYPE));
 		m_charset = ctf->getCharset();
-	}
-	catch (exceptions::no_such_field)
-	{
-		// No "Content-type" field.
-	}
-	catch (exceptions::no_such_parameter)
-	{
-		// No "charset" parameter.
 	}
 
 	// Extract embedded objects. The algorithm is quite simple: for each previously
 	// found inline part, we check if its CID/Location is contained in the HTML text.
 	for (const auto &part : cidParts) {
-		const ref <const headerField> midField =
-			part->getHeader()->findField(fields::CONTENT_ID);
-
-		const messageId mid = *midField->getValue().dynamicCast <const messageId>();
+		auto midField = part->getHeader()->findField(fields::CONTENT_ID);
+		auto mid = *vmime::dynamicCast<const vmime::messageId>(midField->getValue());
 
 		if (data.find("CID:" + mid.getId()) != string::npos ||
 		    data.find("cid:" + mid.getId()) != string::npos)
@@ -296,10 +261,8 @@ void mapiTextPart::parse(ref <const bodyPart> message, ref <const bodyPart> pare
 	}
 
 	for (const auto &part : locParts) {
-		const ref <const headerField> locField =
-			part->getHeader()->findField(fields::CONTENT_LOCATION);
-
-		const text loc = *locField->getValue().dynamicCast <const text>();
+		auto locField = part->getHeader()->findField(fields::CONTENT_LOCATION);
+		auto loc = *vmime::dynamicCast<const vmime::text>(locField->getValue());
 		const string locStr = loc.getWholeBuffer();
 
 		if (data.find(locStr) != string::npos)
@@ -311,31 +274,26 @@ void mapiTextPart::parse(ref <const bodyPart> message, ref <const bodyPart> pare
 	// Extract plain text, if any.
 	if (!findPlainTextPart(*message, *parent, *textPart))
 	{
-		m_plainText = vmime::create <emptyContentHandler>();
+		m_plainText = vmime::make_shared<vmime::emptyContentHandler>();
 	}
 }
 
 bool mapiTextPart::findPlainTextPart(const bodyPart& part, const bodyPart& parent, const bodyPart& textPart)
 {
 	// We search for the nearest "multipart/alternative" part.
-	try
-	{
-		const ref <const headerField> ctf =
-			part.getHeader()->findField(fields::CONTENT_TYPE);
-
-		const mediaType type = *ctf->getValue().dynamicCast <const mediaType>();
+	if (part.getHeader()->hasField(fields::CONTENT_TYPE)) {
+		auto ctf = part.getHeader()->findField(fields::CONTENT_TYPE);
+		auto type = *vmime::dynamicCast<const vmime::mediaType>(ctf->getValue());
 
 		if (type.getType() == mediaTypes::MULTIPART &&
 		    type.getSubType() == mediaTypes::MULTIPART_ALTERNATIVE)
 		{
-			ref <const bodyPart> foundPart = NULL;
+			vmime::shared_ptr<const vmime::bodyPart> foundPart;
 
-			for (int i = 0 ; i < part.getBody()->getPartCount() ; ++i)
-			{
-				const ref <const bodyPart> p = part.getBody()->getPartAt(i);
-
-				if (p == &parent ||     // if "text/html" is in "multipart/related"
-				    p == &textPart)     // if not...
+			for (size_t i = 0; i < part.getBody()->getPartCount(); ++i) {
+				auto p = part.getBody()->getPartAt(i);
+				if (p.get() == &parent ||     // if "text/html" is in "multipart/related"
+				    p.get() == &textPart)     // if not...
 				{
 					foundPart = p;
 				}
@@ -346,16 +304,11 @@ bool mapiTextPart::findPlainTextPart(const bodyPart& part, const bodyPart& paren
 				bool found = false;
 
 				// Now, search for the alternative plain text part
-				for (int i = 0 ; !found && i < part.getBody()->getPartCount() ; ++i)
-				{
-					const ref <const bodyPart> p = part.getBody()->getPartAt(i);
-
-					try
-					{
-						const ref <const headerField> ctf =
-							p->getHeader()->findField(fields::CONTENT_TYPE);
-
-						const mediaType type = *ctf->getValue().dynamicCast <const mediaType>();
+				for (size_t i = 0; !found && i < part.getBody()->getPartCount(); ++i) {
+					auto p = part.getBody()->getPartAt(i);
+					if (p->getHeader()->hasField(fields::CONTENT_TYPE)) {
+						auto ctf = p->getHeader()->findField(fields::CONTENT_TYPE);
+						auto type = *vmime::dynamicCast<const vmime::mediaType>(ctf->getValue());
 
 						if (type.getType() == mediaTypes::TEXT &&
 						    type.getSubType() == mediaTypes::TEXT_PLAIN)
@@ -363,10 +316,6 @@ bool mapiTextPart::findPlainTextPart(const bodyPart& part, const bodyPart& paren
 							m_plainText = p->getBody()->getContents()->clone();
 							found = true;
 						}
-					}
-					catch (exceptions::no_such_field)
-					{
-						// No "Content-type" field.
 					}
 				}
 
@@ -377,17 +326,11 @@ bool mapiTextPart::findPlainTextPart(const bodyPart& part, const bodyPart& paren
 			}
 		}
 	}
-	catch (exceptions::no_such_field)
-	{
-		// No "Content-type" field.
-	}
 
 	bool found = false;
 
-	for (int i = 0 ; !found && i < part.getBody()->getPartCount() ; ++i)
-	{
+	for (size_t i = 0; !found && i < part.getBody()->getPartCount(); ++i)
 		found = findPlainTextPart(*part.getBody()->getPartAt(i), parent, textPart);
-	}
 
 	return found;
 }
@@ -397,12 +340,12 @@ void mapiTextPart::setCharset(const charset& ch)
 	m_charset = ch;
 }
 
-void mapiTextPart::setPlainText(ref <contentHandler> plainText)
+void mapiTextPart::setPlainText(vmime::shared_ptr<vmime::contentHandler> plainText)
 {
 	m_plainText = plainText->clone();
 }
 
-void mapiTextPart::setOtherText(ref <contentHandler> otherText)
+void mapiTextPart::setOtherText(vmime::shared_ptr<vmime::contentHandler> otherText)
 {
 	m_otherText = otherText->clone();
 }
@@ -428,19 +371,20 @@ void mapiTextPart::setOtherCharset(const charset& ch)
        m_bHaveOtherCharset = true;
 }
 
-void mapiTextPart::setText(ref <contentHandler> text)
+void mapiTextPart::setText(vmime::shared_ptr<vmime::contentHandler> text)
 {
 	m_text = text->clone();
 }
 
-const ref <const mapiTextPart::embeddedObject> mapiTextPart::findObject(const string& id_) const
+vmime::shared_ptr<const mapiTextPart::embeddedObject>
+mapiTextPart::findObject(const std::string &id_) const
 {
 	const string id = cleanId(id_);
 
 	for (const auto &obj : m_objects)
 		if (obj->getId() == id)
 			return obj;
-	throw exceptions::no_object_found();
+	return vmime::null;
 }
 
 bool mapiTextPart::hasObject(const string& id_) const
@@ -453,8 +397,9 @@ bool mapiTextPart::hasObject(const string& id_) const
 	return false;
 }
 
-const string mapiTextPart::addObject(ref <contentHandler> data,
-	const encoding& enc, const mediaType& type)
+const std::string
+mapiTextPart::addObject(vmime::shared_ptr<vmime::contentHandler> data,
+    const vmime::encoding &enc, const vmime::mediaType &type)
 {
 	const messageId mid(messageId::generateId());
 	const string id = mid.getId();
@@ -462,20 +407,23 @@ const string mapiTextPart::addObject(ref <contentHandler> data,
 	return "CID:" + addObject(data, enc, type, id);
 }
 
-const string mapiTextPart::addObject(ref <contentHandler> data, const mediaType& type)
+const string mapiTextPart::addObject(vmime::shared_ptr<vmime::contentHandler> data,
+    const vmime::mediaType &type)
 {
 	return addObject(data, encoding::decide(data), type);
 }
 
 const string mapiTextPart::addObject(const string& data, const mediaType& type)
 {
-	ref <stringContentHandler> cts = vmime::create <stringContentHandler>(data);
+	auto cts = vmime::make_shared<vmime::stringContentHandler>(data);
 	return addObject(cts, encoding::decide(cts), type);
 }
 
-const string mapiTextPart::addObject(ref <contentHandler> data, const encoding& enc, const mediaType& type, const string& id, const string& name, const string& loc)
+const string mapiTextPart::addObject(vmime::shared_ptr<vmime::contentHandler> data,
+    const vmime::encoding &enc, const vmime::mediaType &type,
+    const std::string &id, const std::string &name, const std::string &loc)
 {
-	m_objects.push_back(vmime::create <embeddedObject>(data, enc, id, type, name, loc));
+	m_objects.push_back(vmime::make_shared<embeddedObject>(data, enc, id, type, name, loc));
 	return (id);
 }
 
@@ -500,11 +448,12 @@ const string mapiTextPart::cleanId(const string& id)
 // mapiTextPart::embeddedObject
 //
 
-mapiTextPart::embeddedObject::embeddedObject
-	(ref <contentHandler> data, const encoding& enc,
-	 const string& id, const mediaType& type, const string& name, const string& loc)
-	: m_data(data->clone().dynamicCast <contentHandler>()),
-	  m_encoding(enc), m_id(id), m_type(type), m_name(name), m_loc(loc)
+mapiTextPart::embeddedObject::embeddedObject(vmime::shared_ptr<vmime::contentHandler> data,
+    const vmime::encoding &enc, const std::string &id,
+    const vmime::mediaType &type, const std::string &name,
+    const std::string &loc) :
+	m_data(vmime::dynamicCast<vmime::contentHandler>(data->clone())),
+	m_encoding(enc), m_id(id), m_type(type), m_name(name), m_loc(loc)
 {
 }
 

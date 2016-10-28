@@ -19,7 +19,7 @@
 
 // Damn windows header defines max which break C++ header files
 #undef max
-
+#include <memory>
 #include <iostream>
 
 #include "ECVMIMEUtils.h"
@@ -39,6 +39,7 @@
 #include <kopano/EMSAbTag.h>
 #include <kopano/ECABEntryID.h>
 #include <kopano/mapi_ptr.h>
+#include <vmime/base.hpp>
 
 using namespace std;
 
@@ -62,8 +63,9 @@ private:
 
 class mapiTimeoutHandlerFactory : public vmime::net::timeoutHandlerFactory {
 public:
-	vmime::ref<vmime::net::timeoutHandler> create() {
-		return vmime::create<mapiTimeoutHandler>();
+	vmime::shared_ptr<vmime::net::timeoutHandler> create(void)
+	{
+		return vmime::make_shared<mapiTimeoutHandler>();
 	};
 };
 
@@ -105,7 +107,7 @@ HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpT
 
 		if (bAddrFetchSuccess && bItemIsAUser) {
 			if (setRecips.find(strEmail) == setRecips.end()) {
-				recipients.appendMailbox(vmime::create<vmime::mailbox>(convert_to<string>(strEmail)));
+				recipients.appendMailbox(vmime::make_shared<vmime::mailbox>(convert_to<string>(strEmail)));
 				setRecips.insert(strEmail);
 				ec_log_debug("RCPT TO: %ls", strEmail.c_str());	
 			}
@@ -146,7 +148,7 @@ HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpT
 				}
 			} else {
 				if (setRecips.find(strEmail) == setRecips.end()) {
-					recipients.appendMailbox(vmime::create<vmime::mailbox>(convert_to<string>(strEmail)));
+					recipients.appendMailbox(vmime::make_shared<vmime::mailbox>(convert_to<string>(strEmail)));
 					setRecips.insert(strEmail);
 					ec_log_debug("Sending to group-address %s instead of expanded list",
 						convert_to<std::string>(strEmail).c_str());
@@ -266,7 +268,10 @@ exit:
 	return hr;
 }
 
-HRESULT ECVMIMESender::HrMakeRecipientsList(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage, vmime::ref<vmime::message> vmMessage, vmime::mailboxList &recipients, bool bAllowEveryone, bool bAlwaysExpandDistrList)
+HRESULT ECVMIMESender::HrMakeRecipientsList(LPADRBOOK lpAdrBook,
+    LPMESSAGE lpMessage, vmime::shared_ptr<vmime::message> vmMessage,
+    vmime::mailboxList &recipients, bool bAllowEveryone,
+    bool bAlwaysExpandDistrList)
 {
 	HRESULT hr = hrSuccess;
 	SRestriction sRestriction;
@@ -318,14 +323,16 @@ exit:
 // This function does not catch the vmime exception
 // it should be handled by the calling party.
 
-HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage, vmime::ref<vmime::message> vmMessage, bool bAllowEveryone, bool bAlwaysExpandDistrList)
+HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage,
+    vmime::shared_ptr<vmime::message> vmMessage, bool bAllowEveryone,
+    bool bAlwaysExpandDistrList)
 {
 	HRESULT hr = hrSuccess;
 	vmime::mailbox expeditor;
 	vmime::mailboxList recipients;
-	vmime::ref<vmime::messaging::session> vmSession;
-	vmime::ref<vmime::messaging::transport>	vmTransport;
-	vmime::ref<vmime::net::smtp::MAPISMTPTransport> mapiTransport = NULL;
+	vmime::shared_ptr<vmime::messaging::session> vmSession;
+	vmime::shared_ptr<vmime::messaging::transport> vmTransport;
+	vmime::shared_ptr<vmime::net::smtp::MAPISMTPTransport> mapiTransport;
 
 	if (lpMessage == NULL || vmMessage == NULL)
 		return MAPI_E_INVALID_PARAMETER;
@@ -335,27 +342,22 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage, vmime:
 
 	try {
 		// Session initialization (global properties)
-		vmSession = vmime::create <vmime::net::session>();
+		vmSession = vmime::net::session::create();
 
 		// set the server address and port, plus type of service by use of url
 		// and get our special mapismtp mailer
 		vmime::utility::url url("mapismtp", smtphost, smtpport);
 		vmTransport = vmSession->getTransport(url);
-		vmTransport->setTimeoutHandlerFactory(vmime::create<mapiTimeoutHandlerFactory>());
+		vmTransport->setTimeoutHandlerFactory(vmime::make_shared<mapiTimeoutHandlerFactory>());
 
 		// cast to access interface extra's
-		mapiTransport = vmTransport.dynamicCast<vmime::net::smtp::MAPISMTPTransport>();
+		mapiTransport = vmime::dynamicCast<vmime::net::smtp::MAPISMTPTransport>(vmTransport);
 
 		// get expeditor for 'mail from:' smtp command
-		try {
-			const vmime::mailbox& mbox = *vmMessage->getHeader()->findField(vmime::fields::FROM)->
-				getValue().dynamicCast <const vmime::mailbox>();
-
-			expeditor = mbox;
-		}
-		catch (vmime::exceptions::no_such_field&) {
+		if (vmMessage->getHeader()->hasField(vmime::fields::FROM))
+			expeditor = *vmime::dynamicCast<vmime::mailbox>(vmMessage->getHeader()->findField(vmime::fields::FROM)->getValue());
+		else
 			throw vmime::exceptions::no_expeditor();
-		}
 
 		if (expeditor.isEmpty()) {
 			// cancel this message as unsendable, would otherwise be thrown out of transport::send()
@@ -375,7 +377,7 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage, vmime:
 
         // Remove BCC headers from the message we're about to send
         try {
-			vmime::ref <vmime::headerField> bcc = vmMessage->getHeader()->findField(vmime::fields::BCC);
+		auto bcc = vmMessage->getHeader()->findField(vmime::fields::BCC);
 			vmMessage->getHeader()->removeField(bcc);
         }
         catch (vmime::exceptions::no_such_field&) { }
