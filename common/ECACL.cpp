@@ -52,7 +52,7 @@ static const AclRoleName g_roles[] = {
 	{RIGHTS_NONE, "none"},	// Actually a right, but not seen as such by IsRight
 	{ROLE_NONE, "none"},	// This might be confusing
 	{ROLE_REVIEWER, "reviewer"},
-	{ROLE_CONTRIBUTOR, "contributer"},
+	{ROLE_CONTRIBUTOR, "contributor"},
 	{ROLE_NONEDITING_AUTHOR, "non-editting author"},
 	{ROLE_AUTHOR, "author"},
 	{ROLE_EDITOR, "editor"},

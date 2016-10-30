@@ -2918,7 +2918,7 @@
 		  <option>--details</option>
 		  <replaceable>username</replaceable>: show user details.
 		</para><para>
-		  <option>--sync</option>: trigger full synchonise for users
+		  <option>--sync</option>: trigger full synchronization for users
 		  and groups from the external source.
 		</para>
 
@@ -3934,7 +3934,7 @@
 		  <term><option>allocator_library</option></term>
 		  <listitem>
 
-		  <para>This setting allows to preload a special library (such
+		  <para>This setting allows one to preload a special library (such
 		  as an allocator). On startup, the server will set the
 		  LD_PRELOAD environment variable for itself and then
 		  re-execute itself to get it loaded with high priority. If

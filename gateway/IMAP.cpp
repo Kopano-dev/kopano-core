@@ -2739,7 +2739,7 @@ HRESULT IMAP::HrCmdIdle(const string &strTag) {
 	}
 	hr = m_lpIdleTable->SetColumns(spt, 0);
 	if (hr != hrSuccess) {
-		hr2 = HrResponse(RESP_CONTINUE, "Can't select colums on selected contents table for idle information");
+		hr2 = HrResponse(RESP_CONTINUE, "Cannot select columns on selected contents table for idle information");
 		goto exit;
 	}
 

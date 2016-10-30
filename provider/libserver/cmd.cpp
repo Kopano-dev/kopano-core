@@ -10670,7 +10670,7 @@ static void MTOMReadClose(struct soap *soap, void *handle)
 	lpStreamInfo->lpSessionInfo->lpCurrentReadStream = NULL; // Cleanup done
 
 	// We get here when the last call to MTOMRead returned 0 OR when
-	// an error occured within gSOAP's bowels. In the latter case, we need
+	// an error occurred within gSOAP's bowels. In the latter case, we need
 	// to close the FIFO to make sure the writing thread will not lock up.
 	// Since gSOAP will not be reading from the FIFO in any case once we
 	// read this point, it is safe to just close the FIFO.
