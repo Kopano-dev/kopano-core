@@ -304,15 +304,13 @@ static HRESULT StartSpoolerFork(const wchar_t *szUsername, const char *szSMTP,
  * @param[in]	lpAdminSession	MAPI session of Kopano SYSTEM user
  * @param[out]	lppAddrBook		MAPI Addressbook object
  * @param[out]	lppMailer		inetmapi ECSender object, which can generate an error text for the body for the mail
- * @param[out]	lppUserAdmin	The administrator user in an ECUSER struct
  * @param[out]	lppUserStore	The store of the user with the error mail, open with admin rights
  * @param[out]	lppMessage		The message of the user which caused the error, open with admin rights
  * @return		HRESULT
  */
 static HRESULT GetErrorObjects(const SendData &sSendData,
     IMAPISession *lpAdminSession, IAddrBook **lppAddrBook,
-    ECSender **lppMailer, ECUSER **lppUserAdmin, IMsgStore **lppUserStore,
-    IMessage **lppMessage)
+    ECSender **lppMailer, IMsgStore **lppUserStore, IMessage **lppMessage)
 {
 	HRESULT hr = hrSuccess;
 	ULONG ulObjType = 0;
@@ -354,28 +352,6 @@ static HRESULT GetErrorObjects(const SendData &sSendData,
 			goto exit;
 		}
 	}
-
-	if (*lppUserAdmin == NULL) {
-		hr = HrGetOneProp(*lppUserStore, PR_EC_OBJECT, &lpsProp);
-		if (hr != hrSuccess) {
-			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open ECObject of user for error mail, skipping. Error 0x%08X", hr);
-			goto exit;
-		}
-
-		hr = ((IECUnknown*)lpsProp->Value.lpszA)->QueryInterface(IID_IECServiceAdmin, (void **)&lpServiceAdmin);
-		if (hr != hrSuccess) {
-			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ServiceAdmin interface not supported: %s (%x)",
-				GetMAPIErrorMessage(hr), hr);
-			goto exit;
-		}
-
-		hr = lpServiceAdmin->GetUser(g_cbDefaultEid, (LPENTRYID)g_lpDefaultEid, MAPI_UNICODE, lppUserAdmin);
-		if (hr != hrSuccess) {
-			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get user admin information from store for user error mail, skipping. Error 0x%08X", hr);
-			goto exit;
-		}
-	}
-
 exit:
 	MAPIFreeBuffer(lpsProp);
 	if (lpServiceAdmin)
@@ -404,7 +380,6 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 	// error message creation
 	IAddrBook *lpAddrBook = NULL;
 	ECSender *lpMailer = NULL;
-	ECUSER *lpUserAdmin = NULL;
 	// user error message, release after using
 	IMsgStore *lpUserStore = NULL;
 	IMessage *lpMessage = NULL;
@@ -475,10 +450,10 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 			sc -> countInc("Spooler", "send_failed");
 
 		if (bErrorMail) {
-			hr = GetErrorObjects(sSendData, lpAdminSession, &lpAddrBook, &lpMailer, &lpUserAdmin, &lpUserStore, &lpMessage);
+			hr = GetErrorObjects(sSendData, lpAdminSession, &lpAddrBook, &lpMailer, &lpUserStore, &lpMessage);
 			if (hr == hrSuccess) {
 				lpMailer->setError(_("A fatal error occurred while processing your message, and Kopano is unable to send your email."));
-				hr = SendUndeliverable(lpAddrBook, lpMailer, lpUserStore, lpUserAdmin, lpMessage);
+				hr = SendUndeliverable(lpAddrBook, lpMailer, lpUserStore, lpMessage);
 				// TODO: if failed, and we have the lpUserStore, create message?
 			}
 			if (hr != hrSuccess)
@@ -518,7 +493,6 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 		lpAddrBook->Release();
 
 	delete lpMailer;
-	MAPIFreeBuffer(lpUserAdmin);
 	return hr;
 }
 

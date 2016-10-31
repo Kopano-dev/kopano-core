@@ -816,11 +816,10 @@ exit:
  *
  * @param lpAddrBook Pointer to addressbook object
  * @param lpMailer Mailer object used to send the lpMessage message containing the errors
- * @param lpUserAdmin User object which specifies the 'from' address of the MDN message to be created
  * @param lpMessage Failed message
  */
 HRESULT SendUndeliverable(LPADRBOOK lpAddrBook, ECSender *lpMailer,
-    LPMDB lpStore, ECUSER *lpUserAdmin, LPMESSAGE lpMessage)
+    LPMDB lpStore, LPMESSAGE lpMessage)
 {
 	HRESULT		hr = hrSuccess;
 	LPMAPIFOLDER	lpInbox = NULL;
@@ -832,8 +831,6 @@ HRESULT SendUndeliverable(LPADRBOOK lpAddrBook, ECSender *lpMailer,
 	LPSPropValue	lpPropValue = NULL;
 	unsigned int	ulPropPos = 0;
 	FILETIME		ft;
-	LPENTRYID		lpEntryIdSender	= NULL;
-	ULONG			cbEntryIdSender;
 	LPATTACH		lpAttach = NULL;
 	LPMESSAGE		lpOriginalMessage = NULL;
 	ULONG			cValuesOriginal = 0;
@@ -910,8 +907,7 @@ HRESULT SendUndeliverable(LPADRBOOK lpAddrBook, ECSender *lpMailer,
 		goto exit;
 	}
 
-	// set props, 50 is a wild guess, more than enough
-	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 50, (void **)&lpPropValue);
+	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 34, reinterpret_cast<void **>(&lpPropValue));
 	if(hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SendUndeliverable(): MAPIAllocateBuffers failed %x", hr);
 		goto exit;
@@ -940,76 +936,8 @@ HRESULT SendUndeliverable(LPADRBOOK lpAddrBook, ECSender *lpMailer,
 	lpPropValue[ulPropPos].ulPropTag = PR_MESSAGE_DELIVERY_TIME;
 	lpPropValue[ulPropPos++].Value.ft = ft;
 
-	// FROM: set the properties PR_SENT_REPRESENTING_* and PR_SENDER_*
-	if(lpUserAdmin->lpszFullName) {
-		lpPropValue[ulPropPos].ulPropTag = PR_SENDER_NAME_W;
-		lpPropValue[ulPropPos++].Value.lpszW = (LPWSTR)lpUserAdmin->lpszFullName;
-
-		lpPropValue[ulPropPos].ulPropTag = PR_SENT_REPRESENTING_NAME_W;
-		lpPropValue[ulPropPos++].Value.lpszW = (LPWSTR)lpUserAdmin->lpszFullName;
-	}
-
-	if(lpUserAdmin->lpszMailAddress) {
-		std::string strMailAddress;
-
-		// PR_SENDER_EMAIL_ADDRESS
-		lpPropValue[ulPropPos].ulPropTag = PR_SENDER_EMAIL_ADDRESS_W;
-		lpPropValue[ulPropPos++].Value.lpszW = (LPWSTR)lpUserAdmin->lpszMailAddress;
-
-		// PR_SENT_REPRESENTING_EMAIL_ADDRESS
-		lpPropValue[ulPropPos].ulPropTag = PR_SENT_REPRESENTING_EMAIL_ADDRESS_W;
-		lpPropValue[ulPropPos++].Value.lpszW = (LPWSTR)lpUserAdmin->lpszMailAddress;
-
-		// PR_SENDER_ADDRTYPE
-		lpPropValue[ulPropPos].ulPropTag = PR_SENDER_ADDRTYPE_W;
-		lpPropValue[ulPropPos++].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
-
-		// PR_SENT_REPRESENTING_ADDRTYPE
-		lpPropValue[ulPropPos].ulPropTag = PR_SENT_REPRESENTING_ADDRTYPE_W;
-		lpPropValue[ulPropPos++].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
-
-		// PR_SENDER_SEARCH_KEY
-		strMailAddress = convert_to<std::string>(lpUserAdmin->lpszMailAddress);
-		transform(strMailAddress.begin(), strMailAddress.end(), strMailAddress.begin(), ::toupper);
-
-		lpPropValue[ulPropPos].ulPropTag = PR_SENDER_SEARCH_KEY;
-		lpPropValue[ulPropPos].Value.bin.cb = 5 + strMailAddress.length(); // 5 = "SMTP:"
-
-		if ((hr = MAPIAllocateMore(lpPropValue[ulPropPos].Value.bin.cb, lpPropValue, (void**)&lpPropValue[ulPropPos].Value.bin.lpb)) != hrSuccess)
-			goto exit;
-		memcpy(lpPropValue[ulPropPos].Value.bin.lpb, "SMTP:", 5);
-		if(lpPropValue[ulPropPos].Value.bin.cb > 5)
-			memcpy(lpPropValue[ulPropPos].Value.bin.lpb+5, strMailAddress.data(), lpPropValue[ulPropPos].Value.bin.cb - 5);
-		++ulPropPos;
-
-		// PR_SENT_REPRESENTING_SEARCH_KEY
-		lpPropValue[ulPropPos].ulPropTag = PR_SENT_REPRESENTING_SEARCH_KEY;
-
-		lpPropValue[ulPropPos].Value.bin.cb = 5 + strMailAddress.length(); // 5 = "SMTP:"
-
-		if ((hr = MAPIAllocateMore(lpPropValue[ulPropPos].Value.bin.cb, lpPropValue, (void**)&lpPropValue[ulPropPos].Value.bin.lpb)) != hrSuccess)
-			goto exit;
-		memcpy(lpPropValue[ulPropPos].Value.bin.lpb, "SMTP:", 5);
-		if(lpPropValue[ulPropPos].Value.bin.cb > 5)
-			memcpy(lpPropValue[ulPropPos].Value.bin.lpb+5, strMailAddress.data(), lpPropValue[ulPropPos].Value.bin.cb - 5);
-		++ulPropPos;
-	}
-
-	hr = ECCreateOneOff((LPTSTR)lpUserAdmin->lpszFullName, (LPTSTR)L"SMTP", (LPTSTR)lpUserAdmin->lpszMailAddress,
-						MAPI_SEND_NO_RICH_INFO | MAPI_UNICODE, &cbEntryIdSender, &lpEntryIdSender);
-	if(hr == hrSuccess)	{
-		// PR_SENDER_ENTRYID
-		lpPropValue[ulPropPos].ulPropTag		= PR_SENDER_ENTRYID;
-		lpPropValue[ulPropPos].Value.bin.cb		= cbEntryIdSender;
-		lpPropValue[ulPropPos++].Value.bin.lpb	= (LPBYTE)lpEntryIdSender;
-
-		// PR_SENT_REPRESENTING_ENTRYID
-		lpPropValue[ulPropPos].ulPropTag		= PR_SENT_REPRESENTING_ENTRYID;
-		lpPropValue[ulPropPos].Value.bin.cb		= cbEntryIdSender;
-		lpPropValue[ulPropPos++].Value.bin.lpb	= (LPBYTE)lpEntryIdSender;
-	}else {
-		hr = hrSuccess;
-	}
+	lpPropValue[ulPropPos].ulPropTag = PR_SENDER_NAME_W;
+	lpPropValue[ulPropPos++].Value.lpszW = (LPWSTR)L"Mail Delivery System";
 
 	// Although lpszA is used, we just copy pointers. By not forcing _A or _W, this works in unicode and normal compile mode.
 
@@ -1385,7 +1313,6 @@ exit:
 		lpTableMods->Release();
 	MAPIFreeBuffer(lpPropValue);
 	MAPIFreeBuffer(lpPropValueAttach);
-	MAPIFreeBuffer(lpEntryIdSender);
 	MAPIFreeBuffer(lpPropArrayOriginal);
 	if(lpRows)
 		FreeProws(lpRows);
@@ -2202,8 +2129,6 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
     IMessage **lppMessage)
 {
 	HRESULT 		hr 				= hrSuccess;
-	ECUSER *lpUserAdmin = NULL;
-
 	LPMESSAGE		lpMessage		= NULL;
 	ULONG			ulObjType		= 0;
 
@@ -2271,13 +2196,6 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	hr = GetPluginObject(g_lpLogger, &pyMapiPluginFactory, &ptrPyMapiPlugin);
 	if (hr != hrSuccess)
 		goto exit; // Error logged in GetPluginObject
-
-	// so we require admin stuff now
-	hr = lpServiceAdmin->GetUser(g_cbDefaultEid, (LPENTRYID)g_lpDefaultEid, MAPI_UNICODE, &lpUserAdmin);
-	if (hr != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get user admin information from store. error code: 0x%08X", hr);
-		goto exit;
-	}
 
 	// Get the owner of the store
 	hr = lpSecurity->GetOwner(&cbOwner, &lpOwner);
@@ -2418,7 +2336,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 					goto exit;
 				if (!bAllowSendAs) {
 					g_lpLogger->Log(EC_LOGLEVEL_WARNING, "E-mail for user %ls may not be sent, notifying user", lpUser->lpszUsername);
-					HRESULT hr2 = SendUndeliverable(lpAddrBook, lpMailer, lpUserStore, lpUserAdmin, lpMessage);
+					HRESULT hr2 = SendUndeliverable(lpAddrBook, lpMailer, lpUserStore, lpMessage);
 					if (hr2 != hrSuccess)
 						g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to create undeliverable message for user %ls: %s (%x)",
 							lpUser->lpszUsername, GetMAPIErrorMessage(hr2), hr2);
@@ -2581,7 +2499,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "E-mail for user %ls could not be sent, notifying user: %s (%x)",
 			lpUser->lpszUsername, GetMAPIErrorMessage(hr), hr);
 
-		hr = SendUndeliverable(lpAddrBook, lpMailer, lpUserStore, lpUserAdmin, lpMessage);
+		hr = SendUndeliverable(lpAddrBook, lpMailer, lpUserStore, lpMessage);
 		if (hr != hrSuccess)
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to create undeliverable message for user %ls: %s (%x)",
 				lpUser->lpszUsername, GetMAPIErrorMessage(hr), hr);
@@ -2612,7 +2530,6 @@ exit:
 
 	if (lpMessage)
 		lpMessage->Release();
-	MAPIFreeBuffer(lpUserAdmin);
 	if (lpRepMessage)
 		lpRepMessage->Release();
 
@@ -2666,7 +2583,6 @@ HRESULT ProcessMessageForked(const wchar_t *szUsername, const char *szSMTP,
 	IECSecurity		*lpSecurity = NULL;
 	SPropValue		*lpsProp = NULL;
 	IMessage		*lpMessage = NULL;
-	ECUSER *lpUserAdmin = NULL; // for error message
 	
 	lpMailer = CreateSender(szSMTP, ulPort);
 	if (!lpMailer) {
@@ -2748,14 +2664,7 @@ HRESULT ProcessMessageForked(const wchar_t *szUsername, const char *szSMTP,
 		if (!lpMailer->haveError())
 			lpMailer->setError(_("Error found while trying to send your message. Error code: ") + wstringify(hr,true));
 		
-		hr = lpServiceAdmin->GetUser(g_cbDefaultEid, (LPENTRYID)g_lpDefaultEid, MAPI_UNICODE, &lpUserAdmin);
-		if (hr != hrSuccess) {
-			g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "ProcessMessageForked(): GetUser failed: %s (%x)",
-				GetMAPIErrorMessage(hr), hr);
-			goto exit;
-		}
-
-		hr = SendUndeliverable(lpAddrBook, lpMailer, lpUserStore, lpUserAdmin, lpMessage);
+		hr = SendUndeliverable(lpAddrBook, lpMailer, lpUserStore, lpMessage);
 		if (hr != hrSuccess) {
 			// dont make parent complain too
 			hr = hrSuccess;
@@ -2785,7 +2694,6 @@ exit:
 
 	if (lpUserStore)
 		lpUserStore->Release();
-	MAPIFreeBuffer(lpUserAdmin);
 	if (lpMessage)
 		lpMessage->Release();
 	MAPIFreeBuffer(lpsProp);
