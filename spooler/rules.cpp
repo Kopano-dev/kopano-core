@@ -25,6 +25,7 @@
 #include <kopano/mapiext.h>
 #include <edkmdb.h>
 #include <edkguid.h>
+#include <kopano/ECGetText.h>
 #include <kopano/stringutil.h>
 #include <kopano/Util.h>
 #include <kopano/CommonUtil.h>
@@ -33,6 +34,7 @@
 #include <kopano/mapi_ptr.h>
 #include <kopano/mapiguidext.h>
 #include <kopano/charset/convert.h>
+#include <kopano/hl.hpp>
 #include "IECExchangeModifyTable.h"
 #include "PyMapiPlugin.h"
 #include "spmain.h"
@@ -481,6 +483,64 @@ static bool proc_fwd_allowed(const std::vector<std::string> &wdomlist,
 	return false;
 }
 
+/**
+ * @inbox:	folder to dump warning mail into
+ * @addr:	target address which delivery was rejected to
+ *
+ * Drop an additional message into @inbox informing about the
+ * unwillingness to process a forwarding rule.
+ */
+static HRESULT kc_send_fwdabort_notice(KCHL::KStore &&store, const char *addr)
+{
+	using namespace KCHL;
+	KMessage msg;
+	try {
+		KFolder inbox = store.open_entry(store.get_receive_folder(), nullptr, MAPI_MODIFY);
+		msg = inbox.create_message(nullptr, 0);
+	} catch (KCHL::KMAPIError &err) {
+		ec_log_warn("K-2382: create_message: 0x%08x %s", err.code(), err.what());
+		return err.code();
+	}
+	SPropValue prop[7];
+	size_t nprop = 0;
+	prop[nprop].ulPropTag = PR_SENDER_NAME_W;
+	prop[nprop++].Value.lpszW = const_cast<wchar_t *>(L"Mail Delivery System");
+	prop[nprop].ulPropTag = PR_SUBJECT_W;
+	prop[nprop++].Value.lpszW = const_cast<wchar_t *>(L"Forwarding rule has been abrogated");
+	prop[nprop].ulPropTag = PR_MESSAGE_FLAGS;
+	prop[nprop++].Value.ul = 0;
+	prop[nprop].ulPropTag = PR_MESSAGE_CLASS_W;
+	prop[nprop++].Value.lpszW = const_cast<wchar_t *>(L"REPORT.IPM.Note.NDR");
+	FILETIME ft;
+	GetSystemTimeAsFileTime(&ft);
+	prop[nprop].ulPropTag = PR_CLIENT_SUBMIT_TIME;
+	prop[nprop++].Value.ft = ft;
+	prop[nprop].ulPropTag = PR_MESSAGE_DELIVERY_TIME;
+	prop[nprop++].Value.ft = ft;
+	std::wstring newbody = convert_to<std::wstring>(format(_A(
+		"The Kopano mail system is rejecting your request "
+		"to forward e-mails (via mail filters) to <%s>: "
+		"the operation is not permitted.\n\n"), addr) +
+		_A("Remove the rule or contact your administrator about the "
+		"\"forward_whitelist_domains\" setting.\n"));
+	prop[nprop].ulPropTag = PR_BODY_W;
+	prop[nprop++].Value.lpszW = const_cast<wchar_t *>(newbody.c_str());
+	auto hr = msg->SetProps(nprop, prop, nullptr);
+	if (hr != hrSuccess) {
+		ec_log_err("K-3283: SetProps: 0x%08x %s", hr, GetMAPIErrorMessage(hr));
+		return hr;
+	}
+	hr = msg->SaveChanges(KEEP_OPEN_READONLY);
+	if (hr != hrSuccess) {
+		ec_log_err("K-3284: commit: 0x%08x %s", hr, GetMAPIErrorMessage(hr));
+		return hr;
+	}
+	hr = HrNewMailNotification(store, msg);
+	if (hr != hrSuccess)
+		ec_log_warn("K-3285: NewMailNotification: 0x%08x %s", hr, GetMAPIErrorMessage(hr));
+	return hr;
+}
+
 /** 
  * Checks the rule recipient list for a possible loop, and filters
  * that recipient. Returns an error when no recipients are left after
@@ -493,9 +553,9 @@ static bool proc_fwd_allowed(const std::vector<std::string> &wdomlist,
  * 
  * @return MAPI error code
  */
-static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMAPIProp *lpMessage,
-    LPADRLIST lpRuleRecipients, bool bOpDelegate, bool bIncludeAsP1,
-    LPADRLIST *lppNewRecipients)
+static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
+    IMAPIProp *lpMessage, ADRLIST *lpRuleRecipients, bool bOpDelegate,
+    bool bIncludeAsP1, ADRLIST **lppNewRecipients)
 {
 	HRESULT hr = hrSuccess;
 	LPADRLIST lpRecipients = NULL;
@@ -532,8 +592,10 @@ static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMAPIProp *lpMessage,
 			ec_log_err("Unable to get rule address 0x%08X", hr);
 			goto exit;
 		}
-		if (!proc_fwd_allowed(fwd_whitelist, convert_to<std::string>(strRuleAddress).c_str())) {
+		auto rule_addr_std = convert_to<std::string>(strRuleAddress);
+		if (!proc_fwd_allowed(fwd_whitelist, rule_addr_std.c_str())) {
 			hr = MAPI_E_NO_ACCESS;
+			kc_send_fwdabort_notice(orig_store, rule_addr_std.c_str());
 			goto exit;
 		}
 		if (strFromAddress == strRuleAddress &&
@@ -633,7 +695,8 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 		goto exitpm;
 	}
 
-	hr = CheckRecipients(lpAdrBook, lpOrigMessage, lpRuleRecipients, bOpDelegate, bDoNotMunge, &lpRecipients);
+	hr = CheckRecipients(lpAdrBook, lpOrigStore, lpOrigMessage, lpRuleRecipients,
+	     bOpDelegate, bDoNotMunge, &lpRecipients);
 	if (hr == MAPI_E_NO_ACCESS) {
 		ec_log_info("K-1904: Forwarding not permitted. Ending rule processing.");
 		goto exitpm;
