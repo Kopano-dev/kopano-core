@@ -56,8 +56,9 @@ class KEntryId _kc_final {
 	KEntryId &operator=(KEntryId &&);
 
 	private:
-	ENTRYID *m_eid;
-	size_t m_size;
+	friend class KStore;
+	ENTRYID *m_eid = nullptr;
+	size_t m_size = 0;
 };
 
 class KMAPIError _kc_final : public std::exception {
@@ -80,6 +81,7 @@ class KDeleter _kc_final {
 
 class KFolder {
 	public:
+	KFolder(void) {}
 	KFolder(IMAPIFolder *);
 	KFolder(KFolder &&);
 	~KFolder(void);
@@ -91,11 +93,12 @@ class KFolder {
 	KTable get_contents_table(unsigned int = 0);
 
 	protected:
-	IMAPIFolder *m_folder;
+	IMAPIFolder *m_folder = nullptr;
 };
 
 class KMessage {
 	public:
+	KMessage(void) {}
 	KMessage(IMessage *);
 	KMessage(KMessage &&);
 	~KMessage(void);
@@ -109,7 +112,7 @@ class KMessage {
 	HRESULT set_read_flag(unsigned int = 0);
 
 	protected:
-	IMessage *m_message;
+	IMessage *m_message = nullptr;
 };
 
 class KPropertyRestriction : public SPropertyRestriction {
@@ -143,6 +146,8 @@ class KStore {
 	IMsgStore *operator->(void) { return m_store; }
 	operator IMsgStore *(void) { return m_store; }
 
+	KEntryId get_receive_folder(const char *cls = nullptr, char **xcls = nullptr);
+	KUnknown open_entry(const KEntryId &, LPCIID = nullptr, unsigned int = 0);
 	KUnknown open_entry(const SPropValue * = NULL, LPCIID = NULL, unsigned int = 0);
 
 	protected:
