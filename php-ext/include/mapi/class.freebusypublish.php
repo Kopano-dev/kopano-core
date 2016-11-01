@@ -241,6 +241,7 @@ class FreeBusyPublish {
 		// $freebusy now contains the start, end and status of all items, merged.
 
 		// Get the FB interface
+		$fbsupport = false;
 		try {
 			$fbsupport = mapi_freebusysupport_open($this->session, $this->store);
 		} catch (MAPIException $e) {
@@ -253,7 +254,7 @@ class FreeBusyPublish {
 		}
 
 		// Open updater for this user
-		if(isset($fbsupport)) {
+		if ($fbsupport !== false) {
 			$updaters = mapi_freebusysupport_loadupdate($fbsupport, Array($this->entryid));
 
 			$updater = $updaters[0];
