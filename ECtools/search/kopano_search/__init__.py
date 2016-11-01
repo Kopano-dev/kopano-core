@@ -1,14 +1,21 @@
 #!/usr/bin/env python
 from contextlib import closing
-import dbhash
 import fcntl
 import os.path
-from Queue import Empty
+
 from multiprocessing import Queue, Value
 import time
 import sys
 
-import plaintext
+# Upgrading from Python 2 to Python 3 is not supported
+try:
+    import dbhash
+    from Queue import Empty
+except ImportError:
+    import dbm as dbhash
+    from queue import Empty
+
+from kopano_search import plaintext
 import kopano
 from kopano import log_exc, Config
 sys.path.insert(0, os.path.dirname(__file__)) # XXX for __import__ to work
@@ -269,7 +276,7 @@ class Service(kopano.Service):
 
         self.reindex_queue = Queue()
         index_path = self.config['index_path']
-        os.umask(0077)
+        os.umask(0o77)
         if not os.path.exists(index_path):
             os.makedirs(index_path)
         self.state_db = os.path.join(index_path, self.server.guid+'_state')
@@ -349,7 +356,7 @@ class Service(kopano.Service):
                     s.sendall('REINDEX %s\r\n' % store.guid)
                     s.recv(1024)
             else:
-                print "no such user/store: %s" % key
+                print("no such user/store: %s" % key)
                 sys.exit(1)
 
 def main():
