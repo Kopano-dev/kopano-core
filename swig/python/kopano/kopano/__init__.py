@@ -2944,7 +2944,7 @@ class Item(object):
                 method = row[PR_ATTACH_METHOD] # XXX default
                 att = self.mapiobj.OpenAttach(num, IID_IAttachment, 0)
                 if method == ATTACH_EMBEDDED_MSG:
-                    msg = att.OpenProperty(PR_ATTACH_DATA_OBJ, IID_IMessage, 0, MAPI_MODIFY | MAPI_DEFERRED_ERRORS)
+                    msg = att.OpenProperty(PR_ATTACH_DATA_OBJ, IID_IMessage, 0, MAPI_DEFERRED_ERRORS)
                     item = Item(mapiobj=msg)
                     item.server = self.server # XXX
                     data = item._dump() # recursion
@@ -2982,7 +2982,9 @@ class Item(object):
         for proptag, value, nameid in d['props']:
             if nameid is not None:
                 proptag = self.mapiobj.GetIDsFromNames([nameid], MAPI_CREATE)[0] | (proptag & 0xffff)
-            props.append(SPropValue(proptag, value))
+            if (proptag >> 16) not in (PR_BODY>>16, PR_HTML>>16, PR_RTF_COMPRESSED>>16) or \
+               value not in (MAPI_E_NOT_FOUND, MAPI_E_NOT_ENOUGH_MEMORY): # XXX why do we backup these errors
+                props.append(SPropValue(proptag, value))
         self.mapiobj.SetProps(props)
 
         # recipients
