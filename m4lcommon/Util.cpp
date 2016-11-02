@@ -3406,12 +3406,12 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, LPVOID lpSrcObj, LPSPropTagArra
 			goto exit;
 
 		for (ULONG i = 0; i < lpIncludeProps->cValues; ++i) {
-			if (Util::FindPropInArray(lpsDestPropArray, lpIncludeProps->aulPropTag[i]) != -1) {
-				// hr = MAPI_E_COLLISION;
-				// goto exit;
-				// MSDN says collision, MS MAPI ignores these properties.
-				lpIncludeProps->aulPropTag[i] = PR_NULL;
-			}
+			if (Util::FindPropInArray(lpsDestPropArray, lpIncludeProps->aulPropTag[i]) == -1)
+				continue;
+			// hr = MAPI_E_COLLISION;
+			// goto exit;
+			// MSDN says collision, MS MAPI ignores these properties.
+			lpIncludeProps->aulPropTag[i] = PR_NULL;
 		}
 	}
 
@@ -3447,166 +3447,144 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, LPVOID lpSrcObj, LPSPropTagArra
 
 	for (ULONG i = 0; i < lpIncludeProps->cValues; ++i) {
 		bool isProblem = false;
-
 		// TODO: ?
 		// for all PT_OBJECT properties on IMAPIProp, MS MAPI tries:
 		// IID_IMessage, IID_IStreamDocfile, IID_IStorage
 
-		if (PROP_TYPE(lpIncludeProps->aulPropTag[i]) == PT_OBJECT ||
-			PROP_ID(lpIncludeProps->aulPropTag[i]) == PROP_ID(PR_ATTACH_DATA_BIN)) {
-			// if IMessage: PR_MESSAGE_RECIPIENTS, PR_MESSAGE_ATTACHMENTS
-			if (*lpSrcInterface == IID_IMessage) {
-				if (lpIncludeProps->aulPropTag[i] == PR_MESSAGE_RECIPIENTS)
-					// TODO: add ulFlags, and check for MAPI_NOREPLACE
-					hr = Util::CopyRecipients((LPMESSAGE)lpSrcObj, (LPMESSAGE)lpDestObj);
-				else if (lpIncludeProps->aulPropTag[i] == PR_MESSAGE_ATTACHMENTS)
-					// TODO: add ulFlags, and check for MAPI_NOREPLACE
-					hr = Util::CopyAttachments((LPMESSAGE)lpSrcObj, (LPMESSAGE)lpDestObj, NULL);
-				else
-					hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
-				if (hr != hrSuccess) {
-					isProblem = true;
-					goto next_include_check;
-				}
-
-			} else if (*lpSrcInterface == IID_IMAPIFolder) {
-				// MS MAPI skips these in CopyProps(), for unknown reasons
-				if (lpIncludeProps->aulPropTag[i] == PR_CONTAINER_CONTENTS ||
-					lpIncludeProps->aulPropTag[i] == PR_CONTAINER_HIERARCHY ||
-					lpIncludeProps->aulPropTag[i] == PR_FOLDER_ASSOCIATED_CONTENTS) {
-					lpIncludeProps->aulPropTag[i] = PR_NULL;
-				} else {
-					isProblem = true;
-				}
-			} else if (*lpSrcInterface == IID_IAttachment) {
-				ULONG ulAttachMethod;
-
-				// In attachments, IID_IMessage can be present!  for PR_ATTACH_DATA_OBJ
-				// find method and copy this PT_OBJECT
-				if (HrGetOneProp(lpSrcProp, PR_ATTACH_METHOD, &lpAttachMethod) != hrSuccess)
-					ulAttachMethod = ATTACH_BY_VALUE;
-				else
-					ulAttachMethod = lpAttachMethod->Value.ul;
-				switch (ulAttachMethod) {
-				case ATTACH_BY_VALUE:
-				case ATTACH_OLE:
-					// stream
-
-					// Not being able to open the source message is not an error: it may just not be there
-					if(((LPATTACH)lpSrcObj)->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, 0, 0, (LPUNKNOWN *)&lpSrcStream) == hrSuccess) {
-						// While dragging and dropping, Outlook 2007 (atleast) returns an internal MAPI object to CopyTo as destination
-						// The internal MAPI object is unable to make a stream STGM_TRANSACTED, so we retry the action without that flag
-						// to get the stream without the transaction feature.
-						hr = ((LPATTACH)lpDestObj)->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, (LPUNKNOWN *)&lpDestStream);
-						if (hr != hrSuccess)
-							hr = ((LPATTACH)lpDestObj)->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, STGM_WRITE, MAPI_CREATE | MAPI_MODIFY, (LPUNKNOWN *)&lpDestStream);
-						if (hr != hrSuccess) {
-							isProblem = true;
-							goto next_include_check;
-						}
-
-						hr = Util::CopyStream(lpSrcStream, lpDestStream);
-						if (hr != hrSuccess) {
-							isProblem = true;
-							goto next_include_check;
-						}
-					} else if(lpAttachMethod->Value.ul == ATTACH_OLE &&
-						((LPATTACH)lpSrcObj)->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IStream, 0, 0, (LPUNKNOWN *)&lpSrcStream) == hrSuccess) {
-						// OLE 2.0 must be open with PR_ATTACH_DATA_OBJ
-
-						hr = ((LPATTACH)lpDestObj)->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, (LPUNKNOWN *)&lpDestStream);
-						if (hr == E_FAIL)
-							hr = ((LPATTACH)lpDestObj)->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IStream, STGM_WRITE, MAPI_CREATE | MAPI_MODIFY, (LPUNKNOWN *)&lpDestStream);
-						if (hr != hrSuccess) {
-							isProblem = true;
-							goto next_include_check;
-						}
-
-						hr = Util::CopyStream(lpSrcStream, lpDestStream);
-						if (hr != hrSuccess) {
-							isProblem = true;
-							goto next_include_check;
-						}
-					}
-
-					break;
-				case ATTACH_EMBEDDED_MSG:
-					// message
-
-					if(((LPATTACH)lpSrcObj)->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, 0, (LPUNKNOWN *)&lpSrcMessage) == hrSuccess) {
-						// Not being able to open the source message is not an error: it may just not be there
-						hr = ((LPATTACH)lpDestObj)->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY, (LPUNKNOWN *)&lpDestMessage);
-						if (hr != hrSuccess) {
-							isProblem = true;
-							goto next_include_check;
-						}
-
-						hr = Util::DoCopyTo(&IID_IMessage, lpSrcMessage, 0, NULL, NULL, ulUIParam, lpProgress, &IID_IMessage, lpDestMessage, 0, NULL);
-						if (hr != hrSuccess) {
-							isProblem = true;
-							goto next_include_check;
-						}
-
-						hr = lpDestMessage->SaveChanges(0);
-						if (hr != hrSuccess) {
-							isProblem = true;
-							goto next_include_check;
-						}
-					}
-
-					break;
-				default:
-					// OLE objects?
-					isProblem = true;
-					break;
-				};
+		if (PROP_TYPE(lpIncludeProps->aulPropTag[i]) != PT_OBJECT &&
+		    PROP_ID(lpIncludeProps->aulPropTag[i]) != PROP_ID(PR_ATTACH_DATA_BIN))
+			continue;
+		// if IMessage: PR_MESSAGE_RECIPIENTS, PR_MESSAGE_ATTACHMENTS
+		if (*lpSrcInterface == IID_IMessage) {
+			if (lpIncludeProps->aulPropTag[i] == PR_MESSAGE_RECIPIENTS)
+				// TODO: add ulFlags, and check for MAPI_NOREPLACE
+				hr = Util::CopyRecipients((LPMESSAGE)lpSrcObj, (LPMESSAGE)lpDestObj);
+			else if (lpIncludeProps->aulPropTag[i] == PR_MESSAGE_ATTACHMENTS)
+				// TODO: add ulFlags, and check for MAPI_NOREPLACE
+				hr = Util::CopyAttachments((LPMESSAGE)lpSrcObj, (LPMESSAGE)lpDestObj, NULL);
+			else
+				hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
+			if (hr != hrSuccess) {
+				isProblem = true;
+				goto next_include_check;
+			}
+		} else if (*lpSrcInterface == IID_IMAPIFolder) {
+			// MS MAPI skips these in CopyProps(), for unknown reasons
+			if (lpIncludeProps->aulPropTag[i] == PR_CONTAINER_CONTENTS ||
+				lpIncludeProps->aulPropTag[i] == PR_CONTAINER_HIERARCHY ||
+				lpIncludeProps->aulPropTag[i] == PR_FOLDER_ASSOCIATED_CONTENTS) {
+				lpIncludeProps->aulPropTag[i] = PR_NULL;
 			} else {
 				isProblem = true;
 			}
+		} else if (*lpSrcInterface == IID_IAttachment) {
+			ULONG ulAttachMethod;
 
-			// TODO: try the 3 MSMAPI interfaces (message, stream, storage) if unhandled?
-
-next_include_check:
-
-			if (isProblem) {
-				SPropProblem sProblem;
-
-				bPartial = true;
-
-				sProblem.ulIndex = i;
-				sProblem.ulPropTag = lpIncludeProps->aulPropTag[i];
-				sProblem.scode = MAPI_E_INTERFACE_NOT_SUPPORTED; // hr?
-
-				hr = AddProblemToArray(&sProblem, &lpProblems);
-				if (hr != hrSuccess)
-					goto exit;
-			}
-
-			MAPIFreeBuffer(lpAttachMethod);
-			lpAttachMethod = NULL;
-			if (lpDestStream) {
-				lpDestStream->Release();
-				lpDestStream = NULL;
-			}
-
-			if (lpSrcStream) {
-				lpSrcStream->Release();
-				lpSrcStream = NULL;
-			}
-
-			if (lpSrcMessage) {
-				lpSrcMessage->Release();
-				lpSrcMessage = NULL;
-			}
-
-			if (lpDestMessage) {
-				lpDestMessage->Release();
-				lpDestMessage = NULL;
-			}
-
-			// skip this prop for the final SetProps()
-			lpIncludeProps->aulPropTag[i] = PR_NULL;
+			// In attachments, IID_IMessage can be present!  for PR_ATTACH_DATA_OBJ
+			// find method and copy this PT_OBJECT
+			if (HrGetOneProp(lpSrcProp, PR_ATTACH_METHOD, &lpAttachMethod) != hrSuccess)
+				ulAttachMethod = ATTACH_BY_VALUE;
+			else
+				ulAttachMethod = lpAttachMethod->Value.ul;
+			switch (ulAttachMethod) {
+			case ATTACH_BY_VALUE:
+			case ATTACH_OLE:
+				// stream
+				// Not being able to open the source message is not an error: it may just not be there
+				if(((LPATTACH)lpSrcObj)->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, 0, 0, (LPUNKNOWN *)&lpSrcStream) == hrSuccess) {
+					// While dragging and dropping, Outlook 2007 (atleast) returns an internal MAPI object to CopyTo as destination
+					// The internal MAPI object is unable to make a stream STGM_TRANSACTED, so we retry the action without that flag
+					// to get the stream without the transaction feature.
+					hr = ((LPATTACH)lpDestObj)->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, (LPUNKNOWN *)&lpDestStream);
+					if (hr != hrSuccess)
+						hr = ((LPATTACH)lpDestObj)->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, STGM_WRITE, MAPI_CREATE | MAPI_MODIFY, (LPUNKNOWN *)&lpDestStream);
+					if (hr != hrSuccess) {
+						isProblem = true;
+						goto next_include_check;
+					}
+					hr = Util::CopyStream(lpSrcStream, lpDestStream);
+					if (hr != hrSuccess) {
+						isProblem = true;
+						goto next_include_check;
+					}
+				} else if(lpAttachMethod->Value.ul == ATTACH_OLE &&
+					((LPATTACH)lpSrcObj)->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IStream, 0, 0, (LPUNKNOWN *)&lpSrcStream) == hrSuccess) {
+					// OLE 2.0 must be open with PR_ATTACH_DATA_OBJ
+					hr = ((LPATTACH)lpDestObj)->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, (LPUNKNOWN *)&lpDestStream);
+					if (hr == E_FAIL)
+						hr = ((LPATTACH)lpDestObj)->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IStream, STGM_WRITE, MAPI_CREATE | MAPI_MODIFY, (LPUNKNOWN *)&lpDestStream);
+					if (hr != hrSuccess) {
+						isProblem = true;
+						goto next_include_check;
+					}
+					hr = Util::CopyStream(lpSrcStream, lpDestStream);
+					if (hr != hrSuccess) {
+						isProblem = true;
+						goto next_include_check;
+					}
+				}
+				break;
+			case ATTACH_EMBEDDED_MSG:
+				// message
+				if (((LPATTACH)lpSrcObj)->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, 0, (LPUNKNOWN *)&lpSrcMessage) == hrSuccess) {
+					// Not being able to open the source message is not an error: it may just not be there
+					hr = ((LPATTACH)lpDestObj)->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY, (LPUNKNOWN *)&lpDestMessage);
+					if (hr != hrSuccess) {
+						isProblem = true;
+						goto next_include_check;
+					}
+					hr = Util::DoCopyTo(&IID_IMessage, lpSrcMessage, 0, NULL, NULL, ulUIParam, lpProgress, &IID_IMessage, lpDestMessage, 0, NULL);
+					if (hr != hrSuccess) {
+						isProblem = true;
+						goto next_include_check;
+					}
+					hr = lpDestMessage->SaveChanges(0);
+					if (hr != hrSuccess) {
+						isProblem = true;
+						goto next_include_check;
+					}
+				}
+				break;
+			default:
+				// OLE objects?
+				isProblem = true;
+				break;
+			};
+		} else {
+			isProblem = true;
 		}
+		// TODO: try the 3 MSMAPI interfaces (message, stream, storage) if unhandled?
+next_include_check:
+		if (isProblem) {
+			SPropProblem sProblem;
+			bPartial = true;
+			sProblem.ulIndex = i;
+			sProblem.ulPropTag = lpIncludeProps->aulPropTag[i];
+			sProblem.scode = MAPI_E_INTERFACE_NOT_SUPPORTED; // hr?
+			hr = AddProblemToArray(&sProblem, &lpProblems);
+			if (hr != hrSuccess)
+				goto exit;
+		}
+		MAPIFreeBuffer(lpAttachMethod);
+		lpAttachMethod = NULL;
+		if (lpDestStream) {
+			lpDestStream->Release();
+			lpDestStream = NULL;
+		}
+		if (lpSrcStream) {
+			lpSrcStream->Release();
+			lpSrcStream = NULL;
+		}
+		if (lpSrcMessage) {
+			lpSrcMessage->Release();
+			lpSrcMessage = NULL;
+		}
+		if (lpDestMessage) {
+			lpDestMessage->Release();
+			lpDestMessage = NULL;
+		}
+		// skip this prop for the final SetProps()
+		lpIncludeProps->aulPropTag[i] = PR_NULL;
 	}
 
 	hr = lpSrcProp->GetProps(lpIncludeProps, 0, &cValues, &lpProps);

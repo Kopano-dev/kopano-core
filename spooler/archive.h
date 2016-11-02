@@ -28,8 +28,6 @@
 #include <list>
 #include <memory>
 
-class ECLogger;
-
 class ArchiveResult _kc_final {
 public:
 	void AddMessage(MessagePtr ptrMessage);
@@ -45,9 +43,7 @@ typedef std::unique_ptr<Archive> ArchivePtr;
 
 class Archive _kc_final {
 public:
-	static HRESULT Create(IMAPISession *lpSession, ECLogger *lpLogger, ArchivePtr *lpptrArchive);
-	~Archive();
-
+	static HRESULT Create(IMAPISession *, ArchivePtr *);
 	HRESULT HrArchiveMessageForDelivery(IMessage *lpMessage);
 	HRESULT HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *lpResult);
 
@@ -55,7 +51,7 @@ public:
 	LPCTSTR GetErrorMessage() const { return m_strErrorMessage.c_str(); }
 
 private:
-	Archive(IMAPISession *lpSession, ECLogger *lpLogger);
+	Archive(IMAPISession *);
 	void SetErrorMessage(HRESULT hr, LPCTSTR lpszMessage);
 
 	// Inhibit copying
@@ -64,7 +60,6 @@ private:
 
 private:
 	MAPISessionPtr	m_ptrSession;
-	ECLogger		*m_lpLogger;
 	tstring			m_strErrorMessage;
 };
 

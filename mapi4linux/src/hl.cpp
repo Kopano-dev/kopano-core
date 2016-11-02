@@ -280,6 +280,29 @@ KStore &KStore::operator=(KStore &&other)
 	return *this;
 }
 
+KEntryId KStore::get_receive_folder(const char *cls, char **xcls)
+{
+	ULONG eid_size = 0;
+	ENTRYID *raw_eid = nullptr;
+	auto ret = m_store->GetReceiveFolder(reinterpret_cast<TCHAR *>(const_cast<char *>(cls)),
+	           0, &eid_size, &raw_eid, reinterpret_cast<TCHAR **>(xcls));
+	KEntryId eid(raw_eid, eid_size); /* stuff into RAII object before throw */
+	if (ret != hrSuccess)
+		throw KMAPIError(ret);
+	return eid;
+}
+
+KUnknown KStore::open_entry(const KEntryId &eid, LPCIID intf,
+    unsigned int flags)
+{
+	IUnknown *unk;
+	auto ret = m_store->OpenEntry(eid.m_size, eid.m_eid,
+                   intf, flags, &m_type, &unk);
+	if (ret != hrSuccess)
+		throw KMAPIError(ret);
+	return KUnknown(unk);
+}
+
 KUnknown KStore::open_entry(const SPropValue *eid, LPCIID intf,
     unsigned int flags)
 {

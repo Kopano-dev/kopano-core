@@ -22,14 +22,13 @@
 #include <vector>
 #include <kopano/zcdefs.h>
 #include <kopano/ECChannel.h>
-#include <kopano/ECLogger.h>
 #include <kopano/ECConfig.h>
 
 enum LMTP_Command {LMTP_Command_LHLO, LMTP_Command_MAIL_FROM, LMTP_Command_RCPT_TO, LMTP_Command_DATA, LMTP_Command_RSET, LMTP_Command_QUIT };
 
 class LMTP _kc_final {
 public:
-	LMTP(ECChannel *lpChan, const char *szServerPath, ECLogger *lpLog, ECConfig *lpConf);
+	LMTP(ECChannel *, const char *path, ECConfig *);
 	HRESULT HrGetCommand(const std::string &strCommand, LMTP_Command &eCommand);
 	HRESULT HrResponse(const std::string &strResponse);
 
@@ -43,7 +42,6 @@ private:
 	HRESULT HrParseAddress(const std::string &strAddress, std::string *strEmail);
 
 	ECChannel		*m_lpChannel;
-	ECLogger		*m_lpLogger;
 	ECConfig		*m_lpConfig;
 	std::string		m_strPath;
 };

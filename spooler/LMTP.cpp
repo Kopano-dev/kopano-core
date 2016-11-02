@@ -41,10 +41,9 @@
 
 using namespace std;
 
-LMTP::LMTP(ECChannel *lpChan, const char *szServerPath, ECLogger *lpLog, ECConfig *lpConf)
+LMTP::LMTP(ECChannel *lpChan, const char *szServerPath, ECConfig *lpConf)
 {
     m_lpChannel = lpChan;
-    m_lpLogger = lpLog;
     m_lpConfig = lpConf;
     m_strPath = szServerPath;
 }
@@ -99,12 +98,10 @@ HRESULT LMTP::HrResponse(const string &strResponse)
 {
 	HRESULT hr;
 
-	if (m_lpLogger->Log(EC_LOGLEVEL_DEBUG))
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "< %s", strResponse.c_str());
-
+	ec_log_debug("< %s", strResponse.c_str());
 	hr = m_lpChannel->HrWriteLine(strResponse);
 	if (hr != hrSuccess)
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "LMTP write error: %s (%x)",
+		ec_log_err("LMTP write error: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
 
 	return hr;
@@ -122,12 +119,9 @@ HRESULT LMTP::HrCommandLHLO(const string &strInput, string & nameOut)
 	size_t pos = strInput.find(' ');
 	nameOut.assign(strInput.c_str() + pos + 1);
 
-	if (m_lpLogger->Log(EC_LOGLEVEL_DEBUG)) {
-		// Input definitly starts with LHLO
-		// use HrResponse("501 5.5.4 Syntax: LHLO hostname"); in case of error, but we don't.
-		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "LHLO ID: %s", nameOut.c_str());
-	}
-
+	// Input definitly starts with LHLO
+	// use HrResponse("501 5.5.4 Syntax: LHLO hostname"); in case of error, but we don't.
+	ec_log_debug("LHLO ID: %s", nameOut.c_str());
 	return hrSuccess;
 }
 
@@ -163,15 +157,12 @@ HRESULT LMTP::HrCommandMAILFROM(const string &strFrom, std::string *const strAdd
 HRESULT LMTP::HrCommandRCPTTO(const string &strTo, string *strUnresolved)
 {
 	HRESULT hr = HrParseAddress(strTo, strUnresolved);
-	
-	if (hr == hrSuccess) {
-		if (m_lpLogger->Log(EC_LOGLEVEL_DEBUG))
-			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Resolved command '%s' to recipient address '%s'", strTo.c_str(), strUnresolved->c_str());
-	} else {
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Invalid recipient address in command '%s': %s (%x)",
+	if (hr == hrSuccess)
+		ec_log_debug("Resolved command \"%s\" to recipient address \"%s\"",
+			strTo.c_str(), strUnresolved->c_str());
+	else
+		ec_log_err("Invalid recipient address in command \"%s\": %s (%x)",
 			strTo.c_str(), GetMAPIErrorMessage(hr), hr);
-	}
-	
 	return hr;
 }
 
@@ -193,7 +184,7 @@ HRESULT LMTP::HrCommandDATA(FILE *tmp)
 
 	hr = HrResponse("354 2.1.5 Start mail input; end with <CRLF>.<CRLF>");
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error during DATA communication with client: %s (%x).",
+		ec_log_err("Error during DATA communication with client: %s (%x).",
 			GetMAPIErrorMessage(hr), hr);
 		return hr;
 	}
@@ -202,7 +193,7 @@ HRESULT LMTP::HrCommandDATA(FILE *tmp)
 	while (1) {
 		hr = m_lpChannel->HrReadLine(&inBuffer);
 		if (hr != hrSuccess) {
-			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error during DATA communication with client: %s (%x).",
+			ec_log_err("Error during DATA communication with client: %s (%x).",
 				GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
@@ -217,22 +208,22 @@ HRESULT LMTP::HrCommandDATA(FILE *tmp)
 		to_write = inBuffer.size() - offset;
 		ret = fwrite((char *)inBuffer.c_str() + offset, 1, to_write, tmp);
 		if (ret != to_write) {
-            m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error during DATA communication "
-                "with client: %s", strerror(errno));
+			ec_log_err("Error during DATA communication with client: %s", strerror(errno));
 			return MAPI_E_FAILURE;
 		}
 
 		// The data from HrReadLine does not contain the CRLF, so add that here
 		if (fwrite("\r\n", 1, 2, tmp) != 2) {
-            m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error during DATA communication "
-                "with client: %s", strerror(errno));
+			ec_log_err("Error during DATA communication with client: %s", strerror(errno));
 			return MAPI_E_FAILURE;
 		}
 
 		message += inBuffer + "\r\n";
 	}
+#if 0
 	if (m_lpLogger->Log(EC_LOGLEVEL_DEBUG + 1)) // really hidden output (limited to 10k in logger)
 			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Received message:\n" + message);
+#endif
 	return hrSuccess;
 }
 
