@@ -36,9 +36,8 @@ namespace details {
 	public:
 		MailboxDataCollector(ArchiveStateCollector::ArchiveInfoMap &mapArchiveInfo, ECLogger *lpLogger);
 		~MailboxDataCollector();
-
-		HRESULT GetRequiredPropTags(LPMAPIPROP lpProp, LPSPropTagArray *lppPropTagArray) const _zcp_override;
-		HRESULT CollectData(LPMAPITABLE lpStoreTable) _zcp_override;
+		HRESULT GetRequiredPropTags(LPMAPIPROP lpProp, LPSPropTagArray *lppPropTagArray) const _kc_override;
+		HRESULT CollectData(LPMAPITABLE lpStoreTable) _kc_override;
 
 	private:
 		ArchiveStateCollector::ArchiveInfoMap &m_mapArchiveInfo;

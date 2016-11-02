@@ -135,8 +135,8 @@ public:
 	class xECSingleInstance _kc_final : public IECSingleInstance {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		// <kopano/xclsfrag/IECSingleInstance.hpp>
-		virtual HRESULT __stdcall GetSingleInstanceId(ULONG *lpcbInstanceID, LPENTRYID *lppInstanceID) _zcp_override;
-		virtual HRESULT __stdcall SetSingleInstanceId(ULONG cbInstanceID, LPENTRYID lpInstanceID) _zcp_override;
+		virtual HRESULT __stdcall GetSingleInstanceId(ULONG *lpcbInstanceID, LPENTRYID *lppInstanceID) _kc_override;
+		virtual HRESULT __stdcall SetSingleInstanceId(ULONG cbInstanceID, LPENTRYID lpInstanceID) _kc_override;
 	} m_xECSingleInstance;
 
 protected:

@@ -64,14 +64,14 @@ public:
 	class xFreeBusyUpdate _kc_final : public IFreeBusyUpdate {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		// <kopano/xclsfrag/IFreeBusyUpdate.hpp>
-		virtual HRESULT __stdcall Reload(void) _zcp_override;
-		virtual HRESULT __stdcall PublishFreeBusy(FBBlock_1 *lpBlocks, ULONG nBlocks) _zcp_override;
-		virtual HRESULT __stdcall RemoveAppt(void) _zcp_override;
-		virtual HRESULT __stdcall ResetPublishedFreeBusy(void) _zcp_override;
-		virtual HRESULT __stdcall ChangeAppt(void) _zcp_override;
-		virtual HRESULT __stdcall SaveChanges(FILETIME ftBegin, FILETIME ftEnd) _zcp_override;
-		virtual HRESULT __stdcall GetFBTimes(void) _zcp_override;
-		virtual HRESULT __stdcall Intersect(void) _zcp_override;
+		virtual HRESULT __stdcall Reload(void) _kc_override;
+		virtual HRESULT __stdcall PublishFreeBusy(FBBlock_1 *lpBlocks, ULONG nBlocks) _kc_override;
+		virtual HRESULT __stdcall RemoveAppt(void) _kc_override;
+		virtual HRESULT __stdcall ResetPublishedFreeBusy(void) _kc_override;
+		virtual HRESULT __stdcall ChangeAppt(void) _kc_override;
+		virtual HRESULT __stdcall SaveChanges(FILETIME ftBegin, FILETIME ftEnd) _kc_override;
+		virtual HRESULT __stdcall GetFBTimes(void) _kc_override;
+		virtual HRESULT __stdcall Intersect(void) _kc_override;
 	} m_xFreeBusyUpdate;
 
 private:

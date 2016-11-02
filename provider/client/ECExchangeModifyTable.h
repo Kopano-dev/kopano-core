@@ -52,7 +52,7 @@ public:
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IExchangeModifyTable.hpp>
 		// <kopano/xclsfrag/IECExchangeModifyTable.hpp>
-		virtual HRESULT __stdcall DisablePushToServer(void) _zcp_override;
+		virtual HRESULT __stdcall DisablePushToServer(void) _kc_override;
 	} m_xECExchangeModifyTable;
 
 private:
@@ -78,8 +78,8 @@ public:
 	class xExchangeRuleAction _kc_final : public IExchangeRuleAction {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		// <kopano/xclsfrag/IExchangeRuleAction.hpp>
-		virtual HRESULT __stdcall ActionCount(ULONG *lpcActions);
-		virtual HRESULT __stdcall GetAction(ULONG ulActionNumber, LARGE_INTEGER *lpruleid, LPACTION *lppAction);
+		virtual HRESULT __stdcall ActionCount(ULONG *lpcActions) _kc_override;
+		virtual HRESULT __stdcall GetAction(ULONG ulActionNumber, LARGE_INTEGER *lpruleid, LPACTION *lppAction) _kc_override;
 	} m_xExchangeRuleAction;
 };
 

@@ -61,15 +61,14 @@ private:
 		#include <kopano/xclsfrag/IUnknown.hpp>
 
 		// <kopano/xclsfrag/IExchangeExportChanges.hpp>
-		virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
-		virtual HRESULT __stdcall Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKNOWN lpCollector, LPSRestriction lpRestriction, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize);
-		virtual HRESULT __stdcall Synchronize(ULONG *pulSteps, ULONG *pulProgress);
-		virtual HRESULT __stdcall UpdateState(LPSTREAM lpStream);
-
-		virtual HRESULT __stdcall ConfigSelective(ULONG ulPropTag, LPENTRYLIST lpEntries, LPENTRYLIST lpParents, ULONG ulFlags, LPUNKNOWN lpCollector, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize) _zcp_override;
-		virtual HRESULT __stdcall GetChangeCount(ULONG *lpcChanges) _zcp_override;
-		virtual HRESULT __stdcall SetMessageInterface(REFIID refiid) _zcp_override;
-		virtual HRESULT __stdcall SetLogger(ECLogger *lpLogger) _zcp_override;
+		virtual HRESULT __stdcall GetLastError(HRESULT, ULONG flags, LPMAPIERROR *err) _kc_override;
+		virtual HRESULT __stdcall Config(LPSTREAM, ULONG flags, LPUNKNOWN collector, LPSRestriction, LPSPropTagArray inclprop, LPSPropTagArray exclprop, ULONG bufsize) _kc_override;
+		virtual HRESULT __stdcall Synchronize(ULONG *steps, ULONG *progress) _kc_override;
+		virtual HRESULT __stdcall UpdateState(LPSTREAM) _kc_override;
+		virtual HRESULT __stdcall ConfigSelective(ULONG proptag, LPENTRYLIST entries, LPENTRYLIST parents, ULONG flags, LPUNKNOWN collector, LPSPropTagArray inclprop, LPSPropTagArray exclprop, ULONG bufsize) _kc_override;
+		virtual HRESULT __stdcall GetChangeCount(ULONG *changes) _kc_override;
+		virtual HRESULT __stdcall SetMessageInterface(REFIID refiid) _kc_override;
+		virtual HRESULT __stdcall SetLogger(ECLogger *) _kc_override;
 	} m_xECExportChanges;
 	
 	HRESULT ExportMessageChanges();

@@ -63,15 +63,15 @@ public:
 	class xFreeBusyData _kc_final : public IFreeBusyData {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		// <kopano/xclsfrag/IFreeBusyData.hpp>
-			virtual HRESULT __stdcall Reload(void *) _zcp_override;
-			virtual HRESULT __stdcall EnumBlocks(IEnumFBBlock **ppenumfb, FILETIME ftmStart, FILETIME ftmEnd) _zcp_override;
-			virtual HRESULT __stdcall Merge(void *) _zcp_override;
-			virtual HRESULT __stdcall GetDelegateInfo(void *) _zcp_override;
-			virtual HRESULT __stdcall FindFreeBlock(LONG, LONG, LONG, BOOL, LONG, LONG, LONG, FBBlock_1 *) _zcp_override;
-			virtual HRESULT __stdcall InterSect(void *, LONG, void *) _zcp_override;
-			virtual HRESULT __stdcall SetFBRange(LONG rtmStart, LONG rtmEnd) _zcp_override;
-			virtual HRESULT __stdcall NextFBAppt(void *, ULONG, void *, ULONG, void *, void *) _zcp_override;
-			virtual HRESULT __stdcall GetFBPublishRange(LONG *prtmStart, LONG *prtmEnd) _zcp_override;
+			virtual HRESULT __stdcall Reload(void *) _kc_override;
+			virtual HRESULT __stdcall EnumBlocks(IEnumFBBlock **ppenumfb, FILETIME ftmStart, FILETIME ftmEnd) _kc_override;
+			virtual HRESULT __stdcall Merge(void *) _kc_override;
+			virtual HRESULT __stdcall GetDelegateInfo(void *) _kc_override;
+			virtual HRESULT __stdcall FindFreeBlock(LONG, LONG, LONG, BOOL, LONG, LONG, LONG, FBBlock_1 *) _kc_override;
+			virtual HRESULT __stdcall InterSect(void *, LONG, void *) _kc_override;
+			virtual HRESULT __stdcall SetFBRange(LONG rtmStart, LONG rtmEnd) _kc_override;
+			virtual HRESULT __stdcall NextFBAppt(void *, ULONG, void *, ULONG, void *, void *) _kc_override;
+			virtual HRESULT __stdcall GetFBPublishRange(LONG *prtmStart, LONG *prtmEnd) _kc_override;
 	} m_xFreeBusyData;
 
 private:

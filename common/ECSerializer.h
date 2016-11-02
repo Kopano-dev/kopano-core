@@ -48,12 +48,12 @@ public:
 class ECStreamSerializer _kc_final : public ECSerializer {
 public:
 	ECStreamSerializer(IStream *lpBuffer);
-	ECRESULT SetBuffer(void *lpBuffer) _zcp_override;
-	ECRESULT Write(const void *ptr, size_t size, size_t nmemb) _zcp_override;
-	ECRESULT Read(void *ptr, size_t size, size_t nmemb) _zcp_override;
-	ECRESULT Skip(size_t size, size_t nmemb) _zcp_override;
-	ECRESULT Flush(void) _zcp_override;
-	ECRESULT Stat(ULONG *lpulRead, ULONG *lpulWritten) _zcp_override;
+	ECRESULT SetBuffer(void *buffer) _kc_override;
+	ECRESULT Write(const void *ptr, size_t size, size_t nmemb) _kc_override;
+	ECRESULT Read(void *ptr, size_t size, size_t nmemb) _kc_override;
+	ECRESULT Skip(size_t size, size_t nmemb) _kc_override;
+	ECRESULT Flush(void) _kc_override;
+	ECRESULT Stat(ULONG *have_read, ULONG *have_written) _kc_override;
 
 private:
 	IStream *m_lpBuffer;
@@ -67,12 +67,12 @@ public:
 
 	ECFifoSerializer(ECFifoBuffer *lpBuffer, eMode mode);
 	virtual ~ECFifoSerializer(void);
-	ECRESULT SetBuffer(void *lpBuffer) _zcp_override;
-	ECRESULT Write(const void *ptr, size_t size, size_t nmemb) _zcp_override;
-	ECRESULT Read(void *ptr, size_t size, size_t nmemb) _zcp_override;
-	ECRESULT Skip(size_t size, size_t nmemb) _zcp_override;
-	ECRESULT Flush(void) _zcp_override;
-	ECRESULT Stat(ULONG *lpulRead, ULONG *lpulWritten) _zcp_override;
+	ECRESULT SetBuffer(void *lpBuffer) _kc_override;
+	ECRESULT Write(const void *ptr, size_t size, size_t nmemb) _kc_override;
+	ECRESULT Read(void *ptr, size_t size, size_t nmemb) _kc_override;
+	ECRESULT Skip(size_t size, size_t nmemb) _kc_override;
+	ECRESULT Flush(void) _kc_override;
+	ECRESULT Stat(ULONG *have_read, ULONG *have_written) _kc_override;
 
 private:
 	ECFifoBuffer *m_lpBuffer;

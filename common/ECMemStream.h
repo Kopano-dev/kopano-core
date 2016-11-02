@@ -35,9 +35,7 @@ private:
 
 public:
 	static HRESULT	Create(char *buffer, ULONG ulDataLen, ULONG ulFlags, ECMemBlock **lppStream);
-
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _zcp_override;
-
+	virtual HRESULT QueryInterface(REFIID refiid, void **iface) _kc_override;
 	virtual HRESULT	ReadAt(ULONG ulPos, ULONG ulLen, char *buffer, ULONG *ulBytesRead);
 	virtual HRESULT WriteAt(ULONG ulPos, ULONG ulLen, char *buffer, ULONG *ulBytesWritten);
 	virtual HRESULT Commit();
@@ -73,10 +71,8 @@ public:
 						   void *lpParam, ECMemStream **lppStream);
 	static  HRESULT	Create(ECMemBlock *lpMemBlock, ULONG ulFlags, CommitFunc lpCommitFunc, DeleteFunc lpDeleteFunc,
 						   void *lpParam, ECMemStream **lppStream);
-
-	virtual ULONG Release(void) _zcp_override;
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _zcp_override;
-
+	virtual ULONG Release(void) _kc_override;
+	virtual HRESULT QueryInterface(REFIID refiid, void **iface) _kc_override;
 	virtual HRESULT Read(void *pv, ULONG cb, ULONG *pcbRead);
 	virtual HRESULT Write(const void *pv, ULONG cb, ULONG *pcbWritten);
 	virtual HRESULT Seek(LARGE_INTEGER dlibmove, DWORD dwOrigin, ULARGE_INTEGER *plibNewPosition);

@@ -71,7 +71,7 @@ static HRESULT UpdateServerList(IABContainer *lpContainer, std::set<servername> 
 class UserCountCollector _kc_final : public DataCollector {
 public:
 	UserCountCollector();
-	virtual HRESULT CollectData(LPMAPITABLE lpStoreTable) _zcp_override;
+	virtual HRESULT CollectData(LPMAPITABLE store_table) _kc_override;
 	unsigned int result() const;
 
 private:
@@ -82,9 +82,8 @@ template <typename string_type, ULONG prAccount>
 class UserListCollector _kc_final : public DataCollector {
 public:
 	UserListCollector(IMAPISession *lpSession);
-
-	virtual HRESULT GetRequiredPropTags(LPMAPIPROP lpProp, LPSPropTagArray *lppPropTagArray) const _zcp_override;
-	virtual HRESULT CollectData(LPMAPITABLE lpStoreTable) _zcp_override;
+	virtual HRESULT GetRequiredPropTags(LPMAPIPROP prop, LPSPropTagArray *) const _kc_override;
+	virtual HRESULT CollectData(LPMAPITABLE store_table) _kc_override;
 	void swap_result(std::list<string_type> *lplstUsers);
 
 private:

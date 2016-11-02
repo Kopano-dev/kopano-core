@@ -35,24 +35,23 @@ private:
     list<LPSPropValue> properties;
 
 public:
-    virtual ~M4LMAPIProp();
+	virtual ~M4LMAPIProp(void);
+	virtual HRESULT __stdcall GetLastError(HRESULT, ULONG flags, LPMAPIERROR *) _kc_override;
+	virtual HRESULT __stdcall SaveChanges(ULONG flags) _kc_override;
+	virtual HRESULT __stdcall GetProps(LPSPropTagArray proptag, ULONG flags, ULONG *nvals, LPSPropValue *prop) _kc_override;
+	virtual HRESULT __stdcall GetPropList(ULONG flags, LPSPropTagArray *proptag) _kc_override;
+	virtual HRESULT __stdcall OpenProperty(ULONG proptag, LPCIID lpiid, ULONG ifaceopts, ULONG flags, LPUNKNOWN *) _kc_override;
+	virtual HRESULT __stdcall SetProps(ULONG nvals, LPSPropValue prop, LPSPropProblemArray *) _kc_override;
+	virtual HRESULT __stdcall DeleteProps(LPSPropTagArray proptag, LPSPropProblemArray *) _kc_override;
+	virtual HRESULT __stdcall CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArray exclprop, ULONG ui_param, LPMAPIPROGRESS, LPCIID iface, LPVOID dest_obj, ULONG flags, LPSPropProblemArray *) _kc_override;
+	virtual HRESULT __stdcall CopyProps(LPSPropTagArray inclprop, ULONG ui_param, LPMAPIPROGRESS, LPCIID iface, LPVOID dest_obj, ULONG flags, LPSPropProblemArray *) _kc_override;
+	virtual HRESULT __stdcall GetNamesFromIDs(LPSPropTagArray *proptag, LPGUID lpPropSetGuid, ULONG flags, ULONG *lpcPropNames, LPMAPINAMEID **lpppPropNames) _kc_override;
+	virtual HRESULT __stdcall GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropNames, ULONG flags, LPSPropTagArray *proptag) _kc_override;
 
-    virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) _zcp_override;
-    virtual HRESULT __stdcall SaveChanges(ULONG ulFlags) _zcp_override;
-    virtual HRESULT __stdcall GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG *lpcValues, LPSPropValue *lppPropArray) _zcp_override;
-    virtual HRESULT __stdcall GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArray) _zcp_override;
-    virtual HRESULT __stdcall OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk) _zcp_override;
-    virtual HRESULT __stdcall SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray *lppProblems) _zcp_override;
-    virtual HRESULT __stdcall DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray *lppProblems) _zcp_override;
-    virtual HRESULT __stdcall CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArray lpExcludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems) _zcp_override;
-    virtual HRESULT __stdcall CopyProps(LPSPropTagArray lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems) _zcp_override;
-    virtual HRESULT __stdcall GetNamesFromIDs(LPSPropTagArray *lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG *lpcPropNames, LPMAPINAMEID **lpppPropNames) _zcp_override;
-    virtual HRESULT __stdcall GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID* lppPropNames, ULONG ulFlags, LPSPropTagArray *lppPropTags) _zcp_override;
-
-    // iunknown passthru
-    virtual ULONG __stdcall AddRef(void) _zcp_override;
-    virtual ULONG __stdcall Release(void) _zcp_override;
-    virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lpvoid) _zcp_override;
+	// iunknown passthru
+	virtual ULONG __stdcall AddRef(void) _kc_override;
+	virtual ULONG __stdcall Release(void) _kc_override;
+	virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **iface) _kc_override;
 };
 
 class M4LProfSect _kc_final : public IProfSect, public M4LMAPIProp {
@@ -66,57 +65,55 @@ public:
     virtual HRESULT __stdcall ChangePassword(LPTSTR lpOldPass, LPTSTR lpNewPass, ULONG ulFlags);
     virtual HRESULT __stdcall FlushQueues(ULONG ulUIParam, ULONG cbTargetTransport, LPENTRYID lpTargetTransport, ULONG ulFlags);
 
-    // imapiprop passthru
-    virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) _zcp_override;
-    virtual HRESULT __stdcall SaveChanges(ULONG ulFlags) _zcp_override;
-    virtual HRESULT __stdcall GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG* lpcValues, LPSPropValue *lppPropArray) _zcp_override;
-    virtual HRESULT __stdcall GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArray) _zcp_override;
-    virtual HRESULT __stdcall OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk) _zcp_override;
-    virtual HRESULT __stdcall SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray *lppProblems) _zcp_override;
-    virtual HRESULT __stdcall DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray *lppProblems) _zcp_override;
-    virtual HRESULT __stdcall CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArray lpExcludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems) _zcp_override;
-    virtual HRESULT __stdcall CopyProps(LPSPropTagArray lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems) _zcp_override;
-    virtual HRESULT __stdcall GetNamesFromIDs(LPSPropTagArray *lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG *lpcPropNames, LPMAPINAMEID **lpppPropNames) _zcp_override;
-    virtual HRESULT __stdcall GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropNames, ULONG ulFlags, LPSPropTagArray *lppPropTags) _zcp_override;
+	// imapiprop passthru
+	virtual HRESULT __stdcall GetLastError(HRESULT, ULONG flags, LPMAPIERROR *) _kc_override;
+	virtual HRESULT __stdcall SaveChanges(ULONG flags) _kc_override;
+	virtual HRESULT __stdcall GetProps(LPSPropTagArray proptag, ULONG flags, ULONG *lpcValues, LPSPropValue *prop) _kc_override;
+	virtual HRESULT __stdcall GetPropList(ULONG flags, LPSPropTagArray *) _kc_override;
+	virtual HRESULT __stdcall OpenProperty(ULONG proptag, LPCIID lpiid, ULONG ifaceopts, ULONG flags, LPUNKNOWN *) _kc_override;
+	virtual HRESULT __stdcall SetProps(ULONG nvals, LPSPropValue prop, LPSPropProblemArray *) _kc_override;
+	virtual HRESULT __stdcall DeleteProps(LPSPropTagArray proptag, LPSPropProblemArray *) _kc_override;
+	virtual HRESULT __stdcall CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArray exclprop, ULONG ui_param, LPMAPIPROGRESS, LPCIID lpInterface, LPVOID lpDestObj, ULONG flags, LPSPropProblemArray *) _kc_override;
+	virtual HRESULT __stdcall CopyProps(LPSPropTagArray inclprop, ULONG ui_param, LPMAPIPROGRESS, LPCIID lpInterface, LPVOID lpDestObj, ULONG flags, LPSPropProblemArray *) _kc_override;
+	virtual HRESULT __stdcall GetNamesFromIDs(LPSPropTagArray *proptag, LPGUID lpPropSetGuid, ULONG flags, ULONG *lpcPropNames, LPMAPINAMEID **lpppPropNames) _kc_override;
+	virtual HRESULT __stdcall GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropNames, ULONG flags, LPSPropTagArray *) _kc_override;
 
-    // iunknown passthru
-    virtual ULONG __stdcall AddRef(void) _zcp_override;
-    virtual ULONG __stdcall Release(void) _zcp_override;
-    virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lpvoid) _zcp_override;
+	// iunknown passthru
+	virtual ULONG __stdcall AddRef(void) _kc_override;
+	virtual ULONG __stdcall Release(void) _kc_override;
+	virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **iface) _kc_override;
 };
 
 class M4LMAPITable _kc_final : public M4LUnknown, public IMAPITable {
-private:
-
 public:
-    virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) _zcp_override;
-    virtual HRESULT __stdcall Advise(ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection) _zcp_override;
-    virtual HRESULT __stdcall Unadvise(ULONG ulConnection) _zcp_override;
-    virtual HRESULT __stdcall GetStatus(ULONG *lpulTableStatus, ULONG *lpulTableType) _zcp_override;
-    virtual HRESULT __stdcall SetColumns(LPSPropTagArray lpPropTagArray, ULONG ulFlags) _zcp_override;
-    virtual HRESULT __stdcall QueryColumns(ULONG ulFlags, LPSPropTagArray *lpPropTagArray) _zcp_override;
-    virtual HRESULT __stdcall GetRowCount(ULONG ulFlags, ULONG *lpulCount) _zcp_override;
-    virtual HRESULT __stdcall SeekRow(BOOKMARK bkOrigin, LONG lRowCount, LONG *lplRowsSought) _zcp_override;
-    virtual HRESULT __stdcall SeekRowApprox(ULONG ulNumerator, ULONG ulDenominator) _zcp_override;
-    virtual HRESULT __stdcall QueryPosition(ULONG *lpulRow, ULONG *lpulNumerator, ULONG *lpulDenominator) _zcp_override;
-    virtual HRESULT __stdcall FindRow(LPSRestriction lpRestriction, BOOKMARK bkOrigin, ULONG ulFlags) _zcp_override;
-    virtual HRESULT __stdcall Restrict(LPSRestriction lpRestriction, ULONG ulFlags) _zcp_override;
-    virtual HRESULT __stdcall CreateBookmark(BOOKMARK *lpbkPosition) _zcp_override;
-    virtual HRESULT __stdcall FreeBookmark(BOOKMARK bkPosition) _zcp_override;
-    virtual HRESULT __stdcall SortTable(LPSSortOrderSet lpSortCriteria, ULONG ulFlags) _zcp_override;
-    virtual HRESULT __stdcall QuerySortOrder(LPSSortOrderSet *lppSortCriteria) _zcp_override;
-    virtual HRESULT __stdcall QueryRows(LONG lRowCount, ULONG ulFlags, LPSRowSet *lppRows) _zcp_override;
-    virtual HRESULT __stdcall Abort(void) _zcp_override;
-    virtual HRESULT __stdcall ExpandRow(ULONG cbInstanceKey, LPBYTE pbInstanceKey, ULONG ulRowCount, ULONG ulFlags, LPSRowSet *lppRows, ULONG *lpulMoreRows) _zcp_override;
-    virtual HRESULT __stdcall CollapseRow(ULONG cbInstanceKey, LPBYTE pbInstanceKey, ULONG ulFlags, ULONG *lpulRowCount) _zcp_override;
-    virtual HRESULT __stdcall WaitForCompletion(ULONG ulFlags, ULONG ulTimeout, ULONG *lpulTableStatus) _zcp_override;
-    virtual HRESULT __stdcall GetCollapseState(ULONG ulFlags, ULONG cbInstanceKey, LPBYTE lpbInstanceKey, ULONG *lpcbCollapseState, LPBYTE *lppbCollapseState) _zcp_override;
-    virtual HRESULT __stdcall SetCollapseState(ULONG ulFlags, ULONG cbCollapseState, LPBYTE pbCollapseState, BOOKMARK *lpbkLocation) _zcp_override;
+	virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG flags, LPMAPIERROR *lppMAPIError) _kc_override;
+	virtual HRESULT __stdcall Advise(ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection) _kc_override;
+	virtual HRESULT __stdcall Unadvise(ULONG ulConnection) _kc_override;
+	virtual HRESULT __stdcall GetStatus(ULONG *lpulTableStatus, ULONG *lpulTableType) _kc_override;
+	virtual HRESULT __stdcall SetColumns(LPSPropTagArray, ULONG flags) _kc_override;
+	virtual HRESULT __stdcall QueryColumns(ULONG flags, LPSPropTagArray *) _kc_override;
+	virtual HRESULT __stdcall GetRowCount(ULONG flags, ULONG *lpulCount) _kc_override;
+	virtual HRESULT __stdcall SeekRow(BOOKMARK bkOrigin, LONG lRowCount, LONG *lplRowsSought) _kc_override;
+	virtual HRESULT __stdcall SeekRowApprox(ULONG ulNumerator, ULONG ulDenominator) _kc_override;
+	virtual HRESULT __stdcall QueryPosition(ULONG *lpulRow, ULONG *lpulNumerator, ULONG *lpulDenominator) _kc_override;
+	virtual HRESULT __stdcall FindRow(LPSRestriction lpRestriction, BOOKMARK bkOrigin, ULONG flags) _kc_override;
+	virtual HRESULT __stdcall Restrict(LPSRestriction lpRestriction, ULONG flags) _kc_override;
+	virtual HRESULT __stdcall CreateBookmark(BOOKMARK *lpbkPosition) _kc_override;
+	virtual HRESULT __stdcall FreeBookmark(BOOKMARK bkPosition) _kc_override;
+	virtual HRESULT __stdcall SortTable(LPSSortOrderSet lpSortCriteria, ULONG flags) _kc_override;
+	virtual HRESULT __stdcall QuerySortOrder(LPSSortOrderSet *lppSortCriteria) _kc_override;
+	virtual HRESULT __stdcall QueryRows(LONG lRowCount, ULONG flags, LPSRowSet *lppRows) _kc_override;
+	virtual HRESULT __stdcall Abort(void) _kc_override;
+	virtual HRESULT __stdcall ExpandRow(ULONG cbInstanceKey, LPBYTE pbInstanceKey, ULONG ulRowCount, ULONG flags, LPSRowSet *lppRows, ULONG *lpulMoreRows) _kc_override;
+	virtual HRESULT __stdcall CollapseRow(ULONG cbInstanceKey, LPBYTE pbInstanceKey, ULONG flags, ULONG *lpulRowCount) _kc_override;
+	virtual HRESULT __stdcall WaitForCompletion(ULONG flags, ULONG ulTimeout, ULONG *lpulTableStatus) _kc_override;
+	virtual HRESULT __stdcall GetCollapseState(ULONG flags, ULONG cbInstanceKey, LPBYTE lpbInstanceKey, ULONG *lpcbCollapseState, LPBYTE *lppbCollapseState) _kc_override;
+	virtual HRESULT __stdcall SetCollapseState(ULONG flags, ULONG cbCollapseState, LPBYTE pbCollapseState, BOOKMARK *lpbkLocation) _kc_override;
 
-    // iunknown passthru
-    virtual ULONG __stdcall AddRef(void) _zcp_override;
-    virtual ULONG __stdcall Release(void) _zcp_override;
-    virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lpvoid) _zcp_override;
+	// iunknown passthru
+	virtual ULONG __stdcall AddRef(void) _kc_override;
+	virtual ULONG __stdcall Release(void) _kc_override;
+	virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **iface) _kc_override;
 };
 
 class M4LProviderAdmin _kc_final : public M4LUnknown , public IProviderAdmin {
@@ -125,19 +122,18 @@ private:
 	char *szService;
 
 public:
-    M4LProviderAdmin(M4LMsgServiceAdmin* new_ma, char *szService);
-    virtual ~M4LProviderAdmin();
+	M4LProviderAdmin(M4LMsgServiceAdmin *, char *service);
+	virtual ~M4LProviderAdmin(void);
+	virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG flags, LPMAPIERROR *lppMAPIError) _kc_override;
+	virtual HRESULT __stdcall GetProviderTable(ULONG flags, LPMAPITABLE *lppTable) _kc_override;
+	virtual HRESULT __stdcall CreateProvider(LPTSTR lpszProvider, ULONG cValues, LPSPropValue lpProps, ULONG ui_param, ULONG flags, MAPIUID *lpUID) _kc_override;
+	virtual HRESULT __stdcall DeleteProvider(LPMAPIUID lpUID) _kc_override;
+	virtual HRESULT __stdcall OpenProfileSection(LPMAPIUID lpUID, LPCIID lpInterface, ULONG flags, LPPROFSECT *lppProfSect) _kc_override;
 
-    virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) _zcp_override;
-    virtual HRESULT __stdcall GetProviderTable(ULONG ulFlags, LPMAPITABLE *lppTable) _zcp_override;
-    virtual HRESULT __stdcall CreateProvider(LPTSTR lpszProvider, ULONG cValues, LPSPropValue lpProps, ULONG ulUIParam, ULONG ulFlags, MAPIUID *lpUID) _zcp_override;
-    virtual HRESULT __stdcall DeleteProvider(LPMAPIUID lpUID) _zcp_override;
-    virtual HRESULT __stdcall OpenProfileSection(LPMAPIUID lpUID, LPCIID lpInterface, ULONG ulFlags, LPPROFSECT *lppProfSect) _zcp_override;
-
-    // iunknown passthru
-    virtual ULONG __stdcall AddRef(void) _zcp_override;
-    virtual ULONG __stdcall Release(void) _zcp_override;
-    virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lpvoid) _zcp_override;
+	// iunknown passthru
+	virtual ULONG __stdcall AddRef(void) _kc_override;
+	virtual ULONG __stdcall Release(void) _kc_override;
+	virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **iface) _kc_override;
 };
 
 class M4LMAPIAdviseSink _kc_final : public M4LUnknown, public IMAPIAdviseSink {
@@ -146,42 +142,42 @@ private:
     LPNOTIFCALLBACK lpFn;
 
 public:
-    M4LMAPIAdviseSink(LPNOTIFCALLBACK lpFn, void *lpContext);
-    virtual ULONG __stdcall OnNotify(ULONG cNotif, LPNOTIFICATION lpNotifications) _zcp_override;
+	M4LMAPIAdviseSink(LPNOTIFCALLBACK lpFn, void *lpContext);
+	virtual ULONG __stdcall OnNotify(ULONG cNotif, LPNOTIFICATION lpNotifications) _kc_override;
 
-    // iunknown passthru
-    virtual ULONG __stdcall AddRef(void) _zcp_override;
-    virtual ULONG __stdcall Release(void) _zcp_override;
-    virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lpvoid) _zcp_override;
+	// iunknown passthru
+	virtual ULONG __stdcall AddRef(void) _kc_override;
+	virtual ULONG __stdcall Release(void) _kc_override;
+	virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
 };
 
 
 /* for ABContainer */
 class M4LMAPIContainer : public M4LMAPIProp, public virtual IMAPIContainer {
 public:
-    virtual HRESULT __stdcall GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable) _zcp_override;
-    virtual HRESULT __stdcall GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable) _zcp_override;
-    virtual HRESULT __stdcall OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPUNKNOWN *lppUnk) _zcp_override;
-    virtual HRESULT __stdcall SetSearchCriteria(LPSRestriction lpRestriction, LPENTRYLIST lpContainerList, ULONG ulSearchFlags) _zcp_override;
-    virtual HRESULT __stdcall GetSearchCriteria(ULONG ulFlags, LPSRestriction *lppRestriction, LPENTRYLIST *lppContainerList, ULONG *lpulSearchState) _zcp_override;
+	virtual HRESULT __stdcall GetContentsTable(ULONG flags, LPMAPITABLE *lppTable) _kc_override;
+	virtual HRESULT __stdcall GetHierarchyTable(ULONG flags, LPMAPITABLE *lppTable) _kc_override;
+	virtual HRESULT __stdcall OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG flags, ULONG *lpulObjType, LPUNKNOWN *lppUnk) _kc_override;
+	virtual HRESULT __stdcall SetSearchCriteria(LPSRestriction lpRestriction, LPENTRYLIST lpContainerList, ULONG ulSearchFlags) _kc_override;
+	virtual HRESULT __stdcall GetSearchCriteria(ULONG flags, LPSRestriction *lppRestriction, LPENTRYLIST *lppContainerList, ULONG *lpulSearchState) _kc_override;
 
-    // imapiprop passthru
-    virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) _zcp_override;
-    virtual HRESULT __stdcall SaveChanges(ULONG ulFlags) _zcp_override;
-    virtual HRESULT __stdcall GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG *lpcValues, LPSPropValue *lppPropArray) _zcp_override;
-    virtual HRESULT __stdcall GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArray) _zcp_override;
-    virtual HRESULT __stdcall OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk) _zcp_override;
-    virtual HRESULT __stdcall SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray *lppProblems) _zcp_override;
-    virtual HRESULT __stdcall DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray *lppProblems) _zcp_override;
-    virtual HRESULT __stdcall CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArray lpExcludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems) _zcp_override;
-    virtual HRESULT __stdcall CopyProps(LPSPropTagArray lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems) _zcp_override;
-    virtual HRESULT __stdcall GetNamesFromIDs(LPSPropTagArray *lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG *lpcPropNames, LPMAPINAMEID **lpppPropNames) _zcp_override;
-    virtual HRESULT __stdcall GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropNames, ULONG ulFlags, LPSPropTagArray *lppPropTags) _zcp_override;
+	// imapiprop passthru
+	virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG flags, LPMAPIERROR *lppMAPIError) _kc_override;
+	virtual HRESULT __stdcall SaveChanges(ULONG flags) _kc_override;
+	virtual HRESULT __stdcall GetProps(LPSPropTagArray, ULONG flags, ULONG *lpcValues, LPSPropValue *lppPropArray) _kc_override;
+	virtual HRESULT __stdcall GetPropList(ULONG flags, LPSPropTagArray *) _kc_override;
+	virtual HRESULT __stdcall OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG flags, LPUNKNOWN *lppUnk) _kc_override;
+	virtual HRESULT __stdcall SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray *) _kc_override;
+	virtual HRESULT __stdcall DeleteProps(LPSPropTagArray, LPSPropProblemArray *) _kc_override;
+	virtual HRESULT __stdcall CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArray exclprop, ULONG ui_param, LPMAPIPROGRESS, LPCIID lpInterface, LPVOID lpDestObj, ULONG flags, LPSPropProblemArray *) _kc_override;
+	virtual HRESULT __stdcall CopyProps(LPSPropTagArray inclprop, ULONG ui_param, LPMAPIPROGRESS, LPCIID lpInterface, LPVOID lpDestObj, ULONG flags, LPSPropProblemArray *) _kc_override;
+	virtual HRESULT __stdcall GetNamesFromIDs(LPSPropTagArray *, LPGUID lpPropSetGuid, ULONG flags, ULONG *lpcPropNames, LPMAPINAMEID **lpppPropNames) _kc_override;
+	virtual HRESULT __stdcall GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropNames, ULONG flags, LPSPropTagArray *) _kc_override;
 
-    // iunknown passthru
-    virtual ULONG __stdcall AddRef(void) _zcp_override;
-    virtual ULONG __stdcall Release(void) _zcp_override;
-    virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lpvoid) _zcp_override;
+	// iunknown passthru
+	virtual ULONG __stdcall AddRef(void) _kc_override;
+	virtual ULONG __stdcall Release(void) _kc_override;
+	virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
 };
 
 
@@ -200,35 +196,35 @@ private:
 public:
 	M4LABContainer(const std::list<abEntry> &lABEntries);
 
-	virtual HRESULT __stdcall CreateEntry(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulCreateFlags, LPMAPIPROP *lppMAPIPropEntry) _zcp_override;
-	virtual HRESULT __stdcall CopyEntries(LPENTRYLIST lpEntries, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags) _zcp_override;
-	virtual HRESULT __stdcall DeleteEntries(LPENTRYLIST lpEntries, ULONG ulFlags) _zcp_override;
-	virtual HRESULT __stdcall ResolveNames(LPSPropTagArray lpPropTagArray, ULONG ulFlags, LPADRLIST lpAdrList, LPFlagList lpFlagList) _zcp_override;
+	virtual HRESULT __stdcall CreateEntry(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulCreateFlags, LPMAPIPROP *lppMAPIPropEntry) _kc_override;
+	virtual HRESULT __stdcall CopyEntries(LPENTRYLIST lpEntries, ULONG ui_param, LPMAPIPROGRESS, ULONG flags) _kc_override;
+	virtual HRESULT __stdcall DeleteEntries(LPENTRYLIST lpEntries, ULONG flags) _kc_override;
+	virtual HRESULT __stdcall ResolveNames(LPSPropTagArray, ULONG flags, LPADRLIST lpAdrList, LPFlagList lpFlagList) _kc_override;
 
 	// imapicontainer passthu
-    virtual HRESULT __stdcall GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable) _zcp_override;
-    virtual HRESULT __stdcall GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable) _zcp_override;
-    virtual HRESULT __stdcall OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPUNKNOWN *lppUnk) _zcp_override;
-    virtual HRESULT __stdcall SetSearchCriteria(LPSRestriction lpRestriction, LPENTRYLIST lpContainerList, ULONG ulSearchFlags) _zcp_override;
-    virtual HRESULT __stdcall GetSearchCriteria(ULONG ulFlags, LPSRestriction *lppRestriction, LPENTRYLIST *lppContainerList, ULONG *lpulSearchState) _zcp_override;
+	virtual HRESULT __stdcall GetContentsTable(ULONG flags, LPMAPITABLE *lppTable) _kc_override;
+	virtual HRESULT __stdcall GetHierarchyTable(ULONG flags, LPMAPITABLE *lppTable) _kc_override;
+	virtual HRESULT __stdcall OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG flags, ULONG *lpulObjType, LPUNKNOWN *lppUnk) _kc_override;
+	virtual HRESULT __stdcall SetSearchCriteria(LPSRestriction lpRestriction, LPENTRYLIST lpContainerList, ULONG ulSearchFlags) _kc_override;
+	virtual HRESULT __stdcall GetSearchCriteria(ULONG flags, LPSRestriction *lppRestriction, LPENTRYLIST *lppContainerList, ULONG *lpulSearchState) _kc_override;
 
-    // imapiprop passthru
-    virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) _zcp_override;
-    virtual HRESULT __stdcall SaveChanges(ULONG ulFlags) _zcp_override;
-    virtual HRESULT __stdcall GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG *lpcValues, LPSPropValue *lppPropArray) _zcp_override;
-    virtual HRESULT __stdcall GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArray) _zcp_override;
-    virtual HRESULT __stdcall OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk) _zcp_override;
-    virtual HRESULT __stdcall SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray *lppProblems) _zcp_override;
-    virtual HRESULT __stdcall DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray *lppProblems) _zcp_override;
-    virtual HRESULT __stdcall CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArray lpExcludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems) _zcp_override;
-    virtual HRESULT __stdcall CopyProps(LPSPropTagArray lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems) _zcp_override;
-    virtual HRESULT __stdcall GetNamesFromIDs(LPSPropTagArray *lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG *lpcPropNames, LPMAPINAMEID **lpppPropNames) _zcp_override;
-    virtual HRESULT __stdcall GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropNames, ULONG ulFlags, LPSPropTagArray *lppPropTags) _zcp_override;
+	// imapiprop passthru
+	virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG flags, LPMAPIERROR *lppMAPIError) _kc_override;
+	virtual HRESULT __stdcall SaveChanges(ULONG flags) _kc_override;
+	virtual HRESULT __stdcall GetProps(LPSPropTagArray, ULONG flags, ULONG *lpcValues, LPSPropValue *lppPropArray) _kc_override;
+	virtual HRESULT __stdcall GetPropList(ULONG flags, LPSPropTagArray *) _kc_override;
+	virtual HRESULT __stdcall OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG flags, LPUNKNOWN *lppUnk) _kc_override;
+	virtual HRESULT __stdcall SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray *) _kc_override;
+	virtual HRESULT __stdcall DeleteProps(LPSPropTagArray, LPSPropProblemArray *) _kc_override;
+	virtual HRESULT __stdcall CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArray exclprop, ULONG ui_param, LPMAPIPROGRESS, LPCIID lpInterface, LPVOID lpDestObj, ULONG flags, LPSPropProblemArray *) _kc_override;
+	virtual HRESULT __stdcall CopyProps(LPSPropTagArray inclprop, ULONG ui_param, LPMAPIPROGRESS, LPCIID lpInterface, LPVOID lpDestObj, ULONG flags, LPSPropProblemArray *) _kc_override;
+	virtual HRESULT __stdcall GetNamesFromIDs(LPSPropTagArray *, LPGUID lpPropSetGuid, ULONG flags, ULONG *lpcPropNames, LPMAPINAMEID **lpppPropNames) _kc_override;
+	virtual HRESULT __stdcall GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropNames, ULONG flags, LPSPropTagArray *) _kc_override;
 
-    // iunknown passthru
-    virtual ULONG __stdcall AddRef(void) _zcp_override;
-    virtual ULONG __stdcall Release(void) _zcp_override;
-    virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lpvoid) _zcp_override;
+	// iunknown passthru
+	virtual ULONG __stdcall AddRef(void) _kc_override;
+	virtual ULONG __stdcall Release(void) _kc_override;
+	virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
 };
 
 #endif

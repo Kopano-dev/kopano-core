@@ -140,13 +140,13 @@ private:
 		#include <kopano/xclsfrag/IUnknown.hpp>
 
 		// <kopano/xclsfrag/IECChangeAdvisor.hpp>
-		virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) _zcp_override;
-		virtual HRESULT __stdcall Config(LPSTREAM lpStream, LPGUID lpGUID, IECChangeAdviseSink *lpAdviseSink, ULONG ulFlags) _zcp_override;
-		virtual HRESULT __stdcall UpdateState(LPSTREAM lpStream) _zcp_override;
-		virtual HRESULT __stdcall AddKeys(LPENTRYLIST lpEntryList) _zcp_override;
-		virtual HRESULT __stdcall RemoveKeys(LPENTRYLIST lpEntryList) _zcp_override;
-		virtual HRESULT __stdcall IsMonitoringSyncId(ULONG ulSyncId) _zcp_override;
-		virtual HRESULT __stdcall UpdateSyncState(ULONG ulSyncId, ULONG ulChangeId) _zcp_override;
+		virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG flags, LPMAPIERROR *lppMAPIError) _kc_override;
+		virtual HRESULT __stdcall Config(LPSTREAM lpStream, LPGUID lpGUID, IECChangeAdviseSink *lpAdviseSink, ULONG flags) _kc_override;
+		virtual HRESULT __stdcall UpdateState(LPSTREAM lpStream) _kc_override;
+		virtual HRESULT __stdcall AddKeys(LPENTRYLIST lpEntryList) _kc_override;
+		virtual HRESULT __stdcall RemoveKeys(LPENTRYLIST lpEntryList) _kc_override;
+		virtual HRESULT __stdcall IsMonitoringSyncId(ULONG ulSyncId) _kc_override;
+		virtual HRESULT __stdcall UpdateSyncState(ULONG ulSyncId, ULONG ulChangeId) _kc_override;
 	} m_xECChangeAdvisor;
 
 	ECMsgStore				*m_lpMsgStore;

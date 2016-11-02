@@ -138,8 +138,8 @@ public:
 	: m_lstRestrictions(1, ResPtr(restriction.Clone())) 
 	{ }
 
-	HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const _zcp_override;
-	ECRestriction *Clone() const _zcp_override;
+	HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction res, ULONG flags) const _kc_override;
+	ECRestriction *Clone(void) const _kc_override;
 
 	HRESULT append(const ECRestriction &restriction) {
 		m_lstRestrictions.push_back(ResPtr(restriction.Clone()));
@@ -161,8 +161,8 @@ public:
 	: m_lstRestrictions(1, ResPtr(restriction.Clone())) 
 	{ }
 	
-	HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const _zcp_override;
-	ECRestriction *Clone() const _zcp_override;
+	HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
+	ECRestriction *Clone(void) const _kc_override;
 
 	HRESULT append(const ECRestriction &restriction) {
 		m_lstRestrictions.push_back(ResPtr(restriction.Clone()));
@@ -181,8 +181,8 @@ public:
 	: m_ptrRestriction(ResPtr(restriction.Clone())) 
 	{ }
 
-	HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const _zcp_override;
-	ECRestriction *Clone() const _zcp_override;
+	HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
+	ECRestriction *Clone(void) const _kc_override;
 
 private:
 	ECNotRestriction(ResPtr ptrRestriction);
@@ -194,9 +194,8 @@ private:
 class ECContentRestriction _kc_final : public ECRestriction {
 public:
 	ECContentRestriction(ULONG ulFuzzyLevel, ULONG ulPropTag, LPSPropValue lpProp, ULONG ulFlags = 0);
-
-	HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const _zcp_override;
-	ECRestriction *Clone() const _zcp_override;
+	HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
+	ECRestriction *Clone(void) const _kc_override;
 
 private:
 	ECContentRestriction(ULONG ulFuzzyLevel, ULONG ulPropTag, PropPtr ptrProp);
@@ -215,8 +214,8 @@ public:
 	, m_ulMask(ulMask) 
 	{ }
 
-	HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const _zcp_override;
-	ECRestriction *Clone() const _zcp_override;
+	HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
+	ECRestriction *Clone(void) const _kc_override;
 
 private:
 	ULONG	m_relBMR;
@@ -227,9 +226,8 @@ private:
 class ECPropertyRestriction _kc_final : public ECRestriction {
 public:
 	ECPropertyRestriction(ULONG relop, ULONG ulPropTag, LPSPropValue lpProp, ULONG ulFlags = 0);
-
-	HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const _zcp_override;
-	ECRestriction *Clone() const _zcp_override;
+	HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
+	ECRestriction *Clone(void) const _kc_override;
 
 private:
 	ECPropertyRestriction(ULONG relop, ULONG ulPropTag, PropPtr ptrProp);
@@ -248,8 +246,8 @@ public:
 	, m_ulPropTag2(ulPropTag2)
 	{ }
 
-	HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const _zcp_override;
-	ECRestriction *Clone() const _zcp_override;
+	HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
+	ECRestriction *Clone(void) const _kc_override;
 
 private:
 	ULONG	m_relop;
@@ -265,8 +263,8 @@ public:
 	, m_cb(cb)
 	{ }
 
-	HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const _zcp_override;
-	ECRestriction *Clone() const _zcp_override;
+	HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
+	ECRestriction *Clone(void) const _kc_override;
 
 private:
 	ULONG	m_relop;
@@ -280,8 +278,8 @@ public:
 	: m_ulPropTag(ulPropTag) 
 	{ }
 
-	HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const _zcp_override;
-	ECRestriction *Clone() const _zcp_override;
+	HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
+	ECRestriction *Clone(void) const _kc_override;
 
 private:
 	ULONG	m_ulPropTag;
@@ -294,8 +292,8 @@ public:
 	, m_ptrRestriction(ResPtr(restriction.Clone()))
 	{ }
 
-	HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const _zcp_override;
-	ECRestriction *Clone() const _zcp_override;
+	HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
+	ECRestriction *Clone(void) const _kc_override;
 
 private:
 	ECSubRestriction(ULONG ulSubObject, ResPtr ptrRestriction);
@@ -308,9 +306,8 @@ private:
 class ECCommentRestriction _kc_final : public ECRestriction {
 public:
 	ECCommentRestriction(const ECRestriction &restriction, ULONG cValues, LPSPropValue lpProp, ULONG ulFlags = 0);
-
-	HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const _zcp_override;
-	ECRestriction *Clone() const _zcp_override;
+	HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
+	ECRestriction *Clone(void) const _kc_override;
 
 private:
 	ECCommentRestriction(ResPtr ptrRestriction, ULONG cValues, PropPtr ptrProp);
@@ -328,9 +325,8 @@ private:
 class ECRawRestriction _kc_final : public ECRestriction {
 public:
 	ECRawRestriction(LPSRestriction lpRestriction, ULONG ulFlags = 0);
-
-	HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const _zcp_override;
-	ECRestriction *Clone() const _zcp_override;
+	HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
+	ECRestriction *Clone(void) const _kc_override;
 
 private:
 	typedef std::shared_ptr<SRestriction> RawResPtr;

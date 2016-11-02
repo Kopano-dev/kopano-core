@@ -38,8 +38,8 @@ public:
 		#include <kopano/xclsfrag/IUnknown.hpp>
 
 		// <kopano/xclsfrag/IXPProvider.hpp>
-		virtual HRESULT __stdcall Shutdown(ULONG * lpulFlags);
-		virtual HRESULT __stdcall TransportLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG *lpulFlags, LPMAPIERROR *lppMAPIError, LPXPLOGON *lppXPLogon);
+		virtual HRESULT __stdcall Shutdown(ULONG *flags) _kc_override;
+		virtual HRESULT __stdcall TransportLogon(LPMAPISUP, ULONG ui_param, LPTSTR profname, ULONG *flags, LPMAPIERROR *err, LPXPLOGON *) _kc_override;
 	} m_xXPProvider;
 	
 	LPSPropValue	m_lpIdentityProps;

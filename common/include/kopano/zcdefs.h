@@ -27,16 +27,14 @@
 #define ZCOMMON_DEFS_H 1
 
 /* Minimum requirement for KC is g++ 4.6, g++0x mode. */
-/* Swig is too stupid to grok C++11 at all. */
+/* Swig is not bright enough to grok all C++11. */
 #if defined(SWIG) || defined(__GNUG__) && __GNUG__ == 4 && __GNUG_MINOR__ < 7
 #	define _kc_final
 #	define _kc_override
-#	define _zcp_override
 #else
 	/* From g++ 4.7 onwards */
 #	define _kc_final final
 #	define _kc_override override
-#	define _zcp_override _kc_override
 #endif
 
 /* Mark classes which explicitly must not be final in the C++ side… for SWIG */

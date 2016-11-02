@@ -83,26 +83,27 @@ private:
 	class xECChangeAdviseSink _kc_final : public IECChangeAdviseSink {
 	public:
 		// <kopano/xclsfrag/IUnknown.hpp>
-		virtual ULONG __stdcall AddRef(void) _zcp_override
+		virtual ULONG __stdcall AddRef(void) _kc_override
 		{
 			METHOD_PROLOGUE_(ECChangeAdviseSink, ECChangeAdviseSink);
 			return pThis->AddRef();
 		}
 
-		virtual ULONG __stdcall Release(void) _zcp_override
+		virtual ULONG __stdcall Release(void) _kc_override
 		{
 			METHOD_PROLOGUE_(ECChangeAdviseSink, ECChangeAdviseSink);
 			return pThis->Release();
 		}
 
-		virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **pInterface) _zcp_override
+		virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **pInterface) _kc_override
 		{
 			METHOD_PROLOGUE_(ECChangeAdviseSink, ECChangeAdviseSink);
 			return pThis->QueryInterface(refiid, pInterface);
 		}
 
 		// <kopano/xclsfrag/IExchangeChangeAdviseSink.hpp>
-		virtual ULONG __stdcall OnNotify(ULONG ulFlags, LPENTRYLIST lpEntryList) {
+		virtual ULONG __stdcall OnNotify(ULONG ulFlags, LPENTRYLIST lpEntryList) _kc_override
+		{
 			METHOD_PROLOGUE_(ECChangeAdviseSink, ECChangeAdviseSink);
 			return pThis->OnNotify(ulFlags, lpEntryList);
 		}

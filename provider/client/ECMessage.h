@@ -135,14 +135,14 @@ public:
 		#include <kopano/xclsfrag/IMAPIProp.hpp>
 
 		// <kopano/xclsfrag/IMessage.hpp>
-		virtual HRESULT __stdcall GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable);
-		virtual HRESULT __stdcall OpenAttach(ULONG ulAttachmentNum, LPCIID lpInterface, ULONG ulFlags, LPATTACH *lppAttach);
-		virtual HRESULT __stdcall CreateAttach(LPCIID lpInterface, ULONG ulFlags, ULONG *lpulAttachmentNum, LPATTACH *lppAttach);
-		virtual HRESULT __stdcall DeleteAttach(ULONG ulAttachmentNum, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags);
-		virtual HRESULT __stdcall GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable);
-		virtual HRESULT __stdcall ModifyRecipients(ULONG ulFlags, LPADRLIST lpMods);
-		virtual HRESULT __stdcall SubmitMessage(ULONG ulFlags);
-		virtual HRESULT __stdcall SetReadFlag(ULONG ulFlags);
+		virtual HRESULT __stdcall GetAttachmentTable(ULONG flags, LPMAPITABLE *lppTable) _kc_override;
+		virtual HRESULT __stdcall OpenAttach(ULONG ulAttachmentNum, LPCIID lpInterface, ULONG flags, LPATTACH *lppAttach) _kc_override;
+		virtual HRESULT __stdcall CreateAttach(LPCIID lpInterface, ULONG flags, ULONG *lpulAttachmentNum, LPATTACH *lppAttach) _kc_override;
+		virtual HRESULT __stdcall DeleteAttach(ULONG ulAttachmentNum, ULONG ui_param, LPMAPIPROGRESS lpProgress, ULONG flags) _kc_override;
+		virtual HRESULT __stdcall GetRecipientTable(ULONG flags, LPMAPITABLE *lppTable) _kc_override;
+		virtual HRESULT __stdcall ModifyRecipients(ULONG flags, LPADRLIST lpMods) _kc_override;
+		virtual HRESULT __stdcall SubmitMessage(ULONG flags) _kc_override;
+		virtual HRESULT __stdcall SetReadFlag(ULONG flags) _kc_override;
 	} m_xMessage;
 
 protected:

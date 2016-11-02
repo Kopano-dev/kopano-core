@@ -58,11 +58,11 @@ public:
 		#include <kopano/xclsfrag/IUnknown.hpp>
 
 			// <kopano/xclsfrag/IEnumFBBlock.hpp>
-			virtual HRESULT __stdcall Next(LONG celt, FBBlock_1 *pblk, LONG *pcfetch) _zcp_override;
-			virtual HRESULT __stdcall Skip(LONG celt) _zcp_override;
-			virtual HRESULT __stdcall Reset() _zcp_override;
-			virtual HRESULT __stdcall Clone(IEnumFBBlock **ppclone) _zcp_override;
-			virtual HRESULT __stdcall Restrict(FILETIME ftmStart, FILETIME ftmEnd);
+			virtual HRESULT __stdcall Next(LONG celt, FBBlock_1 *pblk, LONG *pcfetch) _kc_override;
+			virtual HRESULT __stdcall Skip(LONG celt) _kc_override;
+			virtual HRESULT __stdcall Reset(void) _kc_override;
+			virtual HRESULT __stdcall Clone(IEnumFBBlock **ppclone) _kc_override;
+			virtual HRESULT __stdcall Restrict(FILETIME start, FILETIME end) _kc_override;
 	} m_xEnumFBBlock;
 
 	ECFBBlockList	m_FBBlock; /**< Freebusy time blocks */

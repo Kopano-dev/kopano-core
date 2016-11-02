@@ -88,7 +88,7 @@ public:
 	class xFreeBusySupport _kc_final : public IFreeBusySupport {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IFreeBusySupport.hpp>
-		virtual HRESULT __stdcall CleanTombstone(void) _zcp_override;
+		virtual HRESULT __stdcall CleanTombstone(void) _kc_override;
 	} m_xFreeBusySupport;
 
 	// Interface for Outlook 2000
