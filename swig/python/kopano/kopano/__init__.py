@@ -175,7 +175,7 @@ def DEFINE_ABEID(type, id):
     return struct.pack("4B16s3I4B", 0, 0, 0, 0, MUIDECSAB, 0, type, id, 0, 0, 0, 0)
 EID_EVERYONE = DEFINE_ABEID(MAPI_DISTLIST, 1)
 
-ADDR_PROPS = [ 
+ADDR_PROPS = [
     (PR_ADDRTYPE_W, PR_EMAIL_ADDRESS_W, PR_ENTRYID, PR_DISPLAY_NAME_W, PR_SEARCH_KEY),
     (PR_SENDER_ADDRTYPE_W, PR_SENDER_EMAIL_ADDRESS_W, PR_SENDER_ENTRYID, PR_SENDER_NAME_W, PR_SENDER_SEARCH_KEY),
     (PR_RECEIVED_BY_ADDRTYPE_W, PR_RECEIVED_BY_EMAIL_ADDRESS_W, PR_RECEIVED_BY_ENTRYID, PR_RECEIVED_BY_NAME_W, PR_RECEIVED_BY_SEARCH_KEY),
@@ -189,7 +189,7 @@ ADDR_PROPS = [
 # Defines for recurrence exceptions
 ARO_SUBJECT =	0x0001
 ARO_MEETINGTYPE = 0x0002
-ARO_REMINDERDELTA = 	0x0004
+ARO_REMINDERDELTA = 0x0004
 ARO_REMINDERSET	= 0x0008
 ARO_LOCATION = 0x0010
 ARO_BUSYSTATUS	= 0x0020
@@ -768,7 +768,7 @@ class Table(object):
         for row in self.mapitable.QueryRows(-1, 0):
             d[PpropFindProp(row, key).Value] = dict((c.ulPropTag, c.Value) for c in row)
         return d
- 
+
     def data(self, header=False):
         data = [[p.strval for p in row] for row in self.rows()]
         if header:
@@ -804,9 +804,9 @@ class Table(object):
         return u'Table(%s)' % REV_TAG.get(self.proptag)
 
 class Server(object):
-    """Server class 
+    """Server class
 
-    By default, tries to connect to a storage server as configured in ``/etc/kopano/admin.cfg`` or 
+    By default, tries to connect to a storage server as configured in ``/etc/kopano/admin.cfg`` or
     at UNIX socket ``/var/run/kopano/server.sock``
 
     Looks at command-line to see if another server address or other related options were given (such as -c, -s, -k, -p)
@@ -1153,7 +1153,7 @@ class Server(object):
         :param remote: include stores on other nodes
 
         """
-    
+
         if parse and getattr(self.options, 'stores', None):
             for guid in self.options.stores:
                 if guid == 'public': # XXX check self.options.companies?
@@ -1867,7 +1867,7 @@ class Store(object):
         table = self.common_views.mapiobj.GetContentsTable(MAPI_ASSOCIATED)
         table.SetColumns([PR_MESSAGE_CLASS, PR_SUBJECT, PR_WLINK_ENTRYID, PR_WLINK_FLAGS, PR_WLINK_ORDINAL, PR_WLINK_STORE_ENTRYID, PR_WLINK_TYPE], 0)
         table.Restrict(SPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS, SPropValue(PR_MESSAGE_CLASS, "IPM.Microsoft.WunderBar.Link")), TBL_BATCH)
-        
+
         for row in table.QueryRows(-1, 0):
             entryid = bin2hex(row[2].Value)
             store_entryid = bin2hex(row[5].Value)
@@ -2457,17 +2457,17 @@ class Item(object):
         # TODO: self.folder fix this!
         self.emlfile = eml
         self._folder = None
-        if isinstance(parent, Folder): 
+        if isinstance(parent, Folder):
             self._folder = parent
         # XXX
         self._architem = None
 
         if mapiobj:
             self.mapiobj = mapiobj
-            if isinstance(parent, Store): 
+            if isinstance(parent, Store):
                 self.server = parent.server
             # XXX
-            
+
         elif create:
             self.mapiobj = self.folder.mapiobj.CreateMessage(None, 0)
             self.store = self.folder.store
@@ -3208,11 +3208,11 @@ class Body:
     def type_(self):
         """ original body type: 'text', 'html', 'rtf' or None if it cannot be determined """
         tag = _bestbody(self.mapiitem.mapiobj)
-        if tag == PR_BODY_W: 
+        if tag == PR_BODY_W:
             return 'text'
-        elif tag == PR_HTML: 
+        elif tag == PR_HTML:
             return 'html'
-        elif tag == PR_RTF_COMPRESSED: 
+        elif tag == PR_RTF_COMPRESSED:
             return 'rtf'
 
     def __unicode__(self):
@@ -3301,7 +3301,7 @@ class Recurrence:
 
         self.start = datetime.datetime(self.start.year, self.start.month, self.start.day) + datetime.timedelta(minutes=self.startime_offset)
         self.end = datetime.datetime(self.end.year, self.end.month, self.end.day) + datetime.timedelta(minutes=self.endtime_offset)
-        
+
         # Exceptions
         self.exception_count = _unpack_short(value, pos)
         pos += SHORT
@@ -3600,7 +3600,7 @@ class Attachment(object):
             return int(HrGetOneProp(self.mapiobj, PR_ATTACH_SIZE).Value)
         except MAPIErrorNotFound:
             return 0 # XXX
-        
+
     def __len__(self):
         return self.size
 
@@ -3757,7 +3757,7 @@ class User(object):
     @property
     def company(self):
         """ :class:`Company` the user belongs to """
-        
+
         try:
             return Company(HrGetOneProp(self.mapiobj, PR_EC_COMPANY_NAME_W).Value, self.server)
         except MAPIErrorNoSupport:
