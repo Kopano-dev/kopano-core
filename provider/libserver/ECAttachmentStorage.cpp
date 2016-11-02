@@ -2165,7 +2165,7 @@ ECRESULT ECFileAttachment::GetSizeInstance(ULONG ulInstanceId, size_t *lpulSize,
 			goto exit;
 		}
 		if (st.st_size >= 40 && atsize == 0) {
-			ec_log_warn("ECFileAttachment: %s seems to be an unsupported multi-stream gzip file (KC-64).", filename.c_str());
+			ec_log_warn("ECFileAttachment: %s seems to be an unsupported multi-stream gzip file (KC-104).", filename.c_str());
 			//er = KCERR_DATABASE_ERROR;
 			goto exit;
 		}
