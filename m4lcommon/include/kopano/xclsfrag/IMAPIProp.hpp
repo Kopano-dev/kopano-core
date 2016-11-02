@@ -1,0 +1,11 @@
+virtual HRESULT __stdcall GetLastError(HRESULT hError, ULONG flags, LPMAPIERROR *lppMapiError) _kc_override;
+virtual HRESULT __stdcall SaveChanges(ULONG flags) _kc_override;
+virtual HRESULT __stdcall GetProps(LPSPropTagArray lpPropTagArray, ULONG flags, ULONG *lpcValues, LPSPropValue *lppPropArray) _kc_override;
+virtual HRESULT __stdcall GetPropList(ULONG flags, LPSPropTagArray *lppPropTagArray) _kc_override;
+virtual HRESULT __stdcall OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG flags, LPUNKNOWN *lppUnk) _kc_override;
+virtual HRESULT __stdcall SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray *lppProblems) _kc_override;
+virtual HRESULT __stdcall DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray *lppProblems) _kc_override;
+virtual HRESULT __stdcall CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArray exclprop, ULONG ui_param, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG flags, LPSPropProblemArray *lppProblems) _kc_override;
+virtual HRESULT __stdcall CopyProps(LPSPropTagArray inclprop, ULONG ui_param, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG flags, LPSPropProblemArray *lppProblems) _kc_override;
+virtual HRESULT __stdcall GetNamesFromIDs(LPSPropTagArray *pptaga, LPGUID lpguid, ULONG flags, ULONG *pcNames, LPMAPINAMEID **pppNames) _kc_override;
+virtual HRESULT __stdcall GetIDsFromNames(ULONG cNames, LPMAPINAMEID *ppNames, ULONG flags, LPSPropTagArray *pptaga) _kc_override;

@@ -85,11 +85,7 @@ public:
 	virtual HRESULT RemoveChild(ECUnknown *lpChild);
 
 	class xUnknown _zcp_final : public IUnknown {
-	public:
-		// From IUnknown
-		virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lppInterface) _zcp_override;
-		virtual ULONG __stdcall AddRef(void) _zcp_override;
-		virtual ULONG __stdcall Release(void) _zcp_override;
+		#include <kopano/xclsfrag/IUnknown.hpp>
 	} m_xUnknown;
 
 	// lpParent is public because it is always thread-safe and valid

@@ -82,7 +82,7 @@ public:
 private:
 	class xECChangeAdviseSink _zcp_final : public IECChangeAdviseSink {
 	public:
-		// IUnknown
+		// <kopano/xclsfrag/IUnknown.hpp>
 		virtual ULONG __stdcall AddRef(void) _zcp_override
 		{
 			METHOD_PROLOGUE_(ECChangeAdviseSink, ECChangeAdviseSink);
@@ -101,7 +101,7 @@ private:
 			return pThis->QueryInterface(refiid, pInterface);
 		}
 
-		// IExchangeChangeAdviseSink
+		// <kopano/xclsfrag/IExchangeChangeAdviseSink.hpp>
 		virtual ULONG __stdcall OnNotify(ULONG ulFlags, LPENTRYLIST lpEntryList) {
 			METHOD_PROLOGUE_(ECChangeAdviseSink, ECChangeAdviseSink);
 			return pThis->OnNotify(ulFlags, lpEntryList);

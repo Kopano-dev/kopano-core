@@ -58,12 +58,9 @@ private:
 
 private:
 	class xECExportChanges _zcp_final : public IECExportChanges {
-		// IUnknown
-		virtual ULONG __stdcall AddRef(void) _zcp_override;
-		virtual ULONG __stdcall Release(void) _zcp_override;
-		virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lppInterface) _zcp_override;
+		#include <kopano/xclsfrag/IUnknown.hpp>
 
-		// IExchangeExportChanges
+		// <kopano/xclsfrag/IExchangeExportChanges.hpp>
 		virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
 		virtual HRESULT __stdcall Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKNOWN lpCollector, LPSRestriction lpRestriction, LPSPropTagArray lpIncludeProps, LPSPropTagArray lpExcludeProps, ULONG ulBufferSize);
 		virtual HRESULT __stdcall Synchronize(ULONG *pulSteps, ULONG *pulProgress);

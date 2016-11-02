@@ -76,20 +76,8 @@ private:
 
 public:
 	class xECPropStorage _zcp_final : public IECPropStorage {
-		public:
-			// IECUnknown
-			virtual ULONG AddRef(void) _zcp_override;
-			virtual ULONG Release(void) _zcp_override;
-			virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _zcp_override;
-
-			// IECPropStorage
-			virtual HRESULT HrReadProps(LPSPropTagArray *lppPropTags,ULONG *cValues, LPSPropValue *lppValues);
-			virtual HRESULT HrLoadProp(ULONG ulObjId, ULONG ulPropTag, LPSPropValue *lppsPropValue);
-			virtual	HRESULT	HrWriteProps(ULONG cValues, LPSPropValue lpValues, ULONG ulFlags = 0);
-			virtual HRESULT HrDeleteProps(LPSPropTagArray lpsPropTagArray);
-			virtual HRESULT HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject);
-			virtual HRESULT HrLoadObject(MAPIOBJECT **lppsMapiObject);
-			virtual IECPropStorage* GetServerStorage();
+		#include <kopano/xclsfrag/IECUnknown.hpp>
+		#include <kopano/xclsfrag/IECPropStorage.hpp>
 	} m_xECPropStorage;
 
 private:

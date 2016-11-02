@@ -32,16 +32,9 @@ public:
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface);
 
 	class xABProvider _zcp_final : public IABProvider {
-		// IUnknown
-		virtual ULONG __stdcall AddRef(void) _zcp_override;
-		virtual ULONG __stdcall Release(void) _zcp_override;
-		virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lppInterface) _zcp_override;
-
-		//IABProvider
-		virtual HRESULT __stdcall Shutdown(ULONG * lpulFlags);
-		virtual HRESULT __stdcall Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG ulFlags, ULONG * lpulcbSecurity, LPBYTE * lppbSecurity, LPMAPIERROR * lppMAPIError, LPABLOGON * lppABLogon);
-
-	}m_xABProvider;
+		#include <kopano/xclsfrag/IUnknown.hpp>
+		#include <kopano/xclsfrag/IABProvider.hpp>
+	} m_xABProvider;
 };
 
 #endif // #ifndef ECABPROVIDEROFFLINE_H

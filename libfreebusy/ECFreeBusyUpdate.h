@@ -62,13 +62,8 @@ public:
 
 public:
 	class xFreeBusyUpdate _zcp_final : public IFreeBusyUpdate {
-		public:
-		// From IUnknown
-		virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lppInterface) _zcp_override;
-		virtual ULONG __stdcall AddRef(void) _zcp_override;
-		virtual ULONG __stdcall Release(void) _zcp_override;
-
-		// From IFreeBusyUpdate
+		#include <kopano/xclsfrag/IUnknown.hpp>
+		// <kopano/xclsfrag/IFreeBusyUpdate.hpp>
 		virtual HRESULT __stdcall Reload(void) _zcp_override;
 		virtual HRESULT __stdcall PublishFreeBusy(FBBlock_1 *lpBlocks, ULONG nBlocks) _zcp_override;
 		virtual HRESULT __stdcall RemoveAppt(void) _zcp_override;
@@ -77,8 +72,7 @@ public:
 		virtual HRESULT __stdcall SaveChanges(FILETIME ftBegin, FILETIME ftEnd) _zcp_override;
 		virtual HRESULT __stdcall GetFBTimes(void) _zcp_override;
 		virtual HRESULT __stdcall Intersect(void) _zcp_override;
-
-	}m_xFreeBusyUpdate;
+	} m_xFreeBusyUpdate;
 
 private:
 	IMessage*		m_lpMessage; /**< Pointer to the free/busy message received from GetFreeBusyMessage */

@@ -137,12 +137,9 @@ private:
 	HRESULT							PurgeStates();
 
 	class xECChangeAdvisor _zcp_final : public IECChangeAdvisor {
-		// IUnknown
-		virtual ULONG __stdcall AddRef(void) _zcp_override;
-		virtual ULONG __stdcall Release(void) _zcp_override;
-		virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **pInterface) _zcp_override;
+		#include <kopano/xclsfrag/IUnknown.hpp>
 
-		// IECChangeAdvisor
+		// <kopano/xclsfrag/IECChangeAdvisor.hpp>
 		virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) _zcp_override;
 		virtual HRESULT __stdcall Config(LPSTREAM lpStream, LPGUID lpGUID, IECChangeAdviseSink *lpAdviseSink, ULONG ulFlags) _zcp_override;
 		virtual HRESULT __stdcall UpdateState(LPSTREAM lpStream) _zcp_override;
@@ -151,7 +148,6 @@ private:
 		virtual HRESULT __stdcall IsMonitoringSyncId(ULONG ulSyncId) _zcp_override;
 		virtual HRESULT __stdcall UpdateSyncState(ULONG ulSyncId, ULONG ulChangeId) _zcp_override;
 	} m_xECChangeAdvisor;
-
 
 	ECMsgStore				*m_lpMsgStore;
 	IECChangeAdviseSink *m_lpChangeAdviseSink;

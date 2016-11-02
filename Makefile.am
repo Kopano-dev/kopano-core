@@ -727,6 +727,31 @@ libm4lcommon_la_SOURCES = \
 # These were split off the old libcommon_util
 noinst_HEADERS += \
 	m4lcommon/ECFeatures.h
+noinst_HEADERS += \
+	m4lcommon/include/kopano/xclsfrag/IABContainer.hpp \
+	m4lcommon/include/kopano/xclsfrag/IABLogon.hpp \
+	m4lcommon/include/kopano/xclsfrag/IABProvider.hpp \
+	m4lcommon/include/kopano/xclsfrag/IECExchangeModifyTable.hpp \
+	m4lcommon/include/kopano/xclsfrag/IECExportAddressbookChanges.hpp \
+	m4lcommon/include/kopano/xclsfrag/IECPropStorage.hpp \
+	m4lcommon/include/kopano/xclsfrag/IECSecurity.hpp \
+	m4lcommon/include/kopano/xclsfrag/IECSingleInstance.hpp \
+	m4lcommon/include/kopano/xclsfrag/IECUnknown.hpp \
+	m4lcommon/include/kopano/xclsfrag/IExchangeExportChanges.hpp \
+	m4lcommon/include/kopano/xclsfrag/IExchangeManageStore.hpp \
+	m4lcommon/include/kopano/xclsfrag/IExchangeModifyTable.hpp \
+	m4lcommon/include/kopano/xclsfrag/IExchangeRuleAction.hpp \
+	m4lcommon/include/kopano/xclsfrag/IFolderSupport.hpp \
+	m4lcommon/include/kopano/xclsfrag/IFreeBusySupport.hpp \
+	m4lcommon/include/kopano/xclsfrag/IMAPIContainer.hpp \
+	m4lcommon/include/kopano/xclsfrag/IMAPIFolder.hpp \
+	m4lcommon/include/kopano/xclsfrag/IMAPIProp.hpp \
+	m4lcommon/include/kopano/xclsfrag/IMAPITable.hpp \
+	m4lcommon/include/kopano/xclsfrag/IMSProvider.hpp \
+	m4lcommon/include/kopano/xclsfrag/IMsgStore.hpp \
+	m4lcommon/include/kopano/xclsfrag/ISequentialStream.hpp \
+	m4lcommon/include/kopano/xclsfrag/IStream.hpp \
+	m4lcommon/include/kopano/xclsfrag/IUnknown.hpp
 libm4lcommon_la_SOURCES += \
 	m4lcommon/ECFeatures.cpp m4lcommon/ECRestriction.cpp \
 	m4lcommon/RecurrenceState.cpp m4lcommon/userutil.cpp

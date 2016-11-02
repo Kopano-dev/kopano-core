@@ -58,36 +58,14 @@ private:
 
 private:
 	class xSequentialStream _zcp_final : public ISequentialStream {
-		// IUnknown
-		virtual ULONG __stdcall AddRef(void) _zcp_override;
-		virtual ULONG __stdcall Release(void) _zcp_override;
-		virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lppInterface) _zcp_override;
-		
-		// ISequentialStream
-		virtual HRESULT __stdcall Read(void *pv, ULONG cb, ULONG *pcbRead) _zcp_override;
-		virtual HRESULT __stdcall Write(const void *pv, ULONG cb, ULONG *pcbWritten) _zcp_override;
+		#include <kopano/xclsfrag/IUnknown.hpp>
+		#include <kopano/xclsfrag/ISequentialStream.hpp>
 	} m_xSequentialStream;
 
 	class xStream _zcp_final : public IStream {
-		// IUnknown
-		virtual ULONG __stdcall AddRef(void) _zcp_override;
-		virtual ULONG __stdcall Release(void) _zcp_override;
-		virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lppInterface) _zcp_override;
-		
-		// ISequentialStream
-		virtual HRESULT __stdcall Read(void *pv, ULONG cb, ULONG *pcbRead);
-		virtual HRESULT __stdcall Write(const void *pv, ULONG cb, ULONG *pcbWritten);
-	
-		// IStream
-	    virtual HRESULT __stdcall Seek(LARGE_INTEGER dlibMove, DWORD dwOrigin, ULARGE_INTEGER *plibNewPosition);
-	    virtual HRESULT __stdcall SetSize(ULARGE_INTEGER libNewSize);
-	    virtual HRESULT __stdcall CopyTo(IStream *pstm, ULARGE_INTEGER cb, ULARGE_INTEGER *pcbRead, ULARGE_INTEGER *pcbWritten);
-	    virtual HRESULT __stdcall Commit(DWORD grfCommitFlags);
-	    virtual HRESULT __stdcall Revert(void);
-	    virtual HRESULT __stdcall LockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType);
-	    virtual HRESULT __stdcall UnlockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType);
-	    virtual HRESULT __stdcall Stat(STATSTG *pstatstg, DWORD grfStatFlag);
-	    virtual HRESULT __stdcall Clone(IStream **ppstm);
+		#include <kopano/xclsfrag/IUnknown.hpp>
+		#include <kopano/xclsfrag/ISequentialStream.hpp>
+		#include <kopano/xclsfrag/IStream.hpp>
 	} m_xStream;
 
 private:

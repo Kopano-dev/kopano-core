@@ -61,13 +61,8 @@ public:
 
 public:
 	class xFreeBusyData _kc_final : public IFreeBusyData {
-		public:
-			// From IUnknown
-			virtual HRESULT __stdcall QueryInterface(REFIID refiid , void **lppInterface) _zcp_override;
-			virtual ULONG __stdcall AddRef(void) _zcp_override;
-			virtual ULONG __stdcall Release(void) _zcp_override;
-
-			// From IFreeBusyData
+		#include <kopano/xclsfrag/IUnknown.hpp>
+		// <kopano/xclsfrag/IFreeBusyData.hpp>
 			virtual HRESULT __stdcall Reload(void *) _zcp_override;
 			virtual HRESULT __stdcall EnumBlocks(IEnumFBBlock **ppenumfb, FILETIME ftmStart, FILETIME ftmEnd) _zcp_override;
 			virtual HRESULT __stdcall Merge(void *) _zcp_override;
@@ -77,7 +72,7 @@ public:
 			virtual HRESULT __stdcall SetFBRange(LONG rtmStart, LONG rtmEnd) _zcp_override;
 			virtual HRESULT __stdcall NextFBAppt(void *, ULONG, void *, ULONG, void *, void *) _zcp_override;
 			virtual HRESULT __stdcall GetFBPublishRange(LONG *prtmStart, LONG *prtmEnd) _zcp_override;
-	}m_xFreeBusyData;
+	} m_xFreeBusyData;
 
 private:
 	ECFBBlockList	m_fbBlockList;

@@ -1,0 +1,10 @@
+virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG flags, LPMAPIERROR *lppMAPIError) _kc_override;
+virtual HRESULT __stdcall Logoff(ULONG flags) _kc_override;
+virtual HRESULT __stdcall OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG flags, ULONG *lpulObjType, LPUNKNOWN *lppUnk) _kc_override;
+virtual HRESULT __stdcall CompareEntryIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2, ULONG flags, ULONG *lpulResult) _kc_override;
+virtual HRESULT __stdcall Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection) _kc_override;
+virtual HRESULT __stdcall Unadvise(ULONG ulConnection) _kc_override;
+virtual HRESULT __stdcall OpenStatusEntry(LPCIID lpInterface, ULONG flags, ULONG *lpulObjType, LPMAPISTATUS *lppMAPIStatus) _kc_override;
+virtual HRESULT __stdcall OpenTemplateID(ULONG cbTemplateID, LPENTRYID lpTemplateID, ULONG ulTemplateFlags, LPMAPIPROP lpMAPIPropData, LPCIID lpInterface, LPMAPIPROP *lppMAPIPropNew, LPMAPIPROP lpMAPIPropSibling) _kc_override;
+virtual HRESULT __stdcall GetOneOffTable(ULONG flags, LPMAPITABLE *lppTable) _kc_override;
+virtual HRESULT __stdcall PrepareRecips(ULONG flags, LPSPropTagArray lpPropTagArray, LPADRLIST lpRecipList) _kc_override;

@@ -55,19 +55,15 @@ public:
 public:
 	/* IEnumFBBlock wrapper class */
 	class xEnumFBBlock _zcp_final : public IEnumFBBlock {
-		public:
-			// From IUnknown
-			virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lppInterface) _zcp_override;
-			virtual ULONG __stdcall AddRef(void) _zcp_override;
-			virtual ULONG __stdcall Release(void) _zcp_override;
+		#include <kopano/xclsfrag/IUnknown.hpp>
 
-			// From IEnumFBBlock
+			// <kopano/xclsfrag/IEnumFBBlock.hpp>
 			virtual HRESULT __stdcall Next(LONG celt, FBBlock_1 *pblk, LONG *pcfetch) _zcp_override;
 			virtual HRESULT __stdcall Skip(LONG celt) _zcp_override;
 			virtual HRESULT __stdcall Reset() _zcp_override;
 			virtual HRESULT __stdcall Clone(IEnumFBBlock **ppclone) _zcp_override;
 			virtual HRESULT __stdcall Restrict(FILETIME ftmStart, FILETIME ftmEnd);
-	}m_xEnumFBBlock;
+	} m_xEnumFBBlock;
 
 	ECFBBlockList	m_FBBlock; /**< Freebusy time blocks */
 };
