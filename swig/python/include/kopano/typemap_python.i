@@ -73,6 +73,19 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
 	if(PyErr_Occurred()) goto fail;
 }
 
+%typemap(in)				LPROWLIST
+{
+	$1 = List_to_LPROWLIST($input);
+	if(PyErr_Occurred()) goto fail;
+}
+
+%typemap(arginit) LPROWLIST
+	"$1 = NULL;"
+%typemap(freearg)	LPROWLIST
+{
+        FreeProws((LPSRowSet)$1);
+}
+
 %typemap(in)				MAPISTRUCT
 {
 	$1 = Object_to$mangle($input);

@@ -4000,7 +4000,7 @@ class Permission(object):
         r = 0
         for name in value:
             r |= NAME_RIGHT[name]
-        self.mapitable.ModifyTable(0, [ROWENTRY(ROW_MODIFY, [SPropValue(PR_MEMBER_ENTRYID, self.mapirow[PR_MEMBER_ENTRYID]), SPropValue(PR_MEMBER_RIGHTS, r)])])
+        self.mapitable.ModifyTable(0, [ROWENTRY(ROW_MODIFY, [SPropValue(PR_MEMBER_ID, self.mapirow[PR_MEMBER_ID]), SPropValue(PR_MEMBER_ENTRYID, self.mapirow[PR_MEMBER_ENTRYID]), SPropValue(PR_MEMBER_RIGHTS, r)])]) # PR_MEMBER_ID needed, or it becomes ROW_ADD
 
     def __unicode__(self):
         return u"Permission('%s')" % self.member.name
