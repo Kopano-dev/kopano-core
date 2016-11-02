@@ -100,7 +100,7 @@ protected:
 	friend class ECMemTableView;
 };
 
-class ECMemTableView _zcp_final : public ECUnknown {
+class ECMemTableView _kc_final : public ECUnknown {
 protected:
 	ECMemTableView(ECMemTable *lpMemTable, const ECLocale &locale, ULONG ulFlags);
 	virtual ~ECMemTableView();
@@ -135,7 +135,7 @@ public:
 	virtual HRESULT GetCollapseState(ULONG ulFlags, ULONG cbInstanceKey, LPBYTE lpbInstanceKey, ULONG *lpcbCollapseState, LPBYTE *lppbCollapseState);
 	virtual HRESULT SetCollapseState(ULONG ulFlags, ULONG cbCollapseState, LPBYTE pbCollapseState, BOOKMARK *lpbkLocation);
 
-	class xMAPITable _zcp_final : public IMAPITable {
+	class xMAPITable _kc_final : public IMAPITable {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IMAPITable.hpp>
 	} m_xMAPITable;

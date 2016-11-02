@@ -53,7 +53,7 @@ public:
 	virtual HRESULT PrepareRecips(ULONG ulFlags, LPSPropTagArray lpPropTagArray, LPADRLIST lpRecipList);
 
 private:
-	class xABLogon _zcp_final : public IABLogon {
+	class xABLogon _kc_final : public IABLogon {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IABLogon.hpp>
 	} m_xABLogon;

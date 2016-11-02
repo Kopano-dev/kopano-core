@@ -23,7 +23,7 @@
 #include <vector>
 #include <kopano/charset/convert.h>
 
-class ConsoleTable _zcp_final {
+class ConsoleTable _kc_final {
 public:
 	ConsoleTable(size_t rows, size_t columns);
 

@@ -34,7 +34,7 @@ public:
     virtual HRESULT Shutdown(ULONG * lpulFlags);
 	virtual HRESULT TransportLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG *lpulFlags, LPMAPIERROR *lppMAPIError, LPXPLOGON *lppXPLogon);
 
-	class xXPProvider _zcp_final : public IXPProvider {
+	class xXPProvider _kc_final : public IXPProvider {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 
 		// <kopano/xclsfrag/IXPProvider.hpp>

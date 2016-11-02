@@ -22,8 +22,7 @@
 #include <string>
 #include <cstring>
 
-template <typename _Type>
-class iconv_charset _zcp_final {
+template<typename _Type> class iconv_charset _kc_final {
 };
 
 #define CHARSET_CHAR "//TRANSLIT"
@@ -33,8 +32,7 @@ class iconv_charset _zcp_final {
 void setCharsetBestAttempt(std::string &strCharset);
 
 // Multibyte character specializations
-template <>
-class iconv_charset<std::string> _zcp_final {
+template<> class iconv_charset<std::string> _kc_final {
 public:
 	static const char *name() {
 		return CHARSET_CHAR;	// Current locale
@@ -47,8 +45,7 @@ public:
 	}
 };
 
-template <>
-class iconv_charset<char *> _zcp_final {
+template<> class iconv_charset<char *> _kc_final {
 public:
 	static const char *name() {
 		return CHARSET_CHAR;	// Current locale
@@ -61,8 +58,7 @@ public:
 	}
 };
 
-template <>
-class iconv_charset<const char *> _zcp_final {
+template<> class iconv_charset<const char *> _kc_final {
 public:
 	static const char *name() {
 		return CHARSET_CHAR;	// Current locale
@@ -75,8 +71,7 @@ public:
 	}
 };
 
-template <size_t _N>
-class iconv_charset<char[_N]> _zcp_final {
+template<size_t _N> class iconv_charset<char[_N]> _kc_final {
 public:
 	static const char *name() {
 		return CHARSET_CHAR;	// Current locale
@@ -89,8 +84,7 @@ public:
 	}
 };
 
-template <size_t _N>
-class iconv_charset<const char[_N]> _zcp_final {
+template<size_t _N> class iconv_charset<const char[_N]> _kc_final {
 public:
 	static const char *name() {
 		return CHARSET_CHAR;	// Current locale
@@ -105,8 +99,7 @@ public:
 
 
 // Wide character specializations
-template <>
-class iconv_charset<std::wstring> _zcp_final {
+template<> class iconv_charset<std::wstring> _kc_final {
 public:
 	static const char *name() {
 		return CHARSET_WCHAR;
@@ -119,8 +112,7 @@ public:
 	}
 };
 
-template <>
-class iconv_charset<wchar_t *> _zcp_final {
+template<> class iconv_charset<wchar_t *> _kc_final {
 public:
 	static const char *name() {
 		return CHARSET_WCHAR;
@@ -133,8 +125,7 @@ public:
 	}
 };
 
-template <>
-class iconv_charset<const wchar_t *> _zcp_final {
+template<> class iconv_charset<const wchar_t *> _kc_final {
 public:
 	static const char *name() {
 		return CHARSET_WCHAR;
@@ -147,8 +138,7 @@ public:
 	}
 };
 
-template <size_t _N>
-class iconv_charset<wchar_t[_N]> _zcp_final {
+template<size_t _N> class iconv_charset<wchar_t[_N]> _kc_final {
 public:
 	static const char *name() {
 		return CHARSET_WCHAR;	// Current locale
@@ -161,8 +151,7 @@ public:
 	}
 };
 
-template <size_t _N>
-class iconv_charset<const wchar_t[_N]> _zcp_final {
+template<size_t _N> class iconv_charset<const wchar_t[_N]> _kc_final {
 public:
 	static const char *name() {
 		return CHARSET_WCHAR;	// Current locale

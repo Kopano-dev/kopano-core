@@ -41,7 +41,7 @@ using namespace std;
 
 typedef mapi_object_ptr<IECLicense, IID_IECLicense>ECLicensePtr;
 
-class servername _zcp_final {
+class servername _kc_final {
 public:
 	servername(LPCTSTR lpszName): m_strName(lpszName) {}
 	servername(const servername &other): m_strName(other.m_strName) {}

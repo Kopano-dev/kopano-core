@@ -110,8 +110,7 @@ template<> struct char_traits<unsigned short> {
 }
 
 // 16-bit character specializations
-template <>
-class iconv_charset<utf16string> _zcp_final {
+template<> class iconv_charset<utf16string> _kc_final {
 public:
 	static const char *name() {
 		return "UTF-16LE";
@@ -124,8 +123,7 @@ public:
 	}
 };
 
-template <>
-class iconv_charset<unsigned short *> _zcp_final {
+template<> class iconv_charset<unsigned short *> _kc_final {
 public:
 	static const char *name() {
 		return "UTF-16LE";
@@ -136,8 +134,7 @@ public:
 	static size_t rawsize(const unsigned short *from);
 };
 
-template <>
-class iconv_charset<const unsigned short *> _zcp_final {
+template<> class iconv_charset<const unsigned short *> _kc_final {
 public:
 	static const char *name() {
 		return "UTF-16LE";

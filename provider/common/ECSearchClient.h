@@ -35,7 +35,7 @@ typedef struct {
 
 typedef std::set<unsigned int> setindexprops_t;
 
-class ECSearchClient _zcp_final : public ECChannelClient {
+class ECSearchClient _kc_final : public ECChannelClient {
 public:
 	ECSearchClient(const char *szIndexerPath, unsigned int ulTimeOut);
 	ECRESULT GetProperties(setindexprops_t &mapProps);

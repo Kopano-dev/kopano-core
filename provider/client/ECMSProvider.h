@@ -42,7 +42,7 @@ private:
 	static HRESULT LogonByEntryID(WSTransport **lppTransport, sGlobalProfileProps *lpsProfileProps, ULONG cbEntryID, LPENTRYID lpEntryID);
 
 private:
-	class xMSProvider _zcp_final : public IMSProvider {
+	class xMSProvider _kc_final : public IMSProvider {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IMSProvider.hpp>
 	} m_xMSProvider;

@@ -35,7 +35,7 @@
 
 class ECSessionManager;
 
-typedef struct SEARCHFOLDER _zcp_final {
+typedef struct SEARCHFOLDER _kc_final {
 	SEARCHFOLDER(unsigned int ulStoreId, unsigned int ulFolderId) {
 		this->ulStoreId = ulStoreId;
 		this->ulFolderId = ulFolderId;
@@ -93,7 +93,7 @@ typedef struct tagsSearchFolderStats {
  * except rebuilding searchfolders; when the server starts and finds a searchfolder that was only half-built, a complete
  * rebuild is started since we don't know how far the rebuild got last time.
  */
-class ECSearchFolders _zcp_final {
+class ECSearchFolders _kc_final {
 public:
     ECSearchFolders(ECSessionManager *lpSessionManager, ECDatabaseFactory *lpFactory);
     virtual ~ECSearchFolders();

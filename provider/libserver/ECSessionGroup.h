@@ -63,7 +63,7 @@ struct changeSubscribeItem {
 };
 typedef std::multimap<unsigned int, changeSubscribeItem> CHANGESUBSCRIBEMAP;	// SyncId -> changeSubscribeItem
 
-class ECSessionGroup _zcp_final {
+class ECSessionGroup _kc_final {
 public:
 	ECSessionGroup(ECSESSIONGROUPID sessionGroupId, ECSessionManager *lpSessionManager);
 	virtual ~ECSessionGroup();

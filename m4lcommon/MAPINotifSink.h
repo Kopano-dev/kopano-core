@@ -27,7 +27,7 @@
 #include <mapidefs.h>
 #include <kopano/ECUnknown.h>
 
-class MAPINotifSink _zcp_final : public IMAPIAdviseSink {
+class MAPINotifSink _kc_final : public IMAPIAdviseSink {
 public:
     static HRESULT Create(MAPINotifSink **lppSink);
     

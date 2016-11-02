@@ -31,7 +31,7 @@ public:
 
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface);
 
-	class xABProvider _zcp_final : public IABProvider {
+	class xABProvider _kc_final : public IABProvider {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IABProvider.hpp>
 	} m_xABProvider;

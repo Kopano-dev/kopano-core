@@ -22,7 +22,7 @@
 #include <kopano/charset/convert.h>
 #include <string>
 
-class ECIConv _zcp_final {
+class ECIConv _kc_final {
 public:
     ECIConv(const std::string &strToCharset, const std::string &strFromCharset);
     ~ECIConv();

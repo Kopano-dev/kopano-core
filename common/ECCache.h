@@ -26,8 +26,7 @@
 
 #include <kopano/platform.h>
 
-template<typename Key>
-class KeyEntry _zcp_final {
+template<typename Key> class KeyEntry _kc_final {
 public:
 	Key key;
 	time_t ulLastAccess;

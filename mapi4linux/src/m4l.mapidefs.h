@@ -55,8 +55,7 @@ public:
     virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lpvoid) _zcp_override;
 };
 
-
-class M4LProfSect _zcp_final : public IProfSect, public M4LMAPIProp {
+class M4LProfSect _kc_final : public IProfSect, public M4LMAPIProp {
 private:
 	BOOL bGlobalProf;
 public:
@@ -86,8 +85,7 @@ public:
     virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lpvoid) _zcp_override;
 };
 
-
-class M4LMAPITable _zcp_final : public M4LUnknown, public IMAPITable {
+class M4LMAPITable _kc_final : public M4LUnknown, public IMAPITable {
 private:
 
 public:
@@ -121,8 +119,7 @@ public:
     virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lpvoid) _zcp_override;
 };
 
-
-class M4LProviderAdmin _zcp_final : public M4LUnknown , public IProviderAdmin {
+class M4LProviderAdmin _kc_final : public M4LUnknown , public IProviderAdmin {
 private:
 	M4LMsgServiceAdmin* msa;
 	char *szService;
@@ -143,8 +140,7 @@ public:
     virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lpvoid) _zcp_override;
 };
 
-
-class M4LMAPIAdviseSink _zcp_final : public M4LUnknown, public IMAPIAdviseSink {
+class M4LMAPIAdviseSink _kc_final : public M4LUnknown, public IMAPIAdviseSink {
 private:
     void *lpContext;
     LPNOTIFCALLBACK lpFn;
@@ -196,7 +192,7 @@ typedef struct _s_abentry {
 	LPABLOGON lpABLogon;
 } abEntry;
 
-class M4LABContainer _zcp_final : public IABContainer, public M4LMAPIContainer {
+class M4LABContainer _kc_final : public IABContainer, public M4LMAPIContainer {
 private:
 	/*  */
 	const std::list<abEntry> &m_lABEntries;

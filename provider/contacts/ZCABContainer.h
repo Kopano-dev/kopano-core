@@ -62,7 +62,7 @@ public:
 	virtual HRESULT GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArray);
 
 private:
-	class xABContainer _zcp_final : public IABContainer {
+	class xABContainer _kc_final : public IABContainer {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		// <kopano/xclsfrag/IDistList.hpp>
 		#include <kopano/xclsfrag/IABContainer.hpp>

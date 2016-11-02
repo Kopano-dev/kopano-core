@@ -72,7 +72,7 @@ typedef struct _sNewDatabase {
 	const char *lpSQL;
 } sSQLDatabase_t;
 
-class zcp_versiontuple _zcp_final {
+class zcp_versiontuple _kc_final {
 	public:
 	zcp_versiontuple(unsigned int maj = 0, unsigned int min = 0,
 	    unsigned int mic = 0, unsigned int rev = 0, unsigned int dbs = 0) :

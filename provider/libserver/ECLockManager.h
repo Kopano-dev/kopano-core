@@ -33,7 +33,7 @@ typedef std::shared_ptr<ECLockManager> ECLockManagerPtr;
 ///////////////
 // ECObjectLock
 ///////////////
-class ECObjectLock _zcp_final {
+class ECObjectLock _kc_final {
 public:
 	ECObjectLock();
 	ECObjectLock(ECLockManagerPtr ptrLockManager, unsigned int ulObjId, ECSESSIONID sessionId);
@@ -75,7 +75,7 @@ inline void ECObjectLock::swap(ECObjectLock &other) {
 ////////////////
 // ECLockManager
 ////////////////
-class ECLockManager _zcp_final : public std::enable_shared_from_this<ECLockManager> {
+class ECLockManager _kc_final : public std::enable_shared_from_this<ECLockManager> {
 public:
 	static ECLockManagerPtr Create();
 	~ECLockManager();

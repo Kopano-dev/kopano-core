@@ -86,24 +86,24 @@ inline bool operator <(const ECsUEIdKey &a, const ECsUEIdKey &b)
 }
 
 /* Intern Id cache */
-class ECsUEIdObject _zcp_final : public ECsCacheEntry {
+class ECsUEIdObject _kc_final : public ECsCacheEntry {
 public:
 	unsigned int		ulCompanyId;
 	unsigned int		ulUserId;
 	std::string			strSignature;
 };
 
-class ECsUserObjectDetails _zcp_final : public ECsCacheEntry {
+class ECsUserObjectDetails _kc_final : public ECsCacheEntry {
 public:
 	objectdetails_t			sDetails;
 };
 
-class ECsServerDetails _zcp_final : public ECsCacheEntry {
+class ECsServerDetails _kc_final : public ECsCacheEntry {
 public:
 	serverdetails_t			sDetails;
 };
 
-class ECsObjects _zcp_final : public ECsCacheEntry {
+class ECsObjects _kc_final : public ECsCacheEntry {
 public:
 	unsigned int	ulParent;
 	unsigned int	ulOwner;
@@ -111,12 +111,12 @@ public:
 	unsigned int	ulType;
 };
 
-class ECsQuota _zcp_final : public ECsCacheEntry {
+class ECsQuota _kc_final : public ECsCacheEntry {
 public:
 	quotadetails_t	quota;
 };
 
-class ECsIndexObject _zcp_final : public ECsCacheEntry {
+class ECsIndexObject _kc_final : public ECsCacheEntry {
 public:
 	inline bool operator==(const ECsIndexObject &other) const
 	{
@@ -141,7 +141,7 @@ public:
 	unsigned int ulTag;
 };
 
-class ECsIndexProp _zcp_final : public ECsCacheEntry {
+class ECsIndexProp _kc_final : public ECsCacheEntry {
 public:
 	ECsIndexProp(void) : ECsCacheEntry() {}
 	~ECsIndexProp() {
@@ -244,7 +244,7 @@ public:
 	unsigned int cbData = 0;
 };
 
-class ECsCells _zcp_final : public ECsCacheEntry {
+class ECsCells _kc_final : public ECsCacheEntry {
 public:
     ECsCells() : ECsCacheEntry() { 
     	m_bComplete = false; 
@@ -367,7 +367,7 @@ public:
     bool m_bComplete;
 };
 
-class ECsACLs _zcp_final : public ECsCacheEntry {
+class ECsACLs _kc_final : public ECsCacheEntry {
 public:
 	ECsACLs() : ECsCacheEntry() { ulACLs = 0; aACL = NULL; }
     ECsACLs(const ECsACLs &src) {
@@ -469,7 +469,7 @@ typedef hash_map<ECsIndexProp, ECsIndexObject>::Type ECMapPropToObject;
 
 #define CACHE_NO_PARENT 0xFFFFFFFF
 
-class ECCacheManager _zcp_final {
+class ECCacheManager _kc_final {
 public:
 	ECCacheManager(ECConfig *lpConfig, ECDatabaseFactory *lpDatabase);
 	virtual ~ECCacheManager();

@@ -42,12 +42,13 @@ public:
 	static HRESULT __stdcall CreateRulesTable(ECMAPIProp *lpParent, ULONG ulFlags, LPEXCHANGEMODIFYTABLE *lppObj);
 	static HRESULT __stdcall CreateACLTable(ECMAPIProp *lpParent, ULONG ulFlags, LPEXCHANGEMODIFYTABLE *lppObj);
 
-	class xExchangeModifyTable _zcp_final : public IExchangeModifyTable {
+	class xExchangeModifyTable _kc_final : public IExchangeModifyTable {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IExchangeModifyTable.hpp>
 	} m_xExchangeModifyTable;
 
-	class xECExchangeModifyTable _zcp_final : public IECExchangeModifyTable {
+	class xECExchangeModifyTable _kc_final :
+	    public IECExchangeModifyTable {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IExchangeModifyTable.hpp>
 		// <kopano/xclsfrag/IECExchangeModifyTable.hpp>
@@ -74,7 +75,7 @@ public:
 	HRESULT __stdcall ActionCount(ULONG *lpcActions);
 	HRESULT __stdcall GetAction(ULONG ulActionNumber, LARGE_INTEGER *lpruleid, LPACTION *lppAction);
 
-	class xExchangeRuleAction _zcp_final : public IExchangeRuleAction {
+	class xExchangeRuleAction _kc_final : public IExchangeRuleAction {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		// <kopano/xclsfrag/IExchangeRuleAction.hpp>
 		virtual HRESULT __stdcall ActionCount(ULONG *lpcActions);

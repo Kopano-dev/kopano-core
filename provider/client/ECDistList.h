@@ -37,7 +37,7 @@ public:
 	virtual HRESULT	QueryInterface(REFIID refiid, void **lppInterface);
 	virtual HRESULT OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk);
 
-	class xDistList _zcp_final : public IDistList {
+	class xDistList _kc_final : public IDistList {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IABContainer.hpp>
 		#include <kopano/xclsfrag/IMAPIContainer.hpp>

@@ -58,7 +58,7 @@ public:
 	virtual HRESULT SetCollapseState(ULONG ulFlags, ULONG cbCollapseState, LPBYTE pbCollapseState, BOOKMARK *lpbkLocation);
 
 protected:
-	class xMAPITable _zcp_final : public IMAPITable {
+	class xMAPITable _kc_final : public IMAPITable {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IMAPITable.hpp>
 	} m_xMAPITable;

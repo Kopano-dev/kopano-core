@@ -54,7 +54,7 @@ public:
 	
 	virtual HRESULT HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject);
 
-	class xAttach _zcp_final : public IAttach {
+	class xAttach _kc_final : public IAttach {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IMAPIProp.hpp>
 	} m_xAttach;

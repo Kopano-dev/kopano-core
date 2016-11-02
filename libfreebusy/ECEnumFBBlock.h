@@ -54,7 +54,7 @@ public:
 
 public:
 	/* IEnumFBBlock wrapper class */
-	class xEnumFBBlock _zcp_final : public IEnumFBBlock {
+	class xEnumFBBlock _kc_final : public IEnumFBBlock {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 
 			// <kopano/xclsfrag/IEnumFBBlock.hpp>

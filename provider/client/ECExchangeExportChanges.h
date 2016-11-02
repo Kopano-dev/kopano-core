@@ -33,7 +33,7 @@
 
 #include "WSMessageStreamExporter.h"
 
-class ECExchangeExportChanges _zcp_final : public ECUnknown {
+class ECExchangeExportChanges _kc_final : public ECUnknown {
 protected:
 	ECExchangeExportChanges(ECMsgStore *lpStore, const std::string& strSK, const wchar_t *szDisplay, unsigned int ulSyncType);
 	virtual ~ECExchangeExportChanges();
@@ -57,7 +57,7 @@ private:
 	void LogMessageProps(int loglevel, ULONG cValues, LPSPropValue lpPropArray);
 
 private:
-	class xECExportChanges _zcp_final : public IECExportChanges {
+	class xECExportChanges _kc_final : public IECExportChanges {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 
 		// <kopano/xclsfrag/IExchangeExportChanges.hpp>

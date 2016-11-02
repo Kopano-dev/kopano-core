@@ -90,12 +90,12 @@ public:
 
 
 public:	
-	class xMAPIProp _zcp_final : public IMAPIProp {
+	class xMAPIProp _kc_final : public IMAPIProp {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IMAPIProp.hpp>
 	} m_xMAPIProp;
 
-	class xECSecurity _zcp_final : public IECSecurity {
+	class xECSecurity _kc_final : public IECSecurity {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		// <kopano/xclsfrag/IECSecurity.hpp>
 		virtual HRESULT GetOwner(ULONG *lpcbOwner, LPENTRYID *lppOwner) _zcp_override;

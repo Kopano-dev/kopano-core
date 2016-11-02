@@ -39,7 +39,8 @@ public:
 	virtual HRESULT ImportFolderChange(ULONG cValue, LPSPropValue lpPropArray);
 	virtual HRESULT ImportFolderDeletion(ULONG ulFlags, LPENTRYLIST lpSourceEntryList);
 
-	class xExchangeImportHierarchyChanges _zcp_final : public IExchangeImportHierarchyChanges{
+	class xExchangeImportHierarchyChanges _kc_final :
+	    public IExchangeImportHierarchyChanges {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 
 		// <kopano/xclsfrag/IExchangeImportHierarchyChanges.hpp>

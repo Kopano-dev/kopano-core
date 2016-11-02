@@ -40,14 +40,14 @@ typedef struct {
     double dblReceiveStamp;		// time at which activity was detected on the socket
 } WORKITEM;
 
-typedef struct ACTIVESOCKET _zcp_final {
+typedef struct ACTIVESOCKET _kc_final {
     struct soap *soap;
     time_t ulLastActivity;
     
     bool operator < (const ACTIVESOCKET &a) const { return a.soap->socket < this->soap->socket; };
 } ACTIVESOCKET;
 
-class FindSocket _zcp_final {
+class FindSocket _kc_final {
 public:
 	FindSocket(SOAP_SOCKET s) { this->s = s; };
 
@@ -56,7 +56,7 @@ private:
 	SOAP_SOCKET s;
 };
 
-class FindListenSocket _zcp_final {
+class FindListenSocket _kc_final {
 public:
 	FindListenSocket(SOAP_SOCKET s) { this->s = s; };
 
@@ -90,7 +90,7 @@ protected:
     ECDispatcher *m_lpDispatcher;
 };
 
-class ECPriorityWorkerThread _zcp_final : public ECWorkerThread {
+class ECPriorityWorkerThread _kc_final : public ECWorkerThread {
 public:
 	ECPriorityWorkerThread(ECLogger *lpLogger, ECThreadManager *lpManager, ECDispatcher *lpDispatcher);
 	// The destructor is public since this thread isn't detached, we wait for the thread and clean it
@@ -101,7 +101,7 @@ public:
  * It is the thread manager's job to keep track of processing threads, and adding or removing threads
  * when requested. 
  */
-class ECThreadManager _zcp_final {
+class ECThreadManager _kc_final {
 public:
     // ulThreads is the normal number of threads that are started; These threads are pre-started and will be in an idle state.
     ECThreadManager(ECLogger *lpLogger, ECDispatcher *lpDispatcher, unsigned int ulThreads);
@@ -137,7 +137,7 @@ private:
  *
  * Thread deletion is done by the Thread Manager.
  */
-class ECWatchDog _zcp_final {
+class ECWatchDog _kc_final {
 public:
     ECWatchDog(ECConfig *lpConfig, ECLogger *lpLogger, ECDispatcher *lpDispatcher, ECThreadManager *lpThreadManager);
     ~ECWatchDog();
@@ -228,7 +228,7 @@ protected:
 	int			m_nSendTimeout;
 };
 
-class ECDispatcherSelect _zcp_final : public ECDispatcher {
+class ECDispatcherSelect _kc_final : public ECDispatcher {
 private:
     int			m_fdRescanRead;
     int			m_fdRescanWrite;
@@ -243,7 +243,7 @@ public:
 };
 
 #ifdef HAVE_EPOLL_CREATE
-class ECDispatcherEPoll _zcp_final : public ECDispatcher {
+class ECDispatcherEPoll _kc_final : public ECDispatcher {
 private:
 	int m_fdMax;
 	int m_epFD;

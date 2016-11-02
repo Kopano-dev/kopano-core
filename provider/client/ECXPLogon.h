@@ -56,7 +56,7 @@ public:
 	virtual HRESULT ValidateState(ULONG ulUIParam, ULONG ulFlags);
 	virtual HRESULT FlushQueues(ULONG ulUIParam, ULONG cbTargetTransport, LPENTRYID lpTargetTransport, ULONG ulFlags);
 
-	class xXPLogon _zcp_final : public IXPLogon {
+	class xXPLogon _kc_final : public IXPLogon {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 
 		// <kopano/xclsfrag/IXPLogon.hpp>
@@ -75,7 +75,7 @@ public:
 	} m_xXPLogon;
 
 private:
-	class xMAPIAdviseSink _zcp_final : public IMAPIAdviseSink {
+	class xMAPIAdviseSink _kc_final : public IMAPIAdviseSink {
 	public:
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		// <kopano/xclsfrag/IMAPIAdviseSink.hpp>

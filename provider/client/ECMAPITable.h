@@ -71,7 +71,7 @@ public:
 
 	static HRESULT Reload(void *lpParam);
 
-	class xMAPITable _zcp_final : public IMAPITable {
+	class xMAPITable _kc_final : public IMAPITable {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IMAPITable.hpp>
 	} m_xMAPITable;

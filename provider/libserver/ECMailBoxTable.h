@@ -22,7 +22,7 @@
 
 class ECSession;
 
-class ECMailBoxTable _zcp_final : public ECStoreObjectTable {
+class ECMailBoxTable _kc_final : public ECStoreObjectTable {
 protected:
 	ECMailBoxTable(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale);
 

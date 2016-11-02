@@ -98,7 +98,7 @@ protected:
  * constructors of the ECAndRestriction and the ECOrRestriction classes.
  * It's implicitly created by +-ing multiple ECRestriction objects.
  */
-class ECRestrictionList _zcp_final {
+class ECRestrictionList _kc_final {
 public:
 	ECRestrictionList(const ECRestriction &res1, const ECRestriction &res2) {
 		m_list.push_back(ResPtr(res1.Clone()));
@@ -129,7 +129,7 @@ inline ECRestrictionList ECRestriction::operator+ (const ECRestriction &other) c
 	return ECRestrictionList(*this, other);
 }
 
-class ECAndRestriction _zcp_final : public ECRestriction {
+class ECAndRestriction _kc_final : public ECRestriction {
 public:
 	ECAndRestriction() { }
 	ECAndRestriction(const ECRestrictionList &list);
@@ -152,7 +152,7 @@ private:
 	ResList	m_lstRestrictions;
 };
 
-class ECOrRestriction _zcp_final : public ECRestriction {
+class ECOrRestriction _kc_final : public ECRestriction {
 public:
 	ECOrRestriction() { }
 	ECOrRestriction(const ECRestrictionList &list);
@@ -175,7 +175,7 @@ private:
 	ResList	m_lstRestrictions;
 };
 
-class ECNotRestriction _zcp_final : public ECRestriction {
+class ECNotRestriction _kc_final : public ECRestriction {
 public:
 	ECNotRestriction(const ECRestriction &restriction)
 	: m_ptrRestriction(ResPtr(restriction.Clone())) 
@@ -191,7 +191,7 @@ private:
 	ResPtr	m_ptrRestriction;
 };
 
-class ECContentRestriction _zcp_final : public ECRestriction {
+class ECContentRestriction _kc_final : public ECRestriction {
 public:
 	ECContentRestriction(ULONG ulFuzzyLevel, ULONG ulPropTag, LPSPropValue lpProp, ULONG ulFlags = 0);
 
@@ -207,7 +207,7 @@ private:
 	PropPtr	m_ptrProp;
 };
 
-class ECBitMaskRestriction _zcp_final : public ECRestriction {
+class ECBitMaskRestriction _kc_final : public ECRestriction {
 public:
 	ECBitMaskRestriction(ULONG relBMR, ULONG ulPropTag, ULONG ulMask)
 	: m_relBMR(relBMR)
@@ -224,7 +224,7 @@ private:
 	ULONG	m_ulMask;
 };
 
-class ECPropertyRestriction _zcp_final : public ECRestriction {
+class ECPropertyRestriction _kc_final : public ECRestriction {
 public:
 	ECPropertyRestriction(ULONG relop, ULONG ulPropTag, LPSPropValue lpProp, ULONG ulFlags = 0);
 
@@ -240,7 +240,7 @@ private:
 	PropPtr	m_ptrProp;
 };
 
-class ECComparePropsRestriction _zcp_final : public ECRestriction {
+class ECComparePropsRestriction _kc_final : public ECRestriction {
 public:
 	ECComparePropsRestriction(ULONG relop, ULONG ulPropTag1, ULONG ulPropTag2)
 	: m_relop(relop)
@@ -257,7 +257,7 @@ private:
 	ULONG	m_ulPropTag2;
 };
 
-class ECSizeRestriction _zcp_final : public ECRestriction {
+class ECSizeRestriction _kc_final : public ECRestriction {
 public:
 	ECSizeRestriction(ULONG relop, ULONG ulPropTag, ULONG cb)
 	: m_relop(relop)
@@ -274,7 +274,7 @@ private:
 	ULONG	m_cb;
 };
 
-class ECExistRestriction _zcp_final : public ECRestriction {
+class ECExistRestriction _kc_final : public ECRestriction {
 public:
 	ECExistRestriction(ULONG ulPropTag)
 	: m_ulPropTag(ulPropTag) 
@@ -287,7 +287,7 @@ private:
 	ULONG	m_ulPropTag;
 };
 
-class ECSubRestriction _zcp_final : public ECRestriction {
+class ECSubRestriction _kc_final : public ECRestriction {
 public:
 	ECSubRestriction(ULONG ulSubObject, const ECRestriction &restriction)
 	: m_ulSubObject(ulSubObject)
@@ -305,7 +305,7 @@ private:
 	ResPtr	m_ptrRestriction;
 };
 
-class ECCommentRestriction _zcp_final : public ECRestriction {
+class ECCommentRestriction _kc_final : public ECRestriction {
 public:
 	ECCommentRestriction(const ECRestriction &restriction, ULONG cValues, LPSPropValue lpProp, ULONG ulFlags = 0);
 
@@ -325,7 +325,7 @@ private:
  * This is a special class, which encapsulates a raw SRestriction structure to allow
  * prebuild or obtained restriction structures to be used in the ECRestriction model.
  */
-class ECRawRestriction _zcp_final : public ECRestriction {
+class ECRawRestriction _kc_final : public ECRestriction {
 public:
 	ECRawRestriction(LPSRestriction lpRestriction, ULONG ulFlags = 0);
 

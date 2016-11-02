@@ -31,13 +31,11 @@
 #if defined(SWIG) || defined(__GNUG__) && __GNUG__ == 4 && __GNUG_MINOR__ < 7
 #	define _kc_final
 #	define _kc_override
-#	define _zcp_final
 #	define _zcp_override
 #else
 	/* From g++ 4.7 onwards */
 #	define _kc_final final
 #	define _kc_override override
-#	define _zcp_final _kc_final
 #	define _zcp_override _kc_override
 #endif
 

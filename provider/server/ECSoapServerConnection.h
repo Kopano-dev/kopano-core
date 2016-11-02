@@ -26,7 +26,7 @@
 #include <kopano/ECLogger.h>
 #include <kopano/ECConfig.h>
 
-class ECSoapServerConnection _zcp_final {
+class ECSoapServerConnection _kc_final {
 public:
 	ECSoapServerConnection(ECConfig* lpConfig, ECLogger* lpLogger);
 	~ECSoapServerConnection();

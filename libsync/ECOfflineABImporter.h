@@ -24,7 +24,7 @@
 
 class ECLogger;
 
-class OfflineABImporter _zcp_final : public IECImportAddressbookChanges {
+class OfflineABImporter _kc_final : public IECImportAddressbookChanges {
 public:
 	OfflineABImporter(IECServiceAdmin *lpDstServiceAdmin, IECServiceAdmin *lpSrcServiceAdmin);
 	~OfflineABImporter();

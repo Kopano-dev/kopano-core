@@ -38,7 +38,7 @@ namespace detail {
 	 *    this assumption is false, this will lead to more conversions, and more memory usage
 	 *    by the cache.
 	 */
-	class converter _zcp_final {
+	class converter _kc_final {
 	public:
 		/**
 		 * Get the global converter instance.

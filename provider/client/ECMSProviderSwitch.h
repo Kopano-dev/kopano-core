@@ -36,7 +36,7 @@ public:
 	virtual HRESULT CompareStoreIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2, ULONG ulFlags, ULONG *lpulResult);
 
 private:
-	class xMSProvider _zcp_final : public IMSProvider {
+	class xMSProvider _kc_final : public IMSProvider {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IMSProvider.hpp>
 	} m_xMSProvider;

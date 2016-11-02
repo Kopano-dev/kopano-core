@@ -65,7 +65,7 @@ typedef struct {
 
 typedef std::map<unsigned int, TABLE_ENTRY *> TABLEENTRYMAP;
 
-class ECTableManager _zcp_final {
+class ECTableManager _kc_final {
 public:
 	ECTableManager(ECSession *lpSession);
 	~ECTableManager();

@@ -57,12 +57,12 @@ private:
 	~ECMessageStreamImporterIStreamAdapter();
 
 private:
-	class xSequentialStream _zcp_final : public ISequentialStream {
+	class xSequentialStream _kc_final : public ISequentialStream {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/ISequentialStream.hpp>
 	} m_xSequentialStream;
 
-	class xStream _zcp_final : public IStream {
+	class xStream _kc_final : public IStream {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/ISequentialStream.hpp>
 		#include <kopano/xclsfrag/IStream.hpp>

@@ -136,7 +136,7 @@ private:
 	 */
 	HRESULT							PurgeStates();
 
-	class xECChangeAdvisor _zcp_final : public IECChangeAdvisor {
+	class xECChangeAdvisor _kc_final : public IECChangeAdvisor {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 
 		// <kopano/xclsfrag/IECChangeAdvisor.hpp>

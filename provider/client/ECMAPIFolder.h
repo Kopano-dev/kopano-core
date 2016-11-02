@@ -83,7 +83,7 @@ public:
 	virtual HRESULT UpdateMessageFromStream(ULONG ulSyncId, ULONG cbEntryID, LPENTRYID lpEntryID, LPSPropValue lpConflictItems, WSMessageStreamImporter **lppsStreamImporter);
 
 public:
-	class xMAPIFolder _zcp_final : public IMAPIFolder {
+	class xMAPIFolder _kc_final : public IMAPIFolder {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IMAPIProp.hpp>
 		#include <kopano/xclsfrag/IMAPIContainer.hpp>
@@ -102,7 +102,7 @@ public:
 		virtual HRESULT __stdcall EmptyFolder(ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags);
 	} m_xMAPIFolder;
 
-	class xFolderSupport _zcp_final : public IFolderSupport {
+	class xFolderSupport _kc_final : public IFolderSupport {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		// <kopano/xclsfrag/IFolderSupport.hpp>
 		virtual HRESULT __stdcall GetSupportMask(DWORD * pdwSupportMask);

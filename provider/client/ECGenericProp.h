@@ -127,12 +127,12 @@ public:
 	virtual HRESULT GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropNames, ULONG ulFlags, LPSPropTagArray *lppPropTags);
 
 public:
-	class xMAPIProp _zcp_final : public IMAPIProp {
+	class xMAPIProp _kc_final : public IMAPIProp {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IMAPIProp.hpp>
 	} m_xMAPIProp;
 
-	class xECSingleInstance _zcp_final : public IECSingleInstance {
+	class xECSingleInstance _kc_final : public IECSingleInstance {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		// <kopano/xclsfrag/IECSingleInstance.hpp>
 		virtual HRESULT __stdcall GetSingleInstanceId(ULONG *lpcbInstanceID, LPENTRYID *lppInstanceID) _zcp_override;

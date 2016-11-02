@@ -39,7 +39,7 @@
 
 typedef struct _ECODStore ECODStore;
 
-class ECGenProps _zcp_final {
+class ECGenProps _kc_final {
 public:
 	// Returns whether a different property should be retrieved instead of the
 	// requested property.

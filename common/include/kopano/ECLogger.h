@@ -201,7 +201,7 @@ class ECLogger {
 /**
  * Dummy null logger, drops every log message.
  */
-class ECLogger_Null _zcp_final : public ECLogger {
+class ECLogger_Null _kc_final : public ECLogger {
 	public:
 		ECLogger_Null();
 		virtual void Reset(void) _zcp_override;
@@ -213,7 +213,7 @@ class ECLogger_Null _zcp_final : public ECLogger {
 /**
  * File logger. Use "-" for stderr logging. Output is in system locale set in LC_CTYPE.
  */
-class ECLogger_File _zcp_final : public ECLogger {
+class ECLogger_File _kc_final : public ECLogger {
 	private:
 		typedef void* handle_type;
 		typedef handle_type(*open_func)(const char*, const char*);
@@ -261,7 +261,7 @@ class ECLogger_File _zcp_final : public ECLogger {
 /**
  * Linux syslog logger. Output is whatever syslog does, probably LC_CTYPE.
  */
-class ECLogger_Syslog _zcp_final : public ECLogger {
+class ECLogger_Syslog _kc_final : public ECLogger {
 	private:
 		char *m_ident;
 		int levelmap[16];	/* converts to syslog levels */
@@ -281,7 +281,7 @@ class ECLogger_Syslog _zcp_final : public ECLogger {
  * log message to an ECLogger_File object. This ECLogger_Pipe object
  * can be created by StartLoggerProcess function.
  */
-class ECLogger_Pipe _zcp_final : public ECLogger {
+class ECLogger_Pipe _kc_final : public ECLogger {
 	private:
 		int m_fd;
 		pid_t m_childpid;
@@ -308,7 +308,7 @@ ECLogger* StartLoggerProcess(ECConfig *lpConfig, ECLogger *lpFileLogger);
  *
  * Each attached logger can have its own loglevel.
  */
-class ECLogger_Tee _zcp_final : public ECLogger {
+class ECLogger_Tee _kc_final : public ECLogger {
 	private:
 		typedef std::list<ECLogger*> LoggerList;
 		LoggerList m_loggers;

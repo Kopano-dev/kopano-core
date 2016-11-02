@@ -85,7 +85,7 @@ typedef struct _ECStrings {
 	std::string value;
 } ECStrings;
 
-class ECStatsCollector _zcp_final {
+class ECStatsCollector _kc_final {
 public:
 	ECStatsCollector();
 

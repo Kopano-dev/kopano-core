@@ -92,7 +92,7 @@ public:
 	} m_xFreeBusySupport;
 
 	// Interface for Outlook 2000
-	class xFreeBusySupportOutlook2000 _zcp_final : public IFreeBusySupportOutlook2000 {
+	class xFreeBusySupportOutlook2000 _kc_final : public IFreeBusySupportOutlook2000 {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IFreeBusySupport.hpp>
 	} m_xFreeBusySupportOutlook2000;

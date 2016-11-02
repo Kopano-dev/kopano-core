@@ -21,8 +21,7 @@
 #include <kopano/zcdefs.h>
 #include <utility>
 
-template<typename _T>
-class mapi_array_proxy _zcp_final {
+template<typename _T> class mapi_array_proxy _kc_final {
 public:
 	typedef _T		value_type;
 	typedef _T**	pointerpointer;
@@ -36,9 +35,7 @@ private:
 	pointerpointer	m_lpp;
 };
 
-
-template <typename _T>
-class mapi_array_ptr _zcp_final {
+template <typename _T> class mapi_array_ptr _kc_final {
 public:
 	typedef _T						value_type;
 	typedef _T*						pointer;

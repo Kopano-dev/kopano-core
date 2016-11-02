@@ -57,7 +57,7 @@ using namespace std;
 // HACK: prototypes may differ depending on the compiler and/or system (the
 // second parameter may or may not be 'const'). This redeclaration is a hack
 // to have a common prototype "iconv_cast".
-class iconv_HACK _zcp_final {
+class iconv_HACK _kc_final {
 public:
 	iconv_HACK(const char** ptr) : m_ptr(ptr) { }
 
@@ -69,7 +69,7 @@ private:
 	const char** m_ptr;
 };
 
-class PropTagCompare _zcp_final {
+class PropTagCompare _kc_final {
 public:
 	PropTagCompare() {}
 	bool operator()(ULONG lhs, ULONG rhs) const { 

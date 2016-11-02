@@ -28,9 +28,7 @@
  * The commit and revert functions use memory sparingly, as only changed blocks
  * are held in memory.
  */
-
-
-class ECMemBlock _zcp_final : public ECUnknown {
+class ECMemBlock _kc_final : public ECUnknown {
 private:
 	ECMemBlock(char *buffer, ULONG ulDataLen, ULONG ulFlags);
 	~ECMemBlock();
@@ -60,8 +58,7 @@ private:
 /* 
  * This is an IStream-compatible wrapper for ECMemBlock
  */
-
-class ECMemStream _zcp_final : public ECUnknown {
+class ECMemStream _kc_final : public ECUnknown {
 public:
 	typedef HRESULT (*CommitFunc)(IStream *lpStream, void *lpParam);
 	typedef HRESULT (*DeleteFunc)(void *lpParam); /* Caller's function to remove lpParam data from memory */
@@ -95,7 +92,7 @@ public:
 	virtual ULONG GetSize();
 	virtual char* GetBuffer();
 
-	class xStream _zcp_final : public IStream {
+	class xStream _kc_final : public IStream {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/ISequentialStream.hpp>
 		#include <kopano/xclsfrag/IStream.hpp>

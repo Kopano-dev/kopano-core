@@ -221,31 +221,30 @@ private:
 	static HRESULT MsgStoreDnToPseudoUrl(const utf8string &strMsgStoreDN, utf8string *lpstrPseudoUrl);
 
 public:
-			
-	class xMsgStore _zcp_final : public IMsgStore {
+	class xMsgStore _kc_final : public IMsgStore {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IMsgStore.hpp>
 		#include <kopano/xclsfrag/IMAPIProp.hpp>
 	} m_xMsgStore;
 
-	class xExchangeManageStore _zcp_final : public IExchangeManageStore {
+	class xExchangeManageStore _kc_final : public IExchangeManageStore {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IExchangeManageStore.hpp>
 	} m_xExchangeManageStore;
 
-	class xExchangeManageStore6 _zcp_final : public IExchangeManageStore6 {
+	class xExchangeManageStore6 _kc_final : public IExchangeManageStore6 {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IExchangeManageStore.hpp>
 		virtual HRESULT __stdcall CreateStoreEntryIDEx(LPTSTR lpszMsgStoreDN, LPTSTR lpszEmail, LPTSTR lpszMailboxDN, ULONG ulFlags, ULONG *lpcbEntryID, LPENTRYID *lppEntryID);
 	} m_xExchangeManageStore6;
 
-	class xExchangeManageStoreEx _zcp_final : public IExchangeManageStoreEx {
+	class xExchangeManageStoreEx _kc_final : public IExchangeManageStoreEx {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IExchangeManageStore.hpp>
 		virtual HRESULT __stdcall CreateStoreEntryID2(ULONG cValues, LPSPropValue lpProps, ULONG ulFlags, ULONG *lpcbEntryID, LPENTRYID *lppEntryID);
 	} m_xExchangeManageStoreEx;
 
-	class xECServiceAdmin _zcp_final : public IECServiceAdmin {
+	class xECServiceAdmin _kc_final : public IECServiceAdmin {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 
 		// <kopano/xclsfrag/IECServiceAdmin.hpp>
@@ -306,14 +305,14 @@ public:
 		virtual HRESULT __stdcall ResetFolderCount(ULONG cbEntryId, LPENTRYID lpEntryId, ULONG *lpulUpdates) _zcp_override;
 	} m_xECServiceAdmin;
 
-	class xECSpooler _zcp_final : public IECSpooler {
+	class xECSpooler _kc_final : public IECSpooler {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		// <kopano/xclsfrag/IECSpooler.hpp>
 		virtual HRESULT __stdcall GetMasterOutgoingTable(ULONG ulFlags, IMAPITable **lppOutgoingTable) _zcp_override;
 		virtual HRESULT __stdcall DeleteFromMasterOutgoingTable(ULONG cbEntryID, const ENTRYID *lpEntryID, ULONG ulFlags) _zcp_override;
 	} m_xECSpooler;
 
-	class xMAPIOfflineMgr _zcp_final : public IMAPIOfflineMgr {
+	class xMAPIOfflineMgr _kc_final : public IMAPIOfflineMgr {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 
 		// <kopano/xclsfrag/IMAPIOffline.hpp>
@@ -334,28 +333,28 @@ public:
 		virtual HRESULT __stdcall Placeholder8(void) _zcp_override;
 	} m_xMAPIOfflineMgr;
 
-	class xProxyStoreObject _zcp_final : public IProxyStoreObject {
+	class xProxyStoreObject _kc_final : public IProxyStoreObject {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 
 		// <kopano/xclsfrag/IProxyStoreObject.hpp>
 		virtual HRESULT __stdcall PlaceHolder1();
 		virtual HRESULT __stdcall UnwrapNoRef(LPVOID *ppvObject);
 		virtual HRESULT __stdcall PlaceHolder2();
-	}m_xProxyStoreObject;
+	} m_xProxyStoreObject;
 
-	class xMsgStoreProxy _zcp_final : public IMsgStore {
+	class xMsgStoreProxy _kc_final : public IMsgStore {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IMsgStore.hpp>
 		#include <kopano/xclsfrag/IMAPIProp.hpp>
 	} m_xMsgStoreProxy;
 	
-	class xECMultiStoreTable _zcp_final : public IECMultiStoreTable {
+	class xECMultiStoreTable _kc_final : public IECMultiStoreTable {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		// <kopano/xclsfrag/IECMultiStoreTable.hpp>
 		virtual HRESULT __stdcall OpenMultiStoreTable(LPENTRYLIST lpMsgList, ULONG ulFlags, LPMAPITABLE *lppTable) _zcp_override;
 	} m_xECMultiStoreTable;
 
-    class xECLicense _zcp_final : public IECLicense {
+	class xECLicense _kc_final : public IECLicense {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		// <kopano/xclsfrag/IECLicense.hpp>
 		virtual HRESULT __stdcall LicenseAuth(unsigned char *lpData, unsigned int ulSize, unsigned char **lpResponseData, unsigned int *lpulResponseSize) _zcp_override;
@@ -363,7 +362,7 @@ public:
 		virtual HRESULT __stdcall LicenseUsers(unsigned int ulServiceType, unsigned int *lpulUsers) _zcp_override;
     } m_xECLicense;
 
-    class xECTestProtocol _zcp_final : public IECTestProtocol {
+	class xECTestProtocol _kc_final : public IECTestProtocol {
     public:
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		// <kopano/xclsfrag/IECTestProtocol.hpp>
@@ -408,7 +407,7 @@ public:
 	HRESULT Unadvise(ULONG ulConnection);
 	HRESULT OpenStatusEntry(LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPVOID *lppEntry);
 	
-	class xMSLogon _zcp_final : public IMSLogon {
+	class xMSLogon _kc_final : public IMSLogon {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 
 		// <kopano/xclsfrag/IMSLogon.hpp>

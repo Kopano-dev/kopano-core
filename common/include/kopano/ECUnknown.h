@@ -84,7 +84,7 @@ public:
 	virtual HRESULT AddChild(ECUnknown *lpChild);
 	virtual HRESULT RemoveChild(ECUnknown *lpChild);
 
-	class xUnknown _zcp_final : public IUnknown {
+	class xUnknown _kc_final : public IUnknown {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 	} m_xUnknown;
 

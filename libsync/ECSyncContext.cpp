@@ -80,7 +80,7 @@ public:
 	}
 
 private:
-	class xECChangeAdviseSink _zcp_final : public IECChangeAdviseSink {
+	class xECChangeAdviseSink _kc_final : public IECChangeAdviseSink {
 	public:
 		// <kopano/xclsfrag/IUnknown.hpp>
 		virtual ULONG __stdcall AddRef(void) _zcp_override

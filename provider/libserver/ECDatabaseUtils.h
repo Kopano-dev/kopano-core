@@ -94,7 +94,7 @@ ECRESULT SetDatabaseSetting(ECDatabase *lpDatabase, const std::string &strSettin
  * This means the lock-error logging is restored when the scope in which an instance of
  * this class exists is exited.
  */
-class SuppressLockErrorLogging _zcp_final {
+class SuppressLockErrorLogging _kc_final {
 public:
 	SuppressLockErrorLogging(ECDatabase *lpDatabase);
 	~SuppressLockErrorLogging();

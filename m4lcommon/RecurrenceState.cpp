@@ -41,7 +41,7 @@
 		#define DEBUGPRINT(...)
 #endif
 
-class BinReader _zcp_final {
+class BinReader _kc_final {
 public:
     BinReader(char *lpData, unsigned int ulLen) {
         this->m_lpData = lpData;
@@ -112,7 +112,7 @@ private:
     unsigned int m_ulCursor;
 };
 
-class BinWriter _zcp_final {
+class BinWriter _kc_final {
 public:
     BinWriter() {};
     ~BinWriter() {};

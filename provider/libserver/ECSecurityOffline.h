@@ -21,7 +21,7 @@
 #include <kopano/zcdefs.h>
 #include "ECSecurity.h"
 
-class ECSecurityOffline _zcp_final : public ECSecurity {
+class ECSecurityOffline _kc_final : public ECSecurity {
 public:
 	ECSecurityOffline(ECSession *lpSession, ECConfig *lpConfig);
 	virtual int GetAdminLevel();

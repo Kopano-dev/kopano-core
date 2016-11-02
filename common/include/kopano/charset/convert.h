@@ -51,7 +51,7 @@ private:
 /**
  * @brief	Unknown charset
  */
-class unknown_charset_exception _zcp_final : public convert_exception {
+class unknown_charset_exception _kc_final : public convert_exception {
 public:
 	unknown_charset_exception(const std::string &message);
 };
@@ -59,7 +59,7 @@ public:
 /**
  * @brief	Illegal sequence
  */
-class illegal_sequence_exception _zcp_final : public convert_exception {
+class illegal_sequence_exception _kc_final : public convert_exception {
 public:
 	illegal_sequence_exception(const std::string &message);
 };
@@ -195,8 +195,7 @@ namespace details {
 	 * The converter_helper class detects when the to and from charsets are identical. In
 	 * that case the string is merely copied.
 	 */
-	template <typename _Type>
-	class convert_helper _zcp_final {
+	template<typename _Type> class convert_helper _kc_final {
 	public:
 		/**
 		 * @brief Converts a string to a string with the same charset.
@@ -300,7 +299,7 @@ inline _To_Type convert_to(const char *tocode, const _From_Type &_from, size_t c
  * same context. This basically means that the details::iconv_context classes can
  * be reused, removing the need to recreate them for each conversion.
  */
-class convert_context _zcp_final {
+class convert_context _kc_final {
 public:
 	/**
 	 * @brief Constructor.
@@ -365,8 +364,7 @@ private:
 	 * The convert_context::helper class detects when the to and from charsets are
 	 * identical. In that case the string is merely copied.
 	 */
-	template <typename _Type>
-	class helper _zcp_final {
+	template<typename _Type> class helper _kc_final {
 	public:
 		/**
 		 * @brief Constructor.
@@ -444,8 +442,7 @@ private:
 	 * result needs to be stores to guarantee storage of the data. Without this
 	 * the caller will end up with a pointer to non-existing data.
 	 */
-	template <typename _Type>
-	class helper<_Type *> _zcp_final {
+	template<typename _Type> class helper<_Type *> _kc_final {
 	public:
 		typedef std::basic_string<_Type> string_type;
 	
@@ -549,7 +546,7 @@ private:
 	/**
 	 * @brief Sort predicate for the context_map;
 	 */
-	class context_predicate _zcp_final {
+	class context_predicate _kc_final {
 	public:
 		bool operator()(const context_key &lhs, const context_key &rhs) const {
 			int r = strcmp(lhs.fromtype, rhs.fromtype);

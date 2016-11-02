@@ -25,7 +25,7 @@
 #include <kopano/kcodes.h>
 
 // Thread safe buffer for FIFO operations
-class ECFifoBuffer _zcp_final {
+class ECFifoBuffer _kc_final {
 public:
 	typedef std::deque<unsigned char>	storage_type;
 	typedef storage_type::size_type		size_type;

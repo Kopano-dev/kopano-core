@@ -27,7 +27,7 @@ class ECConfig;
 class ECDatabaseFactory;
 class ECSession;
 
-class ECTPropsPurge _zcp_final {
+class ECTPropsPurge _kc_final {
 public:
     ECTPropsPurge(ECConfig *lpConfig, ECDatabaseFactory *lpDatabaseFactory);
     ~ECTPropsPurge();

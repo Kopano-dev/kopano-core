@@ -45,7 +45,7 @@ typedef struct tagSchedule {
 
 typedef std::list<ECSCHEDULE> ECScheduleList;
 
-class ECScheduler _zcp_final {
+class ECScheduler _kc_final {
 public:
 	ECScheduler(ECLogger *lpLogger);
 	~ECScheduler(void);

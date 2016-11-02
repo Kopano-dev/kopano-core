@@ -32,7 +32,7 @@ namespace details {
 	 * Subclass of DataCollector that is used to get the current state
 	 * through the MailboxTable.
 	 */
-	class MailboxDataCollector _zcp_final : public DataCollector {
+	class MailboxDataCollector _kc_final : public DataCollector {
 	public:
 		MailboxDataCollector(ArchiveStateCollector::ArchiveInfoMap &mapArchiveInfo, ECLogger *lpLogger);
 		~MailboxDataCollector();

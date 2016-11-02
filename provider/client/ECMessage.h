@@ -130,7 +130,7 @@ public:
 	// RTF overrides
 	virtual HRESULT		HrSetRealProp(SPropValue *lpsPropValue);
 
-	class xMessage _zcp_final : public IMessage {
+	class xMessage _kc_final : public IMessage {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IMAPIProp.hpp>
 

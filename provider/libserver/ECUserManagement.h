@@ -31,7 +31,7 @@
 #include <kopano/ECDefs.h>
 #include "plugin.h"
 
-class localobjectdetails_t _zcp_final : public objectdetails_t {
+class localobjectdetails_t _kc_final : public objectdetails_t {
 public:
     localobjectdetails_t() : objectdetails_t(), ulId(0) {};
 	localobjectdetails_t(unsigned int id, objectclass_t objclass) : objectdetails_t(objclass), ulId(id) {};
@@ -43,7 +43,7 @@ public:
 	unsigned int ulId;
 };
 
-class usercount_t _zcp_final {
+class usercount_t _kc_final {
 public:
 	enum ucIndex {
 		ucActiveUser = 0,

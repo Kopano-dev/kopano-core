@@ -52,8 +52,7 @@ private:
 	MAPIContainerPtr	m_ptrCurrent;
 };
 
-template <typename ContainerPtrType>
-class ECHierarchyIterator _zcp_final
+template<typename ContainerPtrType> class ECHierarchyIterator _kc_final
 	: public boost::iterator_facade<
 		ECHierarchyIterator<ContainerPtrType>,
 		ContainerPtrType,
@@ -109,7 +108,7 @@ private:
 };
 
 template <typename ContainerPtrType>
-class ECContentsIterator _zcp_final
+class ECContentsIterator _kc_final
 	: public boost::iterator_facade<
 		ECContentsIterator<ContainerPtrType>,
 		ContainerPtrType,

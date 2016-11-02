@@ -32,7 +32,7 @@ public:
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface);
 
 private:
-	class xMSProvider _zcp_final : public IMSProvider {
+	class xMSProvider _kc_final : public IMSProvider {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IMSProvider.hpp>
 	} m_xMSProvider;

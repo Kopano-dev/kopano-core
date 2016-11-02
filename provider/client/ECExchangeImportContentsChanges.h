@@ -52,7 +52,8 @@ public:
 	virtual HRESULT ImportMessageChangeAsAStream(ULONG cValue, LPSPropValue lpPropArray, ULONG ulFlags, LPSTREAM *lppstream);
 	virtual HRESULT SetMessageInterface(REFIID refiid);
 
-	class xECImportContentsChanges _zcp_final : public IECImportContentsChanges {
+	class xECImportContentsChanges _kc_final :
+	    public IECImportContentsChanges {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 
 		// <kopano/xclsfrag/IExchangeImportContentsChanges.hpp>

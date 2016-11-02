@@ -61,7 +61,7 @@ public:
 	virtual HRESULT Intersect(void) { return S_OK; }
 
 public:
-	class xFreeBusyUpdate _zcp_final : public IFreeBusyUpdate {
+	class xFreeBusyUpdate _kc_final : public IFreeBusyUpdate {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		// <kopano/xclsfrag/IFreeBusyUpdate.hpp>
 		virtual HRESULT __stdcall Reload(void) _zcp_override;
