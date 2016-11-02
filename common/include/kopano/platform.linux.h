@@ -646,7 +646,8 @@ time_t GetProcessTime();
  * _fmt is the 1-indexed index to the format argument
  * _va is the 1-indexed index to the first va argument.
  * NOTE: For non-static methods the this pointer has index 1.
- **/
+ * There is no wprintf attribute :-(
+ */
 #define __LIKE_PRINTF(_fmt, _va) __attribute__((format(printf, _fmt, _va)))
 
 std::vector<std::string> get_backtrace();

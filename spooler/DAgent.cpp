@@ -229,13 +229,13 @@ public:
 	bool bHasIMAP = false;
 };
 
-static HRESULT GetPluginObject(ECLogger *lpLogger,
-    PyMapiPluginFactory *lpPyMapiPluginFactory, PyMapiPlugin **lppPyMapiPlugin)
+static HRESULT GetPluginObject(PyMapiPluginFactory *lpPyMapiPluginFactory,
+    PyMapiPlugin **lppPyMapiPlugin)
 {
 	HRESULT hr = hrSuccess;
 	PyMapiPlugin *lpPyMapiPlugin = NULL;
 
-	if (!lpLogger || !lpPyMapiPluginFactory || !lppPyMapiPlugin) {
+	if (lpPyMapiPluginFactory == nullptr || lppPyMapiPlugin == nullptr) {
 		assert(false);
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
@@ -243,7 +243,7 @@ static HRESULT GetPluginObject(ECLogger *lpLogger,
 
 	hr = lpPyMapiPluginFactory->CreatePlugin("DAgentPluginManager", &lpPyMapiPlugin);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to initialize the dagent plugin manager, please check your configuration: %s (%x).",
+		ec_log_crit("Unable to initialize the dagent plugin manager, please check your configuration: %s (%x).",
 			GetMAPIErrorMessage(hr), hr);
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
@@ -413,8 +413,8 @@ exit:
  * 
  * @return result
  */
-static HRESULT HrAutoAccept(ECLogger *lpLogger, IMAPISession *lpMAPISession,
-    ECRecipient *lpRecip, IMsgStore *lpStore, LPMESSAGE lpMessage)
+static HRESULT HrAutoAccept(IMAPISession *lpMAPISession, ECRecipient *lpRecip,
+    IMsgStore *lpStore, LPMESSAGE lpMessage)
 {
 	HRESULT hr = hrSuccess;
 	IMAPIFolder *lpRootFolder = NULL;
@@ -433,31 +433,31 @@ static HRESULT HrAutoAccept(ECLogger *lpLogger, IMAPISession *lpMAPISession,
 	// work on the copy.
 	hr = lpStore->OpenEntry(0, NULL, NULL, MAPI_MODIFY, &ulType, (IUnknown **)&lpRootFolder);
 	if(hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrAutoAccept(): OpenEntry failed %x", hr);
+		ec_log_err("HrAutoAccept(): OpenEntry failed %x", hr);
 		goto exit;
 	}
 	
 	hr = lpRootFolder->CreateMessage(NULL, 0, &lpMessageCopy);
 	if(hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrAutoAccept(): CreateMessage failed %x", hr);
+		ec_log_err("HrAutoAccept(): CreateMessage failed %x", hr);
 		goto exit;
 	}
 		
 	hr = lpMessage->CopyTo(0, NULL, NULL, 0, NULL, &IID_IMessage, (LPVOID)lpMessageCopy, 0, NULL);
 	if(hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrAutoAccept(): CopyTo failed %x", hr);
+		ec_log_err("HrAutoAccept(): CopyTo failed %x", hr);
 		goto exit;
 	}
 		
 	hr = lpMessageCopy->SaveChanges(0);
 	if(hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrAutoAccept(): SaveChanges failed %x", hr);
+		ec_log_err("HrAutoAccept(): SaveChanges failed %x", hr);
 		goto exit;
 	}
 
 	hr = HrGetOneProp(lpMessageCopy, PR_ENTRYID, &lpEntryID);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrAutoAccept(): HrGetOneProp failed %x", hr);
+		ec_log_err("HrAutoAccept(): HrGetOneProp failed %x", hr);
 		goto exit;
 	}
 		
@@ -467,10 +467,10 @@ static HRESULT HrAutoAccept(ECLogger *lpLogger, IMAPISession *lpMAPISession,
 	// force UTF-8 output on the username. This means that the autoaccept script must also interpret the username
 	// in UTF-8, *not* in the current locale.
 	strCmdLine = (std::string)autoresponder + " \"" + convert_to<string>("UTF-8", lpRecip->wstrUsername, rawsize(lpRecip->wstrUsername), CHARSET_WCHAR) + "\" \"" + g_lpConfig->GetSettingsPath() + "\" \"" + strEntryID + "\"";
-	g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Starting autoaccept with command line %s", strCmdLine.c_str());
+	ec_log_debug("Starting autoaccept with command line %s", strCmdLine.c_str());
 	if (!unix_system(autoresponder, strCmdLine.c_str(), const_cast<const char **>(environ))) {
 		hr = MAPI_E_CALL_FAILED;
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrAutoAccept(): invoking autoaccept script failed %x", hr);
+		ec_log_err("HrAutoAccept(): invoking autoaccept script failed %x", hr);
 	}
 		
 	// Delete the copy, irrespective of the outcome of the script.
@@ -501,8 +501,8 @@ exit:
  *
  * @return result
  */
-static HRESULT HrAutoProcess(ECLogger *lpLogger, IMAPISession *lpMAPISession,
-    ECRecipient *lpRecip, IMsgStore *lpStore, LPMESSAGE lpMessage)
+static HRESULT HrAutoProcess(IMAPISession *lpMAPISession, ECRecipient *lpRecip,
+    IMsgStore *lpStore, LPMESSAGE lpMessage)
 {
 	HRESULT hr = hrSuccess;
 	IMAPIFolder *lpRootFolder = NULL;
@@ -518,31 +518,31 @@ static HRESULT HrAutoProcess(ECLogger *lpLogger, IMAPISession *lpMAPISession,
 	// Pass a copy to the external script
 	hr = lpStore->OpenEntry(0, NULL, NULL, MAPI_MODIFY, &ulType, (IUnknown **)&lpRootFolder);
 	if(hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrAutoProcess(): OpenEntry failed %x", hr);
+		ec_log_err("HrAutoProcess(): OpenEntry failed %x", hr);
 		goto exit;
 	}
 
 	hr = lpRootFolder->CreateMessage(NULL, 0, &lpMessageCopy);
 	if(hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrAutoProcess(): CreateMessage failed %x", hr);
+		ec_log_err("HrAutoProcess(): CreateMessage failed %x", hr);
 		goto exit;
 	}
 
 	hr = lpMessage->CopyTo(0, NULL, NULL, 0, NULL, &IID_IMessage, (LPVOID)lpMessageCopy, 0, NULL);
 	if(hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrAutoProcess(): CopyTo failed %x", hr);
+		ec_log_err("HrAutoProcess(): CopyTo failed %x", hr);
 		goto exit;
 	}
 
 	hr = lpMessageCopy->SaveChanges(0);
 	if(hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrAutoProcess(): SaveChanges failed %x", hr);
+		ec_log_err("HrAutoProcess(): SaveChanges failed %x", hr);
 		goto exit;
 	}
 
 	hr = HrGetOneProp(lpMessageCopy, PR_ENTRYID, &lpEntryID);
 	if (hr != hrSuccess) {
-		lpLogger->Log(EC_LOGLEVEL_ERROR, "HrAutoProcess(): HrGetOneProp failed %x", hr);
+		ec_log_err("HrAutoProcess(): HrGetOneProp failed %x", hr);
 		goto exit;
 	}
 
@@ -2376,8 +2376,7 @@ static HRESULT HrPostDeliveryProcessing(PyMapiPlugin *lppyMapiPlugin,
 
 	if (FNeedsAutoProcessing(lpStore, *lppMessage)) {
 		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Starting MR auto processing");
-		hr = HrAutoProcess(g_lpLogger, lpUserSession, lpRecip, lpStore,
-		     *lppMessage);
+		hr = HrAutoProcess(lpUserSession, lpRecip, lpStore, *lppMessage);
 		if (hr == hrSuccess)
 			g_lpLogger->Log(EC_LOGLEVEL_INFO, "Automatic MR processing successful.");
 		else
@@ -2387,9 +2386,7 @@ static HRESULT HrPostDeliveryProcessing(PyMapiPlugin *lppyMapiPlugin,
 
 	if(FNeedsAutoAccept(lpStore, *lppMessage)) {
 		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Starting MR autoaccepter");
-
-		hr = HrAutoAccept(g_lpLogger, lpUserSession, lpRecip, lpStore, *lppMessage);
-		
+		hr = HrAutoAccept(lpUserSession, lpRecip, lpStore, *lppMessage);
 		if(hr == hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_INFO, "Autoaccept processing completed successfully. Skipping further processing.");
 			// The MR autoaccepter has processed the message. Skip any further work on this message: dont
@@ -2408,7 +2405,7 @@ static HRESULT HrPostDeliveryProcessing(PyMapiPlugin *lppyMapiPlugin,
 	
 	if (lpFolder == lpInbox) {
 		// process rules for the inbox
-		hr = HrProcessRules(convert_to<std::string>(lpRecip->wstrUsername), lppyMapiPlugin, lpUserSession, lpAdrBook, lpStore, lpInbox, lppMessage, g_lpLogger, sc);
+		hr = HrProcessRules(convert_to<std::string>(lpRecip->wstrUsername), lppyMapiPlugin, lpUserSession, lpAdrBook, lpStore, lpInbox, lppMessage, sc);
 		if (hr == MAPI_E_CANCEL)
 			g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Message canceled by rule");
 		else if (hr != hrSuccess)
@@ -2671,7 +2668,7 @@ static HRESULT ProcessDeliveryToRecipient(PyMapiPlugin *lppyMapiPlugin,
 				goto exit;
 			}
 
-			hr = Archive::Create(ptrAdminSession, g_lpLogger, &ptrArchive);
+			hr = Archive::Create(ptrAdminSession, &ptrArchive);
 			if (hr != hrSuccess) {
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to instantiate archive object: 0x%08X", hr);
 				goto exit;
@@ -3176,7 +3173,7 @@ static void *HandlerLMTP(void *lpArg)
 	convert_context converter;
 	std::string curFrom = "???", heloName = "???";
 
-	LMTP lmtp(lpArgs->lpChannel, (char *)lpArgs->strPath.c_str(), g_lpLogger, g_lpConfig);
+	LMTP lmtp(lpArgs->lpChannel, lpArgs->strPath.c_str(), g_lpConfig);
 
 	/* For resolving addresses from Address Book */
 	IMAPISession *lpSession = NULL;
@@ -3391,7 +3388,7 @@ static void *HandlerLMTP(void *lpArg)
 				if (hr == hrSuccess) {
 
 					PyMapiPluginAPtr ptrPyMapiPlugin;
-					hr = GetPluginObject(g_lpLogger, &pyMapiPluginFactory, &ptrPyMapiPlugin);
+					hr = GetPluginObject(&pyMapiPluginFactory, &ptrPyMapiPlugin);
 					if (hr != hrSuccess) {
 						lmtp.HrResponse("503 5.1.1 Internal error during delivery");
 						sc -> countInc("DAgent::LMTP", "internal_error");
@@ -3948,6 +3945,7 @@ int main(int argc, char *argv[]) {
 		{ "no_double_forward", "no", CONFIGSETTING_RELOADABLE },
 		{ "z_statsd_stats", "/var/run/kopano/statsd.sock" },
 		{ "tmp_path", "/tmp" },
+		{"forward_whitelist_domains", "*"},
 		{ NULL, NULL },
 	};
 
@@ -4164,8 +4162,7 @@ int main(int argc, char *argv[]) {
 			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to instantiate plugin factory, hr=0x%08x", hr);
 			goto nonlmtpexit;
 		}
-		
-		hr = GetPluginObject(g_lpLogger, &pyMapiPluginFactory, &ptrPyMapiPlugin);
+		hr = GetPluginObject(&pyMapiPluginFactory, &ptrPyMapiPlugin);
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "main(): GetPluginObject failed %x", hr);
 			goto nonlmtpexit; // Error is logged in GetPluginObject
