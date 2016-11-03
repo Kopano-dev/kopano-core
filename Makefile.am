@@ -741,6 +741,37 @@ libm4lcommon_la_LIBADD = \
 
 
 #
+# PHP configuration
+# Old note: Debian has a broken php-config(1) script which outputs
+# 	"--with-config-file-scan-dir=/etc/php5/apache2/conf.d"
+# If we install our config file into that location, it will only be available
+# to only apache2-mod_php5 and not php-cli, php-fpm, etc.
+#
+phpsysconfdir = ${dcprefix}${PHP_SYSCONF_DIR}
+dist_phpsysconfdir = php-ext/mapi.ini
+
+
+#
+# PHP classes
+#
+phpdatadir = ${datarootdir}/php/mapi
+dist_phpdata_DATA = \
+	php-ext/include/mapi/class.baseexception.php \
+	php-ext/include/mapi/class.baserecurrence.php \
+	php-ext/include/mapi/class.freebusypublish.php \
+	php-ext/include/mapi/class.mapiexception.php \
+	php-ext/include/mapi/class.meetingrequest.php \
+	php-ext/include/mapi/class.recurrence.php \
+	php-ext/include/mapi/class.taskrecurrence.php \
+	php-ext/include/mapi/class.taskrequest.php \
+	php-ext/include/mapi/mapi.util.php \
+	php-ext/include/mapi/mapicode.php \
+	php-ext/include/mapi/mapidefs.php \
+	php-ext/include/mapi/mapiguid.php \
+	php-ext/include/mapi/mapitags.php
+
+
+#
 # test programs
 #
 cov_scope_SOURCES = common/cov-scope.cpp

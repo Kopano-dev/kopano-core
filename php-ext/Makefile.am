@@ -28,21 +28,6 @@ mapi_la_LIBADD = \
 # and be missing at runtime.
 # therefore, we explicitly link mapi.so with -lpthread :(
 
-dist_data_DATA = include/mapi/mapicode.php include/mapi/mapidefs.php include/mapi/mapitags.php include/mapi/mapi.util.php include/mapi/class.recurrence.php include/mapi/class.meetingrequest.php include/mapi/class.freebusypublish.php include/mapi/class.baseexception.php include/mapi/class.mapiexception.php include/mapi/mapiguid.php include/mapi/class.baserecurrence.php include/mapi/class.taskrequest.php include/mapi/class.taskrecurrence.php
-datadir = ${datarootdir}/php/mapi
-
-#
-# Debian has a broken php-config(1) script which outputs
-# 	"--with-config-file-scan-dir=/etc/php5/apache2/conf.d"
-# If we install our config file into that location, it will only be available
-# to only apache2-mod_php5 and not php-cli, php-fpm, etc.
-#
-sysconfdir = ${dcprefix}${PHP_SYSCONF_DIR}
-dist_sysconf_DATA = mapi.ini
-
-sampleconfdir = ${docdir}/example-config
-sampleconf_DATA = mapi.ini
-
 mapi_la_SOURCES = main.cpp util.cpp \
 	phpconfig.h main.h util.h \
 	ECImportContentsChangesProxy.cpp ECImportContentsChangesProxy.h \
