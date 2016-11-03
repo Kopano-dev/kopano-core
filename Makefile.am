@@ -7,12 +7,6 @@ SUBDIRS = . ECtools/archiver/include/kopano ECtools/backup ECtools/presence \
 	ECtools/search common/include/kopano m4lcommon/include/kopano \
 	mapi4linux/include inetmapi/include/inetmapi provider/include \
 	spooler/python
-if WITH_PHP5
-SUBDIRS += php-ext
-endif
-if WITH_PHP7
-SUBDIRS += php7-ext
-endif
 SUBDIRS += installer po swig
 
 
@@ -752,8 +746,49 @@ dist_phpsysconfdir = php-ext/mapi.ini
 
 
 #
-# PHP classes
+# PHP extension
 #
+phplibdir = ${dcprefix}${PHP_EXTENSION_DIR}
+phplib_LTLIBRARIES =
+mapi_la_SOURCES =
+if WITH_PHP7
+phplib_LTLIBRARIES += mapi.la
+mapi_la_SOURCES += \
+	php7-ext/ECImportContentsChangesProxy.cpp \
+	php7-ext/ECImportContentsChangesProxy.h \
+	php7-ext/ECImportHierarchyChangesProxy.cpp \
+	php7-ext/ECImportHierarchyChangesProxy.h \
+	php7-ext/ECRulesTableProxy.cpp php7-ext/ECRulesTableProxy.h \
+	php7-ext/globals.h php7-ext/main.cpp php7-ext/main.h \
+	php7-ext/phpconfig.h \
+	php7-ext/typeconversion.cpp php7-ext/typeconversion.h \
+	php7-ext/util.cpp php7-ext/util.h
+endif
+if WITH_PHP5
+phplib_LTLIBRARIES += mapi.la
+mapi_la_SOURCES += \
+	php-ext/ECImportContentsChangesProxy.cpp \
+	php-ext/ECImportContentsChangesProxy.h \
+	php-ext/ECImportHierarchyChangesProxy.cpp \
+	php-ext/ECImportHierarchyChangesProxy.h \
+	php-ext/ECRulesTableProxy.cpp php-ext/ECRulesTableProxy.h \
+	php-ext/globals.h php-ext/main.cpp php-ext/main.h \
+	php-ext/phpconfig.h \
+	php-ext/typeconversion.cpp php-ext/typeconversion.h \
+	php-ext/util.cpp php-ext/util.h
+endif
+mapi_la_CPPFLAGS = ${AM_CPPFLAGS} ${PHP_INCLUDES}
+mapi_la_CXXFLAGS = ${AM_CXXFLAGS} ${ZPHPCXXFLAGS}
+mapi_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version ${PHP_LDFLAGS}
+mapi_la_LIBADD = libmapi.la libkcmapi.la libkcutil.la libkcfreebusy.la \
+	libkcinetmapi.la ${PROG_LIBS} -lpthread
+
+
+#
+# PHP classes, config files
+#
+phpsysconfdir = ${dcprefix}${PHP_SYSCONF_DIR}
+dist_phpsysconf_DATA = php-ext/mapi.ini
 phpdatadir = ${datarootdir}/php/mapi
 dist_phpdata_DATA = \
 	php-ext/include/mapi/class.baseexception.php \
