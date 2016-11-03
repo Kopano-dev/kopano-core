@@ -7,11 +7,19 @@ Fixes:
 * dagent: the "Received" debugging header had the wrong target address
 * gateway: do not emit an X-Mailer field when retrieving mail [KC-277]
 * server/ldap: report empty ldap_search_base setting
+* client: verify peer's SSL certificate name [KC-156]
+* admin: support unwrapping "default:" type URLs [KC-289]
+* backup: fix tracebacks when used with ZCP [KC-306,KC-307,KC-308]
+* server: implement missing readback of compressed attachments [KC-285]
 Enhancements:
+* PST importer [KC-59]
 * Python 3 support [KC-48,KC-267]
 * search: files are now compacted, and their uid/gid checked [KC-188]
 * server: allow search folder creation outside of own store [KC-271]
+* dagent: forwarding by rule can be restricted with a whitelist [KC-109]
 Changes:
+* Non-Delivery Reports now originate from "Mail Delivery System"
+  (like postfix) instead of yourself [KC-309]
 * Support for building with a no-SSLv2 OpenSSL 1.1. [KC-230]
   If you run such a setup, be aware that a config setting like
   "ssl_protocol = !SSLv2" in one or more of kopano-{server,gateway,ical}.cfg
@@ -23,15 +31,17 @@ Changes:
   ldap_object_search_filter for OpenLDAP. [KC-218]
 Developer/packager notes:
 * Support for building the source with newer gsoap
-  (upto and including 2.8.36) [KC-261]
+  (upto and including 2.8.37) [KC-261]
 * KC 8.2 is the first to support 2.8.34+ at runtime. [KC-261]
   Earlier KC releases only support gsoap < 2.8.30 because KC was using
   undocumented behavior for which the generator changed the wire protocol.
+* New libvmime API is now being used [KC-263]
 Internal:
 * Many "goto exit" were abolished and reordered [KC-87]
 * for() loop verbosity reduced by using range-based loops [KC-88]
 * pthread_mutex calls have been switched to std::mutex [KC-191]
 * Coverity report fixes and other possible NULL dereferences [KC-235]
+* Memory leak fixes [KC-93,KC-98]
 
 
 Release notes for 8.1.0 [2016-10-05]
