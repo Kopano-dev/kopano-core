@@ -1775,7 +1775,9 @@ static HRESULT SoapGroupToGroup(const struct group *lpGroup,
 	if (hr != hrSuccess)
 		return hr;
 
-	hr = CopySOAPEntryIdToMAPIEntryId(&lpGroup->sGroupId, lpGroup->ulGroupId, (ULONG*)&lpsGroup->sGroupId.cb, (LPENTRYID*)&lpsGroup->sGroupId.lpb);
+	hr = CopySOAPEntryIdToMAPIEntryId(&lpGroup->sGroupId, lpGroup->ulGroupId,
+	     reinterpret_cast<ULONG *>(&lpsGroup->sGroupId.cb),
+	     reinterpret_cast<ENTRYID **>(&lpsGroup->sGroupId.lpb), lpBase);
 	if (hr != hrSuccess)
 		return hr;
 
