@@ -1,84 +1,58 @@
 #!/usr/bin/python -u
 
-import sys
-import datetime
-from MAPI import *
-from MAPI.Defs import *
-from MAPI.Util import *
+from datetime import datetime
 
-def getStats(store):
-    systemtable = store.OpenProperty(PR_EC_STATSTABLE_SYSTEM, IID_IMAPITable, 0, 0)
-    systemtable.SetColumns([PR_DISPLAY_NAME, PR_EC_STATS_SYSTEM_VALUE, PR_EC_STATS_SYSTEM_DESCRIPTION], TBL_BATCH)
+import kopano
+from MAPI.Tags import PR_EC_STATSTABLE_SYSTEM, PR_DISPLAY_NAME_W, PR_EC_STATS_SYSTEM_VALUE, PR_EC_STATS_SYSTEM_DESCRIPTION
 
-    stats = {}
-    while True:
-        rows = systemtable.QueryRows(-1, 0)
+"""
 
-        if len(rows) == 0: break
+provides an easy-to read overview of the kopano-server cache statistics,
+as compared to the more low-level "kopano-stats --system"
 
-        for row in rows:
-            stats[row[0].Value] = {}
-            stats[row[0].Value]['value'] = row[1].Value
-            stats[row[0].Value]['description'] = row[2].Value
+"""
 
-    return stats
+server = kopano.Server(auth_user='SYSTEM', auth_pass='')
+# XXX: When python-kopano supports sorting, simplify the loop by sorting on display_name in descending order.
+table = server.table(PR_EC_STATSTABLE_SYSTEM, columns=[PR_DISPLAY_NAME_W, PR_EC_STATS_SYSTEM_VALUE, PR_EC_STATS_SYSTEM_DESCRIPTION])
 
-def diff(new, old):
-    d = {}
-
-    if not old:
-        for n in new.keys():
-            try:
-                d[n] = int(new[n]['value'])
-            except ValueError: pass
-
-    else:
-        for n in new.keys():
-            try:
-                d[n] = int(new[n]['value']) - int(old[n]['value'])
-            except ValueError: pass
-
-    return d
-
-session = OpenECSession('SYSTEM', '', 'default:')
-store = GetDefaultStore(session)
-
-stats = getStats(store)
 cstat = {}
-serverstarttime = ''
+for row in table.rows():
+    name, value, _ = row
+    name = name.value
+    value = value.value
 
-for n in stats.keys():
-    if n == 'server_start_date':
-        serverstarttime = stats[n]['value']
+    if name == 'server_start_date':
+        serverstarttime = value
 
-    if n.startswith('cache_'):
-        if n.endswith('_hit'):
-            name = n[6:-4]
-            if not cstat.has_key(name): cstat[name] = {}
-            cstat[name]['hits'] = int(stats[n]['value'])
-        if n.endswith('_req'):
-            name = n[6:-4]
-            if not cstat.has_key(name): cstat[name] = {}
-            cstat[name]['requests'] = int(stats[n]['value'])
-        if n.endswith('_size'):
-            name = n[6:-5]
-            if not cstat.has_key(name): cstat[name] = {}
-            cstat[name]['size'] = int(stats[n]['value'])
-        if n.endswith('_maxsz'):
-            name = n[6:-6]
-            if not cstat.has_key(name): cstat[name] = {}
-            cstat[name]['maxsz'] = int(stats[n]['value'])
-
-print 'Kopano Cache Statistics'
-print '  Server start time: %s' % ( serverstarttime )
-print '  Current time     : %s' % ( datetime.datetime.now().strftime('%c') )
-print ''
-print '%10s %24s         %24s' % ('Cache', 'Hit ratio', 'Mem usage ratio')
-
-for name in cstat:
-    if ('requests' not in cstat[name]):
+    # Skip non cache items
+    if not name.startswith('cache_'):
         continue
 
+    if name.endswith('_hit'):
+        name = name[6:-4]
+        if not name in cstat: cstat[name] = {}
+        cstat[name]['hits'] = int(value)
+    if name.endswith('_req'):
+        name = name[6:-4]
+        if not name in cstat: cstat[name] = {}
+        cstat[name]['requests'] = int(value)
+    if name.endswith('_size'):
+        name = name[6:-5]
+        if not name in cstat: cstat[name] = {}
+        cstat[name]['size'] = int(value)
+    if name.endswith('_maxsz'):
+        name = name[6:-6]
+        if not name in cstat: cstat[name] = {}
+        cstat[name]['maxsz'] = int(value)
+
+print('Kopano Cache Statistics')
+print('  Server start time: %s' % ( serverstarttime ))
+print('  Current time     : %s' % ( datetime.now().strftime('%c') ))
+print('')
+print('%10s %24s         %24s' % ('Cache', 'Hit ratio', 'Mem usage ratio'))
+
+for name in cstat:
     if(cstat[name]['requests']):
         percentage = '%d%%' % (cstat[name]['hits'] * 100 / cstat[name]['requests'])
     else:
@@ -89,4 +63,4 @@ for name in cstat:
     else:
         persize = 'N/A'
 
-    print '%10s (%12d/%12d) (%3s)   (%12d/%12d) (%3s)' % (name, cstat[name]['hits'], cstat[name]['requests'], percentage, cstat[name]['size'], cstat[name]['maxsz'], persize)
+    print('%10s (%12d/%12d) (%3s)   (%12d/%12d) (%3s)' % (name, cstat[name]['hits'], cstat[name]['requests'], percentage, cstat[name]['size'], cstat[name]['maxsz'], persize))
