@@ -19,7 +19,7 @@ class ECS3Attachment _kc_final : public ECAttachmentStorage {
 	public:
 	static ECRESULT StaticInit(ECConfig *);
 	static ECRESULT StaticDeinit(void);
-	ECS3Attachment(ECDatabase *, const char *, const char *, const char *, const char *, const char *, const char *, unsigned int);
+	ECS3Attachment(ECDatabase *, const char *, const char *, const char *, const char *, const char *, const char *, const char *, unsigned int);
 
 	protected:
 	virtual ~ECS3Attachment(void);

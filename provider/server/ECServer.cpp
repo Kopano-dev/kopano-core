@@ -851,6 +851,7 @@ static int running_server(char *szName, const char *szConfig,
 		{"attachment_s3_accesskeyid", ""},
 		{"attachment_s3_secretaccesskey", ""},
 		{"attachment_s3_bucketname", ""},
+		{"attachment_s3_region", ""},
 #endif
 		{ "attachment_path",			"Kopano Data" },
 		{ "attachment_compression",		"6" },

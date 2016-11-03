@@ -117,14 +117,14 @@ ECRESULT ECS3Attachment::StaticInit(ECConfig *cf)
 	ec_log_info("Initializing S3 Attachment Storage");
 
 	/*
-	 * Do a dlopen of libs3.so.2 so that the implicit pull-in of
+	 * Do a dlopen of libs3.so.3 so that the implicit pull-in of
 	 * libldap-2.4.so.2 symbols does not pollute our namespace of
 	 * libldap_r-2.4.so.2 symbols.
 	 */
-	void *h = ec_libs3_handle = dlopen("libs3.so.2", RTLD_LAZY | RTLD_LOCAL);
+	void *h = ec_libs3_handle = dlopen("libs3.so.3", RTLD_LAZY | RTLD_LOCAL);
 	const char *err;
 	if (ec_libs3_handle == NULL) {
-		ec_log_warn("dlopen libs3.so.2: %s", (err = dlerror()) ? err : "<none>");
+		ec_log_warn("dlopen libs3.so.3: %s", (err = dlerror()) ? err : "<none>");
 		return KCERR_DATABASE_ERROR;
 	}
 #define W(n) do { \
@@ -210,7 +210,7 @@ ECRESULT ECS3Attachment::StaticDeinit(void)
  */
 ECS3Attachment::ECS3Attachment(ECDatabase *database, const char *protocol,
     const char *uri_style, const char *access_key_id,
-    const char *secret_access_key, const char *bucket_name,
+    const char *secret_access_key, const char *bucket_name, const char *region,
     const char *basepath, unsigned int complvl) :
 	ECAttachmentStorage(database, complvl)
 {
@@ -220,6 +220,7 @@ ECS3Attachment::ECS3Attachment(ECDatabase *database, const char *protocol,
 	m_bucket_ctx.uriStyle = strncmp(uri_style, "path", 4) == 0 ? S3UriStylePath : S3UriStyleVirtualHost;
 	m_bucket_ctx.accessKeyId = access_key_id;
 	m_bucket_ctx.secretAccessKey = secret_access_key;
+	m_bucket_ctx.authRegion = region;
 
 	m_basepath = basepath;
 	m_transact = false;
@@ -257,8 +258,12 @@ S3Status ECS3Attachment::response_prop(const S3ResponseProperties *properties, v
 {
 	struct s3_cd *data = reinterpret_cast<struct s3_cd *>(cbdata);
 
-	data->size = properties->contentLength;
-	ec_log_debug("Received the response properties, content length: %d.", data->size);
+	if (properties->contentLength != 0) {
+		data->size = properties->contentLength;
+		ec_log_debug("Received the response properties, content length: %d", data->size);
+	} else {
+		ec_log_debug("Received the response properties");
+	}
 	/*
 	 * Only allocate memory if we are not able to use a serializer sink, we
 	 * are instructed to alloc data->data and have not allocated it yet.

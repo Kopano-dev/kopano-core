@@ -134,6 +134,7 @@ ECRESULT ECAttachmentStorage::CreateAttachmentStorage(ECDatabase *lpDatabase,
 					lpConfig->GetSetting("attachment_s3_accesskeyid"),
 					lpConfig->GetSetting("attachment_s3_secretaccesskey"),
 					lpConfig->GetSetting("attachment_s3_bucketname"),
+					lpConfig->GetSetting("attachment_s3_region"),
 					lpConfig->GetSetting("attachment_path"),
 					strtol(lpConfig->GetSetting("attachment_compression"), NULL, 0));
 		} catch (std::runtime_error &e) {
