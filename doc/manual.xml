@@ -3,7 +3,7 @@
 "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd">
 <book>
   <bookinfo>
-    <date>April 2014</date>
+    <date>November 2016</date>
 
     <releaseinfo>Version 8</releaseinfo>
 
@@ -1189,7 +1189,7 @@
       <refsection>
         <title>Description</title>
 
-        <para>Script will be called by <command>kopano-dagent</command> when the user 
+        <para>Script will be called by <command>kopano-dagent</command> when the user
 				enabled a vacation message.	</para>
 		<para>This script should not be executed from the command line.</para>
       </refsection>
@@ -1235,7 +1235,7 @@
       <refsection>
         <title>Description</title>
 
-        <para>Script will be called by <command>kopano-dagent</command> when the user 
+        <para>Script will be called by <command>kopano-dagent</command> when the user
 				receives a meeting request or cancellation.	</para>
 		<para>This script should not be executed from the command line.</para>
       </refsection>
@@ -1281,7 +1281,7 @@
       <refsection>
         <title>Description</title>
 
-        <para>Script will be called by <command>kopano-dagent</command> when the user 
+        <para>Script will be called by <command>kopano-dagent</command> when the user
 				receives a meeting request or cancellation.	</para>
 		<para>This script should not be executed from the command line.</para>
       </refsection>
@@ -3169,7 +3169,7 @@
 			  <para>Enable the user's out of office reply.</para>
 			</listitem>
 		  </varlistentry>
-		  
+
 		  <varlistentry>
 			<term><option>-m</option></term>
 			<term><option>--mode</option> <option>-</option></term>
@@ -8723,8 +8723,8 @@
 		  <varlistentry>
 		  	<term><option>--acceptdisclaimer</option></term>
 			<listitem>
-			  <para>Auto accept the disclaimer so no user input is needed to 
-			  accept the disclaimer. This can be used for scripts along with 
+			  <para>Auto accept the disclaimer so no user input is needed to
+			  accept the disclaimer. This can be used for scripts along with
 			  <parameter>--autofix </parameter>argument.</para>
 			</listitem>
 		  </varlistentry>
@@ -9854,7 +9854,7 @@
 		<title>Usage</title>
 		<para>Starting the kopano-search daemon with an alternative configuration:</para>
 		<para>
-		  <command>kopano-search</command>&nbsp; 
+		  <command>kopano-search</command>&nbsp;
 		  <option>-c</option>&nbsp;
 		  <replaceable>/path/to/search.cfg</replaceable>
 		</para>
@@ -10267,9 +10267,9 @@
 		  <varlistentry>
 		    <term><option>index_processes</option></term>
 		    <listitem>
-		      <para>Number of indexing processes used during initial 
-                      indexing. Setting this to a higher value can greatly 
-                      speed up initial indexing, especially when attachments 
+		      <para>Number of indexing processes used during initial
+                      indexing. Setting this to a higher value can greatly
+                      speed up initial indexing, especially when attachments
                       are indexed.
 		      </para>
 		      <para>Default: 1</para>
@@ -11590,7 +11590,6 @@
 		</para>
 	  </refsection>
 	</refentry>
-
 <!--
   -+-+-
 	Kopano Archiver config manual page
@@ -12035,7 +12034,419 @@
 		</para>
 	  </refsection>
 	</refentry>
+ <!--
+  -+-+-
+	Kopano Archive ACL Sync manual page
+  -+-+-
+-->
+	<refentry>
+	  <refmeta>
+		<refentrytitle>kopano-archiver-aclsync</refentrytitle>
+		<manvolnum>8</manvolnum>
+	  </refmeta>
 
+	  <refnamediv>
+		<refname>kopano-archiver-aclsync</refname>
+		<refpurpose>Synchronizes archive ACL settings with those of the
+		primary store.</refpurpose>
+	  </refnamediv>
+
+	  <refsynopsisdiv>
+		<cmdsynopsis>
+		  <command>kopano-archiver-aclsync</command>
+		  <arg rep="repeat"><replaceable>OPTION</replaceable></arg>
+		</cmdsynopsis>
+	  </refsynopsisdiv>
+
+	  <refsection>
+		<title>Description</title>
+
+		<para>When a user has set permissions for others on his or her store
+		or folders, the other user will need at least read-permissions on this
+		persons archive as well in order to read stubbed messages or access
+		the archive directly. These permissions can not be set by the owner of
+		the archive if the archive was attached without write privileges. Even
+		if the user has write permissions, it's a nuisance to have to set all
+		the permissions twice (or more if multiple archives are attached).
+		</para>
+
+		<para><command>kopano-archiver-aclsync</command> can be used to propagate
+		the ACL settings from the primary store to the archives. However, no user
+		will ever get more right on a store or folder than the owner of the
+		archive. So if the archive was attached without write permissions, no
+		user will get write permissions on the archive.</para>
+
+		<para>For every archived folder in an archived store <command>kopano-archiver-aclsync
+		</command>will first determine the rights for the owner of the archive.
+		Then it will get all the entries from the ACL of the current folder
+		except those of the owner. Each right will be masked with the rights
+		of the owner before being added to the ACL of the archive folder.</para>
+	  </refsection>
+
+	  <refsection>
+		<title>Options</title>
+
+		<variablelist>
+		  <varlistentry>
+			<term><option>--user</option></term>
+			<term>
+			  <option>-u</option>
+			  <replaceable>NAME</replaceable>
+			</term>
+
+			<listitem>
+			  <para>Run the script for just the specified user(s). By default, it runs for all users.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>--log-level</option></term>
+			<term>
+			  <option>-l</option>
+			  <replaceable>NAME</replaceable>
+			</term>
+			<listitem>
+			  <para>Specify log-level, for example, 'error', 'warning' 'info' or 'debug'.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>--server-socket</option></term>
+			<term>
+			  <option>-s</option>
+			  <replaceable>SOCKET</replaceable>
+			</term>
+			<listitem>
+			  <para>Connect to storage server through specified socket.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>--ssl-key</option></term>
+			<term>
+			  <option>-k</option>
+			  <replaceable>FILE</replaceable>
+			</term>
+			<listitem>
+			  <para>Specify SSL key file.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>--ssl-pass</option></term>
+			<term>
+			  <option>-p</option>
+			  <replaceable>PASSWORD</replaceable>
+			</term>
+			<listitem>
+			  <para>Specify SSL key password.</para>
+			</listitem>
+		  </varlistentry>
+
+		</variablelist>
+
+	  </refsection>
+
+	  <refsection>
+		<title>Author</title>
+		<para>Written by Kopano.</para>
+	  </refsection>
+
+	</refentry>
+
+<!--
+  -+-+-
+	Kopano Archive ACL Set manual page
+  -+-+-
+-->
+	<refentry>
+	  <refmeta>
+		<refentrytitle>kopano-archiver-aclset</refentrytitle>
+		<manvolnum>8</manvolnum>
+	  </refmeta>
+
+	  <refnamediv>
+		<refname>kopano-archiver-aclset</refname>
+		<refpurpose>Reset the archive ACL settings for the owner.</refpurpose>
+	  </refnamediv>
+
+	  <refsynopsisdiv>
+		<cmdsynopsis>
+		  <command>kopano-archiver-aclset</command>
+		  <arg rep="repeat"><replaceable>OPTION</replaceable></arg>
+		</cmdsynopsis>
+	  </refsynopsisdiv>
+
+	  <refsection>
+		<title>Description</title>
+		<para><command>kopano-archiver-aclset</command> sets or updates the
+		permissions on an archive store for the owner of that store.</para>
+
+		<para>When an archive is attached to a store, the owner of the store
+		gets read-only or read/write permissions on the archive based on the
+		configuration or command line options passed at the time of attaching.
+		Also when an archive is attached to a store of a non-active user, no
+		permissions for that non-active user are set because that's not
+		possible.</para>
+
+		<para>In the first case it can be desirable to change the permissions
+		at a later time because of company policy changes or because the
+		original setting was just wrong.</para>
+
+		<para>In the second case, if the user is converted to an active user,
+		it's required to reset the permissions because the owner won't have
+		any permissions on his archive.</para>
+	  </refsection>
+
+	  <refsection>
+		<title>Options</title>
+
+		<variablelist>
+
+		  <varlistentry>
+			<term><option>-w</option></term>
+			<listitem>
+			  <para>By default <command>kopano-archiver-aclset</command> makes an archive
+			  read-only for the user. By passing this option, the user will get
+			  read/write permissions in the attached archive.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>--user</option></term>
+			<term>
+			  <option>-u</option>
+			  <replaceable>NAME</replaceable>
+			</term>
+
+			<listitem>
+			  <para>Run the script for just the specified user(s). By default, it runs for all users.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>--log-level</option></term>
+			<term>
+			  <option>-l</option>
+			  <replaceable>NAME</replaceable>
+			</term>
+			<listitem>
+			  <para>Specify log-level, for example, 'error', 'warning' 'info' or 'debug'.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>--server-socket</option></term>
+			<term>
+			  <option>-s</option>
+			  <replaceable>SOCKET</replaceable>
+			</term>
+			<listitem>
+			  <para>Connect to storage server through specified socket.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>--ssl-key</option></term>
+			<term>
+			  <option>-k</option>
+			  <replaceable>FILE</replaceable>
+			</term>
+			<listitem>
+			  <para>Specify SSL key file.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>--ssl-pass</option></term>
+			<term>
+			  <option>-p</option>
+			  <replaceable>PASSWORD</replaceable>
+			</term>
+			<listitem>
+			  <para>Specify SSL key password.</para>
+			</listitem>
+		  </varlistentry>
+
+		</variablelist>
+
+	  </refsection>
+
+	  <refsection>
+		<title>Author</title>
+		<para>Written by Kopano.</para>
+	  </refsection>
+
+	</refentry>
+<!--
+  -+-+-
+	Kopano Archive Restore manual page
+  -+-+-
+-->
+	<refentry>
+	  <refmeta>
+		<refentrytitle>kopano-archiver-restore</refentrytitle>
+		<manvolnum>8</manvolnum>
+	  </refmeta>
+
+	  <refnamediv>
+		<refname>kopano-archiver-restore</refname>
+		<refpurpose>Restore all stubbed and removed messages in a primary store
+		with the messages found in the currently or previously attached
+		archives(s).</refpurpose>
+	  </refnamediv>
+
+	  <refsynopsisdiv>
+		<cmdsynopsis>
+		  <command>kopano-archiver-restore</command>
+		  <arg rep="repeat"><replaceable>OPTION</replaceable></arg>
+		</cmdsynopsis>
+	  </refsynopsisdiv>
+
+	  <refsection>
+		<title>Description</title>
+
+		<para>kopano-archiver-restore can be used to repopulate a primary store
+		to a state where no archive is required to read any message. In a less
+		cryptic way this means that all stubbed messages are destubbed and all
+		messages that were deleted after archiving are restored.</para>
+
+		<para>The advantage of using kopano-archiver-restore over dragging the
+		messages back from the archive in Outlook or Webaccess is that the restores
+		messages are sanitized, allowing them to be properly rearchived later.</para>
+	  </refsection>
+
+	  <refsection>
+		<title>Strategy</title>
+
+		<para>The strategy taken by kopano-archiver-restore is that it iterates
+		through all folder in the primary store, and tries to open the archive
+		folders that are attached to that store. There can be more than one attached
+		archive folder, and these folders are not required to exist in an archive
+		that is currently attached. So folders of previously used archives will be
+		restored as well if they still exist.</para>
+
+		<para>Once the archives have been resolved, kopano-archiver-restore will
+		create a list of restorable messages based on the reference entryid found in
+		the archived copies. When multiple archives are found, multiple archived
+		copies for the same primary message can exist. In that case
+		kopano-archiver-restore will choose the most recent one.</para>
+
+		<para>Once the list of restorable messages is complete, kopano-archiver-restore
+		will start restoring by first determining if the primary message, referenced
+		by the reference entryid from the archived copies exist and if so if it
+		is stubbed. If the primary message exists and is not stubbed, there's
+		no need to restore anything. If the message exists but is stubbed, it
+		will be destubbed. If the primary message does not exist, a new message
+		is created based on the archived copy. In this case the archived copy
+		is updated so it will reference the newly created message. This is
+		needed to make sure a subsequent run of kopano-archiver-restore won't create
+		another copy.</para>
+
+	  </refsection>
+
+	  <refsection>
+		<title>Options</title>
+
+		<variablelist>
+		  <varlistentry>
+			<term>
+			  <option>--detach</option>
+			</term>
+			<listitem>
+			  <para>Detach the selected or all archive stores before starting
+			  the restore procedure. This avoids the archiver from re-archiving
+			  restored messages.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term>
+			  <option>--unhook</option>
+			</term>
+			<listitem>
+			  <para>Unhook the selected ot all archive stores once the restore
+			  process has completed. This implies --detach and only works on
+			  archive stores.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term>
+			  <option>--remove</option>
+			</term>
+			<listitem>
+			  <para>Remove the selected ot all archive stores once the restore
+			  process has completed. This implies --unhook and only works on
+			  archive stores.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>--user</option></term>
+			<term>
+			  <option>-u</option>
+			  <replaceable>NAME</replaceable>
+			</term>
+
+			<listitem>
+			  <para>Run the script for just the specified user(s). By default, it runs for all users.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>--log-level</option></term>
+			<term>
+			  <option>-l</option>
+			  <replaceable>NAME</replaceable>
+			</term>
+			<listitem>
+			  <para>Specify log-level, for example, 'error', 'warning' 'info' or 'debug'.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>--server-socket</option></term>
+			<term>
+			  <option>-s</option>
+			  <replaceable>SOCKET</replaceable>
+			</term>
+			<listitem>
+			  <para>Connect to storage server through specified socket.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>--ssl-key</option></term>
+			<term>
+			  <option>-k</option>
+			  <replaceable>FILE</replaceable>
+			</term>
+			<listitem>
+			  <para>Specify SSL key file.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>--ssl-pass</option></term>
+			<term>
+			  <option>-p</option>
+			  <replaceable>PASSWORD</replaceable>
+			</term>
+			<listitem>
+			  <para>Specify SSL key password.</para>
+			</listitem>
+		  </varlistentry>
+
+		</variablelist>
+	  </refsection>
+
+	  <refsection>
+		<title>Author</title>
+		<para>Written by Zarafa.</para>
+	  </refsection>
+
+	</refentry>
   </reference>
 </book>
 
