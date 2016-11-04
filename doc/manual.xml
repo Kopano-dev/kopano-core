@@ -10424,7 +10424,7 @@
 		  <varlistentry>
 			<term><option>--stats</option></term>
 			<listitem>
-			  <para>List folders contained in specified backup directory in CSV format. Folder sizes are shown for each folder.</para>
+			  <para>List folders contained in specified backup directory in CSV format.</para>
 			</listitem>
 		  </varlistentry>
 
@@ -10904,6 +10904,355 @@
 		<para>
 		  <citerefentry>
 			<refentrytitle>kopano-backup</refentrytitle>
+			<manvolnum>8</manvolnum>
+		  </citerefentry>
+		</para>
+	  </refsection>
+
+	</refentry>
+<!--
+  -+-+-
+	Kopano-migration-pst manual page
+  -+-+-
+-->
+	<refentry>
+	  <refmeta>
+		<refentrytitle>kopano-migration-pst</refentrytitle>
+		<manvolnum>8</manvolnum>
+	  </refmeta>
+
+	  <refnamediv>
+		<refname>kopano-migration-pst</refname>
+		<refpurpose>Utility to import PST files into Kopano</refpurpose>
+	  </refnamediv>
+
+	  <refsynopsisdiv>
+		<cmdsynopsis>
+		  <command>kopano-migration-pst</command>
+		  <arg rep="repeat"><replaceable>OPTION</replaceable></arg>
+		  <arg><replaceable>PATH</replaceable></arg>
+		</cmdsynopsis>
+	  </refsynopsisdiv>
+
+	  <refsection>
+		<title>Description</title>
+
+		<para>kopano-migration-pst is a utility to import PST files into Kopano.
+		As PST files are basically MAPI dumps, and Kopano also uses MAPI internally,
+		there should be practically no data loss, even including calendar data.
+		</para>
+
+	  </refsection>
+
+	  <refsection>
+		<title>Options</title>
+
+		<variablelist>
+
+		  <varlistentry>
+			<term><option>--user</option></term>
+			<term>
+			  <option>-u</option>
+			  <replaceable>NAME</replaceable>
+			</term>
+
+			<listitem>
+			  <para>Name of user(s) for who to import the specified PST file(s).</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>--stats</option></term>
+			<listitem>
+			  <para>List folders contained in specified PST file(s).</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>--index</option></term>
+			<listitem>
+			  <para>List messages/items contained in specified PST file(s).</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term>
+			  <option>--import-root</option>
+			  <replaceable>PATH</replaceable>
+			</term>
+			<listitem>
+			  <para>Import data under folder with specific path (or name).</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>--folder</option></term>
+			<term>
+			  <option>-f</option>
+			  <replaceable>PATH</replaceable>
+			</term>
+			<listitem>
+			  <para>Import only folder(s) with specified path.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>--log-level</option></term>
+			<term>
+			  <option>-l</option>
+			  <replaceable>NAME</replaceable>
+			</term>
+			<listitem>
+			  <para>Specify log-level, for example, 'error', 'warning' 'info' or 'debug'.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>--config</option></term>
+			<term>
+			  <option>-c</option>
+			  <replaceable>FILE</replaceable>
+			</term>
+			<listitem>
+			  <para>Load configuration settings from specified file.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>--server-socket</option></term>
+			<term>
+			  <option>-s</option>
+			  <replaceable>SOCKET</replaceable>
+			</term>
+			<listitem>
+			  <para>Connect to storage server through specified socket.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>--auth-user</option></term>
+			<term>
+			  <option>-U</option>
+			  <replaceable>NAME</replaceable>
+			</term>
+			<listitem>
+			  <para>Authenticate as specified user.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>--auth-pass</option></term>
+			<term>
+			  <option>-P</option>
+			  <replaceable>PASS</replaceable>
+			</term>
+			<listitem>
+			  <para>Authenticate with specified password.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>--ssl-key</option></term>
+			<term>
+			  <option>-k</option>
+			  <replaceable>FILE</replaceable>
+			</term>
+			<listitem>
+			  <para>Specify SSL key file.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>--ssl-pass</option></term>
+			<term>
+			  <option>-p</option>
+			  <replaceable>PASSWORD</replaceable>
+			</term>
+			<listitem>
+			  <para>Specify SSL key password.</para>
+			</listitem>
+		  </varlistentry>
+
+		</variablelist>
+	  </refsection>
+
+	  <refsection>
+		<title>Author</title>
+		<para>Written by Kopano.</para>
+	  </refsection>
+
+	</refentry>
+<!--
+  -+-+-
+	Kopano-migration-pst Configuration file manual page
+  -+-+-
+-->
+	<refentry>
+	  <refmeta>
+		<refentrytitle>kopano-migration-pst.cfg</refentrytitle>
+		<manvolnum>5</manvolnum>
+	  </refmeta>
+
+	  <refnamediv>
+		<refname>kopano-migration-pst.cfg</refname>
+		<refpurpose>The kopano-migration-pst configuration file</refpurpose>
+	  </refnamediv>
+
+	  <refsynopsisdiv>
+		<para><command>migration-pst.cfg</command></para>
+	  </refsynopsisdiv>
+
+	  <refsection>
+		<title>Description</title>
+
+		<para><filename>migration-pst.cfg</filename> is a configuration file for
+		kopano-migration-pst.
+		</para>
+	  </refsection>
+
+	  <refsection>
+		<title>File format</title>
+
+		<para>The file consists of one big section, but parameters can be
+		grouped by functionality.</para>
+
+		<para>The parameters are written in the form:</para>
+
+		<para><option>name</option> = <replaceable>value</replaceable></para>
+
+		<para>The file is line-based. Each newline-terminated line
+		represents either a comment, nothing, a parameter or a directive.
+		A line beginning with `#' is considered a comment, and will be
+		ignored by Kopano. Parameter names are case sensitive. Lines
+		beginning with `!' are directives.</para>
+
+		<para>Directives are written in the form:</para>
+
+		<para>!<option>directive</option> <replaceable>[argument(s)]
+		</replaceable></para>
+
+		<para>The following directives exist:</para>
+		<variablelist>
+		  <varlistentry>
+		    <term><option>include</option></term>
+		    <listitem>
+		      <para>Include and process <replaceable>argument</replaceable>
+		      </para>
+		      <para>Example: !include common.cfg</para>
+		    </listitem>
+		  </varlistentry>
+		</variablelist>
+	  </refsection>
+
+	  <refsection>
+		<title>Explanation of the Server Settings parameters</title>
+
+		<variablelist>
+		  <varlistentry>
+			<term><option>server_socket</option></term>
+			<listitem>
+			  <para>Socket to find the connection to the Kopano
+			  server.</para>
+			  <para>Default:
+			  <parameter>file:///var/run/kopano/server.sock</parameter></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>ssl_key_file</option></term>
+			<listitem>
+			  <para>The file containing the private key and
+			  certificate. Please read the SSL section in the
+			  <citerefentry><refentrytitle>kopano-server</refentrytitle>
+			  <manvolnum>8</manvolnum></citerefentry> manual on how to
+			  create this file.
+			  </para>
+			  <para>Default:
+			  <replaceable>/etc/kopano/ssl/search.pem</replaceable>
+			  </para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>ssl_key_pass</option></term>
+			<listitem>
+			  <para>Enter your password here when your key file
+			  contains a password to be readable.
+			  </para>
+			  <para>No default set.
+			  </para>
+			</listitem>
+		  </varlistentry>
+
+		</variablelist>
+	  </refsection>
+
+	  <refsection>
+		<title>Explanation of the Log Settings parameters</title>
+
+		<variablelist>
+		  <varlistentry>
+			<term><option>log_method</option></term>
+			<listitem>
+			  <para>The method which should be used for logging. Valid
+			  values are:</para>
+
+			  <variablelist>
+				<varlistentry>
+				  <term><replaceable>syslog</replaceable></term>
+				  <listitem>
+					<para>Use the Linux system log. All messages will
+					be written to the mail facility. See also <citerefentry>
+					<refentrytitle>syslog.conf</refentrytitle>
+					<manvolnum>5</manvolnum>
+					</citerefentry>.</para>
+				  </listitem>
+				</varlistentry>
+
+				<varlistentry>
+				  <term><replaceable>file</replaceable></term>
+				  <listitem>
+					<para>Log to a file. The filename will be
+					specified in <option>log_file</option>.</para>
+				  </listitem>
+				</varlistentry>
+			  </variablelist>
+			  <para>Default: <replaceable>file</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>log_level</option></term>
+			<listitem>
+			  <para>The level of output for logging in the range from
+			  0 to 5. 0 means no logging, 5 means full logging.</para>
+			  <para>Default: <replaceable>3</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term><option>log_file</option></term>
+			<listitem>
+			  <para>When logging to a file, specify the filename in
+			  this parameter. Use <replaceable>-</replaceable> (minus
+			  sign) for stderr output.</para>
+			  <para>Default: <replaceable>/var/log/kopano/search.log</replaceable></para>
+			</listitem>
+		  </varlistentry>
+
+		</variablelist>
+	  </refsection>
+
+	  <refsection>
+		<title>Author</title>
+		<para>Written by Kopano.</para>
+	  </refsection>
+
+	  <refsection>
+		<title>See also</title>
+		<para>
+		  <citerefentry>
+			<refentrytitle>kopano-migration-pst</refentrytitle>
 			<manvolnum>8</manvolnum>
 		  </citerefentry>
 		</para>
