@@ -39,7 +39,7 @@ struct sockaddr;
 // this ensures that the ECChannel class is responsible for reading, writing
 // and culling newline characters.
 
-class ECChannel _zcp_final {
+class ECChannel _kc_final {
 public:
 	ECChannel(int socket);
 	~ECChannel();

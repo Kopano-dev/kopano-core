@@ -20,7 +20,7 @@
 
 #include <kopano/zcdefs.h>
 
-class IStreamAdapter _zcp_final : public IStream {
+class IStreamAdapter _kc_final : public IStream {
 public:
     IStreamAdapter(std::string& str);
 	virtual ~IStreamAdapter(void) {}

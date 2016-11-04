@@ -21,7 +21,7 @@
 #include <kopano/zcdefs.h>
 #include "ECSessionManager.h"
 
-class ECSessionManagerOffline _zcp_final : public ECSessionManager {
+class ECSessionManagerOffline _kc_final : public ECSessionManager {
 public:
 	ECSessionManagerOffline(ECConfig *lpConfig, bool bHostedKopano, bool bDistributedKopano);
 	virtual ECRESULT CreateAuthSession(struct soap *soap, unsigned int ulCapabilities, ECSESSIONID *sessionID, ECAuthSession **lppAuthSession, bool bRegisterSession, bool bLockSession);

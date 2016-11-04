@@ -26,8 +26,7 @@
 
 #include <kopano/platform.h>
 
-template<typename Key>
-class KeyEntry _zcp_final {
+template<typename Key> class KeyEntry _kc_final {
 public:
 	Key key;
 	time_t ulLastAccess;
@@ -110,12 +109,12 @@ public:
 		return erSuccess;
 	}
 	
-	count_type ItemCount() const _zcp_override
+	count_type ItemCount(void) const _kc_override
 	{
 		return m_map.size();
 	}
 	
-	size_type Size() const _zcp_override
+	size_type Size(void) const _kc_override
 	{
 		// it works with map and hash_map
 		return (m_map.size() * (sizeof(typename _MapType::value_type) + sizeof(_MapType) )) + m_ulSize;

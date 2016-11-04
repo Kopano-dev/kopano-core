@@ -26,7 +26,7 @@
 
 #include <mapidefs.h>
 
-class convstring _zcp_final {
+class convstring _kc_final {
 public:
 	static convstring from_SPropValue(const SPropValue *lpsPropVal);
 	static convstring from_SPropValue(const SPropValue &sPropVal);

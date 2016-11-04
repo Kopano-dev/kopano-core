@@ -87,7 +87,7 @@ typedef std::list<sObjectTableKey> ECObjectTableList;
 #define TABLEROW_FLAG_FLOAT		0x00000002
 #define TABLEROW_FLAG_STRING	0x00000004
 
-class ECTableRow _zcp_final {
+class ECTableRow _kc_final {
 public:
 	ECTableRow(sObjectTableKey sKey, unsigned int ulSortCols, const unsigned int *lpSortLen, const unsigned char *lpFlags, unsigned char **lppSortData, bool fHidden);
 	ECTableRow(const ECTableRow &other);
@@ -134,7 +134,7 @@ typedef struct {
 
 typedef std::map<unsigned int, sBookmarkPosition> ECBookmarkMap;
 
-class ECKeyTable _zcp_final {
+class ECKeyTable _kc_final {
 public:
 	/* this MUST be the same definitions as TABLE_NOTIFICATION event types passed in ulTableEvent */
 

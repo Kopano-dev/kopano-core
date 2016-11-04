@@ -34,16 +34,13 @@ public:
     virtual HRESULT Shutdown(ULONG * lpulFlags);
 	virtual HRESULT TransportLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG *lpulFlags, LPMAPIERROR *lppMAPIError, LPXPLOGON *lppXPLogon);
 
-	class xXPProvider _zcp_final : public IXPProvider {
-		// IUnknown
-		virtual ULONG __stdcall AddRef(void) _zcp_override;
-		virtual ULONG __stdcall Release(void) _zcp_override;
-		virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lppInterface) _zcp_override;
+	class xXPProvider _kc_final : public IXPProvider {
+		#include <kopano/xclsfrag/IUnknown.hpp>
 
-		//IXPProvider
-		virtual HRESULT __stdcall Shutdown(ULONG * lpulFlags);
-		virtual HRESULT __stdcall TransportLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG *lpulFlags, LPMAPIERROR *lppMAPIError, LPXPLOGON *lppXPLogon);
-	}m_xXPProvider;
+		// <kopano/xclsfrag/IXPProvider.hpp>
+		virtual HRESULT __stdcall Shutdown(ULONG *flags) _kc_override;
+		virtual HRESULT __stdcall TransportLogon(LPMAPISUP, ULONG ui_param, LPTSTR profname, ULONG *flags, LPMAPIERROR *err, LPXPLOGON *) _kc_override;
+	} m_xXPProvider;
 	
 	LPSPropValue	m_lpIdentityProps;
 

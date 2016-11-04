@@ -27,8 +27,7 @@
 #include <kopano/mapi_ptr/mapi_memory_ptr.h>
 
 // http://tinyurl.com/ydb363n
-template<typename BaseT, typename DerivedT>
-class Conversion _zcp_final {
+template<typename BaseT, typename DerivedT> class Conversion _kc_final {
     static DerivedT& derived();
     static char test(const BaseT&);
     static char (&test(...))[2];
@@ -44,9 +43,7 @@ class mapi_object_proxy;
 template<>
 class mapi_object_proxy<IUnknown, IID_IUnknown>;
 
-
-template<typename _T, REFIID _R = GUID_NULL>
-class mapi_object_ptr _zcp_final {
+template<typename _T, REFIID _R = GUID_NULL> class mapi_object_ptr _kc_final {
 public:
 	static const IID				iid;
 	typedef _T						value_type;
@@ -208,9 +205,7 @@ private:
 friend class mapi_object_proxy<_T, _R>;
 };
 
-
-template<typename _T, REFIID _R>
-class mapi_object_proxy _zcp_final {
+template<typename _T, REFIID _R> class mapi_object_proxy _kc_final {
 public:
 	typedef _T		value_type;
 	typedef _T**	pointerpointer;
@@ -227,8 +222,7 @@ private:
 	obj_ptr_type	*m_lppobjptr;
 };
 
-template<>
-class mapi_object_proxy<IUnknown, IID_IUnknown> _zcp_final {
+template<> class mapi_object_proxy<IUnknown, IID_IUnknown> _kc_final {
 public:
 	typedef IUnknown	value_type;
 	typedef IUnknown**	pointerpointer;

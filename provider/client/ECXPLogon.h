@@ -56,36 +56,30 @@ public:
 	virtual HRESULT ValidateState(ULONG ulUIParam, ULONG ulFlags);
 	virtual HRESULT FlushQueues(ULONG ulUIParam, ULONG cbTargetTransport, LPENTRYID lpTargetTransport, ULONG ulFlags);
 
-	class xXPLogon _zcp_final : public IXPLogon {
-		// IUnknown
-		virtual ULONG __stdcall AddRef(void) _zcp_override;
-		virtual ULONG __stdcall Release(void) _zcp_override;
-		virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lppInterface) _zcp_override;
+	class xXPLogon _kc_final : public IXPLogon {
+		#include <kopano/xclsfrag/IUnknown.hpp>
 
-		//IXPLogon
-		virtual HRESULT __stdcall AddressTypes(ULONG * lpulFlags, ULONG * lpcAdrType, LPTSTR ** lpppszAdrTypeArray, ULONG * lpcMAPIUID, LPMAPIUID ** lpppUIDArray);
-		virtual HRESULT __stdcall RegisterOptions(ULONG * lpulFlags, ULONG * lpcOptions, LPOPTIONDATA * lppOptions);
-		virtual HRESULT __stdcall TransportNotify(ULONG * lpulFlags, LPVOID * lppvData);
-		virtual HRESULT __stdcall Idle(ULONG ulFlags);
-		virtual HRESULT __stdcall TransportLogoff(ULONG ulFlags);
-		virtual HRESULT __stdcall SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpulMsgRef, ULONG * lpulReturnParm);
-		virtual HRESULT __stdcall EndMessage(ULONG ulMsgRef, ULONG * lpulFlags);
-		virtual HRESULT __stdcall Poll(ULONG * lpulIncoming);
-		virtual HRESULT __stdcall StartMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpulMsgRef);
-		virtual HRESULT __stdcall OpenStatusEntry(LPCIID lpInterface, ULONG ulFlags, ULONG * lpulObjType, LPMAPISTATUS * lppEntry);
-		virtual HRESULT __stdcall ValidateState(ULONG ulUIParam, ULONG ulFlags);
-		virtual HRESULT __stdcall FlushQueues(ULONG ulUIParam, ULONG cbTargetTransport, LPENTRYID lpTargetTransport, ULONG ulFlags);
-
+		// <kopano/xclsfrag/IXPLogon.hpp>
+		virtual HRESULT __stdcall AddressTypes(ULONG *flags, ULONG *lpcAdrType, LPTSTR **lpppszAdrTypeArray, ULONG *lpcMAPIUID, LPMAPIUID **lpppUIDArray) _kc_override;
+		virtual HRESULT __stdcall RegisterOptions(ULONG *flags, ULONG *lpcOptions, LPOPTIONDATA *lppOptions) _kc_override;
+		virtual HRESULT __stdcall TransportNotify(ULONG *flags, LPVOID *lppvData) _kc_override;
+		virtual HRESULT __stdcall Idle(ULONG flags) _kc_override;
+		virtual HRESULT __stdcall TransportLogoff(ULONG flags) _kc_override;
+		virtual HRESULT __stdcall SubmitMessage(ULONG flags, LPMESSAGE lpMessage, ULONG *lpulMsgRef, ULONG *lpulReturnParm) _kc_override;
+		virtual HRESULT __stdcall EndMessage(ULONG ulMsgRef, ULONG *flags) _kc_override;
+		virtual HRESULT __stdcall Poll(ULONG *lpulIncoming) _kc_override;
+		virtual HRESULT __stdcall StartMessage(ULONG flags, LPMESSAGE lpMessage, ULONG *lpulMsgRef) _kc_override;
+		virtual HRESULT __stdcall OpenStatusEntry(LPCIID lpInterface, ULONG flags, ULONG *lpulObjType, LPMAPISTATUS *lppEntry) _kc_override;
+		virtual HRESULT __stdcall ValidateState(ULONG ui_param, ULONG flags) _kc_override;
+		virtual HRESULT __stdcall FlushQueues(ULONG ui_param, ULONG cbTargetTransport, LPENTRYID lpTargetTransport, ULONG flags) _kc_override;
 	} m_xXPLogon;
 
 private:
-	class xMAPIAdviseSink _zcp_final : public IMAPIAdviseSink {
+	class xMAPIAdviseSink _kc_final : public IMAPIAdviseSink {
 	public:
-		HRESULT __stdcall QueryInterface(REFIID refiid, void **lppInterface) _zcp_override;
-		ULONG __stdcall AddRef(void) _zcp_override;
-		ULONG __stdcall Release(void) _zcp_override;
-
-		ULONG __stdcall OnNotify(ULONG cNotif, LPNOTIFICATION lpNotifs);
+		#include <kopano/xclsfrag/IUnknown.hpp>
+		// <kopano/xclsfrag/IMAPIAdviseSink.hpp>
+		ULONG __stdcall OnNotify(ULONG cNotif, LPNOTIFICATION lpNotifs) _kc_override;
 	} m_xMAPIAdviseSink;
 
 	ULONG OnNotify(ULONG cNotif, LPNOTIFICATION lpNotifs);

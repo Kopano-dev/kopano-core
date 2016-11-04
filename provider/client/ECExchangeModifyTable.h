@@ -42,32 +42,17 @@ public:
 	static HRESULT __stdcall CreateRulesTable(ECMAPIProp *lpParent, ULONG ulFlags, LPEXCHANGEMODIFYTABLE *lppObj);
 	static HRESULT __stdcall CreateACLTable(ECMAPIProp *lpParent, ULONG ulFlags, LPEXCHANGEMODIFYTABLE *lppObj);
 
-	class xExchangeModifyTable _zcp_final : public IExchangeModifyTable {
-	public:
-		// From IUnknown
-		virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lppInterface) _zcp_override;
-		virtual ULONG __stdcall AddRef(void) _zcp_override;
-		virtual ULONG __stdcall Release(void) _zcp_override;
-
-		// From IExchangeModifyTable
-		virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
-		virtual HRESULT __stdcall GetTable(ULONG ulFlags, LPMAPITABLE *lppTable);
-		virtual HRESULT __stdcall ModifyTable(ULONG ulFlags, LPROWLIST lpMods);
+	class xExchangeModifyTable _kc_final : public IExchangeModifyTable {
+		#include <kopano/xclsfrag/IUnknown.hpp>
+		#include <kopano/xclsfrag/IExchangeModifyTable.hpp>
 	} m_xExchangeModifyTable;
 
-	class xECExchangeModifyTable _zcp_final : public IECExchangeModifyTable {
-		// From IUnknown
-		virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lppInterface) _zcp_override;
-		virtual ULONG __stdcall AddRef(void) _zcp_override;
-		virtual ULONG __stdcall Release(void) _zcp_override;
-
-		// From IExchangeModifyTable
-		virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) _zcp_override;
-		virtual HRESULT __stdcall GetTable(ULONG ulFlags, LPMAPITABLE *lppTable) _zcp_override;
-		virtual HRESULT __stdcall ModifyTable(ULONG ulFlags, LPROWLIST lpMods) _zcp_override;
-
-		// From IECExchangeModifyTable
-		virtual HRESULT __stdcall DisablePushToServer(void) _zcp_override;
+	class xECExchangeModifyTable _kc_final :
+	    public IECExchangeModifyTable {
+		#include <kopano/xclsfrag/IUnknown.hpp>
+		#include <kopano/xclsfrag/IExchangeModifyTable.hpp>
+		// <kopano/xclsfrag/IECExchangeModifyTable.hpp>
+		virtual HRESULT __stdcall DisablePushToServer(void) _kc_override;
 	} m_xECExchangeModifyTable;
 
 private:
@@ -90,16 +75,11 @@ public:
 	HRESULT __stdcall ActionCount(ULONG *lpcActions);
 	HRESULT __stdcall GetAction(ULONG ulActionNumber, LARGE_INTEGER *lpruleid, LPACTION *lppAction);
 
-	class xExchangeRuleAction _zcp_final : public IExchangeRuleAction {
-	public:
-		// From IUnknown
-		virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lppInterface) _zcp_override;
-		virtual ULONG __stdcall AddRef(void) _zcp_override;
-		virtual ULONG __stdcall Release(void) _zcp_override;
-
-		virtual HRESULT __stdcall ActionCount(ULONG *lpcActions);
-		virtual HRESULT __stdcall GetAction(ULONG ulActionNumber, LARGE_INTEGER *lpruleid, LPACTION *lppAction);
-
+	class xExchangeRuleAction _kc_final : public IExchangeRuleAction {
+		#include <kopano/xclsfrag/IUnknown.hpp>
+		// <kopano/xclsfrag/IExchangeRuleAction.hpp>
+		virtual HRESULT __stdcall ActionCount(ULONG *lpcActions) _kc_override;
+		virtual HRESULT __stdcall GetAction(ULONG ulActionNumber, LARGE_INTEGER *lpruleid, LPACTION *lppAction) _kc_override;
 	} m_xExchangeRuleAction;
 };
 

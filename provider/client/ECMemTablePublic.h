@@ -45,12 +45,9 @@ public:
 	static HRESULT Create(ECMAPIFolderPublic *lpECParentFolder, ECMemTablePublic **lppECMemTable);
 	
 	static void FreeRelation(t_sRelation* lpRelation);
-
-	HRESULT QueryInterface(REFIID refiid, void **lppInterface) _zcp_override;
-
-	//virtual ULONG AddRef(void) _zcp_override;
-	//virtual ULONG Release(void) _zcp_override;
-
+	HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
+	//virtual ULONG AddRef(void) _kc_override;
+	//virtual ULONG Release(void) _kc_override;
 	HRESULT Init(ULONG ulFlags);
 
 	HRESULT ModifyRow(SBinary* lpInstanceKey, LPSRow lpsRow);

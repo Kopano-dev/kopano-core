@@ -42,17 +42,13 @@ private:
 	static bool LeftPrecedesRight(const ICSCHANGE &left, const ICSCHANGE &right);
 
 private:
-	class xECExportAddressbookChanges _zcp_final : public IECExportAddressbookChanges {
-		// IUnknown
-		virtual ULONG __stdcall AddRef(void) _zcp_override;
-		virtual ULONG __stdcall Release(void) _zcp_override;
-		virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lppInterface) _zcp_override;
-		
-		// IECExportAddressbookChanges
-		virtual HRESULT __stdcall Config(LPSTREAM lpState, ULONG ulFlags, IECImportAddressbookChanges *lpCollector) _zcp_override;
-		virtual HRESULT __stdcall Synchronize(ULONG *lpulSteps, ULONG *lpulProgress) _zcp_override;
-		virtual HRESULT __stdcall UpdateState(LPSTREAM lpState) _zcp_override;
-
+	class xECExportAddressbookChanges _kc_final :
+	    public IECExportAddressbookChanges {
+		#include <kopano/xclsfrag/IUnknown.hpp>
+		// <kopano/xclsfrag/IECExportAddressbookChanges.hpp>
+		virtual HRESULT __stdcall Config(LPSTREAM lpState, ULONG flags, IECImportAddressbookChanges *lpCollector) _kc_override;
+		virtual HRESULT __stdcall Synchronize(ULONG *lpulSteps, ULONG *lpulProgress) _kc_override;
+		virtual HRESULT __stdcall UpdateState(LPSTREAM lpState) _kc_override;
 	} m_xECExportAddressbookChanges;
 	
 private:

@@ -71,28 +71,24 @@ typedef struct {
 #define LOADSETTING_OVERWRITE_RELOAD	0x0010	/* Same as CONFIG_LOAD_OVERWRITE but only if option is marked reloadable */
 #define LOADSETTING_CMDLINE_PARAM		0x0020	/* This setting is being set from commandline parameters. Sets the option non-reloadable */
 
-class ECConfigImpl _zcp_final : public ECConfig {
+class ECConfigImpl _kc_final : public ECConfig {
 public:
 	ECConfigImpl(const configsetting_t *lpDefaults, const char *const *lpszDirectives);
 	~ECConfigImpl();
-
-	bool LoadSettings(const char *szFilename) _zcp_override;
-	virtual bool ParseParams(int argc, char *argv[], int *lpargidx) _zcp_override;
+	bool LoadSettings(const char *file) _kc_override;
+	virtual bool ParseParams(int argc, char **argv, int *argidx) _kc_override;
 	const char *GetSettingsPath(void) _kc_override { return m_szConfigFile; }
-	bool ReloadSettings(void) _zcp_override;
-
-	bool AddSetting(const char *szName, const char *szValue, const unsigned int ulGroup = 0) _zcp_override;
-	const char *GetSetting(const char *szName) _zcp_override;
-	const char *GetSetting(const char *szName, const char *equal, const char *other) _zcp_override;
-	const wchar_t *GetSettingW(const char *szName) _zcp_override;
-	const wchar_t *GetSettingW(const char *szName, const wchar_t *equal, const wchar_t *other) _zcp_override;
-
-	std::list<configsetting_t> GetSettingGroup(unsigned int ulGroup) _zcp_override;
-	std::list<configsetting_t> GetAllSettings(void) _zcp_override;
-
-	bool HasWarnings(void) _zcp_override;
+	bool ReloadSettings(void) _kc_override;
+	bool AddSetting(const char *name, const char *value, const unsigned int group = 0) _kc_override;
+	const char *GetSetting(const char *name) _kc_override;
+	const char *GetSetting(const char *name, const char *equal, const char *other) _kc_override;
+	const wchar_t *GetSettingW(const char *name) _kc_override;
+	const wchar_t *GetSettingW(const char *name, const wchar_t *equal, const wchar_t *other) _kc_override;
+	std::list<configsetting_t> GetSettingGroup(unsigned int group) _kc_override;
+	std::list<configsetting_t> GetAllSettings(void) _kc_override;
+	bool HasWarnings(void) _kc_override;
 	const std::list<std::string> *GetWarnings(void) _kc_override { return &warnings; }
-	bool HasErrors(void) _zcp_override;
+	bool HasErrors(void) _kc_override;
 	const std::list<std::string> *GetErrors(void) _kc_override { return &errors; }
 
 private:

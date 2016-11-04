@@ -25,7 +25,7 @@
 #include <kopano/zcdefs.h>
 #include "soapH.h"
 
-class ECNotification _zcp_final {
+class ECNotification _kc_final {
 public:
 	ECNotification();
 	virtual ~ECNotification();

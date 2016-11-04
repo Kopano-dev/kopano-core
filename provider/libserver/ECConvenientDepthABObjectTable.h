@@ -21,7 +21,7 @@
 #include <kopano/zcdefs.h>
 #include "ECABObjectTable.h"
 
-class ECConvenientDepthABObjectTable _zcp_final : public ECABObjectTable {
+class ECConvenientDepthABObjectTable _kc_final : public ECABObjectTable {
 protected:
 	ECConvenientDepthABObjectTable(ECSession *lpSession, unsigned int ulABId, unsigned int ulABType, unsigned int ulABParentId, unsigned int ulABParentType, unsigned int ulFlags, const ECLocale &locale);
 

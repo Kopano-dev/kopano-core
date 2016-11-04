@@ -7,12 +7,6 @@ SUBDIRS = . ECtools/archiver/include/kopano ECtools/backup ECtools/presence \
 	ECtools/search common/include/kopano m4lcommon/include/kopano \
 	mapi4linux/include inetmapi/include/inetmapi provider/include \
 	spooler/python
-if WITH_PHP5
-SUBDIRS += php-ext
-endif
-if WITH_PHP7
-SUBDIRS += php7-ext
-endif
 SUBDIRS += installer po swig
 
 
@@ -733,11 +727,108 @@ libm4lcommon_la_SOURCES = \
 # These were split off the old libcommon_util
 noinst_HEADERS += \
 	m4lcommon/ECFeatures.h
+noinst_HEADERS += \
+	m4lcommon/include/kopano/xclsfrag/IABContainer.hpp \
+	m4lcommon/include/kopano/xclsfrag/IABLogon.hpp \
+	m4lcommon/include/kopano/xclsfrag/IABProvider.hpp \
+	m4lcommon/include/kopano/xclsfrag/IECExchangeModifyTable.hpp \
+	m4lcommon/include/kopano/xclsfrag/IECExportAddressbookChanges.hpp \
+	m4lcommon/include/kopano/xclsfrag/IECPropStorage.hpp \
+	m4lcommon/include/kopano/xclsfrag/IECSecurity.hpp \
+	m4lcommon/include/kopano/xclsfrag/IECSingleInstance.hpp \
+	m4lcommon/include/kopano/xclsfrag/IECUnknown.hpp \
+	m4lcommon/include/kopano/xclsfrag/IExchangeExportChanges.hpp \
+	m4lcommon/include/kopano/xclsfrag/IExchangeManageStore.hpp \
+	m4lcommon/include/kopano/xclsfrag/IExchangeModifyTable.hpp \
+	m4lcommon/include/kopano/xclsfrag/IExchangeRuleAction.hpp \
+	m4lcommon/include/kopano/xclsfrag/IFolderSupport.hpp \
+	m4lcommon/include/kopano/xclsfrag/IFreeBusySupport.hpp \
+	m4lcommon/include/kopano/xclsfrag/IMAPIContainer.hpp \
+	m4lcommon/include/kopano/xclsfrag/IMAPIFolder.hpp \
+	m4lcommon/include/kopano/xclsfrag/IMAPIProp.hpp \
+	m4lcommon/include/kopano/xclsfrag/IMAPITable.hpp \
+	m4lcommon/include/kopano/xclsfrag/IMSProvider.hpp \
+	m4lcommon/include/kopano/xclsfrag/IMsgStore.hpp \
+	m4lcommon/include/kopano/xclsfrag/ISequentialStream.hpp \
+	m4lcommon/include/kopano/xclsfrag/IStream.hpp \
+	m4lcommon/include/kopano/xclsfrag/IUnknown.hpp
 libm4lcommon_la_SOURCES += \
 	m4lcommon/ECFeatures.cpp m4lcommon/ECRestriction.cpp \
 	m4lcommon/RecurrenceState.cpp m4lcommon/userutil.cpp
 libm4lcommon_la_LIBADD = \
 	libkcutil.la libkcmapi.la -lpthread
+
+
+#
+# PHP configuration
+# Old note: Debian has a broken php-config(1) script which outputs
+# 	"--with-config-file-scan-dir=/etc/php5/apache2/conf.d"
+# If we install our config file into that location, it will only be available
+# to only apache2-mod_php5 and not php-cli, php-fpm, etc.
+#
+phpsysconfdir = ${dcprefix}${PHP_SYSCONF_DIR}
+dist_phpsysconfdir = php-ext/mapi.ini
+
+
+#
+# PHP extension
+#
+phplibdir = ${dcprefix}${PHP_EXTENSION_DIR}
+phplib_LTLIBRARIES =
+mapi_la_SOURCES =
+if WITH_PHP7
+phplib_LTLIBRARIES += mapi.la
+mapi_la_SOURCES += \
+	php7-ext/ECImportContentsChangesProxy.cpp \
+	php7-ext/ECImportContentsChangesProxy.h \
+	php7-ext/ECImportHierarchyChangesProxy.cpp \
+	php7-ext/ECImportHierarchyChangesProxy.h \
+	php7-ext/ECRulesTableProxy.cpp php7-ext/ECRulesTableProxy.h \
+	php7-ext/globals.h php7-ext/main.cpp php7-ext/main.h \
+	php7-ext/phpconfig.h \
+	php7-ext/typeconversion.cpp php7-ext/typeconversion.h \
+	php7-ext/util.cpp php7-ext/util.h
+endif
+if WITH_PHP5
+phplib_LTLIBRARIES += mapi.la
+mapi_la_SOURCES += \
+	php-ext/ECImportContentsChangesProxy.cpp \
+	php-ext/ECImportContentsChangesProxy.h \
+	php-ext/ECImportHierarchyChangesProxy.cpp \
+	php-ext/ECImportHierarchyChangesProxy.h \
+	php-ext/ECRulesTableProxy.cpp php-ext/ECRulesTableProxy.h \
+	php-ext/globals.h php-ext/main.cpp php-ext/main.h \
+	php-ext/phpconfig.h \
+	php-ext/typeconversion.cpp php-ext/typeconversion.h \
+	php-ext/util.cpp php-ext/util.h
+endif
+mapi_la_CPPFLAGS = ${AM_CPPFLAGS} ${PHP_INCLUDES}
+mapi_la_CXXFLAGS = ${AM_CXXFLAGS} ${ZPHPCXXFLAGS}
+mapi_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version ${PHP_LDFLAGS}
+mapi_la_LIBADD = libmapi.la libkcmapi.la libkcutil.la libkcfreebusy.la \
+	libkcinetmapi.la ${PROG_LIBS} -lpthread
+
+
+#
+# PHP classes, config files
+#
+phpsysconfdir = ${dcprefix}${PHP_SYSCONF_DIR}
+dist_phpsysconf_DATA = php-ext/mapi.ini
+phpdatadir = ${datarootdir}/php/mapi
+dist_phpdata_DATA = \
+	php-ext/include/mapi/class.baseexception.php \
+	php-ext/include/mapi/class.baserecurrence.php \
+	php-ext/include/mapi/class.freebusypublish.php \
+	php-ext/include/mapi/class.mapiexception.php \
+	php-ext/include/mapi/class.meetingrequest.php \
+	php-ext/include/mapi/class.recurrence.php \
+	php-ext/include/mapi/class.taskrecurrence.php \
+	php-ext/include/mapi/class.taskrequest.php \
+	php-ext/include/mapi/mapi.util.php \
+	php-ext/include/mapi/mapicode.php \
+	php-ext/include/mapi/mapidefs.php \
+	php-ext/include/mapi/mapiguid.php \
+	php-ext/include/mapi/mapitags.php
 
 
 #

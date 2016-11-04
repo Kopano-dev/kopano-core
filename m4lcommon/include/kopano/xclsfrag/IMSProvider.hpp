@@ -1,0 +1,4 @@
+virtual HRESULT __stdcall Shutdown(ULONG *lpulFlags) _kc_override;
+virtual HRESULT __stdcall Logon(LPMAPISUP lpMAPISup, ULONG ui_param, LPTSTR lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG flags, LPCIID lpInterface, ULONG *lpcbSpoolSecurity, LPBYTE *lppbSpoolSecurity, LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB) _kc_override;
+virtual HRESULT __stdcall SpoolerLogon(LPMAPISUP lpMAPISup, ULONG ui_param, LPTSTR lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG flags, LPCIID lpInterface, ULONG lpcbSpoolSecurity, LPBYTE lppbSpoolSecurity, LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB) _kc_override;
+virtual HRESULT __stdcall CompareStoreIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2, ULONG flags, ULONG *lpulResult) _kc_override;

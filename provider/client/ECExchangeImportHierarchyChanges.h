@@ -39,18 +39,16 @@ public:
 	virtual HRESULT ImportFolderChange(ULONG cValue, LPSPropValue lpPropArray);
 	virtual HRESULT ImportFolderDeletion(ULONG ulFlags, LPENTRYLIST lpSourceEntryList);
 
-	class xExchangeImportHierarchyChanges _zcp_final : public IExchangeImportHierarchyChanges{
-		// IUnknown
-		virtual ULONG __stdcall AddRef(void) _zcp_override;
-		virtual ULONG __stdcall Release(void) _zcp_override;
-		virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lppInterface) _zcp_override;
+	class xExchangeImportHierarchyChanges _kc_final :
+	    public IExchangeImportHierarchyChanges {
+		#include <kopano/xclsfrag/IUnknown.hpp>
 
-		// IExchangeImportContentsChanges
-		virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
-		virtual HRESULT __stdcall Config(LPSTREAM lpStream, ULONG ulFlags);
-		virtual HRESULT __stdcall UpdateState(LPSTREAM lpStream);
-		virtual HRESULT __stdcall ImportFolderChange(ULONG cValue, LPSPropValue lpPropArray);
-		virtual HRESULT __stdcall ImportFolderDeletion(ULONG ulFlags, LPENTRYLIST lpSourceEntryList);
+		// <kopano/xclsfrag/IExchangeImportHierarchyChanges.hpp>
+		virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG flags, LPMAPIERROR *lppMAPIError) _kc_override;
+		virtual HRESULT __stdcall Config(LPSTREAM lpStream, ULONG flags) _kc_override;
+		virtual HRESULT __stdcall UpdateState(LPSTREAM lpStream) _kc_override;
+		virtual HRESULT __stdcall ImportFolderChange(ULONG cValue, LPSPropValue lpPropArray) _kc_override;
+		virtual HRESULT __stdcall ImportFolderDeletion(ULONG flags, LPENTRYLIST lpSourceEntryList) _kc_override;
 	} m_xExchangeImportHierarchyChanges;
 
 private:

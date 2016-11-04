@@ -28,18 +28,14 @@
  * The commit and revert functions use memory sparingly, as only changed blocks
  * are held in memory.
  */
-
-
-class ECMemBlock _zcp_final : public ECUnknown {
+class ECMemBlock _kc_final : public ECUnknown {
 private:
 	ECMemBlock(char *buffer, ULONG ulDataLen, ULONG ulFlags);
 	~ECMemBlock();
 
 public:
 	static HRESULT	Create(char *buffer, ULONG ulDataLen, ULONG ulFlags, ECMemBlock **lppStream);
-
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _zcp_override;
-
+	virtual HRESULT QueryInterface(REFIID refiid, void **iface) _kc_override;
 	virtual HRESULT	ReadAt(ULONG ulPos, ULONG ulLen, char *buffer, ULONG *ulBytesRead);
 	virtual HRESULT WriteAt(ULONG ulPos, ULONG ulLen, char *buffer, ULONG *ulBytesWritten);
 	virtual HRESULT Commit();
@@ -60,8 +56,7 @@ private:
 /* 
  * This is an IStream-compatible wrapper for ECMemBlock
  */
-
-class ECMemStream _zcp_final : public ECUnknown {
+class ECMemStream _kc_final : public ECUnknown {
 public:
 	typedef HRESULT (*CommitFunc)(IStream *lpStream, void *lpParam);
 	typedef HRESULT (*DeleteFunc)(void *lpParam); /* Caller's function to remove lpParam data from memory */
@@ -76,10 +71,8 @@ public:
 						   void *lpParam, ECMemStream **lppStream);
 	static  HRESULT	Create(ECMemBlock *lpMemBlock, ULONG ulFlags, CommitFunc lpCommitFunc, DeleteFunc lpDeleteFunc,
 						   void *lpParam, ECMemStream **lppStream);
-
-	virtual ULONG Release(void) _zcp_override;
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _zcp_override;
-
+	virtual ULONG Release(void) _kc_override;
+	virtual HRESULT QueryInterface(REFIID refiid, void **iface) _kc_override;
 	virtual HRESULT Read(void *pv, ULONG cb, ULONG *pcbRead);
 	virtual HRESULT Write(const void *pv, ULONG cb, ULONG *pcbWritten);
 	virtual HRESULT Seek(LARGE_INTEGER dlibmove, DWORD dwOrigin, ULARGE_INTEGER *plibNewPosition);
@@ -95,23 +88,10 @@ public:
 	virtual ULONG GetSize();
 	virtual char* GetBuffer();
 
-	class xStream _zcp_final : public IStream {
-		// AddRef and Release from ECUnknown
-		virtual ULONG   __stdcall AddRef(void) _zcp_override;
-		virtual ULONG   __stdcall Release(void) _zcp_override;
-		virtual HRESULT __stdcall QueryInterface(REFIID refiid, LPVOID *lppInterface) _zcp_override;
-
-		virtual HRESULT __stdcall Read(void *pv, ULONG cb, ULONG *pcbRead) _zcp_override;
-		virtual HRESULT __stdcall Write(const void *pv, ULONG cb, ULONG *pcbWritten) _zcp_override;
-		virtual HRESULT __stdcall Seek(LARGE_INTEGER dlibmove, DWORD dwOrigin, ULARGE_INTEGER *plibNewPosition) _zcp_override;
-		virtual HRESULT __stdcall SetSize(ULARGE_INTEGER libNewSize) _zcp_override;
-		virtual HRESULT __stdcall CopyTo(IStream *pstm, ULARGE_INTEGER cb, ULARGE_INTEGER *pcbRead, ULARGE_INTEGER *pcbWritten) _zcp_override;
-		virtual HRESULT __stdcall Commit(DWORD grfCommitFlags) _zcp_override;
-		virtual HRESULT __stdcall Revert() _zcp_override;
-		virtual HRESULT __stdcall LockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType) _zcp_override;
-		virtual HRESULT __stdcall UnlockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType) _zcp_override;
-		virtual HRESULT __stdcall Stat(STATSTG *pstatstg, DWORD grfStatFlag) _zcp_override;
-		virtual HRESULT __stdcall Clone(IStream **ppstm) _zcp_override;
+	class xStream _kc_final : public IStream {
+		#include <kopano/xclsfrag/IUnknown.hpp>
+		#include <kopano/xclsfrag/ISequentialStream.hpp>
+		#include <kopano/xclsfrag/IStream.hpp>
 	} m_xStream;
 
 private:

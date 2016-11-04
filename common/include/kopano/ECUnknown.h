@@ -76,20 +76,14 @@ class ECUnknown : public IECUnknown {
 public:
 	ECUnknown(const char *szClassName = NULL);
 	virtual ~ECUnknown();
-
-	virtual ULONG AddRef(void) _zcp_override;
-	virtual ULONG Release(void) _zcp_override;
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _zcp_override;
-
+	virtual ULONG AddRef(void) _kc_override;
+	virtual ULONG Release(void) _kc_override;
+	virtual HRESULT QueryInterface(REFIID refiid, void **iface) _kc_override;
 	virtual HRESULT AddChild(ECUnknown *lpChild);
 	virtual HRESULT RemoveChild(ECUnknown *lpChild);
 
-	class xUnknown _zcp_final : public IUnknown {
-	public:
-		// From IUnknown
-		virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lppInterface) _zcp_override;
-		virtual ULONG __stdcall AddRef(void) _zcp_override;
-		virtual ULONG __stdcall Release(void) _zcp_override;
+	class xUnknown _kc_final : public IUnknown {
+		#include <kopano/xclsfrag/IUnknown.hpp>
 	} m_xUnknown;
 
 	// lpParent is public because it is always thread-safe and valid

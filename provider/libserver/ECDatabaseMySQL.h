@@ -41,62 +41,51 @@ public:
 	// Embedded mysql
 	static ECRESULT	InitLibrary(const char *lpDatabaseDir, const char *lpConfigFile);
 	static void UnloadLibrary(void);
-
-	ECRESULT Connect(void) _zcp_override;
-	ECRESULT Close(void) _zcp_override;
-	ECRESULT DoSelect(const std::string &strQuery, DB_RESULT *lpResult, bool fStreamResult = false) _zcp_override;
-	ECRESULT DoSelectMulti(const std::string &strQuery) _zcp_override;
-	ECRESULT DoUpdate(const std::string &strQuery, unsigned int *lpulAffectedRows = NULL) _zcp_override;
-	ECRESULT DoInsert(const std::string &strQuery, unsigned int *lpulInsertId = NULL, unsigned int *lpulAffectedRows = NULL) _zcp_override;
-	ECRESULT DoDelete(const std::string &strQuery, unsigned int *lpulAffectedRows = NULL) _zcp_override;
-	ECRESULT DoSequence(const std::string &strSeqName, unsigned int ulCount, unsigned long long *lpllFirstId) _zcp_override;
+	ECRESULT Connect(void) _kc_override;
+	ECRESULT Close(void) _kc_override;
+	ECRESULT DoSelect(const std::string &query, DB_RESULT *result, bool stream_result = false) _kc_override;
+	ECRESULT DoSelectMulti(const std::string &query) _kc_override;
+	ECRESULT DoUpdate(const std::string &query, unsigned int *affected_rows = NULL) _kc_override;
+	ECRESULT DoInsert(const std::string &query, unsigned int *insert_id = NULL, unsigned int *affected_rows = NULL) _kc_override;
+	ECRESULT DoDelete(const std::string &query, unsigned int *affected_rows = NULL) _kc_override;
+	ECRESULT DoSequence(const std::string &seqname, unsigned int ulCount, unsigned long long *first_id) _kc_override;
 
 	//Result functions
-	unsigned int GetNumRows(DB_RESULT sResult) _zcp_override;
-	unsigned int GetNumRowFields(DB_RESULT sResult) _zcp_override;
-	unsigned int GetRowIndex(DB_RESULT sResult, const std::string &strFieldname) _zcp_override;
-	virtual ECRESULT GetNextResult(DB_RESULT *sResult) _zcp_override;
-	virtual ECRESULT FinalizeMulti(void) _zcp_override;
-
-	DB_ROW FetchRow(DB_RESULT sResult) _zcp_override;
-	DB_LENGTHS FetchRowLengths(DB_RESULT sResult) _zcp_override;
-
-	std::string Escape(const std::string &strToEscape) _zcp_override;
-	std::string EscapeBinary(unsigned char *lpData, unsigned int ulLen) _zcp_override;
-	std::string EscapeBinary(const std::string& strData) _zcp_override;
-	std::string FilterBMP(const std::string &strToFilter) _zcp_override;
-
-	void ResetResult(DB_RESULT sResult) _zcp_override;
-
-	ECRESULT ValidateTables(void) _zcp_override;
-
-	const char *GetError(void) _zcp_override;
-	DB_ERROR GetLastError(void) _zcp_override;
-	bool SuppressLockErrorLogging(bool bSuppress) _zcp_override;
-	
-	ECRESULT Begin(void) _zcp_override;
-	ECRESULT Commit(void) _zcp_override;
-	ECRESULT Rollback(void) _zcp_override;
-	
-	unsigned int GetMaxAllowedPacket(void) _zcp_override { return m_ulMaxAllowedPacket; }
-
-	void ThreadInit(void) _zcp_override;
-	void ThreadEnd(void) _zcp_override;
+	unsigned int GetNumRows(DB_RESULT) _kc_override;
+	unsigned int GetNumRowFields(DB_RESULT) _kc_override;
+	unsigned int GetRowIndex(DB_RESULT, const std::string &field) _kc_override;
+	virtual ECRESULT GetNextResult(DB_RESULT *) _kc_override;
+	virtual ECRESULT FinalizeMulti(void) _kc_override;
+	DB_ROW FetchRow(DB_RESULT) _kc_override;
+	DB_LENGTHS FetchRowLengths(DB_RESULT) _kc_override;
+	std::string Escape(const std::string &) _kc_override;
+	std::string EscapeBinary(unsigned char *, unsigned int) _kc_override;
+	std::string EscapeBinary(const std::string &) _kc_override;
+	std::string FilterBMP(const std::string &to_filter) _kc_override;
+	void ResetResult(DB_RESULT) _kc_override;
+	ECRESULT ValidateTables(void) _kc_override;
+	const char *GetError(void) _kc_override;
+	DB_ERROR GetLastError(void) _kc_override;
+	bool SuppressLockErrorLogging(bool suppress) _kc_override;
+	ECRESULT Begin(void) _kc_override;
+	ECRESULT Commit(void) _kc_override;
+	ECRESULT Rollback(void) _kc_override;
+	unsigned int GetMaxAllowedPacket(void) _kc_override { return m_ulMaxAllowedPacket; }
+	void ThreadInit(void) _kc_override;
+	void ThreadEnd(void) _kc_override;
 
 	// Database maintenance functions
-	ECRESULT CreateDatabase(void) _zcp_override;
+	ECRESULT CreateDatabase(void) _kc_override;
 	// Main update unit
-	ECRESULT UpdateDatabase(bool bForceUpdate, std::string &strReport) _zcp_override;
-	ECRESULT InitializeDBState(void) _zcp_override;
-
-	std::string GetDatabaseDir(void) _zcp_override;
-	
-	ECRESULT CheckExistColumn(const std::string &strTable, const std::string &strColumn, bool *lpbExist) _zcp_override;
-	ECRESULT CheckExistIndex(const std::string &strTable, const std::string &strKey, bool *lpbExist) _zcp_override;
+	ECRESULT UpdateDatabase(bool force_update, std::string &report) _kc_override;
+	ECRESULT InitializeDBState(void) _kc_override;
+	std::string GetDatabaseDir(void) _kc_override;
+	ECRESULT CheckExistColumn(const std::string &table, const std::string &column, bool *exist) _kc_override;
+	ECRESULT CheckExistIndex(const std::string &table, const std::string &key, bool *exist) _kc_override;
 
 public:
 	// Freememory methods
-	void FreeResult(DB_RESULT sResult) _zcp_override;
+	void FreeResult(DB_RESULT sResult) _kc_override;
 
 private:
     

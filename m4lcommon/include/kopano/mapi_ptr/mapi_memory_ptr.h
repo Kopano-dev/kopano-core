@@ -25,8 +25,7 @@
 	#undef free
 #endif
 
-template<typename _T>
-class mapi_memory_proxy _zcp_final {
+template<typename _T> class mapi_memory_proxy _kc_final {
 public:
 	typedef _T		value_type;
 	typedef _T**	pointerpointer;
@@ -40,8 +39,7 @@ private:
 	pointerpointer	m_lpp;
 };
 
-template <typename _T>
-class mapi_memory_ptr _zcp_final {
+template <typename _T> class mapi_memory_ptr _kc_final {
 public:
 	typedef _T						value_type;
 	typedef _T*						pointer;

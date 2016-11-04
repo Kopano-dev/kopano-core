@@ -25,7 +25,7 @@
 #include "ECChannelClient.h"
 #include <kopano/kcodes.h>
 
-class ECLicenseClient _zcp_final {
+class ECLicenseClient _kc_final {
 public:
 	ECLicenseClient(const char * = NULL, unsigned int = 0) {}
     

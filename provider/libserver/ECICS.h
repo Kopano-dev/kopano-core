@@ -26,7 +26,7 @@
 // This class is used to pass SOURCEKEYs internally between parts of the server backend. You can use it as a char* to get the data, use size() to get the size,
 // and have various ways of creating new SOURCEKEYs, including using a GUID and an ID, which is used for kopano-generated source keys.
 
-class SOURCEKEY _zcp_final {
+class SOURCEKEY _kc_final {
 public:
     SOURCEKEY(void) : lpData(NULL), ulSize(0) {}
     SOURCEKEY(const SOURCEKEY &s) { 

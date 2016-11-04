@@ -18,7 +18,7 @@
 #include <kopano/zcdefs.h>
 #include "ECUserManagement.h"
 
-class ECUserManagementOffline _zcp_final : public ECUserManagement {
+class ECUserManagementOffline _kc_final : public ECUserManagement {
 public:
 	ECUserManagementOffline(ECSession *lpSession, ECPluginFactory *lpPluginFactory, ECConfig *lpConfig);
 	//virtual ECRESULT	AuthUserAndSync(char *szUsername, char *szPassword, unsigned int *lpulUserId);

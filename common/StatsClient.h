@@ -30,7 +30,7 @@
 
 #include <kopano/ECLogger.h>
 
-class StatsClient _zcp_final {
+class StatsClient _kc_final {
 private:
 	int fd = -1;
 	struct sockaddr_un addr;

@@ -32,7 +32,7 @@ class ECTask;
  * The amount of workers can be modified at run time, but is not automatically
  * adjusted based on the task queue length or age.
  */
-class ECThreadPool _zcp_final {
+class ECThreadPool _kc_final {
 private:	// types
 	struct STaskInfo {
 		ECTask			*lpTask;
@@ -144,8 +144,7 @@ public:
 	
 public:
 	virtual ~ECWaitableTask();
-	virtual void execute(void) _zcp_override;
-	
+	virtual void execute(void) _kc_override;
 	bool done() const;
 	bool wait(unsigned timeout = WAIT_INFINITE, unsigned waitMask = Done) const;
 	
@@ -183,7 +182,7 @@ public:
 	ECDeferredFunc(_Fn fn, const _At &arg) : m_fn(fn), m_arg(arg)
 	{ }
 	
-	virtual void run(void) _zcp_override
+	virtual void run(void) _kc_override
 	{
 		m_result = m_fn(m_arg);
 	}

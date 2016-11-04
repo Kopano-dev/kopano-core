@@ -95,7 +95,7 @@ protected:
 	std::mutex m_refcnt_lock;
 };
 
-class ECDatabaseAttachment _zcp_final : public ECAttachmentStorage {
+class ECDatabaseAttachment _kc_final : public ECAttachmentStorage {
 public:
 	ECDatabaseAttachment(ECDatabase *lpDatabase);
 
@@ -115,7 +115,7 @@ protected:
 	virtual ECRESULT Rollback();
 };
 
-class ECFileAttachment _zcp_final : public ECAttachmentStorage {
+class ECFileAttachment _kc_final : public ECAttachmentStorage {
 public:
 	ECFileAttachment(ECDatabase *lpDatabase, const std::string &basepath, unsigned int ulCompressionLevel, const bool force_changes_to_disk);
 

@@ -20,8 +20,7 @@
 
 #include <kopano/zcdefs.h>
 
-template <typename Type>
-class ECInvariantChecker _zcp_final {
+template<typename Type> class ECInvariantChecker _kc_final {
 public:
 	ECInvariantChecker(const Type *p): m_p(p) { m_p->CheckInvariant(); }
 	~ECInvariantChecker() { m_p->CheckInvariant(); }

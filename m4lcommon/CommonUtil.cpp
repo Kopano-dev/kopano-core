@@ -1830,7 +1830,7 @@ exit:
 
 // This is a class that implements IMAPIProp's GetProps(), and nothing else. Its data
 // is retrieved from the passed lpProps/cValues property array
-class ECRowWrapper _zcp_final : public IMAPIProp {
+class ECRowWrapper _kc_final : public IMAPIProp {
 public:
 	ECRowWrapper(LPSPropValue lpProps, ULONG cValues) : m_cValues(cValues), m_lpProps(lpProps) {};
 	~ECRowWrapper() {};

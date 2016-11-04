@@ -76,7 +76,7 @@
 #define PT_HJ_MONTH_NTH		0xB
 #define PT_HJ_MONTH_END		0xC
 
-class RecurrenceState _zcp_final {
+class RecurrenceState _kc_final {
 	public:
 	HRESULT ParseBlob(char *lpData, unsigned int ulLen, ULONG ulFlags);
 	HRESULT GetBlob(char **lpData, unsigned int *lpulLen, void *base = NULL);

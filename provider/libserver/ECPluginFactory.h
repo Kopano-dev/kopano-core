@@ -28,7 +28,7 @@ class ECConfig;
 class ECPluginSharedData;
 class ECStatsCollector;
 
-class ECPluginFactory _zcp_final {
+class ECPluginFactory _kc_final {
 public:
 	ECPluginFactory(ECConfig *config, ECStatsCollector *lpStatsCollector, bool bHosted, bool bDistributed);
 	~ECPluginFactory();

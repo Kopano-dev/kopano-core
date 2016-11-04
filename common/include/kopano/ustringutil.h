@@ -31,7 +31,7 @@ typedef CollationKey ECSortKey;
 #else
 
 //typedef locale_t ECLocale;
-class ECLocale _zcp_final {
+class ECLocale _kc_final {
 public:
 	ECLocale();
 	ECLocale(int category, const char *locale);
@@ -50,8 +50,7 @@ private:
 	std::string	m_localeid;
 };
 
-
-class ECSortKey _zcp_final {
+class ECSortKey _kc_final {
 public:
 	ECSortKey(const unsigned char *lpSortData, unsigned int cbSortData);
 	ECSortKey(const ECSortKey &other);

@@ -750,7 +750,6 @@ AC_SUBST([PYTHON_INCLUDES])
 AC_CONFIG_FILES([Makefile
 		mapi4linux/include/Makefile
 		m4lcommon/include/kopano/Makefile
-		php-ext/Makefile php7-ext/Makefile
 		provider/include/Makefile
 		inetmapi/include/inetmapi/Makefile
 		spooler/python/Makefile

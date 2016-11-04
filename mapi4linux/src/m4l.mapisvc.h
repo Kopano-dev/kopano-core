@@ -42,8 +42,7 @@ typedef HRESULT(__cdecl *SVC_ABProviderInit)(HINSTANCE hInstance, LPMALLOC lpMal
 											 LPALLOCATEMORE lpAllocateMore, LPFREEBUFFER lpFreeBuffer, ULONG ulFlags, ULONG ulMAPIVer,
 											 ULONG * lpulProviderVer, LPABPROVIDER * lppABProvider);
 
-
-class INFLoader _zcp_final {
+class INFLoader _kc_final {
 public:
 	INFLoader();
 	HRESULT LoadINFs();
@@ -61,7 +60,7 @@ private:
 	std::map<std::string, unsigned int> m_mapDefs;
 };
 
-class SVCProvider _zcp_final {
+class SVCProvider _kc_final {
 public:
 	/* ZARAFA6_ABP, ZARAFA6_MSMDB_private, ZARAFA6_MSMDB_public */
 	SVCProvider();
@@ -75,7 +74,7 @@ private:
 	LPSPropValue m_lpProps; /* PR_* tags from file */
 };
 
-class SVCService _zcp_final {
+class SVCService _kc_final {
 public:
 	/* ZARAFA6, ZCONTACTS */
 	SVCService();
@@ -108,7 +107,7 @@ private:
 	std::map<std::string, SVCProvider*> m_sProviders;
 };
 
-class MAPISVC _zcp_final {
+class MAPISVC _kc_final {
 public:
 	MAPISVC();
 	~MAPISVC();

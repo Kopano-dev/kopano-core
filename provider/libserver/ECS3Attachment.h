@@ -15,7 +15,7 @@ class ECSerializer;
 class ECLogger;
 struct s3_cd;
 
-class ECS3Attachment _zcp_final : public ECAttachmentStorage {
+class ECS3Attachment _kc_final : public ECAttachmentStorage {
 	public:
 	static ECRESULT StaticInit(ECConfig *);
 	static ECRESULT StaticDeinit(void);

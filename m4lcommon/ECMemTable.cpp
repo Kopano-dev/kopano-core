@@ -42,7 +42,7 @@ using namespace std;
 
 static SSortOrderSet sSortDefault = {0, 0};
 
-class FixStringType _zcp_final {
+class FixStringType _kc_final {
 public:
 	FixStringType(ULONG ulFlags) : m_ulFlags(ulFlags) { assert((m_ulFlags & ~MAPI_UNICODE) == 0); }
 	ULONG operator()(ULONG ulPropTag) const

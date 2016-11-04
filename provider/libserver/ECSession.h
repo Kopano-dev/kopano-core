@@ -146,7 +146,7 @@ protected:
 /*
   Normal session
 */
-class ECSession _zcp_final : public BTSession {
+class ECSession _kc_final : public BTSession {
 public:
 	ECSession(const char *addr, ECSESSIONID sessionID, ECSESSIONGROUPID ecSessionGroupId, ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager, unsigned int ulCapabilities, bool bIsOffline, AUTHMETHOD ulAuthMethod, int pid, const std::string &cl_vers, const std::string &cl_app, const std::string &cl_app_ver, const std::string &cl_app_misc);
 
@@ -262,7 +262,7 @@ private:
 /*
   Authentication for offline session
 */
-class ECAuthSessionOffline _zcp_final : public ECAuthSession {
+class ECAuthSessionOffline _kc_final : public ECAuthSession {
 public:
 	ECAuthSessionOffline(const char *addr, ECSESSIONID sessionID, ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager, unsigned int ulCapabilities);
 
