@@ -274,35 +274,4 @@ public:
 
 };
 
-/*
-Opens an offline object based on a given profile.
-
-Parameters:
-	ulReserved 
-		[in] This parameter is not used. It must be 0. 
-
-	pwszProfileNameIn
-		[in] The name of the profile that the offline object is for. It must be expressed in Unicode. 
-	pGUID 
-		[in] Pointer to a GUID which can be used to uniquely identify this object from other offline objects.
-			It must be GUID_GlobalState.
-	pReserved 
-		[in] This parameter is not used. It must be NULL. 
-	ppOfflineObj 
-		[out] A pointer to the requested offline object. The caller can use this pointer to access the 
-			IMAPIOfflineMgr interface to find out the callbacks that this object supports and to set up callbacks for it.
-
-Return Values:
-	S_OK 
-		The function call is successful.
-
-Remarks:
-	This is the first call that a client makes when the client wants to be notified of any connection state changes for 
-	a given profile. Upon calling HrOpenOfflineObj, the client obtains an offline object that supports IMAPIOfflineMgr.
-	The client can check for the kinds of callbacks supported by the object (by using IMAPIOffline::GetCapabilities),
-	and then set up callbacks for it (by using IMAPIOfflineMgr::Advise).
-
-	When using GetProcAddress to look for the address of this function in msmapi32.dll, specify HrOpenOfflineObj@20 as the procedure name.  
-*/
-
 #endif //IMAPIOFFLINE_INCLUDED
