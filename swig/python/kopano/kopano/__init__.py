@@ -4190,7 +4190,7 @@ def logger(service, options=None, stdout=False, config=None, name=''):
         fh.setLevel(log_level)
         fh.setFormatter(formatter)
         logger.addHandler(fh)
-    ch = logging.StreamHandler() # XXX via options?
+    ch = logging.StreamHandler(sys.stdout)
     ch.setLevel(log_level)
     ch.setFormatter(formatter)
     if stdout or (options and options.foreground):
