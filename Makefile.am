@@ -767,7 +767,7 @@ libm4lcommon_la_LIBADD = \
 # to only apache2-mod_php5 and not php-cli, php-fpm, etc.
 #
 phpsysconfdir = ${dcprefix}${PHP_SYSCONF_DIR}
-dist_phpsysconfdir = php-ext/mapi.ini
+dist_phpsysconf_DATA = php-ext/mapi.ini
 
 
 #
@@ -812,8 +812,6 @@ mapi_la_LIBADD = libmapi.la libkcmapi.la libkcutil.la libkcfreebusy.la \
 #
 # PHP classes, config files
 #
-phpsysconfdir = ${dcprefix}${PHP_SYSCONF_DIR}
-dist_phpsysconf_DATA = php-ext/mapi.ini
 phpdatadir = ${datarootdir}/php/mapi
 dist_phpdata_DATA = \
 	php-ext/include/mapi/class.baseexception.php \
