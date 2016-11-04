@@ -1002,15 +1002,18 @@ HRESULT CopyMAPIRowSetToSOAPRowSet(const SRowSet *lpRowSetSrc,
 	}
 
 	lpsRowSetDst = new struct rowSet;
+	lpsRowSetDst->__ptr = NULL;
+	lpsRowSetDst->__size = 0;
+	if (lpRowSetSrc->cRows > 0) {
+		lpsRowSetDst->__ptr = new propValArray[lpRowSetSrc->cRows];
+		lpsRowSetDst->__size = lpRowSetSrc->cRows;
 
-	lpsRowSetDst->__ptr = new propValArray[lpRowSetSrc->cRows];
-	lpsRowSetDst->__size = lpRowSetSrc->cRows;
-
-	for (unsigned int i = 0; i < lpRowSetSrc->cRows; ++i) {
-		hr = CopyMAPIRowToSOAPRow(&lpRowSetSrc->aRow[i], &lpsRowSetDst->__ptr[i], lpConverter);
-		if(hr != hrSuccess) {
-			delete lpsRowSetDst;
-			goto exit;
+		for (unsigned int i = 0; i < lpRowSetSrc->cRows; ++i) {
+			hr = CopyMAPIRowToSOAPRow(&lpRowSetSrc->aRow[i], &lpsRowSetDst->__ptr[i], lpConverter);
+			if (hr != hrSuccess) {
+				delete lpsRowSetDst;
+				goto exit;
+			}
 		}
 	}
 
