@@ -338,7 +338,7 @@ ECLogger* CreateLogger(ECConfig *config, const char *argv0, const char *lpszServ
 int DeleteLogger(ECLogger *lpLogger);
 extern void LogConfigErrors(ECConfig *lpConfig);
 
-#endif
-
 void generic_sigsegv_handler(ECLogger *, const char *app, const char *vers, int sig, const siginfo_t *, const void *uctx);
 void ec_log_bt(unsigned int, const char *, ...);
+
+#endif /* ECLOGGER_H */

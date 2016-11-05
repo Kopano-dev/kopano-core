@@ -21,11 +21,11 @@
  * constants
  */
 
-#include <kopano/platform.h>	// for declaration of HRESULT
-#include <string>
-
 #ifndef MAPIERRORS_H_INCLUDED
 #define MAPIERRORS_H_INCLUDED
+
+#include <kopano/platform.h>	// for declaration of HRESULT
+#include <string>
 
 #ifndef __M4L_MAPICODE_H_
 #ifndef MAPICODE_H
