@@ -25,8 +25,7 @@
 #include <kopano/md5.h>
 #include <mapidefs.h>
 #include <kopano/base64.h>
-
-KDLLAPI ECRESULT GetDatabaseObject(ECDatabase **lppDatabase);
+#include "ECServerEntrypoint.h"
 
 DBPlugin::DBPlugin(std::mutex &pluginlock, ECPluginSharedData *shareddata) :
 	UserPlugin(pluginlock, shareddata), m_lpDatabase(NULL) {

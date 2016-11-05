@@ -18,7 +18,11 @@
 #ifndef KC_CMD_HPP
 #define KC_CMD_HPP 1
 
+extern "C" {
+
 extern ECRESULT GetBestServerPath(struct soap *, ECSession *, const std::string &, std::string *);
 extern void *SoftDeleteRemover(void *);
+
+} /* extern "C" */
 
 #endif /* KC_CMD_HPP */

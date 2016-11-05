@@ -42,6 +42,8 @@ struct INFOGUID {
 	const char *szguidname;
 };
 
+extern "C" {
+
 std::string GetMAPIErrorDescription( HRESULT hResult );
 
 std::string DBGGUIDToString(REFIID iid);
@@ -75,5 +77,7 @@ std::string FuzzyLevelToString(ULONG ulFuzzyLevel);
 std::string PropValueToString(const SPropValue *lpPropValue);
 std::string EntryListToString(const ENTRYLIST *lpMsgList);
 std::string PermissionRulesToString(ULONG cPermissions, const ECPERMISSION *lpECPermissions);
+
+} /* extern "C" */
 
 #endif

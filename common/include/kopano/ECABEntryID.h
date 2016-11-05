@@ -20,6 +20,8 @@
 
 #include <mapidefs.h>
 
+extern "C" {
+
 extern unsigned char		*g_lpDefaultEid;
 extern const unsigned int	g_cbDefaultEid;
 
@@ -35,5 +37,7 @@ HRESULT EntryIdIsEveryone(unsigned int cbEntryId, const ENTRYID *lpEntryId, bool
 HRESULT GetNonPortableObjectId(unsigned int cbEntryId, const ENTRYID *lpEntryId, unsigned int *lpulObjectId);
 HRESULT GetNonPortableObjectType(unsigned int cbEntryId, const ENTRYID *lpEntryId, ULONG *lpulObjectType);
 extern HRESULT GeneralizeEntryIdInPlace(unsigned int eid_size, ENTRYID *eid);
+
+} /* extern "C" */
 
 #endif

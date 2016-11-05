@@ -60,6 +60,8 @@ public:
 	virtual const std::vector<sFailedRecip> &getTemporaryFailedRecipients(void) const { return mTemporaryFailedRecipients; }
 };
 
+extern "C" {
+
 bool ValidateCharset(const char *charset);
 
 /* c wrapper to create object */
@@ -72,6 +74,8 @@ extern INETMAPI_API HRESULT IMToMAPI(IMAPISession *, IMsgStore *, IAddrBook *, I
 // Use this one for retrieving messages not in outgoing que, they already have PR_SENDER_EMAIL/NAME
 // This can be used in making pop3 / imap server
 
+} /* extern "C" */
+
 // Read properties from lpMessage object and fill buffer with internet rfc822 format message
 extern INETMAPI_API HRESULT IMToINet(IMAPISession *, IAddrBook *, IMessage *, char **lppbuf, sending_options);
 
@@ -83,5 +87,6 @@ extern INETMAPI_API HRESULT IMToINet(IMAPISession *, IAddrBook *, IMessage *, EC
 
 // Parse the RFC822 input and create IMAP Envelope, Body and Bodystructure property values
 INETMAPI_API HRESULT createIMAPProperties(const std::string &input, std::string *lpEnvelope, std::string *lpBody, std::string *lpBodyStructure);
+
 
 #endif // INETMAPI_H

@@ -66,6 +66,8 @@ private:
 
 #endif
 
+extern "C" {
+
 // us-ascii strings
 const char* str_ifind(const char *haystack, const char *needle);
 
@@ -108,12 +110,13 @@ ECRESULT LocaleIdToLCID(const char *lpszLocaleID, ULONG *lpulLcid);
 ECRESULT LCIDToLocaleId(ULONG ulLcid, const char **lppszLocaleID);
 ECRESULT LocaleIdToLocaleName(const char *lpszLocaleID, const char **lppszLocaleName);
 
-void createSortKeyData(const char *s, int nCap, const ECLocale &locale, unsigned int *lpcbKey, unsigned char **lppKey);
-void createSortKeyData(const wchar_t *s, int nCap, const ECLocale &locale,unsigned int *lpcbKey, unsigned char **lppKey);
 void createSortKeyDataFromUTF8(const char *s, int nCap, const ECLocale &locale, unsigned int *lpcbKey, unsigned char **lppKey);
 ECSortKey createSortKeyFromUTF8(const char *s, int nCap, const ECLocale &locale);
-
 int compareSortKeys(unsigned int cbKey1, const unsigned char *lpKey1, unsigned int cbKey2, const unsigned char *lpKey2);
 
+} /* extern "C" */
+
+void createSortKeyData(const char *s, int nCap, const ECLocale &locale, unsigned int *lpcbKey, unsigned char **lppKey);
+void createSortKeyData(const wchar_t *s, int nCap, const ECLocale &locale,unsigned int *lpcbKey, unsigned char **lppKey);
 
 #endif // ndef ustringutil_INCLUDED

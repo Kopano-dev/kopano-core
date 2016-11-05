@@ -18,7 +18,11 @@
 #ifndef CODEPAGE_H
 #define CODEPAGE_H
 
+extern "C" {
+
 HRESULT	HrGetCharsetByCP(ULONG codepage, const char **lppszCharset);
 HRESULT HrGetCPByCharset(const char *lpszCharset, ULONG *codepage);
+
+}
 
 #endif

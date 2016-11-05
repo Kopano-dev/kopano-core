@@ -18,6 +18,8 @@
 #ifndef SSLUTIL_H
 #define SSLUTIL_H
 
+extern "C" {
+
 void ssl_threading_setup();
 void ssl_threading_cleanup();
 
@@ -25,5 +27,7 @@ void SSL_library_cleanup();
 
 void ssl_random_init();
 void ssl_random(bool b64bit, uint64_t *lpullId);
+
+} /* extern "C" */
 
 #endif

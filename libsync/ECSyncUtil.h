@@ -25,10 +25,14 @@
 
 #include "ECLibSync.h"
 
+extern "C" {
+
 typedef std::set<std::pair<unsigned int, std::string> > PROCESSEDCHANGESSET;
 HRESULT ECLIBSYNC_API HrDecodeSyncStateStream(LPSTREAM lpStream, ULONG *lpulSyncId, ULONG *lpulChangeId, PROCESSEDCHANGESSET *lpSetProcessChanged = NULL);
 HRESULT ResetStream(LPSTREAM lpStream);
 HRESULT CreateNullStatusStream(LPSTREAM *lppStream);
 HRESULT HrGetOneBinProp(IMAPIProp *lpProp, ULONG ulPropTag, LPSPropValue *lppPropValue);
+
+} /* extern "C" */
 
 #endif // ndef ECSYNCUTIL_H

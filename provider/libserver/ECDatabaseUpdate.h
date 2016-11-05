@@ -20,6 +20,10 @@
 
 #include <kopano/ECLogger.h>
 
+ECRESULT UpdateDatabaseConvertToUnicode(ECDatabase *);
+
+extern "C" {
+
 ECRESULT UpdateDatabaseCreateVersionsTable(ECDatabase *lpDatabase);
 ECRESULT UpdateDatabaseCreateSearchFolders(ECDatabase *lpDatabase);
 ECRESULT UpdateDatabaseFixUserNonActive(ECDatabase *lpDatabase);
@@ -80,8 +84,6 @@ ECRESULT UpdateDatabaseMoveSubscribedList(ECDatabase *lpDatabase);
 ECRESULT UpdateDatabaseSyncTimeIndex(ECDatabase *lpDatabase);
 ECRESULT UpdateDatabaseAddStateKey(ECDatabase *lpDatabase);
 
-ECRESULT UpdateDatabaseConvertToUnicode(ECDatabase *lpDatabase);
-
 ECRESULT UpdateDatabaseConvertStoreUsername(ECDatabase *lpDatabase);
 ECRESULT UpdateDatabaseConvertRules(ECDatabase *lpDatabase);
 ECRESULT UpdateDatabaseConvertSearchFolders(ECDatabase *lpDatabase);
@@ -105,5 +107,7 @@ ECRESULT UpdateWLinkRecordKeys(ECDatabase *lpDatabase);
 ECRESULT UpdateVersionsTbl(ECDatabase *db);
 ECRESULT UpdateChangesTbl(ECDatabase *db);
 ECRESULT UpdateABChangesTbl(ECDatabase *db);
+
+} /* extern "C" */
 
 #endif // #ifndef ECDATABASEUPDATE_H

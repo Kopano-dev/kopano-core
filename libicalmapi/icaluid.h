@@ -22,10 +22,14 @@
 #include <string>
 #include "icalmapi.h"
 
+extern "C" {
+
 bool ICALMAPI_API IsOutlookUid(const std::string &strUid);
 HRESULT ICALMAPI_API HrGenerateUid(std::string *lpStrUid);
 HRESULT ICALMAPI_API HrCreateGlobalID(ULONG ulNamedTag, void *base, LPSPropValue *lppPropVal);
 HRESULT ICALMAPI_API HrGetICalUidFromBinUid(SBinary &sBin, std::string *lpStrUid);
 HRESULT ICALMAPI_API HrMakeBinUidFromICalUid(const std::string &strUid, std::string *lpStrBinUid);
+
+} /* extern "C" */
 
 #endif

@@ -37,6 +37,8 @@ struct _popen_rlimit_array_ ## _name { \
 	struct popen_rlimit sLimit[_climit]; \
 } _name
 
+extern "C" {
+
 extern int unix_runas(ECConfig *);
 int unix_chown(const char *filename, const char *username, const char *groupname);
 extern void unix_coredump_enable(void);
@@ -44,5 +46,7 @@ extern int unix_create_pidfile(const char *argv0, ECConfig *, bool force = true)
 extern int unix_daemonize(ECConfig *);
 int unix_fork_function(void*(func)(void*), void *param, int nCloseFDs, int *pCloseFDs);
 extern bool unix_system(const char *szLogName, const char *command, const char **env);
+
+} /* extern "C" */
 
 #endif

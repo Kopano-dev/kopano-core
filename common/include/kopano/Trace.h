@@ -23,6 +23,8 @@
 #define TRACE_WARNING 3
 #define TRACE_INFO 4
 
+extern "C" {
+
 void TraceMapi(int time, const char *func, const char *format, ...);
 void TraceMapiLib(int time, const char *func, const char *format, ...);
 void TraceNotify(int time, const char *func, const char *format, ...);
@@ -32,6 +34,8 @@ void TraceStream(int time, const char *func, const char *format, ...);
 void TraceECMapi(int time, const char *func, const char *format, ...);
 void TraceExt(int time, const char *func, const char *format, ...);
 void TraceRelease(const char *format, ...);
+
+} /* extern "C" */
 
 #define TRACE_RELEASE	TraceRelease
 

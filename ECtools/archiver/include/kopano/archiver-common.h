@@ -581,8 +581,11 @@ public:
 	bool operator()(const SObjectEntry &sEntry) const { return !sEntry.sStoreEntryId.isWrapped(); }
 };
 
+extern "C" {
+
 eResult MAPIErrorToArchiveError(HRESULT hr);
 const char* ArchiveResultString(eResult result);
 
+}
 
 #endif // !defined ARCHIVER_COMMON_H_INCLUDED

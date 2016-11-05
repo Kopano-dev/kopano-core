@@ -52,7 +52,11 @@ typedef struct _so {
 	bool always_expand_distr_list;
 } sending_options;
 
+extern "C" {
+
 void INETMAPI_API imopt_default_delivery_options(delivery_options *dopt);
 void INETMAPI_API imopt_default_sending_options(sending_options *sopt);
+
+}
 
 #endif

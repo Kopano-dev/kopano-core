@@ -41,6 +41,8 @@ struct wcscasecmp_comparison {
 	}
 };
 
+extern "C" {
+
 static inline std::string strToUpper(std::string f) {
 	transform(f.begin(), f.end(), f.begin(), ::toupper);
 	return f;
@@ -93,6 +95,8 @@ static inline bool parseBool(const std::string &s) {
 	return !(s == "0" || s == "false" || s == "no");
 }
 
+} /* extern "C" */
+
 extern std::string shell_escape(const std::string &str);
 extern std::string shell_escape(const std::wstring &wstr);
 
@@ -120,12 +124,16 @@ std::wstring bin2hexw(unsigned int inLength, const unsigned char *input);
 std::string urlEncode(const std::string &input);
 std::string urlEncode(const std::wstring &input, const char* charset);
 std::string urlEncode(const WCHAR* input, const char* charset);
-std::string urlDecode(const std::string &input);
 
+extern "C" {
+
+std::string urlDecode(const std::string &input);
 void BufferLFtoCRLF(size_t size, const char *input, char *output, size_t *outsize);
 void StringCRLFtoLF(const std::wstring &strInput, std::wstring *lpstrOutput);
 void StringLFtoCRLF(std::string &strInOut);
 void StringTabtoSpaces(const std::wstring &strInput, std::wstring *lpstrOutput);
+
+}
 
 template<typename T>
 std::vector<T> tokenize(const T &str, const T &delimiters)
@@ -177,7 +185,11 @@ _Tp join(_InputIterator __first, _InputIterator __last, _Tp __sep)
     return s;
 }
 
+extern "C" {
+
 std::string format(const char *const fmt, ...) __LIKE_PRINTF(1, 2);
-extern "C" char *kc_strlcpy(char *, const char *, size_t);
+char *kc_strlcpy(char *, const char *, size_t);
+
+}
 
 #endif

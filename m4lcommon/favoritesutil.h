@@ -38,6 +38,8 @@ enum {
 	SHORTCUT_NUM
 };
 
+extern "C" {
+
 LPSPropTagArray GetShortCutTagArray();
 
 HRESULT AddToFavorite(IMAPIFolder *lpShortcutFolder, ULONG ulLevel, LPCTSTR lpszAliasName, ULONG ulFlags, ULONG cValues, LPSPropValue lpPropArray);
@@ -45,5 +47,7 @@ HRESULT GetShortcutFolder(LPMAPISESSION lpSession, LPTSTR lpszFolderName, LPTSTR
 HRESULT CreateShortcutFolder(IMsgStore *lpMsgStore, LPTSTR lpszFolderName, LPTSTR lpszFolderComment, ULONG ulFlags, LPMAPIFOLDER* lppShortcutFolder);
 HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSourceKey);
 HRESULT AddFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPMAPIFOLDER lpFolder, LPCTSTR lpszAliasName, ULONG ulFlags);
+
+} /* extern "C" */
 
 #endif //#ifndef FAVORITESUTIL_H

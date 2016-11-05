@@ -38,9 +38,10 @@ namespace ba = boost::algorithm;
 #include "ECDatabase.h"
 #include "ECStatsCollector.h"
 #include <kopano/boost_compat.h>
+#include "../libserver/cmd.hpp"
 
 /* class and add constructor params? */
-extern ECRESULT GetBestServerPath(struct soap *soap, ECSession *lpecSession, const std::string &strServerName, std::string *lpstrServerPath);
+//extern "C" ECRESULT GetBestServerPath(struct soap *soap, ECSession *lpecSession, const std::string &strServerName, std::string *lpstrServerPath);
 
 extern ECLogger *g_lpLogger;
 extern ECConfig *g_lpConfig;

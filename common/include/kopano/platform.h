@@ -63,6 +63,8 @@
   #include "config.h"
   #endif
   #include <kopano/platform.linux.h>
+#include <string>
+#include <pthread.h>
 
 #define KOPANO_SYSTEM_USER		"SYSTEM"
 #define KOPANO_SYSTEM_USER_W	L"SYSTEM"
@@ -77,6 +79,9 @@ HRESULT	UnixTimeToFileTime(time_t t, FILETIME *ft);
 HRESULT	FileTimeToUnixTime(const FILETIME &ft, time_t *t);
 void	UnixTimeToFileTime(time_t t, int *hi, unsigned int *lo);
 time_t	FileTimeToUnixTime(unsigned int hi, unsigned int lo);
+
+extern "C" {
+
 void	RTimeToFileTime(LONG rtime, FILETIME *pft);
 void	FileTimeToRTime(const FILETIME *pft, LONG *prtime);
 HRESULT	UnixTimeToRTime(time_t unixtime, LONG *rtime);
@@ -106,12 +111,16 @@ struct timespec GetDeadline(unsigned int ulTimeoutMs);
 
 double timespec2dbl(const struct timespec &t);
 
+} /* extern "C" */
+
 bool operator ==(const FILETIME &, const FILETIME &);
 bool operator >(const FILETIME &, const FILETIME &);
 bool operator >=(const FILETIME &, const FILETIME &);
 bool operator <(const FILETIME &, const FILETIME &);
 bool operator <=(const FILETIME &, const FILETIME &);
 time_t operator -(const FILETIME &, const FILETIME &);
+
+extern "C" {
 
 /* convert struct tm to time_t in timezone UTC0 (GM time) */
 #ifndef __linux__
@@ -145,8 +154,6 @@ char *	get_password(const char *prompt);
 extern ssize_t read_retry(int, void *, size_t);
 extern ssize_t write_retry(int, const void *, size_t);
 
-#include <string>
-#include <pthread.h>
 void set_thread_name(pthread_t tid, const std::string & name);
 void my_readahead(const int fd);
 void give_filesize_hint(const int fd, const off_t len);
@@ -154,5 +161,7 @@ void give_filesize_hint(const int fd, const off_t len);
 bool force_buffers_to_disk(const int fd);
 extern int ec_relocate_fd(int);
 extern int kc_reexec_with_allocator(char **, const char *);
+
+} /* extern "C" */
 
 #endif // PLATFORM_H

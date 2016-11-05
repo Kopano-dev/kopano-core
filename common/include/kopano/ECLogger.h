@@ -334,11 +334,15 @@ extern void ec_log(unsigned int, const std::string &);
 #define ec_log_info(...)    ec_log(EC_LOGLEVEL_INFO, __VA_ARGS__)
 #define ec_log_debug(...)   ec_log(EC_LOGLEVEL_DEBUG, __VA_ARGS__)
 
+extern "C" {
+
 ECLogger* CreateLogger(ECConfig *config, const char *argv0, const char *lpszServiceName, bool bAudit = false);
 int DeleteLogger(ECLogger *lpLogger);
 extern void LogConfigErrors(ECConfig *lpConfig);
 
 void generic_sigsegv_handler(ECLogger *, const char *app, const char *vers, int sig, const siginfo_t *, const void *uctx);
 void ec_log_bt(unsigned int, const char *, ...);
+
+}
 
 #endif /* ECLOGGER_H */

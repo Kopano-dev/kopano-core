@@ -20,11 +20,15 @@
 
 #include <string>
 
+extern "C" {
+
 HRESULT HrFileLFtoCRLF(FILE *fin, FILE** fout);
 HRESULT HrMapFileToString(FILE *f, std::string *lpstrBuffer, int *lpSize = NULL);
 HRESULT HrMapFileToBuffer(FILE *f, char **lppBuffer, int *lpSize, bool *lpImmap);
 HRESULT HrUnmapFileBuffer(char *lpBuffer, int ulSize, bool bImmap);
 
 bool DuplicateFile(FILE *lpFile, std::string &strFileName);
+
+} /* extern "C" */
 
 #endif

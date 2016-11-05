@@ -21,6 +21,8 @@
 #include <kopano/CommonUtil.h>
 #include <string>
 
+extern "C" {
+
 bool isrtfhtml(const char *buf, unsigned int len);
 bool isrtftext(const char *buf, unsigned int len);
 
@@ -28,5 +30,7 @@ HRESULT HrExtractHTMLFromRTF(const std::string &lpStrRTFIn, std::string &lpStrHT
 HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn, std::string &lpStrHTMLOut, ULONG ulCodepage);
 HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn, std::string &lpStrHTMLOut, ULONG ulCodepage);
 HRESULT HrExtractBODYFromTextRTF(const std::string &lpStrRTFIn, std::wstring &strBodyOut);
+
+}
 
 #endif

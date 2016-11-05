@@ -560,6 +560,9 @@ class IEventSubscription : public IDispatch {
 /* functions */
 bool operator!=(const GUID &, const GUID &);
 bool operator==(REFIID, const GUID &);
+
+extern "C" {
+
 HRESULT CoCreateGuid(LPGUID);
 
 void GetSystemTimeAsFileTime(FILETIME *ft);
@@ -651,5 +654,7 @@ time_t GetProcessTime();
 #define __LIKE_PRINTF(_fmt, _va) __attribute__((format(printf, _fmt, _va)))
 
 std::vector<std::string> get_backtrace();
+
+} /* extern "C" */
 
 #endif // PLATFORM_LINUX_H

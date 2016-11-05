@@ -111,9 +111,12 @@ const HRESULT MAPI_E_STORE_FULL						= 0x8004060c;
 #endif // !defined MAPICODE_H
 #endif // !defined __M4L_MAPICODE_H_
 
+extern "C" {
 
 const char* GetMAPIErrorMessage(HRESULT errorCode);
 std::string getMapiCodeString(HRESULT hr, const char* object = "object");
+
+}
 
 #endif // !defined MAPIERRORS_H_INCLUDED
 

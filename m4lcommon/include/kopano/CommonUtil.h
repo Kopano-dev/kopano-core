@@ -39,6 +39,8 @@
 bool operator ==(const SBinary &a, const SBinary &b);
 bool operator <(const SBinary &a, const SBinary &b);
 
+extern "C" {
+
 const char *GetServerUnixSocket(const char *szPreferred = NULL);
 std::string GetServerFQDN();
 
@@ -91,6 +93,8 @@ HRESULT HrGetRemoteAdminStore(IMAPISession *lpMAPISession, IMsgStore *lpMsgStore
 
 HRESULT GetConfigMessage(LPMDB lpStore, const char* szMessageName, IMessage **lppMessage);
 
+} /* extern "C" */
+
 HRESULT HrOpenDefaultStore(IMAPISession *lpMAPISession, IMsgStore **lppMsgStore);
 HRESULT HrOpenDefaultStore(IMAPISession *lpMAPISession, ULONG ulFlags, IMsgStore **lppMsgStore);
 HRESULT HrOpenECPublicStore(IMAPISession *lpMAPISession, IMsgStore **lppMsgStore);
@@ -111,8 +115,10 @@ HRESULT TestRestriction(LPSRestriction lpCondition, IMAPIProp *lpMessage, const 
 HRESULT HrOpenUserMsgStore(LPMAPISESSION lpSession, WCHAR *lpszWUser, LPMDB *lppStore);
 HRESULT HrOpenUserMsgStore(LPMAPISESSION lpSession, LPMDB lpStore, WCHAR *lpszUser, LPMDB *lppStore);
 // Auto-accept settings
+extern "C" {
 HRESULT SetAutoAcceptSettings(IMsgStore *lpMsgStore, bool bAutoAccept, bool bDeclineConflict, bool bDeclineRecurring);
 HRESULT GetAutoAcceptSettings(IMsgStore *lpMsgStore, bool *lpbAutoAccept, bool *lpbDeclineConflict, bool *lpbDeclineRecurring);
+}
 HRESULT HrGetGAB(LPMAPISESSION lpSession, LPABCONT *lppGAB);
 HRESULT HrGetGAB(LPADRBOOK lpAddrBook, LPABCONT *lppGAB);
 

@@ -18,7 +18,11 @@
 #ifndef __CHARSET_UTIL_H
 #define __CHARSET_UTIL_H
 
+extern "C" {
+
 bool forceUTF8Locale(bool bOutput, std::string *lpstrLastSetLocale = NULL);
 locale_t createUTF8Locale();
+
+}
 
 #endif
