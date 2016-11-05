@@ -26,6 +26,14 @@
 #ifndef ZCOMMON_DEFS_H
 #define ZCOMMON_DEFS_H 1
 
+#define _kc_hidden __attribute__((visibility("hidden")))
+#define _kc_export __attribute__((visibility("default")))
+
+/* Exported because something was using dynamic_cast<C> */
+#define _kc_export_dycast _kc_export
+/* Exported because something was using throw C; */
+#define _kc_export_throw _kc_export
+
 /* Minimum requirement for KC is g++ 4.6, g++0x mode. */
 /* Swig is not bright enough to grok all C++11. */
 #if defined(SWIG) || defined(__GNUG__) && __GNUG__ == 4 && __GNUC_MINOR__ < 7

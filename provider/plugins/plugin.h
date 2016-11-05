@@ -443,7 +443,7 @@ protected:
 /**
  * Exception which is thrown when no object was found during a search
  */
-class objectnotfound: public runtime_error {
+class _kc_export_throw objectnotfound _kc_final : public std::runtime_error {
 public:
 	/**
 	 * @param[in]	arg
@@ -460,7 +460,7 @@ public:
  * Exception which is thrown when too many objects where returned in
  * a search.
  */
-class toomanyobjects: public runtime_error {
+class _kc_export_throw toomanyobjects _kc_final : public std::runtime_error {
 public:
 	/**
 	 * @param[in]	arg
@@ -477,7 +477,7 @@ public:
  * Exception which is thrown when an object is being created
  * while it already existed.
  */
-class collision_error: public runtime_error {
+class _kc_export_throw collision_error _kc_final : public std::runtime_error {
 public:
 	/**
 	 * @param[in]	arg
@@ -494,7 +494,7 @@ public:
  * Exception which is thrown when a problem has been found with
  * the data read from the plugin backend.
  */
-class data_error: public runtime_error {
+class _kc_export_throw data_error _kc_final : public std::runtime_error {
 public:
 	/**
 	 * @param[in]	arg
@@ -511,7 +511,7 @@ public:
  * Exception which is thrown when the function was not
  * implemented by the plugin.
  */
-class notimplemented: public runtime_error {
+class _kc_export_throw notimplemented _kc_final : public std::runtime_error {
 public:
 	/**
 	 * @param[in]	arg
@@ -530,7 +530,7 @@ public:
  * or multi-server function is called while this feature is
  * disabled.
  */
-class notsupported _kc_final : public runtime_error {
+class _kc_export_throw notsupported _kc_final : public std::runtime_error {
 public:
 	/**
 	 * @param[in]	arg
@@ -546,7 +546,7 @@ public:
 /**
  * Exception which is thrown when a user could not be logged in
  */
-class login_error: public runtime_error {
+class _kc_export_throw login_error _kc_final : public std::runtime_error {
 public:
 	/**
 	 * @param[in]	arg
@@ -562,7 +562,7 @@ public:
 /**
  * Exception which is thrown when LDAP returns errors
  */
-class ldap_error: public runtime_error {
+class _kc_export_throw ldap_error _kc_final : public std::runtime_error {
 	int m_ldaperror;
 public:
 	/**

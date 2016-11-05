@@ -61,7 +61,7 @@ class KEntryId _kc_final {
 	size_t m_size = 0;
 };
 
-class KMAPIError _kc_final : public std::exception {
+class _kc_export_throw KMAPIError _kc_final : public std::exception {
 	public:
 	KMAPIError(HRESULT = hrSuccess);
 	virtual ~KMAPIError(void) noexcept {}

@@ -2,11 +2,12 @@
 %module archiver
 
 %{
+	#include <kopano/zcdefs.h>
 	#include "../../ECtools/archiver/Archiver.h"
 	#include <kopano/charset/convert.h>
 	#define TO_LPTST(s) ((s) ? converter.convert_to<LPTSTR>(s) : NULL)
 
-	class ArchiverError : public std::runtime_error {
+	class _kc_export_throw ArchiverError : public std::runtime_error {
 	public:
 		ArchiverError(eResult e, const std::string &message)
 		: std::runtime_error(message)

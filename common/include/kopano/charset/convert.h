@@ -51,16 +51,18 @@ private:
 /**
  * @brief	Unknown charset
  */
-class unknown_charset_exception _kc_final : public convert_exception {
-public:
+class _kc_export_throw unknown_charset_exception _kc_final :
+    public convert_exception {
+	public:
 	unknown_charset_exception(const std::string &message);
 };
 
 /**
  * @brief	Illegal sequence
  */
-class illegal_sequence_exception _kc_final : public convert_exception {
-public:
+class _kc_export_throw illegal_sequence_exception _kc_final :
+    public convert_exception {
+	public:
 	illegal_sequence_exception(const std::string &message);
 };
 
