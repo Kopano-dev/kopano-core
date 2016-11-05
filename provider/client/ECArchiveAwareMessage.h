@@ -37,8 +37,8 @@ protected:
 	 * \param fModify		Specifies whether the message is writable.
 	 * \param ulFlags		Flags.
 	 */
-	ECArchiveAwareMessage(ECArchiveAwareMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFlags);
-	virtual ~ECArchiveAwareMessage();
+	_kc_hidden ECArchiveAwareMessage(ECArchiveAwareMsgStore *, BOOL fNew, BOOL modify, ULONG flags);
+	_kc_hidden virtual ~ECArchiveAwareMessage(void);
 
 public:
 	/**
@@ -54,33 +54,26 @@ public:
 	 *
 	 * \return hrSuccess on success.
 	 */
-	static HRESULT	Create(ECArchiveAwareMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFlags, ECMessage **lppMessage);
-
-	virtual HRESULT HrLoadProps();
-	virtual HRESULT	HrSetRealProp(SPropValue *lpsPropValue);
-
-	virtual HRESULT OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk);
-
-	virtual HRESULT OpenAttach(ULONG ulAttachmentNum, LPCIID lpInterface, ULONG ulFlags, LPATTACH *lppAttach);
-	virtual HRESULT CreateAttach(LPCIID lpInterface, ULONG ulFlags, ULONG *lpulAttachmentNum, LPATTACH *lppAttach);
-	virtual HRESULT DeleteAttach(ULONG ulAttachmentNum, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags);
-
-	virtual HRESULT ModifyRecipients(ULONG ulFlags, LPADRLIST lpMods);
-
-	virtual HRESULT SaveChanges(ULONG ulFlags);
-
-	static HRESULT	SetPropHandler(ULONG ulPropTag, void* lpProvider, LPSPropValue lpsPropValue, void *lpParam);
-
-	bool IsLoading() const { return m_bLoading; }
+	_kc_hidden static HRESULT Create(ECArchiveAwareMsgStore *store, BOOL fNew, BOOL modify, ULONG flags, ECMessage **);
+	_kc_hidden virtual HRESULT HrLoadProps(void);
+	_kc_hidden virtual HRESULT HrSetRealProp(SPropValue *);
+	_kc_hidden virtual HRESULT OpenProperty(ULONG proptag, LPCIID lpiid, ULONG iface_opts, ULONG flags, LPUNKNOWN *);
+	_kc_hidden virtual HRESULT OpenAttach(ULONG atnum, LPCIID iface, ULONG flags, LPATTACH *ret);
+	_kc_hidden virtual HRESULT CreateAttach(LPCIID iface, ULONG flags, ULONG *atnum, LPATTACH *ret);
+	_kc_hidden virtual HRESULT DeleteAttach(ULONG atnum, ULONG ui_param, LPMAPIPROGRESS, ULONG flags);
+	_kc_hidden virtual HRESULT ModifyRecipients(ULONG flags, LPADRLIST mods);
+	_kc_hidden virtual HRESULT SaveChanges(ULONG flags);
+	_kc_hidden static HRESULT SetPropHandler(ULONG proptag, void *prov, LPSPropValue, void *param);
+	_kc_hidden bool IsLoading(void) const { return m_bLoading; }
 
 protected:
-	virtual HRESULT	HrDeleteRealProp(ULONG ulPropTag, BOOL fOverwriteRO);
+	_kc_hidden virtual HRESULT HrDeleteRealProp(ULONG proptag, BOOL overwrite_ro);
 
 private:
-	HRESULT MapNamedProps();
-	HRESULT CreateInfoMessage(LPSPropTagArray lpptaDeleteProps, const std::string &strBodyHtml);
-	std::string CreateErrorBodyUtf8(HRESULT hResult);
-	std::string CreateOfflineWarnBodyUtf8();
+	_kc_hidden HRESULT MapNamedProps(void);
+	_kc_hidden HRESULT CreateInfoMessage(LPSPropTagArray deleteprop, const std::string &bodyhtml);
+	_kc_hidden std::string CreateErrorBodyUtf8(HRESULT);
+	_kc_hidden std::string CreateOfflineWarnBodyUtf8(void);
 
 private:
 	bool	m_bLoading;

@@ -236,20 +236,19 @@ class _kc_export_dycast ECLogger_File _kc_final : public ECLogger {
 		int prevcount;
 		std::string prevmsg;
 		unsigned int prevloglevel;
-		bool DupFilter(const unsigned int loglevel, const std::string &message);
-		std::string DoPrefix();
+		_kc_hidden bool DupFilter(unsigned int level, const std::string &msg);
+		_kc_hidden std::string DoPrefix(void);
 
 	public:
 		ECLogger_File(const unsigned int max_ll, const bool add_timestamp, const char *const filename, const bool compress);
-		~ECLogger_File();
-
-		std::string EmitLevel(const unsigned int loglevel);
-		void reinit_buffer(size_t size);
-		virtual void Reset(void) _kc_override;
-		virtual void Log(unsigned int level, const std::string &msg) _kc_override;
-		virtual void Log(unsigned int level, const char *fmt, ...) _kc_override __LIKE_PRINTF(3, 4);
-		virtual void LogVA(unsigned int level, const char *fmt, va_list &va) _kc_override;
-		int GetFileDescriptor(void) _kc_override;
+		_kc_hidden ~ECLogger_File(void);
+		_kc_hidden std::string EmitLevel(unsigned int level);
+		_kc_hidden void reinit_buffer(size_t size);
+		_kc_hidden virtual void Reset(void) _kc_override;
+		_kc_hidden virtual void Log(unsigned int level, const std::string &msg) _kc_override;
+		_kc_hidden virtual void Log(unsigned int level, const char *fmt, ...) _kc_override __LIKE_PRINTF(3, 4);
+		_kc_hidden virtual void LogVA(unsigned int level, const char *fmt, va_list &) _kc_override;
+		_kc_hidden int GetFileDescriptor(void) _kc_override;
 		bool IsStdErr();
 };
 
@@ -282,12 +281,12 @@ class _kc_export_dycast ECLogger_Pipe _kc_final : public ECLogger {
 
 	public:
 		ECLogger_Pipe(int fd, pid_t childpid, int loglevel);
-		~ECLogger_Pipe();
-		virtual void Reset(void) _kc_override;
-		virtual void Log(unsigned int level, const std::string &msg) _kc_override;
-		virtual void Log(unsigned int level, const char *fmt, ...) _kc_override __LIKE_PRINTF(3, 4);
-		virtual void LogVA(unsigned int loglevel, const char *fmt, va_list &va) _kc_override;
-		int GetFileDescriptor(void) _kc_override { return m_fd; }
+		_kc_hidden ~ECLogger_Pipe(void);
+		_kc_hidden virtual void Reset(void) _kc_override;
+		_kc_hidden virtual void Log(unsigned int level, const std::string &msg) _kc_override;
+		_kc_hidden virtual void Log(unsigned int level, const char *fmt, ...) _kc_override __LIKE_PRINTF(3, 4);
+		_kc_hidden virtual void LogVA(unsigned int level, const char *fmt, va_list &) _kc_override;
+		_kc_hidden int GetFileDescriptor(void) _kc_override { return m_fd; }
 		void Disown();
 };
 

@@ -148,45 +148,36 @@ protected:
 */
 class _kc_export_dycast ECSession _kc_final : public BTSession {
 public:
-	ECSession(const char *addr, ECSESSIONID sessionID, ECSESSIONGROUPID ecSessionGroupId, ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager, unsigned int ulCapabilities, bool bIsOffline, AUTHMETHOD ulAuthMethod, int pid, const std::string &cl_vers, const std::string &cl_app, const std::string &cl_app_ver, const std::string &cl_app_misc);
-
-	virtual ECSESSIONGROUPID GetSessionGroupId(void) const { return m_ecSessionGroupId; }
-	virtual int GetConnectingPid(void) const { return m_ulConnectingPid; }
-
-	virtual ~ECSession();
-
-	virtual ECRESULT Shutdown(unsigned int ulTimeout);
+	_kc_hidden ECSession(const char *addr, ECSESSIONID, ECSESSIONGROUPID, ECDatabaseFactory *, ECSessionManager *, unsigned int caps, bool is_offline, AUTHMETHOD, int pid, const std::string &cl_vers, const std::string &cl_app, const std::string &cl_app_ver, const std::string &cl_app_misc);
+	_kc_hidden virtual ECSESSIONGROUPID GetSessionGroupId(void) const { return m_ecSessionGroupId; }
+	_kc_hidden virtual int GetConnectingPid(void) const { return m_ulConnectingPid; }
+	_kc_hidden virtual ~ECSession(void);
+	_kc_hidden virtual ECRESULT Shutdown(unsigned int timeout);
 
 	/* Notification functions all wrap directly to SessionGroup */
-	ECRESULT AddAdvise(unsigned int ulConnection, unsigned int ulKey, unsigned int ulEventMask);
-	ECRESULT AddChangeAdvise(unsigned int ulConnection, notifySyncState *lpSyncState);
-	ECRESULT DelAdvise(unsigned int ulConnection);
-	ECRESULT AddNotificationTable(unsigned int ulType, unsigned int ulObjType, unsigned int ulTableId, sObjectTableKey *lpsChildRow, sObjectTableKey *lpsPrevRow, struct propValArray *lpRow);
-	ECRESULT GetNotifyItems(struct soap *soap, struct notifyResponse *notifications);
-
-	ECTableManager *GetTableManager(void) const { return m_lpTableManager; }
-	ECSecurity *GetSecurity(void) const { return m_lpEcSecurity; }
-	
-	ECRESULT GetObjectFromEntryId(const entryId *lpEntryId, unsigned int *lpulObjId, unsigned int *lpulEidFlags = NULL);
-	ECRESULT LockObject(unsigned int ulObjId);
-	ECRESULT UnlockObject(unsigned int ulObjId);
+	_kc_hidden ECRESULT AddAdvise(unsigned int conn, unsigned int key, unsigned int event_mask);
+	_kc_hidden ECRESULT AddChangeAdvise(unsigned int conn, notifySyncState *);
+	_kc_hidden ECRESULT DelAdvise(unsigned int conn);
+	_kc_hidden ECRESULT AddNotificationTable(unsigned int type, unsigned int obj_type, unsigned int table, sObjectTableKey *child_row, sObjectTableKey *prev_row, struct propValArray *row);
+	_kc_hidden ECRESULT GetNotifyItems(struct soap *, struct notifyResponse *notifications);
+	_kc_hidden ECTableManager *GetTableManager(void) const { return m_lpTableManager; }
+	_kc_hidden ECSecurity *GetSecurity(void) const { return m_lpEcSecurity; }
+	_kc_hidden ECRESULT GetObjectFromEntryId(const entryId *, unsigned int *obj_id, unsigned int *eid_flags = nullptr);
+	_kc_hidden ECRESULT LockObject(unsigned int obj_id);
+	_kc_hidden ECRESULT UnlockObject(unsigned int obj_id);
 	
 	/* for ECStatsSessionTable */
-	void AddBusyState(pthread_t threadId, const char *lpszState, struct timespec threadstart, double start);
-	void UpdateBusyState(pthread_t threadId, int state);
-	void RemoveBusyState(pthread_t threadId);
-	void GetBusyStates(std::list<BUSYSTATE> *lpLstStates);
-	
-	void AddClocks(double dblUser, double dblSystem, double dblReal);
-	void GetClocks(double *lpdblUser, double *lpdblSystem, double *lpdblReal);
-	void GetClientVersion(std::string *lpstrVersion);
-	void GetClientApp(std::string *lpstrClientApp);
-
-	size_t GetObjectSize();
-
-	unsigned int ClientVersion() const { return m_ulClientVersion; }
-
-	AUTHMETHOD GetAuthMethod(void) const { return m_ulAuthMethod; }
+	_kc_hidden void AddBusyState(pthread_t, const char *state, struct timespec threadstart, double start);
+	_kc_hidden void UpdateBusyState(pthread_t, int state);
+	_kc_hidden void RemoveBusyState(pthread_t);
+	_kc_hidden void GetBusyStates(std::list<BUSYSTATE> *);
+	_kc_hidden void AddClocks(double user, double system, double real);
+	_kc_hidden void GetClocks(double *user, double *system, double *real);
+	_kc_hidden void GetClientVersion(std::string *version);
+	_kc_hidden void GetClientApp(std::string *client_app);
+	_kc_hidden size_t GetObjectSize(void);
+	_kc_hidden unsigned int ClientVersion(void) const { return m_ulClientVersion; }
+	_kc_hidden AUTHMETHOD GetAuthMethod(void) const { return m_ulAuthMethod; }
 
 private:
 	ECTableManager		*m_lpTableManager;
@@ -218,17 +209,14 @@ private:
 */
 class _kc_export_dycast ECAuthSession : public BTSession {
 public:
-	ECAuthSession(const char *addr, ECSESSIONID sessionID, ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager, unsigned int ulCapabilities);
-	virtual ~ECAuthSession();
-
-	ECRESULT ValidateUserLogon(const char* lpszName, const char* lpszPassword, const char* lpszImpersonateUser);
-	ECRESULT ValidateUserSocket(int socket, const char* lpszName, const char* lpszImpersonateUser);
-	ECRESULT ValidateUserCertificate(soap* soap, const char* lpszName, const char* lpszImpersonateUser);
-	ECRESULT ValidateSSOData(struct soap* soap, const char* lpszName, const char* lpszImpersonateUser, const char* szClientVersion, const char* szClientApp, const char *szClientAppVersion, const char *szClientAppMisc, const struct xsd__base64Binary* lpInput, struct xsd__base64Binary** lppOutput);
-
-	virtual ECRESULT CreateECSession(ECSESSIONGROUPID ecSessionGroupId, const std::string &cl_ver, const std::string &cl_app, const std::string &cl_app_ver, const std::string &cl_app_misc, ECSESSIONID *sessionID, ECSession **lppNewSession);
-
-	size_t GetObjectSize();
+	_kc_hidden ECAuthSession(const char *addr, ECSESSIONID, ECDatabaseFactory *, ECSessionManager *, unsigned int caps);
+	_kc_hidden virtual ~ECAuthSession(void);
+	_kc_hidden ECRESULT ValidateUserLogon(const char *name, const char *pass, const char *imp_user);
+	_kc_hidden ECRESULT ValidateUserSocket(int socket, const char *name, const char *imp_user);
+	_kc_hidden ECRESULT ValidateUserCertificate(struct soap *, const char *name, const char *imp_user);
+	_kc_hidden ECRESULT ValidateSSOData(struct soap *, const char *name, const char *imp_user, const char *cl_ver, const char *cl_app, const char *cl_app_ver, const char *cl_app_misc, const struct xsd__base64Binary *input, struct xsd__base64Binary **output);
+	_kc_hidden virtual ECRESULT CreateECSession(ECSESSIONGROUPID, const std::string &cl_ver, const std::string &cl_app, const std::string &cl_app_ver, const std::string &cl_app_misc, ECSESSIONID *retid, ECSession **ret);
+	_kc_hidden size_t GetObjectSize(void);
 
 protected:
 	unsigned int m_ulUserID = 0;
@@ -239,13 +227,12 @@ protected:
 
 private:
 	/* SSO */
-	ECRESULT ValidateSSOData_NTLM(struct soap* soap, const char* lpszName, const char* szClientVersion, const char* szClientApp, const char *szClientAppVersion, const char *szClientAppMisc, const struct xsd__base64Binary* lpInput, struct xsd__base64Binary** lppOutput);
-	ECRESULT ValidateSSOData_KRB5(struct soap* soap, const char* lpszName, const char* szClientVersion, const char* szClientApp, const char *szClientAppVersion, const char *szClientAppMisc, const struct xsd__base64Binary* lpInput, struct xsd__base64Binary** lppOutput);
+	_kc_hidden ECRESULT ValidateSSOData_NTLM(struct soap *, const char *name, const char *cl_ver, const char *cl_app, const char *cl_app_ver, const char *cl_app_misc, const struct xsd__base64Binary *input, struct xsd__base64Binary **out);
+	_kc_hidden ECRESULT ValidateSSOData_KRB5(struct soap *, const char *name, const char *cl_ver, const char *cl_app, const char *cl_app_ver, const char *cl_app_misc, const struct xsd__base64Binary *input, struct xsd__base64Binary **out);
 #ifdef HAVE_GSSAPI
-	ECRESULT LogKRB5Error(const char *msg, OM_uint32 major, OM_uint32 minor);
+	_kc_hidden ECRESULT LogKRB5Error(const char *msg, OM_uint32 major, OM_uint32 minor);
 #endif
-
-	ECRESULT ProcessImpersonation(const char* lpszImpersonateUser);
+	_kc_hidden ECRESULT ProcessImpersonation(const char *imp_user);
 
 	/* NTLM */
 	pid_t m_NTLM_pid = -1;

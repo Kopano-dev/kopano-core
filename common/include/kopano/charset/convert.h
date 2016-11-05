@@ -182,7 +182,7 @@ namespace details {
 		}
 		
 	private:
-		void append(const char *lpBuf, size_t cbBuf) _kc_override
+		_kc_hidden void append(const char *lpBuf, size_t cbBuf) _kc_override
 		{
 			m_to.append(reinterpret_cast<typename _To_Type::const_pointer>(lpBuf), cbBuf / sizeof(typename _To_Type::value_type));
 		}

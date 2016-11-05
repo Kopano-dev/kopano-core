@@ -43,14 +43,12 @@ typedef struct {
 class _kc_export_dycast ECUserStoreTable _kc_final :
     public ECGenericObjectTable {
 	protected:
-	ECUserStoreTable(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale);
+	_kc_hidden ECUserStoreTable(ECSession *, unsigned int flags, const ECLocale &);
 
 public:
-	static ECRESULT Create(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale, ECUserStoreTable **lppTable);
-
-	static ECRESULT QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList* lpRowList, struct propTagArray *lpsPropTagArray, void* lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit);
-
-    virtual ECRESULT Load();
+	_kc_hidden static ECRESULT Create(ECSession *, unsigned int flags, const ECLocale &, ECUserStoreTable **ret);
+	_kc_hidden static ECRESULT QueryRowData(ECGenericObjectTable *, struct soap *, ECSession *, ECObjectTableList *rowlist, struct propTagArray *, void *obj_data, struct rowSet **rowset, bool cache_table_data, bool table_limit);
+	_kc_hidden virtual ECRESULT Load(void);
 
 private:
 	std::map<unsigned int, ECUserStore> m_mapUserStoreData;

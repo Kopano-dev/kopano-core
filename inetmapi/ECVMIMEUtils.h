@@ -27,13 +27,13 @@
 
 class _kc_export_dycast ECVMIMESender _kc_final : public ECSender {
 private:
-	HRESULT HrMakeRecipientsList(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage, vmime::shared_ptr<vmime::message>, vmime::mailboxList &recipients, bool bAllowEveryone, bool bAlwaysExpandDistrList);
-	HRESULT HrExpandGroup(LPADRBOOK lpAdrBook, LPSPropValue lpGroupName, LPSPropValue lpGroupEntryID, vmime::mailboxList &recipients, std::set<std::wstring> &setGroups, std::set<std::wstring> &setRecips, bool bAllowEveryone);
-	HRESULT HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpTable, vmime::mailboxList &recipients, std::set<std::wstring> &setGroups, std::set<std::wstring> &setRecips, bool bAllowEveryone, bool bAlwaysExpandDistrList);
+	_kc_hidden HRESULT HrMakeRecipientsList(LPADRBOOK, LPMESSAGE, vmime::shared_ptr<vmime::message>, vmime::mailboxList &recips, bool allow_everyone, bool always_expand_distlist);
+	_kc_hidden HRESULT HrExpandGroup(LPADRBOOK, LPSPropValue grp_name, LPSPropValue grp_eid, vmime::mailboxList &recips, std::set<std::wstring> &s_groups, std::set<std::wstring> &s_recips, bool allow_everyone);
+	_kc_hidden HRESULT HrAddRecipsFromTable(LPADRBOOK, IMAPITable *table, vmime::mailboxList &recips, std::set<std::wstring> &s_groups, std::set<std::wstring> &s_recips, bool allow_everyone, bool always_expand_distlist);
 
 public:
-	ECVMIMESender(const std::string &host, int port);
-	HRESULT sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage, vmime::shared_ptr<vmime::message>, bool bAllowEveryone, bool bAlwaysExpandDistrList);
+	_kc_hidden ECVMIMESender(const std::string &host, int port);
+	_kc_hidden HRESULT sendMail(LPADRBOOK, LPMESSAGE, vmime::shared_ptr<vmime::message>, bool allow_everyone, bool always_expand_distlist);
 };
 
 #endif

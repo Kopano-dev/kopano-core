@@ -93,9 +93,9 @@ protected:
 class _kc_export_dycast ECPriorityWorkerThread _kc_final :
     public ECWorkerThread {
 	public:
-	ECPriorityWorkerThread(ECLogger *lpLogger, ECThreadManager *lpManager, ECDispatcher *lpDispatcher);
+	_kc_hidden ECPriorityWorkerThread(ECLogger *, ECThreadManager *, ECDispatcher *);
 	// The destructor is public since this thread isn't detached, we wait for the thread and clean it
-	~ECPriorityWorkerThread();
+	_kc_hidden ~ECPriorityWorkerThread(void);
 };
 
 /*
