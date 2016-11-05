@@ -115,8 +115,9 @@ protected:
 	virtual ECRESULT Rollback();
 };
 
-class ECFileAttachment _kc_final : public ECAttachmentStorage {
-public:
+class _kc_export_dycast ECFileAttachment _kc_final :
+    public ECAttachmentStorage {
+	public:
 	ECFileAttachment(ECDatabase *lpDatabase, const std::string &basepath, unsigned int ulCompressionLevel, const bool force_changes_to_disk);
 
 protected:

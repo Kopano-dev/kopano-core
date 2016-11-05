@@ -210,7 +210,7 @@ class ECLogger_Null _kc_final : public ECLogger {
 /**
  * File logger. Use "-" for stderr logging. Output is in system locale set in LC_CTYPE.
  */
-class ECLogger_File _kc_final : public ECLogger {
+class _kc_export_dycast ECLogger_File _kc_final : public ECLogger {
 	private:
 		typedef void* handle_type;
 		typedef handle_type(*open_func)(const char*, const char*);
@@ -275,7 +275,7 @@ class ECLogger_Syslog _kc_final : public ECLogger {
  * log message to an ECLogger_File object. This ECLogger_Pipe object
  * can be created by StartLoggerProcess function.
  */
-class ECLogger_Pipe _kc_final : public ECLogger {
+class _kc_export_dycast ECLogger_Pipe _kc_final : public ECLogger {
 	private:
 		int m_fd;
 		pid_t m_childpid;

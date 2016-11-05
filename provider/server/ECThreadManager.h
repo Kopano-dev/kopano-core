@@ -90,8 +90,9 @@ protected:
     ECDispatcher *m_lpDispatcher;
 };
 
-class ECPriorityWorkerThread _kc_final : public ECWorkerThread {
-public:
+class _kc_export_dycast ECPriorityWorkerThread _kc_final :
+    public ECWorkerThread {
+	public:
 	ECPriorityWorkerThread(ECLogger *lpLogger, ECThreadManager *lpManager, ECDispatcher *lpDispatcher);
 	// The destructor is public since this thread isn't detached, we wait for the thread and clean it
 	~ECPriorityWorkerThread();

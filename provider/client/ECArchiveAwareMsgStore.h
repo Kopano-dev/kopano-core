@@ -29,7 +29,7 @@
 
 class ECMessage;
 
-class ECArchiveAwareMsgStore _kc_final : public ECMsgStore {
+class _kc_export_dycast ECArchiveAwareMsgStore _kc_final : public ECMsgStore {
 public:
 	ECArchiveAwareMsgStore(char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags, BOOL fIsSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore);
 

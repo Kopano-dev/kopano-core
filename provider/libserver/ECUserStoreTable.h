@@ -40,8 +40,9 @@ typedef struct {
 	unsigned long long ullStoreSize;// Size of the store
 } ECUserStore;
 
-class ECUserStoreTable _kc_final : public ECGenericObjectTable {
-protected:
+class _kc_export_dycast ECUserStoreTable _kc_final :
+    public ECGenericObjectTable {
+	protected:
 	ECUserStoreTable(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale);
 
 public:

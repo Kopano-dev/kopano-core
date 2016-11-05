@@ -146,7 +146,7 @@ protected:
 /*
   Normal session
 */
-class ECSession _kc_final : public BTSession {
+class _kc_export_dycast ECSession _kc_final : public BTSession {
 public:
 	ECSession(const char *addr, ECSESSIONID sessionID, ECSESSIONGROUPID ecSessionGroupId, ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager, unsigned int ulCapabilities, bool bIsOffline, AUTHMETHOD ulAuthMethod, int pid, const std::string &cl_vers, const std::string &cl_app, const std::string &cl_app_ver, const std::string &cl_app_misc);
 
@@ -216,7 +216,7 @@ private:
 /*
   Authentication session
 */
-class ECAuthSession : public BTSession {
+class _kc_export_dycast ECAuthSession : public BTSession {
 public:
 	ECAuthSession(const char *addr, ECSESSIONID sessionID, ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager, unsigned int ulCapabilities);
 	virtual ~ECAuthSession();

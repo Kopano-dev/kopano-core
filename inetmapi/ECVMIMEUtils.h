@@ -25,7 +25,7 @@
 #include <vmime/vmime.hpp>
 #include <inetmapi/inetmapi.h>
 
-class ECVMIMESender _kc_final : public ECSender {
+class _kc_export_dycast ECVMIMESender _kc_final : public ECSender {
 private:
 	HRESULT HrMakeRecipientsList(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage, vmime::shared_ptr<vmime::message>, vmime::mailboxList &recipients, bool bAllowEveryone, bool bAlwaysExpandDistrList);
 	HRESULT HrExpandGroup(LPADRBOOK lpAdrBook, LPSPropValue lpGroupName, LPSPropValue lpGroupEntryID, vmime::mailboxList &recipients, std::set<std::wstring> &setGroups, std::set<std::wstring> &setRecips, bool bAllowEveryone);

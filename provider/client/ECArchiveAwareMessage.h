@@ -29,7 +29,7 @@
 
 class ECArchiveAwareMsgStore;
 
-class ECArchiveAwareMessage _kc_final : public ECMessage {
+class _kc_export_dycast ECArchiveAwareMessage _kc_final : public ECMessage {
 protected:
 	/**
 	 * \param lpMsgStore	The store owning this message.

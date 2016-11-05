@@ -21,8 +21,9 @@
 #include <kopano/zcdefs.h>
 #include "ECStoreObjectTable.h"
 
-class ECMultiStoreTable _kc_final : public ECStoreObjectTable {
-protected:
+class _kc_export_dycast ECMultiStoreTable _kc_final :
+    public ECStoreObjectTable {
+	protected:
 	ECMultiStoreTable(ECSession *lpSession, unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale);
 
 public:

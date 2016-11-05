@@ -123,7 +123,8 @@ namespace details {
 	 * @brief	Default converter from one charset to another with string types.
 	 */
 	template <typename _To_Type, typename _From_Type>
-	class iconv_context _kc_final : public iconv_context_base {
+	class _kc_export_dycast iconv_context _kc_final :
+	    public iconv_context_base {
 	public:
 		/**
 		 * @brief Contructor.

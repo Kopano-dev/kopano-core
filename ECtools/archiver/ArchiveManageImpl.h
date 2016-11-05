@@ -27,7 +27,7 @@
 /**
  * The ArchiveManager is used to attach, detach and list archives for users.
  */
-class ArchiveManageImpl _kc_final : public ArchiveManage {
+class _kc_export_dycast ArchiveManageImpl _kc_final : public ArchiveManage {
 public:
 	static HRESULT Create(ArchiverSessionPtr ptrSession, ECConfig *lpConfig, const TCHAR *lpszUser, ECLogger *lpLogger, ArchiveManagePtr *lpptrArchiveManage);
 
