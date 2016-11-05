@@ -19,6 +19,7 @@
 #define __M4L_MAPIX_H_
 #define MAPIX_H
 
+#include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 
 /* Include common MAPI header files if they haven't been already. */
@@ -84,10 +85,8 @@ typedef MAPIINITIALIZE* LPMAPIINITIALIZE;
 
 typedef void (MAPIUNINITIALIZE)(void);
 typedef MAPIUNINITIALIZE* LPMAPIUNINITIALIZE;
-
-MAPIINITIALIZE      MAPIInitialize;
-MAPIUNINITIALIZE    MAPIUninitialize;
-
+extern _kc_export MAPIINITIALIZE MAPIInitialize;
+extern _kc_export MAPIUNINITIALIZE MAPIUninitialize;
 
 /*  Extended MAPI Logon function */
 
@@ -99,8 +98,7 @@ typedef HRESULT (MAPILOGONEX)(
     LPMAPISESSION* lppSession
 );
 typedef MAPILOGONEX* LPMAPILOGONEX;
-MAPILOGONEX MAPILogonEx;
-
+extern _kc_export MAPILOGONEX MAPILogonEx;
 
 typedef SCODE (MAPIALLOCATEBUFFER)(
     ULONG           cbSize,
@@ -117,17 +115,16 @@ typedef ULONG (MAPIFREEBUFFER)(
 typedef MAPIALLOCATEBUFFER  *LPMAPIALLOCATEBUFFER;
 typedef MAPIALLOCATEMORE    *LPMAPIALLOCATEMORE;
 typedef MAPIFREEBUFFER      *LPMAPIFREEBUFFER;
-MAPIALLOCATEBUFFER MAPIAllocateBuffer;
-MAPIALLOCATEMORE MAPIAllocateMore;
-MAPIFREEBUFFER MAPIFreeBuffer;
-
+extern _kc_export MAPIALLOCATEBUFFER MAPIAllocateBuffer;
+extern _kc_export MAPIALLOCATEMORE MAPIAllocateMore;
+extern _kc_export MAPIFREEBUFFER MAPIFreeBuffer;
 
 typedef HRESULT (MAPIADMINPROFILES)(
     ULONG ulFlags,
     LPPROFADMIN *lppProfAdmin
 );
 typedef MAPIADMINPROFILES *LPMAPIADMINPROFILES;
-MAPIADMINPROFILES MAPIAdminProfiles;
+extern _kc_export MAPIADMINPROFILES MAPIAdminProfiles;
 
 } // EXTERN "C"
 

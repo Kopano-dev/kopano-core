@@ -18,6 +18,7 @@
 #ifndef KC_KCODES_HPP
 #define KC_KCODES_HPP 1
 
+#include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 
 #define MAKE_KSCODE(sev,code) ( (((unsigned int)(sev)<<31) | ((unsigned int)(code))) )
@@ -127,6 +128,6 @@ typedef uint64_t ECSESSIONGROUPID;
 typedef enum { CONNECTION_TYPE_TCP, CONNECTION_TYPE_SSL, CONNECTION_TYPE_NAMED_PIPE, CONNECTION_TYPE_NAMED_PIPE_PRIORITY } CONNECTION_TYPE;
 
 //Functions
-HRESULT kcerr_to_mapierr(ECRESULT ecResult, HRESULT hrDefault = 0x80070005 /*MAPI_E_NO_ACCESS*/);
+extern "C" _kc_export HRESULT kcerr_to_mapierr(ECRESULT, HRESULT hrDefault = 0x80070005 /* MAPI_E_NO_ACCESS */);
 
 #endif /* KC_KCODES_HPP */

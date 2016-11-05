@@ -28,7 +28,7 @@
 #include "freebusy.h"
 #include "freebusyutil.h"
 
-class recurrence _kc_final {
+class _kc_export recurrence _kc_final {
 public:
 	recurrence();
 	HRESULT HrLoadRecurrenceState(char *lpData, unsigned int ulLen, ULONG ulFlags);
@@ -42,24 +42,20 @@ public:
 
 	freq_type getFrequency();
 	HRESULT setFrequency(freq_type ft);
-
-	time_t getStartDate();
-	HRESULT setStartDate(time_t tStart);
-
+	_kc_hidden time_t getStartDate(void);
+	_kc_hidden HRESULT setStartDate(time_t);
 	time_t getEndDate();
 	HRESULT setEndDate(time_t tEnd);
 
 	ULONG getStartTimeOffset();
-	HRESULT setStartTimeOffset(ULONG ulMinutesSinceMidnight);
-
-	ULONG getEndTimeOffset();
+	_kc_hidden HRESULT setStartTimeOffset(ULONG minutes_since_midnight);
+	_kc_hidden ULONG getEndTimeOffset(void);
 	HRESULT setEndTimeOffset(ULONG ulMinutesSinceMidnight);
 
 	time_t getStartDateTime();
 	HRESULT setStartDateTime(time_t tStart);
-	time_t getEndDateTime();
-	HRESULT setEndDateTime(time_t tStart);
-
+	_kc_hidden time_t getEndDateTime(void);
+	_kc_hidden HRESULT setEndDateTime(time_t);
 	ULONG getCount();
 	HRESULT setCount(ULONG ulCount);
 
@@ -68,11 +64,9 @@ public:
 
 	ULONG getInterval();
 	HRESULT setInterval(ULONG);
-
-	ULONG getSlidingFlag(void) { return m_sRecState.ulSlidingFlag; }
-	HRESULT setSlidingFlag(ULONG);
-
-	ULONG getFirstDOW();
+	_kc_hidden ULONG getSlidingFlag(void) { return m_sRecState.ulSlidingFlag; }
+	_kc_hidden HRESULT setSlidingFlag(ULONG);
+	_kc_hidden ULONG getFirstDOW(void);
 	HRESULT setFirstDOW(ULONG);
 
 	UCHAR getWeekDays();
@@ -96,81 +90,70 @@ public:
 	ULONG getModifiedFlags(ULONG id); /* 0..getModifiedCount() */
 	time_t getModifiedStartDateTime(ULONG id);
 	time_t getModifiedEndDateTime(ULONG id);
-	time_t getModifiedOriginalDateTime(ULONG id); /* used as recurrence-id */
+	_kc_hidden time_t getModifiedOriginalDateTime(ULONG id); /* used as recurrence-id */
 	std::wstring getModifiedSubject(ULONG id);
-	ULONG getModifiedMeetingType(ULONG id);
+	_kc_hidden ULONG getModifiedMeetingType(ULONG id);
 	LONG getModifiedReminderDelta(ULONG id);
 	ULONG getModifiedReminder(ULONG id);
 	std::wstring getModifiedLocation(ULONG id);
 	ULONG getModifiedBusyStatus(ULONG id);
-	ULONG getModifiedAttachment(ULONG id);
+	_kc_hidden ULONG getModifiedAttachment(ULONG id);
 	ULONG getModifiedSubType(ULONG id);
 
 	HRESULT addModifiedException(time_t tStart, time_t tEnd, time_t tOriginalStart, ULONG *id);
 	HRESULT setModifiedSubject(ULONG id, const std::wstring &strSubject);
-	HRESULT setModifiedMeetingType(ULONG id, ULONG type);
+	_kc_hidden HRESULT setModifiedMeetingType(ULONG id, ULONG type);
 	HRESULT setModifiedReminderDelta(ULONG id, LONG delta);
 	HRESULT setModifiedReminder(ULONG id, ULONG set);
 	HRESULT setModifiedLocation(ULONG id, const std::wstring &strLocation);
 	HRESULT setModifiedBusyStatus(ULONG id, ULONG status);
-	HRESULT setModifiedAttachment(ULONG id);
+	_kc_hidden HRESULT setModifiedAttachment(ULONG id);
 	HRESULT setModifiedSubType(ULONG id, ULONG subtype);
-	HRESULT setModifiedApptColor(ULONG id, ULONG color);
+	_kc_hidden HRESULT setModifiedApptColor(ULONG id, ULONG color);
 	HRESULT setModifiedBody(ULONG id);
-	
-	HRESULT AddValidOccr(time_t tsOccrStart, time_t tsOccrEnd, ULONG ulBusyStatus, OccrInfo **lpFBBlocksAll, ULONG *lpcValues);
-	bool isOccurrenceValid(time_t tsPeriodStart, time_t tsPeriodEnd, time_t tsNewOcc);
-	bool isDeletedOccurrence(time_t ttOccDate);
-	bool isException(time_t tsOccDate);
-
-	ULONG countDaysOfMonth(time_t tsDate);
-	ULONG DaysTillMonth(time_t tsDate, ULONG ulMonth);
-	std::list<time_t> getModifiedOccurrences();
+	_kc_hidden HRESULT AddValidOccr(time_t occr_start, time_t occr_end, ULONG busy_status, OccrInfo **fbblocksall, ULONG *nvals);
+	_kc_hidden bool isOccurrenceValid(time_t period_start, time_t period_end, time_t new_occ);
+	_kc_hidden bool isDeletedOccurrence(time_t occ_date);
+	_kc_hidden bool isException(time_t occ_date);
+	_kc_hidden ULONG countDaysOfMonth(time_t date);
+	_kc_hidden ULONG DaysTillMonth(time_t date, ULONG month);
+	_kc_hidden std::list<time_t> getModifiedOccurrences(void);
 
 	/* TODO: */
 /*
-	HRESULT setDeletedOccurrence(time_t);
-	HRESULT removeDeletedOccurrence(time_t);
-	std::list<time_t> getDeletedOccurrences();
-
-	HRESULT getChangedOccurrence(time_t, RecurrenceState::Exception *);
-	HRESULT setChangedOccurrence(RecurrenceState::Exception);
-	HRESULT removeChangedOccurrence(time_t);
-	std::list<RecurrenceState::Exception> getChangedOccurrences();
-
-	std::list<time_t> getExceptions();
-
-	bool isOccurrence(time_t);
-	bool isRuleOccurrence(time_t);
-
-	bool isAfter(time_t);
+	_kc_hidden HRESULT setDeletedOccurrence(time_t);
+	_kc_hidden HRESULT removeDeletedOccurrence(time_t);
+	_kc_hidden std::list<time_t> getDeletedOccurrences(void);
+	_kc_hidden HRESULT getChangedOccurrence(time_t, RecurrenceState::Exception *);
+	_kc_hidden HRESULT setChangedOccurrence(RecurrenceState::Exception);
+	_kc_hidden HRESULT removeChangedOccurrence(time_t);
+	_kc_hidden std::list<RecurrenceState::Exception> getChangedOccurrences(void);
+	_kc_hidden std::list<time_t> getExceptions(void);
+	_kc_hidden bool isOccurrence(time_t);
+	_kc_hidden bool isRuleOccurrence(time_t);
+	_kc_hidden bool isAfter(time_t);
 */
 	time_t calcStartDate();
 	time_t calcEndDate();
 	ULONG calcCount();
-
-	static time_t MonthInSeconds(ULONG year, ULONG month);
-	static time_t MonthsInSeconds(ULONG months);
-
-	static time_t Minutes2Time(ULONG);
-	static ULONG Time2Minutes(time_t);
-	static ULONG Minutes2Month(ULONG);
+	_kc_hidden static time_t MonthInSeconds(ULONG year, ULONG month);
+	_kc_hidden static time_t MonthsInSeconds(ULONG months);
+	_kc_hidden static time_t Minutes2Time(ULONG);
+	_kc_hidden static ULONG Time2Minutes(time_t);
+	_kc_hidden static ULONG Minutes2Month(ULONG);
 	static time_t StartOfDay(time_t);
-	static time_t StartOfWeek(time_t);
-	static time_t StartOfMonth(time_t);
-	static time_t StartOfYear(time_t);
-
-
-	static bool isLeapYear(ULONG year);
-
-	static ULONG DaysInMonth(ULONG);
-	static ULONG DaysInMonth(ULONG, ULONG);
-	static ULONG DaysInYear(ULONG);
-	static ULONG MonthFromTime(time_t);
-	static ULONG YearFromTime(time_t);
-	static ULONG AllMonthsFromTime(time_t);
-	static ULONG WeekDayFromTime(time_t);
-	static ULONG MonthDayFromTime(time_t);
+	_kc_hidden static time_t StartOfWeek(time_t);
+	_kc_hidden static time_t StartOfMonth(time_t);
+	_kc_hidden static time_t StartOfYear(time_t);
+	_kc_hidden static bool isLeapYear(ULONG year);
+	_kc_hidden static ULONG DaysInMonth(ULONG);
+	_kc_hidden static ULONG DaysInMonth(ULONG, ULONG);
+	_kc_hidden static ULONG DaysInYear(ULONG);
+	_kc_hidden static ULONG MonthFromTime(time_t);
+	_kc_hidden static ULONG YearFromTime(time_t);
+	_kc_hidden static ULONG AllMonthsFromTime(time_t);
+	_kc_hidden static ULONG WeekDayFromTime(time_t);
+	_kc_hidden static ULONG MonthDayFromTime(time_t);
 
 private:
 	RecurrenceState m_sRecState;
@@ -184,9 +167,8 @@ private:
 	std::list<time_t> deleted_occurrences;	
 	std::list<RecurrenceState::Exception> changed_occurrences;
 */
-
-	ULONG calcBits(ULONG x);
-	bool CheckAddValidOccr(time_t now, time_t start, time_t end, TIMEZONE_STRUCT ttZinfo, ULONG ulBusyStatus, OccrInfo **lppOccrInfoAll, ULONG *lpcValues);
+	_kc_hidden ULONG calcBits(ULONG x);
+	_kc_hidden bool CheckAddValidOccr(time_t now, time_t start, time_t end, TIMEZONE_STRUCT, ULONG busy_status, OccrInfo **occrinfoall, ULONG *nvals);
 };
 
 #endif

@@ -26,8 +26,14 @@
 #ifndef ZCOMMON_DEFS_H
 #define ZCOMMON_DEFS_H 1
 
-#define _kc_hidden __attribute__((visibility("hidden")))
-#define _kc_export __attribute__((visibility("default")))
+#ifdef SWIG
+	/* why does this not surprise me */
+#	define _kc_hidden
+#	define _kc_export
+#else
+#	define _kc_hidden __attribute__((visibility("hidden")))
+#	define _kc_export __attribute__((visibility("default")))
+#endif
 
 /* Exported because something was using dynamic_cast<C> */
 #define _kc_export_dycast _kc_export

@@ -111,7 +111,7 @@ public:
 	 *					Supported configuration file directives.
 	 * @return The ECConfig pointer. NULL if configuration file could not be loaded.
 	 */
-	virtual ECConfig *CreateConfig(const configsetting_t *lpDefaults, const char *const *lpszDirectives = lpszDEFAULTDIRECTIVES);
+	_kc_export virtual ECConfig *CreateConfig(const configsetting_t *dfl, const char *const *directives = lpszDEFAULTDIRECTIVES);
 
 	/**
 	 * Obtain the Stats collector

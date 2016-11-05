@@ -18,6 +18,7 @@
 #ifndef __INETMAPI_OPTIONS_H
 #define __INETMAPI_OPTIONS_H
 
+#include <kopano/zcdefs.h>
 # define INETMAPI_API
 
 typedef struct _do {
@@ -54,8 +55,8 @@ typedef struct _so {
 
 extern "C" {
 
-void INETMAPI_API imopt_default_delivery_options(delivery_options *dopt);
-void INETMAPI_API imopt_default_sending_options(sending_options *sopt);
+extern _kc_export void imopt_default_delivery_options(delivery_options *);
+extern _kc_export void imopt_default_sending_options(sending_options *);
 
 }
 

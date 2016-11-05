@@ -18,15 +18,15 @@
 #ifndef SSLUTIL_H
 #define SSLUTIL_H
 
+#include <kopano/zcdefs.h>
+
 extern "C" {
 
-void ssl_threading_setup();
-void ssl_threading_cleanup();
-
-void SSL_library_cleanup();
-
-void ssl_random_init();
-void ssl_random(bool b64bit, uint64_t *lpullId);
+extern _kc_export void ssl_threading_setup(void);
+extern _kc_export void ssl_threading_cleanup(void);
+extern _kc_export void SSL_library_cleanup(void);
+extern _kc_export void ssl_random_init(void);
+extern _kc_export void ssl_random(bool b64bit, uint64_t *out);
 
 } /* extern "C" */
 

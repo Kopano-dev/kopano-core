@@ -18,25 +18,24 @@
 #ifndef ECENTRYID_H
 #define ECENTRYID_H
 
+#include <kopano/zcdefs.h>
 #include <mapidefs.h>
 
 extern "C" {
 
-extern unsigned char		*g_lpDefaultEid;
-extern const unsigned int	g_cbDefaultEid;
-
-extern unsigned char		*g_lpEveryoneEid;
-extern const unsigned int	g_cbEveryoneEid;
-
-extern unsigned char		*g_lpSystemEid;
-extern const unsigned int	g_cbSystemEid;
+extern _kc_export unsigned char *g_lpDefaultEid;
+extern _kc_export const unsigned int g_cbDefaultEid;
+extern _kc_export unsigned char *g_lpEveryoneEid;
+extern _kc_export const unsigned int g_cbEveryoneEid;
+extern _kc_export unsigned char *g_lpSystemEid;
+extern _kc_export const unsigned int g_cbSystemEid;
 
 HRESULT EntryIdIsDefault(unsigned int cbEntryId, const ENTRYID *lpEntryId, bool *lpbResult);
 HRESULT EntryIdIsSystem(unsigned int cbEntryId, const ENTRYID *lpEntryId, bool *lpbResult);
-HRESULT EntryIdIsEveryone(unsigned int cbEntryId, const ENTRYID *lpEntryId, bool *lpbResult);
+extern _kc_export HRESULT EntryIdIsEveryone(unsigned int eid_size, const ENTRYID *eid, bool *result);
 HRESULT GetNonPortableObjectId(unsigned int cbEntryId, const ENTRYID *lpEntryId, unsigned int *lpulObjectId);
-HRESULT GetNonPortableObjectType(unsigned int cbEntryId, const ENTRYID *lpEntryId, ULONG *lpulObjectType);
-extern HRESULT GeneralizeEntryIdInPlace(unsigned int eid_size, ENTRYID *eid);
+extern _kc_export HRESULT GetNonPortableObjectType(unsigned int eid_size, const ENTRYID *eid, ULONG *obj_type);
+extern _kc_export HRESULT GeneralizeEntryIdInPlace(unsigned int eid_size, ENTRYID *eid);
 
 } /* extern "C" */
 

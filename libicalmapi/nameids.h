@@ -18,6 +18,7 @@
 #ifndef NAMEIDS_H
 #define NAMEIDS_H
 
+#include <kopano/zcdefs.h>
 #include <mapidefs.h>
 #include <kopano/namedprops.h>
 #include <kopano/mapiguidext.h>
@@ -48,6 +49,6 @@ enum ICALMAPI_API eIDNamedProps {
 };
 
 /* call this function to get the id's from the listed namedprops above */
-HRESULT ICALMAPI_API HrLookupNames(IMAPIProp *lpPropObj, LPSPropTagArray *lppNamedProps);
+extern "C" _kc_export HRESULT HrLookupNames(IMAPIProp *propobj, LPSPropTagArray *namedprops);
 
 #endif

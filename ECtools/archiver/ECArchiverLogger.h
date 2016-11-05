@@ -22,25 +22,22 @@
 #include <kopano/ECLogger.h>
 #include <kopano/tstring.h>
 
-class ECArchiverLogger _kc_final : public ECLogger {
+class _kc_export ECArchiverLogger _kc_final : public ECLogger {
 public:
 	ECArchiverLogger(ECLogger *lpLogger);
-	~ECArchiverLogger();
-
-	tstring SetUser(tstring strUser = tstring());
+	_kc_hidden ~ECArchiverLogger(void);
+	_kc_hidden tstring SetUser(tstring = tstring());
 	tstring SetFolder(tstring strFolder = tstring());
-
-	const tstring& GetUser() const { return m_strUser; }
-	const tstring& GetFolder() const { return m_strFolder; }
-
-	void Reset();
-	void Log(unsigned int loglevel, const std::string &message);
-	void Log(unsigned int loglevel, const char *format, ...) __LIKE_PRINTF(3, 4);
-	void LogVA(unsigned int loglevel, const char *format, va_list& va);
+	_kc_hidden const tstring &GetUser(void) const { return m_strUser; }
+	_kc_hidden const tstring &GetFolder(void) const { return m_strFolder; }
+	_kc_hidden void Reset(void);
+	_kc_hidden void Log(unsigned int level, const std::string &msg);
+	void Log(unsigned int level, const char *fmt, ...) __LIKE_PRINTF(3, 4);
+	_kc_hidden void LogVA(unsigned int level, const char *fmt, va_list &);
 
 private:
-	std::string CreateFormat(const char *format);
-	std::string EscapeFormatString(const std::string &strFormat);
+	_kc_hidden std::string CreateFormat(const char *fmt);
+	_kc_hidden std::string EscapeFormatString(const std::string &fmt);
 
 private:
 	ECArchiverLogger(const ECArchiverLogger &) = delete;
@@ -52,7 +49,7 @@ private:
 	tstring		m_strFolder;
 };
 
-class ScopedUserLogging _kc_final {
+class _kc_export ScopedUserLogging _kc_final {
 public:
 	ScopedUserLogging(ECArchiverLogger *lpLogger, const tstring &strUser);
 	~ScopedUserLogging();
@@ -66,7 +63,7 @@ private:
 	const tstring m_strPrevUser;
 };
 
-class ScopedFolderLogging _kc_final {
+class _kc_export ScopedFolderLogging _kc_final {
 public:
 	ScopedFolderLogging(ECArchiverLogger *lpLogger, const tstring &strFolder);
 	~ScopedFolderLogging();

@@ -134,6 +134,6 @@ private:
 };
 
 // Link to provider/server
-extern void (*kopano_get_server_stats)(unsigned int *qlen, double *qage, unsigned int *nthr, unsigned int *idlthr);
+extern _kc_export void (*kopano_get_server_stats)(unsigned int *qlen, double *qage, unsigned int *nthr, unsigned int *nidlethr);
 
 #endif

@@ -28,12 +28,11 @@ class ECConfig;
 class ECPluginSharedData;
 class ECStatsCollector;
 
-class ECPluginFactory _kc_final {
+class _kc_export ECPluginFactory _kc_final {
 public:
-	ECPluginFactory(ECConfig *config, ECStatsCollector *lpStatsCollector, bool bHosted, bool bDistributed);
-	~ECPluginFactory();
-
-	ECRESULT	CreateUserPlugin(UserPlugin **lppPlugin);
+	_kc_hidden ECPluginFactory(ECConfig *, ECStatsCollector *, bool hosted, bool distributed);
+	_kc_hidden ~ECPluginFactory(void);
+	_kc_hidden ECRESULT CreateUserPlugin(UserPlugin **ret);
 	void		SignalPlugins(int signal);
 
 private:

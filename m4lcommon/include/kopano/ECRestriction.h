@@ -30,14 +30,14 @@ class ECRestrictionList;
  * Base class for all other ECxxxRestriction classes.
  * It defines the interface needed to hook the various restrictions together.
  */
-class ECRestriction {
+class _kc_export ECRestriction {
 public:
 	enum {
 		Cheap	= 1, // Stores the passed LPSPropValue pointer.
 		Shallow = 2		// Creates a new SPropValue, but point to the embedded data from the original structure.
 	};
 
-	virtual ~ECRestriction() {}
+	_kc_hidden virtual ~ECRestriction(void) {}
 
 	/**
 	 * Create an LPSRestiction object that represents the restriction on which CreateMAPIRestriction was called.
@@ -54,7 +54,7 @@ public:
 	 * Apply the restriction on a table.
 	 * @param[in]	lpTable		The table on which to apply the restriction.
 	 */
-	HRESULT RestrictTable(LPMAPITABLE lpTable) const;
+	HRESULT RestrictTable(LPMAPITABLE) const;
 
 	/**
 	 * Use the restriction to perform a FindRow on the passed table.
@@ -62,34 +62,32 @@ public:
 	 * @param[in]	BkOrigin	The location to start searching from. Directly passed to FindRow.
 	 * @param[in]	ulFlags		Flags controlling search behaviour. Directly passed to FindRow.
 	 */
-	HRESULT FindRowIn(LPMAPITABLE lpTable, BOOKMARK BkOrigin, ULONG ulFlags) const;
+	_kc_hidden HRESULT FindRowIn(LPMAPITABLE, BOOKMARK origin, ULONG flags) const;
 
 	/**
 	 * Populate an SRestriction structure based on the objects state.
 	 * @param[in]		lpBase			Base pointer used for allocating additional memory.
 	 * @param[in,out]	lpRestriction	Pointer to the SRestriction object that is to be populated.
 	 */
-	virtual HRESULT GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags = 0) const = 0;
+	_kc_hidden virtual HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction, ULONG flags = 0) const = 0;
 	
 	/**
 	 * Create a new ECRestriction derived class of the same type of the object on which this
 	 * method is invoked.
 	 * @return	A copy of the current object.
 	 */
-	virtual ECRestriction *Clone() const = 0;
-
-	ECRestrictionList operator+ (const ECRestriction &other) const;
+	_kc_hidden virtual ECRestriction *Clone(void) const = 0;
+	_kc_hidden ECRestrictionList operator+(const ECRestriction &) const;
 
 protected:
 	typedef std::shared_ptr<SPropValue> PropPtr;
 	typedef std::shared_ptr<ECRestriction> ResPtr;
 	typedef std::list<ResPtr>					ResList;
 
-	ECRestriction() { }
-	HRESULT CopyProp(LPSPropValue lpPropSrc, LPVOID lpBase, ULONG ulFLags, LPSPropValue *lppPropDst) const;
-	HRESULT CopyPropArray(ULONG cValues, LPSPropValue lpPropSrc, LPVOID lpBase, ULONG ulFLags, LPSPropValue *lppPropDst) const;
-
-	static void DummyFree(LPVOID);
+	_kc_hidden ECRestriction(void) {}
+	_kc_hidden HRESULT CopyProp(LPSPropValue propsrc, LPVOID base, ULONG flags, LPSPropValue *propdst) const;
+	_kc_hidden HRESULT CopyPropArray(ULONG nvals, LPSPropValue propsrc, LPVOID base, ULONG flags, LPSPropValue *propdst) const;
+	_kc_hidden static void DummyFree(LPVOID);
 };
 
 /**
@@ -129,19 +127,20 @@ inline ECRestrictionList ECRestriction::operator+ (const ECRestriction &other) c
 	return ECRestrictionList(*this, other);
 }
 
-class ECAndRestriction _kc_final : public ECRestriction {
+class _kc_export ECAndRestriction _kc_final : public ECRestriction {
 public:
-	ECAndRestriction() { }
+	_kc_hidden ECAndRestriction(void) {}
 	ECAndRestriction(const ECRestrictionList &list);
 	
-	ECAndRestriction(const ECRestriction &restriction)
+	_kc_hidden ECAndRestriction(const ECRestriction &restriction)
 	: m_lstRestrictions(1, ResPtr(restriction.Clone())) 
 	{ }
 
-	HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction res, ULONG flags) const _kc_override;
-	ECRestriction *Clone(void) const _kc_override;
+	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction res, ULONG flags) const _kc_override;
+	_kc_hidden ECRestriction *Clone(void) const _kc_override;
 
-	HRESULT append(const ECRestriction &restriction) {
+	_kc_hidden HRESULT append(const ECRestriction &restriction)
+	{
 		m_lstRestrictions.push_back(ResPtr(restriction.Clone()));
 		return hrSuccess;
 	}
@@ -152,19 +151,20 @@ private:
 	ResList	m_lstRestrictions;
 };
 
-class ECOrRestriction _kc_final : public ECRestriction {
+class _kc_export ECOrRestriction _kc_final : public ECRestriction {
 public:
-	ECOrRestriction() { }
+	_kc_hidden ECOrRestriction(void) {}
 	ECOrRestriction(const ECRestrictionList &list);
 	
-	ECOrRestriction(const ECRestriction &restriction)
+	_kc_hidden ECOrRestriction(const ECRestriction &restriction)
 	: m_lstRestrictions(1, ResPtr(restriction.Clone())) 
 	{ }
 	
-	HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
-	ECRestriction *Clone(void) const _kc_override;
+	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
+	_kc_hidden ECRestriction *Clone(void) const _kc_override;
 
-	HRESULT append(const ECRestriction &restriction) {
+	_kc_hidden HRESULT append(const ECRestriction &restriction)
+	{
 		m_lstRestrictions.push_back(ResPtr(restriction.Clone()));
 		return hrSuccess;
 	}
@@ -175,30 +175,30 @@ private:
 	ResList	m_lstRestrictions;
 };
 
-class ECNotRestriction _kc_final : public ECRestriction {
+class _kc_export ECNotRestriction _kc_final : public ECRestriction {
 public:
-	ECNotRestriction(const ECRestriction &restriction)
+	_kc_hidden ECNotRestriction(const ECRestriction &restriction)
 	: m_ptrRestriction(ResPtr(restriction.Clone())) 
 	{ }
 
-	HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
-	ECRestriction *Clone(void) const _kc_override;
+	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
+	_kc_hidden ECRestriction *Clone(void) const _kc_override;
 
 private:
-	ECNotRestriction(ResPtr ptrRestriction);
+	_kc_hidden ECNotRestriction(ResPtr restriction);
 
 private:
 	ResPtr	m_ptrRestriction;
 };
 
-class ECContentRestriction _kc_final : public ECRestriction {
+class _kc_export ECContentRestriction _kc_final : public ECRestriction {
 public:
 	ECContentRestriction(ULONG ulFuzzyLevel, ULONG ulPropTag, LPSPropValue lpProp, ULONG ulFlags = 0);
-	HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
-	ECRestriction *Clone(void) const _kc_override;
+	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
+	_kc_hidden ECRestriction *Clone(void) const _kc_override;
 
 private:
-	ECContentRestriction(ULONG ulFuzzyLevel, ULONG ulPropTag, PropPtr ptrProp);
+	_kc_hidden ECContentRestriction(ULONG fuzzy_level, ULONG tag, PropPtr prop);
 
 private:
 	ULONG	m_ulFuzzyLevel;
@@ -206,16 +206,16 @@ private:
 	PropPtr	m_ptrProp;
 };
 
-class ECBitMaskRestriction _kc_final : public ECRestriction {
+class _kc_export ECBitMaskRestriction _kc_final : public ECRestriction {
 public:
-	ECBitMaskRestriction(ULONG relBMR, ULONG ulPropTag, ULONG ulMask)
+	_kc_hidden ECBitMaskRestriction(ULONG relBMR, ULONG ulPropTag, ULONG ulMask)
 	: m_relBMR(relBMR)
 	, m_ulPropTag(ulPropTag)
 	, m_ulMask(ulMask) 
 	{ }
 
-	HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
-	ECRestriction *Clone(void) const _kc_override;
+	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
+	_kc_hidden ECRestriction *Clone(void) const _kc_override;
 
 private:
 	ULONG	m_relBMR;
@@ -223,14 +223,14 @@ private:
 	ULONG	m_ulMask;
 };
 
-class ECPropertyRestriction _kc_final : public ECRestriction {
+class _kc_export ECPropertyRestriction _kc_final : public ECRestriction {
 public:
 	ECPropertyRestriction(ULONG relop, ULONG ulPropTag, LPSPropValue lpProp, ULONG ulFlags = 0);
-	HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
-	ECRestriction *Clone(void) const _kc_override;
+	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
+	_kc_hidden ECRestriction *Clone(void) const _kc_override;
 
 private:
-	ECPropertyRestriction(ULONG relop, ULONG ulPropTag, PropPtr ptrProp);
+	_kc_hidden ECPropertyRestriction(ULONG relop, ULONG proptag, PropPtr prop);
 
 private:
 	ULONG	m_relop;
@@ -238,16 +238,16 @@ private:
 	PropPtr	m_ptrProp;
 };
 
-class ECComparePropsRestriction _kc_final : public ECRestriction {
+class _kc_export ECComparePropsRestriction _kc_final : public ECRestriction {
 public:
-	ECComparePropsRestriction(ULONG relop, ULONG ulPropTag1, ULONG ulPropTag2)
+	_kc_hidden ECComparePropsRestriction(ULONG relop, ULONG ulPropTag1, ULONG ulPropTag2)
 	: m_relop(relop)
 	, m_ulPropTag1(ulPropTag1)
 	, m_ulPropTag2(ulPropTag2)
 	{ }
 
-	HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
-	ECRestriction *Clone(void) const _kc_override;
+	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
+	_kc_hidden ECRestriction *Clone(void) const _kc_override;
 
 private:
 	ULONG	m_relop;
@@ -272,14 +272,14 @@ private:
 	ULONG	m_cb;
 };
 
-class ECExistRestriction _kc_final : public ECRestriction {
+class _kc_export ECExistRestriction _kc_final : public ECRestriction {
 public:
-	ECExistRestriction(ULONG ulPropTag)
+	_kc_hidden ECExistRestriction(ULONG ulPropTag)
 	: m_ulPropTag(ulPropTag) 
 	{ }
 
-	HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
-	ECRestriction *Clone(void) const _kc_override;
+	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
+	_kc_hidden ECRestriction *Clone(void) const _kc_override;
 
 private:
 	ULONG	m_ulPropTag;
@@ -322,15 +322,15 @@ private:
  * This is a special class, which encapsulates a raw SRestriction structure to allow
  * prebuild or obtained restriction structures to be used in the ECRestriction model.
  */
-class ECRawRestriction _kc_final : public ECRestriction {
+class _kc_export ECRawRestriction _kc_final : public ECRestriction {
 public:
 	ECRawRestriction(LPSRestriction lpRestriction, ULONG ulFlags = 0);
-	HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
-	ECRestriction *Clone(void) const _kc_override;
+	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
+	_kc_hidden ECRestriction *Clone(void) const _kc_override;
 
 private:
 	typedef std::shared_ptr<SRestriction> RawResPtr;
-	ECRawRestriction(RawResPtr ptrRestriction);
+	_kc_hidden ECRawRestriction(RawResPtr restriction);
 
 private:
 	RawResPtr	m_ptrRestriction;

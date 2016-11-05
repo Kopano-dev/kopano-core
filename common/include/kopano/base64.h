@@ -17,12 +17,14 @@
 
 #ifndef BASE64_H
 #define BASE64_H
+
+#include <kopano/zcdefs.h>
 #include <string>
 
 extern "C" {
 
-std::string base64_encode(unsigned char const* , unsigned int len);
-std::string base64_decode(std::string const& s);
+extern _kc_export std::string base64_encode(const unsigned char *, unsigned int);
+extern _kc_export std::string base64_decode(const std::string &);
 
 }
 

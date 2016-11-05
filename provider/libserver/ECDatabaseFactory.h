@@ -26,7 +26,7 @@
 // The ECDatabaseFactory creates database objects connected to the server database. Which
 // database is returned is chosen by the database_engine configuration setting.
 
-class ECDatabaseFactory _kc_final {
+class _kc_export ECDatabaseFactory _kc_final {
 public:
 	ECDatabaseFactory(ECConfig *lpConfig);
 	
@@ -35,7 +35,7 @@ public:
 	ECRESULT		UpdateDatabase(bool bForceUpdate, std::string &strError);
 
 private:
-	ECRESULT GetDatabaseFactory(ECDatabase **lppDatabase);
+	_kc_hidden ECRESULT GetDatabaseFactory(ECDatabase **);
 
 	ECConfig*		m_lpConfig;
 };

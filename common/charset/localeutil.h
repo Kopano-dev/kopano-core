@@ -18,9 +18,11 @@
 #ifndef __CHARSET_UTIL_H
 #define __CHARSET_UTIL_H
 
+#include <kopano/zcdefs.h>
+
 extern "C" {
 
-bool forceUTF8Locale(bool bOutput, std::string *lpstrLastSetLocale = NULL);
+extern _kc_export bool forceUTF8Locale(bool output, std::string *prev_lcoale = nullptr);
 locale_t createUTF8Locale();
 
 }

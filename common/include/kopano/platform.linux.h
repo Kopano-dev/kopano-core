@@ -22,6 +22,7 @@
  * Functions and (type)definitions that are needed for the Linux platform
  *
  */
+#include <kopano/zcdefs.h>
 #include <vector>
 #include <cstdio>
 #include <cstdlib>
@@ -158,7 +159,7 @@ typedef GUID  UUID;		// needed? existing?
 /* #   define EXTERN_C extern */
 /* # endif */
   #define GUID_EXT extern "C"
-  #define DEFINE_GUID(n,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) GUID_EXT const GUID n
+  #define DEFINE_GUID(n,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) GUID_EXT _kc_export const GUID n
 #endif
 
 #define DEFINE_OLEGUID(n,l,w1,w2) DEFINE_GUID(n,l,w1,w2,0xC0,0,0,0,0,0,0,0x46)
@@ -558,15 +559,14 @@ class IEventSubscription : public IDispatch {
 };
 
 /* functions */
-bool operator!=(const GUID &, const GUID &);
-bool operator==(REFIID, const GUID &);
+extern _kc_export bool operator!=(const GUID &, const GUID &);
+extern _kc_export bool operator==(REFIID, const GUID &);
 
 extern "C" {
 
-HRESULT CoCreateGuid(LPGUID);
-
-void GetSystemTimeAsFileTime(FILETIME *ft);
-DWORD GetTempPath(DWORD inLen, char *lpBuffer);
+extern _kc_export HRESULT CoCreateGuid(LPGUID);
+extern _kc_export void GetSystemTimeAsFileTime(FILETIME *);
+extern _kc_export DWORD GetTempPath(DWORD len, char *buf);
 
 /* Some wrappers to map Windows unicode functions */
 static inline int lstrcmpW(LPCWSTR str1, LPCWSTR str2)
@@ -597,12 +597,11 @@ static inline LPWSTR lstrcpyW(LPWSTR dst, LPCWSTR src)
 #define _tcsicmp strcasecmp
 #endif
 
-void Sleep(unsigned int usec);
+extern _kc_export void Sleep(unsigned int usec);
 
 /* because the flags are not used linux, they do not match the windows flags! */
 #define GPTR 0
-HGLOBAL GlobalAlloc(UINT uFlags, ULONG ulSize);
-
+extern _kc_export HGLOBAL GlobalAlloc(UINT flags, ULONG size);
 
 typedef void * DLIB;
 #ifdef __APPLE__
@@ -617,7 +616,7 @@ typedef void * DLIB;
 // unavailable in linux
 #define _dstbias 0
 
-time_t GetProcessTime();
+extern _kc_export time_t GetProcessTime(void);
 
 #ifndef ntohll
 	#if __BYTE_ORDER == __LITTLE_ENDIAN

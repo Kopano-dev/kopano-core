@@ -19,11 +19,12 @@
 #define ECGetText_INCLUDED
 
 #ifndef NO_GETTEXT
+#	include <kopano/zcdefs.h>
 	#include <libintl.h>
 	#define _A(string) dcgettext("kopano", string, LC_MESSAGES)
 	#define _W(string) kopano_dcgettext_wide("kopano", string)
 
-	LPWSTR kopano_dcgettext_wide(const char *domainname, const char *msgid);
+	extern _kc_export LPWSTR kopano_dcgettext_wide(const char *domainname, const char *msgid);
 #else
 	#define _A(string) string
 	#define _W(string) _T(string)

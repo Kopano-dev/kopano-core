@@ -41,6 +41,6 @@ public:
 	virtual HRESULT ResetObject() = 0;
 };
 
-HRESULT ICALMAPI_API CreateMapiToICal(LPADRBOOK lpAdrBook, const std::string &strCharset, MapiToICal **lppMapiToICal);
+extern "C" _kc_export HRESULT CreateMapiToICal(LPADRBOOK, const std::string &charset, MapiToICal **ret);
 
 #endif

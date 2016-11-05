@@ -20,6 +20,7 @@
 
 #include <string>
 #include <sstream>
+#include <kopano/zcdefs.h>
 #include <mapi.h>
 #include <mapix.h>
 #include <mapicode.h>
@@ -44,15 +45,14 @@ struct INFOGUID {
 
 extern "C" {
 
-std::string GetMAPIErrorDescription( HRESULT hResult );
-
+extern _kc_export std::string GetMAPIErrorDescription(HRESULT);
 std::string DBGGUIDToString(REFIID iid);
 std::string MapiNameIdListToString(ULONG cNames, const MAPINAMEID *const *ppNames, const SPropTagArray *pptaga = NULL);
 std::string MapiNameIdToString(const MAPINAMEID *pNameId);
 
-std::string PropNameFromPropTagArray(const SPropTagArray *lpPropTagArray);
+std::string PropNameFromPropTagArray(const SPropTagArray *);
 std::string PropNameFromPropArray(ULONG cValues, const SPropValue *lpPropArray);
-std::string PropNameFromPropTag(ULONG ulPropTag);
+extern _kc_export std::string PropNameFromPropTag(ULONG tag);
 std::string RestrictionToString(const SRestriction *lpRestriction, unsigned int indent=0);
 std::string RowToString(const SRow *lpRow);
 std::string RowSetToString(const SRowSet *lpRows);
@@ -72,9 +72,9 @@ const char *MsgServiceContextToString(ULONG ulContext);
 const char *ResourceTypeToString(ULONG ulResourceType);
 
 //Internal used only
-const char *RelationalOperatorToString(ULONG relop);
-std::string FuzzyLevelToString(ULONG ulFuzzyLevel);
-std::string PropValueToString(const SPropValue *lpPropValue);
+extern _kc_export const char *RelationalOperatorToString(ULONG relop);
+extern _kc_export std::string FuzzyLevelToString(ULONG lvl);
+extern _kc_export std::string PropValueToString(const SPropValue *);
 std::string EntryListToString(const ENTRYLIST *lpMsgList);
 std::string PermissionRulesToString(ULONG cPermissions, const ECPERMISSION *lpECPermissions);
 

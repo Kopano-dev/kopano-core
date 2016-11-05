@@ -45,10 +45,10 @@
 /**
  * Implementatie of the IFreeBusySupport interface
  */
-class ECFreeBusySupport _kc_final : public ECUnknown {
+class _kc_export ECFreeBusySupport _kc_final : public ECUnknown {
 private:
-	ECFreeBusySupport(void);
-	~ECFreeBusySupport(void);
+	_kc_hidden ECFreeBusySupport(void);
+	_kc_hidden ~ECFreeBusySupport(void);
 public:
 	static HRESULT Create(ECFreeBusySupport** lppFreeBusySupport);
 
@@ -58,41 +58,41 @@ public:
 		// IFreeBusySupport
 		virtual HRESULT Open(IMAPISession* lpMAPISession, IMsgStore* lpMsgStore, BOOL bStore);
 		virtual HRESULT Close();
-		virtual HRESULT LoadFreeBusyData(	ULONG cMax, FBUser *rgfbuser, IFreeBusyData **prgfbdata,
-											HRESULT *phrStatus, ULONG *pcRead);
-
-		virtual HRESULT LoadFreeBusyUpdate(ULONG cUsers, FBUser *lpUsers, IFreeBusyUpdate **lppFBUpdate, ULONG *lpcFBUpdate, void *lpData4);
-		virtual HRESULT CommitChanges(void) { return S_OK; }
-		virtual HRESULT GetDelegateInfo(FBUser, void *) { return E_NOTIMPL; }
-		virtual HRESULT SetDelegateInfo(void *) { return E_NOTIMPL; }
-		virtual HRESULT AdviseFreeBusy(void *) { return E_NOTIMPL; }
-		virtual HRESULT Reload(void *) { return E_NOTIMPL; }
-		virtual HRESULT GetFBDetailSupport(void **, BOOL) { return E_NOTIMPL; }
-		virtual HRESULT HrHandleServerSched(void *) { return E_NOTIMPL; }
-		virtual HRESULT HrHandleServerSchedAccess(void) { return S_OK; }
-		virtual BOOL FShowServerSched(BOOL) { return FALSE; }
-		virtual HRESULT HrDeleteServerSched(void) { return S_OK; }
-		virtual HRESULT GetFReadOnly(void *) { return E_NOTIMPL; }
-		virtual HRESULT SetLocalFB(void *) { return E_NOTIMPL; }
-		virtual HRESULT PrepareForSync(void) { return E_NOTIMPL; }
-		virtual HRESULT GetFBPublishMonthRange(void *) { return E_NOTIMPL; }
-		virtual HRESULT PublishRangeChanged(void) { return E_NOTIMPL; }
-		virtual HRESULT CleanTombstone(void) { return E_NOTIMPL; }
-		virtual HRESULT GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulStatus, unsigned int *lpulStart, unsigned int *lpulEnd);
-		virtual HRESULT PushDelegateInfoToWorkspace(void) { return E_NOTIMPL; }
-		virtual HRESULT Placeholder21(void *, HWND, BOOL) { return S_OK; }
-		virtual HRESULT Placeholder22(void) { return S_OK; }
+		_kc_hidden virtual HRESULT LoadFreeBusyData(ULONG max, FBUser *fbuser, IFreeBusyData **fbdata, HRESULT *status, ULONG *have_read);
+		_kc_hidden virtual HRESULT LoadFreeBusyUpdate(ULONG nusers, FBUser *users, IFreeBusyUpdate **fbup, ULONG *nfbup, void *data4);
+		_kc_hidden virtual HRESULT CommitChanges(void) { return S_OK; }
+		_kc_hidden virtual HRESULT GetDelegateInfo(FBUser, void *) { return E_NOTIMPL; }
+		_kc_hidden virtual HRESULT SetDelegateInfo(void *) { return E_NOTIMPL; }
+		_kc_hidden virtual HRESULT AdviseFreeBusy(void *) { return E_NOTIMPL; }
+		_kc_hidden virtual HRESULT Reload(void *) { return E_NOTIMPL; }
+		_kc_hidden virtual HRESULT GetFBDetailSupport(void **, BOOL) { return E_NOTIMPL; }
+		_kc_hidden virtual HRESULT HrHandleServerSched(void *) { return E_NOTIMPL; }
+		_kc_hidden virtual HRESULT HrHandleServerSchedAccess(void) { return S_OK; }
+		_kc_hidden virtual BOOL FShowServerSched(BOOL) { return FALSE; }
+		_kc_hidden virtual HRESULT HrDeleteServerSched(void) { return S_OK; }
+		_kc_hidden virtual HRESULT GetFReadOnly(void *) { return E_NOTIMPL; }
+		_kc_hidden virtual HRESULT SetLocalFB(void *) { return E_NOTIMPL; }
+		_kc_hidden virtual HRESULT PrepareForSync(void) { return E_NOTIMPL; }
+		_kc_hidden virtual HRESULT GetFBPublishMonthRange(void *) { return E_NOTIMPL; }
+		_kc_hidden virtual HRESULT PublishRangeChanged(void) { return E_NOTIMPL; }
+		_kc_hidden virtual HRESULT CleanTombstone(void) { return E_NOTIMPL; }
+		_kc_hidden virtual HRESULT GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulStatus, unsigned int *lpulStart, unsigned int *lpulEnd);
+		_kc_hidden virtual HRESULT PushDelegateInfoToWorkspace(void) { return E_NOTIMPL; }
+		_kc_hidden virtual HRESULT Placeholder21(void *, HWND, BOOL) { return S_OK; }
+		_kc_hidden virtual HRESULT Placeholder22(void) { return S_OK; }
 
 public:
 	// Interface for Outlook 2002 and up
-	class xFreeBusySupport _kc_final : public IFreeBusySupport {
+	class _kc_hidden xFreeBusySupport _kc_final : public IFreeBusySupport {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IFreeBusySupport.hpp>
 		virtual HRESULT __stdcall CleanTombstone(void) _kc_override;
 	} m_xFreeBusySupport;
 
 	// Interface for Outlook 2000
-	class xFreeBusySupportOutlook2000 _kc_final : public IFreeBusySupportOutlook2000 {
+	class _kc_hidden xFreeBusySupportOutlook2000 _kc_final :
+	    public IFreeBusySupportOutlook2000
+	{
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IFreeBusySupport.hpp>
 	} m_xFreeBusySupportOutlook2000;

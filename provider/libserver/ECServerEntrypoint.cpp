@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <mutex>
 #include <pthread.h>
@@ -33,8 +33,8 @@
 pthread_key_t database_key;
 pthread_key_t plugin_key;
 
-ECSessionManager*		g_lpSessionManager = NULL;
-ECStatsCollector*		g_lpStatsCollector = NULL;
+_kc_export ECSessionManager *g_lpSessionManager;
+_kc_export ECStatsCollector *g_lpStatsCollector;
 static std::set<ECDatabase *> g_lpDBObjectList;
 static std::mutex g_hMutexDBObjectList;
 static bool g_bInitLib = false;

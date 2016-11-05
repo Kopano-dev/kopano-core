@@ -56,39 +56,36 @@ private:
 /* 
  * This is an IStream-compatible wrapper for ECMemBlock
  */
-class ECMemStream _kc_final : public ECUnknown {
+class _kc_export ECMemStream _kc_final : public ECUnknown {
 public:
 	typedef HRESULT (*CommitFunc)(IStream *lpStream, void *lpParam);
 	typedef HRESULT (*DeleteFunc)(void *lpParam); /* Caller's function to remove lpParam data from memory */
 
 private:
-	ECMemStream(char *buffer, ULONG ulDAtaLen, ULONG ulFlags, CommitFunc lpCommitFunc, DeleteFunc lpDeleteFunc, void *lpParam);
-	ECMemStream(ECMemBlock *lpMemBlock, ULONG ulFlags, CommitFunc lpCommitFunc, DeleteFunc lpDeleteFunc, void *lpParam);
-	~ECMemStream();
+	_kc_hidden ECMemStream(char *buffer, ULONG data_len, ULONG flags, CommitFunc, DeleteFunc, void *param);
+	_kc_hidden ECMemStream(ECMemBlock *, ULONG flags, CommitFunc, DeleteFunc, void *param);
+	_kc_hidden ~ECMemStream(void);
 
 public:
-	static  HRESULT	Create(char *buffer, ULONG ulDataLen, ULONG ulFlags, CommitFunc lpCommitFunc, DeleteFunc lpDeleteFunc,
-						   void *lpParam, ECMemStream **lppStream);
-	static  HRESULT	Create(ECMemBlock *lpMemBlock, ULONG ulFlags, CommitFunc lpCommitFunc, DeleteFunc lpDeleteFunc,
-						   void *lpParam, ECMemStream **lppStream);
+	static  HRESULT	Create(char *buffer, ULONG ulDataLen, ULONG ulFlags, CommitFunc lpCommitFunc, DeleteFunc lpDeleteFunc, void *lpParam, ECMemStream **lppStream);
+	_kc_hidden static HRESULT Create(ECMemBlock *, ULONG flags, CommitFunc, DeleteFunc, void *param, ECMemStream **ret);
 	virtual ULONG Release(void) _kc_override;
 	virtual HRESULT QueryInterface(REFIID refiid, void **iface) _kc_override;
-	virtual HRESULT Read(void *pv, ULONG cb, ULONG *pcbRead);
-	virtual HRESULT Write(const void *pv, ULONG cb, ULONG *pcbWritten);
-	virtual HRESULT Seek(LARGE_INTEGER dlibmove, DWORD dwOrigin, ULARGE_INTEGER *plibNewPosition);
-	virtual HRESULT SetSize(ULARGE_INTEGER libNewSize);
-	virtual HRESULT CopyTo(IStream *pstm, ULARGE_INTEGER cb, ULARGE_INTEGER *pcbRead, ULARGE_INTEGER *pcbWritten);
-	virtual HRESULT Commit(DWORD grfCommitFlags);
-	virtual HRESULT Revert();
-	virtual HRESULT LockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType);
-	virtual HRESULT UnlockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType);
-	virtual HRESULT Stat(STATSTG *pstatstg, DWORD grfStatFlag);
-	virtual HRESULT Clone(IStream **ppstm);
-
+	_kc_hidden virtual HRESULT Read(void *buf, ULONG bytes, ULONG *have_read);
+	_kc_hidden virtual HRESULT Write(const void *buf, ULONG bytes, ULONG *have_written);
+	_kc_hidden virtual HRESULT Seek(LARGE_INTEGER pos, DWORD origin, ULARGE_INTEGER *newpos);
+	_kc_hidden virtual HRESULT SetSize(ULARGE_INTEGER size);
+	_kc_hidden virtual HRESULT CopyTo(IStream *, ULARGE_INTEGER cb, ULARGE_INTEGER *have_read, ULARGE_INTEGER *have_written);
+	_kc_hidden virtual HRESULT Commit(DWORD commit_flags);
+	_kc_hidden virtual HRESULT Revert(void);
+	_kc_hidden virtual HRESULT LockRegion(ULARGE_INTEGER offset, ULARGE_INTEGER size, DWORD lock_type);
+	_kc_hidden virtual HRESULT UnlockRegion(ULARGE_INTEGER offset, ULARGE_INTEGER size, DWORD lock_type);
+	_kc_hidden virtual HRESULT Stat(STATSTG *, DWORD stat_flag);
+	_kc_hidden virtual HRESULT Clone(IStream **);
 	virtual ULONG GetSize();
 	virtual char* GetBuffer();
 
-	class xStream _kc_final : public IStream {
+	class _kc_hidden xStream _kc_final : public IStream {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/ISequentialStream.hpp>
 		#include <kopano/xclsfrag/IStream.hpp>

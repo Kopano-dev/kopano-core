@@ -49,23 +49,22 @@ public:
 	time_t 	ulLastAccess;
 };
 
-class ECCacheBase {
+class _kc_export ECCacheBase {
 public:
 	typedef unsigned long		count_type;
 		typedef uint64_t	size_type;
 
-	virtual ~ECCacheBase(void) {}
-
-	virtual count_type ItemCount() const = 0;
-	virtual size_type Size() const = 0;
-	
-	size_type MaxSize() const { return m_ulMaxSize; }
-	long MaxAge() const { return m_lMaxAge; }
-	size_type HitCount() const { return m_ulCacheHit; }
-	size_type ValidCount() const { return m_ulCacheValid; }
+	_kc_hidden virtual ~ECCacheBase(void) {}
+	_kc_hidden virtual count_type ItemCount(void) const = 0;
+	_kc_hidden virtual size_type Size(void) const = 0;
+	_kc_hidden size_type MaxSize(void) const { return m_ulMaxSize; }
+	_kc_hidden long MaxAge(void) const { return m_lMaxAge; }
+	_kc_hidden size_type HitCount(void) const { return m_ulCacheHit; }
+	_kc_hidden size_type ValidCount(void) const { return m_ulCacheValid; }
 
 	// Decrement the valid count. Used from ECCacheManger::GetCell.
-	void DecrementValidCount() { 
+	_kc_hidden void DecrementValidCount(void)
+	{ 
 		assert(m_ulCacheValid >= 1);
 		--m_ulCacheValid;
 	}
@@ -78,9 +77,9 @@ public:
 
 protected:
 	ECCacheBase(const std::string &strCachename, size_type ulMaxSize, long lMaxAge);
-	void IncrementHitCount(void) { ++m_ulCacheHit; }
-	void IncrementValidCount(void) { ++m_ulCacheValid; }
-	void ClearCounters() { m_ulCacheHit = m_ulCacheValid = 0; }
+	_kc_hidden void IncrementHitCount(void) { ++m_ulCacheHit; }
+	_kc_hidden void IncrementValidCount(void) { ++m_ulCacheValid; }
+	_kc_hidden void ClearCounters(void) { m_ulCacheHit = m_ulCacheValid = 0; }
 
 private:
 	const std::string	m_strCachename;

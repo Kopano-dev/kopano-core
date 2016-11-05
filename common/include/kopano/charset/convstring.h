@@ -26,23 +26,23 @@
 
 #include <mapidefs.h>
 
-class convstring _kc_final {
+class _kc_export convstring _kc_final {
 public:
 	static convstring from_SPropValue(const SPropValue *lpsPropVal);
-	static convstring from_SPropValue(const SPropValue &sPropVal);
-	convstring();
-	convstring(const convstring &other);
-	convstring(const char *lpsz);
+	_kc_hidden static convstring from_SPropValue(const SPropValue &);
+	_kc_hidden convstring(void);
+	_kc_hidden convstring(const convstring &);
+	_kc_hidden convstring(const char *);
 	convstring(const wchar_t *lpsz);
 	convstring(const TCHAR *lpsz, ULONG ulFlags);
 	
 	bool null_or_empty() const;
 	
 	operator utf8string() const;
-	operator std::string() const;
-	operator std::wstring() const;
+	operator std::string(void) const;
+	operator std::wstring(void) const;
 	const char *c_str() const;
-	const wchar_t *wc_str() const;
+	_kc_hidden const wchar_t *wc_str(void) const;
 	const char *u8_str() const;
 
 #ifdef UNICODE
@@ -52,11 +52,8 @@ public:
 #endif
 	
 private:
-	template<typename T>
-	T convert_to() const;
-	
-	template<typename T>
-	T convert_to(const char *tocode) const;
+	template<typename T> _kc_hidden T convert_to(void) const;
+	template<typename T> _kc_hidden T convert_to(const char *tocode) const;
 
 private:
 	const TCHAR *m_lpsz;

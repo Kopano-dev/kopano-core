@@ -25,7 +25,7 @@
 #include <kopano/kcodes.h>
 
 // Thread safe buffer for FIFO operations
-class ECFifoBuffer _kc_final {
+class _kc_export ECFifoBuffer _kc_final {
 public:
 	typedef std::deque<unsigned char>	storage_type;
 	typedef storage_type::size_type		size_type;
@@ -36,12 +36,11 @@ public:
 	ECRESULT Write(const void *lpBuf, size_type cbBuf, unsigned int ulTimeoutMs, size_type *lpcbWritten);
 	ECRESULT Read(void *lpBuf, size_type cbBuf, unsigned int ulTimeoutMs, size_type *lpcbRead);
 	ECRESULT Close(close_flags flags);
-	ECRESULT Flush();
-
-	bool IsClosed(ULONG flags) const;
-	bool IsEmpty() const;
-	bool IsFull() const;
-	unsigned long Size();
+	_kc_hidden ECRESULT Flush(void);
+	_kc_hidden bool IsClosed(ULONG flags) const;
+	_kc_hidden bool IsEmpty(void) const;
+	_kc_hidden bool IsFull(void) const;
+	_kc_hidden unsigned long Size(void);
 	
 private:
 	// prohibit copy

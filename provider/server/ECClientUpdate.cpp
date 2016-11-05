@@ -15,6 +15,7 @@
  *
  */
 
+#include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <kopano/kcodes.h>
 #include "soapH.h"
@@ -40,12 +41,9 @@ namespace ba = boost::algorithm;
 #include <kopano/boost_compat.h>
 #include "../libserver/cmd.hpp"
 
-/* class and add constructor params? */
-//extern "C" ECRESULT GetBestServerPath(struct soap *soap, ECSession *lpecSession, const std::string &strServerName, std::string *lpstrServerPath);
-
 extern ECLogger *g_lpLogger;
 extern ECConfig *g_lpConfig;
-extern ECSessionManager* g_lpSessionManager;
+extern _kc_export ECSessionManager *g_lpSessionManager;
 extern ECStatsCollector* g_lpStatsCollector;
 
 static bool GetLatestVersionAtServer(const char *, unsigned int, ClientVersion *);
@@ -606,7 +604,9 @@ exit:
 	return SOAP_OK;
 }
 
-int ns__setClientUpdateStatus(struct soap *soap, struct clientUpdateStatusRequest sClientUpdateStatus, struct clientUpdateStatusResponse* lpsResponse)
+_kc_export int ns__setClientUpdateStatus(struct soap *soap,
+    struct clientUpdateStatusRequest sClientUpdateStatus,
+    struct clientUpdateStatusResponse *lpsResponse)
 {
 	unsigned int er = erSuccess;
 	ECSession   *lpecSession = NULL;

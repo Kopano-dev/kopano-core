@@ -29,7 +29,7 @@
 #define EC_SYNC_OPT_ALL				(EC_SYNC_OPT_STREAM | EC_SYNC_OPT_CHANGENOTIF | EC_SYNC_OPT_STATECOLLECT)
 
 
-class ECLIBSYNC_API ECSyncSettings _kc_final {
+class _kc_export ECSyncSettings _kc_final {
 public:
 	static ECSyncSettings* GetInstance();
 
@@ -57,7 +57,7 @@ public:
 	ULONG	SetStreamBatchSize(ULONG ulBatchSize);
 
 private:
-	ECSyncSettings();
+	_kc_hidden ECSyncSettings(void);
 
 private:
 	ULONG	m_ulSyncLog;
@@ -70,7 +70,7 @@ private:
 	static std::mutex s_hMutex;
 	static ECSyncSettings *s_lpInstance;
 
-	struct __initializer {
+	struct _kc_hidden __initializer {
 		~__initializer();
 	};
 	static __initializer __i;

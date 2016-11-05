@@ -21,6 +21,7 @@
 #ifndef ARCHIVEMANAGE_H_INCLUDED
 #define ARCHIVEMANAGE_H_INCLUDED
 
+#include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <list>
 #include <memory>
@@ -54,9 +55,7 @@ public:
 	typedef std::unique_ptr<ArchiveManage> auto_ptr_type;
 
 	virtual ~ArchiveManage() {};
-
-	static HRESULT Create(LPMAPISESSION lpSession, ECLogger *lpLogger, const TCHAR *lpszUser, auto_ptr_type *lpptrManage);
-
+	_kc_export static HRESULT Create(LPMAPISESSION, ECLogger *, const TCHAR *user, auto_ptr_type *manage);
 	virtual eResult AttachTo(const char *lpszArchiveServer, const TCHAR *lpszArchive, const TCHAR *lpszFolder, unsigned int ulFlags) = 0;
 	virtual eResult DetachFrom(const char *lpszArchiveServer, const TCHAR *lpszArchive, const TCHAR *lpszFolder) = 0;
 	virtual eResult DetachFrom(unsigned int ulArchive) = 0;

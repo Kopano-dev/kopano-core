@@ -40,28 +40,27 @@ class MessageState;
  * The MAPIPropHelper class provides some common utility functions that relate to IMAPIProp
  * objects in the archiver context.
  */
-class MAPIPropHelper {
+class _kc_export MAPIPropHelper {
 public:
 	static HRESULT Create(MAPIPropPtr ptrMapiProp, MAPIPropHelperPtr *lpptrMAPIPropHelper);
-	virtual ~MAPIPropHelper(void) {}
-
+	_kc_hidden virtual ~MAPIPropHelper(void) {}
 	HRESULT GetMessageState(ArchiverSessionPtr ptrSession, MessageState *lpState);
 	HRESULT GetArchiveList(ObjectEntryList *lplstArchives, bool bIgnoreSourceKey = false);
 	HRESULT SetArchiveList(const ObjectEntryList &lstArchives, bool bExplicitCommit = false);
 	HRESULT SetReference(const SObjectEntry &sEntry, bool bExplicitCommit = false);
-	HRESULT GetReference(SObjectEntry *lpEntry);
+	_kc_hidden HRESULT GetReference(SObjectEntry *entry);
 	HRESULT ClearReference(bool bExplicitCommit = false);
 	HRESULT ReferencePrevious(const SObjectEntry &sEntry);
 	HRESULT OpenPrevious(ArchiverSessionPtr ptrSession, LPMESSAGE *lppMessage);
-	HRESULT RemoveStub();
+	_kc_hidden HRESULT RemoveStub(void);
 	HRESULT SetClean();
 	HRESULT DetachFromArchives();
 	virtual HRESULT GetParentFolder(ArchiverSessionPtr ptrSession, LPMAPIFOLDER *lppFolder);
-	static HRESULT GetArchiveList(MAPIPropPtr ptrMapiProp, LPSPropValue lpProps, ULONG cbProps, ObjectEntryList *lplstArchives);
+	_kc_hidden static HRESULT GetArchiveList(MAPIPropPtr, LPSPropValue props, ULONG nprop, ObjectEntryList *archives);
 
 protected:
-	MAPIPropHelper(MAPIPropPtr ptrMapiProp);
-	HRESULT Init();
+	_kc_hidden MAPIPropHelper(MAPIPropPtr);
+	_kc_hidden HRESULT Init(void);
 
 private:
 	MAPIPropPtr m_ptrMapiProp;

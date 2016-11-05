@@ -30,7 +30,7 @@ class KUnknown;
 typedef std::unique_ptr<SPropValue, KDeleter> KProp;
 typedef std::unique_ptr<SRowSet, KDeleter> KRowSet;
 
-class KAttach _kc_final {
+class _kc_export KAttach _kc_final {
 	public:
 	KAttach(IAttach *, unsigned int);
 	KAttach(KAttach &&);
@@ -47,7 +47,7 @@ class KAttach _kc_final {
 	unsigned int m_num;
 };
 
-class KEntryId _kc_final {
+class _kc_export KEntryId _kc_final {
 	public:
 	KEntryId(void);
 	KEntryId(KEntryId &&);
@@ -73,13 +73,13 @@ class _kc_export_throw KMAPIError _kc_final : public std::exception {
 	std::string m_message;
 };
 
-class KDeleter _kc_final {
+class _kc_export KDeleter _kc_final {
 	public:
 	void operator()(SPropValue *);
 	void operator()(SRowSet *);
 };
 
-class KFolder _kc_final {
+class _kc_export KFolder _kc_final {
 	public:
 	KFolder(void) {}
 	KFolder(IMAPIFolder *);
@@ -96,7 +96,7 @@ class KFolder _kc_final {
 	IMAPIFolder *m_folder = nullptr;
 };
 
-class KMessage _kc_final {
+class _kc_export KMessage _kc_final {
 	public:
 	KMessage(void) {}
 	KMessage(IMessage *);
@@ -115,13 +115,13 @@ class KMessage _kc_final {
 	IMessage *m_message = nullptr;
 };
 
-class KPropertyRestriction _kc_final : public SPropertyRestriction {
+class _kc_export KPropertyRestriction _kc_final : public SPropertyRestriction {
 	public:
 	KPropertyRestriction(ULONG, SPropValue *);
 	operator SRestriction(void) const;
 };
 
-class KSession _kc_final {
+class _kc_export KSession _kc_final {
 	public:
 	KSession(void);
 	KSession(const wchar_t *, const wchar_t *);
@@ -137,7 +137,7 @@ class KSession _kc_final {
 	IMAPISession *m_session;
 };
 
-class KStore _kc_final {
+class _kc_export KStore _kc_final {
 	public:
 	KStore(IMsgStore *);
 	KStore(KStore &&);
@@ -155,7 +155,7 @@ class KStore _kc_final {
 	ULONG m_type;
 };
 
-class KStream _kc_final {
+class _kc_export KStream _kc_final {
 	public:
 	KStream(IStream *);
 	KStream(KStream &&);
@@ -170,7 +170,7 @@ class KStream _kc_final {
 	IStream *m_stream;
 };
 
-class KTable _kc_final {
+class _kc_export KTable _kc_final {
 	public:
 	KTable(IMAPITable *);
 	KTable(KTable &&);
@@ -185,7 +185,7 @@ class KTable _kc_final {
 	IMAPITable *m_table;
 };
 
-class KUnknown _kc_final {
+class _kc_export KUnknown _kc_final {
 	public:
 	KUnknown(IUnknown * = NULL);
 	KUnknown(KUnknown &&);

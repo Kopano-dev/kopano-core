@@ -18,9 +18,11 @@
 #ifndef SYMMETRICCRYPT_H
 #define SYMMETRICCRYPT_H
 
-bool SymmetricIsCrypted(const wchar_t *);
-bool SymmetricIsCrypted(const char *);
-std::string SymmetricDecrypt(const char *strCrypted);
-std::string SymmetricDecrypt(const wchar_t *wstrCrypted);
+#include <kopano/zcdefs.h>
+
+extern _kc_export bool SymmetricIsCrypted(const wchar_t *);
+extern _kc_export bool SymmetricIsCrypted(const char *);
+extern _kc_export std::string SymmetricDecrypt(const char *);
+extern _kc_export std::string SymmetricDecrypt(const wchar_t *);
 
 #endif

@@ -45,7 +45,7 @@ typedef struct tagSchedule {
 
 typedef std::list<ECSCHEDULE> ECScheduleList;
 
-class ECScheduler _kc_final {
+class _kc_export ECScheduler _kc_final {
 public:
 	ECScheduler(ECLogger *lpLogger);
 	~ECScheduler(void);
@@ -53,8 +53,8 @@ public:
 	HRESULT AddSchedule(eSchedulerType eType, unsigned int ulBeginCycle, void* (*lpFunction)(void*), void* lpData = NULL);
 
 private:
-	static bool hasExpired(time_t ttime, ECSCHEDULE *lpSchedule);
-	static void* ScheduleThread(void* lpTmpScheduler);
+	_kc_hidden static bool hasExpired(time_t ttime, ECSCHEDULE *);
+	_kc_hidden static void *ScheduleThread(void *tmp_scheduler);
 
 private:
 	ECScheduleList		m_listScheduler;

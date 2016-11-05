@@ -18,6 +18,7 @@
 #ifndef ECACL_INCLUDED
 #define ECACL_INCLUDED
 
+#include <kopano/zcdefs.h>
 #include <string>
 
 typedef enum ACLRIGHTS { 
@@ -43,6 +44,6 @@ typedef enum ACLRIGHTS {
 	ROLE_NONE = 0x400
 } ACLRIGHTS;
 
-std::string AclRightsToString(unsigned ulRights);
+extern "C" _kc_export std::string AclRightsToString(unsigned int rights);
 
 #endif // ndef ECACL_INCLUDED

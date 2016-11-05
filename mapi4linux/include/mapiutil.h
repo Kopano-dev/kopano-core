@@ -19,6 +19,7 @@
 #define __M4L_MAPIUTIL_H_
 #define MAPIUTIL_H
 
+#include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <mapix.h>
 
@@ -366,12 +367,7 @@ HrAddColumnsEx( LPMAPITABLE         lptbl,
  *  Function that creates an advise sink object given a notification
  *  callback function and context.
  */
-
-HRESULT
-HrAllocAdviseSink( LPNOTIFCALLBACK lpfnCallback,
-                   LPVOID lpvContext,
-                   LPMAPIADVISESINK *lppAdviseSink );
-
+extern _kc_export HRESULT HrAllocAdviseSink(LPNOTIFCALLBACK, LPVOID ctx, LPMAPIADVISESINK *);
 
 /*
  *  Wraps an existing advise sink with another one which guarantees
@@ -499,21 +495,13 @@ ULONG UlRelease(LPVOID lpunk);
 
 /* Related to the MAPI interface */
 
-HRESULT HrGetOneProp(LPMAPIPROP lpMapiProp, ULONG ulPropTag,
-		     LPSPropValue *lppProp);
-HRESULT HrSetOneProp(LPMAPIPROP lpMapiProp,
-		     LPSPropValue lpProp);
-BOOL FPropExists(LPMAPIPROP lpMapiProp, ULONG ulPropTag);
-LPSPropValue PpropFindProp(LPSPropValue lpPropArray, ULONG cValues,
-			   ULONG ulPropTag);
-void FreePadrlist(LPADRLIST lpAdrlist);
-void FreeProws(LPSRowSet lpRows);
-HRESULT HrQueryAllRows(LPMAPITABLE lpTable, 
-		       LPSPropTagArray lpPropTags,
-		       LPSRestriction lpRestriction,
-		       LPSSortOrderSet lpSortOrderSet,
-		       LONG crowsMax,
-		       LPSRowSet *lppRows);
+extern _kc_export HRESULT HrGetOneProp(LPMAPIPROP mprop, ULONG tag, LPSPropValue *ret);
+extern _kc_export HRESULT HrSetOneProp(LPMAPIPROP mprop, LPSPropValue prop);
+extern _kc_export BOOL FPropExists(LPMAPIPROP mprop, ULONG tag);
+extern _kc_export LPSPropValue PpropFindProp(LPSPropValue props, ULONG vals, ULONG tag);
+extern _kc_export void FreePadrlist(LPADRLIST);
+extern _kc_export void FreeProws(LPSRowSet rows);
+extern _kc_export HRESULT HrQueryAllRows(LPMAPITABLE table, LPSPropTagArray tags, LPSRestriction, LPSSortOrderSet, LONG rows_max, LPSRowSet *rows);
 
 /* Create or validate the IPM folder tree in a message store */
 
@@ -593,34 +581,24 @@ FILETIME FtNegFt(FILETIME ft);
 FILETIME FtDivFtBogus(FILETIME f, FILETIME f2, DWORD n);
 
 /* Message composition */
-
-SCODE ScCreateConversationIndex (ULONG cbParent,
-				 LPBYTE lpbParent,
-				 ULONG * lpcbConvIndex,
-				 LPBYTE * lppbConvIndex);
+extern _kc_export SCODE ScCreateConversationIndex(ULONG parent_size, LPBYTE parent, ULONG *conv_index_size, LPBYTE *conv_index);
 
 /* Store support */
-
-HRESULT WrapStoreEntryID (ULONG ulFlags, LPTSTR lpszDLLName, ULONG cbOrigEntry,
-			  LPENTRYID lpOrigEntry, ULONG *lpcbWrappedEntry, LPENTRYID *lppWrappedEntry);
+extern _kc_export HRESULT WrapStoreEntryID(ULONG flags, LPTSTR dllname, ULONG eid_size, LPENTRYID eid, ULONG *ret_size, LPENTRYID *ret);
 
 /* RTF Sync Utilities */
 
 #define RTF_SYNC_RTF_CHANGED    ((ULONG) 0x00000001)
 #define RTF_SYNC_BODY_CHANGED   ((ULONG) 0x00000002)
 
-HRESULT
-RTFSync (LPMESSAGE lpMessage, ULONG ulFlags, BOOL * lpfMessageUpdated);
+extern _kc_export HRESULT RTFSync(LPMESSAGE, ULONG flags, BOOL *msg_updated);
 
 
 /* Flags for WrapCompressedRTFStream() */
 
 /****** MAPI_MODIFY             ((ULONG) 0x00000001) mapidefs.h */
 /****** STORE_UNCOMPRESSED_RTF  ((ULONG) 0x00008000) mapidefs.h */
-
-HRESULT
-WrapCompressedRTFStream (LPSTREAM lpCompressedRTFStream,
-        ULONG ulFlags, LPSTREAM * lpUncompressedRTFStream);
+extern _kc_export HRESULT WrapCompressedRTFStream(LPSTREAM compr_rtf_strm, ULONG flags, LPSTREAM *uncompr_rtf_strm);
 
 /*
  * Setup and cleanup. 
@@ -665,8 +643,7 @@ typedef CREATECONVERSATIONINDEX* LPCREATECONVERSATIONINDEX;
 /* ********************************************************* */
 
 /* and this is from ol2e.h */
-HRESULT CreateStreamOnHGlobal(void * hGlobal, BOOL fDeleteOnRelease, LPSTREAM *lppStream);
-
+extern _kc_export HRESULT CreateStreamOnHGlobal(void *global, BOOL delete_on_release, LPSTREAM *);
 HRESULT BuildDisplayTable(LPALLOCATEBUFFER lpAllocateBuffer, LPALLOCATEMORE lpAllocateMore,
 							LPFREEBUFFER lpFreeBuffer, LPMALLOC lpMalloc,
 							HINSTANCE hInstance, UINT cPages,

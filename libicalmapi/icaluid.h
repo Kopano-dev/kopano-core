@@ -18,17 +18,18 @@
 #ifndef __ICAL_UID_H
 #define __ICAL_UID_H
 
+#include <kopano/zcdefs.h>
 #include <mapidefs.h>
 #include <string>
 #include "icalmapi.h"
 
 extern "C" {
 
-bool ICALMAPI_API IsOutlookUid(const std::string &strUid);
+extern _kc_export bool IsOutlookUid(const std::string &);
 HRESULT ICALMAPI_API HrGenerateUid(std::string *lpStrUid);
-HRESULT ICALMAPI_API HrCreateGlobalID(ULONG ulNamedTag, void *base, LPSPropValue *lppPropVal);
-HRESULT ICALMAPI_API HrGetICalUidFromBinUid(SBinary &sBin, std::string *lpStrUid);
-HRESULT ICALMAPI_API HrMakeBinUidFromICalUid(const std::string &strUid, std::string *lpStrBinUid);
+extern _kc_export HRESULT HrCreateGlobalID(ULONG named_tag, void *base, LPSPropValue *pv);
+extern _kc_export HRESULT HrGetICalUidFromBinUid(SBinary &, std::string *uid);
+extern _kc_export HRESULT HrMakeBinUidFromICalUid(const std::string &uid, std::string *binuid);
 
 } /* extern "C" */
 

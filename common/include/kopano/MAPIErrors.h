@@ -24,6 +24,7 @@
 #ifndef MAPIERRORS_H_INCLUDED
 #define MAPIERRORS_H_INCLUDED
 
+#include <kopano/zcdefs.h>
 #include <kopano/platform.h>	// for declaration of HRESULT
 #include <string>
 
@@ -113,8 +114,8 @@ const HRESULT MAPI_E_STORE_FULL						= 0x8004060c;
 
 extern "C" {
 
-const char* GetMAPIErrorMessage(HRESULT errorCode);
-std::string getMapiCodeString(HRESULT hr, const char* object = "object");
+extern _kc_export const char *GetMAPIErrorMessage(HRESULT);
+extern _kc_export std::string getMapiCodeString(HRESULT, const char *object = "object");
 
 }
 

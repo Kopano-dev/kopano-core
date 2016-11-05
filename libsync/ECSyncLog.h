@@ -25,7 +25,7 @@
 
 class ECLogger;
 
-class ECSyncLog _kc_final {
+class _kc_export ECSyncLog _kc_final {
 public:
 	static HRESULT ECLIBSYNC_API GetLogger(ECLogger **lppLogger);
 	static HRESULT ECLIBSYNC_API SetLogger(ECLogger *lpLogger);
@@ -34,7 +34,7 @@ private:
 	static std::mutex s_hMutex;
 	static ECLogger			*s_lpLogger;
 
-	struct __initializer {
+	struct _kc_hidden __initializer _kc_final {
 		~__initializer();
 	};
 	static __initializer __i;

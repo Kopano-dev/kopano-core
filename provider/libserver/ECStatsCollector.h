@@ -85,45 +85,37 @@ typedef struct _ECStrings {
 	std::string value;
 } ECStrings;
 
-class ECStatsCollector _kc_final {
+class _kc_export ECStatsCollector _kc_final {
 public:
-	ECStatsCollector();
-
-	void Increment(SCName name, float inc);
+	_kc_hidden ECStatsCollector(void);
+	_kc_hidden void Increment(SCName name, float inc);
 	void Increment(SCName name, int inc = 1);
 	void Increment(SCName name, LONGLONG inc);
-
-	void Set(SCName name, float set);
-	void Set(SCName name, LONGLONG set);
+	_kc_hidden void Set(SCName name, float set);
+	_kc_hidden void Set(SCName name, LONGLONG set);
 	void SetTime(SCName name, time_t set);
-
-	void Min(SCName name, float min);
-	void Min(SCName name, LONGLONG min);
-	void MinTime(SCName name, time_t min);
-
-	void Max(SCName name, float max);
+	_kc_hidden void Min(SCName name, float min);
+	_kc_hidden void Min(SCName name, LONGLONG min);
+	_kc_hidden void MinTime(SCName name, time_t min);
+	_kc_hidden void Max(SCName name, float max);
 	void Max(SCName name, LONGLONG max);
-	void MaxTime(SCName name, time_t max);
-
-	void Avg(SCName name, float add);
+	_kc_hidden void MaxTime(SCName name, time_t max);
+	_kc_hidden void Avg(SCName name, float add);
 	void Avg(SCName name, LONGLONG add);
-	void AvgTime(SCName name, time_t add);
+	_kc_hidden void AvgTime(SCName name, time_t add);
 
 	/* strings are separate, used by ECSerial */
-	void Set(const std::string &name, const std::string &description, const std::string &value);
-	void Remove(const std::string &name);
-
-	std::string GetValue(const SCMap::const_iterator::value_type &iSD);
-	std::string GetValue(const SCName &name);
-
-	void ForEachStat(void(callback)(const std::string &, const std::string &, const std::string &, void*), void *obj);
-	void ForEachString(void(callback)(const std::string &, const std::string &, const std::string &, void*), void *obj);
-
-	void Reset(void);
-	void Reset(SCName name);
+	_kc_hidden void Set(const std::string &name, const std::string &description, const std::string &value);
+	_kc_hidden void Remove(const std::string &name);
+	_kc_hidden std::string GetValue(const SCMap::const_iterator::value_type &);
+	_kc_hidden std::string GetValue(const SCName &name);
+	_kc_hidden void ForEachStat(void (*cb)(const std::string &, const std::string &, const std::string &, void *), void *obj);
+	_kc_hidden void ForEachString(void (*cb)(const std::string &, const std::string &, const std::string &, void *), void *obj);
+	_kc_hidden void Reset(void);
+	_kc_hidden void Reset(SCName name);
 
 private:
-	void AddStat(SCName index, SCType type, const char *name, const char *description);
+	_kc_hidden void AddStat(SCName index, SCType type, const char *name, const char *desc);
 
 	SCMap m_StatData;
 	std::mutex m_StringsLock;

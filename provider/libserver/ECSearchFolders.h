@@ -93,10 +93,10 @@ typedef struct tagsSearchFolderStats {
  * except rebuilding searchfolders; when the server starts and finds a searchfolder that was only half-built, a complete
  * rebuild is started since we don't know how far the rebuild got last time.
  */
-class ECSearchFolders _kc_final {
+class _kc_export ECSearchFolders _kc_final {
 public:
-    ECSearchFolders(ECSessionManager *lpSessionManager, ECDatabaseFactory *lpFactory);
-    virtual ~ECSearchFolders();
+	_kc_hidden ECSearchFolders(ECSessionManager *, ECDatabaseFactory *);
+	_kc_hidden virtual ~ECSearchFolders(void);
 
     /**
      * Does the initial load of all searchfolders by looking in the hierarchy table for ALL searchfolders and retrieving the
@@ -114,7 +114,7 @@ public:
      * @param[in] ulFolderId The folder id (hierarchyid) of the searchfolder being modified
      * @param[in] lpSearchCriteria Search criteria to be set
      */
-    virtual ECRESULT SetSearchCriteria(unsigned int ulStoreId, unsigned int ulFolderId, struct searchCriteria *lpSearchCriteria);
+	_kc_hidden virtual ECRESULT SetSearchCriteria(unsigned int store_id, unsigned int folder_id, struct searchCriteria *);
 
     /**
      * Retrieve search criteria for an existing search folder
@@ -123,7 +123,7 @@ public:
      * @param[in] ulFolderId The folder id (hierarchyid) of the searchfolder being modified
      * @param[out] lpSearchCriteria Search criteria previously set via SetSearchCriteria
      */
-    virtual ECRESULT GetSearchCriteria(unsigned int ulStoreId, unsigned int ulFolderId, struct searchCriteria **lppSearchCriteria, unsigned int *lpulSearchFlags);
+	_kc_hidden virtual ECRESULT GetSearchCriteria(unsigned int store_id, unsigned int folder_id, struct searchCriteria **, unsigned int *search_flags);
 
     /**
      * Get current search results for a folder. Simply a database query, nothing more.
@@ -135,7 +135,7 @@ public:
      * @param[in] ulFolderId The folder id (hierarchyid) of the searchfolder being modified
      * @param[out] lstObjIds List of object IDs in the result set. List is cleared and populated.
      */
-    virtual ECRESULT GetSearchResults(unsigned int ulStoreId, unsigned int ulFolderId, std::list<unsigned int> *lstObjIds);
+	_kc_hidden virtual ECRESULT GetSearchResults(unsigned int store_id, unsigned int folder_id, std::list<unsigned int> *objids);
 
     /**
      * Queue a messages change that should be processed to update the search folders
@@ -154,7 +154,7 @@ public:
      * @param[in] ulObjId The hierarchyid of the modified object
      * @param[in] ulType ECKeyTable::TABLE_ROW_ADD or TABLE_ROW_MODIFY or TABLE_ROW_DELETE
      */
-    virtual ECRESULT UpdateSearchFolders(unsigned int ulStoreId, unsigned int ulFolderId, unsigned int ulObjId, ECKeyTable::UpdateType ulType);
+	_kc_hidden virtual ECRESULT UpdateSearchFolders(unsigned int store_id, unsigned int folder_id, unsigned int obj_id, ECKeyTable::UpdateType);
     
     /** 
      * Returns erSuccess if the folder is a search folder
@@ -162,7 +162,7 @@ public:
      * @param[in] ulStoreId The store id (hierarchyid) of the folder being queried
      * @param[in] ulFolderId The folder id (hierarchyid) of the folder being queried
      */
-    virtual ECRESULT IsSearchFolder(unsigned int ulStoreId, unsigned int ulFolderId);
+	_kc_hidden virtual ECRESULT IsSearchFolder(unsigned int store_id, unsigned int folder_id);
 
     /** 
      * Remove a search folder because it has been deleted. Cancels the search before removing the information. It will
@@ -174,7 +174,7 @@ public:
      * @param[in] ulStoreId The store id (hierarchyid) of the folder to be removed
      * @param[in] ulFolderId The folder id (hierarchyid) of the folder to be removed
      */
-    virtual ECRESULT RemoveSearchFolder(unsigned int ulStoreId, unsigned int ulFolderId);
+	_kc_hidden virtual ECRESULT RemoveSearchFolder(unsigned int store_id, unsigned int folder_id);
 
 	/**
 	 * Remove a search folder of a specific store because it has been deleted. Cancels the search before removing the 
@@ -182,14 +182,14 @@ public:
 	 *
 	 * @param[in] ulStoreId The store id (hierarchyid) of the folder to be removed
 	 */
-	virtual ECRESULT RemoveSearchFolder(unsigned int ulStoreID);
+	_kc_hidden virtual ECRESULT RemoveSearchFolder(unsigned int store_id);
 
 	/**
 	 * Wait till all threads are down and free the data of a searchfolder
 	 *
 	 * @param[in] lpFolder	Search folder data object
 	 */
-	void DestroySearchFolder(SEARCHFOLDER *lpFolder);
+	_kc_hidden void DestroySearchFolder(SEARCHFOLDER *);
 
     /** 
      * Restart all searches. 
@@ -212,18 +212,18 @@ public:
 	 * @param[in] ulFolderId Folder id (hierarchy id) of the searchfolder to write
 	 * @param[in] lpSearchCriteria Search criteria to write
 	 */
-	static ECRESULT SaveSearchCriteria(ECDatabase *lpDatabase, unsigned int ulStoreId, unsigned int ulFolderId, struct searchCriteria *lpSearchCriteria);
+	_kc_hidden static ECRESULT SaveSearchCriteria(ECDatabase *, unsigned int store_id, unsigned int folder_id, struct searchCriteria *);
 
 	/**
 	 * Get the searchfolder statistics
 	 */
-	virtual ECRESULT GetStats(sSearchFolderStats &sStats);
+	_kc_hidden virtual ECRESULT GetStats(sSearchFolderStats &);
 
 	/**
 	 * Kick search thread to flush events, and wait for the results.
 	 * Only used in the test protocol.
 	 */
-	virtual void FlushAndWait();
+	_kc_hidden virtual void FlushAndWait(void);
 
 private:
     /**
@@ -233,7 +233,7 @@ private:
      * groups same-type events together to increase performance because changes in the same folder can be processed
      * more efficiently at on time
      */
-    virtual ECRESULT FlushEvents();
+	_kc_hidden virtual ECRESULT FlushEvents(void);
 
     /**
      * Processes a list of message changes in a single folder that should be processed. This in turn
@@ -244,7 +244,7 @@ private:
      * @param[in] lstObjectIDs List of hierarchyids of messages to be processed
      * @param[in] ulType Type of change: ECKeyTable::TABLE_ROW_ADD, TABLE_ROW_DELETE or TABLE_ROW_MODIFY
      */
-    virtual ECRESULT ProcessMessageChange(unsigned int ulStoreId, unsigned int ulFolderId, ECObjectTableList *lstObjectIDs, ECKeyTable::UpdateType ulType);
+	_kc_hidden virtual ECRESULT ProcessMessageChange(unsigned int store_id, unsigned int folder_id, ECObjectTableList *objids, ECKeyTable::UpdateType);
 
     /**
      * Add a search folder to the list of active searches
@@ -260,8 +260,7 @@ private:
      * @param[in] fStartSearch TRUE if a rebuild must take place, FALSE if not (eg this happens at server startup)
      * @param[in] lpSearchCriteria Search criteria for this search folder
      */
-     
-    virtual ECRESULT AddSearchFolder(unsigned int ulStoreId, unsigned int ulFolderId, bool fStartSearch, struct searchCriteria *lpSearchCriteria);
+	    _kc_hidden virtual ECRESULT AddSearchFolder(unsigned int store_id, unsigned int folder_id, bool start_search, struct searchCriteria *);
     
     /** 
      * Cancel a search. 
@@ -274,7 +273,7 @@ private:
      * @param[in] ulStoreId Store id of the search folder
      * @param[in] ulFolderId Folder id of the search folder
      */
-    virtual ECRESULT CancelSearchFolder(unsigned int ulStoreID, unsigned int ulFolderId);
+	_kc_hidden virtual ECRESULT CancelSearchFolder(unsigned int store_id, unsigned int folder_id);
     
     /**
      * Does an actual search for all matching items for a searchfolder
@@ -289,7 +288,7 @@ private:
      * @param[in] lpbCancel Pointer to cancel flag. This is polled frequently to be able to cancel the search action
      * @param[in] bNotify If TRUE, send notifications to table listeners, else do not (eg when doing RestartSearches())
      */
-    virtual ECRESULT Search(unsigned int ulStoreId, unsigned int ulFolderId, struct searchCriteria *lpSearchCriteria, bool *lpbCancel, bool bNotify = true);
+	_kc_hidden virtual ECRESULT Search(unsigned int store_id, unsigned int folder_id, struct searchCriteria *, bool *cancel, bool notify = true);
 
     /** 
      * Get the state of a search folder
@@ -300,7 +299,7 @@ private:
      * @param[in] ulFolderId Folder id of the search folder
      * @param[out] lpulState Current state of folder (SEARCH_RUNNING | SEARCH_REBUILD, SEARCH_RUNNING, 0)
      */
-    virtual ECRESULT GetState(unsigned int ulStoreId, unsigned int ulFolderId, unsigned int *lpulState);
+	_kc_hidden virtual ECRESULT GetState(unsigned int store_id, unsigned int folder_id, unsigned int *state);
 
     /** 
      * Search thread entrypoint. 
@@ -308,7 +307,7 @@ private:
      * Simply a wrapper for Search(), and has code to do thread deregistration.
      * @param[in] lpParam THREADINFO * thread information
      */
-    static void* SearchThread(void *lpParam);
+	_kc_hidden static void *SearchThread(void *);
 
     // Functions to do things in the database
     
@@ -318,7 +317,7 @@ private:
      * @param[in] ulStoreId Store id of the search folder
      * @param[in] ulFolderId Folder id of the search folder
      */
-    virtual ECRESULT ResetResults(unsigned int ulStoreId, unsigned int ulFolderId);
+	_kc_hidden virtual ECRESULT ResetResults(unsigned int store_id, unsigned int folder_id);
 
     /**
      * Add a search result to a search folder (one message id with flags)
@@ -329,7 +328,7 @@ private:
      * @param[in] ulFlags Flags of the object (this should be in-sync with hierarchy table!). May be 0 or MSGFLAG_READ
      * @param[out] lpfInserted true if a new record was inserted, false if flags were updated in an existing record
      */
-    virtual ECRESULT AddResults(unsigned int ulStoreId, unsigned int ulFolderId, unsigned int ulObjId, unsigned int ulFlags, bool *lpfInserted);
+	_kc_hidden virtual ECRESULT AddResults(unsigned int store_id, unsigned int folder_id, unsigned int obj_id, unsigned int flags, bool *inserted);
     
     /**
      * Add multiple search results
@@ -341,7 +340,8 @@ private:
      * @param[out] lpulCount Int to be modified with inserted count
      * @param[out] lpulUnread Int to be modified with inserted unread count
      */
-    virtual ECRESULT AddResults(unsigned int ulStoreId, unsigned int ulFolderId, std::list<unsigned int> &lstObjId, std::list<unsigned int>& lstFlags, int *lpulCount, int *lpulUnread);
+	_kc_hidden virtual ECRESULT AddResults(unsigned int store_id, unsigned int folder_id, std::list<unsigned int> &obj_id, std::list<unsigned int> &flags, int *count, int *unread);
+
     /**
      * Delete matching results from a search folder
      *
@@ -350,7 +350,7 @@ private:
      * @param[in] ulObjId Object hierarchy id of the matching message
      * @param[out] lpulFlags Flags of the object that was just deleted
      */
-    virtual ECRESULT DeleteResults(unsigned int ulStoreId, unsigned int ulFolderId, unsigned int ulObjId, unsigned int *lpulFlags);
+	_kc_hidden virtual ECRESULT DeleteResults(unsigned int store_id, unsigned int folder_id, unsigned int obj_id, unsigned int *flags);
 
     /**
      * Set the status of a searchfolder
@@ -358,7 +358,7 @@ private:
      * @param[in] ulFolderId Folder id of the search folder
      * @param[in] ulStatus SEARCH_RUNNING or 0
      */
-    virtual ECRESULT SetStatus(unsigned int ulFolderId, unsigned int ulStatus);
+	_kc_hidden virtual ECRESULT SetStatus(unsigned int folder_id, unsigned int status);
 
     // Functions to load/save search criteria to the database
 
@@ -369,7 +369,7 @@ private:
      * @param[in] ulFolderId Folder id of the search folder
      * @param[in] lppSearchCriteria Loaded search criteria
      */
-    virtual ECRESULT LoadSearchCriteria(unsigned int ulStoreId, unsigned int ulFolderId, struct searchCriteria **lppSearchCriteria);
+	_kc_hidden virtual ECRESULT LoadSearchCriteria(unsigned int store_id, unsigned int folder_id, struct searchCriteria **);
 
     /**
      * Save serialized search criteria to database
@@ -378,7 +378,7 @@ private:
      * @param[in] ulFolderId Folder id of the search folder
      * @param[in] lpSearchCriteria Search criteria to save
      */
-    virtual ECRESULT SaveSearchCriteria(unsigned int ulStoreId, unsigned int ulFolderId, struct searchCriteria *lpSearchCriteria);
+	_kc_hidden virtual ECRESULT SaveSearchCriteria(unsigned int store_id, unsigned int folder_id, struct searchCriteria *);
 
     /**
      * Main processing thread entrypoint
@@ -388,7 +388,7 @@ private:
      *
      * @param[in] lpSearchFolders Pointer to 'this' of search folder manager instance
      */
-    static void * ProcessThread(void *lpSearchFolders);
+	_kc_hidden static void *ProcessThread(void *search_folders);
 
     /**
      * Process candidate rows and add them to search folder results
@@ -409,7 +409,7 @@ private:
      * @param[in] bNotify TRUE on a live system, FALSE if only the database must be updated.
      * @return result
      */
-    virtual ECRESULT ProcessCandidateRows(ECDatabase *lpDatabase, ECSession *lpSession, struct restrictTable *lpRestrict, bool *lpbCancel, unsigned int ulStoreId, unsigned int ulFolderId, ECODStore *ecODStore, ECObjectTableList ecRows, struct propTagArray *lpPropTags, const ECLocale &locale, bool bNotify);
+	_kc_hidden virtual ECRESULT ProcessCandidateRows(ECDatabase *, ECSession *, struct restrictTable *r, bool *cancel, unsigned int store_id, unsigned int folder_id, ECODStore *, ECObjectTableList rows, struct propTagArray *tags, const ECLocale &, bool notify);
 
     // Map StoreID -> SearchFolderId -> SearchCriteria
     // Because searchfolders only work within a store, this allows us to skip 99% of all

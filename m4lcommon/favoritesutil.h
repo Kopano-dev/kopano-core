@@ -18,6 +18,7 @@
 #ifndef FAVORITESUTIL_H
 #define FAVORITESUTIL_H
 
+#include <kopano/zcdefs.h>
 #include <mapix.h>
 
 #define FAVO_FOLDER_LEVEL_BASE		0x00000
@@ -40,13 +41,13 @@ enum {
 
 extern "C" {
 
-LPSPropTagArray GetShortCutTagArray();
+extern _kc_export LPSPropTagArray GetShortCutTagArray(void);
 
 HRESULT AddToFavorite(IMAPIFolder *lpShortcutFolder, ULONG ulLevel, LPCTSTR lpszAliasName, ULONG ulFlags, ULONG cValues, LPSPropValue lpPropArray);
-HRESULT GetShortcutFolder(LPMAPISESSION lpSession, LPTSTR lpszFolderName, LPTSTR lpszFolderComment, ULONG ulFlags, LPMAPIFOLDER* lppShortcutFolder);
+extern _kc_export HRESULT GetShortcutFolder(LPMAPISESSION, LPTSTR folder_name, LPTSTR folder_comment, ULONG flags, LPMAPIFOLDER *scfolder);
 HRESULT CreateShortcutFolder(IMsgStore *lpMsgStore, LPTSTR lpszFolderName, LPTSTR lpszFolderComment, ULONG ulFlags, LPMAPIFOLDER* lppShortcutFolder);
-HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSourceKey);
-HRESULT AddFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPMAPIFOLDER lpFolder, LPCTSTR lpszAliasName, ULONG ulFlags);
+extern _kc_export HRESULT DelFavoriteFolder(IMAPIFolder *scfolder, LPSPropValue source_key);
+extern _kc_export HRESULT AddFavoriteFolder(IMAPIFolder *scfolder, LPMAPIFOLDER folder, LPCTSTR alias_name, ULONG flags);
 
 } /* extern "C" */
 

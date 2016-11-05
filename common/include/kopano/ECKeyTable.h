@@ -76,8 +76,8 @@ struct ObjectTableKeyCompare {
 };
 
 bool operator!=(const sObjectTableKey& a, const sObjectTableKey& b);
-bool operator==(const sObjectTableKey& a, const sObjectTableKey& b);
-bool operator<(const sObjectTableKey& a, const sObjectTableKey& b);
+extern _kc_export bool operator==(const sObjectTableKey &, const sObjectTableKey &);
+extern _kc_export bool operator<(const sObjectTableKey &, const sObjectTableKey &);
 bool operator>(const sObjectTableKey& a, const sObjectTableKey& b);
 
 typedef std::map<sObjectTableKey, unsigned int, ObjectTableKeyCompare>  ECObjectTableMap;
@@ -87,25 +87,22 @@ typedef std::list<sObjectTableKey> ECObjectTableList;
 #define TABLEROW_FLAG_FLOAT		0x00000002
 #define TABLEROW_FLAG_STRING	0x00000004
 
-class ECTableRow _kc_final {
+class _kc_export ECTableRow _kc_final {
 public:
 	ECTableRow(sObjectTableKey sKey, unsigned int ulSortCols, const unsigned int *lpSortLen, const unsigned char *lpFlags, unsigned char **lppSortData, bool fHidden);
 	ECTableRow(const ECTableRow &other);
 	~ECTableRow();
-
-	unsigned int GetObjectSize(void) const;
-
-	static bool rowcompare(const ECTableRow *a, const ECTableRow *b);
-	static bool rowcompare(unsigned int ulSortColsA, const int *lpSortLenA, unsigned char **lppSortKeysA, const unsigned char *lpSortFlagsA, unsigned int ulSortColsB, const int *lpSortLenB, unsigned char **lppSortKeysB, const unsigned char *lpSortFlagsB, bool fIgnoreOrder = false);
-	static bool rowcompareprefix(unsigned int ulSortColPrefix, unsigned int ulSortColsA, const int *lpSortLenA, unsigned char **lppSortKeysA, const unsigned char *lpSortFlagsA, unsigned int ulSortColsB, const int *lpSortLenB, unsigned char **lppSortKeysB, const unsigned char *lpSortFlagsB);
-
+	_kc_hidden unsigned int GetObjectSize(void) const;
+	_kc_hidden static bool rowcompare(const ECTableRow *, const ECTableRow *);
+	_kc_hidden static bool rowcompare(unsigned int sortcols_a, const int *sortlen_a, unsigned char **sortkeys_a, const unsigned char *sortflags_a, unsigned int sortcols_b, const int *sortlen_b, unsigned char **sortkeys_b, const unsigned char *sortflags_b, bool ignore_order = false);
+	_kc_hidden static bool rowcompareprefix(unsigned int sortcolprefix, unsigned int sortcols_a, const int *sortlen_a, unsigned char **sortkeys_a, const unsigned char *sortflags_a, unsigned int sortcols_b, const int *sortlen_b, unsigned char **sortkeys_b, const unsigned char *sortflags_b);
 	bool operator < (const ECTableRow &other) const;
 	
 
 private:
-	void initSortCols(unsigned int ulSortCols, const int *lpSortLen, const unsigned char *lpFlags, unsigned char ** lppSortData);
-	void freeSortCols();
-	ECTableRow& operator = (const ECTableRow &other);
+	_kc_hidden void initSortCols(unsigned int sortcols, const int *sortlen, const unsigned char *flags, unsigned char **sortdata);
+	_kc_hidden void freeSortCols(void);
+	_kc_hidden ECTableRow &operator=(const ECTableRow &);
 public:
 	sObjectTableKey	sKey;
 
@@ -134,7 +131,7 @@ typedef struct {
 
 typedef std::map<unsigned int, sBookmarkPosition> ECBookmarkMap;
 
-class ECKeyTable _kc_final {
+class _kc_export ECKeyTable _kc_final {
 public:
 	/* this MUST be the same definitions as TABLE_NOTIFICATION event types passed in ulTableEvent */
 
@@ -156,7 +153,7 @@ public:
 	ECRESULT	QueryRows(unsigned int ulRows, ECObjectTableList* lpRowList, bool bDirBackward, unsigned int ulFlags, bool bShowHidden = false);
 	ECRESULT	Clear();
 
-	ECRESULT	GetBookmark(unsigned int ulbkPosition, int* lpbkPosition);
+	_kc_hidden ECRESULT GetBookmark(unsigned int p1, int *p2);
 	ECRESULT	CreateBookmark(unsigned int* lpulbkPosition);
 	ECRESULT	FreeBookmark(unsigned int ulbkPosition);
 
@@ -176,24 +173,23 @@ public:
 	unsigned int GetObjectSize();
 
 private:
-	ECRESULT	UpdateCounts(ECTableRow *lpRow);
-	ECRESULT	CurrentRow(ECTableRow *lpRow, unsigned int *lpulCurrentRow);
-	ECRESULT	InvalidateBookmark(ECTableRow *lpRow);
+	_kc_hidden ECRESULT UpdateCounts(ECTableRow *);
+	_kc_hidden ECRESULT CurrentRow(ECTableRow *, unsigned int *current_row);
+	_kc_hidden ECRESULT InvalidateBookmark(ECTableRow *);
 
 	// Functions for implemention AVL balancing
-	void		RotateL(ECTableRow *lpPivot);
-	void		RotateR(ECTableRow *lpPivot);
-	void		RotateLR(ECTableRow *lpPivot);
-	void		RotateRL(ECTableRow *lpPivot);
-	unsigned int GetHeight(ECTableRow *root) { return root->ulHeight; }
-	int 		GetBalance(ECTableRow *lpRoot);
-	void		Restructure(ECTableRow *lpPivot);
-	void		RestructureRecursive(ECTableRow *lpRow);
-	
+	_kc_hidden void RotateL(ECTableRow *pivot);
+	_kc_hidden void RotateR(ECTableRow *pivot);
+	_kc_hidden void RotateLR(ECTableRow *pivot);
+	_kc_hidden void RotateRL(ECTableRow *pivot);
+	_kc_hidden unsigned int GetHeight(ECTableRow *root) { return root->ulHeight; }
+	_kc_hidden int GetBalance(ECTableRow *root);
+	_kc_hidden void Restructure(ECTableRow *pivot);
+	_kc_hidden void RestructureRecursive(ECTableRow *);
 
 	// Advance / reverse cursor by one position
-	void		Next();
-	void		Prev();
+	_kc_hidden void Next(void);
+	_kc_hidden void Prev(void);
 
 	std::recursive_mutex mLock; /* Locks the entire b-tree */
 	ECTableRow				*lpRoot;		// The root node, which is infinitely 'low', ie all nodes are such that *node > *root

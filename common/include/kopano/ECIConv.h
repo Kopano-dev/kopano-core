@@ -22,12 +22,12 @@
 #include <kopano/charset/convert.h>
 #include <string>
 
-class ECIConv _kc_final {
+class _kc_export ECIConv _kc_final {
 public:
     ECIConv(const std::string &strToCharset, const std::string &strFromCharset);
     ~ECIConv();
     
-	bool canConvert(void) const { return m_lpContext != NULL; }
+	_kc_hidden bool canConvert(void) const { return m_lpContext != NULL; }
     std::string convert(const std::string &input);
 
 private:

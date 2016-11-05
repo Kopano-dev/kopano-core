@@ -50,6 +50,6 @@ protected:
 	bool m_bNoRecipients;
 };
 
-HRESULT ICALMAPI_API CreateICalToMapi(IMAPIProp *lpPropObj, LPADRBOOK lpAdrBook, bool bNoRecipients, ICalToMapi **lppICalToMapi);
+extern "C" _kc_export HRESULT CreateICalToMapi(IMAPIProp *propobj, LPADRBOOK, bool no_recipients, ICalToMapi **ret);
 
 #endif

@@ -19,6 +19,7 @@
 #define __UNIXUTIL_H
 
 #include <sys/resource.h>
+#include <kopano/zcdefs.h>
 #include <kopano/ECConfig.h>
 
 struct popen_rlimit {
@@ -39,13 +40,13 @@ struct _popen_rlimit_array_ ## _name { \
 
 extern "C" {
 
-extern int unix_runas(ECConfig *);
-int unix_chown(const char *filename, const char *username, const char *groupname);
-extern void unix_coredump_enable(void);
-extern int unix_create_pidfile(const char *argv0, ECConfig *, bool force = true);
-extern int unix_daemonize(ECConfig *);
-int unix_fork_function(void*(func)(void*), void *param, int nCloseFDs, int *pCloseFDs);
-extern bool unix_system(const char *szLogName, const char *command, const char **env);
+extern _kc_export int unix_runas(ECConfig *);
+extern _kc_export int unix_chown(const char *filename, const char *user, const char *group);
+extern _kc_export void unix_coredump_enable(void);
+extern _kc_export int unix_create_pidfile(const char *argv0, ECConfig *, bool force = true);
+extern _kc_export int unix_daemonize(ECConfig *);
+extern _kc_export int unix_fork_function(void *(*)(void *), void *param, int nfds, int *closefds);
+extern _kc_export bool unix_system(const char *logname, const char *command, const char **env);
 
 } /* extern "C" */
 

@@ -16,6 +16,7 @@
  */
 
 #include "config.h"
+#include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <kopano/ecversion.h>
 #include <kopano/stringutil.h>
@@ -74,7 +75,7 @@ namespace bfs = boost::filesystem;
 
 const char upgrade_lock_file[] = "/tmp/kopano-upgrade-lock";
 
-extern ECSessionManager*    g_lpSessionManager;
+extern _kc_export ECSessionManager *g_lpSessionManager;
 
 // scheduled functions
 void* SoftDeleteRemover(void* lpTmpMain);

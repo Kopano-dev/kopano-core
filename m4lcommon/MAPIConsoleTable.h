@@ -18,9 +18,10 @@
 #ifndef MAPICONSOLETABLE_H
 #define MAPICONSOLETABLE_H
 
+#include <kopano/zcdefs.h>
 #include <mapi.h>
 #include <mapidefs.h>
 
-HRESULT MAPITablePrint(IMAPITable *lpTable, bool humanreadable = true);
+extern "C" _kc_export HRESULT MAPITablePrint(IMAPITable *, bool humanreadable = true);
 
 #endif

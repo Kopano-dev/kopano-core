@@ -34,7 +34,7 @@ typedef struct{
 	ULONG ulStatus;
 }TSARRAY;
 
-extern HRESULT HrPublishDefaultCalendar(IMAPISession *, IMsgStore *, time_t start, ULONG months);
+extern "C" _kc_export HRESULT HrPublishDefaultCalendar(IMAPISession *, IMsgStore *, time_t start, ULONG months);
 
 class PublishFreeBusy _kc_final {
 public:

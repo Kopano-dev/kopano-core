@@ -18,10 +18,12 @@
 #ifndef CODEPAGE_H
 #define CODEPAGE_H
 
+#include <kopano/zcdefs.h>
+
 extern "C" {
 
-HRESULT	HrGetCharsetByCP(ULONG codepage, const char **lppszCharset);
-HRESULT HrGetCPByCharset(const char *lpszCharset, ULONG *codepage);
+extern _kc_export HRESULT HrGetCharsetByCP(ULONG cp, const char **ret);
+extern _kc_export HRESULT HrGetCPByCharset(const char *cset, ULONG *cp);
 
 }
 

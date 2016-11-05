@@ -3,12 +3,14 @@
 SUBDIRS = include/kopano kopano zarafa
 
 SWIG_CXXFLAGS = -Wall -python -c++ -threads \
-	-I${top_srcdir}/swig/include -I${srcdir}/include
+	-I${top_srcdir}/common/include -I${top_srcdir}/swig/include \
+	-I${srcdir}/include
 
 lib_LTLIBRARIES = libkcpyconv.la libkcpydirector.la
 pyexec_LTLIBRARIES = _MAPICore.la _inetmapi.la _icalmapi.la
 noinst_LTLIBRARIES = _libcommon.la _archiver.la _libfreebusy.la _RecurrenceState.la
-noinst_DATA = libkcpyconv.ldd _MAPICore.ldd _inetmapi.ldd _icalmapi.ldd \
+noinst_DATA = libkcpyconv.ldd libkcpydirector.ldd \
+	_MAPICore.ldd _inetmapi.ldd _icalmapi.ldd \
 	_libcommon.ldd _archiver.ldd _libfreebusy.ldd _RecurrenceState.ldd
 CLEANFILES = ${noinst_DATA}
 

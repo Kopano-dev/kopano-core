@@ -12,6 +12,8 @@ SUBDIRS += installer po swig
 
 AM_CPPFLAGS = ${ZCPPFLAGS} ${DEBUGFLAGS} -DLDAP_THREAD_SAFE \
 	-DMAPICONFIGDIR=\"${MAPICONFIGDIR}\" -DPKGLIBDIR='"${pkglibdir}"' \
+	-DSOAP_CMAC='__attribute__((visibility("default")))' \
+	-DSOAP_FMAC3=SOAP_CMAC -DSOAP_FMAC5=SOAP_CMAC -DSOAP_NMAC=SOAP_CMAC \
 	-Iprovider/soap \
 	-I${top_srcdir}/common \
 	-I${top_srcdir}/libfreebusy \
@@ -29,7 +31,8 @@ AM_CPPFLAGS = ${ZCPPFLAGS} ${DEBUGFLAGS} -DLDAP_THREAD_SAFE \
 	${BOOST_CPPFLAGS} ${CRYPTO_CFLAGS} ${GSOAP_CFLAGS} ${ICAL_CFLAGS} \
 	${KRB5_CFLAGS} ${LDAP_FLAGS} ${MYSQL_INCLUDES} ${SSL_CFLAGS} \
 	${s3_CFLAGS} ${TCMALLOC_CFLAGS} ${VMIME_CFLAGS} ${XML2_CFLAGS}
-AM_CXXFLAGS = ${ZCXXFLAGS} -Wno-sign-compare -fvisibility-inlines-hidden
+AM_CXXFLAGS = ${ZCXXFLAGS} -Wno-sign-compare -fvisibility=hidden \
+	-fvisibility-inlines-hidden
 
 
 #
@@ -69,10 +72,10 @@ noinst_DATA = \
 	kopano-stats.ldx \
 	libkcarchiver.ldd libkcarchivercore.ldd libkcclient.ldd \
 	libkccontacts.ldd libkcfreebusy.ldd libkchl.ldd libkcicalmapi.ldd \
-	libkcinetmapi.ldd libkcmapi.ldd libkcssl.ldd \
-	libkcsync.ldd libkcutil.ldd libmapi.ldd
+	libkcinetmapi.ldd libkcmapi.ldd libkcserver.ldd \
+	libkcssl.ldd libkcsync.ldd libkcutil.ldd libmapi.ldd
 # Undefined references
-#noinst_DATA += libkcserver.ldd libkcsoap.ldd
+#noinst_DATA += libkcsoap.ldd
 pkglib_LTLIBRARIES = libkcclient.la libkccontacts.la
 
 
@@ -587,6 +590,7 @@ libkcsoap_la_SOURCES = \
 	provider/common/SOAPUtils.cpp provider/common/SOAPUtils.h \
 	provider/common/pcutil.cpp provider/common/pcutil.hpp \
 	provider/common/versions.h
+libkcsoap_la_CXXFLAGS = ${AM_CXXFLAGS} -fvisibility=default
 libkcsoap_la_LIBADD = libkcutil.la libkcmapi.la ${GSOAP_LIBS}
 libkcsoap_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	-Wl,--version-script=${default_sym}
@@ -857,7 +861,7 @@ CLEANFILES += ${SOAP_CPP_SRC} provider/soap/*
 COMMON_PLUGIN_FILES = provider/plugins/plugin.h
 COMMON_DBPLUGIN_FILES = provider/plugins/DBBase.h provider/plugins/DBBase.cpp
 pkglib_LTLIBRARIES += dbplugin.la
-#noinst_DATA += dbplugin.ldd
+noinst_DATA += dbplugin.ldd
 dbplugin_la_SOURCES = \
 	provider/plugins/DBUserPlugin.cpp provider/plugins/DBUserPlugin.h \
 	${COMMON_PLUGIN_FILES} ${COMMON_DBPLUGIN_FILES}
@@ -867,7 +871,7 @@ dbplugin_la_LIBADD = \
 
 if WITH_UNIX
 pkglib_LTLIBRARIES += unixplugin.la
-#noinst_DATA += unixplugin.ldd
+noinst_DATA += unixplugin.ldd
 unixplugin_la_SOURCES = \
 	provider/plugins/UnixUserPlugin.cpp provider/plugins/UnixUserPlugin.h \
 	${COMMON_PLUGIN_FILES} ${COMMON_DBPLUGIN_FILES}
@@ -878,7 +882,7 @@ endif
 
 if WITH_LDAP
 pkglib_LTLIBRARIES += ldapplugin.la
-#noinst_DATA += ldapplugin.ldd
+noinst_DATA += ldapplugin.ldd
 noinst_DATA += .libs/ldapmsplugin.so
 ldapplugin_la_SOURCES = \
 	provider/plugins/LDAPUserPlugin.cpp provider/plugins/LDAPUserPlugin.h \

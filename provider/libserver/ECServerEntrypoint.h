@@ -18,6 +18,7 @@
 #ifndef ECECSERVERENTRYPOINT_H
 #define ECECSERVERENTRYPOINT_H
 
+#include <kopano/zcdefs.h>
 #include <kopano/ECLogger.h>
 #include <kopano/ECConfig.h>
 #include "ECDatabase.h"
@@ -35,27 +36,25 @@
 
 extern "C" {
 
-extern ECRESULT kopano_init(ECConfig *lpConfig, ECLogger *lpAudit, bool bHostedKopano, bool bDistributedKopano);
-ECRESULT kopano_exit();
-void kopano_removeallsessions();
+extern _kc_export ECRESULT kopano_init(ECConfig *, ECLogger *audit, bool hosted_kopano, bool distr_kopano);
+extern _kc_export ECRESULT kopano_exit(void);
+extern _kc_export void kopano_removeallsessions(void);
 
 //Internal used functions
 void AddDatabaseObject(ECDatabase* lpDatabase);
 
 // server init function
-extern ECRESULT kopano_initlibrary(const char *lpDatabaseDir, const char *lpConfigFile); // Init mysql library
-extern ECRESULT kopano_unloadlibrary(void); // Unload mysql library
+extern _kc_export ECRESULT kopano_initlibrary(const char *dbdir, const char *config_file); // Init mysql library
+extern _kc_export ECRESULT kopano_unloadlibrary(void); // Unload mysql library
 
 // Exported functions
-KDLLAPI ECRESULT GetDatabaseObject(ECDatabase **lppDatabase);
+extern _kc_export ECRESULT GetDatabaseObject(ECDatabase **);
 
 // SOAP connection management
-void kopano_new_soap_connection(CONNECTION_TYPE ulType, struct soap *soap);
-void kopano_end_soap_connection(struct soap *soap);
-
-void kopano_new_soap_listener(CONNECTION_TYPE ulType, struct soap *soap);
-void kopano_end_soap_listener(struct soap *soap);
-    
+extern _kc_export void kopano_new_soap_connection(CONNECTION_TYPE, struct soap *);
+extern _kc_export void kopano_end_soap_connection(struct soap *);
+extern _kc_export void kopano_new_soap_listener(CONNECTION_TYPE, struct soap *);
+extern _kc_export void kopano_end_soap_listener(struct soap *);
 void kopano_disconnect_soap_connection(struct soap *soap);
 
 } /* extern "C" */

@@ -20,7 +20,8 @@
 
 #include <string>
 #include <openssl/md5.h>
+#include <kopano/zcdefs.h>
 
-extern std::string zcp_md5_final_hex(MD5_CTX *);
+extern "C" _kc_export std::string zcp_md5_final_hex(MD5_CTX *);
 
 #endif /* ZCP_MD5_H */

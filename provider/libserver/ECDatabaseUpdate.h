@@ -109,7 +109,7 @@ ECRESULT UpdateVersionsTbl(ECDatabase *db);
 ECRESULT UpdateChangesTbl(ECDatabase *db);
 ECRESULT UpdateABChangesTbl(ECDatabase *db);
 
-extern bool searchfolder_restart_required;
+extern _kc_export bool searchfolder_restart_required;
 
 } /* extern "C" */
 

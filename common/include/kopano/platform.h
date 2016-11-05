@@ -18,6 +18,7 @@
 #ifndef PLATFORM_H
 #define PLATFORM_H
 
+#include <kopano/zcdefs.h>
 #if defined(__GNUC__) && !defined(__cplusplus)
 	/*
 	 * If typeof @a stays the same through a demotion to pointer,
@@ -75,30 +76,30 @@ typedef int gsoap_size_t;
 /*
  * Platform independent functions
  */
-HRESULT	UnixTimeToFileTime(time_t t, FILETIME *ft);
-HRESULT	FileTimeToUnixTime(const FILETIME &ft, time_t *t);
-void	UnixTimeToFileTime(time_t t, int *hi, unsigned int *lo);
-time_t	FileTimeToUnixTime(unsigned int hi, unsigned int lo);
+extern _kc_export HRESULT UnixTimeToFileTime(time_t, FILETIME *);
+extern _kc_export HRESULT FileTimeToUnixTime(const FILETIME &, time_t *);
+extern _kc_export void UnixTimeToFileTime(time_t, int *hi, unsigned int *lo);
+extern _kc_export time_t FileTimeToUnixTime(unsigned int hi, unsigned int lo);
 
 extern "C" {
 
 void	RTimeToFileTime(LONG rtime, FILETIME *pft);
-void	FileTimeToRTime(const FILETIME *pft, LONG *prtime);
-HRESULT	UnixTimeToRTime(time_t unixtime, LONG *rtime);
-HRESULT	RTimeToUnixTime(LONG rtime, time_t *unixtime);
-extern time_t SystemTimeToUnixTime(const SYSTEMTIME &);
-extern SYSTEMTIME TMToSystemTime(const struct tm &);
-double GetTimeOfDay();
+extern _kc_export void FileTimeToRTime(const FILETIME *, LONG *rtime);
+extern _kc_export HRESULT UnixTimeToRTime(time_t unixtime, LONG *rtime);
+extern _kc_export HRESULT RTimeToUnixTime(LONG rtime, time_t *unixtime);
+extern _kc_export time_t SystemTimeToUnixTime(const SYSTEMTIME &);
+extern _kc_export SYSTEMTIME TMToSystemTime(const struct tm &);
+extern _kc_export double GetTimeOfDay(void);
 ULONG	CreateIntDate(ULONG day, ULONG month, ULONG year);
 ULONG	CreateIntTime(ULONG seconds, ULONG minutes, ULONG hours);
-extern ULONG FileTimeToIntDate(const FILETIME &);
-ULONG	SecondsToIntTime(ULONG seconds);
+extern _kc_export ULONG FileTimeToIntDate(const FILETIME &);
+extern _kc_export ULONG SecondsToIntTime(ULONG);
 
 inline double difftimeval(struct timeval *ptstart, struct timeval *ptend) {
 	return 1000000 * (ptend->tv_sec - ptstart->tv_sec) + (ptend->tv_usec - ptstart->tv_usec);
 }
 
-struct tm* gmtime_safe(const time_t* timer, struct tm *result);
+extern _kc_export struct tm *gmtime_safe(const time_t *timer, struct tm *result);
 
 /**
  * Creates the deadline timespec, which is the current time plus the specified
@@ -109,16 +110,16 @@ struct tm* gmtime_safe(const time_t* timer, struct tm *result);
  */
 struct timespec GetDeadline(unsigned int ulTimeoutMs);
 
-double timespec2dbl(const struct timespec &t);
+extern _kc_export double timespec2dbl(const struct timespec &);
 
 } /* extern "C" */
 
 bool operator ==(const FILETIME &, const FILETIME &);
-bool operator >(const FILETIME &, const FILETIME &);
+extern _kc_export bool operator >(const FILETIME &, const FILETIME &);
 bool operator >=(const FILETIME &, const FILETIME &);
-bool operator <(const FILETIME &, const FILETIME &);
+extern _kc_export bool operator <(const FILETIME &, const FILETIME &);
 bool operator <=(const FILETIME &, const FILETIME &);
-time_t operator -(const FILETIME &, const FILETIME &);
+extern _kc_export time_t operator -(const FILETIME &, const FILETIME &);
 
 extern "C" {
 
@@ -128,15 +129,14 @@ time_t timegm(struct tm *t);
 #endif
 
 // mkdir -p
-int CreatePath(const char *createpath);
+extern _kc_export int CreatePath(const char *);
 
 // Random-number generators
-void	rand_init();
-int		rand_mt();
-void	rand_free();
-void	rand_get(char *p, int n);
-
-char *	get_password(const char *prompt);
+extern _kc_export void rand_init(void);
+extern _kc_export int rand_mt(void);
+extern _kc_export void rand_free(void);
+extern _kc_export void rand_get(char *p, int n);
+extern _kc_export char *get_password(const char *prompt);
 
  #define KDLLAPI
 
@@ -151,16 +151,16 @@ char *	get_password(const char *prompt);
 #define MEMORY_USAGE_STRING(str)			(str.capacity() + 1)
 #define MEMORY_USAGE_MULTIMAP(items, map)	MEMORY_USAGE_MAP(items, map)
 
-extern ssize_t read_retry(int, void *, size_t);
-extern ssize_t write_retry(int, const void *, size_t);
+extern _kc_export ssize_t read_retry(int, void *, size_t);
+extern _kc_export ssize_t write_retry(int, const void *, size_t);
 
-void set_thread_name(pthread_t tid, const std::string & name);
-void my_readahead(const int fd);
-void give_filesize_hint(const int fd, const off_t len);
+extern _kc_export void set_thread_name(pthread_t, const std::string &);
+extern _kc_export void my_readahead(int fd);
+extern _kc_export void give_filesize_hint(int fd, off_t len);
 
-bool force_buffers_to_disk(const int fd);
-extern int ec_relocate_fd(int);
-extern int kc_reexec_with_allocator(char **, const char *);
+extern _kc_export bool force_buffers_to_disk(int fd);
+extern _kc_export int ec_relocate_fd(int);
+extern _kc_export int kc_reexec_with_allocator(char **, const char *);
 
 } /* extern "C" */
 

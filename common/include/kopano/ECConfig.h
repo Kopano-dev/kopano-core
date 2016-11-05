@@ -18,6 +18,7 @@
 #ifndef ECCONFIG_H
 #define ECCONFIG_H
 
+#include <kopano/zcdefs.h>
 #include <list>
 #include <string>
 
@@ -43,33 +44,27 @@ struct configsetting_t {
 
 static const char *const lpszDEFAULTDIRECTIVES[] = {"include", NULL};
 
-class ECConfig {
+class _kc_export ECConfig {
 public:
-	static ECConfig *Create(const configsetting_t *lpDefaults, const char *const *lpszDirectives = lpszDEFAULTDIRECTIVES);
-	static const char* GetDefaultPath(const char* lpszBasename);
-
-	virtual ~ECConfig(void) {};
-
-	virtual bool	LoadSettings(const char *szFilename) = 0;
-	virtual bool	LoadSettings(const wchar_t *szFilename);
-	virtual bool    ParseParams(int argc, char *argv[], int *lpargidx) = 0;
-	virtual const char*	GetSettingsPath() = 0;
-	virtual bool	ReloadSettings() = 0;
-
-	virtual bool	AddSetting(const char *szName, const char *szValue, const unsigned int ulGroup = 0) = 0;
-
-	virtual const char *GetSetting(const char *szName) = 0;
-	virtual const char *GetSetting(const char *szName, const char *equal, const char *other) = 0;
-	virtual const wchar_t *GetSettingW(const char *szName) = 0;
-	virtual const wchar_t *GetSettingW(const char *szName, const wchar_t *equal, const wchar_t *other) = 0;
-
-	virtual std::list<configsetting_t> GetSettingGroup(unsigned int ulGroup) = 0;
-	virtual std::list<configsetting_t> GetAllSettings() = 0;
-
-	virtual bool	HasWarnings() = 0;
-	virtual const std::list<std::string> *GetWarnings(void) = 0;
-	virtual bool	HasErrors() = 0;
-	virtual const std::list<std::string> *GetErrors(void) = 0;
+	static ECConfig *Create(const configsetting_t *defaults, const char *const *directives = lpszDEFAULTDIRECTIVES);
+	static const char *GetDefaultPath(const char *basename);
+	_kc_hidden virtual ~ECConfig(void) {};
+	_kc_hidden virtual bool LoadSettings(const char *file) = 0;
+	_kc_hidden virtual bool	LoadSettings(const wchar_t *file);
+	_kc_hidden virtual bool ParseParams(int argc, char **argv, int *argidx) = 0;
+	_kc_hidden virtual const char *GetSettingsPath(void) = 0;
+	_kc_hidden virtual bool	ReloadSettings(void) = 0;
+	_kc_hidden virtual bool	AddSetting(const char *name, const char *value, unsigned int group = 0) = 0;
+	_kc_hidden virtual const char *GetSetting(const char *name) = 0;
+	_kc_hidden virtual const char *GetSetting(const char *name, const char *equal, const char *other) = 0;
+	_kc_hidden virtual const wchar_t *GetSettingW(const char *name) = 0;
+	_kc_hidden virtual const wchar_t *GetSettingW(const char *name, const wchar_t *equal, const wchar_t *other) = 0;
+	_kc_hidden virtual std::list<configsetting_t> GetSettingGroup(unsigned int group) = 0;
+	_kc_hidden virtual std::list<configsetting_t> GetAllSettings(void) = 0;
+	_kc_hidden virtual bool	HasWarnings(void) = 0;
+	_kc_hidden virtual const std::list<std::string> *GetWarnings(void) = 0;
+	_kc_hidden virtual bool	HasErrors(void) = 0;
+	_kc_hidden virtual const std::list<std::string> *GetErrors(void) = 0;
 };
 
 #endif // ECCONFIG_H

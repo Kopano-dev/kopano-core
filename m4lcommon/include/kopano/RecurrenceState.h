@@ -76,12 +76,12 @@
 #define PT_HJ_MONTH_NTH		0xB
 #define PT_HJ_MONTH_END		0xC
 
-class RecurrenceState _kc_final {
+class _kc_export RecurrenceState _kc_final {
 	public:
 	HRESULT ParseBlob(char *lpData, unsigned int ulLen, ULONG ulFlags);
 	HRESULT GetBlob(char **lpData, unsigned int *lpulLen, void *base = NULL);
 
-	class Exception _kc_final {
+	class _kc_hidden Exception _kc_final {
 		public:
 		unsigned int ulStartDateTime;
 		unsigned int ulEndDateTime;
@@ -98,7 +98,7 @@ class RecurrenceState _kc_final {
 		unsigned int ulAppointmentColor;
 	};
 
-	class ExtendedException _kc_final {
+	class _kc_hidden ExtendedException _kc_final {
 		public:
 		unsigned int ulChangeHighlightValue;
 		std::string strReserved;

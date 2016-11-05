@@ -186,9 +186,9 @@ public:
 };
 
 extern "C" {
-	extern UserPlugin *getUserPluginInstance(std::mutex &, ECPluginSharedData*);
-	extern void deleteUserPluginInstance(UserPlugin*);
-	extern int getUserPluginVersion();
+	extern _kc_export UserPlugin *getUserPluginInstance(std::mutex &, ECPluginSharedData *);
+	extern _kc_export void deleteUserPluginInstance(UserPlugin *);
+	extern _kc_export int getUserPluginVersion(void);
 }
 /** @} */
 #endif

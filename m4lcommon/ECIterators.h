@@ -22,12 +22,16 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <kopano/mapi_ptr.h>
 
-class ECHierarchyIteratorBase {
+class _kc_export ECHierarchyIteratorBase {
 public:
-	ECHierarchyIteratorBase(): m_ulFlags(0), m_ulDepth(0), m_ulRowIndex(0) {}  // creates the "end" iterator
+	_kc_hidden ECHierarchyIteratorBase(void) :
+	    m_ulFlags(0), m_ulDepth(0), m_ulRowIndex(0)
+	{
+		// creates the "end" iterator
+	}
 	ECHierarchyIteratorBase(LPMAPICONTAINER lpContainer, ULONG ulFlags = 0, ULONG ulDepth = 0);
 
-	MAPIContainerPtr& dereference() const
+	_kc_hidden MAPIContainerPtr &dereference(void) const
 	{
 		assert(m_ptrCurrent != NULL && "attempt to dereference end iterator");
 		return const_cast<MAPIContainerPtr&>(m_ptrCurrent);
@@ -35,7 +39,7 @@ public:
 
 	void increment();
 
-	bool equal(const ECHierarchyIteratorBase &rhs) const
+	_kc_hidden bool equal(const ECHierarchyIteratorBase &rhs) const
 	{
 		return m_ptrCurrent == rhs.m_ptrCurrent; 
 	}

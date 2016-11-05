@@ -33,60 +33,46 @@
  */
 class Util _kc_final {
 	public:
-	static HRESULT	HrAddToPropertyArray(const SPropValue *lpSrc, ULONG cValues, const SPropValue *lpAdd, SPropValue **lppDest, ULONG *cDestValues);
-	static HRESULT	HrMergePropertyArrays(const SPropValue *lpSrc, ULONG cValues, const SPropValue *lpAdds, ULONG cAddValues, SPropValue **lppDest, ULONG *cDestValues);
-
-	static HRESULT	HrCopyPropertyArray(const SPropValue *lpSrc, ULONG cValues, LPSPropValue *lppDest, ULONG *cDestValues, bool bExcludeErrors = false);
+	_kc_export static HRESULT HrAddToPropertyArray(const SPropValue *src, ULONG srcvals, const SPropValue *add, SPropValue **dest, ULONG *ndestvals);
+	_kc_export static HRESULT HrMergePropertyArrays(const SPropValue *src, ULONG srcvals, const SPropValue *adds, ULONG naddvals, SPropValue **dest, ULONG *destvals);
+	_kc_export static HRESULT HrCopyPropertyArray(const SPropValue *src, ULONG srcvals, LPSPropValue *dest, ULONG *destvals, bool excl_errors = false);
 	static HRESULT	HrCopyPropertyArrayByRef(const SPropValue *lpSrc, ULONG cValues, LPSPropValue *lppDest, ULONG *cDestValues, bool bExcludeErrors = false);
 	static HRESULT	HrCopyPropertyArray(const SPropValue *lpSrc, ULONG cValues, LPSPropValue lpDest, void *lpBase);
 	static HRESULT	HrCopyPropertyArrayByRef(const SPropValue *lpSrc, ULONG cValues, LPSPropValue lpDest);
-	static HRESULT	HrCopyProperty(LPSPropValue lpDest, const SPropValue *lpSrc, void *lpBase, ALLOCATEMORE * lpfAllocMore = NULL);
+	_kc_export static HRESULT HrCopyProperty(LPSPropValue dest, const SPropValue *src, void *base, ALLOCATEMORE * = nullptr);
 	static HRESULT	HrCopyPropertyByRef(LPSPropValue lpDest, const SPropValue *lpSrc);
-	static HRESULT	HrCopySRestriction(LPSRestriction lpDest, const SRestriction *lpSrc, void *lpBase);
-	static HRESULT  HrCopySRestriction(LPSRestriction *lppDest, const SRestriction *lpSrc);
+	_kc_export static HRESULT HrCopySRestriction(LPSRestriction dst, const SRestriction *src, void *base);
+	_kc_export static HRESULT  HrCopySRestriction(LPSRestriction *dst, const SRestriction *src);
 	static HRESULT	HrCopyActions(ACTIONS *lpDest, const ACTIONS *lpSrc, void *lpBase);
 	static HRESULT	HrCopyAction(ACTION *lpDest, const ACTION *lpSrc, void *lpBase);
 	static HRESULT	HrCopySRowSet(LPSRowSet lpDest, const SRowSet *lpSrc, void *lpBase);
-	static HRESULT	HrCopySRow(LPSRow lpDest, const SRow *lpSrc, void *lpBase);
-
-	static HRESULT	HrCopyPropTagArray(const SPropTagArray *lpSrc, LPSPropTagArray *lppDest);
-	static HRESULT	HrCopyUnicodePropTagArray(ULONG ulFlags, const SPropTagArray *lpSrc, LPSPropTagArray *lppDest);
-
-	static HRESULT	HrCopyBinary(ULONG ulSize, const BYTE *lpSrc, ULONG *lpulDestSize, LPBYTE *lppDest, LPVOID lpBase = NULL);
-	static HRESULT	HrCopyEntryId(ULONG ulSize, const ENTRYID *lpSrc, ULONG *lpulDestSize, LPENTRYID* lppDest, LPVOID lpBase = NULL);
-
-	static int		CompareSBinary(const SBinary &sbin1, const SBinary &sbin2);
-	static HRESULT	CompareProp(const SPropValue *lpProp1, const SPropValue *lpProp2, const ECLocale &locale, int *lpCompareResult);
+	_kc_export static HRESULT HrCopySRow(LPSRow dest, const SRow *src, void *base);
+	_kc_export static HRESULT HrCopyPropTagArray(const SPropTagArray *src, LPSPropTagArray *dst);
+	_kc_export static HRESULT HrCopyUnicodePropTagArray(ULONG flags, const SPropTagArray *src, LPSPropTagArray *dst);
+	_kc_export static HRESULT HrCopyBinary(ULONG size, const BYTE *src, ULONG *destsize, LPBYTE *dest, LPVOID lpBase = nullptr);
+	_kc_export static HRESULT HrCopyEntryId(ULONG size, const ENTRYID *src, ULONG *destsize, LPENTRYID *dest, LPVOID base = nullptr);
+	_kc_export static int CompareSBinary(const SBinary &, const SBinary &);
+	_kc_export static HRESULT CompareProp(const SPropValue *, const SPropValue *, const ECLocale &, int *res);
 	static unsigned int PropSize(const SPropValue *lpProp);
-
-	static LONG FindPropInArray(const SPropTagArray *lpPropTags, ULONG ulPropTag);
-
-	static HRESULT HrStreamToString(IStream *sInput, std::string &strOutput);
-	static HRESULT HrStreamToString(IStream *sInput, std::wstring &strWOutput);
-
+	_kc_export static LONG FindPropInArray(const SPropTagArray *proptags, ULONG tag);
+	_kc_export static HRESULT HrStreamToString(IStream *in, std::string &out);
+	_kc_export static HRESULT HrStreamToString(IStream *in, std::wstring &out);
 	static HRESULT HrConvertStreamToWString(IStream *sInput, ULONG ulCodepage, std::wstring *wstrOutput);
-
-	static HRESULT	HrTextToRtf(IStream *text, IStream *rtf);
-	static HRESULT	HrTextToHtml(IStream *text, IStream *html, ULONG ulCodepage);
-	static HRESULT	HrTextToHtml(const WCHAR *text, std::string &strHTML, ULONG ulCodepage);
-
-	static HRESULT	HrHtmlToText(IStream *html, IStream *text, ULONG ulCodepage);
-
-	static HRESULT	HrHtmlToRtf(IStream *html, IStream *rtf, unsigned int ulCodepage);
+	_kc_export static HRESULT HrTextToRtf(IStream *text, IStream *rtf);
+	_kc_export static HRESULT HrTextToHtml(IStream *text, IStream *html, ULONG codepage);
+	_kc_export static HRESULT HrTextToHtml(const wchar_t *text, std::string &html, ULONG codepage);
+	_kc_export static HRESULT HrHtmlToText(IStream *html, IStream *text, ULONG codepage);
+	_kc_export static HRESULT HrHtmlToRtf(IStream *html, IStream *rtf, unsigned int codepage);
 	static HRESULT	HrHtmlToRtf(const WCHAR *lpwHTML, std::string& strRTF);
 
 	static ULONG GetBestBody(const SPropValue *lpBody, const SPropValue *lpHtml, const SPropValue *lpRtfCompressed, const SPropValue *lpRtfInSync, ULONG ulFlags);
-	static ULONG GetBestBody(IMAPIProp *lpPropObj, ULONG ulFlags);
-	static ULONG GetBestBody(LPSPropValue lpPropArray, ULONG cValues, ULONG ulFlags);
-
-	static bool IsBodyProp(ULONG ulPropTag);
-
-	static HRESULT HrMAPIErrorToText(HRESULT hr, LPTSTR *lppszError, void *lpBase = NULL);
-
-	static bool ValidatePropTagArray(const SPropTagArray *lpPropTagArray);
-
+	_kc_export static ULONG GetBestBody(IMAPIProp *obj, ULONG flags);
+	_kc_export static ULONG GetBestBody(LPSPropValue props, ULONG nvals, ULONG flags);
+	_kc_export static bool IsBodyProp(ULONG tag);
+	_kc_export static HRESULT HrMAPIErrorToText(HRESULT, LPTSTR *err, void *base = nullptr);
+	_kc_export static bool ValidatePropTagArray(const SPropTagArray *);
 	static HRESULT bin2hex(ULONG inLength, LPBYTE input, char **output, void *parent = NULL);
-	static HRESULT hex2bin(const char *input, size_t len, ULONG *outLength, LPBYTE *output, void *parent = NULL);
+	_kc_export static HRESULT hex2bin(const char *input, size_t len, ULONG *outlen, LPBYTE *output, void *parent = nullptr);
 	static HRESULT hex2bin(const char *input, size_t len, LPBYTE output);
 
 	template <size_t N>
@@ -100,36 +86,25 @@ class Util _kc_final {
 	static HRESULT CopyRecipients(LPMESSAGE lpSrc, LPMESSAGE lpDest);
 	static HRESULT CopyInstanceIds(LPMAPIPROP lpSrc, LPMAPIPROP lpDst);
 	static HRESULT CopyAttachmentProps(LPATTACH lpSrcAttach, LPATTACH lpDestAttach, LPSPropTagArray lpExcludeProps = NULL);
-	static HRESULT CopyAttachments(LPMESSAGE lpSrc, LPMESSAGE lpDest, LPSRestriction lpRestriction);
+	_kc_export static HRESULT CopyAttachments(LPMESSAGE src, LPMESSAGE dst, LPSRestriction r);
 	static HRESULT CopyHierarchy(LPMAPIFOLDER lpSrc, LPMAPIFOLDER lpDest, ULONG ulFlags, ULONG ulUIParam, LPMAPIPROGRESS lpProgress);
 	static HRESULT CopyContents(ULONG ulWhat, LPMAPIFOLDER lpSrc, LPMAPIFOLDER lpDest, ULONG ulFlags, ULONG ulUIParam, LPMAPIPROGRESS lpProgress);
 	static HRESULT TryOpenProperty(ULONG ulPropType, ULONG ulSrcPropTag, LPMAPIPROP lpPropSrc, ULONG ulDestPropTag, LPMAPIPROP lpPropDest,
 								   LPSTREAM *lppSrcStream, LPSTREAM *lppDestStream);
 	static HRESULT AddProblemToArray(LPSPropProblem lpProblem, LPSPropProblemArray *lppProblems);
-
-	static HRESULT DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj, ULONG ciidExclude, LPCIID rgiidExclude,
-							LPSPropTagArray lpExcludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpDestInterface,
-							LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray * lppProblems);
-	static HRESULT DoCopyProps(LPCIID lpSrcInterface, LPVOID lpSrcObj, LPSPropTagArray lpIncludeProps, ULONG ulUIParam,
-							   LPMAPIPROGRESS lpProgress, LPCIID lpDestInterface, LPVOID lpDestObj, ULONG ulFlags,
-							   LPSPropProblemArray * lppProblems);
-
-	static HRESULT HrCopyIMAPData(LPMESSAGE lpSrcMsg, LPMESSAGE lpDstMsg);
-	static HRESULT HrDeleteIMAPData(LPMESSAGE lpMsg);
-
-	static HRESULT HrGetQuotaStatus(IMsgStore *lpMsgStore, ECQUOTA *lpsQuota, ECQUOTASTATUS **lppsQuotaStatus);
-
-	static HRESULT HrDeleteResidualProps(LPMESSAGE lpDestMsg, LPMESSAGE lpSourceMsg, LPSPropTagArray lpsValidProps);
+	_kc_export static HRESULT DoCopyTo(LPCIID src_intf, LPVOID src_obj, ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArray exclprop, ULONG ui_param, LPMAPIPROGRESS, LPCIID dst_intf, LPVOID dst_obj, ULONG flags, LPSPropProblemArray *);
+	_kc_export static HRESULT DoCopyProps(LPCIID src_intf, LPVOID src_obj, LPSPropTagArray inclprop, ULONG ui_param, LPMAPIPROGRESS, LPCIID dst_intf, LPVOID dst_obj, ULONG flags, LPSPropProblemArray *);
+	_kc_export static HRESULT HrCopyIMAPData(LPMESSAGE src, LPMESSAGE dst);
+	_kc_export static HRESULT HrDeleteIMAPData(LPMESSAGE);
+	_kc_export static HRESULT HrGetQuotaStatus(IMsgStore *, ECQUOTA *, ECQUOTASTATUS **ret);
+	_kc_export static HRESULT HrDeleteResidualProps(LPMESSAGE dstmsg, LPMESSAGE srcmsg, LPSPropTagArray valid_props);
 	static HRESULT ValidMapiPropInterface(LPCIID lpInterface);
 	static HRESULT QueryInterfaceMapiPropOrValidFallback(LPUNKNOWN lpInObj, LPCIID lpInterface, LPUNKNOWN *lppOutObj);
 
 	static HRESULT HrFindEntryIDs(ULONG cbEID, LPENTRYID lpEID, ULONG cbEntryIDs, LPSPropValue lpEntryIDs, BOOL *lpbFound, ULONG* lpPos);
-
-	static HRESULT HrDeleteAttachments(LPMESSAGE lpMsg);
-	static HRESULT HrDeleteRecipients(LPMESSAGE lpMsg);
-
-	static HRESULT HrDeleteMessage(IMAPISession *lpSession, IMessage *lpMessage);
-
+	_kc_export static HRESULT HrDeleteAttachments(LPMESSAGE);
+	_kc_export static HRESULT HrDeleteRecipients(LPMESSAGE);
+	_kc_export static HRESULT HrDeleteMessage(IMAPISession *, IMessage *);
 	static bool FHasHTML(IMAPIProp *lpProp);
 
 	struct SBinaryLess {
@@ -138,11 +113,10 @@ class Util _kc_final {
 		}
 	};
 	
-	static HRESULT ReadProperty(IMAPIProp *lpProp, ULONG ulPropTag, std::string &strData);
-	static HRESULT WriteProperty(IMAPIProp *lpProp, ULONG ulPropTag, const std::string &strData);
-
-	static HRESULT ExtractRSSEntryID(LPSPropValue lpPropBlob, ULONG *lpcbEntryID, LPENTRYID *lppEntryID);
-	static HRESULT ExtractSuggestedContactsEntryID(LPSPropValue lpPropBlob, ULONG *lpcbEntryID, LPENTRYID *lppEntryID);
+	_kc_export static HRESULT ReadProperty(IMAPIProp *, ULONG tag, std::string &data);
+	_kc_export static HRESULT WriteProperty(IMAPIProp *, ULONG tag, const std::string &data);
+	static HRESULT ExtractRSSEntryID(LPSPropValue blob, ULONG *eid_size, LPENTRYID *eid);
+	_kc_export static HRESULT ExtractSuggestedContactsEntryID(LPSPropValue prop_blob, ULONG *eid_size, LPENTRYID *eid);
 	static HRESULT ExtractAdditionalRenEntryID(LPSPropValue lpPropBlob, unsigned short usBlockType, ULONG *lpcbEntryID, LPENTRYID *lppEntryID);
 };
 

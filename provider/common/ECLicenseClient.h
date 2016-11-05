@@ -25,19 +25,19 @@
 #include "ECChannelClient.h"
 #include <kopano/kcodes.h>
 
-class ECLicenseClient _kc_final {
+class _kc_export ECLicenseClient _kc_final {
 public:
-	ECLicenseClient(const char * = NULL, unsigned int = 0) {}
+	_kc_hidden ECLicenseClient(const char * = nullptr, unsigned int = 0) {}
     
     ECRESULT GetCapabilities(unsigned int ulServiceType, std::vector<std::string > &lstCapabilities);
-    ECRESULT QueryCapability(unsigned int ulServiceType, const std::string &strCapability, bool *lpbResult);
+	_kc_hidden ECRESULT QueryCapability(unsigned int svc_type, const std::string &cap, bool *res);
     ECRESULT GetSerial(unsigned int ulServiceType, std::string &lpstrSerial, std::vector<std::string> &lstCALs);
     ECRESULT GetInfo(unsigned int ulServiceType, unsigned int *lpulUserCount);
     ECRESULT Auth(const unsigned char *lpData, unsigned int ulSize, void **ret, unsigned int *retsize);
     ECRESULT SetSerial(unsigned int ulServiceType, const std::string &strSerial, const std::vector<std::string> &lstCALs);
 
 private:
-	ECRESULT ServiceTypeToServiceTypeString(unsigned int ulServiceType, std::string &strServiceType);
+	_kc_hidden ECRESULT ServiceTypeToServiceTypeString(unsigned int type, std::string &tname);
 };
 
 #endif

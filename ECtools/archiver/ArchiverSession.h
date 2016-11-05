@@ -32,41 +32,35 @@ class ECLogger;
  * The ArchiverSession class wraps the MAPISession an provides commonly used operations. It also
  * checks the license. This way the license doesn't need to be checked all over the place.
  */
-class ArchiverSession _kc_final {
+class _kc_export ArchiverSession _kc_final {
 public:
 	static HRESULT Create(ECConfig *lpConfig, ECLogger *lpLogger, ArchiverSessionPtr *lpptrSession);
 	static HRESULT Create(const MAPISessionPtr &ptrSession, ECLogger *lpLogger, ArchiverSessionPtr *lpptrSession);
-	static HRESULT Create(const MAPISessionPtr &ptrSession, ECConfig *lpConfig, ECLogger *lpLogger, ArchiverSessionPtr *lpptrSession);
-	~ArchiverSession();
-	
+	_kc_hidden static HRESULT Create(const MAPISessionPtr &, ECConfig *, ECLogger *, ArchiverSessionPtr *);
+	_kc_hidden ~ArchiverSession(void);
 	HRESULT OpenStoreByName(const tstring &strUser, LPMDB *lppMsgStore);
-	HRESULT OpenStore(const entryid_t &sEntryId, ULONG ulFlags, LPMDB *lppMsgStore);
-	HRESULT OpenStore(const entryid_t &sEntryId, LPMDB *lppMsgStore);
-	HRESULT OpenReadOnlyStore(const entryid_t &sEntryId, LPMDB *lppMsgStore);
-	HRESULT GetUserInfo(const tstring &strUser, abentryid_t *lpsEntryId, tstring *lpstrFullname, bool *bAclCapable);
-	HRESULT GetUserInfo(const abentryid_t &sEntryId, tstring *lpstrUser, tstring *lpstrFullname);
-	HRESULT GetGAL(LPABCONT *lppAbContainer);
-	HRESULT CompareStoreIds(LPMDB lpUserStore, LPMDB lpArchiveStore, bool *lpbResult);
-	HRESULT CompareStoreIds(const entryid_t &sEntryId1, const entryid_t &sEntryId2, bool *lpbResult);
-	
-	HRESULT CreateRemote(const char *lpszServerPath, ECLogger *lpLogger, ArchiverSessionPtr *lpptrSession);
-
-	HRESULT OpenMAPIProp(ULONG cbEntryID, LPENTRYID lpEntryID, LPMAPIPROP *lppProp);
-
-	HRESULT OpenOrCreateArchiveStore(const tstring& strUserName, const tstring& strServerName, LPMDB *lppArchiveStore);
-	HRESULT GetArchiveStoreEntryId(const tstring& strUserName, const tstring& strServerName, entryid_t *lpArchiveId);
-
-	IMAPISession *GetMAPISession(void) const { return m_ptrSession; }
+	_kc_hidden HRESULT OpenStore(const entryid_t &eid, ULONG flags, LPMDB *ret);
+	HRESULT OpenStore(const entryid_t &eid, LPMDB *ret);
+	_kc_hidden HRESULT OpenReadOnlyStore(const entryid_t &eid, LPMDB *ret);
+	_kc_hidden HRESULT GetUserInfo(const tstring &user, abentryid_t *eid, tstring *fullname, bool *acl_capable);
+	_kc_hidden HRESULT GetUserInfo(const abentryid_t &eid, tstring *user, tstring *fullname);
+	_kc_hidden HRESULT GetGAL(LPABCONT *container);
+	_kc_hidden HRESULT CompareStoreIds(LPMDB user_store, LPMDB arc_store, bool *res);
+	_kc_hidden HRESULT CompareStoreIds(const entryid_t &, const entryid_t &, bool *res);
+	_kc_hidden HRESULT CreateRemote(const char *server_path, ECLogger *, ArchiverSessionPtr *);
+	_kc_hidden HRESULT OpenMAPIProp(ULONG eid_size, LPENTRYID eid, LPMAPIPROP *prop);
+	_kc_hidden HRESULT OpenOrCreateArchiveStore(const tstring &user, const tstring &server, LPMDB *arc_store);
+	_kc_hidden HRESULT GetArchiveStoreEntryId(const tstring &user, const tstring &server, entryid_t *arc_id);
+	_kc_hidden IMAPISession *GetMAPISession(void) const { return m_ptrSession; }
 	const char *GetSSLPath() const;
 	const char *GetSSLPass() const;
 
 private:
-	ArchiverSession(ECLogger *lpLogger);
-	HRESULT Init(ECConfig *lpConfig);
-	HRESULT Init(const char *lpszServerPath, const char *lpszSslPath, const char *lpszSslPass);
-	HRESULT Init(const MAPISessionPtr &ptrSession, const char *lpszSslPath, const char *lpszSslPass);
-
-	HRESULT CreateArchiveStore(const tstring& strUserName, const tstring& strServerName, LPMDB *lppArchiveStore);
+	_kc_hidden ArchiverSession(ECLogger *);
+	_kc_hidden HRESULT Init(ECConfig *);
+	_kc_hidden HRESULT Init(const char *server_path, const char *ssl_path, const char *ssl_pass);
+	_kc_hidden HRESULT Init(const MAPISessionPtr &, const char *ssl_path, const char *ssl_pass);
+	_kc_hidden HRESULT CreateArchiveStore(const tstring &user, const tstring &server, LPMDB *arc_store);
 
 private:
 	MAPISessionPtr	m_ptrSession;

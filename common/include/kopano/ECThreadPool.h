@@ -32,7 +32,7 @@ class ECTask;
  * The amount of workers can be modified at run time, but is not automatically
  * adjusted based on the task queue length or age.
  */
-class ECThreadPool _kc_final {
+class _kc_export ECThreadPool _kc_final {
 private:	// types
 	struct STaskInfo {
 		ECTask			*lpTask;
@@ -48,20 +48,18 @@ public:
 	virtual ~ECThreadPool(void);
 	
 	virtual bool dispatch(ECTask *lpTask, bool bTakeOwnership = false);
-	unsigned threadCount() const;
-	void setThreadCount(unsigned ulThreadCount, bool bWait = false);
-	
-	struct timeval queueAge() const;
-
-	bool waitForAllTasks(time_t timeout) const;
+	_kc_hidden unsigned int threadCount(void) const;
+	_kc_hidden void setThreadCount(unsigned int cuont, bool wait = false);
+	_kc_hidden struct timeval queueAge(void) const;
+	_kc_hidden bool waitForAllTasks(time_t timeout) const;
 	
 private:	// methods
-	virtual bool getNextTask(STaskInfo *lpsTaskInfo, std::unique_lock<std::mutex> &);
-	void joinTerminated(std::unique_lock<std::mutex> &);
+	_kc_hidden virtual bool getNextTask(STaskInfo *, std::unique_lock<std::mutex> &);
+	_kc_hidden void joinTerminated(std::unique_lock<std::mutex> &);
 	
 private:	// static methods
-	static void *threadFunc(void *lpVoid);
-	static bool isCurrentThread(const pthread_t &hThread);
+	_kc_hidden static void *threadFunc(void *);
+	_kc_hidden static bool isCurrentThread(const pthread_t &);
 	
 private:	// members
 	ThreadSet	m_setThreads;
@@ -132,7 +130,7 @@ inline bool ECTask::dispatchOn(ECThreadPool *lpThreadPool, bool bTransferOwnersh
  * derived object. It's similar to an ECTask, but one can wait for the task
  * to be finished.
  */
-class ECWaitableTask : public ECTask {
+class _kc_export ECWaitableTask : public ECTask {
 public:
 	static const unsigned WAIT_INFINITE = (unsigned)-1;
 	
@@ -145,7 +143,7 @@ public:
 public:
 	virtual ~ECWaitableTask();
 	virtual void execute(void) _kc_override;
-	bool done() const;
+	_kc_hidden bool done(void) const;
 	bool wait(unsigned timeout = WAIT_INFINITE, unsigned waitMask = Done) const;
 	
 protected:

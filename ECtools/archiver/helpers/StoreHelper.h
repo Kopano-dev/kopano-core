@@ -35,35 +35,28 @@ typedef std::unique_ptr<StoreHelper> StoreHelperPtr;
  * The StoreHelper class provides some common utility functions that relate to IMsgStore
  * objects in the archiver context.
  */
-class StoreHelper _kc_final : public MAPIPropHelper {
+class _kc_export StoreHelper _kc_final : public MAPIPropHelper {
 public:
 	static HRESULT Create(MsgStorePtr &ptrMsgStore, StoreHelperPtr *lpptrStoreHelper);
-	
-	HRESULT GetFolder(const tstring &strFolder, bool bCreate, LPMAPIFOLDER *lppFolder);
-	HRESULT UpdateSearchFolders();
-	
-	HRESULT GetIpmSubtree(LPMAPIFOLDER *lppFolder);
+	_kc_hidden HRESULT GetFolder(const tstring &name, bool create, LPMAPIFOLDER *ret);
+	_kc_hidden HRESULT UpdateSearchFolders(void);
+	_kc_hidden HRESULT GetIpmSubtree(LPMAPIFOLDER *);
 	HRESULT GetSearchFolders(LPMAPIFOLDER *lppSearchArchiveFolder, LPMAPIFOLDER *lppSearchDeleteFolder, LPMAPIFOLDER *lppSearchStubFolder);
 	
 private:
-	StoreHelper(MsgStorePtr &ptrMsgStore);
-	HRESULT Init();
-	
-	HRESULT GetSubFolder(MAPIFolderPtr &ptrFolder, const tstring &strFolder, bool bCreate, LPMAPIFOLDER *lppFolder);
-
+	_kc_hidden StoreHelper(MsgStorePtr &);
+	_kc_hidden HRESULT Init(void);
+	_kc_hidden HRESULT GetSubFolder(MAPIFolderPtr &, const tstring &name, bool create, LPMAPIFOLDER *ret);
 	enum eSearchFolder {esfArchive = 0, esfDelete, esfStub, esfMax};
-	
-	HRESULT CheckAndUpdateSearchFolder(LPMAPIFOLDER lpSearchFolder, eSearchFolder esfWhich);
-	HRESULT CreateSearchFolder(eSearchFolder esfWhich, LPMAPIFOLDER *lppSearchFolder);
-	HRESULT CreateSearchFolders(LPMAPIFOLDER *lppSearchArchiveFolder, LPMAPIFOLDER *lppSearchDeleteFolder, LPMAPIFOLDER *lppSearchStubFolder);
-	HRESULT DoCreateSearchFolder(LPMAPIFOLDER lpParent, eSearchFolder esfWhich, LPMAPIFOLDER *lppSearchFolder);
-
-	HRESULT SetupSearchArchiveFolder(LPMAPIFOLDER lpSearchFolder, const ECRestriction *lpresClassCheck, const ECRestriction *lpresArchiveCheck);
-	HRESULT SetupSearchDeleteFolder(LPMAPIFOLDER lpSearchFolder, const ECRestriction *lpresClassCheck, const ECRestriction *lpresArchiveCheck);
-	HRESULT SetupSearchStubFolder(LPMAPIFOLDER lpSearchFolder, const ECRestriction *lpresClassCheck, const ECRestriction *lpresArchiveCheck);
-
-	HRESULT GetClassCheckRestriction(ECOrRestriction *lpresClassCheck);
-	HRESULT GetArchiveCheckRestriction(ECAndRestriction *lpresArchiveCheck);
+	_kc_hidden HRESULT CheckAndUpdateSearchFolder(LPMAPIFOLDER folder, eSearchFolder which);
+	_kc_hidden HRESULT CreateSearchFolder(eSearchFolder which, LPMAPIFOLDER *ret);
+	_kc_hidden HRESULT CreateSearchFolders(LPMAPIFOLDER *archive_folder, LPMAPIFOLDER *delete_folder, LPMAPIFOLDER *stub_folder);
+	_kc_hidden HRESULT DoCreateSearchFolder(LPMAPIFOLDER parent, eSearchFolder which, LPMAPIFOLDER *retsf);
+	_kc_hidden HRESULT SetupSearchArchiveFolder(LPMAPIFOLDER folder, const ECRestriction *class_chk, const ECRestriction *arc_chk);
+	_kc_hidden HRESULT SetupSearchDeleteFolder(LPMAPIFOLDER folder, const ECRestriction *class_chk, const ECRestriction *arc_chk);
+	_kc_hidden HRESULT SetupSearchStubFolder(LPMAPIFOLDER folder, const ECRestriction *class_chk, const ECRestriction *arc_chk);
+	_kc_hidden HRESULT GetClassCheckRestriction(ECOrRestriction *class_chk);
+	_kc_hidden HRESULT GetArchiveCheckRestriction(ECAndRestriction *arc_chk);
 
 private:
 	typedef HRESULT(StoreHelper::*fn_setup_t)(LPMAPIFOLDER, const ECRestriction *, const ECRestriction *);

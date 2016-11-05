@@ -22,8 +22,7 @@
 #include <kopano/Trace.h>
 
 #include "ZCABProvider.h"
-
-extern "C" MSGSERVICEENTRY __stdcall MSGServiceEntry;
+#include "EntryPoint.h"
 
 HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst, LPMALLOC lpMalloc,
     LPMAPISUP psup, ULONG ulUIParam, ULONG ulFlags, ULONG ulContext,

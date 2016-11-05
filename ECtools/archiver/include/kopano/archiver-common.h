@@ -60,12 +60,12 @@
 /**
  * Utility class for easy handling of non-addressbook entryids.
  */
-class entryid_t _kc_final {
+class _kc_export entryid_t _kc_final {
 public:
 	/**
 	 * Constructs an empty entryid.
 	 */
-	entryid_t() {}
+	_kc_hidden entryid_t(void) {}
 	
 	/**
 	 * Construct an entryid based on a length and pointer argument.
@@ -75,7 +75,7 @@ public:
 	 * @param[in]	lpEntryId
 	 *					Pointer to the entryid.
 	 */
-	entryid_t(ULONG cbEntryId, LPENTRYID lpEntryId)
+	_kc_hidden entryid_t(ULONG cbEntryId, LPENTRYID lpEntryId)
 	: m_vEntryId(reinterpret_cast<LPBYTE>(lpEntryId), reinterpret_cast<LPBYTE>(lpEntryId) + cbEntryId)
 	{ }
 	
@@ -85,7 +85,7 @@ public:
 	 * @param[in]	sBin
 	 *					The SBinary structure from which the data will be extracted.
 	 */
-	entryid_t(const SBinary &sBin)
+	_kc_hidden entryid_t(const SBinary &sBin)
 	: m_vEntryId(sBin.lpb, sBin.lpb + sBin.cb)
 	{ }
 	
@@ -93,7 +93,7 @@ public:
 	 * @param[in]	other
 	 *					The entryid to copy.
 	 */
-	entryid_t(const entryid_t &other)
+	_kc_hidden entryid_t(const entryid_t &other)
 	: m_vEntryId(other.m_vEntryId)
 	{ }
 	
@@ -105,7 +105,8 @@ public:
 	 * @param[in]	lpEntryId
 	 *					Pointer to the entryid.
 	 */
-	void assign(ULONG cbEntryId, LPENTRYID lpEntryId) {
+	_kc_hidden void assign(ULONG cbEntryId, LPENTRYID lpEntryId)
+	{
 		m_vEntryId.assign(reinterpret_cast<LPBYTE>(lpEntryId),
 		                  reinterpret_cast<LPBYTE>(lpEntryId) + cbEntryId);
 	}
@@ -116,7 +117,8 @@ public:
 	 * @param[in]	sBin
 	 *					The SBinary structure from which the data will be extracted.
 	 */
-	void assign(const SBinary &sBin) {
+	_kc_hidden void assign(const SBinary &sBin)
+	{
 		m_vEntryId.assign(sBin.lpb, sBin.lpb + sBin.cb);
 	}
 	
@@ -126,7 +128,8 @@ public:
 	 * @param[in]	other
 	 *					The entryid to copy.
 	 */
-	void assign(const entryid_t &other) {
+	_kc_hidden void assign(const entryid_t &other)
+	{
 		m_vEntryId = other.m_vEntryId;
 	}
 	
@@ -134,19 +137,19 @@ public:
 	 * Returns the size in bytes of the entryid.
 	 * @return The size in bytes of the entryid.
 	 */
-	ULONG size() const { return m_vEntryId.size(); }
+	_kc_hidden ULONG size(void) const { return m_vEntryId.size(); }
 	
 	/**
 	 * Returns true if the entryid is empty.
 	 * @return true or false
 	 */
-	bool empty() const { return m_vEntryId.empty(); }
+	_kc_hidden bool empty(void) const { return m_vEntryId.empty(); }
 	
 	/**
 	 * Return a pointer to the data as a BYTE pointer.
 	 * @return The entryid data.
 	 */
-	operator LPBYTE(void) const
+	_kc_hidden operator LPBYTE(void) const
 	{
 		return reinterpret_cast<LPBYTE>(const_cast<unsigned char *>(&m_vEntryId.front()));
 	}
@@ -155,7 +158,7 @@ public:
 	 * Return a pointer to the data as an ENTRYID pointer.
 	 * @return The entryid data.
 	 */
-	operator LPENTRYID(void) const
+	_kc_hidden operator LPENTRYID(void) const
 	{
 		return reinterpret_cast<LPENTRYID>(const_cast<unsigned char *>(&m_vEntryId.front()));
 	}
@@ -164,7 +167,7 @@ public:
 	 * Return a pointer to the data as a VOID pointer.
 	 * @return The entryid data.
 	 */
-	operator LPVOID(void) const
+	_kc_hidden operator LPVOID(void) const
 	{
 		return reinterpret_cast<LPVOID>(const_cast<unsigned char *>(&m_vEntryId.front()));
 	}
@@ -175,7 +178,8 @@ public:
 	 *					The entryid to copy.
 	 * @return Reference to itself.
 	 */
-	entryid_t &operator=(const entryid_t &other) {
+	_kc_hidden entryid_t &operator=(const entryid_t &other)
+	{
 		if (&other != this) {
 			entryid_t tmp(other);
 			swap(tmp);
@@ -188,7 +192,8 @@ public:
 	 * @param[in,out]	other
 	 *						The other entryid to swap content with.
 	 */
-	void swap(entryid_t &other) {
+	_kc_hidden void swap(entryid_t &other)
+	{
 		std::swap(m_vEntryId, other.m_vEntryId);
 	}
 	
@@ -206,7 +211,8 @@ public:
 	 *					The other entryid to compare content with.
 	 * @return true if the entryids are not equal.
 	 */
-	bool operator!=(const entryid_t &other) const {
+	_kc_hidden bool operator!=(const entryid_t &other) const
+	{
 		return !(*this == other);
 	}
 	
@@ -230,7 +236,8 @@ public:
 	 * Convert the entryid to a human readable hexadecimal format.
 	 * @return The entryid in hexadecimal format.
 	 */
-	std::string tostring() const {
+	_kc_hidden std::string tostring(void) const
+	{
 		return bin2hex(m_vEntryId.size(), &m_vEntryId.front());
 	}
 	
@@ -238,7 +245,8 @@ public:
 	 * Get entryid as a std::string
 	 * @return The binary data as std::string
 	 */
-	std::string data() const {
+	_kc_hidden std::string data(void) const
+	{
 		return std::string(reinterpret_cast<char *>(const_cast<unsigned char *>(&m_vEntryId.front())), m_vEntryId.size());
 	}
 	
@@ -252,7 +260,7 @@ public:
 	 * 
 	 * @return true on success
 	 */
-	bool wrap(const std::string &strPath);
+	_kc_hidden bool wrap(const std::string &path);
 	
 	/**
 	 * Unwrap the path from the entryid. 
@@ -264,7 +272,7 @@ public:
 	 * @retval	true	The path was successfully extracted.
 	 * @retval	false	THe entryid wasn't wrapped.
 	 */
-	bool unwrap(std::string *lpstrPath);
+	_kc_hidden bool unwrap(std::string *path);
 
 	/**
 	 * Check if an entryid is wrapped with a server path.
@@ -583,8 +591,8 @@ public:
 
 extern "C" {
 
-eResult MAPIErrorToArchiveError(HRESULT hr);
-const char* ArchiveResultString(eResult result);
+extern _kc_export eResult MAPIErrorToArchiveError(HRESULT);
+extern _kc_export const char *ArchiveResultString(eResult);
 
 }
 

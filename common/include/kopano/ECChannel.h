@@ -39,30 +39,27 @@ struct sockaddr;
 // this ensures that the ECChannel class is responsible for reading, writing
 // and culling newline characters.
 
-class ECChannel _kc_final {
+class _kc_export ECChannel _kc_final {
 public:
-	ECChannel(int socket);
+	_kc_hidden ECChannel(int sockfd);
 	~ECChannel();
 	HRESULT HrEnableTLS(void);
-	HRESULT HrGets(char *szBuffer, ULONG ulBufSize, ULONG *lpulRead);
+	_kc_hidden HRESULT HrGets(char *buf, ULONG bufsize, ULONG *have_read);
 	HRESULT HrReadLine(std::string * strBuffer, ULONG ulMaxBuffer = 65536);
-	HRESULT HrWriteString(const char *szBuffer);
+	_kc_hidden HRESULT HrWriteString(const char *buf);
 	HRESULT HrWriteString(const std::string & strBuffer);
 	HRESULT HrWriteLine(const char *szBuffer, int len = 0);
 	HRESULT HrWriteLine(const std::string & strBuffer);
-	HRESULT HrReadBytes(char *szBuffer, ULONG ulByteCount);
+	_kc_hidden HRESULT HrReadBytes(char *buf, ULONG count);
 	HRESULT HrReadBytes(std::string * strBuffer, ULONG ulByteCount);
 	HRESULT HrReadAndDiscardBytes(ULONG ulByteCount);
 
 	HRESULT HrSelect(int seconds);
-
-	void SetIPAddress(const struct sockaddr *, size_t);
-	const char *peer_addr(void) const { return peer_atxt; }
+	_kc_hidden void SetIPAddress(const struct sockaddr *, size_t);
+	_kc_hidden const char *peer_addr(void) const { return peer_atxt; }
 	int peer_is_local(void) const;
-		
-	bool UsingSsl(void) const { return lpSSL != NULL; }
-	bool sslctx(void) const { return lpCTX != NULL; }
-
+	_kc_hidden bool UsingSsl(void) const { return lpSSL != NULL; }
+	_kc_hidden bool sslctx(void) const { return lpCTX != NULL; }
 	static HRESULT HrSetCtx(ECConfig *);
 	static HRESULT HrFreeCtx();
 
@@ -74,21 +71,21 @@ private:
 	struct sockaddr_storage peer_sockaddr;
 	socklen_t peer_salen;
 
-	char *fd_gets(char *buf, int *lpulLen);
-	char *SSL_gets(char *buf, int *lpulLen);
+	_kc_hidden char *fd_gets(char *buf, int *len);
+	_kc_hidden char *SSL_gets(char *buf, int *len);
 };
 
 /* helpers to open socket */
 extern HRESULT HrListen(const char *path, int *fd);
-extern HRESULT HrListen(const char *bind, uint16_t port, int *fd);
+extern _kc_export HRESULT HrListen(const char *bind, uint16_t port, int *fd);
 /* accept data on connection */
-extern HRESULT HrAccept(int fd, ECChannel **ch);
+extern _kc_export HRESULT HrAccept(int fd, ECChannel **ch);
 
 extern "C" {
 
-extern int zcp_bindtodevice(int fd, const char *iface);
+extern _kc_export int zcp_bindtodevice(int fd, const char *iface);
 extern int zcp_peeraddr_is_local(const struct sockaddr *, socklen_t);
-extern int zcp_peerfd_is_local(int);
+extern _kc_export int zcp_peerfd_is_local(int);
 
 }
 

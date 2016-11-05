@@ -72,7 +72,7 @@
 		} \
 	} while (false)
 
-class ECUnknown : public IECUnknown {
+class _kc_export ECUnknown : public IECUnknown {
 public:
 	ECUnknown(const char *szClassName = NULL);
 	virtual ~ECUnknown();
