@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include "MAPIToICal.h"
 #include <libical/ical.h>
@@ -30,7 +30,7 @@
 #include <mapix.h>
 #include <kopano/ecversion.h>
 
-class MapiToICalImpl : public MapiToICal {
+class MapiToICalImpl _kc_final : public MapiToICal {
 public:
 	MapiToICalImpl(LPADRBOOK lpAdrBook, const std::string &strCharset);
 	virtual ~MapiToICalImpl();

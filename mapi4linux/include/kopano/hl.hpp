@@ -30,7 +30,7 @@ class KUnknown;
 typedef std::unique_ptr<SPropValue, KDeleter> KProp;
 typedef std::unique_ptr<SRowSet, KDeleter> KRowSet;
 
-class KAttach {
+class KAttach _kc_final {
 	public:
 	KAttach(IAttach *, unsigned int);
 	KAttach(KAttach &&);
@@ -79,7 +79,7 @@ class KDeleter _kc_final {
 	void operator()(SRowSet *);
 };
 
-class KFolder {
+class KFolder _kc_final {
 	public:
 	KFolder(void) {}
 	KFolder(IMAPIFolder *);
@@ -96,7 +96,7 @@ class KFolder {
 	IMAPIFolder *m_folder = nullptr;
 };
 
-class KMessage {
+class KMessage _kc_final {
 	public:
 	KMessage(void) {}
 	KMessage(IMessage *);
@@ -115,13 +115,13 @@ class KMessage {
 	IMessage *m_message = nullptr;
 };
 
-class KPropertyRestriction : public SPropertyRestriction {
+class KPropertyRestriction _kc_final : public SPropertyRestriction {
 	public:
 	KPropertyRestriction(ULONG, SPropValue *);
 	operator SRestriction(void) const;
 };
 
-class KSession {
+class KSession _kc_final {
 	public:
 	KSession(void);
 	KSession(const wchar_t *, const wchar_t *);
@@ -137,7 +137,7 @@ class KSession {
 	IMAPISession *m_session;
 };
 
-class KStore {
+class KStore _kc_final {
 	public:
 	KStore(IMsgStore *);
 	KStore(KStore &&);
@@ -155,7 +155,7 @@ class KStore {
 	ULONG m_type;
 };
 
-class KStream {
+class KStream _kc_final {
 	public:
 	KStream(IStream *);
 	KStream(KStream &&);
@@ -170,7 +170,7 @@ class KStream {
 	IStream *m_stream;
 };
 
-class KTable {
+class KTable _kc_final {
 	public:
 	KTable(IMAPITable *);
 	KTable(KTable &&);
@@ -185,7 +185,7 @@ class KTable {
 	IMAPITable *m_table;
 };
 
-class KUnknown {
+class KUnknown _kc_final {
 	public:
 	KUnknown(IUnknown * = NULL);
 	KUnknown(KUnknown &&);

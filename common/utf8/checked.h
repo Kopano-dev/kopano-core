@@ -45,12 +45,13 @@ DEALINGS IN THE SOFTWARE.
 #ifndef UTF8_FOR_CPP_CHECKED_H_2675DCD0_9480_4c0c_B92A_CC14C027B731
 #define UTF8_FOR_CPP_CHECKED_H_2675DCD0_9480_4c0c_B92A_CC14C027B731
 
+#include <kopano/zcdefs.h>
 #include "core.h"
 #include <stdexcept>
 
 namespace utf8 {
     // Exceptions that may be thrown from the library functions.
-    class invalid_code_point : public std::exception {
+    class invalid_code_point _kc_final : public std::exception {
         uint32_t cp;
     public:
         invalid_code_point(uint32_t cp) : cp(cp) {}
@@ -58,7 +59,7 @@ namespace utf8 {
         uint32_t code_point() const {return cp;}
     };
 
-    class invalid_utf8 : public std::exception {
+    class invalid_utf8 _kc_final : public std::exception {
         uint8_t u8;
     public:
         invalid_utf8 (uint8_t u) : u8(u) {}
@@ -66,7 +67,7 @@ namespace utf8 {
         uint8_t utf8_octet() const {return u8;}
     };
 
-    class invalid_utf16 : public std::exception {
+    class invalid_utf16 _kc_final : public std::exception {
         uint16_t u16;
     public:
         invalid_utf16 (uint16_t u) : u16(u) {}
@@ -74,7 +75,7 @@ namespace utf8 {
         uint16_t utf16_word() const {return u16;}
     };
 
-    class not_enough_room : public std::exception {
+    class not_enough_room _kc_final : public std::exception {
     public:
         virtual const char* what() const throw() { return "Not enough space"; }
     };
@@ -272,7 +273,8 @@ namespace utf8 {
 
     // The iterator class
     template <typename octet_iterator>
-    class iterator : public std::iterator <std::bidirectional_iterator_tag, uint32_t> {
+    class iterator _kc_final :
+        public std::iterator <std::bidirectional_iterator_tag, uint32_t> {
       octet_iterator it;
       octet_iterator range_start;
       octet_iterator range_end;

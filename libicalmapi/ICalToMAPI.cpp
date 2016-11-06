@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include "ICalToMAPI.h"
 #include "vconverter.h"
@@ -33,7 +33,7 @@
 #include <vector>
 #include <kopano/charset/convert.h>
 
-class ICalToMapiImpl : public ICalToMapi {
+class ICalToMapiImpl _kc_final : public ICalToMapi {
 public:
 	/*
 	    - lpPropObj to lookup named properties

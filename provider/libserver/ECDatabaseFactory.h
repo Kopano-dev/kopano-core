@@ -18,6 +18,7 @@
 #ifndef ECDATABASEFACTORY_H
 #define ECDATABASEFACTORY_H
 
+#include <kopano/zcdefs.h>
 #include "ECDatabase.h"
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
