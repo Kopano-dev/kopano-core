@@ -56,11 +56,10 @@ pkglibexec_PROGRAMS = mapitime
 # so the order of lib_LTLIBRARIES is important! Dependant libs go to the right.
 # (Order was previously implied by the SUBDIRS variable.)
 #
-noinst_LTLIBRARIES = libkccommon.la libm4lcommon.la
+noinst_LTLIBRARIES = libm4lcommon.la
 lib_LTLIBRARIES = \
 	libkcutil.la libkcmapi.la libkcssl.la libmapi.la libkchl.la \
-	libkcfreebusy.la libkcsync.la \
-	libkcsoapclient.la libkcsoapserver.la libkcserver.la \
+	libkcfreebusy.la libkcsync.la libkcsoap.la libkcserver.la \
 	libkcicalmapi.la libkcinetmapi.la \
 	libkcarchiver.la libkcarchivercore.la
 noinst_DATA = \
@@ -72,8 +71,8 @@ noinst_DATA = \
 	libkccontacts.ldd libkcfreebusy.ldd libkchl.ldd libkcicalmapi.ldd \
 	libkcinetmapi.ldd libkcmapi.ldd libkcssl.ldd \
 	libkcsync.ldd libkcutil.ldd libmapi.ldd
-#noinst_DATA += libkccommon.ldd libkcserver.ldd \
-#	libkcsoapclient.ldd libkcsoapserver.ldd
+# Undefined references
+#noinst_DATA += libkcserver.ldd libkcsoap.ldd
 pkglib_LTLIBRARIES = libkcclient.la libkccontacts.la
 
 
@@ -234,12 +233,14 @@ kopano_server_SOURCES = \
 	provider/server/ECServer.cpp \
 	provider/server/ECSoapServerConnection.cpp provider/server/ECSoapServerConnection.h \
 	provider/server/ECClientUpdate.cpp provider/server/ECClientUpdate.h \
-	provider/server/ECThreadManager.cpp provider/server/ECThreadManager.h
+	provider/server/ECThreadManager.cpp provider/server/ECThreadManager.h \
+	provider/common/SOAPHelpers.cpp provider/common/SOAPHelpers.h \
+	provider/soap/soapServer.cpp
 kopano_server_LDADD = \
-	libkcserver.la ${GSOAP_LIBS} libkcsoapserver.la libkccommon.la \
 	libkcutil.la libkcmapi.la libkcssl.la \
+	libkcserver.la libkcsoap.la ${GSOAP_LIBS} \
 	${PROG_LIBS} ${BOOST_FILESYSTEM_LIBS} ${BOOST_SYSTEM_LIBS} \
-	${icu_uc_LIBS} ${icu_i18n_LIBS} ${DL_LIBS} \
+	${CRYPTO_LIBS} ${icu_uc_LIBS} ${icu_i18n_LIBS} ${DL_LIBS} \
 	${MYSQL_LIBS} ${SSL_LIBS} ${PAM_LIBS} ${KRB5_LIBS} -lrt
 kopano_server_LDFLAGS = ${AM_LDFLAGS} ${BOOST_FILESYSTEM_LDFLAGS}
 
@@ -371,32 +372,14 @@ libkcclient_la_SOURCES = \
 	provider/client/WSTransport.cpp provider/client/WSTransport.h \
 	provider/client/WSUtil.cpp provider/client/WSUtil.h \
 	provider/client/epclient.cpp \
-	provider/client/resource.h
+	provider/client/resource.h \
+	provider/common/SOAPSock.cpp provider/common/SOAPSock.h \
+	provider/soap/soapClient.cpp
 libkcclient_la_LIBADD = \
 	libkcmapi.la libkcssl.la libkcutil.la libkcfreebusy.la libkcsync.la \
-	libmapi.la libkccommon.la libkcsoapclient.la -lstdc++ \
+	libmapi.la libkcsoap.la -lstdc++ \
 	${GSOAP_LIBS} ${ICU_LIBS} ${SSL_LIBS} ${UUID_LIBS}
 libkcclient_la_LDFLAGS = ${AM_LDFLAGS} -avoid-version -module
-
-
-#
-# libkccommon
-#
-libkccommon_la_SOURCES = \
-	provider/common/ECLicenseClient.h provider/common/ECLicenseClient.cpp \
-	provider/common/ECSearchClient.h provider/common/ECSearchClient.cpp \
-	provider/common/SOAPAlloc.h provider/common/SOAPDebug.cpp provider/common/SOAPDebug.h \
-	provider/common/SOAPHelpers.cpp provider/common/SOAPHelpers.h \
-	provider/common/SOAPSock.cpp provider/common/SOAPSock.h \
-	provider/common/SOAPUtils.cpp provider/common/SOAPUtils.h \
-	provider/common/pcuser.cpp provider/common/pcutil.cpp provider/common/pcutil.hpp \
-	provider/common/soapctor.cpp provider/common/versions.h
-libkccommon_la_LIBADD = \
-	libkcutil.la libkcmapi.la libkcsoapclient.la libkcssl.la \
-	${GSOAP_LIBS} ${SSL_LIBS}
-libkccommon_la_LDFLAGS = ${AM_LDFLAGS} \
-	-Wl,--version-script=${default_sym}
-EXTRA_libkccommon_la_DEPENDENCIES = ${default_sym}
 
 
 #
@@ -564,11 +547,14 @@ libkcserver_la_SOURCES = \
 	provider/libserver/StreamUtil.cpp provider/libserver/StreamUtil.h \
 	provider/libserver/cmd.cpp provider/libserver/cmd.hpp \
 	provider/libserver/cmdutil.cpp provider/libserver/cmdutil.hpp \
-	provider/libserver/logontime.cpp provider/libserver/logontime.hpp
+	provider/libserver/logontime.cpp provider/libserver/logontime.hpp \
+	provider/common/ECLicenseClient.cpp provider/common/ECLicenseClient.h \
+	provider/common/ECSearchClient.cpp provider/common/ECSearchClient.h \
+	provider/common/SOAPDebug.cpp provider/common/SOAPDebug.h
 libkcserver_la_LIBADD = \
-	libkcutil.la libkccommon.la \
+	libkcutil.la libkcmapi.la libkcssl.la libkcsoap.la \
 	-lpthread ${icu_i18n_LIBS} ${icu_uc_LIBS} \
-	${KRB5_LIBS} ${MYSQL_LIBS} ${PAM_LIBS} ${SSL_LIBS}
+	${GSOAP_LIBS} ${KRB5_LIBS} ${MYSQL_LIBS} ${PAM_LIBS} ${SSL_LIBS}
 libkcserver_la_LDFLAGS = ${AM_LDFLAGS} \
 	-Wl,--version-script=${default_sym}
 EXTRA_libkcserver_la_DEPENDENCIES = ${default_sym}
@@ -593,23 +579,18 @@ EXTRA_libkcmapi_la_DEPENDENCIES = ${default_sym}
 
 
 #
-# libkcsoapclient
+# libkcsoap
 #
-nodist_libkcsoapclient_la_SOURCES = provider/soap/soapC.cpp provider/soap/soapClient.cpp
-libkcsoapclient_la_LIBADD = ${GSOAP_LIBS}
-libkcsoapclient_la_LDFLAGS = ${AM_LDFLAGS} \
+libkcsoap_la_SOURCES = \
+	provider/common/soapctor.cpp provider/soap/soapC.cpp \
+	provider/common/pcuser.cpp provider/common/SOAPAlloc.h \
+	provider/common/SOAPUtils.cpp provider/common/SOAPUtils.h \
+	provider/common/pcutil.cpp provider/common/pcutil.hpp \
+	provider/common/versions.h
+libkcsoap_la_LIBADD = libkcutil.la libkcmapi.la ${GSOAP_LIBS}
+libkcsoap_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	-Wl,--version-script=${default_sym}
-EXTRA_libkcsoapclient_la_DEPENDENCIES = ${default_sym}
-
-
-#
-# libkcsoapserver
-#
-nodist_libkcsoapserver_la_SOURCES = provider/soap/soapC.cpp provider/soap/soapServer.cpp
-libkcsoapserver_la_LIBADD = ${GSOAP_LIBS}
-libkcsoapserver_la_LDFLAGS = ${AM_LDFLAGS} \
-	-Wl,--version-script=${default_sym}
-EXTRA_libkcsoapserver_la_DEPENDENCIES = ${default_sym}
+EXTRA_libkcsoap_la_DEPENDENCIES = ${default_sym}
 
 
 #
