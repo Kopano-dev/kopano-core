@@ -487,7 +487,9 @@ ECRESULT ECCacheManager::GetObjects(const std::list<sObjectTableKey> &lstObjects
             mapObjects[key] = sObject;
         }
     }
-    
+	if (mapObjects.size() < lstObjects.size())
+		LOG_CACHE_DEBUG("Get objects ids warning %zu objects not found",
+			lstObjects.size() - mapObjects.size());
 exit:
 	if (lpDBResult != NULL)
 		lpDatabase->FreeResult(lpDBResult);
@@ -544,6 +546,9 @@ ECRESULT ECCacheManager::GetObjectsFromProp(unsigned int ulTag,
 			mapObjects[sObject] = atoui(lpDBRow[0]);
 		}
 	}
+	if (mapObjects.size() < lpdata.size())
+		LOG_CACHE_DEBUG("Get objects ids warning %zu objects not found",
+			lpdata.size() - mapObjects.size());
  exit:
 	sObject.lpData = NULL;
 	if (lpDBResult != NULL)
