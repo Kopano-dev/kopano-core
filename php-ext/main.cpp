@@ -499,6 +499,7 @@ zend_module_entry mapi_module_entry =
 
 #if COMPILE_DL_MAPI
 BEGIN_EXTERN_C()
+	ZEND_DLEXPORT zend_module_entry *get_module(void);
 	ZEND_GET_MODULE(mapi)
 END_EXTERN_C()
 #endif
