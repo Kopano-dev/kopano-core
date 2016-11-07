@@ -134,6 +134,6 @@ private:
 };
 
 // Link to provider/server
-void kopano_get_server_stats(unsigned int *lpulQueueLen, double *lpDblQueueAge, unsigned int *lpulThreads, unsigned int *lpulIdleThreads);
+extern void (*kopano_get_server_stats)(unsigned int *qlen, double *qage, unsigned int *nthr, unsigned int *idlthr);
 
 #endif

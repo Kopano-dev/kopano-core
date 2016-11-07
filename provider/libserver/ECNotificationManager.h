@@ -76,6 +76,6 @@ private:
 };
 
 extern ECSessionManager *g_lpSessionManager;
-extern void kopano_notify_done(struct soap *soap);
+extern void (*kopano_notify_done)(struct soap *);
 
 #endif

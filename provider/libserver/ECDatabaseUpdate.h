@@ -18,6 +18,7 @@
 #ifndef ECDATABASEUPDATE_H
 #define ECDATABASEUPDATE_H
 
+#include <kopano/zcdefs.h>
 #include <kopano/ECLogger.h>
 
 ECRESULT UpdateDatabaseConvertToUnicode(ECDatabase *);
@@ -107,6 +108,8 @@ ECRESULT UpdateWLinkRecordKeys(ECDatabase *lpDatabase);
 ECRESULT UpdateVersionsTbl(ECDatabase *db);
 ECRESULT UpdateChangesTbl(ECDatabase *db);
 ECRESULT UpdateABChangesTbl(ECDatabase *db);
+
+extern bool searchfolder_restart_required;
 
 } /* extern "C" */
 

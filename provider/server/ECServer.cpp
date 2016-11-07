@@ -24,6 +24,7 @@
 
 #include "ECDatabase.h"
 #include "ECDatabaseFactory.h"
+#include "ECDatabaseUpdate.h"
 #include "ECDatabaseUtils.h"
 #include <kopano/ECLogger.h>
 
@@ -88,7 +89,6 @@ static int running_server(char *, const char *, int, char **, int, char **);
 int					g_Quit = 0;
 int					daemonize = 1;
 int					restart_searches = 0;
-int					searchfolder_restart_required = 0; //HACK for rebuild the searchfolders with an upgrade
 bool				m_bIgnoreDatabaseVersionConflict = false;
 bool				m_bIgnoreAttachmentStorageConflict = false;
 bool				m_bIgnoreDistributedKopanoConflict = false;
@@ -109,13 +109,13 @@ bool m_bDatabaseUpdateIgnoreSignals = false;
 
 // This is the callback function for libserver/* so that it can notify that a delayed soap
 // request has been handled.
-void kopano_notify_done(struct soap *soap)
+static void kcsrv_notify_done(struct soap *soap)
 {
     g_lpSoapServerConn->NotifyDone(soap);
 }
 
 // Called from ECStatsTables to get server stats
-void kopano_get_server_stats(unsigned int *lpulQueueLength,
+static void kcsrv_get_server_stats(unsigned int *lpulQueueLength,
     double *lpdblAge, unsigned int *lpulThreadCount,
     unsigned int *lpulIdleThreads)
 {
@@ -1046,6 +1046,8 @@ static int running_server(char *szName, const char *szConfig,
 		g_lpConfig->AddSetting("sync_gab_realtime", "yes");
 	}
 
+	kopano_notify_done = kcsrv_notify_done;
+	kopano_get_server_stats = kcsrv_get_server_stats;
 	kopano_initlibrary(g_lpConfig->GetSetting("mysql_database_path"), g_lpConfig->GetSetting("mysql_config_file"));
 
 	if(!strcmp(g_lpConfig->GetSetting("server_pipe_enabled"), "yes"))

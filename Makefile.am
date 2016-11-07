@@ -241,10 +241,7 @@ kopano_server_LDADD = \
 	${PROG_LIBS} ${BOOST_FILESYSTEM_LIBS} ${BOOST_SYSTEM_LIBS} \
 	${icu_uc_LIBS} ${icu_i18n_LIBS} ${DL_LIBS} \
 	${MYSQL_LIBS} ${SSL_LIBS} ${PAM_LIBS} ${KRB5_LIBS} -lrt
-# -E (-rdynamic) still needed because libkcserver.so references
-# "searchfolder_restart_required", "_Z23kopano_get_server_statsPjPdS_S_"
-# and "_Z18kopano_notify_doneP4soap"
-kopano_server_LDFLAGS = ${AM_LDFLAGS} -Wl,-E ${BOOST_FILESYSTEM_LDFLAGS}
+kopano_server_LDFLAGS = ${AM_LDFLAGS} ${BOOST_FILESYSTEM_LDFLAGS}
 
 
 #

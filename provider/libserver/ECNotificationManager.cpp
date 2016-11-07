@@ -67,6 +67,8 @@ static int soapresponse(struct notifyResponse notifications, struct soap *soap)
     return soap_closesock(soap);
 }
 
+void (*kopano_notify_done)(struct soap *) = [](struct soap *) {};
+
 ECNotificationManager::ECNotificationManager(void)
 {
     m_bExit = false;

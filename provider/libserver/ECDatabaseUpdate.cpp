@@ -44,7 +44,7 @@
 #include <kopano/mapiext.h>
 #include <edkmdb.h>
 
-extern int searchfolder_restart_required; // HACK
+bool searchfolder_restart_required; //HACK for rebuild the searchfolders with an upgrade
 
 /*
 	database upgrade
