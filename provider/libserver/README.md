@@ -1,10 +1,6 @@
 Libserver
 =========
 
-Libserver is splitted for historical reasons in libserver/server.
-There is no reason to keep this code in different places.
-
-
 ECCacheManager
 --------------
 
