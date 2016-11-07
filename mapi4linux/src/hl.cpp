@@ -97,7 +97,7 @@ KMAPIError::KMAPIError(HRESULT code) :
 {
 }
 
-const char *KMAPIError::what(void) const throw()
+const char *KMAPIError::what(void) const noexcept
 {
 	return m_message.c_str();
 }
