@@ -4953,6 +4953,58 @@
 	  </refsection>
 
 	  <refsection>
+	        <title>Explanation of S3 parameters</title>
+
+		<variablelist>
+		  <varlistentry>
+		    <term><option>attachment_s3_hostname</option></term>
+		    <listitem>
+		      <para>The hostname of the entry point to the S3 cloud where the bucket
+		      is located.</para>
+		    </listitem>
+		  </varlistentry>
+		  <varlistentry>
+		    <term><option>attachment_s3_region</option></term>
+		    <listitem>
+		      <para>The region where the bucket is located</para>
+		    </listitem>
+		  </varlistentry>
+		  <varlistentry>
+		    <term><option>attachment_s3_protocol</option></term>
+		    <listitem>
+		      <para>The protocol that should be used to connect to S3, "http" or "https"
+		      (preferred).</para>
+		    </listitem>
+		  </varlistentry>
+		  <varlistentry>
+		    <term><option>attachment_s3_uristyle</option></term>
+		    <listitem>
+		      <para>The URL style of the bucket, "virtualhost" or "path".</para>
+		    </listitem>
+		  </varlistentry>
+		  <varlistentry>
+		    <term><option>attachment_s3_accesskeyid</option></term>
+		    <listitem>
+		      <para>The access key id of your S3 account.</para>
+		    </listitem>
+		  </varlistentry>
+		  <varlistentry>
+		    <term><option>attachment_s3_secretaccesskey</option></term>
+		    <listitem>
+		      <para>The secret access key of your S3 account.</para>
+		    </listitem>
+		  </varlistentry>
+		  <varlistentry>
+		    <term><option>attachment_s3_bucketname</option></term>
+		    <listitem>
+		      <para>The bucket name in which the files will be stored.</para>
+		    </listitem>
+		  </varlistentry>
+
+		</variablelist>
+	  </refsection>
+
+	  <refsection>
 		<title>Explanation of miscelleanious parameters</title>
 
 		<variablelist>
