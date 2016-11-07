@@ -945,7 +945,11 @@ genpages = \
 	doc/kopano-spooler.8 doc/kopano-spooler.cfg.5 \
 	doc/kopano-backup.8 doc/kopano-backup.cfg.5 \
 	doc/kopano-stats.1 \
-	doc/kopano-unix.cfg.5
+	doc/kopano-unix.cfg.5 \
+	doc/kopano-migration-pst.8 doc/kopano-migration-pst.cfg.5 \
+	doc/kopano-archiver-aclsync.8 \
+	doc/kopano-archiver-aclset.8 \
+	doc/kopano-archiver-restore.8
 dist_man_MANS = ${genpages}
 CLEANFILES += ${genpages} doc/kopano.0
 EXTRA_DIST += doc/manual.xml
