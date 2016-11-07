@@ -370,10 +370,14 @@ class Service(kopano.Service):
 
         if '@' in username:
             u, c = username.split('@')
-            if u == c: return self.server.company(c).public_store
-            else: return self.server.user(username).store
-        elif username == 'public': return self.server.public_store
-        else: return self.server.user(username).store
+            if u == 'public' or u == c:
+                return self.server.company(c).public_store
+            else:
+                return self.server.user(username).store
+        elif username == 'public':
+            return self.server.public_store
+        else:
+            return self.server.user(username).store
 
 def folder_struct(data_path, options, mapper=None):
     """ determine all folders in backup directory """

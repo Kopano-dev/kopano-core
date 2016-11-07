@@ -1128,13 +1128,22 @@ class Server(object):
         group = self.group(name)
         self.sa.DeleteGroup(group._ecgroup.GroupID)
 
-    def store(self, guid=None, entryid=None):
-        """ Return :class:`store <Store>` with given GUID """
-
-        if guid == 'public':
+    def _pubstore(self, name):
+        if name == 'public':
             if not self.public_store:
                 raise NotFoundError("no public store")
             return self.public_store
+        else:
+            company = Company(name.split('@')[1])
+            if not company.public_store:
+                raise NotFoundError("no public store for company '%s'" % company.name)
+            return company.public_store
+
+    def store(self, guid=None, entryid=None):
+        """ Return :class:`store <Store>` with given GUID """
+
+        if guid.split('@')[0] == 'public':
+            return self._pubstore(guid)
         else:
             return Store(guid=guid, entryid=entryid, server=self)
 
@@ -1156,10 +1165,8 @@ class Server(object):
     
         if parse and getattr(self.options, 'stores', None):
             for guid in self.options.stores:
-                if guid == 'public': # XXX check self.options.companies?
-                    if not self.public_store:
-                        raise NotFoundError("no public store")
-                    yield self.public_store
+                if guid.split('@')[0] == 'public':
+                    yield self._pubstore(guid)
                 else:
                     yield Store(guid, server=self)
             return
@@ -1237,6 +1244,9 @@ def store(guid):
 
 def stores(*args, **kwargs):
     return Server().stores(*args, **kwargs)
+
+def company(name):
+    return Server().company(name)
 
 def companies(*args, **kwargs):
     return Server().companies(*args, **kwargs)
