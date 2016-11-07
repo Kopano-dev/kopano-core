@@ -1827,7 +1827,11 @@ class Store(object):
         table = self.server.sa.OpenUserStoresTable(MAPI_UNICODE)
         table.Restrict(SPropertyRestriction(RELOP_EQ, PR_EC_STOREGUID, SPropValue(PR_EC_STOREGUID, _unhex(self.guid))), TBL_BATCH)
         for row in table.QueryRows(1,0):
-            companyname = PpropFindProp(row, PR_EC_COMPANY_NAME_W)
+            storetype = PpropFindProp(row, PR_EC_STORETYPE)
+            if storetype.Value == ECSTORE_TYPE_PUBLIC:
+                companyname = PpropFindProp(row, PR_EC_USERNAME_W) # XXX bug in ECUserStoreTable.cpp?
+            else:
+                companyname = PpropFindProp(row, PR_EC_COMPANYNAME_W)
             if companyname is None: # XXX single-tenant, improve check..
                 return next(self.server.companies())
             else:
