@@ -120,7 +120,10 @@ CKopanoApp theApp;
 // entrypoints
 
 // Called by MAPI to return a MSProvider object when a user opens a store based on our service
-extern "C" HRESULT __cdecl MSProviderInit(HINSTANCE hInstance, LPMALLOC pmalloc, LPALLOCATEBUFFER pfnAllocBuf, LPALLOCATEMORE pfnAllocMore, LPFREEBUFFER pfnFreeBuf, ULONG ulFlags, ULONG ulMAPIver, ULONG * lpulProviderVer, LPMSPROVIDER * ppmsp)
+HRESULT __cdecl MSProviderInit(HINSTANCE hInstance, LPMALLOC pmalloc,
+    LPALLOCATEBUFFER pfnAllocBuf, LPALLOCATEMORE pfnAllocMore,
+    LPFREEBUFFER pfnFreeBuf, ULONG ulFlags, ULONG ulMAPIver,
+    ULONG *lpulProviderVer, LPMSPROVIDER *ppmsp)
 {
 	TRACE_MAPI(TRACE_ENTRY, "MSProviderInit", "flags=%08X", ulFlags);
 
@@ -912,7 +915,10 @@ exit:
 	return hr;
 }
 
-extern "C" HRESULT __cdecl XPProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc, LPALLOCATEBUFFER lpAllocateBuffer, LPALLOCATEMORE lpAllocateMore, LPFREEBUFFER lpFreeBuffer, ULONG ulFlags, ULONG ulMAPIVer, ULONG * lpulProviderVer, LPXPPROVIDER * lppXPProvider)
+HRESULT __cdecl XPProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc,
+    LPALLOCATEBUFFER lpAllocateBuffer, LPALLOCATEMORE lpAllocateMore,
+    LPFREEBUFFER lpFreeBuffer, ULONG ulFlags, ULONG ulMAPIVer,
+    ULONG *lpulProviderVer, LPXPPROVIDER *lppXPProvider)
 {
 	TRACE_MAPI(TRACE_ENTRY, "XPProviderInit", "");
 
@@ -947,7 +953,10 @@ exit:
 	return hr;
 }
 
-extern "C" HRESULT  __cdecl ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc, LPALLOCATEBUFFER lpAllocateBuffer, LPALLOCATEMORE lpAllocateMore, LPFREEBUFFER lpFreeBuffer, ULONG ulFlags, ULONG ulMAPIVer, ULONG * lpulProviderVer, LPABPROVIDER * lppABProvider)
+HRESULT  __cdecl ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc,
+    LPALLOCATEBUFFER lpAllocateBuffer, LPALLOCATEMORE lpAllocateMore,
+    LPFREEBUFFER lpFreeBuffer, ULONG ulFlags, ULONG ulMAPIVer,
+    ULONG *lpulProviderVer, LPABPROVIDER *lppABProvider)
 {
 	TRACE_MAPI(TRACE_ENTRY, "ABProviderInit", "");
 

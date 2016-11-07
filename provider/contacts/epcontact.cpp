@@ -65,7 +65,10 @@ HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst, LPMALLOC lpMalloc,
 	return hr;
 }
 
-extern "C" HRESULT  __cdecl ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc, LPALLOCATEBUFFER lpAllocateBuffer, LPALLOCATEMORE lpAllocateMore, LPFREEBUFFER lpFreeBuffer, ULONG ulFlags, ULONG ulMAPIVer, ULONG * lpulProviderVer, LPABPROVIDER * lppABProvider)
+HRESULT  __cdecl ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc,
+    LPALLOCATEBUFFER lpAllocateBuffer, LPALLOCATEMORE lpAllocateMore,
+    LPFREEBUFFER lpFreeBuffer, ULONG ulFlags, ULONG ulMAPIVer,
+    ULONG *lpulProviderVer, LPABPROVIDER *lppABProvider)
 {
 	TRACE_MAPI(TRACE_ENTRY, "ZContacts::ABProviderInit", "");
 
