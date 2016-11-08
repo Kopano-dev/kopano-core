@@ -3,10 +3,14 @@
 # Autoresponder settings
 ###########################################
 
-# Autorespond if we were only in the Cc of a message 
+# Autorespond if the recipient is in the Cc field
 AUTORESPOND_CC=0
 
-# Autorespond if we were not in the message at all
+# Autorespond if the recipient is in the Bcc field
+AUTORESPOND_BCC=0
+
+# Autorespond if the recipient is not in any of To, Cc or Bcc
+# (i.e. received the message through a distribution list)
 AUTORESPOND_NORECIP=0
 
 # Only send reply to same e-mail address once per 24 hours

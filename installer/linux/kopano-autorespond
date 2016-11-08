@@ -34,6 +34,8 @@ fi
 RESPOND=0
 if [ "$AUTORESPOND_NORECIP" = "1" ]; then
     RESPOND=1
+elif [ "$AUTORESPOND_BCC" = 1 -a "$MESSAGE_BCC_ME" = "1" ]; then
+	RESPOND=1
 elif [ "$AUTORESPOND_CC" = "1" -a "$MESSAGE_CC_ME" = "1" ]; then
 	RESPOND=1
 elif [ "$MESSAGE_TO_ME" = "1" ]; then
