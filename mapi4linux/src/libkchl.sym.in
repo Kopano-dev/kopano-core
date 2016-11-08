@@ -1,0 +1,9 @@
+KC_@PACKAGE_VERSION@ {
+global:
+	extern "C++" {
+		*KCHL::*;
+		typeinfo*;
+	};
+local:
+	*;
+};

@@ -787,6 +787,7 @@ AC_CONFIG_FILES([Makefile
 		common/kopano.pc
 		default.sym
 		mapi4linux/src/libmapi.sym
+		mapi4linux/src/libkchl.sym
 		version
 ])
 dnl non-oss files

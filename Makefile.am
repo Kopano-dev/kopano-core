@@ -428,8 +428,8 @@ EXTRA_libkcfreebusy_la_DEPENDENCIES = ${default_sym}
 libkchl_la_SOURCES = mapi4linux/src/hl.cpp
 libkchl_la_LIBADD = libmapi.la
 libkchl_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined -version-info 0:0:0 \
-	-Wl,--version-script=${default_sym}
-EXTRA_libkchl_la_DEPENDENCIES = ${default_sym}
+	-Wl,--version-script=mapi4linux/src/libkchl.sym
+EXTRA_libkchl_la_DEPENDENCIES = mapi4linux/src/libkchl.sym
 
 
 #
@@ -952,7 +952,7 @@ doc/kopano.0: ${top_srcdir}/doc/manual.xml
 #
 # build infrastructure
 #
-default.sym: ${top_builddir}/config.status
+default.sym mapi4linux/src/libkchl.sym: ${top_builddir}/config.status
 include global.am
 
 
@@ -981,5 +981,3 @@ common/include/kopano/ecversion.h: versionheader.sh
 
 dist-hook:
 	find $(distdir) -type d -name .svn -exec rm -rf {} \; 2>/dev/null || true
-
-default.sym: ${top_builddir}/config.status

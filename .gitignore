@@ -44,6 +44,7 @@ stamp-h2
 /kopano-stats
 /mapitime
 /mapi4linux/src/libmapi.sym
+/mapi4linux/src/libkchl.sym
 /provider/soap/
 /ECtools/backup/build/
 /ECtools/presence/build/
