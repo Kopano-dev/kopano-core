@@ -123,13 +123,13 @@ static string generateRandomMessageId()
 #undef IDLEN
 }
 
-INETMAPI_API ECSender *CreateSender(const std::string &smtp, int port)
+ECSender *CreateSender(const std::string &smtp, int port)
 {
 	return new ECVMIMESender(smtp, port);
 }
 
 // parse rfc822 input, and set props in lpMessage
-INETMAPI_API HRESULT IMToMAPI(IMAPISession *lpSession, IMsgStore *lpMsgStore,
+HRESULT IMToMAPI(IMAPISession *lpSession, IMsgStore *lpMsgStore,
     IAddrBook *lpAddrBook, IMessage *lpMessage, const string &input,
     delivery_options dopt)
 {
@@ -154,7 +154,7 @@ INETMAPI_API HRESULT IMToMAPI(IMAPISession *lpSession, IMsgStore *lpMsgStore,
 }
 
 // Read properties from lpMessage object and fill a buffer with internet rfc822 format message
-INETMAPI_API HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
+HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
     IMessage *lpMessage, char **lppbuf, sending_options sopt)
 {
 	std::ostringstream oss;
@@ -170,7 +170,7 @@ INETMAPI_API HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
 	return hr;
 }
 
-INETMAPI_API HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
+HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
     IMessage *lpMessage, std::ostream &os, sending_options sopt)
 {
 	HRESULT			hr			= hrSuccess;
@@ -217,7 +217,7 @@ exit:
 
 // Read properties from lpMessage object and to internet rfc2822 format message
 // then send it using the provided ECSender object
-INETMAPI_API HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
+HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
     IMessage *lpMessage, ECSender *mailer_base, sending_options sopt)
 {
 	HRESULT			hr	= hrSuccess;
@@ -291,7 +291,8 @@ exit:
  * 
  * @return MAPI Error code
  */
-INETMAPI_API HRESULT createIMAPProperties(const std::string &input, std::string *lpEnvelope, std::string *lpBody, std::string *lpBodyStructure)
+HRESULT createIMAPProperties(const std::string &input, std::string *lpEnvelope,
+    std::string *lpBody, std::string *lpBodyStructure)
 {
 	InitializeVMime();
 

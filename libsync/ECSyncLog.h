@@ -20,15 +20,14 @@
 
 #include <mutex>
 #include <kopano/zcdefs.h>
-#include "ECLibSync.h"
 #include <pthread.h>
 
 class ECLogger;
 
 class _kc_export ECSyncLog _kc_final {
 public:
-	static HRESULT ECLIBSYNC_API GetLogger(ECLogger **lppLogger);
-	static HRESULT ECLIBSYNC_API SetLogger(ECLogger *lpLogger);
+	static HRESULT GetLogger(ECLogger **);
+	static HRESULT SetLogger(ECLogger *);
 
 private:
 	static std::mutex s_hMutex;

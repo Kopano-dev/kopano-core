@@ -438,7 +438,7 @@ EXTRA_libkchl_la_DEPENDENCIES = ${default_sym}
 libkcicalmapidir = ${includedir}/icalmapi
 libkcicalmapi_HEADERS = \
 	libicalmapi/ICalToMAPI.h libicalmapi/MAPIToICal.h \
-	libicalmapi/icalitem.h libicalmapi/icalmapi.h \
+	libicalmapi/icalitem.h \
 	libicalmapi/icalrecurrence.h libicalmapi/icaluid.h \
 	libicalmapi/nameids.h libicalmapi/valarm.h libicalmapi/vconverter.h \
 	libicalmapi/vevent.h libicalmapi/vfreebusy.h libicalmapi/vtimezone.h \
@@ -614,7 +614,7 @@ EXTRA_libkcssl_la_DEPENDENCIES = ${default_sym}
 #
 libkcsyncdir = ${includedir}/libkcsync
 libkcsync_HEADERS = \
-	libsync/ECLibSync.h libsync/ECOfflineABImporter.h \
+	libsync/ECOfflineABImporter.h \
 	libsync/ECResyncSet.h libsync/ECSyncContext.h libsync/ECSyncLog.h \
 	libsync/ECSyncSettings.h libsync/ECSyncUtil.h
 libkcsync_la_SOURCES = \

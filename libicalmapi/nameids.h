@@ -23,12 +23,11 @@
 #include <kopano/namedprops.h>
 #include <kopano/mapiguidext.h>
 #include <mapiguid.h>
-#include "icalmapi.h"
 
 /* MAPINAMEID strings are in UCS-2LE, so cannot be static initialized in linux
    We first define all strings, so we can use the nmStringNames[] lookup array
  */
-enum ICALMAPI_API eIDNamedProps {
+enum eIDNamedProps {
 	PROP_KEYWORDS = 0,
 // End of String names
 	PROP_MEETINGLOCATION, PROP_GOID, PROP_ISRECURRING, PROP_CLEANID, PROP_OWNERCRITICALCHANGE, PROP_ATTENDEECRITICALCHANGE, PROP_OLDSTART, PROP_ISEXCEPTION, PROP_RECURSTARTTIME,

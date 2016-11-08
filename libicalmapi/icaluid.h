@@ -21,12 +21,11 @@
 #include <kopano/zcdefs.h>
 #include <mapidefs.h>
 #include <string>
-#include "icalmapi.h"
 
 extern "C" {
 
 extern _kc_export bool IsOutlookUid(const std::string &);
-HRESULT ICALMAPI_API HrGenerateUid(std::string *lpStrUid);
+HRESULT HrGenerateUid(std::string *lpStrUid);
 extern _kc_export HRESULT HrCreateGlobalID(ULONG named_tag, void *base, LPSPropValue *pv);
 extern _kc_export HRESULT HrGetICalUidFromBinUid(SBinary &, std::string *uid);
 extern _kc_export HRESULT HrMakeBinUidFromICalUid(const std::string &uid, std::string *binuid);

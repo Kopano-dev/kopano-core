@@ -19,7 +19,6 @@
 #define __INETMAPI_OPTIONS_H
 
 #include <kopano/zcdefs.h>
-# define INETMAPI_API
 
 typedef struct _do {
 	bool use_received_date;			// Use the 'received' date instead of the current date as delivery date

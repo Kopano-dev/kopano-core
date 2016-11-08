@@ -21,12 +21,11 @@
 #include <string>
 #include <mapidefs.h>
 #include <freebusy.h>
-#include "icalmapi.h"
 
 #define M2IC_CENSOR_PRIVATE 0x0001
 #define M2IC_NO_VTIMEZONE 0x0002
 
-class ICALMAPI_API MapiToICal {
+class MapiToICal {
 public:
 	/*
 	    - Addressbook (Global AddressBook for looking up users)

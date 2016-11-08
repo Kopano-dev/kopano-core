@@ -27,8 +27,6 @@
 #include <vector>
 #include <inetmapi/options.h>
 
-# define INETMAPI_API
-
 typedef struct _sFailedRecip {
 	std::string strRecipEmail;
 	std::wstring strRecipName;

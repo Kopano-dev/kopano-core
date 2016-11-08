@@ -23,13 +23,12 @@
 #include <list>
 
 #include "icalitem.h"
-#include "icalmapi.h"
 
 #define IC2M_NO_RECIPIENTS	0x0001
 #define IC2M_APPEND_ONLY	0x0002
 #define IC2M_NO_ORGANIZER	0x0004
 
-class ICALMAPI_API ICalToMapi {
+class ICalToMapi {
 public:
 	/*
 	    - lpPropObj to lookup named properties

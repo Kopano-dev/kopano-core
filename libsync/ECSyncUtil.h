@@ -23,8 +23,6 @@
 #include <kopano/zcdefs.h>
 #include <mapidefs.h>
 
-#include "ECLibSync.h"
-
 extern "C" {
 
 typedef std::set<std::pair<unsigned int, std::string> > PROCESSEDCHANGESSET;

@@ -60,6 +60,5 @@ typedef IAddrBook* LPADRBOOK;
 typedef IMessage* LPMESSAGE;
 
 %include <kopano/zcdefs.h>
-%include "icalmapi.h"
 %include "ICalToMAPI.h"
 %include "MAPIToICal.h"

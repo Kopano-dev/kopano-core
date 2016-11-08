@@ -20,7 +20,6 @@
 
 #include <mutex>
 #include <kopano/zcdefs.h>
-#include "ECLibSync.h"
 
 #define EC_SYNC_OPT_STREAM			1
 #define EC_SYNC_OPT_CHANGENOTIF		2

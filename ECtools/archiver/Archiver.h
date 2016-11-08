@@ -27,8 +27,6 @@ class ECConfig;
 #define ARCHIVE_RIGHTS_ERROR	(unsigned)-1
 #define ARCHIVE_RIGHTS_ABSENT	(unsigned)-2
 
-#define ARCHIVER_API
-
 struct configsetting_t;
 
 class _kc_export Archiver {
@@ -46,9 +44,9 @@ public:
 		LogOnly			= 1
 	};
 
-	static const char* ARCHIVER_API GetConfigPath();
-	_kc_hidden static const configsetting_t *ARCHIVER_API GetConfigDefaults(void);
-	static eResult ARCHIVER_API Create(auto_ptr_type *lpptrArchiver);
+	static const char *GetConfigPath(void);
+	_kc_hidden static const configsetting_t *GetConfigDefaults(void);
+	static eResult Create(auto_ptr_type *);
 	_kc_hidden virtual ~Archiver(void) {};
 	_kc_hidden virtual eResult Init(const char *app_name, const char *config, const configsetting_t *extra_opts = nullptr, unsigned int flags = 0) = 0;
 	_kc_hidden virtual eResult GetControl(ArchiveControlPtr *, bool force_cleanup = false) = 0;

@@ -140,7 +140,7 @@ mapi_wrap.cxx: ../mapi.i ../mapiutil.i ../mapidefs.i ../mapicode.i ../mapix.i ..
 inetmapi_wrap.cxx: ../inetmapi.i ../include/kopano/typemap.i ../inetmapi.i include/kopano/typemap_python.i helpers_python.i
 	${SWIG_EXEC} ${SWIG_CXXFLAGS} -o $@ $<
 
-icalmapi_wrap.cxx: ../icalmapi.i ../include/kopano/typemap.i include/kopano/typemap_python.i helpers_python.i ../../libicalmapi/icalmapi.h
+icalmapi_wrap.cxx: ../icalmapi.i ../include/kopano/typemap.i include/kopano/typemap_python.i helpers_python.i
 	${SWIG_EXEC} -I${top_srcdir}/libicalmapi -I${top_srcdir}/libfreebusy ${SWIG_CXXFLAGS} -o $@ $<
 
 archiver_wrap.cxx: ../archiver.i archiver_python.i
