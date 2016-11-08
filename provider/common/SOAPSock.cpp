@@ -288,7 +288,8 @@ static int kc_ssl_check_name(X509_STORE_CTX *store)
 		ec_log_err("Server presented no X.509 Subject name. Aborting login.");
 		return false;
 	}
-	if (strlen(subject) != ASN1_STRING_length(sdata)) {
+	auto asnlen = ASN1_STRING_length(sdata);
+	if (asnlen < 0 || strlen(subject) != static_cast<size_t>(asnlen)) {
 		ec_log_err("Server presented an X.509 Subject name with '\\0' bytes. Aborting login.");
 		return false;
 	}
