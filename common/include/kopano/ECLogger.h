@@ -78,9 +78,6 @@ static const unsigned int EC_LOGLEVEL_EXTENDED_MASK = 0xFFFF0000;
 #else
 #define TSTRING_PRINTF "%s"
 #endif
-#define SIZE_T_PRINTF    "%lu"
-#define SSIZE_T_PRINTF   "%l"
-#define PTRDIFF_T_PRINTF "%l"
 
 /**
  * Prefixes in log message in different process models.

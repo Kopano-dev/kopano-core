@@ -301,7 +301,7 @@ HRESULT ArchiveControlImpl::ProcessAll(bool bLocalOnly, fnProcess_t fnProcess)
 		goto exit;
 	}
 
-	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Processing " SIZE_T_PRINTF "%s users.", lstUsers.size(), (bLocalOnly ? " local" : ""));
+	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Processing %zu%s users.", lstUsers.size(), (bLocalOnly ? " local" : ""));
 	for (const auto &user : lstUsers) {
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Processing user '" TSTRING_PRINTF "'.", user.c_str());
 		HRESULT hrTmp = (this->*fnProcess)(user);
@@ -924,7 +924,7 @@ HRESULT ArchiveControlImpl::PurgeArchiveFolder(MsgStorePtr &ptrArchive, const en
 			break;
 	}
 
-	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Purging %lu messaged from archive folder", lstEntries.size());
+	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Purging %zu messaged from archive folder", lstEntries.size());
 	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &ptrEntryList);
 	if (hr != hrSuccess)
 		return hr;
@@ -1015,7 +1015,7 @@ HRESULT ArchiveControlImpl::CleanupArchive(const SObjectEntry &archiveEntry, IMs
 	//The difference of two sets is formed by the elements that are present in the first set, but not in
 	//the second one. Notice that this is a directional operation.
 	std::set_difference(setEntries.begin(), setEntries.end(), setRefs.begin(), setRefs.end(), std::inserter(setDead, setDead.begin()));
-	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Found " SIZE_T_PRINTF " dead entries in archive.", setDead.size());
+	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Found %zu dead entries in archive.", setDead.size());
 	
 	if (m_cleanupAction != caNone) {
 		if (!setDead.empty()) {
@@ -1416,7 +1416,7 @@ HRESULT ArchiveControlImpl::MoveAndDetachMessages(ArchiveHelperPtr ptrArchiveHel
 	MAPIFolderPtr ptrDelItemsFolder;
 	EntryListPtr ptrMessageList;
 
-	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Moving " SIZE_T_PRINTF " messages to the special 'Deleted Items' folder...", setEIDs.size());
+	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Moving %zu messages to the special 'Deleted Items' folder...", setEIDs.size());
 
 	hr = ptrArchiveHelper->GetDeletedItemsFolder(&ptrDelItemsFolder);
 	if (hr != hrSuccess) {
@@ -1426,7 +1426,7 @@ HRESULT ArchiveControlImpl::MoveAndDetachMessages(ArchiveHelperPtr ptrArchiveHel
 
 	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &ptrMessageList);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to allocate " SIZE_T_PRINTF " bytes of memory. (hr=0x%08x)", sizeof(ENTRYLIST), hr);
+		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to allocate %zu bytes of memory. (hr=0x%08x)", sizeof(ENTRYLIST), hr);
 		return hr;
 	}
 
@@ -1434,11 +1434,11 @@ HRESULT ArchiveControlImpl::MoveAndDetachMessages(ArchiveHelperPtr ptrArchiveHel
 
 	hr = MAPIAllocateMore(sizeof(SBinary) * setEIDs.size(), ptrMessageList, (LPVOID*)&ptrMessageList->lpbin);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to allocate " SIZE_T_PRINTF " bytes of memory. (hr=0x%08x)", sizeof(SBinary) * setEIDs.size(), hr);
+		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to allocate %zu bytes of memory. (hr=0x%08x)", sizeof(SBinary) * setEIDs.size(), hr);
 		return hr;
 	}
 
-	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Processing " SIZE_T_PRINTF " messages", setEIDs.size());
+	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Processing %zu messages", setEIDs.size());
 	for (const auto &e : setEIDs) {
 		ULONG ulType;
 		MAPIPropPtr ptrMessage;
@@ -1553,11 +1553,11 @@ HRESULT ArchiveControlImpl::DeleteMessages(LPMAPIFOLDER lpArchiveFolder, const E
 	HRESULT hr;
 	EntryListPtr ptrMessageList;
 	
-	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Deleting " SIZE_T_PRINTF " messages...", setEIDs.size());
+	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Deleting %zu messages...", setEIDs.size());
 
 	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &ptrMessageList);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to allocate " SIZE_T_PRINTF " bytes of memory. (hr=0x%08x)", sizeof(ENTRYLIST), hr);
+		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to allocate %zu bytes of memory. (hr=0x%08x)", sizeof(ENTRYLIST), hr);
 		return hr;
 	}
 
@@ -1565,11 +1565,11 @@ HRESULT ArchiveControlImpl::DeleteMessages(LPMAPIFOLDER lpArchiveFolder, const E
 
 	hr = MAPIAllocateMore(sizeof(SBinary) * setEIDs.size(), ptrMessageList, (LPVOID*)&ptrMessageList->lpbin);
 	if (hr != hrSuccess) {
-		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to allocate " SIZE_T_PRINTF " bytes of memory. (hr=0x%08x)", sizeof(SBinary) * setEIDs.size(), hr);
+		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to allocate %zu bytes of memory. (hr=0x%08x)", sizeof(SBinary) * setEIDs.size(), hr);
 		return hr;
 	}
 
-	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Processing " SIZE_T_PRINTF " messages", setEIDs.size());
+	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Processing %zu messages", setEIDs.size());
 	for (const auto &e : setEIDs) {
 		ptrMessageList->lpbin[ptrMessageList->cValues].cb = e.size();
 		ptrMessageList->lpbin[ptrMessageList->cValues++].lpb = e;

@@ -247,7 +247,7 @@ void ECConfigImpl::InsertOrReplace(settingmap_t *lpMap, const settingkey_t &s, c
 	}
 	
 	if (bIsSize)
-		len = snprintf(data, 1024, "%lu", GetSize(szValue));
+		len = snprintf(data, 1024, "%zu", GetSize(szValue));
 	else
 		strncpy(data, szValue, len);
 	data[len] = '\0';

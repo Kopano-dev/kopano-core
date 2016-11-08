@@ -496,7 +496,8 @@ exit:
 	if (er != erSuccess)
 		LOG_CACHE_DEBUG("Get object ids error 0x%08x", er);
 	else
-		LOG_CACHE_DEBUG("Get object ids total ids %lu from disk %lu", lstObjects.size(), setUncached.size());
+		LOG_CACHE_DEBUG("Get object ids total ids %zu from disk %zu",
+			lstObjects.size(), setUncached.size());
 	return er;
 }
 
@@ -843,7 +844,8 @@ ECRESULT ECCacheManager::GetUserObjects(const list<objectid_t> &lstExternObjIds,
 
 	// Collect as many objects from cache as possible,
 	// everything we couldn't find must be collected from the database
-	LOG_USERCACHE_DEBUG("Get User Objects. requested objects %lu", lstExternObjIds.size() );
+	LOG_USERCACHE_DEBUG("Get User Objects. requested objects %zu",
+		lstExternObjIds.size());
 
 	for (const auto &objid : lstExternObjIds) {
 		LOG_USERCACHE_DEBUG(" Get user objects from externid \"%s\", class %d",
@@ -909,7 +911,8 @@ exit:
 	if (er != erSuccess)
 		LOG_USERCACHE_DEBUG("Get User Objects done. Error 0x%08X", er);
 	else
-		LOG_USERCACHE_DEBUG("Get User Objects done. Returned objects %lu", lpmapLocalObjIds->size());
+		LOG_USERCACHE_DEBUG("Get User Objects done. Returned objects %zu",
+			lpmapLocalObjIds->size());
 	return er;
 }
 

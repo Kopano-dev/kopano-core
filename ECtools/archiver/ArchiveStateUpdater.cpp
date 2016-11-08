@@ -286,7 +286,7 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstr
 	if (hr != hrSuccess)
 		return hr;
 
-	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Processing %lu archives for implicitly attached archives", lstArchives.size());
+	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Processing %zu archives for implicitly attached archives", lstArchives.size());
 	for (const auto &i : lstArchives) {
 		MsgStorePtr ptrArchStore;
 		ULONG ulType;
@@ -474,7 +474,7 @@ HRESULT ArchiveStateUpdater::AddServerBased(const tstring &userName, const abent
 		return MAPI_E_CALL_FAILED;
 	}
 
-	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Attaching %lu servers", lstServers.size());
+	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Attaching %zu servers", lstServers.size());
 	for (const auto &i : lstServers) {
 		MsgStorePtr ptrArchive;
 		

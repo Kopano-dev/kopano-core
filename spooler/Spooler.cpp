@@ -907,9 +907,9 @@ static void process_signal(int sig)
 
 	case SIGUSR2:
 		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Spooler stats:");
-		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Running threads: %lu", mapSendData.size());
+		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Running threads: %zu", mapSendData.size());
 		hMutexFinished.lock();
-		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Finished threads: %lu", mapFinished.size());
+		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Finished threads: %zu", mapFinished.size());
 		hMutexFinished.unlock();
 		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Disconnects: %d", disconnects);
 		break;

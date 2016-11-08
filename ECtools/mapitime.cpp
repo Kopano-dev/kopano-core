@@ -211,7 +211,7 @@ static void mpt_usage(void)
 
 static int mpt_option_parse(int argc, char **argv)
 {
-	char *user = NULL, *pass = NULL;
+	const char *user = NULL, *pass = NULL;
 	int c;
 	if (argc < 2) {
 		mpt_usage();

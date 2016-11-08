@@ -840,7 +840,7 @@ HRESULT IMAP::HrCmdAuthenticate(const string &strTag, string strAuthMethod, cons
 	// vAuth[2] is the password for vAuth[1]
 		
 	if (vAuth.size() != 3) {
-		lpLogger->Log(EC_LOGLEVEL_INFO, "Invalid authentication data received, expected 3 items, have %lu items.", vAuth.size());
+		lpLogger->Log(EC_LOGLEVEL_INFO, "Invalid authentication data received, expected 3 items, have %zu items.", vAuth.size());
 		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "AUTHENTICATE " + strAuthMethod + " incomplete data received");
 		hr = MAPI_E_LOGON_FAILED;
 		goto exit;

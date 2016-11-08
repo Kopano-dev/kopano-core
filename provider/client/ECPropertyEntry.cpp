@@ -641,7 +641,7 @@ ECProperty::~ECProperty()
 			delete[] this->Value.bin.lpb;
 			break;
 		case PT_STRING8:
-			assert(("We should never have PT_STRING8 storage", 0));
+			assert("We should never have PT_STRING8 storage" == nullptr);
 			// Deliberate fallthrough
 		case PT_UNICODE:
 			delete [] this->Value.lpszW;
@@ -677,7 +677,7 @@ ECProperty::~ECProperty()
 			break;
 		}
 		case PT_MV_STRING8:
-			assert(("We should never have PT_MV_STRING8 storage", 0));
+			assert("We should never have PT_MV_STRING8 storage" == nullptr);
 			// Deliberate fallthrough
 		case PT_MV_UNICODE: {
 			for (unsigned int i = 0; i < this->Value.MVszW.cValues; ++i)
@@ -770,7 +770,7 @@ HRESULT ECProperty::CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulRequestPr
 		break;
 	}
 	case PT_STRING8:
-		assert(("We should never have PT_STRING8 storage", 0));
+		assert("We should never have PT_STRING8 storage" == nullptr);
 		// Deliberate fallthrough
 	case PT_UNICODE: {
 		if (PROP_TYPE(ulRequestPropTag) == PT_UNICODE) {
@@ -925,7 +925,7 @@ HRESULT ECProperty::CopyTo(LPSPropValue lpsProp, void *lpBase, ULONG ulRequestPr
 		break;
 	}
 	case PT_MV_STRING8:
-		assert(("We should never have PT_MV_STRING8 storage", 0));
+		assert("We should never have PT_MV_STRING8 storage" == nullptr);
 		// Deliberate fallthrough
 	case PT_MV_UNICODE: {
 		if (PROP_TYPE(ulRequestPropTag) == PT_MV_STRING8) {

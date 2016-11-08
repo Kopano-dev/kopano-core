@@ -1854,7 +1854,7 @@ HRESULT CalDAV::HrHandleFreebusy(ICalToMapi *lpIcalToMapi)
 	hr = HrGetFreebusy(lpMapiToIcal, lpFBSupport, m_lpAddrBook, lstUsers, &sWebFbInfo);
 	if (hr != hrSuccess) {
 		// @todo, print which users?
-		ec_log_err("Unable to get freebusy information for %lu users: 0x%08X", lstUsers->size(), hr);
+		ec_log_err("Unable to get freebusy information for %zu users: 0x%08X", lstUsers->size(), hr);
 		goto exit;
 	}
 	
