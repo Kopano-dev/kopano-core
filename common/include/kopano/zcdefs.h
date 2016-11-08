@@ -28,7 +28,7 @@
 
 /* Minimum requirement for KC is g++ 4.6, g++0x mode. */
 /* Swig is not bright enough to grok all C++11. */
-#if defined(SWIG) || defined(__GNUG__) && __GNUG__ == 4 && __GNUG_MINOR__ < 7
+#if defined(SWIG) || defined(__GNUG__) && __GNUG__ == 4 && __GNUC_MINOR__ < 7
 #	define _kc_final
 #	define _kc_override
 #else
