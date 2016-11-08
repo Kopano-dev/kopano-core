@@ -6,11 +6,10 @@ SWIG_CXXFLAGS = -Wall -python -c++ -threads \
 	-I${top_srcdir}/swig/include -I${srcdir}/include
 
 lib_LTLIBRARIES = libkcpyconv.la libkcpydirector.la
-pyexec_LTLIBRARIES = _MAPICore.la _inetmapi.la _icalmapi.la _licenseclient.la
+pyexec_LTLIBRARIES = _MAPICore.la _inetmapi.la _icalmapi.la
 noinst_LTLIBRARIES = _libcommon.la _archiver.la _libfreebusy.la _RecurrenceState.la
 noinst_DATA = libkcpyconv.ldd _MAPICore.ldd _inetmapi.ldd _icalmapi.ldd \
-	_libcommon.ldd _archiver.ldd _libfreebusy.ldd _RecurrenceState.ldd \
-	_licenseclient.ldd
+	_libcommon.ldd _archiver.ldd _libfreebusy.ldd _RecurrenceState.ldd
 CLEANFILES = ${noinst_DATA}
 
 # disable warnings since code is mostly generated
@@ -64,19 +63,6 @@ _archiver_la_LIBADD = \
 	${top_builddir}/libkcarchivercore.la \
 	$(PROG_LIBS) $(PYTHON_LIBS)
 
-_licenseclient_la_CPPFLAGS = ${AM_CPPFLAGS} -I${top_srcdir}/provider/common \
-	-I${top_builddir}/provider/soap ${GSOAP_CFLAGS}
-_licenseclient_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version
-_licenseclient_la_LIBADD = ${top_builddir}/libkccommon.la \
-	${GSOAP_LIBS} \
-	${top_builddir}/libkcsoapclient.la \
-	${top_builddir}/libkcmapi.la \
-	${top_builddir}/libkcutil.la \
-	${top_builddir}/libkcssl.la \
-	${top_builddir}/libmapi.la \
-	$(PROG_LIBS) $(SSL_LIBS) $(PYTHON_LIBS)
-
-
 # noinst_ and rpath will generate the _libcommon.so file
 _libcommon_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version -rpath '$(libdir)'
 _libcommon_la_LIBADD = libkcpyconv.la ${top_builddir}/libmapi.la \
@@ -106,7 +92,6 @@ BUILT_SOURCES = mapi_wrap.cxx \
 				icalmapi_wrap.cxx \
 				archiver_wrap.cxx \
 				libcommon_wrap.cxx \
-				licenseclient_wrap.cxx \
 				libfreebusy_wrap.cxx \
 				RecurrenceState_wrap.cxx
 
@@ -117,7 +102,6 @@ CLEANFILES += ${BUILT_SOURCES} \
 			 icalmapi.py \
 			 archiver.py \
 			 libcommon.py \
-			 licenseclient.py \
 			 libfreebusy.py
 
 
@@ -127,7 +111,6 @@ inetmapi.py: $(BUILT_SOURCES)
 icalmapi.py: $(BUILT_SOURCES)
 archiver.py: $(BUILT_SOURCES)
 libcommon.py: $(BUILT_SOURCES)
-licenseclient.py: $(BUILT_SOURCES)
 libfreebusy.py: $(BUILT_SOURCES)
 RecurrenceState.py: $(BUILT_SOURCES)
 
@@ -138,13 +121,12 @@ _icalmapi_la_SOURCES = icalmapi_wrap.cxx
 _archiver_la_SOURCES = archiver_wrap.cxx archiver_conv.h archiver_conv.cpp
 _libcommon_la_SOURCES = libcommon_wrap.cxx
 _RecurrenceState_la_SOURCES = RecurrenceState_wrap.cxx
-_licenseclient_la_SOURCES = licenseclient_wrap.cxx licenseclient_conv.cpp licenseclient_conv.h
 _libfreebusy_la_SOURCES = libfreebusy_wrap.cxx libfreebusy_conv.h libfreebusy_conv.cpp
 
 
-EXTRA_DIST = helpers_python.i setup.py $(BUILT_SOURCES) MAPICore.py inetmapi.py icalmapi.py licenseclient.py MAPI/Defs.py  MAPI/__init__.py  MAPI/Struct.py  MAPI/Tags.py  MAPI/Time.py MAPI/Util/__init__.py MAPI/Util/Generators.py MAPI/Util/Iterators.py MAPI/Util/AddressBook.py MAPI/Util/codepage.py archiver_python.i
+EXTRA_DIST = helpers_python.i setup.py $(BUILT_SOURCES) MAPICore.py inetmapi.py icalmapi.py MAPI/Defs.py  MAPI/__init__.py  MAPI/Struct.py  MAPI/Tags.py  MAPI/Time.py MAPI/Util/__init__.py MAPI/Util/Generators.py MAPI/Util/Iterators.py MAPI/Util/AddressBook.py MAPI/Util/codepage.py archiver_python.i
 datadir = ${pythondir}
-data_DATA = MAPICore.py inetmapi.py icalmapi.py licenseclient.py
+data_DATA = MAPICore.py inetmapi.py icalmapi.py
 noinst_datadir = libcommon.py RecurrenceState.py
 
 
@@ -167,9 +149,6 @@ libcommon_wrap.cxx: ../libcommon.i
 
 RecurrenceState_wrap.cxx: ../RecurrenceState.i
 	${SWIG_EXEC} -I${top_srcdir}/common -I${top_srcdir}/m4lcommon ${SWIG_CXXFLAGS} -o $@ $<
-
-licenseclient_wrap.cxx: ../licenseclient.i
-	${SWIG_EXEC} -I${top_srcdir}/provider/common -I${top_srcdir}/common -I${top_srcdir}/m4lcommon ${SWIG_CXXFLAGS} -o $@ $<
 
 libfreebusy_wrap.cxx: ../libfreebusy.i
 	${SWIG_EXEC} -I${top_srcdir}/libfreebusy ${SWIG_CXXFLAGS} -o $@ $<
