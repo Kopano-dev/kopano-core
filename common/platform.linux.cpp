@@ -247,8 +247,8 @@ static void dump_fdtable_summary(pid_t pid)
 	if (dh == NULL)
 		return;
 	std::string msg;
-	struct dirent de_space, *de = NULL;
-	while (readdir_r(dh, &de_space, &de) == 0 && de != NULL) {
+	struct dirent *de;
+	while ((de = readdir(dh)) != nullptr) {
 		if (de->d_type != DT_LNK)
 			continue;
 		std::string de_name(std::string(procdir) + "/" + de->d_name);
