@@ -64,7 +64,7 @@ class KEntryId _kc_final {
 class KMAPIError _kc_final : public std::exception {
 	public:
 	KMAPIError(HRESULT = hrSuccess);
-	virtual ~KMAPIError(void) {}
+	virtual ~KMAPIError(void) noexcept {}
 	HRESULT code(void) const noexcept { return m_code; }
 	virtual const char *what(void) const noexcept;
 
