@@ -42,19 +42,23 @@ class Service(kopano.Service):
             self.import_props(attachment, attachment2)
 
     def import_recipients(self, message, mapiobj):
-        recipients = [] # XXX group etc entryid?, exchange user?
+        recipients = [] # XXX groups etc?
         for r in message.subrecipients:
-            props = [
+            user = None
+            if r.AddressType == 'EX' and r.ObjectType==6 and r.DisplayType==0:
+                user = self.server.user(email=r.DisplayName) # XXX using email arg for fullname resolution..
+            elif r.AddressType == 'ZARAFA' and r.ObjectType==6 and r.DisplayType==0:
+                user = self.server.user(email=r.EmailAddress) # zarafa username (or email address sometimes apparently)
+            recipients.append([
                 SPropValue(PR_RECIPIENT_TYPE, r.RecipientType),
-                SPropValue(PR_DISPLAY_NAME_W, r.DisplayName),
-                SPropValue(PR_ADDRTYPE_W, r.AddressType),
-            ]
-            if r.EmailAddress:
-                props.append(SPropValue(PR_EMAIL_ADDRESS_W, r.EmailAddress))
-            if r.AddressType == 'ZARAFA' and r.ObjectType==6 and not '@' in r.EmailAddress: # XXX broken props?
-                user = self.server.user(r.EmailAddress)
-                props.append(SPropValue(PR_ENTRYID, user.userid.decode('hex')))
-            recipients.append(props)
+                SPropValue(PR_DISPLAY_TYPE, r.DisplayType),
+                SPropValue(PR_ADDRTYPE_W, u'ZARAFA' if user else r.AddressType),
+                SPropValue(PR_DISPLAY_NAME_W, user.fullname if user else r.DisplayName),
+            ])
+            if user or r.EmailAddress:
+                recipients[-1].append(SPropValue(PR_EMAIL_ADDRESS_W, user.name if user else r.EmailAddress)),
+            if user:
+                recipients[-1].append(SPropValue(PR_ENTRYID, user.userid.decode('hex'))) # XXX what about SMTP?
         mapiobj.ModifyRecipients(0, recipients)
         mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
