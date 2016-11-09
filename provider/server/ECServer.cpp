@@ -127,6 +127,9 @@ static void process_signal(int sig)
 		return;
 	}	
 
+	const char *ll;
+	int new_ll;
+
 	if(g_Quit == 1)
 		return; // already in exit state!
 
@@ -142,34 +145,32 @@ static void process_signal(int sig)
 
 		break;
 	case SIGHUP:
-		{
-			// g_lpSessionManager only present when kopano_init is called (last init function), signals are initialized much earlier
-			if (g_lpSessionManager == NULL)
-				return;
+		// g_lpSessionManager only present when kopano_init is called (last init function), signals are initialized much earlier
+		if (g_lpSessionManager == NULL)
+			return;
 
-			if (!g_lpConfig->ReloadSettings())
-				g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to reload configuration file, continuing with current settings.");
-			if (g_lpConfig->HasErrors())
-				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to reload configuration file");
+		if (!g_lpConfig->ReloadSettings())
+			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to reload configuration file, continuing with current settings.");
+		if (g_lpConfig->HasErrors())
+			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to reload configuration file");
 
-			g_lpSessionManager->GetPluginFactory()->SignalPlugins(sig);
+		g_lpSessionManager->GetPluginFactory()->SignalPlugins(sig);
 
-			const char *ll = g_lpConfig->GetSetting("log_level");
-			int new_ll = ll ? strtol(ll, NULL, 0) : EC_LOGLEVEL_WARNING;
-			g_lpLogger->SetLoglevel(new_ll);
-			g_lpLogger->Reset();
-			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Log connection was reset");
+		ll = g_lpConfig->GetSetting("log_level");
+		new_ll = ll ? strtol(ll, NULL, 0) : EC_LOGLEVEL_WARNING;
+		g_lpLogger->SetLoglevel(new_ll);
+		g_lpLogger->Reset();
+		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Log connection was reset");
 
-			if (g_lpAudit) {
-				ll = g_lpConfig->GetSetting("audit_log_level");
-				new_ll = ll ? strtol(ll, NULL, 0) : 1;
-				g_lpAudit->SetLoglevel(new_ll);
-				g_lpAudit->Reset();
-			}
-
-			g_lpStatsCollector->SetTime(SCN_SERVER_LAST_CONFIGRELOAD, time(NULL));
-			g_lpSoapServerConn->DoHUP();
+		if (g_lpAudit) {
+			ll = g_lpConfig->GetSetting("audit_log_level");
+			new_ll = ll ? strtol(ll, NULL, 0) : 1;
+			g_lpAudit->SetLoglevel(new_ll);
+			g_lpAudit->Reset();
 		}
+
+		g_lpStatsCollector->SetTime(SCN_SERVER_LAST_CONFIGRELOAD, time(NULL));
+		g_lpSoapServerConn->DoHUP();
 		break;
 	default:
 		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Unknown signal %d received", sig);
