@@ -1734,6 +1734,10 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 
 	vmBody->getContents()->extract(os);
 
+	if (m_mailState.bodyLevel > BODY_NONE)
+		/* Force attachment if we already have some text. */
+		bIsAttachment = true;
+
 	if (bIsAttachment) {
 		// create message in message to create calendar message
 		SPropValue sAttProps[3];
