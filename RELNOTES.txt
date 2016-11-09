@@ -17,6 +17,11 @@ Enhancements:
 * search: files are now compacted, and their uid/gid checked [KC-188]
 * server: allow search folder creation outside of own store [KC-271]
 * dagent: forwarding by rule can be restricted with a whitelist [KC-109]
+* search: add script for findroot upgrade [KC-300]
+* php: ICS import/export functions [KC-302]
+* server: AWS4-HMAC-SHA256 support for S3 [KC-170]
+* pyko: permit "public@company" syntax to specify stores [KC-317]
+* dagent: new AUTORESPOND_BCC option for use with OOF [KC-319]
 Changes:
 * Non-Delivery Reports now originate from "Mail Delivery System"
   (like postfix) instead of yourself [KC-309]
@@ -29,6 +34,8 @@ Changes:
   and no more ldap{,ms}.{active-directory,ldap}.cfg.
 * The example LDAP config file now has a different proposed value for
   ldap_object_search_filter for OpenLDAP. [KC-218]
+* spooler: messages with reminder will be sent with a TNEF copy [KC-152]
+* admin: group features will no longer be shown [KC-239]
 Developer/packager notes:
 * Support for building the source with newer gsoap
   (upto and including 2.8.37) [KC-261]
@@ -40,8 +47,9 @@ Internal:
 * Many "goto exit" were abolished and reordered [KC-87]
 * for() loop verbosity reduced by using range-based loops [KC-88]
 * pthread_mutex calls have been switched to std::mutex [KC-191]
-* Coverity report fixes and other possible NULL dereferences [KC-235]
-* Memory leak fixes [KC-93,KC-98]
+* Coverity report fixes and other possible NULL dereferences [KC-23,KC-235]
+* Memory leak fixes [KC-93,KC-98,KC-316]
+* Reduction of symbol table sizes [KC-20]
 
 
 Release notes for 8.1.0 [2016-10-05]
