@@ -676,8 +676,6 @@ static void print_extra_settings(const SPROPMAP *lpPropmap,
 		return;
 
 	ConsoleTable ct(lpPropmap->cEntries + lpMVPropmap->cEntries, 2);
-
-	cout << "Mapped properties:" << std::endl;
 	for (unsigned int i = 0; i < lpPropmap->cEntries; ++i) {
 		ct.SetColumn(c, 0, getMapiPropertyString(lpPropmap->lpEntries[i].ulPropId));
 		if (PROP_TYPE(lpPropmap->lpEntries[i].ulPropId) == PT_BINARY)
@@ -709,7 +707,9 @@ static void print_extra_settings(const SPROPMAP *lpPropmap,
 		ct.SetColumn(c, 1, strMVValues);
 		++c;
 	}
-
+	if (c == 0)
+		return;
+	cout << "Mapped properties:" << endl;
 	ct.PrintTable();
 }
 
