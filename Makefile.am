@@ -94,7 +94,7 @@ sampleconfdir = ${docdir}/example-config
 sampleconf_DATA = provider/client/kopano.inf provider/contacts/zcontacts.inf
 BUILT_SOURCES =
 CLEANFILES = ${noinst_DATA}
-EXTRA_DIST =
+EXTRA_DIST = php-ext/mapi.sym
 default_sym = ${top_builddir}/default.sym
 
 
@@ -790,9 +790,11 @@ mapi_la_SOURCES += \
 endif
 mapi_la_CPPFLAGS = ${AM_CPPFLAGS} ${PHP_INCLUDES}
 mapi_la_CXXFLAGS = ${AM_CXXFLAGS} ${ZPHPCXXFLAGS}
-mapi_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version ${PHP_LDFLAGS}
 mapi_la_LIBADD = libmapi.la libkcmapi.la libkcutil.la libkcfreebusy.la \
 	libkcinetmapi.la libkcicalmapi.la ${PROG_LIBS} -lpthread
+mapi_la_LDFLAGS = ${AM_LDFLAGS} -avoid-version -module ${PHP_LDFLAGS} \
+	-Wl,--version-script=${srcdir}/php-ext/mapi.sym
+EXTRA_mapi_la_DEPENDENCIES = ${srcdir}/php-ext/mapi.sym
 
 
 #
