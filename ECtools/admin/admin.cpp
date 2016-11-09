@@ -665,9 +665,10 @@ static void print_users(unsigned int cUsers, const ECUSER *lpECUsers,
  *
  * @param[in]	lpPropmap	SPROPMAP struct, custom addressbook properties
  * @param[in]	lpMVPropmap	MVSPROPMAP struct, custom addressbook multi-valued properties
+ * @param[in]	group	Indicate if the caller of this function is print_group_settings
  */
 static void print_extra_settings(const SPROPMAP *lpPropmap,
-    const MVPROPMAP *lpMVPropmap)
+    const MVPROPMAP *lpMVPropmap, bool is_group = false)
 {
 	unsigned int c = 0;
 
@@ -687,6 +688,10 @@ static void print_extra_settings(const SPROPMAP *lpPropmap,
 	}
 	for (unsigned int i = 0; i < lpMVPropmap->cEntries; ++i) {
 		string strMVValues;
+
+		if (is_group && (lpMVPropmap->lpEntries[i].ulPropId == PR_EC_ENABLED_FEATURES_A ||
+		    lpMVPropmap->lpEntries[i].ulPropId == PR_EC_DISABLED_FEATURES_A))
+			continue;
 
 		ct.SetColumn(c, 0, getMapiPropertyString(lpMVPropmap->lpEntries[i].ulPropId));
 
@@ -739,7 +744,7 @@ static void print_group_settings(const ECGROUP *lpECGroup)
 	cout << "Emailaddress:\t\t" << (LPSTR)lpECGroup->lpszFullEmail << endl;
 	cout << "Address book:\t\t" << (lpECGroup->ulIsABHidden ? "Hidden" : "Visible") << endl;
 
-	print_extra_settings(&lpECGroup->sPropmap, &lpECGroup->sMVPropmap);
+	print_extra_settings(&lpECGroup->sPropmap, &lpECGroup->sMVPropmap, true);
 }
 
 /**
