@@ -2181,6 +2181,29 @@ bool MAPIToVMIME::is_voting_request(IMessage *lpMessage)
 }
 
 /**
+ * CCheck if the named property exists which denotes if reminder is set
+ */
+bool MAPIToVMIME::has_reminder(IMessage *msg)
+{
+	SPropTagArray *tags = nullptr;
+	SPropValue *content_type = nullptr;
+	MAPINAMEID named_prop = {const_cast<GUID *>(&PSETID_Common), MNID_ID, {0x8503}};
+	auto named_proplist = &named_prop;
+
+	auto hr = msg->GetIDsFromNames(1, &named_proplist, MAPI_CREATE, &tags);
+	if (hr != hrSuccess)
+		ec_log_err("Unable to read reminder property: %s (0x%08x)",
+			GetMAPIErrorMessage(hr), hr);
+	else
+		hr = HrGetOneProp(msg, CHANGE_PROP_TYPE(tags->aulPropTag[0],
+		     PT_BOOLEAN), &content_type);
+
+	MAPIFreeBuffer(tags);
+	MAPIFreeBuffer(content_type);
+	return hr == hrSuccess;
+}
+
+/**
  * Adds a TNEF (winmail.dat) attachment to the message, if special
  * outlook data needs to be sent. May add iCal for calendar items
  * instead of TNEF.
@@ -2268,6 +2291,10 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
 			strTnefReason = "Force TNEF because of voting request";
 		}
 
+		if (iUseTnef <= 0 && has_reminder(lpMessage)) {
+			iUseTnef = 1;
+			strTnefReason = "Force TNEF because of reminder";
+		}
         /*
          * Outlook 2000 always sets PR_EC_SEND_AS_ICAL to FALSE, because the
          * iCal option is somehow missing from the options property sheet, and 
