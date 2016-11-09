@@ -82,7 +82,7 @@ private:
  */
 HRESULT CreateICalToMapi(IMAPIProp *lpPropObj, LPADRBOOK lpAdrBook, bool bNoRecipients, ICalToMapi **lppICalToMapi)
 {
-	if (!lpPropObj || !lpAdrBook || !lppICalToMapi)
+	if (lpPropObj == nullptr || lppICalToMapi == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
 	try {
 		*lppICalToMapi = new ICalToMapiImpl(lpPropObj, lpAdrBook, bNoRecipients);
