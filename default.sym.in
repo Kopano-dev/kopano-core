@@ -1,4 +1,4 @@
-EC_@PACKAGE_VERSION@ {
+KC_@PACKAGE_VERSION@ {
 global:
 	*;
 };
