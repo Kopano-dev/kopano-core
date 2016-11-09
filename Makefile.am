@@ -382,7 +382,9 @@ libkcclient_la_LIBADD = \
 	libkcmapi.la libkcssl.la libkcutil.la libkcfreebusy.la libkcsync.la \
 	libmapi.la libkcsoap.la -lstdc++ \
 	${GSOAP_LIBS} ${ICU_LIBS} ${SSL_LIBS} ${UUID_LIBS}
-libkcclient_la_LDFLAGS = ${AM_LDFLAGS} -avoid-version -module
+libkcclient_la_LDFLAGS = ${AM_LDFLAGS} -avoid-version -module \
+	-Wl,--version-script=provider/provider.sym
+EXTRA_libkcclient_la_DEPENDENCIES = provider/provider.sym
 
 
 #
@@ -394,9 +396,11 @@ libkccontacts_la_SOURCES = \
 	provider/contacts/ZCABLogon.h provider/contacts/ZCABLogon.cpp \
 	provider/contacts/ZCABProvider.h provider/contacts/ZCABProvider.cpp \
 	provider/contacts/ZCMAPIProp.h provider/contacts/ZCMAPIProp.cpp
-libkccontacts_la_LDFLAGS = ${AM_LDFLAGS} -avoid-version -module
 libkccontacts_la_LIBADD = \
 	libkcutil.la libkcmapi.la libmapi.la -lstdc++ ${UUID_LIBS} ${ICU_LIBS}
+libkccontacts_la_LDFLAGS = ${AM_LDFLAGS} -avoid-version -module \
+	-Wl,--version-script=provider/provider.sym
+EXTRA_libkccontacts_la_DEPENDENCIES = provider/provider.sym
 
 
 #
@@ -952,7 +956,7 @@ doc/kopano.0: ${top_srcdir}/doc/manual.xml
 #
 # build infrastructure
 #
-default.sym mapi4linux/src/libkchl.sym: ${top_builddir}/config.status
+default.sym mapi4linux/src/libkchl.sym provider/provider.sym: ${top_builddir}/config.status
 include global.am
 
 

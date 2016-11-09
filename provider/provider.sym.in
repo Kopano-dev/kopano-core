@@ -1,0 +1,14 @@
+MAPI32_1 {
+global:
+	ABProviderInit;
+	MSGServiceEntry;
+	MSProviderInit;
+	XPProviderInit;
+};
+KC_@PACKAGE_VERSION@ {
+global:
+	/* weird gsoap integration */
+	namespaces;
+local:
+	*;
+};

@@ -45,6 +45,7 @@ stamp-h2
 /mapitime
 /mapi4linux/src/libmapi.sym
 /mapi4linux/src/libkchl.sym
+/provider/provider.sym
 /provider/soap/
 /ECtools/backup/build/
 /ECtools/presence/build/
