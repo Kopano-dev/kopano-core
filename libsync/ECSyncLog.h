@@ -27,7 +27,7 @@ class ECLogger;
 class _kc_export ECSyncLog _kc_final {
 public:
 	static HRESULT GetLogger(ECLogger **);
-	static HRESULT SetLogger(ECLogger *);
+	static HRESULT SetLogger(ECLogger *annoyingswig);
 
 private:
 	static std::mutex s_hMutex;
