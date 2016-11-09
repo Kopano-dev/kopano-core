@@ -869,9 +869,11 @@ noinst_DATA += dbplugin.ldd
 dbplugin_la_SOURCES = \
 	provider/plugins/DBUserPlugin.cpp provider/plugins/DBUserPlugin.h \
 	${COMMON_PLUGIN_FILES} ${COMMON_DBPLUGIN_FILES}
-dbplugin_la_LDFLAGS = -module -avoid-version
 dbplugin_la_LIBADD = \
 	libkcutil.la libkcserver.la ${MYSQL_LIBS}
+dbplugin_la_LDFLAGS = ${AM_LDFLAGS} -avoid-version -module \
+	-Wl,--version-script=provider/plugin.sym
+EXTRA_dbplugin_la_DEPENDENCIES = provider/plugin.sym
 
 if WITH_UNIX
 pkglib_LTLIBRARIES += unixplugin.la
@@ -879,9 +881,11 @@ noinst_DATA += unixplugin.ldd
 unixplugin_la_SOURCES = \
 	provider/plugins/UnixUserPlugin.cpp provider/plugins/UnixUserPlugin.h \
 	${COMMON_PLUGIN_FILES} ${COMMON_DBPLUGIN_FILES}
-unixplugin_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version
 unixplugin_la_LIBADD = \
 	libkcutil.la libkcserver.la ${MYSQL_LIBS} ${CRYPT_LIBS}
+unixplugin_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version \
+	-Wl,--version-script=provider/plugin.sym
+EXTRA_unixplugin_la_DEPENDENCIES = provider/plugin.sym
 endif
 
 if WITH_LDAP
@@ -893,10 +897,12 @@ ldapplugin_la_SOURCES = \
 	provider/plugins/LDAPCache.cpp provider/plugins/LDAPCache.h \
 	provider/plugins/ldappasswords.cpp provider/plugins/ldappasswords.h \
 	${COMMON_PLUGIN_FILES}
-ldapplugin_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version
 ldapplugin_la_LIBADD = \
 	libkcutil.la \
 	libkcserver.la ${CRYPTO_LIBS} ${LDAP_LIBS}
+ldapplugin_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version \
+	-Wl,--version-script=provider/plugin.sym
+EXTRA_ldapplugin_la_DEPENDENCIES = provider/plugin.sym
 
 .libs/ldapmsplugin.so: ldapplugin.la
 	${AM_V_GEN}ln -fs ldapplugin.so .libs/ldapmsplugin.so
@@ -956,7 +962,9 @@ doc/kopano.0: ${top_srcdir}/doc/manual.xml
 #
 # build infrastructure
 #
-default.sym mapi4linux/src/libkchl.sym provider/provider.sym: ${top_builddir}/config.status
+default.sym mapi4linux/src/libkchl.sym \
+provider/plugin.sym provider/provider.sym: ${top_builddir}/config.status
+
 include global.am
 
 

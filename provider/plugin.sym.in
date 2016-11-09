@@ -1,0 +1,8 @@
+KC_@PACKAGE_VERSION@ {
+global:
+	deleteUserPluginInstance;
+	getUserPluginInstance;
+	getUserPluginVersion;
+local:
+	*;
+};
