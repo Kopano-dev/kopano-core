@@ -67,7 +67,7 @@ ZCPPFLAGS="$BUILDOS -DHAVE_CONFIG_H \
 	-I\${top_srcdir}/inetmapi/include \
 	-I\${top_srcdir}/swig/include \
 	-I\${top_srcdir}/swig/python/include"
-ZCXXFLAGS="-Wall -Wmissing-declarations -Wno-write-strings"
+ZCXXFLAGS="-Wall -Wmissing-declarations"
 
 # programs that use files >2gb need 64bit file support
 LFS_CFLAGS=`getconf LFS_CFLAGS`
