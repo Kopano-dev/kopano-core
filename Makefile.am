@@ -595,7 +595,7 @@ EXTRA_libkcmapi_la_DEPENDENCIES = ${default_sym}
 #
 include_HEADERS = librosie/librosie.h
 libkcrosie_la_SOURCES = librosie/librosie.cpp
-libkcrosie_la_LIBADD  = -ltidy
+libkcrosie_la_LIBADD  = libkcutil.la -ltidy
 libkcrosie_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
 	-version-info 0:0:0 -Wl,--version-script=${srcdir}/librosie/librosie.sym
 EXTRA_libkcrosie_la_DEPENDENCIES = librosie/librosie.sym
