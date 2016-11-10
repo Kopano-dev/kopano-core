@@ -24,6 +24,7 @@ Enhancements:
 * server: AWS4-HMAC-SHA256 support for S3 [KC-170]
 * pyko: permit "public@company" syntax to specify stores [KC-317]
 * dagent: new AUTORESPOND_BCC option for use with OOF [KC-319]
+* kopano-stats: bind 'q' key to exit as well [KC-105]
 Changes:
 * Non-Delivery Reports now originate from "Mail Delivery System"
   (like postfix) instead of yourself [KC-309]

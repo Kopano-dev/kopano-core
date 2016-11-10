@@ -494,7 +494,7 @@ static void showtop(LPMDB lpStore, bool bLocal)
         wrefresh(win);
         timeout(1000);
         if((key = getch()) != ERR) {
-			if (key == 27)				// escape key
+			if (key == 27 || key == 'q')				// escape key
 				break;
 			if (key == KEY_RESIZE)		// resize action
 				getmaxyx(win, wy, wx);
