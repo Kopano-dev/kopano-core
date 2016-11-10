@@ -104,7 +104,7 @@ AC_CHECK_LIB([pthread], [pthread_create], [ZCXXFLAGS="$ZCXXFLAGS -pthread"], AC_
 AC_ARG_ENABLE([release], AS_HELP_STRING([--enable-release], [enable release mode (compile flags -O2 and no DEBUG defines)]),
   [want_release=${enableval}],[want_release=no])
 if test "$want_release" = "yes"; then
-    ZCPPFLAGS="$ZCPPFLAGS -DNDEBUG -DFORCE_CHARSET_CONVERSION"
+    ZCPPFLAGS="$ZCPPFLAGS -DNDEBUG"
     ZCXXFLAGS="$ZCXXFLAGS -O2 -fno-strict-aliasing"
 else
 # -fPIC must be present on x86_64 when -O2 isn't used

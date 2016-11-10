@@ -100,16 +100,8 @@ namespace details {
 	 */
 	iconv_context_base::iconv_context_base(const char* tocode, const char* fromcode)
 	{
-#ifdef FORCE_CHARSET_CONVERSION		
-		// We now default to ignoring illegal sequences during conversion; this makes sure that we don't SIGABORT
-		// when some bad input from a user fails to convert. This means that the 'IGNORE'
-		// flag is on by default; specifying it is not useful.
+		/* Ignore illegal sequences by default. */
 		m_bForce = true;
-#else
-		// In debug builds, SIGABRT will be triggered in most cases due to the throw() 
-		// in doconvert()
-		m_bForce = false;
-#endif
 		m_bHTML = false;
 		
         std::string strto = tocode;
