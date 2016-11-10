@@ -952,6 +952,10 @@ If it is the first time this attendee has proposed a new date/time, increment th
 						} else {
 							mapi_message_modifyrecipients($new, MODRECIP_ADD, $recips);
 						}
+
+						// Copy attachments too
+						$this->replaceAttachments($this->message, $new);
+
 						mapi_message_savechanges($new);
 
 						$props = mapi_getprops($new, array(PR_ENTRYID));
