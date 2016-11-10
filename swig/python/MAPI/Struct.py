@@ -318,12 +318,13 @@ class ECUSER(MAPIStruct):
 # @todo sGroupId ECENTRYID?
 # @todo propmap?
 class ECGROUP(MAPIStruct):
-    def __init__(self, Groupname, Fullname, Email, IsHidden = False, GroupID = None):
+    def __init__(self, Groupname, Fullname, Email, IsHidden = False, GroupID = None, MVPropMap = None):
         self.Groupname = Groupname
         self.Fullname = Fullname
         self.Email = Email
         self.IsHidden = IsHidden
         self.GroupID = GroupID
+        self.MVPropMap = MVPropMap
 
 # @todo sCompanyId ECENTRYID?
 # @todo sAdministrator ECENTRYID?
