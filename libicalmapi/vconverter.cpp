@@ -341,6 +341,10 @@ exit:
  */
 HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRecip)
 {
+	if (m_lpAdrBook == nullptr)
+		/* no resolution attempted, as done from testsuite. */
+		return hrSuccess;
+
 	HRESULT hr = hrSuccess;
 	LPSPropValue lpUsrEidProp = NULL; 
 	LPSPropValue lpMappedProp = NULL;
