@@ -11,6 +11,8 @@ Fixes:
 * admin: support unwrapping "default:" type URLs [KC-289]
 * backup: fix tracebacks when used with ZCP [KC-306,KC-307,KC-308]
 * server: implement missing readback of compressed attachments [KC-285]
+* dagent: iCal descriptions caused wrong body parts to be displayed [KC-138]
+* dagent: mr-process failed to copy attachments to the calendar item [KC-202]
 Enhancements:
 * PST importer [KC-59]
 * Python 3 support [KC-48,KC-267]
