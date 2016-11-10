@@ -10,6 +10,7 @@
 #include <tidy.h>
 #include <tidybuffio.h>
 #include <kopano/platform.h>
+#include <kopano/stringutil.h>
 #include "librosie.h"
 
 namespace KC {
@@ -163,24 +164,6 @@ static void rosie_init(void)
 			rosie_good_attrs.insert(std::pair<std::string, std::set<std::string> >(attributes[i].tag, attrs));
 		}
 	}
-}
-
-/* Same as common/stringutil.cpp, consider merging. */
-static std::string format(const char *const fmt, ...)
-{
-        char *buffer = NULL;
-
-	std::string result;
-
-        va_list ap;
-        va_start(ap, fmt);
-        if (vasprintf(&buffer, fmt, ap) >= 0)
-		result = buffer;
-        va_end(ap);
-
-	free(buffer);
-
-        return result;
 }
 
 static bool rosie_reject_tag(const char *const tag)
