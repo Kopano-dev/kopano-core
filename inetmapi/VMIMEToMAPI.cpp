@@ -2758,14 +2758,6 @@ exit:
 	return hr;
 }
 
-/**
- * Change a character set name which is unknown to iconv to one that it knows
- * and which is 100% compatible.
- * 
- * @param[in] vmCharset original charset
- * 
- * @return same or compatible charset
- */
 static const struct {
 	const char *original;
 	const char *update;
@@ -2783,6 +2775,18 @@ static const struct {
 	{"unicode", "utf-8"}, /* UTF-16 BOM + UTF-8 content */
 };
 
+/**
+ * Perform upgrades of the character set name, or the character set itself.
+ *
+ * 1. Some e-mails carry strange unregistered names ("unicode"), or simply
+ * names which are registered with IANA but uncommon enough ("iso-8859-8-i")
+ * that iconv does not know about them. This function returns a compatible
+ * replacement usable with iconv.
+ *
+ * 2. The function performs compatible upgrades (such as gb2312→gb18030, both
+ * of which are known to iconv) which repairs some mistagged email and does not
+ * break properly-tagged mail.
+ */
 static vmime::charset vtm_upgrade_charset(const vmime::charset &cset)
 {
 	for (size_t i = 0; i < ARRAY_SIZE(vtm_cs_upgrade_list); ++i)
