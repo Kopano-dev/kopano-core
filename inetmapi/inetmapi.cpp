@@ -54,8 +54,13 @@ using namespace std;
 
 bool ValidateCharset(const char *charset)
 {
-	iconv_t cd;
-	cd = iconv_open(CHARSET_WCHAR, charset);
+	/*
+	 * iconv does not like to convert wchar_t to wchar_t, so filter that
+	 * one. https://sourceware.org/bugzilla/show_bug.cgi?id=20804
+	 */
+	if (strcmp(charset, CHARSET_WCHAR) == 0)
+		return true;
+	iconv_t cd = iconv_open(CHARSET_WCHAR, charset);
 	if (cd == (iconv_t)(-1))
 		return false;
 		
