@@ -133,6 +133,32 @@ ECSender *CreateSender(const std::string &smtp, int port)
 	return new ECVMIMESender(smtp, port);
 }
 
+/*
+ * Because it calls iconv_open() with @s in at least one of iconv_open's two
+ * argument, this function also implicitly checks whether @s is valid.
+ */
+static bool vtm_ascii_compatible(const char *s)
+{
+	static const char in[] = {
+		0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,
+		24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,
+		45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,
+		66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,
+		87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,
+		106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,
+		121,122,123,124,125,126,127,
+	};
+	char out[sizeof(in)];
+	iconv_t cd = iconv_open(s, "us-ascii");
+	if (cd == reinterpret_cast<iconv_t>(-1))
+		return false;
+	char *inbuf = const_cast<char *>(in), *outbuf = out;
+	size_t insize = sizeof(in), outsize = sizeof(out);
+	bool mappable = iconv(cd, &inbuf, &insize, &outbuf, &outsize) >= 0;
+	iconv_close(cd);
+	return mappable && memcmp(in, out, sizeof(in)) == 0;
+}
+
 // parse rfc822 input, and set props in lpMessage
 HRESULT IMToMAPI(IMAPISession *lpSession, IMsgStore *lpMsgStore,
     IAddrBook *lpAddrBook, IMessage *lpMessage, const string &input,
@@ -142,10 +168,13 @@ HRESULT IMToMAPI(IMAPISession *lpSession, IMsgStore *lpMsgStore,
 	VMIMEToMAPI *VMToM = NULL;
 	
 	// Sanitize options
-	if(!ValidateCharset(dopt.default_charset)) {
-		const char *charset = "iso-8859-15";
-		ec_log_warn("Configured default_charset '%s' is invalid. Reverting to '%s'", dopt.default_charset, charset);
-		dopt.default_charset = charset;
+	if (dopt.ascii_upgrade == nullptr || *dopt.ascii_upgrade == '\0') {
+		dopt.ascii_upgrade = "us-ascii";
+	} else if (!vtm_ascii_compatible(dopt.ascii_upgrade)) {
+		ec_log_warn("Configured default_charset \"%s\" is unknown, or not ASCII compatible. "
+			"Disabling forced charset upgrades.",
+			dopt.ascii_upgrade);
+		dopt.ascii_upgrade = "us-ascii";
 	}
 	VMToM = new VMIMEToMAPI(lpAddrBook, dopt);
 	InitializeVMime();

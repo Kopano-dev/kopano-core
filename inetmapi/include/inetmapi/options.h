@@ -35,7 +35,7 @@ typedef struct _do {
 	bool charset_strict_rfc;
 
 	LPSBinary user_entryid;			// If not NULL, specifies the entryid of the user for whom we are delivering. If set, allows generating PR_MESSAGE_*_ME properties.
-	const char *default_charset;		// Specifies the default charset to use when none is found in the source message, or when us-ascii is used in the source message. Note that this charset *must* be a superset of us-ascii
+	const char *ascii_upgrade; // Upgrade ASCII parts to this new (ASCII-compatible) charset
 } delivery_options;
 
 typedef struct _so {

@@ -2219,7 +2219,7 @@ HRESULT PHPArraytoDeliveryOptions(zval *phpArray, delivery_options *lpDOPT)
 			lpDOPT->parse_smime_signed = Z_BVAL_PP(entry);
 		} else if (strcmp(keyIndex, "default_charset") == 0) {
 			convert_to_string_ex(entry);
-			lpDOPT->default_charset = Z_STRVAL_PP(entry);
+			lpDOPT->ascii_upgrade = Z_STRVAL_PP(entry);
 		} else {
 			// user_entryid not supported, others unknown
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unknown or disallowed delivery option %s", keyIndex);
