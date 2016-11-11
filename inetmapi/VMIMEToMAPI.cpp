@@ -2766,32 +2766,28 @@ exit:
  * 
  * @return same or compatible charset
  */
-namespace charsetHelper {
-	static const struct sets {
-		const char *original;
-		const char *update;
-	} fixes[] = {
-		{"gb2312", "gb18030"},			// gb18030 is an extended version of gb2312
-		{"x-gbk", "gb18030"},			// gb18030 > gbk > gb2312. x-gbk is an alias of gbk, which is not listed in iconv.
-		{"ks_c_5601-1987", "cp949"},	// cp949 is euc-kr with UHC extensions
-		{"iso-8859-8-i", "iso-8859-8"},	// logical vs visual order, does not matter. http://mirror.hamakor.org.il/archives/linux-il/08-2004/11445.html
-
-		/*
-		 * This particular "unicode" is different from iconv's
-		 * "unicode" character set. It is UTF-8 content with a UTF-16
-		 * BOM (which we can just drop because it carries no
-		 * relevant information).
-		 */
-		{"unicode", "utf-8"}, /* UTF-16 BOM + UTF-8 content */
-	};
-}
+static const struct {
+	const char *original;
+	const char *update;
+} vtm_cs_upgrade_list[] = {
+	{"gb2312", "gb18030"},			// gb18030 is an extended version of gb2312
+	{"x-gbk", "gb18030"},			// gb18030 > gbk > gb2312. x-gbk is an alias of gbk, which is not listed in iconv.
+	{"ks_c_5601-1987", "cp949"},	// cp949 is euc-kr with UHC extensions
+	{"iso-8859-8-i", "iso-8859-8"},	// logical vs visual order, does not matter. http://mirror.hamakor.org.il/archives/linux-il/08-2004/11445.html
+	/*
+	 * This particular "unicode" is different from iconv's
+	 * "unicode" character set. It is UTF-8 content with a UTF-16
+	 * BOM (which we can just drop because it carries no
+	 * relevant information).
+	 */
+	{"unicode", "utf-8"}, /* UTF-16 BOM + UTF-8 content */
+};
 
 static vmime::charset vtm_upgrade_charset(const vmime::charset &cset)
 {
-	for (size_t i = 0; i < ARRAY_SIZE(charsetHelper::fixes); ++i)
-		if (strcasecmp(charsetHelper::fixes[i].original, cset.getName().c_str()) == 0)
-			return charsetHelper::fixes[i].update;
-
+	for (size_t i = 0; i < ARRAY_SIZE(vtm_cs_upgrade_list); ++i)
+		if (strcasecmp(vtm_cs_upgrade_list[i].original, cset.getName().c_str()) == 0)
+			return vtm_cs_upgrade_list[i].update;
 	return cset;
 }
 
