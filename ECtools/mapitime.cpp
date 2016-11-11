@@ -57,6 +57,7 @@ static int mpt_setup_tick(void)
 		return -errno;
 	}
 	struct sigevent sev;
+	memset(&sev, 0, sizeof(sev));
 	sev.sigev_notify = SIGEV_SIGNAL;
 	sev.sigev_signo  = SIGALRM;
 	timer_t timerid;
