@@ -127,6 +127,99 @@ exit:
 	return nRet;
 }
 
+int kc_ssl_options(ECLogger *lpLogger, struct soap *soap, char *protos, const char *ciphers, const char *prefciphers)
+{
+#if !defined(OPENSSL_NO_ECDH) && defined(NID_X9_62_prime256v1)
+	EC_KEY *ecdh;
+#endif
+	char *ssl_name = nullptr;
+	ECRESULT	er = erSuccess;
+	int ssl_op = 0, ssl_include = 0, ssl_exclude = 0;
+
+	SSL_CTX_set_options(soap->ctx, SSL_OP_ALL);
+#if !defined(OPENSSL_NO_ECDH) && defined(NID_X9_62_prime256v1)
+	ecdh = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
+	if (ecdh != nullptr) {
+		SSL_CTX_set_options(soap->ctx, SSL_OP_SINGLE_ECDH_USE);
+		SSL_CTX_set_tmp_ecdh(soap->ctx, ecdh);
+		EC_KEY_free(ecdh);
+	}
+#endif
+	ssl_name = strtok(protos, " ");
+	while (ssl_name != nullptr) {
+		int ssl_proto = 0;
+		bool ssl_neg = false;
+
+		if (*ssl_name == '!') {
+			++ssl_name;
+			ssl_neg = true;
+		}
+
+		if (strcasecmp(ssl_name, SSL_TXT_SSLV3) == 0)
+			ssl_proto = 0x02;
+#ifdef SSL_TXT_SSLV2
+		else if (strcasecmp(ssl_name, SSL_TXT_SSLV2) == 0)
+			ssl_proto = 0x01;
+#endif
+		else if (strcasecmp(ssl_name, SSL_TXT_TLSV1) == 0)
+			ssl_proto = 0x04;
+#ifdef SSL_TXT_TLSV1_1
+		else if (strcasecmp(ssl_name, SSL_TXT_TLSV1_1) == 0)
+			ssl_proto = 0x08;
+#endif
+#ifdef SSL_TXT_TLSV1_2
+		else if (strcasecmp(ssl_name, SSL_TXT_TLSV1_2) == 0)
+			ssl_proto = 0x10;
+#endif
+		else {
+			lpLogger->Log(EC_LOGLEVEL_FATAL, "Unknown protocol \"%s\" in protos setting", ssl_name);
+			er = KCERR_CALL_FAILED;
+			goto exit;
+		}
+
+		if (ssl_neg)
+			ssl_exclude |= ssl_proto;
+		else
+			ssl_include |= ssl_proto;
+
+		ssl_name = strtok(nullptr, " ");
+	}
+
+	if (ssl_include != 0)
+		// Exclude everything, except those that are included (and let excludes still override those)
+		ssl_exclude |= 0x1f & ~ssl_include;
+	if ((ssl_exclude & 0x01) != 0)
+		ssl_op |= SSL_OP_NO_SSLv2;
+	if ((ssl_exclude & 0x02) != 0)
+		ssl_op |= SSL_OP_NO_SSLv3;
+	if ((ssl_exclude & 0x04) != 0)
+		ssl_op |= SSL_OP_NO_TLSv1;
+#ifdef SSL_OP_NO_TLSv1_1
+	if ((ssl_exclude & 0x08) != 0)
+		ssl_op |= SSL_OP_NO_TLSv1_1;
+#endif
+#ifdef SSL_OP_NO_TLSv1_2
+	if ((ssl_exclude & 0x10) != 0)
+		ssl_op |= SSL_OP_NO_TLSv1_2;
+#endif
+	if (protos != nullptr)
+		SSL_CTX_set_options(soap->ctx, ssl_op);
+	if (ciphers && SSL_CTX_set_cipher_list(soap->ctx, ciphers) != 1) {
+		lpLogger->Log(EC_LOGLEVEL_FATAL, "Can not set SSL cipher list to \"%s\": %s", ciphers, ERR_error_string(ERR_get_error(), 0));
+		er = KCERR_CALL_FAILED;
+		goto exit;
+	}
+	if (parseBool(prefciphers))
+		SSL_CTX_set_options(soap->ctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
+
+	/* request certificate from client; it is OK if not present. */
+	SSL_CTX_set_verify(soap->ctx, SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE, nullptr);
+
+exit:
+	return er;
+
+}
+
 ECSoapServerConnection::ECSoapServerConnection(ECConfig* lpConfig, ECLogger* lpLogger)
 {
 	m_lpConfig = lpConfig;
@@ -195,11 +288,7 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char* lpServerName, int nServer
 	struct soap	*lpsSoap = NULL;
 	char *server_ssl_protocols = strdup(m_lpConfig->GetSetting("server_ssl_protocols"));
 	const char *server_ssl_ciphers = m_lpConfig->GetSetting("server_ssl_ciphers");
-	char *ssl_name = NULL;
-	int ssl_op = 0, ssl_include = 0, ssl_exclude = 0;
-#if !defined(OPENSSL_NO_ECDH) && defined(NID_X9_62_prime256v1)
-	EC_KEY *ecdh;
-#endif
+	auto pref_ciphers = m_lpConfig->GetSetting("server_ssl_prefer_server_ciphers");
 
 	if(lpServerName == NULL) {
 		er = KCERR_INVALID_PARAMETER;
@@ -230,85 +319,9 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char* lpServerName, int nServer
 		er = KCERR_CALL_FAILED;
 		goto exit;
 	}
-
-	SSL_CTX_set_options(lpsSoap->ctx, SSL_OP_ALL);
-#if !defined(OPENSSL_NO_ECDH) && defined(NID_X9_62_prime256v1)
-	ecdh = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
-	if (ecdh != NULL) {
-		SSL_CTX_set_options(lpsSoap->ctx, SSL_OP_SINGLE_ECDH_USE);
-		SSL_CTX_set_tmp_ecdh(lpsSoap->ctx, ecdh);
-		EC_KEY_free(ecdh);
-	}
-#endif
-	ssl_name = strtok(server_ssl_protocols, " ");
-	while(ssl_name != NULL) {
-		int ssl_proto = 0;
-		bool ssl_neg = false;
-
-		if (*ssl_name == '!') {
-			++ssl_name;
-			ssl_neg = true;
-		}
-
-		if (strcasecmp(ssl_name, SSL_TXT_SSLV3) == 0)
-			ssl_proto = 0x02;
-#ifdef SSL_TXT_SSLV2
-		else if (strcasecmp(ssl_name, SSL_TXT_SSLV2) == 0)
-			ssl_proto = 0x01;
-#endif
-		else if (strcasecmp(ssl_name, SSL_TXT_TLSV1) == 0)
-			ssl_proto = 0x04;
-#ifdef SSL_TXT_TLSV1_1
-		else if (strcasecmp(ssl_name, SSL_TXT_TLSV1_1) == 0)
-			ssl_proto = 0x08;
-#endif
-#ifdef SSL_TXT_TLSV1_2
-		else if (strcasecmp(ssl_name, SSL_TXT_TLSV1_2) == 0)
-			ssl_proto = 0x10;
-#endif
-		else {
-			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unknown protocol '%s' in server_ssl_protocols setting", ssl_name);
-			er = KCERR_CALL_FAILED;
-			goto exit;
-		}
-
-		if (ssl_neg)
-			ssl_exclude |= ssl_proto;
-		else
-			ssl_include |= ssl_proto;
-
-		ssl_name = strtok(NULL, " ");
-	}
-
-	if (ssl_include != 0)
-		// Exclude everything, except those that are included (and let excludes still override those)
-		ssl_exclude |= 0x1f & ~ssl_include;
-	if ((ssl_exclude & 0x01) != 0)
-		ssl_op |= SSL_OP_NO_SSLv2;
-	if ((ssl_exclude & 0x02) != 0)
-		ssl_op |= SSL_OP_NO_SSLv3;
-	if ((ssl_exclude & 0x04) != 0)
-		ssl_op |= SSL_OP_NO_TLSv1;
-#ifdef SSL_OP_NO_TLSv1_1
-	if ((ssl_exclude & 0x08) != 0)
-		ssl_op |= SSL_OP_NO_TLSv1_1;
-#endif
-#ifdef SSL_OP_NO_TLSv1_2
-	if ((ssl_exclude & 0x10) != 0)
-		ssl_op |= SSL_OP_NO_TLSv1_2;
-#endif
-	if (server_ssl_protocols != nullptr)
-		SSL_CTX_set_options(lpsSoap->ctx, ssl_op);
-	if (server_ssl_ciphers && SSL_CTX_set_cipher_list(lpsSoap->ctx, server_ssl_ciphers) != 1) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Can not set SSL cipher list to '%s': %s", server_ssl_ciphers, ERR_error_string(ERR_get_error(), 0));
-		er = KCERR_CALL_FAILED;
+	er = kc_ssl_options(m_lpLogger, lpsSoap, server_ssl_protocols, server_ssl_ciphers, pref_ciphers);
+	if (er != erSuccess)
 		goto exit;
-	}
-	if (parseBool(m_lpConfig->GetSetting("server_ssl_prefer_server_ciphers")))
-		SSL_CTX_set_options(lpsSoap->ctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
-
-	// request certificate from client, is OK if not present.
-	SSL_CTX_set_verify(lpsSoap->ctx, SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE, NULL);
 	lpsSoap->bind_flags = SO_REUSEADDR;
 	lpsSoap->socket = socket = soap_bind(lpsSoap, *lpServerName == '\0' ? NULL : lpServerName, nServerPort, 100);
         if (socket == -1) {

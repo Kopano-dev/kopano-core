@@ -25,6 +25,8 @@
 #include <kopano/ECLogger.h>
 #include <kopano/ECConfig.h>
 
+extern int kc_ssl_options(ECLogger* lpLogger, struct soap* lpsSoap, char *server_ssl_protocols, const char *server_ssl_ciphers, const char *server_ssl_prefer_server_ciphers);
+
 class ECSoapServerConnection _kc_final {
 public:
 	ECSoapServerConnection(ECConfig* lpConfig, ECLogger* lpLogger);

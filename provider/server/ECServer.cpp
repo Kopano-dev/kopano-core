@@ -844,17 +844,17 @@ static int running_server(char *szName, const char *szConfig,
 
 		{ "server_ssl_enabled",			"no" },
 		{ "server_ssl_port",			"237" },
-		{ "server_ssl_key_file",		"/etc/kopano/ssl/server.pem" },
-		{ "server_ssl_key_pass",		"server",	CONFIGSETTING_EXACT },
-		{ "server_ssl_ca_file",			"/etc/kopano/ssl/cacert.pem" },
-		{ "server_ssl_ca_path",			"" },
+		{"server_ssl_key_file", "/etc/kopano/ssl/server.pem", CONFIGSETTING_RELOADABLE},
+		{"server_ssl_key_pass", "server", CONFIGSETTING_EXACT | CONFIGSETTING_RELOADABLE},
+		{"server_ssl_ca_file", "/etc/kopano/ssl/cacert.pem", CONFIGSETTING_RELOADABLE},
+		{"server_ssl_ca_path", "", CONFIGSETTING_RELOADABLE},
 #ifdef SSL_TXT_SSLV2
-		{ "server_ssl_protocols",		"!SSLv2" },
+		{"server_ssl_protocols", "!SSLv2", CONFIGSETTING_RELOADABLE},
 #else
-		{"server_ssl_protocols", ""},
+		{"server_ssl_protocols", "", CONFIGSETTING_RELOADABLE},
 #endif
-		{ "server_ssl_ciphers",			"ALL:!LOW:!SSLv2:!EXP:!aNULL" },
-		{ "server_ssl_prefer_server_ciphers",	"no" },
+		{"server_ssl_ciphers", "ALL:!LOW:!SSLv2:!EXP:!aNULL", CONFIGSETTING_RELOADABLE},
+		{"server_ssl_prefer_server_ciphers", "no", CONFIGSETTING_RELOADABLE},
 		{ "sslkeys_path",				"/etc/kopano/sslkeys" },	// login keys
 		// Database options
 		{ "database_engine",			"mysql" },

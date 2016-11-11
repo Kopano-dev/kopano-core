@@ -626,7 +626,39 @@ ECRESULT ECDispatcher::DoHUP()
 	m_nRecvTimeout = atoi(m_lpConfig->GetSetting("server_recv_timeout"));
 	m_nReadTimeout = atoi(m_lpConfig->GetSetting("server_read_timeout"));
 	m_nSendTimeout = atoi(m_lpConfig->GetSetting("server_send_timeout"));
-	return SetThreadCount(atoi(m_lpConfig->GetSetting("threads")));
+
+	ECRESULT er = SetThreadCount(atoi(m_lpConfig->GetSetting("threads")));
+	if (er != erSuccess)
+		goto exit;
+
+	for (auto const &p : m_setListenSockets) {
+		auto ulType = SOAP_CONNECTION_TYPE(p.second);
+
+		if (ulType == CONNECTION_TYPE_SSL) {
+			if (soap_ssl_server_context(p.second, SOAP_SSL_DEFAULT,
+						   m_lpConfig->GetSetting("server_ssl_key_file"),
+						   m_lpConfig->GetSetting("server_ssl_key_pass","",NULL),
+						   m_lpConfig->GetSetting("server_ssl_ca_file","",NULL),
+						   m_lpConfig->GetSetting("server_ssl_ca_path","",NULL),
+						   NULL, NULL, "EC")) {
+				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to setup ssl context: %s", *soap_faultdetail(p.second));
+				er = KCERR_CALL_FAILED;
+				goto exit;
+			}
+
+			char *server_ssl_protocols = strdup(m_lpConfig->GetSetting("server_ssl_protocols"));
+			const char *server_ssl_ciphers = m_lpConfig->GetSetting("server_ssl_ciphers");
+			const char *server_ssl_prefer_server_ciphers = m_lpConfig->GetSetting("server_ssl_prefer_server_ciphers");
+
+			er = kc_ssl_options(m_lpLogger, p.second, server_ssl_protocols, server_ssl_ciphers, server_ssl_prefer_server_ciphers);
+
+			free(server_ssl_protocols);
+		}
+	}
+
+exit:
+
+	return er;
 }
 
 ECRESULT ECDispatcher::ShutDown()
