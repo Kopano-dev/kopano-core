@@ -421,15 +421,16 @@ LDFLAGS="$LDFLAGS_system $ZLDFLAGS"
 AC_CHECK_FUNCS([pthread_getname_np])
 
 VMIME_CFLAGS=""
-VMIME_LIBS="-lvmime"
+VMIME_LIBS=""
 
 AC_ARG_WITH(vmime-prefix,
   AS_HELP_STRING([--with-vmime-prefix=PATH], [libvmime prefix, e.g. /usr/local, default /usr]),
   [
   VMIME_PREFIX="$withval"
   VMIME_CFLAGS="$VMIME_CFLAGS -I$VMIME_PREFIX/include"
-  VMIME_LIBS="$VMIME_LIBS -L$VMIME_PREFIX/lib -L$VMIME_PREFIX/lib64 -R$VMIME_PREFIX/lib -R$VMIME_PREFIX/lib64"
+  VMIME_LIBS="-L$VMIME_PREFIX/lib -L$VMIME_PREFIX/lib64 -R$VMIME_PREFIX/lib -R$VMIME_PREFIX/lib64"
   ])
+VMIME_LIBS="$VMIME_LIBS -lvmime"
 AC_SUBST(VMIME_CFLAGS)
 AC_SUBST(VMIME_LIBS)
 
