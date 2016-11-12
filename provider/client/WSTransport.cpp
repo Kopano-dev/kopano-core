@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
+#include <kopano/memory.hpp>
 #include <mapidefs.h>
 #include <mapicode.h>
 #include <mapitags.h>
@@ -1136,7 +1137,7 @@ HRESULT WSTransport::HrUnSubscribeMulti(const ECLISTCONNECTION &lstConnections)
  */
 HRESULT WSTransport::HrExportMessageChangesAsStream(ULONG ulFlags, ULONG ulPropTag, ICSCHANGE *lpChanges, ULONG ulStart, ULONG ulChanges, LPSPropTagArray lpsProps, WSMessageStreamExporter **lppsStreamExporter)
 {
-	typedef mapi_memory_ptr<sourceKeyPairArray> sourceKeyPairArrayPtr;
+	typedef KCHL::memory_ptr<sourceKeyPairArray> sourceKeyPairArrayPtr;
 
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;

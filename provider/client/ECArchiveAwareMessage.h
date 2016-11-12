@@ -19,10 +19,9 @@
 #define ECARCHIVEAWAREMESSAGE_H
 
 #include <kopano/zcdefs.h>
+#include <kopano/memory.hpp>
 #include "ECMessage.h"
 #include <kopano/CommonUtil.h>
-
-#include <kopano/mapi_ptr/mapi_memory_ptr.h>
 #include <kopano/mapi_ptr/mapi_object_ptr.h>
 
 #include <string>
@@ -86,7 +85,7 @@ private:
 	PROPMAP_DEF_NAMED_ID(DIRTY)
 	PROPMAP_DEF_NAMED_ID(ORIGINAL_SOURCE_KEY)
 
-	typedef mapi_memory_ptr<SPropValue> SPropValuePtr;
+	typedef KCHL::memory_ptr<SPropValue> SPropValuePtr;
 	SPropValuePtr	m_ptrStoreEntryIDs;
 	SPropValuePtr	m_ptrItemEntryIDs;
 

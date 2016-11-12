@@ -160,7 +160,7 @@ HRESULT ArchiveOperationBaseEx::ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps
 		return MAPI_E_NOT_FOUND;
 	}
 	
-	if (!m_ptrCurFolderEntryId.is_null()) {
+	if (m_ptrCurFolderEntryId != nullptr) {
 		int nResult = 0;
 		// @todo: Create correct locale.
 		hr = Util::CompareProp(m_ptrCurFolderEntryId, lpFolderEntryId, createLocaleFromName(""), &nResult);
@@ -182,7 +182,7 @@ HRESULT ArchiveOperationBaseEx::ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps
 		}
 	}
 	
-	if (m_ptrCurFolderEntryId.is_null() || bReloadFolder) {
+	if (m_ptrCurFolderEntryId == nullptr || bReloadFolder) {
 		SPropValuePtr ptrPropValue;
         
 		Logger()->Log(EC_LOGLEVEL_DEBUG, "Opening folder (%s)", bin2hex(lpFolderEntryId->Value.bin.cb, lpFolderEntryId->Value.bin.lpb).c_str());

@@ -15,6 +15,7 @@
  */
 #include <kopano/platform.h>
 #include <kopano/ECInterfaceDefs.h>
+#include <kopano/memory.hpp>
 #include <mapi.h>
 #include <kopano/mapiext.h>
 #include <mapispi.h>
@@ -34,8 +35,7 @@
 #include "EntryPoint.h"
 #include "pcutil.hpp"
 
-#include <kopano/mapi_ptr/mapi_memory_ptr.h>
-typedef mapi_memory_ptr<ECUSER>	ECUserPtr;
+typedef KCHL::memory_ptr<ECUSER> ECUserPtr;
 
 #include <kopano/ECGetText.h>
 

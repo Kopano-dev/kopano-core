@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <kopano/ECInterfaceDefs.h>
+#include <kopano/memory.hpp>
 #include <mapiutil.h>
 #include <edkguid.h>
 #include <list>
@@ -57,7 +58,7 @@
 #include "ECExchangeModifyTable.h"
 
 #include <kopano/mapi_ptr.h>
-typedef mapi_memory_ptr<char> MAPIStringPtr;
+typedef KCHL::memory_ptr<char> MAPIStringPtr;
 typedef mapi_object_ptr<WSTransport> WSTransportPtr;
 typedef mapi_object_ptr<ECMessage, IID_ECMessage> ECMessagePtr;
 

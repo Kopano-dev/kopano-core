@@ -21,7 +21,7 @@
 #include <mapispi.h>
 
 #include <kopano/ECGetText.h>
-
+#include <kopano/memory.hpp>
 #include "Mem.h"
 
 #include <kopano/ECGuid.h>
@@ -48,8 +48,7 @@ using namespace std;
 #include <kopano/charset/convert.h>
 #include <kopano/charset/utf8string.h>
 
-#include <kopano/mapi_ptr/mapi_memory_ptr.h>
-typedef mapi_memory_ptr<ECUSER>	ECUserPtr;
+typedef KCHL::memory_ptr<ECUSER> ECUserPtr;
 
 ECMSProvider::ECMSProvider(ULONG ulFlags, const char *szClassName) :
     ECUnknown(szClassName)

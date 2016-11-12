@@ -24,7 +24,7 @@
 #include <kopano/IECUnknown.h>
 #include <kopano/ECTags.h>
 #include <kopano/ECGuid.h>
-#include <kopano/mapi_ptr/mapi_memory_ptr.h>
+#include <kopano/memory.hpp>
 
 // http://tinyurl.com/ydb363n
 template<typename BaseT, typename DerivedT> class Conversion _kc_final {
@@ -116,7 +116,7 @@ public:
 			 * type at compile time, so why not check it at compile time?
 			 **/
 			else if (Conversion<IMAPIProp,value_type>::exists && hr == MAPI_E_INTERFACE_NOT_SUPPORTED) {
-				mapi_memory_ptr<SPropValue> ptrPropValue;
+				KCHL::memory_ptr<SPropValue> ptrPropValue;
 
 				if (HrGetOneProp(m_lpObject, PR_EC_OBJECT, &ptrPropValue) != hrSuccess)
 					return hr; // hr is still MAPI_E_INTERFACE_NOT_SUPPORTED

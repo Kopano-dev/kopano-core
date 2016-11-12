@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/memory.hpp>
 #include "ArchiverSession.h"
 #include <kopano/ecversion.h>
 #include <kopano/mapi_ptr.h>
@@ -26,7 +27,7 @@
 #include <kopano/userutil.h>
 #include "ECMsgStore.h"
 
-typedef mapi_memory_ptr<ECSERVERLIST> ECServerListPtr;
+typedef KCHL::memory_ptr<ECSERVERLIST> ECServerListPtr;
 
 /**
  * Create a ArchiverSession object based on the passed configuration and a specific logger
