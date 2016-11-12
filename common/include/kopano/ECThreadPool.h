@@ -93,16 +93,15 @@ inline unsigned ECThreadPool::threadCount() const {
  * has a free worker and all previously queued tasks have been processed. There's
  * no way of knowing when the task is done.
  */
-class ECTask {
+class _kc_export ECTask {
 public:
-	virtual ~ECTask(void) {};
-	virtual void execute();
-	
-	bool dispatchOn(ECThreadPool *lpThreadPool, bool bTransferOwnership = false);
+	_kc_hidden virtual ~ECTask(void) {};
+	_kc_hidden virtual void execute(void);
+	_kc_hidden bool dispatchOn(ECThreadPool *, bool transfer_ownership = false);
 	
 protected:
-	virtual void run() = 0;
-	ECTask(void) {};
+	_kc_hidden virtual void run(void) = 0;
+	_kc_hidden ECTask(void) {};
 	
 private:
 	// Make the object non-copyable
