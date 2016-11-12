@@ -28,8 +28,6 @@
 #include "SOAPUtils.h"
 #include <kopano/stringutil.h>
 #include "ECSessionManager.h"
-
-#include <pthread.h>
 #include <string>
 
 ECRESULT GetPropSize(DB_ROW lpRow, DB_LENGTHS lpLen, unsigned int *lpulSize)

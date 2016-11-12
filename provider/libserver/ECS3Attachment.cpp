@@ -5,7 +5,6 @@
 #include <mutex>
 #include <stdexcept>
 #include <cerrno>
-#include <pthread.h>
 #include <unistd.h>
 #include <zlib.h>
 #include <mapidefs.h>

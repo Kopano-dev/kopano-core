@@ -27,7 +27,6 @@
 
 #include <list>
 #include <string>
-#include <pthread.h>
 
 // SortOrderSets
 extern void FreeSortOrderArray(struct sortOrderArray *lpsSortOrder);

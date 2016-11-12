@@ -59,8 +59,6 @@
 #include <edkmdb.h>
 #include <edkguid.h>
 #include <libintl.h>
-#include <pthread.h>	// localtime_r (windows)
-
 #include "Archiver.h"
 
 #include <kopano/MAPIErrors.h> // for declaration of GetMAPIErrorMessage()

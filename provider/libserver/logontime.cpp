@@ -5,7 +5,6 @@
 #include <mutex>
 #include <unordered_map>
 #include <cstdio>
-#include <pthread.h>
 #include <kopano/kcodes.h>
 #include "logontime.hpp"
 #include "ECDatabaseMySQL.h"

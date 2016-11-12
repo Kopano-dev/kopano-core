@@ -20,7 +20,6 @@
 
 #include <mutex>
 #include <kopano/zcdefs.h>
-#include <pthread.h>
 
 class ECLogger;
 

@@ -18,8 +18,6 @@
 #ifndef STREAMUTIL_H
 #define STREAMUTIL_H
 
-#include <pthread.h>
-
 #include <kopano/kcodes.h>
 #include "ECDatabase.h"
 #include "ECDatabaseUtils.h"
