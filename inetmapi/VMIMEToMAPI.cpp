@@ -20,6 +20,7 @@
 #include "VMIMEToMAPI.h"
 #include <kopano/ECGuid.h>
 #include <kopano/ECLogger.h>
+#include <kopano/memory.hpp>
 #include <algorithm>
 #include <string>
 #include <fstream>
@@ -70,6 +71,7 @@
 #include "ICalToMAPI.h"
 
 using namespace std;
+using namespace KCHL;
 
 namespace KC {
 
@@ -338,13 +340,13 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 			 */
 			MAPINAMEID sNameID;
 			LPMAPINAMEID lpNameID = &sNameID;
-			LPSPropTagArray lpPropTag = NULL;
+			memory_ptr<SPropTagArray> lpPropTag;
 
 			sNameID.lpguid = (GUID*)&PSETID_Common;
 			sNameID.ulKind = MNID_ID;
 			sNameID.Kind.lID = dispidSmartNoAttach;
 
-			hr = lpMessage->GetIDsFromNames(1, &lpNameID, MAPI_CREATE, &lpPropTag);
+			hr = lpMessage->GetIDsFromNames(1, &lpNameID, MAPI_CREATE, &~lpPropTag);
 			if (hr != hrSuccess) {
 				hr = hrSuccess;
 				goto exit;
@@ -352,9 +354,6 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 
 			attProps[0].ulPropTag = CHANGE_PROP_TYPE(lpPropTag->aulPropTag[0], PT_BOOLEAN);
 			attProps[0].Value.b = TRUE;
-
-			MAPIFreeBuffer(lpPropTag);
-
 			hr = lpMessage->SetProps(1, attProps, NULL);
 			if (hr != hrSuccess) {
 				hr = hrSuccess;
@@ -555,22 +554,19 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 	std::string		strFromEmail, strFromSearchKey;
 	std::string		strSenderEmail,	strSenderSearchKey;
 	ULONG			cbFromEntryID; // representing entry id
-	LPENTRYID		lpFromEntryID = NULL;
+	memory_ptr<ENTRYID> lpFromEntryID, lpSenderEntryID;
 	ULONG			cbSenderEntryID;
-	LPENTRYID		lpSenderEntryID = NULL;
-	LPSPropValue	lpPropNormalizedSubject = NULL;
 	SPropValue		sConTopic;
 	// setprops
-	FLATENTRY		*lpEntry = NULL;
-	FLATENTRYLIST	*lpEntryList = NULL;
+	memory_ptr<FLATENTRY> lpEntry;
+	memory_ptr<FLATENTRYLIST> lpEntryList;
 	ULONG			cb = 0;
 	int				nProps = 0;
 	SPropValue		msgProps[22];
 	// temp
 	ULONG			cbEntryID;
-	LPENTRYID		lpEntryID = NULL;
-
-	LPSPropValue	lpRecipProps = NULL;
+	memory_ptr<ENTRYID> lpEntryID;
+	memory_ptr<SPropValue> lpRecipProps, lpPropNormalizedSubject;
 	ULONG			ulRecipProps;
 
 	// order and types are important for modifyFromAddressBook()
@@ -628,12 +624,12 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			msgProps[nProps++].Value.lpszW = (WCHAR *)wstrReplyTo.c_str();
 
 			// Now, set PR_REPLY_RECIPIENT_ENTRIES (a FLATENTRYLIST)
-			hr = ECCreateOneOff((LPTSTR)wstrReplyTo.c_str(), (LPTSTR)L"SMTP", (LPTSTR)wstrReplyToMail.c_str(), MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbEntryID, &lpEntryID);
+			hr = ECCreateOneOff((LPTSTR)wstrReplyTo.c_str(), (LPTSTR)L"SMTP", (LPTSTR)wstrReplyToMail.c_str(), MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbEntryID, &~lpEntryID);
 			if (hr != hrSuccess)
 				goto exit;
 
 			cb = CbNewFLATENTRY(cbEntryID);
-			hr = MAPIAllocateBuffer(cb, (void**)&lpEntry);
+			hr = MAPIAllocateBuffer(cb, &~lpEntry);
 			if (hr != hrSuccess)
 				goto exit;
 
@@ -641,7 +637,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			lpEntry->cb = cbEntryID;
 
 			cb = CbNewFLATENTRYLIST(cb);
-			hr = MAPIAllocateBuffer(cb, (void **)&lpEntryList);
+			hr = MAPIAllocateBuffer(cb, &~lpEntryList);
 			if (hr != hrSuccess)
 				goto exit;
 
@@ -651,10 +647,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 
 			msgProps[nProps].ulPropTag = PR_REPLY_RECIPIENT_ENTRIES;
 			msgProps[nProps].Value.bin.cb = CbFLATENTRYLIST(lpEntryList);
-			msgProps[nProps++].Value.bin.lpb = (BYTE*)lpEntryList;
-
-			MAPIFreeBuffer(lpEntryID);
-			lpEntryID = NULL;
+			msgProps[nProps++].Value.bin.lpb = reinterpret_cast<unsigned char *>(lpEntryList.get());
 		}
 
 		// setting sent time
@@ -706,16 +699,13 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			if (!vmime::dynamicCast<vmime::mailbox>(vmHeader->From()->getValue())->getName().isEmpty())
 				wstrFromName = getWideFromVmimeText(vmime::dynamicCast<vmime::mailbox>(vmHeader->From()->getValue())->getName());
 
-			hr = modifyFromAddressBook(&lpRecipProps, &ulRecipProps,
+			hr = modifyFromAddressBook(&~lpRecipProps, &ulRecipProps,
 			     strFromEmail.c_str(), wstrFromName.c_str(),
 			     MAPI_ORIG, sptaRecipPropsSentRepr);
 			if (hr == hrSuccess) {
 				hr = lpMessage->SetProps(ulRecipProps, lpRecipProps, NULL);
 				if (hr != hrSuccess)
 					goto exit;
-
-				MAPIFreeBuffer(lpRecipProps);
-				lpRecipProps = NULL;
 			} else {
 				if (wstrFromName.empty())
 					wstrFromName = m_converter.convert_to<wstring>(strFromEmail);
@@ -735,13 +725,13 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 				msgProps[nProps].ulPropTag = PR_SENT_REPRESENTING_ADDRTYPE_W;
 				msgProps[nProps++].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
 				hr = ECCreateOneOff((LPTSTR)wstrFromName.c_str(), (LPTSTR)L"SMTP", (LPTSTR)m_converter.convert_to<wstring>(strFromEmail).c_str(),
-				     MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbFromEntryID, &lpFromEntryID);
+				     MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbFromEntryID, &~lpFromEntryID);
 				if(hr != hrSuccess)
 					goto exit;
 
 				msgProps[nProps].ulPropTag = PR_SENT_REPRESENTING_ENTRYID;
 				msgProps[nProps].Value.bin.cb = cbFromEntryID;
-				msgProps[nProps++].Value.bin.lpb = (BYTE*)lpFromEntryID;
+				msgProps[nProps++].Value.bin.lpb = reinterpret_cast<unsigned char *>(lpFromEntryID.get());
 
 				// SetProps is later on...
 			}
@@ -761,16 +751,13 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 				wstrSenderName = m_converter.convert_to<wstring>(strSenderEmail);
 			}
 
-			hr = modifyFromAddressBook(&lpRecipProps, &ulRecipProps,
+			hr = modifyFromAddressBook(&~lpRecipProps, &ulRecipProps,
 			     strSenderEmail.c_str(), wstrSenderName.c_str(),
 			     MAPI_ORIG, sptaRecipPropsSender);
 			if (hr == hrSuccess) {
 				hr = lpMessage->SetProps(ulRecipProps, lpRecipProps, NULL);
 				if (hr != hrSuccess)
 					goto exit;
-
-				MAPIFreeBuffer(lpRecipProps);
-				lpRecipProps = NULL;
 			} else {
 				msgProps[nProps].ulPropTag = PR_SENDER_NAME_W;
 				msgProps[nProps++].Value.lpszW = (WCHAR *)wstrSenderName.c_str();
@@ -787,13 +774,13 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 				msgProps[nProps].ulPropTag = PR_SENDER_ADDRTYPE_W;
 				msgProps[nProps++].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
 				hr = ECCreateOneOff((LPTSTR)wstrSenderName.c_str(), (LPTSTR)L"SMTP", (LPTSTR)m_converter.convert_to<wstring>(strSenderEmail).c_str(),
-				     MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbSenderEntryID, &lpSenderEntryID);
+				     MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbSenderEntryID, &~lpSenderEntryID);
 				if(hr != hrSuccess)
 					goto exit;
 
 				msgProps[nProps].ulPropTag = PR_SENDER_ENTRYID;
 				msgProps[nProps].Value.bin.cb = cbSenderEntryID;
-				msgProps[nProps++].Value.bin.lpb = (BYTE*)lpSenderEntryID;
+				msgProps[nProps++].Value.bin.lpb = reinterpret_cast<unsigned char *>(lpSenderEntryID.get());
 			}
 		}
 		
@@ -812,9 +799,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			hr = lpMessage->SetProps(1, &sConTopic, NULL);
 			if (hr != hrSuccess)
 				goto exit;
-
-		} else if(HrGetOneProp(lpMessage, PR_NORMALIZED_SUBJECT_W, &lpPropNormalizedSubject) == hrSuccess) {
-			
+		} else if (HrGetOneProp(lpMessage, PR_NORMALIZED_SUBJECT_W, &~lpPropNormalizedSubject) == hrSuccess) {
 			sConTopic.ulPropTag = PR_CONVERSATION_TOPIC_W;
 			sConTopic.Value.lpszW = lpPropNormalizedSubject->Value.lpszW;
 			
@@ -963,7 +948,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 					wstrRRName = wstrRREmail;
 
 				//FIXME: Use an addressbook entry for "ZARAFA"-type addresses?
-				hr = ECCreateOneOff((LPTSTR)wstrRRName.c_str(),	(LPTSTR)L"SMTP", (LPTSTR)wstrRREmail.c_str(), MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbEntryID, &lpEntryID);
+				hr = ECCreateOneOff((LPTSTR)wstrRRName.c_str(),	(LPTSTR)L"SMTP", (LPTSTR)wstrRREmail.c_str(), MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbEntryID, &~lpEntryID);
 				if (hr != hrSuccess)
 					goto exit;
 
@@ -976,16 +961,13 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 
 				sRRProps[2].ulPropTag = PR_REPORT_ENTRYID;
 				sRRProps[2].Value.bin.cb = cbEntryID;
-				sRRProps[2].Value.bin.lpb = (BYTE*)lpEntryID;
-
+				sRRProps[2].Value.bin.lpb = reinterpret_cast<unsigned char *>(lpEntryID.get());
 				sRRProps[3].ulPropTag = PR_REPORT_NAME_W;
 				sRRProps[3].Value.lpszW = (WCHAR *)wstrRREmail.c_str();
 
 				hr = lpMessage->SetProps(4, sRRProps, NULL);
 				if (hr != hrSuccess)
 					goto exit;
-
-				MAPIFreeBuffer(lpEntryID); lpEntryID = NULL;
 			}
 		}
 
@@ -1002,7 +984,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			transform(name.begin(), name.end(), name.begin(), ::tolower);
 
 			LPMAPINAMEID lpNameID = NULL;
-			LPSPropTagArray lpPropTags = NULL;
+			memory_ptr<SPropTagArray> lpPropTags;
 
 			if ((hr = MAPIAllocateBuffer(sizeof(MAPINAMEID), (void**)&lpNameID)) != hrSuccess)
 				goto exit;
@@ -1013,8 +995,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			if ((hr = MAPIAllocateMore(vlen*sizeof(WCHAR), lpNameID, (void**)&lpNameID->Kind.lpwstrName)) != hrSuccess)
 				goto exit;
 			mbstowcs(lpNameID->Kind.lpwstrName, name.c_str(), vlen);
-
-			hr = lpMessage->GetIDsFromNames(1, &lpNameID, MAPI_CREATE, &lpPropTags);
+			hr = lpMessage->GetIDsFromNames(1, &lpNameID, MAPI_CREATE, &~lpPropTags);
 			if (hr != hrSuccess) {
 				hr = hrSuccess;
 				goto next;
@@ -1032,8 +1013,6 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			}
 
 next:
-			MAPIFreeBuffer(lpPropTags);
-			lpPropTags = NULL;
 			MAPIFreeBuffer(lpNameID);
 			lpNameID = NULL;
 		}
@@ -1055,13 +1034,6 @@ next:
 	}
 
 exit:
-	MAPIFreeBuffer(lpRecipProps);
-	MAPIFreeBuffer(lpEntry);
-	MAPIFreeBuffer(lpEntryList);
-	MAPIFreeBuffer(lpFromEntryID);
-	MAPIFreeBuffer(lpSenderEntryID);
-	MAPIFreeBuffer(lpEntryID);
-	MAPIFreeBuffer(lpPropNormalizedSubject);
 	return hr;
 }
 
@@ -1230,7 +1202,7 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
 	HRESULT			hr				= hrSuccess;
 	int				iAddressCount	= vmAddressList->getAddressCount();
 	ULONG			cbEntryID		= 0;
-	LPENTRYID		lpEntryID		= NULL;
+	memory_ptr<ENTRYID> lpEntryID;
 	vmime::shared_ptr<vmime::mailbox> mbx;
 	vmime::shared_ptr<vmime::mailboxGroup> grp;
 	vmime::shared_ptr<vmime::address> vmAddress;
@@ -1337,7 +1309,7 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
 
 			lpRecipients->aEntries[iRecipNum].rgPropVals[3].ulPropTag		= PR_ENTRYID;
 			hr = ECCreateOneOff((LPTSTR)wstrName.c_str(), (LPTSTR)L"SMTP", (LPTSTR)m_converter.convert_to<wstring>(strEmail).c_str(),
-			     MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbEntryID, &lpEntryID);
+			     MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbEntryID, &~lpEntryID);
 			if (hr != hrSuccess)
 				goto exit;
 				
@@ -1373,15 +1345,11 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
 			// Add display type
 			lpRecipients->aEntries[iRecipNum].rgPropVals[7].ulPropTag = PR_DISPLAY_TYPE;
 			lpRecipients->aEntries[iRecipNum].rgPropVals[7].Value.ul = DT_MAILUSER;			
-
-			MAPIFreeBuffer(lpEntryID);
-			lpEntryID = NULL;
 		}
 		++lpRecipients->cEntries;
 	}
 
 exit:
-	MAPIFreeBuffer(lpEntryID);
 	return hr;
 }
 
@@ -1398,11 +1366,11 @@ exit:
  */
 HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals, ULONG *lpulValues, const char *email, const WCHAR *fullname, ULONG ulRecipType, LPSPropTagArray lpPropsList) {
 	HRESULT hr = hrSuccess;
-	LPENTRYID lpDDEntryID = NULL;
+	memory_ptr<ENTRYID> lpDDEntryID;
 	ULONG cbDDEntryID;
 	ULONG ulObj = 0;
 	ADRLIST *lpAdrList = NULL;
-	FlagList *lpFlagList = NULL;
+	memory_ptr<FlagList> lpFlagList;
 	LPSPropValue lpProp = NULL;
 	SPropValue sRecipProps[9]; // 8 from addressbook + PR_RECIPIENT_TYPE == max
 	ULONG cValues = 0;
@@ -1420,7 +1388,7 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals, ULONG *lpu
 	}
 
 	if (!m_lpDefaultDir) {
-		hr = m_lpAdrBook->GetDefaultDir(&cbDDEntryID, &lpDDEntryID);
+		hr = m_lpAdrBook->GetDefaultDir(&cbDDEntryID, &~lpDDEntryID);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -1449,8 +1417,7 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals, ULONG *lpu
 		lpAdrList->aEntries[0].rgPropVals[0].ulPropTag = PR_DISPLAY_NAME_A;
 		lpAdrList->aEntries[0].rgPropVals[0].Value.lpszA = (char *)email; // normally resolve on email address
 	}
-
-	hr = MAPIAllocateBuffer(CbNewFlagList(1), (void **) &lpFlagList);
+	hr = MAPIAllocateBuffer(CbNewFlagList(1), &~lpFlagList);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -1582,9 +1549,6 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals, ULONG *lpu
 exit:
 	if (lpAdrList)
 		FreeProws((LPSRowSet)lpAdrList);
-
-	MAPIFreeBuffer(lpFlagList);
-	MAPIFreeBuffer(lpDDEntryID);
 	return hr;
 }
 
@@ -1695,7 +1659,7 @@ void VMIMEToMAPI::dissect_message(vmime::shared_ptr<vmime::body> vmBody,
 	ULONG ulAttNr = 0;
 	LPATTACH pAtt = NULL;
 	IMessage *lpNewMessage = NULL;
-	LPSPropValue lpSubject = NULL;
+	memory_ptr<SPropValue> lpSubject;
 	SPropValue sAttachMethod;
 	char *lpszBody = NULL, *lpszBodyOrig = NULL;
 	sMailState savedState;
@@ -1733,8 +1697,7 @@ void VMIMEToMAPI::dissect_message(vmime::shared_ptr<vmime::body> vmBody,
 
 	if (hr != hrSuccess)
 		goto next;
-
-	if (HrGetOneProp(lpNewMessage, PR_SUBJECT_W, &lpSubject) == hrSuccess) {
+	if (HrGetOneProp(lpNewMessage, PR_SUBJECT_W, &~lpSubject) == hrSuccess) {
 		// Set PR_ATTACH_FILENAME of attachment to message subject, (WARNING: abuse of lpSubject variable)
 		lpSubject->ulPropTag = PR_DISPLAY_NAME_W;
 		pAtt->SetProps(1, lpSubject, NULL);
@@ -1748,9 +1711,6 @@ void VMIMEToMAPI::dissect_message(vmime::shared_ptr<vmime::body> vmBody,
 	pAtt->SaveChanges(0);
 
  next:
-	MAPIFreeBuffer(lpSubject);
-	lpSubject = NULL;
-
 	if (lpNewMessage != NULL)
 		lpNewMessage->Release();
 	if (pAtt != NULL)
@@ -3057,13 +3017,11 @@ std::wstring VMIMEToMAPI::getWideFromVmimeText(const vmime::text &vmText)
 HRESULT VMIMEToMAPI::postWriteFixups(IMessage *lpMessage)
 {
 	HRESULT hr = hrSuccess;
-	LPSPropValue lpMessageClass = NULL;
+	memory_ptr<SPropValue> lpMessageClass, lpProps, lpRecProps;
 	ULONG cValues = 0;
-	LPSPropValue lpProps = NULL;
-	LPSPropValue lpRecProps = NULL;
 	ULONG cRecProps = 0;
 	ULONG cbConversationIndex = 0;
-	LPBYTE lpConversationIndex = NULL;
+	memory_ptr<unsigned char> lpConversationIndex;
 
 	PROPMAP_START(21)
 		PROPMAP_NAMED_ID(RECURRENCESTATE,			PT_BINARY,	PSETID_Appointment, dispidRecurrenceState)
@@ -3095,7 +3053,7 @@ HRESULT VMIMEToMAPI::postWriteFixups(IMessage *lpMessage)
 		PROPMAP_NAMED_ID(CLIPEND,					PT_SYSTIME,	PSETID_Appointment, dispidClipEnd)
 	PROPMAP_INIT(lpMessage)
 
-	hr = HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &lpMessageClass);
+	hr = HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &~lpMessageClass);
 	if (hr != hrSuccess)
 		goto exitpm;
 
@@ -3105,7 +3063,7 @@ HRESULT VMIMEToMAPI::postWriteFixups(IMessage *lpMessage)
 
 		SizedSPropTagArray(6, sptaMeetingReqProps) = {6, {PROP_RESPONSESTATUS, PROP_RECURRING, PROP_ATTENDEECRITICALCHANGE, PROP_OWNERCRITICALCHANGE, PR_OWNER_APPT_ID, PR_CONVERSATION_INDEX }};
 
-		hr = lpMessage->GetProps(sptaMeetingReqProps, 0, &cValues, &lpProps);
+		hr = lpMessage->GetProps(sptaMeetingReqProps, 0, &cValues, &~lpProps);
 		if(FAILED(hr))
 			goto exitpm;
 
@@ -3140,7 +3098,7 @@ HRESULT VMIMEToMAPI::postWriteFixups(IMessage *lpMessage)
 
 			if(lpProps[5].ulPropTag != PR_CONVERSATION_INDEX) {
 				lpProps[5].ulPropTag = PR_CONVERSATION_INDEX;
-				hr = ScCreateConversationIndex(0, NULL, &cbConversationIndex, &lpConversationIndex);
+				hr = ScCreateConversationIndex(0, NULL, &cbConversationIndex, &~lpConversationIndex);
 				if(hr != hrSuccess)
 					goto exitpm;
 
@@ -3166,7 +3124,7 @@ HRESULT VMIMEToMAPI::postWriteFixups(IMessage *lpMessage)
 			RecurrenceState rec;
 
 			// @todo, if all properties are not available: remove recurrence true marker
-			hr = lpMessage->GetProps(sptaRecProps, 0, &cRecProps, &lpRecProps);
+			hr = lpMessage->GetProps(sptaRecProps, 0, &cRecProps, &~lpRecProps);
 			if(hr != hrSuccess) // Warnings not accepted
 				goto exitpm;
 			
@@ -3288,10 +3246,6 @@ HRESULT VMIMEToMAPI::postWriteFixups(IMessage *lpMessage)
 		}
 	}
  exitpm:
-	MAPIFreeBuffer(lpRecProps);
-	MAPIFreeBuffer(lpConversationIndex);
-	MAPIFreeBuffer(lpMessageClass);
-	MAPIFreeBuffer(lpProps);
 	return hr;
 }
 

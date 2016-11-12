@@ -35,6 +35,7 @@
 #include <mapix.h>
 #include <mapiutil.h>
 #include <kopano/mapiext.h>
+#include <kopano/memory.hpp>
 #include <edkmdb.h>
 #include <kopano/CommonUtil.h>
 #include <kopano/charset/convert.h>
@@ -48,6 +49,7 @@
 #include <kopano/mapi_ptr.h>
 
 using namespace std;
+using namespace KCHL;
 
 namespace KC {
 
@@ -207,8 +209,7 @@ HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
     IMessage *lpMessage, std::ostream &os, sending_options sopt)
 {
 	HRESULT			hr			= hrSuccess;
-	LPSPropValue	lpTime		= NULL;
-	LPSPropValue	lpMessageId	= NULL;
+	memory_ptr<SPropValue> lpTime, lpMessageId;
 	auto mToVM = new MAPIToVMIME(lpSession, lpAddrBook, sopt);
 	vmime::shared_ptr<vmime::message> lpVMMessage;
 	vmime::utility::outputStreamAdapter adapter(os);
@@ -221,10 +222,10 @@ HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
 
 	try {
 		// vmime messageBuilder has set Date header to now(), so we overwrite it.
-		if (HrGetOneProp(lpMessage, PR_CLIENT_SUBMIT_TIME, &lpTime) == hrSuccess)
+		if (HrGetOneProp(lpMessage, PR_CLIENT_SUBMIT_TIME, &~lpTime) == hrSuccess)
 			lpVMMessage->getHeader()->Date()->setValue(FiletimeTovmimeDatetime(lpTime->Value.ft));
 		// else, try PR_MESSAGE_DELIVERY_TIME, maybe other timestamps?
-		if (HrGetOneProp(lpMessage, PR_INTERNET_MESSAGE_ID_A, &lpMessageId) == hrSuccess)
+		if (HrGetOneProp(lpMessage, PR_INTERNET_MESSAGE_ID_A, &~lpMessageId) == hrSuccess)
 			lpVMMessage->getHeader()->MessageId()->setValue(lpMessageId->Value.lpszA);
 		lpVMMessage->generate(adapter);
 	}
@@ -238,8 +239,6 @@ HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
 	}
 	
 exit:
-	MAPIFreeBuffer(lpTime);
-	MAPIFreeBuffer(lpMessageId);
 	delete mToVM;
 	return hr;
 }

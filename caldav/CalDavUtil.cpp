@@ -24,6 +24,7 @@
 #include <kopano/mapi_ptr.h>
 
 using namespace std;
+using namespace KCHL;
 
 /**
  * Open MAPI session
@@ -61,7 +62,7 @@ HRESULT HrAddProperty(IMAPIProp *lpMapiProp, ULONG ulPropTag, bool bFldId, std::
 {
 	HRESULT hr = hrSuccess;
 	SPropValue sPropVal;
-	LPSPropValue lpMsgProp = NULL;
+	memory_ptr<SPropValue> lpMsgProp;
 	GUID sGuid;
 
 	if(wstrProperty->empty())
@@ -74,12 +75,12 @@ HRESULT HrAddProperty(IMAPIProp *lpMapiProp, ULONG ulPropTag, bool bFldId, std::
 	sPropVal.ulPropTag = ulPropTag;
 	sPropVal.Value.lpszW = (LPWSTR)wstrProperty->c_str();
 
-	hr = HrGetOneProp(lpMapiProp, sPropVal.ulPropTag, &lpMsgProp);
+	hr = HrGetOneProp(lpMapiProp, sPropVal.ulPropTag, &~lpMsgProp);
 	if (hr == MAPI_E_NOT_FOUND) {
 		hr = HrSetOneProp(lpMapiProp, &sPropVal);
 		if (hr == E_ACCESSDENIED && bFldId)
 		{
-			hr = HrGetOneProp(lpMapiProp, PR_ENTRYID, &lpMsgProp);
+			hr = HrGetOneProp(lpMapiProp, PR_ENTRYID, &~lpMsgProp);
 			if(hr != hrSuccess)
 				goto exit;
 
@@ -91,7 +92,6 @@ HRESULT HrAddProperty(IMAPIProp *lpMapiProp, ULONG ulPropTag, bool bFldId, std::
 		wstrProperty->assign(lpMsgProp->Value.lpszW);
 
 exit:
-	MAPIFreeBuffer(lpMsgProp);
 	return hr;
 }
 
@@ -553,8 +553,7 @@ exit:
 bool HasDelegatePerm(IMsgStore *lpDefStore, IMsgStore *lpSharedStore)
 {
 	LPMESSAGE lpFbMessage = NULL;
-	LPSPropValue lpProp = NULL;
-	LPSPropValue lpMailBoxEid = NULL;
+	memory_ptr<SPropValue> lpProp, lpMailBoxEid;
 	IMAPIContainer *lpRootCont = NULL;
 	ULONG ulType = 0;
 	ULONG ulPos = 0;
@@ -562,15 +561,14 @@ bool HasDelegatePerm(IMsgStore *lpDefStore, IMsgStore *lpSharedStore)
 	bool blFound = false;
 	bool blDelegatePerm = false; // no permission
 
-	HRESULT hr = HrGetOneProp(lpDefStore, PR_MAILBOX_OWNER_ENTRYID, &lpMailBoxEid);
+	HRESULT hr = HrGetOneProp(lpDefStore, PR_MAILBOX_OWNER_ENTRYID, &~lpMailBoxEid);
 	if (hr != hrSuccess)
 		goto exit;
 
 	hr = lpSharedStore->OpenEntry(0, NULL, NULL, 0, &ulType, (LPUNKNOWN*)&lpRootCont);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = HrGetOneProp(lpRootCont, PR_FREEBUSY_ENTRYIDS, &lpProp);
+	hr = HrGetOneProp(lpRootCont, PR_FREEBUSY_ENTRYIDS, &~lpProp);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -582,10 +580,7 @@ bool HasDelegatePerm(IMsgStore *lpDefStore, IMsgStore *lpSharedStore)
 	hr = lpSharedStore->OpenEntry(sbEid.cb, (LPENTRYID)sbEid.lpb, NULL, MAPI_BEST_ACCESS, &ulType, (LPUNKNOWN*)&lpFbMessage);
 	if (hr != hrSuccess)
 		goto exit;
-
-	MAPIFreeBuffer(lpProp);
-	lpProp = NULL;
-	hr = HrGetOneProp(lpFbMessage, PR_SCHDINFO_DELEGATE_ENTRYIDS, &lpProp);
+	hr = HrGetOneProp(lpFbMessage, PR_SCHDINFO_DELEGATE_ENTRYIDS, &~lpProp);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -601,10 +596,7 @@ bool HasDelegatePerm(IMsgStore *lpDefStore, IMsgStore *lpSharedStore)
 	
 	if (!blFound)
 		goto exit;
-	
-	MAPIFreeBuffer(lpProp);
-	lpProp = NULL;
-	hr = HrGetOneProp(lpFbMessage, PR_DELEGATE_FLAGS, &lpProp);
+	hr = HrGetOneProp(lpFbMessage, PR_DELEGATE_FLAGS, &~lpProp);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -614,9 +606,6 @@ bool HasDelegatePerm(IMsgStore *lpDefStore, IMsgStore *lpSharedStore)
 		blDelegatePerm = false;
 
 exit:
-	MAPIFreeBuffer(lpMailBoxEid);
-	MAPIFreeBuffer(lpProp);
-
 	if (lpFbMessage)
 		lpFbMessage->Release();
 
@@ -634,10 +623,9 @@ exit:
  */
 bool IsPrivate(LPMESSAGE lpMessage, ULONG ulPropIDPrivate)
 {
-	LPSPropValue lpPropPrivate = NULL;
+	memory_ptr<SPropValue> lpPropPrivate;
 	bool bIsPrivate = false;
-
-	HRESULT hr = HrGetOneProp(lpMessage, ulPropIDPrivate, &lpPropPrivate);
+	HRESULT hr = HrGetOneProp(lpMessage, ulPropIDPrivate, &~lpPropPrivate);
 	if (hr != hrSuccess)
 		goto exit;
 	
@@ -645,7 +633,6 @@ bool IsPrivate(LPMESSAGE lpMessage, ULONG ulPropIDPrivate)
 		bIsPrivate = true;
 	
 exit:
-	MAPIFreeBuffer(lpPropPrivate);
 	return bIsPrivate;
 }
 
@@ -723,14 +710,14 @@ exit:
 HRESULT HrFindAndGetMessage(std::string strGuid, IMAPIFolder *lpUsrFld, LPSPropTagArray lpNamedProps, IMessage **lppMessage)
 {
 	SBinary sbEid = {0,0};
-	SRestriction *lpsRoot = NULL;
+	memory_ptr<SRestriction> lpsRoot;
 	SRowSet *lpValRows = NULL;
 	IMAPITable *lpTable = NULL;
 	IMessage *lpMessage = NULL;	
 	ULONG ulObjType = 0;
 	SizedSPropTagArray(1, sPropTagArr) = {1, {PR_ENTRYID}};
 	
-	HRESULT hr = HrMakeRestriction(strGuid, lpNamedProps, &lpsRoot);
+	HRESULT hr = HrMakeRestriction(strGuid, lpNamedProps, &~lpsRoot);
 	if (hr != hrSuccess)
 		goto exit;
 	
@@ -775,7 +762,6 @@ exit:
 
 	if(lpTable)
 		lpTable->Release();
-	MAPIFreeBuffer(lpsRoot);
 	if(lpValRows)
 		FreeProws(lpValRows);
 	
@@ -796,10 +782,10 @@ exit:
  */
 HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, IAddrBook *lpAddrBook, std::list<std::string> *lplstUsers, WEBDAVFBINFO *lpFbInfo)
 {
-	FBUser *lpUsers = NULL;
+	memory_ptr<FBUser> lpUsers;
 	IEnumFBBlock *lpEnumBlock = NULL;
 	IFreeBusyData **lppFBData = NULL;
-	FBBlock_1 *lpsFBblks = NULL;
+	memory_ptr<FBBlock_1> lpsFBblks;
 	std::string strMethod;
 	std::string strIcal;
 	ULONG cUsers = 0;
@@ -857,9 +843,7 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 	hr = ptrABDir->ResolveNames(NULL, EMS_AB_ADDRESS_LOOKUP, lpAdrList, ptrFlagList);
 	if (hr != hrSuccess)
 		goto exit;
-		
-
-	hr = MAPIAllocateBuffer(sizeof(FBUser)*cUsers, (void**)&lpUsers);
+	hr = MAPIAllocateBuffer(sizeof(FBUser)*cUsers, &~lpUsers);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -881,7 +865,7 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 		}
 	}
 
-	hr = MAPIAllocateBuffer(sizeof(IFreeBusyData*)*cUsers, (void**)&lppFBData);
+	hr = MAPIAllocateBuffer(sizeof(IFreeBusyData*)*cUsers, (void **)&lppFBData);
 	if (hr != hrSuccess)
 		goto exit;
 	
@@ -904,8 +888,7 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 		hr = lppFBData[i]->EnumBlocks(&lpEnumBlock, ftStart, ftEnd);
 		if (hr != hrSuccess)
 			goto next;
-		
-		hr = MAPIAllocateBuffer(sizeof(FBBlock_1)*lMaxblks, (void**)&lpsFBblks);
+		hr = MAPIAllocateBuffer(sizeof(FBBlock_1)*lMaxblks, &~lpsFBblks);
 		if (hr != hrSuccess)
 			goto next;
 		
@@ -940,17 +923,12 @@ next:
 		if(lpEnumBlock)
 			lpEnumBlock->Release();
 		lpEnumBlock = NULL;
-
-		MAPIFreeBuffer(lpsFBblks);
-		lpsFBblks = NULL;
-
 		lblkFetched = 0;
 	}
 	// ignoring ical data for unknown users.
 	hr = hrSuccess;
 
 exit:
-	MAPIFreeBuffer(lpUsers);
 	if (lpAdrList)
 		FreePadrlist(lpAdrList);
 	

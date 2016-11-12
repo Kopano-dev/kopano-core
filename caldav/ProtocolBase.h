@@ -18,6 +18,7 @@
 #ifndef PROTOCOLBASE_H
 #define PROTOCOLBASE_H
 
+#include <kopano/memory.hpp>
 #include <mapi.h>
 #include "Http.h"
 
@@ -43,7 +44,7 @@ protected:
 	IMailUser *m_lpActiveUser = nullptr; //!< the owner of m_lpActiveStore
 	IMAPIFolder *m_lpUsrFld = nullptr; //!< The active folder (calendar, inbox, outbox)
 	IMAPIFolder *m_lpIPMSubtree = nullptr; //!< IPMSubtree of active store, used for CopyFolder/CreateFolder
-	SPropTagArray *m_lpNamedProps = nullptr; //!< named properties of the active store
+	KCHL::memory_ptr<SPropTagArray> m_lpNamedProps; //!< named properties of the active store
 	std::wstring m_wstrFldOwner;   //!< url owner part
 	std::wstring m_wstrFldName;	   //!< url foldername part
 

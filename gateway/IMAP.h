@@ -27,6 +27,7 @@
 #include <kopano/zcdefs.h>
 #include <kopano/ECIConv.h>
 #include <kopano/ECChannel.h>
+#include <kopano/memory.hpp>
 #include "ClientProto.h"
 
 using namespace std;
@@ -258,7 +259,7 @@ private:
 
 	IMAPISession *lpSession;
 	IAddrBook *lpAddrBook;
-	LPSPropTagArray m_lpsIMAPTags;
+	KCHL::memory_ptr<SPropTagArray> m_lpsIMAPTags;
 
 	// current folder name
 	wstring strCurrentFolder;

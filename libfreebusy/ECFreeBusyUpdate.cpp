@@ -16,11 +16,14 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/memory.hpp>
 #include <kopano/ECInterfaceDefs.h>
 #include "ECFreeBusyUpdate.h"
 #include "freebusytags.h"
 
 #include "freebusyutil.h"
+
+using namespace KCHL;
 
 namespace KC {
 
@@ -84,8 +87,7 @@ HRESULT ECFreeBusyUpdate::SaveChanges(FILETIME ftStart, FILETIME ftEnd)
 	ULONG			cValues = 0;
 	ULONG			cProps = 0;
 	ULONG			ulMonths;
-	LPSPropValue	lpPropArray = NULL;
-	LPSPropValue	lpPropFBDataArray = NULL;
+	memory_ptr<SPropValue> lpPropArray, lpPropFBDataArray;
 	LONG			rtmStart = 0;
 	LONG			rtmEnd = 0;
 	FILETIME		ft;	
@@ -141,7 +143,8 @@ HRESULT ECFreeBusyUpdate::SaveChanges(FILETIME ftStart, FILETIME ftEnd)
 
 	cValues = 9;
 	cProps = 0;
-	if ((hr = MAPIAllocateBuffer(sizeof(SPropValue) * cValues, (void**)&lpPropArray)) != hrSuccess)
+	hr = MAPIAllocateBuffer(sizeof(SPropValue) * cValues, &~lpPropArray);
+	if (hr != hrSuccess)
 		goto exit;
 
 	lpPropArray[cProps].ulPropTag = PR_FREEBUSY_LAST_MODIFIED;
@@ -164,40 +167,29 @@ HRESULT ECFreeBusyUpdate::SaveChanges(FILETIME ftStart, FILETIME ftEnd)
 	hr = m_lpMessage->DeleteProps(sPropsFBDelete, NULL);
   	if(hr != hrSuccess)
 		goto exit;
-
-	if (CreateFBProp(fbKopanoAllBusy, ulMonths, PR_FREEBUSY_ALL_MONTHS, PR_FREEBUSY_ALL_EVENTS, &m_fbBlockList, &lpPropFBDataArray) == hrSuccess) {
+	if (CreateFBProp(fbKopanoAllBusy, ulMonths, PR_FREEBUSY_ALL_MONTHS,
+	    PR_FREEBUSY_ALL_EVENTS, &m_fbBlockList, &~lpPropFBDataArray) == hrSuccess) {
 		hr = m_lpMessage->SetProps(2, lpPropFBDataArray, NULL);
 		if(hr != hrSuccess)
 			goto exit;
-		MAPIFreeBuffer(lpPropFBDataArray);
-		lpPropFBDataArray = NULL;
 	}
-
-	if(CreateFBProp(fbBusy, ulMonths, PR_FREEBUSY_BUSY_MONTHS, PR_FREEBUSY_BUSY_EVENTS, &m_fbBlockList, &lpPropFBDataArray) == hrSuccess)
-	{
+	if (CreateFBProp(fbBusy, ulMonths, PR_FREEBUSY_BUSY_MONTHS,
+	    PR_FREEBUSY_BUSY_EVENTS, &m_fbBlockList, &~lpPropFBDataArray) == hrSuccess) {
 		hr = m_lpMessage->SetProps(2, lpPropFBDataArray, NULL);
 		if(hr != hrSuccess)
 			goto exit;
-		MAPIFreeBuffer(lpPropFBDataArray);
-		lpPropFBDataArray = NULL;
 	}
-	
-	if(CreateFBProp(fbTentative, ulMonths, PR_FREEBUSY_TENTATIVE_MONTHS,PR_FREEBUSY_TENTATIVE_EVENTS, &m_fbBlockList, &lpPropFBDataArray) == hrSuccess)
-	{
+	if (CreateFBProp(fbTentative, ulMonths, PR_FREEBUSY_TENTATIVE_MONTHS,
+	    PR_FREEBUSY_TENTATIVE_EVENTS, &m_fbBlockList, &~lpPropFBDataArray) == hrSuccess) {
 		hr = m_lpMessage->SetProps(2, lpPropFBDataArray, NULL);
 		if(hr != hrSuccess)
 			goto exit;
-		MAPIFreeBuffer(lpPropFBDataArray);
-		lpPropFBDataArray = NULL;
 	}
-
-	if(CreateFBProp(fbOutOfOffice, ulMonths, PR_FREEBUSY_OOF_MONTHS,PR_FREEBUSY_OOF_EVENTS, &m_fbBlockList, &lpPropFBDataArray) == hrSuccess)
-	{
+	if (CreateFBProp(fbOutOfOffice, ulMonths, PR_FREEBUSY_OOF_MONTHS,
+	    PR_FREEBUSY_OOF_EVENTS, &m_fbBlockList, &~lpPropFBDataArray) == hrSuccess) {
 		hr = m_lpMessage->SetProps(2, lpPropFBDataArray, NULL);
 		if(hr != hrSuccess)
 			goto exit;
-		MAPIFreeBuffer(lpPropFBDataArray);
-		lpPropFBDataArray = NULL;
 	}
 
 	hr = m_lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
@@ -206,8 +198,6 @@ HRESULT ECFreeBusyUpdate::SaveChanges(FILETIME ftStart, FILETIME ftEnd)
 
 exit:
 	m_fbBlockList.Reset();
-	MAPIFreeBuffer(lpPropArray);
-	MAPIFreeBuffer(lpPropFBDataArray);
 	return hr;
 }
 

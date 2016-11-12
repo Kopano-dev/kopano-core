@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/memory.hpp>
 #include <kopano/ECInterfaceDefs.h>
 #include "ECFreeBusySupport.h"
 
@@ -96,14 +97,10 @@ HRESULT ECFreeBusySupport::Open(IMAPISession* lpMAPISession, IMsgStore* lpMsgSto
 	}
 
 #ifdef DEBUG
-	{
-	LPSPropValue lpPropArray = NULL;
-
 	if (lpMsgStore) {
+		KCHL::memory_ptr<SPropValue> lpPropArray;
 		HrGetOneProp(lpMsgStore, PR_DISPLAY_NAME_A, &lpPropArray);
 		TRACE_MAPI(TRACE_ENTRY, "ECFreeBusySupport::Open", "Storename=%s", (lpPropArray && lpPropArray->ulPropTag == PR_DISPLAY_NAME_A) ? lpPropArray->Value.lpszA : "Error");
-		MAPIFreeBuffer(lpPropArray);
-	}
 	}
 #endif
 
