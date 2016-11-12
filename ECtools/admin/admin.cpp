@@ -23,6 +23,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <getopt.h>
+#include <kopano/memory.hpp>
 #include <mapidefs.h>
 #include <mapispi.h>
 #include <mapix.h>
@@ -62,6 +63,7 @@
 #include <kopano/MAPIErrors.h> // for declaration of GetMAPIErrorMessage()
 
 using namespace std;
+using namespace KCHL;
 
 static int forcedExitCode = 0;
 
@@ -468,8 +470,8 @@ static HRESULT setQuota(IECServiceAdmin *lpServiceAdmin, ULONG cbEid,
     long long hard, bool print = false, bool company = false)
 {
 	HRESULT hr = hrSuccess;
-	ECQUOTASTATUS *lpsQuotaStatus = NULL;
-	ECQUOTA *lpsQuota = NULL;
+	memory_ptr<ECQUOTASTATUS> lpsQuotaStatus;
+	memory_ptr<ECQUOTA> lpsQuota;
 	ECQUOTA sQuota;
 
 	if (lpEid == NULL)
@@ -477,8 +479,7 @@ static HRESULT setQuota(IECServiceAdmin *lpServiceAdmin, ULONG cbEid,
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-
-	hr = lpServiceAdmin->GetQuota(cbEid, lpEid, false, &lpsQuota);
+	hr = lpServiceAdmin->GetQuota(cbEid, lpEid, false, &~lpsQuota);
 	if (hr != hrSuccess) {
 		cerr << "Unable to update quota, probably not found." << endl;
 		goto exit;
@@ -506,7 +507,7 @@ static HRESULT setQuota(IECServiceAdmin *lpServiceAdmin, ULONG cbEid,
 	}
 
 	if (print) {
-		hr = lpServiceAdmin->GetQuotaStatus(cbEid, lpEid, &lpsQuotaStatus);
+		hr = lpServiceAdmin->GetQuotaStatus(cbEid, lpEid, &~lpsQuotaStatus);
 		if(hr != hrSuccess) {
 			cerr << "Unable to request updated quota information: " <<
 				GetMAPIErrorMessage(hr) << " (" <<
@@ -520,8 +521,6 @@ static HRESULT setQuota(IECServiceAdmin *lpServiceAdmin, ULONG cbEid,
 	}
 
 exit:
-	MAPIFreeBuffer(lpsQuota);
-	MAPIFreeBuffer(lpsQuotaStatus);
 	return hr;
 }
 
@@ -842,12 +841,12 @@ static void print_user_settings(IMsgStore *lpStore, const ECUSER *lpECUser,
     bool bAutoAccept, bool bDeclineConflict, bool bDeclineRecur,
     const ArchiveList &lstArchives, const ECUSERCLIENTUPDATESTATUS *lpECUCUS)
 {
-	LPSPropValue lpProps = NULL;
+	memory_ptr<SPropValue> lpProps;
 	SizedSPropTagArray(5, sptaProps) = {5, { PR_LAST_LOGON_TIME, PR_LAST_LOGOFF_TIME, PR_EC_OUTOFOFFICE, PR_EC_OUTOFOFFICE_FROM, PR_EC_OUTOFOFFICE_UNTIL } };
 	ULONG cValues = 0;
 
 	if (lpStore)
-		lpStore->GetProps(sptaProps, 0, &cValues, &lpProps);
+		lpStore->GetProps(sptaProps, 0, &cValues, &~lpProps);
 
 	cout << "Username:\t\t" << (LPSTR)lpECUser->lpszUsername << endl;
 	cout << "Fullname:\t\t" << (LPSTR)lpECUser->lpszFullName << endl;
@@ -925,7 +924,6 @@ static void print_user_settings(IMsgStore *lpStore, const ECUSER *lpECUser,
 		else
 			cout << " Update:\t\tFailed" << endl;
 	}
-	MAPIFreeBuffer(lpProps);
 }
 
 /**
@@ -992,7 +990,7 @@ static HRESULT CreateOrphanStoreEntryID(const char *lpServerUrl,
 {
 	HRESULT hr = hrSuccess;
 	ULONG cbNewEntryID = 0;
-	LPENTRYID lpNewEntryID = NULL;
+	memory_ptr<ENTRYID> lpNewEntryID;
 	ULONG cbServerURL = 0;
 
 	if (lpServerUrl == NULL || lpEntryID == NULL || lpcbEntryID == NULL || lppEntryID == NULL) {
@@ -1003,19 +1001,15 @@ static HRESULT CreateOrphanStoreEntryID(const char *lpServerUrl,
 	cbServerURL = strlen(lpServerUrl);
 
 	cbNewEntryID = cbEntryID + cbServerURL;
-
-	hr = MAPIAllocateBuffer(cbNewEntryID, (void**)&lpNewEntryID);
+	hr = MAPIAllocateBuffer(cbNewEntryID, &~lpNewEntryID);
 	if (hr != hrSuccess)
 		goto exit;
 
 	memcpy(lpNewEntryID, lpEntryID, cbEntryID);
-
-	memcpy(((BYTE*)lpNewEntryID)+cbEntryID-4, lpServerUrl, cbServerURL+4);
-
+	memcpy(reinterpret_cast<unsigned char *>(lpNewEntryID.get()) + cbEntryID - 4, lpServerUrl, cbServerURL + 4);
 	hr = WrapStoreEntryID(0, (LPTSTR)"zarafa6client.dll", cbNewEntryID, lpNewEntryID, lpcbEntryID, lppEntryID);
 
 exit:
-	MAPIFreeBuffer(lpNewEntryID);
 	return hr;
 }
 
@@ -1105,22 +1099,20 @@ static HRESULT OpenDeletedStoresFolder(LPMDB lpPublicStore,
 {
 	HRESULT hr = hrSuccess;
 	LPMAPIFOLDER lpFolderSubTree = NULL;
-	LPSPropValue lpsPropSubTree = NULL;
+	memory_ptr<SPropValue> lpsPropSubTree, lpPropValue, lpsPropMDB;
 	LPMAPIFOLDER lpFolderAdmin = NULL;
-	LPSPropValue lpPropValue = NULL;
 	ULONG ulObjType;
 	LPMAPIFOLDER lpFolderDeletedStores = NULL;
 	IECUnknown *lpECFolder = NULL; // non reference
 	ECPERMISSION sPermission = {0};
 	IECSecurity *lpSecurity = NULL;
 	ULONG ulPropTagSubtree = 0;
-	LPSPropValue lpsPropMDB = NULL;
 
 	if (lpPublicStore == NULL || lppFolderStores == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-	hr = HrGetOneProp(lpPublicStore, PR_MDB_PROVIDER, &lpsPropMDB);
+	hr = HrGetOneProp(lpPublicStore, PR_MDB_PROVIDER, &~lpsPropMDB);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -1131,7 +1123,7 @@ static HRESULT OpenDeletedStoresFolder(LPMDB lpPublicStore,
 		ulPropTagSubtree = PR_IPM_SUBTREE_ENTRYID;
 
 	// Open IPM_subtree
-	hr = HrGetOneProp(lpPublicStore, ulPropTagSubtree, &lpsPropSubTree);
+	hr = HrGetOneProp(lpPublicStore, ulPropTagSubtree, &~lpsPropSubTree);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -1143,7 +1135,7 @@ static HRESULT OpenDeletedStoresFolder(LPMDB lpPublicStore,
 	hr = lpFolderSubTree->CreateFolder(FOLDER_GENERIC, (LPTSTR)"Admin", NULL, NULL, 0, &lpFolderAdmin);
 	if (hr == hrSuccess) {
 		// Set permissions
-		hr = HrGetOneProp(lpFolderAdmin, PR_EC_OBJECT, &lpPropValue);
+		hr = HrGetOneProp(lpFolderAdmin, PR_EC_OBJECT, &~lpPropValue);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -1176,9 +1168,6 @@ static HRESULT OpenDeletedStoresFolder(LPMDB lpPublicStore,
 	hr = lpFolderDeletedStores->QueryInterface(IID_IMAPIFolder, (void**)lppFolderStores);
 
 exit:
-	MAPIFreeBuffer(lpsPropSubTree);
-	MAPIFreeBuffer(lpPropValue);
-	MAPIFreeBuffer(lpsPropMDB);
 	if (lpFolderSubTree)
 		lpFolderSubTree->Release();
 
@@ -1210,7 +1199,7 @@ static HRESULT GetPublicStore(LPMAPISESSION lpSession, LPMDB lpMsgStore,
 {
 	HRESULT hr = hrSuccess;
 	ULONG cbEntryID = 0;
-	LPENTRYID lpEntryID = NULL;
+	memory_ptr<ENTRYID> lpEntryID;
 	IExchangeManageStore *lpIEMS = NULL;
 
 	if (!strCompanyname.empty())
@@ -1219,7 +1208,7 @@ static HRESULT GetPublicStore(LPMAPISESSION lpSession, LPMDB lpMsgStore,
 		if (hr != hrSuccess)
 			goto exit;
 
-		hr = lpIEMS->CreateStoreEntryID((LPTSTR)L"", (LPTSTR)strCompanyname.c_str(), MAPI_UNICODE, &cbEntryID, &lpEntryID);
+		hr = lpIEMS->CreateStoreEntryID((LPTSTR)L"", (LPTSTR)strCompanyname.c_str(), MAPI_UNICODE, &cbEntryID, &~lpEntryID);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -1234,7 +1223,6 @@ static HRESULT GetPublicStore(LPMAPISESSION lpSession, LPMDB lpMsgStore,
 	}
 
 exit:
-	MAPIFreeBuffer(lpEntryID);
 	if (lpIEMS)
 		lpIEMS->Release();
 
@@ -1411,21 +1399,18 @@ static HRESULT print_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore,
     objectclass_t ulClass, const char *lpszName)
 {
 	HRESULT hr = hrSuccess;
-	ECUSER *lpECUser = NULL;
-	ECGROUP *lpECGroup = NULL;
-	ECCOMPANY *lpECCompany = NULL;
-	ECQUOTASTATUS *lpsQuotaStatus = NULL;
-	ECQUOTA *lpsQuota = NULL;
-	ECGROUP *lpECGroups = NULL;
-	ECUSER *lpECUsers = NULL;
-	ECUSER *lpECAdmins = NULL;
-	ECCOMPANY *lpECViews = NULL;
+	memory_ptr<ECUSER> lpECUser;
+	memory_ptr<ECGROUP> lpECGroup, lpECGroups;
+	memory_ptr<ECCOMPANY> lpECCompany, lpECViews;
+	memory_ptr<ECQUOTASTATUS> lpsQuotaStatus;
+	memory_ptr<ECQUOTA> lpsQuota;
+	memory_ptr<ECUSER> lpECUsers, lpECAdmins;
 	ULONG cGroups = 0;
 	ULONG cUsers = 0;
 	ULONG cAdmins = 0;
 	ULONG cViews = 0;
 	ULONG cbEntryID = 0;
-	LPENTRYID lpEntryID = NULL;
+	memory_ptr<ENTRYID> lpEntryID;
 	LPMDB lpStore = NULL;
 	IExchangeManageStore *lpIEMS = NULL;
 	IECServiceAdmin *lpServiceAdmin = NULL;
@@ -1454,7 +1439,7 @@ static HRESULT print_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore,
 				goto exit;
 			}
 
-			hr = lpServiceAdmin->GetCompany(cbObjectId, lpObjectId, 0, &lpECCompany);
+			hr = lpServiceAdmin->GetCompany(cbObjectId, lpObjectId, 0, &~lpECCompany);
 			if (hr != hrSuccess) {
 				cerr << "Unable to show company details, " << getMapiCodeString(hr) << endl;
 				goto exit;
@@ -1466,7 +1451,7 @@ static HRESULT print_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore,
 				goto exit;
 			}
 
-			hr = lpIEMS->CreateStoreEntryID((LPTSTR)"", lpECCompany->lpszCompanyname, 0, &cbEntryID, &lpEntryID);
+			hr = lpIEMS->CreateStoreEntryID((LPTSTR)"", lpECCompany->lpszCompanyname, 0, &cbEntryID, &~lpEntryID);
 			if (hr != hrSuccess) {
 				cerr << "Unable to get company store entry id. Company possibly has no store." << endl;
 				goto exit;
@@ -1478,19 +1463,19 @@ static HRESULT print_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore,
 				goto exit;
 			}
 
-			hr = lpServiceAdmin->GetUser(lpECCompany->sAdministrator.cb, (LPENTRYID)lpECCompany->sAdministrator.lpb, 0, &lpECUser);
+			hr = lpServiceAdmin->GetUser(lpECCompany->sAdministrator.cb, (LPENTRYID)lpECCompany->sAdministrator.lpb, 0, &~lpECUser);
 			if (hr != hrSuccess) {
 				cerr << "Unable to resolve company administrator, " << getMapiCodeString(hr) << endl;
 				goto exit;
 			}
 
-			hr = lpServiceAdmin->GetRemoteAdminList(cbObjectId, lpObjectId, 0, &cAdmins, &lpECAdmins);
+			hr = lpServiceAdmin->GetRemoteAdminList(cbObjectId, lpObjectId, 0, &cAdmins, &~lpECAdmins);
 			if (hr != hrSuccess) {
 				cerr << "Unable to display remote-admin list, " << getMapiCodeString(hr) << endl;
 				hr = hrSuccess; /* Don't make error fatal */
 			}
 
-			hr = lpServiceAdmin->GetRemoteViewList(cbObjectId, lpObjectId, 0, &cViews, &lpECViews);
+			hr = lpServiceAdmin->GetRemoteViewList(cbObjectId, lpObjectId, 0, &cViews, &~lpECViews);
 			if (hr != hrSuccess) {
 				cerr << "Unable to display remote-view list, " << getMapiCodeString(hr) << endl;
 				hr = hrSuccess; /* Don't make error fatal */
@@ -1509,13 +1494,13 @@ static HRESULT print_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore,
 				goto exit;
 			}
 
-			hr = lpServiceAdmin->GetGroup(cbObjectId, lpObjectId, 0, &lpECGroup);
+			hr = lpServiceAdmin->GetGroup(cbObjectId, lpObjectId, 0, &~lpECGroup);
 			if (hr != hrSuccess) {
 				cerr << "Unable to show group details, " << getMapiCodeString(hr) << endl;
 				goto exit;
 			}
 
-			hr = lpServiceAdmin->GetUserListOfGroup(cbObjectId, lpObjectId, 0, &cUsers, &lpECUsers);
+			hr = lpServiceAdmin->GetUserListOfGroup(cbObjectId, lpObjectId, 0, &cUsers, &~lpECUsers);
 			if (hr != hrSuccess) {
 				cerr << "Unable to request users for group, " << getMapiCodeString(hr) << endl;
 				hr = hrSuccess; /* Don't make error fatal */
@@ -1537,7 +1522,7 @@ static HRESULT print_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore,
 				goto exit;
 			}
 
-			hr = lpServiceAdmin->GetUser(cbObjectId, lpObjectId, 0, &lpECUser);
+			hr = lpServiceAdmin->GetUser(cbObjectId, lpObjectId, 0, &~lpECUser);
 			if (hr != hrSuccess) {
 				cerr << "Unable to show user details, " << getMapiCodeString(hr) << endl;
 				goto exit;
@@ -1549,7 +1534,7 @@ static HRESULT print_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore,
 				goto exit;
 			}
 
-			hr = lpIEMS->CreateStoreEntryID((LPTSTR)"", lpECUser->lpszUsername, 0, &cbEntryID, &lpEntryID);
+			hr = lpIEMS->CreateStoreEntryID((LPTSTR)"", lpECUser->lpszUsername, 0, &cbEntryID, &~lpEntryID);
 			if (hr != hrSuccess) {
 				cerr << "WARNING: Unable to get user store entry id. User possibly has no store." << endl << endl;
 				lpStore = NULL;
@@ -1566,7 +1551,7 @@ static HRESULT print_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore,
 				/* Ignore return value */
 			}
 
-			hr = lpServiceAdmin->GetGroupListOfUser(cbObjectId, lpObjectId, 0, &cGroups, &lpECGroups);
+			hr = lpServiceAdmin->GetGroupListOfUser(cbObjectId, lpObjectId, 0, &cGroups, &~lpECGroups);
 			if (hr != hrSuccess) {
 				cerr << "Unable to request groups for user, " << getMapiCodeString(hr) << endl;
 				hr = hrSuccess; /* Don't make error fatal */
@@ -1601,12 +1586,12 @@ static HRESULT print_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore,
 
 	/* Group quota is not completely implemented at this time on the server... */
 	if (ulClass != DISTLIST_GROUP) {
-		hr = lpServiceAdmin->GetQuota(cbObjectId, lpObjectId, false, &lpsQuota);
+		hr = lpServiceAdmin->GetQuota(cbObjectId, lpObjectId, false, &~lpsQuota);
 		if (hr != hrSuccess) {
 			cerr << "Unable to show object quota, " << getMapiCodeString(hr) << endl;
 			hr = hrSuccess; /* Don't make error fatal */
 		} else {
-			hr = Util::HrGetQuotaStatus(lpStore, lpsQuota, &lpsQuotaStatus);
+			hr = Util::HrGetQuotaStatus(lpStore, lpsQuota, &~lpsQuotaStatus);
 			if (hr != hrSuccess) {
 				cerr << "Unable to show object quota information, " << getMapiCodeString(hr) << endl;
 				hr = hrSuccess; /* Don't make error fatal */
@@ -1616,7 +1601,7 @@ static HRESULT print_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore,
 	}
 
 	if (ulClass == CONTAINER_COMPANY) {
-		hr = lpServiceAdmin->GetQuota(cbObjectId, lpObjectId, true, &lpsQuota);
+		hr = lpServiceAdmin->GetQuota(cbObjectId, lpObjectId, true, &~lpsQuota);
 		if (hr != hrSuccess) {
 			cerr << "Unable to get user default quota for company, " << getMapiCodeString(hr) << endl;
 			hr = hrSuccess; /* not fatal */
@@ -1687,22 +1672,12 @@ static HRESULT print_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore,
 	}
 
 exit:
-	MAPIFreeBuffer(lpECUser);
-	MAPIFreeBuffer(lpECGroup);
-	MAPIFreeBuffer(lpECCompany);
-	MAPIFreeBuffer(lpECUsers);
-	MAPIFreeBuffer(lpECGroups);
-	MAPIFreeBuffer(lpECAdmins);
-	MAPIFreeBuffer(lpECViews);
-	MAPIFreeBuffer(lpsQuota);
-	MAPIFreeBuffer(lpsQuotaStatus);
 	if (lpServiceAdmin)
 		lpServiceAdmin->Release();
 	if (lpIEMS)
 		lpIEMS->Release();
 	if (lpStore)
 		lpStore->Release();
-	MAPIFreeBuffer(lpEntryID);
 	return hr;
 }
 
@@ -1716,10 +1691,10 @@ exit:
 static HRESULT ListUsers(IECServiceAdmin *lpServiceAdmin, ECCOMPANY *lpCompany)
 {
 	HRESULT		hr = hrSuccess;
-	ECUSER*		lpECUsers = NULL;
+	memory_ptr<ECUSER> lpECUsers;
 	ULONG		cUsers = 0;
 
-	hr = lpServiceAdmin->GetUserList(lpCompany->sCompanyId.cb, (LPENTRYID)lpCompany->sCompanyId.lpb, 0, &cUsers, &lpECUsers);
+	hr = lpServiceAdmin->GetUserList(lpCompany->sCompanyId.cb, (LPENTRYID)lpCompany->sCompanyId.lpb, 0, &cUsers, &~lpECUsers);
 	if (hr != hrSuccess) {
 		cerr << "Unable to list users, " << getMapiCodeString(hr) << endl;
 		goto exit;
@@ -1730,7 +1705,6 @@ static HRESULT ListUsers(IECServiceAdmin *lpServiceAdmin, ECCOMPANY *lpCompany)
 	cout << endl;
 
 exit:
-	MAPIFreeBuffer(lpECUsers);
 	return hr;
 }
 
@@ -1745,10 +1719,10 @@ static HRESULT ListGroups(IECServiceAdmin *lpServiceAdmin,
     ECCOMPANY *lpCompany)
 {
 	HRESULT		hr = hrSuccess;
-	ECGROUP*	lpECGroups = NULL;
+	memory_ptr<ECGROUP> lpECGroups;
 	ULONG		cGroups = 0;
 
-	hr = lpServiceAdmin->GetGroupList(lpCompany->sCompanyId.cb, (LPENTRYID)lpCompany->sCompanyId.lpb, 0, &cGroups, &lpECGroups);
+	hr = lpServiceAdmin->GetGroupList(lpCompany->sCompanyId.cb, (LPENTRYID)lpCompany->sCompanyId.lpb, 0, &cGroups, &~lpECGroups);
 	if (hr != hrSuccess) {
 		cerr << "Unable to list groups, " << getMapiCodeString(hr) << endl;
 		goto exit;
@@ -1761,7 +1735,6 @@ static HRESULT ListGroups(IECServiceAdmin *lpServiceAdmin,
 	cout << endl;
 
 exit:
-	MAPIFreeBuffer(lpECGroups);
 	return hr;
 }
 
@@ -1796,15 +1769,15 @@ static HRESULT ForEachCompany(IECServiceAdmin *lpServiceAdmin,
 {
 	HRESULT hr = hrSuccess;
 	ULONG cbCompanyId = 0;
-	LPENTRYID lpCompanyId = NULL;
+	memory_ptr<ENTRYID> lpCompanyId;
 	ULONG cCompanies = 0;
 
 	ECCOMPANY *lpECCompanies = NULL;
-	ECCOMPANY *lpECCompaniesAlloc = NULL;
+	memory_ptr<ECCOMPANY> lpECCompaniesAlloc;
 	ECCOMPANY sRootCompany = {{g_cbSystemEid, g_lpSystemEid}, (LPTSTR)"Default", NULL, {0, NULL}};
 
 	if (lpszCompanyName) {
-		hr = lpServiceAdmin->ResolveCompanyName((LPTSTR)lpszCompanyName, 0, &cbCompanyId, &lpCompanyId);
+		hr = lpServiceAdmin->ResolveCompanyName((LPTSTR)lpszCompanyName, 0, &cbCompanyId, &~lpCompanyId);
 		if (hr != hrSuccess) {
 			cerr << "Failed to resolve company name, " << getMapiCodeString(hr, lpszCompanyName) << endl;
 			goto exit;
@@ -1812,11 +1785,11 @@ static HRESULT ForEachCompany(IECServiceAdmin *lpServiceAdmin,
 
 		cCompanies = 1;
 		sRootCompany.sCompanyId.cb = cbCompanyId;
-		sRootCompany.sCompanyId.lpb = (LPBYTE)lpCompanyId;
+		sRootCompany.sCompanyId.lpb = reinterpret_cast<unsigned char *>(lpCompanyId.get());
 		sRootCompany.lpszCompanyname = (LPTSTR)lpszCompanyName;
 		lpECCompanies = &sRootCompany;
 	} else {
-		hr = lpServiceAdmin->GetCompanyList(0, &cCompanies, &lpECCompaniesAlloc);
+		hr = lpServiceAdmin->GetCompanyList(0, &cCompanies, &~lpECCompaniesAlloc);
 		if (hr != hrSuccess) {
 			cCompanies = 1;
 			lpECCompanies = &sRootCompany;
@@ -1838,8 +1811,6 @@ static HRESULT ForEachCompany(IECServiceAdmin *lpServiceAdmin,
 	}
 
 exit:
-	MAPIFreeBuffer(lpECCompaniesAlloc);
-	MAPIFreeBuffer(lpCompanyId);
 	return hr;
 }
 
@@ -2346,45 +2317,36 @@ int main(int argc, char* argv[])
 
 	IECServiceAdmin *lpServiceAdmin = NULL;
 	ULONG cbUserId = 0;
-	LPENTRYID lpUserId = NULL;
+	memory_ptr<ENTRYID> lpUserId, lpSenderId, lpGroupId, lpCompanyId;
+	memory_ptr<ENTRYID> lpSetCompanyId, lpEntryID, lpUnWrappedEntry;
+	memory_ptr<ENTRYID> lpStoreId, lpRootId;
 	ULONG cbGroupId = 0;
-	LPENTRYID lpSenderId = NULL;
 	ULONG cbSenderId = 0;
-	LPENTRYID lpGroupId = NULL;
 	ULONG cbCompanyId = 0;
-	LPENTRYID lpCompanyId = NULL;
 	ULONG cbSetCompanyId = 0;
-	LPENTRYID lpSetCompanyId = NULL;
 	ULONG ulDays = 0;
-	LPSPropValue lpPropValue = NULL;
+	memory_ptr<SPropValue> lpPropValue;
 	ULONG cbGUID = 0;
-	LPGUID lpGUID = NULL;
+	memory_ptr<GUID> lpGUID;
 
-	ECUSER sECUser, *lpECUser = NULL;
+	ECUSER sECUser;
+	memory_ptr<ECUSER> lpECUser, lpSenders;
 	ULONG cbStoreId = 0;
-	LPENTRYID lpStoreId = NULL;
 	ULONG cbRootId = 0;
-	LPENTRYID lpRootId = NULL;
 	ULONG cbUnWrappedEntry = 0;
-	LPENTRYID lpUnWrappedEntry = NULL;
 
 	ECGROUP		sECGroup;
-	ECGROUP *lpECGroups = NULL;
+	memory_ptr<ECGROUP> lpECGroups;
 	ULONG		cCompanies = 0;
 	ULONG		cUsers = 0;
 
 	ECCOMPANY sECCompany;
 	ECCOMPANY *lpECCompanies = NULL;
-
-	ECQUOTASTATUS *lpsQuotaStatus = NULL;
-	ECQUOTA *lpsQuota = NULL;
-
-	ECSVRNAMELIST *lpsServer = NULL;
-	ECSERVERLIST *lpServerDetails = NULL;
-
+	memory_ptr<ECQUOTASTATUS> lpsQuotaStatus;
+	memory_ptr<ECQUOTA> lpsQuota;
+	memory_ptr<ECSVRNAMELIST> lpsServer;
+	memory_ptr<ECSERVERLIST> lpServerDetails;
 	ULONG cSenders = 0;
-	ECUSER *lpSenders = NULL;
-
 	objectclass_t ulClass = OBJECTCLASS_UNKNOWN;
 	const char *detailstype = NULL;
 	char *username = NULL;
@@ -2426,7 +2388,6 @@ int main(int argc, char* argv[])
 
 	bool bAutoAccept = false, bDeclineConflict = false, bDeclineRecurring = false;
 	ULONG cbEntryID = 0;
-	LPENTRYID lpEntryID = NULL;
 	LPMDB lpPublicStore = NULL;
 	LPMDB lpUserStore = NULL;
 	IExchangeManageStore *lpIEMS = NULL;
@@ -3191,7 +3152,7 @@ int main(int argc, char* argv[])
 		lpMsgStore = ptrRemoteStore.release();
 	}
 
-	hr = HrGetOneProp(lpMsgStore, PR_EC_OBJECT, &lpPropValue);
+	hr = HrGetOneProp(lpMsgStore, PR_EC_OBJECT, &~lpPropValue);
 	if(hr != hrSuccess || !lpPropValue || !lpPropValue->Value.lpszA) {
 		cerr << "Admin object not found." << endl;
 		goto exit;
@@ -3199,10 +3160,6 @@ int main(int argc, char* argv[])
 
 	lpECMsgStore = reinterpret_cast<IECUnknown *>(lpPropValue->Value.lpszA);
 	lpECMsgStore->AddRef();
-
-	MAPIFreeBuffer(lpPropValue);
-	lpPropValue = NULL;
-
 	hr = lpECMsgStore->QueryInterface(IID_IECServiceAdmin, reinterpret_cast<void **>(&lpServiceAdmin));
 	if(hr != hrSuccess) {
 		cerr << "Admin object query error." << endl;
@@ -3246,21 +3203,22 @@ int main(int argc, char* argv[])
 
 		case MODE_CREATE_PUBLIC:
 			if (companyname) {
-				hr = lpServiceAdmin->ResolveCompanyName((LPTSTR)companyname, 0, &cbCompanyId, &lpCompanyId);
+				hr = lpServiceAdmin->ResolveCompanyName((LPTSTR)companyname, 0, &cbCompanyId, &~lpCompanyId);
 				if(hr != hrSuccess) {
 					cerr << "Failed to resolve company name, " << getMapiCodeString(hr, companyname) << endl;
 					goto exit;
 				}
 			} else {
 				cbCompanyId = g_cbEveryoneEid;
-				if ((hr = MAPIAllocateBuffer(g_cbEveryoneEid, (void**)&lpCompanyId)) != hrSuccess)
+				hr = MAPIAllocateBuffer(g_cbEveryoneEid, &~lpCompanyId);
+				if (hr != hrSuccess)
 					goto exit;
 				memcpy(lpCompanyId, g_lpEveryoneEid, g_cbEveryoneEid);
 			}
 
 			/* The public store is created for a particular company, to do this correctly we will
 			 * pass the company id as the group id for the store. */
-			hr = lpServiceAdmin->CreateStore(ECSTORE_TYPE_PUBLIC, cbCompanyId, lpCompanyId, &cbStoreId, &lpStoreId, &cbRootId, &lpRootId);
+			hr = lpServiceAdmin->CreateStore(ECSTORE_TYPE_PUBLIC, cbCompanyId, lpCompanyId, &cbStoreId, &~lpStoreId, &cbRootId, &~lpRootId);
 			if(hr != hrSuccess) {
 				cerr << "Unable to create store, " << getMapiCodeString(hr, "public") << endl;
 				goto exit;
@@ -3301,7 +3259,7 @@ int main(int argc, char* argv[])
 			if (isnonactive == 1)
 				sECUser.ulObjClass = NONACTIVE_USER; // NONACTIVE_ROOM, NONACTIVE_EQUIPMENT, (NONACTIVE_CONTACT?)
 
-			hr = lpServiceAdmin->CreateUser(&sECUser, 0, &cbUserId, &lpUserId);
+			hr = lpServiceAdmin->CreateUser(&sECUser, 0, &cbUserId, &~lpUserId);
 			if(hr != hrSuccess) {
 				cerr << "Unable to create user, " << getMapiCodeString(hr, username) << endl;
 				cerr << "Check server.log for details." << endl;
@@ -3319,13 +3277,13 @@ int main(int argc, char* argv[])
 			break;
 
 		case MODE_CREATE_STORE:
-			hr = lpServiceAdmin->ResolveUserName((LPTSTR)username, 0, &cbUserId, &lpUserId);
+			hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
 			if(hr != hrSuccess) {
 				cerr << "Unable to create store, " << getMapiCodeString(hr, username) << endl;
 				goto exit;
 			}
 
-			hr = lpServiceAdmin->CreateStore(ECSTORE_TYPE_PRIVATE, cbUserId, lpUserId, &cbStoreId, &lpStoreId, &cbRootId, &lpRootId);
+			hr = lpServiceAdmin->CreateStore(ECSTORE_TYPE_PRIVATE, cbUserId, lpUserId, &cbStoreId, &~lpStoreId, &cbRootId, &~lpRootId);
 			if(hr != hrSuccess) {
 				cerr << "Unable to create store, " << getMapiCodeString(hr, "store") << endl;
 				goto exit;
@@ -3334,7 +3292,7 @@ int main(int argc, char* argv[])
 			break;
 
 		case MODE_DELETE_USER:
-			hr = lpServiceAdmin->ResolveUserName((LPTSTR)username, 0, &cbUserId, &lpUserId);
+			hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
 			if (hr != hrSuccess) {
 				cerr << "Unable to delete user, " << getMapiCodeString(hr, username) << endl;
 				goto exit;
@@ -3352,7 +3310,7 @@ int main(int argc, char* argv[])
 			// happy compiler
 			break;
 		case MODE_HOOK_STORE:
-			hr = Util::hex2bin(storeguid, sizeof(GUID)*2, &cbGUID, (LPBYTE*)&lpGUID);
+			hr = Util::hex2bin(storeguid, sizeof(GUID)*2, &cbGUID, (&~lpGUID).as<unsigned char>());
 			if (hr != hrSuccess) {
 				cerr << "Incorrect store guid '" << storeguid << "'" << endl;
 				goto exit;
@@ -3360,7 +3318,7 @@ int main(int argc, char* argv[])
 
 			if (bCopyToPublic == true) {
 				// Find store entryid
-				hr = GetOrphanStoreInfo(lpServiceAdmin, lpGUID, path, strUsername, strCompanyName, &cbEntryID, &lpEntryID);
+				hr = GetOrphanStoreInfo(lpServiceAdmin, lpGUID, path, strUsername, strCompanyName, &cbEntryID, &~lpEntryID);
 				if (hr != hrSuccess) {
 					cerr << "Unable to get the store information. store guid '" << storeguid << "'" << endl;
 					goto exit;
@@ -3380,7 +3338,7 @@ int main(int argc, char* argv[])
 					goto exit;
 				}
 
-				hr = HrGetOneProp(lpUserStore, PR_IPM_SUBTREE_ENTRYID, &lpPropValue);
+				hr = HrGetOneProp(lpUserStore, PR_IPM_SUBTREE_ENTRYID, &~lpPropValue);
 				if (hr != hrSuccess) {
 					cerr << "Unable to open the orphans store sub-entry, " << getMapiCodeString(hr) << endl;
 					goto exit;
@@ -3445,16 +3403,16 @@ int main(int argc, char* argv[])
 
 				if (strcmp(detailstype, "user") == 0) {
 					ulStoreType = ECSTORE_TYPE_PRIVATE;
-					hr = lpServiceAdmin->ResolveUserName((LPTSTR)username, 0, &cbUserId, &lpUserId);
+					hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
 				} else if (strcmp(detailstype, "archive") == 0) {
 					ulStoreType = ECSTORE_TYPE_ARCHIVE;
-					hr = lpServiceAdmin->ResolveUserName((LPTSTR)username, 0, &cbUserId, &lpUserId);
+					hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
 				} else if (strcmp(detailstype, "group") == 0) {
 					ulStoreType = ECSTORE_TYPE_PUBLIC;
-					hr = lpServiceAdmin->ResolveGroupName((LPTSTR)username, 0, &cbUserId, &lpUserId);
+					hr = lpServiceAdmin->ResolveGroupName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
 				} else if (strcmp(detailstype, "company") == 0) {
 					ulStoreType = ECSTORE_TYPE_PUBLIC;
-					hr = lpServiceAdmin->ResolveCompanyName((LPTSTR)username, 0, &cbUserId, &lpUserId);
+					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
 				} else {
 					cerr << "Unknown store type: '" << detailstype << "'." << endl;
 					goto exit;
@@ -3466,7 +3424,7 @@ int main(int argc, char* argv[])
 
 				if (strcmp(detailstype, "user") == 0) {
 					// check if this user should exist on the connected server. depending on --force, print a warning or an error
-					hr = lpServiceAdmin->GetUser(cbUserId, lpUserId, 0, &lpECUser);
+					hr = lpServiceAdmin->GetUser(cbUserId, lpUserId, 0, &~lpECUser);
 					if (hr != hrSuccess) {
 						cerr << "Unable to load details, " << getMapiCodeString(hr, username) << endl;
 						goto exit;
@@ -3475,7 +3433,7 @@ int main(int argc, char* argv[])
 					// homeserver on single server installations is empty
 					if (lpECUser->lpszServername != NULL && *reinterpret_cast<LPSTR>(lpECUser->lpszServername) != '\0') {
 						// note, this has to be mapi allocated because GetServerDetails does a More allocation on this base pointer
-						if (MAPIAllocateBuffer(sizeof(ECSVRNAMELIST), (void**)&lpsServer) != hrSuccess ||
+						if (MAPIAllocateBuffer(sizeof(ECSVRNAMELIST), &~lpsServer) != hrSuccess ||
 								MAPIAllocateMore(sizeof(LPTSTR), lpsServer, (void**)&lpsServer->lpszaServer) != hrSuccess) {
 							hr = MAPI_E_NOT_ENOUGH_MEMORY;
 							cerr << "Unable to allocate memory for server details" << endl;
@@ -3483,7 +3441,7 @@ int main(int argc, char* argv[])
 						}
 						lpsServer->cServers = 1;
 						lpsServer->lpszaServer[0] = lpECUser->lpszServername;
-						hr = lpServiceAdmin->GetServerDetails(lpsServer, 0, &lpServerDetails);
+						hr = lpServiceAdmin->GetServerDetails(lpsServer, 0, &~lpServerDetails);
 						if (hr != hrSuccess) {
 							cerr << "Unable to load server details, " << getMapiCodeString(hr, (char*)lpECUser->lpszServername) << endl;
 							goto exit;
@@ -3514,17 +3472,17 @@ int main(int argc, char* argv[])
 
 						if (strcmp(detailstype, "user") == 0) {
 							ulStoreType = ECSTORE_TYPE_PRIVATE;
-							hr = lpServiceAdmin->ResolveUserName((LPTSTR)username, 0, &cbUserId, &lpUserId);
+							hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
 						} else if (strcmp(detailstype, "archive") == 0) {
 							ulStoreType = ECSTORE_TYPE_ARCHIVE;
-							hr = lpServiceAdmin->ResolveUserName((LPTSTR)username, 0, &cbUserId, &lpUserId);
+							hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
 						} else if (strcmp(detailstype, "group") == 0) {
 							ulStoreType = ECSTORE_TYPE_PUBLIC;
-							hr = lpServiceAdmin->ResolveGroupName((LPTSTR)username, 0, &cbUserId, &lpUserId);
+							hr = lpServiceAdmin->ResolveGroupName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
 						} else if (strcmp(detailstype, "company") == 0) {
 							ulStoreType = ECSTORE_TYPE_PUBLIC;
 							strCompanyName = convert_to<wstring>(username);
-							hr = lpServiceAdmin->ResolveCompanyName((LPTSTR)username, 0, &cbUserId, &lpUserId);
+							hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
 						} else {
 							cerr << "Unknown store type: '" << detailstype << "'." << endl;
 							goto exit;
@@ -3536,7 +3494,7 @@ int main(int argc, char* argv[])
 
 						if (ulStoreType != ECSTORE_TYPE_PUBLIC) {
 							if (ulStoreType == ECSTORE_TYPE_ARCHIVE) {
-								hr = lpServiceAdmin->GetArchiveStoreEntryID((LPTSTR)username, NULL, 0, &cbStoreId, &lpStoreId);
+								hr = lpServiceAdmin->GetArchiveStoreEntryID(reinterpret_cast<LPTSTR>(username), NULL, 0, &cbStoreId, &~lpStoreId);
 								if (hr != hrSuccess) {
 									cout << "Unable to unhook store, unable to retrieve store entryid, " << getMapiCodeString(hr, "entryid") << endl;
 									goto exit;
@@ -3547,7 +3505,7 @@ int main(int argc, char* argv[])
 									goto exit;
 
 								// do not redirect to another server, unhook works on the server it's connected to
-								hr = lpIEMS->CreateStoreEntryID(NULL, (LPTSTR)username, OPENSTORE_OVERRIDE_HOME_MDB, &cbStoreId, &lpStoreId);
+								hr = lpIEMS->CreateStoreEntryID(NULL, reinterpret_cast<LPTSTR>(username), OPENSTORE_OVERRIDE_HOME_MDB, &cbStoreId, &~lpStoreId);
 								if (hr != hrSuccess) {
 									if (hr == MAPI_E_NOT_FOUND)
 										cout << "Unable to unhook store. User '" << username << "' has no store attached." << endl;
@@ -3557,7 +3515,7 @@ int main(int argc, char* argv[])
 								}
 							}
 
-							hr = UnWrapStoreEntryID(cbStoreId, lpStoreId, &cbUnWrappedEntry, &lpUnWrappedEntry);
+							hr = UnWrapStoreEntryID(cbStoreId, lpStoreId, &cbUnWrappedEntry, &~lpUnWrappedEntry);
 							if (hr != hrSuccess) {
 								cout << "Unable to unhook store. Unable to unwrap the store entryid, " << getMapiCodeString(hr, "entryid") << endl;
 								goto exit;
@@ -3570,13 +3528,13 @@ int main(int argc, char* argv[])
 								goto exit;
 							}
 
-							hr = HrGetOneProp(lpPublicStore, PR_STORE_ENTRYID, &lpPropValue);
+							hr = HrGetOneProp(lpPublicStore, PR_STORE_ENTRYID, &~lpPropValue);
 							if (hr != hrSuccess) {
 								cerr << "Unable to get public store entryid, " << getMapiCodeString(hr, "store") << endl;
 								goto exit;
 							}
 
-							hr = UnWrapStoreEntryID(lpPropValue->Value.bin.cb, (LPENTRYID)lpPropValue->Value.bin.lpb, &cbUnWrappedEntry, &lpUnWrappedEntry);
+							hr = UnWrapStoreEntryID(lpPropValue->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPropValue->Value.bin.lpb), &cbUnWrappedEntry, &~lpUnWrappedEntry);
 							if (hr != hrSuccess) {
 								cout << "Unable to unhook store. Unable to unwrap the store entryid, " << getMapiCodeString(hr, "entryid") << endl;
 								goto exit;
@@ -3593,7 +3551,7 @@ int main(int argc, char* argv[])
 					}
 					break;
 		case MODE_REMOVE_STORE:
-					hr = Util::hex2bin(storeguid, sizeof(GUID)*2, &cbGUID, (LPBYTE*)&lpGUID);
+					hr = Util::hex2bin(storeguid, sizeof(GUID)*2, &cbGUID, (&~lpGUID).as<unsigned char>());
 					if (hr != hrSuccess) {
 						cerr << "Incorrect store guid '" << storeguid << "'" << endl;
 						goto exit;
@@ -3609,22 +3567,21 @@ int main(int argc, char* argv[])
 
 		case MODE_UPDATE_USER:
 					if(new_username) {
-						hr = lpServiceAdmin->ResolveUserName((LPTSTR)new_username, 0, &cbUserId, &lpUserId);
+						hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(new_username), 0, &cbUserId, &~lpUserId);
 						if (hr == hrSuccess) {
 							cerr << "User with name '" << new_username << "' is already present." << endl;
 							hr = MAPI_E_COLLISION;
 							goto exit;
 						}
 					}
-
-					hr = lpServiceAdmin->ResolveUserName((LPTSTR)username, 0, &cbUserId, &lpUserId);
+					hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
 					if (hr != hrSuccess) {
 						cerr << "Unable to update user, " << getMapiCodeString(hr, username) << endl;
 						goto exit;
 					}
 
 					// get old features. we need these, because not setting them would mean: remove
-					hr = lpServiceAdmin->GetUser(cbUserId, lpUserId, 0, &lpECUser);
+					hr = lpServiceAdmin->GetUser(cbUserId, lpUserId, 0, &~lpECUser);
 					if (hr != hrSuccess) {
 						cerr << "Unable to get user details, " << getMapiCodeString(hr, username) << endl;
 						goto exit;
@@ -3662,7 +3619,7 @@ int main(int argc, char* argv[])
 
 						// copy static info
 						sECUser.sUserId.cb = cbUserId;
-						sECUser.sUserId.lpb = (unsigned char*)lpUserId;
+						sECUser.sUserId.lpb = reinterpret_cast<unsigned char *>(lpUserId.get());
 						// possibly set new values
 						sECUser.lpszUsername = (LPTSTR)(new_username ? new_username : username);
 						if(passprompt) {
@@ -3721,8 +3678,7 @@ int main(int argc, char* argv[])
 							cerr << "Unable to get admin interface." << endl;
 							goto exit;
 						}
-
-						hr = lpIEMS->CreateStoreEntryID((LPTSTR)"", (LPTSTR)username, 0, &cbEntryID, &lpEntryID);
+						hr = lpIEMS->CreateStoreEntryID((LPTSTR)"", (LPTSTR)username, 0, &cbEntryID, &~lpEntryID);
 						if (hr != hrSuccess) {
 							cerr << "Unable to get user store entry id. User has possibly has not store." << endl;
 							goto exit;
@@ -3754,7 +3710,7 @@ int main(int argc, char* argv[])
 					}
 
 					if (sendas_user) {
-						hr = lpServiceAdmin->ResolveUserName((LPTSTR)sendas_user, 0, &cbSenderId, &lpSenderId);
+						hr = lpServiceAdmin->ResolveUserName((LPTSTR)sendas_user, 0, &cbSenderId, &~lpSenderId);
 						if (hr != hrSuccess) {
 							cerr << "Unable to update user, sendas user not available, " << getMapiCodeString(hr, sendas_user) << endl;
 							goto exit;
@@ -3796,8 +3752,7 @@ int main(int argc, char* argv[])
 					memset(&sECCompany, 0, sizeof(sECCompany));
 
 					sECCompany.lpszCompanyname = (LPTSTR)companyname;
-
-					hr = lpServiceAdmin->CreateCompany(&sECCompany, 0, &cbCompanyId, &lpCompanyId);
+					hr = lpServiceAdmin->CreateCompany(&sECCompany, 0, &cbCompanyId, &~lpCompanyId);
 					if(hr != hrSuccess) {
 						cerr << "Unable to create company, " << getMapiCodeString(hr, companyname) << endl;
 						goto exit;
@@ -3820,7 +3775,7 @@ int main(int argc, char* argv[])
 					break;
 
 		case MODE_UPDATE_COMPANY:
-					hr = lpServiceAdmin->ResolveCompanyName((LPTSTR)companyname, 0, &cbCompanyId, &lpCompanyId);
+					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(companyname), 0, &cbCompanyId, &~lpCompanyId);
 					if(hr != hrSuccess) {
 						cerr << "Unable to resolve company, " << getMapiCodeString(hr, companyname) << endl;
 						goto exit;
@@ -3841,7 +3796,7 @@ int main(int argc, char* argv[])
 					break;
 
 		case MODE_DELETE_COMPANY:
-					hr = lpServiceAdmin->ResolveCompanyName((LPTSTR)companyname, 0, &cbCompanyId, &lpCompanyId);
+					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(companyname), 0, &cbCompanyId, &~lpCompanyId);
 					if(hr != hrSuccess) {
 						cerr << "Failed to resolve company name, " << getMapiCodeString(hr, companyname) << endl;
 						goto exit;
@@ -3868,15 +3823,12 @@ int main(int argc, char* argv[])
 					ct.SetHeader(1, "System administrator");
 					for (unsigned int i = 0; i < cCompanies; ++i) {
 						ct.AddColumn(0, (LPSTR)lpECCompanies[i].lpszCompanyname);
-
-						hr = lpServiceAdmin->GetUser(lpECCompanies[i].sAdministrator.cb, (LPENTRYID)lpECCompanies[i].sAdministrator.lpb, 0, &lpECUser);
+						hr = lpServiceAdmin->GetUser(lpECCompanies[i].sAdministrator.cb, reinterpret_cast<ENTRYID *>(lpECCompanies[i].sAdministrator.lpb), 0, &~lpECUser);
 						if (hr != hrSuccess) {
 							cerr << "Unable to get administrator details, " << getMapiCodeString(hr, "administrator") << endl;
 							goto exit;
 						}
 						ct.AddColumn(1, (LPSTR)lpECUser->lpszUsername);
-						MAPIFreeBuffer(lpECUser);
-						lpECUser = NULL;
 					}
 					ct.PrintTable();
 					break;
@@ -3888,7 +3840,7 @@ int main(int argc, char* argv[])
 					sECGroup.lpszFullname = (LPTSTR)groupname;
 					sECGroup.lpszFullEmail = (LPTSTR)emailadr;
 
-					hr = lpServiceAdmin->CreateGroup(&sECGroup, 0, &cbGroupId, &lpGroupId);
+					hr = lpServiceAdmin->CreateGroup(&sECGroup, 0, &cbGroupId, &~lpGroupId);
 					if (hr != hrSuccess) {
 						cerr << "Unable to create group, " << getMapiCodeString(hr, groupname) << endl;
 						goto exit;
@@ -3897,7 +3849,7 @@ int main(int argc, char* argv[])
 					break;
 
 		case MODE_UPDATE_GROUP:
-					hr = lpServiceAdmin->ResolveGroupName((LPTSTR)groupname, 0, &cbGroupId, &lpGroupId);
+					hr = lpServiceAdmin->ResolveGroupName(reinterpret_cast<LPTSTR>(groupname), 0, &cbGroupId, &~lpGroupId);
 					if (hr != hrSuccess) {
 						cerr << "Unable to update group, " << getMapiCodeString(hr, groupname) << endl;
 						goto exit;
@@ -3908,7 +3860,7 @@ int main(int argc, char* argv[])
 
 						// copy static info
 						sECGroup.sGroupId.cb = cbGroupId;
-						sECGroup.sGroupId.lpb = (unsigned char*)lpGroupId;
+						sECGroup.sGroupId.lpb = reinterpret_cast<unsigned char *>(lpGroupId.get());
 						// possibly set new values
 						sECGroup.lpszFullEmail = (LPTSTR)emailadr;
 						sECGroup.lpszGroupname = (LPTSTR)groupname;
@@ -3922,7 +3874,7 @@ int main(int argc, char* argv[])
 					}
 
 					if (sendas_user) {
-						hr = lpServiceAdmin->ResolveUserName((LPTSTR)sendas_user, 0, &cbSenderId, &lpSenderId);
+						hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(sendas_user), 0, &cbSenderId, &~lpSenderId);
 						if (hr != hrSuccess) {
 							cerr << "Unable to update group, sendas user not available, " << getMapiCodeString(hr, sendas_user) << endl;
 							goto exit;
@@ -3960,7 +3912,7 @@ int main(int argc, char* argv[])
 					break;
 
 		case MODE_DELETE_GROUP:
-					hr = lpServiceAdmin->ResolveGroupName((LPTSTR)groupname, 0, &cbGroupId, &lpGroupId);
+					hr = lpServiceAdmin->ResolveGroupName(reinterpret_cast<LPTSTR>(groupname), 0, &cbGroupId, &~lpGroupId);
 					if (hr != hrSuccess) {
 						cerr << "Unable to delete group, " << getMapiCodeString(hr, groupname) << endl;
 						goto exit;
@@ -3981,12 +3933,12 @@ int main(int argc, char* argv[])
 					break;
 
 		case MODE_ADDUSER_GROUP:
-					hr = lpServiceAdmin->ResolveGroupName((LPTSTR)groupname, 0, &cbGroupId, &lpGroupId);
+					hr = lpServiceAdmin->ResolveGroupName(reinterpret_cast<LPTSTR>(groupname), 0, &cbGroupId, &~lpGroupId);
 					if (hr != hrSuccess) {
 						cerr << "Unable to add user to group, " << getMapiCodeString(hr, groupname) << endl;
 						goto exit;
 					}
-					hr = lpServiceAdmin->ResolveUserName((LPTSTR)username, 0, &cbUserId, &lpUserId);
+					hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
 					if (hr != hrSuccess) {
 						cerr << "Unable to add user to group, " << getMapiCodeString(hr, username) << endl;
 						goto exit;
@@ -4000,12 +3952,12 @@ int main(int argc, char* argv[])
 					break;
 
 		case MODE_DELETEUSER_GROUP:
-					hr = lpServiceAdmin->ResolveGroupName((LPTSTR)groupname, 0, &cbGroupId, &lpGroupId);
+					hr = lpServiceAdmin->ResolveGroupName(reinterpret_cast<LPTSTR>(groupname), 0, &cbGroupId, &~lpGroupId);
 					if (hr != hrSuccess) {
 						cerr << "Unable to remove user from group, " << getMapiCodeString(hr, groupname) << endl;
 						goto exit;
 					}
-					hr = lpServiceAdmin->ResolveUserName((LPTSTR)username, 0, &cbUserId, &lpUserId);
+					hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
 					if (hr != hrSuccess) {
 						cerr << "Unable to remove user from group, " << getMapiCodeString(hr, username) << endl;
 						goto exit;
@@ -4027,13 +3979,12 @@ int main(int argc, char* argv[])
 
 					break;
 		case MODE_ADD_VIEW:
-					hr = lpServiceAdmin->ResolveCompanyName((LPTSTR)companyname, 0, &cbCompanyId, &lpCompanyId);
+					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(companyname), 0, &cbCompanyId, &~lpCompanyId);
 					if (hr != hrSuccess) {
 						cerr << "Failed to resolve company name, " << getMapiCodeString(hr, companyname) << endl;
 						goto exit;
 					}
-
-					hr = lpServiceAdmin->ResolveCompanyName((LPTSTR)set_companyname, 0, &cbSetCompanyId, &lpSetCompanyId);
+					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(set_companyname), 0, &cbSetCompanyId, &~lpSetCompanyId);
 					if (hr != hrSuccess) {
 						cerr << "Failed to resolve company name, " << getMapiCodeString(hr, set_companyname) << endl;
 						goto exit;
@@ -4047,13 +3998,12 @@ int main(int argc, char* argv[])
 					cout << "Company " << set_companyname << " added to the remote-view list of " << companyname << endl;
 					break;
 		case MODE_DEL_VIEW:
-					hr = lpServiceAdmin->ResolveCompanyName((LPTSTR)companyname, 0, &cbCompanyId, &lpCompanyId);
+					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(companyname), 0, &cbCompanyId, &~lpCompanyId);
 					if (hr != hrSuccess) {
 						cerr << "Failed to resolve company name, " << getMapiCodeString(hr, companyname) << endl;
 						goto exit;
 					}
-
-					hr = lpServiceAdmin->ResolveCompanyName((LPTSTR)set_companyname, 0, &cbSetCompanyId, &lpSetCompanyId);
+					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(set_companyname), 0, &cbSetCompanyId, &~lpSetCompanyId);
 					if (hr != hrSuccess) {
 						cerr << "Failed to resolve company name, " << getMapiCodeString(hr, set_companyname) << endl;
 						goto exit;
@@ -4067,12 +4017,11 @@ int main(int argc, char* argv[])
 					cout << "Company " << set_companyname << " removed from the remote-view list of " << companyname << endl;
 					break;
 		case MODE_LIST_VIEW:
-					hr = lpServiceAdmin->ResolveCompanyName((LPTSTR)companyname, 0, &cbCompanyId, &lpCompanyId);
+					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(companyname), 0, &cbCompanyId, &~lpCompanyId);
 					if (hr != hrSuccess) {
 						cerr << "Failed to resolve company name, " << getMapiCodeString(hr, companyname) << endl;
 						goto exit;
 					}
-
 					hr = lpServiceAdmin->GetRemoteViewList(cbCompanyId, lpCompanyId, 0, &cCompanies, &lpECCompanies);
 					if (hr != hrSuccess) {
 						cerr << "Unable to display remote-view list, " << getMapiCodeString(hr) << endl;
@@ -4085,13 +4034,12 @@ int main(int argc, char* argv[])
 					print_companies(cCompanies, lpECCompanies, true);
 					break;
 		case MODE_ADD_ADMIN:
-					hr = lpServiceAdmin->ResolveCompanyName((LPTSTR)companyname, 0, &cbCompanyId, &lpCompanyId);
+					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(companyname), 0, &cbCompanyId, &~lpCompanyId);
 					if (hr != hrSuccess) {
 						cerr << "Failed to resolve company name, " << getMapiCodeString(hr, companyname) << endl;
 						goto exit;
 					}
-
-					hr = lpServiceAdmin->ResolveUserName((LPTSTR)username, 0, &cbUserId, &lpUserId);
+					hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
 					if (hr != hrSuccess) {
 						cerr << "Failed to resolve user name, " << getMapiCodeString(hr, username) << endl;
 						goto exit;
@@ -4105,13 +4053,12 @@ int main(int argc, char* argv[])
 					cout << "User " << username << " added to the remote-admin list of " << companyname << endl;
 					break;
 		case MODE_DEL_ADMIN:
-					hr = lpServiceAdmin->ResolveCompanyName((LPTSTR)companyname, 0, &cbCompanyId, &lpCompanyId);
+					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(companyname), 0, &cbCompanyId, &~lpCompanyId);
 					if (hr != hrSuccess) {
 						cerr << "Failed to resolve company name, " << getMapiCodeString(hr, companyname) << endl;
 						goto exit;
 					}
-
-					hr = lpServiceAdmin->ResolveUserName((LPTSTR)username, 0, &cbUserId, &lpUserId);
+					hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
 					if (hr != hrSuccess) {
 						cerr << "Failed to resolve user name, " << getMapiCodeString(hr, username) << endl;
 						goto exit;
@@ -4125,13 +4072,12 @@ int main(int argc, char* argv[])
 					cout << "User " << username << " removed from the remote-admin list of " << companyname << endl;
 					break;
 		case MODE_LIST_ADMIN:
-					hr = lpServiceAdmin->ResolveCompanyName((LPTSTR)companyname, 0, &cbCompanyId, &lpCompanyId);
+					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(companyname), 0, &cbCompanyId, &~lpCompanyId);
 					if (hr != hrSuccess) {
 						cerr << "Failed to resolve company name, " << getMapiCodeString(hr, companyname) << endl;
 						goto exit;
 					}
-
-					hr = lpServiceAdmin->GetRemoteAdminList(cbCompanyId, lpCompanyId, 0, &cUsers, &lpECUser);
+					hr = lpServiceAdmin->GetRemoteAdminList(cbCompanyId, lpCompanyId, 0, &cUsers, &~lpECUser);
 					if (hr != hrSuccess) {
 						cerr << "Unable to display remote-admin list, " << getMapiCodeString(hr) << endl;
 						goto exit;
@@ -4141,13 +4087,12 @@ int main(int argc, char* argv[])
 					print_users(cUsers, lpECUser);
 					break;
 		case MODE_SYSTEM_ADMIN:
-					hr = lpServiceAdmin->ResolveCompanyName((LPTSTR)companyname, 0, &cbCompanyId, &lpCompanyId);
+					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(companyname), 0, &cbCompanyId, &~lpCompanyId);
 					if (hr != hrSuccess) {
 						cerr << "Failed to resolve company name, " << getMapiCodeString(hr, companyname) << endl;
 						goto exit;
 					}
-
-					hr = lpServiceAdmin->ResolveUserName((LPTSTR)username, 0, &cbUserId, &lpUserId);
+					hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
 					if (hr != hrSuccess) {
 						cerr << "Failed to resolve user name, " << getMapiCodeString(hr, username) << endl;
 						goto exit;
@@ -4156,10 +4101,10 @@ int main(int argc, char* argv[])
 					memset(&sECCompany, 0, sizeof(sECCompany));
 
 					sECCompany.sAdministrator.cb = cbUserId;
-					sECCompany.sAdministrator.lpb = (unsigned char*)lpUserId;
+					sECCompany.sAdministrator.lpb = reinterpret_cast<unsigned char *>(lpUserId.get());
 					sECCompany.lpszCompanyname = (LPTSTR)companyname;
 					sECCompany.sCompanyId.cb = cbCompanyId;
-					sECCompany.sCompanyId.lpb = (unsigned char*)lpCompanyId;
+					sECCompany.sCompanyId.lpb = reinterpret_cast<unsigned char *>(lpCompanyId.get());
 
 					hr = lpServiceAdmin->SetCompany(&sECCompany, 0);
 					if (hr != hrSuccess) {
@@ -4169,13 +4114,12 @@ int main(int argc, char* argv[])
 					cout << "User " << username << " is set as admin of company " << companyname << endl;
 					break;
 		case MODE_ADD_USERQUOTA_RECIPIENT:
-					hr = lpServiceAdmin->ResolveCompanyName((LPTSTR)companyname, 0, &cbCompanyId, &lpCompanyId);
+					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(companyname), 0, &cbCompanyId, &~lpCompanyId);
 					if (hr != hrSuccess) {
 						cerr << "Failed to resolve company name, " << getMapiCodeString(hr, companyname) << endl;
 						goto exit;
 					}
-
-					hr = lpServiceAdmin->ResolveUserName((LPTSTR)username, 0, &cbUserId, &lpUserId);
+					hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
 					if (hr != hrSuccess) {
 						cerr << "Failed to resolve user name, " << getMapiCodeString(hr, username) << endl;
 						goto exit;
@@ -4189,13 +4133,12 @@ int main(int argc, char* argv[])
 					cout << "User " << username << " added to user quota recipients list for company " << companyname << endl;
 					break;
 		case MODE_DEL_USERQUOTA_RECIPIENT:
-					hr = lpServiceAdmin->ResolveCompanyName((LPTSTR)companyname, 0, &cbCompanyId, &lpCompanyId);
+					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(companyname), 0, &cbCompanyId, &~lpCompanyId);
 					if (hr != hrSuccess) {
 						cerr << "Failed to resolve company name, " << getMapiCodeString(hr, companyname) << endl;
 						goto exit;
 					}
-
-					hr = lpServiceAdmin->ResolveUserName((LPTSTR)username, 0, &cbUserId, &lpUserId);
+					hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
 					if (hr != hrSuccess) {
 						cerr << "Failed to resolve user name, " << getMapiCodeString(hr, username) << endl;
 						goto exit;
@@ -4209,27 +4152,25 @@ int main(int argc, char* argv[])
 					cout << "User " << username << " removed from user quota recipients list for company " << companyname << endl;
 					break;
 		case MODE_LIST_USERQUOTA_RECIPIENT:
-					hr = lpServiceAdmin->ResolveCompanyName((LPTSTR)companyname, 0, &cbCompanyId, &lpCompanyId);
+					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(companyname), 0, &cbCompanyId, &~lpCompanyId);
 					if (hr != hrSuccess) {
 						cerr << "Failed to resolve company name, " << getMapiCodeString(hr, companyname) << endl;
 						goto exit;
 					}
 
 					/* HACK: request a user from the specified company, and request the recipients for that user. */
-					hr = lpServiceAdmin->GetUserList(cbCompanyId, lpCompanyId, 0, &cUsers, &lpECUser);
+					hr = lpServiceAdmin->GetUserList(cbCompanyId, lpCompanyId, 0, &cUsers, &~lpECUser);
 					if (hr != hrSuccess || cUsers <= 1) /* First user is always SYSTEM */ {
 						cerr << "Failed to get quota recipient list" << endl;
 						goto exit;
 					}
 
 					cbUserId = lpECUser[1].sUserId.cb;
-					if ((hr = MAPIAllocateBuffer(cbUserId, (void**)&lpUserId)) != hrSuccess)
+					hr = MAPIAllocateBuffer(cbUserId, &~lpUserId);
+					if (hr != hrSuccess)
 						goto exit;
 					memcpy(lpUserId, lpECUser[1].sUserId.lpb, cbUserId);
-					MAPIFreeBuffer(lpECUser);
-					lpECUser = NULL;
-
-					hr = lpServiceAdmin->GetQuotaRecipients(cbUserId, lpUserId, 0, &cUsers, &lpECUser);
+					hr = lpServiceAdmin->GetQuotaRecipients(cbUserId, lpUserId, 0, &cUsers, &~lpECUser);
 					if (hr != hrSuccess) {
 						cerr << "Failed to get quota recipient list" << endl;
 						goto exit;
@@ -4240,13 +4181,12 @@ int main(int argc, char* argv[])
 					print_users(cUsers - 1, &lpECUser[1]);
 					break;
 		case MODE_ADD_COMPANYQUOTA_RECIPIENT:
-					hr = lpServiceAdmin->ResolveCompanyName((LPTSTR)companyname, 0, &cbCompanyId, &lpCompanyId);
+					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(companyname), 0, &cbCompanyId, &~lpCompanyId);
 					if (hr != hrSuccess) {
 						cerr << "Failed to resolve company name, " << getMapiCodeString(hr, companyname) << endl;
 						goto exit;
 					}
-
-					hr = lpServiceAdmin->ResolveUserName((LPTSTR)username, 0, &cbUserId, &lpUserId);
+					hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
 					if (hr != hrSuccess) {
 						cerr << "Failed to resolve user name, " << getMapiCodeString(hr, username) << endl;
 						goto exit;
@@ -4260,13 +4200,12 @@ int main(int argc, char* argv[])
 					cout << "User " << username << " added to company quota recipients list for company " << companyname << endl;
 					break;
 		case MODE_DEL_COMPANYQUOTA_RECIPIENT:
-					hr = lpServiceAdmin->ResolveCompanyName((LPTSTR)companyname, 0, &cbCompanyId, &lpCompanyId);
+					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(companyname), 0, &cbCompanyId, &~lpCompanyId);
 					if (hr != hrSuccess) {
 						cerr << "Failed to resolve company name, " << getMapiCodeString(hr, companyname) << endl;
 						goto exit;
 					}
-
-					hr = lpServiceAdmin->ResolveUserName((LPTSTR)username, 0, &cbUserId, &lpUserId);
+					hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
 					if (hr != hrSuccess) {
 						cerr << "Failed to resolve user name, " << getMapiCodeString(hr, username) << endl;
 						goto exit;
@@ -4280,13 +4219,12 @@ int main(int argc, char* argv[])
 					cout << "User " << username << " removed from company quota recipients list for company " << companyname << endl;
 					break;
 		case MODE_LIST_COMPANYQUOTA_RECIPIENT:
-					hr = lpServiceAdmin->ResolveCompanyName((LPTSTR)companyname, 0, &cbCompanyId, &lpCompanyId);
+					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(companyname), 0, &cbCompanyId, &~lpCompanyId);
 					if (hr != hrSuccess) {
 						cerr << "Failed to resolve company name, " << getMapiCodeString(hr, companyname) << endl;
 						goto exit;
 					}
-
-					hr = lpServiceAdmin->GetQuotaRecipients(cbCompanyId, lpCompanyId, 0, &cUsers, &lpECUser);
+					hr = lpServiceAdmin->GetQuotaRecipients(cbCompanyId, lpCompanyId, 0, &cUsers, &~lpECUser);
 					if (hr != hrSuccess) {
 						cerr << "Failed to get quota recipient list." << endl;
 						goto exit;
@@ -4299,10 +4237,10 @@ int main(int argc, char* argv[])
 		case MODE_LIST_SENDAS:
 
 					if (detailstype == NULL || strcasecmp(detailstype, "user") == 0) {
-						hr = lpServiceAdmin->ResolveUserName((LPTSTR)username, 0, &cbUserId, &lpUserId);
+						hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
 						detailstype = "user";
 					} else if (strcasecmp(detailstype, "group") == 0) {
-						hr = lpServiceAdmin->ResolveGroupName((LPTSTR)username, 0, &cbUserId, &lpUserId);
+						hr = lpServiceAdmin->ResolveGroupName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
 					} else {
 						hr = MAPI_E_INVALID_TYPE;
 						cerr << "Unknown object type \"" << detailstype << "\"" << endl;
@@ -4313,8 +4251,7 @@ int main(int argc, char* argv[])
 						cerr << "Failed to resolve "<< detailstype <<" name, " << getMapiCodeString(hr, username) << endl;
 						goto exit;
 					}
-
-					hr = lpServiceAdmin->GetSendAsList(cbUserId, lpUserId, 0, &cSenders, &lpSenders);
+					hr = lpServiceAdmin->GetSendAsList(cbUserId, lpUserId, 0, &cSenders, &~lpSenders);
 					if (hr != hrSuccess) {
 						cerr << "Failed to retrieve send-as list for " << detailstype << " " << username << endl;
 						goto exit;
@@ -4394,14 +4331,6 @@ int main(int argc, char* argv[])
 	};
 
 exit:
-	MAPIFreeBuffer(lpGUID);
-	MAPIFreeBuffer(lpUserId);
-	MAPIFreeBuffer(lpSenderId);
-	MAPIFreeBuffer(lpGroupId);
-	MAPIFreeBuffer(lpCompanyId);
-	MAPIFreeBuffer(lpSetCompanyId);
-	MAPIFreeBuffer(lpEntryID);
-	MAPIFreeBuffer(lpUnWrappedEntry);
 	if (lpUserStore)
 		lpUserStore->Release();
 
@@ -4416,9 +4345,6 @@ exit:
 
 	if (lpIEMS)
 		lpIEMS->Release();
-	MAPIFreeBuffer(lpECUser);
-	MAPIFreeBuffer(lpECGroups);
-	MAPIFreeBuffer(lpSenders);
 	if (lpMsgStore)
 		lpMsgStore->Release();
 
@@ -4430,13 +4356,6 @@ exit:
 
 	if (lpSession)
 		lpSession->Release();
-	MAPIFreeBuffer(lpStoreId);
-	MAPIFreeBuffer(lpRootId);
-	MAPIFreeBuffer(lpPropValue);
-	MAPIFreeBuffer(lpsQuota);
-	MAPIFreeBuffer(lpsQuotaStatus);
-	MAPIFreeBuffer(lpsServer);
-	MAPIFreeBuffer(lpServerDetails);
 	MAPIUninitialize();
 	lpLogger->Release();
 	lpLogger = NULL;

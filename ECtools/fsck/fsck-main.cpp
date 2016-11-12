@@ -24,10 +24,13 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/mapiext.h>
 #include <kopano/mapiguidext.h>
+#include <kopano/memory.hpp>
 #include <mapiutil.h>
 #include <mapix.h>
 #include <kopano/stringutil.h>
 #include "fsck.h"
+
+using namespace KCHL;
 
 static bool ReadYesNoMessage(const std::string &strMessage,
     const std::string &strAuto)
@@ -48,8 +51,8 @@ static bool ReadYesNoMessage(const std::string &strMessage,
 
 static HRESULT DeleteEntry(LPMAPIFOLDER lpFolder, LPSPropValue lpItemProperty)
 {
-	LPENTRYLIST lpEntryList = NULL;
-	HRESULT hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), reinterpret_cast<void **>(&lpEntryList));
+	memory_ptr<ENTRYLIST> lpEntryList;
+	HRESULT hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~lpEntryList);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -64,7 +67,6 @@ static HRESULT DeleteEntry(LPMAPIFOLDER lpFolder, LPSPropValue lpItemProperty)
 	hr = lpFolder->DeleteMessages(lpEntryList, 0, NULL, 0);
 
 exit:
-	MAPIFreeBuffer(lpEntryList);
 	if (hr == hrSuccess)
 		cout << "Item deleted." << endl;
 	else
@@ -104,7 +106,7 @@ static HRESULT DetectFolderEntryDetails(LPMESSAGE lpMessage, string *lpName,
     string *lpClass)
 {
 	HRESULT hr = hrSuccess;
-	LPSPropValue lpPropertyArray;
+	memory_ptr<SPropValue> lpPropertyArray;
 	ULONG ulPropertyCount;
 
 	SizedSPropTagArray(3, PropertyTagArray) = {
@@ -117,7 +119,7 @@ static HRESULT DetectFolderEntryDetails(LPMESSAGE lpMessage, string *lpName,
 	};
 
 	hr = lpMessage->GetProps(PropertyTagArray, 0, &ulPropertyCount,
-				 &lpPropertyArray);
+	     &~lpPropertyArray);
 	if (FAILED(hr)) {
 		cout << "Failed to obtain all properties." << endl;
 		goto exit;
@@ -143,7 +145,6 @@ static HRESULT DetectFolderEntryDetails(LPMESSAGE lpMessage, string *lpName,
 		hr = hrSuccess;
 
 exit:
-	MAPIFreeBuffer(lpPropertyArray);
 	return hr;
 }
 
@@ -329,8 +330,8 @@ HRESULT Fsck::DeleteRecipientList(LPMESSAGE lpMessage, std::list<unsigned int> &
 	if (!ReadYesNoMessage("Remove duplicate or invalid recipients?", auto_fix))
 		return hrSuccess;
 
-	SRowSet *lpMods = NULL;
-	HRESULT hr = MAPIAllocateBuffer(CbNewADRLIST(mapiReciptDel.size()), (void**)&lpMods);
+	memory_ptr<SRowSet> lpMods;
+	HRESULT hr = MAPIAllocateBuffer(CbNewADRLIST(mapiReciptDel.size()), &~lpMods);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -343,7 +344,7 @@ HRESULT Fsck::DeleteRecipientList(LPMESSAGE lpMessage, std::list<unsigned int> &
 		lpMods->aRow[lpMods->cRows++].lpProps->Value.ul = recip;
 	}
 
-	hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE, (LPADRLIST)lpMods);
+	hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE, reinterpret_cast<ADRLIST *>(lpMods.get()));
 	if (hr != hrSuccess)
 		goto exit;
 	hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
@@ -352,7 +353,6 @@ HRESULT Fsck::DeleteRecipientList(LPMESSAGE lpMessage, std::list<unsigned int> &
 	bChanged = true;
 	++this->ulFixed;
 exit:
-	MAPIFreeBuffer(lpMods);
 	return hr;
 }
 

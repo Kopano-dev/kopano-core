@@ -770,7 +770,7 @@ HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
 {
 	HRESULT hr = hrSuccess;
 	bool bErrorOccurred = false;
-	LPSRestriction lpRestriction = NULL;
+	KCHL::memory_ptr<SRestriction> lpRestriction;
 	SPropValue sPropCreationTime;
 	ULARGE_INTEGER li;
 	SRowSetPtr ptrRowSet;
@@ -787,7 +787,7 @@ HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
 	sPropCreationTime.ulPropTag = PR_MESSAGE_DELIVERY_TIME;
 	sPropCreationTime.Value.ft.dwLowDateTime = li.LowPart;
 	sPropCreationTime.Value.ft.dwHighDateTime = li.HighPart;
-	hr = ECPropertyRestriction(RELOP_LT, PR_MESSAGE_DELIVERY_TIME, &sPropCreationTime).CreateMAPIRestriction(&lpRestriction);
+	hr = ECPropertyRestriction(RELOP_LT, PR_MESSAGE_DELIVERY_TIME, &sPropCreationTime).CreateMAPIRestriction(&~lpRestriction);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -857,7 +857,6 @@ HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
 	}
 
 exit:
-	MAPIFreeBuffer(lpRestriction);
 	if (hr == hrSuccess && bErrorOccurred)
 		hr = MAPI_W_PARTIAL_COMPLETION;
 

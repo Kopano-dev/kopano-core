@@ -22,6 +22,7 @@
 #include <climits>
 #include <cmath>
 #include <getopt.h>
+#include <kopano/memory.hpp>
 #include <mapidefs.h>
 #include <mapispi.h>
 #include <mapix.h>
@@ -39,6 +40,7 @@
 #include <kopano/ECLogger.h>
 
 using namespace std;
+using namespace KCHL;
 
 static bool verbose = false;
 
@@ -86,10 +88,9 @@ static HRESULT UpdatePassword(const char *lpPath, const char *lpUsername,
 
 	IECServiceAdmin *lpServiceAdmin = NULL;
 	ULONG cbUserId = 0;
-	LPENTRYID lpUserId = NULL;
-	LPSPropValue lpPropValue = NULL;
-	
-	ECUSER *lpECUser = NULL;
+	memory_ptr<ENTRYID> lpUserId;
+	memory_ptr<SPropValue> lpPropValue;
+	memory_ptr<ECUSER> lpECUser;
 	convert_context converter;
 
 	std::wstring strwUsername, strwPassword;
@@ -118,8 +119,7 @@ static HRESULT UpdatePassword(const char *lpPath, const char *lpUsername,
 		cerr << "Unable to open store." << endl;
 		goto exit;
 	}
-
-	hr = HrGetOneProp(lpMsgStore, PR_EC_OBJECT, &lpPropValue);
+	hr = HrGetOneProp(lpMsgStore, PR_EC_OBJECT, &~lpPropValue);
 	if(hr != hrSuccess || !lpPropValue)
 		goto exit;
 
@@ -128,21 +128,17 @@ static HRESULT UpdatePassword(const char *lpPath, const char *lpUsername,
 		goto exit;
 
 	lpECMsgStore->AddRef();
-
-	MAPIFreeBuffer(lpPropValue); lpPropValue = NULL;
-
 	hr = lpECMsgStore->QueryInterface(IID_IECServiceAdmin, reinterpret_cast<void **>(&lpServiceAdmin));
 	if(hr != hrSuccess)
 		goto exit;
-
-	hr = lpServiceAdmin->ResolveUserName((LPTSTR)lpUsername, 0, &cbUserId, &lpUserId);
+	hr = lpServiceAdmin->ResolveUserName((LPTSTR)lpUsername, 0, &cbUserId, &~lpUserId);
 	if (hr != hrSuccess) {
 		cerr << "Unable to update password, user not found." << endl;
 		goto exit;
 	}
 
 	// get old features. we need these, because not setting them would mean: remove them
-	hr = lpServiceAdmin->GetUser(cbUserId, lpUserId, 0, &lpECUser);
+	hr = lpServiceAdmin->GetUser(cbUserId, lpUserId, 0, &~lpECUser);
 	if (hr != hrSuccess) {
 		cerr << "Unable to get user details, " << getMapiCodeString(hr, lpUsername) << endl;
 		goto exit;
@@ -157,9 +153,6 @@ static HRESULT UpdatePassword(const char *lpPath, const char *lpUsername,
 	}
 
 exit:
-	MAPIFreeBuffer(lpECUser);	// It's ok to pass a NULL pointer to MAPIFreeBuffer(). See http://msdn.microsoft.com/en-us/library/office/cc842298.aspx
-	MAPIFreeBuffer(lpUserId);
-	MAPIFreeBuffer(lpPropValue);
 	if (lpMsgStore)
 		lpMsgStore->Release();
 
