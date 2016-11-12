@@ -74,7 +74,7 @@
 
 using namespace std;
 
-static vmime::charset vtm_upgrade_charset(const vmime::charset &);
+static vmime::charset vtm_upgrade_charset(vmime::charset cset, const char *ascii_upgrade = nullptr);
 
 static const char im_charset_unspec[] = "unspecified";
 
@@ -2173,15 +2173,15 @@ HRESULT VMIMEToMAPI::handleTextpart(vmime::shared_ptr<vmime::header> vmHeader,
 		if (mime_charset == im_charset_unspec) {
 			if (m_mailState.mime_vtag_nest == 0) {
 				/* RFC 2045 §4 page 9 */
-				ec_log_debug("No charset (case #1). Defaulting to \"%s\".", m_dopt.default_charset);
-				mime_charset = m_dopt.default_charset;
+				ec_log_debug("No charset (case #1). Defaulting to \"%s\".", m_dopt.ascii_upgrade);
+				mime_charset = m_dopt.ascii_upgrade;
 			} else {
 				/* RFC 2045 §5.2 */
 				ec_log_debug("No charset (case #2). Defaulting to \"us-ascii\".");
 				mime_charset = vmime::charsets::US_ASCII;
 			}
 		}
-		mime_charset = vtm_upgrade_charset(mime_charset);
+		mime_charset = vtm_upgrade_charset(mime_charset, m_dopt.ascii_upgrade);
 		if (!ValidateCharset(mime_charset.getName().c_str())) {
 			/* RFC 2049 §2 item 6 subitem 5 */
 			ec_log_debug("Unknown Content-Type charset \"%s\". Storing as attachment instead.", mime_charset.getName().c_str());
@@ -2261,28 +2261,6 @@ exit:
 		lpStream->Release();
 
 	return hr;
-}
-
-static bool vtm_ascii_compatible(const char *s)
-{
-	static const char in[] = {
-		0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,
-		24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,
-		45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,
-		66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,
-		87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,
-		106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,
-		121,122,123,124,125,126,127,
-	};
-	char out[sizeof(in)];
-	iconv_t cd = iconv_open(s, "us-ascii");
-	if (cd == reinterpret_cast<iconv_t>(-1))
-		return false;
-	char *inbuf = const_cast<char *>(in), *outbuf = out;
-	size_t insize = sizeof(in), outsize = sizeof(out);
-	bool mappable = iconv(cd, &inbuf, &insize, &outbuf, &outsize) >= 0;
-	iconv_close(cd);
-	return mappable && memcmp(in, out, sizeof(in)) == 0;
 }
 
 /**
@@ -2393,21 +2371,10 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::shared_ptr<vmime::header> vmHeade
 				 * No HTML structure found when assuming ASCII,
 				 * so we can just directly fallback to default_charset.
 				 */
-				ec_log_debug("No charset (case #4), defaulting to \"%s\".", m_dopt.default_charset);
-				mime_charset = html_charset = m_dopt.default_charset;
-			} else if (vtm_ascii_compatible(m_dopt.default_charset)) {
-				/*
-				 * HTML structure recognized when interpreting as ASCII.
-				 * If default_charset is compatible, that is our pick.
-				 */
-				ec_log_debug("No charset (case #5), defaulting to \"%s\".", m_dopt.default_charset);
-				mime_charset = html_charset = m_dopt.default_charset;
+				ec_log_debug("No charset (case #4), defaulting to \"%s\".", m_dopt.ascii_upgrade);
+				mime_charset = html_charset = m_dopt.ascii_upgrade;
 			} else {
-				/*
-				 * HTML structure recognized when interpreting as ASCII.
-				 * default_charset is not compatible, so cannot be
-				 * the actual encoding.
-				 */
+				/* HTML structure recognized when interpreting as ASCII. */
 				ec_log_debug("No charset (case #6), defaulting to \"us-ascii\".");
 				mime_charset = html_charset = vmime::charsets::US_ASCII;
 			}
@@ -2420,6 +2387,8 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::shared_ptr<vmime::header> vmHeade
 			ec_log_debug("Charset is \"%s\" (case #8).", mime_charset.getName().c_str());
 			html_charset = mime_charset;
 		}
+		mime_charset = vtm_upgrade_charset(mime_charset, m_dopt.ascii_upgrade);
+		html_charset = vtm_upgrade_charset(html_charset, m_dopt.ascii_upgrade);
 
 		/* Add secondary candidates and try all in order */
 		std::vector<std::string> cs_cand;
@@ -2427,7 +2396,6 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::shared_ptr<vmime::header> vmHeade
 		if (!m_dopt.charset_strict_rfc) {
 			if (mime_charset != html_charset)
 				cs_cand.push_back(html_charset.getName());
-			cs_cand.push_back(m_dopt.default_charset);
 			cs_cand.push_back(vmime::charsets::US_ASCII);
 		}
 		int cs_best = renovate_encoding(strHTML, cs_cand);
@@ -2758,40 +2726,53 @@ exit:
 	return hr;
 }
 
+static const struct {
+	const char *original;
+	const char *update;
+} vtm_cs_upgrade_list[] = {
+	{"gb2312", "gb18030"},			// gb18030 is an extended version of gb2312
+	{"x-gbk", "gb18030"},			// gb18030 > gbk > gb2312. x-gbk is an alias of gbk, which is not listed in iconv.
+	{"ks_c_5601-1987", "cp949"},	// cp949 is euc-kr with UHC extensions
+	{"iso-8859-8-i", "iso-8859-8"},	// logical vs visual order, does not matter. http://mirror.hamakor.org.il/archives/linux-il/08-2004/11445.html
+	/*
+	 * This particular "unicode" is different from iconv's
+	 * "unicode" character set. It is UTF-8 content with a UTF-16
+	 * BOM (which we can just drop because it carries no
+	 * relevant information).
+	 */
+	{"unicode", "utf-8"}, /* UTF-16 BOM + UTF-8 content */
+};
+
 /**
- * Change a character set name which is unknown to iconv to one that it knows
- * and which is 100% compatible.
- * 
- * @param[in] vmCharset original charset
- * 
- * @return same or compatible charset
+ * Perform upgrades of the character set name, or the character set itself.
+ *
+ * 1. Some e-mails carry strange unregistered names ("unicode"), or simply
+ * names which are registered with IANA but uncommon enough ("iso-8859-8-i")
+ * that iconv does not know about them. This function returns a compatible
+ * replacement usable with iconv.
+ *
+ * 2. The function performs compatible upgrades (such as gb2312→gb18030, both
+ * of which are known to iconv) which repairs some mistagged email and does not
+ * break properly-tagged mail.
+ *
+ * 3. The function also performs admin-configured compatible upgrades
+ * (such as us-ascii→utf-8).
  */
-namespace charsetHelper {
-	static const struct sets {
-		const char *original;
-		const char *update;
-	} fixes[] = {
-		{"gb2312", "gb18030"},			// gb18030 is an extended version of gb2312
-		{"x-gbk", "gb18030"},			// gb18030 > gbk > gb2312. x-gbk is an alias of gbk, which is not listed in iconv.
-		{"ks_c_5601-1987", "cp949"},	// cp949 is euc-kr with UHC extensions
-		{"iso-8859-8-i", "iso-8859-8"},	// logical vs visual order, does not matter. http://mirror.hamakor.org.il/archives/linux-il/08-2004/11445.html
-
-		/*
-		 * This particular "unicode" is different from iconv's
-		 * "unicode" character set. It is UTF-8 content with a UTF-16
-		 * BOM (which we can just drop because it carries no
-		 * relevant information).
-		 */
-		{"unicode", "utf-8"}, /* UTF-16 BOM + UTF-8 content */
-	};
-}
-
-static vmime::charset vtm_upgrade_charset(const vmime::charset &cset)
+static vmime::charset vtm_upgrade_charset(vmime::charset cset, const char *upg)
 {
-	for (size_t i = 0; i < ARRAY_SIZE(charsetHelper::fixes); ++i)
-		if (strcasecmp(charsetHelper::fixes[i].original, cset.getName().c_str()) == 0)
-			return charsetHelper::fixes[i].update;
-
+	if (upg != nullptr && cset == vmime::charsets::US_ASCII &&
+	    cset != upg) {
+		/*
+		 * It is expected that the caller made sure that the
+		 * replacement is in fact ASCII compatible.
+		 */
+		ec_log_debug("Admin forced charset upgrade \"%s\" -> \"%s\".",
+			cset.getName().c_str(), upg);
+		cset = upg;
+	}
+	for (size_t i = 0; i < ARRAY_SIZE(vtm_cs_upgrade_list); ++i)
+		if (strcasecmp(vtm_cs_upgrade_list[i].original, cset.getName().c_str()) == 0)
+			return vtm_cs_upgrade_list[i].update;
 	return cset;
 }
 
@@ -2985,22 +2966,18 @@ std::wstring VMIMEToMAPI::getWideFromVmimeText(const vmime::text &vmText)
 		 * In case of unknown character sets, RFC 2047 §6.2 ¶5
 		 * gives the following options:
 		 *
-		 * (a) display input as-is:
+		 * (a) display input as-is, e.g. as =?utf-8?Q?VielSpa=C3=9F?=
 		 *     if (!ValidateCharset(..))
 		 *         ret += m_converter.convert_to<std::wstring>((*i)->generate());
 		 * (b) best effort conversion (which we pick) or
 		 * (c) substitute by a message that decoding failed.
 		 *
-		 * We pick (b). However, reinterpreting the input as
-		 * m_dopt.default_charset produces the _worst_ possible result,
-		 * since codepoints get transcoded into different dingbats.
-		 * With ASCII as the forced charset, the user at least gets
-		 * consistent placeholders. These placeholders may be the empty
-		 * string. (a) is also a good choice, but the "placeholders"
-		 * may be longer for not much benefit to the human reader.
+		 * We pick (b), which means something ASCII-compatible.
+		 * (a) is also a good choice, but the unreadable parts may be
+		 * longer for not much benefit to the human reader.
 		 */
 		if (!ValidateCharset(wordCharset.getName().c_str()))
-			wordCharset = vmime::charsets::US_ASCII;
+			wordCharset = m_dopt.ascii_upgrade;
 
 		/*
 		 * Concatenate words having the same charset, as the original
@@ -3871,7 +3848,7 @@ void imopt_default_delivery_options(delivery_options *dopt) {
 	dopt->charset_strict_rfc = true;
 	dopt->user_entryid = NULL;
 	dopt->parse_smime_signed = false;
-	dopt->default_charset = "iso-8859-15";
+	dopt->ascii_upgrade = nullptr;
 }
 
 /**

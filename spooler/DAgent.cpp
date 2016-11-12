@@ -3945,7 +3945,7 @@ int main(int argc, char *argv[]) {
 		{ "plugin_enabled", "yes" },
 		{ "plugin_path", "/var/lib/kopano/dagent/plugins" },
 		{ "plugin_manager_path", "/usr/share/kopano-dagent/python" },
-		{ "default_charset", "iso-8859-15" },
+		{ "default_charset", "us-ascii"},
 		{ "set_rule_headers", "yes", CONFIGSETTING_RELOADABLE },
 		{ "no_double_forward", "no", CONFIGSETTING_RELOADABLE },
 		{ "z_statsd_stats", "/var/run/kopano/statsd.sock" },
@@ -4137,8 +4137,7 @@ int main(int argc, char *argv[]) {
 	if (sDeliveryArgs.strPath.empty())
 		sDeliveryArgs.strPath = g_lpConfig->GetSetting("server_socket");
 	sDeliveryArgs.strPath = GetServerUnixSocket((char*)sDeliveryArgs.strPath.c_str()); // let environment override if present
-
-	sDeliveryArgs.sDeliveryOpts.default_charset = g_lpConfig->GetSetting("default_charset");
+	sDeliveryArgs.sDeliveryOpts.ascii_upgrade = g_lpConfig->GetSetting("default_charset");
 
 	if (bListenLMTP) {
 		/* MAPIInitialize done inside running_service */
