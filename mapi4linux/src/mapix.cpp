@@ -18,6 +18,8 @@
 #include <kopano/platform.h>
 #include <mutex>
 #include <new>
+#include <vector>
+#include <cstddef>
 #include <kopano/lockhelper.hpp>
 #include "m4l.mapix.h"
 #include "m4l.mapispi.h"
@@ -46,6 +48,27 @@
 #include <string>
 #include <map>
 #include <kopano/charset/convert.h>
+#define _MAPI_MEM_DEBUG 0
+#define _MAPI_MEM_MORE_DEBUG 0
+
+enum mapibuf_ident {
+	/*
+	 * Arbitrary values chosen. At least 62100 sticks out from
+	 * offsets-of-NULL and normal Linux pointers in gdb.
+	 */
+	MAPIBUF_BASE = 62100,
+	MAPIBUF_MORE,
+};
+
+struct alignas(::max_align_t) mapibuf_head {
+	std::mutex mtx;
+	/* Going for vector since 90% of TS objects have <= 1 child. */
+	std::vector<void *> children;
+#if _MAPI_MEM_MORE_DEBUG
+	enum mapibuf_ident ident;
+#endif
+	char data[] alignas(::max_align_t);
+};
 
 /* Some required globals */
 ECConfig *m4l_lpConfig = NULL;
@@ -2750,18 +2773,8 @@ HRESULT M4LAddrBook::QueryInterface(REFIID refiid, void **lpvoid) {
 	return hr;
 }
 
-// ---------------------------------------
-
-// Memory map list
-static std::map<void *, std::list<void *> *> _memlist;
-static std::mutex _memlist_lock;
-
-#define _MAPI_MEM_DEBUG 0
-#define _MAPI_MEM_MORE_DEBUG 0
-
 /**
- * Internal allocation function. Uses C++ new allocator, and catches
- * exceptions to convert to MAPI error codes.
+ * Internal allocation function.
  *
  * @param[in]	cbSize		Size of buffer to allocate
  * @param[out]	lppBuffer	Allocated buffer.
@@ -2790,17 +2803,22 @@ static SCODE MAPIAllocate(ULONG cbSize, LPVOID *lppBuffer)
  */
 SCODE __stdcall MAPIAllocateBuffer(ULONG cbSize, LPVOID* lppBuffer)
 {
+	struct mapibuf_head *bfr;
 	if (lppBuffer == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	HRESULT hr = MAPIAllocate(cbSize, lppBuffer);
+	cbSize += sizeof(struct mapibuf_head);
+	static_assert(sizeof(bfr) == sizeof(void *), "no platform support for typing hack");
+	HRESULT hr = MAPIAllocate(cbSize, reinterpret_cast<void **>(&bfr));
 	if (hr != hrSuccess)
 		return hr;
-
-	scoped_lock lock(_memlist_lock);
-	_memlist.insert(map<void*, list<void *>* >::value_type(*lppBuffer, new list<void *>()));
-#if _MAPI_MEM_DEBUG
-		fprintf(stderr, "New buffer: %p\n", buffer);
-#endif
+	try {
+		new(bfr) struct mapibuf_head; /* init mutex, vector */
+	} catch (std::exception &e) {
+		fprintf(stderr, "MAPIAllocateBuffer: %s\n", e.what());
+		free(bfr);
+		return MAKE_MAPI_E(1);
+	}
+	*lppBuffer = &bfr->data;
 	return hrSuccess;
 }
 
@@ -2816,8 +2834,6 @@ SCODE __stdcall MAPIAllocateBuffer(ULONG cbSize, LPVOID* lppBuffer)
  */
 SCODE __stdcall MAPIAllocateMore(ULONG cbSize, LPVOID lpObject, LPVOID* lppBuffer) {
 	HRESULT hr;
-	std::map<void *, list<void *> *>::const_iterator mlptr;
-
 	if (lppBuffer == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	if (!lpObject)
@@ -2829,32 +2845,13 @@ SCODE __stdcall MAPIAllocateMore(ULONG cbSize, LPVOID lpObject, LPVOID* lppBuffe
 		return hr;
 	}
 
-	scoped_lock lock(_memlist_lock);
+	auto head = container_of(lpObject, struct mapibuf_head, data);
+	scoped_lock lock(head->mtx);
 #if _MAPI_MEM_MORE_DEBUG
-	for (mlptr = _memlist.cbegin(); mlptr != _memlist.cend(); ++mlptr)
-		for (auto lp : *mlptr->second)
-			if (lp == lpObject) {
-				fprintf(stderr, "AllocateMore on an AllocateMore buffer!\n");
-				break;
-			}
+	if (head->ident != MAPIBUF_BASE)
+		assert("AllocateMore on something that was not allocated with MAPIAllocateBuffer!\n" == nullptr);
 #endif
-
-	mlptr = _memlist.find(lpObject);
-	if (mlptr == _memlist.cend()) {
-		/* lpObject was not allocatated with MAPIAllocateBuffer() */
-		assert(false);
-		/*
-		 * Workaround: add lpObject and lppBuffer to the map,
-		 * but be aware that we will memleak because MAPIFreeBuffer()
-		 * will not be called on lpObject.
-		 */
-		list<void *>* members = new list<void *>;
-		members->push_back(*lppBuffer);
-		_memlist.insert(pair<void *, list<void *>* >(lpObject, members));
-	} else {
-		/* add to list */
-		mlptr->second->push_back(*lppBuffer);
-	}
+	head->children.push_back(*lppBuffer);
 #if _MAPI_MEM_DEBUG
 	fprintf(stderr, "Extra buffer: %p on %p\n", *lppBuffer, lpObject);
 #endif
@@ -2869,36 +2866,23 @@ SCODE __stdcall MAPIAllocateMore(ULONG cbSize, LPVOID lpObject, LPVOID* lppBuffe
  * @return		ULONG		Always 0 in Linux.
  */
 ULONG __stdcall MAPIFreeBuffer(LPVOID lpBuffer) {
-	map<void*, list<void*>* >::iterator mlptr;
-
 	/* Well it could happen, especially according to the MSDN.. */
 	if (!lpBuffer)
 		return S_OK;
-
-	scoped_lock lock(_memlist_lock);
 #if _MAPI_MEM_DEBUG
 	fprintf(stderr, "Freeing: %p\n", lpBuffer);
 #endif
-
-	mlptr = _memlist.find(lpBuffer);
-	if (mlptr != _memlist.end()) {
-		for (auto i : *mlptr->second) {
-#if _MAPI_MEM_DEBUG
-			fprintf(stderr, "  Freeing: %p\n", i);
+	auto head = container_of(lpBuffer, struct mapibuf_head, data);
+#if _MAPI_MEM_MORE_DEBUG
+	assert(head->ident == MAPIBUF_BASE);
 #endif
-			free(i);
-		}
-
-		// delete list
-		delete mlptr->second;
-		free(mlptr->first);
-
-		// remove map entry
-		_memlist.erase(mlptr);
-	} else {
-		// item was not allocated by  MAPIAllocateBuffer
-		assert(false);
+	for (auto i : head->children) {
+#if _MAPI_MEM_DEBUG
+		fprintf(stderr, "  Freeing: %p\n", i);
+#endif
+		free(i);
 	}
+	head->~mapibuf_head();
 	return 0;
  }
 
