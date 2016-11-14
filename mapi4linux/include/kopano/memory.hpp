@@ -38,6 +38,18 @@ template<typename _T> class memory_proxy _kc_final {
 	_T **_m_ptr;
 };
 
+template<typename _T> class memory_proxy2 _kc_final {
+	public:
+	memory_proxy2(_T **__p) noexcept : _m_ptr(__p) {}
+	memory_proxy<_T> operator&(void)
+	{
+		return memory_proxy<_T>(_m_ptr);
+	}
+
+	private:
+	_T **_m_ptr;
+};
+
 /**
  * The KCHL memory_ptr works a lot like std::unique_ptr, with the
  * additional differences:
@@ -79,6 +91,7 @@ template<typename _T> class memory_ptr {
 	operator _T *(void) const noexcept { return _m_ptr; }
 	_T &operator[](size_t __n) const noexcept { return _m_ptr[__n]; }
 	_T *operator+(size_t __n) const noexcept { return _m_ptr + __n; }
+	public:
 	/* Modifiers */
 	_T *release(void) noexcept
 	{
@@ -96,10 +109,10 @@ template<typename _T> class memory_ptr {
 	{
 		std::swap(_m_ptr, __o._m_ptr);
 	}
-	memory_proxy<_T> operator&(void)
+	memory_proxy2<_T> operator~(void)
 	{
 		reset();
-		return memory_proxy<_T>(&_m_ptr);
+		return memory_proxy2<_T>(&_m_ptr);
 	}
 	memory_ptr &operator=(const memory_ptr &) = delete;
 	memory_ptr &operator=(memory_ptr &&__o) noexcept
@@ -114,6 +127,8 @@ template<typename _T> class memory_ptr {
 	}
 
 	private:
+	void operator&(void) const noexcept {} /* flag everyone */
+
 	_T *_m_ptr = nullptr;
 };
 

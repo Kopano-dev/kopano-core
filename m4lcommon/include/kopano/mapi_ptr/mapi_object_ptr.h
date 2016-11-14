@@ -117,8 +117,7 @@ public:
 			 **/
 			else if (Conversion<IMAPIProp,value_type>::exists && hr == MAPI_E_INTERFACE_NOT_SUPPORTED) {
 				KCHL::memory_ptr<SPropValue> ptrPropValue;
-
-				if (HrGetOneProp(m_lpObject, PR_EC_OBJECT, &ptrPropValue) != hrSuccess)
+				if (HrGetOneProp(m_lpObject, PR_EC_OBJECT, &~ptrPropValue) != hrSuccess)
 					return hr; // hr is still MAPI_E_INTERFACE_NOT_SUPPORTED
 
 				hr = ((IECUnknown*)ptrPropValue->Value.lpszA)->QueryInterface(_U::iid, (void**)&lpNewObject);

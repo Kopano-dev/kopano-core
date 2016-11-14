@@ -559,8 +559,7 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 	hr = lpMessage->GetRecipientTable(fMapiUnicode | MAPI_DEFERRED_ERRORS, &ptrRecipientTable);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = ptrRecipientTable->QueryColumns(TBL_ALL_COLUMNS, &ptrColumns);
+	hr = ptrRecipientTable->QueryColumns(TBL_ALL_COLUMNS, &~ptrColumns);
 	if (hr != hrSuccess)
 		goto exit;
 

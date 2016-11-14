@@ -188,7 +188,7 @@ initprov_storepub(struct initprov &d, const sGlobalProfileProps &profprop)
 		/* skip over to the DeleteProvider part */
 		ret = MAPI_E_INVALID_PARAMETER;
 	else
-		ret = d.transport->HrGetPublicStore(0, &d.eid_size, &d.eid, &redir_srv);
+		ret = d.transport->HrGetPublicStore(0, &d.eid_size, &~d.eid, &redir_srv);
 
 	if (ret == MAPI_E_UNABLE_TO_COMPLETE) {
 		d.transport->HrLogOff();
@@ -196,7 +196,7 @@ initprov_storepub(struct initprov &d, const sGlobalProfileProps &profprop)
 		new_props.strServerPath = redir_srv;
 		ret = d.transport->HrLogon(new_props);
 		if (ret == hrSuccess)
-			ret = d.transport->HrGetPublicStore(0, &d.eid_size, &d.eid);
+			ret = d.transport->HrGetPublicStore(0, &d.eid_size, &~d.eid);
 	}
 	if (ret == hrSuccess)
 		return hrSuccess;
@@ -211,7 +211,7 @@ initprov_service(struct initprov &d, const sGlobalProfileProps &profprop)
 {
 	/* Get the default store for this user */
 	std::string redir_srv;
-	HRESULT ret = d.transport->HrGetStore(0, NULL, &d.eid_size, &d.eid,
+	HRESULT ret = d.transport->HrGetStore(0, NULL, &d.eid_size, &~d.eid,
 	              0, NULL, &redir_srv);
 	if (ret == MAPI_E_NOT_FOUND) {
 		ec_log_err("HrGetStore failed: No store present.");
@@ -227,7 +227,7 @@ initprov_service(struct initprov &d, const sGlobalProfileProps &profprop)
 	ret = d.transport->HrLogon(new_props);
 	if (ret != hrSuccess)
 		return ret;
-	ret = d.transport->HrGetStore(0, NULL, &d.eid_size, &d.eid, 0, NULL);
+	ret = d.transport->HrGetStore(0, NULL, &d.eid_size, &~d.eid, 0, NULL);
 	if (ret != hrSuccess)
 		return ret;
 
@@ -255,9 +255,9 @@ initprov_storedl(struct initprov &d, const sGlobalProfileProps &profprop)
 {
 	/* PR_EC_USERNAME is the user we want to add ... */
 	SPropValuePtr name;
-	HRESULT ret = HrGetOneProp(d.profsect, PR_EC_USERNAME_W, &name);
+	HRESULT ret = HrGetOneProp(d.profsect, PR_EC_USERNAME_W, &~name);
 	if (ret != hrSuccess)
-		ret = HrGetOneProp(d.profsect, PR_EC_USERNAME_A, &name);
+		ret = HrGetOneProp(d.profsect, PR_EC_USERNAME_A, &~name);
 	if (ret != hrSuccess) {
 		/*
 		 * This should probably be done in UpdateProviders. But
@@ -273,7 +273,7 @@ initprov_storedl(struct initprov &d, const sGlobalProfileProps &profprop)
 
 	std::string redir_srv;
 	ret = d.transport->HrResolveUserStore(convstring::from_SPropValue(name),
-	      0, NULL, &d.eid_size, &d.eid, &redir_srv);
+	      0, NULL, &d.eid_size, &~d.eid, &redir_srv);
 	if (ret != MAPI_E_UNABLE_TO_COMPLETE)
 		return ret;
 
@@ -284,7 +284,7 @@ initprov_storedl(struct initprov &d, const sGlobalProfileProps &profprop)
 	if (ret != hrSuccess)
 		return ret;
 	return d.transport->HrResolveUserStore(convstring::from_SPropValue(name),
-	       0, NULL, &d.eid_size, &d.eid);
+	       0, NULL, &d.eid_size, &~d.eid);
 }
 
 static HRESULT initprov_storearc(struct initprov &d)
@@ -293,13 +293,13 @@ static HRESULT initprov_storearc(struct initprov &d)
 	// That's enough information to get the entryid from the correct server. There's no redirect
 	// available when resolving archive stores.
 	SPropValuePtr name, server;
-	HRESULT ret = HrGetOneProp(d.profsect, PR_EC_USERNAME_W, &name);
+	HRESULT ret = HrGetOneProp(d.profsect, PR_EC_USERNAME_W, &~name);
 	if (ret != hrSuccess)
-		ret = HrGetOneProp(d.profsect, PR_EC_USERNAME_A, &name);
+		ret = HrGetOneProp(d.profsect, PR_EC_USERNAME_A, &~name);
 	if (ret == hrSuccess) {
-		ret = HrGetOneProp(d.profsect, PR_EC_SERVERNAME_W, &server);
+		ret = HrGetOneProp(d.profsect, PR_EC_SERVERNAME_W, &~server);
 		if (ret != hrSuccess)
-			ret = HrGetOneProp(d.profsect, PR_EC_SERVERNAME_A, &server);
+			ret = HrGetOneProp(d.profsect, PR_EC_SERVERNAME_A, &~server);
 		if (ret != hrSuccess)
 			return MAPI_E_UNCONFIGURED;
 	}
@@ -327,14 +327,14 @@ static HRESULT initprov_storearc(struct initprov &d)
 	alt_transport->Release();
 	alt_transport = NULL;
 	return d.transport->HrResolveTypedStore(convstring::from_SPropValue(name),
-	       ECSTORE_TYPE_ARCHIVE, &d.eid_size, &d.eid);
+	       ECSTORE_TYPE_ARCHIVE, &d.eid_size, &~d.eid);
 }
 
 static HRESULT
 initprov_mapi_store(struct initprov &d, const sGlobalProfileProps &profprop)
 {
 	SPropValuePtr mdb;
-	HRESULT ret = HrGetOneProp(d.profsect, PR_MDB_PROVIDER, &mdb);
+	HRESULT ret = HrGetOneProp(d.profsect, PR_MDB_PROVIDER, &~mdb);
 	if (ret != hrSuccess)
 		return ret;
 
@@ -360,11 +360,11 @@ initprov_mapi_store(struct initprov &d, const sGlobalProfileProps &profprop)
 	}
 
 	ret = d.transport->HrGetStoreName(d.eid_size, d.eid, MAPI_UNICODE,
-	      static_cast<LPTSTR *>(&d.store_name));
+	      static_cast<LPTSTR *>(&~d.store_name));
 	if (ret != hrSuccess)
 		return ret;
 	ret = WrapStoreEntryID(0, reinterpret_cast<LPTSTR>(const_cast<char *>(WCLIENT_DLL_NAME)),
-	      d.eid_size, d.eid, &d.wrap_eid_size, &d.wrap_eid);
+	      d.eid_size, d.eid, &d.wrap_eid_size, &~d.wrap_eid);
 	if (ret != hrSuccess)
 		return ret;
 
@@ -443,21 +443,18 @@ HRESULT InitializeProvider(LPPROVIDERADMIN lpAdminProvider,
 			goto exit;
 	} else {
 		SPropValuePtr psn;
-		hr = HrGetOneProp(d.profsect, PR_SERVICE_NAME_A, &psn);
+		hr = HrGetOneProp(d.profsect, PR_SERVICE_NAME_A, &~psn);
 		if(hr == hrSuccess)
 			strServiceName = psn->Value.lpszA;
 		hr = hrSuccess;
 	}
-	
-	hr = HrGetOneProp(d.profsect, PR_RESOURCE_TYPE, &ptrPropValueResourceType);
+	hr = HrGetOneProp(d.profsect, PR_RESOURCE_TYPE, &~ptrPropValueResourceType);
 	if(hr != hrSuccess) {
 		// Ignore this provider; apparently it has no resource type, so just skip it
 		hr = hrSuccess;
 		goto exit;
 	}
-	
-	HrGetOneProp(d.profsect, PR_PROVIDER_UID, &ptrPropValueProviderUid);
-
+	HrGetOneProp(d.profsect, PR_PROVIDER_UID, &~ptrPropValueProviderUid);
 	ulResourceType = ptrPropValueResourceType->Value.l;
 
 	TRACE_MAPI(TRACE_INFO, "InitializeProvider", "Resource type=%s", ResourceTypeToString(ulResourceType) );

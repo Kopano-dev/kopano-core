@@ -1710,13 +1710,13 @@ HRESULT MAPIToVMIME::handleExtraHeaders(IMessage *lpMessage,
 	LPSPropValue lpExpiryTime = NULL;
 
 	// Conversation headers. New Message-Id header is set just before sending.
-	if (HrGetOneProp(lpMessage, PR_IN_REPLY_TO_ID_A, &ptrMessageId) == hrSuccess && ptrMessageId->Value.lpszA[0]) {
+	if (HrGetOneProp(lpMessage, PR_IN_REPLY_TO_ID_A, &~ptrMessageId) == hrSuccess && ptrMessageId->Value.lpszA[0]) {
 		vmime::shared_ptr<vmime::messageId> mid = vmime::make_shared<vmime::messageId>(ptrMessageId->Value.lpszA);
 		vmime::dynamicCast<vmime::messageIdSequence>(vmHeader->InReplyTo()->getValue())->appendMessageId(mid);
 	}
 
 	// Outlook never adds this property
-	if (HrGetOneProp(lpMessage, PR_INTERNET_REFERENCES_A, &ptrMessageId) == hrSuccess && ptrMessageId->Value.lpszA[0]) {
+	if (HrGetOneProp(lpMessage, PR_INTERNET_REFERENCES_A, &~ptrMessageId) == hrSuccess && ptrMessageId->Value.lpszA[0]) {
 		std::vector<std::string> ids;
 		boost::split(ids, ptrMessageId->Value.lpszA, boost::is_any_of(" "));
 
@@ -1728,7 +1728,7 @@ HRESULT MAPIToVMIME::handleExtraHeaders(IMessage *lpMessage,
 	}
 
 	// only for message-in-message items, add Message-ID header from MAPI
-	if (sopt.msg_in_msg && HrGetOneProp(lpMessage, PR_INTERNET_MESSAGE_ID_A, &ptrMessageId) == hrSuccess && ptrMessageId->Value.lpszA[0])
+	if (sopt.msg_in_msg && HrGetOneProp(lpMessage, PR_INTERNET_MESSAGE_ID_A, &~ptrMessageId) == hrSuccess && ptrMessageId->Value.lpszA[0])
 		vmHeader->MessageId()->setValue(ptrMessageId->Value.lpszA);
 
 	// priority settings

@@ -183,12 +183,12 @@ HRESULT ECMessage::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG
 
 		if (lpPropTagArray) {
 			// Use a temporary SPropTagArray so we can safely modify it.
-			hr = Util::HrCopyPropTagArray(lpPropTagArray, &ptrPropTagArray);
+			hr = Util::HrCopyPropTagArray(lpPropTagArray, &~ptrPropTagArray);
 			if (hr != hrSuccess)
 				return hr;
 		} else {
 			// Get the proplist, so we can filter it.
-			hr = GetPropList(ulFlags, &ptrPropTagArray);
+			hr = GetPropList(ulFlags, &~ptrPropTagArray);
 			if (hr != hrSuccess)
 				return hr;
 
@@ -254,8 +254,7 @@ HRESULT ECMessage::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG
 				ptrPropTagArray->aulPropTag[lRtfIdx] = PR_NULL;
 			if (lHtmlIdx >= 0 && PROP_ID(ulBestMatch) != PROP_ID(PR_HTML))
 				ptrPropTagArray->aulPropTag[lHtmlIdx] = PR_NULL;
-
-			hr = ECMAPIProp::GetProps(ptrPropTagArray, ulFlags, &cValues, &ptrPropArray);
+			hr = ECMAPIProp::GetProps(ptrPropTagArray, ulFlags, &cValues, &~ptrPropArray);
 			if (HR_FAILED(hr))
 				return hr;
 
@@ -291,13 +290,13 @@ HRESULT ECMessage::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG
 			}
 		} else {  // !lpPropTagArray || lBodyIdx >= 0 || lRtfIdx >= 0 || lHtmlIdx >= 0
 		    // lpPropTagArray was specified but no body properties were requested.
-			hr = ECMAPIProp::GetProps(lpPropTagArray, ulFlags, &cValues, &ptrPropArray);
+			hr = ECMAPIProp::GetProps(lpPropTagArray, ulFlags, &cValues, &~ptrPropArray);
 			if (HR_FAILED(hr))
 				return hr;
 		}
 	} else {  // m_ulBodyType != bodyTypeUnknown
 	    // We don't know what out body type is (yet).
-		hr = ECMAPIProp::GetProps(lpPropTagArray, ulFlags, &cValues, &ptrPropArray);
+		hr = ECMAPIProp::GetProps(lpPropTagArray, ulFlags, &cValues, &~ptrPropArray);
 		if (HR_FAILED(hr))
 			return hr;
 	}
@@ -758,8 +757,7 @@ HRESULT ECMessage::GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArray)
 	bool bHaveHtml;
 
 	m_ulBodyType = bodyTypeUnknown;	// Make sure no bodies are generated when attempts are made to open them to check the error code if any.
-
-	hr = ECMAPIProp::GetPropList(ulFlags, &ptrPropTagArray);
+	hr = ECMAPIProp::GetPropList(ulFlags, &~ptrPropTagArray);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -779,7 +777,7 @@ HRESULT ECMessage::GetPropList(ULONG ulFlags, LPSPropTagArray *lppPropTagArray)
 	}
 
 	// We have at least one body prop. Determine which tags to add.
-	hr = ECAllocateBuffer(CbNewSPropTagArray(ptrPropTagArray->cValues + 2), &ptrPropTagArrayMod);
+	hr = ECAllocateBuffer(CbNewSPropTagArray(ptrPropTagArray->cValues + 2), &~ptrPropTagArrayMod);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -2929,7 +2927,7 @@ HRESULT ECMessage::GetCodePage(unsigned int *lpulCodePage)
 	HRESULT hr;
 	SPropValuePtr ptrPropValue;
 
-	hr = ECAllocateBuffer(sizeof(SPropValue), &ptrPropValue);
+	hr = ECAllocateBuffer(sizeof(SPropValue), &~ptrPropValue);
 	if (hr != hrSuccess)
 		return hr;
 

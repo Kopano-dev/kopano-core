@@ -184,7 +184,7 @@ HRESULT	ECArchiveAwareMessage::HrSetRealProp(SPropValue *lpsPropValue)
 				m_mode = MODE_ARCHIVED;
 
 			// Store list
-			hr = MAPIAllocateBuffer(sizeof(SPropValue), (LPVOID*)&m_ptrStoreEntryIDs);
+			hr = MAPIAllocateBuffer(sizeof(SPropValue), &~m_ptrStoreEntryIDs);
 			if (hr == hrSuccess)
 				hr = Util::HrCopyProperty(m_ptrStoreEntryIDs, lpsPropValue, m_ptrStoreEntryIDs);
 			if (hr != hrSuccess)
@@ -196,7 +196,7 @@ HRESULT	ECArchiveAwareMessage::HrSetRealProp(SPropValue *lpsPropValue)
 				m_mode = MODE_ARCHIVED;
 
 			// Store list
-			hr = MAPIAllocateBuffer(sizeof(SPropValue), (LPVOID*)&m_ptrItemEntryIDs);
+			hr = MAPIAllocateBuffer(sizeof(SPropValue), &~m_ptrItemEntryIDs);
 			if (hr == hrSuccess)
 				hr = Util::HrCopyProperty(m_ptrItemEntryIDs, lpsPropValue, m_ptrItemEntryIDs);
 			if (hr != hrSuccess)

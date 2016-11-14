@@ -2410,7 +2410,7 @@ static HRESULT HrPostDeliveryProcessing(PyMapiPlugin *lppyMapiPlugin,
 	// do not send vacation message for junk messages
 	if (lpArgs->ulDeliveryMode != DM_JUNK &&
 	// do not send vacation message on delegated messages
-	    (HrGetOneProp(*lppMessage, PR_DELEGATED_BY_RULE, &ptrProp) != hrSuccess || ptrProp->Value.b == FALSE))
+	    (HrGetOneProp(*lppMessage, PR_DELEGATED_BY_RULE, &~ptrProp) != hrSuccess || ptrProp->Value.b == FALSE))
 		SendOutOfOffice(lpAdrBook, lpStore, *lppMessage, lpRecip, lpArgs->strAutorespond);
 exit:
 	if (lpUserSession)

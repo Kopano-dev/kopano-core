@@ -308,20 +308,16 @@ HRESULT ECMAPIFolder::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterf
 		else if(*lpiid == IID_IExchangeImportContentsChanges)
 			hr = ECExchangeImportContentsChanges::Create(this, (LPEXCHANGEIMPORTCONTENTSCHANGES*)lppUnk);
 	} else if(ulPropTag == PR_HIERARCHY_SYNCHRONIZER) {
-		hr = HrGetOneProp(&m_xMAPIProp, PR_SOURCE_KEY, &ptrSK);
+		hr = HrGetOneProp(&m_xMAPIProp, PR_SOURCE_KEY, &~ptrSK);
 		if(hr != hrSuccess)
 			return hr;
-			
-		HrGetOneProp(&m_xMAPIProp, PR_DISPLAY_NAME_W, &ptrDisplay); // ignore error
-			
+		HrGetOneProp(&m_xMAPIProp, PR_DISPLAY_NAME_W, &~ptrDisplay); // ignore error
 		hr = ECExchangeExportChanges::Create(this->GetMsgStore(), *lpiid, std::string((const char*)ptrSK->Value.bin.lpb, ptrSK->Value.bin.cb), !ptrDisplay ? L"" : ptrDisplay->Value.lpszW, ICS_SYNC_HIERARCHY, (LPEXCHANGEEXPORTCHANGES*) lppUnk);
 	} else if(ulPropTag == PR_CONTENTS_SYNCHRONIZER) {
-		hr = HrGetOneProp(&m_xMAPIProp, PR_SOURCE_KEY, &ptrSK);
+		hr = HrGetOneProp(&m_xMAPIProp, PR_SOURCE_KEY, &~ptrSK);
 		if(hr != hrSuccess)
 			return hr;
-			
-		HrGetOneProp(&m_xMAPIProp, PR_DISPLAY_NAME, &ptrDisplay); // ignore error
-			
+		HrGetOneProp(&m_xMAPIProp, PR_DISPLAY_NAME, &~ptrDisplay); // ignore error
 		hr = ECExchangeExportChanges::Create(this->GetMsgStore(), *lpiid, std::string((const char*)ptrSK->Value.bin.lpb, ptrSK->Value.bin.cb), !ptrDisplay ? L"" : ptrDisplay->Value.lpszW, ICS_SYNC_CONTENTS, (LPEXCHANGEEXPORTCHANGES*) lppUnk);
 	} else {
 		hr = ECMAPIProp::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);

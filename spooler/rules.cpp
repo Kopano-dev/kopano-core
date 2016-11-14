@@ -115,7 +115,7 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 	wstring strForwardText;
 	wstring wstrTo, wstrCc, wstrBcc;
 
-	HRESULT hr = lpOrigMessage->GetProps(sBody, 0, &cValues, &ptrBodies);
+	HRESULT hr = lpOrigMessage->GetProps(sBody, 0, &cValues, &~ptrBodies);
 	if (FAILED(hr))
 		return hr;
 		
@@ -141,7 +141,7 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 	hr = GetRecipStrings(lpOrigMessage, wstrTo, wstrCc, wstrBcc);
 	if (FAILED(hr))
 		return hr;
-	hr = lpOrigMessage->GetProps(sInfo, 0, &cValues, &ptrInfo);
+	hr = lpOrigMessage->GetProps(sInfo, 0, &cValues, &~ptrInfo);
 	if (FAILED(hr))
 		return hr;
 

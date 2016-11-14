@@ -101,8 +101,7 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 		ec_log_warn("Archive::HrArchiveMessageForDelivery(): invalid parameter");
 		goto exit;
 	}
-
-	hr = lpMessage->GetProps(sptaMessageProps, 0, &cMsgProps, &ptrMsgProps);
+	hr = lpMessage->GetProps(sptaMessageProps, 0, &cMsgProps, &~ptrMsgProps);
 	if (hr != hrSuccess) {
 		ec_log_warn("Archive::HrArchiveMessageForDelivery(): GetProps failed %x", hr);
 		goto exit;
@@ -178,7 +177,7 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 		SObjectEntry refArchiveEntry;
 
 		hr = msg.first->GetProps(sptaMessageProps, 0,
-		     &cArchivedMsgProps, &ptrArchivedMsgProps);
+		     &cArchivedMsgProps, &~ptrArchivedMsgProps);
 		if (hr != hrSuccess) {
 			ec_log_warn("Archive::HrArchiveMessageForDelivery(): ArchivedMessage GetProps failed %x", hr);
 			goto exit;
@@ -244,8 +243,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-
-	hr = lpMessage->GetProps(sptaMessageProps, 0, &cMsgProps, &ptrMsgProps);
+	hr = lpMessage->GetProps(sptaMessageProps, 0, &cMsgProps, &~ptrMsgProps);
 	if (hr != hrSuccess) {
 		ec_log_warn("Archive::HrArchiveMessageForSending(): GetProps failed %x", hr);
 		goto exit;

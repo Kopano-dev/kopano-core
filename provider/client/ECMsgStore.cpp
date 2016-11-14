@@ -1473,7 +1473,7 @@ HRESULT ECMsgStore::CreateStoreEntryID(LPTSTR lpszMsgStoreDN, LPTSTR lpszMailbox
 			goto exit;
 		
 		// MsgStoreDN successfully converted
-		hr = lpTransport->HrResolvePseudoUrl(strPseudoUrl.c_str(), &ptrServerPath, &bIsPeer);
+		hr = lpTransport->HrResolvePseudoUrl(strPseudoUrl.c_str(), &~ptrServerPath, &bIsPeer);
 		if (hr == MAPI_E_NOT_FOUND && (ulFlags & OPENSTORE_OVERRIDE_HOME_MDB) == 0) {
 			// Try again old style since the MsgStoreDN contained an unknown server name or the server doesn't support multi server.
 			hr = CreateStoreEntryID(NULL, lpszMailboxDN, ulFlags, lpcbEntryID, lppEntryID);
@@ -1565,8 +1565,7 @@ HRESULT ECMsgStore::GetMailboxTable(LPTSTR lpszServerName, LPMAPITABLE *lppTable
 	
 		strPseudoUrl = "pseudo://"; 
 		strPseudoUrl += tstrServerName;
-
-		hr = lpTransport->HrResolvePseudoUrl(strPseudoUrl.c_str(), &ptrServerPath, &bIsPeer);
+		hr = lpTransport->HrResolvePseudoUrl(strPseudoUrl.c_str(), &~ptrServerPath, &bIsPeer);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -3040,15 +3039,14 @@ HRESULT ECMsgStore::GetPublicStoreEntryID(ULONG ulFlags, ULONG* lpcbStoreID, LPE
 	EntryIdPtr ptrStoreID;
 	std::string strRedirServer;
 
-	HRESULT hr = lpTransport->HrGetPublicStore(ulFlags, &cbStoreID, &ptrStoreID, &strRedirServer);
+	HRESULT hr = lpTransport->HrGetPublicStore(ulFlags, &cbStoreID, &~ptrStoreID, &strRedirServer);
 	if (hr == MAPI_E_UNABLE_TO_COMPLETE) {
 		WSTransportPtr ptrTransport;
 
 		hr = lpTransport->CreateAndLogonAlternate(strRedirServer.c_str(), &ptrTransport);
 		if (hr != hrSuccess)
 			return hr;
-
-		hr = ptrTransport->HrGetPublicStore(ulFlags, &cbStoreID, &ptrStoreID);
+		hr = ptrTransport->HrGetPublicStore(ulFlags, &cbStoreID, &~ptrStoreID);
 	}
 	if (hr != hrSuccess)
 		return hr;
@@ -3071,12 +3069,11 @@ HRESULT ECMsgStore::GetArchiveStoreEntryID(LPCTSTR lpszUserName, LPCTSTR lpszSer
 		hr = GetTransportToNamedServer(lpTransport, lpszServerName, ulFlags, &ptrTransport);
 		if (hr != hrSuccess)
 			return hr;
-
-		hr = ptrTransport->HrResolveTypedStore(convstring(lpszUserName, ulFlags), ECSTORE_TYPE_ARCHIVE, &cbStoreID, &ptrStoreID);
+		hr = ptrTransport->HrResolveTypedStore(convstring(lpszUserName, ulFlags), ECSTORE_TYPE_ARCHIVE, &cbStoreID, &~ptrStoreID);
 		if (hr != hrSuccess)
 			return hr;
 	} else {
-		hr = lpTransport->HrResolveTypedStore(convstring(lpszUserName, ulFlags), ECSTORE_TYPE_ARCHIVE, &cbStoreID, &ptrStoreID);
+		hr = lpTransport->HrResolveTypedStore(convstring(lpszUserName, ulFlags), ECSTORE_TYPE_ARCHIVE, &cbStoreID, &~ptrStoreID);
 		if (hr != hrSuccess)
 			return hr;
 	}

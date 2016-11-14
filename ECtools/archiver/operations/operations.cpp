@@ -115,7 +115,7 @@ HRESULT ArchiveOperationBase::VerifyRestriction(LPMESSAGE lpMessage)
 	HRESULT hr = hrSuccess;
 	SRestrictionPtr ptrRestriction;
 
-	hr = GetRestriction(lpMessage, &ptrRestriction);
+	hr = GetRestriction(lpMessage, &~ptrRestriction);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -192,15 +192,13 @@ HRESULT ArchiveOperationBaseEx::ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps
 			Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to open folder. (hr=%s)", stringify(hr, true).c_str());
 			return hr;
 		}
-		
-		hr = MAPIAllocateBuffer(sizeof(SPropValue), &m_ptrCurFolderEntryId);
+		hr = MAPIAllocateBuffer(sizeof(SPropValue), &~m_ptrCurFolderEntryId);
 		if (hr != hrSuccess)
 			return hr;
 		hr = Util::HrCopyProperty(m_ptrCurFolderEntryId, lpFolderEntryId, m_ptrCurFolderEntryId);
 		if (hr != hrSuccess)
 			return hr;
-
-		if (HrGetOneProp(m_ptrCurFolder, PR_DISPLAY_NAME, &ptrPropValue) == hrSuccess)
+		if (HrGetOneProp(m_ptrCurFolder, PR_DISPLAY_NAME, &~ptrPropValue) == hrSuccess)
 			Logger()->SetFolder(ptrPropValue->Value.LPSZ);
 		else
 			Logger()->SetFolder(_T("<Unnamed>"));

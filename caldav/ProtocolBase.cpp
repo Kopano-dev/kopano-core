@@ -219,7 +219,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 
 		// check if this is the default calendar folder to enable freebusy publishing
 		if (lpDefaultProp &&
-			HrGetOneProp(m_lpUsrFld, PR_ENTRYID, &lpEntryID) == hrSuccess &&
+		    HrGetOneProp(m_lpUsrFld, PR_ENTRYID, &~lpEntryID) == hrSuccess &&
 			m_lpActiveStore->CompareEntryIDs(lpEntryID->Value.bin.cb, (LPENTRYID)lpEntryID->Value.bin.lpb,
 											 lpDefaultProp->Value.bin.cb, (LPENTRYID)lpDefaultProp->Value.bin.lpb, 0, &ulRes) == hrSuccess &&
 			ulRes == TRUE)
@@ -266,7 +266,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 			SPropValuePtr ptrDisplayName;
 			string strLocation = "/caldav/" + urlEncode(m_wstrFldOwner, "utf-8");
 
-			if (HrGetOneProp(m_lpUsrFld, PR_DISPLAY_NAME_W, &ptrDisplayName) == hrSuccess) {
+			if (HrGetOneProp(m_lpUsrFld, PR_DISPLAY_NAME_W, &~ptrDisplayName) == hrSuccess) {
 				std::string part = urlEncode(ptrDisplayName->Value.lpszW, "UTF-8"); 
 				strLocation += "/" + part + "/";
 			} else {

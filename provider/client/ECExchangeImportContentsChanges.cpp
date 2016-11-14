@@ -831,7 +831,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChangeAsAStream(ULONG cVal
 	LPSPropValue lpMessageSourceKey = PpropFindProp(lpPropArray, cValue, PR_SOURCE_KEY);
 
 	if (lpMessageSourceKey != NULL) {
-		hr = m_lpFolder->GetMsgStore()->lpTransport->HrEntryIDFromSourceKey(m_lpFolder->GetMsgStore()->m_cbEntryId, m_lpFolder->GetMsgStore()->m_lpEntryId, m_lpSourceKey->Value.bin.cb, m_lpSourceKey->Value.bin.lpb, lpMessageSourceKey->Value.bin.cb, lpMessageSourceKey->Value.bin.lpb, &cbEntryId, &ptrEntryId);
+		hr = m_lpFolder->GetMsgStore()->lpTransport->HrEntryIDFromSourceKey(m_lpFolder->GetMsgStore()->m_cbEntryId, m_lpFolder->GetMsgStore()->m_lpEntryId, m_lpSourceKey->Value.bin.cb, m_lpSourceKey->Value.bin.lpb, lpMessageSourceKey->Value.bin.cb, lpMessageSourceKey->Value.bin.lpb, &cbEntryId, &~ptrEntryId);
 		if (hr != MAPI_E_NOT_FOUND && hr != hrSuccess) {
 			ZLOG_DEBUG(m_lpLogger, "ImportFast: Failed to get entryid from sourcekey, hr = 0x%08x", hr);
 			return hr;
@@ -930,8 +930,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageUpdateAsStream(ULONG cbEnt
 
 	if (lpEntryId == NULL || lpPropArray == NULL || lppMessageImporter == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-
-	hr = m_lpFolder->GetChangeInfo(cbEntryId, lpEntryId, &ptrPropPCL, &ptrPropCK);
+	hr = m_lpFolder->GetChangeInfo(cbEntryId, lpEntryId, &~ptrPropPCL, &~ptrPropCK);
 	if (hr != hrSuccess) {
 		if (hr == MAPI_E_NOT_FOUND) {
 			// The item was soft-deleted; sourcekey is known, but we cannot open the item. It has therefore been deleted.
@@ -970,10 +969,9 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageUpdateAsStream(ULONG cbEnt
 			ZLOG_DEBUG(m_lpLogger, "UpdateFast: Failed to open conflicting message, hr = 0x%08x", hr);
 			return hr;
 		}
-
-		if (CreateConflictMessageOnly(ptrMessage, &ptrConflictItems) == MAPI_E_NOT_FOUND) {
+		if (CreateConflictMessageOnly(ptrMessage, &~ptrConflictItems) == MAPI_E_NOT_FOUND) {
 			CreateConflictFolders();
-			CreateConflictMessageOnly(ptrMessage, &ptrConflictItems);
+			CreateConflictMessageOnly(ptrMessage, &~ptrConflictItems);
 		}
 	}
 
@@ -1095,7 +1093,7 @@ HRESULT ECExchangeImportContentsChanges::HrUpdateSearchReminders(LPMAPIFOLDER lp
 
 	SizedSPropTagArray(2, sptaREMProps) = {2, {PR_REM_ONLINE_ENTRYID, PR_REM_OFFLINE_ENTRYID}};
 
-	hr = lpRootFolder->GetProps(sptaREMProps, 0, &cREMProps, &ptrREMProps);
+	hr = lpRootFolder->GetProps(sptaREMProps, 0, &cREMProps, &~ptrREMProps);
 	if (FAILED(hr))
 		return hr;
 
@@ -1110,8 +1108,7 @@ HRESULT ECExchangeImportContentsChanges::HrUpdateSearchReminders(LPMAPIFOLDER lp
 	hr = lpRootFolder->OpenEntry(lpREMEntryID->Value.bin.cb, (LPENTRYID)lpREMEntryID->Value.bin.lpb, &ptrRemindersFolder.iid, MAPI_BEST_ACCESS, &ulType, &ptrRemindersFolder);
 	if (hr != hrSuccess)
 		return hr;
-
-	hr = ptrRemindersFolder->GetSearchCriteria(0, &ptrOrigRestriction, &ptrOrigContainerList, &ulOrigSearchState);
+	hr = ptrRemindersFolder->GetSearchCriteria(0, &~ptrOrigRestriction, &~ptrOrigContainerList, &ulOrigSearchState);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -1132,8 +1129,7 @@ HRESULT ECExchangeImportContentsChanges::HrUpdateSearchReminders(LPMAPIFOLDER lp
 		ECPropertyRestriction(RELOP_NE, PR_PARENT_ENTRYID, &sPropValServerFailures, ECRestriction::Cheap) +
 		ECRawRestriction(ptrOrigRestriction.get(), ECRestriction::Cheap)
 	);
-
-	hr = resPre.CreateMAPIRestriction(&ptrPreRestriction, ECRestriction::Cheap);
+	hr = resPre.CreateMAPIRestriction(&~ptrPreRestriction, ECRestriction::Cheap);
 	if (hr != hrSuccess)
 		return hr;
 

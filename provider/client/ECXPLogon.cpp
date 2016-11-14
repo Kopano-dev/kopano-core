@@ -234,8 +234,7 @@ HRESULT ECXPLogon::ClearOldSubmittedMessages(LPMAPIFOLDER lpFolder)
 					) + 
 					ECPropertyRestriction(RELOP_LE, PR_CREATION_TIME, &sPropxDaysBefore, ECRestriction::Cheap)
 				);
-
-	hr = resDelete.CreateMAPIRestriction(&ptrRestriction, ECRestriction::Cheap);
+	hr = resDelete.CreateMAPIRestriction(&~ptrRestriction, ECRestriction::Cheap);
 	if (hr != hrSuccess)
 		goto exit;
 

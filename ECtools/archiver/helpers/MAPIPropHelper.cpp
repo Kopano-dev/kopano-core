@@ -107,7 +107,7 @@ HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageSt
 
 	if (lpState == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	hr = m_ptrMapiProp->GetProps(sptaMessageProps, 0, &cMessageProps, &ptrMessageProps);
+	hr = m_ptrMapiProp->GetProps(sptaMessageProps, 0, &cMessageProps, &~ptrMessageProps);
 	if (FAILED(hr))
 		return hr;
 	if (PROP_TYPE(ptrMessageProps[IDX_ENTRYID].ulPropTag) == PT_ERROR)
@@ -213,7 +213,7 @@ HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageSt
 				 */
 				SPropValuePtr ptrRecordKey;
 
-				hr = HrGetOneProp(ptrMessage, PR_EC_HIERARCHYID, &ptrRecordKey);
+				hr = HrGetOneProp(ptrMessage, PR_EC_HIERARCHYID, &~ptrRecordKey);
 				if (hr != hrSuccess)
 					return hr;
 
@@ -265,7 +265,7 @@ HRESULT MAPIPropHelper::GetArchiveList(ObjectEntryList *lplstArchives, bool bIgn
 		IDX_SOURCE_KEY
 	};
 	
-	hr = m_ptrMapiProp->GetProps(sptaArchiveProps, 0, &cbValues, &ptrPropArray);
+	hr = m_ptrMapiProp->GetProps(sptaArchiveProps, 0, &cbValues, &~ptrPropArray);
 	if (FAILED(hr))
 		return hr;
 		
@@ -341,7 +341,7 @@ HRESULT MAPIPropHelper::SetArchiveList(const ObjectEntryList &lstArchives, bool 
 	ObjectEntryList::const_iterator iArchive;
 	ULONG cbProps = 2;
 
-	hr = MAPIAllocateBuffer(3 * sizeof(SPropValue), (LPVOID*)&ptrPropArray);
+	hr = MAPIAllocateBuffer(3 * sizeof(SPropValue), &~ptrPropArray);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -377,7 +377,7 @@ HRESULT MAPIPropHelper::SetArchiveList(const ObjectEntryList &lstArchives, bool 
 	 * item gets moved everything is fine. But when it gets copied a new archive will be created
 	 * for it.
 	 **/
-	hr = HrGetOneProp(m_ptrMapiProp, PR_SOURCE_KEY, &ptrSourceKey);
+	hr = HrGetOneProp(m_ptrMapiProp, PR_SOURCE_KEY, &~ptrSourceKey);
 	if (hr == hrSuccess) {
 		ptrPropArray[2].ulPropTag = PROP_ORIGINAL_SOURCEKEY;
 		ptrPropArray[2].Value.bin = ptrSourceKey->Value.bin;	// Cheap copy
@@ -454,8 +454,7 @@ HRESULT MAPIPropHelper::GetReference(SObjectEntry *lpEntry)
 
 	if (lpEntry == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-
-	hr = m_ptrMapiProp->GetProps(sptaMessageProps, 0, &cMessageProps, &ptrMessageProps);
+	hr = m_ptrMapiProp->GetProps(sptaMessageProps, 0, &cMessageProps, &~ptrMessageProps);
 	if (FAILED(hr))
 		return hr;
 	if (PROP_TYPE(ptrMessageProps[IDX_REF_STORE_ENTRYID].ulPropTag) == PT_ERROR)
@@ -487,8 +486,7 @@ HRESULT MAPIPropHelper::OpenPrevious(ArchiverSessionPtr ptrSession, LPMESSAGE *l
 
 	if (lppMessage == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-
-	hr = HrGetOneProp(m_ptrMapiProp, PROP_REF_PREV_ENTRYID, &ptrEntryID);
+	hr = HrGetOneProp(m_ptrMapiProp, PROP_REF_PREV_ENTRYID, &~ptrEntryID);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -497,7 +495,7 @@ HRESULT MAPIPropHelper::OpenPrevious(ArchiverSessionPtr ptrSession, LPMESSAGE *l
 		SPropValuePtr ptrStoreEntryID;
 		MsgStorePtr ptrStore;
 
-		hr = HrGetOneProp(m_ptrMapiProp, PR_STORE_ENTRYID, &ptrStoreEntryID);
+		hr = HrGetOneProp(m_ptrMapiProp, PR_STORE_ENTRYID, &~ptrStoreEntryID);
 		if (hr != hrSuccess)
 			return hr;
 		hr = ptrSession->OpenStore(ptrStoreEntryID->Value.bin, &ptrStore);
@@ -565,7 +563,7 @@ HRESULT MAPIPropHelper::GetParentFolder(ArchiverSessionPtr ptrSession, LPMAPIFOL
 		return MAPI_E_INVALID_PARAMETER;
 	
 	// We can't just open a folder on the session (at least not in Linux). So we open the store first
-	hr = m_ptrMapiProp->GetProps(sptaProps, 0, &cValues, &ptrPropArray);
+	hr = m_ptrMapiProp->GetProps(sptaProps, 0, &cValues, &~ptrPropArray);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrSession->OpenStore(ptrPropArray[1].Value.bin, &ptrMsgStore);

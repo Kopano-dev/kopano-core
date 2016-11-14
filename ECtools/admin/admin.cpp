@@ -933,8 +933,7 @@ static HRESULT print_archive_details(LPMAPISESSION lpSession,
 		cerr << "Unable to get admin interface." << endl;
 		return hr;
 	}
-
-	hr = ptrServiceAdmin->GetArchiveStoreEntryID((LPCTSTR)lpszName, NULL, 0, &cbArchiveId, &ptrArchiveId);
+	hr = ptrServiceAdmin->GetArchiveStoreEntryID((LPCTSTR)lpszName, NULL, 0, &cbArchiveId, &~ptrArchiveId);
 	if (hr != hrSuccess) {
 		cerr << "No archive found for user '" << lpszName << "'." << endl;
 		return hr;
@@ -945,8 +944,7 @@ static HRESULT print_archive_details(LPMAPISESSION lpSession,
 		cerr << "Unable to open archive." << endl;
 		return hr;
 	}
-
-	hr = HrGetOneProp(ptrArchive, PR_MESSAGE_SIZE_EXTENDED, &ptrArchiveSize);
+	hr = HrGetOneProp(ptrArchive, PR_MESSAGE_SIZE_EXTENDED, &~ptrArchiveSize);
 	if (hr != hrSuccess) {
 		cerr << "Unable to get archive store size." << endl;
 		return hr;
@@ -1046,7 +1044,7 @@ static HRESULT GetOrphanStoreInfo(IECServiceAdmin *lpServiceAdmin,
 	sStoreGuid.Value.bin.lpb = (BYTE*)lpStoreGuid;
 
 	resAnd.append(ECPropertyRestriction(RELOP_EQ, PR_EC_STOREGUID, &sStoreGuid));
-	hr = resAnd.CreateMAPIRestriction(&ptrRes);
+	hr = resAnd.CreateMAPIRestriction(&~ptrRes);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrTable->FindRow(ptrRes, BOOKMARK_BEGINNING, 0);
@@ -1659,8 +1657,7 @@ static HRESULT print_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore,
 						")" << endl;
 					continue;
 				}
-
-				hr = HrGetOneProp(ptrRemoteAdminStore, PR_EC_OBJECT, &ptrPropValue);
+				hr = HrGetOneProp(ptrRemoteAdminStore, PR_EC_OBJECT, &~ptrPropValue);
 				if (hr != hrSuccess || !ptrPropValue || !ptrPropValue->Value.lpszA) {
 					cerr << "Admin object not found." << endl;
 					goto exit;
@@ -1845,7 +1842,7 @@ static HRESULT ForceResyncFor(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	hr = lpAdminStore->QueryInterface(ptrEMS.iid, &ptrEMS);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrEMS->CreateStoreEntryID((LPTSTR)lpszHomeMDB, (LPTSTR)lpszAccount, 0, &cbEntryID, &ptrEntryID);
+	hr = ptrEMS->CreateStoreEntryID((LPTSTR)lpszHomeMDB, (LPTSTR)lpszAccount, 0, &cbEntryID, &~ptrEntryID);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpSession->OpenMsgStore(0, cbEntryID, ptrEntryID, NULL, MDB_WRITE|MAPI_DEFERRED_ERRORS, &ptrUserStore);
@@ -1855,7 +1852,7 @@ static HRESULT ForceResyncFor(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	if (hr != hrSuccess)
 		return hr;
 
-	hr = HrGetOneProp(ptrRoot, PR_EC_RESYNC_ID, &ptrPropResyncID);
+	hr = HrGetOneProp(ptrRoot, PR_EC_RESYNC_ID, &~ptrPropResyncID);
 	if (hr == MAPI_E_NOT_FOUND) {
 		SPropValue sPropResyncID;
 		sPropResyncID.ulPropTag = PR_EC_RESYNC_ID;
@@ -1901,7 +1898,7 @@ static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 	sGALPropVal.Value.bin.cb = sizeof(GUID);
 	sGALPropVal.Value.bin.lpb = (LPBYTE)&MUIDECSAB;
 
-	hr = ECPropertyRestriction(RELOP_EQ, PR_AB_PROVIDER_ID, &sGALPropVal, ECRestriction::Cheap).CreateMAPIRestriction(&ptrRestrict, ECRestriction::Cheap);
+	hr = ECPropertyRestriction(RELOP_EQ, PR_AB_PROVIDER_ID, &sGALPropVal, ECRestriction::Cheap).CreateMAPIRestriction(&~ptrRestrict, ECRestriction::Cheap);
 	if (hr != hrSuccess)
 		goto exit;
 	hr = ptrTable->SetColumns(sGALProps, TBL_BATCH);
@@ -1939,7 +1936,7 @@ static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 	hr = ECAndRestriction(
 			ECPropertyRestriction(RELOP_EQ, PR_OBJECT_TYPE, &sObjTypePropVal, ECRestriction::Cheap) +
 			ECPropertyRestriction(RELOP_EQ, PR_DISPLAY_TYPE, &sDispTypePropVal, ECRestriction::Cheap)
-			).CreateMAPIRestriction(&ptrRestrict, ECRestriction::Cheap);
+			).CreateMAPIRestriction(&~ptrRestrict, ECRestriction::Cheap);
 	if (hr != hrSuccess)
 		goto exit;
 	hr = ptrTable->SetColumns(sContentsProps, TBL_BATCH);
@@ -2040,7 +2037,7 @@ static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 	sPropDisplayName.ulPropTag = PR_DISPLAY_NAME_A;
 	sPropDisplayName.Value.lpszA = const_cast<char *>("usercnt_");
 
-	hr = ECContentRestriction(FL_PREFIX, PR_DISPLAY_NAME_A, &sPropDisplayName, ECRestriction::Cheap).CreateMAPIRestriction(&ptrRestriction);
+	hr = ECContentRestriction(FL_PREFIX, PR_DISPLAY_NAME_A, &sPropDisplayName, ECRestriction::Cheap).CreateMAPIRestriction(&~ptrRestriction);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrSystemTable->Restrict(ptrRestriction, TBL_BATCH);
@@ -2176,8 +2173,7 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	hr = lpAdminStore->QueryInterface(ptrEMS.iid, &ptrEMS);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = ptrEMS->CreateStoreEntryID(NULL, (LPTSTR)lpszAccount, 0, &cbEntryID, &ptrEntryID);
+	hr = ptrEMS->CreateStoreEntryID(NULL, (LPTSTR)lpszAccount, 0, &cbEntryID, &~ptrEntryID);
 	if (hr != hrSuccess) {
 		cerr << "Unable to resolve store for '" << lpszAccount << "'." << endl;
 		goto exit;
@@ -2196,8 +2192,7 @@ static HRESULT ResetFolderCount(LPMAPISESSION lpSession, LPMDB lpAdminStore,
 	hr = ptrUserStore->OpenEntry(0, NULL, &ptrRoot.iid, 0, &ulType, &ptrRoot);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = HrGetOneProp(ptrRoot, PR_ENTRYID, &ptrPropEntryID);
+	hr = HrGetOneProp(ptrRoot, PR_ENTRYID, &~ptrPropEntryID);
 	if (hr != hrSuccess)
 		goto exit;
 

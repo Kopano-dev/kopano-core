@@ -68,7 +68,7 @@ HRESULT MAPITablePrint(IMAPITable *lpTable, bool humanreadable /* = true */)
     ConsoleTable ct(0, 0);
     unsigned int i = 0, j = 0;
     
-	HRESULT hr = lpTable->QueryColumns(0, &ptrColumns);
+	HRESULT hr = lpTable->QueryColumns(0, &~ptrColumns);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpTable->QueryRows(-1, 0, &ptrRows);

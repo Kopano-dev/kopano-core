@@ -866,7 +866,7 @@ static HRESULT HrAddProfileUID(LPPROVIDERADMIN lpProviderAdmin, LPMAPIUID lpNewP
 		return hr;
 
 	// The prop value PR_STORE_PROVIDERS
-	hr = ptrGlobalProfSect->GetProps(sptaGlobalProps, 0, &cValues, &ptrGlobalProps);
+	hr = ptrGlobalProfSect->GetProps(sptaGlobalProps, 0, &cValues, &~ptrGlobalProps);
 	if (HR_FAILED(hr))
 		return hr;
 	if (ptrGlobalProps->ulPropTag != PR_STORE_PROVIDERS)
@@ -874,8 +874,7 @@ static HRESULT HrAddProfileUID(LPPROVIDERADMIN lpProviderAdmin, LPMAPIUID lpNewP
 
 	// The new size of stores provider uid
 	csNewMapiUID = ptrGlobalProps->Value.bin.cb + sizeof(MAPIUID); //lpNewProfileUID
-
-	hr = MAPIAllocateBuffer(sizeof(SPropValue), &ptrNewProp);
+	hr = MAPIAllocateBuffer(sizeof(SPropValue), &~ptrNewProp);
 	if (hr != hrSuccess)
 		return hr;
 	hr = MAPIAllocateMore(csNewMapiUID, ptrNewProp, (LPVOID*)&ptrNewProp->Value.bin.lpb);
@@ -2712,10 +2711,10 @@ HRESULT HrGetAllProps(IMAPIProp *lpProp, ULONG ulFlags, ULONG *lpcValues, LPSPro
 	std::string strData;
 	void *lpData = NULL;
 	
-	HRESULT hr = lpProp->GetPropList(ulFlags, &lpTags);
+	HRESULT hr = lpProp->GetPropList(ulFlags, &~lpTags);
 	if(hr != hrSuccess)
 		return hr;
-	hr = lpProp->GetProps(lpTags, ulFlags, &cValues, &lpProps);
+	hr = lpProp->GetProps(lpTags, ulFlags, &cValues, &~lpProps);
 	if(FAILED(hr))
 		return hr;
 		
@@ -3324,10 +3323,10 @@ HRESULT HrGetRemoteAdminStore(IMAPISession *lpMAPISession, IMsgStore *lpMsgStore
 		return hr;
 	if (ulFlags & MAPI_UNICODE) {
 		std::wstring strMsgStoreDN = std::wstring(L"cn=") + (LPCWSTR)lpszServerName + L"/cn=Microsoft Private MDB";
-		hr = ptrEMS->CreateStoreEntryID((LPTSTR)strMsgStoreDN.c_str(), (LPTSTR)L"SYSTEM", MAPI_UNICODE|OPENSTORE_OVERRIDE_HOME_MDB, &cbStoreId, &ptrStoreId);
+		hr = ptrEMS->CreateStoreEntryID((LPTSTR)strMsgStoreDN.c_str(), (LPTSTR)L"SYSTEM", MAPI_UNICODE|OPENSTORE_OVERRIDE_HOME_MDB, &cbStoreId, &~ptrStoreId);
 	} else {
 		std::string strMsgStoreDN = std::string("cn=") + (LPCSTR)lpszServerName + "/cn=Microsoft Private MDB";
-		hr = ptrEMS->CreateStoreEntryID((LPTSTR)strMsgStoreDN.c_str(), (LPTSTR)"SYSTEM", OPENSTORE_OVERRIDE_HOME_MDB, &cbStoreId, &ptrStoreId);
+		hr = ptrEMS->CreateStoreEntryID((LPTSTR)strMsgStoreDN.c_str(), (LPTSTR)"SYSTEM", OPENSTORE_OVERRIDE_HOME_MDB, &cbStoreId, &~ptrStoreId);
 	}
 	if (hr != hrSuccess)
 		return hr;
@@ -3422,7 +3421,7 @@ HRESULT GetConfigMessage(LPMDB lpStore, const char* szMessageName, IMessage **lp
 	MessagePtr ptrMessage;
 	SizedSPropTagArray(2, sptaTreeProps) = {2, {PR_NON_IPM_SUBTREE_ENTRYID, PR_IPM_SUBTREE_ENTRYID}};
 
-	HRESULT hr = lpStore->GetProps(sptaTreeProps, 0, &cValues, &ptrEntryIDs);
+	HRESULT hr = lpStore->GetProps(sptaTreeProps, 0, &cValues, &~ptrEntryIDs);
 	if (FAILED(hr))
 		return hr;
 

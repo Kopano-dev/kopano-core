@@ -170,8 +170,7 @@ HRESULT UserListCollector<string_type, prAccount>::CollectData(LPMAPITABLE lpSto
 				hrTmp = m_ptrSession->OpenEntry(ptrRows[i].lpProps[0].Value.bin.cb, (LPENTRYID)ptrRows[i].lpProps[0].Value.bin.lpb, &ptrUser.iid, 0, &ulType, &ptrUser);
 				if (hrTmp != hrSuccess)
 					continue;
-
-				hrTmp = HrGetOneProp(ptrUser, prAccount, &ptrAccount);
+				hrTmp = HrGetOneProp(ptrUser, prAccount, &~ptrAccount);
 				if (hrTmp != hrSuccess)
 					continue;
 
@@ -260,8 +259,7 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 		ec_log_crit("Unable to open addressbook: 0x%08X", hr);
 		goto exit;
 	}
-
-	hr = ptrAdrBook->GetDefaultDir(&cbDDEntryID, &ptrDDEntryID);
+	hr = ptrAdrBook->GetDefaultDir(&cbDDEntryID, &~ptrDDEntryID);
 	if(hr != hrSuccess) {
 		ec_log_crit("Unable to open default addressbook: 0x%08X", hr);
 		goto exit;
@@ -453,13 +451,13 @@ HRESULT GetMailboxDataPerServer(IMAPISession *lpSession, const char *lpszPath,
 	hr = ptrEMS->GetMailboxTable(NULL, &ptrStoreTable, MAPI_DEFERRED_ERRORS);
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpCollector->GetRequiredPropTags(ptrStoreAdmin, &ptrPropTagArray);
+	hr = lpCollector->GetRequiredPropTags(ptrStoreAdmin, &~ptrPropTagArray);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrStoreTable->SetColumns(ptrPropTagArray, TBL_BATCH);
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpCollector->GetRestriction(ptrStoreAdmin, &ptrRestriction);
+	hr = lpCollector->GetRestriction(ptrStoreAdmin, &~ptrRestriction);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrStoreTable->Restrict(ptrRestriction, TBL_BATCH);

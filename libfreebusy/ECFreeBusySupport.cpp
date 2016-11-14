@@ -342,7 +342,7 @@ HRESULT ECFreeBusySupport::GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulS
 	SPropValuePtr ptrName;
 
 	if (m_lpSession->OpenEntry(sFBUser.m_cbEid, sFBUser.m_lpEid, NULL, 0, &ulObjType, &ptrUser) == hrSuccess && 
-		HrGetOneProp(ptrUser, PR_ACCOUNT, &ptrName) == hrSuccess &&
+	    HrGetOneProp(ptrUser, PR_ACCOUNT, &~ptrName) == hrSuccess &&
 		HrOpenUserMsgStore(m_lpSession, ptrName->Value.LPSZ, &ptrStore) == hrSuccess)
 	{
 		GetAutoAcceptSettings(ptrStore, &bAutoAccept, &bDeclineConflict, &bDeclineRecurring);

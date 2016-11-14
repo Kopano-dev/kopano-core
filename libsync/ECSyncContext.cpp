@@ -716,7 +716,7 @@ HRESULT ECSyncContext::GetResyncID(ULONG *lpulResyncID)
 	HRESULT hr = HrOpenRootFolder(&ptrRoot, NULL);
 	if (hr != hrSuccess)
 		return hr;
-	hr = HrGetOneProp(ptrRoot, PR_EC_RESYNC_ID, &ptrResyncID);
+	hr = HrGetOneProp(ptrRoot, PR_EC_RESYNC_ID, &~ptrResyncID);
 	if (hr == hrSuccess)
 		*lpulResyncID = ptrResyncID->Value.ul;
 	else if (hr == MAPI_E_NOT_FOUND) {
@@ -749,7 +749,7 @@ HRESULT ECSyncContext::GetStoredServerUid(LPGUID lpServerUid)
 	HRESULT hr = HrOpenRootFolder(&ptrRoot, NULL);
 	if (hr != hrSuccess)
 		return hr;
-	hr = HrGetOneProp(ptrRoot, PR_EC_STORED_SERVER_UID, &ptrServerUid);
+	hr = HrGetOneProp(ptrRoot, PR_EC_STORED_SERVER_UID, &~ptrServerUid);
 	if (hr != hrSuccess)
 		return hr;
 	if (ptrServerUid->Value.bin.lpb == NULL ||
@@ -784,7 +784,7 @@ HRESULT ECSyncContext::GetServerUid(LPGUID lpServerUid)
 	HRESULT hr = HrGetMsgStore(&ptrStore);
 	if (hr != hrSuccess)
 		return hr;
-	hr = HrGetOneProp(ptrStore, PR_EC_SERVER_UID, &ptrServerUid);
+	hr = HrGetOneProp(ptrStore, PR_EC_SERVER_UID, &~ptrServerUid);
 	if (hr != hrSuccess)
 		return hr;
 	if (ptrServerUid->Value.bin.lpb == NULL ||

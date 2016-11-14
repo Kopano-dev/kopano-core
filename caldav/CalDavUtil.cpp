@@ -474,7 +474,7 @@ HRESULT HrGetOwner(IMAPISession *lpSession, IMsgStore *lpDefStore, IMailUser **l
 	IMailUser *lpMailUser = NULL;
 	ULONG ulObjType = 0;
 
-	HRESULT hr = HrGetOneProp(lpDefStore, PR_MAILBOX_OWNER_ENTRYID, &ptrSProp);
+	HRESULT hr = HrGetOneProp(lpDefStore, PR_MAILBOX_OWNER_ENTRYID, &~ptrSProp);
 	if(hr != hrSuccess)
 		goto exit;
 	
@@ -819,7 +819,7 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 	ULONG ulObj			= 0;
 	ABContainerPtr ptrABDir;
 
-	HRESULT hr = lpAddrBook->GetDefaultDir(&cbEntryId, &ptrEntryId);
+	HRESULT hr = lpAddrBook->GetDefaultDir(&cbEntryId, &~ptrEntryId);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -834,8 +834,7 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 		goto exit;
 
 	lpAdrList->cEntries = cUsers;
-
-	hr = MAPIAllocateBuffer(CbNewFlagList(cUsers), (void **) &ptrFlagList);
+	hr = MAPIAllocateBuffer(CbNewFlagList(cUsers), &~ptrFlagList);
 	if (hr != hrSuccess)
 		goto exit;
 

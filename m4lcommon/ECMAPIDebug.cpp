@@ -31,7 +31,7 @@ HRESULT Dump(std::ostream &os, LPMAPIPROP lpProp, const std::string &strPrefix)
 	
 	if (lpProp == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	HRESULT hr = lpProp->GetProps(NULL, 0, &cValues, &ptrProps);
+	HRESULT hr = lpProp->GetProps(NULL, 0, &cValues, &~ptrProps);
 	if (FAILED(hr))
 		return hr;
 
@@ -152,7 +152,7 @@ HRESULT Dump(std::ostream &os, LPMAPIPROP lpProp, const std::string &strPrefix)
 		hr = lpProp->QueryInterface(ptrAttach.iid, &ptrAttach);
 		if (hr != hrSuccess)
 			return hr;
-		hr = HrGetOneProp(ptrAttach, PR_ATTACH_METHOD, &ptrAttachMethod);
+		hr = HrGetOneProp(ptrAttach, PR_ATTACH_METHOD, &~ptrAttachMethod);
 		if (hr != hrSuccess)
 			return hr;
 

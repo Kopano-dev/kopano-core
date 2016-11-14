@@ -1156,7 +1156,7 @@ HRESULT WSTransport::HrExportMessageChangesAsStream(ULONG ulFlags, ULONG ulPropT
 		goto exitm;
 	}
 
-	hr = CopyICSChangeToSOAPSourceKeys(ulChanges, lpChanges + ulStart, &ptrsSourceKeyPairs);
+	hr = CopyICSChangeToSOAPSourceKeys(ulChanges, lpChanges + ulStart, &~ptrsSourceKeyPairs);
 	if (hr != hrSuccess)
 		goto exitm;
 	sPropTags.__size = lpsProps->cValues;
