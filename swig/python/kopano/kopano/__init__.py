@@ -3712,6 +3712,10 @@ class User(object):
         self._update(admin=value)
 
     @property
+    def hidden(self):
+        return self._ecuser.IsHidden == True
+
+    @property
     def name(self):
         """ Account name """
 
@@ -3990,6 +3994,10 @@ class Quota(object):
         # (self, bUseDefaultQuota, bIsUserDefaultQuota, llWarnSize, llSoftSize, llHardSize)
         quota = ECQUOTA(False, False, self._warning_limit, self._soft_limit, self._hard_limit)
         self.server.sa.SetQuota(self.userid, quota)
+
+    @property
+    def use_default(self):
+        return self._use_default_quota
 
     @property
     def recipients(self):

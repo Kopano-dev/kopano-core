@@ -36,11 +36,11 @@ def main():
             print('public store already exists')
 
     elif options.list_users:
-        fmt = '{:>16}{:>20}{:>40}'
-        print(fmt.format('User', 'Full Name', 'Store'))
-        print(76*'-')
-        for user in server.users():
-            print(fmt.format(user.name, user.fullname, user.store.guid))
+        fmt = '{:>16}{:>20}{:>20}{:>40}'
+        print(fmt.format('User', 'Full Name', 'Homeserver', 'Store'))
+        print(96*'-')
+        for user in server.users(system=True):
+            print(fmt.format(user.name, user.fullname, user.home_server, user.store.guid))
 
     elif options.list_companies:
         fmt = '{:>16}'
@@ -62,8 +62,24 @@ def main():
         print('Fullname:\t' + user.fullname)
         print('Emailaddress:\t' + user.email)
         print('Active:\t\t' + ('yes' if user.active else 'no'))
+        print('Administrator:\t' + ('yes' if user.admin else 'no'))
+        print('Address Book:\t' + ('Hidden' if user.hidden else 'Visible'))
+        print('Auto-accept meeting req:') # XXX AutoAccept class?
+        print('Out Of Office:\t' + ('Enabled' if user.outofoffice.enabled else 'Disabled')) # XXX show settings
         print('Features:\t' + '; '.join(user.features))
+
         print('Store:\t\t' + user.store.guid)
+        print 'Current user store quota settings:'
+        print ' Quota overrides:\t' + ('no' if user.quota.use_default else 'yes')
+        print ' Warning level:\t\t' + str(user.quota.warning_limit or 'unlimited')
+        print ' Soft level:\t\t' + str(user.quota.soft_limit or 'unlimited')
+        print ' Hard level:\t\t' + str(user.quota.hard_limit or 'unlimited')
+        print 'Current store size:\t%.2f MB' % (user.store.size / 2**20)
+
+        groups = list(user.groups())
+        print 'Groups (%d):' % len(groups)
+        for group in user.groups():
+            print '\t' + group.name
 
     elif options.usercount:
         stats = server.table(PR_EC_STATSTABLE_SYSTEM).dict_(PR_DISPLAY_NAME, PR_EC_STATS_SYSTEM_VALUE)
