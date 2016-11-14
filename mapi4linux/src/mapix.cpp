@@ -19,7 +19,9 @@
 #include <mutex>
 #include <new>
 #include <vector>
+#include <cerrno>
 #include <cstddef>
+#include <cstring>
 #include <kopano/lockhelper.hpp>
 #include "m4l.mapix.h"
 #include "m4l.mapispi.h"
@@ -2774,25 +2776,6 @@ HRESULT M4LAddrBook::QueryInterface(REFIID refiid, void **lpvoid) {
 }
 
 /**
- * Internal allocation function.
- *
- * @param[in]	cbSize		Size of buffer to allocate
- * @param[out]	lppBuffer	Allocated buffer.
- * @return		SCODE
- * @retval		0x80040001	Allocation error
- * @fixme		Why is the return value not the mapi error MAPI_E_NOT_ENOUGH_MEMORY?
- *				I don't think Mapi programs like an error 0x80040001.
- */
-static SCODE MAPIAllocate(ULONG cbSize, LPVOID *lppBuffer)
-{
-	*lppBuffer = malloc(cbSize);
-	if (*lppBuffer != NULL)
-		return S_OK;
-	else
-		return MAKE_MAPI_E(1);
-}
-
-/**
  * Allocate a new buffer. Must be freed with MAPIFreeBuffer.
  *
  * @param[in]	cbSize		Size of buffer to allocate
@@ -2800,17 +2783,17 @@ static SCODE MAPIAllocate(ULONG cbSize, LPVOID *lppBuffer)
  * @return		SCODE
  * @retval		MAPI_E_INVALID_PARAMETER	Invalid input parameters
  * @retval		MAPI_E_NOT_ENOUGH_MEMORY
+ * @fixme		Why is the return value not the mapi error MAPI_E_NOT_ENOUGH_MEMORY?
+ *			I don't think Mapi programs like an error 0x80040001.
  */
 SCODE __stdcall MAPIAllocateBuffer(ULONG cbSize, LPVOID* lppBuffer)
 {
-	struct mapibuf_head *bfr;
 	if (lppBuffer == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	cbSize += sizeof(struct mapibuf_head);
-	static_assert(sizeof(bfr) == sizeof(void *), "no platform support for typing hack");
-	HRESULT hr = MAPIAllocate(cbSize, reinterpret_cast<void **>(&bfr));
-	if (hr != hrSuccess)
-		return hr;
+	auto bfr = static_cast<struct mapibuf_head *>(malloc(cbSize));
+	if (bfr == nullptr)
+		return MAKE_MAPI_E(1);
 	try {
 		new(bfr) struct mapibuf_head; /* init mutex, vector */
 	} catch (std::exception &e) {
@@ -2833,16 +2816,14 @@ SCODE __stdcall MAPIAllocateBuffer(ULONG cbSize, LPVOID* lppBuffer)
  * @retval		MAPI_E_NOT_ENOUGH_MEMORY
  */
 SCODE __stdcall MAPIAllocateMore(ULONG cbSize, LPVOID lpObject, LPVOID* lppBuffer) {
-	HRESULT hr;
 	if (lppBuffer == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	if (!lpObject)
 		return MAPIAllocateBuffer(cbSize, lppBuffer);
-
-	hr = MAPIAllocate(cbSize, lppBuffer);
-	if (hr != hrSuccess) {
-		ec_log_crit("MAPIAllocateMore(): MAPIAllocate fail %x: %s", hr, GetMAPIErrorMessage(hr));
-		return hr;
+	*lppBuffer = malloc(cbSize);
+	if (*lppBuffer == nullptr) {
+		ec_log_crit("MAPIAllocateMore(): %s", strerror(errno));
+		return MAKE_MAPI_E(1);
 	}
 
 	auto head = container_of(lpObject, struct mapibuf_head, data);
