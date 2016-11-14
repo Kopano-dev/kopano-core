@@ -992,6 +992,3 @@ source-moved-check:
 common/include/kopano/ecversion.h: versionheader.sh
 	${MKDIR_P} common/include/kopano
 	sh ${top_srcdir}/versionheader.sh >$@
-
-dist-hook:
-	find $(distdir) -type d -name .svn -exec rm -rf {} \; 2>/dev/null || true
