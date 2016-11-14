@@ -1831,6 +1831,7 @@ static HRESULT CheckSendAs(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 	bHasStore = (lpRepresentProps[2].Value.l == DT_MAILUSER);
 	if (lpRepresentProps[1].ulPropTag != PR_EC_SENDAS_USER_ENTRYIDS)
 		// No sendas, therefore no sendas permissions, but we don't fail
+		goto exit;
 
 	hr = HrCheckAllowedEntryIDArray("sendas",
 	     lpRepresentProps[0].ulPropTag == PR_DISPLAY_NAME_W ? lpRepresentProps[0].Value.lpszW : L"<no name>",
