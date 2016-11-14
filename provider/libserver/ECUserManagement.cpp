@@ -971,12 +971,8 @@ ECRESULT ECUserManagement::ModifyExternId(unsigned int ulObjectId, const objecti
 		goto exit;
 
 exit:
-	if (er != erSuccess) {
-		er = lpDatabase->Rollback();
-		if (er != erSuccess)
-			goto exit;
-	}
-
+	if (er != erSuccess)
+		lpDatabase->Rollback();
 	return er;
 }
 
