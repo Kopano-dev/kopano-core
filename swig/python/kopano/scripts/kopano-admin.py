@@ -17,7 +17,12 @@ def parser_opt_args():
     parser.add_option('--list-stores', dest='list_stores', action='store_true', help='List stores')
     parser.add_option('--user-details', dest='user_details', action='store', help='Show user details', metavar='NAME')
     parser.add_option('--user-count', dest='usercount', action='store_true', help='Output the system users counts')
+    parser.add_option('--password', dest='password', action='store', help='Specify password')
+    parser.add_option('--fullname', dest='fullname', action='store', help='Specify full name')
+    parser.add_option('--email', dest='email', action='store', help='Specify email address')
     # DB Plugin
+    parser.add_option('--create-user', dest='create_user', action='store', help='Create user', metavar='NAME')
+    parser.add_option('--delete-user', dest='delete_user', action='store', help='Delete user', metavar='NAME')
     parser.add_option('--create-group', dest='create_group', action='store', help='Create group, -e options optional', metavar='NAME')
     parser.add_option('--delete-group', dest='delete_group', action='store', help='Delete group', metavar='NAME')
     return (parser,) + parser.parse_args()
@@ -94,7 +99,12 @@ def main():
         server.create_group(options.create_group)
 
     elif options.delete_group:
-        server.remove_group(options.delete_group)
+        server.delete(server.group(options.delete_group))
+
+    elif options.create_user:
+        server.create_user(options.create_user, fullname=options.fullname, password=options.password, email=options.email)
+    elif options.delete_user:
+        server.delete(server.user(options.delete_user))
 
     else:
         parser.print_help()

@@ -1128,6 +1128,18 @@ class Server(object):
         group = self.group(name)
         self.sa.DeleteGroup(group._ecgroup.GroupID)
 
+    def delete(self, items):
+        if isinstance(items, (User, Group)): # XXX more!
+            items = [items]
+        else:
+            items = list(items)
+
+        for item in items:
+            if isinstance(item, User):
+                self.remove_user(item.name)
+            elif isinstance(item, Group):
+                self.remove_group(item.name)
+
     def _pubstore(self, name):
         if name == 'public':
             if not self.public_store:
