@@ -44,14 +44,15 @@ class Plugin:
             else:
                 return xapian.Database(dbpath)
         except xapian.DatabaseOpeningError:
-            if log: 
+            if log:
                 log.warn('could not open database: %s' % dbpath)
-            
+
     def extract_terms(self, text):
         """ extract terms as if we are indexing """
         doc = xapian.Document()
         tg = xapian.TermGenerator()
         tg.set_document(doc)
+        text = text.replace('_', ' ') # xapian sees '_' as a word-character (to search for identifiers in source code)
         tg.index_text(text)
         return [t.term.decode('utf-8') for t in doc.termlist()]
 
@@ -125,6 +126,7 @@ class Plugin:
                     termgenerator.set_document(xdoc)
                     for key, value in doc.items():
                         if key.startswith('mapi'):
+                            value = value.replace('_', ' ') # xapian sees '_' as a word-character (to search for identifiers in source code)
                             termgenerator.index_text_without_positions(value) # add to full-text, needed for spelling dict?
                             termgenerator.index_text_without_positions(value, 1, 'XM%s:' % key[4:])
                     xdoc.add_value(0, str(doc['docid']))
