@@ -1389,6 +1389,14 @@ class Company(object):
             except MAPIErrorNotFound:
                 raise NotFoundError("no such company: '%s'" % name)
 
+        self._mapiobj = None
+
+    @property
+    def mapiobj(self):
+        if not self._mapiobj:
+            self._mapiobj = self.server.mapisession.OpenEntry(self._eccompany.CompanyID, None, 0)
+        return self._mapiobj
+
     @property
     def companyid(self): # XXX single-tenant case
         return bin2hex(self._eccompany.CompanyID)
@@ -1418,6 +1426,12 @@ class Company(object):
         else:
             for store in self.server.stores():
                 yield store
+
+    def prop(self, proptag):
+        return _prop(self, self.mapiobj, proptag)
+
+    def props(self):
+        return _props(self.mapiobj)
 
     @property
     def public_store(self):
