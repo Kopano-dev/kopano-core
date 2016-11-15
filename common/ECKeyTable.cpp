@@ -248,14 +248,11 @@ bool ECTableRow::rowcompare(unsigned int ulSortColsA, const int *lpSortLenA,
 	}
  
 	if(i == ulSortCols) {
-	    if(ulSortColsA == ulSortColsB) {
-    		// equal, always return false independent of asc/desc
-	    	return false;
-        }
-        else {
-            // unequal number of sort columns, the item with the least sort columns comes first, independent of asc/desc
-            return ulSortColsA < ulSortColsB;
-        }
+		if (ulSortColsA == ulSortColsB)
+			// equal, always return false independent of asc/desc
+			return false;
+		// unequal number of sort columns, the item with the least sort columns comes first, independent of asc/desc
+		return ulSortColsA < ulSortColsB;
 	} else {
 	    // Unequal, flip order if desc
 		if(!fIgnoreOrder && lpSortFlagsA && (lpSortFlagsA[i] & TABLEROW_FLAG_DESC))
@@ -377,114 +374,101 @@ ECRESULT ECKeyTable::UpdateRow(UpdateType ulType,
 	case TABLE_ROW_DELETE:
 		// Find the row by ID
 		iterMap = mapRow.find(*lpsRowItem);
-		if (iterMap != mapRow.cend()) {
-			// The row exists
-			lpRow = iterMap->second;
-
-			// Do the delete
-			if(lpRow->lpLeft == NULL && lpRow->lpRight == NULL) {
-				// This is a leaf node, just delete the leaf
-				if(lpRow->fLeft)
-					lpRow->lpParent->lpLeft = NULL;
-				else
-					lpRow->lpParent->lpRight = NULL;
-
-				UpdateCounts(lpRow->lpParent);
-				RestructureRecursive(lpRow->lpParent);
-
-			} else if(lpRow->lpLeft != NULL && lpRow->lpRight == NULL) {
-				// We have a left branch, put that branch in place of this node
-				if(lpRow->fLeft)
-					lpRow->lpParent->lpLeft = lpRow->lpLeft;
-				else
-					lpRow->lpParent->lpRight = lpRow->lpLeft;
-
-				lpRow->lpLeft->lpParent = lpRow->lpParent;
-				lpRow->lpLeft->fLeft = lpRow->fLeft;
-
-				UpdateCounts(lpRow->lpParent);
-				RestructureRecursive(lpRow->lpParent);
-
-			} else if(lpRow->lpRight != NULL && lpRow->lpLeft == NULL) {
-				// We have a right branch, put that branch in place of this node
-				if(lpRow->fLeft)
-					lpRow->lpParent->lpLeft = lpRow->lpRight;
-				else
-					lpRow->lpParent->lpRight = lpRow->lpRight;
-
-				lpRow->lpRight->lpParent = lpRow->lpParent;
-				lpRow->lpRight->fLeft = lpRow->fLeft;
-
-				UpdateCounts(lpRow->lpParent);
-				RestructureRecursive(lpRow->lpParent);
-			} else {
-				// We have two child nodes ..
-
-				ECTableRow *lpPredecessor = lpRow->lpLeft;
-				ECTableRow *lpPredecessorParent = NULL;
-
-				while(lpPredecessor->lpRight)
-					lpPredecessor = lpPredecessor->lpRight;
-
-				// Remove the predecessor from the tree, optionally moving the left tree into place
-				if(lpPredecessor->fLeft)
-					lpPredecessor->lpParent->lpLeft = lpPredecessor->lpLeft;
-				else
-					lpPredecessor->lpParent->lpRight = lpPredecessor->lpLeft;
-
-				if(lpPredecessor->lpLeft) {
-					lpPredecessor->lpLeft->lpParent = lpPredecessor->lpParent;
-					lpPredecessor->lpLeft->fLeft = lpPredecessor->fLeft;
-				}
-
-				// Remember the predecessor parent for later use
-				lpPredecessorParent = lpPredecessor->lpParent;
-
-				// Replace the row to be deleted with the predecessor
-				if(lpRow->fLeft)
-					lpRow->lpParent->lpLeft = lpPredecessor;
-				else
-					lpRow->lpParent->lpRight = lpPredecessor;
-
-				lpPredecessor->lpParent = lpRow->lpParent;
-				lpPredecessor->fLeft = lpRow->fLeft;
-				lpPredecessor->lpLeft = lpRow->lpLeft;
-				lpPredecessor->lpRight = lpRow->lpRight;
-
-				if(lpPredecessor->lpLeft)
-					lpPredecessor->lpLeft->lpParent = lpPredecessor;
-				if(lpPredecessor->lpRight)
-					lpPredecessor->lpRight->lpParent = lpPredecessor;
-
-				// Do a recursive update of the counts in the branch of the predecessorparent, (where we removed the predecessor)
-				UpdateCounts(lpPredecessorParent);
-				// Do a recursive update of the counts in the branch we moved to predecessor to
-				UpdateCounts(lpPredecessor);
-
-				// Restructure 
-				RestructureRecursive(lpPredecessor);
-				if(lpPredecessorParent->sKey != *lpsRowItem)
-					RestructureRecursive(lpPredecessorParent);
-			}
-
-			// Move cursor to next node (or previous if this was the last row)
-			if(lpCurrent == lpRow) {
-				this->SeekRow(EC_SEEK_CUR, -1, NULL);
-				this->SeekRow(EC_SEEK_CUR, 1, NULL);
-			}
-
-			// Delete this uncoupled node
-			InvalidateBookmark(lpRow); //ignore errors
-			delete lpRow;
-
-			// Remove the row from the id map
-			mapRow.erase(*lpsRowItem);
-
-			if(lpulAction)
-				*lpulAction = TABLE_ROW_DELETE;
-		} else {
+		if (iterMap == mapRow.cend())
 			return KCERR_NOT_FOUND;
+		// The row exists
+		lpRow = iterMap->second;
+
+		// Do the delete
+		if (lpRow->lpLeft == NULL && lpRow->lpRight == NULL) {
+			// This is a leaf node, just delete the leaf
+			if (lpRow->fLeft)
+				lpRow->lpParent->lpLeft = NULL;
+			else
+				lpRow->lpParent->lpRight = NULL;
+			UpdateCounts(lpRow->lpParent);
+			RestructureRecursive(lpRow->lpParent);
+		} else if (lpRow->lpLeft != NULL && lpRow->lpRight == NULL) {
+			// We have a left branch, put that branch in place of this node
+			if (lpRow->fLeft)
+				lpRow->lpParent->lpLeft = lpRow->lpLeft;
+			else
+				lpRow->lpParent->lpRight = lpRow->lpLeft;
+			lpRow->lpLeft->lpParent = lpRow->lpParent;
+			lpRow->lpLeft->fLeft = lpRow->fLeft;
+			UpdateCounts(lpRow->lpParent);
+			RestructureRecursive(lpRow->lpParent);
+		} else if (lpRow->lpRight != NULL && lpRow->lpLeft == NULL) {
+			// We have a right branch, put that branch in place of this node
+			if (lpRow->fLeft)
+				lpRow->lpParent->lpLeft = lpRow->lpRight;
+			else
+				lpRow->lpParent->lpRight = lpRow->lpRight;
+			lpRow->lpRight->lpParent = lpRow->lpParent;
+			lpRow->lpRight->fLeft = lpRow->fLeft;
+			UpdateCounts(lpRow->lpParent);
+			RestructureRecursive(lpRow->lpParent);
+		} else {
+			// We have two child nodes ..
+			ECTableRow *lpPredecessor = lpRow->lpLeft;
+			ECTableRow *lpPredecessorParent = NULL;
+
+			while (lpPredecessor->lpRight)
+				lpPredecessor = lpPredecessor->lpRight;
+
+			// Remove the predecessor from the tree, optionally moving the left tree into place
+			if (lpPredecessor->fLeft)
+				lpPredecessor->lpParent->lpLeft = lpPredecessor->lpLeft;
+			else
+				lpPredecessor->lpParent->lpRight = lpPredecessor->lpLeft;
+
+			if (lpPredecessor->lpLeft) {
+				lpPredecessor->lpLeft->lpParent = lpPredecessor->lpParent;
+				lpPredecessor->lpLeft->fLeft = lpPredecessor->fLeft;
+			}
+
+			// Remember the predecessor parent for later use
+			lpPredecessorParent = lpPredecessor->lpParent;
+
+			// Replace the row to be deleted with the predecessor
+			if (lpRow->fLeft)
+				lpRow->lpParent->lpLeft = lpPredecessor;
+			else
+				lpRow->lpParent->lpRight = lpPredecessor;
+
+			lpPredecessor->lpParent = lpRow->lpParent;
+			lpPredecessor->fLeft = lpRow->fLeft;
+			lpPredecessor->lpLeft = lpRow->lpLeft;
+			lpPredecessor->lpRight = lpRow->lpRight;
+			if (lpPredecessor->lpLeft)
+				lpPredecessor->lpLeft->lpParent = lpPredecessor;
+			if (lpPredecessor->lpRight)
+				lpPredecessor->lpRight->lpParent = lpPredecessor;
+
+			// Do a recursive update of the counts in the branch of the predecessorparent, (where we removed the predecessor)
+			UpdateCounts(lpPredecessorParent);
+			// Do a recursive update of the counts in the branch we moved to predecessor to
+			UpdateCounts(lpPredecessor);
+			// Restructure
+			RestructureRecursive(lpPredecessor);
+			if (lpPredecessorParent->sKey != *lpsRowItem)
+				RestructureRecursive(lpPredecessorParent);
 		}
+
+		// Move cursor to next node (or previous if this was the last row)
+		if (lpCurrent == lpRow) {
+			this->SeekRow(EC_SEEK_CUR, -1, NULL);
+			this->SeekRow(EC_SEEK_CUR, 1, NULL);
+		}
+
+		// Delete this uncoupled node
+		InvalidateBookmark(lpRow); //ignore errors
+		delete lpRow;
+
+		// Remove the row from the id map
+		mapRow.erase(*lpsRowItem);
+		if (lpulAction)
+			*lpulAction = TABLE_ROW_DELETE;
 		break;
 
 	case TABLE_ROW_MODIFY:
@@ -571,15 +555,13 @@ ECRESULT ECKeyTable::UpdateRow(UpdateType ulType,
 					fLeft = 1;
 					break;
 				}
-				else
-					lpRow = lpRow->lpLeft;
+				lpRow = lpRow->lpLeft;
 			} else {
 				if(lpRow->lpRight == NULL) {
 					fLeft = 0;
 					break;
 				}
-				else
-					lpRow = lpRow->lpRight;
+				lpRow = lpRow->lpRight;
 			}
 		}
 			

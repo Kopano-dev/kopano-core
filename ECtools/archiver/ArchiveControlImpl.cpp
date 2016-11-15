@@ -345,50 +345,51 @@ ArchiveControlImpl::getfoldername(LPMAPIFOLDER folder)
 HRESULT
 ArchiveControlImpl::purgesoftdeleteditems(LPMAPIFOLDER folder, const tstring& strUser)
 {
-   HRESULT hr = hrSuccess;
-    MAPITablePtr table;
-    if ((hr = folder->GetContentsTable(SHOW_SOFT_DELETES, &table)) != hrSuccess) {
-        m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get search folder contents table. (hr=%s)", stringify(hr, true).c_str());
-    } else {
+	HRESULT hr = hrSuccess;
+	MAPITablePtr table;
+	if ((hr = folder->GetContentsTable(SHOW_SOFT_DELETES, &table)) != hrSuccess) {
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get search folder contents table. (hr=%s)", stringify(hr, true).c_str());
+		return hr;
+        }
+
         SizedSPropTagArray(1, props) = {1, {PR_ENTRYID}};
         if ((hr = table->SetColumns(props, 0)) != hrSuccess) {
-            m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to set columns on table. (hr=%s)", stringify(hr, true).c_str());
-        } else {
-            unsigned int found = 0;
-            unsigned int totalfound = 0;
-            do {
-                SRowSetPtr rowSet;
-                if ((hr = table->QueryRows(100, 0, &rowSet)) != hrSuccess) {
-                    m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get rows from table. (hr=%s)", stringify(hr, true).c_str());
-                } else {
-                    found = rowSet.size();
-                    totalfound += found;
-                    EntryListPtr ptrEntryList;
-                    hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &ptrEntryList);
-                    if (hr == hrSuccess) {
-                        hr = MAPIAllocateMore(sizeof(SBinary), ptrEntryList, (LPVOID*)&ptrEntryList->lpbin);
-                        if (hr == hrSuccess) {
-                            ptrEntryList->cValues = 1;
-                            for (unsigned int i = 0; i < found; ++i) {
-                                ptrEntryList->lpbin[0].cb  = rowSet->aRow[i].lpProps[0].Value.bin.cb;
-                                ptrEntryList->lpbin[0].lpb = rowSet->aRow[i].lpProps[0].Value.bin.lpb;
-                                if ((hr = folder->DeleteMessages(ptrEntryList, 0, NULL, DELETE_HARD_DELETE)) != hrSuccess)
-                                    m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to delete message. (hr=%s)", stringify(hr, true).c_str());
-                            }
-                        }
-                    }
-                }
-            } while (found);
-            if (totalfound)
-                m_lpLogger->Log(
-                    EC_LOGLEVEL_INFO,
-                    "Store %ls: %u soft-deleted messages removed from folder %ls",
-                    strUser.c_str(),
-                    totalfound,
-                    getfoldername(folder).c_str()
-                );
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to set columns on table. (hr=%s)", stringify(hr, true).c_str());
+		return hr;
         }
-    }
+	unsigned int found = 0;
+	unsigned int totalfound = 0;
+	do {
+		SRowSetPtr rowSet;
+		if ((hr = table->QueryRows(100, 0, &rowSet)) != hrSuccess) {
+			m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get rows from table. (hr=%s)", stringify(hr, true).c_str());
+			continue;
+		}
+		found = rowSet.size();
+		totalfound += found;
+		EntryListPtr ptrEntryList;
+		hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &ptrEntryList);
+		if (hr != hrSuccess)
+			continue;
+		hr = MAPIAllocateMore(sizeof(SBinary), ptrEntryList, (LPVOID*)&ptrEntryList->lpbin);
+		if (hr != hrSuccess)
+			continue;
+		ptrEntryList->cValues = 1;
+		for (unsigned int i = 0; i < found; ++i) {
+			ptrEntryList->lpbin[0].cb  = rowSet->aRow[i].lpProps[0].Value.bin.cb;
+			ptrEntryList->lpbin[0].lpb = rowSet->aRow[i].lpProps[0].Value.bin.lpb;
+			if ((hr = folder->DeleteMessages(ptrEntryList, 0, NULL, DELETE_HARD_DELETE)) != hrSuccess)
+				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to delete message. (hr=%s)", stringify(hr, true).c_str());
+		}
+	} while (found);
+	if (totalfound)
+		m_lpLogger->Log(
+		    EC_LOGLEVEL_INFO,
+		    "Store %ls: %u soft-deleted messages removed from folder %ls",
+		    strUser.c_str(),
+		    totalfound,
+		    getfoldername(folder).c_str()
+		);
     return hr;
 }
 
@@ -401,28 +402,27 @@ ArchiveControlImpl::purgesoftdeleteditems(LPMAPIFOLDER folder, const tstring& st
 HRESULT
 ArchiveControlImpl::purgesoftdeletedmessages(const tstring& strUser)
 {
-    MsgStorePtr store;
-    HRESULT hr = m_ptrSession->OpenStoreByName(strUser, &store);
-    if (hr != hrSuccess) {
-        m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to open user store. (hr=%s)", stringify(hr, true).c_str());
-    } else {
+	MsgStorePtr store;
+	HRESULT hr = m_ptrSession->OpenStoreByName(strUser, &store);
+	if (hr != hrSuccess) {
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to open user store. (hr=%s)", stringify(hr, true).c_str());
+		return hr;
+	}
         SPropValuePtr ptrPropValue;
         if ((hr = HrGetOneProp(store, PR_IPM_SUBTREE_ENTRYID, &ptrPropValue)) != hrSuccess) {
             m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get PR_IPM_SUBTREE_ENTRYID. (hr=%s)", stringify(hr, true).c_str());
-        } else {
-            MAPIFolderPtr ipmSubtree;
-            ULONG type = 0;
-            if ((hr = store->OpenEntry(ptrPropValue->Value.bin.cb, (LPENTRYID)ptrPropValue->Value.bin.lpb, NULL, MAPI_BEST_ACCESS|fMapiDeferredErrors, &type, &ipmSubtree)) != hrSuccess) {
-                m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to open ipmSubtree. (hr=%s)", stringify(hr, true).c_str());
-            } else {
-                ECFolderIterator iEnd;
-                for (ECFolderIterator i = ECFolderIterator(ipmSubtree, fMapiDeferredErrors, 0); i != iEnd; ++i) {
-                    hr = purgesoftdeleteditems(*i, strUser);
-                }
-            }
+            return hr;
         }
-    }
-    return hr;
+	MAPIFolderPtr ipmSubtree;
+	ULONG type = 0;
+	if ((hr = store->OpenEntry(ptrPropValue->Value.bin.cb, (LPENTRYID)ptrPropValue->Value.bin.lpb, NULL, MAPI_BEST_ACCESS|fMapiDeferredErrors, &type, &ipmSubtree)) != hrSuccess) {
+		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to open ipmSubtree. (hr=%s)", stringify(hr, true).c_str());
+		return hr;
+	}
+	ECFolderIterator iEnd;
+	for (auto i = ECFolderIterator(ipmSubtree, fMapiDeferredErrors, 0); i != iEnd; ++i)
+		hr = purgesoftdeleteditems(*i, strUser);
+	return hr;
 }
 
 /**
@@ -1015,27 +1015,24 @@ HRESULT ArchiveControlImpl::CleanupArchive(const SObjectEntry &archiveEntry, IMs
 	std::set_difference(setEntries.begin(), setEntries.end(), setRefs.begin(), setRefs.end(), std::inserter(setDead, setDead.begin()));
 	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Found %zu dead entries in archive.", setDead.size());
 	
-	if (m_cleanupAction != caNone) {
-		if (!setDead.empty()) {
-			if (m_cleanupAction == caStore)
-				hr = MoveAndDetachMessages(ptrArchiveHelper, ptrArchiveFolder, setDead);
-			else
-				hr = DeleteMessages(ptrArchiveFolder, setDead);
-		}
-		
-		if (m_cleanupAction == caDelete) {
-			// If the cleanup action is delete, we need to cleanup the hierarchy after cleaning the
-			// messages because we won't delete non-empty folders. So we want to get rid of the
-			// messages first.
-			hr = CleanupHierarchy(ptrArchiveHelper, ptrArchiveFolder, lpUserStore);
-			if (hr != hrSuccess) {
-				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to cleanup hierarchy.");
-				return hr;
-			}
-		}
-	} else {
+	if (m_cleanupAction == caNone) {
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "cleanup_action is set to none, therefore skipping cleanup action.");
+		return hr;
 	}
+	if (!setDead.empty()) {
+		if (m_cleanupAction == caStore)
+			hr = MoveAndDetachMessages(ptrArchiveHelper, ptrArchiveFolder, setDead);
+		else
+			hr = DeleteMessages(ptrArchiveFolder, setDead);
+	}
+	if (m_cleanupAction != caDelete)
+		return hr;
+	// If the cleanup action is delete, we need to cleanup the hierarchy after cleaning the
+	// messages because we won't delete non-empty folders. So we want to get rid of the
+	// messages first.
+	hr = CleanupHierarchy(ptrArchiveHelper, ptrArchiveFolder, lpUserStore);
+	if (hr != hrSuccess)
+		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to cleanup hierarchy.");
 	return hr;
 }
 

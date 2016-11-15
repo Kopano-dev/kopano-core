@@ -107,57 +107,57 @@ HRESULT FsckContact::ValidateContactNames(LPMESSAGE lpMessage)
 	/* Given name and surname are not allowed to be empty for BlackBerry, Webaccess did generate
 	 * contacts without a given- and surname in the past so we must recover this now based on the
 	 * displayname information */
-	if (result[E_FIRSTNAME].empty() && result[E_LASTNAME].empty()) {
-		__UPV Value;
+	if (!result[E_FIRSTNAME].empty() || !result[E_LASTNAME].empty())
+		return hrSuccess;
 
-		if (result[E_FULLNAME].empty()) {
-			hr = E_INVALIDARG;
-			goto exit;
-		}
+	__UPV Value;
+	if (result[E_FULLNAME].empty()) {
+		hr = E_INVALIDARG;
+		goto exit;
+	}
 
 		/* If a prefix and suffix were provided, strip them from the fullname */
-		if (!result[E_PREFIX].empty() && boost::algorithm::starts_with(result[E_FULLNAME], result[E_PREFIX]))
-            result[E_FULLNAME].erase(0, result[E_PREFIX].size());
-		if (!result[E_SUFFIX].empty() && boost::algorithm::ends_with(result[E_FULLNAME], result[E_SUFFIX]))
-            result[E_FULLNAME].erase(result[E_FULLNAME].size() - result[E_SUFFIX].size(), std::string::npos);
+	if (!result[E_PREFIX].empty() && boost::algorithm::starts_with(result[E_FULLNAME], result[E_PREFIX]))
+		result[E_FULLNAME].erase(0, result[E_PREFIX].size());
+	if (!result[E_SUFFIX].empty() && boost::algorithm::ends_with(result[E_FULLNAME], result[E_SUFFIX]))
+		result[E_FULLNAME].erase(result[E_FULLNAME].size() - result[E_SUFFIX].size(), std::string::npos);
 
-		/* Well technically this could happen... But somebody seriously wrecked his item in that case :S */
-		if (result[E_FULLNAME].empty()) {
-			hr = E_INVALIDARG;
-			goto exit;
-		}
-
-		/* Now we have a fullname containing a first and last name, but which is which. We are going
-		 * to use the same algorithm as Outlook: The first word is always the first name any words
-		 * after it are the last name. Ok perhaps not litteraly the same, but it should be somewhat
-		 * sufficient */
-		size_t pos;
-
-		/* Strip leading spaces*/
-		pos = result[E_FULLNAME].find_first_not_of(" ");
-		result[E_FULLNAME].erase(0, pos);
-
-		/* Determine first namee */
-		pos = result[E_FULLNAME].find_first_of(" ", pos);
-		result[E_FIRSTNAME] = result[E_FULLNAME].substr(0, pos);
-		if (pos != std::string::npos) {
-			/* Determine last name */
-			pos = result[E_FULLNAME].find_first_of(" ", pos);
-			result[E_LASTNAME] = result[E_FULLNAME].substr(pos, std::string::npos);
-		}
-
-		Value.lpszA = const_cast<char *>(result[E_FIRSTNAME].c_str());
-
-		hr = ReplaceProperty(lpMessage, "PR_GIVEN_NAME", PR_GIVEN_NAME_A, "No given name was provided", Value);
-		if (hr != hrSuccess)
-			goto exit;
-
-		Value.lpszA = const_cast<char *>(result[E_LASTNAME].c_str());
-
-		hr = ReplaceProperty(lpMessage, "PR_SURNAME", PR_SURNAME_A, "No surname was provided", Value);
-		if (hr != hrSuccess)
-			goto exit;
+	/* Well technically this could happen... But somebody seriously wrecked his item in that case :S */
+	if (result[E_FULLNAME].empty()) {
+		hr = E_INVALIDARG;
+		goto exit;
 	}
+
+	/* Now we have a fullname containing a first and last name, but which is which. We are going
+	 * to use the same algorithm as Outlook: The first word is always the first name any words
+	 * after it are the last name. Ok perhaps not litteraly the same, but it should be somewhat
+	 * sufficient */
+	size_t pos;
+
+	/* Strip leading spaces*/
+	pos = result[E_FULLNAME].find_first_not_of(" ");
+	result[E_FULLNAME].erase(0, pos);
+
+	/* Determine first namee */
+	pos = result[E_FULLNAME].find_first_of(" ", pos);
+	result[E_FIRSTNAME] = result[E_FULLNAME].substr(0, pos);
+	if (pos != std::string::npos) {
+		/* Determine last name */
+		pos = result[E_FULLNAME].find_first_of(" ", pos);
+		result[E_LASTNAME] = result[E_FULLNAME].substr(pos, std::string::npos);
+	}
+
+	Value.lpszA = const_cast<char *>(result[E_FIRSTNAME].c_str());
+
+	hr = ReplaceProperty(lpMessage, "PR_GIVEN_NAME", PR_GIVEN_NAME_A, "No given name was provided", Value);
+	if (hr != hrSuccess)
+		goto exit;
+
+	Value.lpszA = const_cast<char *>(result[E_LASTNAME].c_str());
+
+	hr = ReplaceProperty(lpMessage, "PR_SURNAME", PR_SURNAME_A, "No surname was provided", Value);
+	if (hr != hrSuccess)
+		goto exit;
 
 	/* If we are here, we were succcessful. */
 	hr = hrSuccess;

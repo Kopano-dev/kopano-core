@@ -975,53 +975,48 @@ ZEND_FUNCTION(mapi_logon_zarafa)
 		server_len = strlen(server);
 	}
 
-	{
-		snprintf(szProfName, MAX_PATH-1, "www-profile%010u", ulProfNum);
+	snprintf(szProfName, MAX_PATH-1, "www-profile%010u", ulProfNum);
 
-		sPropOur[0].ulPropTag = PR_EC_PATH;
-		sPropOur[0].Value.lpszA = const_cast<char *>(server);
-		sPropOur[1].ulPropTag = PR_EC_USERNAME_A;
-		sPropOur[1].Value.lpszA = const_cast<char *>(username);
-		sPropOur[2].ulPropTag = PR_EC_USERPASSWORD_A;
-		sPropOur[2].Value.lpszA = const_cast<char *>(password);
-		sPropOur[3].ulPropTag = PR_EC_FLAGS;
-		sPropOur[3].Value.ul = ulFlags;
+	sPropOur[0].ulPropTag = PR_EC_PATH;
+	sPropOur[0].Value.lpszA = const_cast<char *>(server);
+	sPropOur[1].ulPropTag = PR_EC_USERNAME_A;
+	sPropOur[1].Value.lpszA = const_cast<char *>(username);
+	sPropOur[2].ulPropTag = PR_EC_USERPASSWORD_A;
+	sPropOur[2].Value.lpszA = const_cast<char *>(password);
+	sPropOur[3].ulPropTag = PR_EC_FLAGS;
+	sPropOur[3].Value.ul = ulFlags;
 
-		// unused if PR_EC_PATH is not https
-		sPropOur[4].ulPropTag = PR_EC_SSLKEY_FILE;
-		sPropOur[4].Value.lpszA = const_cast<char *>(sslcert);
-		sPropOur[5].ulPropTag = PR_EC_SSLKEY_PASS;
-		sPropOur[5].Value.lpszA = const_cast<char *>(sslpass);
+	// unused if PR_EC_PATH is not https
+	sPropOur[4].ulPropTag = PR_EC_SSLKEY_FILE;
+	sPropOur[4].Value.lpszA = const_cast<char *>(sslcert);
+	sPropOur[5].ulPropTag = PR_EC_SSLKEY_PASS;
+	sPropOur[5].Value.lpszA = const_cast<char *>(sslpass);
 
-		sPropOur[6].ulPropTag = PR_EC_STATS_SESSION_CLIENT_APPLICATION_VERSION;
-		sPropOur[6].Value.lpszA = const_cast<char *>(wa_version);
-		sPropOur[7].ulPropTag = PR_EC_STATS_SESSION_CLIENT_APPLICATION_MISC;
-		sPropOur[7].Value.lpszA = const_cast<char *>(misc_version);
+	sPropOur[6].ulPropTag = PR_EC_STATS_SESSION_CLIENT_APPLICATION_VERSION;
+	sPropOur[6].Value.lpszA = const_cast<char *>(wa_version);
+	sPropOur[7].ulPropTag = PR_EC_STATS_SESSION_CLIENT_APPLICATION_MISC;
+	sPropOur[7].Value.lpszA = const_cast<char *>(misc_version);
 
-		MAPI_G(hr) = mapi_util_createprof(szProfName, "ZARAFA6", 8, sPropOur);
+	MAPI_G(hr) = mapi_util_createprof(szProfName, "ZARAFA6", 8, sPropOur);
+	if (MAPI_G(hr) != hrSuccess) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "%s", mapi_util_getlasterror().c_str());
+		goto exit; // error already displayed in mapi_util_createprof
+	}
 
-		if(MAPI_G(hr) != hrSuccess) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "%s", mapi_util_getlasterror().c_str());
-			goto exit; // error already displayed in mapi_util_createprof
-		}
+	// Logon to our new profile
+	MAPI_G(hr) = MAPILogonEx(0, (LPTSTR)szProfName, (LPTSTR)"", MAPI_EXTENDED | MAPI_TIMEOUT_SHORT | MAPI_NEW_SESSION, &lpMAPISession);
+	if (MAPI_G(hr) != hrSuccess) {
+		mapi_util_deleteprof(szProfName);
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to logon to profile");
+		goto exit;
+	}
 
-		// Logon to our new profile
-		MAPI_G(hr) = MAPILogonEx(0, (LPTSTR)szProfName, (LPTSTR)"", MAPI_EXTENDED | MAPI_TIMEOUT_SHORT | MAPI_NEW_SESSION, &lpMAPISession);
-
-		if(MAPI_G(hr) != hrSuccess) {
-			mapi_util_deleteprof(szProfName);
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to logon to profile");
-			goto exit;
-		}
-
-		// Delete the profile (it will be deleted when we close our session)
-		MAPI_G(hr) = mapi_util_deleteprof(szProfName);
-
-		if(MAPI_G(hr) != hrSuccess) {
-			lpMAPISession->Release();
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to delete profile");
-			goto exit;
-		}
+	// Delete the profile (it will be deleted when we close our session)
+	MAPI_G(hr) = mapi_util_deleteprof(szProfName);
+	if (MAPI_G(hr) != hrSuccess) {
+		lpMAPISession->Release();
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to delete profile");
+		goto exit;
 	}
 
 	ZEND_REGISTER_RESOURCE(return_value, lpMAPISession, le_mapi_session);
@@ -1097,12 +1092,10 @@ ZEND_FUNCTION(mapi_logon)
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 
-	if (ZEND_NUM_ARGS() > 0)
-	{
-		if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss",
-			&profilename, &profilename_len, &profilepassword, &profilepassword_len) == FAILURE) return;
-	}
-
+	if (ZEND_NUM_ARGS() > 0 &&
+	    zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss",
+	    &profilename, &profilename_len, &profilepassword, &profilepassword_len) == FAILURE)
+		return;
 	/*
 	* MAPI_LOGON_UI will show a dialog when a profilename is not
 	* found or a password is not correct, without it the dialog will never appear => that's what we want

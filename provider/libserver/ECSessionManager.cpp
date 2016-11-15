@@ -739,36 +739,36 @@ ECRESULT ECSessionManager::AddNotification(notification *notifyItem, unsigned in
 	}
 	
 	// Next, do an internal notification to update searchfolder views for message updates.
-	if(notifyItem->obj && notifyItem->obj->ulObjType == MAPI_MESSAGE) {
-		if (ulFolderId == 0 && ulFlags == 0 ) {
-			if(GetCacheManager()->GetObject(ulKey, &ulFolderId, NULL, &ulFlags, NULL) != erSuccess) {
-				assert(false);
-				return hr;
-			}
-		}
-            
-        // Skip changes on associated messages, and changes on deleted item. (but include DELETE of deleted items)
-        if((ulFlags & MAPI_ASSOCIATED) || (notifyItem->ulEventType != fnevObjectDeleted && (ulFlags & MSGFLAG_DELETED)))
-			return hr;
+	if (notifyItem->obj == nullptr || notifyItem->obj->ulObjType != MAPI_MESSAGE)
+		return hr;
 
-		switch(notifyItem->ulEventType) {
-		case fnevObjectMoved:
-		    // Only update the item in the new folder. The system will automatically delete the item from folders that were not in the search path
-			m_lpSearchFolders->UpdateSearchFolders(ulStore, ulFolderId, ulKey, ECKeyTable::TABLE_ROW_MODIFY);
-			break;
-		case fnevObjectDeleted:
-			m_lpSearchFolders->UpdateSearchFolders(ulStore, ulFolderId, ulKey, ECKeyTable::TABLE_ROW_DELETE);
-			break;
-		case fnevObjectCreated:
-			m_lpSearchFolders->UpdateSearchFolders(ulStore, ulFolderId, ulKey, ECKeyTable::TABLE_ROW_ADD);
-			break;
-		case fnevObjectCopied:
-			m_lpSearchFolders->UpdateSearchFolders(ulStore, ulFolderId, ulKey, ECKeyTable::TABLE_ROW_ADD);
-			break;
-		case fnevObjectModified:
-			m_lpSearchFolders->UpdateSearchFolders(ulStore, ulFolderId, ulKey, ECKeyTable::TABLE_ROW_MODIFY);
-			break;
-		}
+	if (ulFolderId == 0 && ulFlags == 0 &&
+	    GetCacheManager()->GetObject(ulKey, &ulFolderId, NULL, &ulFlags, NULL) != erSuccess) {
+		assert(false);
+		return hr;
+	}
+
+	// Skip changes on associated messages, and changes on deleted item. (but include DELETE of deleted items)
+	if ((ulFlags & MAPI_ASSOCIATED) || (notifyItem->ulEventType != fnevObjectDeleted && (ulFlags & MSGFLAG_DELETED)))
+		return hr;
+
+	switch (notifyItem->ulEventType) {
+	case fnevObjectMoved:
+		// Only update the item in the new folder. The system will automatically delete the item from folders that were not in the search path
+		m_lpSearchFolders->UpdateSearchFolders(ulStore, ulFolderId, ulKey, ECKeyTable::TABLE_ROW_MODIFY);
+		break;
+	case fnevObjectDeleted:
+		m_lpSearchFolders->UpdateSearchFolders(ulStore, ulFolderId, ulKey, ECKeyTable::TABLE_ROW_DELETE);
+		break;
+	case fnevObjectCreated:
+		m_lpSearchFolders->UpdateSearchFolders(ulStore, ulFolderId, ulKey, ECKeyTable::TABLE_ROW_ADD);
+		break;
+	case fnevObjectCopied:
+		m_lpSearchFolders->UpdateSearchFolders(ulStore, ulFolderId, ulKey, ECKeyTable::TABLE_ROW_ADD);
+		break;
+	case fnevObjectModified:
+		m_lpSearchFolders->UpdateSearchFolders(ulStore, ulFolderId, ulKey, ECKeyTable::TABLE_ROW_MODIFY);
+		break;
 	}
 	return hr;
 }

@@ -348,7 +348,8 @@ ECRESULT ECThreadManager::NotifyIdle(ECWorkerThread *lpThread, bool *lpfStop)
 		*lpfStop = (m_ulThreads == 0);
 		return erSuccess;
 	}
-    if(m_ulThreads < m_lstThreads.size()) {
+	if (m_ulThreads >= m_lstThreads.size())
+		return erSuccess;
         // We are currently running more threads than we want, so tell the thread to stop
         iterThreads = std::find(m_lstThreads.begin(), m_lstThreads.end(), lpThread);
         if(iterThreads == m_lstThreads.end())
@@ -360,7 +361,6 @@ ECRESULT ECThreadManager::NotifyIdle(ECWorkerThread *lpThread, bool *lpfStop)
         
         // Tell the thread to exit. The thread will self-cleanup; we therefore needn't delete the object nor join with the running thread
         *lpfStop = true;
-    }
 	return erSuccess;
 }
 

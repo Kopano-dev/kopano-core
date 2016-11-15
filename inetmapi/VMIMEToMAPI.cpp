@@ -621,16 +621,13 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 					date = recv->getDate();
 					found_date = true;
 				}
+			} else if (m_mailState.ulMsgInMsg) {
+				date = *vmime::dynamicCast<vmime::datetime>(vmHeader->Date()->getValue());
+				found_date = true;
 			} else {
-				if (m_mailState.ulMsgInMsg) {
-					date = *vmime::dynamicCast<vmime::datetime>(vmHeader->Date()->getValue());
-					found_date = true;
-				} else {
-					date = vmime::datetime::now();
-				}
+				date = vmime::datetime::now();
 			}
 		}
-
 		// When parse_smime_signed = True, we don't want to change the delivery date, since otherwise
 		// clients which decode an signed email using mapi_inetmapi_imtomapi() will have a different deliver time
 		// when opening an signed email in for example the WebApp

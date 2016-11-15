@@ -297,16 +297,15 @@ HRESULT ECNotifyClient::UnRegisterAdvise(ULONG ulConnection)
 
 		MAPIFreeBuffer(iIterAdvise->second);
 		m_mapAdvise.erase(iIterAdvise);	
-	} else {
-		auto iIterChangeAdvise = m_mapChangeAdvise.find(ulConnection);
-		if (iIterChangeAdvise != m_mapChangeAdvise.cend()) {
-			if (iIterChangeAdvise->second->lpAdviseSink != NULL)
-				iIterChangeAdvise->second->lpAdviseSink->Release();
-
-			MAPIFreeBuffer(iIterChangeAdvise->second);
-			m_mapChangeAdvise.erase(iIterChangeAdvise);
-		}
+		return hr;
 	}
+	auto iIterChangeAdvise = m_mapChangeAdvise.find(ulConnection);
+	if (iIterChangeAdvise == m_mapChangeAdvise.cend())
+		return hr;
+	if (iIterChangeAdvise->second->lpAdviseSink != NULL)
+		iIterChangeAdvise->second->lpAdviseSink->Release();
+	MAPIFreeBuffer(iIterChangeAdvise->second);
+	m_mapChangeAdvise.erase(iIterChangeAdvise);
 	return hr;
 }
 

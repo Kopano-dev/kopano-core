@@ -86,45 +86,45 @@ ECConfig *ECPluginSharedData::CreateConfig(const configsetting_t *lpDefaults,
 {
 	scoped_lock lock(m_CreateConfigLock);
 
-	if (!m_lpConfig)
-	{
-		int n;
-		/*
-		 * Store all the defaults and directives in the singleton,
-		 * so it isn't removed from memory when the plugin unloads.
-		 */
-		if (lpDefaults) {
-			for (n = 0; lpDefaults[n].szName; ++n)
-				;
-			m_lpDefaults = new configsetting_t[n+1];
-			for (n = 0; lpDefaults[n].szName; ++n) {
-				m_lpDefaults[n].szName = strdup(lpDefaults[n].szName);
-				m_lpDefaults[n].szValue = strdup(lpDefaults[n].szValue);
-				m_lpDefaults[n].ulFlags = lpDefaults[n].ulFlags;
-				m_lpDefaults[n].ulGroup = lpDefaults[n].ulGroup;
-			}
-			m_lpDefaults[n].szName = NULL;
-			m_lpDefaults[n].szValue = NULL;
-		}
+	if (m_lpConfig == nullptr)
+		return nullptr;
 
-		if (lpszDirectives) {
-			for (n = 0; lpszDirectives[n]; ++n)
-				;
-			m_lpszDirectives = new char*[n+1];
-			for (n = 0; lpszDirectives[n]; ++n)
-				m_lpszDirectives[n] = strdup(lpszDirectives[n]);
-			m_lpszDirectives[n] = NULL;
+	int n;
+	/*
+	 * Store all the defaults and directives in the singleton,
+	 * so it isn't removed from memory when the plugin unloads.
+	 */
+	if (lpDefaults) {
+		for (n = 0; lpDefaults[n].szName; ++n)
+			;
+		m_lpDefaults = new configsetting_t[n+1];
+		for (n = 0; lpDefaults[n].szName; ++n) {
+			m_lpDefaults[n].szName = strdup(lpDefaults[n].szName);
+			m_lpDefaults[n].szValue = strdup(lpDefaults[n].szValue);
+			m_lpDefaults[n].ulFlags = lpDefaults[n].ulFlags;
+			m_lpDefaults[n].ulGroup = lpDefaults[n].ulGroup;
 		}
+		m_lpDefaults[n].szName = NULL;
+		m_lpDefaults[n].szValue = NULL;
+	}
 
-		m_lpConfig = ECConfig::Create(m_lpDefaults, m_lpszDirectives);
-		if (!m_lpConfig->LoadSettings(m_lpParentConfig->GetSetting("user_plugin_config")))
-			ec_log_err("Failed to open plugin configuration file, using defaults.");
-		if (m_lpConfig->HasErrors() || m_lpConfig->HasWarnings()) {
-			LogConfigErrors(m_lpConfig);
-			if(m_lpConfig->HasErrors()) {
-				delete m_lpConfig;
-				m_lpConfig = NULL;
-			}
+	if (lpszDirectives) {
+		for (n = 0; lpszDirectives[n]; ++n)
+			;
+		m_lpszDirectives = new char*[n+1];
+		for (n = 0; lpszDirectives[n]; ++n)
+			m_lpszDirectives[n] = strdup(lpszDirectives[n]);
+		m_lpszDirectives[n] = NULL;
+	}
+
+	m_lpConfig = ECConfig::Create(m_lpDefaults, m_lpszDirectives);
+	if (!m_lpConfig->LoadSettings(m_lpParentConfig->GetSetting("user_plugin_config")))
+		ec_log_err("Failed to open plugin configuration file, using defaults.");
+	if (m_lpConfig->HasErrors() || m_lpConfig->HasWarnings()) {
+		LogConfigErrors(m_lpConfig);
+		if (m_lpConfig->HasErrors()) {
+			delete m_lpConfig;
+			m_lpConfig = NULL;
 		}
 	}
 	return m_lpConfig;
