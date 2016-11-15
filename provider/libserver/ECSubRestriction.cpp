@@ -171,7 +171,7 @@ ECRESULT RunSubRestriction(ECSession *lpSession, void *lpECODStore, struct restr
     if(er != erSuccess)
         goto exit;
     
-    // Get the subobject id's we're querying from the database
+    // Get the subobject IDs we are querying from the database
     strQuery = "SELECT hierarchy.parent, hierarchy.id FROM hierarchy WHERE hierarchy.type = " + stringify(ulType) + " AND hierarchy.parent IN (";
     
     for (const auto &ob : *lpObjects) {

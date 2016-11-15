@@ -462,7 +462,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 	}
 
 	if (bSync && !bIsSafeMode) {
-		// We now have a map, mapping external id's to local user id's (and their signatures)
+		// We now have a map, mapping external IDs to local user IDs (and their signatures)
 		try {
 			// Get full user list
 			lpExternSignatures = lpPlugin->getAllObjects(extcompany, objclass);
@@ -509,7 +509,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 				if (er != erSuccess)
 					goto exit;
 		
-				// Remove the external user from the list of internal ID's,
+				// Remove the external user from the list of internal IDs,
 				// since we don't need this entry for the plugin details match
 				mapSignatureIdToLocal.erase(iterSignatureIdToLocal);
 			}

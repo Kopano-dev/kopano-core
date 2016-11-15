@@ -473,7 +473,7 @@ HRESULT WSMAPIPropStorage::HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject
 	}
 	END_SOAP_CALL
 
-	// Update our copy of the object with the id's and mod props from the server
+	// Update our copy of the object with the IDs and mod props from the server
 	hr = HrUpdateMapiObject(lpsMapiObject, &sResponse.sSaveObject);
 	if (hr != hrSuccess)
 		goto exit;

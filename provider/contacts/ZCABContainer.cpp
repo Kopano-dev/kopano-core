@@ -543,7 +543,7 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 		ULONG ulOffset = 0;
 		BYTE cType = 0;
 
-		// Wrapped entryid's:
+		// Wrapped entryids:
 		// Flags: (ULONG) 0
 		// Provider: (GUID) 0xC091ADD3519DCF11A4A900AA0047FAA4
 		// Type: (BYTE) <value>, describes wrapped entryid

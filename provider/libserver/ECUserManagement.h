@@ -217,9 +217,9 @@ private:
 	_kc_hidden virtual ECRESULT ConvertLoginToUserAndCompany(objectdetails_t *);
 	/* Convert username and companyname to loginname */
 	_kc_hidden virtual ECRESULT ConvertUserAndCompanyToLogin(objectdetails_t *);
-	/* convert extern id's to local id's */
+	/* convert extern IDs to local IDs */
 	_kc_hidden virtual ECRESULT ConvertExternIDsToLocalIDs(objectdetails_t *);
-	/* convert local id's to extern id's */
+	/* convert local IDs to extern IDs */
 	_kc_hidden virtual ECRESULT ConvertLocalIDsToExternIDs(objectdetails_t *);
 	/* calls externid->localid and user/company->login conversions */
 	_kc_hidden virtual ECRESULT UpdateUserDetailsToClient(objectdetails_t *);
@@ -239,7 +239,7 @@ private:
 	_kc_hidden ECRESULT GetLocalObjectIdOrCreate(const objectsignature_t &signature, unsigned int *id);
 	_kc_hidden ECRESULT GetLocalObjectsIdsOrCreate(const std::list<objectsignature_t> &signatures, map<objectid_t, unsigned int> *local_objids);
 
-	// Get a list of local object ID's in the database plus any internal objects (SYSTEM, EVERYONE)
+	// Get a list of local object IDs in the database plus any internal objects (SYSTEM, EVERYONE)
 	_kc_hidden ECRESULT GetLocalObjectIdList(objectclass_t, unsigned int company_id, std::list<unsigned int> **objs);
 
 	// Converts anonymous Object Detail to property. */
@@ -290,9 +290,9 @@ private:
 
 /*
 * Fixed addressbook containers
-* Only ID's 0, 1 and 2 are available for hardcoding
+* Only IDs 0, 1 and 2 are available for hardcoding
 * IDs for the fixed addressbook containers. This is because
-* those ID's are the only ones which will not conflict with
+* those IDs are the only ones which will not conflict with
 * entries in the users table.
 *
 * The account name of the containers are used for the path

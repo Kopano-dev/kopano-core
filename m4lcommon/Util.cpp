@@ -3591,7 +3591,7 @@ next_include_check:
 	if (FAILED(hr))
 		goto exit;
 
-	// make map for destination property tags, because named id's may differ in src and dst
+	// make map for destination property tags, because named IDs may differ in src and dst
 	hr = MAPIAllocateBuffer(CbNewSPropTagArray(cValues), (void**)&lpsDestTagArray);
 	if (hr != hrSuccess)
 		goto exit;

@@ -3189,7 +3189,7 @@ exit:
 
 /**
  * Loads a binary blob from PR_EC_IMAP_SUBSCRIBED property on the
- * Inbox where entryid's of folders are store in, which describes the
+ * Inbox where entryids of folders are store in, which describes the
  * folders the user subscribed to with an IMAP client.
  *
  * @return MAPI Error code

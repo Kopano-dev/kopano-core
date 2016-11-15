@@ -1931,7 +1931,7 @@ exit:
 //   2.1a. program calls M4LAddrBook::OpenEntry()
 //         - lpEntryID == NULL, open root container.
 //           this is a IABContainer. On this interface, use GetHierarchyTable() to get the list of all the providers'
-//           entry id's. (eg. Global Address Book, Outlook addressbook)
+//           entry IDs. (eg. Global Address Book, Outlook addressbook)
 //           This IABContainer version should be implemented as M4LABContainer
 //         - lpEntryID != NULL, pass to correct IABLogon::OpenEntry()
 //   2.1b. program calls M4LAddrBook::ResolveName()

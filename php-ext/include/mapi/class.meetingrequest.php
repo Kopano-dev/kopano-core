@@ -254,7 +254,7 @@ class Meetingrequest {
 			if($calFolder){
 				$calendaritems = $this->findCalendarItems($goid2, $calFolder);
 
-				// $calendaritems now contains the ENTRYID's of all the calendar items to which
+				// $calendaritems now contains the ENTRYIDs of all the calendar items to which
 				// this meeting request points.
 				
 				// Open the calendar items, and update all the recipients of the calendar item that match
@@ -311,7 +311,7 @@ class Meetingrequest {
 
 		$calendaritems = $this->findCalendarItems($goid2);
 		
-		// $calendaritems now contains the ENTRYID's of all the calendar items to which
+		// $calendaritems now contains the ENTRYIDs of all the calendar items to which
 		// this meeting request points.
 		
 		// Open the calendar items, and update all the recipients of the calendar item that match
@@ -1815,7 +1815,7 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		return $calendaritems;
 	}
 
-	// Returns TRUE if both entryid's are equal. Equality is defined by both entryid's pointing at the
+	// Returns TRUE if both entryids are equal. Equality is defined by both entryids pointing at the
 	// same SMTP address when converted to SMTP
 	function compareABEntryIDs($entryid1, $entryid2) {
 		// If the session was not passed, just do a 'normal' compare.

@@ -24,7 +24,7 @@
 
 // We have 2 types of entryids: those of objects, and those of stores.
 // Objects have a store-relative path, however they do have a GUID to make
-// sure that we can differentiate 2 entryid's from different stores
+// sure that we can differentiate 2 entryids from different stores
 //
 // The ulType fields makes sure that we can read whether it is a store EID
 // or an object EID. This is used when opening a store's properties.
@@ -40,7 +40,7 @@
 // (also the hierarchy table). Each record in on the server has a different
 // ulId, even across different stores.
 //
-// We can differentiate two EntryID's of 2 different servers with the same
+// We can differentiate two EntryIDs of 2 different servers with the same
 // ulId because the guid is different. (This guid is different per server)
 //
 // When this is a store EID, the szServer field is also set, and the ulId
@@ -332,7 +332,7 @@ typedef EID * PEID;
 // Server sends Mod. time and Create time in readProps() call
 //#define KOPANO_CAP_TIMES_IN_READPROPS	0x0004 //not needed since saveObject is introduced
 #define KOPANO_CAP_CRYPT				0x0008
-// 64 bit session id's
+// 64 bit session IDs
 #define KOPANO_CAP_LARGE_SESSIONID		0x0010
 // Includes license server
 #define KOPANO_CAP_LICENSE_SERVER		0x0020

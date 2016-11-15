@@ -3141,7 +3141,7 @@ ZEND_FUNCTION(mapi_openpropertytostream)
 		if (guidLen == sizeof(GUID)) { // assume we have a guid if the length is right
 			lpGuid = (LPGUID)guidStr;
 		} else {
-			php_error_docref(NULL TSRMLS_CC, E_NOTICE, "Using the default GUID because the given GUID's length is not right");
+			php_error_docref(NULL TSRMLS_CC, E_NOTICE, "Using the default GUID because the given GUIDs length is not right");
 			lpGuid = (LPGUID)&IID_IStream;
 		}
 	}
@@ -3253,7 +3253,7 @@ ZEND_FUNCTION(mapi_attach_openobj)
 
 /**
 * Function to get a Property ID from the name. The function expects an array
-* with the property names or id's.
+* with the property names or IDs.
 *
 *
 */
@@ -6476,7 +6476,7 @@ ZEND_FUNCTION(mapi_freebusysupport_loaddata)
 	if(MAPI_G(hr) != hrSuccess)
 		goto exit;
 
-	// Get the user entryid's
+	// Get the user entryids
 	for (j = 0, i = 0; i < cUsers; ++i) {
 		if(zend_hash_get_current_data(target_hash, (void **) &entry) == FAILURE)
 		{
@@ -6557,7 +6557,7 @@ ZEND_FUNCTION(mapi_freebusysupport_loadupdate)
 	if(MAPI_G(hr) != hrSuccess)
 		goto exit;
 
-	// Get the user entryid's
+	// Get the user entryids
 	for (j = 0, i = 0; i < cUsers; ++i) {
 		if(zend_hash_get_current_data(target_hash, (void **) &entry) == FAILURE)
 		{

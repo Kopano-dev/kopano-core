@@ -530,10 +530,10 @@ static inline bool operator<(const SObjectEntry &lhs, const SObjectEntry &rhs) {
 
 
 /**
- * Compares two entryid's that are assumed to be store entryid's.
+ * Compares two entryids that are assumed to be store entryids.
  *
  * This class is used as the predicate argument in find_if. If one of the
- * entryid's is wrapped, it will be unwrapped before the comparison.
+ * entryids is wrapped, it will be unwrapped before the comparison.
  */
 class StoreCompare _kc_final {
 public:
@@ -541,7 +541,7 @@ public:
 	 * This constructor takes the store entryid from an SObjectEntry.
 	 *
 	 * @param[in]	sEntry	The SObjectEntry from which the store entryid will be used
-	 * 						to compare all other entryid's with.
+	 * 						to compare all other entryids with.
 	 */
 	StoreCompare(const SObjectEntry &sEntry): m_sEntryId(sEntry.sStoreEntryId.getUnwrapped()) {}
 
@@ -549,7 +549,7 @@ public:
 	 * This constructor takes an explicit entryid.
 	 *
 	 * @param[in]	sEntryId	The entryid the will be used
-	 * 							to compare all other entryid's with.
+	 * 				to compare all other entryids with.
 	 */
 	StoreCompare(const entryid_t &sEntryId): m_sEntryId(sEntryId.getUnwrapped()) {}
 

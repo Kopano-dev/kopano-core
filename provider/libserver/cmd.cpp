@@ -2446,7 +2446,7 @@ static unsigned int SaveObject(struct soap *soap, ECSession *lpecSession,
     }
 
 	if (lpsSaveObj->bDelete) {
-		// make list of all children object id's in std::list<int> ?
+		// make list of all children object IDs in std::list<int> ?
 		ECListInt lstDel;
 
 		lstDel.push_back(lpsSaveObj->ulServerId);
@@ -9222,7 +9222,7 @@ SOAP_ENTRY_START(hookStore, *result, unsigned int ulStoreType, entryId sUserId, 
 
 	ec_log_info("Hooking store \"%s\" to user %d", lpDBRow[1], ulUserId);
 
-	// lpDBRow[2] is the old user id, which is now orphaned. We'll use this id to make the other store orphaned, so we "trade" user id's.
+	// lpDBRow[2] is the old user id, which is now orphaned. We'll use this id to make the other store orphaned, so we "trade" user IDs.
 
 	// update user with new store id
 	er = lpDatabase->Begin();

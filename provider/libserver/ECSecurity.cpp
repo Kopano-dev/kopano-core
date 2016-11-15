@@ -607,7 +607,7 @@ ECRESULT ECSecurity::GetRights(unsigned int objid, int ulType, struct rightsArra
 			lpsRightsArray->__ptr[i].ulRights = atoi(lpDBRow[2]);
 			lpsRightsArray->__ptr[i].ulState  = RIGHT_NORMAL;
 
-			// do not use internal id's with the cache
+			// do not use internal IDs with the cache
 			if (lpsRightsArray->__ptr[i].ulUserid == KOPANO_UID_SYSTEM) {
 				sExternId = objectid_t(ACTIVE_USER);
 			} else if (lpsRightsArray->__ptr[i].ulUserid == KOPANO_UID_EVERYONE) {
@@ -801,7 +801,7 @@ ECRESULT ECSecurity::GetViewableCompanyIds(unsigned int ulFlags, list<localobjec
 	 * new one.
 	 * NOTE: We always request GetViewableCompanies with 0 as ulFlags,
 	 * this because we are caching the list here and some callers might
-	 * want all details while others will only want the id's.
+	 * want all details while others will only want the IDs.
 	 */
 	if (!m_lpViewCompanies) {
 		er = GetViewableCompanies(0, &m_lpViewCompanies);
@@ -876,9 +876,9 @@ ECRESULT ECSecurity::IsUserObjectVisible(unsigned int ulUserObjectId)
 /** 
  * Internal helper function to get a list of viewable company details
  *
- * @todo won't this bug when we cache only the id's in a first call,
+ * @todo won't this bug when we cache only the IDs in a first call,
  * and then when we need the full details, the m_lpViewCompanies will
- * only contain the id's?
+ * only contain the IDs?
  *
  * @param[in] ulFlags usermanagement flags
  * @param[in] lppObjects new allocated list with company details

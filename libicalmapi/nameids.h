@@ -47,7 +47,7 @@ enum eIDNamedProps {
 	SIZE_NAMEDPROPS
 };
 
-/* call this function to get the id's from the listed namedprops above */
+/* call this function to get the IDs from the listed namedprops above */
 extern "C" _kc_export HRESULT HrLookupNames(IMAPIProp *propobj, LPSPropTagArray *namedprops);
 
 #endif

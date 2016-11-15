@@ -1242,8 +1242,8 @@ exit:
  * - Add row with id 1 (row 1 is now modified, possibly without the caller wanting this)
  *
  * However, this seem to be what is required by outlook, as for example ExpandRecips from
- * the support object assumes the row id's to stay the same when it does ModifyRecipients(0, lpMods)
- * so we can't generate the ID's whenever ADD or 0 is specified.
+ * the support object assumes the row IDs to stay the same when it does ModifyRecipients(0, lpMods)
+ * so we can't generate the IDs whenever ADD or 0 is specified.
  */
 
 HRESULT ECMessage::ModifyRecipients(ULONG ulFlags, LPADRLIST lpMods)
@@ -1782,7 +1782,7 @@ HRESULT ECMessage::SaveRecips()
 
 		AllocNewMapiObject(lpRowId->Value.ul, lpObjIDs[i].Value.ul, ulRealObjType, &mo);
 
-		// Move any PR_ENTRYID's to PR_EC_CONTACT_ENTRYID
+		// Move any PR_ENTRYIDs to PR_EC_CONTACT_ENTRYID
 		lpEntryID = PpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_ENTRYID);
 		if(lpEntryID)
 			lpEntryID->ulPropTag = PR_EC_CONTACT_ENTRYID;
@@ -2071,7 +2071,7 @@ HRESULT ECMessage::SaveChanges(ULONG ulFlags)
 	if(hr != hrSuccess)
 		goto exit;
 
-	// resync recip and attachment table, because of hierarchy id's, only on actual saved object
+	// resync recip and attachment table, because of hierarchy IDs, only on actual saved object
 	if (m_sMapiObject && m_bEmbedded == false) {
 		if (lpRecips) {
 			hr = UpdateTable(lpRecips, MAPI_MAILUSER, PR_ROWID);

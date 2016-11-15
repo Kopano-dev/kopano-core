@@ -31,7 +31,7 @@
  * How our named properties work
  *
  * Basically, named properties in objects with the same PR_MAPPING_SIGNATURE should have the same
- * mapping of named properties to property ID's and vice-versa. We can use this information, together
+ * mapping of named properties to property IDs and vice-versa. We can use this information, together
  * with the information that Outlook mainly uses a fixed set of named properties to speed up things
  * considerably;
  *
@@ -63,8 +63,8 @@
  * named properties will change, which will BREAK THINGS BADLY
  *
  * Special constraints for this structure:
- * - The ulMappedId's must not overlap the previous row
- * - The ulMappedId's must be in ascending order
+ * - The ulMappedIds must not overlap the previous row
+ * - The ulMappedIds must be in ascending order
  */
 
 struct _sLocalNames {

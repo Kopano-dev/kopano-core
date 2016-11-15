@@ -204,7 +204,7 @@ template<typename T> static int twcmp(T a, T b)
 }
 
 /**
- * Compares ab entryid's and returns an int, can be used for sorting algorithms.
+ * Compares ab entryids and returns an int, can be used for sorting algorithms.
  * <0 left first
  *  0 same, or invalid
  * >0 right first

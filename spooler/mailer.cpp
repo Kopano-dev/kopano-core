@@ -2292,7 +2292,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		}
 	}
 		// requested that mail is sent as somebody else
-		// since we can have SMTP and ZARAFA entry id's, we'll open it, and get the
+		// since we can have SMTP and ZARAFA entry IDs, we will open it, and get the
 
 		// If this is a forwarded e-mail, then allow sending as the original sending e-mail address. Note that
 		// this can be misused by MAPI client that just set PR_AUTO_FORWARDED. Since it would have been just as

@@ -226,7 +226,7 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 	CREATE_RES_OR(lpRestrict, lpRestrict, 2);
 	DATA_RES_PROPERTY(lpRestrict, lpRestrict->res.resOr.lpRes[0], RELOP_EQ, ulPropTagFldId, &sPropFolderID);
 	// @note, this will find the first folder using this name (1 level, eg 'Calendar', no subfolders in caldav)
-	// so if you have Calendar and subfolder/Calender, the latter won't be able to open using names, but must use id's.
+	// so if you have Calendar and subfolder/Calender, the latter will not be able to open using names, but must use IDs.
 	DATA_RES_CONTENT(lpRestrict, lpRestrict->res.resOr.lpRes[1], FL_IGNORECASE, PR_DISPLAY_NAME_W, &sPropFolderName);
 
 	hr = lpHichyTable->Restrict(lpRestrict,TBL_BATCH);

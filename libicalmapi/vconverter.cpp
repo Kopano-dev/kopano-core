@@ -465,7 +465,7 @@ exit:
 }
 
 /**
- * Compare UID's in icalitem and ical component.
+ * Compare UIDs in icalitem and ical component.
  *
  * @param[in]	lpIcalItem		icalitem structure containing mapi properties
  * @param[in]	lpicEvent		ical component containing UID property

@@ -252,7 +252,7 @@ HRESULT ECChangeAdvisor::PurgeStates()
 	std::list<ConnectionMap::value_type>			lstObsolete;
 	std::list<ConnectionMap::value_type>::const_iterator iterObsolete;
 
-	// First get the most up to date change ids for all registered sync ids (we'll ignore the changeid's since we don't know if we actually got that far)
+	// First get the most up to date change ids for all registered sync ids (we will ignore the changeids since we don't know if we actually got that far)
 	std::transform(m_mapConnections.begin(), m_mapConnections.end(), std::back_inserter(lstSyncId), &GetSyncId);
 	hr = m_lpMsgStore->m_lpNotifyClient->UpdateSyncStates(lstSyncId, &lstSyncState);
 	if (hr != hrSuccess)

@@ -464,7 +464,7 @@ define('ULPROPTAG2'                              , 8);        // RES_COMPAREPROP
 define('PROPS'                                   , 9);        // RES_COMMENT properties
 define('RESTRICTION'                             ,10);        // RES_COMMENT and RES_SUBRESTRICTION restriction
 
-/* GUID's for PR_MDB_PROVIDER */
+/* GUIDs for PR_MDB_PROVIDER */
 define("KOPANO_SERVICE_GUID"                     ,makeGuid("{3C253DCA-D227-443C-94FE-425FAB958C19}"));    // default store
 define("KOPANO_STORE_PUBLIC_GUID"                ,makeGuid("{D47F4A09-D3BD-493C-B2FC-3C90BBCB48D4}"));    // public store
 define("KOPANO_STORE_DELEGATE_GUID"              ,makeGuid("{7C7C1085-BC6D-4E53-9DAB-8A53F8DEF808}"));    // other store

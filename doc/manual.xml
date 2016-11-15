@@ -4624,7 +4624,7 @@
 		  <varlistentry>
 			<term><option>cache_indexedobject_size</option></term>
 			<listitem>
-			  <para>This cache contains unique id's of objects. This
+			  <para>This cache contains unique IDs of objects. This
 			  cache is used twice, also by the index2 cache, which is
 			  the inverse of the index1 cache. This value may contain
 			  a k, m or g multiplier.</para>

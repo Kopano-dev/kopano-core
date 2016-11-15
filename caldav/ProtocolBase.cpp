@@ -208,7 +208,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 	}
 	else if(!m_wstrFldName.empty())
 	{
-		// @note, caldav allows creation of calendars for non-existing urls, but since this can also use id's, I'm not sure we want to.
+		// @note, caldav allows creation of calendars for non-existing urls, but since this can also use IDs, I am not sure we want to.
 		hr = HrFindFolder(m_lpActiveStore, m_lpIPMSubtree, m_lpNamedProps, m_wstrFldName, &m_lpUsrFld);
 		if(hr != hrSuccess)
 		{

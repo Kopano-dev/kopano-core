@@ -480,7 +480,7 @@ ECRESULT ECGenericObjectTable::ReloadTable(enumReloadType eType)
 
 	m_listMVSortCols = listMVPropTag;
 
-	// Get all the Single Row ID's from the ID map
+	// Get all the Single Row IDs from the ID map
 	for (const auto &p : mapObjects)
 		if (p.first.ulOrderId == 0)
 			listRows.push_back(p.first);
@@ -629,7 +629,7 @@ ECRESULT ECGenericObjectTable::ReloadKeyTable()
 	ECObjectTableList listRows;
 	scoped_rlock biglock(m_hLock);
 
-	// Get all the Row ID's from the ID map
+	// Get all the Row IDs from the ID map
 	for (const auto &p : mapObjects)
 		listRows.push_back(p.first);
 

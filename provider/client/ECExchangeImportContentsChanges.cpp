@@ -1046,7 +1046,7 @@ static HRESULT HrRestrictionContains(const SRestriction *lpRestriction,
 
 /**
  * Check if the restriction passed in lpRestriction contains the three conflict
- * folders as specified in lpAdditionalREN. If either of the three entryid's in
+ * folders as specified in lpAdditionalREN. If either of the three entryids in
  * lpAdditionalREN is empty, the restriction won't be checked and it will be assumed
  * to be valid.
  *

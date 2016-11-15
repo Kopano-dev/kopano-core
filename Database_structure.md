@@ -98,8 +98,8 @@ Attachments chunked into 256K blocks (only in mysql-stored format)
 Names
 =====
 
-Nothing but named properties mapping to property id's - property ids are
-subtracted by 0x8500
+Nothing but named properties mapping to property IDs — property IDs are
+subtracted by 0x8500.
 
 outgoingqueue
 =============

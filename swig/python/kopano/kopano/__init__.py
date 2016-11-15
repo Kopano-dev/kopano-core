@@ -454,7 +454,7 @@ def _unixtime_to_rectime(t):
     return int(t/60) + 194074560
 
 def _extract_ipm_ol2007_entryids(blob, offset):
-    # Extracts entryid's from PR_IPM_OL2007_ENTRYIDS blob using
+    # Extracts entryids from PR_IPM_OL2007_ENTRYIDS blob using
     # logic from common/Util.cpp Util::ExtractAdditionalRenEntryID.
     pos = 0
     while True:

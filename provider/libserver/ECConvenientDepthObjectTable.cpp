@@ -36,7 +36,7 @@ ECConvenientDepthObjectTable::ECConvenientDepthObjectTable(ECSession *lpSession,
 /*
  * Loads an entire multi-depth hierarchy table recursively.
  *
- * The only way to do this nicely is by recursively getting all the hierarchy id's for all folders under the root folder X
+ * The only way to do this nicely is by recursively getting all the hierarchy IDs for all folders under the root folder X
  *
  * Because these queries are really light and fast, the main goals is to limit the amount of calls to mysql to an absolute minimum. We do
  * this by querying all the information we know until now; We first request the subfolders for folder X. In the next call, we request all

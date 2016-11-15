@@ -89,7 +89,7 @@ exit:
  * EC_DELETE_ATTACHMENTS	- Delete attachments of messages
  * EC_DELETE_CONTAINER		- Delete the container specified in the first place (otherwise only subobjects)
  *
- * This is done by first recusively retrieving the object ID's, then checking the types of objects in that
+ * This is done by first recusively retrieving the object IDs, then checking the types of objects in that
  * list. If there is any subobject that has *not* been specified for deletion, the function fails. Else,
  * all properties in the subobjects and the subobjects themselves are deleted. If EC_DELETE_CONTAINER
  * is specified, then the objects passed in lpEntryList are also deleted (together with their properties).
@@ -775,7 +775,7 @@ ECRESULT DeleteObjectHard(ECSession *lpSession, ECDatabase *lpDatabase, ECAttach
 				goto exit;
 				
 		}
-		// list may contain non-attachment object id's!
+		// list may contain non-attachment object IDs!
 		if (!lstDeleteAttachments.empty()) {
 			er = lpAttachmentStorage->DeleteAttachments(lstDeleteAttachments);
 			if (er != erSuccess)
@@ -2157,7 +2157,7 @@ ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQue
 
     if(fDoQuery) {
 		// although we don't always use the names columns, we need to join anyway to check for existing nameids
-		// we may never stream propid's > 0x8500 without the names data
+		// we may never stream propids > 0x8500 without the names data
 		if (ulObjId != 0)
 			strQuery = "SELECT " PROPCOLORDER ", hierarchyid, names.nameid, names.namestring, names.guid "
 				"FROM properties FORCE INDEX (PRIMARY) ";
