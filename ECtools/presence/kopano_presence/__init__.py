@@ -69,6 +69,7 @@ class Service(kopano.Service):
         t, userid, sha256 = str(request.json['AuthenticationToken']).split(':')
         if (sha256 != hmac.new(secret_key, '%s:%s' % (t, userid), hashlib.sha256).digest().encode('base64').strip().upper()) or \
            ((int(time.time()) - int(t)) > (self.config['server_token_expire'] * 60)):
+            self.warning('unauthorized access; please check shared key settings in presence.cfg and client configuration.')
             abort(401)
 
     def get(self):
