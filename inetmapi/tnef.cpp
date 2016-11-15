@@ -992,9 +992,8 @@ HRESULT ECTNEF::HrReadSingleProp(char *lpBuffer, ULONG ulSize, ULONG *lpulRead, 
 	std::wstring strUnicodeName;
 	utf16string ucs2;
 
-	if(ulSize < 8) {
+	if(ulSize < 8)
 		return MAPI_E_NOT_FOUND;
-	}
 
 	ulPropTag = *(ULONG *)lpBuffer;
 

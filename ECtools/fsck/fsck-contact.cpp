@@ -61,12 +61,11 @@ HRESULT FsckContact::ValidateContactNames(LPMESSAGE lpMessage)
 	if (!lpPropertyArray)
 		goto exit;
 
-	for (ULONG i = 0; i < TAG_COUNT; ++i) {
+	for (ULONG i = 0; i < TAG_COUNT; ++i)
 		if (PROP_TYPE(lpPropertyArray[i].ulPropTag) != PT_ERROR &&
 			lpPropertyArray[i].Value.lpszA &&
 			strlen(lpPropertyArray[i].Value.lpszA))
 				result[i] = std::string(lpPropertyArray[i].Value.lpszA);
-	}
 
 	/* Generate fullname based on remaining fields */
 	if (result[E_FULLNAME].empty()) {
@@ -117,13 +116,10 @@ HRESULT FsckContact::ValidateContactNames(LPMESSAGE lpMessage)
 		}
 
 		/* If a prefix and suffix were provided, strip them from the fullname */
-		if (!result[E_PREFIX].empty() && boost::algorithm::starts_with(result[E_FULLNAME], result[E_PREFIX])) {
+		if (!result[E_PREFIX].empty() && boost::algorithm::starts_with(result[E_FULLNAME], result[E_PREFIX]))
             result[E_FULLNAME].erase(0, result[E_PREFIX].size());
-        }
-
-		if (!result[E_SUFFIX].empty() && boost::algorithm::ends_with(result[E_FULLNAME], result[E_SUFFIX])) {
+		if (!result[E_SUFFIX].empty() && boost::algorithm::ends_with(result[E_FULLNAME], result[E_SUFFIX]))
             result[E_FULLNAME].erase(result[E_FULLNAME].size() - result[E_SUFFIX].size(), std::string::npos);
-		}
 
 		/* Well technically this could happen... But somebody seriously wrecked his item in that case :S */
 		if (result[E_FULLNAME].empty()) {

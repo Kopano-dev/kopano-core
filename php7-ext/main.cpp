@@ -1181,9 +1181,8 @@ ZEND_FUNCTION(mapi_ab_openentry) {
 	ZEND_FETCH_RESOURCE_C(lpAddrBook, LPADRBOOK, &res, -1, name_mapi_addrbook, le_mapi_addrbook);
 
 	MAPI_G(hr) = lpAddrBook->OpenEntry(cbEntryID, lpEntryID, NULL, ulFlags, &ulObjType, &lpUnknown);
-	if (MAPI_G(hr) != hrSuccess) {
+	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
-	}
 
 	switch (ulObjType) {
 	case MAPI_MAILUSER:
@@ -1687,9 +1686,8 @@ ZEND_FUNCTION(mapi_folder_createfolder) {
 	ZEND_FETCH_RESOURCE_C(lpSrcFolder, LPMAPIFOLDER, &srcFolder, -1, name_mapi_folder, le_mapi_folder);
 
 	MAPI_G(hr) = lpSrcFolder->CreateFolder(folderType, (LPTSTR)lpszFolderName, (LPTSTR)lpszFolderComment, NULL, ulFlags & ~MAPI_UNICODE, &lpNewFolder);
-	if (FAILED(MAPI_G(hr))) {
+	if (FAILED(MAPI_G(hr)))
 		goto exit;
-	}
 	UOBJ_REGISTER_RESOURCE(return_value, lpNewFolder, le_mapi_folder);
 exit:
 	LOG_END();
@@ -4510,14 +4508,11 @@ ZEND_FUNCTION(mapi_zarafa_getuserlist)
 	}
 
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECSecurity, (void**)&lpSecurity);
-	if(MAPI_G(hr) != hrSuccess) {
+	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
-	}
-
 	MAPI_G(hr) = lpSecurity->GetUserList(cbCompanyId, lpCompanyId, 0, &nUsers, &lpUsers);
-	if (MAPI_G(hr) != hrSuccess) {
+	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
-	}
 
 	array_init(return_value);
 	for (i = 0; i < nUsers; ++i) {
@@ -6239,14 +6234,11 @@ ZEND_FUNCTION(mapi_zarafa_getpermissionrules)
 	}
 
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECSecurity, (void**)&lpSecurity);
-	if(MAPI_G(hr) != hrSuccess) {
+	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
-	}
-
 	MAPI_G(hr) = lpSecurity->GetPermissionRules(ulType, &cPerms, &lpECPerms);
-	if (MAPI_G(hr) != hrSuccess) {
+	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
-	}
 
 	array_init(return_value);
 	for (i = 0; i < cPerms; ++i) {
@@ -6321,9 +6313,8 @@ ZEND_FUNCTION(mapi_zarafa_setpermissionrules)
 	}
 
 	MAPI_G(hr) = lpUnknown->QueryInterface(IID_IECSecurity, (void**)&lpSecurity);
-	if(MAPI_G(hr) != hrSuccess) {
+	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
-	}
 
 	ZVAL_DEREF(perms);
 	target_hash = HASH_OF(perms);
@@ -7333,9 +7324,8 @@ ZEND_FUNCTION(mapi_importcontentschanges_importmessagechange)
 	}
 
 	MAPI_G(hr) = lpImportContentsChanges->ImportMessageChange(cValues, lpProps, ulFlags, &lpMessage);
-	if(MAPI_G(hr) != hrSuccess) {
+	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
-	}
 	UOBJ_REGISTER_RESOURCE(resMessage, lpMessage, le_mapi_message);
 	RETVAL_TRUE;
 

@@ -222,15 +222,11 @@ HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
 
 	try {
 		// vmime messageBuilder has set Date header to now(), so we overwrite it.
-		if (HrGetOneProp(lpMessage, PR_CLIENT_SUBMIT_TIME, &lpTime) == hrSuccess) {
+		if (HrGetOneProp(lpMessage, PR_CLIENT_SUBMIT_TIME, &lpTime) == hrSuccess)
 			lpVMMessage->getHeader()->Date()->setValue(FiletimeTovmimeDatetime(lpTime->Value.ft));
-		}
 		// else, try PR_MESSAGE_DELIVERY_TIME, maybe other timestamps?
-
-		if (HrGetOneProp(lpMessage, PR_INTERNET_MESSAGE_ID_A, &lpMessageId) == hrSuccess) {
+		if (HrGetOneProp(lpMessage, PR_INTERNET_MESSAGE_ID_A, &lpMessageId) == hrSuccess)
 			lpVMMessage->getHeader()->MessageId()->setValue(lpMessageId->Value.lpszA);
-		}
-
 		lpVMMessage->generate(adapter);
 	}
 	catch (vmime::exception&) {

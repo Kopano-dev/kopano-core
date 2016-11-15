@@ -351,11 +351,10 @@ ECRESULT ECThreadManager::NotifyIdle(ECWorkerThread *lpThread, bool *lpfStop)
     if(m_ulThreads < m_lstThreads.size()) {
         // We are currently running more threads than we want, so tell the thread to stop
         iterThreads = std::find(m_lstThreads.begin(), m_lstThreads.end(), lpThread);
-        if(iterThreads == m_lstThreads.end()) {
+        if(iterThreads == m_lstThreads.end())
             // HUH
             m_lpLogger->Log(EC_LOGLEVEL_FATAL, "A thread that we don't know is idle ...");
 			return KCERR_NOT_FOUND;
-        }
         // Remove the thread from our running thread list
         m_lstThreads.erase(iterThreads);
         

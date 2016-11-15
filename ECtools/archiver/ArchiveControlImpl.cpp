@@ -372,15 +372,14 @@ ArchiveControlImpl::purgesoftdeleteditems(LPMAPIFOLDER folder, const tstring& st
                             for (unsigned int i = 0; i < found; ++i) {
                                 ptrEntryList->lpbin[0].cb  = rowSet->aRow[i].lpProps[0].Value.bin.cb;
                                 ptrEntryList->lpbin[0].lpb = rowSet->aRow[i].lpProps[0].Value.bin.lpb;
-                                if ((hr = folder->DeleteMessages(ptrEntryList, 0, NULL, DELETE_HARD_DELETE)) != hrSuccess) {
+                                if ((hr = folder->DeleteMessages(ptrEntryList, 0, NULL, DELETE_HARD_DELETE)) != hrSuccess)
                                     m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to delete message. (hr=%s)", stringify(hr, true).c_str());
-                                }
                             }
                         }
                     }
                 }
             } while (found);
-            if (totalfound) {
+            if (totalfound)
                 m_lpLogger->Log(
                     EC_LOGLEVEL_INFO,
                     "Store %ls: %u soft-deleted messages removed from folder %ls",
@@ -388,7 +387,6 @@ ArchiveControlImpl::purgesoftdeleteditems(LPMAPIFOLDER folder, const tstring& st
                     totalfound,
                     getfoldername(folder).c_str()
                 );
-            }
         }
     }
     return hr;

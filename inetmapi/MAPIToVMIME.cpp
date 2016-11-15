@@ -436,20 +436,16 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 			// Set filename
 			szFilename = L"data.bin";
 
-			if (HrGetOneProp(lpAttach, PR_ATTACH_LONG_FILENAME_W, &lpFilename) == hrSuccess) {
+			if (HrGetOneProp(lpAttach, PR_ATTACH_LONG_FILENAME_W, &lpFilename) == hrSuccess)
 				szFilename = lpFilename->Value.lpszW;
-			} else {
-				if (HrGetOneProp(lpAttach, PR_ATTACH_FILENAME_W, &lpFilename) == hrSuccess) {
-					szFilename = lpFilename->Value.lpszW;
-				}
-			}
+			else if (HrGetOneProp(lpAttach, PR_ATTACH_FILENAME_W, &lpFilename) == hrSuccess)
+				szFilename = lpFilename->Value.lpszW;
             
             // Set MIME type
             parseMimeTypeFromFilename(szFilename, &vmMIMEType, &bSendBinary);
             
-			if (HrGetOneProp(lpAttach, PR_ATTACH_MIME_TAG_A, &lpMIMETag) == hrSuccess) {
+			if (HrGetOneProp(lpAttach, PR_ATTACH_MIME_TAG_A, &lpMIMETag) == hrSuccess)
 				vmMIMEType = lpMIMETag->Value.lpszA;
-			}
 
 			// inline attachments: Only make attachments inline if they are hidden and have a content-id or content-location.
 			if ((!strContentId.empty() || !strContentLocation.empty()) && bHidden &&
@@ -771,16 +767,14 @@ HRESULT MAPIToVMIME::BuildNoteMessage(IMessage *lpMessage,
 		}
 
 		// Set consistent boundary (optional)
-		if(sopt.alternate_boundary) {
+		if (sopt.alternate_boundary != nullptr)
 			setBoundaries(vmMessage->getHeader(), vmMessage->getBody(), sopt.alternate_boundary);
-		}
 
 		HrGetOneProp(lpMessage, PR_MESSAGE_DELIVERY_TIME, &lpDeliveryDate);
 
 		// If we're sending a msg-in-msg, use the original date of that message
-		if (sopt.msg_in_msg && lpDeliveryDate) {
+		if (sopt.msg_in_msg && lpDeliveryDate != nullptr)
 			vmHeader->Date()->setValue(FiletimeTovmimeDatetime(lpDeliveryDate->Value.ft));
-		}
 		
 		// Regenerate some headers if available (basically a copy of the headers in
 		// PR_TRANSPORT_MESSAGE_HEADERS)
@@ -1346,11 +1340,10 @@ HRESULT MAPIToVMIME::fillVMIMEMail(IMessage *lpMessage, bool bSkipContent, vmime
 			goto exit;
 		}
 
-		if (!strName.empty()) {
+		if (!strName.empty())
 			lpVMMessageBuilder->setExpeditor(vmime::mailbox(getVmimeTextFromWide(strName), m_converter.convert_to<string>(strEmAdd)));
-		} else {
+		else
 			lpVMMessageBuilder->setExpeditor(vmime::mailbox(m_converter.convert_to<string>(strEmAdd)));
-		}
 		// sender and reply-to is set elsewhere because it can only be done on a message object...
 	}
 	catch (vmime::exception& e) {

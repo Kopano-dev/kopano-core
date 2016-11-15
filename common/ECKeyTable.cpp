@@ -503,9 +503,8 @@ ECRESULT ECKeyTable::UpdateRow(UpdateType ulType,
 			// Create a new node
 			lpNewRow = new ECTableRow(*lpsRowItem, ulSortCols, lpSortLen, lpFlags, lppSortData, fHidden);
 
-			if(iterMap->second == lpCurrent) {
+			if (iterMap->second == lpCurrent)
 			    fRelocateCursor = true;
-			}
 
 			// If the exact same row is already in here, just look up the predecessor
 			if( !ECTableRow::rowcompare(iterMap->second, lpNewRow) &&
