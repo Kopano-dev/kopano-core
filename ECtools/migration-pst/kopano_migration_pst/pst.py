@@ -945,7 +945,7 @@ class PC: # Property Context
     def __repr__(self):
 
         s = 'PC %s\n' % self.hn
-        s += '\n'.join(['Property %s' % repr(self.props[wPropId])[:256] for wPropId in sorted(self.props.keys())])
+        s += '\n'.join(['Property %s' % self.props[wPropId] for wPropId in sorted(self.props.keys())])
         return s
 
 
@@ -1350,6 +1350,7 @@ class Message:
     def __init__(self, nid, ltp, nbd=None, parent_message=None):
 
         self.ltp = ltp
+
         if parent_message:
             subnode = parent_message.pc.hn.subnodes[nid]
             datas = nbd.fetch_all_block_data(subnode.bidData)
@@ -1359,6 +1360,7 @@ class Message:
             if nid.nidType != NID.NID_TYPE_NORMAL_MESSAGE:
                 raise PSTException('Invalid Message NID Type: %s' % nid_pc.nidType)
             self.pc = ltp.get_pc_by_nid(nid)
+
         self.MessageClass = self.pc.getval(PropIdEnum.PidTagMessageClassW)
         self.Subject = ltp.strip_SubjectPrefix(self.pc.getval(PropIdEnum.PidTagSubjectW))
         self.ClientSubmitTime = self.pc.getval(PropIdEnum.PidTagClientSubmitTime)
@@ -1980,8 +1982,6 @@ class PST:
                 if message.HasAttachments:
                     for subattachment in message.subattachments:
                         attachment = message.get_attachment(subattachment)
-                        print 'AAA', attachment.get_all_properties()
-
                         if len(attachment.data) !=0:
                             filepath = os.path.join(path, attachment.Filename)
                             if overwrite:
@@ -2002,15 +2002,13 @@ class PST:
             filepath = get_unused_filename(os.path.join(path, get_safe_filename(folder.path.replace('\\','_'))+'.txt'))
             msg_txt = u''
             for message in self.message_generator(folder):
-                print 'MMM', message.get_all_properties()
-
                 msg_txt += u'Subject: %s\nFrom: %s (%s)\n' % (message.Subject, message.SenderName, message.SenderSmtpAddress)
-#                msg_txt += u'To: %s\n' % ('; '.join([u'%s (%s)' % (subrecipient.DisplayName, subrecipient.EmailAddress) for subrecipient in message.subrecipients]))
-#                msg_txt += u'Sent: %s\nDelivered: %s\n' % (message.ClientSubmitTime, message.MessageDeliveryTime)
-#                msg_txt += u'MessageClass: %s\n' % (message.MessageClass)
-#                if message.HasAttachments:
-#                    msg_txt += u'Attachments: %s\n' % (u', '.join([subattachment.__repr__() for subattachment in message.subattachments]))
-#                msg_txt += u'\n%s\n\n\n' % message.Body
+                msg_txt += u'To: %s\n' % ('; '.join([u'%s (%s)' % (subrecipient.DisplayName, subrecipient.EmailAddress) for subrecipient in message.subrecipients]))
+                msg_txt += u'Sent: %s\nDelivered: %s\n' % (message.ClientSubmitTime, message.MessageDeliveryTime)
+                msg_txt += u'MessageClass: %s\n' % (message.MessageClass)
+                if message.HasAttachments:
+                    msg_txt += u'Attachments: %s\n' % (u', '.join([subattachment.__repr__() for subattachment in message.subattachments]))
+                msg_txt += u'\n%s\n\n\n' % message.Body
             if msg_txt:
                 write_file(filepath, unicode2ascii(msg_txt), 'w')
                 messages_completed += 1
