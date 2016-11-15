@@ -252,8 +252,11 @@ int ECConfigCheck::testCharset(const config_check_t *check)
 		string output;
 
 		memset(buffer, 0, sizeof(buffer));
-
-		fread(buffer, sizeof(buffer), 1, fp);
+		if (fgets(buffer, sizeof(buffer), fp) == nullptr) {
+			printWarning(check->option1, "unable to validate charset: \"" + v1 + "\"");
+			pclose(fp);
+			return CHECK_WARNING;
+		}
 		output = buffer;
 
 		pclose(fp);
