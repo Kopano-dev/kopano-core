@@ -3015,7 +3015,7 @@ ECCOMPANY *Object_to_LPECCOMPANY(PyObject *elem, ULONG ulFlags)
 	memset(lpCompany, 0, sizeof *lpCompany);
 
 	process_conv_out_array(lpCompany, elem, conv_info, lpCompany, ulFlags);
-
+	Object_to_MVPROPMAP(elem, lpCompany, ulFlags);
 exit:
 	if (PyErr_Occurred()) {
 		MAPIFreeBuffer(lpCompany);
@@ -3027,14 +3027,16 @@ exit:
 
 PyObject *Object_from_LPECCOMPANY(ECCOMPANY *lpCompany, ULONG ulFlags)
 {
+	PyObject *MVProps = Object_from_MVPROPMAP(lpCompany->sMVPropmap, ulFlags);
 	PyObject *companyid = PyBytes_FromStringAndSize((const char *)lpCompany->sCompanyId.lpb, lpCompany->sCompanyId.cb);
 	PyObject *result = NULL;
 
         if(ulFlags & MAPI_UNICODE)
-		result = PyObject_CallFunction(PyTypeECCompany, "(uulO)", lpCompany->lpszCompanyname, lpCompany->lpszServername, lpCompany->ulIsABHidden, companyid);
+		result = PyObject_CallFunction(PyTypeECCompany, "(uulOO)", lpCompany->lpszCompanyname, lpCompany->lpszServername, lpCompany->ulIsABHidden, companyid, MVProps);
 	else
-		result = PyObject_CallFunction(PyTypeECCompany, "(sslO)", lpCompany->lpszCompanyname, lpCompany->lpszServername, lpCompany->ulIsABHidden, companyid);
+		result = PyObject_CallFunction(PyTypeECCompany, "(sslOO)", lpCompany->lpszCompanyname, lpCompany->lpszServername, lpCompany->ulIsABHidden, companyid, MVProps);
 
+	Py_DECREF(MVProps);
 	Py_DECREF(companyid);
 	return result;
 }
