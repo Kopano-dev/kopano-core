@@ -7753,7 +7753,7 @@ ZEND_FUNCTION(mapi_icaltomapi)
 	zval *resAddrBook;
 	zval *resMessage;
 	zend_bool *noRecipients;
-	ULONG cbString = 0;
+	size_t cbString = 0;
 	char *szString = nullptr;
 	IMAPISession *lpMAPISession = nullptr;
 	IAddrBook *lpAddrBook = nullptr;
