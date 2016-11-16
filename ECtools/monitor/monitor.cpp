@@ -65,7 +65,7 @@ static std::mutex m_hExitMutex;
 static std::condition_variable m_hExitSignal;
 static pthread_t			mainthread;
 
-static HRESULT running_service(const char *szPath);
+static HRESULT running_service(void);
 
 static void sighandle(int sig)
 {
@@ -275,7 +275,7 @@ int main(int argc, char *argv[]) {
 		goto exit;
 
 	// Init exit threads
-	hr = running_service(szPath);
+	hr = running_service();
 exit:
 	if(m_lpThreadMonitor)
 		deleteThreadMonitor(m_lpThreadMonitor, true);
@@ -283,7 +283,7 @@ exit:
 	return hr == hrSuccess ? 0 : 1;
 }
 
-static HRESULT running_service(const char *szPath)
+static HRESULT running_service(void)
 {
 	HRESULT			hr = hrSuccess;
 	ECScheduler*	lpECScheduler = NULL;
