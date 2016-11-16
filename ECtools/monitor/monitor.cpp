@@ -65,7 +65,41 @@ static std::mutex m_hExitMutex;
 static std::condition_variable m_hExitSignal;
 static pthread_t			mainthread;
 
-static HRESULT running_service(void);
+static HRESULT running_service(void)
+{
+	HRESULT hr = hrSuccess;
+	ECScheduler *lpECScheduler = nullptr;
+	unsigned int ulInterval = 0;
+	bool bMapiInit = false;
+	ulock_normal l_exit(m_hExitMutex, std::defer_lock_t());
+
+	hr = MAPIInitialize(nullptr);
+	if (hr != hrSuccess) {
+		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to initialize MAPI");
+		goto exit;
+	}
+	bMapiInit = true;
+	lpECScheduler = new ECScheduler(m_lpThreadMonitor->lpLogger);
+	ulInterval = atoi(m_lpThreadMonitor->lpConfig->GetSetting("quota_check_interval", nullptr, "15"));
+	if (ulInterval == 0)
+		ulInterval = 15;
+	m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_ALWAYS, "Starting kopano-monitor version " PROJECT_VERSION_MONITOR_STR " (" PROJECT_SVN_REV_STR "), pid %d", getpid());
+
+	// Add Quota monitor
+	hr = lpECScheduler->AddSchedule(SCHEDULE_MINUTES, ulInterval, ECQuotaMonitor::Create, m_lpThreadMonitor);
+	if (hr != hrSuccess) {
+		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to add quota monitor schedule");
+		goto exit;
+	}
+	l_exit.lock();
+	m_hExitSignal.wait(l_exit);
+	l_exit.unlock();
+ exit:
+	delete lpECScheduler;
+	if (bMapiInit)
+		MAPIUninitialize();
+	return hr;
+}
 
 static void sighandle(int sig)
 {
@@ -281,45 +315,4 @@ exit:
 		deleteThreadMonitor(m_lpThreadMonitor, true);
 
 	return hr == hrSuccess ? 0 : 1;
-}
-
-static HRESULT running_service(void)
-{
-	HRESULT			hr = hrSuccess;
-	ECScheduler*	lpECScheduler = NULL;
-	unsigned int	ulInterval = 0;
-	bool			bMapiInit = false;
-	ulock_normal l_exit(m_hExitMutex, std::defer_lock_t());
-	
-	hr = MAPIInitialize(NULL);
-	if (hr != hrSuccess) {
-		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to initialize MAPI");
-		goto exit;
-	}
-	bMapiInit = true;
-
-	lpECScheduler = new ECScheduler(m_lpThreadMonitor->lpLogger);
-
-	ulInterval = atoi(m_lpThreadMonitor->lpConfig->GetSetting("quota_check_interval", NULL, "15"));
-	if (ulInterval == 0)
-		ulInterval = 15;
-
-	m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_ALWAYS, "Starting kopano-monitor version " PROJECT_VERSION_MONITOR_STR " (" PROJECT_SVN_REV_STR "), pid %d", getpid());
-
-	// Add Quota monitor
-	hr = lpECScheduler->AddSchedule(SCHEDULE_MINUTES, ulInterval, ECQuotaMonitor::Create, m_lpThreadMonitor);
-	if(hr != hrSuccess) {
-		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to add quota monitor schedule");
-		goto exit;
-	}
-
-	l_exit.lock();
-	m_hExitSignal.wait(l_exit);
-	l_exit.unlock();
-exit:
-	delete lpECScheduler;
-	if (bMapiInit)
-		MAPIUninitialize();
-		
-	return hr;
 }
