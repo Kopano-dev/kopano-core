@@ -296,8 +296,6 @@ BTSession* ECSessionManager::GetSession(ECSESSIONID sessionID, bool fLockSession
 
 	BTSession *lpSession = NULL;
 		
-	//TRACE_INTERNAL(TRACE_ENTRY, "ECSessionManager", "GetSession", "%lu", sessionID);
-
 	auto iIterator = m_mapSessions.find(sessionID);
 	if (iIterator != m_mapSessions.cend()) {
 		lpSession = iIterator->second;
@@ -308,8 +306,6 @@ BTSession* ECSessionManager::GetSession(ECSESSIONID sessionID, bool fLockSession
 	}else{
 		//EC_SESSION_LOST
 	}
-	
-	//TRACE_INTERNAL(TRACE_RETURN, "ECSessionManager", "GetSession", "%lu", sessionID);
 	return lpSession;
 }
 
