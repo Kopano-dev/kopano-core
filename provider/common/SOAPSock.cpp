@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <memory>
 #include "SOAPSock.h"
 #include <sys/un.h>
 #include "SOAPUtils.h"
@@ -257,7 +258,77 @@ static bool kc_wildcard_cmp(const char *cn, const char *host)
 	return *cn == '\0' && *host == '\0';
 }
 
-static int kc_ssl_check_name(X509_STORE_CTX *store)
+static int kc_ssl_astr_match(const char *hostname, ASN1_STRING *astr)
+{
+	if (astr == nullptr)
+		return false;
+	auto cstr = reinterpret_cast<const char *>(ASN1_STRING_data(astr));
+	if (cstr == nullptr)
+		return false;
+	auto alen = ASN1_STRING_length(astr);
+	if (alen < 0 || strlen(cstr) != static_cast<size_t>(alen)) {
+		ec_log_err("K-1720: Server presented an X.509 string with '\\0' bytes. Aborting login.");
+		return -1;
+	}
+	if (kc_wildcard_cmp(cstr, hostname)) {
+		ec_log_debug("Server %s presented matching certificate for %s.",
+			hostname, cstr);
+		return true;
+	}
+	return false;
+}
+
+static int kc_ssl_check_certnames(const char *hostname, X509 *cert)
+{
+	class gnfree {
+		public:
+		void operator()(GENERAL_NAMES *a) { GENERAL_NAMES_free(a); }
+		void operator()(ASN1_OCTET_STRING *s) { ASN1_OCTET_STRING_free(s); }
+	};
+
+	auto name = X509_get_subject_name(cert);
+	if (name == nullptr) {
+		ec_log_err("K-1722: server certificate has no X.509 subject name. Aborting login.");
+		return false;
+	}
+
+	std::unique_ptr<GENERAL_NAMES, gnfree> san(static_cast<GENERAL_NAMES *>(
+		X509_get_ext_d2i(cert, NID_subject_alt_name, nullptr, nullptr)));
+	if (san == nullptr) {
+		/* RFC 2818 § 3.1 page 5 and http://stackoverflow.com/a/21496451 */
+		auto cnindex = X509_NAME_get_index_by_NID(name, NID_commonName, -1);
+		if (cnindex != -1) {
+			auto astr = X509_NAME_ENTRY_get_data(X509_NAME_get_entry(name, cnindex));
+			auto ret = kc_ssl_astr_match(hostname, astr);
+			if (ret < 0)
+				return false;
+			if (ret > 0)
+				return true;
+		}
+	}
+
+	auto num = sk_GENERAL_NAME_num(san.get());
+	std::unique_ptr<ASN1_OCTET_STRING, gnfree> hostname_octet(a2i_IPADDRESS(hostname));
+	for (decltype(num) i = 0; i < num; ++i) {
+		auto name = sk_GENERAL_NAME_value(san.get(), i);
+		if (name == nullptr)
+			continue;
+		if (name->type == GEN_IPADD &&
+		    hostname_octet != nullptr &&
+		    ASN1_STRING_cmp(hostname_octet.get(), name->d.iPAddress) == 0)
+			return true;
+		if (name->type != GEN_DNS)
+			continue;
+		auto ret = kc_ssl_astr_match(hostname, name->d.dNSName);
+		if (ret < 0)
+			return false;
+		if (ret > 0)
+			return true;
+	}
+	return false;
+}
+
+static int kc_ssl_check_cert(X509_STORE_CTX *store)
 {
 	auto ssl = static_cast<SSL *>(X509_STORE_CTX_get_ex_data(store, SSL_get_ex_data_X509_STORE_CTX_idx()));
 	if (ssl == NULL) {
@@ -274,43 +345,22 @@ static int kc_ssl_check_name(X509_STORE_CTX *store)
 		ec_log_warn("No certificate found in connection. What gives?");
 		return false;
 	}
-	auto name = X509_get_subject_name(cert);
-	ASN1_STRING *sdata;
-	const char *subject = NULL;
-	if (name != NULL) {
-		auto i = X509_NAME_get_index_by_NID(name, NID_commonName, -1);
-		if (i != -1) {
-			sdata = X509_NAME_ENTRY_get_data(X509_NAME_get_entry(name, i));
-			subject = reinterpret_cast<const char *>(ASN1_STRING_data(sdata));
-		}
-	}
-	if (subject == NULL) {
-		ec_log_err("Server presented no X.509 Subject name. Aborting login.");
-		return false;
-	}
-	auto asnlen = ASN1_STRING_length(sdata);
-	if (asnlen < 0 || strlen(subject) != static_cast<size_t>(asnlen)) {
-		ec_log_err("Server presented an X.509 Subject name with '\\0' bytes. Aborting login.");
-		return false;
-	}
 	auto hostname = static_cast<const char *>(SSL_CTX_get_ex_data(ctx, ssl_zvcb_index));
 	if (hostname == NULL) {
 		ec_log_err("Internal fluctuation - no hostname in our SSL context. Aborting login.");
 		return false;
 	}
-	if (kc_wildcard_cmp(subject, hostname)) {
-		ec_log_debug("Server %s presented matching certificate for %s.",
-			hostname, subject);
+	auto ret = kc_ssl_check_certnames(hostname, cert);
+	if (ret > 0)
 		return true;
-	}
-	ec_log_err("Server %s presented non-matching certificate for %s. "
-		"Aborting login.", hostname, subject);
+	ec_log_err("K-1725: certificate of server %s had no matching names. "
+		"Aborting login.", hostname);
 	return false;
 }
 
 int ssl_verify_callback_kopano_silent(int ok, X509_STORE_CTX *store)
 {
-	if (!kc_ssl_check_name(store)) {
+	if (!kc_ssl_check_cert(store)) {
 		X509_STORE_CTX_set_error(store, X509_V_ERR_CERT_REJECTED);
 		ok = 0;
 	}
