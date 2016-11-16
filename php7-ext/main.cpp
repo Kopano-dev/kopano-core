@@ -7813,8 +7813,8 @@ ZEND_FUNCTION(mapi_mapitoical)
 	MapiToICal *lpMtIcal = nullptr;
 	std::string strical("");
 	std::string method("");
-	zend_string *str;
 
+	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rrra",
 	    &resSession, &resAddrBook, &resMessage, &resOptions) == FAILURE)
@@ -7833,12 +7833,11 @@ ZEND_FUNCTION(mapi_mapitoical)
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
 	MAPI_G(hr) = lpMtIcal->Finalize(0, &method, &strical);
-	str = zend_string_init(strical.c_str(), strlen(strical.c_str()), 0);
+	RETVAL_STRINGL(strical.c_str(), true);
  exit:
 	delete lpMtIcal;
 	LOG_END();
 	THROW_ON_ERROR();
-	RETURN_STR(str);
 }
 
 ZEND_FUNCTION(mapi_enable_exceptions)
