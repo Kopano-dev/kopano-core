@@ -1592,8 +1592,6 @@ static HRESULT HrFindUserInGroup(LPADRBOOK lpAdrBook, ULONG ulOwnerCB,
 			hr = HrFindUserInGroup(lpAdrBook, ulOwnerCB, lpOwnerEID, 
 			     lpRowSet->aRow[0].lpProps[0].Value.bin.cb, (LPENTRYID)lpRowSet->aRow[0].lpProps[0].Value.bin.lpb,
 			     &ulCmp, level+1);
-		else
-			/* unknown row */;
 		if (hr == hrSuccess && ulCmp == TRUE)
 			break;
 	}
