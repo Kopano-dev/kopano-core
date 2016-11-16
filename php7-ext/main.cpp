@@ -7748,6 +7748,8 @@ exit:
 
 ZEND_FUNCTION(mapi_icaltomapi)
 {
+	PMEASURE_FUNC;
+	LOG_BEGIN();
 	zval *resSession;
 	zval *resStore;
 	zval *resAddrBook;
