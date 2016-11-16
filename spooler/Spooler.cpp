@@ -453,7 +453,7 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 			hr = GetErrorObjects(sSendData, lpAdminSession, &lpAddrBook, &lpMailer, &lpUserStore, &lpMessage);
 			if (hr == hrSuccess) {
 				lpMailer->setError(_("A fatal error occurred while processing your message, and Kopano is unable to send your email."));
-				hr = SendUndeliverable(lpAddrBook, lpMailer, lpUserStore, lpMessage);
+				hr = SendUndeliverable(lpMailer, lpUserStore, lpMessage);
 				// TODO: if failed, and we have the lpUserStore, create message?
 			}
 			if (hr != hrSuccess)

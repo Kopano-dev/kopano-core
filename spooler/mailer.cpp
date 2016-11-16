@@ -814,12 +814,11 @@ exit:
  * table for all the recipients that failed. An error is attached to each of these recipients. The error information is
  * retrieved from the passed lpMailer object.
  *
- * @param lpAddrBook Pointer to addressbook object
  * @param lpMailer Mailer object used to send the lpMessage message containing the errors
  * @param lpMessage Failed message
  */
-HRESULT SendUndeliverable(LPADRBOOK lpAddrBook, ECSender *lpMailer,
-    LPMDB lpStore, LPMESSAGE lpMessage)
+HRESULT SendUndeliverable(ECSender *lpMailer, IMsgStore *lpStore,
+    IMessage *lpMessage)
 {
 	HRESULT		hr = hrSuccess;
 	LPMAPIFOLDER	lpInbox = NULL;
@@ -1329,14 +1328,13 @@ exit:
  * A contacts folder EntryID contains an offset that is an index in three different possible EntryID named properties.
  *
  * @param[in]	lpUserStore	The store of the user where the contact is stored.
- * @param[in]	lpAddrBook	The Global Addressbook of the user.
  * @param[in]	cbEntryId	The number of bytes in lpEntryId
  * @param[in]	lpEntryId	The contact EntryID
  * @param[in]	eid_size The number of bytes in eidp
  * @param[in]	eidp  The EntryID where the contact points to
  * @return		HRESULT
  */
-static HRESULT ContactToKopano(IMsgStore *lpUserStore, LPADRBOOK lpAddrBook,
+static HRESULT ContactToKopano(IMsgStore *lpUserStore,
     ULONG cbEntryId, const ENTRYID *lpEntryId, ULONG *eid_size,
     LPENTRYID *eidp)
 {
@@ -1778,7 +1776,7 @@ static HRESULT CheckSendAs(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 
 	hr = SMTPToZarafa(lpAddrBook, ulRepresentCB, lpRepresentEID, &sSpoofEID.Value.bin.cb, (LPENTRYID*)&sSpoofEID.Value.bin.lpb);
 	if (hr != hrSuccess)
-		hr = ContactToKopano(lpUserStore, lpAddrBook, ulRepresentCB, lpRepresentEID, &sSpoofEID.Value.bin.cb, (LPENTRYID*)&sSpoofEID.Value.bin.lpb);
+		hr = ContactToKopano(lpUserStore, ulRepresentCB, lpRepresentEID, &sSpoofEID.Value.bin.cb, (LPENTRYID*)&sSpoofEID.Value.bin.lpb);
 	if (hr == hrSuccess) {
 		ulRepresentCB = sSpoofEID.Value.bin.cb;
 		lpRepresentEID = (LPENTRYID)sSpoofEID.Value.bin.lpb;
@@ -1906,7 +1904,7 @@ static HRESULT CheckDelegate(IAddrBook *lpAddrBook, IMsgStore *lpUserStore,
 
 	hr = SMTPToZarafa(lpAddrBook, ulRepresentCB, lpRepresentEID, &sSpoofEID.Value.bin.cb, (LPENTRYID*)&sSpoofEID.Value.bin.lpb);
 	if (hr != hrSuccess)
-		hr = ContactToKopano(lpUserStore, lpAddrBook, ulRepresentCB, lpRepresentEID, &sSpoofEID.Value.bin.cb, (LPENTRYID*)&sSpoofEID.Value.bin.lpb);
+		hr = ContactToKopano(lpUserStore, ulRepresentCB, lpRepresentEID, &sSpoofEID.Value.bin.cb, (LPENTRYID*)&sSpoofEID.Value.bin.lpb);
 	if (hr == hrSuccess) {
 		ulRepresentCB = sSpoofEID.Value.bin.cb;
 		lpRepresentEID = (LPENTRYID)sSpoofEID.Value.bin.lpb;
@@ -2334,7 +2332,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 					goto exit;
 				if (!bAllowSendAs) {
 					g_lpLogger->Log(EC_LOGLEVEL_WARNING, "E-mail for user %ls may not be sent, notifying user", lpUser->lpszUsername);
-					HRESULT hr2 = SendUndeliverable(lpAddrBook, lpMailer, lpUserStore, lpMessage);
+					HRESULT hr2 = SendUndeliverable(lpMailer, lpUserStore, lpMessage);
 					if (hr2 != hrSuccess)
 						g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to create undeliverable message for user %ls: %s (%x)",
 							lpUser->lpszUsername, GetMAPIErrorMessage(hr2), hr2);
@@ -2497,7 +2495,7 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "E-mail for user %ls could not be sent, notifying user: %s (%x)",
 			lpUser->lpszUsername, GetMAPIErrorMessage(hr), hr);
 
-		hr = SendUndeliverable(lpAddrBook, lpMailer, lpUserStore, lpMessage);
+		hr = SendUndeliverable(lpMailer, lpUserStore, lpMessage);
 		if (hr != hrSuccess)
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to create undeliverable message for user %ls: %s (%x)",
 				lpUser->lpszUsername, GetMAPIErrorMessage(hr), hr);
@@ -2662,7 +2660,7 @@ HRESULT ProcessMessageForked(const wchar_t *szUsername, const char *szSMTP,
 		if (!lpMailer->haveError())
 			lpMailer->setError(_("Error found while trying to send your message. Error code: ") + wstringify(hr,true));
 		
-		hr = SendUndeliverable(lpAddrBook, lpMailer, lpUserStore, lpMessage);
+		hr = SendUndeliverable(lpMailer, lpUserStore, lpMessage);
 		if (hr != hrSuccess) {
 			// dont make parent complain too
 			hr = hrSuccess;
