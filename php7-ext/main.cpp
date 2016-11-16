@@ -7833,7 +7833,7 @@ ZEND_FUNCTION(mapi_mapitoical)
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
 	MAPI_G(hr) = lpMtIcal->Finalize(0, &method, &strical);
-	RETVAL_STRINGL(strical.c_str(), true);
+	RETVAL_STRING(strical.c_str());
  exit:
 	delete lpMtIcal;
 	LOG_END();
