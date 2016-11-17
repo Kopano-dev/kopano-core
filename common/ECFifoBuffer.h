@@ -40,7 +40,6 @@ public:
 	_kc_hidden bool IsClosed(ULONG flags) const;
 	_kc_hidden bool IsEmpty(void) const;
 	_kc_hidden bool IsFull(void) const;
-	_kc_hidden unsigned long Size(void);
 	
 private:
 	// prohibit copy
@@ -79,10 +78,6 @@ inline bool ECFifoBuffer::IsEmpty() const {
 
 inline bool ECFifoBuffer::IsFull() const {
 	return m_storage.size() == m_ulMaxSize;
-}
-
-inline unsigned long ECFifoBuffer::Size() {
-	return m_storage.size();
 }
 
 #endif // ndef ECFIFOBUFFER_H

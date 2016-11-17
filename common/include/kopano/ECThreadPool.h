@@ -50,8 +50,6 @@ public:
 	virtual bool dispatch(ECTask *lpTask, bool bTakeOwnership = false);
 	_kc_hidden unsigned int threadCount(void) const;
 	_kc_hidden void setThreadCount(unsigned int cuont, bool wait = false);
-	_kc_hidden struct timeval queueAge(void) const;
-	_kc_hidden bool waitForAllTasks(time_t timeout) const;
 	
 private:	// methods
 	_kc_hidden virtual bool getNextTask(STaskInfo *, std::unique_lock<std::mutex> &);

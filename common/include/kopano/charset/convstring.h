@@ -42,15 +42,8 @@ public:
 	operator std::string(void) const;
 	operator std::wstring(void) const;
 	const char *c_str() const;
-	_kc_hidden const wchar_t *wc_str(void) const;
 	const char *u8_str() const;
 
-#ifdef UNICODE
-	#define t_str	wc_str
-#else
-	#define t_str	c_str
-#endif
-	
 private:
 	template<typename T> _kc_hidden T convert_to(void) const;
 	template<typename T> _kc_hidden T convert_to(const char *tocode) const;
