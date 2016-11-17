@@ -4600,20 +4600,6 @@ HRESULT WSTransport::HrCancelIO()
 	 * with a blocking recv() on the socket to return with an error), is not 100% portable. 
 	 * Apparently (and this is untested), some UNIX variants don't return until some data
 	 * is received on the socket. Bummer. It works in Linux though.
-	 *
-	 * Win32 is a whole different story, we can summarize it to: this function does nothing on win32.
-	 * The long story is this:
-	 *		fshutdownsocket() on a named pipe (offline server) is not implemented and thus will not
-	 *		work. Microsoft documentation doesn't give any hints about shutting down a named pipe
-	 *		without calling fclose().
-	 *		fshutdownsocket() on TCP socket does not break off any blocking TCP send/recv calls
-	 *		which means the socket will only be closed _after_ the last blocking call has been
-	 *		finalized.
-	 *		fstop() on a named pipe will wait until all blocking send/recv calls to the server
-	 *		have been finalized. It will ignore SO_LINGER/SO_DONTLINGER settings on the socket,
-	 *		this means it should not be used in this function since we don't want to wait
-	 *		on the send/recv calls but we want to STOP them.
-	 *		fstop() on a TCP socket will work as expected and shutsdown all blocking send/recv calls.
 	 */
 	if (m_lpCmd == NULL || m_lpCmd->soap == NULL)
 		return hrSuccess;

@@ -782,8 +782,6 @@ __soapentry_exit: \
     } \
     return SOAP_OK;
 
-// This is the variadic macro we would like to use. Unfortunately, the win32 vc++ compiler
-// doesn't understand variadic macro's, so we have to split them into the cases below...
 #define SOAP_ENTRY_START(fname,resultvar,...) \
 int ns__##fname(struct soap *soap, ULONG64 ulSessionId, ##__VA_ARGS__) \
 { \

@@ -79,8 +79,6 @@ static void sigterm(int s)
 
 static void sighup(int sig)
 {
-	// In Win32, the signal is sent in a separate, special signal thread. So this test is
-	// not needed or required.
 	if (bThreads && pthread_equal(pthread_self(), mainthread)==0)
 		return;
 	if (g_lpConfig != nullptr && !g_lpConfig->ReloadSettings() &&
