@@ -340,11 +340,10 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 	// check PR_ATTACH_METHOD to determine Attachment or email
 	ulAttachmentMethod = ATTACH_BY_VALUE;
 	pPropAttachType	= PpropFindProp(lpRow->lpProps, lpRow->cValues, PR_ATTACH_METHOD);
-	if (pPropAttachType == NULL) {
+	if (pPropAttachType == NULL)
 		ec_log_warn("Attachment method not present for attachment %d, assuming default value", ulAttachmentNum);
-	} else {
+	else
 		ulAttachmentMethod = pPropAttachType->Value.ul;
-	}
 
 	if (ulAttachmentMethod == ATTACH_EMBEDDED_MSG) {
 		vmime::shared_ptr<vmime::message> vmNewMess;
@@ -1230,12 +1229,11 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage,
 			MAPIFreeBuffer(lpNameID);
 			lpNameID = NULL;
 
-			if (HrGetOneProp(lpMessage, CHANGE_PROP_TYPE(lpPropTags->aulPropTag[0], PT_STRING8), &lpPropContentType) == hrSuccess) {
+			if (HrGetOneProp(lpMessage, CHANGE_PROP_TYPE(lpPropTags->aulPropTag[0], PT_STRING8), &lpPropContentType) == hrSuccess)
 				lpszContentType = lpPropContentType->Value.lpszA;
-			} else {
+			else
 				// default, or exit?
 				lpszContentType = "application/x-pkcs7-mime;smime-type=enveloped-data;name=smime.p7m";
-			}
 
 			vmMessage->getHeader()->ContentType()->parse(lpszContentType);
 			MAPIFreeBuffer(lpPropContentType);
@@ -2246,23 +2244,14 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
         }
 	
         // Start processing TNEF properties
-
-		if(HrGetOneProp(lpMessage, PR_EC_SEND_AS_ICAL, &lpSendAsICal) != hrSuccess) {
+		if (HrGetOneProp(lpMessage, PR_EC_SEND_AS_ICAL, &lpSendAsICal) != hrSuccess)
 			lpSendAsICal = NULL;
-		}
-		
-		if(HrGetOneProp(lpMessage, PR_EC_OUTLOOK_VERSION, &lpOutlookVersion) != hrSuccess) {
+		if (HrGetOneProp(lpMessage, PR_EC_OUTLOOK_VERSION, &lpOutlookVersion) != hrSuccess)
 			lpOutlookVersion = NULL;
-		} 
-		
-		if(HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &lpMessageClass) != hrSuccess) {
+		if (HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &lpMessageClass) != hrSuccess)
 			lpMessageClass = NULL;
-		}
-
-		if(HrGetOneProp(lpMessage, PR_DELEGATED_BY_RULE, &lpDelegateRule) != hrSuccess) {
+		if (HrGetOneProp(lpMessage, PR_DELEGATED_BY_RULE, &lpDelegateRule) != hrSuccess)
 			lpDelegateRule = NULL;
-		}
-
 		if (iUseTnef > 0)
 			strTnefReason = "Force TNEF on request";
 

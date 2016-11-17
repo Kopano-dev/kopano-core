@@ -3982,16 +3982,14 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 		if (m_lpTable) {
             // First, see if the next row is somewhere in our already-read data
             lpRow = NULL;
-            if(lpRows) {
+            if (lpRows != nullptr)
 				// use nRow to start checking where we left off
-                for (unsigned int i = nRow + 1; i < lpRows->cRows; ++i) {
+                for (unsigned int i = nRow + 1; i < lpRows->cRows; ++i)
                     if(lpRows->aRow[i].lpProps[0].ulPropTag == PR_INSTANCE_KEY && BinaryArray(lpRows->aRow[i].lpProps[0].Value.bin) == BinaryArray(sPropVal.Value.bin)) {
                         lpRow = &lpRows->aRow[i];
 						nRow = i;
 						break;
                     }
-                }
-            }
 
             if(lpRow == NULL) {
                 if(lpRows)

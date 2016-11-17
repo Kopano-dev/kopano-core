@@ -231,10 +231,8 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 
 			// find the original received body
 			// vmime re-generates different headers and spacings, so we can't use this.
-			if (posHeaderEnd != string::npos) {
+			if (posHeaderEnd != string::npos)
 				os.write(input.c_str() + posHeaderEnd, input.size() - posHeaderEnd);
-			}
-
 			hr = lpStream->Commit(0);
 			if (hr != hrSuccess)
 				goto exit;
@@ -694,11 +692,10 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 				wstrSenderName = wstrFromName;
 				strSenderEmail = strFromEmail;
 			} else {
-				if (!vmime::dynamicCast<vmime::mailbox>(vmHeader->Sender()->getValue())->getName().isEmpty()) {
+				if (!vmime::dynamicCast<vmime::mailbox>(vmHeader->Sender()->getValue())->getName().isEmpty())
 					wstrSenderName = getWideFromVmimeText(vmime::dynamicCast<vmime::mailbox>(vmHeader->Sender()->getValue())->getName());
-				} else {
+				else
 					wstrSenderName = m_converter.convert_to<wstring>(strSenderEmail);
-				}
 			}
 
 			hr = modifyFromAddressBook(&lpRecipProps, &ulRecipProps,
@@ -856,15 +853,14 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			transform(sensitivity.begin(), sensitivity.end(), sensitivity.begin(), ::tolower);
 
 			sSensitivity[0].ulPropTag = PR_SENSITIVITY;
-			if (sensitivity.compare("personal") == 0) {
+			if (sensitivity.compare("personal") == 0)
 				sSensitivity[0].Value.ul = SENSITIVITY_PERSONAL;
-			} else if (sensitivity.compare("private") == 0) {
+			else if (sensitivity.compare("private") == 0)
 				sSensitivity[0].Value.ul = SENSITIVITY_PRIVATE;
-			} else if (sensitivity.compare("company-confidential") == 0) {
+			else if (sensitivity.compare("company-confidential") == 0)
 				sSensitivity[0].Value.ul = SENSITIVITY_COMPANY_CONFIDENTIAL;
-			} else {
+			else
 				sSensitivity[0].Value.ul = SENSITIVITY_NONE;
-			}
 
 			hr = lpMessage->SetProps(1, sSensitivity, NULL);
 			if (hr != hrSuccess)
@@ -1210,11 +1206,10 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
 				vmText = mbx->getName();
 			}
 
-			if (!vmText.isEmpty()) {
+			if (!vmText.isEmpty())
 				wstrName = getWideFromVmimeText(vmText);
-			} else {
+			else
 				wstrName.clear();
-			}
 		}
 		catch (vmime::exception& e) {
 			ec_log_err("VMIME exception on modify recipient: %s", e.what());
@@ -1445,11 +1440,10 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals, ULONG *lpu
 	if (PROP_TYPE(lpPropsList->aulPropTag[2]) != PT_NULL) {
 		lpProp = PpropFindProp(lpAdrList->aEntries[0].rgPropVals, lpAdrList->aEntries[0].cValues, PR_DISPLAY_TYPE);
 		sRecipProps[cValues].ulPropTag = lpPropsList->aulPropTag[2]; // PR_xxx_DISPLAY_TYPE;
-		if (!lpProp) {
+		if (lpProp == nullptr)
 			sRecipProps[cValues].Value.ul = DT_MAILUSER;
-		} else {
+		else
 			sRecipProps[cValues].Value.ul = lpProp->Value.ul;
-		}
 		++cValues;
 	}
 
@@ -1505,11 +1499,10 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals, ULONG *lpu
 
 	lpProp = PpropFindProp(lpAdrList->aEntries[0].rgPropVals, lpAdrList->aEntries[0].cValues, PR_OBJECT_TYPE);
 	assert(lpProp);
-	if (!lpProp) {
+	if (lpProp == nullptr)
 		sRecipProps[cValues].Value.ul = MAPI_MAILUSER;
-	} else {
+	else
 		sRecipProps[cValues].Value.ul = lpProp->Value.ul;
-	}
 	sRecipProps[cValues].ulPropTag = PR_OBJECT_TYPE;
 	++cValues;
 
@@ -2648,17 +2641,16 @@ HRESULT VMIMEToMAPI::handleAttachment(vmime::shared_ptr<vmime::header> vmHeader,
 		}
 
 		// filenames
-		if (cdf->hasParameter("filename")) {
+		if (cdf->hasParameter("filename"))
 			strLongFilename = getWideFromVmimeText(vmime::text(cdf->getFilename()));
-		} else if (ctf->hasParameter("name")) {
+		else if (ctf->hasParameter("name"))
 			strLongFilename = getWideFromVmimeText(vmime::text(ctf->getParameter("name")->getValue()));
-		} else if (mt->getType() == vmime::mediaTypes::TEXT && mt->getSubType() == "calendar") {
+		else if (mt->getType() == vmime::mediaTypes::TEXT && mt->getSubType() == "calendar")
 			// already catched in message-in-message code.
 			strLongFilename = L"calendar.ics";
-		} else {
+		else
 			// TODO: add guessFilenameFromContentType()
 			strLongFilename = L"inline.txt";
-		}
 
 		attProps[nProps].ulPropTag = PR_ATTACH_LONG_FILENAME_W;
 		attProps[nProps++].Value.lpszW = (WCHAR*)strLongFilename.c_str();
@@ -3544,13 +3536,13 @@ HRESULT VMIMEToMAPI::messagePartToStructure(const string &input,
 
 	try {
 		vmime::shared_ptr<vmime::contentTypeField> ctf;
-		if (vmHeaderPart->hasField(vmime::fields::CONTENT_TYPE)) {
+		if (vmHeaderPart->hasField(vmime::fields::CONTENT_TYPE))
 			// use Content-Type header from part
 			ctf = vmime::dynamicCast<vmime::contentTypeField>(vmHeaderPart->ContentType());
-		} else {
+		else
 			// create empty default Content-Type header
 			ctf = vmime::dynamicCast<vmime::contentTypeField>(vmime::headerFieldFactory::getInstance()->create("Content-Type", ""));
-		}
+
 		auto mt = vmime::dynamicCast<vmime::mediaType>(ctf->getValue());
 		if (mt->getType() == vmime::mediaTypes::MULTIPART) {
 			// handle multipart
