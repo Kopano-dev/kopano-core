@@ -221,7 +221,7 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 
 			// open stream
 			hr = lpAtt->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, STGM_WRITE|STGM_TRANSACTED,
-									 MAPI_CREATE|MAPI_MODIFY, (LPUNKNOWN *)&lpStream);
+			     MAPI_CREATE | MAPI_MODIFY, (LPUNKNOWN *)&lpStream);
 			if (hr != hrSuccess)
 				goto exit;
 
@@ -671,7 +671,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 				msgProps[nProps].ulPropTag = PR_SENT_REPRESENTING_ADDRTYPE_W;
 				msgProps[nProps++].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
 				hr = ECCreateOneOff((LPTSTR)wstrFromName.c_str(), (LPTSTR)L"SMTP", (LPTSTR)m_converter.convert_to<wstring>(strFromEmail).c_str(),
-									MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbFromEntryID, &lpFromEntryID);
+				     MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbFromEntryID, &lpFromEntryID);
 				if(hr != hrSuccess)
 					goto exit;
 
@@ -691,11 +691,10 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 				// Fallback on the original from address
 				wstrSenderName = wstrFromName;
 				strSenderEmail = strFromEmail;
+			} else if (!vmime::dynamicCast<vmime::mailbox>(vmHeader->Sender()->getValue())->getName().isEmpty()) {
+				wstrSenderName = getWideFromVmimeText(vmime::dynamicCast<vmime::mailbox>(vmHeader->Sender()->getValue())->getName());
 			} else {
-				if (!vmime::dynamicCast<vmime::mailbox>(vmHeader->Sender()->getValue())->getName().isEmpty())
-					wstrSenderName = getWideFromVmimeText(vmime::dynamicCast<vmime::mailbox>(vmHeader->Sender()->getValue())->getName());
-				else
-					wstrSenderName = m_converter.convert_to<wstring>(strSenderEmail);
+				wstrSenderName = m_converter.convert_to<wstring>(strSenderEmail);
 			}
 
 			hr = modifyFromAddressBook(&lpRecipProps, &ulRecipProps,
@@ -724,7 +723,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 				msgProps[nProps].ulPropTag = PR_SENDER_ADDRTYPE_W;
 				msgProps[nProps++].Value.lpszW = const_cast<wchar_t *>(L"SMTP");
 				hr = ECCreateOneOff((LPTSTR)wstrSenderName.c_str(), (LPTSTR)L"SMTP", (LPTSTR)m_converter.convert_to<wstring>(strSenderEmail).c_str(),
-									MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbSenderEntryID, &lpSenderEntryID);
+				     MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbSenderEntryID, &lpSenderEntryID);
 				if(hr != hrSuccess)
 					goto exit;
 
@@ -1260,26 +1259,26 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
 		
 			lpRecipients->aEntries[iRecipNum].rgPropVals[1].ulPropTag		= PR_DISPLAY_NAME_W;
 			hr = MAPIAllocateMore((wstrName.size()+1) * sizeof(WCHAR), lpRecipients->aEntries[iRecipNum].rgPropVals,
-								  (void **)&lpRecipients->aEntries[iRecipNum].rgPropVals[1].Value.lpszW);
+			     (void **)&lpRecipients->aEntries[iRecipNum].rgPropVals[1].Value.lpszW);
 			if (hr != hrSuccess)
 				goto exit;
 			wcscpy(lpRecipients->aEntries[iRecipNum].rgPropVals[1].Value.lpszW, wstrName.c_str());
 
 			lpRecipients->aEntries[iRecipNum].rgPropVals[2].ulPropTag		= PR_SMTP_ADDRESS_A;
 			hr = MAPIAllocateMore(strEmail.size()+1, lpRecipients->aEntries[iRecipNum].rgPropVals,
-								  (void **)&lpRecipients->aEntries[iRecipNum].rgPropVals[2].Value.lpszA);
+			     (void **)&lpRecipients->aEntries[iRecipNum].rgPropVals[2].Value.lpszA);
 			if (hr != hrSuccess)
 				goto exit;
 			strcpy(lpRecipients->aEntries[iRecipNum].rgPropVals[2].Value.lpszA, strEmail.c_str());
 
 			lpRecipients->aEntries[iRecipNum].rgPropVals[3].ulPropTag		= PR_ENTRYID;
 			hr = ECCreateOneOff((LPTSTR)wstrName.c_str(), (LPTSTR)L"SMTP", (LPTSTR)m_converter.convert_to<wstring>(strEmail).c_str(),
-								MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbEntryID, &lpEntryID);
+			     MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbEntryID, &lpEntryID);
 			if (hr != hrSuccess)
 				goto exit;
 				
 			hr = MAPIAllocateMore(cbEntryID, lpRecipients->aEntries[iRecipNum].rgPropVals,
-								  (void **)&lpRecipients->aEntries[iRecipNum].rgPropVals[3].Value.bin.lpb);
+			     (void **)&lpRecipients->aEntries[iRecipNum].rgPropVals[3].Value.bin.lpb);
 			if (hr != hrSuccess)
 				goto exit;
 
@@ -1294,7 +1293,7 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
 			lpRecipients->aEntries[iRecipNum].rgPropVals[5].ulPropTag	= PR_SEARCH_KEY;
 			lpRecipients->aEntries[iRecipNum].rgPropVals[5].Value.bin.cb = strSearch.size() + 1; // we include the trailing 0 as MS does this also
 			hr = MAPIAllocateMore(strSearch.size()+1, lpRecipients->aEntries[iRecipNum].rgPropVals,
-								  (void **)&lpRecipients->aEntries[iRecipNum].rgPropVals[5].Value.bin.lpb);
+			     (void **)&lpRecipients->aEntries[iRecipNum].rgPropVals[5].Value.bin.lpb);
 			if (hr != hrSuccess)
 				goto exit;
 			memcpy(lpRecipients->aEntries[iRecipNum].rgPropVals[5].Value.bin.lpb, strSearch.c_str(), strSearch.size()+1);
@@ -1302,7 +1301,7 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
 			// Add Email address
 			lpRecipients->aEntries[iRecipNum].rgPropVals[6].ulPropTag		= PR_EMAIL_ADDRESS_A;
 			hr = MAPIAllocateMore(strEmail.size()+1, lpRecipients->aEntries[iRecipNum].rgPropVals,
-								  (void **)&lpRecipients->aEntries[iRecipNum].rgPropVals[6].Value.lpszA);
+			     (void **)&lpRecipients->aEntries[iRecipNum].rgPropVals[6].Value.lpszA);
 			if (hr != hrSuccess)
 				goto exit;
 			strcpy(lpRecipients->aEntries[iRecipNum].rgPropVals[6].Value.lpszA, strEmail.c_str());
@@ -1886,9 +1885,9 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 			if (hr != hrSuccess)
 				goto exit;
 		// Only handle as inline text if no filename is specified and not specified as 'attachment'
-		} else if (	mt->getType() == vmime::mediaTypes::TEXT &&
-					(mt->getSubType() == vmime::mediaTypes::TEXT_PLAIN || mt->getSubType() == vmime::mediaTypes::TEXT_HTML) &&
-					!bIsAttachment) {
+		} else if (mt->getType() == vmime::mediaTypes::TEXT &&
+		    (mt->getSubType() == vmime::mediaTypes::TEXT_PLAIN || mt->getSubType() == vmime::mediaTypes::TEXT_HTML) &&
+		    !bIsAttachment) {
 			if (mt->getSubType() == vmime::mediaTypes::TEXT_HTML || (m_mailState.bodyLevel == BODY_HTML && bAppendBody)) {
 				// handle real html part, or append a plain text bodypart to the html main body
 				// subtype guaranteed html or plain.
@@ -2544,7 +2543,7 @@ HRESULT VMIMEToMAPI::handleAttachment(vmime::shared_ptr<vmime::header> vmHeader,
 
 	// open stream
 	hr = lpAtt->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, STGM_WRITE|STGM_TRANSACTED,
-							MAPI_CREATE|MAPI_MODIFY, (LPUNKNOWN *)&lpStream);
+	     MAPI_CREATE | MAPI_MODIFY, (LPUNKNOWN *)&lpStream);
 	if (hr != hrSuccess)
 		goto exit;
 

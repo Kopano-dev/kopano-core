@@ -220,9 +220,9 @@ HRESULT MAPIToVMIME::processRecipients(IMessage *lpMessage, vmime::messageBuilde
 				pPropAType = PpropFindProp(pRows->aRow[i].lpProps, pRows->aRow[i].cValues, PR_ADDRTYPE_W);
 				pPropEAddr = PpropFindProp(pRows->aRow[i].lpProps, pRows->aRow[i].cValues, PR_EMAIL_ADDRESS_W);
 				ec_log_err("No recipient type set for recipient. DisplayName: %ls, AddrType: %ls, Email: %ls",
-							  pPropDispl?pPropDispl->Value.lpszW:L"(none)",
-							  pPropAType?pPropAType->Value.lpszW:L"(none)",
-							  pPropEAddr?pPropEAddr->Value.lpszW:L"(none)");
+					pPropDispl ? pPropDispl->Value.lpszW : L"(none)",
+					pPropAType ? pPropAType->Value.lpszW : L"(none)",
+					pPropEAddr ? pPropEAddr->Value.lpszW : L"(none)");
 				continue;
 			}
 
@@ -2041,8 +2041,8 @@ HRESULT MAPIToVMIME::handleReplyTo(IMessage *lpMessage,
 
 	// "Email1DisplayName","Email1AddressType","Email1Address","Email1EntryID"
 	ULONG lpulNamesIDs[] = {0x8080, 0x8082, 0x8083, 0x8085,
-							0x8090, 0x8092, 0x8093, 0x8095,
-							0x80A0, 0x80A2, 0x80A3, 0x80A5};
+				0x8090, 0x8092, 0x8093, 0x8095,
+				0x80A0, 0x80A2, 0x80A3, 0x80A5};
 	ULONG cNames, i, offset;
 	LPMAPINAMEID lpNames = NULL;
 	LPMAPINAMEID *lppNames = NULL;

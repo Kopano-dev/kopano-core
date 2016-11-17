@@ -3997,13 +3997,13 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
                 lpRows = NULL;
                 
                 // Row was not found in our current data, request new data
-                if(m_lpTable->FindRow(&sRestriction, BOOKMARK_CURRENT, 0) == hrSuccess && m_lpTable->QueryRows(ulReadAhead, 0, &lpRows) == hrSuccess) {
-					if (lpRows->cRows != 0) {
-						// The row we want is the first returned row
-						lpRow = &lpRows->aRow[0];
-						nRow = 0;
-					}
-                }
+				if (m_lpTable->FindRow(&sRestriction, BOOKMARK_CURRENT, 0) == hrSuccess &&
+				    m_lpTable->QueryRows(ulReadAhead, 0, &lpRows) == hrSuccess &&
+				    lpRows->cRows != 0) {
+					// The row we want is the first returned row
+					lpRow = &lpRows->aRow[0];
+					nRow = 0;
+				}
             }
             
 		    // Pass the row data for conversion
@@ -4263,13 +4263,12 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 				// no full imap email in database available, so regenerate all
 				if (hr != hrSuccess) {
 					assert(lpMessage);
-					if (oss.tellp() == ostringstream::pos_type(0)) { // already converted in previous loop?
-						if (lpMessage == NULL || IMToINet(lpSession, lpAddrBook, lpMessage, oss, sopt) != hrSuccess) {
-							vProps.push_back(item);
-							vProps.push_back("NIL");
-							lpLogger->Log(EC_LOGLEVEL_WARNING, "Error in generating message %d for user %ls in folder %ls", ulMailnr+1, m_strwUsername.c_str(), strCurrentFolder.c_str());
-							continue;
-						}
+					if (oss.tellp() == ostringstream::pos_type(0) && // already converted in previous loop?
+					    (lpMessage == NULL || IMToINet(lpSession, lpAddrBook, lpMessage, oss, sopt) != hrSuccess)) {
+						vProps.push_back(item);
+						vProps.push_back("NIL");
+						lpLogger->Log(EC_LOGLEVEL_WARNING, "Error in generating message %d for user %ls in folder %ls", ulMailnr+1, m_strwUsername.c_str(), strCurrentFolder.c_str());
+						continue;
 					}
 					strMessage = oss.str();
 					hr = hrSuccess;

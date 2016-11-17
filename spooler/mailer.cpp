@@ -1459,49 +1459,38 @@ static HRESULT SMTPToZarafa(LPADRBOOK lpAddrBook, ULONG ulSMTPEID,
 
 	// representing entryid can also be a one off id, so search the user, and then get the entryid again ..
 	// we then always should have yourself as the sender, otherwise: denied
-	if (ECParseOneOff(lpSMTPEID, ulSMTPEID, wstrName, wstrType, wstrEmailAddress) == hrSuccess) {
-		if ((hr = MAPIAllocateBuffer(CbNewADRLIST(1), (void**)&lpAList)) != hrSuccess)
-			goto exit;
-
-		lpAList->cEntries = 1;
-
-		lpAList->aEntries[0].cValues = 1;
-		if ((hr = MAPIAllocateBuffer(sizeof(SPropValue) * lpAList->aEntries[0].cValues, (void**)&lpAList->aEntries[0].rgPropVals)) != hrSuccess)
-			goto exit;
-
-		lpAList->aEntries[0].rgPropVals[0].ulPropTag = PR_DISPLAY_NAME_W;
-		lpAList->aEntries[0].rgPropVals[0].Value.lpszW = (WCHAR*)wstrEmailAddress.c_str();
-	
-		hr = lpAddrBook->ResolveName(0, EMS_AB_ADDRESS_LOOKUP, NULL, lpAList);
-		if (hr != hrSuccess) {
-			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SMTPToZarafa(): ResolveName failed %x", hr);
-			goto exit;
-		}
-
-		lpSpoofEID = PpropFindProp(lpAList->aEntries[0].rgPropVals, lpAList->aEntries[0].cValues, PR_ENTRYID);
-		if (!lpSpoofEID) {
-			hr = MAPI_E_NOT_FOUND;
-			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SMTPToZarafa(): PpropFindProp failed %x", hr);
-			goto exit;
-		}
-
-		hr = MAPIAllocateBuffer(lpSpoofEID->Value.bin.cb, (void**)&lpSpoofBin);
-		if (hr != hrSuccess) {
-			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SMTPToZarafa(): MAPIAllocateBuffer failed %x", hr);
-			goto exit;
-		}
-
-		memcpy(lpSpoofBin, lpSpoofEID->Value.bin.lpb, lpSpoofEID->Value.bin.cb);
-		*eidp = lpSpoofBin;
-		*eid_size = lpSpoofEID->Value.bin.cb;
-	} else {
-		hr = MAPI_E_NOT_FOUND;
+	if (ECParseOneOff(lpSMTPEID, ulSMTPEID, wstrName, wstrType, wstrEmailAddress) != hrSuccess)
+		return MAPI_E_NOT_FOUND;
+	if ((hr = MAPIAllocateBuffer(CbNewADRLIST(1), (void**)&lpAList)) != hrSuccess)
+		goto exit;
+	lpAList->cEntries = 1;
+	lpAList->aEntries[0].cValues = 1;
+	if ((hr = MAPIAllocateBuffer(sizeof(SPropValue) * lpAList->aEntries[0].cValues, (void**)&lpAList->aEntries[0].rgPropVals)) != hrSuccess)
+		goto exit;
+	lpAList->aEntries[0].rgPropVals[0].ulPropTag = PR_DISPLAY_NAME_W;
+	lpAList->aEntries[0].rgPropVals[0].Value.lpszW = (WCHAR*)wstrEmailAddress.c_str();
+	hr = lpAddrBook->ResolveName(0, EMS_AB_ADDRESS_LOOKUP, NULL, lpAList);
+	if (hr != hrSuccess) {
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SMTPToZarafa(): ResolveName failed %x", hr);
+		goto exit;
 	}
-
+	lpSpoofEID = PpropFindProp(lpAList->aEntries[0].rgPropVals, lpAList->aEntries[0].cValues, PR_ENTRYID);
+	if (!lpSpoofEID) {
+		hr = MAPI_E_NOT_FOUND;
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SMTPToZarafa(): PpropFindProp failed %x", hr);
+		goto exit;
+	}
+	hr = MAPIAllocateBuffer(lpSpoofEID->Value.bin.cb, (void**)&lpSpoofBin);
+	if (hr != hrSuccess) {
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SMTPToZarafa(): MAPIAllocateBuffer failed %x", hr);
+		goto exit;
+	}
+	memcpy(lpSpoofBin, lpSpoofEID->Value.bin.lpb, lpSpoofEID->Value.bin.cb);
+	*eidp = lpSpoofBin;
+	*eid_size = lpSpoofEID->Value.bin.cb;
 exit:
 	if (lpAList)
 		FreePadrlist(lpAList);
-
 	return hr;
 }
 
