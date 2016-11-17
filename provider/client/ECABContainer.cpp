@@ -133,6 +133,10 @@ HRESULT	ECABContainer::DefaultABContainerGetProp(ULONG ulPropTag, void* lpProvid
 	switch(PROP_ID(ulPropTag)) {
 	case PROP_ID(PR_EMSMDB_SECTION_UID): {
 		ECABLogon *lpLogon = (ECABLogon *)lpProvider;
+		if (lpLogon->m_lpMAPISup == nullptr) {
+			hr = MAPI_E_NOT_FOUND;
+			goto exit;
+		}
 		hr = lpLogon->m_lpMAPISup->OpenProfileSection(NULL, 0, &lpProfSect);
 		if(hr != hrSuccess)
 			goto exit;

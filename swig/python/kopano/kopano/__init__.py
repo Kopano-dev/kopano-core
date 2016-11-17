@@ -1262,6 +1262,14 @@ class Group(object):
         except (MAPIErrorNotFound, MAPIErrorInvalidParameter):
             raise NotFoundError("no such group '%s'" % name)
 
+        self._mapiobj = None
+
+    @property
+    def mapiobj(self):
+        if not self._mapiobj:
+            self._mapiobj = self.server.mapisession.OpenEntry(self._ecgroup.GroupID, None, 0)
+        return self._mapiobj
+
     @property
     def groupid(self):
         return bin2hex(self._ecgroup.GroupID)
@@ -1325,6 +1333,12 @@ class Group(object):
     def hidden(self, value):
         self._update(hidden=value)
 
+    def prop(self, proptag):
+        return _prop(self, self.mapiobj, proptag)
+
+    def props(self):
+        return _props(self.mapiobj)
+
     # XXX: also does groups..
     def add_user(self, user):
         if isinstance(user, Group):
@@ -1375,6 +1389,14 @@ class Company(object):
             except MAPIErrorNotFound:
                 raise NotFoundError("no such company: '%s'" % name)
 
+        self._mapiobj = None
+
+    @property
+    def mapiobj(self):
+        if not self._mapiobj:
+            self._mapiobj = self.server.mapisession.OpenEntry(self._eccompany.CompanyID, None, 0)
+        return self._mapiobj
+
     @property
     def companyid(self): # XXX single-tenant case
         return bin2hex(self._eccompany.CompanyID)
@@ -1404,6 +1426,12 @@ class Company(object):
         else:
             for store in self.server.stores():
                 yield store
+
+    def prop(self, proptag):
+        return _prop(self, self.mapiobj, proptag)
+
+    def props(self):
+        return _props(self.mapiobj)
 
     @property
     def public_store(self):

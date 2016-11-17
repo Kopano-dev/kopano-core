@@ -318,22 +318,24 @@ class ECUSER(MAPIStruct):
 # @todo sGroupId ECENTRYID?
 # @todo propmap?
 class ECGROUP(MAPIStruct):
-    def __init__(self, Groupname, Fullname, Email, IsHidden = False, GroupID = None):
+    def __init__(self, Groupname, Fullname, Email, IsHidden = False, GroupID = None, MVPropMap = None):
         self.Groupname = Groupname
         self.Fullname = Fullname
         self.Email = Email
         self.IsHidden = IsHidden
         self.GroupID = GroupID
+        self.MVPropMap = MVPropMap
 
 # @todo sCompanyId ECENTRYID?
 # @todo sAdministrator ECENTRYID?
 # @todo propmap?
 class ECCOMPANY(MAPIStruct):
-    def __init__(self, Companyname, Servername, IsHidden = False, CompanyID = None):
+    def __init__(self, Companyname, Servername, IsHidden = False, CompanyID = None, MVPropMap = None):
         self.Companyname = Companyname
         self.Servername = Servername
         self.IsHidden = IsHidden
         self.CompanyID = CompanyID
+        self.MVPropMap = MVPropMap
 
 class ECUSERCLIENTUPDATESTATUS(MAPIStruct):
     def __init__(self, TrackId, Updatetime, Currentversion, Latestversion, Computername, Status):

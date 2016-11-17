@@ -2696,7 +2696,8 @@ exit:
 	return list;
 }
 
-void Object_to_MVPROPMAP(PyObject *elem, ECUSER *&lpUser, ULONG ulFlags)
+template<typename T> void
+Object_to_MVPROPMAP(PyObject *elem, T *&lpObj, ULONG ulFlags)
 {
 	HRESULT hr = hrSuccess;
 	PyObject *MVPropMaps, *Item, *PropID, *ListItem, *Values;
@@ -2719,8 +2720,8 @@ void Object_to_MVPROPMAP(PyObject *elem, ECUSER *&lpUser, ULONG ulFlags)
 	}
 
 	/* If we have more mv props than the feature lists, adjust this value! */
-	lpUser->sMVPropmap.cEntries = 2;
-	hr = MAPIAllocateMore(sizeof(MVPROPMAPENTRY) * lpUser->sMVPropmap.cEntries, lpUser, reinterpret_cast<void **>(&lpUser->sMVPropmap.lpEntries));
+	lpObj->sMVPropmap.cEntries = 2;
+	hr = MAPIAllocateMore(sizeof(MVPROPMAPENTRY) * lpObj->sMVPropmap.cEntries, lpObj, reinterpret_cast<void **>(&lpObj->sMVPropmap.lpEntries));
 
 	for (int i = 0; i < MVPropMapsSize; ++i) {
 		Item = PyList_GetItem(MVPropMaps, i);
@@ -2737,16 +2738,16 @@ void Object_to_MVPROPMAP(PyObject *elem, ECUSER *&lpUser, ULONG ulFlags)
 		}
 
 		/* Set default struct entry to empty stub values */
-		lpUser->sMVPropmap.lpEntries[i].ulPropId = PyLong_AsUnsignedLong(PropID);
-		lpUser->sMVPropmap.lpEntries[i].cValues = 0;
-		lpUser->sMVPropmap.lpEntries[i].lpszValues = NULL;
+		lpObj->sMVPropmap.lpEntries[i].ulPropId = PyLong_AsUnsignedLong(PropID);
+		lpObj->sMVPropmap.lpEntries[i].cValues = 0;
+		lpObj->sMVPropmap.lpEntries[i].lpszValues = NULL;
 
 		//if ((PropID != NULL && PropID != Py_None) && (Values != NULL && Values != Py_None && PyList_Check(Values)))
 		ValuesLength = PyList_Size(Values);
-		lpUser->sMVPropmap.lpEntries[i].cValues = ValuesLength;
+		lpObj->sMVPropmap.lpEntries[i].cValues = ValuesLength;
 
 		if (ValuesLength > 0) {
-			hr = MAPIAllocateMore(sizeof(LPTSTR) * lpUser->sMVPropmap.lpEntries[i].cValues, lpUser, reinterpret_cast<void **>(&lpUser->sMVPropmap.lpEntries[i].lpszValues));
+			hr = MAPIAllocateMore(sizeof(LPTSTR) * lpObj->sMVPropmap.lpEntries[i].cValues, lpObj, reinterpret_cast<void **>(&lpObj->sMVPropmap.lpEntries[i].lpszValues));
 			if (hr != hrSuccess) {
 				PyErr_SetString(PyExc_RuntimeError, "Out of memory");
 				Py_DECREF(PropID);
@@ -2762,9 +2763,9 @@ void Object_to_MVPROPMAP(PyObject *elem, ECUSER *&lpUser, ULONG ulFlags)
 			if (ListItem != Py_None) {
 				if ((ulFlags & MAPI_UNICODE) == 0)
 					// XXX: meh, not sure what todo here. Maybe use process_conv_out??
-					lpUser->sMVPropmap.lpEntries[i].lpszValues[j] = reinterpret_cast<TCHAR *>(PyString_AsString(ListItem));
+					lpObj->sMVPropmap.lpEntries[i].lpszValues[j] = reinterpret_cast<TCHAR *>(PyString_AsString(ListItem));
 				else
-					CopyPyUnicode(&lpUser->sMVPropmap.lpEntries[i].lpszValues[j], ListItem, lpUser);
+					CopyPyUnicode(&lpObj->sMVPropmap.lpEntries[i].lpszValues[j], ListItem, lpObj);
 			}
 		}
 
@@ -2934,7 +2935,7 @@ ECGROUP *Object_to_LPECGROUP(PyObject *elem, ULONG ulFlags)
 	memset(lpGroup, 0, sizeof *lpGroup);
 
 	process_conv_out_array(lpGroup, elem, conv_info, lpGroup, ulFlags);
-
+	Object_to_MVPROPMAP(elem, lpGroup, ulFlags);
 exit:
 	if (PyErr_Occurred()) {
 		MAPIFreeBuffer(lpGroup);
@@ -2946,14 +2947,16 @@ exit:
 
 PyObject *Object_from_LPECGROUP(ECGROUP *lpGroup, ULONG ulFlags)
 {
+	PyObject *MVProps = Object_from_MVPROPMAP(lpGroup->sMVPropmap, ulFlags);
 	PyObject *groupid = PyBytes_FromStringAndSize((const char *)lpGroup->sGroupId.lpb, lpGroup->sGroupId.cb);
 	PyObject *result = NULL;
 
 	if(ulFlags & MAPI_UNICODE)
-		result = PyObject_CallFunction(PyTypeECGroup, "(uuulO)", lpGroup->lpszGroupname, lpGroup->lpszFullname, lpGroup->lpszFullEmail, lpGroup->ulIsABHidden, groupid);
+		result = PyObject_CallFunction(PyTypeECGroup, "(uuulOO)", lpGroup->lpszGroupname, lpGroup->lpszFullname, lpGroup->lpszFullEmail, lpGroup->ulIsABHidden, groupid, MVProps);
 	else
-		result = PyObject_CallFunction(PyTypeECGroup, "(ssslO)", lpGroup->lpszGroupname, lpGroup->lpszFullname, lpGroup->lpszFullEmail, lpGroup->ulIsABHidden, groupid);
+		result = PyObject_CallFunction(PyTypeECGroup, "(ssslOO)", lpGroup->lpszGroupname, lpGroup->lpszFullname, lpGroup->lpszFullEmail, lpGroup->ulIsABHidden, groupid, MVProps);
 
+	Py_DECREF(MVProps);
 	Py_DECREF(groupid);
 	return result;
 }
@@ -3012,7 +3015,7 @@ ECCOMPANY *Object_to_LPECCOMPANY(PyObject *elem, ULONG ulFlags)
 	memset(lpCompany, 0, sizeof *lpCompany);
 
 	process_conv_out_array(lpCompany, elem, conv_info, lpCompany, ulFlags);
-
+	Object_to_MVPROPMAP(elem, lpCompany, ulFlags);
 exit:
 	if (PyErr_Occurred()) {
 		MAPIFreeBuffer(lpCompany);
@@ -3024,14 +3027,16 @@ exit:
 
 PyObject *Object_from_LPECCOMPANY(ECCOMPANY *lpCompany, ULONG ulFlags)
 {
+	PyObject *MVProps = Object_from_MVPROPMAP(lpCompany->sMVPropmap, ulFlags);
 	PyObject *companyid = PyBytes_FromStringAndSize((const char *)lpCompany->sCompanyId.lpb, lpCompany->sCompanyId.cb);
 	PyObject *result = NULL;
 
         if(ulFlags & MAPI_UNICODE)
-		result = PyObject_CallFunction(PyTypeECCompany, "(uulO)", lpCompany->lpszCompanyname, lpCompany->lpszServername, lpCompany->ulIsABHidden, companyid);
+		result = PyObject_CallFunction(PyTypeECCompany, "(uulOO)", lpCompany->lpszCompanyname, lpCompany->lpszServername, lpCompany->ulIsABHidden, companyid, MVProps);
 	else
-		result = PyObject_CallFunction(PyTypeECCompany, "(sslO)", lpCompany->lpszCompanyname, lpCompany->lpszServername, lpCompany->ulIsABHidden, companyid);
+		result = PyObject_CallFunction(PyTypeECCompany, "(sslOO)", lpCompany->lpszCompanyname, lpCompany->lpszServername, lpCompany->ulIsABHidden, companyid, MVProps);
 
+	Py_DECREF(MVProps);
 	Py_DECREF(companyid);
 	return result;
 }
