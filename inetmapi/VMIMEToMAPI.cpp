@@ -983,10 +983,10 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 
 			transform(name.begin(), name.end(), name.begin(), ::tolower);
 
-			LPMAPINAMEID lpNameID = NULL;
+			memory_ptr<MAPINAMEID> lpNameID;
 			memory_ptr<SPropTagArray> lpPropTags;
 
-			if ((hr = MAPIAllocateBuffer(sizeof(MAPINAMEID), (void**)&lpNameID)) != hrSuccess)
+			if ((hr = MAPIAllocateBuffer(sizeof(MAPINAMEID), &~lpNameID)) != hrSuccess)
 				goto exit;
 			lpNameID->lpguid = (GUID*)&PS_INTERNET_HEADERS;
 			lpNameID->ulKind = MNID_STRING;
@@ -995,10 +995,10 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			if ((hr = MAPIAllocateMore(vlen*sizeof(WCHAR), lpNameID, (void**)&lpNameID->Kind.lpwstrName)) != hrSuccess)
 				goto exit;
 			mbstowcs(lpNameID->Kind.lpwstrName, name.c_str(), vlen);
-			hr = lpMessage->GetIDsFromNames(1, &lpNameID, MAPI_CREATE, &~lpPropTags);
+			hr = lpMessage->GetIDsFromNames(1, &+lpNameID, MAPI_CREATE, &~lpPropTags);
 			if (hr != hrSuccess) {
 				hr = hrSuccess;
-				goto next;
+				continue;
 			}
 
 			SPropValue sProp[1];
@@ -1007,14 +1007,8 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			sProp[0].Value.lpszA = (char*)value.c_str();
 
 			hr = lpMessage->SetProps(1, sProp, NULL);
-			if (hr != hrSuccess) {
+			if (hr != hrSuccess)
 				hr = hrSuccess;	// ignore this x-header as named props then
-				goto next;
-			}
-
-next:
-			MAPIFreeBuffer(lpNameID);
-			lpNameID = NULL;
 		}
 	}
 	catch (vmime::exception& e) {

@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/memory.hpp>
 #include "nameids.h"
 #include <mapix.h>
 
@@ -122,10 +123,10 @@ MAPINAMEID mnNamedProps[SIZE_NAMEDPROPS] = {
 HRESULT HrLookupNames(IMAPIProp *lpPropObj, LPSPropTagArray *lppNamedProps)
 {
 	HRESULT hr = hrSuccess;
-	LPMAPINAMEID *lppNameIds = NULL;
+	KCHL::memory_ptr<MAPINAMEID *> lppNameIds;
 	LPSPropTagArray lpNamedProps = NULL;
 
-	hr = MAPIAllocateBuffer(sizeof(LPMAPINAMEID) * SIZE_NAMEDPROPS, (void**)&lppNameIds);
+	hr = MAPIAllocateBuffer(sizeof(LPMAPINAMEID) * SIZE_NAMEDPROPS, &~lppNameIds);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -147,7 +148,6 @@ HRESULT HrLookupNames(IMAPIProp *lpPropObj, LPSPropTagArray *lppNamedProps)
 	hr = hrSuccess;
 
 exit:
-	MAPIFreeBuffer(lppNameIds);
 	return hr;
 }
 

@@ -1183,12 +1183,12 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage,
 			vmMessage = vmSMIMEMessage;
 		} else {
 			// encoded mail, set data as only mail body
-			LPMAPINAMEID lpNameID = NULL;
+			memory_ptr<MAPINAMEID> lpNameID;
 			memory_ptr<SPropTagArray> lpPropTags;
 			memory_ptr<SPropValue> lpPropContentType;
 			const char *lpszContentType = NULL;
 
-			hr = MAPIAllocateBuffer(sizeof(MAPINAMEID), (void**)&lpNameID);
+			hr = MAPIAllocateBuffer(sizeof(MAPINAMEID), &~lpNameID);
 			if (hr != hrSuccess) {
 				ec_log_err("Not enough memory. Error: 0x%08X", hr);
 				goto exit;
@@ -1198,15 +1198,11 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage,
 			lpNameID->ulKind = MNID_STRING;
 			lpNameID->Kind.lpwstrName = const_cast<wchar_t *>(L"Content-Type");
 
-			hr = lpMessage->GetIDsFromNames(1, &lpNameID, MAPI_CREATE, &~lpPropTags);
+			hr = lpMessage->GetIDsFromNames(1, &+lpNameID, MAPI_CREATE, &~lpPropTags);
 			if (hr != hrSuccess) {
 				ec_log_err("Unable to read encrypted mail properties. Error: 0x%08X", hr);
 				goto exit;
 			}
-
-			// Free Memory
-			MAPIFreeBuffer(lpNameID);
-			lpNameID = NULL;
 
 			if (HrGetOneProp(lpMessage, CHANGE_PROP_TYPE(lpPropTags->aulPropTag[0], PT_STRING8), &~lpPropContentType) == hrSuccess)
 				lpszContentType = lpPropContentType->Value.lpszA;

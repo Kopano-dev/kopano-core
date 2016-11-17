@@ -63,7 +63,7 @@ static ULONG GetPropIDForXMLProp(LPMAPIPROP lpObj,
     ULONG ulFlags = 0)
 {
 	HRESULT hr = hrSuccess;
-	LPMAPINAMEID lpNameID = NULL;
+	memory_ptr<MAPINAMEID> lpNameID;
 	SPropTagArrayPtr ptrPropTags;
 	string strName;
 	wstring wstrName;
@@ -77,21 +77,20 @@ static ULONG GetPropIDForXMLProp(LPMAPIPROP lpObj,
 	strName = sXmlPropName.strNS + "#" + sXmlPropName.strPropname;
 	wstrName = converter.convert_to<wstring>(strName, rawsize(strName), "UTF-8");
 
-	hr = MAPIAllocateBuffer(sizeof(MAPINAMEID), (void**)&lpNameID);
+	hr = MAPIAllocateBuffer(sizeof(MAPINAMEID), &~lpNameID);
 	if (hr != hrSuccess)
 		goto exit;
 
 	lpNameID->lpguid = (GUID*)&PSETID_Kopano_CalDav;
 	lpNameID->ulKind = MNID_STRING;
 	lpNameID->Kind.lpwstrName = (WCHAR*)wstrName.c_str();
-	hr = lpObj->GetIDsFromNames(1, &lpNameID, ulFlags, &~ptrPropTags);
+	hr = lpObj->GetIDsFromNames(1, &+lpNameID, ulFlags, &~ptrPropTags);
 	if (hr != hrSuccess)
 		goto exit;
 
 	ulPropTag = PROP_TAG(PT_BINARY, PROP_ID(ptrPropTags->aulPropTag[0]));
 
 exit:
-	MAPIFreeBuffer(lpNameID);
 	return ulPropTag;
 }
 
