@@ -238,19 +238,6 @@ const char* convstring::c_str() const
 }
 
 /**
- * Convert this convstring object to a raw wchar_t pointer.
- *
- * @return	A character pointer that represents the internal string encoded in a wide character string.
- *
- * @note	Don't call this too often as the results are stored internally since storage needs to be
- *		guaranteed for the caller to be able to use the data.
- */
-const wchar_t* convstring::wc_str() const
-{
-	return (m_lpsz ? convert_to<wchar_t*>() : NULL);
-}
-
-/**
  * Convert this convstring object to a raw char pointer encoded in UTF-8.
  *
  * @return	A character pointer that represents the internal string encoded in the current locale.
