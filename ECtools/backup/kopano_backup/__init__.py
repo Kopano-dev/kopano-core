@@ -148,7 +148,7 @@ class FolderImporter:
         """ store updated item in 'items' database, and subject and date in 'index' database """
 
         with log_exc(self.log, self.stats):
-            self.log.debug('folder %s: new/updated document with sourcekey %s' % (self.folder.sourcekey, item.sourcekey))
+            self.log.debug('folder %s: new/updated document with entryid %s, sourcekey %s' % (self.folder.sourcekey, item.entryid, item.sourcekey))
             with closing(dbopen(self.folder_path+'/items')) as db:
                 db[item.sourcekey] = zlib.compress(item.dumps(attachments=not self.options.skip_attachments, archiver=False, skip_broken=True))
             with closing(dbopen(self.folder_path+'/index')) as db:
