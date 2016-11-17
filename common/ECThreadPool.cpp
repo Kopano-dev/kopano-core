@@ -140,55 +140,6 @@ void ECThreadPool::setThreadCount(unsigned ulThreadCount, bool bWait)
 }
 
 /**
- * Get the age of the queue. The age is specified as the age of the first item
- * in the queue.
- * @returns the age of the oldest item in the queue.
- */
-struct timeval ECThreadPool::queueAge() const
-{
-	struct timeval tvAge = {0, 0};
-	struct timeval tvQueueTime = {0, 0};
-	ulock_normal biglock(m_hMutex);
-	
-	if (!m_listTasks.empty())
-		tvQueueTime = m_listTasks.front().tvQueueTime;
-	biglock.unlock();
-	if (isSet(tvQueueTime)) {
-		struct timeval tvNow;
-		
-		gettimeofday(&tvNow, NULL);		
-		tvAge = tvNow - tvQueueTime;
-	}
-	
-	return tvAge;
-}
-
-bool ECThreadPool::waitForAllTasks(time_t timeout) const
-{
-	bool empty = false;
-
-	do {
-		ulock_normal lock(m_hMutex);
-		empty = m_listTasks.empty();
-
-		if (empty)
-			break;
-
-		if (timeout) {
-			if (m_hCondTaskDone.wait_for(lock, std::chrono::milliseconds(timeout)) ==
-			    std::cv_status::timeout) {
-				empty = m_listTasks.empty();
-				break;
-			}
-		} else {
-			m_hCondTaskDone.wait(lock);
-		}
-	} while (true);
-
-	return empty;
-}
-
-/**
  * Get the next task from the queue (or terminate thread).
  * This method normally pops the next task object from the queue. However when
  * the number of worker threads needs to be decreased this method will remove the
