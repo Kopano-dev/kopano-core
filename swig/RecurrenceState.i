@@ -67,97 +67,97 @@ def _arotostring(ulOverrideFlags):
 
 # print human readable version of recurrencestate class
 def Summarize(rs):
-    print "Versions, reader 0x%04x writer 0x%04x" % (rs.ulReaderVersion, rs.ulWriterVersion)
+    print("Versions, reader 0x%04x writer 0x%04x" % (rs.ulReaderVersion, rs.ulWriterVersion))
     if rs.ulRecurFrequency == RF_DAILY:
-        print "Daily"
+        print("Daily")
     elif rs.ulRecurFrequency == RF_WEEKLY:
-        print "Weekly"
+        print("Weekly")
     elif rs.ulRecurFrequency == RF_MONTHLY:
-        print "Monthly"
+        print("Monthly")
     elif rs.ulRecurFrequency == RF_YEARLY:
-        print "Yearly"
+        print("Yearly")
     else:
-        print "ERROR: Unknown ulRecurFrequency: 0x%x" % rs.ulRecurFrequency
+        print("ERROR: Unknown ulRecurFrequency: 0x%x" % rs.ulRecurFrequency)
     # pattern type is info for reader
-    # print "Patterntype: %d, ulCalendarType: %d" % (rs.ulPatternType, rs.ulCalendarType)
-    print "FirstDateTime: %d" % rs.ulFirstDateTime
-    print "Period: %d" % rs.ulPeriod
-    print "ulSlidingFlag: %d" % rs.ulSlidingFlag
-    print "Pattern info, type %d:" % rs.ulPatternType
+    # print("Patterntype: %d, ulCalendarType: %d" % (rs.ulPatternType, rs.ulCalendarType))
+    print("FirstDateTime: %d" % rs.ulFirstDateTime)
+    print("Period: %d" % rs.ulPeriod)
+    print("ulSlidingFlag: %d" % rs.ulSlidingFlag)
+    print("Pattern info, type %d:" % rs.ulPatternType)
     if rs.ulPatternType == 0:
         pass
     elif rs.ulPatternType == 1:
-        print "  Weekdays: %s" % _weekdaystostring(rs.ulWeekDays)
+        print("  Weekdays: %s" % _weekdaystostring(rs.ulWeekDays))
     elif rs.ulPatternType in (2, 4, 0xa, 0xc):
-        print "  Day of Month: %d" % rs.ulDayOfMonth
+        print("  Day of Month: %d" % rs.ulDayOfMonth)
     elif rs.ulPatternType in (3, 0xb):
-        print "  Weekdays: %s" % _weekdaystostring(rs.ulWeekDays)
-        print "  Weeknr  : %d" % rs.ulWeekNumber
+        print("  Weekdays: %s" % _weekdaystostring(rs.ulWeekDays))
+        print("  Weeknr  : %d" % rs.ulWeekNumber)
     else:
-        print "ERROR: Invalid pattern type: %d" % rs.ulPatternType
+        print("ERROR: Invalid pattern type: %d" % rs.ulPatternType)
     if rs.ulEndType == ET_DATE:
-        print "Ending recurrence by date, see EndDate below, end count is: %d" % rs.ulOccurrenceCount
+        print("Ending recurrence by date, see EndDate below, end count is: %d" % rs.ulOccurrenceCount)
     elif rs.ulEndType == ET_NUMBER:
-        print "Ending recurrence by count: %d" % rs.ulOccurrenceCount
+        print("Ending recurrence by count: %d" % rs.ulOccurrenceCount)
     elif rs.ulEndType == ET_NEVER:
-        print "Never ending recurrence, end count is 10: %d" % rs.ulOccurrenceCount
+        print("Never ending recurrence, end count is 10: %d" % rs.ulOccurrenceCount)
     else:
-        print "ERROR: Invalid end type: 0x%x" % rs.ulEndType
-    print "First Day of Week: %d" % rs.ulFirstDOW
+        print("ERROR: Invalid end type: 0x%x" % rs.ulEndType)
+    print("First Day of Week: %d" % rs.ulFirstDOW)
     # for every modify, there is a delete too
-    print "# of Deleted  Exceptions: %d" % (rs.ulDeletedInstanceCount - rs.ulModifiedInstanceCount)
-    print "# of Modified Exceptions: %d" % rs.ulModifiedInstanceCount
-    print "First Occurrence: %s +0000" % time.asctime(time.gmtime(RTimeToUnixTime(rs.ulStartDate)))
-    print "Last  Occurrence: %s +0000" % time.asctime(time.gmtime(RTimeToUnixTime(rs.ulEndDate)))
-    print "Delete/Modify occurrence times:"
+    print("# of Deleted  Exceptions: %d" % (rs.ulDeletedInstanceCount - rs.ulModifiedInstanceCount))
+    print("# of Modified Exceptions: %d" % rs.ulModifiedInstanceCount)
+    print("First Occurrence: %s +0000" % time.asctime(time.gmtime(RTimeToUnixTime(rs.ulStartDate))))
+    print("Last  Occurrence: %s +0000" % time.asctime(time.gmtime(RTimeToUnixTime(rs.ulEndDate))))
+    print("Delete/Modify occurrence times:")
     # beware of the crash!
     d = rs.lstDeletedInstanceDates
     for i in d:
-        print "  %s +0000" % time.asctime(time.gmtime(RTimeToUnixTime(i)))
-    print "Modified occurrence times:"
+        print("  %s +0000" % time.asctime(time.gmtime(RTimeToUnixTime(i))))
+    print("Modified occurrence times:")
     # beware of the crash!
     m = rs.lstModifiedInstanceDates
     for i in m:
-        print "  %s +0000" % time.asctime(time.gmtime(RTimeToUnixTime(i)))
+        print("  %s +0000" % time.asctime(time.gmtime(RTimeToUnixTime(i))))
     if rs.ulReaderVersion2 == 0:
-        print "Task done"
+        print("Task done")
         return
-    print "Versions2, reader 0x%04x writer 0x%04x" % (rs.ulReaderVersion2, rs.ulWriterVersion2)
-    print "Start time offset: %s" % rs.ulStartTimeOffset
-    print "End   time offset: %s" % rs.ulEndTimeOffset
-    print "Modified exception count: %d" % rs.ulExceptionCount
+    print("Versions2, reader 0x%04x writer 0x%04x" % (rs.ulReaderVersion2, rs.ulWriterVersion2))
+    print("Start time offset: %s" % rs.ulStartTimeOffset)
+    print("End   time offset: %s" % rs.ulEndTimeOffset)
+    print("Modified exception count: %d" % rs.ulExceptionCount)
     # beware of the crash!
     le = rs.lstExceptions
     lee = rs.lstExtendedExceptions
     for n in xrange(0,rs.ulExceptionCount):
-        print "Exception " + str(n)
-        print "  SDT %s +0000" % time.asctime(time.gmtime(RTimeToUnixTime(le[n].ulStartDateTime)))
-        print "  EDT %s +0000" % time.asctime(time.gmtime(RTimeToUnixTime(le[n].ulEndDateTime)))
-        print "  OSD %s +0000" % time.asctime(time.gmtime(RTimeToUnixTime(le[n].ulOriginalStartDate)))
+        print("Exception " + str(n))
+        print("  SDT %s +0000" % time.asctime(time.gmtime(RTimeToUnixTime(le[n].ulStartDateTime))))
+        print("  EDT %s +0000" % time.asctime(time.gmtime(RTimeToUnixTime(le[n].ulEndDateTime))))
+        print("  OSD %s +0000" % time.asctime(time.gmtime(RTimeToUnixTime(le[n].ulOriginalStartDate))))
         if le[n].ulOverrideFlags & (ARO_SUBJECT | ARO_LOCATION):
             # should be the same
-            print "  XSDT %s +0000" % time.asctime(time.gmtime(RTimeToUnixTime(lee[n].ulStartDateTime)))
-            print "  XEDT %s +0000" % time.asctime(time.gmtime(RTimeToUnixTime(lee[n].ulEndDateTime)))
-            print "  XOSD %s +0000" % time.asctime(time.gmtime(RTimeToUnixTime(lee[n].ulOriginalStartDate)))
-        print "  ARO changes: %s" % _arotostring(le[n].ulOverrideFlags)
+            print("  XSDT %s +0000" % time.asctime(time.gmtime(RTimeToUnixTime(lee[n].ulStartDateTime))))
+            print("  XEDT %s +0000" % time.asctime(time.gmtime(RTimeToUnixTime(lee[n].ulEndDateTime))))
+            print("  XOSD %s +0000" % time.asctime(time.gmtime(RTimeToUnixTime(lee[n].ulOriginalStartDate))))
+        print("  ARO changes: %s" % _arotostring(le[n].ulOverrideFlags))
         if le[n].ulOverrideFlags & ARO_SUBJECT:
-            print "  Subject: %s :: %s" % (le[n].strSubject, lee[n].strWideCharSubject)
+            print("  Subject: %s :: %s" % (le[n].strSubject, lee[n].strWideCharSubject))
         if le[n].ulOverrideFlags & ARO_MEETINGTYPE:
-            print "  MeetingType: %d" % le[n].ulMeetingType
+            print("  MeetingType: %d" % le[n].ulMeetingType)
         if le[n].ulOverrideFlags & ARO_REMINDERDELTA:
-            print "  ReminderDelta: %d" % le[n].ulReminderDelta
+            print("  ReminderDelta: %d" % le[n].ulReminderDelta)
         if le[n].ulOverrideFlags & ARO_REMINDERSET:
-            print "  ReminderSet: %d" % le[n].ulReminderSet
+            print("  ReminderSet: %d" % le[n].ulReminderSet)
         if le[n].ulOverrideFlags & ARO_LOCATION:
-            print "  Location: %s :: %s" % (le[n].strLocation, lee[n].strWideCharLocation)
+            print("  Location: %s :: %s" % (le[n].strLocation, lee[n].strWideCharLocation))
         if le[n].ulOverrideFlags & ARO_BUSYSTATUS:
-            print "  BusyStatus: %d" % le[n].ulBusyStatus
+            print("  BusyStatus: %d" % le[n].ulBusyStatus)
         if le[n].ulOverrideFlags & ARO_ATTACHMENT:
-            print "  Attachment: %d" % le[n].ulAttachment
+            print("  Attachment: %d" % le[n].ulAttachment)
         if le[n].ulOverrideFlags & ARO_SUBTYPE:
-            print "  SubType %d" % le[n].ulSubType
+            print("  SubType %d" % le[n].ulSubType)
         if le[n].ulOverrideFlags & ARO_APPTCOLOR:
-            print "  AppointmentColor %d" % le[n].ulAppointmentColor
+            print("  AppointmentColor %d" % le[n].ulAppointmentColor)
         if rs.ulWriterVersion2 >= 0x3009:
-            print "  Extended, highlight: %d" % lee[n].ulChangeHighlightValue
+            print("  Extended, highlight: %d" % lee[n].ulChangeHighlightValue)
 %}
