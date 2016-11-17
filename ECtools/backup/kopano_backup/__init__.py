@@ -244,6 +244,7 @@ class Service(kopano.Service):
             paths = [path2 for path2 in path_folder for path in paths if (path2+'//').startswith(path+'/')]
 
         # restore specified folders
+        restored = []
         for path in paths:
             if path not in path_folder:
                 self.log.error('no such folder: %s' % path)
@@ -257,7 +258,17 @@ class Service(kopano.Service):
                     (self.options.skip_deleted and folder == store.wastebasket))):
                         continue
                 data_path = path_folder[path]
-                self.restore_folder(folder, path, data_path, store, store.subtree, stats, user, self.server)
+                if not self.options.only_meta:
+                    self.restore_folder(folder, path, data_path, store, store.subtree, stats, user, self.server)
+                restored.append((folder, data_path))
+
+        # restore metadata
+        if not (self.options.sourcekeys or self.options.skip_meta):
+            self.log.info('restoring metadata')
+            for (folder, data_path) in restored:
+                load_acl(folder, user, self.server, file(data_path+'/acl').read(), stats, self.log)
+                load_rules(folder, user, self.server, file(data_path+'/rules').read(), stats, self.log)
+
         self.log.info('restore completed in %.2f seconds (%d changes, ~%.2f/sec, %d errors)' %
             (time.time()-t0, stats['changes'], stats['changes']/(time.time()-t0), stats['errors']))
 
@@ -311,13 +322,6 @@ class Service(kopano.Service):
             container_class = folderprops.get(long(PR_CONTAINER_CLASS_W))
             if container_class:
                 folder.container_class = container_class
-
-            # restore metadata
-            if not self.options.skip_meta:
-                load_acl(folder, user, server, file(data_path+'/acl').read(), stats, self.log)
-                load_rules(folder, user, server, file(data_path+'/rules').read(), stats, self.log)
-            if self.options.only_meta:
-                return
 
         # load existing sourcekeys in folder, to check for duplicates
         existing = set()
