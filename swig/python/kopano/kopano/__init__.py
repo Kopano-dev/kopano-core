@@ -1128,6 +1128,18 @@ class Server(object):
         group = self.group(name)
         self.sa.DeleteGroup(group._ecgroup.GroupID)
 
+    def delete(self, items):
+        if isinstance(items, (User, Group)): # XXX more!
+            items = [items]
+        else:
+            items = list(items)
+
+        for item in items:
+            if isinstance(item, User):
+                self.remove_user(item.name)
+            elif isinstance(item, Group):
+                self.remove_group(item.name)
+
     def _pubstore(self, name):
         if name == 'public':
             if not self.public_store:
@@ -3712,6 +3724,10 @@ class User(object):
         self._update(admin=value)
 
     @property
+    def hidden(self):
+        return self._ecuser.IsHidden == True
+
+    @property
     def name(self):
         """ Account name """
 
@@ -3990,6 +4006,10 @@ class Quota(object):
         # (self, bUseDefaultQuota, bIsUserDefaultQuota, llWarnSize, llSoftSize, llHardSize)
         quota = ECQUOTA(False, False, self._warning_limit, self._soft_limit, self._hard_limit)
         self.server.sa.SetQuota(self.userid, quota)
+
+    @property
+    def use_default(self):
+        return self._use_default_quota
 
     @property
     def recipients(self):

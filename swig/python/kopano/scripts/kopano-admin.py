@@ -17,7 +17,12 @@ def parser_opt_args():
     parser.add_option('--list-stores', dest='list_stores', action='store_true', help='List stores')
     parser.add_option('--user-details', dest='user_details', action='store', help='Show user details', metavar='NAME')
     parser.add_option('--user-count', dest='usercount', action='store_true', help='Output the system users counts')
+    parser.add_option('--password', dest='password', action='store', help='Specify password')
+    parser.add_option('--fullname', dest='fullname', action='store', help='Specify full name')
+    parser.add_option('--email', dest='email', action='store', help='Specify email address')
     # DB Plugin
+    parser.add_option('--create-user', dest='create_user', action='store', help='Create user', metavar='NAME')
+    parser.add_option('--delete-user', dest='delete_user', action='store', help='Delete user', metavar='NAME')
     parser.add_option('--create-group', dest='create_group', action='store', help='Create group, -e options optional', metavar='NAME')
     parser.add_option('--delete-group', dest='delete_group', action='store', help='Delete group', metavar='NAME')
     return (parser,) + parser.parse_args()
@@ -36,11 +41,11 @@ def main():
             print('public store already exists')
 
     elif options.list_users:
-        fmt = '{:>16}{:>20}{:>40}'
-        print(fmt.format('User', 'Full Name', 'Store'))
-        print(76*'-')
-        for user in server.users():
-            print(fmt.format(user.name, user.fullname, user.store.guid))
+        fmt = '{:>16}{:>20}{:>20}{:>40}'
+        print(fmt.format('User', 'Full Name', 'Homeserver', 'Store'))
+        print(96*'-')
+        for user in server.users(system=True):
+            print(fmt.format(user.name, user.fullname, user.home_server, user.store.guid))
 
     elif options.list_companies:
         fmt = '{:>16}'
@@ -62,8 +67,24 @@ def main():
         print('Fullname:\t' + user.fullname)
         print('Emailaddress:\t' + user.email)
         print('Active:\t\t' + ('yes' if user.active else 'no'))
+        print('Administrator:\t' + ('yes' if user.admin else 'no'))
+        print('Address Book:\t' + ('Hidden' if user.hidden else 'Visible'))
+        print('Auto-accept meeting req:') # XXX AutoAccept class?
+        print('Out Of Office:\t' + ('Enabled' if user.outofoffice.enabled else 'Disabled')) # XXX show settings
         print('Features:\t' + '; '.join(user.features))
+
         print('Store:\t\t' + user.store.guid)
+        print 'Current user store quota settings:'
+        print ' Quota overrides:\t' + ('no' if user.quota.use_default else 'yes')
+        print ' Warning level:\t\t' + str(user.quota.warning_limit or 'unlimited')
+        print ' Soft level:\t\t' + str(user.quota.soft_limit or 'unlimited')
+        print ' Hard level:\t\t' + str(user.quota.hard_limit or 'unlimited')
+        print 'Current store size:\t%.2f MB' % (user.store.size / 2**20)
+
+        groups = list(user.groups())
+        print 'Groups (%d):' % len(groups)
+        for group in user.groups():
+            print '\t' + group.name
 
     elif options.usercount:
         stats = server.table(PR_EC_STATSTABLE_SYSTEM).dict_(PR_DISPLAY_NAME, PR_EC_STATS_SYSTEM_VALUE)
@@ -78,7 +99,12 @@ def main():
         server.create_group(options.create_group)
 
     elif options.delete_group:
-        server.remove_group(options.delete_group)
+        server.delete(server.group(options.delete_group))
+
+    elif options.create_user:
+        server.create_user(options.create_user, fullname=options.fullname, password=options.password, email=options.email)
+    elif options.delete_user:
+        server.delete(server.user(options.delete_user))
 
     else:
         parser.print_help()
