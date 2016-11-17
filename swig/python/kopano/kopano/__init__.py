@@ -1822,6 +1822,10 @@ class Store(object):
         return Outofoffice(self)
 
     @property
+    def autoaccept(self):
+        return AutoAccept(self)
+
+    @property
     def user(self):
         """ Store :class:`owner <User>` """
 
@@ -3568,6 +3572,17 @@ class Outofoffice(object):
             self.store.mapiobj.SetProps([SPropValue(PR_EC_OUTOFOFFICE_UNTIL, value)])
         self.store.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
+    @property
+    def active(self):
+        if not self.enabled:
+            return False
+        now = datetime.datetime.now()
+        if self.start and now < self.start:
+            return False
+        if self.end and now >= self.end:
+            return False
+        return True
+
     def __unicode__(self):
         return u'Outofoffice(%s)' % self.subject
 
@@ -3579,6 +3594,24 @@ class Outofoffice(object):
 
         for key, val in kwargs.items():
             setattr(self, key, val)
+
+class AutoAccept:
+    def __init__(self, store):
+        fbeid = store.root.prop(PR_FREEBUSY_ENTRYIDS).value[1]
+        self._fb = store.mapiobj.OpenEntry(fbeid, None, 0)
+        self.store = store
+
+    @property
+    def enabled(self):
+        return HrGetOneProp(self._fb, PR_PROCESS_MEETING_REQUESTS).Value
+
+    @property
+    def conflicts(self):
+        return not HrGetOneProp(self._fb, PR_DECLINE_CONFLICTING_MEETING_REQUESTS).Value
+
+    @property
+    def recurring(self):
+        return not HrGetOneProp(self._fb, PR_DECLINE_RECURRING_MEETING_REQUESTS).Value
 
 class Address:
     """Address class"""
@@ -3879,12 +3912,6 @@ class User(object):
         """ User :class:`Quota` """
 
         return Quota(self.server, self._ecuser.UserID)
-
-    @property
-    def outofoffice(self):
-        """ User :class:`Outofoffice` """
-
-        return self.store.outofoffice
 
     def groups(self):
         for g in self.server.sa.GetGroupListOfUser(self._ecuser.UserID, MAPI_UNICODE):

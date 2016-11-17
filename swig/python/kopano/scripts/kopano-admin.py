@@ -27,6 +27,9 @@ def parser_opt_args():
     parser.add_option('--delete-group', dest='delete_group', action='store', help='Delete group', metavar='NAME')
     return (parser,) + parser.parse_args()
 
+def _yesno(x):
+    return 'yes' if x else 'no'
+
 def main():
     parser, options, args = parser_opt_args()
     server = kopano.Server(options)
@@ -63,28 +66,41 @@ def main():
 
     elif options.user_details:
         user = server.user(options.user_details)
+
         print('Username:\t' + user.name)
         print('Fullname:\t' + user.fullname)
         print('Emailaddress:\t' + user.email)
-        print('Active:\t\t' + ('yes' if user.active else 'no'))
-        print('Administrator:\t' + ('yes' if user.admin else 'no'))
+        print('Active:\t\t' + _yesno(user.active))
+        print('Administrator:\t' + _yesno(user.admin))
         print('Address Book:\t' + ('Hidden' if user.hidden else 'Visible'))
-        print('Auto-accept meeting req:') # XXX AutoAccept class?
-        print('Out Of Office:\t' + ('Enabled' if user.outofoffice.enabled else 'Disabled')) # XXX show settings
         print('Features:\t' + '; '.join(user.features))
 
+        print('Auto-accept meeting req:\t' + _yesno(user.autoaccept.enabled))
+        if user.autoaccept.enabled:
+            print('Decline dbl meetingreq:\t' + _yesno(not user.autoaccept.conflicts))
+            print('Decline recur meet.req:\t' + _yesno(not user.autoaccept.recurring))
+
+        ooo = 'disabled'
+        if user.outofoffice.enabled:
+            start, end = user.outofoffice.start, user.outofoffice.end
+            if start and end: # XXX copied from admin.cpp
+                ooo = 'from %s until %s (currently %s)' % (start, end, 'active' if user.outofoffice.active else 'inactive')
+            else:
+                ooo = 'enabled'
+        print('Out Of Office:\t' + ooo)
+
         print('Store:\t\t' + user.store.guid)
-        print 'Current user store quota settings:'
-        print ' Quota overrides:\t' + ('no' if user.quota.use_default else 'yes')
-        print ' Warning level:\t\t' + str(user.quota.warning_limit or 'unlimited')
-        print ' Soft level:\t\t' + str(user.quota.soft_limit or 'unlimited')
-        print ' Hard level:\t\t' + str(user.quota.hard_limit or 'unlimited')
-        print 'Current store size:\t%.2f MB' % (user.store.size / 2**20)
+        print('Current user store quota settings:')
+        print(' Quota overrides:\t' + _yesno(not user.quota.use_default))
+        print(' Warning level:\t\t' + str(user.quota.warning_limit or 'unlimited'))
+        print(' Soft level:\t\t' + str(user.quota.soft_limit or 'unlimited'))
+        print(' Hard level:\t\t' + str(user.quota.hard_limit or 'unlimited'))
+        print('Current store size:\t%.2f MB' % (user.store.size / 2**20))
 
         groups = list(user.groups())
-        print 'Groups (%d):' % len(groups)
+        print('Groups (%d):' % len(groups))
         for group in user.groups():
-            print '\t' + group.name
+            print('\t' + group.name)
 
     elif options.usercount:
         stats = server.table(PR_EC_STATSTABLE_SYSTEM).dict_(PR_DISPLAY_NAME, PR_EC_STATS_SYSTEM_VALUE)
