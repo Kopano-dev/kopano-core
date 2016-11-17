@@ -154,7 +154,7 @@ static bool vtm_ascii_compatible(const char *s)
 		return false;
 	char *inbuf = const_cast<char *>(in), *outbuf = out;
 	size_t insize = sizeof(in), outsize = sizeof(out);
-	bool mappable = iconv(cd, &inbuf, &insize, &outbuf, &outsize) >= 0;
+	bool mappable = iconv(cd, &inbuf, &insize, &outbuf, &outsize) != static_cast<size_t>(-1);
 	iconv_close(cd);
 	return mappable && memcmp(in, out, sizeof(in)) == 0;
 }
