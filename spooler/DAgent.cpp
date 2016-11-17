@@ -374,7 +374,7 @@ exit:
 /**
  * Checks whether the message needs auto-processing
  */
-static bool FNeedsAutoProcessing(IMsgStore *lpStore, LPMESSAGE lpMessage)
+static bool FNeedsAutoProcessing(IMessage *lpMessage)
 {
 	HRESULT hr = hrSuccess;
 	SizedSPropTagArray(1, sptaProps) = { 1, { PR_MESSAGE_CLASS } };
@@ -405,16 +405,14 @@ exit:
  * the message afterwards (if the item was accepted, then it will have been moved to the calendar, which will cause
  * the delete to fail, but that's expected).
  *
- * @param lpLogger Logger
- * @param lpMAPISession MAPI Session for the user in lpRecip
  * @param lpRecip Recipient for whom lpMessage is being delivered
  * @param lpStore Store in which lpMessage is being delivered
  * @param lpMessage Message being delivered, should be a meeting request
  * 
  * @return result
  */
-static HRESULT HrAutoAccept(IMAPISession *lpMAPISession, ECRecipient *lpRecip,
-    IMsgStore *lpStore, LPMESSAGE lpMessage)
+static HRESULT HrAutoAccept(ECRecipient *lpRecip, IMsgStore *lpStore,
+    IMessage *lpMessage)
 {
 	HRESULT hr = hrSuccess;
 	IMAPIFolder *lpRootFolder = NULL;
@@ -493,16 +491,14 @@ exit:
 /**
  * Auto-process the passed message
  *
- * @param lpLogger Logger
- * @param lpMAPISession MAPI Session for the user in lpRecip
  * @param lpRecip Recipient for whom lpMessage is being delivered
  * @param lpStore Store in which lpMessage is being delivered
  * @param lpMessage Message being delivered, should be a meeting request
  *
  * @return result
  */
-static HRESULT HrAutoProcess(IMAPISession *lpMAPISession, ECRecipient *lpRecip,
-    IMsgStore *lpStore, LPMESSAGE lpMessage)
+static HRESULT HrAutoProcess(ECRecipient *lpRecip, IMsgStore *lpStore,
+    IMessage *lpMessage)
 {
 	HRESULT hr = hrSuccess;
 	IMAPIFolder *lpRootFolder = NULL;
@@ -684,14 +680,12 @@ static HRESULT OpenResolveAddrFolder(IMAPISession *lpSession,
 /** 
  * Resolve usernames/email addresses to Kopano users.
  * 
- * @param[in] lpArgs delivery options
  * @param[in] lpAddrFolder resolve users from this addressbook container
  * @param[in,out] lRCPT the list of recipients to resolve in Kopano
  * 
  * @return MAPI Error code
  */
-static HRESULT ResolveUsers(const DeliveryArgs *lpArgs,
-    IABContainer *lpAddrFolder, recipients_t *lRCPT)
+static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
 {
 	HRESULT hr = hrSuccess;
 	LPADRLIST lpAdrList	= NULL;   
@@ -860,21 +854,19 @@ exit:
 /** 
  * Resolve a single recipient as Kopano user
  * 
- * @param[in] lpArgs delivery options
  * @param[in] lpAddrFolder resolve users from this addressbook container
  * @param[in,out] lpRecip recipient to resolve in Kopano
  * 
  * @return MAPI Error code
  */
-static HRESULT ResolveUser(DeliveryArgs *lpArgs, IABContainer *lpAddrFolder,
-    ECRecipient *lpRecip)
+static HRESULT ResolveUser(IABContainer *lpAddrFolder, ECRecipient *lpRecip)
 {
 	HRESULT hr = hrSuccess;
 	recipients_t list;
 
 	/* Simple wrapper around ResolveUsers */
 	list.insert(lpRecip);
-	hr = ResolveUsers(lpArgs, lpAddrFolder, &list);
+	hr = ResolveUsers(lpAddrFolder, &list);
 	if (hr != hrSuccess)
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ResolveUser(): ResolveUsers failed %x", hr);
 	else if (lpRecip->ulResolveFlags != MAPI_RESOLVED)
@@ -2186,7 +2178,6 @@ static HRESULT HrOverrideReceivedByProps(IMessage *lpMessage,
  * @param[in] lpOrigMessage The original delivered message
  * @param[in] lpDeliverFolder The delivery folder of the new message
  * @param[in] lpRecip recipient data to use
- * @param[in] lpArgs delivery options
  * @param[in] lpFallbackFolder Fallback folder incase lpDeliverFolder cannot be delivered to
  * @param[in] bFallbackDelivery lpOrigMessage is a fallback delivery message
  * @param[out] lppFolder folder the new message was created in
@@ -2195,7 +2186,7 @@ static HRESULT HrOverrideReceivedByProps(IMessage *lpMessage,
  * @return MAPI Error code
  */
 static HRESULT HrCopyMessageForDelivery(IMessage *lpOrigMessage,
-    IMAPIFolder *lpDeliverFolder, ECRecipient *lpRecip, DeliveryArgs *lpArgs,
+    IMAPIFolder *lpDeliverFolder, ECRecipient *lpRecip,
     IMAPIFolder *lpFallbackFolder, bool bFallbackDelivery,
     IMAPIFolder **lppFolder = NULL, IMessage **lppMessage = NULL)
 {
@@ -2378,10 +2369,9 @@ static HRESULT HrPostDeliveryProcessing(PyMapiPlugin *lppyMapiPlugin,
 	     g_lpConfig->GetSetting("sslkey_pass", "", NULL));
 	if (hr != hrSuccess)
 		goto exit;
-
-	if (FNeedsAutoProcessing(lpStore, *lppMessage)) {
+	if (FNeedsAutoProcessing(*lppMessage)) {
 		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Starting MR auto processing");
-		hr = HrAutoProcess(lpUserSession, lpRecip, lpStore, *lppMessage);
+		hr = HrAutoProcess(lpRecip, lpStore, *lppMessage);
 		if (hr == hrSuccess)
 			g_lpLogger->Log(EC_LOGLEVEL_INFO, "Automatic MR processing successful.");
 		else
@@ -2391,7 +2381,7 @@ static HRESULT HrPostDeliveryProcessing(PyMapiPlugin *lppyMapiPlugin,
 
 	if(FNeedsAutoAccept(lpStore, *lppMessage)) {
 		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Starting MR autoaccepter");
-		hr = HrAutoAccept(lpUserSession, lpRecip, lpStore, *lppMessage);
+		hr = HrAutoAccept(lpRecip, lpStore, *lppMessage);
 		if(hr == hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_INFO, "Autoaccept processing completed successfully. Skipping further processing.");
 			// The MR autoaccepter has processed the message. Skip any further work on this message: dont
@@ -2534,12 +2524,11 @@ static HRESULT ProcessDeliveryToRecipient(PyMapiPlugin *lppyMapiPlugin,
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ProcessDeliveryToRecipient(): OpenResolveAddrFolder failed %x", hr);
 			goto exit;
 		}
-
-		hr = ResolveUser(lpArgs, lpAddrDir, lpRecip);
+		hr = ResolveUser(lpAddrDir, lpRecip);
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ProcessDeliveryToRecipient(): ResolveUser failed %x", hr);
 			goto exit;
-	}
+		}
 	}
 
 	hr = HrGetDeliveryStoreAndFolder(lpSession, lpStore, lpRecip, lpArgs, &lpTargetStore, &lpInbox, &lpTargetFolder);
@@ -2589,7 +2578,7 @@ static HRESULT ProcessDeliveryToRecipient(PyMapiPlugin *lppyMapiPlugin,
 
 	} else {
 		/* Copy message to prepare for new delivery */
-		hr = HrCopyMessageForDelivery(lpOrigMessage, lpTargetFolder, lpRecip, lpArgs, lpInbox, bFallbackDelivery, &lpFolder, &lpDeliveryMessage);
+		hr = HrCopyMessageForDelivery(lpOrigMessage, lpTargetFolder, lpRecip, lpInbox, bFallbackDelivery, &lpFolder, &lpDeliveryMessage);
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ProcessDeliveryToRecipient(): HrCopyMessageForDelivery failed %x", hr);
 			goto exit;
@@ -3311,7 +3300,7 @@ static void *HandlerLMTP(void *lpArg)
 				ECRecipient *lpRecipient = new ECRecipient(converter.convert_to<std::wstring>(strMailAddress));
 						
 				// Resolve the mail address, so to have a user name instead of a mail address
-				hr = ResolveUser(lpArgs, lpAddrDir, lpRecipient);
+				hr = ResolveUser(lpAddrDir, lpRecipient);
 				if (hr == hrSuccess) {
 					// This is the status until it is delivered or some other error occurs
 					lpRecipient->wstrDeliveryStatus = L"450 4.2.0 %ls Mailbox temporarily unavailable";
@@ -3736,8 +3725,7 @@ static HRESULT deliver_recipient(PyMapiPlugin *lppyMapiPlugin,
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "deliver_recipient(): OpenResolveAddrFolder failed %x", hr);
 				goto exit;
 			}
-			
-			hr = ResolveUser(lpArgs, lpAddrDir, lpSingleRecip);
+			hr = ResolveUser(lpAddrDir, lpSingleRecip);
 			if (hr != hrSuccess) {
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "deliver_recipient(): ResolveUser failed %x", hr);
 				if (hr == MAPI_E_NOT_FOUND)

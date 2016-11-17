@@ -203,7 +203,7 @@ static double GetDouble(LPSPropValue lpProps, ULONG cValues, ULONG ulPropTag)
     return 0;
 }
 
-static void showtop(LPMDB lpStore, bool bLocal)
+static void showtop(LPMDB lpStore)
 {
 #ifdef HAVE_CURSES_H
     HRESULT hr = hrSuccess;
@@ -652,12 +652,10 @@ int main(int argc, char *argv[])
 		cout << "Unable to open default store" << endl;
 		goto exit;
 	}
-
-	if(eTable == SESSION_TOP)
-    	showtop(lpStore, host == NULL);
-    else
-    	dumptable(eTable, lpStore, humanreadable);
-
+	if (eTable == SESSION_TOP)
+		showtop(lpStore);
+	else
+		dumptable(eTable, lpStore, humanreadable);
 exit:
 	if(lpStore)
 		lpStore->Release();

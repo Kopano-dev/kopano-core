@@ -645,7 +645,7 @@ namespace PrivatePipe {
 	ECConfig *m_lpConfig;
 	pthread_t signal_thread;
 	sigset_t signal_mask;
-	static void sighup(int s)
+	static void sighup(void)
 	{
 		if (m_lpConfig) {
 			const char *ll;
@@ -658,7 +658,7 @@ namespace PrivatePipe {
 		m_lpFileLogger->Reset();
 		m_lpFileLogger->Log(EC_LOGLEVEL_INFO, "[%5d] Log process received sighup", getpid());
 	}
-	static void sigpipe(int s)
+	static void sigpipe(void)
 	{
 		m_lpFileLogger->Log(EC_LOGLEVEL_INFO, "[%5d] Log process received sigpipe", getpid());
 	}
@@ -669,10 +669,10 @@ namespace PrivatePipe {
 		while (sigwait(&signal_mask, &sig) == 0) {
 			switch(sig) {
 				case SIGHUP:
-					sighup(sig);
+					sighup();
 					break;
 				case SIGPIPE:
-					sigpipe(sig);
+					sigpipe();
 					return NULL;
 			};
 		}
