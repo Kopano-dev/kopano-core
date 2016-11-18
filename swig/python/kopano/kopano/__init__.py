@@ -1200,8 +1200,19 @@ class Server(object):
         self.sa.RemoveStore(_unhex(store.guid))
 
     def sync_users(self):
-        # Flush user cache on the server
         self.sa.SyncUsers(None)
+
+    def clear_cache(self): # XXX specify one or more caches?
+        self.sa.PurgeCache(PURGE_CACHE_ALL)
+
+    def purge_softdeletes(self, days):
+        self.sa.PurgeSoftDelete(days)
+
+    def purge_deferred(self): # XXX purge all at once?
+        try:
+            return self.sa.PurgeDeferredUpdates() # remaining records
+        except MAPIErrorNotFound:
+            return 0
 
     @property
     def public_store(self):
@@ -1820,6 +1831,10 @@ class Store(object):
 
         # FIXME: If store is public store, return None?
         return Outofoffice(self)
+
+    @property
+    def autoaccept(self):
+        return AutoAccept(self)
 
     @property
     def user(self):
@@ -3568,6 +3583,17 @@ class Outofoffice(object):
             self.store.mapiobj.SetProps([SPropValue(PR_EC_OUTOFOFFICE_UNTIL, value)])
         self.store.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
+    @property
+    def active(self):
+        if not self.enabled:
+            return False
+        now = datetime.datetime.now()
+        if self.start and now < self.start:
+            return False
+        if self.end and now >= self.end:
+            return False
+        return True
+
     def __unicode__(self):
         return u'Outofoffice(%s)' % self.subject
 
@@ -3579,6 +3605,24 @@ class Outofoffice(object):
 
         for key, val in kwargs.items():
             setattr(self, key, val)
+
+class AutoAccept:
+    def __init__(self, store):
+        fbeid = store.root.prop(PR_FREEBUSY_ENTRYIDS).value[1]
+        self._fb = store.mapiobj.OpenEntry(fbeid, None, 0)
+        self.store = store
+
+    @property
+    def enabled(self):
+        return HrGetOneProp(self._fb, PR_PROCESS_MEETING_REQUESTS).Value
+
+    @property
+    def conflicts(self):
+        return not HrGetOneProp(self._fb, PR_DECLINE_CONFLICTING_MEETING_REQUESTS).Value
+
+    @property
+    def recurring(self):
+        return not HrGetOneProp(self._fb, PR_DECLINE_RECURRING_MEETING_REQUESTS).Value
 
 class Address:
     """Address class"""
@@ -3758,6 +3802,14 @@ class User(object):
         self._update(email=unicode(value))
 
     @property
+    def password(self): # XXX not coming through SWIG?
+        return self._ecuser.Password
+
+    @password.setter
+    def password(self, value):
+        self._update(password=unicode(value))
+
+    @property
     def features(self):
         """ Enabled features (pop3/imap/mobile) """
 
@@ -3879,12 +3931,6 @@ class User(object):
         """ User :class:`Quota` """
 
         return Quota(self.server, self._ecuser.UserID)
-
-    @property
-    def outofoffice(self):
-        """ User :class:`Outofoffice` """
-
-        return self.store.outofoffice
 
     def groups(self):
         for g in self.server.sa.GetGroupListOfUser(self._ecuser.UserID, MAPI_UNICODE):
