@@ -167,8 +167,10 @@ def OBJECTCLASS(__type, __class):
     return (__type << 16) | (__class & 0xFFFF)
 
 OBJECTTYPE_MAILUSER = 1
+OBJECTTYPE_CONTAINER = 4
 ACTIVE_USER = OBJECTCLASS(OBJECTTYPE_MAILUSER, 1)
 NONACTIVE_USER = OBJECTCLASS(OBJECTTYPE_MAILUSER, 2)
+CONTAINER_COMPANY = OBJECTCLASS(OBJECTTYPE_CONTAINER, 1)
 
 # XXX copied from msr/main.py
 MUIDECSAB = DEFINE_GUID(0x50a921ac, 0xd340, 0x48ee, 0xb3, 0x19, 0xfb, 0xa7, 0x53, 0x30, 0x44, 0x25)
@@ -287,13 +289,20 @@ def _create_prop(self, mapiobj, proptag, value, proptype=None):
 
     return _prop(self, mapiobj, proptag)
 
-def _prop(self, mapiobj, proptag):
+def _prop(self, mapiobj, proptag, create=False):
     if _is_int(proptag):
         try:
             sprop = HrGetOneProp(mapiobj, proptag)
         except MAPIErrorNotEnoughMemory:
             data = _stream(mapiobj, proptag)
             sprop = SPropValue(proptag, data)
+        except MAPIErrorNotFound as e:
+            if create and PROP_TYPE(proptag) == PT_LONG: # XXX generalize!
+                mapiobj.SetProps([SPropValue(proptag, 0)])
+                mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
+                sprop = HrGetOneProp(mapiobj, proptag)
+            else:
+                raise e
         return Property(mapiobj, sprop)
     else:
         namespace, name = proptag.split(':') # XXX syntax
@@ -566,6 +575,9 @@ class Error(Exception):
     pass
 
 class ConfigError(Error):
+    pass
+
+class DuplicateError(Error):
     pass
 
 class NotFoundError(Error):
@@ -1027,7 +1039,10 @@ class Server(object):
             usereid = self.sa.CreateUser(ECUSER(u'%s@%s' % (name, company), password, email, fullname), MAPI_UNICODE)
             user = self.company(company).user(u'%s@%s' % (name, company))
         else:
-            usereid = self.sa.CreateUser(ECUSER(name, password, email, fullname), MAPI_UNICODE)
+            try:
+                usereid = self.sa.CreateUser(ECUSER(name, password, email, fullname), MAPI_UNICODE)
+            except MAPIErrorCollision:
+                raise DuplicateError("user '%s' already exists" % name)
             user = self.user(name)
         if create_store:
             self.sa.CreateStore(ECSTORE_TYPE_PRIVATE, _unhex(user.userid))
@@ -1042,6 +1057,8 @@ class Server(object):
 
         try:
             return Company(name, self)
+        except MAPIErrorNoSupport:
+            raise NotFoundError('no such company: %s' % name)
         except NotFoundError:
             if create:
                 return self.create_company(name)
@@ -1058,7 +1075,11 @@ class Server(object):
 
     def remove_company(self, name): # XXX delete(object)?
         company = self.company(name)
-        self.sa.DeleteCompany(company._eccompany.CompanyID)
+
+        if company.name == u'Default':
+            raise NotSupportedError('cannot remove company in singletenant mode')
+        else:
+            self.sa.DeleteCompany(company._eccompany.CompanyID)
 
     def _companylist(self): # XXX fix self.sa.GetCompanyList(MAPI_UNICODE)? looks like it's not swigged correctly?
         self.sa.GetCompanyList(MAPI_UNICODE) # XXX exception for single-tenant....
@@ -1095,7 +1116,12 @@ class Server(object):
 
     def create_company(self, name): # XXX deprecated because of company(create=True)?
         name = unicode(name)
-        companyeid = self.sa.CreateCompany(ECCOMPANY(name, None), MAPI_UNICODE)
+        try:
+            companyeid = self.sa.CreateCompany(ECCOMPANY(name, None), MAPI_UNICODE)
+        except MAPIErrorCollision:
+            raise DuplicateError("company '%s' already exists" % name)
+        except MAPIErrorNoSupport:
+            raise NotSupportedError("cannot create company in singletenant mode")
         return self.company(name)
 
     def _store(self, guid):
@@ -1132,7 +1158,10 @@ class Server(object):
         name = unicode(name) # XXX: fullname/email unicode?
         email = unicode(email)
         fullname = unicode(fullname)
-        companyeid = self.sa.CreateGroup(ECGROUP(name, fullname, email, int(hidden), groupid), MAPI_UNICODE)
+        try:
+            companyeid = self.sa.CreateGroup(ECGROUP(name, fullname, email, int(hidden), groupid), MAPI_UNICODE)
+        except MAPIErrorCollision:
+            raise DuplicateError("group '%s' already exists" % name)
 
         return self.group(name)
 
@@ -1141,7 +1170,7 @@ class Server(object):
         self.sa.DeleteGroup(group._ecgroup.GroupID)
 
     def delete(self, items):
-        if isinstance(items, (User, Group)): # XXX more!
+        if isinstance(items, (User, Group, Company, Store)):
             items = [items]
         else:
             items = list(items)
@@ -1151,6 +1180,10 @@ class Server(object):
                 self.remove_user(item.name)
             elif isinstance(item, Group):
                 self.remove_group(item.name)
+            elif isinstance(item, Company):
+                self.remove_company(item.name)
+            elif isinstance(item, Store):
+                self.remove_store(item)
 
     def _pubstore(self, name):
         if name == 'public':
@@ -1202,10 +1235,9 @@ class Server(object):
             if system or store.public or (store.user and store.user.name != 'SYSTEM'):
                 yield store
 
-    def create_store(self, public=False):
+    def create_store(self, public=False): # XXX deprecated?
         if public:
-            mapistore = self.sa.CreateStore(ECSTORE_TYPE_PUBLIC, EID_EVERYONE)
-            return Store(mapiobj=mapistore, server=self)
+            return self.create_public_store()
         # XXX
 
     def remove_store(self, store): # XXX server.delete?
@@ -1226,15 +1258,30 @@ class Server(object):
         except MAPIErrorNotFound:
             return 0
 
-    @property
-    def public_store(self):
-        """ public :class:`store <Store>` in single-company mode """
-
+    def _pubhelper(self):
         try:
             self.sa.GetCompanyList(MAPI_UNICODE)
             raise Error('request for server-wide public store in multi-company setup')
         except MAPIErrorNoSupport:
-            return next(self.companies()).public_store
+            return next(self.companies())
+
+    @property
+    def public_store(self):
+        """ public :class:`store <Store>` in single-company mode """
+
+        return self._pubhelper().public_store
+
+    def create_public_store(self):
+
+        return self._pubhelper().create_public_store()
+
+    def hook_public_store(self, store):
+
+        return self._pubhelper().hook_public_store(store)
+
+    def unhook_public_store(self):
+
+        return self._pubhelper().unhook_public_store()
 
     @property
     def state(self):
@@ -1327,7 +1374,9 @@ class Group(object):
                 continue
             if users:
                 try:
-                    yield User(ecuser.Username, self.server)
+                    # XXX working around '@' duplication
+                    username = '@'.join(ecuser.Username.split('@')[:2])
+                    yield User(username, self.server)
                 except NotFoundError: # XXX everyone, groups are included as users..
                     pass
             if groups:
@@ -1374,15 +1423,37 @@ class Group(object):
     def props(self):
         return _props(self.mapiobj)
 
+    def send_as(self):
+        for u in self.server.sa.GetSendAsList(self._ecgroup.GroupID, MAPI_UNICODE):
+            yield self.server.user(u.Username)
+
+    def add_send_as(self, user):
+        try:
+            self.server.sa.AddSendAsUser(self._ecgroup.GroupID, user._ecuser.UserID)
+        except MAPIErrorCollision:
+            raise DuplicateError("user '%s' already in send-as for group '%s'" % (user.name, self.name))
+
+    def remove_send_as(self, user):
+        try:
+            self.server.sa.DelSendAsUser(self._ecgroup.GroupID, user._ecuser.UserID)
+        except MAPIErrorNotFound:
+            raise NotFoundError("no user '%s' in send-as for group '%s'" % (user.name, self.name))
+
     # XXX: also does groups..
     def add_user(self, user):
         if isinstance(user, Group):
             self.server.sa.AddGroupUser(self._ecgroup.GroupID, user._ecgroup.GroupID)
         else:
-            self.server.sa.AddGroupUser(self._ecgroup.GroupID, user._ecuser.UserID)
+            try:
+                self.server.sa.AddGroupUser(self._ecgroup.GroupID, user._ecuser.UserID)
+            except MAPIErrorCollision:
+                raise DuplicateError("group '%s' already contains user '%s'" % (self.name, user.name))
 
     def remove_user(self, user):
-        self.server.sa.DeleteGroupUser(self._ecgroup.GroupID, user._ecuser.UserID)
+        try:
+            self.server.sa.DeleteGroupUser(self._ecgroup.GroupID, user._ecuser.UserID)
+        except MAPIErrorNotFound:
+            raise NotFoundError("group '%s' does not contain user '%s'" % (self.name, user.name))
 
     def _update(self, **kwargs):
         # XXX: crashes server on certain characters...
@@ -1423,6 +1494,7 @@ class Company(object):
                 self._eccompany = self.server.sa.GetCompany(self.server.sa.ResolveCompanyName(self._name, MAPI_UNICODE), MAPI_UNICODE)
             except MAPIErrorNotFound:
                 raise NotFoundError("no such company: '%s'" % name)
+        self._public_store = None # XXX cached because GetPublicStore does not see changes.. do we need folder & store notifications (slow)?
 
         self._mapiobj = None
 
@@ -1437,10 +1509,35 @@ class Company(object):
         return bin2hex(self._eccompany.CompanyID)
 
     @property
+    def admin(self):
+        if self._name != u'Default':
+            ecuser = self.server.sa.GetUser(self._eccompany.AdministratorID, MAPI_UNICODE)
+            return self.server.user(ecuser.Username)
+        # XXX
+
+    @admin.setter
+    def admin(self, user):
+        self._eccompany.AdminstratorID = user._ecuser.UserID
+        self.server.sa.SetCompany(self._eccompany, MAPI_UNICODE)
+
+    @property
+    def hidden(self):
+        if self._name != u'Default':
+            return self._eccompany.IsHidden == True
+        # XXX
+
+    @property
     def name(self):
         """ Company name """
 
         return self._name
+
+    @name.setter
+    def name(self, value):
+        value = unicode(value)
+        self._eccompany.Companyname = value
+        self._name = value
+        self.server.sa.SetCompany(self._eccompany, MAPI_UNICODE)
 
     def store(self, guid):
         if guid == 'public':
@@ -1472,25 +1569,71 @@ class Company(object):
     def public_store(self):
         """ Company public :class:`store <Store>` """
 
-        if self._name == u'Default': # XXX 
-            pubstore = GetPublicStore(self.server.mapisession)
-            if pubstore is None:
-                return None
-            return Store(mapiobj=pubstore, server=self.server)
-        try:
-            entryid = self.server.ems.CreateStoreEntryID(None, self._name, MAPI_UNICODE)
-        except MAPIErrorNotFound:
-            return None
-        return Store(entryid=entryid, server=self.server)
-
-    def create_store(self, public=False):
-        if public:
-            if self._name == u'Default':
-                mapistore = self.server.sa.CreateStore(ECSTORE_TYPE_PUBLIC, EID_EVERYONE)
+        if not self._public_store:
+            if self._name == u'Default': # XXX
+                pubstore = GetPublicStore(self.server.mapisession)
+                if pubstore is None:
+                    self._public_store = None
+                else:
+                    self._public_store = Store(mapiobj=pubstore, server=self.server)
             else:
-                mapistore = self.server.sa.CreateStore(ECSTORE_TYPE_PUBLIC, self._eccompany.CompanyID)
-            return Store(mapiobj=mapistore, server=self.server)
+                try:
+                    entryid = self.server.ems.CreateStoreEntryID(None, self._name, MAPI_UNICODE)
+                except MAPIErrorNotFound:
+                    self._public_store = None
+                else:
+                    self._public_store = Store(entryid=entryid, server=self.server)
+
+        return self._public_store
+
+    def create_public_store(self):
+        if self._name == u'Default':
+            try:
+                storeid_rootid = self.server.sa.CreateStore(ECSTORE_TYPE_PUBLIC, EID_EVERYONE)
+            except MAPIErrorCollision:
+                raise DuplicateError("public store already exists")
+        else:
+            try:
+                storeid_rootid = self.server.sa.CreateStore(ECSTORE_TYPE_PUBLIC, self._eccompany.CompanyID)
+            except MAPIErrorCollision:
+                raise DuplicateError("public store already exists for company '%s'" % self.name)
+
+        store_entryid = WrapStoreEntryID(0, b'zarafa6client.dll', storeid_rootid[0][:-4])+self.server.pseudo_url+b'\x00'
+
+        self._public_store = Store(entryid=store_entryid, server=self.server)
+        return self._public_store
+
+    def create_store(self, public=False): # XXX deprecated?
+        if public:
+            return self.create_public_store
         # XXX
+
+    def hook_public_store(self, store):
+        if self._name == u'Default':
+            try:
+                self.server.sa.HookStore(ECSTORE_TYPE_PUBLIC, EID_EVERYONE, _unhex(store.guid))
+            except MAPIErrorCollision:
+                raise DuplicateError("hooked public store already exists")
+        else:
+            try:
+                self.server.sa.HookStore(ECSTORE_TYPE_PUBLIC, _unhex(self.companyid), _unhex(store.guid))
+            except MAPIErrorCollision:
+                raise DuplicateError("hooked public store already exists for company '%s'" % self.name)
+
+        self._public_store = store
+
+    def unhook_public_store(self):
+        if self._name == u'Default':
+            try:
+                self.server.sa.UnhookStore(ECSTORE_TYPE_PUBLIC, EID_EVERYONE)
+            except MAPIErrorNotFound:
+                raise NotFoundError("no hooked public store")
+        else:
+            try:
+                self.server.sa.UnhookStore(ECSTORE_TYPE_PUBLIC, _unhex(self.companyid))
+            except MAPIErrorNotFound:
+                raise NotFoundError("no hooked public store for company '%s'" % self.name)
+        self._public_store = None
 
     def user(self, name, create=False):
         """ Return :class:`user <User>` with given name; raise exception if not found """
@@ -1524,9 +1667,47 @@ class Company(object):
             if username != 'SYSTEM':
                 yield User(username, self.server)
 
+    def admins(self):
+        for ecuser in self.server.sa.GetRemoteAdminList(self._eccompany.CompanyID, MAPI_UNICODE):
+            yield self.server.user(ecuser.Username)
+
+    def add_admin(self, user):
+        try:
+            self.server.sa.AddUserToRemoteAdminList(user._ecuser.UserID, self._eccompany.CompanyID)
+        except MAPIErrorCollision:
+            raise DuplicateError("user '%s' already admin for company '%s'" % (user.name, self.name))
+
+    def remove_admin(self, user):
+        try:
+            self.server.sa.DelUserFromRemoteAdminList(user._ecuser.UserID, self._eccompany.CompanyID)
+        except MAPIErrorNotFound:
+            raise DuplicateError("user '%s' no admin for company '%s'" % (user.name, self.name))
+
+    def views(self):
+        for eccompany in self.server.sa.GetRemoteViewList(self._eccompany.CompanyID, MAPI_UNICODE):
+            yield self.server.company(eccompany.Companyname)
+
+    def add_view(self, company):
+        try:
+            self.server.sa.AddCompanyToRemoteViewList(company._eccompany.CompanyID, self._eccompany.CompanyID)
+        except MAPIErrorCollision:
+            raise DuplicateError("company '%s' already in view-list for company '%s'" % (company.name, self.name))
+
+    def remove_view(self, company):
+        try:
+            self.server.sa.DelCompanyFromRemoteViewList(company._eccompany.CompanyID, self._eccompany.CompanyID)
+        except MAPIErrorNotFound:
+            raise NotFoundError("company '%s' not in view-list for company '%s'" % (company.name, self.name))
+
     def create_user(self, name, password=None):
         self.server.create_user(name, password=password, company=self._name)
         return self.user('%s@%s' % (name, self._name))
+
+    def group(self, name):
+        for group in self.groups(): # XXX
+            if group.name == name:
+                return group
+        raise NotFoundError("no such group: '%s'" % name)
 
     def groups(self):
         if self.name == u'Default': # XXX
@@ -1901,18 +2082,20 @@ class Store(object):
 
     @property
     def company(self):
-        table = self.server.sa.OpenUserStoresTable(MAPI_UNICODE)
-        table.Restrict(SPropertyRestriction(RELOP_EQ, PR_EC_STOREGUID, SPropValue(PR_EC_STOREGUID, _unhex(self.guid))), TBL_BATCH)
-        for row in table.QueryRows(1,0):
-            storetype = PpropFindProp(row, PR_EC_STORETYPE)
-            if storetype.Value == ECSTORE_TYPE_PUBLIC:
-                companyname = PpropFindProp(row, PR_EC_USERNAME_W) # XXX bug in ECUserStoreTable.cpp?
-            else:
-                companyname = PpropFindProp(row, PR_EC_COMPANYNAME_W)
-            if companyname is None: # XXX single-tenant, improve check..
-                return next(self.server.companies())
-            else:
+        if self.server.multitenant:
+            table = self.server.sa.OpenUserStoresTable(MAPI_UNICODE)
+            table.Restrict(SPropertyRestriction(RELOP_EQ, PR_EC_STOREGUID, SPropValue(PR_EC_STOREGUID, _unhex(self.guid))), TBL_BATCH)
+            for row in table.QueryRows(1,0):
+                storetype = PpropFindProp(row, PR_EC_STORETYPE)
+                if storetype.Value == ECSTORE_TYPE_PUBLIC:
+                    companyname = PpropFindProp(row, PR_EC_USERNAME_W) # XXX bug in ECUserStoreTable.cpp?
+                    if not companyname:
+                        companyname = PpropFindProp(row, PR_EC_COMPANY_NAME_W) # XXX
+                else:
+                    companyname = PpropFindProp(row, PR_EC_COMPANY_NAME_W)
                 return self.server.company(companyname.Value)
+        else:
+            return self.server.companies().next()
 
     @property
     def orphan(self):
@@ -2240,6 +2423,9 @@ class Folder(object):
         except MAPIErrorNoSupport:
             return 0
 
+    def recount(self):
+        self.server.sa.ResetFolderCount(self.entryid.decode('hex'))
+
     def _get_entryids(self, items):
         if isinstance(items, (Item, Folder, Permission)):
             items = [items]
@@ -2347,8 +2533,14 @@ class Folder(object):
         for row in table.dict_rows():
             yield Rule(row)
 
-    def prop(self, proptag):
-        return _prop(self, self.mapiobj, proptag)
+    def prop(self, proptag, create=True):
+        return _prop(self, self.mapiobj, proptag, create=True)
+
+    def get_prop(self, proptag):
+        try:
+            return self.prop(proptag)
+        except MAPIErrorNotFound:
+            pass
 
     def create_prop(self, proptag, value, proptype=None):
         return _create_prop(self, self.mapiobj, proptag, value, proptype)
@@ -3596,6 +3788,15 @@ class Outofoffice(object):
         self.store.mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
 
     @property
+    def period_desc(self): # XXX class Period?
+        terms = []
+        if self.start:
+            terms.append('from %s' % self.start)
+        if self.end:
+            terms.append('until %s' % self.end)
+        return ' '.join(terms)
+
+    @property
     def active(self):
         if not self.enabled:
             return False
@@ -3618,25 +3819,40 @@ class Outofoffice(object):
         for key, val in kwargs.items():
             setattr(self, key, val)
 
-class AutoAccept:
+class AutoAccept(object):
     def __init__(self, store):
         fbeid = store.root.prop(PR_FREEBUSY_ENTRYIDS).value[1]
-        self._fb = store.mapiobj.OpenEntry(fbeid, None, 0)
+        self._fb = store.mapiobj.OpenEntry(fbeid, None, MAPI_MODIFY)
         self.store = store
 
     @property
     def enabled(self):
         return HrGetOneProp(self._fb, PR_PROCESS_MEETING_REQUESTS).Value
 
+    @enabled.setter
+    def enabled(self, b):
+        self._fb.SetProps([SPropValue(PR_PROCESS_MEETING_REQUESTS, b)])
+        self._fb.SaveChanges(KEEP_OPEN_READWRITE)
+
     @property
     def conflicts(self):
         return not HrGetOneProp(self._fb, PR_DECLINE_CONFLICTING_MEETING_REQUESTS).Value
+
+    @conflicts.setter
+    def conflicts(self, b):
+        self._fb.SetProps([SPropValue(PR_DECLINE_CONFLICTING_MEETING_REQUESTS, not b)])
+        self._fb.SaveChanges(KEEP_OPEN_READWRITE)
 
     @property
     def recurring(self):
         return not HrGetOneProp(self._fb, PR_DECLINE_RECURRING_MEETING_REQUESTS).Value
 
-class Address:
+    @recurring.setter
+    def recurring(self, b):
+        self._fb.SetProps([SPropValue(PR_DECLINE_RECURRING_MEETING_REQUESTS, not b)])
+        self._fb.SaveChanges(KEEP_OPEN_READWRITE)
+
+class Address(object):
     """Address class"""
 
     def __init__(self, server=None, addrtype=None, name=None, email=None, entryid=None):
@@ -3773,10 +3989,18 @@ class User(object):
 
     @property
     def admin(self):
-        return self._ecuser.IsAdmin == 1
+        return self._ecuser.IsAdmin >= 1
 
     @admin.setter
     def admin(self, value):
+        self._update(admin=value)
+
+    @property
+    def admin_level(self):
+        return self._ecuser.IsAdmin
+
+    @admin_level.setter
+    def admin_level(self, value):
         self._update(admin=value)
 
     @property
@@ -3857,7 +4081,10 @@ class User(object):
         :param feature: the new feature
         """
 
-        self.features = self.features + [unicode(feature)]
+        feature = unicode(feature)
+        if feature in self.features:
+            raise DuplicateError("feature '%s' already enabled for user '%s'" % (feature, self.name))
+        self.features = self.features + [feature]
 
     def remove_feature(self, feature):
         """ Remove a feature for a user
@@ -3868,7 +4095,10 @@ class User(object):
         # Copy features otherwise we will miss an disabled feature.
         # XXX: improvement?
         features = self.features[:]
-        features.remove(unicode(feature))
+        try:
+            features.remove(unicode(feature))
+        except ValueError:
+            raise NotFoundError("no feature '%s' enabled for user '%s'" % (feature, self.name))
         self.features = features
         self._update()
 
@@ -3892,6 +4122,14 @@ class User(object):
         store = self.store
         return bool(store and (self.server.guid == bin2hex(HrGetOneProp(store.mapiobj, PR_MAPPING_SIGNATURE).Value)))
 
+    def create_store(self):
+        try:
+            storeid_rootid = self.server.sa.CreateStore(ECSTORE_TYPE_PRIVATE, self._ecuser.UserID)
+        except MAPIErrorCollision:
+            raise DuplicateError("user '%s' already has store" % self.name)
+        store_entryid = WrapStoreEntryID(0, b'zarafa6client.dll', storeid_rootid[0][:-4])+self.server.pseudo_url+b'\x00'
+        return Store(entryid=store_entryid, server = self.server)
+
     @property
     def store(self):
         """ Default :class:`Store` for user or *None* if no store is attached """
@@ -3903,12 +4141,18 @@ class User(object):
             pass
 
     # XXX deprecated? user.store = .., user.archive_store = ..
-    def hook(self, store): # XXX add Company.(un)hook for public store
-        self.server.sa.HookStore(ECSTORE_TYPE_PRIVATE, _unhex(self.userid), _unhex(store.guid))
+    def hook(self, store):
+        try:
+            self.server.sa.HookStore(ECSTORE_TYPE_PRIVATE, _unhex(self.userid), _unhex(store.guid))
+        except MAPIErrorCollision:
+            raise DuplicateError("user '%s' already has hooked store" % self.name)
 
     # XXX deprecated? user.store = None
     def unhook(self):
-        return self.server.sa.UnhookStore(ECSTORE_TYPE_PRIVATE, _unhex(self.userid))
+        try:
+            self.server.sa.UnhookStore(ECSTORE_TYPE_PRIVATE, _unhex(self.userid))
+        except MAPIErrorNotFound:
+            raise NotFoundError("user '%s' has no hooked store" % self.name)
 
     @property
     def active(self):
@@ -3948,6 +4192,21 @@ class User(object):
         for g in self.server.sa.GetGroupListOfUser(self._ecuser.UserID, MAPI_UNICODE):
             yield Group(g.Groupname, self.server)
 
+    def send_as(self):
+        for u in self.server.sa.GetSendAsList(self._ecuser.UserID, MAPI_UNICODE):
+            yield self.server.user(u.Username)
+
+    def add_send_as(self, user):
+        try:
+            self.server.sa.AddSendAsUser(self._ecuser.UserID, user._ecuser.UserID)
+        except MAPIErrorCollision:
+            raise DuplicateError("user '%s' already in send-as for user '%s'" % (user.name, self.name))
+
+    def remove_send_as(self, user):
+        try:
+            self.server.sa.DelSendAsUser(self._ecuser.UserID, user._ecuser.UserID)
+        except MAPIErrorNotFound:
+            raise NotFoundError("no user '%s' in send-as for user '%s'" % (user.name, self.name))
 
     def rules(self):
         return self.inbox.rules()
@@ -3974,7 +4233,6 @@ class User(object):
         user_class = kwargs.get('user_class', self._ecuser.Class)
         admin = kwargs.get('admin', self._ecuser.IsAdmin)
 
-        # Thrown when a user tries to set his own features, handle gracefully otherwise you'll end up without a store
         try:
             # Pass the MVPropMAP otherwise the set values are reset
             if hasattr(self._ecuser, 'MVPropMap'):
@@ -3988,10 +4246,7 @@ class User(object):
             pass
 
         self._ecuser = self.server.sa.GetUser(self.server.sa.ResolveUserName(username, MAPI_UNICODE), MAPI_UNICODE)
-        if self.name != username:
-            self._name = username
-
-        return self
+        self._name = username
 
     def __getattr__(self, x): # XXX add __setattr__, e.g. for 'user.archive_store = None'
         store = self.store
@@ -4016,7 +4271,7 @@ class Quota(object):
             # XXX: logical name for variable
             # Use default quota set in /etc/kopano/server.cfg
             self._use_default_quota = quota.bUseDefaultQuota
-            # XXX: is this for multitendancy?
+            # XXX: is this for multitenancy?
             self._isuser_default_quota = quota.bIsUserDefaultQuota
 
     @property
@@ -4060,20 +4315,38 @@ class Quota(object):
         self._warning_limit = kwargs.get('warning_limit', self._warning_limit)
         self._soft_limit = kwargs.get('soft_limit', self._soft_limit)
         self._hard_limit = kwargs.get('hard_limit', self._hard_limit)
+        self._use_default_quota = kwargs.get('use_default', self._use_default_quota)
         # TODO: implement setting defaultQuota, userdefaultQuota
         # (self, bUseDefaultQuota, bIsUserDefaultQuota, llWarnSize, llSoftSize, llHardSize)
-        quota = ECQUOTA(False, False, self._warning_limit, self._soft_limit, self._hard_limit)
+        quota = ECQUOTA(self._use_default_quota, False, self._warning_limit, self._soft_limit, self._hard_limit)
         self.server.sa.SetQuota(self.userid, quota)
 
     @property
     def use_default(self):
         return self._use_default_quota
 
-    @property
+    @use_default.setter
+    def use_default(self, x):
+        self.update(use_default=x)
+
     def recipients(self):
         if self.userid:
             for ecuser in self.server.sa.GetQuotaRecipients(self.userid, 0):
                 yield self.server.user(ecuser.Username)
+
+    def add_recipient(self, user, company=False):
+        objclass = CONTAINER_COMPANY if company else ACTIVE_USER
+        try:
+            self.server.sa.AddQuotaRecipient(self.userid, user._ecuser.UserID, objclass)
+        except MAPIErrorCollision:
+            raise DuplicateError("user '%s' already in %squota recipients" % (user.name, 'company' if company else 'user'))
+
+    def remove_recipient(self, user, company=False):
+        objclass = CONTAINER_COMPANY if company else ACTIVE_USER
+        try:
+            self.server.sa.DeleteQuotaRecipient(self.userid, user._ecuser.UserID, objclass)
+        except MAPIErrorNotFound:
+            raise NotFoundError("user '%s' not in %squota recipients" % (user.name, 'company' if company else 'user'))
 
     def __unicode__(self):
         return u'Quota(warning=%s, soft=%s, hard=%s)' % (_bytes_to_human(self.warning_limit), _bytes_to_human(self.soft_limit), _bytes_to_human(self.hard_limit))
@@ -4331,7 +4604,11 @@ def _parse_str(option, opt_str, value, parser):
 def _parse_list_str(option, opt_str, value, parser):
     getattr(parser.values, option.dest).append(_decode(value))
 
-def parser(options='cskpUPufmvCSlbe', usage=None):
+def _parse_bool(option, opt_str, value, parser):
+    assert value in ('yes', 'no'), "error: %s option requires 'yes' or 'no' as argument" % opt_str
+    setattr(parser.values, option.dest, value=='yes')
+
+def parser(options='cskpUPufmvCGSlbe', usage=None):
     """
 Return OptionParser instance from the standard ``optparse`` module, containing common kopano command-line options
 
@@ -4392,6 +4669,7 @@ Available options:
     if 'U' in options: parser.add_option('-U', '--auth-user', dest='auth_user', help='login as user', metavar='NAME', **kw_str)
     if 'P' in options: parser.add_option('-P', '--auth-pass', dest='auth_pass', help='login with password', metavar='PASS', **kw_str)
 
+    if 'G' in options: parser.add_option('-G', '--group', dest='groups', default=[], help='run program for specific group', metavar='NAME', **kw_list_str)
     if 'C' in options: parser.add_option('-C', '--company', dest='companies', default=[], help='run program for specific company', metavar='NAME', **kw_list_str)
     if 'u' in options: parser.add_option('-u', '--user', dest='users', default=[], help='run program for specific user', metavar='NAME', **kw_list_str)
     if 'S' in options: parser.add_option('-S', '--store', dest='stores', default=[], help='run program for specific store', metavar='GUID', **kw_list_str)
