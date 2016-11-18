@@ -197,8 +197,8 @@ class FolderImporter:
 
         with log_exc(self.log):
             self.changes += 1
-            storeid, folderid, sourcekey, docid = item.storeid, item.folderid, item.sourcekey, item.docid
-            self.log.debug('store %s, folder %d: new/updated document with sourcekey %s, docid %d' % (storeid, folderid, sourcekey, docid))
+            storeid, folderid, entryid, sourcekey, docid = item.storeid, item.folderid, item.entryid, item.sourcekey, item.docid
+            self.log.debug('store %s, folder %d: new/updated document with entryid %s, sourcekey %s, docid %d' % (storeid, folderid, entryid, sourcekey, docid))
             doc = {'serverid': self.serverid, 'storeid': storeid, 'folderid': folderid, 'docid': docid, 'sourcekey': item.sourcekey}
             for prop in item.props():
                 if prop.id_ not in self.excludes:
@@ -353,7 +353,7 @@ class Service(kopano.Service):
                 sys.exit(1)
 
 def main():
-    parser = kopano.parser('ckpsF') # select common cmd-line options
+    parser = kopano.parser('ckpsFl') # select common cmd-line options
     parser.add_option('-r', '--reindex', dest='reindex', action='append', default=[], help='Reindex user/store', metavar='USER')
     options, args = parser.parse_args()
     service = Service('search', config=CONFIG, options=options)
