@@ -540,9 +540,7 @@ HRESULT iCal::HrGetContents(LPMAPITABLE *lppTable)
 	hr = ptrContents->QueryInterface(IID_IMAPITable, (LPVOID*)lppTable);
 
 exit:
-	if (lpsRestriction)
-		FREE_RESTRICTION(lpsRestriction);
-
+	MAPIFreeBuffer(lpsRestriction);
 	return hr;
 }
 

@@ -579,9 +579,8 @@ HRESULT CalDAV::HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWeb
 		sWebMStatus->lstResp.push_back(sWebResponse);
 		sWebResponse.lstsPropStat.clear();
 next:
-		if (lpsRoot)
-			FREE_RESTRICTION(lpsRoot);
-
+		MAPIFreeBuffer(lpsRoot);
+		lpsRoot = NULL;
 		if(lpValRows)
 			FreeProws(lpValRows);
 		lpValRows = NULL;
@@ -592,9 +591,7 @@ next:
 
 exit:
 	delete lpMtIcal;
-	if(lpsRoot)
-		FREE_RESTRICTION(lpsRoot);
-
+	MAPIFreeBuffer(lpsRoot);
 	if(lpTable)
 		lpTable->Release();
 

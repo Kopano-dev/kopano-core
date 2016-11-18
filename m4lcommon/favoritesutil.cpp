@@ -243,7 +243,8 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 	listSourceKey.push_back(strSourceKey);
 	FreeProws(lpRows);
 	lpRows = NULL;
-	FREE_RESTRICTION(lpRestriction);
+	MAPIFreeBuffer(lpRestriction);
+	lpRestriction = NULL;
 
 	for (const auto &sk : listSourceKey) {
 		sPropSourceKey.ulPropTag = PR_FAV_PUBLIC_SOURCE_KEY;
@@ -290,8 +291,7 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 		goto exit;
 
 exit:
-	FREE_RESTRICTION(lpRestriction);
-
+	MAPIFreeBuffer(lpRestriction);
 	if (lpTable)
 		lpTable->Release();
 
@@ -401,7 +401,7 @@ HRESULT AddToFavorite(IMAPIFolder *lpShortcutFolder, ULONG ulLevel, LPCTSTR lpsz
 		goto exit;
 
 exit:
-	FREE_RESTRICTION(lpRestriction);
+	MAPIFreeBuffer(lpRestriction);
 	MAPIFreeBuffer(lpNewPropArray);
 	if (lpMessage)
 		lpMessage->Release();

@@ -2024,9 +2024,7 @@ exit:
 
 	if(lpRecipTable)
 		lpRecipTable->Release();
-
-	FREE_RESTRICTION(lpRestrictRecipient);
-
+	MAPIFreeBuffer(lpRestrictRecipient);
 	return hr;
 }
 

@@ -532,9 +532,7 @@ exit:
 
 	if (lpsRowsInternal)
 		FreeProws(lpsRowsInternal);
-
-	FREE_RESTRICTION(lpRestriction);
-
+	MAPIFreeBuffer(lpRestriction);
 	return hr;
 }
 

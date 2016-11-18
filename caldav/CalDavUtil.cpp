@@ -775,10 +775,7 @@ exit:
 
 	if(lpTable)
 		lpTable->Release();
-	
-	if(lpsRoot)
-		FREE_RESTRICTION(lpsRoot);
-
+	MAPIFreeBuffer(lpsRoot);
 	if(lpValRows)
 		FreeProws(lpValRows);
 	

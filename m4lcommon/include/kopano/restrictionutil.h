@@ -36,12 +36,6 @@
 		goto exit; \
 	}
 
-#define FREE_RESTRICTION(_lpRestriction) \
-	{\
-		MAPIFreeBuffer(_lpRestriction);\
-		_lpRestriction = NULL;\
-	}
-
 #define CREATE_RES_AND(_lpBase, _lpRestriction, _values) \
 	{\
 	if ((_lpBase) == NULL || _lpRestriction == NULL) { \

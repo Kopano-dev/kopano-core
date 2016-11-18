@@ -3105,9 +3105,7 @@ HRESULT IMAP::HrExpungeDeleted(const std::string &strTag,
 
 exit:
 	MAPIFreeBuffer(sEntryList.lpbin);
-	if (lpRootRestrict)
-		FREE_RESTRICTION(lpRootRestrict);
-
+	MAPIFreeBuffer(lpRootRestrict);
 	if (lpRows)
 		FreeProws(lpRows);
 
