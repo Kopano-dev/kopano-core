@@ -28,13 +28,17 @@ def _default(name):
         return name
 
 def main():
-    server = kopano.Server()
+    parser = kopano.parser() # select common cmd-line options
+    options, args = parser.parse_args()
+
+    server = kopano.Server(options)
 
     # get index_path, run_as_user, run_as_group from  search.cfg
-    index_path = _default(kopano.Config(None, 'search').get('index_path'))
-    search_user = _default(kopano.Config(None, 'search').get('run_as_user'))
+    search_config = server.config
+    index_path = _default(search_config.get('index_path'))
+    search_user = _default(search_config.get('run_as_user'))
     uid = pwd.getpwnam(search_user).pw_uid
-    search_group = _default(kopano.Config(None, 'search').get('run_as_group'))
+    search_group = _default(search_config.get('run_as_group'))
     gid = grp.getgrnam(search_group).gr_gid
 
     if (uid, gid) != (os.getuid(), os.getgid()):
