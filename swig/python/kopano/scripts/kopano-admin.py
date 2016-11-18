@@ -8,21 +8,29 @@ from MAPI.Util import PR_EC_STATSTABLE_SYSTEM, PR_DISPLAY_NAME, PR_EC_STATS_SYST
 
 import kopano
 
-def parser_opt_args():
+def parser_opt_args(): # XXX unicode names
     parser = kopano.parser('skpc')
     parser.add_option('--create-public-store', dest='public_store', action='store_true',  help='Create public store')
+
     parser.add_option('--sync', dest='sync', action='store_true', help='Synchronize users and groups with external source')
+    parser.add_option('--clear-cache', dest='clear_cache', action='store_true', help='Clear all caches in the server')
+    parser.add_option('--purge-softdelete', dest='purge_softdelete', action='store', help='Purge items in marked as softdeleted that are older than N days', metavar='N', type=int)
+    parser.add_option('--purge-deferred', dest='purge_deferred', action='store_true', help='Purge all items in the deferred update table')
+
+    parser.add_option('--create-user', dest='create_user', action='store', help='Create user', metavar='NAME')
+    parser.add_option('--delete-user', dest='delete_user', action='store', help='Delete user', metavar='NAME')
+    parser.add_option('--update-user', dest='update_user', action='store', help='Update user', metavar='NAME')
+    parser.add_option('--user-details', dest='user_details', action='store', help='Show user details', metavar='NAME')
+
     parser.add_option('--list-users', dest='list_users', action='store_true', help='List users')
+    parser.add_option('--user-count', dest='usercount', action='store_true', help='Output the system users counts')
     parser.add_option('--list-companies', dest='list_companies', action='store_true', help='List companies')
     parser.add_option('--list-stores', dest='list_stores', action='store_true', help='List stores')
-    parser.add_option('--user-details', dest='user_details', action='store', help='Show user details', metavar='NAME')
-    parser.add_option('--user-count', dest='usercount', action='store_true', help='Output the system users counts')
+
     parser.add_option('--password', dest='password', action='store', help='Specify password')
     parser.add_option('--fullname', dest='fullname', action='store', help='Specify full name')
     parser.add_option('--email', dest='email', action='store', help='Specify email address')
-    # DB Plugin
-    parser.add_option('--create-user', dest='create_user', action='store', help='Create user', metavar='NAME')
-    parser.add_option('--delete-user', dest='delete_user', action='store', help='Delete user', metavar='NAME')
+
     parser.add_option('--create-group', dest='create_group', action='store', help='Create group, -e options optional', metavar='NAME')
     parser.add_option('--delete-group', dest='delete_group', action='store', help='Delete group', metavar='NAME')
     return (parser,) + parser.parse_args()
@@ -37,11 +45,21 @@ def main():
     if options.sync:
         server.sync_users()
 
+    elif options.clear_cache:
+        server.clear_cache()
+
+    elif options.purge_softdelete is not None:
+        server.purge_softdeletes(options.purge_softdelete)
+
+    elif options.purge_deferred:
+        remaining = server.purge_deferred()
+        print('Remaining dererred records: %d' % remaining)
+
     elif options.public_store:
         if not server.public_store:
             server.create_store(public=True)
         else:
-            print('public store already exists')
+            print('Unable to create store, public already exists')
 
     elif options.list_users:
         fmt = '{:>16}{:>20}{:>20}{:>40}'
@@ -101,6 +119,12 @@ def main():
         print('Groups (%d):' % len(groups))
         for group in user.groups():
             print('\t' + group.name)
+
+    elif options.update_user:
+        user = server.user(options.update_user)
+        user.fullname = options.fullname or user.fullname # XXX user.update(fullname=.., ..)
+        user.email = options.email or user.email
+        user.password = options.password or user.password # XXX prompt?
 
     elif options.usercount:
         stats = server.table(PR_EC_STATSTABLE_SYSTEM).dict_(PR_DISPLAY_NAME, PR_EC_STATS_SYSTEM_VALUE)

@@ -1200,8 +1200,19 @@ class Server(object):
         self.sa.RemoveStore(_unhex(store.guid))
 
     def sync_users(self):
-        # Flush user cache on the server
         self.sa.SyncUsers(None)
+
+    def clear_cache(self): # XXX specify one or more caches?
+        self.sa.PurgeCache(PURGE_CACHE_ALL)
+
+    def purge_softdeletes(self, days):
+        self.sa.PurgeSoftDelete(days)
+
+    def purge_deferred(self): # XXX purge all at once?
+        try:
+            return self.sa.PurgeDeferredUpdates() # remaining records
+        except MAPIErrorNotFound:
+            return 0
 
     @property
     def public_store(self):
@@ -3789,6 +3800,14 @@ class User(object):
     @email.setter
     def email(self, value):
         self._update(email=unicode(value))
+
+    @property
+    def password(self): # XXX not coming through SWIG?
+        return self._ecuser.Password
+
+    @password.setter
+    def password(self, value):
+        self._update(password=unicode(value))
 
     @property
     def features(self):

@@ -107,6 +107,7 @@ public:
 	
 	virtual HRESULT PurgeSoftDelete(ULONG ulDays) = 0;
 	virtual HRESULT PurgeCache(ULONG ulFlags) = 0;
+	virtual HRESULT PurgeDeferredUpdates(ULONG *OUTPUT) = 0;
 	virtual HRESULT OpenUserStoresTable(ULONG ulFlags, IMAPITable **OUTPUT /*lppTable*/) = 0;
 
 	// Multiserver functions
