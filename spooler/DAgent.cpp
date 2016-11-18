@@ -51,7 +51,7 @@
 #include <iostream>
 #include <algorithm>
 #include <map>
-
+#include <kopano/ECRestriction.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/mapi_ptr.h>
 #include "fileutil.h"
@@ -1969,11 +1969,13 @@ static HRESULT HrOverrideRecipProps(IMessage *lpMessage, ECRecipient *lpRecip)
 	sCmp[1].ulPropTag = PR_SMTP_ADDRESS_A;
 	sCmp[1].Value.lpszA = (char*)lpRecip->strSMTP.c_str();
 
-	CREATE_RESTRICTION(lpRestrictRecipient);
-	CREATE_RES_AND(lpRestrictRecipient, lpRestrictRecipient, 3);
-	DATA_RES_EXIST(lpRestrictRecipient, lpRestrictRecipient->res.resAnd.lpRes[0], PR_RECIPIENT_TYPE);
-	DATA_RES_PROPERTY(lpRestrictRecipient, lpRestrictRecipient->res.resAnd.lpRes[1], RELOP_EQ, PR_ADDRTYPE_A, &sCmp[0]);
-	DATA_RES_PROPERTY(lpRestrictRecipient, lpRestrictRecipient->res.resAnd.lpRes[2], RELOP_EQ, PR_SMTP_ADDRESS_A, &sCmp[1]);
+	hr = ECAndRestriction(
+		ECExistRestriction(PR_RECIPIENT_TYPE) +
+		ECPropertyRestriction(RELOP_EQ, PR_ADDRTYPE_A, &sCmp[0]) +
+		ECPropertyRestriction(RELOP_EQ, PR_SMTP_ADDRESS_A, &sCmp[1])
+	).CreateMAPIRestriction(&lpRestrictRecipient);
+	if (hr != hrSuccess)
+		goto exit;
 
 	hr = lpRecipTable->FindRow(lpRestrictRecipient, BOOKMARK_BEGINNING, 0);
 	if (hr == hrSuccess) {

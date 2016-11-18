@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/ECRestriction.h>
 #include "PublishFreeBusy.h"
 #include <kopano/namedprops.h>
 #include <kopano/mapiguidext.h>
@@ -161,10 +162,6 @@ HRESULT PublishFreeBusy::HrGetResctItems(IMAPITable **lppTable)
 	IMAPIFolder *lpDefCalendar = NULL;
 	IMAPITable *lpTable = NULL;
 	SRestriction *lpsRestrict = NULL;
-	SRestriction *lpsRestrictOR = NULL;
-	SRestriction *lpsRestrictAND = NULL;
-	SRestriction *lpsRestrictSubOR = NULL;
-	SRestriction *lpsRestrictNot = NULL;
 	SPropValue lpsPropStart;
 	SPropValue lpsPropEnd;
 	SPropValue lpsPropIsRecc;
@@ -178,10 +175,6 @@ HRESULT PublishFreeBusy::HrGetResctItems(IMAPITable **lppTable)
 	if(hr != hrSuccess)
 		goto exit;
 	
-	CREATE_RESTRICTION(lpsRestrict);
-	CREATE_RES_OR(lpsRestrict, lpsRestrict, 4);
-	lpsRestrictOR = lpsRestrict->res.resOr.lpRes;
-	
 	lpsPropStart.ulPropTag = PROP_APPT_STARTWHOLE;
 	lpsPropStart.Value.ft = m_ftStart;
 
@@ -194,49 +187,38 @@ HRESULT PublishFreeBusy::HrGetResctItems(IMAPITable **lppTable)
 	lpsPropReccEnd.ulPropTag = PROP_APPT_CLIPEND;
 	lpsPropReccEnd.Value.ft = m_ftStart;
 
-	CREATE_RES_AND(lpsRestrict, (&lpsRestrictOR[0]), 2);
-	lpsRestrictAND = lpsRestrictOR[0].res.resAnd.lpRes;	
-	//ITEM[START] >= START && ITEM[START] <= END;
-	DATA_RES_PROPERTY(lpsRestrict, lpsRestrictAND[0], RELOP_GE, PROP_APPT_STARTWHOLE, &lpsPropStart);//item[start]
-	DATA_RES_PROPERTY(lpsRestrict, lpsRestrictAND[1], RELOP_LE, PROP_APPT_STARTWHOLE, &lpsPropEnd);//item[start]
-
-	CREATE_RES_AND(lpsRestrict, (&lpsRestrictOR[1]), 2);
-	lpsRestrictAND = lpsRestrictOR[1].res.resAnd.lpRes;
-	//ITEM[END] >= START && ITEM[END] <= END;
-	DATA_RES_PROPERTY(lpsRestrict, lpsRestrictAND[0], RELOP_GE, PROP_APPT_ENDWHOLE, &lpsPropStart);//item[end]
-	DATA_RES_PROPERTY(lpsRestrict, lpsRestrictAND[1], RELOP_LE, PROP_APPT_ENDWHOLE, &lpsPropEnd);//item[end]
-
-	CREATE_RES_AND(lpsRestrict, (&lpsRestrictOR[2]), 2);
-	lpsRestrictAND = lpsRestrictOR[2].res.resAnd.lpRes;
-	//ITEM[START] < START && ITEM[END] > END;
-	DATA_RES_PROPERTY(lpsRestrict, lpsRestrictAND[0], RELOP_LT, PROP_APPT_STARTWHOLE, &lpsPropStart);//item[start]
-	DATA_RES_PROPERTY(lpsRestrict, lpsRestrictAND[1], RELOP_GT, PROP_APPT_ENDWHOLE, &lpsPropEnd);//item[end]
-
-	CREATE_RES_OR(lpsRestrict,(&lpsRestrictOR[3]),2);
-	lpsRestrictSubOR = lpsRestrictOR[3].res.resOr.lpRes;
-	
-	CREATE_RES_AND(lpsRestrict,(&lpsRestrictSubOR[0]),3);
-	lpsRestrictAND = lpsRestrictSubOR[0].res.resAnd.lpRes;
-	
-	DATA_RES_EXIST(lpsRestrict, lpsRestrictAND[0], PROP_APPT_CLIPEND);
-	DATA_RES_PROPERTY(lpsRestrict, lpsRestrictAND[1], RELOP_EQ, PROP_APPT_ISRECURRING, &lpsPropIsRecc);
-	DATA_RES_PROPERTY(lpsRestrict, lpsRestrictAND[2], RELOP_GE, PROP_APPT_CLIPEND, &lpsPropReccEnd);
-
-	CREATE_RES_AND(lpsRestrict,(&lpsRestrictSubOR[1]),3);
-	lpsRestrictAND = lpsRestrictSubOR[1].res.resAnd.lpRes;
-
-	CREATE_RES_NOT(lpsRestrict,(&lpsRestrictAND[0]));
-	lpsRestrictNot = lpsRestrictAND[0].res.resNot.lpRes;
-
-	DATA_RES_EXIST(lpsRestrict, lpsRestrictNot[0], PROP_APPT_CLIPEND);
-	DATA_RES_PROPERTY(lpsRestrict, lpsRestrictAND[1], RELOP_LE, PROP_APPT_STARTWHOLE, &lpsPropEnd);
-	DATA_RES_PROPERTY(lpsRestrict, lpsRestrictAND[2], RELOP_EQ, PROP_APPT_ISRECURRING, &lpsPropIsRecc);
-
-	
+	hr = ECOrRestriction(
+		//ITEM[START] >= START && ITEM[START] <= END;
+		ECAndRestriction(
+			ECPropertyRestriction(RELOP_GE, PROP_APPT_STARTWHOLE, &lpsPropStart) + // item[start]
+			ECPropertyRestriction(RELOP_LE, PROP_APPT_STARTWHOLE, &lpsPropEnd) // item[start]
+		) +
+		//ITEM[END] >= START && ITEM[END] <= END;
+		ECAndRestriction(
+			ECPropertyRestriction(RELOP_GE, PROP_APPT_ENDWHOLE, &lpsPropStart) + // item[end]
+			ECPropertyRestriction(RELOP_LE, PROP_APPT_ENDWHOLE, &lpsPropEnd) // item[end]
+		) +
+		//ITEM[START] < START && ITEM[END] > END;
+		ECAndRestriction(
+			ECPropertyRestriction(RELOP_LT, PROP_APPT_STARTWHOLE, &lpsPropStart) + // item[start]
+			ECPropertyRestriction(RELOP_GT, PROP_APPT_ENDWHOLE, &lpsPropEnd) // item[end]
+		) +
+		ECAndRestriction(
+			ECExistRestriction(PROP_APPT_CLIPEND) +
+			ECPropertyRestriction(RELOP_EQ, PROP_APPT_ISRECURRING, &lpsPropIsRecc) +
+			ECPropertyRestriction(RELOP_GE, PROP_APPT_CLIPEND, &lpsPropReccEnd)
+		) +
+		ECAndRestriction(
+			ECNotRestriction(ECExistRestriction(PROP_APPT_CLIPEND)) +
+			ECPropertyRestriction(RELOP_LE, PROP_APPT_STARTWHOLE, &lpsPropEnd) +
+			ECPropertyRestriction(RELOP_EQ, PROP_APPT_ISRECURRING, &lpsPropIsRecc)
+		)
+	).CreateMAPIRestriction(&lpsRestrict);
+	if (hr != hrSuccess)
+		goto exit;
 	hr = lpTable->Restrict(lpsRestrict, TBL_BATCH);
 	if(hr != hrSuccess)
 		goto exit;
-	
 	*lppTable = lpTable;
 	lpTable = NULL;
 

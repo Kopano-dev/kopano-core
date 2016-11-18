@@ -165,20 +165,4 @@
 	(_sRestriction).res.resContent.lpProp = _lpProp; \
 	}
 
-
-// UTILS
-//FP = From mapipropObject
-#define DATA_FP_RES_PROPERTY(_lpBase, _sRestriction, _ulRelop, _ulPropTag, _lpFolder, _ulPropTagFromFolder) \
-	{\
-	LPSPropValue _lpPropValue = NULL;\
-	hr = HrGetOneProp(_lpFolder, _ulPropTagFromFolder, &_lpPropValue);\
-	if(hr != hrSuccess)\
-		goto exit;\
-\
-	DATA_RES_PROPERTY(_lpBase, _sRestriction, _ulRelop, _ulPropTag, _lpPropValue)\
-\
-	MAPIFreeBuffer(_lpPropValue); \
-	_lpPropValue = NULL; \
-	}
-
 #endif

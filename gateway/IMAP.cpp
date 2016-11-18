@@ -16,7 +16,7 @@
  */
 
 #include <kopano/platform.h>
-
+#include <memory>
 #include <cstdio>
 #include <cstdlib>
 
@@ -31,6 +31,7 @@
 #include <mapiutil.h>
 #include <mapiguid.h>
 #include <kopano/ECDefs.h>
+#include <kopano/ECRestriction.h>
 #include <kopano/CommonUtil.h>
 #include <kopano/ECTags.h>
 #include <kopano/ECIConv.h>
@@ -2146,7 +2147,7 @@ HRESULT IMAP::HrCmdClose(const string &strTag) {
 		goto exit;
 	}
 
-	hr = HrExpungeDeleted(strTag, "CLOSE", NULL);
+	hr = HrExpungeDeleted(strTag, "CLOSE", std::unique_ptr<ECRestriction>());
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -2177,8 +2178,9 @@ HRESULT IMAP::HrCmdExpunge(const string &strTag, const string &strSeqSet) {
 	HRESULT hr = hrSuccess;
 	HRESULT hr2 = hrSuccess;
 	list<ULONG> lstMails;
-	LPSRestriction lpRestriction = NULL;
 	string strCommand;
+	std::unique_ptr<ECRestriction> rst;
+	static_assert(std::is_polymorphic<ECRestriction>::value, "ECRestriction needs to be polymorphic for unique_ptr to work");
 
 	if (strSeqSet.empty())
 		strCommand = "EXPUNGE";
@@ -2198,11 +2200,10 @@ HRESULT IMAP::HrCmdExpunge(const string &strTag, const string &strSeqSet) {
 	}
 
 	// UID EXPUNGE is always passed UIDs
-	hr = HrSeqUidSetToRestriction(strSeqSet, &lpRestriction);
+	hr = HrSeqUidSetToRestriction(strSeqSet, rst);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = HrExpungeDeleted(strTag, strCommand, lpRestriction);
+	hr = HrExpungeDeleted(strTag, strCommand, std::move(rst));
 	if (hr != hrSuccess)
 		goto exit;
     
@@ -2212,9 +2213,6 @@ HRESULT IMAP::HrCmdExpunge(const string &strTag, const string &strSeqSet) {
 	hr = HrResponse(RESP_TAGGED_OK, strTag, strCommand+" completed");
 
 exit:
-	if (lpRestriction)
-		FREE_RESTRICTION(lpRestriction);
-
 	if (hr2 != hrSuccess)
 		return hr2;
 	return hr;
@@ -2406,15 +2404,16 @@ HRESULT IMAP::HrCmdStore(const string &strTag, const string &strSeqSet, const st
 	}
 
 	if (bDelete && parseBool(lpConfig->GetSetting("imap_expunge_on_delete"))) {
-		SRestrictionPtr lpRestriction;
+		std::unique_ptr<ECRestriction> rst;
+		static_assert(std::is_polymorphic<ECRestriction>::value, "ECRestriction needs to be polymorphic for unique_ptr to work");
 
 		if (bUidMode) {
-			hr = HrSeqUidSetToRestriction(strSeqSet, &lpRestriction);
+			hr = HrSeqUidSetToRestriction(strSeqSet, rst);
 			if (hr != hrSuccess)
 				goto exit;
 		}
 
-		if (HrExpungeDeleted(strTag, strMode, lpRestriction) != hrSuccess)
+		if (HrExpungeDeleted(strTag, strMode, std::move(rst)) != hrSuccess)
 			// HrExpungeDeleted sent client NO result.
 			goto exit;
 
@@ -3044,7 +3043,7 @@ HRESULT IMAP::HrResponse(const string &strResult, const string &strTag, const st
  * @return MAPI Error code
  */
 HRESULT IMAP::HrExpungeDeleted(const std::string &strTag,
-    const std::string &strCommand, const SRestriction *lpUIDRestriction)
+    const std::string &strCommand, std::unique_ptr<ECRestriction> &&uid_rst)
 {
 	HRESULT hr = hrSuccess;
 	HRESULT hr2 = hrSuccess;
@@ -3055,6 +3054,7 @@ HRESULT IMAP::HrExpungeDeleted(const std::string &strTag,
 	LPSRowSet lpRows = NULL;
 	enum { EID, NUM_COLS };
 	SizedSPropTagArray(NUM_COLS, spt) = { NUM_COLS, {PR_ENTRYID} };
+	ECAndRestriction rst;
 
 	sEntryList.lpbin = NULL;
 
@@ -3069,19 +3069,13 @@ HRESULT IMAP::HrExpungeDeleted(const std::string &strTag,
 		hr2 = HrResponse(RESP_TAGGED_NO, strTag, strCommand + " error opening folder contents");
 		goto exit;
 	}
-
-	CREATE_RESTRICTION(lpRootRestrict);
-	if (lpUIDRestriction) {
-		CREATE_RES_AND(lpRootRestrict, lpRootRestrict, 3);
-		// lazy copy
-		lpRootRestrict->res.resAnd.lpRes[2] = *lpUIDRestriction;
-	} else {
-		CREATE_RES_AND(lpRootRestrict, lpRootRestrict, 2);
-	}
-
-	DATA_RES_EXIST(lpRootRestrict, lpRootRestrict->res.resAnd.lpRes[0], PR_MSG_STATUS);
-	DATA_RES_BITMASK(lpRootRestrict, lpRootRestrict->res.resAnd.lpRes[1], BMR_NEZ, PR_MSG_STATUS, MSGSTATUS_DELMARKED); 
-
+	if (uid_rst != nullptr)
+		rst.append(std::move(*uid_rst.get()));
+	rst.append(ECExistRestriction(PR_MSG_STATUS));
+	rst.append(ECBitMaskRestriction(BMR_NEZ, PR_MSG_STATUS, MSGSTATUS_DELMARKED));
+	hr = rst.CreateMAPIRestriction(&lpRootRestrict);
+	if (hr != hrSuccess)
+		goto exit;
 	hr = HrQueryAllRows(lpTable, spt, lpRootRestrict, NULL, 0, &lpRows);
 	if (hr != hrSuccess) {
 		hr2 = HrResponse(RESP_TAGGED_NO, strTag, strCommand + " error queryring rows");
@@ -4962,10 +4956,9 @@ ULONG IMAP::LastOrNumber(const char *szNr, bool bUID)
  * 
  * @return MAPI Error code
  */
-HRESULT IMAP::HrSeqUidSetToRestriction(const string &strSeqSet, LPSRestriction *lppRestriction)
+HRESULT IMAP::HrSeqUidSetToRestriction(const string &strSeqSet,
+    std::unique_ptr<ECRestriction> &ret)
 {
-	HRESULT hr = hrSuccess;
-	LPSRestriction lpRestriction = NULL;
 	vector<string> vSequences;
 	string::size_type ulPos = 0;
 	SPropValue sProp;
@@ -4973,44 +4966,34 @@ HRESULT IMAP::HrSeqUidSetToRestriction(const string &strSeqSet, LPSRestriction *
 
 	if (strSeqSet.empty()) {
 		// no restriction
-		*lppRestriction = NULL;
-		goto exit;
+		ret.reset();
+		return hrSuccess;
 	}
 
 	sProp.ulPropTag = PR_EC_IMAP_ID;
 	sPropEnd.ulPropTag = PR_EC_IMAP_ID;
 
 	vSequences = tokenize(strSeqSet, ',');
-
-	CREATE_RESTRICTION(lpRestriction);
-	CREATE_RES_OR(lpRestriction, lpRestriction, vSequences.size());
-
+	auto rst = new ECOrRestriction();
 	for (ULONG i = 0; i < vSequences.size(); ++i) {
 		ulPos = vSequences[i].find(':');
 		if (ulPos == string::npos) {
 			// single number
 			sProp.Value.ul = LastOrNumber(vSequences[i].c_str(), true);
-			DATA_RES_PROPERTY(lpRestriction, lpRestriction->res.resOr.lpRes[i], RELOP_EQ, PR_EC_IMAP_ID, &sProp);
+			rst->append(ECPropertyRestriction(RELOP_EQ, PR_EC_IMAP_ID, &sProp));
 		} else {
 			sProp.Value.ul = LastOrNumber(vSequences[i].c_str(), true);
 			sPropEnd.Value.ul = LastOrNumber(vSequences[i].c_str() + ulPos + 1, true);
 
 			if (sProp.Value.ul > sPropEnd.Value.ul)
 				swap(sProp.Value.ul, sPropEnd.Value.ul);
-
-			CREATE_RES_AND(lpRestriction, &lpRestriction->res.resOr.lpRes[i], 2);
-
-			DATA_RES_PROPERTY(lpRestriction, lpRestriction->res.resOr.lpRes[i].res.resAnd.lpRes[0], RELOP_GE, PR_EC_IMAP_ID, &sProp);
-			DATA_RES_PROPERTY(lpRestriction, lpRestriction->res.resOr.lpRes[i].res.resAnd.lpRes[1], RELOP_LE, PR_EC_IMAP_ID, &sPropEnd);
+			rst->append(ECAndRestriction(
+				ECPropertyRestriction(RELOP_GE, PR_EC_IMAP_ID, &sProp) +
+				ECPropertyRestriction(RELOP_LE, PR_EC_IMAP_ID, &sPropEnd)));
 		}
 	}
-
-	*lppRestriction = lpRestriction;
-	lpRestriction = NULL;
-
-exit:
-	MAPIFreeBuffer(lpRestriction);
-	return hr;
+	ret.reset(rst);
+	return hrSuccess;
 }
 
 /** 

@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/ECRestriction.h>
 #include "favoritesutil.h"
 
 #include <edkmdb.h>
@@ -204,10 +205,9 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 		goto exit;
 
 	// build restriction
-	CREATE_RESTRICTION(lpRestriction);
-	CREATE_RES_AND(lpRestriction, lpRestriction, 1);
-	DATA_RES_PROPERTY(lpRestriction, lpRestriction->res.resAnd.lpRes[0], RELOP_EQ, PR_FAV_PUBLIC_SOURCE_KEY, lpPropSourceKey);
-
+	hr = ECPropertyRestriction(RELOP_EQ, PR_FAV_PUBLIC_SOURCE_KEY, lpPropSourceKey).CreateMAPIRestriction(&lpRestriction);
+	if (hr != hrSuccess)
+		goto exit;
 	if (lpTable->FindRow(lpRestriction, BOOKMARK_BEGINNING , 0) != hrSuccess)
 		goto exit; // Folder already removed
 
@@ -250,10 +250,9 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 		sPropSourceKey.Value.bin.cb = sk.size();
 		sPropSourceKey.Value.bin.lpb = const_cast<BYTE *>(reinterpret_cast<const BYTE *>(sk.c_str()));
 
-		CREATE_RESTRICTION(lpRestriction);
-		CREATE_RES_AND(lpRestriction, lpRestriction, 1);
-		DATA_RES_PROPERTY(lpRestriction, lpRestriction->res.resAnd.lpRes[0], RELOP_EQ, PR_FAV_PARENT_SOURCE_KEY, &sPropSourceKey);
-
+		hr = ECPropertyRestriction(RELOP_EQ, PR_FAV_PARENT_SOURCE_KEY, &sPropSourceKey).CreateMAPIRestriction(&lpRestriction);
+		if (hr != hrSuccess)
+			goto exit;
 		hr = lpTable->Restrict(lpRestriction, TBL_BATCH );
 		if (hr != hrSuccess)
 			goto exit;
@@ -354,10 +353,9 @@ HRESULT AddToFavorite(IMAPIFolder *lpShortcutFolder, ULONG ulLevel, LPCTSTR lpsz
 		goto exit;
 
 	// build restriction
-	CREATE_RESTRICTION(lpRestriction);
-	CREATE_RES_AND(lpRestriction, lpRestriction, 1);
-	DATA_RES_PROPERTY(lpRestriction, lpRestriction->res.resAnd.lpRes[0], RELOP_EQ, PR_FAV_PUBLIC_SOURCE_KEY, lpPropSourceKey);
-
+	hr = ECPropertyRestriction(RELOP_EQ, PR_FAV_PUBLIC_SOURCE_KEY, lpPropSourceKey).CreateMAPIRestriction(&lpRestriction);
+	if (hr != hrSuccess)
+		goto exit;
 	if (lpTable->FindRow(lpRestriction, BOOKMARK_BEGINNING , 0) == hrSuccess)
 		goto exit; // Folder already include
 

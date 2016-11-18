@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/ECRestriction.h>
 #include "vconverter.h"
 #include "valarm.h"
 #include "icalrecurrence.h"
@@ -3097,13 +3098,14 @@ HRESULT VConverter::HrGetExceptionMessage(LPMESSAGE lpMessage, time_t tStart, LP
 		goto exit;
 
 	// restrict to only exception attachments
-	CREATE_RESTRICTION(lpAttachRestrict);
-	CREATE_RES_AND(lpAttachRestrict, lpAttachRestrict, 4);
-	DATA_RES_EXIST(lpAttachRestrict, lpAttachRestrict->res.resAnd.lpRes[0], sStart.ulPropTag);
-	DATA_RES_PROPERTY(lpAttachRestrict, lpAttachRestrict->res.resAnd.lpRes[1], RELOP_EQ, sStart.ulPropTag, &sStart);
-	DATA_RES_EXIST(lpAttachRestrict, lpAttachRestrict->res.resAnd.lpRes[2], sMethod.ulPropTag);
-	DATA_RES_PROPERTY(lpAttachRestrict, lpAttachRestrict->res.resAnd.lpRes[3], RELOP_EQ, sMethod.ulPropTag, &sMethod);
-
+	hr = ECAndRestriction(
+		ECExistRestriction(sStart.ulPropTag) +
+		ECPropertyRestriction(RELOP_EQ, sStart.ulPropTag, &sStart) +
+		ECExistRestriction(sMethod.ulPropTag) +
+		ECPropertyRestriction(RELOP_EQ, sMethod.ulPropTag, &sMethod)
+	).CreateMAPIRestriction(&lpAttachRestrict);
+	if (hr != hrSuccess)
+		goto exit;
 	hr = lpAttachTable->Restrict(lpAttachRestrict, 0);
 	if (hr != hrSuccess)
 		goto exit;

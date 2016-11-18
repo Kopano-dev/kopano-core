@@ -780,9 +780,6 @@ HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
     enum {IDX_ENTRYID, IDX_DISPLAY_NAME};
 
 	// Create the common restriction that determines which messages are old enough to purge.
-	CREATE_RESTRICTION(lpRestriction);
-	DATA_RES_PROPERTY_CHEAP(lpRestriction, *lpRestriction, RELOP_LT, PR_MESSAGE_DELIVERY_TIME, &sPropCreationTime);
-
 	li.LowPart = m_ftCurrent.dwLowDateTime;
 	li.HighPart = m_ftCurrent.dwHighDateTime;
 
@@ -791,6 +788,9 @@ HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
 	sPropCreationTime.ulPropTag = PR_MESSAGE_DELIVERY_TIME;
 	sPropCreationTime.Value.ft.dwLowDateTime = li.LowPart;
 	sPropCreationTime.Value.ft.dwHighDateTime = li.HighPart;
+	hr = ECPropertyRestriction(RELOP_LT, PR_MESSAGE_DELIVERY_TIME, &sPropCreationTime).CreateMAPIRestriction(&lpRestriction);
+	if (hr != hrSuccess)
+		goto exit;
 
 	for (const auto &arc : lstArchives) {
 		MsgStorePtr ptrArchiveStore;

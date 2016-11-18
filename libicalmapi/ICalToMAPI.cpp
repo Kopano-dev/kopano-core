@@ -16,6 +16,7 @@
  */
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
+#include <kopano/ECRestriction.h>
 #include "ICalToMAPI.h"
 #include "vconverter.h"
 #include "vtimezone.h"
@@ -388,8 +389,6 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 	LPSPropTagArray lpsPTA = NULL;
 	LPMAPITABLE lpAttachTable = NULL;
 	LPSRestriction lpAttachRestrict = NULL;
-	LPSRestriction lpPRestrictAnd = NULL;
-	LPSRestriction lpPRestrictOr = NULL;
 	LPSRowSet lpRows = NULL;
 	LPSPropValue lpPropVal = NULL;
 	SPropValue sStart = {0};
@@ -446,25 +445,16 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 	// restrict to only exception attachments
 	// (((!pr_exception_starttime) or (pr_exception_starttime != 1-1-4501)) and (have method) and (method == 5))
 	// (AND( OR( NOT(pr_exception_start) (pr_exception_start!=time)) (have method)(method==5)))
-	CREATE_RESTRICTION(lpAttachRestrict);
-
-	CREATE_RES_AND(lpAttachRestrict, lpAttachRestrict, 3);
-	lpPRestrictAnd = lpAttachRestrict->res.resAnd.lpRes;
-	{
-		CREATE_RES_OR(lpAttachRestrict, (&lpPRestrictAnd[0]), 2);
-		lpPRestrictOr = lpPRestrictAnd[0].res.resOr.lpRes;
-
-		// or
-		CREATE_RES_NOT(lpAttachRestrict, (&lpPRestrictOr[0]));
-		DATA_RES_EXIST(lpAttachRestrict, lpPRestrictOr[0].res.resNot.lpRes[0], sStart.ulPropTag);
-	
-		DATA_RES_PROPERTY(lpAttachRestrict, lpPRestrictOr[1], RELOP_NE, sStart.ulPropTag, &sStart);
-	}
-
-	// and
-	DATA_RES_EXIST(lpAttachRestrict, lpPRestrictAnd[1], sMethod.ulPropTag);
-	DATA_RES_PROPERTY(lpAttachRestrict, lpPRestrictAnd[2], RELOP_EQ, sMethod.ulPropTag, &sMethod);
-
+	hr = ECAndRestriction(
+		ECOrRestriction(
+			ECNotRestriction(ECExistRestriction(sStart.ulPropTag)) +
+			ECPropertyRestriction(RELOP_NE, sStart.ulPropTag, &sStart)
+		) +
+		ECExistRestriction(sMethod.ulPropTag) +
+		ECPropertyRestriction(RELOP_EQ, sMethod.ulPropTag, &sMethod)
+	).CreateMAPIRestriction(&lpAttachRestrict);
+	if (hr != hrSuccess)
+		goto exit;
 	hr = lpAttachTable->Restrict(lpAttachRestrict, 0);
 	if (hr != hrSuccess)
 		goto exit;

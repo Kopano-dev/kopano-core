@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/ECRestriction.h>
 #include "PublishFreeBusy.h"
 #include "CalDavProto.h"
 #include <kopano/mapi_ptr.h>
@@ -281,6 +282,7 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 	SRestriction *lpsRestriction = NULL;
 	SPropValue sResData;
 	ULONG ulItemCount = 0;
+	ECOrRestriction rst;
 	int i;
 
 	ulTagGOID = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY);
@@ -323,16 +325,16 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 	}
 
 	// restrict on meeting requests and appointments
-	CREATE_RESTRICTION(lpsRestriction);
-	CREATE_RES_OR(lpsRestriction, lpsRestriction, 3);
 	sResData.ulPropTag = PR_MESSAGE_CLASS_A;
 	sResData.Value.lpszA = const_cast<char *>("IPM.Appointment");
-	DATA_RES_CONTENT(lpsRestriction, lpsRestriction->res.resOr.lpRes[0], FL_IGNORECASE|FL_PREFIX, PR_MESSAGE_CLASS_A, &sResData);
+	rst.append(ECContentRestriction(FL_IGNORECASE | FL_PREFIX, PR_MESSAGE_CLASS_A, &sResData));
 	sResData.Value.lpszA = const_cast<char *>("IPM.Meeting");
-	DATA_RES_CONTENT(lpsRestriction, lpsRestriction->res.resOr.lpRes[1], FL_IGNORECASE|FL_PREFIX, PR_MESSAGE_CLASS_A, &sResData);
+	rst.append(ECContentRestriction(FL_IGNORECASE | FL_PREFIX, PR_MESSAGE_CLASS_A, &sResData));
 	sResData.Value.lpszA = const_cast<char *>("IPM.Task");
-	DATA_RES_CONTENT(lpsRestriction, lpsRestriction->res.resOr.lpRes[2], FL_IGNORECASE|FL_PREFIX, PR_MESSAGE_CLASS_A, &sResData);
-		
+	rst.append(ECContentRestriction(FL_IGNORECASE | FL_PREFIX, PR_MESSAGE_CLASS_A, &sResData));
+	hr = rst.CreateMAPIRestriction(&lpsRestriction);
+	if (hr != hrSuccess)
+		goto exit;
 	hr = lpTable->Restrict(lpsRestriction, 0);
 	if (hr != hrSuccess) {
 		ec_log_err("Unable to restrict folder contents, error code: 0x%08X %s", hr, GetMAPIErrorMessage(hr));
@@ -701,6 +703,7 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 	WEBDAVRESPONSE sWebResponse;
 	ULONG ulObjType = 0;
 	std::string strReq;	
+	ECOrRestriction rst;
 	int i;
 
 	m_lpRequest->HrGetRequestUrl(&strReq);
@@ -731,8 +734,6 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 	}
 
 	// create restriction
-	CREATE_RESTRICTION(lpsRoot);
-	CREATE_RES_OR(lpsRoot, lpsRoot, sWebRMGet->lstWebVal.size()); // max: or guid or raw or entryid
 	iterWebVal = sWebRMGet->lstWebVal.cbegin();
 
 	for (size_t i = 0; i < sWebRMGet->lstWebVal.size(); ++i, ++iterWebVal) {
@@ -752,9 +753,12 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 
 		lpsPropVal->ulPropTag = GetPropIDForXMLProp(lpAbCont, iterWebVal->sPropName, m_converter);
 		memcpy(lpsPropVal->Value.lpszW, content.c_str(), sizeof(wchar_t) * (content.length() + 1));
-		DATA_RES_CONTENT(lpsRoot,lpsRoot->res.resOr.lpRes[i],FL_SUBSTRING | FL_IGNORECASE, lpsPropVal->ulPropTag, lpsPropVal);
+		rst.append(ECContentRestriction(FL_SUBSTRING | FL_IGNORECASE, lpsPropVal->ulPropTag, lpsPropVal));
 		lpsPropVal = NULL;
 	}
+	hr = rst.CreateMAPIRestriction(&lpsRoot);
+	if (hr != hrSuccess)
+		goto exit;
 
 	// create proptagarray.
 	sDavProp = sWebRMGet->sProp;

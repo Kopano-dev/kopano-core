@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/ECRestriction.h>
 #include "ECMemTablePublic.h"
 
 #include "Mem.h"
@@ -221,19 +222,20 @@ HRESULT ECMemTablePublic::Init(ULONG ulFlags)
 			goto exit;
 
 		// build restriction
-		CREATE_RESTRICTION(lpRestriction);
-		CREATE_RES_AND(lpRestriction, lpRestriction, 1);
-
 		if (HrGetOneProp(&m_lpECParentFolder->m_xMAPIFolder, PR_SOURCE_KEY, &lpPropTmp) != hrSuccess)
 		{
-			CREATE_RES_NOT(lpRestriction, (&lpRestriction->res.resAnd.lpRes[0]));
-			DATA_RES_EXIST(lpRestriction, lpRestriction->res.resAnd.lpRes[0].res.resNot.lpRes[0], PR_FAV_PARENT_SOURCE_KEY);
+			hr = ECNotRestriction(ECExistRestriction(PR_FAV_PARENT_SOURCE_KEY)).CreateMAPIRestriction(&lpRestriction);
 		}else {
-			DATA_FP_RES_PROPERTY(lpRestriction, lpRestriction->res.resAnd.lpRes[0], RELOP_EQ, PR_FAV_PARENT_SOURCE_KEY, &m_lpECParentFolder->m_xMAPIFolder, PR_SOURCE_KEY);
+			hr = HrGetOneProp(&m_lpECParentFolder->m_xMAPIFolder, PR_SOURCE_KEY, &lpPropTmp);
+			if (hr != hrSuccess)
+				goto exit;
+			hr = ECPropertyRestriction(RELOP_EQ, PR_FAV_PARENT_SOURCE_KEY, lpPropTmp).CreateMAPIRestriction(&lpRestriction);
 		}
 
 		MAPIFreeBuffer(lpPropTmp);
 		lpPropTmp = NULL;
+		if (hr != hrSuccess)
+			goto exit;
 		hr  = lpShortcutTable->Restrict(lpRestriction, MAPI_DEFERRED_ERRORS);
 		if (hr != hrSuccess)
 			goto exit;
@@ -428,12 +430,10 @@ HRESULT ECMemTablePublic::ModifyRow(SBinary* lpInstanceKey, LPSRow lpsRow)
 		{
 			sPropTmp.ulPropTag = PR_INSTANCE_KEY;
 			sPropTmp.Value.bin = *lpInstanceKey;
-			
-			CREATE_RESTRICTION(lpRestriction);
-			CREATE_RES_AND(lpRestriction, lpRestriction, 1);
-			
-			DATA_RES_PROPERTY(lpRestriction, lpRestriction->res.resAnd.lpRes[0], RELOP_EQ, PR_INSTANCE_KEY, &sPropTmp);
 
+			hr = ECPropertyRestriction(RELOP_EQ, PR_INSTANCE_KEY, &sPropTmp).CreateMAPIRestriction(&lpRestriction);
+			if (hr != hrSuccess)
+				goto exit;
 			hr = m_lpShortcutTable->FindRow(lpRestriction, BOOKMARK_BEGINNING, 0);
 			if (hr != hrSuccess)
 				goto exit;

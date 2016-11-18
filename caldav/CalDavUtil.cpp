@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/ECRestriction.h>
 #include "CalDavUtil.h"
 #include <kopano/EMSAbTag.h>
 #include <kopano/charset/convert.h>
@@ -222,13 +223,14 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 	sPropFolderName.ulPropTag = PR_DISPLAY_NAME_W;
 	sPropFolderName.Value.lpszW = (WCHAR*)wstrFldId.c_str();
 
-	CREATE_RESTRICTION(lpRestrict);
-	CREATE_RES_OR(lpRestrict, lpRestrict, 2);
-	DATA_RES_PROPERTY(lpRestrict, lpRestrict->res.resOr.lpRes[0], RELOP_EQ, ulPropTagFldId, &sPropFolderID);
 	// @note, this will find the first folder using this name (1 level, eg 'Calendar', no subfolders in caldav)
 	// so if you have Calendar and subfolder/Calender, the latter will not be able to open using names, but must use IDs.
-	DATA_RES_CONTENT(lpRestrict, lpRestrict->res.resOr.lpRes[1], FL_IGNORECASE, PR_DISPLAY_NAME_W, &sPropFolderName);
-
+	hr = ECOrRestriction(
+		ECPropertyRestriction(RELOP_EQ, ulPropTagFldId, &sPropFolderID) +
+		ECContentRestriction(FL_IGNORECASE, PR_DISPLAY_NAME_W, &sPropFolderName)
+	).CreateMAPIRestriction(&lpRestrict);
+	if (hr != hrSuccess)
+		goto exit;
 	hr = lpHichyTable->Restrict(lpRestrict,TBL_BATCH);
 	if(hr != hrSuccess)
 		goto exit;
@@ -516,6 +518,7 @@ HRESULT HrGetSubCalendars(IMAPISession *lpSession, IMAPIFolder *lpFolderIn, SBin
 	SPropValue sPropVal;
 	SRestriction *lpRestrict = NULL;
 	bool FreeFolder = false;
+	ECOrRestriction rst;
 
 	if(!lpFolderIn)
 	{
@@ -533,15 +536,12 @@ HRESULT HrGetSubCalendars(IMAPISession *lpSession, IMAPIFolder *lpFolderIn, SBin
 
 	sPropVal.ulPropTag = PR_CONTAINER_CLASS_A;
 	sPropVal.Value.lpszA = const_cast<char *>("IPF.Appointment");
-
-	CREATE_RESTRICTION(lpRestrict);
-	
-	CREATE_RES_OR(lpRestrict, lpRestrict, 2);
-	DATA_RES_CONTENT(lpRestrict, lpRestrict->res.resOr.lpRes[0], FL_IGNORECASE, sPropVal.ulPropTag, &sPropVal);
-
+	rst.append(ECContentRestriction(FL_IGNORECASE, sPropVal.ulPropTag, &sPropVal));
 	sPropVal.Value.lpszA = const_cast<char *>("IPF.Task");
-	DATA_RES_CONTENT(lpRestrict, lpRestrict->res.resOr.lpRes[1], FL_IGNORECASE, sPropVal.ulPropTag, &sPropVal);
-
+	rst.append(ECContentRestriction(FL_IGNORECASE, sPropVal.ulPropTag, &sPropVal));
+	hr = rst.CreateMAPIRestriction(&lpRestrict);
+	if (hr != hrSuccess)
+		goto exit;
 	hr = lpTable->Restrict(lpRestrict,TBL_BATCH);
 	if(hr != hrSuccess)
 		goto exit;
@@ -681,13 +681,12 @@ HRESULT HrMakeRestriction(const std::string &strGuid, LPSPropTagArray lpNamedPro
 	std::string strBinGuid;
 	std::string strBinOtherUID;
 	SPropValue sSpropVal = {0};
+	ECOrRestriction rst;
 
 	if (lpsRectrict == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-	CREATE_RESTRICTION(lpsRoot);
-	CREATE_RES_OR(lpsRoot, lpsRoot, 4);
 
 	// convert guid to outlook format
 	if (IsOutlookUid(strGuid))
@@ -698,7 +697,7 @@ HRESULT HrMakeRestriction(const std::string &strGuid, LPSPropTagArray lpNamedPro
 	sSpropVal.Value.bin.cb = (ULONG)strBinGuid.size();
 	sSpropVal.Value.bin.lpb = (LPBYTE)strBinGuid.c_str();
 	sSpropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY);		
-	DATA_RES_PROPERTY(lpsRoot, lpsRoot->res.resOr.lpRes[0], RELOP_EQ, sSpropVal.ulPropTag, &sSpropVal);
+	rst.append(ECPropertyRestriction(RELOP_EQ, sSpropVal.ulPropTag, &sSpropVal));
 	
 	// converting guid to hex
 	strBinOtherUID = hex2bin(strGuid);
@@ -707,17 +706,17 @@ HRESULT HrMakeRestriction(const std::string &strGuid, LPSPropTagArray lpNamedPro
 	sSpropVal.Value.bin.lpb = (LPBYTE)strBinOtherUID.c_str();
 	
 	// When CreateAndGetGuid() fails PR_ENTRYID is used as guid.
-	DATA_RES_PROPERTY(lpsRoot, lpsRoot->res.resOr.lpRes[1], RELOP_EQ, PR_ENTRYID, &sSpropVal);
+	rst.append(ECPropertyRestriction(RELOP_EQ, PR_ENTRYID, &sSpropVal));
 
 	// z-push iphone UIDs are not in Outlook format		
 	sSpropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY);
-	DATA_RES_PROPERTY(lpsRoot, lpsRoot->res.resOr.lpRes[2], RELOP_EQ, sSpropVal.ulPropTag, &sSpropVal);
+	rst.append(ECPropertyRestriction(RELOP_EQ, sSpropVal.ulPropTag, &sSpropVal));
 
 	// PUT url [guid].ics part, (eg. Evolution UIDs)
 	sSpropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_APPTTSREF], PT_STRING8);
 	sSpropVal.Value.lpszA = (char*)strGuid.c_str();
-	DATA_RES_PROPERTY(lpsRoot, lpsRoot->res.resOr.lpRes[3], RELOP_EQ, sSpropVal.ulPropTag, &sSpropVal);
-	
+	rst.append(ECPropertyRestriction(RELOP_EQ, sSpropVal.ulPropTag, &sSpropVal));
+	hr = rst.CreateMAPIRestriction(&lpsRoot);
 exit:
 	if (lpsRoot && lpsRectrict)
 		*lpsRectrict = lpsRoot;
