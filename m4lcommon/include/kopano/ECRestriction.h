@@ -131,11 +131,6 @@ class _kc_export ECAndRestriction _kc_final : public ECRestriction {
 public:
 	_kc_hidden ECAndRestriction(void) {}
 	ECAndRestriction(const ECRestrictionList &list);
-	
-	_kc_hidden ECAndRestriction(const ECRestriction &restriction)
-	: m_lstRestrictions(1, ResPtr(restriction.Clone())) 
-	{ }
-
 	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction res, ULONG flags) const _kc_override;
 	ECRestriction *Clone(void) const _kc_override;
 
@@ -155,11 +150,6 @@ class _kc_export ECOrRestriction _kc_final : public ECRestriction {
 public:
 	_kc_hidden ECOrRestriction(void) {}
 	ECOrRestriction(const ECRestrictionList &list);
-	
-	_kc_hidden ECOrRestriction(const ECRestriction &restriction)
-	: m_lstRestrictions(1, ResPtr(restriction.Clone())) 
-	{ }
-	
 	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
 	ECRestriction *Clone(void) const _kc_override;
 
