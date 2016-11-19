@@ -163,6 +163,18 @@ HRESULT ECAndRestriction::append(const ECRestrictionList &list) {
 	return hrSuccess;
 }
 
+HRESULT ECAndRestriction::append(ECRestrictionList &&o)
+{
+	ResList &dst = m_lstRestrictions, &src = o.m_list;
+	if (dst.empty()) {
+		dst = std::move(src);
+		return hrSuccess;
+	}
+	std::move(std::begin(src), std::end(src), std::back_inserter(dst));
+	src.clear();
+	return hrSuccess;
+}
+
 HRESULT ECAndRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const {
 	SRestriction restriction = {0};
 	ULONG i = 0;
@@ -202,6 +214,18 @@ ECOrRestriction::ECOrRestriction(const ECRestrictionList &list): m_lstRestrictio
 
 HRESULT ECOrRestriction::append(const ECRestrictionList &list) {
 	m_lstRestrictions.insert(m_lstRestrictions.end(), list.m_list.begin(), list.m_list.end());
+	return hrSuccess;
+}
+
+HRESULT ECOrRestriction::append(ECRestrictionList &&o)
+{
+	ResList &dst = m_lstRestrictions, &src = o.m_list;
+	if (dst.empty()) {
+		dst = std::move(src);
+		return hrSuccess;
+	}
+	std::move(std::begin(src), std::end(src), std::back_inserter(dst));
+	src.clear();
 	return hrSuccess;
 }
 
@@ -466,11 +490,28 @@ ECCommentRestriction::ECCommentRestriction(const ECRestriction &restriction, ULO
 		m_ptrProp.reset(lpProp, &MAPIFreeBuffer);
 }
 
+ECCommentRestriction::ECCommentRestriction(ECRestriction &&o, ULONG nvals,
+    SPropValue *prop, ULONG flags) :
+	m_ptrRestriction(ResPtr(std::move(o).clone_move())), m_cValues(nvals)
+{
+	if (flags & ECRestriction::Cheap)
+		m_ptrProp.reset(prop, &ECRestriction::DummyFree);
+	else if (CopyProp(prop, NULL, flags, &prop) == hrSuccess)
+		m_ptrProp.reset(prop, &MAPIFreeBuffer);
+}
+
 ECCommentRestriction::ECCommentRestriction(ResPtr ptrRestriction, ULONG cValues, PropPtr ptrProp)
 : m_ptrRestriction(ptrRestriction)
 , m_cValues(cValues)
 , m_ptrProp(ptrProp)
 { }
+
+ECCommentRestriction::ECCommentRestriction(ECCommentRestriction &&o) :
+    m_ptrRestriction(std::move(o.m_ptrRestriction)),
+    m_cValues(o.m_cValues), m_ptrProp(std::move(o.m_ptrProp))
+{
+	o.m_cValues = 0;
+}
 
 HRESULT ECCommentRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const {
 	HRESULT hr;
