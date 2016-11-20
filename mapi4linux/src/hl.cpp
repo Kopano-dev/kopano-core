@@ -195,23 +195,6 @@ HRESULT KMessage::set_read_flag(unsigned int f)
 	return m_message->SetReadFlag(f);
 }
 
-KPropertyRestriction::KPropertyRestriction(ULONG op, SPropValue *prop)
-{
-	relop = op;
-	if (prop == NULL)
-		throw KMAPIError(MAPI_E_INVALID_TYPE);
-	ulPropTag = prop->ulPropTag;
-	lpProp = prop;
-}
-
-KPropertyRestriction::operator SRestriction(void) const
-{
-	SRestriction r;
-	r.rt = RES_PROPERTY;
-	r.res.resProperty = *this;
-	return r;
-}
-
 KSession::KSession(void)
 {
 	m_session = NULL;
