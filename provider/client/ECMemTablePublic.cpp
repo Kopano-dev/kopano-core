@@ -31,6 +31,7 @@
 #include "ECMsgStorePublic.h"
 #include <kopano/restrictionutil.h>
 #include "favoritesutil.h"
+#include <mapiutil.h>
 
 //FIXME: add the classname "ECMemTablePublic"
 ECMemTablePublic::ECMemTablePublic(ECMAPIFolderPublic *lpECParentFolder, SPropTagArray *lpsPropTags, ULONG ulRowPropTag) : ECMemTable(lpsPropTags, ulRowPropTag)

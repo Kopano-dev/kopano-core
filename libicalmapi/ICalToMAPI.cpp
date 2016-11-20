@@ -33,6 +33,7 @@
 #include <algorithm>
 #include <vector>
 #include <kopano/charset/convert.h>
+#include <mapi.h>
 
 class ICalToMapiImpl _kc_final : public ICalToMapi {
 public:

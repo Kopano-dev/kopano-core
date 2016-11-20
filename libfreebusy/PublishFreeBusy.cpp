@@ -31,6 +31,7 @@
 #include "ECFreeBusyUpdate.h"
 #include "freebusyutil.h"
 #include "ECFreeBusySupport.h"
+#include <mapiutil.h>
 
 using namespace std;
 

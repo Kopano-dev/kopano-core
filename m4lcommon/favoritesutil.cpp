@@ -29,6 +29,8 @@
 #include <kopano/charset/convstring.h>
 
 #include <string>
+#include <mapiutil.h>
+
 using namespace std;
 
 static SizedSPropTagArray(SHORTCUT_NUM, sPropsShortcuts) = {SHORTCUT_NUM, {
