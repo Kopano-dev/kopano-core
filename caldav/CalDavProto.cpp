@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/ECRestriction.h>
 #include "PublishFreeBusy.h"
 #include "CalDavProto.h"
 #include <kopano/mapi_ptr.h>
@@ -278,9 +279,9 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 	ULONG ulCensorFlag = 0;
 	ULONG cValues = 0;
 	LPSPropValue lpProps = NULL;
-	SRestriction *lpsRestriction = NULL;
 	SPropValue sResData;
 	ULONG ulItemCount = 0;
+	ECOrRestriction rst;
 	int i;
 
 	ulTagGOID = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY);
@@ -323,17 +324,14 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 	}
 
 	// restrict on meeting requests and appointments
-	CREATE_RESTRICTION(lpsRestriction);
-	CREATE_RES_OR(lpsRestriction, lpsRestriction, 3);
 	sResData.ulPropTag = PR_MESSAGE_CLASS_A;
 	sResData.Value.lpszA = const_cast<char *>("IPM.Appointment");
-	DATA_RES_CONTENT(lpsRestriction, lpsRestriction->res.resOr.lpRes[0], FL_IGNORECASE|FL_PREFIX, PR_MESSAGE_CLASS_A, &sResData);
+	rst.append(ECContentRestriction(FL_IGNORECASE | FL_PREFIX, PR_MESSAGE_CLASS_A, &sResData));
 	sResData.Value.lpszA = const_cast<char *>("IPM.Meeting");
-	DATA_RES_CONTENT(lpsRestriction, lpsRestriction->res.resOr.lpRes[1], FL_IGNORECASE|FL_PREFIX, PR_MESSAGE_CLASS_A, &sResData);
+	rst.append(ECContentRestriction(FL_IGNORECASE | FL_PREFIX, PR_MESSAGE_CLASS_A, &sResData));
 	sResData.Value.lpszA = const_cast<char *>("IPM.Task");
-	DATA_RES_CONTENT(lpsRestriction, lpsRestriction->res.resOr.lpRes[2], FL_IGNORECASE|FL_PREFIX, PR_MESSAGE_CLASS_A, &sResData);
-		
-	hr = lpTable->Restrict(lpsRestriction, 0);
+	rst.append(ECContentRestriction(FL_IGNORECASE | FL_PREFIX, PR_MESSAGE_CLASS_A, &sResData));
+	hr = rst.RestrictTable(lpTable, 0);
 	if (hr != hrSuccess) {
 		ec_log_err("Unable to restrict folder contents, error code: 0x%08X %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
@@ -445,10 +443,6 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 exit:
 	if (hr == hrSuccess)
 		ec_log_info("Number of items in folder returned: %u", ulItemCount);
-
-	if (lpsRestriction)
-		FREE_RESTRICTION(lpsRestriction);
-
 	MAPIFreeBuffer(lpsPropVal);
 	delete lpMtIcal;
 	MAPIFreeBuffer(lpPropTagArr);
@@ -585,9 +579,8 @@ HRESULT CalDAV::HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWeb
 		sWebMStatus->lstResp.push_back(sWebResponse);
 		sWebResponse.lstsPropStat.clear();
 next:
-		if (lpsRoot)
-			FREE_RESTRICTION(lpsRoot);
-
+		MAPIFreeBuffer(lpsRoot);
+		lpsRoot = NULL;
 		if(lpValRows)
 			FreeProws(lpValRows);
 		lpValRows = NULL;
@@ -598,9 +591,7 @@ next:
 
 exit:
 	delete lpMtIcal;
-	if(lpsRoot)
-		FREE_RESTRICTION(lpsRoot);
-
+	MAPIFreeBuffer(lpsRoot);
 	if(lpTable)
 		lpTable->Release();
 
@@ -688,10 +679,8 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 	HRESULT hr = hrSuccess;
 	IABContainer *lpAbCont = NULL;
 	IMAPITable *lpTable = NULL;	
-	SRestriction * lpsRoot = NULL;
 	SRowSet *lpValRows = NULL;
 	LPSPropTagArray lpPropTagArr = NULL;
-	LPSPropValue lpsPropVal = NULL;
 	ULONG cbsize = 0;
 	ULONG ulPropTag = 0;
 	ULONG ulTagPrivate = 0;
@@ -701,6 +690,7 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 	WEBDAVRESPONSE sWebResponse;
 	ULONG ulObjType = 0;
 	std::string strReq;	
+	ECOrRestriction rst;
 	int i;
 
 	m_lpRequest->HrGetRequestUrl(&strReq);
@@ -731,29 +721,14 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 	}
 
 	// create restriction
-	CREATE_RESTRICTION(lpsRoot);
-	CREATE_RES_OR(lpsRoot, lpsRoot, sWebRMGet->lstWebVal.size()); // max: or guid or raw or entryid
 	iterWebVal = sWebRMGet->lstWebVal.cbegin();
 
 	for (size_t i = 0; i < sWebRMGet->lstWebVal.size(); ++i, ++iterWebVal) {
 		wstring content = U2W(iterWebVal->strValue);
-
-		hr = MAPIAllocateMore(sizeof(SPropValue), lpsRoot, (void**)&lpsPropVal);
-		if (hr != hrSuccess) {
-			ec_log_debug("CalDAV::HrHandlePropertySearch MAPIAllocateMore(1) failed: 0x%x %s", hr, GetMAPIErrorMessage(hr));
-			goto exit;
-		}
-
-		hr = MAPIAllocateMore(sizeof(wchar_t) * (content.length() + 1), lpsRoot, (void**)&lpsPropVal->Value.lpszW);
-		if (hr != hrSuccess) {
-			ec_log_debug("CalDAV::HrHandlePropertySearch MAPIAllocateMore(2) failed: 0x%x %s", hr, GetMAPIErrorMessage(hr));
-			goto exit;
-		}
-
-		lpsPropVal->ulPropTag = GetPropIDForXMLProp(lpAbCont, iterWebVal->sPropName, m_converter);
-		memcpy(lpsPropVal->Value.lpszW, content.c_str(), sizeof(wchar_t) * (content.length() + 1));
-		DATA_RES_CONTENT(lpsRoot,lpsRoot->res.resOr.lpRes[i],FL_SUBSTRING | FL_IGNORECASE, lpsPropVal->ulPropTag, lpsPropVal);
-		lpsPropVal = NULL;
+		SPropValue pv;
+		pv.ulPropTag = GetPropIDForXMLProp(lpAbCont, iterWebVal->sPropName, m_converter);
+		pv.Value.lpszW = const_cast<wchar_t *>(content.c_str());
+		rst.append(ECContentRestriction(FL_SUBSTRING | FL_IGNORECASE, pv.ulPropTag, &pv));
 	}
 
 	// create proptagarray.
@@ -786,7 +761,7 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 	}
 	
 	// restrict table
-	hr = lpTable->Restrict(lpsRoot, 0);
+	hr = rst.RestrictTable(lpTable, 0);
 	if (hr != hrSuccess) {
 		ec_log_debug("CalDAV::HrHandlePropertySearch restrict failed 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
@@ -810,7 +785,7 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 		for (ULONG i = 0; i < lpValRows->cRows; ++i) {
 			WEBDAVVALUE sWebDavVal;
 			
-			lpsPropVal = PpropFindProp(lpValRows->aRow[i].lpProps, lpValRows->aRow[i].cValues, PR_ACCOUNT_W);
+			auto lpsPropVal = PpropFindProp(lpValRows->aRow[i].lpProps, lpValRows->aRow[i].cValues, PR_ACCOUNT_W);
 			if (!lpsPropVal)
 				continue;		// user without account name is useless
 
@@ -836,10 +811,6 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 exit:
 	if (lpValRows)
 		FreeProws(lpValRows);
-
-	if (lpsRoot)
-		FREE_RESTRICTION(lpsRoot);
-
 	if (lpTable)
 		lpTable->Release();
 
@@ -1432,7 +1403,6 @@ HRESULT CalDAV::HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lp
 	IMAPITable *lpHichyTable = NULL;
 	IMAPITable *lpDelHichyTable = NULL;
 	IMAPIFolder *lpWasteBox = NULL;
-	SRestriction *lpRestrict = NULL;
 	LPSPropValue lpSpropWbEID = NULL;
 	LPSPropValue lpsPropSingleFld = NULL;
 	LPSPropTagArray lpPropTagArr = NULL;
@@ -1620,10 +1590,6 @@ exit:
 	
 	if(lpRowsDeleted)
 		FreeProws(lpRowsDeleted);
-
-	if(lpRestrict)
-		FREE_RESTRICTION(lpRestrict);
-
 	return hr;
 }
 

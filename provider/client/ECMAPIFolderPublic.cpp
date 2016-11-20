@@ -37,11 +37,10 @@
 #include "ECMemTablePublic.h"
 
 #include "favoritesutil.h"
-#include <kopano/restrictionutil.h>
-
 #include <kopano/charset/convstring.h>
 
 #include <kopano/ECGetText.h>
+#include <mapiutil.h>
 
 ECMAPIFolderPublic::ECMAPIFolderPublic(ECMsgStore *lpMsgStore, BOOL fModify, WSMAPIFolderOps *lpFolderOps, enumPublicEntryID ePublicEntryID) : 
 		ECMAPIFolder(lpMsgStore, fModify, lpFolderOps, "IMAPIFolderPublic") 

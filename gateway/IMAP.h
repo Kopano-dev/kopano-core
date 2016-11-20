@@ -18,6 +18,7 @@
 #ifndef IMAP_H
 #define IMAP_H
 
+#include <memory>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -29,6 +30,7 @@
 #include "ClientProto.h"
 
 using namespace std;
+class ECRestriction;
 
 /**
  * @defgroup gateway_imap IMAP 
@@ -338,7 +340,7 @@ private:
 	ULONG LastOrNumber(const char *szNr, bool bUID);
 	HRESULT HrParseSeqSet(const string &strSeqSet, list<ULONG> &lstMails);
 	HRESULT HrParseSeqUidSet(const string &strSeqSet, list<ULONG> &lstMails);
-	HRESULT HrSeqUidSetToRestriction(const string &strSeqSet, LPSRestriction *lppRestriction);
+	HRESULT HrSeqUidSetToRestriction(const string &strSeqSet, std::unique_ptr<ECRestriction> &);
 
 	HRESULT HrStore(const list<ULONG> &lstMails, string strMsgDataItemName, string strMsgDataItemValue, bool *lpbDoDelete);
 	HRESULT HrCopy(const list<ULONG> &lstMails, const string &strFolder, bool bMove);
@@ -380,7 +382,7 @@ private:
 	void HrGetSubString(string &strOutput, const std::string &strInput, const std::string &strBegin, const std::string &strEnd);
 	void HrTokenize(std::set<std::string> &setTokens, const std::string &strInput);
 
-	HRESULT HrExpungeDeleted(const string &strTag, const string &strCommand, const SRestriction *lpUIDRestriction);
+	HRESULT HrExpungeDeleted(const string &strTag, const string &strCommand, std::unique_ptr<ECRestriction> &&);
 
 	friend LONG __stdcall IMAPIdleAdviseCallback(void *lpContext, ULONG cNotif, LPNOTIFICATION lpNotif);
 };

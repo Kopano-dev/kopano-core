@@ -27,6 +27,7 @@
 
 // Kopano includes
 #include <kopano/ECDefs.h>
+#include <kopano/ECRestriction.h>
 #include <kopano/ECABEntryID.h>
 #include <kopano/IECUnknown.h>
 #include <kopano/Util.h>
@@ -42,7 +43,6 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/stringutil.h>
 #include <kopano/mapiext.h>
-#include <kopano/restrictionutil.h>
 
 // Other
 #include "ECMonitorDefs.h"
@@ -460,12 +460,12 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
 		sRestrictProp.ulPropTag = PR_EC_COMPANY_NAME_A;
 		sRestrictProp.Value.lpszA = (char*)lpecCompany->lpszCompanyname;
 
-		CREATE_RESTRICTION(lpsRestriction);
-		CREATE_RES_OR(lpsRestriction, lpsRestriction, 2);
-		  CREATE_RES_NOT(lpsRestriction, &lpsRestriction->res.resOr.lpRes[0]);
-		    DATA_RES_EXIST(lpsRestriction, lpsRestriction->res.resOr.lpRes[0].res.resNot.lpRes[0], PR_EC_COMPANY_NAME_A);
-		  DATA_RES_PROPERTY(lpsRestriction, lpsRestriction->res.resOr.lpRes[1], RELOP_EQ, PR_EC_COMPANY_NAME_A, &sRestrictProp);
-
+		hr = ECOrRestriction(
+			ECNotRestriction(ECExistRestriction(PR_EC_COMPANY_NAME_A)) +
+			ECPropertyRestriction(RELOP_EQ, PR_EC_COMPANY_NAME_A, &sRestrictProp)
+		).CreateMAPIRestriction(&lpsRestriction);
+		if (hr != hrSuccess)
+			goto exit;
 		hr = lpTable->Restrict(lpsRestriction, MAPI_DEFERRED_ERRORS);
 		if (hr != hrSuccess) {
 			m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to restrict stats table, error 0x%08X", hr);

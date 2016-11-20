@@ -16,18 +16,20 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/ECRestriction.h>
 #include "favoritesutil.h"
 
 #include <edkmdb.h>
 
 #include <kopano/mapiext.h>
-#include <kopano/restrictionutil.h>
 #include <kopano/CommonUtil.h>
 
 #include <kopano/tstring.h>
 #include <kopano/charset/convstring.h>
 
 #include <string>
+#include <mapiutil.h>
+
 using namespace std;
 
 static SizedSPropTagArray(SHORTCUT_NUM, sPropsShortcuts) = {SHORTCUT_NUM, {
@@ -204,10 +206,9 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 		goto exit;
 
 	// build restriction
-	CREATE_RESTRICTION(lpRestriction);
-	CREATE_RES_AND(lpRestriction, lpRestriction, 1);
-	DATA_RES_PROPERTY(lpRestriction, lpRestriction->res.resAnd.lpRes[0], RELOP_EQ, PR_FAV_PUBLIC_SOURCE_KEY, lpPropSourceKey);
-
+	hr = ECPropertyRestriction(RELOP_EQ, PR_FAV_PUBLIC_SOURCE_KEY, lpPropSourceKey).CreateMAPIRestriction(&lpRestriction);
+	if (hr != hrSuccess)
+		goto exit;
 	if (lpTable->FindRow(lpRestriction, BOOKMARK_BEGINNING , 0) != hrSuccess)
 		goto exit; // Folder already removed
 
@@ -243,21 +244,18 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 	listSourceKey.push_back(strSourceKey);
 	FreeProws(lpRows);
 	lpRows = NULL;
-	FREE_RESTRICTION(lpRestriction);
+	MAPIFreeBuffer(lpRestriction);
+	lpRestriction = NULL;
 
 	for (const auto &sk : listSourceKey) {
 		sPropSourceKey.ulPropTag = PR_FAV_PUBLIC_SOURCE_KEY;
 		sPropSourceKey.Value.bin.cb = sk.size();
 		sPropSourceKey.Value.bin.lpb = const_cast<BYTE *>(reinterpret_cast<const BYTE *>(sk.c_str()));
 
-		CREATE_RESTRICTION(lpRestriction);
-		CREATE_RES_AND(lpRestriction, lpRestriction, 1);
-		DATA_RES_PROPERTY(lpRestriction, lpRestriction->res.resAnd.lpRes[0], RELOP_EQ, PR_FAV_PARENT_SOURCE_KEY, &sPropSourceKey);
-
-		hr = lpTable->Restrict(lpRestriction, TBL_BATCH );
+		hr = ECPropertyRestriction(RELOP_EQ, PR_FAV_PARENT_SOURCE_KEY, &sPropSourceKey)
+		     .RestrictTable(lpTable);
 		if (hr != hrSuccess)
 			goto exit;
-
 		hr = lpTable->SeekRow(BOOKMARK_BEGINNING, 0, NULL);
 		if (hr != hrSuccess)
 			goto exit;
@@ -285,8 +283,6 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 			strSourceKey.assign((char*)lpRows->aRow[0].lpProps[1].Value.bin.lpb, lpRows->aRow[0].lpProps[1].Value.bin.cb);
 			listSourceKey.push_back(strSourceKey);
 		} //while(true)
-
-		FREE_RESTRICTION(lpRestriction);
 		FreeProws(lpRows);
 		lpRows = NULL;
 	}
@@ -296,8 +292,7 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 		goto exit;
 
 exit:
-	FREE_RESTRICTION(lpRestriction);
-
+	MAPIFreeBuffer(lpRestriction);
 	if (lpTable)
 		lpTable->Release();
 
@@ -354,10 +349,9 @@ HRESULT AddToFavorite(IMAPIFolder *lpShortcutFolder, ULONG ulLevel, LPCTSTR lpsz
 		goto exit;
 
 	// build restriction
-	CREATE_RESTRICTION(lpRestriction);
-	CREATE_RES_AND(lpRestriction, lpRestriction, 1);
-	DATA_RES_PROPERTY(lpRestriction, lpRestriction->res.resAnd.lpRes[0], RELOP_EQ, PR_FAV_PUBLIC_SOURCE_KEY, lpPropSourceKey);
-
+	hr = ECPropertyRestriction(RELOP_EQ, PR_FAV_PUBLIC_SOURCE_KEY, lpPropSourceKey).CreateMAPIRestriction(&lpRestriction);
+	if (hr != hrSuccess)
+		goto exit;
 	if (lpTable->FindRow(lpRestriction, BOOKMARK_BEGINNING , 0) == hrSuccess)
 		goto exit; // Folder already include
 
@@ -408,7 +402,7 @@ HRESULT AddToFavorite(IMAPIFolder *lpShortcutFolder, ULONG ulLevel, LPCTSTR lpsz
 		goto exit;
 
 exit:
-	FREE_RESTRICTION(lpRestriction);
+	MAPIFreeBuffer(lpRestriction);
 	MAPIFreeBuffer(lpNewPropArray);
 	if (lpMessage)
 		lpMessage->Release();

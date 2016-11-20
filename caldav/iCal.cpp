@@ -22,7 +22,6 @@
 #include <vector>
 
 #include <kopano/CommonUtil.h>
-#include <kopano/restrictionutil.h>
 #include "icaluid.h"
 
 #include <libxml/tree.h>
@@ -540,9 +539,7 @@ HRESULT iCal::HrGetContents(LPMAPITABLE *lppTable)
 	hr = ptrContents->QueryInterface(IID_IMAPITable, (LPVOID*)lppTable);
 
 exit:
-	if (lpsRestriction)
-		FREE_RESTRICTION(lpsRestriction);
-
+	MAPIFreeBuffer(lpsRestriction);
 	return hr;
 }
 

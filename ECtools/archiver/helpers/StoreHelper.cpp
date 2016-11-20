@@ -19,8 +19,6 @@
 #include <memory>
 #include <mapix.h>
 #include <mapiutil.h>
-#include <kopano/restrictionutil.h>
-
 #include "StoreHelper.h"
 using namespace std;
 

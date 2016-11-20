@@ -23,7 +23,6 @@
 #include <kopano/mapiguidext.h>
 #include <cstring>
 #include <algorithm>
-#include <kopano/restrictionutil.h>
 #include <kopano/namedprops.h>
 #include "nameids.h"
 #include "icaluid.h"
