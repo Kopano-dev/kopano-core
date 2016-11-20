@@ -44,7 +44,8 @@ HRESULT ECRestriction::CreateMAPIRestriction(LPSRestriction *lppRestriction, ULO
 	return hrSuccess;
 }
 
-HRESULT ECRestriction::RestrictTable(LPMAPITABLE lpTable) const
+HRESULT ECRestriction::RestrictTable(IMAPITable *lpTable,
+    unsigned int flags) const
 {
 	SRestrictionPtr ptrRestriction;
 
@@ -53,7 +54,7 @@ HRESULT ECRestriction::RestrictTable(LPMAPITABLE lpTable) const
 	HRESULT hr = CreateMAPIRestriction(&ptrRestriction, ECRestriction::Cheap);
 	if (hr != hrSuccess)
 		return hr;
-	return lpTable->Restrict(ptrRestriction, TBL_BATCH);
+	return lpTable->Restrict(ptrRestriction, flags);
 }
 
 HRESULT ECRestriction::FindRowIn(LPMAPITABLE lpTable, BOOKMARK BkOrigin, ULONG ulFlags) const

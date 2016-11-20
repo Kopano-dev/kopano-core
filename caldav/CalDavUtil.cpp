@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <memory>
 #include <kopano/ECRestriction.h>
 #include "CalDavUtil.h"
 #include <kopano/EMSAbTag.h>
@@ -151,7 +152,6 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 {
 	HRESULT hr = hrSuccess;
 	std::string strBinEid;
-	SRestriction *lpRestrict = NULL;
 	IMAPITable *lpHichyTable = NULL;
 	SPropValue sPropFolderID;
 	SPropValue sPropFolderName;
@@ -228,11 +228,8 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 	hr = ECOrRestriction(
 		ECPropertyRestriction(RELOP_EQ, ulPropTagFldId, &sPropFolderID) +
 		ECContentRestriction(FL_IGNORECASE, PR_DISPLAY_NAME_W, &sPropFolderName)
-	).CreateMAPIRestriction(&lpRestrict);
+	).RestrictTable(lpHichyTable);
 	if (hr != hrSuccess)
-		goto exit;
-	hr = lpHichyTable->Restrict(lpRestrict,TBL_BATCH);
-	if(hr != hrSuccess)
 		goto exit;
 	hr = lpHichyTable->SetColumns(sPropTagArr, 0);
 	if(hr != hrSuccess)
@@ -267,10 +264,6 @@ exit:
 
 	if(lpHichyTable)
 		lpHichyTable->Release();
-
-	if(lpRestrict)
-		FREE_RESTRICTION(lpRestrict);
-
 	return hr;
 }
 
@@ -516,7 +509,6 @@ HRESULT HrGetSubCalendars(IMAPISession *lpSession, IMAPIFolder *lpFolderIn, SBin
 	ULONG ulObjType = 0;
 	IMAPITable *lpTable = NULL;
 	SPropValue sPropVal;
-	SRestriction *lpRestrict = NULL;
 	bool FreeFolder = false;
 	ECOrRestriction rst;
 
@@ -539,19 +531,12 @@ HRESULT HrGetSubCalendars(IMAPISession *lpSession, IMAPIFolder *lpFolderIn, SBin
 	rst.append(ECContentRestriction(FL_IGNORECASE, sPropVal.ulPropTag, &sPropVal));
 	sPropVal.Value.lpszA = const_cast<char *>("IPF.Task");
 	rst.append(ECContentRestriction(FL_IGNORECASE, sPropVal.ulPropTag, &sPropVal));
-	hr = rst.CreateMAPIRestriction(&lpRestrict);
+	hr = rst.RestrictTable(lpTable);
 	if (hr != hrSuccess)
 		goto exit;
-	hr = lpTable->Restrict(lpRestrict,TBL_BATCH);
-	if(hr != hrSuccess)
-		goto exit;
-
 	*lppTable = lpTable;
 
 exit:
-	if(lpRestrict)
-		FREE_RESTRICTION(lpRestrict);
-	
 	if(FreeFolder && lpFolder)
 		lpFolder->Release();
 

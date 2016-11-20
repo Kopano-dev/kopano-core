@@ -203,7 +203,6 @@ HRESULT ECMemTablePublic::Init(ULONG ulFlags)
 	HRESULT hr = hrSuccess;
 	IMAPIFolder *lpShortcutFolder = NULL;
 	LPMAPITABLE lpShortcutTable = NULL;
-	LPSRestriction lpRestriction = NULL;
 	LPSRowSet lpRows = NULL;
 	LPSPropValue lpPropTmp = NULL;
 	ULONG ulConnection;
@@ -224,19 +223,16 @@ HRESULT ECMemTablePublic::Init(ULONG ulFlags)
 		// build restriction
 		if (HrGetOneProp(&m_lpECParentFolder->m_xMAPIFolder, PR_SOURCE_KEY, &lpPropTmp) != hrSuccess)
 		{
-			hr = ECNotRestriction(ECExistRestriction(PR_FAV_PARENT_SOURCE_KEY)).CreateMAPIRestriction(&lpRestriction);
+			hr = ECNotRestriction(ECExistRestriction(PR_FAV_PARENT_SOURCE_KEY)).RestrictTable(lpShortcutTable, MAPI_DEFERRED_ERRORS);
 		}else {
 			hr = HrGetOneProp(&m_lpECParentFolder->m_xMAPIFolder, PR_SOURCE_KEY, &lpPropTmp);
 			if (hr != hrSuccess)
 				goto exit;
-			hr = ECPropertyRestriction(RELOP_EQ, PR_FAV_PARENT_SOURCE_KEY, lpPropTmp).CreateMAPIRestriction(&lpRestriction);
+			hr = ECPropertyRestriction(RELOP_EQ, PR_FAV_PARENT_SOURCE_KEY, lpPropTmp).RestrictTable(lpShortcutTable, MAPI_DEFERRED_ERRORS);
 		}
 
 		MAPIFreeBuffer(lpPropTmp);
 		lpPropTmp = NULL;
-		if (hr != hrSuccess)
-			goto exit;
-		hr  = lpShortcutTable->Restrict(lpRestriction, MAPI_DEFERRED_ERRORS);
 		if (hr != hrSuccess)
 			goto exit;
 	
@@ -281,7 +277,6 @@ exit:
 
 	if (lpShortcutFolder)
 		lpShortcutFolder->Release();
-	MAPIFreeBuffer(lpRestriction);
 	MAPIFreeBuffer(lpPropTmp);
 	if (lpRows)
 		FreeProws(lpRows);

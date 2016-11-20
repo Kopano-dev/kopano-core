@@ -388,7 +388,6 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 	LPMESSAGE lpExMsg = NULL;
 	LPSPropTagArray lpsPTA = NULL;
 	LPMAPITABLE lpAttachTable = NULL;
-	LPSRestriction lpAttachRestrict = NULL;
 	LPSRowSet lpRows = NULL;
 	LPSPropValue lpPropVal = NULL;
 	SPropValue sStart = {0};
@@ -452,13 +451,9 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 		) +
 		ECExistRestriction(sMethod.ulPropTag) +
 		ECPropertyRestriction(RELOP_EQ, sMethod.ulPropTag, &sMethod)
-	).CreateMAPIRestriction(&lpAttachRestrict);
+	).RestrictTable(lpAttachTable, 0);
 	if (hr != hrSuccess)
 		goto exit;
-	hr = lpAttachTable->Restrict(lpAttachRestrict, 0);
-	if (hr != hrSuccess)
-		goto exit;
-
 	hr = lpAttachTable->QueryRows(-1, 0, &lpRows);
 	if (hr != hrSuccess)
 		goto exit;
@@ -525,9 +520,6 @@ next:
 	}
 
 exit:
-	if (lpAttachRestrict)
-		FREE_RESTRICTION(lpAttachRestrict);
-
 	if (lpAttachTable)
 		lpAttachTable->Release();
 

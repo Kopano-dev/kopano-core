@@ -67,7 +67,7 @@ public:
 	 * Apply the restriction on a table.
 	 * @param[in]	lpTable		The table on which to apply the restriction.
 	 */
-	HRESULT RestrictTable(LPMAPITABLE) const;
+	HRESULT RestrictTable(IMAPITable *, unsigned int flags = TBL_BATCH) const;
 
 	/**
 	 * Use the restriction to perform a FindRow on the passed table.

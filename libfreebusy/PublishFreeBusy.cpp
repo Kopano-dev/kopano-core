@@ -161,7 +161,6 @@ HRESULT PublishFreeBusy::HrGetResctItems(IMAPITable **lppTable)
 	HRESULT hr = hrSuccess;
 	IMAPIFolder *lpDefCalendar = NULL;
 	IMAPITable *lpTable = NULL;
-	SRestriction *lpsRestrict = NULL;
 	SPropValue lpsPropStart;
 	SPropValue lpsPropEnd;
 	SPropValue lpsPropIsRecc;
@@ -213,19 +212,13 @@ HRESULT PublishFreeBusy::HrGetResctItems(IMAPITable **lppTable)
 			ECPropertyRestriction(RELOP_LE, PROP_APPT_STARTWHOLE, &lpsPropEnd) +
 			ECPropertyRestriction(RELOP_EQ, PROP_APPT_ISRECURRING, &lpsPropIsRecc)
 		)
-	).CreateMAPIRestriction(&lpsRestrict);
+	).RestrictTable(lpTable);
 	if (hr != hrSuccess)
-		goto exit;
-	hr = lpTable->Restrict(lpsRestrict, TBL_BATCH);
-	if(hr != hrSuccess)
 		goto exit;
 	*lppTable = lpTable;
 	lpTable = NULL;
 
 exit:
-	if(lpsRestrict)
-		FREE_RESTRICTION(lpsRestrict);
-
 	if(lpTable)
 		lpTable->Release();
 

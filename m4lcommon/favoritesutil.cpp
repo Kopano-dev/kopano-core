@@ -250,13 +250,10 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 		sPropSourceKey.Value.bin.cb = sk.size();
 		sPropSourceKey.Value.bin.lpb = const_cast<BYTE *>(reinterpret_cast<const BYTE *>(sk.c_str()));
 
-		hr = ECPropertyRestriction(RELOP_EQ, PR_FAV_PARENT_SOURCE_KEY, &sPropSourceKey).CreateMAPIRestriction(&lpRestriction);
+		hr = ECPropertyRestriction(RELOP_EQ, PR_FAV_PARENT_SOURCE_KEY, &sPropSourceKey)
+		     .RestrictTable(lpTable);
 		if (hr != hrSuccess)
 			goto exit;
-		hr = lpTable->Restrict(lpRestriction, TBL_BATCH );
-		if (hr != hrSuccess)
-			goto exit;
-
 		hr = lpTable->SeekRow(BOOKMARK_BEGINNING, 0, NULL);
 		if (hr != hrSuccess)
 			goto exit;
@@ -284,8 +281,6 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 			strSourceKey.assign((char*)lpRows->aRow[0].lpProps[1].Value.bin.lpb, lpRows->aRow[0].lpProps[1].Value.bin.cb);
 			listSourceKey.push_back(strSourceKey);
 		} //while(true)
-
-		FREE_RESTRICTION(lpRestriction);
 		FreeProws(lpRows);
 		lpRows = NULL;
 	}
