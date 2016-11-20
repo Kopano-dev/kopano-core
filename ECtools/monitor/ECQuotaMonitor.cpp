@@ -43,7 +43,6 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/stringutil.h>
 #include <kopano/mapiext.h>
-#include <kopano/restrictionutil.h>
 
 // Other
 #include "ECMonitorDefs.h"

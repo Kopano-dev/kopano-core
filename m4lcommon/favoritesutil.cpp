@@ -22,7 +22,6 @@
 #include <edkmdb.h>
 
 #include <kopano/mapiext.h>
-#include <kopano/restrictionutil.h>
 #include <kopano/CommonUtil.h>
 
 #include <kopano/tstring.h>

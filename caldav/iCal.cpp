@@ -22,7 +22,6 @@
 #include <vector>
 
 #include <kopano/CommonUtil.h>
-#include <kopano/restrictionutil.h>
 #include "icaluid.h"
 
 #include <libxml/tree.h>

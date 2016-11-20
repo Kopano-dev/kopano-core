@@ -101,7 +101,6 @@
 #include <kopano/Util.h>
 #include <kopano/ECLogger.h>
 #include <kopano/my_getopt.h>
-#include <kopano/restrictionutil.h>
 #include "rules.h"
 #include "archive.h"
 #include "helpers/MAPIPropHelper.h"

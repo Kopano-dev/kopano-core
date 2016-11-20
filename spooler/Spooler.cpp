@@ -74,7 +74,6 @@
 #include <edkguid.h>
 #include <kopano/mapiguidext.h>
 #include "mapicontact.h"
-#include <kopano/restrictionutil.h>
 #include <kopano/charset/convert.h>
 #include <kopano/charset/convstring.h>
 #include <kopano/charset/utf8string.h>

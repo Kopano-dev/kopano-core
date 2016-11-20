@@ -23,7 +23,6 @@
 #include <libxml/uri.h>
 
 #include <kopano/zcdefs.h>
-#include <kopano/restrictionutil.h>
 #include <kopano/mapiext.h>
 #include "MAPIToICal.h"
 #include "ICalToMAPI.h"

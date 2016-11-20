@@ -50,7 +50,6 @@
 #include <kopano/stringutil.h>
 #include <kopano/codepage.h>
 #include <kopano/charset/convert.h>
-#include <kopano/restrictionutil.h>
 #include <kopano/ecversion.h>
 #include <kopano/ECGuid.h>
 #include <kopano/namedprops.h>

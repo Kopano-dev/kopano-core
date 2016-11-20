@@ -26,8 +26,6 @@
 #include <kopano/ECLogger.h>
 #include "recurrence.h"
 #include <kopano/MAPIErrors.h>
-
-#include <kopano/restrictionutil.h>
 #include "ECFreeBusyUpdate.h"
 #include "freebusyutil.h"
 #include "ECFreeBusySupport.h"

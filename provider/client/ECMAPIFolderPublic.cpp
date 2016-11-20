@@ -37,8 +37,6 @@
 #include "ECMemTablePublic.h"
 
 #include "favoritesutil.h"
-#include <kopano/restrictionutil.h>
-
 #include <kopano/charset/convstring.h>
 
 #include <kopano/ECGetText.h>

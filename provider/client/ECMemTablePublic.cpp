@@ -29,7 +29,6 @@
 #include <kopano/mapiext.h>
 
 #include "ECMsgStorePublic.h"
-#include <kopano/restrictionutil.h>
 #include "favoritesutil.h"
 #include <mapiutil.h>
 

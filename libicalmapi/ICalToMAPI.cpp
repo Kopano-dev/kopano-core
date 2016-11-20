@@ -28,7 +28,6 @@
 #include <mapix.h>
 #include <mapiutil.h>
 #include <kopano/mapiext.h>
-#include <kopano/restrictionutil.h>
 #include <libical/ical.h>
 #include <algorithm>
 #include <vector>
