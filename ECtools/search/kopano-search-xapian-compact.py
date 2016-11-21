@@ -71,15 +71,17 @@ def main():
     errors = 0
     for dbpath in dbpaths:
         try:
-            print('compact:', dbpath)
             if os.path.isdir(dbpath):
                 if len(dbpath.split('-')) > 1:
                     store = dbpath.split('-')[1]
                     try:
-                        kopano.Store(store)
-                    except kopano.NotFoundError as e:
+                        server.store(store)
+                    except kopano.Error as e:
+                        print('deleting:', dbpath)
                         shutil.rmtree(dbpath)
                         continue
+
+                print('compact:', dbpath)
 
                 with open('%s.lock' % dbpath, 'w') as lockfile:  # do not index at the same time
                     fcntl.flock(lockfile.fileno(), fcntl.LOCK_EX)
