@@ -4,6 +4,7 @@ import os
 import sys
 import inspect
 import operator
+import functools
 
 from plugintemplates import *
 
@@ -53,7 +54,7 @@ class PluginManager(object):
                     self.logger.logInfo("** Adding plugin '%s'" % k) # fixme, use a plugin meta name ?
                     self.plugins.append((k, instance))
 
-            except Exception, e:
+            except Exception as e:
                 self.logger.logError("!-- failed to load: %s" % p)
                 self.logger.logError("!-- error: %s " % e)
 
@@ -74,8 +75,13 @@ class PluginManager(object):
 
            plugins.append((functionname, prio, name, i))
 
+        # for Python3 compatibility
+        _cmp = lambda a, b: (a > b) - (a < b)
+
         # sort the plugins on function name and prio
-        sortedlist = sorted(plugins, lambda a, b: cmp(a[0], b[0]) or cmp(a[1], b[1]))
+        sortedlist = sorted(
+            plugins, key = functools.cmp_to_key(lambda a, b: _cmp(a[0], b[0]) or _cmp(a[1], b[1]))
+        )
 
         retval = MP_CONTINUE,
         for (fname, prio, cname, i) in sortedlist:
@@ -98,10 +104,10 @@ class PluginManager(object):
                     retval = MP_CONTINUE,
 
                 self.logger.logInfo("** Plugin '%s.%s' returncode %d" % (cname, fname, retval[0]))
-            except NotImplementedError, e:
+            except NotImplementedError as e:
                 #Most likely the function is not implemented
                 self.logger.logDebug("!---------- %s" % e)
-            except Exception, e:
+            except Exception as e:
                 self.logger.logError("!-- error: %s " % e)
                 self.logger.logError("!- Plugin '%s.%s' call ignored please check the plugin" % (cname, fname))
                 retval = MP_CONTINUE,
