@@ -32,9 +32,13 @@ def main():
     options, args = parser.parse_args()
 
     server = kopano.Server(options)
-
+    
     # get index_path, run_as_user, run_as_group from  search.cfg
     search_config = server.config
+    if not search_config:
+        print('ERROR: search config is not available')
+        sys.exit(1)
+
     index_path = _default(search_config.get('index_path'))
     search_user = _default(search_config.get('run_as_user'))
     uid = pwd.getpwnam(search_user).pw_uid
@@ -42,7 +46,7 @@ def main():
     gid = grp.getgrnam(search_group).gr_gid
 
     if (uid, gid) != (os.getuid(), os.getgid()):
-        print 'ERROR: script should run under user/group as specified in search.cfg'
+        print('ERROR: script should run under user/group as specified in search.cfg')
         sys.exit(1)
 
     # find database(s) corresponding to given store GUID(s)
@@ -64,13 +68,13 @@ def main():
     errors = 0
     for dbpath in dbpaths:
         try:
-            print 'compact:', dbpath
+            print('compact:', dbpath)
             if os.path.isdir(dbpath):
                 if len(dbpath.split('-')) > 1:
                     store = dbpath.split('-')[1]
                     try:
                         kopano.Store(store)
-                    except kopano.NotFoundError, e:
+                    except kopano.NotFoundError as e:
                         shutil.rmtree(dbpath)
                         continue
 
@@ -83,16 +87,16 @@ def main():
                     shutil.move(dbpath + '.compact', dbpath)
                     shutil.rmtree(dbpath + '.old')
             else:
-                print 'ERROR: no such database: %s', dbpath
+                print('ERROR: no such database: %s', dbpath)
                 errors += 1
             print
-        except Exception, e:
-            print 'ERROR'
+        except Exception as e:
+            print('ERROR')
             traceback.print_exc(e)
             errors += 1
 
     # summarize
-    print 'done compacting (%d processed, %d errors)' % (count, errors)
+    print('done compacting (%d processed, %d errors)' % (count, errors))
 
 if __name__ == '__main__':
     main()
