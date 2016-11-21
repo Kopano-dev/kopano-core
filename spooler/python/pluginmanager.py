@@ -75,13 +75,8 @@ class PluginManager(object):
 
            plugins.append((functionname, prio, name, i))
 
-        # for Python3 compatibility
-        _cmp = lambda a, b: (a > b) - (a < b)
-
         # sort the plugins on function name and prio
-        sortedlist = sorted(
-            plugins, key = functools.cmp_to_key(lambda a, b: _cmp(a[0], b[0]) or _cmp(a[1], b[1]))
-        )
+        sortedlist = sorted(plugins, key = lambda a: (a[0], a[1]))
 
         retval = MP_CONTINUE,
         for (fname, prio, cname, i) in sortedlist:
