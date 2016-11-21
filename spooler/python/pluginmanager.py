@@ -3,8 +3,6 @@ import glob
 import os
 import sys
 import inspect
-import operator
-import functools
 
 from plugintemplates import *
 
