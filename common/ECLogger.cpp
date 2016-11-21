@@ -169,34 +169,22 @@ void ECLogger_Null::LogVA(unsigned int loglevel, const char *format, va_list& va
  * @param[in]	filename		filename of log in current locale
  */
 ECLogger_File::ECLogger_File(const unsigned int max_ll, const bool add_timestamp, const char *const filename, const bool compress) : ECLogger(max_ll) {
-	logname = strdup(filename);
+	logname = filename;
 	timestamp = add_timestamp;
 
-	if (strcmp(logname, "-") == 0) {
-		log = stderr;
-		fnOpen = NULL;
-		fnClose = NULL;
-		fnPrintf = (printf_func)&fprintf;
-		fnFileno = (fileno_func)&fileno;
-		szMode = NULL;
-	}
-	else {
-		if (compress) {
-			fnOpen = (open_func)&gzopen;
-			fnClose = (close_func)&gzclose;
-			fnPrintf = (printf_func)&gzprintf;
-			fnFileno = NULL;
-			szMode = "wb";
+	if (logname == "-") {
+		init_for_stderr();
+	} else {
+		if (compress)
+			init_for_gzfile();
+		else
+			init_for_file();
+		log = fnOpen(logname.c_str(), szMode);
+		if (log == nullptr) {
+			init_for_stderr();
+			fnPrintf(log, "Unable to open logfile %s: %s. Logging to stderr.\n",
+				logname.c_str(), strerror(errno));
 		}
-		else {
-			fnOpen = (open_func)&fopen;
-			fnClose = (close_func)&fclose;
-			fnPrintf = (printf_func)&fprintf;
-			fnFileno = (fileno_func)&fileno;
-			szMode = "a";
-		}
-
-		log = fnOpen(logname, szMode);
 	}
 	reinit_buffer(0);
 
@@ -225,10 +213,35 @@ ECLogger_File::~ECLogger_File() {
 	pthread_rwlock_unlock(&handle_lock);
 
 	pthread_rwlock_destroy(&handle_lock);
-
-	free(logname);
-
 	pthread_rwlock_destroy(&dupfilter_lock);
+}
+
+void ECLogger_File::init_for_stderr(void)
+{
+	log = stderr;
+	fnOpen = nullptr;
+	fnClose = nullptr;
+	fnPrintf = reinterpret_cast<printf_func>(&fprintf);
+	fnFileno = reinterpret_cast<fileno_func>(&fileno);
+	szMode = nullptr;
+}
+
+void ECLogger_File::init_for_file(void)
+{
+	fnOpen = reinterpret_cast<open_func>(&fopen);
+	fnClose = reinterpret_cast<close_func>(&fclose);
+	fnPrintf = reinterpret_cast<printf_func>(&fprintf);
+	fnFileno = reinterpret_cast<fileno_func>(&fileno);
+	szMode = "a";
+}
+
+void ECLogger_File::init_for_gzfile(void)
+{
+	fnOpen = reinterpret_cast<open_func>(&gzopen);
+	fnClose = reinterpret_cast<close_func>(&gzclose);
+	fnPrintf = reinterpret_cast<printf_func>(&gzprintf);
+	fnFileno = nullptr;
+	szMode = "wb";
 }
 
 void ECLogger_File::reinit_buffer(size_t size)
@@ -248,7 +261,7 @@ void ECLogger_File::Reset() {
 		if (log)
 			fnClose(log);
 
-		log = fnOpen(logname, szMode);
+		log = fnOpen(logname.c_str(), szMode);
 		reinit_buffer(buffer_size);
 	}
 
@@ -312,7 +325,7 @@ std::string ECLogger_File::DoPrefix() {
  * @retval	false	This instance is not logging to stderr.
  */
 bool ECLogger_File::IsStdErr() {
-	return strcmp(logname, "-") == 0;
+	return logname == "-";
 }
 
 bool ECLogger_File::DupFilter(const unsigned int loglevel, const std::string &message) {
