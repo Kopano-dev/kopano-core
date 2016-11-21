@@ -146,7 +146,7 @@ std::string getMapiCodeString(HRESULT hr, const char* object /* = "object" */)
 {
 	std::string retval = GetMAPIErrorMessage(hr);
 	std::string space(" ");
-	std::string objectstring(object);
+	std::string objectstring(object != nullptr ? object : "");
 	switch (hr) {
 	case MAPI_E_NOT_FOUND:
 		retval = objectstring + space + retval;
