@@ -49,15 +49,18 @@ def main():
         print('ERROR: script should run under user/group as specified in search.cfg')
         sys.exit(1)
 
+    cleaned_args = []
+    for arg in sys.argv[:1]:
+        if not arg.startswith('-'):
+            cleaned_args.append(arg)
+
     # find database(s) corresponding to given store GUID(s)
     dbpaths = []
-    if len(sys.argv) > 1:
-        for arg in sys.argv[1:]:
+    if len(cleaned_args) > 1:
+        for arg in cleaned_args[1:]:
             dbpath = os.path.join(index_path, server.guid+'-'+arg)
             dbpaths.append(dbpath)
-
-    # otherwise, select all databases for compaction
-    else:
+    else:  # otherwise, select all databases for compaction
         dbpaths = []
         for path in glob.glob(os.path.join(index_path, server.guid+'-*')):
             if not path.endswith('.lock'):
