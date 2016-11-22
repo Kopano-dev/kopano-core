@@ -515,7 +515,7 @@ def dump_props(props, stats, log):
     """ dump given MAPI properties """
 
     data = {}
-    with log_exc(stats, log):
+    with log_exc(log, stats):
         data = dict((prop.proptag, prop.mapiobj.Value) for prop in props)
     return pickle.dumps(data)
 
@@ -523,7 +523,7 @@ def dump_acl(folder, user, server, stats, log):
     """ dump acl for given folder """
 
     rows = []
-    with log_exc(stats, log):
+    with log_exc(log, stats):
         acl_table = folder.mapiobj.OpenProperty(PR_ACL_TABLE, IID_IExchangeModifyTable, 0, 0)
         table = acl_table.GetTable(0)
         for row in table.QueryRows(-1,0):
@@ -542,7 +542,7 @@ def dump_acl(folder, user, server, stats, log):
 def load_acl(folder, user, server, data, stats, log):
     """ load acl for given folder """
 
-    with log_exc(stats, log):
+    with log_exc(log, stats):
         data = pickle.loads(data)
         rows = []
         for row in data:
@@ -563,7 +563,7 @@ def dump_rules(folder, user, server, stats, log):
     """ dump rules for given folder """
 
     ruledata = None
-    with log_exc(stats, log):
+    with log_exc(log, stats):
         try:
             ruledata = folder.prop(PR_RULES_DATA).value
         except MAPIErrorNotFound:
@@ -592,7 +592,7 @@ def dump_rules(folder, user, server, stats, log):
 def load_rules(folder, user, server, data, stats, log):
     """ load rules for given folder """
 
-    with log_exc(stats, log):
+    with log_exc(log, stats):
         data = pickle.loads(data)
         if data:
             etxml = ElementTree.fromstring(data)
@@ -623,7 +623,7 @@ def dump_delegates(user, server, stats, log):
     """ dump delegate users for given user """
 
     usernames = []
-    with log_exc(stats, log):
+    with log_exc(log, stats):
         fbf = _get_fbf(user, 0, log)
         delegate_uids = []
         try:
@@ -643,7 +643,7 @@ def dump_delegates(user, server, stats, log):
 def load_delegates(user, server, data, stats, log):
     """ load delegate users for given user """
 
-    with log_exc(stats, log):
+    with log_exc(log, stats):
         userids = []
         for name in pickle.loads(data):
             try:
