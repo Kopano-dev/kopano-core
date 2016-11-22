@@ -31,7 +31,8 @@ def main():
     parser = kopano.parser() # select common cmd-line options
     options, args = parser.parse_args()
 
-    server = kopano.Server(options)
+    config = kopano.Config(None, service='search', options=options)
+    server = kopano.Server(options, config)
     
     # get index_path, run_as_user, run_as_group from  search.cfg
     search_config = server.config
@@ -49,11 +50,7 @@ def main():
         print('ERROR: script should run under user/group as specified in search.cfg')
         sys.exit(1)
 
-    cleaned_args = []
-    for arg in sys.argv[:1]:
-        if not arg.startswith('-'):
-            cleaned_args.append(arg)
-
+    cleaned_args = [arg for arg in sys.argv[:1] if not arg.startswith('-')]
     # find database(s) corresponding to given store GUID(s)
     dbpaths = []
     if len(cleaned_args) > 1:
@@ -76,7 +73,7 @@ def main():
                     store = dbpath.split('-')[1]
                     try:
                         server.store(store)
-                    except kopano.Error as e:
+                    except kopano.NotFoundError as e:
                         print('deleting:', dbpath)
                         shutil.rmtree(dbpath)
                         continue
