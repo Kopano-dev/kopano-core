@@ -511,7 +511,7 @@ PHP_MINFO_FUNCTION(mapi)
 	php_info_print_table_start();
 	php_info_print_table_row(2, "MAPI Support", "enabled");
 	php_info_print_table_row(2, "Version", PROJECT_VERSION_EXT_STR);
-	php_info_print_table_row(2, "Svn version", PROJECT_SVN_REV_STR);
+	php_info_print_table_row(2, "Git version", PROJECT_SVN_REV_STR);
 	php_info_print_table_end();
 }
 
