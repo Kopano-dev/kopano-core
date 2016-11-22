@@ -362,7 +362,6 @@ zend_function_entry mapi_functions[] =
 	ZEND_FE(mapi_getprops, NULL)
 	ZEND_FE(mapi_setprops, NULL)
 	ZEND_FE(mapi_copyto, NULL)
-//	ZEND_FE(mapi_copyprops, NULL)
 	ZEND_FE(mapi_openproperty, NULL)
 	ZEND_FE(mapi_deleteprops, NULL)
 	ZEND_FE(mapi_getnamesfromids, NULL)
