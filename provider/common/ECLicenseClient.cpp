@@ -76,19 +76,6 @@ ECRESULT ECLicenseClient::GetCapabilities(unsigned int ulServiceType, std::vecto
 	return erSuccess;
 }
 
-ECRESULT ECLicenseClient::QueryCapability(unsigned int ulServiceType, const std::string &strCapability, bool *lpbResult)
-{
-	ECRESULT er;
-	std::string strServiceType;
-
-	er = ServiceTypeToServiceTypeString(ulServiceType, strServiceType);
-	if (er != erSuccess)
-		return er;
-
-	*lpbResult = true;
-	return erSuccess;
-}
-
 ECRESULT ECLicenseClient::GetSerial(unsigned int ulServiceType, std::string &strSerial, std::vector<std::string> &lstCALs)
 {
 	ECRESULT er;

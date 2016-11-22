@@ -16,9 +16,7 @@
  */
 
 #include <kopano/platform.h>
-
-// Damn windows header defines max which break C++ header files
-#undef max
+#include <pthread.h>
 #include <mapix.h>
 #include <ctime>
 #include <iostream>

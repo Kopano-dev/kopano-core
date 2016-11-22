@@ -17,9 +17,6 @@
 
 #include <kopano/platform.h>
 
-// Damn windows header defines max which break C++ header files
-#undef max
-
 #include "VMIMEToMAPI.h"
 #include <kopano/ECGuid.h>
 #include <kopano/ECLogger.h>
