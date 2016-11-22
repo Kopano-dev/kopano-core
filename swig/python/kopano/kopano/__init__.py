@@ -4530,7 +4530,8 @@ Example::
                 if 'default' in val.kwargs:
                     self.data[key] = val.kwargs.get('default')
         for line in open(filename):
-            line = line.strip().decode('utf-8')
+            line = _decode(line.strip())
+
             if not line.startswith('#'):
                 pos = line.find('=')
                 if pos != -1:
