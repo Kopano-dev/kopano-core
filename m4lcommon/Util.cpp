@@ -866,7 +866,7 @@ HRESULT	Util::HrCopyPropTagArray(const SPropTagArray *lpSrc,
     LPSPropTagArray *lppDest)
 {
 	SPropTagArrayPtr ptrPropTagArray;
-	HRESULT hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpSrc->cValues), &ptrPropTagArray);
+	HRESULT hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpSrc->cValues), &~ptrPropTagArray);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -2408,7 +2408,7 @@ ULONG Util::GetBestBody(IMAPIProp* lpPropObj, ULONG ulFlags)
 		} };
 	ULONG cValues = 0;
 
-	hr = lpPropObj->GetProps(sBodyTags, 0, &cValues, &ptrBodies);
+	hr = lpPropObj->GetProps(sBodyTags, 0, &cValues, &~ptrBodies);
 	if (FAILED(hr))
 		return PR_NULL;
 	return GetBestBody(&ptrBodies[0], &ptrBodies[1], &ptrBodies[2], &ptrBodies[3], ulFlags);
@@ -4055,7 +4055,7 @@ HRESULT Util::HrDeleteMessage(IMAPISession *lpSession, IMessage *lpMessage)
 	SizedSPropTagArray(3, sptaMessageProps) = {3, {PR_ENTRYID, PR_STORE_ENTRYID, PR_PARENT_ENTRYID}};
 	enum {IDX_ENTRYID, IDX_STORE_ENTRYID, IDX_PARENT_ENTRYID};
 
-	HRESULT hr = lpMessage->GetProps(sptaMessageProps, 0, &cMsgProps, &ptrMsgProps);
+	HRESULT hr = lpMessage->GetProps(sptaMessageProps, 0, &cMsgProps, &~ptrMsgProps);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpSession->OpenMsgStore(0, ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.cb, (LPENTRYID)ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.lpb, &ptrStore.iid, MDB_WRITE, &ptrStore);

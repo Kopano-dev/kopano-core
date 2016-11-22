@@ -82,8 +82,7 @@ static ULONG GetPropIDForXMLProp(LPMAPIPROP lpObj,
 	lpNameID->lpguid = (GUID*)&PSETID_Kopano_CalDav;
 	lpNameID->ulKind = MNID_STRING;
 	lpNameID->Kind.lpwstrName = (WCHAR*)wstrName.c_str();
-
-	hr = lpObj->GetIDsFromNames(1, &lpNameID, ulFlags, &ptrPropTags);
+	hr = lpObj->GetIDsFromNames(1, &lpNameID, ulFlags, &~ptrPropTags);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -1224,7 +1223,7 @@ HRESULT CalDAV::HrPut()
 	}
 
 	// new modification time
-	if (HrGetOneProp(lpMessage, PR_LAST_MODIFICATION_TIME, &ptrPropModTime) == hrSuccess)
+	if (HrGetOneProp(lpMessage, PR_LAST_MODIFICATION_TIME, &~ptrPropModTime) == hrSuccess)
 		m_lpRequest->HrResponseHeader("Etag", SPropValToString(ptrPropModTime));
 
 	// Publish freebusy only for default Calendar
@@ -1805,8 +1804,7 @@ HRESULT CalDAV::HrHandleFreebusy(ICalToMapi *lpIcalToMapi)
 		ec_log_debug("CalDAV::HrHandleFreebusy open session failed: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
 	}
-
-	hr = HrGetOneProp(m_lpActiveUser, PR_SMTP_ADDRESS_A, &ptrEmail);
+	hr = HrGetOneProp(m_lpActiveUser, PR_SMTP_ADDRESS_A, &~ptrEmail);
 	if (hr != hrSuccess) {
 		ec_log_debug("CalDAV::HrHandleFreebusy get prop smtp address a failed: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
@@ -2019,9 +2017,8 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 		ulFolderType = TASKS_FOLDER;
 	else
 		ulFolderType = OTHER_FOLDER;
-
-	HrGetOneProp(m_lpActiveUser, PR_SMTP_ADDRESS_A, &ptrEmail);
-	HrGetOneProp(m_lpActiveUser, PR_DISPLAY_NAME_W, &ptrFullname);
+	HrGetOneProp(m_lpActiveUser, PR_SMTP_ADDRESS_A, &~ptrEmail);
+	HrGetOneProp(m_lpActiveUser, PR_DISPLAY_NAME_W, &~ptrFullname);
 
 	// owner is DAV namespace, the owner of the resource (url)
 	strOwnerURL = "/caldav/" + urlEncode(m_wstrFldOwner, "utf-8") + "/";

@@ -1132,8 +1132,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 		ZLOG_DEBUG(m_lpLogger, "ExportFast: Unable to get serialized message, hr = 0x%08x", hr);
 		goto exit;
 	}
-
-	hr = ptrSerializedMessage->GetProps(&cbProps, &ptrProps);
+	hr = ptrSerializedMessage->GetProps(&cbProps, &~ptrProps);
 	if (hr != hrSuccess) {
 		ZLOG_DEBUG(m_lpLogger, "ExportFast: %s", "Unable to get required properties from serialized message");
 		goto exit;

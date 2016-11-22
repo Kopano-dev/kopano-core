@@ -41,7 +41,7 @@ void ECHierarchyIteratorBase::increment()
 
 		SizedSPropTagArray(1, sptaColumnProps) = {1, {PR_ENTRYID}};
 
-		hr = HrGetOneProp(m_ptrContainer, PR_FOLDER_TYPE, &ptrFolderType);
+		hr = HrGetOneProp(m_ptrContainer, PR_FOLDER_TYPE, &~ptrFolderType);
 		if (hr == hrSuccess && ptrFolderType->Value.ul == FOLDER_SEARCH) {
 			// No point in processing search folders
 			m_ptrCurrent.reset();
@@ -59,8 +59,7 @@ void ECHierarchyIteratorBase::increment()
 
 			sPropDepth.ulPropTag = PR_DEPTH;
 			sPropDepth.Value.ul = m_ulDepth;
-
-			hr = res.CreateMAPIRestriction(&ptrRes, ECRestriction::Cheap);
+			hr = res.CreateMAPIRestriction(&~ptrRes, ECRestriction::Cheap);
 			if (hr != hrSuccess)
 				goto exit;
 
@@ -106,7 +105,7 @@ ECContentsIteratorBase::ECContentsIteratorBase(LPMAPICONTAINER lpContainer, LPSR
 {
 	if (lpRestriction) {
 		if (!bOwnRestriction) {
-			HRESULT hr = Util::HrCopySRestriction(&m_ptrRestriction, lpRestriction);
+			HRESULT hr = Util::HrCopySRestriction(&~m_ptrRestriction, lpRestriction);
 			if (hr != hrSuccess)
 				throw HrException(hr);
 		} else

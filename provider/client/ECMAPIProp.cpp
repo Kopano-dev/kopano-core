@@ -559,8 +559,7 @@ HRESULT ECMAPIProp::GetSerializedACLData(LPVOID lpBase, LPSPropValue lpsPropValu
 	hr = QueryInterface(IID_IECSecurity, &ptrSecurity);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = ptrSecurity->GetPermissionRules(ACCESS_TYPE_GRANT, &cPerms, &ptrPerms);
+	hr = ptrSecurity->GetPermissionRules(ACCESS_TYPE_GRANT, &cPerms, &~ptrPerms);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -622,8 +621,7 @@ HRESULT ECMAPIProp::SetSerializedACLData(LPSPropValue lpsPropValue)
 			goto exit;
 		}
 	}
-
-	hr = MAPIAllocateBuffer(rights.__size * sizeof(ECPERMISSION), &ptrPerms);
+	hr = MAPIAllocateBuffer(rights.__size * sizeof(ECPERMISSION), &~ptrPerms);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -650,8 +648,7 @@ HRESULT	ECMAPIProp::UpdateACLs(ULONG cNewPerms, ECPERMISSION *lpNewPerms)
 	hr = QueryInterface(IID_IECSecurity, &ptrSecurity);
 	if (hr != hrSuccess)
 		return hr;
-
-	hr = ptrSecurity->GetPermissionRules(ACCESS_TYPE_GRANT, &cPerms, &ptrPerms);
+	hr = ptrSecurity->GetPermissionRules(ACCESS_TYPE_GRANT, &cPerms, &~ptrPerms);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -697,7 +694,7 @@ HRESULT	ECMAPIProp::UpdateACLs(ULONG cNewPerms, ECPERMISSION *lpNewPerms)
 		} else if (cPerms == 0) {
 			lpPermissions = lpNewPerms;
 		} else {
-			hr = MAPIAllocateBuffer((cPerms + cNewPerms) * sizeof(ECPERMISSION), &ptrTmpPerms);
+			hr = MAPIAllocateBuffer((cPerms + cNewPerms) * sizeof(ECPERMISSION), &~ptrTmpPerms);
 			if (hr != hrSuccess)
 				return hr;
 

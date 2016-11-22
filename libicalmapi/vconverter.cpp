@@ -2849,8 +2849,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 			hr = hrSuccess;
 			goto next;
 		}
-		
-		hr = lpException->GetProps(NULL, MAPI_UNICODE, &ulMsgProps, &lpMsgProps);
+		hr = lpException->GetProps(NULL, MAPI_UNICODE, &ulMsgProps, &~lpMsgProps);
 		if (FAILED(hr))
 			goto next;
 		

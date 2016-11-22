@@ -330,7 +330,7 @@ tstring
 ArchiveControlImpl::getfoldername(LPMAPIFOLDER folder)
 {
     SPropValuePtr foldername;
-    HrGetOneProp(folder, PR_DISPLAY_NAME, &foldername);
+	HrGetOneProp(folder, PR_DISPLAY_NAME, &~foldername);
     return tstring(foldername->Value.LPSZ);
 }
 
@@ -367,7 +367,7 @@ ArchiveControlImpl::purgesoftdeleteditems(LPMAPIFOLDER folder, const tstring& st
 		found = rowSet.size();
 		totalfound += found;
 		EntryListPtr ptrEntryList;
-		hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &ptrEntryList);
+		hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~ptrEntryList);
 		if (hr != hrSuccess)
 			continue;
 		hr = MAPIAllocateMore(sizeof(SBinary), ptrEntryList, (LPVOID*)&ptrEntryList->lpbin);
@@ -408,7 +408,8 @@ ArchiveControlImpl::purgesoftdeletedmessages(const tstring& strUser)
 		return hr;
 	}
         SPropValuePtr ptrPropValue;
-        if ((hr = HrGetOneProp(store, PR_IPM_SUBTREE_ENTRYID, &ptrPropValue)) != hrSuccess) {
+        hr = HrGetOneProp(store, PR_IPM_SUBTREE_ENTRYID, &~ptrPropValue);
+        if (hr != hrSuccess) {
             m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get PR_IPM_SUBTREE_ENTRYID. (hr=%s)", stringify(hr, true).c_str());
             return hr;
         }
@@ -617,8 +618,7 @@ HRESULT ArchiveControlImpl::DoCleanup(const tstring &strUser)
 		sPropRefTime.ulPropTag = PROP_TAG(PT_SYSTIME, 0);
 		sPropRefTime.Value.ft.dwLowDateTime = li.LowPart;
 		sPropRefTime.Value.ft.dwHighDateTime = li.HighPart;
-
-		hr = resDefault.CreateMAPIRestriction(&ptrRestriction, 0);
+		hr = resDefault.CreateMAPIRestriction(&~ptrRestriction, 0);
 		if (hr != hrSuccess)
 			return hr;
 	}
@@ -699,8 +699,7 @@ HRESULT ArchiveControlImpl::ProcessFolder(MAPIFolderPtr &ptrFolder, ArchiveOpera
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to set columns on table. (hr=%s)", stringify(hr, true).c_str());
 		goto exit;
 	}
-
-	hr = ptrArchiveOperation->GetRestriction(ptrFolder, &ptrRestriction);
+	hr = ptrArchiveOperation->GetRestriction(ptrFolder, &~ptrRestriction);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to get restriction from operation. (hr=%s)", stringify(hr, true).c_str());
 		goto exit;
@@ -711,8 +710,7 @@ HRESULT ArchiveControlImpl::ProcessFolder(MAPIFolderPtr &ptrFolder, ArchiveOpera
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to set restriction on table. (hr=%s)", stringify(hr, true).c_str());
 		goto exit;
 	}
-
-	hr = MAPIAllocateBuffer(CbNewSSortOrderSet(1), &ptrSortOrder);
+	hr = MAPIAllocateBuffer(CbNewSSortOrderSet(1), &~ptrSortOrder);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -922,7 +920,7 @@ HRESULT ArchiveControlImpl::PurgeArchiveFolder(MsgStorePtr &ptrArchive, const en
 	}
 
 	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Purging %zu messaged from archive folder", lstEntries.size());
-	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &ptrEntryList);
+	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~ptrEntryList);
 	if (hr != hrSuccess)
 		return hr;
 	hr = MAPIAllocateMore(lstEntries.size() * sizeof(SBinary), ptrEntryList, (LPVOID*)&ptrEntryList->lpbin);
@@ -980,7 +978,7 @@ HRESULT ArchiveControlImpl::CleanupArchive(const SObjectEntry &archiveEntry, IMs
 	}
 
 	// Get the archive store GUID (PR_STORE_RECORD_KEY)
-	hr = HrGetOneProp(ptrArchiveHelper->GetMsgStore(), PR_STORE_RECORD_KEY, &ptrPropVal);
+	hr = HrGetOneProp(ptrArchiveHelper->GetMsgStore(), PR_STORE_RECORD_KEY, &~ptrPropVal);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get store GUID of archive store.");
 		return hr;
@@ -1053,7 +1051,7 @@ HRESULT ArchiveControlImpl::GetAllReferences(LPMDB lpUserStore, LPGUID lpArchive
 	ECFolderIterator iEnd;
 
 	// Find the primary store IPM subtree
-	hr = HrGetOneProp(lpUserStore, PR_IPM_SUBTREE_ENTRYID, &ptrPropVal);
+	hr = HrGetOneProp(lpUserStore, PR_IPM_SUBTREE_ENTRYID, &~ptrPropVal);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to locate ipm subtree of primary store. (hr=0x%08x)", hr);
 		return hr;
@@ -1188,7 +1186,7 @@ HRESULT ArchiveControlImpl::GetAllEntries(ArchiveHelperPtr ptrArchiveHelper, LPM
 		for (ECFolderIterator i = ECFolderIterator(lpArchive, fMapiDeferredErrors, 0); i != iEnd; ++i) {
 			SPropValuePtr ptrProp;
 			
-			hr = HrGetOneProp(*i, PR_ENTRYID, &ptrProp);
+			hr = HrGetOneProp(*i, PR_ENTRYID, &~ptrProp);
 			if (hr != hrSuccess)
 				return hr;
 			
@@ -1374,7 +1372,7 @@ HRESULT ArchiveControlImpl::CleanupHierarchy(ArchiveHelperPtr ptrArchiveHelper, 
 					goto exitpm;
 				
 				// Check if we still have a back-ref
-				if (HrGetOneProp(ptrArchiveFolder, PROP_REF_ITEM_ENTRYID, &ptrProp) != hrSuccess) {
+				if (HrGetOneProp(ptrArchiveFolder, PROP_REF_ITEM_ENTRYID, &~ptrProp) != hrSuccess) {
 					m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Back ref is gone. Folder is possibly moved to the deleted items already.");
 					continue;
 				}
@@ -1417,8 +1415,7 @@ HRESULT ArchiveControlImpl::MoveAndDetachMessages(ArchiveHelperPtr ptrArchiveHel
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to get deleted items folder. (hr=0x%08x)", hr);
 		return hr;
 	}
-
-	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &ptrMessageList);
+	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~ptrMessageList);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to allocate %zu bytes of memory. (hr=0x%08x)", sizeof(ENTRYLIST), hr);
 		return hr;
@@ -1484,8 +1481,7 @@ HRESULT ArchiveControlImpl::MoveAndDetachFolder(ArchiveHelperPtr ptrArchiveHelpe
 	ECFolderIterator iEnd;
 
 	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Moving folder to the special 'Deleted Items' folder...");
-
-	hr = HrGetOneProp(lpArchiveFolder, PR_ENTRYID, &ptrEntryID);
+	hr = HrGetOneProp(lpArchiveFolder, PR_ENTRYID, &~ptrEntryID);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to get folder entryid. (hr=0x%08x)", hr);
 		return hr;
@@ -1548,8 +1544,7 @@ HRESULT ArchiveControlImpl::DeleteMessages(LPMAPIFOLDER lpArchiveFolder, const E
 	EntryListPtr ptrMessageList;
 	
 	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Deleting %zu messages...", setEIDs.size());
-
-	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &ptrMessageList);
+	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~ptrMessageList);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to allocate %zu bytes of memory. (hr=0x%08x)", sizeof(ENTRYLIST), hr);
 		return hr;
@@ -1583,8 +1578,7 @@ HRESULT ArchiveControlImpl::DeleteFolder(LPMAPIFOLDER lpArchiveFolder)
 	SPropValuePtr ptrEntryId;
 	
 	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Deleting folder...");
-
-	hr = HrGetOneProp(lpArchiveFolder, PR_ENTRYID, &ptrEntryId);
+	hr = HrGetOneProp(lpArchiveFolder, PR_ENTRYID, &~ptrEntryId);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to get folder entryid (hr=0x%08x)", hr);
 		return hr;
@@ -1614,7 +1608,7 @@ HRESULT ArchiveControlImpl::AppendFolderEntries(LPMAPIFOLDER lpBase, EntryIDSet 
 	
 	SizedSPropTagArray(1, sptaTableProps) = {1, {PR_ENTRYID}};
 	
-	hr = HrGetOneProp(lpBase, PR_ENTRYID, &ptrProp);
+	hr = HrGetOneProp(lpBase, PR_ENTRYID, &~ptrProp);
 	if (hr != hrSuccess)
 		return hr;
 	

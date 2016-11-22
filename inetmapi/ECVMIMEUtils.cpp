@@ -384,7 +384,8 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage,
 
 		// Delivery report request
 		SPropValuePtr ptrDeliveryReport;
-		if (mapiTransport && HrGetOneProp(lpMessage, PR_ORIGINATOR_DELIVERY_REPORT_REQUESTED, &ptrDeliveryReport) == hrSuccess &&
+		if (mapiTransport != nullptr &&
+		    HrGetOneProp(lpMessage, PR_ORIGINATOR_DELIVERY_REPORT_REQUESTED, &~ptrDeliveryReport) == hrSuccess &&
 		    ptrDeliveryReport->Value.b == TRUE)
 			mapiTransport->requestDSN(true, "");
 

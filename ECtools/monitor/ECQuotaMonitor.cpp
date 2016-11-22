@@ -1167,8 +1167,8 @@ HRESULT ECQuotaMonitor::OpenUserStore(LPTSTR szStoreName, objectclass_t objclass
 	hr = m_lpMDBAdmin->QueryInterface(IID_IExchangeManageStore, &ptrEMS);
 	if (hr != hrSuccess)
 		return hr;
-
-	hr = ptrEMS->CreateStoreEntryID((LPTSTR)"", szStoreName, OPENSTORE_HOME_LOGON, &cbUserStoreEntryID, &ptrUserStoreEntryID);
+	hr = ptrEMS->CreateStoreEntryID((LPTSTR)"", szStoreName,
+	     OPENSTORE_HOME_LOGON, &cbUserStoreEntryID, &~ptrUserStoreEntryID);
 	if (hr != hrSuccess) {
 		if (hr == MAPI_E_NOT_FOUND)
 			m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_INFO, "Store of %s \"%s\" not found", (objclass == CONTAINER_COMPANY) ? "company" : "user", reinterpret_cast<const char *>(szStoreName));
@@ -1207,8 +1207,7 @@ HRESULT ECQuotaMonitor::CheckQuotaInterval(LPMDB lpStore, LPMESSAGE *lppMessage,
 	hr = GetConfigMessage(lpStore, QUOTA_CONFIG_MSG, &ptrMessage);
 	if (hr != hrSuccess)
 		return hr;
-
-	hr = HrGetOneProp(ptrMessage, PR_EC_QUOTA_MAIL_TIME, &ptrProp);
+	hr = HrGetOneProp(ptrMessage, PR_EC_QUOTA_MAIL_TIME, &~ptrProp);
 	if (hr == MAPI_E_NOT_FOUND) {
 		*lppMessage = ptrMessage.release();
 		*lpbTimeout = true;

@@ -275,13 +275,11 @@ HRESULT ZCMAPIProp::ConvertProps(IMAPIProp *lpContact, ULONG cbEntryID, LPENTRYI
 			mnNamedProps[i].Kind.lID += (ulIndex * 0x10);
 			lppNames[i] = &mnNamedProps[i];
 		}
-
-		hr = lpContact->GetIDsFromNames(ulNames, lppNames, MAPI_CREATE, &ptrNameTags);
+		hr = lpContact->GetIDsFromNames(ulNames, lppNames, MAPI_CREATE, &~ptrNameTags);
 		if (FAILED(hr))
 			goto exitm;
 	}
-
-	hr = lpContact->GetProps(NULL, MAPI_UNICODE, &cValues, &ptrContactProps);
+	hr = lpContact->GetProps(NULL, MAPI_UNICODE, &cValues, &~ptrContactProps);
 	if (FAILED(hr))
 		goto exitm;
 	hr = MAPIAllocateBuffer(sizeof(SPropValue), (void**)&m_base);

@@ -119,7 +119,7 @@ HRESULT Copier::Helper::GetArchiveFolder(const SObjectEntry &archiveEntry, LPMAP
 		
 		SPropArrayPtr props;
 		ULONG cb;
-		HRESULT hrTmp = ptrArchiveFolder->GetProps(sptaProps, 0, &cb, &props);
+		HRESULT hrTmp = ptrArchiveFolder->GetProps(sptaProps, 0, &cb, &~props);
 		if (!FAILED(hrTmp)) {
 			if (PROP_TYPE(props[0].ulPropTag) != PT_ERROR)
 				m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive folder: %s", props[0].Value.lpszA);
@@ -205,14 +205,12 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 
 	if (lpSource == NULL || lpDest == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-
-	hr = HrGetOneProp(lpSource, PR_EC_SERVER_UID, &ptrSourceServerUID);
+	hr = HrGetOneProp(lpSource, PR_EC_SERVER_UID, &~ptrSourceServerUID);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to get source server UID, hr=0x%08x", hr);
 		return hr;
 	}
-
-	hr = HrGetOneProp(lpDest, PR_EC_SERVER_UID, &ptrDestServerUID);
+	hr = HrGetOneProp(lpDest, PR_EC_SERVER_UID, &~ptrDestServerUID);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to get dest server UID, hr=0x%08x", hr);
 		return hr;
@@ -305,8 +303,7 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open source attachment %u. Skipping attachment. hr=0x%08x", i, hrTmp);
 				continue;
 			}
-
-			hrTmp = HrGetOneProp(ptrSourceAttach, PR_ATTACH_METHOD, &ptrAttachMethod);
+			hrTmp = HrGetOneProp(ptrSourceAttach, PR_ATTACH_METHOD, &~ptrAttachMethod);
 			if (hrTmp == MAPI_E_NOT_FOUND) {
 				m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "No PR_ATTACH_METHOD found for attachment %u, assuming NO_ATTACHMENT. So nothing to deduplicate.", i);
 				continue;
@@ -325,8 +322,7 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get single instance interface for source attachment %u. Skipping attachment. hr=0x%08x", i, hrTmp);
 				continue;
 			}
-
-			hrTmp = ptrInstance->GetSingleInstanceId(&cbSourceSIID, &ptrSourceSIID);
+			hrTmp = ptrInstance->GetSingleInstanceId(&cbSourceSIID, &~ptrSourceSIID);
 			if (hrTmp != hrSuccess) {
 				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get single instance ID for source attachment %u. Skipping attachment. hr=0x%08x", i, hrTmp);
 				continue;
@@ -335,8 +331,7 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 				m_lpLogger->Log(EC_LOGLEVEL_WARNING, "Got empty single instance ID for attachment %u. That's not suitable for deduplication.", i);
 				continue;
 			}
-
-			hrTmp = m_ptrMapper->GetMappedInstanceId(ptrSourceServerUID->Value.bin, cbSourceSIID, ptrSourceSIID, ptrDestServerUID->Value.bin, &cbDestSIID, &ptrDestSIID);
+			hrTmp = m_ptrMapper->GetMappedInstanceId(ptrSourceServerUID->Value.bin, cbSourceSIID, ptrSourceSIID, ptrDestServerUID->Value.bin, &cbDestSIID, &~ptrDestSIID);
 			if (hrTmp == MAPI_E_NOT_FOUND) {
 				m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "No mapped IID found, list message for deferred creation of mapping");
 
@@ -400,7 +395,7 @@ Copier::Copier(ArchiverSessionPtr ptrSession, ECConfig *lpConfig, ECArchiverLogg
 , m_lstArchives(lstArchives)
 , m_ptrTransaction(new Transaction(SObjectEntry()))
 {
-	MAPIAllocateBuffer(CbNewSPropTagArray(lpExcludeProps->cValues), &m_ptrExcludeProps);
+	MAPIAllocateBuffer(CbNewSPropTagArray(lpExcludeProps->cValues), &~m_ptrExcludeProps);
 	memcpy(m_ptrExcludeProps, lpExcludeProps, CbNewSPropTagArray(lpExcludeProps->cValues));
 
 	// If the next call fails, m_ptrMapper will have NULL ptr, which we'll check later.
@@ -424,7 +419,7 @@ HRESULT Copier::GetRestriction(LPMAPIPROP lpMapiProp, LPSRestriction *lppRestric
 
 	// Start out with the base restriction, which checks if a message is
 	// old enough to be processed.
-	hr = ArchiveOperationBaseEx::GetRestriction(lpMapiProp, &ptrRestriction);
+	hr = ArchiveOperationBaseEx::GetRestriction(lpMapiProp, &~ptrRestriction);
 	if (hr != hrSuccess)
 		goto exitpm;
 	resResult.append(ECRawRestriction(ptrRestriction));
@@ -690,8 +685,7 @@ HRESULT Copier::DoInitialArchive(LPMESSAGE lpMessage, const SObjectEntry &archiv
 	hr = m_ptrHelper->CreateArchivedMessage(lpMessage, archiveRootEntry, refMsgEntry, &ptrNewArchive, &ptrPSAction);
 	if (hr != hrSuccess)
 		return hr;
-	
-	hr = HrGetOneProp(ptrNewArchive, PR_ENTRYID, &ptrEntryId);
+	hr = HrGetOneProp(ptrNewArchive, PR_ENTRYID, &~ptrEntryId);
 	if (hr != hrSuccess) {
 		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to get entry id of archive message. (hr=0x%08x", hr);
 		return hr;
@@ -729,8 +723,7 @@ HRESULT Copier::DoTrackAndRearchive(LPMESSAGE lpMessage, const SObjectEntry &arc
 	hr = m_ptrHelper->CreateArchivedMessage(lpMessage, archiveRootEntry, refMsgEntry, &ptrNewArchive, &ptrPSAction);
 	if (hr != hrSuccess)
 		return hr;
-
-	hr = HrGetOneProp(ptrNewArchive, PR_ENTRYID, &ptrEntryId);
+	hr = HrGetOneProp(ptrNewArchive, PR_ENTRYID, &~ptrEntryId);
 	if (hr != hrSuccess) {
 		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to get entry id of archive message. (hr=0x%08x)", hr);
 		return hr;
@@ -821,8 +814,7 @@ HRESULT Copier::DoUpdateArchive(LPMESSAGE lpMessage, const SObjectEntry &archive
 		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to open existing archived message. (hr=%s)", stringify(hr, true).c_str());
 		return hr;
 	}
-
-	hr = ptrArchivedMsg->GetPropList(fMapiUnicode, &ptrPropList);
+	hr = ptrArchivedMsg->GetPropList(fMapiUnicode, &~ptrPropList);
 	if (hr != hrSuccess) {
 		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to get property list. (hr=%s)", stringify(hr, true).c_str());
 		return hr;
@@ -896,7 +888,7 @@ HRESULT Copier::DoMoveArchive(const SObjectEntry &archiveRootEntry, const SObjec
 	hr = ptrPropHelper->SetReference(refMsgEntry);
 	if (hr != hrSuccess)
 		return hr;
-	hr = HrGetOneProp(ptrArchiveCopy, PR_ENTRYID, &ptrEntryId);
+	hr = HrGetOneProp(ptrArchiveCopy, PR_ENTRYID, &~ptrEntryId);
 	if (hr != hrSuccess) {
 		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to get entry id of archive message. (hr=0x%08x)", hr);
 		return hr;
@@ -993,7 +985,7 @@ HRESULT Copier::MoveToHistory(const SObjectEntry &sourceArchiveRoot, const SObje
 	hr = ptrHistoryFolder->CreateMessage(&ptrArchiveCopy.iid, 0, &ptrArchiveCopy);
 	if (hr != hrSuccess)
 		return hr;
-	hr = HrGetOneProp(ptrArchiveCopy, PR_ENTRYID, &ptrEntryID);
+	hr = HrGetOneProp(ptrArchiveCopy, PR_ENTRYID, &~ptrEntryID);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrArchive->CopyTo(0, NULL, NULL, 0, NULL, &ptrArchiveCopy.iid, ptrArchiveCopy, 0, NULL);

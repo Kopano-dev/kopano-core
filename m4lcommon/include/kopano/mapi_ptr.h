@@ -18,9 +18,8 @@
 #ifndef mapi_ptr_INCLUDED
 #define mapi_ptr_INCLUDED
 
+#include <kopano/memory.hpp>
 #include <kopano/mapi_ptr/mapi_object_ptr.h>
-#include <kopano/mapi_ptr/mapi_memory_ptr.h>
-#include <kopano/mapi_ptr/mapi_array_ptr.h>
 #include <kopano/mapi_ptr/mapi_rowset_ptr.h>
 
 #include <mapix.h>
@@ -61,26 +60,26 @@ typedef mapi_object_ptr<IStream, IID_IStream> StreamPtr;
 typedef mapi_object_ptr<IAttach, IID_IAttachment> AttachPtr;
 typedef mapi_object_ptr<IMAPIGetSession, IID_IMAPIGetSession> MAPIGetSessionPtr;
 
-typedef mapi_memory_ptr<ECPERMISSION> ECPermissionPtr;
-typedef mapi_memory_ptr<ENTRYID> EntryIdPtr;
-typedef mapi_memory_ptr<ENTRYLIST> EntryListPtr;
-typedef mapi_memory_ptr<MAPIERROR> MAPIErrorPtr;
-typedef mapi_memory_ptr<ROWLIST> RowListPtr;
-typedef mapi_memory_ptr<SPropProblemArray> SPropProblemArrayPtr;
-typedef mapi_memory_ptr<SPropValue> SPropValuePtr;
-typedef mapi_memory_ptr<SPropTagArray> SPropTagArrayPtr;
-typedef mapi_memory_ptr<SRestriction> SRestrictionPtr;
-typedef mapi_memory_ptr<SRow> SRowPtr;
-typedef mapi_memory_ptr<SSortOrderSet> SSortOrderSetPtr;
-typedef mapi_memory_ptr<char> StringPtr;
-typedef mapi_memory_ptr<WCHAR> WStringPtr;
-typedef mapi_memory_ptr<FlagList> FlagListPtr;
-typedef mapi_memory_ptr<SBinary> SBinaryPtr;
-typedef mapi_memory_ptr<BYTE> BytePtr;
-typedef mapi_memory_ptr<MAPINAMEID> MAPINameIdPtr;
+typedef KCHL::memory_ptr<ECPERMISSION> ECPermissionPtr;
+typedef KCHL::memory_ptr<ENTRYID> EntryIdPtr;
+typedef KCHL::memory_ptr<ENTRYLIST> EntryListPtr;
+typedef KCHL::memory_ptr<MAPIERROR> MAPIErrorPtr;
+typedef KCHL::memory_ptr<ROWLIST> RowListPtr;
+typedef KCHL::memory_ptr<SPropProblemArray> SPropProblemArrayPtr;
+typedef KCHL::memory_ptr<SPropValue> SPropValuePtr;
+typedef KCHL::memory_ptr<SPropTagArray> SPropTagArrayPtr;
+typedef KCHL::memory_ptr<SRestriction> SRestrictionPtr;
+typedef KCHL::memory_ptr<SRow> SRowPtr;
+typedef KCHL::memory_ptr<SSortOrderSet> SSortOrderSetPtr;
+typedef KCHL::memory_ptr<char> StringPtr;
+typedef KCHL::memory_ptr<WCHAR> WStringPtr;
+typedef KCHL::memory_ptr<FlagList> FlagListPtr;
+typedef KCHL::memory_ptr<SBinary> SBinaryPtr;
+typedef KCHL::memory_ptr<BYTE> BytePtr;
+typedef KCHL::memory_ptr<MAPINAMEID> MAPINameIdPtr;
 
-typedef mapi_array_ptr<ECPERMISSION> ECPermissionArrayPtr;
-typedef mapi_array_ptr<SPropValue> SPropArrayPtr;
+typedef KCHL::memory_ptr<ECPERMISSION> ECPermissionArrayPtr;
+typedef KCHL::memory_ptr<SPropValue> SPropArrayPtr;
 
 typedef mapi_rowset_ptr<SRow> SRowSetPtr;
 typedef mapi_rowset_ptr<ADRENTRY> AdrListPtr;

@@ -64,7 +64,7 @@ namespace details {
 			PROPMAP_NAMED_ID(ITEM_ENTRYIDS, PT_MV_BINARY, PSETID_Archive, "item-entryids")
 		PROPMAP_INIT(lpProp);
 
-		hr = MAPIAllocateBuffer(CbNewSPropTagArray(4), &ptrPropTagArray);
+		hr = MAPIAllocateBuffer(CbNewSPropTagArray(4), &~ptrPropTagArray);
 		if (hr != hrSuccess)
 			goto exitpm;
 
@@ -266,7 +266,7 @@ HRESULT ArchiveStateCollector::PopulateFromContainer(LPABCONT lpContainer)
 	sPropDispType.ulPropTag = PR_DISPLAY_TYPE;
 	sPropDispType.Value.ul = DT_MAILUSER;;
 
-	hr = resFilter.CreateMAPIRestriction(&ptrRestriction, ECRestriction::Cheap);
+	hr = resFilter.CreateMAPIRestriction(&~ptrRestriction, ECRestriction::Cheap);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpContainer->GetContentsTable(0, &ptrTable);

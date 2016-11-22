@@ -115,12 +115,6 @@ class _kc_export KMessage _kc_final {
 	IMessage *m_message = nullptr;
 };
 
-class _kc_export KPropertyRestriction _kc_final : public SPropertyRestriction {
-	public:
-	KPropertyRestriction(ULONG, SPropValue *);
-	operator SRestriction(void) const;
-};
-
 class _kc_export KSession _kc_final {
 	public:
 	KSession(void);

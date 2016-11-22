@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/memory.hpp>
 #include "ArchiverSession.h"
 #include <kopano/ecversion.h>
 #include <kopano/mapi_ptr.h>
@@ -26,7 +27,7 @@
 #include <kopano/userutil.h>
 #include "ECMsgStore.h"
 
-typedef mapi_memory_ptr<ECSERVERLIST> ECServerListPtr;
+typedef KCHL::memory_ptr<ECSERVERLIST> ECServerListPtr;
 
 /**
  * Create a ArchiverSession object based on the passed configuration and a specific logger
@@ -245,8 +246,7 @@ HRESULT ArchiverSession::OpenStoreByName(const tstring &strUser, LPMDB *lppMsgSt
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to get EMS interface (hr=%s).", stringify(hr, true).c_str());
 		return hr;
 	}
-	
-	hr = ptrEMS->CreateStoreEntryID(NULL, (LPTSTR)strUser.c_str(), fMapiUnicode, &cbEntryId, &ptrEntryId);
+	hr = ptrEMS->CreateStoreEntryID(NULL, (LPTSTR)strUser.c_str(), fMapiUnicode, &cbEntryId, &~ptrEntryId);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to create store entryid for user '" TSTRING_PRINTF "' (hr=%s).", strUser.c_str(), stringify(hr, true).c_str());
 		return hr;
@@ -371,8 +371,7 @@ HRESULT ArchiverSession::GetUserInfo(const tstring &strUser, abentryid_t *lpsEnt
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to obtain the serviceadmin interface (hr=%s)", stringify(hr, true).c_str());
 		return hr;
 	}
-
-	hr = ptrServiceAdmin->ResolveUserName((LPCTSTR)strUser.c_str(), fMapiUnicode, &cbEntryId, &ptrEntryId);
+	hr = ptrServiceAdmin->ResolveUserName((LPCTSTR)strUser.c_str(), fMapiUnicode, &cbEntryId, &~ptrEntryId);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to resolve user '" TSTRING_PRINTF "' (hr=%s)", strUser.c_str(), stringify(hr, true).c_str());
 		return hr;
@@ -392,8 +391,7 @@ HRESULT ArchiverSession::GetUserInfo(const tstring &strUser, abentryid_t *lpsEnt
 			m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to open user object for user '" TSTRING_PRINTF "' (hr=%s)", strUser.c_str(), stringify(hr, true).c_str());
 			return hr;
 		}
-
-		hr = ptrUser->GetProps(sptaUserProps, 0, &cValues, &ptrUserProps);
+		hr = ptrUser->GetProps(sptaUserProps, 0, &cValues, &~ptrUserProps);
 		if (FAILED(hr)) {
 			m_lpLogger->Log(EC_LOGLEVEL_INFO, "Failed to obtain properties from user '" TSTRING_PRINTF "' (hr=0x%08x)", strUser.c_str(), hr);
 			return hr;
@@ -439,7 +437,7 @@ HRESULT ArchiverSession::GetUserInfo(const abentryid_t &sEntryId, tstring *lpstr
 	hr = m_ptrSession->OpenEntry(sEntryId.size(), sEntryId, NULL, MAPI_DEFERRED_ERRORS, &ulType, &ptrUser);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrUser->GetProps(sptaUserProps, 0, &cUserProps, &ptrUserProps);
+	hr = ptrUser->GetProps(sptaUserProps, 0, &cUserProps, &~ptrUserProps);
 	if (FAILED(hr))
 		return hr;
 
@@ -539,10 +537,10 @@ HRESULT ArchiverSession::CompareStoreIds(LPMDB lpUserStore, LPMDB lpArchiveStore
 	SPropValuePtr ptrArchiveStoreEntryId;
 	ULONG ulResult = 0;
 
-	hr = HrGetOneProp(lpUserStore, PR_ENTRYID, &ptrUserStoreEntryId);
+	hr = HrGetOneProp(lpUserStore, PR_ENTRYID, &~ptrUserStoreEntryId);
 	if (hr != hrSuccess)
 		return hr;
-	hr = HrGetOneProp(lpArchiveStore, PR_ENTRYID, &ptrArchiveStoreEntryId);
+	hr = HrGetOneProp(lpArchiveStore, PR_ENTRYID, &~ptrArchiveStoreEntryId);
 	if (hr != hrSuccess)
 		return hr;
 	
@@ -637,7 +635,7 @@ HRESULT ArchiverSession::OpenOrCreateArchiveStore(const tstring& strUserName, co
 	hr = m_ptrAdminStore.QueryInterface(ptrServiceAdmin);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrServiceAdmin->GetArchiveStoreEntryID(strUserName.c_str(), strServerName.c_str(), fMapiUnicode, &cbStoreId, &ptrStoreId);
+	hr = ptrServiceAdmin->GetArchiveStoreEntryID(strUserName.c_str(), strServerName.c_str(), fMapiUnicode, &cbStoreId, &~ptrStoreId);
 	if (hr == hrSuccess)
 		hr = m_ptrSession->OpenMsgStore(0, cbStoreId, ptrStoreId, &ptrArchiveStore.iid, MDB_WRITE, &ptrArchiveStore);
 	else if (hr == MAPI_E_NOT_FOUND)
@@ -659,8 +657,7 @@ HRESULT ArchiverSession::GetArchiveStoreEntryId(const tstring& strUserName, cons
 	hr = m_ptrAdminStore.QueryInterface(ptrServiceAdmin);
 	if (hr != hrSuccess)
 		return hr;
-
-	hr = ptrServiceAdmin->GetArchiveStoreEntryID(strUserName.c_str(), strServerName.c_str(), fMapiUnicode, &cbStoreId, &ptrStoreId);
+	hr = ptrServiceAdmin->GetArchiveStoreEntryID(strUserName.c_str(), strServerName.c_str(), fMapiUnicode, &cbStoreId, &~ptrStoreId);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -693,13 +690,13 @@ HRESULT ArchiverSession::CreateArchiveStore(const tstring& strUserName, const ts
 	hr = ptrRemoteAdminStore.QueryInterface(ptrRemoteServiceAdmin);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrRemoteServiceAdmin->CreateEmptyStore(ECSTORE_TYPE_ARCHIVE, userId.size(), userId, EC_OVERRIDE_HOMESERVER, &cbStoreId, &ptrStoreId, &cbRootId, &ptrRootId);
+	hr = ptrRemoteServiceAdmin->CreateEmptyStore(ECSTORE_TYPE_ARCHIVE, userId.size(), userId, EC_OVERRIDE_HOMESERVER, &cbStoreId, &~ptrStoreId, &cbRootId, &~ptrRootId);
 	if (hr != hrSuccess)
 		return hr;
 
 	// The entryids returned from CreateEmptyStore are unwrapped and unusable from external client code. So
 	// we'll resolve the correct entryids through GetArchiveStoreEntryID.
-	hr = ptrRemoteServiceAdmin->GetArchiveStoreEntryID(strUserName.c_str(), strServerName.c_str(), fMapiUnicode, &cbStoreId, &ptrStoreId);
+	hr = ptrRemoteServiceAdmin->GetArchiveStoreEntryID(strUserName.c_str(), strServerName.c_str(), fMapiUnicode, &cbStoreId, &~ptrStoreId);
 	if (hr != hrSuccess)
 		return hr;
 	hr = m_ptrSession->OpenMsgStore(0, cbStoreId, ptrStoreId, &ptrArchiveStore.iid, MDB_WRITE, &ptrArchiveStore);
@@ -715,7 +712,7 @@ HRESULT ArchiverSession::CreateArchiveStore(const tstring& strUserName, const ts
 	     &ptrIpmSubtree);
 	if (hr != hrSuccess)
 		return hr;
-	hr = HrGetOneProp(ptrIpmSubtree, PR_ENTRYID, &ptrIpmSubtreeId);
+	hr = HrGetOneProp(ptrIpmSubtree, PR_ENTRYID, &~ptrIpmSubtreeId);
 	if (hr != hrSuccess)
 		return hr;
 

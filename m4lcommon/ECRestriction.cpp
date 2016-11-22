@@ -34,7 +34,7 @@ HRESULT ECRestriction::CreateMAPIRestriction(LPSRestriction *lppRestriction, ULO
 
 	if (lppRestriction == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	HRESULT hr = MAPIAllocateBuffer(sizeof(SRestrictionPtr::value_type), &ptrRestriction);
+	HRESULT hr = MAPIAllocateBuffer(sizeof(SRestrictionPtr::value_type), &~ptrRestriction);
 	if (hr != hrSuccess)
 		return hr;
 	hr = GetMAPIRestriction(ptrRestriction, ptrRestriction, ulFlags);
@@ -51,7 +51,7 @@ HRESULT ECRestriction::RestrictTable(IMAPITable *lpTable,
 
 	if (lpTable == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	HRESULT hr = CreateMAPIRestriction(&ptrRestriction, ECRestriction::Cheap);
+	HRESULT hr = CreateMAPIRestriction(&~ptrRestriction, ECRestriction::Cheap);
 	if (hr != hrSuccess)
 		return hr;
 	return lpTable->Restrict(ptrRestriction, flags);
@@ -63,7 +63,7 @@ HRESULT ECRestriction::FindRowIn(LPMAPITABLE lpTable, BOOKMARK BkOrigin, ULONG u
 
 	if (lpTable == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	HRESULT hr = CreateMAPIRestriction(&ptrRestriction, ECRestriction::Cheap);
+	HRESULT hr = CreateMAPIRestriction(&~ptrRestriction, ECRestriction::Cheap);
 	if (hr != hrSuccess)
 		return hr;
 	return lpTable->FindRow(ptrRestriction, BkOrigin, ulFlags);
@@ -557,7 +557,7 @@ ECRawRestriction::ECRawRestriction(LPSRestriction lpRestriction, ULONG ulFlags) 
 
 	else {
 		SRestrictionPtr ptrResTmp;
-		HRESULT hr = MAPIAllocateBuffer(sizeof(SRestrictionPtr::value_type), &ptrResTmp);
+		HRESULT hr = MAPIAllocateBuffer(sizeof(SRestrictionPtr::value_type), &~ptrResTmp);
 		if (hr != hrSuccess)
 			return;
 		if (ulFlags & ECRestriction::Shallow)

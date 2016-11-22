@@ -1797,7 +1797,7 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 		goto exit;
 
 	// give attachment name of calendar item
-	if (HrGetOneProp(ptrNewMessage, PR_SUBJECT_W, &ptrSubject) == hrSuccess) {
+	if (HrGetOneProp(ptrNewMessage, PR_SUBJECT_W, &~ptrSubject) == hrSuccess) {
 		ptrSubject->ulPropTag = PR_DISPLAY_NAME_W;
 
 		hr = ptrAttach->SetProps(1, ptrSubject, NULL);

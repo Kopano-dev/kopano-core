@@ -262,10 +262,10 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 	};
 
 	ulFlags = ulFlags & MAPI_UNICODE;
-	hr = Util::HrCopyUnicodePropTagArray(ulFlags, inputCols, &ptrInputCols);
+	hr = Util::HrCopyUnicodePropTagArray(ulFlags, inputCols, &~ptrInputCols);
 	if (hr != hrSuccess)
 		goto exit;
-	hr = Util::HrCopyUnicodePropTagArray(ulFlags, outputCols, &ptrOutputCols);
+	hr = Util::HrCopyUnicodePropTagArray(ulFlags, outputCols, &~ptrOutputCols);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -287,8 +287,7 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 
 	for (i = 0; i < ulNames; ++i)
 		lppNames[i] = &mnNamedProps[i];
-
-	hr = m_lpContactFolder->GetIDsFromNames(ulNames, lppNames, MAPI_CREATE, &ptrNameTags);
+	hr = m_lpContactFolder->GetIDsFromNames(ulNames, lppNames, MAPI_CREATE, &~ptrNameTags);
 	if (FAILED(hr))
 		goto exit;
 
@@ -304,7 +303,7 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 	ptrNameTags->aulPropTag[ulNames-1] = CHANGE_PROP_TYPE(ptrNameTags->aulPropTag[ulNames-1], PT_LONG);
 
 	// add func HrCombinePropTagArrays(part1, part2, dest);
-	hr = MAPIAllocateBuffer(CbNewSPropTagArray(ptrInputCols->cValues + ptrNameTags->cValues), &ptrContactCols);
+	hr = MAPIAllocateBuffer(CbNewSPropTagArray(ptrInputCols->cValues + ptrNameTags->cValues), &~ptrContactCols);
 	if (hr != hrSuccess)
 		goto exit;
 	j = 0;
@@ -328,8 +327,7 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 	resAnd.append(ECPropertyRestriction(RELOP_NE, sRestrictProp.ulPropTag, &sRestrictProp));
 
 	resOr.append(resAnd);
-
-	hr = resOr.CreateMAPIRestriction(&ptrRestriction);
+	hr = resOr.CreateMAPIRestriction(&~ptrRestriction);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -524,7 +522,7 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 	SPropValue sKey;
 	mapi_object_ptr<ZCMAPIProp> ptrZCMAPIProp;
 
-	hr = Util::HrCopyUnicodePropTagArray(ulFlags, sptaCols, &ptrCols);
+	hr = Util::HrCopyUnicodePropTagArray(ulFlags, sptaCols, &~ptrCols);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -533,7 +531,7 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 		goto exit;
 
 	// getprops, open real contacts, make table
-	hr = HrGetOneProp(m_lpDistList, 0x81051102, &ptrEntries); // Members "entryids" named property, see data layout below
+	hr = HrGetOneProp(m_lpDistList, 0x81051102, &~ptrEntries); // Members "entryids" named property, see data layout below
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -582,7 +580,7 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 			ULONG ulObjOffset = 0;
 			ULONG ulObjType = 0;
 
-			hr = HrGetOneProp(ptrUser, PR_ENTRYID, &ptrPropEntryID);
+			hr = HrGetOneProp(ptrUser, PR_ENTRYID, &~ptrPropEntryID);
 			if (hr != hrSuccess)
 				goto exit;
 
@@ -592,20 +590,19 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 			} else 
 				ulObjType = MAPI_DISTLIST;
 
-			hr = MakeWrappedEntryID(ptrPropEntryID->Value.bin.cb, (LPENTRYID)ptrPropEntryID->Value.bin.lpb, ulObjType, ulObjOffset, &cbEntryID, &ptrEntryID);
+			hr = MakeWrappedEntryID(ptrPropEntryID->Value.bin.cb, (LPENTRYID)ptrPropEntryID->Value.bin.lpb, ulObjType, ulObjOffset, &cbEntryID, &~ptrEntryID);
 			if (hr != hrSuccess)
 				goto exit;
 
 			hr = ZCMAPIProp::Create(ptrUser, cbEntryID, ptrEntryID, &ptrZCMAPIProp);
 			if (hr != hrSuccess)
 				goto exit;
-
-			hr = ptrZCMAPIProp->GetProps(ptrCols, 0, &cValues, &ptrProps);
+			hr = ptrZCMAPIProp->GetProps(ptrCols, 0, &cValues, &~ptrProps);
 			if (FAILED(hr))
 				continue;
 
 		} else {
-			hr = ptrUser->GetProps(ptrCols, 0, &cValues, &ptrProps);
+			hr = ptrUser->GetProps(ptrCols, 0, &cValues, &~ptrProps);
 			if (FAILED(hr))
 				continue;
 		}
@@ -1091,7 +1088,7 @@ HRESULT ZCABContainer::ResolveNames(LPSPropTagArray lpPropTagArray, ULONG ulFlag
 		std::copy(lpPropTagArray->aulPropTag, lpPropTagArray->aulPropTag + lpPropTagArray->cValues, std::inserter(stProps, stProps.begin()));
 		for (i = 0; i < lpAdrList->aEntries[0].cValues; ++i)
 			stProps.insert(lpAdrList->aEntries[0].rgPropVals[i].ulPropTag);
-		hr = MAPIAllocateBuffer(CbNewSPropTagArray(stProps.size()), &ptrColumns);
+		hr = MAPIAllocateBuffer(CbNewSPropTagArray(stProps.size()), &~ptrColumns);
 		if (hr != hrSuccess)
 			return hr;
 		ptrColumns->cValues = stProps.size();
@@ -1124,7 +1121,7 @@ HRESULT ZCABContainer::ResolveNames(LPSPropTagArray lpPropTagArray, ULONG ulFlag
 			}
 
 			SRestrictionPtr ptrRestriction;
-			hr = resFind.CreateMAPIRestriction(&ptrRestriction);
+			hr = resFind.CreateMAPIRestriction(&~ptrRestriction);
 			if (hr != hrSuccess)
 				return hr;
 			hr = ptrContents->Restrict(ptrRestriction, 0);
