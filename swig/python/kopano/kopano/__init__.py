@@ -1249,7 +1249,7 @@ class Server(object):
         except (Error, MAPIErrorNotFound): # XXX deleted user
             return '' # XXX groups
 
-    def __str__(self):
+    def __unicode__(self):
         return u'Server(%s)' % self.server_socket
 
     def __repr__(self):
