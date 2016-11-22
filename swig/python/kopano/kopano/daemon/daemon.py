@@ -441,7 +441,7 @@ class DaemonContext(object):
             """
         if target is None:
             result = signal.SIG_IGN
-        elif isinstance(target, basestring):
+        elif isinstance(target, str):
             name = target
             result = getattr(self, name)
         else:
@@ -468,7 +468,7 @@ def change_working_directory(directory):
         """
     try:
         os.chdir(directory)
-    except Exception, exc:
+    except Exception as exc:
         error = DaemonOSEnvironmentError(
             "Unable to change working directory (%(exc)s)"
             % vars())
@@ -486,7 +486,7 @@ def change_root_directory(directory):
     try:
         os.chdir(directory)
         os.chroot(directory)
-    except Exception, exc:
+    except Exception as exc:
         error = DaemonOSEnvironmentError(
             "Unable to change root directory (%(exc)s)"
             % vars())
@@ -498,7 +498,7 @@ def change_file_creation_mask(mask):
         """
     try:
         os.umask(mask)
-    except Exception, exc:
+    except Exception as exc:
         error = DaemonOSEnvironmentError(
             "Unable to change file creation mask (%(exc)s)"
             % vars())
@@ -518,11 +518,11 @@ def change_process_owner(uid, gid):
         # If we cannot get rid of the groups, leave them.
         try:
             os.setgroups([])
-        except Exception, exc:
+        except Exception as exc:
             pass
         os.setgid(gid)
         os.setuid(uid)
-    except Exception, exc:
+    except Exception as exc:
         error = DaemonOSEnvironmentError(
             "Unable to change process owner (%(exc)s)"
             % vars())
@@ -543,7 +543,7 @@ def prevent_core_dump():
         # Ensure the resource limit exists on this platform, by requesting
         # its current value
         core_limit_prev = resource.getrlimit(core_resource)
-    except ValueError, exc:
+    except ValueError as exc:
         error = DaemonOSEnvironmentError(
             "System does not support RLIMIT_CORE resource limit (%(exc)s)"
             % vars())
@@ -577,7 +577,7 @@ def detach_process_context():
             pid = os.fork()
             if pid > 0:
                 os._exit(0)
-        except OSError, exc:
+        except OSError as exc:
             exc_errno = exc.errno
             exc_strerror = exc.strerror
             error = DaemonProcessDetachError(
@@ -619,7 +619,7 @@ def is_socket(fd):
     try:
         socket_type = file_socket.getsockopt(
             socket.SOL_SOCKET, socket.SO_TYPE)
-    except socket.error, exc:
+    except socket.error as exc:
         exc_errno = exc.args[0]
         if exc_errno == errno.ENOTSOCK:
             # Socket operation on non-socket
@@ -679,7 +679,7 @@ def close_file_descriptor_if_open(fd):
         """
     try:
         os.close(fd)
-    except OSError, exc:
+    except OSError as exc:
         if exc.errno == errno.EBADF:
             # File descriptor was not open
             pass

@@ -59,7 +59,7 @@ class PIDLockFile(LinkFileLock, object):
         super(PIDLockFile, self).acquire(*args, **kwargs)
         try:
             write_pid_to_pidfile(self.path)
-        except OSError, exc:
+        except OSError as exc:
             error = LockFailed("%(exc)s" % vars())
             raise error
 
@@ -121,7 +121,7 @@ def read_pid_from_pidfile(pidfile_path):
     pidfile = None
     try:
         pidfile = open(pidfile_path, 'r')
-    except IOError, exc:
+    except IOError as exc:
         if exc.errno == errno.ENOENT:
             pass
         else:
@@ -187,7 +187,7 @@ def remove_existing_pidfile(pidfile_path):
         """
     try:
         os.remove(pidfile_path)
-    except OSError, exc:
+    except OSError as exc:
         if exc.errno == errno.ENOENT:
             pass
         else:
