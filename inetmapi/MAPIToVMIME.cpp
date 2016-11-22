@@ -461,7 +461,7 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 				// @todo find out how Content-Disposition receives highchar filename... always UTF-8?
 				textPart.addObject(vmime::make_shared<vmime::streamContentHandler>(inputDataStream, 0), vmime::encoding("base64"), vmMIMEType, strContentId, string(), strContentLocation);
 			} else {
-				vmMapiAttach = make_shared<mapiAttachment>(vmime::make_shared<vmime::streamContentHandler>(inputDataStream, 0),
+				vmMapiAttach = vmime::make_shared<mapiAttachment>(vmime::make_shared<vmime::streamContentHandler>(inputDataStream, 0),
 															 bSendBinary ? vmime::encoding("base64") : vmime::encoding("quoted-printable"),
 															 vmMIMEType, strContentId,
 															 vmime::word(m_converter.convert_to<string>(m_strCharset.c_str(), szFilename, rawsize(szFilename), CHARSET_WCHAR), m_vmCharset));
@@ -2390,7 +2390,7 @@ tnef_anyway:
 			
 				// Now, add the stream as an attachment to the message, filename winmail.dat 
 				// and MIME type 'application/ms-tnef', no content-id
-				vmTNEFAtt = make_shared<mapiAttachment>(vmime::make_shared<vmime::streamContentHandler>(inputDataStream, 0),
+				vmTNEFAtt = vmime::make_shared<mapiAttachment>(vmime::make_shared<vmime::streamContentHandler>(inputDataStream, 0),
 														  vmime::encoding("base64"), vmime::mediaType("application/ms-tnef"), string(),
 														  vmime::word("winmail.dat"));
 											  
