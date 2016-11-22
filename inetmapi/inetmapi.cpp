@@ -20,9 +20,6 @@
 #include <kopano/lockhelper.hpp>
 #include <kopano/stringutil.h>
 
-// Damn windows header defines max which break C++ header files
-#undef max
-
 #include <string>
 #include <fstream>
 #include <iostream>

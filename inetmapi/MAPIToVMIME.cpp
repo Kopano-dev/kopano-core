@@ -18,9 +18,6 @@
 #include <kopano/platform.h>
 #include <kopano/MAPIErrors.h>
 
-// Damn windows header defines max which break C++ header files
-#undef max
-
 // vmime
 #include <vmime/vmime.hpp>
 #include <vmime/platforms/posix/posixHandler.hpp>
