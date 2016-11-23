@@ -93,10 +93,6 @@ else
    AC_MSG_RESULT([no])
 fi
 
-# Everything uses pthread
-# check lib, but do not set in link list, but use -pthread instead (gnu c/c++ only?)
-AC_CHECK_LIB([pthread], [pthread_create], [ZCXXFLAGS="$ZCXXFLAGS -pthread"], AC_MSG_ERROR([required library libpthread missing or unusable]))
-
 #
 # enable/disable options
 #
