@@ -139,7 +139,7 @@ protected:
 */
 class _kc_export_dycast ECSession _kc_final : public BTSession {
 public:
-	_kc_hidden ECSession(const char *addr, ECSESSIONID, ECSESSIONGROUPID, ECDatabaseFactory *, ECSessionManager *, unsigned int caps, bool is_offline, AUTHMETHOD, int pid, const std::string &cl_vers, const std::string &cl_app, const std::string &cl_app_ver, const std::string &cl_app_misc);
+	_kc_hidden ECSession(const char *addr, ECSESSIONID, ECSESSIONGROUPID, ECDatabaseFactory *, ECSessionManager *, unsigned int caps, AUTHMETHOD, int pid, const std::string &cl_vers, const std::string &cl_app, const std::string &cl_app_ver, const std::string &cl_app_misc);
 	_kc_hidden virtual ECSESSIONGROUPID GetSessionGroupId(void) const { return m_ecSessionGroupId; }
 	_kc_hidden virtual int GetConnectingPid(void) const { return m_ulConnectingPid; }
 	_kc_hidden virtual ~ECSession(void);

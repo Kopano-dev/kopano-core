@@ -237,7 +237,7 @@ size_t BTSession::GetInternalObjectSize()
 ECSession::ECSession(const char *src_addr, ECSESSIONID sessionID,
     ECSESSIONGROUPID ecSessionGroupId, ECDatabaseFactory *lpDatabaseFactory,
     ECSessionManager *lpSessionManager, unsigned int ulCapabilities,
-    bool bIsOffline, AUTHMETHOD ulAuthMethod, int pid,
+    AUTHMETHOD ulAuthMethod, int pid,
     const std::string &cl_ver, const std::string &cl_app,
     const std::string &cl_app_ver, const std::string &cl_app_misc) :
 	BTSession(src_addr, sessionID, lpDatabaseFactory, lpSessionManager,
@@ -267,14 +267,8 @@ ECSession::ECSession(const char *src_addr, ECSESSIONID sessionID,
 	m_bCheckIP = strcmp(lpSessionManager->GetConfig()->GetSetting("session_ip_check"), "no") != 0;
 
 	// Offline implements its own versions of these objects
-	if (bIsOffline == false) {
-		m_lpUserManagement = new ECUserManagement(this, m_lpSessionManager->GetPluginFactory(), m_lpSessionManager->GetConfig());
-		m_lpEcSecurity = new ECSecurity(this, m_lpSessionManager->GetConfig(), m_lpSessionManager->GetAudit());
-	} else {
-		m_lpUserManagement = new ECUserManagementOffline(this, m_lpSessionManager->GetPluginFactory(), m_lpSessionManager->GetConfig());
-
-		m_lpEcSecurity = new ECSecurityOffline(this, m_lpSessionManager->GetConfig());
-	}
+	m_lpUserManagement = new ECUserManagement(this, m_lpSessionManager->GetPluginFactory(), m_lpSessionManager->GetConfig());
+	m_lpEcSecurity = new ECSecurity(this, m_lpSessionManager->GetConfig(), m_lpSessionManager->GetAudit());
 
 	// Atomically get and AddSession() on the sessiongroup. Needs a ReleaseSession() on the session group to clean up.
 	m_lpSessionManager->GetSessionGroup(ecSessionGroupId, this, &m_lpSessionGroup);
@@ -708,7 +702,7 @@ ECRESULT ECAuthSession::CreateECSession(ECSESSIONGROUPID ecSessionGroupId,
 	// ECAuthSessionOffline creates offline version .. no bOverrideClass construction
 	lpSession = new(std::nothrow) ECSession(m_strSourceAddr.c_str(),
 	            newSID, ecSessionGroupId, m_lpDatabaseFactory,
-	            m_lpSessionManager, m_ulClientCapabilities, false,
+	            m_lpSessionManager, m_ulClientCapabilities,
 	            m_ulValidationMethod, m_ulConnectingPid,
 	            cl_ver, cl_app, cl_app_ver, cl_app_misc);
 	if (!lpSession) {
