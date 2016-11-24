@@ -157,50 +157,6 @@ void ECStatsCollector::SetTime(SCName name, time_t set) {
 	iSD->second.data.ts = set;
 }
 
-void ECStatsCollector::Min(SCName name, float min)
-{
-	auto iSD = m_StatData.find(name);
-	if (iSD == m_StatData.cend())
-		return;
-	assert(iSD->second.type == SCDT_FLOAT);
-	scoped_lock lk(iSD->second.lock);
-	if (iSD->second.data.f > min)
-		iSD->second.data.f = min;
-}
-
-void ECStatsCollector::Min(SCName name, LONGLONG min)
-{
-	auto iSD = m_StatData.find(name);
-	if (iSD == m_StatData.cend())
-		return;
-	assert(iSD->second.type == SCDT_LONGLONG);
-	scoped_lock lk(iSD->second.lock);
-	if (iSD->second.data.ll > min)
-		iSD->second.data.ll = min;
-}
-
-void ECStatsCollector::MinTime(SCName name, time_t min)
-{
-	auto iSD = m_StatData.find(name);
-	if (iSD == m_StatData.cend())
-		return;
-	assert(iSD->second.type == SCDT_TIMESTAMP);
-	scoped_lock lk(iSD->second.lock);
-	if (iSD->second.data.ts > min)
-		iSD->second.data.ts = min;
-}
-
-void ECStatsCollector::Max(SCName name, float max)
-{
-	auto iSD = m_StatData.find(name);
-	if (iSD == m_StatData.cend())
-		return;
-	assert(iSD->second.type == SCDT_FLOAT);
-	scoped_lock lk(iSD->second.lock);
-	if (iSD->second.data.f < max)
-		iSD->second.data.f = max;
-}
-
 void ECStatsCollector::Max(SCName name, LONGLONG max)
 {
 	auto iSD = m_StatData.find(name);
@@ -210,17 +166,6 @@ void ECStatsCollector::Max(SCName name, LONGLONG max)
 	scoped_lock lk(iSD->second.lock);
 	if (iSD->second.data.ll < max)
 		iSD->second.data.ll = max;
-}
-
-void ECStatsCollector::MaxTime(SCName name, time_t max)
-{
-	auto iSD = m_StatData.find(name);
-	if (iSD == m_StatData.cend())
-		return;
-	assert(iSD->second.type == SCDT_TIMESTAMP);
-	scoped_lock lk(iSD->second.lock);
-	if (iSD->second.data.ts < max)
-		iSD->second.data.ts = max;
 }
 
 void ECStatsCollector::Avg(SCName name, float add)
@@ -247,36 +192,6 @@ void ECStatsCollector::Avg(SCName name, LONGLONG add)
 	++iSD->second.avginc;
 	if (iSD->second.avginc == 0)
 		iSD->second.avginc = 1;
-}
-
-void ECStatsCollector::AvgTime(SCName name, time_t add)
-{
-	auto iSD = m_StatData.find(name);
-	if (iSD == m_StatData.cend())
-		return;
-	assert(iSD->second.type == SCDT_TIMESTAMP);
-	scoped_lock lk(iSD->second.lock);
-	iSD->second.data.ts = ((add - iSD->second.data.ts) / iSD->second.avginc) + iSD->second.data.ts;
-	++iSD->second.avginc;
-	if (iSD->second.avginc == 0)
-		iSD->second.avginc = 1;
-}
-
-void ECStatsCollector::Set(const std::string &name, const std::string &description, const std::string &value)
-{
-	ECStrings data;
-
-	data.description = description;
-	data.value = value;
-
-	scoped_lock lk(m_StringsLock);
-	m_StatStrings[name] = data;
-}
-
-void ECStatsCollector::Remove(const std::string &name)
-{
-	scoped_lock lk(m_StringsLock);
-	m_StatStrings.erase(name);
 }
 
 std::string ECStatsCollector::GetValue(const SCMap::const_iterator::value_type &iSD)

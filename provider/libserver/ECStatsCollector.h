@@ -94,19 +94,11 @@ public:
 	_kc_hidden void Set(SCName name, float set);
 	_kc_hidden void Set(SCName name, LONGLONG set);
 	void SetTime(SCName name, time_t set);
-	_kc_hidden void Min(SCName name, float min);
-	_kc_hidden void Min(SCName name, LONGLONG min);
-	_kc_hidden void MinTime(SCName name, time_t min);
-	_kc_hidden void Max(SCName name, float max);
 	void Max(SCName name, LONGLONG max);
-	_kc_hidden void MaxTime(SCName name, time_t max);
 	_kc_hidden void Avg(SCName name, float add);
 	void Avg(SCName name, LONGLONG add);
-	_kc_hidden void AvgTime(SCName name, time_t add);
 
 	/* strings are separate, used by ECSerial */
-	_kc_hidden void Set(const std::string &name, const std::string &description, const std::string &value);
-	_kc_hidden void Remove(const std::string &name);
 	_kc_hidden std::string GetValue(const SCMap::const_iterator::value_type &);
 	_kc_hidden std::string GetValue(const SCName &name);
 	_kc_hidden void ForEachStat(void (*cb)(const std::string &, const std::string &, const std::string &, void *), void *obj);
