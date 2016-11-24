@@ -237,14 +237,4 @@ private:
 #endif
 };
 
-/*
-  Authentication for offline session
-*/
-class ECAuthSessionOffline _kc_final : public ECAuthSession {
-public:
-	ECAuthSessionOffline(const char *addr, ECSESSIONID sessionID, ECDatabaseFactory *lpDatabaseFactory, ECSessionManager *lpSessionManager, unsigned int ulCapabilities);
-
-	ECRESULT CreateECSession(ECSESSIONGROUPID ecSessionGroupId, const std::string &cl_ver, const std::string &cl_app, const std::string &cl_app_ver, const std::string &cl_app_misc, ECSESSIONID *sessionID, ECSession **lppNewSession);
-};
-
 #endif // #ifndef ECSESSION
