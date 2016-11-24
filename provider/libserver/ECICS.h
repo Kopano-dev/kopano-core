@@ -103,9 +103,7 @@ public:
 	}
     
     operator unsigned char *() const { return (unsigned char *)lpData; }
-    
-    operator const std::string () const { return std::string(lpData, ulSize); }
-    
+    operator std::string(void) const { return std::string(lpData, ulSize); }
     unsigned int 	size() const { return ulSize; }
 	bool			empty() const { return ulSize == 0; } 
 private:
