@@ -342,7 +342,6 @@ libkcclient_la_SOURCES = \
 	provider/client/ECMAPIProp.cpp provider/client/ECMAPIProp.h \
 	provider/client/ECMAPITable.cpp provider/client/ECMAPITable.h \
 	provider/client/ECMSProvider.cpp provider/client/ECMSProvider.h \
-	provider/client/ECMSProviderOffline.cpp provider/client/ECMSProviderOffline.h \
 	provider/client/ECMSProviderSwitch.cpp provider/client/ECMSProviderSwitch.h \
 	provider/client/ECMailUser.cpp provider/client/ECMailUser.h \
 	provider/client/ECMemTablePublic.cpp provider/client/ECMemTablePublic.h \

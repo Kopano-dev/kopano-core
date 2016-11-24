@@ -30,7 +30,6 @@
 
 #include "ECABProvider.h"
 #include "ECMSProvider.h"
-#include "ECMSProviderOffline.h"
 #include "ECMsgStore.h"
 #include "ECArchiveAwareMsgStore.h"
 #include "ECMsgStorePublic.h"
