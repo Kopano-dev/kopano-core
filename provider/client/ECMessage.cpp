@@ -2246,7 +2246,8 @@ exit:
 HRESULT ECMessage::DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray *lppProblems)
 {
 	HRESULT hr;
-	SPropTagArray sSubjectPrefix = {1, { CHANGE_PROP_TYPE(PR_SUBJECT_PREFIX, PT_UNSPECIFIED) } };
+	SizedSPropTagArray(1, sSubjectPrefix) =
+		{1, {CHANGE_PROP_TYPE(PR_SUBJECT_PREFIX, PT_UNSPECIFIED)}};
 
 	// Send to IMAPIProp first
 	hr = ECMAPIProp::DeleteProps(lpPropTagArray, lppProblems);
@@ -2255,7 +2256,7 @@ HRESULT ECMessage::DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArr
 
 	// If the PR_SUBJECT is removed and we generated the prefix, we need to remove that property too.
 	if (m_bExplicitSubjectPrefix == FALSE && Util::FindPropInArray(lpPropTagArray, CHANGE_PROP_TYPE(PR_SUBJECT, PT_UNSPECIFIED)) >= 0)
-		ECMAPIProp::DeleteProps(&sSubjectPrefix, NULL);
+		ECMAPIProp::DeleteProps(sSubjectPrefix, NULL);
 
 	// If an explicit prefix was set and now removed, we must sync it again on the next SetProps of the subject
 	if (m_bExplicitSubjectPrefix == TRUE && Util::FindPropInArray(lpPropTagArray, CHANGE_PROP_TYPE(PR_SUBJECT_PREFIX, PT_UNSPECIFIED)) >= 0)

@@ -706,7 +706,8 @@ static HRESULT ProcessQueue(const char *szSMTP, int ulPort, const char *szPath)
 		}
 	};
 	
-	SSortOrderSet sSort = { 1, 0, 0, { { PR_EC_HIERARCHYID, TABLE_SORT_ASCEND } } };
+	static constexpr SizedSSortOrderSet(1, sSort) =
+		{1, 0, 0, {{PR_EC_HIERARCHYID, TABLE_SORT_ASCEND}}};
 
 	hr = HrOpenECAdminSession(&lpAdminSession, "kopano-spooler:system",
 	     PROJECT_SVN_REV_STR, szPath, EC_PROFILE_FLAGS_NO_PUBLIC_STORE,
@@ -748,7 +749,7 @@ static HRESULT ProcessQueue(const char *szSMTP, int ulPort, const char *szPath)
 	}
 	
 	// Sort by ascending hierarchyid: first in, first out queue
-	hr = lpTable->SortTable(&sSort, 0);
+	hr = lpTable->SortTable(sSort, 0);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to SortTable() on OutgoingQueue: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
