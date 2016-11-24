@@ -21,7 +21,6 @@
 #include <kopano/lockhelper.hpp>
 
 #include "ECSyncContext.h"
-#include "ECOfflineABImporter.h"
 #include "ECSyncUtil.h"
 #include "ECSyncSettings.h"
 #include <IECExportAddressbookChanges.h>
