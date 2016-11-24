@@ -30,7 +30,6 @@
 #include "ECSessionManager.h"
 #include "ECUserManagement.h"
 #include "ECSecurity.h"
-#include "ECSecurityOffline.h"
 #include "ECPluginFactory.h"
 #include <kopano/base64.h>
 #include "SSLUtil.h"

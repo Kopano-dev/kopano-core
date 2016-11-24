@@ -533,7 +533,6 @@ libkcserver_la_SOURCES = \
 	provider/libserver/ECSearchFolders.cpp provider/libserver/ECSearchFolders.h \
 	provider/libserver/ECSearchObjectTable.cpp provider/libserver/ECSearchObjectTable.h \
 	provider/libserver/ECSecurity.cpp provider/libserver/ECSecurity.h \
-	provider/libserver/ECSecurityOffline.cpp provider/libserver/ECSecurityOffline.h \
 	provider/libserver/ECServerEntrypoint.cpp provider/libserver/ECServerEntrypoint.h \
 	provider/libserver/ECSession.cpp provider/libserver/ECSession.h \
 	provider/libserver/ECSessionGroup.cpp provider/libserver/ECSessionGroup.h \
