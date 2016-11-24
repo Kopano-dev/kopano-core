@@ -69,7 +69,7 @@ struct alignas(::max_align_t) mapibuf_head {
 #if _MAPI_MEM_MORE_DEBUG
 	enum mapibuf_ident ident;
 #endif
-	char data[] alignas(::max_align_t);
+	alignas(::max_align_t) char data[];
 };
 
 /* Some required globals */
