@@ -24,32 +24,6 @@
 #include <sys/time.h> /* gettimeofday */
 
 /**
- * Check if a timeval was set.
- * @retval	false if both timeval fields are zero, true otherwise.
- */
-static inline bool isSet(const struct timeval &tv) {
-	return tv.tv_sec != 0 || tv.tv_usec != 0;
-}
-
-/**
- * Substract one timeval struct from another.
- * @param[in]	lhs		The timeval from which to substract.
- * @param[in]	rhs		The timeval to substract.
- * @returns lhs - rhs.
- */
-static inline struct timeval operator-(const struct timeval &lhs, const struct timeval &rhs) {
-	struct timeval result = {lhs.tv_sec - rhs.tv_sec, 0};
-	
-	if (lhs.tv_usec < rhs.tv_usec) {
-		--result.tv_sec;
-		result.tv_usec = 1000000;
-	}
-	result.tv_usec += lhs.tv_usec - rhs.tv_usec;
-	
-	return result;
-}
-
-/**
  * Construct an ECThreadPool instance.
  * @param[in]	ulThreadCount	The amount of worker hreads to create.
  */
