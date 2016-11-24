@@ -45,7 +45,8 @@ ECRESULT ECSecurityOffline::IsUserObjectVisible(unsigned int ulUserObjectId)
 	return erSuccess;
 }
 
-ECRESULT ECSecurityOffline::GetViewableCompanyIds(std::list<localobjectdetails_t> **lppObjects, unsigned int ulFlags)
+ECRESULT ECSecurityOffline::GetViewableCompanyIds(unsigned int ulFlags,
+    std::list<localobjectdetails_t> **lppObjects)
 {
 	/*
 	 * When using offline we return all companies within the offline database, this is correct behavior
@@ -58,7 +59,8 @@ ECRESULT ECSecurityOffline::GetViewableCompanyIds(std::list<localobjectdetails_t
 	return m_lpSession->GetUserManagement()->GetCompanyObjectListAndSync(CONTAINER_COMPANY, 0, lppObjects, ulFlags);
 }
 
-ECRESULT ECSecurityOffline::GetUserQuota(unsigned int ulUserId, quotadetails_t *lpDetails)
+ECRESULT ECSecurityOffline::GetUserQuota(unsigned int ulUserId,
+    bool get_user_dfl, quotadetails_t *lpDetails)
 {
 	if (lpDetails == NULL)
 		return KCERR_INVALID_PARAMETER;

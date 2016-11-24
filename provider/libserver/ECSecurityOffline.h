@@ -24,12 +24,12 @@
 class ECSecurityOffline _kc_final : public ECSecurity {
 public:
 	ECSecurityOffline(ECSession *lpSession, ECConfig *lpConfig);
-	virtual int GetAdminLevel();
-	virtual ECRESULT IsAdminOverUserObject(unsigned int ulUserObjectId);
-	virtual ECRESULT IsAdminOverOwnerOfObject(unsigned int ulObjectId);
-	virtual ECRESULT IsUserObjectVisible(unsigned int ulUserObjectId);
-	virtual ECRESULT GetViewableCompanyIds(std::list<localobjectdetails_t> **lppObjects, unsigned int ulFlags = 0);
-	virtual ECRESULT GetUserQuota(unsigned int ulUserId, quotadetails_t *lpDetails);
+	virtual int GetAdminLevel(void) _kc_override;
+	virtual ECRESULT IsAdminOverUserObject(unsigned int user_objid) _kc_override;
+	virtual ECRESULT IsAdminOverOwnerOfObject(unsigned int objid) _kc_override;
+	virtual ECRESULT IsUserObjectVisible(unsigned int user_objid) _kc_override;
+	virtual ECRESULT GetViewableCompanyIds(unsigned int flags, std::list<localobjectdetails_t> **lppObjects) _kc_override;
+	virtual ECRESULT GetUserQuota(unsigned int user_id, bool get_user_dfl, quotadetails_t *) _kc_override;
 };
 
 #endif
