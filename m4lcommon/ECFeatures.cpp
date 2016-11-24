@@ -22,6 +22,8 @@
 
 using namespace std;
 
+namespace KC {
+
 /** 
  * Checks if given feature name is an actual kopano feature.
  * 
@@ -135,3 +137,5 @@ bool isFeatureDisabled(const char* feature, IAddrBook *lpAddrBook, IMsgStore *lp
 {
 	return checkFeature(feature, lpAddrBook, lpStore, PR_EC_DISABLED_FEATURES_A);
 }
+
+} /* namespace */

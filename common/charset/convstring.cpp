@@ -18,6 +18,8 @@
 #include <kopano/platform.h>
 #include <kopano/charset/convstring.h>
 
+namespace KC {
+
 /** Create a convstring instance from a SPropValue.
  *
  * Extarcts the lpszA or lpszW depending on the PROP_TYPE of the provided
@@ -249,3 +251,5 @@ const char* convstring::u8_str() const
 {
 	return (m_lpsz ? convert_to<char*>("UTF-8") : NULL);
 }
+
+} /* namespace */

@@ -26,6 +26,8 @@
 #include <kopano/ECGuid.h>
 #include <kopano/memory.hpp>
 
+namespace KC {
+
 // http://tinyurl.com/ydb363n
 template<typename BaseT, typename DerivedT> class Conversion _kc_final {
     static DerivedT& derived();
@@ -240,5 +242,7 @@ private:
 
 template<typename _T, REFIID _R>
 const IID mapi_object_ptr<_T,_R>::iid(_R);
+
+} /* namespace */
 
 #endif // mapi_object_ptr_INCLUDED

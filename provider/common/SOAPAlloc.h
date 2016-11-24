@@ -20,6 +20,8 @@
 
 #include "soapH.h"
 
+namespace KC {
+
 // The automatic soap/non-soap allocator
 template<typename Type>
 Type* s_alloc(struct soap *soap, size_t size) {
@@ -73,6 +75,6 @@ inline void s_free_array(struct soap *soap, Type *p) {
 	}
 }
 
-
+} /* namespace */
 
 #endif

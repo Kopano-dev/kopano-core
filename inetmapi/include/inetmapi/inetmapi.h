@@ -27,6 +27,8 @@
 #include <vector>
 #include <inetmapi/options.h>
 
+namespace KC {
+
 struct sFailedRecip {
 	std::string strRecipEmail;
 	std::wstring strRecipName;
@@ -58,8 +60,6 @@ public:
 	_kc_hidden virtual const std::vector<sFailedRecip> &getTemporaryFailedRecipients(void) const { return mTemporaryFailedRecipients; }
 };
 
-extern "C" {
-
 bool ValidateCharset(const char *charset);
 
 /* c wrapper to create object */
@@ -72,8 +72,6 @@ extern _kc_export HRESULT IMToMAPI(IMAPISession *, IMsgStore *, IAddrBook *, IMe
 // Use this one for retrieving messages not in outgoing que, they already have PR_SENDER_EMAIL/NAME
 // This can be used in making pop3 / imap server
 
-} /* extern "C" */
-
 // Read properties from lpMessage object and fill buffer with internet rfc822 format message
 extern _kc_export HRESULT IMToINet(IMAPISession *, IAddrBook *, IMessage *, char **lppbuf, sending_options);
 
@@ -85,5 +83,7 @@ extern _kc_export HRESULT IMToINet(IMAPISession *, IAddrBook *, IMessage *, ECSe
 
 // Parse the RFC822 input and create IMAP Envelope, Body and Bodystructure property values
 extern _kc_export HRESULT createIMAPProperties(const std::string &input, std::string *envelope, std::string *body, std::string *bodystruct);
+
+} /* namespace */
 
 #endif // INETMAPI_H

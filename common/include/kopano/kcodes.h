@@ -21,6 +21,8 @@
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 
+namespace KC {
+
 #define MAKE_KSCODE(sev,code) ( (((unsigned int)(sev)<<31) | ((unsigned int)(code))) )
 #define MAKE_KCERR( err ) (MAKE_KSCODE( 1, err ))
 #define MAKE_KCWARN( warn ) (MAKE_KSCODE( 1, warn )) // This macro is broken, should be 0
@@ -133,6 +135,8 @@ enum CONNECTION_TYPE {
 };
 
 //Functions
-extern "C" _kc_export HRESULT kcerr_to_mapierr(ECRESULT, HRESULT hrDefault = 0x80070005 /* MAPI_E_NO_ACCESS */);
+extern _kc_export HRESULT kcerr_to_mapierr(ECRESULT, HRESULT hrDefault = 0x80070005 /* MAPI_E_NO_ACCESS */);
+
+} /* namespace */
 
 #endif /* KC_KCODES_HPP */

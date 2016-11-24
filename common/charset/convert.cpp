@@ -27,6 +27,8 @@
 #include <cerrno>
 #define BUFSIZE 4096
 
+namespace KC {
+
 convert_exception::convert_exception(enum exception_type type, const std::string &message)
 	: std::runtime_error(message)
 	, m_type(type)
@@ -258,3 +260,5 @@ wchar_t* convert_context::persist_string(const std::wstring &wstrValue)
 	m_lstWstrings.push_back(wstrValue);
 	return const_cast<wchar_t*>(m_lstWstrings.back().c_str());
 }
+
+} /* namespace */

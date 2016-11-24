@@ -19,6 +19,8 @@
 #include "ECConfigImpl.h"
 #include <kopano/charset/convert.h>
 
+namespace KC {
+
 ECConfig *ECConfig::Create(const configsetting_t *lpDefaults,
     const char *const *lpszDirectives)
 {
@@ -69,3 +71,5 @@ const char* ECConfig::GetDefaultPath(const char* lpszBasename)
 	}
 	return result.first->second.c_str();
 }
+
+} /* namespace */

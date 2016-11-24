@@ -34,6 +34,8 @@
 
 #include <algorithm>
 
+namespace KC {
+
 #define LOG_CACHE_DEBUG(_msg, ...) \
 	ec_log(EC_LOGLEVEL_DEBUG | EC_LOGLEVEL_CACHE, "cache: " _msg, ##__VA_ARGS__)
 #define LOG_USERCACHE_DEBUG(_msg, ...) \
@@ -1995,3 +1997,5 @@ void ECCacheManager::EnableCellCache()
 	LOG_CELLCACHE_DEBUG("%s", "Enable cell cache");
     m_bCellCacheDisabled = false;
 }
+
+} /* namespace */

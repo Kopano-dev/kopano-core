@@ -23,6 +23,8 @@
 #include <kopano/ECConfig.h>
 #include <kopano/ECLogger.h>
 
+namespace KC {
+
 // The ECDatabaseFactory creates database objects connected to the server database. Which
 // database is returned is chosen by the database_engine configuration setting.
 
@@ -41,5 +43,7 @@ private:
 };
 
 ECRESULT	GetThreadLocalDatabase(ECDatabaseFactory *lpFactory, ECDatabase **lppDatabase);
+
+} /* namespace */
 
 #endif // ECDATABASEFACTORY_H

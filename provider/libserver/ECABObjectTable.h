@@ -23,6 +23,10 @@
 #include "ECGenericObjectTable.h"
 #include "ECUserManagement.h"
 
+struct soap;
+
+namespace KC {
+
 // Objectdata for abprovider
 struct ECODAB {
 	unsigned int	ulABId;
@@ -72,5 +76,7 @@ private:
 protected:
 	unsigned int m_ulUserManagementFlags;
 };
+
+} /* namespace */
 
 #endif

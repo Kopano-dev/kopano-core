@@ -24,7 +24,7 @@
 #include <kopano/ECABEntryID.h>
 #include <kopano/ECGetText.h> // defines the wonderful macro "_"
 
-namespace za { namespace helpers {
+namespace KC { namespace helpers {
 
 /**
  * Create an ArchiveHelper object based on a message store and a folder name.
@@ -940,4 +940,4 @@ HRESULT ArchiveHelper::PrepareForFirstUse(ECLogger *lpLogger)
 	return hrSuccess;
 }
 
-}} // namespaces
+}} /* namespace */

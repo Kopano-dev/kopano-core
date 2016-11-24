@@ -33,6 +33,8 @@
 
 #include "ECChannelClient.h"
 
+namespace KC {
+
 ECChannelClient::ECChannelClient(const char *szPath, const char *szTokenizer)
 {
 	m_strTokenizer = szTokenizer;
@@ -197,3 +199,5 @@ exit:
 
 	return er;
 }
+
+} /* namespace */

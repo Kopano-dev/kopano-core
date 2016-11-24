@@ -30,6 +30,8 @@
 #include <map>
 #include <kopano/zcdefs.h>
 
+namespace KC {
+
 typedef std::map<LONG, FBBlock_1>mapFB;
 
 class ECFBBlockList _kc_final {
@@ -54,6 +56,8 @@ private:
 	LONG			m_tmRestictEnd;
 	bool			m_bInitIter;
 };
+
+} /* namespace */
 
 #endif // ECFBBLOCKLIST_H
 /** @} */

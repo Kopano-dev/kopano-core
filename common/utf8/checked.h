@@ -49,6 +49,8 @@ DEALINGS IN THE SOFTWARE.
 #include "core.h"
 #include <stdexcept>
 
+namespace KC {
+
 namespace utf8 {
     // Exceptions that may be thrown from the library functions.
     class _kc_export_throw invalid_code_point _kc_final :
@@ -331,6 +333,8 @@ namespace utf8 {
     }; // class iterator
 
 } // namespace utf8
+
+} /* namespace */
 
 #endif //header guard
 

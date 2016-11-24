@@ -25,6 +25,7 @@
 #include "ECGenericObjectTable.h"
 #include <kopano/kcodes.h>
 
+namespace KC {
 
 class ECSession;
 class ECSessionManager;
@@ -98,6 +99,8 @@ private:
 	unsigned int							ulNextTableId;
 	std::recursive_mutex hListMutex;
 };
+
+} /* namespace */
 
 #endif // TABLEMANAGER_H
 

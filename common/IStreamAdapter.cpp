@@ -25,6 +25,8 @@
 
 #include "IStreamAdapter.h"
 
+namespace KC {
+
 IStreamAdapter::IStreamAdapter(std::string& str) : m_pos(0), m_str(str) {
 }
 
@@ -134,3 +136,5 @@ HRESULT IStreamAdapter::Stat(STATSTG *pstatstg, DWORD grfStatFlag)
 	
 	return hrSuccess;
 }
+
+} /* namespace */

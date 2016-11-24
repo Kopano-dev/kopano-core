@@ -39,6 +39,8 @@
 
 #include "ECFBBlockList.h"
 
+namespace KC {
+
 /**
  * Implementatie of the IFreeBusyUpdate interface
  */
@@ -79,6 +81,8 @@ private:
 	ECFBBlockList	m_fbBlockList; /**< Freebusy time blocks */
 
 };
+
+} /* namespace */
 
 #endif // ECFREEBUSYUPDATE_H
 

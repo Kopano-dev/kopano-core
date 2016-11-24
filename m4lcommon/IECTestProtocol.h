@@ -18,11 +18,15 @@
 #ifndef IECTESTPROTOCOL_H
 #define IECTESTPROTOCOL_H
 
+namespace KC {
+
 class IECTestProtocol : public IUnknown {
 public:
 	virtual HRESULT __stdcall TestPerform(const char *cmd, unsigned int argc, char **args) = 0;
 	virtual HRESULT __stdcall TestSet(const char *name, const char *value) = 0;
 	virtual HRESULT __stdcall TestGet(const char *name, char **value) = 0;
 };
+
+} /* namespace */
 
 #endif

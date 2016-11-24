@@ -28,6 +28,11 @@
 
 #include <string>
 
+struct propVal;
+struct soap;
+
+namespace KC {
+
 #define MAX_PROP_SIZE 8192	
 #define MAX_QUERY 4096
 
@@ -124,5 +129,7 @@ private:
  */
 #define WITH_SUPPRESSED_LOGGING(_db)	\
 	for (SuppressLockErrorLogging suppressor(_db), *ptr = NULL; ptr == NULL; ptr = &suppressor)
+
+} /* namespace */
 
 #endif // ECDATABASEUTILS_H

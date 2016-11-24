@@ -29,6 +29,8 @@
 #include "ECDatabase.h"
 #include <kopano/ECDefs.h>
 
+namespace KC {
+
 /**
  * @defgroup userplugin_dbbase Database common for user plugins
  * @ingroup userplugin
@@ -402,4 +404,7 @@ protected:
 	ECDatabase *m_lpDatabase;
 };
 /** @} */
+
+} /* namespace */
+
 #endif

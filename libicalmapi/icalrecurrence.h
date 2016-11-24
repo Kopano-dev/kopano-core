@@ -25,6 +25,8 @@
 #include <mapidefs.h>
 #include <libical/ical.h>
 
+namespace KC {
+
 /**
  * Conversion class for recurrence & exceptions (mapi <-> ical)
  */
@@ -46,5 +48,7 @@ private:
 
 	HRESULT WeekDaysToICalArray(ULONG ulWeekDays, struct icalrecurrencetype *lpRec);
 };
+
+} /* namespace */
 
 #endif

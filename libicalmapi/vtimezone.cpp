@@ -25,6 +25,8 @@
 
 using namespace std;
 
+namespace KC {
+
 /**
  * Converts icaltimetype to Unix timestamp.
  * Here server zone refers to timezone with which the server started,
@@ -404,3 +406,5 @@ HRESULT HrGetTzStruct(const std::string &strTimezone, TIMEZONE_STRUCT *ttTimeZon
 		return MAPI_E_NOT_FOUND;
 	return HrParseVTimeZone(lpicComponent, NULL, ttTimeZone);
 }
+
+} /* namespace */

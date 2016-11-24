@@ -22,6 +22,7 @@
 #include <mapiutil.h> /* MAPIFreeBuffer */
 
 namespace KCHL {
+using namespace KC;
 
 template<typename _T> class memory_proxy _kc_final {
 	public:

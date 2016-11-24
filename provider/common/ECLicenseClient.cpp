@@ -29,6 +29,8 @@
 
 #include "ECLicenseClient.h"
 
+namespace KC {
+
 ECRESULT ECLicenseClient::ServiceTypeToServiceTypeString(unsigned int ulServiceType, std::string &strServiceType)
 {
     ECRESULT er = erSuccess;
@@ -131,3 +133,5 @@ ECRESULT ECLicenseClient::SetSerial(unsigned int ulServiceType, const std::strin
 
 	return erSuccess;
 }
+
+} /* namespace */

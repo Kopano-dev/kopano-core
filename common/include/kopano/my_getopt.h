@@ -4,17 +4,13 @@
 #include <kopano/zcdefs.h>
 #include <getopt.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct option;
+
+namespace KC {
 
 /* Permit unknown long options, move them to end of argv like arguments */
 extern _kc_export int my_getopt_long_permissive(int, char **, const char *, const struct option *, int *);
 
-#ifdef __cplusplus
-}
-#endif
+} /* namespace */
 
 #endif /* MY_GETOPT_H_INCLUDED */

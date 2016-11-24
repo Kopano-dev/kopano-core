@@ -30,6 +30,8 @@
 
 #include <kopano/ECLogger.h>
 
+namespace KC {
+
 class _kc_export StatsClient _kc_final {
 private:
 	int fd = -1;
@@ -57,5 +59,7 @@ public:
 	_kc_hidden void submit(const std::string &key, time_t ts, double value);
 	_kc_hidden void submit(const std::string &key, time_t ts, int64_t value);
 };
+
+} /* namespace */
 
 #endif

@@ -20,6 +20,8 @@
 #include <kopano/ECRestriction.h>
 #include "HrException.h"
 
+namespace KC {
+
 ECHierarchyIteratorBase::ECHierarchyIteratorBase(LPMAPICONTAINER lpContainer, ULONG ulFlags, ULONG ulDepth)
 : m_ptrContainer(lpContainer, true)
 , m_ulFlags(ulFlags)
@@ -198,3 +200,5 @@ template <>
 ECContentsIterator<MailUserPtr>::ECContentsIterator(LPMAPICONTAINER lpContainer, LPSRestriction lpRestriction, ULONG ulFlags)
 : ECContentsIteratorBase(lpContainer, CreateMailUserRestriction(lpRestriction), ulFlags, true)
 {}
+
+} /* namespace */

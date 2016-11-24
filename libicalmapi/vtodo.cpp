@@ -24,6 +24,8 @@
 #include <iostream>
 using namespace std;
 
+namespace KC {
+
 /** 
  * VTodo constructor, implements VConverter
  */
@@ -362,3 +364,5 @@ HRESULT VTodoConverter::HrSetItemSpecifics(ULONG ulProps, LPSPropValue lpProps, 
 
 	return hr;
 }
+
+} /* namespace */

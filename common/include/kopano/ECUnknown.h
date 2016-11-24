@@ -25,6 +25,8 @@
 #include <mutex>
 #include <mapi.h>
 
+namespace KC {
+
 /**
  * Return interface pointer on a specific interface query.
  * @param[in]	_guid	The interface guid.
@@ -103,5 +105,7 @@ protected:
 	std::list<ECUnknown *>	lstChildren; 
 	std::mutex mutex;
 };
+
+} /* namespace */
 
 #endif // ECUNKNOWN_H

@@ -69,6 +69,8 @@
        
 #include "ECSession.h"
 
+namespace KC {
+
 static struct sortOrderArray sDefaultSortOrder{__gszeroinit};
 static const ULONG sANRProps[] = {
 	PR_DISPLAY_NAME, PR_SMTP_ADDRESS, PR_ACCOUNT, PR_DEPARTMENT_NAME,
@@ -3218,3 +3220,5 @@ ECRESULT ECGenericObjectTable::GetComputedDepth(struct soap *soap, ECSession *lp
 		
 	return erSuccess;
 }
+
+} /* namespace */

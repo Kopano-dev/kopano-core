@@ -31,6 +31,8 @@
 
 using namespace std;
 
+namespace KC {
+
 typedef void *			DB_RESULT;	
 typedef char **			DB_ROW;	
 typedef unsigned long *	DB_LENGTHS;
@@ -104,5 +106,7 @@ private:
 	unsigned int 		m_ulMaxAllowedPacket;
 	bool				m_bLocked;
 };
+
+} /* namespace */
 
 #endif

@@ -12,7 +12,7 @@
 #include "ECSession.h"
 #include "edkmdb.h"
 
-namespace kcsrv {
+namespace KC {
 
 static std::unordered_map<unsigned int, time_t> ltm_ontime_cache, ltm_offtime_cache;
 static std::mutex ltm_ontime_mutex, ltm_offtime_mutex;
@@ -89,4 +89,4 @@ void record_logon_time(ECSession *ses, bool logon)
 	}
 }
 
-} /* namespace kcsrv */
+} /* namespace */

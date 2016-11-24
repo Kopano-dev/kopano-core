@@ -24,6 +24,8 @@
 #include <mutex>
 #include <kopano/kcodes.h>
 
+namespace KC {
+
 // Thread safe buffer for FIFO operations
 class _kc_export ECFifoBuffer _kc_final {
 public:
@@ -79,5 +81,7 @@ inline bool ECFifoBuffer::IsEmpty() const {
 inline bool ECFifoBuffer::IsFull() const {
 	return m_storage.size() == m_ulMaxSize;
 }
+
+} /* namespace */
 
 #endif // ndef ECFIFOBUFFER_H

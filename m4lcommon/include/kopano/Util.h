@@ -27,6 +27,8 @@
 
 #include <kopano/ustringutil.h>
 
+namespace KC {
+
 /*
  * This class only exists to satisfy the %extend directive in swig/libcommon.i.
  * It screams for replacement with a namespace Util {}
@@ -143,5 +145,7 @@ class Util _kc_final {
 #define RTF_FLAG_INPAR		0x0004
 #define RTF_FLAG_CLOSE		0x0008
 #define RTF_FLAG_MHTML		0x0100
+
+} /* namespace */
 
 #endif // UTIL_H

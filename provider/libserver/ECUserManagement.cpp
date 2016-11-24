@@ -55,6 +55,8 @@ namespace ba = boost::algorithm;
 #define AB_UNICODE_OK ((ULONG) 0x00000040)
 #endif
 
+namespace KC {
+
 extern ECSessionManager*	g_lpSessionManager;
 
 static bool execute_script(const char *scriptname, ...)
@@ -4692,3 +4694,5 @@ exit:
 
 	return er;
 }
+
+} /* namespace */

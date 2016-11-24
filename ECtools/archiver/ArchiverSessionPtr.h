@@ -20,7 +20,11 @@
 
 #include <memory>
 
+namespace KC {
+
 class ArchiverSession;
 typedef std::shared_ptr<ArchiverSession> ArchiverSessionPtr;
+
+} /* namespace */
 
 #endif // !defined ARCHIVERSESSIONPTR_INCLUDED

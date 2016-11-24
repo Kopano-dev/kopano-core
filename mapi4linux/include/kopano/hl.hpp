@@ -17,6 +17,7 @@ class IStream;
 class IUnknown;
 
 namespace KCHL {
+using namespace KC;
 
 class KAttach;
 class KDeleter;

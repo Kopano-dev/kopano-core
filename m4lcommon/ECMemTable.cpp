@@ -40,6 +40,8 @@
 
 using namespace std;
 
+namespace KC {
+
 static constexpr const SizedSSortOrderSet(1, sSortDefault) = { 0, 0, 0, {} } ;
 
 class FixStringType _kc_final {
@@ -1281,3 +1283,5 @@ DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, CollapseRow, (ULONG, cbInst
 DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, WaitForCompletion, (ULONG, ulFlags), (ULONG, ulTimeout), (ULONG *, lpulTableStatus))
 DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, GetCollapseState, (ULONG, ulFlags), (ULONG, cbInstanceKey), (LPBYTE, lpbInstanceKey), (ULONG *, lpcbCollapseState), (LPBYTE *, lppbCollapseState))
 DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, SetCollapseState, (ULONG, ulFlags), (ULONG, cbCollapseState), (LPBYTE, pbCollapseState), (BOOKMARK *, lpbkLocation))
+
+} /* namespace */

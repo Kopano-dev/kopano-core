@@ -33,6 +33,8 @@
 #define __LIKE_PRINTF(_fmt, _va)
 #endif
 
+namespace KC {
+
 class ECConfig;
 class ECLogger;
 
@@ -298,7 +300,7 @@ class _kc_export_dycast ECLogger_Pipe _kc_final : public ECLogger {
 		void Disown();
 };
 
-extern "C" _kc_export ECLogger *StartLoggerProcess(ECConfig *, ECLogger *file_logger);
+extern _kc_export ECLogger *StartLoggerProcess(ECConfig *, ECLogger *file_logger);
 
 /**
  * This class can be used if log messages need to go to
@@ -338,8 +340,6 @@ extern _kc_export void ec_log(unsigned int level, const std::string &msg);
 #define ec_log_info(...)    ec_log(EC_LOGLEVEL_INFO, __VA_ARGS__)
 #define ec_log_debug(...)   ec_log(EC_LOGLEVEL_DEBUG, __VA_ARGS__)
 
-extern "C" {
-
 extern _kc_export ECLogger *CreateLogger(ECConfig *, const char *argv0, const char *service, bool audit = false);
 extern _kc_export int DeleteLogger(ECLogger *);
 extern _kc_export void LogConfigErrors(ECConfig *);
@@ -347,6 +347,6 @@ extern _kc_export void LogConfigErrors(ECConfig *);
 extern _kc_export void generic_sigsegv_handler(ECLogger *, const char *app, const char *vers, int sig, const siginfo_t *, const void *uctx);
 void ec_log_bt(unsigned int, const char *, ...);
 
-}
+} /* namespace */
 
 #endif /* ECLOGGER_H */

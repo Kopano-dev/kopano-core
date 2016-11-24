@@ -20,11 +20,11 @@
 
 #include <memory>
 
-namespace za { namespace operations {
+namespace KC { namespace operations {
 
 class InstanceIdMapper;
 typedef std::shared_ptr<InstanceIdMapper> InstanceIdMapperPtr;
 
-}} // namespace operations, za
+}} /* namespace */
 
 #endif // ndef instanceidmapper_fwd_INCLUDED

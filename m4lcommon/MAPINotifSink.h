@@ -27,6 +27,8 @@
 #include <mapidefs.h>
 #include <kopano/ECUnknown.h>
 
+namespace KC {
+
 class _kc_export MAPINotifSink _kc_final : public IMAPIAdviseSink {
 public:
     static HRESULT Create(MAPINotifSink **lppSink);
@@ -51,6 +53,8 @@ private:
 
 HRESULT MAPICopyUnicode(WCHAR *lpSrc, void *lpBase, WCHAR **lpDst);
 HRESULT MAPICopyString(char *lpSrc, void *lpBase, char **lpDst);
+
+} /* namespace */
 
 #endif
 

@@ -27,6 +27,8 @@
 #include <kopano/userutil.h>
 #include "ECMsgStore.h"
 
+namespace KC {
+
 typedef KCHL::memory_ptr<ECSERVERLIST> ECServerListPtr;
 
 /**
@@ -725,3 +727,5 @@ HRESULT ArchiverSession::CreateArchiveStore(const tstring& strUserName, const ts
 	return ptrArchiveStore->QueryInterface(IID_IMsgStore,
 		reinterpret_cast<LPVOID *>(lppArchiveStore));
 }
+
+} /* namespace */

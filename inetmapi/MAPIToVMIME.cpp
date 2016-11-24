@@ -57,6 +57,8 @@
 
 using namespace std;
 
+namespace KC {
+
 /* These are the properties that we DON'T send through TNEF. Reasons can be:
  *
  * - Privacy (PR_MDB_PROVIDER, etc)
@@ -2465,3 +2467,5 @@ vmime::text MAPIToVMIME::getVmimeTextFromWide(const std::wstring& strwInput, boo
 	else
 		return vmime::text(output, m_vmCharset);
 }
+
+} /* namespace */

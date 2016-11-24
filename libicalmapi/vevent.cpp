@@ -24,6 +24,8 @@
 #include "icaluid.h"
 #include <kopano/stringutil.h>
 
+namespace KC {
+
 /** 
  * VEvent constructor, implements VConverter
  */
@@ -571,3 +573,5 @@ HRESULT VEventConverter::HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMs
 	icalcomponent_add_property(lpEvent, lpProp);
 	return hrSuccess;
 }
+
+} /* namespace */

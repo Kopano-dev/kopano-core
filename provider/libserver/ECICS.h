@@ -23,6 +23,10 @@
 
 #include <set>
 
+struct soap;
+
+namespace KC {
+
 // This class is used to pass SOURCEKEYs internally between parts of the server backend. You can use it as a char* to get the data, use size() to get the size,
 // and have various ways of creating new SOURCEKEYs, including using a GUID and an ID, which is used for kopano-generated source keys.
 
@@ -111,8 +115,6 @@ private:
     unsigned int ulSize;
 };
 
-extern "C" {
-
 ECRESULT AddChange(BTSession *lpecSession, unsigned int ulSyncId, const SOURCEKEY &sSourceKey, const SOURCEKEY &sParentSourceKey, unsigned int ulChange, unsigned int ulFlags = 0, bool fForceNewChangeKey = false, std::string *lpstrChangeKey = NULL, std::string *lpstrChangeList = NULL);
 ECRESULT AddABChange(BTSession *lpecSession, unsigned int ulChange, SOURCEKEY sSourceKey, SOURCEKEY sParentSourceKey);
 ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sSourceKeyFolder, unsigned int ulSyncId, unsigned int ulChangeId, unsigned int ulChangeType, unsigned int ulFlags, struct restrictTable *lpsRestrict, unsigned int *lpulMaxChangeId, icsChangesArray **lppChanges);
@@ -140,6 +142,6 @@ ECRESULT AddToLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int ulSyncI
 ECRESULT CheckWithinLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int ulSyncId, const SOURCEKEY &sSourceKey);
 ECRESULT RemoveFromLastSyncedMessagesSet(ECDatabase *lpDatabase, unsigned int ulSyncId, const SOURCEKEY &sSourceKey, const SOURCEKEY &sParentSourceKey);
 
-} /* extern "C" */
+} /* namespace */
 
 #endif

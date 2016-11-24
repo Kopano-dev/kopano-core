@@ -22,6 +22,8 @@
 #include <string>
 #include <set>
 
+namespace KC {
+
 ///< all kopano features that are checked for access before allowing it
 static const char *const kopano_features[] = {
 	"imap", "pop3", "mobile", "outlook"
@@ -36,5 +38,7 @@ inline std::set<std::string> getFeatures() {
 	return std::set<std::string>(kopano_features,
 	       kopano_features + ARRAY_SIZE(kopano_features));
 }
+
+} /* namespace */
 
 #endif

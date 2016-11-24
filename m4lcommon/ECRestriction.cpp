@@ -23,6 +23,8 @@
 #include <mapicode.h>
 #include <mapix.h>
 
+namespace KC {
+
 /**
  * Allocate and populate a MAPI SRestriction structure based on the current
  * ECRestriction object.
@@ -607,3 +609,5 @@ ECRestriction *ECRawRestriction::Clone(void) const _kc_lvqual
 {
 	return new ECRawRestriction(m_ptrRestriction);
 }
+
+} /* namespace KC */

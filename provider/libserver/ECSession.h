@@ -46,6 +46,10 @@
 #include <gssapi/gssapi.h>
 #endif
 
+struct soap;
+
+namespace KC {
+
 class ECSecurity;
 class ECUserManagement;
 class SOURCEKEY;
@@ -234,5 +238,7 @@ private:
 	gss_ctx_id_t m_gssContext;
 #endif
 };
+
+} /* namespace */
 
 #endif // #ifndef ECSESSION

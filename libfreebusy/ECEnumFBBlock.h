@@ -36,6 +36,8 @@
 
 #include "ECFBBlockList.h"
 
+namespace KC {
+
 /**
  * Implementatie of the IEnumFBBlock interface
  */
@@ -67,6 +69,8 @@ public:
 
 	ECFBBlockList	m_FBBlock; /**< Freebusy time blocks */
 };
+
+} /* namespace */
 
 #endif // ECENUMFBBLOCK_H
 /** @} */

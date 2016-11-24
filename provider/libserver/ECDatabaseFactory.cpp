@@ -22,6 +22,8 @@
 
 #include "ECServerEntrypoint.h"
 
+namespace KC {
+
 // The ECDatabaseFactory creates database objects connected to the server database. Which
 // database is returned is chosen by the database_engine configuration setting.
 
@@ -136,3 +138,4 @@ ECRESULT GetThreadLocalDatabase(ECDatabaseFactory *lpFactory, ECDatabase **lppDa
 	return erSuccess;
 }
 
+} /* namespace */

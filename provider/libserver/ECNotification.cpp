@@ -19,6 +19,8 @@
 #include "ECMAPI.h"
 #include "SOAPUtils.h"
 
+namespace KC {
+
 ECNotification::ECNotification()
 {
 	Init();
@@ -84,3 +86,5 @@ size_t ECNotification::GetObjectSize(void) const
 {
 	return NotificationStructSize(m_lpsNotification);
 }
+
+} /* namespace */

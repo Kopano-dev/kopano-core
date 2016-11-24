@@ -21,6 +21,8 @@
 #include <kopano/zcdefs.h>
 #include "ECStoreObjectTable.h"
 
+namespace KC {
+
 // The search folders only differ from normal 'store' tables in that they load the object list
 // from the searchresults instead of from the hierarchy table.
 class ECSearchObjectTable _kc_final : public ECStoreObjectTable {
@@ -36,5 +38,7 @@ private:
     unsigned int m_ulFolderId;
     unsigned int m_ulStoreId;
 };
+
+} /* namespace */
 
 #endif

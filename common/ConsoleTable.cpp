@@ -21,6 +21,8 @@
 #include <iostream>
 using namespace std;
 
+namespace KC {
+
 /** 
  * Creates a static string table in set sizes
  * 
@@ -226,3 +228,4 @@ void ConsoleTable::DumpTable()
 		DumpRow(m_vTable[nRow]);
 }
 
+} /* namespace */

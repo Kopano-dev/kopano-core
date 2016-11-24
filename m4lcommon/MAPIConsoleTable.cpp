@@ -23,6 +23,8 @@
 #include <kopano/mapi_ptr/mapi_rowset_ptr.h>
 #include <kopano/stringutil.h>
 
+namespace KC {
+
 static std::string ToString(const SPropValue *lpProp)
 {
     switch(PROP_TYPE(lpProp->ulPropTag)) {
@@ -87,3 +89,5 @@ HRESULT MAPITablePrint(IMAPITable *lpTable, bool humanreadable /* = true */)
 	humanreadable ? ct.PrintTable() : ct.DumpTable();
 	return hrSuccess;
 }
+
+} /* namespace */

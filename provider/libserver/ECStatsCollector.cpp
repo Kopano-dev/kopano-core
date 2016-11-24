@@ -22,6 +22,8 @@
 
 using namespace std;
 
+namespace KC {
+
 ECStatsCollector::ECStatsCollector() {
 	// the 'name' parameter may not be longer than 19 characters, since we want to use those in RRDtool
  	AddStat(SCN_SERVER_STARTTIME, SCDT_TIMESTAMP, "server_start_date", "Time when the server was started");
@@ -258,3 +260,5 @@ void ECStatsCollector::Reset(SCName name) {
 	scoped_lock lk(iSD->second.lock);
 	iSD->second.data.ll = 0;
 }
+
+} /* namespace */

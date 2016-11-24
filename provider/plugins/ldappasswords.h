@@ -20,6 +20,8 @@
 #ifndef LDAPPASSWORDS_H
 #define LDAPPASSWORDS_H
 
+namespace KC {
+
 /**
  * @defgroup userplugin_password Password validation
  * @ingroup userplugin
@@ -63,4 +65,7 @@ extern char *encryptPassword(int type, const char *password);
 extern int checkPassword(int type, const char *password, const char *crypted);
 
 /** @} */
+
+} /* namespace */
+
 #endif

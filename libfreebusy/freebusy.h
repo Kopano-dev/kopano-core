@@ -102,6 +102,8 @@ information and delegate access to accounts.
 #include <mapix.h>
 #include <mapidefs.h>
 
+namespace KC {
+
 /**
  * Defines a free/busy event block. This is one block of a array of FBEvent blocks
  * 
@@ -719,6 +721,8 @@ public:
 	/*! @copydoc IFreeBusySupport::PushDelegateInfoToWorkspace */
 	virtual HRESULT __stdcall PushDelegateInfoToWorkspace() = 0;
 };
+
+} /* namespace */
 
 #endif // FREEBUSY_INCLUDED
 

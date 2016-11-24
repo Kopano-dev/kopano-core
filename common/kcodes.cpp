@@ -20,6 +20,8 @@
 #include <kopano/kcodes.h>
 #include <kopano/mapiext.h>
 
+namespace KC {
+
 /*
  * Some helper functions to convert the SOAP-style objects
  * to MAPI-style structs and vice-versa
@@ -151,3 +153,5 @@ HRESULT kcerr_to_mapierr(ECRESULT ecResult, HRESULT hrDefault)
 	
 	return hr;
 }
+
+} /* namespace */

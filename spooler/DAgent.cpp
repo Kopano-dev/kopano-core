@@ -123,6 +123,7 @@
 #include <execinfo.h>
 
 using namespace std;
+using namespace KC;
 
 static StatsClient *sc = NULL;
 
@@ -2188,7 +2189,7 @@ static HRESULT HrCopyMessageForDelivery(IMessage *lpOrigMessage,
 	HRESULT hr = hrSuccess;
 	IMessage *lpMessage = NULL;
 	IMAPIFolder *lpFolder = NULL;
-	za::helpers::MAPIPropHelperPtr ptrArchiveHelper;
+	helpers::MAPIPropHelperPtr ptrArchiveHelper;
 
 	SizedSPropTagArray(13, sptaReceivedBy) = {
 		13, {
@@ -2246,9 +2247,9 @@ static HRESULT HrCopyMessageForDelivery(IMessage *lpOrigMessage,
 		lpMessage->DeleteProps(sptaFallback, 0);
 		
 	// Make sure the message is not attached to an archive
-	hr = za::helpers::MAPIPropHelper::Create(MAPIPropPtr(lpMessage, true), &ptrArchiveHelper);
+	hr = helpers::MAPIPropHelper::Create(MAPIPropPtr(lpMessage, true), &ptrArchiveHelper);
 	if (hr != hrSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "HrCopyMessageForDelivery(): za::helpers::MAPIPropHelper::Create failed %x", hr);
+		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "HrCopyMessageForDelivery(): helpers::MAPIPropHelper::Create failed %x", hr);
 		goto exit;
 	}
 	

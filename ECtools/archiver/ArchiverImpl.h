@@ -26,6 +26,8 @@
 #include "AutoMAPI.h"               // for declaration of AutoMAPI
 #include "ArchiverSessionPtr.h"     // For ArchiverSessionPtr
 
+namespace KC {
+
 class ArchiverImpl _kc_final : public Archiver {
 public:
 	ArchiverImpl();
@@ -53,5 +55,7 @@ private:
 	ArchiverSessionPtr 		m_ptrSession;
 	configsetting_t	*m_lpDefaults;
 };
+
+} /* namespace */
 
 #endif // !defined ARCHIVERIMPL_H_INCLUDED

@@ -34,6 +34,8 @@
 #include <kopano/charset/convert.h>
 #include <mapi.h>
 
+namespace KC {
+
 class ICalToMapiImpl _kc_final : public ICalToMapi {
 public:
 	/*
@@ -712,3 +714,5 @@ exit:
 	MAPIFreeBuffer(lpsPropValue);
 	return hr;
 }
+
+} /* namespace */

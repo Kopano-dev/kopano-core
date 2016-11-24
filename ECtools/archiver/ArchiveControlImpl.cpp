@@ -37,8 +37,10 @@
 #include "ArchiveManage.h"
 #include <kopano/MAPIErrors.h>
 
-using namespace za::helpers;
-using namespace za::operations;
+using namespace KC::helpers;
+using namespace KC::operations;
+
+namespace KC {
 
 /**
  * Create a new Archive object.
@@ -1677,3 +1679,4 @@ HRESULT ArchiveControlImpl::CheckSafeCleanupSettings()
 	return hrSuccess;
 }
 
+} /* namespace */

@@ -25,6 +25,8 @@
 
 struct soap;
 
+namespace KC {
+
 extern ECSessionManager*    g_lpSessionManager;
 
 ECRESULT TestPerform(struct soap *soap, ECSession *lpSession,
@@ -105,3 +107,5 @@ ECRESULT TestGet(struct soap *soap, ECSession *lpSession,
 		er = KCERR_NOT_FOUND;
 	return er;
 }
+
+} /* namespace */

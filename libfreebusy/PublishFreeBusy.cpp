@@ -33,6 +33,8 @@
 
 using namespace std;
 
+namespace KC {
+
 #define START_TIME 0
 #define END_TIME 1
 
@@ -506,3 +508,5 @@ exit:
 	return hr;
 
 }
+
+} /* namespace */

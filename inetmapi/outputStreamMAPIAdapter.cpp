@@ -19,6 +19,8 @@
 
 #include "outputStreamMAPIAdapter.h"
 
+namespace KC {
+
 outputStreamMAPIAdapter::outputStreamMAPIAdapter(IStream *lpStream)
 {
 	this->lpStream = lpStream;
@@ -41,3 +43,5 @@ void outputStreamMAPIAdapter::flush()
 {
     // just ignore the call, or call Commit() ?
 }
+
+} /* namespace */

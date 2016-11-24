@@ -21,9 +21,9 @@
 #include <kopano/zcdefs.h>
 #include <kopano/ECLogger.h>
 
-ECRESULT UpdateDatabaseConvertToUnicode(ECDatabase *);
+namespace KC {
 
-extern "C" {
+ECRESULT UpdateDatabaseConvertToUnicode(ECDatabase *);
 
 ECRESULT UpdateDatabaseCreateVersionsTable(ECDatabase *lpDatabase);
 ECRESULT UpdateDatabaseCreateSearchFolders(ECDatabase *lpDatabase);
@@ -111,6 +111,6 @@ ECRESULT UpdateABChangesTbl(ECDatabase *db);
 
 extern _kc_export bool searchfolder_restart_required;
 
-} /* extern "C" */
+} /* namespace */
 
 #endif // #ifndef ECDATABASEUPDATE_H

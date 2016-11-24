@@ -22,6 +22,10 @@
 #include <openssl/md5.h>
 #include <kopano/zcdefs.h>
 
-extern "C" _kc_export std::string zcp_md5_final_hex(MD5_CTX *);
+namespace KC {
+
+extern _kc_export std::string zcp_md5_final_hex(MD5_CTX *);
+
+} /* namespace */
 
 #endif /* ZCP_MD5_H */

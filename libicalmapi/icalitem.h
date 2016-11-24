@@ -23,6 +23,8 @@
 #include <mapidefs.h>
 #include "recurrence.h"
 
+namespace KC {
+
 enum eIcalType { VEVENT, VTODO, VJOURNAL };
 
 struct icalrecip {
@@ -56,5 +58,7 @@ struct icalitem {
 	};
 	std::list<exception> lstExceptionAttachments;
 };
+
+} /* namespace */
 
 #endif

@@ -11,6 +11,10 @@
 #include <libs3.h>
 #include "ECAttachmentStorage.h"
 
+struct soap;
+
+namespace KC {
+
 class ECSerializer;
 class ECLogger;
 struct s3_cd;
@@ -75,6 +79,8 @@ class ECS3Attachment _kc_final : public ECAttachmentStorage {
 	S3GetObjectHandler m_get_obj_handler;
 	S3GetConditions m_get_conditions;
 };
+
+} /* namespace */
 
 #endif /* LIBS3_H */
 #endif

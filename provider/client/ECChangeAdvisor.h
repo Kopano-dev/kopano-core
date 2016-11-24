@@ -29,8 +29,11 @@
 
 #include <map>
 
-class ECMsgStore;
+namespace KC {
 class ECLogger;
+}
+
+class ECMsgStore;
 
 /**
  * ECChangeAdvisor: Implementation IECChangeAdvisor, which allows one to register for 

@@ -30,6 +30,8 @@
 #include <mapix.h>
 #include <kopano/ecversion.h>
 
+namespace KC {
+
 class MapiToICalImpl _kc_final : public MapiToICal {
 public:
 	MapiToICalImpl(LPADRBOOK lpAdrBook, const std::string &strCharset);
@@ -301,3 +303,5 @@ HRESULT MapiToICalImpl::ResetObject()
 
 	return hrSuccess;
 }
+
+} /* namespace */

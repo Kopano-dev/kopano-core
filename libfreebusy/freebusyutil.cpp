@@ -29,6 +29,8 @@
 #include <kopano/mapiext.h>
 #include <edkmdb.h>
 
+namespace KC {
+
 BOOL leapyear(short year)
 {
 	return year % 4 == 0 && (year % 100 != 0 || year % 400 == 0); 
@@ -806,3 +808,4 @@ HRESULT HrAddFBBlock(const OccrInfo &sOccrInfo, OccrInfo **lppsOccrInfo,
 	return hrSuccess;
 }
 
+} /* namespace */

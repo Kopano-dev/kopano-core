@@ -16,13 +16,17 @@
  */
 #include "ECPamAuth.h"
 #ifndef HAVE_PAM
+namespace KC {
 ECRESULT ECPAMAuthenticateUser(const char* szPamService, const std::string &strUsername, const std::string &strPassword, std::string *lpstrError)
 {
 	*lpstrError = "Server is not compiled with pam support.";
 	return KCERR_NO_SUPPORT;
 }
+}
 #else
 #include <security/pam_appl.h>
+
+namespace KC {
 
 static int converse(int num_msg, const struct pam_message **msg,
     struct pam_response **resp, void *appdata_ptr)
@@ -77,4 +81,6 @@ ECRESULT ECPAMAuthenticateUser(const char* szPamService, const std::string &strU
 	}
 	return erSuccess;
 }
+
+} /* namespace */
 #endif

@@ -41,6 +41,8 @@
 
 #define _(string) dcgettext("kopano", string, LC_MESSAGES)
 
+namespace KC {
+
 extern ECSessionManager*	g_lpSessionManager;
 
 ECRESULT ECGenProps::GetMVPropSubquery(unsigned int ulPropTagRequested, std::string &subquery) 
@@ -949,3 +951,4 @@ exit:
 	return er;
 }
 
+} /* namespace */

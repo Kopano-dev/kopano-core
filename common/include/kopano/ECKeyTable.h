@@ -61,6 +61,8 @@
 
 #define BOOKMARK_LIMIT		100
 
+namespace KC {
+
 struct sObjectTableKey {
     sObjectTableKey(unsigned int ulObjId, unsigned int ulOrderId) { this->ulObjId = ulObjId; this->ulOrderId = ulOrderId; };
     sObjectTableKey() { ulObjId = 0; ulOrderId = 0; }
@@ -202,5 +204,7 @@ private:
 };
 
 #define EC_TABLE_NOADVANCE 1
+
+} /* namespace */
 
 #endif // TABLE_H

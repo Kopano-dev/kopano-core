@@ -25,6 +25,8 @@
 #include <kopano/ECLogger.h>
 #include <kopano/ecversion.h>
 
+namespace KC {
+
 ECPluginFactory::ECPluginFactory(ECConfig *config, ECStatsCollector *lpStatsCollector,
     bool bHosted, bool bDistributed)
 {
@@ -144,3 +146,5 @@ ECRESULT GetThreadLocalPlugin(ECPluginFactory *lpPluginFactory,
 	*lppPlugin = lpPlugin;
 	return erSuccess;
 }
+
+} /* namespace */

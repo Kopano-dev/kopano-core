@@ -23,7 +23,9 @@
 #include "helpers/ArchiveHelper.h"
 #include "ArchiveManageImpl.h"
 
-using namespace za::helpers;
+using namespace KC::helpers;
+
+namespace KC {
 
 namespace Predicates {
 
@@ -615,3 +617,5 @@ HRESULT ArchiveStateUpdater::FindArchiveEntry(const tstring &strArchive, const t
 	}
 	return hrSuccess;
 }
+
+} /* namespace */

@@ -32,6 +32,8 @@
 
 struct sockaddr;
 
+namespace KC {
+
 // ECChannel is the communication channel with the other side. Initially, it is
 // a simple way to read/write full lines of data. The reason why we specify
 // a special 'HrWriteLine' instead of 'HrWrite' is that SSL encryption prefers
@@ -81,12 +83,10 @@ extern _kc_export HRESULT HrListen(const char *bind, uint16_t port, int *fd);
 /* accept data on connection */
 extern _kc_export HRESULT HrAccept(int fd, ECChannel **ch);
 
-extern "C" {
-
 extern _kc_export int zcp_bindtodevice(int fd, const char *iface);
 extern int zcp_peeraddr_is_local(const struct sockaddr *, socklen_t);
 extern _kc_export int zcp_peerfd_is_local(int);
 
-}
+} /* namespace KC */
 
 #endif

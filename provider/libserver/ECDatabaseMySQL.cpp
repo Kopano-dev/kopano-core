@@ -44,6 +44,8 @@
 
 using namespace std;
 
+namespace KC {
+
 #ifdef DEBUG
 #define DEBUG_SQL 0
 #define DEBUG_TRANSACTION 0
@@ -1830,3 +1832,5 @@ exit:
 
 	return er;
 }
+
+} /* namespace */

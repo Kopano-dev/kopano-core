@@ -23,6 +23,8 @@
 
 using namespace std;
 
+namespace KC {
+
 /** 
  * Converts a VFREEBUSY object to separate parts
  * 
@@ -189,3 +191,5 @@ HRESULT HrFbBlock2ICal(FBBlock_1 *lpsFbblk, LONG ulBlocks, time_t tDtStart, time
 	*lpicFbComponent = lpFbComp;
 	return hrSuccess;
 }
+
+} /* namespace */

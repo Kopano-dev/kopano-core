@@ -41,6 +41,8 @@
 		#define DEBUGPRINT(...)
 #endif
 
+namespace KC {
+
 class BinReader _kc_final {
 public:
     BinReader(char *lpData, unsigned int ulLen) {
@@ -546,3 +548,5 @@ HRESULT RecurrenceState::GetBlob(char **lppData, unsigned int *lpulLen, void *ba
 	data.GetData(lppData, lpulLen, base);
 	return hrSuccess;
 }
+
+} /* namespace */

@@ -20,7 +20,7 @@
 
 #include <memory>
 
-namespace za { namespace operations {
+namespace KC { namespace operations {
 
 /**
  * This interface defines an object that performs arbitrary operations
@@ -33,6 +33,6 @@ public:
 };
 typedef std::shared_ptr<IPostSaveAction> PostSaveActionPtr;
 
-}} // namespace operations, za
+}} /* namespace */
 
 #endif // ndef postsaveaction_INCLUDED

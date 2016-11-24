@@ -26,6 +26,8 @@
 #include <kopano/ECGuid.h>
 #include "versions.h"
 
+namespace KC {
+
 bool IsKopanoEntryId(ULONG cb, LPBYTE lpEntryId)
 {
 	EID*	peid = NULL;
@@ -452,3 +454,5 @@ ECRESULT ParseKopanoVersion(const std::string &strVersion, unsigned int *lpulVer
 		*lpulVersion = MAKE_KOPANO_VERSION(ulGeneral, ulMajor, ulMinor);
 	return erSuccess;
 }
+
+} /* namespace */

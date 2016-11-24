@@ -28,6 +28,8 @@
 #include "ECMAPI.h"
 #include <kopano/stringutil.h>
 
+namespace KC {
+
 ECConvenientDepthABObjectTable::ECConvenientDepthABObjectTable(ECSession *lpSession, unsigned int ulABId, unsigned int ulABType, unsigned int ulABParentId, unsigned int ulABParentType, unsigned int ulFlags, const ECLocale &locale) : ECABObjectTable(lpSession, ulABId, ulABType, ulABParentId, ulABParentType, ulFlags, locale) {
     m_lpfnQueryRowData = ECConvenientDepthABObjectTable::QueryRowData;
 
@@ -133,3 +135,5 @@ exit:
 	delete lpSubObjects;
 	return er;
 }
+
+} /* namespace */

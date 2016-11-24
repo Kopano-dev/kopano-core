@@ -18,6 +18,8 @@
 #include <kopano/platform.h>
 #include <kopano/ECIConv.h>
 
+namespace KC {
+
 ECIConv::ECIConv(const std::string &strToCharset, const std::string &strFromCharset) {
 	try {
 		m_lpContext = new context_t(strToCharset.c_str(), strFromCharset.c_str());
@@ -35,3 +37,5 @@ std::string ECIConv::convert(const std::string &strinput)
 {
 	return m_lpContext->convert(strinput);
 }
+
+} /* namespace */

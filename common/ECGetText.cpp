@@ -26,6 +26,8 @@
 #include <string>
 #include <cassert>
 
+namespace KC {
+
 namespace detail {
 
 	/**
@@ -112,3 +114,5 @@ LPWSTR kopano_dcgettext_wide(const char *domainname, const char *msgid)
 
 	return (LPWSTR)lpConverter->convert(lpsz);
 }
+
+} /* namespace */

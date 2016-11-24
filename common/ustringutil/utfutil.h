@@ -20,6 +20,8 @@
 
 #include <unicode/unistr.h>
 
+namespace KC {
+
 static inline UnicodeString UTF8ToUnicode(const char *utf8) {
 	return UnicodeString::fromUTF8(utf8);
 }
@@ -30,5 +32,7 @@ static inline UnicodeString UTF32ToUnicode(const UChar32 *utf32) {
 
 UnicodeString WCHARToUnicode(const wchar_t *str);
 UnicodeString StringToUnicode(const char *str);
+
+} /* namespace */
 
 #endif // ndef utfutil_INCLUDED

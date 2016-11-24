@@ -26,6 +26,8 @@
 
 using namespace std;
 
+namespace KC {
+
 std::string RestrictionToString(const restrictTable *lpRestriction,
     unsigned int indent)
 {
@@ -354,3 +356,5 @@ const char* RightsToString(unsigned int ulecRights)
 		return "none";
 	};
 }
+
+} /* namespace */

@@ -24,6 +24,8 @@
 #include <kopano/mapiguidext.h>
 #include <mapiguid.h>
 
+namespace KC {
+
 /* MAPINAMEID strings are in UCS-2LE, so cannot be static initialized in linux
    We first define all strings, so we can use the nmStringNames[] lookup array
  */
@@ -48,6 +50,8 @@ enum eIDNamedProps {
 };
 
 /* call this function to get the IDs from the listed namedprops above */
-extern "C" _kc_export HRESULT HrLookupNames(IMAPIProp *propobj, LPSPropTagArray *namedprops);
+extern _kc_export HRESULT HrLookupNames(IMAPIProp *propobj, LPSPropTagArray *namedprops);
+
+} /* namespace */
 
 #endif

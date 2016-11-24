@@ -24,7 +24,8 @@
 #include <kopano/tstring.h>
 #include <kopano/archiver-common.h>
 
-// Forward declarations
+namespace KC {
+
 class ECConfig;
 class ECLogger;
 
@@ -70,5 +71,7 @@ private:
 	std::string		m_strSslPath;
 	std::string		m_strSslPass;
 };
+
+} /* namespace */
 
 #endif // !defined ARCHIVERSESSION_H_INCLUDED

@@ -19,6 +19,8 @@
 
 #include "inputStreamMAPIAdapter.h"
 
+namespace KC {
+
 inputStreamMAPIAdapter::inputStreamMAPIAdapter(IStream *lpStream)
 {
 	this->lpStream = lpStream;
@@ -69,3 +71,5 @@ size_t inputStreamMAPIAdapter::skip(size_t count)
 
 	return ulSize.QuadPart;
 }
+
+} /* namespace */

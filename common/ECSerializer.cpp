@@ -20,6 +20,8 @@
 #include "ECFifoBuffer.h"
 #include "ECSerializer.h"
 
+namespace KC {
+
 ECStreamSerializer::ECStreamSerializer(IStream *lpBuffer)
 {
 	SetBuffer(lpBuffer);
@@ -321,3 +323,5 @@ ECRESULT ECFifoSerializer::Stat(ULONG *lpcbRead, ULONG *lpcbWrite)
 		
 	return erSuccess;
 }
+
+} /* namespace */

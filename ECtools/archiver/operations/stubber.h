@@ -21,7 +21,7 @@
 #include <kopano/zcdefs.h>
 #include "operations.h"
 
-namespace za { namespace operations {
+namespace KC { namespace operations {
 
 /**
  * Performs the stub part of the archive oepration.
@@ -36,6 +36,6 @@ private:
 	ULONG m_ulptStubbed;
 };
 
-}} // namespaces
+}} /* namespace */
 
 #endif // ndef stubber_INCLUDED

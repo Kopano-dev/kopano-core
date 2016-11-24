@@ -26,6 +26,8 @@
 
 #include <kopano/platform.h>
 
+namespace KC {
+
 template<typename Key> class KeyEntry _kc_final {
 public:
 	Key key;
@@ -266,5 +268,7 @@ private:
 	_MapType			m_map;	
 	size_type			m_ulSize;
 };
+
+} /* namespace */
 
 #endif // ndef ECCACHE_INCLUDED

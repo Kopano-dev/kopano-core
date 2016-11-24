@@ -23,6 +23,8 @@
 #include <vector>
 #include <kopano/charset/convert.h>
 
+namespace KC {
+
 class _kc_export ConsoleTable _kc_final {
 public:
 	ConsoleTable(size_t rows, size_t columns);
@@ -49,5 +51,7 @@ private:
 	_kc_hidden void PrintRow(const std::vector<std::wstring> &row);
 	_kc_hidden void DumpRow(const std::vector<std::wstring> &row);
 };
+
+} /* namespace */
 
 #endif

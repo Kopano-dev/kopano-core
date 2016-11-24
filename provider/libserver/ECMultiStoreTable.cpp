@@ -27,6 +27,8 @@
 #include "ECMAPI.h"
 #include <kopano/stringutil.h>
 
+namespace KC {
+
 ECMultiStoreTable::ECMultiStoreTable(ECSession *lpSession, unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale) : ECStoreObjectTable(lpSession, 0, NULL, 0, ulObjType, ulFlags, 0, locale) {
 }
 
@@ -57,3 +59,5 @@ ECRESULT ECMultiStoreTable::Load() {
 		UpdateRow(ECKeyTable::TABLE_ROW_ADD, *i, 0);
 	return er;
 }
+
+} /* namespace */

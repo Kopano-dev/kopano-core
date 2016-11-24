@@ -24,6 +24,8 @@
 #include "ECArchiverLogger.h"
 #include "Archiver.h"
 
+namespace KC {
+
 /**
  * The ArchiveManager is used to attach, detach and list archives for users.
  */
@@ -38,8 +40,8 @@ public:
 	_kc_hidden eResult ListAttachedUsers(std::ostream &);
 	_kc_hidden eResult ListAttachedUsers(UserList *);
 	_kc_hidden eResult AutoAttach(unsigned int flags);
-	_kc_hidden HRESULT AttachTo(const char *server, const TCHAR *archive, const TCHAR *folder, unsigned int flags, za::helpers::AttachType);
-	_kc_hidden HRESULT AttachTo(LPMDB store, const tstring &folder, const char *server, const abentryid_t &user_eid, unsigned int flags, za::helpers::AttachType);
+	_kc_hidden HRESULT AttachTo(const char *server, const TCHAR *archive, const TCHAR *folder, unsigned int flags, helpers::AttachType);
+	_kc_hidden HRESULT AttachTo(LPMDB store, const tstring &folder, const char *server, const abentryid_t &user_eid, unsigned int flags, helpers::AttachType);
 	_kc_hidden ~ArchiveManageImpl(void);
 
 private:
@@ -55,5 +57,7 @@ private:
 	ECArchiverLogger *m_lpLogger;
 	MsgStorePtr	m_ptrUserStore;
 };
+
+} /* namespace */
 
 #endif // !defined ARCHIVEMANAGEIMPL_H_INCLUDED

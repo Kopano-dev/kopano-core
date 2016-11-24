@@ -39,6 +39,8 @@
 
 using namespace std;
 
+namespace KC {
+
 typedef mapi_object_ptr<IECLicense, IID_IECLicense>ECLicensePtr;
 
 class servername _kc_final {
@@ -543,3 +545,5 @@ HRESULT UpdateServerList(IABContainer *lpContainer,
 	}
 	return hrSuccess;
 }
+
+} /* namespace */

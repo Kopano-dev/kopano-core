@@ -32,6 +32,8 @@
 #define DEBUGBUFSIZE	1024
 #endif
 
+namespace KC {
+
 struct MAPIResultCodes {
 	HRESULT		hResult;
 	const char* error;
@@ -42,8 +44,6 @@ struct INFOGUID {
 	GUID	*guid;
 	const char *szguidname;
 };
-
-extern "C" {
 
 extern _kc_export std::string GetMAPIErrorDescription(HRESULT);
 std::string DBGGUIDToString(REFIID iid);
@@ -78,6 +78,6 @@ extern _kc_export std::string PropValueToString(const SPropValue *);
 std::string EntryListToString(const ENTRYLIST *lpMsgList);
 std::string PermissionRulesToString(ULONG cPermissions, const ECPERMISSION *lpECPermissions);
 
-} /* extern "C" */
+} /* namespace */
 
 #endif

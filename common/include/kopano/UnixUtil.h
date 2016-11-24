@@ -22,6 +22,8 @@
 #include <kopano/zcdefs.h>
 #include <kopano/ECConfig.h>
 
+namespace KC {
+
 struct popen_rlimit {
 	int resource;
 	struct rlimit limit;
@@ -38,8 +40,6 @@ struct _popen_rlimit_array_ ## _name { \
 	struct popen_rlimit sLimit[_climit]; \
 } _name
 
-extern "C" {
-
 extern _kc_export int unix_runas(ECConfig *);
 extern _kc_export int unix_chown(const char *filename, const char *user, const char *group);
 extern _kc_export void unix_coredump_enable(void);
@@ -48,6 +48,6 @@ extern _kc_export int unix_daemonize(ECConfig *);
 extern _kc_export int unix_fork_function(void *(*)(void *), void *param, int nfds, int *closefds);
 extern _kc_export bool unix_system(const char *logname, const char *command, const char **env);
 
-} /* extern "C" */
+} /* namespace */
 
 #endif

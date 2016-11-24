@@ -27,6 +27,8 @@
 #include "ArchiverSession.h"
 #include <kopano/ECConfig.h>
 
+namespace KC {
+
 ArchiverImpl::ArchiverImpl()
 : m_lpsConfig(NULL)
 , m_lpLogger(NULL)
@@ -210,3 +212,5 @@ unsigned ArchiverImpl::CountSettings(const configsetting_t *lpSettings)
 
 	return ulSettings;
 }
+
+} /* namespace */

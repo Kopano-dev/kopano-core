@@ -33,6 +33,9 @@
 #include <algorithm>
 
 #include <kopano/ECLogger.h>
+
+namespace KC {
+
 extern ECLogger* g_lpLogger;
 
 extern ECSessionManager*	g_lpSessionManager;
@@ -1114,3 +1117,5 @@ bool ECGetContentChangesHelper::MessageSetsDiffer() const
 	
 	return !std::equal(m_setLegacyMessages.begin(), m_setLegacyMessages.end(), m_setNewMessages.begin(), &CompareMessageEntry);
 }
+
+} /* namespaces */

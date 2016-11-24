@@ -22,6 +22,8 @@
 #include <vector>
 #include <string>
 
+namespace KC {
+
 #define RECURRENCE_STATE_CALENDAR	0x01
 #define RECURRENCE_STATE_TASKS		0x02
 
@@ -146,5 +148,7 @@ class _kc_export RecurrenceState _kc_final {
 	std::vector<ExtendedException> lstExtendedExceptions;
 	std::string strReservedBlock2;
 };
+
+} /* namespace */
 
 #endif

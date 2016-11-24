@@ -30,8 +30,11 @@
 #include <mapi.h>
 #include <mapispi.h>
 
-class WSTransport;
+namespace KC {
 class utf8string;
+}
+
+class WSTransport;
 
 class WSMAPIFolderOps _kc_final : public ECUnknown {
 protected:

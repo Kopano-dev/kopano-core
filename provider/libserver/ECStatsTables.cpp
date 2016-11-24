@@ -51,6 +51,8 @@
   - license
 */
 
+namespace KC {
+
 void (*kopano_get_server_stats)(unsigned int *qlen, double *qage, unsigned int *nthr, unsigned int *idlthr) = [](unsigned int *, double *, unsigned int *, unsigned int *) {};
 
 ECSystemStatsTable::ECSystemStatsTable(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale) : ECGenericObjectTable(lpSession, MAPI_STATUS, ulFlags, locale)
@@ -1135,3 +1137,4 @@ ECRESULT ECServerStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct s
 	return erSuccess;
 }
 
+} /* namespace */

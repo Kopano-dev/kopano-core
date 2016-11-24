@@ -17,6 +17,8 @@
 
 #include "SOAPHelpers.h"
 
+namespace KC {
+
 void *mime_file_read_open(struct soap *soap, void *handle, const char *id, const char *type, const char *description) 
 {
 	return handle;
@@ -75,3 +77,5 @@ int mime_file_write(struct soap *soap, void *handle, const char *buf, size_t len
 	}
 	return SOAP_OK;
 }
+
+} /* namespace */

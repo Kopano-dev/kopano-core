@@ -21,6 +21,10 @@
 #include <mapidefs.h>
 #include <sstream>
 
+namespace KC {
+
 HRESULT Dump(std::ostream &os, LPMAPIPROP lpProp, const std::string &strPrefix = std::string());
+
+} /* namespace */
 
 #endif

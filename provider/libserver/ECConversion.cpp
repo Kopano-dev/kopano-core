@@ -28,6 +28,8 @@
 
 using namespace std;
 
+namespace KC {
+
 // Convert search criteria from zarafa-5.2x to zarafa-6 format
 ECRESULT ConvertSearchCriteria52XTo6XX(ECDatabase *lpDatabase, char* lpData, struct searchCriteria **lppNewSearchCriteria)
 {
@@ -142,6 +144,8 @@ exit:
 
 	return er;
 }
+
+} /* namespace */
 
 SOAP_FMAC3 void SOAP_FMAC4 soap_default_searchCriteria52X(struct soap *soap, struct searchCriteria52X *a)
 {

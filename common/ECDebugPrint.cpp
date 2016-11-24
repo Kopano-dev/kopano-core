@@ -23,6 +23,8 @@
 
 using namespace std;
 
+namespace KC {
+
 namespace details {
 	string conversion_helpers<string>::convert_from(const wstring &s) {
 		return convert_to<string>(s);
@@ -54,3 +56,5 @@ namespace details {
 	const wstring conversion_helpers<wstring>::strNULL = L"NULL";
 	const wstring conversion_helpers<wstring>::strCOMMA= L",";
 } // namespace details
+
+} /* namespace */

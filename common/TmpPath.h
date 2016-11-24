@@ -18,6 +18,8 @@
 #include <kopano/zcdefs.h>
 #include <string>
 
+namespace KC {
+
 class ECConfig;
 
 class _kc_export TmpPath _kc_final {
@@ -33,3 +35,5 @@ class _kc_export TmpPath _kc_final {
 };
 
 extern TmpPath *tmpPath;
+
+} /* namespace */

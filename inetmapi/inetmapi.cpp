@@ -49,6 +49,8 @@
 
 using namespace std;
 
+namespace KC {
+
 bool ValidateCharset(const char *charset)
 {
 	/*
@@ -328,3 +330,4 @@ HRESULT createIMAPProperties(const std::string &input, std::string *lpEnvelope,
 	return VMToM.createIMAPProperties(input, lpEnvelope, lpBody, lpBodyStructure);
 }
 
+} /* namespace */

@@ -18,6 +18,8 @@
 #include <kopano/platform.h>
 #include "ECFBBlockList.h"
 
+namespace KC {
+
 ECFBBlockList::ECFBBlockList(void)
 {
 	m_bInitIter = false;
@@ -174,3 +176,5 @@ HRESULT ECFBBlockList::GetEndTime(LONG *lprtmEnd)
 	*lprtmEnd = ulEnd;
 	return hrSuccess;
 }
+
+} /* namespace */

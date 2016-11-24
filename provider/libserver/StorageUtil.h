@@ -21,6 +21,8 @@
 #include <kopano/kcodes.h>
 #include <mapidefs.h>
 
+namespace KC {
+
 class ECDatabase;
 class ECAttachmentStorage;
 class ECSession;
@@ -44,5 +46,7 @@ static inline unsigned int RealObjType(unsigned int ulObjType, unsigned int ulPa
         return MAPI_MAILUSER;
     return ulObjType;
 }
+
+} /* namespace */
 
 #endif // ndef STORAGEUTIL_H

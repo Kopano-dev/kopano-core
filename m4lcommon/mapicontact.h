@@ -18,6 +18,8 @@
 #ifndef __MAPI_CONTACT_H
 #define __MAPI_CONTACT_H
 
+namespace KC {
+
 // http://blogs.msdn.com/stephen_griffin/archive/2005/10/25/new-outlook-documentation-part-1-contact-linking.aspx
 
 // example usage:
@@ -40,5 +42,7 @@ struct CONTAB_ENTRYID {
 	BYTE padding[3];			/* not mentioned, but it's there */
 };
 typedef struct CONTAB_ENTRYID *LPCONTAB_ENTRYID;
+
+} /* namespace */
 
 #endif

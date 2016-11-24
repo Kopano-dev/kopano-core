@@ -24,6 +24,8 @@
 
 #include <kopano/ECDefs.h>
 
+namespace KC {
+
 class IECServiceAdmin : public IUnknown {
 public:
 	// Create/Delete stores
@@ -107,5 +109,7 @@ public:
 
 	virtual HRESULT __stdcall ResetFolderCount(ULONG cbEntryId, LPENTRYID lpEntryId, ULONG *lpulUpdates) = 0;
 };
+
+} /* namespace */
 
 #endif // #ifndef IECSERVICEADMIN

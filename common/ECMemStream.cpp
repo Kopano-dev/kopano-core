@@ -25,6 +25,8 @@
 #include <kopano/ECDebug.h>
 #define EC_MEMBLOCK_SIZE 8192
 
+namespace KC {
+
 ECMemBlock::ECMemBlock(const char *buffer, ULONG ulDataLen, ULONG ulFlags) :
     ECUnknown("ECMemBlock")
 {
@@ -506,3 +508,5 @@ DEF_HRMETHOD1(TRACE_MAPI, ECMemStream, Stream, LockRegion, (ULARGE_INTEGER, libO
 DEF_HRMETHOD1(TRACE_MAPI, ECMemStream, Stream, UnlockRegion, (ULARGE_INTEGER, libOffset), (ULARGE_INTEGER, cb), (DWORD, dwLockType))
 DEF_HRMETHOD1(TRACE_MAPI, ECMemStream, Stream, Stat, (STATSTG *, pstatstg), (DWORD, grfStatFlag))
 DEF_HRMETHOD1(TRACE_MAPI, ECMemStream, Stream, Clone, (IStream **, ppstm))
+
+} /* namespace */

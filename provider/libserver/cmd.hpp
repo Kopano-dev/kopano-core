@@ -20,11 +20,11 @@
 
 #include <kopano/zcdefs.h>
 
-extern "C" {
+namespace KC {
 
 extern _kc_export ECRESULT GetBestServerPath(struct soap *, ECSession *, const std::string &, std::string *);
 extern _kc_export void *SoftDeleteRemover(void *);
 
-} /* extern "C" */
+} /* namespace */
 
 #endif /* KC_CMD_HPP */

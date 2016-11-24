@@ -18,8 +18,12 @@
 #ifndef SPOOLER_SPMAIN_H
 #define SPOOLER_SPMAIN_H 1
 
+namespace KC {
+
 class ECConfig;
 class ECLogger;
+
+} /* namespace */
 
 /* DAgent.cpp / Spooler.cpp */
 extern ECConfig *g_lpConfig;

@@ -21,10 +21,14 @@
 #include <kopano/zcdefs.h>
 #include "arc_mysql.hpp"
 
+namespace KC {
+
 class ARCDatabase _kc_final : public KCMDatabaseMySQL {
 public:
 	ARCDatabase(void) : KCMDatabaseMySQL() {}
 	const sKCMSQLDatabase_t *GetDatabaseDefs(void) _kc_override;
 };
+
+} /* namespace */
 
 #endif

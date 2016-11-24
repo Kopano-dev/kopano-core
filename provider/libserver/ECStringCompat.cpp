@@ -26,6 +26,8 @@
 
 using namespace std;
 
+namespace KC {
+
 char *ECStringCompat::WTF1252_to_WINDOWS1252(soap *lpsoap, const char *szWTF1252, convert_context *lpConverter)
 {
 	if (!szWTF1252)
@@ -319,3 +321,5 @@ ECRESULT FixNotificationsEncoding(struct soap *soap, const ECStringCompat &strin
 
 	return er;
 }
+
+} /* namespace */

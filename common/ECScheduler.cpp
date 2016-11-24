@@ -23,6 +23,8 @@
 
 #define SCHEDULER_POLL_FREQUENCY	5
 
+namespace KC {
+
 ECScheduler::ECScheduler(ECLogger *lpLogger)
 {
 	m_bExit = FALSE;
@@ -179,3 +181,5 @@ void* ECScheduler::ScheduleThread(void* lpTmpScheduler)
 
 	return NULL;
 }
+
+} /* namespace */

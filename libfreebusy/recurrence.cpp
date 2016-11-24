@@ -33,6 +33,8 @@
 #include <algorithm>
 using namespace std;
 
+namespace KC {
+
 recurrence::recurrence() {
 	m_ulMonth = 0x0;
 }
@@ -1865,3 +1867,5 @@ ULONG recurrence::DaysTillMonth(time_t tsDate, ULONG ulMonth)
 
 	return ulDays;
 }
+
+} /* namespace */

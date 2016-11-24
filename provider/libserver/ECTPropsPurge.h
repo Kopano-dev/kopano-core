@@ -22,6 +22,8 @@
 #include <mutex>
 #include <pthread.h>
 
+namespace KC {
+
 class ECDatabase;
 class ECConfig;
 class ECDatabaseFactory;
@@ -54,5 +56,7 @@ private:
     ECConfig *m_lpConfig;    
     ECDatabaseFactory *m_lpDatabaseFactory;
 };
+
+} /* namespace */
 
 #endif

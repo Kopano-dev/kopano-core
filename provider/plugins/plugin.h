@@ -33,17 +33,19 @@
 #include <stdexcept>
 #include <iostream>
 #include <sstream>
+#include <kopano/ECLogger.h>
 #include <kopano/ECPluginSharedData.h>
 
+using namespace std;
+
+namespace KC {
 /**
  * @defgroup userplugin Server user plugin
  * @{
  */
 
-using namespace std;
 class ECStatsCollector;
 
-#include <kopano/ECLogger.h>
 #define LOG_PLUGIN_DEBUG(_msg, ...) \
 	ec_log(EC_LOGLEVEL_DEBUG | EC_LOGLEVEL_PLUGIN, "plugin: " _msg, ##__VA_ARGS__)
 
@@ -613,4 +615,7 @@ static inline string tostring(const Tin i) {
 }
 
 /** @} */
+
+} /* namespace */
+
 #endif

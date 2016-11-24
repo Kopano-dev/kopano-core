@@ -22,6 +22,8 @@
 #include <kopano/ECLogger.h>
 #include <kopano/tstring.h>
 
+namespace KC {
+
 class _kc_export ECArchiverLogger _kc_final : public ECLogger {
 public:
 	ECArchiverLogger(ECLogger *lpLogger);
@@ -76,5 +78,7 @@ private:
 	ECArchiverLogger *m_lpLogger;
 	const tstring m_strPrevFolder;
 };
+
+} /* namespace */
 
 #endif // ndef LOGGER_H

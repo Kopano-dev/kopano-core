@@ -23,6 +23,8 @@
 #include <cassert>
 #include "SymmetricCrypt.h"
 
+namespace KC {
+
 /**
  * Check if the provided password is crypted.
  * 
@@ -131,3 +133,5 @@ std::string SymmetricDecrypt(const wchar_t *wstrCrypted)
 	return SymmetricDecryptBlob(wstrCrypted[1] - '0',
 		base64_decode(convert_to<std::string>(wstrCrypted + 4)));
 }
+
+} /* namespace */

@@ -40,11 +40,10 @@ namespace ba = boost::algorithm;
 #include "ECStatsCollector.h"
 #include <kopano/boost_compat.h>
 #include "../libserver/cmd.hpp"
+#include "ECNotificationManager.h"
 
 extern ECLogger *g_lpLogger;
 extern ECConfig *g_lpConfig;
-extern _kc_export ECSessionManager *g_lpSessionManager;
-extern ECStatsCollector* g_lpStatsCollector;
 
 static bool GetLatestVersionAtServer(const char *, unsigned int, ClientVersion *);
 

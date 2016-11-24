@@ -18,6 +18,8 @@
 #pragma once
 #include <kopano/zcdefs.h>
 
+namespace KC {
+
 class _kc_export CHtmlEntity _kc_final {
 public:
 	_kc_hidden static wchar_t toChar(const wchar_t *);
@@ -26,3 +28,5 @@ public:
 	static bool validateHtmlEntity(const std::wstring &strEntity);
 	static WCHAR HtmlEntityToChar(const std::wstring &strEntity);
 };
+
+} /* namespace */

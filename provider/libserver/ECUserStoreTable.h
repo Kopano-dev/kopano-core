@@ -24,6 +24,10 @@
 #include <kopano/pcuser.hpp>
 #include <map>
 
+struct soap;
+
+namespace KC {
+
 class ECSession;
 
 struct ECUserStore {
@@ -53,5 +57,7 @@ public:
 private:
 	std::map<unsigned int, ECUserStore> m_mapUserStoreData;
 };
+
+} /* namespace */
 
 #endif

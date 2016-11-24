@@ -29,6 +29,8 @@
 #include <kopano/ECConfig.h>
 #include <kopano/ECDefs.h>
 
+namespace KC {
+
 class ECSession;
 
 #define EC_NO_IMPERSONATOR		((unsigned int)-1)
@@ -103,5 +105,7 @@ protected:
 	std::list<localobjectdetails_t> *m_lpViewCompanies = nullptr; // current visible companies
 	std::list<localobjectdetails_t> *m_lpAdminCompanies = nullptr; // Companies where the user has admin rights on
 };
+
+} /* namespace */
 
 #endif // #ifndef ECSECURITY

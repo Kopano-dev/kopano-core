@@ -26,6 +26,8 @@
 	pThis; 
 #endif
 
+namespace KC {
+
 // Our public IECUnknown interface
 
 class IECUnknown {
@@ -36,5 +38,7 @@ public:
 	virtual ULONG Release() = 0;
 	virtual HRESULT QueryInterface(REFIID refiid, void **lpvoid) = 0;
 };
+
+} /* namespace */
 
 #endif // IECUNKOWN_H

@@ -26,6 +26,8 @@
 
 #include <mapidefs.h>
 
+namespace KC {
+
 class _kc_export convstring _kc_final {
 public:
 	static convstring from_SPropValue(const SPropValue *lpsPropVal);
@@ -55,5 +57,7 @@ private:
 
 	mutable convert_context	m_converter;
 };
+
+} /* namespace */
 
 #endif // ndef convstring_INCLUDED

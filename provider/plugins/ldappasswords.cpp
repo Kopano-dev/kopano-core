@@ -32,6 +32,8 @@
 
 using namespace std;
 
+namespace KC {
+
 static const char b64chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 /** 
@@ -266,3 +268,5 @@ int checkPassword(int type, const char *password, const char *crypted) {
 		return 1;
 	}
 }
+
+} /* namespace */

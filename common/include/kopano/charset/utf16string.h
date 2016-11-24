@@ -24,8 +24,12 @@
 
 #include <kopano/charset/traits.h>
 
+namespace KC {
+
 typedef unsigned short UTF16_CHAR;
 typedef std::basic_string<unsigned short> utf16string;
+
+}
 
 namespace std {
 
@@ -109,6 +113,8 @@ template<> struct char_traits<unsigned short> {
   };
 }
 
+namespace KC {
+
 // 16-bit character specializations
 template<> class iconv_charset<utf16string> _kc_final {
 public:
@@ -144,5 +150,7 @@ public:
 	}
 	static size_t rawsize(const unsigned short *from);
 };
+
+} /* namespace */
 
 #endif //ndef utf16string_INCLUDED

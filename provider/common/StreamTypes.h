@@ -20,11 +20,15 @@
 
 #include <mapidefs.h>
 
+namespace KC {
+
 // State information
 struct ECStreamInfo {
 	unsigned long	ulStep;
 	unsigned long	cbPropVals;
 	LPSPropValue	lpsPropVals;
 };
+
+} /* namespace */
 
 #endif // ndef STREAMTYPES_H

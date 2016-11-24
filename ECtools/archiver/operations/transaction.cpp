@@ -19,7 +19,7 @@
 #include "transaction.h"
 #include "ArchiverSession.h"
 
-namespace za { namespace operations {
+namespace KC { namespace operations {
 
 Transaction::Transaction(const SObjectEntry &objectEntry): m_objectEntry(objectEntry) 
 { }
@@ -154,4 +154,4 @@ HRESULT Rollback::Execute(ArchiverSessionPtr ptrSession)
 	return hr;
 }
 
-}} // namespace operations, za
+}} /* namespace */

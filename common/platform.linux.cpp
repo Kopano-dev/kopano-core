@@ -140,6 +140,8 @@ void Sleep(unsigned int msec) {
 	nanosleep(&ts, NULL);
 }
 
+namespace KC {
+
 static void rand_fail(void)
 {
 	fprintf(stderr, "Cannot access/use /dev/urandom, this is fatal (%s)\n", strerror(errno));
@@ -208,11 +210,15 @@ char * get_password(const char *prompt) {
 	return getpass(prompt);
 }
 
+} /* namespace */
+
 HGLOBAL GlobalAlloc(UINT uFlags, ULONG ulSize)
 {
 	// always returns NULL, as required by CreateStreamOnHGlobal implementation in mapi4linux/src/mapiutil.cpp
 	return NULL;
 }
+
+namespace KC {
 
 time_t GetProcessTime()
 {
@@ -309,3 +315,5 @@ int ec_relocate_fd(int fd)
 	dump_fdtable_summary(getpid());
 	return fd;
 }
+
+} /* namespace */

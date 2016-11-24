@@ -5,6 +5,8 @@
 #include <mutex>
 #include <pthread.h>
 
+namespace KC {
+
 template<int (*fnlock)(pthread_rwlock_t *)> class scoped_rwlock _kc_final {
 	public:
 	scoped_rwlock(pthread_rwlock_t &rwlock) : m_rwlock(rwlock)
@@ -30,5 +32,7 @@ typedef std::lock_guard<std::mutex> scoped_lock;
 typedef std::lock_guard<std::recursive_mutex> scoped_rlock;
 typedef std::unique_lock<std::mutex> ulock_normal;
 typedef std::unique_lock<std::recursive_mutex> ulock_rec;
+
+} /* namespace */
 
 #endif /* KC_LOCKHELPER_HPP */

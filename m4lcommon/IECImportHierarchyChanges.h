@@ -18,9 +18,13 @@
 #ifndef IECIMPORTHIERARCHYCHANGES_H
 #define IECIMPORTHIERARCHYCHANGES_H
 
+namespace KC {
+
 class IECImportHierarchyChanges : public IExchangeImportHierarchyChanges {
 public:
     virtual HRESULT __stdcall ImportFolderChangeEx(ULONG cValues, LPSPropValue lpPropArray, BOOL fNew) = 0;
 };
+
+} /* namespace */
 
 #endif

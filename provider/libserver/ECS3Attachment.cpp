@@ -16,6 +16,8 @@
 #include "ECS3Attachment.h"
 #include "StreamUtil.h"
 
+namespace KC {
+
 /* Number of times the server should retry to send the command to the S3 servers, this is required to process redirects. */
 #define S3_RETRIES 5
 
@@ -977,5 +979,7 @@ ECRESULT ECS3Attachment::Rollback(void)
 	m_marked_att.clear();
 	return error ? KCERR_DATABASE_ERROR : erSuccess;
 }
+
+} /* namespace */
 
 #endif /* LIBS3_H */

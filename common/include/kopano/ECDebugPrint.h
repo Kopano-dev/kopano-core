@@ -28,6 +28,8 @@
 #include <boost/type_traits/is_convertible.hpp>
 #include <boost/utility/enable_if.hpp>
 
+namespace KC {
+
 class ECDebugPrintBase {
 public:
 	enum DerefMode {
@@ -341,5 +343,7 @@ public:
 		return helpers::convert_from(errorstring);
 	}
 };
+
+} /* namespace */
 
 #endif // ndef ECDebugPrint_INCLUDED

@@ -23,12 +23,14 @@
 #include "instanceidmapper_fwd.h"
 #include <mapidefs.h>
 
+namespace KC {
+
 class ECConfig;
 class ECLogger;
 class KCMDatabaseMySQL;
 typedef std::shared_ptr<KCMDatabaseMySQL> DatabasePtr;
 
-namespace za { namespace operations {
+namespace operations {
 
 class _kc_export InstanceIdMapper _kc_final {
 	public:
@@ -44,7 +46,6 @@ class _kc_export InstanceIdMapper _kc_final {
 		DatabasePtr m_ptrDatabase;
 };
 
-}} // namespace operations, za
-
+}} /* namespace */
 
 #endif // ndef instanceidmapper_INCLUDED

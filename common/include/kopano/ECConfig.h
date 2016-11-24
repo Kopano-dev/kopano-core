@@ -22,6 +22,8 @@
 #include <list>
 #include <string>
 
+namespace KC {
+
 struct configsetting_t {
 	const char *szName;
 	const char *szValue;
@@ -66,5 +68,7 @@ public:
 	_kc_hidden virtual bool	HasErrors(void) = 0;
 	_kc_hidden virtual const std::list<std::string> *GetErrors(void) = 0;
 };
+
+} /* namespace */
 
 #endif // ECCONFIG_H

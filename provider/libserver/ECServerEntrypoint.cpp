@@ -28,6 +28,8 @@
 #include "ECServerEntrypoint.h"
 #include "ECS3Attachment.h"
 
+namespace KC {
+
 pthread_key_t database_key;
 pthread_key_t plugin_key;
 
@@ -252,3 +254,5 @@ ECRESULT GetDatabaseObject(ECDatabase **lppDatabase)
 	ECDatabaseFactory db(g_lpSessionManager->GetConfig());
 	return GetThreadLocalDatabase(&db, lppDatabase);
 }
+
+} /* namespace */

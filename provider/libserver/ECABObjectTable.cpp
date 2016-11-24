@@ -35,6 +35,8 @@
 #include "ECSessionManager.h"
 #include <kopano/stringutil.h>
 
+namespace KC {
+
 ECABObjectTable::ECABObjectTable(ECSession *lpSession, unsigned int ulABId, unsigned int ulABType, unsigned int ulABParentId, unsigned int ulABParentType, unsigned int ulFlags, const ECLocale &locale) : ECGenericObjectTable(lpSession, ulABType, ulFlags, locale)
 {
 	ECODAB* lpODAB = new ECODAB;
@@ -524,3 +526,5 @@ exit:
 	delete lpObjects;
 	return er;
 }
+
+} /* namespace */

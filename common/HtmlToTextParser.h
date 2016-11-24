@@ -22,6 +22,8 @@
 #include <map>
 #include <stack>
 
+namespace KC {
+
 class _kc_export CHtmlToTextParser _kc_final {
 public:
 	CHtmlToTextParser(void);
@@ -112,3 +114,5 @@ protected:
 	ListInfo 		listInfo;
 	ListInfoStack	listInfoStack;
 };
+
+} /* namespace */

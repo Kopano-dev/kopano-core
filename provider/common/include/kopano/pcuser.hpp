@@ -25,6 +25,8 @@
 #include <kopano/stringutil.h>
 #include <kopano/ECDefs.h>
 
+namespace KC {
+
 /* Extern object */
 struct objectid_t {
 	objectid_t(const std::string &id, objectclass_t objclass);
@@ -179,5 +181,7 @@ private:
 };
 
 typedef std::list<std::string> serverlist_t;
+
+} /* namespace */
 
 #endif /* KC_PCUSER_H */

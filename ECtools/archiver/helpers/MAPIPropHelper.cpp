@@ -29,7 +29,7 @@
 
 using namespace std;
 
-namespace za { namespace helpers {
+namespace KC { namespace helpers {
 
 /**
  * Create a MAPIPropHelper object.
@@ -672,4 +672,4 @@ HRESULT MAPIPropHelper::GetArchiveList(MAPIPropPtr ptrMapiProp, LPSPropValue lpP
 	return hr;
 }
 
-}} // namespaces
+}} /* namespace */

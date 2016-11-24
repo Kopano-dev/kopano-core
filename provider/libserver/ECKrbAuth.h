@@ -21,6 +21,8 @@
 #include <kopano/platform.h>
 #include <kopano/kcodes.h>
 
+namespace KC {
+
 /**
  * Authenticate a user through Kerberos
  * @param strUsername Username
@@ -29,5 +31,7 @@
  * @return erSuccess, KCERR_LOGON_FAILURE or other error
  */
 ECRESULT ECKrb5AuthenticateUser(const std::string &strUsername, const std::string &strPassword, std::string *lpstrError);
+
+} /* namespace */
 
 #endif

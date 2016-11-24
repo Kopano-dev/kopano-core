@@ -34,7 +34,9 @@
 #define SOAP_CONNECTION_TYPE(soap)	\
 	(((SOAPINFO*)(soap)->user)->ulConnectionType)
 
-extern "C" {
+struct soap;
+
+namespace KC {
 
 extern _kc_export ECRESULT kopano_init(ECConfig *, ECLogger *audit, bool hosted_kopano, bool distr_kopano);
 extern _kc_export ECRESULT kopano_exit(void);
@@ -57,6 +59,6 @@ extern _kc_export void kopano_new_soap_listener(CONNECTION_TYPE, struct soap *);
 extern _kc_export void kopano_end_soap_listener(struct soap *);
 void kopano_disconnect_soap_connection(struct soap *soap);
 
-} /* extern "C" */
+} /* namespace */
 
 #endif //ECECSERVERENTRYPOINT_H

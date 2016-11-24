@@ -30,6 +30,8 @@
 #include <kopano/charset/convert.h>
 #include "SMIMEMessage.h"
 
+namespace KC {
+
 /**
  * %MTV_SPOOL:	add X-Mailer headers on message
  */
@@ -90,5 +92,7 @@ private:
 	bool is_voting_request(IMessage *lpMessage);
 	bool has_reminder(IMessage *);
 };
+
+} /* namespace */
 
 #endif

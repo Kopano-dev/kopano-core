@@ -22,6 +22,8 @@
 
 #include <kopano/codepage.h>
 
+namespace KC {
+
 // These charset should all be supported by iconv
 
 // @see http://msdn.microsoft.com/en-us/library/dd317756(VS.85).aspx
@@ -118,3 +120,5 @@ HRESULT HrGetCPByCharset(const char *lpszCharset,ULONG *codepage)
     }
 	return MAPI_E_NOT_FOUND;
 }
+
+} /* namespace */

@@ -41,6 +41,8 @@
 
 using namespace std;
 
+namespace KC {
+
 class mapiTimeoutHandler : public vmime::net::timeoutHandler {
 public:
 	mapiTimeoutHandler() : m_last(0) {};
@@ -474,3 +476,5 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage,
 	}
 	return hr;
 }
+
+} /* namespace */

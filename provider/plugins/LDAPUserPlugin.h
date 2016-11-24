@@ -36,7 +36,7 @@
  * @ingroup userplugin
  * @{
  */
-
+namespace KC {
 
 /** 
  * LDAP user plugin
@@ -880,6 +880,8 @@ private:
 	long unsigned int ldapServerIndex; // index of the last ldap server to which we could connect
 	std::vector<std::string> ldap_servers;
 };
+
+} /* namespace */
 
 extern "C" {
 	extern _kc_export UserPlugin *getUserPluginInstance(std::mutex &, ECPluginSharedData *);

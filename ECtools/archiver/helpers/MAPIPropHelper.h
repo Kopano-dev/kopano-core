@@ -29,7 +29,7 @@
 #include <kopano/archiver-common.h>
 #include "ArchiverSessionPtr.h"     // For ArchiverSessionPtr
 
-namespace za { namespace helpers {
+namespace KC { namespace helpers {
 
 class MAPIPropHelper;
 typedef std::unique_ptr<MAPIPropHelper> MAPIPropHelperPtr;
@@ -98,6 +98,6 @@ private:
 friend class MAPIPropHelper;
 };
 
-}} // namespaces
+}} /* namespace */
 
 #endif // !defined MAPIPROPHELPER_INCLUDED

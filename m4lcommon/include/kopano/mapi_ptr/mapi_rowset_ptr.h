@@ -22,6 +22,8 @@
 #include <mapiutil.h>
 #include <kopano/Util.h>
 
+namespace KC {
+
 namespace details {
 	template<typename _T>
 	class traits {
@@ -171,5 +173,7 @@ public:
 private:
 	set_pointer_type	m_lpsRowSet;
 };
+
+} /* namespace */
 
 #endif // ndef mapi_rowset_ptr_INCLUDED

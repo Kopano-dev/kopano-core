@@ -34,6 +34,7 @@
  * @ingroup userplugin
  * @{
  */
+namespace KC {
 
 /**
  * UNIX user plugin
@@ -477,6 +478,8 @@ private:
 	 */
 	void errnoCheck(const std::string &, int) const;
 };
+
+} /* namespace */
 
 extern "C" {
 	extern _kc_export UserPlugin *getUserPluginInstance(std::mutex &, ECPluginSharedData *);

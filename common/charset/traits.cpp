@@ -19,6 +19,8 @@
 #include <kopano/charset/utf16string.h>
 #include "utf32string.h"
 
+namespace KC {
+
 /** 
  * Make charset string ignore invalid characters, possebly converting
  * them with '?' character in iconv.
@@ -45,3 +47,5 @@ size_t iconv_charset<unsigned short*>::rawsize(const unsigned short *from) {
 size_t iconv_charset<const unsigned short*>::rawsize(const unsigned short *from) {
 	return ucslen(from) * sizeof(unsigned short);
 }
+
+} /* namespace */

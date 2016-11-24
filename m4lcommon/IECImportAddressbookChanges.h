@@ -21,6 +21,8 @@
 #include <mapidefs.h>
 #include <kopano/ECDefs.h>
 
+namespace KC {
+
 class IECImportAddressbookChanges : public IUnknown {
 public:
 	virtual HRESULT __stdcall GetLastError(HRESULT hr, ULONG ulFlags, LPMAPIERROR *lppMAPIError) = 0;
@@ -30,5 +32,7 @@ public:
 	virtual HRESULT __stdcall ImportABChange(ULONG type, ULONG cbObjId, LPENTRYID lpObjId) = 0;
 	virtual HRESULT __stdcall ImportABDeletion(ULONG type, ULONG cbObjId, LPENTRYID lpObjId) = 0;
 };
+
+} /* namespace */
 
 #endif

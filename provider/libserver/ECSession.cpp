@@ -50,6 +50,8 @@ namespace bfs = boost::filesystem;
 #define WHITESPACE L" \t\n\r"
 #endif
 
+namespace KC {
+
 // possible missing SSL function
 #ifndef HAVE_EVP_PKEY_CMP
 static int EVP_PKEY_cmp(EVP_PKEY *a, EVP_PKEY *b)
@@ -1500,3 +1502,5 @@ size_t ECAuthSession::GetObjectSize()
 
 	return ulSize;
 }
+
+} /* namespace */

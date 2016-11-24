@@ -31,6 +31,10 @@
 #include <kopano/ECDefs.h>
 #include "plugin.h"
 
+struct soap;
+
+namespace KC {
+
 class localobjectdetails_t _kc_final : public objectdetails_t {
 public:
     localobjectdetails_t() : objectdetails_t(), ulId(0) {};
@@ -309,5 +313,7 @@ private:
 #define KOPANO_FULLNAME_GLOBAL_ADDRESS_BOOK	"Global Address Book"
 #define KOPANO_ACCOUNT_GLOBAL_ADDRESS_LISTS	"Global Address Lists"
 #define KOPANO_FULLNAME_GLOBAL_ADDRESS_LISTS	"All Address Lists"
+
+} /* namespace */
 
 #endif

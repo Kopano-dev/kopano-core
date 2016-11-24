@@ -20,6 +20,8 @@
 #include <kopano/lockhelper.hpp>
 #include "ECFifoBuffer.h"
 
+namespace KC {
+
 ECFifoBuffer::ECFifoBuffer(size_type ulMaxSize)
 	: m_ulMaxSize(ulMaxSize)
 	, m_bReaderClosed(false)
@@ -213,3 +215,5 @@ ECRESULT ECFifoBuffer::Flush()
 		[this](void) { return IsClosed(cfWrite) || IsEmpty(); });
 	return erSuccess;
 }
+
+} /* namespace */

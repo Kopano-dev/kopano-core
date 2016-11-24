@@ -34,6 +34,8 @@
 #include <list>
 #include <boost/algorithm/string/join.hpp>
 
+namespace KC {
+
 /**
  * Returns TRUE if the restriction is always FALSE.
  *
@@ -417,3 +419,5 @@ exit:
     
     return er;
 }
+
+} /* namespace */

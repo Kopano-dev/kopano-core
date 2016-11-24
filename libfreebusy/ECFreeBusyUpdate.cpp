@@ -22,6 +22,8 @@
 
 #include "freebusyutil.h"
 
+namespace KC {
+
 ECFreeBusyUpdate::ECFreeBusyUpdate(IMessage* lpMessage)
 {
 	m_lpMessage = lpMessage;
@@ -220,3 +222,5 @@ DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusyUpdate, FreeBusyUpdate, ChangeAppt, (void))
 DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusyUpdate, FreeBusyUpdate, SaveChanges, (FILETIME, ftBegin), (FILETIME, ftEnd))
 DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusyUpdate, FreeBusyUpdate, GetFBTimes, (void))
 DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusyUpdate, FreeBusyUpdate, Intersect, (void))
+
+} /* namespace */

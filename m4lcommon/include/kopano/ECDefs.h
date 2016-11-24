@@ -20,6 +20,8 @@
 #ifndef ECDEFS_H
 #define ECDEFS_H
 
+namespace KC {
+
 // Get permission type
 #define ACCESS_TYPE_DENIED		1
 #define ACCESS_TYPE_GRANT		2
@@ -265,5 +267,7 @@ struct ECSERVERLIST {
 
 // CreateStore flag(s)
 #define EC_OVERRIDE_HOMESERVER			0x00000001
+
+} /* namespace */
 
 #endif

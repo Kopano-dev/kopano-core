@@ -21,6 +21,8 @@
 #include <kopano/zcdefs.h>
 #include <exception>
 
+namespace KC {
+
 class _kc_export_throw HrException _kc_final : public std::runtime_error {
 public:
 	HrException(HRESULT hr, const std::string &message = std::string()): std::runtime_error(message), m_hr(hr) {}
@@ -29,5 +31,7 @@ public:
 private:
 	HRESULT m_hr;
 };
+
+} /* namespace */
 
 #endif // ndef HRException_INCLUDED

@@ -22,6 +22,8 @@
 #include <kopano/ECLogger.h>
 #include <kopano/stringutil.h>
 
+namespace KC {
+
 ECCacheBase::ECCacheBase(const std::string &strCachename, size_type ulMaxSize, long lMaxAge)
 	: m_strCachename(strCachename)
 	, m_ulMaxSize(ulMaxSize)
@@ -55,3 +57,5 @@ void ECCacheBase::DumpStats(void) const
 		strName.c_str(), z, static_cast<unsigned long long>(HitCount()),
 		z / (double)HitCount() * 100.0);
 }
+
+} /* namespace */

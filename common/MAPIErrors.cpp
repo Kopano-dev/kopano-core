@@ -28,6 +28,8 @@
 #include <kopano/mapiext.h>
 #include <string>
 
+namespace KC {
+
 struct MAPIErrorTranslateRecord {
 	HRESULT errorCode;
     const char* errorMessage;
@@ -169,3 +171,5 @@ std::string getMapiCodeString(HRESULT hr, const char* object /* = "object" */)
 
 	return retval;
 }
+
+} /* namespace */

@@ -25,6 +25,8 @@
 #include <kopano/ECGuid.h>
 #include <kopano/ECInterfaceDefs.h>
 
+namespace KC {
+
 ECUnknown::ECUnknown(const char *szClassName)
 {
 	this->m_cRef = 0;
@@ -168,3 +170,5 @@ HRESULT ECUnknown::Suicide() {
 DEF_HRMETHOD0(ECUnknown, Unknown, QueryInterface, (REFIID, refiid), (void **, lppInterface))
 DEF_ULONGMETHOD0(ECUnknown, Unknown, AddRef, (void))
 DEF_ULONGMETHOD0(ECUnknown, Unknown, Release, (void))
+
+} /* namespace */

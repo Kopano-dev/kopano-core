@@ -102,8 +102,12 @@
 #define LOG_SOAP_DEBUG(_msg, ...) \
 	ec_log(EC_LOGLEVEL_DEBUG | EC_LOGLEVEL_SOAP, "soap: " _msg, ##__VA_ARGS__)
 
+namespace KC {
+
 extern ECSessionManager*	g_lpSessionManager;
 extern ECStatsCollector*	g_lpStatsCollector;
+
+}
 
 // Hold the status of the softdelete purge system
 static bool g_bPurgeSoftDeleteStatus = FALSE;
@@ -355,6 +359,8 @@ static ECRESULT PeerIsServer(struct soap *soap,
 	return erSuccess;
 }
 
+namespace KC {
+
 /**
  * Get the best server path for a server
  *
@@ -456,6 +462,8 @@ ECRESULT GetBestServerPath(struct soap *soap, ECSession *lpecSession, const std:
 	return erSuccess;
 }
 
+} /* namespace */
+
 // exception: This function does internal Begin + Commit/Rollback
 static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase, ECListInt* lplObjectIds, unsigned int ulDestFolderId, unsigned int ulSyncId);
 // these functions don't do Begin + Commit/Rollback
@@ -544,7 +552,7 @@ int ns__logon(struct soap *soap, char *user, char *pass, char *impersonate, char
 
     // Only save logon if credentials were supplied by the user; otherwise the logon is probably automated
     if(lpecSession->GetAuthMethod() == ECSession::METHOD_USERPASSWORD || lpecSession->GetAuthMethod() == ECSession::METHOD_SSO)
-		kcsrv::record_logon_time(lpecSession, true);
+		record_logon_time(lpecSession, true);
 	
 exit:
 	if (lpecSession)
@@ -695,7 +703,7 @@ int ns__ssoLogon(struct soap *soap, ULONG64 ulSessionId, char *szUsername, char 
     }
     
     if(lpecSession && (lpecSession->GetAuthMethod() == ECSession::METHOD_USERPASSWORD || lpecSession->GetAuthMethod() == ECSession::METHOD_SSO))
-		kcsrv::record_logon_time(lpecSession, true);
+		record_logon_time(lpecSession, true);
 
 exit:
 	if (lpecAuthSession != NULL)
@@ -735,7 +743,7 @@ int ns__logoff(struct soap *soap, ULONG64 ulSessionId, unsigned int *result)
 
 	if (lpecSession->GetAuthMethod() == ECSession::METHOD_USERPASSWORD ||
 	    lpecSession->GetAuthMethod() == ECSession::METHOD_SSO)
-		kcsrv::record_logon_time(lpecSession, false);
+		record_logon_time(lpecSession, false);
 
 	lpecSession->Unlock();
 
@@ -9390,6 +9398,8 @@ exit:
 }
 SOAP_ENTRY_END()
 
+namespace KC {
+
 void *SoftDeleteRemover(void *lpTmpMain)
 {
 	ECRESULT		er = erSuccess;
@@ -9441,6 +9451,8 @@ exit:
 
 	return (void *)lper;
 }
+
+} /* namespace */
 
 SOAP_ENTRY_START(checkExistObject, *result, entryId sEntryId, unsigned int ulFlags, unsigned int *result)
 {

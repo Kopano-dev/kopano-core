@@ -21,6 +21,8 @@
 #include <mutex>
 #include <kopano/zcdefs.h>
 
+namespace KC {
+
 #define EC_SYNC_OPT_STREAM			1
 #define EC_SYNC_OPT_CHANGENOTIF		2
 #define EC_SYNC_OPT_STATECOLLECT	4
@@ -74,5 +76,7 @@ private:
 	};
 	static __initializer __i;
 };
+
+} /* namespace */
 
 #endif // ndef ECSYNCSETTINGS_INCLUDED

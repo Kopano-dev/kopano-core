@@ -21,6 +21,8 @@
 #include <kopano/zcdefs.h>
 #include <mapix.h>
 
+namespace KC {
+
 #define FAVO_FOLDER_LEVEL_BASE		0x00000
 #define FAVO_FOLDER_LEVEL_ONE		0x00001
 #define FAVO_FOLDER_LEVEL_SUB		0x00002
@@ -39,8 +41,6 @@ enum {
 	SHORTCUT_NUM
 };
 
-extern "C" {
-
 extern _kc_export LPSPropTagArray GetShortCutTagArray(void);
 
 HRESULT AddToFavorite(IMAPIFolder *lpShortcutFolder, ULONG ulLevel, LPCTSTR lpszAliasName, ULONG ulFlags, ULONG cValues, LPSPropValue lpPropArray);
@@ -49,6 +49,6 @@ HRESULT CreateShortcutFolder(IMsgStore *lpMsgStore, LPTSTR lpszFolderName, LPTST
 extern _kc_export HRESULT DelFavoriteFolder(IMAPIFolder *scfolder, LPSPropValue source_key);
 extern _kc_export HRESULT AddFavoriteFolder(IMAPIFolder *scfolder, LPMAPIFOLDER folder, LPCTSTR alias_name, ULONG flags);
 
-} /* extern "C" */
+} /* namespace */
 
 #endif //#ifndef FAVORITESUTIL_H

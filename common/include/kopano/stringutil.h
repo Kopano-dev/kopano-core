@@ -25,6 +25,8 @@
 #include <algorithm>
 #include <kopano/platform.h>
 
+namespace KC {
+
 /*
  * Comparison handler for case-insensitive keys in maps
  */
@@ -41,8 +43,6 @@ struct wcscasecmp_comparison {
 		return left.size() < right.size() || (left.size() == right.size() && wcscasecmp(left.c_str(), right.c_str()) < 0);
 	}
 };
-
-extern "C" {
 
 static inline std::string strToUpper(std::string f) {
 	transform(f.begin(), f.end(), f.begin(), ::toupper);
@@ -92,14 +92,12 @@ static inline bool parseBool(const std::string &s) {
 	return !(s == "0" || s == "false" || s == "no");
 }
 
-} /* extern "C" */
-
 extern _kc_export std::string shell_escape(const std::string &);
 extern _kc_export std::string shell_escape(const std::wstring &);
 extern _kc_export std::vector<std::wstring> tokenize(const std::wstring &, const wchar_t sep, bool filter_empty = false);
 extern _kc_export std::vector<std::string> tokenize(const std::string &, const char sep, bool filter_empty = false);
-extern "C" _kc_export std::string trim(const std::string &input, const std::string &trim = " ");
-extern "C" _kc_export unsigned char x2b(char);
+extern _kc_export std::string trim(const std::string &input, const std::string &trim = " ");
+extern _kc_export unsigned char x2b(char);
 extern _kc_export std::string hex2bin(const std::string &);
 extern _kc_export std::string hex2bin(const std::wstring &);
 extern _kc_export std::string bin2hex(const std::string &);
@@ -117,15 +115,11 @@ extern _kc_export std::string urlEncode(const std::string &);
 extern _kc_export std::string urlEncode(const std::wstring &, const char *charset);
 extern _kc_export std::string urlEncode(const wchar_t *input, const char *charset);
 
-extern "C" {
-
 extern _kc_export std::string urlDecode(const std::string &);
 extern _kc_export void BufferLFtoCRLF(size_t size, const char *input, char *output, size_t *outsize);
 extern _kc_export void StringCRLFtoLF(const std::wstring &in, std::wstring *out);
 extern _kc_export void StringLFtoCRLF(std::string &inout);
 extern _kc_export void StringTabtoSpaces(const std::wstring &in, std::wstring *out);
-
-}
 
 template<typename T>
 std::vector<T> tokenize(const T &str, const T &delimiters)
@@ -177,11 +171,9 @@ _Tp join(_InputIterator __first, _InputIterator __last, _Tp __sep)
     return s;
 }
 
-extern "C" {
-
 extern _kc_export std::string format(const char *fmt, ...) __LIKE_PRINTF(1, 2);
 extern _kc_export char *kc_strlcpy(char *dst, const char *src, size_t n);
 
-}
+} /* namespace */
 
 #endif

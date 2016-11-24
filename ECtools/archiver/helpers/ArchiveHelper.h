@@ -25,9 +25,11 @@
 #include <kopano/CommonUtil.h>
 #include "ArchiverSessionPtr.h"     // For ArchiverSessionPtr
 
+namespace KC {
+
 class ECLogger;
 
-namespace za { namespace helpers {
+namespace helpers {
 
 class ArchiveHelper;
 typedef std::shared_ptr<ArchiveHelper> ArchiveHelperPtr;
@@ -100,6 +102,6 @@ private:
 	PROPMAP_DEF_NAMED_ID(SPECIAL_FOLDER_ENTRYIDS)
 };
 
-}} // Namespaces
+}} /* namespace */
 
 #endif // !defined ARCHIVEHELPER_INCLUDED

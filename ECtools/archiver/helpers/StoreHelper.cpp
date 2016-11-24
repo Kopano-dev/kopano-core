@@ -29,7 +29,7 @@ using namespace std;
 
 #include <kopano/ECRestriction.h>
 
-namespace za { namespace helpers {
+namespace KC { namespace helpers {
 
 /**
  * The version of the current search folder restrictions. The version is the same
@@ -808,4 +808,5 @@ HRESULT StoreHelper::GetArchiveCheckRestriction(ECAndRestriction *lpresArchiveCh
 	return hrSuccess;
 }
 
-}} // namespaces
+}} /* namespace */
+

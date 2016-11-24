@@ -46,6 +46,8 @@
 // Limit the debug results, 0 is endless
 #define BUFFER_LIMIT		0 // 8096
 
+namespace KC {
+
 static void TraceMsg(const char *lpMsg, int time, const char *func,
     const char *format, va_list va)
 {
@@ -242,3 +244,5 @@ void TraceRelease(const char *format, ...)
 
 	va_end(va);
 }
+
+} /* namespace */

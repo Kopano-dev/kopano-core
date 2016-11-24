@@ -20,6 +20,8 @@
 #include <kopano/ECPluginSharedData.h>
 #include <kopano/lockhelper.hpp>
 
+namespace KC {
+
 ECPluginSharedData *ECPluginSharedData::m_lpSingleton = NULL;
 std::mutex ECPluginSharedData::m_SingletonLock;
 std::mutex ECPluginSharedData::m_CreateConfigLock;
@@ -150,3 +152,4 @@ void ECPluginSharedData::Signal(int signal)
 	}
 }
 
+} /* namespace */

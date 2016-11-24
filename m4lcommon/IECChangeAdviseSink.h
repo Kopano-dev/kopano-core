@@ -18,9 +18,13 @@
 #ifndef IECCHANGEADVISESINK_H
 #define IECCHANGEADVISESINK_H
 
+namespace KC {
+
 class IECChangeAdviseSink : public IUnknown {
 public:
 	virtual ULONG __stdcall OnNotify(ULONG ulFLags, LPENTRYLIST lpEntryList) = 0;
 };
+
+} /* namespace */
 
 #endif

@@ -24,6 +24,8 @@
 #include <mapidefs.h>
 #include <edkmdb.h>
 
+namespace KC {
+
 class ECResyncSetIterator;
 class ECResyncSet _kc_final {
 public:
@@ -75,5 +77,6 @@ private:
 	const static FILETIME	s_nullTime;
 };
 
+} /* namespace */
 
 #endif // ndef ECResyncSet_INCLUDED

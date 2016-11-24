@@ -25,6 +25,8 @@
 #include <vmime/vmime.hpp>
 #include <inetmapi/inetmapi.h>
 
+namespace KC {
+
 class _kc_export_dycast ECVMIMESender _kc_final : public ECSender {
 private:
 	_kc_hidden HRESULT HrMakeRecipientsList(LPADRBOOK, LPMESSAGE, vmime::shared_ptr<vmime::message>, vmime::mailboxList &recips, bool allow_everyone, bool always_expand_distlist);
@@ -35,5 +37,7 @@ public:
 	_kc_hidden ECVMIMESender(const std::string &host, int port);
 	_kc_hidden HRESULT sendMail(LPADRBOOK, LPMESSAGE, vmime::shared_ptr<vmime::message>, bool allow_everyone, bool always_expand_distlist);
 };
+
+} /* namespace */
 
 #endif

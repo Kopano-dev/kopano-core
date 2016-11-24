@@ -87,6 +87,8 @@ typedef std::unique_ptr<Collator> unique_ptr_Collator;
 #include <kopano/charset/convert.h>
 #endif
 
+namespace KC {
+
 #ifndef ZCP_USES_ICU
 ECSortKey::ECSortKey(const unsigned char *lpSortData, unsigned int cbSortData)
 	: m_lpSortData(lpSortData)
@@ -1555,5 +1557,7 @@ void ECLocale::swap(ECLocale &other) {
 	std::swap(m_localeid, other.m_localeid);
 }
 #endif
+
+} /* namespace */
 
 /** @} */

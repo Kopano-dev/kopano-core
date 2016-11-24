@@ -18,11 +18,15 @@
 #ifndef IECLICENSE_H
 #define IECLICENSE_H
 
+namespace KC {
+
 class IECLicense : public IUnknown {
 public:
 	virtual HRESULT __stdcall LicenseAuth(unsigned char *lpData, unsigned int ulSize, unsigned char **lpAuthResponse, unsigned int *lpulResponseSize) = 0;
 	virtual HRESULT __stdcall LicenseCapa(unsigned int ulServiceType, char ***lppszCapabilities, unsigned int *lpulCapabilities) = 0;
 	virtual HRESULT __stdcall LicenseUsers(unsigned int ulServiceType, unsigned int *ulUsers) = 0;
 };
+
+} /* namespace */
 
 #endif

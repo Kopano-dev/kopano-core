@@ -28,6 +28,8 @@
 #include "freebusy.h"
 #include "freebusyutil.h"
 
+namespace KC {
+
 class _kc_export recurrence _kc_final {
 public:
 	recurrence();
@@ -169,5 +171,7 @@ private:
 	_kc_hidden ULONG calcBits(ULONG x);
 	_kc_hidden bool CheckAddValidOccr(time_t now, time_t start, time_t end, TIMEZONE_STRUCT, ULONG busy_status, OccrInfo **occrinfoall, ULONG *nvals);
 };
+
+} /* namespace */
 
 #endif

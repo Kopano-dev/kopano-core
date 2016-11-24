@@ -21,6 +21,8 @@
 #include <kopano/zcdefs.h>
 #include "ECStoreObjectTable.h"
 
+namespace KC {
+
 class _kc_export_dycast ECMultiStoreTable _kc_final :
     public ECStoreObjectTable {
 	protected:
@@ -34,5 +36,7 @@ private:
     std::list<unsigned int> m_lstObjects;
     
 };
+
+} /* namespace */
 
 #endif

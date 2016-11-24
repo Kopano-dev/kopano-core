@@ -39,7 +39,7 @@
 extern _kc_export bool operator==(const SBinary &, const SBinary &);
 bool operator <(const SBinary &a, const SBinary &b);
 
-extern "C" {
+namespace KC {
 
 extern _kc_export const char *GetServerUnixSocket(const char *pref = nullptr);
 extern _kc_export std::string GetServerFQDN(void);
@@ -78,8 +78,6 @@ HRESULT DoAddress(IAddrBook *lpAdrBook, ULONG* hWnd, LPADRPARM lpAdrParam, LPADR
 extern _kc_export HRESULT HrGetRemoteAdminStore(IMAPISession *, IMsgStore *, LPCTSTR server, ULONG flags, IMsgStore **ret);
 extern _kc_export HRESULT GetConfigMessage(LPMDB, const char *msgname, IMessage **msgout);
 
-} /* extern "C" */
-
 extern _kc_export HRESULT HrOpenDefaultStore(IMAPISession *, IMsgStore **ret);
 extern _kc_export HRESULT HrOpenDefaultStore(IMAPISession *, ULONG flags, IMsgStore **ret);
 extern _kc_export HRESULT HrOpenECPublicStore(IMAPISession *, IMsgStore **ret);
@@ -100,10 +98,8 @@ extern _kc_export HRESULT TestRestriction(LPSRestriction cond, IMAPIProp *msg, c
 extern _kc_export HRESULT HrOpenUserMsgStore(LPMAPISESSION, wchar_t *user, LPMDB *store);
 HRESULT HrOpenUserMsgStore(LPMAPISESSION lpSession, LPMDB lpStore, WCHAR *lpszUser, LPMDB *lppStore);
 // Auto-accept settings
-extern "C" {
 extern _kc_export HRESULT SetAutoAcceptSettings(IMsgStore *, bool auto_accept, bool decline_conflict, bool decline_recurring);
 extern _kc_export HRESULT GetAutoAcceptSettings(IMsgStore *, bool *auto_accept, bool *decline_conflict, bool *decline_recurring);
-}
 HRESULT HrGetGAB(LPMAPISESSION lpSession, LPABCONT *lppGAB);
 HRESULT HrGetGAB(LPADRBOOK lpAddrBook, LPABCONT *lppGAB);
 
@@ -163,5 +159,7 @@ inline unsigned  arraySize(T (&)[N])   { return N; }
 // Get the one-past-end item of an array
 template <typename T, unsigned N>
 inline T* arrayEnd(T (&array)[N])	{ return array + N; }
+
+} /* namespace */
 
 #endif // COMMONUTIL_H

@@ -36,6 +36,8 @@ using namespace std;
 #include <iostream>
 #include <fstream>
 
+namespace KC {
+
 struct settingkey_t {
 	char s[256];
 	unsigned short ulFlags;
@@ -136,5 +138,7 @@ private:
 
 	static const directive_t	s_sDirectives[];
 };
+
+} /* namespace */
 
 #endif // ECCONFIGIMPL_H

@@ -28,6 +28,8 @@
 #include "freebusyutil.h"
 #include <kopano/mapi_ptr.h>
 
+namespace KC {
+
 ECFreeBusySupport::ECFreeBusySupport(void)
 {
 	m_lpSession = NULL;
@@ -499,3 +501,5 @@ DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, CleanTo
 */
 DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, GetDelegateInfoEx, (FBUser, fbUser), (unsigned int *, lpData1), (unsigned int *, lpData2), (unsigned int *, lpData3))
 DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, PushDelegateInfoToWorkspace, (void))
+
+} /* namespace */

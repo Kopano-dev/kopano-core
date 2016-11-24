@@ -20,6 +20,8 @@
 #include "HtmlEntity.h"
 #include <kopano/charset/convert.h>
 
+namespace KC {
+
 static const struct HTMLEntity_t {
 	const WCHAR *s;
 	WCHAR c;
@@ -694,3 +696,5 @@ WCHAR CHtmlEntity::HtmlEntityToChar(const std::wstring &strEntity)
 
 	return '?';
 }
+
+} /* namespace */

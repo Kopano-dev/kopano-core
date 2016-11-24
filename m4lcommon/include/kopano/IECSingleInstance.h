@@ -18,10 +18,14 @@
 #ifndef IECSINGLEINSTANCE_H
 #define IECSINGLEINSTANCE_H
 
+namespace KC {
+
 class IECSingleInstance : public IUnknown {
 public:
 	virtual HRESULT __stdcall GetSingleInstanceId(ULONG *lpcbInstanceID, LPENTRYID *lppInstanceID) = 0;
 	virtual HRESULT __stdcall SetSingleInstanceId(ULONG cbInstanceID, LPENTRYID lpInstanceID) = 0;
 };
+
+} /* namespace */
 
 #endif

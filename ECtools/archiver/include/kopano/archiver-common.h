@@ -25,6 +25,8 @@
 #include <kopano/ECDebugPrint.h>
 #include <kopano/ArchiveControl.h>
 
+namespace KC {
+
 #if 1
 #define fMapiDeferredErrors	MAPI_DEFERRED_ERRORS
 #else
@@ -589,11 +591,9 @@ public:
 	bool operator()(const SObjectEntry &sEntry) const { return !sEntry.sStoreEntryId.isWrapped(); }
 };
 
-extern "C" {
-
 extern _kc_export eResult MAPIErrorToArchiveError(HRESULT);
 extern _kc_export const char *ArchiveResultString(eResult);
 
-}
+} /* namespace */
 
 #endif // !defined ARCHIVER_COMMON_H_INCLUDED

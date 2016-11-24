@@ -29,6 +29,8 @@
 #include <IECChangeAdvisor.h>
 #include <IECChangeAdviseSink.h>
 
+namespace KC {
+
 typedef	std::map<std::string, IStream *> StatusStreamMap;
 typedef std::map<std::string,SSyncState>	SyncStateMap;
 typedef	std::map<ULONG,ULONG>				NotifiedSyncIdMap;
@@ -327,5 +329,7 @@ private:	// members
 	NotifiedSyncIdMap		m_mapNotifiedSyncIds;
 	std::mutex m_hMutex;
 };
+
+} /* namespace */
 
 #endif // ndef ECSYNCCONTEXT_H

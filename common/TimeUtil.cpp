@@ -19,6 +19,8 @@
 
 #include "TimeUtil.h"
 
+namespace KC {
+
 /**
  * Get a timestamp for the given date/time point
  *
@@ -104,3 +106,5 @@ time_t LocalToUTC(time_t local, TIMEZONE_STRUCT sTimeZone)
 
 	return local - offset;
 }
+
+} /* namespace */

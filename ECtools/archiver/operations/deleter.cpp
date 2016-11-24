@@ -21,7 +21,7 @@
 
 using namespace std;
 
-namespace za { namespace operations {
+namespace KC { namespace operations {
 
 /**
  * @param[in]	lpLogger
@@ -95,4 +95,4 @@ HRESULT Deleter::PurgeQueuedMessages()
 	return hrSuccess;
 }
 
-}} // namespaces 
+}} /* namespace */

@@ -61,6 +61,8 @@
 
 using namespace std;
 
+namespace KC {
+
 #define PROFILEPREFIX		"ec-adm-"
 
 /* Indexes of the sPropNewMailColumns property array */
@@ -83,6 +85,8 @@ static const SizedSPropTagArray(4, sPropNewMailColumns) = {
 	}
 };
 
+} /* namespace */
+
 bool operator ==(const SBinary &left, const SBinary &right)
 {
 	return left.cb == right.cb && memcmp(left.lpb, right.lpb, left.cb) == 0;
@@ -92,6 +96,8 @@ bool operator <(const SBinary &left, const SBinary &right)
 {
 	return left.cb < right.cb || (left.cb == right.cb && memcmp(left.lpb, right.lpb, left.cb) < 0);
 }
+
+namespace KC {
 
 const char *GetServerUnixSocket(const char *szPreferred)
 {
@@ -3467,3 +3473,5 @@ HRESULT GetConfigMessage(LPMDB lpStore, const char* szMessageName, IMessage **lp
 	*lppMessage = ptrMessage.release();
 	return hrSuccess;
 }
+
+} /* namespace */

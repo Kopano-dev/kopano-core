@@ -28,6 +28,8 @@
 
 #include <string>
 
+namespace KC {
+
 bool IsKopanoEntryId(ULONG cb, LPBYTE lpEntryId);
 bool ValidateZEntryId(ULONG cb, LPBYTE lpEntryId, unsigned int ulCheckType);
 bool ValidateZEntryList(LPENTRYLIST lpMsgList, unsigned int ulCheckType);
@@ -54,5 +56,7 @@ ECRESULT ABIDToEntryID(struct soap *soap, unsigned int ulID, const objectid_t& s
 ECRESULT SIIDToEntryID(struct soap *soap, LPGUID guidServer, unsigned int ulInstanceId, unsigned int ulPropId, entryId *lpsInstanceId);
 ECRESULT MAPITypeToType(ULONG ulMAPIType, objectclass_t *lpsUserObjClass);
 ECRESULT TypeToMAPIType(objectclass_t sUserObjClass, ULONG *lpulMAPIType);
+
+} /* namespace */
 
 #endif /* KC_PCUTIL_HPP */

@@ -35,6 +35,8 @@
 
 using namespace std;
 
+namespace KC {
+
 /**
  * Copies string from source to destination
  * 
@@ -3564,3 +3566,5 @@ exit:
 	MAPIFreeBuffer(lpMsgProps);
 	return hr;
 }
+
+} /* namespace */

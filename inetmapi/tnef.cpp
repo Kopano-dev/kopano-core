@@ -52,6 +52,8 @@
 
 #include "tnef.h"
 
+namespace KC {
+
 enum {
 	ATT_ATTACH_TITLE     = 0x18010,
 	ATT_REQUEST_RES      = 0x40009,
@@ -2132,5 +2134,7 @@ HRESULT ECTNEF::HrReadStream(IStream *lpStream, void *lpBase, BYTE **lppData, UL
     *lpulSize = ulSize;
     return hrSuccess;
 }
+
+} /* namespace */
 
 /** @} */

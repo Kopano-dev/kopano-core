@@ -23,6 +23,8 @@
 
 #include <mapidefs.h>
 
+namespace KC {
+
 class IECSecurity : public IECUnknown {
 public:
 	virtual HRESULT GetOwner(ULONG *lpcbOwner, LPENTRYID *lppOwner) = 0;
@@ -33,5 +35,7 @@ public:
 	virtual HRESULT GetPermissionRules(int ulType, ULONG* lpcPermissions, ECPERMISSION **lppECPermissions) = 0;
 	virtual HRESULT SetPermissionRules(ULONG cPermissions, ECPERMISSION *lpECPermissions) = 0;
 };
+
+} /* namespace */
 
 #endif

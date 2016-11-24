@@ -22,6 +22,8 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <kopano/mapi_ptr.h>
 
+namespace KC {
+
 class _kc_export ECHierarchyIteratorBase {
 public:
 	_kc_hidden ECHierarchyIteratorBase(void) :
@@ -147,5 +149,6 @@ typedef ECContentsIterator<MailUserPtr> ECMailUserIterator;
 template <> ECContentsIterator<MailUserPtr>::ECContentsIterator(LPMAPICONTAINER lpContainer, ULONG ulFlags);
 template <> ECContentsIterator<MailUserPtr>::ECContentsIterator(LPMAPICONTAINER lpContainer, LPSRestriction lpRestriction, ULONG ulFlags);
 
+} /* namespace */
 
 #endif // ndef ECIterators_INCLUDED

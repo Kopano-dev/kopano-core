@@ -34,6 +34,8 @@
  * @{
  */
 
+namespace KC {
+
 /**
  * Build-in database user plugin.
  *
@@ -185,10 +187,13 @@ public:
 									  const objectid_t &parentobject, const objectid_t &childobject);
 };
 
+} /* namespace */
+
 extern "C" {
 	extern _kc_export UserPlugin *getUserPluginInstance(std::mutex &, ECPluginSharedData *);
 	extern _kc_export void deleteUserPluginInstance(UserPlugin *);
 	extern _kc_export int getUserPluginVersion(void);
 }
 /** @} */
+
 #endif

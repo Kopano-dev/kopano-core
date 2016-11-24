@@ -26,9 +26,13 @@
 #ifdef ZCP_USES_ICU
 #include <unicode/coll.h>
 #include <unicode/sortkey.h>
+namespace KC {
 typedef Locale ECLocale;
 typedef CollationKey ECSortKey;
+}
 #else
+
+namespace KC {
 
 //typedef locale_t ECLocale;
 class ECLocale _kc_final {
@@ -64,9 +68,11 @@ private:
 	unsigned int m_cbSortData;
 };
 
+} /* namespace */
+
 #endif
 
-extern "C" {
+namespace KC {
 
 // us-ascii strings
 extern _kc_export const char *str_ifind(const char *haystack, const char *needle);
@@ -114,9 +120,9 @@ extern _kc_export void createSortKeyDataFromUTF8(const char *s, int ncap, const 
 extern _kc_export ECSortKey createSortKeyFromUTF8(const char *s, int ncap, const ECLocale &);
 extern _kc_export int compareSortKeys(unsigned int nkey1, const unsigned char *key1, unsigned int nkey2, const unsigned char *key2);
 
-} /* extern "C" */
-
 extern _kc_export void createSortKeyData(const char *s, int ncap, const ECLocale &, unsigned int *keysize, unsigned char **key);
 extern _kc_export void createSortKeyData(const wchar_t *s, int ncap, const ECLocale &, unsigned int *keysize, unsigned char **key);
+
+} /* namespace */
 
 #endif // ndef ustringutil_INCLUDED

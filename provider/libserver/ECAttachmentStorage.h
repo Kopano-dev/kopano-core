@@ -27,6 +27,10 @@
 #include <dirent.h>
 #include <sys/types.h>
 
+struct soap;
+
+namespace KC {
+
 class ECSerializer;
 class ECLogger;
 
@@ -156,5 +160,7 @@ private:
 	std::set<ULONG> m_setDeletedAttachment;
 	std::set<ULONG> m_setMarkedAttachment;
 };
+
+} /* namespace */
 
 #endif

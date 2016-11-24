@@ -22,6 +22,10 @@
 #include "ECICS.h"
 #include "ECDatabase.h"
 
+struct soap;
+
+namespace KC {
+
 // Indexes into the database rows.
 enum {
 	icsID				= 0,
@@ -88,5 +92,6 @@ private:
 	MESSAGESET		m_setNewMessages;
 };
 
+} /* namespace */
 
 #endif // ndef ECICSHELPERS_H

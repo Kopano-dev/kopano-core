@@ -27,6 +27,8 @@
 
 #include <kopano/ustringutil.h>
 
+namespace KC {
+
 class ECSession;
 
 // These are some helper function to help running subqueries.
@@ -59,5 +61,7 @@ ECRESULT RunSubRestriction(ECSession *lpSession, void *lpECODStore, struct restr
 ECRESULT FreeSubRestrictionResults(SUBRESTRICTIONRESULTS *lpResults);
 
 #define SUBRESTRICTION_MAXDEPTH	64
+
+} /* namespace */
 
 #endif

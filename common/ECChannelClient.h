@@ -24,6 +24,8 @@
 #include <kopano/platform.h>
 #include <kopano/kcodes.h>
 
+namespace KC {
+
 class ECChannel;
 
 class _kc_export ECChannelClient {
@@ -47,5 +49,7 @@ private:
 	uint16_t m_ulPort;
 	ECChannel *m_lpChannel;
 };
+
+} /* namespace */
 
 #endif /* ECCHANNELCLIENT_H */

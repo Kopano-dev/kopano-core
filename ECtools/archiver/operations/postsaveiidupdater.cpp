@@ -19,7 +19,7 @@
 #include "postsaveiidupdater.h"
 #include "instanceidmapper.h"
 
-namespace za { namespace operations {
+namespace KC { namespace operations {
 
 TaskBase::TaskBase(const AttachPtr &ptrSourceAttach, const MessagePtr &ptrDestMsg, ULONG ulDestAttachIdx)
 : m_ptrSourceAttach(ptrSourceAttach)
@@ -141,4 +141,4 @@ HRESULT PostSaveInstanceIdUpdater::Execute()
 	return bFailure ? MAPI_W_ERRORS_RETURNED : hrSuccess;
 }
 
-}} // namespace operations, za
+}} /* namespace */

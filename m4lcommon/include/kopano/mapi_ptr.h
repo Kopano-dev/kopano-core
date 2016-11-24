@@ -33,6 +33,8 @@
 #include <kopano/ECGuid.h>
 #include <kopano/mapiguidext.h>
 
+namespace KC {
+
 typedef mapi_object_ptr<IABContainer, IID_IABContainer> ABContainerPtr;
 typedef mapi_object_ptr<IAddrBook, IID_IAddrBook> AddrBookPtr;
 typedef mapi_object_ptr<IDistList, IID_IDistList> DistListPtr;
@@ -83,5 +85,7 @@ typedef KCHL::memory_ptr<SPropValue> SPropArrayPtr;
 
 typedef mapi_rowset_ptr<SRow> SRowSetPtr;
 typedef mapi_rowset_ptr<ADRENTRY> AdrListPtr;
+
+} /* namespace */
 
 #endif // ndef mapi_ptr_INCLUDED

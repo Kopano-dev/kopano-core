@@ -21,6 +21,10 @@
 #include <kopano/zcdefs.h>
 #include "ECABObjectTable.h"
 
+struct soap;
+
+namespace KC {
+
 class ECConvenientDepthABObjectTable _kc_final : public ECABObjectTable {
 protected:
 	ECConvenientDepthABObjectTable(ECSession *lpSession, unsigned int ulABId, unsigned int ulABType, unsigned int ulABParentId, unsigned int ulABParentType, unsigned int ulFlags, const ECLocale &locale);
@@ -41,5 +45,7 @@ private:
 	std::map<unsigned int, unsigned int> m_mapDepth;
 	std::map<unsigned int, std::string> m_mapPath;
 };
+
+} /* namespace */
 
 #endif

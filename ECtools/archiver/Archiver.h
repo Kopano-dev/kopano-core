@@ -22,6 +22,8 @@
 #include <kopano/zcdefs.h>
 #include "ArchiveManage.h" // for ArchiveManagePtr
 
+namespace KC {
+
 class ECConfig;
 
 #define ARCHIVE_RIGHTS_ERROR	(unsigned)-1
@@ -60,5 +62,7 @@ protected:
 };
 
 typedef Archiver::auto_ptr_type		ArchiverPtr;
+
+} /* namespace */
 
 #endif // !defined ARCHIVER_H_INCLUDED

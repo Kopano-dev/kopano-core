@@ -26,6 +26,8 @@
 #include <list>
 #include <map>
 
+namespace KC {
+
 struct statstrings {
 	std::string name;
 	std::string description;
@@ -135,5 +137,7 @@ private:
 
 // Link to provider/server
 extern _kc_export void (*kopano_get_server_stats)(unsigned int *qlen, double *qage, unsigned int *nthr, unsigned int *nidlethr);
+
+} /* namespace */
 
 #endif

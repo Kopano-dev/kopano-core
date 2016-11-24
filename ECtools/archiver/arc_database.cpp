@@ -17,6 +17,9 @@
 
 #include <kopano/platform.h>
 #include "arc_database.hpp"
+
+namespace KC {
+
 #define ZA_TABLEDEF_SERVERS			"CREATE TABLE `za_servers` ( \
 										`id` int(11) unsigned NOT NULL auto_increment, \
 										`guid` binary(16) NOT NULL, \
@@ -53,3 +56,5 @@ const sKCMSQLDatabase_t *ARCDatabase::GetDatabaseDefs(void)
 {
 	return tables;
 }
+
+} /* namespace */

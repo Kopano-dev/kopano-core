@@ -21,6 +21,8 @@
 #include <mapix.h>
 #include <mapidefs.h>
 
+namespace KC {
+
 /* interface IMAPIOfflineNotify, Notify */
 
 #define MAPIOFFLINE_ADVISE_DEFAULT				(ULONG)0 
@@ -261,5 +263,7 @@ public:
 	*/
 	virtual HRESULT __stdcall Unadvise(ULONG ulFlags,ULONG ulAdviseToken) = 0;
 };
+
+} /* namespace */
 
 #endif //IMAPIOFFLINE_INCLUDED

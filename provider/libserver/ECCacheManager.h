@@ -33,6 +33,8 @@
 
 #include <kopano/ECKeyTable.h>
 
+struct soap;
+
 #if __cplusplus >= 201100L
 #include <unordered_map>
 #define HASH_NAMESPACE std
@@ -52,6 +54,8 @@ struct hash_map {
 };
 
 #endif
+
+namespace KC {
 
 class ECSessionManager;
 
@@ -427,6 +431,8 @@ inline unsigned int IPRSHash(const ECsIndexProp& _Keyval1)
 	return hash;
 }
 
+} /* namespace KC */
+
 namespace HASH_NAMESPACE {
 	// hash function for type ECsIndexProp
 	template<>
@@ -451,6 +457,8 @@ namespace HASH_NAMESPACE {
 			}
 	};
 }
+
+namespace KC {
 
 typedef hash_map<unsigned int, ECsObjects>::Type ECMapObjects;
 typedef hash_map<unsigned int, ECsStores>::Type ECMapStores;
@@ -629,5 +637,7 @@ private:
 	// Testing
 	bool						m_bCellCacheDisabled;
 };
+
+} /* namespace */
 
 #endif

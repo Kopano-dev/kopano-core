@@ -67,6 +67,13 @@
 	  <message>
 */
 
+static inline bool operator<(const GUID &lhs, const GUID &rhs)
+{
+	return memcmp(&lhs, &rhs, sizeof(GUID)) < 0;
+}
+
+namespace KC {
+
 const static struct StreamCaps {
 	bool bSupportUnicode;
 } g_StreamCaps[] = {
@@ -85,10 +92,6 @@ const static struct StreamCaps {
 
 // External objects
 extern ECSessionManager *g_lpSessionManager;	// ECServerEntrypoint.cpp
-
-static inline bool operator<(const GUID &lhs, const GUID &rhs) {
-	return memcmp(&lhs, &rhs, sizeof(GUID)) < 0;
-}
 
 // Helper class for mapping named properties from the stream to local proptags
 class NamedPropertyMapper {
@@ -1862,3 +1865,5 @@ ECRESULT GetValidatedPropType(DB_ROW lpRow, unsigned int *lpulType)
 	*lpulType = ulType;
 	return erSuccess;
 }
+
+} /* namespace */

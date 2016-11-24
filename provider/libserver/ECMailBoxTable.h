@@ -20,6 +20,8 @@
 #include <kopano/zcdefs.h>
 #include "ECStoreObjectTable.h"
 
+namespace KC {
+
 class ECSession;
 
 class ECMailBoxTable _kc_final : public ECStoreObjectTable {
@@ -34,3 +36,5 @@ private:
 	unsigned int m_ulStoreTypes;
 
 };
+
+} /* namespace */

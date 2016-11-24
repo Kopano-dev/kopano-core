@@ -23,9 +23,11 @@
 #include <mapix.h>
 #include <kopano/mapi_ptr.h>
 
+namespace KC {
+
 class ECArchiverLogger;
 
-namespace za { namespace operations {
+namespace operations {
 
 /**
  * IArchiveOperation specifies the interface to all archiver operations.
@@ -147,6 +149,6 @@ private:
 	MAPIFolderPtr m_ptrCurFolder;
 };
 
-}} // namespaces
+}} /* namespace */
 
 #endif // ndef operations_INCLUDED

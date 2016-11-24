@@ -26,6 +26,8 @@
 #include <mapidefs.h>
 #include <mapix.h>
 
+namespace KC {
+
 extern _kc_export HRESULT GetArchivedUserList(IMAPISession *, const char *sslkey, const char *sslpass, std::list<std::string> *users, bool local_only = false);
 extern _kc_export HRESULT GetArchivedUserList(IMAPISession *, const char *sslkey, const char *sslpass, std::list<std::wstring> *users, bool local_only = false);
 
@@ -36,6 +38,8 @@ public:
 	_kc_hidden virtual HRESULT CollectData(LPMAPITABLE store_table) = 0;
 };
 
-extern "C" _kc_export HRESULT GetMailboxData(IMAPISession *, const char *sslkey, const char *sslpass, bool local_only, DataCollector *);
+extern _kc_export HRESULT GetMailboxData(IMAPISession *, const char *sslkey, const char *sslpass, bool local_only, DataCollector *);
+
+} /* namespace */
 
 #endif

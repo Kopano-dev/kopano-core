@@ -22,6 +22,8 @@
 #include <string>
 #include <cstring>
 
+namespace KC {
+
 template<typename _Type> class iconv_charset _kc_final {
 };
 
@@ -29,7 +31,7 @@ template<typename _Type> class iconv_charset _kc_final {
 #define CHARSET_WCHAR "UTF-32LE"
 #define CHARSET_TCHAR (iconv_charset<TCHAR*>::name())
 
-extern "C" _kc_export void setCharsetBestAttempt(std::string &);
+extern _kc_export void setCharsetBestAttempt(std::string &);
 
 // Multibyte character specializations
 template<> class iconv_charset<std::string> _kc_final {
@@ -169,5 +171,7 @@ template<typename _Type>
 size_t rawsize(const _Type &_x) {
 	return iconv_charset<_Type>::rawsize(_x);
 }
+
+} /* namespace */
 
 #endif // ndef traits_INCLUDED

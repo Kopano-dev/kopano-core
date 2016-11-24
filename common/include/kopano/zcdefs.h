@@ -72,4 +72,8 @@
  */
 #define __gszeroinit
 
+/* Don't like touching all cpp files just yet... */
+namespace KC {}
+using namespace KC;
+
 #endif /* ZCOMMON_DEFS_H */

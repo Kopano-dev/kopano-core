@@ -21,11 +21,11 @@
 #include <kopano/zcdefs.h>
 #include <string>
 
-extern "C" {
+namespace KC {
 
 extern _kc_export std::string base64_encode(const unsigned char *, unsigned int);
 extern _kc_export std::string base64_decode(const std::string &);
 
-}
+} /* namespace */
 
 #endif

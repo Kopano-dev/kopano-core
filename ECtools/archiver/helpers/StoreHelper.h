@@ -22,11 +22,13 @@
 #include <kopano/zcdefs.h>
 #include "MAPIPropHelper.h"
 
+namespace KC {
+
 class ECRestriction;
 class ECAndRestriction;
 class ECOrRestriction;
 
-namespace za { namespace helpers {
+namespace helpers {
 
 class StoreHelper;
 typedef std::unique_ptr<StoreHelper> StoreHelperPtr;
@@ -82,6 +84,6 @@ private:
 	PROPMAP_DEF_NAMED_ID(VERSION)
 };
 
-}} // namespaces
+}} /* namespace */
 
 #endif // !defined STOREHELPER_H_INCLUDED

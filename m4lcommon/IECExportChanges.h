@@ -20,6 +20,8 @@
 
 #include <edkmdb.h>
 
+namespace KC {
+
 class ECLogger;
 
 class IECExportChanges : public IExchangeExportChanges {
@@ -29,5 +31,7 @@ public:
 	virtual HRESULT __stdcall SetMessageInterface(REFIID refiid) = 0;
 	virtual HRESULT __stdcall SetLogger(ECLogger *lpLogger) = 0;
 };
+
+} /* namespace */
 
 #endif

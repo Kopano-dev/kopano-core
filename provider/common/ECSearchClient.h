@@ -28,6 +28,8 @@
 
 #include "ECChannelClient.h"
 
+namespace KC {
+
 struct SIndexedTerm {
     std::string strTerm;
     std::set<unsigned int> setFields;
@@ -48,5 +50,7 @@ private:
 	ECRESULT Query(std::list<unsigned int> &lstMatches);
 	ECRESULT Suggest(std::string &suggestion);
 };
+
+} /* namespace */
 
 #endif /* ECSEARCHCLIENT_H */

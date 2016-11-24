@@ -26,6 +26,8 @@
 #include "HrException.h"
 #include <kopano/ECRestriction.h>
 
+namespace KC {
+
 namespace details {
 
 	/**
@@ -317,3 +319,5 @@ HRESULT ArchiveStateCollector::PopulateFromContainer(LPABCONT lpContainer)
 	}
 	return hrSuccess;
 }
+
+} /* namespace */

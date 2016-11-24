@@ -37,6 +37,8 @@
 // size of a single entry in the database.
 #define MAX_ALLOWED_PACKET			16777216
 
+namespace KC {
+
 KCMDatabaseMySQL::KCMDatabaseMySQL(void)
 {
 	m_bMysqlInitialize	= false;
@@ -586,3 +588,5 @@ ECRESULT KCMDatabaseMySQL::CreateDatabase(ECConfig *lpConfig)
 	ec_log_info("Database is created");
 	return erSuccess;
 }
+
+} /* namespace */

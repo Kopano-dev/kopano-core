@@ -23,6 +23,8 @@
 #include <sys/types.h>
 #include <vmime/utility/outputStream.hpp>
 
+namespace KC {
+
 class outputStreamMAPIAdapter _kc_final : public vmime::utility::outputStream {
 public:
 	outputStreamMAPIAdapter(IStream *lpStream);
@@ -33,5 +35,7 @@ public:
 private:
 	IStream *lpStream;
 };
+
+} /* namespace */
 
 #endif

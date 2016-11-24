@@ -24,6 +24,11 @@
 #include <string>
 
 #include "ECSession.h"
+
+struct soap;
+
+namespace KC {
+
 /*
  * This class is a general serverside class for generated properties. A Generated
  * property is any property that cannot be directly stored or read from the database.
@@ -66,6 +71,8 @@ public:
 private:
 
 };
+
+} /* namespace */
 
 #endif // ECGENPROPS_H
 

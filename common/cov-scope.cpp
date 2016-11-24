@@ -12,6 +12,7 @@
 #include <string>
 #include <cstdlib>
 #include <mapidefs.h>
+using namespace KC;
 class I {
 	public:
 	virtual ~I(void) {}

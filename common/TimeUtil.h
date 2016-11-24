@@ -20,6 +20,8 @@
 
 #include <kopano/zcdefs.h>
 
+namespace KC {
+
 /* MAPI TimeZoneStruct named property */
 struct TIMEZONE_STRUCT {
 	// The bias values (bias, stdbias and dstbias) are the opposite of what you expect.
@@ -36,14 +38,12 @@ struct TIMEZONE_STRUCT {
 	SYSTEMTIME stDstDate;		/* 3->2, dus 2 in wHour */
 };
 
-extern "C" {
-
 time_t getDateByYearMonthWeekDayHour(WORD year, WORD month, WORD week, WORD day, WORD hour);
 LONG getTZOffset(time_t date, TIMEZONE_STRUCT sTimeZone);
 
 extern _kc_export time_t LocalToUTC(time_t local, TIMEZONE_STRUCT);
 extern _kc_export time_t UTCToLocal(time_t utc, TIMEZONE_STRUCT);
 
-} /* extern "C" */
+} /* namespace */
 
 #endif

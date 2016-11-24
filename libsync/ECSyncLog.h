@@ -21,6 +21,8 @@
 #include <mutex>
 #include <kopano/zcdefs.h>
 
+namespace KC {
+
 class ECLogger;
 
 class _kc_export ECSyncLog _kc_final {
@@ -37,5 +39,7 @@ private:
 	};
 	static __initializer __i;
 };
+
+} /* namespace */
 
 #endif // ndef ECSYNCLOG_INCLUDED

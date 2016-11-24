@@ -47,6 +47,8 @@ DEALINGS IN THE SOFTWARE.
 
 #include "core.h"
 
+namespace KC {
+
 namespace utf8 {
     namespace unchecked {
         template <typename octet_iterator>
@@ -238,6 +240,7 @@ namespace utf8 {
     } // namespace utf8::unchecked
 } // namespace utf8 
 
+} /* namespace */
 
 #endif // header guard
 

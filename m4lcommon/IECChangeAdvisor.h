@@ -20,6 +20,8 @@
 
 #include "IECChangeAdviseSink.h"
 
+namespace KC {
+
 /**
  * IECChangeAdvisor: Interface for registering change notifications on folders.
  */
@@ -94,5 +96,7 @@ public:
 	 */
 	virtual HRESULT __stdcall UpdateSyncState(ULONG ulSyncId, ULONG ulChangeId) = 0;
 };
+
+} /* namespace */
 
 #endif

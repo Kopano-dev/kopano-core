@@ -25,6 +25,8 @@
 #include <list>
 #include <kopano/zcdefs.h>
 
+namespace KC {
+
 class ECTask;
 
 /**
@@ -196,5 +198,7 @@ private:
 	_Fn m_fn;
 	_At m_arg;
 };
+
+} /* namespace */
 
 #endif // ndef ECThreadPool_INCLUDED

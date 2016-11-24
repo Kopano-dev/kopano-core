@@ -21,6 +21,8 @@
 
 #include <mapix.h>
 
+namespace KC {
+
 HRESULT HrDecodeSyncStateStream(LPSTREAM lpStream, ULONG *lpulSyncId, ULONG *lpulChangeId, PROCESSEDCHANGESSET *lpSetProcessChanged)
 {
 	HRESULT		hr = hrSuccess;
@@ -185,3 +187,5 @@ exit:
 
 	return hr;
 }
+
+} /* namespace */

@@ -23,6 +23,8 @@
 
 #include <string>
 
+namespace KC {
+
 typedef void *			DB_RESULT;	
 typedef char **			DB_ROW;	
 typedef unsigned long *	DB_LENGTHS;
@@ -118,6 +120,6 @@ public:
 	friend ECRESULT UpdateDatabaseConvertToUnicode(ECDatabase *lpDatabase);
 };
 
-
+} /* namespace */
 
 #endif // ECDATABASE_H

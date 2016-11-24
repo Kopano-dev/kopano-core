@@ -42,6 +42,8 @@
 
 using namespace std;
 
+namespace KC {
+
 static const char *const ll_names[] = {
 	" notice",
 	"crit   ",
@@ -1064,3 +1066,5 @@ void ec_log_bt(unsigned int level, const char *fmt, ...)
 		notified = true;
 	}
 }
+
+} /* namespace */

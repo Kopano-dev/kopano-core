@@ -21,6 +21,8 @@
 #include <kopano/lockhelper.hpp>
 #include <kopano/ustringutil.h>
 
+namespace KC {
+
 bool operator!=(const sObjectTableKey& a, const sObjectTableKey& b)
 {
 	return !(a.ulObjId==b.ulObjId && a.ulOrderId == b.ulOrderId);
@@ -1452,3 +1454,5 @@ exit:
     lpCurrent = lpCursor;
     return er;
 }
+
+} /* namespace */

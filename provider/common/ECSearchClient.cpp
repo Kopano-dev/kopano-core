@@ -25,6 +25,8 @@
 
 #include "ECSearchClient.h"
 
+namespace KC {
+
 ECSearchClient::ECSearchClient(const char *szIndexerPath, unsigned int ulTimeOut)
 	: ECChannelClient(szIndexerPath, ":;")
 {
@@ -203,3 +205,4 @@ ECRESULT ECSearchClient::SyncRun()
 	return DoCmd("SYNCRUN", lstVoid);
 }
 
+} /* namespace */

@@ -25,10 +25,13 @@
 #include <mapidefs.h>
 
 struct soap;
-class convert_context;
 struct user;
 struct group;
 struct company;
+
+namespace KC {
+
+class convert_context;
 
 /**
  * This class is responsible of converting string encodings from
@@ -137,5 +140,7 @@ inline ULONG ECStringCompat::string_prop_type() const
 {
 	return m_fUnicode ? PT_UNICODE : PT_STRING8;
 }
+
+} /* namespace */
 
 #endif // ndef ECSTRINGCOMPAT_H

@@ -30,6 +30,8 @@
 #include "freebusy.h"
 #include "ECFBBlockList.h"
 
+namespace KC {
+
 HRESULT GetFreeBusyFolder(IMsgStore* lpPublicStore, IMAPIFolder** lppFreeBusyFolder);
 HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IMsgStore* lpUserStore, ULONG cbUserEntryID, LPENTRYID lpUserEntryID, BOOL bCreateIfNotExist, IMessage** lppMessage);
 HRESULT ParseFBEvents(FBStatus fbSts, LPSPropValue lpMonth, LPSPropValue lpEvent, ECFBBlockList* lpfbBlockList);
@@ -45,6 +47,8 @@ std::string GetFbStatus(FBStatus &fbstatus);
 
 HRESULT HrCopyFBBlockSet(OccrInfo *lpDest, OccrInfo *lpSrc, ULONG ulcValues);
 extern HRESULT HrAddFBBlock(const OccrInfo &sOccrInfo, OccrInfo **lppsOccrInfo, ULONG *lpcValues);
+
+} /* namespace */
 
 #endif // ECFREEBUSYUTIL_H
 

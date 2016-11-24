@@ -31,6 +31,8 @@
 
 using namespace std;
 
+namespace KC {
+
 /* See m4lcommon/Util.cpp for twcmp */
 template<typename T> static int twcmp(T a, T b)
 {
@@ -2455,3 +2457,4 @@ const char *GetSourceAddr(struct soap *soap)
 		return soap->host;
 }
 
+} /* namespace */

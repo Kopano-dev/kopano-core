@@ -28,6 +28,8 @@
 #include <kopano/ECDefs.h>
 #include <kopano/pcuser.hpp>
 
+namespace KC {
+
 class LDAPUserPlugin;
 
 /**
@@ -137,5 +139,7 @@ public:
 };
 
 /** @} */
+
+} /* namespace */
 
 #endif /* LDAPCACHE_H */

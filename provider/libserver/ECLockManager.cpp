@@ -22,6 +22,8 @@
 
 using namespace std;
 
+namespace KC {
+
 class ECObjectLockImpl {
 public:
 	ECObjectLockImpl(ECLockManagerPtr ptrLockManager, unsigned int ulObjId, ECSESSIONID sessionId);
@@ -125,3 +127,5 @@ bool ECLockManager::IsLocked(unsigned int ulObjId, ECSESSIONID *lpSessionId)
 
 	return i != m_mapLocks.end();
 }
+
+} /* namespace */

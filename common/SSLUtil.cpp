@@ -25,6 +25,8 @@
 #include <openssl/conf.h>
 #include <openssl/engine.h>
 
+namespace KC {
+
 static std::recursive_mutex *ssl_locks;
 
 static void ssl_lock(int mode, int n, const char *file, int line)
@@ -100,3 +102,5 @@ void ssl_random(bool b64bit, uint64_t *id)
 	if (!b64bit)
 		*id &= 0xFFFFFFFF;
 }
+
+} /* namespace */

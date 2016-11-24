@@ -41,6 +41,7 @@
 #include <kopano/auto_free.h>
 
 using namespace std;
+using namespace KC;
 
 #include "LDAPUserPlugin.h"
 #include "ldappasswords.h"
@@ -78,6 +79,8 @@ void ber_auto_free(BerElement *ber)
 {
 	ber_free(ber, 0);
 }
+
+namespace KC {
 
 typedef auto_free<char, auto_free_dealloc<void*, void, ldap_memfree> >auto_free_ldap_attribute;
 typedef auto_free<BerElement, auto_free_dealloc<BerElement*, void, ber_auto_free> >auto_free_ldap_berelement;
@@ -3147,3 +3150,5 @@ void LDAPUserPlugin::removeAllObjects(objectid_t except)
 {
     throw notimplemented("removeAllObjects is not implemented in the LDAP user plugin.");
 }
+
+} /* namespace */

@@ -23,6 +23,10 @@
 
 #include "ECGenericObjectTable.h"
 
+struct soap;
+
+namespace KC {
+
 /*
  * This object is an actual table, with a cursor in-memory. We also keep the complete
  * keyset of the table in memory, so seeks and queries can be really fast. Also, we
@@ -82,5 +86,6 @@ private:
 ECRESULT GetDeferredTableUpdates(ECDatabase *lpDatabase, unsigned int ulFolderId, std::list<unsigned int> *lpDeferred);
 ECRESULT GetDeferredTableUpdates(ECDatabase *lpDatabase, ECObjectTableList* lpRowList, std::list<unsigned int> *lpDeferred);
 
+} /* namespace */
 
 #endif // OBJECTTABLE_H

@@ -40,6 +40,8 @@
 #define hrSuccess 0
 #endif
 
+namespace KC {
+
 /*
 To generate a RSA key:
 openssl genrsa -out privkey.pem 2048
@@ -1004,3 +1006,5 @@ exit:
 
 	return hr;
 }
+
+} /* namespace */

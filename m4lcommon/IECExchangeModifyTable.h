@@ -21,9 +21,13 @@
 #include <mapidefs.h>
 #include <edkmdb.h>
 
+namespace KC {
+
 class IECExchangeModifyTable : public IExchangeModifyTable {
 	public:
 		virtual HRESULT __stdcall DisablePushToServer() = 0;
 };
+
+} /* namespace */
 
 #endif

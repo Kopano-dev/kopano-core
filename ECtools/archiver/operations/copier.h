@@ -29,9 +29,11 @@
 #include <map>
 #include <boost/smart_ptr.hpp>
 
+namespace KC {
+
 class ECConfig;
 
-namespace za { namespace operations {
+namespace operations {
 
 /**
  * Performs the copy part of the archive operation.
@@ -219,6 +221,6 @@ private:
 	InstanceIdMapperPtr m_ptrMapper;
 };
 
-}} // namespaces
+}} /* namespace */
 
 #endif // ndef copier_INCLUDED

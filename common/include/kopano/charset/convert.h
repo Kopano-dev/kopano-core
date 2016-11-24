@@ -29,6 +29,8 @@
 #include <iconv.h>
 #include <kopano/charset/traits.h>
 
+namespace KC {
+
 /**
  * @brief	Exception class
  */
@@ -839,5 +841,7 @@ HRESULT TryConvert(convert_context &context, const _From_Type &_from, size_t cbB
 }
 
 #endif // MAPIDEFS_H
+
+} /* namespace */
 
 #endif // ndef convert_INCLUDED

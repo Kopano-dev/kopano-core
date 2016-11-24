@@ -21,7 +21,11 @@
 #include <string>
 #include <vmime/dateTime.hpp>
 
+namespace KC {
+
 FILETIME vmimeDatetimeToFiletime(vmime::datetime dt);
 vmime::datetime FiletimeTovmimeDatetime(FILETIME ft);
+
+} /* namespace */
 
 #endif

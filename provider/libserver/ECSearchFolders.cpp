@@ -37,6 +37,8 @@
 
 #include "ECSearchClient.h"
 
+namespace KC {
+
 struct THREADINFO {
     SEARCHFOLDER 	*lpFolder;
     ECSearchFolders *lpSearchFolders;
@@ -1927,3 +1929,5 @@ ECRESULT ECSearchFolders::GetStats(sSearchFolderStats &sStats)
 
 	return erSuccess;
 }
+
+} /* namespace */

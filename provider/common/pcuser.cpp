@@ -22,6 +22,8 @@
 
 #include <sstream>
 
+namespace KC {
+
 template<int(*fnCmp)(const char*, const char*)>
 class StringComparer {
 public:
@@ -370,3 +372,5 @@ std::string serverdetails_t::GetSslPath() const {
 const std::string &serverdetails_t::GetProxyPath() const {
 	return m_strProxyPath;
 }
+
+} /* namespace */

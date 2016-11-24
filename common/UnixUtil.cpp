@@ -34,6 +34,8 @@
 #include <string>
 using namespace std;
 
+namespace KC {
+
 static int unix_runpath(ECConfig *conf)
 {
 	const char *path = conf->GetSetting("running_path");
@@ -398,3 +400,5 @@ bool unix_system(const char *lpszLogName, const char *lpszCommand, const char **
 	
 	return rv;
 }
+
+} /* namespace */

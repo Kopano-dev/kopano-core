@@ -20,6 +20,8 @@
 #include <mapix.h>
 #include <kopano/stringutil.h>
 
+namespace KC {
+
 /**
  * Check if UID is of outlook format.
  *
@@ -168,3 +170,5 @@ HRESULT HrMakeBinUidFromICalUid(const std::string &strUid, std::string *lpStrBin
 
 	return hr;
 }
+
+} /* namespace */

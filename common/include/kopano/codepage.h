@@ -20,11 +20,11 @@
 
 #include <kopano/zcdefs.h>
 
-extern "C" {
+namespace KC {
 
 extern _kc_export HRESULT HrGetCharsetByCP(ULONG cp, const char **ret);
 extern _kc_export HRESULT HrGetCPByCharset(const char *cset, ULONG *cp);
 
-}
+} /* namespace */
 
 #endif

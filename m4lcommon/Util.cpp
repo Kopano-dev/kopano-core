@@ -54,6 +54,8 @@ using namespace std;
 
 #include <kopano/ECGetText.h>
 
+namespace KC {
+
 // HACK: prototypes may differ depending on the compiler and/or system (the
 // second parameter may or may not be 'const'). This redeclaration is a hack
 // to have a common prototype "iconv_cast".
@@ -4183,3 +4185,5 @@ HRESULT Util::ExtractAdditionalRenEntryID(LPSPropValue lpPropBlob, unsigned shor
 	}
 	return hrSuccess;
 }
+
+} /* namespace */

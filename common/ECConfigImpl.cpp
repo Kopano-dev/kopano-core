@@ -33,6 +33,8 @@ using namespace std;
 #include <boost/filesystem.hpp>
 namespace fs = boost::filesystem;
 
+namespace KC {
+
 const directive_t ECConfigImpl::s_sDirectives[] = {
 	{ "include",	&ECConfigImpl::HandleInclude },
 	{ "propmap",	&ECConfigImpl::HandlePropMap },
@@ -663,3 +665,5 @@ bool ECConfigImpl::HasErrors() {
 
 	return !errors.empty();
 }
+
+} /* namespace */

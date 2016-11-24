@@ -26,6 +26,8 @@
 #include "StatsClient.h"
 #include "TmpPath.h"
 
+namespace KC {
+
 static void submitThreadDo(void *p)
 {
 	StatsClient *const psc = (StatsClient *)p;
@@ -205,3 +207,5 @@ void StatsClient::countAdd(const std::string & key, const std::string & key_sub,
 	else
 		int64Iterator -> second += n;
 }
+
+} /* namespace */

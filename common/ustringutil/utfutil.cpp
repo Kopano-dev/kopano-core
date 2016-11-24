@@ -21,6 +21,8 @@
 #include <unicode/ustring.h>
 #include <kopano/charset/convert.h>
 
+namespace KC {
+
 UnicodeString WCHARToUnicode(const wchar_t *sz)
 {
 	return UTF32ToUnicode((const UChar32 *)sz);
@@ -37,3 +39,5 @@ UnicodeString StringToUnicode(const char *sz)
 
 	return UnicodeString((UChar *)strUTF16.data(), strUTF16.length() / 2);
 }
+
+} /* namespace */

@@ -20,6 +20,8 @@
 
 #include <kopano/zcdefs.h>
 
+namespace KC {
+
 struct delivery_options {
 	bool use_received_date;			// Use the 'received' date instead of the current date as delivery date
 	bool mark_as_read;				// Deliver the message 'read' instead of unread
@@ -52,11 +54,9 @@ struct sending_options {
 	bool always_expand_distr_list;
 };
 
-extern "C" {
-
 extern _kc_export void imopt_default_delivery_options(delivery_options *);
 extern _kc_export void imopt_default_sending_options(sending_options *);
 
-}
+} /* namespace */
 
 #endif

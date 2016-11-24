@@ -30,7 +30,9 @@
 #include <mapi.h>
 #include <mapispi.h>
 
+namespace KC {
 class convert_context;
+}
 
 class WSMAPIPropStorage _kc_final : public ECUnknown {
 protected:

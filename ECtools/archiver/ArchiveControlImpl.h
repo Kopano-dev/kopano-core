@@ -23,10 +23,11 @@
 #include "operations/operations_fwd.h"
 #include "helpers/ArchiveHelper.h"
 
+namespace KC {
+
 class ECConfig;
 class ECLogger;
 class ECArchiverLogger;
-
 
 /**
  * This class is the entry point to the archiving system. It's responsible for executing the actual archive
@@ -139,7 +140,7 @@ private:
 	HRESULT DoArchive(const tstring& strUser);
 	HRESULT DoCleanup(const tstring& strUser);
 	
-	HRESULT ProcessFolder(MAPIFolderPtr &ptrFolder, za::operations::ArchiveOperationPtr ptrArchiveOperation);
+	HRESULT ProcessFolder(MAPIFolderPtr &ptrFolder, operations::ArchiveOperationPtr ptrArchiveOperation);
 
 	HRESULT ProcessAll(bool bLocalOnly, fnProcess_t fnProcess);
 
@@ -149,12 +150,12 @@ private:
 	HRESULT CleanupArchive(const SObjectEntry &archiveEntry, IMsgStore* lpUserStore, LPSRestriction lpRestriction);
 	HRESULT GetAllReferences(LPMDB lpUserStore, LPGUID lpArchiveGuid, EntryIDSet *lpMsgReferences);
 	HRESULT AppendAllReferences(LPMAPIFOLDER lpRoot, LPGUID lpArchiveGuid, EntryIDSet *lpMsgReferences);
-	HRESULT GetAllEntries(za::helpers::ArchiveHelperPtr ptrArchiveHelper, LPMAPIFOLDER lpArchive, LPSRestriction lpRestriction, EntryIDSet *lpEntries);
+	HRESULT GetAllEntries(helpers::ArchiveHelperPtr, LPMAPIFOLDER arc, LPSRestriction, EntryIDSet *entries);
 	HRESULT AppendAllEntries(LPMAPIFOLDER lpArchive, LPSRestriction lpRestriction, EntryIDSet *lpMsgEntries);
-	HRESULT CleanupHierarchy(za::helpers::ArchiveHelperPtr ptrArchiveHelper, LPMAPIFOLDER lpArchiveRoot, LPMDB lpUserStore);
+	HRESULT CleanupHierarchy(helpers::ArchiveHelperPtr, LPMAPIFOLDER arc_root, LPMDB user_store);
 
-	HRESULT MoveAndDetachMessages(za::helpers::ArchiveHelperPtr ptrArchiveHelper, LPMAPIFOLDER lpArchiveFolder, const EntryIDSet &setEIDs);
-	HRESULT MoveAndDetachFolder(za::helpers::ArchiveHelperPtr ptrArchiveHelper, LPMAPIFOLDER lpArchiveFolder);
+	HRESULT MoveAndDetachMessages(helpers::ArchiveHelperPtr, LPMAPIFOLDER arc_folder, const EntryIDSet &);
+	HRESULT MoveAndDetachFolder(helpers::ArchiveHelperPtr, LPMAPIFOLDER arc_folder);
 
 	HRESULT DeleteMessages(LPMAPIFOLDER lpArchiveFolder, const EntryIDSet &setEIDs);
 	HRESULT DeleteFolder(LPMAPIFOLDER lpArchiveFolder);
@@ -195,5 +196,7 @@ private:
 	PROPMAP_DEF_NAMED_ID(DIRTY)
 
 };
+
+} /* namespace */
 
 #endif // !defined ARCHIVECONTROLIMPL_H_INCLUDED

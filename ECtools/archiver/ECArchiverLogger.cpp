@@ -18,6 +18,8 @@
 #include <kopano/platform.h>
 #include "ECArchiverLogger.h"
 
+namespace KC {
+
 ECArchiverLogger::ECArchiverLogger(ECLogger *lpLogger)
 : ECLogger(0)
 , m_lpLogger(lpLogger)
@@ -131,3 +133,5 @@ ScopedFolderLogging::~ScopedFolderLogging()
 {
 	m_lpLogger->SetFolder(m_strPrevFolder);
 }
+
+} /* namespace */

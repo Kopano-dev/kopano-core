@@ -2,6 +2,8 @@
 #include <string.h>
 #include <kopano/my_getopt.h>
 
+namespace KC {
+
 int my_getopt_long_permissive(int argc, char **argv, const char *shortopts,
     const struct option *longopts, int *longind)
 {
@@ -45,3 +47,5 @@ int my_getopt_long_permissive(int argc, char **argv, const char *shortopts,
 
 	return c;
 }
+
+} /* namespace */

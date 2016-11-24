@@ -21,6 +21,8 @@
 #include <kopano/platform.h>
 #include <kopano/kcodes.h>
 
+namespace KC {
+
 /**
  * Authenticate a user through a PAM service
  * @param szPamService The PAM service name which exists in /etc/pam.d/
@@ -30,5 +32,7 @@
  * @return erSuccess, KCERR_LOGON_FAILURE or other error
  */
 ECRESULT ECPAMAuthenticateUser(const char* szPamService, const std::string &strUsername, const std::string &strPassword, std::string *lpstrError);
+
+} /* namespace */
 
 #endif

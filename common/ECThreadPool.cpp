@@ -23,6 +23,8 @@
 #include <algorithm>
 #include <sys/time.h> /* gettimeofday */
 
+namespace KC {
+
 /**
  * Construct an ECThreadPool instance.
  * @param[in]	ulThreadCount	The amount of worker hreads to create.
@@ -275,3 +277,5 @@ bool ECWaitableTask::wait(unsigned timeout, unsigned waitMask) const
 	}
 	return bResult;
 }
+
+} /* namespace */

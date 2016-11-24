@@ -39,7 +39,10 @@
 #include "ics_client.hpp"
 #include <ECCache.h>
 
+namespace KC {
 class utf8string;
+}
+
 class WSMessageStreamExporter;
 class WSMessageStreamImporter;
 

@@ -23,7 +23,11 @@
 #include <list>
 #include <string>
 
+namespace KC {
+
 HRESULT HrGetFbInfo(icalcomponent *lpFbical, time_t *tStart, time_t *tEnd, std::string *lpstrUID, std::list<std::string> *lstUsers);
 HRESULT HrFbBlock2ICal(FBBlock_1 *lpsFbblk, LONG ulBlocks, time_t tStart, time_t tEnd, const std::string &strOrganiser, const std::string &strUser, const std::string &strUID, icalcomponent **lpicFbComponent);
+
+} /* namespace */
 
 #endif

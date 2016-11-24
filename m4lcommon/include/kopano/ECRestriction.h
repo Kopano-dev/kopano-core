@@ -26,6 +26,8 @@
 
 #include <list>
 
+namespace KC {
+
 /*
  * Caution. Since ECXXRestriction(ECXXRestriction &&) will be defined in
  * classes for the purpose of clone_and_move, that constructor cannot be used
@@ -421,5 +423,7 @@ private:
 private:
 	RawResPtr	m_ptrRestriction;
 };
+
+} /* namespace */
 
 #endif // ndef ECRestrictionBuilder_INCLUDED

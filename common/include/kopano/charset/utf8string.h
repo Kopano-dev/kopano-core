@@ -24,6 +24,8 @@
 
 #include <kopano/charset/traits.h>
 
+namespace KC {
+
 /**
  * @brief	This class represents an UTF-8 string.
  *
@@ -122,5 +124,6 @@ public:
 	}
 };
 
+} /* namespace */
 
 #endif //ndef utf8string_INCLUDED

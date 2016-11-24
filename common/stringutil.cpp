@@ -22,6 +22,8 @@
 
 #include <kopano/ECIConv.h>
 
+namespace KC {
+
 std::string stringify(unsigned int x, bool usehex, bool _signed) {
 	char szBuff[33];
 
@@ -625,3 +627,5 @@ char *kc_strlcpy(char *dest, const char *src, size_t n)
 	dest[n-1] = '\0';
 	return dest;
 }
+
+} /* namespace */

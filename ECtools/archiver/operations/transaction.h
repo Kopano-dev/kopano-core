@@ -26,7 +26,7 @@
 
 #include <kopano/mapi_ptr.h>
 
-namespace za { namespace operations {
+namespace KC { namespace operations {
 
 class Transaction _kc_final {
 public:
@@ -76,6 +76,6 @@ private:
 	MessageList	m_lstDelete;
 };
 
-}} // namespace operations, za
+}} /* namespace */
 
 #endif // !defined TRANSACTION_INCLUDED

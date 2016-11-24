@@ -28,6 +28,8 @@
 #include <mapix.h>
 #include <kopano/ArchiveControl.h>
 
+namespace KC {
+
 class ECLogger;
 
 struct ArchiveEntry {
@@ -70,5 +72,7 @@ protected:
 };
 
 typedef ArchiveManage::auto_ptr_type	ArchiveManagePtr;
+
+} /* namespace */
 
 #endif // !defined ARCHIVEMANAGE_H_INCLUDED

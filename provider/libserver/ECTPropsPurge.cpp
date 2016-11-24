@@ -28,6 +28,8 @@
 
 #include "ECTPropsPurge.h"
 
+namespace KC {
+
 extern ECStatsCollector*     g_lpStatsCollector;
 
 ECTPropsPurge::ECTPropsPurge(ECConfig *lpConfig, ECDatabaseFactory *lpDatabaseFactory)
@@ -410,3 +412,5 @@ ECRESULT ECTPropsPurge::NormalizeDeferredUpdates(ECSession *lpSession, ECDatabas
 	}
 	return erSuccess;
 }
+
+} /* namespace */

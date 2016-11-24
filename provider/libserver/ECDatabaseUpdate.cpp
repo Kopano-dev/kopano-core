@@ -44,6 +44,8 @@
 #include <kopano/mapiext.h>
 #include <edkmdb.h>
 
+namespace KC {
+
 bool searchfolder_restart_required; //HACK for rebuild the searchfolders with an upgrade
 
 /*
@@ -2191,3 +2193,5 @@ ECRESULT UpdateABChangesTbl(ECDatabase *db)
 		"alter table `abchanges` "
 		"modify change_type int(11) unsigned not null default 0");
 }
+
+} /* namespace */

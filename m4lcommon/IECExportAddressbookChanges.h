@@ -18,6 +18,8 @@
 #ifndef IECEXPORTADDRESSBOOKCHANGES_H
 #define IECEXPORTADDRESSBOOKCHANGES_H
 
+namespace KC {
+
 class IECImportAddressbookChanges;
 
 class IECExportAddressbookChanges : public IUnknown {
@@ -26,5 +28,7 @@ public:
 	virtual HRESULT __stdcall Synchronize(ULONG *lpulSteps, ULONG *lpulProgress) = 0;
 	virtual HRESULT __stdcall UpdateState(LPSTREAM lpState) = 0;
 };
+
+} /* namespace */
 
 #endif

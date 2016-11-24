@@ -26,6 +26,8 @@
 #include "freebusy.h"
 #include <kopano/CommonUtil.h>
 
+namespace KC {
+
 class ECLogger;
 
 struct TSARRAY {
@@ -34,7 +36,7 @@ struct TSARRAY {
 	ULONG ulStatus;
 };
 
-extern "C" _kc_export HRESULT HrPublishDefaultCalendar(IMAPISession *, IMsgStore *, time_t start, ULONG months);
+extern _kc_export HRESULT HrPublishDefaultCalendar(IMAPISession *, IMsgStore *, time_t start, ULONG months);
 
 class PublishFreeBusy _kc_final {
 public:
@@ -64,5 +66,7 @@ private:
 	PROPMAP_DEF_NAMED_ID (APPT_TIMEZONESTRUCT)
 
 };
+
+} /* namespace */
 
 #endif //_PublishFreeBusy_H_

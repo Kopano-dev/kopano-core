@@ -31,6 +31,8 @@
 #include <kopano/Util.h>
 #include <kopano/stringutil.h>
 
+namespace KC {
+
 /**
  * Generates ical VALARM component from reminderbefore minutes.
  * Mapi -> Ical conversion
@@ -128,3 +130,5 @@ HRESULT HrParseVAlarm(icalcomponent *lpicAlarm, LONG *lplRemindBefore, time_t *l
 
 	return hr;
 }
+
+} /* namespace */

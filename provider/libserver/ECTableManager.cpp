@@ -46,6 +46,8 @@
 #include <kopano/mapiext.h>
 #include <edkmdb.h>
 
+namespace KC {
+
 void FreeRowSet(struct rowSet *lpRowSet, bool bBasePointerDel);
 
 unsigned int sContentsProps[] = { PR_ENTRYID, PR_DISPLAY_NAME, PR_MESSAGE_FLAGS, PR_SUBJECT, PR_STORE_ENTRYID, PR_STORE_RECORD_KEY, PR_STORE_SUPPORT_MASK, PR_INSTANCE_KEY, PR_RECORD_KEY, PR_ACCESS, PR_ACCESS_LEVEL };
@@ -667,3 +669,5 @@ ECRESULT ECTableManager::GetStats(unsigned int *lpulTables, unsigned int *lpulOb
 	*lpulObjectSize = ulSize;
 	return erSuccess;
 }
+
+} /* namespace */

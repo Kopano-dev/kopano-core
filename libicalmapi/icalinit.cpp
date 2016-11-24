@@ -24,6 +24,8 @@
  */
 #include <libical/ical.h>
 
+namespace KC {
+
 class __libicalmapi_init {
 public:
 	__libicalmapi_init() {
@@ -34,3 +36,5 @@ public:
 		icaltimezone_free_builtin_timezones();
 	}
 }  __libicalmapi_init;
+
+} /* namespace */

@@ -21,6 +21,8 @@
 #include <kopano/zcdefs.h>
 #include "vconverter.h"
 
+namespace KC {
+
 class VTodoConverter _kc_final : public VConverter {
 public:
 	/* lpNamedProps must be the GetIDsFromNames() of the array in nameids.h */
@@ -39,5 +41,7 @@ private:
 	HRESULT HrSetTimeProperties(LPSPropValue lpMsgProps, ULONG ulMsgProps, icaltimezone *lpicTZinfo, const std::string &strTZid, icalcomponent *lpEvent);
 	HRESULT HrSetItemSpecifics(ULONG ulProps, LPSPropValue lpProps, icalcomponent *lpicEvent);
 };
+
+} /* namespace */
 
 #endif

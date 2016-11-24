@@ -26,6 +26,8 @@
 #include <mapidefs.h>
 #include <libical/ical.h>
 
+namespace KC {
+
 class VConverter {
 public:
 	/* lpNamedProps must be the GetIDsFromNames() of the array in nameids.h */
@@ -98,5 +100,7 @@ protected:
 
 HRESULT HrCopyString(convert_context& converter, std::string& strCharset, void *base, const char* lpszSrc, WCHAR** lppszDst);
 HRESULT HrCopyString(void *base, const WCHAR* lpwszSrc, WCHAR** lppwszDst);
+
+} /* namespace */
 
 #endif

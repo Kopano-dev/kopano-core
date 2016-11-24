@@ -21,6 +21,8 @@
 #include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
 
+namespace KC {
+
 /* The ECMemBlock class is basically a random-access block of data that can be
  * read from and written to, expanded and contracted, and has a Commit and Revert
  * function to save and reload data.
@@ -100,5 +102,7 @@ private:
 	BOOL			fDirty;
 	ULONG			ulFlags;
 };
+
+} /* namespace */
 
 #endif // ECMEMSTREAM_H

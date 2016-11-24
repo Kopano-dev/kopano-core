@@ -20,6 +20,8 @@
 
 #include <mapidefs.h>
 
+namespace KC {
+
 // This is our special spooler interface
 
 class IECSpooler : public IUnknown {
@@ -30,5 +32,7 @@ public:
 	// Removes a message from the master outgoing table
 	virtual HRESULT __stdcall DeleteFromMasterOutgoingTable(ULONG cbEntryID, const ENTRYID *lpEntryID, ULONG ulFlags) = 0;
 };
+
+} /* namespace */
 
 #endif

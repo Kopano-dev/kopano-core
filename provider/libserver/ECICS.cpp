@@ -36,6 +36,8 @@
 #include "soapH.h"
 #include "SOAPUtils.h"
 
+namespace KC {
+
 extern ECSessionManager*	g_lpSessionManager;
 
 struct ABChangeRecord {
@@ -1365,3 +1367,5 @@ exit:
 		
 	return er;
 }
+
+} /* namespace */

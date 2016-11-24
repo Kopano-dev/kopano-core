@@ -34,9 +34,9 @@
 
 #include <algorithm>
 using namespace std;
-using namespace za::helpers;
+using namespace KC::helpers;
 
-namespace za { namespace operations {
+namespace KC { namespace operations {
 
 /**
  * Constructor.
@@ -212,4 +212,4 @@ HRESULT ArchiveOperationBaseEx::ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps
 	return DoProcessEntry(cProps, lpProps);
 }
 
-}} // namespaces 
+}} /* namespace */

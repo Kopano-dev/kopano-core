@@ -23,6 +23,8 @@
 #include <vmime/utility/stream.hpp>
 #include <vmime/generationContext.hpp>
 
+namespace KC {
+
 /**
  * We are adding a bit of functionality to vmime::message here for S/MIME support.
  *
@@ -53,5 +55,7 @@ public:
 private:
     std::string m_body;
 };
+
+} /* namespace */
 
 #endif

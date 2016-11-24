@@ -22,6 +22,8 @@
 #include <mutex>
 #include <kopano/ECConfig.h>
 
+namespace KC {
+
 class ECStatsCollector;
 
 /**
@@ -178,5 +180,7 @@ private:
 	 */
 	char **m_lpszDirectives;
 };
+
+} /* namespace */
 
 #endif

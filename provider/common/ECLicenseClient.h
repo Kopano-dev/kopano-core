@@ -25,6 +25,8 @@
 #include "ECChannelClient.h"
 #include <kopano/kcodes.h>
 
+namespace KC {
+
 class _kc_export ECLicenseClient _kc_final {
 public:
 	_kc_hidden ECLicenseClient(const char * = nullptr, unsigned int = 0) {}
@@ -38,5 +40,7 @@ public:
 private:
 	_kc_hidden ECRESULT ServiceTypeToServiceTypeString(unsigned int type, std::string &tname);
 };
+
+} /* namespace */
 
 #endif

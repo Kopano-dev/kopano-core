@@ -47,6 +47,8 @@
 #include "ECDBDef.h"
 #include "cmdutil.hpp"
 
+namespace KC {
+
 #define MAX_PARENT_LIMIT 64
 
 /** 
@@ -1511,3 +1513,4 @@ size_t ECSecurity::GetObjectSize(void) const
 	return ulSize;
 }
 
+} /* namespace */

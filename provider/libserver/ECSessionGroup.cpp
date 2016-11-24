@@ -28,6 +28,8 @@
 #include "ECSessionManager.h"
 #include "SOAPUtils.h"
 
+namespace KC {
+
 class FindChangeAdvise {
 public:
 	FindChangeAdvise(ECSESSIONID ulSession, unsigned int ulConnection)
@@ -461,3 +463,5 @@ size_t ECSessionGroup::GetObjectSize(void)
 	l_sub.unlock();
 	return ulSize;
 }
+
+} /* namespace */

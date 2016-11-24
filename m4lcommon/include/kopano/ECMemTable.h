@@ -29,6 +29,8 @@
 #include <kopano/ECUnknown.h>
 #include <kopano/ustringutil.h>
 
+namespace KC {
+
 struct ECTableEntry {
 	LPSPropValue	lpsPropVal;
 	BOOL			fDeleted;
@@ -155,5 +157,6 @@ private:
 	_kc_hidden virtual HRESULT UpdateSortOrRestrict(void);
 };
 
+} /* namespace */
 
 #endif // ECMemTable_H

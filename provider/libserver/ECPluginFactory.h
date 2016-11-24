@@ -24,6 +24,8 @@
 #include <kopano/kcodes.h>
 #include "plugin.h"
 
+namespace KC {
+
 class ECConfig;
 class ECPluginSharedData;
 class ECStatsCollector;
@@ -46,4 +48,7 @@ private:
 };
 
 extern ECRESULT GetThreadLocalPlugin(ECPluginFactory *lpPluginFactory, UserPlugin **lppPlugin);
+
+} /* namespace */
+
 #endif

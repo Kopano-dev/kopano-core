@@ -21,6 +21,8 @@
 
 #include "ECEnumFBBlock.h"
 
+namespace KC {
+
 ECFreeBusyData::ECFreeBusyData(void)
 {
 	m_rtmStart = 0;
@@ -195,3 +197,5 @@ DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusyData, FreeBusyData, InterSect, (void *, lpDa
 DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusyData, FreeBusyData, SetFBRange, (LONG, rtmStart), (LONG, rtmEnd))
 DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusyData, FreeBusyData, NextFBAppt, (void *, lpData1), (ULONG, ulA), (void *, lpData2), (ULONG, ulB), (void *, lpData3), (void *, lpData4))
 DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusyData, FreeBusyData, GetFBPublishRange, (LONG *, prtmStart), (LONG *, prtmEnd))
+
+} /* namespace */

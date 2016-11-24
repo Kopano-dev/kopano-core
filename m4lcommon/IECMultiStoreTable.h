@@ -24,10 +24,14 @@
 
 #include <kopano/ECDefs.h>
 
+namespace KC {
+
 class IECMultiStoreTable : public IUnknown {
 public:
 	/* ulFlags is currently unused */
 	virtual HRESULT __stdcall OpenMultiStoreTable(LPENTRYLIST lpMsgList, ULONG ulFlags, LPMAPITABLE *lppTable) = 0;
 };
+
+} /* namespace */
 
 #endif

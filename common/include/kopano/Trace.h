@@ -25,7 +25,7 @@
 #define TRACE_WARNING 3
 #define TRACE_INFO 4
 
-extern "C" {
+namespace KC {
 
 void TraceMapi(int time, const char *func, const char *format, ...);
 void TraceMapiLib(int time, const char *func, const char *format, ...);
@@ -37,7 +37,7 @@ void TraceECMapi(int time, const char *func, const char *format, ...);
 void TraceExt(int time, const char *func, const char *format, ...);
 extern _kc_export void TraceRelease(const char *fmt, ...);
 
-} /* extern "C" */
+} /* namespace */
 
 #define TRACE_RELEASE	TraceRelease
 

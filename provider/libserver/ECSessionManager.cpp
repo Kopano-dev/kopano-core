@@ -36,6 +36,8 @@
 #include <edkmdb.h>
 #include "logontime.hpp"
 
+namespace KC {
+
 ECSessionManager::ECSessionManager(ECConfig *lpConfig, ECLogger *lpAudit,
     bool bHostedKopano, bool bDistributedKopano)
 {
@@ -832,7 +834,7 @@ void* ECSessionManager::SessionCleaner(void *lpTmpSessionManager)
 		}
 
 		lstSessions.clear();
-		kcsrv::sync_logon_times(db);
+		KC::sync_logon_times(db);
 
 		// Wait for a terminate signal or return after a few minutes
 		ulock_normal l_exit(lpSessionManager->m_hExitMutex);
@@ -1614,3 +1616,5 @@ exit:
 		
 	return er;
 }
+
+} /* namespace */

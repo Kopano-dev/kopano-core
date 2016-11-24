@@ -33,6 +33,8 @@
 #include <set>
 #include <list>
 
+namespace KC {
+
 class ECSessionManager;
 
 struct SEARCHFOLDER _kc_final {
@@ -435,5 +437,7 @@ private:
     bool m_bExitThread;
 	bool m_bRunning;
 };
+
+} /* namespace */
 
 #endif

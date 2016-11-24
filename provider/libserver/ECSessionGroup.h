@@ -34,6 +34,10 @@
 #include <kopano/kcodes.h>
 #include <kopano/CommonUtil.h>
 
+struct soap;
+
+namespace KC {
+
 class ECSession;
 class ECSessionGroup;
 class ECSessionManager;
@@ -161,5 +165,7 @@ private:
 	ECSessionGroup(const ECSessionGroup &) = delete;
 	ECSessionGroup &operator=(const ECSessionGroup &) = delete;
 };
+
+} /* namespace */
 
 #endif // #ifndef ECSESSIONGROUP

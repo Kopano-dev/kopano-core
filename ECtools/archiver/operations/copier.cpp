@@ -34,10 +34,10 @@
 #include <list>
 #include <string>
 
-using namespace za::helpers;
 using namespace std;
+using namespace KC::helpers;
 
-namespace za { namespace operations {
+namespace KC { namespace operations {
 
 Copier::Helper::Helper(ArchiverSessionPtr ptrSession, ECLogger *lpLogger, const InstanceIdMapperPtr &ptrMapper, LPSPropTagArray lpExcludeProps, LPMAPIFOLDER lpFolder)
 : m_ptrSession(ptrSession)
@@ -1035,4 +1035,4 @@ HRESULT Copier::UpdateHistoryRefs(LPMESSAGE lpArchivedMsg, const SObjectEntry &r
 	return UpdateHistoryRefs(ptrMessage, refMsgEntry, ptrTransaction);
 }
 
-}} // namespaces 
+}} /* namespace */

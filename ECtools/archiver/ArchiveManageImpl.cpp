@@ -31,9 +31,11 @@
 #include "ArchiveStateUpdater.h"
 #include <kopano/ECRestriction.h>
 #include <kopano/MAPIErrors.h>
-    
-using namespace za::helpers;
 
+using namespace KC::helpers;
+
+namespace KC {
+    
 inline UserEntry ArchiveManageImpl::MakeUserEntry(const std::string &strUser) {
 	UserEntry entry;
 	entry.UserName = strUser;
@@ -846,3 +848,5 @@ HRESULT ArchiveManageImpl::GetRights(LPMAPIFOLDER lpFolder, unsigned *lpulRights
 	*lpulRights = ptrRows[0].lpProps[0].Value.ul;
 	return hrSuccess;
 }
+
+} /* namespace */

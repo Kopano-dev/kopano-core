@@ -26,6 +26,8 @@
 
 #include "soapH.h"
 
+namespace KC {
+
 // Copied from generated soapServer.cpp
 static int soapresponse(struct notifyResponse notifications, struct soap *soap)
 {
@@ -250,3 +252,5 @@ void *ECNotificationManager::Work() {
     
     return NULL;
 }
+
+} /* namespace */

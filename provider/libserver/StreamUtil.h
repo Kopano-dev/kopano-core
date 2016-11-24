@@ -30,6 +30,10 @@
 #include <cstdio>
 #endif
 
+struct soap;
+
+namespace KC {
+
 class ECFifoBuffer;
 class ECSerializer;
 class ECAttachmentStorage;
@@ -48,5 +52,7 @@ ECRESULT DeserializeProps(ECSession *lpecSession, ECDatabase *lpDatabase, ECAtta
 ECRESULT DeserializeObject(ECSession *lpecSession, ECDatabase *lpDatabase, ECAttachmentStorage *lpAttachmentStorage, LPCSTREAMCAPS lpStreamInfo, unsigned int ulObjId, unsigned int ulStoreId, GUID *lpsGuid, bool bNewItem, unsigned long long ullIMAP, ECSerializer *lpSource, struct propValArray **lppPropValArray);
 
 ECRESULT GetValidatedPropType(DB_ROW lpRow, unsigned int *lpulType);
+
+} /* namespace */
 
 #endif // ndef STREAMUTIL_H

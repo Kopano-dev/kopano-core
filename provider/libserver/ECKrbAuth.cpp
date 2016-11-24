@@ -17,10 +17,12 @@
 
 #include "ECKrbAuth.h"
 #ifndef HAVE_KRB5
+namespace KC {
 ECRESULT ECKrb5AuthenticateUser(const std::string &strUsername, const std::string &strPassword, std::string *lpstrError)
 {
 	*lpstrError = "Server is not compiled with kerberos support.";
 	return KCERR_NO_SUPPORT;
+}
 }
 #else
 // error_message() is wrongly typed in c++ context
@@ -28,6 +30,8 @@ extern "C" {
 #include <krb5.h>
 #include <et/com_err.h>
 }
+
+namespace KC {
 
 ECRESULT ECKrb5AuthenticateUser(const std::string &strUsername, const std::string &strPassword, std::string *lpstrError)
 {
@@ -89,4 +93,6 @@ exit:
 
 	return er;
 }
+
+} /* namespace */
 #endif

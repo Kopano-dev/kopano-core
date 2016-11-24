@@ -20,6 +20,8 @@
 
 #include <kopano/zcdefs.h>
 
+namespace KC {
+
 class _kc_export IStreamAdapter _kc_final : public IStream {
 public:
     IStreamAdapter(std::string& str);
@@ -43,6 +45,8 @@ private:
     size_t	m_pos;
     std::string& m_str;
 };
+
+} /* namespace */
 
 #endif
 

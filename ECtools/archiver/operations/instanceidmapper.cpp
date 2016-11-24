@@ -23,7 +23,7 @@
 #include <kopano/stringutil.h>
 #include <boost/utility.hpp>
 
-namespace za { namespace operations {
+namespace KC { namespace operations {
 
 HRESULT InstanceIdMapper::Create(ECLogger *lpLogger, ECConfig *lpConfig, InstanceIdMapperPtr *lpptrMapper)
 {
@@ -216,4 +216,4 @@ exit:
 	return kcerr_to_mapierr(er);
 }
 
-}} // namespaces operations, za
+}} /* namespace */

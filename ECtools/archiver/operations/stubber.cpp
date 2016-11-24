@@ -22,9 +22,9 @@
 #include <kopano/archiver-common.h>
 #include "helpers/MAPIPropHelper.h"
 #include <kopano/mapiext.h>
-using namespace za::helpers;
+using namespace KC::helpers;
 
-namespace za { namespace operations {
+namespace KC { namespace operations {
 
 /**
  * @param[in]	lpLogger
@@ -184,4 +184,4 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 	return hrSuccess;
 }
 
-}} // namespaces 
+}} /* namespace */

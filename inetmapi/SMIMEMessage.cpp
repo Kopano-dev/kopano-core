@@ -20,6 +20,8 @@
 #include <vmime/message.hpp>
 #include "SMIMEMessage.h"
 
+namespace KC {
+
 void SMIMEMessage::generateImpl(const vmime::generationContext &ctx,
     vmime::utility::outputStream &os, size_t curLinePos,
     size_t *newLinePos) const
@@ -44,3 +46,4 @@ void SMIMEMessage::setSMIMEBody(std::string &body)
     m_body = body;
 }
 
+} /* namespace */

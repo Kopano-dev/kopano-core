@@ -35,9 +35,9 @@
 #include <kopano/Util.h>
 #include <kopano/ECDebug.h>
 
-using namespace za::helpers;
-using namespace za::operations;
 using namespace std;
+using namespace KC::helpers;
+using namespace KC::operations;
 
 typedef std::unique_ptr<Copier::Helper> HelperPtr;
 

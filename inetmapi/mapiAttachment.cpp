@@ -21,6 +21,8 @@
 #include <vmime/contentTypeField.hpp>
 #include <vmime/messageId.hpp>
 
+namespace KC {
+
 mapiAttachment::mapiAttachment(vmime::shared_ptr<const vmime::contentHandler> data,
     const vmime::encoding &enc, const vmime::mediaType &type,
     const std::string &contentid, const vmime::word filename,
@@ -55,3 +57,4 @@ void mapiAttachment::generatePart(vmime::shared_ptr<vmime::bodyPart> part) const
 	}
 }
 
+} /* namespace */

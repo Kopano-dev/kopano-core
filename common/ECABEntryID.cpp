@@ -21,6 +21,8 @@
 
 #include <mapicode.h>
 
+namespace KC {
+
 /* This is a copy from the definition in kcore.hpp. It's for internal use only as we
  * don't want to expose the format of the entry id. */
 struct ABEID {
@@ -145,3 +147,5 @@ HRESULT GeneralizeEntryIdInPlace(unsigned int cbEntryId, ENTRYID *lpEntryId)
 	}
 	return hrSuccess;
 }
+
+} /* namespace */

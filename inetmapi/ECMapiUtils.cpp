@@ -23,6 +23,8 @@
 
 #include "ECMapiUtils.h"
 
+namespace KC {
+
 // Returns the FILETIME as GM-time
 FILETIME vmimeDatetimeToFiletime(vmime::datetime dt) {
 	FILETIME sFiletime;
@@ -55,3 +57,5 @@ vmime::datetime FiletimeTovmimeDatetime(FILETIME ft) {
 	gmtime_safe(&tmp, &convert);
 	return vmime::datetime(convert.tm_year + 1900, convert.tm_mon + 1, convert.tm_mday, convert.tm_hour, convert.tm_min, convert.tm_sec);
 }
+
+} /* namespace */

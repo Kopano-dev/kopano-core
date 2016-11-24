@@ -21,6 +21,10 @@
 #include <kopano/zcdefs.h>
 #include "ECStoreObjectTable.h"
 
+struct soap;
+
+namespace KC {
+
 class ECConvenientDepthObjectTable _kc_final : public ECStoreObjectTable {
 protected:
 	ECConvenientDepthObjectTable(ECSession *lpSession, unsigned int ulStoreId, GUID *lpGuid, unsigned int ulFolderId, unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale);
@@ -32,5 +36,7 @@ public:
 private:
     unsigned int m_ulFolderId;
 };
+
+} /* namespace */
 
 #endif

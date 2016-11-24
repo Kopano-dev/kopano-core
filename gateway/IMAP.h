@@ -30,7 +30,9 @@
 #include "ClientProto.h"
 
 using namespace std;
+namespace KC {
 class ECRestriction;
+}
 
 /**
  * @defgroup gateway_imap IMAP 

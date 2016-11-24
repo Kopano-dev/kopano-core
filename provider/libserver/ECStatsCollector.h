@@ -23,6 +23,8 @@
 #include <map>
 #include <mutex>
 
+namespace KC {
+
 enum SCName {
 	/* server stats */
 	SCN_SERVER_STARTTIME, SCN_SERVER_LAST_CACHECLEARED, SCN_SERVER_LAST_CONFIGRELOAD,
@@ -117,5 +119,7 @@ private:
 
 /* actual variable is in ECServerEntryPoint.cpp */
 extern ECStatsCollector* g_lpStatsCollector;
+
+} /* namespace */
 
 #endif

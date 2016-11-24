@@ -38,7 +38,10 @@ SOAP_FMAC3 struct entryList52X ** SOAP_FMAC4 soap_in_PointerToentryList52X(struc
 SOAP_FMAC3 struct entryList52X * SOAP_FMAC4 soap_in_entryList52X(struct soap *soap, const char *tag, struct entryList52X *a, const char *type);
 SOAP_FMAC3 void SOAP_FMAC4 soap_default_entryList52X(struct soap *soap, struct entryList52X *a);
 
+namespace KC {
 
 ECRESULT ConvertSearchCriteria52XTo6XX(ECDatabase *lpDatabase, char* lpData, struct searchCriteria **lppNewSearchCriteria);
+
+} /* namespace */
 
 #endif // #ifndef ECCONVERSION_H

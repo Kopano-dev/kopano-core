@@ -24,6 +24,8 @@
 #include <memory>
 #include <kopano/tstring.h>
 
+namespace KC {
+
 enum eResult {
 	Success = 0,
 	Failure,
@@ -51,5 +53,7 @@ protected:
 };
 
 typedef ArchiveControl::auto_ptr_type	ArchiveControlPtr;
+
+} /* namespace */
 
 #endif // !defined ARCHIVECONTROL_H_INCLUDED

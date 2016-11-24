@@ -33,6 +33,8 @@ static bool operator ==(const SPropValue &spv, ULONG ulPropTag)
 	return spv.ulPropTag == ulPropTag;
 }
 
+namespace KC {
+
 /**
  * Parses ical RRULE and convert it to mapi recurrence
  *
@@ -1001,3 +1003,5 @@ HRESULT ICalRecurrence::HrMakeICalException(icalcomponent *lpicEvent, icalcompon
 
 	return hr;
 }
+
+} /* namespace */

@@ -42,6 +42,8 @@
 
 using namespace std;
 
+namespace KC {
+
 #define RETURN_ERROR_CASE(x) \
 	case x: \
 		return (HR_FAILED(x) ? "FAILED: " #x : ((x == hrSuccess) ? #x : "WARNING: " #x));
@@ -2793,3 +2795,5 @@ const char *MsgServiceContextToString(ULONG ulContext)
 
 	return "<UNKNOWN>";
 }
+
+} /* namespace */

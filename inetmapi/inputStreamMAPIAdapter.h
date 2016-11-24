@@ -22,6 +22,8 @@
 #include <mapidefs.h>
 #include <vmime/utility/inputStream.hpp>
 
+namespace KC {
+
 class inputStreamMAPIAdapter _kc_final : public vmime::utility::inputStream {
 public:
 	inputStreamMAPIAdapter(IStream *lpStream);
@@ -36,5 +38,7 @@ private:
 	bool	ateof;
 	IStream *lpStream;
 };
+
+} /* namespace */
 
 #endif

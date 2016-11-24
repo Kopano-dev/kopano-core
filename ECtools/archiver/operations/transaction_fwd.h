@@ -21,7 +21,7 @@
 #include <list>
 #include <memory>
 
-namespace za { namespace operations {
+namespace KC { namespace operations {
 
 class Transaction;
 typedef std::shared_ptr<Transaction> TransactionPtr;
@@ -31,6 +31,6 @@ class Rollback;
 typedef std::shared_ptr<Rollback> RollbackPtr;
 typedef std::list<RollbackPtr> RollbackList;
 
-}} // namespace operations, za
+}} /* namespace */
 
 #endif // ndef transaction_fwd_INCLUDED

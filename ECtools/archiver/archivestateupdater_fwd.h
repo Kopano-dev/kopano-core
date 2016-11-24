@@ -20,7 +20,11 @@
 
 #include <memory>
 
+namespace KC {
+
 class ArchiveStateUpdater;
 typedef std::shared_ptr<ArchiveStateUpdater> ArchiveStateUpdaterPtr;
+
+} /* namespace */
 
 #endif // ndef archivestateupdater_fwd_INCLUDED

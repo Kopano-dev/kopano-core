@@ -22,7 +22,7 @@
 #include <mapidefs.h>
 #include <string>
 
-extern "C" {
+namespace KC {
 
 extern _kc_export bool IsOutlookUid(const std::string &);
 HRESULT HrGenerateUid(std::string *lpStrUid);
@@ -30,6 +30,6 @@ extern _kc_export HRESULT HrCreateGlobalID(ULONG named_tag, void *base, LPSPropV
 extern _kc_export HRESULT HrGetICalUidFromBinUid(SBinary &, std::string *uid);
 extern _kc_export HRESULT HrMakeBinUidFromICalUid(const std::string &uid, std::string *binuid);
 
-} /* extern "C" */
+} /* namespace */
 
 #endif

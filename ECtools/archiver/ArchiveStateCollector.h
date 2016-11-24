@@ -27,6 +27,8 @@
 #include <kopano/archiver-common.h>
 #include "ECArchiverLogger.h"
 
+namespace KC {
+
 class ArchiveStateCollector;
 typedef std::shared_ptr<ArchiveStateCollector> ArchiveStateCollectorPtr;
 
@@ -63,5 +65,7 @@ private:
 
 	ArchiveInfoMap	m_mapArchiveInfo;
 };
+
+} /* namespace */
 
 #endif // !defined ARCHIVESTATECOLLECTOR_H_INCLUDED

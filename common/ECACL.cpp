@@ -23,6 +23,8 @@
 #include <sstream>
 #include <algorithm>
 
+namespace KC {
+
 // The data in this array must be sorted on the ulRights field.
 struct AclRightName {
 	unsigned ulRight;
@@ -122,3 +124,5 @@ std::string AclRightsToString(unsigned ulRights)
 	}
 	return ostr.str();
 }
+
+} /* namespace */

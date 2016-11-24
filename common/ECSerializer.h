@@ -21,8 +21,11 @@
 #include <kopano/zcdefs.h>
 #include <kopano/kcodes.h>
 
-class ECFifoBuffer;
 class IStream;
+
+namespace KC {
+
+class ECFifoBuffer;
 
 #ifdef DEBUG
 #define STR_DEF_TIMEOUT 0
@@ -80,5 +83,7 @@ private:
 	ULONG m_ulRead;
 	ULONG m_ulWritten;
 };
+
+} /* namespace */
 
 #endif /* ECSERIALIZER_H */

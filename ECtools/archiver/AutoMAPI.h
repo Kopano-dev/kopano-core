@@ -23,6 +23,8 @@
 
 #include <kopano/zcdefs.h>
 
+namespace KC {
+
 class AutoMAPI _kc_final {
 public:
 	AutoMAPI() : m_bInitialized(false) {}
@@ -50,5 +52,7 @@ public:
 private:
 	bool m_bInitialized;
 };
+
+} /* namespace */
 
 #endif // !defined AUTOMAPI_H_INCLUDED

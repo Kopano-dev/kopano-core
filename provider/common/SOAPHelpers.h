@@ -20,6 +20,8 @@
 
 #include "soapH.h"
 
+namespace KC {
+
 void *mime_file_read_open(struct soap *soap, void *handle, const char *id, const char *type, const char *description);
 void mime_file_read_close(struct soap *soap, void *handle);
 size_t mime_file_read(struct soap *soap, void *handle, char *buf, size_t len);
@@ -28,5 +30,6 @@ void *mime_file_write_open(struct soap *soap, void *handle, const char *id, cons
 void mime_file_write_close(struct soap *soap, void *handle);
 int mime_file_write(struct soap *soap, void *handle, const char *buf, size_t len);
 
+} /* namespace */
 
 #endif

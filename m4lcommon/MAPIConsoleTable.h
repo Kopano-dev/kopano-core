@@ -22,6 +22,10 @@
 #include <mapi.h>
 #include <mapidefs.h>
 
-extern "C" _kc_export HRESULT MAPITablePrint(IMAPITable *, bool humanreadable = true);
+namespace KC {
+
+extern _kc_export HRESULT MAPITablePrint(IMAPITable *, bool humanreadable = true);
+
+} /* namespace */
 
 #endif

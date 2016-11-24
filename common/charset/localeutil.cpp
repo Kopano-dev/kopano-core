@@ -21,6 +21,8 @@
 #include <cstring>
 #include "localeutil.h"
 
+namespace KC {
+
 locale_t createUTF8Locale()
 {
 	locale_t loc;
@@ -103,3 +105,5 @@ bool forceUTF8Locale(bool bOutput, std::string *lpstrLastSetLocale)
 	}
 	return true;
 }
+
+} /* namespace */

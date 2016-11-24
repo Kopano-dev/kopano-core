@@ -32,6 +32,8 @@
 
 using namespace std;
 
+namespace KC {
+
 static SizedSPropTagArray(SHORTCUT_NUM, sPropsShortcuts) = {SHORTCUT_NUM, {
 	PR_INSTANCE_KEY, PR_FAV_PUBLIC_SOURCE_KEY, PR_FAV_PARENT_SOURCE_KEY,
 	PR_FAV_DISPLAY_NAME, PR_FAV_DISPLAY_ALIAS, PR_FAV_LEVEL_MASK,
@@ -509,3 +511,5 @@ exit:
 	MAPIFreeBuffer(lpsPropArray);
 	return hr;
 }
+
+} /* namespace */

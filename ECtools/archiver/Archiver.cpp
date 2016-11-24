@@ -22,6 +22,8 @@
 #include <kopano/ECConfig.h>
 #include "ArchiverImpl.h"
 
+namespace KC {
+
 const char* Archiver::GetConfigPath()
 {
 	static std::string s_strConfigPath;
@@ -103,3 +105,5 @@ eResult Archiver::Create(auto_ptr_type *lpptrArchiver)
 	*lpptrArchiver = std::move(ptrArchiver);
 	return Success;
 }
+
+} /* namespace */

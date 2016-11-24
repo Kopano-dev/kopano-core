@@ -42,6 +42,8 @@
 
 #include "ECFBBlockList.h"
 
+namespace KC {
+
 /**
  * Implementatie of the IFreeBusySupport interface
  */
@@ -102,6 +104,8 @@ private:
 	IMAPIFolder*	m_lpFreeBusyFolder;
 	unsigned int	m_ulOutlookVersion;
 };
+
+} /* namespace */
 
 #endif // ECFREEBUSYSUPPORT_H
 

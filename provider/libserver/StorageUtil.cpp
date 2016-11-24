@@ -25,6 +25,8 @@
 #include "cmdutil.hpp"
 #include <edkmdb.h>
 
+namespace KC {
+
 // External objects
 extern ECSessionManager *g_lpSessionManager;	// ECServerEntrypoint.cpp
 
@@ -268,3 +270,5 @@ ECRESULT UpdateObjectSize(ECDatabase* lpDatabase, unsigned int ulObjId, unsigned
 	}
 	return erSuccess;
 }
+
+} /* namespace */

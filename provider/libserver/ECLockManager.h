@@ -25,6 +25,8 @@
 #include <memory>
 #include <pthread.h>
 
+namespace KC {
+
 class ECLockManager;
 class ECObjectLockImpl;
 
@@ -94,5 +96,7 @@ private:
 	pthread_rwlock_t	m_hRwLock;
 	LockMap				m_mapLocks;
 };
+
+} /* namespace */
 
 #endif // ndef ECLockManager_INCLUDED

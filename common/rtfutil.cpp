@@ -33,6 +33,8 @@
 
 using namespace std;
 
+namespace KC {
+
 static const char szHex[] = "0123456789ABCDEF";
 
 // Charsets used in \fcharsetXXX (from http://msdn.microsoft.com/library/default.asp?url=/library/en-us/dnrtfspec/html/rtfspec_6.asp )
@@ -1310,3 +1312,5 @@ HRESULT HrExtractBODYFromTextRTF(const std::string &lpStrRTFIn,
 	strBodyOut += RTFFlushStateOutput(convertContext, sState, ulState);
 	return hrSuccess;
 }
+
+} /* namespace */

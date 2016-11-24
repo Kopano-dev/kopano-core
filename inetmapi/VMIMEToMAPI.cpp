@@ -71,6 +71,8 @@
 
 using namespace std;
 
+namespace KC {
+
 static vmime::charset vtm_upgrade_charset(vmime::charset cset, const char *ascii_upgrade = nullptr);
 
 static const char im_charset_unspec[] = "unspecified";
@@ -3917,3 +3919,5 @@ void imopt_default_sending_options(sending_options *sopt) {
 	sopt->enable_dsn = true;
 	sopt->always_expand_distr_list = false;
 }
+
+} /* namespace */

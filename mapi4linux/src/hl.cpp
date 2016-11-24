@@ -11,6 +11,8 @@
 #include <kopano/hl.hpp>
 #include <mapiutil.h>
 
+using namespace KC;
+
 namespace KCHL {
 
 KAttach::KAttach(IAttach *attach, unsigned int num) :

@@ -75,6 +75,8 @@
 #define PT_HJ_MONTH_NTH		0xB
 #define PT_HJ_MONTH_END		0xC
 
+namespace KC {
+
 /* do not inline for swig */
 class Exception {
 public:
@@ -150,3 +152,4 @@ public:
 	std::string strReservedBlock2;
 };
 
+} /* namespace */

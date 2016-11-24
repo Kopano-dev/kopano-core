@@ -23,7 +23,7 @@
 #include <kopano/archiver-common.h>
 #include <list>
 
-namespace za { namespace operations {
+namespace KC { namespace operations {
 
 /**
  * Performs the delete part of the archive operation.
@@ -43,6 +43,6 @@ private:
 	std::list<entryid_t> m_lstEntryIds;
 };
 
-}} // namespaces
+}} /* namespace */
 
 #endif // ndef deleter_INCLUDED

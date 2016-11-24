@@ -20,6 +20,8 @@
 #include <openssl/md5.h>
 #include <kopano/md5.h>
 
+namespace KC {
+
 std::string zcp_md5_final_hex(MD5_CTX *ctx)
 {
 	static const char hex[] = "0123456789abcdef";
@@ -34,3 +36,5 @@ std::string zcp_md5_final_hex(MD5_CTX *ctx)
 	}
 	return s;
 }
+
+} /* namespace */

@@ -22,6 +22,8 @@
 
 #include <boost/filesystem.hpp>
 
+namespace KC {
+
 #if !defined(BOOST_FILESYSTEM_VERSION) || BOOST_FILESYSTEM_VERSION == 2
 
 static inline std::string path_to_string(const boost::filesystem::path &p) {
@@ -51,5 +53,7 @@ static inline std::string filename_from_path(const boost::filesystem::path &p) {
 }
     
 #endif
+
+} /* namespace */
 
 #endif // ndef boost_compat_INCLUDED

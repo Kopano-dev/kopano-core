@@ -21,7 +21,7 @@
 #include <kopano/zcdefs.h>
 #include <mapidefs.h>
 
-extern "C" {
+namespace KC {
 
 extern _kc_export unsigned char *g_lpDefaultEid;
 extern _kc_export const unsigned int g_cbDefaultEid;
@@ -37,6 +37,6 @@ HRESULT GetNonPortableObjectId(unsigned int cbEntryId, const ENTRYID *lpEntryId,
 extern _kc_export HRESULT GetNonPortableObjectType(unsigned int eid_size, const ENTRYID *eid, ULONG *obj_type);
 extern _kc_export HRESULT GeneralizeEntryIdInPlace(unsigned int eid_size, ENTRYID *eid);
 
-} /* extern "C" */
+} /* namespace */
 
 #endif

@@ -26,6 +26,8 @@
 #include <pthread.h>
 #include <list>
 
+namespace KC {
+
 enum eSchedulerType{
 	SCHEDULE_NONE,
 	SCHEDULE_SECONDS,
@@ -66,5 +68,7 @@ private:
 	std::recursive_mutex m_hSchedulerMutex; /* Mutex for the locking of the scheduler */
 	pthread_t			m_hMainThread;			// Thread that is used for the Scheduler
 };
+
+} /* namespace */
 
 #endif

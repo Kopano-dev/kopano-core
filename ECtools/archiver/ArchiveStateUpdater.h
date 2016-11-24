@@ -21,6 +21,8 @@
 #include <kopano/zcdefs.h>
 #include "ArchiveStateCollector.h"
 
+namespace KC {
+
 /**
  * This class updates the current archive state to the should-be state.
  */
@@ -52,5 +54,7 @@ private:
 
 	ArchiveInfoMap	m_mapArchiveInfo;
 };
+
+} /* namespace */
 
 #endif // !defined ARCHIVESTATEUPDATER_H_INCLUDED

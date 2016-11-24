@@ -25,7 +25,9 @@
 #include <kopano/ECUnknown.h>
 #include <IECImportContentsChanges.h>
 
+namespace KC {
 class ECLogger;
+}
 
 class ECExchangeImportContentsChanges _kc_final : public ECUnknown {
 protected:

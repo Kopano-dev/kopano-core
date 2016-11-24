@@ -18,7 +18,10 @@
 #include <kopano/platform.h>
 #include <kopano/archiver-common.h>
 #include <boost/algorithm/string/predicate.hpp>
+
 namespace ba = boost::algorithm;
+
+namespace KC {
 
 bool entryid_t::operator==(const entryid_t &other) const
 {
@@ -139,3 +142,5 @@ const char* ArchiveResultString(eResult result)
     }
     return retval;
 }
+
+} /* namespace */

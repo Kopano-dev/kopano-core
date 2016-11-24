@@ -28,6 +28,8 @@
 #include "Archiver.h"
 #include "UnixUtil.cpp"
 
+namespace KC {
+
 enum modes {
     MODE_INVALID = 0,
     MODE_ATTACH,
@@ -213,6 +215,8 @@ static const struct option long_options[] = {
 
 static inline LPTSTR toLPTST(const char* lpszString, convert_context& converter) { return lpszString ? converter.convert_to<LPTSTR>(lpszString) : NULL; }
 static inline const char *yesno(bool bValue) { return bValue ? "yes" : "no"; }
+
+} /* namespace */
 
 /**
  * Program entry point
@@ -593,4 +597,3 @@ int main(int argc, char *argv[])
     }
     return 0;
 }
-

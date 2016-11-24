@@ -47,6 +47,8 @@ DEALINGS IN THE SOFTWARE.
 
 #include <iterator>
 
+namespace KC {
+
 namespace utf8 {
     // The typedefs for 8-bit, 16-bit and 32-bit unsigned integers
     // You may need to change them to match your system.
@@ -343,6 +345,8 @@ namespace internal {
            );
     }
 } // namespace utf8
+
+} /* namespace */
 
 #endif // header guard
 

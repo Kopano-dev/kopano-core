@@ -30,6 +30,8 @@
 #include <kopano/ECLogger.h>
 #include "TmpPath.h"
 
+namespace KC {
+
 HRESULT UnixTimeToFileTime(time_t t, FILETIME *ft)
 {
     __int64 l;
@@ -384,3 +386,5 @@ void give_filesize_hint(const int fd, const off_t len)
 	// inserted
 	posix_fallocate(fd, 0, len);
 }
+
+} /* namespace */

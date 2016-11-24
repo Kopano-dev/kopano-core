@@ -41,6 +41,10 @@
 #include "ECNotificationManager.h"
 #include "ECLockManager.h"
 
+struct soap;
+
+namespace KC {
+
 class ECLogger;
 class ECTPropsPurge;
 
@@ -220,5 +224,7 @@ protected:
 };
 
 extern _kc_export ECSessionManager *g_lpSessionManager;
+
+} /* namespace */
 
 #endif // #ifndef ECSESSIONMANAGER

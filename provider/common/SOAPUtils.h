@@ -28,6 +28,8 @@
 #include <list>
 #include <string>
 
+namespace KC {
+
 // SortOrderSets
 extern void FreeSortOrderArray(struct sortOrderArray *lpsSortOrder);
 extern int CompareSortOrderArray(const struct sortOrderArray *lpsSortOrder1, const struct sortOrderArray *lpsSortOrder2);
@@ -158,5 +160,7 @@ struct SOAPINFO {
 	double start;			// Start timestamp of when we started processing the request
 	const char *szFname;
 };
+
+} /* namespace */
 
 #endif

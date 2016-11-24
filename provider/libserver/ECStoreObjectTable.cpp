@@ -70,6 +70,8 @@
 
 #include <map>
 
+namespace KC {
+
 extern ECStatsCollector*  g_lpStatsCollector;
 
 static bool IsTruncatableType(unsigned int ulTag)
@@ -1301,3 +1303,4 @@ exit:
 	return er;
 }
 
+} /* namespace */

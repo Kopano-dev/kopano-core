@@ -21,6 +21,8 @@
 #include "freebusyutil.h"
 #include <kopano/stringutil.h>
 
+namespace KC {
+
 /**
  * @param[in] lpFBBlock Pointer to a list of free/busy blocks
  */
@@ -123,3 +125,5 @@ DEF_HRMETHOD1(TRACE_MAPI, ECEnumFBBlock, EnumFBBlock, Skip, (LONG, celt))
 DEF_HRMETHOD1(TRACE_MAPI, ECEnumFBBlock, EnumFBBlock, Reset, (void))
 DEF_HRMETHOD1(TRACE_MAPI, ECEnumFBBlock, EnumFBBlock, Clone, (IEnumFBBlock **, ppclone))
 DEF_HRMETHOD1(TRACE_MAPI, ECEnumFBBlock, EnumFBBlock, Restrict, (FILETIME, ftmStart), (FILETIME, ftmEnd))
+
+} /* namespace */

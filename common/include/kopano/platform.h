@@ -67,6 +67,8 @@
 #include <string>
 #include <pthread.h>
 
+namespace KC {
+
 #define KOPANO_SYSTEM_USER		"SYSTEM"
 #define KOPANO_SYSTEM_USER_W	L"SYSTEM"
 
@@ -80,8 +82,6 @@ extern _kc_export HRESULT UnixTimeToFileTime(time_t, FILETIME *);
 extern _kc_export HRESULT FileTimeToUnixTime(const FILETIME &, time_t *);
 extern _kc_export void UnixTimeToFileTime(time_t, int *hi, unsigned int *lo);
 extern _kc_export time_t FileTimeToUnixTime(unsigned int hi, unsigned int lo);
-
-extern "C" {
 
 void	RTimeToFileTime(LONG rtime, FILETIME *pft);
 extern _kc_export void FileTimeToRTime(const FILETIME *, LONG *rtime);
@@ -108,16 +108,12 @@ struct timespec GetDeadline(unsigned int ulTimeoutMs);
 
 extern _kc_export double timespec2dbl(const struct timespec &);
 
-} /* extern "C" */
-
 bool operator ==(const FILETIME &, const FILETIME &);
 extern _kc_export bool operator >(const FILETIME &, const FILETIME &);
 bool operator >=(const FILETIME &, const FILETIME &);
 extern _kc_export bool operator <(const FILETIME &, const FILETIME &);
 bool operator <=(const FILETIME &, const FILETIME &);
 extern _kc_export time_t operator -(const FILETIME &, const FILETIME &);
-
-extern "C" {
 
 /* convert struct tm to time_t in timezone UTC0 (GM time) */
 #ifndef __linux__
@@ -157,6 +153,6 @@ extern _kc_export void give_filesize_hint(int fd, off_t len);
 extern _kc_export bool force_buffers_to_disk(int fd);
 extern _kc_export int ec_relocate_fd(int);
 
-} /* extern "C" */
+} /* namespace */
 
 #endif // PLATFORM_H

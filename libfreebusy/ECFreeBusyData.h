@@ -37,6 +37,8 @@
 
 #include "ECFBBlockList.h"
 
+namespace KC {
+
 /**
  * Implementatie of the IFreeBusyData interface
  */
@@ -79,6 +81,8 @@ private:
 	LONG			m_rtmStart; // PR_FREEBUSY_START_RANGE
 	LONG			m_rtmEnd; // PR_FREEBUSY_END_RANGE
 };
+
+} /* namespace */
 
 #endif // ECFREEBUSYDATA_H
 

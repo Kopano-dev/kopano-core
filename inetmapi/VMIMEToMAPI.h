@@ -26,6 +26,8 @@
 #include <inetmapi/options.h>
 #include <kopano/charset/convert.h>
 
+namespace KC {
+
 #define MAPI_CHARSET vmime::charset(vmime::charsets::UTF_8)
 #define MAPI_CHARSET_STRING "UTF-8"
 
@@ -113,5 +115,7 @@ private:
 	std::string parameterizedFieldToStructure(vmime::shared_ptr<vmime::parameterizedHeaderField>);
 	std::string::size_type countBodyLines(const std::string &input, std::string::size_type start, std::string::size_type length);
 };
+
+} /* namespace */
 
 #endif

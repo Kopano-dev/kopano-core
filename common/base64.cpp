@@ -19,6 +19,8 @@
 #include <kopano/base64.h>
 #include <cctype>
 
+namespace KC {
+
 static const std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 static inline bool is_base64(unsigned char c) {
@@ -103,3 +105,5 @@ std::string base64_decode(std::string const& encoded_string) {
     }
     return ret;
 }
+
+} /* namespace */

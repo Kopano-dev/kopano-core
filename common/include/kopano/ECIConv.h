@@ -22,6 +22,8 @@
 #include <kopano/charset/convert.h>
 #include <string>
 
+namespace KC {
+
 class _kc_export ECIConv _kc_final {
 public:
     ECIConv(const std::string &strToCharset, const std::string &strFromCharset);
@@ -34,5 +36,7 @@ private:
 	typedef details::iconv_context<std::string, std::string> context_t;
 	context_t *m_lpContext;
 };
+
+} /* namespace */
 
 #endif

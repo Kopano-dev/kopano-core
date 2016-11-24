@@ -28,6 +28,8 @@
 #include <list>
 #include <string>
 
+namespace KC {
+
 // Above EC_TABLE_CHANGE_THRESHOLD, a TABLE_CHANGE notification is sent instead of individual notifications
 #define EC_TABLE_CHANGE_THRESHOLD 10
 
@@ -239,5 +241,6 @@ typedef std::map<unsigned int, CHILDPROPS> ChildPropsMap;
 ECRESULT PrepareReadProps(struct soap *soap, ECDatabase *lpDatabase, bool fDoQuery, bool fUnicode, unsigned int ulObjId, unsigned int ulParentId, unsigned int ulMaxSize, ChildPropsMap *lpChildProps, NamedPropDefMap *lpNamedProps);
 ECRESULT FreeChildProps(std::map<unsigned int, CHILDPROPS> *lpChildProps);
 
+} /* namespace */
 
 #endif /* KC_CMDUTIL_HPP */

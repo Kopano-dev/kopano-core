@@ -20,7 +20,7 @@
 
 #include <memory>
 
-namespace za { namespace operations {
+namespace KC { namespace operations {
 
 class IArchiveOperation;
 typedef std::shared_ptr<IArchiveOperation> ArchiveOperationPtr;
@@ -34,6 +34,6 @@ typedef std::shared_ptr<Deleter> DeleterPtr;
 class Stubber;
 typedef std::shared_ptr<Stubber> StubberPtr;
 
-}} // namespaces
+}} /* namespace */
 
 #endif // ndef operations_fwd_INCLUDED

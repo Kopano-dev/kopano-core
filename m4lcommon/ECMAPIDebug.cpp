@@ -22,6 +22,8 @@
 
 using namespace std;
 
+namespace KC {
+
 HRESULT Dump(std::ostream &os, LPMAPIPROP lpProp, const std::string &strPrefix)
 {
 	ULONG cValues;
@@ -172,3 +174,5 @@ HRESULT Dump(std::ostream &os, LPMAPIPROP lpProp, const std::string &strPrefix)
 	}
 	return hrSuccess;
 }
+
+} /* namespace */

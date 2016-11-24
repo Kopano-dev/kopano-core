@@ -29,6 +29,8 @@
 
 #include "ECDatabase.h"
 
+namespace KC {
+
 class ECConfig;
 class ECLogger;
 class zcp_versiontuple;
@@ -129,5 +131,7 @@ private:
 	unsigned int m_ulTransactionState = 0;
 #endif
 };
+
+} /* namespace */
 
 #endif // #ifndef ECDATABASEMYSQL_H

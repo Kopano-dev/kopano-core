@@ -29,6 +29,10 @@
 #include <map>
 #include <set>
 
+struct soap;
+
+namespace KC {
+
 /*
  * The notification manager runs in a single thread, servicing notifications to ALL clients
  * that are waiting for a notification. We simply store all waiting soap connection objects together
@@ -77,5 +81,7 @@ private:
 
 extern ECSessionManager *g_lpSessionManager;
 extern _kc_export void (*kopano_notify_done)(struct soap *);
+
+} /* namespace */
 
 #endif

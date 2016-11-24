@@ -48,6 +48,8 @@
 #define FIELD_NR_NAMESTR	(FIELD_NR_MAX + 2)
 #define FIELD_NR_NAMEGUID	(FIELD_NR_MAX + 3)
 
+namespace KC {
+
 extern ECSessionManager*    g_lpSessionManager; // FIXME: remove this global and change the depended source code!
 extern ECStatsCollector* 	g_lpStatsCollector;
 
@@ -2387,3 +2389,5 @@ ECRESULT FreeChildProps(std::map<unsigned int, CHILDPROPS> *lpChildProps)
     
     return erSuccess;
 }
+
+} /* namespace */

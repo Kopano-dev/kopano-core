@@ -30,6 +30,8 @@
 #include "ECSessionManager.h"
 #include <string>
 
+namespace KC {
+
 ECRESULT GetPropSize(DB_ROW lpRow, DB_LENGTHS lpLen, unsigned int *lpulSize)
 {
 	ECRESULT er = erSuccess;
@@ -784,3 +786,5 @@ SuppressLockErrorLogging::~SuppressLockErrorLogging()
 	if (m_lpDatabase)
 		m_lpDatabase->SuppressLockErrorLogging(m_bResetValue);
 }
+
+} /* namespace */

@@ -29,6 +29,8 @@
 // - No problem reporting
 //
 
+namespace KC {
+
 #pragma pack(push,1)
 struct AttachRendData {
     unsigned short usType;
@@ -119,5 +121,6 @@ private:
 
 #define TNEF_SIGNATURE		0x223e9f78
 
+} /* namespace */
 
 #endif

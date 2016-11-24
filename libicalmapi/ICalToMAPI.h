@@ -28,6 +28,8 @@
 #define IC2M_APPEND_ONLY	0x0002
 #define IC2M_NO_ORGANIZER	0x0004
 
+namespace KC {
+
 class ICalToMapi {
 public:
 	/*
@@ -49,6 +51,8 @@ protected:
 	bool m_bNoRecipients;
 };
 
-extern "C" _kc_export HRESULT CreateICalToMapi(IMAPIProp *propobj, LPADRBOOK, bool no_recipients, ICalToMapi **ret);
+extern _kc_export HRESULT CreateICalToMapi(IMAPIProp *propobj, LPADRBOOK, bool no_recipients, ICalToMapi **ret);
+
+} /* namespace */
 
 #endif

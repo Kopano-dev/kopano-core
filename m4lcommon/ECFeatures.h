@@ -26,10 +26,14 @@
 #include <string>
 #include <set>
 
-extern "C" _kc_export bool isFeature(const char *);
+namespace KC {
+
+extern _kc_export bool isFeature(const char *);
 HRESULT hasFeature(const char* feature, LPSPropValue lpProps);
 extern _kc_export HRESULT hasFeature(const wchar_t *feature, LPSPropValue props);
 std::set<std::string> getFeatures();
-extern "C" _kc_export bool isFeatureDisabled(const char *, IAddrBook *, IMsgStore *user);
+extern _kc_export bool isFeatureDisabled(const char *, IAddrBook *, IMsgStore *user);
+
+} /* namespace */
 
 #endif

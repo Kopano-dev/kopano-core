@@ -23,6 +23,8 @@
 #include <vmime/defaultAttachment.hpp>
 #include <string>
 
+namespace KC {
+
 class mapiAttachment _kc_final : public vmime::defaultAttachment {
 public:
 
@@ -46,5 +48,7 @@ private:
 
 	void generatePart(vmime::shared_ptr<vmime::bodyPart> part) const;
 };
+
+} /* namespace */
 
 #endif

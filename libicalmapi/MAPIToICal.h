@@ -25,6 +25,8 @@
 #define M2IC_CENSOR_PRIVATE 0x0001
 #define M2IC_NO_VTIMEZONE 0x0002
 
+namespace KC {
+
 class MapiToICal {
 public:
 	/*
@@ -40,6 +42,8 @@ public:
 	virtual HRESULT ResetObject() = 0;
 };
 
-extern "C" _kc_export HRESULT CreateMapiToICal(LPADRBOOK, const std::string &charset, MapiToICal **ret);
+extern _kc_export HRESULT CreateMapiToICal(LPADRBOOK, const std::string &charset, MapiToICal **ret);
+
+} /* namespace */
 
 #endif

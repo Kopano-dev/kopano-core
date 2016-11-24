@@ -20,6 +20,8 @@
 
 #include <kopano/zcdefs.h>
 
+namespace KC {
+
 /**
  * Auto Free deallocation template class.
  *
@@ -128,6 +130,8 @@ private: // Disable copying, need ref counting
 	}
 	pointer data;
 };
+
+} /* namespace */
 
 #endif // #ifndef AUTO_FREE
 

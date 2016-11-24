@@ -26,7 +26,7 @@
 #include <kopano/archiver-common.h>
 #include <list>
 
-namespace za { namespace operations {
+namespace KC { namespace operations {
 
 class TaskBase {
 public:
@@ -73,6 +73,6 @@ private:
 	TaskList m_lstDeferred;
 };
 
-}} // namespace operations, za
+}} /* namespace */
 
 #endif // ndef postsaveiidupdater_INCLUDED

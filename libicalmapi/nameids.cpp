@@ -19,6 +19,8 @@
 #include "nameids.h"
 #include <mapix.h>
 
+namespace KC {
+
 const WCHAR* nmStringNames[SIZE_NAMEDPROPS] = {
 	L"Keywords", NULL
 };
@@ -148,3 +150,5 @@ exit:
 	MAPIFreeBuffer(lppNameIds);
 	return hr;
 }
+
+} /* namespace */

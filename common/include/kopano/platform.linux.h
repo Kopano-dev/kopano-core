@@ -520,8 +520,6 @@ typedef DWORD LCID;
 extern _kc_export bool operator!=(const GUID &, const GUID &);
 extern _kc_export bool operator==(REFIID, const GUID &);
 
-extern "C" {
-
 extern _kc_export HRESULT CoCreateGuid(LPGUID);
 extern _kc_export void GetSystemTimeAsFileTime(FILETIME *);
 extern _kc_export DWORD GetTempPath(DWORD len, char *buf);
@@ -571,6 +569,8 @@ typedef void * DLIB;
 #endif
 #define PATH_SEPARATOR				'/'
 
+namespace KC {
+
 // unavailable in linux
 #define _dstbias 0
 
@@ -612,6 +612,6 @@ extern _kc_export time_t GetProcessTime(void);
 
 std::vector<std::string> get_backtrace();
 
-} /* extern "C" */
+} /* namespace */
 
 #endif // PLATFORM_LINUX_H

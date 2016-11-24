@@ -58,6 +58,7 @@
 #endif
 
 #include "TmpPath.h"
+#include "ECICS.h"
 
 #include <boost/filesystem.hpp>
 #include <openssl/ssl.h>
@@ -75,13 +76,6 @@ namespace bfs = boost::filesystem;
 
 const char upgrade_lock_file[] = "/tmp/kopano-upgrade-lock";
 
-extern _kc_export ECSessionManager *g_lpSessionManager;
-
-// scheduled functions
-void* SoftDeleteRemover(void* lpTmpMain);
-void* CleanupSyncsTable(void* lpTmpMain);
-void* CleanupChangesTable(void* lpTmpMain);
-void *CleanupSyncedMessagesTable(void *lpTmpMain);
 // Reports information on the current state of the license
 void* ReportLicense(void *);
 

@@ -23,8 +23,12 @@
 
 #include "ECABContainer.h"
 
+namespace KC {
+
 class IECImportAddressbookChanges;
 class ECLogger;
+
+}
 
 class ECExportAddressbookChanges _kc_final : public ECUnknown {
 public:

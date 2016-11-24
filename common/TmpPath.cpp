@@ -25,6 +25,8 @@
 #include "TmpPath.h"
 #include <kopano/ECConfig.h>
 
+namespace KC {
+
 TmpPath::TmpPath() {
 	const char *dummy = NULL;
 
@@ -79,3 +81,5 @@ TmpPath *TmpPath::getInstance()
         static std::unique_ptr<TmpPath> instance(new TmpPath);
         return instance.get();
 }
+
+} /* namespace */

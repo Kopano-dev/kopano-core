@@ -25,6 +25,8 @@
 #include <mapi.h>
 #include <mapix.h>
 
+namespace KC {
+
 /**
  * This is a special advisesink so that we can do notifications in Perl. What it does
  * is simply catch all notifications and store them. The notifications can then be requested
@@ -299,3 +301,5 @@ ULONG MAPINotifSink::Release()
         
     return ref;
 }
+
+} /* namespace */
