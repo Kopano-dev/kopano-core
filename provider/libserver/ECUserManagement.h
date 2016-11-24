@@ -174,8 +174,6 @@ public:
 	_kc_hidden virtual ECRESULT DeleteObjectAndSync(unsigned int obj_id);
 	// Either modify or create an object with a specific object id and type (used for synchronize)
 	_kc_hidden virtual ECRESULT CreateOrModifyObject(const objectid_t &extern_id, const objectdetails_t &, unsigned int pref_id, std::list<std::string> *remove_props);
-	// Used in offline server to synchronise
-	_kc_hidden virtual ECRESULT ModifyExternId(unsigned int obj_id, const objectid_t &extern_id);
 
 	// Get MAPI property data for a group or user/group/company id, with on-the-fly delete of the specified user/group/company
 	_kc_hidden virtual ECRESULT GetProps(struct soap *, unsigned int obj_id, struct propTagArray *, struct propValArray *);
