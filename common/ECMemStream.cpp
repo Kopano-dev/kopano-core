@@ -334,9 +334,6 @@ HRESULT ECMemStream::Seek(LARGE_INTEGER dlibmove, DWORD dwOrigin, ULARGE_INTEGER
 		liPos.QuadPart = ulSize + dlibmove.QuadPart;
 		break;
 	}
-
-	if(liPos.QuadPart < 0)
-		liPos.QuadPart = 0;
 	if(liPos.QuadPart > ulSize)
 		liPos.QuadPart = ulSize;
 
