@@ -454,7 +454,7 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 				// @todo find out how Content-Disposition receives highchar filename... always UTF-8?
 				textPart.addObject(vmime::make_shared<vmime::streamContentHandler>(inputDataStream, 0), vmime::encoding("base64"), vmMIMEType, strContentId, string(), strContentLocation);
 			} else {
-				vmMapiAttach = make_shared<mapiAttachment>(vmime::make_shared<vmime::streamContentHandler>(inputDataStream, 0),
+				vmMapiAttach = vmime::make_shared<mapiAttachment>(vmime::make_shared<vmime::streamContentHandler>(inputDataStream, 0),
 				               bSendBinary ? vmime::encoding("base64") : vmime::encoding("quoted-printable"),
 				               vmMIMEType, strContentId,
 				               vmime::word(m_converter.convert_to<string>(m_strCharset.c_str(), szFilename, rawsize(szFilename), CHARSET_WCHAR), m_vmCharset));
@@ -2176,18 +2176,23 @@ bool MAPIToVMIME::has_reminder(IMessage *msg)
 	SPropValue *content_type = nullptr;
 	MAPINAMEID named_prop = {const_cast<GUID *>(&PSETID_Common), MNID_ID, {0x8503}};
 	auto named_proplist = &named_prop;
+	bool result = false;
 
 	auto hr = msg->GetIDsFromNames(1, &named_proplist, MAPI_CREATE, &tags);
 	if (hr != hrSuccess)
 		ec_log_err("Unable to read reminder property: %s (0x%08x)",
 			GetMAPIErrorMessage(hr), hr);
-	else
-		hr = HrGetOneProp(msg, CHANGE_PROP_TYPE(tags->aulPropTag[0],
-		     PT_BOOLEAN), &content_type);
+	else {
+		hr = HrGetOneProp(msg, CHANGE_PROP_TYPE(tags->aulPropTag[0], PT_BOOLEAN), &content_type);
+		if(hr == hrSuccess)
+			result = content_type->Value.b;
+		else
+			ec_log_err("Unable to get reminder property: %s (0x%08x)", GetMAPIErrorMessage(hr), hr);		
+	}
 
 	MAPIFreeBuffer(tags);
 	MAPIFreeBuffer(content_type);
-	return hr == hrSuccess;
+	return result;
 }
 
 /**
@@ -2377,7 +2382,7 @@ tnef_anyway:
 			
 				// Now, add the stream as an attachment to the message, filename winmail.dat 
 				// and MIME type 'application/ms-tnef', no content-id
-				vmTNEFAtt = make_shared<mapiAttachment>(vmime::make_shared<vmime::streamContentHandler>(inputDataStream, 0),
+				vmTNEFAtt = vmime::make_shared<mapiAttachment>(vmime::make_shared<vmime::streamContentHandler>(inputDataStream, 0),
 														  vmime::encoding("base64"), vmime::mediaType("application/ms-tnef"), string(),
 														  vmime::word("winmail.dat"));
 											  

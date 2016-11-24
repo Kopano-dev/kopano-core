@@ -168,6 +168,7 @@ kopano_gateway_SOURCES = \
 	gateway/POP3.cpp gateway/POP3.h
 kopano_gateway_LDADD = \
 	libkcinetmapi.la libmapi.la libkcmapi.la libkcutil.la libkcssl.la \
+	-lpthread \
 	${PROG_LIBS} ${CRYPTO_LIBS} ${SSL_LIBS} ${XML2_LIBS} ${icu_uc_LIBS}
 
 
@@ -182,7 +183,8 @@ kopano_ical_SOURCES = \
 	caldav/WebDav.cpp caldav/WebDav.h caldav/iCal.cpp caldav/iCal.h
 kopano_ical_LDADD = \
 	libmapi.la libkcmapi.la libkcutil.la libkcicalmapi.la libkcssl.la \
-	libkcfreebusy.la ${PROG_LIBS} ${SSL_LIBS} ${ICONV_LIBS} ${XML2_LIBS} \
+	libkcfreebusy.la -lpthread \
+	${PROG_LIBS} ${SSL_LIBS} ${ICONV_LIBS} ${XML2_LIBS} \
 	${ICAL_LIBS} ${icu_uc_LIBS}
 
 

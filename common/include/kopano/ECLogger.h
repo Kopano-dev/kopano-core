@@ -225,7 +225,7 @@ class _kc_export_dycast ECLogger_File _kc_final : public ECLogger {
 		handle_type log;
 		pthread_rwlock_t handle_lock;
 
-		char *logname;
+		std::string logname;
 		bool timestamp;
 		size_t buffer_size;
 
@@ -253,6 +253,11 @@ class _kc_export_dycast ECLogger_File _kc_final : public ECLogger {
 		_kc_hidden virtual void LogVA(unsigned int level, const char *fmt, va_list &) _kc_override;
 		_kc_hidden int GetFileDescriptor(void) _kc_override;
 		bool IsStdErr();
+
+	private:
+	_kc_hidden void init_for_stderr(void);
+	_kc_hidden void init_for_file(void);
+	_kc_hidden void init_for_gzfile(void);
 };
 
 /**

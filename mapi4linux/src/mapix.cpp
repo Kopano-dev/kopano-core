@@ -944,7 +944,7 @@ HRESULT M4LMsgServiceAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTabl
 		if (serv->bInitialize == false) {
 			hr = serv->service->MSGServiceEntry()(0, NULL, NULL, 0,
 			     0, MSG_SERVICE_CREATE, 0, NULL,
-			     reinterpret_cast<LPPROVIDERADMIN>(serv->provideradmin),
+			     static_cast<IProviderAdmin *>(serv->provideradmin),
 			     NULL);
 			if(hr !=hrSuccess) {
 				ec_log_err("M4LMsgServiceAdmin::GetProviderTable(): MSGServiceEntry fail %x: %s", hr, GetMAPIErrorMessage(hr));

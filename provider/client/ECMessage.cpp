@@ -2219,6 +2219,10 @@ HRESULT ECMessage::SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProb
 	pvalHtml = PpropFindProp(lpPropArray, cValues, PROP_TAG(PT_UNSPECIFIED, PROP_ID(PR_BODY_HTML)) );
 	pvalBody = PpropFindProp(lpPropArray, cValues, PROP_TAG(PT_UNSPECIFIED, PROP_ID(PR_BODY)) );
 
+	if (pvalRtf != nullptr && pvalHtml != nullptr && pvalBody != nullptr)
+		/* Avoid re-create if we already have all body types */
+		goto exit;
+
 	// IF the user sets both the body and the RTF, assume RTF overrides
 	if (pvalRtf) {
 		m_ulBodyType = bodyTypeUnknown; // Make sure GetBodyType doesn't use the cached value

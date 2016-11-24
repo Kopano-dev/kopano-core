@@ -155,7 +155,7 @@ static HRESULT HrZoneToStruct(icalcomponent_kind kind, icalcomponent *lpVTZ,
 		icTime = icalcomponent_get_dtstart(iterComp);
 		icTime.is_utc = 1;
 		struct tm start = UTC_ICalTime2UnixTime(icTime);
-		if (time(NULL) < mktime(&start))
+		if (time(NULL) < mktime(&start) && icComp != nullptr)
 			break;
 		icComp = iterComp;
 		iterComp = icalcomponent_get_next_component(lpVTZ, kind);

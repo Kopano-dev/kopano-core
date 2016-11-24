@@ -124,7 +124,7 @@ ECRESULT CalculateObjectSize(ECDatabase* lpDatabase, unsigned int objid, unsigne
 	unsigned int	ulSize = 0;
 	std::string		strQuery;
 	ECAttachmentStorage *lpAttachmentStorage = NULL;
-	ECFileAttachment *lpFileStorage = NULL;
+	ECDatabaseAttachment *lpDatabaseStorage = NULL;
 
 	*lpulSize = 0;
 	//	strQuery = "SELECT SUM(16 + IF(val_ulong, 4, 0)+IF(val_double||val_longint||val_hi||val_lo, 8, 0)+ LENGTH(IFNULL(val_string, 0))+length(IFNULL(val_binary, 0))) FROM properties WHERE hierarchyid=" + stringify(objid);
@@ -145,12 +145,12 @@ ECRESULT CalculateObjectSize(ECDatabase* lpDatabase, unsigned int objid, unsigne
 	if (er != erSuccess)
 		goto exit;
 
-	// since we already did the length magic in the previous query, we only need the extra size for filestorage
-	lpFileStorage = dynamic_cast<ECFileAttachment*>(lpAttachmentStorage);
-	if (lpFileStorage) {
-		// @todo maybe we want this one without tag
+	// since we already did the length magic in the previous query, we only need the 
+	// extra size for filestorage and S3 storage, i.e. not database storage
+	lpDatabaseStorage = dynamic_cast<ECDatabaseAttachment*>(lpAttachmentStorage);
+	if (!lpDatabaseStorage) {
 		size_t ulAttachSize = 0;
-		er = lpFileStorage->GetSize(objid, PROP_ID(PR_ATTACH_DATA_BIN), &ulAttachSize);
+		er = lpAttachmentStorage->GetSize(objid, PROP_ID(PR_ATTACH_DATA_BIN), &ulAttachSize);
 		if (er != erSuccess)
 			goto exit;
 

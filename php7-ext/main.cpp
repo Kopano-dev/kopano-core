@@ -159,9 +159,9 @@ ZEND_END_ARG_INFO()
         	RETURN_FALSE;
 
 #define ZEND_REGISTER_RESOURCE(return_value, lpMAPISession, le_mapi_session) \
-        RETVAL_RES(zend_register_resource(lpMAPISession, le_mapi_session));
+	ZVAL_RES(return_value, zend_register_resource(lpMAPISession, le_mapi_session));
 #define UOBJ_REGISTER_RESOURCE(rv, obj, categ) \
-        RETVAL_RES(zend_register_resource(static_cast<IUnknown *>(obj), (categ)));
+	ZVAL_RES(rv, zend_register_resource(static_cast<IUnknown *>(obj), (categ)));
 
 // A very, very nice PHP #define that causes link errors in MAPI when you have multiple
 // files referencing MAPI....
@@ -7317,6 +7317,7 @@ ZEND_FUNCTION(mapi_importcontentschanges_importmessagechange)
 	MAPI_G(hr) = lpImportContentsChanges->ImportMessageChange(cValues, lpProps, ulFlags, &lpMessage);
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
+	ZVAL_DEREF(resMessage);
 	UOBJ_REGISTER_RESOURCE(resMessage, lpMessage, le_mapi_message);
 	RETVAL_TRUE;
 
@@ -7814,7 +7815,7 @@ ZEND_FUNCTION(mapi_mapitoical)
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
 	MAPI_G(hr) = lpMtIcal->Finalize(0, &method, &strical);
-	RETVAL_STRINGL(strical.c_str(), true);
+	RETVAL_STRING(strical.c_str());
  exit:
 	delete lpMtIcal;
 	LOG_END();

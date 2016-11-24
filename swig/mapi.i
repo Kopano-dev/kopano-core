@@ -21,17 +21,28 @@
 #include "MAPINotifSink.h"
 #include <kopano/director_util.h>
 
-HRESULT MAPIInitialize_Multithreaded() {
-	MAPIINIT_0 init = {0, MAPI_MULTITHREAD_NOTIFICATIONS};
+/*
+ * This dummy class ensure that we initialize properly on module load
+ * and deinitialize as well whenever the intepreter exits.
+ */
+class MAPIInitializer {
+	public:
+	MAPIInitializer(void)
+	{
+		MAPIINIT_0 init = {0, MAPI_MULTITHREAD_NOTIFICATIONS};
+		MAPIInitialize(&init);
+	}
+	~MAPIInitializer(void)
+	{
+		MAPIUninitialize();
+	}
+};
 
-	return MAPIInitialize(&init);
-}
+MAPIInitializer mapiInitializer;
 
 %}
 
 %include <kopano/typemap.i>
-
-HRESULT MAPIInitialize_Multithreaded();
 
 #if SWIGPYTHON
 %exception {

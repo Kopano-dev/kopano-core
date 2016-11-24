@@ -57,15 +57,6 @@ typedef MAPIINIT *LPMAPIINIT;
 /* Reserved for MAPI                    0x40000000 */
 /* #define MAPI_NT_SERVICE              0x00010000  Use from NT service */
 
-/* MAPI base functions */
-
-
-HRESULT MAPIInitialize(MAPIINIT *lpMapiInit);
-
-void MAPIUninitialize(void);
-
-
-
 /*  Extended MAPI Logon function */
 
 HRESULT MAPILogonEx(
