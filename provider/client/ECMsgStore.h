@@ -319,18 +319,10 @@ public:
 		virtual HRESULT __stdcall SetCurrentState(ULONG flags, ULONG ulMask, ULONG ulState, void *pReserved) _kc_override;
 		virtual HRESULT __stdcall GetCapabilities(ULONG *pulCapabilities) _kc_override;
 		virtual HRESULT __stdcall GetCurrentState(ULONG *pulState) _kc_override;
-		virtual HRESULT __stdcall Placeholder1(void *) _kc_override;
 
 		// <kopano/xclsfrag/IMAPIOfflineMgr.hpp>
 		virtual HRESULT __stdcall Advise(ULONG flags, MAPIOFFLINE_ADVISEINFO *pAdviseInfo, ULONG *pulAdviseToken) _kc_override;
 		virtual HRESULT __stdcall Unadvise(ULONG flags, ULONG ulAdviseToken) _kc_override;
-		virtual HRESULT __stdcall Placeholder2(void) _kc_override;
-		virtual HRESULT __stdcall Placeholder3(void) _kc_override;
-		virtual HRESULT __stdcall Placeholder4(void) _kc_override;
-		virtual HRESULT __stdcall Placeholder5(void) _kc_override;
-		virtual HRESULT __stdcall Placeholder6(void) _kc_override;
-		virtual HRESULT __stdcall Placeholder7(void) _kc_override;
-		virtual HRESULT __stdcall Placeholder8(void) _kc_override;
 	} m_xMAPIOfflineMgr;
 
 	class xProxyStoreObject _kc_final : public IProxyStoreObject {

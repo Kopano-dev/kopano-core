@@ -621,16 +621,6 @@ public:
 	 * This member not supported must return E_NOTIMPL.
 	 */
 	virtual HRESULT __stdcall PushDelegateInfoToWorkspace() = 0;
-
-	/**
-	 * This member not supported must return S_OK.
-	 */
-	virtual HRESULT __stdcall Placeholder21(void *, HWND, BOOL ) = 0;
-
-	/**
-	 * This member not supported must return S_OK.
-	 */
-	virtual HRESULT __stdcall Placeholder22() = 0;
 };
 
 /**
@@ -726,12 +716,6 @@ public:
 
 	/*! @copydoc IFreeBusySupport::PushDelegateInfoToWorkspace */
 	virtual HRESULT __stdcall PushDelegateInfoToWorkspace() = 0;
-
-	/*! @copydoc IFreeBusySupport::Placeholder21 */
-	virtual HRESULT __stdcall Placeholder21(void *, HWND, BOOL ) = 0;
-
-	/*! @copydoc IFreeBusySupport::Placeholder22 */
-	virtual HRESULT __stdcall Placeholder22() = 0;
 };
 
 #endif // FREEBUSY_INCLUDED

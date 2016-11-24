@@ -20,5 +20,3 @@ virtual HRESULT __stdcall PublishRangeChanged(void) _kc_override;
 //virtual HRESULT __stdcall CleanTombstone(void) _kc_override;
 virtual HRESULT __stdcall GetDelegateInfoEx(FBUser fbUser, unsigned int *lpData1, unsigned int *lpData2, unsigned int *lpData3) _kc_override;
 virtual HRESULT __stdcall PushDelegateInfoToWorkspace(void) _kc_override;
-virtual HRESULT __stdcall Placeholder21(void *lpData, HWND hwnd, BOOL bData) _kc_override;
-virtual HRESULT __stdcall Placeholder22(void) _kc_override;

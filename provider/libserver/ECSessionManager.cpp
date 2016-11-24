@@ -625,7 +625,9 @@ ECRESULT ECSessionManager::CreateSessionInternal(ECSession **lppSession, unsigne
 
 	CreateSessionID(KOPANO_CAP_LARGE_SESSIONID, &newSID);
 
-	lpSession = new(std::nothrow) ECSession("<internal>", newSID, 0, m_lpDatabaseFactory, this, 0, false, ECSession::METHOD_NONE, 0, "internal", "kopano-server", "", "");
+	lpSession = new(std::nothrow) ECSession("<internal>", newSID, 0,
+	            m_lpDatabaseFactory, this, 0, ECSession::METHOD_NONE, 0,
+	            "internal", "kopano-server", "", "");
 	if (lpSession == NULL)
 		return KCERR_LOGON_FAILED;
 	er = lpSession->GetSecurity()->SetUserContext(ulUserId, EC_NO_IMPERSONATOR);

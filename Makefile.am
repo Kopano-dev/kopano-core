@@ -318,7 +318,6 @@ libkcclient_la_SOURCES = \
 	provider/client/ECABLogon.cpp provider/client/ECABLogon.h \
 	provider/client/ECABProp.cpp provider/client/ECABProp.h \
 	provider/client/ECABProvider.cpp provider/client/ECABProvider.h \
-	provider/client/ECABProviderOffline.cpp provider/client/ECABProviderOffline.h \
 	provider/client/ECABProviderSwitch.cpp provider/client/ECABProviderSwitch.h \
 	provider/client/ECArchiveAwareAttach.cpp provider/client/ECArchiveAwareAttach.h \
 	provider/client/ECArchiveAwareMessage.cpp provider/client/ECArchiveAwareMessage.h \
@@ -343,7 +342,6 @@ libkcclient_la_SOURCES = \
 	provider/client/ECMAPIProp.cpp provider/client/ECMAPIProp.h \
 	provider/client/ECMAPITable.cpp provider/client/ECMAPITable.h \
 	provider/client/ECMSProvider.cpp provider/client/ECMSProvider.h \
-	provider/client/ECMSProviderOffline.cpp provider/client/ECMSProviderOffline.h \
 	provider/client/ECMSProviderSwitch.cpp provider/client/ECMSProviderSwitch.h \
 	provider/client/ECMailUser.cpp provider/client/ECMailUser.h \
 	provider/client/ECMemTablePublic.cpp provider/client/ECMemTablePublic.h \
@@ -533,13 +531,10 @@ libkcserver_la_SOURCES = \
 	provider/libserver/ECSearchFolders.cpp provider/libserver/ECSearchFolders.h \
 	provider/libserver/ECSearchObjectTable.cpp provider/libserver/ECSearchObjectTable.h \
 	provider/libserver/ECSecurity.cpp provider/libserver/ECSecurity.h \
-	provider/libserver/ECSecurityOffline.cpp provider/libserver/ECSecurityOffline.h \
 	provider/libserver/ECServerEntrypoint.cpp provider/libserver/ECServerEntrypoint.h \
 	provider/libserver/ECSession.cpp provider/libserver/ECSession.h \
 	provider/libserver/ECSessionGroup.cpp provider/libserver/ECSessionGroup.h \
 	provider/libserver/ECSessionManager.cpp provider/libserver/ECSessionManager.h \
-	provider/libserver/ECSessionManagerOffline.cpp \
-	provider/libserver/ECSessionManagerOffline.h \
 	provider/libserver/ECStatsCollector.cpp provider/libserver/ECStatsCollector.h \
 	provider/libserver/ECStatsTables.cpp provider/libserver/ECStatsTables.h \
 	provider/libserver/ECStoreObjectTable.cpp provider/libserver/ECStoreObjectTable.h \
@@ -549,8 +544,6 @@ libkcserver_la_SOURCES = \
 	provider/libserver/ECTableManager.cpp provider/libserver/ECTableManager.h \
 	provider/libserver/ECTestProtocol.cpp provider/libserver/ECTestProtocol.h \
 	provider/libserver/ECUserManagement.cpp provider/libserver/ECUserManagement.h \
-	provider/libserver/ECUserManagementOffline.cpp \
-	provider/libserver/ECUserManagementOffline.h \
 	provider/libserver/ECUserStoreTable.cpp provider/libserver/ECUserStoreTable.h \
 	provider/libserver/StorageUtil.cpp provider/libserver/StorageUtil.h \
 	provider/libserver/StreamUtil.cpp provider/libserver/StreamUtil.h \
@@ -620,11 +613,10 @@ EXTRA_libkcssl_la_DEPENDENCIES = ${default_sym}
 #
 libkcsyncdir = ${includedir}/libkcsync
 libkcsync_HEADERS = \
-	libsync/ECOfflineABImporter.h \
 	libsync/ECResyncSet.h libsync/ECSyncContext.h libsync/ECSyncLog.h \
 	libsync/ECSyncSettings.h libsync/ECSyncUtil.h
 libkcsync_la_SOURCES = \
-	libsync/ECOfflineABImporter.cpp libsync/ECResyncSet.cpp \
+	libsync/ECResyncSet.cpp \
 	libsync/ECSyncContext.cpp libsync/ECSyncLog.cpp \
 	libsync/ECSyncSettings.cpp libsync/ECSyncUtil.cpp
 libkcsync_la_LIBADD = libkcmapi.la libmapi.la

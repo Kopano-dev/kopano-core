@@ -26,9 +26,7 @@
 
 typedef struct {
 	IMSProvider *lpMSProviderOnline;
-	IMSProvider *lpMSProviderOffline;
 	IABProvider *lpABProviderOnline;
-	IABProvider *lpABProviderOffline;
 	ULONG		ulProfileFlags;	//  Profile flags when you start the first time
 	ULONG		ulConnectType; // CT_* values, The type of connection when you start the first time
 }PROVIDER_INFO;
