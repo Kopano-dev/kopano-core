@@ -132,11 +132,9 @@ AC_SUBST(DISTRO)
 
 dnl These are the only two I will allow to edit LIBS
 AC_ARG_WITH([asan], AS_HELP_STRING([--with-asan], [Activate Address Sanitizer]),
-	[ZCXXFLAGS="$ZCXXFLAGS -fsanitize=address";
-	LIBS="$LIBS -lasan"; LIBS_system="$LIBS"])
+	[ZCXXFLAGS="$ZCXXFLAGS -fsanitize=address"])
 AC_ARG_WITH([ubsan], AS_HELP_STRING([--with-ubsan], [Activate Undefined Behavior Sanitizer]),
-	[ZCXXFLAGS="$ZCXXFLAGS -fsanitize=undefined";
-	LIBS="$LIBS -lubsan"; LIBS_system="$LIBS"])
+	[ZCXXFLAGS="$ZCXXFLAGS -fsanitize=undefined"])
 
 AC_ARG_ENABLE([debug], AS_HELP_STRING([--enable-debug], [enable debug mode (Adds debug code)]),
   [want_debug=${enableval}],[want_debug=no])
