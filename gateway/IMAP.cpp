@@ -5109,11 +5109,15 @@ HRESULT IMAP::HrStore(const list<ULONG> &lstMails, string strMsgDataItemName, st
 	ULONG ulCurrent;
 	LPMESSAGE lpMessage = NULL;
 	LPSPropValue lpPropVal = NULL;
-	LPSPropTagArray lpPropTagArray = NULL;
 	ULONG cValues;
 	ULONG ulObjType;
 	string strNewFlags;
 	bool bDelete = false;
+	static constexpr SizedSPropTagArray(4, proptags4) =
+		{4, {PR_MSG_STATUS, PR_ICON_INDEX, PR_LAST_VERB_EXECUTED, PR_LAST_VERB_EXECUTION_TIME}};
+	static constexpr SizedSPropTagArray(5, proptags5) =
+		{5, {PR_MSG_STATUS, PR_FLAG_STATUS, PR_ICON_INDEX,
+		PR_LAST_VERB_EXECUTED, PR_LAST_VERB_EXECUTION_TIME}};
 
 	if (strCurrentFolder.empty() || !lpSession) {
 		hr = MAPI_E_CALL_FAILED;
@@ -5146,22 +5150,7 @@ HRESULT IMAP::HrStore(const list<ULONG> &lstMails, string strMsgDataItemName, st
 				if (hr != hrSuccess)
 					goto exit;
 			}
-
-			MAPIFreeBuffer(lpPropTagArray);
-			lpPropTagArray = NULL;
-
-			hr = MAPIAllocateBuffer(CbNewSPropTagArray(5), (void**)&lpPropTagArray);
-			if (hr != hrSuccess)
-				goto exit;
-
-			lpPropTagArray->cValues = 5;
-			lpPropTagArray->aulPropTag[0] = PR_MSG_STATUS;
-			lpPropTagArray->aulPropTag[1] = PR_FLAG_STATUS;
-			lpPropTagArray->aulPropTag[2] = PR_ICON_INDEX;
-			lpPropTagArray->aulPropTag[3] = PR_LAST_VERB_EXECUTED;
-			lpPropTagArray->aulPropTag[4] = PR_LAST_VERB_EXECUTION_TIME;
-
-			hr = lpMessage->GetProps(lpPropTagArray, 0, &cValues, &lpPropVal);
+			hr = lpMessage->GetProps(proptags5, 0, &cValues, &lpPropVal);
 			if (FAILED(hr))
 				goto exit;
 			cValues = 5;
@@ -5217,7 +5206,7 @@ HRESULT IMAP::HrStore(const list<ULONG> &lstMails, string strMsgDataItemName, st
 			}
 
 			// remove all "flag" properties
-			hr = lpMessage->DeleteProps(lpPropTagArray, NULL);
+			hr = lpMessage->DeleteProps(proptags5, NULL);
 			if (hr != hrSuccess)
 				goto exit;
 
@@ -5250,20 +5239,7 @@ HRESULT IMAP::HrStore(const list<ULONG> &lstMails, string strMsgDataItemName, st
 				} else if (lstFlags[ulCurrent].compare("\\ANSWERED") == 0 || lstFlags[ulCurrent].compare("$FORWARDED") == 0) {
 					MAPIFreeBuffer(lpPropVal);
 					lpPropVal = NULL;
-					MAPIFreeBuffer(lpPropTagArray);
-					lpPropTagArray = NULL;
-
-					hr = MAPIAllocateBuffer(CbNewSPropTagArray(4), (void**)&lpPropTagArray);
-					if (hr != hrSuccess)
-						goto exit;
-
-					lpPropTagArray->cValues = 4;
-					lpPropTagArray->aulPropTag[0] = PR_MSG_STATUS;
-					lpPropTagArray->aulPropTag[1] = PR_ICON_INDEX;
-					lpPropTagArray->aulPropTag[2] = PR_LAST_VERB_EXECUTED;
-					lpPropTagArray->aulPropTag[3] = PR_LAST_VERB_EXECUTION_TIME;
-
-					hr = lpMessage->GetProps(lpPropTagArray, 0, &cValues, &lpPropVal);
+					hr = lpMessage->GetProps(proptags4, 0, &cValues, &lpPropVal);
 					if (FAILED(hr))
 						goto exit;
 					cValues = 4;
@@ -5331,20 +5307,7 @@ HRESULT IMAP::HrStore(const list<ULONG> &lstMails, string strMsgDataItemName, st
 				} else if (lstFlags[ulCurrent].compare("\\ANSWERED") == 0 || lstFlags[ulCurrent].compare("$FORWARDED") == 0) {
 					MAPIFreeBuffer(lpPropVal);
 					lpPropVal = NULL;
-					MAPIFreeBuffer(lpPropTagArray);
-					lpPropTagArray = NULL;
-
-					hr = MAPIAllocateBuffer(CbNewSPropTagArray(4), (void**)&lpPropTagArray);
-					if (hr != hrSuccess)
-						goto exit;
-
-					lpPropTagArray->cValues = 4;
-					lpPropTagArray->aulPropTag[0] = PR_MSG_STATUS;
-					lpPropTagArray->aulPropTag[1] = PR_ICON_INDEX;
-					lpPropTagArray->aulPropTag[2] = PR_LAST_VERB_EXECUTED;
-					lpPropTagArray->aulPropTag[3] = PR_LAST_VERB_EXECUTION_TIME;
-
-					hr = lpMessage->GetProps(lpPropTagArray, 0, &cValues, &lpPropVal);
+					hr = lpMessage->GetProps(proptags4, 0, &cValues, &lpPropVal);
 					if (FAILED(hr))
 						goto exit;
 					cValues = 4;
@@ -5407,7 +5370,6 @@ HRESULT IMAP::HrStore(const list<ULONG> &lstMails, string strMsgDataItemName, st
 		*lpbDoDelete = bDelete;
 
 exit:
-	MAPIFreeBuffer(lpPropTagArray);
 	MAPIFreeBuffer(lpPropVal);
 	if (lpMessage)
 		lpMessage->Release();

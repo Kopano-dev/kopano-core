@@ -1901,25 +1901,17 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage,
 {
 	ULONG cValues;
 	LPSPropValue lpProps = NULL;
-	LPSPropTagArray lpPropTags = NULL;
 	LPSPropValue lpReadReceipt = NULL;
 
 	// sender information
 	std::wstring strEmail, strName, strType;
 	std::wstring strResEmail, strResName, strResType;
 
-	HRESULT hr = MAPIAllocateBuffer(CbNewSPropTagArray(4),
-	             reinterpret_cast<void **>(&lpPropTags));
-	if (hr != hrSuccess)
-		goto exit;
+	static constexpr SizedSPropTagArray(4, sender_proptags) =
+		{4, {PR_SENDER_ENTRYID, PR_SENDER_NAME_W,
+		PR_SENDER_ADDRTYPE_W, PR_SENDER_EMAIL_ADDRESS_W}};
 
-	lpPropTags->cValues = 4;
-	lpPropTags->aulPropTag[0] = PR_SENDER_ENTRYID;
-	lpPropTags->aulPropTag[1] = PR_SENDER_NAME_W;
-	lpPropTags->aulPropTag[2] = PR_SENDER_ADDRTYPE_W;
-	lpPropTags->aulPropTag[3] = PR_SENDER_EMAIL_ADDRESS_W;
-
-	hr = lpMessage->GetProps(lpPropTags, 0, &cValues, &lpProps);
+	HRESULT hr = lpMessage->GetProps(sender_proptags, 0, &cValues, &lpProps);
 	if (FAILED(hr))
 		goto exit;
 
@@ -1937,13 +1929,11 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage,
 	lpProps = NULL;
 
 	// -- sender
-	lpPropTags->cValues = 4;
-	lpPropTags->aulPropTag[0] = PR_SENT_REPRESENTING_ENTRYID;
-	lpPropTags->aulPropTag[1] = PR_SENT_REPRESENTING_NAME_W;
-	lpPropTags->aulPropTag[2] = PR_SENT_REPRESENTING_ADDRTYPE_W;
-	lpPropTags->aulPropTag[3] = PR_SENT_REPRESENTING_EMAIL_ADDRESS_W;
-
-	hr = lpMessage->GetProps(lpPropTags, 0, &cValues, &lpProps);
+	static constexpr SizedSPropTagArray(4, repr_proptags) =
+		{4, {PR_SENT_REPRESENTING_ENTRYID, PR_SENT_REPRESENTING_NAME_W,
+		PR_SENT_REPRESENTING_ADDRTYPE_W,
+		PR_SENT_REPRESENTING_EMAIL_ADDRESS_W}};
+	hr = lpMessage->GetProps(repr_proptags, 0, &cValues, &lpProps);
 	if (FAILED(hr))
 		goto exit;
 
@@ -2006,7 +1996,6 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage,
 	}
 
 exit:
-	MAPIFreeBuffer(lpPropTags);
 	MAPIFreeBuffer(lpProps);
 	MAPIFreeBuffer(lpReadReceipt);
 	return hr;

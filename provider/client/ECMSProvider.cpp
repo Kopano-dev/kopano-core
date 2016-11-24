@@ -91,7 +91,6 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 
 	LPPROFSECT		lpProfSect = NULL;
 	ULONG			cValues = 0;
-	LPSPropTagArray	lpsPropTagArray = NULL;
 	LPSPropValue	lpsPropArray = NULL;
 	BOOL			fIsDefaultStore = FALSE;
 	ULONG			ulStoreType = 0;
@@ -125,16 +124,9 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 	if(hr != hrSuccess)
 		goto exit;
 
-	cValues = 2;
-	hr = MAPIAllocateBuffer(CbNewSPropTagArray(cValues), (void **)&lpsPropTagArray);
-	if(hr != hrSuccess)
-		goto exit;
-
-	lpsPropTagArray->cValues = 2;
-	lpsPropTagArray->aulPropTag[0] = PR_MDB_PROVIDER;
-	lpsPropTagArray->aulPropTag[1] = PR_RESOURCE_FLAGS;
-	
-	hr = lpProfSect->GetProps(lpsPropTagArray, 0, &cValues, &lpsPropArray);
+	static constexpr SizedSPropTagArray(2, proptags) =
+		{2, {PR_MDB_PROVIDER, PR_RESOURCE_FLAGS}};
+	hr = lpProfSect->GetProps(proptags, 0, &cValues, &lpsPropArray);
 	if (FAILED(hr))
 		goto exit;
 
@@ -223,7 +215,6 @@ exit:
 
 	if(lpTransport)
 		lpTransport->Release();
-	MAPIFreeBuffer(lpsPropTagArray);
 	MAPIFreeBuffer(lpsPropArray);
 	return hr;
 }
@@ -240,7 +231,6 @@ HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR 
 
 	LPPROFSECT lpProfSect = NULL;
 	ULONG cValues = 0;
-	LPSPropTagArray lpsPropTagArray = NULL;
 	LPSPropValue lpsPropArray = NULL;
 	bool bOfflineStore = false;
 	sGlobalProfileProps	sProfileProps;
@@ -266,14 +256,11 @@ HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR 
 	if(hr != hrSuccess)
 		goto exit;
 
-	ECAllocateBuffer(CbNewSPropTagArray(2), (void **)&lpsPropTagArray);
-
-	lpsPropTagArray->cValues = 2;
-	lpsPropTagArray->aulPropTag[0] = PR_MDB_PROVIDER;
-	lpsPropTagArray->aulPropTag[1] = PR_RESOURCE_FLAGS;
+	static constexpr SizedSPropTagArray(2, proptags) =
+		{2, {PR_MDB_PROVIDER, PR_RESOURCE_FLAGS}};
 
 	// Get the MDBProvider from the profile settings
-	hr = lpProfSect->GetProps(lpsPropTagArray, 0, &cValues, &lpsPropArray);
+	hr = lpProfSect->GetProps(proptags, 0, &cValues, &lpsPropArray);
 	if(hr == hrSuccess || hr == MAPI_W_ERRORS_RETURNED)
 	{
 		if (lpsPropArray[0].ulPropTag == PR_MDB_PROVIDER)

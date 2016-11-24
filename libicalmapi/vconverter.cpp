@@ -2707,8 +2707,6 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 	ULONG ulRecurrenceStateTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRENCESTATE], PT_BINARY);
 	bool bIsAllDay = false;
 	bool bIsAllDayException = false;
-
-	LPSPropTagArray lpPropTagArr = NULL;
 	LPSPropValue lpSpropArray = NULL;
 	LPSPropValue lpSPropRecVal = NULL;
 	recurrence cRecurrence;
@@ -2730,21 +2728,15 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 	time_t tExceptionStart = 0;
 	std::list<icalcomponent*> lstExceptions;
 	TIMEZONE_STRUCT zone;
-	
-	cbsize = 6;
-	hr = MAPIAllocateBuffer(CbNewSPropTagArray(cbsize), (void **) &lpPropTagArr);
-	if (hr != hrSuccess)
-		goto exit;
-	
-	lpPropTagArr->cValues = cbsize;
-	lpPropTagArr->aulPropTag[0] = PR_MESSAGE_CLASS_A;
-	lpPropTagArr->aulPropTag[1] = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRENCEPATTERN], PT_UNICODE);
-	lpPropTagArr->aulPropTag[2] = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRENCESTATE], PT_BINARY);
-	lpPropTagArr->aulPropTag[3] = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ALLDAYEVENT], PT_BOOLEAN);
-	lpPropTagArr->aulPropTag[4] = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TASK_STATUS], PT_LONG);
-	lpPropTagArr->aulPropTag[5] = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TASK_RECURRSTATE], PT_BINARY);
+	SizedSPropTagArray(6, proptags) =
+		{6, {PR_MESSAGE_CLASS_A,
+		CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRENCEPATTERN], PT_UNICODE),
+		CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRENCESTATE], PT_BINARY),
+		CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ALLDAYEVENT], PT_BOOLEAN),
+		CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TASK_STATUS], PT_LONG),
+		CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TASK_RECURRSTATE], PT_BINARY)}};
 
-	hr = lpMessage->GetProps(lpPropTagArr, 0, &cbsize, &lpSpropArray);
+	hr = lpMessage->GetProps(proptags, 0, &cbsize, &lpSpropArray);
 	if (FAILED(hr))
 		goto exit;
 	
@@ -3026,7 +3018,6 @@ exit:
 	if (lpException)
 		lpException->Release();
 	MAPIFreeBuffer(lpSpropArray);
-	MAPIFreeBuffer(lpPropTagArr);
 	delete[] lpRecurrenceData;
 	if (lpStream)
 		lpStream->Release();
@@ -3274,21 +3265,14 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 	std::list<icalcomponent*> lstEvents;
 	icalproperty_method icMainMethod = ICAL_METHOD_NONE;
 	icalcomponent* lpicEvent = NULL;
-	LPSPropTagArray lpPropTagArray = NULL;
 	LPSPropValue lpSpropValArray = NULL;
 	icaltimezone *lpicTZinfo = NULL;
 	std::string strTZid;
 	ULONG cbSize = 0;
-
-	cbSize = 3;
-	hr = MAPIAllocateBuffer(CbNewSPropTagArray(cbSize), (void **) &lpPropTagArray);
-	if (hr != hrSuccess)
-		goto exit;
-	
-	lpPropTagArray->cValues = cbSize;
-	lpPropTagArray->aulPropTag[0] = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRING], PT_BOOLEAN);
-	lpPropTagArray->aulPropTag[1] = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ISRECURRING], PT_BOOLEAN);
-	lpPropTagArray->aulPropTag[2] = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TASK_ISRECURRING], PT_BOOLEAN);
+	SizedSPropTagArray(3, proptags) = {3,
+		{CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRING], PT_BOOLEAN),
+		CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ISRECURRING], PT_BOOLEAN),
+		CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TASK_ISRECURRING], PT_BOOLEAN)}};
 
 	// handle toplevel
 	hr = HrMAPI2ICal(lpMessage, &icMainMethod, &lpicTZinfo, &strTZid, &lpicEvent);
@@ -3296,7 +3280,7 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 		goto exit;
 
 	cbSize = 0;
-	hr = lpMessage->GetProps(lpPropTagArray, 0, &cbSize, &lpSpropValArray);
+	hr = lpMessage->GetProps(proptags, 0, &cbSize, &lpSpropValArray);
 	if (FAILED(hr)) {
 		hr = hrSuccess;
 		goto exit;
@@ -3326,7 +3310,6 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 
 exit:
 	MAPIFreeBuffer(lpSpropValArray);
-	MAPIFreeBuffer(lpPropTagArray);
 	if (lpicEvent)
 		icalcomponent_free(lpicEvent);
 
