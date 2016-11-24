@@ -547,8 +547,6 @@ libkcserver_la_SOURCES = \
 	provider/libserver/ECTableManager.cpp provider/libserver/ECTableManager.h \
 	provider/libserver/ECTestProtocol.cpp provider/libserver/ECTestProtocol.h \
 	provider/libserver/ECUserManagement.cpp provider/libserver/ECUserManagement.h \
-	provider/libserver/ECUserManagementOffline.cpp \
-	provider/libserver/ECUserManagementOffline.h \
 	provider/libserver/ECUserStoreTable.cpp provider/libserver/ECUserStoreTable.h \
 	provider/libserver/StorageUtil.cpp provider/libserver/StorageUtil.h \
 	provider/libserver/StreamUtil.cpp provider/libserver/StreamUtil.h \

@@ -29,7 +29,6 @@
 #include "ECSession.h"
 #include "ECSessionManager.h"
 #include "ECUserManagement.h"
-#include "ECUserManagementOffline.h"
 #include "ECSecurity.h"
 #include "ECSecurityOffline.h"
 #include "ECPluginFactory.h"
