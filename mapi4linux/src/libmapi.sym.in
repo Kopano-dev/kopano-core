@@ -63,7 +63,14 @@ OLE32_1 {
 global:
 	CreateStreamOnHGlobal;
 };
-EC_@PACKAGE_VERSION@ {
+KC_@PACKAGE_VERSION@ {
 global:
+	extern "C++" {
+		operator*SBinary*;
+		KC::*;
+		typeinfo*;
+		vtable*;
+	};
+local:
 	*;
 };

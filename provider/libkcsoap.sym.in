@@ -1,0 +1,30 @@
+KC_@PACKAGE_VERSION@ {
+global:
+	extern "C++" {
+		ns__*;
+		soap_*;
+		company::*;
+		group::*;
+		notification::*;
+		notificationICS::*;
+		notifySubscribe::*;
+		notifySubscribeArray::*;
+		notifySyncState::*;
+		propTagArray::*;
+		propVal::*;
+		propValArray::*;
+		rights::*;
+		sortOrder::*;
+		sortOrderArray::*;
+		tableMultiRequest::*;
+		tableOpenRequest::*;
+		user::*;
+		xsd__Binary::*;
+
+		KC::*;
+		typeinfo*;
+		vtable*;
+	};
+local:
+	*;
+};

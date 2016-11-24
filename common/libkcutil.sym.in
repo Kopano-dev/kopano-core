@@ -1,0 +1,27 @@
+KERNEL32_1 {
+global:
+	GetSystemTimeAsFileTime;
+	GetTempPath;
+	GlobalAlloc;
+	Sleep;
+	lstrcmpW;
+	lstrcpyW;
+	lstrlenW;
+	extern "C++" {
+		operator*GUID*;
+	};
+};
+OLE32_1 {
+global:
+	CoCreateGuid;
+};
+KC_@PACKAGE_VERSION@ {
+global:
+	extern "C++" {
+		KC::*;
+		typeinfo*;
+		vtable*;
+	};
+local:
+	*;
+};

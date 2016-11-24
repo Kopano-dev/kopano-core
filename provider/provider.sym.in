@@ -7,7 +7,7 @@ global:
 };
 KC_@PACKAGE_VERSION@ {
 global:
-	/* weird gsoap integration */
+	/* unlucky gsoap linkage */
 	namespaces;
 local:
 	*;

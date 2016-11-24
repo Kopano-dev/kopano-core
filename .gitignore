@@ -78,6 +78,8 @@ stamp-h2
 /common/include/kopano/ecversion.h
 /common/include/kopano/zconfig.h
 /common/kopano.pc
+/common/libkcmapi.sym
+/common/libkcutil.sym
 
 # /doc/
 /doc/*.[0-9]
@@ -103,6 +105,9 @@ stamp-h2
 /installer/userscripts/createcompany
 /installer/userscripts/deletecompany
 
+/provider/libkcsoap.sym
+/provider/libkcserver.sym
+
 # /swig/python/
 /swig/python/build/
 /swig/python/MAPICore.py
@@ -124,6 +129,7 @@ stamp-h2
 /swig/python/RecurrenceState_wrap.cxx
 /swig/python/kopano/build/
 /swig/python/zarafa/build/
+/swig/python/python.sym
 
 # Ignore Python compiled files
 *.pyc

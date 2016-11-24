@@ -11,7 +11,7 @@ public:
 #include <kopano/swig_iunknown.h>
 typedef IUnknownImplementor<IECSimpleLogger> ECSimpleLogger;
 
-class ECLoggerProxy : public ECLogger {
+class ECLoggerProxy : public KC::ECLogger {
 public:
 	static HRESULT Create(unsigned int ulLevel, ECSimpleLogger *lpSimpleLogger, ECLoggerProxy **lppProxy) {
 		ECLoggerProxy *lpProxy = new ECLoggerProxy(ulLevel, lpSimpleLogger);

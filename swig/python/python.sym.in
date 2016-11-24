@@ -1,0 +1,9 @@
+KC_@PACKAGE_VERSION@ {
+global:
+	extern "C++" {
+		List_from_*;
+		List_to_*;
+		Object_from_*;
+		Object_to_*;
+	};
+};

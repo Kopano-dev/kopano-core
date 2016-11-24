@@ -22,14 +22,15 @@ AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) \
 	-DSWIG_PYTHON_OUTPUT_TUPLE -DSWIG_TYPE_TABLE=MAPI
 
 libkcpyconv_la_SOURCES = conversion.cpp
-libkcpyconv_la_LDFLAGS = \
-	${AM_LDFLAGS} -Wl,--version-script=${top_builddir}/default.sym
+libkcpyconv_la_LDFLAGS = ${AM_LDFLAGS} -Wl,--version-script=python.sym
 libkcpyconv_la_LIBADD  = ${PYTHON_LIBS} \
 	${top_builddir}/libmapi.la
+EXTRA_libkcpyconv_la_DEPENDENCIES = python.sym
+
 libkcpydirector_la_SOURCES = ../director_util.cpp
-libkcpydirector_la_LDFLAGS = \
-	${AM_LDFLAGS} -Wl,--version-script=${top_builddir}/default.sym
+libkcpydirector_la_LDFLAGS = ${AM_LDFLAGS} -Wl,--version-script=python.sym
 libkcpydirector_la_LIBADD  = -lpthread
+EXTRA_libkcpydirector_la_DEPENDENCIES = python.sym
 
 _MAPICore_la_CPPFLAGS = ${AM_CPPFLAGS} -I${top_srcdir}/libsync
 _MAPICore_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version
@@ -108,6 +109,7 @@ CLEANFILES += ${BUILT_SOURCES} \
 			 libcommon.py \
 			 libfreebusy.py
 
+python.sym: ${top_builddir}/config.status
 
 # wait for full output of swig
 MAPICore.py: $(BUILT_SOURCES)

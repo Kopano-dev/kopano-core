@@ -1,7 +1,13 @@
 KC_@PACKAGE_VERSION@ {
 global:
+	/* unlucky gsoap linkage */
+	namespaces;
+	soap_*;
+
 	extern "C++" {
-		*KCHL::*;
+		ns__*;
+
+		KC::*;
 		typeinfo*;
 		vtable*;
 	};

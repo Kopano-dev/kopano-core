@@ -421,7 +421,7 @@
 // ECLogger director
 #if SWIGPYTHON
 
-%typemap(in) ECLogger *annoyingswig (int res, ECSimpleLogger *sl, ECLoggerProxy *proxy)
+%typemap(in) KC::ECLogger *annoyingswig (int res, ECSimpleLogger *sl, ECLoggerProxy *proxy)
 {
 	res = SWIG_ConvertPtr($input, (void **)&sl, SWIGTYPE_p_ECSimpleLogger, 0 | 0);
 	if(!SWIG_IsOK(res))
@@ -431,7 +431,7 @@
 	$1 = proxy;
 }
 
-%typemap(freearg) ECLogger *annoyingswig
+%typemap(freearg) KC::ECLogger *annoyingswig
 {
 	$1->Release();
 }

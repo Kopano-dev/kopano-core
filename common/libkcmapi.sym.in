@@ -1,0 +1,19 @@
+KC_@PACKAGE_VERSION@ {
+global:
+	GUID_NULL;
+	IID_*;
+	KOPANO_*_GUID;
+	MSEMS_*_GUID;
+	MUID*;
+	PS_[A-Z]*;
+	PSETID_*;
+	WAB_GUID;
+	muidStoreWrap;
+	extern "C++" {
+		KC::*;
+		typeinfo*;
+		vtable*;
+	};
+local:
+	*;
+};

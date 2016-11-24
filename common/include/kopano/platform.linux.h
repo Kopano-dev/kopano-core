@@ -520,6 +520,8 @@ typedef DWORD LCID;
 extern _kc_export bool operator!=(const GUID &, const GUID &);
 extern _kc_export bool operator==(REFIID, const GUID &);
 
+extern "C" {
+
 extern _kc_export HRESULT CoCreateGuid(LPGUID);
 extern _kc_export void GetSystemTimeAsFileTime(FILETIME *);
 extern _kc_export DWORD GetTempPath(DWORD len, char *buf);
@@ -558,6 +560,8 @@ extern _kc_export void Sleep(unsigned int usec);
 /* because the flags are not used linux, they do not match the windows flags! */
 #define GPTR 0
 extern _kc_export HGLOBAL GlobalAlloc(UINT flags, ULONG size);
+
+} /* extern "C" */
 
 typedef void * DLIB;
 #ifdef __APPLE__

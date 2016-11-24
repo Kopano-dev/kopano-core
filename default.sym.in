@@ -1,4 +1,10 @@
 KC_@PACKAGE_VERSION@ {
 global:
+	extern "C++" {
+		KC::*;
+		typeinfo*;
+		vtable*;
+	};
+local:
 	*;
 };

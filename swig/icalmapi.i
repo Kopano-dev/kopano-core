@@ -17,7 +17,7 @@
 %typemap(argout) (ICALMAPICLASS **) {
   %append_output(SWIG_NewPointerObj((void*)*($1), $*1_descriptor, SWIG_SHADOW | SWIG_OWNER));
 }
-%apply ICALMAPICLASS **{ ICalToMapi **, MapiToICal **};
+%apply ICALMAPICLASS **{ KC::ICalToMapi **, KC::MapiToICal **};
 
 /* GetItemInfo output parameters */
 %typemap(in,numinputs=0) (eIcalType *) (eIcalType temp) {

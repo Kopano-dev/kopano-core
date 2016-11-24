@@ -558,8 +558,10 @@ libkcserver_la_LIBADD = \
 	-lpthread ${icu_i18n_LIBS} ${icu_uc_LIBS} \
 	${GSOAP_LIBS} ${KRB5_LIBS} ${MYSQL_LIBS} ${PAM_LIBS} ${SSL_LIBS}
 libkcserver_la_LDFLAGS = ${AM_LDFLAGS} \
-	-Wl,--version-script=${default_sym}
-EXTRA_libkcserver_la_DEPENDENCIES = ${default_sym}
+	-Wl,--version-script=provider/libkcserver.sym
+EXTRA_libkcserver_la_DEPENDENCIES = provider/libkcserver.sym
+
+provider/libkcserver.sym: ${top_builddir}/config.status
 
 
 #
@@ -576,8 +578,10 @@ libkcmapi_la_SOURCES = \
 	common/codepage.cpp common/rtfutil.cpp
 libkcmapi_la_LIBADD = libkcutil.la -lpthread
 libkcmapi_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
-	-Wl,--version-script=${default_sym}
-EXTRA_libkcmapi_la_DEPENDENCIES = ${default_sym}
+	-Wl,--version-script=common/libkcmapi.sym
+EXTRA_libkcmapi_la_DEPENDENCIES = common/libkcmapi.sym
+
+common/libkcmapi.sym: ${top_builddir}/config.status
 
 
 #
@@ -592,8 +596,10 @@ libkcsoap_la_SOURCES = \
 libkcsoap_la_CXXFLAGS = ${AM_CXXFLAGS} -fvisibility=default
 libkcsoap_la_LIBADD = libkcutil.la libkcmapi.la ${GSOAP_LIBS}
 libkcsoap_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
-	-Wl,--version-script=${default_sym}
-EXTRA_libkcsoap_la_DEPENDENCIES = ${default_sym}
+	-Wl,--version-script=provider/libkcsoap.sym
+EXTRA_libkcsoap_la_DEPENDENCIES = provider/libkcsoap.sym
+
+provider/libkcsoap.sym: ${top_builddir}/config.status
 
 
 #
@@ -650,12 +656,14 @@ libkcutil_la_SOURCES = \
 libkcutil_la_LIBADD = \
 	-lpthread -lz ${BOOST_FILESYSTEM_LIBS} ${CRYPTO_LIBS} ${UUID_LIBS}
 libkcutil_la_LDFLAGS = ${AM_LDFLAGS} -no-undefined \
-	-Wl,--version-script=${default_sym}
-EXTRA_libkcutil_la_DEPENDENCIES = ${default_sym}
+	-Wl,--version-script=common/libkcutil.sym
+EXTRA_libkcutil_la_DEPENDENCIES = common/libkcutil.sym
 if HAVE_ICU
 libkcutil_la_SOURCES += common/ustringutil/utfutil.cpp
 libkcutil_la_LIBADD += ${icu_uc_LIBS} ${icu_i18n_LIBS}
 endif
+
+common/libkcutil.sym: ${top_builddir}/config.status
 
 
 #
