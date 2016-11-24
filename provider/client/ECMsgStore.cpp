@@ -3450,16 +3450,8 @@ DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, QueryInterface, (REFIID, r
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, SetCurrentState, (ULONG, ulFlags), (ULONG, ulMask), (ULONG, ulState), (void*, pReserved))
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, GetCapabilities, (ULONG *, pulCapabilities))
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, GetCurrentState, (ULONG*, pulState))
-DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, Placeholder1, (void*, ulTest))
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, Advise, (ULONG, ulFlags), (MAPIOFFLINE_ADVISEINFO*, pAdviseInfo), (ULONG*, pulAdviseToken))
 DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, Unadvise, (ULONG, ulFlags), (ULONG, ulAdviseToken))
-DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, Placeholder2, (void))
-DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, Placeholder3, (void))
-DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, Placeholder4, (void))
-DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, Placeholder5, (void))
-DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, Placeholder6, (void))
-DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, Placeholder7, (void))
-DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ECMsgStore, MAPIOfflineMgr, Placeholder8, (void))
 
 // Interface IProxyStoreObject
 DEF_ULONGMETHOD1(TRACE_MAPI, ECMsgStore, ProxyStoreObject, AddRef, (void))

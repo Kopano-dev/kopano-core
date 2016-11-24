@@ -78,8 +78,6 @@ public:
 		_kc_hidden virtual HRESULT CleanTombstone(void) { return E_NOTIMPL; }
 		_kc_hidden virtual HRESULT GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulStatus, unsigned int *lpulStart, unsigned int *lpulEnd);
 		_kc_hidden virtual HRESULT PushDelegateInfoToWorkspace(void) { return E_NOTIMPL; }
-		_kc_hidden virtual HRESULT Placeholder21(void *, HWND, BOOL) { return S_OK; }
-		_kc_hidden virtual HRESULT Placeholder22(void) { return S_OK; }
 
 public:
 	// Interface for Outlook 2002 and up

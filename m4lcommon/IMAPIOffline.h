@@ -157,8 +157,6 @@ public:
 		Unknown
 	*/
 	virtual HRESULT __stdcall GetCurrentState(ULONG* pulState) = 0;
-
-	virtual HRESULT __stdcall Placeholder1(void* ulTest) = 0;
 };
 
 /*
@@ -264,14 +262,6 @@ public:
 		object associated with ulAdviseToken.
 	*/
 	virtual HRESULT __stdcall Unadvise(ULONG ulFlags,ULONG ulAdviseToken) = 0;
-	virtual HRESULT __stdcall Placeholder2() = 0;
-	virtual HRESULT __stdcall Placeholder3() = 0;
-	virtual HRESULT __stdcall Placeholder4() = 0;
-	virtual HRESULT __stdcall Placeholder5() = 0;
-	virtual HRESULT __stdcall Placeholder6() = 0;
-	virtual HRESULT __stdcall Placeholder7() = 0;
-	virtual HRESULT __stdcall Placeholder8() = 0;
-
 };
 
 #endif //IMAPIOFFLINE_INCLUDED

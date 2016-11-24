@@ -147,8 +147,6 @@ public:
         virtual HRESULT CleanTombstone() = 0;
         virtual HRESULT GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulStatus, unsigned int *prtmStart, unsigned int *prtmEnd) = 0;
         virtual HRESULT PushDelegateInfoToWorkspace() = 0;
-        virtual HRESULT Placeholder21(void *, HWND, BOOL ) = 0;
-        virtual HRESULT Placeholder22() = 0;
         %extend {
                 IFreeBusySupport() {
                     HRESULT hr = hrSuccess;

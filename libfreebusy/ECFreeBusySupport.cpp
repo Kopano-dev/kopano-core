@@ -459,8 +459,6 @@ DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupport, PublishRangeChange
 DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupport, CleanTombstone, (void))
 DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupport, GetDelegateInfoEx, (FBUser, fbUser), (unsigned int *, lpData1), (unsigned int *, lpData2), (unsigned int *, lpData3))
 DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupport, PushDelegateInfoToWorkspace, (void))
-DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupport, Placeholder21, (void *, lpData), (HWND, hwnd), (BOOL, bData))
-DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupport, Placeholder22, (void))
 
 // IUnknown
 DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, QueryInterface, (REFIID, refiid), (void**, lppInterface))
@@ -499,17 +497,5 @@ DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, Publish
 /*
 DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, CleanTombstone, (void))
 */
-/*
-HRESULT __stdcall ECFreeBusySupport::xFreeBusySupportOutlook2000::PlaceholderRemoved1()
-{
-	TRACE_MAPI(TRACE_ENTRY, "IFreeBusySupportOutlook2000::PlaceholderRemoved1", "");
-	METHOD_PROLOGUE_(ECFreeBusySupport , FreeBusySupportOutlook2000);
-	HRESULT hr = E_NOTIMPL; // skip call
-	TRACE_MAPI(TRACE_RETURN, "IFreeBusySupportOutlook2000::PlaceholderRemoved1", "%s", GetMAPIErrorDescription(hr).c_str());
-	return hr;
-}
-*/
 DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, GetDelegateInfoEx, (FBUser, fbUser), (unsigned int *, lpData1), (unsigned int *, lpData2), (unsigned int *, lpData3))
 DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, PushDelegateInfoToWorkspace, (void))
-DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, Placeholder21, (void *, lpData), (HWND, hwnd), (BOOL, bData))
-DEF_HRMETHOD1(TRACE_MAPI, ECFreeBusySupport, FreeBusySupportOutlook2000, Placeholder22, (void))
