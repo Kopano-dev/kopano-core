@@ -68,7 +68,7 @@ template<typename _T> class memory_ptr {
 	typedef _T value_type;
 	typedef _T *pointer;
 	constexpr memory_ptr(void) noexcept {}
-	constexpr memory_ptr(nullptr_t) noexcept {}
+	constexpr memory_ptr(std::nullptr_t) noexcept {}
 	explicit memory_ptr(_T *__p) noexcept : _m_ptr(__p) {}
 	~memory_ptr(void)
 	{
@@ -120,7 +120,7 @@ template<typename _T> class memory_ptr {
 		reset(__o.release());
 		return *this;
 	}
-	memory_ptr &operator=(nullptr_t) noexcept
+	memory_ptr &operator=(std::nullptr_t) noexcept
 	{
 		reset();
 		return *this;
