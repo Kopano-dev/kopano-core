@@ -538,8 +538,6 @@ libkcserver_la_SOURCES = \
 	provider/libserver/ECSession.cpp provider/libserver/ECSession.h \
 	provider/libserver/ECSessionGroup.cpp provider/libserver/ECSessionGroup.h \
 	provider/libserver/ECSessionManager.cpp provider/libserver/ECSessionManager.h \
-	provider/libserver/ECSessionManagerOffline.cpp \
-	provider/libserver/ECSessionManagerOffline.h \
 	provider/libserver/ECStatsCollector.cpp provider/libserver/ECStatsCollector.h \
 	provider/libserver/ECStatsTables.cpp provider/libserver/ECStatsTables.h \
 	provider/libserver/ECStoreObjectTable.cpp provider/libserver/ECStoreObjectTable.h \

@@ -26,8 +26,6 @@
 #include "ECDatabaseFactory.h"
 #include "ECDatabaseMySQL.h"
 #include "ECServerEntrypoint.h"
-
-#include "ECSessionManagerOffline.h"
 #include "ECS3Attachment.h"
 
 pthread_key_t database_key;
