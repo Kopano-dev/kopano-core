@@ -7,14 +7,14 @@
 #include <string>
 #include <mapidefs.h>
 
-struct IAttach;
-struct IMAPIFolder;
-struct IMAPISession;
-struct IMessage;
-struct IMsgFolder;
-struct IMsgStore;
-struct IStream;
-struct IUnknown;
+class IAttach;
+class IMAPIFolder;
+class IMAPISession;
+class IMessage;
+class IMsgFolder;
+class IMsgStore;
+class IStream;
+class IUnknown;
 
 namespace KCHL {
 

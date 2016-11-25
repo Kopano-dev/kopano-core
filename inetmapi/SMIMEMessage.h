@@ -46,8 +46,6 @@
  */
 class SMIMEMessage _kc_final : public vmime::message {
 public:
-    SMIMEMessage();
-
 	void generateImpl(const vmime::generationContext &, vmime::utility::outputStream &, size_t curLinePos = 0, size_t *newLinePos = NULL) const;
 
     void setSMIMEBody(std::string &body);    

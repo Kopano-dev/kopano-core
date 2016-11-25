@@ -30,22 +30,14 @@
 static int soapresponse(struct notifyResponse notifications, struct soap *soap)
 {
     soap_serializeheader(soap);
-#if GSOAP_VERSION > 20816
     soap_serialize_notifyResponse(soap, &notifications);
-#else
-    soap_serialize_ns_notifyResponse(soap, &notifications);
-#endif
     if (soap_begin_count(soap))
         return soap->error;
     if (soap->mode & SOAP_IO_LENGTH)
     {	if (soap_envelope_begin_out(soap)
          || soap_putheader(soap)
          || soap_body_begin_out(soap)
-#if GSOAP_VERSION > 20816
          || soap_put_notifyResponse(soap, &notifications, "ns:notifyResponse", NULL)
-#else
-         || soap_put_ns_notifyResponse(soap, &notifications, "ns:notifyResponse", NULL)
-#endif
          || soap_body_end_out(soap)
          || soap_envelope_end_out(soap))
             return soap->error;
@@ -55,11 +47,7 @@ static int soapresponse(struct notifyResponse notifications, struct soap *soap)
      || soap_envelope_begin_out(soap)
      || soap_putheader(soap)
      || soap_body_begin_out(soap)
-#if GSOAP_VERSION > 20816
      || soap_put_notifyResponse(soap, &notifications, "ns:notifyResponse", NULL)
-#else
-     || soap_put_ns_notifyResponse(soap, &notifications, "ns:notifyResponse", NULL)
-#endif
      || soap_body_end_out(soap)
      || soap_envelope_end_out(soap)
      || soap_end_send(soap))
@@ -114,11 +102,7 @@ HRESULT ECNotificationManager::AddRequest(ECSESSIONID ecSessionId, struct soap *
         
         // Return the previous request as an error
         struct notifyResponse notifications;
-#if GSOAP_VERSION > 20816
         soap_default_notifyResponse(iterRequest->second.soap, &notifications);
-#else
-        soap_default_ns_notifyResponse(iterRequest->second.soap, &notifications);
-#endif
         notifications.er = KCERR_NOT_FOUND; // Should be something like 'INTERRUPTED' or something
 		if (soapresponse(notifications, iterRequest->second.soap))
 			// Handle error on the response
@@ -194,11 +178,7 @@ void *ECNotificationManager::Work() {
             auto iterRequest = m_mapRequests.find(ses);
             if (iterRequest != m_mapRequests.cend()) {
                 // Reset notification response to default values
-#if GSOAP_VERSION > 20816
                 soap_default_notifyResponse(iterRequest->second.soap, &notifications);
-#else
-                soap_default_ns_notifyResponse(iterRequest->second.soap, &notifications);
-#endif
                 if(g_lpSessionManager->ValidateSession(iterRequest->second.soap, ses, &lpecSession, true) == erSuccess) {
                     // Get the notifications from the session
                     er = lpecSession->GetNotifyItems(iterRequest->second.soap, &notifications);

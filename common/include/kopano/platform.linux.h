@@ -518,47 +518,6 @@ typedef IStorage* LPSTORAGE;
   since these are not used, we can define them as void, instead of the large struct it is in WIN32
 */
 typedef DWORD LCID;
-typedef long DISPID;
-typedef void VARIANT;
-typedef void DISPPARAMS;
-typedef OLECHAR* BSTR;
-class ITypeInfo : public IUnknown {
-};
-typedef void EXCEPINFO;
-typedef void SENS_QOCINFO;
-typedef SENS_QOCINFO* LPSENS_QOCINFO;
-
-/* IDispatch Interface */
-class IDispatch : public IUnknown {
-public:
-	virtual HRESULT GetTypeInfoCount(unsigned int *pctinfo) = 0;
-	virtual HRESULT GetTypeInfo(unsigned int iTInfo, LCID lcid, ITypeInfo **ppTInfo) = 0;
-	virtual HRESULT GetIDsOfNames(REFIID riid, OLECHAR **rgszNames, unsigned int cNames, LCID lcid, DISPID *rgDispId) = 0;
-	virtual HRESULT Invoke(DISPID dispIdMember, REFIID riid, LCID lcid, WORD wFlags, DISPPARAMS *pDispParams, VARIANT *parResult, EXCEPINFO *pExcepInfo, unsigned int *puArgErr) = 0;
-};
-
-/* ISensNetwork Interface */
-class ISensNetwork : public IDispatch {
-public:
-	virtual HRESULT ConnectionMade(BSTR bstrConnection,ULONG ulType, LPSENS_QOCINFO lpQOCInfo) = 0;
-	virtual HRESULT ConnectionMadeNoQOCInfo(BSTR bstrConnection,ULONG ulType) = 0;
-	virtual HRESULT ConnectionLost(BSTR bstrConnection, ULONG ulType) = 0;
-	virtual HRESULT DestinationReachable(BSTR bstrDestination, BSTR bstrConnection, ULONG ulType, LPSENS_QOCINFO lpQOCInfo) = 0;
-	virtual HRESULT DestinationReachableNoQOCInfo(BSTR bstrDestination, BSTR bstrConnection, ULONG ulType) = 0;
-};
-
-class IEventSystem : public IDispatch {
-public:
-	virtual HRESULT Query(BSTR progID, BSTR queryCriteria, int *errorIndex, IUnknown **ppInterface) = 0;
-	virtual HRESULT Store(BSTR ProgID, IUnknown *pInterface) = 0;
-	virtual HRESULT Remove(BSTR progID, BSTR queryCriteria, int *errorIndex) = 0;
-	virtual HRESULT get_EventObjectChangeEventClassID(BSTR *pbstrEventClassID) = 0;
-	virtual HRESULT QueryS(BSTR progID, BSTR queryCriteria, IUnknown **ppInterface) = 0;
-	virtual HRESULT RemoveS(BSTR progID, BSTR queryCriteria) = 0;
-};
-
-class IEventSubscription : public IDispatch {
-};
 
 /* functions */
 extern _kc_export bool operator!=(const GUID &, const GUID &);

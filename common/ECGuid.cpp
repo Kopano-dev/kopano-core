@@ -140,10 +140,6 @@
 #define USES_IID_IFreeBusySupport
 #define USES_IID_IFreeBusyUpdate
 
-// used in ECSync
-#define USES_IID_IDispatch
-#define USES_IID_ISensNetwork
-
 #include <mapiguid.h>
 #include <edkguid.h>
 #include <kopano/ECGuid.h>

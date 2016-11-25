@@ -20,10 +20,6 @@
 #include <vmime/message.hpp>
 #include "SMIMEMessage.h"
 
-SMIMEMessage::SMIMEMessage()
-{
-}
-
 void SMIMEMessage::generateImpl(const vmime::generationContext &ctx,
     vmime::utility::outputStream &os, size_t curLinePos,
     size_t *newLinePos) const

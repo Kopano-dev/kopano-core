@@ -229,7 +229,8 @@ ECChannel::ECChannel(int fd) {
 	this->fd = fd;
 	lpSSL = NULL;
 	
-	setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<const char *>(&flag), sizeof(flag));
+	if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<const char *>(&flag), sizeof(flag)) < 0)
+		/* silence Coverity */;
 	*peer_atxt = '\0';
 	memset(&peer_sockaddr, 0, sizeof(peer_sockaddr));
 	peer_salen = 0;

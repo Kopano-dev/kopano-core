@@ -995,7 +995,7 @@ HRESULT WebDav::HrWriteResponseProps(xmlTextWriter *xmlWriter,
     std::string *lpstrNsPrefix, std::list<WEBDAVPROPERTY> *lplstProps)
 {
 	HRESULT hr;
-	ULONG ulRet;
+	int ulRet;
 
 	for (const auto &iterProp : *lplstProps) {
 		auto sWebProperty = iterProp;
