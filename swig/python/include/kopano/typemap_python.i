@@ -161,7 +161,7 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
     $1 = NULL;
   else {
     if(ulFlags & MAPI_UNICODE) {
-	  if(PyUnicode_Check(o)) {
+      if(PyUnicode_Check(o)) {
 		size_t size = 0;
 		SWIG_AsWCharPtrAndSize(o, &buf, &size, &alloc);
 		$1 = buf;
@@ -172,13 +172,16 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
       if(PyUnicode_Check(o)) {
         PyErr_SetString(PyExc_RuntimeError, "MAPI_UNICODE flag not passed but passed parameter is a unicode string");
       }
+
       char *input;
       Py_ssize_t size;
 
-      PyString_AsStringAndSize(o, &input, &size);
-      strInput.assign(input, size);
-
-      $1 = (LPTSTR)strInput.c_str();
+      if(PyString_AsStringAndSize(o, &input, &size) != -1) {
+        strInput.assign(input, size);
+        $1 = (LPTSTR)strInput.c_str();
+      }
+      else
+        %argument_fail(SWIG_ERROR,"$type",$symname, $argnum);
     }
   }
 
