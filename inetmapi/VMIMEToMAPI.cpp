@@ -1365,7 +1365,7 @@ HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals, ULONG *lpu
 			goto exit;
 	}
 
-	hr = MAPIAllocateBuffer(CbNewSRowSet(1), (void **) &lpAdrList);
+	hr = MAPIAllocateBuffer(CbNewADRLIST(1), (void **) &lpAdrList);
 	if (hr != hrSuccess)
 		goto exit;
 

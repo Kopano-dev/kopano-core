@@ -712,7 +712,7 @@ static HRESULT ResolveUsers(IABContainer *lpAddrFolder, recipients_t *lRCPT)
 
 	ULONG ulRCPT = lRCPT->size();
 
-	hr = MAPIAllocateBuffer(CbNewSRowSet(ulRCPT), (void **) &lpAdrList);
+	hr = MAPIAllocateBuffer(CbNewADRLIST(ulRCPT), (void **) &lpAdrList);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ResolveUsers(): MAPIAllocateBuffer failed(1) %x", hr);
 		goto exit;

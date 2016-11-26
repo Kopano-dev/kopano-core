@@ -374,8 +374,7 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 		goto exit;
 
 	lpFlagList->cFlags = ulRecpCnt;
-	
-	hr = MAPIAllocateBuffer(CbNewSRowSet(ulRecpCnt), (void **) &lpAdrList);
+	hr = MAPIAllocateBuffer(CbNewADRLIST(ulRecpCnt), (void **) &lpAdrList);
 	if (hr != hrSuccess)
 		goto exit;
 
