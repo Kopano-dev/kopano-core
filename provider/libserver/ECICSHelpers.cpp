@@ -98,7 +98,7 @@ public:
 	
 private:
 	std::string CreateBaseQuery(void) _kc_override;
-	std::string CreateOrderQuery();
+	std::string CreateOrderQuery(void) _kc_override;
 	
 private:
 	ECDatabase		*m_lpDatabase;
@@ -162,7 +162,7 @@ public:
 	
 private:
 	std::string CreateBaseQuery(void) _kc_override;
-	std::string CreateOrderQuery();
+	std::string CreateOrderQuery(void) _kc_override;
 	
 private:
 	ECDatabase		*m_lpDatabase;
@@ -213,7 +213,7 @@ public:
 	
 private:
 	std::string CreateBaseQuery(void) _kc_override;
-	std::string CreateOrderQuery();
+	std::string CreateOrderQuery(void) _kc_override;
 };
 
 NullQueryCreator::NullQueryCreator() : CommonQueryCreator(SYNC_CATCHUP)
@@ -258,7 +258,7 @@ public:
 		/* No legacy, no residuals. */
 		return erSuccess;
 	}
-	unsigned int GetMaxChangeId(void) const { return m_ulMaxChangeId; }
+	unsigned int GetMaxChangeId(void) const _kc_override { return m_ulMaxChangeId; }
 	
 private:
 	unsigned int m_ulMaxChangeId;
@@ -308,7 +308,7 @@ public:
 		/* No legacy, no residuals. */
 		return erSuccess;
 	}
-	unsigned int GetMaxChangeId(void) const { return m_ulMaxChangeId; }
+	unsigned int GetMaxChangeId(void) const _kc_override { return m_ulMaxChangeId; }
 	
 private:
 	unsigned int m_ulChangeId;
@@ -376,7 +376,7 @@ public:
 	ECRESULT ProcessAccepted(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType, unsigned int *lpulFlags) _kc_override;
 	ECRESULT ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen, unsigned int *lpulChangeType) _kc_override;
 	ECRESULT GetResidualMessages(LPMESSAGESET lpsetResiduals) _kc_override;
-	unsigned int GetMaxChangeId(void) const { return m_ulMaxChangeId; }
+	unsigned int GetMaxChangeId(void) const _kc_override { return m_ulMaxChangeId; }
 	
 private:
 	unsigned int	m_ulSyncId;
@@ -497,7 +497,7 @@ public:
 		/* No legacy, no residuals. */
 		return erSuccess;
 	}
-	unsigned int GetMaxChangeId(void) const { return m_ulMaxFolderChange; }
+	unsigned int GetMaxChangeId(void) const _kc_override { return m_ulMaxFolderChange; }
 	
 private:
 	unsigned int m_ulMaxFolderChange;
