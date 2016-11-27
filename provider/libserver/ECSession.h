@@ -78,15 +78,15 @@ public:
 	_kc_hidden virtual unsigned int GetCapabilities(void) const { return m_ulClientCapabilities; }
 	_kc_hidden virtual ECSessionManager *GetSessionManager(void) const { return m_lpSessionManager; }
 	_kc_hidden virtual ECUserManagement *GetUserManagement(void) const { return m_lpUserManagement; }
-	_kc_hidden virtual ECRESULT GetDatabase(ECDatabase **);
+	virtual ECRESULT GetDatabase(ECDatabase **);
 	_kc_hidden virtual ECRESULT GetAdditionalDatabase(ECDatabase **);
 	_kc_hidden ECRESULT GetServerGUID(GUID *);
 	_kc_hidden ECRESULT GetNewSourceKey(SOURCEKEY *);
 	_kc_hidden virtual void SetClientMeta(const char *cl_vers, const char *cl_misc);
 	_kc_hidden virtual void GetClientApplicationVersion(std::string *);
 	_kc_hidden virtual void GetClientApplicationMisc(std::string *);
-	_kc_hidden virtual void Lock(void);
-	_kc_hidden virtual void Unlock(void);
+	virtual void Lock(void);
+	virtual void Unlock(void);
 	_kc_hidden virtual bool IsLocked(void) const { return m_ulRefCount > 0; }
 	_kc_hidden virtual void RecordRequest(struct soap *);
 	_kc_hidden virtual unsigned int GetRequests(void);
