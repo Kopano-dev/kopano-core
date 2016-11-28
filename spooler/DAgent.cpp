@@ -1411,18 +1411,34 @@ static bool dagent_oof_enabled(const SPropValue *prop)
 	if (prop[0].ulPropTag != PR_EC_OUTOFOFFICE || !prop[0].Value.b)
 		/* Not enabled _at all_. */
 		return false;
-	if (prop[3].ulPropTag != PR_EC_OUTOFOFFICE_FROM ||
-	    prop[4].ulPropTag != PR_EC_OUTOFOFFICE_UNTIL)
-		/*
-		 * FROM/UNTIL fields are not present at all -
-		 * just ENABLED counts, and it is on.
-		 */
-		return true;
-	/* FROM/UNTIL is present - evaluate it. */
-	FileTimeToUnixTime(prop[3].Value.ft, &start);
-	FileTimeToUnixTime(prop[4].Value.ft, &end);
+
+	bool got_start = false;
+	if (prop[3].ulPropTag == PR_EC_OUTOFOFFICE_FROM) {
+		got_start = true;
+		FileTimeToUnixTime(prop[3].Value.ft, &start);
+	}
+
+	bool got_until = false;
+	if (prop[4].ulPropTag == PR_EC_OUTOFOFFICE_UNTIL) {
+		got_until = true;
+		FileTimeToUnixTime(prop[4].Value.ft, &end);
+	}
+
 	time_t now = time(NULL);
-	return start <= now && now <= end;
+
+	/* FROM and UNTIL is present - evaluate it. */
+	if (got_start && got_until)
+		return start <= now && now <= end;
+
+	/* Just FROM is available - evaluate it. */
+	if (got_start && !got_until)
+		return start <= now;
+
+	/*
+	 * FROM/UNTIL fields are not present at all -
+	 * just ENABLED counts, and it is on.
+	 */
+	return true;
 }
 
 /**
