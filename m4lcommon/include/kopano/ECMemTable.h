@@ -121,7 +121,7 @@ public:
 	_kc_hidden virtual HRESULT Restrict(LPSRestriction, ULONG flags);
 	_kc_hidden virtual HRESULT CreateBookmark(BOOKMARK *pos);
 	_kc_hidden virtual HRESULT FreeBookmark(BOOKMARK pos);
-	_kc_hidden virtual HRESULT SortTable(LPSSortOrderSet sort_crit, ULONG flags);
+	_kc_hidden virtual HRESULT SortTable(const SSortOrderSet *sort_crit, ULONG flags);
 	_kc_hidden virtual HRESULT QuerySortOrder(LPSSortOrderSet *sort_crit);
 	virtual HRESULT QueryRows(LONG lRowCount, ULONG ulFlags, LPSRowSet *lppRows);
 	_kc_hidden virtual HRESULT Abort(void);

@@ -612,8 +612,7 @@ static HRESULT UniqueRecipients(IMessage *lpMessage)
 			PR_RECIPIENT_TYPE,
 		}
 	};
-
-	SizedSSortOrderSet(2, sosOrder) = {
+	static constexpr const SizedSSortOrderSet(2, sosOrder) = {
 		2, 0, 0, {
 			{ PR_SMTP_ADDRESS_A, TABLE_SORT_ASCEND },
 			{ PR_RECIPIENT_TYPE, TABLE_SORT_ASCEND },

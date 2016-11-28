@@ -905,7 +905,8 @@ struct _SSortOrderSet_ ## _name { \
     ULONG           cCategories;    \
     ULONG           cExpanded;      \
     SSortOrder      aSort[_csort];  \
-    operator SSortOrderSet *(void) const { return const_cast<SSortOrderSet *>(reinterpret_cast<const SSortOrderSet *>(this)); } \
+	operator SSortOrderSet *(void) { return reinterpret_cast<SSortOrderSet *>(this); } \
+	operator const SSortOrderSet *(void) const { return reinterpret_cast<const SSortOrderSet *>(this); } \
 } _name
 
 
@@ -1384,7 +1385,7 @@ public:
     virtual HRESULT Restrict(LPSRestriction lpRestriction, ULONG ulFlags) = 0;
     virtual HRESULT CreateBookmark(BOOKMARK* lpbkPosition) = 0;
     virtual HRESULT FreeBookmark(BOOKMARK bkPosition) = 0;
-    virtual HRESULT SortTable(LPSSortOrderSet lpSortCriteria, ULONG ulFlags) = 0;
+    virtual HRESULT SortTable(const SSortOrderSet *, ULONG flags) = 0;
     virtual HRESULT QuerySortOrder(LPSSortOrderSet *lppSortCriteria) = 0;
     virtual HRESULT QueryRows(LONG lRowCount, ULONG ulFlags, LPSRowSet *lppRows) = 0;
     virtual HRESULT Abort() = 0;

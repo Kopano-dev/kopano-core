@@ -135,7 +135,8 @@ HRESULT ECRulesTableProxy::FreeBookmark(BOOKMARK bkPosition)
 	return m_lpTable->FreeBookmark(bkPosition);
 }
 
-HRESULT ECRulesTableProxy::SortTable(LPSSortOrderSet lpSortCriteria, ULONG ulFlags)
+HRESULT ECRulesTableProxy::SortTable(const SSortOrderSet *lpSortCriteria,
+    ULONG ulFlags)
 {
 	return m_lpTable->SortTable(lpSortCriteria, ulFlags);
 }
@@ -223,7 +224,7 @@ DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, FindRow, (LPSRestriction,
 DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, Restrict, (LPSRestriction, lpRestriction), (ULONG, ulFlags))
 DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, CreateBookmark, (BOOKMARK *, lpbkPosition))
 DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, FreeBookmark, (BOOKMARK, bkPosition))
-DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, SortTable, (LPSSortOrderSet, lpSortCriteria), (ULONG, ulFlags))
+DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, SortTable, (const SSortOrderSet *, lpSortCriteria), (ULONG, ulFlags))
 DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, QuerySortOrder, (LPSSortOrderSet *, lppSortCriteria))
 DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, QueryRows, (LONG, lRowCount), (ULONG, ulFlags), (LPSRowSet *, lppRows))
 DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, Abort, (void))

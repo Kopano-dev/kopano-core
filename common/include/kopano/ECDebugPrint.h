@@ -28,7 +28,7 @@
 #include <boost/type_traits/is_convertible.hpp>
 #include <boost/utility/enable_if.hpp>
 
-class ECDebugPrintBase _kc_final {
+class ECDebugPrintBase {
 public:
 	enum DerefMode {
 		Deref,
@@ -151,7 +151,7 @@ class RecurrencePattern; // Forward declarations
 class TimezoneDefinition;
 
 template<typename string_type, ECDebugPrintBase::DerefMode deref_mode>
-class ECDebugPrint : public ECDebugPrintBase {
+class ECDebugPrint _kc_final : public ECDebugPrintBase {
 public:
 	typedef details::conversion_helpers<string_type>	helpers;
 

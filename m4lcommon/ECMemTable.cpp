@@ -929,7 +929,8 @@ HRESULT ECMemTableView::GetBinarySortKey(LPSPropValue lpsPropVal, unsigned int *
 	return hrSuccess;
 }
 
-HRESULT ECMemTableView::SortTable(LPSSortOrderSet lpSortCriteria, ULONG ulFlags)
+HRESULT ECMemTableView::SortTable(const SSortOrderSet *lpSortCriteria,
+    ULONG ulFlags)
 {
 	HRESULT hr = hrSuccess;
 
@@ -1271,7 +1272,7 @@ DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, FindRow, (LPSRestriction, l
 DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, Restrict, (LPSRestriction, lpRestriction), (ULONG, ulFlags))
 DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, CreateBookmark, (BOOKMARK*, lpbkPosition))
 DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, FreeBookmark, (BOOKMARK, bkPosition))
-DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, SortTable, (LPSSortOrderSet, lpSortCriteria), (ULONG, ulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, SortTable, (const SSortOrderSet *, lpSortCriteria), (ULONG, ulFlags))
 DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, QuerySortOrder, (LPSSortOrderSet *, lppSortCriteria))
 DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, QueryRows, (LONG, lRowCount), (ULONG, ulFlags), (LPSRowSet *, lppRows))
 DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, Abort, (void))

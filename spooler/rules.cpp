@@ -971,7 +971,8 @@ HRESULT HrProcessRules(const std::string &recip, PyMapiPlugin *pyMapiPlugin,
 		PR_RULE_USER_FLAGS, PR_RULE_CONDITION, PR_RULE_ACTIONS,
 		PR_RULE_PROVIDER, CHANGE_PROP_TYPE(PR_RULE_NAME, PT_STRING8),
 		PR_RULE_LEVEL, PR_RULE_PROVIDER_DATA}};
-	SizedSSortOrderSet(1, sosRules) = {1, 0, 0, { {PR_RULE_SEQUENCE, TABLE_SORT_ASCEND} } };
+	static constexpr const SizedSSortOrderSet(1, sosRules) =
+		{1, 0, 0, {{PR_RULE_SEQUENCE, TABLE_SORT_ASCEND}}};
     LPSPropValue lpRuleName = NULL;
     LPSPropValue lpRuleState = NULL;
 	std::string strRule;

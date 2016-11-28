@@ -1040,7 +1040,7 @@ static HRESULT GetOrphanStoreInfo(IECServiceAdmin *lpServiceAdmin,
 	ECAndRestriction resAnd;
 	SRestrictionPtr ptrRes;
 
-	const static SizedSSortOrderSet(1, tableSort) =
+	static constexpr const SizedSSortOrderSet(1, tableSort) =
 	{ 1, 0, 0,
 		{
 			{ PR_EC_STOREGUID, TABLE_SORT_ASCEND },
@@ -1277,7 +1277,7 @@ static HRESULT list_orphans(IECServiceAdmin *lpServiceAdmin)
 	std::string strUsername;
 	bool bHeader = true;
 	ConsoleTable ct(50, 5);
-	const static SizedSSortOrderSet(2, tableSort) =
+	static constexpr const SizedSSortOrderSet(2, tableSort) =
 	{ 2, 0, 0,
 		{
 			{ PR_EC_USERNAME, TABLE_SORT_ASCEND },

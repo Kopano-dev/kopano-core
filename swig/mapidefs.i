@@ -625,7 +625,7 @@ public:
     virtual HRESULT Restrict(LPSRestriction lpRestriction, ULONG ulFlags) = 0;
     virtual HRESULT CreateBookmark(BOOKMARK* OUTPUT /*lpbkPosition*/) = 0;
     virtual HRESULT FreeBookmark(BOOKMARK bkPosition) = 0;
-    virtual HRESULT SortTable(LPSSortOrderSet lpSortCriteria, ULONG ulFlags) = 0;
+    virtual HRESULT SortTable(const SSortOrderSet *c, ULONG flags) = 0;
     virtual HRESULT QuerySortOrder(LPSSortOrderSet* OUTPUT /*lppSortCriteria*/) = 0;
     virtual HRESULT QueryRows(LONG lRowCount, ULONG ulFlags, LPSRowSet* OUTPUT /*lppRows*/) = 0;
     virtual HRESULT Abort() = 0;
