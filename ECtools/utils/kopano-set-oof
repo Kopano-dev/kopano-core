@@ -182,14 +182,22 @@ def main(argv = None):
                 print("Out of office for user '%s' already disabled, skipping." % username)
             elif enabled:
                 st.SetProps([SPropValue(PR_EC_OUTOFOFFICE, enabled)])
-                if date_from and date_until:
-                    t1 = MAPI.Time.FileTime(0)
-                    t1.unixtime = time.mktime(date_from.timetuple())
-                    t2 = MAPI.Time.FileTime(0)
-                    t2.unixtime = time.mktime(date_until.timetuple())
-                    p1 = SPropValue(PR_EC_OUTOFOFFICE_FROM, t1)
-                    p2 = SPropValue(PR_EC_OUTOFOFFICE_UNTIL, t2)
-                    st.SetProps([p1, p2])
+                if date_from or date_until:
+                    props = []
+
+                    if date_from:
+                        t1 = MAPI.Time.FileTime(0)
+                        t1.unixtime = time.mktime(date_from.timetuple())
+                        p1 = SPropValue(PR_EC_OUTOFOFFICE_FROM, t1)
+                        props.append(p1)
+
+                    if date_until:
+                        t2 = MAPI.Time.FileTime(0)
+                        t2.unixtime = time.mktime(date_until.timetuple())
+                        p2 = SPropValue(PR_EC_OUTOFOFFICE_UNTIL, t2)
+                        props.append(p2)
+
+                    st.SetProps(props)
                 else:
                     st.DeleteProps([PR_EC_OUTOFOFFICE_FROM, PR_EC_OUTOFOFFICE_UNTIL])
                 print("Out of office enabled for user '%s'" % username)
@@ -201,15 +209,29 @@ def main(argv = None):
             raise
 
     if mode != MODE_DISABLE:
-        if date_from and date_until:
+        if date_from or date_until:
             try:
-                t1 = MAPI.Time.FileTime(0)
-                t1.unixtime = time.mktime(date_from.timetuple())
-                t2 = MAPI.Time.FileTime(0)
-                t2.unixtime = time.mktime(date_until.timetuple())
-                p1 = SPropValue(PR_EC_OUTOFOFFICE_FROM, t1)
-                p2 = SPropValue(PR_EC_OUTOFOFFICE_UNTIL, t2)
-                st.SetProps([p1, p2])
+                props = []
+                deleted_props = []
+
+                if date_from:
+                    t1 = MAPI.Time.FileTime(0)
+                    t1.unixtime = time.mktime(date_from.timetuple())
+                    p1 = SPropValue(PR_EC_OUTOFOFFICE_FROM, t1)
+                    props.append(p1)
+                else:
+                    deleted_props.append(PR_EC_OUTOFOFFICE_FROM)
+
+                if date_until:
+                    t2 = MAPI.Time.FileTime(0)
+                    t2.unixtime = time.mktime(date_until.timetuple())
+                    p2 = SPropValue(PR_EC_OUTOFOFFICE_UNTIL, t2)
+                    props.append(p2)
+                else:
+                    deleted_props.append(PR_EC_OUTOFOFFICE_UNTIL)
+
+                st.DeleteProps(deleted_props)
+                st.SetProps(props)
             except:
                 print("Unable to update OOF date restriction for user '%s'" % username)
                 raise
