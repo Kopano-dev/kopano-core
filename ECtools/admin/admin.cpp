@@ -813,17 +813,17 @@ static void adm_oof_status(const SPropValue *const prop)
 	}
 
 
-	if(!got_from && !got_until) {
-		printf("Out Of Office:          enabled\n");
+	if (got_from && got_until) {
+		printf("Out Of Office:          from %s until %s (currently %s)\n",
+		       start_buf, end_buf,
+		       start <= now && now <= end ? "active" : "inactive");
 	}
-	else if(got_from && !got_until) {
+	else if (got_from && !got_until) {
 		printf("Out Of Office:          from %s (currently %s)\n",
 		       start_buf, start <= now ? "active" : "inactive");
 	}
 	else {
-		printf("Out Of Office:          from %s until %s (currently %s)\n",
-		       start_buf, end_buf,
-		       start <= now && now <= end ? "active" : "inactive");
+		printf("Out Of Office:          enabled\n");
 	}
 }
 
