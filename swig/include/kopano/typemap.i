@@ -18,7 +18,9 @@
 
 %typemap(in) (const void *pv, ULONG cb) (int res, char *buf = 0, Py_ssize_t size, int alloc = 0)
 {
-  PyBytes_AsStringAndSize($input, &buf, &size);
+  if(PyBytes_AsStringAndSize($input, &buf, &size) == -1)
+    %argument_fail(res,"$type",$symname, $argnum);
+
   $1 = %reinterpret_cast(buf, $1_ltype);
   $2 = %numeric_cast(size, $2_ltype);
 }
