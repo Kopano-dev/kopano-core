@@ -1404,41 +1404,21 @@ static HRESULT WriteOrLogError(int fd, const char *buffer, size_t len,
 	return hrSuccess;
 }
 
-static bool dagent_oof_enabled(const SPropValue *prop)
+static bool dagent_oof_active(const SPropValue *prop)
 {
-	time_t start, end;
-
-	if (prop[0].ulPropTag != PR_EC_OUTOFOFFICE || !prop[0].Value.b)
-		/* Not enabled _at all_. */
+	bool a = prop[0].ulPropTag == PR_EC_OUTOFOFFICE && prop[0].Value.b;
+	if (!a)
 		return false;
-
-	bool got_start = false;
+	time_t ts, now = time(nullptr);
 	if (prop[3].ulPropTag == PR_EC_OUTOFOFFICE_FROM) {
-		got_start = true;
-		FileTimeToUnixTime(prop[3].Value.ft, &start);
+		FileTimeToUnixTime(prop[3].Value.ft, &ts);
+		a &= ts <= now;
 	}
-
-	bool got_until = false;
 	if (prop[4].ulPropTag == PR_EC_OUTOFOFFICE_UNTIL) {
-		got_until = true;
-		FileTimeToUnixTime(prop[4].Value.ft, &end);
+		FileTimeToUnixTime(prop[4].Value.ft, &ts);
+		a &= now <= ts;
 	}
-
-	time_t now = time(NULL);
-
-	/* FROM and UNTIL is present - evaluate it. */
-	if (got_start && got_until)
-		return start <= now && now <= end;
-
-	/* Just FROM is available - evaluate it. */
-	if (got_start && !got_until)
-		return start <= now;
-
-	/*
-	 * FROM/UNTIL fields are not present at all -
-	 * just ENABLED counts, and it is on.
-	 */
-	return true;
+	return a;
 }
 
 /**
@@ -1543,7 +1523,7 @@ static HRESULT SendOutOfOffice(LPADRBOOK lpAdrBook, LPMDB lpMDB,
 	hr = hrSuccess;
 
 	// Check for autoresponder
-	if (!dagent_oof_enabled(lpStoreProps)) {
+	if (!dagent_oof_active(lpStoreProps)) {
 		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Target user has OOF inactive\n");
 		goto exit;
 	}
