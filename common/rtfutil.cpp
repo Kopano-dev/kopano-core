@@ -422,7 +422,6 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 	std::wstring strOutput;
 	int ulState = 0;
 	bool bPar = false;
-	bool bNewLine = false;
 	int nLineChar=0;
 	RTFSTATE sState[RTF_MAXSTATE];	
 	fontmap_t mapFontToCharset;
@@ -443,7 +442,7 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 		 "<META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text/html; charset=";
 	tmp += szHTMLCharset;
 	tmp += 	"\">\r\n"												\
-		 "<META NAME=\"Generator\" CONTENT=\"Kopano text/HTML builder 1.0\">\r\n" \
+		 "<META NAME=\"Generator\" CONTENT=\"Kopano HrExtractHTMLFromTextRTF\">\r\n" \
 		 "<TITLE></TITLE>\r\n" \
 		 "</HEAD>\r\n" \
 		 "<BODY>\r\n" \
@@ -507,18 +506,17 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 					}
 				} else if(strcmp(szCommand,"htmltag") == 0) {
 				} else if(strcmp(szCommand,"mhtmltag") == 0) {
-				} else if(strcmp(szCommand,"pard") == 0 || strcmp(szCommand,"par") == 0) {
-					if(!sState[ulState].bInFontTbl && !sState[ulState].bRTFOnly && !sState[ulState].bInColorTbl && !sState[ulState].bInSkipTbl) {
-
-						if(bNewLine == true && nLineChar >0 && bPar == true){
-							sState[ulState].output.append("</P>\r\n\r\n");
-							bPar = false;
-							nLineChar = 0;
-						}else if(bNewLine == false && nLineChar >0)
-							sState[ulState].output.append("</FONT>\r\n");
-						else
-							sState[ulState].output.append("\r\n");
-					}
+				} else if (strcmp(szCommand, "line") == 0) {
+					sState[ulState].output.append("<br>\r\n");
+				} else if (strcmp(szCommand, "par") == 0 &&
+				    !sState[ulState].bInFontTbl &&
+				    !sState[ulState].bRTFOnly &&
+				    !sState[ulState].bInColorTbl &&
+				    !sState[ulState].bInSkipTbl &&
+				    bPar) {
+					sState[ulState].output.append("</P>\r\n\r\n");
+					bPar = false;
+					nLineChar = 0;
 				} else if(strcmp(szCommand,"tab") == 0) {
 					if(!sState[ulState].bInFontTbl && !sState[ulState].bRTFOnly && !sState[ulState].bInColorTbl && !sState[ulState].bInSkipTbl) {		
 						sState[ulState].output.append(1,' ');
@@ -550,6 +548,10 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 					// ignore error
 				}
 				else if (strcmp(szCommand,"u") == 0) {
+					if (!bPar) {
+						sState[ulState].output.append("<p>");
+						bPar = true;
+					}
 					// unicode character, in signed short WCHAR
 					strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
 					if (!sState[ulState].bRTFOnly)
@@ -587,6 +589,10 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 			else if(*szInput == '\'') {
 				unsigned int ulChar;
 
+				if (!bPar) {
+					sState[ulState].output.append("<p>");
+					bPar = true;
+				}
 				// Dump output data until now, if we're switching charsets
 				if(szANSICharset == NULL || strcmp(sState[ulState].szCharset, szANSICharset) != 0) {
 					strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
@@ -648,22 +654,14 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 			if(ulState > 0)
 				--ulState;
 			++szInput;
-		} else if(*szInput == '\r' || *szInput == '\n') {
-			bNewLine = true;
+		} else if (*szInput == '\r' || *szInput == '\n') {
 			++szInput;
 		} else {
 			if(!sState[ulState].bInFontTbl && !sState[ulState].bRTFOnly && !sState[ulState].bInColorTbl && !sState[ulState].bInSkipTbl && !sState[ulState].ulSkipChars) {
 				if(bPar == false){
 					sState[ulState].output.append("<P>");
 					bPar = true;
-				}else if(bNewLine == true && bPar == true)
-					sState[ulState].output.append("\r\n<BR>");
-
-				if(bNewLine == true){
-					sState[ulState].output.append("<FONT SIZE=2>");
-					bNewLine = false;
 				}
-
 				// Change space to &nbsp; . The last space is a real space like "&nbsp;&nbsp; " or " "
 				if(*szInput == ' ') {
 					++szInput;
@@ -736,6 +734,7 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 	convert_context convertContext;
 	string tmp;
 	fontmap_t mapFontToCharset;
+	bool bPar = false;
 
 	// select output charset
 	hr = HrGetCharsetByCP(ulCodepage, &szHTMLCharset);
@@ -751,7 +750,7 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 		 "<META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text/html; charset=";
 	tmp += szHTMLCharset;
 	tmp +=	"\">\r\n"															\
-		 "<META NAME=\"Generator\" CONTENT=\"Kopano rtf/HTML builder 1.0\">\r\n" \
+		 "<META NAME=\"Generator\" CONTENT=\"Kopano HrExtractHTMLFromRealRTF\">\r\n" \
 		 "<TITLE></TITLE>\r\n" \
 		 "</HEAD>\r\n" \
 		 "<BODY>\r\n" \
@@ -820,7 +819,9 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 				} else if(strcmp(szCommand,"datastore") == 0) {
 					sState[ulState].bRTFOnly = true;
 				} else if(strcmp(szCommand,"mhtmltag") == 0) {
-				} else if(strcmp(szCommand,"pard") == 0 || strcmp(szCommand,"par") == 0 || strcmp(szCommand,"line") == 0) {
+				} else if (strcmp(szCommand, "line") == 0) {
+					sState[ulState].output.append("<br>\r\n");
+				} else if (strcmp(szCommand,"par") == 0) {
 					if(!sState[ulState].bInFontTbl && !sState[ulState].bRTFOnly && !sState[ulState].bInColorTbl && !sState[ulState].bInSkipTbl) {		
 						sState[ulState].output.append("<br>\r\n");
 					}
@@ -860,6 +861,10 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 					// ignore error
 				}
 				else if (strcmp(szCommand,"u") == 0) {
+					if (!bPar) {
+						sState[ulState].output.append("<p>");
+						bPar = true;
+					}
 					// unicode character, in signed short WCHAR
 					strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
 					if(!sState[ulState].bInFontTbl && !sState[ulState].bRTFOnly && !sState[ulState].bInColorTbl && !sState[ulState].bInSkipTbl) {
@@ -966,6 +971,10 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 				unsigned int ulChar;
 				std::wstring wstrUnicode;
 
+				if (!bPar) {
+					sState[ulState].output.append("<p>");
+					bPar = true;
+				}
 				while(*szInput == '\'')
 				{
 					ulChar = 0;
@@ -1018,6 +1027,10 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 			++szInput;
 		} else {
 			if(!sState[ulState].bInFontTbl && !sState[ulState].bRTFOnly && !sState[ulState].bInColorTbl && !sState[ulState].bInSkipTbl && !sState[ulState].ulSkipChars) {
+				if (!bPar) {
+					sState[ulState].output.append("<p>");
+					bPar = true;
+				}
 				// basic html escaping only
 				if (*szInput == '&')
 					sState[ulState].output.append("&amp;");
