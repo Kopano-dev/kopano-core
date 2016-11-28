@@ -58,14 +58,14 @@ static const struct option long_options[] = {
 };
 
 // sort on something invalid to get the order in which the server added the rows
-const static SizedSSortOrderSet(2, tableSortSystem) =
+static constexpr const SizedSSortOrderSet(2, tableSortSystem) =
 { 1, 0, 0,
   {
 	  { PR_NULL, TABLE_SORT_DESCEND }
   }
 }
 ;
-const static SizedSSortOrderSet(2, tableSortSession) =
+static constexpr const SizedSSortOrderSet(2, tableSortSession) =
 { 2, 0, 0,
   {
 	  { PR_EC_STATS_SESSION_IPADDRESS, TABLE_SORT_ASCEND },
@@ -73,7 +73,7 @@ const static SizedSSortOrderSet(2, tableSortSession) =
   }
 };
 
-const static SizedSSortOrderSet(2, tableSortUser) =
+static constexpr const SizedSSortOrderSet(2, tableSortUser) =
 { 2, 0, 0,
   {
 	  { PR_EC_COMPANY_NAME, TABLE_SORT_ASCEND },
@@ -81,23 +81,23 @@ const static SizedSSortOrderSet(2, tableSortUser) =
   }
 };
 
-const static SizedSSortOrderSet(2, tableSortCompany) =
+static constexpr const SizedSSortOrderSet(2, tableSortCompany) =
 { 1, 0, 0,
   {
 	  { PR_EC_COMPANY_NAME, TABLE_SORT_ASCEND }
   }
 };
 
-const static SizedSSortOrderSet(2, tableSortServers) =
+static constexpr const SizedSSortOrderSet(2, tableSortServers) =
 { 1, 0, 0,
   {
 	  { PR_EC_STATS_SERVER_NAME, TABLE_SORT_ASCEND }
   }
 };
 
-static const LPSSortOrderSet sortorders[] = {
-	(LPSSortOrderSet)&tableSortSystem, (LPSSortOrderSet)&tableSortSession,
-	(LPSSortOrderSet)&tableSortUser, (LPSSortOrderSet)&tableSortCompany, (LPSSortOrderSet)&tableSortServers
+static const SSortOrderSet *const sortorders[] = {
+	tableSortSystem, tableSortSession,
+	tableSortUser, tableSortCompany, tableSortServers
 };
 static const ULONG ulTableProps[] = {
 	PR_EC_STATSTABLE_SYSTEM, PR_EC_STATSTABLE_SESSIONS,

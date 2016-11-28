@@ -3458,7 +3458,8 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, bool bS
 	bool bNewMail = false;
 	enum { EID, IKEY, IMAPID, FLAGS, FLAGSTATUS, MSGSTATUS, LAST_VERB, NUM_COLS };
 	SizedSPropTagArray(NUM_COLS, spt) = { NUM_COLS, {PR_ENTRYID, PR_INSTANCE_KEY, PR_EC_IMAP_ID, PR_MESSAGE_FLAGS, PR_FLAG_STATUS, PR_MSG_STATUS, PR_LAST_VERB_EXECUTED} };
-	SizedSSortOrderSet(1, sSortUID) = { 1, 0, 0, { { PR_EC_IMAP_ID, TABLE_SORT_ASCEND } } };
+	static constexpr const SizedSSortOrderSet(1, sSortUID) =
+	    {1, 0, 0, {{PR_EC_IMAP_ID, TABLE_SORT_ASCEND}}};
 	vector<SMail>::const_iterator iterMail;
 	map<unsigned int, unsigned int> mapUIDs; // Map UID -> ID
 	SPropValue sPropMax;
@@ -3838,7 +3839,8 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
     LPSPropValue lpProps;
     ULONG cValues;
     unsigned int ulReadAhead = 0;
-    SizedSSortOrderSet (1, sSortUID) = { 1, 0, 0, { { PR_EC_IMAP_ID, TABLE_SORT_ASCEND } } };
+	static constexpr const SizedSSortOrderSet(1, sSortUID) =
+		{1, 0, 0, {{PR_EC_IMAP_ID, TABLE_SORT_ASCEND}}};
 	bool bMarkAsRead = false;
 	LPENTRYLIST lpEntryList = NULL;
 	LPSPropValue lpProp = NULL; // non-free

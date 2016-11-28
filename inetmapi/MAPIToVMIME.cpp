@@ -647,7 +647,8 @@ HRESULT MAPIToVMIME::handleAttachments(IMessage* lpMessage, vmime::messageBuilde
 	HRESULT		hr					= hrSuccess;
 	LPSRowSet	pRows				= NULL;
 	LPMAPITABLE	lpAttachmentTable	= NULL;
-	SizedSSortOrderSet(1, sosRTFSeq) = {1, 0, 0, { {PR_RENDERING_POSITION, TABLE_SORT_ASCEND} } };
+	static constexpr const SizedSSortOrderSet(1, sosRTFSeq) =
+		{1, 0, 0, {{PR_RENDERING_POSITION, TABLE_SORT_ASCEND}}};
 
 	// get attachment table
 	hr = lpMessage->GetAttachmentTable(0, &lpAttachmentTable);
@@ -2209,7 +2210,8 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
 	LPSRowSet		lpAttachRows = NULL;
 	SizedSPropTagArray(2, sptaAttachProps) = {2, {PR_ATTACH_METHOD, PR_ATTACH_NUM }};
 	SizedSPropTagArray(5, sptaOLEAttachProps) = {5, {PR_ATTACH_FILENAME, PR_ATTACH_LONG_FILENAME, PR_ATTACH_DATA_OBJ, PR_ATTACH_CONTENT_ID, PR_ATTACHMENT_HIDDEN}};
-	SizedSSortOrderSet(1, sosRTFSeq) = {1, 0, 0, { {PR_RENDERING_POSITION, TABLE_SORT_ASCEND} } };
+	static constexpr const SizedSSortOrderSet(1, sosRTFSeq) =
+		{1, 0, 0, {{PR_RENDERING_POSITION, TABLE_SORT_ASCEND}}};
 
 	try {
 	    // Find all ATTACH_OLE attachments and put them in lstOLEAttach

@@ -705,8 +705,7 @@ static HRESULT ProcessQueue(const char *szSMTP, int ulPort, const char *szPath)
 			PR_DEFERRED_SEND_TIME,
 		}
 	};
-	
-	static constexpr SizedSSortOrderSet(1, sSort) =
+	static constexpr const SizedSSortOrderSet(1, sSort) =
 		{1, 0, 0, {{PR_EC_HIERARCHYID, TABLE_SORT_ASCEND}}};
 
 	hr = HrOpenECAdminSession(&lpAdminSession, "kopano-spooler:system",
