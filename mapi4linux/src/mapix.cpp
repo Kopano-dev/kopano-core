@@ -2864,6 +2864,7 @@ ULONG __stdcall MAPIFreeBuffer(LPVOID lpBuffer) {
 		free(i);
 	}
 	head->~mapibuf_head();
+	free(head);
 	return 0;
  }
 
