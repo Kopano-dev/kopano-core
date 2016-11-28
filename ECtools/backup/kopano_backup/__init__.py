@@ -2,8 +2,16 @@
 import binascii
 import csv
 from contextlib import closing
-import cPickle as pickle
-import dbhash
+try:
+    import cPickle as pickle
+except ImportError:
+    import _pickle as pickle
+
+try:
+    import dbhash
+except ImportError:
+    import dbm as dbhash
+
 import shutil
 from multiprocessing import Queue
 import os.path
@@ -417,7 +425,7 @@ def show_contents(data_path, options):
     paths = options.folders or sorted(path_folder)
     for path in paths:
         if path not in path_folder:
-            print 'no such folder:', path
+            print('no such folder:', path)
             sys.exit(-1)
     if options.recursive:
         paths = [p for p in path_folder if [f for f in paths if p.startswith(f)]]
@@ -443,7 +451,7 @@ def show_contents(data_path, options):
 
         # --index: one entry per item
         elif options.index:
-            items.sort(key=lambda (k, d): d['last_modified'])
+            sorted(items, key=lambda item: item[1]['last_modified'])
             for key, d in items:
                 writer.writerow([key, path.encode(sys.stdout.encoding or 'utf8'), d['last_modified'], d['subject'].encode(sys.stdout.encoding or 'utf8')])
 

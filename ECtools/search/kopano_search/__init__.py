@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from contextlib import closing
+import codecs
 import fcntl
 import os.path
 
@@ -170,7 +171,7 @@ class IndexWorker(kopano.Worker):
             with log_exc(self.log):
                 (_, storeguid, folderid, reindex) = self.iqueue.get()
                 store = server.store(storeguid)
-                folder = kopano.Folder(store, folderid.decode('hex')) # XXX
+                folder = kopano.Folder(store, codecs.decode(folderid, 'hex'))
                 if (folder not in (store.root, store.outbox, store.drafts)) and \
                    (folder != store.junk or config['index_junk']):
                     suggestions = config['suggestions'] and folder != store.junk
@@ -209,11 +210,11 @@ class FolderImporter:
             doc = {'serverid': self.serverid, 'storeid': storeid, 'folderid': folderid, 'docid': docid, 'sourcekey': item.sourcekey}
             for prop in item.props():
                 if prop.id_ not in self.excludes:
-                    if isinstance(prop.value, unicode):
+                    if kopano._is_str(prop.value): # XXX
                         if prop.value:
                             doc['mapi%d' % prop.id_] = prop.value
                     elif isinstance(prop.value, list):
-                        doc['mapi%d' % prop.id_] = u' '.join(x for x in prop.value if isinstance(x, unicode))
+                        doc['mapi%d' % prop.id_] = u' '.join(x for x in prop.value if kopano._is_str(x))
             attach_text = []
             if self.config['index_attachments']:
                 for a in item.attachments():
@@ -230,7 +231,7 @@ class FolderImporter:
             doc['data'] = 'subject: %s\n' % item.subject
             db_put(self.mapping_db, item.sourcekey, '%s %s' % (storeid, item.folder.entryid)) # ICS doesn't remember which store a change belongs to..
             self.plugin.update(doc)
-            self.term_cache_size += sum(len(v) for k, v in doc.iteritems() if k.startswith('mapi'))
+            self.term_cache_size += sum(len(v) for k, v in iter(doc.items()) if k.startswith('mapi'))
             if (8*self.term_cache_size) > self.config['term_cache_size']:
                 self.plugin.commit(self.suggestions)
                 self.term_cache_size = 0

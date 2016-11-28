@@ -57,10 +57,11 @@ except ImportError:
     import pickle
 import csv
 try:
-    import daemon
-    import daemon.pidlockfile
+    from . import daemon
+    from .daemon import pidlockfile
 except ImportError:
     pass
+
 import errno
 import fnmatch
 import datetime
@@ -1154,7 +1155,7 @@ class Server(object):
     def store(self, guid=None, entryid=None):
         """ Return :class:`store <Store>` with given GUID """
 
-        if guid.split('@')[0] == 'public':
+        if unicode(guid).split('@')[0] == 'public':
             return self._pubstore(guid)
         else:
             return Store(guid=guid, entryid=entryid, server=self)
@@ -4531,7 +4532,6 @@ Example::
                     self.data[key] = val.kwargs.get('default')
         for line in open(filename):
             line = _decode(line.strip())
-
             if not line.startswith('#'):
                 pos = line.find('=')
                 if pos != -1:

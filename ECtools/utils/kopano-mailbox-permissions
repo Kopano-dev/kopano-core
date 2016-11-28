@@ -13,22 +13,31 @@ import time
 import locale
 import sys
 import getopt
-import __builtin__
+try:
+    import __builtin__
+except ImportError:
+    import builtins
+
 import codecs
-# Wrap sys.stdout into a StreamWriter to allow writing unicode.
-sys.stdout = codecs.getwriter(locale.getpreferredencoding())(sys.stdout)
+
+if sys.version_info < (3,):
+    # Wrap sys.stdout into a StreamWriter to allow writing unicode.
+    sys.stdout = codecs.getwriter(locale.getpreferredencoding())(sys.stdout)
 
 try:
     import MAPI
     from MAPI.Util import *
     from MAPI.Time import *
     from MAPI.Struct import *
-except ImportError, e:
-    print "Not all modules can be loaded. The following modules are required:"
-    print "- MAPI (Kopano)"
-    print ""
-    print e
-    sys.exit(1) 
+except ImportError as e:
+    print("Not all modules can be loaded. The following modules are required:")
+    print("- MAPI (Kopano)")
+    print("")
+    print(e)
+    sys.exit(1)
+
+if sys.version_info > (3,):
+    long = int
 
 verbose = False
 
@@ -43,7 +52,7 @@ ecRightsCreateSubfolder = 0x00000080
 ecRightsFolderAccess    = 0x00000100
 ecRightsFolderVisible   = 0x00000400
 
-ecRightsFullControl     = 0x000004FBL
+ecRightsFullControl     = long(0x000004FB)
 
 ecRightsTemplateNoRights    = ecRightsFolderVisible
 ecRightsTemplateReadOnly    = ecRightsTemplateNoRights | ecRightsReadAny
@@ -176,7 +185,7 @@ def getUserList(session):
 
     try:
         users = getUserlistNormal(gab)
-    except MAPIError, err:
+    except MAPIError as err:
         if (err.hr == MAPI_E_NOT_FOUND):
             users = getUserListHosted(gab)
         else:
@@ -231,9 +240,9 @@ def getStore(session, username):
         user = session.OpenEntry(usereid, None, 0)
         email = user.GetProps([PR_EMAIL_ADDRESS], 0)[0].Value
         storeid = ema.CreateStoreEntryID(None, email, 0)
-    except MAPIError, err:
+    except MAPIError as err:
         if err.hr == MAPI_E_NOT_FOUND:
-            print "Unable to find mailbox for user %s" % username
+            print("Unable to find mailbox for user %s" % username)
             return
         raise
 
@@ -266,7 +275,7 @@ def UserAccountsToEntryIDs(session, users):
     for i in xrange(0, len(rows)):
         if flags[i] == MAPI_UNRESOLVED or flags[i] == MAPI_AMBIGUOUS:
             errors += 1
-            print "unable to resolve user '%s' with flags 0x%08x" % (users[i], flags[i])
+            print("unable to resolve user '%s' with flags 0x%08x" % (users[i], flags[i]))
             continue
 
         row = rows[i]
@@ -275,15 +284,15 @@ def UserAccountsToEntryIDs(session, users):
         account = PpropFindProp(row, PR_ACCOUNT_W)
         username= PpropFindProp(row, PR_DISPLAY_NAME_W)
         if not account or account.ulPropTag != PR_ACCOUNT_W:
-            print "error missing PR_ACCOUNT for name %s" % users[i]
+            print("error missing PR_ACCOUNT for name %s" % users[i])
             errors += 1
             continue
         elif not entryid or entryid.ulPropTag != PR_ENTRYID:
-            print "error missing PR_ENTRYID for name %s" % users[i]
+            print("error missing PR_ENTRYID for name %s" % users[i])
             errors += 1
             continue
         elif not username or username.ulPropTag != PR_DISPLAY_NAME_W:
-            print "error missing PR_DISPLAY_NAME for name %s" % users[i]
+            print("error missing PR_DISPLAY_NAME for name %s" % users[i])
             errors += 1
             continue
 
@@ -295,7 +304,7 @@ def UserAccountsToEntryIDs(session, users):
     return entryids
 
 def RebuildFreeBusyEntries(store):
-    print "Rebuild freebusy entries not implemented"
+    print("Rebuild freebusy entries not implemented")
 
 
 def setMailboxPermissions(session, listfolderrights, members, mailboxes, privateflag, sendcopy, onlySendToDelegates):
@@ -330,14 +339,14 @@ def setMailboxPermissions(session, listfolderrights, members, mailboxes, private
             # test Freebusy data folder
             fbdatafolder = store.OpenEntry(inboxprops[5].Value[3], None, MAPI_MODIFY)
             del fbdatafolder
-        except MAPIError, err:
-            print "Free busy data folder does not exist, error: 0x%x" % err.hr
+        except MAPIError as err:
+            print("Free busy data folder does not exist, error: 0x%x" % err.hr)
             sys.exit(1)
 
         try:
             fbmsg = store.OpenEntry(inboxprops[5].Value[1], None, MAPI_MODIFY)
-        except MAPIError, err:
-            print "Free busy message does not exist, error: 0x%x" % err.hr
+        except MAPIError as err:
+            print("Free busy message does not exist, error: 0x%x" % err.hr)
             sys.exit(1)
 
         try:
@@ -410,7 +419,7 @@ def setMailboxPermissions(session, listfolderrights, members, mailboxes, private
 
             drd.saveChanges()
 
-        print "Permissions set on mailbox '%s'" % mailbox
+        print("Permissions set on mailbox '%s'" % mailbox)
 
 
 class DelegateRuleData(object):
@@ -440,7 +449,7 @@ class DelegateRuleData(object):
 
         try:
             self.table.FindRow(self.delegateruleres, BOOKMARK_BEGINNING, TBL_BATCH)
-        except MAPIError, err:
+        except MAPIError as err:
             if err.hr == MAPI_E_NOT_FOUND:
                 # no rule exists
                 return
@@ -496,7 +505,7 @@ class DelegateRuleData(object):
         try:
             self.table.FindRow(self.delegateruleres, BOOKMARK_BEGINNING, TBL_BATCH)
             rows = self.table.QueryRows(1,0)
-        except MAPIError, err:
+        except MAPIError as err:
             if err.hr != MAPI_E_NOT_FOUND:
                 raise
             rows = []
@@ -654,7 +663,7 @@ def removeDelegatePermissions(session, store):
 
     try:
         fbmsg = store.OpenEntry(inboxprops[0].Value[1], None, MAPI_MODIFY)
-    except MAPIError, err:
+    except MAPIError as err:
         return 0
 
     # Remove delegate rules
@@ -677,8 +686,8 @@ def removeAllPermissions(session, usersmailbox):
             removeRecuriveFolderPermissions(session, store, None, 0)
             removeDelegatePermissions(session, store)
 
-        except MAPIError, err:
-            print "Unexpected error while processing store for user %s. hr=%08x" % (mailbox, err.hr)
+        except MAPIError as err:
+            print("Unexpected error while processing store for user %s. hr=%08x" % (mailbox, err.hr))
             with_errors = True
 
     return with_errors
@@ -695,8 +704,8 @@ def printFolderACLSTable(store, showall):
     printFolderACLs(pt, store, showall, 0)
     printFolderListACLs(pt, store, showall, None, 1)
 
-    print 'Folder permissions:'
-    print pt.getTable() 
+    print('Folder permissions:')
+    print(pt.getTable())
 
 def printFolderListACLs(printtable, store, showall, entryid, depth):
     folder = store.OpenEntry(entryid, None, 0)
@@ -766,13 +775,13 @@ def printDelegateInformation(session, store):
     inboxprops = inbox.GetProps([PR_FREEBUSY_ENTRYIDS], 0)
 
     if inboxprops[0].ulPropTag != PR_FREEBUSY_ENTRYIDS or len(inboxprops[0].Value) < 2:
-        print "No delegate information exists"
+        print("No delegate information exists")
         return 0
 
     try:
         fbmsg = store.OpenEntry(inboxprops[0].Value[1], None, MAPI_MODIFY)
-    except MAPIError, err:
-        print "No delegate information exists" 
+    except MAPIError as err:
+        print("No delegate information exists")
         return 0
 
     fbProps = fbmsg.GetProps([PR_SCHDINFO_DELEGATE_ENTRYIDS, CHANGE_PROP_TYPE(PR_SCHDINFO_DELEGATE_NAMES, PT_MV_UNICODE), PR_DELEGATE_FLAGS], 0)
@@ -787,11 +796,11 @@ def printDelegateInformation(session, store):
     else:
         pt.addRow(["-", "-", "-"])
 
-    print "Delegate information:"
-    print pt.getTable()
-    print ""
-    print 'Send meeting requests and response only to the delegator, not to the mailbox owner.  [%s]' % (onlysentodelegates) 
-    print ""
+    print("Delegate information:")
+    print(pt.getTable())
+    print("")
+    print('Send meeting requests and response only to the delegator, not to the mailbox owner.  [%s]' % (onlysentodelegates))
+    print("")
 
 
 # Print permissions of a mailbox of one or more users
@@ -804,64 +813,64 @@ def printUserMailBoxPermissions(session, showall, users):
             store = getStore(session, user)
             if store == None:
                continue
-            print ''
-            print 'Store information %s' % user
+            print('')
+            print('Store information %s' % user)
             printDelegateInformation(session, store)
             printFolderACLSTable(store, showall)
-        except MAPIError, err:
-            print "Unexpected error while processing store for user %s. hr=%08x" % (user, err.hr)
+        except MAPIError as err:
+            print("Unexpected error while processing store for user %s. hr=%08x" % (user, err.hr))
             with_errors = True
 
     return with_errors
 
 def print_help():
-    print "Usage: %s [ACTION] [mailboxes...]" % sys.argv[0]
-    print ""
-    print "Manage mailbox delegate permissions"
-    print ""
-    print "Actions:"
-    print "     --update-delegate usernames                 Add or update users or groups who get the permissions for the given mailbox."
-#    print "     --remove-delegate usernames                 Remove user or group permissions for the given mailbox"
-    print "     --remove-all-permissions                    Remove all the permissions from the mailbox"
-    print "     --list-permissions                          Show all the folder with the set permissions."
-    print "     --list-permissions-per-folder               Show only the folders with permissions."
-    print ""
-    print "Mailbox user permissions:"
-    print "     --calendar [denied|norights|readonly|secretary|owner|fullcontrol]  Set the permissions for the Calendar folder. Default <denied>"
-    print "     --tasks [denied|norights|readonly|secretary|owner|fullcontrol]     Set the permissions for the Tasks folder. Default <denied>"
-    print "     --inbox [denied|norights|readonly|secretary|owner|fullcontrol]     Set the permissions for the Inbox folder. Default <denied>"
-    print "     --contacts [denied|norights|readonly|secretary|owner|fullcontrol]  Set the permissions for the Contacts folder. Default <denied>"
-    print "     --notes [denied|norights|readonly|secretary|owner|fullcontrol]     Set the permissions for the Notes folder. Default <denied>"
-    print "     --journal [denied|norights|readonly|secretary|owner|fullcontrol]   Set the permissions for the Journal folder. Default <denied>"
-    print "     --store [denied|norights|readonly|secretary|owner|fullcontrol]     Set the permissions for the Store folder. Default <none>"
-    print ""
-    print "     --seeprivate [no|yes]                                     Delegator can see private items"
-    print "     --sendcopy [no|yes]                                       Delegator receives copies of the meeting-related messages sent to mailbox owner."
-    print ""
-    print "Delegate options:"
-    print "     --send-only-to-delegators [no|yes]          Send meeting requests and response only to the delegator, not to the mailbox owner."
-    print ""
-#    print "     --convert-permission-mask number   Convert the hex permission mask to text."
-    print ""
-    print "optional arguments:"
-    print " -a, --all           All mailboxes"
-    print " -h, --host          Host to connect with. Default: file:///var/run/kopano/server.sock"
-    print " -s, --sslkey-file   SSL key file to authenticate as admin."
-    print " -p, --sslkey-pass   Password for the SSL key file."
-#    print " -v, --verbose       Print more information."
-    print " -?, --help          Show this help message and exit."
-    print ""
-    print ""
-    print "Example:"
-    print " Show delegates and folder permissions of mailbox user1"
-    print "  $ %s --list-permissions user1" % sys.argv[0]
-    print ""
-    print " Show folder permissions of all mailboxes"
-    print "  $ %s --list-permissions -a" % sys.argv[0]
-    print ""
-    print " User1 becomes a delegate and receives specified permissions on the calendar of user2"
-    print "  $ %s --update-delegate \"user1\" --calendar secretary --sendcopy true --seeprivate true user2" % sys.argv[0]
-    print ""
+    print("Usage: %s [ACTION] [mailboxes...]" % sys.argv[0])
+    print("")
+    print("Manage mailbox delegate permissions")
+    print("")
+    print("Actions:")
+    print("     --update-delegate usernames                 Add or update users or groups who get the permissions for the given mailbox.")
+#    print("     --remove-delegate usernames                 Remove user or group permissions for the given mailbox")
+    print("     --remove-all-permissions                    Remove all the permissions from the mailbox")
+    print("     --list-permissions                          Show all the folder with the set permissions.")
+    print("     --list-permissions-per-folder               Show only the folders with permissions.")
+    print("")
+    print("Mailbox user permissions:")
+    print("     --calendar [denied|norights|readonly|secretary|owner|fullcontrol]  Set the permissions for the Calendar folder. Default <denied>")
+    print("     --tasks [denied|norights|readonly|secretary|owner|fullcontrol]     Set the permissions for the Tasks folder. Default <denied>")
+    print("     --inbox [denied|norights|readonly|secretary|owner|fullcontrol]     Set the permissions for the Inbox folder. Default <denied>")
+    print("     --contacts [denied|norights|readonly|secretary|owner|fullcontrol]  Set the permissions for the Contacts folder. Default <denied>")
+    print("     --notes [denied|norights|readonly|secretary|owner|fullcontrol]     Set the permissions for the Notes folder. Default <denied>")
+    print("     --journal [denied|norights|readonly|secretary|owner|fullcontrol]   Set the permissions for the Journal folder. Default <denied>")
+    print("     --store [denied|norights|readonly|secretary|owner|fullcontrol]     Set the permissions for the Store folder. Default <none>")
+    print("")
+    print("     --seeprivate [no|yes]                                     Delegator can see private items")
+    print("     --sendcopy [no|yes]                                       Delegator receives copies of the meeting-related messages sent to mailbox owner.")
+    print("")
+    print("Delegate options:")
+    print("     --send-only-to-delegators [no|yes]          Send meeting requests and response only to the delegator, not to the mailbox owner.")
+    print("")
+#    print("     --convert-permission-mask number   Convert the hex permission mask to text.")
+    print("")
+    print("optional arguments:")
+    print(" -a, --all           All mailboxes")
+    print(" -h, --host          Host to connect with. Default: file:///var/run/kopano/server.sock")
+    print(" -s, --sslkey-file   SSL key file to authenticate as admin.")
+    print(" -p, --sslkey-pass   Password for the SSL key file.")
+#    print(" -v, --verbose       Print more information.")
+    print(" -?, --help          Show this help message and exit.")
+    print("")
+    print("")
+    print("Example:")
+    print(" Show delegates and folder permissions of mailbox user1")
+    print("  $ %s --list-permissions user1" % sys.argv[0])
+    print("")
+    print(" Show folder permissions of all mailboxes")
+    print("  $ %s --list-permissions -a" % sys.argv[0])
+    print("")
+    print(" User1 becomes a delegate and receives specified permissions on the calendar of user2")
+    print("  $ %s --update-delegate \"user1\" --calendar secretary --sendcopy true --seeprivate true user2" % sys.argv[0])
+    print("")
 
 
 def main(argv = None):
@@ -877,9 +886,9 @@ def main(argv = None):
                                          'list-permissions', 'list-permissions-per-folder',
                                          'profile='
                                          ])
-    except getopt.GetoptError, err:
+    except getopt.GetoptError as err:
         # print help information and exit:
-        print str(err)
+        print(str(err))
         print_help()
         return 1
 
@@ -946,7 +955,7 @@ def main(argv = None):
             assert False, ("unhandled option '%s'" % o)
 
     if allmailboxes == True and len(args) > 0:
-        print "Show all mailboxes and show specific users are given, please choose one option"
+        print("Show all mailboxes and show specific users are given, please choose one option")
         return 0
 
     if allmailboxes == False and not profile and len(args) == 0:
@@ -958,13 +967,13 @@ def main(argv = None):
             session = MAPILogonEx(0, profile, None, MAPI_EXTENDED | MAPI_NEW_SESSION | MAPI_NO_MAIL)
         else:
             session = OpenECSession('SYSTEM', '', host, sslkey_file = sslkey_file, sslkey_pass = sslkey_pass)
-    except MAPIError, err:
+    except MAPIError as err:
         if err.hr == MAPI_E_LOGON_FAILED:
-            print "Failed to logon. Make sure your SSL certificate is correct."
+            print("Failed to logon. Make sure your SSL certificate is correct.")
         elif err.hr == MAPI_E_NETWORK_ERROR:
-            print "Unable to connect to server. Make sure you specified the correct server."
+            print("Unable to connect to server. Make sure you specified the correct server.")
         else:
-            print "Unexpected error occurred. hr=0x%08x" % err.hr
+            print("Unexpected error occurred. hr=0x%08x" % err.hr)
         return 1
 
     if allmailboxes:
@@ -976,7 +985,7 @@ def main(argv = None):
         memberids = UserAccountsToEntryIDs(session, users)
         setMailboxPermissions(session, permissions, memberids, args, seeprivate, sendcopy, onlysendtodelegators)
     elif action == 'remove':
-        print "Not supported yet"
+        print("Not supported yet")
     elif action == 'removeall':
         removeAllPermissions(session, args)
 
