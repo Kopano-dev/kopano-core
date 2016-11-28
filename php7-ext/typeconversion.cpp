@@ -912,7 +912,8 @@ HRESULT PHPArraytoRowList(zval *phpArray, void *lpBase, LPROWLIST *lppRowList TS
 	count = zend_hash_num_elements(target_hash);
 
 	// allocate memory to store the array of pointers
-	MAPI_G(hr) = MAPIAllocateBuffer(CbNewADRLIST(count), (void **)&lpRowList);
+	MAPI_G(hr) = MAPIAllocateBuffer(CbNewROWLIST(count),
+	             reinterpret_cast<void **>(&lpRowList));
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
 

@@ -138,14 +138,12 @@ exit:
 HRESULT iCal::HrHandleIcalPost()
 {
 	HRESULT hr = hrSuccess;
-	LPSPropTagArray lpPropTagArr = NULL;
 	LPMAPITABLE lpContTable = NULL;
 	LPSRowSet lpRows = NULL;
 	SBinary sbEid = {0,0};
 	SBinary sbUid = {0,0};
 	ULONG ulItemCount = 0;
 	ULONG ulProptag = 0;
-	ULONG cValues = 0;
 	ICalToMapi *lpICalToMapi = NULL;
 	time_t tLastMod = 0;
 	bool blCensorPrivate = false;
@@ -164,16 +162,8 @@ HRESULT iCal::HrHandleIcalPost()
 	map<std::string,SBinary>::const_iterator mpIterJ;
 
 	ulProptag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY);
-	cValues = 3;
-	if ((hr = MAPIAllocateBuffer(CbNewSPropTagArray(cValues), (void **)&lpPropTagArr)) != hrSuccess)
-		goto exit;
-
+	SizedSPropTagArray(3, proptags) = {3, {PR_ENTRYID, PR_LAST_MODIFICATION_TIME, ulProptag}};
 	//Include PR_ENTRYID,PR_LAST_MODIFICATION_TIME & Named Prop GlobalObjUid.
-	lpPropTagArr->cValues = cValues;
-	
-	lpPropTagArr->aulPropTag[0] = PR_ENTRYID;
-	lpPropTagArr->aulPropTag[1] = PR_LAST_MODIFICATION_TIME;
-	lpPropTagArr->aulPropTag[2] = ulProptag;
 	
 	//retrive entries from ical data.
 	CreateICalToMapi(m_lpActiveStore, m_lpAddrBook, false, &lpICalToMapi);
@@ -205,7 +195,7 @@ HRESULT iCal::HrHandleIcalPost()
 	hr = m_lpUsrFld->GetContentsTable( 0, &lpContTable);
 	if(hr != hrSuccess)
 		goto exit;
-	hr = lpContTable->SetColumns(lpPropTagArr, 0);
+	hr = lpContTable->SetColumns(proptags, 0);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -333,8 +323,6 @@ exit:
 
 	if(lpICalToMapi)
 		delete lpICalToMapi;
-	
-	MAPIFreeBuffer(lpPropTagArr);
 	mpSrvEntries.clear();
 	mpIcalEntries.clear();
 	mpSrvTimes.clear();

@@ -778,8 +778,6 @@ HRESULT HrRemoveECMailBox(LPPROVIDERADMIN lpProviderAdmin, LPMAPIUID lpsProvider
 	HRESULT			hr = hrSuccess;
 	
 	LPPROFSECT		lpGlobalProfSect = NULL;
-
-	LPSPropTagArray	lpsPropTagArray = NULL;
 	LPSPropValue	lpGlobalProps = NULL;	
 	LPSPropValue	lpNewProp = NULL;
 	ULONG			cValues = 0;
@@ -791,18 +789,9 @@ HRESULT HrRemoveECMailBox(LPPROVIDERADMIN lpProviderAdmin, LPMAPIUID lpsProvider
 	if(hr != hrSuccess)
 		goto exit;
 
-	// Allocate array of Proptags 
-	cValues = 1;
-	hr = MAPIAllocateBuffer(CbNewSPropTagArray(cValues), (void **)&lpsPropTagArray);
-	if(hr != hrSuccess)
-		goto exit;
-
-	//Fill array
-	lpsPropTagArray->aulPropTag[0] = PR_STORE_PROVIDERS;
-	lpsPropTagArray->cValues = cValues;
-
 	// The the prop value PR_STORE_PROVIDERS
-	hr = lpGlobalProfSect->GetProps(lpsPropTagArray, 0, &cValues, &lpGlobalProps);
+	static constexpr SizedSPropTagArray(1, proptag) = {1, {PR_STORE_PROVIDERS}};
+	hr = lpGlobalProfSect->GetProps(proptag, 0, &cValues, &lpGlobalProps);
 	if(hr == hrSuccess && lpGlobalProps->Value.bin.cb >= sizeof(MAPIUID)) 
 	{
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), (void**)&lpNewProp);
@@ -843,7 +832,6 @@ HRESULT HrRemoveECMailBox(LPPROVIDERADMIN lpProviderAdmin, LPMAPIUID lpsProvider
 exit:
 	if(lpGlobalProfSect)
 		lpGlobalProfSect->Release();
-	MAPIFreeBuffer(lpsPropTagArray);
 	MAPIFreeBuffer(lpGlobalProps);
 	MAPIFreeBuffer(lpNewProp);
 	return hr;

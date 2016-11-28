@@ -828,8 +828,7 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 		goto exit;
 
 	cUsers = lplstUsers->size();
-
-	hr = MAPIAllocateBuffer(CbNewSRowSet(cUsers), (void **)&lpAdrList);
+	hr = MAPIAllocateBuffer(CbNewADRLIST(cUsers), (void **)&lpAdrList);
 	if(hr != hrSuccess)
 		goto exit;
 

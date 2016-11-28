@@ -26,12 +26,6 @@
 #include <kopano/conversion.h>
 #include "scl.h"
 
-// mapi4linux does defines this in edkmdb.h
-#ifndef CbNewROWLIST
-	#define CbNewROWLIST(_centries) \
-		(offsetof(ROWLIST,aEntries) + (_centries)*sizeof(ROWENTRY))
-#endif
-
 // From Structs.py
 static PyObject *PyTypeSPropValue;
 static PyObject *PyTypeSSort;

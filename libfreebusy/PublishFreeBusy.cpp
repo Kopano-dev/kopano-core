@@ -241,26 +241,16 @@ HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBl
 {
 	HRESULT hr = hrSuccess;
 	SRowSet *lpRowSet = NULL;
-	SPropTagArray *lpsPrpTagArr = NULL;
 	OccrInfo *lpOccrInfo = NULL;
 	FBBlock_1 *lpfbBlocks = NULL;
 	recurrence lpRecurrence;
 	ULONG ulFbStatus = 0;
-
-	// @todo make static block and move this when to the table is created
-	hr = MAPIAllocateBuffer(CbNewSPropTagArray(7), (void **)&lpsPrpTagArr);
-	if(hr != hrSuccess)
-		goto exit;
-
-	lpsPrpTagArr->cValues = 7;
-	lpsPrpTagArr->aulPropTag[0] = PROP_APPT_STARTWHOLE;
-	lpsPrpTagArr->aulPropTag[1] = PROP_APPT_ENDWHOLE;
-	lpsPrpTagArr->aulPropTag[2] = PROP_APPT_FBSTATUS;
-	lpsPrpTagArr->aulPropTag[3] = PROP_APPT_ISRECURRING;
-	lpsPrpTagArr->aulPropTag[4] = PROP_APPT_RECURRINGSTATE;
-	lpsPrpTagArr->aulPropTag[5] = PROP_APPT_CLIPEND;
-	lpsPrpTagArr->aulPropTag[6] = PROP_APPT_TIMEZONESTRUCT;
-	hr = lpTable->SetColumns(lpsPrpTagArr, 0);
+	SizedSPropTagArray(7, proptags) =
+		{7, {PROP_APPT_STARTWHOLE, PROP_APPT_ENDWHOLE,
+		PROP_APPT_FBSTATUS, PROP_APPT_ISRECURRING,
+		PROP_APPT_RECURRINGSTATE, PROP_APPT_CLIPEND,
+		PROP_APPT_TIMEZONESTRUCT}};
+	hr = lpTable->SetColumns(proptags, 0);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -343,7 +333,6 @@ HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBl
 
 exit:
 	MAPIFreeBuffer(lpOccrInfo);
-	MAPIFreeBuffer(lpsPrpTagArr);
 	if (lpRowSet)
 		FreeProws(lpRowSet);
 

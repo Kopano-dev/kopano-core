@@ -1057,15 +1057,11 @@ static HRESULT GetOrphanStoreInfo(IECServiceAdmin *lpServiceAdmin,
 		return MAPI_E_NOT_FOUND;
 
 	lpsName = PpropFindProp(ptrRowSet[0].lpProps, ptrRowSet[0].cValues, PR_DISPLAY_NAME_W);
-	if (lpsName) {
+	if (lpsName != nullptr)
 		strUsername = lpsName->Value.lpszW;
-	}
-
 	lpsName = PpropFindProp(ptrRowSet[0].lpProps, ptrRowSet[0].cValues, PR_EC_COMPANY_NAME_W);
-	if (lpsName) {
+	if (lpsName != nullptr)
 		strCompanyName = lpsName->Value.lpszW;
-	}
-
 	lpsPropEntryId = PpropFindProp(ptrRowSet[0].lpProps, ptrRowSet[0].cValues, PR_STORE_ENTRYID);
 	if (lpsPropEntryId == NULL)
 		return MAPI_E_NOT_FOUND;

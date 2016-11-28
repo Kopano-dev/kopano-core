@@ -431,9 +431,8 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 	}
 
 	if (HrGetOneProp(lpRootFolder, PR_IPM_OL2007_ENTRYIDS /*PR_ADDITIONAL_REN_ENTRYIDS_EX*/, &lpAddRenProp) == hrSuccess &&
-		Util::ExtractSuggestedContactsEntryID(lpAddRenProp, &cbEntryIDSrc, &lpEntryIDSrc) == hrSuccess) {
+	    Util::ExtractSuggestedContactsEntryID(lpAddRenProp, &cbEntryIDSrc, &lpEntryIDSrc) == hrSuccess)
 		setFolderIgnore.insert(string((const char*)lpEntryIDSrc, cbEntryIDSrc));
-	}
 
 	hr = lpRootFolder->GetHierarchyTable(CONVENIENT_DEPTH, &lpHierarchyTable);
 	if (hr != hrSuccess) {

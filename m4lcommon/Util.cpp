@@ -3649,35 +3649,33 @@ next_include_check:
 
 	// find all MAPI_E_NOT_ENOUGH_MEMORY errors
 	for (ULONG i = 0; i < cValues; ++i) {
-		if (PROP_TYPE(lpProps[i].ulPropTag) == PT_ERROR && (lpProps[i].Value.err == MAPI_E_NOT_ENOUGH_MEMORY || 
-			(PROP_ID(lpProps[i].ulPropTag) == PROP_ID(PR_BODY) || 
-			 PROP_ID(lpProps[i].ulPropTag) == PROP_ID(PR_HTML) ||
-			 PROP_ID(lpProps[i].ulPropTag) == PROP_ID(PR_RTF_COMPRESSED)) ))
-		{
-			assert(PROP_ID(lpIncludeProps->aulPropTag[i]) == PROP_ID(lpProps[i].ulPropTag));
-			hr = Util::TryOpenProperty(PROP_TYPE(lpIncludeProps->aulPropTag[i]), lpProps[i].ulPropTag, lpSrcProp, lpsDestTagArray->aulPropTag[i], lpDestProp, &lpSrcStream, &lpDestStream);
-			if (hr != hrSuccess) {
-				// TODO: check, partial or problemarray?
-				// when the prop was not found (body property), it actually wasn't present, so don't mark as partial
-				if (hr != MAPI_E_NOT_FOUND)
-					bPartial = true;
-				goto next_stream_prop;
-			}
-
-			hr = Util::CopyStream(lpSrcStream, lpDestStream);
-			if (hr != hrSuccess)
+		bool err = PROP_TYPE(lpProps[i].ulPropTag) == PT_ERROR;
+		err &= lpProps[i].Value.err == MAPI_E_NOT_ENOUGH_MEMORY ||
+		       PROP_ID(lpProps[i].ulPropTag) == PROP_ID(PR_BODY) ||
+		       PROP_ID(lpProps[i].ulPropTag) == PROP_ID(PR_HTML) ||
+		       PROP_ID(lpProps[i].ulPropTag) == PROP_ID(PR_RTF_COMPRESSED);
+		if (!err)
+			continue;
+		assert(PROP_ID(lpIncludeProps->aulPropTag[i]) == PROP_ID(lpProps[i].ulPropTag));
+		hr = Util::TryOpenProperty(PROP_TYPE(lpIncludeProps->aulPropTag[i]), lpProps[i].ulPropTag, lpSrcProp, lpsDestTagArray->aulPropTag[i], lpDestProp, &lpSrcStream, &lpDestStream);
+		if (hr != hrSuccess) {
+			// TODO: check, partial or problemarray?
+			// when the prop was not found (body property), it actually wasn't present, so don't mark as partial
+			if (hr != MAPI_E_NOT_FOUND)
 				bPartial = true;
-
-next_stream_prop:
-			if (lpSrcStream) {
-				lpSrcStream->Release();
-				lpSrcStream = NULL;
-			}
-
-			if (lpDestStream) {
-				lpDestStream->Release();
-				lpDestStream = NULL;
-			}
+			goto next_stream_prop;
+		}
+		hr = Util::CopyStream(lpSrcStream, lpDestStream);
+		if (hr != hrSuccess)
+			bPartial = true;
+ next_stream_prop:
+		if (lpSrcStream) {
+			lpSrcStream->Release();
+			lpSrcStream = NULL;
+		}
+		if (lpDestStream) {
+			lpDestStream->Release();
+			lpDestStream = NULL;
 		}
 	}
 

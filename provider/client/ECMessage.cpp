@@ -1520,7 +1520,6 @@ HRESULT ECMessage::SetReadFlag(ULONG ulFlags)
 	LPSPropValue	lpReadReceiptRequest = NULL;
 	LPSPropValue	lpPropFlags = NULL;
 	LPSPropValue	lpsPropUserName = NULL;
-	LPSPropTagArray	lpsPropTagArray = NULL;
 	SPropValue		sProp;
 	IMAPIFolder*	lpRootFolder = NULL;
 	IMessage*		lpNewMessage = NULL;
@@ -1547,17 +1546,9 @@ HRESULT ECMessage::SetReadFlag(ULONG ulFlags)
 	}
 
 	// see if read receipts are requested
-	hr = ECAllocateBuffer(CbNewSPropTagArray(2), (void**)&lpsPropTagArray);
-	if(hr != hrSuccess)
-		goto exit;
-
-	// Check for Read receipts
-	lpsPropTagArray->cValues = 2;
-	lpsPropTagArray->aulPropTag[0] = PR_MESSAGE_FLAGS;
-	lpsPropTagArray->aulPropTag[1] = PR_READ_RECEIPT_REQUESTED;
-
-	hr = ECMAPIProp::GetProps(lpsPropTagArray, 0, &cValues, &lpReadReceiptRequest);
-
+	static constexpr SizedSPropTagArray(2, proptags) =
+		{2, {PR_MESSAGE_FLAGS, PR_READ_RECEIPT_REQUESTED}};
+	hr = ECMAPIProp::GetProps(proptags, 0, &cValues, &lpReadReceiptRequest);
 	if(hr == hrSuccess && (!(ulFlags&(SUPPRESS_RECEIPT|CLEAR_READ_FLAG | CLEAR_NRN_PENDING | CLEAR_RN_PENDING)) || (ulFlags&GENERATE_RECEIPT_ONLY )) &&
 		lpReadReceiptRequest[1].Value.b == TRUE && ((lpReadReceiptRequest[0].Value.ul & MSGFLAG_RN_PENDING) || (lpReadReceiptRequest[0].Value.ul & MSGFLAG_NRN_PENDING)))
 	{
@@ -1638,9 +1629,6 @@ HRESULT ECMessage::SetReadFlag(ULONG ulFlags)
 exit:
 	if (lpPropFlags != NULL)
 		ECFreeBuffer(lpPropFlags);
-	if(lpsPropTagArray)
-		ECFreeBuffer(lpsPropTagArray);
-
 	if(lpReadReceiptRequest)
 		ECFreeBuffer(lpReadReceiptRequest);
 	MAPIFreeBuffer(lpsPropUserName);
@@ -2005,7 +1993,6 @@ exit:
 HRESULT ECMessage::SaveChanges(ULONG ulFlags)
 {
 	HRESULT				hr = hrSuccess;
-	LPSPropTagArray		lpPropTagArray = NULL;
 	LPSPropValue		lpsPropMessageFlags = NULL;
 	ULONG				cValues = 0;
 	scoped_rlock lock(m_hMutexMAPIObject);
@@ -2039,12 +2026,9 @@ HRESULT ECMessage::SaveChanges(ULONG ulFlags)
 
 	// Property change of a new item
 	if (fNew && this->GetMsgStore()->IsSpooler() == TRUE) {
-
-		ECAllocateBuffer(CbNewSPropTagArray(1), (void**)&lpPropTagArray);
-		lpPropTagArray->cValues = 1;
-		lpPropTagArray->aulPropTag[0] = PR_MESSAGE_FLAGS;
-
-		hr = ECMAPIProp::GetProps(lpPropTagArray, 0, &cValues, &lpsPropMessageFlags);
+		static constexpr SizedSPropTagArray(1, proptag) =
+			{1, {PR_MESSAGE_FLAGS}};
+		hr = ECMAPIProp::GetProps(proptag, 0, &cValues, &lpsPropMessageFlags);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -2088,9 +2072,6 @@ HRESULT ECMessage::SaveChanges(ULONG ulFlags)
 	}
 
 exit:
-	if (lpPropTagArray)
-		ECFreeBuffer(lpPropTagArray);
-
 	if (lpsPropMessageFlags)
 		ECFreeBuffer(lpsPropMessageFlags);
 	return hr;
@@ -2246,7 +2227,8 @@ exit:
 HRESULT ECMessage::DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray *lppProblems)
 {
 	HRESULT hr;
-	SPropTagArray sSubjectPrefix = {1, { CHANGE_PROP_TYPE(PR_SUBJECT_PREFIX, PT_UNSPECIFIED) } };
+	SizedSPropTagArray(1, sSubjectPrefix) =
+		{1, {CHANGE_PROP_TYPE(PR_SUBJECT_PREFIX, PT_UNSPECIFIED)}};
 
 	// Send to IMAPIProp first
 	hr = ECMAPIProp::DeleteProps(lpPropTagArray, lppProblems);
@@ -2255,7 +2237,7 @@ HRESULT ECMessage::DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArr
 
 	// If the PR_SUBJECT is removed and we generated the prefix, we need to remove that property too.
 	if (m_bExplicitSubjectPrefix == FALSE && Util::FindPropInArray(lpPropTagArray, CHANGE_PROP_TYPE(PR_SUBJECT, PT_UNSPECIFIED)) >= 0)
-		ECMAPIProp::DeleteProps(&sSubjectPrefix, NULL);
+		ECMAPIProp::DeleteProps(sSubjectPrefix, NULL);
 
 	// If an explicit prefix was set and now removed, we must sync it again on the next SetProps of the subject
 	if (m_bExplicitSubjectPrefix == TRUE && Util::FindPropInArray(lpPropTagArray, CHANGE_PROP_TYPE(PR_SUBJECT_PREFIX, PT_UNSPECIFIED)) >= 0)

@@ -22,7 +22,7 @@
 #include <kopano/platform.h>
 #include <cstring>		/* memcmp() */
 
-#define MAPI_DIM	1
+#define MAPI_DIM
 
 #ifndef BEGIN_INTERFACE
 #define BEGIN_INTERFACE

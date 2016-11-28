@@ -26,12 +26,6 @@
 
 namespace za { namespace helpers {
 
-// mapi4linux does defines this in edkmdb.h
-#ifndef CbNewROWLIST
-	#define CbNewROWLIST(_centries) \
-		(offsetof(ROWLIST,aEntries) + (_centries)*sizeof(ROWENTRY))
-#endif
-
 /**
  * Create an ArchiveHelper object based on a message store and a folder name.
  *

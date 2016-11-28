@@ -3982,16 +3982,14 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
 		if (m_lpTable) {
             // First, see if the next row is somewhere in our already-read data
             lpRow = NULL;
-            if(lpRows) {
+            if (lpRows != nullptr)
 				// use nRow to start checking where we left off
-                for (unsigned int i = nRow + 1; i < lpRows->cRows; ++i) {
+                for (unsigned int i = nRow + 1; i < lpRows->cRows; ++i)
                     if(lpRows->aRow[i].lpProps[0].ulPropTag == PR_INSTANCE_KEY && BinaryArray(lpRows->aRow[i].lpProps[0].Value.bin) == BinaryArray(sPropVal.Value.bin)) {
                         lpRow = &lpRows->aRow[i];
 						nRow = i;
 						break;
                     }
-                }
-            }
 
             if(lpRow == NULL) {
                 if(lpRows)
@@ -3999,13 +3997,13 @@ HRESULT IMAP::HrPropertyFetch(list<ULONG> &lstMails, vector<string> &lstDataItem
                 lpRows = NULL;
                 
                 // Row was not found in our current data, request new data
-                if(m_lpTable->FindRow(&sRestriction, BOOKMARK_CURRENT, 0) == hrSuccess && m_lpTable->QueryRows(ulReadAhead, 0, &lpRows) == hrSuccess) {
-					if (lpRows->cRows != 0) {
-						// The row we want is the first returned row
-						lpRow = &lpRows->aRow[0];
-						nRow = 0;
-					}
-                }
+				if (m_lpTable->FindRow(&sRestriction, BOOKMARK_CURRENT, 0) == hrSuccess &&
+				    m_lpTable->QueryRows(ulReadAhead, 0, &lpRows) == hrSuccess &&
+				    lpRows->cRows != 0) {
+					// The row we want is the first returned row
+					lpRow = &lpRows->aRow[0];
+					nRow = 0;
+				}
             }
             
 		    // Pass the row data for conversion
@@ -4265,13 +4263,12 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 				// no full imap email in database available, so regenerate all
 				if (hr != hrSuccess) {
 					assert(lpMessage);
-					if (oss.tellp() == ostringstream::pos_type(0)) { // already converted in previous loop?
-						if (lpMessage == NULL || IMToINet(lpSession, lpAddrBook, lpMessage, oss, sopt) != hrSuccess) {
-							vProps.push_back(item);
-							vProps.push_back("NIL");
-							lpLogger->Log(EC_LOGLEVEL_WARNING, "Error in generating message %d for user %ls in folder %ls", ulMailnr+1, m_strwUsername.c_str(), strCurrentFolder.c_str());
-							continue;
-						}
+					if (oss.tellp() == ostringstream::pos_type(0) && // already converted in previous loop?
+					    (lpMessage == NULL || IMToINet(lpSession, lpAddrBook, lpMessage, oss, sopt) != hrSuccess)) {
+						vProps.push_back(item);
+						vProps.push_back("NIL");
+						lpLogger->Log(EC_LOGLEVEL_WARNING, "Error in generating message %d for user %ls in folder %ls", ulMailnr+1, m_strwUsername.c_str(), strCurrentFolder.c_str());
+						continue;
 					}
 					strMessage = oss.str();
 					hr = hrSuccess;
@@ -5112,11 +5109,15 @@ HRESULT IMAP::HrStore(const list<ULONG> &lstMails, string strMsgDataItemName, st
 	ULONG ulCurrent;
 	LPMESSAGE lpMessage = NULL;
 	LPSPropValue lpPropVal = NULL;
-	LPSPropTagArray lpPropTagArray = NULL;
 	ULONG cValues;
 	ULONG ulObjType;
 	string strNewFlags;
 	bool bDelete = false;
+	static constexpr SizedSPropTagArray(4, proptags4) =
+		{4, {PR_MSG_STATUS, PR_ICON_INDEX, PR_LAST_VERB_EXECUTED, PR_LAST_VERB_EXECUTION_TIME}};
+	static constexpr SizedSPropTagArray(5, proptags5) =
+		{5, {PR_MSG_STATUS, PR_FLAG_STATUS, PR_ICON_INDEX,
+		PR_LAST_VERB_EXECUTED, PR_LAST_VERB_EXECUTION_TIME}};
 
 	if (strCurrentFolder.empty() || !lpSession) {
 		hr = MAPI_E_CALL_FAILED;
@@ -5149,22 +5150,7 @@ HRESULT IMAP::HrStore(const list<ULONG> &lstMails, string strMsgDataItemName, st
 				if (hr != hrSuccess)
 					goto exit;
 			}
-
-			MAPIFreeBuffer(lpPropTagArray);
-			lpPropTagArray = NULL;
-
-			hr = MAPIAllocateBuffer(CbNewSPropTagArray(5), (void**)&lpPropTagArray);
-			if (hr != hrSuccess)
-				goto exit;
-
-			lpPropTagArray->cValues = 5;
-			lpPropTagArray->aulPropTag[0] = PR_MSG_STATUS;
-			lpPropTagArray->aulPropTag[1] = PR_FLAG_STATUS;
-			lpPropTagArray->aulPropTag[2] = PR_ICON_INDEX;
-			lpPropTagArray->aulPropTag[3] = PR_LAST_VERB_EXECUTED;
-			lpPropTagArray->aulPropTag[4] = PR_LAST_VERB_EXECUTION_TIME;
-
-			hr = lpMessage->GetProps(lpPropTagArray, 0, &cValues, &lpPropVal);
+			hr = lpMessage->GetProps(proptags5, 0, &cValues, &lpPropVal);
 			if (FAILED(hr))
 				goto exit;
 			cValues = 5;
@@ -5220,7 +5206,7 @@ HRESULT IMAP::HrStore(const list<ULONG> &lstMails, string strMsgDataItemName, st
 			}
 
 			// remove all "flag" properties
-			hr = lpMessage->DeleteProps(lpPropTagArray, NULL);
+			hr = lpMessage->DeleteProps(proptags5, NULL);
 			if (hr != hrSuccess)
 				goto exit;
 
@@ -5253,20 +5239,7 @@ HRESULT IMAP::HrStore(const list<ULONG> &lstMails, string strMsgDataItemName, st
 				} else if (lstFlags[ulCurrent].compare("\\ANSWERED") == 0 || lstFlags[ulCurrent].compare("$FORWARDED") == 0) {
 					MAPIFreeBuffer(lpPropVal);
 					lpPropVal = NULL;
-					MAPIFreeBuffer(lpPropTagArray);
-					lpPropTagArray = NULL;
-
-					hr = MAPIAllocateBuffer(CbNewSPropTagArray(4), (void**)&lpPropTagArray);
-					if (hr != hrSuccess)
-						goto exit;
-
-					lpPropTagArray->cValues = 4;
-					lpPropTagArray->aulPropTag[0] = PR_MSG_STATUS;
-					lpPropTagArray->aulPropTag[1] = PR_ICON_INDEX;
-					lpPropTagArray->aulPropTag[2] = PR_LAST_VERB_EXECUTED;
-					lpPropTagArray->aulPropTag[3] = PR_LAST_VERB_EXECUTION_TIME;
-
-					hr = lpMessage->GetProps(lpPropTagArray, 0, &cValues, &lpPropVal);
+					hr = lpMessage->GetProps(proptags4, 0, &cValues, &lpPropVal);
 					if (FAILED(hr))
 						goto exit;
 					cValues = 4;
@@ -5334,20 +5307,7 @@ HRESULT IMAP::HrStore(const list<ULONG> &lstMails, string strMsgDataItemName, st
 				} else if (lstFlags[ulCurrent].compare("\\ANSWERED") == 0 || lstFlags[ulCurrent].compare("$FORWARDED") == 0) {
 					MAPIFreeBuffer(lpPropVal);
 					lpPropVal = NULL;
-					MAPIFreeBuffer(lpPropTagArray);
-					lpPropTagArray = NULL;
-
-					hr = MAPIAllocateBuffer(CbNewSPropTagArray(4), (void**)&lpPropTagArray);
-					if (hr != hrSuccess)
-						goto exit;
-
-					lpPropTagArray->cValues = 4;
-					lpPropTagArray->aulPropTag[0] = PR_MSG_STATUS;
-					lpPropTagArray->aulPropTag[1] = PR_ICON_INDEX;
-					lpPropTagArray->aulPropTag[2] = PR_LAST_VERB_EXECUTED;
-					lpPropTagArray->aulPropTag[3] = PR_LAST_VERB_EXECUTION_TIME;
-
-					hr = lpMessage->GetProps(lpPropTagArray, 0, &cValues, &lpPropVal);
+					hr = lpMessage->GetProps(proptags4, 0, &cValues, &lpPropVal);
 					if (FAILED(hr))
 						goto exit;
 					cValues = 4;
@@ -5410,7 +5370,6 @@ HRESULT IMAP::HrStore(const list<ULONG> &lstMails, string strMsgDataItemName, st
 		*lpbDoDelete = bDelete;
 
 exit:
-	MAPIFreeBuffer(lpPropTagArray);
 	MAPIFreeBuffer(lpPropVal);
 	if (lpMessage)
 		lpMessage->Release();

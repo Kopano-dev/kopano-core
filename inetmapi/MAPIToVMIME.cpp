@@ -64,8 +64,6 @@ using namespace std;
  * - Not part of an outgoing message (PR_TRANSPORT_MESSAGE_HEADERS)
  */
 
-SizedSPropTagArray(1, sptaBestBodyInclude) = {1, {PR_RTF_COMPRESSED} };
-
 // Since UNICODE is defined, the strings will be PT_UNICODE, as required by ECTNEF::AddProps()
 SizedSPropTagArray(54, sptaExclude) = {
     54, 	{
@@ -220,9 +218,9 @@ HRESULT MAPIToVMIME::processRecipients(IMessage *lpMessage, vmime::messageBuilde
 				pPropAType = PpropFindProp(pRows->aRow[i].lpProps, pRows->aRow[i].cValues, PR_ADDRTYPE_W);
 				pPropEAddr = PpropFindProp(pRows->aRow[i].lpProps, pRows->aRow[i].cValues, PR_EMAIL_ADDRESS_W);
 				ec_log_err("No recipient type set for recipient. DisplayName: %ls, AddrType: %ls, Email: %ls",
-							  pPropDispl?pPropDispl->Value.lpszW:L"(none)",
-							  pPropAType?pPropAType->Value.lpszW:L"(none)",
-							  pPropEAddr?pPropEAddr->Value.lpszW:L"(none)");
+					pPropDispl ? pPropDispl->Value.lpszW : L"(none)",
+					pPropAType ? pPropAType->Value.lpszW : L"(none)",
+					pPropEAddr ? pPropEAddr->Value.lpszW : L"(none)");
 				continue;
 			}
 
@@ -340,11 +338,10 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 	// check PR_ATTACH_METHOD to determine Attachment or email
 	ulAttachmentMethod = ATTACH_BY_VALUE;
 	pPropAttachType	= PpropFindProp(lpRow->lpProps, lpRow->cValues, PR_ATTACH_METHOD);
-	if (pPropAttachType == NULL) {
+	if (pPropAttachType == NULL)
 		ec_log_warn("Attachment method not present for attachment %d, assuming default value", ulAttachmentNum);
-	} else {
+	else
 		ulAttachmentMethod = pPropAttachType->Value.ul;
-	}
 
 	if (ulAttachmentMethod == ATTACH_EMBEDDED_MSG) {
 		vmime::shared_ptr<vmime::message> vmNewMess;
@@ -1230,12 +1227,11 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage,
 			MAPIFreeBuffer(lpNameID);
 			lpNameID = NULL;
 
-			if (HrGetOneProp(lpMessage, CHANGE_PROP_TYPE(lpPropTags->aulPropTag[0], PT_STRING8), &lpPropContentType) == hrSuccess) {
+			if (HrGetOneProp(lpMessage, CHANGE_PROP_TYPE(lpPropTags->aulPropTag[0], PT_STRING8), &lpPropContentType) == hrSuccess)
 				lpszContentType = lpPropContentType->Value.lpszA;
-			} else {
+			else
 				// default, or exit?
 				lpszContentType = "application/x-pkcs7-mime;smime-type=enveloped-data;name=smime.p7m";
-			}
 
 			vmMessage->getHeader()->ContentType()->parse(lpszContentType);
 			MAPIFreeBuffer(lpPropContentType);
@@ -1905,25 +1901,17 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage,
 {
 	ULONG cValues;
 	LPSPropValue lpProps = NULL;
-	LPSPropTagArray lpPropTags = NULL;
 	LPSPropValue lpReadReceipt = NULL;
 
 	// sender information
 	std::wstring strEmail, strName, strType;
 	std::wstring strResEmail, strResName, strResType;
 
-	HRESULT hr = MAPIAllocateBuffer(CbNewSPropTagArray(4),
-	             reinterpret_cast<void **>(&lpPropTags));
-	if (hr != hrSuccess)
-		goto exit;
+	static constexpr SizedSPropTagArray(4, sender_proptags) =
+		{4, {PR_SENDER_ENTRYID, PR_SENDER_NAME_W,
+		PR_SENDER_ADDRTYPE_W, PR_SENDER_EMAIL_ADDRESS_W}};
 
-	lpPropTags->cValues = 4;
-	lpPropTags->aulPropTag[0] = PR_SENDER_ENTRYID;
-	lpPropTags->aulPropTag[1] = PR_SENDER_NAME_W;
-	lpPropTags->aulPropTag[2] = PR_SENDER_ADDRTYPE_W;
-	lpPropTags->aulPropTag[3] = PR_SENDER_EMAIL_ADDRESS_W;
-
-	hr = lpMessage->GetProps(lpPropTags, 0, &cValues, &lpProps);
+	HRESULT hr = lpMessage->GetProps(sender_proptags, 0, &cValues, &lpProps);
 	if (FAILED(hr))
 		goto exit;
 
@@ -1941,13 +1929,11 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage,
 	lpProps = NULL;
 
 	// -- sender
-	lpPropTags->cValues = 4;
-	lpPropTags->aulPropTag[0] = PR_SENT_REPRESENTING_ENTRYID;
-	lpPropTags->aulPropTag[1] = PR_SENT_REPRESENTING_NAME_W;
-	lpPropTags->aulPropTag[2] = PR_SENT_REPRESENTING_ADDRTYPE_W;
-	lpPropTags->aulPropTag[3] = PR_SENT_REPRESENTING_EMAIL_ADDRESS_W;
-
-	hr = lpMessage->GetProps(lpPropTags, 0, &cValues, &lpProps);
+	static constexpr SizedSPropTagArray(4, repr_proptags) =
+		{4, {PR_SENT_REPRESENTING_ENTRYID, PR_SENT_REPRESENTING_NAME_W,
+		PR_SENT_REPRESENTING_ADDRTYPE_W,
+		PR_SENT_REPRESENTING_EMAIL_ADDRESS_W}};
+	hr = lpMessage->GetProps(repr_proptags, 0, &cValues, &lpProps);
 	if (FAILED(hr))
 		goto exit;
 
@@ -2010,7 +1996,6 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage,
 	}
 
 exit:
-	MAPIFreeBuffer(lpPropTags);
 	MAPIFreeBuffer(lpProps);
 	MAPIFreeBuffer(lpReadReceipt);
 	return hr;
@@ -2043,8 +2028,8 @@ HRESULT MAPIToVMIME::handleReplyTo(IMessage *lpMessage,
 
 	// "Email1DisplayName","Email1AddressType","Email1Address","Email1EntryID"
 	ULONG lpulNamesIDs[] = {0x8080, 0x8082, 0x8083, 0x8085,
-							0x8090, 0x8092, 0x8093, 0x8095,
-							0x80A0, 0x80A2, 0x80A3, 0x80A5};
+				0x8090, 0x8092, 0x8093, 0x8095,
+				0x80A0, 0x80A2, 0x80A3, 0x80A5};
 	ULONG cNames, i, offset;
 	LPMAPINAMEID lpNames = NULL;
 	LPMAPINAMEID *lppNames = NULL;
@@ -2246,23 +2231,14 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
         }
 	
         // Start processing TNEF properties
-
-		if(HrGetOneProp(lpMessage, PR_EC_SEND_AS_ICAL, &lpSendAsICal) != hrSuccess) {
+		if (HrGetOneProp(lpMessage, PR_EC_SEND_AS_ICAL, &lpSendAsICal) != hrSuccess)
 			lpSendAsICal = NULL;
-		}
-		
-		if(HrGetOneProp(lpMessage, PR_EC_OUTLOOK_VERSION, &lpOutlookVersion) != hrSuccess) {
+		if (HrGetOneProp(lpMessage, PR_EC_OUTLOOK_VERSION, &lpOutlookVersion) != hrSuccess)
 			lpOutlookVersion = NULL;
-		} 
-		
-		if(HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &lpMessageClass) != hrSuccess) {
+		if (HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &lpMessageClass) != hrSuccess)
 			lpMessageClass = NULL;
-		}
-
-		if(HrGetOneProp(lpMessage, PR_DELEGATED_BY_RULE, &lpDelegateRule) != hrSuccess) {
+		if (HrGetOneProp(lpMessage, PR_DELEGATED_BY_RULE, &lpDelegateRule) != hrSuccess)
 			lpDelegateRule = NULL;
-		}
-
 		if (iUseTnef > 0)
 			strTnefReason = "Force TNEF on request";
 
@@ -2361,6 +2337,8 @@ tnef_anyway:
 			
 				// plaintext is never added to TNEF, only HTML or "real" RTF
 				if (bestBody != plaintext) {
+					SizedSPropTagArray(1, sptaBestBodyInclude) = {1, {PR_RTF_COMPRESSED}};
+
 					if (bestBody == html) sptaBestBodyInclude.aulPropTag[0] = PR_HTML;
 					else if (bestBody == realRTF) sptaBestBodyInclude.aulPropTag[0] = PR_RTF_COMPRESSED;
 
