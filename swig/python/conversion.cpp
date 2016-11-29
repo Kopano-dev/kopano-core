@@ -244,10 +244,8 @@ PyObject *Object_from_FILETIME(FILETIME ft)
 	PyObject *filetime = NULL;
 
 	filetime = PyLong_FromUnsignedLongLong(((unsigned long long)ft.dwHighDateTime << 32) + ft.dwLowDateTime);
-	if (PyErr_Occurred()) {
+	if (PyErr_Occurred())
 		goto exit;
-	}
-
 	object = PyObject_CallFunction(PyTypeFiletime, "(O)", filetime);
 
 exit:
@@ -303,10 +301,9 @@ PyObject *Object_from_LPSPropValue(LPSPropValue lpProp)
 		case PT_BOOLEAN:
 			Value = PyBool_FromLong(lpProp->Value.b);
 			break;
-		case PT_SYSTIME: {
+		case PT_SYSTIME:
 			Value = Object_from_FILETIME(lpProp->Value.ft);
 			break;
-		}
 		case PT_CLSID:
 			Value = PyString_FromStringAndSize((const char*)lpProp->Value.lpguid, sizeof(GUID));
 			break;
@@ -393,22 +390,15 @@ PyObject *Object_from_LPSPropValue(LPSPropValue lpProp)
 			PyErr_Format(PyExc_RuntimeError, "Bad property type %x", PROP_TYPE(lpProp->ulPropTag));
 			break;
 	}
-
-	if(PyErr_Occurred()) {
+	if (PyErr_Occurred())
 		goto exit;
-	}
-
 	object = PyObject_CallFunction(PyTypeSPropValue, "(OO)", ulPropTag, Value);
 
 exit:
-	if(Value) {
+	if (Value != nullptr)
 		Py_DECREF(Value);
-	}
-
-	if(ulPropTag) {
+	if (ulPropTag != nullptr)
 		Py_DECREF(ulPropTag);
-	}
-
 	return object;
 }
 
@@ -435,15 +425,12 @@ PyObject *		List_from_LPSPropValue(LPSPropValue lpProps, ULONG cValues)
 
 exit:
 	if(PyErr_Occurred()) {
-		if(list) {
+		if (list != nullptr)
 			Py_DECREF(list);
-		}
 		list = NULL;
 	}
-
-	if(item) {
+	if (item != nullptr)
 		Py_DECREF(item);
-	}
 	return list;
 }
 
@@ -465,15 +452,12 @@ PyObject *	  List_from_wchar_t(wchar_t **lpStrings, ULONG cElements)
 
 exit:
 	if(PyErr_Occurred()) {
-		if(list) {
+		if (list != nullptr)
 			Py_DECREF(list);
-		}
 		list = NULL;
 	}
-
-	if(item) {
+	if (item != nullptr)
 		Py_DECREF(item);
-	}
 	return list;
 }
 
@@ -542,10 +526,9 @@ void Object_to_LPSPropValue(PyObject *object, LPSPropValue lpProp, ULONG ulFlags
 		case PT_OBJECT:
 			lpProp->Value.lpszA = NULL;
 			break;
-		case PT_SYSTIME: {
+		case PT_SYSTIME:
 			lpProp->Value.ft = Object_to_FILETIME(Value);
 			break;
-		}
 		case PT_CLSID:
 			PyString_AsStringAndSize(Value, &lpstr, &size);
 			if(size == sizeof(GUID)) {
@@ -560,7 +543,7 @@ void Object_to_LPSPropValue(PyObject *object, LPSPropValue lpProp, ULONG ulFlags
 			else
 				PyErr_Format(PyExc_TypeError, "PT_CLSID Value must be exactly %d bytes", (int)sizeof(GUID));
 			break;
-		case PT_BINARY: {
+		case PT_BINARY:
 			PyString_AsStringAndSize(Value, &lpstr, &size);
 			if (ulFlags == CONV_COPY_SHALLOW)
 				lpProp->Value.bin.lpb = (LPBYTE)lpstr;
@@ -571,20 +554,16 @@ void Object_to_LPSPropValue(PyObject *object, LPSPropValue lpProp, ULONG ulFlags
 			}
 			lpProp->Value.bin.cb = size;
 			break;
-		}
-
-		case PT_SRESTRICTION: {
+		case PT_SRESTRICTION:
 			if (MAPIAllocateMore(sizeof(SRestriction), lpBase, (void**)&lpProp->Value.lpszA) != hrSuccess)
 				goto exit;
 			Object_to_LPSRestriction(Value, (LPSRestriction)lpProp->Value.lpszA, lpBase);
 			break;
-		}
-		case PT_ACTIONS: {
+		case PT_ACTIONS:
 			if (MAPIAllocateMore(sizeof(ACTIONS), lpBase, (void**)&lpProp->Value.lpszA) != hrSuccess)
 				goto exit;
 			Object_to_LPACTIONS(Value, (ACTIONS*)lpProp->Value.lpszA, lpBase);
 			break;
-		}
 
 #undef PT_MV_CASE
 #define PT_MV_CASE(MVname,MVelem,As,Sub) \
@@ -761,7 +740,6 @@ exit:
 		Py_DECREF(ulPropTag);
 	if (Value)
 		Py_DECREF(Value);
-	;
 }
 
 LPSPropValue Object_to_LPSPropValue(PyObject *object, ULONG ulFlags, void *lpBase)
@@ -829,14 +807,10 @@ LPSPropValue	List_to_LPSPropValue(PyObject *object, ULONG *cValues, ULONG ulFlag
 exit:
 	if (PyErr_Occurred() && lpBase != NULL)
 		MAPIFreeBuffer(lpProps);
-	if(elem) {
+	if (elem != nullptr)
 		Py_DECREF(elem);
-	}
-
-	if(iter) {
+	if (iter != nullptr)
 		Py_DECREF(iter);
-	}
-
 	return lpResult;
 }
 
@@ -884,10 +858,8 @@ exit:
 		MAPIFreeBuffer(lpPropTagArray);
 		lpPropTagArray = NULL;
 	}
-	if(iter) {
+	if (iter != nullptr)
 		Py_DECREF(iter);
-	}
-
 	return lpPropTagArray;
 }
 
@@ -914,10 +886,8 @@ PyObject *		List_from_LPSPropTagArray(LPSPropTagArray lpPropTagArray)
 	}
 
 exit:
-	if(elem) {
+	if (elem != nullptr)
 		Py_DECREF(elem);
-	}
-
 	if(PyErr_Occurred()) {
 		Py_DECREF(list);
 		list = NULL;
@@ -1131,49 +1101,28 @@ void Object_to_LPSRestriction(PyObject *object, LPSRestriction lpsRestriction, v
 	}
 
 exit:
-	if(lpProp) {
+	if (lpProp != nullptr)
 		Py_DECREF(lpProp);
-	}
-
-	if(ulPropTag2) {
+	if (ulPropTag2 != nullptr)
 		Py_DECREF(ulPropTag2);
-	}
-
-	if(ulPropTag) {
+	if (ulPropTag != nullptr)
 		Py_DECREF(ulPropTag);
-	}
-
-	if(relop) {
+	if (relop != nullptr)
 		Py_DECREF(relop);
-	}
-
-	if(cb) {
+	if (cb != nullptr)
 		Py_DECREF(cb);
-	}
-
-	if(ulMask) {
+	if (ulMask != nullptr)
 		Py_DECREF(ulMask);
-	}
-
-	if(ulFuzzyLevel) {
+	if (ulFuzzyLevel != nullptr)
 		Py_DECREF(ulFuzzyLevel);
-	}
-
-	if(rt) {
+	if (rt != nullptr)
 		Py_DECREF(rt);
-	}
-
-	if(iter) {
+	if (iter != nullptr)
 		Py_DECREF(iter);
-	}
-
-	if(elem) {
+	if (elem != nullptr)
 		Py_DECREF(elem);
-	}
-
-	if(sub) {
+	if (sub != nullptr)
 		Py_DECREF(sub);
-	}
 }
 
 LPSRestriction	Object_to_LPSRestriction(PyObject *object, void *lpBase)
@@ -1296,26 +1245,17 @@ PyObject *		Object_from_LPSRestriction(LPSRestriction lpsRestriction)
 	}
 
 exit:
-	if(sub) {
+	if (sub != nullptr)
 		Py_DECREF(sub);
-	}
-
-	if(subs) {
+	if (subs != nullptr)
 		Py_DECREF(subs);
-	}
-
-	if(propval) {
+	if (propval != nullptr)
 		Py_DECREF(propval);
-	}
-
-	if(proplist) {
+	if (proplist != nullptr)
 		Py_DECREF(proplist);
-	}
-
 	if(PyErr_Occurred()) {
-		if(result) {
+		if (result != nullptr)
 			Py_DECREF(result);
-		}
 		result = NULL;
 	}
 
@@ -1400,18 +1340,13 @@ PyObject *		Object_from_LPACTIONS(ACTIONS *lpsActions)
 	result = PyObject_CallFunction(PyTypeACTIONS, "lO", lpsActions->ulVersion, subs);
 
 exit:
-	if(sub) {
+	if (sub != nullptr)
 		Py_DECREF(sub);
-	}
-
-	if(subs) {
+	if (subs != nullptr)
 		Py_DECREF(subs);
-	}
-
 	if(PyErr_Occurred()) {
-		if(result) {
+		if (result != nullptr)
 			Py_DECREF(result);
-		}
 		result = NULL;
 	}
 
@@ -1504,24 +1439,18 @@ void Object_to_LPACTION(PyObject *object, ACTION *lpAction, void *lpBase)
 		break;
 	}
 
-	if (poActType) {
+	if (poActType != nullptr)
 		Py_DECREF(poActType);
-	}
-	if (poActionFlavor) {
+	if (poActionFlavor != nullptr)
 		Py_DECREF(poActionFlavor);
-	}
-	if (poRes) {
+	if (poRes != nullptr)
 		Py_DECREF(poRes);
-	}
-	if (poPropTagArray) {
+	if (poPropTagArray != nullptr)
 		Py_DECREF(poPropTagArray);
-	}
-	if (poFlags) {
+	if (poFlags != nullptr)
 		Py_DECREF(poFlags);
-	}
-	if (poActObject) {
+	if (poActObject != nullptr)
 		Py_DECREF(poActObject);
-	}
 }
 
 void Object_to_LPACTIONS(PyObject *object, ACTIONS *lpActions, void *lpBase)
@@ -1577,10 +1506,14 @@ void Object_to_LPACTIONS(PyObject *object, ACTIONS *lpActions, void *lpBase)
 	}
 
 exit:
-	if (poVersion) { Py_DECREF(poVersion); }
-	if (poAction) { Py_DECREF(poAction); }
-	if(iter) { Py_DECREF(iter); }
-	if(elem) { Py_DECREF(elem); }
+	if (poVersion != nullptr)
+		Py_DECREF(poVersion);
+	if (poAction != nullptr)
+		Py_DECREF(poAction);
+	if (iter != nullptr)
+		Py_DECREF(iter);
+	if (elem != nullptr)
+		Py_DECREF(elem);
 }
 
 SSortOrderSet *Object_to_p_SSortOrderSet(PyObject *object)
@@ -1646,14 +1579,20 @@ exit:
 		lpsSortOrderSet = NULL;
 	}
 
-	if(ulOrder) { Py_DECREF(ulOrder); }
-	if(ulPropTag) { Py_DECREF(ulPropTag); }
-	if(iter) { Py_DECREF(iter); }
-	if(elem) { Py_DECREF(elem); }
-	if(aSort) { Py_DECREF(aSort); }
-	if(cCategories) { Py_DECREF(cCategories); }
-	if(cExpanded) { Py_DECREF(cExpanded); }
-
+	if (ulOrder != nullptr)
+		Py_DECREF(ulOrder);
+	if (ulPropTag != nullptr)
+		Py_DECREF(ulPropTag);
+	if (iter != nullptr)
+		Py_DECREF(iter);
+	if (elem != nullptr)
+		Py_DECREF(elem);
+	if (aSort != nullptr)
+		Py_DECREF(aSort);
+	if (cCategories != nullptr)
+		Py_DECREF(cCategories);
+	if (cExpanded != nullptr)
+		Py_DECREF(cExpanded);
 	return lpsSortOrderSet;
 }
 
@@ -1685,18 +1624,13 @@ PyObject *Object_from_SSortOrderSet(const SSortOrderSet *lpSortOrderSet)
 	result = PyObject_CallFunction(PyTypeSSortOrderSet, "(Oll)", sorts, lpSortOrderSet->cCategories, lpSortOrderSet->cExpanded);
 
 exit:
-	if(sorts) {
+	if (sorts != nullptr)
 		Py_DECREF(sorts);
-	}
-
-	if(sort) {
+	if (sort != nullptr)
 		Py_DECREF(sort);
-	}
-
 	if(PyErr_Occurred()) {
-		if(result) {
+		if (result != nullptr)
 			Py_DECREF(result);
-		}
 		result = NULL;
 	}
 
@@ -1721,13 +1655,11 @@ PyObject *		List_from_LPSRowSet(LPSRowSet lpRowSet)
 	}
 
 exit:
-	if(item) {
+	if (item != nullptr)
 		Py_DECREF(item);
-	}
 	if(PyErr_Occurred()) {
-		if(list) {
+		if (list != nullptr)
 			Py_DECREF(list);
-		}
 		list = NULL;
 	}
 
@@ -1772,13 +1704,10 @@ LPSRowSet		List_to_LPSRowSet(PyObject *list, ULONG ulFlags)
 	lpsRowSet->cRows = i;
 
 exit:
-	if(elem) {
+	if (elem != nullptr)
 		Py_DECREF(elem);
-	}
-	if(iter) {
+	if (iter != nullptr)
 		Py_DECREF(iter);
-	}
-
 	if(PyErr_Occurred()) {
 		if(lpsRowSet)
 			FreeProws(lpsRowSet);
@@ -1871,15 +1800,12 @@ PyObject *		List_from_LPSPropProblemArray(LPSPropProblemArray lpProblemArray)
 
 exit:
 	if(PyErr_Occurred()) {
-		if(list) {
+		if (list != nullptr)
 			Py_DECREF(list);
-		}
 		list = NULL;
 	}
-	if(elem) {
+	if (elem != nullptr)
 		Py_DECREF(elem);
-	}
-
 	return list;
 }
 
@@ -1919,13 +1845,10 @@ LPSPropProblemArray List_to_LPSPropProblemArray(PyObject *list, ULONG /*ulFlags*
 	lpsProblems->cProblem = i;
 
 exit:
-	if(elem) {
+	if (elem != nullptr)
 		Py_DECREF(elem);
-	}
-	if(iter) {
+	if (iter != nullptr)
 		Py_DECREF(iter);
-	}
-
 	if(PyErr_Occurred()) {
 		MAPIFreeBuffer(lpsProblems);
 		lpsProblems = NULL;
@@ -1948,14 +1871,10 @@ PyObject * Object_from_LPMAPINAMEID(LPMAPINAMEID lpMAPINameId)
 
 	if(lpMAPINameId->ulKind == MNID_ID)
 		elem = PyObject_CallFunction(PyTypeMAPINAMEID, "(Oll)", guid, MNID_ID, lpMAPINameId->Kind.lID);
-	else {
+	else
 		elem = PyObject_CallFunction(PyTypeMAPINAMEID, "(Olu)", guid, MNID_STRING, lpMAPINameId->Kind.lpwstrName);
-	}
-
-	if(guid) {
+	if (guid != nullptr)
 		Py_DECREF(guid);
-	}
-
 	return elem;
 }
 
@@ -1983,10 +1902,8 @@ exit:
 		Py_DECREF(list);
 		list = NULL;
 	}
-	if(elem) {
+	if (elem != nullptr)
 		Py_DECREF(elem);
-	}
-
 	return list;
 }
 
@@ -2053,16 +1970,12 @@ exit:
 		if(!lpBase)
 			MAPIFreeBuffer(lpName);
 	}
-
-	if(guid) {
+	if (guid != nullptr)
 		Py_DECREF(guid);
-	}
-	if(id) {
+	if (id != nullptr)
 		Py_DECREF(id);
-	}
-	if(kind) {
+	if (kind != nullptr)
 		Py_DECREF(kind);
-	}
 }
 
 LPMAPINAMEID *	List_to_p_LPMAPINAMEID(PyObject *list, ULONG *lpcNames, ULONG /*ulFlags*/)
@@ -2101,14 +2014,10 @@ exit:
 		MAPIFreeBuffer(lpNames);
 		lpNames = NULL;
 	}
-
-	if(elem) {
+	if (elem != nullptr)
 		Py_DECREF(elem);
-	}
-	if(iter) {
+	if (iter != nullptr)
 		Py_DECREF(iter);
-	}
-
 	return lpNames;
 }
 
@@ -2159,14 +2068,10 @@ exit:
 		MAPIFreeBuffer(lpEntryList);
 		lpEntryList = NULL;
 	}
-
-	if(elem) {
+	if (elem != nullptr)
 		Py_DECREF(elem);
-	}
-	if(iter) {
+	if (iter != nullptr)
 		Py_DECREF(iter);
-	}
-
 	return lpEntryList;
 }
 
@@ -2195,10 +2100,8 @@ exit:
 		Py_DECREF(list);
 		list = NULL;
 	}
-	if(elem) {
+	if (elem != nullptr)
 		Py_DECREF(elem);
-	}
-
 	return list;
 }
 
@@ -2231,10 +2134,8 @@ exit:
 		}
 		list = NULL;
 	}
-
-	if(item) {
+	if (item != nullptr)
 		Py_DECREF(item);
-	}
 	return list;
 }
 
@@ -2441,13 +2342,10 @@ exit:
 		MAPIFreeBuffer(lpList);
 		lpList = NULL;
 	}
-	if(elem) {
+	if (elem != nullptr)
 		Py_DECREF(elem);
-	}
-	if(iter) {
+	if (iter != nullptr)
 		Py_DECREF(iter);
-	}
-
 	return lpList;
 }
 
@@ -2546,23 +2444,14 @@ exit:
 		MAPIFreeBuffer(lpList);
 		lpList = NULL;
 	}
-
-	if(flags) {
+	if (flags != nullptr)
 		Py_DECREF(flags);
-	}
-
-	if(sourcekey) {
+	if (sourcekey != nullptr)
 		Py_DECREF(sourcekey);
-	}
-
-	if(elem) {
+	if (elem != nullptr)
 		Py_DECREF(elem);
-	}
-
-	if(iter) {
+	if (iter != nullptr)
 		Py_DECREF(iter);
-	}
-
 	return lpList;
 }
 
@@ -2647,14 +2536,10 @@ exit:
 		MAPIFreeBuffer(lpList);
 		lpList = NULL;
 	}
-	if(elem) {
+	if (elem != nullptr)
 		Py_DECREF(elem);
-	}
-
-	if(iter) {
+	if (iter != nullptr)
 		Py_DECREF(iter);
-	}
-
 	return lpList;
 }
 
@@ -2890,16 +2775,12 @@ PyObject *List_from_LPECUSER(ECUSER *lpUser, ULONG cElements, ULONG ulFlags)
 
 exit:
 	if(PyErr_Occurred()) {
-		if(list) {
+		if (list != nullptr)
 			Py_DECREF(list);
-		}
 		list = NULL;
 	}
-
-	if(item) {
+	if (item != nullptr)
 		Py_DECREF(item);
-	}
-
 	return list;
 }
 
@@ -2971,16 +2852,12 @@ PyObject *List_from_LPECGROUP(ECGROUP *lpGroup, ULONG cElements, ULONG ulFlags)
 
 exit:
 	if(PyErr_Occurred()) {
-		if(list) {
+		if (list != nullptr)
 			Py_DECREF(list);
-		}
 		list = NULL;
 	}
-
-	if(item) {
+	if (item != nullptr)
 		Py_DECREF(item);
-	}
-
 	return list;
 }
 
@@ -3052,16 +2929,12 @@ PyObject *List_from_LPECCOMPANY(ECCOMPANY *lpCompany, ULONG cElements,
 
 exit:
 	if(PyErr_Occurred()) {
-		if(list) {
+		if (list != nullptr)
 			Py_DECREF(list);
-		}
 		list = NULL;
 	}
-
-	if(item) {
+	if (item != nullptr)
 		Py_DECREF(item);
-	}
-
 	return list;
 }
 
@@ -3194,19 +3067,12 @@ int GetExceptionError(PyObject *object, HRESULT *lphr)
 
 	*lphr = (HRESULT)PyLong_AsUnsignedLong(hr);
 	Py_DECREF(hr);
-
-	if (type) {
+	if (type != nullptr)
 		Py_DECREF(type);
-	}
-
-	if (value) {
+	if (value != nullptr)
 		Py_DECREF(value);
-	}
-
-	if (traceback) {
+	if (traceback != nullptr)
 		Py_DECREF(traceback);
-	}
-
 	return 1;
 }
 
@@ -3306,14 +3172,10 @@ exit:
 		MAPIFreeBuffer(lpSvrNameList);
 		lpSvrNameList = NULL;
 	}
-	if(elem) {
+	if (elem != nullptr)
 		Py_DECREF(elem);
-	}
-
-	if(iter) {
+	if (iter != nullptr)
 		Py_DECREF(iter);
-	}
-
 	return lpSvrNameList;
 }
 
@@ -3340,16 +3202,12 @@ PyObject *List_from_LPECSERVERLIST(ECSERVERLIST *lpServerList)
 
 exit:
 	if(PyErr_Occurred()) {
-		if(list) {
+		if (list != nullptr)
 			Py_DECREF(list);
-		}
 		list = NULL;
 	}
-
-	if(item) {
+	if (item != nullptr)
 		Py_DECREF(item);
-	}
-
 	return list;
 
 }
@@ -3373,9 +3231,8 @@ void Object_to_STATSTG(PyObject *object, STATSTG *stg)
 	stg->cbSize.QuadPart = PyLong_AsINT64(cbSize);
 
 exit:
-	if(cbSize) {
+	if (cbSize != nullptr)
 		Py_DECREF(cbSize);
-	}
 }
 
 PyObject *Object_from_STATSTG(STATSTG *lpStatStg)
@@ -3391,14 +3248,11 @@ PyObject *Object_from_STATSTG(STATSTG *lpStatStg)
 	cbSize = PyLong_FromLongLong(lpStatStg->cbSize.QuadPart);
 
 	result = PyObject_CallFunction(PyTypeSTATSTG, "(O)", cbSize);
-	if(cbSize) {
+	if (cbSize != nullptr)
 		Py_DECREF(cbSize);
-	}
-
 	if(PyErr_Occurred()) {
-		if(result) {
+		if (result != nullptr)
 			Py_DECREF(result);
-		}
 		result = NULL;
 	}
 

@@ -479,11 +479,9 @@ HRESULT Fsck::ValidateDuplicateRecipients(LPMESSAGE lpMessage, bool &bChanged)
 	hr = lpTable->GetRowCount(0, &cRows);
 	if (hr != hrSuccess)
 		goto exit;
-
-	if (cRows < 1) {
+	if (cRows < 1)
 		// 0 or 1 row not needed to check
 		goto exit;
-	}
 
 	hr = lpTable->SetColumns(sptaProps, 0);
 	if (hr != hrSuccess)
@@ -529,11 +527,8 @@ HRESULT Fsck::ValidateDuplicateRecipients(LPMESSAGE lpMessage, bool &bChanged)
 	lpTable = NULL;
 
 	// modify
-	if (!mapiReciptDel.empty()) {
+	if (!mapiReciptDel.empty())
 		hr = DeleteRecipientList(lpMessage, mapiReciptDel, bChanged);
-	}
-
-	
 exit:
 	if (lpTable)
 		lpTable->Release();

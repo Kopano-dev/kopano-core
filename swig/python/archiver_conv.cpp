@@ -45,16 +45,12 @@ PyObject* List_from(const ListType &lst)
 
 exit:
     if(PyErr_Occurred()) {
-        if(list) {
+        if (list != nullptr)
             Py_DECREF(list);
-        }
         list = NULL;
     }
-    
-    if(item) {
+    if (item != nullptr)
         Py_DECREF(item);
-    }
-    
     return list;
 }
 
