@@ -1585,7 +1585,7 @@ exit:
 	if(elem) { Py_DECREF(elem); }
 }
 
-LPSSortOrderSet	Object_to_LPSSortOrderSet(PyObject *object)
+SSortOrderSet *Object_to_p_SSortOrderSet(PyObject *object)
 {
 	PyObject *aSort = NULL;
 	PyObject *cCategories = NULL;
@@ -1594,7 +1594,7 @@ LPSSortOrderSet	Object_to_LPSSortOrderSet(PyObject *object)
 	PyObject *elem = NULL;
 	PyObject *ulPropTag = NULL;
 	PyObject *ulOrder = NULL;
-	LPSSortOrderSet lpsSortOrderSet = NULL;
+	SSortOrderSet *lpsSortOrderSet = NULL;
 	Py_ssize_t len = 0;
 	unsigned int i = 0;
 
@@ -1659,7 +1659,7 @@ exit:
 	return lpsSortOrderSet;
 }
 
-PyObject *		Object_from_LPSSortOrderSet(LPSSortOrderSet lpSortOrderSet)
+PyObject *Object_from_SSortOrderSet(const SSortOrderSet *lpSortOrderSet)
 {
 	PyObject *sort = NULL;
 	PyObject *sorts = NULL;

@@ -59,8 +59,8 @@ PyObject *		Object_from_LPACTIONS(ACTIONS *lpsActions);
 void			Object_to_LPACTION(PyObject *object, ACTION *lpAction, void *lpBase);
 void			Object_to_LPACTIONS(PyObject *object, ACTIONS *lpActions, void *lpBase = NULL);
 
-LPSSortOrderSet	Object_to_LPSSortOrderSet(PyObject *sv);
-PyObject *		Object_from_LPSSortOrderSet(LPSSortOrderSet lpSortOrderSet);
+SSortOrderSet *Object_to_p_SSortOrderSet(PyObject *sv);
+PyObject *Object_from_SSortOrderSet(const SSortOrderSet *lpSortOrderSet);
 
 PyObject *		List_from_LPSRowSet(LPSRowSet lpRowSet);
 LPSRowSet		List_to_LPSRowSet(PyObject *av, ULONG ulFlags = CONV_COPY_SHALLOW);

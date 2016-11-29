@@ -449,12 +449,12 @@
 %apply (ULONG, MAPIARRAY) {(ULONG cValues, LPSPropValue lpProps), (ULONG cPropNames, LPMAPINAMEID* lppPropNames), (ULONG cInterfaces, LPCIID lpInterfaces), ( ULONG cValuesConversion, LPSPropValue lpPropArrayConversion) };
 %apply MAPILIST {LPSPropTagArray, LPENTRYLIST, LPADRLIST, LPFlagList};
 %apply MAPILIST *INPUT {LPSPropTagArray *};
-%apply MAPISTRUCT {LPSRestriction, LPSSortOrderSet, LPSPropValue, LPNOTIFICATION};
+%apply MAPISTRUCT {LPSRestriction, SSortOrderSet *, LPSPropValue, LPNOTIFICATION};
 
 // Output
 %apply (ULONG *, MAPIARRAY *) {(ULONG *OUTPUTC, LPSPropValue *OUTPUTP), (ULONG *OUTPUTC, LPNOTIFICATION *OUTPUTP), (ULONG *OUTPUTC, LPMAPINAMEID **OUTPUTP)};
 %apply MAPILIST * {LPADRLIST *OUTPUT, LPSRowSet *OUTPUT, LPSPropProblemArray *OUTPUT, LPSPropTagArray *OUTPUT, LPENTRYLIST *OUTPUT};
-%apply MAPISTRUCT * {LPMAPIERROR *OUTPUT, LPSSortOrderSet *OUTPUT, LPSRestriction *OUTPUT};
+%apply MAPISTRUCT * {LPMAPIERROR *OUTPUT, SSortOrderSet **OUTPUT, LPSRestriction *OUTPUT};
 
 // Input/Output
 %apply MAPILIST INOUT {LPADRLIST INOUT, LPFlagList INOUT };
