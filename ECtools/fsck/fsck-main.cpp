@@ -324,40 +324,33 @@ HRESULT Fsck::ReplaceProperty(LPMESSAGE lpMessage,
 
 HRESULT Fsck::DeleteRecipientList(LPMESSAGE lpMessage, std::list<unsigned int> &mapiReciptDel, bool &bChanged)
 {
-	HRESULT hr = hrSuccess;
-	SRowSet *lpMods = NULL;
-
 	++this->ulProblems;
-
 	cout << mapiReciptDel.size() << " duplicate or invalid recipients found. " << endl;
+	if (!ReadYesNoMessage("Remove duplicate or invalid recipients?", auto_fix))
+		return hrSuccess;
 
-	if (ReadYesNoMessage("Remove duplicate or invalid recipients?", auto_fix) )
-	{
-		hr = MAPIAllocateBuffer(CbNewADRLIST(mapiReciptDel.size()), (void**)&lpMods);
-		if (hr != hrSuccess)
+	SRowSet *lpMods = NULL;
+	HRESULT hr = MAPIAllocateBuffer(CbNewADRLIST(mapiReciptDel.size()), (void**)&lpMods);
+	if (hr != hrSuccess)
+		return hr;
+
+	lpMods->cRows = 0;
+	for (const auto &recip : mapiReciptDel) {
+		lpMods->aRow[lpMods->cRows].cValues = 1;
+		if ((hr = MAPIAllocateMore(sizeof(SPropValue), lpMods, (void**)&lpMods->aRow[lpMods->cRows].lpProps)) != hrSuccess)
 			goto exit;
-
-		lpMods->cRows = 0;
-		for (const auto &recip : mapiReciptDel) {
-			lpMods->aRow[lpMods->cRows].cValues = 1;
-			if ((hr = MAPIAllocateMore(sizeof(SPropValue), lpMods, (void**)&lpMods->aRow[lpMods->cRows].lpProps)) != hrSuccess)
-				goto exit;
-			lpMods->aRow[lpMods->cRows].lpProps->ulPropTag = PR_ROWID;
-			lpMods->aRow[lpMods->cRows++].lpProps->Value.ul = recip;
-		}
-
-		hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE, (LPADRLIST)lpMods);
-		if (hr != hrSuccess)
-			goto exit;
-
-		hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
-		if (hr != hrSuccess)
-			goto exit;
-
-		bChanged = true;
-
-		++this->ulFixed;
+		lpMods->aRow[lpMods->cRows].lpProps->ulPropTag = PR_ROWID;
+		lpMods->aRow[lpMods->cRows++].lpProps->Value.ul = recip;
 	}
+
+	hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE, (LPADRLIST)lpMods);
+	if (hr != hrSuccess)
+		goto exit;
+	hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
+	if (hr != hrSuccess)
+		goto exit;
+	bChanged = true;
+	++this->ulFixed;
 exit:
 	MAPIFreeBuffer(lpMods);
 	return hr;
@@ -411,36 +404,29 @@ HRESULT Fsck::ValidateRecursiveDuplicateRecipients(LPMESSAGE lpMessage, bool &bC
 			break;
 
 		for (unsigned int i = 0; i < pRows->cRows; ++i) {
-			if (pRows->aRow[i].lpProps[1].ulPropTag == PR_ATTACH_METHOD && pRows->aRow[i].lpProps[1].Value.ul == ATTACH_EMBEDDED_MSG)
-			{
-				bSubChanged = false;
-
-				hr = lpMessage->OpenAttach(pRows->aRow[i].lpProps[0].Value.ul, NULL, MAPI_BEST_ACCESS, &lpAttach);
+			if (pRows->aRow[i].lpProps[1].ulPropTag != PR_ATTACH_METHOD ||
+			    pRows->aRow[i].lpProps[1].Value.ul != ATTACH_EMBEDDED_MSG)
+				continue;
+			bSubChanged = false;
+			hr = lpMessage->OpenAttach(pRows->aRow[i].lpProps[0].Value.ul, NULL, MAPI_BEST_ACCESS, &lpAttach);
+			if (hr != hrSuccess)
+				goto exit;
+			hr = lpAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_MODIFY, (LPUNKNOWN*)&lpSubMessage);
+			if (hr != hrSuccess)
+				goto exit;
+			hr = ValidateRecursiveDuplicateRecipients(lpSubMessage, bSubChanged);
+			if (hr != hrSuccess)
+				goto exit;
+			if (bSubChanged) {
+				hr = lpAttach->SaveChanges(KEEP_OPEN_READWRITE);
 				if (hr != hrSuccess)
 					goto exit;
-
-				hr = lpAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_MODIFY, (LPUNKNOWN*)&lpSubMessage);
-				if (hr != hrSuccess)
-					goto exit;
-
-				hr = ValidateRecursiveDuplicateRecipients(lpSubMessage, bSubChanged);
-				if (hr != hrSuccess)
-					goto exit;
-
-				if (bSubChanged) {
-					hr = lpAttach->SaveChanges(KEEP_OPEN_READWRITE);
-					if (hr != hrSuccess)
-						goto exit;
-
-					bChanged = bSubChanged;
-				}
-				lpAttach->Release();
-				lpAttach = NULL;
-				lpSubMessage->Release();
-				lpSubMessage = NULL;
-
+				bChanged = bSubChanged;
 			}
-
+			lpAttach->Release();
+			lpAttach = NULL;
+			lpSubMessage->Release();
+			lpSubMessage = NULL;
 		}
 
 		FreeProws(pRows);

@@ -781,13 +781,11 @@ LPSPropValue Object_to_LPSPropValue(PyObject *object, ULONG ulFlags, void *lpBas
 
 	Object_to_LPSPropValue(object, lpProp, ulFlags, lpBase);
 
-	if(PyErr_Occurred()) {
-		if(!lpBase)
-			MAPIFreeBuffer(lpProp);
-		return NULL;
-	} else {
+	if (!PyErr_Occurred())
 		return lpProp;
-	}
+	if (!lpBase)
+		MAPIFreeBuffer(lpProp);
+	return NULL;
 }
 
 LPSPropValue	List_to_LPSPropValue(PyObject *object, ULONG *cValues, ULONG ulFlags, void *lpBase)

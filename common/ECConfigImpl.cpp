@@ -101,38 +101,33 @@ bool ECConfigImpl::ParseParams(int argc, char *argv[], int *lpargidx)
 {
 	for (int i = 0; i < argc; ++i) {
 		char *arg = argv[i];
-		if (arg && arg[0] == '-' && arg[1] == '-') {
-			const char *eq = strchr(arg, '=');
-			
-			if (eq) {
-				string strName(arg+2, eq-arg-2);
-				string strValue(eq+1);
-				
-				strName = trim(strName, " \t\r\n");
-				strValue = trim(strValue, " \t\r\n");
-				
-				std::transform(strName.begin(), strName.end(), strName.begin(), tounderscore);
-				
-				configsetting_t setting = { strName.c_str(), strValue.c_str(), 0, 0 };
-				
-				// Overwrite an existing setting, and make sure it is not reloadable during HUP
-				AddSetting(&setting, LOADSETTING_OVERWRITE | LOADSETTING_CMDLINE_PARAM);
-			} else {
-				errors.push_back("Commandline option '" + string(arg+2) + "' cannot be empty!");
-			}
-		} else if (arg) {
+		if (arg == nullptr)
+			continue;
+		if (arg[0] != '-' || arg[1] != '-') {
 			// Move non-long-option to end of list
 			--argc;
 			for (int j = i; j < argc; ++j)
 				argv[j] = argv[j+1];
 			argv[argc] = arg;
 			--i;
+			continue;
 		}
+		const char *eq = strchr(arg, '=');
+		if (eq == nullptr) {
+			errors.push_back("Commandline option '" + string(arg+2) + "' cannot be empty!");
+			continue;
+		}
+		string strName(arg+2, eq-arg-2);
+		string strValue(eq+1);
+		strName = trim(strName, " \t\r\n");
+		strValue = trim(strValue, " \t\r\n");
+		std::transform(strName.begin(), strName.end(), strName.begin(), tounderscore);
+		configsetting_t setting = {strName.c_str(), strValue.c_str(), 0, 0};
+		// Overwrite an existing setting, and make sure it is not reloadable during HUP
+		AddSetting(&setting, LOADSETTING_OVERWRITE | LOADSETTING_CMDLINE_PARAM);
 	}
-	
 	if (lpargidx)
 		*lpargidx = argc;
-
 	return true;
 }
 
@@ -143,12 +138,10 @@ bool ECConfigImpl::ReloadSettings()
 		return false;
 
 	// Check if we can still open the main config file. Do not reset to Defaults
-	FILE *fp = NULL;
-	if(!(fp = fopen(m_szConfigFile, "rt"))) {
+	FILE *fp = fopen(m_szConfigFile, "rt");
+	if (fp == nullptr)
 		return false;
-	} else {
-		fclose(fp);
-	}
+	fclose(fp);
 
 	// reset to defaults because unset items in config file should return to default values.
 	InitDefaults(LOADSETTING_OVERWRITE_RELOAD);
@@ -201,19 +194,18 @@ ECConfigImpl::~ECConfigImpl()
  */
 size_t ECConfigImpl::GetSize(const char *szValue)
 {
-	size_t rv = 0;
-	if (szValue) {
-		char *end = NULL;
-		rv = strtoul(szValue, &end, 10);
-		if (rv && end > szValue && *end != '\0') {
-			while (*end != '\0' && (*end == ' ' || *end == '\t'))
-				++end;
-			switch (tolower(*end)) {
-				case 'k': rv *= 1024; break;
-				case 'm': rv *= 1024*1024; break;
-				case 'g': rv *= 1024*1024*1024; break;
-			}
-		}
+	if (szValue == nullptr)
+		return 0;
+	char *end = NULL;
+	size_t rv = strtoul(szValue, &end, 10);
+	if (rv == 0 || end <= szValue || *end == '\0')
+		return rv;
+	while (*end != '\0' && (*end == ' ' || *end == '\t'))
+		++end;
+	switch (tolower(*end)) {
+		case 'k': rv *= 1024; break;
+		case 'm': rv *= 1024*1024; break;
+		case 'g': rv *= 1024*1024*1024; break;
 	}
 	return rv;
 }
@@ -480,15 +472,15 @@ bool ECConfigImpl::HandleDirective(const string &strLine, unsigned int ulFlags)
 
 	/* Check if this directive is known */
 	for (int i = 0; s_sDirectives[i].lpszDirective != NULL; ++i) {
-		if (strName.compare(s_sDirectives[i].lpszDirective) == 0) {
-			/* Check if this directive is supported */
-			auto f = find(m_lDirectives.cbegin(), m_lDirectives.cend(), strName);
-			if (f != m_lDirectives.cend())
-				return (this->*s_sDirectives[i].fExecute)(strLine.substr(pos).c_str(), ulFlags);
+		if (strName.compare(s_sDirectives[i].lpszDirective) != 0)
+			continue;
+		/* Check if this directive is supported */
+		auto f = find(m_lDirectives.cbegin(), m_lDirectives.cend(), strName);
+		if (f != m_lDirectives.cend())
+			return (this->*s_sDirectives[i].fExecute)(strLine.substr(pos).c_str(), ulFlags);
 
-			warnings.push_back("Unsupported directive '" + strName + "' found!");
-			return true;
-		}
+		warnings.push_back("Unsupported directive '" + strName + "' found!");
+		return true;
 	}
 
 	warnings.push_back("Unknown directive '" + strName + "' found!");
@@ -596,8 +588,8 @@ bool ECConfigImpl::AddSetting(const configsetting_t *lpsConfig, unsigned int ulF
 		}
 
 		if (!(ulFlags & LOADSETTING_INITIALIZING) &&
-			(iterSettings->first.ulFlags & CONFIGSETTING_UNUSED))
-				warnings.push_back("Option '" + string(lpsConfig->szName) + "' is not used anymore.");
+		    (iterSettings->first.ulFlags & CONFIGSETTING_UNUSED))
+			warnings.push_back("Option '" + string(lpsConfig->szName) + "' is not used anymore.");
 
 		s.ulFlags = iterSettings->first.ulFlags;
 
