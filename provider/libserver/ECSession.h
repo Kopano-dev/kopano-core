@@ -27,7 +27,6 @@
 #include <list>
 #include <map>
 #include <mutex>
-#include <set>
 #include <pthread.h>
 
 #include "soapH.h"

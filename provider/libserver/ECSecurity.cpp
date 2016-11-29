@@ -14,10 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <kopano/platform.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <pwd.h>
-#include <dirent.h>
 #include "ECDatabaseUtils.h"
 #include "ECDatabase.h"
 #include "ECSessionManager.h"
@@ -36,8 +32,6 @@
 #include <mapitags.h>
 
 #include <kopano/mapiext.h>
-
-#include <cstdarg>
 
 #include <openssl/ssl.h>
 #include <openssl/evp.h>

@@ -18,9 +18,7 @@
 #include <kopano/platform.h>
 
 #include <iostream>
-#include <cerrno>
 #include <climits>
-#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
@@ -59,7 +57,6 @@
 #include <edkmdb.h>
 #include <edkguid.h>
 #include <libintl.h>
-#include <pthread.h>	// localtime_r (windows)
 
 #include "Archiver.h"
 

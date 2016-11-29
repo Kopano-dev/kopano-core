@@ -16,7 +16,6 @@
  */
 
 #include <kopano/platform.h>
-#include <memory>
 #include <kopano/stringutil.h>
 #include <kopano/charset/convert.h>
 #include <sstream>
