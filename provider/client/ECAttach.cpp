@@ -214,7 +214,7 @@ HRESULT	ECAttach::GetPropHandler(ULONG ulPropTag, void *lpProvider, ULONG ulFlag
 	HRESULT hr = hrSuccess;
 	ECAttach *lpAttach = (ECAttach*)lpParam;
 
-	SPropTagArray sPropArray;
+	SizedSPropTagArray(1, sPropArray);
 	ULONG cValues = 0;
 	LPSPropValue lpProps = NULL;
 
@@ -222,7 +222,7 @@ HRESULT	ECAttach::GetPropHandler(ULONG ulPropTag, void *lpProvider, ULONG ulFlag
 	case PR_ATTACH_DATA_OBJ:
 		sPropArray.cValues = 1;
 		sPropArray.aulPropTag[0] = PR_ATTACH_METHOD;
-		hr = lpAttach->GetProps(&sPropArray, 0, &cValues, &lpProps);
+		hr = lpAttach->GetProps(sPropArray, 0, &cValues, &lpProps);
 		if(hr == hrSuccess && cValues == 1 && lpProps[0].ulPropTag == PR_ATTACH_METHOD && (lpProps[0].Value.ul == ATTACH_EMBEDDED_MSG || lpProps[0].Value.ul == ATTACH_OLE) )
 		{
 			lpsPropValue->ulPropTag = PR_ATTACH_DATA_OBJ;
@@ -234,7 +234,7 @@ HRESULT	ECAttach::GetPropHandler(ULONG ulPropTag, void *lpProvider, ULONG ulFlag
 	case PR_ATTACH_DATA_BIN:
 		sPropArray.cValues = 1;
 		sPropArray.aulPropTag[0] = PR_ATTACH_METHOD;
-		hr = lpAttach->GetProps(&sPropArray, 0, &cValues, &lpProps);
+		hr = lpAttach->GetProps(sPropArray, 0, &cValues, &lpProps);
 		if (lpProps[0].Value.ul == ATTACH_OLE)
 			hr = MAPI_E_NOT_FOUND;
 		else

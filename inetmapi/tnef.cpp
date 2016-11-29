@@ -251,7 +251,7 @@ HRESULT ECTNEF::AddProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 	LPSPropTagArray lpPropListMessage = NULL;
 	LPSPropValue	lpPropValue = NULL;
 	LPSPropValue	lpStreamValue = NULL;
-	SPropTagArray	sPropTagArray;
+	SizedSPropTagArray(1, sPropTagArray);
 	unsigned int	i = 0;
 	bool			fPropTagInList = false;
 	ULONG			cValue = 0;
@@ -285,7 +285,7 @@ HRESULT ECTNEF::AddProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 		if(( (ulFlags & TNEF_PROP_INCLUDE) && fPropTagInList) || ((ulFlags & TNEF_PROP_EXCLUDE) && !fPropTagInList)) {
 			sPropTagArray.cValues = 1;
 			sPropTagArray.aulPropTag[0] = lpPropListMessage->aulPropTag[i];
-			hr = m_lpMessage->GetProps(&sPropTagArray, 0, &cValue, &lpPropValue);
+			hr = m_lpMessage->GetProps(sPropTagArray, 0, &cValue, &lpPropValue);
 
 			if(hr == hrSuccess) {
 				lstProps.push_back(lpPropValue);
@@ -570,8 +570,8 @@ HRESULT ECTNEF::HrWritePropStream(IStream *lpStream, std::list<SPropValue *> &pr
 HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp) 
 {
 	HRESULT hr = hrSuccess;
-	SPropTagArray sPropTagArray;
-	LPSPropTagArray lpsPropTagArray = &sPropTagArray;
+	SizedSPropTagArray(1, sPropTagArray);
+	LPSPropTagArray lpsPropTagArray = sPropTagArray;
 	ULONG cNames = 0;
 	MAPINAMEID **lppNames = NULL;
 	ULONG ulLen = 0;

@@ -777,7 +777,7 @@ HRESULT ClientUtil::GetGlobalProfileDelegateStoresProp(LPPROFSECT lpGlobalProfSe
 	HRESULT			hr = hrSuccess;
 	LPSPropValue	lpsPropValue = NULL;
 	ULONG			cValues = 0;
-	SPropTagArray	sPropTagArray;
+	SizedSPropTagArray(1, sPropTagArray);
 	LPBYTE			lpDelegateStores = NULL;
 
 	if(lpGlobalProfSect == NULL || lpcDelegates == NULL || lppDelegateStores == NULL)
@@ -789,7 +789,7 @@ HRESULT ClientUtil::GetGlobalProfileDelegateStoresProp(LPPROFSECT lpGlobalProfSe
 	sPropTagArray.cValues = 1;
 	sPropTagArray.aulPropTag[0] =  PR_STORE_PROVIDERS;
 
-	hr = lpGlobalProfSect->GetProps(&sPropTagArray, 0, &cValues, &lpsPropValue);
+	hr = lpGlobalProfSect->GetProps(sPropTagArray, 0, &cValues, &lpsPropValue);
 	if(hr != hrSuccess)
 		goto exit;
 

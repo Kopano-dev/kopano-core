@@ -286,7 +286,7 @@ HRESULT ECABContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	HRESULT			hr = hrSuccess;
 	ECMAPITable*	lpTable = NULL;
 	WSTableView*	lpTableOps = NULL;
-	SSortOrderSet	sSortByDisplayName;
+	SizedSSortOrderSet(1, sSortByDisplayName);
 
 	sSortByDisplayName.cSorts = 1;
 	sSortByDisplayName.cCategories = 0;
@@ -306,7 +306,7 @@ HRESULT ECABContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	if(hr != hrSuccess)
 		goto exit;
 
-	hr = lpTableOps->HrSortTable(&sSortByDisplayName);
+	hr = lpTableOps->HrSortTable(sSortByDisplayName);
 	if(hr != hrSuccess)
 		goto exit;
 

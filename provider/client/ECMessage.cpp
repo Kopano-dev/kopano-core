@@ -1336,7 +1336,7 @@ exit:
 HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 {
 	HRESULT hr = hrSuccess;
-	SPropTagArray sPropTagArray;
+	SizedSPropTagArray(1, sPropTagArray);
 	ULONG cValue = 0;
 	ULONG ulRepCount = 0;
 	ULONG ulPreprocessFlags = 0;
@@ -1346,7 +1346,7 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 	LPSRowSet lpsRow = NULL;
 	LPSPropValue lpRecip = NULL;
 	ULONG cRecip = 0;
-	SRowSet sRowSetRecip;
+	SizedSRowSet(1, sRowSetRecip);
 	SPropValue sPropResponsibility;
 	FILETIME ft;
 
@@ -1354,7 +1354,7 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 	sPropTagArray.cValues = 1;
 	sPropTagArray.aulPropTag[0] = PR_MESSAGE_FLAGS;
 
-	hr = ECMAPIProp::GetProps(&sPropTagArray, 0, &cValue, &lpsPropArray);
+	hr = ECMAPIProp::GetProps(sPropTagArray, 0, &cValue, &lpsPropArray);
 	if(HR_FAILED(hr))
 		goto exit;
 

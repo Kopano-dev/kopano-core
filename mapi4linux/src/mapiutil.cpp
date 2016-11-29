@@ -399,14 +399,11 @@ exit:
 HRESULT __stdcall HrGetOneProp(IMAPIProp *lpProp, ULONG ulPropTag, LPSPropValue *lppPropVal) {
 	TRACE_MAPILIB1(TRACE_ENTRY, "HrGetOneProp", "%08x", ulPropTag);
 	HRESULT hr = hrSuccess;
-	SPropTagArray sPropTag;
+	SizedSPropTagArray(1, sPropTag) = { 1, { ulPropTag } };
 	ULONG cValues = 0;
 	LPSPropValue lpPropVal = NULL;
-	
-	sPropTag.cValues = 1;
-	sPropTag.aulPropTag[0] = ulPropTag;
-	
-	hr = lpProp->GetProps(&sPropTag, 0, &cValues, &lpPropVal);
+
+	hr = lpProp->GetProps(sPropTag, 0, &cValues, &lpPropVal);
 	
 	if(HR_FAILED(hr))
 		goto exit;

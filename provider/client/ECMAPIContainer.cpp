@@ -115,7 +115,7 @@ HRESULT ECMAPIContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	HRESULT			hr = hrSuccess;
 	ECMAPITable*	lpTable = NULL;
 	WSTableView*	lpTableOps = NULL;
-	SPropTagArray	sPropTagArray;
+	SizedSPropTagArray(1, sPropTagArray);
 	ULONG			cValues = 0;
 	LPSPropValue	lpPropArray = NULL; 
 	std::string		strName = "Hierarchy table";
@@ -132,7 +132,7 @@ HRESULT ECMAPIContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	sPropTagArray.aulPropTag[0] = PR_FOLDER_TYPE;
 	sPropTagArray.cValues = 1;
 
-	hr = GetProps(&sPropTagArray, 0, &cValues, &lpPropArray);
+	hr = GetProps(sPropTagArray, 0, &cValues, &lpPropArray);
 	if(FAILED(hr))
 		goto exit;
 	
