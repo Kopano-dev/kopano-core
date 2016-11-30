@@ -48,8 +48,10 @@ stamp-h2
 /provider/plugin.sym
 /provider/provider.sym
 /provider/soap/
+/ECtools/backup/kopano-backup
 /ECtools/backup/build/
 /ECtools/presence/build/
+/ECtools/search/kopano-search
 /ECtools/search/build/
 
 # /autoconf/

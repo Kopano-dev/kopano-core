@@ -786,6 +786,10 @@ AC_CONFIG_FILES([Makefile
 		provider/plugin.sym provider/provider.sym
 		version
 ])
+
+AC_CONFIG_FILES([ECtools/search/kopano-search], [chmod +x ECtools/search/kopano-search])
+AC_CONFIG_FILES([ECtools/backup/kopano-backup], [chmod +x ECtools/backup/kopano-backup])
+
 dnl non-oss files
 
 AC_OUTPUT
