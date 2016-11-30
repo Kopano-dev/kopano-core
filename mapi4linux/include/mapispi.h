@@ -71,8 +71,8 @@ typedef IMAPISupport* LPMAPISUP;
 
 /* Notification key structure for the MAPI notification engine */
 
-typedef struct
-{
+typedef struct _kc_notifykey {
+	_kc_notifykey(void) = delete;
     ULONG       cb;             /* How big the key is */
     BYTE        ab[MAPI_DIM];   /* Key contents */
 } NOTIFKEY, *LPNOTIFKEY;

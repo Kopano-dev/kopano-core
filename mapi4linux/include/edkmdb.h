@@ -615,6 +615,7 @@ typedef struct _ROWENTRY {
 } ROWENTRY, *LPROWENTRY;
 
 typedef struct _ROWLIST {
+	_ROWLIST(void) = delete;
 	ULONG			cEntries;
 	ROWENTRY		aEntries[MAPI_DIM];
 } ROWLIST, *LPROWLIST;

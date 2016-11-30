@@ -43,6 +43,7 @@ STDAPI_(SCODE) OpenIMsgOnIStg(LPMSGSESS lpMsgSess, LPALLOCATEBUFFER lpAllocateBu
 #define PROPATTR_NOT_PRESENT	((ULONG) 0x00000008)
 
 typedef struct _SPropAttrArray {
+	_SPropAttrArray(void) = delete;
 	ULONG	cValues;							
 	ULONG	aPropAttr[MAPI_DIM];
 } SPropAttrArray, * LPSPropAttrArray;

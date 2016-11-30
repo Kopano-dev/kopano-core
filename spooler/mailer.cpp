@@ -192,7 +192,7 @@ static HRESULT ExpandRecipientsRecursive(LPADRBOOK lpAddrBook,
 			if (!lpEmailAddress)
 				continue;
 
-			SRowSet sRowSMTProwSet;
+			SizedSRowSet(1, sRowSMTProwSet);
 			SPropValue sPropSMTPProperty[4];
 
 			sRowSMTProwSet.cRows = 1;

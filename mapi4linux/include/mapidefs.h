@@ -83,6 +83,7 @@
 
 /* ENTRYID */
 typedef struct _s_ENTRYID {
+	_s_ENTRYID(void) = delete;
     BYTE    abFlags[4];
     BYTE    ab[MAPI_DIM];
 } ENTRYID, *LPENTRYID;
@@ -235,6 +236,7 @@ typedef struct _s_MAPIUID {
 
 /* Property Tag Array */
 typedef struct _SPropTagArray {
+	_SPropTagArray(void) = delete;
     ULONG   cValues;
     ULONG   aulPropTag[MAPI_DIM];
 } SPropTagArray, *LPSPropTagArray;
@@ -390,6 +392,7 @@ typedef struct _SPropProblem {
 } SPropProblem, *LPSPropProblem;
 
 typedef struct _SPropProblemArray {
+	_SPropProblemArray(void) = delete;
     ULONG           cProblem;
     SPropProblem    aProblem[MAPI_DIM];
 } SPropProblemArray, *LPSPropProblemArray;
@@ -410,22 +413,26 @@ struct _SPropProblemArray_ ## _name { \
 typedef SBinaryArray ENTRYLIST, *LPENTRYLIST;
 
 typedef struct _s_FLATENTRY {
+	_s_FLATENTRY(void) = delete;
     ULONG cb;
     BYTE abEntry[MAPI_DIM];
 } FLATENTRY, *LPFLATENTRY;
 
 typedef struct _s_FLATENTRYLIST {
+	_s_FLATENTRYLIST(void) = delete;
     ULONG       cEntries;
     ULONG       cbEntries;
     BYTE        abEntries[MAPI_DIM];
 } FLATENTRYLIST, *LPFLATENTRYLIST;
 
 typedef struct _s_MTSID {
+	_s_MTSID(void) = delete;
     ULONG       cb;
     BYTE        ab[MAPI_DIM];
 } MTSID, *LPMTSID;
 
 typedef struct _s_FLATMTSIDLIST {
+	_s_FLATMTSIDLIST(void) = delete;
     ULONG       cMTSIDs;
     ULONG       cbMTSIDs;
     BYTE        abMTSIDs[MAPI_DIM];
@@ -449,6 +456,7 @@ typedef struct _ADRENTRY {
 } ADRENTRY, *LPADRENTRY;
 
 typedef struct _ADRLIST {
+	_ADRLIST(void) = delete;
     ULONG           cEntries;
     ADRENTRY        aEntries[MAPI_DIM];
 } ADRLIST, *LPADRLIST;
@@ -471,6 +479,7 @@ typedef struct _SRow {
 } SRow, * LPSRow;
 
 typedef struct _SRowSet {
+	_SRowSet(void) = delete;
     ULONG           cRows;
     SRow            aRow[MAPI_DIM];
 } SRowSet, * LPSRowSet;
@@ -887,6 +896,7 @@ typedef struct _SSortOrder {
 } SSortOrder, * LPSSortOrder;
 
 typedef struct _SSortOrderSet {
+	_SSortOrderSet(void) = delete;
     ULONG           cSorts;     /* Number of sort columns in aSort below*/
     ULONG           cCategories;    /* 0 for non-categorized, up to cSorts */
     ULONG           cExpanded;      /* 0 if no categories start expanded, */
@@ -1039,6 +1049,7 @@ public:
  *  bits are set, it is an error.
  */
 typedef struct _flaglist {
+	_flaglist(void) = delete;
     ULONG cFlags;
     ULONG ulFlag[MAPI_DIM];
 } FlagList, *LPFlagList;
