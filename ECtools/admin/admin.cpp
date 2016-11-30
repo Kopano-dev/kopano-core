@@ -779,52 +779,56 @@ static string ClassToString(objectclass_t eClass)
 	};
 }
 
-static void adm_oof_status(const SPropValue *const prop)
-{
-	if (prop[2].ulPropTag != PR_EC_OUTOFOFFICE || !prop[2].Value.b) {
-		printf("Out Of Office:          disabled\n");
-		return;
-	}
-
-	char start_buf[64], end_buf[64];
-	time_t start, end, now = time(NULL);
+static int FileTimeToTimestamp(const FILETIME &ft, time_t& ts, char* buf, size_t size) {
 	struct tm *tm;
 
-	bool got_from = false;
+	FileTimeToUnixTime(ft, &ts);
+	if ((tm = localtime(&ts)) == NULL) {
+		perror("localtime");
+		return -1;
+	}
+	strftime(buf, size, "%F %T", tm);
+
+	return 0;
+}
+
+static void adm_oof_status(const SPropValue *const prop)
+{
+	char start_buf[64] = {'\0'}, end_buf[64] = {'\0'};
+	time_t ts, now = time(NULL);
+	/* o = out of office marked as switched on */
+	bool o = prop[2].ulPropTag == PR_EC_OUTOFOFFICE && prop[2].Value.b;
+	/* a = is it currently active with respect to time interval */
+	bool a = o;
+
 	if (prop[3].ulPropTag == PR_EC_OUTOFOFFICE_FROM) {
-		FileTimeToUnixTime(prop[3].Value.ft, &start);
-		got_from = true;
-		if ((tm = localtime(&start)) == NULL) {
-			perror("localtime");
+		if (FileTimeToTimestamp(prop[3].Value.ft, ts, start_buf, sizeof(start_buf)) == -1)
 			return;
-		}
-		strftime(start_buf, sizeof(start_buf), "%F %T", tm);
+		a &= ts <= now;
 	}
 
-	bool got_until = false;
 	if (prop[4].ulPropTag == PR_EC_OUTOFOFFICE_UNTIL) {
-		FileTimeToUnixTime(prop[4].Value.ft, &end);
-		got_until = true;
-		if ((tm = localtime(&end)) == NULL) {
-			perror("localtime");
+		if (FileTimeToTimestamp(prop[4].Value.ft, ts, end_buf, sizeof(start_buf)) == -1)
 			return;
+		a &= now <= ts;
+	}
+
+	if (o) {
+		if (start_buf[0] == '\0' && end_buf[0] == '\0')
+			printf("Out Of Office:          enabled\n");
+		else if (start_buf[0] != '\0' || end_buf[0] != '\0') {
+			printf("Out Of Office:          ");
+
+			if(start_buf[0])
+				printf("from %s ", start_buf);
+			if(end_buf[0])
+				printf("until %s ", end_buf);
+
+			printf("(currently %s)\n", a ? "active" : "inactive");
 		}
-		strftime(end_buf, sizeof(end_buf), "%F %T", tm);
 	}
-
-
-	if (got_from && got_until) {
-		printf("Out Of Office:          from %s until %s (currently %s)\n",
-		       start_buf, end_buf,
-		       start <= now && now <= end ? "active" : "inactive");
-	}
-	else if (got_from && !got_until) {
-		printf("Out Of Office:          from %s (currently %s)\n",
-		       start_buf, start <= now ? "active" : "inactive");
-	}
-	else {
-		printf("Out Of Office:          enabled\n");
-	}
+	else
+		printf("Out Of Office:          disabled\n");
 }
 
 /**
