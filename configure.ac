@@ -787,10 +787,12 @@ AC_CONFIG_FILES([Makefile
 		version
 ])
 
+# Python tools
+
 AC_CONFIG_FILES([ECtools/search/kopano-search], [chmod +x ECtools/search/kopano-search])
 AC_CONFIG_FILES([ECtools/backup/kopano-backup], [chmod +x ECtools/backup/kopano-backup])
-
-dnl non-oss files
+AC_CONFIG_FILES([ECtools/presence/kopano-presence], [chmod +x ECtools/presence/kopano-presence])
+AC_CONFIG_FILES([ECtools/migration-pst/kopano-migration-pst], [chmod +x ECtools/migration-pst/kopano-migration-pst])
 
 AC_OUTPUT
 ln -Tfsv "${abs_top_srcdir}" "@"
