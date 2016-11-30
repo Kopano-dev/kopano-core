@@ -2200,10 +2200,6 @@ HRESULT ECMessage::SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProb
 	pvalHtml = PpropFindProp(lpPropArray, cValues, PROP_TAG(PT_UNSPECIFIED, PROP_ID(PR_BODY_HTML)) );
 	pvalBody = PpropFindProp(lpPropArray, cValues, PROP_TAG(PT_UNSPECIFIED, PROP_ID(PR_BODY)) );
 
-	if (pvalRtf != nullptr && pvalHtml != nullptr && pvalBody != nullptr)
-		/* Avoid re-create if we already have all body types */
-		goto exit;
-
 	// IF the user sets both the body and the RTF, assume RTF overrides
 	if (pvalRtf) {
 		m_ulBodyType = bodyTypeUnknown; // Make sure GetBodyType doesn't use the cached value
@@ -2937,14 +2933,14 @@ DEF_ULONGMETHOD1(TRACE_MAPI, ECMessage, Message, AddRef, (void))
 DEF_ULONGMETHOD1(TRACE_MAPI, ECMessage, Message, Release, (void))
 DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, GetLastError, (HRESULT, hError), (ULONG, ulFlags), (LPMAPIERROR *, lppMapiError))
 DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, SaveChanges, (ULONG, ulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, GetProps, (LPSPropTagArray, lpPropTagArray), (ULONG, ulFlags), (ULONG *, lpcValues, LPSPropValue *, lppPropArray))
+DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, GetProps, (LPSPropTagArray, lpPropTagArray), (ULONG, ulFlags), (ULONG *, lpcValues), (LPSPropValue *, lppPropArray))
 DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, GetPropList, (ULONG, ulFlags), (LPSPropTagArray *, lppPropTagArray))
 DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, OpenProperty, (ULONG, ulPropTag), (LPCIID, lpiid), (ULONG, ulInterfaceOptions), (ULONG, ulFlags), (LPUNKNOWN *, lppUnk))
 DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, SetProps, (ULONG, cValues), (LPSPropValue, lpPropArray), (LPSPropProblemArray *, lppProblems))
 DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, DeleteProps, (LPSPropTagArray, lpPropTagArray), (LPSPropProblemArray *, lppProblems))
 DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, CopyTo, (ULONG, ciidExclude), (LPCIID, rgiidExclude), (LPSPropTagArray, lpExcludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (LPVOID, lpDestObj), (ULONG, ulFlags), (LPSPropProblemArray *, lppProblems))
 DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, CopyProps, (LPSPropTagArray, lpIncludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (LPVOID, lpDestObj), (ULONG, ulFlags), (LPSPropProblemArray *, lppProblems))
-DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, GetNamesFromIDs, (LPSPropTagArray *, pptaga), (LPGUID, lpguid), (ULONG, ulFlags), (ULONG *, pcNames, LPMAPINAMEID **, pppNames))
+DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, GetNamesFromIDs, (LPSPropTagArray *, pptaga), (LPGUID, lpguid), (ULONG, ulFlags), (ULONG *, pcNames), (LPMAPINAMEID **, pppNames))
 DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, GetIDsFromNames, (ULONG, cNames), (LPMAPINAMEID *, ppNames), (ULONG, ulFlags), (LPSPropTagArray *, pptaga))
 DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, GetAttachmentTable, (ULONG, ulFlags), (LPMAPITABLE *, lppTable))
 DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, OpenAttach, (ULONG, ulAttachmentNum), (LPCIID, lpInterface), (ULONG, ulFlags), (LPATTACH *, lppAttach))

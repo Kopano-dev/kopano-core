@@ -1558,7 +1558,7 @@ HRESULT Util::HrTextToRtf(IStream *text, IStream *rtf)
 			case '\r':
 				break;
 			case '\n':
-				rtf->Write("\\par\n",5,NULL);
+				rtf->Write("\\line\n", 6, nullptr);
 				break;
 
 			case '\\':
@@ -1916,7 +1916,7 @@ HRESULT Util::HrHtmlToText(IStream *html, IStream *text, ULONG ulCodepage)
  * This converts from HTML to RTF by doing to following:
  *
  * Always escape { and } to \{ and \}
- * Always escape \r\n to \par
+ * Always escape \r\n to \par (dfq?)
  * All HTML tags are converted from, say <BODY onclick=bla> to \r\n{\htmltagX <BODY onclick=bla>}
  * Each tag with text content gets an extra {\htmltag64} to suppress generated <P>'s in the final HTML output
  * Some tags output \htmlrtf \par \htmlrtf0 so that the plaintext version of the RTF has newlines in the right places
@@ -2090,7 +2090,7 @@ HRESULT Util::HrHtmlToRtf(const WCHAR *lpwHTML, std::string &strRTF)
             // Ingore \r
         } else if(lpwHTML[pos] == '\n') {
             if(inTag || ulCommentMode || ulStyleMode)
-                strRTF += "\\par ";
+                strRTF += " ";
             else
                 strRTF += "\r\n{\\*\\htmltag" + stringify((ulParMode == 2 ? RTF_FLAG_INPAR : 0) | stackTag.top()) + " \\par }";
         } else if(lpwHTML[pos] == '\t') {
@@ -2188,7 +2188,7 @@ HRESULT Util::HrHtmlToRtf(const WCHAR *lpwHTML, std::string &strRTF)
             inTag = false;
             if (bPlainCRLF && !ulCommentMode && !ulStyleMode)
                 // Add a plaintext newline if needed, but only for non-style and non-comment parts
-                strRTF += "\\htmlrtf \\par \\htmlrtf0 ";
+                strRTF += "\\htmlrtf \\line \\htmlrtf0 ";
         }
         
         
