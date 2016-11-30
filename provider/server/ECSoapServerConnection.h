@@ -19,7 +19,6 @@
 #define ECSOAPSERVERCONNECTION_H
 
 #include <kopano/zcdefs.h>
-#include <set>
 #include <kopano/kcodes.h>
 #include "ECThreadManager.h"
 #include "soapH.h"

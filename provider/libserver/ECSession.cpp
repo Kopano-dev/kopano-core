@@ -19,10 +19,7 @@
 #include <chrono>
 #include <mutex>
 #include <new>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <pwd.h>
-#include <dirent.h>
 #include <mapidefs.h>
 #include <mapitags.h>
 #include <kopano/lockhelper.hpp>

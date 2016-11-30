@@ -30,7 +30,6 @@
 #include <mapidefs.h>
 
 #include <mapiguid.h>
-#include <cctype>
 
 #include <kopano/ECScheduler.h>
 #include <kopano/lockhelper.hpp>

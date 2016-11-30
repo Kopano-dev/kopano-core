@@ -16,8 +16,6 @@
  */
 
 #include <kopano/platform.h>
-#include <mutex>
-#include <sstream>
 
 #include <mapidefs.h>
 #include <mapitags.h>

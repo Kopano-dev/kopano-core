@@ -19,7 +19,6 @@
 #include <kopano/ECLogger.h>
 #include <kopano/lockhelper.hpp>
 #include <cassert>
-#include <climits>
 #include <clocale>
 #include <pthread.h>
 #include <cstdarg>
@@ -32,7 +31,6 @@
 #if HAVE_SYSLOG_H
 #include <syslog.h>
 #endif
-#include <execinfo.h>
 #include <grp.h>
 #include <libgen.h>
 #include <pwd.h>

@@ -22,7 +22,6 @@
 #include <kopano/kcodes.h>
 
 #include <string>
-#include <map>
 
 #include "ECSession.h"
 /*

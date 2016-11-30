@@ -18,8 +18,6 @@
 #include <kopano/platform.h>
 
 #include <cstring>
-#include <iostream>
-#include <cerrno>
 #include <climits>
 
 #include "ECPluginFactory.h"

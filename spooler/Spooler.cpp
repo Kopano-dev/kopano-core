@@ -38,7 +38,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <csignal>
-#include <sys/time.h> /* gettimeofday */
+#include <time.h>
 
 #define USES_IID_IMAPIFolder
 #define USES_IID_IMessage
@@ -49,7 +49,6 @@
 #include <mapiutil.h>
 #include <mapidefs.h>
 #include <mapiguid.h>
-#include <cctype>
 
 #include <kopano/IECUnknown.h>
 #include "IECSpooler.h"

@@ -19,7 +19,6 @@
 #include "config.h"
 
 #include <iostream>
-#include <fstream>
 #include <mapi.h>
 #include <mapiutil.h>
 #include <edkmdb.h>

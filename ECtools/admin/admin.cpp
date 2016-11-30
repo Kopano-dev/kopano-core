@@ -18,9 +18,7 @@
 #include <kopano/platform.h>
 
 #include <iostream>
-#include <cerrno>
 #include <climits>
-#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
