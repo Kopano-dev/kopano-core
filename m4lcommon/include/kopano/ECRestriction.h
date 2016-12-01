@@ -89,10 +89,12 @@ public:
 	 * method is invoked.
 	 * @return	A copy of the current object.
 	 */
-	_kc_hidden virtual ECRestriction *Clone(void) const = 0;
-	_kc_hidden virtual ECRestriction *clone_move(void) && = 0;
-	_kc_hidden ECRestrictionList operator+(const ECRestriction &) const;
+	_kc_hidden virtual ECRestriction *Clone(void) const _kc_lvqual = 0;
+#ifdef HAVE_MF_QUAL
+	_kc_hidden virtual ECRestriction *Clone(void) && = 0;
 	_kc_hidden ECRestrictionList operator+(ECRestriction &&) &&;
+#endif
+	_kc_hidden ECRestrictionList operator+(const ECRestriction &) const;
 
 protected:
 	typedef std::shared_ptr<SPropValue> PropPtr;
@@ -119,8 +121,8 @@ public:
 	}
 	ECRestrictionList(ECRestriction &&o1, ECRestriction &&o2)
 	{
-		m_list.push_back(ResPtr(std::move(o1).clone_move()));
-		m_list.push_back(ResPtr(std::move(o2).clone_move()));
+		m_list.push_back(ResPtr(std::move(o1).Clone()));
+		m_list.push_back(ResPtr(std::move(o2).Clone()));
 	}
 	
 	ECRestrictionList& operator+(const ECRestriction &restriction) {
@@ -129,7 +131,7 @@ public:
 	}
 	ECRestrictionList &operator+(ECRestriction &&o)
 	{
-		m_list.push_back(ResPtr(std::move(o).clone_move()));
+		m_list.push_back(ResPtr(std::move(o).Clone()));
 		return *this;
 	}
 
@@ -152,10 +154,12 @@ inline ECRestrictionList ECRestriction::operator+ (const ECRestriction &other) c
 	return ECRestrictionList(*this, other);
 }
 
+#ifdef HAVE_MF_QUAL
 inline ECRestrictionList ECRestriction::operator+(ECRestriction &&other) &&
 {
 	return ECRestrictionList(std::move(*this), std::move(other));
 }
+#endif
 
 class _kc_export ECAndRestriction _kc_final : public ECRestriction {
 public:
@@ -165,8 +169,10 @@ public:
 		m_lstRestrictions(std::move(o.m_list))
 	{}
 	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction res, ULONG flags) const _kc_override;
-	ECRestriction *Clone(void) const _kc_override;
-	_kc_hidden ECRestriction *clone_move(void) && _kc_override { return new ECAndRestriction(std::move(*this)); }
+	ECRestriction *Clone(void) const _kc_lvqual _kc_override;
+#ifdef HAVE_MF_QUAL
+	_kc_hidden ECRestriction *Clone(void) && _kc_override { return new ECAndRestriction(std::move(*this)); }
+#endif
 
 	_kc_hidden HRESULT append(const ECRestriction &restriction)
 	{
@@ -175,7 +181,7 @@ public:
 	}
 	_kc_hidden HRESULT append(ECRestriction &&o)
 	{
-		m_lstRestrictions.push_back(ResPtr(std::move(o).clone_move()));
+		m_lstRestrictions.push_back(ResPtr(std::move(o).Clone()));
 		return hrSuccess;
 	}
 
@@ -194,8 +200,10 @@ public:
 		m_lstRestrictions(std::move(o.m_list))
 	{}
 	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
-	ECRestriction *Clone(void) const _kc_override;
-	_kc_hidden ECRestriction *clone_move(void) && _kc_override { return new ECOrRestriction(std::move(*this)); }
+	ECRestriction *Clone(void) const _kc_lvqual _kc_override;
+#ifdef HAVE_MF_QUAL
+	_kc_hidden ECRestriction *Clone(void) && _kc_override { return new ECOrRestriction(std::move(*this)); }
+#endif
 
 	_kc_hidden HRESULT append(const ECRestriction &restriction)
 	{
@@ -204,7 +212,7 @@ public:
 	}
 	_kc_hidden HRESULT append(ECRestriction &&o)
 	{
-		m_lstRestrictions.push_back(ResPtr(std::move(o).clone_move()));
+		m_lstRestrictions.push_back(ResPtr(std::move(o).Clone()));
 		return hrSuccess;
 	}
 
@@ -221,12 +229,14 @@ public:
 	: m_ptrRestriction(ResPtr(restriction.Clone())) 
 	{ }
 	_kc_hidden ECNotRestriction(ECRestriction &&o) :
-		m_ptrRestriction(std::move(o).clone_move())
+		m_ptrRestriction(std::move(o).Clone())
 	{}
 
 	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
-	ECRestriction *Clone(void) const _kc_override;
-	_kc_hidden ECRestriction *clone_move(void) && _kc_override { return new ECNotRestriction(std::move(*this)); }
+	ECRestriction *Clone(void) const _kc_lvqual _kc_override;
+#ifdef HAVE_MF_QUAL
+	_kc_hidden ECRestriction *Clone(void) && _kc_override { return new ECNotRestriction(std::move(*this)); }
+#endif
 
 private:
 	_kc_hidden ECNotRestriction(ResPtr restriction);
@@ -239,8 +249,10 @@ class _kc_export ECContentRestriction _kc_final : public ECRestriction {
 public:
 	ECContentRestriction(ULONG ulFuzzyLevel, ULONG ulPropTag, LPSPropValue lpProp, ULONG ulFlags = 0);
 	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
-	ECRestriction *Clone(void) const _kc_override;
-	_kc_hidden ECRestriction *clone_move(void) && _kc_override { return new ECContentRestriction(std::move(*this)); }
+	ECRestriction *Clone(void) const _kc_lvqual _kc_override;
+#ifdef HAVE_MF_QUAL
+	_kc_hidden ECRestriction *Clone(void) && _kc_override { return new ECContentRestriction(std::move(*this)); }
+#endif
 
 private:
 	_kc_hidden ECContentRestriction(ULONG fuzzy_level, ULONG tag, PropPtr prop);
@@ -260,8 +272,10 @@ public:
 	{ }
 
 	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
-	ECRestriction *Clone(void) const _kc_override;
-	_kc_hidden ECRestriction *clone_move(void) && _kc_override { return new ECBitMaskRestriction(std::move(*this)); }
+	ECRestriction *Clone(void) const _kc_lvqual _kc_override;
+#ifdef HAVE_MF_QUAL
+	_kc_hidden ECRestriction *Clone(void) && _kc_override { return new ECBitMaskRestriction(std::move(*this)); }
+#endif
 
 private:
 	ULONG	m_relBMR;
@@ -273,8 +287,10 @@ class _kc_export ECPropertyRestriction _kc_final : public ECRestriction {
 public:
 	ECPropertyRestriction(ULONG relop, ULONG ulPropTag, LPSPropValue lpProp, ULONG ulFlags = 0);
 	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
-	ECRestriction *Clone(void) const _kc_override;
-	_kc_hidden ECRestriction *clone_move(void) && _kc_override { return new ECPropertyRestriction(std::move(*this)); }
+	ECRestriction *Clone(void) const _kc_lvqual _kc_override;
+#ifdef HAVE_MF_QUAL
+	_kc_hidden ECRestriction *Clone(void) && _kc_override { return new ECPropertyRestriction(std::move(*this)); }
+#endif
 
 private:
 	_kc_hidden ECPropertyRestriction(ULONG relop, ULONG proptag, PropPtr prop);
@@ -294,8 +310,10 @@ public:
 	{ }
 
 	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
-	ECRestriction *Clone(void) const _kc_override;
-	_kc_hidden ECRestriction *clone_move(void) && _kc_override { return new ECComparePropsRestriction(std::move(*this)); }
+	ECRestriction *Clone(void) const _kc_lvqual _kc_override;
+#ifdef HAVE_MF_QUAL
+	_kc_hidden ECRestriction *Clone(void) && _kc_override { return new ECComparePropsRestriction(std::move(*this)); }
+#endif
 
 private:
 	ULONG	m_relop;
@@ -312,8 +330,10 @@ public:
 	{ }
 
 	HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
-	ECRestriction *Clone(void) const _kc_override;
-	_kc_hidden ECRestriction *clone_move(void) && _kc_override { return new ECSizeRestriction(std::move(*this)); }
+	ECRestriction *Clone(void) const _kc_lvqual _kc_override;
+#ifdef HAVE_MF_QUAL
+	_kc_hidden ECRestriction *Clone(void) && _kc_override { return new ECSizeRestriction(std::move(*this)); }
+#endif
 
 private:
 	ULONG	m_relop;
@@ -328,8 +348,10 @@ public:
 	{ }
 
 	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
-	ECRestriction *Clone(void) const _kc_override;
-	_kc_hidden ECRestriction *clone_move(void) && _kc_override { return new ECExistRestriction(std::move(*this)); }
+	ECRestriction *Clone(void) const _kc_lvqual _kc_override;
+#ifdef HAVE_MF_QUAL
+	_kc_hidden ECRestriction *Clone(void) && _kc_override { return new ECExistRestriction(std::move(*this)); }
+#endif
 
 private:
 	ULONG	m_ulPropTag;
@@ -342,12 +364,14 @@ public:
 	, m_ptrRestriction(ResPtr(restriction.Clone()))
 	{ }
 	_kc_hidden ECSubRestriction(ULONG s, ECRestriction &&o) :
-		m_ulSubObject(s), m_ptrRestriction(ResPtr(std::move(o).clone_move()))
+		m_ulSubObject(s), m_ptrRestriction(ResPtr(std::move(o).Clone()))
 	{}
 
 	HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
-	ECRestriction *Clone(void) const _kc_override;
-	_kc_hidden ECRestriction *clone_move(void) && _kc_override { return new ECSubRestriction(std::move(*this)); }
+	ECRestriction *Clone(void) const _kc_lvqual _kc_override;
+#ifdef HAVE_MF_QUAL
+	_kc_hidden ECRestriction *Clone(void) && _kc_override { return new ECSubRestriction(std::move(*this)); }
+#endif
 
 private:
 	ECSubRestriction(ULONG ulSubObject, ResPtr ptrRestriction);
@@ -363,8 +387,10 @@ public:
 	ECCommentRestriction(ECRestriction &&, ULONG nprops, SPropValue *, ULONG flags = 0);
 	ECCommentRestriction(ECCommentRestriction &&);
 	HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
-	ECRestriction *Clone(void) const _kc_override;
-	_kc_hidden ECRestriction *clone_move(void) && _kc_override { return new ECCommentRestriction(std::move(*this)); }
+	ECRestriction *Clone(void) const _kc_lvqual _kc_override;
+#ifdef HAVE_MF_QUAL
+	_kc_hidden ECRestriction *Clone(void) && _kc_override { return new ECCommentRestriction(std::move(*this)); }
+#endif
 
 private:
 	ECCommentRestriction(ResPtr ptrRestriction, ULONG cValues, PropPtr ptrProp);
@@ -383,8 +409,10 @@ class _kc_export ECRawRestriction _kc_final : public ECRestriction {
 public:
 	ECRawRestriction(LPSRestriction lpRestriction, ULONG ulFlags = 0);
 	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
-	ECRestriction *Clone(void) const _kc_override;
-	_kc_hidden ECRestriction *clone_move(void) && _kc_override { return new ECRawRestriction(std::move(*this)); }
+	ECRestriction *Clone(void) const _kc_lvqual _kc_override;
+#ifdef HAVE_MF_QUAL
+	_kc_hidden ECRestriction *Clone(void) && _kc_override { return new ECRawRestriction(std::move(*this)); }
+#endif
 
 private:
 	typedef std::shared_ptr<SRestriction> RawResPtr;

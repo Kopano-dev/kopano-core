@@ -40,10 +40,10 @@
 /* Exported because something was using throw C; */
 #define _kc_export_throw _kc_export
 
-/* Minimum requirement for KC is g++ 4.6, g++0x mode. */
+/* Minimum requirement for KC is g++ 4.7, g++0x mode. */
 /* Swig is not bright enough to grok all C++11. */
 #if defined(SWIG) || defined(__GNUG__) && __GNUG__ == 4 && \
-    defined(__GNUG_MINOR__) && __GNUC_MINOR__ < 7
+    defined(__GNUC_MINOR__) && __GNUC_MINOR__ < 7
 #	define _kc_final
 #	define _kc_override
 #else
@@ -54,6 +54,17 @@
 
 /* Mark classes which explicitly must not be final in the C++ side… for SWIG */
 #define _no_final
+
+#if defined(__GNUG__) && __GNUG__ == 4 && \
+    defined(__GNUC_MINOR__) && __GNUC_MINOR__ < 8
+#	define _kc_lvqual
+#	define _kc_max_align __attribute__((aligned(16)))
+#else
+	/* From g++ 4.8 onwards */
+#	define _kc_lvqual &
+#	define _kc_max_align alignas(::max_align_t)
+#	define HAVE_MF_QUAL 1
+#endif
 
 /*
  * This is a marker for structs where we expect gsoap 2.8.30 or ourselves to

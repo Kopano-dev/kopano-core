@@ -62,14 +62,14 @@ enum mapibuf_ident {
 	MAPIBUF_MORE,
 };
 
-struct alignas(::max_align_t) mapibuf_head {
+struct _kc_max_align mapibuf_head {
 	std::mutex mtx;
 	/* Going for vector since 90% of TS objects have <= 1 child. */
 	std::vector<void *> children;
 #if _MAPI_MEM_MORE_DEBUG
 	enum mapibuf_ident ident;
 #endif
-	alignas(::max_align_t) char data[];
+	_kc_max_align char data[];
 };
 
 /* Some required globals */

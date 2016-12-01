@@ -202,7 +202,8 @@ HRESULT ECAndRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRes
 	return hrSuccess;
 }
 
-ECRestriction *ECAndRestriction::Clone() const {
+ECRestriction *ECAndRestriction::Clone(void) const _kc_lvqual
+{
 	ECAndRestriction *lpNew = new ECAndRestriction();
 	lpNew->m_lstRestrictions.assign(m_lstRestrictions.begin(), m_lstRestrictions.end());
 	return lpNew;
@@ -256,7 +257,8 @@ HRESULT ECOrRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRest
 	return hrSuccess;
 }
 
-ECRestriction *ECOrRestriction::Clone() const {
+ECRestriction *ECOrRestriction::Clone(void) const _kc_lvqual
+{
 	ECOrRestriction *lpNew = new ECOrRestriction();
 	lpNew->m_lstRestrictions.assign(m_lstRestrictions.begin(), m_lstRestrictions.end());
 	return lpNew;
@@ -284,7 +286,8 @@ HRESULT ECNotRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRes
 	return hrSuccess;
 }
 
-ECRestriction *ECNotRestriction::Clone() const {
+ECRestriction *ECNotRestriction::Clone(void) const _kc_lvqual
+{
 	return new ECNotRestriction(m_ptrRestriction);
 }
 
@@ -330,7 +333,8 @@ HRESULT ECContentRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction l
 	return hrSuccess;
 }
 
-ECRestriction *ECContentRestriction::Clone() const {
+ECRestriction *ECContentRestriction::Clone(void) const _kc_lvqual
+{
 	return new ECContentRestriction(m_ulFuzzyLevel, m_ulPropTag, m_ptrProp);
 }
 
@@ -347,7 +351,8 @@ HRESULT ECBitMaskRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction l
 	return hrSuccess;
 }
 
-ECRestriction *ECBitMaskRestriction::Clone() const {
+ECRestriction *ECBitMaskRestriction::Clone(void) const _kc_lvqual
+{
 	return new ECBitMaskRestriction(m_relBMR, m_ulPropTag, m_ulMask);
 }
 
@@ -393,7 +398,8 @@ HRESULT ECPropertyRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction 
 	return hrSuccess;
 }
 
-ECRestriction *ECPropertyRestriction::Clone() const {
+ECRestriction *ECPropertyRestriction::Clone(void) const _kc_lvqual
+{
 	return new ECPropertyRestriction(m_relop, m_ulPropTag, m_ptrProp);
 }
 
@@ -410,7 +416,8 @@ HRESULT ECComparePropsRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestrict
 	return hrSuccess;
 }
 
-ECRestriction *ECComparePropsRestriction::Clone() const {
+ECRestriction *ECComparePropsRestriction::Clone(void) const _kc_lvqual
+{
 	return new ECComparePropsRestriction(m_relop, m_ulPropTag1, m_ulPropTag2);
 }
 
@@ -427,7 +434,8 @@ HRESULT ECSizeRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRe
 	return hrSuccess;
 }
 
-ECRestriction *ECSizeRestriction::Clone() const {
+ECRestriction *ECSizeRestriction::Clone(void) const _kc_lvqual
+{
 	return new ECSizeRestriction(m_relop, m_ulPropTag, m_cb);
 }
 
@@ -442,7 +450,8 @@ HRESULT ECExistRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpR
 	return hrSuccess;
 }
 
-ECRestriction *ECExistRestriction::Clone() const {
+ECRestriction *ECExistRestriction::Clone(void) const _kc_lvqual
+{
 	return new ECExistRestriction(m_ulPropTag);
 }
 
@@ -474,7 +483,8 @@ HRESULT ECSubRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRes
 	return hrSuccess;
 }
 
-ECRestriction *ECSubRestriction::Clone() const {
+ECRestriction *ECSubRestriction::Clone(void) const _kc_lvqual
+{
 	return new ECSubRestriction(m_ulSubObject, m_ptrRestriction);
 }
 
@@ -493,7 +503,7 @@ ECCommentRestriction::ECCommentRestriction(const ECRestriction &restriction, ULO
 
 ECCommentRestriction::ECCommentRestriction(ECRestriction &&o, ULONG nvals,
     SPropValue *prop, ULONG flags) :
-	m_ptrRestriction(ResPtr(std::move(o).clone_move())), m_cValues(nvals)
+	m_ptrRestriction(ResPtr(std::move(o).Clone())), m_cValues(nvals)
 {
 	if (flags & ECRestriction::Cheap)
 		m_ptrProp.reset(prop, &ECRestriction::DummyFree);
@@ -544,7 +554,8 @@ HRESULT ECCommentRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction l
 	return hrSuccess;
 }
 
-ECRestriction *ECCommentRestriction::Clone() const {
+ECRestriction *ECCommentRestriction::Clone(void) const _kc_lvqual
+{
 	return new ECCommentRestriction(m_ptrRestriction, m_cValues, m_ptrProp);
 }
 
@@ -592,6 +603,7 @@ HRESULT ECRawRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRes
 	return hr;
 }
 
-ECRestriction *ECRawRestriction::Clone() const {
+ECRestriction *ECRawRestriction::Clone(void) const _kc_lvqual
+{
 	return new ECRawRestriction(m_ptrRestriction);
 }
