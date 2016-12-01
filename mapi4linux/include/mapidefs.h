@@ -469,6 +469,8 @@ typedef struct _ADRLIST {
 struct _ADRLIST_ ## _name { \
     ULONG           cEntries; \
     ADRENTRY        aEntries[_centries]; \
+    operator ADRLIST *(void) { return reinterpret_cast<ADRLIST *>(this); } \
+    operator const ADRLIST *(void) const { return reinterpret_cast<const ADRLIST *>(this); } \
 } _name
 
 /* SRow, SRowSet */

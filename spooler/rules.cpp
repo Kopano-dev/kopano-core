@@ -296,7 +296,7 @@ static HRESULT CreateReplyCopy(LPMAPISESSION lpSession, LPMDB lpOrigStore,
 	ULONG cValues = 0;
 	LPSPropValue lpFrom = NULL;
 	LPSPropValue lpReplyRecipient = NULL;
-	ADRLIST sRecip = {0};
+	SizedADRLIST(1, sRecip) = {0, {}};
 	ULONG ulCmp = 0;
 	
 	SizedSPropTagArray (5, sFrom) = { 5, {
@@ -421,7 +421,7 @@ static HRESULT CreateReplyCopy(LPMAPISESSION lpSession, LPMDB lpOrigStore,
 	sRecip.aEntries[0].cValues = cValues;
 	sRecip.aEntries[0].rgPropVals = lpReplyRecipient;
 
-	hr = lpReplyMessage->ModifyRecipients(MODRECIP_ADD, &sRecip);
+	hr = lpReplyMessage->ModifyRecipients(MODRECIP_ADD, sRecip);
 	if (FAILED(hr))
 		goto exitpm;
 
