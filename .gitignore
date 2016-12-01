@@ -50,9 +50,11 @@ stamp-h2
 /provider/soap/
 /ECtools/backup/kopano-backup
 /ECtools/backup/build/
+/ECtools/presence/kopano-presence
 /ECtools/presence/build/
 /ECtools/search/kopano-search
 /ECtools/search/build/
+/ECtools/migration-pst/kopano-migration-pst
 
 # /autoconf/
 /autoconf/ltsugar.m4
