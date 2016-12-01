@@ -84,17 +84,24 @@ static void sighup(int sig)
 	if (g_lpConfig != nullptr && !g_lpConfig->ReloadSettings() &&
 	    g_lpLogger != nullptr)
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to reload configuration file, continuing with current settings.");
+	if (g_lpLogger == nullptr || g_lpConfig == nullptr)
+		return;
+	g_lpLogger->Log(EC_LOGLEVEL_INFO, "Got SIGHUP config was reloaded");
 
-	if (g_lpLogger) {
-		if (g_lpConfig) {
-			const char *ll = g_lpConfig->GetSetting("log_level");
-			int new_ll = ll ? atoi(ll) : EC_LOGLEVEL_WARNING;
-			g_lpLogger->SetLoglevel(new_ll);
-		}
+	const char *ll = g_lpConfig->GetSetting("log_level");
+	int new_ll = ll ? atoi(ll) : EC_LOGLEVEL_WARNING;
+	g_lpLogger->SetLoglevel(new_ll);
 
-		g_lpLogger->Reset();
-		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Log connection was reset");
+	bool listen_pop3s = strcmp(g_lpConfig->GetSetting("pop3s_enable"), "yes") == 0;
+	bool listen_imaps = strcmp(g_lpConfig->GetSetting("imaps_enable"), "yes") == 0;
+	if (listen_pop3s || listen_imaps) {
+		if (ECChannel::HrSetCtx(g_lpConfig) != hrSuccess)
+			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error reloading SSL context");
+		else
+			g_lpLogger->Log(EC_LOGLEVEL_INFO, "Reloaded SSL context");
 	}
+	g_lpLogger->Reset();
+	g_lpLogger->Log(EC_LOGLEVEL_INFO, "Log connection was reset");
 }
 
 static void sigchld(int)
@@ -290,18 +297,18 @@ int main(int argc, char *argv[]) {
 		{ "server_socket", "http://localhost:236/" },
 		{ "server_hostname", "" },
 		{ "server_hostname_greeting", "no", CONFIGSETTING_RELOADABLE },
-		{ "ssl_private_key_file", "/etc/kopano/gateway/privkey.pem" },
-		{ "ssl_certificate_file", "/etc/kopano/gateway/cert.pem" },
-		{ "ssl_verify_client", "no" },
-		{ "ssl_verify_file", "" },
-		{ "ssl_verify_path", "" },
+		{"ssl_private_key_file", "/etc/kopano/gateway/privkey.pem", CONFIGSETTING_RELOADABLE},
+		{"ssl_certificate_file", "/etc/kopano/gateway/cert.pem", CONFIGSETTING_RELOADABLE},
+		{"ssl_verify_client", "no", CONFIGSETTING_RELOADABLE},
+		{"ssl_verify_file", "", CONFIGSETTING_RELOADABLE},
+		{"ssl_verify_path", "", CONFIGSETTING_RELOADABLE},
 #ifdef SSL_TXT_SSLV2
-		{ "ssl_protocols", "!SSLv2" },
+		{"ssl_protocols", "!SSLv2", CONFIGSETTING_RELOADABLE},
 #else
-		{"ssl_protocols", ""},
+		{"ssl_protocols", "", CONFIGSETTING_RELOADABLE},
 #endif
-		{ "ssl_ciphers", "ALL:!LOW:!SSLv2:!EXP:!aNULL" },
-		{ "ssl_prefer_server_ciphers", "no" },
+		{"ssl_ciphers", "ALL:!LOW:!SSLv2:!EXP:!aNULL", CONFIGSETTING_RELOADABLE},
+		{"ssl_prefer_server_ciphers", "no", CONFIGSETTING_RELOADABLE},
 		{ "log_method", "file" },
 		{ "log_file", "-" },
 		{ "log_level", "3", CONFIGSETTING_RELOADABLE },
