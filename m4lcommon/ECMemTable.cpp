@@ -40,7 +40,7 @@
 
 using namespace std;
 
-static SSortOrderSet sSortDefault = {0, 0};
+static constexpr const SizedSSortOrderSet(1, sSortDefault) = { 0, 0, 0, {} } ;
 
 class FixStringType _kc_final {
 public:
@@ -435,7 +435,7 @@ ECMemTableView::ECMemTableView(ECMemTable *lpMemTable, const ECLocale &locale, U
 	lpsPropTags->cValues = lpMemTable->lpsColumns->cValues;
 	std::transform(lpMemTable->lpsColumns->aulPropTag, lpMemTable->lpsColumns->aulPropTag + lpMemTable->lpsColumns->cValues, (ULONG*)lpsPropTags->aulPropTag, FixStringType(ulFlags & MAPI_UNICODE));
 
-	SortTable(&sSortDefault, 0);
+	SortTable(sSortDefault, 0);
 
 	m_ulConnection = 1;
 	m_ulFlags = ulFlags & MAPI_UNICODE;
@@ -935,7 +935,7 @@ HRESULT ECMemTableView::SortTable(const SSortOrderSet *lpSortCriteria,
 	HRESULT hr = hrSuccess;
 
 	if (!lpSortCriteria)
-		lpSortCriteria = &sSortDefault;
+		lpSortCriteria = sSortDefault;
 
 	delete[] lpsSortOrderSet;
 	lpsSortOrderSet = (LPSSortOrderSet) new BYTE[CbSSortOrderSet(lpSortCriteria)];
