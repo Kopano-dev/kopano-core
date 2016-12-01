@@ -19,6 +19,8 @@
 #define _M4L_IMESSAGE_H_
 #define _IMESSAGE_H_
 
+#include <initializer_list>
+
 extern "C" {
 
 typedef struct _MSGSESS *LPMSGSESS;
@@ -42,8 +44,11 @@ STDAPI_(SCODE) OpenIMsgOnIStg(LPMSGSESS lpMsgSess, LPALLOCATEBUFFER lpAllocateBu
 
 #define PROPATTR_NOT_PRESENT	((ULONG) 0x00000008)
 
+} /* extern "C" */
+
 typedef struct _SPropAttrArray {
 	_SPropAttrArray(void) = delete;
+	template<typename _T> _SPropAttrArray(std::initializer_list<_T>) = delete;
 	ULONG	cValues;							
 	ULONG	aPropAttr[MAPI_DIM];
 } SPropAttrArray, * LPSPropAttrArray;
@@ -59,6 +64,8 @@ struct _SPropAttrArray_ ## _name { \
 	ULONG	cValues; \
 	ULONG	aPropAttr[_cattr]; \
 } _name
+
+extern "C" {
 
 STDAPI_(HRESULT) GetAttribIMsgOnIStg(LPVOID lpObject, LPSPropTagArray lpPropTagArray, 
 						   LPSPropAttrArray *lppPropAttrArray );

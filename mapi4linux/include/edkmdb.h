@@ -32,6 +32,7 @@
 #define OPENSTORE_REMOTE_TRANSPORT			((ULONG)64)
 
 #include <kopano/platform.h>
+#include <initializer_list>
 
 class IExchangeManageStore : public IUnknown {
 public:
@@ -616,6 +617,7 @@ typedef struct _ROWENTRY {
 
 typedef struct _ROWLIST {
 	_ROWLIST(void) = delete;
+	template<typename _T> _ROWLIST(std::initializer_list<_T>) = delete;
 	ULONG			cEntries;
 	ROWENTRY		aEntries[MAPI_DIM];
 } ROWLIST, *LPROWLIST;

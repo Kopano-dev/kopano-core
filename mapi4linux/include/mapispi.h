@@ -20,7 +20,7 @@
 #define MAPISPI_H
 
 #include <kopano/platform.h>
-
+#include <initializer_list>
 #include <mapidefs.h>
 #include <mapicode.h>
 #include <mapiguid.h>
@@ -73,6 +73,7 @@ typedef IMAPISupport* LPMAPISUP;
 
 typedef struct _kc_notifykey {
 	_kc_notifykey(void) = delete;
+	template<typename _T> _kc_notifykey(std::initializer_list<_T>) = delete;
     ULONG       cb;             /* How big the key is */
     BYTE        ab[MAPI_DIM];   /* Key contents */
 } NOTIFKEY, *LPNOTIFKEY;

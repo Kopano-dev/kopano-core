@@ -20,6 +20,7 @@
 #define MAPIDEFS_H
 
 #include <kopano/platform.h>
+#include <initializer_list>
 #include <cstring>		/* memcmp() */
 
 #define MAPI_DIM
@@ -84,6 +85,7 @@
 /* ENTRYID */
 typedef struct _s_ENTRYID {
 	_s_ENTRYID(void) = delete;
+	template<typename _T> _s_ENTRYID(std::initializer_list<_T>) = delete;
     BYTE    abFlags[4];
     BYTE    ab[MAPI_DIM];
 } ENTRYID, *LPENTRYID;
@@ -237,6 +239,7 @@ typedef struct _s_MAPIUID {
 /* Property Tag Array */
 typedef struct _SPropTagArray {
 	_SPropTagArray(void) = delete;
+	template<typename _T> _SPropTagArray(std::initializer_list<_T>) = delete;
     ULONG   cValues;
     ULONG   aulPropTag[MAPI_DIM];
 } SPropTagArray, *LPSPropTagArray;
@@ -393,6 +396,7 @@ typedef struct _SPropProblem {
 
 typedef struct _SPropProblemArray {
 	_SPropProblemArray(void) = delete;
+	template<typename _T> _SPropProblemArray(std::initializer_list<_T>) = delete;
     ULONG           cProblem;
     SPropProblem    aProblem[MAPI_DIM];
 } SPropProblemArray, *LPSPropProblemArray;
@@ -414,12 +418,14 @@ typedef SBinaryArray ENTRYLIST, *LPENTRYLIST;
 
 typedef struct _s_FLATENTRY {
 	_s_FLATENTRY(void) = delete;
+	template<typename _T> _s_FLATENTRY(std::initializer_list<_T>) = delete;
     ULONG cb;
     BYTE abEntry[MAPI_DIM];
 } FLATENTRY, *LPFLATENTRY;
 
 typedef struct _s_FLATENTRYLIST {
 	_s_FLATENTRYLIST(void) = delete;
+	template<typename _T> _s_FLATENTRYLIST(std::initializer_list<_T>) = delete;
     ULONG       cEntries;
     ULONG       cbEntries;
     BYTE        abEntries[MAPI_DIM];
@@ -427,12 +433,14 @@ typedef struct _s_FLATENTRYLIST {
 
 typedef struct _s_MTSID {
 	_s_MTSID(void) = delete;
+	template<typename _T> _s_MTSID(std::initializer_list<_T>) = delete;
     ULONG       cb;
     BYTE        ab[MAPI_DIM];
 } MTSID, *LPMTSID;
 
 typedef struct _s_FLATMTSIDLIST {
 	_s_FLATMTSIDLIST(void) = delete;
+	template<typename _T> _s_FLATMTSIDLIST(std::initializer_list<_T>) = delete;
     ULONG       cMTSIDs;
     ULONG       cbMTSIDs;
     BYTE        abMTSIDs[MAPI_DIM];
@@ -457,6 +465,7 @@ typedef struct _ADRENTRY {
 
 typedef struct _ADRLIST {
 	_ADRLIST(void) = delete;
+	template<typename _T> _ADRLIST(std::initializer_list<_T>) = delete;
     ULONG           cEntries;
     ADRENTRY        aEntries[MAPI_DIM];
 } ADRLIST, *LPADRLIST;
@@ -482,6 +491,7 @@ typedef struct _SRow {
 
 typedef struct _SRowSet {
 	_SRowSet(void) = delete;
+	template<typename _T> _SRowSet(std::initializer_list<_T>) = delete;
     ULONG           cRows;
     SRow            aRow[MAPI_DIM];
 } SRowSet, * LPSRowSet;
@@ -899,6 +909,7 @@ typedef struct _SSortOrder {
 
 typedef struct _SSortOrderSet {
 	_SSortOrderSet(void) = delete;
+	template<typename _T> _SSortOrderSet(std::initializer_list<_T>) = delete;
     ULONG           cSorts;     /* Number of sort columns in aSort below*/
     ULONG           cCategories;    /* 0 for non-categorized, up to cSorts */
     ULONG           cExpanded;      /* 0 if no categories start expanded, */
@@ -1052,6 +1063,7 @@ public:
  */
 typedef struct _flaglist {
 	_flaglist(void) = delete;
+	template<typename _T> _flaglist(std::initializer_list<_T>) = delete;
     ULONG cFlags;
     ULONG ulFlag[MAPI_DIM];
 } FlagList, *LPFlagList;
