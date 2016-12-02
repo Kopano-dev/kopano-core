@@ -634,7 +634,9 @@ HRESULT M4LMAPITable::QueryInterface(REFIID refiid, void **lpvoid) {
 // ---
 // IProviderAdmin
 // ---
-M4LProviderAdmin::M4LProviderAdmin(M4LMsgServiceAdmin* new_msa, char *szService) {
+M4LProviderAdmin::M4LProviderAdmin(M4LMsgServiceAdmin *new_msa,
+    const char *szService)
+{
 	msa = new_msa;
 	if(szService)
 		this->szService = strdup(szService);

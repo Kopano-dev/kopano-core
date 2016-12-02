@@ -296,7 +296,7 @@ ECRESULT ECSecurity::HaveObjectPermission(unsigned int ulObjId, unsigned int ulA
  * 
  * @return Kopano error code
  */
-ECRESULT ECSecurity::IsOwner(unsigned int ulObjId)
+ECRESULT ECSecurity::IsOwner(unsigned int ulObjId) const
 {
 	ECRESULT		er;
 	unsigned int	ulOwner = 0;
@@ -313,7 +313,8 @@ ECRESULT ECSecurity::IsOwner(unsigned int ulObjId)
  * 
  * @return Kopano error code
  */
-ECRESULT ECSecurity::GetOwner(unsigned int ulObjId, unsigned int *lpulOwnerId)
+ECRESULT ECSecurity::GetOwner(unsigned int ulObjId,
+    unsigned int *lpulOwnerId) const
 {
 	ECRESULT		er = erSuccess;
 
@@ -332,7 +333,7 @@ ECRESULT ECSecurity::GetOwner(unsigned int ulObjId, unsigned int *lpulOwnerId)
  * 
  * @return KCERR_NOT_FOUND Error if a parent has the delete flag
  */
-ECRESULT ECSecurity::CheckDeletedParent(unsigned int ulId)
+ECRESULT ECSecurity::CheckDeletedParent(unsigned int ulId) const
 {
 	ECRESULT er = erSuccess;
 	unsigned int ulParentObjId = 0;
@@ -548,7 +549,8 @@ exit:
  * 
  * @return Kopano error code
  */
-ECRESULT ECSecurity::GetRights(unsigned int objid, int ulType, struct rightsArray *lpsRightsArray)
+ECRESULT ECSecurity::GetRights(unsigned int objid, int ulType,
+    struct rightsArray *lpsRightsArray) const
 {
 	ECRESULT			er = KCERR_NO_ACCESS;
 	DB_RESULT			lpDBResult = NULL;
@@ -772,7 +774,7 @@ ECRESULT ECSecurity::SetRights(unsigned int objid, struct rightsArray *lpsRights
  * 
  * @return always erSuccess
  */
-ECRESULT ECSecurity::GetUserCompany(unsigned int *lpulCompanyId)
+ECRESULT ECSecurity::GetUserCompany(unsigned int *lpulCompanyId) const
 {
 	*lpulCompanyId = m_ulCompanyID;
 	return erSuccess;
@@ -878,7 +880,8 @@ ECRESULT ECSecurity::IsUserObjectVisible(unsigned int ulUserObjectId)
  * 
  * @return 
  */
-ECRESULT ECSecurity::GetViewableCompanies(unsigned int ulFlags, list<localobjectdetails_t> **lppObjects)
+ECRESULT ECSecurity::GetViewableCompanies(unsigned int ulFlags,
+    std::list<localobjectdetails_t> **lppObjects) const
 {
 	ECRESULT er = erSuccess;
 	list<localobjectdetails_t> *lpObjects = NULL;
@@ -1000,7 +1003,7 @@ unsigned int ECSecurity::GetUserId(unsigned int ulObjId)
  * @return Kopano error code
  * @retval erSuccess object is in current user's store
  */
-ECRESULT ECSecurity::IsStoreOwner(unsigned int ulObjId)
+ECRESULT ECSecurity::IsStoreOwner(unsigned int ulObjId) const
 {
 	ECRESULT er;
 	unsigned int ulStoreId = 0;
@@ -1019,7 +1022,7 @@ ECRESULT ECSecurity::IsStoreOwner(unsigned int ulObjId)
  * 
  * @return admin level of user
  */
-int ECSecurity::GetAdminLevel()
+int ECSecurity::GetAdminLevel(void) const
 {
 	return m_details.GetPropInt(OB_PROP_I_ADMINLEVEL);
 }
@@ -1032,7 +1035,8 @@ int ECSecurity::GetAdminLevel()
  * 
  * @return Kopano error code
  */
-ECRESULT ECSecurity::GetStoreOwner(unsigned int ulObjId, unsigned int* lpulOwnerId)
+ECRESULT ECSecurity::GetStoreOwner(unsigned int ulObjId,
+    unsigned int *lpulOwnerId) const
 {
 	return GetStoreOwnerAndType(ulObjId, lpulOwnerId, NULL);
 }
@@ -1046,7 +1050,8 @@ ECRESULT ECSecurity::GetStoreOwner(unsigned int ulObjId, unsigned int* lpulOwner
  * 
  * @return Kopano error code
  */
-ECRESULT ECSecurity::GetStoreOwnerAndType(unsigned int ulObjId, unsigned int* lpulOwnerId, unsigned int* lpulStoreType)
+ECRESULT ECSecurity::GetStoreOwnerAndType(unsigned int ulObjId,
+    unsigned int *lpulOwnerId, unsigned int *lpulStoreType) const
 {
 	ECRESULT er;
 	unsigned int ulStoreId = 0;
@@ -1163,7 +1168,8 @@ ECRESULT ECSecurity::IsAdminOverOwnerOfObject(unsigned int ulObjectId)
  * 
  * @return Kopano error code
  */
-ECRESULT ECSecurity::GetStoreSize(unsigned int ulObjId, long long* lpllStoreSize)
+ECRESULT ECSecurity::GetStoreSize(unsigned int ulObjId,
+    long long *lpllStoreSize) const
 {
 	ECRESULT		er = erSuccess;
 	ECDatabase		*lpDatabase = NULL;
@@ -1216,7 +1222,8 @@ exit:
  * 
  * @return Kopano error code
  */
-ECRESULT ECSecurity::GetUserSize(unsigned int ulUserId, long long* lpllUserSize)
+ECRESULT ECSecurity::GetUserSize(unsigned int ulUserId,
+    long long *lpllUserSize) const
 {
 	ECRESULT		er = erSuccess;
 	ECDatabase		*lpDatabase = NULL;
@@ -1282,7 +1289,8 @@ exit:
  * 
  * @return Kopano error code
  */
-ECRESULT ECSecurity::CheckQuota(unsigned int ulStoreId, long long llStoreSize, eQuotaStatus* lpQuotaStatus)
+ECRESULT ECSecurity::CheckQuota(unsigned int ulStoreId, long long llStoreSize,
+    eQuotaStatus *lpQuotaStatus) const
 {
 	ECRESULT er;
 	unsigned int ulOwnerId = 0;
@@ -1315,7 +1323,8 @@ ECRESULT ECSecurity::CheckQuota(unsigned int ulStoreId, long long llStoreSize, e
  * 
  * @return Kopano error code
  */
-ECRESULT ECSecurity::CheckUserQuota(unsigned int ulUserId, long long llStoreSize, eQuotaStatus *lpQuotaStatus)
+ECRESULT ECSecurity::CheckUserQuota(unsigned int ulUserId,
+    long long llStoreSize, eQuotaStatus *lpQuotaStatus) const
 {
 	ECRESULT er;
 	quotadetails_t	quotadetails;
@@ -1351,7 +1360,8 @@ ECRESULT ECSecurity::CheckUserQuota(unsigned int ulUserId, long long llStoreSize
  * 
  * @return Kopano error code
  */
-ECRESULT ECSecurity::GetUserQuota(unsigned int ulUserId, bool bGetUserDefault, quotadetails_t *lpDetails)
+ECRESULT ECSecurity::GetUserQuota(unsigned int ulUserId, bool bGetUserDefault,
+    quotadetails_t *lpDetails) const
 {
 	ECRESULT er = erSuccess;
 	const char *lpszWarnQuota = NULL;
@@ -1427,7 +1437,7 @@ exit:
  * 
  * @return always erSuccess
  */
-ECRESULT ECSecurity::GetUsername(std::string *lpstrUsername)
+ECRESULT ECSecurity::GetUsername(std::string *lpstrUsername) const
 {
 	if (m_ulUserID)
 		*lpstrUsername = m_details.GetPropString(OB_PROP_S_LOGIN);
@@ -1443,7 +1453,7 @@ ECRESULT ECSecurity::GetUsername(std::string *lpstrUsername)
  * 
  * @return always erSuccess
  */
-ECRESULT ECSecurity::GetImpersonator(std::string *lpstrImpersonator)
+ECRESULT ECSecurity::GetImpersonator(std::string *lpstrImpersonator) const
 {
 	ECRESULT er = erSuccess;
 
@@ -1462,7 +1472,7 @@ ECRESULT ECSecurity::GetImpersonator(std::string *lpstrImpersonator)
  *
  * @return Object size in bytes
  */
-size_t ECSecurity::GetObjectSize(void)
+size_t ECSecurity::GetObjectSize(void) const
 {
 	size_t ulSize = sizeof(*this);
 	ulSize += m_details.GetObjectSize();
@@ -1471,7 +1481,7 @@ size_t ECSecurity::GetObjectSize(void)
 
 	if (m_lpGroups) {
 		size_t ulItems = 0;
-		for (auto &i : *m_lpGroups) {
+		for (const auto &i : *m_lpGroups) {
 			++ulItems;
 			ulSize += i.GetObjectSize();
 		}
@@ -1481,7 +1491,7 @@ size_t ECSecurity::GetObjectSize(void)
 	if (m_lpViewCompanies)
 	{
 		size_t ulItems = 0;
-		for (auto &i : *m_lpViewCompanies) {
+		for (const auto &i : *m_lpViewCompanies) {
 			++ulItems;
 			ulSize += i.GetObjectSize();
 		}
@@ -1491,7 +1501,7 @@ size_t ECSecurity::GetObjectSize(void)
 	if (m_lpAdminCompanies)
 	{
 		size_t ulItems = 0;
-		for (auto &i : *m_lpAdminCompanies) {
+		for (const auto &i : *m_lpAdminCompanies) {
 			++ulItems;
 			ulSize += i.GetObjectSize();
 		}

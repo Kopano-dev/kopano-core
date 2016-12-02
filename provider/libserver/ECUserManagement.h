@@ -223,7 +223,7 @@ private:
 	_kc_hidden virtual ECRESULT UpdateUserDetailsToClient(objectdetails_t *);
 	_kc_hidden ECRESULT ComplementDefaultFeatures(objectdetails_t *);
 	_kc_hidden ECRESULT RemoveDefaultFeatures(objectdetails_t *);
-	_kc_hidden bool MustHide(/*const*/ ECSecurity &security, unsigned int flags, const objectdetails_t &);
+	_kc_hidden bool MustHide(/*const*/ ECSecurity &, unsigned int flags, const objectdetails_t &) const;
 
 	// Get object details from list
 	_kc_hidden ECRESULT GetLocalObjectListFromSignatures(const std::list<objectsignature_t> &signatures, const std::map<objectid_t, unsigned int> &extern_to_local, unsigned int flags, std::list<localobjectdetails_t> *);

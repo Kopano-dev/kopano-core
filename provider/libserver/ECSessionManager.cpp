@@ -501,7 +501,13 @@ ECRESULT ECSessionManager::CreateAuthSession(struct soap *soap, unsigned int ulC
 	return erSuccess;
 }
 
-ECRESULT ECSessionManager::CreateSession(struct soap *soap, char *szName, char *szPassword, char *szImpersonateUser, char *szClientVersion, char *szClientApp, const char *szClientAppVersion, const char *szClientAppMisc, unsigned int ulCapabilities, ECSESSIONGROUPID sessionGroupID, ECSESSIONID *lpSessionID, ECSession **lppSession, bool fLockSession, bool fAllowUidAuth)
+ECRESULT ECSessionManager::CreateSession(struct soap *soap, const char *szName,
+    const char *szPassword, const char *szImpersonateUser,
+    const char *szClientVersion, const char *szClientApp,
+    const char *szClientAppVersion, const char *szClientAppMisc,
+    unsigned int ulCapabilities, ECSESSIONGROUPID sessionGroupID,
+    ECSESSIONID *lpSessionID, ECSession **lppSession, bool fLockSession,
+    bool fAllowUidAuth)
 {
 	ECRESULT		er			= erSuccess;
 	ECAuthSession	*lpAuthSession	= NULL;
@@ -590,7 +596,11 @@ exit:
 	return er;
 }
 
-ECRESULT ECSessionManager::RegisterSession(ECAuthSession *lpAuthSession, ECSESSIONGROUPID sessionGroupID, char *szClientVersion, char *szClientApp, const char *szClientApplicationVersion, const char *szClientApplicationMisc, ECSESSIONID *lpSessionID, ECSession **lppSession, bool fLockSession)
+ECRESULT ECSessionManager::RegisterSession(ECAuthSession *lpAuthSession,
+    ECSESSIONGROUPID sessionGroupID, const char *szClientVersion,
+    const char *szClientApp, const char *szClientApplicationVersion,
+    const char *szClientApplicationMisc, ECSESSIONID *lpSessionID,
+    ECSession **lppSession, bool fLockSession)
 {
 	ECRESULT	er = erSuccess;
 	ECSession	*lpSession = NULL;

@@ -1121,7 +1121,8 @@ HRESULT ECParseOneOff(const ENTRYID *lpEntryID, ULONG cbEntryID,
  * @param[in]	charset	Charset of input string
  * @return				Output string in e-mail header format
  */
-std::string ToQuotedBase64Header(const std::string &input, std::string charset)
+std::string ToQuotedBase64Header(const std::string &input,
+    const std::string &charset)
 {
 	std::string output;
 
@@ -1156,7 +1157,8 @@ std::string ToQuotedBase64Header(const std::wstring &input)
  * @param[in]	imap	Also encode \ and " for IMAP
  * @return quoted printable valid string
  */
-std::string ToQuotedPrintable(const std::string &input, std::string charset, bool header, bool imap)
+std::string ToQuotedPrintable(const std::string &input,
+    const std::string &charset, bool header, bool imap)
 {
 	ULONG i;
 	string tmp;

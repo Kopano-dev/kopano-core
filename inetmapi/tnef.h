@@ -71,19 +71,15 @@ private:
 	HRESULT HrWriteDWord(IStream *lpStream, ULONG ulData);
 	HRESULT HrWriteWord(IStream *lpStream, unsigned short ulData);
 	HRESULT HrWriteByte(IStream *lpStream, unsigned char ulData);
-	HRESULT HrWriteData(IStream *lpStream, char *lpDAta, ULONG ulLen);
-    
+	HRESULT HrWriteData(IStream *, const char *buf, ULONG len);
 	HRESULT HrWritePropStream(IStream *lpStream, std::list<SPropValue *> &proplist);
 	HRESULT HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp);
-	HRESULT HrReadPropStream(char *lpBuffer, ULONG ulSize, std::list<SPropValue *> &proplist);
-	HRESULT HrReadSingleProp(char *lpBuffer, ULONG ulSize, ULONG *lpulRead, LPSPropValue *lppProp);
-
+	HRESULT HrReadPropStream(const char *buf, ULONG size, std::list<SPropValue *> &proplist);
+	HRESULT HrReadSingleProp(const char *buf, ULONG size, ULONG *have_read, LPSPropValue *out);
 	HRESULT HrGetChecksum(IStream *lpStream, ULONG *lpulChecksum);
-	ULONG GetChecksum(char *lpData, unsigned int ulLen);
-	
+	ULONG GetChecksum(const char *data, unsigned int ulLen) const;
 	HRESULT HrWriteBlock(IStream *lpDest, IStream *lpSrc, ULONG ulBlockID, ULONG ulLevel);
-	HRESULT HrWriteBlock(IStream *lpDest, char *lpData, unsigned int ulSize, ULONG ulBlockID, ULONG ulLevel);
-
+	HRESULT HrWriteBlock(IStream *lpDest, const char *buf, unsigned int len, ULONG block_id, ULONG level);
     HRESULT HrReadStream(IStream *lpStream, void *lpBase, BYTE **lppData, ULONG *lpulSize);
 	
 	IStream *m_lpStream;

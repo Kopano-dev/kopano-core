@@ -30,18 +30,18 @@
  */
 class ECMemBlock _kc_final : public ECUnknown {
 private:
-	ECMemBlock(char *buffer, ULONG ulDataLen, ULONG ulFlags);
+	ECMemBlock(const char *buffer, ULONG len, ULONG flags);
 	~ECMemBlock();
 
 public:
-	static HRESULT	Create(char *buffer, ULONG ulDataLen, ULONG ulFlags, ECMemBlock **lppStream);
+	static HRESULT Create(const char *buffer, ULONG len, ULONG flags, ECMemBlock **out);
 	virtual HRESULT QueryInterface(REFIID refiid, void **iface) _kc_override;
 	virtual HRESULT	ReadAt(ULONG ulPos, ULONG ulLen, char *buffer, ULONG *ulBytesRead);
-	virtual HRESULT WriteAt(ULONG ulPos, ULONG ulLen, char *buffer, ULONG *ulBytesWritten);
+	virtual HRESULT WriteAt(ULONG ulPos, ULONG ulLen, const char *buffer, ULONG *ulBytesWritten);
 	virtual HRESULT Commit();
 	virtual HRESULT Revert();
 	virtual HRESULT SetSize(ULONG ulSize);
-	virtual HRESULT GetSize(ULONG *ulSize);
+	virtual HRESULT GetSize(ULONG *size) const;
 
 	virtual char *GetBuffer(void) { return lpCurrent; }
 

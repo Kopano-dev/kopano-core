@@ -59,7 +59,7 @@ HRESULT GetProxyStoreObject(IMsgStore *lpMsgStore, IMsgStore **lppMsgStore);
 HRESULT HrAddArchiveMailBox(LPPROVIDERADMIN lpProviderAdmin, LPCWSTR lpszUserName, LPCWSTR lpszServerName, LPMAPIUID lpProviderUID);
 extern _kc_export HRESULT ECCreateOneOff(LPTSTR name, LPTSTR addrtype, LPTSTR addr, ULONG flags, ULONG *eid_size, LPENTRYID *eid);
 extern _kc_export HRESULT ECParseOneOff(const ENTRYID *eid, ULONG eid_size, std::wstring &name, std::wstring &type, std::wstring &addr);
-extern _kc_export std::string ToQuotedPrintable(const std::string &, std::string charset, bool header = true, bool imap = false);
+extern _kc_export std::string ToQuotedPrintable(const std::string &s, const std::string &charset, bool header = true, bool imap = false);
 extern _kc_export HRESULT HrNewMailNotification(IMsgStore *, IMessage *);
 extern _kc_export HRESULT HrCreateEmailSearchKey(const char *type, const char *addr, ULONG *size, LPBYTE *out);
 extern _kc_export HRESULT DoSentMail(IMAPISession *, IMsgStore *, ULONG flags, IMessage *);
@@ -93,7 +93,7 @@ HRESULT HrGetAddress(IMAPISession *, IMessage *, ULONG proptag_eid, ULONG propta
 extern _kc_export HRESULT HrGetAddress(LPADRBOOK, IMessage *, ULONG tag_eid, ULONG tag_name, ULONG tag_type, ULONG tag_addr, std::wstring &name, std::wstring &type, std::wstring &addr);
 extern _kc_export HRESULT HrGetAddress(LPADRBOOK, LPSPropValue props, ULONG nvals, ULONG tag_eid, ULONG tag_name, ULONG tag_type, ULONG tag_addr, std::wstring &name, std::wstring &type, std::wstring &addr);
 extern _kc_export HRESULT HrGetAddress(LPADRBOOK, LPENTRYID eid, ULONG eid_size, std::wstring &name, std::wstring &type, std::wstring &addr);
-extern _kc_export std::string ToQuotedBase64Header(const std::string &, std::string charset);
+extern _kc_export std::string ToQuotedBase64Header(const std::string &s, const std::string &charset);
 extern _kc_export std::string ToQuotedBase64Header(const std::wstring &);
 HRESULT TestRestriction(LPSRestriction lpCondition, ULONG cValues, LPSPropValue lpPropVals, const ECLocale &locale, ULONG ulLevel = 0);
 extern _kc_export HRESULT TestRestriction(LPSRestriction cond, IMAPIProp *msg, const ECLocale &, ULONG level = 0);

@@ -122,7 +122,7 @@ private:
 	char *szService;
 
 public:
-	M4LProviderAdmin(M4LMsgServiceAdmin *, char *service);
+	M4LProviderAdmin(M4LMsgServiceAdmin *, const char *service);
 	virtual ~M4LProviderAdmin(void);
 	virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG flags, LPMAPIERROR *lppMAPIError) _kc_override;
 	virtual HRESULT __stdcall GetProviderTable(ULONG flags, LPMAPITABLE *lppTable) _kc_override;

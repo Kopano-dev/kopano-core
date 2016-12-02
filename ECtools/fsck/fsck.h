@@ -92,8 +92,7 @@ private:
 HRESULT allocNamedIdList(ULONG ulSize, LPMAPINAMEID **lpppNameArray);
 void freeNamedIdList(LPMAPINAMEID *lppNameArray);
 
-HRESULT ReadProperties(LPMESSAGE lpMessage, ULONG ulCount,
-		       ULONG *lpTag, LPSPropValue *lppPropertyArray);
+HRESULT ReadProperties(IMessage *, ULONG count, const ULONG *tags, SPropValue **out);
 HRESULT ReadNamedProperties(LPMESSAGE lpMessage, ULONG ulCount,
 			    LPMAPINAMEID *lppTag,
 			    LPSPropTagArray *lppPropertyTagArray,

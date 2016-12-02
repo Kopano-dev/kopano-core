@@ -25,7 +25,8 @@
 #include <kopano/ECDebug.h>
 #define EC_MEMBLOCK_SIZE 8192
 
-ECMemBlock::ECMemBlock(char *buffer, ULONG ulDataLen, ULONG ulFlags) : ECUnknown("ECMemBlock")
+ECMemBlock::ECMemBlock(const char *buffer, ULONG ulDataLen, ULONG ulFlags) :
+    ECUnknown("ECMemBlock")
 {
 	this->cbTotal = 0;
 	this->cbCurrent = 0;
@@ -55,7 +56,8 @@ ECMemBlock::~ECMemBlock()
 		free(lpOriginal);
 }
 
-HRESULT	ECMemBlock::Create(char *buffer, ULONG ulDataLen, ULONG ulFlags, ECMemBlock **lppStream)
+HRESULT	ECMemBlock::Create(const char *buffer, ULONG ulDataLen, ULONG ulFlags,
+    ECMemBlock **lppStream)
 {
 	ECMemBlock *lpMemBlock = NULL;
 
@@ -90,7 +92,8 @@ HRESULT	ECMemBlock::ReadAt(ULONG ulPos, ULONG ulLen, char *buffer, ULONG *ulByte
 	return hr;
 }
 
-HRESULT ECMemBlock::WriteAt(ULONG ulPos, ULONG ulLen, char *buffer, ULONG *ulBytesWritten)
+HRESULT ECMemBlock::WriteAt(ULONG ulPos, ULONG ulLen, const char *buffer,
+    ULONG *ulBytesWritten)
 {
 	ULONG dsize = ulPos + ulLen;
 	
@@ -166,7 +169,7 @@ HRESULT ECMemBlock::SetSize(ULONG ulSize)
 	return hrSuccess;
 }
 
-HRESULT ECMemBlock::GetSize(ULONG *ulSize)
+HRESULT ECMemBlock::GetSize(ULONG *ulSize) const
 {
 	*ulSize = cbCurrent;
 

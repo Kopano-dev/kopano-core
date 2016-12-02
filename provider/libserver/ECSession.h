@@ -156,7 +156,7 @@ public:
 	_kc_hidden ECRESULT UnlockObject(unsigned int obj_id);
 	
 	/* for ECStatsSessionTable */
-	_kc_hidden void AddBusyState(pthread_t, const char *state, struct timespec threadstart, double start);
+	_kc_hidden void AddBusyState(pthread_t, const char *state, const struct timespec &threadstart, double start);
 	_kc_hidden void UpdateBusyState(pthread_t, int state);
 	_kc_hidden void RemoveBusyState(pthread_t);
 	_kc_hidden void GetBusyStates(std::list<BUSYSTATE> *);

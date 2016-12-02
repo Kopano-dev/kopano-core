@@ -256,7 +256,7 @@ void objectdetails_t::MergeFrom(const objectdetails_t &from) {
  *
  * @return Memory usage of this object in bytes
  */
-size_t objectdetails_t::GetObjectSize(void)
+size_t objectdetails_t::GetObjectSize(void) const
 {
 	size_t ulSize = sizeof(*this);
 

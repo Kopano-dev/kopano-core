@@ -123,9 +123,7 @@ public:
 
 	void			SetClass(objectclass_t objclass);
 	objectclass_t	GetClass() const;
-
-	virtual size_t GetObjectSize(void);
-
+	virtual size_t GetObjectSize(void) const;
 	std::string ToStr(void) const;
 
 private:

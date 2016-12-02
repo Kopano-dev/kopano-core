@@ -44,7 +44,7 @@ HRESULT FsckContact::ValidateContactNames(LPMESSAGE lpMessage)
 		TAG_COUNT
 	};
 
-	ULONG ulTags[] = {
+	static const ULONG ulTags[] = {
 		PR_SUBJECT_A,
 		PR_DISPLAY_NAME_A,
 		PR_DISPLAY_NAME_PREFIX_A,

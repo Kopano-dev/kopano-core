@@ -335,7 +335,7 @@ HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 	unsigned short ulChecksum = 0;
 	unsigned short ulKey = 0;
 	unsigned char ulComponent = 0;
-	BYTE *lpBuffer = NULL;
+	char *lpBuffer = NULL;
 	SPropValue sProp;
 	char *szSClass = NULL;
 	// Attachments props
@@ -383,7 +383,7 @@ HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 		if(hr != hrSuccess)
 			goto exit;
 
-		hr = HrReadData(m_lpStream, (char *)lpBuffer, ulSize);
+		hr = HrReadData(m_lpStream, lpBuffer, ulSize);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -396,7 +396,7 @@ HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 
 		switch(ulType) {
 		case ATT_MAPI_PROPS:
-			hr = HrReadPropStream((char *)lpBuffer, ulSize, lstProps);
+			hr = HrReadPropStream(lpBuffer, ulSize, lstProps);
 			if (hr != hrSuccess)
 				goto exit;
 			break;
@@ -433,14 +433,14 @@ HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 		case 0x00050008: /* PR_OWNER_APPT_ID */
 			if(ulSize == 4 && lpBuffer) {
 				sProp.ulPropTag = PR_OWNER_APPT_ID;
-				sProp.Value.l = *((LONG*)lpBuffer);
+				sProp.Value.l = *reinterpret_cast<LONG *>(lpBuffer);
 				m_lpMessage->SetProps(1, &sProp, NULL);
 			}
 			break;
 		case ATT_REQUEST_RES: /* PR_RESPONSE_REQUESTED */
 			if(ulSize == 2 && lpBuffer) {
 				sProp.ulPropTag = PR_RESPONSE_REQUESTED;
-				sProp.Value.b = (bool)(*(short*)lpBuffer);
+				sProp.Value.b = static_cast<bool>(*reinterpret_cast<short *>(lpBuffer));
 				m_lpMessage->SetProps(1, &sProp, NULL);
 			}
 			break;
@@ -512,7 +512,7 @@ HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 				hr = MAPI_E_CORRUPT_DATA;
 				goto exit;
 			}
-			hr = HrReadPropStream((char *)lpBuffer, ulSize, lpTnefAtt->lstProps);
+			hr = HrReadPropStream(lpBuffer, ulSize, lpTnefAtt->lstProps);
 			if (hr != hrSuccess)
 				goto exit;
 			break;
@@ -933,14 +933,15 @@ exit:
  * @param[in,out]	proplist	reference to an existing porplist to append properties to
  * @return MAPI error code
  */
-HRESULT ECTNEF::HrReadPropStream(char *lpBuffer, ULONG ulSize, std::list<SPropValue *> &proplist)
+HRESULT ECTNEF::HrReadPropStream(const char *lpBuffer, ULONG ulSize,
+    std::list<SPropValue *> &proplist)
 {
 	ULONG ulRead = 0;
 	ULONG ulProps = 0;
 	LPSPropValue lpProp = NULL;
 	HRESULT hr = hrSuccess;
 
-	ulProps = *(ULONG *)lpBuffer;
+	ulProps = *reinterpret_cast<const ULONG *>(lpBuffer);
 	lpBuffer += 4;
 	ulSize -= 4;
 
@@ -975,7 +976,8 @@ HRESULT ECTNEF::HrReadPropStream(char *lpBuffer, ULONG ulSize, std::list<SPropVa
  * @param[out]	lppProp		returns MAPIAllocateBuffer allocated pointer if return is hrSuccess
  * @return	MAPI error code
  */
-HRESULT ECTNEF::HrReadSingleProp(char *lpBuffer, ULONG ulSize, ULONG *lpulRead, LPSPropValue *lppProp)
+HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
+    ULONG *lpulRead, LPSPropValue *lppProp)
 {
 	HRESULT hr = hrSuccess;
 	ULONG ulPropTag = 0;
@@ -995,8 +997,7 @@ HRESULT ECTNEF::HrReadSingleProp(char *lpBuffer, ULONG ulSize, ULONG *lpulRead, 
 	if(ulSize < 8)
 		return MAPI_E_NOT_FOUND;
 
-	ulPropTag = *(ULONG *)lpBuffer;
-
+	ulPropTag = *reinterpret_cast<const ULONG *>(lpBuffer);
 	lpBuffer += sizeof(ULONG);
 	ulSize -= 4;
 
@@ -1014,16 +1015,13 @@ HRESULT ECTNEF::HrReadSingleProp(char *lpBuffer, ULONG ulSize, ULONG *lpulRead, 
 
 		lpBuffer += sizeof(GUID);
 		ulSize -= sizeof(GUID);
-
-		ulIsNameId = *(ULONG *)lpBuffer;
-
+		ulIsNameId = *reinterpret_cast<const ULONG *>(lpBuffer);
 		lpBuffer += 4;
 		ulSize -= 4;
 
 		if(ulIsNameId != 0) {
 			// A string name follows
-			ulLen = *(ULONG *)lpBuffer;
-
+			ulLen = *reinterpret_cast<const ULONG *>(lpBuffer);
 			lpBuffer += 4;
 			ulSize -= 4;
 
@@ -1033,7 +1031,7 @@ HRESULT ECTNEF::HrReadSingleProp(char *lpBuffer, ULONG ulSize, ULONG *lpulRead, 
 			}
 
 			// copy through utf16string so we can set the boundary to the given length
-			ucs2.assign((utf16string::value_type*)lpBuffer, ulLen/sizeof(utf16string::value_type));
+			ucs2.assign(reinterpret_cast<const utf16string::value_type *>(lpBuffer), ulLen/sizeof(utf16string::value_type));
 			strUnicodeName = convert_to<std::wstring>(ucs2);
 
 			sNameID.ulKind = MNID_STRING;
@@ -1046,8 +1044,7 @@ HRESULT ECTNEF::HrReadSingleProp(char *lpBuffer, ULONG ulSize, ULONG *lpulRead, 
 			ulSize -= ulLen & 3 ? 4 - (ulLen & 3) : 0;
 		} else {
 			sNameID.ulKind = MNID_ID;
-			sNameID.Kind.lID = *(ULONG *)lpBuffer;
-
+			sNameID.Kind.lID = *reinterpret_cast<const ULONG *>(lpBuffer);
 			lpBuffer += 4;
 			ulSize -= 4;
 		}
@@ -1138,33 +1135,30 @@ HRESULT ECTNEF::HrReadSingleProp(char *lpBuffer, ULONG ulSize, ULONG *lpulRead, 
 		switch(PROP_TYPE(ulPropTag) & ~MV_FLAG) {
 		case PT_I2:
 			if(ulPropTag & MV_FLAG)
-				lpProp->Value.MVi.lpi[ulMVProp] = *(unsigned short *)lpBuffer;
+				lpProp->Value.MVi.lpi[ulMVProp] = *reinterpret_cast<const unsigned short *>(lpBuffer);
 			else
-				lpProp->Value.i = *(unsigned short *)lpBuffer;
-
+				lpProp->Value.i = *reinterpret_cast<const unsigned short *>(lpBuffer);
 			lpBuffer += 4;
 			ulSize -= 4;
 			break;
 		case PT_LONG:
 			if(ulPropTag & MV_FLAG)
-				lpProp->Value.MVl.lpl[ulMVProp] = *(ULONG *)lpBuffer;
+				lpProp->Value.MVl.lpl[ulMVProp] = *reinterpret_cast<const ULONG *>(lpBuffer);
 			else
-				lpProp->Value.ul = *(ULONG *)lpBuffer;
-
+				lpProp->Value.ul = *reinterpret_cast<const ULONG *>(lpBuffer);
 			lpBuffer += 4;
 			ulSize -= 4;
 			break;
 		case PT_BOOLEAN:
-			lpProp->Value.b = *(BOOL *)lpBuffer;
+			lpProp->Value.b = *reinterpret_cast<const BOOL *>(lpBuffer);
 			lpBuffer += 4;
 			ulSize -= 4;
 			break;
 		case PT_R4:
 			if(ulPropTag & MV_FLAG)
-				lpProp->Value.MVflt.lpflt[ulMVProp] = *(float *)lpBuffer;
+				lpProp->Value.MVflt.lpflt[ulMVProp] = *reinterpret_cast<const float *>(lpBuffer);
 			else
-				lpProp->Value.flt = *(float *)lpBuffer;
-
+				lpProp->Value.flt = *reinterpret_cast<const float *>(lpBuffer);
 			lpBuffer += 4;
 			ulSize -= 4;
 			break;
@@ -1174,10 +1168,9 @@ HRESULT ECTNEF::HrReadSingleProp(char *lpBuffer, ULONG ulSize, ULONG *lpulRead, 
 				goto exit;
 			}
 			if(ulPropTag & MV_FLAG)
-				lpProp->Value.MVat.lpat[ulMVProp] = *(double *)lpBuffer;
+				lpProp->Value.MVat.lpat[ulMVProp] = *reinterpret_cast<const double *>(lpBuffer);
 			else
-				lpProp->Value.at = *(double *)lpBuffer;
-
+				lpProp->Value.at = *reinterpret_cast<const double *>(lpBuffer);
 			lpBuffer += 8;
 			ulSize -= 8;
 			break;
@@ -1187,10 +1180,9 @@ HRESULT ECTNEF::HrReadSingleProp(char *lpBuffer, ULONG ulSize, ULONG *lpulRead, 
 				goto exit;
 			}
 			if(ulPropTag & MV_FLAG)
-				lpProp->Value.MVdbl.lpdbl[ulMVProp] = *(double *)lpBuffer;
+				lpProp->Value.MVdbl.lpdbl[ulMVProp] = *reinterpret_cast<const double *>(lpBuffer);
 			else
-				lpProp->Value.dbl = *(double *)lpBuffer;
-
+				lpProp->Value.dbl = *reinterpret_cast<const double *>(lpBuffer);
 			lpBuffer += 8;
 			ulSize -= 8;
 			break;
@@ -1200,11 +1192,11 @@ HRESULT ECTNEF::HrReadSingleProp(char *lpBuffer, ULONG ulSize, ULONG *lpulRead, 
 				goto exit;
 			}
 			if(ulPropTag & MV_FLAG) {
-				lpProp->Value.MVcur.lpcur[ulMVProp].Lo = *(ULONG *)lpBuffer;
-				lpProp->Value.MVcur.lpcur[ulMVProp].Hi = *(ULONG *)(lpBuffer+4);
+				lpProp->Value.MVcur.lpcur[ulMVProp].Lo = *reinterpret_cast<const ULONG *>(lpBuffer);
+				lpProp->Value.MVcur.lpcur[ulMVProp].Hi = *reinterpret_cast<const ULONG *>(lpBuffer + 4);
 			} else {
-				lpProp->Value.cur.Lo = *(ULONG *)lpBuffer;
-				lpProp->Value.cur.Hi = *(ULONG *)lpBuffer+4;
+				lpProp->Value.cur.Lo = *reinterpret_cast<const ULONG *>(lpBuffer);
+				lpProp->Value.cur.Hi = *reinterpret_cast<const ULONG *>(lpBuffer + 4);
 			}
 
 			lpBuffer += 8;
@@ -1216,11 +1208,11 @@ HRESULT ECTNEF::HrReadSingleProp(char *lpBuffer, ULONG ulSize, ULONG *lpulRead, 
 				goto exit;
 			}
 			if(ulPropTag & MV_FLAG) {
-				lpProp->Value.MVft.lpft[ulMVProp].dwLowDateTime = *(ULONG *)lpBuffer;
-				lpProp->Value.MVft.lpft[ulMVProp].dwHighDateTime = *(ULONG *)(lpBuffer+4);
+				lpProp->Value.MVft.lpft[ulMVProp].dwLowDateTime = *reinterpret_cast<const ULONG *>(lpBuffer);
+				lpProp->Value.MVft.lpft[ulMVProp].dwHighDateTime = *reinterpret_cast<const ULONG *>(lpBuffer + 4);
 			} else {
-				lpProp->Value.ft.dwLowDateTime = *(ULONG *)lpBuffer;
-				lpProp->Value.ft.dwHighDateTime = *(ULONG *)(lpBuffer+4);
+				lpProp->Value.ft.dwLowDateTime = *reinterpret_cast<const ULONG *>(lpBuffer);
+				lpProp->Value.ft.dwHighDateTime = *reinterpret_cast<const ULONG *>(lpBuffer + 4);
 			}
 			lpBuffer += 8;
 			ulSize -= 8;
@@ -1231,11 +1223,11 @@ HRESULT ECTNEF::HrReadSingleProp(char *lpBuffer, ULONG ulSize, ULONG *lpulRead, 
 				goto exit;
 			}
 			if(ulPropTag & MV_FLAG) {
-				lpProp->Value.MVli.lpli[ulMVProp].LowPart = *(ULONG *)lpBuffer;
-				lpProp->Value.MVli.lpli[ulMVProp].HighPart = *(ULONG *)(lpBuffer+4);
+				lpProp->Value.MVli.lpli[ulMVProp].LowPart = *reinterpret_cast<const ULONG *>(lpBuffer);
+				lpProp->Value.MVli.lpli[ulMVProp].HighPart = *reinterpret_cast<const ULONG *>(lpBuffer + 4);
 			} else {
-				lpProp->Value.li.LowPart = *(ULONG *)lpBuffer;
-				lpProp->Value.li.HighPart = *(ULONG *)(lpBuffer+4);
+				lpProp->Value.li.LowPart = *reinterpret_cast<const ULONG *>(lpBuffer);
+				lpProp->Value.li.HighPart = *reinterpret_cast<const ULONG *>(lpBuffer + 4);
 			} 
 
 			lpBuffer += 8;
@@ -1251,9 +1243,7 @@ HRESULT ECTNEF::HrReadSingleProp(char *lpBuffer, ULONG ulSize, ULONG *lpulRead, 
     			lpBuffer += 4; // Skip next 4 bytes, they are always '1'
 	    		ulSize -= 4;
             }
-            
-			ulLen = *(ULONG *)lpBuffer;
-
+			ulLen = *reinterpret_cast<const ULONG *>(lpBuffer);
 			lpBuffer += 4; 
 			ulSize -= 4;
 
@@ -1296,9 +1286,7 @@ HRESULT ECTNEF::HrReadSingleProp(char *lpBuffer, ULONG ulSize, ULONG *lpulRead, 
     			lpBuffer += 4; // Skip next 4 bytes, they are always '1'
 	    		ulSize -= 4;
             }
-            
-			ulLen = *(ULONG *)lpBuffer;	// Assumes 'len' in file is BYTES, not chars
-
+			ulLen = *reinterpret_cast<const ULONG *>(lpBuffer); // Assumes 'len' in file is BYTES, not chars
 			lpBuffer += 4;
 			ulSize -= 4;
 
@@ -1344,8 +1332,7 @@ HRESULT ECTNEF::HrReadSingleProp(char *lpBuffer, ULONG ulSize, ULONG *lpulRead, 
     			lpBuffer += 4;	// Skip next 4 bytes, it's always '1' (ULONG)
 	    		ulSize -= 4;
             }
-			ulLen = *(ULONG *)lpBuffer;
-
+			ulLen = *reinterpret_cast<const ULONG *>(lpBuffer);
 			lpBuffer += 4;
 			ulSize -= 4;
 
@@ -1947,7 +1934,7 @@ HRESULT ECTNEF::HrWriteByte(IStream *lpStream, unsigned char ulData)
  * @param[in]		ulData		unsigned char value to write in lpStream
  * @return MAPI error code
  */
-HRESULT ECTNEF::HrWriteData(IStream *lpStream, char *data, ULONG ulLen)
+HRESULT ECTNEF::HrWriteData(IStream *lpStream, const char *data, ULONG ulLen)
 {
 	HRESULT hr;
 	ULONG ulWritten = 0;
@@ -2016,7 +2003,7 @@ exit:
  * @param[in]	ulLen	Length of lpData
  * @return TNEF checksum value
  */
-ULONG ECTNEF::GetChecksum(char *lpData, unsigned int ulLen)
+ULONG ECTNEF::GetChecksum(const char *lpData, unsigned int ulLen) const
 {
     ULONG ulChecksum = 0;
 	for (unsigned int i = 0; i < ulLen; ++i)
@@ -2079,7 +2066,8 @@ HRESULT ECTNEF::HrWriteBlock(IStream *lpDestStream, IStream *lpSourceStream, ULO
  * 
  * @return MAPI error code
  */
-HRESULT ECTNEF::HrWriteBlock(IStream *lpDestStream, char *lpData, unsigned int ulLen, ULONG ulBlockID, ULONG ulLevel)
+HRESULT ECTNEF::HrWriteBlock(IStream *lpDestStream, const char *lpData,
+    unsigned int ulLen, ULONG ulBlockID, ULONG ulLevel)
 {
     HRESULT hr = hrSuccess;
     IStream *lpStream = NULL;

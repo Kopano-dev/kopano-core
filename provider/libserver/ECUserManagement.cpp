@@ -261,7 +261,8 @@ ECRESULT ECUserManagement::AuthUserAndSync(const char* szLoginname, const char* 
  * as a prototype, but that would mean percolating constness in class ECSecurity's methods, which proved to
  * be a task beyond a simple edit. NS 11 fFebruary 2014
  */
-bool ECUserManagement::MustHide(/*const*/ ECSecurity& security, unsigned int ulFlags, const objectdetails_t& details)
+bool ECUserManagement::MustHide(/*const*/ ECSecurity &security,
+    unsigned int ulFlags, const objectdetails_t &details) const
 {
 	return	(security.GetUserId() != KOPANO_UID_SYSTEM) &&
 		(security.GetAdminLevel() == 0) &&

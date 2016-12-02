@@ -164,7 +164,8 @@ void freeNamedIdList(LPMAPINAMEID *lppNameArray)
 	MAPIFreeBuffer(lppNameArray);
 }
 
-HRESULT ReadProperties(LPMESSAGE lpMessage, ULONG ulCount, ULONG *lpTag, LPSPropValue *lppPropertyArray)
+HRESULT ReadProperties(LPMESSAGE lpMessage, ULONG ulCount, const ULONG *lpTag,
+    LPSPropValue *lppPropertyArray)
 {
 	HRESULT hr = hrSuccess;
 	LPSPropTagArray lpPropertyTagArray = NULL;
