@@ -90,7 +90,7 @@ struct sSessionManagerStats {
 
 class SOURCEKEY;
 
-class _kc_export ECSessionManager {
+class _kc_export ECSessionManager _kc_final {
 public:
 	_kc_hidden ECSessionManager(ECConfig *, ECLogger *audit, bool hosted, bool distributed);
 	_kc_hidden virtual ~ECSessionManager(void);
@@ -99,9 +99,9 @@ public:
 	_kc_hidden virtual ECRESULT CreateSession(struct soap *, char *name, char *pass, char *imp_user, char *cl_vers, char *cl_app, const char *cl_app_ver, const char *cl_app_misc, unsigned int caps, ECSESSIONGROUPID, ECSESSIONID *, ECSession **, bool lock_ses, bool allow_uid_auth);
 	// Creates a session without credential checking (caller must check credentials)
 	_kc_hidden virtual ECRESULT RegisterSession(ECAuthSession *, ECSESSIONGROUPID, char *cl_ver, char *cl_app, const char *cl_app_ver, const char *cl_app_misc, ECSESSIONID *, ECSession **, bool lock_ses);
-	_kc_hidden virtual ECRESULT CreateSessionInternal(ECSession **, unsigned int user_id = KOPANO_UID_SYSTEM);
+	virtual ECRESULT CreateSessionInternal(ECSession **, unsigned int user_id = KOPANO_UID_SYSTEM);
 	_kc_hidden virtual ECRESULT RemoveSession(ECSESSIONID);
-	_kc_hidden virtual void RemoveSessionInternal(ECSession *);
+	virtual void RemoveSessionInternal(ECSession *);
 
 	// Persistent connections: sessions with persistent connections (named pipes) are guaranteed not to timeout
 	// between calls to SetSessionPersistentConnection() and RemoveSessionPersistentConnection. The persistent connection ID

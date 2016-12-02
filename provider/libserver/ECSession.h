@@ -196,7 +196,7 @@ private:
 /*
   Authentication session
 */
-class _kc_export_dycast ECAuthSession : public BTSession {
+class _kc_export_dycast ECAuthSession _kc_final : public BTSession {
 public:
 	_kc_hidden ECAuthSession(const char *addr, ECSESSIONID, ECDatabaseFactory *, ECSessionManager *, unsigned int caps);
 	_kc_hidden virtual ~ECAuthSession(void);

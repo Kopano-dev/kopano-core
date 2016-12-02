@@ -134,7 +134,7 @@ private:
 #define USERMANAGEMENT_BLOCK_CREATE_NONACTIVE_USER	( USERMANAGEMENT_LIMIT_NONACTIVE_USERS | USERMANAGEMENT_EXCEED_NONACTIVE_USERS )
 #define USERMANAGEMENT_USER_LICENSE_EXCEEDED		( USERMANAGEMENT_EXCEED_ACTIVE_USERS | USERMANAGEMENT_EXCEED_NONACTIVE_USERS )
 
-class _kc_export ECUserManagement {
+class _kc_export ECUserManagement _kc_final {
 public:
 	_kc_hidden ECUserManagement(BTSession *, ECPluginFactory *, ECConfig *);
 	_kc_hidden virtual ~ECUserManagement(void) {}
@@ -143,7 +143,7 @@ public:
 	_kc_hidden virtual ECRESULT AuthUserAndSync(const char *user, const char *pass, unsigned int *user_id);
 
 	// Get data for an object, with on-the-fly delete of the specified object id
-	_kc_hidden virtual ECRESULT GetObjectDetails(unsigned int obj_id, objectdetails_t *ret);
+	virtual ECRESULT GetObjectDetails(unsigned int obj_id, objectdetails_t *ret);
 	// Get quota details for a user object
 	_kc_hidden virtual ECRESULT GetQuotaDetailsAndSync(unsigned int obj_id, quotadetails_t *ret, bool get_user_default = false);
 	// Set quota details for a user object
@@ -166,7 +166,7 @@ public:
 	_kc_hidden virtual ECRESULT ResolveObjectAndSync(objectclass_t, const char *name, unsigned int *obj_id);
 
 	// Get a local object ID for a part of a name
-	_kc_hidden virtual ECRESULT SearchObjectAndSync(const char *search_string, unsigned int flags, unsigned int *id);
+	virtual ECRESULT SearchObjectAndSync(const char *search_string, unsigned int flags, unsigned int *id);
 
 	// Create an object
 	_kc_hidden virtual ECRESULT CreateObjectAndSync(const objectdetails_t &, unsigned int *id);
@@ -185,7 +185,7 @@ public:
 	_kc_hidden virtual ECRESULT GetUserCount(usercount_t *);
 	_kc_hidden virtual ECRESULT GetCachedUserCount(usercount_t *);
 	_kc_hidden virtual ECRESULT GetPublicStoreDetails(objectdetails_t *);
-	_kc_hidden virtual ECRESULT GetServerDetails(const std::string &server, serverdetails_t *);
+	virtual ECRESULT GetServerDetails(const std::string &server, serverdetails_t *);
 	_kc_hidden virtual ECRESULT GetServerList(serverlist_t *);
 
 	/* Check if the user license status */

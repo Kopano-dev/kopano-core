@@ -24,7 +24,7 @@
 
 #include <string>
 
-class ECMSProvider : public ECUnknown {
+class ECMSProvider _kc_final : public ECUnknown {
 protected:
 	ECMSProvider(ULONG ulFlags, const char *szClassName);
 	virtual ~ECMSProvider();
