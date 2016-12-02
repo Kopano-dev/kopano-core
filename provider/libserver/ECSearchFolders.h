@@ -35,7 +35,7 @@
 
 class ECSessionManager;
 
-typedef struct SEARCHFOLDER _kc_final {
+struct SEARCHFOLDER _kc_final {
 	SEARCHFOLDER(unsigned int ulStoreId, unsigned int ulFolderId) {
 		this->ulStoreId = ulStoreId;
 		this->ulFolderId = ulFolderId;
@@ -53,9 +53,9 @@ typedef struct SEARCHFOLDER _kc_final {
 	bool bThreadExit = false;
     unsigned int			ulStoreId;
     unsigned int			ulFolderId;
-} SEARCHFOLDER;
+};
 
-typedef struct EVENT {
+struct EVENT {
     unsigned int			ulStoreId;
     unsigned int			ulFolderId;
     unsigned int			ulObjectId;
@@ -63,7 +63,7 @@ typedef struct EVENT {
     
     bool operator<(const struct EVENT &b) const { return ulFolderId < b.ulFolderId ? true : (ulType < b.ulType ? true : ( ulObjectId < b.ulObjectId ? true : false ) ); }
     bool operator==(const struct EVENT &b) const { return ulFolderId == b.ulFolderId && ulType == b.ulType && ulObjectId ==  b.ulObjectId; }
-} EVENT;
+};
 
 typedef std::map<unsigned int, SEARCHFOLDER *> FOLDERIDSEARCH;
 typedef std::map<unsigned int, FOLDERIDSEARCH> STOREFOLDERIDSEARCH;

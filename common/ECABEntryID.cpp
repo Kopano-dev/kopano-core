@@ -23,7 +23,7 @@
 
 /* This is a copy from the definition in kcore.hpp. It's for internal use only as we
  * don't want to expose the format of the entry id. */
-typedef struct ABEID {
+struct ABEID {
 	BYTE	abFlags[4];
 	GUID	guid;
 	ULONG	ulVersion;
@@ -38,7 +38,7 @@ typedef struct ABEID {
 		this->guid = guid;
 		this->ulId = ulId;
 	}
-} ABEID;
+};
 
 static ABEID		g_sDefaultEid(MAPI_MAILUSER, MUIDECSAB, 0);
 unsigned char		*g_lpDefaultEid = (unsigned char*)&g_sDefaultEid;

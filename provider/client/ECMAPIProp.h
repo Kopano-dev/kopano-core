@@ -116,9 +116,9 @@ public:
 	ECMAPIProp *m_lpRoot;		// Points to the 'root' object that was opened by OpenEntry; normally points to 'this' except for Attachments and Submessages
 };
 
-typedef struct STREAMDATA {
+struct STREAMDATA {
 	ULONG ulPropTag;
 	ECMAPIProp *lpProp;
-} STREAMDATA;
+};
 
 #endif // ECMAPIPROP_H

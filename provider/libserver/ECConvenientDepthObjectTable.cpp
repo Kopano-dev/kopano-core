@@ -48,7 +48,7 @@ ECConvenientDepthObjectTable::ECConvenientDepthObjectTable(ECSession *lpSession,
  */
 
 typedef std::list<ECSortKey> SortKey;
-typedef struct FOLDERINFO {
+struct FOLDERINFO {
     unsigned int ulFolderId;		// Actual folder id in the DB
     std::string strFolderName;		// Folder name like 'inbox'
     SortKey sortKey;				// List of collation keys of the folder names.
@@ -69,7 +69,7 @@ typedef struct FOLDERINFO {
 		// If we get this far, all collation keys were equal. So we should only return true if this.sortKey has less items than a.sortKey.
 		return sortKey.size() < a.sortKey.size();
     }
-} FOLDERINFO;
+};
 
 ECRESULT ECConvenientDepthObjectTable::Create(ECSession *lpSession, unsigned int ulStoreId, GUID *lpGuid, unsigned int ulFolderId, unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale, ECConvenientDepthObjectTable **lppTable)
 {

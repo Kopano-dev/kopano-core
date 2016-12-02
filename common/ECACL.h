@@ -21,7 +21,7 @@
 #include <kopano/zcdefs.h>
 #include <string>
 
-typedef enum ACLRIGHTS { 
+enum ACLRIGHTS { 
 	RIGHTS_EDIT_OWN = 0x8,
 	RIGHTS_EDIT_ALL = 0x20,
 	RIGHTS_DELETE_OWN = 0x10,
@@ -42,7 +42,7 @@ typedef enum ACLRIGHTS {
 	ROLE_REVIEWER = 0x401,
 	ROLE_CONTRIBUTOR = 0x402,
 	ROLE_NONE = 0x400
-} ACLRIGHTS;
+};
 
 extern "C" _kc_export std::string AclRightsToString(unsigned int rights);
 

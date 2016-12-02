@@ -43,7 +43,7 @@
 #include "kcore.hpp"
 #include <kopano/Util.h>
 
-typedef struct MAPIOBJECT {
+struct MAPIOBJECT {
 	MAPIOBJECT() {
 		/* see AllocNewMapiObject :: Mem.cpp */
 	};
@@ -105,7 +105,7 @@ typedef struct MAPIOBJECT {
 	ULONG ulUniqueId = 0; /* PR_ROWID (recipients) or PR_ATTACH_NUM (attachments) only */
 	ULONG ulObjId = 0; /* hierarchy id of recipients and attachments */
 	ULONG ulObjType = 0;
-} MAPIOBJECT;
+};
 
 typedef std::set<MAPIOBJECT*, MAPIOBJECT::CompareMAPIOBJECT>	ECMapiObjects;
 

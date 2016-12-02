@@ -36,9 +36,8 @@ public:
 
 	HRESULT HrGetHumanReadableString(std::string *lpstrHRS);
 	HRESULT HrGetItems(time_t start, time_t end, TIMEZONE_STRUCT ttZinfo, ULONG ulBusyStatus, OccrInfo **lppFbBlock, ULONG *lpcValues, bool last = false);
-	typedef enum freq_type {DAILY, WEEKLY, MONTHLY, YEARLY} freq_type;
-	typedef enum term_type {DATE, NUMBER, NEVER} term_type;
-
+	enum freq_type { DAILY, WEEKLY, MONTHLY, YEARLY };
+	enum term_type { DATE, NUMBER, NEVER };
 
 	freq_type getFrequency();
 	HRESULT setFrequency(freq_type ft);

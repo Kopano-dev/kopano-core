@@ -33,7 +33,7 @@
 typedef HRESULT (* SetPropCallBack)(ULONG ulPropTag, void* lpProvider, LPSPropValue lpsPropValue, void *lpParam);
 typedef HRESULT (* GetPropCallBack)(ULONG ulPropTag, void* lpProvider, ULONG ulFlags, LPSPropValue lpsPropValue, void *lpParam, void *lpBase);
 
-typedef struct PROPCALLBACK {
+struct PROPCALLBACK {
 	ULONG ulPropTag;
 	SetPropCallBack lpfnSetProp;
 	GetPropCallBack lpfnGetProp;
@@ -45,7 +45,7 @@ typedef struct PROPCALLBACK {
 	{
 		return callback.ulPropTag == this->ulPropTag;
 	}
-} PROPCALLBACK;
+};
 
 typedef std::map<short, PROPCALLBACK>			ECPropCallBackMap;
 typedef ECPropCallBackMap::iterator				ECPropCallBackIterator;

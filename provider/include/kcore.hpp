@@ -50,7 +50,7 @@
 #pragma pack(push,1)
 // Entryid from version 6
 // Entryid version 1
-typedef struct EID {
+struct EID {
 	BYTE	abFlags[4];
 	GUID	guid;			// StoreGuid
 	ULONG	ulVersion;
@@ -81,13 +81,11 @@ typedef struct EID {
 		memset(this, 0, sizeof(EID));
 		this->ulVersion = 1;
 	}
-
-} EID;
-
+};
 
 // The entryid from the begin of zarafa till 5.20
 // Entryid version is zero
-typedef struct EID_V0 {
+struct EID_V0 {
 	BYTE	abFlags[4];
 	GUID	guid;			// StoreGuid
 	ULONG	ulVersion;
@@ -114,12 +112,11 @@ typedef struct EID_V0 {
 	EID_V0() {
 		memset(this, 0, sizeof(EID_V0));
 	}
-
-} EID_V0;
+};
 
 #pragma pack(pop)
 
-typedef struct ABEID {
+struct ABEID {
 	BYTE	abFlags[4];
 	GUID	guid;
 	ULONG	ulVersion;
@@ -145,8 +142,8 @@ typedef struct ABEID {
 	ABEID() {
 		memset(this, 0, sizeof(ABEID));
 	}
-
-} ABEID, *PABEID;
+};
+typedef struct ABEID *PABEID;
 #define _CbABEID(p)	((sizeof(ABEID)+strlen((char*)(p)->szExId))&~3)
 #define CbABEID(p)	(sizeof(ABEID)>_CbABEID((p))?sizeof(ABEID):_CbABEID((p)))
 
@@ -156,7 +153,7 @@ typedef struct ABEID {
 #define ABEID_TYPE(p)	((p) ? ((ABEID *)(p))->ulType : -1)
 #define ABEID_ID(p)		((p) ? ((ABEID *)(p))->ulId : 0)
 
-typedef struct SIEID {
+struct SIEID {
 	BYTE	abFlags[4];
 	GUID	guid;
 	ULONG	ulVersion;
@@ -182,7 +179,8 @@ typedef struct SIEID {
 	SIEID() {
 		memset(this, 0, sizeof(SIEID));
 	}
-} SIEID, *LPSIEID;
+};
+typedef struct SIEID *LPSIEID;
 
 /* Bit definitions for abFlags[3] of ENTRYID */
 #define	KOPANO_FAVORITE		0x01		// Entryid from the favorits folder

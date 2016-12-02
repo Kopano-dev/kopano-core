@@ -75,5 +75,3 @@ struct _xop__Include {
   char *type;
   char *options;
 };
-
-typedef struct _xop__Include _xop__Include;

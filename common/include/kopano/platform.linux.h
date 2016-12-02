@@ -366,7 +366,7 @@ typedef union _ULARGE_INTEGER {
 /* #define MVszW	WCHAR** */
 
 // [MS-DTYP].pdf
-typedef struct SYSTEMTIME {
+struct SYSTEMTIME {
 	WORD wYear;
 	WORD wMonth;
 	WORD wDayOfWeek;
@@ -375,15 +375,17 @@ typedef struct SYSTEMTIME {
 	WORD wMinute;
 	WORD wSecond;
 	WORD wMilliseconds;
-} SYSTEMTIME, *PSYSTEMTIME;
+};
+typedef struct SYSTEMTIME *PSYSTEMTIME;
 
-typedef struct TZREG {
+struct TZREG {
 	LONG bias;
 	LONG stdbias;
 	LONG dstbias;
 	SYSTEMTIME stStandardDate;
 	SYSTEMTIME stDaylightDate;
-} TZREG, *PTZREG;
+};
+typedef struct TZREG *PTZREG;
 
 /* IUnknown Interface */
 class IUnknown {

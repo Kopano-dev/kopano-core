@@ -52,7 +52,7 @@ typedef hash_map<ECSESSIONID, unsigned int>::Type PERSISTENTBYSESSION;
 typedef hash_map<unsigned int, ECSESSIONID>::Type PERSISTENTBYCONNECTION;
 typedef std::multimap<unsigned int, ECSESSIONGROUPID> OBJECTSUBSCRIPTIONSMULTIMAP;
 
-typedef struct TABLESUBSCRIPTION {
+struct TABLESUBSCRIPTION {
      TABLE_ENTRY::TABLE_TYPE ulType;
      unsigned int ulRootObjectId;
      unsigned int ulObjectType;
@@ -60,7 +60,7 @@ typedef struct TABLESUBSCRIPTION {
      
      bool operator==(const TABLESUBSCRIPTION &b) const { return memcmp(this, &b, sizeof(*this)) == 0; }
      bool operator<(const TABLESUBSCRIPTION &b) const { return memcmp(this, &b, sizeof(*this)) < 0; }
-} TABLESUBSCRIPTION;
+};
 
 typedef std::multimap<TABLESUBSCRIPTION, ECSESSIONID> TABLESUBSCRIPTIONMULTIMAP;
 

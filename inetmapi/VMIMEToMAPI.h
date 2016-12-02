@@ -32,7 +32,7 @@
 enum BODYLEVEL { BODY_NONE, BODY_PLAIN, BODY_HTML };
 enum ATTACHLEVEL { ATTACH_NONE, ATTACH_INLINE, ATTACH_NORMAL };
 
-typedef struct sMailState {
+struct sMailState {
 	BODYLEVEL bodyLevel;		//!< the current body state. plain upgrades none, html upgrades plain and none.
 	ULONG ulLastCP;
 	ATTACHLEVEL attachLevel;	//!< the current attachment state
@@ -53,7 +53,7 @@ typedef struct sMailState {
 		bAttachSignature = false;
 		strHTMLBody.clear();
 	};
-} sMailState;
+};
 
 void ignoreError(void *ctx, const char *msg, ...);
 

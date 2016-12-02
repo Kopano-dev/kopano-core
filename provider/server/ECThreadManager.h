@@ -40,12 +40,12 @@ typedef struct {
     double dblReceiveStamp;		// time at which activity was detected on the socket
 } WORKITEM;
 
-typedef struct ACTIVESOCKET _kc_final {
+struct ACTIVESOCKET _kc_final {
     struct soap *soap;
     time_t ulLastActivity;
     
     bool operator < (const ACTIVESOCKET &a) const { return a.soap->socket < this->soap->socket; };
-} ACTIVESOCKET;
+};
 
 class FindSocket _kc_final {
 public:

@@ -26,7 +26,7 @@
 #include <kopano/ECDefs.h>
 
 /* Extern object */
-typedef struct objectid_t {
+struct objectid_t {
 	objectid_t(const std::string &id, objectclass_t objclass);
 	explicit objectid_t(const std::string &str);
 	objectid_t(objectclass_t objclass);
@@ -38,7 +38,7 @@ typedef struct objectid_t {
 
 	std::string id;
 	objectclass_t objclass;
-} objectid_t;
+};
 
 inline bool operator < (const objectid_t &a, const objectid_t &b) {
 	if (a.objclass < b.objclass)
