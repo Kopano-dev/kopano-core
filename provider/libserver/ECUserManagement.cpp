@@ -326,38 +326,38 @@ ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const list<objectsig
 		lpDetails->push_back(localobjectdetails_t(ulObjectId, details));
 	}
 
+	if (lstExternIds.empty())
+		return hrSuccess;
+
 	// We have a list of all objects which still require details from plugin
-	if (!lstExternIds.empty()) {
-		try {
-			// Get all pending details
-			lpExternDetails = lpPlugin->getObjectDetails(lstExternIds);
-		} catch (notsupported &) {
-			return KCERR_NO_SUPPORT;
-		} catch (objectnotfound &) {
-			return KCERR_NOT_FOUND;
-		} catch(std::exception &e) {
-			ec_log_warn("Unable to retrieve details from external user source: %s", e.what());
-			return KCERR_PLUGIN_ERROR;
-		}
+	try {
+		// Get all pending details
+		lpExternDetails = lpPlugin->getObjectDetails(lstExternIds);
+	} catch (notsupported &) {
+		return KCERR_NO_SUPPORT;
+	} catch (objectnotfound &) {
+		return KCERR_NOT_FOUND;
+	} catch(std::exception &e) {
+		ec_log_warn("Unable to retrieve details from external user source: %s", e.what());
+		return KCERR_PLUGIN_ERROR;
+	}
 
-		for (const auto &ext_det : *lpExternDetails) {
-			auto iterExternLocal = mapExternToLocal.find(ext_det.first);
-			if (iterExternLocal == mapExternToLocal.cend())
+	for (const auto &ext_det : *lpExternDetails) {
+		auto iterExternLocal = mapExternToLocal.find(ext_det.first);
+		if (iterExternLocal == mapExternToLocal.cend())
+			continue;
+
+		ulObjectId = iterExternLocal->second;
+		if (ulFlags & USERMANAGEMENT_ADDRESSBOOK)
+			if (MustHide(*lpSecurity, ulFlags, ext_det.second))
 				continue;
+		if (ulFlags & USERMANAGEMENT_IDS_ONLY)
+			lpDetails->push_back(localobjectdetails_t(ulObjectId, objectdetails_t(ext_det.second.GetClass())));
+		else
+			lpDetails->push_back(localobjectdetails_t(ulObjectId, ext_det.second));
 
-			ulObjectId = iterExternLocal->second;
-
-			if (ulFlags & USERMANAGEMENT_ADDRESSBOOK)
-				if (MustHide(*lpSecurity, ulFlags, ext_det.second))
-					continue;
-			if (ulFlags & USERMANAGEMENT_IDS_ONLY)
-				lpDetails->push_back(localobjectdetails_t(ulObjectId, objectdetails_t(ext_det.second.GetClass())));
-			else
-				lpDetails->push_back(localobjectdetails_t(ulObjectId, ext_det.second));
-
-			// Update cache
-			m_lpSession->GetSessionManager()->GetCacheManager()->SetUserDetails(ulObjectId, &ext_det.second);
-		}
+		// Update cache
+		m_lpSession->GetSessionManager()->GetCacheManager()->SetUserDetails(ulObjectId, &ext_det.second);
 	}
 	return erSuccess;
 }

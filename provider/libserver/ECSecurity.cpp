@@ -837,14 +837,13 @@ ECRESULT ECSecurity::IsUserObjectVisible(unsigned int ulUserObjectId)
 	unsigned int ulCompanyId;
 
 	if (ulUserObjectId == 0 ||
-		ulUserObjectId == m_ulUserID ||
-		ulUserObjectId == m_ulCompanyID ||
-		ulUserObjectId == KOPANO_UID_SYSTEM ||
-		ulUserObjectId == KOPANO_UID_EVERYONE ||
-		m_details.GetPropInt(OB_PROP_I_ADMINLEVEL) == ADMIN_LEVEL_SYSADMIN ||
-		!m_lpSession->GetSessionManager()->IsHostedSupported()) {
+	    ulUserObjectId == m_ulUserID ||
+	    ulUserObjectId == m_ulCompanyID ||
+	    ulUserObjectId == KOPANO_UID_SYSTEM ||
+	    ulUserObjectId == KOPANO_UID_EVERYONE ||
+	    m_details.GetPropInt(OB_PROP_I_ADMINLEVEL) == ADMIN_LEVEL_SYSADMIN ||
+	    !m_lpSession->GetSessionManager()->IsHostedSupported())
 		return erSuccess;
-	}
 
 	er = m_lpSession->GetUserManagement()->GetExternalId(ulUserObjectId, &sExternId, &ulCompanyId);
 	if (er != erSuccess)
@@ -1375,9 +1374,9 @@ ECRESULT ECSecurity::GetUserQuota(unsigned int ulUserId, bool bGetUserDefault, q
 
 	/* Not all objectclasses support quota */
 	if ((sExternId.objclass == NONACTIVE_CONTACT) ||
-		(OBJECTCLASS_TYPE(sExternId.objclass) == OBJECTTYPE_DISTLIST) ||
-		(sExternId.objclass == CONTAINER_ADDRESSLIST))
-			goto exit;
+	    (OBJECTCLASS_TYPE(sExternId.objclass) == OBJECTTYPE_DISTLIST) ||
+	    (sExternId.objclass == CONTAINER_ADDRESSLIST))
+		goto exit;
 
 	er = m_lpSession->GetUserManagement()->GetQuotaDetailsAndSync(ulUserId, &quotadetails, bGetUserDefault);
 	if (er != erSuccess)

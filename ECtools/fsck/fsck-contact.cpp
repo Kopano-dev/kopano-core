@@ -63,9 +63,9 @@ HRESULT FsckContact::ValidateContactNames(LPMESSAGE lpMessage)
 
 	for (ULONG i = 0; i < TAG_COUNT; ++i)
 		if (PROP_TYPE(lpPropertyArray[i].ulPropTag) != PT_ERROR &&
-			lpPropertyArray[i].Value.lpszA &&
-			strlen(lpPropertyArray[i].Value.lpszA))
-				result[i] = std::string(lpPropertyArray[i].Value.lpszA);
+		    lpPropertyArray[i].Value.lpszA &&
+		    strlen(lpPropertyArray[i].Value.lpszA))
+			result[i] = std::string(lpPropertyArray[i].Value.lpszA);
 
 	/* Generate fullname based on remaining fields */
 	if (result[E_FULLNAME].empty()) {
