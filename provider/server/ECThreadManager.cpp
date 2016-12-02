@@ -94,6 +94,15 @@ static string GetSoapError(int err)
 	return stringify(err);
 }
 
+static void kcsrv_blocksigs(void)
+{
+	sigset_t m;
+	sigemptyset(&m);
+	sigaddset(&m, SIGINT);
+	sigaddset(&m, SIGHUP);
+	sigaddset(&m, SIGTERM);
+}
+
 ECWorkerThread::ECWorkerThread(ECLogger *lpLogger, ECThreadManager *lpManager, ECDispatcher *lpDispatcher, bool bDoNotStart)
 {
 	m_lpLogger = lpLogger;
@@ -135,6 +144,7 @@ ECWorkerThread::~ECWorkerThread()
 
 void *ECWorkerThread::Work(void *lpParam)
 {
+	kcsrv_blocksigs();
     ECWorkerThread *lpThis = (ECWorkerThread *)lpParam;
 	ECPriorityWorkerThread *lpPrio = dynamic_cast<ECPriorityWorkerThread*>(lpThis);
     WORKITEM *lpWorkItem = NULL;
@@ -396,6 +406,7 @@ void *ECWatchDog::Watch(void *lpParam)
 {
     ECWatchDog *lpThis = (ECWatchDog *)lpParam;
     double dblAge;
+	kcsrv_blocksigs();
     
     while(1) {
 		if(lpThis->m_bExit == true)

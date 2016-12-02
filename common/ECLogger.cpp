@@ -1018,15 +1018,12 @@ void generic_sigsegv_handler(ECLogger *lpLogger, const char *app_name,
 	ec_log_crit("User time: %ld, system time: %ld, signal value: %d", si->si_utime, si->si_stime, si->si_value.sival_int);
 	ec_log_crit("Faulting address: %p, affected fd: %d", si->si_addr, si->si_fd);
 	lpLogger->Log(EC_LOGLEVEL_FATAL, "When reporting this traceback, please include Linux distribution name (and version), system architecture and Kopano version.");
-	/*
-	 * By default, the signal that invoked this handler is blocked
-	 * during execution of the handler.
-	 */
-	sigset_t bset;
-	sigfillset(&bset);
-	pthread_sigmask(SIG_UNBLOCK, &bset, NULL);
-	kill(getpid(), signr);
-	ec_log_warn("Killing self with signal had no effect; doing regular exit without coredump.");
+	/* Reset to DFL to avoid recursion */
+	if (signal(signr, SIG_DFL) < 0)
+		ec_log_warn("Cannot reset signal handler: %s", strerror(errno));
+	else if (kill(getpid(), signr) <= 0)
+		ec_log_warn("Killing self with signal had no effect. Error code: %s", strerror(errno));
+	ec_log_warn("Regular exit without coredump.");
 	_exit(1);
 }
 
