@@ -656,7 +656,7 @@ namespace PrivatePipe {
 	ECConfig *m_lpConfig;
 	pthread_t signal_thread;
 	sigset_t signal_mask;
-	static void sighup(void)
+	static void sighup(int)
 	{
 		if (m_lpConfig) {
 			const char *ll;
@@ -668,26 +668,6 @@ namespace PrivatePipe {
 
 		m_lpFileLogger->Reset();
 		m_lpFileLogger->Log(EC_LOGLEVEL_INFO, "[%5d] Log process received sighup", getpid());
-	}
-	static void sigpipe(void)
-	{
-		m_lpFileLogger->Log(EC_LOGLEVEL_INFO, "[%5d] Log process received sigpipe", getpid());
-	}
-	static void *signal_handler(void *)
-	{
-		int sig;
-		m_lpFileLogger->Log(EC_LOGLEVEL_DEBUG, "[%5d] Log signal thread started", getpid());
-		while (sigwait(&signal_mask, &sig) == 0) {
-			switch(sig) {
-				case SIGHUP:
-					sighup();
-					break;
-				case SIGPIPE:
-					sigpipe();
-					return NULL;
-			};
-		}
-		return NULL;
 	}
 	static int PipePassLoop(int readfd, ECLogger_File *lpFileLogger,
 	    ECConfig *lpConfig)
@@ -703,12 +683,11 @@ namespace PrivatePipe {
 		m_lpFileLogger = lpFileLogger;
 		m_lpFileLogger->AddRef();
 
-		sigemptyset(&signal_mask);
-		sigaddset(&signal_mask, SIGHUP);
-		sigaddset(&signal_mask, SIGPIPE);
-		pthread_sigmask(SIG_BLOCK, &signal_mask, NULL);
-		pthread_create(&signal_thread, NULL, signal_handler, NULL);
-		set_thread_name(signal_thread, "ECLogger:SigThrd");
+		struct sigaction act;
+		act.sa_handler = sighup;
+		act.sa_flags = SA_RESTART | SA_ONSTACK;
+		sigaction(SIGHUP, &act, nullptr);
+		signal(SIGPIPE, SIG_IGN);
 		// ignore stop signals to keep logging until the very end
 		signal(SIGTERM, SIG_IGN);
 		signal(SIGINT, SIG_IGN);
@@ -767,7 +746,6 @@ namespace PrivatePipe {
 		}
 		// we need to stop fetching signals
 		kill(getpid(), SIGPIPE);
-		pthread_join(signal_thread, NULL);
 		m_lpFileLogger->Log(EC_LOGLEVEL_INFO, "[%5d] Log process is done", getpid());
 		m_lpFileLogger->Release();
 		return ret;
