@@ -63,6 +63,8 @@
 
 using namespace std;
 
+static int forcedExitCode = 0;
+
 enum modes {
 	MODE_INVALID = 0, MODE_LIST_USERS, MODE_CREATE_PUBLIC,
 	MODE_CREATE_USER, MODE_CREATE_STORE, MODE_HOOK_STORE, MODE_UNHOOK_STORE,
@@ -844,7 +846,9 @@ static void print_user_settings(IMsgStore *lpStore, const ECUSER *lpECUser,
 	SizedSPropTagArray(5, sptaProps) = {5, { PR_LAST_LOGON_TIME, PR_LAST_LOGOFF_TIME, PR_EC_OUTOFOFFICE, PR_EC_OUTOFOFFICE_FROM, PR_EC_OUTOFOFFICE_UNTIL } };
 	ULONG cValues = 0;
 
-	lpStore->GetProps(sptaProps, 0, &cValues, &lpProps);
+	if (lpStore)
+		lpStore->GetProps(sptaProps, 0, &cValues, &lpProps);
+
 	cout << "Username:\t\t" << (LPSTR)lpECUser->lpszUsername << endl;
 	cout << "Fullname:\t\t" << (LPSTR)lpECUser->lpszFullName << endl;
 	cout << "Emailaddress:\t\t" << (LPSTR)lpECUser->lpszMailAddress << endl;
@@ -1547,18 +1551,20 @@ static HRESULT print_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore,
 
 			hr = lpIEMS->CreateStoreEntryID((LPTSTR)"", lpECUser->lpszUsername, 0, &cbEntryID, &lpEntryID);
 			if (hr != hrSuccess) {
-				cerr << "Unable to get user store entry id. User possibly has no store." << endl;
-				goto exit;
+				cerr << "WARNING: Unable to get user store entry id. User possibly has no store." << endl << endl;
+				lpStore = NULL;
+				forcedExitCode = 1;
 			}
+			else {
+				hr = lpSession->OpenMsgStore(0, cbEntryID, lpEntryID, &IID_IMsgStore, MDB_WRITE, &lpStore);
+				if (hr != hrSuccess) {
+					cerr << "Unable to open user store." << endl;
+					goto exit;
+				}
 
-			hr = lpSession->OpenMsgStore(0, cbEntryID, lpEntryID, &IID_IMsgStore, MDB_WRITE, &lpStore);
-			if (hr != hrSuccess) {
-				cerr << "Unable to open user store." << endl;
-				goto exit;
+				GetAutoAcceptSettings(lpStore, &bAutoAccept, &bDeclineConflict, &bDeclineRecurring);
+				/* Ignore return value */
 			}
-
-			GetAutoAcceptSettings(lpStore, &bAutoAccept, &bDeclineConflict, &bDeclineRecurring);
-			/* Ignore return value */
 
 			hr = lpServiceAdmin->GetGroupListOfUser(cbObjectId, lpObjectId, 0, &cGroups, &lpECGroups);
 			if (hr != hrSuccess) {
@@ -4436,9 +4442,16 @@ exit:
 	lpLogger = NULL;
 	delete lpsConfig;
 	SSL_library_cleanup();
-	if (hr != hrSuccess)
-		cerr << "Using the -v option (possibly multiple times) may give more hints." << endl;
 
-	return hr == hrSuccess ? 0 : 1;
+	if (forcedExitCode > 0)
+		return forcedExitCode;
+
+	if (hr == hrSuccess)
+		return 0;
+
+	cerr << "Using the -v option (possibly multiple times) may "
+	     << "give more hints." << endl;
+
+	return 1;
 }
 
