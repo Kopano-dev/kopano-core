@@ -31,6 +31,25 @@
 
 #define MAX_NOTIFS_PER_CALL 64
 
+struct ECADVISE {
+	ULONG cbKey;
+	BYTE *lpKey;
+	ULONG ulEventMask;
+	IMAPIAdviseSink *lpAdviseSink;
+	ULONG ulConnection;
+	GUID guid;
+	ULONG ulSupportConnection;
+};
+
+struct ECCHANGEADVISE {
+	ULONG ulSyncId;
+	ULONG ulChangeId;
+	ULONG ulEventMask;
+	IECChangeAdviseSink *lpAdviseSink;
+	ULONG ulConnection;
+	GUID guid;
+};
+
 static inline std::pair<ULONG,ULONG> SyncAdviseToConnection(const SSyncAdvise &sSyncAdvise) {
 	return std::make_pair(sSyncAdvise.sSyncState.ulSyncId,sSyncAdvise.ulConnection);
 }

@@ -94,6 +94,7 @@ ULONG		g_ulLoadsim;
 // Map of msprovider with Profilename as key
 ECMapProvider	g_mapProviders;
 
+static HRESULT RemoveAllProviders(ECMapProvider *);
 class CKopanoApp {
 public:
     CKopanoApp() {
@@ -116,6 +117,19 @@ public:
 };
 
 CKopanoApp theApp;
+
+static HRESULT RemoveAllProviders(ECMapProvider *mp)
+{
+	if (mp == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+	for (const auto &p : *mp) {
+		if (p.second.lpMSProviderOnline)
+			p.second.lpMSProviderOnline->Release();
+		if (p.second.lpABProviderOnline)
+			p.second.lpABProviderOnline->Release();
+	}
+	return hrSuccess;
+}
 
 // entrypoints
 

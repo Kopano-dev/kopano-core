@@ -102,22 +102,6 @@ exit:
 	return hr;
 }
 
-HRESULT RemoveAllProviders(ECMapProvider* lpmapProvider)
-{
-	ECMapProvider::const_iterator iterProvider;
-	
-	if (lpmapProvider == NULL)
-		return MAPI_E_INVALID_PARAMETER;
-
-	for (const auto &p : *lpmapProvider) {
-		if (p.second.lpMSProviderOnline)
-			p.second.lpMSProviderOnline->Release();
-		if (p.second.lpABProviderOnline)
-			p.second.lpABProviderOnline->Release();
-	}
-	return hrSuccess;
-}
-
 HRESULT SetProviderMode(IMAPISupport *lpMAPISup, ECMapProvider* lpmapProvider, LPCSTR lpszProfileName, ULONG ulConnectType)
 {
 	return hrSuccess;

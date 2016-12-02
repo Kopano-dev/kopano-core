@@ -90,10 +90,6 @@ extern _kc_export HRESULT RTimeToUnixTime(LONG rtime, time_t *unixtime);
 extern _kc_export time_t SystemTimeToUnixTime(const SYSTEMTIME &);
 extern _kc_export SYSTEMTIME TMToSystemTime(const struct tm &);
 extern _kc_export double GetTimeOfDay(void);
-ULONG	CreateIntDate(ULONG day, ULONG month, ULONG year);
-ULONG	CreateIntTime(ULONG seconds, ULONG minutes, ULONG hours);
-extern _kc_export ULONG FileTimeToIntDate(const FILETIME &);
-extern _kc_export ULONG SecondsToIntTime(ULONG);
 
 inline double difftimeval(struct timeval *ptstart, struct timeval *ptend) {
 	return 1000000 * (ptend->tv_sec - ptstart->tv_sec) + (ptend->tv_usec - ptstart->tv_usec);
@@ -160,7 +156,6 @@ extern _kc_export void give_filesize_hint(int fd, off_t len);
 
 extern _kc_export bool force_buffers_to_disk(int fd);
 extern _kc_export int ec_relocate_fd(int);
-extern _kc_export int kc_reexec_with_allocator(char **, const char *);
 
 } /* extern "C" */
 

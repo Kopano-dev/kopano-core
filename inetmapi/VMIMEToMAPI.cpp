@@ -76,6 +76,68 @@ static vmime::charset vtm_upgrade_charset(vmime::charset cset, const char *ascii
 static const char im_charset_unspec[] = "unspecified";
 
 /**
+ * Create INT date
+ *
+ * @param[in] day Day of month 1-31
+ * @param[in] month Month of year 1-12
+ * @param[in] year Full year (eg 2008)
+ * @return ULONG Calculated INT date
+ */
+static ULONG CreateIntDate(ULONG day, ULONG month, ULONG year)
+{
+	return day + month * 32 + year * 32 * 16;
+}
+
+/**
+ * Create INT time
+ *
+ * @param[in] seconds Seconds 0-59
+ * @param[in] minutes Minutes 0-59
+ * @param[in] hours Hours
+ * @return Calculated INT time
+ */
+static ULONG CreateIntTime(ULONG seconds, ULONG minutes, ULONG hours)
+{
+	return seconds + minutes * 64 + hours * 64 * 64;
+}
+
+/**
+ * Create INT date from filetime
+ *
+ * Discards time information from the passed FILETIME stamp, and returns the
+ * date part as an INT date. The passed FILETIME is interpreted in GMT.
+ *
+ * @param[in] ft FileTime to convert
+ * @return Converted DATE part of the file time.
+ */
+static ULONG FileTimeToIntDate(const FILETIME &ft)
+{
+	struct tm date;
+	time_t t;
+	FileTimeToUnixTime(ft, &t);
+	gmtime_safe(&t, &date);
+	return CreateIntDate(date.tm_mday, date.tm_mon+1, date.tm_year+1900);
+}
+
+/**
+ * Create INT time from offset in seconds
+ *
+ * Creates an INT time value for the moment at which the passed amount of
+ * seconds has passed on a day.
+ *
+ * @param[in] seconds Number of seconds since beginning of day
+ * @return Converted INT time
+ */
+static ULONG SecondsToIntTime(ULONG seconds)
+{
+	ULONG hours = seconds / (60*60);
+	seconds -= hours * 60 * 60;
+	ULONG minutes = seconds / 60;
+	seconds -= minutes * 60;
+	return CreateIntTime(seconds, minutes, hours);
+}
+
+/**
  * Default empty constructor for the inetmapi library. Sets all member
  * values to sane defaults.
  */

@@ -28,25 +28,8 @@
 #include <list>
 #include <mapispi.h>
 
-struct ECADVISE {
-	ULONG				cbKey;
-	LPBYTE				lpKey;
-	ULONG				ulEventMask;
-	LPMAPIADVISESINK	lpAdviseSink;
-	ULONG				ulConnection;
-	GUID				guid;
-	ULONG				ulSupportConnection;
-};
-
-struct ECCHANGEADVISE {
-	ULONG					ulSyncId;
-	ULONG					ulChangeId;
-	ULONG					ulEventMask;
-	IECChangeAdviseSink *lpAdviseSink;
-	ULONG					ulConnection;
-	GUID					guid;
-};
-
+struct ECADVISE;
+struct ECCHANGEADVISE;
 typedef std::map<int, ECADVISE*> ECMAPADVISE;
 typedef std::map<int, ECCHANGEADVISE*> ECMAPCHANGEADVISE;
 typedef std::list<std::pair<syncid_t,connection_t> > ECLISTCONNECTION;

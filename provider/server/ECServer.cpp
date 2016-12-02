@@ -657,6 +657,72 @@ exit:
 	return er;
 }
 
+/**
+ * Restart the program with a new preloaded library.
+ * @argv:	full argv of current invocation
+ * @lib:	library to load via LD_PRELOAD
+ *
+ * As every program under Linux is linked to libc and symbol resolution is done
+ * breadth-first, having just libkcserver.so linked to the alternate allocator
+ * is not enough to ensure the allocator is being used in favor of libc malloc.
+ *
+ * A program built against glibc will have a record for e.g.
+ * "malloc@GLIBC_2.2.5". The use of LD_PRELOAD appears to relax the version
+ * requirement, though; the benefit would be that libtcmalloc's malloc will
+ * take over _all_ malloc calls.
+ */
+static int kc_reexec_with_allocator(char **argv, const char *lib)
+{
+	if (lib == NULL || *lib == '\0')
+		return 0;
+	const char *s = getenv("KC_ALLOCATOR_DONE");
+	if (s != NULL)
+		/* avoid repeatedly reexecing ourselves */
+		return 0;
+	s = getenv("LD_PRELOAD");
+	if (s == NULL)
+		setenv("LD_PRELOAD", lib, true);
+	else if (strstr(s, "/valgrind/") != NULL)
+		/*
+		 * Within vg, everything is a bit different — since it catches
+		 * execve itself. Execing /proc/self/exe therefore won't work,
+		 * we would need to use argv[0]. But… don't bother.
+		 */
+		return 0;
+	else
+		setenv("LD_PRELOAD", (std::string(s) + ":" + lib).c_str(), true);
+	void *handle = dlopen(lib, RTLD_LAZY | RTLD_LOCAL);
+	if (handle == NULL)
+		/*
+		 * Ignore libraries that won't load anyway. This avoids
+		 * ld.so emitting a scary warning if we did re-exec.
+		 */
+		return 0;
+	dlclose(handle);
+	setenv("KC_ALLOCATOR_DONE", lib, true);
+
+	/* Resolve "exe" symlink before exec to please the sysadmin */
+	std::vector<char> linkbuf(16);
+	ssize_t linklen;
+	while (true) {
+		linklen = readlink("/proc/self/exe", &linkbuf[0], linkbuf.size());
+		if (linklen < 0 || static_cast<size_t>(linklen) < linkbuf.size())
+			break;
+		linkbuf.resize(linkbuf.size() * 2);
+	}
+	if (linklen < 0) {
+		int ret = -errno;
+		ec_log_warn("kc_reexec_with_allocator: readlink: %s", strerror(errno));
+		return ret;
+	}
+	linkbuf[linklen] = '\0';
+	ec_log_debug("Reexecing %s with %s", &linkbuf[0], lib);
+	execv(&linkbuf[0], argv);
+	int ret = -errno;
+	ec_log_info("Failed to reexec self: %s. Continuing with standard allocator.", strerror(errno));
+	return ret;
+}
+
 int main(int argc, char* argv[])
 {
 	int nReturn = 0;

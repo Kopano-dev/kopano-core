@@ -44,6 +44,11 @@
 
 #include <sstream>
 
+struct STREAMDATA {
+	ULONG ulPropTag;
+	ECMAPIProp *lpProp;
+};
+
 static struct rights ECPermToRightsCheap(const ECPERMISSION &p)
 {
 	struct rights r = {0, p.ulType, p.ulRights, p.ulState};
