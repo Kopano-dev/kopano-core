@@ -62,7 +62,8 @@ struct ECStat {
 	const char *name;
 	const char *description;
 	std::mutex lock;
-#if defined(__GNUG__) && __GNUG__ == 4 && __GNUC_MINOR__ <= 7
+#if defined(__GNUG__) && __GNUG__ == 4 && \
+    defined(__GNUC_MINOR__) && __GNUC_MINOR__ <= 7
 	/*
 	 * g++-4.7 does not have std::map emplace support yet, so it just
 	 * attempts to use copy constructors when inserting an element.
