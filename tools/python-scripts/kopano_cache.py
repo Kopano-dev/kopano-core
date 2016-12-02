@@ -93,7 +93,7 @@ def boost_unordered_map_nodes(map):
         COUNT2 += 1
         node = next_node
         if COUNT2 % 10000 == 0:
-            print 'counts:', COUNT2, COUNT
+            print('counts:', COUNT2, COUNT)
 #            break
 
 def _quota_blocks(map, blocks, starts, start_block):
@@ -115,15 +115,15 @@ def _quota_blocks(map, blocks, starts, start_block):
     return found_blocks
 
 def quota_blocks(*args):
-    print
-    print 'QUOTA CACHE'
+    print()
+    print('QUOTA CACHE')
 
     map = cachemgr['m_QuotaCache']['m_map']
     return _quota_blocks(map, *args)
 
 def uquota_blocks(*args):
-    print
-    print 'QUOTAUSERDEFAULT CACHE'
+    print()
+    print('QUOTAUSERDEFAULT CACHE')
 
     map = cachemgr['m_QuotaUserDefaultCache']['m_map']
     return _quota_blocks(map, *args)
@@ -146,8 +146,8 @@ def store_blocks(blocks, starts, start_block):
     return found_blocks
 
 def index1_blocks(blocks, starts, start_block):
-    print
-    print 'INDEX1 CACHE'
+    print()
+    print('INDEX1 CACHE')
 
     map = cachemgr['m_PropToObjectCache']['m_map']
 
@@ -170,8 +170,8 @@ def index1_blocks(blocks, starts, start_block):
     return found_blocks
 
 def index2_blocks(blocks, starts, start_block):
-    print
-    print 'INDEX2 CACHE'
+    print()
+    print('INDEX2 CACHE')
 
     found_blocks = []
 
@@ -188,8 +188,8 @@ def index2_blocks(blocks, starts, start_block):
     return found_blocks
 
 def obj_blocks(blocks, starts, start_block):
-    print
-    print 'OBJECTS CACHE'
+    print()
+    print('OBJECTS CACHE')
 
     map = cachemgr['m_ObjectsCache']['m_map']
 
@@ -224,14 +224,14 @@ def _cell_stdmap_blocks(map, starts, start_block):
             fb = tcstats.bisect_block(addr, starts, start_block)
             found_blocks.append(fb)
         else:
-            print 'FOUT', union
+            print('FOUT', union)
             fout
 
     return found_blocks
 
 def cell_blocks(blocks, starts, start_block):
-    print
-    print 'CELL CACHE'
+    print()
+    print('CELL CACHE')
 
     map = cachemgr['m_CellCache']['m_map']
 
@@ -252,8 +252,8 @@ def cell_blocks(blocks, starts, start_block):
     return found_blocks
 
 def userid_blocks(blocks, starts, start_block):
-    print
-    print 'USEROBJECT CACHE'
+    print()
+    print('USEROBJECT CACHE')
 
     map = cachemgr['m_UserObjectCache']['m_map']
 
@@ -277,8 +277,8 @@ def userid_blocks(blocks, starts, start_block):
     return found_blocks
 
 def usereid_blocks(blocks, starts, start_block):
-    print
-    print 'USEREID BLOCKS'
+    print()
+    print('USEREID BLOCKS')
 
     found_blocks = []
 
@@ -299,8 +299,8 @@ def usereid_blocks(blocks, starts, start_block):
     return found_blocks
 
 def userdetail_blocks(blocks, starts, start_block):
-    print
-    print 'USERDETAIL CACHE'
+    print()
+    print('USERDETAIL CACHE')
 
     map = cachemgr['m_UserObjectDetailsCache']['m_map']
 
@@ -317,8 +317,8 @@ def userdetail_blocks(blocks, starts, start_block):
     return found_blocks
 
 def acl_blocks(blocks, starts, start_block):
-    print
-    print 'ACL CACHE'
+    print()
+    print('ACL CACHE')
 
     map = cachemgr['m_AclCache']['m_map']
 
@@ -342,8 +342,8 @@ def acl_blocks(blocks, starts, start_block):
 
 
 def server_blocks(blocks, starts, start_block):
-    print
-    print 'SERVERDETAIL CACHE'
+    print()
+    print('SERVERDETAIL CACHE')
 
     found_blocks = []
 
@@ -360,8 +360,8 @@ def server_blocks(blocks, starts, start_block):
     return found_blocks
 
 def prepare_data(name, blocks):
-    print
-    print name.upper()+' FREQ:'
+    print()
+    print(name.upper()+' FREQ:')
 #    tcstats.dump_blocks(blocks)
     summary, count, size = tcstats.freq_blocks(blocks)
     size = '%.2fGB' % (float(size) / (10**9))
@@ -377,7 +377,7 @@ def main(blocks=None, used=None, free=None, starts=None, start_block=None):
     starts = starts or sorted(b.address for b in used)
     start_block = start_block or {b.address: b for b in used}
 
-    print 'calc caches'
+    print('calc caches')
     args = (used, starts, start_block)
     c1 = cell_blocks(*args)
     c2 = obj_blocks(*args)
@@ -393,13 +393,13 @@ def main(blocks=None, used=None, free=None, starts=None, start_block=None):
     c12 = server_blocks(*args)
     caches = (c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12)
     for i, c in enumerate(caches):
-        print 'cache size', i, len(c), sum(b.size for b in c)
+        print('cache size', i, len(c), sum(b.size for b in c))
 
-    print 'calc unreached'
+    print('calc unreached')
     lost = tcstats.unreachable_blocks(used)
     used = tcstats.subtract_blocks(used, free)
 
-    print 'prep data'
+    print('prep data')
     for i, c in enumerate(caches):
         used = tcstats.subtract_blocks(used, c)
 

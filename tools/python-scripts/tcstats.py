@@ -24,8 +24,8 @@ sizemap_ = gdb.parse_and_eval('tcmalloc::Static::sizemap_') # XXX cache
 
 spantype = gdb.lookup_type('tcmalloc::Span').pointer()
 
-knumclasses = gdb.parse_and_eval('kNumClasses') # XXX skip 0?
-kmaxpages = gdb.parse_and_eval('kMaxPages')
+knumclasses = int(gdb.parse_and_eval('kNumClasses')) # XXX skip 0?
+kmaxpages = int(gdb.parse_and_eval('kMaxPages'))
 pagesize = 1 << int(gdb.parse_and_eval('kPageShift'))
 
 inferior = gdb.selected_inferior()
@@ -85,7 +85,7 @@ class Object(object):
         try:
             self.next_ = int(str(gdb.parse_and_eval('*(void **)'+hex(addr))), 16)
         except gdb.MemoryError: # XXX span type NORMAL, check elsewhere?
-            print 'MEMORY ERROR!!'
+            print('MEMORY ERROR!!')
             self.next_ = 0
 
     @property
@@ -130,25 +130,25 @@ class Block(object):
 def dump_pageheap():
     """ summarize page cache """
 
-    print
-    print 'PAGE HEAP'
+    print()
+    print('PAGE HEAP')
 
     for kind in ('normal', 'returned'):
-        print '(%s)' % kind
+        print('(%s)' % kind)
 
-        print 'pageheap_.large_:'
+        print('pageheap_.large_:')
         val = pageheap_['large_'][kind]
         for span in SpanList(val):
-            print span, span.length
+            print(span, span.length)
 
-        print 'pageheap_.free_:'
+        print('pageheap_.free_:')
         for x in range(kmaxpages):
             val = pageheap_['free_'][x][kind]
             for span in SpanList(val):
-                print '[%d/%d]' % (x, kmaxpages), span, span.length, span.location
+                print('[%d/%d]' % (x, kmaxpages), span, span.length, span.location)
 
     print
-    print 'PAGE MAP RADIX'
+    print('PAGE MAP RADIX')
 
 def pagemap_spans():
     """ parse 3-level radix tree containing 'spans', covering all memory used by tcmalloc """
@@ -177,44 +177,43 @@ def dump_pagemap():
     size = 0
     for span in pagemap_spans():
         size += span.length
-        print hex(span.start), span.length, span.size, span.location, '(%d objects)' % len(list(span.objects)), size
+        print(hex(span.start), span.length, span.size, span.location, '(%d objects)' % len(list(span.objects)), size)
 
 def dump_central_cache():
     """ summarizes central free cache """
 
     print
-    print 'CENTRAL CACHE'
+    print('CENTRAL CACHE')
 
     for kind in ('empty_', 'nonempty_'):
-        print '(%s)' % kind
+        print('(%s)' % kind)
 
         for x in range(knumclasses):
             val = central_cache_[x][kind]
             for span in SpanList(val):
-                print '[%d(%d/%d)]' % (span.size, x, knumclasses), span, span.length, span.location, '(%d objects)' % len(list(span.objects))
+                print('[%d(%d/%d)]' % (span.size, x, knumclasses), span, span.length, span.location, '(%d objects)' % len(list(span.objects)))
 
 def dump_thread_caches():
     """ summarizes thread free caches """
 
     print
-    print 'THREAD CACHES'
-
-    print 'thread heaps:', gdb.parse_and_eval('tcmalloc::ThreadCache::thread_heap_count_')
+    print('THREAD CACHES')
+    print('thread heaps:', gdb.parse_and_eval("'tcmalloc::ThreadCache::thread_heap_count_'"))
     heap = thread_heaps_
     while heap:
         if int(str(heap), 16) == 0:
             break
 
-        print
-        print '[thread %s]' % hex(int(heap['tid_']))
+        print()
+        print('[thread %s]' % hex(int(heap['tid_'])))
 
         for x in range(knumclasses):
             val = heap['list_'][x]
             objects = list(ObjectList(val['list_']))
             if objects:
                 size = int(sizemap_['class_to_size_'][x])
-                print '[%d(%d/%d)] (%d objects)' % (size, x, knumclasses, len(objects))
-        print
+                print('[%d(%d/%d)] (%d objects)' % (size, x, knumclasses, len(objects)))
+        print()
 
         heap = heap['next_']
 
@@ -272,7 +271,7 @@ def data_stacks():
             wa = str(frame) # XXX
             base_pointer = int(wa[wa.find('=')+1:wa.find(',')], 16)
             frame = frame.older()
-        data = str(inferior.read_memory(stack_pointer, base_pointer-stack_pointer))
+        data = bytes(inferior.read_memory(stack_pointer, base_pointer-stack_pointer))
         yield data
 
 def data_segments(): # XXX ugly, overkill?
@@ -291,7 +290,7 @@ def data_segments(): # XXX ugly, overkill?
             if True: #parts[4] in ('.data', '.bss') and not 'tcmalloc' in parts[-1]:
                 start= int(parts[0], 16)
                 size = int(parts[2], 16) - start
-                data = str(inferior.read_memory(start, size))
+                data = bytes(inferior.read_memory(start, size))
                 yield data
 
 def bisect_block(address, starts, start_block):
@@ -322,7 +321,7 @@ def search_reachable(reachable, starts, start_block):
                     new.add(block2.address)
                     reachable.add(block2.address)
             scanned += block.size
-            print 'scanned', scanned
+            print('scanned', scanned)
         front = new
 
     return reachable
@@ -372,15 +371,15 @@ def dump_blocks(blocks):
     """ summarizes given blocks """
 
     print
-    print 'BLOCK SUMMARY'
+    print('BLOCK SUMMARY')
 
     summary, count, size = freq_blocks(blocks)
 
-    print '%d blocks, %d total size' % (count, size)
+    print('%d blocks, %d total size' % (count, size))
 
-    print 'size frequencies:'
+    print('size frequencies:')
     for a,b in summary.items():
-        print a, b
+        print(a, b)
 
 def unreachable_blocks(used_blocks):
     """ determine unreachable blocks """
@@ -404,15 +403,15 @@ def main():
     blocks = list(pagemap_blocks())
     used = list(used_blocks(blocks))
     free = list(free_blocks(blocks))
-    print
-    print 'USED:'
+    print()
+    print('USED:')
     dump_blocks(used)
-    print
-    print 'FREE:'
+    print()
+    print('FREE:')
     dump_blocks(free)
     # reachability
     print
-    print 'LOST:'
+    print('LOST:')
     unreached = unreachable_blocks(used)
     dump_blocks(unreached)
 
