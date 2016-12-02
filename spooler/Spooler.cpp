@@ -110,14 +110,14 @@ static std::mutex hMutexMessagesWaiting;
 static std::condition_variable hCondMessagesWaiting;
 
 // messages being processed
-typedef struct _SendData {
+struct SendData {
 	ULONG cbStoreEntryId;
 	BYTE* lpStoreEntryId;
 	ULONG cbMessageEntryId;
 	BYTE* lpMessageEntryId;
 	ULONG ulFlags;
 	wstring strUsername;
-} SendData;
+};
 static map<pid_t, SendData> mapSendData;
 static map<pid_t, int> mapFinished;	// exit status of finished processes
 static std::mutex hMutexFinished; /* mutex for mapFinished */

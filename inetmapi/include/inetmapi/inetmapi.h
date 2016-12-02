@@ -27,12 +27,12 @@
 #include <vector>
 #include <inetmapi/options.h>
 
-typedef struct _sFailedRecip {
+struct sFailedRecip {
 	std::string strRecipEmail;
 	std::wstring strRecipName;
 	unsigned int ulSMTPcode;
 	std::string strSMTPResponse;
-} sFailedRecip;
+};
 
 // Sender Base class
 // implementation of smtp sender in ECVMIMEUtils as ECVMIMESender

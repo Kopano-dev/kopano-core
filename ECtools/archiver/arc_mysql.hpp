@@ -38,10 +38,10 @@ typedef unsigned long *	DB_LENGTHS;
 // The max length of a group_concat function
 #define MAX_GROUP_CONCAT_LEN		32768
 
-typedef struct _sDatabase {
+struct sKCMSQLDatabase_t {
 	const char *lpComment;
 	const char *lpSQL;
-} sKCMSQLDatabase_t;
+};
 
 class KCMDatabaseMySQL {
 public:

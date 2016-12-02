@@ -28,10 +28,10 @@
 
 #include "ECChannelClient.h"
 
-typedef struct {
+struct SIndexedTerm {
     std::string strTerm;
     std::set<unsigned int> setFields;
-} SIndexedTerm;
+};
 
 typedef std::set<unsigned int> setindexprops_t;
 

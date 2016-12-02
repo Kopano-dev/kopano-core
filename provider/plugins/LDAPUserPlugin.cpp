@@ -1793,8 +1793,7 @@ std::string LDAPUserPlugin::GetLDAPEntryDN(LDAPMessage *entry)
 	return dn;
 }
 
-// typedef inside a function is not allowed when using in templates.
-typedef struct {
+struct postaction {
 	objectid_t objectid;		//!< object to act on in the resolved map
 	objectclass_t objclass;		//!< resolveObject(s)FromAttributeType 1st parameter
 	string ldap_attr;			//!< resolveObjectFromAttributeType 2nd parameter
@@ -1803,7 +1802,7 @@ typedef struct {
 	const char *relAttrType;	//!< resolveObject(s)FromAttributeType 4th parameter
 	property_key_t propname;	//!< object prop to add/set from the result
 	std::string result_attr;	//!< optional: attribute to use from resulting object(s), if none then unique id
-} postaction;
+};
 
 std::unique_ptr<std::map<objectid_t, objectdetails_t> >
 LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)

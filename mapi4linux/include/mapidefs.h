@@ -83,12 +83,13 @@
 #define MAPI_COMPOUND		0x80
 
 /* ENTRYID */
-typedef struct _s_ENTRYID {
-	_s_ENTRYID(void) = delete;
-	template<typename _T> _s_ENTRYID(std::initializer_list<_T>) = delete;
+struct ENTRYID {
+	ENTRYID(void) = delete;
+	template<typename _T> ENTRYID(std::initializer_list<_T>) = delete;
     BYTE    abFlags[4];
     BYTE    ab[MAPI_DIM];
-} ENTRYID, *LPENTRYID;
+};
+typedef struct ENTRYID *LPENTRYID;
 
 #define CbNewENTRYID(_cb)	(offsetof(ENTRYID,ab) + (_cb))
 #define CbENTRYID(_cb)		(offsetof(ENTRYID,ab) + (_cb))
@@ -99,9 +100,10 @@ struct _ENTRYID_ ## _name { \
 } _name
 
 /* Byte-order-independent version of GUID (world-unique identifier) */
-typedef struct _s_MAPIUID {
+struct MAPIUID {
     BYTE ab[16];
-} MAPIUID, *LPMAPIUID;
+};
+typedef struct MAPIUID *LPMAPIUID;
 
 /* require string.h */
 #define IsEqualMAPIUID(lpuid1, lpuid2)  (!memcmp(lpuid1, lpuid2, sizeof(MAPIUID)))
@@ -237,12 +239,13 @@ typedef struct _s_MAPIUID {
 /* Data Structures */
 
 /* Property Tag Array */
-typedef struct _SPropTagArray {
-	_SPropTagArray(void) = delete;
-	template<typename _T> _SPropTagArray(std::initializer_list<_T>) = delete;
+struct SPropTagArray {
+	SPropTagArray(void) = delete;
+	template<typename _T> SPropTagArray(std::initializer_list<_T>) = delete;
     ULONG   cValues;
     ULONG   aulPropTag[MAPI_DIM];
-} SPropTagArray, *LPSPropTagArray;
+};
+typedef struct SPropTagArray *LPSPropTagArray;
 
 #define CbNewSPropTagArray(_ctag) \
     (offsetof(SPropTagArray,aulPropTag) + (_ctag)*sizeof(ULONG))
@@ -259,13 +262,12 @@ struct _SPropTagArray_ ## _name { \
 
 
 /* Property Value */
-//typedef struct _SPropValue  SPropValue;
 
 /* 32-bit version only, in little endian, Lo is unsigned because the sign bit is in Hi */
 #ifndef _tagCY_DEFINED
 #define _tagCY_DEFINED
 
-typedef union tagCY {
+union CURRENCY {
 #ifdef __GNUC__
     __extension__ struct {
 #else
@@ -280,75 +282,76 @@ typedef union tagCY {
 #endif
     };
     LONGLONG int64;
-} CURRENCY;
+};
 #endif
 
-typedef struct _SBinary {
+struct SBinary {
     ULONG       cb;
     LPBYTE      lpb;
-} SBinary, *LPSBinary;
+};
+typedef struct SBinary *LPSBinary;
 
-typedef struct _SShortArray {
+struct SShortArray {
     ULONG       cValues;
     short int    *lpi;
-} SShortArray;
+};
 
-typedef struct _SGuidArray {
+struct SGuidArray {
     ULONG       cValues;
     GUID        *lpguid;
-} SGuidArray;
+};
 
-typedef struct _SRealArray {
+struct SRealArray {
     ULONG       cValues;
     float       *lpflt;
-} SRealArray;
+};
 
-typedef struct _SLongArray {
+struct SLongArray {
     ULONG       cValues;
     LONG        *lpl;
-} SLongArray;
+};
 
-typedef struct _SLargeIntegerArray {
+struct SLargeIntegerArray {
     ULONG       cValues;
     LARGE_INTEGER   *lpli;
-} SLargeIntegerArray;
+};
 
-typedef struct _SDateTimeArray {
+struct SDateTimeArray {
     ULONG       cValues;
     FILETIME    *lpft;
-} SDateTimeArray;
+};
 
-typedef struct _SAppTimeArray {
+struct SAppTimeArray {
     ULONG       cValues;
     double      *lpat;
-} SAppTimeArray;
+};
 
-typedef struct _SCurrencyArray {
+struct SCurrencyArray {
     ULONG       cValues;
     CURRENCY    *lpcur;
-} SCurrencyArray;
+};
 
-typedef struct _SBinaryArray {
+struct SBinaryArray {
     ULONG       cValues;
     SBinary     *lpbin;
-} SBinaryArray;
+};
 
-typedef struct _SDoubleArray {
+struct SDoubleArray {
     ULONG       cValues;
     double      *lpdbl;
-} SDoubleArray;
+};
 
-typedef struct _SWStringArray {
+struct SWStringArray {
     ULONG       cValues;
     LPWSTR      *lppszW;
-} SWStringArray;
+};
 
-typedef struct _SLPSTRArray {
+struct SLPSTRArray {
     ULONG       cValues;
     LPSTR       *lppszA;
-} SLPSTRArray;
+};
 
-typedef union _PV {
+union __UPV {
     short int           i;          /* case PT_I2 */
     LONG                l;          /* case PT_LONG */
     ULONG               ul;         /* alias for PT_LONG */
@@ -377,29 +380,30 @@ typedef union _PV {
     SLargeIntegerArray  MVli;       /* case PT_MV_I8 */
     SCODE               err;        /* case PT_ERROR */
     LONG                x;          /* case PT_NULL, PT_OBJECT (no usable value) */
-} __UPV;
+};
 
-typedef struct _SPropValue {
+struct SPropValue {
     ULONG       ulPropTag;
     ULONG       dwAlignPad;
-    union _PV   Value;
-} SPropValue, *LPSPropValue;
-
-
+    union __UPV  Value;
+};
+typedef struct SPropValue *LPSPropValue;
 
 /* Property Problem and Property Problem Arrays */
-typedef struct _SPropProblem {
+struct SPropProblem {
     ULONG   ulIndex;
     ULONG   ulPropTag;
     SCODE   scode;
-} SPropProblem, *LPSPropProblem;
+};
+typedef struct SPropProblem *LPSPropProblem;
 
-typedef struct _SPropProblemArray {
-	_SPropProblemArray(void) = delete;
-	template<typename _T> _SPropProblemArray(std::initializer_list<_T>) = delete;
+struct SPropProblemArray {
+	SPropProblemArray(void) = delete;
+	template<typename _T> SPropProblemArray(std::initializer_list<_T>) = delete;
     ULONG           cProblem;
     SPropProblem    aProblem[MAPI_DIM];
-} SPropProblemArray, *LPSPropProblemArray;
+};
+typedef struct SPropProblemArray *LPSPropProblemArray;
 
 #define CbNewSPropProblemArray(_cprob) \
     (offsetof(SPropProblemArray,aProblem) + (_cprob)*sizeof(SPropProblem))
@@ -416,35 +420,39 @@ struct _SPropProblemArray_ ## _name { \
 /* Entry List */
 typedef SBinaryArray ENTRYLIST, *LPENTRYLIST;
 
-typedef struct _s_FLATENTRY {
-	_s_FLATENTRY(void) = delete;
-	template<typename _T> _s_FLATENTRY(std::initializer_list<_T>) = delete;
+struct FLATENTRY {
+	FLATENTRY(void) = delete;
+	template<typename _T> FLATENTRY(std::initializer_list<_T>) = delete;
     ULONG cb;
     BYTE abEntry[MAPI_DIM];
-} FLATENTRY, *LPFLATENTRY;
+};
+typedef struct FLATENTRY *LPFLATENTRY;
 
-typedef struct _s_FLATENTRYLIST {
-	_s_FLATENTRYLIST(void) = delete;
-	template<typename _T> _s_FLATENTRYLIST(std::initializer_list<_T>) = delete;
+struct FLATENTRYLIST {
+	FLATENTRYLIST(void) = delete;
+	template<typename _T> FLATENTRYLIST(std::initializer_list<_T>) = delete;
     ULONG       cEntries;
     ULONG       cbEntries;
     BYTE        abEntries[MAPI_DIM];
-} FLATENTRYLIST, *LPFLATENTRYLIST;
+};
+typedef struct FLATENTRYLIST *LPFLATENTRYLIST;
 
-typedef struct _s_MTSID {
-	_s_MTSID(void) = delete;
-	template<typename _T> _s_MTSID(std::initializer_list<_T>) = delete;
+struct MTSID {
+	MTSID(void) = delete;
+	template<typename _T> MTSID(std::initializer_list<_T>) = delete;
     ULONG       cb;
     BYTE        ab[MAPI_DIM];
-} MTSID, *LPMTSID;
+};
+typedef struct MTSID *LPMTSID;
 
-typedef struct _s_FLATMTSIDLIST {
-	_s_FLATMTSIDLIST(void) = delete;
-	template<typename _T> _s_FLATMTSIDLIST(std::initializer_list<_T>) = delete;
+struct FLATMTSIDLIST {
+	FLATMTSIDLIST(void) = delete;
+	template<typename _T> FLATMTSIDLIST(std::initializer_list<_T>) = delete;
     ULONG       cMTSIDs;
     ULONG       cbMTSIDs;
     BYTE        abMTSIDs[MAPI_DIM];
-} FLATMTSIDLIST, *LPFLATMTSIDLIST;
+};
+typedef struct FLATMTSIDLIST *LPFLATMTSIDLIST;
 
 #define CbNewFLATENTRY(_cb)     (offsetof(FLATENTRY,abEntry) + (_cb))
 #define CbFLATENTRY(_lpentry)   (offsetof(FLATENTRY,abEntry) + (_lpentry)->cb)
@@ -457,18 +465,20 @@ typedef struct _s_FLATMTSIDLIST {
 /* No SizedXXX macros for these types. */
 
 /* ADRENTRY, ADRLIST */
-typedef struct _ADRENTRY {
+struct ADRENTRY {
     ULONG           ulReserved1;
     ULONG           cValues;
     LPSPropValue    rgPropVals;
-} ADRENTRY, *LPADRENTRY;
+};
+typedef struct ADRENTRY *LPADRENTRY;
 
-typedef struct _ADRLIST {
-	_ADRLIST(void) = delete;
-	template<typename _T> _ADRLIST(std::initializer_list<_T>) = delete;
+struct ADRLIST {
+	ADRLIST(void) = delete;
+	template<typename _T> ADRLIST(std::initializer_list<_T>) = delete;
     ULONG           cEntries;
     ADRENTRY        aEntries[MAPI_DIM];
-} ADRLIST, *LPADRLIST;
+};
+typedef struct ADRLIST *LPADRLIST;
 
 #define CbNewADRLIST(_centries) \
     (offsetof(ADRLIST,aEntries) + (_centries)*sizeof(ADRENTRY))
@@ -483,18 +493,20 @@ struct _ADRLIST_ ## _name { \
 } _name
 
 /* SRow, SRowSet */
-typedef struct _SRow {
+struct SRow {
     ULONG           ulAdrEntryPad;
     ULONG           cValues;
     LPSPropValue    lpProps;
-} SRow, * LPSRow;
+};
+typedef struct SRow *LPSRow;
 
-typedef struct _SRowSet {
-	_SRowSet(void) = delete;
-	template<typename _T> _SRowSet(std::initializer_list<_T>) = delete;
+struct SRowSet {
+	SRowSet(void) = delete;
+	template<typename _T> SRowSet(std::initializer_list<_T>) = delete;
     ULONG           cRows;
     SRow            aRow[MAPI_DIM];
-} SRowSet, * LPSRowSet;
+};
+typedef struct SRowSet *LPSRowSet;
 
 #define CbNewSRowSet(_crow)     (offsetof(SRowSet,aRow) + (_crow)*sizeof(SRow))
 #define CbSRowSet(_lprowset)    (offsetof(SRowSet,aRow) + \
@@ -571,14 +583,14 @@ typedef const IID* LPCIID;
 
 
 /* Extended MAPI Error Information */
-typedef struct _MAPIERROR {
+struct MAPIERROR {
     ULONG   ulVersion;
     LPTSTR  lpszError;
     LPTSTR  lpszComponent;
     ULONG   ulLowLevelError;
     ULONG   ulContext;
-} MAPIERROR, *LPMAPIERROR;
-
+};
+typedef MAPIERROR *LPMAPIERROR;
 
 // pre definitions
 class IMsgStore;
@@ -616,7 +628,7 @@ typedef IMAPIProgress* LPMAPIPROGRESS;
 typedef IProviderAdmin* LPPROVIDERADMIN;
 
 // restrictions needed in multiple places
-typedef struct _SRestriction* LPSRestriction;
+typedef struct SRestriction *LPSRestriction;
 
 /* Full C++ classes */
 
@@ -641,14 +653,15 @@ typedef struct _SRestriction* LPSRestriction;
 /*  Union discriminator  */
 #define MNID_ID                 0
 #define MNID_STRING             1
-typedef struct _MAPINAMEID {
+struct MAPINAMEID {
     LPGUID lpguid;
     ULONG ulKind;
     union {
         LONG lID;
         LPWSTR lpwstrName;
     } Kind;
-} MAPINAMEID, *LPMAPINAMEID;
+};
+typedef struct MAPINAMEID *LPMAPINAMEID;
 
 class IMAPIProp : public virtual IUnknown {
 public:
@@ -746,15 +759,15 @@ public:
 #define TABLE_RELOAD        9
 
 /* Event Structures */
-typedef struct _ERROR_NOTIFICATION {
+struct ERROR_NOTIFICATION {
     ULONG       cbEntryID;
     LPENTRYID   lpEntryID;
     SCODE       scode;
     ULONG       ulFlags;
     LPMAPIERROR lpMAPIError;
-} ERROR_NOTIFICATION;
+};
 
-typedef struct _NEWMAIL_NOTIFICATION {
+struct NEWMAIL_NOTIFICATION {
     ULONG       cbEntryID;
     LPENTRYID   lpEntryID;
     ULONG       cbParentID;
@@ -762,9 +775,9 @@ typedef struct _NEWMAIL_NOTIFICATION {
     ULONG       ulFlags;
     LPTSTR      lpszMessageClass;
     ULONG       ulMessageFlags;
-} NEWMAIL_NOTIFICATION;
+};
 
-typedef struct _OBJECT_NOTIFICATION {
+struct OBJECT_NOTIFICATION {
     ULONG               cbEntryID;
     LPENTRYID           lpEntryID;
     ULONG               ulObjType;
@@ -775,31 +788,31 @@ typedef struct _OBJECT_NOTIFICATION {
     ULONG               cbOldParentID;
     LPENTRYID           lpOldParentID;
     LPSPropTagArray     lpPropTagArray;
-} OBJECT_NOTIFICATION;
+};
 
-typedef struct _TABLE_NOTIFICATION {
+struct TABLE_NOTIFICATION {
     ULONG               ulTableEvent;
     HRESULT             hResult;
     SPropValue          propIndex;
     SPropValue          propPrior;
     SRow                row;
     ULONG               ulPad;
-} TABLE_NOTIFICATION;
+};
 
-typedef struct _EXTENDED_NOTIFICATION {
+struct EXTENDED_NOTIFICATION {
     ULONG       ulEvent;
     ULONG       cb;
     LPBYTE      pbEventParameters;
-} EXTENDED_NOTIFICATION;
+};
 
-typedef struct {
+struct STATUS_OBJECT_NOTIFICATION {
     ULONG           cbEntryID;
     LPENTRYID       lpEntryID;
     ULONG           cValues;
     LPSPropValue    lpPropVals;
-} STATUS_OBJECT_NOTIFICATION;
+};
 
-typedef struct _NOTIFICATION {
+struct NOTIFICATION {
     ULONG   ulEventType;
     ULONG   ulAlignPad;
     union {
@@ -810,7 +823,8 @@ typedef struct _NOTIFICATION {
         EXTENDED_NOTIFICATION       ext;
         STATUS_OBJECT_NOTIFICATION  statobj;
     } info;
-} NOTIFICATION, *LPNOTIFICATION;
+};
+typedef struct NOTIFICATION *LPNOTIFICATION;
 
 
 /* Callback function type for MAPIAllocAdviseSink */
@@ -902,20 +916,22 @@ public:
 
 /* Data structures (Shared with IMAPITable) */
 
-typedef struct _SSortOrder {
+struct SSortOrder {
     ULONG   ulPropTag;          /* Column to sort on */
     ULONG   ulOrder;            /* Ascending, descending, combine to left */
-} SSortOrder, * LPSSortOrder;
+};
+typedef struct SSortOrder *LPSSortOrder;
 
-typedef struct _SSortOrderSet {
-	_SSortOrderSet(void) = delete;
-	template<typename _T> _SSortOrderSet(std::initializer_list<_T>) = delete;
+struct SSortOrderSet {
+	SSortOrderSet(void) = delete;
+	template<typename _T> SSortOrderSet(std::initializer_list<_T>) = delete;
     ULONG           cSorts;     /* Number of sort columns in aSort below*/
     ULONG           cCategories;    /* 0 for non-categorized, up to cSorts */
     ULONG           cExpanded;      /* 0 if no categories start expanded, */
                                     /*      up to cExpanded */
     SSortOrder      aSort[MAPI_DIM];    /* The sort orders */
-} SSortOrderSet, *LPSSortOrderSet;
+};
+typedef struct SSortOrderSet *LPSSortOrderSet;
 
 #define CbNewSSortOrderSet(_csort) \
     (offsetof(SSortOrderSet,aSort) + (_csort)*sizeof(SSortOrder))
@@ -1061,12 +1077,13 @@ public:
  *  If the AB_RECIPIENTS flag is set and neither AB_MODIFIABLE or AB_UNMODIFIABLE
  *  bits are set, it is an error.
  */
-typedef struct _flaglist {
-	_flaglist(void) = delete;
-	template<typename _T> _flaglist(std::initializer_list<_T>) = delete;
+struct FlagList {
+	FlagList(void) = delete;
+	template<typename _T> FlagList(std::initializer_list<_T>) = delete;
     ULONG cFlags;
     ULONG ulFlag[MAPI_DIM];
-} FlagList, *LPFlagList;
+};
+typedef struct FlagList *LPFlagList;
 
 /* Our parts. */
 #define CbNewFlagList(_cflags) \
@@ -1281,69 +1298,69 @@ typedef ULONG       BOOKMARK;
 /* #define PR_MESSAGE_RECIPIENTS  PROP_TAG(PT_OBJECT,0x0E12) */
 /* #define PR_MESSAGE_ATTACHMENTS PROP_TAG(PT_OBJECT,0x0E13) */
 
-typedef struct _SAndRestriction {
+struct SAndRestriction {
     ULONG           cRes;
     LPSRestriction  lpRes;
-} SAndRestriction;
+};
 
-typedef struct _SOrRestriction {
+struct SOrRestriction {
     ULONG           cRes;
     LPSRestriction  lpRes;
-} SOrRestriction;
+};
 
-typedef struct _SNotRestriction {
+struct SNotRestriction {
     ULONG           ulReserved;
     LPSRestriction  lpRes;
-} SNotRestriction;
+};
 
-typedef struct _SContentRestriction {
+struct SContentRestriction {
     ULONG           ulFuzzyLevel;
     ULONG           ulPropTag;
     LPSPropValue    lpProp;
-} SContentRestriction;
+};
 
-typedef struct _SBitMaskRestriction {
+struct SBitMaskRestriction {
     ULONG           relBMR;
     ULONG           ulPropTag;
     ULONG           ulMask;
-} SBitMaskRestriction;
+};
 
-typedef struct _SPropertyRestriction {
+struct SPropertyRestriction {
     ULONG           relop;
     ULONG           ulPropTag;
     LPSPropValue    lpProp;
-} SPropertyRestriction;
+};
 
-typedef struct _SComparePropsRestriction {
+struct SComparePropsRestriction {
     ULONG           relop;
     ULONG           ulPropTag1;
     ULONG           ulPropTag2;
-} SComparePropsRestriction;
+};
 
-typedef struct _SSizeRestriction {
+struct SSizeRestriction {
     ULONG           relop;
     ULONG           ulPropTag;
     ULONG           cb;
-} SSizeRestriction;
+};
 
-typedef struct _SExistRestriction {
+struct SExistRestriction {
     ULONG           ulReserved1;
     ULONG           ulPropTag;
     ULONG           ulReserved2;
-} SExistRestriction;
+};
 
-typedef struct _SSubRestriction {
+struct SSubRestriction {
     ULONG           ulSubObject;
     LPSRestriction  lpRes;
-} SSubRestriction;
+};
 
-typedef struct _SCommentRestriction {
+struct SCommentRestriction {
     ULONG           cValues; /* # of properties in lpProp */
     LPSRestriction  lpRes;
     LPSPropValue    lpProp;
-} SCommentRestriction;
+};
 
-typedef struct _SRestriction {
+struct SRestriction {
     ULONG   rt;         /* Restriction type */
     union {
         SComparePropsRestriction    resCompareProps;    /* first */
@@ -1358,7 +1375,7 @@ typedef struct _SRestriction {
         SSubRestriction             resSub;
         SCommentRestriction         resComment;
     } res;
-} SRestriction;
+};
 
 /* SComparePropsRestriction is first in the union so that */
 /* static initializations of 3-value restriction work.    */
@@ -1623,7 +1640,7 @@ typedef SCODE (*LPFNBUTTON)(
 
 
 /* Parameters for the address book dialog */
-typedef struct _ADRPARM {
+struct ADRPARM {
     ULONG           cbABContEntryID;
     LPENTRYID       lpABContEntryID;
     ULONG           ulFlags;
@@ -1644,7 +1661,8 @@ typedef struct _ADRPARM {
     ULONG *     lpulDestComps;
     LPSRestriction  lpContRestriction;
     LPSRestriction  lpHierRestriction;
-} ADRPARM, *LPADRPARM;
+};
+typedef struct ADRPARM *LPADRPARM;
 
 } // EXTERN "C"
 
@@ -1708,10 +1726,11 @@ public:
 #define DTCT_MVDDLBX        ((ULONG) 0x0000000C)
 
 /* Labels */
-typedef struct _DTBLLABEL {
+struct DTBLLABEL {
     ULONG ulbLpszLabelName;
     ULONG ulFlags;
-} DTBLLABEL, *LPDTBLLABEL;
+};
+typedef struct DTBLLABEL *LPDTBLLABEL;
 #define SizedDtblLabel(n,u) \
 struct _DTBLLABEL_ ## u { \
     DTBLLABEL   dtbllabel; \
@@ -1719,12 +1738,13 @@ struct _DTBLLABEL_ ## u { \
 } u
 
 /*  Simple Text Edits  */
-typedef struct _DTBLEDIT {
+struct DTBLEDIT {
     ULONG ulbLpszCharsAllowed;
     ULONG ulFlags;
     ULONG ulNumCharsAllowed;
     ULONG ulPropTag;
-} DTBLEDIT, *LPDTBLEDIT;
+};
+typedef struct DTBLEDIT *LPDTBLEDIT;
 #define SizedDtblEdit(n,u) \
 struct _DTBLEDIT_ ## u { \
     DTBLEDIT    dtbledit; \
@@ -1735,21 +1755,22 @@ struct _DTBLEDIT_ ## u { \
 #define MAPI_NO_HBAR        ((ULONG) 0x00000001)
 #define MAPI_NO_VBAR        ((ULONG) 0x00000002)
 
-typedef struct _DTBLLBX {
+struct DTBLLBX {
     ULONG ulFlags;
     ULONG ulPRSetProperty;
     ULONG ulPRTableName;
-} DTBLLBX, *LPDTBLLBX;
-
+};
+typedef struct DTBLLBX *LPDTBLLBX;
 
 /*  Combo Box   */
-typedef struct _DTBLCOMBOBOX {
+struct DTBLCOMBOBOX {
     ULONG ulbLpszCharsAllowed;
     ULONG ulFlags;
     ULONG ulNumCharsAllowed;
     ULONG ulPRPropertyName;
     ULONG ulPRTableName;
-} DTBLCOMBOBOX, *LPDTBLCOMBOBOX;
+};
+typedef struct DTBLCOMBOBOX *LPDTBLCOMBOBOX;
 #define SizedDtblComboBox(n,u) \
 struct _DTBLCOMBOBOX_ ## u { \
     DTBLCOMBOBOX    dtblcombobox; \
@@ -1758,20 +1779,21 @@ struct _DTBLCOMBOBOX_ ## u { \
 
 
 /*  Drop Down   */
-typedef struct _DTBLDDLBX {
+struct DTBLDDLBX {
     ULONG ulFlags;
     ULONG ulPRDisplayProperty;
     ULONG ulPRSetProperty;
     ULONG ulPRTableName;
-} DTBLDDLBX, *LPDTBLDDLBX;
-
+};
+typedef struct DTBLDDLBX *LPDTBLDDLBX;
 
 /*  Check Box   */
-typedef struct _DTBLCHECKBOX {
+struct DTBLCHECKBOX {
     ULONG ulbLpszLabel;
     ULONG ulFlags;
     ULONG ulPRPropertyName;
-} DTBLCHECKBOX, *LPDTBLCHECKBOX;
+};
+typedef struct DTBLCHECKBOX *LPDTBLCHECKBOX;
 #define SizedDtblCheckBox(n,u) \
 struct _DTBLCHECKBOX_ ## u { \
     DTBLCHECKBOX    dtblcheckbox; \
@@ -1780,10 +1802,11 @@ struct _DTBLCHECKBOX_ ## u { \
 
 
 /*  Group Box   */
-typedef struct _DTBLGROUPBOX {
+struct DTBLGROUPBOX {
     ULONG ulbLpszLabel;
     ULONG ulFlags;
-} DTBLGROUPBOX, *LPDTBLGROUPBOX;
+};
+typedef struct DTBLGROUPBOX *LPDTBLGROUPBOX;
 #define SizedDtblGroupBox(n,u) \
 struct _DTBLGROUPBOX_ ## u { \
     DTBLGROUPBOX    dtblgroupbox; \
@@ -1792,11 +1815,12 @@ struct _DTBLGROUPBOX_ ## u { \
 
 
 /*  Button control   */
-typedef struct _DTBLBUTTON {
+struct DTBLBUTTON {
     ULONG ulbLpszLabel;
     ULONG ulFlags;
     ULONG ulPRControl;
-} DTBLBUTTON, *LPDTBLBUTTON;
+};
+typedef struct DTBLBUTTON *LPDTBLBUTTON;
 #define SizedDtblButton(n,u) \
 struct _DTBLBUTTON_ ## u { \
     DTBLBUTTON  dtblbutton; \
@@ -1805,12 +1829,13 @@ struct _DTBLBUTTON_ ## u { \
 
 
 /*  Pages   */
-typedef struct _DTBLPAGE {
+struct DTBLPAGE {
     ULONG ulbLpszLabel;
     ULONG ulFlags;
     ULONG ulbLpszComponent;
     ULONG ulContext;
-} DTBLPAGE, *LPDTBLPAGE;
+};
+typedef struct DTBLPAGE *LPDTBLPAGE;
 #define SizedDtblPage(n,n1,u) \
 struct _DTBLPAGE_ ## u { \
     DTBLPAGE    dtblpage; \
@@ -1820,13 +1845,14 @@ struct _DTBLPAGE_ ## u { \
 
 
 /*  Radio button   */
-typedef struct _DTBLRADIOBUTTON {
+struct DTBLRADIOBUTTON {
     ULONG ulbLpszLabel;
     ULONG ulFlags;
     ULONG ulcButtons;
     ULONG ulPropTag;
     long lReturnValue;
-} DTBLRADIOBUTTON, *LPDTBLRADIOBUTTON;
+};
+typedef struct DTBLRADIOBUTTON *LPDTBLRADIOBUTTON;
 #define SizedDtblRadioButton(n,u) \
 struct _DTBLRADIOBUTTON_ ## u { \
     DTBLRADIOBUTTON dtblradiobutton; \
@@ -1835,17 +1861,17 @@ struct _DTBLRADIOBUTTON_ ## u { \
 
 
 /*  MultiValued listbox */
-typedef struct _DTBLMVLISTBOX {
+struct DTBLMVLISTBOX {
     ULONG ulFlags;
     ULONG ulMVPropTag;
-} DTBLMVLISTBOX, *LPDTBLMVLISTBOX;
-
+};
+typedef struct DTBLMVLISTBOX *LPDTBLMVLISTBOX;
 
 /*  MultiValued dropdown */
-typedef struct _DTBLMVDDLBX {
+struct DTBLMVDDLBX {
     ULONG ulFlags;
     ULONG ulMVPropTag;
-} DTBLMVDDLBX, *LPDTBLMVDDLBX;
-
+};
+typedef struct DTBLMVDDLBX *LPDTBLMVDDLBX;
 
 #endif /* MAPIDEFS_H */

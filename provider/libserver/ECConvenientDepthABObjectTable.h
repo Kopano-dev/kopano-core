@@ -33,12 +33,11 @@ public:
 	static ECRESULT QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList* lpRowList, struct propTagArray *lpsPropTagArray, void* lpObjectData, struct rowSet **lppRowSet, bool bTableData,bool bTableLimit);
 
 private:
-	typedef struct {
+	struct CONTAINERINFO {
 		unsigned int ulId;
 		unsigned int ulDepth;
 		std::string strPath;
-	} CONTAINERINFO;
-
+	};
 	std::map<unsigned int, unsigned int> m_mapDepth;
 	std::map<unsigned int, std::string> m_mapPath;
 };

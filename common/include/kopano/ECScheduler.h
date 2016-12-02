@@ -35,13 +35,13 @@ enum eSchedulerType{
 	SCHEDULE_MONTH
 };
 
-typedef struct tagSchedule {
+struct ECSCHEDULE {
 	eSchedulerType	eType;
 	unsigned int	ulBeginCycle;
 	time_t			tLastRunTime;
 	void*			(*lpFunction)(void*);
 	void*			lpData;
-} ECSCHEDULE;
+};
 
 typedef std::list<ECSCHEDULE> ECScheduleList;
 

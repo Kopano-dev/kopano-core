@@ -28,11 +28,11 @@
 
 class ECLogger;
 
-typedef struct{
+struct TSARRAY {
 	ULONG ulType;
 	time_t tsTime;
 	ULONG ulStatus;
-}TSARRAY;
+};
 
 extern "C" _kc_export HRESULT HrPublishDefaultCalendar(IMAPISession *, IMsgStore *, time_t start, ULONG months);
 

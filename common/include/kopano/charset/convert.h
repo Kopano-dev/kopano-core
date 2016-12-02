@@ -521,12 +521,12 @@ private:
 	/**
 	 * @brief Key for the context_map;
 	 */
-	typedef struct _context_key {
+	struct context_key {
 		const char *totype;
 		const char *tocode;
 		const char *fromtype;
 		const char *fromcode;
-	} context_key;
+	};
 
 	/** Create a context_key based on the to- and from types and optionaly the to- and from codes.
 	 *

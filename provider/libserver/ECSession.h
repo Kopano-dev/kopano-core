@@ -54,13 +54,13 @@ void CreateSessionID(unsigned int ulCapabilities, ECSESSIONID *lpSessionId);
 
 enum { SESSION_STATE_PROCESSING, SESSION_STATE_SENDING };
 
-typedef struct {
+struct BUSYSTATE {
     const char *fname;
     struct timespec threadstart;
     double start;
     pthread_t threadid;
     int state;
-} BUSYSTATE;
+};
 
 /*
   BaseType session
@@ -97,10 +97,9 @@ public:
 	_kc_hidden time_t GetIdleTime(void);
 	_kc_hidden const std::string &GetSourceAddr(void) const { return m_strSourceAddr; }
 
-	typedef enum {
+	enum AUTHMETHOD {
 	    METHOD_NONE, METHOD_USERPASSWORD, METHOD_SOCKET, METHOD_SSO, METHOD_SSL_CERT
-    } AUTHMETHOD;
-
+	};
 protected:
 	unsigned int		m_ulRefCount;
 

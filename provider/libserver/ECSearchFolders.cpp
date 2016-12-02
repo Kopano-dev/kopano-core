@@ -37,10 +37,10 @@
 
 #include "ECSearchClient.h"
 
-typedef struct {
+struct THREADINFO {
     SEARCHFOLDER 	*lpFolder;
     ECSearchFolders *lpSearchFolders;
-} THREADINFO;
+};
 
 ECSearchFolders::ECSearchFolders(ECSessionManager *lpSessionManager,
     ECDatabaseFactory *lpFactory)

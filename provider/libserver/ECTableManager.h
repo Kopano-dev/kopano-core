@@ -41,10 +41,12 @@ class ECSessionManager;
  * (probably resulting in around 30% less memory usage for the server).
  */
 
-typedef struct {
-	typedef enum { TABLE_TYPE_GENERIC, TABLE_TYPE_OUTGOINGQUEUE, TABLE_TYPE_MULTISTORE, TABLE_TYPE_USERSTORES,
+struct TABLE_ENTRY {
+	enum TABLE_TYPE {
+		TABLE_TYPE_GENERIC, TABLE_TYPE_OUTGOINGQUEUE, TABLE_TYPE_MULTISTORE, TABLE_TYPE_USERSTORES,
 		   TABLE_TYPE_SYSTEMSTATS, TABLE_TYPE_THREADSTATS, TABLE_TYPE_USERSTATS, TABLE_TYPE_SESSIONSTATS, TABLE_TYPE_COMPANYSTATS, TABLE_TYPE_SERVERSTATS,
-			TABLE_TYPE_MAILBOX} TABLE_TYPE;
+			TABLE_TYPE_MAILBOX,
+	};
 		   
     TABLE_TYPE ulTableType;
     
@@ -61,7 +63,7 @@ typedef struct {
 	} sTable;
 	ECGenericObjectTable *lpTable; // Actual table object
 	unsigned int ulSubscriptionId; // Subscription ID for table event subscription on session manager
-} TABLE_ENTRY;
+};
 
 typedef std::map<unsigned int, TABLE_ENTRY *> TABLEENTRYMAP;
 

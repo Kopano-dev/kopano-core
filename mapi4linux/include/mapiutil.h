@@ -397,7 +397,7 @@ HRESULT HrDispatchNotifications (ULONG ulFlags);
  *  from resources.
  */
 
-typedef struct {
+struct DTCTL {
     ULONG           ulCtlType;          /* DTCT_LABEL, etc. */
     ULONG           ulCtlFlags;         /* DT_REQUIRED, etc. */
     LPBYTE          lpbNotif;           /*  pointer to notification data */
@@ -419,9 +419,10 @@ typedef struct {
         LPDTBLMVDDLBX   lpmvddlbx;
         LPDTBLPAGE      lppage;
     } ctl;
-} DTCTL, *LPDTCTL;
+};
+typedef struct DTCTL *LPDTCTL;
 
-typedef struct {
+struct DTPAGE {
     ULONG           cctl;
     LPTSTR          lpszResourceName;   /* as usual, may be an integer ID */
     union {                             /* as usual, may be an integer ID */
@@ -429,9 +430,8 @@ typedef struct {
         ULONG           ulItemID;
     };
     LPDTCTL         lpctl;
-} DTPAGE, *LPDTPAGE;
-
-
+};
+typedef struct DTPAGE *LPDTPAGE;
 
 HRESULT
 BuildDisplayTable(  LPALLOCATEBUFFER    lpAllocateBuffer,

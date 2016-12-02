@@ -28,10 +28,10 @@
 #include <kopano/mapiext.h>
 #include <string>
 
-typedef struct tagMAPIErrorTranslateRecord {
+struct MAPIErrorTranslateRecord {
 	HRESULT errorCode;
     const char* errorMessage;
-} MAPIErrorTranslateRecord;
+};
 
 static const MAPIErrorTranslateRecord MAPIErrorCodes[] = {
     { hrSuccess,                            "success" },

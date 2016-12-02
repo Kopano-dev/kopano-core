@@ -20,7 +20,7 @@
 
 #include <kopano/zcdefs.h>
 
-typedef struct _do {
+struct delivery_options {
 	bool use_received_date;			// Use the 'received' date instead of the current date as delivery date
 	bool mark_as_read;				// Deliver the message 'read' instead of unread
 	bool add_imap_data;				// Save IMAP optimizations to the server
@@ -36,9 +36,9 @@ typedef struct _do {
 
 	LPSBinary user_entryid;			// If not NULL, specifies the entryid of the user for whom we are delivering. If set, allows generating PR_MESSAGE_*_ME properties.
 	const char *ascii_upgrade; // Upgrade ASCII parts to this new (ASCII-compatible) charset
-} delivery_options;
+};
 
-typedef struct _so {
+struct sending_options {
 	char *alternate_boundary;		// Specifies a specific boundary prefix to use when creating MIME boundaries
 	bool no_recipients_workaround;	// Specified that we wish to accepts messages with no recipients (for example, when converting an attached email with no recipients)
 	bool msg_in_msg;
@@ -50,7 +50,7 @@ typedef struct _so {
 	bool allow_send_to_everyone;
 	bool enable_dsn;				/**< Enable SMTP Delivery Status Notifications */
 	bool always_expand_distr_list;
-} sending_options;
+};
 
 extern "C" {
 

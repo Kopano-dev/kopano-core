@@ -71,12 +71,13 @@ typedef IMAPISupport* LPMAPISUP;
 
 /* Notification key structure for the MAPI notification engine */
 
-typedef struct _kc_notifykey {
-	_kc_notifykey(void) = delete;
-	template<typename _T> _kc_notifykey(std::initializer_list<_T>) = delete;
+struct NOTIFKEY {
+	NOTIFKEY(void) = delete;
+	template<typename _T> NOTIFKEY(std::initializer_list<_T>) = delete;
     ULONG       cb;             /* How big the key is */
     BYTE        ab[MAPI_DIM];   /* Key contents */
-} NOTIFKEY, *LPNOTIFKEY;
+};
+typedef struct NOTIFKEY *LPNOTIFKEY;
 
 #define CbNewNOTIFKEY(_cb)      (offsetof(NOTIFKEY,ab) + (_cb))
 #define CbNOTIFKEY(_lpkey)      (offsetof(NOTIFKEY,ab) + (_lpkey)->cb)
@@ -337,7 +338,7 @@ public:
 #define OPTION_TYPE_RECIPIENT       ((ULONG) 0x00000001)
 #define OPTION_TYPE_MESSAGE         ((ULONG) 0x00000002)
 
-typedef struct _OPTIONDATA {
+struct OPTIONDATA {
     ULONG           ulFlags;        /* MAPI_RECIPIENT, MAPI_MESSAGE */
     LPGUID          lpRecipGUID;    /* Same as returned by AddressTypes() */
     LPTSTR          lpszAdrType;    /* Same as returned by AddressTypes() */
@@ -347,7 +348,8 @@ typedef struct _OPTIONDATA {
     LPBYTE          lpbOptionsData; /* Providers per [recip|message] option data */
     ULONG           cOptionsProps;  /* Count of Options default prop values */
     LPSPropValue    lpOptionsProps; /* Default Options property values */
-} OPTIONDATA, *LPOPTIONDATA;
+};
+typedef struct OPTIONDATA *LPOPTIONDATA;
 
 typedef SCODE (OPTIONCALLBACK)(
             HINSTANCE           hInst,

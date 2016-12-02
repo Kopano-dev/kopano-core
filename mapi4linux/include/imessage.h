@@ -46,12 +46,13 @@ STDAPI_(SCODE) OpenIMsgOnIStg(LPMSGSESS lpMsgSess, LPALLOCATEBUFFER lpAllocateBu
 
 } /* extern "C" */
 
-typedef struct _SPropAttrArray {
-	_SPropAttrArray(void) = delete;
-	template<typename _T> _SPropAttrArray(std::initializer_list<_T>) = delete;
+struct SPropAttrArray {
+	SPropAttrArray(void) = delete;
+	template<typename _T> SPropAttrArray(std::initializer_list<_T>) = delete;
 	ULONG	cValues;							
 	ULONG	aPropAttr[MAPI_DIM];
-} SPropAttrArray, * LPSPropAttrArray;
+};
+typedef struct SPropAttrArray *LPSPropAttrArray;
 
 #define CbNewSPropAttrArray(_cattr) \
 	(offsetof(SPropAttrArray,aPropAttr) + (_cattr)*sizeof(ULONG))

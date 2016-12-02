@@ -47,15 +47,15 @@ enum SCName {
 	SCN_INDEXER_SEARCH_ERRORS, SCN_INDEXER_SEARCH_MAX, SCN_INDEXER_SEARCH_AVG, SCN_INDEXED_SEARCHES, SCN_DATABASE_SEARCHES
 };
 
-typedef union _statdata {
+union SCData {
 	float f;
 	LONGLONG ll;
 	time_t ts;
-} SCData;
+};
 
 enum SCType { SCDT_FLOAT, SCDT_LONGLONG, SCDT_TIMESTAMP };
 
-typedef struct _ECStat {
+struct ECStat {
 	SCData data;
 	LONGLONG avginc;
 	SCType type;
@@ -69,21 +69,21 @@ typedef struct _ECStat {
 	 * However, a default copy ctor is not available for ECStat because
 	 * std::mutex is uncopyable. So we provide one.
 	 */
-	_ECStat(const _ECStat &o) :
+	ECStat(const ECStat &o) :
 		data(o.data), avginc(o.avginc), type(o.type), name(o.name),
 		description(o.description), lock()
 	{}
 	/* and if we define one ctor, we have to name all of them: */
-	_ECStat(void) = default;
+	ECStat(void) = default;
 #endif
-} ECStat;
+};
 
 typedef std::map<SCName, ECStat> SCMap;
 
-typedef struct _ECStrings {
+struct ECStrings {
 	std::string description;
 	std::string value;
-} ECStrings;
+};
 
 class _kc_export ECStatsCollector _kc_final {
 public:

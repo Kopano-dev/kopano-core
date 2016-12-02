@@ -64,7 +64,7 @@ struct TABLESUBSCRIPTION {
 
 typedef std::multimap<TABLESUBSCRIPTION, ECSESSIONID> TABLESUBSCRIPTIONMULTIMAP;
 
-typedef struct tagSessionManagerStats {
+struct sSessionManagerStats {
 	struct {
 		ULONG ulItems;
 		ULONG ulLocked;
@@ -86,7 +86,7 @@ typedef struct tagSessionManagerStats {
 	ULONG ulObjectSubscriptions;
 	ULONG ulTableSubscriptionSize;
 	ULONG ulObjectSubscriptionSize;
-}sSessionManagerStats;
+};
 
 class SOURCEKEY;
 

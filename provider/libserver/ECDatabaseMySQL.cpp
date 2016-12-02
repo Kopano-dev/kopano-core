@@ -60,17 +60,17 @@ using namespace std;
 // why.
 #define MAX_ALLOWED_PACKET			16776192
 
-typedef struct _sUpdateList {
+struct sUpdateList_t {
 	unsigned int ulVersion;
 	unsigned int ulVersionMin; // Version to start the update
 	const char *lpszLogComment;
 	ECRESULT (*lpFunction)(ECDatabase* lpDatabase);
-} sUpdateList_t;
+};
 
-typedef struct _sNewDatabase {
+struct sSQLDatabase_t {
 	const char *lpComment;
 	const char *lpSQL;
-} sSQLDatabase_t;
+};
 
 class zcp_versiontuple _kc_final {
 	public:
@@ -198,10 +198,10 @@ static const char *const server_groups[] = {
   NULL,
 };
 
-typedef struct {
+struct STOREDPROCS {
 	const char *szName;
 	const char *szSQL;
-} STOREDPROCS;
+};
 
 /**
  * Mode 0 = All bodies

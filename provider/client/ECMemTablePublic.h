@@ -26,14 +26,14 @@
 
 class ECMemTablePublic _kc_final : public ECMemTable {
 public:
-	typedef struct _sRelation {
+	struct t_sRelation {
 		unsigned int ulRowID;
 		IMAPIFolder* lpFolder;
 		LPMAPIADVISESINK lpAdviseSink;
 		ULONG ulAdviseConnectionId;
 		ULONG cbEntryID; // Folder entryid
 		LPENTRYID lpEntryID;
-	}t_sRelation;
+	};
 
 	typedef std::map<std::string, t_sRelation> ECMAPFolderRelation; // <instancekey, relation>
 

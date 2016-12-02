@@ -26,23 +26,24 @@
 
 /* seems unused? */
 /* used by attachments? */
-typedef struct _s_MapiFileDesc {
+struct MapiFileDesc {
     ULONG ulReserved;
     ULONG flFlags;
     ULONG nPosition;
     LPSTR lpszPathName;
     LPSTR lpszFileName;
     LPVOID lpFileType;
-} MapiFileDesc, *lpMapiFileDesc;
+};
+typedef struct MapiFileDesc *lpMapiFileDesc;
 
-typedef struct _s_MapiFileTagExt {
+struct MapiFileTagExt {
     ULONG ulReserved;
     ULONG cbTag;
     LPBYTE lpTag;
     ULONG cbEncoding;
     LPBYTE lpEncoding;
-} MapiFileTagExt, *lpMapiFileTagExt;
-
+};
+typedef struct MapiFileTagExt *lpMapiFileTagExt;
 
 #define MAPI_ORIG	0x00000000
 #define MAPI_TO		0x00000001
@@ -53,20 +54,20 @@ typedef struct _s_MapiFileTagExt {
 #define MAPI_SUBMITTED	0x80000000
 /* #define MAPI_AUTHORIZE	0x00000004 */
 /* #define MAPI_DISCRETE	0x10000000 */
-typedef struct _s_MapiRecepDesc {
+struct MapiRecepDesc {
     ULONG ulReserved;
     ULONG ulRecipClass;		/* MAPI_TO, MAPI_CC, MAPI_BCC, MAPI_ORIG    */
     LPSTR lpszName;
     LPSTR lpszAddress;
     ULONG ulEIDSize;
     LPVOID lpEntryID;
-} MapiRecipDesc, *lpMapiRecipDesc;
-
+};
+typedef struct MapiRecipDesc *lpMapiRecipDesc;
 
 #define MAPI_UNREAD             0x00000001
 #define MAPI_RECEIPT_REQUESTED  0x00000002
 #define MAPI_SENT               0x00000004
-typedef struct _s_MapiMessage {
+struct MapiMessage {
     ULONG ulReserved;
     LPSTR lpszSubject;
     LPSTR lpszNoteText;
@@ -79,8 +80,8 @@ typedef struct _s_MapiMessage {
     lpMapiRecipDesc lpRecips;
     ULONG nFileCount;
     lpMapiFileDesc lpFiles;
-} MapiMessage, *lpMapiMessage;
-
+};
+typedef struct MapiMessage *lpMapiMessage;
 
 /* flFlags for MAPI* Function calls */
 #define MAPI_LOGON_UI           0x00000001

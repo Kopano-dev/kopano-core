@@ -29,20 +29,20 @@
 #include <kopano/ECUnknown.h>
 #include <kopano/ustringutil.h>
 
-typedef struct {
+struct ECTableEntry {
 	LPSPropValue	lpsPropVal;
 	BOOL			fDeleted;
 	BOOL			fDirty;
 	BOOL			fNew;
 	LPSPropValue	lpsID;
 	ULONG			cValues;
-} ECTableEntry;
+};
 
-typedef struct {
+struct ECMEMADVISE {
 	ULONG				ulEventMask;
 	LPMAPIADVISESINK	lpAdviseSink;
 	//ULONG				ulConnection;
-} ECMEMADVISE;
+};
 
 typedef std::map<int, ECMEMADVISE *> ECMapMemAdvise;
 

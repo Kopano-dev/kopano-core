@@ -71,10 +71,10 @@ public:
 };
 
 /* same as objectid_t, join? */
-typedef struct {
+struct ECsUEIdKey {
 	objectclass_t		ulClass;
 	std::string			strExternId;
-} ECsUEIdKey;
+};
 
 inline bool operator <(const ECsUEIdKey &a, const ECsUEIdKey &b)
 {
@@ -395,11 +395,10 @@ public:
     } *aACL;
 };
 
-typedef struct {
+struct ECsSortKeyKey {
 	sObjectTableKey	sKey;
 	unsigned int	ulPropTag;
-}ECsSortKeyKey;
-
+};
 
 struct lessindexobjectkey {
 	bool operator()(const ECsIndexObject& a, const ECsIndexObject& b) const

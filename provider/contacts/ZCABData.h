@@ -18,13 +18,13 @@
 #ifndef ZCABDATA_H
 #define ZCABDATA_H
 
-typedef struct _cabEntryID {
+struct cabEntryID {
 	ULONG ulVersion;			/* always 0 */
 	MAPIUID muid;				/* provider uid */
 	ULONG ulObjType;			/* ab object types */
 	ULONG ulOffset;				/* offset in m_lpFolders or email address of contact object */
 	BYTE origEntryID[1];		/* entryid of wrapped object */
-} cabEntryID;
+};
 #define CbNewCABENTRYID(_cb)	(offsetof(cabEntryID,origEntryID) + (_cb))
 
 #endif

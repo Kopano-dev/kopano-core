@@ -91,10 +91,10 @@ public:
 	sObjectTableKey m_sCurMinMax;
 };
 
-typedef struct {
+struct LEAFINFO {
     bool fUnread;
     ECCategory *lpCategory;
-} LEAFINFO;
+};
 
 typedef std::map<sObjectTableKey, ECCategory *, ObjectTableKeyCompare> ECCategoryMap;
 typedef std::map<sObjectTableKey, LEAFINFO, ObjectTableKeyCompare> ECLeafMap;

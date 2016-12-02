@@ -26,7 +26,7 @@
 
 class ECSession;
 
-typedef struct {
+struct ECUserStore {
 	long long		ulUserId;		// id of user (-1 if there is no user)
 	objectid_t		sExternId;		// externid of user
 	std::string		strUsername;	// actual username from ECUserManagement
@@ -38,7 +38,7 @@ typedef struct {
 	std::string		strCompanyName;	// Company name of the store. (can be empty)
 	time_t			tModTime;		// Modification time of the store
 	unsigned long long ullStoreSize;// Size of the store
-} ECUserStore;
+};
 
 class _kc_export_dycast ECUserStoreTable _kc_final :
     public ECGenericObjectTable {

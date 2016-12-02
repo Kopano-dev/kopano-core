@@ -505,10 +505,10 @@ private:
  * An SObjectEntry is a reference to an object in a particular store. The sItemEntryId can point to any 
  * MAPI object, but's currently used for folders and messages.
  */
-typedef struct {
+struct SObjectEntry {
 	entryid_t sStoreEntryId;
 	entryid_t sItemEntryId;
-} SObjectEntry;
+};
 
 /**
  * List of SObjectEntry objects.

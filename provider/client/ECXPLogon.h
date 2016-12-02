@@ -25,10 +25,10 @@
 #include "IMAPIOffline.h"
 #include <string>
 
-/*typedef struct _MAILBOX_INFO {
+/* struct MAILBOX_INFO {
 	std::string		strFullName;
-
-}MAILBOX_INFO, LPMAILBOX_INFO*;
+};
+typedef struct MAILBOX_INFO LPMAILBOX_INFO*;
 */
 class ECXPProvider;
 

@@ -42,12 +42,11 @@ typedef IMAPISession* LPMAPISESSION;
 
 /* Structure passed to MAPIInitialize(), and its ulFlags values */
 
-typedef struct
-{
+struct MAPIINIT_0 {
     ULONG           ulVersion;
     ULONG           ulFlags;
-} MAPIINIT_0, *LPMAPIINIT_0;
-
+};
+typedef struct MAPIINIT_0 *LPMAPIINIT_0;
 typedef MAPIINIT_0 MAPIINIT;
 typedef MAPIINIT *LPMAPIINIT;
 

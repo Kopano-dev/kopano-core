@@ -130,8 +130,7 @@ ECProperty::ECProperty(const ECProperty &Property) {
 	assert(Property.ulPropTag != 0);
 	sPropValue.ulPropTag = Property.ulPropTag;
 	sPropValue.Value = Property.Value;
-
-	memset(&this->Value, 0, sizeof(union _PV));
+	memset(&this->Value, 0, sizeof(union __UPV));
 	this->ulSize = 0;
 
 	CopyFromInternal(&sPropValue);
@@ -140,7 +139,7 @@ ECProperty::ECProperty(const ECProperty &Property) {
 }
 	
 ECProperty::ECProperty(LPSPropValue lpsProp) {
-	memset(&this->Value, 0, sizeof(union _PV));
+	memset(&this->Value, 0, sizeof(union __UPV));
 	this->ulSize = 0;
 	assert(lpsProp->ulPropTag != 0);
 	CopyFromInternal(lpsProp);
@@ -707,8 +706,7 @@ HRESULT ECProperty::CopyToByRef(LPSPropValue lpsProp) const
     HRESULT hr = hrSuccess;
     
     lpsProp->ulPropTag = this->ulPropTag;
-    memcpy(&lpsProp->Value, &this->Value, sizeof(union _PV));
-    
+	memcpy(&lpsProp->Value, &this->Value, sizeof(union __UPV));
     return hr;
 }
 

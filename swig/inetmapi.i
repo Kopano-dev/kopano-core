@@ -22,7 +22,7 @@
 	%append_output(SWIG_FromCharPtrAndSize($1->c_str(), $1->length()));
 }
 
-typedef struct _so {
+struct sending_options {
         char *alternate_boundary;               // Specifies a specific boundary prefix to use when creating MIME boundaries
         bool no_recipients_workaround;  // Specified that we wish to accepts messages with no recipients (for example, when converting an attached email with no recipients)
         bool msg_in_msg;
@@ -46,10 +46,9 @@ typedef struct _so {
 				delete(self);
 			}
 		}
+};
 
-} sending_options;
-
-typedef struct _do {
+struct delivery_options {
         bool use_received_date;         // Use the 'received' date instead of the current date as delivery date
         bool mark_as_read;              // Deliver the message 'read' instead of unread
         bool add_imap_data;				// Save IMAP optimized data to the server
@@ -68,8 +67,7 @@ typedef struct _do {
 				delete(self);
 			}
         }
-
-} delivery_options;
+};
 
 HRESULT IMToMAPI(IMAPISession *lpSession, IMsgStore *lpMsgStore, IAddrBook *lpAddrBook, IMessage *lpMessage, const std::string &input, delivery_options dopt);
 HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook, IMessage *lpMessage, char** lppchardelete, sending_options sopt);

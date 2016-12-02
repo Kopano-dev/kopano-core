@@ -42,28 +42,27 @@
 #define MAPIOFFLINE_STATE_OFFLINE				0x00000001  
 #define MAPIOFFLINE_STATE_ONLINE				0x00000002 
 
-typedef enum { 
+enum MAPIOFFLINE_CALLBACK_TYPE {
      MAPIOFFLINE_CALLBACK_TYPE_NOTIFY = 0
-} MAPIOFFLINE_CALLBACK_TYPE;
-
+};
 
 // The MAPIOFFLINE_NOTIFY_TYPE of a notification identifies if a change in the connection state is going to take place, is taking place, or has completed. 
-typedef enum {
+enum MAPIOFFLINE_NOTIFY_TYPE {
 	MAPIOFFLINE_NOTIFY_TYPE_STATECHANGE_START = 1, 
 	MAPIOFFLINE_NOTIFY_TYPE_STATECHANGE = 2, 
 	MAPIOFFLINE_NOTIFY_TYPE_STATECHANGE_DONE = 3 
-} MAPIOFFLINE_NOTIFY_TYPE;
+};
 
-typedef struct {
+struct MAPIOFFLINE_ADVISEINFO {
 	ULONG				ulSize;					// The size of MAPIOFFLINE_ADVISEINFO
 	ULONG				ulClientToken;			// A token defined by the client about a callback. It is the ulClientToken member of the MAPIOFFLINE_NOTIFY structure passed to IMAPIOfflineNotify::Notify.
 	MAPIOFFLINE_CALLBACK_TYPE	CallbackType;	// Type of callback to make.
 	IUnknown*			pCallback;				// Interface to use for callback. This is the client's implementation of IMAPIOfflineNotify.
 	ULONG				ulAdviseTypes;			//The types of advise, as identified by the condition for advising. The only supported type is MAPIOFFLINE_ADVISE_TYPE_STATECHANGE.
 	ULONG				ulStateMask;			// The only supported state is MAPIOFFLINE_STATE_ALL
-} MAPIOFFLINE_ADVISEINFO;
+};
 
-typedef struct {
+struct MAPIOFFLINE_NOTIFY {
 	ULONG ulSize;								// Size of the MAPIOFFLINE_NOTIFY structure.		
 	MAPIOFFLINE_NOTIFY_TYPE NotifyType;			// Type of notification
 	ULONG ulClientToken;						// A token defined by the client in the MAPIOFFLINE_ADVISEINFO structure in IMAPIOfflineMgr::Advise
@@ -74,8 +73,7 @@ typedef struct {
 			ULONG ulStateNew;					// The new connection state
 		} StateChange;
 	} Info;
-} MAPIOFFLINE_NOTIFY;
-
+};
 
 /*
 Provides information for an offline object.

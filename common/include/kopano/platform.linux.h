@@ -127,12 +127,12 @@ typedef __int64_t __int64;
 	UNUSED_VAR auto pThis = container_of(this, theClass, m_x##localClass)
 
 /* GUID defines */
-typedef struct __attribute__((__packed__)) _s_GUID {
+struct __attribute__((__packed__)) GUID {
     DWORD	Data1;
     WORD	Data2;
     WORD	Data3;
     BYTE	Data4[8];
-} GUID;
+};
 typedef GUID*  LPGUID;
 typedef const GUID *LPCGUID;
 
@@ -318,14 +318,15 @@ typedef TCHAR*			LPTSTR;
 typedef const TCHAR*	LPCTSTR;
 typedef WCHAR			OLECHAR;
 
-typedef struct _s_FILETIME {
+struct FILETIME {
     DWORD dwLowDateTime;
     DWORD dwHighDateTime;
-} FILETIME, *LPFILETIME;
+};
+typedef struct FILETIME *LPFILETIME;
 #define NANOSECS_BETWEEN_EPOCHS 116444736000000000LL
 
 /* made up .. seems correct */
-typedef union _LARGE_INTEGER {
+union LARGE_INTEGER {
 #ifdef __GNUC__
   __extension__ struct {
 #else
@@ -339,9 +340,10 @@ typedef union _LARGE_INTEGER {
     LONG HighPart;
   } u;
   LONGLONG QuadPart;
-} LARGE_INTEGER, *PLARGE_INTEGER;
+};
+typedef union LARGE_INTEGER *PLARGE_INTEGER;
 
-typedef union _ULARGE_INTEGER {
+union ULARGE_INTEGER {
 #ifdef __GNUC__
   __extension__ struct {
 #else
@@ -355,7 +357,8 @@ typedef union _ULARGE_INTEGER {
     DWORD HighPart;
   } u;
   ULONGLONG QuadPart;
-} ULARGE_INTEGER, *PULARGE_INTEGER;
+};
+typedef union ULARGE_INTEGER *PULARGE_INTEGER;
 
 /* #define lpszA	char* */
 /* #define lppszA	char** */
@@ -405,7 +408,7 @@ public:
     virtual HRESULT Write(const void *pv, ULONG cb, ULONG *pcbWritten) = 0;
 };
 
-typedef struct tagSTATSTG {
+struct STATSTG {
     LPSTR pwcsName;		// was LPOLESTR .. wtf is that?
     DWORD type;
     ULARGE_INTEGER cbSize;
@@ -417,32 +420,32 @@ typedef struct tagSTATSTG {
     CLSID clsid;
     DWORD grfStateBits;
     DWORD reserved;
-} STATSTG;
+};
 
-typedef enum tagSTGTY {
+enum STGTY {
     STGTY_STORAGE	= 1,
     STGTY_STREAM	= 2,
     STGTY_LOCKBYTES	= 3,
     STGTY_PROPERTY	= 4
-} STGTY;
+};
 
-typedef enum tagSTREAM_SEEK {
+enum STREAM_SEEK {
     STREAM_SEEK_SET	= 0,
     STREAM_SEEK_CUR	= 1,
     STREAM_SEEK_END	= 2
-} STREAM_SEEK;
+};
 
-typedef enum tagLOCKTYPE {
+enum LOCKTYPE {
     LOCK_WRITE		= 1,
     LOCK_EXCLUSIVE	= 2,
     LOCK_ONLYONCE	= 4
-} LOCKTYPE;
+};
 
-typedef enum tagSTATFLAG {
+enum STATFLAG {
     STATFLAG_DEFAULT	= 0,
     STATFLAG_NONAME	= 1,
     STATFLAG_NOOPEN	= 2
-} STATFLAG;
+};
 
 class IEnumSTATSTG : public IUnknown {
 public:
@@ -483,7 +486,7 @@ public:
 };
 typedef IMalloc* LPMALLOC;
 
-// typedef struct tagRemSNB {
+// struct RemSNB {
 // unsigned long ulCntStr;
 //     unsigned long ulCntChar;
 //     //OLECHAR rgString[ 1 ];

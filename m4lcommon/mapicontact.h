@@ -24,7 +24,7 @@
 // Used in MAPIToVMIME: PR_REPLY_RECIPIENT_ENTRIES when you choose a contact from your personal folders
 // Used in Spooler: when sending a Fax
 
-typedef struct _s_CONTAB_ENTRYID {
+struct CONTAB_ENTRYID {
 	BYTE misc1[4];
 	MAPIUID muid;
 	ULONG misc3;
@@ -38,6 +38,7 @@ typedef struct _s_CONTAB_ENTRYID {
 	ULONG cbeid;
 	BYTE abeid[1];
 	BYTE padding[3];			/* not mentioned, but it's there */
-} CONTAB_ENTRYID, *LPCONTAB_ENTRYID;
+};
+typedef struct CONTAB_ENTRYID *LPCONTAB_ENTRYID;
 
 #endif

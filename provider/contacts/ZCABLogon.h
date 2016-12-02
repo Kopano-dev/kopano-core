@@ -23,13 +23,13 @@
 #include <mapispi.h>
 #include <kopano/ECUnknown.h>
 
-typedef struct _s_zcabFolderEntry {
+struct zcabFolderEntry {
 	ULONG cbStore;
 	LPBYTE lpStore;
 	ULONG cbFolder;
 	LPBYTE lpFolder;
 	std::wstring strwDisplayName;
-} zcabFolderEntry;
+};
 
 class ZCABLogon _kc_final : public ECUnknown {
 protected:

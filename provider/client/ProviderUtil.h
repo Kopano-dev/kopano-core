@@ -24,12 +24,12 @@
 #define CT_ONLINE			0x01
 #define CT_OFFLINE			0x02
 
-typedef struct {
+struct PROVIDER_INFO {
 	IMSProvider *lpMSProviderOnline;
 	IABProvider *lpABProviderOnline;
 	ULONG		ulProfileFlags;	//  Profile flags when you start the first time
 	ULONG		ulConnectType; // CT_* values, The type of connection when you start the first time
-}PROVIDER_INFO;
+};
 
 typedef std::map<std::string, PROVIDER_INFO> ECMapProvider;
 

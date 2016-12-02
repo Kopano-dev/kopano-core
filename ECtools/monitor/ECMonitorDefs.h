@@ -21,16 +21,17 @@
 #include <kopano/ECLogger.h>
 #include <kopano/ECConfig.h>
 
-typedef struct _sECMonitor {
+struct ECTHREADMONITOR {
 	ECLogger*		lpLogger;
 	ECConfig*		lpConfig;
 	bool			bShutdown;
 
-	_sECMonitor(){
+	ECTHREADMONITOR(void)
+	{
 		lpLogger = NULL;
 		lpConfig = NULL;
 		bShutdown = false;
 	};
-} ECTHREADMONITOR;
+};
 
 #endif

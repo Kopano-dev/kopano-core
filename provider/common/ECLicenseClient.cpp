@@ -104,13 +104,13 @@ ECRESULT ECLicenseClient::GetInfo(unsigned int ulServiceType, unsigned int *lpul
 	return erSuccess;
 }
 
-typedef struct {
+struct LICENSERESPONSE {
 	unsigned int ulVersion;			// Current: LICENSERESPONSE_VERSION
 	unsigned int ulTrackingId;
 	unsigned long long llFlags;
 	unsigned int ulStatus;
 	char szPadding[4];				// Make sure the struct is padded to a multiple of 8 bytes
-} LICENSERESPONSE;
+};
 
 ECRESULT ECLicenseClient::Auth(const unsigned char *lpData,
     unsigned int ulSize, void **lppResponse, unsigned int *lpulResponseSize)

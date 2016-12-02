@@ -124,10 +124,10 @@ public:
 
 typedef std::map<sObjectTableKey, ECTableRow*, ObjectTableKeyCompare>  ECTableRowMap;
 
-typedef struct {
+struct sBookmarkPosition {
 	unsigned int	ulFirstRowPosition;
 	ECTableRow*		lpPosition;
-}sBookmarkPosition;
+};
 
 typedef std::map<unsigned int, sBookmarkPosition> ECBookmarkMap;
 
@@ -136,9 +136,11 @@ public:
 	/* this MUST be the same definitions as TABLE_NOTIFICATION event types passed in ulTableEvent */
 
 	// FIXME this is rather ugly, the names must differ from those in mapi.h, as they clash !
-	typedef enum { TABLE_CHANGE=1, TABLE_ERR, TABLE_ROW_ADD, 
+	enum UpdateType {
+		TABLE_CHANGE=1, TABLE_ERR, TABLE_ROW_ADD,
 					TABLE_ROW_DELETE, TABLE_ROW_MODIFY,TABLE_SORT, 
-					TABLE_RESTRICT, TABLE_SETCOL, TABLE_DO_RELOAD } UpdateType;
+					TABLE_RESTRICT, TABLE_SETCOL, TABLE_DO_RELOAD,
+	};
 
 	enum { EC_SEEK_SET=0, EC_SEEK_CUR, EC_SEEK_END };
 	

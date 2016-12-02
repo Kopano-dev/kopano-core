@@ -103,14 +103,14 @@ static const ULONG ulTableProps[] = {
 	PR_EC_STATSTABLE_USERS, PR_EC_STATSTABLE_COMPANY, PR_EC_STATSTABLE_SERVERS
 };
 
-typedef struct {
+struct TIMES {
     double dblUser;
     double dblSystem;
     double dblReal;
     unsigned int ulRequests;
-} TIMES;
+};
 
-typedef struct _SESSION {
+struct SESSION {
     unsigned long long ullSessionId;
     unsigned long long ullSessionGroupId;
     TIMES times;
@@ -129,11 +129,11 @@ typedef struct _SESSION {
     std::string strClientApp;
     std::string strClientAppVersion, strClientAppMisc;
     
-    bool operator <(const _SESSION &b) const
+    bool operator <(const SESSION &b) const
     {
         return this->dtimes.dblReal > b.dtimes.dblReal;
     }
-} SESSION;
+};
 
 static bool sort_sessionid(const SESSION &a, const SESSION &b) { return a.ullSessionId < b.ullSessionId; } // && group < ?
 static bool sort_user(const SESSION &a, const SESSION &b) { return a.strUser < b.strUser; }

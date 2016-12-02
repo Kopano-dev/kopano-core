@@ -36,7 +36,7 @@
  * never sorted on in tables. (due to the server actually doing the sorting)
  */
 
-typedef struct _ECODStore ECODStore;
+struct ECODStore;
 
 class ECGenProps _kc_final {
 public:

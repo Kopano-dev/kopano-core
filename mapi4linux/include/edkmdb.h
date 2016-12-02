@@ -609,18 +609,20 @@ typedef IExchangeManageStore* LPEXCHANGEMANAGESTORE;
 #define ROW_REMOVE			((ULONG)4)
 #define ROW_EMPTY			(ROW_ADD|ROW_REMOVE)
 
-typedef struct _ROWENTRY {
+struct ROWENTRY {
 	ULONG			ulRowFlags;
 	ULONG			cValues;
 	LPSPropValue	rgPropVals;
-} ROWENTRY, *LPROWENTRY;
+};
+typedef struct ROWENTRY *LPROWENTRY;
 
-typedef struct _ROWLIST {
-	_ROWLIST(void) = delete;
-	template<typename _T> _ROWLIST(std::initializer_list<_T>) = delete;
+struct ROWLIST {
+	ROWLIST(void) = delete;
+	template<typename _T> ROWLIST(std::initializer_list<_T>) = delete;
 	ULONG			cEntries;
 	ROWENTRY		aEntries[MAPI_DIM];
-} ROWLIST, *LPROWLIST;
+};
+typedef struct ROWLIST *LPROWLIST;
 
 #define CbNewROWLIST(_centries) \
     (offsetof(ROWLIST,aEntries) + (_centries)*sizeof(ROWENTRY))
@@ -701,7 +703,7 @@ typedef IExchangeModifyTable* LPEXCHANGEMODIFYTABLE;
 #define RELOP_MEMBER_OF_DL	100
 
 //Action types
-typedef enum {
+enum ACTTYPE {
 	OP_MOVE = 1,
 	OP_COPY,
 	OP_REPLY,
@@ -713,7 +715,7 @@ typedef enum {
 	OP_TAG,
 	OP_DELETE,
 	OP_MARK_AS_READ
-} ACTTYPE;
+};
 
 // provider name for moderator rules
 #define szProviderModeratorRule		"MSFT:MR"
@@ -740,7 +742,7 @@ typedef enum {
 #define szOofTemplateMsgClassPrefix		"IPM.Note.Rules.OofTemplate."
 
 //Action structure
-typedef struct _action {
+struct ACTION {
 	ACTTYPE		acttype;
 
 	// to indicate which flavor of the action.
@@ -790,17 +792,18 @@ typedef struct _action {
 		// prop value for OP_TAG action
 		SPropValue		propTag;
 	};
-} ACTION, *LPACTION;
+};
+typedef struct ACTION *LPACTION;
 
 // Rules version
 #define EDK_RULES_VERSION		1
 
 //Array of actions
-typedef struct _actions {
+struct ACTIONS {
 	ULONG		ulVersion;		// use the #define above
 	UINT		cActions;
 	LPACTION	lpAction;
-} ACTIONS;
+};
 
 #ifdef __cplusplus
 extern "C" {
@@ -861,11 +864,12 @@ public:
 	virtual HRESULT __stdcall IsAttachmentBlocked(LPCWSTR pwszFileName, BOOL *pfBlocked) = 0;
 };
 
-typedef struct _ReadState {
+struct READSTATE {
 	ULONG		cbSourceKey;
 	BYTE	*	pbSourceKey;
 	ULONG		ulFlags;
-} READSTATE, *LPREADSTATE;
+};
+typedef struct READSTATE *LPREADSTATE;
 
 /*      Special flag bit for DeleteFolder */
 #define DELETE_HARD_DELETE                              ((ULONG) 0x00000010)

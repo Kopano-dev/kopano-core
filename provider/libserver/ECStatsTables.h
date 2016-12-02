@@ -26,11 +26,11 @@
 #include <list>
 #include <map>
 
-typedef struct _statstrings {
+struct statstrings {
 	std::string name;
 	std::string description;
 	std::string value;
-} statstrings;
+};
 
 class ECSystemStatsTable _kc_final : public ECGenericObjectTable {
 protected:
@@ -51,7 +51,7 @@ private:
 };
 
 
-typedef struct _sessiondata {
+struct sessiondata {
 	ECSESSIONID sessionid;
 	ECSESSIONGROUPID sessiongroupid;
 	std::string srcaddress;
@@ -69,7 +69,7 @@ typedef struct _sessiondata {
 	std::string url;
 	std::string proxyhost;
 	std::string client_application_version, client_application_misc;
-} sessiondata;
+};
 
 class ECSessionStatsTable _kc_final : public ECGenericObjectTable {
 protected:

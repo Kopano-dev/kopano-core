@@ -56,10 +56,10 @@ class ECConfigImpl;
 /* Note: char* in map is allocated ONCE to 1024, and GetSetting will always return the same pointer to this buffer */
 typedef std::map<settingkey_t, char*, settingcompare> settingmap_t;
 typedef bool (ECConfigImpl::*directive_func_t)(const char *, unsigned int);
-typedef struct {
+struct directive_t {
 	const char			*lpszDirective;
 	directive_func_t	fExecute;
-} directive_t;
+};
 
 /*
  * Flags for the InitDefaults & InitConfigFile functions

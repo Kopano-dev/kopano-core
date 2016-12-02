@@ -28,7 +28,7 @@
 #include <list>
 #include <mapispi.h>
 
-typedef struct {
+struct ECADVISE {
 	ULONG				cbKey;
 	LPBYTE				lpKey;
 	ULONG				ulEventMask;
@@ -36,16 +36,16 @@ typedef struct {
 	ULONG				ulConnection;
 	GUID				guid;
 	ULONG				ulSupportConnection;
-} ECADVISE;
+};
 
-typedef struct {
+struct ECCHANGEADVISE {
 	ULONG					ulSyncId;
 	ULONG					ulChangeId;
 	ULONG					ulEventMask;
 	IECChangeAdviseSink *lpAdviseSink;
 	ULONG					ulConnection;
 	GUID					guid;
-} ECCHANGEADVISE;
+};
 
 typedef std::map<int, ECADVISE*> ECMAPADVISE;
 typedef std::map<int, ECCHANGEADVISE*> ECMAPCHANGEADVISE;

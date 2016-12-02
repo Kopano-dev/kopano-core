@@ -26,8 +26,8 @@
 #include <mapix.h>
 #include <edkmdb.h>
 
-typedef struct m4lsupportadvise {
-	m4lsupportadvise(LPNOTIFKEY lpKey, ULONG ulEventMask, ULONG ulFlags, LPMAPIADVISESINK lpAdviseSink)
+struct M4LSUPPORTADVISE {
+	M4LSUPPORTADVISE(LPNOTIFKEY lpKey, ULONG ulEventMask, ULONG ulFlags, LPMAPIADVISESINK lpAdviseSink)
 	{
 		this->lpKey = lpKey;
 		this->ulEventMask = ulEventMask;
@@ -39,7 +39,7 @@ typedef struct m4lsupportadvise {
 	ULONG ulEventMask;
 	ULONG ulFlags;
 	LPMAPIADVISESINK lpAdviseSink;
-} M4LSUPPORTADVISE;
+};
 
 typedef std::map<ULONG, M4LSUPPORTADVISE> M4LSUPPORTADVISES;
 

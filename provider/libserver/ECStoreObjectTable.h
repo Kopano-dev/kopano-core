@@ -32,14 +32,14 @@
 class ECSession;
 
 // Objectdata for a store
-typedef struct _ECODStore {
+struct ECODStore {
 	unsigned int	ulStoreId;		// The Store ID this table is watching (0 == multi-store)
 	unsigned int	ulFolderId;		// The Folder ID this table is watching (0 == multi-folder)
 	unsigned int	ulObjType;
 	unsigned int	ulFlags;
 	unsigned int 	ulTableFlags;
 	GUID*			lpGuid;			// The GUID of the store
-}ECODStore;
+};
 
 // For ulTableFlags
 #define TABLE_FLAG_OVERRIDE_HOME_MDB 0x00000001

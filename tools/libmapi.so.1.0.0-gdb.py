@@ -160,21 +160,21 @@ class SPropValue_printer:
 def lookup_type(val):
 	dtype = val.type.strip_typedefs()
 	dname = str(dtype)
-	if dname == "_LARGE_INTEGER" or dname == "_ULARGE_INTEGER":
+	if dname == "LARGE_INTEGER" or dname == "ULARGE_INTEGER":
 		return LARGE_INTEGER_printer(val)
-	if dname == "_SBinary":
+	if dname == "SBinary":
 		return SBinary_printer(val)
-	if dname == "_SPropValue":
+	if dname == "SPropValue":
 		return SPropValue_printer(val)
-	if dname == "_s_FILETIME":
+	if dname == "FILETIME":
 		return FILETIME_printer(val)
-	if dname == "_s_GUID":
+	if dname == "GUID":
 		return GUID_printer(val)
-	if dtype == gdb.lookup_type("_s_GUID").pointer():
+	if dtype == gdb.lookup_type("GUID").pointer():
 		return GUID_p_printer(val)
-	if dname == "_s_MAPIUID":
+	if dname == "MAPIUID":
 		return MAPIUID_printer(val)
-	if dtype == gdb.lookup_type("_s_MAPIUID").pointer():
+	if dtype == gdb.lookup_type("MAPIUID").pointer():
 		return MAPIUID_p_printer(val)
 
 	iname = str(val.type)

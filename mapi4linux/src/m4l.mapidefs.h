@@ -180,13 +180,12 @@ public:
 	virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
 };
 
-
-typedef struct _s_abentry {
+struct abEntry {
 	MAPIUID muid;
 	string displayname;
 	LPABPROVIDER lpABProvider;
 	LPABLOGON lpABLogon;
-} abEntry;
+};
 
 class M4LABContainer _kc_final : public IABContainer, public M4LMAPIContainer {
 private:

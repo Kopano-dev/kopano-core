@@ -35,26 +35,26 @@ using namespace std;
 
 class M4LMsgServiceAdmin;
 
-typedef struct _s_providerentry {
+struct providerEntry {
 	MAPIUID uid;
 	string servicename; // this provider belongs to service 'servicename'
 	M4LProfSect *profilesection;
-} providerEntry;
+};
 
-typedef struct _s_serviceentry {
+struct serviceEntry {
     MAPIUID muid;
     string servicename;
 	string displayname;
 	M4LProviderAdmin *provideradmin;
 	bool bInitialize;
 	SVCService* service;
-} serviceEntry;
+};
 
-typedef struct _s_profentry {
+struct profEntry {
     string profname;
     string password;
     M4LMsgServiceAdmin *serviceadmin;
-} profEntry;
+};
 
 class M4LProfAdmin _kc_final : public M4LUnknown, public IProfAdmin {
 private:

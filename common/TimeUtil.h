@@ -21,7 +21,7 @@
 #include <kopano/zcdefs.h>
 
 /* MAPI TimeZoneStruct named property */
-typedef struct _TIMEZONE_STRUCT {
+struct TIMEZONE_STRUCT {
 	// The bias values (bias, stdbias and dstbias) are the opposite of what you expect.
 	// Thus +1 hour becomes -60, +2 hours becomes -120, -3 becomes +180
 
@@ -34,7 +34,7 @@ typedef struct _TIMEZONE_STRUCT {
 
 	WORD wDstYear;
 	SYSTEMTIME stDstDate;		/* 3->2, dus 2 in wHour */
-} TIMEZONE_STRUCT;
+};
 
 extern "C" {
 

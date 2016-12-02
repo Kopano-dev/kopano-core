@@ -494,11 +494,11 @@ HRESULT __stdcall BuildDisplayTable(LPALLOCATEBUFFER lpAllocateBuffer, LPALLOCAT
 }
 
 #pragma pack(push, 1)
-typedef struct  {
+struct CONVERSATION_INDEX {
 	char ulReserved1;
 	char ftTime[5];
 	GUID guid;
-} CONVERSATION_INDEX;
+};
 #pragma pack(pop)
 
 HRESULT __stdcall ScCreateConversationIndex (ULONG cbParent,

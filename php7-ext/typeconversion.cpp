@@ -99,7 +99,8 @@ HRESULT PHPArraytoSBinaryArray(zval * entryid_array , void *lpBase, SBinaryArray
 		return MAPI_G(hr);
 	}
 
-	MAPI_G(hr) = MAPIAllocateMore(sizeof(_SBinary) * count, lpBase, (void **) &lpBinaryArray->lpbin);
+	MAPI_G(hr) = MAPIAllocateMore(sizeof(SBinary) * count, lpBase,
+	             reinterpret_cast<void **>(&lpBinaryArray->lpbin));
 	if(MAPI_G(hr) != hrSuccess)
 		return MAPI_G(hr);
 

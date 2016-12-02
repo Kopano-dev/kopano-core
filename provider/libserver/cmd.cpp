@@ -7433,7 +7433,7 @@ exit:
 }
 SOAP_ENTRY_END()
 
-typedef struct{
+struct COPYITEM {
 	unsigned int ulId;
 	unsigned int ulType;
 	unsigned int ulParent;
@@ -7447,7 +7447,7 @@ typedef struct{
 	EntryId	 	 sOldEntryId;
 	EntryId	 	 sNewEntryId;
 	bool		 bMoved;
-}COPYITEM;
+};
 
 // Move one or more messages and/or moved a softdeleted message to a normal message
 static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
@@ -10556,10 +10556,9 @@ SOAP_ENTRY_START(setServerBehavior, *result, unsigned int ulBehavior, unsigned i
 SOAP_ENTRY_END() 
 
 typedef ECDeferredFunc<ECRESULT, ECRESULT(*)(void*), void*> task_type;
+struct MTOMStreamInfo;
 
-typedef struct _MTOMStreamInfo MTOMStreamInfo;
-
-typedef struct {
+struct MTOMSessionInfo {
 	ECSession		*lpecSession;
 	ECDatabase		*lpSharedDatabase;
 	ECDatabase		*lpDatabase;
@@ -10568,9 +10567,9 @@ typedef struct {
 	ECThreadPool	*lpThreadPool;
 	MTOMStreamInfo	*lpCurrentWriteStream; /* This is only tracked for cleanup at session exit */
 	MTOMStreamInfo	*lpCurrentReadStream; /* This is only tracked for cleanup at session exit */
-} MTOMSessionInfo;
+};
 
-typedef struct _MTOMStreamInfo {
+struct MTOMStreamInfo {
 	ECFifoBuffer	*lpFifoBuffer;
 	unsigned int	ulObjectId;
 	unsigned int	ulStoreId;
@@ -10581,7 +10580,7 @@ typedef struct _MTOMStreamInfo {
 	task_type 		*lpTask;
 	struct propValArray *lpPropValArray;
 	MTOMSessionInfo *lpSessionInfo;
-} MTOMStreamInfo;
+};
 
 typedef MTOMStreamInfo * LPMTOMStreamInfo;
 

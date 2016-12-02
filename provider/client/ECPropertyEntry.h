@@ -51,8 +51,7 @@ private:
 private:
 	ULONG ulSize;
 	ULONG ulPropTag;
-	union _PV Value;
-
+	union __UPV Value;
 	DWORD dwLastError;
 };
 

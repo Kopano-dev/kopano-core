@@ -116,7 +116,7 @@ private:
 };
 
 // this belongs to the DeleteObjects function
-typedef struct {
+struct DELETEITEM {
 	unsigned int ulId;
 	unsigned int ulParent;
 	bool fRoot;
@@ -130,16 +130,16 @@ typedef struct {
 	SOURCEKEY sSourceKey;
 	SOURCEKEY sParentSourceKey;
 	entryId sEntryId; //fixme: auto destroy entryid
-} DELETEITEM;
+};
 
 // Used to group notify flags and object type.
-typedef struct _TCN {
-	_TCN(unsigned int t, unsigned int f): ulFlags(f), ulType(t) {}
-	bool operator<(const _TCN &rhs) const { return ulFlags < rhs.ulFlags || (ulFlags == rhs.ulFlags && ulType < rhs.ulType); }
+struct TABLECHANGENOTIFICATION {
+	TABLECHANGENOTIFICATION(unsigned int t, unsigned int f): ulFlags(f), ulType(t) {}
+	bool operator<(const TABLECHANGENOTIFICATION &rhs) const { return ulFlags < rhs.ulFlags || (ulFlags == rhs.ulFlags && ulType < rhs.ulType); }
 
 	unsigned int ulFlags;
 	unsigned int ulType;
-} TABLECHANGENOTIFICATION;
+};
 
 class PARENTINFO _kc_final {
 public:
@@ -221,18 +221,18 @@ ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const std::set<EntryId>& setOb
 ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const EntryId &entryid, unsigned int ulFlags);				// single entryid, folder or message
 ECRESULT BeginLockFolders(ECDatabase *lpDatabase, const SOURCEKEY &sourcekey, unsigned int ulFlags);			// single sourcekey, folder or message
 
-typedef struct {
+struct NAMEDPROPDEF {
     GUID			guid;
     unsigned int	ulKind;
     unsigned int	ulId;
     std::string		strName;
-} NAMEDPROPDEF;
+};
 typedef std::map<unsigned int, NAMEDPROPDEF> NamedPropDefMap;
 
-typedef struct {
+struct CHILDPROPS {
     DynamicPropValArray *lpPropVals;
     DynamicPropTagArray *lpPropTags;
-} CHILDPROPS;
+};
 typedef std::map<unsigned int, CHILDPROPS> ChildPropsMap;
 
 

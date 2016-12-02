@@ -35,10 +35,10 @@
  * A single work item - it doesn't contain much since we defer all processing, including XML
  * parsing until a worker thread starts processing
  */
-typedef struct {
+struct WORKITEM {
     struct soap *soap;			// socket and state associated with the connection
     double dblReceiveStamp;		// time at which activity was detected on the socket
-} WORKITEM;
+};
 
 struct ACTIVESOCKET _kc_final {
     struct soap *soap;
