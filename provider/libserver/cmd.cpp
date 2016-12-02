@@ -11389,7 +11389,8 @@ exit:
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(testPerform, *result, char *szCommand, struct testPerformArgs sPerform, unsigned int *result)
+SOAP_ENTRY_START(testPerform, *result, const char *szCommand,
+    struct testPerformArgs sPerform, unsigned int *result)
 {
     if(parseBool(g_lpSessionManager->GetConfig()->GetSetting("enable_test_protocol")))
         er = TestPerform(soap, lpecSession, szCommand, sPerform.__size, sPerform.__ptr);
@@ -11398,7 +11399,8 @@ SOAP_ENTRY_START(testPerform, *result, char *szCommand, struct testPerformArgs s
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(testSet, *result, char *szVarName, char *szValue, unsigned int *result)
+SOAP_ENTRY_START(testSet, *result, const char *szVarName, const char *szValue,
+    unsigned int *result)
 {
     if(parseBool(g_lpSessionManager->GetConfig()->GetSetting("enable_test_protocol")))
         er = TestSet(soap, lpecSession, szVarName, szValue);
@@ -11407,7 +11409,8 @@ SOAP_ENTRY_START(testSet, *result, char *szVarName, char *szValue, unsigned int 
 }
 SOAP_ENTRY_END()
 
-SOAP_ENTRY_START(testGet, lpsResponse->er, char *szVarName, struct testGetResponse *lpsResponse)
+SOAP_ENTRY_START(testGet, lpsResponse->er, const char *szVarName,
+    struct testGetResponse *lpsResponse)
 {
     if(parseBool(g_lpSessionManager->GetConfig()->GetSetting("enable_test_protocol")))
         er = TestGet(soap, lpecSession, szVarName, &lpsResponse->szValue);

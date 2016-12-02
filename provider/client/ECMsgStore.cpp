@@ -3226,17 +3226,18 @@ HRESULT ECMsgStore::LicenseUsers(unsigned int ulServiceType, unsigned int *lpulU
 	return lpTransport->HrLicenseUsers(ulServiceType, lpulUsers);
 }
 
-HRESULT ECMsgStore::TestPerform(char *szCommand, unsigned int ulArgs, char **lpszArgs)
+HRESULT ECMsgStore::TestPerform(const char *szCommand, unsigned int ulArgs,
+    char **lpszArgs)
 {
 	return lpTransport->HrTestPerform(szCommand, ulArgs, lpszArgs);
 }
 
-HRESULT ECMsgStore::TestSet(char *szName, char *szValue)
+HRESULT ECMsgStore::TestSet(const char *szName, const char *szValue)
 {
 	return lpTransport->HrTestSet(szName, szValue);
 }
 
-HRESULT ECMsgStore::TestGet(char *szName, char **szValue)
+HRESULT ECMsgStore::TestGet(const char *szName, char **szValue)
 {
 	return lpTransport->HrTestGet(szName, szValue);
 }
@@ -3540,9 +3541,9 @@ HRESULT ECMsgStore::xECTestProtocol::QueryInterface(REFIID refiid, void **lppInt
 	return hr;
 }
 
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECTestProtocol, TestPerform, (char *, szCommand), (unsigned int, ulArgs), (char **, szArgs))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECTestProtocol, TestSet, (char *, szName), (char *, szValue))
-DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECTestProtocol, TestGet, (char *, szName), (char **, szValue))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECTestProtocol, TestPerform, (const char *, cmd), (unsigned int, argc), (char **, args))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECTestProtocol, TestSet, (const char *, name), (const char *, value))
+DEF_HRMETHOD1(TRACE_MAPI, ECMsgStore, ECTestProtocol, TestGet, (const char *, name), (char **, value))
 
 ECMSLogon::ECMSLogon(ECMsgStore *lpStore)
 {

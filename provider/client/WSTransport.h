@@ -272,7 +272,7 @@ public:
 	virtual HRESULT GetLicenseFlags(unsigned long long *lpllFlags);
 
 	/* Test protocol */
-	virtual HRESULT HrTestPerform(char *szCommand, unsigned int ulArgs, char *lpszArgs[]);
+	virtual HRESULT HrTestPerform(const char *cmd, unsigned int argc, char **args);
 	virtual HRESULT HrTestSet(const char *szName, const char *szValue);
 	virtual HRESULT HrTestGet(const char *szName, char **szValue);
 

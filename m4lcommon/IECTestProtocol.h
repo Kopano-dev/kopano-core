@@ -20,9 +20,9 @@
 
 class IECTestProtocol : public IUnknown {
 public:
-    virtual HRESULT __stdcall TestPerform(char *szCommand, unsigned int ulArgs, char **szArgs) = 0;
-	virtual HRESULT __stdcall TestSet(char *szName, char *szValue) = 0;
-	virtual HRESULT __stdcall TestGet(char *szName, char **szValue) = 0;
+	virtual HRESULT __stdcall TestPerform(const char *cmd, unsigned int argc, char **args) = 0;
+	virtual HRESULT __stdcall TestSet(const char *name, const char *value) = 0;
+	virtual HRESULT __stdcall TestGet(const char *name, char **value) = 0;
 };
 
 #endif

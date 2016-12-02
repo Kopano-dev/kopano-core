@@ -27,7 +27,8 @@ struct soap;
 
 extern ECSessionManager*    g_lpSessionManager;
 
-ECRESULT TestPerform(struct soap *soap, ECSession *lpSession, char *szCommand, unsigned int ulArgs, char **args)
+ECRESULT TestPerform(struct soap *soap, ECSession *lpSession,
+    const char *szCommand, unsigned int ulArgs, char **args)
 {
     ECRESULT er = erSuccess;
 
@@ -71,7 +72,8 @@ ECRESULT TestPerform(struct soap *soap, ECSession *lpSession, char *szCommand, u
     return er;
 }
 
-ECRESULT TestSet(struct soap *soap, ECSession *lpSession, char *szVarName, char *szValue)
+ECRESULT TestSet(struct soap *soap, ECSession *lpSession,
+    const char *szVarName, const char *szValue)
 {
     ECRESULT er = erSuccess;
 
@@ -93,7 +95,8 @@ ECRESULT TestSet(struct soap *soap, ECSession *lpSession, char *szVarName, char 
     return er;
 }
 
-ECRESULT TestGet(struct soap *soap, ECSession *lpSession, char *szVarName, char **szValue)
+ECRESULT TestGet(struct soap *soap, ECSession *lpSession,
+    const char *szVarName, char **szValue)
 {
 	ECRESULT er = erSuccess;
 	if (strcasecmp(szVarName, "ping") == 0)

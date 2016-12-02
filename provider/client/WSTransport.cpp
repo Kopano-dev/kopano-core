@@ -4451,7 +4451,8 @@ HRESULT WSTransport::HrLicenseUsers(unsigned int ulServiceType, unsigned int *lp
 	return hr;
 }
 
-HRESULT WSTransport::HrTestPerform(char *szCommand, unsigned int ulArgs, char **lpszArgs)
+HRESULT WSTransport::HrTestPerform(const char *szCommand, unsigned int ulArgs,
+    char **lpszArgs)
 {
     HRESULT hr = hrSuccess;
     ECRESULT er = erSuccess;

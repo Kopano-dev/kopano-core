@@ -1179,9 +1179,9 @@ struct ns:testGetResponse {
     unsigned int er;
 };
 
-int ns__testPerform(ULONG64 ulSessionId, char *szCommand, struct testPerformArgs sPerform, unsigned int *result);
-int ns__testSet(ULONG64 ulSessionId, char *szVarName, char *szValue, unsigned int *result);
-int ns__testGet(ULONG64 ulSessionId, char *szVarName, struct ns:testGetResponse *lpsResponse);
+int ns__testPerform(ULONG64 ulSessionId, const char *cmd, struct testPerformArgs sPerform, unsigned int *result);
+int ns__testSet(ULONG64 ulSessionId, const char *name, const char *value, unsigned int *result);
+int ns__testGet(ULONG64 ulSessionId, const char *name, struct ns:testGetResponse *lpsResponse);
 
 struct attachment {
 	char	*lpszAttachmentName;

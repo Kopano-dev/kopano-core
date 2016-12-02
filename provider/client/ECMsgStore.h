@@ -179,9 +179,9 @@ public:
 	virtual HRESULT LicenseUsers(unsigned int ulServiceType, unsigned int *lpulUsers);
 
     // ECTestProtocol
-	virtual HRESULT TestPerform(char *szCommand, unsigned int ulArgs, char **szArgs);
-	virtual HRESULT TestSet(char *szName, char *szValue);
-	virtual HRESULT TestGet(char *szName, char **szValue);
+	virtual HRESULT TestPerform(const char *cmd, unsigned int argc, char **argv);
+	virtual HRESULT TestSet(const char *name, const char *value);
+	virtual HRESULT TestGet(const char *name, char **value);
 
 	// Called when session is reloaded
 	static HRESULT Reload(void *lpParam, ECSESSIONID sessionid);
@@ -358,9 +358,9 @@ public:
     public:
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		// <kopano/xclsfrag/IECTestProtocol.hpp>
-		virtual HRESULT __stdcall TestPerform(char *szCommand, unsigned int ulArgs, char **szArgs) _kc_override;
-		virtual HRESULT __stdcall TestSet(char *szName, char *szValue) _kc_override;
-		virtual HRESULT __stdcall TestGet(char *szName, char **szValue) _kc_override;
+		virtual HRESULT __stdcall TestPerform(const char *cmd, unsigned int argc, char **args) _kc_override;
+		virtual HRESULT __stdcall TestSet(const char *name, const char *value) _kc_override;
+		virtual HRESULT __stdcall TestGet(const char *name, char **value) _kc_override;
     } m_xECTestProtocol;
 	
 public:
