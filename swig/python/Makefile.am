@@ -22,11 +22,13 @@ AM_CPPFLAGS = ${ZCPPFLAGS} $(DEBUGFLAGS) \
 	-DSWIG_PYTHON_OUTPUT_TUPLE -DSWIG_TYPE_TABLE=MAPI
 
 libkcpyconv_la_SOURCES = conversion.cpp
-libkcpyconv_la_LDFLAGS = -Wl,--version-script=${top_builddir}/default.sym
+libkcpyconv_la_LDFLAGS = \
+	${AM_LDFLAGS} -Wl,--version-script=${top_builddir}/default.sym
 libkcpyconv_la_LIBADD  = ${PYTHON_LIBS} \
 	${top_builddir}/libmapi.la
 libkcpydirector_la_SOURCES = ../director_util.cpp
-libkcpydirector_la_LDFLAGS = -Wl,--version-script=${top_builddir}/default.sym
+libkcpydirector_la_LDFLAGS = \
+	${AM_LDFLAGS} -Wl,--version-script=${top_builddir}/default.sym
 libkcpydirector_la_LIBADD  = -lpthread
 
 _MAPICore_la_CPPFLAGS = ${AM_CPPFLAGS} -I${top_srcdir}/libsync
