@@ -28,8 +28,6 @@
 
 #include "ECMAPITable.h"
 
-#include "ECDisplayTable.h"
-
 ECDistList::ECDistList(void* lpProvider, BOOL fModify) : ECABContainer(lpProvider, MAPI_DISTLIST, fModify, "IDistList")
 {
 	// since we have no OpenProperty / abLoadProp, remove the 8k prop limit

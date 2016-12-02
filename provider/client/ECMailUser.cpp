@@ -25,8 +25,6 @@
 #include <kopano/ECGuid.h>
 #include <kopano/ECDebug.h>
 
-#include "ECDisplayTable.h"
-
 ECMailUser::ECMailUser(void* lpProvider, BOOL fModify) : ECABProp(lpProvider, MAPI_MAILUSER, fModify, "IMailUser")
 {
 	// since we have no OpenProperty / abLoadProp, remove the 8k prop limit

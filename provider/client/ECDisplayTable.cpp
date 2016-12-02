@@ -16,8 +16,6 @@
  */
 
 #include <kopano/platform.h>
-#include "ECDisplayTable.h"
-
 #include <kopano/ECGetText.h>
 
 #include <kopano/CommonUtil.h>
