@@ -327,11 +327,7 @@ typedef struct FILETIME *LPFILETIME;
 
 /* made up .. seems correct */
 union LARGE_INTEGER {
-#ifdef __GNUC__
-  __extension__ struct {
-#else
   struct {
-#endif
     DWORD LowPart;
     LONG HighPart;
   };
@@ -344,11 +340,7 @@ union LARGE_INTEGER {
 typedef union LARGE_INTEGER *PLARGE_INTEGER;
 
 union ULARGE_INTEGER {
-#ifdef __GNUC__
-  __extension__ struct {
-#else
   struct {
-#endif
     DWORD LowPart;
     DWORD HighPart;
   };
