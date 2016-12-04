@@ -31,6 +31,10 @@ TODO:
   ends up in 'used' (still need to scan objectdetails_t, 
   serverdetails_t and quotadetails_t)
 
+pretty printing techniques taken from:
+
+https://gcc.gnu.org/svn/gcc/trunk/libstdc++-v3/python/libstdcxx/v6/printers.py
+
 """
 
 cachemgr = gdb.parse_and_eval('g_lpSessionManager.m_lpECCacheManager')
@@ -58,40 +62,33 @@ def std_map_nodes(map):
             if node.dereference()['_M_right'] != parent:
                 node = parent
 
-        yield result.cast(nodetype).dereference()['_M_value_field']
+        nodus = result.cast(nodetype).dereference()
+        valtype = nodus.type.template_argument(0)
+        yield nodus['_M_storage'].address.cast(valtype.pointer()).dereference()
 
-def boost_unordered_map_buckets_(map):
-    table_ = map['table_']
-    return table_['buckets_']
+def unordered_map_buckets_(map):
+    table_ = map['_M_h']
+    return table_['_M_buckets']
 
-def boost_unordered_types(map):
-    table_ = map['table_']
-    node_type = table_.type.fields()[0].type.fields()[0].type.template_argument(2)
-    value_type = table_.type.fields()[0].type.fields()[0].type.template_argument(0).template_argument(0)
-    return node_type, value_type
-
-def boost_unordered_map_nodes(map):
+def unordered_map_nodevals(map):
     global COUNT
-    table_ = map['table_']
-    if table_['size_'] == 0:
-        return
-    start_bucket = table_['buckets_'] + table_['bucket_count_']
-    start_node = start_bucket.dereference()['next_']
-    yield start_node
-
+    map = map['_M_h']
+    node = map['_M_before_begin']['_M_nxt']
+    node_type = gdb.lookup_type(map.type.strip_typedefs().name+'::'+'__node_type').pointer()
+     
     COUNT = 0
     COUNT2 = 0
-    node = start_node
     while True:
-        next_node = node.dereference()['next_']
-
-        if not next_node or next_node == node:
+        if node == 0:
             break
-
-        yield next_node
+        plop = node.cast(node_type)
+        elt = plop.dereference()
+        valptr = elt['_M_storage'].address
+        valptr = valptr.cast(elt.type.template_argument(0).pointer())
+        yield plop, valptr.dereference()
 
         COUNT2 += 1
-        node = next_node
+        node = elt['_M_nxt']
         if COUNT2 % 10000 == 0:
             print('counts:', COUNT2, COUNT)
 #            break
@@ -99,16 +96,14 @@ def boost_unordered_map_nodes(map):
 def _quota_blocks(map, blocks, starts, start_block):
     found_blocks = []
 
-    buckets_ = boost_unordered_map_buckets_(map)
+    buckets_ = unordered_map_buckets_(map)
     if int(str(buckets_.cast(vopo)), 16) == 0:
         return found_blocks
 
     fb = tcstats.bisect_block(int(str(buckets_), 16), starts, start_block)
     found_blocks.append(fb)
 
-    node_type, value_type = boost_unordered_types(map)
-
-    for node in boost_unordered_map_nodes(map):
+    for node, value in unordered_map_nodevals(map):
         fb = tcstats.bisect_block(int(str(node), 16), starts, start_block)
         found_blocks.append(fb)
 
@@ -133,13 +128,11 @@ def store_blocks(blocks, starts, start_block):
 
     map = cachemgr['m_StoresCache']['m_map']
 
-    buckets_ = boost_unordered_map_buckets_(map)
+    buckets_ = unordered_map_buckets_(map)
     fb = tcstats.bisect_block(int(str(buckets_), 16), starts, start_block)
     found_blocks.append(fb)
 
-    node_type, value_type = boost_unordered_types(map)
-
-    for node in boost_unordered_map_nodes(map):
+    for node, value in unordered_map_nodevals(map):
         fb = tcstats.bisect_block(int(str(node), 16), starts, start_block)
         found_blocks.append(fb)
 
@@ -153,17 +146,15 @@ def index1_blocks(blocks, starts, start_block):
 
     found_blocks = []
 
-    buckets_ = boost_unordered_map_buckets_(map)
+    buckets_ = unordered_map_buckets_(map)
     fb = tcstats.bisect_block(int(str(buckets_), 16), starts, start_block)
     found_blocks.append(fb)
 
-    node_type, value_type = boost_unordered_types(map)
-
-    for node in boost_unordered_map_nodes(map):
+    for node, value in unordered_map_nodevals(map):
         fb = tcstats.bisect_block(int(str(node), 16), starts, start_block)
         found_blocks.append(fb)
 
-        addr = node.dereference().cast(node_type)['data_'].cast(value_type)['first']['lpData'].cast(vopo)
+        addr = value['first']['lpData'].cast(vopo)
         fb = tcstats.bisect_block(int(str(addr), 16), starts, start_block)
         found_blocks.append(fb)
 
@@ -195,11 +186,11 @@ def obj_blocks(blocks, starts, start_block):
 
     found_blocks = []
 
-    buckets_ = boost_unordered_map_buckets_(map)
+    buckets_ = unordered_map_buckets_(map)
     fb = tcstats.bisect_block(int(str(buckets_), 16), starts, start_block)
     found_blocks.append(fb)
 
-    for node in boost_unordered_map_nodes(map):
+    for node, value in unordered_map_nodevals(map):
         fb = tcstats.bisect_block(int(str(node), 16), starts, start_block)
         found_blocks.append(fb)
 
@@ -237,17 +228,14 @@ def cell_blocks(blocks, starts, start_block):
 
     found_blocks = []
 
-    buckets_ = boost_unordered_map_buckets_(map)
+    buckets_ = unordered_map_buckets_(map)
     fb = tcstats.bisect_block(int(str(buckets_), 16), starts, start_block)
     found_blocks.append(fb)
 
-    node_type, value_type = boost_unordered_types(map)
-
-    for node in boost_unordered_map_nodes(map):
+    for node, value in unordered_map_nodevals(map):
         fb = tcstats.bisect_block(int(str(node), 16), starts, start_block)
         found_blocks.append(fb)
-
-        found_blocks.extend(_cell_stdmap_blocks(node.dereference().cast(node_type)['data_'].cast(value_type)['second']['mapPropVals'], starts, start_block))
+        found_blocks.extend(_cell_stdmap_blocks(value['second']['mapPropVals'], starts, start_block))
 
     return found_blocks
 
@@ -259,18 +247,16 @@ def userid_blocks(blocks, starts, start_block):
 
     found_blocks = []
 
-    buckets_ = boost_unordered_map_buckets_(map)
+    buckets_ = unordered_map_buckets_(map)
     fb = tcstats.bisect_block(int(str(buckets_), 16), starts, start_block)
     found_blocks.append(fb)
 
-    node_type, value_type = boost_unordered_types(map)
-
-    for node in boost_unordered_map_nodes(map):
+    for node, value in unordered_map_nodevals(map):
         fb = tcstats.bisect_block(int(str(node), 16), starts, start_block)
         found_blocks.append(fb)
 
         for field in ('strExternId', 'strSignature'):
-            addr = node.dereference().cast(node_type)['data_'].cast(value_type)['second'][field]['_M_dataplus']['_M_p'].cast(vopo)
+            addr = value['second'][field]['_M_dataplus']['_M_p'].cast(vopo)
             fb = tcstats.bisect_block(int(str(addr), 16), starts, start_block)
             found_blocks.append(fb)
 
@@ -306,11 +292,11 @@ def userdetail_blocks(blocks, starts, start_block):
 
     found_blocks = []
 
-    buckets_ = boost_unordered_map_buckets_(map)
+    buckets_ = unordered_map_buckets_(map)
     fb = tcstats.bisect_block(int(str(buckets_), 16), starts, start_block)
     found_blocks.append(fb)
 
-    for node in boost_unordered_map_nodes(map):
+    for node, value in unordered_map_nodevals(map):
         fb = tcstats.bisect_block(int(str(node), 16), starts, start_block)
         found_blocks.append(fb)
 
@@ -324,17 +310,15 @@ def acl_blocks(blocks, starts, start_block):
 
     found_blocks = []
 
-    buckets_ = boost_unordered_map_buckets_(map)
+    buckets_ = unordered_map_buckets_(map)
     fb = tcstats.bisect_block(int(str(buckets_), 16), starts, start_block)
     found_blocks.append(fb)
 
-    node_type, value_type = boost_unordered_types(map)
-
-    for node in boost_unordered_map_nodes(map):
+    for node, value in unordered_map_nodevals(map):
         fb = tcstats.bisect_block(int(str(node), 16), starts, start_block)
         found_blocks.append(fb)
 
-        addr = node.dereference().cast(node_type)['data_'].cast(value_type)['second']['aACL'].cast(vopo)
+        addr = value['second']['aACL'].cast(vopo)
         fb = tcstats.bisect_block(int(str(addr), 16), starts, start_block)
         found_blocks.append(fb)
 
@@ -366,8 +350,6 @@ def prepare_data(name, blocks):
     summary, count, size = tcstats.freq_blocks(blocks)
     size = '%.2fGB' % (float(size) / (10**9))
     return Gnuplot.Data(sorted(summary.items()), with_="linespoints", title='%s blocks (%s)' % (name, size))
-
-# XXX these are currently not scanned:
 
 def main(blocks=None, used=None, free=None, starts=None, start_block=None):
     blocks = blocks or list(tcstats.pagemap_blocks())

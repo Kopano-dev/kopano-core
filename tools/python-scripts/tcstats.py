@@ -321,7 +321,7 @@ def search_reachable(reachable, starts, start_block):
                     new.add(block2.address)
                     reachable.add(block2.address)
             scanned += block.size
-            print('scanned', scanned)
+#            print('scanned', scanned)
         front = new
 
     return reachable
