@@ -67,7 +67,7 @@ public:
 	virtual HRESULT SetReadFlags(LPENTRYLIST lpMsgList, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags);
 	virtual HRESULT GetMessageStatus(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags, ULONG *lpulMessageStatus);
 	virtual HRESULT SetMessageStatus(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulNewStatus, ULONG ulNewStatusMask, ULONG *lpulOldStatus);
-	virtual HRESULT SaveContentsSort(LPSSortOrderSet lpSortCriteria, ULONG ulFlags);
+	virtual HRESULT SaveContentsSort(const SSortOrderSet *lpSortCriteria, ULONG ulFlags);
 	virtual HRESULT EmptyFolder(ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags);
 
 	// Override IFolderSupport
@@ -98,7 +98,7 @@ public:
 		virtual HRESULT __stdcall SetReadFlags(LPENTRYLIST lpMsgList, ULONG ui_param, LPMAPIPROGRESS lpProgress, ULONG flags) _kc_override;
 		virtual HRESULT __stdcall GetMessageStatus(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG flags, ULONG *lpulMessageStatus) _kc_override;
 		virtual HRESULT __stdcall SetMessageStatus(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulNewStatus, ULONG ulNewStatusMask, ULONG *lpulOldStatus) _kc_override;
-		virtual HRESULT __stdcall SaveContentsSort(LPSSortOrderSet lpSortCriteria, ULONG flags) _kc_override;
+		virtual HRESULT __stdcall SaveContentsSort(const SSortOrderSet *lpSortCriteria, ULONG flags) _kc_override;
 		virtual HRESULT __stdcall EmptyFolder(ULONG ui_param, LPMAPIPROGRESS lpProgress, ULONG flags) _kc_override;
 	} m_xMAPIFolder;
 

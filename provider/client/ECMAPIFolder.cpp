@@ -825,7 +825,7 @@ HRESULT ECMAPIFolder::SetMessageStatus(ULONG cbEntryID, LPENTRYID lpEntryID, ULO
 	return lpFolderOps->HrSetMessageStatus(cbEntryID, lpEntryID, ulNewStatus, ulNewStatusMask, 0, lpulOldStatus);
 }
 
-HRESULT ECMAPIFolder::SaveContentsSort(LPSSortOrderSet lpSortCriteria, ULONG ulFlags)
+HRESULT ECMAPIFolder::SaveContentsSort(const SSortOrderSet *lpSortCriteria, ULONG ulFlags)
 {
 	return MAPI_E_NO_ACCESS;
 }
@@ -921,7 +921,7 @@ DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, DeleteFolder, (ULONG, cbEntr
 DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, SetReadFlags, (LPENTRYLIST, lpMsgList), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (ULONG, ulFlags))
 DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, GetMessageStatus, (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (ULONG, ulFlags), (ULONG *, lpulMessageStatus))
 DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, SetMessageStatus, (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (ULONG, ulNewStatus), (ULONG, ulNewStatusMask), (ULONG *, lpulOldStatus))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, SaveContentsSort, (LPSSortOrderSet, lpSortCriteria), (ULONG, ulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, SaveContentsSort, (const SSortOrderSet *, lpSortCriteria), (ULONG, ulFlags))
 DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, EmptyFolder, (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (ULONG, ulFlags))
 
 // IFolderSupport

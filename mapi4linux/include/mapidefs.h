@@ -986,7 +986,7 @@ public:
     virtual HRESULT GetMessageStatus(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags, ULONG* lpulMessageStatus) = 0;
     virtual HRESULT SetMessageStatus(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulNewStatus, ULONG ulNewStatusMask,
 				     ULONG* lpulOldStatus) = 0;
-    virtual HRESULT SaveContentsSort(LPSSortOrderSet lpSortCriteria, ULONG ulFlags) = 0;
+    virtual HRESULT SaveContentsSort(const SSortOrderSet *lpSortCriteria, ULONG ulFlags) = 0;
     virtual HRESULT EmptyFolder(ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags) = 0;
 };
 

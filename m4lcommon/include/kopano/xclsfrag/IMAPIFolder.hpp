@@ -7,5 +7,5 @@ virtual HRESULT __stdcall DeleteFolder(ULONG cbEntryID, LPENTRYID lpEntryID, ULO
 virtual HRESULT __stdcall SetReadFlags(LPENTRYLIST lpMsgList, ULONG ui_param, LPMAPIPROGRESS lpProgress, ULONG flags) _kc_override;
 virtual HRESULT __stdcall GetMessageStatus(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG flags, ULONG *lpulMessageStatus) _kc_override;
 virtual HRESULT __stdcall SetMessageStatus(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulNewStatus, ULONG ulNewStatusMask, ULONG *lpulOldStatus) _kc_override;
-virtual HRESULT __stdcall SaveContentsSort(LPSSortOrderSet lpSortCriteria, ULONG flags) _kc_override;
+virtual HRESULT __stdcall SaveContentsSort(const SSortOrderSet *lpSortCriteria, ULONG flags) _kc_override;
 virtual HRESULT __stdcall EmptyFolder(ULONG ui_param, LPMAPIPROGRESS lpProgress, ULONG flags) _kc_override;

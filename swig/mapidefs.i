@@ -346,7 +346,7 @@ public:
     virtual HRESULT GetMessageStatus(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags, ULONG* OUTPUT /*lpulMessageStatus*/) = 0;
     virtual HRESULT SetMessageStatus(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulNewStatus, ULONG ulNewStatusMask,
 				     ULONG* OUTPUT /*lpulOldStatus*/) = 0;
-    virtual HRESULT SaveContentsSort(LPSSortOrderSet lpSortCriteria, ULONG ulFlags) = 0;
+    virtual HRESULT SaveContentsSort(const SSortOrderSet *lpSortCriteria, ULONG ulFlags) = 0;
     virtual HRESULT EmptyFolder(ULONG ulUIParam, IMAPIProgress * lpProgress, ULONG ulFlags) = 0;
 	%extend {
 		~IMAPIFolder() { self->Release(); }
