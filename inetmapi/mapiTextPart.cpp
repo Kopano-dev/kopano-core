@@ -205,15 +205,11 @@ void mapiTextPart::addEmbeddedObject(const bodyPart& part, const string& id)
 
 	mediaType type;
 
-	try
-	{
+	if (part.getHeader()->hasField(fields::CONTENT_TYPE)) {
 		auto ctf = part.getHeader()->ContentType();
 		type = *vmime::dynamicCast<const vmime::mediaType>(ctf->getValue());
 	}
-	catch (exceptions::no_such_field)
-	{
-		// No "Content-type" field: assume "application/octet-stream".
-	}
+	// Else assume "application/octet-stream".
 
 	m_objects.push_back(vmime::make_shared<embeddedObject>(
 		vmime::dynamicCast<vmime::contentHandler>(part.getBody()->getContents()->clone()),
