@@ -246,6 +246,19 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 
 			HrSetOneProp(lpMessage, &sPropHeaders);
 		}
+		/*
+		 * Add PR_MESSAGE_SIZE initially to the size of the RFC2822
+		 * part. PR_MESSAGE_SIZE is needed for rule processing; if this
+		 * is not added, the message size is not known at processing
+		 * time because the message size is computed during save.
+		 * According to MAPI documentation, PR_MESSAGE_SIZE is an
+		 * estimated size of the message, therefore the size of the
+		 * RFC2822 message will qualify.
+		*/
+		SPropValue sMessageSize;
+		sMessageSize.ulPropTag = PR_MESSAGE_SIZE;
+		sMessageSize.Value.ul = input.length();
+		lpMessage->SetProps(1, &sMessageSize, nullptr);
 
 		// turn buffer into a message
 		auto vmMessage = vmime::make_shared<vmime::message>();

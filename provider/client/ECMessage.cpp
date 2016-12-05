@@ -76,7 +76,7 @@ ECMessage::ECMessage(ECMsgStore *lpMsgStore, BOOL fNew, BOOL fModify, ULONG ulFl
 	this->HrAddPropHandlers(PR_HASATTACH,				GetPropHandler       ,DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
 	this->HrAddPropHandlers(PR_NORMALIZED_SUBJECT,		GetPropHandler		 ,DefaultSetPropIgnore,		(void*) this, FALSE, FALSE);
 	this->HrAddPropHandlers(PR_PARENT_ENTRYID,			GetPropHandler       ,DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
-	this->HrAddPropHandlers(PR_MESSAGE_SIZE,			GetPropHandler       ,DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
+	this->HrAddPropHandlers(PR_MESSAGE_SIZE,			GetPropHandler       ,SetPropHandler,		(void*) this, FALSE, FALSE);
 	this->HrAddPropHandlers(PR_DISPLAY_TO,				GetPropHandler       ,DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
 	this->HrAddPropHandlers(PR_DISPLAY_CC,				GetPropHandler       ,DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
 	this->HrAddPropHandlers(PR_DISPLAY_BCC,				GetPropHandler       ,DefaultSetPropComputed,	(void*) this, FALSE, FALSE);
@@ -2456,6 +2456,21 @@ HRESULT ECMessage::SetPropHandler(ULONG ulPropTag, void* lpProvider, LPSPropValu
 	HRESULT hr = hrSuccess;
 
 	switch(ulPropTag) {
+	case PR_MESSAGE_SIZE:
+		/*
+		 * Accept manipulation of the message size is only accepted
+		 * while the message has not yet been saved. When parsing the
+		 * RFC2822 message, SetProp(PR_MESSAGE_SIZE) is called since
+		 * the message size needs to be known during rules processing.
+		 * Whenever the message is saved, the size will be recomputed
+		 * (including properties, etc.), therefore modifications will
+		 * not be accepted.
+		 */
+		if (lpMessage->fNew)
+			hr = lpMessage->HrSetRealProp(lpsPropValue);
+		else
+			hr = MAPI_E_COMPUTED;
+		break;
 	case PR_HTML:
 		hr = lpMessage->HrSetRealProp(lpsPropValue);
 		break;
