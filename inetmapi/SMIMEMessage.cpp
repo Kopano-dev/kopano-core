@@ -35,7 +35,7 @@ void SMIMEMessage::generateImpl(const vmime::generationContext &ctx,
 	    	*newLinePos = 0;
     } else {
         // Normal generation
-        vmime::message::generate(ctx, os, curLinePos, newLinePos);
+        vmime::bodyPart::generateImpl(ctx, os, curLinePos, newLinePos);
     }
 }
 

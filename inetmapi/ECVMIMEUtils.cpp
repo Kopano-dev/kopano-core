@@ -373,12 +373,11 @@ HRESULT ECVMIMESender::sendMail(LPADRBOOK lpAdrBook, LPMESSAGE lpMessage,
 			return MAPI_W_CANCEL_MESSAGE;
 		}
 
-        // Remove BCC headers from the message we're about to send
-        try {
-		auto bcc = vmMessage->getHeader()->findField(vmime::fields::BCC);
+		// Remove BCC headers from the message we're about to send
+		if (vmMessage->getHeader()->hasField(vmime::fields::BCC)) {
+			auto bcc = vmMessage->getHeader()->findField(vmime::fields::BCC);
 			vmMessage->getHeader()->removeField(bcc);
-        }
-        catch (vmime::exceptions::no_such_field&) { }
+		}
 
 		// Delivery report request
 		SPropValuePtr ptrDeliveryReport;
