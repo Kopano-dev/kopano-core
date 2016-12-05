@@ -101,9 +101,6 @@ static const char *szConfig = ECConfig::GetDefaultPath("spooler.cfg");
 ECConfig *g_lpConfig = NULL;
 ECLogger *g_lpLogger = NULL;
 
-static pthread_t signal_thread;
-static sigset_t signal_mask;
-
 // notification
 static bool bMessagesWaiting = false;
 static std::mutex hMutexMessagesWaiting;
@@ -863,6 +860,7 @@ static void sigsegv(int signr, siginfo_t *si, void *uc)
  */
 static void process_signal(int sig)
 {
+	ec_log_debug("Received signal %d", sig);
 	int stat;
 	pid_t pid;
 
@@ -916,35 +914,6 @@ static void process_signal(int sig)
 		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Unknown signal %d received", sig);
 		break;
 	}
-}
-
-/** 
- * Signal handler thread. Currently handles SIGTERM, SIGINT, SIGCHLD, SIGHUP and SIGUSR2.
- *
- * SIGCHLD waits for the mailer child, and stores the exit status for cleanup from the queue.
- * SIGHUP reloads the config file
- * SIGUSR2 prints some simple stats in the log 
- * 
- * @return 
- */
-static void *signal_handler(void *)
-{
-	int sig;
-
-	g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Signal thread started");
-
-	// already blocking signals
-
-	while (!bQuit && sigwait(&signal_mask, &sig) == 0)
-	{
-		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Received signal %d", sig);
-
-		process_signal(sig);
-	}
-	
-	g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Signal thread done");
-
-	return NULL;
 }
 
 /**
@@ -1194,12 +1163,14 @@ int main(int argc, char *argv[]) {
 	}
 	else {
 		// notification condition
-		sigemptyset(&signal_mask);
-		sigaddset(&signal_mask, SIGTERM);
-		sigaddset(&signal_mask, SIGINT);
-		sigaddset(&signal_mask, SIGCHLD);
-		sigaddset(&signal_mask, SIGHUP);
-		sigaddset(&signal_mask, SIGUSR2);
+		act.sa_handler = process_signal;
+		act.sa_flags = SA_ONSTACK | SA_RESTART;
+		sigaction(SIGHUP, &act, nullptr);
+		sigaction(SIGINT, &act, nullptr);
+		sigaction(SIGTERM, &act, nullptr);
+		sigaction(SIGCHLD, &act, nullptr);
+		sigaction(SIGUSR2, &act, nullptr);
+
 	}
 
     st.ss_sp = malloc(65536);
@@ -1247,15 +1218,6 @@ int main(int argc, char *argv[]) {
 		goto exit;
 	}
 
-	if (!bForked) {
-		// valid for all threads afterwards
-		pthread_sigmask(SIG_BLOCK, &signal_mask, NULL);
-		// create signal handler thread, will handle all blocked signals
-		// must be done after the daemonize
-		pthread_create(&signal_thread, NULL, signal_handler, NULL);
-		set_thread_name(signal_thread, "SignalHandler");
-	}
-
 	sc = new StatsClient(g_lpLogger);
 	sc->startup(g_lpConfig->GetSetting("z_statsd_stats"));
 	if (bForked)
@@ -1265,11 +1227,8 @@ int main(int argc, char *argv[]) {
 
 	delete sc;
 
-	if (!bForked) {
-		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Joining signal thread");
-		pthread_join(signal_thread, NULL);
+	if (!bForked)
 		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Spooler shutdown complete");
-	}
 	MAPIUninitialize();
 
 exit:
