@@ -836,7 +836,7 @@ ECRESULT ECGetContentChangesHelper::Finalize(unsigned int *lpulMaxChange, icsCha
 	assert(m_lpMsgProcessor != NULL);
 	ulMaxChange = m_lpMsgProcessor->GetMaxChangeId();
 
-	if(m_ulFlags & 0x80000) {
+	if (m_ulFlags & SYNC_NO_DB_CHANGES) {
 		*lpulMaxChange = ulMaxChange;
 		goto exit;
 	}

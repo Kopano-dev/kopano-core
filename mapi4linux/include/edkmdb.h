@@ -922,6 +922,7 @@ typedef struct READSTATE *LPREADSTATE;
 #define SYNC_FXRECOVERMODE			0x10000
 #define SYNC_DEFER_CONFIG			0x20000
 #define SYNC_FORCE_UNICODE			0x40000	// Forces server to return Unicode properties
+#define SYNC_NO_DB_CHANGES			0x80000
 
 /*------------------------------------------------------------------------
  *

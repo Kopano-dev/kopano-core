@@ -354,10 +354,21 @@ def _sync(server, syncobj, importer, state, log, max_changes, associated=False, 
         else:
             restriction = SAndRestriction(restrs)
 
+    flags = SYNC_NORMAL | SYNC_UNICODE
     if associated:
+        flags |= SYNC_ASSOCIATED
+    try:
         exporter.Config(stream, SYNC_NORMAL | SYNC_ASSOCIATED | SYNC_UNICODE, importer, restriction, None, None, 0)
-    else:
-        exporter.Config(stream, SYNC_NORMAL | SYNC_UNICODE, importer, restriction, None, None, 0)
+    except MAPIErrorNotFound: # syncid purged because of 'sync_lifetime' option in server.cfg: get new syncid.
+        if log:
+            log.warn("Sync state does not exist on server (anymore); requesting new one")
+
+        syncid, changeid = struct.unpack('<II', state.decode('hex'))
+        stream = IStream()
+        stream.Write(struct.pack('<II', 0, changeid))
+        stream.Seek(0, MAPI.STREAM_SEEK_SET)
+
+        exporter.Config(stream, flags, importer, restriction, None, None, 0)
 
     step = retry = changes = 0
     sleep_time = 0.4

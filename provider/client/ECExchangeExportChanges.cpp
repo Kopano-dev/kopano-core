@@ -301,7 +301,7 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 		}
 
 		// Register our sync with the server, get a sync ID
-		hr = m_lpStore->lpTransport->HrSetSyncStatus(sourcekey, 0, 0, m_ulSyncType, 0, &ulSyncId);
+		hr = m_lpStore->lpTransport->HrSetSyncStatus(sourcekey, ulSyncId, ulChangeId, m_ulSyncType, 0, &ulSyncId);
 		if(hr != hrSuccess) {
 			ZLOG_DEBUG(m_lpLogger, "Unable to update sync status on server, hr=0x%08x", hr);
 			return hr;
@@ -453,13 +453,8 @@ HRESULT ECExchangeExportChanges::Config(LPSTREAM lpStream, ULONG ulFlags, LPUNKN
 
 	if (bForceImplicitStateUpdate) {
 		ZLOG_DEBUG(m_lpLogger, "Forcing state update for %s folder '%ls'", (m_lpStore->IsOfflineStore() ? "offline" : "online"), m_strDisplay.c_str());
-		/**
-		 * bForceImplicitStateUpdate is only set to true when the StateStream contained a ulSyncId of 0. In that
-		 * case the ulChangeId can't be enything other then 0. As ulChangeId is assigned to m_ulChangeId and neither
-		 * of them changes in this function, m_ulChangeId can't be anything other than 0 when we reach this point.
-		 **/
-		assert(m_ulChangeId == 0);
-		UpdateState(NULL);
+		if (m_ulChangeId == 0)
+			UpdateState(NULL);
 	}
 	return hrSuccess;
 }
