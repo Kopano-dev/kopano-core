@@ -49,7 +49,7 @@
 
 #pragma pack(push,1)
 // Entryid from version 6
-// Entryid version 1
+// Entryid version 1 (48 bytes)
 struct EID {
 	BYTE	abFlags[4];
 	GUID	guid;			// StoreGuid
@@ -86,7 +86,7 @@ struct EID {
 };
 
 // The entryid from the begin of zarafa till 5.20
-// Entryid version is zero
+// Entryid version is zero (36 bytes)
 struct EID_V0 {
 	BYTE	abFlags[4];
 	GUID	guid;			// StoreGuid

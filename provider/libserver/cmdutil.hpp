@@ -77,17 +77,17 @@ public:
 		auto d = reinterpret_cast<EID_V0 *>(const_cast<char *>(m_data.data()));
 		if (m_data.size() >= offsetof(EID_V0, usType) + sizeof(d->usType))
 			return d->usType;
-		ec_log_err("%s: entryid has size %zu; not enough for EID_V0.usType",
-			__func__, m_data.size());
-		throw runtime_error("entryid is not of type EID_V0");
+		ec_log_err("K-1570: %s: entryid has size %zu; not enough for EID_V0.usType (%zu)",
+			__func__, m_data.size(), offsetof(EID_V0, usType) + sizeof(d->usType));
+		throw runtime_error("K-1570: entryid is not of type EID_V0");
     }
 
     void setFlags(unsigned int ulFlags) {
 		auto d = reinterpret_cast<EID_V0 *>(const_cast<char *>(m_data.data()));
 		if (m_data.size() >= offsetof(EID_V0, usFlags) + sizeof(d->usFlags)) {
-			ec_log_err("%s: entryid has size %zu; not enough for EID_V0.usFlags",
-				__func__, m_data.size());
-			throw runtime_error("entryid is not of type EID_V0");
+			ec_log_err("K-1571: %s: entryid has size %zu; not enough for EID_V0.usFlags (%zu)",
+				__func__, m_data.size(), offsetof(EID_V0, usFlags) + sizeof(d->usFlags));
+			throw runtime_error("K-1571: entryid is not of type EID_V0");
 		}
 		d->usFlags = ulFlags;
     }

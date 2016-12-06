@@ -1845,8 +1845,8 @@ ECRESULT ECCacheManager::GetEntryIdFromObject(unsigned int ulObjId, struct soap 
 	if (lpEntryId->__size < 0 ||
 	    static_cast<size_t>(lpEntryId->__size) <
 	    offsetof(EID, usFlags) + sizeof(d->usFlags)) {
-		ec_log_err("%s: entryid has size %d; not enough for EID_V1.usFlags",
-			__func__, lpEntryId->__size);
+		ec_log_err("K-1572: %s: entryid has size %d; not enough for EID_V1.usFlags (%zu)",
+			__func__, lpEntryId->__size, offsetof(EID, usFlags) + sizeof(d->usFlags));
 		return MAPI_E_CORRUPT_DATA;
 	}
 	d->usFlags = ulFlags;
