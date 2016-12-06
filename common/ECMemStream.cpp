@@ -152,15 +152,11 @@ HRESULT ECMemBlock::Revert()
 
 HRESULT ECMemBlock::SetSize(ULONG ulSize)
 {
-	char *lpNew = (char *)malloc(ulSize);
-	if (lpNew == NULL)
+	auto lpNew = static_cast<char *>(realloc(lpCurrent, ulSize));
+	if (lpNew == NULL && ulSize != 0)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-
-	memcpy(lpNew, lpCurrent, ulSize < cbCurrent ? ulSize : cbCurrent);
-
 	if(ulSize > cbCurrent)
 		memset(lpNew+cbCurrent, 0, ulSize-cbCurrent);
-	free(lpCurrent);
 	lpCurrent = lpNew;
 	cbCurrent = ulSize;
 	cbTotal = ulSize;
