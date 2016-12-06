@@ -84,7 +84,7 @@ public:
 
     void setFlags(unsigned int ulFlags) {
 		auto d = reinterpret_cast<EID_V0 *>(const_cast<char *>(m_data.data()));
-		if (m_data.size() >= offsetof(EID_V0, usFlags) + sizeof(d->usFlags)) {
+		if (m_data.size() < offsetof(EID_V0, usFlags) + sizeof(d->usFlags)) {
 			ec_log_err("K-1571: %s: entryid has size %zu; not enough for EID_V0.usFlags (%zu)",
 				__func__, m_data.size(), offsetof(EID_V0, usFlags) + sizeof(d->usFlags));
 			throw runtime_error("K-1571: entryid is not of type EID_V0");
