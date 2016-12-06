@@ -1165,6 +1165,7 @@ int main(int argc, char *argv[]) {
 		// notification condition
 		act.sa_handler = process_signal;
 		act.sa_flags = SA_ONSTACK | SA_RESTART;
+		sigemptyset(&act.sa_mask);
 		sigaction(SIGHUP, &act, nullptr);
 		sigaction(SIGINT, &act, nullptr);
 		sigaction(SIGTERM, &act, nullptr);
@@ -1179,7 +1180,7 @@ int main(int argc, char *argv[]) {
 
 	act.sa_sigaction = sigsegv;
 	act.sa_flags = SA_ONSTACK | SA_RESETHAND | SA_SIGINFO;
-
+	sigemptyset(&act.sa_mask);
     sigaltstack(&st, NULL);
     sigaction(SIGSEGV, &act, NULL);
     sigaction(SIGBUS, &act, NULL);

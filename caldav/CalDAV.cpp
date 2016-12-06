@@ -131,7 +131,7 @@ int main(int argc, char **argv) {
 	int ulListenCalDAVs = 0;
 	bool bIgnoreUnknownConfigOptions = false;
     stack_t st = {0};
-    struct sigaction act = {{0}};
+	struct sigaction act;
 
 	// Configuration
 	int opt = 0;
@@ -263,7 +263,7 @@ int main(int argc, char **argv) {
 
 	act.sa_sigaction = sigsegv;
 	act.sa_flags = SA_ONSTACK | SA_RESETHAND | SA_SIGINFO;
-
+	sigemptyset(&act.sa_mask);
 	sigaltstack(&st, NULL);
 	sigaction(SIGSEGV, &act, NULL);
 	sigaction(SIGBUS, &act, NULL);

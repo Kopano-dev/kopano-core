@@ -686,8 +686,10 @@ namespace PrivatePipe {
 		m_lpFileLogger->AddRef();
 
 		struct sigaction act;
+		memset(&act, 0, sizeof(act));
 		act.sa_handler = sighup;
 		act.sa_flags = SA_RESTART | SA_ONSTACK;
+		sigemptyset(&act.sa_mask);
 		sigaction(SIGHUP, &act, nullptr);
 		signal(SIGPIPE, SIG_IGN);
 		// ignore stop signals to keep logging until the very end

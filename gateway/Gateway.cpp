@@ -537,6 +537,7 @@ static HRESULT running_service(const char *szPath, const char *servicename)
   
 	act.sa_sigaction = sigsegv;
 	act.sa_flags = SA_ONSTACK | SA_RESETHAND | SA_SIGINFO;
+	sigemptyset(&act.sa_mask);
   
     sigaltstack(&st, NULL);
     sigaction(SIGSEGV, &act, NULL);

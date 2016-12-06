@@ -801,7 +801,7 @@ static int running_server(char *szName, const char *szConfig,
 
 	// SIGSEGV backtrace support
 	stack_t st = {0};
-	struct sigaction act = {{0}};
+	struct sigaction act;
 	int tmplock = -1;
 	struct stat dir = {0};
 	struct passwd *runasUser = NULL;
@@ -1189,6 +1189,7 @@ static int running_server(char *szName, const char *szConfig,
 
 	act.sa_sigaction = sigsegv;
 	act.sa_flags = SA_ONSTACK | SA_RESETHAND | SA_SIGINFO;
+	sigemptyset(&act.sa_mask);
 
 	sigaltstack(&st, NULL);
 	sigaction(SIGSEGV, &act, NULL);
@@ -1202,6 +1203,7 @@ static int running_server(char *szName, const char *szConfig,
 
 	act.sa_handler = process_signal;
 	act.sa_flags = SA_ONSTACK | SA_RESTART;
+	sigemptyset(&act.sa_mask);
 	sigaction(SIGINT, &act, nullptr);
 	sigaction(SIGHUP, &act, nullptr);
 	sigaction(SIGTERM, &act, nullptr);
