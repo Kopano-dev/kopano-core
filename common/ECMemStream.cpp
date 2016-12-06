@@ -37,18 +37,17 @@ ECMemBlock::ECMemBlock(const char *buffer, ULONG ulDataLen, ULONG ulFlags) :
 	this->lpOriginal = NULL;
 	this->ulFlags = ulFlags;
 
-	if(ulDataLen > 0) {
-		cbTotal = ulDataLen;
-		cbCurrent = ulDataLen;
-		lpCurrent = (char *)malloc(ulDataLen);
-		memcpy(lpCurrent, buffer, ulDataLen);
-
-		if(ulFlags & STGM_TRANSACTED) {
-			cbOriginal = ulDataLen;
-			lpOriginal = (char *)malloc(ulDataLen);
-			memcpy(lpOriginal, buffer, ulDataLen);
-		}
-	}
+	if (ulDataLen == 0)
+		return;
+	cbTotal = ulDataLen;
+	cbCurrent = ulDataLen;
+	lpCurrent = (char *)malloc(ulDataLen);
+	memcpy(lpCurrent, buffer, ulDataLen);
+	if (!(ulFlags & STGM_TRANSACTED))
+		return;
+	cbOriginal = ulDataLen;
+	lpOriginal = (char *)malloc(ulDataLen);
+	memcpy(lpOriginal, buffer, ulDataLen);
 }
 
 ECMemBlock::~ECMemBlock()
@@ -121,35 +120,29 @@ HRESULT ECMemBlock::WriteAt(ULONG ulPos, ULONG ulLen, const char *buffer,
 
 HRESULT ECMemBlock::Commit()
 {
-	if(ulFlags & STGM_TRANSACTED) {
-		free(lpOriginal);
-		lpOriginal = NULL;
-
-		lpOriginal = (char *)malloc(cbCurrent);
-		if (lpOriginal == NULL)
-			return MAPI_E_NOT_ENOUGH_MEMORY;
-
-		cbOriginal = cbCurrent;
-		memcpy(lpOriginal, lpCurrent, cbCurrent);
-	}
-
+	if (!(ulFlags & STGM_TRANSACTED))
+		return hrSuccess;
+	free(lpOriginal);
+	lpOriginal = NULL;
+	lpOriginal = (char *)malloc(cbCurrent);
+	if (lpOriginal == NULL)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
+	cbOriginal = cbCurrent;
+	memcpy(lpOriginal, lpCurrent, cbCurrent);
 	return hrSuccess;
 }
 
 HRESULT ECMemBlock::Revert()
 {
-	if(ulFlags & STGM_TRANSACTED) {
-		free(lpCurrent);
-		lpCurrent = NULL;
-
-		lpCurrent = (char *)malloc(cbOriginal);
-		if (lpCurrent == NULL)
-			return MAPI_E_NOT_ENOUGH_MEMORY;
-
-		cbCurrent = cbTotal = cbOriginal;
-		memcpy(lpCurrent, lpOriginal, cbOriginal);
-	}
-
+	if (!(ulFlags & STGM_TRANSACTED))
+		return hrSuccess;
+	free(lpCurrent);
+	lpCurrent = NULL;
+	lpCurrent = (char *)malloc(cbOriginal);
+	if (lpCurrent == NULL)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
+	cbCurrent = cbTotal = cbOriginal;
+	memcpy(lpCurrent, lpOriginal, cbOriginal);
 	return hrSuccess;
 }
 

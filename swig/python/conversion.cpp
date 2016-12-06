@@ -1966,10 +1966,8 @@ void Object_to_LPMAPINAMEID(PyObject *elem, LPMAPINAMEID *lppName, void *lpBase)
 	*lppName = lpName;
 
 exit:
-	if(PyErr_Occurred()) {
-		if(!lpBase)
-			MAPIFreeBuffer(lpName);
-	}
+	if (PyErr_Occurred() && lpBase == nullptr)
+		MAPIFreeBuffer(lpName);
 	if (guid != nullptr)
 		Py_DECREF(guid);
 	if (id != nullptr)
