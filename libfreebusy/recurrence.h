@@ -33,7 +33,7 @@ namespace KC {
 class _kc_export recurrence _kc_final {
 public:
 	recurrence();
-	HRESULT HrLoadRecurrenceState(char *lpData, unsigned int ulLen, ULONG ulFlags);
+	HRESULT HrLoadRecurrenceState(const char *lpData, unsigned int ulLen, ULONG ulFlags);
 	HRESULT HrGetRecurrenceState(char **lppData, unsigned int *lpulLen, void *base = NULL);
 
 	HRESULT HrGetHumanReadableString(std::string *lpstrHRS);

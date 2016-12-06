@@ -45,7 +45,7 @@ unsigned int DiffYearMonthToMonth( struct tm *tm1, struct tm *tm2);
 std::string GetDebugFBBlock(LONG celt, FBBlock_1* pblk);
 std::string GetFbStatus(FBStatus &fbstatus);
 
-HRESULT HrCopyFBBlockSet(OccrInfo *lpDest, OccrInfo *lpSrc, ULONG ulcValues);
+extern HRESULT HrCopyFBBlockSet(OccrInfo *dst, const OccrInfo *src, ULONG nvals);
 extern HRESULT HrAddFBBlock(const OccrInfo &sOccrInfo, OccrInfo **lppsOccrInfo, ULONG *lpcValues);
 
 } /* namespace */

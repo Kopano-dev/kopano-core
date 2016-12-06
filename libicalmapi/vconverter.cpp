@@ -2765,9 +2765,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 	}
 
 	if ((PROP_TYPE(lpSPropRecVal->ulPropTag) != PT_ERROR)) {
-		
-		hr = cRecurrence.HrLoadRecurrenceState((char*)lpSPropRecVal->Value.bin.lpb, lpSPropRecVal->Value.bin.cb, ulFlag);
-
+		hr = cRecurrence.HrLoadRecurrenceState(reinterpret_cast<const char *>(lpSPropRecVal->Value.bin.lpb), lpSPropRecVal->Value.bin.cb, ulFlag);
 	} else if (lpSPropRecVal->Value.err == MAPI_E_NOT_ENOUGH_MEMORY) {
 		// open property and read full blob
 		hr = lpMessage->OpenProperty(ulRecurrenceStateTag, &IID_IStream, 0, MAPI_DEFERRED_ERRORS, (LPUNKNOWN*)&lpStream);

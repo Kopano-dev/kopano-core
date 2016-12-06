@@ -45,7 +45,7 @@ namespace KC {
 
 class BinReader _kc_final {
 public:
-    BinReader(char *lpData, unsigned int ulLen) {
+    BinReader(const char *lpData, unsigned int ulLen) {
         this->m_lpData = lpData;
         this->m_ulLen = ulLen;
         this->m_ulCursor = 0;
@@ -106,10 +106,10 @@ public:
         return reallen == len ? reallen : -1;
     };
     
-    int GetCursorPos() { return m_ulCursor; }
+	int GetCursorPos(void) const { return m_ulCursor; }
     
 private:
-    char *m_lpData;
+	const char *m_lpData;
     unsigned int m_ulLen;
     unsigned int m_ulCursor;
 };
@@ -206,7 +206,8 @@ private:
  * @param[in]	ulLen	length of lpData
  * @param[in]	ulFlags	possible task flag
  */
-HRESULT RecurrenceState::ParseBlob(char *lpData, unsigned int ulLen, ULONG ulFlags)
+HRESULT RecurrenceState::ParseBlob(const char *lpData, unsigned int ulLen,
+    ULONG ulFlags)
 {
     HRESULT hr = hrSuccess;
     unsigned int ulReservedBlock1Size;

@@ -46,7 +46,9 @@ recurrence::recurrence() {
  * @param[in]	ulLen	Length of lpData
  * @param[in]	ulFlags	RECURRENCE_STATE_TASKS if the recurrence is from a task
  */
-HRESULT recurrence::HrLoadRecurrenceState(char *lpData, unsigned int ulLen, ULONG ulFlags) {
+HRESULT recurrence::HrLoadRecurrenceState(const char *lpData,
+    unsigned int ulLen, ULONG ulFlags)
+{
 	return m_sRecState.ParseBlob(lpData, ulLen, ulFlags);
 }
 

@@ -3170,7 +3170,8 @@ HRESULT VMIMEToMAPI::postWriteFixups(IMessage *lpMessage)
 			if(hr != hrSuccess) // Warnings not accepted
 				goto exitpm;
 			
-			hr = rec.ParseBlob((char *)lpRecProps[0].Value.bin.lpb, (unsigned int)lpRecProps[0].Value.bin.cb, 0);
+			hr = rec.ParseBlob(reinterpret_cast<const char *>(lpRecProps[0].Value.bin.lpb),
+			     static_cast<unsigned int>(lpRecProps[0].Value.bin.cb), 0);
 			if(FAILED(hr))
 				goto exitpm;
 			

@@ -765,7 +765,8 @@ std::string GetDebugFBBlock(LONG celt, FBBlock_1* pblk)
  *
  * @return		HRESULT
  */
-HRESULT HrCopyFBBlockSet(OccrInfo *lpDest, OccrInfo *lpSrc, ULONG ulcValues)
+HRESULT HrCopyFBBlockSet(OccrInfo *lpDest, const OccrInfo *lpSrc,
+    ULONG ulcValues)
 {
 	HRESULT hr = hrSuccess;	
 	ULONG i = 0;
