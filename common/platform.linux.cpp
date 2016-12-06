@@ -286,8 +286,11 @@ static void dump_fdtable_summary(pid_t pid)
  */
 int ec_relocate_fd(int fd)
 {
-	static const int typical_limit = 1024;
+	static constexpr const int typical_limit = 1024;
 
+	if (fd >= typical_limit)
+		/* No action needed */
+		return fd;
 	int relocated = fcntl(fd, F_DUPFD, typical_limit);
 	if (relocated >= 0) {
 		close(fd);
