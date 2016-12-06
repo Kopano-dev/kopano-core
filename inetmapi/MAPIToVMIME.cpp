@@ -2200,7 +2200,7 @@ bool MAPIToVMIME::has_reminder(IMessage *msg)
 		if(hr == hrSuccess)
 			result = content_type->Value.b;
 		else
-			ec_log_err("Unable to get reminder property: %s (0x%08x)", GetMAPIErrorMessage(hr), hr);		
+			ec_log_debug("Message has no reminder property");
 	}
 
 	MAPIFreeBuffer(tags);
