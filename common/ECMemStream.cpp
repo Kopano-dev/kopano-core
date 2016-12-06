@@ -42,11 +42,15 @@ ECMemBlock::ECMemBlock(const char *buffer, ULONG ulDataLen, ULONG ulFlags) :
 	cbTotal = ulDataLen;
 	cbCurrent = ulDataLen;
 	lpCurrent = (char *)malloc(ulDataLen);
+	if (lpCurrent == nullptr)
+		throw std::bad_alloc();
 	memcpy(lpCurrent, buffer, ulDataLen);
 	if (!(ulFlags & STGM_TRANSACTED))
 		return;
 	cbOriginal = ulDataLen;
 	lpOriginal = (char *)malloc(ulDataLen);
+	if (lpOriginal == nullptr)
+		throw std::bad_alloc();
 	memcpy(lpOriginal, buffer, ulDataLen);
 }
 
