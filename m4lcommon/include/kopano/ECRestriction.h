@@ -204,7 +204,7 @@ public:
 	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
 	ECRestriction *Clone(void) const _kc_lvqual _kc_override;
 #ifdef HAVE_MF_QUAL
-	_kc_hidden ECRestriction *Clone(void) && _kc_override { return new ECOrRestriction(std::move(*this)); }
+	ECRestriction *Clone(void) && _kc_override { return new ECOrRestriction(std::move(*this)); }
 #endif
 
 	_kc_hidden HRESULT append(const ECRestriction &restriction)
@@ -237,7 +237,7 @@ public:
 	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
 	ECRestriction *Clone(void) const _kc_lvqual _kc_override;
 #ifdef HAVE_MF_QUAL
-	_kc_hidden ECRestriction *Clone(void) && _kc_override { return new ECNotRestriction(std::move(*this)); }
+	ECRestriction *Clone(void) && _kc_override { return new ECNotRestriction(std::move(*this)); }
 #endif
 
 private:
