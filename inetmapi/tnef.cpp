@@ -579,7 +579,7 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 	ULONG ulMVProp = 0;
 	ULONG ulCount = 0;
 	convert_context converter;
-	utf16string ucs2;
+	std::u16string ucs2;
 
 	if(PROP_ID(lpProp->ulPropTag) >= 0x8000) {
 		// Get named property GUID and ID or name
@@ -619,8 +619,8 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 			if(hr != hrSuccess)
 				goto exit;
 
-			ucs2 = converter.convert_to<utf16string>(lppNames[0]->Kind.lpwstrName);
-			ulLen = ucs2.length()*sizeof(utf16string::value_type)+sizeof(utf16string::value_type);
+			ucs2 = converter.convert_to<std::u16string>(lppNames[0]->Kind.lpwstrName);
+			ulLen = ucs2.length() * sizeof(std::u16string::value_type) + sizeof(std::u16string::value_type);
 
 			hr = HrWriteDWord(lpStream, ulLen);
 			if(hr != hrSuccess)
@@ -827,8 +827,8 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 		case PT_UNICODE:
 			// Make sure we write UCS-2, since that's the format of PT_UNICODE in Win32.
 			if(lpProp->ulPropTag & MV_FLAG) {
-				ucs2 = converter.convert_to<utf16string>(lpProp->Value.MVszW.lppszW[ulMVProp]);
-				ulLen = ucs2.length()*sizeof(utf16string::value_type)+sizeof(utf16string::value_type);
+				ucs2 = converter.convert_to<std::u16string>(lpProp->Value.MVszW.lppszW[ulMVProp]);
+				ulLen = ucs2.length() * sizeof(std::u16string::value_type) + sizeof(std::u16string::value_type);
 
 				hr = HrWriteDWord(lpStream, ulLen);
 				if(hr != hrSuccess)
@@ -838,8 +838,8 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 				if(hr != hrSuccess)
 					goto exit;
 			} else {
-				ucs2 = converter.convert_to<utf16string>(lpProp->Value.lpszW);
-				ulLen = ucs2.length()*sizeof(utf16string::value_type)+sizeof(utf16string::value_type);
+				ucs2 = converter.convert_to<std::u16string>(lpProp->Value.lpszW);
+				ulLen = ucs2.length() * sizeof(std::u16string::value_type) + sizeof(std::u16string::value_type);
 
 				hr = HrWriteDWord(lpStream, 1); // unknown why this is here
 				if(hr != hrSuccess)
@@ -993,7 +993,7 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 	LPMAPINAMEID lpNameID = &sNameID;
 	LPSPropTagArray lpPropTags = NULL;
 	std::wstring strUnicodeName;
-	utf16string ucs2;
+	std::u16string ucs2;
 
 	if(ulSize < 8)
 		return MAPI_E_NOT_FOUND;
@@ -1031,8 +1031,8 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 				goto exit;
 			}
 
-			// copy through utf16string so we can set the boundary to the given length
-			ucs2.assign(reinterpret_cast<const utf16string::value_type *>(lpBuffer), ulLen/sizeof(utf16string::value_type));
+			// copy through u16string so we can set the boundary to the given length
+			ucs2.assign(reinterpret_cast<const std::u16string::value_type *>(lpBuffer), ulLen / sizeof(std::u16string::value_type));
 			strUnicodeName = convert_to<std::wstring>(ucs2);
 
 			sNameID.ulKind = MNID_STRING;
@@ -1296,8 +1296,8 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 				goto exit;
 			}
 
-			// copy through utf16string so we can set the boundary to the given length
-			ucs2.assign((utf16string::value_type*)lpBuffer, ulLen/sizeof(utf16string::value_type));
+			// copy through u16string so we can set the boundary to the given length
+			ucs2.assign(reinterpret_cast<const std::u16string::value_type *>(lpBuffer), ulLen / sizeof(std::u16string::value_type));
 			strUnicodeName = convert_to<std::wstring>(ucs2);
 
 			if(ulPropTag & MV_FLAG) {

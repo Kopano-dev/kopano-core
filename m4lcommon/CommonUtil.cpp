@@ -987,17 +987,17 @@ HRESULT ECCreateOneOff(LPTSTR lpszName, LPTSTR lpszAdrType, LPTSTR lpszAddress, 
 	if(ulFlags & MAPI_UNICODE)
 	{
 		std::wstring wstrName;
-		utf16string strUnicode;
+		std::u16string strUnicode;
 
 		if (lpszName)
 			wstrName = (WCHAR*)lpszName;
 		else
 			wstrName = (WCHAR*)lpszAddress;
-		strUnicode = convert_to<utf16string>(wstrName);
+		strUnicode = convert_to<std::u16string>(wstrName);
 		strOneOff.append((char*)strUnicode.c_str(), (strUnicode.length()+1)*sizeof(unsigned short));
-		strUnicode = convert_to<utf16string>((WCHAR*)lpszAdrType);
+		strUnicode = convert_to<std::u16string>(reinterpret_cast<wchar_t *>(lpszAdrType));
 		strOneOff.append((char*)strUnicode.c_str(), (strUnicode.length()+1)*sizeof(unsigned short));
-		strUnicode = convert_to<utf16string>((WCHAR*)lpszAddress);
+		strUnicode = convert_to<std::u16string>(reinterpret_cast<wchar_t *>(lpszAddress));
 		strOneOff.append((char*)strUnicode.c_str(), (strUnicode.length()+1)*sizeof(unsigned short));
 	} else {
 		if (lpszName)
@@ -1060,22 +1060,22 @@ HRESULT ECParseOneOff(const ENTRYID *lpEntryID, ULONG cbEntryID,
 	lpBuffer += 2;
 
 	if(usFlags & MAPI_ONE_OFF_UNICODE) {
-		utf16string str;
+		std::u16string str;
 
-		str.assign((utf16string::pointer)lpBuffer);
+		str.assign(reinterpret_cast<std::u16string::const_pointer>(lpBuffer));
 		// can be 0 length
 		if ((hr = TryConvert(str, name)) != hrSuccess)
 			return hr;
 		lpBuffer += (str.length() + 1) * sizeof(unsigned short);
 
-		str.assign((utf16string::pointer)lpBuffer);
+		str.assign(reinterpret_cast<std::u16string::const_pointer>(lpBuffer));
 		if (str.length() == 0)
 			return MAPI_E_INVALID_PARAMETER;
 		if ((hr = TryConvert(str, type)) != hrSuccess)
 			return hr;
 		lpBuffer += (str.length() + 1) * sizeof(unsigned short);
 
-		str.assign((utf16string::pointer)lpBuffer);
+		str.assign(reinterpret_cast<std::u16string::const_pointer>(lpBuffer));
 		if (str.length() == 0)
 			return MAPI_E_INVALID_PARAMETER;
 		if ((hr = TryConvert(str, addr)) != hrSuccess)

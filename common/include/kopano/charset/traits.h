@@ -24,8 +24,6 @@
 
 namespace KC {
 
-typedef std::basic_string<char16_t> utf16string;
-
 template<typename _Type> class iconv_charset _kc_final {
 };
 
@@ -168,18 +166,18 @@ public:
 	}
 };
 
-template<> class iconv_charset<utf16string> _kc_final {
+template<> class iconv_charset<std::u16string> _kc_final {
 public:
 	static const char *name() {
 		return "UTF-16LE";
 	}
-	static const char *rawptr(const utf16string &from)
+	static const char *rawptr(const std::u16string &from)
 	{
 		return reinterpret_cast<const char *>(from.c_str());
 	}
-	static size_t rawsize(const utf16string &from)
+	static size_t rawsize(const std::u16string &from)
 	{
-		return from.size() * sizeof(utf16string::value_type);
+		return from.size() * sizeof(std::u16string::value_type);
 	}
 };
 

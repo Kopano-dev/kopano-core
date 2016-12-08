@@ -526,12 +526,12 @@ HRESULT RecurrenceState::GetBlob(char **lppData, unsigned int *lpulLen, void *ba
 			WRITELONG(i.ulOriginalStartDate);
 		}
 		if (j->ulOverrideFlags & ARO_SUBJECT) {
-			utf16string strWide = convert_to<utf16string>(i.strWideCharSubject);
+			auto strWide = convert_to<std::u16string>(i.strWideCharSubject);
 			WRITESHORT(static_cast<ULONG>(strWide.size()));
 			WRITESTRING(reinterpret_cast<const char *>(strWide.c_str()), static_cast<ULONG>(strWide.size()) * 2);
 		}
 		if (j->ulOverrideFlags & ARO_LOCATION) {
-			utf16string strWide = convert_to<utf16string>(i.strWideCharLocation);
+			auto strWide = convert_to<std::u16string>(i.strWideCharLocation);
 			WRITESHORT(static_cast<ULONG>(strWide.size()));
 			WRITESTRING(reinterpret_cast<const char *>(strWide.c_str()), static_cast<ULONG>(strWide.size()) * 2);
 		}
