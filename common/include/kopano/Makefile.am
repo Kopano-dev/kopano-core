@@ -9,6 +9,6 @@ nobase_pkginclude_HEADERS = \
 	my_getopt.h platform.h platform.linux.h \
 	stringutil.h ustringutil.h zcdefs.h zconfig.h \
 	charset/convert.h charset/convstring.h \
-	charset/traits.h charset/utf8string.h charset/utf16string.h
+	charset/traits.h charset/utf8string.h
 
 EXTRA_DIST = ecversion.h

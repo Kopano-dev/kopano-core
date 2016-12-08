@@ -26,7 +26,6 @@
 #include <kopano/stringutil.h>
 #include <kopano/RecurrenceState.h>
 #include <kopano/charset/convert.h>
-#include <kopano/charset/utf16string.h>
 
 #ifndef WIN32
 #define DEBUGREAD 0

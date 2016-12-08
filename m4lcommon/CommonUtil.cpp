@@ -41,8 +41,6 @@
 #include <kopano/mapi_ptr.h>
 
 #include <kopano/charset/convert.h>
-#include <kopano/charset/utf16string.h>
-
 #include <kopano/mapiext.h>
 #include "freebusytags.h"
 

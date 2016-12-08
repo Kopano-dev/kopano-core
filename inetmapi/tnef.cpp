@@ -47,7 +47,6 @@
 #include <kopano/mapiext.h>
 #include <kopano/Util.h>
 #include <kopano/charset/convert.h>
-#include <kopano/charset/utf16string.h>
 #include <string>
 
 #include "tnef.h"

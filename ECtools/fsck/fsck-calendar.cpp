@@ -25,7 +25,6 @@
 #include <mapiutil.h>
 #include <mapix.h>
 #include <kopano/namedprops.h>
-#include <kopano/charset/utf16string.h>
 #include <kopano/charset/convert.h>
 
 #include <kopano/RecurrenceState.h>

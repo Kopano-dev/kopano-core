@@ -39,8 +39,6 @@
 #include <kopano/ECDebug.h>
 #include <kopano/ECGuid.h>
 #include <kopano/ECMemTable.h>
-#include <kopano/charset/utf16string.h>
-
 #include <kopano/CommonUtil.h>
 #include <kopano/stringutil.h>
 #include <kopano/mapiguidext.h>
