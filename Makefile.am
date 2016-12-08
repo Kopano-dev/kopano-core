@@ -638,7 +638,7 @@ noinst_HEADERS += \
 	common/ConsoleTable.h common/ECACL.h common/ECCache.h common/ECConfigImpl.h \
 	common/ECFifoBuffer.h common/ECSerializer.h common/StatsClient.h \
 	common/SymmetricCrypt.h common/TimeUtil.h common/TmpPath.h common/fileutil.h \
-	common/utf8.h common/charset/utf32string.h \
+	common/utf8.h \
 	common/charset/localeutil.h common/ustringutil/utfutil.h \
 	common/utf8/checked.h common/utf8/core.h common/utf8/unchecked.h
 libkcutil_la_SOURCES = \

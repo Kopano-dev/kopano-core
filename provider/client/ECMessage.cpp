@@ -40,8 +40,6 @@
 
 #include "ClientUtil.h"
 #include "ECMemStream.h"
-
-#include <charset/utf32string.h>
 #include <kopano/charset/convert.h>
 
 using namespace std;

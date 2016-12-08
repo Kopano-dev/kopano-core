@@ -17,7 +17,6 @@
 
 #include <kopano/charset/traits.h>
 #include <kopano/charset/utf16string.h>
-#include "utf32string.h"
 
 namespace KC {
 
