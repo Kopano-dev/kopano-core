@@ -12,7 +12,8 @@ as compared to the more low-level "kopano-stats --system"
 
 """
 
-server = kopano.Server(auth_user='SYSTEM', auth_pass='')
+options = kopano.parser('ksp').parse_args()
+server = kopano.Server(options=options, auth_user='SYSTEM', auth_pass='')
 # XXX: When python-kopano supports sorting, simplify the loop by sorting on display_name in descending order.
 table = server.table(PR_EC_STATSTABLE_SYSTEM, columns=[PR_DISPLAY_NAME_W, PR_EC_STATS_SYSTEM_VALUE, PR_EC_STATS_SYSTEM_DESCRIPTION])
 
