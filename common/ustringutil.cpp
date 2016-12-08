@@ -65,8 +65,7 @@ At some point we need to rewqrite these functions to do all the conversion on th
 #include <kopano/platform.h>
 #include <kopano/ustringutil.h>
 #include <kopano/CommonUtil.h>
-#include "utf8.h"
-
+#include "utf8/unchecked.h"
 #include <cassert>
 
 #ifdef ZCP_USES_ICU

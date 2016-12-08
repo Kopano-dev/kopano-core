@@ -38,8 +38,7 @@
 
 #include "pcutil.hpp"
 #include <kopano/charset/convert.h>
-#include "utf8.h"
-
+#include "utf8/unchecked.h"
 #include <kopano/ECInterfaceDefs.h>
 
 static LPWSTR WTF1252_to_WCHAR(LPCSTR szWTF1252, LPVOID lpBase, convert_context *lpConverter)

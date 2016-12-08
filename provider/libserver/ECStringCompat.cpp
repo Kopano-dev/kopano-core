@@ -22,7 +22,7 @@
 
 #include <kopano/charset/convert.h>
 #include <kopano/charset/utf8string.h>
-#include "utf8.h"
+#include "utf8/unchecked.h"
 
 using namespace std;
 
