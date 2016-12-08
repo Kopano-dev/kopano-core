@@ -543,6 +543,12 @@ exit:
 	return hr;
 }
 
+static bool kc_recip_in_list(const char *s, const char *recip)
+{
+	auto l = tokenize(s, ' ', true);
+	return std::find(l.cbegin(), l.cend(), std::string(recip)) != l.cend();
+}
+
 /**
  * Save copy of the raw message
  *
@@ -555,8 +561,16 @@ static void SaveRawMessage(FILE *fp, const char *lpRecipient)
 		return;
 
 	std::string strFileName = g_lpConfig->GetSetting("log_raw_message_path");
-
-	if (parseBool(g_lpConfig->GetSetting("log_raw_message"))) {
+	auto rawmsg = g_lpConfig->GetSetting("log_raw_message");
+	/*
+	 * Either rawmsg contains:
+	 * - no: do not save messages (default)
+	 * - all|yes: save for all users (yes for backward compatibility)
+	 * - space-separated user list
+	 */
+	if (parseBool(rawmsg) && (strcasecmp(rawmsg, "all") == 0 ||
+	    strcasecmp(rawmsg, "yes") == 0 ||
+	    kc_recip_in_list(rawmsg, lpRecipient))) {
 		char szBuff[64];
 		tm tmResult;
 		time_t now = time(NULL);
