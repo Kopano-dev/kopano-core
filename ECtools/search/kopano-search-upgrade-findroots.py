@@ -1,12 +1,14 @@
+#!/usr/bin/env python
+
 from MAPI.Util import *
 
 import kopano
 
-""" 
+"""
 
 as of Kopano-Core 8.2, PR_STORE_SUPPORT_MASK has STORE_SEARCH_OK enabled
 for every store. this means that this script needs to run at upgrade time,
-to create the findroots and ACLS so that cross-store searches will actually 
+to create the findroots and ACLS so that cross-store searches will actually
 work.
 
 """
@@ -19,7 +21,7 @@ def main():
         if not findroot:
             print 'creating FINDER_ROOT for store %s' % store.guid
 
-            # create findroot 
+            # create findroot
             findroot = store.root.folder('FINDER_ROOT', create=True)
 
             # set PR_FINDER_ENTRYID # XXX pyko: store.findroot = ..
