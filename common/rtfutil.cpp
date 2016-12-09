@@ -695,7 +695,8 @@ HRESULT HrExtractHTMLFromTextRTF(const std::string &lpStrRTFIn,
 	}
 
 	strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
-
+	if (bPar)
+		strOutput += L"</p>\r\n";
 	strOutput += L"\r\n" \
 		     L"</BODY>\r\n" \
 		     L"</HTML>\r\n";
@@ -825,7 +826,10 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 					sState[ulState].output.append("<br>\r\n");
 				} else if (strcmp(szCommand,"par") == 0) {
 					if(!sState[ulState].bInFontTbl && !sState[ulState].bRTFOnly && !sState[ulState].bInColorTbl && !sState[ulState].bInSkipTbl) {		
-						sState[ulState].output.append("<br>\r\n");
+						if (bPar)
+							sState[ulState].output.append("</p>");
+						sState[ulState].output.append("<p>\r\n");
+						bPar = true;
 					}
 				} else if(strcmp(szCommand,"tab") == 0) {
 					if(!sState[ulState].bInFontTbl && !sState[ulState].bRTFOnly && !sState[ulState].bInColorTbl && !sState[ulState].bInSkipTbl) {		
@@ -1049,7 +1053,8 @@ HRESULT HrExtractHTMLFromRealRTF(const std::string &lpStrRTFIn,
 	}
 
 	strOutput += RTFFlushStateOutput(convertContext, sState, ulState);
-
+	if (bPar)
+		strOutput += L"</p>\r\n";
 	strOutput += L"\r\n" \
 		     L"</BODY>\r\n" \
 		     L"</HTML>\r\n";
