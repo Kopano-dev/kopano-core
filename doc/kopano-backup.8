@@ -1,0 +1,223 @@
+'\" t
+.\"     Title: kopano-backup
+.\"    Author: [see the "Author" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
+.\"      Date: November 2016
+.\"    Manual: Kopano Core user reference
+.\"    Source: Kopano 8
+.\"  Language: English
+.\"
+.TH "KOPANO\-BACKUP" "8" "November 2016" "Kopano 8" "Kopano Core user reference"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+kopano-backup \- The Kopano Backup tool
+.SH "SYNOPSIS"
+.HP \w'\fBkopano\-backup\fR\ 'u
+\fBkopano\-backup\fR [\fIOPTION\fR...] [\fIPATH\fR]
+.SH "DESCRIPTION"
+.PP
+Kopano\-backup is used to create or restore backups of user data, such as one or more stores or folders\&. This includes emails, calendar items, contacts, etc\&., as well as user settings such as rules, permissions and WebApp settings\&.
+.PP
+Backups are performed incrementally, when for a given user/store there already exists a backup directory\&. This means that only the changes which occurred since the last backup run are processed\&.
+.PP
+For backup (not restore) it is possible to process multiple stores in parallel\&.
+.PP
+There are options to inspect the contents of a backup directory, and to restore only individual messages/items\&.
+.SH "OPTIONS"
+.PP
+\fB\-\-user\fR, \fB\-u\fR \fINAME\fR
+.RS 4
+Backup data of the specified user\&. Multiple users may be specified\&. By default, all users are included\&. When restoring, restore into the store of the specified user\&.
+.RE
+.PP
+\fB\-\-restore\fR
+.RS 4
+Restore the contents of the specified backup directory\&. The respective store is determined automatically, but may also be specified explicitly, for example using
+\fI\-\-user\fR\&.
+.RE
+.PP
+\fB\-\-stats\fR
+.RS 4
+List folders contained in specified backup directory in CSV format\&.
+.RE
+.PP
+\fB\-\-index\fR
+.RS 4
+List messages/items contained in specified backup directory in CSV format\&. Sourcekeys, respective folders, last modified dates and subjects are shown for each message/item\&.
+.RE
+.PP
+\fB\-\-sourcekey\fR \fISOURCEKEY\fR
+.RS 4
+Restore message/item with specified sourcekey (as shown using
+\fI\-\-index\fR)\&. Must be combined with
+\fI\-\-restore\fR\&. Multiple sourcekeys may be specified\&.
+.RE
+.PP
+\fB\-\-restore\-root\fR \fIPATH\fR
+.RS 4
+When restoring, place data under folder with specific path (or name), for example \*(Aqsome_folder\*(Aq or \*(AqInbox/some_subfolder\*(Aq\&.
+.RE
+.PP
+\fB\-\-folder\fR, \fB\-f\fR \fIPATH\fR
+.RS 4
+Backup/restore only folder(s) with specified path\&. Multiple folders may be specified\&. Subfolders may be included using
+\fI\-\-recursive\fR\&.
+.RE
+.PP
+\fB\-\-recursive\fR
+.RS 4
+When specifying folders (\fI\-\-folder\fR), also include subfolders in backup/restore\&.
+.RE
+.PP
+\fB\-\-worker\-processes\fR, \fB\-w\fR \fIN\fR
+.RS 4
+When backing up data from multiple stores, process these stores in parallel, using the specified number of workers\&.
+.RE
+.PP
+\fB\-\-period\-begin\fR, \fB\-b\fR \fIDATE\fR
+.RS 4
+Backup/restore data which was last modified on or after the specified date (YYYY\-MM\-DD)\&.
+.RE
+.PP
+\fB\-\-period\-end\fR, \fB\-e\fR \fIDATE\fR
+.RS 4
+Backup/restore data which was last modified before the specified date (YYYY\-MM\-DD)\&.
+.RE
+.PP
+\fB\-\-skip\-junk\fR
+.RS 4
+Do not backup/restore junk folder\&.
+.RE
+.PP
+\fB\-\-skip\-deleted\fR
+.RS 4
+Do not backup/restore deleted mail folder\&.
+.RE
+.PP
+\fB\-\-skip\-public\fR
+.RS 4
+Do not backup/restore public store\&.
+.RE
+.PP
+\fB\-\-skip\-attachments\fR
+.RS 4
+Do not backup/restore attachments\&.
+.RE
+.PP
+\fB\-\-skip\-meta\fR
+.RS 4
+Do not backup/restore meta data, such as settings, permissions and rules\&.
+.RE
+.PP
+\fB\-\-only\-meta\fR
+.RS 4
+Only backup/restore meta data, such as settings, permissions and rules\&.
+.RE
+.PP
+\fB\-\-output\-dir\fR, \fB\-O\fR \fIPATH\fR
+.RS 4
+Create/update backup directories in the specified directory, instead of the local directory\&.
+.RE
+.PP
+\fB\-\-company\fR, \fB\-C\fR \fINAME\fR
+.RS 4
+Backup users and public store for specified company\&.
+.RE
+.PP
+\fB\-\-store\fR, \fB\-S\fR \fIGUID\fR
+.RS 4
+Backup specified store\&. Instead of a GUID, \*(Aqpublic\*(Aq may also be specified, to denote the public store\&.
+.RE
+.PP
+\fB\-\-log\-level\fR, \fB\-l\fR \fINAME\fR
+.RS 4
+Specify log\-level, for example, \*(Aqerror\*(Aq, \*(Aqwarning\*(Aq \*(Aqinfo\*(Aq or \*(Aqdebug\*(Aq\&.
+.RE
+.PP
+\fB\-\-config\fR, \fB\-c\fR \fIFILE\fR
+.RS 4
+Load configuration settings from specified file\&.
+.RE
+.PP
+\fB\-\-server\-socket\fR, \fB\-s\fR \fISOCKET\fR
+.RS 4
+Connect to storage server through specified socket\&.
+.RE
+.PP
+\fB\-\-auth\-user\fR, \fB\-U\fR \fINAME\fR
+.RS 4
+Authenticate as specified user\&.
+.RE
+.PP
+\fB\-\-auth\-pass\fR, \fB\-P\fR \fIPASS\fR
+.RS 4
+Authenticate with specified password\&.
+.RE
+.PP
+\fB\-\-ssl\-key\fR, \fB\-k\fR \fIFILE\fR
+.RS 4
+Specify SSL key file\&.
+.RE
+.PP
+\fB\-\-ssl\-pass\fR, \fB\-p\fR \fIPASSWORD\fR
+.RS 4
+Specify SSL key password\&.
+.RE
+.SH "EXAMPLES"
+.PP
+Backup user \*(Aqhenk\*(Aq, creating/updating a backup directory with the same name:
+.PP
+\fBkopano\-backup \-u henk\fR
+.PP
+Restore the same user (possibly on another server):
+.PP
+\fBkopano\-backup \-\-restore henk\fR
+.PP
+Backup users \*(Aqhenk\*(Aq and \*(Aqfred\*(Aq, in parallel, in a specified directory:
+.PP
+\fBkopano\-backup \-u henk \-u fred \-w 2 \-O backups\fR
+.PP
+Search for message with specific subject:
+.PP
+\fBkopano\-backup \-\-index backups/henk | grep subject\fR
+.PP
+Restore single message:
+.PP
+\fBkopano\-backup \-\-restore backup/henk \-\-sourcekey 72EE69D0A283408E89BFC35AD251E9B3830000000000\fR
+.PP
+Restore single message:
+.PP
+\fBkopano\-backup \-\-restore backup/henk \-\-sourcekey 72EE69D0A283408E89BFC35AD251E9B3830000000000\fR
+.PP
+Backup calendars of all users:
+.PP
+\fBkopano\-backup \-f Calendar \-O calendars\fR
+.PP
+Recursively restore inbox of \*(Aqfred\*(Aq into store of \*(Aqhenk\*(Aq, in certain subfolder:
+.PP
+\fBkopano\-backup \-\-restore fred \-f Inbox \-u henk \-\-recursive \-\-restore\-root from_fred\fR
+.PP
+Restore everything last modified in 2014:
+.PP
+\fBkopano\-backup \-\-restore fred \-b 2014\-01\-01 \-e 2015\-01\-01\fR
+.SH "AUTHOR"
+.PP
+Written by Kopano\&.

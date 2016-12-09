@@ -1,0 +1,890 @@
+'\" t
+.\"     Title: kopano-admin
+.\"    Author: [see the "Author" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
+.\"      Date: November 2016
+.\"    Manual: Kopano Core user reference
+.\"    Source: Kopano 8
+.\"  Language: English
+.\"
+.TH "KOPANO\-ADMIN" "8" "November 2016" "Kopano 8" "Kopano Core user reference"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+kopano-admin \- Manages Kopano users and stores\&.
+.SH "SYNOPSIS"
+.HP \w'\fBkopano\-admin\fR\ 'u
+\fBkopano\-admin\fR \fIACTION\fR [\fIOPTION\fR...]
+.SH "DESCRIPTION"
+.PP
+This tool can be used to create the public store and to add, update and remove users from Kopano\&. The storage server must be running for
+\fBkopano\-admin\fR
+to work\&.
+.PP
+If no action is given, a listing of the possible parameters is printed\&. When invalid actions or not enough options for an action are given, an error message is printed\&.
+.PP
+When using LDAP as the users source, create, modify and delete actions are done in the LDAP tree and not using the kopano\-admin tool\&. Please see the
+\fBEXTERNAL USERS\fR()
+section for more information\&.
+.SH "ACTIONS"
+.PP
+kopano\-admin needs an action command with the appropriate options\&. Valid actions are:
+.PP
+\fB\-s\fR
+.RS 4
+Create a public store\&. No other options are needed\&. Only one public store can be created\&. Successive calls will fail\&.
+.RE
+.PP
+\fB\-c\fR \fIusername\fR
+.RS 4
+Create a new user,
+\fI\-p\fR,
+\fI\-f\fR
+and
+\fI\-e\fR
+options are required,
+\fI\-a\fR
+and
+\fI\-n\fR
+parameters are optional\&. To set a password using a password prompt, use the
+\fI\-P\fR
+option in stead of
+\fI\-p\fR\&.
+.RE
+.PP
+\fB\-d\fR \fIusername\fR
+.RS 4
+Delete a user\&. No other options are needed\&. The deleted store of the user will be marked as orphan store and can be restored with
+\fI\-\-hook\-store\fR
+.RE
+.PP
+\fB\-u\fR \fIusername\fR
+.RS 4
+Update user information\&. Valid parameters are:
+\fI[\-p|\-P]\fR,
+\fI\-f\fR,
+\fI\-e\fR,
+\fI\-a\fR,
+\fI\-n\fR
+and
+\fI\-U\fR
+to update user information\&. Use:
+\fI\-\-qo\fR,
+\fI\-\-qw\fR,
+\fI\-\-qs\fR
+or
+\fI\-\-qh\fR
+to set quota levels\&. Use 0 with quota options to set as \*(Aqunlimited\*(Aq\&.
+.sp
+\fI\-\-enable\-feature\fR
+and
+\fI\-\-disable\-feature\fR
+to enable or disable specific features for users\&.
+.sp
+This action is also required for all options to control the autoaccept of meeting requests\&. See the
+\fI\-\-mr\-accept\fR,
+\fI\-\-mr\-decline\-conflict\fR
+and
+\fI\-\-mr\-decline\-recurring\fR
+options\&.
+.RE
+.PP
+\fB\-g\fR \fIgroupname\fR
+.RS 4
+Create a new group\&. Valid parameters are:
+\fI\-e\fR
+.RE
+.PP
+\fB\-\-update\-group\fR \fIgroupname\fR
+.RS 4
+Update group information\&. Valid parameters are:
+\fI\-e\fR
+.RE
+.PP
+\fB\-G\fR \fIgroupname\fR
+.RS 4
+Delete a group\&. No other options are needed\&.
+.RE
+.PP
+\fB\-b\fR \fIusername\fR
+.RS 4
+Add a user to a group\&. Use the
+\fI\-i\fR
+to set the groupname\&.
+.RE
+.PP
+\fB\-B\fR \fIusername\fR
+.RS 4
+Remove a user from a group\&. Use the
+\fI\-i\fR
+to set the groupname\&.
+.RE
+.PP
+\fB\-l\fR
+.RS 4
+List all users available in Kopano\&. When using an external user source, this action will implicitly synchronize all users in the external source, creating, updating and/or removing users and stores\&.
+.RE
+.PP
+\fB\-L\fR
+.RS 4
+List all groups available in Kopano\&. When using an external user source, this action will implicitly synchronize all groups in the external source, creating updating and/or removing groups and memberships\&.
+.RE
+.PP
+\fB\-\-list\-companies\fR
+.RS 4
+List all tenans available in Kopano\&. When using an external user source, this action will implicitly synchronize all tenants in the external source, creating updating and/or removing companies\&.
+.sp
+This option is only available in multi\-tenancy Kopano
+.RE
+.PP
+\fB\-\-details\fR \fIname\fR
+.RS 4
+Show all the details of a user, showing the fullname, e\-mailaddress, active state, administator state, group memberships and quota settings\&. Optionally use
+\fI\-\-type\fR
+to indicate for what kind of object the details are being requested\&.
+.sp
+Note: This function does not synchronize with the external user plugin\&. Thus changes from e\&.g\&. LDAP will not be set during this function\&.
+.RE
+.PP
+\fB\-\-type\fR \fItype\fR
+.RS 4
+Additional argument for
+\fI\-\-details\fR\&. The argument with this option indicates for what type of object the details are being requested\&. Allowed values are
+\fI\*(Aquser\*(Aq\fR,
+\fI\*(Aqgroup\*(Aq\fR
+or
+\fI\*(Aqcompany\*(Aq\fR
+When this option is not used, it defaults to
+\fI\*(Aquser\*(Aq\fR
+.RE
+.PP
+\fB\-\-create\-company\fR \fIcompanyname\fR
+.RS 4
+Create a new tenant space\&.
+.sp
+Use:
+\fI\-\-qo\fR,
+\fI\-\-qw\fR,
+\fI\-\-qs\fR,
+\fI\-\-qh\fR
+to set quota levels for the tenant\&.
+.sp
+Use:
+\fI\-\-udqo\fR,
+\fI\-\-udqw\fR,
+\fI\-\-udqs\fR,
+\fI\-\-udqh\fR
+to set the default quota levels for the users inside the tenant\&.
+.sp
+This option is only available in multi\-tenancy Kopano\&.
+.RE
+.PP
+\fB\-\-update\-company\fR \fIcompanyname\fR
+.RS 4
+Update an existing tenant space\&.
+.sp
+Use:
+\fI\-\-qo\fR,
+\fI\-\-qw\fR,
+\fI\-\-qs\fR,
+\fI\-\-qh\fR
+to set quota levels for the tenant\&.
+.sp
+Use:
+\fI\-\-udqo\fR,
+\fI\-\-udqw\fR,
+\fI\-\-udqs\fR,
+\fI\-\-udqh\fR
+to set the default quota levels for the users inside the \&.
+.sp
+This option is only available in multi\-tenancy Kopano\&.
+.RE
+.PP
+\fB\-\-delete\-company\fR \fIcompanyname\fR
+.RS 4
+Delete company space\&.
+.sp
+This option is only available in multi\-tenancy Kopano\&.
+.RE
+.PP
+\fB\-\-set\-system\-admin\fR \fIcompanyname\fR
+.RS 4
+Set system administrator for the tenant specified by
+\fI\-I\fR\&.
+.sp
+Please be aware that this option does not provide the user with administrator privileges\&. The system administrator is considered the main contact person for a company, it will for example be used as default sender for quota warning emails\&.
+.sp
+This option is only available in multi\-tenancy Kopano\&.
+.RE
+.PP
+\fB\-\-add\-to\-viewlist\fR \fIcompanyname\fR
+.RS 4
+Add tenant
+\fI\*(Aqcompanyname\*(Aq\fR
+to remote\-view list of company specified by
+\fI\-I\fR\&. After this command the
+\fI\*(Aqcompanyname\*(Aq\fR
+is capable of viewing all members of the company specified by
+\fI\-I\fR\&.
+.sp
+This option is only available in multi\-tenancy Kopano\&.
+.RE
+.PP
+\fB\-\-del\-from\-viewlist\fR \fIcompanyname\fR
+.RS 4
+Delete company
+\fI\*(Aqcompanyname\*(Aq\fR
+from remote\-view list of tenant specified by
+\fI\-I\fR\&. After this command the
+\fI\*(Aqcompanyname\*(Aq\fR
+is no longer capable of viewing all members of the tenant specified by
+\fI\-I\fR\&.
+.sp
+This option is only available in multi\-tenancy Kopano\&.
+.RE
+.PP
+\fB\-\-list\-view\fR
+.RS 4
+List all tenants in the remote\-view list of the tenant specified by
+\fI\-I\fR\&. The tenants in this list are able to view all members of the specified tenant in their Address Book\&.
+.sp
+This option is only available in multi\-tenancy Kopano\&.
+.RE
+.PP
+\fB\-\-add\-to\-adminlist\fR \fIusername\fR
+.RS 4
+Add user
+\fI\*(Aqusername\*(Aq\fR
+to remote\-admin list of tenant specified by
+\fI\-I\fR\&. This is the administrator list for remote administrators, as such it only manages administrators from a different tenant\&. Users who should be administrator over their own tenant are managed by updating (\fB\-u\fR) the user and specifying the
+\fB\-a\fR
+argument\&.
+.sp
+Users can only be administrator over a different company when they have also been granted view privileges, can be granted by using the
+\fB\-\-add\-to\-viewlist\fR\&.
+.sp
+This option is only available in multi\-tenancy Kopano\&.
+.RE
+.PP
+\fB\-\-del\-from\-adminlist\fR \fIusername\fR
+.RS 4
+Delete user
+\fI\*(Aqusername\*(Aq\fR
+from remote\-admin list of company specified by
+\fI\-I\fR\&. This is the administrator list for remote administrators, as such it only manages administrators from a different tenant\&. Users who should be administrator over their own tenant are managed by updating (\fB\-u\fR) the user and specifying the
+\fB\-a\fR
+argument\&.
+.sp
+This option is only available in multi\-tenancy Kopano\&.
+.RE
+.PP
+\fB\-\-list\-admin\fR
+.RS 4
+List all users in the remote\-admin list of the tenant specified by
+\fI\-I\fR\&. This is the administrator list for remote administrators, as such it only manages administrators from a different tenant\&. Users who should be administrator over their own tenant are managed by updating (\fB\-u\fR) the user and specifying the
+\fB\-a\fR
+argument\&.
+.sp
+Users can only be administrator over a different tenant when they have also been granted view privileges, can be granted by using the
+\fB\-\-add\-to\-viewlist\fR\&.
+.sp
+This option is only available in multi\-tenancy Kopano\&.
+.RE
+.PP
+\fB\-\-add\-userquota\-recipient\fR \fIuser\fR
+.RS 4
+Add
+\fI\*(Aquser\*(Aq\fR
+as recipient to userquota warning emails\&. You can optionally use
+\fI\-I\fR
+to set the tenant space to apply the recipient action on\&.
+.RE
+.PP
+\fB\-\-del\-userquota\-recipient\fR \fIuser\fR
+.RS 4
+Delete
+\fI\*(Aquser\*(Aq\fR
+as recipient to userquota warning emails\&. You can optionally use
+\fI\-I\fR
+to set the tenant space to apply the recipient action on\&.
+.RE
+.PP
+\fB\-\-list\-userquota\-recipients\fR
+.RS 4
+List all additional recipients for a userquota warning email\&. Use
+\fI\-I\fR
+to request the recipient list for a particular tenant space\&.
+.RE
+.PP
+\fB\-\-add\-companyquota\-recipient\fR \fIuser\fR
+.RS 4
+Add
+\fI\*(Aquser\*(Aq\fR
+as recipient to tenant quota warning emails\&. You can optionally use
+\fI\-I\fR
+to set the tenant space to apply the recipient action on\&.
+.RE
+.PP
+\fB\-\-del\-companyquota\-recipient\fR \fIuser\fR
+.RS 4
+Delete
+\fI\*(Aquser\*(Aq\fR
+as recipient to tenant quota warning emails\&. You can optionally use
+\fI\-I\fR
+to set the tenant space to apply the recipient action on\&.
+.RE
+.PP
+\fB\-\-list\-companyquota\-recipients\fR
+.RS 4
+List all additional recipients for a tenant quota warning email\&. Use
+\fI\-I\fR
+to request the recipient list for a particular tenant space
+.RE
+.PP
+\fB\-\-list\-sendas\fR \fIuser\fR
+.RS 4
+List all users who are able to directly send an email as
+\fIuser\fR\&. This has been set in the LDAP server, or with the
+\fB\-\-add\-sendas\fR
+command for Unix and DB plugins\&. Optionally use
+\fI\-\-type\fR
+to indicate for what kind of object the sendas details are being requested\&.
+.RE
+.PP
+\fB\-\-clear\-cache\fR
+.RS 4
+Clears the server\*(Aqs caches\&. All data cached inside the kopano\-server is cleared\&. Although this can never cause any data loss, it can affect the performance of your server, since any data requested after the cache is cleared needs to be re\-requested from the database or LDAP server\&. Normally this option is never needed; it is mostly used as a diagnostics tool\&.
+.sp
+Optionally use
+\fI\-\-clear\-cache=\fR
+to specify a set of purge options\&. The following options can be used:
+.RS 4
+0x0000    Release no longer used memory back to the kernel
+.RE
+.RS 4
+0x0001    Purge the quota cache
+.RE
+.RS 4
+0x0002    Purge the quota default cache
+.RE
+.RS 4
+0x0004    Purge the object cache
+.RE
+.RS 4
+0x0008    Purge the store cache
+.RE
+.RS 4
+0x0010    Purge the ACL cache
+.RE
+.RS 4
+0x0020    Purge the cell cache
+.RE
+.RS 4
+0x0040    Purge the index1 cache
+.RE
+.RS 4
+0x0080    Purge the index2 cache
+.RE
+.RS 4
+0x0100    Purge the indexproperty cache
+.RE
+.RS 4
+0x0200    Purge the user object cache
+.RE
+.RS 4
+0x0400    Purge the externid cache
+.RE
+.RS 4
+0x0800    Purge the userdetails cache
+.RE
+.RS 4
+0x1000    Purge the server cache
+.RE
+.RE
+.PP
+\fB\-\-purge\-softdelete\fR \fIdays\fR
+.RS 4
+Starts a softdelete purge on the server, removing all soft\-deleted items which have been deleted
+\fIdays\fR
+days ago, or earlier
+.RE
+.PP
+\fB\-\-purge\-deferred\fR
+.RS 4
+The server has an optimization in which changes to the tproperties table are not writted directly, but delayed for a more efficient write at a later time\&. The server auto\-purges these regularly\&. This command allows you to purge all changes pending\&. It may be useful to run this during low I/O load of your server (eg at night)\&.
+.RE
+.PP
+\fB\-\-list\-orphans\fR
+.RS 4
+When a user is removed, the store becomes orphaned\&. This option shows a list of stores that are not hooked to a user\&. You can use the
+\fB\-\-remove\-store\fR
+and
+\fB\-\-hook\-store\fR
+from this list\&.
+.RE
+.PP
+\fB\-\-hook\-store\fR \fIstore\-guid\fR
+.RS 4
+You can hook an orphaned store to an existing user, so you may access the store again\&. Use the
+\fB\-u\fR
+\fIusername\fR
+to specify the user to hook the store to\&.
+.sp
+You can copy an orphaned store to the public store\&. Use the
+\fB\-\-copyto\-public\fR
+to copy the store to the public folder named \*(AqAdmin/deleted stores\*(Aq\&. This folder is then only visible for users with Kopano admin privileges\&.
+.sp
+To hook a public store, use
+\fB\-\-type\fR
+group/company to influence the name type in the \-u switch\&.
+.sp
+To hook an archive store, use
+\fB\-\-type\fR
+\fIarchive\fR\&.
+.RE
+.PP
+\fB\-\-remove\-store\fR \fIstore\-guid\fR
+.RS 4
+Use this action to remove the store from the database\&. The store is actually just marked as deleted, so the softdelete system can remove the store from the database\&.
+.RE
+.PP
+\fB\-\-create\-store\fR \fIusername\fR
+.RS 4
+This action will create a store for a newly created user, and is normally called through the createuser script\&. If the
+\fB\-\-list\-orphans\fR
+action listed users without a store, you can create a new store for those users with this command\&.
+.RE
+.PP
+\fB\-\-unhook\-store\fR \fIusername\fR
+.RS 4
+You can unhook a store from a user, so you can remove the store and create a new one\&.
+.sp
+To unhook a public store, use the
+\fB\-\-type\fR
+group/company option to influence the name type in the
+\fIusername\fR
+argument\&. Use a company name with type company or \*(AqEveryone\*(Aq with type group to unhook the public\&.
+.sp
+To unhook an archive store, use
+\fB\-\-type\fR
+\fIarchive\fR\&.
+.RE
+.PP
+\fB\-\-force\-resync\fR \fIusernames\fR
+.RS 4
+You can force a resync of cached profiles when the data is out of sync\&. One or more usernames can be specified\&. If no usernames are given, all offline profiles can be resynced\&.
+.RE
+.PP
+\fB\-\-reset\-folder\-count\fR \fIusername\fR
+.RS 4
+Reset the counters on all folders in
+\fIusername\fR\*(Aqs store\&.
+.RE
+.PP
+\fB\-\-user\-count\fR
+.RS 4
+Shows an overview of user counts per type of user
+.RE
+.SH "OPTIONS"
+.PP
+The options used by actions are as follows:
+.PP
+\fB\-\-verbose\fR \fIlevel\fR
+.RS 4
+Set the verbosity level (0=critical, \&..., 6=debug)\&.
+.RE
+.PP
+\fB\-v\fR
+.RS 4
+Increases the verbosity level by one, up to the maximum of 6\&.
+.RE
+.PP
+\fB\-U\fR \fI\*(Aqnew username\*(Aq\fR
+.RS 4
+Use this parameter to rename a user\&. This option is only valid with the
+\fI\-u\fR
+update action\&.
+.RE
+.PP
+\fB\-p\fR \fIpassword\fR
+.RS 4
+Set password for a user\&. This option is only valid with the
+\fI\-c\fR
+create or
+\fI\-u\fR
+update action\&.
+.RE
+.PP
+\fB\-P\fR
+.RS 4
+Set password for a user\&. The password can be entered on the password prompt\&. The password will not be shown\&. This option is only valid with the
+\fI\-c\fR
+create or
+\fI\-u\fR
+update action\&.
+.RE
+.PP
+\fB\-f\fR \fI\*(Aqfull name\*(Aq\fR
+.RS 4
+Specify full user name\&. Use single quotes around the name to pass it as a single parameter\&. This option is only valid with the
+\fI\-c\fR
+create or
+\fI\-u\fR
+update action\&.
+.RE
+.PP
+\fB\-e\fR \fI\*(Aqemail address\*(Aq\fR
+.RS 4
+Specify the email address\&. This address will be used to set the \*(AqFrom\*(Aq email address in outgoing email messages\&. Use single quotes around the name to pass it as a single parameter\&. This option is only valid with the
+\fI\-c\fR
+create or
+\fI\-u\fR
+update action\&.
+.RE
+.PP
+\fB\-a\fR \fI[yes|y|1|2 / no|n|0]\fR
+.RS 4
+Set the user as administrator by passing \*(Aqyes\*(Aq\&. When passing \*(Aqno\*(Aq, administrator rights will be revoked from the user\&. This option is only valid with the
+\fI\-c\fR
+create or
+\fI\-u\fR
+update action\&.
+.sp
+It is also possible to pass 2 as administrator level, this will make the user a system administrator who can create/modify/delete companies\&.
+.RE
+.PP
+\fB\-n\fR \fI[yes|y|1 / no|n|0]\fR
+.RS 4
+Specify a non\-active user\&. This user cannot login, but email can be delivered, and the store can be opened by users with correct rights\&.
+.RE
+.PP
+\fB\-\-qo\fR \fI[yes|y|1 / no|n|0]\fR
+.RS 4
+Override the default server quota settings for this user\&. User specific quota levels will used\&. The default value of this option is \*(Aqno\*(Aq, always using server quota levels\&. This option is only valid with the
+\fI\-c\fR
+create or
+\fI\-u\fR
+update action\&.
+.RE
+.PP
+\fB\-\-qw\fR \fIvalue in Mb\fR
+.RS 4
+Set the warning quota level for a user\&. The user may receive a warning email when this level is reached\&. See
+\fBkopano-monitor\fR(8)
+for warning emails\&. This option is only valid with the
+\fI\-c\fR
+create or
+\fI\-u\fR
+update action\&.
+.RE
+.PP
+\fB\-\-qs\fR \fIvalue in Mb\fR
+.RS 4
+Set the soft quota level for a user\&. The user will be unable to receive new emails, bouncing the email back to the sender\&. This option is only valid with the
+\fI\-c\fR
+create or
+\fI\-u\fR
+update action\&.
+.RE
+.PP
+\fB\-\-qh\fR \fIvalue in Mb\fR
+.RS 4
+Set the hard quota level for a user\&. The user will be unable to receive and create new emails\&. This option is only valid with the
+\fI\-c\fR
+create or
+\fI\-u\fR
+update action\&.
+.RE
+.PP
+\fB\-\-udqo\fR \fI[yes|y|1 / no|n|0]\fR
+.RS 4
+Override the default server quota settings for all user within the specified tenant\&. default value of this option is \*(Aqno\*(Aq, always using server quota levels\&.
+.RE
+.PP
+\fB\-\-udqw\fR \fIvalue in Mb\fR
+.RS 4
+Set the warning quota level for all users within the specified tenant\&. The user may receive a warning email when this level is reached\&. See
+\fBkopano-monitor\fR(8)
+for warning emails\&.
+.RE
+.PP
+\fB\-\-udqs\fR \fIvalue in Mb\fR
+.RS 4
+Set the soft quota level for all users within the specified tenant\&. The user will be unable to receive new emails, bouncing the email back to the sender\&. See
+\fBkopano-monitor\fR(8)
+for warning emails\&.
+.RE
+.PP
+\fB\-\-udqh\fR \fIvalue in Mb\fR
+.RS 4
+Set the hard quota level for all users within the specified tenant\&. The user will be unable to receive and create new emails\&. See
+\fBkopano-monitor\fR(8)
+for warning emails\&.
+.RE
+.PP
+\fB\-i\fR \fIgroupname\fR
+.RS 4
+This sets the groupname for
+\fI\-b\fR
+and
+\fI\-B\fR
+actions\&.
+.RE
+.PP
+\fB\-I\fR \fIcompanyname\fR
+.RS 4
+This sets the companyname for all user, group and tenant commands\&. This option is only available for multi\-tenancy Kopano\&.
+.RE
+.PP
+\fB\-\-mr\-accept\fR \fI[yes|y|1 / no|n|0]\fR
+.RS 4
+Specified that meeting requests should automatically be accepted for a user\&. This means that when a meeting request is sent to this user when specified as being a \*(Aqresource\*(Aq, the request will directly be honoured and written to the calendar\&. This is a client\-side action and this setting therefore does not affect actual meeting requests being delivered via kopano\-dagent\&. The user on which to operate is select using the
+\fI\-u\fR
+switch\&.
+.RE
+.PP
+\fB\-\-mr\-decline\-conflict\fR \fI[yes|y|1 / no|n|0]\fR
+.RS 4
+This option only has effect when \-\-mr\-accept=yes is in effect\&. When specifying \-\-mr\-decline\-conflict, meeting requests that conflict with an existing meeting will be declined\&. The user on which to operate is select using the
+\fI\-u\fR
+switch\&.
+.RE
+.PP
+\fB\-\-mr\-decline\-recurring\fR \fI[yes|y|1 / no|n|0]\fR
+.RS 4
+This option only has effect when \-\-mr\-accept=yes is in effect\&. When specifying \-\-mr\-decline\-recurring, meeting requests that are recurring will be declined\&. The user on which to operate is select using the
+\fI\-u\fR
+switch\&.
+.RE
+.PP
+\fB\-\-add\-sendas\fR \fIsender\fR
+.RS 4
+Add user
+\fIsender\fR
+to the list of the senders you\*(Aqre updating as a \*(Aqsend as\*(Aq user\&. The
+\fIsender\fR
+can now send mails under the updated user\*(Aqs name, unless the updated user sets the
+\fIsender\fR
+as a delegate\&. When the
+\fIsender\fR
+is a delegate, the mail will be sent with \*(AqOn behalf of\*(Aq markings in the email\&. This option is only valid with the
+\fI\-u\fR
+and
+\fI\-\-update\-group \fR
+update action\&.
+.RE
+.PP
+\fB\-\-del\-sendas\fR \fIsender\fR
+.RS 4
+Remove user
+\fIsender\fR
+from the list of the senders you\*(Aqre updating as a \*(Aqsend as\*(Aq user\&. This option is only valid with the
+\fI\-u\fR
+and
+\fI\-\-update\-group \fRupdate action\&.
+.RE
+.PP
+\fB\-\-lang\fR \fIlanguage\fR
+.RS 4
+Use
+\fIlanguage\fR
+to create new stores; this means that folders in the new store will be in the language specified\&. Only valid in combination with \-\-create\-store\&. When this options in not specified, the system default will be selected according the LC_* and LANG environment variables, depending on your OS\&.
+.RE
+.PP
+\fB\-\-utf8\fR
+.RS 4
+Force the current locale to UTF\-8
+.RE
+.PP
+Other options to control the connection to the kopano\-server are:
+.PP
+\fB\-\-host\fR, \fB\-h\fR \fIpath\fR
+.RS 4
+Connect to the storage server through
+\fIpath\fR, e\&.g\&.
+file:///path/to/socket\&. Default:
+file:///var/run/kopano/server\&.sock\&. This option can always be specified\&.
+.RE
+.PP
+\fB\-\-node\fR \fIname\fR
+.RS 4
+Execute the command on cluster node
+\fIname\fRreplaceable>
+.RE
+.PP
+\fB\-\-config\fR \fIfile\fR
+.RS 4
+Use a configuration file\&. See the
+\fBCONFIG\fR()
+section for more information\&.
+.sp
+Default:
+\fI/etc/kopano/admin\&.cfg\fR
+.RE
+.SH "CONFIG"
+.PP
+Normally, no configuration file is used or required\&. If the file
+\fI/etc/kopano/admin\&.cfg\fR
+exists, it is used as configuration file, but no error checking is performed\&. This way, you can use any config file from a kopano program, eg\&. kopano\-spooler or kopano\-dagent, to load SSL settings\&.
+.PP
+The following options can be set in the configuration file:
+.PP
+\fBserver_socket\fR
+.RS 4
+Unix socket to find the connection to the Kopano server\&.
+.sp
+Default:
+\fIfile:///var/run/kopano/server\&.sock\fR
+.RE
+.PP
+\fBsslkey_file\fR
+.RS 4
+Use this file as key to logon to the server\&. This is only used when server_socket is set to an HTTPS transport\&. See the
+\fBkopano-server\fR(8)
+manual page on how to setup SSL keys\&.
+.sp
+Default: value not set\&.
+.RE
+.PP
+\fBsslkey_pass\fR
+.RS 4
+The password of the SSL key file that is set in sslkey_file\&.
+.sp
+Default: value not set\&.
+.RE
+.SH "EXAMPLES"
+.PP
+For creating a user:
+.PP
+\fBkopano\-admin\fR
+\fB\-c\fR
+\fIloginname\fR
+\fB\-p\fR
+\fIpassword\fR
+\fB\-f\fR
+\fI\*(AqFirstname Lastname\*(Aq\fR
+\fB\-e\fR
+\fIf\&.lastname@tenant\&.com\fR
+.PP
+For creating a non\-login store:
+.PP
+\fBkopano\-admin\fR
+\fB\-c\fR
+\fIloginname\fR
+\fB\-p\fR
+\fIpassword\fR
+\fB\-f\fR
+\fI\*(AqFirstname Lastname\*(Aq\fR
+\fB\-e\fR
+\fIf\&.lastname@tenant\&.com\fR
+\fI\-n\fR
+1
+.PP
+For modifying the password and e\-mail address:
+.PP
+\fBkopano\-admin\fR
+\fB\-u\fR
+\fIloginname\fR
+\fB\-p\fR
+\fInewpass\fR
+\fB\-e\fR
+\fIfistname@tenant\&.com\fR
+.PP
+For deleting a user:
+.PP
+\fBkopano\-admin\fR
+\fB\-d\fR
+\fIloginname\fR
+.PP
+For adding a user to a group:
+.PP
+\fBkopano\-admin\fR
+\fB\-b\fR
+\fIloginname\fR
+\fB\-i\fR
+\fIgroupname\fR
+.PP
+For setting a specific quota level for a user\&. Warning level to 80 Mb, soft level to 90 Mb and hard level to 100 Mb:
+.PP
+\fBkopano\-admin\fR
+\fB\-u\fR
+\fIloginname\fR
+\fB\-\-qo\fR
+\fIyes\fR
+\fB\-\-qw\fR
+\fI80\fR
+\fB\-\-qs\fR
+\fI90\fR
+\fB\-\-qh\fR
+\fI100\fR
+.PP
+For automatically accepting meeting requests for a user or resource:
+.PP
+\fBkopano\-admin\fR
+\fB\-u\fR
+\fIloginname\fR
+\fB\-\-mr\-accept\fR
+\fIy\fR
+\fB\-\-mr\-decline\-conflict\fR
+\fIy\fR
+\fB\-\-mr\-decline\-recurring\fR
+\fIn\fR
+.SH "EXTERNAL USERS"
+.PP
+When the users are located in an external database, and the storage server is configured to use these users, a lot of commands from the kopano\-admin tool make no sense anymore\&. An example of an external database, and currently the only option, is an LDAP database\&.
+.PP
+The following actions can still be used, all other commands will be automatically triggered by changing the values in the LDAP server\&.
+.PP
+\fB\-s\fR: create public store\&.
+.PP
+\fB\-l\fR: list users known to Kopano\&.
+.PP
+\fB\-L\fR: list groups known to Kopano\&.
+.PP
+\fB\-\-details\fR
+\fIusername\fR: show user details\&.
+.PP
+\fB\-\-sync\fR: trigger full synchronization for users and groups from the external source\&.
+.PP
+When the users change in the external source, the Kopano server instantly synchronizes to these changes\&. There are two exceptions that need some extra attention, and these are when users are created or deleted\&. When a user is created, the
+\fBcreateuser_script\fR
+from the
+\fBkopano-server.cfg\fR(5)
+will be started to create a store for a user\&. Likewise, when deleting a user, the
+\fBdeleteuser_script\fR
+from the
+\fBkopano-server.cfg\fR(5)
+will be started to delete a store from a user\&. The same is valid for creating and deleting a group and tenant, starting the
+\fBcreategroup_script\fR/\fBcreatecompany_script\fR
+and
+\fBdeletegroup_script\fR/\fBdeletecompany_script\fR
+scripts respectively\&.
+.SH "DIAGNOSTICS"
+.PP
+Could not create user/store/public store\&.
+.PP
+When you get this error, make sure the storage server and database server are running\&.
+.SH "AUTHOR"
+.PP
+Written by Kopano\&.
+.SH "SEE ALSO"
+.PP
+\fBkopano-server\fR(8),
+\fBkopano-server.cfg\fR(5)

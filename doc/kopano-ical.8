@@ -1,0 +1,99 @@
+'\" t
+.\"     Title: kopano-ical
+.\"    Author: [see the "Author" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
+.\"      Date: November 2016
+.\"    Manual: Kopano Core user reference
+.\"    Source: Kopano 8
+.\"  Language: English
+.\"
+.TH "KOPANO\-ICAL" "8" "November 2016" "Kopano 8" "Kopano Core user reference"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+kopano-ical \- Start the Kopano ICal/CalDAV gateway\&.
+.SH "SYNOPSIS"
+.HP \w'\fBkopano\-ical\fR\ 'u
+\fBkopano\-ical\fR [\fIOPTION\fR...]
+.SH "DESCRIPTION"
+.PP
+The iCal/CalDAV gateway enables users to retrieve their calendar using iCalendar compliant clients\&. The iCal/CalDAV gateway can be configured to listen for HTTP and HTTPS requests\&.
+.PP
+The default settings of the gateway program are defined in
+\fBkopano-ical.cfg\fR(5)\&.
+.SH "OPTIONS"
+.PP
+Various options are possible\&. None of these options are required\&.
+.PP
+.PP
+\fB\-\-config\fR, \fB\-c\fR \fIical\&.cfg\fR
+.RS 4
+Specify the location of the ical\&.cfg file\&. If the ical\&.cfg file is not specified, the gateway will continue using its default settings\&.
+.sp
+Default:
+\fI/etc/kopano/ical\&.cfg\fR
+.RE
+.PP
+\fB\-\-help\fR, \fB\-h\fR
+.RS 4
+Shows the help message of the iCal/CalDAV gateway\&.
+.RE
+.PP
+\fB\-\-foreground\fR, \fB\-F\fR
+.RS 4
+Run in the foreground\&. Normally the gateway will daemonize and run in the background\&.
+.RE
+.SH "SIGNALS"
+.PP
+The following signals can be sent to the kopano\-ical process:
+.PP
+\fBHUP\fR
+.RS 4
+When the HUP signal is received, some options from the configuration file are reloaded\&. The reloadable options are listed in the
+\fBkopano-ical.cfg\fR(5)
+manual page\&.
+.sp
+Also, when using
+\fIlog_method = file\fR, the logfile will be closed and a new logfile will be opened\&. You can use this signal in your logrotate system\&.
+.RE
+.PP
+\fBTERM\fR
+.RS 4
+To gracefully let the service exit, the normal TERM signal is used\&.
+.RE
+.SH "USAGE"
+.PP
+To start the iCal/CalDAV gateway:
+.PP
+\fBkopano\-ical\fR
+.PP
+The iCal/CalDAV gateway process will keep running\&. You may also use the init\&.d scripts:
+.PP
+\fB/etc/init\&.d/kopano\-ical\fR
+[\fIstart\fR|
+\fIstop\fR|
+\fIrestart\fR]
+.SH "AUTHOR"
+.PP
+Written by Kopano\&.
+.SH "SEE ALSO"
+.PP
+\fBkopano-ical.cfg\fR(5),
+\fBkopano-server\fR(8)

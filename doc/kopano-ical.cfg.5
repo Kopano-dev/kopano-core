@@ -1,0 +1,311 @@
+'\" t
+.\"     Title: kopano-ical.cfg
+.\"    Author: [see the "Author" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
+.\"      Date: November 2016
+.\"    Manual: Kopano Core user reference
+.\"    Source: Kopano 8
+.\"  Language: English
+.\"
+.TH "KOPANO\-ICAL\&.CFG" "5" "November 2016" "Kopano 8" "Kopano Core user reference"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+kopano-ical.cfg \- The Kopano iCal/CalDAV gateway configuration file
+.SH "SYNOPSIS"
+.PP
+\fBical\&.cfg\fR
+.SH "DESCRIPTION"
+.PP
+The
+ical\&.cfg
+is a configuration file for the Kopano iCal/CalDAV Gateway\&.
+ical\&.cfg
+contains instructions for the software to set up the logging system and to enable or disable the normal or SSL part of the service\&.
+.SH "FILE FORMAT"
+.PP
+The file consists of one big section, but parameters can be grouped by functionality\&.
+.PP
+The parameters are written in the form:
+.PP
+\fBname\fR
+=
+\fIvalue\fR
+.PP
+The file is line\-based\&. Each newline\-terminated line represents either a comment, nothing, a parameter or a directive\&. A line beginning with `#\*(Aq is considered a comment, and will be ignored by Kopano\&. Parameter names are case sensitive\&. Lines beginning with `!\*(Aq are directives\&.
+.PP
+Directives are written in the form:
+.PP
+!\fBdirective\fR
+\fI[argument(s)] \fR
+.PP
+The following directives exist:
+.PP
+\fBinclude\fR
+.RS 4
+Include and process
+\fIargument\fR
+.sp
+Example: !include common\&.cfg
+.RE
+.SH "EXPLANATION OF EACH PARAMETER"
+.PP
+\fBserver_bind\fR
+.RS 4
+IP address to bind to\&. Leave empty to bind to all addresses\&.
+.sp
+Default: (empty)
+.RE
+.PP
+\fBical_enable\fR
+.RS 4
+Enable iCal/CalDAV service with value yes\&. All other values disable the service\&.
+.sp
+Default:
+\fIyes\fR
+.RE
+.PP
+\fBical_port\fR
+.RS 4
+The iCal/CalDAV service will listen on this port for incoming connections\&.
+.sp
+Default:
+\fI8080\fR
+.RE
+.PP
+\fBicals_enable\fR
+.RS 4
+Enable SSL iCal/CalDAV service with value yes\&. All other values disable the service\&.
+.sp
+Default:
+\fIyes\fR
+.RE
+.PP
+\fBicals_port\fR
+.RS 4
+The SSL iCal/CalDAV service will listen on this port for incoming connections\&.
+.sp
+Default:
+\fI8443\fR
+.RE
+.PP
+\fBserver_socket\fR
+.RS 4
+The http address of the storage server\&.
+.sp
+Default:
+\fIhttp://localhost:236/\fR
+.sp
+It is not advised to specify the UNIX socket here, but the http address instead\&. In default configuration the gateway will then be trusted by the storage server (as set in its local_admin_users configuration setting)\&. Unless is run as an untrusted user, by specifying the
+\fBrun_as_user\fR, the gateway always authenticates users even if they provide no or wrong credentials!
+.RE
+.PP
+\fBrun_as_user\fR
+.RS 4
+After correctly starting, the iCal/CalDAV gateway process will become this user, dropping root privileges\&. Note that the log file needs to be writeable by this user, and the directory too to create new logfiles after logrotation\&. This can also be achieved by setting the correct group and permissions\&.
+.sp
+Default value is empty, not changing the user after starting\&.
+.RE
+.PP
+\fBrun_as_group\fR
+.RS 4
+After correctly starting, the iCal/CalDAV gateway process will become this group, dropping root privileges\&.
+.sp
+Default value is empty, not changing the group after starting\&.
+.RE
+.PP
+\fBpid_file\fR
+.RS 4
+Write the process ID number to this file\&. This is used by the init\&.d script to correctly stop/restart the service\&.
+.sp
+Default:
+\fI/var/run/kopano/ical\&.pid\fR
+.RE
+.PP
+\fBrunning_path\fR
+.RS 4
+Change directory to this path when running in daemonize mode\&. When using the \-F switch to run in the foreground the directory will not be changed\&.
+.sp
+Default:
+\fI/\fR
+.RE
+.PP
+\fBprocess_model\fR
+.RS 4
+You can change the process model between
+\fIfork\fR
+and
+\fIthread\fR\&. The forked model uses somewhat more resources, but if a crash is triggered, this will only affect one user\&. In the threaded model, a crash means all users are affected, and will not be able to use the service\&.
+.sp
+Default:
+\fIfork\fR
+.RE
+.PP
+\fBssl_private_key_file\fR
+.RS 4
+The iCal/CalDAV gateway will use this file as private key for SSL TLS\&. This file can be created with:
+\fBopenssl genrsa \-out /etc/kopano/ical/privkey\&.pem 2048\fR\&.
+.sp
+Default:
+\fI/etc/kopano/ical/privkey\&.pem\fR
+.RE
+.PP
+\fBssl_certificate_file\fR
+.RS 4
+The iCal/CalDAV gateway will use this file as certificate for SSL TLS\&. A self\-signed certificate can be created with:
+\fBopenssl req \-new \-x509 \-key /etc/kopano/ical/privkey\&.pem \-out /etc/kopano/ical/cert\&.pem \-days 1095\fR\&.
+.sp
+Default:
+\fI/etc/kopano/ical/cert\&.pem\fR
+.RE
+.PP
+\fBssl_verify_client\fR
+.RS 4
+Enable client certificate verification with value yes\&. All other values disable the verification\&.
+.sp
+Default:
+\fIno\fR
+.RE
+.PP
+\fBssl_verify_file\fR
+.RS 4
+The file to verify the clients certificates with\&.
+.sp
+Default: value not set\&.
+.RE
+.PP
+\fBssl_verify_path\fR
+.RS 4
+The path with the files to verify the clients certificates with\&.
+.sp
+Default: value not set\&.
+.RE
+.PP
+\fBssl_protocols\fR
+.RS 4
+Disabled or enabled protocol names\&. Supported protocol names are
+\fISSLv3\fR
+and
+\fITLSv1\fR\&. If Kopano was linked against OpenSSL 1\&.0\&.1 or later there is additional support for the new protocols
+\fITLSv1\&.1\fR
+and
+\fITLSv1\&.2\fR\&. To exclude both SSLv3 and TLSv1, set
+\fBserver_ssl_protocols\fR
+to
+\fI!SSLv3 !TLSv1\fR\&.
+.sp
+Default: SSLv2 being disabled
+.RE
+.PP
+\fBssl_ciphers\fR
+.RS 4
+SSL ciphers to use, set to
+\fIALL\fR
+for backward compatibility\&.
+.sp
+Default:
+\fIALL:!LOW:!SSLv2:!EXP:!aNULL\fR
+.RE
+.PP
+\fBssl_prefer_server_ciphers\fR
+.RS 4
+Prefer the server\*(Aqs order of SSL ciphers over client\*(Aqs\&.
+.sp
+Default:
+\fIno\fR
+.RE
+.PP
+\fBlog_method\fR
+.RS 4
+The method which should be used for logging\&. Valid values are:
+.PP
+\fIsyslog\fR
+.RS 4
+Use the Linux system log\&. All messages will be written to the mail facility\&. See also
+\fBsyslog.conf\fR(5)\&.
+.RE
+.PP
+\fIfile\fR
+.RS 4
+Log to a file\&. The filename will be specified in
+\fBlog_file\fR\&.
+.RE
+.sp
+Default:
+\fIfile\fR
+.RE
+.PP
+\fBlog_file\fR
+.RS 4
+When logging to a file, specify the filename in this parameter\&. Use
+\fI\-\fR
+(minus sign) for stderr output\&.
+.sp
+Default:
+\fI/var/log/kopano/ical\&.log\fR
+.RE
+.PP
+\fBlog_level\fR
+.RS 4
+The level of output for logging in the range from 0 to 5\&. 0=no logging, 5=full logging\&.
+.sp
+Default:
+\fI2\fR
+.RE
+.PP
+\fBlog_timestamp\fR
+.RS 4
+Specify whether to prefix each log line with a timestamp in \*(Aqfile\*(Aq logging mode\&.
+.sp
+Default:
+\fI1\fR
+.RE
+.PP
+\fBlog_buffer_size\fR
+.RS 4
+Buffer logging in what sized blocks\&. The special value 0 selects line buffering\&.
+.sp
+Default:
+\fI0\fR
+.RE
+.PP
+\fBenable_ical_get\fR
+.RS 4
+Enable the ical GET method to download an entire calendar\&. When set to \*(Aqyes\*(Aq, the GET method is enabled and allowed\&. If not, then calendars can only be retrieved with the CalDAV PROPFIND method, which is much more efficient\&. This option allows you to force the use of CalDAV which lowers load on your server\&.
+.RE
+.SH "RELOADING"
+.PP
+The following options are reloadable by sending the kopano\-ical process a HUP signal:
+.PP
+log_level
+.RS 4
+.RE
+.SH "FILES"
+.PP
+/etc/kopano/ical\&.cfg
+.RS 4
+The Kopano iCal/CalDAV gateway configuration file\&.
+.RE
+.SH "AUTHOR"
+.PP
+Written by Kopano\&.
+.SH "SEE ALSO"
+.PP
+\fBkopano-ical\fR(8)

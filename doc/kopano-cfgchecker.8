@@ -1,0 +1,120 @@
+'\" t
+.\"     Title: kopano-cfgchecker
+.\"    Author: [see the "Author" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
+.\"      Date: November 2016
+.\"    Manual: Kopano Core user reference
+.\"    Source: Kopano 8
+.\"  Language: English
+.\"
+.TH "KOPANO\-CFGCHECKER" "8" "November 2016" "Kopano 8" "Kopano Core user reference"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+kopano-cfgchecker \- Checks kopano config files for common errors\&.
+.SH "SYNOPSIS"
+.HP \w'\fBkopano\-cfgchecker\fR\ 'u
+\fBkopano\-cfgchecker\fR [\fIOPTION\fR...]
+.SH "DESCRIPTION"
+.PP
+This program tests for common configuration errors for a given config file\&.
+.PP
+If no options are given, the help message is printed\&.
+.SH "OPTIONS"
+.PP
+With the following options config files can be tested:
+.PP
+\fB\-l\fR \fIldap\&.cfg\fR
+.RS 4
+Replace
+\fIldap\&.cfg\fR
+with the actual filename to check the ldap plugin configuration file\&.
+.sp
+Use the
+\fI\-c yes\fR
+and
+\fI\-d yes\fR
+options to force hosted and multi\-server support on if you configured your server that way\&.
+.RE
+.PP
+\fB\-u\fR \fIunix\&.cfg\fR
+.RS 4
+Replace
+\fIunix\&.cfg\fR
+with the actual filename to check the unix plugin configuration file\&.
+.RE
+.PP
+\fB\-s\fR \fIserver\&.cfg\fR
+.RS 4
+Replace
+\fIserver\&.cfg\fR
+with the actual filename to check the server configuration file\&.
+.RE
+.PP
+\fB\-g\fR \fIgateway\&.cfg\fR
+.RS 4
+Replace
+\fIgateway\&.cfg\fR
+with the actual filename to check the gateway configuration file\&.
+.RE
+.PP
+\fB\-i\fR \fIical\&.cfg\fR
+.RS 4
+Replace
+\fIical\&.cfg\fR
+with the actual filename to check the ical configuration file\&.
+.RE
+.PP
+\fB\-m\fR \fImonitor\&.cfg\fR
+.RS 4
+Replace
+\fImonitor\&.cfg\fR
+with the actual filename to check the monitor configuration file\&.
+.RE
+.PP
+\fB\-p\fR \fIspooler\&.cfg\fR
+.RS 4
+Replace
+\fIspooler\&.cfg\fR
+with the actual filename to check the spooler configuration file\&.
+.RE
+.PP
+\fB\-a\fR \fIdagent\&.cfg\fR
+.RS 4
+Replace
+\fIdagent\&.cfg\fR
+with the actual filename to check the dagent configuration file\&.
+.RE
+.PP
+\fB\-c\fR \fI[yes|no]\fR
+.RS 4
+Force multi\-tenancy mode on/off\&. Has effect on server and plugin config files\&.
+.RE
+.PP
+\fB\-d\fR \fI[yes|no]\fR
+.RS 4
+Force multi\-server mode on/off\&. Has effect on server and plugin config files\&.
+.RE
+.SH "AUTHOR"
+.PP
+Written by Kopano\&.
+.SH "SEE ALSO"
+.PP
+\fBkopano\fR(7)

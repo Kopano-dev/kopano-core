@@ -1,0 +1,281 @@
+'\" t
+.\"     Title: kopano-dagent
+.\"    Author: [see the "Author" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
+.\"      Date: November 2016
+.\"    Manual: Kopano Core user reference
+.\"    Source: Kopano 8
+.\"  Language: English
+.\"
+.TH "KOPANO\-DAGENT" "8" "November 2016" "Kopano 8" "Kopano Core user reference"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+kopano-dagent \- Deliver mails to Kopano\&.
+.SH "SYNOPSIS"
+.HP \w'\fBkopano\-dagent\fR\ 'u
+\fBkopano\-dagent\fR [\fIOPTION\fR...] \fIRECIPIENT\fR
+.SH "DESCRIPTION"
+.PP
+With
+\fBkopano\-dagent\fR, mail messages can be imported from Internet Mail format to Kopano\&. The message is read from standard in and delivered to the storage server in the mailbox of
+\fIRECIPIENT\fR\&. You can alter source and destination of this mail with various options\&.
+.PP
+The
+\fIRECIPIENT\fR
+value is resolved by kopano\-dagent prior to delivery, and therefore accepts any unique identifier for the recipient\&. In practice it is most useful to pass the emailaddress of the user as the
+\fIRECIPIENT\fR
+parameter since it is always unique (Note that login names are sometimes not unique since group names may overlap)\&.
+.PP
+The delivery agent will accept and deliver the message piped through it or specified by
+\fB\-f\fR
+and exit immediately\&.
+.PP
+The delivery agent can also run as LMTP daemon\&.
+.SH "OPTIONS"
+.PP
+Various options are possible\&. None of these options are required\&.
+.PP
+\fB\-\-config\fR, \fB\-c\fR \fIfile\fR
+.RS 4
+Use a configuration file\&. See the
+\fBCONFIG\fR()
+section for more information\&.
+.sp
+Default:
+\fI/etc/kopano/dagent\&.cfg\fR
+.RE
+.PP
+\fB\-\-deamonize\fR, \fB\-d\fR
+.RS 4
+Daemonize after starting\&. This implies \-\-listen and is only used when LMTP is active\&.
+.RE
+.PP
+\fB\-\-junk\fR, \fB\-j\fR
+.RS 4
+Deliver in the Junk mail folder of the specified user\&.
+.RE
+.PP
+\fB\-\-file\fR, \fB\-f\fR \fIfile\fR
+.RS 4
+Read e\-mail input from file\&. When not given, input is read from standard in\&.
+.RE
+.PP
+\fB\-\-host\fR, \fB\-h\fR \fIpath\fR
+.RS 4
+Connect to the storage server through
+\fIpath\fR, e\&.g\&.
+file:///path/to/socket\&. Default:
+file:///var/run/kopano/server\&.sock\&.
+.RE
+.PP
+\fB\-\-listen\fR, \fB\-l\fR
+.RS 4
+Listen for incoming LMTP connections
+.RE
+.PP
+\fB\-q\fR
+.RS 4
+Use qmail style exit codes\&. Please see the
+\fBEXITCODES\fR()
+section for more information\&.
+.RE
+.PP
+\fB\-s\fR
+.RS 4
+Silent mode\&. No output will be printed by the DAgent, except when wrong parameters are used to call kopano\-dagent\&.
+.RE
+.PP
+\fB\-v\fR
+.RS 4
+Verbose mode\&. More output can be printed when processing the e\-mail for rules\&.
+.sp
+When given a second time, more debugging output will be printed\&.
+.RE
+.PP
+\fB\-e\fR
+.RS 4
+Strip the domain from the given username\&. For example, when the DAgent is called with \*(Aq\-e\*(Aq and the username is \*(Aqname@domain\&.com\*(Aq, the delivery will be started for user \*(Aqname\*(Aq instead of \*(Aqname@domain\&.com\*(Aq\&.
+.RE
+.PP
+\fB\-R\fR
+.RS 4
+The passed recipient name will always be resolved first\&. This means that the recipient can be a username, e\-mail address or any other resolvable, unique identifier for the user\&. However, if the resolve fails (eg\&. when running as a non\-trusted user), the passed name will be assumed to be a loginname of a user\&. Passing the \-R option will disable this and will cause kopano\-dagent to exit with an error when the resolve fails\&.
+.sp
+In practice, the resolve will only fail if kopano\-dagent is not running in a trusted account and is therefore only really here for backward\-compatibility of earlier kopano\-dagent versions\&.
+.RE
+.PP
+\fB\-n\fR
+.RS 4
+Use \*(Aqnow\*(Aq as the delivery time\&. Normally, the dagent will use the date from the first Received header, which is most likely to be the header from your own mailserver\&.
+.RE
+.PP
+\fB\-\-do\-not\-notify\fR, \fB\-N\fR
+.RS 4
+Do not send a new mail notification to othere connected clients\&. This option can be useful when you have connected Outlook 2000 clients, which will also process rules when the mail is delivered\&. This is a bug workaround, and this option may disappear in the future\&.
+.RE
+.PP
+\fB\-\-folder\fR, \fB\-F\fR \fIpath\eto\efolder\fR
+.RS 4
+Deliver the incoming email to a specified subfolder of the store\&. Eg\&. \-\-folder \*(AqInbox\eimportant\*(Aq\&. Note that the \*(AqInbox\*(Aq folder is language specific\&. If the folder does not exist, delivery is reverted to the normal Inbox of the user, or use the \-\-create flag\&.
+.RE
+.PP
+\fB\-\-public\fR, \fB\-P\fR \fIpath\eto\efolder\fR
+.RS 4
+Deliver the incoming email to a specified subfolder of the public store\&. Eg\&. \-\-public \*(Aqsales\eincoming\*(Aq\&. If the folder does not exist, delivery is reverted to the normal Inbox of the user, or use the \-\-create flag\&.
+.RE
+.PP
+\fB\-p\fR \fI<path separator>\fR
+.RS 4
+Use a different path separator\&. The default is \*(Aq\e\*(Aq\&. If your delivery path contains a \e character, you can use this to alter the separator\&. Eg\&. \-p _ \-\-folder \*(AqInbox_resellers\edealers\*(Aq\&. The mail will now be delivered in a folder called \*(Aqresellers\edealers\*(Aq as a subfolder of the Inbox\&.
+.RE
+.PP
+\fB\-\-create\fR, \fB\-C\fR
+.RS 4
+Create the folder that was requested to deliver in\&. If there are no sufficient rights to create the folder, delivery is reverted to the normal Inbox of the user\&.
+.RE
+.PP
+\fB\-\-read\fR, \fB\-r\fR
+.RS 4
+Deliver the mail as read\&. Normally, the message will be marked as unread\&. This option can be useful when importing old mail\&.
+.RE
+.PP
+\fB\-a\fR \fIautoresponder\fR
+.RS 4
+Path to autoresponder, e\&.g\&.
+/usr/local/sbin/kopano\-autorespond\&. This script will be called when the user enabled a vacation message in the Webaccess settings\&. When a header
+\fIX\-Kopano\-Vacation\fR
+or
+\fIPrecedence\fR
+was found in the received e\-mail, this program will not be called to avoid loops\&. The Precedence header is often used in mailing lists\&. Other loop protections can be archieved in this separate program\&. This program or script will be called with the following arguments, in order:
+.PP
+\fIfrom\fR
+.RS 4
+The e\-mail address of the Kopano user sending the vacation message
+.RE
+.PP
+\fIto\fR
+.RS 4
+The e\-mail address of the user to send the response to
+.RE
+.PP
+\fIsubject\fR
+.RS 4
+The auto response subject set by the Kopano user
+.RE
+.PP
+\fIkopano\-username\fR
+.RS 4
+The username of the Kopano user which set the auto response
+.RE
+.PP
+\fImessagefile\fR
+.RS 4
+A file where the auto respond message will be temporary written to during the autorespond
+.RE
+.sp
+The following environment variables are present:
+.PP
+\fIMESSAGE_TO_ME\fR
+.RS 4
+Set to 1 if the original mail had the user in the To header\&.
+.RE
+.PP
+\fIMESSAGE_CC_ME\fR
+.RS 4
+Set to 1 if the original mail had the user in the Cc header\&.
+.RE
+.PP
+\fIMAILHEADERS\fR
+.RS 4
+Optional, if this value is present it points to a file that contains the original headers of the received email\&.
+.RE
+.sp
+Default:
+\fI/usr/sbin/kopano\-autorespond\fR\&.
+.RE
+.SH "USAGE"
+.PP
+To deliver an e\-mail to a Kopano user\*(Aqs mailbox:
+.PP
+\fBkopano\-dagent \fR\fB\fIusername\fR\fR\fB < \fR\fB\fImailfile\fR\fR
+.PP
+This passes the input to the dagent via the standard input interface\&.
+.SH "CONFIG"
+.PP
+Normally, no configuration file is used or required\&. The following options can be set in the configuration file:
+.PP
+\fBserver_socket\fR
+.RS 4
+Unix socket to find the connection to the Kopano server\&.
+.sp
+Default:
+\fIfile:///var/run/kopano/server\&.sock\fR
+.RE
+.PP
+\fBsslkey_file\fR
+.RS 4
+Use this file as key to logon to the server\&. This is only used when server_socket is set to an HTTPS transport\&. See the
+\fBkopano-server\fR(8)
+manual page on how to setup SSL keys\&.
+.sp
+Default: value not set\&.
+.RE
+.PP
+\fBsslkey_pass\fR
+.RS 4
+The password of the SSL key file that is set in sslkey_file\&.
+.sp
+Default: value not set\&.
+.RE
+.SH "EXITCODES"
+.PP
+The following exitcodes can be returned:
+.PP
+0
+.RS 4
+Delivery was successful
+.RE
+.PP
+64
+.RS 4
+Wrong or not enough parameters were passed to the DAgent\&. Delivery cannot be started\&.
+.RE
+.PP
+70, 100
+.RS 4
+Delivery was failed, and cannot be delivered\&. The SMTP server should not try again\&. When the
+\fB\-q\fR
+option is used, this value is changed to 100, otherwise 70 is returned\&.
+.RE
+.PP
+75, 111
+.RS 4
+Delivery was temporarily failed\&. This happens when the storage server is unavailable\&. The SMTP server may try again in a short while\&. When the
+\fB\-q\fR
+option is used, this value is changed to 111, otherwise 75 is returned\&.
+.RE
+.SH "AUTHOR"
+.PP
+Written by Kopano\&.
+.SH "SEE ALSO"
+.PP
+\fBkopano-server\fR(8),
+\fBkopano-dagent.cfg\fR(5)

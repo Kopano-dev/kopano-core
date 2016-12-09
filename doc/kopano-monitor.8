@@ -1,0 +1,100 @@
+'\" t
+.\"     Title: kopano-monitor
+.\"    Author: [see the "Author" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
+.\"      Date: November 2016
+.\"    Manual: Kopano Core user reference
+.\"    Source: Kopano 8
+.\"  Language: English
+.\"
+.TH "KOPANO\-MONITOR" "8" "November 2016" "Kopano 8" "Kopano Core user reference"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+kopano-monitor \- Start the Kopano monitor\&.
+.SH "SYNOPSIS"
+.HP \w'\fBkopano\-monitor\fR\ 'u
+\fBkopano\-monitor\fR [\fIOPTION\fR...] [\fISERVERNAME\fR]
+.SH "DESCRIPTION"
+.PP
+The monitor checks user mailbox sizes\&. When the quota is reached the monitor sends a quota email\&. When started, the program will keep running\&.
+.PP
+The defaults can be overwritten in the config file\&.
+.PP
+The default settings of the monitor program are defined in
+\fBkopano-monitor.cfg\fR(5)\&.
+.SH "OPTIONS"
+.PP
+Various options are possible\&. None of these options are required\&.
+.PP
+\fB\-\-config\fR, \fB\-c\fR \fImonitor\&.cfg\fR
+.RS 4
+Specify the location of the monitor\&.cfg file\&. If the monitor\&.cfg file is not specified, the monitor will try to load
+/etc/kopano/monitor\&.cfg\&. If that file is not present, it will continue using its default settings\&.
+.sp
+Default:
+\fI/etc/kopano/monitor\&.cfg\fR
+.RE
+.PP
+\fB\-\-host\fR, \fB\-h\fR \fIpath\fR
+.RS 4
+Connect to the storage server through
+\fIpath\fR, e\&.g\&.
+file:///path/to/socket\&. Default:
+file:///var/run/kopano/server\&.sock\&.
+.RE
+.PP
+\fB\-\-foreground\fR, \fB\-F\fR
+.RS 4
+Run in the foreground\&. Normally the monitor will daemonize and run in the background\&.
+.RE
+.SH "SIGNALS"
+.PP
+The following signals can be sent to the kopano\-monitor process:
+.PP
+\fBHUP\fR
+.RS 4
+When the HUP signal is received, some options from the configuration file are reloaded\&. The reloadable options are listed in the
+\fBkopano-monitor.cfg\fR(5)
+manual page\&.
+.sp
+Also, when using
+\fIlog_method = file\fR, the logfile will be closed and a new logfile will be opened\&. You can use this signal in your logrotate system\&.
+.RE
+.PP
+\fBTERM\fR
+.RS 4
+To gracefully let the service exit, the normal TERM signal is used\&.
+.RE
+.SH "USAGE"
+.PP
+The monitor checks user mailbox sizes\&. The monitor sends a quota email when the warning quota limit is reached\&. When started, the program will keep running\&. You may also use the init\&.d scripts:
+.PP
+\fB/etc/init\&.d/kopano\-monitor\fR
+[\fIstart\fR|
+\fIstop\fR|
+\fIrestart\fR]
+.SH "AUTHOR"
+.PP
+Written by Kopano\&.
+.SH "SEE ALSO"
+.PP
+\fBkopano-monitor.cfg\fR(5),
+\fBkopano-server\fR(8)

@@ -728,7 +728,6 @@ AC_SUBST([AM_CXXFLAGS])
 AC_SUBST([AM_LDFLAGS])
 
 
-AC_PATH_PROG(PROG_XMLTO, xmlto)	# not an error if not found, just no manual pages
 AC_PATH_PROG(PROG_ANT, ant)		# not an error if not found, no 'make dist' (waxt package)
 AC_PATH_PROG([SWIG_EXEC], [swig])
 AS_IF([test "x$SWIG_EXEC" = "x"], [AC_MSG_ERROR([Cannot find swig binary])])
@@ -827,7 +826,6 @@ ICal flags	:	$ICAL_CFLAGS
 ICal libs	:	$ICAL_LIBS
 ncurses libs	:	$NCURSES_LIBS
 Clients libs	:	$PROG_LIBS
-xmlto	 	:	$PROG_XMLTO
 LDAP support	:	$want_ldap
 LDAP flags	:	$LDAP_FLAGS
 LDAP libs	:	$LDAP_LIBS

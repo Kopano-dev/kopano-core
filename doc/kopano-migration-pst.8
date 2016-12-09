@@ -1,0 +1,101 @@
+'\" t
+.\"     Title: kopano-migration-pst
+.\"    Author: [see the "Author" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
+.\"      Date: November 2016
+.\"    Manual: Kopano Core user reference
+.\"    Source: Kopano 8
+.\"  Language: English
+.\"
+.TH "KOPANO\-MIGRATION\-P" "8" "November 2016" "Kopano 8" "Kopano Core user reference"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+kopano-migration-pst \- Utility to import PST files into Kopano
+.SH "SYNOPSIS"
+.HP \w'\fBkopano\-migration\-pst\fR\ 'u
+\fBkopano\-migration\-pst\fR [\fIOPTION\fR...] [\fIPATH\fR]
+.SH "DESCRIPTION"
+.PP
+kopano\-migration\-pst is a utility to import PST files into Kopano\&. As PST files are basically MAPI dumps, and Kopano also uses MAPI internally, there should be practically no data loss, even including calendar data\&.
+.SH "OPTIONS"
+.PP
+\fB\-\-user\fR, \fB\-u\fR \fINAME\fR
+.RS 4
+Name of user(s) for who to import the specified PST file(s)\&.
+.RE
+.PP
+\fB\-\-stats\fR
+.RS 4
+List folders contained in specified PST file(s)\&.
+.RE
+.PP
+\fB\-\-index\fR
+.RS 4
+List messages/items contained in specified PST file(s)\&.
+.RE
+.PP
+\fB\-\-import\-root\fR \fIPATH\fR
+.RS 4
+Import data under folder with specific path (or name)\&.
+.RE
+.PP
+\fB\-\-folder\fR, \fB\-f\fR \fIPATH\fR
+.RS 4
+Import only folder(s) with specified path\&.
+.RE
+.PP
+\fB\-\-log\-level\fR, \fB\-l\fR \fINAME\fR
+.RS 4
+Specify log\-level, for example, \*(Aqerror\*(Aq, \*(Aqwarning\*(Aq \*(Aqinfo\*(Aq or \*(Aqdebug\*(Aq\&.
+.RE
+.PP
+\fB\-\-config\fR, \fB\-c\fR \fIFILE\fR
+.RS 4
+Load configuration settings from specified file\&.
+.RE
+.PP
+\fB\-\-server\-socket\fR, \fB\-s\fR \fISOCKET\fR
+.RS 4
+Connect to storage server through specified socket\&.
+.RE
+.PP
+\fB\-\-auth\-user\fR, \fB\-U\fR \fINAME\fR
+.RS 4
+Authenticate as specified user\&.
+.RE
+.PP
+\fB\-\-auth\-pass\fR, \fB\-P\fR \fIPASS\fR
+.RS 4
+Authenticate with specified password\&.
+.RE
+.PP
+\fB\-\-ssl\-key\fR, \fB\-k\fR \fIFILE\fR
+.RS 4
+Specify SSL key file\&.
+.RE
+.PP
+\fB\-\-ssl\-pass\fR, \fB\-p\fR \fIPASSWORD\fR
+.RS 4
+Specify SSL key password\&.
+.RE
+.SH "AUTHOR"
+.PP
+Written by Kopano\&.

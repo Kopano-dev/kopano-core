@@ -919,7 +919,7 @@ endif
 #
 # manual pages
 #
-genpages = \
+dist_man_MANS = \
 	doc/kopano.7 \
 	doc/kopano-admin.8 \
 	doc/kopano-archiver.8 doc/kopano-archiver.cfg.5 \
@@ -945,22 +945,6 @@ genpages = \
 	doc/kopano-archiver-aclsync.8 \
 	doc/kopano-archiver-aclset.8 \
 	doc/kopano-archiver-restore.8
-dist_man_MANS = ${genpages}
-CLEANFILES += ${genpages} doc/kopano.0
-EXTRA_DIST += doc/manual.xml
-${genpages}: doc/kopano.0
-
-# Since the manual.xml file is in UTF-8, we need to call 'xmlto' in UTF-8 mode
-# as well.
-doc/kopano.0: ${top_srcdir}/doc/manual.xml
-	@${AM_V_GEN} if [ -z "$(PROG_XMLTO)" ]; then \
-		echo Please install xmlto to generate manual pages; \
-	else \
-		${MKDIR_P} doc; \
-		LC_ALL=en_US.UTF-8 ${PROG_XMLTO} -o doc man ${top_srcdir}/doc/manual.xml && \
-		touch $@; \
-	fi
-
 
 #
 # build infrastructure

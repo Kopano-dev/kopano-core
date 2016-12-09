@@ -1,0 +1,339 @@
+'\" t
+.\"     Title: kopano-archiver.cfg
+.\"    Author: [see the "Author" section]
+.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
+.\"      Date: November 2016
+.\"    Manual: Kopano Core user reference
+.\"    Source: Kopano 8
+.\"  Language: English
+.\"
+.TH "KOPANO\-ARCHIVER\&.C" "5" "November 2016" "Kopano 8" "Kopano Core user reference"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+kopano-archiver.cfg \- The Kopano archiver configuration file
+.SH "SYNOPSIS"
+.PP
+\fBarchiver\&.cfg\fR
+.SH "DESCRIPTION"
+.PP
+The
+archiver\&.cfg
+is a configuration file for the Kopano Archiver\&.
+archiver\&.cfg
+contains instructions for the software to set up the logging system and specific actions the archiver can do\&.
+.SH "FILE FORMAT"
+.PP
+The file consists of one big section, but parameters can be grouped by functionality\&.
+.PP
+The parameters are written in the form:
+.PP
+\fBname\fR
+=
+\fIvalue\fR
+.PP
+The file is line\-based\&. Each newline\-terminated line represents either a comment, nothing, a parameter or a directive\&. A line beginning with `#\*(Aq is considered a comment, and will be ignored by Kopano\&. Parameter names are case sensitive\&. Lines beginning with `!\*(Aq are directives\&.
+.PP
+Directives are written in the form:
+.PP
+!\fBdirective\fR
+\fI[argument(s)] \fR
+.PP
+The following directives exist:
+.PP
+\fBinclude\fR
+.RS 4
+Include and process
+\fIargument\fR
+.sp
+Example: !include common\&.cfg
+.RE
+.SH "EXPLANATION OF EACH PARAMETER"
+.PP
+\fBserver_socket\fR
+.RS 4
+Unix socket to find the connection to the Kopano server\&.
+.sp
+Default:
+\fIfile:///var/run/kopano/server\&.sock\fR
+.RE
+.PP
+\fBsslkey_file\fR
+.RS 4
+Use this file as key to logon to the server\&. This is only used when server_socket is set to an HTTPS transport\&. See the
+\fBkopano-server\fR(8)
+manual page on how to setup SSL keys\&.
+.sp
+Default: value not set\&.
+.RE
+.PP
+\fBsslkey_pass\fR
+.RS 4
+The password of the SSL key file that is set in sslkey_file\&.
+.sp
+Default: value not set\&.
+.RE
+.PP
+\fBarchive_enable\fR
+.RS 4
+Specifies if the archive step will be performed\&. The archive step is basically the copy to the archive\&.
+.sp
+Default:
+\fIyes\fR
+.RE
+.PP
+\fBarchive_after\fR
+.RS 4
+Specifies the age in days of a message before it will be archived\&.
+.sp
+Default:
+\fI30\fR
+.RE
+.PP
+\fBstub_enable\fR
+.RS 4
+Specifies if the stub step will be performed\&. Stubbing is the process of removing the data from a message and only leaving a reference to one or more archived versions of that message\&. When such a message is opened it will be de\-stubbed on the fly, leaving the user with a normal message to work with\&.
+.sp
+A message will never be stubbed if it\*(Aqs not yet archived\&.
+.sp
+Default:
+\fIno\fR
+.RE
+.PP
+\fBstub_unread\fR
+.RS 4
+Specifies if unread messages will be stubbed\&.
+.sp
+Default:
+\fIno\fR
+.RE
+.PP
+\fBstub_after\fR
+.RS 4
+Specifies the age in days of a message before it will be stubbed\&.
+.sp
+Default:
+\fI0\fR
+.RE
+.PP
+\fBdelete_enable\fR
+.RS 4
+Specifies if the delete step will be performed\&. The delete step deletes messages from the users store if they\*(Aqre old enough\&. This way even more space is freed\&.
+.sp
+A message will never be deleted if it\*(Aqs not yet archived\&.
+.sp
+A message will never be deleted from the archive\&.
+.sp
+Default:
+\fIno\fR
+.RE
+.PP
+\fBdelete_unread\fR
+.RS 4
+Specifies if unread messages will be deleted\&.
+.sp
+Default:
+\fIno\fR
+.RE
+.PP
+\fBdelete_after\fR
+.RS 4
+Specifies the age in days of a message before it will be deleted\&.
+.sp
+Default:
+\fI0\fR
+.RE
+.PP
+\fBpurge_enable\fR
+.RS 4
+Specifies if message will be purged from the archive after a certain amount of time\&.
+.sp
+Default:
+\fIno\fR
+.RE
+.PP
+\fBpurge_after\fR
+.RS 4
+Specifies the age in days of a message before it will be purged\&. *Note that the age is measured from the time it was originally delivered in the primay store\&.
+.sp
+Default:
+\fI0\fR
+.RE
+.PP
+\fBtrack_history\fR
+.RS 4
+Specifies the behaviour of the archiver when re\-archiving messages that were changed after they were archived\&. When track_history is set to no, the archived version will be updated to contain the most actual information\&. When track_history is set to yes, a new copy of the message will be created in the archive, and the previous version is linked to it\&. This way the change history can be tracked\&.
+.sp
+Default:
+\fIno\fR
+.RE
+.PP
+\fBcleanup_action\fR
+.RS 4
+Specify what action should be taken on archive messages whose primary message has been deleted\&. The options are \*(Aqstore\*(Aq and \*(Aqdelete\*(Aq, meaning store the archived message in a special \*(AqDeleted\*(Aq folder or delete the archived messages respectively\&.
+.sp
+Default:
+\fIstore\fR
+.RE
+.PP
+\fBcleanup_follow_purge_after\fR
+.RS 4
+Specify if items that are cleaned up from the archive are at least the age that is specified in the purge_after setting\&. This is to avoid messages being deleted from the archive when they where deleted from the primary store by a delete operation\&. Note that setting to yes, will cause a cleanup run to seemingly do nothing\&. A rule of thumb is to set this to the same value as delete_enable\&. So when delete_enable is set to yes, make sure cleanup_follow_purge_after is also set to yes\&.
+.sp
+Default:
+\fIno\fR
+.RE
+.PP
+\fBenable_auto_attach\fR
+.RS 4
+Specify whether on each archive run an auto\-attach run is performed in order to match the attached archives to the requested state as specified in LDAP or ADS\&.
+.sp
+Default:
+\fIno\fR
+.RE
+.PP
+\fBauto_attach_writable\fR
+.RS 4
+Specify whether an auto attached archive will be granted write permissions for the user it\*(Aqs attached to\&.
+.sp
+Default:
+\fIyes\fR
+.RE
+.PP
+\fBlog_method\fR
+.RS 4
+The method which should be used for logging\&. Valid values are:
+.PP
+\fIsyslog\fR
+.RS 4
+Use the Linux system log\&. All messages will be written to the mail facility\&. See also
+\fBsyslog.conf\fR(5)\&.
+.RE
+.PP
+\fIfile\fR
+.RS 4
+Log to a file\&. The filename will be specified in
+\fBlog_file\fR\&.
+.RE
+.sp
+Default:
+\fIfile\fR
+.RE
+.PP
+\fBlog_file\fR
+.RS 4
+When logging to a file, specify the filename in this parameter\&. Use
+\fI\-\fR
+(minus sign) for stderr output\&.
+.sp
+Default:
+\fI\-\fR
+.RE
+.PP
+\fBlog_timestamp\fR
+.RS 4
+Specify whether to prefix each log line with a timestamp in \*(Aqfile\*(Aq logging mode\&.
+.sp
+Default:
+\fI1\fR
+.RE
+.PP
+\fBlog_buffer_size\fR
+.RS 4
+Buffer logging in what sized blocks\&. The special value 0 selects line buffering\&.
+.sp
+Default:
+\fI0\fR
+.RE
+.PP
+\fBlog_level\fR
+.RS 4
+The level of output for logging in the range from 0 to 5\&. 0 means no logging, 5 means full logging\&.
+.sp
+Default:
+\fI2\fR
+.RE
+.PP
+\fBpid_file\fR
+.RS 4
+The location of the pid file used to guarantee only one instance of kopano\-archiver is running in non\-administrative mode\&.
+.sp
+Default:
+\fI/var/run/kopano/archiver\&.pid \fR
+.RE
+.SH "EXPLANATION OF THE MYSQL SETTINGS PARAMETERS"
+.PP
+\fBmysql_host\fR
+.RS 4
+The hostname of the MySQL server to use\&.
+.sp
+Default:
+\fIlocalhost\fR
+.RE
+.PP
+\fBmysql_port\fR
+.RS 4
+The port of the MySQL server to use\&.
+.sp
+Default:
+\fI3306\fR
+.RE
+.PP
+\fBmysql_user\fR
+.RS 4
+The user under which we connect with MySQL\&.
+.sp
+Default:
+\fIroot\fR
+.RE
+.PP
+\fBmysql_password\fR
+.RS 4
+The password to use for MySQL\&. Leave empty for no password\&.
+.sp
+Default:
+.RE
+.PP
+\fBmysql_socket\fR
+.RS 4
+The socket of the MySQL server to use\&. This option can be used to override the default mysql socket\&. To use the socket, the mysql_host value must be empty or \*(Aqlocalhost\*(Aq
+.sp
+Default:
+.RE
+.PP
+\fBmysql_database\fR
+.RS 4
+The MySQL database to connect to\&.
+.sp
+Default:
+\fIkopano\fR
+.RE
+.SH "FILES"
+.PP
+/etc/kopano/archiver\&.cfg
+.RS 4
+The Kopano archiver configuration file\&.
+.RE
+.SH "AUTHOR"
+.PP
+Written by Kopano\&.
+.SH "SEE ALSO"
+.PP
+\fBkopano-archiver\fR(8)

@@ -27,7 +27,6 @@ stamp-h2
 
 /default.sym
 
-/doc/*.[0-9]
 /spooler/PythonSWIGRuntime.h
 /kopano-admin
 /kopano-archiver
@@ -80,9 +79,6 @@ stamp-h2
 /common/kopano.pc
 /common/libkcmapi.sym
 /common/libkcutil.sym
-
-# /doc/
-/doc/*.[0-9]
 
 ## /doc/php-ext/
 #/doc/php-ext/*html
