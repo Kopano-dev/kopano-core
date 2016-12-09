@@ -7746,14 +7746,9 @@ static ECRESULT MoveObjects(ECSession *lpSession, ECDatabase *lpDatabase,
 			er = erSuccess; //ignore error // FIXME WHY?!
 		}
 
-		// a move is a delete in the originating folder and a new in the destination folder except for softdelete that is a change
-		if (cop.ulParent != ulDestFolderId) {
-			AddChange(lpSession, ulSyncId, cop.sSourceKey, cop.sParentSourceKey, ICS_MESSAGE_HARD_DELETE);
-			AddChange(lpSession, ulSyncId, cop.sNewSourceKey, sDestFolderSourceKey, ICS_MESSAGE_NEW);
-		} else if (cop.ulFlags & MSGFLAG_DELETED) {
-			// Restore a softdeleted message
-			AddChange(lpSession, ulSyncId, cop.sNewSourceKey, sDestFolderSourceKey, ICS_MESSAGE_NEW);
-		}
+		// a move is a delete in the originating folder and a new in the destination folder
+		AddChange(lpSession, ulSyncId, cop.sSourceKey, cop.sParentSourceKey, ICS_MESSAGE_HARD_DELETE);
+		AddChange(lpSession, ulSyncId, cop.sNewSourceKey, sDestFolderSourceKey, ICS_MESSAGE_NEW);
 
 		er = ECTPropsPurge::AddDeferredUpdate(lpSession, lpDatabase,
 		     ulDestFolderId, cop.ulParent, cop.ulId);
