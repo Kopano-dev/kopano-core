@@ -13,6 +13,7 @@ global:
 		KC::*;
 		typeinfo*;
 		vtable*;
+		*::_Rep::_S_empty_rep_storage;
 	};
 local:
 	*;

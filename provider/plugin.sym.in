@@ -3,6 +3,9 @@ global:
 	deleteUserPluginInstance;
 	getUserPluginInstance;
 	getUserPluginVersion;
+	extern "C++" {
+		*::_Rep::_S_empty_rep_storage;
+	};
 local:
 	*;
 };

@@ -1,6 +1,9 @@
 {
 global:
 	get_module;
+	extern "C++" {
+		*::_Rep::_S_epmty_rep_storage;
+	};
 local:
 	*;
 };
