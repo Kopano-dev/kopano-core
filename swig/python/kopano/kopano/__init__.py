@@ -2250,10 +2250,10 @@ class Folder(object):
         perms = [item for item in items if isinstance(item, Permission)]
         return item_entryids, folder_entryids, perms
 
-    def delete(self, items): # XXX associated
+    def delete(self, items, soft=False): # XXX associated
         item_entryids, folder_entryids, perms = self._get_entryids(items)
         if item_entryids:
-            self.mapiobj.DeleteMessages(item_entryids, 0, None, DELETE_HARD_DELETE)
+            self.mapiobj.DeleteMessages(item_entryids, 0, None, 0 if soft else DELETE_HARD_DELETE)
         for entryid in folder_entryids:
             self.mapiobj.DeleteFolder(entryid, 0, None, DEL_FOLDERS|DEL_MESSAGES)
         for perm in perms:

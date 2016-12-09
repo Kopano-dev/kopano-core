@@ -142,6 +142,9 @@ class BackupWorker(kopano.Worker):
             state = file(statepath).read()
             self.log.info('found previous folder sync state: %s' % state)
         new_state = folder.sync(importer, state, log=self.log, stats=stats, begin=options.period_begin, end=options.period_end)
+        if not state:
+            for item in folder.deleted:
+                importer.update(item, 0, deleted=True) # XXX ICS doesn't support soft-deleted items on initial sync!?
         if new_state != state:
             file(statepath, 'w').write(new_state)
             self.log.info('saved folder sync state: %s' % new_state)
@@ -152,7 +155,7 @@ class FolderImporter:
     def __init__(self, *args):
         self.folder, self.folder_path, self.config, self.options, self.log, self.stats = args
 
-    def update(self, item, flags):
+    def update(self, item, flags, deleted=False):
         """ store updated item in 'items' database, and subject and date in 'index' database """
 
         with log_exc(self.log, self.stats):
@@ -167,6 +170,7 @@ class FolderImporter:
                     'subject': item.subject,
                     'orig_sourcekey': orig_prop,
                     'last_modified': item.last_modified,
+                    'deleted': deleted,
                 })
             self.stats['changes'] += 1
 
@@ -176,10 +180,15 @@ class FolderImporter:
         with log_exc(self.log, self.stats):
             with closing(dbopen(self.folder_path+'/items')) as db_items:
                 with closing(dbopen(self.folder_path+'/index')) as db_index:
-                    if item.sourcekey in db_items: # ICS can generate delete events without update events..
+                    if item.sourcekey in db_items:
                         self.log.debug('folder %s: deleted document with sourcekey %s' % (self.folder.sourcekey, item.sourcekey))
-                        del db_items[item.sourcekey]
-                        del db_index[item.sourcekey]
+                        if (flags & SYNC_SOFT_DELETE) and not self.options.skip_softdeletes:
+                            idx = pickle.loads(db_index[item.sourcekey])
+                            idx['deleted'] = True
+                            db_index[item.sourcekey] = pickle.dumps(idx)
+                        else:
+                            del db_items[item.sourcekey]
+                            del db_index[item.sourcekey]
                         self.stats['deletes'] += 1
 
 class Service(kopano.Service):
@@ -333,13 +342,14 @@ class Service(kopano.Service):
 
         # load existing sourcekeys in folder, to check for duplicates
         existing = set()
-        table = folder.mapiobj.GetContentsTable(0)
-        table.SetColumns([PR_SOURCE_KEY, PR_EC_BACKUP_SOURCE_KEY], 0)
-        for row in table.QueryRows(-1, 0):
-            if PROP_TYPE(row[1].ulPropTag) != PT_ERROR:
-                existing.add(row[1].Value.encode('hex').upper())
-            else:
-                existing.add(row[0].Value.encode('hex').upper())
+        for content_type in (0, SHOW_SOFT_DELETES):
+            table = folder.mapiobj.GetContentsTable(content_type)
+            table.SetColumns([PR_SOURCE_KEY, PR_EC_BACKUP_SOURCE_KEY], 0)
+            for row in table.QueryRows(-1, 0):
+                if PROP_TYPE(row[1].ulPropTag) != PT_ERROR:
+                    existing.add(row[1].Value.encode('hex').upper())
+                else:
+                    existing.add(row[0].Value.encode('hex').upper())
 
         # load entry from 'index', so we don't have to unpickle everything
         with closing(dbopen(data_path+'/index')) as db:
@@ -374,6 +384,10 @@ class Service(kopano.Service):
                         except MAPIErrorNotFound:
                             item.mapiobj.SetProps([SPropValue(PR_EC_BACKUP_SOURCE_KEY, sourcekey2.decode('hex'))])
                             item.mapiobj.SaveChanges(0)
+
+                        # restore as soft-deleted
+                        if index[sourcekey2].get('deleted') == True:
+                            folder.delete(item, soft=True)
 
                         stats['changes'] += 1
 
@@ -441,7 +455,8 @@ def show_contents(data_path, options):
                 for key, value in db.iteritems():
                     d = pickle.loads(value)
                     if ((options.period_begin and d['last_modified'] < options.period_begin) or
-                        (options.period_end and d['last_modified'] >= options.period_end)):
+                        (options.period_end and d['last_modified'] >= options.period_end) or
+                        (options.skip_softdeletes and d.get('deleted') == True)):
                         continue
                     items.append((key, d))
 
@@ -605,7 +620,8 @@ def main():
 
     # add custom options
     parser.add_option('', '--skip-junk', dest='skip_junk', action='store_true', help='skip junk mail')
-    parser.add_option('', '--skip-deleted', dest='skip_deleted', action='store_true', help='skip deleted mail')
+    parser.add_option('', '--skip-deleted', dest='skip_deleted', action='store_true', help='skip deleted items folder')
+    parser.add_option('', '--skip-softdeletes', dest='skip_softdeletes', action='store_true', help='skip soft deletes')
     parser.add_option('', '--skip-public', dest='skip_public', action='store_true', help='skip public store')
     parser.add_option('', '--skip-attachments', dest='skip_attachments', action='store_true', help='skip attachments')
     parser.add_option('', '--skip-meta', dest='skip_meta', action='store_true', help='skip metadata')
