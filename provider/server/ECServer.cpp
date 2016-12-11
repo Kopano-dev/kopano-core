@@ -961,10 +961,14 @@ static int running_server(char *szName, const char *szConfig,
 
 	// Init random generator
 	rand_init();
-
-	// init translations according to environment variables
+#if GSOAP_VERSION >= 20839
+	/*
+	 * Init translations according to environment variables.
+	 * It also changes things like decimal separator, which gsoap < 2.8.39
+	 * fails to cope with properly.
+	 */
 	setlocale(LC_ALL, "");
-
+#endif
 	InitBindTextDomain();
 
 	// Load settings
