@@ -8,15 +8,7 @@ Enhancements:
 * utils: support setting out-of-office without an until-date [KC-275]
 Fixes:
 * pyko: do not throw backtraces on log messages [KC-340]
-* server: S3 object sizes were shown wrongly [KC-351]
-* inetmapi: do not always generate winmail.dat [KC-348]
-* icalmapi: timezone search was broken [KC-313]
-* The RTF encoder incorrectly produced paragraphs where
-  it should have created linefeeds [KC-338]
-* The RTF decoder failed to see that \uXXXX could start a paragraph [KC-338]
-* The RTF decoder erroneously created a new paragraph on \pard [KC-338]
 * server: Ctrl-C now works in gdb [KC-171]
-* inetmapi: avoid an infinite recursion on SMIME handling [KC-366]
 * ics: make creation of new syncids work incrementally [KC-208]
 * libserver: change incorrect compare operator for EID_V0 [KC-365]
 Of special mention:
