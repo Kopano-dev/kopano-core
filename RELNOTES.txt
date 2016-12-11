@@ -42,6 +42,10 @@ Fixes:
 * dagent: iCal descriptions caused wrong body parts to be displayed [KC-138]
 * dagent: mr-process failed to copy attachments to the calendar item [KC-202]
 * dagent: restore/rework forced ASCII charset upgrade [KC-294]
+* server: S3 attachment size was not calculated [KC-351]
+* inetmapi: review misdetection of TNEF necessity for reminders [KC-348]
+* icalmapi: unbreak timezone lookup [KC-313]
+* inetmapi: avoid an infinite recursion on SMIME handling [KC-366]
 Enhancements:
 * PST importer [KC-59]
 * Python 3 support [KC-48,KC-267]
@@ -75,7 +79,11 @@ Changes:
 * swig: resolve crash when python programs end [KC-269]
 * config: change ldap_object_search_filter for WebApp to be able to
   search by mail address [KC-337]
-* gateway/client: avoid resynchronizing RTF body content [KC-338]
+* backup: synchronize soft-deleted items [KC-376]
+* The RTF encoder incorrectly produced paragraphs where
+  it should have created linefeeds [KC-338]
+* The RTF decoder failed to see that \uXXXX could start a paragraph [KC-338]
+* The RTF decoder erroneously created a new paragraph on \pard [KC-338]
 Developer/packager notes:
 * Support for building the source with newer gsoap
   (upto and including 2.8.37) [KC-261]
