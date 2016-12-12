@@ -957,8 +957,8 @@ include global.am
 
 #OLD TOPLEVEL FM
 EXTRA_DIST += version versionheader.sh \
-	LICENSE.txt AGPL-3 \
-	lddcheck global.am pwdcheck.sh \
+	AGPL-3 LICENSE.txt RELNOTES.txt \
+	bootstrap.sh lddcheck global.am pwdcheck.sh \
 	common/include/kopano/ecversion.h
 
 BUILT_SOURCES += source-moved-check common/include/kopano/ecversion.h
