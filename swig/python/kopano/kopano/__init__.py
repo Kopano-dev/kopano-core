@@ -3658,7 +3658,7 @@ class User(object):
         if email:
             try:
                 self._name = unicode(server.gab.ResolveNames([PR_EMAIL_ADDRESS_W], MAPI_UNICODE | EMS_AB_ADDRESS_LOOKUP, [[SPropValue(PR_DISPLAY_NAME_W, unicode(email))]], [MAPI_UNRESOLVED])[0][0][1].Value)
-            except (MAPIErrorNotFound, MAPIErrorInvalidParameter):
+            except (MAPIErrorNotFound, MAPIErrorInvalidParameter, IndexError):
                 raise NotFoundError("no such user '%s'" % email)
         else:
             self._name = unicode(name)
