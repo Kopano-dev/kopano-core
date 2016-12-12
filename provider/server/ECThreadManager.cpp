@@ -103,10 +103,9 @@ static void kcsrv_blocksigs(void)
 	sigaddset(&m, SIGTERM);
 }
 
-ECWorkerThread::ECWorkerThread(ECLogger *lpLogger, ECThreadManager *lpManager, ECDispatcher *lpDispatcher, bool bDoNotStart)
+ECWorkerThread::ECWorkerThread(ECThreadManager *lpManager,
+    ECDispatcher *lpDispatcher, bool bDoNotStart)
 {
-	m_lpLogger = lpLogger;
-	m_lpLogger->AddRef();
 	m_lpManager = lpManager;
 	m_lpDispatcher = lpDispatcher;
 
@@ -115,17 +114,19 @@ ECWorkerThread::ECWorkerThread(ECLogger *lpLogger, ECThreadManager *lpManager, E
 		return;
 	}
 	if (pthread_create(&m_thread, NULL, ECWorkerThread::Work, this) != 0) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to start thread: %s", strerror(errno));
+		ec_log_crit("Unable to start thread: %s", strerror(errno));
 		return;
 	}
 	set_thread_name(m_thread, "ECWorkerThread");
 	pthread_detach(m_thread);
 }
 
-ECPriorityWorkerThread::ECPriorityWorkerThread(ECLogger *lpLogger, ECThreadManager *lpManager, ECDispatcher *lpDispatcher) : ECWorkerThread(lpLogger, lpManager, lpDispatcher, true)
+ECPriorityWorkerThread::ECPriorityWorkerThread(ECThreadManager *lpManager,
+    ECDispatcher *lpDispatcher) :
+	ECWorkerThread(lpManager, lpDispatcher, true)
 {
     if (pthread_create(&m_thread, NULL, ECWorkerThread::Work, this) != 0)
-        m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to start thread: %s", strerror(errno));
+		ec_log_crit("Unable to start thread: %s", strerror(errno));
     else
 	set_thread_name(m_thread, "ECPriorityWorkerThread");
 	// do not detach
@@ -134,12 +135,6 @@ ECPriorityWorkerThread::ECPriorityWorkerThread(ECLogger *lpLogger, ECThreadManag
 ECPriorityWorkerThread::~ECPriorityWorkerThread()
 {
 	pthread_join(m_thread, NULL);
-}
-
-ECWorkerThread::~ECWorkerThread()
-{
-	// thread is already detached
-	m_lpLogger->Release();
 }
 
 void *ECWorkerThread::Work(void *lpParam)
@@ -152,7 +147,7 @@ void *ECWorkerThread::Work(void *lpParam)
     bool fStop = false;
 	int err = 0;
 
-    lpThis->m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Started%sthread %08x", lpPrio ? " priority " : " ", (ULONG)pthread_self());
+	ec_log_debug("Started%sthread %08x", lpPrio ? " priority " : " ", (ULONG)pthread_self());
     
     while(1) {
 		set_thread_name(pthread_self(), "z-s: idle thread");
@@ -164,7 +159,7 @@ void *ECWorkerThread::Work(void *lpParam)
             
             // We were requested to exit due to idle state
             if(fStop) {
-                lpThis->m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Thread %08x idle and requested to exit", (ULONG)pthread_self());
+				ec_log_debug("Thread %08x idle and requested to exit", (ULONG)pthread_self());
                 break;
             }
                 
@@ -181,8 +176,8 @@ void *ECWorkerThread::Work(void *lpParam)
 		if (lpWorkItem->soap->ctx && !lpWorkItem->soap->ssl) {
 			err = soap_ssl_accept(lpWorkItem->soap);
 			if (err) {
-				lpThis->m_lpLogger->Log(EC_LOGLEVEL_WARNING, "%s", soap_faultdetail(lpWorkItem->soap)[0]);
-				lpThis->m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "%s: %s", GetSoapError(err).c_str(), soap_faultstring(lpWorkItem->soap)[0]);
+				ec_log_warn("%s", soap_faultdetail(lpWorkItem->soap)[0]);
+				ec_log_debug("%s: %s", GetSoapError(err).c_str(), soap_faultstring(lpWorkItem->soap)[0]);
 			}
         } else {
 			err = 0;
@@ -206,7 +201,7 @@ void *ECWorkerThread::Work(void *lpParam)
                 if(lpWorkItem->soap->error < SOAP_STOP) {
 					// Client Updater returns 404 to the client to say it doesn't need to update, so skip this HTTP error
 					if (lpWorkItem->soap->error != SOAP_EOF && lpWorkItem->soap->error != 404)
-						lpThis->m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "gSOAP error on receiving request: %s", GetSoapError(lpWorkItem->soap->error).c_str());
+						ec_log_debug("gSOAP error on receiving request: %s", GetSoapError(lpWorkItem->soap->error).c_str());
                     soap_send_fault(lpWorkItem->soap);
                     goto done;
                 }
@@ -237,7 +232,7 @@ void *ECWorkerThread::Work(void *lpParam)
 
             if(err)
             {
-                lpThis->m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "gSOAP error on processing request: %s", GetSoapError(err).c_str());
+			ec_log_debug("gSOAP error on processing request: %s", GetSoapError(err).c_str());
                 soap_send_fault(lpWorkItem->soap);
                 goto done;
             }
@@ -279,18 +274,17 @@ done:
     return NULL;
 }
 
-ECThreadManager::ECThreadManager(ECLogger *lpLogger, ECDispatcher *lpDispatcher, unsigned int ulThreads)
+ECThreadManager::ECThreadManager(ECDispatcher *lpDispatcher,
+    unsigned int ulThreads)
 {
-    m_lpLogger = lpLogger;
-    m_lpLogger->AddRef();
     m_lpDispatcher = lpDispatcher;
     m_ulThreads = ulThreads;
 
 	scoped_lock l_thr(m_mutexThreads);
     // Start our worker threads
-	m_lpPrioWorker = new ECPriorityWorkerThread(m_lpLogger, this, lpDispatcher);
+	m_lpPrioWorker = new ECPriorityWorkerThread(this, lpDispatcher);
 	for (unsigned int i = 0; i < ulThreads; ++i)
-		m_lstThreads.push_back(new ECWorkerThread(m_lpLogger, this, lpDispatcher));
+		m_lstThreads.push_back(new ECWorkerThread(this, lpDispatcher));
 }
 
 ECThreadManager::~ECThreadManager()
@@ -303,21 +297,20 @@ ECThreadManager::~ECThreadManager()
 		ulThreads = m_lstThreads.size();
 		l_thr.unlock();
         if(ulThreads > 0) {
-            m_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Still waiting for %d worker threads to exit", ulThreads);
+			ec_log_notice("Still waiting for %d worker threads to exit", ulThreads);
             Sleep(1000);
         }
         else
             break;
     }    
 	delete m_lpPrioWorker;
-	m_lpLogger->Release();
 }
     
 ECRESULT ECThreadManager::ForceAddThread(int nThreads)
 {
 	scoped_lock l_thr(m_mutexThreads);
 	for (int i = 0; i < nThreads; ++i)
-		m_lstThreads.push_back(new ECWorkerThread(m_lpLogger, this, m_lpDispatcher));
+		m_lstThreads.push_back(new ECWorkerThread(this, m_lpDispatcher));
 	return erSuccess;
 }
 
@@ -339,7 +332,7 @@ ECRESULT ECThreadManager::SetThreadCount(unsigned int ulThreads)
     m_ulThreads = ulThreads;
 
     while(ulThreads > m_lstThreads.size())
-        m_lstThreads.push_back(new ECWorkerThread(m_lpLogger, this, m_lpDispatcher));
+		m_lstThreads.push_back(new ECWorkerThread(this, m_lpDispatcher));
     // If we are OVER the number of threads, then the code in NotifyIdle() will bring this down
     return erSuccess;
 }
@@ -363,7 +356,7 @@ ECRESULT ECThreadManager::NotifyIdle(ECWorkerThread *lpThread, bool *lpfStop)
         // We are currently running more threads than we want, so tell the thread to stop
         iterThreads = std::find(m_lstThreads.begin(), m_lstThreads.end(), lpThread);
 	if (iterThreads == m_lstThreads.end()) {
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "A thread that we don't know is idle ...");
+		ec_log_crit("A thread that we don't know is idle ...");
 		return KCERR_NOT_FOUND;
 	}
         // Remove the thread from our running thread list
@@ -374,17 +367,16 @@ ECRESULT ECThreadManager::NotifyIdle(ECWorkerThread *lpThread, bool *lpfStop)
 	return erSuccess;
 }
 
-ECWatchDog::ECWatchDog(ECConfig *lpConfig, ECLogger *lpLogger, ECDispatcher *lpDispatcher, ECThreadManager *lpThreadManager)
+ECWatchDog::ECWatchDog(ECConfig *lpConfig, ECDispatcher *lpDispatcher,
+    ECThreadManager *lpThreadManager)
 {
     m_lpConfig = lpConfig;
-    m_lpLogger = lpLogger;
-    m_lpLogger->AddRef();
     m_lpDispatcher = lpDispatcher;
     m_lpThreadManager = lpThreadManager;
     m_bExit = false;
     
     if (pthread_create(&m_thread, NULL, ECWatchDog::Watch, this) != 0)
-        m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to start watchdog thread: %s", strerror(errno));
+		ec_log_crit("Unable to start watchdog thread: %s", strerror(errno));
     else
 	set_thread_name(m_thread, "ECWatchDog");
 }
@@ -399,7 +391,6 @@ ECWatchDog::~ECWatchDog()
 	l_exit.unlock();
     
     pthread_join(m_thread, &ret);
-    m_lpLogger->Release();
 }
 
 void *ECWatchDog::Watch(void *lpParam)
@@ -432,10 +423,9 @@ void *ECWatchDog::Watch(void *lpParam)
     return NULL;
 }
 
-ECDispatcher::ECDispatcher(ECLogger *lpLogger, ECConfig *lpConfig, CREATEPIPESOCKETCALLBACK lpCallback, void *lpParam)
+ECDispatcher::ECDispatcher(ECConfig *lpConfig,
+    CREATEPIPESOCKETCALLBACK lpCallback, void *lpParam)
 {
-	m_lpLogger = lpLogger;
-	m_lpLogger->AddRef();
 	m_lpConfig = lpConfig;
 
 	// Default socket settings
@@ -445,11 +435,6 @@ ECDispatcher::ECDispatcher(ECLogger *lpLogger, ECConfig *lpConfig, CREATEPIPESOC
 	m_nSendTimeout = atoi(m_lpConfig->GetSetting("server_send_timeout"));
 	m_lpCreatePipeSocketCallback = lpCallback;
 	m_lpCreatePipeSocketParam = lpParam;
-}
-
-ECDispatcher::~ECDispatcher()
-{
-    m_lpLogger->Release();
 }
 
 ECRESULT ECDispatcher::GetThreadCount(unsigned int *lpulThreads, unsigned int *lpulIdleThreads)
@@ -641,17 +626,15 @@ ECRESULT ECDispatcher::DoHUP()
 						   m_lpConfig->GetSetting("server_ssl_ca_file","",NULL),
 						   m_lpConfig->GetSetting("server_ssl_ca_path","",NULL),
 						   NULL, NULL, "EC")) {
-				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to setup ssl context: %s", *soap_faultdetail(p.second));
+				ec_log_crit("Unable to setup ssl context: %s", *soap_faultdetail(p.second));
 				er = KCERR_CALL_FAILED;
 				goto exit;
 			}
 
 			char *server_ssl_protocols = strdup(m_lpConfig->GetSetting("server_ssl_protocols"));
-			const char *server_ssl_ciphers = m_lpConfig->GetSetting("server_ssl_ciphers");
-			const char *server_ssl_prefer_server_ciphers = m_lpConfig->GetSetting("server_ssl_prefer_server_ciphers");
-
-			er = kc_ssl_options(m_lpLogger, p.second, server_ssl_protocols, server_ssl_ciphers, server_ssl_prefer_server_ciphers);
-
+			er = kc_ssl_options(p.second, server_ssl_protocols,
+				m_lpConfig->GetSetting("server_ssl_ciphers"),
+				m_lpConfig->GetSetting("server_ssl_prefer_server_ciphers"));
 			free(server_ssl_protocols);
 		}
 	}
@@ -668,7 +651,9 @@ ECRESULT ECDispatcher::ShutDown()
     return erSuccess;
 }
 
-ECDispatcherSelect::ECDispatcherSelect(ECLogger *lpLogger, ECConfig *lpConfig, CREATEPIPESOCKETCALLBACK lpCallback, void *lpCallbackParam) : ECDispatcher(lpLogger, lpConfig, lpCallback, lpCallbackParam)
+ECDispatcherSelect::ECDispatcherSelect(ECConfig *lpConfig,
+    CREATEPIPESOCKETCALLBACK lpCallback, void *lpCallbackParam) :
+	ECDispatcher(lpConfig, lpCallback, lpCallbackParam)
 {
     int pipes[2];
     pipe(pipes);
@@ -690,10 +675,10 @@ ECRESULT ECDispatcherSelect::MainLoop()
 	int n = 0;
 
     // This will start the threads
-    m_lpThreadManager = new ECThreadManager(m_lpLogger, this, atoui(m_lpConfig->GetSetting("threads")));
+	m_lpThreadManager = new ECThreadManager(this, atoui(m_lpConfig->GetSetting("threads")));
     
     // Start the watchdog
-    lpWatchDog = new ECWatchDog(m_lpConfig, m_lpLogger, this, m_lpThreadManager);
+	lpWatchDog = new ECWatchDog(m_lpConfig, this, m_lpThreadManager);
 
     // Main loop
     while(!m_bExit) {
@@ -778,7 +763,7 @@ ECRESULT ECDispatcherSelect::MainLoop()
 			ACTIVESOCKET sActive;
 			auto newsoap = soap_copy(p.second);
 			if (newsoap == NULL) {
-				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to accept new connection: out of memory");
+				ec_log_crit("Unable to accept new connection: out of memory");
 				continue;
 			}
 			kopano_new_soap_connection(SOAP_CONNECTION_TYPE(p.second), newsoap);
@@ -793,28 +778,24 @@ ECRESULT ECDispatcherSelect::MainLoop()
 				soap_accept(newsoap);
 			}
 			if (newsoap->socket == SOAP_INVALID_SOCKET) {
-				if (m_lpLogger->Log(EC_LOGLEVEL_DEBUG)) {
-					if (ulType == CONNECTION_TYPE_NAMED_PIPE)
-						m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Error accepting incoming connection from file://%s", m_lpConfig->GetSetting("server_pipe_name"));
-					else if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
-						m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Error accepting incoming connection from file://%s", m_lpConfig->GetSetting("server_pipe_priority"));
-					else
-						m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Error accepting incoming connection from network.");
-				}
+				if (ulType == CONNECTION_TYPE_NAMED_PIPE)
+					ec_log_debug("Error accepting incoming connection from file://%s", m_lpConfig->GetSetting("server_pipe_name"));
+				else if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
+					ec_log_debug("Error accepting incoming connection from file://%s", m_lpConfig->GetSetting("server_pipe_priority"));
+				else
+					ec_log_debug("Error accepting incoming connection from network.");
 				kopano_end_soap_connection(newsoap);
 				soap_free(newsoap);
 				continue;
 			}
-			if (m_lpLogger->Log(EC_LOGLEVEL_DEBUG)) {
-				if (ulType == CONNECTION_TYPE_NAMED_PIPE)
-					m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Accepted incoming connection from file://%s", m_lpConfig->GetSetting("server_pipe_name"));
-				else if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
-					m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Accepted incoming connection from file://%s", m_lpConfig->GetSetting("server_pipe_priority"));
-				else
-					m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Accepted incoming%sconnection from %s",
-									ulType == CONNECTION_TYPE_SSL ? " SSL ":" ",
-									newsoap->host);
-			}
+			if (ulType == CONNECTION_TYPE_NAMED_PIPE)
+				ec_log_debug("Accepted incoming connection from file://%s", m_lpConfig->GetSetting("server_pipe_name"));
+			else if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
+				ec_log_debug("Accepted incoming connection from file://%s", m_lpConfig->GetSetting("server_pipe_priority"));
+			else
+				ec_log_debug("Accepted incoming%sconnection from %s",
+					ulType == CONNECTION_TYPE_SSL ? " SSL ":" ",
+					newsoap->host);
 			newsoap->socket = ec_relocate_fd(newsoap->socket);
 			g_lpStatsCollector->Max(SCN_MAX_SOCKET_NUMBER, (LONGLONG)newsoap->socket);
 			g_lpStatsCollector->Increment(SCN_SERVER_CONNECTIONS);
@@ -880,7 +861,9 @@ ECRESULT ECDispatcherSelect::NotifyRestart(SOAP_SOCKET s)
 }
 
 #ifdef HAVE_EPOLL_CREATE
-ECDispatcherEPoll::ECDispatcherEPoll(ECLogger *lpLogger, ECConfig *lpConfig, CREATEPIPESOCKETCALLBACK lpCallback, void *lpCallbackParam) : ECDispatcher(lpLogger, lpConfig, lpCallback, lpCallbackParam)
+ECDispatcherEPoll::ECDispatcherEPoll(ECConfig *lpConfig,
+    CREATEPIPESOCKETCALLBACK lpCallback, void *lpCallbackParam) :
+	ECDispatcher(lpConfig, lpCallback, lpCallbackParam)
 {
 	m_fdMax = getdtablesize();
 	m_epFD = epoll_create(m_fdMax);
@@ -920,10 +903,10 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 	}
 
 	// This will start the threads
-	m_lpThreadManager = new ECThreadManager(m_lpLogger, this, atoui(m_lpConfig->GetSetting("threads")));
+	m_lpThreadManager = new ECThreadManager(this, atoui(m_lpConfig->GetSetting("threads")));
 
 	// Start the watchdog
-	lpWatchDog = new ECWatchDog(m_lpConfig, m_lpLogger, this, m_lpThreadManager);
+	lpWatchDog = new ECWatchDog(m_lpConfig, this, m_lpThreadManager);
 
 	while (!m_bExit) {
 		time(&now);
@@ -968,27 +951,23 @@ ECRESULT ECDispatcherEPoll::MainLoop()
 					soap_accept(newsoap);
 
 				if(newsoap->socket == SOAP_INVALID_SOCKET) {
-					if (m_lpLogger->Log(EC_LOGLEVEL_DEBUG)) {
-						if (ulType == CONNECTION_TYPE_NAMED_PIPE)
-							m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Error accepting incoming connection from file://%s", m_lpConfig->GetSetting("server_pipe_name"));
-						else if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
-							m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Error accepting incoming connection from file://%s", m_lpConfig->GetSetting("server_pipe_priority"));
-						else
-							m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Error accepting incoming connection from network.");
-					}
+					if (ulType == CONNECTION_TYPE_NAMED_PIPE)
+						ec_log_debug("Error accepting incoming connection from file://%s", m_lpConfig->GetSetting("server_pipe_name"));
+					else if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
+						ec_log_debug("Error accepting incoming connection from file://%s", m_lpConfig->GetSetting("server_pipe_priority"));
+					else
+						ec_log_debug("Error accepting incoming connection from network.");
 					kopano_end_soap_connection(newsoap);
 					soap_free(newsoap);
 				} else {
-					if (m_lpLogger->Log(EC_LOGLEVEL_DEBUG)) {
-						if (ulType == CONNECTION_TYPE_NAMED_PIPE)
-							m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Accepted incoming connection from file://%s", m_lpConfig->GetSetting("server_pipe_name"));
-						else if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
-							m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Accepted incoming connection from file://%s", m_lpConfig->GetSetting("server_pipe_priority"));
-						else
-							m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Accepted incoming%sconnection from %s",
-											ulType == CONNECTION_TYPE_SSL ? " SSL ":" ",
-											newsoap->host);
-					}
+					if (ulType == CONNECTION_TYPE_NAMED_PIPE)
+						ec_log_debug("Accepted incoming connection from file://%s", m_lpConfig->GetSetting("server_pipe_name"));
+					else if (ulType == CONNECTION_TYPE_NAMED_PIPE_PRIORITY)
+						ec_log_debug("Accepted incoming connection from file://%s", m_lpConfig->GetSetting("server_pipe_priority"));
+					else
+						ec_log_debug("Accepted incoming%sconnection from %s",
+							ulType == CONNECTION_TYPE_SSL ? " SSL ":" ",
+							newsoap->host);
 					newsoap->socket = ec_relocate_fd(newsoap->socket);
 					g_lpStatsCollector->Max(SCN_MAX_SOCKET_NUMBER, (LONGLONG)newsoap->socket);
 

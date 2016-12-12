@@ -53,7 +53,7 @@ struct soap_connection_thread {
  * @return the socket we're listening on, or -1 for failure.
  */
 static int create_pipe_socket(const char *unix_socket, ECConfig *lpConfig,
-    ECLogger *lpLogger, bool bInit, int mode)
+    bool bInit, int mode)
 {
 	int s;
 	int er = 0;
@@ -66,7 +66,7 @@ static int create_pipe_socket(const char *unix_socket, ECConfig *lpConfig,
 	}
 	s = socket(PF_UNIX, SOCK_STREAM, 0);
 	if(s < 0) {
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to create AF_UNIX socket.");
+		ec_log_crit("Unable to create AF_UNIX socket: %s", strerror(errno));
 		return -1;
 	}
 	memset(&saddr,0,sizeof(saddr));
@@ -75,26 +75,26 @@ static int create_pipe_socket(const char *unix_socket, ECConfig *lpConfig,
 	unlink(unix_socket);
 
 	if (bind(s, (struct sockaddr*)&saddr, 2 + strlen(unix_socket)) == -1) {
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to bind to socket %s (%s). This is usually caused by another process (most likely another server) already using this port. This program will terminate now.", unix_socket, strerror(errno));
+		ec_log_crit("Unable to bind to socket %s: %s. This is usually caused by another process (most likely another server) already using this port. This program will terminate now.", unix_socket, strerror(errno));
                 kill(0, SIGTERM);
                 exit(1);
         }
 
 	er = chmod(unix_socket,mode);
 	if(er) {
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to chmod socket %s. Error: %s", unix_socket, strerror(errno));
+		ec_log_crit("Unable to chmod socket %s. Error: %s", unix_socket, strerror(errno));
 		close(s);
 		return -1;
 	}
 
 	if(er) {
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to chown socket %s, to %s:%s. Error: %s", unix_socket, lpConfig->GetSetting("run_as_user"), lpConfig->GetSetting("run_as_group"), strerror(errno));
+		ec_log_crit("Unable to chown socket %s, to %s:%s. Error: %s", unix_socket, lpConfig->GetSetting("run_as_user"), lpConfig->GetSetting("run_as_group"), strerror(errno));
 		close(s);
 		return -1;
 	}
 	
 	if (listen(s, SOMAXCONN) == -1) {
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Can't listen on unix socket %s", unix_socket);
+		ec_log_crit("Can't listen on unix socket %s", unix_socket);
 		close(s);
 		return -1;
 	}
@@ -127,7 +127,8 @@ exit:
 	return nRet;
 }
 
-int kc_ssl_options(ECLogger *lpLogger, struct soap *soap, char *protos, const char *ciphers, const char *prefciphers)
+int kc_ssl_options(struct soap *soap, char *protos, const char *ciphers,
+    const char *prefciphers)
 {
 #if !defined(OPENSSL_NO_ECDH) && defined(NID_X9_62_prime256v1)
 	EC_KEY *ecdh;
@@ -172,7 +173,7 @@ int kc_ssl_options(ECLogger *lpLogger, struct soap *soap, char *protos, const ch
 			ssl_proto = 0x10;
 #endif
 		else {
-			lpLogger->Log(EC_LOGLEVEL_FATAL, "Unknown protocol \"%s\" in protos setting", ssl_name);
+			ec_log_crit("Unknown protocol \"%s\" in protos setting", ssl_name);
 			er = KCERR_CALL_FAILED;
 			goto exit;
 		}
@@ -205,7 +206,8 @@ int kc_ssl_options(ECLogger *lpLogger, struct soap *soap, char *protos, const ch
 	if (protos != nullptr)
 		SSL_CTX_set_options(soap->ctx, ssl_op);
 	if (ciphers && SSL_CTX_set_cipher_list(soap->ctx, ciphers) != 1) {
-		lpLogger->Log(EC_LOGLEVEL_FATAL, "Can not set SSL cipher list to \"%s\": %s", ciphers, ERR_error_string(ERR_get_error(), 0));
+		ec_log_crit("Can not set SSL cipher list to \"%s\": %s",
+			ciphers, ERR_error_string(ERR_get_error(), 0));
 		er = KCERR_CALL_FAILED;
 		goto exit;
 	}
@@ -220,25 +222,21 @@ exit:
 
 }
 
-ECSoapServerConnection::ECSoapServerConnection(ECConfig* lpConfig, ECLogger* lpLogger)
+ECSoapServerConnection::ECSoapServerConnection(ECConfig *lpConfig)
 {
 	m_lpConfig = lpConfig;
-	m_lpLogger = lpLogger;
-	m_lpLogger->AddRef();
-
 #ifdef USE_EPOLL
-	m_lpDispatcher = new ECDispatcherEPoll(lpLogger, lpConfig, ECSoapServerConnection::CreatePipeSocketCallback, this);
-	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Using epoll events");
+	m_lpDispatcher = new ECDispatcherEPoll(lpConfig, ECSoapServerConnection::CreatePipeSocketCallback, this);
+	ec_log_info("Using epoll events");
 #else
-	m_lpDispatcher = new ECDispatcherSelect(lpLogger, lpConfig, ECSoapServerConnection::CreatePipeSocketCallback, this);
-	m_lpLogger->Log(EC_LOGLEVEL_INFO, "Using select events");
+	m_lpDispatcher = new ECDispatcherSelect(lpConfig, ECSoapServerConnection::CreatePipeSocketCallback, this);
+	ec_log_info("Using select events");
 #endif
 }
 
 ECSoapServerConnection::~ECSoapServerConnection(void)
 {
 	delete m_lpDispatcher;
-	m_lpLogger->Release();
 }
 
 ECRESULT ECSoapServerConnection::ListenTCP(const char* lpServerName, int nServerPort, bool bEnableGET)
@@ -262,7 +260,7 @@ ECRESULT ECSoapServerConnection::ListenTCP(const char* lpServerName, int nServer
 	lpsSoap->bind_flags = SO_REUSEADDR;
 	lpsSoap->socket = socket = soap_bind(lpsSoap, *lpServerName == '\0' ? NULL : lpServerName, nServerPort, 100);
         if (socket == -1) {
-                m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to bind to port %d: %s. This is usually caused by another process (most likely another server) already using this port. This program will terminate now.", nServerPort, lpsSoap->fault->faultstring);
+                ec_log_crit("Unable to bind to port %d: %s. This is usually caused by another process (most likely another server) already using this port. This program will terminate now.", nServerPort, lpsSoap->fault->faultstring);
                 kill(0, SIGTERM);
                 exit(1);
         }
@@ -271,9 +269,7 @@ ECRESULT ECSoapServerConnection::ListenTCP(const char* lpServerName, int nServer
     
 	// Manually check for attachments, independant of streaming support
 	soap_post_check_mime_attachments(lpsSoap);
-
-	m_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Listening for TCP connections on port %d", nServerPort);
-
+	ec_log_notice("Listening for TCP connections on port %d", nServerPort);
 exit:
 	if (er != erSuccess && lpsSoap)
 		soap_free(lpsSoap);
@@ -315,17 +311,17 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char* lpServerName, int nServer
 		)
 	{
 		soap_set_fault(lpsSoap);
-		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to setup ssl context: %s", *soap_faultdetail(lpsSoap));
+		ec_log_crit("Unable to setup ssl context: %s", *soap_faultdetail(lpsSoap));
 		er = KCERR_CALL_FAILED;
 		goto exit;
 	}
-	er = kc_ssl_options(m_lpLogger, lpsSoap, server_ssl_protocols, server_ssl_ciphers, pref_ciphers);
+	er = kc_ssl_options(lpsSoap, server_ssl_protocols, server_ssl_ciphers, pref_ciphers);
 	if (er != erSuccess)
 		goto exit;
 	lpsSoap->bind_flags = SO_REUSEADDR;
 	lpsSoap->socket = socket = soap_bind(lpsSoap, *lpServerName == '\0' ? NULL : lpServerName, nServerPort, 100);
         if (socket == -1) {
-                m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to bind to port %d: %s (SSL). This is usually caused by another process (most likely another server) already using this port. This program will terminate now.", nServerPort, lpsSoap->fault->faultstring);
+                ec_log_crit("Unable to bind to port %d: %s (SSL). This is usually caused by another process (most likely another server) already using this port. This program will terminate now.", nServerPort, lpsSoap->fault->faultstring);
                 kill(0, SIGTERM);
                 exit(1);
         }
@@ -334,9 +330,7 @@ ECRESULT ECSoapServerConnection::ListenSSL(const char* lpServerName, int nServer
 
 	// Manually check for attachments, independant of streaming support
 	soap_post_check_mime_attachments(lpsSoap);
-
-	m_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Listening for SSL connections on port %d", nServerPort);
-
+	ec_log_notice("Listening for SSL connections on port %d", nServerPort);
 exit:
 	free(server_ssl_protocols);
 	if (er != erSuccess && lpsSoap != nullptr)
@@ -366,7 +360,7 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriori
 	m_strPipeName = lpPipeName;
 	lpsSoap->sndbuf = lpsSoap->rcvbuf = 0;
 	// set the mode stricter for the priority socket: let only the same Unix user or root connect on the priority socket, users should not be able to abuse the socket
-	lpsSoap->socket = sPipe = create_pipe_socket(m_strPipeName.c_str(), m_lpConfig, m_lpLogger, true, bPriority ? 0660 : 0666);
+	lpsSoap->socket = sPipe = create_pipe_socket(m_strPipeName.c_str(), m_lpConfig, true, bPriority ? 0660 : 0666);
 	// This just marks the socket as being a pipe, which triggers some slightly different behaviour
 	strcpy(lpsSoap->path,"pipe");
 
@@ -382,9 +376,7 @@ ECRESULT ECSoapServerConnection::ListenPipe(const char* lpPipeName, bool bPriori
 
 	// Manually check for attachments, independant of streaming support
 	soap_post_check_mime_attachments(lpsSoap);
-
-	m_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Listening for %spipe connections on %s", bPriority ? "priority " : "", lpPipeName);
-
+	ec_log_notice("Listening for %spipe connections on %s", bPriority ? "priority " : "", lpPipeName);
 exit:
 	if (er != erSuccess && lpsSoap != nullptr)
 		soap_free(lpsSoap);
@@ -395,7 +387,7 @@ SOAP_SOCKET ECSoapServerConnection::CreatePipeSocketCallback(void *lpParam)
 {
 	ECSoapServerConnection *lpThis = (ECSoapServerConnection *)lpParam;
 
-	return (SOAP_SOCKET)create_pipe_socket(lpThis->m_strPipeName.c_str(), lpThis->m_lpConfig, lpThis->m_lpLogger, false, 0666);
+	return (SOAP_SOCKET)create_pipe_socket(lpThis->m_strPipeName.c_str(), lpThis->m_lpConfig, false, 0666);
 }
 
 ECRESULT ECSoapServerConnection::ShutDown()

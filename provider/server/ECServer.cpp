@@ -1100,7 +1100,7 @@ static int running_server(char *szName, const char *szConfig,
     ssl_threading_setup();
 
 	// setup connection handler
-	g_lpSoapServerConn = new ECSoapServerConnection(g_lpConfig, g_lpLogger);
+	g_lpSoapServerConn = new ECSoapServerConnection(g_lpConfig);
 
 	// Setup a TCP connection
 	if (bTCPEnabled)

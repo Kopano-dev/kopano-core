@@ -24,8 +24,6 @@
 #include <queue>
 #include <set>
 #include <pthread.h>
-
-#include <kopano/ECLogger.h>
 #include <kopano/ECConfig.h>
 #include <kopano/kcodes.h>
 #include "SOAPUtils.h"
@@ -76,16 +74,15 @@ class ECDispatcher;
  */
 class ECWorkerThread {
 public:
-    ECWorkerThread(ECLogger *lpLogger, ECThreadManager *lpManager, ECDispatcher *lpDispatcher, bool bDoNotStart = false);
+	ECWorkerThread(ECThreadManager *, ECDispatcher *, bool nostart = false);
 
 protected:
     // The destructor is protected since we self-cleanup; you cannot delete this object externally.
-    virtual ~ECWorkerThread();
+	virtual ~ECWorkerThread(void) {}
 
     static void *Work(void *param);
 
     pthread_t m_thread;
-    ECLogger *m_lpLogger;
     ECThreadManager *m_lpManager;
     ECDispatcher *m_lpDispatcher;
 };
@@ -93,7 +90,7 @@ protected:
 class _kc_export_dycast ECPriorityWorkerThread _kc_final :
     public ECWorkerThread {
 	public:
-	_kc_hidden ECPriorityWorkerThread(ECLogger *, ECThreadManager *, ECDispatcher *);
+	_kc_hidden ECPriorityWorkerThread(ECThreadManager *, ECDispatcher *);
 	// The destructor is public since this thread isn't detached, we wait for the thread and clean it
 	_kc_hidden ~ECPriorityWorkerThread(void);
 };
@@ -105,7 +102,7 @@ class _kc_export_dycast ECPriorityWorkerThread _kc_final :
 class ECThreadManager _kc_final {
 public:
     // ulThreads is the normal number of threads that are started; These threads are pre-started and will be in an idle state.
-    ECThreadManager(ECLogger *lpLogger, ECDispatcher *lpDispatcher, unsigned int ulThreads);
+	ECThreadManager(ECDispatcher *, unsigned int threads);
     ~ECThreadManager();
     
     // Adds n threads above the standard thread count. Threads are removed back to the normal thread count whenever the message
@@ -125,7 +122,6 @@ private:
 	std::mutex m_mutexThreads;
     std::list<ECWorkerThread *> m_lstThreads;
 	ECPriorityWorkerThread *	m_lpPrioWorker;
-    ECLogger *					m_lpLogger;
     ECDispatcher *				m_lpDispatcher;
     unsigned int				m_ulThreads;
 };
@@ -140,13 +136,12 @@ private:
  */
 class ECWatchDog _kc_final {
 public:
-    ECWatchDog(ECConfig *lpConfig, ECLogger *lpLogger, ECDispatcher *lpDispatcher, ECThreadManager *lpThreadManager);
+	ECWatchDog(ECConfig *, ECDispatcher *, ECThreadManager *);
     ~ECWatchDog();
 private:
     // Main watch thread
     static void *Watch(void *);
     
-    ECLogger *			m_lpLogger;
     ECConfig *			m_lpConfig;
     ECDispatcher *		m_lpDispatcher;
     ECThreadManager*	m_lpThreadManager;
@@ -165,9 +160,8 @@ typedef SOAP_SOCKET (*CREATEPIPESOCKETCALLBACK)(void *lpParam);
 
 class ECDispatcher {
 public:
-
-    ECDispatcher(ECLogger *lpLogger, ECConfig *lpConfig, CREATEPIPESOCKETCALLBACK lpCallback, void *lpCallbackParam);
-    virtual ~ECDispatcher();
+	ECDispatcher(ECConfig *, CREATEPIPESOCKETCALLBACK, void *cbparam);
+	virtual ~ECDispatcher(void) {}
     
     // Statistics
     ECRESULT GetIdle(unsigned int *lpulIdle); 				// Idle threads
@@ -203,7 +197,6 @@ public:
     virtual ECRESULT MainLoop() = 0;
     
 protected:
-    ECLogger *				m_lpLogger;
     ECConfig *				m_lpConfig;
 	ECThreadManager *m_lpThreadManager = nullptr;
 
@@ -235,7 +228,7 @@ private:
     int			m_fdRescanWrite;
 
 public:
-    ECDispatcherSelect(ECLogger *lpLogger, ECConfig *lpConfig, CREATEPIPESOCKETCALLBACK lpCallback, void *lpCallbackParam);
+	ECDispatcherSelect(ECConfig *, CREATEPIPESOCKETCALLBACK, void *cbparam);
     virtual ECRESULT MainLoop();
 
     virtual ECRESULT ShutDown();
@@ -250,7 +243,7 @@ private:
 	int m_epFD;
 
 public:
-    ECDispatcherEPoll(ECLogger *lpLogger, ECConfig *lpConfig, CREATEPIPESOCKETCALLBACK lpCallback, void *lpCallbackParam);
+	ECDispatcherEPoll(ECConfig *, CREATEPIPESOCKETCALLBACK, void *cbparam);
     virtual ~ECDispatcherEPoll();
 
     virtual ECRESULT MainLoop();

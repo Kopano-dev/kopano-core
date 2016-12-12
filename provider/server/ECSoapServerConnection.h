@@ -22,14 +22,13 @@
 #include <kopano/kcodes.h>
 #include "ECThreadManager.h"
 #include "soapH.h"
-#include <kopano/ECLogger.h>
 #include <kopano/ECConfig.h>
 
-extern int kc_ssl_options(ECLogger* lpLogger, struct soap* lpsSoap, char *server_ssl_protocols, const char *server_ssl_ciphers, const char *server_ssl_prefer_server_ciphers);
+extern int kc_ssl_options(struct soap *, char *protos, const char *ciphers, const char *prefciphers);
 
 class ECSoapServerConnection _kc_final {
 public:
-	ECSoapServerConnection(ECConfig* lpConfig, ECLogger* lpLogger);
+	ECSoapServerConnection(ECConfig *);
 	~ECSoapServerConnection();
 
 	ECRESULT ListenTCP(const char* lpServerName, int nServerPort, bool bEnableGET);
@@ -52,7 +51,6 @@ private:
     ECDispatcher *m_lpDispatcher;
 
 	ECConfig*	m_lpConfig;
-	ECLogger*	m_lpLogger;
 	std::string	m_strPipeName;
 };
 
