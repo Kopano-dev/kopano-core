@@ -121,9 +121,9 @@ static void process_signal(int sig)
 	ZLOG_AUDIT(g_lpAudit, "server signalled sig=%d", sig);
 
 	if (m_bDatabaseUpdateIgnoreSignals) {
-		g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "WARNING: Database upgrade is taking place.");
-		g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "  Please be patient, and do not try to kill the server process.");
-		g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "  It may leave your database in an inconsistent state.");
+		ec_log_notice("WARNING: Database upgrade is taking place.");
+		ec_log_notice("  Please be patient, and do not try to kill the server process.");
+		ec_log_notice("  It may leave your database in an inconsistent state.");
 		return;
 	}	
 
@@ -136,9 +136,7 @@ static void process_signal(int sig)
 	switch (sig) {
 	case SIGINT:
 	case SIGTERM:
-		if(g_lpLogger)
-			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Shutting down");
-	
+		ec_log_warn("Shutting down");
 		if (g_lpSoapServerConn)
 			g_lpSoapServerConn->ShutDown();
 		g_Quit = 1;
@@ -150,9 +148,9 @@ static void process_signal(int sig)
 			return;
 
 		if (!g_lpConfig->ReloadSettings())
-			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to reload configuration file, continuing with current settings.");
+			ec_log_warn("Unable to reload configuration file, continuing with current settings.");
 		if (g_lpConfig->HasErrors())
-			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to reload configuration file");
+			ec_log_err("Failed to reload configuration file");
 
 		g_lpSessionManager->GetPluginFactory()->SignalPlugins(sig);
 
@@ -160,7 +158,7 @@ static void process_signal(int sig)
 		new_ll = ll ? strtol(ll, NULL, 0) : EC_LOGLEVEL_WARNING;
 		g_lpLogger->SetLoglevel(new_ll);
 		g_lpLogger->Reset();
-		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Log connection was reset");
+		ec_log_warn("Log connection was reset");
 
 		if (g_lpAudit) {
 			ll = g_lpConfig->GetSetting("audit_log_level");
@@ -173,7 +171,7 @@ static void process_signal(int sig)
 		g_lpSoapServerConn->DoHUP();
 		break;
 	default:
-		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Unknown signal %d received", sig);
+		ec_log_debug("Unknown signal %d received", sig);
 		break;
 	}
 }
@@ -201,14 +199,14 @@ static ECRESULT check_database_innodb(ECDatabase *lpDatabase)
 		goto exit;
 
 	while( (lpRow = lpDatabase->FetchRow(lpResult)) ) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Database table '%s' not in InnoDB format: %s", lpRow[0] ? lpRow[0] : "unknown table", lpRow[1] ? lpRow[1] : "unknown engine");
+		ec_log_crit("Database table '%s' not in InnoDB format: %s", lpRow[0] ? lpRow[0] : "unknown table", lpRow[1] ? lpRow[1] : "unknown engine");
 		er = KCERR_DATABASE_ERROR;
 	}
 
 	if (er != erSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Your database was incorrectly created. Please upgrade all tables to the InnoDB format using this query:");
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "  ALTER TABLE <table name> ENGINE='InnoDB';");
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "This process may take a very long time, depending on the size of your database.");
+		ec_log_crit("Your database was incorrectly created. Please upgrade all tables to the InnoDB format using this query:");
+		ec_log_crit("  ALTER TABLE <table name> ENGINE='InnoDB';");
+		ec_log_crit("This process may take a very long time, depending on the size of your database.");
 	}
 	
 exit:
@@ -227,7 +225,7 @@ static ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 
 	er = lpDatabase->DoSelect("SELECT value FROM settings WHERE name = 'attachment_storage'", &lpResult);
 	if (er != erSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to read from database");
+		ec_log_crit("Unable to read from database");
 		goto exit;
 	}
 
@@ -236,11 +234,11 @@ static ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 	    // check if the mode is the same as last time
 	    strcmp(lpRow[0], g_lpConfig->GetSetting("attachment_storage")) != 0) {
 		if (!m_bIgnoreAttachmentStorageConflict) {
-			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Attachments are stored with option '%s', but '%s' is selected.", lpRow[0], g_lpConfig->GetSetting("attachment_storage"));
+			ec_log_err("Attachments are stored with option '%s', but '%s' is selected.", lpRow[0], g_lpConfig->GetSetting("attachment_storage"));
 			er = KCERR_DATABASE_ERROR;
 			goto exit;
 		} else {
-			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Ignoring attachment storing conflict as requested. Attachments are now stored with option '%s'", g_lpConfig->GetSetting("attachment_storage"));
+			ec_log_warn("Ignoring attachment storing conflict as requested. Attachments are now stored with option '%s'", g_lpConfig->GetSetting("attachment_storage"));
 		}
 	}
 
@@ -249,7 +247,7 @@ static ECRESULT check_database_attachments(ECDatabase *lpDatabase)
 
 	er = lpDatabase->DoInsert(strQuery);
 	if (er != erSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to update database settings");
+		ec_log_err("Unable to update database settings");
 		goto exit;
 	}
 
@@ -279,7 +277,7 @@ static ECRESULT check_distributed_kopano(ECDatabase *lpDatabase)
 
 	er = lpDatabase->DoSelect("SELECT value FROM settings WHERE name = 'lock_distributed_kopano'", &lpResult);
 	if (er != erSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to read from database");
+		ec_log_err("Unable to read from database");
 		goto exit;
 	}
 
@@ -292,11 +290,11 @@ static ECRESULT check_distributed_kopano(ECDatabase *lpDatabase)
 	// If any value is found, distributed is not allowed. The value specifies the reason.
 	if (bConfigEnabled) {
 		if (!m_bIgnoreDistributedKopanoConflict) {
-			g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Multiserver mode is locked, reason: '%s'. Contact Kopano for support.", lpRow[0]);
+			ec_log_crit("Multiserver mode is locked, reason: '%s'. Contact Kopano for support.", lpRow[0]);
 			er = KCERR_DATABASE_ERROR;
 			goto exit;
 		} else {
-			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Ignoring multiserver mode lock as requested.");
+			ec_log_warn("Ignoring multiserver mode lock as requested.");
 		}
 	}
 
@@ -320,7 +318,7 @@ static ECRESULT check_attachment_storage_permissions(void)
 
 		tmpfile = fopen(strtestpath.c_str(), "w");
 		if (!tmpfile) {
-			 g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to write attachments to the directory '%s' - %s. Please check the directory and sub directories.",  g_lpConfig->GetSetting("attachment_path"), strerror(errno));
+			 ec_log_err("Unable to write attachments to the directory '%s' - %s. Please check the directory and sub directories.",  g_lpConfig->GetSetting("attachment_path"), strerror(errno));
 			 er = KCERR_NO_ACCESS;
 			 goto exit;
 		}
@@ -344,7 +342,7 @@ static ECRESULT check_database_tproperties_key(ECDatabase *lpDatabase)
 	strQuery = "SHOW CREATE TABLE `tproperties`";
 	er = lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to read from database");
+		ec_log_err("Unable to read from database");
 		goto exit;
 	}
 
@@ -352,7 +350,7 @@ static ECRESULT check_database_tproperties_key(ECDatabase *lpDatabase)
 
 	lpRow = lpDatabase->FetchRow(lpResult);
 	if (!lpRow || !lpRow[1]) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "No tproperties table definition found");
+		ec_log_crit("No tproperties table definition found");
 		goto exit;
 	}
 
@@ -360,13 +358,13 @@ static ECRESULT check_database_tproperties_key(ECDatabase *lpDatabase)
 
 	start = strTable.find("PRIMARY KEY");
 	if (start == string::npos) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "No primary key found in tproperties table");
+		ec_log_crit("No primary key found in tproperties table");
 		goto exit;
 	}
 
 	end = strTable.find(")", start);
 	if (end == string::npos) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "No end of primary key found in tproperties table");
+		ec_log_crit("No end of primary key found in tproperties table");
 		goto exit;
 	}
 
@@ -382,7 +380,7 @@ static ECRESULT check_database_tproperties_key(ECDatabase *lpDatabase)
 	if (start != string::npos)
 		start = strTable.find_first_of(',', start+1);
 	if (start == string::npos) {
-		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Primary key of tproperties table incorrect, trying: %s", strTable.c_str());
+		ec_log_warn("Primary key of tproperties table incorrect, trying: %s", strTable.c_str());
 		goto exit;
 	}
 
@@ -391,9 +389,9 @@ static ECRESULT check_database_tproperties_key(ECDatabase *lpDatabase)
 
 	// if not correct...
 	if (strTable.compare("`hierarchyid`,`type`") != 0) {
-		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "**** WARNING: Installation is not optimal! ****");
-		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "  The primary key of the tproperties table is incorrect.");
-		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "  Since updating the primary key on a large table is slow, the server will not automatically update this for you.");
+		ec_log_warn("**** WARNING: Installation is not optimal! ****");
+		ec_log_warn("  The primary key of the tproperties table is incorrect.");
+		ec_log_warn("  Since updating the primary key on a large table is slow, the server will not automatically update this for you.");
 	}
 
 	er = erSuccess;
@@ -420,22 +418,22 @@ static ECRESULT check_database_thread_stack(ECDatabase *lpDatabase)
 	strQuery = "SHOW VARIABLES LIKE 'thread_stack'";
 	er = lpDatabase->DoSelect(strQuery, &lpResult);
 	if (er != erSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to read from database");
+		ec_log_err("Unable to read from database");
 		goto exit;
 	}
 
 	lpRow = lpDatabase->FetchRow(lpResult);
 	if (!lpRow || !lpRow[1]) {
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "No thread_stack variable returned");
+		ec_log_err("No thread_stack variable returned");
 		goto exit;
 	}
 
 	ulThreadStack = atoui(lpRow[1]);
 	if (ulThreadStack < MYSQL_MIN_THREAD_STACK) {
-		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "MySQL thread_stack is set to %u, which is too small", ulThreadStack);
-		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Please set thread_stack to %uK or higher in your MySQL configuration", MYSQL_MIN_THREAD_STACK / 1024);
+		ec_log_warn("MySQL thread_stack is set to %u, which is too small", ulThreadStack);
+		ec_log_warn("Please set thread_stack to %uK or higher in your MySQL configuration", MYSQL_MIN_THREAD_STACK / 1024);
 		if (m_bIgnoreDbThreadStackSize)
-			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "MySQL thread_stack setting ignored. Please reconsider when 'Thread stack overrun' errors appear in the log.");
+			ec_log_warn("MySQL thread_stack setting ignored. Please reconsider when 'Thread stack overrun' errors appear in the log.");
 		else
 			er = KCERR_DATABASE_ERROR;
 	}
@@ -525,7 +523,7 @@ static ECRESULT check_server_configuration(void)
 	// Find FQDN if Kerberos is enabled (remove check if we're using 'server_hostname' for other purposes)
 	bCheck = parseBool(g_lpConfig->GetSetting("enable_sso"));
 	if (bCheck && check_server_fqdn() != erSuccess)
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "WARNING: Unable to find FQDN, please specify in 'server_hostname'. Now using '%s'.", g_lpConfig->GetSetting("server_hostname"));
+		ec_log_err("WARNING: Unable to find FQDN, please specify in 'server_hostname'. Now using '%s'.", g_lpConfig->GetSetting("server_hostname"));
 
 	// all other checks are only required for multi-server environments
 	bCheck = parseBool(g_lpConfig->GetSetting("enable_distributed_kopano"));
@@ -534,7 +532,7 @@ static ECRESULT check_server_configuration(void)
 	
 	strServerName = g_lpConfig->GetSetting("server_name");
 	if (strServerName.empty()) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "ERROR: No 'server_name' specified while operating in multiserver mode.");
+		ec_log_crit("ERROR: No 'server_name' specified while operating in multiserver mode.");
 		er = KCERR_INVALID_PARAMETER;
 		// unable to check any other server details if we have no name, skip other tests
 		goto exit;
@@ -542,7 +540,7 @@ static ECRESULT check_server_configuration(void)
 
 	er = g_lpSessionManager->CreateSessionInternal(&lpecSession);
 	if (er != erSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Internal error 0x%08x while checking distributed configuration", er);
+		ec_log_crit("Internal error 0x%08x while checking distributed configuration", er);
 		goto exit;
 	}
 
@@ -550,7 +548,7 @@ static ECRESULT check_server_configuration(void)
 	
 	er = lpecSession->GetUserManagement()->GetServerDetails(strServerName, &sServerDetails);
 	if (er != erSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "ERROR: Unable to find server information on LDAP for '%s', error 0x%08X. Check your server name.", strServerName.c_str(), er);
+		ec_log_crit("ERROR: Unable to find server information on LDAP for '%s', error 0x%08X. Check your server name.", strServerName.c_str(), er);
 		// unable to check anything else if we have no details, skip other tests
 		goto exit;
 	}
@@ -558,47 +556,47 @@ static ECRESULT check_server_configuration(void)
 	// Check the various connection parameters for consistency
 	if (parseBool(g_lpConfig->GetSetting("server_pipe_enabled")) == true) {
 		if (sServerDetails.GetFilePath().empty()) {
-			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: 'server_pipe_enabled' is set, but LDAP returns nothing");
+			ec_log_warn("WARNING: 'server_pipe_enabled' is set, but LDAP returns nothing");
 			bHaveErrors = true;
 		}
 		if (sServerDetails.GetFilePath().compare((std::string)"file://" + g_lpConfig->GetSetting("server_pipe_name")) != 0) {
-			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: 'server_pipe_name' is set to '%s', but LDAP returns '%s'", g_lpConfig->GetSetting("server_pipe_name"), sServerDetails.GetFilePath().c_str());
+			ec_log_warn("WARNING: 'server_pipe_name' is set to '%s', but LDAP returns '%s'", g_lpConfig->GetSetting("server_pipe_name"), sServerDetails.GetFilePath().c_str());
 			bHaveErrors = true;
 		}
 	} else if (!sServerDetails.GetFilePath().empty()) {
-		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: 'server_pipe_enabled' is unset, but LDAP returns '%s'", sServerDetails.GetFilePath().c_str());
+		ec_log_warn("WARNING: 'server_pipe_enabled' is unset, but LDAP returns '%s'", sServerDetails.GetFilePath().c_str());
 		bHaveErrors = true;
 	}
 	
 	if (parseBool(g_lpConfig->GetSetting("server_tcp_enabled")) == true) {
 		if (sServerDetails.GetHttpPath().empty()) {
-			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: 'server_tcp_enabled' is set, but LDAP returns nothing");
+			ec_log_warn("WARNING: 'server_tcp_enabled' is set, but LDAP returns nothing");
 			bHaveErrors = true;
 		}
 		
 		ulPort = atoui(g_lpConfig->GetSetting("server_tcp_port"));
 		if (sServerDetails.GetHttpPort() != ulPort) {
-			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: 'server_tcp_port' is set to '%u', but LDAP returns '%u'", ulPort, sServerDetails.GetHttpPort());
+			ec_log_warn("WARNING: 'server_tcp_port' is set to '%u', but LDAP returns '%u'", ulPort, sServerDetails.GetHttpPort());
 			bHaveErrors = true;
 		}
 	} else if (!sServerDetails.GetHttpPath().empty()) {
-		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: 'server_tcp_enabled' is unset, but LDAP returns '%s'", sServerDetails.GetHttpPath().c_str());
+		ec_log_warn("WARNING: 'server_tcp_enabled' is unset, but LDAP returns '%s'", sServerDetails.GetHttpPath().c_str());
 		bHaveErrors = true;
 	}
 	
 	if (parseBool(g_lpConfig->GetSetting("server_ssl_enabled")) == true) {
 		if (sServerDetails.GetSslPath().empty()) {
-			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: 'server_ssl_enabled' is set, but LDAP returns nothing");
+			ec_log_warn("WARNING: 'server_ssl_enabled' is set, but LDAP returns nothing");
 			bHaveErrors = true;
 		}
 		
 		ulPort = atoui(g_lpConfig->GetSetting("server_ssl_port"));
 		if (sServerDetails.GetSslPort() != ulPort) {
-			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: 'server_ssl_port' is set to '%u', but LDAP returns '%u'", ulPort, sServerDetails.GetSslPort());
+			ec_log_warn("WARNING: 'server_ssl_port' is set to '%u', but LDAP returns '%u'", ulPort, sServerDetails.GetSslPort());
 			bHaveErrors = true;
 		}
 	} else if (!sServerDetails.GetSslPath().empty()) {
-		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: 'server_ssl_enabled' is unset, but LDAP returns '%s'", sServerDetails.GetSslPath().c_str());
+		ec_log_warn("WARNING: 'server_ssl_enabled' is unset, but LDAP returns '%s'", sServerDetails.GetSslPath().c_str());
 		bHaveErrors = true;
 	}	
 	
@@ -610,7 +608,7 @@ exit:
 
 	// we could return an error when bHaveErrors is set, but we currently find this not fatal as a sysadmin might be smarter than us.
 	if (bHaveErrors)
- 		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: Inconsistencies detected between local and LDAP based configuration.");
+ 		ec_log_warn("WARNING: Inconsistencies detected between local and LDAP based configuration.");
 
 	// we do return er, since if that is set GetServerDetails() does not work and that is quite vital to work in distributed systems.
 	return er;
@@ -1023,40 +1021,39 @@ static int running_server(char *szName, const char *szConfig,
 		LogConfigErrors(g_lpConfig);
 
 	if (!TmpPath::getInstance() -> OverridePath(g_lpConfig))
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Ignoring invalid path-setting!");
+		ec_log_err("Ignoring invalid path-setting!");
 
 	g_lpAudit = CreateLogger(g_lpConfig, szName, "KopanoServer", true);
 	if (g_lpAudit)
 		g_lpAudit->Log(EC_LOGLEVEL_NOTICE, "server startup uid=%d", getuid());
 	else
-		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Audit logging not enabled.");
+		ec_log_info("Audit logging not enabled.");
 
-	g_lpLogger->Log(EC_LOGLEVEL_ALWAYS, "Starting server version " PROJECT_VERSION_SERVER_STR ", pid %d", getpid());
-
+	ec_log_always("Starting server version " PROJECT_VERSION_SERVER_STR ", pid %d", getpid());
 	if (g_lpConfig->HasWarnings())
 		LogConfigErrors(g_lpConfig);
 
 	if (strcmp(g_lpConfig->GetSetting("attachment_storage"), "files") == 0) {
 		// directory will be created using startup (probably root) and then chowned to the new 'runas' username
 		if (CreatePath(g_lpConfig->GetSetting("attachment_path")) != 0) {
-			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to create attachment directory '%s'", g_lpConfig->GetSetting("attachment_path"));
+			ec_log_err("Unable to create attachment directory '%s'", g_lpConfig->GetSetting("attachment_path"));
 			er = KCERR_DATABASE_ERROR;
 			goto exit;
 		}
 		if (stat(g_lpConfig->GetSetting("attachment_path"), &dir) != 0) {
-			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to stat attachment directory '%s', error: %s", g_lpConfig->GetSetting("attachment_path"), strerror(errno));
+			ec_log_err("Unable to stat attachment directory '%s', error: %s", g_lpConfig->GetSetting("attachment_path"), strerror(errno));
 			er = KCERR_DATABASE_ERROR;
 			goto exit;
 		}
 		runasUser = getpwnam(g_lpConfig->GetSetting("run_as_user","","root"));
 		if (runasUser == NULL) {
-			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Fatal: run_as_user '%s' is unknown", g_lpConfig->GetSetting("run_as_user","","root"));
+			ec_log_err("Fatal: run_as_user '%s' is unknown", g_lpConfig->GetSetting("run_as_user","","root"));
 			er = MAPI_E_UNCONFIGURED;
 			goto exit;
 		}
 		if (runasUser->pw_uid != dir.st_uid) {
 			if (unix_chown(g_lpConfig->GetSetting("attachment_path"), g_lpConfig->GetSetting("run_as_user"), g_lpConfig->GetSetting("run_as_group")) != 0) {
-				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to change ownership for attachment directory '%s'", g_lpConfig->GetSetting("attachment_path"));
+				ec_log_err("Unable to change ownership for attachment directory '%s'", g_lpConfig->GetSetting("attachment_path"));
 				er = KCERR_DATABASE_ERROR;
 				goto exit;
 			}
@@ -1064,15 +1061,15 @@ static int running_server(char *szName, const char *szConfig,
 #ifdef HAVE_LIBS3_H
 	} else if (strcmp(g_lpConfig->GetSetting("attachment_storage"), "s3") == 0) {
 		// @todo check S3 settings and connectivity
-		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Attachment storage set to S3 Storage");
+		ec_log_info("Attachment storage set to S3 Storage");
 #endif
 	} else if (strcmp(g_lpConfig->GetSetting("attachment_storage"), "database") != 0) {
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unknown attachment_storage option '%s', reverting to default 'database' method.", g_lpConfig->GetSetting("attachment_storage"));
+		ec_log_err("Unknown attachment_storage option '%s', reverting to default 'database' method.", g_lpConfig->GetSetting("attachment_storage"));
 		g_lpConfig->AddSetting("attachment_storage", "database");
 	}
 
 	if (strcasecmp(g_lpConfig->GetSetting("user_plugin"), "db") == 0 && parseBool(g_lpConfig->GetSetting("sync_gab_realtime")) == false) {
-		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Unsupported sync_gab_realtime = no when using DB plugin. Enabling sync_gab_realtime.");
+		ec_log_info("Unsupported sync_gab_realtime = no when using DB plugin. Enabling sync_gab_realtime.");
 		g_lpConfig->AddSetting("sync_gab_realtime", "yes");
 	}
 
@@ -1132,8 +1129,8 @@ static int running_server(char *szName, const char *szConfig,
 	limit.rlim_cur = FD_SETSIZE;
 	limit.rlim_max = FD_SETSIZE;
 	if(setrlimit(RLIMIT_NOFILE, &limit) < 0) {
-		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: setrlimit(RLIMIT_NOFILE, %d) failed, you will only be able to connect up to %d sockets.", FD_SETSIZE, getdtablesize());
-		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: Either start the process as root, or increase user limits for open file descriptors.");
+		ec_log_warn("WARNING: setrlimit(RLIMIT_NOFILE, %d) failed, you will only be able to connect up to %d sockets.", FD_SETSIZE, getdtablesize());
+		ec_log_warn("WARNING: Either start the process as root, or increase user limits for open file descriptors.");
 	}
 
 	if (parseBool(g_lpConfig->GetSetting("coredump_enabled")))
@@ -1166,10 +1163,10 @@ static int running_server(char *szName, const char *szConfig,
 	}
 
 	if(er != erSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to connect to database: %s", dbError.c_str());
+		ec_log_crit("Unable to connect to database: %s", dbError.c_str());
 		goto exit;
 	}
-	g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Connection to database '%s' succeeded", g_lpConfig->GetSetting("mysql_database"));
+	ec_log_notice("Connection to database '%s' succeeded", g_lpConfig->GetSetting("mysql_database"));
 
 	hosted = parseBool(g_lpConfig->GetSetting("enable_hosted_kopano"));
 	distributed = parseBool(g_lpConfig->GetSetting("enable_distributed_kopano"));
@@ -1221,7 +1218,7 @@ static int running_server(char *szName, const char *szConfig,
 	tmplock = open(upgrade_lock_file, O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
 
 	if (tmplock == -1)
-		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: Unable to place upgrade lockfile: %s", strerror(errno));
+		ec_log_warn("WARNING: Unable to place upgrade lockfile: %s", strerror(errno));
 
 #ifdef EMBEDDED_MYSQL
 {
@@ -1232,7 +1229,7 @@ static int running_server(char *szName, const char *szConfig,
 
 		er = lpDatabase->ValidateTables();
 		if (er != erSuccess) {
-			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to validate the database.");
+			ec_log_err("Unable to validate the database.");
 			goto exit;
 		}
 
@@ -1246,34 +1243,34 @@ static int running_server(char *szName, const char *szConfig,
 	// remove lock file
 	if (tmplock != -1) {
 		if (unlink(upgrade_lock_file) == -1)
-			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: Unable to delete upgrade lockfile (%s): %s", upgrade_lock_file, strerror(errno));
+			ec_log_warn("WARNING: Unable to delete upgrade lockfile (%s): %s", upgrade_lock_file, strerror(errno));
 
 		close(tmplock);
 	}
 
 	if(er == KCERR_INVALID_VERSION) {
-		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "WARNING: %s", dbError.c_str());
+		ec_log_warn("WARNING: %s", dbError.c_str());
 
 		if(m_bIgnoreDatabaseVersionConflict == false) {
-			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "   You can force the server to start with --ignore-database-version-conflict");
-			g_lpLogger->Log(EC_LOGLEVEL_WARNING, "   Warning, you can lose data! If you don't know what you're doing, you shouldn't be using this option!");
+			ec_log_warn("   You can force the server to start with --ignore-database-version-conflict");
+			ec_log_warn("   Warning, you can lose data! If you don't know what you're doing, you shouldn't be using this option!");
 			goto exit;
 		}
 	}else if(er != erSuccess) {
 		if (er != KCERR_USER_CANCEL)
-			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Can't update the database: %s", dbError.c_str());
+			ec_log_err("Can't update the database: %s", dbError.c_str());
 		goto exit;
 	}
 	
 	er = lpDatabase->InitializeDBState();
 	if(er != erSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Can't initialize database settings");
+		ec_log_err("Can't initialize database settings");
 		goto exit;
 	}
 	
 	m_bDatabaseUpdateIgnoreSignals = false;
 	if(searchfolder_restart_required) {
-		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Update requires searchresult folders to be rebuilt. This may take some time. You can restart this process with the --restart-searches option");
+		ec_log_warn("Update requires searchresult folders to be rebuilt. This may take some time. You can restart this process with the --restart-searches option");
 		restart_searches = 1;
 	}
 
@@ -1311,7 +1308,7 @@ static int running_server(char *szName, const char *szConfig,
 	// This also starts several threads, like SessionCleaner, NotificationThread and TPropsPurge.
 	er = kopano_init(g_lpConfig, g_lpAudit, hosted, distributed);
 	if (er != erSuccess) { // create SessionManager
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to initialize kopano session manager");
+		ec_log_err("Unable to initialize kopano session manager");
 		goto exit;
 	}
 
@@ -1321,10 +1318,10 @@ static int running_server(char *szName, const char *szConfig,
 		goto exit;
 
 	// Load search folders from disk
-	g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Loading searchfolders");
+	ec_log_notice("Loading searchfolders");
 	er = g_lpSessionManager->GetSearchFolders()->LoadSearchFolders();
 	if (er != erSuccess) {
-		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to load searchfolders");
+		ec_log_err("Unable to load searchfolders");
 		goto exit;
 	}
 	
@@ -1340,7 +1337,7 @@ static int running_server(char *szName, const char *szConfig,
 	g_lpScheduler->AddSchedule(SCHEDULE_HOUR, 16, &CleanupSyncedMessagesTable);
 
 	// high loglevel to always see when server is started.
-	g_lpLogger->Log(EC_LOGLEVEL_NOTICE, "Startup succeeded on pid %d", getpid() );
+	ec_log_notice("Startup succeeded on pid %d", getpid() );
 	g_lpStatsCollector->SetTime(SCN_SERVER_STARTTIME, time(NULL));
 
 	// Enter main accept loop
@@ -1389,7 +1386,7 @@ exit:
 	delete g_lpConfig;
 
 	if (g_lpLogger) {
-		g_lpLogger->Log(EC_LOGLEVEL_ALWAYS, "Server shutdown complete.");
+		ec_log_always("Server shutdown complete.");
 		g_lpLogger->Release();
 	}
 	if (g_lpAudit)

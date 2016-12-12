@@ -34,8 +34,6 @@
 #	include <unistd.h>
 #	include <kopano/UnixUtil.h>
 
-extern ECLogger *g_lpLogger;
-
 struct soap_connection_thread {
 	ECSoapServerConnection*	lpSoapConnClass;
 	struct soap*			lpSoap;
@@ -115,10 +113,10 @@ static int http_get(struct soap *soap)
 		goto exit;
 
 	if (strncmp(soap->path, "/autoupdate", strlen("/autoupdate")) == 0) {
-		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Client update request '%s'.", soap->path);
+		ec_log_debug("Client update request '%s'.", soap->path);
 		nRet = HandleClientUpdate(soap);
 	} else {
-		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Unrecognized GET url '%s'.", soap->path);
+		ec_log_debug("Unrecognized GET url '%s'.", soap->path);
 	}
 
 exit:
