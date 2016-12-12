@@ -88,8 +88,8 @@ ECConfig *ECPluginSharedData::CreateConfig(const configsetting_t *lpDefaults,
 {
 	scoped_lock lock(m_CreateConfigLock);
 
-	if (m_lpConfig == nullptr)
-		return nullptr;
+	if (m_lpConfig != nullptr)
+		return m_lpConfig;
 
 	int n;
 	/*
