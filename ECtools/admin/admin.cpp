@@ -1362,12 +1362,9 @@ exit:
 
 static LPMVPROPMAPENTRY FindMVPropmapEntry(ECUSER *lpUser, ULONG ulPropTag)
 {
-	for (unsigned i = 0; i < lpUser->sMVPropmap.cEntries; ++i) {
-		if (lpUser->sMVPropmap.lpEntries[i].ulPropId == ulPropTag) {
+	for (unsigned i = 0; i < lpUser->sMVPropmap.cEntries; ++i)
+		if (lpUser->sMVPropmap.lpEntries[i].ulPropId == ulPropTag)
 			return &lpUser->sMVPropmap.lpEntries[i];
-		}
-	}
-
 	return NULL;
 }
 
@@ -3649,9 +3646,9 @@ int main(int argc, char* argv[])
 						}
 
 						hr = GetAutoAcceptSettings(lpUserStore, &bAutoAccept, &bDeclineConflict, &bDeclineRecurring);
-						if (hr != hrSuccess) {
-							hr = hrSuccess; // ignore and assume 'false' for all values
-						}
+						if (hr != hrSuccess)
+							// ignore and assume 'false' for all values
+							hr = hrSuccess;
 
 						if(mr_accept != -1)
 							bAutoAccept = mr_accept;
@@ -3673,14 +3670,13 @@ int main(int argc, char* argv[])
 							cerr << "Unable to update user, sendas user not available, " << getMapiCodeString(hr, sendas_user) << endl;
 							goto exit;
 						}
-
-						if (sendas_action == 0) {
+						if (sendas_action == 0)
 							// delete sendas user
 							hr = lpServiceAdmin->DelSendAsUser(cbUserId, lpUserId, cbSenderId, lpSenderId);
-						} else if (sendas_action == 1) {
+						else if (sendas_action == 1)
 							// add sendas user
 							hr = lpServiceAdmin->AddSendAsUser(cbUserId, lpUserId, cbSenderId, lpSenderId);
-						}
+
 						switch (hr) {
 							case MAPI_E_NOT_FOUND:
 								// on del, not in list
@@ -3838,13 +3834,13 @@ int main(int argc, char* argv[])
 							goto exit;
 						}
 
-						if (sendas_action == 0) {
+						if (sendas_action == 0)
 							// delete sendas user
 							hr = lpServiceAdmin->DelSendAsUser(cbGroupId, lpGroupId, cbSenderId, lpSenderId);
-						} else if (sendas_action == 1) {
+						else if (sendas_action == 1)
 							// add sendas user
 							hr = lpServiceAdmin->AddSendAsUser(cbGroupId, lpGroupId, cbSenderId, lpSenderId);
-						}
+
 						switch (hr) {
 							case MAPI_E_NOT_FOUND:
 								// on del, not in list

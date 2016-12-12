@@ -446,9 +446,8 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 	            // Recurrence state is readable, but may have errors.
 	            
 	            // First, make sure the number of extended exceptions is correct
-	            while(r.lstExtendedExceptions.size() > r.lstExceptions.size()) {
+	            while (r.lstExtendedExceptions.size() > r.lstExceptions.size())
 	                r.lstExtendedExceptions.erase(--r.lstExtendedExceptions.end());
-	            }
 	            
 	            // Add new extendedexceptions if missing
                 iEx = r.lstExceptions.begin();

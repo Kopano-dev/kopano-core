@@ -286,13 +286,12 @@ HRESULT VConverter::HrMakeBinaryUID(const std::string &strUid, void *base, SProp
 	// Exchange example: UID:040000008200E00074C5B7101A82E008 00000000 305D0F2A9A06C901 0000000000000000 10000000 7F64D28AE2DCC64C88F849733F5FBD1D
 	// GMail example:    UID:rblkvqecgurvb0all6rjb3d1j8@google.com
 	// Sunbird example: UID:1090c3de-36b2-4352-a155-a1436bc806b8
-	if (strUid.compare(0, strByteArrayID.length(), strByteArrayID) == 0) {
+	if (strUid.compare(0, strByteArrayID.length(), strByteArrayID) == 0)
 		// EncodedGlobalId
 		strBinUid = hex2bin(strUid);
-	} else {
+	else
 		// ThirdPartyGlobalId
 		HrMakeBinUidFromICalUid(strUid, &strBinUid);
-	}
 
 	// Caller sets .ulPropTag
 	sPropValue.Value.bin.cb = strBinUid.size();
@@ -1875,16 +1874,15 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 			icalcomponent_add_property(lpicEvent, icalproperty_new_status(ICAL_STATUS_CONFIRMED));
 		}
 
-		if (strMessageClass.rfind("Pos") != string::npos) {
+		if (strMessageClass.rfind("Pos") != string::npos)
 			lpicParam = icalparameter_new_partstat(ICAL_PARTSTAT_ACCEPTED);
-		} else if (strMessageClass.rfind("Neg") != string::npos) {
+		else if (strMessageClass.rfind("Neg") != string::npos)
 			lpicParam = icalparameter_new_partstat(ICAL_PARTSTAT_DECLINED);
-		} else if (strMessageClass.rfind("Tent") != string::npos) {
+		else if (strMessageClass.rfind("Tent") != string::npos)
 			lpicParam = icalparameter_new_partstat(ICAL_PARTSTAT_TENTATIVE);
-		} else {
+		else
 			// shouldn't happen, but better than having no lpicParam pointer
 			lpicParam = icalparameter_new_partstat(ICAL_PARTSTAT_ACCEPTED);
-		}
 
 		// I am the only attendee that is replying
 		wstrBuf = L"mailto:" + (strRepsSenderEmailAddr.empty() ? strSenderEmailAddr : strRepsSenderEmailAddr);
@@ -2196,11 +2194,10 @@ HRESULT VConverter::HrSetBusyStatus(LPMESSAGE lpMessage, ULONG ulBusyStatus, ica
 	icalproperty *lpicProp = NULL;
 	
 	// set the TRANSP property
-	if (ulBusyStatus == 0) {
+	if (ulBusyStatus == 0)
 		lpicProp = icalproperty_new_transp(ICAL_TRANSP_TRANSPARENT);
-	} else {
+	else
 		lpicProp = icalproperty_new_transp(ICAL_TRANSP_OPAQUE);
-	}
 	icalcomponent_add_property(lpicEvent, lpicProp);
 	
 	// set the X-MICROSOFT-CDO-INTENDEDSTATUS property

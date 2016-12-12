@@ -118,13 +118,14 @@ namespace details {
 
             i = vOptions.begin();
             while(i != vOptions.end()) {
-                if (*i == "IGNORE" || *i == "FORCE") {
-                    m_bForce = true;
-                } else if (*i == "NOIGNORE" || *i == "NOFORCE") {
-                    m_bForce = false;
-                } else if(*i == "HTMLENTITIES" && strcasecmp(fromcode, CHARSET_WCHAR) == 0) {
-                	m_bHTML = true;
-                } else vOptionsFiltered.push_back(*i);
+				if (*i == "IGNORE" || *i == "FORCE")
+					m_bForce = true;
+				else if (*i == "NOIGNORE" || *i == "NOFORCE")
+					m_bForce = false;
+				else if (*i == "HTMLENTITIES" && strcasecmp(fromcode, CHARSET_WCHAR) == 0)
+					m_bHTML = true;
+				else
+					vOptionsFiltered.push_back(*i);
 				++i;
             }
 

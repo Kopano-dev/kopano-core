@@ -224,9 +224,8 @@ ULONG ECMemStream::Release()
 		// If you read the docs on STGM_SHARE_EXCLUSIVE it doesn't say you need
 		// to Commit() at the end, so if the client hasn't called Commit() yet, 
 		// we need to do it for them before throwing away the data.
-		if(this->ulFlags & STGM_SHARE_EXCLUSIVE && this->fDirty) {
+		if (this->ulFlags & STGM_SHARE_EXCLUSIVE && this->fDirty)
 			this->Commit(0);
-		}
 	}
 	return ECUnknown::Release();
 }

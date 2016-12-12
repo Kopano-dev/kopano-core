@@ -245,9 +245,8 @@ class FreeBusyPublish {
 		try {
 			$fbsupport = mapi_freebusysupport_open($this->session, $this->store);
 		} catch (MAPIException $e) {
-			if($e->getCode() == MAPI_E_NOT_FOUND) {
+			if ($e->getCode() == MAPI_E_NOT_FOUND)
 				$e->setHandled();
-			}
 		}
 
 		// Open updater for this user

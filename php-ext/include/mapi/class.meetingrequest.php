@@ -1354,9 +1354,8 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		$result = array();
 		$fbsupport = mapi_freebusysupport_open($this->session);
 
-		if(mapi_last_hresult() != NOERROR) {
+		if (mapi_last_hresult() != NOERROR)
 			return $result;
-		}
 
 		$fbDataArray = mapi_freebusysupport_loaddata($fbsupport, array($entryID));
 

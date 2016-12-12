@@ -36,10 +36,9 @@ HRESULT InstanceIdMapper::Create(ECLogger *lpLogger, ECConfig *lpConfig, Instanc
 	// Get config if required.
 	if (lpLocalConfig == NULL) {
 		lpLocalConfig = ECConfig::Create(Archiver::GetConfigDefaults());
-		if (!lpLocalConfig->LoadSettings(Archiver::GetConfigPath())) {
+		if (!lpLocalConfig->LoadSettings(Archiver::GetConfigPath()))
 			// Just log warnings and errors and continue with default.
 			LogConfigErrors(lpLocalConfig);
-		}
 	}
 	lpMapper.reset(new(std::nothrow) InstanceIdMapper(lpLogger));
 	if (lpMapper == nullptr) {

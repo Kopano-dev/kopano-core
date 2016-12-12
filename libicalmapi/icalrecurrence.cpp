@@ -730,12 +730,10 @@ bool ICalRecurrence::HrValidateOccurrence(icalitem *lpItem, icalitem::exception 
 	time_t tBaseDateStart = LocalToUTC(lpItem->lpRecurrence->StartOfDay(UTCToLocal(lpEx.tBaseDate, lpItem->tTZinfo)), lpItem->tTZinfo);
 	time_t tStartDateStart = LocalToUTC(lpItem->lpRecurrence->StartOfDay(UTCToLocal(lpEx.tStartDate, lpItem->tTZinfo)), lpItem->tTZinfo);
 
-	if (tBaseDateStart < tStartDateStart) {
+	if (tBaseDateStart < tStartDateStart)
 		hr = lpItem->lpRecurrence->HrGetItems(tBaseDateStart, tStartDateStart + 1439 * 60, lpItem->tTZinfo, lpItem->ulFbStatus, &~lpFBBlocksAll, &cValues);
-	} else {
+	else
 		hr = lpItem->lpRecurrence->HrGetItems(tStartDateStart, tBaseDateStart + 1439 * 60, lpItem->tTZinfo, lpItem->ulFbStatus, &~lpFBBlocksAll, &cValues);
-	}
-
 	if (hr != hrSuccess)
 		return false;
 	return cValues == 1;

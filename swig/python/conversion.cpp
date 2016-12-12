@@ -2127,9 +2127,8 @@ PyObject *		List_from_LPNOTIFICATION(LPNOTIFICATION lpNotif, ULONG cNotifs)
 
 exit:
 	if(PyErr_Occurred()) {
-		if(list) {
+		if (list != nullptr)
 			Py_DECREF(list);
-		}
 		list = NULL;
 	}
 	if (item != nullptr)

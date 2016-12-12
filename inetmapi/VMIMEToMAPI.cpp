@@ -1173,12 +1173,10 @@ HRESULT VMIMEToMAPI::handleRecipients(vmime::shared_ptr<vmime::header> vmHeader,
 	}
 
 exit:
-	if (lpRecipients != NULL) {
+	if (lpRecipients != nullptr)
 		// Because the recipient list can be altered to delete 1 row, or add 1 row using ModifyRecipients()
 		// we need to free this data with FreeProws, and not the default MAPIFreeBuffer() call.
 		FreeProws((LPSRowSet) lpRecipients);
-	}
-
 	return hr;
 }
 
