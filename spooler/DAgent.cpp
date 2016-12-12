@@ -3096,14 +3096,43 @@ exit:
 	return hr;
 }
 
-static std::string getLocalHostname(void)
+static void add_misc_headers(FILE *tmp, const std::string &helo,
+    const std::string &from, const DeliveryArgs *args)
 {
-	char buffer[4096] = { 0 };
+	/*
+	 * 1. Return-Path
+	 * Add return-path header string, as specified by RFC 5321 (ZCP-12424)
+	 * https://tools.ietf.org/html/rfc5322
+	 * it should look like:
+	 * 	Return-Path: <noreply+dev=kopano.io@other.com>
+	 */
+	fprintf(tmp, "Return-Path: <%s>\r\n", from.c_str());
 
-	if (gethostname(buffer, sizeof buffer) == -1)
-		strcpy(buffer, "???");
+	/*
+	 * 2. Received
+	 *
+	 * Received: from lists.digium.com (digium-69-16-138-164.phx1.puregig.net [69.16.138.164])
+	 *  by blah.com (Postfix) with ESMTP id 78BEB1CA369
+	 *  for <target@blah.com>; Mon, 12 Dec 2005 11:35:12 +0100 (CET)
+	 */
+	std::string server_name;
+	const char *dummy = g_lpConfig->GetSetting("server_name");
+	if (dummy != nullptr) {
+		server_name = dummy;
+	} else {
+		char buffer[4096] = {0};
+		if (gethostname(buffer, sizeof buffer) == -1)
+			strcpy(buffer, "???");
+		server_name = buffer;
+	}
 
-	return std::string(buffer);
+	time_t t = time(nullptr);
+	struct tm *tm = localtime(&t);
+	char time_str[4096];
+	strftime(time_str, sizeof(time_str), "%a, %d %b %Y %T %z (%Z)", tm);
+	fprintf(tmp, "Received: from %s (%s)\r\n", helo.c_str(), args->lpChannel->peer_addr());
+	fprintf(tmp, "\tby %s (kopano-dagent) with LMTP;\r\n", server_name.c_str());
+	fprintf(tmp, "\t%s\r\n", time_str);
 }
 
 /** 
@@ -3314,31 +3343,7 @@ static void *HandlerLMTP(void *lpArg)
 					break;
 				}
 
-				// add return-path header string, as specified by RFC5321 (ZCP-12424)
-				// https://tools.ietf.org/html/rfc5322
-
-				// it should look like:
-				// 	Return-Path: <noreply+folkert=vanheusden.com@thuisbezorgd.nl>
-				fprintf(tmp, "Return-Path: <%s>\r\n", curFrom.c_str());
-
-				// Received: from lists.digium.com (digium-69-16-138-164.phx1.puregig.net [69.16.138.164])
-				//         by keetweej.vanheusden.com (Postfix) with ESMTP id 78BEB1CA369
-				//         for <folkert@vanheusden.com>; Mon, 12 Dec 2005 11:35:12 +0100 (CET)
-				const char *dummy = g_lpConfig->GetSetting("server_name");
-
-				std::string serverName = dummy ? std::string(dummy) : getLocalHostname();
-
-				time_t t = time(NULL);
-				struct tm *tm = localtime(&t);
-				char timeStr[4096];
-				strftime(timeStr, sizeof timeStr, "%a, %d %b %Y %T %z (%Z)", tm);
-
-				fprintf(tmp, "Received: from %s (%s)\r\n\tby %s (kopano-dagent) with LMTP\r\n\tfor <%s>; %s\r\n",
-					heloName.c_str(), lpArgs->lpChannel->peer_addr(),
-					serverName.c_str(),
-					strMailAddress.c_str(),
-					timeStr);
-
+				add_misc_headers(tmp, heloName, curFrom, lpArgs);
 				hr = lmtp.HrCommandDATA(tmp);
 				if (hr == hrSuccess) {
 
