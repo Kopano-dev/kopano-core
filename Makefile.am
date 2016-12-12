@@ -964,7 +964,7 @@ EXTRA_DIST += version versionheader.sh \
 BUILT_SOURCES += source-moved-check common/include/kopano/ecversion.h
 CLEANFILES += common/include/kopano/ecversion.h
 
-dist_sbin_SCRIPTS += tools/python-scripts/kopano-cachestat.py
+dist_sbin_SCRIPTS += tools/python-scripts/kopano-cachestat
 gdbautoloaddir = ${datadir}/gdb/auto-load/${libdir}
 dist_gdbautoload_DATA = tools/libmapi.so.1.0.0-gdb.py
 
