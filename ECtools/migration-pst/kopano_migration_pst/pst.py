@@ -33,8 +33,8 @@
 #
 
 import struct, binascii, datetime, math, os, sys, unicodedata, re, argparse, itertools, string
-import colorama
-import progressbar
+#import colorama
+#import progressbar
 
 
 class PSTException(Exception):
