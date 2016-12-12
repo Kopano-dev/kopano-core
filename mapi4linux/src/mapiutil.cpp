@@ -31,6 +31,7 @@
 
 #include <kopano/ECDebug.h>
 #include <kopano/ECTags.h>
+#include <kopano/memory.hpp>
 #include <kopano/stringutil.h>
 #include <kopano/Util.h>
 
@@ -40,6 +41,8 @@
 #include "rtf.h"
 
 #include <kopano/charset/convstring.h>
+
+using namespace KCHL;
 
 ULONG __stdcall UlRelease(LPVOID lpUnknown)
 {
@@ -401,21 +404,17 @@ HRESULT __stdcall HrGetOneProp(IMAPIProp *lpProp, ULONG ulPropTag, LPSPropValue 
 	HRESULT hr = hrSuccess;
 	SizedSPropTagArray(1, sPropTag) = { 1, { ulPropTag } };
 	ULONG cValues = 0;
-	LPSPropValue lpPropVal = NULL;
+	memory_ptr<SPropValue> lpPropVal;
 
-	hr = lpProp->GetProps(sPropTag, 0, &cValues, &lpPropVal);
-	
+	hr = lpProp->GetProps(sPropTag, 0, &cValues, &~lpPropVal);
 	if(HR_FAILED(hr))
 		goto exit;
 		
 	if(cValues != 1 || lpPropVal->ulPropTag != ulPropTag) {
-		MAPIFreeBuffer(lpPropVal);
 		hr = MAPI_E_NOT_FOUND;
 		goto exit;
 	}
-
-	*lppPropVal = lpPropVal;
-		
+	*lppPropVal = lpPropVal.release();
 exit:
 	TRACE_MAPILIB1(TRACE_RETURN, "HrGetOneProp", "0x%08x", hr);
 	return hr;
@@ -437,12 +436,9 @@ BOOL __stdcall FPropExists(LPMAPIPROP lpMapiProp, ULONG ulPropTag)
 {
 	TRACE_MAPILIB1(TRACE_ENTRY, "FPropExists", "%08x", ulPropTag);
 	HRESULT hr = hrSuccess;
-	LPSPropValue lpPropVal = NULL;
+	memory_ptr<SPropValue> lpPropVal = NULL;
 
-	hr = HrGetOneProp(lpMapiProp, ulPropTag, &lpPropVal);
-	if (hr == hrSuccess)
-		MAPIFreeBuffer(lpPropVal);
-
+	hr = HrGetOneProp(lpMapiProp, ulPropTag, &~lpPropVal);
 	TRACE_MAPILIB1(TRACE_RETURN, "FPropExists", "0x%08x", hr);
 	return (hr == hrSuccess);
 }
@@ -808,14 +804,10 @@ BOOL __stdcall FBinFromHex(LPTSTR sz, LPBYTE pb)
 {
 	TRACE_MAPILIB1(TRACE_ENTRY, "FBinFromHex", "%s", sz);
 	ULONG len;
-	LPBYTE lpBin;
+	memory_ptr<BYTE> lpBin;
 
-	Util::hex2bin((char *)sz, strlen((char *)sz), &len, &lpBin);
-
+	Util::hex2bin((char *)sz, strlen((char *)sz), &len, &~lpBin);
 	memcpy(pb, lpBin, len);
-
-	MAPIFreeBuffer(lpBin);
-
 	TRACE_MAPILIB1(TRACE_RETURN, "FBinFromHex", "%s", sz);
 	return true;
 }
@@ -1108,7 +1100,7 @@ ULONG __stdcall FBadRestriction( LPSRestriction lpres )
 HRESULT GetConnectionProperties(LPSPropValue lpServer, LPSPropValue lpUsername, ULONG *lpcValues, LPSPropValue *lppProps)
 {
 	HRESULT hr = hrSuccess;
-	LPSPropValue lpProps = NULL;
+	memory_ptr<SPropValue> lpProps;
 	char *szUsername;
 	std::string strServerPath;
 	ULONG cProps = 0;
@@ -1117,8 +1109,7 @@ HRESULT GetConnectionProperties(LPSPropValue lpServer, LPSPropValue lpUsername, 
 		hr = MAPI_E_UNCONFIGURED;
 		goto exit;
 	}
-
-	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 5, (LPVOID *)&lpProps);
+	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 5, &~lpProps);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -1157,12 +1148,8 @@ HRESULT GetConnectionProperties(LPSPropValue lpServer, LPSPropValue lpUsername, 
 	memcpy(lpProps[cProps++].Value.lpszA, m4l_lpConfig->GetSetting("ssl_key_pass"), strlen(m4l_lpConfig->GetSetting("ssl_key_pass")) + 1);
 
 	*lpcValues = cProps;
-	*lppProps = lpProps;
-
+	*lppProps = lpProps.release();
 exit:
-	if (hr != hrSuccess)
-		MAPIFreeBuffer(lpProps);
-
 	return hr;
 }
 

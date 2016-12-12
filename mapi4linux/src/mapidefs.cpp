@@ -18,6 +18,7 @@
 #include <kopano/platform.h>
 #include <new>
 #include <kopano/lockhelper.hpp>
+#include <kopano/memory.hpp>
 #include "m4l.mapidefs.h"
 #include "m4l.mapix.h"
 #include "m4l.debug.h"
@@ -39,6 +40,8 @@
 #include <kopano/CommonUtil.h>
 
 #include <set>
+
+using namespace KCHL;
 
 // ---
 // IMAPIProp
@@ -66,7 +69,7 @@ HRESULT M4LMAPIProp::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULO
 	TRACE_MAPILIB2(TRACE_ENTRY, "IMAPIProp::GetProps", "PropTagArray=%s\nfFlags=0x%08X", PropNameFromPropTagArray(lpPropTagArray).c_str(), ulFlags);
 	list<LPSPropValue>::const_iterator i;
 	ULONG c;
-	LPSPropValue props = NULL;
+	memory_ptr<SPropValue> props;
 	HRESULT hr = hrSuccess;
 	SPropValue sConvert;
 	convert_context converter;
@@ -76,7 +79,7 @@ HRESULT M4LMAPIProp::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULO
 
 	if (!lpPropTagArray) {
 		// all properties are requested
-		hr = MAPIAllocateBuffer(sizeof(SPropValue)*properties.size(), (void**)&props);
+		hr = MAPIAllocateBuffer(sizeof(SPropValue)*properties.size(), &~props);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -103,7 +106,7 @@ HRESULT M4LMAPIProp::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULO
 				goto exit;
 		}
 	} else {
-		hr = MAPIAllocateBuffer(sizeof(SPropValue)*lpPropTagArray->cValues, (void**)&props);
+		hr = MAPIAllocateBuffer(sizeof(SPropValue)*lpPropTagArray->cValues, &~props);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -195,12 +198,8 @@ HRESULT M4LMAPIProp::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULO
 	}
 
 	*lpcValues = c;
-	*lppPropArray = props;
-
+	*lppPropArray = props.release();
 exit:
-	if (FAILED(hr))
-		MAPIFreeBuffer(props);
-
 	TRACE_MAPILIB2(TRACE_RETURN, "IMAPIProp::GetProps", "%s\n%s", GetMAPIErrorDescription(hr).c_str(), PropNameFromPropArray(*lpcValues, *lppPropArray).c_str());
 	return hr;
 }
@@ -657,18 +656,16 @@ HRESULT M4LProviderAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable)
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LProviderAdmin::GetProviderTable", "");
 	HRESULT hr = hrSuccess;
 	ULONG cValues = 0;
-	LPSPropValue lpsProps = NULL;
 	ECMemTable *lpTable = NULL;
 	ECMemTableView *lpTableView = NULL;
-	LPSPropValue lpDest = NULL;
 	ULONG cValuesDest = 0;
 	SPropValue sPropID;
 	int n = 0;
-	LPSPropTagArray lpPropTagArray = NULL;
+	memory_ptr<SPropTagArray> lpPropTagArray;
 	SizedSPropTagArray(8, sptaProviderCols) = {8, {PR_MDB_PROVIDER, PR_INSTANCE_KEY, PR_RECORD_KEY, PR_ENTRYID, PR_DISPLAY_NAME_A, PR_OBJECT_TYPE, PR_RESOURCE_TYPE, PR_PROVIDER_UID} };
 	ulock_rec l_srv(msa->m_mutexserviceadmin);
 
-	hr = Util::HrCopyUnicodePropTagArray(ulFlags, sptaProviderCols, &lpPropTagArray);
+	hr = Util::HrCopyUnicodePropTagArray(ulFlags, sptaProviderCols, &~lpPropTagArray);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -678,28 +675,24 @@ HRESULT M4LProviderAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable)
 	
 	// Loop through all providers, add each to the table
 	for (auto prov : msa->providers) {
+		memory_ptr<SPropValue> lpsProps, lpDest;
+
 		if (szService != NULL &&
 		    strcmp(szService, prov->servicename.c_str()) != 0)
 			continue;
 		
 		hr = prov->profilesection->GetProps(sptaProviderCols, 0,
-		     &cValues, &lpsProps);
+		     &cValues, &~lpsProps);
 		if (FAILED(hr))
 			goto exit;
 		
 		sPropID.ulPropTag = PR_ROWID;
 		sPropID.Value.ul = n++;
-		
-		hr = Util::HrAddToPropertyArray(lpsProps, cValues, &sPropID, &lpDest, &cValuesDest);
+		hr = Util::HrAddToPropertyArray(lpsProps, cValues, &sPropID, &~lpDest, &cValuesDest);
 		if(hr != hrSuccess)
 			goto exit;
 		
 		lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, NULL, lpDest, cValuesDest);
-		
-		MAPIFreeBuffer(lpDest);
-		MAPIFreeBuffer(lpsProps);
-		lpDest = NULL;
-		lpsProps = NULL;
 	}
 	
 	hr = lpTable->HrGetView(createLocaleFromName(""), ulFlags, &lpTableView);
@@ -710,14 +703,11 @@ HRESULT M4LProviderAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable)
 	
 exit:
 	l_srv.unlock();
-	MAPIFreeBuffer(lpPropTagArray);
 	if (lpTableView)
 		lpTableView->Release();
 
 	if (lpTable)
 		lpTable->Release();
-	MAPIFreeBuffer(lpDest);
-	MAPIFreeBuffer(lpsProps);
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LProviderAdmin::GetProviderTable", "0x%08x", hr);
 	return hr;
 }
@@ -740,7 +730,7 @@ HRESULT M4LProviderAdmin::CreateProvider(LPTSTR lpszProvider, ULONG cValues, LPS
 	SPropValue sProps[10];
 	ULONG nProps = 0;
 	LPSPropValue lpResource = NULL;
-	LPSPropValue lpsPropValProfileName = NULL;
+	memory_ptr<SPropValue> lpsPropValProfileName;
 	providerEntry *entry = NULL;
 	serviceEntry* lpService = NULL;
 	SVCProvider* lpProvider = NULL;
@@ -778,7 +768,7 @@ HRESULT M4LProviderAdmin::CreateProvider(LPTSTR lpszProvider, ULONG cValues, LPS
 	entry->profilesection->AddRef();
 	
 	// Set the default profilename
-	hr = HrGetOneProp((IProfSect*)msa->profilesection, PR_PROFILE_NAME_A, &lpsPropValProfileName);
+	hr = HrGetOneProp((IProfSect*)msa->profilesection, PR_PROFILE_NAME_A, &~lpsPropValProfileName);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -856,8 +846,6 @@ exit:
 			entry->profilesection->Release();
 		delete entry;
 	}
-
-	MAPIFreeBuffer(lpsPropValProfileName);
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LProviderAdmin::CreateProvider", "0x%08x", hr);
 	return hr;
 }
@@ -1112,12 +1100,13 @@ HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 	// make a list of all hierarchy tables, and create the combined column list
 	std::list<LPMAPITABLE> lHierarchies;
 	std::set<ULONG> stProps;
-	LPSPropTagArray lpColumns = NULL;
+	memory_ptr<SPropTagArray> lpColumns;
+
 	for (const auto &abe : m_lABEntries) {
 		ULONG ulObjType;
 		LPABCONT lpABContainer = NULL;
 		LPMAPITABLE lpABHierarchy = NULL;
-		LPSPropTagArray lpPropArray = NULL;
+		memory_ptr<SPropTagArray> lpPropArray;
 
 		hr = abe.lpABLogon->OpenEntry(0, NULL, &IID_IABContainer, 0, &ulObjType, reinterpret_cast<IUnknown **>(&lpABContainer));
 		if (hr != hrSuccess)
@@ -1126,8 +1115,7 @@ HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 		hr = lpABContainer->GetHierarchyTable(ulFlags, &lpABHierarchy);
 		if (hr != hrSuccess)
 			goto next_container;
-
-		hr = lpABHierarchy->QueryColumns(TBL_ALL_COLUMNS, &lpPropArray);
+		hr = lpABHierarchy->QueryColumns(TBL_ALL_COLUMNS, &~lpPropArray);
 		if (hr != hrSuccess)
 			goto next_container;
 
@@ -1143,14 +1131,11 @@ HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 		if (lpABHierarchy)
 			lpABHierarchy->Release();
 		lpABHierarchy = NULL;
-		MAPIFreeBuffer(lpPropArray);
-		lpPropArray = NULL;
 	}
 
 	// remove key row
 	stProps.erase(PR_ROWID);
-
-	hr = MAPIAllocateBuffer(CbNewSPropTagArray(stProps.size() + 1), (void**)&lpColumns);
+	hr = MAPIAllocateBuffer(CbNewSPropTagArray(stProps.size() + 1), &~lpColumns);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -1203,7 +1188,6 @@ HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 exit:
 	for (const auto mt : lHierarchies)
 		mt->Release();
-	MAPIFreeBuffer(lpColumns);
 	if (lpTableView)
 		lpTableView->Release();
 

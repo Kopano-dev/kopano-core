@@ -21,8 +21,10 @@
 #include <kopano/namedprops.h>
 #include <kopano/mapiguidext.h>
 #include <iostream>
+#include <memory>
 #include <vector>
 #include <algorithm>
+#include <kopano/memory.hpp>
 #include <kopano/ECLogger.h>
 #include "recurrence.h"
 #include <kopano/MAPIErrors.h>
@@ -32,6 +34,7 @@
 #include <mapiutil.h>
 
 using namespace std;
+using namespace KCHL;
 
 namespace KC {
 
@@ -52,13 +55,13 @@ HRESULT HrPublishDefaultCalendar(IMAPISession *lpSession, IMsgStore *lpDefStore,
     time_t tsStart, ULONG ulMonths)
 {
 	HRESULT hr = hrSuccess;
-	PublishFreeBusy *lpFreeBusy = NULL;
+	std::unique_ptr<PublishFreeBusy> lpFreeBusy;
 	IMAPITable *lpTable = NULL;
-	FBBlock_1 *lpFBblocks = NULL;
+	memory_ptr<FBBlock_1> lpFBblocks;
 	ULONG cValues = 0;
 
 	ec_log_debug("current time %d", (int)tsStart);
-	lpFreeBusy = new PublishFreeBusy(lpSession, lpDefStore, tsStart, ulMonths);
+	lpFreeBusy.reset(new PublishFreeBusy(lpSession, lpDefStore, tsStart, ulMonths));
 	hr = lpFreeBusy->HrInit();
 	if (hr != hrSuccess)
 		goto exit;
@@ -68,8 +71,7 @@ HRESULT HrPublishDefaultCalendar(IMAPISession *lpSession, IMsgStore *lpDefStore,
 		ec_log_info("Error while finding messages for free/busy publish, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
 	}
-
-	hr = lpFreeBusy->HrProcessTable(lpTable, &lpFBblocks, &cValues);
+	hr = lpFreeBusy->HrProcessTable(lpTable, &~lpFBblocks, &cValues);
 	if(hr != hrSuccess) {
 		ec_log_info("Error while finding free/busy blocks, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
@@ -79,8 +81,7 @@ HRESULT HrPublishDefaultCalendar(IMAPISession *lpSession, IMsgStore *lpDefStore,
 		ec_log_info("No messages for free/busy publish");
 		goto exit;
 	}
-
-	hr = lpFreeBusy->HrMergeBlocks(&lpFBblocks, &cValues);
+	hr = lpFreeBusy->HrMergeBlocks(&+lpFBblocks, &cValues);
 	if(hr != hrSuccess) {
 		ec_log_info("Error while merging free/busy blocks, entries: %d, error code: 0x%x %s", cValues, hr, GetMAPIErrorMessage(hr));
 		goto exit;
@@ -95,9 +96,6 @@ HRESULT HrPublishDefaultCalendar(IMAPISession *lpSession, IMsgStore *lpDefStore,
 exit:
 	if(lpTable)
 		lpTable->Release();
-
-	delete lpFreeBusy;
-	MAPIFreeBuffer(lpFBblocks);
 	return hr;
 }
 
@@ -243,7 +241,7 @@ HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBl
 {
 	HRESULT hr = hrSuccess;
 	SRowSet *lpRowSet = NULL;
-	OccrInfo *lpOccrInfo = NULL;
+	memory_ptr<OccrInfo> lpOccrInfo;
 	FBBlock_1 *lpfbBlocks = NULL;
 	recurrence lpRecurrence;
 	ULONG ulFbStatus = 0;
@@ -286,8 +284,7 @@ HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBl
 
 					if (lpRowSet->aRow[i].lpProps[2].ulPropTag == PROP_APPT_FBSTATUS)
 						ulFbStatus = lpRowSet->aRow[i].lpProps[2].Value.ul;
-
-					hr = lpRecurrence.HrGetItems(m_tsStart, m_tsEnd, ttzInfo, ulFbStatus, &lpOccrInfo, lpcValues);
+					hr = lpRecurrence.HrGetItems(m_tsStart, m_tsEnd, ttzInfo, ulFbStatus, &+lpOccrInfo, lpcValues);
 					if (hr != hrSuccess || !lpOccrInfo) {
 						ec_log_err("Error expanding items for recurring item, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 						continue;
@@ -308,8 +305,7 @@ HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBl
 				}
 				if (lpRowSet->aRow[i].lpProps[2].ulPropTag == PROP_APPT_FBSTATUS) 
 					sOccrBlock.fbBlock.m_fbstatus = (FBStatus)lpRowSet->aRow[i].lpProps[2].Value.ul;
-				
-				hr = HrAddFBBlock(sOccrBlock, &lpOccrInfo, lpcValues);
+				hr = HrAddFBBlock(sOccrBlock, &+lpOccrInfo, lpcValues);
 				if (hr != hrSuccess) {
 					ec_log_debug("Error adding occurrence block to list, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 					goto exit;
@@ -334,7 +330,6 @@ HRESULT PublishFreeBusy::HrProcessTable(IMAPITable *lpTable, FBBlock_1 **lppfbBl
 	}
 
 exit:
-	MAPIFreeBuffer(lpOccrInfo);
 	if (lpRowSet)
 		FreeProws(lpRowSet);
 
@@ -458,14 +453,13 @@ HRESULT PublishFreeBusy::HrPublishFBblocks(FBBlock_1 *lpfbBlocks, ULONG cValues)
 	ECFreeBusyUpdate *lpFBUpdate = NULL;
 	IMessage *lpMessage = NULL;
 	IMsgStore *lpPubStore = NULL;
-	LPSPropValue lpsPrpUsrMEid = NULL;
+	memory_ptr<SPropValue> lpsPrpUsrMEid;
 	time_t tsStart = 0;
 	
 	hr = HrOpenECPublicStore(m_lpSession, &lpPubStore);
 	if(hr != hrSuccess)
 		goto exit;
-
-	hr = HrGetOneProp(m_lpDefStore, PR_MAILBOX_OWNER_ENTRYID, &lpsPrpUsrMEid);
+	hr = HrGetOneProp(m_lpDefStore, PR_MAILBOX_OWNER_ENTRYID, &~lpsPrpUsrMEid);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -495,7 +489,6 @@ HRESULT PublishFreeBusy::HrPublishFBblocks(FBBlock_1 *lpfbBlocks, ULONG cValues)
 		goto exit;
 
 exit:
-	MAPIFreeBuffer(lpsPrpUsrMEid);
 	if(lpFBUpdate)
 		lpFBUpdate->Release();
 

@@ -32,6 +32,7 @@
 #include <kopano/Util.h>
 #include <kopano/ECIConv.h>
 #include <kopano/CommonUtil.h>
+#include <kopano/memory.hpp>
 #include <kopano/stringutil.h>
 #include <kopano/charset/convert.h>
 #include <kopano/tstring.h>
@@ -51,6 +52,7 @@
 #include "HtmlEntity.h"
 
 using namespace std;
+using namespace KCHL;
 
 #include <kopano/ECGetText.h>
 
@@ -139,9 +141,9 @@ HRESULT Util::HrAddToPropertyArray(const SPropValue *lpSrc, ULONG cValues,
 bool Util::FHasHTML(IMAPIProp *lpProp)
 {
 	HRESULT hr = hrSuccess;
-	LPSPropValue lpPropSupport = NULL;
+	memory_ptr<SPropValue> lpPropSupport = NULL;
 
-	hr = HrGetOneProp(lpProp, PR_STORE_SUPPORT_MASK, &lpPropSupport);
+	hr = HrGetOneProp(lpProp, PR_STORE_SUPPORT_MASK, &~lpPropSupport);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -149,7 +151,6 @@ bool Util::FHasHTML(IMAPIProp *lpProp)
 		hr = MAPI_E_NOT_FOUND;
 
 exit:
-	MAPIFreeBuffer(lpPropSupport);
 	return hr == hrSuccess;
 }
 
@@ -172,14 +173,13 @@ HRESULT	Util::HrMergePropertyArrays(const SPropValue *lpSrc, ULONG cValues,
 	HRESULT hr = hrSuccess;
 	map<ULONG, const SPropValue *> mapPropSource;
 	ULONG i = 0;
-	LPSPropValue lpProps = NULL;
+	memory_ptr<SPropValue> lpProps;
 
 	for (i = 0; i < cValues; ++i)
 		mapPropSource[lpSrc[i].ulPropTag] = &lpSrc[i];
 	for (i = 0; i < cAddValues; ++i)
 		mapPropSource[lpAdds[i].ulPropTag] = &lpAdds[i];
-
-	hr = MAPIAllocateBuffer(sizeof(SPropValue)*mapPropSource.size(), (void**)&lpProps);
+	hr = MAPIAllocateBuffer(sizeof(SPropValue)*mapPropSource.size(), &~lpProps);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -192,11 +192,8 @@ HRESULT	Util::HrMergePropertyArrays(const SPropValue *lpSrc, ULONG cValues,
 	}
 
 	*cDestValues = i;
-	*lppDest = lpProps;
-	lpProps = NULL;
-
+	*lppDest = lpProps.release();
 exit:
-	MAPIFreeBuffer(lpProps);
 	return hr;
 }
 
@@ -2530,14 +2527,13 @@ HRESULT Util::CopyRecipients(LPMESSAGE lpSrc, LPMESSAGE lpDest) {
 	HRESULT hr;
 	LPMAPITABLE lpTable = NULL;
 	LPSRowSet lpRows = NULL;
-	LPSPropTagArray lpTableColumns = NULL;
+	memory_ptr<SPropTagArray> lpTableColumns;
 	ULONG ulRows = 0;
 
 	hr = lpSrc->GetRecipientTable(MAPI_UNICODE, &lpTable);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = lpTable->QueryColumns(TBL_ALL_COLUMNS, &lpTableColumns);
+	hr = lpTable->QueryColumns(TBL_ALL_COLUMNS, &~lpTableColumns);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -2562,7 +2558,6 @@ HRESULT Util::CopyRecipients(LPMESSAGE lpSrc, LPMESSAGE lpDest) {
 		goto exit;
 
 exit:
-	MAPIFreeBuffer(lpTableColumns);
 	if (lpRows)
 		FreeProws(lpRows);
 
@@ -2586,7 +2581,7 @@ HRESULT Util::CopyInstanceIds(LPMAPIPROP lpSrc, LPMAPIPROP lpDst)
 	IECSingleInstance *lpSrcInstance = NULL;
 	IECSingleInstance *lpDstInstance = NULL;
 	ULONG cbInstanceID = 0;
-	LPENTRYID lpInstanceID = NULL;
+	memory_ptr<ENTRYID> lpInstanceID;
 
 	/* 
 	 * We are always going to return hrSuccess, if for some reason we can't copy the single instance,
@@ -2605,7 +2600,7 @@ HRESULT Util::CopyInstanceIds(LPMAPIPROP lpSrc, LPMAPIPROP lpDst)
 	 * SetSingleInstanceId() and SaveChanges(). In that case SaveChanges will fail
 	 * and we will have to resend the attachment data.
 	 */
-	if (lpSrcInstance->GetSingleInstanceId(&cbInstanceID, &lpInstanceID) != hrSuccess)
+	if (lpSrcInstance->GetSingleInstanceId(&cbInstanceID, &~lpInstanceID) != hrSuccess)
 		goto exit;
 
 	if (lpDstInstance->SetSingleInstanceId(cbInstanceID, lpInstanceID) != hrSuccess)
@@ -2616,7 +2611,6 @@ exit:
 		lpSrcInstance->Release();
 	if (lpDstInstance)
 		lpDstInstance->Release();
-	MAPIFreeBuffer(lpInstanceID);
 	return hr;
 }
 
@@ -2653,17 +2647,17 @@ HRESULT Util::CopyAttachments(LPMESSAGE lpSrc, LPMESSAGE lpDest, LPSRestriction 
 	// table
 	LPMAPITABLE lpTable = NULL;
 	LPSRowSet lpRows = NULL;
-	LPSPropTagArray lpTableColumns = NULL;
+	memory_ptr<SPropTagArray> lpTableColumns;
 	ULONG ulRows = 0;
 
 	// attachments
 	LPSPropValue lpAttachNum = NULL;
-	LPSPropValue lpHasAttach = NULL;
+	memory_ptr<SPropValue> lpHasAttach;
 	ULONG ulAttachNr = 0;
 	LPATTACH lpSrcAttach = NULL;
 	LPATTACH lpDestAttach = NULL;
 
-	hr = HrGetOneProp(lpSrc, PR_HASATTACH, &lpHasAttach);
+	hr = HrGetOneProp(lpSrc, PR_HASATTACH, &~lpHasAttach);
 	if (hr != hrSuccess) {
 		hr = hrSuccess;
 		goto exit;
@@ -2674,8 +2668,7 @@ HRESULT Util::CopyAttachments(LPMESSAGE lpSrc, LPMESSAGE lpDest, LPSRestriction 
 	hr = lpSrc->GetAttachmentTable(MAPI_UNICODE, &lpTable);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = lpTable->QueryColumns(TBL_ALL_COLUMNS, &lpTableColumns);
+	hr = lpTable->QueryColumns(TBL_ALL_COLUMNS, &~lpTableColumns);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -2748,8 +2741,6 @@ next_attach:
 		hr = MAPI_W_PARTIAL_COMPLETION;
 
 exit:
-	MAPIFreeBuffer(lpHasAttach);
-	MAPIFreeBuffer(lpTableColumns);
 	if (lpRows)
 		FreeProws(lpRows);
 
@@ -2898,7 +2889,7 @@ HRESULT Util::CopyContents(ULONG ulWhat, LPMAPIFOLDER lpSrc, LPMAPIFOLDER lpDest
 	SizedSPropTagArray(1, sptaEntryID) = { 1, { PR_ENTRYID } };
 	ULONG ulObj;
 	LPMESSAGE lpSrcMessage = NULL, lpDestMessage = NULL;
-	LPENTRYLIST lpDeleteEntries = NULL;
+	memory_ptr<ENTRYLIST> lpDeleteEntries;
 
 	hr = lpSrc->GetContentsTable(MAPI_UNICODE | ulWhat, &lpTable);
 	if (hr != hrSuccess)
@@ -2906,8 +2897,7 @@ HRESULT Util::CopyContents(ULONG ulWhat, LPMAPIFOLDER lpSrc, LPMAPIFOLDER lpDest
 	hr = lpTable->SetColumns(sptaEntryID, 0);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), (void**)&lpDeleteEntries);
+	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~lpDeleteEntries);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -2976,7 +2966,6 @@ next_item:
 		hr = MAPI_W_PARTIAL_COMPLETION;
 
 exit:
-	MAPIFreeBuffer(lpDeleteEntries);
 	if (lpDestMessage)
 		lpDestMessage->Release();
 
@@ -3105,7 +3094,7 @@ HRESULT Util::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj, ULONG ciidExclude
 													 PR_NULL, PR_NULL, PR_NULL, PR_NULL }};
 
 	LPMAPIPROP lpPropSrc = NULL, lpPropDest = NULL;
-	LPSPropTagArray lpSPropTagArray = NULL;
+	memory_ptr<SPropTagArray> lpSPropTagArray;
 
 	if (!lpSrcInterface || !lpSrcObj || !lpDestInterface || !lpDestObj) {
 		hr = MAPI_E_INVALID_PARAMETER;
@@ -3211,8 +3200,7 @@ HRESULT Util::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj, ULONG ciidExclude
 		goto exit;
 	if (!FHasHTML(lpPropDest))
 		sExtraExcludes.aulPropTag[sExtraExcludes.cValues++] = PR_HTML;
-
-	hr = lpPropSrc->GetPropList(MAPI_UNICODE, &lpSPropTagArray);
+	hr = lpPropSrc->GetPropList(MAPI_UNICODE, &~lpSPropTagArray);
 	if (FAILED(hr))
 		goto exit;
 
@@ -3240,10 +3228,10 @@ HRESULT Util::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj, ULONG ciidExclude
 			bAddRecip = true;
 
 		if (bAddAttach || bAddRecip) {
-			LPSPropTagArray lpTempSPropTagArray = NULL;
+			memory_ptr<SPropTagArray> lpTempSPropTagArray;
 			ULONG ulNewPropCount = lpSPropTagArray->cValues + (bAddAttach ? (bAddRecip ? 2 : 1) : 1);
 			
-			hr = MAPIAllocateBuffer(CbNewSPropTagArray(ulNewPropCount), (LPVOID*)&lpTempSPropTagArray);
+			hr = MAPIAllocateBuffer(CbNewSPropTagArray(ulNewPropCount), &~lpTempSPropTagArray);
 			if (hr != hrSuccess)
 				goto exit;
 
@@ -3256,7 +3244,6 @@ HRESULT Util::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj, ULONG ciidExclude
 			lpTempSPropTagArray->cValues = ulNewPropCount;
 
 			std::swap(lpTempSPropTagArray, lpSPropTagArray);
-			MAPIFreeBuffer(lpTempSPropTagArray);
 		}
 	}
 
@@ -3271,7 +3258,6 @@ exit:
 	// Partial warning when data was copied.
 	if (bPartial)
 		hr = MAPI_W_PARTIAL_COMPLETION;
-	MAPIFreeBuffer(lpSPropTagArray);
 	if (lpPropSrc)
 		lpPropSrc->Release();
 
@@ -3357,23 +3343,22 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, LPVOID lpSrcObj, LPSPropTagArra
 	HRESULT hr = hrSuccess;
 	LPUNKNOWN lpUnkSrc = (LPUNKNOWN)lpSrcObj, lpUnkDest = (LPUNKNOWN)lpDestObj;
 	IECUnknown* lpKopano = NULL;
-	LPSPropValue lpZObj = NULL;
+	memory_ptr<SPropValue> lpZObj, lpProps;
 	bool bPartial = false;
 
 	LPMAPIPROP lpSrcProp = NULL, lpDestProp = NULL;
-	LPSPropValue lpProps = NULL;
 	ULONG cValues = 0;
-	LPSPropTagArray lpsDestPropArray = NULL;
-	LPSPropProblemArray lpProblems = NULL;
+	memory_ptr<SPropTagArray> lpsDestPropArray;
+	memory_ptr<SPropProblemArray> lpProblems;
 
 	// named props
 	ULONG cNames = 0;
-	LPSPropTagArray lpsSrcNameTagArray = NULL, lpsDestNameTagArray = NULL;
-	LPMAPINAMEID *lppNames = NULL;
-	LPSPropTagArray lpsDestTagArray = NULL;
+	memory_ptr<SPropTagArray> lpsSrcNameTagArray, lpsDestNameTagArray;
+	memory_ptr<SPropTagArray> lpsDestTagArray;
+	memory_ptr<MAPINAMEID *> lppNames;
 
 	// attachments
-	LPSPropValue lpAttachMethod = NULL;
+	memory_ptr<SPropValue> lpAttachMethod;
 	LPSTREAM lpSrcStream = NULL, lpDestStream = NULL;
 	LPMESSAGE lpSrcMessage = NULL, lpDestMessage = NULL;
 
@@ -3398,12 +3383,12 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, LPVOID lpSrcObj, LPSPropTagArra
 		goto exit;
 
 	// take some shortcuts if we're dealing with a Kopano message destination
-	if (HrGetOneProp(lpDestProp, PR_EC_OBJECT, &lpZObj) == hrSuccess &&
+	if (HrGetOneProp(lpDestProp, PR_EC_OBJECT, &~lpZObj) == hrSuccess &&
 	    lpZObj->Value.lpszA != NULL)
 		((IECUnknown*)lpZObj->Value.lpszA)->QueryInterface(IID_ECMessage, (void**)&lpKopano);
 
 	if (ulFlags & MAPI_NOREPLACE) {
-		hr = lpDestProp->GetPropList(MAPI_UNICODE, &lpsDestPropArray);
+		hr = lpDestProp->GetPropList(MAPI_UNICODE, &~lpsDestPropArray);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -3484,7 +3469,7 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, LPVOID lpSrcObj, LPSPropTagArra
 
 			// In attachments, IID_IMessage can be present!  for PR_ATTACH_DATA_OBJ
 			// find method and copy this PT_OBJECT
-			if (HrGetOneProp(lpSrcProp, PR_ATTACH_METHOD, &lpAttachMethod) != hrSuccess)
+			if (HrGetOneProp(lpSrcProp, PR_ATTACH_METHOD, &~lpAttachMethod) != hrSuccess)
 				ulAttachMethod = ATTACH_BY_VALUE;
 			else
 				ulAttachMethod = lpAttachMethod->Value.ul;
@@ -3563,12 +3548,10 @@ next_include_check:
 			sProblem.ulIndex = i;
 			sProblem.ulPropTag = lpIncludeProps->aulPropTag[i];
 			sProblem.scode = MAPI_E_INTERFACE_NOT_SUPPORTED; // hr?
-			hr = AddProblemToArray(&sProblem, &lpProblems);
+			hr = AddProblemToArray(&sProblem, &+lpProblems);
 			if (hr != hrSuccess)
 				goto exit;
 		}
-		MAPIFreeBuffer(lpAttachMethod);
-		lpAttachMethod = NULL;
 		if (lpDestStream) {
 			lpDestStream->Release();
 			lpDestStream = NULL;
@@ -3589,12 +3572,12 @@ next_include_check:
 		lpIncludeProps->aulPropTag[i] = PR_NULL;
 	}
 
-	hr = lpSrcProp->GetProps(lpIncludeProps, 0, &cValues, &lpProps);
+	hr = lpSrcProp->GetProps(lpIncludeProps, 0, &cValues, &~lpProps);
 	if (FAILED(hr))
 		goto exit;
 
 	// make map for destination property tags, because named IDs may differ in src and dst
-	hr = MAPIAllocateBuffer(CbNewSPropTagArray(cValues), (void**)&lpsDestTagArray);
+	hr = MAPIAllocateBuffer(CbNewSPropTagArray(cValues), &~lpsDestTagArray);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -3607,7 +3590,7 @@ next_include_check:
 	}
 
 	if (cNames) {
-		hr = MAPIAllocateBuffer(CbNewSPropTagArray(cNames), (void**)&lpsSrcNameTagArray);
+		hr = MAPIAllocateBuffer(CbNewSPropTagArray(cNames), &~lpsSrcNameTagArray);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -3618,11 +3601,10 @@ next_include_check:
 				lpsSrcNameTagArray->aulPropTag[cNames++] = lpProps[i].ulPropTag;
 
 		// ignore warnings on unknown named properties, but don't copy those either (see PT_ERROR below)
-		hr = lpSrcProp->GetNamesFromIDs(&lpsSrcNameTagArray, NULL, 0, &cNames, &lppNames);
+		hr = lpSrcProp->GetNamesFromIDs(&+lpsSrcNameTagArray, NULL, 0, &cNames, &~lppNames);
 		if (FAILED(hr))
 			goto exit;
-
-		hr = lpDestProp->GetIDsFromNames(cNames, lppNames, MAPI_CREATE, &lpsDestNameTagArray);
+		hr = lpDestProp->GetIDsFromNames(cNames, lppNames, MAPI_CREATE, &~lpsDestNameTagArray);
 		if (FAILED(hr))
 			goto exit;
 
@@ -3705,19 +3687,9 @@ next_include_check:
 exit:
 	if (bPartial)
 		hr = MAPI_W_PARTIAL_COMPLETION;
-
-	if (hr != hrSuccess)
+	if (hr == hrSuccess && lppProblems != nullptr)
 		// may not return a problem set when we have an warning/error code in hr
-		MAPIFreeBuffer(lpProblems);
-	else if (lppProblems != nullptr)
-		*lppProblems = lpProblems;
-	else
-		MAPIFreeBuffer(lpProblems);
-
-	MAPIFreeBuffer(lppNames);
-	MAPIFreeBuffer(lpsSrcNameTagArray);
-	MAPIFreeBuffer(lpsDestNameTagArray);
-	MAPIFreeBuffer(lpsDestTagArray);
+		*lppProblems = lpProblems.release();
 	if (lpSrcMessage)
 		lpSrcMessage->Release();
 
@@ -3729,17 +3701,13 @@ exit:
 
 	if (lpDestStream)
 		lpDestStream->Release();
-	MAPIFreeBuffer(lpAttachMethod);
 	if (lpSrcProp)
 		lpSrcProp->Release();
 
 	if (lpDestProp)
 		lpDestProp->Release();
-	MAPIFreeBuffer(lpProps);
-	MAPIFreeBuffer(lpsDestPropArray);
 	if (lpKopano)
 		lpKopano->Release();
-	MAPIFreeBuffer(lpZObj);
 	return hr;
 }
 
@@ -3764,7 +3732,7 @@ HRESULT Util::HrCopyIMAPData(LPMESSAGE lpSrcMsg, LPMESSAGE lpDstMsg)
 		}
 	};
 	ULONG cValues = 0;
-	LPSPropValue lpIMAPProps = NULL;
+	memory_ptr<SPropValue> lpIMAPProps;
 
 	// special case: get PR_EC_IMAP_BODY if present, and copy with single instance
 	// hidden property in kopano, try to copy contents
@@ -3777,7 +3745,7 @@ HRESULT Util::HrCopyIMAPData(LPMESSAGE lpSrcMsg, LPMESSAGE lpDstMsg)
 			Util::CopyInstanceIds(lpSrcMsg, lpDstMsg);
 
 			// Since we have a copy of the original email body, copy the other properties for IMAP too
-			hr = lpSrcMsg->GetProps(sptaIMAP, 0, &cValues, &lpIMAPProps);
+			hr = lpSrcMsg->GetProps(sptaIMAP, 0, &cValues, &~lpIMAPProps);
 			if (FAILED(hr))
 				goto exit;
 
@@ -3795,7 +3763,6 @@ exit:
 
 	if (lpSrcStream)
 		lpSrcStream->Release();
-	MAPIFreeBuffer(lpIMAPProps);
 	return hr;
 }
 
@@ -3825,8 +3792,8 @@ HRESULT Util::HrGetQuotaStatus(IMsgStore *lpMsgStore, ECQUOTA *lpsQuota,
     ECQUOTASTATUS **lppsQuotaStatus)
 {
 	HRESULT			hr = hrSuccess;
-	ECQUOTASTATUS *lpsQuotaStatus = NULL;
-	LPSPropValue 	lpProps = NULL;
+	memory_ptr<ECQUOTASTATUS> lpsQuotaStatus;
+	memory_ptr<SPropValue> lpProps;
     SizedSPropTagArray(1, sptaProps) = {1, {PR_MESSAGE_SIZE_EXTENDED}};
     ULONG 			cValues = 0;
 	
@@ -3834,8 +3801,7 @@ HRESULT Util::HrGetQuotaStatus(IMsgStore *lpMsgStore, ECQUOTA *lpsQuota,
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-	
-	hr = lpMsgStore->GetProps(sptaProps, 0, &cValues, &lpProps);
+	hr = lpMsgStore->GetProps(sptaProps, 0, &cValues, &~lpProps);
 	if (hr != hrSuccess)
 		goto exit;
 		
@@ -3843,8 +3809,7 @@ HRESULT Util::HrGetQuotaStatus(IMsgStore *lpMsgStore, ECQUOTA *lpsQuota,
 		hr = MAPI_E_NOT_FOUND;
 		goto exit;
 	}
-	
-	hr = MAPIAllocateBuffer(sizeof *lpsQuotaStatus, (void**)&lpsQuotaStatus);
+	hr = MAPIAllocateBuffer(sizeof *lpsQuotaStatus, &~lpsQuotaStatus);
 	if (hr != hrSuccess)
 		goto exit;
 	memset(lpsQuotaStatus, 0, sizeof *lpsQuotaStatus);
@@ -3859,13 +3824,8 @@ HRESULT Util::HrGetQuotaStatus(IMsgStore *lpMsgStore, ECQUOTA *lpsQuota,
 		else if (lpsQuota->llWarnSize > 0 && lpsQuotaStatus->llStoreSize > lpsQuota->llWarnSize)
 			lpsQuotaStatus->quotaStatus = QUOTA_WARN;
 	}
-	
-	*lppsQuotaStatus = lpsQuotaStatus;
-	lpsQuotaStatus = NULL;
-	
+	*lppsQuotaStatus = lpsQuotaStatus.release();
 exit:
-	MAPIFreeBuffer(lpsQuotaStatus);
-	MAPIFreeBuffer(lpProps);
 	return hr;
 }
 
@@ -3886,23 +3846,20 @@ exit:
 HRESULT Util::HrDeleteResidualProps(LPMESSAGE lpDestMsg, LPMESSAGE lpSourceMsg, LPSPropTagArray lpsValidProps)
 {
 	HRESULT			hr = hrSuccess;
-	LPSPropTagArray	lpsPropArray = NULL;
-	LPSPropTagArray	lpsNamedPropArray = NULL;
-	LPSPropTagArray	lpsMappedPropArray = NULL;
+	memory_ptr<SPropTagArray> lpsPropArray, lpsNamedPropArray;
+	memory_ptr<SPropTagArray> lpsMappedPropArray;
 	ULONG			cPropNames = 0;
-	LPMAPINAMEID	*lppPropNames = NULL;
+	memory_ptr<MAPINAMEID *> lppPropNames;
 	PropTagSet		sPropTagSet;
 
 	if (lpDestMsg == NULL || lpSourceMsg == NULL || lpsValidProps == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-
-	hr = lpDestMsg->GetPropList(0, &lpsPropArray);
+	hr = lpDestMsg->GetPropList(0, &~lpsPropArray);
 	if (hr != hrSuccess || lpsPropArray->cValues == 0)
 		goto exit;
-
-	hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpsValidProps->cValues), (void**)&lpsNamedPropArray);
+	hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpsValidProps->cValues), &~lpsNamedPropArray);
 	if (hr != hrSuccess)
 		goto exit;
 	memset(lpsNamedPropArray, 0, CbNewSPropTagArray(lpsValidProps->cValues));
@@ -3912,11 +3869,10 @@ HRESULT Util::HrDeleteResidualProps(LPMESSAGE lpDestMsg, LPMESSAGE lpSourceMsg, 
 			lpsNamedPropArray->aulPropTag[lpsNamedPropArray->cValues++] = lpsValidProps->aulPropTag[i];
 
 	if (lpsNamedPropArray->cValues > 0) {
-		hr = lpSourceMsg->GetNamesFromIDs(&lpsNamedPropArray, NULL, 0, &cPropNames, &lppPropNames);
+		hr = lpSourceMsg->GetNamesFromIDs(&+lpsNamedPropArray, NULL, 0, &cPropNames, &~lppPropNames);
 		if (FAILED(hr))
 			goto exit;
-
-		hr = lpDestMsg->GetIDsFromNames(cPropNames, lppPropNames, MAPI_CREATE, &lpsMappedPropArray);
+		hr = lpDestMsg->GetIDsFromNames(cPropNames, lppPropNames, MAPI_CREATE, &~lpsMappedPropArray);
 		if (FAILED(hr))
 			goto exit;
 	}
@@ -3954,10 +3910,6 @@ HRESULT Util::HrDeleteResidualProps(LPMESSAGE lpDestMsg, LPMESSAGE lpSourceMsg, 
 	hr = lpDestMsg->SaveChanges(KEEP_OPEN_READWRITE);
 
 exit:
-	MAPIFreeBuffer(lpsMappedPropArray);
-	MAPIFreeBuffer(lppPropNames);
-	MAPIFreeBuffer(lpsNamedPropArray);
-	MAPIFreeBuffer(lpsPropArray);
 	return hr;
 }
 

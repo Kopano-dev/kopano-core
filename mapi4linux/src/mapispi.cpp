@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
+#include <kopano/memory.hpp>
 #include "m4l.mapispi.h"
 #include "m4l.mapiutil.h"
 #include "m4l.mapix.h"
@@ -318,7 +319,7 @@ HRESULT M4LMAPISupport::CopyMessages(LPCIID lpSrcInterface, LPVOID lpSrcFolder, 
 	LPMESSAGE lpSrcMessage = NULL;
 	LPMESSAGE lpDestMessage = NULL;
 	ULONG ulObjType;
-	LPENTRYLIST lpDeleteEntries = NULL;
+	KCHL::memory_ptr<ENTRYLIST> lpDeleteEntries;
 	bool bPartial = false;
 	ULONG i;
 
@@ -334,8 +335,7 @@ HRESULT M4LMAPISupport::CopyMessages(LPCIID lpSrcInterface, LPVOID lpSrcFolder, 
 
 	lpSource = (LPMAPIFOLDER)lpSrcFolder;
 	lpDest = (LPMAPIFOLDER)lpDestFolder;
-
-	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), (void**)&lpDeleteEntries);
+	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~lpDeleteEntries);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -395,7 +395,6 @@ next_item:
 		hr = MAPI_W_PARTIAL_COMPLETION;
 
 exit:
-	MAPIFreeBuffer(lpDeleteEntries);
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPISupport::CopyMessages", "0x%08x", hr);
 	return hr;
 }
@@ -409,7 +408,7 @@ HRESULT M4LMAPISupport::CopyFolder(LPCIID lpSrcInterface, LPVOID lpSrcFolder, UL
 	LPMAPIFOLDER lpDest = NULL;
 	LPMAPIFOLDER lpFolder = NULL;
 	LPMAPIFOLDER lpSubFolder = NULL;
-	LPSPropValue lpSourceName = NULL;
+	KCHL::memory_ptr<SPropValue> lpSourceName;
 	ULONG ulObjType  = 0;
 	ULONG ulFolderFlags = 0;
 
@@ -443,7 +442,7 @@ HRESULT M4LMAPISupport::CopyFolder(LPCIID lpSrcInterface, LPVOID lpSrcFolder, UL
 		goto exit;
 
 	if (!lpszNewFolderName) {
-		hr = HrGetOneProp(lpFolder, PR_DISPLAY_NAME_W, &lpSourceName);
+		hr = HrGetOneProp(lpFolder, PR_DISPLAY_NAME_W, &~lpSourceName);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -472,7 +471,6 @@ exit:
 
 	if (lpFolder)
 		lpFolder->Release();
-	MAPIFreeBuffer(lpSourceName);
 	if (lpSubFolder)
 		lpSubFolder->Release();
 
