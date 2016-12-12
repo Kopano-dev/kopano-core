@@ -131,7 +131,7 @@ def show_contents(args, options):
                     writer.writerow([_encode(path), _encode(message.Subject)])
 
 def main():
-    parser = kopano.parser('cflskpUPu', usage='kopano-pst PATH -u NAME')
+    parser = kopano.parser('cflskpUPu', usage='kopano-pst PATH [-u NAME]')
     parser.add_option('', '--stats', dest='stats', action='store_true', help='list folders for PATH')
     parser.add_option('', '--index', dest='index', action='store_true', help='list items for PATH')
     parser.add_option('', '--import-root', dest='import_root', action='store', help='list items for PATH', metavar='PATH')
@@ -139,9 +139,9 @@ def main():
     options, args = parser.parse_args()
     options.service = False
 
-    assert args, 'please specify path(s) to .pst file(s)'
-    if not (options.stats or options.index):
-        assert options.users, 'please specify user(s) to import to'
+    if not args or (bool(options.stats or options.index) == bool(options.users)):
+        parser.print_help()
+        sys.exit(1)
 
     if options.stats or options.index:
         show_contents(args, options)
