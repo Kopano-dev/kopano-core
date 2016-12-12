@@ -25,8 +25,6 @@ namespace KC {
 
 extern _kc_export HRESULT HrFileLFtoCRLF(FILE *fin, FILE **fout);
 extern _kc_export HRESULT HrMapFileToString(FILE *f, std::string *buf, int *size = nullptr);
-HRESULT HrMapFileToBuffer(FILE *f, char **lppBuffer, int *lpSize, bool *lpImmap);
-HRESULT HrUnmapFileBuffer(char *lpBuffer, int ulSize, bool bImmap);
 extern _kc_export bool DuplicateFile(FILE *, std::string &newname);
 
 } /* namespace */

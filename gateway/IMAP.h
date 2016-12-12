@@ -54,9 +54,6 @@ class ECRestriction;
 #define RESP_TAGGED_NO " NO "
 #define RESP_TAGGED_BAD " BAD "
 
-
-LONG __stdcall IMAPIdleAdviseCallback(void *lpContext, ULONG cNotif, LPNOTIFICATION lpNotif);
-
 class BinaryArray _kc_final {
 public:
 	BinaryArray(void) : lpb(NULL), cb(0), bcheap(false) {}
@@ -217,6 +214,7 @@ private:
 	HRESULT HrResponse(const string &strUntag, const string& strResponse);
 	/* Tagged response with result OK, NO or BAD */
 	HRESULT HrResponse(const string &strResult, const string &strTag, const string& strResponse);
+	static LONG __stdcall IdleAdviseCallback(void *ctx, ULONG numnotif, LPNOTIFICATION);
 
 private:
 	bool bOnlyMailFolders;
@@ -386,8 +384,6 @@ private:
 	void HrTokenize(std::set<std::string> &setTokens, const std::string &strInput);
 
 	HRESULT HrExpungeDeleted(const string &strTag, const string &strCommand, std::unique_ptr<ECRestriction> &&);
-
-	friend LONG __stdcall IMAPIdleAdviseCallback(void *lpContext, ULONG cNotif, LPNOTIFICATION lpNotif);
 };
 
 /** @} */

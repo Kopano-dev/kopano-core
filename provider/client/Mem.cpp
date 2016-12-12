@@ -43,18 +43,6 @@ HRESULT ECFreeBuffer(void *lpvoid) {
 	else return _pfnFreeBuf(lpvoid);
 }
 
-// Memory tracing
-HRESULT ECAllocateBufferDbg(ULONG cbSize, void **lpvoid, char *szFromWhere, int linenr) {
-	HRESULT hr = hrSuccess;
-	if(_pfnAllocBuf == NULL)
-		hr = MAPI_E_CALL_FAILED;
-	else hr = _pfnAllocBuf(cbSize, lpvoid);
-
-	TRACE_INTERNAL(TRACE_ENTRY, "MEM", "ECAllocateBuffer", "%s(%d): ALLOC 0x%08x", szFromWhere, linenr, *(unsigned int *)lpvoid);
-
-	return hr;
-}
-
 HRESULT ECAllocateBuffer(ULONG cbSize, void **lpvoid) {
 	if(_pfnAllocBuf == NULL)
 		return MAPI_E_CALL_FAILED;

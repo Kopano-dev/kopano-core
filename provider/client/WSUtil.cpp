@@ -1386,7 +1386,7 @@ exit:
 	return hr;
 }
 
-HRESULT CopySOAPPropTagArrayToMAPIPropTagArray(
+static HRESULT CopySOAPPropTagArrayToMAPIPropTagArray(
     const struct propTagArray *lpsPropTagArray,
     LPSPropTagArray *lppPropTagArray, void *lpBase)
 {
@@ -1437,7 +1437,8 @@ HRESULT Utf8ToTString(LPCSTR lpszUtf8, ULONG ulFlags, LPVOID lpBase, convert_con
 	return hrSuccess;
 }
 
-HRESULT TStringToUtf8(LPCTSTR lpszTstring, ULONG ulFlags, LPVOID lpBase, convert_context *lpConverter, LPSTR *lppszUtf8)
+static HRESULT TStringToUtf8(const TCHAR *lpszTstring, ULONG ulFlags,
+    void *lpBase, convert_context *lpConverter, char **lppszUtf8)
 {
 	HRESULT	hr;
 	std::string strDest;

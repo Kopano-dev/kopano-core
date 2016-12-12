@@ -23,7 +23,6 @@
 // Linked memory routines
 HRESULT ECFreeBuffer(void *lpvoid);
 HRESULT ECAllocateBuffer(ULONG cbSize, void **lpvoid);
-HRESULT ECAllocateBufferDbg(ULONG cbSize, void **lpvoid, char *szFile, int line);
 HRESULT ECAllocateMore(ULONG cbSize, void *lpBase, void **lpvoid);
 
 HRESULT AllocNewMapiObject(ULONG ulUniqueId, ULONG ulObjId, ULONG ulObjType, MAPIOBJECT **lppMapiObject);

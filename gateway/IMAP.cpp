@@ -2528,7 +2528,9 @@ std::string IMAP::PropsToFlags(LPSPropValue lpProps, unsigned int cValues, bool 
  * 
  * @return MAPI Error code
  */
-LONG __stdcall IMAPIdleAdviseCallback(void *lpContext, ULONG cNotif, LPNOTIFICATION lpNotif) {
+LONG __stdcall IMAP::IdleAdviseCallback(void *lpContext, ULONG cNotif,
+    LPNOTIFICATION lpNotif)
+{
 	IMAP *lpIMAP = (IMAP*)lpContext;
 	string strFlags;
 	ULONG ulMailNr = 0;
@@ -2674,7 +2676,7 @@ HRESULT IMAP::HrCmdIdle(const string &strTag) {
 		goto exit;
 	}
 
-	hr = HrAllocAdviseSink(IMAPIdleAdviseCallback, (void*)this, &m_lpIdleAdviseSink);
+	hr = HrAllocAdviseSink(&IMAP::IdleAdviseCallback, (void*)this, &m_lpIdleAdviseSink);
 	if (hr != hrSuccess) {
 		hr2 = HrResponse(RESP_CONTINUE, "Can't allocate memory to idle");
 		goto exit;

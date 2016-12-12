@@ -33,12 +33,12 @@ using namespace KCHL;
 
 namespace KC {
 
-BOOL leapyear(short year)
+static bool leapyear(short year)
 {
 	return year % 4 == 0 && (year % 100 != 0 || year % 400 == 0); 
 }
 
-HRESULT getMaxMonthMinutes(short year, short month, short* minutes)
+static HRESULT getMaxMonthMinutes(short year, short month, short *minutes)
 {
 	short days = 0;
 
@@ -73,7 +73,8 @@ HRESULT getMaxMonthMinutes(short year, short month, short* minutes)
 	return hrSuccess;
 }
 
-HRESULT GetFreeBusyFolder(IMsgStore* lpPublicStore, IMAPIFolder** lppFreeBusyFolder)
+static HRESULT GetFreeBusyFolder(IMsgStore *lpPublicStore,
+    IMAPIFolder **lppFreeBusyFolder)
 {
 	HRESULT			hr = S_OK;
 	ULONG			cValuesFreeBusy = 0;
@@ -372,7 +373,8 @@ exit:
 	return hr;
 }
 
-HRESULT ParseFBEvents(FBStatus fbSts, LPSPropValue lpMonth, LPSPropValue lpEvent, ECFBBlockList* lpfbBlockList)
+static HRESULT ParseFBEvents(FBStatus fbSts, LPSPropValue lpMonth,
+    LPSPropValue lpEvent, ECFBBlockList *lpfbBlockList)
 {
 	ULONG		cEvents;
 	sfbEvent*	lpfbEvents = NULL;
@@ -685,49 +687,6 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 	return hr;
 }
 
-std::string GetFbStatus(FBStatus &fbstatus)
-{
-	std::string str;
-
-	switch(fbstatus) {
-		case fbFree:
-			str = "Free";
-			break;
-		case fbTentative:
-			str = "Tentative";
-			break;
-		case fbBusy:
-			str = "Busy";
-			break;
-		case fbOutOfOffice:
-			str = "OutOfOffice";
-			break;
-		default:
-			str = "<unknown: "+stringify(fbstatus)+">";
-			break;
-	}
-
-	return str;
-}
-
-std::string GetDebugFBBlock(LONG celt, FBBlock_1* pblk)
-{
-	std::string str;
-
-	str= "celt: "+stringify(celt);
-	str+= "\n";
-
-	for (int i = 0; i < celt; ++i) {
-		str+= "block: "+stringify(i);
-		str+= "\n\tstart: "+stringify(pblk[i].m_tmStart);
-		str+= "\n\tend: "+stringify(pblk[i].m_tmEnd);
-		str+= "\n\tstatus: "+GetFbStatus(pblk[i].m_fbstatus);
-		str+= "\n";
-	}
-
-	return str;
-}
-
 /**
  * Copies a array of occurrence to another array
  * @param[out]	lpDest		destination array 
@@ -736,7 +695,7 @@ std::string GetDebugFBBlock(LONG celt, FBBlock_1* pblk)
  *
  * @return		HRESULT
  */
-HRESULT HrCopyFBBlockSet(OccrInfo *lpDest, const OccrInfo *lpSrc,
+static HRESULT HrCopyFBBlockSet(OccrInfo *lpDest, const OccrInfo *lpSrc,
     ULONG ulcValues)
 {
 	HRESULT hr = hrSuccess;	

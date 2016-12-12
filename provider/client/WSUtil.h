@@ -51,9 +51,6 @@ HRESULT CopySOAPEntryIdToMAPIEntryId(const entryId *lpSrc, ULONG ulObjId, ULONG 
 HRESULT CopyMAPIEntryListToSOAPEntryList(const ENTRYLIST *lpMsgList, struct entryList *lpsEntryList);
 HRESULT CopySOAPEntryListToMAPIEntryList(const struct entryList *lpsEntryList, LPENTRYLIST *lppMsgList);
 HRESULT CopyUserClientUpdateStatusFromSOAP(struct userClientUpdateStatusResponse &sUCUS, ULONG ulFlags, ECUSERCLIENTUPDATESTATUS **lppECUCUS);
-
-HRESULT CopySOAPPropTagArrayToMAPIPropTagArray(const struct propTagArray *lpsPropTagArray, LPSPropTagArray *lppPropTagArray, void *lpBase = NULL);
-
 HRESULT FreeABProps(struct propmapPairArray *lpsoapPropmap, struct propmapMVPairArray *lpsoapMVPropmap);
 HRESULT CopyABPropsToSoap(const SPROPMAP *lpPropmap, const MVPROPMAP *lpMVPropmap, ULONG ulFlags, 
 						  struct propmapPairArray **lppsoapPropmap, struct propmapMVPairArray **lppsoapMVPropmap);
@@ -71,7 +68,6 @@ HRESULT SoapCompanyToCompany(const struct company *lpCompany, ULONG ulFLags, ECC
 
 HRESULT SvrNameListToSoapMvString8(ECSVRNAMELIST *lpSvrNameList, ULONG ulFLags, struct mv_string8 **lppsSvrNameList);
 HRESULT SoapServerListToServerList(const struct serverList *lpsServerList, ULONG ulFLags, ECSERVERLIST **lppServerList);
-int gsoap_connect_unixsocket(struct soap *soap, const char *endpoint, const char *host, int port);
 HRESULT CreateSoapTransport(ULONG ulUIFlags, const sGlobalProfileProps &sProfileProps, KCmd **const lppCmd);
 
 HRESULT WrapServerClientStoreEntry(const char* lpszServerName, entryId* lpsStoreId, ULONG* lpcbStoreID, LPENTRYID* lppStoreID);
@@ -79,13 +75,9 @@ HRESULT UnWrapServerClientStoreEntry(ULONG cbWrapStoreID, LPENTRYID lpWrapStoreI
 HRESULT UnWrapServerClientABEntry(ULONG cbWrapABID, LPENTRYID lpWrapABID, ULONG* lpcbUnWrapABID, LPENTRYID* lppUnWrapABID);
 HRESULT	CopySOAPNotificationToMAPINotification(void *lpProvider, struct notification *lpSrc, LPNOTIFICATION *lppDst, convert_context *lpConverter = NULL);
 HRESULT CopySOAPChangeNotificationToSyncState(struct notification *lpSrc, LPSBinary *lppDst, void *lpBase);
-
-HRESULT CopyMAPISourceKeyToSoapSourceKey(SBinary *lpsSourceKey, struct xsd__base64Binary **lppsSourceKey, void *lpBase);
 HRESULT CopyICSChangeToSOAPSourceKeys(ULONG cbChanges, ICSCHANGE *lpsChanges, sourceKeyPairArray **lppsSKPA);
 
 HRESULT Utf8ToTString(LPCSTR lpszUtf8, ULONG ulFlags, LPVOID lpBase, convert_context *lpConverter, LPTSTR *lppszTString);
-HRESULT TStringToUtf8(LPCTSTR lpszTstring, ULONG ulFlags, LPVOID lpBase, convert_context *lpConverter, LPSTR *lppszUtf8);
-
 HRESULT ConvertString8ToUnicode(LPSRowSet lpRowSet);
 HRESULT ConvertString8ToUnicode(LPSRow lpRow, void *base, convert_context &converter);
 

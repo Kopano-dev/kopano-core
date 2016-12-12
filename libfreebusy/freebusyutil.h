@@ -32,20 +32,10 @@
 
 namespace KC {
 
-HRESULT GetFreeBusyFolder(IMsgStore* lpPublicStore, IMAPIFolder** lppFreeBusyFolder);
 HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IMsgStore* lpUserStore, ULONG cbUserEntryID, LPENTRYID lpUserEntryID, BOOL bCreateIfNotExist, IMessage** lppMessage);
-HRESULT ParseFBEvents(FBStatus fbSts, LPSPropValue lpMonth, LPSPropValue lpEvent, ECFBBlockList* lpfbBlockList);
 HRESULT GetFreeBusyMessageData(IMessage* lpMessage, LONG* lprtmStart, LONG* lprtmEnd, ECFBBlockList	*lpfbBlockList);
 HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULONG ulPropEvents, ECFBBlockList* lpfbBlockList, LPSPropValue* lppPropFBDataArray);
-
-BOOL leapyear(short year);
-HRESULT getMaxMonthMinutes(short year, short month, short* minutes);
 unsigned int DiffYearMonthToMonth( struct tm *tm1, struct tm *tm2);
-
-std::string GetDebugFBBlock(LONG celt, FBBlock_1* pblk);
-std::string GetFbStatus(FBStatus &fbstatus);
-
-extern HRESULT HrCopyFBBlockSet(OccrInfo *dst, const OccrInfo *src, ULONG nvals);
 extern HRESULT HrAddFBBlock(const OccrInfo &sOccrInfo, OccrInfo **lppsOccrInfo, ULONG *lpcValues);
 
 } /* namespace */

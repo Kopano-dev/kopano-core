@@ -109,7 +109,8 @@ static inline int mmapsize(unsigned int size)
  * 
  * @return MAPI error code
  */
-HRESULT HrMapFileToBuffer(FILE *f, char **lppBuffer, int *lpSize, bool *lpImmap)
+static HRESULT HrMapFileToBuffer(FILE *f, char **lppBuffer, int *lpSize,
+    bool *lpImmap)
 {
 	char *lpBuffer = NULL;
 	int offset = 0;
@@ -177,7 +178,7 @@ HRESULT HrMapFileToBuffer(FILE *f, char **lppBuffer, int *lpSize, bool *lpImmap)
  * @param[in] ulSize size of the buffer
  * @param[in] bImmap marker if the buffer is mapped or not
  */
-HRESULT HrUnmapFileBuffer(char *lpBuffer, int ulSize, bool bImmap)
+static HRESULT HrUnmapFileBuffer(char *lpBuffer, int ulSize, bool bImmap)
 {
 	if (bImmap)
 		munmap(lpBuffer, mmapsize(ulSize));
