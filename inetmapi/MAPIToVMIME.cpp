@@ -1745,7 +1745,23 @@ HRESULT MAPIToVMIME::handleExtraHeaders(IMessage *lpMessage,
 	if (HrGetOneProp(lpMessage, PR_EXPIRY_TIME, &~lpExpiryTime) == hrSuccess)
 		vmHeader->appendField(hff->create("Expiry-Time", FiletimeTovmimeDatetime(lpExpiryTime->Value.ft).generate()));
 
-//exit:
+	if (flags & MTV_SPOOL) {
+		char buffer[4096] = {0};
+
+		if (gethostname(buffer, sizeof buffer) == -1)
+			strcpy(buffer, "???");
+
+		std::string server_name = buffer;
+		vmime::relay relay;
+		relay.setBy(server_name);
+		relay.getWithList().push_back("MAPI");
+		auto now = vmime::datetime::now();
+		relay.setDate(now);
+		auto header_field = hff->create("Received");
+		header_field->setValue(relay);
+		vmHeader->insertFieldBefore(0, header_field);
+	}
+
 	return hr;
 }
 
