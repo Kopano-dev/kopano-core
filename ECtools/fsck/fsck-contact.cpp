@@ -60,7 +60,7 @@ HRESULT FsckContact::ValidateContactNames(LPMESSAGE lpMessage)
 	hr = ReadProperties(lpMessage, TAG_COUNT, ulTags, &~lpPropertyArray);
 	/* Ignore error, we are going to fix this :) */
 	if (!lpPropertyArray)
-		goto exit;
+		return hr;
 
 	for (ULONG i = 0; i < TAG_COUNT; ++i)
 		if (PROP_TYPE(lpPropertyArray[i].ulPropTag) != PT_ERROR &&
@@ -83,16 +83,13 @@ HRESULT FsckContact::ValidateContactNames(LPMESSAGE lpMessage)
 		}
 
 		/* Still empty? Things are terribly broken */
-		if (result[E_FULLNAME].empty()) {
-			hr = E_INVALIDARG;
-			goto exit;
-		}
-
+		if (result[E_FULLNAME].empty())
+			return E_INVALIDARG;
 		Value.lpszA = const_cast<char *>(result[E_FULLNAME].c_str());
 
 		hr = ReplaceProperty(lpMessage, "PR_DISPLAY_NAME", PR_DISPLAY_NAME_A, "No display name was provided", Value);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	if(result[E_SUBJECT].empty()) {
@@ -102,7 +99,7 @@ HRESULT FsckContact::ValidateContactNames(LPMESSAGE lpMessage)
 
         hr = ReplaceProperty(lpMessage, "PR_SUBJECT", PR_SUBJECT_A, "No subject was provided", Value);
 		if (hr != hrSuccess)
-            goto exit;
+			return hr;
 	}
 
 	/* Given name and surname are not allowed to be empty for BlackBerry, Webaccess did generate
@@ -112,10 +109,8 @@ HRESULT FsckContact::ValidateContactNames(LPMESSAGE lpMessage)
 		return hrSuccess;
 
 	__UPV Value;
-	if (result[E_FULLNAME].empty()) {
-		hr = E_INVALIDARG;
-		goto exit;
-	}
+	if (result[E_FULLNAME].empty())
+		return E_INVALIDARG;
 
 		/* If a prefix and suffix were provided, strip them from the fullname */
 	if (!result[E_PREFIX].empty() && boost::algorithm::starts_with(result[E_FULLNAME], result[E_PREFIX]))
@@ -124,10 +119,8 @@ HRESULT FsckContact::ValidateContactNames(LPMESSAGE lpMessage)
 		result[E_FULLNAME].erase(result[E_FULLNAME].size() - result[E_SUFFIX].size(), std::string::npos);
 
 	/* Well technically this could happen... But somebody seriously wrecked his item in that case :S */
-	if (result[E_FULLNAME].empty()) {
-		hr = E_INVALIDARG;
-		goto exit;
-	}
+	if (result[E_FULLNAME].empty())
+		return E_INVALIDARG;
 
 	/* Now we have a fullname containing a first and last name, but which is which. We are going
 	 * to use the same algorithm as Outlook: The first word is always the first name any words
@@ -152,19 +145,10 @@ HRESULT FsckContact::ValidateContactNames(LPMESSAGE lpMessage)
 
 	hr = ReplaceProperty(lpMessage, "PR_GIVEN_NAME", PR_GIVEN_NAME_A, "No given name was provided", Value);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	Value.lpszA = const_cast<char *>(result[E_LASTNAME].c_str());
-
-	hr = ReplaceProperty(lpMessage, "PR_SURNAME", PR_SURNAME_A, "No surname was provided", Value);
-	if (hr != hrSuccess)
-		goto exit;
-
-	/* If we are here, we were succcessful. */
-	hr = hrSuccess;
-
-exit:
-	return hr;
+	return ReplaceProperty(lpMessage, "PR_SURNAME", PR_SURNAME_A,
+	       "No surname was provided", Value);
 }
 
 HRESULT FsckContact::ValidateItem(LPMESSAGE lpMessage,

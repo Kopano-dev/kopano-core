@@ -1392,12 +1392,9 @@ ECRESULT ECKeyTable::UpdatePartialSortKey(sObjectTableKey *lpsRowItem, unsigned 
 
     er = GetRow(lpsRowItem, &lpCursor);
     if(er != erSuccess)
-        goto exit;
-        
-    if(ulColumn >= lpCursor->ulSortCols) {
-        er = KCERR_INVALID_PARAMETER;
-        goto exit;
-    }
+		return er;
+	if (ulColumn >= lpCursor->ulSortCols)
+		return KCERR_INVALID_PARAMETER;
     
     // Copy the sortkeys that we used to have
 	lppSortKeys.reset(new unsigned char *[lpCursor->ulSortCols]);
@@ -1416,18 +1413,10 @@ ECRESULT ECKeyTable::UpdatePartialSortKey(sObjectTableKey *lpsRowItem, unsigned 
     lpFlags[ulColumn] = ulFlags;
     
     if(lpfHidden)
-        *lpfHidden = lpCursor->fHidden;
-
-    // Update the row
-	er = UpdateRow(TABLE_ROW_MODIFY, lpsRowItem, lpCursor->ulSortCols,
-	     lpSortLen.get(), lpFlags.get(), lppSortKeys.get(), lpsPrevRow,
-	     lpCursor->fHidden, lpulAction);
-    if(er != erSuccess)
-        goto exit;
-    
-exit:
-	biglock.unlock();
-	return er;
+		*lpfHidden = lpCursor->fHidden;
+	return UpdateRow(TABLE_ROW_MODIFY, lpsRowItem, lpCursor->ulSortCols,
+	       lpSortLen.get(), lpFlags.get(), lppSortKeys.get(), lpsPrevRow,
+	       lpCursor->fHidden, lpulAction);
 }
 
 /**

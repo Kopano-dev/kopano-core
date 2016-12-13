@@ -957,16 +957,14 @@ exit:
 
 HRESULT HrAccept(int ulListenFD, ECChannel **lppChannel)
 {
-	HRESULT hr = hrSuccess;
 	int socket = 0;
 	struct sockaddr_storage client;
 	std::unique_ptr<ECChannel> lpChannel;
 	socklen_t len = sizeof(client);
 
 	if (ulListenFD < 0 || lppChannel == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
 		ec_log_err("HrAccept: invalid parameters");
-		goto exit;
+		return MAPI_E_INVALID_PARAMETER;
 	}
 #ifdef TCP_FASTOPEN
 	static const int qlen = SOMAXCONN;
@@ -979,15 +977,13 @@ HRESULT HrAccept(int ulListenFD, ECChannel **lppChannel)
 
 	if (socket == -1) {
 		ec_log_err("Unable to accept(): %s", strerror(errno));
-		hr = MAPI_E_NETWORK_ERROR;
-		goto exit;
+		return MAPI_E_NETWORK_ERROR;
 	}
 	lpChannel.reset(new ECChannel(socket));
 	lpChannel->SetIPAddress(reinterpret_cast<const struct sockaddr *>(&client), len);
 	ec_log_info("Accepted connection from %s", lpChannel->peer_addr());
 	*lppChannel = lpChannel.release();
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 } /* namespace */

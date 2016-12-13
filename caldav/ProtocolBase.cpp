@@ -109,7 +109,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 	if(hr != hrSuccess)
 	{
 		ec_log_err("Error opening addressbook, error code: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 
 	// default store required for various actions (delete, freebusy, ...)
@@ -117,12 +117,12 @@ HRESULT ProtocolBase::HrInitializeClass()
 	if(hr != hrSuccess)
 	{
 		ec_log_err("Error opening default store of user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = HrGetOwner(m_lpSession, m_lpDefStore, &m_lpLoginUser);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	/*
 	 * Set m_lpActiveStore
@@ -133,27 +133,27 @@ HRESULT ProtocolBase::HrInitializeClass()
 		hr = HrOpenECPublicStore(m_lpSession, &m_lpActiveStore);
 		if (hr != hrSuccess) {
 			ec_log_err("Unable to open public store with user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);
-			goto exit;
+			return hr;
 		}
 	} else if (wcscasecmp(m_wstrUser.c_str(), m_wstrFldOwner.c_str())) {
 		// open shared store
 		hr = HrOpenUserMsgStore(m_lpSession, (WCHAR*)m_wstrFldOwner.c_str(), &m_lpActiveStore);
 		if (hr != hrSuccess) {
 			ec_log_err("Unable to open store of user %ls with user %ls, error code: 0x%08X", m_wstrFldOwner.c_str(), m_wstrUser.c_str(), hr);
-			goto exit;
+			return hr;
 		}
 		m_ulFolderFlag |= SHARED_FOLDER;
 	} else {
 		// @todo, make auto pointers
 		hr = m_lpDefStore->QueryInterface(IID_IMsgStore, (void**)&m_lpActiveStore);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	// Retrieve named properties
 	hr = HrLookupNames(m_lpActiveStore, &~m_lpNamedProps);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// get active user info
 	if (bIsPublic)
@@ -161,7 +161,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 	else
 		hr = HrGetOwner(m_lpSession, m_lpActiveStore, &m_lpActiveUser);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	/*
 	 * Set m_lpIPMSubtree, used for CopyFolder, CreateFolder, DeleteFolder
@@ -170,7 +170,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 	if(hr != hrSuccess)
 	{
 		ec_log_err("Error opening IPM SUBTREE, using user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);
-		goto exit;
+		return hr;
 	}
 
 	// Get active store default calendar to prevent delete action on this folder
@@ -178,7 +178,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 	if(hr != hrSuccess)
 	{
 		ec_log_err("Error opening root container, using user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);
-		goto exit;
+		return hr;
 	}
 
 	if (!bIsPublic) {
@@ -187,7 +187,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 		if(hr != hrSuccess)
 		{
 			ec_log_err("Error retrieving Entry id of Default calendar for user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);
-			goto exit;
+			return hr;
 		}
 	}
 
@@ -202,7 +202,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 		if(hr != hrSuccess)
 		{
 			ec_log_err("Error opening IPM_SUBTREE folder of user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);
-			goto exit;
+			return hr;
 		}
 	}
 	else if(!m_wstrFldName.empty())
@@ -212,7 +212,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 		if(hr != hrSuccess)
 		{
 			ec_log_err("Error opening named folder of user %ls, folder %ls, error code: 0x%08X", m_wstrUser.c_str(), m_wstrFldName.c_str(), hr);
-			goto exit;
+			return hr;
 		}
 		m_ulFolderFlag |= SINGLE_FOLDER;
 
@@ -232,14 +232,14 @@ HRESULT ProtocolBase::HrInitializeClass()
 		if (bIsPublic) {
 			hr = m_lpIPMSubtree->QueryInterface(IID_IMAPIFolder, (void**)&m_lpUsrFld);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		} else {
 			// open default calendar
 			hr = m_lpActiveStore->OpenEntry(lpDefaultProp->Value.bin.cb, (LPENTRYID)lpDefaultProp->Value.bin.lpb, NULL, MAPI_BEST_ACCESS, &ulType, (LPUNKNOWN*)&m_lpUsrFld);
 			if (hr != hrSuccess)
 			{
 				ec_log_err("Unable to open default calendar for user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);
-				goto exit;
+				return hr;
 			}
 
 			// we already know we don't want to delete this folder
@@ -275,8 +275,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 
 			m_lpRequest->HrResponseHeader(301, "Moved Permanently");
 			m_lpRequest->HrResponseHeader("Location", m_converter.convert_to<string>(strLocation));
-			hr = MAPI_E_NOT_ME;
-			goto exit;
+			return MAPI_E_NOT_ME;
 		}
 	}
 
@@ -290,8 +289,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 
 		hr = HrGetOneProp(m_lpUsrFld, PR_ENTRYID, &~lpFldProp);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = m_lpSession->CompareEntryIDs(lpDefaultProp->Value.bin.cb, (LPENTRYID)lpDefaultProp->Value.bin.lpb,
 		     lpFldProp->Value.bin.cb, (LPENTRYID)lpFldProp->Value.bin.lpb, 0, &ulCmp);
 		if (hr != hrSuccess || ulCmp == TRUE)
@@ -300,13 +298,10 @@ HRESULT ProtocolBase::HrInitializeClass()
 	if (m_blFolderAccess) {
 		hr = HrGetOneProp(m_lpUsrFld, PR_SUBFOLDERS, &~lpFldProp);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		if(lpFldProp->Value.b == (unsigned short)true && !strMethod.compare("DELETE"))
 			m_blFolderAccess = false;
 	}
-
-exit:
 	return hr;
 }
 
