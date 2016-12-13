@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <memory>
 #include "ECSyncUtil.h"
 #include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
@@ -32,8 +33,6 @@ HRESULT HrDecodeSyncStateStream(LPSTREAM lpStream, ULONG *lpulSyncId, ULONG *lpu
 	ULONG		ulChangeCount = 0;
 	ULONG		ulProcessedChangeId = 0;
 	ULONG		ulSourceKeySize = 0;
-	char		*lpData = NULL;
-
 	LARGE_INTEGER		liPos = {{0, 0}};
 	PROCESSEDCHANGESSET setProcessedChanged;
 
@@ -69,6 +68,8 @@ HRESULT HrDecodeSyncStateStream(LPSTREAM lpStream, ULONG *lpulSyncId, ULONG *lpu
 			// The stream contains a list of already processed items, read them
 			
 			for (ULONG i = 0; i < ulChangeCount; ++i) {
+				std::unique_ptr<char[]> lpData;
+
 				hr = lpStream->Read(&ulProcessedChangeId, 4, NULL);
 				if (hr != hrSuccess)
 					goto exit; // Not the amount of expected bytes are there
@@ -83,16 +84,11 @@ HRESULT HrDecodeSyncStateStream(LPSTREAM lpStream, ULONG *lpulSyncId, ULONG *lpu
 					goto exit;
 				}
 					
-				lpData = new char[ulSourceKeySize];
-					
-				hr = lpStream->Read(lpData, ulSourceKeySize, NULL);
+				lpData.reset(new char[ulSourceKeySize]);
+				hr = lpStream->Read(lpData.get(), ulSourceKeySize, NULL);
 				if(hr != hrSuccess)
 					goto exit;
-					
-				setProcessedChanged.insert(std::pair<unsigned int, std::string>(ulProcessedChangeId, std::string(lpData, ulSourceKeySize)));
-				
-				delete []lpData;
-				lpData =  NULL;
+				setProcessedChanged.insert(std::pair<unsigned int, std::string>(ulProcessedChangeId, std::string(lpData.get(), ulSourceKeySize)));
 			}
 		}
 	}
@@ -107,7 +103,6 @@ HRESULT HrDecodeSyncStateStream(LPSTREAM lpStream, ULONG *lpulSyncId, ULONG *lpu
 		lpSetProcessChanged->insert(setProcessedChanged.begin(), setProcessedChanged.end());
 
 exit:
-	delete[] lpData;
 	return hr;
 }
 

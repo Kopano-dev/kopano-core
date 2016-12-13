@@ -16,6 +16,7 @@
  */
 
 #include <kopano/zcdefs.h>
+#include <memory>
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
 #include <kopano/ECInterfaceDefs.h>
@@ -965,9 +966,9 @@ HRESULT ECMemTableView::UpdateSortOrRestrict() {
 HRESULT ECMemTableView::ModifyRowKey(sObjectTableKey *lpsRowItem, sObjectTableKey* lpsPrevRow, ULONG *lpulAction)
 {
 	HRESULT hr = hrSuccess;
-	unsigned int	*lpulSortLen = NULL;
-	unsigned char	**lpSortKeys = NULL;
-	unsigned char	*lpFlags = NULL;
+	std::unique_ptr<unsigned int[]> lpulSortLen;
+	std::unique_ptr<unsigned char *[]> lpSortKeys;
+	std::unique_ptr<unsigned char[]> lpFlags;
 	LPSPropValue lpsSortID = NULL;
 	ULONG j;
 
@@ -981,9 +982,9 @@ HRESULT ECMemTableView::ModifyRowKey(sObjectTableKey *lpsRowItem, sObjectTableKe
 		return MAPI_E_NOT_FOUND;
 
 	if (lpsSortOrderSet && lpsSortOrderSet->cSorts > 0){
-		lpulSortLen = new unsigned int [lpsSortOrderSet->cSorts];
-		lpFlags = new unsigned char [lpsSortOrderSet->cSorts];
-		lpSortKeys = new unsigned char * [lpsSortOrderSet->cSorts];
+		lpulSortLen.reset(new unsigned int [lpsSortOrderSet->cSorts]);
+		lpFlags.reset(new unsigned char [lpsSortOrderSet->cSorts]);
+		lpSortKeys.reset(new unsigned char * [lpsSortOrderSet->cSorts]);
 	}
 
 	// Check if there is a restriction in place, and if so, apply it
@@ -1012,17 +1013,15 @@ HRESULT ECMemTableView::ModifyRowKey(sObjectTableKey *lpsRowItem, sObjectTableKe
 		if(lpsSortOrderSet->aSort[j].ulOrder == TABLE_SORT_DESCEND)
 			lpFlags[j] |= TABLEROW_FLAG_DESC;
 	}
-
-	lpKeyTable->UpdateRow(ECKeyTable::TABLE_ROW_ADD, lpsRowItem, lpsSortOrderSet->cSorts, lpulSortLen, lpFlags, lpSortKeys, lpsPrevRow, false, (ECKeyTable::UpdateType*)lpulAction);
-
+	lpKeyTable->UpdateRow(ECKeyTable::TABLE_ROW_ADD, lpsRowItem,
+		lpsSortOrderSet->cSorts, lpulSortLen.get(), lpFlags.get(),
+		lpSortKeys.get(), lpsPrevRow, false,
+		(ECKeyTable::UpdateType*)lpulAction);
 	// clean up GetBinarySortKey() allocs
 	for (j = 0; j < lpsSortOrderSet->cSorts; ++j)
 		delete[] lpSortKeys[j];
 
 exit:
-	delete[] lpulSortLen;
-	delete[] lpSortKeys;
-	delete[] lpFlags;
 	return hr;
 }
 

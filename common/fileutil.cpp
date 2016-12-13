@@ -18,6 +18,7 @@
 #include <kopano/platform.h>
 #include <kopano/stringutil.h>
 #include <kopano/charset/convert.h>
+#include <memory>
 #include <string>
 #include <cerrno>
 #include <cstring>
@@ -235,7 +236,7 @@ bool DuplicateFile(FILE *lpFile, std::string &strFileName)
 	bool bResult = true;
 	size_t	ulReadsize = 0;
 	FILE *pfNew = NULL;
-	char *lpBuffer = NULL;
+	std::unique_ptr<char[]> lpBuffer;
 
 	// create new file
 	pfNew = fopen(strFileName.c_str(), "wb");
@@ -247,8 +248,7 @@ bool DuplicateFile(FILE *lpFile, std::string &strFileName)
 
 	// Set file pointer at the begin.
 	rewind(lpFile);
-
-	lpBuffer = (char*)malloc(BLOCKSIZE); 
+	lpBuffer.reset(new(std::nothrow) char[BLOCKSIZE]);
 	if (!lpBuffer) {
 		ec_log_crit("DuplicateFile is out of memory");
 
@@ -258,15 +258,13 @@ bool DuplicateFile(FILE *lpFile, std::string &strFileName)
 
 	// FIXME use splice
 	while (!feof(lpFile)) {
-		ulReadsize = fread(lpBuffer, 1, BLOCKSIZE, lpFile);
+		ulReadsize = fread(lpBuffer.get(), 1, BLOCKSIZE, lpFile);
 		if (ferror(lpFile)) {
 			ec_log_crit("DuplicateFile: fread: %s", strerror(errno));
 			bResult = false;
 			goto exit;
 		}
-		
-
-		if (fwrite(lpBuffer, 1, ulReadsize , pfNew) != ulReadsize) {
+		if (fwrite(lpBuffer.get(), 1, ulReadsize , pfNew) != ulReadsize) {
 			ec_log_crit("Error during write to \"%s\": %s", strFileName.c_str(), strerror(errno));
 			bResult = false;
 			goto exit;
@@ -274,7 +272,6 @@ bool DuplicateFile(FILE *lpFile, std::string &strFileName)
 	}
 
 exit:
-	free(lpBuffer);
 	if (pfNew)
 		fclose(pfNew);
 

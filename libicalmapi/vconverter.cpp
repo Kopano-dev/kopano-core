@@ -2523,7 +2523,7 @@ HRESULT VConverter::HrSetBody(LPMESSAGE lpMessage, icalproperty **lppicProp)
 	LPSTREAM lpStream = NULL;
 	STATSTG sStreamStat;
 	std::wstring strBody;
-	WCHAR *lpBody = NULL;
+	std::unique_ptr<wchar_t[]> lpBody;
 
 	hr = lpMessage->OpenProperty(PR_BODY_W, &IID_IStream, 0, MAPI_DEFERRED_ERRORS, (LPUNKNOWN*)&lpStream);
 	if (hr != hrSuccess)
@@ -2538,17 +2538,17 @@ HRESULT VConverter::HrSetBody(LPMESSAGE lpMessage, icalproperty **lppicProp)
 		goto exit;
 	}
 
-	lpBody = new WCHAR[sStreamStat.cbSize.LowPart + sizeof(WCHAR)];
-	memset(lpBody, 0, (sStreamStat.cbSize.LowPart+1) * sizeof(WCHAR));
+	lpBody.reset(new WCHAR[sStreamStat.cbSize.LowPart + sizeof(WCHAR)]);
+	memset(lpBody.get(), 0, (sStreamStat.cbSize.LowPart+1) * sizeof(WCHAR));
 
-	hr = lpStream->Read(lpBody, sStreamStat.cbSize.LowPart * sizeof(WCHAR), NULL);
+	hr = lpStream->Read(lpBody.get(), sStreamStat.cbSize.LowPart * sizeof(WCHAR), NULL);
 	if (hr != hrSuccess)
 		goto exit;
 
 	// The body is converted as OL2003 does not parse '\r' & '\t' correctly
 	// Newer versions also have some issues parsing these chars
 	// RFC specifies that new lines should be CRLF
-	StringTabtoSpaces(lpBody, &strBody);
+	StringTabtoSpaces(lpBody.get(), &strBody);
 	StringCRLFtoLF(strBody, &strBody);
 	
 	*lppicProp = icalproperty_new_description(m_converter.convert_to<string>(m_strCharset.c_str(), strBody, rawsize(strBody), CHARSET_WCHAR).c_str());
@@ -2556,7 +2556,6 @@ HRESULT VConverter::HrSetBody(LPMESSAGE lpMessage, icalproperty **lppicProp)
 exit:
 	if (lpStream)
 		lpStream->Release();
-	delete[] lpBody;
 	return hr;
 }
 

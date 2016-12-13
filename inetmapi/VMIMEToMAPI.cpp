@@ -22,6 +22,7 @@
 #include <kopano/ECLogger.h>
 #include <kopano/memory.hpp>
 #include <algorithm>
+#include <memory>
 #include <string>
 #include <fstream>
 #include <iostream>
@@ -1724,7 +1725,8 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 	LPMESSAGE lpIcalMessage = lpMessage;
 	AttachPtr ptrAttach;
 	ULONG ulAttNr = 0;
-	ICalToMapi *lpIcalMapi = NULL;
+	std::unique_ptr<ICalToMapi> lpIcalMapi;
+	ICalToMapi *tmpicalmapi;
 	SPropValuePtr ptrSubject;
 	/*
 	 * Some senders send UTF-8 iCalendar information without a charset
@@ -1776,7 +1778,8 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 		lpIcalMessage = ptrNewMessage.get();
 	}
 
-	hr = CreateICalToMapi(lpMessage, m_lpAdrBook, true, &lpIcalMapi);
+	hr = CreateICalToMapi(lpMessage, m_lpAdrBook, true, &tmpicalmapi);
+	lpIcalMapi.reset(tmpicalmapi);
 	if (hr != hrSuccess) {
 		ec_log_err("dissect_ical-1820: Unable to create ical converter: %s (%x)", GetMAPIErrorMessage(hr), hr);
 		goto exit;
@@ -1826,7 +1829,6 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 	// make sure we show the attachment icon
 	m_mailState.attachLevel = ATTACH_NORMAL;
  exit:
-	delete lpIcalMapi;
 	return hr;
 }
 

@@ -40,7 +40,7 @@
  */
  
 #include <kopano/platform.h>
-
+#include <memory>
 #include <mapidefs.h> 
 #include <mapiutil.h>
 #include <mapiguid.h>
@@ -326,7 +326,7 @@ HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 	unsigned char ulComponent = 0;
 	memory_ptr<char> lpBuffer;
 	SPropValue sProp;
-	char *szSClass = NULL;
+	std::unique_ptr<char[]> szSClass;
 	// Attachments props
 	LPSPropValue lpProp;
 	tnefattachment* lpTnefAtt = NULL;
@@ -389,19 +389,19 @@ HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 			break;
 		case ATT_MESSAGE_CLASS: /* PR_MESSAGE_CLASS */
 			{
-				szSClass = new char[ulSize+1];
+				szSClass.reset(new char[ulSize+1]);
 				char *szMAPIClass = NULL;
 
 				// NULL terminate the string
-				memcpy(szSClass, lpBuffer, ulSize);
+				memcpy(szSClass.get(), lpBuffer, ulSize);
 				szSClass[ulSize] = 0;
 
 				// We map the Schedule+ message class to the more modern MAPI message
 				// class. The mapping should be correct as far as we can find ..
 
-				szMAPIClass = (char *)FindMAPIClassByScheduleClass(szSClass);
+				szMAPIClass = (char *)FindMAPIClassByScheduleClass(szSClass.get());
 				if(szMAPIClass == NULL)
-					szMAPIClass = szSClass;	// mapping not found, use string from TNEF file
+					szMAPIClass = szSClass.get(); // mapping not found, use string from TNEF file
 
 				sProp.ulPropTag = PR_MESSAGE_CLASS_A;
 				sProp.Value.lpszA = szMAPIClass;
@@ -411,10 +411,6 @@ HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 				// security reasons.
 
 				m_lpMessage->SetProps(1, &sProp, NULL);
-
-				delete [] szSClass;
-				szSClass = NULL;
-
 				break;
 			}
 		case 0x00050008: /* PR_OWNER_APPT_ID */
@@ -517,8 +513,6 @@ exit:
 		else
 			FreeAttachmentData(lpTnefAtt);
 	}
-
-	delete[] szSClass;
 	return hr;
 }
 
