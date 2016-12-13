@@ -18,6 +18,7 @@
 #include <kopano/platform.h>
 #include <mutex>
 #include <new>
+#include <unordered_map>
 #include <vector>
 #include <cerrno>
 #include <cstddef>
@@ -2784,6 +2785,50 @@ HRESULT M4LAddrBook::QueryInterface(REFIID refiid, void **lpvoid) {
  * @fixme		Why is the return value not the mapi error MAPI_E_NOT_ENOUGH_MEMORY?
  *			I don't think Mapi programs like an error 0x80040001.
  */
+#ifdef DUMB_MAPIALLOC
+/*
+ * Coverity SCAN does not understand the pointer arithmetic strategy in
+ * MAPIAllocateBuffer, so provide something different for their scanner.
+ * (The mutex makes this really slow in practice.)
+ */
+static std::unordered_map<void *, std::vector<void *> > mapi_allocmap;
+static std::mutex mapi_allocmap_lock;
+
+SCODE __stdcall MAPIAllocateBuffer(ULONG size, void **buf)
+{
+	if (buf == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+	*buf = malloc(size);
+	if (*buf == nullptr)
+		return MAKE_MAPI_E(1);
+	return hrSuccess;
+}
+
+SCODE __stdcall MAPIAllocateMore(ULONG size, void *obj, void **buf)
+{
+	if (obj == nullptr)
+		return MAPIAllocateBuffer(size, buf);
+	*buf = malloc(size);
+	if (*buf == nullptr)
+		return MAKE_MAPI_E(1);
+	scoped_lock lock(mapi_allocmap_lock);
+	mapi_allocmap[obj].push_back(*buf);
+	return hrSuccess;
+}
+
+ULONG __stdcall MAPIFreeBuffer(void *buf)
+{
+	if (buf == nullptr)
+		return S_OK;
+	scoped_lock lk(mapi_allocmap_lock);
+	for (auto i : mapi_allocmap[buf])
+		free(i);
+	mapi_allocmap.erase(buf);
+	return S_OK;
+}
+
+#else /* DUMB_MAPIALLOC */
+
 SCODE __stdcall MAPIAllocateBuffer(ULONG cbSize, LPVOID* lppBuffer)
 {
 	if (lppBuffer == NULL)
@@ -2865,6 +2910,8 @@ ULONG __stdcall MAPIFreeBuffer(LPVOID lpBuffer) {
 	free(head);
 	return 0;
  }
+
+#endif /* DUMB_MAPIALLOC */
 
 // ---
 // Entry
