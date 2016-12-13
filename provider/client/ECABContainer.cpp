@@ -27,7 +27,7 @@
 #include <kopano/CommonUtil.h>
 #include "ics.h"
 #include <kopano/mapiext.h>
-
+#include <kopano/memory.hpp>
 #include "ECABContainer.h"
 
 #include <edkmdb.h>
@@ -124,8 +124,7 @@ HRESULT	ECABContainer::DefaultABContainerGetProp(ULONG ulPropTag, void* lpProvid
 {
 	HRESULT		hr = hrSuccess;
 	ECABProp*	lpProp = (ECABProp *)lpParam;
-
-	LPSPropValue lpSectionUid = NULL;
+	KCHL::memory_ptr<SPropValue> lpSectionUid;
 	IProfSect *lpProfSect = NULL;
 
 	switch(PROP_ID(ulPropTag)) {
@@ -138,8 +137,7 @@ HRESULT	ECABContainer::DefaultABContainerGetProp(ULONG ulPropTag, void* lpProvid
 		hr = lpLogon->m_lpMAPISup->OpenProfileSection(NULL, 0, &lpProfSect);
 		if(hr != hrSuccess)
 			goto exit;
-
-		hr = HrGetOneProp(lpProfSect, PR_EMSMDB_SECTION_UID, &lpSectionUid);
+		hr = HrGetOneProp(lpProfSect, PR_EMSMDB_SECTION_UID, &~lpSectionUid);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -214,7 +212,6 @@ HRESULT	ECABContainer::DefaultABContainerGetProp(ULONG ulPropTag, void* lpProvid
 exit:
 	if(lpProfSect)
 		lpProfSect->Release();
-	MAPIFreeBuffer(lpSectionUid);
 	return hr;
 }
 

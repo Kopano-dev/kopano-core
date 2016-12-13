@@ -16,7 +16,7 @@
  */
 
 #include <kopano/platform.h>
-
+#include <kopano/memory.hpp>
 #include "WSUtil.h"
 #include "WSTransport.h"
 #include "SOAPUtils.h"
@@ -40,6 +40,8 @@
 #include <kopano/charset/convert.h>
 #include "utf8/unchecked.h"
 #include <kopano/ECInterfaceDefs.h>
+
+using namespace KCHL;
 
 static LPWSTR WTF1252_to_WCHAR(LPCSTR szWTF1252, LPVOID lpBase, convert_context *lpConverter)
 {
@@ -224,7 +226,7 @@ HRESULT __stdcall ECExchangeModifyTable::ModifyTable(ULONG ulFlags, LPROWLIST lp
 	SPropValue		sRowId;
 	LPSPropValue	lpProps = NULL;
 	LPSPropValue	lpFind = NULL;
-	LPSPropValue	lpPropRemove = NULL;
+	memory_ptr<SPropValue> lpPropRemove;
 	ULONG			cValues = 0;
 	char *			szXML = NULL;
 	SPropValue		sPropXML;
@@ -249,8 +251,7 @@ HRESULT __stdcall ECExchangeModifyTable::ModifyTable(ULONG ulFlags, LPROWLIST lp
 				if (lpFind == NULL) {
 					sRowId.ulPropTag = m_ulUniqueTag;
 					sRowId.Value.li.QuadPart = this->m_ulUniqueId++;
-
-					hr = Util::HrAddToPropertyArray(lpMods->aEntries[i].rgPropVals, lpMods->aEntries[i].cValues, &sRowId, &lpPropRemove, &cValues);
+					hr = Util::HrAddToPropertyArray(lpMods->aEntries[i].rgPropVals, lpMods->aEntries[i].cValues, &sRowId, &~lpPropRemove, &cValues);
 					if(hr != hrSuccess)
 						goto exit;
 
@@ -268,8 +269,6 @@ HRESULT __stdcall ECExchangeModifyTable::ModifyTable(ULONG ulFlags, LPROWLIST lp
 				hr = m_ecTable->HrModifyRow(ulFlagsRow, lpFind, lpProps, cValues);
 				if(hr != hrSuccess)
 					goto exit;
-				MAPIFreeBuffer(lpPropRemove);
-				lpPropRemove = NULL;
 				break;
 			case ROW_REMOVE:
 				hr = m_ecTable->HrModifyRow(ECKeyTable::TABLE_ROW_DELETE, NULL, lpMods->aEntries[i].rgPropVals, lpMods->aEntries[i].cValues);
@@ -321,7 +320,6 @@ done:
 
 exit:
 	delete[] szXML;
-	MAPIFreeBuffer(lpPropRemove);
 	return hr;
 }
 
@@ -330,10 +328,8 @@ HRESULT ECExchangeModifyTable::OpenACLS(ECMAPIProp *lpecMapiProp, ULONG ulFlags,
 	HRESULT hr = hrSuccess;
 	IECSecurity *lpSecurity = NULL;
 	ULONG cPerms = 0;
-	ECPERMISSION *lpECPerms = NULL;
+	memory_ptr<ECPERMISSION> lpECPerms;
 	SPropValue	lpsPropMember[4];
-	ECUSER *lpECUser = NULL;
-	ECGROUP *lpECGroup = NULL;
 	WCHAR* lpMemberName = NULL;
 	unsigned int ulUserid = 0;
 
@@ -345,8 +341,7 @@ HRESULT ECExchangeModifyTable::OpenACLS(ECMAPIProp *lpecMapiProp, ULONG ulFlags,
 	hr = lpecMapiProp->QueryInterface(IID_IECSecurity, (void**)&lpSecurity);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = lpSecurity->GetPermissionRules(ACCESS_TYPE_GRANT, &cPerms, &lpECPerms);
+	hr = lpSecurity->GetPermissionRules(ACCESS_TYPE_GRANT, &cPerms, &~lpECPerms);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -356,8 +351,11 @@ HRESULT ECExchangeModifyTable::OpenACLS(ECMAPIProp *lpecMapiProp, ULONG ulFlags,
 	for (ULONG i = 0; i < cPerms; ++i) {
 		if (lpECPerms[i].ulType == ACCESS_TYPE_GRANT)
 		{
-			if (lpecMapiProp->GetMsgStore()->lpTransport->HrGetUser(lpECPerms[i].sUserId.cb, (LPENTRYID)lpECPerms[i].sUserId.lpb, MAPI_UNICODE, &lpECUser) != hrSuccess &&
-			    lpecMapiProp->GetMsgStore()->lpTransport->HrGetGroup(lpECPerms[i].sUserId.cb, (LPENTRYID)lpECPerms[i].sUserId.lpb, MAPI_UNICODE, &lpECGroup) != hrSuccess)
+			memory_ptr<ECUSER> lpECUser;
+			memory_ptr<ECGROUP> lpECGroup;
+
+			if (lpecMapiProp->GetMsgStore()->lpTransport->HrGetUser(lpECPerms[i].sUserId.cb, (LPENTRYID)lpECPerms[i].sUserId.lpb, MAPI_UNICODE, &~lpECUser) != hrSuccess &&
+			    lpecMapiProp->GetMsgStore()->lpTransport->HrGetGroup(lpECPerms[i].sUserId.cb, (LPENTRYID)lpECPerms[i].sUserId.lpb, MAPI_UNICODE, &~lpECGroup) != hrSuccess)
 				continue;
 
 			if (lpECGroup != nullptr)
@@ -385,19 +383,12 @@ HRESULT ECExchangeModifyTable::OpenACLS(ECMAPIProp *lpecMapiProp, ULONG ulFlags,
 			hr = lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, &lpsPropMember[0], lpsPropMember, 4);
 			if(hr != hrSuccess)
 				goto exit;
-			MAPIFreeBuffer(lpECUser);
-			lpECUser = NULL;
-			MAPIFreeBuffer(lpECGroup);
-			lpECGroup = NULL;
 		}
 	}
 
 exit:
-	MAPIFreeBuffer(lpECPerms);
 	if (lpSecurity)
 		lpSecurity->Release();
-	MAPIFreeBuffer(lpECUser);
-	MAPIFreeBuffer(lpECGroup);
 	return hr;
 }
 
@@ -411,14 +402,12 @@ HRESULT ECExchangeModifyTable::SaveACLS(ECMAPIProp *lpecMapiProp, ECMemTable *lp
 {
 	HRESULT hr = hrSuccess;
 	LPSRowSet		lpRowSet = NULL;
-	LPSPropValue	lpIDs = NULL;
-	LPULONG			lpulStatus = NULL;
-
+	memory_ptr<SPropValue> lpIDs;
+	memory_ptr<ULONG> lpulStatus;
 	LPSPropValue lpMemberEntryID = NULL; //do not free
 	LPSPropValue lpMemberRights = NULL; //do not free
 	LPSPropValue lpMemberID = NULL; //do not free
-	
-	ECPERMISSION *lpECPermissions = NULL;
+	memory_ptr<ECPERMISSION> lpECPermissions;
 	ULONG			cECPerm = 0;
 
 	entryId sEntryId = {0};
@@ -430,11 +419,10 @@ HRESULT ECExchangeModifyTable::SaveACLS(ECMAPIProp *lpecMapiProp, ECMemTable *lp
 		goto exit;
 
 	// Get a data  
-	hr = lpTable->HrGetAllWithStatus(&lpRowSet, &lpIDs, &lpulStatus);
+	hr = lpTable->HrGetAllWithStatus(&lpRowSet, &~lpIDs, &~lpulStatus);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = MAPIAllocateBuffer(sizeof(ECPERMISSION)*lpRowSet->cRows, (void**)&lpECPermissions);
+	hr = MAPIAllocateBuffer(sizeof(ECPERMISSION)*lpRowSet->cRows, &~lpECPermissions);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -492,11 +480,8 @@ HRESULT ECExchangeModifyTable::SaveACLS(ECMAPIProp *lpecMapiProp, ECMemTable *lp
 exit:
 	if (lpSecurity)
 		lpSecurity->Release();
-	MAPIFreeBuffer(lpECPermissions);
-	MAPIFreeBuffer(lpIDs);
 	if(lpRowSet)
 		FreeProws(lpRowSet);
-	MAPIFreeBuffer(lpulStatus);
 	return hr;
 }
 
@@ -505,7 +490,7 @@ HRESULT	ECExchangeModifyTable::HrSerializeTable(ECMemTable *lpTable, char **lppS
 {
 	HRESULT hr = hrSuccess;
 	ECMemTableView *lpView = NULL;
-	LPSPropTagArray lpCols = NULL;
+	memory_ptr<SPropTagArray> lpCols;
 	LPSRowSet		lpRowSet = NULL;
 	std::ostringstream os;
 	struct rowSet *	lpSOAPRowSet = NULL;
@@ -518,7 +503,7 @@ HRESULT	ECExchangeModifyTable::HrSerializeTable(ECMemTable *lpTable, char **lppS
 		goto exit;
 
 	// Get all Columns
-	hr = lpView->QueryColumns(TBL_ALL_COLUMNS, &lpCols);
+	hr = lpView->QueryColumns(TBL_ALL_COLUMNS, &~lpCols);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -563,7 +548,6 @@ exit:
 		FreeRowSet(lpSOAPRowSet, true);
 	if(lpRowSet)
 		FreeProws(lpRowSet);
-	MAPIFreeBuffer(lpCols);
 	if(lpView)
 		lpView->Release();
 
@@ -580,7 +564,6 @@ HRESULT ECExchangeModifyTable::HrDeserializeTable(char *lpSerialized, ECMemTable
 	std::istringstream is(lpSerialized);
 	struct rowSet sSOAPRowSet;
 	LPSRowSet lpsRowSet = NULL;
-	LPSPropValue lpProps = NULL;
 	ULONG cValues;
 	SPropValue		sRowId;
 	ULONG ulHighestRuleID = 1;
@@ -606,12 +589,13 @@ HRESULT ECExchangeModifyTable::HrDeserializeTable(char *lpSerialized, ECMemTable
 		goto exit;
 
 	for (i = 0; i < lpsRowSet->cRows; ++i) {
+		memory_ptr<SPropValue> lpProps;
+
 		// Note: the ECKeyTable only uses an ULONG as the key.
 		//       Information placed in the HighPart of this PT_I8 is lost!
 		sRowId.ulPropTag = PR_RULE_ID;
 		sRowId.Value.li.QuadPart = ulHighestRuleID++;
-
-		hr = Util::HrAddToPropertyArray(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, &sRowId, &lpProps, &cValues);
+		hr = Util::HrAddToPropertyArray(lpsRowSet->aRow[i].lpProps, lpsRowSet->aRow[i].cValues, &sRowId, &~lpProps, &cValues);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -630,16 +614,12 @@ HRESULT ECExchangeModifyTable::HrDeserializeTable(char *lpSerialized, ECMemTable
 		hr = lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, &sRowId, lpProps, cValues);
 		if(hr != hrSuccess)
 			goto exit;
-
-		MAPIFreeBuffer(lpProps);
-		lpProps = NULL;
 	}
 	*ulRuleId = ulHighestRuleID;
 
 exit:
 	if(lpsRowSet)
 		FreeProws(lpsRowSet);
-	MAPIFreeBuffer(lpProps);
 	soap_destroy(&soap);
 	soap_end(&soap); // clean up allocated temporaries 
 

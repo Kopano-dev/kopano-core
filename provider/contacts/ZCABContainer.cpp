@@ -29,6 +29,7 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/mapiext.h>
 #include <kopano/mapiguidext.h>
+#include <kopano/memory.hpp>
 #include <kopano/namedprops.h>
 #include <kopano/charset/convert.h>
 #include <kopano/mapi_ptr.h>
@@ -208,7 +209,7 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 
 	// named properties
 	SPropTagArrayPtr ptrNameTags;
-	LPMAPINAMEID *lppNames = NULL;
+	KCHL::memory_ptr<MAPINAMEID *> lppNames;
 	ULONG ulNames = (6 * 5) + 2;
 	ULONG ulType = (ulFlags & MAPI_UNICODE) ? PT_UNICODE : PT_STRING8;
 	MAPINAMEID mnNamedProps[(6 * 5) + 2] = {
@@ -280,8 +281,7 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 	hr = m_lpContactFolder->GetContentsTable(ulFlags | MAPI_DEFERRED_ERRORS, &ptrContents);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = MAPIAllocateBuffer(sizeof(LPMAPINAMEID) * (ulNames), (void**)&lppNames);
+	hr = MAPIAllocateBuffer(sizeof(LPMAPINAMEID) * ulNames, &~lppNames);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -493,7 +493,6 @@ done:
 	hr = lpTableView->QueryInterface(IID_IMAPITable, (void **)lppTable);
 
 exit:
-	MAPIFreeBuffer(lppNames);
 	if(lpTable)
 		lpTable->Release();
 
@@ -697,10 +696,10 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 		// create hierarchy with folders from user stores
 		for (const auto &folder : *m_lpFolders) {
 			std::string strName;
-			cabEntryID *lpEntryID = NULL;
+			KCHL::memory_ptr<cabEntryID> lpEntryID;
 			ULONG cbEntryID = CbNewCABENTRYID(folder.cbFolder);
 
-			hr = MAPIAllocateBuffer(cbEntryID, (void**)&lpEntryID);
+			hr = MAPIAllocateBuffer(cbEntryID, &~lpEntryID);
 			if (hr != hrSuccess)
 				goto exit;
 
@@ -712,8 +711,7 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 
 			sProps[ENTRYID].ulPropTag = sptaCols.aulPropTag[ENTRYID];
 			sProps[ENTRYID].Value.bin.cb = cbEntryID;
-			sProps[ENTRYID].Value.bin.lpb = (BYTE*)lpEntryID;
-
+			sProps[ENTRYID].Value.bin.lpb = reinterpret_cast<BYTE *>(lpEntryID.get());
 			sProps[STORE_ENTRYID].ulPropTag = CHANGE_PROP_TYPE(sptaCols.aulPropTag[STORE_ENTRYID], PT_ERROR);
 			sProps[STORE_ENTRYID].Value.err = MAPI_E_NOT_FOUND;
 
@@ -750,9 +748,6 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 			sProps[ROWID].Value.ul = ulInstance;
 
 			hr = lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, NULL, sProps, TCOLS + 1);
-
-			MAPIFreeBuffer(lpEntryID);
-
 			if (hr != hrSuccess)
 				goto exit;
 			++ulInstance;

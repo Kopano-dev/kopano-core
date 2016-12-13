@@ -23,7 +23,7 @@
 #include <mapiutil.h>
 
 #include <kopano/ECGetText.h>
-
+#include <kopano/memory.hpp>
 #include <memory>
 #include <string>
 #include <cassert>
@@ -58,11 +58,7 @@
 #include <kopano/charset/convstring.h>
 
 using namespace std;
-
-class EPCDeleter {
-	public:
-	void operator()(ABEID *p) { MAPIFreeBuffer(p); }
-};
+using namespace KCHL;
 
 struct initprov {
 	IProviderAdmin *provadm;
@@ -75,7 +71,7 @@ struct initprov {
 	/* referenced from prop[n] */
 	WStringPtr store_name;
 	EntryIdPtr wrap_eid;
-	std::unique_ptr<ABEID, EPCDeleter> abe_id;
+	memory_ptr<ABEID> abe_id;
 };
 
 static const uint32_t MAPI_S_SPECIAL_OK = MAKE_MAPI_S(0x900);
@@ -615,12 +611,12 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
 	MAPISessionPtr	ptrSession;
 
 	WSTransport		*lpTransport = NULL;
-	LPSPropValue	lpsPropValue = NULL;
+	memory_ptr<SPropValue> lpsPropValue;
 	ULONG			cValues = 0;
 	bool			bShowDialog = false;
 
 	MAPIERROR		*lpMapiError = NULL;
-	LPBYTE			lpDelegateStores = NULL;
+	memory_ptr<BYTE> lpDelegateStores;
 	ULONG			cDelegateStores = 0;
 	LPSPropValue	lpsPropValueFind = NULL;
 	ULONG 			cValueIndex = 0;
@@ -746,7 +742,7 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
 		}
 
 		// Get deligate stores, Ignore error
-		ClientUtil::GetGlobalProfileDelegateStoresProp(ptrGlobalProfSect, &cDelegateStores, &lpDelegateStores);
+		ClientUtil::GetGlobalProfileDelegateStoresProp(ptrGlobalProfSect, &cDelegateStores, &~lpDelegateStores);
 
 		// init defaults
 		hr = WSTransport::Create(ulFlags & SERVICE_UI_ALLOWED ? 0 : MDB_NO_DIALOG, &lpTransport);
@@ -783,7 +779,7 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
 
 					cValues = 12;
 					cValueIndex = 0;
-					hr = MAPIAllocateBuffer(sizeof(SPropValue) * cValues, (void**)&lpsPropValue);
+					hr = MAPIAllocateBuffer(sizeof(SPropValue) * cValues, &~lpsPropValue);
 					if(hr != hrSuccess)
 						goto exit;
 
@@ -830,11 +826,6 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
 					hr = ptrGlobalProfSect->SetProps(cValueIndex, lpsPropValue, NULL);
 					if(hr != hrSuccess)
 						goto exit;
-					
-					//Free allocated memory
-					MAPIFreeBuffer(lpsPropValue);
-					lpsPropValue = NULL;
-
 				}
 				break; // Everything is oke
 			}
@@ -871,13 +862,12 @@ exit:
 		*lppMapiError = NULL;
 
 		if(hr != hrSuccess) {
-			LPTSTR lpszErrorMsg;
+			memory_ptr<TCHAR> lpszErrorMsg;
 
-			if (Util::HrMAPIErrorToText(hr, &lpszErrorMsg) == hrSuccess) {
+			if (Util::HrMAPIErrorToText(hr, &~lpszErrorMsg) == hrSuccess) {
 				// Set Error
 				strError = _T("EntryPoint: ");
 				strError += lpszErrorMsg;
-				MAPIFreeBuffer(lpszErrorMsg);
 
 				// Some outlook 2007 clients can't allocate memory so check it
 				if(MAPIAllocateBuffer(sizeof(MAPIERROR), (void**)&lpMapiError) == hrSuccess) { 
@@ -918,10 +908,8 @@ exit:
 		}
 	}
 
-	MAPIFreeBuffer(lpDelegateStores);
 	if(lpTransport)
 		lpTransport->Release();
-	MAPIFreeBuffer(lpsPropValue);
 	TRACE_MAPI(TRACE_RETURN, "MSGServiceEntry", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
 }

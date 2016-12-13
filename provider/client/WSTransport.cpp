@@ -4677,13 +4677,11 @@ std::string WSTransport::GetAppName()
 HRESULT WSTransport::HrEnsureSession()
 {
     HRESULT hr = hrSuccess;
-    char *szValue = NULL;
+	KCHL::memory_ptr<char> szValue;
     
-    hr = HrTestGet("ensure_transaction", &szValue);
+	hr = HrTestGet("ensure_transaction", &~szValue);
     if(hr != MAPI_E_NETWORK_ERROR && hr != MAPI_E_END_OF_SESSION)
         hr = hrSuccess;
-
-    MAPIFreeBuffer(szValue);
     return hr;
 }
 

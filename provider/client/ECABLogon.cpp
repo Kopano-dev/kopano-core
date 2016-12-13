@@ -18,6 +18,7 @@
 #include <mapiutil.h>
 #include "kcore.hpp"
 #include <kopano/ECGuid.h>
+#include <kopano/memory.hpp>
 #include <edkguid.h>
 #include "ECABLogon.h"
 
@@ -133,7 +134,7 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 	IECPropStorage*	lpPropStorage = NULL;
 	ECMailUser*		lpMailUser = NULL;
 	ECDistList*		lpDistList = NULL;
-	LPENTRYID		lpEntryIDServer = NULL;
+	KCHL::memory_ptr<ENTRYID> lpEntryIDServer;
 
 	// Check input/output variables 
 	if(lpulObjType == NULL || lppUnk == NULL) {
@@ -163,8 +164,7 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 			hr = MAPI_E_UNKNOWN_ENTRYID;
 			goto exit;
 		}
-
-		hr = MAPIAllocateBuffer(cbEntryID, (void **)&lpEntryIDServer);
+		hr = MAPIAllocateBuffer(cbEntryID, &~lpEntryIDServer);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -284,7 +284,6 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 		*lpulObjType = lpABeid->ulType;
 
 exit:
-	MAPIFreeBuffer(lpEntryIDServer);
 	if(lpABContainer)
 		lpABContainer->Release();
 

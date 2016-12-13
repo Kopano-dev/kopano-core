@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <kopano/ECRestriction.h>
+#include <kopano/memory.hpp>
 #include "ECMemTablePublic.h"
 
 #include "Mem.h"
@@ -31,6 +32,8 @@
 #include "ECMsgStorePublic.h"
 #include "favoritesutil.h"
 #include <mapiutil.h>
+
+using namespace KCHL;
 
 //FIXME: add the classname "ECMemTablePublic"
 ECMemTablePublic::ECMemTablePublic(ECMAPIFolderPublic *lpECParentFolder, SPropTagArray *lpsPropTags, ULONG ulRowPropTag) : ECMemTable(lpsPropTags, ulRowPropTag)
@@ -204,7 +207,7 @@ HRESULT ECMemTablePublic::Init(ULONG ulFlags)
 	IMAPIFolder *lpShortcutFolder = NULL;
 	LPMAPITABLE lpShortcutTable = NULL;
 	LPSRowSet lpRows = NULL;
-	LPSPropValue lpPropTmp = NULL;
+	memory_ptr<SPropValue> lpPropTmp;
 	ULONG ulConnection;
 
 	m_ulFlags = ulFlags;
@@ -221,18 +224,15 @@ HRESULT ECMemTablePublic::Init(ULONG ulFlags)
 			goto exit;
 
 		// build restriction
-		if (HrGetOneProp(&m_lpECParentFolder->m_xMAPIFolder, PR_SOURCE_KEY, &lpPropTmp) != hrSuccess)
+		if (HrGetOneProp(&m_lpECParentFolder->m_xMAPIFolder, PR_SOURCE_KEY, &~lpPropTmp) != hrSuccess)
 		{
 			hr = ECNotRestriction(ECExistRestriction(PR_FAV_PARENT_SOURCE_KEY)).RestrictTable(lpShortcutTable, MAPI_DEFERRED_ERRORS);
 		}else {
-			hr = HrGetOneProp(&m_lpECParentFolder->m_xMAPIFolder, PR_SOURCE_KEY, &lpPropTmp);
+			hr = HrGetOneProp(&m_lpECParentFolder->m_xMAPIFolder, PR_SOURCE_KEY, &~lpPropTmp);
 			if (hr != hrSuccess)
 				goto exit;
 			hr = ECPropertyRestriction(RELOP_EQ, PR_FAV_PARENT_SOURCE_KEY, lpPropTmp).RestrictTable(lpShortcutTable, MAPI_DEFERRED_ERRORS);
 		}
-
-		MAPIFreeBuffer(lpPropTmp);
-		lpPropTmp = NULL;
 		if (hr != hrSuccess)
 			goto exit;
 	
@@ -271,13 +271,11 @@ HRESULT ECMemTablePublic::Init(ULONG ulFlags)
 	}
 
 exit:
-	MAPIFreeBuffer(lpPropTmp);
 	if (lpShortcutTable)
 		lpShortcutTable->Release();
 
 	if (lpShortcutFolder)
 		lpShortcutFolder->Release();
-	MAPIFreeBuffer(lpPropTmp);
 	if (lpRows)
 		FreeProws(lpRows);
 
@@ -291,26 +289,23 @@ exit:
 HRESULT ECMemTablePublic::ModifyRow(SBinary* lpInstanceKey, LPSRow lpsRow)
 {
 	HRESULT hr = hrSuccess;
-	LPSPropValue lpProps = NULL;
+	memory_ptr<SPropValue> lpProps, lpPropsFolder;
 	ULONG cProps = 0;
 	SPropValue sKeyProp;
 	IMAPIFolder *lpFolderReal = NULL;
 	ULONG ulPropsFolder;
-	LPSPropValue lpPropsFolder = NULL;
 	ULONG ulObjType;
 	ULONG cbEntryID = 0;
 	ULONG cbFolderID = 0;
 	LPENTRYID lpEntryID = NULL; //Do not free this
-	LPENTRYID lpFolderID = NULL;
-	LPENTRYID lpRecordKeyID = NULL;
+	memory_ptr<ENTRYID> lpFolderID, lpRecordKeyID;
 	std::string strInstanceKey;
 	ECMAPFolderRelation::const_iterator iterRel;
 	ECKeyTable::UpdateType	ulUpdateType; 
 	ULONG ulRowId;
 	ULONG ulConnection = 0;
 	LPMAPIADVISESINK lpFolderAdviseSink = NULL;
-
-	SRestriction *lpRestriction = NULL;
+	memory_ptr<SRestriction> lpRestriction;
 	LPSRowSet lpsRowsInternal = NULL;
 	SPropValue sPropTmp;
 
@@ -345,8 +340,7 @@ HRESULT ECMemTablePublic::ModifyRow(SBinary* lpInstanceKey, LPSRow lpsRow)
 			hr = MAPI_E_INVALID_PARAMETER;
 			goto exit;
 		}
-
-		hr = ((ECMsgStorePublic*)m_lpECParentFolder->GetMsgStore())->EntryIDFromSourceKey(lpsRow->lpProps[SC_FAV_PUBLIC_SOURCE_KEY].Value.bin.cb, lpsRow->lpProps[SC_FAV_PUBLIC_SOURCE_KEY].Value.bin.lpb, 0, NULL, &cbFolderID, &lpFolderID);
+		hr = ((ECMsgStorePublic*)m_lpECParentFolder->GetMsgStore())->EntryIDFromSourceKey(lpsRow->lpProps[SC_FAV_PUBLIC_SOURCE_KEY].Value.bin.cb, lpsRow->lpProps[SC_FAV_PUBLIC_SOURCE_KEY].Value.bin.lpb, 0, NULL, &cbFolderID, &~lpFolderID);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -355,16 +349,14 @@ HRESULT ECMemTablePublic::ModifyRow(SBinary* lpInstanceKey, LPSRow lpsRow)
 	}
 
 	cProps = 0;
-
-	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 20, (void**)&lpProps);
+	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 20, &~lpProps);
 	if(hr != hrSuccess)
 		goto exit;
 
 	// Default table rows
 	lpProps[cProps].ulPropTag = PR_ROWID;
 	lpProps[cProps++].Value.ul = ulRowId;
-
-	hr = MAPIAllocateBuffer(cbEntryID, (void**)&lpRecordKeyID);
+	hr = MAPIAllocateBuffer(cbEntryID, &~lpRecordKeyID);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -373,7 +365,7 @@ HRESULT ECMemTablePublic::ModifyRow(SBinary* lpInstanceKey, LPSRow lpsRow)
 
 	lpProps[cProps].ulPropTag = PR_RECORD_KEY;
 	lpProps[cProps].Value.bin.cb = cbEntryID;
-	lpProps[cProps].Value.bin.lpb = (LPBYTE)lpRecordKeyID;
+	lpProps[cProps].Value.bin.lpb = reinterpret_cast<BYTE *>(lpRecordKeyID.get());
 	++cProps;
 
 	// Set this folder as parent
@@ -426,7 +418,7 @@ HRESULT ECMemTablePublic::ModifyRow(SBinary* lpInstanceKey, LPSRow lpsRow)
 			sPropTmp.ulPropTag = PR_INSTANCE_KEY;
 			sPropTmp.Value.bin = *lpInstanceKey;
 
-			hr = ECPropertyRestriction(RELOP_EQ, PR_INSTANCE_KEY, &sPropTmp).CreateMAPIRestriction(&lpRestriction);
+			hr = ECPropertyRestriction(RELOP_EQ, PR_INSTANCE_KEY, &sPropTmp).CreateMAPIRestriction(&~lpRestriction);
 			if (hr != hrSuccess)
 				goto exit;
 			hr = m_lpShortcutTable->FindRow(lpRestriction, BOOKMARK_BEGINNING, 0);
@@ -458,7 +450,7 @@ HRESULT ECMemTablePublic::ModifyRow(SBinary* lpInstanceKey, LPSRow lpsRow)
 		goto exit;
 	}
 
-	hr = lpFolderReal->GetProps(sPropsFolderReal, m_ulFlags, &ulPropsFolder, &lpPropsFolder);
+	hr = lpFolderReal->GetProps(sPropsFolderReal, m_ulFlags, &ulPropsFolder, &~lpPropsFolder);
 	if (FAILED(hr))
 		goto exit;
 	else
@@ -518,12 +510,8 @@ HRESULT ECMemTablePublic::ModifyRow(SBinary* lpInstanceKey, LPSRow lpsRow)
 	}
 
 exit:
-	MAPIFreeBuffer(lpRecordKeyID);
 	if (lpFolderReal)
 		lpFolderReal->Release(); 
-	MAPIFreeBuffer(lpPropsFolder);
-	MAPIFreeBuffer(lpProps);
-	MAPIFreeBuffer(lpFolderID);
 	if (hr != hrSuccess && ulConnection > 0)
 		m_lpECParentFolder->GetMsgStore()->Unadvise(ulConnection);
 
@@ -532,7 +520,6 @@ exit:
 
 	if (lpsRowsInternal)
 		FreeProws(lpsRowsInternal);
-	MAPIFreeBuffer(lpRestriction);
 	return hr;
 }
 

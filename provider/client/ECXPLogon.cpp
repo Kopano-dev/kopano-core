@@ -17,6 +17,7 @@
 #include <chrono>
 #include <condition_variable>
 #include <kopano/lockhelper.hpp>
+#include <kopano/memory.hpp>
 #include <mapi.h>
 #include <mapispi.h>
 #include <mapiutil.h>
@@ -42,6 +43,8 @@
 #include <kopano/ECDebug.h>
 #include <kopano/ECRestriction.h>
 #include <kopano/mapi_ptr.h>
+
+using namespace KCHL;
 
 static HRESULT HrGetECMsgStore(IMAPIProp *lpProp, ECMsgStore **lppECMsgStore)
 {
@@ -206,7 +209,7 @@ HRESULT ECXPLogon::ClearOldSubmittedMessages(LPMAPIFOLDER lpFolder)
 	MAPITablePtr	ptrContentsTable;
 	ECAndRestriction resDelete;
 	SRestrictionPtr ptrRestriction;
-	LPENTRYLIST		lpDeleteItemEntryList = NULL;
+	memory_ptr<ENTRYLIST> lpDeleteItemEntryList;
 	SPropValue		sPropDelAfterSubmit = {0};
 	SPropValue		sPropxDaysBefore = {0};
 	SRowSetPtr		ptrRows;
@@ -241,8 +244,7 @@ HRESULT ECXPLogon::ClearOldSubmittedMessages(LPMAPIFOLDER lpFolder)
 	hr = ptrContentsTable->Restrict(ptrRestriction, MAPI_DEFERRED_ERRORS);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), (void**)&lpDeleteItemEntryList);
+	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~lpDeleteItemEntryList);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -265,7 +267,6 @@ HRESULT ECXPLogon::ClearOldSubmittedMessages(LPMAPIFOLDER lpFolder)
 		hr = lpFolder->DeleteMessages(lpDeleteItemEntryList, 0, NULL, 0); //Delete message on the server
 
 exit:
-	MAPIFreeBuffer(lpDeleteItemEntryList);
 	return hr;
 }
 
@@ -278,8 +279,7 @@ HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpu
 	ULONG ulRow = 0;
 	ULONG ulRowCount = 0;
 
-	LPSPropValue lpEntryID = NULL;
-	LPSPropValue lpECObject = NULL;
+	memory_ptr<SPropValue> lpEntryID, lpECObject;
 	IMsgStore *lpOnlineStore = NULL;
 	ECMsgStore *lpOnlineECMsgStore = NULL;
 	ULONG ulObjType;
@@ -342,8 +342,7 @@ HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpu
 		hr = m_lpMAPISup->OpenEntry(this->m_lpXPProvider->m_lpIdentityProps[XPID_STORE_EID].Value.bin.cb, (LPENTRYID)this->m_lpXPProvider->m_lpIdentityProps[XPID_STORE_EID].Value.bin.lpb, NULL, MAPI_MODIFY, &ulType, (IUnknown **)&lpMsgStore);
 		if (hr != hrSuccess)
 			goto exit;
-
-		hr = HrGetOneProp(lpMsgStore, PR_EC_OBJECT, &lpECObject);
+		hr = HrGetOneProp(lpMsgStore, PR_EC_OBJECT, &~lpECObject);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -384,8 +383,7 @@ HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpu
 	hr = lpSubmitMessage->SaveChanges(KEEP_OPEN_READWRITE);
 	if (hr != hrSuccess)
 		goto exit;
-	
-	hr = HrGetOneProp(lpSubmitMessage, PR_ENTRYID, &lpEntryID);
+	hr = HrGetOneProp(lpSubmitMessage, PR_ENTRYID, &~lpEntryID);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -463,7 +461,6 @@ HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpu
 exit:
 	if (lpMsgStore)
 		lpMsgStore->Release();
-	MAPIFreeBuffer(lpECObject);
 	if (lpOnlineStore)
 		lpOnlineStore->Release();
 
@@ -478,7 +475,6 @@ exit:
 
 	if (lpSubmitFolder)
 		lpSubmitFolder->Release();
-	MAPIFreeBuffer(lpEntryID);
 	if(lpRecipRows)
 		FreeProws (lpRecipRows);
 

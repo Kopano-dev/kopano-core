@@ -91,7 +91,7 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 
 	LPPROFSECT		lpProfSect = NULL;
 	ULONG			cValues = 0;
-	LPSPropValue	lpsPropArray = NULL;
+	KCHL::memory_ptr<SPropValue> lpsPropArray;
 	BOOL			fIsDefaultStore = FALSE;
 	ULONG			ulStoreType = 0;
 	MAPIUID			guidMDBProvider;
@@ -126,7 +126,7 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 
 	static constexpr SizedSPropTagArray(2, proptags) =
 		{2, {PR_MDB_PROVIDER, PR_RESOURCE_FLAGS}};
-	hr = lpProfSect->GetProps(proptags, 0, &cValues, &lpsPropArray);
+	hr = lpProfSect->GetProps(proptags, 0, &cValues, &~lpsPropArray);
 	if (FAILED(hr))
 		goto exit;
 
@@ -215,7 +215,6 @@ exit:
 
 	if(lpTransport)
 		lpTransport->Release();
-	MAPIFreeBuffer(lpsPropArray);
 	return hr;
 }
 

@@ -28,6 +28,7 @@
 #include <kopano/ECGuid.h>
 #include <kopano/ECInterfaceDefs.h>
 #include <kopano/mapi_ptr.h>
+#include <kopano/memory.hpp>
 #include <kopano/namedprops.h>
 #include <kopano/mapiguidext.h>
 
@@ -256,7 +257,7 @@ HRESULT ZCMAPIProp::ConvertProps(IMAPIProp *lpContact, ULONG cbEntryID, LPENTRYI
 
 	// named properties
 	SPropTagArrayPtr ptrNameTags;
-	LPMAPINAMEID *lppNames = NULL;
+	KCHL::memory_ptr<MAPINAMEID *> lppNames;
 	ULONG ulNames = 5;
 	MAPINAMEID mnNamedProps[5] = {
 		{(LPGUID)&PSETID_Address, MNID_ID, {dispidEmail1DisplayName}},
@@ -266,7 +267,7 @@ HRESULT ZCMAPIProp::ConvertProps(IMAPIProp *lpContact, ULONG cbEntryID, LPENTRYI
 		{(LPGUID)&PSETID_Address, MNID_ID, {dispidEmail1OriginalEntryID}}
 	};
 
-	hr = MAPIAllocateBuffer(sizeof(LPMAPINAMEID) * (ulNames), (void**)&lppNames);
+	hr = MAPIAllocateBuffer(sizeof(LPMAPINAMEID) * ulNames, &~lppNames);
 	if (hr != hrSuccess)
 		goto exitm;
 
@@ -298,7 +299,6 @@ HRESULT ZCMAPIProp::ConvertProps(IMAPIProp *lpContact, ULONG cbEntryID, LPENTRYI
 		hr = ConvertDistList(ptrNameTags, cValues, ptrContactProps);
 
  exitm:
-	MAPIFreeBuffer(lppNames);
 	return hr;
 }
 
@@ -392,7 +392,7 @@ HRESULT ZCMAPIProp::CopyOneProp(convert_context &converter, ULONG ulFlags,
 HRESULT ZCMAPIProp::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG * lpcValues, LPSPropValue * lppPropArray)
 {
 	HRESULT hr = hrSuccess;
-	LPSPropValue lpProps = NULL;
+	KCHL::memory_ptr<SPropValue> lpProps;
 	convert_context converter;
 
 	if((lpPropTagArray != NULL && lpPropTagArray->cValues == 0) || Util::ValidatePropTagArray(lpPropTagArray) == false)
@@ -400,7 +400,7 @@ HRESULT ZCMAPIProp::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULON
 
 	if (lpPropTagArray == NULL) {
 		// check ulFlags for MAPI_UNICODE
-		hr = MAPIAllocateBuffer(sizeof(SPropValue) * m_mapProperties.size(), (void**)&lpProps);
+		hr = MAPIAllocateBuffer(sizeof(SPropValue) * m_mapProperties.size(), &~lpProps);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -416,7 +416,7 @@ HRESULT ZCMAPIProp::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULON
 		*lpcValues = m_mapProperties.size();
 	} else {
 		// check lpPropTagArray->aulPropTag[x].ulPropTag for PT_UNICODE or PT_STRING8
-		hr = MAPIAllocateBuffer(sizeof(SPropValue) * lpPropTagArray->cValues, (void**)&lpProps);
+		hr = MAPIAllocateBuffer(sizeof(SPropValue) * lpPropTagArray->cValues, &~lpProps);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -435,12 +435,8 @@ HRESULT ZCMAPIProp::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULON
 
 		*lpcValues = lpPropTagArray->cValues;
 	}
-
-	*lppPropArray = lpProps;
-	lpProps = NULL;
-
+	*lppPropArray = lpProps.release();
 exit:
-	MAPIFreeBuffer(lpProps);
 	return hr;
 }
 

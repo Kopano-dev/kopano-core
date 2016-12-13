@@ -19,6 +19,7 @@
 
 #include <kopano/ECGetText.h>
 #include <kopano/ECInterfaceDefs.h>
+#include <kopano/memory.hpp>
 #include <mapi.h>
 #include <mapiutil.h>
 #include <mapispi.h>
@@ -48,6 +49,8 @@
 #ifdef swprintf
 	#undef swprintf
 #endif
+
+using namespace KCHL;
 
 ECMSProviderSwitch::ECMSProviderSwitch(ULONG ulFlags) : ECUnknown("ECMSProviderSwitch")
 {
@@ -91,14 +94,11 @@ HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR l
 
 	sGlobalProfileProps	sProfileProps;
 	LPPROFSECT		lpProfSect = NULL;
-	LPSPropValue	lpsPropArray = NULL;
+	memory_ptr<SPropValue> lpsPropArray, lpProp, lpIdentityProps;
 	ULONG			cValues = 0;
 
 	char*			lpDisplayName = NULL;
-	LPSPropValue	lpProp = NULL;
 	bool			bIsDefaultStore = false;
-	LPSPropValue	lpIdentityProps = NULL;
-
 	LPMDB			lpMDB = NULL;
 	LPMSLOGON		lpMSLogon = NULL;
 
@@ -106,7 +106,7 @@ HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR l
 	ULONG ulConnectType = CT_UNSPECIFIED;
 	IMSProvider *lpOnline = NULL;
 	convert_context converter;
-	LPENTRYID		lpStoreID = NULL;
+	memory_ptr<ENTRYID> lpStoreID;
 	ULONG			cbStoreID = 0;
 
 	convstring			tstrProfileName(lpszProfileName, ulFlags);
@@ -124,7 +124,7 @@ HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR l
 	if (lpEntryID == NULL) {
 
 		// Try to initialize the provider
-		if (InitializeProvider(NULL, lpProfSect, sProfileProps, &cbStoreID, &lpStoreID) != hrSuccess) {
+		if (InitializeProvider(NULL, lpProfSect, sProfileProps, &cbStoreID, &~lpStoreID) != hrSuccess) {
 			hr = MAPI_E_UNCONFIGURED;
 			goto exit;
 		}
@@ -134,7 +134,7 @@ HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR l
 	}
 
 	static constexpr SizedSPropTagArray(1, proptag) = {1, {PR_MDB_PROVIDER}};
-	hr = lpProfSect->GetProps(proptag, 0, &cValues, &lpsPropArray);
+	hr = lpProfSect->GetProps(proptag, 0, &cValues, &~lpsPropArray);
 	if (hr == hrSuccess && lpsPropArray[0].ulPropTag == PR_MDB_PROVIDER &&
 	    (CompareMDBProvider(lpsPropArray[0].Value.bin.lpb, &KOPANO_SERVICE_GUID) ||
 	     CompareMDBProvider(lpsPropArray[0].Value.bin.lpb, &MSEMS_SERVICE_GUID)))
@@ -204,7 +204,7 @@ HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR l
 		goto exit;
 
 	// Set profile identity
-	hr = ClientUtil::HrSetIdentity(lpecMDB->lpTransport, lpMAPISup, &lpIdentityProps);
+	hr = ClientUtil::HrSetIdentity(lpecMDB->lpTransport, lpMAPISup, &~lpIdentityProps);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -215,7 +215,7 @@ HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR l
 	// Since this is the first call that actually needs information from the store, we need
 	// to be prepared to handle the MAPI_E_UNCONFIGURED error as we want to propagate this
 	// up to the caller so this 'error' can be resolved by reconfiguring the profile.
-	hr = HrGetOneProp(lpMDB, PR_DISPLAY_NAME_A, &lpProp);
+	hr = HrGetOneProp(lpMDB, PR_DISPLAY_NAME_A, &~lpProp);
 	if (hr == MAPI_E_UNCONFIGURED)
 		goto exit;
 	if (hr != hrSuccess || lpProp->ulPropTag != PR_DISPLAY_NAME_A) {
@@ -261,8 +261,6 @@ HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR l
 exit:
 	if (lppMAPIError)
 		*lppMAPIError = NULL;
-	MAPIFreeBuffer(lpsPropArray);
-	MAPIFreeBuffer(lpProp);
 	if (lpProfSect)
 		lpProfSect->Release();
 	if (lpMSLogon)
@@ -276,8 +274,6 @@ exit:
     
 	if (lpOnline)
 		lpOnline->Release();
-	MAPIFreeBuffer(lpIdentityProps);
-	MAPIFreeBuffer(lpStoreID);
 	return hr;
 }
 
