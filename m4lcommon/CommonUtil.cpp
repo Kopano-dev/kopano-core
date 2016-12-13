@@ -614,23 +614,14 @@ exit:
 }
 
 HRESULT HrOpenDefaultStore(IMAPISession *lpMAPISession, ULONG ulFlags, IMsgStore **lppMsgStore) {
-	HRESULT			hr = hrSuccess;
-	IMsgStore		*lpMsgStore = NULL;
 	ULONG			cbEntryID = 0;
 	memory_ptr<ENTRYID> lpEntryID;
 
-	hr = HrSearchECStoreEntryId(lpMAPISession, FALSE, &cbEntryID, &~lpEntryID);
+	HRESULT hr = HrSearchECStoreEntryId(lpMAPISession, FALSE, &cbEntryID, &~lpEntryID);
 	if (hr != hrSuccess)
-		goto exit;
-
-	hr = lpMAPISession->OpenMsgStore(0, cbEntryID, lpEntryID, &IID_IMsgStore, ulFlags, &lpMsgStore);
-	if (hr != hrSuccess)
-		goto exit;
-
-	*lppMsgStore = lpMsgStore;
-
-exit:
-	return hr;
+		return hr;
+	return lpMAPISession->OpenMsgStore(0, cbEntryID, lpEntryID,
+	       &IID_IMsgStore, ulFlags, lppMsgStore);
 }
 
 HRESULT HrOpenECPublicStore(IMAPISession *lpMAPISession, IMsgStore **lppMsgStore){
@@ -667,23 +658,13 @@ exit:
 
 HRESULT HrOpenECPublicStore(IMAPISession *lpMAPISession, ULONG ulFlags, IMsgStore **lppMsgStore)
 {
-	HRESULT			hr = hrSuccess;
-	IMsgStore		*lpMsgStore = NULL;
 	ULONG			cbEntryID = 0;
 	memory_ptr<ENTRYID> lpEntryID;
-
-	hr = HrSearchECStoreEntryId(lpMAPISession, TRUE, &cbEntryID, &~lpEntryID);
+	HRESULT hr = HrSearchECStoreEntryId(lpMAPISession, TRUE, &cbEntryID, &~lpEntryID);
 	if(hr != hrSuccess)
-		goto exit;
-
-	hr = lpMAPISession->OpenMsgStore(0, cbEntryID, lpEntryID, &IID_IMsgStore, ulFlags, &lpMsgStore);
-	if(hr != hrSuccess)
-		goto exit;
-
-	*lppMsgStore = lpMsgStore;
-
-exit:
-	return hr;
+		return hr;
+	return lpMAPISession->OpenMsgStore(0, cbEntryID, lpEntryID,
+	       &IID_IMsgStore, ulFlags, lppMsgStore);
 }
 
 HRESULT HrGetECProviderAdmin(LPMAPISESSION lpSession, LPPROVIDERADMIN *lppProviderAdmin)

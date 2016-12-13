@@ -745,7 +745,6 @@ bool ICalRecurrence::HrValidateOccurrence(icalitem *lpItem, icalitem::exception 
 	HRESULT hr = hrSuccess;
 	memory_ptr<OccrInfo> lpFBBlocksAll;
 	ULONG cValues = 0;
-	bool bIsValid = false;
 	time_t tBaseDateStart = LocalToUTC(lpItem->lpRecurrence->StartOfDay(UTCToLocal(lpEx.tBaseDate, lpItem->tTZinfo)), lpItem->tTZinfo);
 	time_t tStartDateStart = LocalToUTC(lpItem->lpRecurrence->StartOfDay(UTCToLocal(lpEx.tStartDate, lpItem->tTZinfo)), lpItem->tTZinfo);
 
@@ -756,13 +755,8 @@ bool ICalRecurrence::HrValidateOccurrence(icalitem *lpItem, icalitem::exception 
 	}
 
 	if (hr != hrSuccess)
-		goto exit;
-
-	if(cValues == 1)
-		bIsValid = true;
-
-exit:	
-	return bIsValid;
+		return false;
+	return cValues == 1;
 }
 
 /**

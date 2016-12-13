@@ -318,20 +318,14 @@ bool VConverter::bIsUserLoggedIn(const std::wstring &strUser)
 {
 	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpUserProp;
-	bool blRetVal = false;
 	
 	if (m_lpMailUser)
 		hr = HrGetOneProp(m_lpMailUser, PR_SMTP_ADDRESS_W, &~lpUserProp);
 	else
 		hr = MAPI_E_CALL_FAILED;
 	if (hr != hrSuccess)
-		goto exit;
-
-	if (!wcsncmp(lpUserProp->Value.lpszW, strUser.c_str() , strUser.length()))
-		blRetVal = true;
-	
-exit:
-	return blRetVal;
+		return false;
+	return wcsncmp(lpUserProp->Value.lpszW, strUser.c_str(), strUser.length()) == 0;
 }
 
 /**
@@ -488,7 +482,7 @@ HRESULT VConverter::HrCompareUids(icalitem *lpIcalItem, icalcomponent *lpicEvent
 	lpPropVal->ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY);
 
 	hr = Util::CompareProp(lpPropVal, &lpIcalItem->sBinGuid, createLocaleFromName(""), &res);
-	if (!(hr == hrSuccess && res == 0))
+	if (hr != hrSuccess || res != 0)
 		hr = MAPI_E_BAD_VALUE;
 
 exit:
@@ -3205,31 +3199,27 @@ HRESULT VConverter::HrRetrieveAlldayStatus(icalcomponent *lpicEvent, bool *lpblI
 	icStart = icalcomponent_get_dtstart(lpicEvent);
 	if (icStart.is_date)
 	{
-		blIsAllday = true;
-		goto exit;
+		*lpblIsAllday = true;
+		return hrSuccess;
 	}
 
 	// only assume the X header valid when it's a non-floating timestamp.
 	// also check is_utc and/or zone pointer in DTSTART/DTEND ?
 	icEnd = icalcomponent_get_dtend(lpicEvent);
-	if ((icStart.hour + icStart.minute + icStart.second) != 0 || (icEnd.hour + icEnd.minute + icEnd.second) != 0)
-		goto exit;
+	if (icStart.hour + icStart.minute + icStart.second != 0 ||
+	    icEnd.hour + icEnd.minute + icEnd.second != 0) {
+		*lpblIsAllday = false;
+		return hrSuccess;
+	}
 
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_X_PROPERTY);
 	while (lpicProp) {
 		if (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-CDO-ALLDAYEVENT") == 0){
-			
-			if (strcmp(icalproperty_get_x(lpicProp),"TRUE") == 0)
-				blIsAllday = true;
-			else
-				blIsAllday = false;
-
+			blIsAllday = strcmp(icalproperty_get_x(lpicProp),"TRUE") == 0;
 			break;
 		}
 		lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_X_PROPERTY);
 	}
-
-exit:
 	*lpblIsAllday = blIsAllday;
 
 	return hrSuccess;
