@@ -63,6 +63,7 @@
 #include <kopano/ECLogger.h>
 #include <kopano/ECConfig.h>
 #include <kopano/UnixUtil.h>
+#include <kopano/memory.hpp>
 #include <kopano/my_getopt.h>
 #include <kopano/ecversion.h>
 #include <kopano/Util.h>
@@ -310,7 +311,6 @@ static HRESULT GetErrorObjects(const SendData &sSendData,
 	HRESULT hr = hrSuccess;
 	ULONG ulObjType = 0;
 	IECServiceAdmin	*lpServiceAdmin = NULL;
-	LPSPropValue lpsProp = NULL;
 
 	if (*lppAddrBook == NULL) {
 		hr = lpAdminSession->OpenAddressBook(0, NULL, AB_NO_DIALOG, lppAddrBook);
@@ -348,7 +348,6 @@ static HRESULT GetErrorObjects(const SendData &sSendData,
 		}
 	}
 exit:
-	MAPIFreeBuffer(lpsProp);
 	if (lpServiceAdmin)
 		lpServiceAdmin->Release();
 
@@ -641,15 +640,14 @@ static HRESULT GetAdminSpooler(IMAPISession *lpAdminSession,
 	HRESULT		hr = hrSuccess;
 	IECSpooler	*lpSpooler = NULL;
 	IMsgStore	*lpMDB = NULL;
-	SPropValue	*lpsProp = NULL;
+	KCHL::memory_ptr<SPropValue> lpsProp;
 
 	hr = HrOpenDefaultStore(lpAdminSession, &lpMDB);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open default store for system account. Error 0x%08X", hr);
 		goto exit;
 	}
-
-	hr = HrGetOneProp(lpMDB, PR_EC_OBJECT, &lpsProp);
+	hr = HrGetOneProp(lpMDB, PR_EC_OBJECT, &~lpsProp);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get Kopano internal object: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
@@ -668,7 +666,6 @@ static HRESULT GetAdminSpooler(IMAPISession *lpAdminSession,
 exit:
 	if (lpMDB)
 		lpMDB->Release();
-	MAPIFreeBuffer(lpsProp);
 	return hr;
 }
 
