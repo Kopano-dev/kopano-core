@@ -1,5 +1,6 @@
 #!/usr/bin/python -u
 
+from collections import defaultdict
 from datetime import datetime
 
 import kopano
@@ -17,7 +18,7 @@ server = kopano.Server(options=options, auth_user='SYSTEM', auth_pass='')
 # XXX: When python-kopano supports sorting, simplify the loop by sorting on display_name in descending order.
 table = server.table(PR_EC_STATSTABLE_SYSTEM, columns=[PR_DISPLAY_NAME_W, PR_EC_STATS_SYSTEM_VALUE, PR_EC_STATS_SYSTEM_DESCRIPTION])
 
-cstat = {}
+cstat = defaultdict(dict)
 for row in table.rows():
     name, value, _ = row
     name = name.value
@@ -32,19 +33,15 @@ for row in table.rows():
 
     if name.endswith('_hit'):
         name = name[6:-4]
-        if not name in cstat: cstat[name] = {}
         cstat[name]['hits'] = int(value)
     if name.endswith('_req'):
         name = name[6:-4]
-        if not name in cstat: cstat[name] = {}
         cstat[name]['requests'] = int(value)
     if name.endswith('_size'):
         name = name[6:-5]
-        if not name in cstat: cstat[name] = {}
         cstat[name]['size'] = int(value)
     if name.endswith('_maxsz'):
         name = name[6:-6]
-        if not name in cstat: cstat[name] = {}
         cstat[name]['maxsz'] = int(value)
 
 print('Kopano Cache Statistics')
