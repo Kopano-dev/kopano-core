@@ -1751,9 +1751,8 @@ HRESULT MAPIToVMIME::handleExtraHeaders(IMessage *lpMessage,
 		if (gethostname(buffer, sizeof buffer) == -1)
 			strcpy(buffer, "???");
 
-		std::string server_name = buffer;
 		vmime::relay relay;
-		relay.setBy(server_name);
+		relay.setBy(std::string(buffer) + " (kopano-spooler)");
 		relay.getWithList().push_back("MAPI");
 		auto now = vmime::datetime::now();
 		relay.setDate(now);
