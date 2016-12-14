@@ -110,21 +110,20 @@ HRESULT ECExchangeImportContentsChanges::GetLastError(HRESULT hResult, ULONG ulF
 	//FIXME: give synchronization errors messages
 	hr = Util::HrMAPIErrorToText((hResult == hrSuccess)?MAPI_E_NO_ACCESS : hResult, &~lpszErrorMsg);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	if ((hr = MAPIAllocateBuffer(sizeof(MAPIERROR),(void **)&lpMapiError)) != hrSuccess)
-		goto exit;
+		return hr;
 	
 	if ((ulFlags & MAPI_UNICODE) == MAPI_UNICODE) {
 		std::wstring wstrErrorMsg = convert_to<std::wstring>(lpszErrorMsg.get());
 		std::wstring wstrCompName = convert_to<std::wstring>(g_strProductName.c_str());
 
 		if ((hr = MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrErrorMsg.size() + 1), lpMapiError, (void**)&lpMapiError->lpszError)) != hrSuccess)
-			goto exit;
+			return hr;
 		wcscpy((wchar_t*)lpMapiError->lpszError, wstrErrorMsg.c_str());
 
 		if ((hr = MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrCompName.size() + 1), lpMapiError, (void**)&lpMapiError->lpszComponent)) != hrSuccess)
-			goto exit;
+			return hr;
 		wcscpy((wchar_t*)lpMapiError->lpszComponent, wstrCompName.c_str()); 
 
 	} else {
@@ -132,11 +131,11 @@ HRESULT ECExchangeImportContentsChanges::GetLastError(HRESULT hResult, ULONG ulF
 		std::string strCompName = convert_to<std::string>(g_strProductName.c_str());
 
 		if ((hr = MAPIAllocateMore(strErrorMsg.size() + 1, lpMapiError, (void**)&lpMapiError->lpszError)) != hrSuccess)
-			goto exit;
+			return hr;
 		strcpy((char*)lpMapiError->lpszError, strErrorMsg.c_str());
 
 		if ((hr = MAPIAllocateMore(strCompName.size() + 1, lpMapiError, (void**)&lpMapiError->lpszComponent)) != hrSuccess)
-			goto exit;
+			return hr;
 		strcpy((char*)lpMapiError->lpszComponent, strCompName.c_str());
 	}
 
@@ -145,9 +144,7 @@ HRESULT ECExchangeImportContentsChanges::GetLastError(HRESULT hResult, ULONG ulF
 	lpMapiError->ulVersion		= 0;
 
 	*lppMAPIError = lpMapiError;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECExchangeImportContentsChanges::Config(LPSTREAM lpStream, ULONG ulFlags){
@@ -384,14 +381,12 @@ HRESULT ECExchangeImportContentsChanges::ImportPerUserReadStateChange(ULONG cEle
 			continue; // Message is delete or moved
 		}
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		hr = m_lpFolder->GetMsgStore()->lpTransport->HrSetReadFlag(cbEntryId, lpEntryId, lpReadState[ulSKNr].ulFlags & MSGFLAG_READ ? 0 : CLEAR_READ_FLAG, m_ulSyncId);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECExchangeImportContentsChanges::ImportMessageMove(ULONG cbSourceKeySrcFolder, BYTE *pbSourceKeySrcFolder, ULONG cbSourceKeySrcMessage, BYTE *pbSourceKeySrcMessage, ULONG cbPCLMessage, BYTE *pbPCLMessage, ULONG cbSourceKeyDestMessage, BYTE *pbSourceKeyDestMessage, ULONG cbChangeNumDestMessage, BYTE *pbChangeNumDestMessage){
@@ -504,18 +499,11 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictMessage(LPMESSAGE lpMessa
 
 	hr = CreateConflictMessageOnly(lpMessage, &~lpConflictItems);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = HrSetOneProp(lpMessage, lpConflictItems);
 	if(hr != hrSuccess)
-		goto exit;
-
-	hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
-	if(hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+		return hr;
+	return lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
 }
 
 HRESULT ECExchangeImportContentsChanges::CreateConflictMessageOnly(LPMESSAGE lpMessage, LPSPropValue *lppConflictItems)

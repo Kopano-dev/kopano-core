@@ -235,7 +235,7 @@ HRESULT __stdcall ECExchangeModifyTable::ModifyTable(ULONG ulFlags, LPROWLIST lp
 	if(ulFlags == ROWLIST_REPLACE) {
 		hr = m_ecTable->HrDeleteAll();
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	for (i = 0; i < lpMods->cEntries; ++i) {
@@ -251,8 +251,7 @@ HRESULT __stdcall ECExchangeModifyTable::ModifyTable(ULONG ulFlags, LPROWLIST lp
 					sRowId.Value.li.QuadPart = this->m_ulUniqueId++;
 					hr = Util::HrAddToPropertyArray(lpMods->aEntries[i].rgPropVals, lpMods->aEntries[i].cValues, &sRowId, &~lpPropRemove, &cValues);
 					if(hr != hrSuccess)
-						goto exit;
-
+						return hr;
 					lpProps = lpPropRemove;
 				} else {
 					lpProps = lpMods->aEntries[i].rgPropVals;
@@ -266,12 +265,12 @@ HRESULT __stdcall ECExchangeModifyTable::ModifyTable(ULONG ulFlags, LPROWLIST lp
 
 				hr = m_ecTable->HrModifyRow(ulFlagsRow, lpFind, lpProps, cValues);
 				if(hr != hrSuccess)
-					goto exit;
+					return hr;
 				break;
 			case ROW_REMOVE:
 				hr = m_ecTable->HrModifyRow(ECKeyTable::TABLE_ROW_DELETE, NULL, lpMods->aEntries[i].rgPropVals, lpMods->aEntries[i].cValues);
 				if(hr != hrSuccess)
-					goto exit;
+					return hr;
 				break;
 			case ROW_EMPTY:
 				break;
@@ -280,7 +279,7 @@ HRESULT __stdcall ECExchangeModifyTable::ModifyTable(ULONG ulFlags, LPROWLIST lp
 
 	// Do not push the data to the server
 	if (!m_bPushToServer)
-		goto done;
+		return m_ecTable->HrSetClean();
 
 	// The data has changed now, so save the data in the parent folder
 	if(m_ulUniqueTag == PR_RULE_ID)
@@ -289,37 +288,27 @@ HRESULT __stdcall ECExchangeModifyTable::ModifyTable(ULONG ulFlags, LPROWLIST lp
 		hr = HrSerializeTable(m_ecTable, &xml);
 		std::unique_ptr<char[]> szXML(xml);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		sPropXML.ulPropTag = PR_RULES_DATA;
 		sPropXML.Value.bin.lpb = reinterpret_cast<BYTE *>(szXML.get());
 		sPropXML.Value.bin.cb = strlen(szXML.get());
 
 		hr = m_lpParent->SetProps(1, &sPropXML, NULL);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	} else if (m_ulUniqueTag == PR_MEMBER_ID) {
 		
 		hr = SaveACLS(m_lpParent, m_ecTable);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		// FIXME: if username not exist, just resolve
 
 	} else {
 		assert(false);
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
-
-done:
 	// Mark all as saved
-	hr = m_ecTable->HrSetClean();
-	if(hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+	return m_ecTable->HrSetClean();
 }
 
 HRESULT ECExchangeModifyTable::OpenACLS(ECMAPIProp *lpecMapiProp, ULONG ulFlags, ECMemTable *lpTable, ULONG *lpulUniqueID)

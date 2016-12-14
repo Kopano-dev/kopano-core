@@ -42,10 +42,8 @@ HRESULT WSMessageStreamExporter::Create(ULONG ulOffset, ULONG ulCount, const mes
 	HRESULT hr = hrSuccess;
 	convert_context converter;
 	WSMessageStreamExporterPtr ptrStreamExporter(new(std::nothrow) WSMessageStreamExporter);
-	if (ptrStreamExporter == nullptr) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (ptrStreamExporter == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 	
 	for (gsoap_size_t i = 0; i < streams.__size; ++i) {
 		std::unique_ptr<StreamInfo> lpsi(new StreamInfo);
@@ -53,11 +51,11 @@ HRESULT WSMessageStreamExporter::Create(ULONG ulOffset, ULONG ulCount, const mes
 		lpsi->id.assign(streams.__ptr[i].sStreamData.xop__Include.id);
 		hr = MAPIAllocateBuffer(streams.__ptr[i].sPropVals.__size * sizeof(SPropValue), &~lpsi->ptrPropVals);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		for (gsoap_size_t j = 0; j < streams.__ptr[i].sPropVals.__size; ++j) {
 			hr = CopySOAPPropValToMAPIPropVal(&lpsi->ptrPropVals[j], &streams.__ptr[i].sPropVals.__ptr[j], lpsi->ptrPropVals, &converter);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 		lpsi->cbPropVals = streams.__ptr[i].sPropVals.__size;
 
@@ -69,9 +67,7 @@ HRESULT WSMessageStreamExporter::Create(ULONG ulOffset, ULONG ulCount, const mes
 	ptrStreamExporter->m_ptrTransport.reset(lpTransport);
 
 	*lppStreamExporter = ptrStreamExporter.release();
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**

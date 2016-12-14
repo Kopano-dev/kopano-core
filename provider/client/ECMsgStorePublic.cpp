@@ -461,29 +461,28 @@ HRESULT ECMsgStorePublic::BuildIPMSubTree()
 
 	if (m_lpIPMSubTree != NULL){
 		assert(false);
-		goto exit;
+		return hrSuccess;
 	}
 	hr = ECMemTable::Create(sPropsHierarchyColumns, PR_ROWID, &lpIPMSubTree);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	//  Favorites
 	ulRowId = 1;
 	cMaxProps = 22;
 	hr = MAPIAllocateBuffer(sizeof(SPropValue) * cMaxProps, &~lpProps);
 	if(hr != hrSuccess)
-		goto exit;
-	
+		return hr;
 	lpProps[cProps].ulPropTag = PR_ENTRYID;
 	hr = GetPublicEntryId(ePE_Favorites, lpProps, &lpProps[cProps].Value.bin.cb, (LPENTRYID*)&lpProps[cProps].Value.bin.lpb);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	++cProps;
 
 	lpProps[cProps].ulPropTag = PR_LONGTERM_ENTRYID_FROM_TABLE;
 	hr = GetPublicEntryId(ePE_Favorites, lpProps, &lpProps[cProps].Value.bin.cb, (LPENTRYID*)&lpProps[cProps].Value.bin.lpb);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	++cProps;
 
 	lpProps[cProps].ulPropTag = PR_DISPLAY_TYPE;
@@ -495,7 +494,7 @@ HRESULT ECMsgStorePublic::BuildIPMSubTree()
 	lpProps[cProps].ulPropTag = PR_PARENT_ENTRYID;
 	hr = GetPublicEntryId(ePE_IPMSubtree, lpProps, &lpProps[cProps].Value.bin.cb, (LPENTRYID*)&lpProps[cProps].Value.bin.lpb);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	++cProps;
 
 	lpProps[cProps].ulPropTag = PR_DISPLAY_NAME_W;
@@ -517,7 +516,7 @@ HRESULT ECMsgStorePublic::BuildIPMSubTree()
 	lpProps[cProps].Value.bin.cb = sizeof(ULONG)*2;
 	hr = MAPIAllocateMore(lpProps[cProps].Value.bin.cb, lpProps, (void**)&lpProps[cProps].Value.bin.lpb);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	memset(lpProps[cProps].Value.bin.lpb, 0, lpProps[cProps].Value.bin.cb );
 	memcpy(lpProps[cProps].Value.bin.lpb, &ulRowId, sizeof(ULONG));
@@ -526,7 +525,7 @@ HRESULT ECMsgStorePublic::BuildIPMSubTree()
 	lpProps[cProps].ulPropTag = PR_RECORD_KEY;
 	hr = GetPublicEntryId(ePE_Favorites, lpProps, &lpProps[cProps].Value.bin.cb, (LPENTRYID*)&lpProps[cProps].Value.bin.lpb);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	++cProps;
 
 	lpProps[cProps].ulPropTag = PR_ACCESS;
@@ -555,8 +554,7 @@ HRESULT ECMsgStorePublic::BuildIPMSubTree()
 
 	hr = lpIPMSubTree->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, &sKeyProp, lpProps, cProps);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	assert(cProps <= cMaxProps);
 
 	// the folder "Public Folders"
@@ -566,18 +564,17 @@ HRESULT ECMsgStorePublic::BuildIPMSubTree()
 
 	hr = MAPIAllocateBuffer(sizeof(SPropValue) * cMaxProps, &~lpProps);
 	if(hr != hrSuccess)
-		goto exit;
-	
+		return hr;
 	lpProps[cProps].ulPropTag = PR_ENTRYID;
 	hr = ((ECMsgStorePublic*)GetMsgStore())->GetPublicEntryId(ePE_PublicFolders, lpProps, &lpProps[cProps].Value.bin.cb, (LPENTRYID*)&lpProps[cProps].Value.bin.lpb);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	++cProps;
 	
 	lpProps[cProps].ulPropTag = PR_LONGTERM_ENTRYID_FROM_TABLE;
 	hr = GetPublicEntryId(ePE_PublicFolders, lpProps, &lpProps[cProps].Value.bin.cb, (LPENTRYID*)&lpProps[cProps].Value.bin.lpb);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	++cProps;
 
 	lpProps[cProps].ulPropTag = PR_DISPLAY_TYPE;
@@ -589,7 +586,7 @@ HRESULT ECMsgStorePublic::BuildIPMSubTree()
 	lpProps[cProps].ulPropTag = PR_PARENT_ENTRYID;
 	hr = GetPublicEntryId(ePE_IPMSubtree, lpProps, &lpProps[cProps].Value.bin.cb, (LPENTRYID*)&lpProps[cProps].Value.bin.lpb);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	++cProps;
 
 	lpProps[cProps].ulPropTag = PR_DISPLAY_NAME_W;
@@ -611,8 +608,7 @@ HRESULT ECMsgStorePublic::BuildIPMSubTree()
 	lpProps[cProps].Value.bin.cb = sizeof(ULONG)*2;
 	hr = MAPIAllocateMore(lpProps[cProps].Value.bin.cb, lpProps, (void**)&lpProps[cProps].Value.bin.lpb);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	memset(lpProps[cProps].Value.bin.lpb, 0, lpProps[cProps].Value.bin.cb );
 	memcpy(lpProps[cProps].Value.bin.lpb, &ulRowId, sizeof(ULONG));
 	++cProps;
@@ -620,7 +616,7 @@ HRESULT ECMsgStorePublic::BuildIPMSubTree()
 	lpProps[cProps].ulPropTag = PR_RECORD_KEY;
 	hr = GetPublicEntryId(ePE_PublicFolders, lpProps, &lpProps[cProps].Value.bin.cb, (LPENTRYID*)&lpProps[cProps].Value.bin.lpb);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	++cProps;
 
 	lpProps[cProps].ulPropTag = PR_ACCESS;
@@ -649,13 +645,11 @@ HRESULT ECMsgStorePublic::BuildIPMSubTree()
 
 	hr = lpIPMSubTree->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, &sKeyProp, lpProps, cProps);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	assert(cProps <= cMaxProps);
 	m_lpIPMSubTree = lpIPMSubTree;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 ECMemTable *ECMsgStorePublic::GetIPMSubTree()
@@ -739,19 +733,16 @@ HRESULT ECMsgStorePublic::Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulE
 	memory_ptr<ENTRYID> lpEntryIDIntern;
 
 	if(ComparePublicEntryId(ePE_IPMSubtree, cbEntryID, lpEntryID, &ulResult) == hrSuccess && ulResult == TRUE) {
-		hr = MAPI_E_NO_SUPPORT; // FIXME
-		goto exit;
+		return MAPI_E_NO_SUPPORT; // FIXME
 	} else if(ComparePublicEntryId(ePE_Favorites, cbEntryID, lpEntryID, &ulResult) == hrSuccess && ulResult == TRUE) {
-		hr = MAPI_E_NO_SUPPORT; // FIXME
-		goto exit;
+		return MAPI_E_NO_SUPPORT; // FIXME
 	} else if(ComparePublicEntryId(ePE_PublicFolders, cbEntryID, lpEntryID, &ulResult) == hrSuccess && ulResult == TRUE) {
-		hr = MAPI_E_NO_SUPPORT; // FIXME
-		goto exit;
+		return MAPI_E_NO_SUPPORT; // FIXME
 	} else if (lpEntryID && (lpEntryID->abFlags[3] & KOPANO_FAVORITE)) {
 		// Replace the original entryid because this one is only readable
 		hr = MAPIAllocateBuffer(cbEntryID, &~lpEntryIDIntern);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		memcpy(lpEntryIDIntern, lpEntryID, cbEntryID);
 
 		// Remove Flags intern
@@ -759,9 +750,5 @@ HRESULT ECMsgStorePublic::Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulE
 
 		lpEntryID = lpEntryIDIntern;
 	}
-
-	hr = ECMsgStore::Advise(cbEntryID, lpEntryID, ulEventMask, lpAdviseSink, lpulConnection);
-
-exit:
-	return hr;
+	return ECMsgStore::Advise(cbEntryID, lpEntryID, ulEventMask, lpAdviseSink, lpulConnection);
 }

@@ -1844,7 +1844,6 @@ exit:
  */
 HRESULT ECMsgStore::AddRenAdditionalFolder(IMAPIFolder *lpFolder, ULONG ulType, SBinary *lpEntryID)
 {
-	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpRenEntryIDs;
 	SPropValue sPropValue;
 	std::string strBuffer;
@@ -1871,12 +1870,7 @@ HRESULT ECMsgStore::AddRenAdditionalFolder(IMAPIFolder *lpFolder, ULONG ulType, 
 	sPropValue.Value.bin.lpb = (LPBYTE)strBuffer.data();
 
 	// Set on root folder
-	hr = lpFolder->SetProps(1, &sPropValue, NULL);
-	if(hr != hrSuccess)
-		goto exit;
-		
-exit:
-	return hr;
+	return lpFolder->SetProps(1, &sPropValue, NULL);
 }
 
 /**
@@ -2593,12 +2587,9 @@ HRESULT ECMsgStore::ResolveStore(LPGUID lpGuid, ULONG *lpulUserID, ULONG* lpcbSt
 
 	HRESULT hr = lpTransport->HrResolveStore(lpGuid, lpulUserID, &cbStoreEntryID, &~lpStoreEntryID);
 	if (hr != hrSuccess)
-		goto exit;
-
-	hr = WrapStoreEntryID(0, (LPTSTR)WCLIENT_DLL_NAME, cbStoreEntryID, lpStoreEntryID, lpcbStoreID, lppStoreID);
-
-exit:
-	return hr;
+		return hr;
+	return WrapStoreEntryID(0, (LPTSTR)WCLIENT_DLL_NAME, cbStoreEntryID,
+	       lpStoreEntryID, lpcbStoreID, lppStoreID);
 }
 
 HRESULT ECMsgStore::SetSpecialEntryIdOnFolder(LPMAPIFOLDER lpFolder, ECMAPIProp *lpFolderPropSet, unsigned int ulPropTag, unsigned int ulMVPos)

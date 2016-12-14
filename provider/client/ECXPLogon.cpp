@@ -217,10 +217,10 @@ HRESULT ECXPLogon::ClearOldSubmittedMessages(LPMAPIFOLDER lpFolder)
 
 	hr = lpFolder->GetContentsTable(0, &ptrContentsTable);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = ptrContentsTable->SetColumns(sptDelete, MAPI_DEFERRED_ERRORS);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// build restriction where we search for messages which must deleted after the submit
 	sPropDelAfterSubmit.ulPropTag = PR_DELETE_AFTER_SUBMIT;
@@ -239,25 +239,22 @@ HRESULT ECXPLogon::ClearOldSubmittedMessages(LPMAPIFOLDER lpFolder)
 				);
 	hr = resDelete.CreateMAPIRestriction(&~ptrRestriction, ECRestriction::Cheap);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = ptrContentsTable->Restrict(ptrRestriction, MAPI_DEFERRED_ERRORS);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~lpDeleteItemEntryList);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = MAPIAllocateMore(50 * sizeof(SBinary), lpDeleteItemEntryList, (void**)&lpDeleteItemEntryList->lpbin);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	lpDeleteItemEntryList->cValues = 0;
 
 	// Get only the first 50 items
 	hr = ptrContentsTable->QueryRows(50, 0, &ptrRows);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	for (unsigned int i = 0; i < ptrRows.size(); ++i)
 		if(ptrRows[i].lpProps[0].ulPropTag == PR_ENTRYID)
@@ -265,8 +262,6 @@ HRESULT ECXPLogon::ClearOldSubmittedMessages(LPMAPIFOLDER lpFolder)
 
 	if(lpDeleteItemEntryList->cValues > 0)
 		hr = lpFolder->DeleteMessages(lpDeleteItemEntryList, 0, NULL, 0); //Delete message on the server
-
-exit:
 	return hr;
 }
 

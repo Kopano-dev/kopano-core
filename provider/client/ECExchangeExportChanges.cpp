@@ -1208,20 +1208,19 @@ HRESULT ECExchangeExportChanges::ExportMessageDeletes(){
 	if(!m_lstSoftDelete.empty()){
 		hr = ChangesToEntrylist(&m_lstSoftDelete, &~lpEntryList);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = m_lpImportContents->ImportMessageDeletion(SYNC_SOFT_DELETE, lpEntryList);
 		if (hr == SYNC_E_IGNORE)
 			hr = hrSuccess;
 		if(hr != hrSuccess) {
 			ZLOG_DEBUG(m_lpLogger, "Message deletion import failed");
-			goto exit;
+			return hr;
 		}
 
 		hr = AddProcessedChanges(m_lstSoftDelete);
 		if (hr != hrSuccess) {
 			ZLOG_DEBUG(m_lpLogger, "Unable to add processed soft deletion changes");
-			goto exit;
+			return hr;
 		}
 	}
 
@@ -1229,7 +1228,7 @@ HRESULT ECExchangeExportChanges::ExportMessageDeletes(){
 		hr = ChangesToEntrylist(&m_lstHardDelete, &~lpEntryList);
 		if(hr != hrSuccess) {
 			ZLOG_DEBUG(m_lpLogger, "Unable to create entry list");
-			goto exit;
+			return hr;
 		}
 
 		hr = m_lpImportContents->ImportMessageDeletion(0, lpEntryList);
@@ -1237,18 +1236,16 @@ HRESULT ECExchangeExportChanges::ExportMessageDeletes(){
 			hr = hrSuccess;
 		if(hr != hrSuccess) {
 			ZLOG_DEBUG(m_lpLogger, "Message hard deletion failed");
-			goto exit;
+			return hr;
 		}
 
 		hr = AddProcessedChanges(m_lstHardDelete);
 		if (hr != hrSuccess) {
 			ZLOG_DEBUG(m_lpLogger, "Unable to add processed hard deletion changes");
-			goto exit;
+			return hr;
 		}
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECExchangeExportChanges::ExportFolderChanges(){
@@ -1361,7 +1358,7 @@ HRESULT ECExchangeExportChanges::ExportFolderDeletes(){
 		hr = ChangesToEntrylist(&m_lstSoftDelete, &~lpEntryList);
 		if(hr != hrSuccess) {
 			ZLOG_DEBUG(m_lpLogger, "Unable to create folder deletion entry list");
-			goto exit;
+			return hr;
 		}
 
 		hr = m_lpImportHierarchy->ImportFolderDeletion(SYNC_SOFT_DELETE, lpEntryList);
@@ -1369,13 +1366,13 @@ HRESULT ECExchangeExportChanges::ExportFolderDeletes(){
 			hr = hrSuccess;
 		if(hr != hrSuccess) {
 			ZLOG_DEBUG(m_lpLogger, "Unable to import folder deletions");
-			goto exit;
+			return hr;
 		}
 
 		hr = AddProcessedChanges(m_lstSoftDelete);
 		if (hr != hrSuccess) {
 			ZLOG_DEBUG(m_lpLogger, "Unable to add processed folder soft deletions");
-			goto exit;
+			return hr;
 		}
 	}
 
@@ -1383,7 +1380,7 @@ HRESULT ECExchangeExportChanges::ExportFolderDeletes(){
 		hr = ChangesToEntrylist(&m_lstHardDelete, &~lpEntryList);
 		if(hr != hrSuccess) {
 			ZLOG_DEBUG(m_lpLogger, "Unable to create folder hard delete entry list");
-			goto exit;
+			return hr;
 		}
 
 		hr = m_lpImportHierarchy->ImportFolderDeletion(0, lpEntryList);
@@ -1391,18 +1388,16 @@ HRESULT ECExchangeExportChanges::ExportFolderDeletes(){
 			hr = hrSuccess;
 		if(hr != hrSuccess) {
 			ZLOG_DEBUG(m_lpLogger, "Hard delete folder import failed");
-			goto exit;
+			return hr;
 		}
 
 		hr = AddProcessedChanges(m_lstHardDelete);
 		if (hr != hrSuccess) {
 			ZLOG_DEBUG(m_lpLogger, "Unable to add processed folder hard deletions");
-			goto exit;
+			return hr;
 		}
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 //write in the stream 4 bytes syncid, 4 bytes changeid, 4 bytes changecount, {4 bytes changeid, 4 bytes sourcekeysize, sourcekey}
@@ -1476,19 +1471,19 @@ HRESULT ECExchangeExportChanges::ChangesToEntrylist(std::list<ICSCHANGE> * lpLst
 
 	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~lpEntryList);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lpEntryList->cValues = lpLstChanges->size();
 	if(lpEntryList->cValues > 0){
 		if ((hr = MAPIAllocateMore(sizeof(SBinary) * lpEntryList->cValues, lpEntryList, (LPVOID *)&lpEntryList->lpbin)) != hrSuccess)
-			goto exit;
+			return hr;
 		ulCount = 0;
 		for (const auto &change : *lpLstChanges) {
 			lpEntryList->lpbin[ulCount].cb = change.sSourceKey.cb;
 			hr = MAPIAllocateMore(change.sSourceKey.cb, lpEntryList,
 			     reinterpret_cast<void **>(&lpEntryList->lpbin[ulCount].lpb));
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			memcpy(lpEntryList->lpbin[ulCount].lpb, change.sSourceKey.lpb, change.sSourceKey.cb);
 			++ulCount;
 		}
@@ -1498,8 +1493,7 @@ HRESULT ECExchangeExportChanges::ChangesToEntrylist(std::list<ICSCHANGE> * lpLst
 	lpEntryList->cValues = ulCount;
 
 	*lppEntryList = lpEntryList.release();
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
