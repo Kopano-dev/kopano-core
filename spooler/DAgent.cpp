@@ -44,6 +44,7 @@
  * see rfc.
  */
 #include <kopano/platform.h>
+#include <memory>
 #include <climits>
 #include <cstdio>
 #include <cstdlib>
@@ -55,6 +56,7 @@
 #include <kopano/MAPIErrors.h>
 #include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
+#include <kopano/tie.hpp>
 #include "fileutil.h"
 #include "PyMapiPlugin.h"
 #include <cerrno>
@@ -235,7 +237,7 @@ static HRESULT GetPluginObject(PyMapiPluginFactory *lpPyMapiPluginFactory,
     PyMapiPlugin **lppPyMapiPlugin)
 {
 	HRESULT hr = hrSuccess;
-	PyMapiPlugin *lpPyMapiPlugin = NULL;
+	std::unique_ptr<PyMapiPlugin> lpPyMapiPlugin;
 
 	if (lpPyMapiPluginFactory == nullptr || lppPyMapiPlugin == nullptr) {
 		assert(false);
@@ -243,19 +245,15 @@ static HRESULT GetPluginObject(PyMapiPluginFactory *lpPyMapiPluginFactory,
 		goto exit;
 	}
 
-	hr = lpPyMapiPluginFactory->CreatePlugin("DAgentPluginManager", &lpPyMapiPlugin);
+	hr = lpPyMapiPluginFactory->CreatePlugin("DAgentPluginManager", &unique_tie(lpPyMapiPlugin));
 	if (hr != hrSuccess) {
 		ec_log_crit("Unable to initialize the dagent plugin manager, please check your configuration: %s (%x).",
 			GetMAPIErrorMessage(hr), hr);
 		hr = MAPI_E_CALL_FAILED;
 		goto exit;
 	}
-
-	*lppPyMapiPlugin = lpPyMapiPlugin;
-	lpPyMapiPlugin = NULL;
-
+	*lppPyMapiPlugin = lpPyMapiPlugin.release();
 exit:
-	delete lpPyMapiPlugin;
 	return hr;
 }
 

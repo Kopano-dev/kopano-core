@@ -22,7 +22,7 @@
 #include <mapidefs.h>
 #include <mapitags.h>
 #include <kopano/mapiext.h>
-
+#include <kopano/tie.hpp>
 #include <map>
 #include <memory>
 #include <algorithm>
@@ -55,6 +55,8 @@ namespace ba = boost::algorithm;
 #ifndef AB_UNICODE_OK
 #define AB_UNICODE_OK ((ULONG) 0x00000040)
 #endif
+
+using namespace KCHL;
 
 namespace KC {
 
@@ -391,7 +393,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects(new std::list<localobjectdetails_t>);
 
 	// Local ids
-	std::list<unsigned int> *lpLocalIds = NULL;
+	std::unique_ptr<std::list<unsigned int> > lpLocalIds;
 
 	// Extern ids
 	std::unique_ptr<signatures_t> lpExternSignatures;
@@ -437,7 +439,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 	}
 
 	// Get all the items of the requested type
-	er = GetLocalObjectIdList(objclass, ulCompanyId, &lpLocalIds);
+	er = GetLocalObjectIdList(objclass, ulCompanyId, &unique_tie(lpLocalIds));
 	if (er != erSuccess)
 		goto exit;
 
@@ -566,7 +568,6 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 	}
 
 exit:
-	delete lpLocalIds;
 	return er;
 }
 
@@ -577,8 +578,7 @@ ECRESULT ECUserManagement::GetSubObjectsOfObjectAndSync(userobject_relation_t re
 
 	// Return data
 	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects(new std::list<localobjectdetails_t>);
-	std::list<localobjectdetails_t> *lpObjectsTmp = NULL;
-	std::list<localobjectdetails_t> *lpCompanies = NULL;
+	std::unique_ptr<std::list<localobjectdetails_t> > lpCompanies;
 
 	// Extern ids
 	std::unique_ptr<signatures_t> lpSignatures;
@@ -609,8 +609,7 @@ ECRESULT ECUserManagement::GetSubObjectsOfObjectAndSync(userobject_relation_t re
 		er = GetSecurity(&lpSecurity);
 		if (er != erSuccess)
 			goto exit;
-
-		er = lpSecurity->GetViewableCompanyIds(ulFlags, &lpCompanies);
+		er = lpSecurity->GetViewableCompanyIds(ulFlags, &unique_tie(lpCompanies));
 		if (er != erSuccess)
 			goto exit;
 
@@ -619,16 +618,13 @@ ECRESULT ECUserManagement::GetSubObjectsOfObjectAndSync(userobject_relation_t re
 			lpCompanies->push_back(localobjectdetails_t(0, CONTAINER_COMPANY));
 
 		for (const auto &obj : *lpCompanies) {
+			std::unique_ptr<std::list<localobjectdetails_t> > lpObjectsTmp;
 			er = GetCompanyObjectListAndSync(OBJECTCLASS_UNKNOWN,
-			     obj.ulId, &lpObjectsTmp,
+			     obj.ulId, &unique_tie(lpObjectsTmp),
 			     ulFlags | USERMANAGEMENT_SHOW_HIDDEN);
 			if (er != erSuccess)
 				goto exit;
-
 			lpObjects->merge(*lpObjectsTmp);
-
-			delete lpObjectsTmp;
-			lpObjectsTmp = NULL;
 		}
 		// TODO: remove excessive objects from lpObjects ? seems that this list is going to contain a lot... maybe too much?
 	} else {
@@ -685,8 +681,6 @@ ECRESULT ECUserManagement::GetSubObjectsOfObjectAndSync(userobject_relation_t re
 	}
 
 exit:
-	delete lpCompanies;
-	delete lpObjectsTmp;
 	return er;
 }
 
@@ -4629,9 +4623,8 @@ ECRESULT ECUserManagement::SyncAllObjects()
 {
 	ECRESULT er = erSuccess;
 	ECCacheManager *lpCacheManager = m_lpSession->GetSessionManager()->GetCacheManager();	// Don't delete
-
-	std::list<localobjectdetails_t> *lplstCompanyObjects = NULL;
-	std::list<localobjectdetails_t> *lplstUserObjects = NULL;
+	std::unique_ptr<std::list<localobjectdetails_t> > lplstCompanyObjects;
+	std::unique_ptr<std::list<localobjectdetails_t> > lplstUserObjects;
 	unsigned int ulFlags = USERMANAGEMENT_IDS_ONLY | USERMANAGEMENT_FORCE_SYNC;
 	
 	/*
@@ -4651,7 +4644,7 @@ ECRESULT ECUserManagement::SyncAllObjects()
 		goto exit;
 
 	// request all companies
-	er = GetCompanyObjectListAndSync(CONTAINER_COMPANY, 0, &lplstCompanyObjects, ulFlags);
+	er = GetCompanyObjectListAndSync(CONTAINER_COMPANY, 0, &unique_tie(lplstCompanyObjects), ulFlags);
 	if (er == KCERR_NO_SUPPORT) {
 		er = erSuccess;
 	} else if (er != erSuccess) {
@@ -4664,7 +4657,7 @@ ECRESULT ECUserManagement::SyncAllObjects()
 
 	if (!lplstCompanyObjects || lplstCompanyObjects->empty()) {
 		// get all users of server
-		er = GetCompanyObjectListAndSync(OBJECTCLASS_UNKNOWN, 0, &lplstUserObjects, ulFlags);
+		er = GetCompanyObjectListAndSync(OBJECTCLASS_UNKNOWN, 0, &unique_tie(lplstUserObjects), ulFlags);
 		if (er != erSuccess) {
 			ec_log_err("Error synchronizing user list: %08X", er);
 			goto exit;
@@ -4673,7 +4666,7 @@ ECRESULT ECUserManagement::SyncAllObjects()
 	} else {
 		// per company, get all users
 		for (const auto &com : *lplstCompanyObjects) {
-			er = GetCompanyObjectListAndSync(OBJECTCLASS_UNKNOWN, com.ulId, &lplstUserObjects, ulFlags);
+			er = GetCompanyObjectListAndSync(OBJECTCLASS_UNKNOWN, com.ulId, &unique_tie(lplstUserObjects), ulFlags);
 			if (er != erSuccess) {
 				ec_log_err("Error synchronizing user list for company %d: %08X", com.ulId, er);
 				goto exit;
@@ -4683,9 +4676,6 @@ ECRESULT ECUserManagement::SyncAllObjects()
 	}
 
 exit:
-	delete lplstUserObjects;
-	delete lplstCompanyObjects;
-
 	return er;
 }
 

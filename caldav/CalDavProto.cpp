@@ -16,8 +16,10 @@
  */
 
 #include <kopano/platform.h>
+#include <memory>
 #include <kopano/ECRestriction.h>
 #include <kopano/memory.hpp>
+#include <kopano/tie.hpp>
 #include "PublishFreeBusy.h"
 #include "CalDavProto.h"
 #include <kopano/mapi_ptr.h>
@@ -465,7 +467,7 @@ HRESULT CalDAV::HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWeb
 	HRESULT hr = hrSuccess;
 	IMAPITable *lpTable = NULL;
 	memory_ptr<SPropTagArray> lpPropTagArr;
-	MapiToICal *lpMtIcal = NULL;
+	std::unique_ptr<MapiToICal> lpMtIcal;
 	std::string strReqUrl;
 	memory_ptr<SRestriction> lpsRoot;
 	ULONG cbsize = 0;
@@ -513,7 +515,7 @@ HRESULT CalDAV::HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWeb
 
 	cbsize = (ULONG)sWebRMGet->lstWebVal.size();
 	ec_log_info("Requesting conversion of %u items", cbsize);
-	CreateMapiToICal(m_lpAddrBook, "utf-8", &lpMtIcal);
+	CreateMapiToICal(m_lpAddrBook, "utf-8", &unique_tie(lpMtIcal));
 	if (!lpMtIcal)
 	{
 		hr = MAPI_E_CALL_FAILED;
@@ -558,7 +560,7 @@ HRESULT CalDAV::HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWeb
 		}
 
 		if(hr == hrSuccess) {
-			hr = HrMapValtoStruct(m_lpUsrFld, lpValRows->aRow[0].lpProps, lpValRows->aRow[0].cValues, lpMtIcal, ulCensorFlag, true, &sDavProp.lstProps, &sWebResponse);
+			hr = HrMapValtoStruct(m_lpUsrFld, lpValRows->aRow[0].lpProps, lpValRows->aRow[0].cValues, lpMtIcal.get(), ulCensorFlag, true, &sDavProp.lstProps, &sWebResponse);
 			if (hr != hrSuccess)
 				goto exit;
 		} else {
@@ -579,7 +581,6 @@ next:
 	hr = hrSuccess;
 
 exit:
-	delete lpMtIcal;
 	if(lpTable)
 		lpTable->Release();
 	return hr;
@@ -1682,7 +1683,7 @@ HRESULT CalDAV::HrHandlePost()
 {
 	HRESULT hr = hrSuccess;
 	std::string strIcal;
-	ICalToMapi *lpIcalToMapi = NULL;
+	std::unique_ptr<ICalToMapi> lpIcalToMapi;
 
 	hr = m_lpRequest->HrGetBody(&strIcal);
 	if (hr != hrSuccess) {
@@ -1690,7 +1691,7 @@ HRESULT CalDAV::HrHandlePost()
 		goto exit;
 	}
 	
-	CreateICalToMapi(m_lpDefStore, m_lpAddrBook, false, &lpIcalToMapi);
+	CreateICalToMapi(m_lpDefStore, m_lpAddrBook, false, &unique_tie(lpIcalToMapi));
 	if (!lpIcalToMapi)
 	{
 		ec_log_debug("CalDAV::HrHandlePost CreateICalToMapi failed 0x%x %s", hr, GetMAPIErrorMessage(hr));
@@ -1705,14 +1706,11 @@ HRESULT CalDAV::HrHandlePost()
 	}
 
 	if (lpIcalToMapi->GetFreeBusyInfo(NULL, NULL, NULL, NULL) == hrSuccess)
-		hr = HrHandleFreebusy(lpIcalToMapi);
+		hr = HrHandleFreebusy(lpIcalToMapi.get());
 	else
-		hr = HrHandleMeeting(lpIcalToMapi);
+		hr = HrHandleMeeting(lpIcalToMapi.get());
 
 exit:
-	if (lpIcalToMapi)
-		delete lpIcalToMapi;
-
 	return hr;
 }
 
