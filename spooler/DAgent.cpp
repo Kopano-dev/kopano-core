@@ -241,20 +241,17 @@ static HRESULT GetPluginObject(PyMapiPluginFactory *lpPyMapiPluginFactory,
 
 	if (lpPyMapiPluginFactory == nullptr || lppPyMapiPlugin == nullptr) {
 		assert(false);
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
+		return MAPI_E_INVALID_PARAMETER;
 	}
 
 	hr = lpPyMapiPluginFactory->CreatePlugin("DAgentPluginManager", &unique_tie(lpPyMapiPlugin));
 	if (hr != hrSuccess) {
 		ec_log_crit("Unable to initialize the dagent plugin manager, please check your configuration: %s (%x).",
 			GetMAPIErrorMessage(hr), hr);
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
 	*lppPyMapiPlugin = lpPyMapiPlugin.release();
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 //Global variables
@@ -336,38 +333,26 @@ static bool FNeedsAutoAccept(IMsgStore *lpStore, LPMESSAGE lpMessage)
 	hr = lpMessage->GetProps(sptaProps, 0, &cValues, &~lpProps);
 	if (FAILED(hr)) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "FNeedsAutoAccept(): GetProps failed %x", hr);
-		goto exit;
+		return false; /* hr */
 	}
-
-	if (PROP_TYPE(lpProps[1].ulPropTag) == PT_ERROR) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-	
-	if (wcscasecmp(lpProps[1].Value.lpszW, L"IPM.Schedule.Meeting.Request") != 0 && wcscasecmp(lpProps[1].Value.lpszW, L"IPM.Schedule.Meeting.Canceled") != 0) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
-	if (((PROP_TYPE(lpProps[0].ulPropTag) == PT_ERROR) || !lpProps[0].Value.b) && wcscasecmp(lpProps[1].Value.lpszW, L"IPM.Schedule.Meeting.Request") == 0) {
+	if (PROP_TYPE(lpProps[1].ulPropTag) == PT_ERROR)
+		return false; /* MAPI_E_NOT_FOUND */
+	if (wcscasecmp(lpProps[1].Value.lpszW, L"IPM.Schedule.Meeting.Request") != 0 && wcscasecmp(lpProps[1].Value.lpszW, L"IPM.Schedule.Meeting.Canceled") != 0)
+		return false; /* MAPI_E_NOT_FOUND */
+	if ((PROP_TYPE(lpProps[0].ulPropTag) == PT_ERROR || !lpProps[0].Value.b) &&
+	    wcscasecmp(lpProps[1].Value.lpszW, L"IPM.Schedule.Meeting.Request") == 0)
 		// PR_RESPONSE_REQUESTED must be true for requests to start the auto accepter
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+		return false; /* MAPI_E_NOT_FOUND */
 	
 	hr = GetAutoAcceptSettings(lpStore, &bAutoAccept, &bDeclineConflict, &bDeclineRecurring);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "FNeedsAutoAccept(): GetAutoAcceptSettings failed %x", hr);
-		goto exit;
+		return false; /* hr */
 	}
 		
-	if (!bAutoAccept) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-	
-exit:
-	return hr == hrSuccess;
+	if (!bAutoAccept)
+		return false; /* MAPI_E_NOT_FOUND */
+	return true;
 }
 
 /**
@@ -383,16 +368,11 @@ static bool FNeedsAutoProcessing(IMessage *lpMessage)
 	hr = lpMessage->GetProps(sptaProps, 0, &cValues, &~lpProps);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "FNeedsAutoProcessing(): GetProps failed %x", hr);
-		goto exit;
+		return false; /* hr */
 	}
-
-	if (wcsncasecmp(lpProps[0].Value.lpszW, L"IPM.Schedule.Meeting.", wcslen(L"IPM.Schedule.Meeting.")) != 0) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
-exit:
-	return hr == hrSuccess;
+	if (wcsncasecmp(lpProps[0].Value.lpszW, L"IPM.Schedule.Meeting.", wcslen(L"IPM.Schedule.Meeting.")) != 0)
+		return false; /* MAPI_E_NOT_FOUND */
+	return true;
 }
 
 /**
@@ -615,26 +595,22 @@ static HRESULT OpenResolveAddrFolder(LPADRBOOK lpAdrBook,
 	ULONG cbEntryId		= 0;
 	ULONG ulObj			= 0;
 
-	if (lpAdrBook == NULL || lppAddrDir == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpAdrBook == nullptr || lppAddrDir == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 	hr = lpAdrBook->GetDefaultDir(&cbEntryId, &~lpEntryId);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to find default resolve directory: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = lpAdrBook->OpenEntry(cbEntryId, lpEntryId, NULL, 0, &ulObj, (LPUNKNOWN*)lppAddrDir);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open default resolve directory: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -2086,12 +2062,8 @@ static HRESULT HrOverrideFallbackProps(IMessage *lpMessage,
 	}
 
 	hr = lpMessage->SetProps(ulPropPos, sPropOverride, NULL);
-	if (hr != hrSuccess) {
+	if (hr != hrSuccess)
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to set fallback delivery properties: 0x%08X", hr);
-		goto exit;
-	}
-
-exit:
 	return hr;
 }
 

@@ -92,16 +92,13 @@ ECRESULT ECConvenientDepthABObjectTable::QueryRowData(ECGenericObjectTable *lpGe
  */
 ECRESULT ECConvenientDepthABObjectTable::Load()
 {
-	ECRESULT er = erSuccess;
 	ECODAB *lpODAB = (ECODAB*)m_lpObjectData;
 	sObjectTableKey	sRowItem;
 	std::list<CONTAINERINFO> lstObjects;
 	CONTAINERINFO root;
 
-	if (lpODAB->ulABType != MAPI_ABCONT) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpODAB->ulABType != MAPI_ABCONT)
+		return KCERR_INVALID_PARAMETER;
 
 	// Load this container
 	root.ulId = lpODAB->ulABParentId;
@@ -132,9 +129,7 @@ ECRESULT ECConvenientDepthABObjectTable::Load()
 		m_mapPath[obj.ulId] = obj.strPath;
 		UpdateRow(ECKeyTable::TABLE_ROW_ADD, obj.ulId, 0);
 	}
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 } /* namespace */

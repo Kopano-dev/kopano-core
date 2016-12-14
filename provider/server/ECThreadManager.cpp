@@ -614,7 +614,7 @@ ECRESULT ECDispatcher::DoHUP()
 
 	ECRESULT er = SetThreadCount(atoi(m_lpConfig->GetSetting("threads")));
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	for (auto const &p : m_setListenSockets) {
 		auto ulType = SOAP_CONNECTION_TYPE(p.second);
@@ -627,8 +627,7 @@ ECRESULT ECDispatcher::DoHUP()
 						   m_lpConfig->GetSetting("server_ssl_ca_path","",NULL),
 						   NULL, NULL, "EC")) {
 				ec_log_crit("Unable to setup ssl context: %s", *soap_faultdetail(p.second));
-				er = KCERR_CALL_FAILED;
-				goto exit;
+				return KCERR_CALL_FAILED;
 			}
 
 			char *server_ssl_protocols = strdup(m_lpConfig->GetSetting("server_ssl_protocols"));
@@ -638,10 +637,7 @@ ECRESULT ECDispatcher::DoHUP()
 			free(server_ssl_protocols);
 		}
 	}
-
-exit:
-
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECDispatcher::ShutDown()

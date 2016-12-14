@@ -413,11 +413,10 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 
 	er = GetThreadLocalPlugin(m_lpPluginFactory, &lpPlugin);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	er = GetSecurity(&lpSecurity);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	if (m_lpSession->GetSessionManager()->IsHostedSupported()) {
 		/* When hosted is enabled, the companyid _must_ have an external id,
@@ -426,14 +425,11 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 		if (objclass != CONTAINER_COMPANY && !IsInternalObject(ulCompanyId)) {
 			er = GetExternalId(ulCompanyId, &extcompany);
 			if (er != erSuccess)
-				goto exit;
+				return er;
 		}
 	} else {
-		if (objclass == CONTAINER_COMPANY) {
-			er = KCERR_NO_SUPPORT;
-			goto exit;
-		}
-
+		if (objclass == CONTAINER_COMPANY)
+			return KCERR_NO_SUPPORT;
 		/* When hosted is disabled, use company id 0 */
 		ulCompanyId = 0;
 	}
@@ -441,7 +437,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 	// Get all the items of the requested type
 	er = GetLocalObjectIdList(objclass, ulCompanyId, &unique_tie(lpLocalIds));
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	for (const auto &loc_id : *lpLocalIds) {
 		if (IsInternalObject(loc_id)) {
@@ -449,8 +445,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 			objectdetails_t details = objectdetails_t();
 			er = GetLocalObjectDetails(loc_id, &details);
 			if(er != erSuccess)
-				goto exit;
-
+				return er;
 			if (ulFlags & USERMANAGEMENT_ADDRESSBOOK)
 				if (MustHide(*lpSecurity, ulFlags, details))
 					continue;
@@ -474,15 +469,12 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 			lpExternSignatures = lpPlugin->getAllObjects(extcompany, objclass);
 			// TODO: check requested 'objclass'
 		} catch (notsupported &) {
-			er = KCERR_NO_SUPPORT;
-			goto exit;
+			return KCERR_NO_SUPPORT;
 		} catch (objectnotfound &) {
-			er = KCERR_NOT_FOUND;
-			goto exit;
+			return KCERR_NOT_FOUND;
 		} catch(std::exception &e) {
 			ec_log_warn("Unable to retrieve list from external user source: %s", e.what());
-			er = KCERR_PLUGIN_ERROR;
-			goto exit;
+			return KCERR_PLUGIN_ERROR;
 		}
 
 		// Loop through all the external signatures, adding them to the lpUsers list which we're going to be returning
@@ -513,7 +505,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 										 iterSignatureIdToLocal->second.second,	// local signature
 										 ext_sig.signature);		// remote signature
 				if (er != erSuccess)
-					goto exit;
+					return er;
 		
 				// Remove the external user from the list of internal IDs,
 				// since we don't need this entry for the plugin details match
@@ -539,7 +531,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 
 	er = GetLocalObjectListFromSignatures(*lpExternSignatures, mapExternIdToLocal, ulFlags, lpObjects.get());
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// mapSignatureIdToLocal is now a map of objects that were NOT in the external user database
 	if(bSync) {
@@ -558,7 +550,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 				continue;
 			er = UpdateUserDetailsToClient(&obj);
 			if (er != erSuccess)
-				goto exit;
+				return er;
 		}
 	}
 
@@ -566,9 +558,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 		lpObjects->sort();
 		*lppObjects = lpObjects.release();
 	}
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECUserManagement::GetSubObjectsOfObjectAndSync(userobject_relation_t relation, unsigned int ulParentId,

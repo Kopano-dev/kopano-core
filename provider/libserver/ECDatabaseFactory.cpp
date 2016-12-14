@@ -76,14 +76,8 @@ ECRESULT ECDatabaseFactory::CreateDatabase()
 	
 	er = GetDatabaseFactory(&unique_tie(lpDatabase));
 	if(er != erSuccess)
-		goto exit;
-
-	er = lpDatabase->CreateDatabase();
-	if(er != erSuccess)
-		goto exit;
-	
-exit:
-	return er;
+		return er;
+	return lpDatabase->CreateDatabase();
 }
 
 ECRESULT ECDatabaseFactory::UpdateDatabase(bool bForceUpdate, std::string &strReport)
@@ -93,14 +87,8 @@ ECRESULT ECDatabaseFactory::UpdateDatabase(bool bForceUpdate, std::string &strRe
 	
 	er = CreateDatabaseObject(&unique_tie(lpDatabase), strReport);
 	if(er != erSuccess)
-		goto exit;
-
-	er = lpDatabase->UpdateDatabase(bForceUpdate, strReport);
-	if(er != erSuccess)
-		goto exit;
-
-exit:
-	return er;
+		return er;
+	return lpDatabase->UpdateDatabase(bForceUpdate, strReport);
 }
 
 extern pthread_key_t database_key;

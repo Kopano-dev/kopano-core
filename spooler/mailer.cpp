@@ -68,19 +68,16 @@ static HRESULT GetPluginObject(PyMapiPluginFactory *lpPyMapiPluginFactory,
 
     if (lpPyMapiPluginFactory == nullptr || lppPyMapiPlugin == nullptr) {
         assert(false);
-        hr = MAPI_E_INVALID_PARAMETER;
-        goto exit;
+		return MAPI_E_INVALID_PARAMETER;
     }
 	hr = lpPyMapiPluginFactory->CreatePlugin("SpoolerPluginManager", &unique_tie(lpPyMapiPlugin));
 	if (hr != hrSuccess) {
 		ec_log_crit("Unable to initialize plugin system, please check your configuration: %s (%x).",
 			GetMAPIErrorMessage(hr), hr);
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
 	*lppPyMapiPlugin = lpPyMapiPlugin.release();
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
