@@ -2567,7 +2567,7 @@ class Item(object):
             elif vcf is not None:
                 import vobject
                 v = vobject.readOne(vcf)
-                fullname, email = v.fn.value, str(v.email.value)
+                fullname, email = unicode(v.fn.value), str(v.email.value)
                 self.mapiobj.SetProps([ # XXX fix/remove non-essential props, figure out hardcoded numbers
                     SPropValue(PR_ADDRTYPE, 'SMTP'), SPropValue(PR_BODY, ''),
                     SPropValue(PR_LOCALITY, ''), SPropValue(PR_STATE_OR_PROVINCE, ''),
