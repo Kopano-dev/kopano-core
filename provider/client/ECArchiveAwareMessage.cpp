@@ -21,6 +21,7 @@
 #include <kopano/ECGuid.h>
 #include <edkguid.h>
 #include <kopano/mapi_ptr.h>
+#include <kopano/memory.hpp>
 #include "IECPropStorage.h"
 #include "Mem.h"
 
@@ -460,16 +461,14 @@ std::string ECArchiveAwareMessage::CreateErrorBodyUtf8(HRESULT hResult) {
 				    << _("You don't have sufficient access to the archive.")
 					<< _T("</P>");
 	} else {
-		LPTSTR	lpszDescription = NULL;
-		HRESULT hr = Util::HrMAPIErrorToText(hResult, &lpszDescription);
-		if (hr == hrSuccess) {
+		KCHL::memory_ptr<TCHAR> lpszDescription;
+		HRESULT hr = Util::HrMAPIErrorToText(hResult, &~lpszDescription);
+		if (hr == hrSuccess)
 			ossHtmlBody << _T("<P>")
 						<< _("Error description:")
 						<< _T("<DIV class=\"indented\">")
 						<< lpszDescription
 						<< _T("</DIV></P>");
-			MAPIFreeBuffer(lpszDescription);
-		}
 	}
 
 	ossHtmlBody << _T("</BODY></HTML>");

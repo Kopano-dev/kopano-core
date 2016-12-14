@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <kopano/ECInterfaceDefs.h>
+#include <kopano/memory.hpp>
 #include "ECExchangeExportChanges.h"
 #include "WSMessageStreamExporter.h"
 #include "WSSerializedMessage.h"
@@ -44,6 +45,8 @@
 // We use ntohl/htonl for network-order conversion
 #include <arpa/inet.h>
 #include <kopano/charset/convert.h>
+
+using namespace KCHL;
 
 ECExchangeExportChanges::ECExchangeExportChanges(ECMsgStore *lpStore, const std::string &sk, const wchar_t * szDisplay, unsigned int ulSyncType)
 : m_iidMessage(IID_IMessage)
@@ -138,10 +141,10 @@ HRESULT	ECExchangeExportChanges::QueryInterface(REFIID refiid, void **lppInterfa
 HRESULT ECExchangeExportChanges::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError){
 	HRESULT		hr = hrSuccess;
 	LPMAPIERROR	lpMapiError = NULL;
-	LPTSTR		lpszErrorMsg = NULL;
+	memory_ptr<TCHAR> lpszErrorMsg;
 
 	//FIXME: give synchronization errors messages
-	hr = Util::HrMAPIErrorToText((hResult == hrSuccess)?MAPI_E_NO_ACCESS : hResult, &lpszErrorMsg);
+	hr = Util::HrMAPIErrorToText((hResult == hrSuccess)?MAPI_E_NO_ACCESS : hResult, &~lpszErrorMsg);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -150,7 +153,7 @@ HRESULT ECExchangeExportChanges::GetLastError(HRESULT hResult, ULONG ulFlags, LP
 		goto exit;
 
 	if ((ulFlags & MAPI_UNICODE) == MAPI_UNICODE) {
-		std::wstring wstrErrorMsg = convert_to<std::wstring>(lpszErrorMsg);
+		std::wstring wstrErrorMsg = convert_to<std::wstring>(lpszErrorMsg.get());
 		std::wstring wstrCompName = convert_to<std::wstring>(g_strProductName.c_str());
 
 		if ((hr = MAPIAllocateMore(sizeof(std::wstring::value_type) * (wstrErrorMsg.size() + 1), lpMapiError, (void**)&lpMapiError->lpszError)) != hrSuccess)
@@ -162,7 +165,7 @@ HRESULT ECExchangeExportChanges::GetLastError(HRESULT hResult, ULONG ulFlags, LP
 		wcscpy((wchar_t*)lpMapiError->lpszComponent, wstrCompName.c_str());
 
 	} else {
-		std::string strErrorMsg = convert_to<std::string>(lpszErrorMsg);
+		std::string strErrorMsg = convert_to<std::string>(lpszErrorMsg.get());
 		std::string strCompName = convert_to<std::string>(g_strProductName.c_str());
 
 		if ((hr = MAPIAllocateMore(strErrorMsg.size() + 1, lpMapiError, (void**)&lpMapiError->lpszError)) != hrSuccess)
@@ -181,7 +184,6 @@ HRESULT ECExchangeExportChanges::GetLastError(HRESULT hResult, ULONG ulFlags, LP
 	*lppMAPIError = lpMapiError;
 
 exit:
-	MAPIFreeBuffer(lpszErrorMsg);
 	if( hr != hrSuccess && lpMapiError)
 		ECFreeBuffer(lpMapiError);
 
@@ -726,18 +728,15 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 
 	LPMAPITABLE		lpTable = NULL;
 	LPSRowSet		lpRows = NULL;
-
-	LPSPropValue	lpPropArray = NULL;
-
-	LPSPropTagArray lpPropTagArray = NULL;
-
+	memory_ptr<SPropValue> lpPropArray;
+	memory_ptr<SPropTagArray> lpPropTagArray;
 	ULONG			ulObjType;
 	ULONG			ulCount;
 	ULONG			ulFlags;
 	ULONG			ulSteps = 0;
 
 	ULONG			cbEntryID = 0;
-	LPENTRYID		lpEntryID = NULL;
+	memory_ptr<ENTRYID> lpEntryID;
 
 	SizedSPropTagArray(5, sptMessageExcludes) = { 5, {
 		PR_MESSAGE_SIZE,
@@ -771,7 +770,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 				m_lstChange.at(m_ulStep).sParentSourceKey.lpb,
 				m_lstChange.at(m_ulStep).sSourceKey.cb,
 				m_lstChange.at(m_ulStep).sSourceKey.lpb,
-				&cbEntryID, &lpEntryID);
+				&cbEntryID, &~lpEntryID);
 			if(hr == MAPI_E_NOT_FOUND){
 				hr = hrSuccess;
 				goto next;
@@ -789,10 +788,10 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 				goto next;
 			}
 			if(hr != hrSuccess) {
-				ZLOG_DEBUG(m_lpLogger, "Unable to open message with entryid %s", bin2hex(cbEntryID, (unsigned char *)lpEntryID).c_str());
+				ZLOG_DEBUG(m_lpLogger, "Unable to open message with entryid %s", bin2hex(cbEntryID, reinterpret_cast<const unsigned char *>(lpEntryID.get())).c_str());
 				goto exit;
 			}
-			hr = lpSourceMessage->GetProps(sptImportProps, 0, &ulCount, &lpPropArray);
+			hr = lpSourceMessage->GetProps(sptImportProps, 0, &ulCount, &~lpPropArray);
 			if(FAILED(hr)) {
 				ZLOG_DEBUG(m_lpLogger, "Unable to get properties from source message");
 				goto exit;
@@ -856,8 +855,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 			ZLOG_DEBUG(m_lpLogger, "Unable to read source message's recipient table");
 			goto exit;
 		}
-
-		hr = lpTable->QueryColumns(TBL_ALL_COLUMNS, &lpPropTagArray);
+		hr = lpTable->QueryColumns(TBL_ALL_COLUMNS, &~lpPropTagArray);
 		if (hr != hrSuccess) {
 			ZLOG_DEBUG(m_lpLogger, "Unable to get column set from source message's recipient table");
 			goto exit;
@@ -964,10 +962,8 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 		lpRows = NULL;
 		lpTable->Release();
 		lpTable = NULL;
-		MAPIFreeBuffer(lpPropTagArray);
-		lpPropTagArray = NULL;
 
-		hr = lpSourceMessage->GetPropList(0, &lpPropTagArray);
+		hr = lpSourceMessage->GetPropList(0, &~lpPropTagArray);
 		if (hr != hrSuccess) {
 			ZLOG_DEBUG(m_lpLogger, "Unable to get property list of source message");
 			goto exit;
@@ -989,10 +985,6 @@ next:
 		// Mark this change as processed, even if we skipped it due to SYNC_E_IGNORE or because the item was deleted on the source server
 
 		m_setProcessedChanges.insert(std::pair<unsigned int, std::string>(m_lstChange.at(m_ulStep).ulChangeId, std::string((char *)m_lstChange.at(m_ulStep).sSourceKey.lpb, m_lstChange.at(m_ulStep).sSourceKey.cb)));
-
-		MAPIFreeBuffer(lpEntryID);
-		lpEntryID = NULL;
-
 		if(lpRows){
 			FreeProws(lpRows);
 			lpRows = NULL;
@@ -1002,10 +994,6 @@ next:
 			lpTable->Release();
 			lpTable = NULL;
 		}
-
-		MAPIFreeBuffer(lpPropArray);
-		lpPropArray = NULL;
-
 		if(lpSourceAttach){
 			lpSourceAttach->Release();
 			lpSourceAttach = NULL;
@@ -1025,9 +1013,6 @@ next:
 			lpDestMessage->Release();
 			lpDestMessage = NULL;
 		}
-
-		MAPIFreeBuffer(lpPropTagArray);
-		lpPropTagArray = NULL;
 		++m_ulStep;
 		++ulSteps;
 	}
@@ -1037,7 +1022,6 @@ next:
 exit:
 	if(hr != hrSuccess && hr != SYNC_W_PROGRESS)
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "change error: %s", stringify(hr, true).c_str());
-	MAPIFreeBuffer(lpEntryID);
 	if(lpRows)
 		FreeProws(lpRows);
 
@@ -1055,8 +1039,6 @@ exit:
 
 	if(lpSourceMessage)
 		lpSourceMessage->Release();
-	MAPIFreeBuffer(lpPropArray);
-	MAPIFreeBuffer(lpPropTagArray);
 	return hr;
 }
 
@@ -1179,13 +1161,13 @@ exit:
 
 HRESULT ECExchangeExportChanges::ExportMessageFlags(){
 	HRESULT			hr = hrSuccess;
-	LPREADSTATE		lpReadState = NULL;
+	memory_ptr<READSTATE> lpReadState;
 	ULONG			ulCount;
 
 	if(m_lstFlag.empty())
 		goto exit;
-
-	if ((hr = MAPIAllocateBuffer(sizeof(READSTATE) * m_lstFlag.size(), (LPVOID *)&lpReadState)) != hrSuccess)
+	hr = MAPIAllocateBuffer(sizeof(READSTATE) * m_lstFlag.size(), &~lpReadState);
+	if (hr != hrSuccess)
 		goto exit;
 
 	ulCount = 0;
@@ -1216,17 +1198,15 @@ HRESULT ECExchangeExportChanges::ExportMessageFlags(){
 exit:
 	if (hr != hrSuccess)
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to sync message flags, 0x%08X", hr);
-	MAPIFreeBuffer(lpReadState);
 	return hr;
 }
 
 HRESULT ECExchangeExportChanges::ExportMessageDeletes(){
 	HRESULT			hr = hrSuccess;
-
-	LPENTRYLIST		lpEntryList = NULL;
+	memory_ptr<ENTRYLIST> lpEntryList;
 
 	if(!m_lstSoftDelete.empty()){
-		hr = ChangesToEntrylist(&m_lstSoftDelete, &lpEntryList);
+		hr = ChangesToEntrylist(&m_lstSoftDelete, &~lpEntryList);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -1245,11 +1225,8 @@ HRESULT ECExchangeExportChanges::ExportMessageDeletes(){
 		}
 	}
 
-	MAPIFreeBuffer(lpEntryList);
-	lpEntryList = NULL;
-
 	if(!m_lstHardDelete.empty()){
-		hr = ChangesToEntrylist(&m_lstHardDelete, &lpEntryList);
+		hr = ChangesToEntrylist(&m_lstHardDelete, &~lpEntryList);
 		if(hr != hrSuccess) {
 			ZLOG_DEBUG(m_lpLogger, "Unable to create entry list");
 			goto exit;
@@ -1271,7 +1248,6 @@ HRESULT ECExchangeExportChanges::ExportMessageDeletes(){
 	}
 
 exit:
-	MAPIFreeBuffer(lpEntryList);
 	return hr;
 }
 
@@ -1279,7 +1255,6 @@ HRESULT ECExchangeExportChanges::ExportFolderChanges(){
 	HRESULT			hr = hrSuccess;
 
 	LPMAPIFOLDER	lpFolder = NULL;
-	LPSPropValue	lpPropArray = NULL;
 	LPSPropValue	lpPropVal = NULL;
 
 	ULONG			ulObjType = 0;
@@ -1287,17 +1262,18 @@ HRESULT ECExchangeExportChanges::ExportFolderChanges(){
 	ULONG			ulSteps = 0;
 
 	ULONG			cbEntryID = 0;
-	LPENTRYID		lpEntryID = NULL;
 
 	while(m_ulStep < m_lstChange.size() && (m_ulBufferSize == 0 || ulSteps < m_ulBufferSize)){
+		memory_ptr<SPropValue> lpPropArray;
+		memory_ptr<ENTRYID> lpEntryID;
+
 		if(!m_sourcekey.empty()) {
 			// Normal export, need all properties
 			hr = m_lpStore->EntryIDFromSourceKey(
 				m_lstChange.at(m_ulStep).sSourceKey.cb,
 				m_lstChange.at(m_ulStep).sSourceKey.lpb,
 				0, NULL,
-				&cbEntryID, &lpEntryID);
-
+				&cbEntryID, &~lpEntryID);
 			if(hr != hrSuccess){
 				m_lpLogger->Log(EC_LOGLEVEL_INFO, "change sourcekey not found");
 				hr = hrSuccess;
@@ -1310,8 +1286,7 @@ HRESULT ECExchangeExportChanges::ExportFolderChanges(){
 				hr = hrSuccess;
 				goto next;
 			}
-
-			hr = HrGetAllProps(lpFolder, (m_ulFlags & SYNC_UNICODE ? MAPI_UNICODE : 0), &ulCount, &lpPropArray);
+			hr = HrGetAllProps(lpFolder, (m_ulFlags & SYNC_UNICODE ? MAPI_UNICODE : 0), &ulCount, &~lpPropArray);
 			if(FAILED(hr)) {
 				ZLOG_DEBUG(m_lpLogger, "Unable to get source folder properties");
 				goto exit;
@@ -1365,11 +1340,6 @@ next:
 			lpFolder->Release();
 			lpFolder = NULL;
 		}
-
-		MAPIFreeBuffer(lpPropArray);
-		lpPropArray = NULL;
-		MAPIFreeBuffer(lpEntryID);
-		lpEntryID = NULL;
 		++ulSteps;
 		++m_ulStep;
 	}
@@ -1378,20 +1348,17 @@ next:
 		hr = SYNC_W_PROGRESS;
 
 exit:
-	MAPIFreeBuffer(lpEntryID);
 	if(lpFolder)
 		lpFolder->Release();
-	MAPIFreeBuffer(lpPropArray);
 	return hr;
 }
 
 HRESULT ECExchangeExportChanges::ExportFolderDeletes(){
 	HRESULT			hr = hrSuccess;
-
-	LPENTRYLIST		lpEntryList = NULL;
+	memory_ptr<ENTRYLIST> lpEntryList;
 
 	if(!m_lstSoftDelete.empty()){
-		hr = ChangesToEntrylist(&m_lstSoftDelete, &lpEntryList);
+		hr = ChangesToEntrylist(&m_lstSoftDelete, &~lpEntryList);
 		if(hr != hrSuccess) {
 			ZLOG_DEBUG(m_lpLogger, "Unable to create folder deletion entry list");
 			goto exit;
@@ -1412,11 +1379,8 @@ HRESULT ECExchangeExportChanges::ExportFolderDeletes(){
 		}
 	}
 
-	MAPIFreeBuffer(lpEntryList);
-	lpEntryList = NULL;
-
 	if(!m_lstHardDelete.empty()){
-		hr = ChangesToEntrylist(&m_lstHardDelete, &lpEntryList);
+		hr = ChangesToEntrylist(&m_lstHardDelete, &~lpEntryList);
 		if(hr != hrSuccess) {
 			ZLOG_DEBUG(m_lpLogger, "Unable to create folder hard delete entry list");
 			goto exit;
@@ -1438,7 +1402,6 @@ HRESULT ECExchangeExportChanges::ExportFolderDeletes(){
 	}
 
 exit:
-	MAPIFreeBuffer(lpEntryList);
 	return hr;
 }
 
@@ -1508,10 +1471,11 @@ exit:
 //convert (delete) changes to entrylist for message and folder deletion.
 HRESULT ECExchangeExportChanges::ChangesToEntrylist(std::list<ICSCHANGE> * lpLstChanges, LPENTRYLIST * lppEntryList){
 	HRESULT 		hr = hrSuccess;
-	LPENTRYLIST		lpEntryList = NULL;
+	memory_ptr<ENTRYLIST> lpEntryList;
 	ULONG			ulCount = 0;
 
-	if ((hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), (LPVOID *)&lpEntryList)) != hrSuccess)
+	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~lpEntryList);
+	if (hr != hrSuccess)
 		goto exit;
 
 	lpEntryList->cValues = lpLstChanges->size();
@@ -1533,12 +1497,8 @@ HRESULT ECExchangeExportChanges::ChangesToEntrylist(std::list<ICSCHANGE> * lpLst
 	}
 	lpEntryList->cValues = ulCount;
 
-	*lppEntryList = lpEntryList;
-
+	*lppEntryList = lpEntryList.release();
 exit:
-	if (hr != hrSuccess)
-		MAPIFreeBuffer(lpEntryList);
-
 	return hr;
 }
 

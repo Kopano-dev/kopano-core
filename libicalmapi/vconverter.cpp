@@ -23,6 +23,7 @@
 #include <mapi.h>
 #include <mapiutil.h>
 #include <kopano/mapiext.h>
+#include <kopano/memory.hpp>
 #include <kopano/CommonUtil.h>
 #include <kopano/Util.h>
 #include "icaluid.h"
@@ -34,6 +35,7 @@
 #include <kopano/base64.h>
 
 using namespace std;
+using namespace KCHL;
 
 namespace KC {
 
@@ -315,11 +317,11 @@ HRESULT VConverter::HrMakeBinaryUID(const std::string &strUid, void *base, SProp
 bool VConverter::bIsUserLoggedIn(const std::wstring &strUser)
 {
 	HRESULT hr = hrSuccess;
-	LPSPropValue lpUserProp = NULL;
+	memory_ptr<SPropValue> lpUserProp;
 	bool blRetVal = false;
 	
 	if (m_lpMailUser)
-		hr = HrGetOneProp(m_lpMailUser, PR_SMTP_ADDRESS_W, &lpUserProp);
+		hr = HrGetOneProp(m_lpMailUser, PR_SMTP_ADDRESS_W, &~lpUserProp);
 	else
 		hr = MAPI_E_CALL_FAILED;
 	if (hr != hrSuccess)
@@ -329,7 +331,6 @@ bool VConverter::bIsUserLoggedIn(const std::wstring &strUser)
 		blRetVal = true;
 	
 exit:
-	MAPIFreeBuffer(lpUserProp);
 	return blRetVal;
 }
 
@@ -348,30 +349,28 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 		return hrSuccess;
 
 	HRESULT hr = hrSuccess;
-	LPSPropValue lpUsrEidProp = NULL; 
+	memory_ptr<SPropValue> lpUsrEidProp;
 	LPSPropValue lpMappedProp = NULL;
 	LPADRLIST lpAdrList	= NULL;	
-	LPENTRYID lpDDEntryID = NULL;
+	memory_ptr<ENTRYID> lpDDEntryID;
 	ULONG cbDDEntryID;
 	IABContainer *lpAddrFolder = NULL;
-	FlagList *lpFlagList = NULL;
+	memory_ptr<FlagList> lpFlagList;
 	icalrecip icalRecipient;
 	ULONG ulRecpCnt = 0;
 	ULONG ulRetn = 0;
 	ULONG ulObjType = 0;
 	ULONG cbEID = 0;
-	LPENTRYID lpEID = NULL;
 
 	if (lplstIcalRecip->empty())
 		goto exit;
 	
 	// ignore error
 	if(m_lpMailUser)
-		HrGetOneProp(m_lpMailUser, PR_ENTRYID, &lpUsrEidProp);
+		HrGetOneProp(m_lpMailUser, PR_ENTRYID, &~lpUsrEidProp);
 
 	ulRecpCnt = lplstIcalRecip->size();
-
-	hr = MAPIAllocateBuffer(CbNewFlagList(ulRecpCnt), (void **) &lpFlagList);
+	hr = MAPIAllocateBuffer(CbNewFlagList(ulRecpCnt), &~lpFlagList);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -395,7 +394,7 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 		lpFlagList->ulFlag[ulRecpCnt++] = MAPI_UNRESOLVED;
 	}
 
-	hr = m_lpAdrBook->GetDefaultDir(&cbDDEntryID, &lpDDEntryID);
+	hr = m_lpAdrBook->GetDefaultDir(&cbDDEntryID, &~lpDDEntryID);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -433,7 +432,8 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 			icalRecipient.cbEntryID = lpMappedProp->Value.bin.cb;
 			memcpy(icalRecipient.lpEntryID, lpMappedProp->Value.bin.lpb, lpMappedProp->Value.bin.cb);
 		} else {
-			hr = ECCreateOneOff((LPTSTR)icalRecipient.strName.c_str(), (LPTSTR)L"SMTP", (LPTSTR)icalRecipient.strEmail.c_str(), MAPI_UNICODE, &cbEID, &lpEID);
+			memory_ptr<ENTRYID> lpEID;
+			hr = ECCreateOneOff((LPTSTR)icalRecipient.strName.c_str(), (LPTSTR)L"SMTP", (LPTSTR)icalRecipient.strEmail.c_str(), MAPI_UNICODE, &cbEID, &~lpEID);
 			if (hr == hrSuccess) {
 				// realloc on lpIcalItem
 				hr = MAPIAllocateMore(cbEID, base, (void**)&icalRecipient.lpEntryID);
@@ -442,9 +442,6 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 
 				icalRecipient.cbEntryID = cbEID;
 				memcpy(icalRecipient.lpEntryID, lpEID, cbEID);
-				
-				MAPIFreeBuffer(lpEID);
-				lpEID = NULL;
 			}
 		}
 
@@ -454,14 +451,11 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 	}
 
 exit:
-	MAPIFreeBuffer(lpUsrEidProp);
-	MAPIFreeBuffer(lpFlagList);
 	if (lpAdrList)
 		FreeProws((LPSRowSet)lpAdrList);
 
 	if (lpAddrFolder)
 		lpAddrFolder->Release();
-	MAPIFreeBuffer(lpDDEntryID);
 	return hr;
 }
 
@@ -476,15 +470,15 @@ exit:
 HRESULT VConverter::HrCompareUids(icalitem *lpIcalItem, icalcomponent *lpicEvent)
 {
 	HRESULT hr = hrSuccess;
-	LPSPropValue lpPropVal = NULL;
+	memory_ptr<SPropValue> lpPropVal;
 	std::string strUid;
 	int res;
 	
 	hr = HrGetUID(lpicEvent, &strUid);
 	if (hr != hrSuccess)
 		goto exit;
-
-	if ((hr = MAPIAllocateBuffer(sizeof(SPropValue), (void**)&lpPropVal)) != hrSuccess)
+	hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropVal);
+	if (hr != hrSuccess)
 		goto exit;
 
 	hr = HrMakeBinaryUID(strUid, lpPropVal, lpPropVal);
@@ -498,7 +492,6 @@ HRESULT VConverter::HrCompareUids(icalitem *lpIcalItem, icalcomponent *lpicEvent
 		hr = MAPI_E_BAD_VALUE;
 
 exit:
-	MAPIFreeBuffer(lpPropVal);
 	return hr;
 }
 
@@ -1149,8 +1142,8 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 	ULONG cbEntryID = 0;
 	LPENTRYID lpEntryID = NULL;
 	ULONG cbEntryIDOneOff = 0;
-	LPENTRYID lpEntryIDOneOff = NULL;
-	LPSPropValue lpsPropVal = NULL;
+	memory_ptr<ENTRYID> lpEntryIDOneOff;
+	memory_ptr<SPropValue> lpsPropVal;
 
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_ORGANIZER_PROPERTY);
 	if (lpicProp) {
@@ -1170,7 +1163,7 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 			SizedSPropTagArray(4, sPropTags) = {4, {PR_SMTP_ADDRESS_W, PR_DISPLAY_NAME_W, PR_ADDRTYPE_A, PR_ENTRYID} };
 			ULONG count;
 
-			hr = m_lpMailUser->GetProps(sPropTags, 0, &count, &lpsPropVal);
+			hr = m_lpMailUser->GetProps(sPropTags, 0, &count, &~lpsPropVal);
 			if (hr != hrSuccess)
 				goto exit;
 
@@ -1186,7 +1179,7 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 			}
 		} else {
 			strType = "SMTP";
-			hr = ECCreateOneOff((LPTSTR)strName.c_str(), (LPTSTR)L"SMTP", (LPTSTR)strEmail.c_str(), MAPI_UNICODE, &cbEntryIDOneOff, &lpEntryIDOneOff);
+			hr = ECCreateOneOff((LPTSTR)strName.c_str(), (LPTSTR)L"SMTP", (LPTSTR)strEmail.c_str(), MAPI_UNICODE, &cbEntryIDOneOff, &~lpEntryIDOneOff);
 			if (hr != hrSuccess)
 				goto exit;
 			cbEntryID = cbEntryIDOneOff;
@@ -1216,7 +1209,7 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 		SizedSPropTagArray(4, sPropTags) = {4, {PR_SMTP_ADDRESS_W, PR_DISPLAY_NAME_W, PR_ADDRTYPE_A, PR_ENTRYID} };
 		ULONG count;
 
-		hr = m_lpMailUser->GetProps(sPropTags, 0, &count, &lpsPropVal);
+		hr = m_lpMailUser->GetProps(sPropTags, 0, &count, &~lpsPropVal);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -1309,8 +1302,6 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 	}
 
 exit:
-	MAPIFreeBuffer(lpsPropVal);
-	MAPIFreeBuffer(lpEntryIDOneOff);
 	return hr;
 }
 
@@ -1329,7 +1320,7 @@ HRESULT VConverter::HrAddReplyRecipients(icalcomponent *lpicEvent, icalitem *lpI
 	icalparameter *lpicParam = NULL;
 	icalrecip icrAttendee;
 	ULONG cbEntryID;
-	LPENTRYID lpEntryID = NULL;
+	memory_ptr<ENTRYID> lpEntryID;
 
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_ORGANIZER_PROPERTY);
 	if (lpicProp) {
@@ -1368,7 +1359,7 @@ HRESULT VConverter::HrAddReplyRecipients(icalcomponent *lpicEvent, icalitem *lpI
 			}
 		}
 
-		hr = ECCreateOneOff((LPTSTR)strName.c_str(), (LPTSTR)L"SMTP", (LPTSTR)strEmail.c_str(), MAPI_UNICODE, &cbEntryID, &lpEntryID);
+		hr = ECCreateOneOff((LPTSTR)strName.c_str(), (LPTSTR)L"SMTP", (LPTSTR)strEmail.c_str(), MAPI_UNICODE, &cbEntryID, &~lpEntryID);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -1378,7 +1369,6 @@ HRESULT VConverter::HrAddReplyRecipients(icalcomponent *lpicEvent, icalitem *lpI
 	}
 
 exit:
-	MAPIFreeBuffer(lpEntryID);
 	return hr;
 }
 
@@ -1837,7 +1827,7 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 	LPMAPITABLE lpTable = NULL;
 	LPSRowSet lpRows = NULL;
 	LPSPropValue lpPropVal = NULL;
-	LPSPropValue lpSpropVal = NULL;
+	memory_ptr<SPropValue> lpSpropVal;
 	icalproperty *lpicProp = NULL;
 	icalparameter *lpicParam = NULL;
 	string strMessageClass;
@@ -1974,7 +1964,7 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 			ulMeetingStatus = lpPropVal->Value.ul;
 		else {
 			// if MeetingStatus flag is not set in exception message, retrive it from parent message.
-			if (HrGetOneProp(lpParentMsg, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MEETINGSTATUS], PT_LONG), &lpSpropVal) == hrSuccess)
+			if (HrGetOneProp(lpParentMsg, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MEETINGSTATUS], PT_LONG), &~lpSpropVal) == hrSuccess)
 				ulMeetingStatus = lpSpropVal->Value.ul;
 		}
 
@@ -2025,7 +2015,6 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 	*lpicMethod = icMethod;
 
 exit:
-	MAPIFreeBuffer(lpSpropVal);
 	if (lpRows)
 		FreeProws(lpRows);
 
@@ -2221,7 +2210,7 @@ exit:
 HRESULT VConverter::HrSetBusyStatus(LPMESSAGE lpMessage, ULONG ulBusyStatus, icalcomponent *lpicEvent)
 {
 	HRESULT hr = hrSuccess;
-	LPSPropValue lpSpropVal = NULL;
+	memory_ptr<SPropValue> lpSpropVal;
 	icalproperty *lpicProp = NULL;
 	
 	// set the TRANSP property
@@ -2233,7 +2222,7 @@ HRESULT VConverter::HrSetBusyStatus(LPMESSAGE lpMessage, ULONG ulBusyStatus, ica
 	icalcomponent_add_property(lpicEvent, lpicProp);
 	
 	// set the X-MICROSOFT-CDO-INTENDEDSTATUS property
-	hr = HrGetOneProp(lpMessage, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_INTENDEDBUSYSTATUS], PT_LONG),&lpSpropVal);
+	hr = HrGetOneProp(lpMessage, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_INTENDEDBUSYSTATUS], PT_LONG), &~lpSpropVal);
 	if(hr == hrSuccess && lpSpropVal->Value.ul != (ULONG)-1)
 		ulBusyStatus = lpSpropVal->Value.ul;
 
@@ -2255,7 +2244,6 @@ HRESULT VConverter::HrSetBusyStatus(LPMESSAGE lpMessage, ULONG ulBusyStatus, ica
 	
 	icalproperty_set_x_name(lpicProp, "X-MICROSOFT-CDO-INTENDEDSTATUS"); 
 	icalcomponent_add_property(lpicEvent, lpicProp);
-	MAPIFreeBuffer(lpSpropVal);
 	return hrSuccess;
 }
 
@@ -2708,7 +2696,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 	ULONG ulRecurrenceStateTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRENCESTATE], PT_BINARY);
 	bool bIsAllDay = false;
 	bool bIsAllDayException = false;
-	LPSPropValue lpSpropArray = NULL;
+	memory_ptr<SPropValue> lpSpropArray;
 	LPSPropValue lpSPropRecVal = NULL;
 	recurrence cRecurrence;
 	LPSTREAM lpStream = NULL;
@@ -2737,7 +2725,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 		CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TASK_STATUS], PT_LONG),
 		CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_TASK_RECURRSTATE], PT_BINARY)}};
 
-	hr = lpMessage->GetProps(proptags, 0, &cbsize, &lpSpropArray);
+	hr = lpMessage->GetProps(proptags, 0, &cbsize, &~lpSpropArray);
 	if (FAILED(hr))
 		goto exit;
 	
@@ -3016,7 +3004,6 @@ exit:
 
 	if (lpException)
 		lpException->Release();
-	MAPIFreeBuffer(lpSpropArray);
 	delete[] lpRecurrenceData;
 	if (lpStream)
 		lpStream->Release();
@@ -3068,7 +3055,7 @@ HRESULT VConverter::HrGetExceptionMessage(LPMESSAGE lpMessage, time_t tStart, LP
 {
 	HRESULT hr = hrSuccess;
 	LPMAPITABLE lpAttachTable = NULL;
-	LPSRestriction lpAttachRestrict = NULL;
+	memory_ptr<SRestriction> lpAttachRestrict;
 	LPSRowSet lpRows = NULL;
 	LPSPropValue lpPropVal = NULL;
 	LPATTACH lpAttach = NULL;
@@ -3091,7 +3078,7 @@ HRESULT VConverter::HrGetExceptionMessage(LPMESSAGE lpMessage, time_t tStart, LP
 		ECPropertyRestriction(RELOP_EQ, sStart.ulPropTag, &sStart) +
 		ECExistRestriction(sMethod.ulPropTag) +
 		ECPropertyRestriction(RELOP_EQ, sMethod.ulPropTag, &sMethod)
-	).CreateMAPIRestriction(&lpAttachRestrict);
+	).CreateMAPIRestriction(&~lpAttachRestrict);
 	if (hr != hrSuccess)
 		goto exit;
 	hr = lpAttachTable->Restrict(lpAttachRestrict, 0);
@@ -3131,7 +3118,6 @@ exit:
 
 	if (lpRows)
 		FreeProws(lpRows);
-	MAPIFreeBuffer(lpAttachRestrict);
 	if (lpAttachTable)
 		lpAttachTable->Release();
 
@@ -3264,7 +3250,7 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 	std::list<icalcomponent*> lstEvents;
 	icalproperty_method icMainMethod = ICAL_METHOD_NONE;
 	icalcomponent* lpicEvent = NULL;
-	LPSPropValue lpSpropValArray = NULL;
+	memory_ptr<SPropValue> lpSpropValArray;
 	icaltimezone *lpicTZinfo = NULL;
 	std::string strTZid;
 	ULONG cbSize = 0;
@@ -3279,7 +3265,7 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 		goto exit;
 
 	cbSize = 0;
-	hr = lpMessage->GetProps(proptags, 0, &cbSize, &lpSpropValArray);
+	hr = lpMessage->GetProps(proptags, 0, &cbSize, &~lpSpropValArray);
 	if (FAILED(hr)) {
 		hr = hrSuccess;
 		goto exit;
@@ -3308,7 +3294,6 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 	*lpEventList = lstEvents;
 
 exit:
-	MAPIFreeBuffer(lpSpropValArray);
 	if (lpicEvent)
 		icalcomponent_free(lpicEvent);
 
@@ -3336,7 +3321,7 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 	icalproperty_method icMethod = ICAL_METHOD_NONE;
 	icalproperty *lpProp = NULL;
 	LPSPropValue lpPropVal = NULL;
-	LPSPropValue lpMsgProps = NULL;
+	memory_ptr<SPropValue> lpMsgProps;
 	ULONG ulMsgProps = 0;
 	TIMEZONE_STRUCT ttTZinfo = {0};
 	icaltimezone *lpicTZinfo = NULL;
@@ -3345,7 +3330,7 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 	std::string strUid;
 	std::wstring wstrBuf;
 
-	hr = lpMessage->GetProps(NULL, MAPI_UNICODE, &ulMsgProps, &lpMsgProps);
+	hr = lpMessage->GetProps(NULL, MAPI_UNICODE, &ulMsgProps, &~lpMsgProps);
 	if (FAILED(hr))
 		goto exit;
 
@@ -3561,7 +3546,6 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 		*lpstrTZid = strTZid;
 
 exit:
-	MAPIFreeBuffer(lpMsgProps);
 	return hr;
 }
 

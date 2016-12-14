@@ -22,6 +22,7 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/mapiext.h>
 #include <kopano/mapiguidext.h>
+#include <kopano/memory.hpp>
 #include <mapiutil.h>
 #include <mapix.h>
 #include <kopano/namedprops.h>
@@ -31,7 +32,7 @@
 HRESULT FsckContact::ValidateContactNames(LPMESSAGE lpMessage)
 {
 	HRESULT hr = hrSuccess;
-	LPSPropValue lpPropertyArray = NULL;
+	KCHL::memory_ptr<SPropValue> lpPropertyArray;
 
 	enum {
 		E_SUBJECT,
@@ -56,7 +57,7 @@ HRESULT FsckContact::ValidateContactNames(LPMESSAGE lpMessage)
 
 	std::string result[TAG_COUNT];
 
-	hr = ReadProperties(lpMessage, TAG_COUNT, ulTags, &lpPropertyArray);
+	hr = ReadProperties(lpMessage, TAG_COUNT, ulTags, &~lpPropertyArray);
 	/* Ignore error, we are going to fix this :) */
 	if (!lpPropertyArray)
 		goto exit;
@@ -163,7 +164,6 @@ HRESULT FsckContact::ValidateContactNames(LPMESSAGE lpMessage)
 	hr = hrSuccess;
 
 exit:
-	MAPIFreeBuffer(lpPropertyArray);
 	return hr;
 }
 

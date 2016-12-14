@@ -115,6 +115,10 @@ template<typename _T> class memory_ptr {
 		reset();
 		return memory_proxy2<_T>(&_m_ptr);
 	}
+	memory_proxy2<_T> operator+(void)
+	{
+		return memory_proxy2<_T>(&_m_ptr);
+	}
 	memory_ptr &operator=(const memory_ptr &) = delete;
 	memory_ptr &operator=(memory_ptr &&__o) noexcept
 	{

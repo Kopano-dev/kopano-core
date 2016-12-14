@@ -22,6 +22,7 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/mapiext.h>
 #include <kopano/mapiguidext.h>
+#include <kopano/memory.hpp>
 #include <mapiutil.h>
 #include <mapix.h>
 #include <kopano/namedprops.h>
@@ -30,11 +31,14 @@
 #include <kopano/RecurrenceState.h>
 #include "fsck.h"
 
+using namespace KCHL;
+
 HRESULT FsckCalendar::ValidateMinimalNamedFields(LPMESSAGE lpMessage)
 {
 	HRESULT hr = hrSuccess;
-	LPSPropValue lpPropertyArray = NULL;
-	LPSPropTagArray lpPropertyTagArray = NULL;
+	memory_ptr<SPropValue> lpPropertyArray;
+	memory_ptr<SPropTagArray> lpPropertyTagArray;
+	memory_ptr<MAPINAMEID *> lppTagArray;
 
 	enum {
 		E_REMINDER,
@@ -42,14 +46,13 @@ HRESULT FsckCalendar::ValidateMinimalNamedFields(LPMESSAGE lpMessage)
 		TAG_COUNT
 	};
 
-	LPMAPINAMEID *lppTagArray = NULL;
 	std::string strTagName[TAG_COUNT];
 
 	/*
 	 * Allocate the NamedID list and initialize it to all
 	 * properties which could give us some information about the name.
 	 */
-	hr = allocNamedIdList(TAG_COUNT, &lppTagArray);
+	hr = allocNamedIdList(TAG_COUNT, &~lppTagArray);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -64,7 +67,8 @@ HRESULT FsckCalendar::ValidateMinimalNamedFields(LPMESSAGE lpMessage)
 	strTagName[E_REMINDER] = "dispidReminderSet";
 	strTagName[E_ALLDAYEVENT] = "dispidAllDayEvent";
 
-	hr = ReadNamedProperties(lpMessage, TAG_COUNT, lppTagArray, &lpPropertyTagArray, &lpPropertyArray);
+	hr = ReadNamedProperties(lpMessage, TAG_COUNT, lppTagArray,
+	     &~lpPropertyTagArray, &~lpPropertyArray);
 	if (FAILED(hr))
 		goto exit;
 
@@ -85,18 +89,15 @@ HRESULT FsckCalendar::ValidateMinimalNamedFields(LPMESSAGE lpMessage)
 	hr = hrSuccess;
 
 exit:
-	if (lppTagArray)
-		freeNamedIdList(lppTagArray);
-	MAPIFreeBuffer(lpPropertyArray);
-	MAPIFreeBuffer(lpPropertyTagArray);
 	return hr;
 }
 
 HRESULT FsckCalendar::ValidateTimestamps(LPMESSAGE lpMessage)
 {
 	HRESULT hr = hrSuccess;
-	LPSPropValue lpPropertyArray = NULL;
-	LPSPropTagArray lpPropertyTagArray = NULL;
+	memory_ptr<SPropValue> lpPropertyArray;
+	memory_ptr<SPropTagArray> lpPropertyTagArray;
+	memory_ptr<MAPINAMEID *> lppTagArray;
 	const FILETIME *lpStart, *lpEnd, *lpCommonStart, *lpCommonEnd;
 	LONG ulDuration;
 
@@ -108,14 +109,11 @@ HRESULT FsckCalendar::ValidateTimestamps(LPMESSAGE lpMessage)
 		E_DURATION,
 		TAG_COUNT
 	};
-
-	LPMAPINAMEID *lppTagArray = NULL;
-
 	/*
 	 * Allocate the NamedID list and initialize it to all
 	 * properties which could give us some information about the name.
 	 */
-	hr = allocNamedIdList(TAG_COUNT, &lppTagArray);
+	hr = allocNamedIdList(TAG_COUNT, &~lppTagArray);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -139,7 +137,8 @@ HRESULT FsckCalendar::ValidateTimestamps(LPMESSAGE lpMessage)
 	lppTagArray[E_DURATION]->ulKind = MNID_ID;
 	lppTagArray[E_DURATION]->Kind.lID = dispidApptDuration;
 
-	hr = ReadNamedProperties(lpMessage, TAG_COUNT, lppTagArray, &lpPropertyTagArray, &lpPropertyArray);
+	hr = ReadNamedProperties(lpMessage, TAG_COUNT, lppTagArray,
+	     &~lpPropertyTagArray, &~lpPropertyArray);
 	if (FAILED(hr))
 		goto exit;
 
@@ -288,21 +287,18 @@ HRESULT FsckCalendar::ValidateTimestamps(LPMESSAGE lpMessage)
         hr = hrSuccess;
 
 exit:
-	if (lppTagArray)
-		freeNamedIdList(lppTagArray);
-	MAPIFreeBuffer(lpPropertyArray);
-	MAPIFreeBuffer(lpPropertyTagArray);
 	return hr;
 }
 
 HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 {
 	HRESULT hr = hrSuccess;
-	LPSPropValue lpPropertyArray = NULL;
-	LPSPropTagArray lpPropertyTagArray = NULL;
+	memory_ptr<SPropValue> lpPropertyArray;
+	memory_ptr<SPropTagArray> lpPropertyTagArray;
 	BOOL bRecurring = FALSE;
 	LONG ulType = 0;
-	char *lpData = NULL;
+	memory_ptr<char> lpData;
+	memory_ptr<MAPINAMEID *> lppTagArray;
 	unsigned int ulLen = 0;
 
 	enum {
@@ -312,14 +308,11 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 		E_RECURRENCE_STATE,
 		TAG_COUNT
 	};
-
-	LPMAPINAMEID *lppTagArray = NULL;
-
 	/*
 	 * Allocate the NamedID list and initialize it to all
 	 * properties which could give us some information about the name.
 	 */
-	hr = allocNamedIdList(TAG_COUNT, &lppTagArray);
+	hr = allocNamedIdList(TAG_COUNT, &~lppTagArray);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -339,7 +332,8 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 	lppTagArray[E_RECURRENCE_STATE]->ulKind = MNID_ID;
 	lppTagArray[E_RECURRENCE_STATE]->Kind.lID = dispidRecurrenceState;
 
-	hr = ReadNamedProperties(lpMessage, TAG_COUNT, lppTagArray, &lpPropertyTagArray, &lpPropertyArray);
+	hr = ReadNamedProperties(lpMessage, TAG_COUNT, lppTagArray,
+	     &~lpPropertyTagArray, &~lpPropertyArray);
 	if (FAILED(hr))
 		goto exit;
 
@@ -532,8 +526,8 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
                 r.ulReaderVersion = 0x3004;
                 r.ulWriterVersion = 0x3004;
                 
-                r.GetBlob(&lpData, &ulLen);
-                Value.bin.lpb = reinterpret_cast<BYTE *>(lpData);
+                r.GetBlob(&~lpData, &ulLen);
+                Value.bin.lpb = reinterpret_cast<unsigned char *>(lpData.get());
                 Value.bin.cb = ulLen;
     
 			// Update the recurrence if there is a change
@@ -560,11 +554,6 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
     hr = hrSuccess;
 
 exit:
-	MAPIFreeBuffer(lpData);
-	if (lppTagArray)
-		freeNamedIdList(lppTagArray);
-	MAPIFreeBuffer(lpPropertyArray);
-	MAPIFreeBuffer(lpPropertyTagArray);
 	return hr;
 }
 

@@ -29,6 +29,7 @@
 #include <kopano/Util.h>
 #include <kopano/Trace.h>
 #include <kopano/CommonUtil.h>
+#include <kopano/memory.hpp>
 #include <kopano/charset/convert.h>
 
 #include <kopano/kcodes.h>
@@ -39,6 +40,7 @@
 #include <netdb.h>
 
 using namespace std;
+using namespace KCHL;
 
 namespace KC {
 
@@ -104,21 +106,19 @@ HRESULT ECMemTable::QueryInterface(REFIID refiid, void **lppInterface)
 HRESULT ECMemTable::HrGetAllWithStatus(LPSRowSet *lppRowSet, LPSPropValue *lppIDs, LPULONG *lppulStatus)
 {
 	HRESULT hr = hrSuccess;
-	LPSRowSet lpRowSet = NULL;
-	LPSPropValue lpIDs = NULL;
-	LPULONG lpulStatus = NULL;
+	memory_ptr<SRowSet> lpRowSet;
+	memory_ptr<SPropValue> lpIDs;
+	memory_ptr<ULONG> lpulStatus;
 	int n = 0;
 	ulock_rec l_data(m_hDataMutex);
 
-	hr = MAPIAllocateBuffer(CbNewSRowSet(mapRows.size()), (void **) &lpRowSet);
+	hr = MAPIAllocateBuffer(CbNewSRowSet(mapRows.size()), &~lpRowSet);
 	if(hr != hrSuccess)
 		goto exit;
-
-	hr = MAPIAllocateBuffer(sizeof(SPropValue) * mapRows.size(), (void **) &lpIDs);
+	hr = MAPIAllocateBuffer(sizeof(SPropValue) * mapRows.size(), &~lpIDs);
 	if(hr != hrSuccess)
 		goto exit;
-
-	hr = MAPIAllocateBuffer(sizeof(ULONG) * mapRows.size(), (void **) &lpulStatus);
+	hr = MAPIAllocateBuffer(sizeof(ULONG) * mapRows.size(), &~lpulStatus);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -150,17 +150,11 @@ HRESULT ECMemTable::HrGetAllWithStatus(LPSRowSet *lppRowSet, LPSPropValue *lppID
 	}
 	lpRowSet->cRows = n;
 
-	*lppRowSet = lpRowSet;
-	*lppIDs = lpIDs;
-	*lppulStatus = lpulStatus;
-
+	*lppRowSet = lpRowSet.release();
+	*lppIDs = lpIDs.release();
+	*lppulStatus = lpulStatus.release();
 exit:
 	l_data.unlock();
-	if (hr != hrSuccess) {
-		MAPIFreeBuffer(lpRowSet);
-		MAPIFreeBuffer(lpIDs);
-		MAPIFreeBuffer(lpulStatus);
-	}
 	return hr;
 }
 
@@ -192,7 +186,7 @@ HRESULT ECMemTable::HrGetRowData(LPSPropValue lpRow, ULONG *lpcValues, LPSPropVa
 {
 	HRESULT hr = hrSuccess;
 	ULONG cValues = 0;
-	LPSPropValue lpRowData = NULL;
+	memory_ptr<SPropValue> lpRowData;
 	std::map<unsigned int, ECTableEntry>::const_iterator iterRows;
 	ulock_rec l_data(m_hDataMutex);
 
@@ -206,19 +200,14 @@ HRESULT ECMemTable::HrGetRowData(LPSPropValue lpRow, ULONG *lpcValues, LPSPropVa
 		hr = MAPI_E_NOT_FOUND;
 		goto exit;
 	}
-
-	hr = Util::HrCopyPropertyArray(iterRows->second.lpsPropVal, iterRows->second.cValues, &lpRowData, &cValues);
+	hr = Util::HrCopyPropertyArray(iterRows->second.lpsPropVal, iterRows->second.cValues, &~lpRowData, &cValues);
 	if(hr != hrSuccess)
 		goto exit;
 
 	*lpcValues = cValues;
-
-	*lppRowData = lpRowData;
-	lpRowData = NULL;
-
+	*lppRowData = lpRowData.release();
 exit:
 	l_data.unlock();
-	MAPIFreeBuffer(lpRowData);
 	return hr;
 }
 
@@ -541,11 +530,11 @@ HRESULT ECMemTableView::Unadvise(ULONG ulConnection)
 HRESULT ECMemTableView::Notify(ULONG ulTableEvent, sObjectTableKey* lpsRowItem, sObjectTableKey* lpsPrevRow)
 {
 	HRESULT hr = hrSuccess;
-	LPNOTIFICATION lpNotification = NULL;
+	memory_ptr<NOTIFICATION> lpNotification;
 	LPSRowSet lpRows = NULL;
 	ECObjectTableList sRowList;
 
-	hr = MAPIAllocateBuffer(sizeof(NOTIFICATION), (void**)&lpNotification);
+	hr = MAPIAllocateBuffer(sizeof(NOTIFICATION), &~lpNotification);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -608,7 +597,6 @@ HRESULT ECMemTableView::Notify(ULONG ulTableEvent, sObjectTableKey* lpsRowItem, 
 		//FIXME: maybe thought the MAPISupport ?
 		adv.second->lpAdviseSink->OnNotify(1, lpNotification);
 exit:
-	MAPIFreeBuffer(lpNotification);
 	if (lpRows)
 		FreeProws(lpRows);
 
@@ -1100,8 +1088,7 @@ HRESULT ECMemTableView::QueryRowData(ECObjectTableList *lpsRowList, LPSRowSet *l
 
 	LPSPropValue lpsProp = NULL;
 	unsigned int i=0,j=0;
-
-	LPSRowSet lpRows = NULL;
+	memory_ptr<SRowSet> lpRows;
 	convert_context converter;
 
 	if (lpsRowList == NULL || lppRows == NULL) {
@@ -1111,7 +1098,7 @@ HRESULT ECMemTableView::QueryRowData(ECObjectTableList *lpsRowList, LPSRowSet *l
 	}
 
 	// We have the rows we need, just copy them into a new rowset
-	hr = MAPIAllocateBuffer(CbNewSRowSet(lpsRowList->size()), (void **) &lpRows);
+	hr = MAPIAllocateBuffer(CbNewSRowSet(lpsRowList->size()), &~lpRows);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -1204,13 +1191,8 @@ HRESULT ECMemTableView::QueryRowData(ECObjectTableList *lpsRowList, LPSRowSet *l
 	}
 
 	lpRows->cRows = lpsRowList->size();
-
-	*lppRows = lpRows;
-
+	*lppRows = lpRows.release();
 exit:
-	if (hr != hrSuccess)
-		MAPIFreeBuffer(lpRows);
-
 	return hr;
 }
 

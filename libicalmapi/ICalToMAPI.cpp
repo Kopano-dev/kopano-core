@@ -17,6 +17,7 @@
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <kopano/ECRestriction.h>
+#include <kopano/memory.hpp>
 #include "ICalToMAPI.h"
 #include "vconverter.h"
 #include "vtimezone.h"
@@ -33,6 +34,8 @@
 #include <vector>
 #include <kopano/charset/convert.h>
 #include <mapi.h>
+
+using namespace KCHL;
 
 namespace KC {
 
@@ -388,7 +391,7 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 	ULONG ulANr = 0;
 	LPATTACH lpAttach = NULL;
 	LPMESSAGE lpExMsg = NULL;
-	LPSPropTagArray lpsPTA = NULL;
+	memory_ptr<SPropTagArray> lpsPTA;
 	LPMAPITABLE lpAttachTable = NULL;
 	LPSRowSet lpRows = NULL;
 	LPSPropValue lpPropVal = NULL;
@@ -404,7 +407,7 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 	lpItem = *iItem;
 
 	if ((ulFlags & IC2M_APPEND_ONLY) == 0 && !lpItem->lstDelPropTags.empty()) {
-		hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpItem->lstDelPropTags.size()), (LPVOID *)&lpsPTA);
+		hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpItem->lstDelPropTags.size()), &~lpsPTA);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -527,7 +530,6 @@ exit:
 
 	if (lpRows)
 		FreeProws(lpRows);
-	MAPIFreeBuffer(lpsPTA);
 	if (lpAttach)
 		lpAttach->Release();
 
@@ -550,11 +552,11 @@ HRESULT ICalToMapiImpl::SaveProps(const std::list<SPropValue> *lpPropList,
     LPMAPIPROP lpMapiProp)
 {
 	HRESULT hr = hrSuccess;
-	LPSPropValue lpsPropVals = NULL;
+	memory_ptr<SPropValue> lpsPropVals;
 	int i;
 
 	// all props to message
-	hr = MAPIAllocateBuffer(lpPropList->size() * sizeof(SPropValue), (void**)&lpsPropVals);
+	hr = MAPIAllocateBuffer(lpPropList->size() * sizeof(SPropValue), &~lpsPropVals);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -567,7 +569,6 @@ HRESULT ICalToMapiImpl::SaveProps(const std::list<SPropValue> *lpPropList,
 		goto exit;
 
 exit:
-	MAPIFreeBuffer(lpsPropVals);
 	return hr;
 }
 
@@ -675,9 +676,9 @@ HRESULT ICalToMapiImpl::SaveAttendeesString(const std::list<icalrecip> *lplstRec
 	std::wstring strAllAttendees;
 	std::wstring strToAttendees;
 	std::wstring strCCAttendees;
-	LPSPropValue lpsPropValue = NULL;
+	memory_ptr<SPropValue> lpsPropValue;
 
-	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 3, (LPVOID*)&lpsPropValue);
+	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 3, &~lpsPropValue);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -711,7 +712,6 @@ HRESULT ICalToMapiImpl::SaveAttendeesString(const std::list<icalrecip> *lplstRec
 		goto exit;
 
 exit:
-	MAPIFreeBuffer(lpsPropValue);
 	return hr;
 }
 

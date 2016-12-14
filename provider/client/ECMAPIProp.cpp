@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <kopano/ECInterfaceDefs.h>
+#include <kopano/memory.hpp>
 #include <mapidefs.h>
 #include <mapicode.h>
 #include <mapitags.h>
@@ -215,15 +216,13 @@ HRESULT	ECMAPIProp::DefaultMAPIGetProp(ULONG ulPropTag, void* lpProvider, ULONG 
 		lpsPropValue->ulPropTag = PR_STORE_ENTRYID;
 
 		ULONG cbWrapped = 0;
-		LPENTRYID lpWrapped = NULL;
+		KCHL::memory_ptr<ENTRYID> lpWrapped;
 
-		hr = lpProp->GetMsgStore()->GetWrappedStoreEntryID(&cbWrapped, &lpWrapped);
-
+		hr = lpProp->GetMsgStore()->GetWrappedStoreEntryID(&cbWrapped, &~lpWrapped);
 		if(hr == hrSuccess) {
 			ECAllocateMore(cbWrapped, lpBase, (LPVOID *)&lpsPropValue->Value.bin.lpb);
 			memcpy(lpsPropValue->Value.bin.lpb, lpWrapped, cbWrapped);
 			lpsPropValue->Value.bin.cb = cbWrapped;
-			MAPIFreeBuffer(lpWrapped);
 		}
 		break;
 	}
@@ -317,18 +316,16 @@ HRESULT ECMAPIProp::TableRowGetProp(void* lpProvider, struct propVal *lpsPropVal
 		case PR_STORE_ENTRYID:
 		{				
 			ULONG cbWrapped = 0;
-			LPENTRYID lpWrapped = NULL;
+			KCHL::memory_ptr<ENTRYID> lpWrapped;
 
 			// if we know, we are a spooler or a store than we can switch the function for 'speed-up'
 			// hr = lpMsgStore->GetWrappedStoreEntryID(&cbWrapped, &lpWrapped);
-			hr = lpMsgStore->GetWrappedServerStoreEntryID(lpsPropValSrc->Value.bin->__size, lpsPropValSrc->Value.bin->__ptr, &cbWrapped, &lpWrapped);
-
+			hr = lpMsgStore->GetWrappedServerStoreEntryID(lpsPropValSrc->Value.bin->__size, lpsPropValSrc->Value.bin->__ptr, &cbWrapped, &~lpWrapped);
 			if(hr == hrSuccess) {
 				ECAllocateMore(cbWrapped, lpBase, (void **)&lpsPropValDst->Value.bin.lpb);
 				memcpy(lpsPropValDst->Value.bin.lpb, lpWrapped, cbWrapped);
 				lpsPropValDst->Value.bin.cb = cbWrapped;
 				lpsPropValDst->ulPropTag = PROP_TAG(PT_BINARY,PROP_ID(lpsPropValSrc->ulPropTag));
-				MAPIFreeBuffer(lpWrapped);
 			}
 
 			break;

@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
+#include <kopano/memory.hpp>
 #include <kopano/ECInterfaceDefs.h>
 #include <mapidefs.h>
 #include <mapiutil.h>
@@ -43,6 +44,7 @@
 #include <kopano/charset/convert.h>
 
 using namespace std;
+using namespace KCHL;
 
 #define MAX_TABLE_PROPSIZE 8192
 
@@ -835,7 +837,7 @@ HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	ECMemTableView *lpView = NULL;
 	LPSPropValue lpPropID = NULL;
 	LPSPropValue lpPropType = NULL;
-	LPSPropTagArray lpPropTagArray = NULL;
+	memory_ptr<SPropTagArray> lpPropTagArray;
 	scoped_rlock lock(m_hMutexMAPIObject);
 
 	if(lstProps == NULL) {
@@ -850,7 +852,7 @@ HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 
 	if (this->lpAttachments == NULL) {
 		hr = Util::HrCopyUnicodePropTagArray(ulFlags,
-		     sPropAttachColumns, &lpPropTagArray);
+		     sPropAttachColumns, &~lpPropTagArray);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -947,7 +949,6 @@ HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	lpView->Release();
 
 exit:
-	MAPIFreeBuffer(lpPropTagArray);
 	return hr;
 }
 
@@ -1117,7 +1118,7 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
 	HRESULT hr = hrSuccess;
 	ECMemTableView *lpView = NULL;
-	LPSPropTagArray lpPropTagArray = NULL;
+	memory_ptr<SPropTagArray> lpPropTagArray;
 	scoped_rlock lock(m_hMutexMAPIObject);
 
 	if(lstProps == NULL) {
@@ -1132,7 +1133,7 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 
 	if (this->lpRecips == NULL) {
 		hr = Util::HrCopyUnicodePropTagArray(ulFlags,
-		     sPropRecipColumns, &lpPropTagArray);
+		     sPropRecipColumns, &~lpPropTagArray);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -1219,7 +1220,6 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	hr = lpView->QueryInterface(IID_IMAPITable, (void **)lppTable);
 	lpView->Release();
 exit:
-	MAPIFreeBuffer(lpPropTagArray);
 	return hr;
 }
 
@@ -1517,7 +1517,7 @@ HRESULT ECMessage::SetReadFlag(ULONG ulFlags)
 	HRESULT			hr = hrSuccess;
 	LPSPropValue	lpReadReceiptRequest = NULL;
 	LPSPropValue	lpPropFlags = NULL;
-	LPSPropValue	lpsPropUserName = NULL;
+	memory_ptr<SPropValue> lpsPropUserName;
 	SPropValue		sProp;
 	IMAPIFolder*	lpRootFolder = NULL;
 	IMessage*		lpNewMessage = NULL;
@@ -1525,7 +1525,7 @@ HRESULT ECMessage::SetReadFlag(ULONG ulFlags)
 	ULONG			ulObjType = 0;
 	ULONG			cValues = 0;
 	ULONG			cbStoreID = 0;
-	LPENTRYID		lpStoreID = NULL;
+	memory_ptr<ENTRYID> lpStoreID;
 	IMsgStore*		lpDefMsgStore = NULL;
 
 	if((ulFlags &~ (CLEAR_READ_FLAG | CLEAR_NRN_PENDING | CLEAR_RN_PENDING | GENERATE_RECEIPT_ONLY | MAPI_DEFERRED_ERRORS | SUPPRESS_RECEIPT)) != 0 ||
@@ -1568,11 +1568,10 @@ HRESULT ECMessage::SetReadFlag(ULONG ulFlags)
 
 		}else {
 			// Open the default store, by using the username property
-			hr = HrGetOneProp(&GetMsgStore()->m_xMsgStore, PR_USER_NAME, &lpsPropUserName);
+			hr = HrGetOneProp(&GetMsgStore()->m_xMsgStore, PR_USER_NAME, &~lpsPropUserName);
 			if (hr != hrSuccess)
 				goto exit;
-
-			hr = GetMsgStore()->CreateStoreEntryID(NULL, lpsPropUserName->Value.LPSZ, fMapiUnicode, &cbStoreID, &lpStoreID);
+			hr = GetMsgStore()->CreateStoreEntryID(nullptr, lpsPropUserName->Value.LPSZ, fMapiUnicode, &cbStoreID, &~lpStoreID);
 			if (hr != hrSuccess)
 				goto exit;
 
@@ -1629,8 +1628,6 @@ exit:
 		ECFreeBuffer(lpPropFlags);
 	if(lpReadReceiptRequest)
 		ECFreeBuffer(lpReadReceiptRequest);
-	MAPIFreeBuffer(lpsPropUserName);
-	MAPIFreeBuffer(lpStoreID);
 	if(lpRootFolder)
 		lpRootFolder->Release();
 
@@ -1914,9 +1911,6 @@ HRESULT ECMessage::UpdateTable(ECMemTable *lpTable, ULONG ulObjType, ULONG ulObj
 	HRESULT hr = hrSuccess;
 	SPropValue sKeyProp;
 	SPropValue sUniqueProp;
-	LPSPropValue lpProps = NULL;
-	LPSPropValue lpNewProps = NULL;
-	LPSPropValue lpAllProps = NULL;
 	ULONG cAllValues = 0;
 	ULONG cValues = 0;
 	ULONG ulProps = 0;
@@ -1930,6 +1924,8 @@ HRESULT ECMessage::UpdateTable(ECMemTable *lpTable, ULONG ulObjType, ULONG ulObj
 
 	// update hierarchy id in table
 	for (const auto &obj : *m_sMapiObject->lstChildren) {
+		memory_ptr<SPropValue> lpProps, lpNewProps, lpAllProps;
+
 		if (obj->ulObjType != ulObjType)
 			continue;
 		sUniqueProp.ulPropTag = ulObjKeyProp;
@@ -1945,11 +1941,12 @@ HRESULT ECMessage::UpdateTable(ECMemTable *lpTable, ULONG ulObjType, ULONG ulObj
 		if (ulProps == 0)
 			continue;
 		// retrieve old row from table
-		hr = lpTable->HrGetRowData(&sUniqueProp, &cValues, &lpProps);
+		hr = lpTable->HrGetRowData(&sUniqueProp, &cValues, &~lpProps);
 		if (hr != hrSuccess)
 			goto exit;
 		// add new props
-		if ((hr = MAPIAllocateBuffer(sizeof(SPropValue)*ulProps, (void**)&lpNewProps)) != hrSuccess)
+		hr = MAPIAllocateBuffer(sizeof(SPropValue) * ulProps, &~lpNewProps);
+		if (hr != hrSuccess)
 			goto exit;
 		i = 0;
 		for (const auto &pv : *obj->lstProperties) {
@@ -1964,27 +1961,18 @@ HRESULT ECMessage::UpdateTable(ECMemTable *lpTable, ULONG ulObjType, ULONG ulObj
 			++i;
 		}
 
-		hr = Util::HrMergePropertyArrays(lpProps, cValues, lpNewProps, ulProps, &lpAllProps, &cAllValues);
+		hr = Util::HrMergePropertyArrays(lpProps, cValues, lpNewProps, ulProps, &~lpAllProps, &cAllValues);
 		if (hr != hrSuccess)
 			goto exit;
 		hr = lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_MODIFY, &sKeyProp, lpAllProps, cAllValues);
 		if (hr != hrSuccess)
 			goto exit;
-		MAPIFreeBuffer(lpNewProps);
-		lpNewProps = NULL;
-		MAPIFreeBuffer(lpAllProps);
-		lpAllProps = NULL;
-		MAPIFreeBuffer(lpProps);
-		lpProps = NULL;
 	}
 
 	hr = lpTable->HrSetClean();
 	if (hr != hrSuccess)
 		goto exit;
 exit:
-	MAPIFreeBuffer(lpAllProps);
-	MAPIFreeBuffer(lpNewProps);
-	MAPIFreeBuffer(lpProps);
 	return hr;
 }
 

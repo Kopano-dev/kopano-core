@@ -45,11 +45,14 @@
 #include <mapiutil.h>
 #include <mapiguid.h>
 #include <kopano/mapiext.h>
+#include <kopano/memory.hpp>
 #include <kopano/Util.h>
 #include <kopano/charset/convert.h>
 #include <string>
 
 #include "tnef.h"
+
+using namespace KCHL;
 
 namespace KC {
 
@@ -171,7 +174,7 @@ static HRESULT StreamToPropValue(IStream *lpStream, ULONG ulPropTag,
     LPSPropValue *lppPropValue)
 {
 	HRESULT			hr = hrSuccess;
-	LPSPropValue	lpPropValue = NULL;
+	memory_ptr<SPropValue> lpPropValue;
 	STATSTG			sStatstg;
 	ULONG			ulRead = 0;
 	ULONG			ulTotal = 0;
@@ -192,8 +195,7 @@ static HRESULT StreamToPropValue(IStream *lpStream, ULONG ulPropTag,
 	hr = lpStream->Stat(&sStatstg, 0);
 	if(hr != hrSuccess)
 		goto exit;
-
-	hr = MAPIAllocateBuffer(sizeof(SPropValue), (void**)&lpPropValue);
+	hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropValue);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -225,13 +227,8 @@ static HRESULT StreamToPropValue(IStream *lpStream, ULONG ulPropTag,
 		}
 		ulTotal += ulRead;
 	}
-
-	*lppPropValue = lpPropValue;
-
+	*lppPropValue = lpPropValue.release();
 exit:
-	if (hr != hrSuccess)
-		MAPIFreeBuffer(lpPropValue);
-
 	return hr;
 }
 
@@ -249,8 +246,8 @@ exit:
 HRESULT ECTNEF::AddProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 {
 	HRESULT			hr = hrSuccess;
-	LPSPropTagArray lpPropListMessage = NULL;
-	LPSPropValue	lpPropValue = NULL;
+	memory_ptr<SPropTagArray> lpPropListMessage;
+	memory_ptr<SPropValue> lpPropValue;
 	LPSPropValue	lpStreamValue = NULL;
 	SizedSPropTagArray(1, sPropTagArray);
 	unsigned int	i = 0;
@@ -260,8 +257,7 @@ HRESULT ECTNEF::AddProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 
 	// Loop through all the properties on the message, and only
 	// add those that we want to add to the list
-
-	hr = m_lpMessage->GetPropList(MAPI_UNICODE, &lpPropListMessage);
+	hr = m_lpMessage->GetPropList(MAPI_UNICODE, &~lpPropListMessage);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -286,12 +282,9 @@ HRESULT ECTNEF::AddProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 		if(( (ulFlags & TNEF_PROP_INCLUDE) && fPropTagInList) || ((ulFlags & TNEF_PROP_EXCLUDE) && !fPropTagInList)) {
 			sPropTagArray.cValues = 1;
 			sPropTagArray.aulPropTag[0] = lpPropListMessage->aulPropTag[i];
-			hr = m_lpMessage->GetProps(sPropTagArray, 0, &cValue, &lpPropValue);
-
-			if(hr == hrSuccess) {
-				lstProps.push_back(lpPropValue);
-				lpPropValue = NULL;
-			}
+			hr = m_lpMessage->GetProps(sPropTagArray, 0, &cValue, &~lpPropValue);
+			if (hr == hrSuccess)
+				lstProps.push_back(lpPropValue.release());
 			if(hr == MAPI_W_ERRORS_RETURNED && lpPropValue != NULL && lpPropValue->Value.err == MAPI_E_NOT_ENOUGH_MEMORY) {
 				if(m_lpMessage->OpenProperty(lpPropListMessage->aulPropTag[i], &IID_IStream, 0, 0, (LPUNKNOWN *)&lpStream) == hrSuccess)
 				{
@@ -305,16 +298,11 @@ HRESULT ECTNEF::AddProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 					lpStream->Release(); lpStream = NULL;
 				}
 			}
-
-			MAPIFreeBuffer(lpPropValue);
-			lpPropValue = NULL;
-		
 			hr = hrSuccess; // silently ignore the property
 		}
 	}
 
 exit:
-	MAPIFreeBuffer(lpPropListMessage);
 	return hr;
 }
 
@@ -336,7 +324,7 @@ HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 	unsigned short ulChecksum = 0;
 	unsigned short ulKey = 0;
 	unsigned char ulComponent = 0;
-	char *lpBuffer = NULL;
+	memory_ptr<char> lpBuffer;
 	SPropValue sProp;
 	char *szSClass = NULL;
 	// Attachments props
@@ -379,11 +367,9 @@ HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 			hr = MAPI_E_CORRUPT_DATA;
 			goto exit;
 		}
-
-		hr = MAPIAllocateBuffer(ulSize, (void **)&lpBuffer);
+		hr = MAPIAllocateBuffer(ulSize, &~lpBuffer);
 		if(hr != hrSuccess)
 			goto exit;
-
 		hr = HrReadData(m_lpStream, lpBuffer, ulSize);
 		if(hr != hrSuccess)
 			goto exit;
@@ -434,14 +420,14 @@ HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 		case 0x00050008: /* PR_OWNER_APPT_ID */
 			if(ulSize == 4 && lpBuffer) {
 				sProp.ulPropTag = PR_OWNER_APPT_ID;
-				sProp.Value.l = *reinterpret_cast<LONG *>(lpBuffer);
+				sProp.Value.l = *reinterpret_cast<LONG *>(lpBuffer.get());
 				m_lpMessage->SetProps(1, &sProp, NULL);
 			}
 			break;
 		case ATT_REQUEST_RES: /* PR_RESPONSE_REQUESTED */
 			if(ulSize == 2 && lpBuffer) {
 				sProp.ulPropTag = PR_RESPONSE_REQUESTED;
-				sProp.Value.b = static_cast<bool>(*reinterpret_cast<short *>(lpBuffer));
+				sProp.Value.b = static_cast<bool>(*reinterpret_cast<short *>(lpBuffer.get()));
 				m_lpMessage->SetProps(1, &sProp, NULL);
 			}
 			break;
@@ -450,7 +436,7 @@ HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 		case ATT_ATTACH_REND_DATA:
 			// Start marker of attachment
 		    if(ulSize == sizeof(struct AttachRendData) && lpBuffer) {
-		        struct AttachRendData *lpData = (AttachRendData *)lpBuffer;
+				auto lpData = reinterpret_cast<AttachRendData *>(lpBuffer.get());
 		        
                 if (lpTnefAtt) {
                     if (lpTnefAtt->data || !lpTnefAtt->lstProps.empty()) // end marker previous attachment
@@ -522,9 +508,6 @@ HRESULT	ECTNEF::ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 			// Ignore this block
 			break;
 		}
-
-		MAPIFreeBuffer(lpBuffer);
-		lpBuffer = NULL;
 	}
 
 exit:
@@ -536,7 +519,6 @@ exit:
 	}
 
 	delete[] szSClass;
-	MAPIFreeBuffer(lpBuffer);
 	return hr;
 }
 
@@ -574,7 +556,7 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 	SizedSPropTagArray(1, sPropTagArray);
 	LPSPropTagArray lpsPropTagArray = sPropTagArray;
 	ULONG cNames = 0;
-	MAPINAMEID **lppNames = NULL;
+	memory_ptr<MAPINAMEID *> lppNames;
 	ULONG ulLen = 0;
 	ULONG ulMVProp = 0;
 	ULONG ulCount = 0;
@@ -586,7 +568,7 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 		sPropTagArray.cValues = 1;
 		sPropTagArray.aulPropTag[0] = lpProp->ulPropTag;
 
-		hr = m_lpMessage->GetNamesFromIDs(&lpsPropTagArray, NULL, 0, &cNames, &lppNames);
+		hr = m_lpMessage->GetNamesFromIDs(&lpsPropTagArray, NULL, 0, &cNames, &~lppNames);
 		if(hr != hrSuccess) {
 			hr = hrSuccess; // Ignore this property
 			goto exit;
@@ -921,7 +903,6 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 	}
 
 exit:
-	MAPIFreeBuffer(lppNames);
 	return hr;
 }
 
@@ -987,11 +968,11 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 	ULONG ulIsNameId = 0;
 	ULONG ulCount = 0;
 	ULONG ulMVProp = 0;
-	LPSPropValue lpProp = NULL;
+	memory_ptr<SPropValue> lpProp;
 	GUID sGuid;
 	MAPINAMEID sNameID;
 	LPMAPINAMEID lpNameID = &sNameID;
-	LPSPropTagArray lpPropTags = NULL;
+	memory_ptr<SPropTagArray> lpPropTags;
 	std::wstring strUnicodeName;
 	std::u16string ucs2;
 
@@ -1001,8 +982,7 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 	ulPropTag = *reinterpret_cast<const ULONG *>(lpBuffer);
 	lpBuffer += sizeof(ULONG);
 	ulSize -= 4;
-
-	hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **)&lpProp);
+	hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpProp);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -1051,8 +1031,7 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 		}
 
 		sNameID.lpguid = &sGuid;
-
-		hr = m_lpMessage->GetIDsFromNames(1, &lpNameID, MAPI_CREATE, &lpPropTags);
+		hr = m_lpMessage->GetIDsFromNames(1, &lpNameID, MAPI_CREATE, &~lpPropTags);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -1398,12 +1377,8 @@ HRESULT ECTNEF::HrReadSingleProp(const char *lpBuffer, ULONG ulSize,
 	}
 
 	*lpulRead = ulOrigSize - ulSize;
-	*lppProp = lpProp;
-
+	*lppProp = lpProp.release();
 exit:
-	if (hr != hrSuccess)
-		MAPIFreeBuffer(lpProp);
-	MAPIFreeBuffer(lpPropTags);
 	return hr;
 }
 
@@ -1442,13 +1417,11 @@ HRESULT ECTNEF::FinishComponent(ULONG ulFlags, ULONG ulComponentID, LPSPropTagAr
 {
     HRESULT hr = hrSuccess;
     IAttach *lpAttach = NULL;
-    LPSPropValue lpProps = NULL;
-    LPSPropValue lpAttachProps = NULL;
+	memory_ptr<SPropValue> lpProps, lpAttachProps, lpsNewProp;
     IStream *lpStream = NULL;
     ULONG cValues = 0;
     AttachRendData sData;
     SizedSPropTagArray(2, sptaTags) = {2, { PR_ATTACH_METHOD, PR_RENDERING_POSITION }};
-    LPSPropValue lpsNewProp = NULL;
     struct tnefattachment sTnefAttach;
     
     if(ulFlags != TNEF_COMPONENT_ATTACHMENT) {
@@ -1466,7 +1439,7 @@ HRESULT ECTNEF::FinishComponent(ULONG ulFlags, ULONG ulComponentID, LPSPropTagAr
         goto exit;
     
     // Get some properties we always need
-    hr = lpAttach->GetProps(sptaTags, 0, &cValues, &lpAttachProps);
+	hr = lpAttach->GetProps(sptaTags, 0, &cValues, &~lpAttachProps);
     if(FAILED(hr))
         goto exit;
         
@@ -1478,7 +1451,7 @@ HRESULT ECTNEF::FinishComponent(ULONG ulFlags, ULONG ulComponentID, LPSPropTagAr
     sData.ulPosition = lpAttachProps[1].ulPropTag == PR_RENDERING_POSITION ? lpAttachProps[1].Value.ul : 0;
         
     // Get user-passed properties
-    hr = lpAttach->GetProps(lpPropList, 0, &cValues, &lpProps);
+	hr = lpAttach->GetProps(lpPropList, 0, &cValues, &~lpProps);
     if(FAILED(hr))
         goto exit;
     
@@ -1486,8 +1459,7 @@ HRESULT ECTNEF::FinishComponent(ULONG ulFlags, ULONG ulComponentID, LPSPropTagAr
         // Other properties
         if(PROP_TYPE(lpProps[i].ulPropTag) == PT_ERROR)
             continue;
-        
-        hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **)&lpsNewProp);
+		hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpsNewProp);
         if(hr != hrSuccess)
             goto exit;
                 
@@ -1508,9 +1480,7 @@ HRESULT ECTNEF::FinishComponent(ULONG ulFlags, ULONG ulComponentID, LPSPropTagAr
             if(hr != hrSuccess)
                 goto exit;
         }        
-        
-        sTnefAttach.lstProps.push_back(lpsNewProp);
-        lpsNewProp = NULL;
+        sTnefAttach.lstProps.push_back(lpsNewProp.release());
     }
 
     sTnefAttach.rdata = sData;
@@ -1521,11 +1491,8 @@ HRESULT ECTNEF::FinishComponent(ULONG ulFlags, ULONG ulComponentID, LPSPropTagAr
 exit:
     if(lpStream)
         lpStream->Release();
-    MAPIFreeBuffer(lpsNewProp);
     if(lpAttach)
         lpAttach->Release();
-    MAPIFreeBuffer(lpProps);
-    MAPIFreeBuffer(lpAttachProps);
     return hr;
 }
 

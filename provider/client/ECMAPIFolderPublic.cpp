@@ -16,7 +16,7 @@
  */
 
 #include <kopano/platform.h>
-
+#include <kopano/memory.hpp>
 #include "ECMAPIFolderPublic.h"
 
 #include "Mem.h"
@@ -41,6 +41,8 @@
 
 #include <kopano/ECGetText.h>
 #include <mapiutil.h>
+
+using namespace KCHL;
 
 ECMAPIFolderPublic::ECMAPIFolderPublic(ECMsgStore *lpMsgStore, BOOL fModify, WSMAPIFolderOps *lpFolderOps, enumPublicEntryID ePublicEntryID) : 
 		ECMAPIFolder(lpMsgStore, fModify, lpFolderOps, "IMAPIFolderPublic") 
@@ -304,7 +306,7 @@ HRESULT ECMAPIFolderPublic::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTabl
 	HRESULT hr = hrSuccess;
 	ECMemTable *lpMemTable = NULL;
 	ECMemTableView *lpView = NULL;
-	LPSPropTagArray lpPropTagArray = NULL;
+	memory_ptr<SPropTagArray> lpPropTagArray;
 	SizedSPropTagArray(11, sPropsContentColumns) = {11, {PR_ENTRYID, PR_DISPLAY_NAME, PR_MESSAGE_FLAGS, PR_SUBJECT, PR_STORE_ENTRYID, PR_STORE_RECORD_KEY, PR_STORE_SUPPORT_MASK, PR_INSTANCE_KEY, PR_RECORD_KEY, PR_ACCESS, PR_ACCESS_LEVEL } };
 
 	if( m_ePublicEntryID == ePE_IPMSubtree || m_ePublicEntryID == ePE_Favorites)
@@ -314,7 +316,7 @@ HRESULT ECMAPIFolderPublic::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTabl
 			goto exit;
 		}
 		hr = Util::HrCopyUnicodePropTagArray(ulFlags,
-		     sPropsContentColumns, &lpPropTagArray);
+		     sPropsContentColumns, &~lpPropTagArray);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -335,7 +337,6 @@ HRESULT ECMAPIFolderPublic::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTabl
 	}
 
 exit:
-	MAPIFreeBuffer(lpPropTagArray);
 	if (lpMemTable)
 		lpMemTable->Release();
 
@@ -543,7 +544,7 @@ HRESULT ECMAPIFolderPublic::DeleteFolder(ULONG cbEntryID, LPENTRYID lpEntryID, U
 	ULONG ulObjType = 0;
 	LPMAPIFOLDER lpFolder = NULL;
 	LPMAPIFOLDER lpShortcutFolder = NULL;
-	LPSPropValue lpProp = NULL;
+	memory_ptr<SPropValue> lpProp;
 
 	if(ValidateZEntryId(cbEntryID, (LPBYTE)lpEntryID, MAPI_FOLDER) == false) {
 		hr = MAPI_E_INVALID_ENTRYID;
@@ -556,8 +557,7 @@ HRESULT ECMAPIFolderPublic::DeleteFolder(ULONG cbEntryID, LPENTRYID lpEntryID, U
 		hr = OpenEntry(cbEntryID, lpEntryID, NULL, 0, &ulObjType, (LPUNKNOWN *)&lpFolder);
 		if (hr != hrSuccess)
 			goto exit;
-
-		hr = HrGetOneProp(lpFolder, PR_SOURCE_KEY, &lpProp);
+		hr = HrGetOneProp(lpFolder, PR_SOURCE_KEY, &~lpProp);
 		if (hr != hrSuccess)
 			goto exit;
 		lpFolder->Release();
@@ -580,7 +580,6 @@ exit:
 
 	if (lpShortcutFolder)
 		lpShortcutFolder->Release();
-	MAPIFreeBuffer(lpProp);
 	return hr;
 }
 
@@ -589,7 +588,7 @@ HRESULT ECMAPIFolderPublic::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterfa
 	HRESULT hr = hrSuccess;
 	ULONG ulResult = 0;
 	IMAPIFolder	*lpMapiFolder = NULL;
-	LPSPropValue lpPropArray = NULL;
+	memory_ptr<SPropValue> lpPropArray;
 
 	if(lpMsgList == NULL || lpMsgList->cValues == 0)
 		goto exit;
@@ -615,7 +614,7 @@ HRESULT ECMAPIFolderPublic::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterfa
 		goto exit;
 
 	// Get the destination entry ID
-	hr = HrGetOneProp(lpMapiFolder, PR_ENTRYID, &lpPropArray);
+	hr = HrGetOneProp(lpMapiFolder, PR_ENTRYID, &~lpPropArray);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -631,7 +630,6 @@ HRESULT ECMAPIFolderPublic::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterfa
 exit:
 	if (lpMapiFolder)
 		lpMapiFolder->Release();
-	MAPIFreeBuffer(lpPropArray);
 	return hr;
 }
 

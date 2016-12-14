@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
+#include <kopano/memory.hpp>
 #include <kopano/ECGuid.h>
 #include <kopano/ECInterfaceDefs.h>
 #include <ECSyncLog.h>
@@ -153,7 +154,7 @@ HRESULT ECChangeAdvisor::Config(LPSTREAM lpStream, LPGUID /*lpGUID*/,
 {
 	HRESULT					hr = hrSuccess;
 	ULONG					ulVal = 0;
-	LPENTRYLIST				lpEntryList = NULL;
+	KCHL::memory_ptr<ENTRYLIST> lpEntryList;
 	ULONG					ulRead = {0};
 	LARGE_INTEGER			liSeekStart = {{0}};
 
@@ -195,7 +196,7 @@ HRESULT ECChangeAdvisor::Config(LPSTREAM lpStream, LPGUID /*lpGUID*/,
 	}
 
 	if (ulVal > 0) {
-		hr = MAPIAllocateBuffer(sizeof *lpEntryList, (void**)&lpEntryList);
+		hr = MAPIAllocateBuffer(sizeof *lpEntryList, &~lpEntryList);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -233,7 +234,6 @@ HRESULT ECChangeAdvisor::Config(LPSTREAM lpStream, LPGUID /*lpGUID*/,
 	}
 
 exit:
-	MAPIFreeBuffer(lpEntryList);
 	return hr;
 }
 

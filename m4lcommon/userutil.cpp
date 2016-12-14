@@ -21,7 +21,7 @@
 #include <mapi.h>
 #include <mapiutil.h>
 #include <kopano/ECLogger.h>
-
+#include <kopano/memory.hpp>
 #include <kopano/userutil.h>
 
 #include <kopano/charset/utf8string.h>
@@ -245,10 +245,8 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 
 	std::set<servername>	listServers;
 	convert_context		converter;
-	
-	ECSVRNAMELIST	*lpSrvNameList = NULL;
-	ECSERVERLIST *lpSrvList = NULL;
-
+	KCHL::memory_ptr<ECSVRNAMELIST> lpSrvNameList;
+	KCHL::memory_ptr<ECSERVERLIST> lpSrvList;
 	SizedSPropTagArray(1, sCols) = {1, { PR_ENTRYID } };
 
 	if (lpMapiSession == NULL || lpCollector == NULL) {
@@ -335,7 +333,7 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 	hr = ptrStore->QueryInterface(IID_IECServiceAdmin, &ptrServiceAdmin);
 	if (hr != hrSuccess)
 		goto exit;
-	hr = MAPIAllocateBuffer(sizeof(ECSVRNAMELIST), (LPVOID *)&lpSrvNameList);
+	hr = MAPIAllocateBuffer(sizeof(ECSVRNAMELIST), &~lpSrvNameList);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -347,7 +345,7 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 	for (const auto &i : listServers)
 		lpSrvNameList->lpszaServer[lpSrvNameList->cServers++] = i.c_str();
 
-	hr = ptrServiceAdmin->GetServerDetails(lpSrvNameList, MAPI_UNICODE, &lpSrvList);
+	hr = ptrServiceAdmin->GetServerDetails(lpSrvNameList, MAPI_UNICODE, &~lpSrvList);
 	if (hr == MAPI_E_NETWORK_ERROR) {
 		//support single server
 		hr = GetMailboxDataPerServer(lpMapiSession, "", lpCollector);
@@ -403,8 +401,6 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 	}
 
 exit:
-	MAPIFreeBuffer(lpSrvNameList);
-	MAPIFreeBuffer(lpSrvList);
 	return hr;
 }
 

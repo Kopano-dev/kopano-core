@@ -21,13 +21,15 @@
 #include <mapidefs.h>
 #include <mapix.h>
 #include <mapiutil.h>
-
+#include <kopano/memory.hpp>
 #include "freebusyutil.h"
 #include <kopano/stringutil.h>
 
 #include "freebusytags.h"
 #include <kopano/mapiext.h>
 #include <edkmdb.h>
+
+using namespace KCHL;
 
 namespace KC {
 
@@ -75,7 +77,7 @@ HRESULT GetFreeBusyFolder(IMsgStore* lpPublicStore, IMAPIFolder** lppFreeBusyFol
 {
 	HRESULT			hr = S_OK;
 	ULONG			cValuesFreeBusy = 0;
-	LPSPropValue	lpPropArrayFreeBusy = NULL;
+	memory_ptr<SPropValue> lpPropArrayFreeBusy;
 	IMAPIFolder*	lpMapiFolder = NULL;
 	ULONG			ulObjType = 0;
 
@@ -89,7 +91,7 @@ HRESULT GetFreeBusyFolder(IMsgStore* lpPublicStore, IMAPIFolder** lppFreeBusyFol
 	enum eFreeBusyPos{ FBPOS_FREE_BUSY_FOR_LOCAL_SITE_ENTRYID};
 
 	// Get freebusy properies
-	hr = lpPublicStore->GetProps(sPropsFreeBusy, 0, &cValuesFreeBusy, &lpPropArrayFreeBusy);
+	hr = lpPublicStore->GetProps(sPropsFreeBusy, 0, &cValuesFreeBusy, &~lpPropArrayFreeBusy);
 	if (FAILED(hr))
 		goto exit;
 
@@ -114,7 +116,6 @@ HRESULT GetFreeBusyFolder(IMsgStore* lpPublicStore, IMAPIFolder** lppFreeBusyFol
 		goto exit;
 
 exit:
-	MAPIFreeBuffer(lpPropArrayFreeBusy);
 	if(lpMapiFolder)
 		lpMapiFolder->Release();
 
@@ -135,14 +136,11 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 	IMAPIFolder*	lpFolder = NULL;
 	ULONG			ulMvItems = 0;
 	ULONG			i;
-	LPSPropValue	lpPropfbEntryids = NULL;
-	LPSPropValue	lpPropfbEntryidsNew = NULL;
-	LPSPropValue	lpPropFBMessage = NULL;
-	LPSPropValue	lpPropName = NULL;
-	LPSPropValue	lpPropEmail = NULL;
-
+	memory_ptr<SPropValue> lpPropfbEntryids;
+	memory_ptr<SPropValue> lpPropfbEntryidsNew, lpPropFBMessage;
+	memory_ptr<SPropValue> lpPropName, lpPropEmail;
 	ULONG			cbInBoxEntry = 0;
-	LPENTRYID		lpInboxEntry = NULL;
+	memory_ptr<ENTRYID> lpInboxEntry;
 	LPADRBOOK		lpAdrBook = NULL;
 	LPMAILUSER		lpMailUser = NULL;
 
@@ -228,12 +226,10 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 		hr = lpAdrBook->OpenEntry(cbUserEntryID, lpUserEntryID, &IID_IMailUser, MAPI_BEST_ACCESS , &ulObjType, (LPUNKNOWN*)&lpMailUser);
  		if(hr != hrSuccess)
 			goto exit;
-
-		hr = HrGetOneProp(lpMailUser, PR_ACCOUNT, &lpPropName);
+		hr = HrGetOneProp(lpMailUser, PR_ACCOUNT, &~lpPropName);
 		if(hr != hrSuccess)
 			goto exit;
-
-		hr = HrGetOneProp(lpMailUser, PR_EMAIL_ADDRESS, &lpPropEmail);
+		hr = HrGetOneProp(lpMailUser, PR_EMAIL_ADDRESS, &~lpPropEmail);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -269,7 +265,7 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 
 		if (lpUserStore) {
 			// Get entryid
-			hr = HrGetOneProp(lpMessage, PR_ENTRYID, &lpPropFBMessage);
+			hr = HrGetOneProp(lpMessage, PR_ENTRYID, &~lpPropFBMessage);
 			if(hr != hrSuccess)
 				goto exit;
 
@@ -280,10 +276,10 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 
 			ulMvItems = 4;
 			// Get current freebusy entryid array
-			if (HrGetOneProp(lpFolder, PR_FREEBUSY_ENTRYIDS, &lpPropfbEntryids) == hrSuccess)
+			if (HrGetOneProp(lpFolder, PR_FREEBUSY_ENTRYIDS, &~lpPropfbEntryids) == hrSuccess)
 				ulMvItems = (lpPropfbEntryids->Value.MVbin.cValues>ulMvItems)?lpPropfbEntryids->Value.MVbin.cValues:ulMvItems;
 
-			hr = MAPIAllocateBuffer(sizeof(SPropValue), (void**)&lpPropfbEntryidsNew);
+			hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropfbEntryidsNew);
 			if(hr != hrSuccess)
 				goto exit;
 
@@ -320,7 +316,7 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 			lpFolder = NULL;
 
 			// Get the inbox
-			hr = lpUserStore->GetReceiveFolder(NULL, 0, &cbInBoxEntry, &lpInboxEntry, NULL);
+			hr = lpUserStore->GetReceiveFolder(nullptr, 0, &cbInBoxEntry, &~lpInboxEntry, nullptr);
 			if(hr != hrSuccess)
 				goto exit;
 
@@ -353,17 +349,11 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 		goto exit;
 
 exit:
-	MAPIFreeBuffer(lpPropEmail);
-	MAPIFreeBuffer(lpPropName);
 	if(lpMailUser)
 		lpMailUser->Release();
 
 	if(lpAdrBook)
 		lpAdrBook->Release();
-	MAPIFreeBuffer(lpInboxEntry);
-	MAPIFreeBuffer(lpPropfbEntryidsNew);
-	MAPIFreeBuffer(lpPropFBMessage);
-	MAPIFreeBuffer(lpPropfbEntryids);
 	if(lpFolder)
 		lpFolder->Release();
 
@@ -448,7 +438,7 @@ HRESULT GetFreeBusyMessageData(IMessage* lpMessage, LONG* lprtmStart, LONG* lprt
 	HRESULT hr = S_OK;
 
 	ULONG			cValuesFBData = 0;
-	LPSPropValue	lpPropArrayFBData = NULL;
+	memory_ptr<SPropValue> lpPropArrayFBData;
 
 	SizedSPropTagArray(9, sPropsFreeBusyData) = {
 		9,
@@ -480,8 +470,7 @@ HRESULT GetFreeBusyMessageData(IMessage* lpMessage, LONG* lprtmStart, LONG* lprt
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-
-	hr = lpMessage->GetProps(sPropsFreeBusyData, 0, &cValuesFBData, &lpPropArrayFBData);
+	hr = lpMessage->GetProps(sPropsFreeBusyData, 0, &cValuesFBData, &~lpPropArrayFBData);
 	if(FAILED(hr))
 		goto exit;
 
@@ -524,7 +513,6 @@ HRESULT GetFreeBusyMessageData(IMessage* lpMessage, LONG* lprtmStart, LONG* lprt
 		*lprtmEnd = 0;
 
 exit:
-	MAPIFreeBuffer(lpPropArrayFBData);
 	return hr;
 }
 
@@ -559,7 +547,7 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 	sfbEvent		fbEvent;
 	FBBlock_1		fbBlk;
 	bool			bFound;
-	LPSPropValue	lpPropFBDataArray = NULL;
+	memory_ptr<SPropValue> lpPropFBDataArray;
 	time_t			tmUnixStart = 0;
 	time_t			tmUnixEnd = 0;
 
@@ -578,7 +566,8 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 		First item is Months
 		Second item is the Freebusy data
 	*/
-	if ((hr = MAPIAllocateBuffer(2 * sizeof(SPropValue), (void**)&lpPropFBDataArray)) != hrSuccess)
+	hr = MAPIAllocateBuffer(2 * sizeof(SPropValue), &~lpPropFBDataArray);
+	if (hr != hrSuccess)
 		goto exit;
 	
 	lpPropFBDataArray[0].Value.MVl.cValues = 0;
@@ -705,12 +694,8 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 		goto exit;
 	}
 
-	*lppPropFBDataArray = lpPropFBDataArray;
-
+	*lppPropFBDataArray = lpPropFBDataArray.release();
 exit:
-	if (hr != hrSuccess)
-		MAPIFreeBuffer(lpPropFBDataArray);
-
 	return hr;
 }
 
@@ -786,25 +771,21 @@ HRESULT HrCopyFBBlockSet(OccrInfo *lpDest, const OccrInfo *lpSrc,
 HRESULT HrAddFBBlock(const OccrInfo &sOccrInfo, OccrInfo **lppsOccrInfo,
     ULONG *lpcValues)
 {
-	OccrInfo *lpsNewOccrInfo = NULL;
+	memory_ptr<OccrInfo> lpsNewOccrInfo;
 	OccrInfo *lpsInputOccrInfo = *lppsOccrInfo;
 	ULONG ulModVal = lpcValues != NULL ? *lpcValues + 1 : 1;
-	HRESULT hr = MAPIAllocateBuffer(sizeof(sOccrInfo) * ulModVal,
-	             reinterpret_cast<void **>(&lpsNewOccrInfo));
+	HRESULT hr = MAPIAllocateBuffer(sizeof(sOccrInfo) * ulModVal, &~lpsNewOccrInfo);
 	if (hr != hrSuccess)
 		return hr;
 	
 	if(lpsInputOccrInfo)
 		hr = HrCopyFBBlockSet(lpsNewOccrInfo, lpsInputOccrInfo, ulModVal);
-	
-	if (hr != hrSuccess) {
-		MAPIFreeBuffer(lpsNewOccrInfo);
+	if (hr != hrSuccess)
 		return hr;
-	}
 	if (lpcValues != NULL)
 		*lpcValues = ulModVal;
 	lpsNewOccrInfo[ulModVal -1] = sOccrInfo;
-	*lppsOccrInfo = lpsNewOccrInfo;
+	*lppsOccrInfo = lpsNewOccrInfo.release();
 	MAPIFreeBuffer(lpsInputOccrInfo);
 	return hrSuccess;
 }

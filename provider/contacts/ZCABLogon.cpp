@@ -24,6 +24,7 @@
 #include <kopano/ECDebugPrint.h>
 #include <kopano/ECGuid.h>
 #include <kopano/ECInterfaceDefs.h>
+#include <kopano/memory.hpp>
 #include "kcore.hpp"
 #include <mapix.h>
 #include <edkmdb.h>
@@ -168,7 +169,7 @@ HRESULT ZCABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 	ZCABContainer *lpRootContainer = NULL;
 	ZCMAPIProp *lpContact = NULL;
 	LPPROFSECT lpProfileSection = NULL;
-	LPSPropValue lpFolderProps = NULL;
+	KCHL::memory_ptr<SPropValue> lpFolderProps;
 	ULONG cValues = 0;
 	SizedSPropTagArray(3, sptaFolderProps) = {3, {PR_ZC_CONTACT_STORE_ENTRYIDS, PR_ZC_CONTACT_FOLDER_ENTRYIDS, PR_ZC_CONTACT_FOLDER_NAMES_W}};
 	
@@ -199,8 +200,7 @@ HRESULT ZCABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 		hr = m_lpMAPISup->OpenProfileSection((LPMAPIUID)pbGlobalProfileSectionGuid, 0, &lpProfileSection);
 		if (hr != hrSuccess)
 			goto exit;
-
-		hr = lpProfileSection->GetProps(sptaFolderProps, 0, &cValues, &lpFolderProps);
+		hr = lpProfileSection->GetProps(sptaFolderProps, 0, &cValues, &~lpFolderProps);
 		if (FAILED(hr))
 			goto exit;
 		hr = hrSuccess;
@@ -255,7 +255,6 @@ HRESULT ZCABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 exit:
 	if (lpProfileSection)
 		lpProfileSection->Release();
-	MAPIFreeBuffer(lpFolderProps);
 	if (lpRootContainer)
 		lpRootContainer->Release();
 

@@ -90,8 +90,6 @@ private:
  * Helper functions.
  */
 HRESULT allocNamedIdList(ULONG ulSize, LPMAPINAMEID **lpppNameArray);
-void freeNamedIdList(LPMAPINAMEID *lppNameArray);
-
 HRESULT ReadProperties(IMessage *, ULONG count, const ULONG *tags, SPropValue **out);
 HRESULT ReadNamedProperties(LPMESSAGE lpMessage, ULONG ulCount,
 			    LPMAPINAMEID *lppTag,

@@ -23,6 +23,7 @@
 #include <mapicode.h>
 #include <mapiutil.h>
 #include <kopano/mapiext.h>
+#include <kopano/memory.hpp>
 #include <edkmdb.h>
 #include <edkguid.h>
 #include <kopano/ECGetText.h>
@@ -40,6 +41,7 @@
 #include "spmain.h"
 
 using namespace std;
+using namespace KCHL;
 
 static HRESULT GetRecipStrings(LPMESSAGE lpMessage, std::wstring &wstrTo,
     std::wstring &wstrCc, std::wstring &wstrBcc)
@@ -262,10 +264,10 @@ static HRESULT CreateOutboxMessage(LPMDB lpOrigStore, LPMESSAGE *lppMessage)
 {
 	HRESULT hr = hrSuccess;
 	LPMAPIFOLDER lpOutbox = NULL;
-	LPSPropValue lpOutboxEntryID = NULL;
+	memory_ptr<SPropValue> lpOutboxEntryID;
 	ULONG ulObjType = 0;
 
-	hr = HrGetOneProp(lpOrigStore, PR_IPM_OUTBOX_ENTRYID, &lpOutboxEntryID);
+	hr = HrGetOneProp(lpOrigStore, PR_IPM_OUTBOX_ENTRYID, &~lpOutboxEntryID);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -278,7 +280,6 @@ static HRESULT CreateOutboxMessage(LPMDB lpOrigStore, LPMESSAGE *lppMessage)
 		goto exit;
 
 exit:
-	MAPIFreeBuffer(lpOutboxEntryID);
 	if (lpOutbox)
 		lpOutbox->Release();
 
@@ -290,12 +291,10 @@ static HRESULT CreateReplyCopy(LPMAPISESSION lpSession, LPMDB lpOrigStore,
 {
 	HRESULT hr = hrSuccess;
 	LPMESSAGE lpReplyMessage = NULL;
-	LPSPropValue lpProp = NULL;
+	memory_ptr<SPropValue> lpProp, lpFrom, lpReplyRecipient;
+	memory_ptr<SPropValue> lpSentMailEntryID;
 	std::wstring strwSubject;
-	LPSPropValue lpSentMailEntryID = NULL;
 	ULONG cValues = 0;
-	LPSPropValue lpFrom = NULL;
-	LPSPropValue lpReplyRecipient = NULL;
 	SizedADRLIST(1, sRecip) = {0, {}};
 	ULONG ulCmp = 0;
 	
@@ -323,7 +322,7 @@ static HRESULT CreateReplyCopy(LPMAPISESSION lpSession, LPMDB lpOrigStore,
 	if (hr != hrSuccess)
 		goto exitpm;
 	// set "sent mail" folder entryid for spooler
-	hr = HrGetOneProp(lpOrigStore, PR_IPM_SENTMAIL_ENTRYID, &lpSentMailEntryID);
+	hr = HrGetOneProp(lpOrigStore, PR_IPM_SENTMAIL_ENTRYID, &~lpSentMailEntryID);
 	if (hr != hrSuccess)
 		goto exitpm;
 
@@ -334,11 +333,10 @@ static HRESULT CreateReplyCopy(LPMAPISESSION lpSession, LPMDB lpOrigStore,
 		goto exitpm;
 
 	// set a sensible subject
-	hr = HrGetOneProp(lpReplyMessage, PR_SUBJECT_W, &lpProp);
+	hr = HrGetOneProp(lpReplyMessage, PR_SUBJECT_W, &~lpProp);
 	if (hr == hrSuccess && lpProp->Value.lpszW[0] == L'\0') {
-		MAPIFreeBuffer(lpProp);
 		// Exchange: uses "BT: orig subject" if empty, or only subject from template.
-		hr = HrGetOneProp(lpOrigMessage, PR_SUBJECT_W, &lpProp);
+		hr = HrGetOneProp(lpOrigMessage, PR_SUBJECT_W, &~lpProp);
 		if (hr == hrSuccess) {
 			strwSubject = wstring(L"BT: ") + lpProp->Value.lpszW;
 			lpProp->Value.lpszW = (WCHAR*)strwSubject.c_str();
@@ -347,23 +345,15 @@ static HRESULT CreateReplyCopy(LPMAPISESSION lpSession, LPMDB lpOrigStore,
 				goto exitpm;
 		}
 	}
-	MAPIFreeBuffer(lpProp);
-	lpProp = NULL;
-	hr = hrSuccess;
-
-	hr = HrGetOneProp(lpOrigMessage, PR_INTERNET_MESSAGE_ID, &lpProp);
+	hr = HrGetOneProp(lpOrigMessage, PR_INTERNET_MESSAGE_ID, &~lpProp);
 	if (hr == hrSuccess) {
 		lpProp->ulPropTag = PR_IN_REPLY_TO_ID;
 		hr = HrSetOneProp(lpReplyMessage, lpProp);
 		if (hr != hrSuccess)
 			goto exitpm;
 	}
-	MAPIFreeBuffer(lpProp);
-	lpProp = NULL;
-	hr = hrSuccess;
-
 	// set From to self
-	hr = lpOrigMessage->GetProps(sFrom, 0, &cValues, &lpFrom);
+	hr = lpOrigMessage->GetProps(sFrom, 0, &cValues, &~lpFrom);
 	if (FAILED(hr))
 		goto exitpm;
 
@@ -394,7 +384,7 @@ static HRESULT CreateReplyCopy(LPMAPISESSION lpSession, LPMDB lpOrigStore,
 
 	// append To with original sender
 	// @todo get Reply-To ?
-	hr = lpOrigMessage->GetProps(sReplyRecipient, 0, &cValues, &lpReplyRecipient);
+	hr = lpOrigMessage->GetProps(sReplyRecipient, 0, &cValues, &~lpReplyRecipient);
 	if (FAILED(hr))
 		goto exitpm;
 
@@ -430,10 +420,6 @@ static HRESULT CreateReplyCopy(LPMAPISESSION lpSession, LPMDB lpOrigStore,
  exitpm:
 	if (lpReplyMessage)
 		lpReplyMessage->Release();
-	MAPIFreeBuffer(lpProp);
-	MAPIFreeBuffer(lpSentMailEntryID);
-	MAPIFreeBuffer(lpFrom);
-	MAPIFreeBuffer(lpReplyRecipient);
 	return hr;
 }
 
@@ -559,7 +545,7 @@ static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
 {
 	HRESULT hr = hrSuccess;
 	LPADRLIST lpRecipients = NULL;
-	LPSPropValue lpMsgClass = NULL;
+	memory_ptr<SPropValue> lpMsgClass;
 	std::wstring strFromName, strFromType, strFromAddress;
 	std::wstring strRuleName, strRuleType, strRuleAddress;
 
@@ -580,8 +566,7 @@ static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
 
 	std::vector<std::string> fwd_whitelist =
 		tokenize(g_lpConfig->GetSetting("forward_whitelist_domains"), " ");
-	HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &lpMsgClass); //ignore errors
-
+	HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &~lpMsgClass); //ignore errors
 	lpRecipients->cEntries = 0;
 
 	for (ULONG i = 0; i < lpRuleRecipients->cEntries; ++i) {
@@ -643,7 +628,6 @@ static HRESULT CheckRecipients(IAddrBook *lpAdrBook, IMsgStore *orig_store,
 exit:
 	if (lpRecipients)
 		FreeProws((LPSRowSet)lpRecipients);
-	MAPIFreeBuffer(lpMsgClass);
 	return hr;
 }
 
@@ -654,7 +638,7 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 {
 	HRESULT hr = hrSuccess;
 	LPMESSAGE lpFwdMsg = NULL;
-	LPSPropValue lpSentMailEntryID = NULL;
+	memory_ptr<SPropValue> lpSentMailEntryID, lpOrigSubject;
 	LPSPropTagArray lpExclude = NULL; // non-free
 	LPADRLIST lpRecipients = NULL;
 	ULONG ulANr = 0;
@@ -684,7 +668,6 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 		PR_TRANSPORT_MESSAGE_HEADERS,
 	} };
 
-	LPSPropValue lpOrigSubject = NULL;
 	SPropValue sForwardProps[5];
 	ULONG cfp = 0;
 	wstring strSubject;
@@ -706,8 +689,7 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 	if (hr != hrSuccess)
 		// use rule recipients without filter
 		lpRecipients = lpRuleRecipients;
-
-	hr = HrGetOneProp(lpOrigStore, PR_IPM_SENTMAIL_ENTRYID, &lpSentMailEntryID);
+	hr = HrGetOneProp(lpOrigStore, PR_IPM_SENTMAIL_ENTRYID, &~lpSentMailEntryID);
 	if (hr != hrSuccess)
 		goto exitpm;
 	hr = CreateOutboxMessage(lpOrigStore, &lpFwdMsg);
@@ -776,8 +758,7 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 	if (hr != hrSuccess)
 		goto exitpm;
 	// set from email ??
-
-	hr = HrGetOneProp(lpOrigMessage, PR_SUBJECT, &lpOrigSubject);
+	hr = HrGetOneProp(lpOrigMessage, PR_SUBJECT, &~lpOrigSubject);
 	if (hr == hrSuccess)
 		strSubject = lpOrigSubject->Value.lpszW;
 
@@ -825,8 +806,6 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 
 	*lppMessage = lpFwdMsg;
  exitpm:
-	MAPIFreeBuffer(lpSentMailEntryID);
-	MAPIFreeBuffer(lpOrigSubject);
 	if (lpRecipients && lpRecipients != lpRuleRecipients)
 		FreeProws((LPSRowSet)lpRecipients);
 
@@ -844,7 +823,7 @@ static HRESULT HrDelegateMessage(IMAPIProp *lpMessage)
 {
 	HRESULT hr = hrSuccess;
 	SPropValue sNewProps[6] = {{0}};
-	LPSPropValue lpProps = NULL;
+	memory_ptr<SPropValue> lpProps;
 	ULONG cValues = 0;
 	SizedSPropTagArray(5, sptaRecipProps) = {5, 
 		{ PR_RECEIVED_BY_ENTRYID, PR_RECEIVED_BY_ADDRTYPE, PR_RECEIVED_BY_EMAIL_ADDRESS, PR_RECEIVED_BY_NAME, PR_RECEIVED_BY_SEARCH_KEY }
@@ -852,7 +831,7 @@ static HRESULT HrDelegateMessage(IMAPIProp *lpMessage)
 	SizedSPropTagArray(1, sptaSentMail) = { 1, { PR_SENTMAIL_ENTRYID } };
 
 	// set PR_RCVD_REPRESENTING on original receiver
-	hr = lpMessage->GetProps(sptaRecipProps, 0, &cValues, &lpProps);
+	hr = lpMessage->GetProps(sptaRecipProps, 0, &cValues, &~lpProps);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -886,7 +865,6 @@ static HRESULT HrDelegateMessage(IMAPIProp *lpMessage)
 	hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
 
 exit:
-	MAPIFreeBuffer(lpProps);
 	return hr;
 }
 
@@ -916,9 +894,8 @@ static int proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,
 		PROPMAP_NAMED_ID(KopanoRuleAction, PT_UNICODE, PS_INTERNET_HEADERS, "x-kopano-rule-action")
 		PROPMAP_INIT((*lppMessage));
 
-		SPropValue *lpPropRule = nullptr;
-		if (HrGetOneProp(*lppMessage, PROP_KopanoRuleAction, &lpPropRule) == hrSuccess) {
-			MAPIFreeBuffer(lpPropRule);
+		memory_ptr<SPropValue> lpPropRule;
+		if (HrGetOneProp(*lppMessage, PROP_KopanoRuleAction, &~lpPropRule) == hrSuccess) {
 			ec_log_warn((std::string)"Rule " + rule + ": FORWARD loop protection. Message will not be forwarded or redirected because it includes header \"x-kopano-rule-action\"");
 			return 0;
 		}

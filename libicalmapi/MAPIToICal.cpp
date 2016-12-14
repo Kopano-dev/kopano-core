@@ -16,6 +16,8 @@
  */
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
+#include <memory>
+#include <kopano/memory.hpp>
 #include "MAPIToICal.h"
 #include <libical/ical.h>
 
@@ -131,10 +133,10 @@ HRESULT MapiToICalImpl::HrInitializeVCal()
 HRESULT MapiToICalImpl::AddMessage(LPMESSAGE lpMessage, const std::string &strSrvTZ, ULONG ulFlags)
 {
 	HRESULT hr = hrSuccess;
-	VConverter *lpVEC = NULL;
+	std::unique_ptr<VConverter> lpVEC;
 	std::list<icalcomponent*> lstEvents;
 	icalproperty_method icMethod = ICAL_METHOD_NONE;
-	LPSPropValue lpMessageClass = NULL;
+	KCHL::memory_ptr<SPropValue> lpMessageClass;
 	TIMEZONE_STRUCT ttTZinfo = {0};
 	bool blCensor = false;
 
@@ -151,8 +153,7 @@ HRESULT MapiToICalImpl::AddMessage(LPMESSAGE lpMessage, const std::string &strSr
 		if (hr != hrSuccess)
 			goto exit;
 	}
-
-	hr = HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &lpMessageClass);
+	hr = HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &~lpMessageClass);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -163,9 +164,9 @@ HRESULT MapiToICalImpl::AddMessage(LPMESSAGE lpMessage, const std::string &strSr
 	}
 
 	if (strcasecmp(lpMessageClass->Value.lpszA, "IPM.Task") == 0) {
-		lpVEC = new VTodoConverter(m_lpAdrBook, &m_tzMap, m_lpNamedProps, m_strCharset, blCensor, false, NULL);
+		lpVEC.reset(new VTodoConverter(m_lpAdrBook, &m_tzMap, m_lpNamedProps, m_strCharset, blCensor, false, NULL));
 	} else if (strcasecmp(lpMessageClass->Value.lpszA, "IPM.Appointment") == 0 || strncasecmp(lpMessageClass->Value.lpszA, "IPM.Schedule", strlen("IPM.Schedule")) == 0) {
-		lpVEC = new VEventConverter(m_lpAdrBook, &m_tzMap, m_lpNamedProps, m_strCharset, blCensor, false, NULL);
+		lpVEC.reset(new VEventConverter(m_lpAdrBook, &m_tzMap, m_lpNamedProps, m_strCharset, blCensor, false, NULL));
 	} else {
 		hr = MAPI_E_TYPE_NO_SUPPORT;
 		goto exit;
@@ -187,8 +188,6 @@ HRESULT MapiToICalImpl::AddMessage(LPMESSAGE lpMessage, const std::string &strSr
 		m_icMethod = icMethod;
 
 exit:
-	MAPIFreeBuffer(lpMessageClass);
-	delete lpVEC;
 	return hr;
 }
 

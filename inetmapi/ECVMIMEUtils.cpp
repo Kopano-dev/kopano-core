@@ -24,6 +24,7 @@
 #include "MAPISMTPTransport.h"
 #include <kopano/CommonUtil.h>
 #include <kopano/ECLogger.h>
+#include <kopano/memory.hpp>
 #include <kopano/charset/convert.h>
 
 #include <kopano/stringutil.h>
@@ -40,6 +41,7 @@
 #include <vmime/base.hpp>
 
 using namespace std;
+using namespace KCHL;
 
 namespace KC {
 
@@ -187,7 +189,7 @@ HRESULT ECVMIMESender::HrExpandGroup(LPADRBOOK lpAdrBook, LPSPropValue lpGroupNa
 	ULONG ulType = 0;
 	IMAPITable *lpTable = NULL;
 	LPSRowSet lpRows = NULL;
-	LPSPropValue lpEmailAddress = NULL;
+	memory_ptr<SPropValue> lpEmailAddress;
 
 	if(lpGroupEntryID == NULL || lpAdrBook->OpenEntry(lpGroupEntryID->Value.bin.cb, (LPENTRYID)lpGroupEntryID->Value.bin.lpb, NULL, 0, &ulType, (IUnknown **)&lpGroup) != hrSuccess || ulType != MAPI_DISTLIST) {
 		// Entry id for group was not given, or the group could not be opened, or the entryid was not a group (eg one-off entryid)
@@ -233,8 +235,7 @@ HRESULT ECVMIMESender::HrExpandGroup(LPADRBOOK lpAdrBook, LPSPropValue lpGroupNa
 			goto exit;
 		}
 	}
-	
-	hr = HrGetOneProp(lpGroup, PR_EMAIL_ADDRESS_W, &lpEmailAddress);
+	hr = HrGetOneProp(lpGroup, PR_EMAIL_ADDRESS_W, &~lpEmailAddress);
 	if(hr != hrSuccess)
 		goto exit;
 		
@@ -264,7 +265,6 @@ exit:
 		
 	if(lpGroup)
 		lpGroup->Release();
-	MAPIFreeBuffer(lpEmailAddress);
 	return hr;
 }
 
@@ -280,9 +280,9 @@ HRESULT ECVMIMESender::HrMakeRecipientsList(LPADRBOOK lpAdrBook,
 	bool bResend = false;
 	std::set<std::wstring> setGroups; // Set of groups to make sure we don't get into an expansion-loop
 	std::set<std::wstring> setRecips; // Set of recipients to make sure we don't send two identical RCPT TO's
-	LPSPropValue lpMessageFlags = NULL;
+	memory_ptr<SPropValue> lpMessageFlags;
 	
-	hr = HrGetOneProp(lpMessage, PR_MESSAGE_FLAGS, &lpMessageFlags);
+	hr = HrGetOneProp(lpMessage, PR_MESSAGE_FLAGS, &~lpMessageFlags);
 	if (hr != hrSuccess)
 		goto exit;
 		
@@ -313,7 +313,6 @@ HRESULT ECVMIMESender::HrMakeRecipientsList(LPADRBOOK lpAdrBook,
 		goto exit;
 	
 exit:
-	MAPIFreeBuffer(lpMessageFlags);
 	if (lpRTable)
 		lpRTable->Release();
 

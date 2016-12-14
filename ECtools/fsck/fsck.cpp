@@ -25,6 +25,7 @@
 #include <kopano/CommonUtil.h>
 #include <kopano/mapiext.h>
 #include <kopano/mapiguidext.h>
+#include <kopano/memory.hpp>
 #include <mapiutil.h>
 #include <mapix.h>
 #include <kopano/namedprops.h>
@@ -39,6 +40,7 @@
 #include "fsck.h"
 
 using namespace std;
+using namespace KCHL;
 
 string auto_fix;
 string auto_del;
@@ -139,39 +141,33 @@ static void disclaimer(bool acceptDisclaimer)
 HRESULT allocNamedIdList(ULONG ulSize, LPMAPINAMEID **lpppNameArray)
 {
 	HRESULT hr;
-	LPMAPINAMEID *lppArray = NULL;
+	memory_ptr<MAPINAMEID *> lppArray;
 	LPMAPINAMEID lpBuffer = NULL;
 
-	hr = MAPIAllocateBuffer(ulSize * sizeof(LPMAPINAMEID), (void**)&lppArray);
+	hr = MAPIAllocateBuffer(ulSize * sizeof(LPMAPINAMEID), &~lppArray);
 	if (hr != hrSuccess)
 		return hr;
 
 	hr = MAPIAllocateMore(ulSize * sizeof(MAPINAMEID), lppArray, (void**)&lpBuffer);
 	if (hr != hrSuccess) {
-		MAPIFreeBuffer(lppArray);
 		return hr;
 	}
 
 	for (ULONG i = 0; i < ulSize; ++i)
 		lppArray[i] = &lpBuffer[i];
 
-	*lpppNameArray = lppArray;
+	*lpppNameArray = lppArray.release();
 	return hrSuccess;
-}
-
-void freeNamedIdList(LPMAPINAMEID *lppNameArray)
-{
-	MAPIFreeBuffer(lppNameArray);
 }
 
 HRESULT ReadProperties(LPMESSAGE lpMessage, ULONG ulCount, const ULONG *lpTag,
     LPSPropValue *lppPropertyArray)
 {
 	HRESULT hr = hrSuccess;
-	LPSPropTagArray lpPropertyTagArray = NULL;
+	memory_ptr<SPropTagArray> lpPropertyTagArray;
 	ULONG ulPropertyCount = 0;
 
-	hr = MAPIAllocateBuffer(sizeof(SPropTagArray) + (sizeof(ULONG) * ulCount), (void**)&lpPropertyTagArray);
+	hr = MAPIAllocateBuffer(sizeof(SPropTagArray) + (sizeof(ULONG) * ulCount), &~lpPropertyTagArray);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -186,7 +182,6 @@ HRESULT ReadProperties(LPMESSAGE lpMessage, ULONG ulCount, const ULONG *lpTag,
 	}
 
 exit:
-	MAPIFreeBuffer(lpPropertyTagArray);
 	return hr;
 }
 
@@ -219,7 +214,7 @@ static HRESULT DetectFolderDetails(LPMAPIFOLDER lpFolder, string *lpName,
     string *lpClass, ULONG *lpFolderType)
 {
 	HRESULT hr = hrSuccess;
-	LPSPropValue lpPropertyArray = NULL;
+	memory_ptr<SPropValue> lpPropertyArray;
 	ULONG ulPropertyCount = 0;
 
 	SizedSPropTagArray(3, PropertyTagArray) = {
@@ -232,7 +227,7 @@ static HRESULT DetectFolderDetails(LPMAPIFOLDER lpFolder, string *lpName,
 	};
 
 	hr = lpFolder->GetProps(PropertyTagArray, 0, &ulPropertyCount,
-			      &lpPropertyArray);
+	     &~lpPropertyArray);
 	if (FAILED(hr)) {
 		cout << "Failed to obtain all properties." << endl;
 		goto exit;
@@ -258,7 +253,6 @@ static HRESULT DetectFolderDetails(LPMAPIFOLDER lpFolder, string *lpName,
 		hr = hrSuccess;
 
 exit:
-	MAPIFreeBuffer(lpPropertyArray);
 	return hr;
 }
 
@@ -354,14 +348,13 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
     LPEXCHANGEMANAGESTORE lpIEMS = NULL;
     // user
     ULONG			cbUserStoreEntryID = 0;
-    LPENTRYID		lpUserStoreEntryID = NULL;
+	memory_ptr<ENTRYID> lpUserStoreEntryID, lpEntryIDSrc;
 	wstring strwUsername;
 	wstring strwAltUsername;
 	wstring strwPassword;
 	std::set<std::string> setFolderIgnore;
-	LPSPropValue lpAddRenProp = NULL;
+	memory_ptr<SPropValue> lpAddRenProp;
 	ULONG cbEntryIDSrc = 0;
-	LPENTRYID lpEntryIDSrc = NULL;
 
 	hr = MAPIInitialize(NULL);
 	if (hr != hrSuccess) {
@@ -408,7 +401,7 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
         hr = lpIEMS->CreateStoreEntryID(const_cast<wchar_t *>(L""),
              (LPTSTR)strwAltUsername.c_str(),
              MAPI_UNICODE | OPENSTORE_HOME_LOGON, &cbUserStoreEntryID,
-             &lpUserStoreEntryID);
+	     &~lpUserStoreEntryID);
         if (hr != hrSuccess) {
             cout << "Cannot get user store id for user" << endl;
             goto exit;
@@ -431,9 +424,9 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 		goto exit;
 	}
 
-	if (HrGetOneProp(lpRootFolder, PR_IPM_OL2007_ENTRYIDS /*PR_ADDITIONAL_REN_ENTRYIDS_EX*/, &lpAddRenProp) == hrSuccess &&
-	    Util::ExtractSuggestedContactsEntryID(lpAddRenProp, &cbEntryIDSrc, &lpEntryIDSrc) == hrSuccess)
-		setFolderIgnore.insert(string((const char*)lpEntryIDSrc, cbEntryIDSrc));
+	if (HrGetOneProp(lpRootFolder, PR_IPM_OL2007_ENTRYIDS /*PR_ADDITIONAL_REN_ENTRYIDS_EX*/, &~lpAddRenProp) == hrSuccess &&
+	    Util::ExtractSuggestedContactsEntryID(lpAddRenProp, &cbEntryIDSrc, &~lpEntryIDSrc) == hrSuccess)
+		setFolderIgnore.insert(string(reinterpret_cast<const char *>(lpEntryIDSrc.get()), cbEntryIDSrc));
 
 	hr = lpRootFolder->GetHierarchyTable(CONVENIENT_DEPTH, &lpHierarchyTable);
 	if (hr != hrSuccess) {
@@ -471,8 +464,6 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 	}
 
 exit:
-	MAPIFreeBuffer(lpUserStoreEntryID);
-
 	if (lpIEMS)
 		lpIEMS->Release();
         
@@ -480,9 +471,6 @@ exit:
 		FreeProws(lpRows);
 		lpRows = NULL;
 	}
-
-	MAPIFreeBuffer(lpEntryIDSrc);
-	MAPIFreeBuffer(lpAddRenProp);
 	if(lpHierarchyTable)
 		lpHierarchyTable->Release();
 

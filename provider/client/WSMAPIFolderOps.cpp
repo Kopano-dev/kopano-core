@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/memory.hpp>
 #include "WSMAPIFolderOps.h"
 
 #include "Mem.h"
@@ -462,9 +463,7 @@ HRESULT WSMAPIFolderOps::HrGetChangeInfo(ULONG cbEntryID, LPENTRYID lpEntryID, L
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;
 	entryId		sEntryId = {0};
-
-	LPSPropValue			lpSPropValPCL = NULL;
-	LPSPropValue			lpSPropValCK = NULL;
+	KCHL::memory_ptr<SPropValue> lpSPropValPCL, lpSPropValCK;
 	getChangeInfoResponse sChangeInfo{__gszeroinit};
 
 	LockSoap();
@@ -488,7 +487,7 @@ HRESULT WSMAPIFolderOps::HrGetChangeInfo(ULONG cbEntryID, LPENTRYID lpEntryID, L
 		goto exit;
 
 	if (lppPropPCL) {
-		hr = MAPIAllocateBuffer(sizeof *lpSPropValPCL, (void**)&lpSPropValPCL);
+		hr = MAPIAllocateBuffer(sizeof *lpSPropValPCL, &~lpSPropValPCL);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -498,7 +497,7 @@ HRESULT WSMAPIFolderOps::HrGetChangeInfo(ULONG cbEntryID, LPENTRYID lpEntryID, L
 	}
 
 	if (lppPropCK) {
-		hr = MAPIAllocateBuffer(sizeof *lpSPropValCK, (void**)&lpSPropValCK);
+		hr = MAPIAllocateBuffer(sizeof *lpSPropValCK, &~lpSPropValCK);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -508,20 +507,12 @@ HRESULT WSMAPIFolderOps::HrGetChangeInfo(ULONG cbEntryID, LPENTRYID lpEntryID, L
 	}
 
 	// All went well, modify output parameters
-	if (lppPropPCL) {
-		*lppPropPCL = lpSPropValPCL;
-		lpSPropValPCL = NULL;
-	}
-
-	if (lppPropCK) {
-		*lppPropCK = lpSPropValCK;
-		lpSPropValCK = NULL;
-	}
-
+	if (lppPropPCL != nullptr)
+		*lppPropPCL = lpSPropValPCL.release();
+	if (lppPropCK != nullptr)
+		*lppPropCK = lpSPropValCK.release();
 exit:
 	UnLockSoap();
-	MAPIFreeBuffer(lpSPropValPCL);
-	MAPIFreeBuffer(lpSPropValCK);
 	return hr;
 }
 

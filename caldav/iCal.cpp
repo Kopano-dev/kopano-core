@@ -22,6 +22,7 @@
 #include <vector>
 
 #include <kopano/CommonUtil.h>
+#include <kopano/memory.hpp>
 #include "icaluid.h"
 
 #include <libxml/tree.h>
@@ -31,6 +32,7 @@
 #include <kopano/mapi_ptr.h>
 
 using namespace std;
+using namespace KCHL;
 
 iCal::iCal(Http *lpRequest, IMAPISession *lpSession,
     const std::string &strSrvTz, const std::string &strCharset) :
@@ -69,7 +71,7 @@ HRESULT iCal::HrHandleIcalGet(const std::string &strMethod)
 	std::string strIcal;
 	std::string strMsg;
 	std::string strModtime;
-	LPSPropValue lpProp = NULL;
+	memory_ptr<SPropValue> lpProp;
 	LPMAPITABLE lpContents = NULL;
 	bool blCensorFlag = 0;
 
@@ -89,8 +91,7 @@ HRESULT iCal::HrHandleIcalGet(const std::string &strMethod)
 		ec_log_warn("Unable to retrieve ical data, error code: 0x%08X", hr);
 		goto exit;
 	}
-	
-	hr = HrGetOneProp(m_lpUsrFld, PR_LOCAL_COMMIT_TIME_MAX, &lpProp);
+	hr = HrGetOneProp(m_lpUsrFld, PR_LOCAL_COMMIT_TIME_MAX, &~lpProp);
 	if (hr == hrSuccess)
 		strModtime = SPropValToString(lpProp);
 
@@ -119,8 +120,6 @@ exit:
 	}
 	else
 		m_lpRequest->HrResponseHeader(500, "Internal Server Error");
-	
-	MAPIFreeBuffer(lpProp);
 	if (lpContents)
 		lpContents->Release();
 
@@ -413,14 +412,13 @@ exit:
  */
 HRESULT iCal::HrDelMessage(SBinary sbEid, bool blCensor)
 {
-	LPENTRYLIST lpEntryList = NULL;
+	memory_ptr<ENTRYLIST> lpEntryList;
 	LPMESSAGE lpMessage = NULL;
 	ULONG ulObjType = 0;
 	ULONG ulTagPrivate = 0;
 	
 	ulTagPrivate = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_PRIVATE], PT_BOOLEAN);
-
-	HRESULT hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), reinterpret_cast<void **>(&lpEntryList));
+	HRESULT hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~lpEntryList);
 	if (hr != hrSuccess)
 	{
 		ec_log_err("Error allocating memory, error code: 0x%08X",hr);
@@ -460,7 +458,6 @@ HRESULT iCal::HrDelMessage(SBinary sbEid, bool blCensor)
 	}
 
 exit:
-	MAPIFreeBuffer(lpEntryList);
 	if(lpMessage)
 		lpMessage->Release();
 
@@ -483,7 +480,7 @@ HRESULT iCal::HrGetContents(LPMAPITABLE *lppTable)
 	HRESULT hr = hrSuccess;
 	std::string strUid;
 	std::string strUrl;
-	LPSRestriction lpsRestriction = NULL;
+	memory_ptr<SRestriction> lpsRestriction;
 	MAPITablePtr ptrContents;	
 	SizedSPropTagArray(1, sPropEntryIdcol) = {1, {PR_ENTRYID}};
 	ULONG ulRows = 0;
@@ -506,7 +503,7 @@ HRESULT iCal::HrGetContents(LPMAPITABLE *lppTable)
 	strUid = StripGuid(strUrl);
 	if (!strUid.empty()) {
 		// single item requested
-		hr = HrMakeRestriction(strUid, m_lpNamedProps, &lpsRestriction);
+		hr = HrMakeRestriction(strUid, m_lpNamedProps, &~lpsRestriction);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -527,7 +524,6 @@ HRESULT iCal::HrGetContents(LPMAPITABLE *lppTable)
 	hr = ptrContents->QueryInterface(IID_IMAPITable, (LPVOID*)lppTable);
 
 exit:
-	MAPIFreeBuffer(lpsRestriction);
 	return hr;
 }
 
@@ -643,8 +639,7 @@ exit:
 HRESULT iCal::HrDelFolder()
 {
 	HRESULT hr = hrSuccess;
-	LPSPropValue lpWstBoxEid = NULL;
-	LPSPropValue lpFldEid = NULL;
+	memory_ptr<SPropValue> lpWstBoxEid, lpFldEid;
 	IMAPIFolder *lpWasteBoxFld = NULL;
 	ULONG ulObjType = 0;
 
@@ -654,7 +649,7 @@ HRESULT iCal::HrDelFolder()
 	}
 
 	// Folder is not protected, so now we can move it to the wastebasket folder
-	hr = HrGetOneProp(m_lpActiveStore, PR_IPM_WASTEBASKET_ENTRYID, &lpWstBoxEid);
+	hr = HrGetOneProp(m_lpActiveStore, PR_IPM_WASTEBASKET_ENTRYID, &~lpWstBoxEid);
 	if (hr != hrSuccess)
 		goto exit;
 	
@@ -664,8 +659,7 @@ HRESULT iCal::HrDelFolder()
 		ec_log_err("Error opening \"Deleted items\" folder, error code: 0x%08X", hr);
 		goto exit;
 	}
-
-	hr = HrGetOneProp(m_lpUsrFld, PR_ENTRYID, &lpFldEid);
+	hr = HrGetOneProp(m_lpUsrFld, PR_ENTRYID, &~lpFldEid);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -680,9 +674,6 @@ exit:
 		m_lpRequest->HrResponseHeader(403,"Forbidden");
 	else
 		m_lpRequest->HrResponseHeader(500,"Internal Server Error");
-
-	MAPIFreeBuffer(lpWstBoxEid);
-	MAPIFreeBuffer(lpFldEid);
 	if (lpWasteBoxFld)
 		lpWasteBoxFld->Release();
 

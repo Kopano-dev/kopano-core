@@ -20,7 +20,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <algorithm>
-
+#include <kopano/memory.hpp>
 #include <mapi.h>
 #include <mapix.h>
 #include <mapicode.h>
@@ -747,7 +747,7 @@ exit:
 HRESULT POP3::HrLogin(const std::string &strUsername, const std::string &strPassword) {
 	HRESULT hr = hrSuccess;
 	ULONG cbEntryID = 0;
-	LPENTRYID lpEntryID = NULL;
+	KCHL::memory_ptr<ENTRYID> lpEntryID;
 	ULONG ulObjType = 0;
 	wstring strwUsername;
 	wstring strwPassword;
@@ -794,8 +794,7 @@ HRESULT POP3::HrLogin(const std::string &strUsername, const std::string &strPass
 		hr = MAPI_E_LOGON_FAILED;
 		goto exit;
 	}
-
-	hr = lpStore->GetReceiveFolder((LPTSTR)"IPM", 0, &cbEntryID, &lpEntryID, NULL);
+	hr = lpStore->GetReceiveFolder((LPTSTR)"IPM", 0, &cbEntryID, &~lpEntryID, NULL);
 	if (hr != hrSuccess) {
 		lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to find receive folder of store");
 		goto exit;
@@ -813,8 +812,6 @@ HRESULT POP3::HrLogin(const std::string &strUsername, const std::string &strPass
 	lpLogger->Log(EC_LOGLEVEL_NOTICE, "POP3 Login from %s for user %s", lpChannel->peer_addr(), strUsername.c_str());
 
 exit:
-	MAPIFreeBuffer(lpEntryID);
-
 	if (hr != hrSuccess) {
 		if (lpInbox) {
 			lpInbox->Release();

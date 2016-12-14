@@ -21,6 +21,7 @@
 #include <string>
 #include <memory>
 #include <map>
+#include <kopano/memory.hpp>
 #include <kopano/ustringutil.h>
 
 #include <mapi.h>
@@ -58,6 +59,7 @@
 #include <netdb.h>
 
 using namespace std;
+using namespace KCHL;
 
 namespace KC {
 
@@ -575,7 +577,7 @@ HRESULT GetProxyStoreObject(IMsgStore *lpMsgStore, IMsgStore **lppMsgStore)
 	HRESULT	hr = hrSuccess;
 	IProxyStoreObject *lpProxyStoreObject = NULL;
 	IECUnknown* lpECMsgStore = NULL;
-	LPSPropValue lpPropValue = NULL;
+	memory_ptr<SPropValue> lpPropValue;
 
 	if (lpMsgStore == NULL || lppMsgStore == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
@@ -590,8 +592,7 @@ HRESULT GetProxyStoreObject(IMsgStore *lpMsgStore, IMsgStore **lppMsgStore)
 
 		(*lppMsgStore)->AddRef();
 
-	} else if(HrGetOneProp(lpMsgStore, PR_EC_OBJECT, &lpPropValue) == hrSuccess) {
-
+	} else if (HrGetOneProp(lpMsgStore, PR_EC_OBJECT, &~lpPropValue) == hrSuccess) {
 		lpECMsgStore = (IECUnknown *)lpPropValue->Value.lpszA;
 		if (lpECMsgStore == NULL) {
 			hr = MAPI_E_INVALID_PARAMETER;
@@ -606,7 +607,6 @@ HRESULT GetProxyStoreObject(IMsgStore *lpMsgStore, IMsgStore **lppMsgStore)
 	}
 
 exit:
-	MAPIFreeBuffer(lpPropValue);
 	if (lpProxyStoreObject)
 		lpProxyStoreObject->Release();
 
@@ -617,9 +617,9 @@ HRESULT HrOpenDefaultStore(IMAPISession *lpMAPISession, ULONG ulFlags, IMsgStore
 	HRESULT			hr = hrSuccess;
 	IMsgStore		*lpMsgStore = NULL;
 	ULONG			cbEntryID = 0;
-	LPENTRYID		lpEntryID = NULL;
+	memory_ptr<ENTRYID> lpEntryID;
 
-	hr = HrSearchECStoreEntryId(lpMAPISession, FALSE, &cbEntryID, &lpEntryID);
+	hr = HrSearchECStoreEntryId(lpMAPISession, FALSE, &cbEntryID, &~lpEntryID);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -630,7 +630,6 @@ HRESULT HrOpenDefaultStore(IMAPISession *lpMAPISession, ULONG ulFlags, IMsgStore
 	*lppMsgStore = lpMsgStore;
 
 exit:
-	MAPIFreeBuffer(lpEntryID);
 	return hr;
 }
 
@@ -671,9 +670,9 @@ HRESULT HrOpenECPublicStore(IMAPISession *lpMAPISession, ULONG ulFlags, IMsgStor
 	HRESULT			hr = hrSuccess;
 	IMsgStore		*lpMsgStore = NULL;
 	ULONG			cbEntryID = 0;
-	LPENTRYID		lpEntryID = NULL;
+	memory_ptr<ENTRYID> lpEntryID;
 
-	hr = HrSearchECStoreEntryId(lpMAPISession, TRUE, &cbEntryID, &lpEntryID);
+	hr = HrSearchECStoreEntryId(lpMAPISession, TRUE, &cbEntryID, &~lpEntryID);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -684,7 +683,6 @@ HRESULT HrOpenECPublicStore(IMAPISession *lpMAPISession, ULONG ulFlags, IMsgStor
 	*lppMsgStore = lpMsgStore;
 
 exit:
-	MAPIFreeBuffer(lpEntryID);
 	return hr;
 }
 
@@ -782,8 +780,7 @@ HRESULT HrRemoveECMailBox(LPPROVIDERADMIN lpProviderAdmin, LPMAPIUID lpsProvider
 	HRESULT			hr = hrSuccess;
 	
 	LPPROFSECT		lpGlobalProfSect = NULL;
-	LPSPropValue	lpGlobalProps = NULL;	
-	LPSPropValue	lpNewProp = NULL;
+	memory_ptr<SPropValue> lpGlobalProps, lpNewProp;
 	ULONG			cValues = 0;
 	ULONG			cSize = 0;
 	unsigned int	i = 0;
@@ -795,10 +792,10 @@ HRESULT HrRemoveECMailBox(LPPROVIDERADMIN lpProviderAdmin, LPMAPIUID lpsProvider
 
 	// The the prop value PR_STORE_PROVIDERS
 	static constexpr SizedSPropTagArray(1, proptag) = {1, {PR_STORE_PROVIDERS}};
-	hr = lpGlobalProfSect->GetProps(proptag, 0, &cValues, &lpGlobalProps);
+	hr = lpGlobalProfSect->GetProps(proptag, 0, &cValues, &~lpGlobalProps);
 	if(hr == hrSuccess && lpGlobalProps->Value.bin.cb >= sizeof(MAPIUID)) 
 	{
-		hr = MAPIAllocateBuffer(sizeof(SPropValue), (void**)&lpNewProp);
+		hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpNewProp);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -836,8 +833,6 @@ HRESULT HrRemoveECMailBox(LPPROVIDERADMIN lpProviderAdmin, LPMAPIUID lpsProvider
 exit:
 	if(lpGlobalProfSect)
 		lpGlobalProfSect->Release();
-	MAPIFreeBuffer(lpGlobalProps);
-	MAPIFreeBuffer(lpNewProp);
 	return hr;
 }
 
@@ -1264,11 +1259,11 @@ HRESULT HrNewMailNotification(IMsgStore* lpMDB, IMessage* lpMessage)
 
 	// Newmail notify
 	ULONG			cNewMailValues = 0;
-	LPSPropValue	lpNewMailPropArray = NULL;
+	memory_ptr<SPropValue> lpNewMailPropArray;
 	NOTIFICATION	sNotification;
 
 	// Get notify properties
-	hr = lpMessage->GetProps(sPropNewMailColumns, 0, &cNewMailValues, &lpNewMailPropArray);
+	hr = lpMessage->GetProps(sPropNewMailColumns, 0, &cNewMailValues, &~lpNewMailPropArray);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -1296,8 +1291,6 @@ HRESULT HrNewMailNotification(IMsgStore* lpMDB, IMessage* lpMessage)
 	// TODO: this error should be a warning?
 
 exit:
-	// Newmail notify
-	MAPIFreeBuffer(lpNewMailPropArray);
 	return hr;
 }
 
@@ -1314,7 +1307,7 @@ HRESULT HrCreateEmailSearchKey(const char *lpszEmailType,
     const char *lpszEmail, ULONG *cb, LPBYTE *lppByte)
 {
 	HRESULT	hr = hrSuccess;
-	LPBYTE	lpByte = NULL;
+	memory_ptr<BYTE> lpByte;
 	ULONG	size;
 	ULONG	sizeEmailType;
 	ULONG	sizeEmail;
@@ -1324,8 +1317,7 @@ HRESULT HrCreateEmailSearchKey(const char *lpszEmailType,
 	sizeEmail = (lpszEmail)?strlen(lpszEmail) : 0;
 
 	size = sizeEmailType + sizeEmail + 2; // : and \0
-	
-	hr = MAPIAllocateBuffer(size, (void**)&lpByte);
+	hr = MAPIAllocateBuffer(size, &~lpByte);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -1333,15 +1325,10 @@ HRESULT HrCreateEmailSearchKey(const char *lpszEmailType,
 	*(lpByte + sizeEmailType) = ':';
 	memcpy(lpByte + sizeEmailType + 1, lpszEmail, sizeEmail);
 	*(lpByte + size - 1) = 0;
-
-	strupr((char*)lpByte);
-
-	*lppByte = lpByte;
+	strupr(reinterpret_cast<char *>(lpByte.get()));
+	*lppByte = lpByte.release();
 	*cb = size;
 exit:
-	if (hr != hrSuccess)
-		MAPIFreeBuffer(lpByte);
-
 	return hr;
 }
 
@@ -1423,14 +1410,13 @@ HRESULT HrGetAddress(IMAPISession *lpSession, IMessage *lpMessage, ULONG ulPropT
 	HRESULT hr = hrSuccess;
 	SizedSPropTagArray(4, sptaProps) = { 4, { ulPropTagEntryID, ulPropTagName, ulPropTagType, ulPropTagEmailAddress } };
 	ULONG cValues = 0;
-	LPSPropValue lpProps = NULL;
+	memory_ptr<SPropValue> lpProps;
 
 	if (!lpSession || !lpMessage) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-
-	hr = lpMessage->GetProps(sptaProps, 0, &cValues, &lpProps);
+	hr = lpMessage->GetProps(sptaProps, 0, &cValues, &~lpProps);
 	if(FAILED(hr))
 		goto exit;
 
@@ -1438,7 +1424,6 @@ HRESULT HrGetAddress(IMAPISession *lpSession, IMessage *lpMessage, ULONG ulPropT
 	hr = HrGetAddress(lpSession, lpProps, cValues, ulPropTagEntryID, ulPropTagName, ulPropTagType, ulPropTagEmailAddress, strName, strType, strEmailAddress);
 
 exit:
-	MAPIFreeBuffer(lpProps);
 	return hr;
 }
 
@@ -1470,21 +1455,19 @@ HRESULT HrGetAddress(LPADRBOOK lpAdrBook, IMessage *lpMessage, ULONG ulPropTagEn
 	HRESULT hr = hrSuccess;
 	SizedSPropTagArray(4, sptaProps) = { 4, { ulPropTagEntryID, ulPropTagName, ulPropTagType, ulPropTagEmailAddress } };
 	ULONG cValues = 0;
-	LPSPropValue lpProps = NULL;
+	memory_ptr<SPropValue> lpProps;
 
 	if (!lpAdrBook || !lpMessage) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-
-	hr = lpMessage->GetProps(sptaProps, 0, &cValues, &lpProps);
+	hr = lpMessage->GetProps(sptaProps, 0, &cValues, &~lpProps);
 	if (FAILED(hr))
 		goto exit;
 
 	hr = HrGetAddress(lpAdrBook, lpProps, cValues, ulPropTagEntryID, ulPropTagName, ulPropTagType, ulPropTagEmailAddress, strName, strType, strEmailAddress);
 
 exit:
-	MAPIFreeBuffer(lpProps);
 	return hr;
 }
 
@@ -1511,8 +1494,7 @@ static HRESULT HrResolveToSMTP(LPADRBOOK lpAdrBook,
     LPSPropValue lpEntryID = NULL;
     ULONG ulType = 0;
     IMAPIProp *lpMailUser = NULL;
-    LPSPropValue lpSMTPAddress = NULL;
-    LPSPropValue lpEmailAddress = NULL;
+	memory_ptr<SPropValue> lpSMTPAddress, lpEmailAddress;
      
     hr = MAPIAllocateBuffer(sizeof(ADRLIST), (void **)&lpAdrList);
     if(hr != hrSuccess)
@@ -1546,7 +1528,7 @@ static HRESULT HrResolveToSMTP(LPADRBOOK lpAdrBook,
     hr = lpAdrBook->OpenEntry(lpEntryID->Value.bin.cb, (LPENTRYID)lpEntryID->Value.bin.lpb, &IID_IMAPIProp, 0, &ulType, (LPUNKNOWN *)&lpMailUser);
     if (hr != hrSuccess)
         goto exit;
-    hr = HrGetOneProp(lpMailUser, PR_SMTP_ADDRESS_W, &lpSMTPAddress);
+    hr = HrGetOneProp(lpMailUser, PR_SMTP_ADDRESS_W, &~lpSMTPAddress);
     if(hr != hrSuccess) {
         // Not always an error
         lpSMTPAddress = NULL;
@@ -1559,7 +1541,7 @@ static HRESULT HrResolveToSMTP(LPADRBOOK lpAdrBook,
         // really that strings since whenever we convert to SMTP for a group, we just put the group 
         // name as if it were an SMTP address. 
         // (Eg. 'To: Everyone; user@domain.com')
-        hr = HrGetOneProp(lpMailUser, PR_EMAIL_ADDRESS_W, &lpEmailAddress);
+        hr = HrGetOneProp(lpMailUser, PR_EMAIL_ADDRESS_W, &~lpEmailAddress);
         if(hr != hrSuccess)
             goto exit;
             
@@ -1575,9 +1557,6 @@ static HRESULT HrResolveToSMTP(LPADRBOOK lpAdrBook,
 exit:
 	if (lpAdrList)
 		FreePadrlist(lpAdrList);
-    
-	MAPIFreeBuffer(lpEmailAddress);
-	MAPIFreeBuffer(lpSMTPAddress);
 	if (lpMailUser)
 		lpMailUser->Release();
         
@@ -1690,7 +1669,7 @@ HRESULT HrGetAddress(LPADRBOOK lpAdrBook, LPENTRYID lpEntryID, ULONG cbEntryID, 
 	IMailUser	*lpMailUser = NULL;
 	ULONG		ulType = 0;
 	ULONG		cMailUserValues = 0;
-	LPSPropValue lpMailUserProps = NULL;
+	memory_ptr<SPropValue> lpMailUserProps;
 	SizedSPropTagArray(4, sptaAddressProps) = { 4, { PR_DISPLAY_NAME_W, PR_ADDRTYPE_W, PR_EMAIL_ADDRESS_W, PR_SMTP_ADDRESS_W } };
 
 	if (!lpAdrBook || !lpEntryID) {
@@ -1701,9 +1680,7 @@ HRESULT HrGetAddress(LPADRBOOK lpAdrBook, LPENTRYID lpEntryID, ULONG cbEntryID, 
 	hr = lpAdrBook->OpenEntry(cbEntryID, lpEntryID, &IID_IMailUser, 0, &ulType, (IUnknown **)&lpMailUser);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = lpMailUser->GetProps(sptaAddressProps, 0, &cMailUserValues, &lpMailUserProps);
-
+	hr = lpMailUser->GetProps(sptaAddressProps, 0, &cMailUserValues, &~lpMailUserProps);
 	if (FAILED(hr))
 		goto exit;
 
@@ -1724,7 +1701,6 @@ HRESULT HrGetAddress(LPADRBOOK lpAdrBook, LPENTRYID lpEntryID, ULONG cbEntryID, 
 exit:
 	if(lpMailUser)
 		lpMailUser->Release();
-	MAPIFreeBuffer(lpMailUserProps);
 	return hr;
 }
 
@@ -1734,7 +1710,7 @@ HRESULT DoSentMail(IMAPISession *lpSession, IMsgStore *lpMDBParam, ULONG ulFlags
 	LPMAPIFOLDER 	lpFolder = NULL;
 	ENTRYLIST		sMsgList;
 	SBinary			sEntryID;
-	LPSPropValue	lpPropValue = NULL;
+	memory_ptr<SPropValue> lpPropValue;
 	ULONG			cValues = 0;
 	ULONG			ulType = 0;
 	
@@ -1750,7 +1726,7 @@ HRESULT DoSentMail(IMAPISession *lpSession, IMsgStore *lpMDBParam, ULONG ulFlags
 	}
 
 	// Get Sentmail properties
-	hr = lpMessage->GetProps(sPropDoSentMail, 0, &cValues, &lpPropValue);
+	hr = lpMessage->GetProps(sPropDoSentMail, 0, &cValues, &~lpPropValue);
 	if(FAILED(hr) || 
 		(lpPropValue[DSM_SENTMAIL_ENTRYID].ulPropTag != PR_SENTMAIL_ENTRYID && 
 		lpPropValue[DSM_DELETE_AFTER_SUBMIT].ulPropTag != PR_DELETE_AFTER_SUBMIT)
@@ -1817,7 +1793,6 @@ exit:
 
 	if(lpMDB)
 		lpMDB->Release();
-	MAPIFreeBuffer(lpPropValue);
 	return hr;
 }
 
@@ -2026,13 +2001,12 @@ HRESULT TestRestriction(LPSRestriction lpCondition, IMAPIProp *lpMessage, const 
 	HRESULT hr = hrSuccess;
 	ULONG c;
 	bool fMatch = false;
-	LPSPropValue lpProp = NULL;
-	LPSPropValue lpProp2 = NULL;
+	memory_ptr<SPropValue> lpProp, lpProp2;
 	ULONG ulPropType;
 	int result;
 	unsigned int ulSize;
 	IMAPITable *lpTable = NULL;
-	LPSPropTagArray lpTags = NULL;
+	memory_ptr<SPropTagArray> lpTags;
 	LPSRowSet lpRowSet = NULL;
 	ECRowWrapper *lpRowWrapper = NULL;
 
@@ -2089,7 +2063,7 @@ HRESULT TestRestriction(LPSRestriction lpCondition, IMAPIProp *lpMessage, const 
 			break;
 		}
 		ulPropType = PROP_TYPE(lpCondition->res.resContent.ulPropTag);
-		hr = HrGetOneProp(lpMessage, lpCondition->res.resContent.ulPropTag, &lpProp);
+		hr = HrGetOneProp(lpMessage, lpCondition->res.resContent.ulPropTag, &~lpProp);
 		if (hr == hrSuccess) {
 			char *lpSearchString = NULL, *lpSearchData = NULL;
 			wchar_t *lpwSearchString = NULL, *lpwSearchData = NULL;
@@ -2162,7 +2136,7 @@ HRESULT TestRestriction(LPSRestriction lpCondition, IMAPIProp *lpMessage, const 
 			hr = MAPI_E_TOO_COMPLEX;
 			break;
 		}
-		hr = HrGetOneProp(lpMessage, lpCondition->res.resProperty.ulPropTag, &lpProp);
+		hr = HrGetOneProp(lpMessage, lpCondition->res.resProperty.ulPropTag, &~lpProp);
 		if (hr != hrSuccess)
 			break;
 
@@ -2175,10 +2149,10 @@ HRESULT TestRestriction(LPSRestriction lpCondition, IMAPIProp *lpMessage, const 
 			hr = MAPI_E_TOO_COMPLEX;
 			break;
 		}
-		hr = HrGetOneProp(lpMessage, lpCondition->res.resCompareProps.ulPropTag1, &lpProp);
+		hr = HrGetOneProp(lpMessage, lpCondition->res.resCompareProps.ulPropTag1, &~lpProp);
 		if (hr != hrSuccess)
 			break;
-		hr = HrGetOneProp(lpMessage, lpCondition->res.resCompareProps.ulPropTag2, &lpProp2);
+		hr = HrGetOneProp(lpMessage, lpCondition->res.resCompareProps.ulPropTag2, &~lpProp2);
 		if (hr != hrSuccess)
 			break;
 		Util::CompareProp(lpProp, lpProp2, locale, &result);
@@ -2189,7 +2163,7 @@ HRESULT TestRestriction(LPSRestriction lpCondition, IMAPIProp *lpMessage, const 
 			hr = MAPI_E_TOO_COMPLEX;
 			break;
 		}
-		hr = HrGetOneProp(lpMessage, lpCondition->res.resBitMask.ulPropTag, &lpProp);
+		hr = HrGetOneProp(lpMessage, lpCondition->res.resBitMask.ulPropTag, &~lpProp);
 		if (hr != hrSuccess)
 			break;
 		fMatch = (lpProp->Value.ul & lpCondition->res.resBitMask.ulMask) == 0;
@@ -2197,7 +2171,7 @@ HRESULT TestRestriction(LPSRestriction lpCondition, IMAPIProp *lpMessage, const 
 			fMatch = !fMatch;
 		break;
 	case RES_SIZE:
-		hr = HrGetOneProp(lpMessage, lpCondition->res.resSize.ulPropTag, &lpProp);
+		hr = HrGetOneProp(lpMessage, lpCondition->res.resSize.ulPropTag, &~lpProp);
 		if (hr != hrSuccess)
 			break;
 		ulSize = Util::PropSize(lpProp);
@@ -2205,7 +2179,7 @@ HRESULT TestRestriction(LPSRestriction lpCondition, IMAPIProp *lpMessage, const 
 		hr = TestRelop(lpCondition->res.resSize.relop, result, &fMatch);
 		break;
 	case RES_EXIST:
-		hr = HrGetOneProp(lpMessage, lpCondition->res.resExist.ulPropTag, &lpProp);
+		hr = HrGetOneProp(lpMessage, lpCondition->res.resExist.ulPropTag, &~lpProp);
 		if (hr != hrSuccess)
 			break;
 		fMatch = true;
@@ -2220,7 +2194,7 @@ HRESULT TestRestriction(LPSRestriction lpCondition, IMAPIProp *lpMessage, const 
 			goto exit;
 		}
 		// Get a list of properties we may be needing
-		hr = GetRestrictTags(lpCondition->res.resSub.lpRes, &lpTags);
+		hr = GetRestrictTags(lpCondition->res.resSub.lpRes, &~ lpTags);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -2272,11 +2246,8 @@ exit:
 	delete lpRowWrapper;
 	if (lpRowSet)
 		FreeProws(lpRowSet);
-	MAPIFreeBuffer(lpTags);
 	if (lpTable)
 		lpTable->Release();
-	MAPIFreeBuffer(lpProp);
-	MAPIFreeBuffer(lpProp2);
 	if (fMatch)
 		return hrSuccess;
 	else if (hr == hrSuccess)
@@ -2363,17 +2334,16 @@ HRESULT OpenSubFolder(LPMDB lpMDB, const wchar_t *folder, wchar_t psep,
     bool bIsPublic, bool bCreateFolder, LPMAPIFOLDER *lppSubFolder)
 {
 	HRESULT			hr = hrSuccess;
-	LPSPropValue	lpPropIPMSubtree = NULL;
+	memory_ptr<SPropValue> lpPropIPMSubtree, lpPropFolder;
 	LPMAPITABLE		lpTable = NULL;
 	ULONG			ulObjType;
-	LPSPropValue	lpPropFolder = NULL;
 	LPMAPIFOLDER	lpFoundFolder = NULL;
 	LPMAPIFOLDER	lpNewFolder = NULL;
 	const WCHAR*	ptr = NULL;
 
 	if(bIsPublic)
 	{
-		hr = HrGetOneProp(lpMDB, PR_IPM_PUBLIC_FOLDERS_ENTRYID, &lpPropIPMSubtree);
+		hr = HrGetOneProp(lpMDB, PR_IPM_PUBLIC_FOLDERS_ENTRYID, &~lpPropIPMSubtree);
 		if (hr != hrSuccess) {
 			ec_log_crit("Unable to find PR_IPM_PUBLIC_FOLDERS_ENTRYID object, error code: 0x%08X", hr);
 			goto exit;
@@ -2381,7 +2351,7 @@ HRESULT OpenSubFolder(LPMDB lpMDB, const wchar_t *folder, wchar_t psep,
 	}
 	else
 	{
-		hr = HrGetOneProp(lpMDB, PR_IPM_SUBTREE_ENTRYID, &lpPropIPMSubtree);
+		hr = HrGetOneProp(lpMDB, PR_IPM_SUBTREE_ENTRYID, &~lpPropIPMSubtree);
 		if (hr != hrSuccess) {
 			ec_log_crit("Unable to find IPM_SUBTREE object, error code: 0x%08X", hr);
 			goto exit;
@@ -2416,7 +2386,7 @@ HRESULT OpenSubFolder(LPMDB lpMDB, const wchar_t *folder, wchar_t psep,
 			goto exit;
 		}
 
-		hr = FindFolder(lpTable, subfld.c_str(), &lpPropFolder);
+		hr = FindFolder(lpTable, subfld.c_str(), &~lpPropFolder);
 		if (hr == MAPI_E_NOT_FOUND && bCreateFolder) {
 			hr = lpFoundFolder->CreateFolder(FOLDER_GENERIC, (LPTSTR)subfld.c_str(), (LPTSTR)L"Auto-created by Kopano", &IID_IMAPIFolder, MAPI_UNICODE | OPEN_IF_EXISTS, &lpNewFolder);
 			if (hr != hrSuccess) {
@@ -2453,8 +2423,6 @@ found:
 	}
 
 exit:
-	MAPIFreeBuffer(lpPropFolder);
-	MAPIFreeBuffer(lpPropIPMSubtree);
 	if (lpFoundFolder)
 		lpFoundFolder->Release();
 
@@ -2488,7 +2456,7 @@ HRESULT HrOpenUserMsgStore(LPMAPISESSION lpSession, LPMDB lpStore, WCHAR *lpszUs
 	LPMDB					lpMsgStore = NULL;
 	IExchangeManageStore	*lpExchManageStore = NULL;
 	ULONG					cbStoreEntryID = 0;
-	LPENTRYID				lpStoreEntryID = NULL;
+	memory_ptr<ENTRYID> lpStoreEntryID;
 
 	if (lpStore == NULL) {
 		hr = HrOpenDefaultStore(lpSession, &lpDefaultStore);
@@ -2502,8 +2470,7 @@ HRESULT HrOpenUserMsgStore(LPMAPISESSION lpSession, LPMDB lpStore, WCHAR *lpszUs
 	hr = lpStore->QueryInterface(IID_IExchangeManageStore, (LPVOID*)&lpExchManageStore);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = lpExchManageStore->CreateStoreEntryID(NULL, (LPTSTR)lpszUser, MAPI_UNICODE, &cbStoreEntryID, &lpStoreEntryID);
+	hr = lpExchManageStore->CreateStoreEntryID(NULL, (LPTSTR)lpszUser, MAPI_UNICODE, &cbStoreEntryID, &~lpStoreEntryID);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -2518,7 +2485,6 @@ HRESULT HrOpenUserMsgStore(LPMAPISESSION lpSession, LPMDB lpStore, WCHAR *lpszUs
 exit:
 	if (lpMsgStore)
 		lpMsgStore->Release();
-	MAPIFreeBuffer(lpStoreEntryID);
 	if (lpExchManageStore)
 		lpExchManageStore->Release();
 
@@ -2600,11 +2566,11 @@ void ECPropMap::AddProp(ULONG *lpId, ULONG ulType, const ECPropMapEntry &entry)
     
 HRESULT ECPropMap::Resolve(IMAPIProp *lpMAPIProp) {
     HRESULT hr = hrSuccess;
-    MAPINAMEID **lppNames = NULL;
+	std::unique_ptr<MAPINAMEID *[]> lppNames;
     std::vector<ULONG *>::const_iterator j;
     std::vector<ULONG>::const_iterator k;
     int n = 0;
-    LPSPropTagArray lpPropTags = NULL;
+	memory_ptr<SPropTagArray> lpPropTags;
 
 	if (lpMAPIProp == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
@@ -2612,11 +2578,11 @@ HRESULT ECPropMap::Resolve(IMAPIProp *lpMAPIProp) {
 	}
     
     // Do GetIDsFromNames() and store result in correct places
-    lppNames = new MAPINAMEID *[lstNames.size()];
+	lppNames.reset(new MAPINAMEID *[lstNames.size()]);
 	for (auto &mapent : lstNames)
 		lppNames[n++] = mapent.GetMAPINameId();
     
-    hr = lpMAPIProp->GetIDsFromNames(n, lppNames, MAPI_CREATE, &lpPropTags);
+	hr = lpMAPIProp->GetIDsFromNames(n, lppNames.get(), MAPI_CREATE, &~lpPropTags);
     if(hr != hrSuccess)
         goto exit;
     
@@ -2626,8 +2592,6 @@ HRESULT ECPropMap::Resolve(IMAPIProp *lpMAPIProp) {
         *(*j) = CHANGE_PROP_TYPE(lpPropTags->aulPropTag[n++], *k);
     
 exit:
-	MAPIFreeBuffer(lpPropTags);
-	delete[] lppNames;
 	return hr;
 }
 
@@ -2643,7 +2607,7 @@ exit:
 HRESULT HrOpenDefaultCalendar(LPMDB lpMsgStore, LPMAPIFOLDER *lppFolder)
 {
 	HRESULT hr = hrSuccess;
-	LPSPropValue lpPropDefFld = NULL;
+	memory_ptr<SPropValue> lpPropDefFld;
 	LPMAPIFOLDER lpRootFld = NULL;
 	LPMAPIFOLDER lpDefaultFolder = NULL;
 	ULONG ulType = 0;
@@ -2657,7 +2621,7 @@ HRESULT HrOpenDefaultCalendar(LPMDB lpMsgStore, LPMAPIFOLDER *lppFolder)
 	}
 
 	//retrive Entryid of Default Calendar Folder.
-	hr = HrGetOneProp(lpRootFld, PR_IPM_APPOINTMENT_ENTRYID, &lpPropDefFld);
+	hr = HrGetOneProp(lpRootFld, PR_IPM_APPOINTMENT_ENTRYID, &~lpPropDefFld);
 	if (hr != hrSuccess) 
 	{
 		ec_log_crit("Unable to find PR_IPM_APPOINTMENT_ENTRYID, error code: 0x%08X", hr);
@@ -2680,7 +2644,6 @@ exit:
 
 	if (lpRootFld)
 		lpRootFld->Release();
-	MAPIFreeBuffer(lpPropDefFld);
 	return hr;
 }
 
@@ -2781,7 +2744,7 @@ HRESULT __stdcall UnWrapStoreEntryID(ULONG cbOrigEntry, LPENTRYID lpOrigEntry, U
 	HRESULT hr = hrSuccess;
 	ULONG cbRemove = 0;
 	ULONG cbDLLName = 0;
-	LPENTRYID lpEntryID = NULL;
+	memory_ptr<ENTRYID> lpEntryID;
 
 	if (lpOrigEntry == NULL || lpcbUnWrappedEntry == NULL || lppUnWrappedEntry == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
@@ -2810,19 +2773,15 @@ HRESULT __stdcall UnWrapStoreEntryID(ULONG cbOrigEntry, LPENTRYID lpOrigEntry, U
 	}
 
 	// Create Unwrap entryid
-	hr = MAPIAllocateBuffer(cbOrigEntry - cbRemove, (void**)&lpEntryID);
+	hr = MAPIAllocateBuffer(cbOrigEntry - cbRemove, &~lpEntryID);
 	if (hr != hrSuccess)
 		goto exit;
 
 	memcpy(lpEntryID, ((LPBYTE)lpOrigEntry)+cbRemove, cbOrigEntry - cbRemove);
 
 	*lpcbUnWrappedEntry = cbOrigEntry - cbRemove;
-	*lppUnWrappedEntry = lpEntryID;
-
+	*lppUnWrappedEntry = lpEntryID.release();
 exit:
-	if (hr != hrSuccess)
-		MAPIFreeBuffer(lpEntryID);
-
 	return hr;
 }
 
@@ -3035,30 +2994,28 @@ static HRESULT OpenLocalFBMessage(DGMessageType eDGMsgType,
 	IMAPIFolder *lpFolder = NULL;
 	IMessage *lpMessage = NULL;
 	ULONG ulType = 0;
-	LPSPropValue lpPropFB = NULL;
-	LPSPropValue lpPropFBNew = NULL;
+	memory_ptr<SPropValue> lpPropFB, lpPropFBNew;
 	LPSPropValue lpPVFBFolder = NULL;
-	LPSPropValue lpEntryID = NULL;
+	memory_ptr<SPropValue> lpEntryID, lpAppEntryID;
 	LPSPropValue lpPropFBRef = NULL; // Non-free
-	LPSPropValue lpAppEntryID = NULL;
 	ULONG cbEntryIDInbox = 0;
-	LPENTRYID lpEntryIDInbox = NULL;
+	memory_ptr<ENTRYID> lpEntryIDInbox;
 	IMAPIFolder *lpInbox = NULL;
-	LPTSTR lpszExplicitClass = NULL;
+	memory_ptr<TCHAR> lpszExplicitClass;
 
 	hr = lpMsgStore->OpenEntry(0, NULL, &IID_IMAPIFolder, MAPI_MODIFY, &ulType, (IUnknown **) &lpRoot);
 	if(hr != hrSuccess)
 		goto exit;
 
 	// Check if the freebusydata folder and LocalFreeBusy is exist. Create the folder and message if it is request.
-	if((HrGetOneProp(lpRoot, PR_FREEBUSY_ENTRYIDS, &lpPropFB) != hrSuccess ||
+	if((HrGetOneProp(lpRoot, PR_FREEBUSY_ENTRYIDS, &~lpPropFB) != hrSuccess ||
 		lpPropFB->Value.MVbin.cValues < 2 ||
 		lpPropFB->Value.MVbin.lpbin[eDGMsgType].lpb == NULL ||
 		lpMsgStore->OpenEntry(lpPropFB->Value.MVbin.lpbin[eDGMsgType].cb, (LPENTRYID)lpPropFB->Value.MVbin.lpbin[eDGMsgType].lpb, &IID_IMessage, MAPI_MODIFY, &ulType, (IUnknown **) &lpMessage) != hrSuccess)
 	   && bCreateIfMissing) {
 		
 		// Open the inbox
-		hr = lpMsgStore->GetReceiveFolder((LPTSTR)"", 0, &cbEntryIDInbox, &lpEntryIDInbox, &lpszExplicitClass);
+		hr = lpMsgStore->GetReceiveFolder((LPTSTR)"", 0, &cbEntryIDInbox, &~lpEntryIDInbox, &~lpszExplicitClass);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -3079,7 +3036,7 @@ static HRESULT OpenLocalFBMessage(DGMessageType eDGMsgType,
 
 		} else if (eDGMsgType == dgAssociated) {
 			//Open default calendar
-			hr = HrGetOneProp(lpInbox, PR_IPM_APPOINTMENT_ENTRYID, &lpAppEntryID);
+			hr = HrGetOneProp(lpInbox, PR_IPM_APPOINTMENT_ENTRYID, &~lpAppEntryID);
 			if(hr != hrSuccess)
 				goto exit;
 
@@ -3091,14 +3048,13 @@ static HRESULT OpenLocalFBMessage(DGMessageType eDGMsgType,
 		hr = CreateLocalFreeBusyMessage(lpFolder, (eDGMsgType == dgAssociated)?MAPI_ASSOCIATED : 0, &lpMessage);
 		if(hr != hrSuccess)
 			goto exit;
-
-		hr = HrGetOneProp(lpMessage, PR_ENTRYID, &lpEntryID);
+		hr = HrGetOneProp(lpMessage, PR_ENTRYID, &~lpEntryID);
 		if(hr != hrSuccess)
 			goto exit;
 
 		// Update Free/Busy entryid
 		if(lpPropFB == NULL || lpPropFB->Value.MVbin.cValues < 2) {
-			hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **)&lpPropFBNew);
+			hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropFBNew);
 			if(hr != hrSuccess)
 				goto exit;
 
@@ -3161,14 +3117,8 @@ static HRESULT OpenLocalFBMessage(DGMessageType eDGMsgType,
 	*lppFBMessage = lpMessage;
 
 exit:
-	MAPIFreeBuffer(lpszExplicitClass);
-	MAPIFreeBuffer(lpAppEntryID);
 	if(lpRoot)
 		lpRoot->Release();
-	MAPIFreeBuffer(lpPropFB);
-	MAPIFreeBuffer(lpPropFBNew);
-	MAPIFreeBuffer(lpEntryID);
-	MAPIFreeBuffer(lpEntryIDInbox);
 	if(lpInbox)
 		lpInbox->Release();
 
@@ -3265,7 +3215,7 @@ HRESULT GetAutoAcceptSettings(IMsgStore *lpMsgStore, bool *lpbAutoAccept, bool *
 {
 	HRESULT hr = hrSuccess;
 	IMessage *lpLocalFBMessage = NULL;
-	LPSPropValue lpProps = NULL;
+	memory_ptr<SPropValue> lpProps;
 	SizedSPropTagArray(3, sptaFBProps) = {3, {PR_PROCESS_MEETING_REQUESTS, PR_DECLINE_CONFLICTING_MEETING_REQUESTS, PR_DECLINE_RECURRING_MEETING_REQUESTS}};
 	ULONG cValues = 0;
 
@@ -3275,7 +3225,7 @@ HRESULT GetAutoAcceptSettings(IMsgStore *lpMsgStore, bool *lpbAutoAccept, bool *
 
 	hr = OpenLocalFBMessage(dgFreebusydata, lpMsgStore, false, &lpLocalFBMessage);
 	if(hr == hrSuccess) {
-		hr = lpLocalFBMessage->GetProps(sptaFBProps, 0, &cValues, &lpProps);
+		hr = lpLocalFBMessage->GetProps(sptaFBProps, 0, &cValues, &~lpProps);
 		if(FAILED(hr))
 			goto exit;
 
@@ -3294,7 +3244,6 @@ HRESULT GetAutoAcceptSettings(IMsgStore *lpMsgStore, bool *lpbAutoAccept, bool *
 	*lpbDeclineRecurring = bDeclineRecurring;
 
 exit:
-	MAPIFreeBuffer(lpProps);
 	if(lpLocalFBMessage)
 		lpLocalFBMessage->Release();
 

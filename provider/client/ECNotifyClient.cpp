@@ -16,6 +16,7 @@
 #include <kopano/platform.h>
 #include <stdexcept>
 #include <kopano/lockhelper.hpp>
+#include <kopano/memory.hpp>
 #include <mapispi.h>
 #include <mapix.h>
 #include <kopano/ECDebug.h>
@@ -49,6 +50,8 @@ struct ECCHANGEADVISE {
 	ULONG ulConnection;
 	GUID guid;
 };
+
+using namespace KCHL;
 
 static inline std::pair<ULONG,ULONG> SyncAdviseToConnection(const SSyncAdvise &sSyncAdvise) {
 	return std::make_pair(sSyncAdvise.sSyncState.ulSyncId,sSyncAdvise.ulConnection);
@@ -161,15 +164,14 @@ HRESULT ECNotifyClient::QueryInterface(REFIID refiid, void **lppInterface)
 HRESULT ECNotifyClient::RegisterAdvise(ULONG cbKey, LPBYTE lpKey, ULONG ulEventMask, bool bSynchronous, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection)
 {
 	HRESULT		hr = MAPI_E_NO_SUPPORT;
-	ECADVISE*	pEcAdvise = NULL;
+	memory_ptr<ECADVISE> pEcAdvise;
 	ULONG		ulConnection = 0;
 
 	if(lpKey == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-
-	hr = MAPIAllocateBuffer(sizeof(ECADVISE), (LPVOID*)&pEcAdvise);
+	hr = MAPIAllocateBuffer(sizeof(ECADVISE), &~pEcAdvise);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -201,10 +203,10 @@ HRESULT ECNotifyClient::RegisterAdvise(ULONG cbKey, LPBYTE lpKey, ULONG ulEventM
 	lpAdviseSink->AddRef();
 
 #ifdef NOTIFY_THROUGH_SUPPORT_OBJECT
-	LPNOTIFKEY	lpKeySupport = NULL;
+	memory_ptr<NOTIFKEY> lpKeySupport;
 
 	if(!bSynchronous) {
-		hr = MAPIAllocateBuffer(CbNewNOTIFKEY(sizeof(GUID)), (void **)&lpKeySupport);
+		hr = MAPIAllocateBuffer(CbNewNOTIFKEY(sizeof(GUID)), &~lpKeySupport);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -224,7 +226,7 @@ HRESULT ECNotifyClient::RegisterAdvise(ULONG cbKey, LPBYTE lpKey, ULONG ulEventM
 
 	{
 		scoped_rlock biglock(m_hMutex);
-		m_mapAdvise.insert(ECMAPADVISE::value_type(ulConnection, pEcAdvise));
+		m_mapAdvise.insert(ECMAPADVISE::value_type(ulConnection, pEcAdvise.release()));
 	}
 
 	// Since we're ready to receive notifications now, register ourselves with the master
@@ -235,12 +237,6 @@ HRESULT ECNotifyClient::RegisterAdvise(ULONG cbKey, LPBYTE lpKey, ULONG ulEventM
 	// Set out value
 	*lpulConnection = ulConnection;
 exit:
-#ifdef NOTIFY_THROUGH_SUPPORT_OBJECT
-	MAPIFreeBuffer(lpKeySupport);
-#endif
-	if (hr != hrSuccess)
-		MAPIFreeBuffer(pEcAdvise);
-
 	return hr;
 }
 
@@ -248,10 +244,10 @@ HRESULT ECNotifyClient::RegisterChangeAdvise(ULONG ulSyncId, ULONG ulChangeId,
     IECChangeAdviseSink *lpChangeAdviseSink, ULONG *lpulConnection)
 {
 	HRESULT			hr = MAPI_E_NO_SUPPORT;
-	ECCHANGEADVISE*	pEcAdvise = NULL;
+	memory_ptr<ECCHANGEADVISE> pEcAdvise;
 	ULONG			ulConnection = 0;
 
-	hr = MAPIAllocateBuffer(sizeof(ECCHANGEADVISE), (LPVOID*)&pEcAdvise);
+	hr = MAPIAllocateBuffer(sizeof(ECCHANGEADVISE), &~pEcAdvise);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -277,7 +273,7 @@ HRESULT ECNotifyClient::RegisterChangeAdvise(ULONG ulSyncId, ULONG ulChangeId,
 	{
 		scoped_rlock biglock(m_hMutex);
 		lpChangeAdviseSink->AddRef();
-		m_mapChangeAdvise.insert(ECMAPCHANGEADVISE::value_type(ulConnection, pEcAdvise));
+		m_mapChangeAdvise.insert(ECMAPCHANGEADVISE::value_type(ulConnection, pEcAdvise.release()));
 	}
 
 	// Since we're ready to receive notifications now, register ourselves with the master
@@ -289,9 +285,6 @@ HRESULT ECNotifyClient::RegisterChangeAdvise(ULONG ulSyncId, ULONG ulChangeId,
 	*lpulConnection = ulConnection;
 
 exit:
-	if (hr != hrSuccess)
-		MAPIFreeBuffer(pEcAdvise);
-
 	return hr;
 }
 
@@ -539,7 +532,6 @@ HRESULT ECNotifyClient::NotifyReload()
 HRESULT ECNotifyClient::Notify(ULONG ulConnection, const NOTIFYLIST &lNotifications)
 {
 	HRESULT						hr = hrSuccess;
-	LPNOTIFICATION				lpNotifs = NULL;
 	ECMAPADVISE::const_iterator iterAdvise;
 	NOTIFICATIONLIST			notifications;
 
@@ -568,8 +560,9 @@ HRESULT ECNotifyClient::Notify(ULONG ulConnection, const NOTIFYLIST &lNotificati
 		/* Send notifications in batches of MAX_NOTIFS_PER_CALL notifications */
 		auto iterNotification = notifications.cbegin();
 		while (iterNotification != notifications.cend()) {
+			memory_ptr<NOTIFICATION> lpNotifs;
 			/* Create a straight array of all the notifications */
-			hr = MAPIAllocateBuffer(sizeof(NOTIFICATION) * MAX_NOTIFS_PER_CALL, (void **)&lpNotifs);
+			hr = MAPIAllocateBuffer(sizeof(NOTIFICATION) * MAX_NOTIFS_PER_CALL, &~lpNotifs);
 			if (hr != hrSuccess)
 				continue;
 
@@ -585,10 +578,10 @@ HRESULT ECNotifyClient::Notify(ULONG ulConnection, const NOTIFYLIST &lNotificati
 				if (iterAdvise->second->lpAdviseSink->OnNotify(i, lpNotifs) != 0)
 					TRACE_NOTIFY(TRACE_WARNING, "ECNotifyClient::Notify", "Error by notify a client");
 			} else {
-				LPNOTIFKEY	lpKey = NULL;
+				memory_ptr<NOTIFKEY> lpKey;
 				ULONG		ulResult = 0;
 
-				hr = MAPIAllocateBuffer(CbNewNOTIFKEY(sizeof(GUID)), (void **)&lpKey);
+				hr = MAPIAllocateBuffer(CbNewNOTIFKEY(sizeof(GUID)), &~lpKey);
 				if (hr != hrSuccess)
 					goto exit;
 
@@ -597,19 +590,11 @@ HRESULT ECNotifyClient::Notify(ULONG ulConnection, const NOTIFYLIST &lNotificati
 
 				// FIXME log errors
 				m_lpSupport->Notify(lpKey, i, lpNotifs, &ulResult);
-
-				MAPIFreeBuffer(lpKey);
-				lpKey = NULL;
 			}
-
-			MAPIFreeBuffer(lpNotifs);
-			lpNotifs = NULL;
 		}
 	}
 exit:
 	biglock.unlock();
-	MAPIFreeBuffer(lpNotifs);
-
 	/* Release all notifications */
 	for (auto notp : notifications)
 		MAPIFreeBuffer(notp);
@@ -619,13 +604,13 @@ exit:
 HRESULT ECNotifyClient::NotifyChange(ULONG ulConnection, const NOTIFYLIST &lNotifications)
 {
 	HRESULT						hr = hrSuccess;
-	LPENTRYLIST					lpSyncStates = NULL;
+	memory_ptr<ENTRYLIST> lpSyncStates;
 	ECMAPCHANGEADVISE::const_iterator iterAdvise;
 	BINARYLIST					syncStates;
 	ulock_rec biglock(m_hMutex, std::defer_lock_t());
 
 	/* Create a straight array of MAX_NOTIFS_PER_CALL sync states */
-	hr = MAPIAllocateBuffer(sizeof *lpSyncStates, (void**)&lpSyncStates);
+	hr = MAPIAllocateBuffer(sizeof *lpSyncStates, &~lpSyncStates);
 	if (hr != hrSuccess)
 		goto exit;
 	memset(lpSyncStates, 0, sizeof *lpSyncStates);
@@ -676,7 +661,6 @@ HRESULT ECNotifyClient::NotifyChange(ULONG ulConnection, const NOTIFYLIST &lNoti
 	}
 exit:
 	biglock.unlock();
-	MAPIFreeBuffer(lpSyncStates);
 	return hrSuccess;
 }
 

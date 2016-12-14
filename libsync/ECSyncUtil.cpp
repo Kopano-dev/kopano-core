@@ -18,7 +18,7 @@
 #include <kopano/platform.h>
 #include "ECSyncUtil.h"
 #include <kopano/mapi_ptr.h>
-
+#include <kopano/memory.hpp>
 #include <mapix.h>
 
 namespace KC {
@@ -145,7 +145,7 @@ HRESULT HrGetOneBinProp(IMAPIProp *lpProp, ULONG ulPropTag, LPSPropValue *lppPro
 {
 	HRESULT hr = hrSuccess;
 	IStream *lpStream = NULL;
-	LPSPropValue lpPropValue = NULL;
+	KCHL::memory_ptr<SPropValue> lpPropValue;
 	STATSTG sStat;
 	ULONG ulRead = 0;
 
@@ -161,8 +161,7 @@ HRESULT HrGetOneBinProp(IMAPIProp *lpProp, ULONG ulPropTag, LPSPropValue *lppPro
 	hr = lpStream->Stat(&sStat, 0);
 	if(hr != hrSuccess)
 		goto exit;
-
-	hr = MAPIAllocateBuffer(sizeof(SPropValue), (void **)&lpPropValue);
+	hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropValue);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -176,12 +175,8 @@ HRESULT HrGetOneBinProp(IMAPIProp *lpProp, ULONG ulPropTag, LPSPropValue *lppPro
 
 	lpPropValue->Value.bin.cb = ulRead;
 
-	*lppPropValue = lpPropValue;
-
+	*lppPropValue = lpPropValue.release();
 exit:
-	if (hr != hrSuccess)
-		MAPIFreeBuffer(lpPropValue);
-
 	if(lpStream)
 		lpStream->Release();
 

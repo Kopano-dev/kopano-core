@@ -16,10 +16,11 @@
  */
 
 #include <kopano/zcdefs.h>
+#include <memory>
 #include <mutex>
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
-
+#include <kopano/memory.hpp>
 #include "ECSyncContext.h"
 #include "ECSyncUtil.h"
 #include "ECSyncSettings.h"
@@ -40,6 +41,9 @@
 #include <edkmdb.h>
 
 #include <kopano/mapi_ptr.h>
+
+using namespace KCHL;
+
 typedef mapi_object_ptr<IECChangeAdvisor, IID_IECChangeAdvisor> ECChangeAdvisorPtr;
 //DEFINEMAPIPTR(ECChangeAdvisor);
 typedef mapi_object_ptr<IECChangeAdviseSink, IID_IECChangeAdviseSink> ECChangeAdviseSinkPtr;
@@ -173,11 +177,11 @@ HRESULT ECSyncContext::HrGetReceiveFolder(LPMAPIFOLDER *lppInboxFolder)
 {
 	HRESULT			hr = hrSuccess;
 	ULONG			cbEntryID = 0;
-	LPENTRYID		lpEntryID = NULL;
+	memory_ptr<ENTRYID> lpEntryID;
 	ULONG			ulObjType = 0;
 	LPMAPIFOLDER	lpInboxFolder = NULL;
 
-	hr = m_lpStore->GetReceiveFolder((LPTSTR)"IPM", 0, &cbEntryID, &lpEntryID, NULL);
+	hr = m_lpStore->GetReceiveFolder((LPTSTR)"IPM", 0, &cbEntryID, &~lpEntryID, NULL);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -190,7 +194,6 @@ HRESULT ECSyncContext::HrGetReceiveFolder(LPMAPIFOLDER *lppInboxFolder)
 exit:
 	if (lpInboxFolder)
 		lpInboxFolder->Release();
-	MAPIFreeBuffer(lpEntryID);
 	return hr;
 }
 
@@ -347,7 +350,6 @@ HRESULT ECSyncContext::HrGetSteps(SBinary *lpEntryID, SBinary *lpSourceKey, ULON
 {
 	HRESULT hr = hrSuccess;
 	IMAPIFolder *lpFolder = NULL;
-	LPSPropValue lpPropVal = NULL;
 	LPSTREAM lpStream = NULL;
 	IExchangeExportChanges *lpIEEC = NULL;
 	IECExportChanges *lpECEC = NULL;
@@ -450,7 +452,6 @@ exit:
 
 	if (lpStream)
 		lpStream->Release();
-	MAPIFreeBuffer(lpPropVal);
 	if (lpFolder)
 		lpFolder->Release();
 
@@ -599,10 +600,9 @@ HRESULT ECSyncContext::HrSaveSyncStatus(LPSPropValue *lppSyncStatusProp)
 	std::string strSyncStatus;
 	ULONG ulSize = 0;
 	ULONG ulVersion = EC_SYNC_STATUS_VERSION;
-	char* lpszStream = NULL;
 	LARGE_INTEGER liPos = {{0, 0}};
 	STATSTG sStat;
-	LPSPropValue lpSyncStatusProp = NULL;
+	memory_ptr<SPropValue> lpSyncStatusProp;
 
 	assert(lppSyncStatusProp != NULL);
 	strSyncStatus.assign((char*)&ulVersion, 4);
@@ -612,6 +612,8 @@ HRESULT ECSyncContext::HrSaveSyncStatus(LPSPropValue *lppSyncStatusProp)
 	ZLOG_DEBUG(m_lpLogger, "Saving sync status stream: items=%u", ulSize);
 
 	for (const auto &ssp : m_mapSyncStatus) {
+		std::unique_ptr<char[]> lpszStream;
+
 		ulSize = ssp.first.size();
 		strSyncStatus.append((char*)&ulSize, 4);
 		strSyncStatus.append(ssp.first);
@@ -628,17 +630,14 @@ HRESULT ECSyncContext::HrSaveSyncStatus(LPSPropValue *lppSyncStatusProp)
 		if (hr != hrSuccess)
 			goto exit;
 
-		lpszStream = new char[sStat.cbSize.LowPart];
-		hr = ssp.second->Read(lpszStream, sStat.cbSize.LowPart, &ulSize);
+		lpszStream.reset(new char[sStat.cbSize.LowPart]);
+		hr = ssp.second->Read(lpszStream.get(), sStat.cbSize.LowPart, &ulSize);
 		if (hr != hrSuccess)
 			goto exit;
-
-		strSyncStatus.append(lpszStream, sStat.cbSize.LowPart);
-		delete[] lpszStream;
-		lpszStream = NULL;
+		strSyncStatus.append(lpszStream.get(), sStat.cbSize.LowPart);
 	}
 
-	hr = MAPIAllocateBuffer(sizeof *lpSyncStatusProp, (void**)&lpSyncStatusProp);
+	hr = MAPIAllocateBuffer(sizeof *lpSyncStatusProp, &~lpSyncStatusProp);
 	if (hr != hrSuccess)
 		goto exit;
 	memset(lpSyncStatusProp, 0, sizeof *lpSyncStatusProp);
@@ -648,22 +647,17 @@ HRESULT ECSyncContext::HrSaveSyncStatus(LPSPropValue *lppSyncStatusProp)
 	if (hr != hrSuccess)
 		goto exit;
 	memcpy(lpSyncStatusProp->Value.bin.lpb, strSyncStatus.data(), strSyncStatus.size());
-
-	*lppSyncStatusProp = lpSyncStatusProp;
-	lpSyncStatusProp = NULL;
-
+	*lppSyncStatusProp = lpSyncStatusProp.release();
 exit:
-	MAPIFreeBuffer(lpSyncStatusProp);
-	delete[] lpszStream;
 	return hr;
 }
 
 HRESULT ECSyncContext::HrGetSyncStatusStream(LPMAPIFOLDER lpFolder, LPSTREAM *lppStream)
 {
 	HRESULT hr = hrSuccess;
-	LPSPropValue lpPropVal = NULL;
+	memory_ptr<SPropValue> lpPropVal;
 
-	hr = HrGetOneProp(lpFolder, PR_SOURCE_KEY, &lpPropVal);
+	hr = HrGetOneProp(lpFolder, PR_SOURCE_KEY, &~lpPropVal);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -672,7 +666,6 @@ HRESULT ECSyncContext::HrGetSyncStatusStream(LPMAPIFOLDER lpFolder, LPSTREAM *lp
 		goto exit;
 
 exit:
-	MAPIFreeBuffer(lpPropVal);
 	return hr;
 }
 

@@ -25,6 +25,7 @@
 #include <vmime/parsedMessageAttachment.hpp>
 
 // mapi
+#include <kopano/memory.hpp>
 #include <mapi.h>
 #include <mapiutil.h>
 #include <kopano/mapiext.h>
@@ -56,6 +57,7 @@
 #include "MAPIToICal.h"
 
 using namespace std;
+using namespace KCHL;
 
 namespace KC {
 
@@ -304,10 +306,8 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 	LPATTACH		lpAttach			= NULL;
 	LPSPropValue	pPropAttachNum		= NULL;
 	LPSPropValue	pPropAttachType		= NULL;
-	LPSPropValue	lpContentId 		= NULL;
-	LPSPropValue	lpContentLocation	= NULL;
-	LPSPropValue	lpHidden			= NULL;
-	LPSPropValue	lpFilename			= NULL;
+	memory_ptr<SPropValue> lpContentId, lpContentLocation, lpHidden;
+	memory_ptr<SPropValue> lpFilename;
 	ULONG			ulAttachmentNum		= 0;
 	ULONG			ulAttachmentMethod	= 0;
 	IMessage*		lpAttachedMessage	= NULL;
@@ -319,9 +319,7 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 	std::string		strContentLocation;
 	bool			bHidden = false;
 	sending_options sopt_keep;
-	LPSPropValue	lpAMClass = NULL;
-	LPSPropValue	lpAMAttach = NULL;
-	LPSPropValue	lpMIMETag = NULL;
+	memory_ptr<SPropValue> lpAMClass, lpAMAttach, lpMIMETag;
 	const wchar_t *szFilename = NULL;  // just a reference, don't free
 	vmime::mediaType vmMIMEType;
 	std::string		strBoundary;
@@ -364,7 +362,7 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 
 		// Check whether we're sending a calendar object
 		// if so, we do not need to create a message-in-message object, but just attach the ics file.
-		hr = HrGetOneProp(lpAttachedMessage, PR_MESSAGE_CLASS_A, &lpAMClass);
+		hr = HrGetOneProp(lpAttachedMessage, PR_MESSAGE_CLASS_A, &~lpAMClass);
 		if (hr == hrSuccess &&
 			strcmp(lpAMClass->Value.lpszA, "IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}") == 0)
 		{
@@ -404,14 +402,12 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 			ec_log_err("Could not open attachment %d. Error: 0x%08X", ulAttachmentNum, hr);
 			goto exit;
 		}
-		
-		if (HrGetOneProp(lpAttach, PR_ATTACH_CONTENT_ID_A, &lpContentId) == hrSuccess)
+	
+		if (HrGetOneProp(lpAttach, PR_ATTACH_CONTENT_ID_A, &~lpContentId) == hrSuccess)
 			strContentId = lpContentId->Value.lpszA;
-
-		if (HrGetOneProp(lpAttach, PR_ATTACH_CONTENT_LOCATION_A, &lpContentLocation) == hrSuccess)
+		if (HrGetOneProp(lpAttach, PR_ATTACH_CONTENT_LOCATION_A, &~lpContentLocation) == hrSuccess)
 			strContentLocation = lpContentLocation->Value.lpszA;
-			
-		if (HrGetOneProp(lpAttach, PR_ATTACHMENT_HIDDEN, &lpHidden) == hrSuccess)
+		if (HrGetOneProp(lpAttach, PR_ATTACHMENT_HIDDEN, &~lpHidden) == hrSuccess)
 			bHidden = lpHidden->Value.b;
 
         // Optimize: if we're only outputting headers, we needn't bother with attachment data
@@ -431,16 +427,14 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 
 			// Set filename
 			szFilename = L"data.bin";
-
-			if (HrGetOneProp(lpAttach, PR_ATTACH_LONG_FILENAME_W, &lpFilename) == hrSuccess)
+			if (HrGetOneProp(lpAttach, PR_ATTACH_LONG_FILENAME_W, &~lpFilename) == hrSuccess)
 				szFilename = lpFilename->Value.lpszW;
-			else if (HrGetOneProp(lpAttach, PR_ATTACH_FILENAME_W, &lpFilename) == hrSuccess)
+			else if (HrGetOneProp(lpAttach, PR_ATTACH_FILENAME_W, &~lpFilename) == hrSuccess)
 				szFilename = lpFilename->Value.lpszW;
             
             // Set MIME type
             parseMimeTypeFromFilename(szFilename, &vmMIMEType, &bSendBinary);
-            
-			if (HrGetOneProp(lpAttach, PR_ATTACH_MIME_TAG_A, &lpMIMETag) == hrSuccess)
+			if (HrGetOneProp(lpAttach, PR_ATTACH_MIME_TAG_A, &~lpMIMETag) == hrSuccess)
 				vmMIMEType = lpMIMETag->Value.lpszA;
 
 			// inline attachments: Only make attachments inline if they are hidden and have a content-id or content-location.
@@ -487,13 +481,6 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 exit:
 	// ATTN: lpMapiAttach are linked in the VMMessageBuilder. The VMMessageBuilder will delete() it.
 	delete mapiical;
-	MAPIFreeBuffer(lpMIMETag);
-	MAPIFreeBuffer(lpAMClass);
-	MAPIFreeBuffer(lpAMAttach);
-	MAPIFreeBuffer(lpFilename);
-	MAPIFreeBuffer(lpContentId);
-	MAPIFreeBuffer(lpContentLocation);
-	MAPIFreeBuffer(lpHidden);
 	if (lpStream)
 		lpStream->Release();
 
@@ -732,8 +719,7 @@ HRESULT MAPIToVMIME::BuildNoteMessage(IMessage *lpMessage,
     vmime::shared_ptr<vmime::message> *lpvmMessage, unsigned int flags)
 {
 	HRESULT					hr					= hrSuccess;
-	LPSPropValue			lpDeliveryDate		= NULL;
-	LPSPropValue			lpTransportHeaders	= NULL;
+	memory_ptr<SPropValue> lpDeliveryDate, lpTransportHeaders;
 	vmime::messageBuilder   vmMessageBuilder;
 	vmime::shared_ptr<vmime::message> vmMessage;
 
@@ -767,7 +753,7 @@ HRESULT MAPIToVMIME::BuildNoteMessage(IMessage *lpMessage,
 		if (sopt.alternate_boundary != nullptr)
 			setBoundaries(vmMessage->getHeader(), vmMessage->getBody(), sopt.alternate_boundary);
 
-		HrGetOneProp(lpMessage, PR_MESSAGE_DELIVERY_TIME, &lpDeliveryDate);
+		HrGetOneProp(lpMessage, PR_MESSAGE_DELIVERY_TIME, &~lpDeliveryDate);
 
 		// If we're sending a msg-in-msg, use the original date of that message
 		if (sopt.msg_in_msg && lpDeliveryDate != nullptr)
@@ -777,7 +763,7 @@ HRESULT MAPIToVMIME::BuildNoteMessage(IMessage *lpMessage,
 		// PR_TRANSPORT_MESSAGE_HEADERS)
 		// currently includes: Received*, Return-Path, List* and Precedence.
 		// New e-mails should not have this property.
-		HrGetOneProp(lpMessage, PR_TRANSPORT_MESSAGE_HEADERS_A, &lpTransportHeaders);
+		HrGetOneProp(lpMessage, PR_TRANSPORT_MESSAGE_HEADERS_A, &~lpTransportHeaders);
 
 		if(lpTransportHeaders) {
 			try {
@@ -841,8 +827,6 @@ HRESULT MAPIToVMIME::BuildNoteMessage(IMessage *lpMessage,
 	*lpvmMessage = vmMessage;
 
 exit:
-	MAPIFreeBuffer(lpTransportHeaders);
-	MAPIFreeBuffer(lpDeliveryDate);
 	return hr;
 }
 
@@ -863,9 +847,7 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage,
 	HRESULT				hr = hrSuccess;
 	vmime::shared_ptr<vmime::message> vmMessage;
 	IStream*			lpBodyStream = NULL;
-	LPSPropValue		lpiNetMsgId = NULL;
-	LPSPropValue		lpMsgClass = NULL;
-	LPSPropValue		lpSubject = NULL;
+	memory_ptr<SPropValue> lpiNetMsgId, lpMsgClass, lpSubject;
 	LPMAPITABLE			lpRecipientTable	= NULL;
 	LPSRowSet			pRows				= NULL;
 	
@@ -892,8 +874,7 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage,
 		vmMsgOriginal = vmime::make_shared<vmime::message>();
 
 		// Create original vmime message
-		if (HrGetOneProp(lpMessage, PR_INTERNET_MESSAGE_ID_A, &lpiNetMsgId) == hrSuccess)
-		{
+		if (HrGetOneProp(lpMessage, PR_INTERNET_MESSAGE_ID_A, &~lpiNetMsgId) == hrSuccess) {
 			vmMsgOriginal->getHeader()->OriginalMessageId()->setValue(lpiNetMsgId->Value.lpszA);
 			vmMsgOriginal->getHeader()->MessageId()->setValue(lpiNetMsgId->Value.lpszA);
 		}
@@ -947,7 +928,7 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage,
 		dispo.setActionMode(strActionMode);
 		dispo.setSendingMode(vmime::dispositionSendingModes::SENT_MANUALLY);
 
-		if (HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &lpMsgClass) != hrSuccess) {
+		if (HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &~lpMsgClass) != hrSuccess) {
 			ec_log_err("MDN message has no class.");
 			hr = MAPI_E_CORRUPT_DATA;
 			goto exit;
@@ -991,7 +972,7 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage,
 		vmMessage = vmime::mdn::MDNHelper::buildMDN(mdnInfos, strMDNText, m_vmCharset, expeditor, dispo, reportingUA, reportingUAProducts);
 
 		// rewrite subject
-		if (HrGetOneProp(lpMessage, PR_SUBJECT_W, &lpSubject) == hrSuccess) {
+		if (HrGetOneProp(lpMessage, PR_SUBJECT_W, &~lpSubject) == hrSuccess) {
 			removeEnters(lpSubject->Value.lpszW);
 
 			strOut = lpSubject->Value.lpszW;
@@ -1030,11 +1011,8 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage,
 exit:
 	if(lpBodyStream)
 		lpBodyStream->Release();
-	MAPIFreeBuffer(lpiNetMsgId);
-	MAPIFreeBuffer(lpMsgClass);
 	if(lpRecipientTable)
 		lpRecipientTable->Release();
-	MAPIFreeBuffer(lpSubject);
 	if(pRows)
 		FreeProws(pRows);
 
@@ -1062,8 +1040,7 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage,
     vmime::shared_ptr<vmime::message> *lpvmMessage, unsigned int flags)
 {
 	HRESULT					hr					= hrSuccess;
-	LPSPropValue			lpInternetCPID		= NULL;
-	LPSPropValue			lpMsgClass			= NULL;
+	memory_ptr<SPropValue> lpInternetCPID, lpMsgClass;
 	vmime::shared_ptr<vmime::message> vmMessage;
 	const char *lpszCharset = NULL;
 	char *					lpszRawSMTP			= NULL;
@@ -1075,15 +1052,16 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage,
 	STATSTG					sStreamStat;
 	SizedSPropTagArray(2, sPropAttachColumns) = {2, { PR_ATTACH_NUM, PR_ATTACH_MIME_TAG} };
 
-	if (HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &lpMsgClass) != hrSuccess) {
-		if ((hr = MAPIAllocateBuffer(sizeof(SPropValue), (void**)&lpMsgClass)) != hrSuccess)
+	if (HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &~lpMsgClass) != hrSuccess) {
+		hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpMsgClass);
+		if (hr != hrSuccess)
 			goto exit;
 		lpMsgClass->ulPropTag = PR_MESSAGE_CLASS_A;
 		lpMsgClass->Value.lpszA = const_cast<char *>("IPM.Note");
 	}
 
 	// Get the outgoing charset we want to be using
-	if (HrGetOneProp(lpMessage, PR_INTERNET_CPID, &lpInternetCPID) == hrSuccess &&
+	if (HrGetOneProp(lpMessage, PR_INTERNET_CPID, &~lpInternetCPID) == hrSuccess &&
 		HrGetCharsetByCP(lpInternetCPID->Value.ul, &lpszCharset) == hrSuccess)
 	{
 		m_strHTMLCharset = lpszCharset;
@@ -1205,12 +1183,12 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage,
 			vmMessage = vmSMIMEMessage;
 		} else {
 			// encoded mail, set data as only mail body
-			LPMAPINAMEID lpNameID = NULL;
-			LPSPropTagArray lpPropTags = NULL;
-			LPSPropValue lpPropContentType = NULL;
+			memory_ptr<MAPINAMEID> lpNameID;
+			memory_ptr<SPropTagArray> lpPropTags;
+			memory_ptr<SPropValue> lpPropContentType;
 			const char *lpszContentType = NULL;
 
-			hr = MAPIAllocateBuffer(sizeof(MAPINAMEID), (void**)&lpNameID);
+			hr = MAPIAllocateBuffer(sizeof(MAPINAMEID), &~lpNameID);
 			if (hr != hrSuccess) {
 				ec_log_err("Not enough memory. Error: 0x%08X", hr);
 				goto exit;
@@ -1220,24 +1198,19 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage,
 			lpNameID->ulKind = MNID_STRING;
 			lpNameID->Kind.lpwstrName = const_cast<wchar_t *>(L"Content-Type");
 
-			hr = lpMessage->GetIDsFromNames(1, &lpNameID, MAPI_CREATE, &lpPropTags);
+			hr = lpMessage->GetIDsFromNames(1, &+lpNameID, MAPI_CREATE, &~lpPropTags);
 			if (hr != hrSuccess) {
 				ec_log_err("Unable to read encrypted mail properties. Error: 0x%08X", hr);
 				goto exit;
 			}
 
-			// Free Memory
-			MAPIFreeBuffer(lpNameID);
-			lpNameID = NULL;
-
-			if (HrGetOneProp(lpMessage, CHANGE_PROP_TYPE(lpPropTags->aulPropTag[0], PT_STRING8), &lpPropContentType) == hrSuccess)
+			if (HrGetOneProp(lpMessage, CHANGE_PROP_TYPE(lpPropTags->aulPropTag[0], PT_STRING8), &~lpPropContentType) == hrSuccess)
 				lpszContentType = lpPropContentType->Value.lpszA;
 			else
 				// default, or exit?
 				lpszContentType = "application/x-pkcs7-mime;smime-type=enveloped-data;name=smime.p7m";
 
 			vmMessage->getHeader()->ContentType()->parse(lpszContentType);
-			MAPIFreeBuffer(lpPropContentType);
 
 			// copy via string so we can set the size of the string since it's binary
 			vmime::string inString(lpszRawSMTP, (size_t)sStreamStat.cbSize.QuadPart);
@@ -1270,8 +1243,6 @@ exit:
 
 	if (lpAttachmentTable)
 		lpAttachmentTable->Release();
-	MAPIFreeBuffer(lpInternetCPID);
-	MAPIFreeBuffer(lpMsgClass);
 	return hr;
 }
 
@@ -1288,11 +1259,11 @@ HRESULT MAPIToVMIME::fillVMIMEMail(IMessage *lpMessage, bool bSkipContent, vmime
 	std::wstring	strOut;
 	HRESULT			hr				= hrSuccess;
 	LPSRowSet		prows			= NULL;
-	LPSPropValue	lpSubject		= NULL;
+	memory_ptr<SPropValue> lpSubject;
 	eBestBody bestBody = plaintext;
 
 	try {
-		if (HrGetOneProp(lpMessage, PR_SUBJECT_W, &lpSubject) == hrSuccess) {
+		if (HrGetOneProp(lpMessage, PR_SUBJECT_W, &~lpSubject) == hrSuccess) {
 			removeEnters(lpSubject->Value.lpszW);
 			strOut = lpSubject->Value.lpszW;
 		}
@@ -1359,7 +1330,6 @@ HRESULT MAPIToVMIME::fillVMIMEMail(IMessage *lpMessage, bool bSkipContent, vmime
 	}
 
 exit:
-	MAPIFreeBuffer(lpSubject);
 	if (prows)
 		FreeProws(prows);
 
@@ -1595,15 +1565,15 @@ HRESULT MAPIToVMIME::handleXHeaders(IMessage *lpMessage,
 	HRESULT hr;
 	ULONG i;
 	ULONG cValues;
-	LPSPropTagArray lpsAllTags = NULL;
 	LPSPropTagArray lpsNamedTags = NULL;
-	LPSPropValue lpPropArray = NULL;
+	memory_ptr<SPropTagArray> lpsAllTags;
+	memory_ptr<SPropValue> lpPropArray;
 	ULONG cNames;
-	LPMAPINAMEID *lppNames = NULL;
+	memory_ptr<MAPINAMEID *> lppNames;
 	auto hff = vmime::headerFieldFactory::getInstance();
 
 	// get all props on message
-	hr = lpMessage->GetPropList(0, &lpsAllTags);
+	hr = lpMessage->GetPropList(0, &~lpsAllTags);
 	if (FAILED(hr))
 		goto exit;
 
@@ -1628,11 +1598,10 @@ HRESULT MAPIToVMIME::handleXHeaders(IMessage *lpMessage,
 		if (PROP_ID(lpsAllTags->aulPropTag[i]) >= 0x8000 && PROP_TYPE(lpsAllTags->aulPropTag[i]) == PT_STRING8)
 			lpsNamedTags->aulPropTag[cNames++] = lpsAllTags->aulPropTag[i];
 	
-	hr = lpMessage->GetNamesFromIDs(&lpsNamedTags, NULL, 0, &cNames, &lppNames);
+	hr = lpMessage->GetNamesFromIDs(&lpsNamedTags, NULL, 0, &cNames, &~lppNames);
 	if (FAILED(hr))
 		goto exit;
-
-	hr = lpMessage->GetProps(lpsNamedTags, 0, &cValues, &lpPropArray);
+	hr = lpMessage->GetProps(lpsNamedTags, 0, &cValues, &~lpPropArray);
 	if (FAILED(hr))
 		goto exit;
 
@@ -1666,10 +1635,6 @@ HRESULT MAPIToVMIME::handleXHeaders(IMessage *lpMessage,
 	}
 
 exit:
-	MAPIFreeBuffer(lpPropArray);
-	MAPIFreeBuffer(lpsNamedTags);
-	MAPIFreeBuffer(lpsAllTags);
-	MAPIFreeBuffer(lppNames);
 	return hr;
 }
 
@@ -1696,14 +1661,10 @@ HRESULT MAPIToVMIME::handleExtraHeaders(IMessage *lpMessage,
 {
 	HRESULT hr = hrSuccess;
 	SPropValuePtr ptrMessageId;
-	LPSPropValue lpImportance = NULL;
-	LPSPropValue lpPriority = NULL;
-	LPSPropValue lpConversationIndex = NULL;
-	LPSPropValue lpConversationTopic = NULL;
-	LPSPropValue lpNormSubject = NULL;
-	LPSPropValue lpSensitivity = NULL;
+	memory_ptr<SPropValue> lpImportance, lpPriority, lpConversationIndex;
+	memory_ptr<SPropValue> lpConversationTopic, lpNormSubject;
+	memory_ptr<SPropValue> lpSensitivity, lpExpiryTime;
 	auto hff = vmime::headerFieldFactory::getInstance();
-	LPSPropValue lpExpiryTime = NULL;
 
 	// Conversation headers. New Message-Id header is set just before sending.
 	if (HrGetOneProp(lpMessage, PR_IN_REPLY_TO_ID_A, &~ptrMessageId) == hrSuccess && ptrMessageId->Value.lpszA[0]) {
@@ -1729,9 +1690,9 @@ HRESULT MAPIToVMIME::handleExtraHeaders(IMessage *lpMessage,
 
 	// priority settings
 	static const char *const priomap[3] = { "5 (Lowest)", "3 (Normal)", "1 (Highest)" }; // 2 and 4 cannot be set from outlook
-	if (HrGetOneProp(lpMessage, PR_IMPORTANCE, &lpImportance) == hrSuccess)
+	if (HrGetOneProp(lpMessage, PR_IMPORTANCE, &~lpImportance) == hrSuccess)
 		vmHeader->appendField(hff->create("X-Priority", priomap[min(2, (int)(lpImportance->Value.ul)&3)])); // IMPORTANCE_* = 0..2
-	else if (HrGetOneProp(lpMessage, PR_PRIORITY, &lpPriority) == hrSuccess)
+	else if (HrGetOneProp(lpMessage, PR_PRIORITY, &~lpPriority) == hrSuccess)
 		vmHeader->appendField(hff->create("X-Priority", priomap[min(2, (int)(lpPriority->Value.ul+1)&3)])); // PRIO_* = -1..1
 
 	// When adding a X-Priority, spamassassin may add a severe punishment because no User-Agent header
@@ -1740,7 +1701,7 @@ HRESULT MAPIToVMIME::handleExtraHeaders(IMessage *lpMessage,
 		vmHeader->appendField(hff->create("X-Mailer", "Kopano " PROJECT_VERSION_DOT_STR "-" PROJECT_SVN_REV_STR));
 
 	// PR_CONVERSATION_INDEX
-	if (HrGetOneProp(lpMessage, PR_CONVERSATION_INDEX, &lpConversationIndex) == hrSuccess) {
+	if (HrGetOneProp(lpMessage, PR_CONVERSATION_INDEX, &~lpConversationIndex) == hrSuccess) {
 		vmime::string inString;
 		inString.assign((const char*)lpConversationIndex->Value.bin.lpb, lpConversationIndex->Value.bin.cb);
 
@@ -1755,14 +1716,13 @@ HRESULT MAPIToVMIME::handleExtraHeaders(IMessage *lpMessage,
 	}
 
 	// PR_CONVERSATION_TOPIC is always the original started topic
-	if (HrGetOneProp(lpMessage, PR_CONVERSATION_TOPIC_W, &lpConversationTopic) == hrSuccess &&
-	    (HrGetOneProp(lpMessage, PR_NORMALIZED_SUBJECT_W, &lpNormSubject) != hrSuccess ||
+	if (HrGetOneProp(lpMessage, PR_CONVERSATION_TOPIC_W, &~lpConversationTopic) == hrSuccess &&
+	    (HrGetOneProp(lpMessage, PR_NORMALIZED_SUBJECT_W, &~lpNormSubject) != hrSuccess ||
 	    wcscmp(lpNormSubject->Value.lpszW, lpConversationTopic->Value.lpszW) != 0)) {
 		removeEnters(lpConversationTopic->Value.lpszW);
 		vmHeader->appendField(hff->create("Thread-Topic", getVmimeTextFromWide(lpConversationTopic->Value.lpszW).generate()));
 	}
-
-	if (HrGetOneProp(lpMessage, PR_SENSITIVITY, &lpSensitivity) == hrSuccess) {
+	if (HrGetOneProp(lpMessage, PR_SENSITIVITY, &~lpSensitivity) == hrSuccess) {
 		const char *strSens;
 		switch (lpSensitivity->Value.ul) {
 		case SENSITIVITY_PERSONAL:
@@ -1782,18 +1742,10 @@ HRESULT MAPIToVMIME::handleExtraHeaders(IMessage *lpMessage,
 		if (strSens)
 			vmHeader->appendField(hff->create("Sensitivity", strSens));
 	}
-
-	if (HrGetOneProp(lpMessage, PR_EXPIRY_TIME, &lpExpiryTime) == hrSuccess)
+	if (HrGetOneProp(lpMessage, PR_EXPIRY_TIME, &~lpExpiryTime) == hrSuccess)
 		vmHeader->appendField(hff->create("Expiry-Time", FiletimeTovmimeDatetime(lpExpiryTime->Value.ft).generate()));
 
 //exit:
-	MAPIFreeBuffer(lpExpiryTime);
-	MAPIFreeBuffer(lpImportance);
-	MAPIFreeBuffer(lpPriority);
-	MAPIFreeBuffer(lpSensitivity);
-	MAPIFreeBuffer(lpConversationIndex);
-	MAPIFreeBuffer(lpConversationTopic);
-	MAPIFreeBuffer(lpNormSubject);
 	return hr;
 }
 
@@ -1816,10 +1768,10 @@ HRESULT MAPIToVMIME::handleContactEntryID(ULONG cValues, LPSPropValue lpProps, w
 	LPCONTAB_ENTRYID lpContabEntryID = NULL;
 	GUID* guid = NULL;
 	ULONG ulObjType;
-	LPSPropTagArray lpNameTags = NULL;
-	LPSPropValue lpNamedProps = NULL;
+	memory_ptr<SPropTagArray> lpNameTags;
+	memory_ptr<SPropValue> lpNamedProps;
 	LPMAILUSER lpContact = NULL;
-	LPMAPINAMEID *lppNames = NULL;
+	memory_ptr<MAPINAMEID *> lppNames;
 	ULONG i;
 	ULONG ulNames = 5;
 	MAPINAMEID mnNamedProps[5] = {
@@ -1856,7 +1808,7 @@ HRESULT MAPIToVMIME::handleContactEntryID(ULONG cValues, LPSPropValue lpProps, w
 	for (i = 0; i < ulNames; ++i)
 		mnNamedProps[i].Kind.lID += (lpContabEntryID->email_offset * 0x10);
 
-	hr = MAPIAllocateBuffer(sizeof(LPMAPINAMEID) * (ulNames), (void**)&lppNames);
+	hr = MAPIAllocateBuffer(sizeof(LPMAPINAMEID) * (ulNames), &~lppNames);
 	if (hr != hrSuccess) {
 		ec_log_err("No memory for named ids from contact");
 		goto exit;
@@ -1865,7 +1817,7 @@ HRESULT MAPIToVMIME::handleContactEntryID(ULONG cValues, LPSPropValue lpProps, w
 	for (i = 0; i < ulNames; ++i)
 		lppNames[i] = &mnNamedProps[i];
 
-	hr = lpContact->GetIDsFromNames(ulNames, lppNames, MAPI_CREATE, &lpNameTags);
+	hr = lpContact->GetIDsFromNames(ulNames, lppNames, MAPI_CREATE, &~lpNameTags);
 	if (FAILED(hr))
 		goto exit;
 
@@ -1874,8 +1826,7 @@ HRESULT MAPIToVMIME::handleContactEntryID(ULONG cValues, LPSPropValue lpProps, w
 	lpNameTags->aulPropTag[2] = CHANGE_PROP_TYPE(lpNameTags->aulPropTag[2], PT_UNICODE);
 	lpNameTags->aulPropTag[3] = CHANGE_PROP_TYPE(lpNameTags->aulPropTag[3], PT_UNICODE); // unused
 	lpNameTags->aulPropTag[4] = CHANGE_PROP_TYPE(lpNameTags->aulPropTag[4], PT_BINARY);
-
-	hr = lpContact->GetProps(lpNameTags, 0, &ulNames, &lpNamedProps);
+	hr = lpContact->GetProps(lpNameTags, 0, &ulNames, &~lpNamedProps);
 	if (FAILED(hr))
 		goto exit;
 
@@ -1883,11 +1834,8 @@ HRESULT MAPIToVMIME::handleContactEntryID(ULONG cValues, LPSPropValue lpProps, w
 	     lpNameTags->aulPropTag[4], lpNameTags->aulPropTag[0], lpNameTags->aulPropTag[1], lpNameTags->aulPropTag[2],
 	     strName, strType, strEmail);
 exit:
-	MAPIFreeBuffer(lpNamedProps);
-	MAPIFreeBuffer(lpNameTags);
 	if (lpContact)
 		lpContact->Release();
-	MAPIFreeBuffer(lppNames);
 	return hr;
 }
 
@@ -1903,8 +1851,7 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage,
     vmime::shared_ptr<vmime::header> vmHeader)
 {
 	ULONG cValues;
-	LPSPropValue lpProps = NULL;
-	LPSPropValue lpReadReceipt = NULL;
+	memory_ptr<SPropValue> lpProps, lpReadReceipt;
 
 	// sender information
 	std::wstring strEmail, strName, strType;
@@ -1913,8 +1860,7 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage,
 	static constexpr SizedSPropTagArray(4, sender_proptags) =
 		{4, {PR_SENDER_ENTRYID, PR_SENDER_NAME_W,
 		PR_SENDER_ADDRTYPE_W, PR_SENDER_EMAIL_ADDRESS_W}};
-
-	HRESULT hr = lpMessage->GetProps(sender_proptags, 0, &cValues, &lpProps);
+	HRESULT hr = lpMessage->GetProps(sender_proptags, 0, &cValues, &~lpProps);
 	if (FAILED(hr))
 		goto exit;
 
@@ -1928,15 +1874,12 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage,
 		}
 	}
 
-	MAPIFreeBuffer(lpProps);
-	lpProps = NULL;
-
 	// -- sender
 	static constexpr SizedSPropTagArray(4, repr_proptags) =
 		{4, {PR_SENT_REPRESENTING_ENTRYID, PR_SENT_REPRESENTING_NAME_W,
 		PR_SENT_REPRESENTING_ADDRTYPE_W,
 		PR_SENT_REPRESENTING_EMAIL_ADDRESS_W}};
-	hr = lpMessage->GetProps(repr_proptags, 0, &cValues, &lpProps);
+	hr = lpMessage->GetProps(repr_proptags, 0, &cValues, &~lpProps);
 	if (FAILED(hr))
 		goto exit;
 
@@ -1981,7 +1924,7 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage,
 	}
 
 	// read receipt request
-	if (HrGetOneProp(lpMessage, PR_READ_RECEIPT_REQUESTED, &lpReadReceipt) == hrSuccess && lpReadReceipt->Value.b == TRUE) {
+	if (HrGetOneProp(lpMessage, PR_READ_RECEIPT_REQUESTED, &~lpReadReceipt) == hrSuccess && lpReadReceipt->Value.b == TRUE) {
 		vmime::mailboxList mbl;
 		if (!strResEmail.empty() && strResEmail != strEmail) {
 			// use user added from address
@@ -1999,8 +1942,6 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage,
 	}
 
 exit:
-	MAPIFreeBuffer(lpProps);
-	MAPIFreeBuffer(lpReadReceipt);
 	return hr;
 }
 
@@ -2020,7 +1961,6 @@ HRESULT MAPIToVMIME::handleReplyTo(IMessage *lpMessage,
     vmime::shared_ptr<vmime::header> vmHeader)
 {
 	HRESULT			hr = hrSuccess;
-	LPSPropValue	lpReplyTo = NULL;
 	FLATENTRYLIST	*lpEntryList = NULL;
 	FLATENTRY		*lpEntry = NULL;
 	LPCONTAB_ENTRYID lpContabEntryID = NULL;
@@ -2034,12 +1974,12 @@ HRESULT MAPIToVMIME::handleReplyTo(IMessage *lpMessage,
 				0x8090, 0x8092, 0x8093, 0x8095,
 				0x80A0, 0x80A2, 0x80A3, 0x80A5};
 	ULONG cNames, i, offset;
-	LPMAPINAMEID lpNames = NULL;
-	LPMAPINAMEID *lppNames = NULL;
-	LPSPropTagArray lpNameTagArray = NULL;
-	LPSPropValue lpAddressProps = NULL;
+	memory_ptr<MAPINAMEID> lpNames;
+	memory_ptr<MAPINAMEID *> lppNames;
+	memory_ptr<SPropTagArray> lpNameTagArray;
+	memory_ptr<SPropValue> lpAddressProps, lpReplyTo;
 
-	if (HrGetOneProp(lpMessage, PR_REPLY_RECIPIENT_ENTRIES, &lpReplyTo) != hrSuccess)
+	if (HrGetOneProp(lpMessage, PR_REPLY_RECIPIENT_ENTRIES, &~lpReplyTo) != hrSuccess)
 		goto exit;
 
 	if (lpReplyTo->Value.bin.cb == 0)
@@ -2071,12 +2011,10 @@ HRESULT MAPIToVMIME::handleReplyTo(IMessage *lpMessage,
 			goto exit;
 
 		cNames = ARRAY_SIZE(lpulNamesIDs);
-
-		hr = MAPIAllocateBuffer(sizeof(MAPINAMEID) * cNames, (void**)&lpNames);
+		hr = MAPIAllocateBuffer(sizeof(MAPINAMEID) * cNames, &~lpNames);
 		if (hr != hrSuccess)
 			goto exit;
-
-		hr = MAPIAllocateBuffer(sizeof(LPMAPINAMEID) * cNames, (void**)&lppNames);
+		hr = MAPIAllocateBuffer(sizeof(LPMAPINAMEID) * cNames, &~lppNames);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -2086,13 +2024,12 @@ HRESULT MAPIToVMIME::handleReplyTo(IMessage *lpMessage,
 			lpNames[i].Kind.lID = lpulNamesIDs[i];
 			lppNames[i] = &lpNames[i];
 		}
-
-		hr = lpContact->GetIDsFromNames(cNames, lppNames, 0, &lpNameTagArray);
+		hr = lpContact->GetIDsFromNames(cNames, lppNames, 0, &~lpNameTagArray);
 		if (FAILED(hr))
 			goto exit;
 
 		// PT_UNSPECIFIED in tagarray, but we want PT_UNICODE
-		hr = lpContact->GetProps(lpNameTagArray, MAPI_UNICODE, &cNames, &lpAddressProps);
+		hr = lpContact->GetProps(lpNameTagArray, MAPI_UNICODE, &cNames, &~lpAddressProps);
 		if (FAILED(hr))
 			goto exit;
 
@@ -2121,13 +2058,8 @@ HRESULT MAPIToVMIME::handleReplyTo(IMessage *lpMessage,
 	hr = hrSuccess;
 
 exit:
-	MAPIFreeBuffer(lpNames);
-	MAPIFreeBuffer(lppNames);
-	MAPIFreeBuffer(lpNameTagArray);
-	MAPIFreeBuffer(lpAddressProps);
 	if (lpContact)
 		lpContact->Release();
-	MAPIFreeBuffer(lpReplyTo);
 	return hr;
 }
 
@@ -2138,20 +2070,17 @@ exit:
 bool MAPIToVMIME::is_voting_request(IMessage *lpMessage)
 {
 	HRESULT hr = hrSuccess;
-	LPSPropTagArray lpPropTags = NULL;
-	LPSPropValue lpPropContentType = NULL;
+	memory_ptr<SPropTagArray> lpPropTags;
+	memory_ptr<SPropValue> lpPropContentType;
 	MAPINAMEID named_prop = {(LPGUID)&PSETID_Common, MNID_ID, {0x8520}};
 	MAPINAMEID *named_proplist = &named_prop;
 
-	hr = lpMessage->GetIDsFromNames(1, &named_proplist, MAPI_CREATE, &lpPropTags);
+	hr = lpMessage->GetIDsFromNames(1, &named_proplist, MAPI_CREATE, &~lpPropTags);
 	if (hr != hrSuccess)
 		ec_log_err("Unable to read voting property. Error: %s (0x%08X)",
 			GetMAPIErrorMessage(hr), hr);
 	else
-		hr = HrGetOneProp(lpMessage, CHANGE_PROP_TYPE(lpPropTags->aulPropTag[0], PT_BINARY), &lpPropContentType);
-
-	MAPIFreeBuffer(lpPropTags);
-	MAPIFreeBuffer(lpPropContentType);
+		hr = HrGetOneProp(lpMessage, CHANGE_PROP_TYPE(lpPropTags->aulPropTag[0], PT_BINARY), &~lpPropContentType);
 	return hr == hrSuccess;
 }
 
@@ -2160,26 +2089,23 @@ bool MAPIToVMIME::is_voting_request(IMessage *lpMessage)
  */
 bool MAPIToVMIME::has_reminder(IMessage *msg)
 {
-	SPropTagArray *tags = nullptr;
-	SPropValue *content_type = nullptr;
+	memory_ptr<SPropTagArray> tags;
+	memory_ptr<SPropValue> content_type;
 	MAPINAMEID named_prop = {const_cast<GUID *>(&PSETID_Common), MNID_ID, {0x8503}};
 	auto named_proplist = &named_prop;
 	bool result = false;
 
-	auto hr = msg->GetIDsFromNames(1, &named_proplist, MAPI_CREATE, &tags);
+	auto hr = msg->GetIDsFromNames(1, &named_proplist, MAPI_CREATE, &~tags);
 	if (hr != hrSuccess)
 		ec_log_err("Unable to read reminder property: %s (0x%08x)",
 			GetMAPIErrorMessage(hr), hr);
 	else {
-		hr = HrGetOneProp(msg, CHANGE_PROP_TYPE(tags->aulPropTag[0], PT_BOOLEAN), &content_type);
+		hr = HrGetOneProp(msg, CHANGE_PROP_TYPE(tags->aulPropTag[0], PT_BOOLEAN), &~content_type);
 		if(hr == hrSuccess)
 			result = content_type->Value.b;
 		else
 			ec_log_debug("Message has no reminder property");
 	}
-
-	MAPIFreeBuffer(tags);
-	MAPIFreeBuffer(content_type);
 	return result;
 }
 
@@ -2195,15 +2121,12 @@ bool MAPIToVMIME::has_reminder(IMessage *msg)
  */
 HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVMMessageBuilder, eBestBody bestBody) {
 	HRESULT			hr				= hrSuccess;
-	LPSPropValue	lpSendAsICal	= NULL;
-	LPSPropValue	lpOutlookVersion = NULL;
-	LPSPropValue	lpMessageClass	= NULL;
-	LPSPropValue	lpDelegateRule	= NULL;
+	memory_ptr<SPropValue> lpSendAsICal, lpOutlookVersion, lpMessageClass;
+	memory_ptr<SPropValue> lpDelegateRule;
 	IStream 		*lpStream = NULL;
 	MapiToICal		*mapiical = NULL;
-	
-	LPMAPINAMEID	lpNames			= NULL;	
-	LPSPropTagArray lpNameTagArray	= NULL;
+	memory_ptr<MAPINAMEID> lpNames;
+	memory_ptr<SPropTagArray> lpNameTagArray;
 	int				iUseTnef = sopt.use_tnef;
 	std::string		strTnefReason;
 
@@ -2235,13 +2158,13 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
         }
 	
         // Start processing TNEF properties
-		if (HrGetOneProp(lpMessage, PR_EC_SEND_AS_ICAL, &lpSendAsICal) != hrSuccess)
+		if (HrGetOneProp(lpMessage, PR_EC_SEND_AS_ICAL, &~lpSendAsICal) != hrSuccess)
 			lpSendAsICal = NULL;
-		if (HrGetOneProp(lpMessage, PR_EC_OUTLOOK_VERSION, &lpOutlookVersion) != hrSuccess)
+		if (HrGetOneProp(lpMessage, PR_EC_OUTLOOK_VERSION, &~lpOutlookVersion) != hrSuccess)
 			lpOutlookVersion = NULL;
-		if (HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &lpMessageClass) != hrSuccess)
+		if (HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &~lpMessageClass) != hrSuccess)
 			lpMessageClass = NULL;
-		if (HrGetOneProp(lpMessage, PR_DELEGATED_BY_RULE, &lpDelegateRule) != hrSuccess)
+		if (HrGetOneProp(lpMessage, PR_DELEGATED_BY_RULE, &~lpDelegateRule) != hrSuccess)
 			lpDelegateRule = NULL;
 		if (iUseTnef > 0)
 			strTnefReason = "Force TNEF on request";
@@ -2397,12 +2320,6 @@ exit:
 	delete mapiical;
 	if (lpStream)
 		lpStream->Release();
-	MAPIFreeBuffer(lpNames);
-	MAPIFreeBuffer(lpDelegateRule);
-	MAPIFreeBuffer(lpNameTagArray);
-	MAPIFreeBuffer(lpMessageClass);
-	MAPIFreeBuffer(lpOutlookVersion);
-	MAPIFreeBuffer(lpSendAsICal);
 	return hr;
 }
 

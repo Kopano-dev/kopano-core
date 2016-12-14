@@ -21,7 +21,7 @@
 #include <kopano/ECIConv.h>
 #include <kopano/ECGuid.h>
 #include <kopano/Trace.h>
-
+#include <kopano/memory.hpp>
 #include "Mem.h"
 
 #include <kopano/mapiext.h>
@@ -45,6 +45,7 @@
 #include "SOAPSock.h"
 
 using namespace std;
+using namespace KCHL;
 
 #define CONVERT_TO(_context, _charset, ...) ((_context) ? (_context)->convert_to<_charset>(__VA_ARGS__) : convert_to<_charset>(__VA_ARGS__))
 
@@ -2359,14 +2360,13 @@ static HRESULT CopyMAPISourceKeyToSoapSourceKey(SBinary *lpsMAPISourceKey,
 HRESULT CopyICSChangeToSOAPSourceKeys(ULONG cbChanges, ICSCHANGE *lpsChanges, sourceKeyPairArray **lppsSKPA)
 {
 	HRESULT				hr = hrSuccess;
-	sourceKeyPairArray	*lpsSKPA = NULL;
+	memory_ptr<sourceKeyPairArray> lpsSKPA;
 
 	if (lpsChanges == NULL || lppsSKPA == NULL) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-
-	hr = MAPIAllocateBuffer(sizeof *lpsSKPA, (void**)&lpsSKPA);
+	hr = MAPIAllocateBuffer(sizeof *lpsSKPA, &~lpsSKPA);
 	if (hr != hrSuccess)
 		goto exit;
 	memset(lpsSKPA, 0, sizeof *lpsSKPA);
@@ -2389,12 +2389,8 @@ HRESULT CopyICSChangeToSOAPSourceKeys(ULONG cbChanges, ICSCHANGE *lpsChanges, so
 				goto exit;
 		}
 	}
-
-	*lppsSKPA = lpsSKPA;
-	lpsSKPA = NULL;
-
+	*lppsSKPA = lpsSKPA.release();
 exit:
-	MAPIFreeBuffer(lpsSKPA);
 	return hr;
 }
 
@@ -2402,10 +2398,10 @@ HRESULT CopyUserClientUpdateStatusFromSOAP(struct userClientUpdateStatusResponse
     ULONG ulFlags, ECUSERCLIENTUPDATESTATUS **lppECUCUS)
 {
 	HRESULT hr = hrSuccess;
-	ECUSERCLIENTUPDATESTATUS *lpECUCUS = NULL;
+	memory_ptr<ECUSERCLIENTUPDATESTATUS> lpECUCUS;
 	convert_context converter;
 
-	hr = MAPIAllocateBuffer(sizeof(ECUSERCLIENTUPDATESTATUS), (void**)&lpECUCUS);
+	hr = MAPIAllocateBuffer(sizeof(ECUSERCLIENTUPDATESTATUS), &~lpECUCUS);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -2425,12 +2421,8 @@ HRESULT CopyUserClientUpdateStatusFromSOAP(struct userClientUpdateStatusResponse
 
 	if (hr != hrSuccess)
 		goto exit;
-
-	*lppECUCUS = lpECUCUS;
-	lpECUCUS = NULL;
-
+	*lppECUCUS = lpECUCUS.release();
 exit:
-	MAPIFreeBuffer(lpECUCUS);
 	return hr;
 }
 

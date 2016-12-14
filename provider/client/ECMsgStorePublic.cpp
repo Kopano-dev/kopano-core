@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/memory.hpp>
 #include "ECMsgStorePublic.h"
 
 #include "ECMAPIFolder.h"
@@ -33,6 +34,7 @@
 #include <kopano/ECGuid.h>
 
 using namespace std;
+using namespace KCHL;
 
 ECMsgStorePublic::ECMsgStorePublic(char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags, BOOL fIsSpooler, BOOL bOfflineStore) :
 	ECMsgStore(lpszProfname, lpSupport, lpTransport, fModify, ulProfileFlags, fIsSpooler, false, bOfflineStore)
@@ -166,9 +168,8 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID
 
 	IECPropStorage*		lpPropStorage = NULL;
 	WSMAPIFolderOps*	lpFolderOps = NULL;
-	LPSPropValue		lpsPropValue = NULL;
-	LPENTRYID			lpEntryIDIntern = NULL;
-	LPSPropValue		lpParentProp = NULL;
+	memory_ptr<SPropValue> lpsPropValue, lpParentProp;
+	memory_ptr<ENTRYID> lpEntryIDIntern;
 	ULONG				ulResults;
 
 	// Check input/output variables
@@ -208,7 +209,8 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID
 		ePublicEntryID = ePE_FavoriteSubFolder;
 
 		// Replace the original entryid because this one is only readable
-		if ((hr = MAPIAllocateBuffer(cbEntryID, (void**)&lpEntryIDIntern)) != hrSuccess)
+		hr = MAPIAllocateBuffer(cbEntryID, &~lpEntryIDIntern);
+		if (hr != hrSuccess)
 			goto exit;
 		memcpy(lpEntryIDIntern, lpEntryID, cbEntryID);
 
@@ -238,8 +240,7 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID
 	case MAPI_FOLDER:
 
 		if (ePublicEntryID == ePE_PublicFolders) {
-
-			hr = MAPIAllocateBuffer(sizeof(SPropValue), (void**)&lpsPropValue);
+			hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpsPropValue);
 			if(hr != hrSuccess)
 				goto exit;
 
@@ -284,25 +285,18 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID
 		if(hr != hrSuccess)
 			goto exit;
 
-		MAPIFreeBuffer(lpsPropValue);
-		lpsPropValue = NULL;
-
 		// Get the parent entryid of a folder an check if this is the online subtree entryid. When it is, 
 		// change the parent to the static parent entryid
-		hr = MAPIAllocateBuffer(sizeof(SPropValue), (void**)&lpsPropValue);
+		hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpsPropValue);
 		if(hr != hrSuccess)
 			goto exit;
 
-		if (HrGetOneProp((LPMAPIPROP)(&lpMAPIFolder->m_xMAPIFolder), PR_PARENT_ENTRYID, &lpParentProp) == hrSuccess &&
+		if (HrGetOneProp((LPMAPIPROP)(&lpMAPIFolder->m_xMAPIFolder), PR_PARENT_ENTRYID, &~lpParentProp) == hrSuccess &&
 			HrGetRealProp(PR_IPM_SUBTREE_ENTRYID, 0, lpsPropValue, lpsPropValue) == hrSuccess &&
 			CompareEntryIDs(lpsPropValue->Value.bin.cb, (LPENTRYID)lpsPropValue->Value.bin.lpb, lpParentProp->Value.bin.cb, (LPENTRYID)lpParentProp->Value.bin.lpb, 0, &ulResults) == hrSuccess &&
 			ulResults == TRUE)
 			lpMAPIFolder->SetParentID(this->m_cIPMPublicFoldersID, this->m_lpIPMPublicFoldersID);
 
-		MAPIFreeBuffer(lpParentProp);
-		lpParentProp = NULL;
-		MAPIFreeBuffer(lpsPropValue);
-		lpsPropValue = NULL;
 		AddChild(lpMAPIFolder);
 
 		if(lpInterface)
@@ -335,9 +329,6 @@ exit:
 
 	if (lpPropStorage)
 		lpPropStorage->Release();
-	MAPIFreeBuffer(lpsPropValue);
-	MAPIFreeBuffer(lpEntryIDIntern);
-	MAPIFreeBuffer(lpParentProp);
 	return hr;
 }
 
@@ -454,7 +445,7 @@ HRESULT ECMsgStorePublic::BuildIPMSubTree()
 {
 	HRESULT hr = hrSuccess;
 	ECMemTable *lpIPMSubTree = NULL;
-	LPSPropValue lpProps = NULL;
+	memory_ptr<SPropValue> lpProps;
 	ULONG cProps = 0;
 	ULONG cMaxProps = 0;
 	ULONG ulRowId = 0;
@@ -479,7 +470,7 @@ HRESULT ECMsgStorePublic::BuildIPMSubTree()
 	//  Favorites
 	ulRowId = 1;
 	cMaxProps = 22;
-	hr = MAPIAllocateBuffer(sizeof(SPropValue) * cMaxProps, (void**)&lpProps);
+	hr = MAPIAllocateBuffer(sizeof(SPropValue) * cMaxProps, &~lpProps);
 	if(hr != hrSuccess)
 		goto exit;
 	
@@ -567,15 +558,13 @@ HRESULT ECMsgStorePublic::BuildIPMSubTree()
 		goto exit;
 
 	assert(cProps <= cMaxProps);
-	MAPIFreeBuffer(lpProps);
-	lpProps = NULL;
 
 	// the folder "Public Folders"
 	++ulRowId;
 	cProps = 0;
 	cMaxProps = 20;
 
-	hr = MAPIAllocateBuffer(sizeof(SPropValue) * cMaxProps, (void**)&lpProps);
+	hr = MAPIAllocateBuffer(sizeof(SPropValue) * cMaxProps, &~lpProps);
 	if(hr != hrSuccess)
 		goto exit;
 	
@@ -663,13 +652,9 @@ HRESULT ECMsgStorePublic::BuildIPMSubTree()
 		goto exit;
 
 	assert(cProps <= cMaxProps);
-	MAPIFreeBuffer(lpProps);
-	lpProps = NULL;
-
 	m_lpIPMSubTree = lpIPMSubTree;
 
 exit:
-	MAPIFreeBuffer(lpProps);
 	return hr;
 }
 
@@ -685,10 +670,9 @@ HRESULT ECMsgStorePublic::GetDefaultShortcutFolder(IMAPIFolder** lppFolder)
 	ULONG ulObjType;
 	IMAPIFolder *lpFolder = NULL;
 	IMsgStore *lpMsgStore = NULL;
-	LPSPropValue lpPropValue = NULL;
+	memory_ptr<SPropValue> lpPropValue;
 	ULONG cbEntryId;
-	LPENTRYID lpEntryId = NULL;
-	LPENTRYID lpStoreEntryID = NULL;
+	memory_ptr<ENTRYID> lpEntryId, lpStoreEntryID;
 	ULONG cbStoreEntryID;
 	string strRedirServer;
 	WSTransport *lpTmpTransport = NULL;
@@ -696,19 +680,17 @@ HRESULT ECMsgStorePublic::GetDefaultShortcutFolder(IMAPIFolder** lppFolder)
 	if (m_lpDefaultMsgStore == NULL)
 	{
 		// Get the default store for this user
-		hr = lpTransport->HrGetStore(0, NULL, &cbStoreEntryID, &lpStoreEntryID, NULL, NULL, &strRedirServer);
+		hr = lpTransport->HrGetStore(0, NULL, &cbStoreEntryID, &~lpStoreEntryID, NULL, NULL, &strRedirServer);
 		if (hr == MAPI_E_UNABLE_TO_COMPLETE) {
 			// reopen store of user which is on another server
 			hr = lpTransport->CreateAndLogonAlternate(strRedirServer.c_str(), &lpTmpTransport);
 			if (hr != hrSuccess)
 				goto exit;
-
-			hr = lpTmpTransport->HrGetStore(0, NULL, &cbStoreEntryID, &lpStoreEntryID, NULL, NULL);
+			hr = lpTmpTransport->HrGetStore(0, NULL, &cbStoreEntryID, &~lpStoreEntryID, NULL, NULL);
 		}
  		if(hr != hrSuccess)
 			goto exit;
-
-		hr = WrapStoreEntryID(0, (LPTSTR)WCLIENT_DLL_NAME, cbStoreEntryID, lpStoreEntryID, &cbEntryId, &lpEntryId);
+		hr = WrapStoreEntryID(0, (LPTSTR)WCLIENT_DLL_NAME, cbStoreEntryID, lpStoreEntryID, &cbEntryId, &~lpEntryId);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -723,7 +705,7 @@ HRESULT ECMsgStorePublic::GetDefaultShortcutFolder(IMAPIFolder** lppFolder)
 	}
 
 	// Get shortcut entryid
-	hr = HrGetOneProp(m_lpDefaultMsgStore, PR_IPM_FAVORITES_ENTRYID, &lpPropValue);
+	hr = HrGetOneProp(m_lpDefaultMsgStore, PR_IPM_FAVORITES_ENTRYID, &~lpPropValue);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -741,9 +723,6 @@ exit:
 		lpTmpTransport->HrLogOff();
 		lpTmpTransport->Release();
 	}
-	MAPIFreeBuffer(lpStoreEntryID);
-	MAPIFreeBuffer(lpEntryId);
-	MAPIFreeBuffer(lpPropValue);
 	if (lpFolder)
 		lpFolder->Release();
 
@@ -757,7 +736,7 @@ HRESULT ECMsgStorePublic::Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulE
 {
 	HRESULT hr = hrSuccess;
 	ULONG ulResult = 0;
-	LPENTRYID lpEntryIDIntern = NULL;
+	memory_ptr<ENTRYID> lpEntryIDIntern;
 
 	if(ComparePublicEntryId(ePE_IPMSubtree, cbEntryID, lpEntryID, &ulResult) == hrSuccess && ulResult == TRUE) {
 		hr = MAPI_E_NO_SUPPORT; // FIXME
@@ -770,7 +749,8 @@ HRESULT ECMsgStorePublic::Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulE
 		goto exit;
 	} else if (lpEntryID && (lpEntryID->abFlags[3] & KOPANO_FAVORITE)) {
 		// Replace the original entryid because this one is only readable
-		if ((hr = MAPIAllocateBuffer(cbEntryID, (void**)&lpEntryIDIntern)) != hrSuccess)
+		hr = MAPIAllocateBuffer(cbEntryID, &~lpEntryIDIntern);
+		if (hr != hrSuccess)
 			goto exit;
 		memcpy(lpEntryIDIntern, lpEntryID, cbEntryID);
 
@@ -783,6 +763,5 @@ HRESULT ECMsgStorePublic::Advise(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulE
 	hr = ECMsgStore::Advise(cbEntryID, lpEntryID, ulEventMask, lpAdviseSink, lpulConnection);
 
 exit:
-	MAPIFreeBuffer(lpEntryIDIntern);
 	return hr;
 }

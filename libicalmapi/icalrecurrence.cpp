@@ -22,11 +22,14 @@
 #include "valarm.h"
 #include <mapicode.h>
 #include <kopano/mapiext.h>
+#include <kopano/memory.hpp>
 #include <mapix.h>
 #include <mapiutil.h>
 #include <cmath>
 #include <algorithm>
 #include "freebusy.h"
+
+using namespace KCHL;
 
 static bool operator ==(const SPropValue &spv, ULONG ulPropTag)
 {
@@ -259,16 +262,14 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, ica
 	// now that we have a full recurrence object, recalculate the end time, see ZCP-9143
 	if (lpRec->getEndType() == recurrence::DATE)
 	{
-		OccrInfo *lpOccrInfo = NULL;
+		memory_ptr<OccrInfo> lpOccrInfo;
 		ULONG cValues = 0;
 
-		hr = lpRec->HrGetItems(dtUTCStart, dtUTCUntil, sTimeZone, 0, &lpOccrInfo, &cValues, true);
+		hr = lpRec->HrGetItems(dtUTCStart, dtUTCUntil, sTimeZone, 0, &~lpOccrInfo, &cValues, true);
 		if (hr == hrSuccess && cValues > 0) {
 			dtUTCUntil = lpOccrInfo[cValues-1].tBaseDate;
 			lpRec->setEndDate(UTCToLocal(dtUTCUntil, sTimeZone));
 		}
-
-		MAPIFreeBuffer(lpOccrInfo);
 	}
 
 	// set named prop 0x8510 to 353, needed for Outlook to ask for single or total recurrence when deleting
@@ -683,14 +684,13 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot, icalcomp
 HRESULT ICalRecurrence::HrMakeMAPIRecurrence(recurrence *lpRecurrence, LPSPropTagArray lpNamedProps, LPMESSAGE lpMessage)
 {
 	HRESULT hr = hrSuccess;
-	char *lpRecBlob = NULL;
+	memory_ptr<char> lpRecBlob;
 	unsigned int ulRecBlob = 0;
-	LPSPropValue lpPropVal = NULL;
-	LPSPropValue lpsPropRecPattern = NULL;
+	memory_ptr<SPropValue> lpPropVal, lpsPropRecPattern;
 	std::string strHRS;
 	ULONG i = 0;
 
-	hr = lpRecurrence->HrGetRecurrenceState(&lpRecBlob, &ulRecBlob);
+	hr = lpRecurrence->HrGetRecurrenceState(&~lpRecBlob, &ulRecBlob);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -699,7 +699,8 @@ HRESULT ICalRecurrence::HrMakeMAPIRecurrence(recurrence *lpRecurrence, LPSPropTa
 		goto exit;
 
 	// adjust number of props
-	if ((hr = MAPIAllocateBuffer(sizeof(SPropValue)*4, (void**)&lpPropVal)) != hrSuccess)
+	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 4, &~lpPropVal);
+	if (hr != hrSuccess)
 		goto exit;
 
 	lpPropVal[i].ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRING], PT_BOOLEAN);
@@ -712,11 +713,11 @@ HRESULT ICalRecurrence::HrMakeMAPIRecurrence(recurrence *lpRecurrence, LPSPropTa
 	++i;
 
 	lpPropVal[i].ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRENCESTATE], PT_BINARY);
-	lpPropVal[i].Value.bin.lpb = (BYTE*)lpRecBlob;
+	lpPropVal[i].Value.bin.lpb = reinterpret_cast<BYTE *>(lpRecBlob.get());
 	lpPropVal[i].Value.bin.cb = ulRecBlob;
 	++i;
 
-	hr = HrGetOneProp(lpMessage, CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRENCEPATTERN], PT_STRING8), &lpsPropRecPattern);
+	hr = HrGetOneProp(lpMessage, CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRENCEPATTERN], PT_STRING8), &~lpsPropRecPattern);
 	if(hr != hrSuccess)
 	{
 		lpPropVal[i].ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRENCEPATTERN], PT_STRING8);
@@ -729,9 +730,6 @@ HRESULT ICalRecurrence::HrMakeMAPIRecurrence(recurrence *lpRecurrence, LPSPropTa
 		goto exit;
 
 exit:
-	MAPIFreeBuffer(lpPropVal);
-	MAPIFreeBuffer(lpRecBlob);
-	MAPIFreeBuffer(lpsPropRecPattern);
 	return hr;
 }
 
@@ -745,16 +743,16 @@ exit:
 bool ICalRecurrence::HrValidateOccurrence(icalitem *lpItem, icalitem::exception lpEx)
 {
 	HRESULT hr = hrSuccess;
-	OccrInfo *lpFBBlocksAll = NULL;
+	memory_ptr<OccrInfo> lpFBBlocksAll;
 	ULONG cValues = 0;
 	bool bIsValid = false;
 	time_t tBaseDateStart = LocalToUTC(lpItem->lpRecurrence->StartOfDay(UTCToLocal(lpEx.tBaseDate, lpItem->tTZinfo)), lpItem->tTZinfo);
 	time_t tStartDateStart = LocalToUTC(lpItem->lpRecurrence->StartOfDay(UTCToLocal(lpEx.tStartDate, lpItem->tTZinfo)), lpItem->tTZinfo);
 
 	if (tBaseDateStart < tStartDateStart) {
-		hr = lpItem->lpRecurrence->HrGetItems(tBaseDateStart, tStartDateStart + 1439 * 60, lpItem->tTZinfo, lpItem->ulFbStatus, &lpFBBlocksAll, &cValues);
+		hr = lpItem->lpRecurrence->HrGetItems(tBaseDateStart, tStartDateStart + 1439 * 60, lpItem->tTZinfo, lpItem->ulFbStatus, &~lpFBBlocksAll, &cValues);
 	} else {
-		hr = lpItem->lpRecurrence->HrGetItems(tStartDateStart, tBaseDateStart + 1439 * 60, lpItem->tTZinfo, lpItem->ulFbStatus, &lpFBBlocksAll, &cValues);
+		hr = lpItem->lpRecurrence->HrGetItems(tStartDateStart, tBaseDateStart + 1439 * 60, lpItem->tTZinfo, lpItem->ulFbStatus, &~lpFBBlocksAll, &cValues);
 	}
 
 	if (hr != hrSuccess)
@@ -764,7 +762,6 @@ bool ICalRecurrence::HrValidateOccurrence(icalitem *lpItem, icalitem::exception 
 		bIsValid = true;
 
 exit:	
-	MAPIFreeBuffer(lpFBBlocksAll);
 	return bIsValid;
 }
 

@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/memory.hpp>
 #include "ProtocolBase.h"
 #include <kopano/stringutil.h>
 #include <kopano/CommonUtil.h>
@@ -23,6 +24,7 @@
 #include <kopano/mapi_ptr.h>
 
 using namespace std;
+using namespace KCHL;
 
 ProtocolBase::ProtocolBase(Http *lpRequest, IMAPISession *lpSession,
     const std::string &strSrvTz, const std::string &strCharset)
@@ -35,8 +37,6 @@ ProtocolBase::ProtocolBase(Http *lpRequest, IMAPISession *lpSession,
 
 ProtocolBase::~ProtocolBase()
 {
-	MAPIFreeBuffer(m_lpNamedProps);
-
 	if (m_lpLoginUser)
 		m_lpLoginUser->Release();
 
@@ -74,8 +74,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 	std::string strMethod;
 	string strFldOwner;
 	string strFldName;
-	LPSPropValue lpDefaultProp = NULL;
-	LPSPropValue lpFldProp = NULL;
+	memory_ptr<SPropValue> lpDefaultProp, lpFldProp;
 	SPropValuePtr lpEntryID;
 	ULONG ulRes = 0;
 	bool bIsPublic = false;
@@ -152,7 +151,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 	}
 
 	// Retrieve named properties
-	hr = HrLookupNames(m_lpActiveStore, &m_lpNamedProps);
+	hr = HrLookupNames(m_lpActiveStore, &~m_lpNamedProps);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -184,7 +183,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 
 	if (!bIsPublic) {
 		// get default calendar entryid for non-public stores
-		hr = HrGetOneProp(lpRoot, PR_IPM_APPOINTMENT_ENTRYID, &lpDefaultProp);
+		hr = HrGetOneProp(lpRoot, PR_IPM_APPOINTMENT_ENTRYID, &~lpDefaultProp);
 		if(hr != hrSuccess)
 		{
 			ec_log_err("Error retrieving Entry id of Default calendar for user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);
@@ -289,7 +288,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 	    lpDefaultProp != nullptr) {
 		ULONG ulCmp;
 
-		hr = HrGetOneProp(m_lpUsrFld, PR_ENTRYID, &lpFldProp);
+		hr = HrGetOneProp(m_lpUsrFld, PR_ENTRYID, &~lpFldProp);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -297,12 +296,9 @@ HRESULT ProtocolBase::HrInitializeClass()
 		     lpFldProp->Value.bin.cb, (LPENTRYID)lpFldProp->Value.bin.lpb, 0, &ulCmp);
 		if (hr != hrSuccess || ulCmp == TRUE)
 			m_blFolderAccess = false;
-
-		MAPIFreeBuffer(lpFldProp);
-		lpFldProp = NULL;
 	}
 	if (m_blFolderAccess) {
-		hr = HrGetOneProp(m_lpUsrFld, PR_SUBFOLDERS, &lpFldProp);
+		hr = HrGetOneProp(m_lpUsrFld, PR_SUBFOLDERS, &~lpFldProp);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -311,8 +307,6 @@ HRESULT ProtocolBase::HrInitializeClass()
 	}
 
 exit:
-	MAPIFreeBuffer(lpFldProp);
-	MAPIFreeBuffer(lpDefaultProp);
 	return hr;
 }
 
