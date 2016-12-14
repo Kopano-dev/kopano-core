@@ -324,7 +324,6 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 	vmime::mediaType vmMIMEType;
 	std::string		strBoundary;
 	bool			bSendBinary = true;
-	MapiToICal		*mapiical = NULL;
 
 	pPropAttachNum = PpropFindProp(lpRow->lpProps, lpRow->cValues, PR_ATTACH_NUM);
 	if (pPropAttachNum == NULL) {
@@ -480,7 +479,6 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 
 exit:
 	// ATTN: lpMapiAttach are linked in the VMMessageBuilder. The VMMessageBuilder will delete() it.
-	delete mapiical;
 	if (lpStream)
 		lpStream->Release();
 

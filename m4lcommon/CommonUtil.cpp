@@ -2008,7 +2008,6 @@ HRESULT TestRestriction(LPSRestriction lpCondition, IMAPIProp *lpMessage, const 
 	IMAPITable *lpTable = NULL;
 	memory_ptr<SPropTagArray> lpTags;
 	LPSRowSet lpRowSet = NULL;
-	ECRowWrapper *lpRowWrapper = NULL;
 
 	if (ulLevel > RESTRICT_MAX_RECURSE_LEVEL)
 		return MAPI_E_TOO_COMPLEX;
@@ -2224,9 +2223,6 @@ HRESULT TestRestriction(LPSRestriction lpCondition, IMAPIProp *lpMessage, const 
 
 			FreeProws(lpRowSet);
 			lpRowSet = NULL;
-
-			delete lpRowWrapper;
-			lpRowWrapper = NULL;
 		}
 		break;
 
@@ -2243,7 +2239,6 @@ HRESULT TestRestriction(LPSRestriction lpCondition, IMAPIProp *lpMessage, const 
 	};
 
 exit:
-	delete lpRowWrapper;
 	if (lpRowSet)
 		FreeProws(lpRowSet);
 	if (lpTable)
