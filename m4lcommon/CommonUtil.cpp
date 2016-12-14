@@ -1989,12 +1989,8 @@ static HRESULT GetRestrictTags(const SRestriction *lpRestriction,
 }
 
 HRESULT TestRestriction(LPSRestriction lpCondition, ULONG cValues, LPSPropValue lpPropVals, const ECLocale &locale, ULONG ulLevel) {
-	HRESULT hr = hrSuccess;
-	ECRowWrapper *lpRowWrapper = new ECRowWrapper(lpPropVals, cValues);
-
-	hr = TestRestriction(lpCondition, (IMAPIProp *)lpRowWrapper, locale, ulLevel);
-	delete lpRowWrapper;
-	return hr;
+	ECRowWrapper lpRowWrapper(lpPropVals, cValues);
+	return TestRestriction(lpCondition, static_cast<IMAPIProp *>(&lpRowWrapper), locale, ulLevel);
 }
 
 HRESULT TestRestriction(LPSRestriction lpCondition, IMAPIProp *lpMessage, const ECLocale &locale, ULONG ulLevel) {

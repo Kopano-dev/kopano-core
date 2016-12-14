@@ -165,9 +165,6 @@ HRESULT IMToMAPI(IMAPISession *lpSession, IMsgStore *lpMsgStore,
     IAddrBook *lpAddrBook, IMessage *lpMessage, const string &input,
     delivery_options dopt)
 {
-	HRESULT hr = hrSuccess;
-	VMIMEToMAPI *VMToM = NULL;
-	
 	// Sanitize options
 	if (dopt.ascii_upgrade == nullptr || *dopt.ascii_upgrade == '\0') {
 		dopt.ascii_upgrade = "us-ascii";
@@ -177,15 +174,9 @@ HRESULT IMToMAPI(IMAPISession *lpSession, IMsgStore *lpMsgStore,
 			dopt.ascii_upgrade);
 		dopt.ascii_upgrade = "us-ascii";
 	}
-	VMToM = new VMIMEToMAPI(lpAddrBook, dopt);
 	InitializeVMime();
-
 	// fill mapi object from buffer
-	hr = VMToM->convertVMIMEToMAPI(input, lpMessage);
-
-	delete VMToM;
-	
-	return hr;
+	return VMIMEToMAPI(lpAddrBook, dopt).convertVMIMEToMAPI(input, lpMessage);
 }
 
 // Read properties from lpMessage object and fill a buffer with internet rfc822 format message
@@ -210,13 +201,12 @@ HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
 {
 	HRESULT			hr			= hrSuccess;
 	memory_ptr<SPropValue> lpTime, lpMessageId;
-	auto mToVM = new MAPIToVMIME(lpSession, lpAddrBook, sopt);
+	MAPIToVMIME mToVM(lpSession, lpAddrBook, sopt);
 	vmime::shared_ptr<vmime::message> lpVMMessage;
 	vmime::utility::outputStreamAdapter adapter(os);
 
 	InitializeVMime();
-
-	hr = mToVM->convertMAPIToVMIME(lpMessage, &lpVMMessage);
+	hr = mToVM.convertMAPIToVMIME(lpMessage, &lpVMMessage);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -239,7 +229,6 @@ HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
 	}
 	
 exit:
-	delete mToVM;
 	return hr;
 }
 
@@ -249,7 +238,7 @@ HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
     IMessage *lpMessage, ECSender *mailer_base, sending_options sopt)
 {
 	HRESULT			hr	= hrSuccess;
-	auto mToVM = new MAPIToVMIME(lpSession, lpAddrBook, sopt);
+	MAPIToVMIME mToVM(lpSession, lpAddrBook, sopt);
 	vmime::shared_ptr<vmime::message> vmMessage;
 	ECVMIMESender		*mailer	= dynamic_cast<ECVMIMESender*>(mailer_base);
 	wstring			wstrError;
@@ -263,9 +252,9 @@ HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
 	}
 
 	InitializeVMime();
-	hr = mToVM->convertMAPIToVMIME(lpMessage, &vmMessage, MTV_SPOOL);
+	hr = mToVM.convertMAPIToVMIME(lpMessage, &vmMessage, MTV_SPOOL);
 	if (hr != hrSuccess) {
-		wstrError = mToVM->getConversionError();
+		wstrError = mToVM.getConversionError();
 		if (wstrError.empty())
 			wstrError = L"No error details specified";
 
@@ -305,8 +294,6 @@ HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
 	hr = mailer->sendMail(lpAddrBook, lpMessage, vmMessage, sopt.allow_send_to_everyone, sopt.always_expand_distr_list);
 
 exit:
-	delete mToVM;
-
 	return hr;
 }
 
