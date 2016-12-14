@@ -45,10 +45,19 @@ class Service(kopano.Service):
         recipients = [] # XXX groups etc?
         for r in message.subrecipients:
             user = None
+            key = None
             if r.AddressType == 'EX' and r.ObjectType==6 and r.DisplayType==0:
-                user = self.server.user(email=r.DisplayName) # XXX using email arg for fullname resolution..
+                key = r.DisplayName
             elif r.AddressType == 'ZARAFA' and r.ObjectType==6 and r.DisplayType==0:
-                user = self.server.user(email=r.EmailAddress) # zarafa username (or email address sometimes apparently)
+                key = r.EmailAddress
+            if key:
+                try:
+                    user = self.server.user(email=key) # XXX using email arg for name/fullname/email
+                except kopano.NotFoundError:
+                    if key not in self.unresolved:
+                        self.log.warning("could not resolve user '%s'" % key)
+                        self.unresolved.add(key)
+
             recipients.append([
                 SPropValue(PR_RECIPIENT_TYPE, r.RecipientType),
                 SPropValue(PR_DISPLAY_TYPE, r.DisplayType),
@@ -99,6 +108,7 @@ class Service(kopano.Service):
 
     def main(self):
         self.stats = {'messages': 0, 'errors': 0}
+        self.unresolved = set()
         t0 = time.time()
         for arg in self.args:
             self.log.info("importing file '%s'" % arg)
@@ -131,7 +141,7 @@ def show_contents(args, options):
                     writer.writerow([_encode(path), _encode(message.Subject)])
 
 def main():
-    parser = kopano.parser('cflskpUPu', usage='kopano-pst PATH -u NAME')
+    parser = kopano.parser('cflskpUPu', usage='kopano-pst PATH [-u NAME]')
     parser.add_option('', '--stats', dest='stats', action='store_true', help='list folders for PATH')
     parser.add_option('', '--index', dest='index', action='store_true', help='list items for PATH')
     parser.add_option('', '--import-root', dest='import_root', action='store', help='list items for PATH', metavar='PATH')
@@ -139,9 +149,9 @@ def main():
     options, args = parser.parse_args()
     options.service = False
 
-    assert args, 'please specify path(s) to .pst file(s)'
-    if not (options.stats or options.index):
-        assert options.users, 'please specify user(s) to import to'
+    if not args or (bool(options.stats or options.index) == bool(options.users)):
+        parser.print_help()
+        sys.exit(1)
 
     if options.stats or options.index:
         show_contents(args, options)
