@@ -1496,7 +1496,7 @@ static HRESULT HrResolveToSMTP(LPADRBOOK lpAdrBook,
     IMAPIProp *lpMailUser = NULL;
 	memory_ptr<SPropValue> lpSMTPAddress, lpEmailAddress;
      
-    hr = MAPIAllocateBuffer(sizeof(ADRLIST), (void **)&lpAdrList);
+    hr = MAPIAllocateBuffer(CbNewADRLIST(1), (void **)&lpAdrList);
     if(hr != hrSuccess)
         goto exit;
     
