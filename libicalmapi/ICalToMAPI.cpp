@@ -557,18 +557,13 @@ HRESULT ICalToMapiImpl::SaveProps(const std::list<SPropValue> *lpPropList,
 	// all props to message
 	hr = MAPIAllocateBuffer(lpPropList->size() * sizeof(SPropValue), &~lpsPropVals);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// @todo: add exclude list or something? might set props the caller doesn't want (see vevent::HrAddTimes())
 	i = 0;
 	for (const auto &prop : *lpPropList)
 		lpsPropVals[i++] = prop;
-	hr = lpMapiProp->SetProps(i, lpsPropVals, NULL);
-	if (FAILED(hr))
-		goto exit;
-
-exit:
-	return hr;
+	return lpMapiProp->SetProps(i, lpsPropVals, NULL);
 }
 
 /**
@@ -679,7 +674,7 @@ HRESULT ICalToMapiImpl::SaveAttendeesString(const std::list<icalrecip> *lplstRec
 
 	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 3, &~lpsPropValue);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Create attendees string
 	for (const auto &recip : *lplstRecip) {
@@ -705,13 +700,7 @@ HRESULT ICalToMapiImpl::SaveAttendeesString(const std::list<icalrecip> *lplstRec
 	lpsPropValue[1].Value.lpszW = (WCHAR*)strCCAttendees.c_str();
 	lpsPropValue[2].ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_ALLATTENDEESSTRING], PT_UNICODE);
 	lpsPropValue[2].Value.lpszW = (WCHAR*)strAllAttendees.c_str();
-
-	hr = lpMessage->SetProps(3, lpsPropValue, NULL);
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+	return lpMessage->SetProps(3, lpsPropValue, nullptr);
 }
 
 } /* namespace */

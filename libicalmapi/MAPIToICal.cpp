@@ -142,20 +142,16 @@ HRESULT MapiToICalImpl::AddMessage(LPMESSAGE lpMessage, const std::string &strSr
 	if(ulFlags & M2IC_CENSOR_PRIVATE)
 		blCensor = true;
 
-	if (lpMessage == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (lpMessage == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 	if (m_lpNamedProps == NULL) {
 		hr = HrLookupNames(lpMessage, &m_lpNamedProps);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 	hr = HrGetOneProp(lpMessage, PR_MESSAGE_CLASS_A, &~lpMessageClass);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	if (strcasecmp(lpMessageClass->Value.lpszA, "IPM.Task") == 0) {
 		hr = HrGetTzStruct(strSrvTZ, &ttTZinfo);
 		if(hr == hrSuccess)
@@ -167,15 +163,13 @@ HRESULT MapiToICalImpl::AddMessage(LPMESSAGE lpMessage, const std::string &strSr
 	} else if (strcasecmp(lpMessageClass->Value.lpszA, "IPM.Appointment") == 0 || strncasecmp(lpMessageClass->Value.lpszA, "IPM.Schedule", strlen("IPM.Schedule")) == 0) {
 		lpVEC.reset(new VEventConverter(m_lpAdrBook, &m_tzMap, m_lpNamedProps, m_strCharset, blCensor, false, NULL));
 	} else {
-		hr = MAPI_E_TYPE_NO_SUPPORT;
-		goto exit;
+		return MAPI_E_TYPE_NO_SUPPORT;
 	}
 
 	// converts item to ical item (eg. IPM.Appointment to VEVENT)
 	hr = lpVEC->HrMAPI2ICal(lpMessage, &icMethod, &lstEvents);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	for (auto ev : lstEvents) {
 		++m_ulEvents;
 		icalcomponent_add_component(m_lpicCalender, ev);
@@ -185,9 +179,7 @@ HRESULT MapiToICalImpl::AddMessage(LPMESSAGE lpMessage, const std::string &strSr
 		m_icMethod = ICAL_METHOD_PUBLISH;
 	else
 		m_icMethod = icMethod;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 

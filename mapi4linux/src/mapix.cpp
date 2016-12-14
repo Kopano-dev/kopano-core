@@ -1842,7 +1842,7 @@ HRESULT M4LAddrBook::addProvider(const std::string &profilename, const std::stri
 	hr = newProvider->Logon(m_lpMAPISup, 0, (TCHAR*)profilename.c_str(), 0, &cbSecurity, &~lpSecurity, &~lpMAPIError, &lpABLogon);
 	if (hr != hrSuccess) {
 		ec_log_err("M4LAddrBook::addProvider(): logon fail %x: %s", hr, GetMAPIErrorMessage(hr));
-		goto exit;
+		return hr;
 	}
 
 	// @todo?, call lpABLogon->OpenEntry(0,NULL) to get the root folder, and save that entryid that we can use for the GetHierarchyTable of our root container?
@@ -1854,9 +1854,7 @@ HRESULT M4LAddrBook::addProvider(const std::string &profilename, const std::stri
 	entry.lpABLogon = lpABLogon;
 
 	m_lABProviders.push_back(entry);
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT M4LAddrBook::getDefaultSearchPath(ULONG ulFlags, LPSRowSet* lppSearchPath)

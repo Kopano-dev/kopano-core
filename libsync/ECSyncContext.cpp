@@ -620,36 +620,33 @@ HRESULT ECSyncContext::HrSaveSyncStatus(LPSPropValue *lppSyncStatusProp)
 
 		hr = ssp.second->Stat(&sStat, STATFLAG_NONAME);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		ulSize = sStat.cbSize.LowPart;
 		strSyncStatus.append((char*)&ulSize, 4);
 		ZLOG_DEBUG(m_lpLogger, "  Stream: size=%u, sourcekey=%s", ulSize,
 			bin2hex(ssp.first.size(), reinterpret_cast<const unsigned char *>(ssp.first.data())).c_str());
 		hr = ssp.second->Seek(liPos, STREAM_SEEK_SET, NULL);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		lpszStream.reset(new char[sStat.cbSize.LowPart]);
 		hr = ssp.second->Read(lpszStream.get(), sStat.cbSize.LowPart, &ulSize);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		strSyncStatus.append(lpszStream.get(), sStat.cbSize.LowPart);
 	}
 
 	hr = MAPIAllocateBuffer(sizeof *lpSyncStatusProp, &~lpSyncStatusProp);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	memset(lpSyncStatusProp, 0, sizeof *lpSyncStatusProp);
 
 	lpSyncStatusProp->Value.bin.cb = strSyncStatus.size();
 	hr = MAPIAllocateMore(strSyncStatus.size(), lpSyncStatusProp, (void**)&lpSyncStatusProp->Value.bin.lpb);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	memcpy(lpSyncStatusProp->Value.bin.lpb, strSyncStatus.data(), strSyncStatus.size());
 	*lppSyncStatusProp = lpSyncStatusProp.release();
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECSyncContext::HrGetSyncStatusStream(LPMAPIFOLDER lpFolder, LPSTREAM *lppStream)
@@ -659,14 +656,8 @@ HRESULT ECSyncContext::HrGetSyncStatusStream(LPMAPIFOLDER lpFolder, LPSTREAM *lp
 
 	hr = HrGetOneProp(lpFolder, PR_SOURCE_KEY, &~lpPropVal);
 	if(hr != hrSuccess)
-		goto exit;
-
-	hr = HrGetSyncStatusStream(&lpPropVal->Value.bin, lppStream);
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+		return hr;
+	return HrGetSyncStatusStream(&lpPropVal->Value.bin, lppStream);
 }
 
 HRESULT ECSyncContext::HrGetSyncStatusStream(SBinary *lpsSourceKey, LPSTREAM *lppStream)
