@@ -1716,11 +1716,16 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(ULONG ulInstanceId,
 	ECRESULT er = erSuccess;
 	string filename = CreateAttachmentFilename(ulInstanceId, compressAttachment);
 	gzFile gzfp = NULL;
-	int fd = -1;
+	int fd = open(filename.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IWUSR | S_IRUSR | S_IRGRP);
+	if (fd < 0) {
+		ec_log_err("Unable to open attachment \"%s\" for writing: %s", filename.c_str(), strerror(errno));
+		er = KCERR_DATABASE_ERROR;
+		goto exit;
+	}
 
 	// no need to remove the file, just overwrite it
 	if (compressAttachment) {
-		gzfp = gzopen(filename.c_str(), std::string("wb" + m_CompressionLevel).c_str());
+		gzfp = gzdopen(fd, std::string("wb" + m_CompressionLevel).c_str());
 		if (!gzfp) {
 			ec_log_err("Unable to gzopen attachment \"%s\" for writing: %s", filename.c_str(), strerror(errno));
 			er = KCERR_DATABASE_ERROR;
@@ -1736,13 +1741,6 @@ ECRESULT ECFileAttachment::SaveAttachmentInstance(ULONG ulInstanceId,
 		}
 	}
 	else {
-		fd = open(filename.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IWUSR | S_IRUSR);
-		if (fd < 0) {
-			ec_log_err("Unable to open attachment \"%s\" for writing: %s", filename.c_str(), strerror(errno));
-			er = KCERR_DATABASE_ERROR;
-			goto exit;
-		}
-
 		give_filesize_hint(fd, iSize);
 
 		ssize_t iWritten = write_retry(fd, lpData, iSize);
