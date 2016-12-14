@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <new>
 #include <arpa/inet.h>
 #include "ECFifoBuffer.h"
 #include "ECSerializer.h"
@@ -277,19 +278,10 @@ ECRESULT ECFifoSerializer::Read(void *ptr, size_t size, size_t nmemb)
 ECRESULT ECFifoSerializer::Skip(size_t size, size_t nmemb)
 {
 	ECRESULT er = erSuccess;
-	char *buf = NULL;
-
-	try {
-		buf = new char[size*nmemb];
-	} catch(...) {
-		er = KCERR_NOT_ENOUGH_MEMORY;
-	}
-	if (er != erSuccess)
-		goto exit;
-
+	auto buf = new(std::nothrow) char[size*nmemb];
+	if (buf == nullptr)
+		return KCERR_NOT_ENOUGH_MEMORY;
 	er = Read(buf, size, nmemb);
-
-exit:
 	delete[] buf;
 	return er;
 }

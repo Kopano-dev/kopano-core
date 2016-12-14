@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <new>
 #include "ZCMAPIProp.h"
 #include "ZCABData.h"
 
@@ -312,11 +313,8 @@ HRESULT ZCMAPIProp::Create(IMAPIProp *lpContact, ULONG cbEntryID, LPENTRYID lpEn
 		hr = MAPI_E_INVALID_OBJECT;
 		goto exit;
 	}
-
-	try {
-		lpZCMAPIProp = new ZCMAPIProp(lpCABEntryID->ulObjType);
-	}
-	catch (...) {
+	lpZCMAPIProp = new(std::nothrow) ZCMAPIProp(lpCABEntryID->ulObjType);
+	if (lpZCMAPIProp == nullptr) {
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
 	}

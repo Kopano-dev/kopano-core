@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <new>
 #include "ECRulesTableProxy.h"
 #include <kopano/ECGuid.h>
 #include <kopano/mapi_ptr.h>
@@ -42,16 +43,11 @@ ECRulesTableProxy::~ECRulesTableProxy()
 
 HRESULT ECRulesTableProxy::Create(LPMAPITABLE lpTable, ECRulesTableProxy **lppRulesTableProxy)
 {
-	mapi_object_ptr<ECRulesTableProxy> ptrRulesTableProxy;
-
 	if (lpTable == NULL || lppRulesTableProxy == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	try {
-		ptrRulesTableProxy.reset(new ECRulesTableProxy(lpTable));
-	} catch (const std::bad_alloc &) {
+	mapi_object_ptr<ECRulesTableProxy> ptrRulesTableProxy(new(std::nothrow) ECRulesTableProxy(lpTable));
+	if (ptrRulesTableProxy == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	}
-
 	*lppRulesTableProxy = ptrRulesTableProxy.release();
 	return hrSuccess;
 }

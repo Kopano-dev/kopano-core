@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <new>
 #include "archive.h"
 
 #include <kopano/ECLogger.h>
@@ -60,12 +61,10 @@ HRESULT Archive::Create(IMAPISession *lpSession, ArchivePtr *lpptrArchive)
 {
 	if (lpSession == NULL || lpptrArchive == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-
-	try {
-		lpptrArchive->reset(new Archive(lpSession));
-	} catch (const std::bad_alloc &) {
+	auto x = new(std::nothrow) Archive(lpSession);
+	if (x == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	}
+	lpptrArchive->reset(x);
 	return hrSuccess;
 }
 

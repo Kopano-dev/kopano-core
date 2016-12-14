@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <new>
 #include <kopano/ECLogger.h>
 #include "instanceidmapper.h"
 #include "Archiver.h"
@@ -39,10 +40,8 @@ HRESULT InstanceIdMapper::Create(ECLogger *lpLogger, ECConfig *lpConfig, Instanc
 			LogConfigErrors(lpLocalConfig);
 		}
 	}
-
-	try {
-		lpMapper = new InstanceIdMapper(lpLogger);
-	} catch (const std::bad_alloc &) {
+	lpMapper = new(std::nothrow) InstanceIdMapper(lpLogger);
+	if (lpMapper == nullptr) {
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
 	}

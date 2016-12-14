@@ -15,6 +15,7 @@
  *
  */
 #include <kopano/zcdefs.h>
+#include <new>
 #include <kopano/platform.h>
 #include <kopano/ECRestriction.h>
 #include <kopano/memory.hpp>
@@ -90,11 +91,9 @@ HRESULT CreateICalToMapi(IMAPIProp *lpPropObj, LPADRBOOK lpAdrBook, bool bNoReci
 {
 	if (lpPropObj == nullptr || lppICalToMapi == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	try {
-		*lppICalToMapi = new ICalToMapiImpl(lpPropObj, lpAdrBook, bNoRecipients);
-	} catch (...) {
+	*lppICalToMapi = new(std::nothrow) ICalToMapiImpl(lpPropObj, lpAdrBook, bNoRecipients);
+	if (*lppICalToMapi == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	}
 	return hrSuccess;
 }
 

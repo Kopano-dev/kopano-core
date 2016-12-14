@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <memory>
+#include <new>
 #include "MAPIPropHelper.h"
 
 #include "ArchiverSession.h"
@@ -44,14 +45,9 @@ namespace KC { namespace helpers {
 HRESULT MAPIPropHelper::Create(MAPIPropPtr ptrMapiProp, MAPIPropHelperPtr *lpptrMAPIPropHelper)
 {
 	HRESULT hr;
-	MAPIPropHelperPtr ptrMAPIPropHelper;
-	
-	try {
-		ptrMAPIPropHelper.reset(new MAPIPropHelper(ptrMapiProp));
-	} catch (std::bad_alloc &) {
+	MAPIPropHelperPtr ptrMAPIPropHelper(new(std::nothrow) MAPIPropHelper(ptrMapiProp));
+	if (ptrMAPIPropHelper == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	}
-	
 	hr = ptrMAPIPropHelper->Init();
 	if (hr != hrSuccess)
 		return hr;

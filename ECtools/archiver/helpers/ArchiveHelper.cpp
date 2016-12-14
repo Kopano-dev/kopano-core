@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <new>
 #include "ArchiveHelper.h"
 #include "ArchiverSession.h"
 #include <kopano/ECLogger.h>
@@ -43,14 +44,11 @@ namespace KC { namespace helpers {
 HRESULT ArchiveHelper::Create(LPMDB lpArchiveStore, const tstring &strFolder, const char *lpszServerPath, ArchiveHelperPtr *lpptrArchiveHelper)
 {
 	HRESULT hr;
-	ArchiveHelperPtr ptrArchiveHelper;
-	
-	try {
-		ptrArchiveHelper.reset(new ArchiveHelper(lpArchiveStore, strFolder, lpszServerPath ? lpszServerPath : std::string()));
-	} catch (std::bad_alloc &) {
+	ArchiveHelperPtr ptrArchiveHelper(
+		new(std::nothrow) ArchiveHelper(lpArchiveStore, strFolder,
+		lpszServerPath ? lpszServerPath : std::string()));
+	if (ptrArchiveHelper == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	}
-	
 	hr = ptrArchiveHelper->Init();
 	if (hr != hrSuccess)
 		return hr;
@@ -75,14 +73,11 @@ HRESULT ArchiveHelper::Create(LPMDB lpArchiveStore, const tstring &strFolder, co
 HRESULT ArchiveHelper::Create(LPMDB lpArchiveStore, LPMAPIFOLDER lpArchiveFolder, const char *lpszServerPath, ArchiveHelperPtr *lpptrArchiveHelper)
 {
 	HRESULT hr;
-	ArchiveHelperPtr ptrArchiveHelper;
-	
-	try {
-		ptrArchiveHelper.reset(new ArchiveHelper(lpArchiveStore, lpArchiveFolder, lpszServerPath ? lpszServerPath : std::string()));
-	} catch (std::bad_alloc &) {
+	ArchiveHelperPtr ptrArchiveHelper(
+		new(std::nothrow) ArchiveHelper(lpArchiveStore, lpArchiveFolder,
+		lpszServerPath ? lpszServerPath : std::string()));
+	if (ptrArchiveHelper == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	}
-	
 	hr = ptrArchiveHelper->Init();
 	if (hr != hrSuccess)
 		return hr;

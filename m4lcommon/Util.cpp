@@ -21,7 +21,7 @@
 #include <mapidefs.h>
 #include <mapiutil.h>
 #include <mapispi.h>
-
+#include <new>
 #include <string>
 #include <stack>
 #include <set>
@@ -1342,10 +1342,8 @@ HRESULT Util::HrTextToHtml(IStream *text, IStream *html, ULONG ulCodepage)
 		hr = MAPI_E_BAD_CHARWIDTH;
 		goto exit;
 	}
-
-	try {
-		writeBuffer = new char[BUFSIZE * 2];
-	} catch (...) {
+	writeBuffer = new(std::nothrow) char[BUFSIZE * 2];
+	if (writeBuffer == nullptr) {
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
 	}

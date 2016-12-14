@@ -16,7 +16,7 @@
  */
 
 #include <kopano/platform.h>
-
+#include <new>
 #include <Python.h>
 #include <mapi.h>
 #include <mapix.h>
@@ -356,11 +356,8 @@ HRESULT PyMapiPluginFactory::Init(ECConfig* lpConfig, ECLogger *lpLogger)
 HRESULT PyMapiPluginFactory::CreatePlugin(const char* lpPluginManagerClassName, PyMapiPlugin **lppPlugin)
 {
 	HRESULT hr = S_OK;
-	PyMapiPlugin *lpPlugin = NULL;
-	
-	try {
-		lpPlugin = new PyMapiPlugin();
-	} catch (const std::bad_alloc &) {
+	auto lpPlugin = new(std::nothrow) PyMapiPlugin();
+	if (lpPlugin == nullptr) {
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
 	}

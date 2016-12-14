@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <new>
 #include <kopano/archiver-common.h>
 #include "ArchiveStateUpdater.h"
 #include "ArchiverSession.h"
@@ -105,14 +106,11 @@ namespace Predicates {
  */
 HRESULT ArchiveStateUpdater::Create(const ArchiverSessionPtr &ptrSession, ECLogger *lpLogger, const ArchiveInfoMap &mapArchiveInfo, ArchiveStateUpdaterPtr *lpptrUpdater)
 {
-	ArchiveStateUpdaterPtr ptrUpdater;
-	
-	try {
-		ptrUpdater = ArchiveStateUpdaterPtr(new ArchiveStateUpdater(ptrSession, lpLogger, mapArchiveInfo));
-	} catch (const std::bad_alloc &) {
+	ArchiveStateUpdaterPtr ptrUpdater(
+		new(std::nothrow) ArchiveStateUpdater(ptrSession, lpLogger,
+		mapArchiveInfo));
+	if (ptrUpdater == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	}
-
 	*lpptrUpdater = ptrUpdater;
 	return hrSuccess;
 }

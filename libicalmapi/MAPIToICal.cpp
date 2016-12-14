@@ -17,6 +17,7 @@
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
 #include <memory>
+#include <new>
 #include <kopano/memory.hpp>
 #include "MAPIToICal.h"
 #include <libical/ical.h>
@@ -70,11 +71,9 @@ HRESULT CreateMapiToICal(LPADRBOOK lpAdrBook, const std::string &strCharset, Map
 {
 	if (!lpAdrBook || !lppMapiToICal)
 		return MAPI_E_INVALID_PARAMETER;
-	try {
-		*lppMapiToICal = new MapiToICalImpl(lpAdrBook, strCharset);
-	} catch (...) {
+	*lppMapiToICal = new(std::nothrow) MapiToICalImpl(lpAdrBook, strCharset);
+	if (*lppMapiToICal == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	}
 	return hrSuccess;
 }
 

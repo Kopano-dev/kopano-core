@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <memory>
+#include <new>
 #include <mapix.h>
 #include <mapiutil.h>
 #include "StoreHelper.h"
@@ -59,14 +60,9 @@ StoreHelper::search_folder_info_t StoreHelper::s_infoSearchFolders[] = {
 HRESULT StoreHelper::Create(MsgStorePtr &ptrMsgStore, StoreHelperPtr *lpptrStoreHelper)
 {
 	HRESULT hr;
-	StoreHelperPtr ptrStoreHelper;
-	
-	try {
-		ptrStoreHelper.reset(new StoreHelper(ptrMsgStore));
-	} catch (bad_alloc &) {
+	StoreHelperPtr ptrStoreHelper(new(std::nothrow) StoreHelper(ptrMsgStore));
+	if (ptrStoreHelper == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	}
-	
 	hr = ptrStoreHelper->Init();
 	if (hr != hrSuccess)
 		return hr;

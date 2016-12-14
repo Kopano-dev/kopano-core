@@ -16,22 +16,18 @@
  */
 
 #include <kopano/platform.h>
+#include <new>
 #include "ECMessageStreamImporterIStreamAdapter.h"
 #include <kopano/ECInterfaceDefs.h>
 
 HRESULT ECMessageStreamImporterIStreamAdapter::Create(WSMessageStreamImporter *lpStreamImporter, IStream **lppStream)
 {
-	ECMessageStreamImporterIStreamAdapterPtr ptrAdapter;
-
 	if (lpStreamImporter == NULL || lppStream == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
-	try {
-		ptrAdapter.reset(new ECMessageStreamImporterIStreamAdapter(lpStreamImporter));
-	} catch (const std::bad_alloc &) {
+	ECMessageStreamImporterIStreamAdapterPtr ptrAdapter(new(std::nothrow) ECMessageStreamImporterIStreamAdapter(lpStreamImporter));
+	if (ptrAdapter == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	}
-
 	return ptrAdapter->QueryInterface(IID_IStream, reinterpret_cast<LPVOID *>(lppStream));
 }
 

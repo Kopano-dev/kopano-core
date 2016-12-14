@@ -16,7 +16,7 @@
  */
 
 #include <kopano/platform.h>
-
+#include <new>
 #include <mapix.h>
 #include <kopano/ECGuid.h>
 #include <kopano/ECInterfaceDefs.h>
@@ -64,14 +64,9 @@ ECMemBlock::~ECMemBlock()
 HRESULT	ECMemBlock::Create(const char *buffer, ULONG ulDataLen, ULONG ulFlags,
     ECMemBlock **lppStream)
 {
-	ECMemBlock *lpMemBlock = NULL;
-
-	try {
-		lpMemBlock = new ECMemBlock(buffer, ulDataLen, ulFlags);
-	} catch (std::exception &) {
+	auto lpMemBlock = new(std::nothrow) ECMemBlock(buffer, ulDataLen, ulFlags);
+	if (lpMemBlock == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	}
-
 	return lpMemBlock->QueryInterface(IID_ECMemBlock, (void **)lppStream);
 }
 
@@ -239,26 +234,18 @@ ULONG ECMemStream::Release()
 HRESULT	ECMemStream::Create(char *buffer, ULONG ulDataLen, ULONG ulFlags, CommitFunc lpCommitFunc, DeleteFunc lpDeleteFunc,
 							void *lpParam, ECMemStream **lppStream)
 {
-	ECMemStream *lpStream = NULL;
-
-	try {
-		lpStream = new ECMemStream(buffer, ulDataLen, ulFlags, lpCommitFunc, lpDeleteFunc, lpParam);
-	} catch (std::exception &) {
+	auto lpStream = new(std::nothrow) ECMemStream(buffer, ulDataLen, ulFlags, lpCommitFunc, lpDeleteFunc, lpParam);
+	if (lpStream == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	}
 	return lpStream->QueryInterface(IID_ECMemStream, (void **)lppStream);
 }
 
 HRESULT	ECMemStream::Create(ECMemBlock *lpMemBlock, ULONG ulFlags, CommitFunc lpCommitFunc, DeleteFunc lpDeleteFunc,
 							void *lpParam, ECMemStream **lppStream)
 {
-	ECMemStream *lpStream = NULL;
-
-	try {
-		lpStream = new ECMemStream(lpMemBlock, ulFlags, lpCommitFunc, lpDeleteFunc, lpParam);
-	} catch (std::exception &) {
+	auto lpStream = new(std::nothrow) ECMemStream(lpMemBlock, ulFlags, lpCommitFunc, lpDeleteFunc, lpParam);
+	if (lpStream == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	}
 	return lpStream->QueryInterface(IID_ECMemStream, (void **)lppStream);
 }
 

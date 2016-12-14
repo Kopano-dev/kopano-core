@@ -16,7 +16,7 @@
  */
 
 #include <kopano/platform.h>
-
+#include <new>
 #include <kopano/ECChannel.h>
 #include <kopano/stringutil.h>
 #include <csignal>
@@ -487,11 +487,8 @@ HRESULT ECChannel::HrReadBytes(std::string * strBuffer, ULONG ulByteCount) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-
-	try {
-		buffer = new char[ulByteCount + 1];
-	}
-	catch (std::exception &) {
+	buffer = new(std::nothrow) char[ulByteCount + 1];
+	if (buffer == nullptr) {
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
 	}
