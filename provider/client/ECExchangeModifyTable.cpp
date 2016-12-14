@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <memory>
 #include <kopano/memory.hpp>
 #include "WSUtil.h"
 #include "WSTransport.h"
@@ -136,7 +137,6 @@ exit:
 
 HRESULT __stdcall ECExchangeModifyTable::CreateRulesTable(ECMAPIProp *lpParent, ULONG ulFlags, LPEXCHANGEMODIFYTABLE *lppObj) {
 	HRESULT hr = hrSuccess;
-	char *szXML = NULL;
 	ECExchangeModifyTable *obj = NULL;
 	IStream *lpRulesData = NULL;
 	STATSTG statRulesData;
@@ -157,13 +157,13 @@ HRESULT __stdcall ECExchangeModifyTable::CreateRulesTable(ECMAPIProp *lpParent, 
 	if (lpParent != nullptr &&
 	    lpParent->OpenProperty(PR_RULES_DATA, &IID_IStream, 0, 0, reinterpret_cast<LPUNKNOWN *>(&lpRulesData)) == hrSuccess) {
 		lpRulesData->Stat(&statRulesData, 0);
-		szXML = new char [statRulesData.cbSize.LowPart+1];
+		std::unique_ptr<char[]> szXML(new char [statRulesData.cbSize.LowPart+1]);
 		// TODO: Loop to read all data?
-		hr = lpRulesData->Read(szXML, statRulesData.cbSize.LowPart, &ulRead);
+		hr = lpRulesData->Read(szXML.get(), statRulesData.cbSize.LowPart, &ulRead);
 		if (hr != hrSuccess || ulRead == 0)
 			goto empty;
 		szXML[statRulesData.cbSize.LowPart] = 0;
-		hr = HrDeserializeTable(szXML, ecTable, &ulRuleId);
+		hr = HrDeserializeTable(szXML.get(), ecTable, &ulRuleId);
 		/*
 		 * If the data was corrupted, or imported from
 		 * Exchange, it is incompatible, so return an
@@ -187,7 +187,6 @@ empty:
 exit:
 	if (ecTable)
 		ecTable->Release();
-	delete[] szXML;
 	if (lpRulesData)
 		lpRulesData->Release();
 
@@ -228,7 +227,6 @@ HRESULT __stdcall ECExchangeModifyTable::ModifyTable(ULONG ulFlags, LPROWLIST lp
 	LPSPropValue	lpFind = NULL;
 	memory_ptr<SPropValue> lpPropRemove;
 	ULONG			cValues = 0;
-	char *			szXML = NULL;
 	SPropValue		sPropXML;
 	ULONG			ulFlagsRow = 0;
 
@@ -287,13 +285,15 @@ HRESULT __stdcall ECExchangeModifyTable::ModifyTable(ULONG ulFlags, LPROWLIST lp
 	// The data has changed now, so save the data in the parent folder
 	if(m_ulUniqueTag == PR_RULE_ID)
 	{
-		hr = HrSerializeTable(m_ecTable, &szXML);
+		char *xml = nullptr;
+		hr = HrSerializeTable(m_ecTable, &xml);
+		std::unique_ptr<char[]> szXML(xml);
 		if(hr != hrSuccess)
 			goto exit;
 
 		sPropXML.ulPropTag = PR_RULES_DATA;
-		sPropXML.Value.bin.lpb = (BYTE *)szXML;
-		sPropXML.Value.bin.cb = strlen(szXML);
+		sPropXML.Value.bin.lpb = reinterpret_cast<BYTE *>(szXML.get());
+		sPropXML.Value.bin.cb = strlen(szXML.get());
 
 		hr = m_lpParent->SetProps(1, &sPropXML, NULL);
 		if(hr != hrSuccess)
@@ -319,7 +319,6 @@ done:
 		goto exit;
 
 exit:
-	delete[] szXML;
 	return hr;
 }
 

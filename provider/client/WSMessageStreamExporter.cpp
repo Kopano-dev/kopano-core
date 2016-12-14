@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <memory>
 #include <new>
 #include "WSMessageStreamExporter.h"
 #include "WSSerializedMessage.h"
@@ -39,7 +40,6 @@
 HRESULT WSMessageStreamExporter::Create(ULONG ulOffset, ULONG ulCount, const messageStreamArray &streams, WSTransport *lpTransport, WSMessageStreamExporter **lppStreamExporter)
 {
 	HRESULT hr = hrSuccess;
-	StreamInfo* lpsi = NULL;
 	convert_context converter;
 	WSMessageStreamExporterPtr ptrStreamExporter(new(std::nothrow) WSMessageStreamExporter);
 	if (ptrStreamExporter == nullptr) {
@@ -48,7 +48,7 @@ HRESULT WSMessageStreamExporter::Create(ULONG ulOffset, ULONG ulCount, const mes
 	}
 	
 	for (gsoap_size_t i = 0; i < streams.__size; ++i) {
-		lpsi = new StreamInfo;
+		std::unique_ptr<StreamInfo> lpsi(new StreamInfo);
 
 		lpsi->id.assign(streams.__ptr[i].sStreamData.xop__Include.id);
 		hr = MAPIAllocateBuffer(streams.__ptr[i].sPropVals.__size * sizeof(SPropValue), &~lpsi->ptrPropVals);
@@ -61,8 +61,7 @@ HRESULT WSMessageStreamExporter::Create(ULONG ulOffset, ULONG ulCount, const mes
 		}
 		lpsi->cbPropVals = streams.__ptr[i].sPropVals.__size;
 
-		ptrStreamExporter->m_mapStreamInfo[streams.__ptr[i].ulStep + ulOffset] = lpsi;
-		lpsi = NULL;
+		ptrStreamExporter->m_mapStreamInfo[streams.__ptr[i].ulStep + ulOffset] = lpsi.release();
 	}
 
 	ptrStreamExporter->m_ulExpectedIndex = ulOffset;
@@ -72,7 +71,6 @@ HRESULT WSMessageStreamExporter::Create(ULONG ulOffset, ULONG ulCount, const mes
 	*lppStreamExporter = ptrStreamExporter.release();
 
 exit:
-	delete lpsi;
 	return hr;
 }
 

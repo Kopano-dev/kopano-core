@@ -16,6 +16,7 @@
  */
 
 #include <kopano/zcdefs.h>
+#include <memory>
 #include <kopano/platform.h>
 #include <memory>
 #include <kopano/stringutil.h>
@@ -544,17 +545,15 @@ ECRESULT FirstSyncProcessor::ProcessRejected(DB_ROW lpDBRow, DB_LENGTHS lpDBLen,
 ECRESULT ECGetContentChangesHelper::Create(struct soap *soap, ECSession *lpSession, ECDatabase *lpDatabase, const SOURCEKEY &sFolderSourceKey, unsigned int ulSyncId, unsigned int ulChangeId, unsigned int ulFlags, struct restrictTable *lpsRestrict, ECGetContentChangesHelper **lppHelper)
 {
 	ECRESULT					er = erSuccess;
-	ECGetContentChangesHelper	*lpHelper = new ECGetContentChangesHelper(soap, lpSession, lpDatabase, sFolderSourceKey, ulSyncId, ulChangeId, ulFlags, lpsRestrict);
-	
+	std::unique_ptr<ECGetContentChangesHelper> lpHelper(
+		new ECGetContentChangesHelper(soap, lpSession, lpDatabase,
+		sFolderSourceKey, ulSyncId, ulChangeId, ulFlags, lpsRestrict));
 	er = lpHelper->Init();
 	if (er != erSuccess)
 		goto exit;
 	assert(lppHelper != NULL);
-	*lppHelper = lpHelper;
-	lpHelper = NULL;
-	
+	*lppHelper = lpHelper.release();
 exit:
-	delete lpHelper;
 	return er;
 }
 
