@@ -208,7 +208,7 @@ HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
 	InitializeVMime();
 	hr = mToVM.convertMAPIToVMIME(lpMessage, &lpVMMessage);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	try {
 		// vmime messageBuilder has set Date header to now(), so we overwrite it.
@@ -220,16 +220,12 @@ HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
 		lpVMMessage->generate(adapter);
 	}
 	catch (vmime::exception&) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
+		return MAPI_E_NOT_FOUND;
 	}
 	catch (std::exception&) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
+		return MAPI_E_NOT_FOUND;
 	}
-	
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 // Read properties from lpMessage object and to internet rfc2822 format message
@@ -246,10 +242,8 @@ HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
 	SizedSPropTagArray(2, sptaForwardProps) = { 2, { PR_AUTO_FORWARDED, PR_INTERNET_MESSAGE_ID_A } };
 	ULONG cValues = 0;
 
-	if (!mailer) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (mailer == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 
 	InitializeVMime();
 	hr = mToVM.convertMAPIToVMIME(lpMessage, &vmMessage, MTV_SPOOL);
@@ -259,7 +253,7 @@ HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
 			wstrError = L"No error details specified";
 
 		mailer->setError(L"Conversion error: " + wstringify(hr, true) + L". " + wstrError + L". Your email is not sent at all and cannot be retried.");
-		goto exit;
+		return hr;
 	}
 
 	try {
@@ -272,29 +266,22 @@ HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
 			// vmime::messageId::generateId() is not random enough since we use forking in the spooler
 			msgId = vmime::messageId(generateRandomMessageId(), vmime::platform::getHandler()->getHostName());
 		}
-		hr = hrSuccess;
 		vmMessage->getHeader()->MessageId()->setValue(msgId);
 		ec_log_debug("Sending message with Message-ID: " + msgId.getId());
 	}
 	catch (vmime::exception& e) {
 		mailer->setError(e.what());
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
+		return MAPI_E_NOT_FOUND;
 	}
 	catch (std::exception& e) {
 		mailer->setError(e.what());
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
+		return MAPI_E_NOT_FOUND;
 	}
 	catch (...) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
+		return MAPI_E_NOT_FOUND;
 	}
-	
-	hr = mailer->sendMail(lpAddrBook, lpMessage, vmMessage, sopt.allow_send_to_everyone, sopt.always_expand_distr_list);
-
-exit:
-	return hr;
+	return mailer->sendMail(lpAddrBook, lpMessage, vmMessage,
+	       sopt.allow_send_to_everyone, sopt.always_expand_distr_list);
 }
 
 /** 

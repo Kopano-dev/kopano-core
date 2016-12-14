@@ -727,19 +727,19 @@ HRESULT MAPIToVMIME::BuildNoteMessage(IMessage *lpMessage,
 		// messageBuilder is body and simple headers only (to/cc/subject/...)
 		hr = fillVMIMEMail(lpMessage, flags & MTV_SKIP_CONTENT, &vmMessageBuilder);
 		if (hr != hrSuccess)
-			goto exit;			// Logging has been done in fillVMIMEMail()
+			return hr; // Logging has been done in fillVMIMEMail()
 
 		vmMessage = vmMessageBuilder.construct();
 		// message builder has set Date header to now(). this will be overwritten.
 		auto vmHeader = vmMessage->getHeader();
 		hr = handleExtraHeaders(lpMessage, vmHeader, flags);
 		if (hr!= hrSuccess)
-			goto exit;
+			return hr;
 
 		// from/sender headers
 		hr = handleSenderInfo(lpMessage, vmHeader);
 		if (hr!= hrSuccess)
-			goto exit;
+			return hr;
 
 		// add reply to email, ignore errors
 		hr = handleReplyTo(lpMessage, vmHeader);
@@ -809,24 +809,19 @@ HRESULT MAPIToVMIME::BuildNoteMessage(IMessage *lpMessage,
 	}
 	catch (vmime::exception& e) {
 		ec_log_err("VMIME exception: %s", e.what());
-		hr = MAPI_E_CALL_FAILED; // set real error
-		goto exit;
+		return MAPI_E_CALL_FAILED; // set real error
 	}
 	catch (std::exception& e) {
 		ec_log_err("STD exception on note message: %s", e.what());
-		hr = MAPI_E_CALL_FAILED; // set real error
-		goto exit;
+		return MAPI_E_CALL_FAILED; // set real error
 	}
 	catch (...) {
 		ec_log_err("Unknown generic exception on note message");
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
 
 	*lpvmMessage = vmMessage;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -1572,7 +1567,7 @@ HRESULT MAPIToVMIME::handleXHeaders(IMessage *lpMessage,
 	// get all props on message
 	hr = lpMessage->GetPropList(0, &~lpsAllTags);
 	if (FAILED(hr))
-		goto exit;
+		return hr;
 
 	// find number of named props, which contain a string
 	cNames = 0;
@@ -1582,11 +1577,10 @@ HRESULT MAPIToVMIME::handleXHeaders(IMessage *lpMessage,
 
 	// no string named properties found, we're done.
 	if (cNames == 0)
-		goto exit;
-
+		return hr;
 	hr = MAPIAllocateBuffer(CbNewSPropTagArray(cNames), (void **)&lpsNamedTags);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	lpsNamedTags->cValues = cNames;
 
 	// make named prop array
@@ -1597,10 +1591,10 @@ HRESULT MAPIToVMIME::handleXHeaders(IMessage *lpMessage,
 	
 	hr = lpMessage->GetNamesFromIDs(&lpsNamedTags, NULL, 0, &cNames, &~lppNames);
 	if (FAILED(hr))
-		goto exit;
+		return hr;
 	hr = lpMessage->GetProps(lpsNamedTags, 0, &cValues, &~lpPropArray);
 	if (FAILED(hr))
-		goto exit;
+		return hr;
 
 	for (i = 0; i < cNames; ++i) {
 		if (lppNames[i] == nullptr ||
@@ -1628,8 +1622,6 @@ HRESULT MAPIToVMIME::handleXHeaders(IMessage *lpMessage,
 				vmHeader->appendField(hff->create(str.get(), lpPropArray[i].Value.lpszA));
 		}
 	}
-
-exit:
 	return hr;
 }
 
@@ -1654,7 +1646,6 @@ exit:
 HRESULT MAPIToVMIME::handleExtraHeaders(IMessage *lpMessage,
     vmime::shared_ptr<vmime::header> vmHeader, unsigned int flags)
 {
-	HRESULT hr = hrSuccess;
 	SPropValuePtr ptrMessageId;
 	memory_ptr<SPropValue> lpImportance, lpPriority, lpConversationIndex;
 	memory_ptr<SPropValue> lpConversationTopic, lpNormSubject;
@@ -1739,9 +1730,7 @@ HRESULT MAPIToVMIME::handleExtraHeaders(IMessage *lpMessage,
 	}
 	if (HrGetOneProp(lpMessage, PR_EXPIRY_TIME, &~lpExpiryTime) == hrSuccess)
 		vmHeader->appendField(hff->create("Expiry-Time", FiletimeTovmimeDatetime(lpExpiryTime->Value.ft).generate()));
-
-//exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -1857,7 +1846,7 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage,
 		PR_SENDER_ADDRTYPE_W, PR_SENDER_EMAIL_ADDRESS_W}};
 	HRESULT hr = lpMessage->GetProps(sender_proptags, 0, &cValues, &~lpProps);
 	if (FAILED(hr))
-		goto exit;
+		return hr;
 
 	hr = handleContactEntryID(cValues, lpProps, strName, strType, strEmail);
 	if (hr != hrSuccess) {
@@ -1865,7 +1854,7 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage,
 		hr = HrGetAddress(m_lpAdrBook, lpProps, cValues, PR_SENDER_ENTRYID, PR_SENDER_NAME_W, PR_SENDER_ADDRTYPE_W, PR_SENDER_EMAIL_ADDRESS_W, strName, strType, strEmail);
 		if (hr != hrSuccess) {
 			ec_log_err("Unable to get sender information. Error: 0x%08X", hr);
-			goto exit;
+			return hr;
 		}
 	}
 
@@ -1876,7 +1865,7 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage,
 		PR_SENT_REPRESENTING_EMAIL_ADDRESS_W}};
 	hr = lpMessage->GetProps(repr_proptags, 0, &cValues, &~lpProps);
 	if (FAILED(hr))
-		goto exit;
+		return hr;
 
 	hr = handleContactEntryID(cValues, lpProps, strResName, strResType, strResEmail);
 	if (hr != hrSuccess) {
@@ -1889,8 +1878,7 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage,
 		if (sopt.no_recipients_workaround == false && strResEmail.empty() && PROP_TYPE(lpProps[0].ulPropTag) != PT_ERROR) {
 			m_strError = L"Representing email address is empty";
 			ec_log_err("%ls", m_strError.c_str());
-			hr = MAPI_E_NOT_FOUND;
-			goto exit;
+			return MAPI_E_NOT_FOUND;
 		}
 	}
 
@@ -1935,9 +1923,7 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage,
 		}
 		vmHeader->DispositionNotificationTo()->setValue(mbl);
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
