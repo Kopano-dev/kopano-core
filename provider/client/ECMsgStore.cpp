@@ -2496,12 +2496,9 @@ HRESULT ECMsgStore::CreateEmptyStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYI
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-
-	if (*lpcbStoreId == 0 || *lpcbRootId == 0) {
-		if (CoCreateGuid(&guidStore) != S_OK) {
-			hr = MAPI_E_CALL_FAILED;
-			goto exit;
-		}
+	if ((*lpcbStoreId == 0 || *lpcbRootId == 0) && CoCreateGuid(&guidStore) != S_OK) {
+		hr = MAPI_E_CALL_FAILED;
+		goto exit;
 	}
 
 	if (*lpcbStoreId == 0) {
@@ -2514,13 +2511,10 @@ HRESULT ECMsgStore::CreateEmptyStore(ULONG ulStoreType, ULONG cbUserId, LPENTRYI
 		LPENTRYID lpTmp = NULL;
 
 		hr = UnWrapStoreEntryID(*lpcbStoreId, *lppStoreId, &cbTmp, &lpTmp);
-		if (hr != hrSuccess) {
-			if (hr == MAPI_E_INVALID_ENTRYID) {	// Could just be a non-wrapped entryid
-				cbTmp = *lpcbStoreId;
-				lpTmp = *lppStoreId;
-			}
+		if (hr == MAPI_E_INVALID_ENTRYID) {	// Could just be a non-wrapped entryid
+			cbTmp = *lpcbStoreId;
+			lpTmp = *lppStoreId;
 		}
-
 		hr = UnWrapServerClientStoreEntry(cbTmp, lpTmp, &cbStoreId, &lpStoreId);
 		if (hr != hrSuccess) {
 			if (lpTmp != *lppStoreId)

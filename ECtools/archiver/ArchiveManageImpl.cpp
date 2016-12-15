@@ -104,16 +104,16 @@ ArchiveManageImpl::ArchiveManageImpl(ArchiverSessionPtr ptrSession, ECConfig *lp
 	m_strUser(strUser)
 {
 	m_lpLogger = new(std::nothrow) ECArchiverLogger(lpLogger);
-	if (m_lpLogger) {
-		m_lpLogger->SetUser(strUser);
-		if (lpConfig) {
-			const char*	loglevelstring = lpConfig->GetSetting("log_level");
-			if (loglevelstring) {
-				unsigned int loglevel = strtoul(loglevelstring, NULL, 0);
-				m_lpLogger->SetLoglevel(loglevel);
-			}
-		}
-	}
+	if (m_lpLogger == nullptr)
+		return;
+	m_lpLogger->SetUser(strUser);
+	if (lpConfig == nullptr)
+		return;
+	const char *loglevelstring = lpConfig->GetSetting("log_level");
+	if (loglevelstring == nullptr)
+		return;
+	unsigned int loglevel = strtoul(loglevelstring, NULL, 0);
+	m_lpLogger->SetLoglevel(loglevel);
 }
 
 ArchiveManageImpl::~ArchiveManageImpl()

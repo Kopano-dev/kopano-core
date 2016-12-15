@@ -297,11 +297,12 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChange(ULONG cValue, LPSPr
 		}
 		
 		// Check for conflicts except for associated messages, take always the lastone
-		if (bAssociatedMessage == false && HrGetOneProp(lpMessage, PR_CHANGE_KEY, &~lpPropCK) == hrSuccess && IsConflict(lpPropCK, lpRemotePCL)) {
-			if(CreateConflictMessage(lpMessage) == MAPI_E_NOT_FOUND){
-				CreateConflictFolders();
-				CreateConflictMessage(lpMessage);
-			}
+		if (bAssociatedMessage == false &&
+		    HrGetOneProp(lpMessage, PR_CHANGE_KEY, &~lpPropCK) == hrSuccess &&
+		    IsConflict(lpPropCK, lpRemotePCL) &&
+		    CreateConflictMessage(lpMessage) == MAPI_E_NOT_FOUND){
+			CreateConflictFolders();
+			CreateConflictMessage(lpMessage);
 		}
 	}
 

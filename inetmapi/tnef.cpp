@@ -269,27 +269,26 @@ HRESULT ECTNEF::AddProps(ULONG ulFlags, LPSPropTagArray lpPropList)
 
 		fPropTagInList = PropTagInPropList(lpPropListMessage->aulPropTag[i], lpPropList);
 
-		if(( (ulFlags & TNEF_PROP_INCLUDE) && fPropTagInList) || ((ulFlags & TNEF_PROP_EXCLUDE) && !fPropTagInList)) {
-			sPropTagArray.cValues = 1;
-			sPropTagArray.aulPropTag[0] = lpPropListMessage->aulPropTag[i];
-			hr = m_lpMessage->GetProps(sPropTagArray, 0, &cValue, &~lpPropValue);
-			if (hr == hrSuccess)
-				lstProps.push_back(lpPropValue.release());
-			if(hr == MAPI_W_ERRORS_RETURNED && lpPropValue != NULL && lpPropValue->Value.err == MAPI_E_NOT_ENOUGH_MEMORY) {
-				if(m_lpMessage->OpenProperty(lpPropListMessage->aulPropTag[i], &IID_IStream, 0, 0, (LPUNKNOWN *)&lpStream) == hrSuccess)
-				{
-
-					hr = StreamToPropValue(lpStream, lpPropListMessage->aulPropTag[i], &lpStreamValue);
-					if (hr == hrSuccess) {
-						lstProps.push_back(lpStreamValue);
-						lpStreamValue = NULL;
-					}
-
-					lpStream->Release(); lpStream = NULL;
-				}
+		bool a = ulFlags & TNEF_PROP_INCLUDE && fPropTagInList;
+		a     |= ulFlags & TNEF_PROP_EXCLUDE && !fPropTagInList;
+		if (!a)
+			continue;
+		sPropTagArray.cValues = 1;
+		sPropTagArray.aulPropTag[0] = lpPropListMessage->aulPropTag[i];
+		hr = m_lpMessage->GetProps(sPropTagArray, 0, &cValue, &~lpPropValue);
+		if (hr == hrSuccess)
+			lstProps.push_back(lpPropValue.release());
+		if (hr == MAPI_W_ERRORS_RETURNED && lpPropValue != NULL &&
+		    lpPropValue->Value.err == MAPI_E_NOT_ENOUGH_MEMORY &&
+		    m_lpMessage->OpenProperty(lpPropListMessage->aulPropTag[i], &IID_IStream, 0, 0, (LPUNKNOWN *)&lpStream) == hrSuccess) {
+			hr = StreamToPropValue(lpStream, lpPropListMessage->aulPropTag[i], &lpStreamValue);
+			if (hr == hrSuccess) {
+				lstProps.push_back(lpStreamValue);
+				lpStreamValue = NULL;
 			}
-			// otherwise silently ignore the property
+			lpStream->Release(); lpStream = NULL;
 		}
+		// otherwise silently ignore the property
 	}
 	return hrSuccess;
 }

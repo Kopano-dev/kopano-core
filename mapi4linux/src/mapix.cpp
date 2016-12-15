@@ -939,17 +939,17 @@ HRESULT M4LMsgServiceAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTabl
 	ulock_rec l_srv(m_mutexserviceadmin);
 	
 	for (auto serv : services) {
-		if (serv->bInitialize == false) {
-			hr = serv->service->MSGServiceEntry()(0, NULL, NULL, 0,
-			     0, MSG_SERVICE_CREATE, 0, NULL,
-			     static_cast<IProviderAdmin *>(serv->provideradmin),
-			     NULL);
-			if(hr !=hrSuccess) {
-				ec_log_err("M4LMsgServiceAdmin::GetProviderTable(): MSGServiceEntry fail %x: %s", hr, GetMAPIErrorMessage(hr));
-				goto exit;
-			}
-			serv->bInitialize = true;
+		if (serv->bInitialize)
+			continue;
+		hr = serv->service->MSGServiceEntry()(0, NULL, NULL, 0,
+		     0, MSG_SERVICE_CREATE, 0, NULL,
+		     static_cast<IProviderAdmin *>(serv->provideradmin),
+		     NULL);
+		if (hr != hrSuccess) {
+			ec_log_err("M4LMsgServiceAdmin::GetProviderTable(): MSGServiceEntry fail %x: %s", hr, GetMAPIErrorMessage(hr));
+			goto exit;
 		}
+		serv->bInitialize = true;
 	}
 
 	hr = Util::HrCopyUnicodePropTagArray(ulFlags, sptaProviderCols, &~lpPropTagArray);
@@ -2160,83 +2160,75 @@ HRESULT M4LAddrBook::ResolveName(ULONG ulUIParam, ULONG ulFlags, LPTSTR lpszNewE
 		size_t lbracketpos = strwDisplay.find('[');
 		size_t rbracketpos = strwDisplay.find(']');
 		size_t colonpos = strwDisplay.find(':');
-		if(colonpos != std::string::npos && lbracketpos != std::string::npos && rbracketpos != std::string::npos) {
-			ULONG cbOneEntryID = 0;
-			memory_ptr<ENTRYID> lpOneEntryID;
-			memory_ptr<SPropValue> lpNewProps, lpNewRow;
+		if (colonpos == std::string::npos || lbracketpos == std::string::npos || rbracketpos == std::string::npos)
+			continue;
 
-			strwType = strwDisplay.substr(lbracketpos+1, colonpos - lbracketpos - 1); // Everything from '[' up to ':'
-			strwAddress = strwDisplay.substr(colonpos+1, rbracketpos - colonpos - 1); // Everything after ':' up to ']'
-			strwDisplay = strwDisplay.substr(0, lbracketpos); // Everything before '['
+		ULONG cbOneEntryID = 0;
+		memory_ptr<ENTRYID> lpOneEntryID;
+		memory_ptr<SPropValue> lpNewProps, lpNewRow;
 
-			lpFlagList->ulFlag[i] = MAPI_RESOLVED;
+		strwType = strwDisplay.substr(lbracketpos+1, colonpos - lbracketpos - 1); // Everything from '[' up to ':'
+		strwAddress = strwDisplay.substr(colonpos+1, rbracketpos - colonpos - 1); // Everything after ':' up to ']'
+		strwDisplay = strwDisplay.substr(0, lbracketpos); // Everything before '['
+		lpFlagList->ulFlag[i] = MAPI_RESOLVED;
+		if ((hr = MAPIAllocateBuffer(sizeof(SPropValue) * 4, &~lpNewProps)) != hrSuccess)
+			goto exit;
 
-			if ((hr = MAPIAllocateBuffer(sizeof(SPropValue) * 4, &~lpNewProps)) != hrSuccess)
-				goto exit;
-
-			lpNewProps[0].ulPropTag = PR_ENTRYID;
-			hr = CreateOneOff((LPTSTR)strwDisplay.c_str(), (LPTSTR)strwType.c_str(), (LPTSTR)strwAddress.c_str(), MAPI_UNICODE, &cbOneEntryID, &~lpOneEntryID);
-			if(hr != hrSuccess) {
-				ec_log_err("M4LAddrBook::ResolveName() CreateOneOff fail %x: %s", hr, GetMAPIErrorMessage(hr));
-				goto exit;
-			}
-
-			if ((hr = MAPIAllocateMore(cbOneEntryID, lpNewProps, (void **)&lpNewProps[0].Value.bin.lpb)) != hrSuccess)
-				goto exit;
-
-			memcpy(lpNewProps[0].Value.bin.lpb, lpOneEntryID, cbOneEntryID);
-			lpNewProps[0].Value.bin.cb = cbOneEntryID;
-
-			if(ulFlags & MAPI_UNICODE) {
-				lpNewProps[1].ulPropTag = PR_DISPLAY_NAME_W;
-				if ((hr = MAPIAllocateMore(sizeof(WCHAR) * (strwDisplay.length() + 1), lpNewProps, (void **)&lpNewProps[1].Value.lpszW)) != hrSuccess)
-					goto exit;
-				wcscpy(lpNewProps[1].Value.lpszW, strwDisplay.c_str());
-
-				lpNewProps[2].ulPropTag = PR_ADDRTYPE_W;
-				if ((hr = MAPIAllocateMore(sizeof(WCHAR) * (strwType.length() + 1), lpNewProps, (void **)&lpNewProps[2].Value.lpszW)) != hrSuccess)
-					goto exit;
-				wcscpy(lpNewProps[2].Value.lpszW, strwType.c_str());
-
-				lpNewProps[3].ulPropTag = PR_EMAIL_ADDRESS_W;
-				if ((hr = MAPIAllocateMore(sizeof(WCHAR) * (strwAddress.length() + 1), lpNewProps, (void **)&lpNewProps[3].Value.lpszW)) != hrSuccess)
-					goto exit;
-				wcscpy(lpNewProps[3].Value.lpszW, strwAddress.c_str());
-			} else {
-				std::string conv;
-
-				conv = convert_to<std::string>(strwDisplay);
-				lpNewProps[1].ulPropTag = PR_DISPLAY_NAME_A;
-				if ((hr = MAPIAllocateMore(conv.length() + 1, lpNewProps, (void **)&lpNewProps[1].Value.lpszA)) != hrSuccess)
-					goto exit;
-				strcpy(lpNewProps[1].Value.lpszA, conv.c_str());
-
-				conv = convert_to<std::string>(strwType);
-				lpNewProps[2].ulPropTag = PR_ADDRTYPE_A;
-				if ((hr = MAPIAllocateMore(conv.length() + 1, lpNewProps, (void **)&lpNewProps[2].Value.lpszA)) != hrSuccess)
-					goto exit;
-				strcpy(lpNewProps[2].Value.lpszA, conv.c_str());
-
-				conv = convert_to<std::string>(strwAddress);
-				lpNewProps[3].ulPropTag = PR_EMAIL_ADDRESS_A;
-				if ((hr = MAPIAllocateMore(conv.length() + 1, lpNewProps, (void **)&lpNewProps[3].Value.lpszA)) != hrSuccess)
-					goto exit;
-				strcpy(lpNewProps[3].Value.lpszA, conv.c_str());
-			}
-
-			lpOneEntryID.reset();
-
-			// Copy old properties + lpNewProps into row
-			hr = Util::HrMergePropertyArrays(lpAdrList->aEntries[i].rgPropVals, lpAdrList->aEntries[i].cValues, lpNewProps, 4, &~lpNewRow, &cNewRow);
-			if(hr != hrSuccess) {
-				ec_log_err("M4LAddrBook::ResolveName() Util::HrMergePropertyArrays fail %x: %s", hr, GetMAPIErrorMessage(hr));
-				goto exit;
-			}
-
-			MAPIFreeBuffer(lpAdrList->aEntries[i].rgPropVals);
-			lpAdrList->aEntries[i].rgPropVals = lpNewRow.release();
-			lpAdrList->aEntries[i].cValues = cNewRow;
+		lpNewProps[0].ulPropTag = PR_ENTRYID;
+		hr = CreateOneOff((LPTSTR)strwDisplay.c_str(), (LPTSTR)strwType.c_str(), (LPTSTR)strwAddress.c_str(), MAPI_UNICODE, &cbOneEntryID, &~lpOneEntryID);
+		if(hr != hrSuccess) {
+			ec_log_err("M4LAddrBook::ResolveName() CreateOneOff fail %x: %s", hr, GetMAPIErrorMessage(hr));
+			goto exit;
 		}
+		if ((hr = MAPIAllocateMore(cbOneEntryID, lpNewProps, (void **)&lpNewProps[0].Value.bin.lpb)) != hrSuccess)
+			goto exit;
+
+		memcpy(lpNewProps[0].Value.bin.lpb, lpOneEntryID, cbOneEntryID);
+		lpNewProps[0].Value.bin.cb = cbOneEntryID;
+		if (ulFlags & MAPI_UNICODE) {
+			lpNewProps[1].ulPropTag = PR_DISPLAY_NAME_W;
+			if ((hr = MAPIAllocateMore(sizeof(WCHAR) * (strwDisplay.length() + 1), lpNewProps, (void **)&lpNewProps[1].Value.lpszW)) != hrSuccess)
+				goto exit;
+			wcscpy(lpNewProps[1].Value.lpszW, strwDisplay.c_str());
+			lpNewProps[2].ulPropTag = PR_ADDRTYPE_W;
+			if ((hr = MAPIAllocateMore(sizeof(WCHAR) * (strwType.length() + 1), lpNewProps, (void **)&lpNewProps[2].Value.lpszW)) != hrSuccess)
+				goto exit;
+			wcscpy(lpNewProps[2].Value.lpszW, strwType.c_str());
+			lpNewProps[3].ulPropTag = PR_EMAIL_ADDRESS_W;
+			if ((hr = MAPIAllocateMore(sizeof(WCHAR) * (strwAddress.length() + 1), lpNewProps, (void **)&lpNewProps[3].Value.lpszW)) != hrSuccess)
+				goto exit;
+			wcscpy(lpNewProps[3].Value.lpszW, strwAddress.c_str());
+		} else {
+			std::string conv;
+
+			conv = convert_to<std::string>(strwDisplay);
+			lpNewProps[1].ulPropTag = PR_DISPLAY_NAME_A;
+			if ((hr = MAPIAllocateMore(conv.length() + 1, lpNewProps, (void **)&lpNewProps[1].Value.lpszA)) != hrSuccess)
+				goto exit;
+			strcpy(lpNewProps[1].Value.lpszA, conv.c_str());
+			conv = convert_to<std::string>(strwType);
+			lpNewProps[2].ulPropTag = PR_ADDRTYPE_A;
+			if ((hr = MAPIAllocateMore(conv.length() + 1, lpNewProps, (void **)&lpNewProps[2].Value.lpszA)) != hrSuccess)
+				goto exit;
+			strcpy(lpNewProps[2].Value.lpszA, conv.c_str());
+			conv = convert_to<std::string>(strwAddress);
+			lpNewProps[3].ulPropTag = PR_EMAIL_ADDRESS_A;
+			if ((hr = MAPIAllocateMore(conv.length() + 1, lpNewProps, (void **)&lpNewProps[3].Value.lpszA)) != hrSuccess)
+				goto exit;
+			strcpy(lpNewProps[3].Value.lpszA, conv.c_str());
+		}
+
+		lpOneEntryID.reset();
+
+		// Copy old properties + lpNewProps into row
+		hr = Util::HrMergePropertyArrays(lpAdrList->aEntries[i].rgPropVals, lpAdrList->aEntries[i].cValues, lpNewProps, 4, &~lpNewRow, &cNewRow);
+		if(hr != hrSuccess) {
+			ec_log_err("M4LAddrBook::ResolveName() Util::HrMergePropertyArrays fail %x: %s", hr, GetMAPIErrorMessage(hr));
+			goto exit;
+		}
+		MAPIFreeBuffer(lpAdrList->aEntries[i].rgPropVals);
+		lpAdrList->aEntries[i].rgPropVals = lpNewRow.release();
+		lpAdrList->aEntries[i].cValues = cNewRow;
 	}
 
 	hr = this->GetSearchPath(MAPI_UNICODE, &lpSearchRows);
@@ -2588,16 +2580,15 @@ HRESULT M4LAddrBook::PrepareRecips(ULONG ulFlags, LPSPropTagArray lpPropTagArray
 			if(lpProp == NULL) {
 				lpRecipList->aEntries[i].rgPropVals[j].ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropTagArray->aulPropTag[j]));
 				lpRecipList->aEntries[i].rgPropVals[j].Value.err = MAPI_E_NOT_FOUND;
-			} else {
-				hr = Util::HrCopyProperty(&lpRecipList->aEntries[i].rgPropVals[j], lpProp, lpRecipList->aEntries[i].rgPropVals);
-				if(hr != hrSuccess) {
-					ec_log_err("M4LAddrBook::PrepareRecips(): Util::HrCopyProperty failed %x: %s", hr, GetMAPIErrorMessage(hr));
-					goto exit;
-				}
+				continue;
+			}
+			hr = Util::HrCopyProperty(&lpRecipList->aEntries[i].rgPropVals[j], lpProp, lpRecipList->aEntries[i].rgPropVals);
+			if(hr != hrSuccess) {
+				ec_log_err("M4LAddrBook::PrepareRecips(): Util::HrCopyProperty failed %x: %s", hr, GetMAPIErrorMessage(hr));
+				goto exit;
 			}
 		}
 	}
-
 exit:
 	if(lpMailUser)
 		lpMailUser->Release();

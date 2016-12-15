@@ -1867,13 +1867,11 @@ HRESULT IMAP::HrCmdAppend(const string &strTag, const string &strFolderParam, co
 		hr2 = HrResponse(RESP_TAGGED_NO, strTag, "APPEND error converting message");
 		goto exit;
 	}
-
-	if (IsSentItemFolder(lpAppendFolder) ) {
+	if (IsSentItemFolder(lpAppendFolder) &&
+	    HrGetOneProp(lpAppendFolder, PR_ENTRYID, &~lpPropVal) == hrSuccess) {
 		// needed for blackberry
-		if (HrGetOneProp(lpAppendFolder, PR_ENTRYID, &~lpPropVal) == hrSuccess) {
-			lpPropVal->ulPropTag = PR_SENTMAIL_ENTRYID;
-			HrSetOneProp(lpMessage, lpPropVal);
-		}
+		lpPropVal->ulPropTag = PR_SENTMAIL_ENTRYID;
+		HrSetOneProp(lpMessage, lpPropVal);
 	}
 
 	if (strFlags.size() > 2 && strFlags[0] == '(') {

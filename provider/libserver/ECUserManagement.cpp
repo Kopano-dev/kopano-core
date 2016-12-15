@@ -320,10 +320,9 @@ ECRESULT ECUserManagement::GetLocalObjectListFromSignatures(const list<objectsig
 			er = erSuccess;
 			continue;
 		}
-
-		if (ulFlags & USERMANAGEMENT_ADDRESSBOOK)
-			if (MustHide(*lpSecurity, ulFlags, details))
-				continue;
+		if (ulFlags & USERMANAGEMENT_ADDRESSBOOK &&
+		    MustHide(*lpSecurity, ulFlags, details))
+			continue;
 
 		// remove details, but keep the class information
 		if (ulFlags & USERMANAGEMENT_IDS_ONLY)

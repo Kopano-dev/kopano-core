@@ -346,6 +346,7 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 		hr = GetMailboxDataPerServer(lpMapiSession, "", lpCollector);
 		if (hr != hrSuccess)
 			return hr;
+		return hrSuccess;
 	} else if (FAILED(hr)) {
 		ec_log_err("Unable to get server details: 0x%08X", hr);
 		if (hr == MAPI_E_NOT_FOUND) {
@@ -356,39 +357,35 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 				ec_log_err("* %ls", i.c_str());
 		}
 		return hr;
-	} else {
+	}
+	for (ULONG i = 0; i < lpSrvList->cServers; ++i) {
+		wchar_t *wszPath = NULL;
 
-		for (ULONG i = 0; i < lpSrvList->cServers; ++i) {
-			wchar_t *wszPath = NULL;
+		ec_log_info("Check server: \"%ls\" ssl=\"%ls\" flag=%08x",
+			(lpSrvList->lpsaServer[i].lpszName)?lpSrvList->lpsaServer[i].lpszName : L"<UNKNOWN>", 
+			(lpSrvList->lpsaServer[i].lpszSslPath)?lpSrvList->lpsaServer[i].lpszSslPath : L"<UNKNOWN>", 
+			lpSrvList->lpsaServer[i].ulFlags);
 
-			ec_log_info("Check server: \"%ls\" ssl=\"%ls\" flag=%08x",
-				(lpSrvList->lpsaServer[i].lpszName)?lpSrvList->lpsaServer[i].lpszName : L"<UNKNOWN>", 
-				(lpSrvList->lpsaServer[i].lpszSslPath)?lpSrvList->lpsaServer[i].lpszSslPath : L"<UNKNOWN>", 
-				lpSrvList->lpsaServer[i].ulFlags);
+		if (bLocalOnly && (lpSrvList->lpsaServer[i].ulFlags & EC_SDFLAG_IS_PEER) == 0) {
+			ec_log_info("Skipping remote server: \"%ls\".",
+				(lpSrvList->lpsaServer[i].lpszName)?lpSrvList->lpsaServer[i].lpszName : L"<UNKNOWN>");
+			continue;
+		}
 
-			if (bLocalOnly && (lpSrvList->lpsaServer[i].ulFlags & EC_SDFLAG_IS_PEER) == 0) {
-				ec_log_info("Skipping remote server: \"%ls\".",
-					(lpSrvList->lpsaServer[i].lpszName)?lpSrvList->lpsaServer[i].lpszName : L"<UNKNOWN>");
-				continue;
-			}
-
-			if (lpSrvList->lpsaServer[i].ulFlags & EC_SDFLAG_IS_PEER &&
-			    lpSrvList->lpsaServer[i].lpszFilePath != nullptr)
-				wszPath = lpSrvList->lpsaServer[i].lpszFilePath;
-			if (wszPath == NULL) {
-				if(lpSrvList->lpsaServer[i].lpszSslPath == NULL) {
-					ec_log_err("No SSL or File path found for server: \"%ls\", please fix your configuration.", lpSrvList->lpsaServer[i].lpszName);
-					return hr;
-				} else {
-					wszPath = lpSrvList->lpsaServer[i].lpszSslPath;
-				}
-			}
-
-			hr = GetMailboxDataPerServer(converter.convert_to<char *>(wszPath), lpSSLKey, lpSSLPass, lpCollector);
-			if(FAILED(hr)) {
-				ec_log_err("Failed to collect data from server: \"%ls\", hr: 0x%08x", wszPath, hr);
+		if (lpSrvList->lpsaServer[i].ulFlags & EC_SDFLAG_IS_PEER &&
+		    lpSrvList->lpsaServer[i].lpszFilePath != nullptr)
+			wszPath = lpSrvList->lpsaServer[i].lpszFilePath;
+		if (wszPath == NULL) {
+			if(lpSrvList->lpsaServer[i].lpszSslPath == NULL) {
+				ec_log_err("No SSL or File path found for server: \"%ls\", please fix your configuration.", lpSrvList->lpsaServer[i].lpszName);
 				return hr;
 			}
+			wszPath = lpSrvList->lpsaServer[i].lpszSslPath;
+		}
+		hr = GetMailboxDataPerServer(converter.convert_to<char *>(wszPath), lpSSLKey, lpSSLPass, lpCollector);
+		if(FAILED(hr)) {
+			ec_log_err("Failed to collect data from server: \"%ls\", hr: 0x%08x", wszPath, hr);
+			return hr;
 		}
 	}
 	return hrSuccess;
@@ -521,12 +518,11 @@ HRESULT UpdateServerList(IABContainer *lpContainer,
 			break;
 
 		for (unsigned int i = 0; i < ptrRows.size(); ++i) {
-			if(ptrRows[i].lpProps[0].ulPropTag == PR_EC_HOMESERVER_NAME_W) {
-				listServers.insert(ptrRows[i].lpProps[0].Value.lpszW);
-
-				if(ptrRows[i].lpProps[1].ulPropTag == PR_DISPLAY_NAME_W)
-					ec_log_info("User: %ls on server \"%ls\"", ptrRows[i].lpProps[1].Value.lpszW, ptrRows[i].lpProps[0].Value.lpszW);
-			}
+			if (ptrRows[i].lpProps[0].ulPropTag != PR_EC_HOMESERVER_NAME_W)
+				continue;
+			listServers.insert(ptrRows[i].lpProps[0].Value.lpszW);
+			if (ptrRows[i].lpProps[1].ulPropTag == PR_DISPLAY_NAME_W)
+				ec_log_info("User: %ls on server \"%ls\"", ptrRows[i].lpProps[1].Value.lpszW, ptrRows[i].lpProps[0].Value.lpszW);
 		}
 	}
 	return hrSuccess;

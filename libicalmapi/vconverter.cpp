@@ -1918,8 +1918,8 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 
 		// @todo: use correct index number?
 		hr = HrGetAddress(m_lpAdrBook, lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues,
-						  PR_ENTRYID, PR_DISPLAY_NAME, PR_ADDRTYPE, PR_EMAIL_ADDRESS,
-						  strReceiverName, strReceiverType, strReceiverEmailAddr);
+		     PR_ENTRYID, PR_DISPLAY_NAME, PR_ADDRTYPE, PR_EMAIL_ADDRESS,
+		     strReceiverName, strReceiverType, strReceiverEmailAddr);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -1946,11 +1946,9 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 		lpPropVal = PpropFindProp(lpProps, ulProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MEETINGSTATUS], PT_LONG));
 		if (lpPropVal)
 			ulMeetingStatus = lpPropVal->Value.ul;
-		else {
+		else if (HrGetOneProp(lpParentMsg, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MEETINGSTATUS], PT_LONG), &~lpSpropVal) == hrSuccess)
 			// if MeetingStatus flag is not set in exception message, retrive it from parent message.
-			if (HrGetOneProp(lpParentMsg, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_MEETINGSTATUS], PT_LONG), &~lpSpropVal) == hrSuccess)
-				ulMeetingStatus = lpSpropVal->Value.ul;
-		}
+			ulMeetingStatus = lpSpropVal->Value.ul;
 
 		// meeting bit enabled
 		if (ulMeetingStatus & 1) {

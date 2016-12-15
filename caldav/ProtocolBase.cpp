@@ -227,25 +227,23 @@ HRESULT ProtocolBase::HrInitializeClass()
 			m_blFolderAccess = false;
 			m_ulFolderFlag |= DEFAULT_FOLDER;
 		}
+	}
+	// default calendar
+	else if (bIsPublic) {
+		hr = m_lpIPMSubtree->QueryInterface(IID_IMAPIFolder, (void**)&m_lpUsrFld);
+		if (hr != hrSuccess)
+			return hr;
 	} else {
-		// default calendar
-		if (bIsPublic) {
-			hr = m_lpIPMSubtree->QueryInterface(IID_IMAPIFolder, (void**)&m_lpUsrFld);
-			if (hr != hrSuccess)
-				return hr;
-		} else {
-			// open default calendar
-			hr = m_lpActiveStore->OpenEntry(lpDefaultProp->Value.bin.cb, (LPENTRYID)lpDefaultProp->Value.bin.lpb, NULL, MAPI_BEST_ACCESS, &ulType, (LPUNKNOWN*)&m_lpUsrFld);
-			if (hr != hrSuccess)
-			{
-				ec_log_err("Unable to open default calendar for user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);
-				return hr;
-			}
-
-			// we already know we don't want to delete this folder
-			m_blFolderAccess = false;
-			m_ulFolderFlag |= DEFAULT_FOLDER;
+		// open default calendar
+		hr = m_lpActiveStore->OpenEntry(lpDefaultProp->Value.bin.cb, (LPENTRYID)lpDefaultProp->Value.bin.lpb, NULL, MAPI_BEST_ACCESS, &ulType, (LPUNKNOWN*)&m_lpUsrFld);
+		if (hr != hrSuccess)
+		{
+			ec_log_err("Unable to open default calendar for user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);
+			return hr;
 		}
+		// we already know we don't want to delete this folder
+		m_blFolderAccess = false;
+		m_ulFolderFlag |= DEFAULT_FOLDER;
 	}
 
 	/*

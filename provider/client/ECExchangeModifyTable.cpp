@@ -337,43 +337,41 @@ HRESULT ECExchangeModifyTable::OpenACLS(ECMAPIProp *lpecMapiProp, ULONG ulFlags,
 	//  0 = default acl
 	// -1 = Anonymous acl
 	for (ULONG i = 0; i < cPerms; ++i) {
-		if (lpECPerms[i].ulType == ACCESS_TYPE_GRANT)
-		{
-			memory_ptr<ECUSER> lpECUser;
-			memory_ptr<ECGROUP> lpECGroup;
+		if (lpECPerms[i].ulType != ACCESS_TYPE_GRANT)
+			continue;
 
-			if (lpecMapiProp->GetMsgStore()->lpTransport->HrGetUser(lpECPerms[i].sUserId.cb, (LPENTRYID)lpECPerms[i].sUserId.lpb, MAPI_UNICODE, &~lpECUser) != hrSuccess &&
-			    lpecMapiProp->GetMsgStore()->lpTransport->HrGetGroup(lpECPerms[i].sUserId.cb, (LPENTRYID)lpECPerms[i].sUserId.lpb, MAPI_UNICODE, &~lpECGroup) != hrSuccess)
-				continue;
+		memory_ptr<ECUSER> lpECUser;
+		memory_ptr<ECGROUP> lpECGroup;
 
-			if (lpECGroup != nullptr)
-				lpMemberName = (LPTSTR)((lpECGroup->lpszFullname)?lpECGroup->lpszFullname:lpECGroup->lpszGroupname);
-			else
-				lpMemberName = (LPTSTR)((lpECUser->lpszFullName)?lpECUser->lpszFullName:lpECUser->lpszUsername);
+		if (lpecMapiProp->GetMsgStore()->lpTransport->HrGetUser(lpECPerms[i].sUserId.cb, (LPENTRYID)lpECPerms[i].sUserId.lpb, MAPI_UNICODE, &~lpECUser) != hrSuccess &&
+		    lpecMapiProp->GetMsgStore()->lpTransport->HrGetGroup(lpECPerms[i].sUserId.cb, (LPENTRYID)lpECPerms[i].sUserId.lpb, MAPI_UNICODE, &~lpECGroup) != hrSuccess)
+			continue;
 
-			lpsPropMember[0].ulPropTag = PR_MEMBER_ID;
+		if (lpECGroup != nullptr)
+			lpMemberName = (LPTSTR)((lpECGroup->lpszFullname)?lpECGroup->lpszFullname:lpECGroup->lpszGroupname);
+		else
+			lpMemberName = (LPTSTR)((lpECUser->lpszFullName)?lpECUser->lpszFullName:lpECUser->lpszUsername);
 
-			if (ABEntryIDToID(lpECPerms[i].sUserId.cb, (LPBYTE)lpECPerms[i].sUserId.lpb, &ulUserid, NULL, NULL) == erSuccess && ulUserid == 1)
-				lpsPropMember[0].Value.li.QuadPart= 0; //everyone / exchange default
-			else
-				lpsPropMember[0].Value.li.QuadPart= (*lpulUniqueID)++;
+		lpsPropMember[0].ulPropTag = PR_MEMBER_ID;
+		if (ABEntryIDToID(lpECPerms[i].sUserId.cb, (LPBYTE)lpECPerms[i].sUserId.lpb, &ulUserid, NULL, NULL) == erSuccess && ulUserid == 1)
+			lpsPropMember[0].Value.li.QuadPart= 0; //everyone / exchange default
+		else
+			lpsPropMember[0].Value.li.QuadPart= (*lpulUniqueID)++;
 
-			lpsPropMember[1].ulPropTag = PR_MEMBER_RIGHTS;
-			lpsPropMember[1].Value.ul = lpECPerms[i].ulRights;
+		lpsPropMember[1].ulPropTag = PR_MEMBER_RIGHTS;
+		lpsPropMember[1].Value.ul = lpECPerms[i].ulRights;
 
-			lpsPropMember[2].ulPropTag = PR_MEMBER_NAME;
-			lpsPropMember[2].Value.lpszW = (WCHAR*)lpMemberName;
+		lpsPropMember[2].ulPropTag = PR_MEMBER_NAME;
+		lpsPropMember[2].Value.lpszW = (WCHAR*)lpMemberName;
 
-			lpsPropMember[3].ulPropTag = PR_MEMBER_ENTRYID;
-			lpsPropMember[3].Value.bin.cb = lpECPerms[i].sUserId.cb;
-			lpsPropMember[3].Value.bin.lpb= (LPBYTE)lpECPerms[i].sUserId.lpb;
+		lpsPropMember[3].ulPropTag = PR_MEMBER_ENTRYID;
+		lpsPropMember[3].Value.bin.cb = lpECPerms[i].sUserId.cb;
+		lpsPropMember[3].Value.bin.lpb= (LPBYTE)lpECPerms[i].sUserId.lpb;
 
-			hr = lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, &lpsPropMember[0], lpsPropMember, 4);
-			if(hr != hrSuccess)
-				goto exit;
-		}
+		hr = lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, &lpsPropMember[0], lpsPropMember, 4);
+		if(hr != hrSuccess)
+			goto exit;
 	}
-
 exit:
 	if (lpSecurity)
 		lpSecurity->Release();
