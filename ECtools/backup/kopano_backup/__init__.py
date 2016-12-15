@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import binascii
 import csv
+import datetime
 from contextlib import closing
 import cPickle as pickle
 import dbhash
@@ -127,7 +128,7 @@ class BackupWorker(kopano.Worker):
             return
 
         # sync over ICS, using stored 'state'
-        importer = FolderImporter(folder, data_path, config, options, self.log, stats)
+        importer = FolderImporter(folder, data_path, config, options, self.log, stats, self.service)
         statepath = '%s/state' % data_path
         state = None
         if os.path.exists(statepath):
@@ -142,7 +143,7 @@ class FolderImporter:
     """ tracks changes for a given folder """
 
     def __init__(self, *args):
-        self.folder, self.folder_path, self.config, self.options, self.log, self.stats = args
+        self.folder, self.folder_path, self.config, self.options, self.log, self.stats, self.service = args
 
     def update(self, item, flags):
         """ store updated item in 'items' database, and subject and date in 'index' database """
@@ -159,6 +160,7 @@ class FolderImporter:
                     'subject': item.subject,
                     'orig_sourcekey': orig_prop,
                     'last_modified': item.last_modified,
+                    'backup_updated': self.service.timestamp,
                 })
             self.stats['changes'] += 1
 
@@ -170,14 +172,20 @@ class FolderImporter:
                 with closing(dbopen(self.folder_path+'/index')) as db_index:
                     if item.sourcekey in db_items: # ICS can generate delete events without update events..
                         self.log.debug('folder %s: deleted document with sourcekey %s' % (self.folder.sourcekey, item.sourcekey))
-                        del db_items[item.sourcekey]
-                        del db_index[item.sourcekey]
+                        if self.options.deletes in (None, 'yes'):
+                            idx = pickle.loads(db_index[item.sourcekey])
+                            idx['backup_deleted'] = self.service.timestamp
+                            db_index[item.sourcekey] = pickle.dumps(idx)
+                        else:
+                            del db_items[item.sourcekey]
+                            del db_index[item.sourcekey]
                         self.stats['deletes'] += 1
 
 class Service(kopano.Service):
     """ main backup process """
 
     def main(self):
+        self.timestamp = datetime.datetime.now()
         if self.options.restore:
             self.restore()
         else:
@@ -349,7 +357,8 @@ class Service(kopano.Service):
                     # date check against 'index'
                     last_modified = index[sourcekey2]['last_modified']
                     if ((self.options.period_begin and last_modified < self.options.period_begin) or
-                        (self.options.period_end and last_modified >= self.options.period_end)):
+                        (self.options.period_end and last_modified >= self.options.period_end) or
+                        (index[sourcekey2].get('backup_deleted') and self.options.deletes in (None, 'no'))):
                         continue
 
                     # check for duplicates
@@ -433,7 +442,8 @@ def show_contents(data_path, options):
                 for key, value in db.iteritems():
                     d = pickle.loads(value)
                     if ((options.period_begin and d['last_modified'] < options.period_begin) or
-                        (options.period_end and d['last_modified'] >= options.period_end)):
+                        (options.period_end and d['last_modified'] >= options.period_end) or
+                        (d.get('backup_deleted') and options.deletes == 'no')):
                         continue
                     items.append((key, d))
 
@@ -596,12 +606,13 @@ def main():
     parser = kopano.parser('ckpsufwUPCSlObe', usage='kopano-backup [PATH] [options]')
 
     # add custom options
-    parser.add_option('', '--skip-junk', dest='skip_junk', action='store_true', help='skip junk mail')
-    parser.add_option('', '--skip-deleted', dest='skip_deleted', action='store_true', help='skip deleted mail')
+    parser.add_option('', '--skip-junk', dest='skip_junk', action='store_true', help='skip junk folder')
+    parser.add_option('', '--skip-deleted', dest='skip_deleted', action='store_true', help='skip deleted items folder')
     parser.add_option('', '--skip-public', dest='skip_public', action='store_true', help='skip public store')
     parser.add_option('', '--skip-attachments', dest='skip_attachments', action='store_true', help='skip attachments')
     parser.add_option('', '--skip-meta', dest='skip_meta', action='store_true', help='skip metadata')
     parser.add_option('', '--only-meta', dest='only_meta', action='store_true', help='only backup/restore metadata')
+    parser.add_option('', '--deletes', dest='deletes', help='store/restore deleted items', metavar='YESNO')
     parser.add_option('', '--restore', dest='restore', action='store_true', help='restore from backup')
     parser.add_option('', '--restore-root', dest='restore_root', help='restore under specific folder', metavar='PATH')
     parser.add_option('', '--stats', dest='stats', action='store_true', help='list folders for PATH')
@@ -616,6 +627,8 @@ def main():
         assert len(args) == 1 and os.path.isdir(args[0]), 'please specify path to backup data'
     else:
         assert len(args) == 0, 'too many arguments'
+    if options.deletes and options.deletes not in ('yes', 'no'):
+        raise Exception("--deletes option takes 'yes' or 'no'")
 
     if options.stats or options.index:
         # handle --stats/--index
