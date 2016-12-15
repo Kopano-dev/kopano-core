@@ -76,6 +76,7 @@ def main():
                     except kopano.NotFoundError as e:
                         print('deleting:', dbpath)
                         shutil.rmtree(dbpath)
+                        os.remove('%s.lock' % dbpath)
                         continue
 
                 print('compact:', dbpath)
