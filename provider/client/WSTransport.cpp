@@ -250,14 +250,12 @@ HRESULT WSTransport::HrLogon2(const struct sGlobalProfileProps &sProfileProps)
 		 */
 		if(! (sProfileProps.ulProfileFlags & EC_PROFILE_FLAGS_NO_COMPRESSION))
 			ulCapabilities |= KOPANO_CAP_COMPRESSION; // only to remote server .. windows?
-
-		// try single signon logon
-		er = TrySSOLogon(lpCmd, GetServerNameFromPath(sProfileProps.strServerPath.c_str()).c_str(), strUserName, strImpersonateUser, ulCapabilities, m_ecSessionGroupId, (char *)GetAppName().c_str(), &ecSessionId, &ulServerCapabilities, &m_llFlags, &m_sServerGuid, sProfileProps.strClientAppVersion, sProfileProps.strClientAppMisc);
-		if (er == erSuccess)
-			goto auth;
-	} else if (sProfileProps.ulProfileFlags & EC_PROFILE_FLAGS_NO_UID_AUTH) {
-		ulLogonFlags |= KOPANO_LOGON_NO_UID_AUTH;
 	}
+
+	// try single signon logon
+	er = TrySSOLogon(lpCmd, GetServerNameFromPath(sProfileProps.strServerPath.c_str()).c_str(), strUserName, strImpersonateUser, ulCapabilities, m_ecSessionGroupId, (char *)GetAppName().c_str(), &ecSessionId, &ulServerCapabilities, &m_llFlags, &m_sServerGuid, sProfileProps.strClientAppVersion, sProfileProps.strClientAppMisc);
+	if (er == erSuccess)
+		goto auth;
 	
 	// Login with username and password
 	if (SOAP_OK != lpCmd->ns__logon(const_cast<char *>(strUserName.c_str()),
