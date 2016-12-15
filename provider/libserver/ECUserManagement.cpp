@@ -518,9 +518,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 	} else {
 		if (bIsSafeMode)
 			ec_log_info("user_safe_mode: skipping retrieve/sync users from LDAP");
-
-		lpExternSignatures = std::unique_ptr<signatures_t>(new signatures_t());
-		
+		lpExternSignatures.reset(new signatures_t());
 		// Dont sync, just use whatever is in the local user database
 		for (const auto &sil : mapSignatureIdToLocal) {
 			lpExternSignatures->push_back(objectsignature_t(sil.first, sil.second.second));

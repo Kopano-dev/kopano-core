@@ -785,7 +785,7 @@ std::unique_ptr<quotadetails_t> DBPlugin::getQuota(const objectid_t &objectid,
 	if (er != erSuccess)
 		throw runtime_error(string("db_query: ") + strerror(er));
 
-	lpDetails = std::unique_ptr<quotadetails_t>(new quotadetails_t());
+	lpDetails.reset(new quotadetails_t());
 	lpDetails->bIsUserDefaultQuota = bGetUserDefault;
 
 	while ((lpDBRow = m_lpDatabase->FetchRow(lpResult)) != NULL) {

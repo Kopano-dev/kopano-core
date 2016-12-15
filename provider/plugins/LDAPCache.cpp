@@ -23,10 +23,10 @@
 
 LDAPCache::LDAPCache()
 {
-	m_lpCompanyCache = std::unique_ptr<dn_cache_t>(new dn_cache_t());
-	m_lpGroupCache = std::unique_ptr<dn_cache_t>(new dn_cache_t());
-	m_lpUserCache = std::unique_ptr<dn_cache_t>(new dn_cache_t());
-	m_lpAddressListCache = std::unique_ptr<dn_cache_t>(new dn_cache_t());
+	m_lpCompanyCache.reset(new dn_cache_t());
+	m_lpGroupCache.reset(new dn_cache_t());
+	m_lpUserCache.reset(new dn_cache_t());
+	m_lpAddressListCache.reset(new dn_cache_t());
 }
 
 bool LDAPCache::isObjectTypeCached(objectclass_t objclass)
