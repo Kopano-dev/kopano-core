@@ -94,12 +94,17 @@ class BackupWorker(kopano.Worker):
                     paths.add(folder.path)
                     self.backup_folder(path, folder, store.subtree, config, options, stats, user, server)
 
-                # remove deleted folders
+                # timestamp deleted folders
                 if not options.folders:
                     path_folder = folder_struct(path, options)
                     for fpath in set(path_folder) - paths:
-                        self.log.info('removing deleted folder: %s' % fpath)
-                        shutil.rmtree(path_folder[fpath])
+                        with closing(dbopen(path_folder[fpath]+'/index')) as db_index:
+                            idx = db_index.get('folder')
+                            d = pickle.loads(idx) if idx else {}
+                            if not d.get('backup_deleted'):
+                                self.log.info('deleted folder: %s' % fpath)
+                                d['backup_deleted'] = self.service.timestamp
+                                db_index['folder'] = pickle.dumps(d)
 
                 changes = stats['changes'] + stats['deletes']
                 self.log.info('backing up %s took %.2f seconds (%d changes, ~%.2f/sec, %d errors)' %
@@ -266,6 +271,10 @@ class Service(kopano.Service):
                     (self.options.skip_deleted and folder == store.wastebasket))):
                         continue
                 data_path = path_folder[path]
+
+                if self.options.deletes in (None, 'no') and folder_deleted(data_path):
+                    continue
+
                 if not self.options.only_meta:
                     self.restore_folder(folder, path, data_path, store, store.subtree, stats, user, self.server)
                 restored.append((folder, data_path))
@@ -413,6 +422,14 @@ def folder_path(folder, subtree):
         parent = parent.parent
     return path[1:]
 
+def folder_deleted(data_path):
+    if os.path.exists(data_path+'/index'):
+        with closing(dbhash.open(data_path+'/index')) as db:
+           idx = db.get('folder')
+           if idx and pickle.loads(idx).get('backup_deleted'):
+               return True
+    return False
+
 def show_contents(data_path, options):
     """ summary of contents of backup directory, at the item or folder level, in CSV format """
 
@@ -432,14 +449,18 @@ def show_contents(data_path, options):
         data_path = path_folder[path]
         items = []
 
+        if options.deletes == 'no' and folder_deleted(data_path):
+            continue
+
         # filter items on date using 'index' database
         if os.path.exists(data_path+'/index'):
             with closing(dbhash.open(data_path+'/index')) as db:
                 for key, value in db.iteritems():
                     d = pickle.loads(value)
-                    if ((options.period_begin and d['last_modified'] < options.period_begin) or
+                    if ((key == 'folder') or
+                        (options.period_begin and d['last_modified'] < options.period_begin) or
                         (options.period_end and d['last_modified'] >= options.period_end) or
-                        (d.get('backup_deleted') and options.deletes == 'no')):
+                        (options.deletes == 'no' and d.get('backup_deleted'))):
                         continue
                     items.append((key, d))
 
