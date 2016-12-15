@@ -193,6 +193,8 @@ class Service(kopano.Service):
         self.timestamp = datetime.datetime.now()
         if self.options.restore:
             self.restore()
+        elif self.options.purge:
+            self.purge()
         else:
             self.backup()
 
@@ -288,6 +290,37 @@ class Service(kopano.Service):
 
         self.log.info('restore completed in %.2f seconds (%d changes, ~%.2f/sec, %d errors)' %
             (time.time()-t0, stats['changes'], stats['changes']/(time.time()-t0), stats['errors']))
+
+    def purge(self):
+        """ permanently delete old folders/items from backup """
+
+        assert not self.options.folders, 'cannot combine --folder with --purge'
+
+        stats = {'folders': 0, 'items': 0}
+        self.data_path = _decode(self.args[0].rstrip('/'))
+        path_folder = folder_struct(self.data_path, self.options)
+
+        for path, data_path in path_folder.items():
+            # check if folder was deleted
+            self.log.info('checking folder: %s' % path)
+            if folder_deleted(data_path):
+                if (self.timestamp - folder_deleted(data_path)).days > self.options.purge:
+                    self.log.debug('purging folder')
+                    shutil.rmtree(data_path)
+                    stats['folders'] += 1
+            else: # check all items for deletion
+                with closing(dbopen(data_path+'/items')) as db_items:
+                    with closing(dbopen(data_path+'/index')) as db_index:
+                        for item, idx in db_index.items():
+                            d = pickle.loads(idx)
+                            backup_deleted = d.get('backup_deleted')
+                            if backup_deleted and (self.timestamp - backup_deleted).days > self.options.purge:
+                                self.log.debug('purging item: %s' % item)
+                                stats['items'] += 1
+                                del db_items[item]
+                                del db_index[item]
+
+        self.log.info('purged %d folders and %d items' % (stats['folders'], stats['items']))
 
     def create_jobs(self):
         """ check command-line options and determine which stores should be backed up """
@@ -427,8 +460,8 @@ def folder_deleted(data_path):
         with closing(dbhash.open(data_path+'/index')) as db:
            idx = db.get('folder')
            if idx and pickle.loads(idx).get('backup_deleted'):
-               return True
-    return False
+               return pickle.loads(idx).get('backup_deleted')
+    return None
 
 def show_contents(data_path, options):
     """ summary of contents of backup directory, at the item or folder level, in CSV format """
@@ -629,7 +662,8 @@ def main():
     parser.add_option('', '--skip-attachments', dest='skip_attachments', action='store_true', help='skip attachments')
     parser.add_option('', '--skip-meta', dest='skip_meta', action='store_true', help='skip metadata')
     parser.add_option('', '--only-meta', dest='only_meta', action='store_true', help='only backup/restore metadata')
-    parser.add_option('', '--deletes', dest='deletes', help='store/restore deleted items', metavar='YESNO')
+    parser.add_option('', '--deletes', dest='deletes', help='store/restore deleted items/folders', metavar='YESNO')
+    parser.add_option('', '--purge', dest='purge', type='int', help='purge items/folders deleted more than N days ago', metavar='N')
     parser.add_option('', '--restore', dest='restore', action='store_true', help='restore from backup')
     parser.add_option('', '--restore-root', dest='restore_root', help='restore under specific folder', metavar='PATH')
     parser.add_option('', '--stats', dest='stats', action='store_true', help='list folders for PATH')
@@ -640,7 +674,7 @@ def main():
     # parse and check command-line options
     options, args = parser.parse_args()
     options.service = False
-    if options.restore or options.stats or options.index:
+    if options.restore or options.stats or options.index or options.purge:
         assert len(args) == 1 and os.path.isdir(args[0]), 'please specify path to backup data'
     else:
         assert len(args) == 0, 'too many arguments'
