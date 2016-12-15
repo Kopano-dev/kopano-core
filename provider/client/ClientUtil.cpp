@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <memory>
 #include "ClientUtil.h"
 
 #include <kopano/ECGetText.h>
@@ -841,7 +842,7 @@ HRESULT ClientUtil::ConvertMSEMSProps(ULONG cValues, LPSPropValue pValues, ULONG
 		{ "log_buffer_size", "0" },
 		{ NULL, NULL },
 	};
-	ECConfig *lpConfig = ECConfig::Create(settings);
+	std::unique_ptr<ECConfig> lpConfig(ECConfig::Create(settings));
 	std::string strConfigPath;
 
 	hr = GetConfigPath(&strConfigPath);
@@ -944,7 +945,6 @@ HRESULT ClientUtil::ConvertMSEMSProps(ULONG cValues, LPSPropValue pValues, ULONG
 	*lppProps = lpProps;
 
 exit:
-	delete lpConfig;
 	return hr;
 }
 

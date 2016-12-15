@@ -614,23 +614,14 @@ exit:
 }
 
 HRESULT HrOpenDefaultStore(IMAPISession *lpMAPISession, ULONG ulFlags, IMsgStore **lppMsgStore) {
-	HRESULT			hr = hrSuccess;
-	IMsgStore		*lpMsgStore = NULL;
 	ULONG			cbEntryID = 0;
 	memory_ptr<ENTRYID> lpEntryID;
 
-	hr = HrSearchECStoreEntryId(lpMAPISession, FALSE, &cbEntryID, &~lpEntryID);
+	HRESULT hr = HrSearchECStoreEntryId(lpMAPISession, FALSE, &cbEntryID, &~lpEntryID);
 	if (hr != hrSuccess)
-		goto exit;
-
-	hr = lpMAPISession->OpenMsgStore(0, cbEntryID, lpEntryID, &IID_IMsgStore, ulFlags, &lpMsgStore);
-	if (hr != hrSuccess)
-		goto exit;
-
-	*lppMsgStore = lpMsgStore;
-
-exit:
-	return hr;
+		return hr;
+	return lpMAPISession->OpenMsgStore(0, cbEntryID, lpEntryID,
+	       &IID_IMsgStore, ulFlags, lppMsgStore);
 }
 
 HRESULT HrOpenECPublicStore(IMAPISession *lpMAPISession, IMsgStore **lppMsgStore){
@@ -667,23 +658,13 @@ exit:
 
 HRESULT HrOpenECPublicStore(IMAPISession *lpMAPISession, ULONG ulFlags, IMsgStore **lppMsgStore)
 {
-	HRESULT			hr = hrSuccess;
-	IMsgStore		*lpMsgStore = NULL;
 	ULONG			cbEntryID = 0;
 	memory_ptr<ENTRYID> lpEntryID;
-
-	hr = HrSearchECStoreEntryId(lpMAPISession, TRUE, &cbEntryID, &~lpEntryID);
+	HRESULT hr = HrSearchECStoreEntryId(lpMAPISession, TRUE, &cbEntryID, &~lpEntryID);
 	if(hr != hrSuccess)
-		goto exit;
-
-	hr = lpMAPISession->OpenMsgStore(0, cbEntryID, lpEntryID, &IID_IMsgStore, ulFlags, &lpMsgStore);
-	if(hr != hrSuccess)
-		goto exit;
-
-	*lppMsgStore = lpMsgStore;
-
-exit:
-	return hr;
+		return hr;
+	return lpMAPISession->OpenMsgStore(0, cbEntryID, lpEntryID,
+	       &IID_IMsgStore, ulFlags, lppMsgStore);
 }
 
 HRESULT HrGetECProviderAdmin(LPMAPISESSION lpSession, LPPROVIDERADMIN *lppProviderAdmin)
@@ -1989,12 +1970,8 @@ static HRESULT GetRestrictTags(const SRestriction *lpRestriction,
 }
 
 HRESULT TestRestriction(LPSRestriction lpCondition, ULONG cValues, LPSPropValue lpPropVals, const ECLocale &locale, ULONG ulLevel) {
-	HRESULT hr = hrSuccess;
-	ECRowWrapper *lpRowWrapper = new ECRowWrapper(lpPropVals, cValues);
-
-	hr = TestRestriction(lpCondition, (IMAPIProp *)lpRowWrapper, locale, ulLevel);
-	delete lpRowWrapper;
-	return hr;
+	ECRowWrapper lpRowWrapper(lpPropVals, cValues);
+	return TestRestriction(lpCondition, static_cast<IMAPIProp *>(&lpRowWrapper), locale, ulLevel);
 }
 
 HRESULT TestRestriction(LPSRestriction lpCondition, IMAPIProp *lpMessage, const ECLocale &locale, ULONG ulLevel) {
@@ -2008,7 +1985,6 @@ HRESULT TestRestriction(LPSRestriction lpCondition, IMAPIProp *lpMessage, const 
 	IMAPITable *lpTable = NULL;
 	memory_ptr<SPropTagArray> lpTags;
 	LPSRowSet lpRowSet = NULL;
-	ECRowWrapper *lpRowWrapper = NULL;
 
 	if (ulLevel > RESTRICT_MAX_RECURSE_LEVEL)
 		return MAPI_E_TOO_COMPLEX;
@@ -2224,9 +2200,6 @@ HRESULT TestRestriction(LPSRestriction lpCondition, IMAPIProp *lpMessage, const 
 
 			FreeProws(lpRowSet);
 			lpRowSet = NULL;
-
-			delete lpRowWrapper;
-			lpRowWrapper = NULL;
 		}
 		break;
 
@@ -2243,7 +2216,6 @@ HRESULT TestRestriction(LPSRestriction lpCondition, IMAPIProp *lpMessage, const 
 	};
 
 exit:
-	delete lpRowWrapper;
 	if (lpRowSet)
 		FreeProws(lpRowSet);
 	if (lpTable)

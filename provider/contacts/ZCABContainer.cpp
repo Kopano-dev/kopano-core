@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <new>
 #include "ZCABContainer.h"
 #include "ZCMAPIProp.h"
 #include <kopano/Trace.h>
@@ -102,33 +103,21 @@ HRESULT	ZCABContainer::QueryInterface(REFIID refiid, void **lppInterface)
  */
 HRESULT	ZCABContainer::Create(std::vector<zcabFolderEntry> *lpFolders, IMAPIFolder *lpContacts, LPMAPISUP lpMAPISup, void* lpProvider, ZCABContainer **lppABContainer)
 {
-	HRESULT			hr = hrSuccess;
-	ZCABContainer*	lpABContainer = NULL;
-
-	try {
-		lpABContainer = new ZCABContainer(lpFolders, lpContacts, lpMAPISup, lpProvider, "IABContainer");
-
-		hr = lpABContainer->QueryInterface(IID_ZCABContainer, (void **)lppABContainer);
-	} catch (...) {
-		hr = MAPI_E_NOT_ENOUGH_MEMORY;
-	}
-
-	return hr;
+	auto lpABContainer = new(std::nothrow) ZCABContainer(lpFolders, lpContacts, lpMAPISup, lpProvider, "IABContainer");
+	if (lpABContainer == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
+	return lpABContainer->QueryInterface(IID_ZCABContainer, (void **)lppABContainer);
 }
 
 HRESULT	ZCABContainer::Create(IMessage *lpContact, ULONG cbEntryID, LPENTRYID lpEntryID, LPMAPISUP lpMAPISup, ZCABContainer **lppABContainer)
 {
 	HRESULT hr = hrSuccess;
-	ZCABContainer*	lpABContainer = NULL;
 	ZCMAPIProp* lpDistList = NULL;
-
-	try {
-		lpABContainer = new ZCABContainer(NULL, NULL, lpMAPISup, NULL, "IABContainer");
-	} catch (...) {
+	auto lpABContainer = new(std::nothrow) ZCABContainer(NULL, NULL, lpMAPISup, NULL, "IABContainer");
+	if (lpABContainer == nullptr) {
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
-	}
-	if (hr != hrSuccess)
 		goto exit;
+	}
 
 	hr = ZCMAPIProp::Create(lpContact, cbEntryID, lpEntryID, &lpDistList);
 	if (hr != hrSuccess)

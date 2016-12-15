@@ -19,6 +19,7 @@
 
 #include <kopano/platform.h>
 #include <kopano/ecversion.h>
+#include <memory>
 #include <new>
 #include <cstdio>
 #include <cstdlib>
@@ -2855,7 +2856,7 @@ ZEND_FUNCTION(mapi_stream_read)
 	LPSTREAM	pStream	= NULL;
 	unsigned long		lgetBytes = 0;
 	// return value
-	char		*buf	= NULL;	// duplicated
+	std::unique_ptr<char[]> buf;
 	ULONG		actualRead = 0;
 
 	RETVAL_FALSE;
@@ -2865,16 +2866,12 @@ ZEND_FUNCTION(mapi_stream_read)
 
 	ZEND_FETCH_RESOURCE_C(pStream, LPSTREAM, &res, -1, name_istream, le_istream);
 
-	buf = new char[lgetBytes];
-	MAPI_G(hr) = pStream->Read(buf, lgetBytes, &actualRead);
-
+	buf.reset(new char[lgetBytes]);
+	MAPI_G(hr) = pStream->Read(buf.get(), lgetBytes, &actualRead);
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
-
-	RETVAL_STRINGL(buf, actualRead);
-
+	RETVAL_STRINGL(buf.get(), actualRead);
 exit:
-	delete[] buf;
 	LOG_END();
 	THROW_ON_ERROR();
 }

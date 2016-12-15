@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <new>
 #include "WSMessageStreamImporter.h"
 #include "WSUtil.h"
 #include "ECSyncSettings.h"
@@ -29,17 +30,12 @@
  */
 HRESULT WSMessageStreamSink::Create(ECFifoBuffer *lpFifoBuffer, ULONG ulTimeout, WSMessageStreamImporter *lpImporter, WSMessageStreamSink **lppSink)
 {
-	WSMessageStreamSinkPtr ptrSink;
-
 	if (lpFifoBuffer == NULL || lppSink == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
-	try {
-		ptrSink.reset(new WSMessageStreamSink(lpFifoBuffer, ulTimeout, lpImporter));
-	} catch (const std::bad_alloc &) {
+	WSMessageStreamSinkPtr ptrSink(new(std::nothrow) WSMessageStreamSink(lpFifoBuffer, ulTimeout, lpImporter));
+	if (ptrSink == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	}
-
 	*lppSink = ptrSink.release();
 	return hrSuccess;
 }
@@ -124,18 +120,15 @@ HRESULT WSMessageStreamImporter::Create(ULONG ulFlags, ULONG ulSyncId, ULONG cbE
 
 	lpSyncSettings = ECSyncSettings::GetInstance();
 
-	try {
-		ptrStreamImporter.reset(new WSMessageStreamImporter(ulFlags, ulSyncId, sEntryId, sFolderEntryId, bNewMessage, sConflictItems, lpTransport, lpSyncSettings->StreamBufferSize(), lpSyncSettings->StreamTimeout()));
-
-		// The following are now owned by the stream importer
-		sEntryId.__ptr = NULL;
-		sFolderEntryId.__ptr = NULL;
-		sConflictItems.Value.bin = NULL;
-	} catch (const std::bad_alloc &) {
+	ptrStreamImporter.reset(new(std::nothrow) WSMessageStreamImporter(ulFlags, ulSyncId, sEntryId, sFolderEntryId, bNewMessage, sConflictItems, lpTransport, lpSyncSettings->StreamBufferSize(), lpSyncSettings->StreamTimeout()));
+	if (ptrStreamImporter == nullptr) {
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
 	}
-
+	// The following are now owned by the stream importer
+	sEntryId.__ptr = NULL;
+	sFolderEntryId.__ptr = NULL;
+	sConflictItems.Value.bin = NULL;
 	*lppStreamImporter = ptrStreamImporter.release();
 
 exit:

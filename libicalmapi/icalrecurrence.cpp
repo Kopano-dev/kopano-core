@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <memory>
 #include "icalrecurrence.h"
 #include "vconverter.h"
 #include "nameids.h"
@@ -54,7 +55,7 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, ica
 												  bool bIsAllday, LPSPropTagArray lpNamedProps, icalitem *lpIcalItem)
 {
 	HRESULT hr = hrSuccess;
-	recurrence *lpRec = NULL;
+	std::unique_ptr<recurrence> lpRec;
 	icalproperty *lpicProp = NULL;
 	icalrecurrencetype icRRule;
 	int i = 0;
@@ -106,8 +107,7 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, ica
 		dtUTCEnd = ICalTimeTypeToUTC(lpicRootEvent, lpicProp);
 	}
 
-	lpRec = new recurrence;
-
+	lpRec.reset(new recurrence);
 	// recurrence class contains LOCAL times only, so convert UTC -> LOCAL
 	lpRec->setStartDateTime(dtLocalStart);
 
@@ -304,12 +304,8 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, ica
 		sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_COMMONEND], PT_SYSTIME);
 		lpIcalItem->lstMsgProps.push_back(sPropVal);
 	}
-
-	lpIcalItem->lpRecurrence = lpRec;
-	lpRec = NULL;
-
+	lpIcalItem->lpRecurrence = lpRec.release();
 exit:
-	delete lpRec;
 	return hr;
 }
 /**
@@ -745,7 +741,6 @@ bool ICalRecurrence::HrValidateOccurrence(icalitem *lpItem, icalitem::exception 
 	HRESULT hr = hrSuccess;
 	memory_ptr<OccrInfo> lpFBBlocksAll;
 	ULONG cValues = 0;
-	bool bIsValid = false;
 	time_t tBaseDateStart = LocalToUTC(lpItem->lpRecurrence->StartOfDay(UTCToLocal(lpEx.tBaseDate, lpItem->tTZinfo)), lpItem->tTZinfo);
 	time_t tStartDateStart = LocalToUTC(lpItem->lpRecurrence->StartOfDay(UTCToLocal(lpEx.tStartDate, lpItem->tTZinfo)), lpItem->tTZinfo);
 
@@ -756,13 +751,8 @@ bool ICalRecurrence::HrValidateOccurrence(icalitem *lpItem, icalitem::exception 
 	}
 
 	if (hr != hrSuccess)
-		goto exit;
-
-	if(cValues == 1)
-		bIsValid = true;
-
-exit:	
-	return bIsValid;
+		return false;
+	return cValues == 1;
 }
 
 /**

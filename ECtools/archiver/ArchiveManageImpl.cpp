@@ -59,17 +59,14 @@ inline UserEntry ArchiveManageImpl::MakeUserEntry(const std::string &strUser) {
 HRESULT ArchiveManageImpl::Create(ArchiverSessionPtr ptrSession, ECConfig *lpConfig, const TCHAR *lpszUser, ECLogger *lpLogger, ArchiveManagePtr *lpptrArchiveManage)
 {
 	HRESULT hr;
-	std::unique_ptr<ArchiveManageImpl> ptrArchiveManage;
 
 	if (lpszUser == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	
-	try {
-		ptrArchiveManage.reset(new ArchiveManageImpl(ptrSession, lpConfig, lpszUser, lpLogger));
-	} catch (std::bad_alloc &) {
+	std::unique_ptr<ArchiveManageImpl> ptrArchiveManage(
+		new(std::nothrow) ArchiveManageImpl(ptrSession, lpConfig, lpszUser, lpLogger));
+	if (ptrArchiveManage == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	}
-	
 	hr = ptrArchiveManage->Init();
 	if (hr != hrSuccess)
 		return hr;

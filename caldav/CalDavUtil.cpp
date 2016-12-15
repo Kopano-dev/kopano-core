@@ -624,16 +624,8 @@ exit:
 bool IsPrivate(LPMESSAGE lpMessage, ULONG ulPropIDPrivate)
 {
 	memory_ptr<SPropValue> lpPropPrivate;
-	bool bIsPrivate = false;
-	HRESULT hr = HrGetOneProp(lpMessage, ulPropIDPrivate, &~lpPropPrivate);
-	if (hr != hrSuccess)
-		goto exit;
-	
-	if(lpPropPrivate->Value.b == TRUE)
-		bIsPrivate = true;
-	
-exit:
-	return bIsPrivate;
+	return HrGetOneProp(lpMessage, ulPropIDPrivate, &~lpPropPrivate) == hrSuccess &&
+	       lpPropPrivate->Value.b == TRUE;
 }
 
 /**

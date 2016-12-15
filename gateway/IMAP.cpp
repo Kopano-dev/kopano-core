@@ -2190,7 +2190,7 @@ HRESULT IMAP::HrCmdSearch(const string &strTag, vector<string> &lstSearchCriteri
 	ULONG ulCriterianr = 0;
 	string strResponse;
 	char szBuffer[33];
-	ECIConv *iconv = NULL;
+	std::unique_ptr<ECIConv> iconv;
 	string strMode;
 
 	if (bUidMode)
@@ -2206,7 +2206,7 @@ HRESULT IMAP::HrCmdSearch(const string &strTag, vector<string> &lstSearchCriteri
 	// @todo unicode searches
 	if (lstSearchCriteria[0].compare("CHARSET") == 0) {
 		if (lstSearchCriteria[1] != "WINDOWS-1252") {
-			iconv = new ECIConv("windows-1252", lstSearchCriteria[1]);
+			iconv.reset(new ECIConv("windows-1252", lstSearchCriteria[1]));
 			if (!iconv->canConvert()) {
 				hr2 = HrResponse(RESP_TAGGED_NO, strTag, "[BADCHARSET (WINDOWS-1252)] " + strMode + "SEARCH charset not supported");
 				hr = MAPI_E_CALL_FAILED;
@@ -2215,8 +2215,7 @@ HRESULT IMAP::HrCmdSearch(const string &strTag, vector<string> &lstSearchCriteri
 		}
 		ulCriterianr += 2;
 	}
-
-	hr = HrSearch(lstSearchCriteria, ulCriterianr, lstMailnr, iconv);
+	hr = HrSearch(lstSearchCriteria, ulCriterianr, lstMailnr, iconv.get());
 	if (hr != hrSuccess) {
 		hr2 = HrResponse(RESP_TAGGED_NO, strTag, strMode+"SEARCH error");
 		goto exit;
@@ -2234,7 +2233,6 @@ HRESULT IMAP::HrCmdSearch(const string &strTag, vector<string> &lstSearchCriteri
 		hr = HrResponse(RESP_TAGGED_OK, strTag, strMode+"SEARCH completed");
 
 exit:
-	delete iconv;
 	if (hr2 != hrSuccess)
 		return hr2;
 	return hr;
@@ -3142,7 +3140,6 @@ HRESULT IMAP::HrGetSubscribedList() {
 	ULONG size, i;
 	ULONG read;
 	ULONG cb = 0;
-	BYTE *lpb = NULL;
 	
 	m_vSubscriptions.clear();
 	hr = lpStore->GetReceiveFolder((LPTSTR)"IPM", 0, &cbEntryID, &~lpEntryID, NULL);
@@ -3165,26 +3162,21 @@ HRESULT IMAP::HrGetSubscribedList() {
 		goto exit;
 
 	for (i = 0; i < size; ++i) {
+		std::unique_ptr<BYTE[]> lpb;
+
 		hr = lpStream->Read(&cb, sizeof(ULONG), &read);
 		if (hr != hrSuccess || read != sizeof(ULONG))
 			goto exit;
-
-		lpb = new BYTE[cb];
-
-		hr = lpStream->Read(lpb, cb, &read);
+		lpb.reset(new BYTE[cb]);
+		hr = lpStream->Read(lpb.get(), cb, &read);
 		if (hr != hrSuccess || read != cb) {
 		    hr = MAPI_E_NOT_FOUND;
 			goto exit;
         }
-
-		m_vSubscriptions.push_back(BinaryArray(lpb, cb));
-		
-		delete [] lpb;
-		lpb = NULL;
+		m_vSubscriptions.push_back(BinaryArray(lpb.get(), cb));
 	}
 
 exit:
-	delete[] lpb;
 	if (lpStream)
 		lpStream->Release();
 
@@ -3357,10 +3349,8 @@ exit:
  * @return is a special folder (true) or a custom user folder (false)
  */
 bool IMAP::IsSpecialFolder(ULONG cbEntryID, LPENTRYID lpEntryID) {
-	if(lstSpecialEntryIDs.find(BinaryArray((BYTE *)lpEntryID, cbEntryID, true)) == lstSpecialEntryIDs.end())
-        return false;
-        
-    return true;
+	return lstSpecialEntryIDs.find(BinaryArray(reinterpret_cast<BYTE *>(lpEntryID), cbEntryID, true)) !=
+	       lstSpecialEntryIDs.end();
 }
 
 /** 
@@ -6502,14 +6492,9 @@ string IMAP::GetHeaderValue(const string &strMessage, const string &strHeader, c
  * @return MAPI Error code
  */
 HRESULT IMAP::HrGetBodyStructure(bool bExtended, string &strBodyStructure, const string& strMessage) {
-	HRESULT hr = hrSuccess;
-
 	if (bExtended)
-		hr = createIMAPProperties(strMessage, NULL, NULL, &strBodyStructure);
-	else
-		hr = createIMAPProperties(strMessage, NULL, &strBodyStructure, NULL);
-
-	return hr;
+		return createIMAPProperties(strMessage, nullptr, nullptr, &strBodyStructure);
+	return createIMAPProperties(strMessage, nullptr, &strBodyStructure, nullptr);
 }
 
 /** 
@@ -7248,18 +7233,10 @@ exit:
  */
 bool IMAP::IsSpecialFolder(IMAPIFolder *lpFolder)
 {
-    bool result = false;
 	memory_ptr<SPropValue> lpProp;
-    HRESULT hr = hrSuccess;
-    
-	hr = HrGetOneProp(lpFolder, PR_ENTRYID, &~lpProp);
-    if(hr != hrSuccess)
-        goto exit;
-        
-    result = IsSpecialFolder(lpProp->Value.bin.cb, (LPENTRYID)lpProp->Value.bin.lpb);
-    
-exit:
-	return result;
+	if (HrGetOneProp(lpFolder, PR_ENTRYID, &~lpProp) != hrSuccess)
+		return false;
+	return IsSpecialFolder(lpProp->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpProp->Value.bin.lpb));
 }
 
 /** 
@@ -7271,21 +7248,12 @@ exit:
  */
 bool IMAP::IsMailFolder(IMAPIFolder *lpFolder)
 {
-    bool result = false;
 	memory_ptr<SPropValue> lpProp;
-    HRESULT hr = hrSuccess;
-    
-	hr = HrGetOneProp(lpFolder, PR_CONTAINER_CLASS_A, &~lpProp);
-    if(hr != hrSuccess) {
+	if (HrGetOneProp(lpFolder, PR_CONTAINER_CLASS_A, &~lpProp) != hrSuccess)
 		// if the property is missing, treat it as an email folder
-		result = true;
-        goto exit;
-	}
-        
-	result = strcasecmp(lpProp->Value.lpszA, "IPM") == 0 || strcasecmp(lpProp->Value.lpszA, "IPF.NOTE") == 0;
-    
-exit:
-	return result;
+		return true;
+	return strcasecmp(lpProp->Value.lpszA, "IPM") == 0 ||
+	       strcasecmp(lpProp->Value.lpszA, "IPF.NOTE") == 0;
 }
 
 bool IMAP::IsSentItemFolder(IMAPIFolder *lpFolder)

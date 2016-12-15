@@ -16,6 +16,8 @@
  */
 
 #include <kopano/platform.h>
+#include <memory>
+#include <new>
 #include <kopano/ECLogger.h>
 #include "instanceidmapper.h"
 #include "Archiver.h"
@@ -28,7 +30,7 @@ namespace KC { namespace operations {
 HRESULT InstanceIdMapper::Create(ECLogger *lpLogger, ECConfig *lpConfig, InstanceIdMapperPtr *lpptrMapper)
 {
 	HRESULT hr = hrSuccess;
-	InstanceIdMapper *lpMapper = NULL;
+	std::unique_ptr<InstanceIdMapper> lpMapper;
 	ECConfig *lpLocalConfig = lpConfig;
 
 	// Get config if required.
@@ -39,10 +41,8 @@ HRESULT InstanceIdMapper::Create(ECLogger *lpLogger, ECConfig *lpConfig, Instanc
 			LogConfigErrors(lpLocalConfig);
 		}
 	}
-
-	try {
-		lpMapper = new InstanceIdMapper(lpLogger);
-	} catch (const std::bad_alloc &) {
+	lpMapper.reset(new(std::nothrow) InstanceIdMapper(lpLogger));
+	if (lpMapper == nullptr) {
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
 	}
@@ -50,12 +50,8 @@ HRESULT InstanceIdMapper::Create(ECLogger *lpLogger, ECConfig *lpConfig, Instanc
 	hr = lpMapper->Init(lpLocalConfig);
 	if (hr != hrSuccess)
 		goto exit;
-		
-	lpptrMapper->reset(lpMapper, boost::checked_deleter<InstanceIdMapper>());
-	lpMapper = NULL;
-
+	lpptrMapper->reset(lpMapper.release(), boost::checked_deleter<InstanceIdMapper>());
 exit:
-	delete lpMapper;
 	if (lpConfig == NULL) {
 		assert(lpLocalConfig != NULL);
 		delete lpLocalConfig;

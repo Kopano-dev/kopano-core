@@ -58,14 +58,10 @@ namespace KC {
  */
 HRESULT ArchiveControlImpl::Create(ArchiverSessionPtr ptrSession, ECConfig *lpConfig, ECLogger *lpLogger, bool bForceCleanup, ArchiveControlPtr *lpptrArchiveControl)
 {
-	std::unique_ptr<ArchiveControlImpl> ptrArchiveControl;
-
-	try {
-		ptrArchiveControl.reset(new ArchiveControlImpl(ptrSession, lpConfig, lpLogger, bForceCleanup));
-	} catch (std::bad_alloc &) {
+	std::unique_ptr<ArchiveControlImpl> ptrArchiveControl(
+		new(std::nothrow) ArchiveControlImpl(ptrSession, lpConfig, lpLogger, bForceCleanup));
+	if (ptrArchiveControl == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	}
-
 	HRESULT hr = ptrArchiveControl->Init();
 	if (hr != hrSuccess)
 		return hr;

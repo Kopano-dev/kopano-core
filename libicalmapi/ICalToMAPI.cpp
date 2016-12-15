@@ -15,6 +15,8 @@
  *
  */
 #include <kopano/zcdefs.h>
+#include <memory>
+#include <new>
 #include <kopano/platform.h>
 #include <kopano/ECRestriction.h>
 #include <kopano/memory.hpp>
@@ -90,11 +92,9 @@ HRESULT CreateICalToMapi(IMAPIProp *lpPropObj, LPADRBOOK lpAdrBook, bool bNoReci
 {
 	if (lpPropObj == nullptr || lppICalToMapi == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	try {
-		*lppICalToMapi = new ICalToMapiImpl(lpPropObj, lpAdrBook, bNoRecipients);
-	} catch (...) {
+	*lppICalToMapi = new(std::nothrow) ICalToMapiImpl(lpPropObj, lpAdrBook, bNoRecipients);
+	if (*lppICalToMapi == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	}
 	return hrSuccess;
 }
 
@@ -158,7 +158,6 @@ void ICalToMapiImpl::Clean()
 HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string& strCharset, const std::string& strServerTZparam, IMailUser *lpMailUser, ULONG ulFlags)
 {
 	HRESULT hr = hrSuccess;
-	VConverter *lpVEC = NULL;
 	icalcomponent *lpicCalendar = NULL;
 	icalcomponent *lpicComponent = NULL;
 	TIMEZONE_STRUCT ttTimeZone = {0};
@@ -241,14 +240,17 @@ HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string&
 	// find all "messages" vevent, vtodo, vjournal, ...?
 	lpicComponent = icalcomponent_get_first_component(lpicCalendar, ICAL_ANY_COMPONENT);
 	while (lpicComponent) {
+		std::unique_ptr<VConverter> lpVEC;
 		auto type = icalcomponent_isa(lpicComponent);
 		switch (type) {
 		case ICAL_VEVENT_COMPONENT:
-			lpVEC = new VEventConverter(m_lpAdrBook, &tzMap, m_lpNamedProps, strCharset, false, m_bNoRecipients, lpMailUser);
+			static_assert(std::is_polymorphic<VEventConverter>::value, "VEventConverter needs to be polymorphic for unique_ptr to work");
+			lpVEC.reset(new VEventConverter(m_lpAdrBook, &tzMap, m_lpNamedProps, strCharset, false, m_bNoRecipients, lpMailUser));
 			hr = hrSuccess;
 			break;
 		case ICAL_VTODO_COMPONENT:
-			lpVEC = new VTodoConverter(m_lpAdrBook, &tzMap, m_lpNamedProps, strCharset, false, m_bNoRecipients, lpMailUser);
+			static_assert(std::is_polymorphic<VTodoConverter>::value, "VTodoConverter needs to be polymorphic for unique_ptr to work");
+			lpVEC.reset(new VTodoConverter(m_lpAdrBook, &tzMap, m_lpNamedProps, strCharset, false, m_bNoRecipients, lpMailUser));
 			hr = hrSuccess;
 			break;
 		case ICAL_VFREEBUSY_COMPONENT:
@@ -285,8 +287,6 @@ HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string&
 			}
 		}
 next:
-		delete lpVEC;
-		lpVEC = NULL;
 		lpicComponent = icalcomponent_get_next_component(lpicCalendar, ICAL_ANY_COMPONENT);
 	}
 	hr = hrSuccess;
@@ -298,7 +298,6 @@ next:
 // 		hr = MAPI_W_ERRORS_RETURNED;
 
 exit:
-	delete lpVEC;
 	if (lpicCalendar)
 		icalcomponent_free(lpicCalendar);
 

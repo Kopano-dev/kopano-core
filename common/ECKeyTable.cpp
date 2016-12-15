@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <memory>
 #include <cassert>
 #include <kopano/ECKeyTable.h>
 #include <kopano/lockhelper.hpp>
@@ -1384,9 +1385,9 @@ ECRESULT ECKeyTable::UpdatePartialSortKey(sObjectTableKey *lpsRowItem, unsigned 
 {
     ECRESULT er = erSuccess;
     ECTableRow *lpCursor = NULL;
-    unsigned char **lppSortKeys = NULL;
-    unsigned int *lpSortLen = NULL;
-    unsigned char *lpFlags = NULL;
+	std::unique_ptr<unsigned char *[]> lppSortKeys;
+	std::unique_ptr<unsigned int[]> lpSortLen;
+	std::unique_ptr<unsigned char[]> lpFlags;
 	ulock_rec biglock(mLock);
 
     er = GetRow(lpsRowItem, &lpCursor);
@@ -1399,15 +1400,15 @@ ECRESULT ECKeyTable::UpdatePartialSortKey(sObjectTableKey *lpsRowItem, unsigned 
     }
     
     // Copy the sortkeys that we used to have
-    lppSortKeys = new unsigned char *[lpCursor->ulSortCols];
-    lpSortLen = new unsigned int[lpCursor->ulSortCols];
-    lpFlags = new unsigned char[lpCursor->ulSortCols];
+	lppSortKeys.reset(new unsigned char *[lpCursor->ulSortCols]);
+	lpSortLen.reset(new unsigned int[lpCursor->ulSortCols]);
+	lpFlags.reset(new unsigned char[lpCursor->ulSortCols]);
 
     // Note: we can just copy the pointers of the sort data here, since they are still valid, and are also valid
     // to pass into UpdateRow()        
-    memcpy(lppSortKeys, lpCursor->lppSortKeys, sizeof(unsigned char *) * lpCursor->ulSortCols);
-    memcpy(lpSortLen, lpCursor->lpSortLen, sizeof(unsigned int) * lpCursor->ulSortCols);
-    memcpy(lpFlags, lpCursor->lpFlags, sizeof(unsigned char) * lpCursor->ulSortCols);
+	memcpy(lppSortKeys.get(), lpCursor->lppSortKeys, sizeof(unsigned char *) * lpCursor->ulSortCols);
+	memcpy(lpSortLen.get(), lpCursor->lpSortLen, sizeof(unsigned int) * lpCursor->ulSortCols);
+	memcpy(lpFlags.get(), lpCursor->lpFlags, sizeof(unsigned char) * lpCursor->ulSortCols);
     
     // Modify the updated colum
     lppSortKeys[ulColumn] = lpSortData;
@@ -1418,15 +1419,14 @@ ECRESULT ECKeyTable::UpdatePartialSortKey(sObjectTableKey *lpsRowItem, unsigned 
         *lpfHidden = lpCursor->fHidden;
 
     // Update the row
-    er = UpdateRow(TABLE_ROW_MODIFY, lpsRowItem, lpCursor->ulSortCols, lpSortLen, lpFlags, lppSortKeys, lpsPrevRow, lpCursor->fHidden, lpulAction);
+	er = UpdateRow(TABLE_ROW_MODIFY, lpsRowItem, lpCursor->ulSortCols,
+	     lpSortLen.get(), lpFlags.get(), lppSortKeys.get(), lpsPrevRow,
+	     lpCursor->fHidden, lpulAction);
     if(er != erSuccess)
         goto exit;
     
 exit:
 	biglock.unlock();
-	delete[] lppSortKeys;
-	delete[] lpSortLen;
-	delete[] lpFlags;
 	return er;
 }
 

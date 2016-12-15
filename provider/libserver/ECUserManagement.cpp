@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <memory>
 #include <mutex>
 #include <stdexcept>
 #include <mapidefs.h>
@@ -387,7 +388,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 	bool bIsSafeMode = parseBool(m_lpConfig->GetSetting("user_safe_mode"));
 
 	// Return data
-	std::list<localobjectdetails_t> *lpObjects = new std::list<localobjectdetails_t>;
+	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects(new std::list<localobjectdetails_t>);
 
 	// Local ids
 	std::list<unsigned int> *lpLocalIds = NULL;
@@ -534,7 +535,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 		
 	}
 
-	er = GetLocalObjectListFromSignatures(*lpExternSignatures, mapExternIdToLocal, ulFlags, lpObjects);
+	er = GetLocalObjectListFromSignatures(*lpExternSignatures, mapExternIdToLocal, ulFlags, lpObjects.get());
 	if (er != erSuccess)
 		goto exit;
 
@@ -561,13 +562,11 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 
 	if (lppObjects) {
 		lpObjects->sort();
-		*lppObjects = lpObjects;
-		lpObjects = NULL;
+		*lppObjects = lpObjects.release();
 	}
 
 exit:
 	delete lpLocalIds;
-	delete lpObjects;
 	return er;
 }
 
@@ -577,7 +576,7 @@ ECRESULT ECUserManagement::GetSubObjectsOfObjectAndSync(userobject_relation_t re
 	ECRESULT er = erSuccess;
 
 	// Return data
-	std::list<localobjectdetails_t> *lpObjects = new std::list<localobjectdetails_t>();
+	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects(new std::list<localobjectdetails_t>);
 	std::list<localobjectdetails_t> *lpObjectsTmp = NULL;
 	std::list<localobjectdetails_t> *lpCompanies = NULL;
 
@@ -655,8 +654,7 @@ ECRESULT ECUserManagement::GetSubObjectsOfObjectAndSync(userobject_relation_t re
 		er = GetLocalObjectsIdsOrCreate(*lpSignatures, &mapExternIdToLocal);
 		if (er != erSuccess)
 			goto exit;
-
-		er = GetLocalObjectListFromSignatures(*lpSignatures, mapExternIdToLocal, ulFlags | USERMANAGEMENT_SHOW_HIDDEN, lpObjects);
+		er = GetLocalObjectListFromSignatures(*lpSignatures, mapExternIdToLocal, ulFlags | USERMANAGEMENT_SHOW_HIDDEN, lpObjects.get());
 		if (er != erSuccess)
 			goto exit;
 	}
@@ -683,14 +681,12 @@ ECRESULT ECUserManagement::GetSubObjectsOfObjectAndSync(userobject_relation_t re
 	if (lppObjects) {
 		lpObjects->sort();
 		lpObjects->unique();
-		*lppObjects = lpObjects;
-		lpObjects = NULL;
+		*lppObjects = lpObjects.release();
 	}
 
 exit:
 	delete lpCompanies;
 	delete lpObjectsTmp;
-	delete lpObjects;
 	return er;
 }
 
@@ -700,7 +696,7 @@ ECRESULT ECUserManagement::GetParentObjectsOfObjectAndSync(userobject_relation_t
 	ECRESULT er = erSuccess;
 
 	// Return data
-	std::list<localobjectdetails_t> *lpObjects = new std::list<localobjectdetails_t>();
+	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects(new std::list<localobjectdetails_t>());
 
 	// Extern ids
 	std::unique_ptr<signatures_t> lpSignatures;
@@ -756,7 +752,7 @@ ECRESULT ECUserManagement::GetParentObjectsOfObjectAndSync(userobject_relation_t
 		if (er != erSuccess)
 			goto exit;
 
-		er = GetLocalObjectListFromSignatures(*lpSignatures, mapExternIdToLocal, ulFlags, lpObjects);
+		er = GetLocalObjectListFromSignatures(*lpSignatures, mapExternIdToLocal, ulFlags, lpObjects.get());
 		if (er != erSuccess)
 			goto exit;
 	}
@@ -803,12 +799,10 @@ ECRESULT ECUserManagement::GetParentObjectsOfObjectAndSync(userobject_relation_t
 	if (lppObjects) {
 		lpObjects->sort();
 		lpObjects->unique();
-		*lppObjects = lpObjects;
-		lpObjects = NULL;
+		*lppObjects = lpObjects.release();
 	}
 
 exit:
-	delete lpObjects;
 	return er;
 }
 

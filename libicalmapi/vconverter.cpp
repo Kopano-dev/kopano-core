@@ -318,20 +318,14 @@ bool VConverter::bIsUserLoggedIn(const std::wstring &strUser)
 {
 	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpUserProp;
-	bool blRetVal = false;
 	
 	if (m_lpMailUser)
 		hr = HrGetOneProp(m_lpMailUser, PR_SMTP_ADDRESS_W, &~lpUserProp);
 	else
 		hr = MAPI_E_CALL_FAILED;
 	if (hr != hrSuccess)
-		goto exit;
-
-	if (!wcsncmp(lpUserProp->Value.lpszW, strUser.c_str() , strUser.length()))
-		blRetVal = true;
-	
-exit:
-	return blRetVal;
+		return false;
+	return wcsncmp(lpUserProp->Value.lpszW, strUser.c_str(), strUser.length()) == 0;
 }
 
 /**
@@ -488,7 +482,7 @@ HRESULT VConverter::HrCompareUids(icalitem *lpIcalItem, icalcomponent *lpicEvent
 	lpPropVal->ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY);
 
 	hr = Util::CompareProp(lpPropVal, &lpIcalItem->sBinGuid, createLocaleFromName(""), &res);
-	if (!(hr == hrSuccess && res == 0))
+	if (hr != hrSuccess || res != 0)
 		hr = MAPI_E_BAD_VALUE;
 
 exit:
@@ -2529,7 +2523,7 @@ HRESULT VConverter::HrSetBody(LPMESSAGE lpMessage, icalproperty **lppicProp)
 	LPSTREAM lpStream = NULL;
 	STATSTG sStreamStat;
 	std::wstring strBody;
-	WCHAR *lpBody = NULL;
+	std::unique_ptr<wchar_t[]> lpBody;
 
 	hr = lpMessage->OpenProperty(PR_BODY_W, &IID_IStream, 0, MAPI_DEFERRED_ERRORS, (LPUNKNOWN*)&lpStream);
 	if (hr != hrSuccess)
@@ -2544,17 +2538,17 @@ HRESULT VConverter::HrSetBody(LPMESSAGE lpMessage, icalproperty **lppicProp)
 		goto exit;
 	}
 
-	lpBody = new WCHAR[sStreamStat.cbSize.LowPart + sizeof(WCHAR)];
-	memset(lpBody, 0, (sStreamStat.cbSize.LowPart+1) * sizeof(WCHAR));
+	lpBody.reset(new WCHAR[sStreamStat.cbSize.LowPart + sizeof(WCHAR)]);
+	memset(lpBody.get(), 0, (sStreamStat.cbSize.LowPart+1) * sizeof(WCHAR));
 
-	hr = lpStream->Read(lpBody, sStreamStat.cbSize.LowPart * sizeof(WCHAR), NULL);
+	hr = lpStream->Read(lpBody.get(), sStreamStat.cbSize.LowPart * sizeof(WCHAR), NULL);
 	if (hr != hrSuccess)
 		goto exit;
 
 	// The body is converted as OL2003 does not parse '\r' & '\t' correctly
 	// Newer versions also have some issues parsing these chars
 	// RFC specifies that new lines should be CRLF
-	StringTabtoSpaces(lpBody, &strBody);
+	StringTabtoSpaces(lpBody.get(), &strBody);
 	StringCRLFtoLF(strBody, &strBody);
 	
 	*lppicProp = icalproperty_new_description(m_converter.convert_to<string>(m_strCharset.c_str(), strBody, rawsize(strBody), CHARSET_WCHAR).c_str());
@@ -2562,7 +2556,6 @@ HRESULT VConverter::HrSetBody(LPMESSAGE lpMessage, icalproperty **lppicProp)
 exit:
 	if (lpStream)
 		lpStream->Release();
-	delete[] lpBody;
 	return hr;
 }
 
@@ -3205,31 +3198,27 @@ HRESULT VConverter::HrRetrieveAlldayStatus(icalcomponent *lpicEvent, bool *lpblI
 	icStart = icalcomponent_get_dtstart(lpicEvent);
 	if (icStart.is_date)
 	{
-		blIsAllday = true;
-		goto exit;
+		*lpblIsAllday = true;
+		return hrSuccess;
 	}
 
 	// only assume the X header valid when it's a non-floating timestamp.
 	// also check is_utc and/or zone pointer in DTSTART/DTEND ?
 	icEnd = icalcomponent_get_dtend(lpicEvent);
-	if ((icStart.hour + icStart.minute + icStart.second) != 0 || (icEnd.hour + icEnd.minute + icEnd.second) != 0)
-		goto exit;
+	if (icStart.hour + icStart.minute + icStart.second != 0 ||
+	    icEnd.hour + icEnd.minute + icEnd.second != 0) {
+		*lpblIsAllday = false;
+		return hrSuccess;
+	}
 
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_X_PROPERTY);
 	while (lpicProp) {
 		if (strcmp(icalproperty_get_x_name(lpicProp), "X-MICROSOFT-CDO-ALLDAYEVENT") == 0){
-			
-			if (strcmp(icalproperty_get_x(lpicProp),"TRUE") == 0)
-				blIsAllday = true;
-			else
-				blIsAllday = false;
-
+			blIsAllday = strcmp(icalproperty_get_x(lpicProp),"TRUE") == 0;
 			break;
 		}
 		lpicProp = icalcomponent_get_next_property(lpicEvent, ICAL_X_PROPERTY);
 	}
-
-exit:
 	*lpblIsAllday = blIsAllday;
 
 	return hrSuccess;

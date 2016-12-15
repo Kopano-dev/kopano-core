@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <new>
 #include "ZCABProvider.h"
 #include "ZCABLogon.h"
 
@@ -35,13 +36,9 @@ ZCABProvider::ZCABProvider(ULONG ulFlags, const char *szClassName) :
 
 HRESULT ZCABProvider::Create(ZCABProvider **lppZCABProvider)
 {
-	ZCABProvider *lpZCABProvider = NULL;
-
-	try {
-		lpZCABProvider = new ZCABProvider(0, "ZCABProvider");
-	} catch (...) {
+	auto lpZCABProvider = new(std::nothrow) ZCABProvider(0, "ZCABProvider");
+	if (lpZCABProvider == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	}
 	HRESULT hr = lpZCABProvider->QueryInterface(IID_ZCABProvider,
 	             reinterpret_cast<void **>(lppZCABProvider));
 	if(hr != hrSuccess)

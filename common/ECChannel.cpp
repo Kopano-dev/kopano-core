@@ -16,7 +16,8 @@
  */
 
 #include <kopano/platform.h>
-
+#include <memory>
+#include <new>
 #include <kopano/ECChannel.h>
 #include <kopano/stringutil.h>
 #include <csignal>
@@ -66,7 +67,7 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 	HRESULT hr = hrSuccess;
 	const char *szFile = NULL;
 	const char *szPath = NULL;
- 	char *ssl_protocols = strdup(lpConfig->GetSetting("ssl_protocols"));
+	std::unique_ptr<char> ssl_protocols(strdup(lpConfig->GetSetting("ssl_protocols")));
 	const char *ssl_ciphers = lpConfig->GetSetting("ssl_ciphers");
  	char *ssl_name = NULL;
  	int ssl_op = 0, ssl_include = 0, ssl_exclude = 0;
@@ -87,7 +88,7 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 
 	SSL_CTX_set_options(lpCTX, SSL_OP_ALL);			 // enable quirk and bug workarounds
 
-	ssl_name = strtok(ssl_protocols, " ");
+	ssl_name = strtok(ssl_protocols.get(), " ");
 	while(ssl_name != NULL) {
 		int ssl_proto = 0;
 		bool ssl_neg = false;
@@ -209,8 +210,6 @@ HRESULT ECChannel::HrSetCtx(ECConfig *lpConfig)
 	}
 
 exit:
-	free(ssl_protocols);
-
 	if (hr != hrSuccess)
 		HrFreeCtx();
 
@@ -481,30 +480,18 @@ HRESULT ECChannel::HrReadBytes(char *szBuffer, ULONG ulByteCount) {
 
 HRESULT ECChannel::HrReadBytes(std::string * strBuffer, ULONG ulByteCount) {
 	HRESULT hr = hrSuccess;
-	char *buffer = NULL;
+	std::unique_ptr<char[]> buffer;
 
-	if(!strBuffer) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	try {
-		buffer = new char[ulByteCount + 1];
-	}
-	catch (std::exception &) {
-		hr = MAPI_E_NOT_ENOUGH_MEMORY;
-		goto exit;
-	}
-
-	hr = HrReadBytes(buffer, ulByteCount);
+	if (strBuffer == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+	buffer.reset(new(std::nothrow) char[ulByteCount+1]);
+	if (buffer == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
+	hr = HrReadBytes(buffer.get(), ulByteCount);
 	if (hr != hrSuccess)
-		goto exit;
-
-	strBuffer->assign(buffer, ulByteCount);
-
-exit:
-	delete[] buffer;
-	return hr;
+		return hr;
+	strBuffer->assign(buffer.get(), ulByteCount);
+	return hrSuccess;
 }
 
 HRESULT ECChannel::HrSelect(int seconds) {
@@ -973,7 +960,7 @@ HRESULT HrAccept(int ulListenFD, ECChannel **lppChannel)
 	HRESULT hr = hrSuccess;
 	int socket = 0;
 	struct sockaddr_storage client;
-	ECChannel *lpChannel = NULL;
+	std::unique_ptr<ECChannel> lpChannel;
 	socklen_t len = sizeof(client);
 
 	if (ulListenFD < 0 || lppChannel == NULL) {
@@ -995,15 +982,11 @@ HRESULT HrAccept(int ulListenFD, ECChannel **lppChannel)
 		hr = MAPI_E_NETWORK_ERROR;
 		goto exit;
 	}
-	lpChannel = new ECChannel(socket);
+	lpChannel.reset(new ECChannel(socket));
 	lpChannel->SetIPAddress(reinterpret_cast<const struct sockaddr *>(&client), len);
 	ec_log_info("Accepted connection from %s", lpChannel->peer_addr());
-	*lppChannel = lpChannel;
-
+	*lppChannel = lpChannel.release();
 exit:
-	if (hr != hrSuccess)
-		delete lpChannel;
-
 	return hr;
 }
 
