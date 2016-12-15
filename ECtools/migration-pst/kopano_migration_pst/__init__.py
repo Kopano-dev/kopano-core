@@ -60,10 +60,11 @@ class Service(kopano.Service):
 
             recipients.append([
                 SPropValue(PR_RECIPIENT_TYPE, r.RecipientType),
-                SPropValue(PR_DISPLAY_TYPE, r.DisplayType),
                 SPropValue(PR_ADDRTYPE_W, u'ZARAFA' if user else r.AddressType),
                 SPropValue(PR_DISPLAY_NAME_W, user.fullname if user else r.DisplayName),
             ])
+            if r.DisplayType is not None:
+                recipients[-1].append(SPropValue(PR_DISPLAY_TYPE, r.DisplayType))
             if user or r.EmailAddress:
                 recipients[-1].append(SPropValue(PR_EMAIL_ADDRESS_W, user.name if user else r.EmailAddress)),
             if user:
