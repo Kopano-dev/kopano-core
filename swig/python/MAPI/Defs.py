@@ -48,5 +48,3 @@ def HrGetOneProp(pmp, proptag):
     if props[0].ulPropTag == proptag:
         return props[0]
     raise MAPI.Struct.MAPIError.from_hresult(props[0].Value)
-
-SYNC_SOFT_DELETE = 0x01

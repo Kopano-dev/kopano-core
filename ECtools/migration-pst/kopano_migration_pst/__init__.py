@@ -14,7 +14,7 @@ def _encode(s):
     return s.encode(sys.stdout.encoding or 'utf8')
 
 class Service(kopano.Service):
-    def import_props(self, parent, mapiobj):
+    def import_props(self, parent, mapiobj, embedded=False):
         props2 = []
         for k, v in parent.pc.props.items():
             propid, proptype, value = k, v.wPropType, v.value
@@ -27,10 +27,10 @@ class Service(kopano.Service):
                 subnode_nid = struct.unpack('I', value)[0]
                 submessage = pst.Message(subnode_nid, self.ltp, self.nbd, parent)
                 submapiobj = mapiobj.OpenProperty(PR_ATTACH_DATA_OBJ, IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY)
-                self.import_props(submessage, submapiobj)
+                self.import_props(submessage, submapiobj, embedded=True)
                 self.import_attachments(submessage, submapiobj)
                 self.import_recipients(submessage, submapiobj)
-            else:
+            elif isinstance(parent, pst.Attachment) or embedded or PROP_TAG(proptype, propid) != PR_ATTACH_NUM: # work around webapp bug? KC-390
                 props2.append(SPropValue(PROP_TAG(proptype, propid), value))
         mapiobj.SetProps(props2)
         mapiobj.SaveChanges(KEEP_OPEN_READWRITE)
