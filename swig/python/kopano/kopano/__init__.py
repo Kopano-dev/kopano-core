@@ -2441,15 +2441,15 @@ class Folder(object):
             parent = parent.parent
         return []
 
-    def search(self, text): # XXX recursion
+    def search(self, text, recurse=False):
         searchfolder = self.store.create_searchfolder()
-        searchfolder.search_start(self, text)
+        searchfolder.search_start(self, text, recurse)
         searchfolder.search_wait()
         for item in searchfolder:
             yield item
         self.store.findroot.mapiobj.DeleteFolder(searchfolder.entryid.decode('hex'), 0, None, 0) # XXX store.findroot
 
-    def search_start(self, folders, text): # XXX RECURSIVE_SEARCH
+    def search_start(self, folders, text, recurse=False):
         # specific restriction format, needed to reach indexer
         restriction = SOrRestriction([
                         SContentRestriction(FL_SUBSTRING | FL_IGNORECASE, PR_SUBJECT_W, SPropValue(PR_SUBJECT_W, unicode(text))),
@@ -2459,7 +2459,11 @@ class Folder(object):
         ])
         if isinstance(folders, Folder):
             folders = [folders]
-        self.mapiobj.SetSearchCriteria(restriction, [_unhex(f.entryid) for f in folders], 0)
+
+        search_flags = 0
+        if recurse:
+            search_flags = SEARCH_RECURSIVE
+        self.mapiobj.SetSearchCriteria(restriction, [_unhex(f.entryid) for f in folders], search_flags)
 
     def search_wait(self):
         while True:
