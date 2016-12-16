@@ -3773,7 +3773,7 @@ class User(object):
 
     @property
     def admin(self):
-        return self._ecuser.IsAdmin == 1
+        return self._ecuser.IsAdmin >= 1
 
     @admin.setter
     def admin(self, value):
