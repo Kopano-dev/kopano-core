@@ -726,6 +726,8 @@ class Property(object):
                 return codecs.encode(v, 'hex').decode('ascii').upper()
             elif self.type_ == PT_MV_BINARY:
                 return u'PT_MV_BINARY()' # XXX
+            elif v is None:
+                return ''
             else:
                 return unicode(v)
         return flatten(self.value)
