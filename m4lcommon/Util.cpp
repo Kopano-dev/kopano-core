@@ -145,13 +145,10 @@ bool Util::FHasHTML(IMAPIProp *lpProp)
 
 	hr = HrGetOneProp(lpProp, PR_STORE_SUPPORT_MASK, &~lpPropSupport);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return false; /* hr */
 	if((lpPropSupport->Value.ul & STORE_HTML_OK) == 0)
-		hr = MAPI_E_NOT_FOUND;
-
-exit:
-	return hr == hrSuccess;
+		return false; /* MAPI_E_NOT_FOUND */
+	return true;
 }
 
 /** 
@@ -181,20 +178,19 @@ HRESULT	Util::HrMergePropertyArrays(const SPropValue *lpSrc, ULONG cValues,
 		mapPropSource[lpAdds[i].ulPropTag] = &lpAdds[i];
 	hr = MAPIAllocateBuffer(sizeof(SPropValue)*mapPropSource.size(), &~lpProps);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	i = 0;
 	for (const auto &ips : mapPropSource) {
 		hr = Util::HrCopyProperty(&lpProps[i], ips.second, lpProps);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		++i;
 	}
 
 	*cDestValues = i;
 	*lppDest = lpProps.release();
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -3795,21 +3791,16 @@ HRESULT Util::HrGetQuotaStatus(IMsgStore *lpMsgStore, ECQUOTA *lpsQuota,
     SizedSPropTagArray(1, sptaProps) = {1, {PR_MESSAGE_SIZE_EXTENDED}};
     ULONG 			cValues = 0;
 	
-	if (lpMsgStore == NULL || lppsQuotaStatus == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpMsgStore == nullptr || lppsQuotaStatus == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 	hr = lpMsgStore->GetProps(sptaProps, 0, &cValues, &~lpProps);
 	if (hr != hrSuccess)
-		goto exit;
-		
-	if (cValues != 1 || lpProps[0].ulPropTag != PR_MESSAGE_SIZE_EXTENDED) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+		return hr;		
+	if (cValues != 1 || lpProps[0].ulPropTag != PR_MESSAGE_SIZE_EXTENDED)
+		return MAPI_E_NOT_FOUND;
 	hr = MAPIAllocateBuffer(sizeof *lpsQuotaStatus, &~lpsQuotaStatus);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	memset(lpsQuotaStatus, 0, sizeof *lpsQuotaStatus);
 	
 	lpsQuotaStatus->llStoreSize = lpProps[0].Value.li.QuadPart;
@@ -3823,8 +3814,7 @@ HRESULT Util::HrGetQuotaStatus(IMsgStore *lpMsgStore, ECQUOTA *lpsQuota,
 			lpsQuotaStatus->quotaStatus = QUOTA_WARN;
 	}
 	*lppsQuotaStatus = lpsQuotaStatus.release();
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -3850,16 +3840,14 @@ HRESULT Util::HrDeleteResidualProps(LPMESSAGE lpDestMsg, LPMESSAGE lpSourceMsg, 
 	memory_ptr<MAPINAMEID *> lppPropNames;
 	PropTagSet		sPropTagSet;
 
-	if (lpDestMsg == NULL || lpSourceMsg == NULL || lpsValidProps == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpDestMsg == nullptr || lpSourceMsg == nullptr || lpsValidProps == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 	hr = lpDestMsg->GetPropList(0, &~lpsPropArray);
 	if (hr != hrSuccess || lpsPropArray->cValues == 0)
-		goto exit;
+		return hr;
 	hr = MAPIAllocateBuffer(CbNewSPropTagArray(lpsValidProps->cValues), &~lpsNamedPropArray);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	memset(lpsNamedPropArray, 0, CbNewSPropTagArray(lpsValidProps->cValues));
 
 	for (unsigned i = 0; i < lpsValidProps->cValues; ++i)
@@ -3869,12 +3857,11 @@ HRESULT Util::HrDeleteResidualProps(LPMESSAGE lpDestMsg, LPMESSAGE lpSourceMsg, 
 	if (lpsNamedPropArray->cValues > 0) {
 		hr = lpSourceMsg->GetNamesFromIDs(&+lpsNamedPropArray, NULL, 0, &cPropNames, &~lppPropNames);
 		if (FAILED(hr))
-			goto exit;
+			return hr;
 		hr = lpDestMsg->GetIDsFromNames(cPropNames, lppPropNames, MAPI_CREATE, &~lpsMappedPropArray);
 		if (FAILED(hr))
-			goto exit;
+			return hr;
 	}
-	hr = hrSuccess;
 
 	// Add the PropTags the message currently has
 	for (unsigned i = 0; i < lpsPropArray->cValues; ++i)
@@ -3891,7 +3878,7 @@ HRESULT Util::HrDeleteResidualProps(LPMESSAGE lpDestMsg, LPMESSAGE lpSourceMsg, 
 			sPropTagSet.erase(lpsMappedPropArray->aulPropTag[i]);
 
 	if (sPropTagSet.empty())
-		goto exit;
+		return hrSuccess;
 
 	// Reuse lpsPropArray to hold the properties we're going to delete
 	assert(lpsPropArray->cValues >= sPropTagSet.size());
@@ -3903,12 +3890,8 @@ HRESULT Util::HrDeleteResidualProps(LPMESSAGE lpDestMsg, LPMESSAGE lpSourceMsg, 
 
 	hr = lpDestMsg->DeleteProps(lpsPropArray, NULL);
 	if (hr != hrSuccess)
-		goto exit;
-
-	hr = lpDestMsg->SaveChanges(KEEP_OPEN_READWRITE);
-
-exit:
-	return hr;
+		return hr;
+	return lpDestMsg->SaveChanges(KEEP_OPEN_READWRITE);
 }
 
 /** 

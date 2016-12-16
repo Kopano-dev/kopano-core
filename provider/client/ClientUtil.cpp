@@ -68,7 +68,7 @@ HRESULT ClientUtil::HrInitializeStatusRow (const char * lpszProviderDisplay, ULO
 
 	hResult = MAPIAllocateBuffer(sizeof(SPropValue) * 13, &~lpspvStatusRow);
 	if(hResult != hrSuccess)
-		goto exit;
+		return hResult;
 
 	memset(lpspvStatusRow, 0, sizeof(SPropValue) * 13);
 
@@ -80,7 +80,7 @@ HRESULT ClientUtil::HrInitializeStatusRow (const char * lpszProviderDisplay, ULO
 		lpspvStatusRow[cCurVal].ulPropTag = PR_PROVIDER_DISPLAY_A;
 		hResult = MAPIAllocateMore(size, lpspvStatusRow, (void**)&lpspvStatusRow[cCurVal].Value.lpszA);
 		if(hResult != hrSuccess)
-			goto exit;
+			return hResult;
 		memcpy(lpspvStatusRow[cCurVal].Value.lpszA, lpszProviderDisplay, size);
 		++cCurVal;
 
@@ -88,7 +88,7 @@ HRESULT ClientUtil::HrInitializeStatusRow (const char * lpszProviderDisplay, ULO
 		lpspvStatusRow[cCurVal].ulPropTag = PR_DISPLAY_NAME_A;
 		hResult = MAPIAllocateMore(size, lpspvStatusRow, (void**)&lpspvStatusRow[cCurVal].Value.lpszA);
 		if(hResult != hrSuccess)
-			goto exit;
+			return hResult;
 		memcpy(lpspvStatusRow[cCurVal].Value.lpszA, lpszProviderDisplay, size);
 		++cCurVal;
 	}
@@ -127,10 +127,7 @@ HRESULT ClientUtil::HrInitializeStatusRow (const char * lpszProviderDisplay, ULO
 	lpspvStatusRow[cCurVal].ulPropTag = PR_RESOURCE_TYPE;
 	lpspvStatusRow[cCurVal++].Value.l = ulResourceType; //like MAPI_STORE_PROVIDER or MAPI_TRANSPORT_PROVIDER
 
-	hResult = lpMAPISup->ModifyStatusRow(cCurVal, lpspvStatusRow, ulFlags);
-
-exit:
-	return hResult;
+	return lpMAPISup->ModifyStatusRow(cCurVal, lpspvStatusRow, ulFlags);
 }
 
 HRESULT ClientUtil::HrSetIdentity(WSTransport *lpTransport, LPMAPISUP lpMAPISup, LPSPropValue* lppIdentityProps)
@@ -148,12 +145,11 @@ HRESULT ClientUtil::HrSetIdentity(WSTransport *lpTransport, LPMAPISUP lpMAPISup,
 	// Get the username and email adress
 	hr = lpTransport->HrGetUser(0, NULL, fMapiUnicode, &~lpUser);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	cValues = NUM_IDENTITY_PROPS;
 	hr = MAPIAllocateBuffer(sizeof(SPropValue) * cValues, &~lpIdentityProps);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	memset(lpIdentityProps, 0, sizeof(SPropValue) * cValues);
 
 	strProfileSenderSearchKey.reserve(_tcslen(TRANSPORT_ADDRESS_TYPE_ZARAFA) + 1 + _tcslen(lpUser->lpszMailAddress));
@@ -165,7 +161,7 @@ HRESULT ClientUtil::HrSetIdentity(WSTransport *lpTransport, LPMAPISUP lpMAPISup,
 	lpIdentityProps[XPID_EID].Value.bin.cb = lpUser->sUserId.cb;
 	hr = MAPIAllocateMore(lpUser->sUserId.cb, (LPVOID)lpIdentityProps, (void**)&lpIdentityProps[XPID_EID].Value.bin.lpb);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	memcpy(lpIdentityProps[XPID_EID].Value.bin.lpb, lpUser->sUserId.lpb, lpUser->sUserId.cb);
 
 	// Create the PR_SENDER_NAME property value.
@@ -173,7 +169,7 @@ HRESULT ClientUtil::HrSetIdentity(WSTransport *lpTransport, LPMAPISUP lpMAPISup,
 	ulSize = sizeof(TCHAR) * (_tcslen(lpUser->lpszFullName) + 1);
 	hr = MAPIAllocateMore(ulSize, (LPVOID)lpIdentityProps , (void**)&lpIdentityProps[XPID_NAME].Value.LPSZ);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	memcpy(lpIdentityProps[XPID_NAME].Value.LPSZ, lpUser->lpszFullName, ulSize);
 
 	// Create the PR_SENDER_SEARCH_KEY value. 
@@ -181,7 +177,7 @@ HRESULT ClientUtil::HrSetIdentity(WSTransport *lpTransport, LPMAPISUP lpMAPISup,
 	lpIdentityProps[XPID_SEARCH_KEY].Value.bin.cb = strProfileSenderSearchKey.size()+1;
 	hr = MAPIAllocateMore(lpIdentityProps[XPID_SEARCH_KEY].Value.bin.cb, (LPVOID)lpIdentityProps , (void**)&lpIdentityProps[XPID_SEARCH_KEY].Value.bin.lpb);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	memcpy(lpIdentityProps[XPID_SEARCH_KEY].Value.bin.lpb, strProfileSenderSearchKey.c_str(), lpIdentityProps[XPID_SEARCH_KEY].Value.bin.cb);
 
 	// PR_SENDER_EMAIL_ADDRESS
@@ -189,7 +185,7 @@ HRESULT ClientUtil::HrSetIdentity(WSTransport *lpTransport, LPMAPISUP lpMAPISup,
 	ulSize = sizeof(TCHAR) * (_tcslen(lpUser->lpszMailAddress) + 1);
 	hr = MAPIAllocateMore(ulSize, (LPVOID)lpIdentityProps , (void**)&lpIdentityProps[XPID_ADDRESS].Value.LPSZ);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	memcpy(lpIdentityProps[XPID_ADDRESS].Value.LPSZ, lpUser->lpszMailAddress, ulSize);
 
 	// PR_SENDER_ADDRTYPE
@@ -197,7 +193,7 @@ HRESULT ClientUtil::HrSetIdentity(WSTransport *lpTransport, LPMAPISUP lpMAPISup,
 	ulSize = sizeof(TCHAR) * (_tcslen(TRANSPORT_ADDRESS_TYPE_ZARAFA) + 1);
 	hr = MAPIAllocateMore(ulSize, (LPVOID)lpIdentityProps , (void**)&lpIdentityProps[XPID_ADDRTYPE].Value.LPSZ);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	memcpy(lpIdentityProps[XPID_ADDRTYPE].Value.LPSZ, TRANSPORT_ADDRESS_TYPE_ZARAFA, ulSize);
 
 	//PR_OWN_STORE_ENTRYID
@@ -205,20 +201,18 @@ HRESULT ClientUtil::HrSetIdentity(WSTransport *lpTransport, LPMAPISUP lpMAPISup,
 	if (lpTransport->HrGetStore(0, nullptr, &cbEntryStore, &~lpEntryStore, 0, nullptr) == hrSuccess) {
 		hr = lpMAPISup->WrapStoreEntryID(cbEntryStore, lpEntryStore, &cbEID, (&~lpEID).as<ENTRYID>());
 		if(hr != hrSuccess) 
-			goto exit;
-
+			return hr;
 		lpIdentityProps[XPID_STORE_EID].ulPropTag = PR_OWN_STORE_ENTRYID;
 		lpIdentityProps[XPID_STORE_EID].Value.bin.cb = cbEID;
 		hr = MAPIAllocateMore(cbEID, (LPVOID)lpIdentityProps , (void**)&lpIdentityProps[XPID_STORE_EID].Value.bin.lpb);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		memcpy(lpIdentityProps[XPID_STORE_EID].Value.bin.lpb, lpEID.get(), cbEID);
 	}
 	
 	// Set the identity in the global provider identity
 	*lppIdentityProps = lpIdentityProps.release();
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -662,12 +656,8 @@ HRESULT ClientUtil::GetGlobalProfileProperties(LPPROFSECT lpGlobalProfSect, stru
 	LPSPropValue	lpProp = NULL;
 	bool			bIsEMS = false;
 
-	if(lpGlobalProfSect == NULL || lpsProfileProps == NULL)
-	{
-		hr = MAPI_E_INVALID_OBJECT;
-		goto exit;
-	}
-
+	if (lpGlobalProfSect == nullptr || lpsProfileProps == nullptr)
+		return MAPI_E_INVALID_OBJECT;
 	if (HrGetOneProp(lpGlobalProfSect, PR_PROFILE_UNRESOLVED_NAME, &~lpPropEMS) == hrSuccess || g_ulLoadsim)
 		bIsEMS = true;
 
@@ -677,15 +667,15 @@ HRESULT ClientUtil::GetGlobalProfileProperties(LPPROFSECT lpGlobalProfSect, stru
 		// This is an emulated MSEMS store. Get the properties we need and convert them to ZARAFA-style properties
 		hr = lpGlobalProfSect->GetProps(sptaEMSProfile, 0, &cEMSValues, &~lpsEMSPropArray);
 		if(FAILED(hr))
-			goto exit;
+			return hr;
 		hr = ConvertMSEMSProps(cEMSValues, lpsEMSPropArray, &cValues, &~lpsPropArray);
 		if(FAILED(hr))
-			goto exit;
+			return hr;
 	} else {
 		// Get the properties we need directly from the global profile section
 		hr = lpGlobalProfSect->GetProps(sptaKopanoProfile, 0, &cValues, &~lpsPropArray);
 		if(FAILED(hr))
-			goto exit;
+			return hr;
 	}
 
 	if((lpProp = PpropFindProp(lpsPropArray, cValues, PR_EC_PATH)) != NULL)
@@ -755,11 +745,7 @@ HRESULT ClientUtil::GetGlobalProfileProperties(LPPROFSECT lpGlobalProfSect, stru
 		lpsProfileProps->strClientAppMisc = lpProp->Value.lpszA;
 
 	lpsProfileProps->bIsEMS = bIsEMS;
-
-	hr = hrSuccess;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ClientUtil::GetGlobalProfileDelegateStoresProp(LPPROFSECT lpGlobalProfSect, ULONG *lpcDelegates, LPBYTE *lppDelegateStores)
@@ -770,32 +756,26 @@ HRESULT ClientUtil::GetGlobalProfileDelegateStoresProp(LPPROFSECT lpGlobalProfSe
 	SizedSPropTagArray(1, sPropTagArray);
 	memory_ptr<BYTE> lpDelegateStores;
 
-	if(lpGlobalProfSect == NULL || lpcDelegates == NULL || lppDelegateStores == NULL)
-	{
-		hr = MAPI_E_INVALID_OBJECT;
-		goto exit;
-	}
+	if (lpGlobalProfSect == nullptr || lpcDelegates == nullptr ||
+	    lppDelegateStores == nullptr)
+		return MAPI_E_INVALID_OBJECT;
 	
 	sPropTagArray.cValues = 1;
 	sPropTagArray.aulPropTag[0] =  PR_STORE_PROVIDERS;
 	hr = lpGlobalProfSect->GetProps(sPropTagArray, 0, &cValues, &~lpsPropValue);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	if(lpsPropValue[0].Value.bin.cb > 0){
 		hr = MAPIAllocateBuffer(lpsPropValue[0].Value.bin.cb, &~lpDelegateStores);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		memcpy(lpDelegateStores, lpsPropValue[0].Value.bin.lpb, lpsPropValue[0].Value.bin.cb);
 	}
 
 	*lpcDelegates = lpsPropValue[0].Value.bin.cb;
 	*lppDelegateStores = lpDelegateStores.release();
-	hr = hrSuccess;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /*
@@ -848,7 +828,7 @@ HRESULT ClientUtil::ConvertMSEMSProps(ULONG cValues, LPSPropValue pValues, ULONG
 	hr = GetConfigPath(&strConfigPath);
 	if(hr != hrSuccess) {
 		TRACE_RELEASE("Unable to find config file (registry key missing)", (char *)strConfigPath.c_str());
-		goto exit;
+		return hr;
 	}
 
 	// Remove trailing slash
@@ -860,17 +840,15 @@ HRESULT ClientUtil::ConvertMSEMSProps(ULONG cValues, LPSPropValue pValues, ULONG
 	TRACE_RELEASE("Using config file '%s'", (char *)strConfigPath.c_str());
 
 	if(!lpConfig->LoadSettings((char *)strConfigPath.c_str())) {
-		hr = MAPI_E_NOT_FOUND;
 		TRACE_RELEASE("Unable to load config file '%s'", (char *)strConfigPath.c_str());
-		goto exit;
+		return MAPI_E_NOT_FOUND;
 	}
 
 	if(g_ulLoadsim) {
 		lpUsername = PpropFindProp(pValues, cValues, PR_PROFILE_USER);
 		if(!lpUsername) {
 			TRACE_RELEASE("PR_PROFILE_USER not set");
-			hr = MAPI_E_UNCONFIGURED;
-			goto exit;
+			return MAPI_E_UNCONFIGURED;
 		}
 	} else {
 		lpUsername = PpropFindProp(pValues, cValues, PR_PROFILE_UNRESOLVED_NAME);
@@ -878,22 +856,18 @@ HRESULT ClientUtil::ConvertMSEMSProps(ULONG cValues, LPSPropValue pValues, ULONG
 
 		if(!lpServer || !lpUsername) {
 			TRACE_RELEASE("PR_PROFILE_UNRESOLVED_NAME or PR_PROFILE_UNRESOLVED_SERVER not set");
-			hr = MAPI_E_UNCONFIGURED;
-			goto exit;
+			return MAPI_E_UNCONFIGURED;
 		}
 	}
 
 	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 7, &~lpProps);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	if (lpConfig->GetSetting("server_address")[0]) {
 		strServerPath = (std::string)"https://" + lpConfig->GetSetting("server_address") + ":" + lpConfig->GetSetting("ssl_port") + "/";
 	} else {
-		if(!lpServer) {
-			hr = MAPI_E_UNCONFIGURED;
-			goto exit;
-		}
+		if (lpServer == nullptr)
+			return MAPI_E_UNCONFIGURED;
 		strServerPath = (std::string)"https://" + lpServer->Value.lpszA + ":" + lpConfig->GetSetting("ssl_port") + "/";
 	}
 
@@ -904,28 +878,28 @@ HRESULT ClientUtil::ConvertMSEMSProps(ULONG cValues, LPSPropValue pValues, ULONG
 
 	lpProps[cProps].ulPropTag = PR_EC_PATH;
 	if ((hr = MAPIAllocateMore(strServerPath.size() + 1, lpProps, (void**)&lpProps[cProps].Value.lpszA)) != hrSuccess)
-		goto exit;
+		return hr;
 	strcpy(lpProps[cProps++].Value.lpszA, strServerPath.c_str());
 
 	strUsername = convert_to<std::wstring>(szUsername);
 	lpProps[cProps].ulPropTag = PR_EC_USERNAME;
 	if ((hr = MAPIAllocateMore((strUsername.size() + 1) * sizeof(TCHAR), lpProps, (void**)&lpProps[cProps].Value.lpszW)) != hrSuccess)
-		goto exit;
+		return hr;
 	wcscpy(lpProps[cProps++].Value.lpszW, strUsername.c_str());
 
 	lpProps[cProps].ulPropTag = PR_EC_USERPASSWORD;
 	if ((hr = MAPIAllocateMore(sizeof(TCHAR), lpProps, (void**)&lpProps[cProps].Value.LPSZ)) != hrSuccess)
-		goto exit;
+		return hr;
 	_tcscpy(lpProps[cProps++].Value.LPSZ, L"");
 
 	lpProps[cProps].ulPropTag = PR_EC_SSLKEY_FILE;
 	if ((hr = MAPIAllocateMore(strlen(lpConfig->GetSetting("ssl_key_file")) + 1, lpProps, (void**)&lpProps[cProps].Value.lpszA)) != hrSuccess)
-		goto exit;
+		return hr;
 	strcpy(lpProps[cProps++].Value.lpszA, lpConfig->GetSetting("ssl_key_file"));
 
 	lpProps[cProps].ulPropTag = PR_EC_SSLKEY_PASS;
 	if ((hr = MAPIAllocateMore(strlen(lpConfig->GetSetting("ssl_key_pass")) + 1, lpProps, (void**)&lpProps[cProps].Value.lpszA)) != hrSuccess)
-		goto exit;
+		return hr;
 	strcpy(lpProps[cProps++].Value.lpszA, lpConfig->GetSetting("ssl_key_pass"));
 
 	lpProps[cProps].ulPropTag = PR_EC_FLAGS; // Since we're emulating exchange, use 22-byte exchange-style sourcekeys
@@ -935,7 +909,7 @@ HRESULT ClientUtil::ConvertMSEMSProps(ULONG cValues, LPSPropValue pValues, ULONG
 	if(lpProfileName) {
 		lpProps[cProps].ulPropTag = PR_PROFILE_NAME_A;
 		if ((hr = MAPIAllocateMore(strlen(lpProfileName->Value.lpszA) + 1, lpProps, (void**)&lpProps[cProps].Value.lpszA)) != hrSuccess)
-			goto exit;
+			return hr;
 		strcpy(lpProps[cProps++].Value.lpszA, lpProfileName->Value.lpszA);
 	}
 	
@@ -943,9 +917,7 @@ HRESULT ClientUtil::ConvertMSEMSProps(ULONG cValues, LPSPropValue pValues, ULONG
 
 	*lpcValues = cProps;
 	*lppProps = lpProps;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /* 

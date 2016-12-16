@@ -132,7 +132,6 @@ int kc_ssl_options(struct soap *soap, char *protos, const char *ciphers,
 	EC_KEY *ecdh;
 #endif
 	char *ssl_name = nullptr;
-	ECRESULT	er = erSuccess;
 	int ssl_op = 0, ssl_include = 0, ssl_exclude = 0;
 
 	SSL_CTX_set_options(soap->ctx, SSL_OP_ALL);
@@ -172,8 +171,7 @@ int kc_ssl_options(struct soap *soap, char *protos, const char *ciphers,
 #endif
 		else {
 			ec_log_crit("Unknown protocol \"%s\" in protos setting", ssl_name);
-			er = KCERR_CALL_FAILED;
-			goto exit;
+			return KCERR_CALL_FAILED;
 		}
 
 		if (ssl_neg)
@@ -206,18 +204,14 @@ int kc_ssl_options(struct soap *soap, char *protos, const char *ciphers,
 	if (ciphers && SSL_CTX_set_cipher_list(soap->ctx, ciphers) != 1) {
 		ec_log_crit("Can not set SSL cipher list to \"%s\": %s",
 			ciphers, ERR_error_string(ERR_get_error(), 0));
-		er = KCERR_CALL_FAILED;
-		goto exit;
+		return KCERR_CALL_FAILED;
 	}
 	if (parseBool(prefciphers))
 		SSL_CTX_set_options(soap->ctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
 
 	/* request certificate from client; it is OK if not present. */
 	SSL_CTX_set_verify(soap->ctx, SSL_VERIFY_PEER | SSL_VERIFY_CLIENT_ONCE, nullptr);
-
-exit:
-	return er;
-
+	return erSuccess;
 }
 
 ECSoapServerConnection::ECSoapServerConnection(ECConfig *lpConfig)

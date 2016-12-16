@@ -640,21 +640,18 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			// Now, set PR_REPLY_RECIPIENT_ENTRIES (a FLATENTRYLIST)
 			hr = ECCreateOneOff((LPTSTR)wstrReplyTo.c_str(), (LPTSTR)L"SMTP", (LPTSTR)wstrReplyToMail.c_str(), MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbEntryID, &~lpEntryID);
 			if (hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			cb = CbNewFLATENTRY(cbEntryID);
 			hr = MAPIAllocateBuffer(cb, &~lpEntry);
 			if (hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			memcpy(lpEntry->abEntry, lpEntryID, cbEntryID);
 			lpEntry->cb = cbEntryID;
 
 			cb = CbNewFLATENTRYLIST(cb);
 			hr = MAPIAllocateBuffer(cb, &~lpEntryList);
 			if (hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			lpEntryList->cEntries = 1;
 			lpEntryList->cbEntries = CbFLATENTRY(lpEntry);
 			memcpy(&lpEntryList->abEntries, lpEntry, CbFLATENTRY(lpEntry));
@@ -719,7 +716,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			if (hr == hrSuccess) {
 				hr = lpMessage->SetProps(ulRecipProps, lpRecipProps, NULL);
 				if (hr != hrSuccess)
-					goto exit;
+					return hr;
 			} else {
 				if (wstrFromName.empty())
 					wstrFromName = m_converter.convert_to<wstring>(strFromEmail);
@@ -741,7 +738,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 				hr = ECCreateOneOff((LPTSTR)wstrFromName.c_str(), (LPTSTR)L"SMTP", (LPTSTR)m_converter.convert_to<wstring>(strFromEmail).c_str(),
 				     MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbFromEntryID, &~lpFromEntryID);
 				if(hr != hrSuccess)
-					goto exit;
+					return hr;
 
 				msgProps[nProps].ulPropTag = PR_SENT_REPRESENTING_ENTRYID;
 				msgProps[nProps].Value.bin.cb = cbFromEntryID;
@@ -771,7 +768,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			if (hr == hrSuccess) {
 				hr = lpMessage->SetProps(ulRecipProps, lpRecipProps, NULL);
 				if (hr != hrSuccess)
-					goto exit;
+					return hr;
 			} else {
 				msgProps[nProps].ulPropTag = PR_SENDER_NAME_W;
 				msgProps[nProps++].Value.lpszW = (WCHAR *)wstrSenderName.c_str();
@@ -790,7 +787,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 				hr = ECCreateOneOff((LPTSTR)wstrSenderName.c_str(), (LPTSTR)L"SMTP", (LPTSTR)m_converter.convert_to<wstring>(strSenderEmail).c_str(),
 				     MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbSenderEntryID, &~lpSenderEntryID);
 				if(hr != hrSuccess)
-					goto exit;
+					return hr;
 
 				msgProps[nProps].ulPropTag = PR_SENDER_ENTRYID;
 				msgProps[nProps].Value.bin.cb = cbSenderEntryID;
@@ -800,7 +797,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 		
 		hr = lpMessage->SetProps(nProps, msgProps, NULL);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		//Conversation topic
 		if (vmHeader->hasField("Thread-Topic"))
@@ -812,14 +809,14 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 
 			hr = lpMessage->SetProps(1, &sConTopic, NULL);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		} else if (HrGetOneProp(lpMessage, PR_NORMALIZED_SUBJECT_W, &~lpPropNormalizedSubject) == hrSuccess) {
 			sConTopic.ulPropTag = PR_CONVERSATION_TOPIC_W;
 			sConTopic.Value.lpszW = lpPropNormalizedSubject->Value.lpszW;
 			
 			hr = lpMessage->SetProps(1, &sConTopic, NULL);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 
 		// Thread-Index header
@@ -842,7 +839,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 
 			hr = lpMessage->SetProps(1, &sThreadIndex, NULL);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 		
 		if (vmHeader->hasField("Importance")) {
@@ -866,7 +863,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 
 			hr = lpMessage->SetProps(2, sPriority, NULL);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 
 		// X-Priority header
@@ -894,7 +891,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			};
 			hr = lpMessage->SetProps(2, sPriority, NULL);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 
 		// X-Kopano-Vacation header (TODO: other headers?)
@@ -905,7 +902,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			// exchange sets PR_MESSAGE_CLASS to IPM.Note.Rules.OofTemplate.Microsoft to get the icon
 			hr = lpMessage->SetProps(1, sIcon, NULL);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 
 		// Sensitivity header
@@ -926,7 +923,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 
 			hr = lpMessage->SetProps(1, sSensitivity, NULL);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 
 		// Expiry time header
@@ -942,7 +939,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 
 				hr = lpMessage->SetProps(1, &sExpiryTime, NULL);
 				if (hr != hrSuccess)
-					goto exit;
+					return hr;
 			}
 		}
 		catch(...) {}
@@ -964,7 +961,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 				//FIXME: Use an addressbook entry for "ZARAFA"-type addresses?
 				hr = ECCreateOneOff((LPTSTR)wstrRRName.c_str(),	(LPTSTR)L"SMTP", (LPTSTR)wstrRREmail.c_str(), MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbEntryID, &~lpEntryID);
 				if (hr != hrSuccess)
-					goto exit;
+					return hr;
 
 				SPropValue sRRProps[4];
 				sRRProps[0].ulPropTag = PR_READ_RECEIPT_REQUESTED;
@@ -981,7 +978,7 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 
 				hr = lpMessage->SetProps(4, sRRProps, NULL);
 				if (hr != hrSuccess)
-					goto exit;
+					return hr;
 			}
 		}
 
@@ -1001,13 +998,13 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			memory_ptr<SPropTagArray> lpPropTags;
 
 			if ((hr = MAPIAllocateBuffer(sizeof(MAPINAMEID), &~lpNameID)) != hrSuccess)
-				goto exit;
+				return hr;
 			lpNameID->lpguid = (GUID*)&PS_INTERNET_HEADERS;
 			lpNameID->ulKind = MNID_STRING;
 
 			int vlen = mbstowcs(NULL, name.c_str(), 0) +1;
 			if ((hr = MAPIAllocateMore(vlen*sizeof(WCHAR), lpNameID, (void**)&lpNameID->Kind.lpwstrName)) != hrSuccess)
-				goto exit;
+				return hr;
 			mbstowcs(lpNameID->Kind.lpwstrName, name.c_str(), vlen);
 			hr = lpMessage->GetIDsFromNames(1, &+lpNameID, MAPI_CREATE, &~lpPropTags);
 			if (hr != hrSuccess) {
@@ -1020,28 +1017,22 @@ HRESULT VMIMEToMAPI::handleHeaders(vmime::shared_ptr<vmime::header> vmHeader,
 			sProp[0].ulPropTag = PROP_TAG(PT_STRING8, PROP_ID(lpPropTags->aulPropTag[0]));
 			sProp[0].Value.lpszA = (char*)value.c_str();
 
-			hr = lpMessage->SetProps(1, sProp, NULL);
-			if (hr != hrSuccess)
-				hr = hrSuccess;	// ignore this x-header as named props then
+			lpMessage->SetProps(1, sProp, NULL);
+			// in case of error: ignore this x-header as named props then
 		}
 	}
 	catch (vmime::exception& e) {
 		ec_log_err("VMIME exception on parsing headers: %s", e.what());
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
 	catch (std::exception& e) {
 		ec_log_err("STD exception on parsing headers: %s", e.what());
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
 	catch (...) {
 		ec_log_err("Unknown generic exception occurred on parsing headers");
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
-
-exit:
 	return hr;
 }
 
@@ -1256,18 +1247,15 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
 		}
 		catch (vmime::exception& e) {
 			ec_log_err("VMIME exception on modify recipient: %s", e.what());
-			hr = MAPI_E_CALL_FAILED;
-			goto exit;
+			return MAPI_E_CALL_FAILED;
 		}
 		catch (std::exception& e) {
 			ec_log_err("STD exception on modify recipient: %s", e.what());
-			hr = MAPI_E_CALL_FAILED;
-			goto exit;
+			return MAPI_E_CALL_FAILED;
 		}
 		catch (...) {
 			ec_log_err("Unknown generic exception occurred on modify recipient");
-			hr = MAPI_E_CALL_FAILED;
-			goto exit;
+			return MAPI_E_CALL_FAILED;
 		}
 
 		iRecipNum = lpRecipients->cEntries;
@@ -1293,7 +1281,7 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
 			// will be cleaned up by caller.
 			hr = MAPIAllocateBuffer(sizeof(SPropValue) * iNumTags, (void **)&lpRecipients->aEntries[iRecipNum].rgPropVals);	
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			
 			lpRecipients->aEntries[iRecipNum].cValues						= iNumTags;	
 			lpRecipients->aEntries[iRecipNum].ulReserved1					= 0;
@@ -1305,26 +1293,26 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
 			hr = MAPIAllocateMore((wstrName.size()+1) * sizeof(WCHAR), lpRecipients->aEntries[iRecipNum].rgPropVals,
 			     (void **)&lpRecipients->aEntries[iRecipNum].rgPropVals[1].Value.lpszW);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			wcscpy(lpRecipients->aEntries[iRecipNum].rgPropVals[1].Value.lpszW, wstrName.c_str());
 
 			lpRecipients->aEntries[iRecipNum].rgPropVals[2].ulPropTag		= PR_SMTP_ADDRESS_A;
 			hr = MAPIAllocateMore(strEmail.size()+1, lpRecipients->aEntries[iRecipNum].rgPropVals,
 			     (void **)&lpRecipients->aEntries[iRecipNum].rgPropVals[2].Value.lpszA);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			strcpy(lpRecipients->aEntries[iRecipNum].rgPropVals[2].Value.lpszA, strEmail.c_str());
 
 			lpRecipients->aEntries[iRecipNum].rgPropVals[3].ulPropTag		= PR_ENTRYID;
 			hr = ECCreateOneOff((LPTSTR)wstrName.c_str(), (LPTSTR)L"SMTP", (LPTSTR)m_converter.convert_to<wstring>(strEmail).c_str(),
 			     MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbEntryID, &~lpEntryID);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 				
 			hr = MAPIAllocateMore(cbEntryID, lpRecipients->aEntries[iRecipNum].rgPropVals,
 			     (void **)&lpRecipients->aEntries[iRecipNum].rgPropVals[3].Value.bin.lpb);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpRecipients->aEntries[iRecipNum].rgPropVals[3].Value.bin.cb = cbEntryID;
 			memcpy(lpRecipients->aEntries[iRecipNum].rgPropVals[3].Value.bin.lpb, lpEntryID, cbEntryID);
@@ -1339,7 +1327,7 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
 			hr = MAPIAllocateMore(strSearch.size()+1, lpRecipients->aEntries[iRecipNum].rgPropVals,
 			     (void **)&lpRecipients->aEntries[iRecipNum].rgPropVals[5].Value.bin.lpb);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			memcpy(lpRecipients->aEntries[iRecipNum].rgPropVals[5].Value.bin.lpb, strSearch.c_str(), strSearch.size()+1);
 
 			// Add Email address
@@ -1347,7 +1335,7 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
 			hr = MAPIAllocateMore(strEmail.size()+1, lpRecipients->aEntries[iRecipNum].rgPropVals,
 			     (void **)&lpRecipients->aEntries[iRecipNum].rgPropVals[6].Value.lpszA);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			strcpy(lpRecipients->aEntries[iRecipNum].rgPropVals[6].Value.lpszA, strEmail.c_str());
 
 			// Add display type
@@ -1356,9 +1344,7 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
 		}
 		++lpRecipients->cEntries;
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -1764,13 +1750,13 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 		hr = lpMessage->CreateAttach(NULL, 0, &ulAttNr, &ptrAttach);
 		if (hr != hrSuccess) {
 			ec_log_err("dissect_ical-1790: Unable to create attachment for ical data: %s (%x)", GetMAPIErrorMessage(hr), hr);
-			goto exit;
+			return hr;
 		}
 
 		hr = ptrAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY, &ptrNewMessage);
 		if (hr != hrSuccess) {
 			ec_log_err("dissect_ical-1796: Unable to create message attachment for ical data: %s (%x)", GetMAPIErrorMessage(hr), hr);
-			goto exit;
+			return hr;
 		}
 
 		sAttProps[0].ulPropTag = PR_ATTACH_METHOD;
@@ -1785,7 +1771,7 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 		hr = ptrAttach->SetProps(3, sAttProps, NULL);
 		if (hr != hrSuccess) {
 			ec_log_err("dissect_ical-1811: Unable to create message attachment for ical data: %s (%x)", GetMAPIErrorMessage(hr), hr);
-			goto exit;
+			return hr;
 		}
 
 		lpIcalMessage = ptrNewMessage.get();
@@ -1795,21 +1781,20 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 	lpIcalMapi.reset(tmpicalmapi);
 	if (hr != hrSuccess) {
 		ec_log_err("dissect_ical-1820: Unable to create ical converter: %s (%x)", GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = lpIcalMapi->ParseICal(icaldata, strCharset, "UTC" , NULL, 0);
 	if (hr != hrSuccess || lpIcalMapi->GetItemCount() != 1) {
 		ec_log_err("dissect_ical-1826: Unable to parse ical information: %s (%x), items: %d, adding as normal attachment",
 			GetMAPIErrorMessage(hr), hr, lpIcalMapi->GetItemCount());
-		hr = handleAttachment(vmHeader, vmBody, lpMessage);
-		goto exit;
+		return handleAttachment(vmHeader, vmBody, lpMessage);
 	}
 
 	hr = lpIcalMapi->GetItem(0, IC2M_NO_RECIPIENTS | IC2M_APPEND_ONLY, lpIcalMessage);
 	if (hr != hrSuccess) {
 		ec_log_err("dissect_ical-1834: Error while converting ical to mapi: %s (%x)", GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 	/* Evaluate whether vconverter gave us an initial body */
 	if (!bIsAttachment && m_mailState.bodyLevel < BODY_PLAIN &&
@@ -1817,7 +1802,7 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 	    FPropExists(lpMessage, PR_BODY_W)))
 		m_mailState.bodyLevel = BODY_PLAIN;
 	if (!bIsAttachment)
-		goto exit;
+		return hr;
 
 	// give attachment name of calendar item
 	if (HrGetOneProp(ptrNewMessage, PR_SUBJECT_W, &~ptrSubject) == hrSuccess) {
@@ -1825,24 +1810,23 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 
 		hr = ptrAttach->SetProps(1, ptrSubject, NULL);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	hr = ptrNewMessage->SaveChanges(0);
 	if (hr != hrSuccess) {
 		ec_log_err("dissect_ical-1851: Unable to save ical message: %s (%x)", GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 	hr = ptrAttach->SaveChanges(0);
 	if (hr != hrSuccess) {
 		ec_log_err("dissect_ical-1856: Unable to save ical message attachment: %s (%x)", GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 
 	// make sure we show the attachment icon
 	m_mailState.attachLevel = ATTACH_NORMAL;
- exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**

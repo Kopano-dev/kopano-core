@@ -16,6 +16,8 @@
  */
 
 #include <kopano/platform.h>
+#include <memory>
+#include <kopano/tie.hpp>
 #include "ECDatabase.h"
 
 #include <mapidefs.h>
@@ -27,6 +29,8 @@
 #include "ECSession.h"
 #include "ECMAPI.h"
 #include <kopano/stringutil.h>
+
+using namespace KCHL;
 
 namespace KC {
 
@@ -88,17 +92,13 @@ ECRESULT ECConvenientDepthABObjectTable::QueryRowData(ECGenericObjectTable *lpGe
  */
 ECRESULT ECConvenientDepthABObjectTable::Load()
 {
-	ECRESULT er = erSuccess;
 	ECODAB *lpODAB = (ECODAB*)m_lpObjectData;
 	sObjectTableKey	sRowItem;
-	std::list<localobjectdetails_t> *lpSubObjects = NULL;
 	std::list<CONTAINERINFO> lstObjects;
 	CONTAINERINFO root;
 
-	if (lpODAB->ulABType != MAPI_ABCONT) {
-		er = KCERR_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpODAB->ulABType != MAPI_ABCONT)
+		return KCERR_INVALID_PARAMETER;
 
 	// Load this container
 	root.ulId = lpODAB->ulABParentId;
@@ -109,7 +109,8 @@ ECRESULT ECConvenientDepthABObjectTable::Load()
 
     // 'Recursively' loop through all our containers and add each of those children to our object list
 	for (const auto &obj : lstObjects) {
-		if (LoadHierarchyContainer(obj.ulId, 0, &lpSubObjects) != erSuccess)
+		std::unique_ptr<std::list<localobjectdetails_t> > lpSubObjects;
+		if (LoadHierarchyContainer(obj.ulId, 0, &unique_tie(lpSubObjects)) != erSuccess)
 			continue;
 		for (const auto &subobj : *lpSubObjects) {
 			CONTAINERINFO folder;
@@ -118,8 +119,6 @@ ECRESULT ECConvenientDepthABObjectTable::Load()
 			folder.strPath = obj.strPath + "/" + subobj.GetPropString(OB_PROP_S_LOGIN);
 			lstObjects.push_back(folder);
 		}
-		delete lpSubObjects;
-		lpSubObjects = NULL;
     }
 
     // Add all the rows into the row engine, except the root object (the folder itself does not show in its own hierarchy table)
@@ -130,10 +129,7 @@ ECRESULT ECConvenientDepthABObjectTable::Load()
 		m_mapPath[obj.ulId] = obj.strPath;
 		UpdateRow(ECKeyTable::TABLE_ROW_ADD, obj.ulId, 0);
 	}
-
-exit:
-	delete lpSubObjects;
-	return er;
+	return erSuccess;
 }
 
 } /* namespace */

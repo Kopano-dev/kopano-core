@@ -249,97 +249,92 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 	KCHL::memory_ptr<ECSERVERLIST> lpSrvList;
 	SizedSPropTagArray(1, sCols) = {1, { PR_ENTRYID } };
 
-	if (lpMapiSession == NULL || lpCollector == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (lpMapiSession == nullptr || lpCollector == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 	hr = lpMapiSession->OpenAddressBook(0, &IID_IAddrBook, 0, &ptrAdrBook);
 	if(hr != hrSuccess) {
 		ec_log_crit("Unable to open addressbook: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 	hr = ptrAdrBook->GetDefaultDir(&cbDDEntryID, &~ptrDDEntryID);
 	if(hr != hrSuccess) {
 		ec_log_crit("Unable to open default addressbook: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = ptrAdrBook->OpenEntry(cbDDEntryID, ptrDDEntryID, NULL, 0, &ulObj, (LPUNKNOWN*)&ptrDefaultDir);
 	if(hr != hrSuccess) {
 		ec_log_crit("Unable to open GAB: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 
 	/* Open Hierarchy Table to see if we are running in multi-tenancy mode or not */
 	hr = ptrDefaultDir->GetHierarchyTable(0, &ptrHierarchyTable);
 	if (hr != hrSuccess) {
 		ec_log_crit("Unable to open hierarchy table: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = ptrHierarchyTable->GetRowCount(0, &ulCompanyCount);
 	if(hr != hrSuccess) {
 		ec_log_crit("Unable to get hierarchy row count: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 
 	if( ulCompanyCount > 0) {
 		hr = ptrHierarchyTable->SetColumns(sCols, TBL_BATCH);
 		if(hr != hrSuccess) {
 			ec_log_crit("Unable to set set columns on user table: 0x%08X", hr);
-			goto exit;
+			return hr;
 		}
 
 		/* multi-tenancy, loop through all subcontainers to find all users */
 		hr = ptrHierarchyTable->QueryRows(ulCompanyCount, 0, &ptrRows);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		
 		for (unsigned int i = 0; i < ptrRows.size(); ++i) {
 			if (ptrRows[i].lpProps[0].ulPropTag != PR_ENTRYID) {
 				ec_log_crit("Unable to get entryid to open tenancy Address Book");
-				hr = MAPI_E_INVALID_PARAMETER;
-				goto exit;
+				return MAPI_E_INVALID_PARAMETER;
 			}
 			
 			hr = ptrAdrBook->OpenEntry(ptrRows[i].lpProps[0].Value.bin.cb, (LPENTRYID)ptrRows[i].lpProps[0].Value.bin.lpb, NULL, 0, &ulObj, (LPUNKNOWN*)&ptrCompanyDir);
 			if (hr != hrSuccess) {
 				ec_log_crit("Unable to open tenancy Address Book: 0x%08X", hr);
-				goto exit;
+				return hr;
 			}
 
 			hr = UpdateServerList(ptrCompanyDir, listServers);
 			if(hr != hrSuccess) {
 				ec_log_crit("Unable to create tenancy server list");
-				goto exit;
+				return hr;
 			}
 		}
 	} else {
 		hr = UpdateServerList(ptrDefaultDir, listServers);
 		if(hr != hrSuccess) {
 			ec_log_crit("Unable to create server list");
-			goto exit;
+			return hr;
 		}
 	}
 
 	hr = HrOpenDefaultStore(lpMapiSession, &ptrStore);
 	if(hr != hrSuccess) {
 		ec_log_crit("Unable to open default store: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 
 	//@todo use PT_OBJECT to queryinterface
 	hr = ptrStore->QueryInterface(IID_IECServiceAdmin, &ptrServiceAdmin);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = MAPIAllocateBuffer(sizeof(ECSVRNAMELIST), &~lpSrvNameList);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = MAPIAllocateMore(sizeof(WCHAR *) * listServers.size(), lpSrvNameList, (LPVOID *)&lpSrvNameList->lpszaServer);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lpSrvNameList->cServers = 0;
 	for (const auto &i : listServers)
@@ -350,8 +345,7 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 		//support single server
 		hr = GetMailboxDataPerServer(lpMapiSession, "", lpCollector);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 	} else if (FAILED(hr)) {
 		ec_log_err("Unable to get server details: 0x%08X", hr);
 		if (hr == MAPI_E_NOT_FOUND) {
@@ -361,7 +355,7 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 			for (const auto &i : listServers)
 				ec_log_err("* %ls", i.c_str());
 		}
-		goto exit;
+		return hr;
 	} else {
 
 		for (ULONG i = 0; i < lpSrvList->cServers; ++i) {
@@ -384,7 +378,7 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 			if (wszPath == NULL) {
 				if(lpSrvList->lpsaServer[i].lpszSslPath == NULL) {
 					ec_log_err("No SSL or File path found for server: \"%ls\", please fix your configuration.", lpSrvList->lpsaServer[i].lpszName);
-					goto exit;
+					return hr;
 				} else {
 					wszPath = lpSrvList->lpsaServer[i].lpszSslPath;
 				}
@@ -393,15 +387,11 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 			hr = GetMailboxDataPerServer(converter.convert_to<char *>(wszPath), lpSSLKey, lpSSLPass, lpCollector);
 			if(FAILED(hr)) {
 				ec_log_err("Failed to collect data from server: \"%ls\", hr: 0x%08x", wszPath, hr);
-				goto exit;
+				return hr;
 			}
 		}
-
-		hr = hrSuccess;
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT GetMailboxDataPerServer(const char *lpszPath, const char *lpSSLKey,

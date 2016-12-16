@@ -169,19 +169,14 @@ HRESULT ReadProperties(LPMESSAGE lpMessage, ULONG ulCount, const ULONG *lpTag,
 
 	hr = MAPIAllocateBuffer(sizeof(SPropTagArray) + (sizeof(ULONG) * ulCount), &~lpPropertyTagArray);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	lpPropertyTagArray->cValues = ulCount;
 	for (ULONG i = 0; i < ulCount; ++i)
 		lpPropertyTagArray->aulPropTag[i] = lpTag[i];
 
 	hr = lpMessage->GetProps(lpPropertyTagArray, 0, &ulPropertyCount, lppPropertyArray);
-	if (FAILED(hr)) {
+	if (FAILED(hr))
 		cout << "Failed to obtain all properties." << endl;
-		goto exit;
-	}
-
-exit:
 	return hr;
 }
 
@@ -230,7 +225,7 @@ static HRESULT DetectFolderDetails(LPMAPIFOLDER lpFolder, string *lpName,
 	     &~lpPropertyArray);
 	if (FAILED(hr)) {
 		cout << "Failed to obtain all properties." << endl;
-		goto exit;
+		return hr;
 	}
 
 	*lpFolderType = 0;
@@ -251,8 +246,6 @@ static HRESULT DetectFolderDetails(LPMAPIFOLDER lpFolder, string *lpName,
 	 */
 	if (!lpName->empty() && !lpClass->empty())
 		hr = hrSuccess;
-
-exit:
 	return hr;
 }
 

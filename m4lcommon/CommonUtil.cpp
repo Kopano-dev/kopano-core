@@ -1246,7 +1246,7 @@ HRESULT HrNewMailNotification(IMsgStore* lpMDB, IMessage* lpMessage)
 	// Get notify properties
 	hr = lpMessage->GetProps(sPropNewMailColumns, 0, &cNewMailValues, &~lpNewMailPropArray);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Notification type
 	sNotification.ulEventType = fnevNewMail;
@@ -1268,11 +1268,8 @@ HRESULT HrNewMailNotification(IMsgStore* lpMDB, IMessage* lpMessage)
 	// PR_MESSAGE_FLAGS
 	sNotification.info.newmail.ulMessageFlags = lpNewMailPropArray[NEWMAIL_MESSAGE_FLAGS].Value.ul;
 
-	hr = lpMDB->NotifyNewMail(&sNotification);
-	// TODO: this error should be a warning?
-
-exit:
-	return hr;
+	// TODO: errors of NotifyNewMail should be demoted to a warning?
+	return lpMDB->NotifyNewMail(&sNotification);
 }
 
 static void strupr(char *a)
@@ -1300,8 +1297,7 @@ HRESULT HrCreateEmailSearchKey(const char *lpszEmailType,
 	size = sizeEmailType + sizeEmail + 2; // : and \0
 	hr = MAPIAllocateBuffer(size, &~lpByte);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	memcpy(lpByte, lpszEmailType, sizeEmailType);
 	*(lpByte + sizeEmailType) = ':';
 	memcpy(lpByte + sizeEmailType + 1, lpszEmail, sizeEmail);
@@ -1309,8 +1305,7 @@ HRESULT HrCreateEmailSearchKey(const char *lpszEmailType,
 	strupr(reinterpret_cast<char *>(lpByte.get()));
 	*lppByte = lpByte.release();
 	*cb = size;
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -1393,19 +1388,14 @@ HRESULT HrGetAddress(IMAPISession *lpSession, IMessage *lpMessage, ULONG ulPropT
 	ULONG cValues = 0;
 	memory_ptr<SPropValue> lpProps;
 
-	if (!lpSession || !lpMessage) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpSession == nullptr || lpMessage == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 	hr = lpMessage->GetProps(sptaProps, 0, &cValues, &~lpProps);
 	if(FAILED(hr))
-		goto exit;
-
-	// @todo: inline here
-	hr = HrGetAddress(lpSession, lpProps, cValues, ulPropTagEntryID, ulPropTagName, ulPropTagType, ulPropTagEmailAddress, strName, strType, strEmailAddress);
-
-exit:
-	return hr;
+		return hr;
+	return HrGetAddress(lpSession, lpProps, cValues, ulPropTagEntryID,
+	       ulPropTagName, ulPropTagType, ulPropTagEmailAddress, strName,
+	       strType, strEmailAddress);
 }
 
 /**
@@ -1438,18 +1428,14 @@ HRESULT HrGetAddress(LPADRBOOK lpAdrBook, IMessage *lpMessage, ULONG ulPropTagEn
 	ULONG cValues = 0;
 	memory_ptr<SPropValue> lpProps;
 
-	if (!lpAdrBook || !lpMessage) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpAdrBook == nullptr || lpMessage == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 	hr = lpMessage->GetProps(sptaProps, 0, &cValues, &~lpProps);
 	if (FAILED(hr))
-		goto exit;
-
-	hr = HrGetAddress(lpAdrBook, lpProps, cValues, ulPropTagEntryID, ulPropTagName, ulPropTagType, ulPropTagEmailAddress, strName, strType, strEmailAddress);
-
-exit:
-	return hr;
+		return hr;
+	return HrGetAddress(lpAdrBook, lpProps, cValues, ulPropTagEntryID,
+	       ulPropTagName, ulPropTagType, ulPropTagEmailAddress, strName,
+	       strType, strEmailAddress);
 }
 
 /*
@@ -2544,10 +2530,8 @@ HRESULT ECPropMap::Resolve(IMAPIProp *lpMAPIProp) {
     int n = 0;
 	memory_ptr<SPropTagArray> lpPropTags;
 
-	if (lpMAPIProp == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpMAPIProp == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
     
     // Do GetIDsFromNames() and store result in correct places
 	lppNames.reset(new MAPINAMEID *[lstNames.size()]);
@@ -2556,15 +2540,13 @@ HRESULT ECPropMap::Resolve(IMAPIProp *lpMAPIProp) {
     
 	hr = lpMAPIProp->GetIDsFromNames(n, lppNames.get(), MAPI_CREATE, &~lpPropTags);
     if(hr != hrSuccess)
-        goto exit;
+		return hr;
     
     n = 0;
     k = lstTypes.begin();
     for (j = lstVars.begin(); j != lstVars.end(); ++j, ++k)
-        *(*j) = CHANGE_PROP_TYPE(lpPropTags->aulPropTag[n++], *k);
-    
-exit:
-	return hr;
+		*(*j) = CHANGE_PROP_TYPE(lpPropTags->aulPropTag[n++], *k);
+	return hrSuccess;
 }
 
 /**
@@ -2718,16 +2700,14 @@ HRESULT __stdcall UnWrapStoreEntryID(ULONG cbOrigEntry, LPENTRYID lpOrigEntry, U
 	ULONG cbDLLName = 0;
 	memory_ptr<ENTRYID> lpEntryID;
 
-	if (lpOrigEntry == NULL || lpcbUnWrappedEntry == NULL || lppUnWrappedEntry == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpOrigEntry == nullptr || lpcbUnWrappedEntry == nullptr ||
+	    lppUnWrappedEntry == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 	
 	// Check if this a wrapped store entryid
-	if (cbOrigEntry < (4 + sizeof(GUID) + 3) || memcmp(lpOrigEntry->ab, &muidStoreWrap, sizeof(GUID)) != 0) {
-		hr = MAPI_E_INVALID_ENTRYID;
-		goto exit;
-	}
+	if (cbOrigEntry < (4 + sizeof(GUID) + 3) ||
+	    memcmp(lpOrigEntry->ab, &muidStoreWrap, sizeof(GUID)) != 0)
+		return MAPI_E_INVALID_ENTRYID;
 
 	cbRemove = 4; // Flags
 	cbRemove+= sizeof(GUID); //Wrapped identifier
@@ -2738,23 +2718,18 @@ HRESULT __stdcall UnWrapStoreEntryID(ULONG cbOrigEntry, LPENTRYID lpOrigEntry, U
 	cbRemove+= cbDLLName;
 
 	cbRemove += (4 - (cbRemove & 0x03)) & 0x03;; // padding to 4byte block
-
-	if (cbOrigEntry <= cbRemove) {
-		hr = MAPI_E_INVALID_ENTRYID;
-		goto exit;
-	}
+	if (cbOrigEntry <= cbRemove)
+		return MAPI_E_INVALID_ENTRYID;
 
 	// Create Unwrap entryid
 	hr = MAPIAllocateBuffer(cbOrigEntry - cbRemove, &~lpEntryID);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	memcpy(lpEntryID, ((LPBYTE)lpOrigEntry)+cbRemove, cbOrigEntry - cbRemove);
 
 	*lpcbUnWrappedEntry = cbOrigEntry - cbRemove;
 	*lppUnWrappedEntry = lpEntryID.release();
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**

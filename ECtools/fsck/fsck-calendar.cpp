@@ -54,7 +54,7 @@ HRESULT FsckCalendar::ValidateMinimalNamedFields(LPMESSAGE lpMessage)
 	 */
 	hr = allocNamedIdList(TAG_COUNT, &~lppTagArray);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lppTagArray[E_REMINDER]->lpguid = (LPGUID)&PSETID_Common;
 	lppTagArray[E_REMINDER]->ulKind = MNID_ID;
@@ -70,7 +70,7 @@ HRESULT FsckCalendar::ValidateMinimalNamedFields(LPMESSAGE lpMessage)
 	hr = ReadNamedProperties(lpMessage, TAG_COUNT, lppTagArray,
 	     &~lpPropertyTagArray, &~lpPropertyArray);
 	if (FAILED(hr))
-		goto exit;
+		return hr;
 
 	for (ULONG i = 0; i < TAG_COUNT; ++i) {
 		if (PROP_TYPE(lpPropertyArray[i].ulPropTag) == PT_ERROR) {
@@ -81,15 +81,10 @@ HRESULT FsckCalendar::ValidateMinimalNamedFields(LPMESSAGE lpMessage)
 						CHANGE_PROP_TYPE(lpPropertyTagArray->aulPropTag[i], PT_BOOLEAN),
 						Value);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 	}
-
-	/* If we are here, we were succcessful. */
-	hr = hrSuccess;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT FsckCalendar::ValidateTimestamps(LPMESSAGE lpMessage)
@@ -115,7 +110,7 @@ HRESULT FsckCalendar::ValidateTimestamps(LPMESSAGE lpMessage)
 	 */
 	hr = allocNamedIdList(TAG_COUNT, &~lppTagArray);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lppTagArray[E_START]->lpguid = (LPGUID)&PSETID_Appointment;
 	lppTagArray[E_START]->ulKind = MNID_ID;
@@ -140,7 +135,7 @@ HRESULT FsckCalendar::ValidateTimestamps(LPMESSAGE lpMessage)
 	hr = ReadNamedProperties(lpMessage, TAG_COUNT, lppTagArray,
 	     &~lpPropertyTagArray, &~lpPropertyArray);
 	if (FAILED(hr))
-		goto exit;
+		return hr;
 
 	/*
 	 * Validate parameters:
@@ -153,15 +148,13 @@ HRESULT FsckCalendar::ValidateTimestamps(LPMESSAGE lpMessage)
 	if (PROP_TYPE(lpPropertyArray[E_START].ulPropTag) == PT_ERROR) {
 		if (PROP_TYPE(lpPropertyArray[E_CSTART].ulPropTag) == PT_ERROR) {
 			std::cout << "No valid starting address could be detected." << std::endl;
-			hr = E_INVALIDARG;
-			goto exit;
+			return E_INVALIDARG;
 		}
 		hr = AddMissingProperty(lpMessage, "dispidApptStartWhole",
 					CHANGE_PROP_TYPE(lpPropertyTagArray->aulPropTag[E_START], PT_SYSTIME),
 					lpPropertyArray[E_CSTART].Value);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		lpStart = &lpPropertyArray[E_CSTART].Value.ft;
 	} else
 		lpStart = &lpPropertyArray[E_START].Value.ft;
@@ -169,15 +162,13 @@ HRESULT FsckCalendar::ValidateTimestamps(LPMESSAGE lpMessage)
 	if (PROP_TYPE(lpPropertyArray[E_CSTART].ulPropTag) == PT_ERROR) {
 		if (PROP_TYPE(lpPropertyArray[E_START].ulPropTag) == PT_ERROR) {
 			std::cout << "No valid starting address could be detected." << std::endl;
-			hr = E_INVALIDARG;
-			goto exit;
+			return E_INVALIDARG;
 		}
 		hr = AddMissingProperty(lpMessage, "dispidCommonStart",
 					CHANGE_PROP_TYPE(lpPropertyTagArray->aulPropTag[E_CSTART], PT_SYSTIME),
 					lpPropertyArray[E_START].Value);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		lpCommonStart = &lpPropertyArray[E_START].Value.ft;
 	} else
 		lpCommonStart = &lpPropertyArray[E_CSTART].Value.ft;
@@ -185,15 +176,13 @@ HRESULT FsckCalendar::ValidateTimestamps(LPMESSAGE lpMessage)
 	if (PROP_TYPE(lpPropertyArray[E_END].ulPropTag) == PT_ERROR) {
 		if (PROP_TYPE(lpPropertyArray[E_CEND].ulPropTag) == PT_ERROR) {
 			std::cout << "No valid end address could be detected." << std::endl;
-			hr = E_INVALIDARG;
-			goto exit;
+			return E_INVALIDARG;
 		}
 		hr = AddMissingProperty(lpMessage, "dispidApptEndWhole",
 					CHANGE_PROP_TYPE(lpPropertyTagArray->aulPropTag[E_END], PT_SYSTIME),
 					lpPropertyArray[E_CEND].Value);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		lpEnd = &lpPropertyArray[E_CEND].Value.ft;
 	} else
 		lpEnd = &lpPropertyArray[E_END].Value.ft;
@@ -201,15 +190,13 @@ HRESULT FsckCalendar::ValidateTimestamps(LPMESSAGE lpMessage)
 	if (PROP_TYPE(lpPropertyArray[E_CEND].ulPropTag) == PT_ERROR) {
 		if (PROP_TYPE(lpPropertyArray[E_END].ulPropTag) == PT_ERROR) {
 			std::cout << "No valid starting address could be detected." << std::endl;
-			hr = E_INVALIDARG;
-			goto exit;
+			return E_INVALIDARG;
 		}
 		hr = AddMissingProperty(lpMessage, "dispidCommonEnd",
 					CHANGE_PROP_TYPE(lpPropertyTagArray->aulPropTag[E_CEND], PT_SYSTIME),
 					lpPropertyArray[E_END].Value);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		lpCommonEnd = &lpPropertyArray[E_END].Value.ft;
 	} else
 		lpCommonEnd = &lpPropertyArray[E_CEND].Value.ft;
@@ -220,14 +207,13 @@ HRESULT FsckCalendar::ValidateTimestamps(LPMESSAGE lpMessage)
 				     "Whole start after whole end date.",
 				     lpPropertyArray[E_CSTART].Value);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = ReplaceProperty(lpMessage, "dispidApptEndWhole",
 				     CHANGE_PROP_TYPE(lpPropertyTagArray->aulPropTag[E_END], PT_SYSTIME),
 				     "Whole start after whole end date.",
 				     lpPropertyArray[E_CEND].Value);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	if (*lpCommonStart > *lpCommonEnd && *lpStart < *lpEnd) {
@@ -236,22 +222,20 @@ HRESULT FsckCalendar::ValidateTimestamps(LPMESSAGE lpMessage)
 				     "Common start after common end date.",
 				     lpPropertyArray[E_START].Value);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = ReplaceProperty(lpMessage, "dispidCommonEnd",
 				     CHANGE_PROP_TYPE(lpPropertyTagArray->aulPropTag[E_CEND], PT_SYSTIME),
 				     "Common start after common end date.",
 				     lpPropertyArray[E_END].Value);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	if ((*lpEnd - *lpStart) != (*lpCommonEnd - *lpCommonStart)) {
 		std::cout << "Difference in duration: " << endl;
 		std::cout << "Common duration (" << (*lpCommonEnd - *lpCommonStart) << ") ";
 		std::cout << "- Whole duration (" << (*lpEnd - *lpStart) << ")" <<std::endl;
-		hr = E_INVALIDARG;
-		goto exit;
+		return E_INVALIDARG;
 	}
 
 	/*
@@ -266,7 +250,7 @@ HRESULT FsckCalendar::ValidateTimestamps(LPMESSAGE lpMessage)
 					CHANGE_PROP_TYPE(lpPropertyTagArray->aulPropTag[E_DURATION], PT_LONG),
 					Value);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	} else {
 		ulDuration = lpPropertyArray[E_DURATION].Value.l;
 		/*
@@ -279,15 +263,10 @@ HRESULT FsckCalendar::ValidateTimestamps(LPMESSAGE lpMessage)
 					     "Duration does not match (End - Start / 60)",
 					     Value);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 	}
-
-        /* If we are here, we were succcessful. */
-        hr = hrSuccess;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
@@ -314,7 +293,7 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 	 */
 	hr = allocNamedIdList(TAG_COUNT, &~lppTagArray);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lppTagArray[E_RECURRENCE]->lpguid = (LPGUID)&PSETID_Appointment;
 	lppTagArray[E_RECURRENCE]->ulKind = MNID_ID;
@@ -335,7 +314,7 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 	hr = ReadNamedProperties(lpMessage, TAG_COUNT, lppTagArray,
 	     &~lpPropertyTagArray, &~lpPropertyArray);
 	if (FAILED(hr))
-		goto exit;
+		return hr;
 
 	if (PROP_TYPE(lpPropertyArray[E_RECURRENCE].ulPropTag) == PT_ERROR) {
 		__UPV Value;
@@ -354,8 +333,7 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 					CHANGE_PROP_TYPE(lpPropertyTagArray->aulPropTag[E_RECURRENCE], PT_BOOLEAN),
 					Value);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		bRecurring = Value.b;
 	} else
 		bRecurring = lpPropertyArray[E_RECURRENCE].Value.b;
@@ -371,8 +349,7 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 	if (PROP_TYPE(lpPropertyArray[E_RECURRENCE_TYPE].ulPropTag) == PT_ERROR) {
 		if (bRecurring) {
 			std::cout << "Item is recurring but is missing recurrence type" << std::endl;
-			hr= E_INVALIDARG;
-			goto exit;
+			return E_INVALIDARG;
 		} else
 			ulType = 0;
 	} else
@@ -387,7 +364,7 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 				     "No recurrence, but recurrence type is > 0.",
 				     Value);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	} else if (bRecurring && ulType == 0) {
 		__UPV Value;
 		Value.b = false;
@@ -397,7 +374,7 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 				     "Recurrence has been set, but type indicates no recurrence.",
 				     Value);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	} else if (ulType > 4) {
 		__UPV Value;
 
@@ -410,7 +387,7 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 					     "Invalid recurrence type, disabling recurrence.",
 					     Value);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 
 		Value.l = 0;
@@ -421,7 +398,7 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 				     "Invalid recurrence type, disabling recurrence.",
 				     Value);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	if (PROP_TYPE(lpPropertyArray[E_RECURRENCE_PATTERN].ulPropTag) == PT_ERROR ||
@@ -451,7 +428,7 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 						CHANGE_PROP_TYPE(lpPropertyTagArray->aulPropTag[E_RECURRENCE_PATTERN], PT_STRING8),
 						Value);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 	}
 	
@@ -547,14 +524,9 @@ HRESULT FsckCalendar::ValidateRecurrence(LPMESSAGE lpMessage)
 		}
 
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
-
-    /* If we are here, we were succcessful. */
-    hr = hrSuccess;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT FsckCalendar::ValidateItem(LPMESSAGE lpMessage,

@@ -550,11 +550,10 @@ ECRESULT ECGetContentChangesHelper::Create(struct soap *soap, ECSession *lpSessi
 		sFolderSourceKey, ulSyncId, ulChangeId, ulFlags, lpsRestrict));
 	er = lpHelper->Init();
 	if (er != erSuccess)
-		goto exit;
+		return er;
 	assert(lppHelper != NULL);
 	*lppHelper = lpHelper.release();
-exit:
-	return er;
+	return erSuccess;
 }
 
 ECGetContentChangesHelper::ECGetContentChangesHelper(struct soap *soap, ECSession *lpSession, ECDatabase *lpDatabase, const SOURCEKEY &sFolderSourceKey, unsigned int ulSyncId, unsigned int ulChangeId, unsigned int ulFlags, struct restrictTable *lpsRestrict)

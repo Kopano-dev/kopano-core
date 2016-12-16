@@ -167,14 +167,11 @@ HRESULT ECNotifyClient::RegisterAdvise(ULONG cbKey, LPBYTE lpKey, ULONG ulEventM
 	memory_ptr<ECADVISE> pEcAdvise;
 	ULONG		ulConnection = 0;
 
-	if(lpKey == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpKey == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 	hr = MAPIAllocateBuffer(sizeof(ECADVISE), &~pEcAdvise);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	*lpulConnection = 0;
 
 	memset(pEcAdvise, 0, sizeof(ECADVISE));
@@ -184,8 +181,7 @@ HRESULT ECNotifyClient::RegisterAdvise(ULONG cbKey, LPBYTE lpKey, ULONG ulEventM
 
 	hr = MAPIAllocateMore(cbKey, pEcAdvise, (LPVOID*)&pEcAdvise->lpKey);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	memcpy(pEcAdvise->lpKey, lpKey, cbKey);
 	
 	pEcAdvise->lpAdviseSink	= lpAdviseSink;
@@ -197,7 +193,7 @@ HRESULT ECNotifyClient::RegisterAdvise(ULONG cbKey, LPBYTE lpKey, ULONG ulEventM
 	 */
 	hr = m_lpNotifyMaster->ReserveConnection(&ulConnection);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Add reference on the notify sink
 	lpAdviseSink->AddRef();
@@ -208,18 +204,16 @@ HRESULT ECNotifyClient::RegisterAdvise(ULONG cbKey, LPBYTE lpKey, ULONG ulEventM
 	if(!bSynchronous) {
 		hr = MAPIAllocateBuffer(CbNewNOTIFKEY(sizeof(GUID)), &~lpKeySupport);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		lpKeySupport->cb = sizeof(GUID);
 		hr = CoCreateGuid((GUID *)lpKeySupport->ab);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		// Get support object connection id
 		hr = m_lpSupport->Subscribe(lpKeySupport, (ulEventMask&~fnevLongTermEntryIDs), 0, lpAdviseSink, &pEcAdvise->ulSupportConnection);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		memcpy(&pEcAdvise->guid, lpKeySupport->ab, sizeof(GUID));
 	}
 #endif
@@ -232,12 +226,10 @@ HRESULT ECNotifyClient::RegisterAdvise(ULONG cbKey, LPBYTE lpKey, ULONG ulEventM
 	// Since we're ready to receive notifications now, register ourselves with the master
 	hr = m_lpNotifyMaster->ClaimConnection(this, &ECNotifyClient::Notify, ulConnection);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	// Set out value
 	*lpulConnection = ulConnection;
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECNotifyClient::RegisterChangeAdvise(ULONG ulSyncId, ULONG ulChangeId,
@@ -249,8 +241,7 @@ HRESULT ECNotifyClient::RegisterChangeAdvise(ULONG ulSyncId, ULONG ulChangeId,
 
 	hr = MAPIAllocateBuffer(sizeof(ECCHANGEADVISE), &~pEcAdvise);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	*lpulConnection = 0;
 
 	memset(pEcAdvise, 0, sizeof(ECCHANGEADVISE));
@@ -265,8 +256,7 @@ HRESULT ECNotifyClient::RegisterChangeAdvise(ULONG ulSyncId, ULONG ulChangeId,
 	 */
 	hr = m_lpNotifyMaster->ReserveConnection(&ulConnection);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	/*
 	 * Setup our maps to receive the notifications
 	 */
@@ -279,13 +269,10 @@ HRESULT ECNotifyClient::RegisterChangeAdvise(ULONG ulSyncId, ULONG ulChangeId,
 	// Since we're ready to receive notifications now, register ourselves with the master
 	hr = m_lpNotifyMaster->ClaimConnection(this, &ECNotifyClient::NotifyChange, ulConnection);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	// Set out value
 	*lpulConnection = ulConnection;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECNotifyClient::UnRegisterAdvise(ULONG ulConnection)
@@ -612,12 +599,12 @@ HRESULT ECNotifyClient::NotifyChange(ULONG ulConnection, const NOTIFYLIST &lNoti
 	/* Create a straight array of MAX_NOTIFS_PER_CALL sync states */
 	hr = MAPIAllocateBuffer(sizeof *lpSyncStates, &~lpSyncStates);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	memset(lpSyncStates, 0, sizeof *lpSyncStates);
 
 	hr = MAPIAllocateMore(sizeof *lpSyncStates->lpbin * MAX_NOTIFS_PER_CALL, lpSyncStates, (void**)&lpSyncStates->lpbin);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	memset(lpSyncStates->lpbin, 0, sizeof *lpSyncStates->lpbin * MAX_NOTIFS_PER_CALL);
 
 	for (auto notp : lNotifications) {
@@ -637,7 +624,7 @@ HRESULT ECNotifyClient::NotifyChange(ULONG ulConnection, const NOTIFYLIST &lNoti
 	if (iterAdvise == m_mapChangeAdvise.cend() ||
 	    iterAdvise->second->lpAdviseSink == NULL) {
 		TRACE_NOTIFY(TRACE_WARNING, "ECNotifyClient::NotifyChange", "Unknown Notification id %d", ulConnection);
-		goto exit;
+		return hr;
 	}
 
 	if (!syncStates.empty()) {
@@ -659,8 +646,6 @@ HRESULT ECNotifyClient::NotifyChange(ULONG ulConnection, const NOTIFYLIST &lNoti
 
 		}
 	}
-exit:
-	biglock.unlock();
 	return hrSuccess;
 }
 

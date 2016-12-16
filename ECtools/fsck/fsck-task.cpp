@@ -50,7 +50,7 @@ HRESULT FsckTask::ValidateMinimalNamedFields(LPMESSAGE lpMessage)
 	 */
 	hr = allocNamedIdList(TAG_COUNT, &~lppTagArray);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lppTagArray[E_REMINDER]->lpguid = (LPGUID)&PSETID_Common;
 	lppTagArray[E_REMINDER]->ulKind = MNID_ID;
@@ -61,7 +61,7 @@ HRESULT FsckTask::ValidateMinimalNamedFields(LPMESSAGE lpMessage)
 	hr = ReadNamedProperties(lpMessage, TAG_COUNT, lppTagArray,
 	     &~lpPropertyTagArray, &~lpPropertyArray);
 	if (FAILED(hr))
-		goto exit;
+		return hr;
 
 	for (ULONG i = 0; i < TAG_COUNT; ++i) {
 		if (PROP_TYPE(lpPropertyArray[i].ulPropTag) == PT_ERROR) {
@@ -72,15 +72,10 @@ HRESULT FsckTask::ValidateMinimalNamedFields(LPMESSAGE lpMessage)
 						CHANGE_PROP_TYPE(lpPropertyTagArray->aulPropTag[i], PT_BOOLEAN),
 						Value);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 	}
-
-	/* If we are here, we were succcessful. */
-	hr = hrSuccess;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT FsckTask::ValidateTimestamps(LPMESSAGE lpMessage)
@@ -102,7 +97,7 @@ HRESULT FsckTask::ValidateTimestamps(LPMESSAGE lpMessage)
 	 */
 	hr = allocNamedIdList(TAG_COUNT, &~lppTagArray);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lppTagArray[E_START_DATE]->lpguid = (LPGUID)&PSETID_Task;
 	lppTagArray[E_START_DATE]->ulKind = MNID_ID;
@@ -115,7 +110,7 @@ HRESULT FsckTask::ValidateTimestamps(LPMESSAGE lpMessage)
 	hr = ReadNamedProperties(lpMessage, TAG_COUNT, lppTagArray,
 	     &~lpPropertyTagArray, &~lpPropertyArray);
 	if (FAILED(hr))
-		goto exit;
+		return hr;
 
 	/*
 	 * Validate parameters
@@ -140,12 +135,10 @@ HRESULT FsckTask::ValidateTimestamps(LPMESSAGE lpMessage)
 					     "Start date cannot be after due date",
 					     Value);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 	} else
 		hr = hrSuccess;
-
-exit:
 	return hr;
 }
 
@@ -170,7 +163,7 @@ HRESULT FsckTask::ValidateCompletion(LPMESSAGE lpMessage)
 	 */
 	hr = allocNamedIdList(TAG_COUNT, &~lppTagArray);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lppTagArray[E_COMPLETE]->lpguid = (LPGUID)&PSETID_Task;
 	lppTagArray[E_COMPLETE]->ulKind = MNID_ID;
@@ -187,7 +180,7 @@ HRESULT FsckTask::ValidateCompletion(LPMESSAGE lpMessage)
 	hr = ReadNamedProperties(lpMessage, TAG_COUNT, lppTagArray,
 	     &~lpPropertyTagArray, &~lpPropertyArray);
 	if (FAILED(hr))
-		goto exit;
+		return hr;
 
 	/*
 	 * Validate parameters
@@ -209,8 +202,7 @@ HRESULT FsckTask::ValidateCompletion(LPMESSAGE lpMessage)
 					CHANGE_PROP_TYPE(lpPropertyTagArray->aulPropTag[E_COMPLETE], PT_BOOLEAN),
 					Value);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		bCompleted = Value.b;
 	} else
 		bCompleted = lpPropertyArray[E_COMPLETE].Value.b;
@@ -223,7 +215,7 @@ HRESULT FsckTask::ValidateCompletion(LPMESSAGE lpMessage)
 		 			 CHANGE_PROP_TYPE(lpPropertyTagArray->aulPropTag[E_PERCENT_COMPLETE], PT_DOUBLE),
 					 Value);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	if (PROP_TYPE(lpPropertyArray[E_COMPLETION_DATE].ulPropTag) == PT_ERROR && bCompleted) {
@@ -235,14 +227,9 @@ HRESULT FsckTask::ValidateCompletion(LPMESSAGE lpMessage)
 					CHANGE_PROP_TYPE(lpPropertyTagArray->aulPropTag[E_COMPLETION_DATE], PT_SYSTIME),
 					Value);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
-
-	/* If we are here, we were succcessful. */
-	hr = hrSuccess;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT FsckTask::ValidateItem(LPMESSAGE lpMessage,

@@ -30,6 +30,7 @@
 #include <kopano/ECLogger.h>
 #include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
+#include <kopano/tie.hpp>
 #include <kopano/MAPIErrors.h>
 #include "ECRulesTableProxy.h"
 #include <ICalToMAPI.h>
@@ -7581,7 +7582,7 @@ ZEND_FUNCTION(mapi_icaltomapi)
 	IAddrBook *lpAddrBook = nullptr;
 	IMessage *lpMessage = nullptr;
 	IMsgStore *lpMsgStore = nullptr;
-	ICalToMapi *lpIcalToMapi = nullptr;
+	std::unique_ptr<ICalToMapi> lpIcalToMapi;
 
 	RETVAL_FALSE;
 	MAPI_G(hr) = MAPI_E_INVALID_PARAMETER;
@@ -7598,7 +7599,7 @@ ZEND_FUNCTION(mapi_icaltomapi)
 
 	// noRecpients, skip recipients from ical.
 	// Used for DAgent, which uses the mail recipients
-	CreateICalToMapi(lpMsgStore, lpAddrBook, noRecipients, &lpIcalToMapi);
+	CreateICalToMapi(lpMsgStore, lpAddrBook, noRecipients, &unique_tie(lpIcalToMapi));
 	if (lpIcalToMapi == nullptr) {
 		MAPI_G(hr) = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
@@ -7613,7 +7614,6 @@ ZEND_FUNCTION(mapi_icaltomapi)
 	if (MAPI_G(hr) != hrSuccess)
 		goto exit;
  exit:
-	delete lpIcalToMapi;
 	RETVAL_TRUE;
 	LOG_END();
 	THROW_ON_ERROR();

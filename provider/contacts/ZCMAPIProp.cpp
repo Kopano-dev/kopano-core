@@ -400,14 +400,14 @@ HRESULT ZCMAPIProp::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULON
 		// check ulFlags for MAPI_UNICODE
 		hr = MAPIAllocateBuffer(sizeof(SPropValue) * m_mapProperties.size(), &~lpProps);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		ULONG j = 0;
 		for (auto i = m_mapProperties.cbegin();
 		     i != m_mapProperties.cend(); ++i) {
 			hr = CopyOneProp(converter, ulFlags, i, &lpProps[j], lpProps);
 			if (hr != hrSuccess)
-				goto exit;				
+				return hr;
 			++j;
 		}
 		
@@ -416,7 +416,7 @@ HRESULT ZCMAPIProp::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULON
 		// check lpPropTagArray->aulPropTag[x].ulPropTag for PT_UNICODE or PT_STRING8
 		hr = MAPIAllocateBuffer(sizeof(SPropValue) * lpPropTagArray->cValues, &~lpProps);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		for (ULONG n = 0, j = 0; n < lpPropTagArray->cValues; ++n, ++j) {
 			auto i = m_mapProperties.find(PROP_ID(lpPropTagArray->aulPropTag[n]));
@@ -428,14 +428,13 @@ HRESULT ZCMAPIProp::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULON
 
 			hr = CopyOneProp(converter, ulFlags, i, &lpProps[j], lpProps);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 
 		*lpcValues = lpPropTagArray->cValues;
 	}
 	*lppPropArray = lpProps.release();
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 

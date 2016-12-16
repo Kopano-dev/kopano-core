@@ -475,14 +475,11 @@ static HRESULT setQuota(IECServiceAdmin *lpServiceAdmin, ULONG cbEid,
 	ECQUOTA sQuota;
 
 	if (lpEid == NULL)
-	{
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+		return MAPI_E_INVALID_PARAMETER;
 	hr = lpServiceAdmin->GetQuota(cbEid, lpEid, false, &~lpsQuota);
 	if (hr != hrSuccess) {
 		cerr << "Unable to update quota, probably not found." << endl;
-		goto exit;
+		return hr;
 	}
 
 	if (print) {
@@ -503,7 +500,7 @@ static HRESULT setQuota(IECServiceAdmin *lpServiceAdmin, ULONG cbEid,
 	hr = lpServiceAdmin->SetQuota(cbEid, lpEid, &sQuota);
 	if(hr != hrSuccess) {
 		cerr << "Unable to update quota information." << endl;
-		goto exit;
+		return hr;
 	}
 
 	if (print) {
@@ -512,16 +509,14 @@ static HRESULT setQuota(IECServiceAdmin *lpServiceAdmin, ULONG cbEid,
 			cerr << "Unable to request updated quota information: " <<
 				GetMAPIErrorMessage(hr) << " (" <<
 				stringify(hr, true) << ")" << endl;
-			goto exit;
+			return hr;
 		}
 
 		cout << "New quota settings:" << endl;
 		print_quota(&sQuota, lpsQuotaStatus, company);
 		cout << endl;
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -993,24 +988,20 @@ static HRESULT CreateOrphanStoreEntryID(const char *lpServerUrl,
 	memory_ptr<ENTRYID> lpNewEntryID;
 	ULONG cbServerURL = 0;
 
-	if (lpServerUrl == NULL || lpEntryID == NULL || lpcbEntryID == NULL || lppEntryID == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpServerUrl == nullptr || lpEntryID == nullptr ||
+	    lpcbEntryID == nullptr || lppEntryID == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 
 	cbServerURL = strlen(lpServerUrl);
 
 	cbNewEntryID = cbEntryID + cbServerURL;
 	hr = MAPIAllocateBuffer(cbNewEntryID, &~lpNewEntryID);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	memcpy(lpNewEntryID, lpEntryID, cbEntryID);
 	memcpy(reinterpret_cast<unsigned char *>(lpNewEntryID.get()) + cbEntryID - 4, lpServerUrl, cbServerURL + 4);
-	hr = WrapStoreEntryID(0, (LPTSTR)"zarafa6client.dll", cbNewEntryID, lpNewEntryID, lpcbEntryID, lppEntryID);
-
-exit:
-	return hr;
+	return WrapStoreEntryID(0, (LPTSTR)"zarafa6client.dll", cbNewEntryID,
+	       lpNewEntryID, lpcbEntryID, lppEntryID);
 }
 
 /**
@@ -1697,15 +1688,13 @@ static HRESULT ListUsers(IECServiceAdmin *lpServiceAdmin, ECCOMPANY *lpCompany)
 	hr = lpServiceAdmin->GetUserList(lpCompany->sCompanyId.cb, (LPENTRYID)lpCompany->sCompanyId.lpb, 0, &cUsers, &~lpECUsers);
 	if (hr != hrSuccess) {
 		cerr << "Unable to list users, " << getMapiCodeString(hr) << endl;
-		goto exit;
+		return hr;
 	}
 
 	cout << "User list for " << (LPSTR)lpCompany->lpszCompanyname << "("<< cUsers <<"):" << endl;
 	print_users(cUsers, lpECUsers, true);
 	cout << endl;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -1725,7 +1714,7 @@ static HRESULT ListGroups(IECServiceAdmin *lpServiceAdmin,
 	hr = lpServiceAdmin->GetGroupList(lpCompany->sCompanyId.cb, (LPENTRYID)lpCompany->sCompanyId.lpb, 0, &cGroups, &~lpECGroups);
 	if (hr != hrSuccess) {
 		cerr << "Unable to list groups, " << getMapiCodeString(hr) << endl;
-		goto exit;
+		return hr;
 	}
 
 	cout << "Group list for " << (LPSTR)lpCompany->lpszCompanyname << "("<< cGroups <<"):" << endl;
@@ -1733,9 +1722,7 @@ static HRESULT ListGroups(IECServiceAdmin *lpServiceAdmin,
 	cout << "\t-------------------------------------" << endl;
 	print_groups(cGroups, lpECGroups, true);
 	cout << endl;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -1780,7 +1767,7 @@ static HRESULT ForEachCompany(IECServiceAdmin *lpServiceAdmin,
 		hr = lpServiceAdmin->ResolveCompanyName((LPTSTR)lpszCompanyName, 0, &cbCompanyId, &~lpCompanyId);
 		if (hr != hrSuccess) {
 			cerr << "Failed to resolve company name, " << getMapiCodeString(hr, lpszCompanyName) << endl;
-			goto exit;
+			return hr;
 		}
 
 		cCompanies = 1;
@@ -1801,16 +1788,14 @@ static HRESULT ForEachCompany(IECServiceAdmin *lpServiceAdmin,
 
 	if (cCompanies == 0) {
 		cerr << "No companies found." << endl;
-		goto exit;
+		return hr;
 	}
 
 	for (unsigned int i = 0; i < cCompanies; ++i) {
 		hr = lpWork(lpServiceAdmin, &lpECCompanies[i]);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
-
-exit:
 	return hr;
 }
 

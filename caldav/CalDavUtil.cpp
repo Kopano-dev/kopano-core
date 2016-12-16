@@ -82,16 +82,11 @@ HRESULT HrAddProperty(IMAPIProp *lpMapiProp, ULONG ulPropTag, bool bFldId, std::
 		{
 			hr = HrGetOneProp(lpMapiProp, PR_ENTRYID, &~lpMsgProp);
 			if(hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			wstrProperty->assign(convert_to<wstring>(bin2hex(lpMsgProp->Value.bin.cb, lpMsgProp->Value.bin.lpb)));
 		}
-	} else if (hr != hrSuccess)
-		goto exit;
-	else
+	} else if (hr == hrSuccess)
 		wstrProperty->assign(lpMsgProp->Value.lpszW);
-
-exit:
 	return hr;
 }
 

@@ -470,22 +470,19 @@ HRESULT VConverter::HrCompareUids(icalitem *lpIcalItem, icalcomponent *lpicEvent
 	
 	hr = HrGetUID(lpicEvent, &strUid);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropVal);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = HrMakeBinaryUID(strUid, lpPropVal, lpPropVal);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lpPropVal->ulPropTag = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY);
 
 	hr = Util::CompareProp(lpPropVal, &lpIcalItem->sBinGuid, createLocaleFromName(""), &res);
 	if (hr != hrSuccess || res != 0)
 		hr = MAPI_E_BAD_VALUE;
-
-exit:
 	return hr;
 }
 
@@ -1159,8 +1156,7 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 
 			hr = m_lpMailUser->GetProps(sPropTags, 0, &count, &~lpsPropVal);
 			if (hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			if (lpsPropVal[0].ulPropTag == PR_SMTP_ADDRESS_W)
 				strEmail = lpsPropVal[0].Value.lpszW;
 			if (lpsPropVal[1].ulPropTag == PR_DISPLAY_NAME_W)
@@ -1175,7 +1171,7 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 			strType = "SMTP";
 			hr = ECCreateOneOff((LPTSTR)strName.c_str(), (LPTSTR)L"SMTP", (LPTSTR)strEmail.c_str(), MAPI_UNICODE, &cbEntryIDOneOff, &~lpEntryIDOneOff);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			cbEntryID = cbEntryIDOneOff;
 			lpEntryID = lpEntryIDOneOff;
 		}
@@ -1183,7 +1179,7 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 		// add the organiser to the recipient list
 		hr = MAPIAllocateMore(cbEntryID, lpIcalItem->base, (void**)&icrAttendee.lpEntryID);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		
 		memcpy(icrAttendee.lpEntryID, lpEntryID, cbEntryID);
 		icrAttendee.cbEntryID = cbEntryID;
@@ -1205,8 +1201,7 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 
 		hr = m_lpMailUser->GetProps(sPropTags, 0, &count, &~lpsPropVal);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		if (lpsPropVal[0].ulPropTag == PR_SMTP_ADDRESS_W)
 			strEmail = lpsPropVal[0].Value.lpszW;
 		if (lpsPropVal[1].ulPropTag == PR_DISPLAY_NAME_W)
@@ -1221,7 +1216,7 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 		hr = HrAddOrganizer(lpIcalItem, lplstMsgProps, strEmail, strName, strType, cbEntryID, lpEntryID);
 	}
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	for (lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_ATTENDEE_PROPERTY);
 		 lpicProp != NULL;
@@ -1294,9 +1289,7 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 		
 		lplstIcalRecip->push_back(icrAttendee);
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -1355,15 +1348,12 @@ HRESULT VConverter::HrAddReplyRecipients(icalcomponent *lpicEvent, icalitem *lpI
 
 		hr = ECCreateOneOff((LPTSTR)strName.c_str(), (LPTSTR)L"SMTP", (LPTSTR)strEmail.c_str(), MAPI_UNICODE, &cbEntryID, &~lpEntryID);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = HrAddOrganizer(lpIcalItem, &lpIcalItem->lstMsgProps, strEmail, strName, "SMTP", cbEntryID, lpEntryID);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -3321,18 +3311,17 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 
 	hr = lpMessage->GetProps(NULL, MAPI_UNICODE, &ulMsgProps, &~lpMsgProps);
 	if (FAILED(hr))
-		goto exit;
-
+		return hr;
 	hr = HrFindTimezone(ulMsgProps, lpMsgProps, &strTZid, &ttTZinfo, &lpicTZinfo);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	// non-UTC timezones are placed in the map, and converted using HrCreateVTimeZone() in MAPIToICal.cpp
 
 	if(!m_bCensorPrivate) {
 		// not an exception, so parent message is the message itself
 		hr = HrSetOrganizerAndAttendees(lpMessage, lpMessage, ulMsgProps, lpMsgProps, &icMethod, lpEvent);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	// Set show_time_as / TRANSP
@@ -3343,12 +3332,12 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 	
 	hr = HrSetTimeProperties(lpMsgProps, ulMsgProps, lpicTZinfo, strTZid, lpEvent);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Set RECURRENCE-ID for exception
 	hr = HrSetRecurrenceID(lpMsgProps, ulMsgProps, lpicTZinfo, strTZid, lpEvent);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Set subject / SUMMARY
 	if(m_bCensorPrivate) {
@@ -3469,7 +3458,7 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 
 		hr = HrGenerateUid(&strUid);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		hr = HrMakeBinaryUID(strUid, lpMsgProps, &propUid); // base is lpMsgProps, which will be freed later
 		
@@ -3502,7 +3491,7 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 
 	hr = HrSetItemSpecifics(ulMsgProps, lpMsgProps, lpEvent);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	//Sequence
 	lpPropVal = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_APPTSEQNR], PT_LONG));
@@ -3516,13 +3505,13 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 	if(!m_bCensorPrivate)	{
 		hr = HrSetVAlarm(ulMsgProps, lpMsgProps, lpEvent);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	// Set X-Properties.
 	hr = HrSetXHeaders(ulMsgProps, lpMsgProps, lpMessage, lpEvent);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	
 	// set return values
 	if (lpicMethod)
@@ -3533,9 +3522,7 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 
 	if (lpstrTZid)
 		*lpstrTZid = strTZid;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 } /* namespace */

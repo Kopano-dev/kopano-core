@@ -16,12 +16,14 @@
  */
 
 #include <kopano/platform.h>
+#include <memory>
 #include "mailer.h"
 #include "archive.h"
 
 #include <mapitags.h>
 #include <kopano/mapiext.h>
 #include <kopano/memory.hpp>
+#include <kopano/tie.hpp>
 #include <mapiutil.h>
 #include <mapidefs.h>
 #include <mapix.h>
@@ -62,28 +64,20 @@ static HRESULT GetPluginObject(PyMapiPluginFactory *lpPyMapiPluginFactory,
     PyMapiPlugin **lppPyMapiPlugin)
 {
     HRESULT hr = hrSuccess;
-    PyMapiPlugin *lpPyMapiPlugin = NULL;
+	std::unique_ptr<PyMapiPlugin> lpPyMapiPlugin;
 
     if (lpPyMapiPluginFactory == nullptr || lppPyMapiPlugin == nullptr) {
         assert(false);
-        hr = MAPI_E_INVALID_PARAMETER;
-        goto exit;
+		return MAPI_E_INVALID_PARAMETER;
     }
-
-	hr = lpPyMapiPluginFactory->CreatePlugin("SpoolerPluginManager", &lpPyMapiPlugin);
+	hr = lpPyMapiPluginFactory->CreatePlugin("SpoolerPluginManager", &unique_tie(lpPyMapiPlugin));
 	if (hr != hrSuccess) {
 		ec_log_crit("Unable to initialize plugin system, please check your configuration: %s (%x).",
 			GetMAPIErrorMessage(hr), hr);
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}
-
-    *lppPyMapiPlugin = lpPyMapiPlugin;
-	lpPyMapiPlugin = NULL;
-
-exit:
-	delete lpPyMapiPlugin;
-	return hr;
+	*lppPyMapiPlugin = lpPyMapiPlugin.release();
+	return hrSuccess;
 }
 
 /**

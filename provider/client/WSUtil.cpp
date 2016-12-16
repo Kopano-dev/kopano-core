@@ -2362,13 +2362,11 @@ HRESULT CopyICSChangeToSOAPSourceKeys(ULONG cbChanges, ICSCHANGE *lpsChanges, so
 	HRESULT				hr = hrSuccess;
 	memory_ptr<sourceKeyPairArray> lpsSKPA;
 
-	if (lpsChanges == NULL || lppsSKPA == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpsChanges == nullptr || lppsSKPA == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 	hr = MAPIAllocateBuffer(sizeof *lpsSKPA, &~lpsSKPA);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	memset(lpsSKPA, 0, sizeof *lpsSKPA);
 
 	if (cbChanges > 0) {
@@ -2376,22 +2374,20 @@ HRESULT CopyICSChangeToSOAPSourceKeys(ULONG cbChanges, ICSCHANGE *lpsChanges, so
 
 		hr = MAPIAllocateMore(cbChanges * sizeof *lpsSKPA->__ptr, lpsSKPA, (void**)&lpsSKPA->__ptr);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		memset(lpsSKPA->__ptr, 0, cbChanges * sizeof *lpsSKPA->__ptr);
 
 		for (unsigned i = 0; i < cbChanges; ++i) {
 			hr = CopyMAPISourceKeyToSoapSourceKey(&lpsChanges[i].sSourceKey, &lpsSKPA->__ptr[i].sObjectKey, lpsSKPA);
 			if (hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			hr = CopyMAPISourceKeyToSoapSourceKey(&lpsChanges[i].sParentSourceKey, &lpsSKPA->__ptr[i].sParentKey, lpsSKPA);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 	}
 	*lppsSKPA = lpsSKPA.release();
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT CopyUserClientUpdateStatusFromSOAP(struct userClientUpdateStatusResponse &sUCUS,
@@ -2403,7 +2399,7 @@ HRESULT CopyUserClientUpdateStatusFromSOAP(struct userClientUpdateStatusResponse
 
 	hr = MAPIAllocateBuffer(sizeof(ECUSERCLIENTUPDATESTATUS), &~lpECUCUS);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	memset(lpECUCUS, 0, sizeof(ECUSERCLIENTUPDATESTATUS));
 	lpECUCUS->ulTrackId = sUCUS.ulTrackId;
@@ -2420,10 +2416,9 @@ HRESULT CopyUserClientUpdateStatusFromSOAP(struct userClientUpdateStatusResponse
 		hr = Utf8ToTString(sUCUS.lpszComputername,  ulFlags, lpECUCUS, &converter, &lpECUCUS->lpszComputername);
 
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	*lppECUCUS = lpECUCUS.release();
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 static HRESULT ConvertString8ToUnicode(const char *lpszA, WCHAR **lppszW,

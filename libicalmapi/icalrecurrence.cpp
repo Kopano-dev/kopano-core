@@ -71,15 +71,13 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, ica
 
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_RRULE_PROPERTY);
 	if (lpicProp == NULL)
-		goto exit;
+		return hr;
 
 	icRRule = icalproperty_get_rrule(lpicProp);
 
 	lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_DTSTART_PROPERTY);
-	if (!lpicProp) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+	if (lpicProp == nullptr)
+		return MAPI_E_NOT_FOUND;
 	
 	// use localtime for calculating weekday as in UTC time 
 	// the weekday can change to previous day for time 00:00 am
@@ -100,8 +98,7 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, ica
 		if (lpicProp) {
 			dtUTCEnd = dtUTCStart + icaldurationtype_as_int(icalproperty_get_duration(lpicProp));
 		} else {
-			hr = MAPI_E_NOT_FOUND;
-			goto exit;
+			return MAPI_E_NOT_FOUND;
 		}
 	} else {
 		dtUTCEnd = ICalTimeTypeToUTC(lpicRootEvent, lpicProp);
@@ -147,8 +144,7 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, ica
 			lpRec->setMonth(icRRule.by_month[0]);
 		break;
 	default:
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
+		return MAPI_E_INVALID_PARAMETER;
 	};
 	lpIcalItem->lstMsgProps.push_back(sPropVal);
 
@@ -189,8 +185,7 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, ica
 				sPropVal.Value.ul = 2;
 				lpIcalItem->lstMsgProps.push_back(sPropVal);
 			} else if (lpRec->getFrequency() == recurrence::YEARLY) {
-				hr = MAPI_E_NO_SUPPORT;
-				goto exit;
+				return MAPI_E_NO_SUPPORT;
 			}
 		} else {
 			// monthly, first sunday: 9, monday: 10
@@ -305,7 +300,6 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, ica
 		lpIcalItem->lstMsgProps.push_back(sPropVal);
 	}
 	lpIcalItem->lpRecurrence = lpRec.release();
-exit:
 	return hr;
 }
 /**
@@ -688,16 +682,14 @@ HRESULT ICalRecurrence::HrMakeMAPIRecurrence(recurrence *lpRecurrence, LPSPropTa
 
 	hr = lpRecurrence->HrGetRecurrenceState(&~lpRecBlob, &ulRecBlob);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpRecurrence->HrGetHumanReadableString(&strHRS);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	// adjust number of props
 	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 4, &~lpPropVal);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lpPropVal[i].ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_RECURRING], PT_BOOLEAN);
 	lpPropVal[i].Value.b = TRUE;
@@ -720,13 +712,7 @@ HRESULT ICalRecurrence::HrMakeMAPIRecurrence(recurrence *lpRecurrence, LPSPropTa
 		lpPropVal[i].Value.lpszA = (char*)strHRS.c_str();
 		++i;
 	}
-
-	hr = lpMessage->SetProps(i, lpPropVal, NULL);
-	if (FAILED(hr))
-		goto exit;
-
-exit:
-	return hr;
+	return lpMessage->SetProps(i, lpPropVal, NULL);
 }
 
 /**

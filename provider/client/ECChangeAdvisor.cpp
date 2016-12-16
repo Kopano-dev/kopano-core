@@ -158,10 +158,8 @@ HRESULT ECChangeAdvisor::Config(LPSTREAM lpStream, LPGUID /*lpGUID*/,
 	ULONG					ulRead = {0};
 	LARGE_INTEGER			liSeekStart = {{0}};
 
-	if (lpAdviseSink == NULL && !(ulFlags & SYNC_CATCHUP)) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpAdviseSink == nullptr && !(ulFlags & SYNC_CATCHUP))
+		return MAPI_E_INVALID_PARAMETER;
 
 	// Unregister notifications
 	if (!(m_ulFlags & SYNC_CATCHUP))
@@ -181,60 +179,47 @@ HRESULT ECChangeAdvisor::Config(LPSTREAM lpStream, LPGUID /*lpGUID*/,
 	}
 
 	if (lpStream == NULL)
-		goto exit;
-
+		return hr;
 	hr = lpStream->Seek(liSeekStart, SEEK_SET, NULL);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpStream->Read(&ulVal, sizeof(ulVal), &ulRead);
 	if (hr != hrSuccess)
-		goto exit;
-	if (ulRead != sizeof(ulVal)) {
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
+		return hr;
+	if (ulRead != sizeof(ulVal))
+		return MAPI_E_CALL_FAILED;
 
 	if (ulVal > 0) {
 		hr = MAPIAllocateBuffer(sizeof *lpEntryList, &~lpEntryList);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = MAPIAllocateMore(ulVal * sizeof *lpEntryList->lpbin, lpEntryList, (void**)&lpEntryList->lpbin);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		lpEntryList->cValues = ulVal;
 		for (ULONG i = 0; i < lpEntryList->cValues; ++i) {
 			hr = lpStream->Read(&ulVal, sizeof(ulVal), &ulRead);
 			if (hr != hrSuccess)
-				goto exit;
-			if (ulRead != sizeof(ulVal)) {
-				hr = MAPI_E_CALL_FAILED;
-				goto exit;
-			}	
-
+				return hr;
+			if (ulRead != sizeof(ulVal))
+				return MAPI_E_CALL_FAILED;
 			hr = MAPIAllocateMore(ulVal, lpEntryList, (void**)&lpEntryList->lpbin[i].lpb);
 			if (hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			lpEntryList->lpbin[i].cb = ulVal;
 			hr = lpStream->Read(lpEntryList->lpbin[i].lpb, ulVal, &ulRead);
 			if (hr != hrSuccess)
-				goto exit;
-			if (ulRead != ulVal) {
-				hr = MAPI_E_CALL_FAILED;
-				goto exit;
-			}
+				return hr;
+			if (ulRead != ulVal)
+				return MAPI_E_CALL_FAILED;
 		}
 
 		hr = AddKeys(lpEntryList);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**

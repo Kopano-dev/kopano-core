@@ -833,7 +833,7 @@ static HRESULT HrDelegateMessage(IMAPIProp *lpMessage)
 	// set PR_RCVD_REPRESENTING on original receiver
 	hr = lpMessage->GetProps(sptaRecipProps, 0, &cValues, &~lpProps);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lpProps[0].ulPropTag = PR_RCVD_REPRESENTING_ENTRYID;
 	lpProps[1].ulPropTag = PR_RCVD_REPRESENTING_ADDRTYPE;
@@ -843,7 +843,7 @@ static HRESULT HrDelegateMessage(IMAPIProp *lpMessage)
 
 	hr = lpMessage->SetProps(cValues, lpProps, NULL);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// TODO: delete PR_RECEIVED_BY_ values?
 
@@ -855,17 +855,13 @@ static HRESULT HrDelegateMessage(IMAPIProp *lpMessage)
 
 	hr = lpMessage->SetProps(2, sNewProps, NULL);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 		
 	// Don't want to move to sent mail
 	hr = lpMessage->DeleteProps(sptaSentMail, NULL);
 	if (hr != hrSuccess)
-		goto exit;
-
-	hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
-
-exit:
-	return hr;
+		return hr;
+	return lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
 }
 
 static int proc_op_fwd(IAddrBook *abook, IMsgStore *orig_store,

@@ -16,6 +16,8 @@
  */
 
 #include <kopano/platform.h>
+#include <memory>
+#include <kopano/tie.hpp>
 #include "ECStatsTables.h"
 
 #include "SOAPUtils.h"
@@ -50,6 +52,8 @@
   - cache stats
   - license
 */
+
+using namespace KCHL;
 
 namespace KC {
 
@@ -552,48 +556,43 @@ ECRESULT ECUserStatsTable::Create(ECSession *lpSession, unsigned int ulFlags, co
 ECRESULT ECUserStatsTable::Load()
 {
 	ECRESULT er = erSuccess;
-	std::list<localobjectdetails_t> *lpCompanies = NULL;
+	std::unique_ptr<std::list<localobjectdetails_t> > lpCompanies;
 
 	// load all active and non-active users
 	// FIXME: group/company quota already possible?
 
 	// get company list if hosted and is sysadmin
-	er = lpSession->GetSecurity()->GetViewableCompanyIds(0, &lpCompanies);
+	er = lpSession->GetSecurity()->GetViewableCompanyIds(0, &unique_tie(lpCompanies));
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	if (lpCompanies->empty()) {
 		er = LoadCompanyUsers(0);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	} else {
 		for (const auto &com : *lpCompanies) {
 			er = LoadCompanyUsers(com.ulId);
 			if (er != erSuccess)
-				goto exit;
+				return er;
 		}
 	}
-
-exit:
-	delete lpCompanies;
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECUserStatsTable::LoadCompanyUsers(ULONG ulCompanyId)
 {
 	ECRESULT er = erSuccess;
-	std::list<localobjectdetails_t> *lpObjects = NULL;
+	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
 	sObjectTableKey sRowItem;
 	ECUserManagement *lpUserManagement = lpSession->GetUserManagement();
 	bool bDistrib = lpSession->GetSessionManager()->IsDistributedSupported();
 	const char* server = lpSession->GetSessionManager()->GetConfig()->GetSetting("server_name");
 	std::list<unsigned int> lstObjId;
 
-	er = lpUserManagement->GetCompanyObjectListAndSync(OBJECTCLASS_USER, ulCompanyId, &lpObjects, 0);
+	er = lpUserManagement->GetCompanyObjectListAndSync(OBJECTCLASS_USER,
+	     ulCompanyId, &unique_tie(lpObjects), 0);
 	if (FAILED(er))
-		goto exit;
-	er = erSuccess;
-
+		return er;
 	for (const auto &obj : *lpObjects) {
 		// we only return users present on this server
 		if (bDistrib && obj.GetPropString(OB_PROP_S_SERVERNAME).compare(server) != 0)
@@ -602,10 +601,7 @@ ECRESULT ECUserStatsTable::LoadCompanyUsers(ULONG ulCompanyId)
 	}
 
 	UpdateRows(ECKeyTable::TABLE_ROW_ADD, &lstObjId, 0, false);
-
-exit:
-	delete lpObjects;
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECUserStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList *lpRowList, struct propTagArray *lpsPropTagArray, void *lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)
@@ -844,18 +840,15 @@ ECRESULT ECCompanyStatsTable::Create(ECSession *lpSession, unsigned int ulFlags,
 ECRESULT ECCompanyStatsTable::Load()
 {
 	ECRESULT er = erSuccess;
-	std::list<localobjectdetails_t> *lpCompanies = NULL;
+	std::unique_ptr<std::list<localobjectdetails_t> > lpCompanies;
 	sObjectTableKey sRowItem;
 
-	er = lpSession->GetSecurity()->GetViewableCompanyIds(0, &lpCompanies);
+	er = lpSession->GetSecurity()->GetViewableCompanyIds(0, &unique_tie(lpCompanies));
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	for (const auto &com : *lpCompanies)
 		UpdateRow(ECKeyTable::TABLE_ROW_ADD, com.ulId, 0);
-exit:
-	delete lpCompanies;
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECCompanyStatsTable::QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList* lpRowList, struct propTagArray *lpsPropTagArray, void* lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit)

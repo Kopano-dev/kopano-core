@@ -16,11 +16,14 @@
  */
 
 #include <kopano/platform.h>
-
+#include <memory>
+#include <kopano/tie.hpp>
 #include "ECDatabaseMySQL.h"
 #include "ECDatabaseFactory.h"
 
 #include "ECServerEntrypoint.h"
+
+using namespace KCHL;
 
 namespace KC {
 
@@ -48,9 +51,9 @@ ECRESULT ECDatabaseFactory::GetDatabaseFactory(ECDatabase **lppDatabase)
 ECRESULT ECDatabaseFactory::CreateDatabaseObject(ECDatabase **lppDatabase, std::string &ConnectError)
 {
 	ECRESULT er;
-	ECDatabase*		lpDatabase = NULL;
+	std::unique_ptr<ECDatabase> lpDatabase;
 
-	er = GetDatabaseFactory(&lpDatabase);
+	er = GetDatabaseFactory(&unique_tie(lpDatabase));
 	if(er != erSuccess) {
 		ConnectError = "Invalid database engine";
 		return er;
@@ -59,49 +62,33 @@ ECRESULT ECDatabaseFactory::CreateDatabaseObject(ECDatabase **lppDatabase, std::
 	er = lpDatabase->Connect();
 	if(er != erSuccess) {
 		ConnectError = lpDatabase->GetError();
-		delete lpDatabase;
 		return er;
 	}
-
-	*lppDatabase = lpDatabase;
+	*lppDatabase = lpDatabase.release();
 	return erSuccess;
 }
 
 ECRESULT ECDatabaseFactory::CreateDatabase()
 {
 	ECRESULT	er = erSuccess;
-	ECDatabase*	lpDatabase = NULL;
+	std::unique_ptr<ECDatabase> lpDatabase;
 	std::string	strQuery;
 	
-	er = GetDatabaseFactory(&lpDatabase);
+	er = GetDatabaseFactory(&unique_tie(lpDatabase));
 	if(er != erSuccess)
-		goto exit;
-
-	er = lpDatabase->CreateDatabase();
-	if(er != erSuccess)
-		goto exit;
-	
-exit:
-	delete lpDatabase;
-	return er;
+		return er;
+	return lpDatabase->CreateDatabase();
 }
 
 ECRESULT ECDatabaseFactory::UpdateDatabase(bool bForceUpdate, std::string &strReport)
 {
 	ECRESULT		er = erSuccess;
-	ECDatabase*		lpDatabase = NULL;
+	std::unique_ptr<ECDatabase> lpDatabase;
 	
-	er = CreateDatabaseObject(&lpDatabase, strReport);
+	er = CreateDatabaseObject(&unique_tie(lpDatabase), strReport);
 	if(er != erSuccess)
-		goto exit;
-
-	er = lpDatabase->UpdateDatabase(bForceUpdate, strReport);
-	if(er != erSuccess)
-		goto exit;
-
-exit:
-	delete lpDatabase;
-	return er;
+		return er;
+	return lpDatabase->UpdateDatabase(bForceUpdate, strReport);
 }
 
 extern pthread_key_t database_key;

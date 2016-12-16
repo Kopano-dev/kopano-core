@@ -466,13 +466,10 @@ HRESULT GetFreeBusyMessageData(IMessage* lpMessage, LONG* lprtmStart, LONG* lprt
 					   };
 
 	if(lpMessage == NULL || lprtmStart == NULL || lprtmEnd == NULL || lpfbBlockList == NULL)
-	{
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+		return MAPI_E_INVALID_PARAMETER;
 	hr = lpMessage->GetProps(sPropsFreeBusyData, 0, &cValuesFBData, &~lpPropArrayFBData);
 	if(FAILED(hr))
-		goto exit;
+		return hr;
 
 	// Get busy data
 	if(lpPropArrayFBData[FBDATA_BUSY_EVENTS].ulPropTag == PR_FREEBUSY_BUSY_EVENTS &&
@@ -480,8 +477,7 @@ HRESULT GetFreeBusyMessageData(IMessage* lpMessage, LONG* lprtmStart, LONG* lprt
 	{
 		hr = ParseFBEvents(fbBusy, &lpPropArrayFBData[FBDATA_BUSY_MONTHS], &lpPropArrayFBData[FBDATA_BUSY_EVENTS], lpfbBlockList);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 	}
 
 	// Get Tentative data
@@ -490,7 +486,7 @@ HRESULT GetFreeBusyMessageData(IMessage* lpMessage, LONG* lprtmStart, LONG* lprt
 	{
 		hr = ParseFBEvents(fbTentative, &lpPropArrayFBData[FBDATA_TENTATIVE_MONTHS], &lpPropArrayFBData[FBDATA_TENTATIVE_EVENTS], lpfbBlockList);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 		// Get OutOfOffice data
@@ -499,7 +495,7 @@ HRESULT GetFreeBusyMessageData(IMessage* lpMessage, LONG* lprtmStart, LONG* lprt
 	{
 		hr = ParseFBEvents(fbOutOfOffice, &lpPropArrayFBData[FBDATA_OOF_MONTHS], &lpPropArrayFBData[FBDATA_OOF_EVENTS], lpfbBlockList);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
 	if (lpPropArrayFBData[FBDATA_START_RANGE].ulPropTag == PR_FREEBUSY_START_RANGE)
@@ -511,8 +507,6 @@ HRESULT GetFreeBusyMessageData(IMessage* lpMessage, LONG* lprtmStart, LONG* lprt
 		*lprtmEnd = lpPropArrayFBData[FBDATA_END_RANGE].Value.ul;
 	else 
 		*lprtmEnd = 0;
-
-exit:
 	return hr;
 }
 
@@ -553,10 +547,7 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 
 	//Check of propertys are mv
 	if(lpfbBlockList == NULL || lppPropFBDataArray == NULL)
-	{
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+		return MAPI_E_INVALID_PARAMETER;
 
 	// Set the list on the begin
 	lpfbBlockList->Reset();
@@ -568,15 +559,15 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 	*/
 	hr = MAPIAllocateBuffer(2 * sizeof(SPropValue), &~lpPropFBDataArray);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	
 	lpPropFBDataArray[0].Value.MVl.cValues = 0;
 	lpPropFBDataArray[1].Value.MVbin.cValues = 0;
 
 	if ((hr = MAPIAllocateMore((ulMonths+1) * sizeof(ULONG), lpPropFBDataArray, (void**)&lpPropFBDataArray[0].Value.MVl.lpl)) != hrSuccess)	 // +1 for free/busy in two months
-		goto exit;
+		return hr;
 	if ((hr = MAPIAllocateMore((ulMonths+1) * sizeof(SBinary), lpPropFBDataArray, (void**)&lpPropFBDataArray[1].Value.MVbin.lpbin)) != hrSuccess) // +1 for free/busy in two months
-		goto exit;
+		return hr;
 
 	//memset(&lpPropFBDataArray[1].Value.MVbin.lpbin, 0, ulArrayItems);
 
@@ -606,7 +597,7 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 				++lpPropFBDataArray[0].Value.MVl.cValues;
 				++lpPropFBDataArray[1].Value.MVbin.cValues;
 				if ((hr = MAPIAllocateMore(ulMaxItemDataSize, lpPropFBDataArray, (void**)&lpPropFBDataArray[1].Value.MVbin.lpbin[iMonth].lpb)) != hrSuccess)
-					goto exit;
+					return hr;
 				lpPropFBDataArray[1].Value.MVbin.lpbin[iMonth].cb = 0;
 				
 			}
@@ -641,7 +632,7 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 					++lpPropFBDataArray[1].Value.MVbin.cValues;
 
 					if ((hr = MAPIAllocateMore(ulMaxItemDataSize, lpPropFBDataArray, (void**)&lpPropFBDataArray[1].Value.MVbin.lpbin[iMonth].lpb)) != hrSuccess)
-						goto exit;
+						return hr;
 					lpPropFBDataArray[1].Value.MVbin.lpbin[iMonth].cb = 0;
 				
 					fbEvent.rtmStart = 0;					
@@ -663,7 +654,7 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 				++lpPropFBDataArray[1].Value.MVbin.cValues;
 
 				if ((hr = MAPIAllocateMore(ulMaxItemDataSize, lpPropFBDataArray, (void**)&lpPropFBDataArray[1].Value.MVbin.lpbin[iMonth].lpb)) != hrSuccess)
-					goto exit;
+					return hr;
 				lpPropFBDataArray[1].Value.MVbin.lpbin[iMonth].cb = 0;
 
 				fbEvent.rtmStart = 0;
@@ -689,13 +680,8 @@ HRESULT CreateFBProp(FBStatus fbStatus, ULONG ulMonths, ULONG ulPropMonths, ULON
 	}
 
 	if(bFound == false)
-	{
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
+		return MAPI_E_NOT_FOUND;
 	*lppPropFBDataArray = lpPropFBDataArray.release();
-exit:
 	return hr;
 }
 

@@ -703,8 +703,7 @@ HRESULT ECQuotaMonitor::CreateMessageProperties(ECUSER *lpecToUser,
 	/* We are almost there, we have the mail and the recipients. Now we should create the Message */
 	hr = MAPIAllocateBuffer(sizeof(SPropValue)  * ulPropArrayMax, &~lpPropArray);
 	if (hr != hrSuccess)
-		goto exit;
-	
+		return hr;
 	if (TryConvert(converter, (char*)lpecToUser->lpszFullName, name) != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to convert To name %s to widechar, using empty name in entryid", (char*)lpecToUser->lpszFullName);
 		name.clear();
@@ -716,12 +715,12 @@ HRESULT ECQuotaMonitor::CreateMessageProperties(ECUSER *lpecToUser,
 	hr = ECCreateOneOff((LPTSTR)name.c_str(), (LPTSTR)L"SMTP", (LPTSTR)email.c_str(), MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbToEntryid, &~lpToEntryid);
 	if (hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed creating one-off address: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 	hr = HrCreateEmailSearchKey("SMTP", (char*)lpecToUser->lpszMailAddress, &cbToSearchKey, &~lpToSearchKey);
 	if (hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed creating email searchkey: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 
 	if (TryConvert(converter, (char*)lpecFromUser->lpszFullName, name) != hrSuccess) {
@@ -735,12 +734,12 @@ HRESULT ECQuotaMonitor::CreateMessageProperties(ECUSER *lpecToUser,
 	hr = ECCreateOneOff((LPTSTR)name.c_str(), (LPTSTR)L"SMTP", (LPTSTR)email.c_str(), MAPI_UNICODE | MAPI_SEND_NO_RICH_INFO, &cbFromEntryid, &~lpFromEntryid);
 	if(hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed creating one-off address: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 	hr = HrCreateEmailSearchKey("SMTP", (char*)lpecFromUser->lpszMailAddress, &cbFromSearchKey, &~lpFromSearchKey);
 	if(hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed creating email searchkey: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 
 	/* Messageclass */
@@ -781,7 +780,7 @@ HRESULT ECQuotaMonitor::CreateMessageProperties(ECUSER *lpecToUser,
 	hr = MAPIAllocateMore(cbToEntryid, lpPropArray,
 						  (void**)&lpPropArray[ulPropArrayCur].Value.bin.lpb);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_RCVD_REPRESENTING_ENTRYID;
 	lpPropArray[ulPropArrayCur].Value.bin.cb = cbToEntryid;
@@ -794,7 +793,7 @@ HRESULT ECQuotaMonitor::CreateMessageProperties(ECUSER *lpecToUser,
 	hr = MAPIAllocateMore(cbToSearchKey, lpPropArray,
 						  (void**)&lpPropArray[ulPropArrayCur].Value.bin.lpb);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_RCVD_REPRESENTING_SEARCH_KEY;
 	lpPropArray[ulPropArrayCur].Value.bin.cb = cbToSearchKey;
@@ -811,7 +810,7 @@ HRESULT ECQuotaMonitor::CreateMessageProperties(ECUSER *lpecToUser,
 	hr = MAPIAllocateMore(cbToEntryid, lpPropArray,
 						  (void**)&lpPropArray[ulPropArrayCur].Value.bin.lpb);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_RECEIVED_BY_ENTRYID;
 	lpPropArray[ulPropArrayCur].Value.bin.cb = cbToEntryid;
@@ -824,7 +823,7 @@ HRESULT ECQuotaMonitor::CreateMessageProperties(ECUSER *lpecToUser,
 	hr = MAPIAllocateMore(cbToSearchKey, lpPropArray,
 						  (void**)&lpPropArray[ulPropArrayCur].Value.bin.lpb);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_RECEIVED_BY_SEARCH_KEY;
 	lpPropArray[ulPropArrayCur].Value.bin.cb = cbToSearchKey;
@@ -841,7 +840,7 @@ HRESULT ECQuotaMonitor::CreateMessageProperties(ECUSER *lpecToUser,
 	hr = MAPIAllocateMore(cbFromEntryid, lpPropArray,
 						  (void**)&lpPropArray[ulPropArrayCur].Value.bin.lpb);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_SENDER_ENTRYID;
 	lpPropArray[ulPropArrayCur].Value.bin.cb = cbFromEntryid;
@@ -854,7 +853,7 @@ HRESULT ECQuotaMonitor::CreateMessageProperties(ECUSER *lpecToUser,
 	hr = MAPIAllocateMore(cbFromSearchKey, lpPropArray,
 						  (void**)&lpPropArray[ulPropArrayCur].Value.bin.lpb);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_SENDER_SEARCH_KEY;
 	lpPropArray[ulPropArrayCur].Value.bin.cb = cbFromSearchKey;
@@ -871,7 +870,7 @@ HRESULT ECQuotaMonitor::CreateMessageProperties(ECUSER *lpecToUser,
 	hr = MAPIAllocateMore(cbFromEntryid, lpPropArray,
 						  (void**)&lpPropArray[ulPropArrayCur].Value.bin.lpb);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_SENT_REPRESENTING_ENTRYID;
 	lpPropArray[ulPropArrayCur].Value.bin.cb = cbFromEntryid;
@@ -884,7 +883,7 @@ HRESULT ECQuotaMonitor::CreateMessageProperties(ECUSER *lpecToUser,
 	hr = MAPIAllocateMore(cbFromSearchKey, lpPropArray,
 						  (void**)&lpPropArray[ulPropArrayCur].Value.bin.lpb);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lpPropArray[ulPropArrayCur].ulPropTag = PR_SENT_REPRESENTING_SEARCH_KEY;
 	lpPropArray[ulPropArrayCur].Value.bin.cb = cbFromSearchKey;
@@ -904,9 +903,7 @@ HRESULT ECQuotaMonitor::CreateMessageProperties(ECUSER *lpecToUser,
 	assert(ulPropArrayCur <= ulPropArrayMax);
 	*lppPropArray = lpPropArray.release();
 	*lpcPropSize = ulPropArrayCur;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -1096,19 +1093,15 @@ HRESULT ECQuotaMonitor::CreateQuotaWarningMail(TemplateVariables *lpVars,
 
 	hr = CreateMailFromTemplate(lpVars, &strSubject, &strBody);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = CreateMessageProperties(lpecToUser, lpecFromUser, strSubject, strBody, &cPropSize, &~lpPropArray);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = SendQuotaWarningMail(lpMDB, cPropSize, lpPropArray, lpAddrList);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_NOTICE, "Mail delivered to user %s", (LPSTR)lpecToUser->lpszUsername);
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 

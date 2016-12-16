@@ -22,7 +22,7 @@
 #include <mapidefs.h>
 #include <mapitags.h>
 #include <kopano/mapiext.h>
-
+#include <kopano/tie.hpp>
 #include <map>
 #include <memory>
 #include <algorithm>
@@ -55,6 +55,8 @@ namespace ba = boost::algorithm;
 #ifndef AB_UNICODE_OK
 #define AB_UNICODE_OK ((ULONG) 0x00000040)
 #endif
+
+using namespace KCHL;
 
 namespace KC {
 
@@ -391,7 +393,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects(new std::list<localobjectdetails_t>);
 
 	// Local ids
-	std::list<unsigned int> *lpLocalIds = NULL;
+	std::unique_ptr<std::list<unsigned int> > lpLocalIds;
 
 	// Extern ids
 	std::unique_ptr<signatures_t> lpExternSignatures;
@@ -411,11 +413,10 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 
 	er = GetThreadLocalPlugin(m_lpPluginFactory, &lpPlugin);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	er = GetSecurity(&lpSecurity);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	if (m_lpSession->GetSessionManager()->IsHostedSupported()) {
 		/* When hosted is enabled, the companyid _must_ have an external id,
@@ -424,22 +425,19 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 		if (objclass != CONTAINER_COMPANY && !IsInternalObject(ulCompanyId)) {
 			er = GetExternalId(ulCompanyId, &extcompany);
 			if (er != erSuccess)
-				goto exit;
+				return er;
 		}
 	} else {
-		if (objclass == CONTAINER_COMPANY) {
-			er = KCERR_NO_SUPPORT;
-			goto exit;
-		}
-
+		if (objclass == CONTAINER_COMPANY)
+			return KCERR_NO_SUPPORT;
 		/* When hosted is disabled, use company id 0 */
 		ulCompanyId = 0;
 	}
 
 	// Get all the items of the requested type
-	er = GetLocalObjectIdList(objclass, ulCompanyId, &lpLocalIds);
+	er = GetLocalObjectIdList(objclass, ulCompanyId, &unique_tie(lpLocalIds));
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	for (const auto &loc_id : *lpLocalIds) {
 		if (IsInternalObject(loc_id)) {
@@ -447,8 +445,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 			objectdetails_t details = objectdetails_t();
 			er = GetLocalObjectDetails(loc_id, &details);
 			if(er != erSuccess)
-				goto exit;
-
+				return er;
 			if (ulFlags & USERMANAGEMENT_ADDRESSBOOK)
 				if (MustHide(*lpSecurity, ulFlags, details))
 					continue;
@@ -472,15 +469,12 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 			lpExternSignatures = lpPlugin->getAllObjects(extcompany, objclass);
 			// TODO: check requested 'objclass'
 		} catch (notsupported &) {
-			er = KCERR_NO_SUPPORT;
-			goto exit;
+			return KCERR_NO_SUPPORT;
 		} catch (objectnotfound &) {
-			er = KCERR_NOT_FOUND;
-			goto exit;
+			return KCERR_NOT_FOUND;
 		} catch(std::exception &e) {
 			ec_log_warn("Unable to retrieve list from external user source: %s", e.what());
-			er = KCERR_PLUGIN_ERROR;
-			goto exit;
+			return KCERR_PLUGIN_ERROR;
 		}
 
 		// Loop through all the external signatures, adding them to the lpUsers list which we're going to be returning
@@ -511,7 +505,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 										 iterSignatureIdToLocal->second.second,	// local signature
 										 ext_sig.signature);		// remote signature
 				if (er != erSuccess)
-					goto exit;
+					return er;
 		
 				// Remove the external user from the list of internal IDs,
 				// since we don't need this entry for the plugin details match
@@ -537,7 +531,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 
 	er = GetLocalObjectListFromSignatures(*lpExternSignatures, mapExternIdToLocal, ulFlags, lpObjects.get());
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// mapSignatureIdToLocal is now a map of objects that were NOT in the external user database
 	if(bSync) {
@@ -556,7 +550,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 				continue;
 			er = UpdateUserDetailsToClient(&obj);
 			if (er != erSuccess)
-				goto exit;
+				return er;
 		}
 	}
 
@@ -564,10 +558,7 @@ ECRESULT ECUserManagement::GetCompanyObjectListAndSync(objectclass_t objclass, u
 		lpObjects->sort();
 		*lppObjects = lpObjects.release();
 	}
-
-exit:
-	delete lpLocalIds;
-	return er;
+	return erSuccess;
 }
 
 ECRESULT ECUserManagement::GetSubObjectsOfObjectAndSync(userobject_relation_t relation, unsigned int ulParentId,
@@ -577,8 +568,7 @@ ECRESULT ECUserManagement::GetSubObjectsOfObjectAndSync(userobject_relation_t re
 
 	// Return data
 	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects(new std::list<localobjectdetails_t>);
-	std::list<localobjectdetails_t> *lpObjectsTmp = NULL;
-	std::list<localobjectdetails_t> *lpCompanies = NULL;
+	std::unique_ptr<std::list<localobjectdetails_t> > lpCompanies;
 
 	// Extern ids
 	std::unique_ptr<signatures_t> lpSignatures;
@@ -609,8 +599,7 @@ ECRESULT ECUserManagement::GetSubObjectsOfObjectAndSync(userobject_relation_t re
 		er = GetSecurity(&lpSecurity);
 		if (er != erSuccess)
 			goto exit;
-
-		er = lpSecurity->GetViewableCompanyIds(ulFlags, &lpCompanies);
+		er = lpSecurity->GetViewableCompanyIds(ulFlags, &unique_tie(lpCompanies));
 		if (er != erSuccess)
 			goto exit;
 
@@ -619,16 +608,13 @@ ECRESULT ECUserManagement::GetSubObjectsOfObjectAndSync(userobject_relation_t re
 			lpCompanies->push_back(localobjectdetails_t(0, CONTAINER_COMPANY));
 
 		for (const auto &obj : *lpCompanies) {
+			std::unique_ptr<std::list<localobjectdetails_t> > lpObjectsTmp;
 			er = GetCompanyObjectListAndSync(OBJECTCLASS_UNKNOWN,
-			     obj.ulId, &lpObjectsTmp,
+			     obj.ulId, &unique_tie(lpObjectsTmp),
 			     ulFlags | USERMANAGEMENT_SHOW_HIDDEN);
 			if (er != erSuccess)
 				goto exit;
-
 			lpObjects->merge(*lpObjectsTmp);
-
-			delete lpObjectsTmp;
-			lpObjectsTmp = NULL;
 		}
 		// TODO: remove excessive objects from lpObjects ? seems that this list is going to contain a lot... maybe too much?
 	} else {
@@ -685,8 +671,6 @@ ECRESULT ECUserManagement::GetSubObjectsOfObjectAndSync(userobject_relation_t re
 	}
 
 exit:
-	delete lpCompanies;
-	delete lpObjectsTmp;
 	return er;
 }
 
@@ -4629,9 +4613,8 @@ ECRESULT ECUserManagement::SyncAllObjects()
 {
 	ECRESULT er = erSuccess;
 	ECCacheManager *lpCacheManager = m_lpSession->GetSessionManager()->GetCacheManager();	// Don't delete
-
-	std::list<localobjectdetails_t> *lplstCompanyObjects = NULL;
-	std::list<localobjectdetails_t> *lplstUserObjects = NULL;
+	std::unique_ptr<std::list<localobjectdetails_t> > lplstCompanyObjects;
+	std::unique_ptr<std::list<localobjectdetails_t> > lplstUserObjects;
 	unsigned int ulFlags = USERMANAGEMENT_IDS_ONLY | USERMANAGEMENT_FORCE_SYNC;
 	
 	/*
@@ -4651,7 +4634,7 @@ ECRESULT ECUserManagement::SyncAllObjects()
 		goto exit;
 
 	// request all companies
-	er = GetCompanyObjectListAndSync(CONTAINER_COMPANY, 0, &lplstCompanyObjects, ulFlags);
+	er = GetCompanyObjectListAndSync(CONTAINER_COMPANY, 0, &unique_tie(lplstCompanyObjects), ulFlags);
 	if (er == KCERR_NO_SUPPORT) {
 		er = erSuccess;
 	} else if (er != erSuccess) {
@@ -4664,7 +4647,7 @@ ECRESULT ECUserManagement::SyncAllObjects()
 
 	if (!lplstCompanyObjects || lplstCompanyObjects->empty()) {
 		// get all users of server
-		er = GetCompanyObjectListAndSync(OBJECTCLASS_UNKNOWN, 0, &lplstUserObjects, ulFlags);
+		er = GetCompanyObjectListAndSync(OBJECTCLASS_UNKNOWN, 0, &unique_tie(lplstUserObjects), ulFlags);
 		if (er != erSuccess) {
 			ec_log_err("Error synchronizing user list: %08X", er);
 			goto exit;
@@ -4673,7 +4656,7 @@ ECRESULT ECUserManagement::SyncAllObjects()
 	} else {
 		// per company, get all users
 		for (const auto &com : *lplstCompanyObjects) {
-			er = GetCompanyObjectListAndSync(OBJECTCLASS_UNKNOWN, com.ulId, &lplstUserObjects, ulFlags);
+			er = GetCompanyObjectListAndSync(OBJECTCLASS_UNKNOWN, com.ulId, &unique_tie(lplstUserObjects), ulFlags);
 			if (er != erSuccess) {
 				ec_log_err("Error synchronizing user list for company %d: %08X", com.ulId, er);
 				goto exit;
@@ -4683,9 +4666,6 @@ ECRESULT ECUserManagement::SyncAllObjects()
 	}
 
 exit:
-	delete lplstUserObjects;
-	delete lplstCompanyObjects;
-
 	return er;
 }
 

@@ -843,22 +843,19 @@ HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	if(lstProps == NULL) {
 		hr = HrLoadProps();
 		if (hr != hrSuccess)
-			goto exit;
-		if(lstProps == NULL) {
-			hr = MAPI_E_CALL_FAILED;
-			goto exit;
-		}
+			return hr;
+		if (lstProps == nullptr)
+			return MAPI_E_CALL_FAILED;
 	}
 
 	if (this->lpAttachments == NULL) {
 		hr = Util::HrCopyUnicodePropTagArray(ulFlags,
 		     sPropAttachColumns, &~lpPropTagArray);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = ECMemTable::Create(lpPropTagArray, PR_ATTACH_NUM, &this->lpAttachments);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		// This code is resembles the table-copying code in GetRecipientTable, but we do some slightly different
 		// processing on the data that we receive from the table. Basically, data is copied to the attachment
@@ -921,8 +918,7 @@ HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 				sKeyProp.Value.ul = obj->ulObjId;
 				hr = lpAttachments->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, &sKeyProp, lpProps, i);
 				if (hr != hrSuccess)
-					goto exit; // continue?
-
+					return hr; // continue?
 				ECFreeBuffer(lpProps);
 				lpProps = NULL;
 			}
@@ -930,25 +926,19 @@ HRESULT ECMessage::GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 			// since we just loaded the table, all enties are clean (actually not required for attachments, but it doesn't hurt)
 			hr = lpAttachments->HrSetClean();
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		} // !new == empty table
 	}
 
-	if(this->lpAttachments == NULL) {
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
-
+	if (this->lpAttachments == nullptr)
+		return MAPI_E_CALL_FAILED;
 	hr = lpAttachments->HrGetView(createLocaleFromName(""), ulFlags & MAPI_UNICODE, &lpView);
 
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpView->QueryInterface(IID_IMAPITable, (void **)lppTable);
 
 	lpView->Release();
-
-exit:
 	return hr;
 }
 
@@ -1124,22 +1114,19 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	if(lstProps == NULL) {
 		hr = HrLoadProps();
 		if (hr != hrSuccess)
-			goto exit;
-		if(lstProps == NULL) {
-			hr = MAPI_E_CALL_FAILED;
-			goto exit;
-		}
+			return hr;
+		if (lstProps == nullptr)
+			return MAPI_E_CALL_FAILED;
 	}
 
 	if (this->lpRecips == NULL) {
 		hr = Util::HrCopyUnicodePropTagArray(ulFlags,
 		     sPropRecipColumns, &~lpPropTagArray);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = ECMemTable::Create(lpPropTagArray, PR_ROWID, &lpRecips);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		// What we do here is that we reconstruct a recipient table from the m_sMapiObject data, and then process it in two ways:
 		// 1. Remove PR_ROWID values and replace them with client-side values
@@ -1202,7 +1189,7 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 				sKeyProp.Value.ul = obj->ulObjId;
 				hr = lpRecips->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, &sKeyProp, lpProps, i);
 				if (hr != hrSuccess)
-					goto exit;
+					return hr;
 				ECFreeBuffer(lpProps);
 				lpProps = NULL;
 			}
@@ -1210,16 +1197,15 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 			// since we just loaded the table, all enties are clean
 			hr = lpRecips->HrSetClean();
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		} // !fNew
 	}
 
 	hr = lpRecips->HrGetView(createLocaleFromName(""), ulFlags & MAPI_UNICODE, &lpView);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpView->QueryInterface(IID_IMAPITable, (void **)lppTable);
 	lpView->Release();
-exit:
 	return hr;
 }
 
@@ -1917,10 +1903,8 @@ HRESULT ECMessage::UpdateTable(ECMemTable *lpTable, ULONG ulObjType, ULONG ulObj
 	ULONG i = 0;
 	scoped_rlock lock(m_hMutexMAPIObject);
 
-	if (!m_sMapiObject) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (m_sMapiObject == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 
 	// update hierarchy id in table
 	for (const auto &obj : *m_sMapiObject->lstChildren) {
@@ -1935,7 +1919,7 @@ HRESULT ECMessage::UpdateTable(ECMemTable *lpTable, ULONG ulObjType, ULONG ulObj
 
 		hr = lpTable->HrUpdateRowID(&sKeyProp, &sUniqueProp, 1);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		// put new server props in table too
 		ulProps = obj->lstProperties->size();
 		if (ulProps == 0)
@@ -1943,11 +1927,11 @@ HRESULT ECMessage::UpdateTable(ECMemTable *lpTable, ULONG ulObjType, ULONG ulObj
 		// retrieve old row from table
 		hr = lpTable->HrGetRowData(&sUniqueProp, &cValues, &~lpProps);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		// add new props
 		hr = MAPIAllocateBuffer(sizeof(SPropValue) * ulProps, &~lpNewProps);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		i = 0;
 		for (const auto &pv : *obj->lstProperties) {
 			pv.CopyToByRef(&lpNewProps[i]);
@@ -1963,17 +1947,12 @@ HRESULT ECMessage::UpdateTable(ECMemTable *lpTable, ULONG ulObjType, ULONG ulObj
 
 		hr = Util::HrMergePropertyArrays(lpProps, cValues, lpNewProps, ulProps, &~lpAllProps, &cAllValues);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		hr = lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_MODIFY, &sKeyProp, lpAllProps, cAllValues);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
-
-	hr = lpTable->HrSetClean();
-	if (hr != hrSuccess)
-		goto exit;
-exit:
-	return hr;
+	return lpTable->HrSetClean();
 }
 
 HRESULT ECMessage::SaveChanges(ULONG ulFlags)

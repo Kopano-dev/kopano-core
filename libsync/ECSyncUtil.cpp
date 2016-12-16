@@ -38,28 +38,23 @@ HRESULT HrDecodeSyncStateStream(LPSTREAM lpStream, ULONG *lpulSyncId, ULONG *lpu
 
 	hr = lpStream->Stat(&stat, STATFLAG_NONAME);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	
 	if (stat.cbSize.HighPart == 0 && stat.cbSize.LowPart == 0) {
 		ulSyncId = 0;
 		ulChangeId = 0;
 	} else {
-		if (stat.cbSize.HighPart != 0 || stat.cbSize.LowPart < 8){
-			hr = MAPI_E_INVALID_PARAMETER;
-			goto exit;
-		}
-		
+		if (stat.cbSize.HighPart != 0 || stat.cbSize.LowPart < 8)
+			return MAPI_E_INVALID_PARAMETER;
 		hr = lpStream->Seek(liPos, STREAM_SEEK_SET, NULL);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = lpStream->Read(&ulSyncId, 4, NULL);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = lpStream->Read(&ulChangeId, 4, NULL);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 			
 		// Following the sync ID and the change ID is the list of changes that were already processed for
 		// this sync ID / change ID combination. This allows us partial processing of items retrieved from 
@@ -72,22 +67,18 @@ HRESULT HrDecodeSyncStateStream(LPSTREAM lpStream, ULONG *lpulSyncId, ULONG *lpu
 
 				hr = lpStream->Read(&ulProcessedChangeId, 4, NULL);
 				if (hr != hrSuccess)
-					goto exit; // Not the amount of expected bytes are there
-				
+					/* Not the amount of expected bytes are there */
+					return hr;
 				hr = lpStream->Read(&ulSourceKeySize, 4, NULL);
 				if (hr != hrSuccess)
-					goto exit;
-					
-				if (ulSourceKeySize > 1024) {
+					return hr;
+				if (ulSourceKeySize > 1024)
 					// Stupidly large source key, the stream must be bad.
-					hr = MAPI_E_INVALID_PARAMETER;
-					goto exit;
-				}
-					
+					return MAPI_E_INVALID_PARAMETER;
 				lpData.reset(new char[ulSourceKeySize]);
 				hr = lpStream->Read(lpData.get(), ulSourceKeySize, NULL);
 				if(hr != hrSuccess)
-					goto exit;
+					return hr;
 				setProcessedChanged.insert(std::pair<unsigned int, std::string>(ulProcessedChangeId, std::string(lpData.get(), ulSourceKeySize)));
 			}
 		}
@@ -101,9 +92,7 @@ HRESULT HrDecodeSyncStateStream(LPSTREAM lpStream, ULONG *lpulSyncId, ULONG *lpu
 
 	if (lpSetProcessChanged)
 		lpSetProcessChanged->insert(setProcessedChanged.begin(), setProcessedChanged.end());
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ResetStream(LPSTREAM lpStream)

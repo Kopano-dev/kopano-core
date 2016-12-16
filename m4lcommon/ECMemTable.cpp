@@ -115,13 +115,13 @@ HRESULT ECMemTable::HrGetAllWithStatus(LPSRowSet *lppRowSet, LPSPropValue *lppID
 
 	hr = MAPIAllocateBuffer(CbNewSRowSet(mapRows.size()), &~lpRowSet);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = MAPIAllocateBuffer(sizeof(SPropValue) * mapRows.size(), &~lpIDs);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = MAPIAllocateBuffer(sizeof(ULONG) * mapRows.size(), &~lpulStatus);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	for (const auto &rowp : mapRows) {
 		if (rowp.second.fNew)
@@ -136,13 +136,11 @@ HRESULT ECMemTable::HrGetAllWithStatus(LPSRowSet *lppRowSet, LPSPropValue *lppID
 		lpRowSet->aRow[n].cValues = rowp.second.cValues;
 		hr = Util::HrCopyPropertyArrayByRef(rowp.second.lpsPropVal, rowp.second.cValues, &lpRowSet->aRow[n].lpProps, &lpRowSet->aRow[n].cValues);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		if (rowp.second.lpsID != NULL) {
 			hr = Util::HrCopyProperty(&lpIDs[n], rowp.second.lpsID, lpIDs);
 			if(hr != hrSuccess)
-				goto exit;
-
+				return hr;
 		} else {
 			lpIDs[n].Value.bin.cb = 0;
 			lpIDs[n].Value.bin.lpb = NULL;
@@ -154,9 +152,7 @@ HRESULT ECMemTable::HrGetAllWithStatus(LPSRowSet *lppRowSet, LPSPropValue *lppID
 	*lppRowSet = lpRowSet.release();
 	*lppIDs = lpIDs.release();
 	*lppulStatus = lpulStatus.release();
-exit:
-	l_data.unlock();
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECMemTable::HrGetRowID(LPSPropValue lpRow, LPSPropValue *lppID)
@@ -191,25 +187,17 @@ HRESULT ECMemTable::HrGetRowData(LPSPropValue lpRow, ULONG *lpcValues, LPSPropVa
 	std::map<unsigned int, ECTableEntry>::const_iterator iterRows;
 	ulock_rec l_data(m_hDataMutex);
 
-	if(lpRow->ulPropTag != this->ulRowPropTag) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (lpRow->ulPropTag != this->ulRowPropTag)
+		return MAPI_E_INVALID_PARAMETER;
 	iterRows = mapRows.find(lpRow->Value.ul);
-	if (iterRows == mapRows.cend() || iterRows->second.lpsID == NULL) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+	if (iterRows == mapRows.cend() || iterRows->second.lpsID == NULL)
+		return MAPI_E_NOT_FOUND;
 	hr = Util::HrCopyPropertyArray(iterRows->second.lpsPropVal, iterRows->second.cValues, &~lpRowData, &cValues);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	*lpcValues = cValues;
 	*lppRowData = lpRowData.release();
-exit:
-	l_data.unlock();
-	return hr;
+	return hrSuccess;
 }
 
 // This function is called to reset the add/modify/delete flags of all
@@ -965,7 +953,6 @@ HRESULT ECMemTableView::UpdateSortOrRestrict() {
 
 HRESULT ECMemTableView::ModifyRowKey(sObjectTableKey *lpsRowItem, sObjectTableKey* lpsPrevRow, ULONG *lpulAction)
 {
-	HRESULT hr = hrSuccess;
 	std::unique_ptr<unsigned int[]> lpulSortLen;
 	std::unique_ptr<unsigned char *[]> lpSortKeys;
 	std::unique_ptr<unsigned char[]> lpFlags;
@@ -993,11 +980,11 @@ HRESULT ECMemTableView::ModifyRowKey(sObjectTableKey *lpsRowItem, sObjectTableKe
 		// no match
 		// Remove the row, ignore error
 		lpKeyTable->UpdateRow(ECKeyTable::TABLE_ROW_DELETE, lpsRowItem, 0, NULL, NULL, NULL, lpsPrevRow, false, (ECKeyTable::UpdateType*)lpulAction);
-		goto exit;
+		return hrSuccess;
 	}
 
 	if (lpsSortOrderSet == nullptr)
-		goto exit;
+		return hrSuccess;
 
 	// Get all the sort columns and package them as binary keys
 	for (j = 0; j < lpsSortOrderSet->cSorts; ++j) {
@@ -1020,9 +1007,7 @@ HRESULT ECMemTableView::ModifyRowKey(sObjectTableKey *lpsRowItem, sObjectTableKe
 	// clean up GetBinarySortKey() allocs
 	for (j = 0; j < lpsSortOrderSet->cSorts; ++j)
 		delete[] lpSortKeys[j];
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECMemTableView::QuerySortOrder(LPSSortOrderSet *lppSortCriteria)
@@ -1091,31 +1076,29 @@ HRESULT ECMemTableView::QueryRowData(ECObjectTableList *lpsRowList, LPSRowSet *l
 	convert_context converter;
 
 	if (lpsRowList == NULL || lppRows == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
 		assert(false);
-		goto exit;
+		return MAPI_E_INVALID_PARAMETER;
 	}
 
 	// We have the rows we need, just copy them into a new rowset
 	hr = MAPIAllocateBuffer(CbNewSRowSet(lpsRowList->size()), &~lpRows);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Copy the rows into the rowset
 	i = 0;
 	for (auto rowlist : *lpsRowList) {
 		auto iterRows = this->lpMemTable->mapRows.find(rowlist.ulObjId);
-		if (iterRows == this->lpMemTable->mapRows.cend()) {
-			hr = MAPI_E_NOT_FOUND;
-			goto exit; // FIXME this could happen during multi-threading
-		}
+		if (iterRows == this->lpMemTable->mapRows.cend())
+			// FIXME this could happen during multi-threading
+			return MAPI_E_NOT_FOUND;
 
 		lpRows->aRow[i].cValues = lpsPropTags->cValues;
 		lpRows->aRow[i].ulAdrEntryPad = 0;
 
 		hr = MAPIAllocateBuffer(sizeof(SPropValue) * lpsPropTags->cValues, (void **)&lpRows->aRow[i].lpProps);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		for (j = 0; j < lpsPropTags->cValues; ++j) {
 			// Handle some fixed properties
@@ -1137,8 +1120,7 @@ HRESULT ECMemTableView::QueryRowData(ECObjectTableList *lpsRowList, LPSRowSet *l
 					lpRows->aRow[i].lpProps[j].Value.bin.cb = sizeof(ULONG)*2;
 					hr = MAPIAllocateMore(lpRows->aRow[i].lpProps[j].Value.bin.cb, lpRows->aRow[i].lpProps, (void**)&lpRows->aRow[i].lpProps[j].Value.bin.lpb);
 					if(hr != hrSuccess)
-						goto exit;
-
+						return hr;
 					memcpy(lpRows->aRow[i].lpProps[j].Value.bin.lpb, &rowlist.ulObjId, sizeof(ULONG));
 					memcpy(lpRows->aRow[i].lpProps[j].Value.bin.lpb + sizeof(ULONG), &rowlist.ulOrderId, sizeof(ULONG));
 				} else {
@@ -1152,7 +1134,7 @@ HRESULT ECMemTableView::QueryRowData(ECObjectTableList *lpsRowList, LPSRowSet *l
 							
 							const wstring strTmp = converter.convert_to<wstring>(lpsProp->Value.lpszA);
 							if ((hr = MAPIAllocateMore((strTmp.size() + 1) * sizeof(wstring::value_type), lpRows->aRow[i].lpProps, (void**)&lpRows->aRow[i].lpProps[j].Value.lpszW)) != hrSuccess)
-								goto exit;
+								return hr;
 							memcpy(lpRows->aRow[i].lpProps[j].Value.lpszW, strTmp.c_str(), (strTmp.size() + 1) * sizeof(wstring::value_type));
 							
 							continue; // Finished with this property
@@ -1162,7 +1144,7 @@ HRESULT ECMemTableView::QueryRowData(ECObjectTableList *lpsRowList, LPSRowSet *l
 
 							const string strTmp = converter.convert_to<string>(lpsProp->Value.lpszW);
 							if ((hr = MAPIAllocateMore(strTmp.size() + 1, lpRows->aRow[i].lpProps, (void**)&lpRows->aRow[i].lpProps[j].Value.lpszA)) != hrSuccess)
-								goto exit;
+								return hr;
 							memcpy(lpRows->aRow[i].lpProps[j].Value.lpszA, strTmp.c_str(), strTmp.size() + 1);
 							
 							continue; // Finished with this property
@@ -1191,7 +1173,6 @@ HRESULT ECMemTableView::QueryRowData(ECObjectTableList *lpsRowList, LPSRowSet *l
 
 	lpRows->cRows = lpsRowList->size();
 	*lppRows = lpRows.release();
-exit:
 	return hr;
 }
 

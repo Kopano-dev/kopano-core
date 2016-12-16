@@ -485,46 +485,35 @@ HRESULT iCal::HrGetContents(LPMAPITABLE *lppTable)
 	SizedSPropTagArray(1, sPropEntryIdcol) = {1, {PR_ENTRYID}};
 	ULONG ulRows = 0;
 
-	if (!m_lpUsrFld) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
+	if (m_lpUsrFld == nullptr)
+		return MAPI_E_NOT_FOUND;
 	hr = m_lpUsrFld->GetContentsTable(0, &ptrContents);
 	if (hr != hrSuccess) {
 		ec_log_err("Error retrieving calendar entries, error code: 0x%08X",hr);
-		goto exit;
+		return hr;
 	}
 	hr = ptrContents->SetColumns(sPropEntryIdcol, 0);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	m_lpRequest->HrGetUrl(&strUrl);
 	strUid = StripGuid(strUrl);
 	if (!strUid.empty()) {
 		// single item requested
 		hr = HrMakeRestriction(strUid, m_lpNamedProps, &~lpsRestriction);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = ptrContents->Restrict(lpsRestriction, TBL_BATCH);
 		if (hr != hrSuccess) {
 			ec_log_err("Error restricting calendar entries, error code: 0x%08X",hr);
-			goto exit;
+			return hr;
 		}
 
 		// single item not present, return 404
 		hr = ptrContents->GetRowCount(0, &ulRows);
-		if (hr != hrSuccess || ulRows != 1) {
-			hr = MAPI_E_NOT_FOUND;
-			goto exit;
-		}
+		if (hr != hrSuccess || ulRows != 1)
+			return MAPI_E_NOT_FOUND;
 	}
-	
-	hr = ptrContents->QueryInterface(IID_IMAPITable, (LPVOID*)lppTable);
-
-exit:
-	return hr;
+	return ptrContents->QueryInterface(IID_IMAPITable, (LPVOID*)lppTable);
 }
 
 /**

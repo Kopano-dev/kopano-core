@@ -122,7 +122,7 @@ static HRESULT DetectFolderEntryDetails(LPMESSAGE lpMessage, string *lpName,
 	     &~lpPropertyArray);
 	if (FAILED(hr)) {
 		cout << "Failed to obtain all properties." << endl;
-		goto exit;
+		return hr;
 	}
 
 	for (ULONG i = 0; i < ulPropertyCount; ++i) {
@@ -143,8 +143,6 @@ static HRESULT DetectFolderEntryDetails(LPMESSAGE lpMessage, string *lpName,
 		cout << "Unable to detect message class.";
 	else
 		hr = hrSuccess;
-
-exit:
 	return hr;
 }
 
@@ -339,21 +337,20 @@ HRESULT Fsck::DeleteRecipientList(LPMESSAGE lpMessage, std::list<unsigned int> &
 	for (const auto &recip : mapiReciptDel) {
 		lpMods->aRow[lpMods->cRows].cValues = 1;
 		if ((hr = MAPIAllocateMore(sizeof(SPropValue), lpMods, (void**)&lpMods->aRow[lpMods->cRows].lpProps)) != hrSuccess)
-			goto exit;
+			return hr;
 		lpMods->aRow[lpMods->cRows].lpProps->ulPropTag = PR_ROWID;
 		lpMods->aRow[lpMods->cRows++].lpProps->Value.ul = recip;
 	}
 
 	hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE, reinterpret_cast<ADRLIST *>(lpMods.get()));
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	bChanged = true;
 	++this->ulFixed;
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT Fsck::DeleteMessage(LPMAPIFOLDER lpFolder, LPSPropValue lpItemProperty)
