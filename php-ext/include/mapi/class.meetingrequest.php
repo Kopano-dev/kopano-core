@@ -1355,9 +1355,6 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		$fbsupport = mapi_freebusysupport_open($this->session);
 
 		if(mapi_last_hresult() != NOERROR) {
-			if(function_exists("dump")) {
-				dump("Error in opening freebusysupport object.");
-			}
 			return $result;
 		}
 
