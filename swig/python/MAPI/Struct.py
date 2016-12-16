@@ -330,12 +330,13 @@ class ECGROUP(MAPIStruct):
 # @todo sAdministrator ECENTRYID?
 # @todo propmap?
 class ECCOMPANY(MAPIStruct):
-    def __init__(self, Companyname, Servername, IsHidden = False, CompanyID = None, MVPropMap = None):
+    def __init__(self, Companyname, Servername, IsHidden = False, CompanyID = None, MVPropMap = None, AdministratorID = None):
         self.Companyname = Companyname
         self.Servername = Servername
         self.IsHidden = IsHidden
         self.CompanyID = CompanyID
         self.MVPropMap = MVPropMap
+        self.AdministratorID = AdministratorID
 
 class ECUSERCLIENTUPDATESTATUS(MAPIStruct):
     def __init__(self, TrackId, Updatetime, Currentversion, Latestversion, Computername, Status):
