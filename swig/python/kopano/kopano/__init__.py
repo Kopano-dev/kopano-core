@@ -1834,18 +1834,20 @@ class Store(object):
 
     @property
     def company(self):
-        table = self.server.sa.OpenUserStoresTable(MAPI_UNICODE)
-        table.Restrict(SPropertyRestriction(RELOP_EQ, PR_EC_STOREGUID, SPropValue(PR_EC_STOREGUID, _unhex(self.guid))), TBL_BATCH)
-        for row in table.QueryRows(1,0):
-            storetype = PpropFindProp(row, PR_EC_STORETYPE)
-            if storetype.Value == ECSTORE_TYPE_PUBLIC:
-                companyname = PpropFindProp(row, PR_EC_USERNAME_W) # XXX bug in ECUserStoreTable.cpp?
-            else:
-                companyname = PpropFindProp(row, PR_EC_COMPANYNAME_W)
-            if companyname is None: # XXX single-tenant, improve check..
-                return next(self.server.companies())
-            else:
+        if self.server.multitenant:
+            table = self.server.sa.OpenUserStoresTable(MAPI_UNICODE)
+            table.Restrict(SPropertyRestriction(RELOP_EQ, PR_EC_STOREGUID, SPropValue(PR_EC_STOREGUID, _unhex(self.guid))), TBL_BATCH)
+            for row in table.QueryRows(1,0):
+                storetype = PpropFindProp(row, PR_EC_STORETYPE)
+                if storetype.Value == ECSTORE_TYPE_PUBLIC:
+                    companyname = PpropFindProp(row, PR_EC_USERNAME_W) # XXX bug in ECUserStoreTable.cpp?
+                    if not companyname:
+                        companyname = PpropFindProp(row, PR_EC_COMPANY_NAME_W) # XXX
+                else:
+                    companyname = PpropFindProp(row, PR_EC_COMPANY_NAME_W)
                 return self.server.company(companyname.Value)
+        else:
+            return self.server.companies().next()
 
     @property
     def orphan(self):
