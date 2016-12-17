@@ -373,7 +373,7 @@ int main(int argc, char *argv[]) {
 	// Setup config
 	g_lpConfig = ECConfig::Create(lpDefaults);
 	if (!g_lpConfig->LoadSettings(szConfig) ||
-	    !g_lpConfig->ParseParams(argc - optind, &argv[optind], NULL) ||
+	    g_lpConfig->ParseParams(argc - optind, &argv[optind]) < 0 ||
 	    (!bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())) {
 		g_lpLogger = new ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false);	// create logger without a timestamp to stderr
 		ec_log_set(g_lpLogger);

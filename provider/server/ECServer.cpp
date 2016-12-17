@@ -998,7 +998,7 @@ static int running_server(char *szName, const char *szConfig,
 	g_lpConfig = ECConfig::Create(lpDefaults);
 	
 	if (!g_lpConfig->LoadSettings(szConfig) ||
-	    !g_lpConfig->ParseParams(trim_argc, trim_argv, NULL) ||
+	    g_lpConfig->ParseParams(trim_argc, trim_argv) < 0 ||
 	    (!m_bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors()) ) {
 		g_lpLogger = new ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false); // create info logger without a timestamp to stderr
 		ec_log_set(g_lpLogger);

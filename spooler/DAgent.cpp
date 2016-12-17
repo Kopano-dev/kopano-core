@@ -3998,10 +3998,9 @@ int main(int argc, char *argv[]) {
 		if (!g_lpConfig->LoadSettings(szConfig))
 			bDefaultConfigWarning = true;
 		else {
-			int argidx = 0;			
-
-			// ParseParams always return true.
-			g_lpConfig->ParseParams(argc - optind, &argv[optind], &argidx);
+			auto argidx = g_lpConfig->ParseParams(argc - optind, &argv[optind]);
+			if (argidx < 0)
+				goto exit;
 			if (argidx > 0)
 				// If one overrides the config, it is assumed that the
 				// config is explicit. This causes errors from

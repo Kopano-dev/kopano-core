@@ -78,7 +78,7 @@ public:
 	ECConfigImpl(const configsetting_t *lpDefaults, const char *const *lpszDirectives);
 	~ECConfigImpl();
 	bool LoadSettings(const char *file) _kc_override;
-	virtual bool ParseParams(int argc, char **argv, int *argidx) _kc_override;
+	virtual int ParseParams(int argc, char **argv) _kc_override;
 	const char *GetSettingsPath(void) _kc_override { return m_szConfigFile; }
 	bool ReloadSettings(void) _kc_override;
 	bool AddSetting(const char *name, const char *value, const unsigned int group = 0) _kc_override;

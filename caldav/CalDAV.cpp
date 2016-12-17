@@ -217,7 +217,7 @@ int main(int argc, char **argv) {
 
 	g_lpConfig = ECConfig::Create(lpDefaults);
 	if (!g_lpConfig->LoadSettings(lpszCfg) ||
-	    !g_lpConfig->ParseParams(argc - optind, &argv[optind], NULL) ||
+	    g_lpConfig->ParseParams(argc - optind, &argv[optind]) < 0 ||
 	    (!bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())) {
 		g_lpLogger = new ECLogger_File(1, 0, "-", false);
 		ec_log_set(g_lpLogger);

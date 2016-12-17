@@ -1105,7 +1105,7 @@ int main(int argc, char *argv[]) {
 		int argidx = 0;
 
 		if (!g_lpConfig->LoadSettings(szConfig) ||
-		    !g_lpConfig->ParseParams(argc - optind, &argv[optind], &argidx) ||
+		    (argidx = g_lpConfig->ParseParams(argc - optind, &argv[optind])) < 0 ||
 		    (!bIgnoreUnknownConfigOptions && g_lpConfig->HasErrors())) {
 			g_lpLogger = new ECLogger_File(EC_LOGLEVEL_INFO, 0, "-", false); // create info logger without a timestamp to stderr
 			ec_log_set(g_lpLogger);

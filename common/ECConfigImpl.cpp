@@ -98,7 +98,7 @@ static int tounderscore(int c)
  * 							This parameter may be NULL.
  * @retval	true
  */
-bool ECConfigImpl::ParseParams(int argc, char *argv[], int *lpargidx)
+int ECConfigImpl::ParseParams(int argc, char **argv)
 {
 	for (int i = 0; i < argc; ++i) {
 		char *arg = argv[i];
@@ -127,9 +127,7 @@ bool ECConfigImpl::ParseParams(int argc, char *argv[], int *lpargidx)
 		// Overwrite an existing setting, and make sure it is not reloadable during HUP
 		AddSetting(&setting, LOADSETTING_OVERWRITE | LOADSETTING_CMDLINE_PARAM);
 	}
-	if (lpargidx)
-		*lpargidx = argc;
-	return true;
+	return argc;
 }
 
 bool ECConfigImpl::ReloadSettings()
