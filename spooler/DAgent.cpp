@@ -1796,12 +1796,11 @@ exit:
 
 	// count attachments
 	LPMAPITABLE lppAttTable = NULL;
-	lpMessage->GetAttachmentTable(0, &lppAttTable);
-	if (lppAttTable != NULL) {
+	if (lpMessage->GetAttachmentTable(0, &lppAttTable) == hrSuccess &&
+	    lppAttTable != nullptr) {
 		ULONG countAtt = 0;
-		lppAttTable -> GetRowCount(0, &countAtt);
-
-		if (countAtt) {
+		if (lppAttTable->GetRowCount(0, &countAtt) == hrSuccess &&
+		    countAtt > 0) {
 			sc -> countInc("DAgent", "n_with_attachment");
 			sc -> countAdd("DAgent", "attachment_count", int64_t(countAtt));
 		}
@@ -1811,12 +1810,11 @@ exit:
 
 	// count recipients
 	LPMAPITABLE lppRecipTable = NULL;
-	lpMessage->GetRecipientTable(0, &lppRecipTable);
-	if (lppRecipTable != NULL) {
+	if (lpMessage->GetRecipientTable(0, &lppRecipTable) == hrSuccess &&
+	    lppRecipTable != nullptr) {
 		ULONG countRecip = 0;
-			lppRecipTable -> GetRowCount(0, &countRecip);
-		sc -> countAdd("DAgent", "recipients", int64_t(countRecip));
-
+		if (lppRecipTable->GetRowCount(0, &countRecip) == hrSuccess)
+			sc->countAdd("DAgent", "recipients", int64_t(countRecip));
 		lppRecipTable->Release();
 	}
 	if (lpFallbackMessage)

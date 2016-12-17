@@ -1724,9 +1724,7 @@ HRESULT IMAP::HrCmdStatus(const string &strTag, const string &strFolder, string 
 			strResponse += szBuffer;
 		} else if (strData.compare("RECENT") == 0) {
             // Get 'recent' count from the table
-			HrGetOneProp(lpStatusFolder, PR_EC_IMAP_MAX_ID, &~lpPropMaxID);
-
-            if(lpPropMaxID) {
+            if (HrGetOneProp(lpStatusFolder, PR_EC_IMAP_MAX_ID, &~lpPropMaxID) == hrSuccess && lpPropMaxID != nullptr) {
                 hr = lpStatusFolder->GetContentsTable(MAPI_DEFERRED_ERRORS, &lpTable);
                 if(hr != hrSuccess) {
                     hr2 = HrResponse(RESP_TAGGED_NO, strTag, "STATUS error getting contents");
