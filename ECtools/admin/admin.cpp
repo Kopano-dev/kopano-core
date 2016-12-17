@@ -3121,6 +3121,67 @@ int main(int argc, char* argv[])
 		goto exit;
 	}
 
+	switch (mode) {
+	case MODE_CREATE_PUBLIC:
+		if (companyname == nullptr) {
+			cbCompanyId = g_cbEveryoneEid;
+			hr = MAPIAllocateBuffer(g_cbEveryoneEid, &~lpCompanyId);
+			if (hr != hrSuccess)
+				goto exit;
+			memcpy(lpCompanyId, g_lpEveryoneEid, g_cbEveryoneEid);
+			break;
+		}
+		/* fallthrough */
+	case MODE_UPDATE_COMPANY:
+	case MODE_DELETE_COMPANY:
+	case MODE_ADD_VIEW:
+	case MODE_DEL_VIEW:
+	case MODE_LIST_VIEW:
+	case MODE_ADD_ADMIN:
+	case MODE_DEL_ADMIN:
+	case MODE_LIST_ADMIN:
+	case MODE_SYSTEM_ADMIN:
+	case MODE_ADD_USERQUOTA_RECIPIENT:
+	case MODE_DEL_USERQUOTA_RECIPIENT:
+	case MODE_LIST_USERQUOTA_RECIPIENT:
+	case MODE_ADD_COMPANYQUOTA_RECIPIENT:
+	case MODE_DEL_COMPANYQUOTA_RECIPIENT:
+	case MODE_LIST_COMPANYQUOTA_RECIPIENT:
+		hr = lpServiceAdmin->ResolveCompanyName((LPTSTR)companyname, 0, &cbCompanyId, &~lpCompanyId);
+		if (hr != hrSuccess) {
+			fprintf(stderr, "Failed to resolve company: %s\n", getMapiCodeString(hr, companyname).c_str());
+			goto exit;
+		}
+		break;
+	default:
+		break;
+	}
+
+	switch (mode) {
+	case MODE_CREATE_STORE:
+	case MODE_DELETE_USER:
+	case MODE_UPDATE_USER:
+	case MODE_ADDUSER_GROUP:
+	case MODE_DELETEUSER_GROUP:
+	case MODE_ADD_ADMIN:
+	case MODE_DEL_ADMIN:
+	case MODE_SYSTEM_ADMIN:
+	case MODE_ADD_USERQUOTA_RECIPIENT:
+	case MODE_DEL_USERQUOTA_RECIPIENT:
+	case MODE_ADD_COMPANYQUOTA_RECIPIENT:
+	case MODE_DEL_COMPANYQUOTA_RECIPIENT:
+		if (username == nullptr)
+			break;
+		hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
+		if (hr != hrSuccess) {
+			fprintf(stderr, "Failed to resolve user: %s\n", getMapiCodeString(hr, username).c_str());
+			goto exit;
+		}
+		break;
+	default:
+		break;
+	}
+
 	// fully logged on, action!
 
 	switch(mode) {
@@ -3157,20 +3218,6 @@ int main(int argc, char* argv[])
 			break;
 
 		case MODE_CREATE_PUBLIC:
-			if (companyname) {
-				hr = lpServiceAdmin->ResolveCompanyName((LPTSTR)companyname, 0, &cbCompanyId, &~lpCompanyId);
-				if(hr != hrSuccess) {
-					cerr << "Failed to resolve company name, " << getMapiCodeString(hr, companyname) << endl;
-					goto exit;
-				}
-			} else {
-				cbCompanyId = g_cbEveryoneEid;
-				hr = MAPIAllocateBuffer(g_cbEveryoneEid, &~lpCompanyId);
-				if (hr != hrSuccess)
-					goto exit;
-				memcpy(lpCompanyId, g_lpEveryoneEid, g_cbEveryoneEid);
-			}
-
 			/* The public store is created for a particular company, to do this correctly we will
 			 * pass the company id as the group id for the store. */
 			hr = lpServiceAdmin->CreateStore(ECSTORE_TYPE_PUBLIC, cbCompanyId, lpCompanyId, &cbStoreId, &~lpStoreId, &cbRootId, &~lpRootId);
@@ -3232,12 +3279,6 @@ int main(int argc, char* argv[])
 			break;
 
 		case MODE_CREATE_STORE:
-			hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
-			if(hr != hrSuccess) {
-				cerr << "Unable to create store, " << getMapiCodeString(hr, username) << endl;
-				goto exit;
-			}
-
 			hr = lpServiceAdmin->CreateStore(ECSTORE_TYPE_PRIVATE, cbUserId, lpUserId, &cbStoreId, &~lpStoreId, &cbRootId, &~lpRootId);
 			if(hr != hrSuccess) {
 				cerr << "Unable to create store, " << getMapiCodeString(hr, "store") << endl;
@@ -3247,11 +3288,6 @@ int main(int argc, char* argv[])
 			break;
 
 		case MODE_DELETE_USER:
-			hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
-			if (hr != hrSuccess) {
-				cerr << "Unable to delete user, " << getMapiCodeString(hr, username) << endl;
-				goto exit;
-			}
 			hr = lpServiceAdmin->DeleteUser(cbUserId, lpUserId);
 			if(hr != hrSuccess) {
 				cerr << "Unable to delete user, " << getMapiCodeString(hr, username) << endl;
@@ -3522,19 +3558,15 @@ int main(int argc, char* argv[])
 
 		case MODE_UPDATE_USER:
 					if(new_username) {
-						hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(new_username), 0, &cbUserId, &~lpUserId);
+						memory_ptr<ENTRYID> userid;
+						ULONG usize;
+						hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(new_username), 0, &usize, &~userid);
 						if (hr == hrSuccess) {
 							cerr << "User with name '" << new_username << "' is already present." << endl;
 							hr = MAPI_E_COLLISION;
 							goto exit;
 						}
 					}
-					hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
-					if (hr != hrSuccess) {
-						cerr << "Unable to update user, " << getMapiCodeString(hr, username) << endl;
-						goto exit;
-					}
-
 					// get old features. we need these, because not setting them would mean: remove
 					hr = lpServiceAdmin->GetUser(cbUserId, lpUserId, 0, &~lpECUser);
 					if (hr != hrSuccess) {
@@ -3729,12 +3761,6 @@ int main(int argc, char* argv[])
 					break;
 
 		case MODE_UPDATE_COMPANY:
-					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(companyname), 0, &cbCompanyId, &~lpCompanyId);
-					if(hr != hrSuccess) {
-						cerr << "Unable to resolve company, " << getMapiCodeString(hr, companyname) << endl;
-						goto exit;
-					}
-
 					if (quota != -1 || quotahard != -1 || quotasoft != -1 || quotawarn != -1) {
 						hr = setQuota(lpServiceAdmin, cbCompanyId, lpCompanyId, quota, false, quotawarn, quotasoft, quotahard, true, true);
 						if (hr != hrSuccess)
@@ -3750,12 +3776,6 @@ int main(int argc, char* argv[])
 					break;
 
 		case MODE_DELETE_COMPANY:
-					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(companyname), 0, &cbCompanyId, &~lpCompanyId);
-					if(hr != hrSuccess) {
-						cerr << "Failed to resolve company name, " << getMapiCodeString(hr, companyname) << endl;
-						goto exit;
-					}
-
 					hr = lpServiceAdmin->DeleteCompany(cbCompanyId, lpCompanyId);
 					if (hr != hrSuccess) {
 						cerr << "Unable to delete company, " << getMapiCodeString(hr, companyname) << endl;
@@ -3892,11 +3912,6 @@ int main(int argc, char* argv[])
 						cerr << "Unable to add user to group, " << getMapiCodeString(hr, groupname) << endl;
 						goto exit;
 					}
-					hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
-					if (hr != hrSuccess) {
-						cerr << "Unable to add user to group, " << getMapiCodeString(hr, username) << endl;
-						goto exit;
-					}
 					hr = lpServiceAdmin->AddGroupUser(cbGroupId, lpGroupId, cbUserId, lpUserId);
 					if (hr != hrSuccess) {
 						cerr << "Unable to add user to group." << endl;
@@ -3909,11 +3924,6 @@ int main(int argc, char* argv[])
 					hr = lpServiceAdmin->ResolveGroupName(reinterpret_cast<LPTSTR>(groupname), 0, &cbGroupId, &~lpGroupId);
 					if (hr != hrSuccess) {
 						cerr << "Unable to remove user from group, " << getMapiCodeString(hr, groupname) << endl;
-						goto exit;
-					}
-					hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
-					if (hr != hrSuccess) {
-						cerr << "Unable to remove user from group, " << getMapiCodeString(hr, username) << endl;
 						goto exit;
 					}
 					hr = lpServiceAdmin->DeleteGroupUser(cbGroupId, lpGroupId, cbUserId, lpUserId);
@@ -3933,11 +3943,6 @@ int main(int argc, char* argv[])
 
 					break;
 		case MODE_ADD_VIEW:
-					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(companyname), 0, &cbCompanyId, &~lpCompanyId);
-					if (hr != hrSuccess) {
-						cerr << "Failed to resolve company name, " << getMapiCodeString(hr, companyname) << endl;
-						goto exit;
-					}
 					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(set_companyname), 0, &cbSetCompanyId, &~lpSetCompanyId);
 					if (hr != hrSuccess) {
 						cerr << "Failed to resolve company name, " << getMapiCodeString(hr, set_companyname) << endl;
@@ -3952,11 +3957,6 @@ int main(int argc, char* argv[])
 					cout << "Company " << set_companyname << " added to the remote-view list of " << companyname << endl;
 					break;
 		case MODE_DEL_VIEW:
-					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(companyname), 0, &cbCompanyId, &~lpCompanyId);
-					if (hr != hrSuccess) {
-						cerr << "Failed to resolve company name, " << getMapiCodeString(hr, companyname) << endl;
-						goto exit;
-					}
 					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(set_companyname), 0, &cbSetCompanyId, &~lpSetCompanyId);
 					if (hr != hrSuccess) {
 						cerr << "Failed to resolve company name, " << getMapiCodeString(hr, set_companyname) << endl;
@@ -3971,11 +3971,6 @@ int main(int argc, char* argv[])
 					cout << "Company " << set_companyname << " removed from the remote-view list of " << companyname << endl;
 					break;
 		case MODE_LIST_VIEW:
-					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(companyname), 0, &cbCompanyId, &~lpCompanyId);
-					if (hr != hrSuccess) {
-						cerr << "Failed to resolve company name, " << getMapiCodeString(hr, companyname) << endl;
-						goto exit;
-					}
 					hr = lpServiceAdmin->GetRemoteViewList(cbCompanyId, lpCompanyId, 0, &cCompanies, &lpECCompanies);
 					if (hr != hrSuccess) {
 						cerr << "Unable to display remote-view list, " << getMapiCodeString(hr) << endl;
@@ -3988,17 +3983,6 @@ int main(int argc, char* argv[])
 					print_companies(cCompanies, lpECCompanies, true);
 					break;
 		case MODE_ADD_ADMIN:
-					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(companyname), 0, &cbCompanyId, &~lpCompanyId);
-					if (hr != hrSuccess) {
-						cerr << "Failed to resolve company name, " << getMapiCodeString(hr, companyname) << endl;
-						goto exit;
-					}
-					hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
-					if (hr != hrSuccess) {
-						cerr << "Failed to resolve user name, " << getMapiCodeString(hr, username) << endl;
-						goto exit;
-					}
-
 					hr = lpServiceAdmin->AddUserToRemoteAdminList(cbUserId, lpUserId, cbCompanyId, lpCompanyId);
 					if (hr != hrSuccess) {
 						cerr << "Failed to add user to remote-admin list, " << getMapiCodeString(hr) << endl;
@@ -4007,17 +3991,6 @@ int main(int argc, char* argv[])
 					cout << "User " << username << " added to the remote-admin list of " << companyname << endl;
 					break;
 		case MODE_DEL_ADMIN:
-					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(companyname), 0, &cbCompanyId, &~lpCompanyId);
-					if (hr != hrSuccess) {
-						cerr << "Failed to resolve company name, " << getMapiCodeString(hr, companyname) << endl;
-						goto exit;
-					}
-					hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
-					if (hr != hrSuccess) {
-						cerr << "Failed to resolve user name, " << getMapiCodeString(hr, username) << endl;
-						goto exit;
-					}
-
 					hr = lpServiceAdmin->DelUserFromRemoteAdminList(cbUserId, lpUserId, cbCompanyId, lpCompanyId);
 					if (hr != hrSuccess) {
 						cerr << "Failed to delete user from remote-admin list, " << getMapiCodeString(hr) << endl;
@@ -4026,11 +3999,6 @@ int main(int argc, char* argv[])
 					cout << "User " << username << " removed from the remote-admin list of " << companyname << endl;
 					break;
 		case MODE_LIST_ADMIN:
-					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(companyname), 0, &cbCompanyId, &~lpCompanyId);
-					if (hr != hrSuccess) {
-						cerr << "Failed to resolve company name, " << getMapiCodeString(hr, companyname) << endl;
-						goto exit;
-					}
 					hr = lpServiceAdmin->GetRemoteAdminList(cbCompanyId, lpCompanyId, 0, &cUsers, &~lpECUser);
 					if (hr != hrSuccess) {
 						cerr << "Unable to display remote-admin list, " << getMapiCodeString(hr) << endl;
@@ -4041,17 +4009,6 @@ int main(int argc, char* argv[])
 					print_users(cUsers, lpECUser);
 					break;
 		case MODE_SYSTEM_ADMIN:
-					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(companyname), 0, &cbCompanyId, &~lpCompanyId);
-					if (hr != hrSuccess) {
-						cerr << "Failed to resolve company name, " << getMapiCodeString(hr, companyname) << endl;
-						goto exit;
-					}
-					hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
-					if (hr != hrSuccess) {
-						cerr << "Failed to resolve user name, " << getMapiCodeString(hr, username) << endl;
-						goto exit;
-					}
-
 					memset(&sECCompany, 0, sizeof(sECCompany));
 
 					sECCompany.sAdministrator.cb = cbUserId;
@@ -4068,17 +4025,6 @@ int main(int argc, char* argv[])
 					cout << "User " << username << " is set as admin of company " << companyname << endl;
 					break;
 		case MODE_ADD_USERQUOTA_RECIPIENT:
-					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(companyname), 0, &cbCompanyId, &~lpCompanyId);
-					if (hr != hrSuccess) {
-						cerr << "Failed to resolve company name, " << getMapiCodeString(hr, companyname) << endl;
-						goto exit;
-					}
-					hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
-					if (hr != hrSuccess) {
-						cerr << "Failed to resolve user name, " << getMapiCodeString(hr, username) << endl;
-						goto exit;
-					}
-
 					hr = lpServiceAdmin->AddQuotaRecipient(cbCompanyId, lpCompanyId, cbUserId, lpUserId, ACTIVE_USER);
 					if (hr != hrSuccess) {
 						cerr << "Failed to add recipient to quota list." << endl;
@@ -4087,17 +4033,6 @@ int main(int argc, char* argv[])
 					cout << "User " << username << " added to user quota recipients list for company " << companyname << endl;
 					break;
 		case MODE_DEL_USERQUOTA_RECIPIENT:
-					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(companyname), 0, &cbCompanyId, &~lpCompanyId);
-					if (hr != hrSuccess) {
-						cerr << "Failed to resolve company name, " << getMapiCodeString(hr, companyname) << endl;
-						goto exit;
-					}
-					hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
-					if (hr != hrSuccess) {
-						cerr << "Failed to resolve user name, " << getMapiCodeString(hr, username) << endl;
-						goto exit;
-					}
-
 					hr = lpServiceAdmin->DeleteQuotaRecipient(cbCompanyId, lpCompanyId, cbUserId, lpUserId, ACTIVE_USER);
 					if (hr != hrSuccess) {
 						cerr << "Failed to remove company from quota list." << endl;
@@ -4106,12 +4041,6 @@ int main(int argc, char* argv[])
 					cout << "User " << username << " removed from user quota recipients list for company " << companyname << endl;
 					break;
 		case MODE_LIST_USERQUOTA_RECIPIENT:
-					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(companyname), 0, &cbCompanyId, &~lpCompanyId);
-					if (hr != hrSuccess) {
-						cerr << "Failed to resolve company name, " << getMapiCodeString(hr, companyname) << endl;
-						goto exit;
-					}
-
 					/* HACK: request a user from the specified company, and request the recipients for that user. */
 					hr = lpServiceAdmin->GetUserList(cbCompanyId, lpCompanyId, 0, &cUsers, &~lpECUser);
 					if (hr != hrSuccess || cUsers <= 1) /* First user is always SYSTEM */ {
@@ -4135,17 +4064,6 @@ int main(int argc, char* argv[])
 					print_users(cUsers - 1, &lpECUser[1]);
 					break;
 		case MODE_ADD_COMPANYQUOTA_RECIPIENT:
-					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(companyname), 0, &cbCompanyId, &~lpCompanyId);
-					if (hr != hrSuccess) {
-						cerr << "Failed to resolve company name, " << getMapiCodeString(hr, companyname) << endl;
-						goto exit;
-					}
-					hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
-					if (hr != hrSuccess) {
-						cerr << "Failed to resolve user name, " << getMapiCodeString(hr, username) << endl;
-						goto exit;
-					}
-
 					hr = lpServiceAdmin->AddQuotaRecipient(cbCompanyId, lpCompanyId, cbUserId, lpUserId, CONTAINER_COMPANY);
 					if (hr != hrSuccess) {
 						cerr << "Failed to add recipient to quota list." << endl;
@@ -4154,17 +4072,6 @@ int main(int argc, char* argv[])
 					cout << "User " << username << " added to company quota recipients list for company " << companyname << endl;
 					break;
 		case MODE_DEL_COMPANYQUOTA_RECIPIENT:
-					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(companyname), 0, &cbCompanyId, &~lpCompanyId);
-					if (hr != hrSuccess) {
-						cerr << "Failed to resolve company name, " << getMapiCodeString(hr, companyname) << endl;
-						goto exit;
-					}
-					hr = lpServiceAdmin->ResolveUserName(reinterpret_cast<LPTSTR>(username), 0, &cbUserId, &~lpUserId);
-					if (hr != hrSuccess) {
-						cerr << "Failed to resolve user name, " << getMapiCodeString(hr, username) << endl;
-						goto exit;
-					}
-
 					hr = lpServiceAdmin->DeleteQuotaRecipient(cbCompanyId, lpCompanyId, cbUserId, lpUserId, CONTAINER_COMPANY);
 					if (hr != hrSuccess) {
 						cerr << "Failed to delete recipient to quota list." << endl;
@@ -4173,11 +4080,6 @@ int main(int argc, char* argv[])
 					cout << "User " << username << " removed from company quota recipients list for company " << companyname << endl;
 					break;
 		case MODE_LIST_COMPANYQUOTA_RECIPIENT:
-					hr = lpServiceAdmin->ResolveCompanyName(reinterpret_cast<LPTSTR>(companyname), 0, &cbCompanyId, &~lpCompanyId);
-					if (hr != hrSuccess) {
-						cerr << "Failed to resolve company name, " << getMapiCodeString(hr, companyname) << endl;
-						goto exit;
-					}
 					hr = lpServiceAdmin->GetQuotaRecipients(cbCompanyId, lpCompanyId, 0, &cUsers, &~lpECUser);
 					if (hr != hrSuccess) {
 						cerr << "Failed to get quota recipient list." << endl;
