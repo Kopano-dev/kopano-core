@@ -19,6 +19,7 @@
 #define SMIMEMESSAGE_H
 
 #include <kopano/zcdefs.h>
+#include <string>
 #include <vmime/message.hpp>
 #include <vmime/utility/stream.hpp>
 #include <vmime/generationContext.hpp>
@@ -49,9 +50,7 @@ namespace KC {
 class SMIMEMessage _kc_final : public vmime::message {
 public:
 	void generateImpl(const vmime::generationContext &, vmime::utility::outputStream &, size_t curLinePos = 0, size_t *newLinePos = NULL) const;
-
-    void setSMIMEBody(std::string &body);    
-    
+	void setSMIMEBody(const char *body) { m_body = body; }
 private:
     std::string m_body;
 };

@@ -16,7 +16,6 @@
  */
 
 #include <kopano/platform.h>
-
 #include <vmime/message.hpp>
 #include "SMIMEMessage.h"
 
@@ -39,11 +38,6 @@ void SMIMEMessage::generateImpl(const vmime::generationContext &ctx,
         // Normal generation
         vmime::bodyPart::generateImpl(ctx, os, curLinePos, newLinePos);
     }
-}
-
-void SMIMEMessage::setSMIMEBody(std::string &body)
-{
-    m_body = body;
 }
 
 } /* namespace */

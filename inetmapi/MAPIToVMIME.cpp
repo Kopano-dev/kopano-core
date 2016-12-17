@@ -1164,15 +1164,13 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage,
 			vmMessage->getHeader()->removeField(vmMessage->getHeader()->findField(vmime::fields::CONTENT_TRANSFER_ENCODING));
 
 		if (strcasecmp(lpMsgClass->Value.lpszA, "IPM.Note.SMIME") != 0) {
-			std::string strRawSMTP = lpszRawSMTP.get();
 			auto vmSMIMEMessage = vmime::make_shared<SMIMEMessage>();
 			
 			// not sure why this was needed, and causes problems, eg ZCP-12994.
 			//vmMessage->getHeader()->removeField(vmMessage->getHeader()->findField(vmime::fields::MIME_VERSION));
 			
 			*vmSMIMEMessage->getHeader() = *vmMessage->getHeader();
-			vmSMIMEMessage->setSMIMEBody(strRawSMTP);
-			
+			vmSMIMEMessage->setSMIMEBody(lpszRawSMTP.get());
 			vmMessage = vmSMIMEMessage;
 		} else {
 			// encoded mail, set data as only mail body
