@@ -18,8 +18,12 @@
 #define _KCHL_MEMORY_HPP 1
 
 #include <kopano/zcdefs.h>
+#include <type_traits> /* std::is_base_of */
 #include <utility> /* std::swap */
 #include <mapiutil.h> /* MAPIFreeBuffer */
+#include <kopano/ECGuid.h>
+#include <kopano/ECTags.h>
+#include <kopano/IECUnknown.h>
 
 namespace KCHL {
 using namespace KC;
@@ -49,6 +53,37 @@ template<typename _T> class memory_proxy2 _kc_final {
 
 	private:
 	_T **_m_ptr;
+};
+
+template<typename _T> class object_proxy _kc_final {
+	public:
+	object_proxy(_T **__p) noexcept : _m_ptr(__p) {}
+	operator _T **(void) noexcept { return _m_ptr; }
+	template<typename _U> _U **as(void) const noexcept
+	{
+		static_assert(sizeof(_U *) == sizeof(_T *), "This hack won't work");
+		return reinterpret_cast<_U **>(_m_ptr);
+	}
+	operator void **(void) noexcept { return as<void>(); }
+	operator IUnknown **(void) noexcept { return as<IUnknown>(); }
+
+	private:
+	_T **_m_ptr;
+};
+
+template<> class object_proxy<IUnknown> _kc_final {
+	public:
+	object_proxy(IUnknown **__p) noexcept : _m_ptr(__p) {}
+	operator IUnknown **(void) noexcept { return _m_ptr; }
+	template<typename _U> _U **as(void) const noexcept
+	{
+		static_assert(sizeof(_U *) == sizeof(IUnknown *), "This hack won't work");
+		return reinterpret_cast<_U **>(_m_ptr);
+	}
+	operator void **(void) noexcept { return as<void>(); }
+
+	private:
+	IUnknown **_m_ptr;
 };
 
 /**
@@ -137,8 +172,139 @@ template<typename _T> class memory_ptr {
 	_T *_m_ptr = nullptr;
 };
 
+/**
+ * Works a bit like shared_ptr, except that the refcounting is in the
+ * underlying object (_T) rather than this class.
+ */
+template<typename _T, REFIID _R = GUID_NULL> class object_ptr {
+	public:
+	typedef _T value_type;
+	typedef _T *pointer;
+	constexpr object_ptr(void) noexcept {}
+	constexpr object_ptr(std::nullptr_t) noexcept {}
+	explicit object_ptr(_T *__p, bool __addref = true) : _m_ptr(__p)
+	{
+		if (__addref && _m_ptr != pointer())
+			_m_ptr->AddRef();
+	}
+	~object_ptr(void)
+	{
+		if (_m_ptr != pointer())
+			_m_ptr->Release();
+		_m_ptr = pointer();
+	}
+	object_ptr(const object_ptr &__o)
+	{
+		reset(__o._m_ptr, true);
+	}
+	object_ptr(object_ptr &&__o)
+	{
+		std::swap(__o._m_ptr, _m_ptr);
+	}
+	/* Observers */
+	_T &operator*(void) const { return *_m_ptr; }
+	_T *operator->(void) const noexcept { return _m_ptr; }
+	_T *get(void) const noexcept { return _m_ptr; }
+	operator _T *(void) const noexcept { return _m_ptr; }
+	static constexpr const IID &iid(void) { return _R; }
+
+	template<typename _U> HRESULT QueryInterface(_U &result)
+	{
+		if (_m_ptr == nullptr)
+			return MAPI_E_NOT_INITIALIZED;
+		typename _U::pointer newobj = nullptr;
+		HRESULT hr = _m_ptr->QueryInterface(result.iid(), reinterpret_cast<void **>(&newobj));
+		if (hr == hrSuccess)
+			result.reset(newobj, false);
+		/*
+		 * Here we check if it makes sense to try to get the requested
+		 * interface through the PR_EC_OBJECT object. It only makes
+		 * sense to attempt this if the current type (value_type) is
+		 * derived from IMAPIProp. If it is higher than IMAPIProp, no
+		 * OpenProperty exists. If it is derived from
+		 * ECMAPIProp/ECGenericProp, there is no need to try the
+		 * workaround, because we can be sure it is not wrapped by
+		 * MAPI.
+		 *
+		 * The Conversion<IMAPIProp,value_type>::exists is some
+		 * template magic that checks at compile time. We could check
+		 * at run time with a dynamic_cast, but we know the current
+		 * type at compile time, so why not check it at compile time?
+		 */
+		else if (hr == MAPI_E_INTERFACE_NOT_SUPPORTED &&
+		    std::is_base_of<IMAPIProp, value_type>::value) {
+			KCHL::memory_ptr<SPropValue> pv;
+			if (HrGetOneProp(_m_ptr, PR_EC_OBJECT, &~pv) != hrSuccess)
+				return hr; // hr is still MAPI_E_INTERFACE_NOT_SUPPORTED
+			auto unk = reinterpret_cast<IECUnknown *>(pv->Value.lpszA);
+			hr = unk->QueryInterface(result.iid(), reinterpret_cast<void **>(&newobj));
+			if (hr == hrSuccess)
+				result.reset(newobj, false);
+		}
+		return hr;
+	}
+	template<typename _P> _P as(void)
+	{
+		_P tmp = nullptr;
+		QueryInterface(tmp);
+		return tmp;
+	}
+
+	public:
+	/* Modifiers */
+	_T *release(void) noexcept
+	{
+		_T *__p = get();
+		_m_ptr = pointer();
+		return __p;
+	}
+	void reset(_T *__p = pointer(), bool __addref = true) noexcept
+	{
+		if (__addref && __p != pointer())
+			__p->AddRef();
+		std::swap(_m_ptr, __p);
+		if (__p != pointer())
+			__p->Release();
+	}
+	void swap(object_ptr &__o)
+	{
+		std::swap(_m_ptr, __o._m_ptr);
+	}
+	object_proxy<_T> operator&(void)
+	{
+		reset();
+		return object_proxy<_T>(&_m_ptr);
+	}
+	object_ptr &operator=(const object_ptr &__o) noexcept
+	{
+		reset(__o._m_ptr, true);
+		return *this;
+	}
+	object_ptr &operator=(object_ptr &&__o) noexcept
+	{
+		std::swap(__o._m_ptr, _m_ptr);
+		return *this;
+	}
+	object_ptr &operator=(std::nullptr_t) noexcept
+	{
+		reset();
+		return *this;
+	}
+
+	private:
+	void operator&(void) const noexcept {} /* flag everyone */
+
+	_T *_m_ptr = nullptr;
+};
+
 template<typename _T> inline void
 swap(memory_ptr<_T> &__x, memory_ptr<_T> &__y) noexcept
+{
+	__x.swap(__y);
+}
+
+template<typename _T, REFIID _R = GUID_NULL> inline void
+swap(object_ptr<_T, _R> &__x, object_ptr<_T, _R> &__y) noexcept
 {
 	__x.swap(__y);
 }
