@@ -845,9 +845,10 @@ class Server(object):
     :param auth_pass: password to use for user authentication
     :param log: logger object to receive useful (debug) information
     :param options: OptionParser instance to get settings from (see :func:`parser`)
+    :param parse_args: set this True if cli arguments should be parsed
     """
 
-    def __init__(self, options=None, config=None, sslkey_file=None, sslkey_pass=None, server_socket=None, auth_user=None, auth_pass=None, log=None, service=None, mapisession=None):
+    def __init__(self, options=None, config=None, sslkey_file=None, sslkey_pass=None, server_socket=None, auth_user=None, auth_pass=None, log=None, service=None, mapisession=None, parse_args=True):
         self.options = options
         self.config = config
         self.sslkey_file = sslkey_file
@@ -860,7 +861,7 @@ class Server(object):
 
         if not self.mapisession:
             # get cmd-line options
-            if not self.options:
+            if parse_args and not self.options:
                 self.options, args = parser().parse_args()
 
             # determine config file
