@@ -896,9 +896,17 @@ class Server(object):
             # make actual connection. in case of service, wait until this succeeds.
             self.auth_user = auth_user or getattr(self.options, 'auth_user', None) or 'SYSTEM' # XXX override with args
             self.auth_pass = auth_pass or getattr(self.options, 'auth_pass', None) or ''
+
+            flags = EC_PROFILE_FLAGS_NO_NOTIFICATIONS
+
+            # Username and password was supplied, so let us do verfication
+            # (OpenECSession will not check password unless this parameter is provided)
+            if self.auth_user and self.auth_pass:
+                flags |= EC_PROFILE_FLAGS_NO_UID_AUTH
+
             while True:
                 try:
-                    self.mapisession = OpenECSession(self.auth_user, self.auth_pass, self.server_socket, sslkey_file=self.sslkey_file, sslkey_pass=self.sslkey_pass) #, providers=['ZARAFA6','ZCONTACTS'])
+                    self.mapisession = OpenECSession(self.auth_user, self.auth_pass, self.server_socket, sslkey_file=self.sslkey_file, sslkey_pass=self.sslkey_pass, flags=flags)
                     break
                 except (MAPIErrorNetworkError, MAPIErrorDiskError):
                     if service:
