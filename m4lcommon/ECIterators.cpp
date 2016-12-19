@@ -88,7 +88,7 @@ void ECHierarchyIteratorBase::increment()
 	}
 
 	assert(m_ulRowIndex < m_ptrRows.size());
-	hr = m_ptrContainer->OpenEntry(m_ptrRows[m_ulRowIndex].lpProps[IDX_ENTRYID].Value.bin.cb, (LPENTRYID)m_ptrRows[m_ulRowIndex].lpProps[IDX_ENTRYID].Value.bin.lpb, &m_ptrCurrent.iid, m_ulFlags, &ulType, &m_ptrCurrent);
+	hr = m_ptrContainer->OpenEntry(m_ptrRows[m_ulRowIndex].lpProps[IDX_ENTRYID].Value.bin.cb, (LPENTRYID)m_ptrRows[m_ulRowIndex].lpProps[IDX_ENTRYID].Value.bin.lpb, &m_ptrCurrent.iid(), m_ulFlags, &ulType, &m_ptrCurrent);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -155,7 +155,7 @@ void ECContentsIteratorBase::increment()
 	}
 
 	assert(m_ulRowIndex < m_ptrRows.size());
-	hr = m_ptrContainer->OpenEntry(m_ptrRows[m_ulRowIndex].lpProps[IDX_ENTRYID].Value.bin.cb, (LPENTRYID)m_ptrRows[m_ulRowIndex].lpProps[IDX_ENTRYID].Value.bin.lpb, &m_ptrCurrent.iid, m_ulFlags, &ulType, &m_ptrCurrent);
+	hr = m_ptrContainer->OpenEntry(m_ptrRows[m_ulRowIndex].lpProps[IDX_ENTRYID].Value.bin.cb, (LPENTRYID)m_ptrRows[m_ulRowIndex].lpProps[IDX_ENTRYID].Value.bin.lpb, &m_ptrCurrent.iid(), m_ulFlags, &ulType, &m_ptrCurrent);
 	if (hr != hrSuccess)
 		goto exit;
 

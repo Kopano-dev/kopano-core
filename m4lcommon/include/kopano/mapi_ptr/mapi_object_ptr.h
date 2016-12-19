@@ -47,7 +47,7 @@ class mapi_object_proxy<IUnknown, IID_IUnknown>;
 
 template<typename _T, REFIID _R = GUID_NULL> class mapi_object_ptr _kc_final {
 public:
-	static const IID				iid;
+	static constexpr const IID &iid(void) { return _R; }
 	typedef _T						value_type;
 	typedef _T*						pointer;
 	typedef _T**					pointerpointer;
@@ -101,7 +101,7 @@ public:
 		typename _U::pointer	lpNewObject = NULL;
 		
 		if (m_lpObject) {
-			hr = m_lpObject->QueryInterface(_U::iid, (void**)&lpNewObject);
+			hr = m_lpObject->QueryInterface(refResult.iid(), (void **)&lpNewObject);
 			if (hr == hrSuccess)
 				refResult.reset(lpNewObject, false);
 
@@ -121,8 +121,7 @@ public:
 				KCHL::memory_ptr<SPropValue> ptrPropValue;
 				if (HrGetOneProp(m_lpObject, PR_EC_OBJECT, &~ptrPropValue) != hrSuccess)
 					return hr; // hr is still MAPI_E_INTERFACE_NOT_SUPPORTED
-
-				hr = ((IECUnknown*)ptrPropValue->Value.lpszA)->QueryInterface(_U::iid, (void**)&lpNewObject);
+				hr = ((IECUnknown *)ptrPropValue->Value.lpszA)->QueryInterface(refResult.iid(), (void **)&lpNewObject);
 				if (hr == hrSuccess)
 					refResult.reset(lpNewObject, false);
 			}
@@ -238,10 +237,6 @@ public:
 private:
 	obj_ptr_type	*m_lppobjptr;
 };
-
-
-template<typename _T, REFIID _R>
-const IID mapi_object_ptr<_T,_R>::iid(_R);
 
 } /* namespace */
 

@@ -109,7 +109,7 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 	refMsgEntry.sStoreEntryId.assign(ptrMsgProps[IDX_STORE_ENTRYID].Value.bin);
 	refMsgEntry.sItemEntryId.assign(ptrMsgProps[IDX_ENTRYID].Value.bin);
 
-	hr = m_ptrSession->OpenMsgStore(0, ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.cb, (LPENTRYID)ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.lpb, &ptrStore.iid, MDB_WRITE, &ptrStore);
+	hr = m_ptrSession->OpenMsgStore(0, ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.cb, (LPENTRYID)ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.lpb, &ptrStore.iid(), MDB_WRITE, &ptrStore);
 	if (hr != hrSuccess) {
 		ec_log_warn("Archive::HrArchiveMessageForDelivery(): OpenMsgStore failed %x", hr);
 		goto exit;
@@ -131,8 +131,7 @@ HRESULT Archive::HrArchiveMessageForDelivery(IMessage *lpMessage)
 		ec_log_debug("No archives attached to store");
 		goto exit;
 	}
-
-	hr = ptrStore->OpenEntry(ptrMsgProps[IDX_PARENT_ENTRYID].Value.bin.cb, (LPENTRYID)ptrMsgProps[IDX_PARENT_ENTRYID].Value.bin.lpb, &ptrFolder.iid, MAPI_MODIFY, &ulType, &ptrFolder);
+	hr = ptrStore->OpenEntry(ptrMsgProps[IDX_PARENT_ENTRYID].Value.bin.cb, (LPENTRYID)ptrMsgProps[IDX_PARENT_ENTRYID].Value.bin.lpb, &ptrFolder.iid(), MAPI_MODIFY, &ulType, &ptrFolder);
 	if (hr != hrSuccess) {
 		ec_log_warn("Archive::HrArchiveMessageForDelivery(): StoreHelper::OpenEntry failed %x", hr);
 		goto exit;
@@ -247,8 +246,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *
 		ec_log_warn("Archive::HrArchiveMessageForSending(): GetProps failed %x", hr);
 		goto exit;
 	}
-
-	hr = m_ptrSession->OpenMsgStore(0, ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.cb, (LPENTRYID)ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.lpb, &ptrStore.iid, 0, &ptrStore);
+	hr = m_ptrSession->OpenMsgStore(0, ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.cb, (LPENTRYID)ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.lpb, &ptrStore.iid(), 0, &ptrStore);
 	if (hr != hrSuccess) {
 		ec_log_warn("Archive::HrArchiveMessageForSending(): OpenMsgStore failed %x", hr);
 		goto exit;
@@ -308,8 +306,7 @@ HRESULT Archive::HrArchiveMessageForSending(IMessage *lpMessage, ArchiveResult *
 			SetErrorMessage(hr, _("Unable to get outgoing archive folder."));
 			goto exit;
 		}
-
-		hr = ptrArchiveFolder->CreateMessage(&ptrArchivedMsg.iid, 0, &ptrArchivedMsg);
+		hr = ptrArchiveFolder->CreateMessage(&ptrArchivedMsg.iid(), 0, &ptrArchivedMsg);
 		if (hr != hrSuccess) {
 			ec_log_err("Failed to create message in outgoing archive folder. hr=0x%08x", hr);
 			SetErrorMessage(hr, _("Unable to create archive message in outgoing archive folder."));

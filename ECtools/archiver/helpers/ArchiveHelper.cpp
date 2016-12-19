@@ -104,7 +104,7 @@ HRESULT ArchiveHelper::Create(ArchiverSessionPtr ptrSession, const SObjectEntry 
 		return hr;
 	}
 	
-	hr = ptrArchiveStore->OpenEntry(archiveEntry.sItemEntryId.size(), archiveEntry.sItemEntryId, &ptrArchiveRootFolder.iid, MAPI_BEST_ACCESS|fMapiDeferredErrors, &ulType, &ptrArchiveRootFolder);
+	hr = ptrArchiveStore->OpenEntry(archiveEntry.sItemEntryId.size(), archiveEntry.sItemEntryId, &ptrArchiveRootFolder.iid(), MAPI_BEST_ACCESS|fMapiDeferredErrors, &ulType, &ptrArchiveRootFolder);
 	if (hr != hrSuccess) {
 		if (lpLogger)
 			lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to open archive root folder. (hr=%s)", stringify(hr, true).c_str());
@@ -368,7 +368,7 @@ HRESULT ArchiveHelper::SetPermissions(const abentryid_t &sUserEntryId, bool bWri
 	hr = ptrStoreHelper->GetIpmSubtree(&ptrFolder);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrFolder->OpenProperty(PR_ACL_TABLE, &ptrEMT.iid, 0, fMapiDeferredErrors, &ptrEMT);
+	hr = ptrFolder->OpenProperty(PR_ACL_TABLE, &ptrEMT.iid(), 0, fMapiDeferredErrors, &ptrEMT);
 	if (hr != hrSuccess)
 		return hr;
 	
@@ -392,7 +392,7 @@ HRESULT ArchiveHelper::SetPermissions(const abentryid_t &sUserEntryId, bool bWri
 	hr = GetArchiveFolder(true, &ptrFolder);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrFolder->OpenProperty(PR_ACL_TABLE, &ptrEMT.iid, 0, fMapiDeferredErrors, &ptrEMT);
+	hr = ptrFolder->OpenProperty(PR_ACL_TABLE, &ptrEMT.iid(), 0, fMapiDeferredErrors, &ptrEMT);
 	if (hr != hrSuccess)
 		return hr;
 	
@@ -472,8 +472,7 @@ HRESULT ArchiveHelper::GetArchiveFolderFor(MAPIFolderPtr &ptrSourceFolder, Archi
 	
 	iArchiveFolder = find_if(lstFolderArchives.cbegin(), lstFolderArchives.cend(), StoreCompare(ptrStoreEntryId->Value.bin));
 	if (iArchiveFolder != lstFolderArchives.cend())
-		hr = m_ptrArchiveStore->OpenEntry(iArchiveFolder->sItemEntryId.size(), iArchiveFolder->sItemEntryId, &ptrArchiveFolder.iid, MAPI_BEST_ACCESS|fMapiDeferredErrors, &ulType, &ptrArchiveFolder);
-
+		hr = m_ptrArchiveStore->OpenEntry(iArchiveFolder->sItemEntryId.size(), iArchiveFolder->sItemEntryId, &ptrArchiveFolder.iid(), MAPI_BEST_ACCESS|fMapiDeferredErrors, &ulType, &ptrArchiveFolder);
 	else {
 		hr = ptrSourceFolderHelper->GetParentFolder(ptrSession, &ptrParentFolder);
 		if (hr != hrSuccess)
@@ -504,11 +503,10 @@ HRESULT ArchiveHelper::GetArchiveFolderFor(MAPIFolderPtr &ptrSourceFolder, Archi
 				return hr;
 			
 			hr = ptrArchiveParentFolder->CreateFolder(FOLDER_GENERIC, 
-													  (LPTSTR)(PROP_TYPE(ptrPropArray[1].ulPropTag) == PT_ERROR ? _T("") : ptrPropArray[1].Value.LPSZ),
-													  (LPTSTR)(PROP_TYPE(ptrPropArray[2].ulPropTag) == PT_ERROR ? _T("") : ptrPropArray[2].Value.LPSZ),
-													  &ptrArchiveFolder.iid,
-													  OPEN_IF_EXISTS|fMapiUnicode,
-													  &ptrArchiveFolder);
+			     (LPTSTR)(PROP_TYPE(ptrPropArray[1].ulPropTag) == PT_ERROR ? _T("") : ptrPropArray[1].Value.LPSZ),
+			     (LPTSTR)(PROP_TYPE(ptrPropArray[2].ulPropTag) == PT_ERROR ? _T("") : ptrPropArray[2].Value.LPSZ),
+			     &ptrArchiveFolder.iid(), OPEN_IF_EXISTS | fMapiUnicode,
+			     &ptrArchiveFolder);
 			if (hr != hrSuccess)
 				return hr;
 
@@ -528,8 +526,7 @@ HRESULT ArchiveHelper::GetArchiveFolderFor(MAPIFolderPtr &ptrSourceFolder, Archi
 							strFolderName.append(tstringify(ulCollisionCount));
 							strFolderName.append(1, ')');
 						}
-
-						hr = ptrArchiveParentFolder->CreateFolder(FOLDER_GENERIC, (LPTSTR)strFolderName.c_str(), (LPTSTR)(PROP_TYPE(ptrPropArray[2].ulPropTag) == PT_ERROR ? _T("") : ptrPropArray[2].Value.LPSZ), &ptrArchiveFolder.iid, fMapiUnicode, &ptrArchiveFolder);
+						hr = ptrArchiveParentFolder->CreateFolder(FOLDER_GENERIC, (LPTSTR)strFolderName.c_str(), (LPTSTR)(PROP_TYPE(ptrPropArray[2].ulPropTag) == PT_ERROR ? _T("") : ptrPropArray[2].Value.LPSZ), &ptrArchiveFolder.iid(), fMapiUnicode, &ptrArchiveFolder);
 						if (hr != hrSuccess && hr != MAPI_E_COLLISION)
 							return hr;
 
@@ -779,7 +776,7 @@ HRESULT ArchiveHelper::GetSpecialFolder(eSpecFolder sfWhich, bool bCreate, LPMAP
 	hr = GetSpecialFolderEntryID(sfWhich, &ulSpecialFolderID, &~ptrSpecialFolderID);
 	if (hr == hrSuccess) {
 		ULONG ulType;
-		hr = m_ptrArchiveStore->OpenEntry(ulSpecialFolderID, ptrSpecialFolderID, &ptrSpecialFolder.iid, MAPI_MODIFY, &ulType, &ptrSpecialFolder);
+		hr = m_ptrArchiveStore->OpenEntry(ulSpecialFolderID, ptrSpecialFolderID, &ptrSpecialFolder.iid(), MAPI_MODIFY, &ulType, &ptrSpecialFolder);
 	} else if (hr == MAPI_E_NOT_FOUND && bCreate) {
 		hr = CreateSpecialFolder(sfWhich, &ptrSpecialFolder);
 	}
@@ -844,8 +841,7 @@ HRESULT ArchiveHelper::CreateSpecialFolder(eSpecFolder sfWhich, LPMAPIFOLDER *lp
 			strFolderName.append(tstringify(ulCollisionCount));
 			strFolderName.append(1, ')');
 		}
-
-		hr = ptrParent->CreateFolder(FOLDER_GENERIC, (LPTSTR)strFolderName.c_str(), lpszDesc, &ptrSpecialFolder.iid, fMapiUnicode|ulCreateFlags, &ptrSpecialFolder);
+		hr = ptrParent->CreateFolder(FOLDER_GENERIC, (LPTSTR)strFolderName.c_str(), lpszDesc, &ptrSpecialFolder.iid(), fMapiUnicode|ulCreateFlags, &ptrSpecialFolder);
 		if (hr != hrSuccess && hr != MAPI_E_COLLISION)
 			return hr;
 

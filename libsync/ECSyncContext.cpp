@@ -477,7 +477,7 @@ HRESULT ECSyncContext::HrUpdateChangeId(LPSTREAM lpStream)
 
 	if(m_lpChangeAdvisor) {
 		// Now inform the change advisor of our accomplishment
-		hr = m_lpChangeAdvisor->QueryInterface(ptrECA.iid, &ptrECA);
+		hr = m_lpChangeAdvisor->QueryInterface(ptrECA.iid(), &ptrECA);
 		if (hr == MAPI_E_INTERFACE_NOT_SUPPORTED)
 			return hr;
 		hr = ptrECA->UpdateSyncState(ulSyncId, ulChangeId);

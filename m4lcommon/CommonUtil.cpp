@@ -3208,7 +3208,7 @@ HRESULT HrGetRemoteAdminStore(IMAPISession *lpMAPISession, IMsgStore *lpMsgStore
 	    lpszServerName == NULL || (ulFlags & ~(MAPI_UNICODE | MDB_WRITE)) ||
 	    lppMsgStore == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	HRESULT hr = lpMsgStore->QueryInterface(ptrEMS.iid, &ptrEMS);
+	HRESULT hr = lpMsgStore->QueryInterface(ptrEMS.iid(), &ptrEMS);
 	if (hr != hrSuccess)
 		return hr;
 	if (ulFlags & MAPI_UNICODE) {
@@ -3220,7 +3220,7 @@ HRESULT HrGetRemoteAdminStore(IMAPISession *lpMAPISession, IMsgStore *lpMsgStore
 	}
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpMAPISession->OpenMsgStore(0, cbStoreId, ptrStoreId, &ptrMsgStore.iid, ulFlags & MDB_WRITE, &ptrMsgStore);
+	hr = lpMAPISession->OpenMsgStore(0, cbStoreId, ptrStoreId, &ptrMsgStore.iid(), ulFlags & MDB_WRITE, &ptrMsgStore);
 	if (hr != hrSuccess)
 		return hr;
 	return ptrMsgStore->QueryInterface(IID_IMsgStore,
@@ -3254,7 +3254,7 @@ HRESULT HrGetGAB(LPADRBOOK lpAddrBook, LPABCONT *lppGAB)
 
 	if (lpAddrBook == NULL || lppGAB == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	HRESULT hr = lpAddrBook->OpenEntry(0, NULL, &ptrRoot.iid, MAPI_DEFERRED_ERRORS, &ulType, &ptrRoot);
+	HRESULT hr = lpAddrBook->OpenEntry(0, NULL, &ptrRoot.iid(), MAPI_DEFERRED_ERRORS, &ulType, &ptrRoot);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrRoot->GetHierarchyTable(MAPI_DEFERRED_ERRORS, &ptrTable);
@@ -3282,7 +3282,7 @@ HRESULT HrGetGAB(LPADRBOOK lpAddrBook, LPABCONT *lppGAB)
 	hr = ptrTable->QueryRows(1, 0, &ptrRows);
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpAddrBook->OpenEntry(ptrRows[0].lpProps[0].Value.bin.cb, (LPENTRYID)ptrRows[0].lpProps[0].Value.bin.lpb, &ptrGAB.iid, 0, &ulType, &ptrGAB);
+	hr = lpAddrBook->OpenEntry(ptrRows[0].lpProps[0].Value.bin.cb, (LPENTRYID)ptrRows[0].lpProps[0].Value.bin.lpb, &ptrGAB.iid(), 0, &ulType, &ptrGAB);
 	if (hr != hrSuccess)
 		return hr;
 	return ptrGAB->QueryInterface(IID_IABContainer, reinterpret_cast<LPVOID *>(lppGAB));

@@ -304,8 +304,7 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstr
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open archive store. hr=0x%08x", hr);
 			return hr;
 		}
-
-		hr = ptrArchStore->OpenEntry(i.sItemEntryId.size(), i.sItemEntryId, &ptrArchFolder.iid, 0, &ulType, &ptrArchFolder);
+		hr = ptrArchStore->OpenEntry(i.sItemEntryId.size(), i.sItemEntryId, &ptrArchFolder.iid(), 0, &ulType, &ptrArchFolder);
 		if (hr != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open archive root. hr=0x%08x", hr);
 			if (hr == MAPI_E_NOT_FOUND) {

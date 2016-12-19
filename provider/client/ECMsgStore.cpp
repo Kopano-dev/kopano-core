@@ -1062,7 +1062,7 @@ HRESULT ECMsgStore::SetLockState(LPMESSAGE lpMessage, ULONG ulLockState)
 			goto exit;
 	}
 
-	hr = lpMessage->QueryInterface(ptrECMessage.iid, &ptrECMessage);
+	hr = lpMessage->QueryInterface(ptrECMessage.iid(), &ptrECMessage);
 	if (hr != hrSuccess)
 		goto exit;
 

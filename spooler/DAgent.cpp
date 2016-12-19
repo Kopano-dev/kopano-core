@@ -2597,7 +2597,7 @@ static HRESULT ProcessDeliveryToRecipient(PyMapiPlugin *lppyMapiPlugin,
 			ArchivePtr ptrArchive;
 
 			if (bIsAdmin)
-				hr = lpSession->QueryInterface(ptrAdminSession.iid, &ptrAdminSession);
+				hr = lpSession->QueryInterface(ptrAdminSession.iid(), &ptrAdminSession);
 			else {
 				const char *server = g_lpConfig->GetSetting("server_socket");
 				server = GetServerUnixSocket(server); // let environment override if present

@@ -169,7 +169,7 @@ HRESULT UserListCollector<string_type, prAccount>::CollectData(LPMAPITABLE lpSto
 				MAPIPropPtr ptrUser;
 				SPropValuePtr ptrAccount;
 
-				hrTmp = m_ptrSession->OpenEntry(ptrRows[i].lpProps[0].Value.bin.cb, (LPENTRYID)ptrRows[i].lpProps[0].Value.bin.lpb, &ptrUser.iid, 0, &ulType, &ptrUser);
+				hrTmp = m_ptrSession->OpenEntry(ptrRows[i].lpProps[0].Value.bin.cb, (LPENTRYID)ptrRows[i].lpProps[0].Value.bin.lpb, &ptrUser.iid(), 0, &ulType, &ptrUser);
 				if (hrTmp != hrSuccess)
 					continue;
 				hrTmp = HrGetOneProp(ptrUser, prAccount, &~ptrAccount);
