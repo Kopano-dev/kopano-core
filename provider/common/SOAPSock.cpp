@@ -31,16 +31,6 @@
 
 using namespace std;
 
-/*
- * The structure of the data stored in soap->user on the _client_ side.
- * (cf. SOAPUtils.h for server side.)
- */
-struct KCmdData {
-	SOAP_SOCKET (*orig_fopen)(struct soap *, const char *, const char *, int);
-};
-
-static int ssl_zvcb_index = -1;	// the index to get our custom data
-
 // we cannot patch http_post now (see external/gsoap/*.diff), so we redefine it
 static int
 http_post(struct soap *soap, const char *endpoint, const char *host, int port, const char *path, const char *action, size_t count)
@@ -112,28 +102,6 @@ static int gsoap_connect_pipe(struct soap *soap, const char *endpoint,
    	return SOAP_OK;
 }
 
-static SOAP_SOCKET kc_client_connect(struct soap *soap, const char *ep,
-    const char *host, int port)
-{
-	auto si = reinterpret_cast<struct KCmdData *>(soap->user);
-	if (si == NULL) {
-		ec_log_err("K-2740: kc_client_connect unexpectedly called");
-		return -1;
-	}
-	auto fopen = si->orig_fopen;
-	delete si;
-	if (fopen == NULL) {
-		ec_log_err("K-2741: kc_client_connect has no fopen");
-		return -1;
-	}
-	soap->fopen = fopen;
-	soap->user = NULL;
-	if (soap->ctx != NULL)
-		SSL_CTX_set_ex_data(soap->ctx, ssl_zvcb_index,
-			static_cast<void *>(const_cast<char *>(host)));
-	return (*fopen)(soap, ep, host, port);
-}
-
 HRESULT CreateSoapTransport(ULONG ulUIFlags,
 	const char *strServerPath,
 	const char *strSSLKeyFile,
@@ -149,7 +117,6 @@ HRESULT CreateSoapTransport(ULONG ulUIFlags,
 	KCmd **lppCmd)
 {
 	KCmd*	lpCmd = NULL;
-	struct KCmdData *si;
 
 	if (strServerPath == NULL || *strServerPath == '\0' || lppCmd == NULL)
 		return E_INVALIDARG;
@@ -168,8 +135,7 @@ HRESULT CreateSoapTransport(ULONG ulUIFlags,
 #ifdef WITH_OPENSSL
 	if (strncmp("https:", lpCmd->endpoint, 6) == 0) {
 		// no need to add certificates to call, since soap also calls SSL_CTX_set_default_verify_paths()
-		if(soap_ssl_client_context(lpCmd->soap,
-								SOAP_SSL_DEFAULT | SOAP_SSL_SKIP_HOST_CHECK,
+		if (soap_ssl_client_context(lpCmd->soap, SOAP_SSL_DEFAULT,
 								strSSLKeyFile != NULL && *strSSLKeyFile != '\0' ? strSSLKeyFile : NULL,
 								strSSLKeyPass != NULL && *strSSLKeyPass != '\0' ? strSSLKeyPass : NULL,
 								NULL, NULL,
@@ -178,12 +144,6 @@ HRESULT CreateSoapTransport(ULONG ulUIFlags,
 			delete lpCmd;
 			return E_INVALIDARG;
 		}
-
-		// set connection string as callback information
-		if (ssl_zvcb_index == -1)
-			ssl_zvcb_index = SSL_get_ex_new_index(0, NULL, NULL, NULL, NULL);
-		// callback data will be set right before tcp_connect()
-
 		// set our own certificate check function
 		lpCmd->soap->fsslverify = ssl_verify_callback_kopano_silent;
 		SSL_CTX_set_verify(lpCmd->soap->ctx, SSL_VERIFY_PEER, lpCmd->soap->fsslverify);
@@ -206,17 +166,6 @@ HRESULT CreateSoapTransport(ULONG ulUIFlags,
 
 		lpCmd->soap->connect_timeout = ulConnectionTimeOut;
 	}
-
-	if (lpCmd->soap->user != NULL)
-		ec_log_warn("Hmm. SOAP object custom data is already set.");
-	si = new(std::nothrow) struct KCmdData;
-	if (si == NULL) {
-		ec_log_err("alloc: %s\n", strerror(errno));
-		return E_OUTOFMEMORY;
-	}
-	si->orig_fopen = lpCmd->soap->fopen;
-	lpCmd->soap->user = si;
-	lpCmd->soap->fopen = kc_client_connect;
 	*lppCmd = lpCmd;
 	return hrSuccess;
 }
@@ -234,134 +183,8 @@ VOID DestroySoapTransport(KCmd *lpCmd)
 	delete lpCmd;
 }
 
-/**
- * @cn:		the common name (can be a pattern)
- * @host:	the host we are connecting to
- */
-static bool kc_wildcard_cmp(const char *cn, const char *host)
-{
-	while (*cn != '\0' && *host != '\0') {
-		if (*cn == '*') {
-			++cn;
-			for (; *host != '\0' && *host != '.'; ++host)
-				if (kc_wildcard_cmp(cn, host))
-					return true;
-			continue;
-		}
-		if (tolower(*cn) != tolower(*host))
-			return false;
-		++cn;
-		++host;
-	}
-	return *cn == '\0' && *host == '\0';
-}
-
-static int kc_ssl_astr_match(const char *hostname, ASN1_STRING *astr)
-{
-	if (astr == nullptr)
-		return false;
-	auto cstr = reinterpret_cast<const char *>(ASN1_STRING_data(astr));
-	if (cstr == nullptr)
-		return false;
-	auto alen = ASN1_STRING_length(astr);
-	if (alen < 0 || strlen(cstr) != static_cast<size_t>(alen)) {
-		ec_log_err("K-1720: Server presented an X.509 string with '\\0' bytes. Aborting login.");
-		return -1;
-	}
-	if (kc_wildcard_cmp(cstr, hostname)) {
-		ec_log_debug("Server %s presented matching certificate for %s.",
-			hostname, cstr);
-		return true;
-	}
-	return false;
-}
-
-static int kc_ssl_check_certnames(const char *hostname, X509 *cert)
-{
-	class gnfree {
-		public:
-		void operator()(GENERAL_NAMES *a) { GENERAL_NAMES_free(a); }
-		void operator()(ASN1_OCTET_STRING *s) { ASN1_OCTET_STRING_free(s); }
-	};
-
-	auto name = X509_get_subject_name(cert);
-	if (name == nullptr) {
-		ec_log_err("K-1722: server certificate has no X.509 subject name. Aborting login.");
-		return false;
-	}
-
-	std::unique_ptr<GENERAL_NAMES, gnfree> san(static_cast<GENERAL_NAMES *>(
-		X509_get_ext_d2i(cert, NID_subject_alt_name, nullptr, nullptr)));
-	if (san == nullptr) {
-		/* RFC 2818 § 3.1 page 5 and http://stackoverflow.com/a/21496451 */
-		auto cnindex = X509_NAME_get_index_by_NID(name, NID_commonName, -1);
-		if (cnindex != -1) {
-			auto astr = X509_NAME_ENTRY_get_data(X509_NAME_get_entry(name, cnindex));
-			auto ret = kc_ssl_astr_match(hostname, astr);
-			if (ret < 0)
-				return false;
-			if (ret > 0)
-				return true;
-		}
-	}
-
-	auto num = sk_GENERAL_NAME_num(san.get());
-	std::unique_ptr<ASN1_OCTET_STRING, gnfree> hostname_octet(a2i_IPADDRESS(hostname));
-	for (decltype(num) i = 0; i < num; ++i) {
-		auto name = sk_GENERAL_NAME_value(san.get(), i);
-		if (name == nullptr)
-			continue;
-		if (name->type == GEN_IPADD &&
-		    hostname_octet != nullptr &&
-		    ASN1_STRING_cmp(hostname_octet.get(), name->d.iPAddress) == 0)
-			return true;
-		if (name->type != GEN_DNS)
-			continue;
-		auto ret = kc_ssl_astr_match(hostname, name->d.dNSName);
-		if (ret < 0)
-			return false;
-		if (ret > 0)
-			return true;
-	}
-	return false;
-}
-
-static int kc_ssl_check_cert(X509_STORE_CTX *store)
-{
-	auto ssl = static_cast<SSL *>(X509_STORE_CTX_get_ex_data(store, SSL_get_ex_data_X509_STORE_CTX_idx()));
-	if (ssl == NULL) {
-		ec_log_warn("Unable to get SSL object from store");
-		return false;
-	}
-	auto ctx = SSL_get_SSL_CTX(ssl);
-	if (ctx == NULL) {
-		ec_log_warn("Unable to get SSL context from SSL object");
-		return false;
-	}
-	auto cert = X509_STORE_CTX_get_current_cert(store);
-	if (cert == NULL) {
-		ec_log_warn("No certificate found in connection. What gives?");
-		return false;
-	}
-	auto hostname = static_cast<const char *>(SSL_CTX_get_ex_data(ctx, ssl_zvcb_index));
-	if (hostname == NULL) {
-		ec_log_err("Internal fluctuation - no hostname in our SSL context. Aborting login.");
-		return false;
-	}
-	auto ret = kc_ssl_check_certnames(hostname, cert);
-	if (ret > 0)
-		return true;
-	ec_log_err("K-1725: certificate of server %s had no matching names. "
-		"Aborting login.", hostname);
-	return false;
-}
-
 int ssl_verify_callback_kopano_silent(int ok, X509_STORE_CTX *store)
 {
-	if (!kc_ssl_check_cert(store)) {
-		X509_STORE_CTX_set_error(store, X509_V_ERR_CERT_REJECTED);
-		ok = 0;
-	}
 	int sslerr;
 
 	if (ok == 0)
