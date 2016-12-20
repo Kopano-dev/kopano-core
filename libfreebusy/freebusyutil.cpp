@@ -79,7 +79,7 @@ static HRESULT GetFreeBusyFolder(IMsgStore *lpPublicStore,
 	HRESULT			hr = S_OK;
 	ULONG			cValuesFreeBusy = 0;
 	memory_ptr<SPropValue> lpPropArrayFreeBusy;
-	IMAPIFolder*	lpMapiFolder = NULL;
+	object_ptr<IMAPIFolder> lpMapiFolder;
 	ULONG			ulObjType = 0;
 
 	SizedSPropTagArray(1, sPropsFreeBusy) = {
@@ -101,14 +101,10 @@ static HRESULT GetFreeBusyFolder(IMsgStore *lpPublicStore,
 		hr = MAPI_E_NOT_FOUND;
 		goto exit;
 	}
-
 	hr = lpPublicStore->OpenEntry(
-			lpPropArrayFreeBusy[FBPOS_FREE_BUSY_FOR_LOCAL_SITE_ENTRYID].Value.bin.cb,
-			(LPENTRYID)lpPropArrayFreeBusy[FBPOS_FREE_BUSY_FOR_LOCAL_SITE_ENTRYID].Value.bin.lpb,
-			&IID_IMAPIFolder,
-			MAPI_MODIFY,
-			&ulObjType,
-			(LPUNKNOWN*)&lpMapiFolder);
+	     lpPropArrayFreeBusy[FBPOS_FREE_BUSY_FOR_LOCAL_SITE_ENTRYID].Value.bin.cb,
+	     reinterpret_cast<ENTRYID *>(lpPropArrayFreeBusy[FBPOS_FREE_BUSY_FOR_LOCAL_SITE_ENTRYID].Value.bin.lpb),
+	     &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpMapiFolder);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -117,24 +113,19 @@ static HRESULT GetFreeBusyFolder(IMsgStore *lpPublicStore,
 		goto exit;
 
 exit:
-	if(lpMapiFolder)
-		lpMapiFolder->Release();
-
 	return hr;
 }
 
 HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IMsgStore* lpUserStore, ULONG cbUserEntryID, LPENTRYID lpUserEntryID, BOOL bCreateIfNotExist, IMessage** lppMessage)
 {
 	HRESULT			hr = S_OK;
-	IMAPIFolder*	lpFreeBusyFolder = NULL;
-	IMAPITable*		lpMapiTable = NULL;
+	object_ptr<IMAPIFolder> lpFreeBusyFolder;
+	object_ptr<IMAPITable> lpMapiTable;
 	SRestriction	sRestriction;
 	SPropValue		sPropUser;
 	LPSRowSet		lpRows = NULL;
 	ULONG			ulObjType = 0;
-	IMessage*		lpMessage = NULL;
-
-	IMAPIFolder*	lpFolder = NULL;
+	object_ptr<IMessage> lpMessage;
 	ULONG			ulMvItems = 0;
 	ULONG			i;
 	memory_ptr<SPropValue> lpPropfbEntryids;
@@ -142,8 +133,6 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 	memory_ptr<SPropValue> lpPropName, lpPropEmail;
 	ULONG			cbInBoxEntry = 0;
 	memory_ptr<ENTRYID> lpInboxEntry;
-	LPADRBOOK		lpAdrBook = NULL;
-	LPMAILUSER		lpMailUser = NULL;
 
 	SizedSPropTagArray(1, sPropsFreebusyTable) = {
 		1,
@@ -166,11 +155,10 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 	}
 
 	// GetFreeBusyFolder  
-	hr = GetFreeBusyFolder(lpPublicStore, &lpFreeBusyFolder);
+	hr = GetFreeBusyFolder(lpPublicStore, &~lpFreeBusyFolder);
  	if(hr != hrSuccess)
 		goto exit;
-
-	hr = lpFreeBusyFolder->GetContentsTable(0, &lpMapiTable);
+	hr = lpFreeBusyFolder->GetContentsTable(0, &~lpMapiTable);
  	if(hr != hrSuccess)
 		goto exit;
 
@@ -198,19 +186,15 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 	{
 		// Open freebusy data
 		hr = lpPublicStore->OpenEntry(lpRows->aRow[0].lpProps[FBPOS_ENTRYID].Value.bin.cb,
-					(LPENTRYID)lpRows->aRow[0].lpProps[FBPOS_ENTRYID].Value.bin.lpb,
-					&IID_IMessage,
-					MAPI_MODIFY,
-					&ulObjType,
-					(LPUNKNOWN*)&lpMessage);
-
+		     reinterpret_cast<ENTRYID *>(lpRows->aRow[0].lpProps[FBPOS_ENTRYID].Value.bin.lpb),
+		     &IID_IMessage, MAPI_MODIFY, &ulObjType, &~lpMessage);
 		if(hr != hrSuccess)
 			goto exit;
 	}
 	else if (bCreateIfNotExist == TRUE)
 	{
 		//Create new freebusymessage
-		hr = lpFreeBusyFolder->CreateMessage(NULL, 0, &lpMessage);
+		hr = lpFreeBusyFolder->CreateMessage(nullptr, 0, &~lpMessage);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -220,11 +204,12 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 			goto exit;
 
 		// Set the accountname in properties PR_DISPLAY_NAME and PR_SUBJECT
-		hr = lpSession->OpenAddressBook(0, NULL, AB_NO_DIALOG, &lpAdrBook);
+		object_ptr<IAddrBook> lpAdrBook;
+		hr = lpSession->OpenAddressBook(0, NULL, AB_NO_DIALOG, &~lpAdrBook);
  		if(hr != hrSuccess)
 			goto exit;
-
-		hr = lpAdrBook->OpenEntry(cbUserEntryID, lpUserEntryID, &IID_IMailUser, MAPI_BEST_ACCESS , &ulObjType, (LPUNKNOWN*)&lpMailUser);
+		object_ptr<IMailUser> lpMailUser;
+		hr = lpAdrBook->OpenEntry(cbUserEntryID, lpUserEntryID, &IID_IMailUser, MAPI_BEST_ACCESS, &ulObjType, &~lpMailUser);
  		if(hr != hrSuccess)
 			goto exit;
 		hr = HrGetOneProp(lpMailUser, PR_ACCOUNT, &~lpPropName);
@@ -233,11 +218,6 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 		hr = HrGetOneProp(lpMailUser, PR_EMAIL_ADDRESS, &~lpPropEmail);
 		if(hr != hrSuccess)
 			goto exit;
-
-		lpMailUser->Release();
-		lpMailUser = NULL;
-		lpAdrBook->Release();
-		lpAdrBook = NULL;
 
 		//Set the displayname with accountname 
 		lpPropName->ulPropTag = PR_DISPLAY_NAME;
@@ -271,7 +251,8 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 				goto exit;
 
 			//Open root folder
-			hr = lpUserStore->OpenEntry(0, NULL, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*)&lpFolder);
+			object_ptr<IMAPIFolder> lpFolder;
+			hr = lpUserStore->OpenEntry(0, NULL, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpFolder);
 			if(hr != hrSuccess)
 				goto exit;
 
@@ -313,16 +294,13 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 			if(hr != hrSuccess)
 				goto exit;
 
-			lpFolder->Release();
-			lpFolder = NULL;
-
 			// Get the inbox
 			hr = lpUserStore->GetReceiveFolder(nullptr, 0, &cbInBoxEntry, &~lpInboxEntry, nullptr);
 			if(hr != hrSuccess)
 				goto exit;
 
 			// Open the inbox
-			hr = lpUserStore->OpenEntry(cbInBoxEntry, lpInboxEntry, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*)&lpFolder);
+			hr = lpUserStore->OpenEntry(cbInBoxEntry, lpInboxEntry, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpFolder);
 			if(hr != hrSuccess)
 				goto exit;
 
@@ -333,9 +311,6 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 			hr = lpFolder->SaveChanges(KEEP_OPEN_READONLY);
 			if(hr != hrSuccess)
 				goto exit;
-
-			lpFolder->Release();
-			lpFolder = NULL;
 		}
 
 	}
@@ -350,23 +325,6 @@ HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IM
 		goto exit;
 
 exit:
-	if(lpMailUser)
-		lpMailUser->Release();
-
-	if(lpAdrBook)
-		lpAdrBook->Release();
-	if(lpFolder)
-		lpFolder->Release();
-
-	if(lpMapiTable)
-		lpMapiTable->Release();
-
-	if(lpFreeBusyFolder)
-		lpFreeBusyFolder->Release();
-
-	if(lpMessage)
-		lpMessage->Release();
-
 	if(lpRows)
 		FreeProws(lpRows);
 

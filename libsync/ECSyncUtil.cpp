@@ -22,6 +22,8 @@
 #include <kopano/memory.hpp>
 #include <mapix.h>
 
+using namespace KCHL;
+
 namespace KC {
 
 HRESULT HrDecodeSyncStateStream(LPSTREAM lpStream, ULONG *lpulSyncId, ULONG *lpulChangeId, PROCESSEDCHANGESSET *lpSetProcessChanged)
@@ -128,8 +130,8 @@ HRESULT CreateNullStatusStream(LPSTREAM *lppStream)
 HRESULT HrGetOneBinProp(IMAPIProp *lpProp, ULONG ulPropTag, LPSPropValue *lppPropValue)
 {
 	HRESULT hr = hrSuccess;
-	IStream *lpStream = NULL;
-	KCHL::memory_ptr<SPropValue> lpPropValue;
+	object_ptr<IStream> lpStream;
+	memory_ptr<SPropValue> lpPropValue;
 	STATSTG sStat;
 	ULONG ulRead = 0;
 
@@ -137,8 +139,7 @@ HRESULT HrGetOneBinProp(IMAPIProp *lpProp, ULONG ulPropTag, LPSPropValue *lppPro
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-
-	hr = lpProp->OpenProperty(ulPropTag, &IID_IStream, 0, 0, (IUnknown **)&lpStream);
+	hr = lpProp->OpenProperty(ulPropTag, &IID_IStream, 0, 0, &~lpStream);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -161,9 +162,6 @@ HRESULT HrGetOneBinProp(IMAPIProp *lpProp, ULONG ulPropTag, LPSPropValue *lppPro
 
 	*lppPropValue = lpPropValue.release();
 exit:
-	if(lpStream)
-		lpStream->Release();
-
 	return hr;
 }
 

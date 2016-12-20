@@ -29,6 +29,8 @@
 #include "freebusyutil.h"
 #include <kopano/mapi_ptr.h>
 
+using namespace KCHL;
+
 namespace KC {
 
 ECFreeBusySupport::ECFreeBusySupport(void)
@@ -88,7 +90,7 @@ HRESULT ECFreeBusySupport::QueryInterface(REFIID refiid, void **lppInterface)
 HRESULT ECFreeBusySupport::Open(IMAPISession* lpMAPISession, IMsgStore* lpMsgStore, BOOL bStore)
 {
 	HRESULT hr = hrSuccess;
-	IMsgStore* lpPublicStore = NULL;
+	object_ptr<IMsgStore> lpPublicStore;
 
 	if(lpMAPISession == NULL)
 	{
@@ -98,7 +100,7 @@ HRESULT ECFreeBusySupport::Open(IMAPISession* lpMAPISession, IMsgStore* lpMsgSto
 
 #ifdef DEBUG
 	if (lpMsgStore) {
-		KCHL::memory_ptr<SPropValue> lpPropArray;
+		memory_ptr<SPropValue> lpPropArray;
 		HrGetOneProp(lpMsgStore, PR_DISPLAY_NAME_A, &lpPropArray);
 		TRACE_MAPI(TRACE_ENTRY, "ECFreeBusySupport::Open", "Storename=%s", (lpPropArray && lpPropArray->ulPropTag == PR_DISPLAY_NAME_A) ? lpPropArray->Value.lpszA : "Error");
 	}
@@ -111,7 +113,7 @@ HRESULT ECFreeBusySupport::Open(IMAPISession* lpMAPISession, IMsgStore* lpMsgSto
 		goto exit;
 
 	// Open the public store for communicate with the freebusy information.
-	hr = HrOpenECPublicStoreOnline(lpMAPISession, &lpPublicStore);
+	hr = HrOpenECPublicStoreOnline(lpMAPISession, &~lpPublicStore);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -126,9 +128,6 @@ HRESULT ECFreeBusySupport::Open(IMAPISession* lpMAPISession, IMsgStore* lpMsgSto
 			goto exit;
 	}
 exit:
-	if(lpPublicStore)
-		lpPublicStore->Release();
-
 	return hr;
 }
 
@@ -158,10 +157,7 @@ HRESULT ECFreeBusySupport::Close()
 HRESULT ECFreeBusySupport::LoadFreeBusyData(ULONG cMax, FBUser *rgfbuser, IFreeBusyData **prgfbdata, HRESULT *phrStatus, ULONG *pcRead)
 {
 	HRESULT			hr = S_OK;
-	ECFreeBusyData*	lpECFreeBusyData = NULL;
 	ULONG			ulFindUsers = 0;
-	IMessage*		lpMessage = NULL;
-
 	ECFBBlockList	fbBlockList;
 	LONG			rtmStart = 0;
 	LONG			rtmEnd = 0;
@@ -174,9 +170,11 @@ HRESULT ECFreeBusySupport::LoadFreeBusyData(ULONG cMax, FBUser *rgfbuser, IFreeB
 	}
 
 	for (i = 0; i < cMax; ++i) {
-		if(GetFreeBusyMessage(m_lpSession, m_lpPublicStore, NULL, rgfbuser[i].m_cbEid, rgfbuser[i].m_lpEid, false, &lpMessage) == hrSuccess)
-		{
-			ECFreeBusyData::Create(&lpECFreeBusyData);
+		object_ptr<IMessage> lpMessage;
+
+		if (GetFreeBusyMessage(m_lpSession, m_lpPublicStore, nullptr, rgfbuser[i].m_cbEid, rgfbuser[i].m_lpEid, false, &~lpMessage) == hrSuccess) {
+			object_ptr<ECFreeBusyData> lpECFreeBusyData;
+			ECFreeBusyData::Create(&~lpECFreeBusyData);
 
 			fbBlockList.Clear();
 
@@ -193,11 +191,6 @@ HRESULT ECFreeBusySupport::LoadFreeBusyData(ULONG cMax, FBUser *rgfbuser, IFreeB
 				goto exit;
 			
 			++ulFindUsers;
-			lpECFreeBusyData->Release();
-			lpECFreeBusyData = NULL;
-			
-			lpMessage->Release();
-			lpMessage = NULL;
 		}// else No free busy information, gives the empty class
 		else
 			prgfbdata[i] = NULL;
@@ -209,12 +202,6 @@ HRESULT ECFreeBusySupport::LoadFreeBusyData(ULONG cMax, FBUser *rgfbuser, IFreeB
 	if(pcRead)
 		*pcRead = ulFindUsers;
 exit:
-	if(lpECFreeBusyData)
-		lpECFreeBusyData->Release();
-	
-	if(lpMessage)
-		lpMessage->Release();
-
 	return S_OK;
 }
 
@@ -223,9 +210,7 @@ HRESULT ECFreeBusySupport::LoadFreeBusyUpdate(ULONG cUsers, FBUser *lpUsers, IFr
 	TRACE_MAPI(TRACE_ENTRY, "ECFreeBusySupport::LoadFreeBusyUpdate", "cUsers=%d", cUsers);
 
 	HRESULT				hr = hrSuccess;
-	ECFreeBusyUpdate*	lpECFBUpdate = NULL;
 	ULONG				cFBUpdate = 0;
-	IMessage*			lpMessage = NULL;
 
 	if((cUsers > 0 && lpUsers == NULL) || lppFBUpdate == NULL)
 	{
@@ -234,29 +219,24 @@ HRESULT ECFreeBusySupport::LoadFreeBusyUpdate(ULONG cUsers, FBUser *lpUsers, IFr
 	}
 
 	for (unsigned int i = 0; i < cUsers; ++i) {
-		lpMessage = NULL;
+		object_ptr<IMessage> lpMessage;
 
 		// Get the FB message, is not exist create them
-		hr = GetFreeBusyMessage(m_lpSession, m_lpPublicStore, m_lpUserStore, lpUsers[i].m_cbEid, lpUsers[i].m_lpEid, true, &lpMessage);
+		hr = GetFreeBusyMessage(m_lpSession, m_lpPublicStore, m_lpUserStore, lpUsers[i].m_cbEid, lpUsers[i].m_lpEid, true, &~lpMessage);
 		if (hr != hrSuccess)
 		{
 			lppFBUpdate[i] = NULL;//FIXME: what todo with this?
 			continue;
 		}
 
-		hr = ECFreeBusyUpdate::Create(lpMessage, &lpECFBUpdate);
+		object_ptr<ECFreeBusyUpdate> lpECFBUpdate;
+		hr = ECFreeBusyUpdate::Create(lpMessage, &~lpECFBUpdate);
 		if(hr != hrSuccess)
 			goto exit;
 
 		hr = lpECFBUpdate->QueryInterface(IID_IFreeBusyUpdate, (void**)&lppFBUpdate[i]);
 		if(hr != hrSuccess)
 			goto exit;
-		
-		lpECFBUpdate->Release();
-		lpECFBUpdate = NULL;
-		
-		lpMessage->Release();
-		lpMessage = NULL;
 		++cFBUpdate;
 	}
 
@@ -264,19 +244,13 @@ HRESULT ECFreeBusySupport::LoadFreeBusyUpdate(ULONG cUsers, FBUser *lpUsers, IFr
 		*lpcFBUpdate = cFBUpdate;
 
 exit:
-	if(lpECFBUpdate)
-		lpECFBUpdate->Release();
-
-	if(lpMessage)
-		lpMessage->Release();
-
 	return hr;
 }
 
 HRESULT ECFreeBusySupport::GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulStatus, unsigned int *lpulStart, unsigned int *lpulEnd)
 {
 	HRESULT hr = hrSuccess;
-	IFreeBusyData *lpFBData = NULL;
+	object_ptr<IFreeBusyData> lpFBData;
 	HRESULT ulStatus = 0;
 	ULONG ulRead = 0;
 
@@ -400,8 +374,7 @@ HRESULT ECFreeBusySupport::GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulS
 	// doesn't seem to matter when booking resources, so it looks like these values are ignored.
 
 	// We'll get the values anyway just to be sure.
-
-	hr = LoadFreeBusyData(1, &sFBUser, &lpFBData, &ulStatus, &ulRead);
+	hr = LoadFreeBusyData(1, &sFBUser, &~lpFBData, &ulStatus, &ulRead);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -413,9 +386,6 @@ HRESULT ECFreeBusySupport::GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulS
 	hr = lpFBData->GetFBPublishRange((LONG *)lpulStart, (LONG *)lpulEnd);
 
 exit:
-	if(lpFBData)
-		lpFBData->Release();
-
 	// if an error is returned, outlook will send an email to the resource.
 	// PR_LAST_VERB_EXECUTED (ulong) will be set to 516, so outlook knows modifications need to be mailed too.
 	return hr;
