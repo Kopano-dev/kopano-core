@@ -142,7 +142,7 @@ def show_contents(args, options):
                     writer.writerow([_encode(path), _encode(message.Subject)])
 
 def main():
-    parser = kopano.parser('cflskpUPu', usage='kopano-pst PATH [-u NAME]')
+    parser = kopano.parser('cflskpUPu', usage='kopano-migration-pst PATH [-u NAME]')
     parser.add_option('', '--stats', dest='stats', action='store_true', help='list folders for PATH')
     parser.add_option('', '--index', dest='index', action='store_true', help='list items for PATH')
     parser.add_option('', '--import-root', dest='import_root', action='store', help='list items for PATH', metavar='PATH')
