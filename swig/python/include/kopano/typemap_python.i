@@ -60,6 +60,14 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
 	if(PyErr_Occurred()) goto fail;
 }
 
+	 %typemap(in) 			(MAPIARRAY, ULONG) ($2_type cArray = 0, $1_type lpArray = NULL)
+{
+	ULONG len;
+	$1 = List_to$1_mangle($input, &len);
+	$2 = len;
+	if(PyErr_Occurred()) goto fail;
+}
+
 %typemap(in)				MAPILIST *INPUT ($*type tmp)
 {
 	tmp = List_to$*mangle($input);

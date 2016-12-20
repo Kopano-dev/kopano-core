@@ -21,6 +21,7 @@
 #include "freebusy.h"
 #include <Python.h>
 
-LPFBUser List_to_p_FBUser(PyObject *sv, ULONG *cValues); //FIXME: implement this function!
+LPFBUser List_to_p_FBUser(PyObject *, ULONG *);
+LPFBBlock_1 List_to_p_FBBlock_1(PyObject *, ULONG *);
 
 #endif

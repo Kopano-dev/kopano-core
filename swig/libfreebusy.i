@@ -42,7 +42,8 @@ enum FBStatus {
 };
 
 %apply (ULONG, MAPIARRAY) { (ULONG cMax, FBUser *rgfbuser), (ULONG cUsers, FBUser *lpUsers) };
-
+%apply (MAPIARRAY, ULONG) { (FBBlock_1 *lpBlocks, ULONG nBlocks), (FBBlock_1 *lpBlocks, ULONG nBlocks) }
+%apply (ULONG, MAPIARRAY) { (LONG celt, FBBlock_1 *pblk), (LONG clt, FBBlock_1 *pblk) }
 
 class IUnknown {
 public:

@@ -83,11 +83,11 @@ _RecurrenceState_la_LIBADD = libkcpyconv.la \
 	$(PROG_LIBS) $(PYTHON_LIBS)
 
 _libfreebusy_la_CPPFLAGS = ${AM_CPPFLAGS} -I${top_srcdir}/libfreebusy
-_libfreebusy_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version
+_libfreebusy_la_LDFLAGS = ${AM_LDFLAGS} -module -avoid-version -rpath '$(libdir)'
 _libfreebusy_la_LIBADD = libkcpyconv.la ${top_builddir}/libmapi.la \
 	${top_builddir}/libkcfreebusy.la \
 	${top_builddir}/libkcmapi.la \
-        ${top_builddir}/libkcutil.la \
+	${top_builddir}/libkcutil.la \
 	$(PROG_LIBS) $(PYTHON_LIBS)
 
 
