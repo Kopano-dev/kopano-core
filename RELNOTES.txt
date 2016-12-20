@@ -7,7 +7,7 @@ Fixes:
 * dagent: the "Received" debugging header had the wrong target address
 * gateway: do not emit an X-Mailer field when retrieving mail [KC-277]
 * server/ldap: report empty ldap_search_base setting
-* client: verify peer's SSL certificate name [KC-156]
+* client: verify peer's SSL certificate name [KC-156,KC-409]
 * admin: support unwrapping "default:" type URLs [KC-289]
 * backup: fix tracebacks when used with ZCP [KC-306,KC-307,KC-308]
 * server: implement missing readback of compressed attachments [KC-285]
@@ -18,6 +18,9 @@ Fixes:
 * inetmapi: review misdetection of TNEF necessity for reminders [KC-348]
 * icalmapi: unbreak timezone lookup [KC-313]
 * inetmapi: avoid an infinite recursion on SMIME handling [KC-366]
+* inetmapi: avoid buffer overread when generating NDR [KC-398]
+* server: equalize fs permissions for attachments [KC-380]
+* migration-pst: resolve tracebacks [KC-372,KC-373,KC-377]
 Enhancements:
 * PST importer [KC-59]
 * Python 3 support [KC-48,KC-267]
@@ -32,6 +35,8 @@ Enhancements:
 * kopano-stats: bind 'q' key to exit as well [KC-105]
 * presence: log authentication errors
 * Improved PHP7 support [*,KC-330]
+* backup: backup deleted items and folders [KC-376]
+* backup: add --purge option [KC-376]
 Changes:
 * Non-Delivery Reports now originate from "Mail Delivery System"
   (like postfix) instead of yourself [KC-309]
