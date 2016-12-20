@@ -3,7 +3,7 @@
 "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd">
 <book>
   <bookinfo>
-    <date>April 2014</date>
+    <date>November 2016</date>
 
     <releaseinfo>Version 8</releaseinfo>
 
@@ -10548,6 +10548,31 @@
 			<term><option>--only-meta</option></term>
 			<listitem>
 			  <para>Only backup/restore meta data, such as settings, permissions and rules.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term>
+				<option>--deletes</option>
+				<replaceable>YESNO</replaceable>
+			</term>
+			<listitem>
+			  <para>Backup/restore/show deleted items/folders. The default when backing up is to maintain
+			  data which has been soft- or hard-deleted. The default when restoring
+			  is to not restore such data. The default when viewing the contents of a backup directory is
+			  to show such data.</para>
+			</listitem>
+		  </varlistentry>
+
+		  <varlistentry>
+			<term>
+				<option>--purge</option>
+				<replaceable>N</replaceable>
+			</term>
+			<listitem>
+			  <para>Permanently delete data from backup directory which has been marked as deleted more than
+			  the specified number of days ago.
+			  </para>
 			</listitem>
 		  </varlistentry>
 
