@@ -515,7 +515,7 @@ def show_contents(data_path, options):
 
         # --index: one entry per item
         elif options.index:
-            sorted(items, key=lambda item: item[1]['last_modified'])
+            items = sorted(items, key=lambda item: item[1]['last_modified'])
             for key, d in items:
                 writer.writerow([key, path.encode(sys.stdout.encoding or 'utf8'), d['last_modified'], d['subject'].encode(sys.stdout.encoding or 'utf8')])
 
