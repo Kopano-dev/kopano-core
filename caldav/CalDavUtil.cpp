@@ -22,6 +22,7 @@
 #include <kopano/EMSAbTag.h>
 #include <kopano/charset/convert.h>
 #include <kopano/mapi_ptr.h>
+#include <kopano/memory.hpp>
 
 using namespace std;
 using namespace KCHL;
@@ -103,10 +104,10 @@ HRESULT HrAddProperty(IMAPIProp *lpMapiProp, ULONG ulPropTag, bool bFldId, std::
  */
 HRESULT HrAddProperty(IMsgStore *lpMsgStore, SBinary sbEid, ULONG ulPropertyId, bool bIsFldID, std::wstring *lpwstrProperty )
 {
-	IMAPIFolder *lpUsrFld = NULL;
+	object_ptr<IMAPIFolder> lpUsrFld;
 	ULONG ulObjType = 0;
 	HRESULT hr = lpMsgStore->OpenEntry(sbEid.cb, reinterpret_cast<ENTRYID *>(sbEid.lpb),
-	             NULL, MAPI_BEST_ACCESS, &ulObjType, reinterpret_cast<LPUNKNOWN *>(&lpUsrFld));
+	             nullptr, MAPI_BEST_ACCESS, &ulObjType, &~lpUsrFld);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -117,9 +118,6 @@ HRESULT HrAddProperty(IMsgStore *lpMsgStore, SBinary sbEid, ULONG ulPropertyId, 
 	hr = lpUsrFld->SaveChanges(KEEP_OPEN_READWRITE);
 
 exit:
-	if(lpUsrFld)
-		lpUsrFld->Release();
-
 	return hr;
 }
 
@@ -147,7 +145,7 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 {
 	HRESULT hr = hrSuccess;
 	std::string strBinEid;
-	IMAPITable *lpHichyTable = NULL;
+	object_ptr<IMAPITable> lpHichyTable;
 	SPropValue sPropFolderID;
 	SPropValue sPropFolderName;
 	ULONG ulPropTagFldId = 0;
@@ -194,7 +192,7 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 		goto exit;
 	}
 
-	hr = lpRootFolder->GetHierarchyTable(CONVENIENT_DEPTH, &lpHichyTable);
+	hr = lpRootFolder->GetHierarchyTable(CONVENIENT_DEPTH, &~lpHichyTable);
 	if(hr != hrSuccess)
 		goto exit;
 	//When ENTRY_ID is use For Read Only Calendars assuming the folder id string 
@@ -256,9 +254,6 @@ exit:
 
 	if(lpRows)
 		FreeProws(lpRows);
-
-	if(lpHichyTable)
-		lpHichyTable->Release();
 	return hr;
 }
 
@@ -466,24 +461,17 @@ std::string StripGuid(const std::string &strInput)
 HRESULT HrGetOwner(IMAPISession *lpSession, IMsgStore *lpDefStore, IMailUser **lppImailUser)
 {
 	SPropValuePtr ptrSProp;
-	IMailUser *lpMailUser = NULL;
+	object_ptr<IMailUser> lpMailUser;
 	ULONG ulObjType = 0;
 
 	HRESULT hr = HrGetOneProp(lpDefStore, PR_MAILBOX_OWNER_ENTRYID, &~ptrSProp);
 	if(hr != hrSuccess)
 		goto exit;
-	
-	hr = lpSession->OpenEntry(ptrSProp->Value.bin.cb, (LPENTRYID)ptrSProp->Value.bin.lpb, NULL, MAPI_BEST_ACCESS, &ulObjType, (LPUNKNOWN*)&lpMailUser);
+	hr = lpSession->OpenEntry(ptrSProp->Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrSProp->Value.bin.lpb), nullptr, MAPI_BEST_ACCESS, &ulObjType, &~lpMailUser);
 	if(hr != hrSuccess)
 		goto exit;
-
-	*lppImailUser = lpMailUser;
-	lpMailUser = NULL;
-
+	*lppImailUser = lpMailUser.release();
 exit:
-	if(lpMailUser)
-		lpMailUser->Release();
-
 	return hr;
 }
 
@@ -547,9 +535,9 @@ exit:
  */
 bool HasDelegatePerm(IMsgStore *lpDefStore, IMsgStore *lpSharedStore)
 {
-	LPMESSAGE lpFbMessage = NULL;
+	object_ptr<IMessage> lpFbMessage;
 	memory_ptr<SPropValue> lpProp, lpMailBoxEid;
-	IMAPIContainer *lpRootCont = NULL;
+	object_ptr<IMAPIContainer> lpRootCont;
 	ULONG ulType = 0;
 	ULONG ulPos = 0;
 	SBinary sbEid = {0,0};
@@ -559,8 +547,7 @@ bool HasDelegatePerm(IMsgStore *lpDefStore, IMsgStore *lpSharedStore)
 	HRESULT hr = HrGetOneProp(lpDefStore, PR_MAILBOX_OWNER_ENTRYID, &~lpMailBoxEid);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = lpSharedStore->OpenEntry(0, NULL, NULL, 0, &ulType, (LPUNKNOWN*)&lpRootCont);
+	hr = lpSharedStore->OpenEntry(0, nullptr, nullptr, 0, &ulType, &~lpRootCont);
 	if (hr != hrSuccess)
 		goto exit;
 	hr = HrGetOneProp(lpRootCont, PR_FREEBUSY_ENTRYIDS, &~lpProp);
@@ -571,8 +558,7 @@ bool HasDelegatePerm(IMsgStore *lpDefStore, IMsgStore *lpSharedStore)
 		sbEid = lpProp->Value.MVbin.lpbin[1];
 	else
 		goto exit;
-
-	hr = lpSharedStore->OpenEntry(sbEid.cb, (LPENTRYID)sbEid.lpb, NULL, MAPI_BEST_ACCESS, &ulType, (LPUNKNOWN*)&lpFbMessage);
+	hr = lpSharedStore->OpenEntry(sbEid.cb, reinterpret_cast<ENTRYID *>(sbEid.lpb), nullptr, MAPI_BEST_ACCESS, &ulType, &~lpFbMessage);
 	if (hr != hrSuccess)
 		goto exit;
 	hr = HrGetOneProp(lpFbMessage, PR_SCHDINFO_DELEGATE_ENTRYIDS, &~lpProp);
@@ -601,12 +587,6 @@ bool HasDelegatePerm(IMsgStore *lpDefStore, IMsgStore *lpSharedStore)
 		blDelegatePerm = false;
 
 exit:
-	if (lpFbMessage)
-		lpFbMessage->Release();
-
-	if (lpRootCont)
-		lpRootCont->Release();
-
 	return blDelegatePerm;
 }
 /**
@@ -699,16 +679,15 @@ HRESULT HrFindAndGetMessage(std::string strGuid, IMAPIFolder *lpUsrFld, LPSPropT
 	SBinary sbEid = {0,0};
 	memory_ptr<SRestriction> lpsRoot;
 	SRowSet *lpValRows = NULL;
-	IMAPITable *lpTable = NULL;
-	IMessage *lpMessage = NULL;	
+	object_ptr<IMAPITable> lpTable;
+	object_ptr<IMessage> lpMessage;
 	ULONG ulObjType = 0;
 	SizedSPropTagArray(1, sPropTagArr) = {1, {PR_ENTRYID}};
 	
 	HRESULT hr = HrMakeRestriction(strGuid, lpNamedProps, &~lpsRoot);
 	if (hr != hrSuccess)
 		goto exit;
-	
-	hr = lpUsrFld->GetContentsTable(0, &lpTable);
+	hr = lpUsrFld->GetContentsTable(0, &~lpTable);
 	if(hr != hrSuccess)
 		goto exit;
 	hr = lpTable->SetColumns(sPropTagArr, 0);
@@ -735,20 +714,11 @@ HRESULT HrFindAndGetMessage(std::string strGuid, IMAPIFolder *lpUsrFld, LPSPropT
 		goto exit;
 	}
 	sbEid = lpValRows->aRow[0].lpProps[0].Value.bin;
-
-	hr = lpUsrFld->OpenEntry(sbEid.cb, (LPENTRYID)sbEid.lpb, NULL, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*)&lpMessage);
+	hr = lpUsrFld->OpenEntry(sbEid.cb, reinterpret_cast<ENTRYID *>(sbEid.lpb), nullptr, MAPI_MODIFY, &ulObjType, &~lpMessage);
 	if (hr != hrSuccess)
 		goto exit;
-	
-	*lppMessage = lpMessage;
-	lpMessage = NULL;
-
+	*lppMessage = lpMessage.release();
 exit:
-	if(lpMessage)
-		lpMessage->Release();
-
-	if(lpTable)
-		lpTable->Release();
 	if(lpValRows)
 		FreeProws(lpValRows);
 	

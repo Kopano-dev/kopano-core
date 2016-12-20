@@ -20,6 +20,7 @@
 #include <mapix.h>
 #include <kopano/ECGuid.h>
 #include <kopano/ECInterfaceDefs.h>
+#include <kopano/memory.hpp>
 #include "ECMemStream.h"
 #include <kopano/Trace.h>
 #include <kopano/ECDebug.h>
@@ -373,7 +374,7 @@ HRESULT ECMemStream::CopyTo(IStream *pstm, ULARGE_INTEGER cb, ULARGE_INTEGER *pc
 HRESULT ECMemStream::Commit(DWORD grfCommitFlags)
 {
 	HRESULT hr = hrSuccess;
-	IStream *lpClonedStream = NULL;
+	KCHL::object_ptr<IStream> lpClonedStream;
 
 	hr = this->lpMemBlock->Commit();
 
@@ -382,9 +383,7 @@ HRESULT ECMemStream::Commit(DWORD grfCommitFlags)
 
 	// If there is no commit func, just ignore the commit
 	if(this->lpCommitFunc) {
-
-		hr = this->Clone(&lpClonedStream);
-
+		hr = this->Clone(&~lpClonedStream);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -394,9 +393,6 @@ HRESULT ECMemStream::Commit(DWORD grfCommitFlags)
 	this->fDirty = FALSE;
 
 exit:
-	if(lpClonedStream)
-		lpClonedStream->Release();
-
 	return hr;
 }
 

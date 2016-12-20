@@ -72,14 +72,14 @@ HRESULT iCal::HrHandleIcalGet(const std::string &strMethod)
 	std::string strMsg;
 	std::string strModtime;
 	memory_ptr<SPropValue> lpProp;
-	LPMAPITABLE lpContents = NULL;
+	object_ptr<IMAPITable> lpContents;
 	bool blCensorFlag = 0;
 
 	if ((m_ulFolderFlag & SHARED_FOLDER) && !HasDelegatePerm(m_lpDefStore, m_lpActiveStore))
 		blCensorFlag = true;
 	
 	// retrieve table and restrict as per request
-	hr = HrGetContents(&lpContents);
+	hr = HrGetContents(&~lpContents);
 	if (hr != hrSuccess) {
 		ec_log_err("Unable to retrieve contents of folder, error code: 0x%08X", hr);
 		goto exit;
@@ -120,9 +120,6 @@ exit:
 	}
 	else
 		m_lpRequest->HrResponseHeader(500, "Internal Server Error");
-	if (lpContents)
-		lpContents->Release();
-
 	return hr;
 }
 
@@ -137,7 +134,7 @@ exit:
 HRESULT iCal::HrHandleIcalPost()
 {
 	HRESULT hr = hrSuccess;
-	LPMAPITABLE lpContTable = NULL;
+	object_ptr<IMAPITable> lpContTable;
 	LPSRowSet lpRows = NULL;
 	SBinary sbEid = {0,0};
 	SBinary sbUid = {0,0};
@@ -190,8 +187,7 @@ HRESULT iCal::HrHandleIcalPost()
 
 	if ((m_ulFolderFlag & SHARED_FOLDER) && !HasDelegatePerm(m_lpDefStore, m_lpActiveStore))
 		blCensorPrivate = true;
-	
-	hr = m_lpUsrFld->GetContentsTable( 0, &lpContTable);
+	hr = m_lpUsrFld->GetContentsTable(0, &~lpContTable);
 	if(hr != hrSuccess)
 		goto exit;
 	hr = lpContTable->SetColumns(proptags, 0);
@@ -313,10 +309,6 @@ exit:
 
 	for (mpIterJ = mpSrvEntries.cbegin(); mpIterJ != mpSrvEntries.cend(); ++mpIterJ)
 		MAPIFreeBuffer(mpIterJ->second.lpb);
-	
-	if(lpContTable)
-		lpContTable->Release();
-	
 	if(lpRows)
 		FreeProws(lpRows);
 
@@ -340,14 +332,14 @@ exit:
  */
 HRESULT iCal::HrModify( ICalToMapi *lpIcal2Mapi, SBinary sbSrvEid, ULONG ulPos, bool blCensor)
 {
-	LPMESSAGE lpMessage = NULL;
+	object_ptr<IMessage> lpMessage;
 	ULONG ulObjType=0;
 	ULONG ulTagPrivate = 0;
 
 	ulTagPrivate = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_PRIVATE], PT_BOOLEAN);
 
 	HRESULT hr = m_lpUsrFld->OpenEntry(sbSrvEid.cb, reinterpret_cast<ENTRYID *>(sbSrvEid.lpb),
-	             NULL, MAPI_BEST_ACCESS, &ulObjType, reinterpret_cast<LPUNKNOWN *>(&lpMessage));
+	             nullptr, MAPI_BEST_ACCESS, &ulObjType, &~lpMessage);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -364,9 +356,6 @@ HRESULT iCal::HrModify( ICalToMapi *lpIcal2Mapi, SBinary sbSrvEid, ULONG ulPos, 
 	hr = lpMessage->SaveChanges(0);
 
 exit:
-	if(lpMessage)
-		lpMessage->Release();
-	
 	return hr;
 }
 /**
@@ -378,8 +367,8 @@ exit:
  */
 HRESULT iCal::HrAddMessage(ICalToMapi *lpIcal2Mapi, ULONG ulPos)
 {
-	LPMESSAGE lpMessage = NULL;
-	HRESULT hr = m_lpUsrFld->CreateMessage(NULL, 0, &lpMessage);
+	object_ptr<IMessage> lpMessage;
+	HRESULT hr = m_lpUsrFld->CreateMessage(nullptr, 0, &~lpMessage);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -394,9 +383,6 @@ HRESULT iCal::HrAddMessage(ICalToMapi *lpIcal2Mapi, ULONG ulPos)
 		ec_log_err("Error saving a new calendar entry, error code: 0x%08X",hr);
 
 exit:
-	if (lpMessage)
-		lpMessage->Release();
-
 	return hr;
 }
 
@@ -413,7 +399,7 @@ exit:
 HRESULT iCal::HrDelMessage(SBinary sbEid, bool blCensor)
 {
 	memory_ptr<ENTRYLIST> lpEntryList;
-	LPMESSAGE lpMessage = NULL;
+	object_ptr<IMessage> lpMessage;
 	ULONG ulObjType = 0;
 	ULONG ulTagPrivate = 0;
 	
@@ -433,8 +419,7 @@ HRESULT iCal::HrDelMessage(SBinary sbEid, bool blCensor)
 		ec_log_err("Error allocating memory, error code: 0x%08X",hr);
 		goto exit;
 	}
-
-	hr = m_lpUsrFld->OpenEntry(sbEid.cb, (LPENTRYID) sbEid.lpb, NULL, MAPI_BEST_ACCESS, &ulObjType, (LPUNKNOWN *)&lpMessage);
+	hr = m_lpUsrFld->OpenEntry(sbEid.cb, reinterpret_cast<ENTRYID *>(sbEid.lpb), nullptr, MAPI_BEST_ACCESS, &ulObjType, &~lpMessage);
 	if(hr != hrSuccess)
 		goto exit;
 	
@@ -458,9 +443,6 @@ HRESULT iCal::HrDelMessage(SBinary sbEid, bool blCensor)
 	}
 
 exit:
-	if(lpMessage)
-		lpMessage->Release();
-
 	return hr;
 }
 
@@ -529,7 +511,6 @@ HRESULT iCal::HrGetIcal(IMAPITable *lpTable, bool blCensorPrivate, std::string *
 {
 	HRESULT hr = hrSuccess;
 	LPSRowSet lpRows = NULL;	
-	LPMESSAGE lpMessage = NULL;
 	SBinary sbEid = {0,0};
 	ULONG ulObjType = 0;
 	ULONG ulTagPrivate = 0;
@@ -568,8 +549,9 @@ HRESULT iCal::HrGetIcal(IMAPITable *lpTable, bool blCensorPrivate, std::string *
 
 			sbEid = lpRows->aRow[i].lpProps[0].Value.bin;
 
+			object_ptr<IMessage> lpMessage;
 			hr = m_lpUsrFld->OpenEntry(sbEid.cb, (LPENTRYID)sbEid.lpb,
-									NULL, MAPI_BEST_ACCESS, &ulObjType, (LPUNKNOWN*)&lpMessage);
+			     nullptr, MAPI_BEST_ACCESS, &ulObjType, &~lpMessage);
 			if (hr != hrSuccess)
 			{
 				ec_log_debug("Error opening message for ical conversion, error code: 0x%08X", hr);
@@ -591,9 +573,6 @@ HRESULT iCal::HrGetIcal(IMAPITable *lpTable, bool blCensorPrivate, std::string *
 				// Ignore broken message
 				hr = hrSuccess;
 			}
-
-			lpMessage->Release();
-			lpMessage = NULL;
 		}
 		FreeProws(lpRows);
 		lpRows = NULL;
@@ -606,10 +585,6 @@ HRESULT iCal::HrGetIcal(IMAPITable *lpTable, bool blCensorPrivate, std::string *
 exit:
 	if (lpRows)
 		FreeProws(lpRows);
-
-	if (lpMessage)
-		lpMessage->Release();
-
 	delete lpMtIcal;
 	return hr;
 }
@@ -629,7 +604,7 @@ HRESULT iCal::HrDelFolder()
 {
 	HRESULT hr = hrSuccess;
 	memory_ptr<SPropValue> lpWstBoxEid, lpFldEid;
-	IMAPIFolder *lpWasteBoxFld = NULL;
+	object_ptr<IMAPIFolder> lpWasteBoxFld;
 	ULONG ulObjType = 0;
 
 	if (m_blFolderAccess == false) {
@@ -641,8 +616,7 @@ HRESULT iCal::HrDelFolder()
 	hr = HrGetOneProp(m_lpActiveStore, PR_IPM_WASTEBASKET_ENTRYID, &~lpWstBoxEid);
 	if (hr != hrSuccess)
 		goto exit;
-	
-	hr = m_lpActiveStore->OpenEntry(lpWstBoxEid->Value.bin.cb, (LPENTRYID)lpWstBoxEid->Value.bin.lpb, NULL, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*)&lpWasteBoxFld);
+	hr = m_lpActiveStore->OpenEntry(lpWstBoxEid->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpWstBoxEid->Value.bin.lpb), nullptr, MAPI_MODIFY, &ulObjType, &~lpWasteBoxFld);
 	if (hr != hrSuccess)
 	{
 		ec_log_err("Error opening \"Deleted items\" folder, error code: 0x%08X", hr);
@@ -663,8 +637,5 @@ exit:
 		m_lpRequest->HrResponseHeader(403,"Forbidden");
 	else
 		m_lpRequest->HrResponseHeader(500,"Internal Server Error");
-	if (lpWasteBoxFld)
-		lpWasteBoxFld->Release();
-
 	return hr;
 }
