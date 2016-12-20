@@ -56,7 +56,7 @@ Restore the contents of the specified backup directory\&. The respective store i
 .PP
 \fB\-\-stats\fR
 .RS 4
-List folders contained in specified backup directory in CSV format\&.
+List folders contained in specified backup directory in CSV format\&. Folder sizes are shown for each folder\&.
 .RE
 .PP
 \fB\-\-index\fR
@@ -130,6 +130,16 @@ Do not backup/restore meta data, such as settings, permissions and rules\&.
 \fB\-\-only\-meta\fR
 .RS 4
 Only backup/restore meta data, such as settings, permissions and rules\&.
+.RE
+.PP
+\fB\-\-deletes\fR \fIYESNO\fR
+.RS 4
+Backup/restore/show deleted items/folders\&. The default when backing up is to maintain data which has been soft\- or hard\-deleted\&. The default when restoring is to not restore such data\&. The default when viewing the contents of a backup directory is to show such data\&.
+.RE
+.PP
+\fB\-\-purge\fR \fIN\fR
+.RS 4
+Permanently delete data from backup directory which has been marked as deleted more than the specified number of days ago\&.
 .RE
 .PP
 \fB\-\-output\-dir\fR, \fB\-O\fR \fIPATH\fR
