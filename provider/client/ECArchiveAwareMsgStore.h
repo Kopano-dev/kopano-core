@@ -19,8 +19,8 @@
 #define ECARCHIVEAWAREMSGSTORE_H
 
 #include <kopano/zcdefs.h>
+#include <kopano/memory.hpp>
 #include "ECMsgStore.h"
-#include <kopano/mapi_ptr/mapi_object_ptr.h>
 #include <kopano/ECGuid.h>
 
 #include <list>
@@ -39,7 +39,7 @@ public:
 private:
 	typedef std::list<SBinary *> BinaryList;
 	typedef BinaryList::iterator	BinaryListIterator;
-	typedef mapi_object_ptr<ECMsgStore, IID_ECMsgStore>	ECMsgStorePtr;
+	typedef KCHL::object_ptr<ECMsgStore, IID_ECMsgStore> ECMsgStorePtr;
 	typedef std::vector<BYTE>		EntryID;
 	typedef std::map<EntryID, ECMsgStorePtr>			MsgStoreMap;
 

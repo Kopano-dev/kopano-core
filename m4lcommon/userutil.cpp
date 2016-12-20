@@ -41,7 +41,7 @@ using namespace std;
 
 namespace KC {
 
-typedef mapi_object_ptr<IECLicense, IID_IECLicense>ECLicensePtr;
+typedef KCHL::object_ptr<IECLicense, IID_IECLicense> ECLicensePtr;
 
 class servername _kc_final {
 public:

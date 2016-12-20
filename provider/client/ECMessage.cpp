@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
+#include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
 #include <kopano/ECInterfaceDefs.h>
 #include <mapidefs.h>
@@ -2854,7 +2855,7 @@ HRESULT ECMessage::GetRtfData(std::string *lpstrRtfData)
 	hr = WrapCompressedRTFStream(ptrRtfCompressedStream, 0, &ptrRtfUncompressedStream);
 	if(hr != hrSuccess)
 	{
-		mapi_object_ptr<ECMemStream> ptrEmptyMemStream;
+		KCHL::object_ptr<ECMemStream> ptrEmptyMemStream;
 
 		// Broken RTF, fallback on empty stream
 		hr = ECMemStream::Create(NULL, 0, 0, NULL, NULL, NULL, &ptrEmptyMemStream);

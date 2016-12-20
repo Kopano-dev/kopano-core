@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <kopano/ECInterfaceDefs.h>
+#include <kopano/mapi_ptr.h>
 #include "kcore.hpp"
 #include "ics.h"
 #include "pcutil.hpp"

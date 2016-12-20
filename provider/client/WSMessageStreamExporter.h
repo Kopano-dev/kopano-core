@@ -19,10 +19,9 @@
 #define WSMessageStreamExporter_INCLUDED
 
 #include <kopano/zcdefs.h>
+#include <kopano/memory.hpp>
 #include <kopano/ECUnknown.h>
 #include "soapStub.h"
-#include <kopano/mapi_ptr.h>
-
 #include <string>
 #include <map>
 
@@ -49,7 +48,7 @@ private:
 	WSMessageStreamExporter &operator=(const WSMessageStreamExporter &) = delete;
 
 private:
-	typedef mapi_object_ptr<WSTransport> WSTransportPtr;
+	typedef KCHL::object_ptr<WSTransport> WSTransportPtr;
 
 	struct StreamInfo {
 		std::string	id;
@@ -65,6 +64,6 @@ private:
 	StreamInfoMap	m_mapStreamInfo;
 };
 
-typedef mapi_object_ptr<WSMessageStreamExporter> WSMessageStreamExporterPtr;
+typedef KCHL::object_ptr<WSMessageStreamExporter> WSMessageStreamExporterPtr;
 
 #endif // ndef ECMessageStreamExporter_INCLUDED

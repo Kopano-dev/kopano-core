@@ -16,10 +16,13 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/memory.hpp>
 #include "ECArchiveAwareMsgStore.h"
 #include "ECArchiveAwareMessage.h"
 #include <kopano/ECGuid.h>
 #include <kopano/mapi_ptr.h>
+
+using namespace KCHL;
 
 ECArchiveAwareMsgStore::ECArchiveAwareMsgStore(char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags, BOOL fIsSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore)
 : ECMsgStore(lpszProfname, lpSupport, lpTransport, fModify, ulProfileFlags, fIsSpooler, fIsDefaultStore, bOfflineStore)
@@ -68,7 +71,7 @@ HRESULT ECArchiveAwareMsgStore::OpenItemFromArchive(LPSPropValue lpPropStoreEIDs
 	BinaryList			lstItemEIDs;
 	BinaryListIterator	iterStoreEID;
 	BinaryListIterator	iterIterEID;
-	mapi_object_ptr<ECMessage, IID_ECMessage>	ptrArchiveMessage;
+	object_ptr<ECMessage, IID_ECMessage> ptrArchiveMessage;
 
 	if (lpPropStoreEIDs == NULL || 
 		lpPropItemEIDs == NULL || 
@@ -153,9 +156,9 @@ HRESULT ECArchiveAwareMsgStore::GetArchiveStore(LPSBinary lpStoreEID, ECMsgStore
 	bool bIsPseudoUrl = false;
 	std::string strServer;
 	bool bIsPeer = false;
-	mapi_object_ptr<WSTransport> ptrTransport;
+	object_ptr<WSTransport> ptrTransport;
 	ECMsgStorePtr ptrArchiveStore;
-	mapi_object_ptr<IECPropStorage, IID_IECPropStorage> ptrPropStorage;
+	object_ptr<IECPropStorage, IID_IECPropStorage> ptrPropStorage;
 
 	hr = QueryInterface(IID_ECMsgStoreOnline, &ptrUnknown);
 	if (hr != hrSuccess)

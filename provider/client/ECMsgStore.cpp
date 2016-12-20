@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <kopano/ECInterfaceDefs.h>
+#include <kopano/mapi_ptr.h>
 #include <kopano/memory.hpp>
 #include <mapiutil.h>
 #include <edkguid.h>
@@ -59,8 +60,8 @@
 
 #include <kopano/mapi_ptr.h>
 typedef KCHL::memory_ptr<char> MAPIStringPtr;
-typedef mapi_object_ptr<WSTransport> WSTransportPtr;
-typedef mapi_object_ptr<ECMessage, IID_ECMessage> ECMessagePtr;
+typedef KCHL::object_ptr<WSTransport> WSTransportPtr;
+typedef KCHL::object_ptr<ECMessage, IID_ECMessage> ECMessagePtr;
 
 #include <kopano/charset/convstring.h>
 

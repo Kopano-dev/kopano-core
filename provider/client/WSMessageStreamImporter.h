@@ -20,14 +20,14 @@
 
 #include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
-#include <kopano/mapi_ptr.h>
+#include <kopano/memory.hpp>
 #include "soapStub.h"
 #include "ECFifoBuffer.h"
 #include <kopano/ECThreadPool.h>
 #include "WSTransport.h"
 
 class ECMAPIFolder;
-typedef mapi_object_ptr<WSTransport> WSTransportPtr;
+typedef KCHL::object_ptr<WSTransport> WSTransportPtr;
 
 class WSMessageStreamImporter;
 
@@ -49,8 +49,7 @@ private:
 	WSMessageStreamImporter *m_lpImporter;
 };
 
-typedef mapi_object_ptr<WSMessageStreamSink> WSMessageStreamSinkPtr;
-
+typedef KCHL::object_ptr<WSMessageStreamSink> WSMessageStreamSinkPtr;
 
 /**
  * This class is used to perform an message stream import to the server.
@@ -97,6 +96,6 @@ private:
 	ULONG m_ulTimeout;
 };
 
-typedef mapi_object_ptr<WSMessageStreamImporter> WSMessageStreamImporterPtr;
+typedef KCHL::object_ptr<WSMessageStreamImporter> WSMessageStreamImporterPtr;
 
 #endif // ndef WSMessageStreamImporter_INCLUDED

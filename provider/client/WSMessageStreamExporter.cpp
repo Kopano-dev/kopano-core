@@ -18,6 +18,7 @@
 #include <kopano/platform.h>
 #include <memory>
 #include <new>
+#include <kopano/mapi_ptr.h>
 #include "WSMessageStreamExporter.h"
 #include "WSSerializedMessage.h"
 #include "WSTransport.h"

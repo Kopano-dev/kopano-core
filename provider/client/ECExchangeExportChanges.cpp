@@ -18,6 +18,7 @@
 #include <kopano/platform.h>
 #include <kopano/ECInterfaceDefs.h>
 #include <kopano/memory.hpp>
+#include <kopano/mapi_ptr.h>
 #include "ECExchangeExportChanges.h"
 #include "WSMessageStreamExporter.h"
 #include "WSSerializedMessage.h"
