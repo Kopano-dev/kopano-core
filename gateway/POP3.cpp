@@ -41,6 +41,7 @@
 
 #include "POP3.h"
 using namespace std;
+using namespace KCHL;
 
 /**
  * @ingroup gateway_pop3
@@ -469,8 +470,8 @@ HRESULT POP3::HrCmdList(unsigned int ulMailNr) {
  */
 HRESULT POP3::HrCmdRetr(unsigned int ulMailNr) {
 	HRESULT hr = hrSuccess;
-	LPMESSAGE lpMessage = NULL;
-	LPSTREAM lpStream = NULL;
+	object_ptr<IMessage> lpMessage;
+	object_ptr<IStream> lpStream;
 	ULONG ulObjType;
 	string strMessage;
 	char *szMessage = NULL;
@@ -482,14 +483,13 @@ HRESULT POP3::HrCmdRetr(unsigned int ulMailNr) {
 		goto exit;
 	}
 
-	hr = lpStore->OpenEntry(lstMails[ulMailNr - 1].sbEntryID.cb, (LPENTRYID) lstMails[ulMailNr - 1].sbEntryID.lpb, &IID_IMessage, MAPI_DEFERRED_ERRORS,
-							&ulObjType, (LPUNKNOWN *) &lpMessage);
+	hr = lpStore->OpenEntry(lstMails[ulMailNr-1].sbEntryID.cb, reinterpret_cast<ENTRYID *>(lstMails[ulMailNr-1].sbEntryID.lpb), &IID_IMessage, MAPI_DEFERRED_ERRORS,
+	     &ulObjType, &~lpMessage);
 	if (hr != hrSuccess) {
 		HrResponse(POP3_RESP_ERR, "Failing to open entry");
 		goto exit;
 	}
-
-	hr = lpMessage->OpenProperty(PR_EC_IMAP_EMAIL, &IID_IStream, 0, 0, (LPUNKNOWN*)&lpStream);
+	hr = lpMessage->OpenProperty(PR_EC_IMAP_EMAIL, &IID_IStream, 0, 0, &~lpStream);
 	if (hr == hrSuccess) {
 		hr = Util::HrStreamToString(lpStream, strMessage);
 		if (hr == hrSuccess)
@@ -514,11 +514,6 @@ HRESULT POP3::HrCmdRetr(unsigned int ulMailNr) {
 	lpChannel->HrWriteLine(".");
 
 exit:
-	if (lpStream)
-		lpStream->Release();
-
-	if (lpMessage)
-		lpMessage->Release();
 	delete[] szMessage;
 	return hr;
 }
@@ -671,8 +666,8 @@ HRESULT POP3::HrCmdUidl(unsigned int ulMailNr) {
  */
 HRESULT POP3::HrCmdTop(unsigned int ulMailNr, unsigned int ulLines) {
 	HRESULT hr = hrSuccess;
-	LPMESSAGE lpMessage = NULL;
-	LPSTREAM lpStream = NULL;
+	object_ptr<IMessage> lpMessage;
+	object_ptr<IStream> lpStream;
 	ULONG ulObjType;
 	char *szMessage = NULL;
 	string strMessage;
@@ -685,14 +680,13 @@ HRESULT POP3::HrCmdTop(unsigned int ulMailNr, unsigned int ulLines) {
 		goto exit;
 	}
 
-	hr = lpStore->OpenEntry(lstMails[ulMailNr - 1].sbEntryID.cb, (LPENTRYID) lstMails[ulMailNr - 1].sbEntryID.lpb, &IID_IMessage, MAPI_DEFERRED_ERRORS,
-							&ulObjType, (LPUNKNOWN *) &lpMessage);
+	hr = lpStore->OpenEntry(lstMails[ulMailNr-1].sbEntryID.cb, reinterpret_cast<ENTRYID *>(lstMails[ulMailNr-1].sbEntryID.lpb), &IID_IMessage, MAPI_DEFERRED_ERRORS,
+	     &ulObjType, &~lpMessage);
 	if (hr != hrSuccess) {
 		HrResponse(POP3_RESP_ERR, "Failing to open entry");
 		goto exit;
 	}
-
-	hr = lpMessage->OpenProperty(PR_EC_IMAP_EMAIL, &IID_IStream, 0, 0, (LPUNKNOWN*)&lpStream);
+	hr = lpMessage->OpenProperty(PR_EC_IMAP_EMAIL, &IID_IStream, 0, 0, &~lpStream);
 	if (hr == hrSuccess)
 		hr = Util::HrStreamToString(lpStream, strMessage);
 	if (hr != hrSuccess) {
@@ -727,11 +721,6 @@ HRESULT POP3::HrCmdTop(unsigned int ulMailNr, unsigned int ulLines) {
 	}
 
 exit:
-	if (lpStream)
-		lpStream->Release();
-
-	if (lpMessage)
-		lpMessage->Release();
 	delete[] szMessage;
 	return hr;
 }
@@ -747,7 +736,7 @@ exit:
 HRESULT POP3::HrLogin(const std::string &strUsername, const std::string &strPassword) {
 	HRESULT hr = hrSuccess;
 	ULONG cbEntryID = 0;
-	KCHL::memory_ptr<ENTRYID> lpEntryID;
+	memory_ptr<ENTRYID> lpEntryID;
 	ULONG ulObjType = 0;
 	wstring strwUsername;
 	wstring strwPassword;
@@ -833,7 +822,7 @@ exit:
  */
 HRESULT POP3::HrMakeMailList() {
 	HRESULT hr = hrSuccess;
-	LPMAPITABLE lpTable = NULL;
+	object_ptr<IMAPITable> lpTable;
 	LPSRowSet lpRows = NULL;
 	MailListItem sMailListItem;
 	enum { EID, SIZE, NUM_COLS };
@@ -841,7 +830,7 @@ HRESULT POP3::HrMakeMailList() {
 	static constexpr const SizedSSortOrderSet(1, tableSort) =
 		{1, 0, 0, {{PR_CREATION_TIME, TABLE_SORT_ASCEND}}};
 
-	hr = lpInbox->GetContentsTable(0, &lpTable);
+	hr = lpInbox->GetContentsTable(0, &~lpTable);
 	if (hr != hrSuccess)
 		goto exit;
 	hr = lpTable->SetColumns(spt, 0);
@@ -877,10 +866,6 @@ HRESULT POP3::HrMakeMailList() {
 exit:
 	if (lpRows)
 		FreeProws(lpRows);
-
-	if (lpTable)
-		lpTable->Release();
-
 	return hr;
 }
 
