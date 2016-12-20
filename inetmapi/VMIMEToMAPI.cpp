@@ -215,12 +215,11 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 	HRESULT hr = hrSuccess;
 	// signature variables
 	ULONG ulAttNr;
-	LPATTACH lpAtt = NULL;
-	LPSTREAM lpStream = NULL;
+	object_ptr<IStream> lpStream;
 	ULONG nProps = 0;
 	SPropValue attProps[3];
 	SPropValue sPropSMIMEClass;
-	IMAPITable *lpAttachTable = NULL;
+	object_ptr<IMAPITable> lpAttachTable;
 	LPSRowSet lpAttachRows = NULL;
 	size_t posHeaderEnd;
 	bool bUnix = false;
@@ -280,7 +279,7 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 			// Remove the parsed attachments since the client should be reading them from the 
 			// signed rfc822 data we are about to add.
 			
-			hr = lpMessage->GetAttachmentTable(0, &lpAttachTable);
+			hr = lpMessage->GetAttachmentTable(0, &~lpAttachTable);
 			if(hr != hrSuccess)
 				goto exit;
 			hr = HrQueryAllRows(lpAttachTable, sptaAttach, NULL, NULL, -1, &lpAttachRows);
@@ -295,13 +294,14 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 			
 			// Include the entire rfc822 data in an attachment for the client to check
 			auto vmHeader = vmMessage->getHeader();
-			hr = lpMessage->CreateAttach(NULL, 0, &ulAttNr, &lpAtt);
+			object_ptr<IAttach> lpAtt;
+			hr = lpMessage->CreateAttach(nullptr, 0, &ulAttNr, &~lpAtt);
 			if (hr != hrSuccess)
 				goto exit;
 
 			// open stream
-			hr = lpAtt->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, STGM_WRITE|STGM_TRANSACTED,
-			     MAPI_CREATE | MAPI_MODIFY, (LPUNKNOWN *)&lpStream);
+			hr = lpAtt->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, STGM_WRITE | STGM_TRANSACTED,
+			     MAPI_CREATE | MAPI_MODIFY, &~lpStream);
 			if (hr != hrSuccess)
 				goto exit;
 
@@ -333,9 +333,6 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 			if (hr != hrSuccess)
 				goto exit;
 				
-			lpAtt->Release();
-			lpAtt = NULL;
-
 			// saved, so mark the message so outlook knows how to find the encoded message
 			sPropSMIMEClass.ulPropTag = PR_MESSAGE_CLASS_W;
 			sPropSMIMEClass.Value.lpszW = const_cast<wchar_t *>(L"IPM.Note.SMIME.MultipartSigned");
@@ -394,16 +391,6 @@ HRESULT VMIMEToMAPI::convertVMIMEToMAPI(const string &input, IMessage *lpMessage
 exit:
 	if (lpAttachRows)
 		FreeProws(lpAttachRows);
-		
-	if (lpAttachTable)
-		lpAttachTable->Release();
-		
-	if (lpAtt)
-		lpAtt->Release();
-
-	if (lpStream)
-		lpStream->Release();
-
 	return hr;
 }
 
@@ -1861,7 +1848,7 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
     bool filterDouble, bool appendBody)
 {
 	HRESULT	hr = hrSuccess;
-	IStream *lpStream = NULL;
+	object_ptr<IStream> lpStream;
 	SPropValue sPropSMIMEClass;
 	bool bFilterDouble = filterDouble;
 	bool bAppendBody = appendBody;
@@ -1921,7 +1908,7 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 		} else if(mt->getType() == vmime::mediaTypes::APPLICATION && mt->getSubType() == "ms-tnef") {
 			LARGE_INTEGER zero = {{0,0}};
 			
-			hr = CreateStreamOnHGlobal(NULL, TRUE, &lpStream);	
+			hr = CreateStreamOnHGlobal(nullptr, TRUE, &~lpStream);
 			if(hr != hrSuccess)
 				goto exit;
 				
@@ -2023,8 +2010,6 @@ HRESULT VMIMEToMAPI::dissect_body(vmime::shared_ptr<vmime::header> vmHeader,
 exit:
 	if (vmHeader->hasField(vmime::fields::MIME_VERSION))
 		--m_mailState.mime_vtag_nest;
-	if(lpStream)
-		lpStream->Release();
 	return hr;
 }
 
@@ -2148,7 +2133,7 @@ HRESULT VMIMEToMAPI::handleTextpart(vmime::shared_ptr<vmime::header> vmHeader,
     vmime::shared_ptr<vmime::body> vmBody, IMessage* lpMessage, bool bAppendBody)
 {
 	HRESULT hr = S_OK;
-	IStream *lpStream = NULL;
+	object_ptr<IStream> lpStream;
 
 	bool append = m_mailState.bodyLevel < BODY_PLAIN ||
 	              (m_mailState.bodyLevel == BODY_PLAIN && bAppendBody);
@@ -2218,8 +2203,7 @@ HRESULT VMIMEToMAPI::handleTextpart(vmime::shared_ptr<vmime::header> vmHeader,
 		ULONG ulFlags = MAPI_MODIFY;
 		if (m_mailState.bodyLevel < BODY_PLAIN || !bAppendBody)
 			ulFlags |= MAPI_CREATE;
-
-		hr = lpMessage->OpenProperty(PR_BODY_W, &IID_IStream, STGM_TRANSACTED, ulFlags, (LPUNKNOWN *)&lpStream);
+		hr = lpMessage->OpenProperty(PR_BODY_W, &IID_IStream, STGM_TRANSACTED, ulFlags, &~lpStream);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -2257,9 +2241,6 @@ HRESULT VMIMEToMAPI::handleTextpart(vmime::shared_ptr<vmime::header> vmHeader,
 	m_mailState.bodyLevel = BODY_PLAIN;
 
 exit:
-	if (lpStream)
-		lpStream->Release();
-
 	return hr;
 }
 
@@ -2321,7 +2302,7 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::shared_ptr<vmime::header> vmHeade
     vmime::shared_ptr<vmime::body> vmBody, IMessage *lpMessage, bool bAppendBody)
 {
 	HRESULT		hr				= hrSuccess;
-	IStream*	lpHTMLStream	= NULL; 
+	object_ptr<IStream> lpHTMLStream;
 	ULONG		cbWritten		= 0;
 	std::string strHTML;
 	const char *lpszCharset = NULL;
@@ -2488,8 +2469,7 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::shared_ptr<vmime::header> vmHeade
 	ulFlags = MAPI_MODIFY;
 	if (m_mailState.bodyLevel == BODY_NONE || (m_mailState.bodyLevel < BODY_HTML && !bAppendBody))
 		ulFlags |= MAPI_CREATE;
-
-	hr = lpMessage->OpenProperty(PR_HTML, &IID_IStream, STGM_TRANSACTED, ulFlags, (LPUNKNOWN *)&lpHTMLStream);
+	hr = lpMessage->OpenProperty(PR_HTML, &IID_IStream, STGM_TRANSACTED, ulFlags, &~lpHTMLStream);
 	if (hr != hrSuccess) {
 		ec_log_err("OpenProperty PR_HTML failed: %s", GetMAPIErrorMessage(hr));
 		goto exit;
@@ -2517,9 +2497,6 @@ HRESULT VMIMEToMAPI::handleHTMLTextpart(vmime::shared_ptr<vmime::header> vmHeade
 		swap(strHTML, m_mailState.strHTMLBody);
 
 exit:
-	if (lpHTMLStream)
-		lpHTMLStream->Release(); 
-
 	return hr;
 }
 
@@ -2536,8 +2513,8 @@ HRESULT VMIMEToMAPI::handleAttachment(vmime::shared_ptr<vmime::header> vmHeader,
     vmime::shared_ptr<vmime::body> vmBody, IMessage *lpMessage, bool bAllowEmpty)
 {
 	HRESULT		hr			= hrSuccess;
-	IStream		*lpStream	= NULL; 
-	LPATTACH	lpAtt		= NULL;
+	object_ptr<IStream> lpStream;
+	object_ptr<IAttach> lpAtt;
 	ULONG		ulAttNr		= 0;
 	std::string	strId, strMimeType, strLocation, strTmp;
 	std::wstring strLongFilename;
@@ -2551,13 +2528,13 @@ HRESULT VMIMEToMAPI::handleAttachment(vmime::shared_ptr<vmime::header> vmHeader,
 	memset(attProps, 0, sizeof(attProps));
 
 	// Create Attach
-	hr = lpMessage->CreateAttach(NULL, 0, &ulAttNr, &lpAtt);
+	hr = lpMessage->CreateAttach(nullptr, 0, &ulAttNr, &~lpAtt);
 	if (hr != hrSuccess)
 		goto exit;
 
 	// open stream
 	hr = lpAtt->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, STGM_WRITE|STGM_TRANSACTED,
-	     MAPI_CREATE | MAPI_MODIFY, (LPUNKNOWN *)&lpStream);
+	     MAPI_CREATE | MAPI_MODIFY, &~lpStream);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -2597,8 +2574,7 @@ HRESULT VMIMEToMAPI::handleAttachment(vmime::shared_ptr<vmime::header> vmHeader,
 			goto exit;
 			
 		// Free memory used by the stream
-		lpStream->Release();
-		lpStream = NULL;
+		lpStream.reset();
 
 		// set info on attachment
 		attProps[nProps].ulPropTag = PR_ATTACH_METHOD;
@@ -2715,13 +2691,6 @@ HRESULT VMIMEToMAPI::handleAttachment(vmime::shared_ptr<vmime::header> vmHeader,
 exit:
 	if (hr != hrSuccess)
 		ec_log_err("Unable to create attachment");
-
-	if (lpAtt)
-		lpAtt->Release();
-
-	if (lpStream)
-		lpStream->Release();
-
 	return hr;
 }
 

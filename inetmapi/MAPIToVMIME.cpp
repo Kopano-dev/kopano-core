@@ -185,7 +185,7 @@ HRESULT MAPIToVMIME::processRecipients(IMessage *lpMessage, vmime::messageBuilde
 {
 	HRESULT			hr					= hrSuccess;
 	vmime::shared_ptr<vmime::address> vmMailbox;
-	LPMAPITABLE		lpRecipientTable	= NULL;
+	object_ptr<IMAPITable> lpRecipientTable;
 	LPSRowSet		pRows				= NULL;
 	LPSPropValue	pPropRecipType		= NULL;
 	LPSPropValue	pPropDispl			= NULL;
@@ -196,7 +196,7 @@ HRESULT MAPIToVMIME::processRecipients(IMessage *lpMessage, vmime::messageBuilde
 	
 	SizedSPropTagArray(7, sPropRecipColumns) = {7, { PR_ENTRYID, PR_EMAIL_ADDRESS_W, PR_DISPLAY_NAME_W, PR_RECIPIENT_TYPE, PR_SMTP_ADDRESS_W, PR_ADDRTYPE_W, PR_OBJECT_TYPE} };
 
-	hr = lpMessage->GetRecipientTable(MAPI_UNICODE | MAPI_DEFERRED_ERRORS, &lpRecipientTable);
+	hr = lpMessage->GetRecipientTable(MAPI_UNICODE | MAPI_DEFERRED_ERRORS, &~lpRecipientTable);
 	if (hr != hrSuccess) {
 		ec_log_err("Unable to open recipient table. Error: 0x%08X", hr);
 		goto exit;
@@ -283,9 +283,6 @@ HRESULT MAPIToVMIME::processRecipients(IMessage *lpMessage, vmime::messageBuilde
 	}
 
 exit:
-	if (lpRecipientTable)
-		lpRecipientTable->Release();
-
 	if (pRows)
 		FreeProws(pRows);
 
@@ -303,16 +300,15 @@ exit:
  */
 HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, vmime::messageBuilder *lpVMMessageBuilder) {
 	HRESULT			hr					= hrSuccess;
-	IStream*		lpStream			= NULL; 
-	LPATTACH		lpAttach			= NULL;
+	object_ptr<IStream> lpStream;
+	object_ptr<IAttach> lpAttach;
 	LPSPropValue	pPropAttachNum		= NULL;
 	LPSPropValue	pPropAttachType		= NULL;
 	memory_ptr<SPropValue> lpContentId, lpContentLocation, lpHidden;
 	memory_ptr<SPropValue> lpFilename;
 	ULONG			ulAttachmentNum		= 0;
 	ULONG			ulAttachmentMethod	= 0;
-	IMessage*		lpAttachedMessage	= NULL;
-
+	object_ptr<IMessage> lpAttachedMessage;
 	vmime::shared_ptr<vmime::utility::inputStream> inputDataStream;
 	vmime::shared_ptr<mapiAttachment> vmMapiAttach;
 	vmime::shared_ptr<vmime::attachment> vmMsgAtt;
@@ -348,13 +344,12 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 		std::string strBuff;
 		vmime::utility::outputStreamStringAdapter mout(strBuff);
 
-		hr = lpMessage->OpenAttach(ulAttachmentNum, NULL, MAPI_BEST_ACCESS, &lpAttach);
+		hr = lpMessage->OpenAttach(ulAttachmentNum, nullptr, MAPI_BEST_ACCESS, &~lpAttach);
 		if (hr != hrSuccess) {
 			ec_log_err("Could not open message attachment %d. Error: 0x%08X", ulAttachmentNum, hr);
 			goto exit;
 		}
-
-		hr = lpAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_DEFERRED_ERRORS, (LPUNKNOWN *)&lpAttachedMessage);
+		hr = lpAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_DEFERRED_ERRORS, &~lpAttachedMessage);
 		if (hr != hrSuccess) {
 			ec_log_err("Could not open data of message attachment %d. Error: 0x%08X", ulAttachmentNum, hr);
 			goto exit;
@@ -397,7 +392,7 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 		vmMsgAtt = vmime::make_shared<vmime::parsedMessageAttachment>(vmNewMess);
 		lpVMMessageBuilder->appendAttachment(vmMsgAtt);
 	} else if (ulAttachmentMethod == ATTACH_BY_VALUE) {
-		hr = lpMessage->OpenAttach(ulAttachmentNum, NULL, MAPI_BEST_ACCESS, &lpAttach);
+		hr = lpMessage->OpenAttach(ulAttachmentNum, nullptr, MAPI_BEST_ACCESS, &~lpAttach);
 		if (hr != hrSuccess) {
 			ec_log_err("Could not open attachment %d. Error: 0x%08X", ulAttachmentNum, hr);
 			goto exit;
@@ -412,9 +407,9 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 
         // Optimize: if we're only outputting headers, we needn't bother with attachment data
         if(sopt.headers_only)
-            CreateStreamOnHGlobal(NULL, true, &lpStream);
+            CreateStreamOnHGlobal(nullptr, true, &~lpStream);
         else {
-            hr = lpAttach->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, 0, MAPI_DEFERRED_ERRORS, (LPUNKNOWN *)&lpStream);
+            hr = lpAttach->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, 0, MAPI_DEFERRED_ERRORS, &~lpStream);
             if (hr != hrSuccess) {
                 ec_log_err("Could not open data of attachment %d. Error: 0x%08X", ulAttachmentNum, hr);
                 goto exit;
@@ -480,15 +475,6 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 
 exit:
 	// ATTN: lpMapiAttach are linked in the VMMessageBuilder. The VMMessageBuilder will delete() it.
-	if (lpStream)
-		lpStream->Release();
-
-	if (lpAttach)
-		lpAttach->Release();
-
-	if (lpAttachedMessage)
-		lpAttachedMessage->Release();
-
 	return hr;
 }
 
@@ -634,12 +620,12 @@ HRESULT MAPIToVMIME::parseMimeTypeFromFilename(std::wstring strFilename, vmime::
 HRESULT MAPIToVMIME::handleAttachments(IMessage* lpMessage, vmime::messageBuilder *lpVMMessageBuilder) {
 	HRESULT		hr					= hrSuccess;
 	LPSRowSet	pRows				= NULL;
-	LPMAPITABLE	lpAttachmentTable	= NULL;
+	object_ptr<IMAPITable> lpAttachmentTable;
 	static constexpr const SizedSSortOrderSet(1, sosRTFSeq) =
 		{1, 0, 0, {{PR_RENDERING_POSITION, TABLE_SORT_ASCEND}}};
 
 	// get attachment table
-	hr = lpMessage->GetAttachmentTable(0, &lpAttachmentTable);
+	hr = lpMessage->GetAttachmentTable(0, &~lpAttachmentTable);
 	if (hr != hrSuccess) {
 		ec_log_err("Unable to open attachment table. Error: 0x%08X", hr);
 		goto exit;
@@ -661,10 +647,6 @@ HRESULT MAPIToVMIME::handleAttachments(IMessage* lpMessage, vmime::messageBuilde
 exit:
 	if(pRows)
 		FreeProws(pRows);
-
-	if (lpAttachmentTable)
-		lpAttachmentTable->Release();
-
 	return hr;
 }
 
@@ -840,9 +822,9 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage,
 {
 	HRESULT				hr = hrSuccess;
 	vmime::shared_ptr<vmime::message> vmMessage;
-	IStream*			lpBodyStream = NULL;
+	object_ptr<IStream> lpBodyStream;
 	memory_ptr<SPropValue> lpiNetMsgId, lpMsgClass, lpSubject;
-	LPMAPITABLE			lpRecipientTable	= NULL;
+	object_ptr<IMAPITable> lpRecipientTable;
 	LPSRowSet			pRows				= NULL;
 	
 	vmime::mailbox		expeditor; // From
@@ -874,7 +856,7 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage,
 		}
 		
 		// Create Recipient
-		hr = lpMessage->GetRecipientTable(MAPI_DEFERRED_ERRORS, &lpRecipientTable);
+		hr = lpMessage->GetRecipientTable(MAPI_DEFERRED_ERRORS, &~lpRecipientTable);
 		if (hr != hrSuccess) {
 			ec_log_err("Unable to open MDN recipient table. Error: 0x%08X", hr);
 			goto exit;
@@ -934,8 +916,7 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage,
 			dispo.setType(vmime::dispositionTypes::DISPLAYED);		
 	
 		strMDNText.clear();// Default Empty body
-
-		hr = lpMessage->OpenProperty(PR_BODY_W, &IID_IStream, 0, 0, (IUnknown**)&lpBodyStream);
+		hr = lpMessage->OpenProperty(PR_BODY_W, &IID_IStream, 0, 0, &~lpBodyStream);
 		if (hr == hrSuccess) {
 			std::wstring strBuffer;
 			hr = Util::HrStreamToString(lpBodyStream, strBuffer);
@@ -1003,10 +984,6 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage,
 	*lpvmMessage = vmMessage;
 
 exit:
-	if(lpBodyStream)
-		lpBodyStream->Release();
-	if(lpRecipientTable)
-		lpRecipientTable->Release();
 	if(pRows)
 		FreeProws(pRows);
 
@@ -1038,11 +1015,11 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage,
 	vmime::shared_ptr<vmime::message> vmMessage;
 	const char *lpszCharset = NULL;
 	std::unique_ptr<char[]> lpszRawSMTP;
-	LPMAPITABLE				lpAttachmentTable	= NULL;
+	object_ptr<IMAPITable> lpAttachmentTable;
 	LPSRowSet				lpRows				= NULL;
 	LPSPropValue			lpPropAttach		= NULL;
-	LPATTACH				lpAttach			= NULL;
-	LPSTREAM				lpStream			= NULL;
+	object_ptr<IAttach> lpAttach;
+	object_ptr<IStream> lpStream;
 	STATSTG					sStreamStat;
 	SizedSPropTagArray(2, sPropAttachColumns) = {2, { PR_ATTACH_NUM, PR_ATTACH_MIME_TAG} };
 
@@ -1095,8 +1072,7 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage,
 	{
 		// - find attachment, and convert to char, and place in lpszRawSMTP
 		// - normal convert the message, but only from/to headers and such .. nothing else
-
-		hr = lpMessage->GetAttachmentTable(0, &lpAttachmentTable);
+		hr = lpMessage->GetAttachmentTable(0, &~lpAttachmentTable);
 		if (hr != hrSuccess) {
 			ec_log_err("Could not get attachment table of signed attachment. Error: 0x%08X", hr);
 			goto exit;
@@ -1125,14 +1101,12 @@ HRESULT MAPIToVMIME::convertMAPIToVMIME(IMessage *lpMessage,
 		lpPropAttach = PpropFindProp(lpRows->aRow[0].lpProps, lpRows->aRow[0].cValues, PR_ATTACH_NUM);
 		if (!lpPropAttach)
 			goto normal;
-
-		hr = lpMessage->OpenAttach(lpPropAttach->Value.ul, NULL, MAPI_BEST_ACCESS, &lpAttach);
+		hr = lpMessage->OpenAttach(lpPropAttach->Value.ul, nullptr, MAPI_BEST_ACCESS, &~lpAttach);
 		if (hr != hrSuccess) {
 			ec_log_err("Could not open signed attachment. Error: 0x%08X", hr);
 			goto exit;
 		}
-
-		hr = lpAttach->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, 0, MAPI_DEFERRED_ERRORS, (LPUNKNOWN *)&lpStream);
+		hr = lpAttach->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, 0, MAPI_DEFERRED_ERRORS, &~lpStream);
 		if (hr != hrSuccess) {
 			ec_log_err("Could not open data of signed attachment. Error: 0x%08X", hr);
 			goto exit;
@@ -1222,17 +1196,8 @@ normal:
 	*lpvmMessage = vmMessage;
 
 exit:
-	if (lpStream)
-		lpStream->Release();
-
-	if (lpAttach)
-		lpAttach->Release();
-
 	if (lpRows)
 		FreeProws(lpRows);
-
-	if (lpAttachmentTable)
-		lpAttachmentTable->Release();
 	return hr;
 }
 
@@ -1396,10 +1361,7 @@ HRESULT MAPIToVMIME::getMailBox(LPSRow lpRow,
 HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder *lpVMMessageBuilder, eBestBody *bestBody) {
 	std::string strHTMLOut, strRtf, strBodyConverted;
 	std::wstring strBody;
-	IStream*	lpCompressedRTFStream	= NULL; 
-	IStream*	lpUncompressedRTFStream	= NULL; 
-	IStream*	lpBody					= NULL;
-	IStream*	lpHTMLStream			= NULL;
+	object_ptr<IStream> lpCompressedRTFStream, lpUncompressedRTFStream;
 	vmime::charset HTMLcharset;
 
 	// set the encoder of plaintext body part
@@ -1412,10 +1374,9 @@ HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder 
 
 	// grabbing rtf
 	HRESULT hr = lpMessage->OpenProperty(PR_RTF_COMPRESSED, &IID_IStream,
-	             0, 0, reinterpret_cast<LPUNKNOWN *>(&lpCompressedRTFStream));
+	             0, 0, &~lpCompressedRTFStream);
 	if(hr == hrSuccess) {
-
-		hr = WrapCompressedRTFStream(lpCompressedRTFStream, 0, &lpUncompressedRTFStream);
+		hr = WrapCompressedRTFStream(lpCompressedRTFStream, 0, &~lpUncompressedRTFStream);
 		if (hr != hrSuccess) {
 			ec_log_warn("Unable to create RTF-text stream. Error: 0x%08X", hr);
 			goto exit;
@@ -1430,8 +1391,11 @@ HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder 
 		if (isrtfhtml(strRtf.c_str(), strRtf.size()) || sopt.use_tnef == -1)
 		{
 			// Open html
-			hr = lpMessage->OpenProperty(PR_HTML, &IID_IStream, 0, 0, (LPUNKNOWN *)&lpHTMLStream);
+			object_ptr<IStream> lpHTMLStream;
+
+			hr = lpMessage->OpenProperty(PR_HTML, &IID_IStream, 0, 0, &~lpHTMLStream);
 			if (hr == hrSuccess) {
+
 				hr = Util::HrStreamToString(lpHTMLStream, strHTMLOut);
 				if (hr != hrSuccess) {
 					ec_log_warn("Unable to read HTML-text stream. Error: 0x%08X", hr);
@@ -1440,7 +1404,6 @@ HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder 
 
 				// strHTMLout is now escaped us-ascii HTML, this is what we will be sending
 				// Or, if something failed, the HTML is now empty
-				lpHTMLStream->Release(); lpHTMLStream = NULL;
 				*bestBody = html;
 			} else {
 				ec_log_warn("Unable to open HTML-text stream. Error: 0x%08X", hr);
@@ -1459,10 +1422,11 @@ HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder 
 	}
 	
 	try {
-		hr = lpMessage->OpenProperty(PR_BODY_W, &IID_IStream, 0, 0, (IUnknown**)&lpBody);
+		object_ptr<IStream> lpBody;
+
+		hr = lpMessage->OpenProperty(PR_BODY_W, &IID_IStream, 0, 0, &~lpBody);
 		if (hr == hrSuccess) {
 			hr = Util::HrStreamToString(lpBody, strBody);
-			lpBody->Release(); lpBody = NULL;
 		} else {
 			if (hr != MAPI_E_NOT_FOUND)
 				ec_log_info("Unable to open plain-text stream. Error: 0x%08X", hr);
@@ -1525,19 +1489,6 @@ HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder 
 exit:
 	if (hr != hrSuccess)
 		ec_log_warn("Could not parse mail body");
-
-	if (lpHTMLStream)
-		lpHTMLStream->Release();
-
-	if (lpBody)
-		lpBody->Release();
-
-	if (lpUncompressedRTFStream)
-		lpUncompressedRTFStream->Release();
-		
-	if (lpCompressedRTFStream)
-		lpCompressedRTFStream->Release(); 
-
 	return hr;
 }
 
@@ -1768,7 +1719,7 @@ HRESULT MAPIToVMIME::handleContactEntryID(ULONG cValues, LPSPropValue lpProps, w
 	ULONG ulObjType;
 	memory_ptr<SPropTagArray> lpNameTags;
 	memory_ptr<SPropValue> lpNamedProps;
-	LPMAILUSER lpContact = NULL;
+	object_ptr<IMailUser> lpContact;
 	memory_ptr<MAPINAMEID *> lppNames;
 	ULONG i;
 	ULONG ulNames = 5;
@@ -1797,8 +1748,7 @@ HRESULT MAPIToVMIME::handleContactEntryID(ULONG cValues, LPSPropValue lpProps, w
 		hr = MAPI_E_NOT_FOUND;
 		goto exit;
 	}
-
-	hr = m_lpSession->OpenEntry(lpContabEntryID->cbeid, (LPENTRYID)lpContabEntryID->abeid, NULL, 0, &ulObjType, (LPUNKNOWN*)&lpContact);
+	hr = m_lpSession->OpenEntry(lpContabEntryID->cbeid, reinterpret_cast<ENTRYID *>(lpContabEntryID->abeid), nullptr, 0, &ulObjType, &~lpContact);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -1832,8 +1782,6 @@ HRESULT MAPIToVMIME::handleContactEntryID(ULONG cValues, LPSPropValue lpProps, w
 	     lpNameTags->aulPropTag[4], lpNameTags->aulPropTag[0], lpNameTags->aulPropTag[1], lpNameTags->aulPropTag[2],
 	     strName, strType, strEmail);
 exit:
-	if (lpContact)
-		lpContact->Release();
 	return hr;
 }
 
@@ -1961,7 +1909,7 @@ HRESULT MAPIToVMIME::handleReplyTo(IMessage *lpMessage,
 	LPCONTAB_ENTRYID lpContabEntryID = NULL;
 	GUID*			guid = NULL;
 	ULONG			ulObjType;
-	LPMAILUSER		lpContact = NULL;
+	object_ptr<IMailUser> lpContact;
 	wstring			strName, strType, strEmail;
 
 	// "Email1DisplayName","Email1AddressType","Email1Address","Email1EntryID"
@@ -2000,8 +1948,7 @@ HRESULT MAPIToVMIME::handleReplyTo(IMessage *lpMessage,
 
 		if (sizeof(CONTAB_ENTRYID) > lpEntry->cb || *guid != PSETID_CONTACT_FOLDER_RECIPIENT || lpContabEntryID->email_offset > 2)
 			goto exit;
-
-		hr = m_lpSession->OpenEntry(lpContabEntryID->cbeid, (LPENTRYID)lpContabEntryID->abeid, NULL, 0, &ulObjType, (LPUNKNOWN*)&lpContact);
+		hr = m_lpSession->OpenEntry(lpContabEntryID->cbeid, reinterpret_cast<ENTRYID *>(lpContabEntryID->abeid), nullptr, 0, &ulObjType, &~lpContact);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -2053,8 +2000,6 @@ HRESULT MAPIToVMIME::handleReplyTo(IMessage *lpMessage,
 	hr = hrSuccess;
 
 exit:
-	if (lpContact)
-		lpContact->Release();
 	return hr;
 }
 
@@ -2118,7 +2063,7 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
 	HRESULT			hr				= hrSuccess;
 	memory_ptr<SPropValue> lpSendAsICal, lpOutlookVersion, lpMessageClass;
 	memory_ptr<SPropValue> lpDelegateRule;
-	IStream 		*lpStream = NULL;
+	object_ptr<IStream> lpStream;
 	std::unique_ptr<MapiToICal> mapiical;
 	memory_ptr<MAPINAMEID> lpNames;
 	memory_ptr<SPropTagArray> lpNameTagArray;
@@ -2126,7 +2071,7 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
 	std::string		strTnefReason;
 
 	std::list<ULONG> lstOLEAttach; // list of OLE attachments that must be sent via TNEF
-	IMAPITable *	lpAttachTable = NULL;
+	object_ptr<IMAPITable> lpAttachTable;
 	LPSRowSet		lpAttachRows = NULL;
 	SizedSPropTagArray(2, sptaAttachProps) = {2, {PR_ATTACH_METHOD, PR_ATTACH_NUM }};
 	SizedSPropTagArray(5, sptaOLEAttachProps) = {5, {PR_ATTACH_FILENAME, PR_ATTACH_LONG_FILENAME, PR_ATTACH_DATA_OBJ, PR_ATTACH_CONTENT_ID, PR_ATTACHMENT_HIDDEN}};
@@ -2135,7 +2080,7 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
 
 	try {
 	    // Find all ATTACH_OLE attachments and put them in lstOLEAttach
-	    hr = lpMessage->GetAttachmentTable(0, &lpAttachTable);
+		hr = lpMessage->GetAttachmentTable(0, &~lpAttachTable);
 	    if(hr != hrSuccess)
 	        goto exit;
 	    hr = HrQueryAllRows(lpAttachTable, sptaAttachProps, NULL,
@@ -2242,7 +2187,7 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
 					ec_log_info(strTnefReason);
 
 tnef_anyway:
-				hr = CreateStreamOnHGlobal(NULL, TRUE, &lpStream);
+				hr = CreateStreamOnHGlobal(nullptr, TRUE, &~lpStream);
 				if (hr != hrSuccess) {
 					ec_log_err("Unable to create stream for TNEF attachment. Error 0x%08X", hr);
 					goto exit;
@@ -2310,10 +2255,6 @@ tnef_anyway:
 exit:
 	if (lpAttachRows != NULL)
 		FreeProws(lpAttachRows);
-	if (lpAttachTable != NULL)
-		lpAttachTable->Release();
-	if (lpStream)
-		lpStream->Release();
 	return hr;
 }
 
