@@ -9,5 +9,4 @@ nobase_pkginclude_HEADERS = \
 	IECUnknown.h RecurrenceState.h \
 	Util.h auto_free.h boost_compat.h \
 	mapiext.h mapiguidext.h mapi_ptr.h namedprops.h \
-	tstring.h userutil.h \
-	mapi_ptr/mapi_object_ptr.h mapi_ptr/mapi_rowset_ptr.h
+	tstring.h userutil.h mapi_ptr/mapi_rowset_ptr.h

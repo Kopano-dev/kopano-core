@@ -19,7 +19,6 @@
 #define mapi_ptr_INCLUDED
 
 #include <kopano/memory.hpp>
-#include <kopano/mapi_ptr/mapi_object_ptr.h>
 #include <kopano/mapi_ptr/mapi_rowset_ptr.h>
 
 #include <mapix.h>
