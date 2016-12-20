@@ -170,18 +170,15 @@ HRESULT ECQuotaMonitor::CheckQuota()
 	HRESULT 			hr = hrSuccess;
 
 	/* Service object */
-	IECServiceAdmin		*lpServiceAdmin = NULL;
+	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	memory_ptr<SPropValue> lpsObject;
-	IExchangeManageStore *lpIEMS = NULL;
+	object_ptr<IExchangeManageStore> lpIEMS;
 
 	/* Companylist */
 	ECCOMPANY *lpsCompanyList = NULL;
 	memory_ptr<ECCOMPANY> lpsCompanyListAlloc;
 	ECCOMPANY			sRootCompany = {{g_cbSystemEid, g_lpSystemEid}, (LPTSTR)"Default", NULL, {0, NULL}};
     ULONG				cCompanies = 0;
-
-	/* Company store */
-	LPMDB				lpMsgStore = NULL;
 
 	/* Quota information */
 	memory_ptr<ECQUOTA> lpsQuota;
@@ -193,8 +190,7 @@ HRESULT ECQuotaMonitor::CheckQuota()
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get internal object, error code: 0x%08X", hr);
 		goto exit;
 	}
-
-	hr = reinterpret_cast<IECUnknown *>(lpsObject->Value.lpszA)->QueryInterface(IID_IECServiceAdmin, reinterpret_cast<void **>(&lpServiceAdmin));
+	hr = reinterpret_cast<IECUnknown *>(lpsObject->Value.lpszA)->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
 	if(hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get service admin, error code: 0x%08X", hr);
 		goto exit;
@@ -212,7 +208,7 @@ HRESULT ECQuotaMonitor::CheckQuota()
 	} else
 		lpsCompanyList = lpsCompanyListAlloc;
 
-	hr = m_lpMDBAdmin->QueryInterface(IID_IExchangeManageStore, (void **)&lpIEMS);
+	hr = m_lpMDBAdmin->QueryInterface(IID_IExchangeManageStore, &~lpIEMS);
 	if (hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get admin interface, error code 0x%08X", hr);
 		goto exit;
@@ -221,6 +217,9 @@ HRESULT ECQuotaMonitor::CheckQuota()
 	for (ULONG i = 0; i < cCompanies; ++i) {
 		/* Check company quota for non-default company */
 		if (lpsCompanyList[i].sCompanyId.cb != 0 && lpsCompanyList[i].sCompanyId.lpb != NULL) {
+			/* Company store */
+			object_ptr<IMsgStore> lpMsgStore;
+
 			++m_ulProcessed;
 			hr = lpServiceAdmin->GetQuota(lpsCompanyList[i].sCompanyId.cb, (LPENTRYID)lpsCompanyList[i].sCompanyId.lpb, false, &~lpsQuota);
 			if (hr != hrSuccess) {
@@ -229,8 +228,7 @@ HRESULT ECQuotaMonitor::CheckQuota()
 				++m_ulFailed;
 				goto check_stores;
 			}
-
-			hr = OpenUserStore(lpsCompanyList[i].lpszCompanyname, CONTAINER_COMPANY, &lpMsgStore);
+			hr = OpenUserStore(lpsCompanyList[i].lpszCompanyname, CONTAINER_COMPANY, &~lpMsgStore);
 			if (hr != hrSuccess) {
 				hr = hrSuccess;
 				++m_ulFailed;
@@ -253,20 +251,9 @@ HRESULT ECQuotaMonitor::CheckQuota()
 check_stores:
 		/* Whatever the status of the company quota, we should also check the quota of the users */
 		CheckCompanyQuota(&lpsCompanyList[i]);
-		if (lpMsgStore) {
-			lpMsgStore->Release();
-			lpMsgStore = NULL;
-		}
 	}
 
 exit:
-	if (lpIEMS)
-		lpIEMS->Release();
-
-	if (lpServiceAdmin)
-		lpServiceAdmin->Release();
-	if (lpMsgStore) 
-		lpMsgStore->Release();
 	return hr;
 }
 

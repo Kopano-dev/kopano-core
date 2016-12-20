@@ -151,7 +151,7 @@ static HRESULT ProcessFolderEntry(Fsck *lpFsck, LPMAPIFOLDER lpFolder,
 {
 	HRESULT hr = hrSuccess;
 	LPSPropValue lpItemProperty = NULL;
-	LPMESSAGE lpMessage = NULL;
+	object_ptr<IMessage> lpMessage;
 	ULONG ulObjectType = 0;
 	string strName;
 	string strClass;
@@ -161,13 +161,9 @@ static HRESULT ProcessFolderEntry(Fsck *lpFsck, LPMAPIFOLDER lpFolder,
 		cout << "Row does not contain an EntryID." << endl;
 		goto exit;
 	}
-
 	hr = lpFolder->OpenEntry(lpItemProperty->Value.bin.cb,
-			         (LPENTRYID)lpItemProperty->Value.bin.lpb,
-			         &IID_IMessage,
-			         MAPI_MODIFY,
-			         &ulObjectType,
-			         (IUnknown**)&lpMessage);
+	     reinterpret_cast<ENTRYID *>(lpItemProperty->Value.bin.lpb),
+	     &IID_IMessage, MAPI_MODIFY, &ulObjectType, &~lpMessage);
 	if (hr != hrSuccess) {
 		cout << "Failed to open EntryID." << endl;
 		goto exit;
@@ -182,9 +178,6 @@ static HRESULT ProcessFolderEntry(Fsck *lpFsck, LPMAPIFOLDER lpFolder,
 		goto exit;
 
 exit:
-	if (lpMessage)
-		lpMessage->Release();
-
 	if (hr != hrSuccess)
 		hr = lpFsck->DeleteMessage(lpFolder, lpItemProperty);
 
@@ -194,11 +187,11 @@ exit:
 static HRESULT ProcessFolder(Fsck *lpFsck, LPMAPIFOLDER lpFolder,
     const std::string &strName)
 {
-	LPMAPITABLE lpTable = NULL;
+	object_ptr<IMAPITable> lpTable;
 	LPSRowSet lpRows = NULL;
 	ULONG ulCount;
 
-	HRESULT hr = lpFolder->GetContentsTable(0, &lpTable);
+	HRESULT hr = lpFolder->GetContentsTable(0, &~lpTable);
  	if(hr != hrSuccess) {
 		cout << "Failed to open Folder table." << endl;
 		goto exit;
@@ -242,10 +235,6 @@ static HRESULT ProcessFolder(Fsck *lpFsck, LPMAPIFOLDER lpFolder,
 exit:
 	if (lpRows)
 		FreeProws(lpRows);
-
-	if (lpTable)
-		lpTable->Release();
-
 	return hr;
 }
 
@@ -370,15 +359,13 @@ HRESULT Fsck::ValidateRecursiveDuplicateRecipients(LPMESSAGE lpMessage, bool &bC
 {
 	HRESULT hr = hrSuccess;
 	bool bSubChanged = false;
-	LPATTACH lpAttach = NULL;
-	LPMAPITABLE lpTable = NULL;
+	object_ptr<IMAPITable> lpTable;
     ULONG cRows = 0;
     SRowSet *pRows = NULL;
-	LPMESSAGE lpSubMessage = NULL;
 
 	SizedSPropTagArray(2, sptaProps) = {2, {PR_ATTACH_NUM, PR_ATTACH_METHOD}};
 
-	hr = lpMessage->GetAttachmentTable(0, &lpTable);
+	hr = lpMessage->GetAttachmentTable(0, &~lpTable);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -404,11 +391,14 @@ HRESULT Fsck::ValidateRecursiveDuplicateRecipients(LPMESSAGE lpMessage, bool &bC
 			if (pRows->aRow[i].lpProps[1].ulPropTag != PR_ATTACH_METHOD ||
 			    pRows->aRow[i].lpProps[1].Value.ul != ATTACH_EMBEDDED_MSG)
 				continue;
+
+			object_ptr<IAttach> lpAttach;
+			object_ptr<IMessage> lpSubMessage;
 			bSubChanged = false;
-			hr = lpMessage->OpenAttach(pRows->aRow[i].lpProps[0].Value.ul, NULL, MAPI_BEST_ACCESS, &lpAttach);
+			hr = lpMessage->OpenAttach(pRows->aRow[i].lpProps[0].Value.ul, nullptr, MAPI_BEST_ACCESS, &~lpAttach);
 			if (hr != hrSuccess)
 				goto exit;
-			hr = lpAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_MODIFY, (LPUNKNOWN*)&lpSubMessage);
+			hr = lpAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_MODIFY, &~lpSubMessage);
 			if (hr != hrSuccess)
 				goto exit;
 			hr = ValidateRecursiveDuplicateRecipients(lpSubMessage, bSubChanged);
@@ -420,10 +410,6 @@ HRESULT Fsck::ValidateRecursiveDuplicateRecipients(LPMESSAGE lpMessage, bool &bC
 					goto exit;
 				bChanged = bSubChanged;
 			}
-			lpAttach->Release();
-			lpAttach = NULL;
-			lpSubMessage->Release();
-			lpSubMessage = NULL;
 		}
 
 		FreeProws(pRows);
@@ -431,9 +417,6 @@ HRESULT Fsck::ValidateRecursiveDuplicateRecipients(LPMESSAGE lpMessage, bool &bC
 	}
 
 message:
-	lpTable->Release();
-	lpTable = NULL;
-
 	hr = ValidateDuplicateRecipients(lpMessage, bChanged);
 	if (hr != hrSuccess)
 		goto exit;
@@ -442,15 +425,6 @@ message:
 		lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
 
 exit:
-	if (lpTable)
-		lpTable->Release();
-
-	if (lpAttach)
-		lpAttach->Release();
-
-	if (lpSubMessage)
-		lpSubMessage->Release();
-
 	if (pRows)
 		FreeProws(pRows);
 
@@ -459,7 +433,7 @@ exit:
 
 HRESULT Fsck::ValidateDuplicateRecipients(LPMESSAGE lpMessage, bool &bChanged)
 {
-	LPMAPITABLE lpTable = NULL;
+	object_ptr<IMAPITable> lpTable;
 	ULONG cRows = 0;
 	std::set<std::string> mapRecip;
 	std::list<unsigned int> mapiReciptDel;
@@ -469,7 +443,7 @@ HRESULT Fsck::ValidateDuplicateRecipients(LPMESSAGE lpMessage, bool &bChanged)
 
 	SizedSPropTagArray(5, sptaProps) = {5, {PR_ROWID, PR_DISPLAY_NAME_A, PR_EMAIL_ADDRESS_A, PR_RECIPIENT_TYPE, PR_ENTRYID}};
 
-	HRESULT hr = lpMessage->GetRecipientTable(0, &lpTable);
+	HRESULT hr = lpMessage->GetRecipientTable(0, &~lpTable);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -519,17 +493,10 @@ HRESULT Fsck::ValidateDuplicateRecipients(LPMESSAGE lpMessage, bool &bChanged)
 		FreeProws(pRows);
 		pRows = NULL;
 	}
-
-	lpTable->Release();
-	lpTable = NULL;
-
 	// modify
 	if (!mapiReciptDel.empty())
 		hr = DeleteRecipientList(lpMessage, mapiReciptDel, bChanged);
 exit:
-	if (lpTable)
-		lpTable->Release();
-
 	if (pRows)
 		FreeProws(pRows);
 	return hr;

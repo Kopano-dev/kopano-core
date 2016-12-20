@@ -97,14 +97,14 @@ HRESULT ArchiverSession::Create(const MAPISessionPtr &ptrSession, ECConfig *lpCo
 {
 	HRESULT hr = hrSuccess;
 	ArchiverSession *lpSession = NULL;
-	ECLogger *lpLocalLogger = lpLogger;
+	KCHL::object_ptr<ECLogger> lpLocalLogger;
 	const char *lpszSslKeyFile = NULL;
 	const char *lpszSslKeyPass = NULL;
 
-	if (lpLocalLogger != NULL)
-		lpLocalLogger->AddRef();
+	if (lpLogger != nullptr)
+		lpLocalLogger.reset(lpLogger);
 	else
-		lpLocalLogger = new ECLogger_Null();
+		lpLocalLogger.reset(new ECLogger_Null(), false);
 
 	if (lpConfig) {
 		lpszSslKeyFile = lpConfig->GetSetting("sslkey_file", "", NULL);
@@ -121,7 +121,6 @@ HRESULT ArchiverSession::Create(const MAPISessionPtr &ptrSession, ECConfig *lpCo
 	lpptrSession->reset(lpSession);
 
 exit:
-	lpLocalLogger->Release();
 	return hr;
 }
 

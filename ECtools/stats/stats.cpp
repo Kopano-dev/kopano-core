@@ -35,11 +35,13 @@
 #include <kopano/stringutil.h>
 #include <kopano/ECTags.h>
 #include <kopano/ecversion.h>
+#include <kopano/memory.hpp>
 #include <kopano/charset/convert.h>
 #include "MAPIConsoleTable.h"
 #include <kopano/ECLogger.h>
 
 using namespace std;
+using namespace KCHL;
 
 enum eTableType { INVALID_STATS = -1, SYSTEM_STATS, SESSION_STATS, USER_STATS, COMPANY_STATS, SERVER_STATS, SESSION_TOP, OPTION_HOST, OPTION_USER, OPTION_DUMP };
 
@@ -206,7 +208,7 @@ static void showtop(LPMDB lpStore)
 {
 #ifdef HAVE_CURSES_H
     HRESULT hr = hrSuccess;
-    IMAPITable *lpTable = NULL;
+	object_ptr<IMAPITable> lpTable;
     LPSRowSet lpsRowSet = NULL;
     WINDOW *win = NULL;
     std::map<unsigned long long, TIMES> mapLastTimes;
@@ -249,8 +251,7 @@ static void showtop(LPMDB lpStore)
     while(1) {
         int line = 0;
 		werase(win);
-
-		hr = lpStore->OpenProperty(PR_EC_STATSTABLE_SYSTEM, &IID_IMAPITable, 0, 0, (LPUNKNOWN*)&lpTable);
+		hr = lpStore->OpenProperty(PR_EC_STATSTABLE_SYSTEM, &IID_IMAPITable, 0, 0, &~lpTable);
 		if(hr != hrSuccess)
 		    goto exit;
 		hr = lpTable->SetColumns(sptaSystem, 0);
@@ -276,10 +277,7 @@ static void showtop(LPMDB lpStore)
         
         FreeProws(lpsRowSet);
         lpsRowSet = NULL;
-        lpTable->Release();
-        lpTable = NULL;
-
-        hr = lpStore->OpenProperty(PR_EC_STATSTABLE_SESSIONS, &IID_IMAPITable, 0, 0, (LPUNKNOWN*)&lpTable);
+        hr = lpStore->OpenProperty(PR_EC_STATSTABLE_SESSIONS, &IID_IMAPITable, 0, 0, &~lpTable);
         if(hr != hrSuccess)
             goto exit;
 
@@ -486,10 +484,6 @@ static void showtop(LPMDB lpStore)
 
         FreeProws(lpsRowSet);
         lpsRowSet = NULL;
-
-        lpTable->Release();
-        lpTable = NULL;
-        
         wrefresh(win);
         timeout(1000);
         if((key = getch()) != ERR) {
@@ -511,9 +505,6 @@ static void showtop(LPMDB lpStore)
 
 exit:
     endwin();
-    
-    if(lpTable)
-        lpTable->Release();
     if(lpsRowSet)
         FreeProws(lpsRowSet);
 #else
@@ -524,9 +515,9 @@ exit:
 static void dumptable(eTableType eTable, LPMDB lpStore, bool humanreadable)
 {
 	HRESULT hr = hrSuccess;
-	IMAPITable *lpTable = NULL;
+	object_ptr<IMAPITable> lpTable;
 
-	hr = lpStore->OpenProperty(ulTableProps[eTable], &IID_IMAPITable, 0, MAPI_DEFERRED_ERRORS, (LPUNKNOWN*)&lpTable);
+	hr = lpStore->OpenProperty(ulTableProps[eTable], &IID_IMAPITable, 0, MAPI_DEFERRED_ERRORS, &~lpTable);
 	if (hr != hrSuccess) {
 		cout << "Unable to open requested statistics table" << endl;
 		goto exit;
@@ -542,9 +533,7 @@ static void dumptable(eTableType eTable, LPMDB lpStore, bool humanreadable)
 
 	hr = MAPITablePrint(lpTable, humanreadable);
 
-exit:
-	if (lpTable)
-		lpTable->Release();
+exit: ;
 }
 
 static void print_help(const char *name)

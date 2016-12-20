@@ -81,12 +81,10 @@ static HRESULT UpdatePassword(const char *lpPath, const char *lpUsername,
     const char *lpPassword, const char *lpNewPassword)
 {
 	HRESULT hr = hrSuccess;
-	LPMAPISESSION lpSession = NULL;
-	
-	IECUnknown *lpECMsgStore = NULL;
-	IMsgStore *lpMsgStore = NULL;
-
-	IECServiceAdmin *lpServiceAdmin = NULL;
+	object_ptr<IMAPISession> lpSession;
+	object_ptr<IECUnknown> lpECMsgStore;
+	object_ptr<IMsgStore> lpMsgStore;
+	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	ULONG cbUserId = 0;
 	memory_ptr<ENTRYID> lpUserId;
 	memory_ptr<SPropValue> lpPropValue;
@@ -104,7 +102,7 @@ static HRESULT UpdatePassword(const char *lpPath, const char *lpUsername,
 	else
 		lpLogger = new ECLogger_Null();
 	ec_log_set(lpLogger);
-	hr = HrOpenECSession(&lpSession, "kopano-passwd", PROJECT_SVN_REV_STR,
+	hr = HrOpenECSession(&~lpSession, "kopano-passwd", PROJECT_SVN_REV_STR,
 	     strwUsername.c_str(), strwPassword.c_str(), lpPath,
 	     EC_PROFILE_FLAGS_NO_NOTIFICATIONS | EC_PROFILE_FLAGS_NO_PUBLIC_STORE,
 	     NULL, NULL);
@@ -113,8 +111,7 @@ static HRESULT UpdatePassword(const char *lpPath, const char *lpUsername,
 		cerr << "Wrong username or password." << endl;
 		goto exit;
 	}
-
-	hr = HrOpenDefaultStore(lpSession, &lpMsgStore);
+	hr = HrOpenDefaultStore(lpSession, &~lpMsgStore);
 	if(hr != hrSuccess) {
 		cerr << "Unable to open store." << endl;
 		goto exit;
@@ -122,13 +119,12 @@ static HRESULT UpdatePassword(const char *lpPath, const char *lpUsername,
 	hr = HrGetOneProp(lpMsgStore, PR_EC_OBJECT, &~lpPropValue);
 	if(hr != hrSuccess || !lpPropValue)
 		goto exit;
-
-	lpECMsgStore = reinterpret_cast<IECUnknown *>(lpPropValue->Value.lpszA);
+	lpECMsgStore.reset(reinterpret_cast<IECUnknown *>(lpPropValue->Value.lpszA), false);
 	if(!lpECMsgStore)
 		goto exit;
 
 	lpECMsgStore->AddRef();
-	hr = lpECMsgStore->QueryInterface(IID_IECServiceAdmin, reinterpret_cast<void **>(&lpServiceAdmin));
+	hr = lpECMsgStore->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
 	if(hr != hrSuccess)
 		goto exit;
 	hr = lpServiceAdmin->ResolveUserName((LPTSTR)lpUsername, 0, &cbUserId, &~lpUserId);
@@ -153,18 +149,6 @@ static HRESULT UpdatePassword(const char *lpPath, const char *lpUsername,
 	}
 
 exit:
-	if (lpMsgStore)
-		lpMsgStore->Release();
-
-	if(lpECMsgStore)
-		lpECMsgStore->Release();
-
-	if (lpServiceAdmin)
-		lpServiceAdmin->Release();
-
-	if (lpSession)
-		lpSession->Release();
-
 	return hr;
 }
 
