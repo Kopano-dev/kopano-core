@@ -90,7 +90,7 @@ HRESULT ECEnumFBBlock::Next(LONG celt, FBBlock_1 *pblk, LONG *pcfetch)
 
 	if(pcfetch)
 		*pcfetch = cEltFound;
-	return cEltFound != 0;
+	return cEltFound == 0;
 }
 
 /*! @copydoc IEnumFBBlock::Skip */
