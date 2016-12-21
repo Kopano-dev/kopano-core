@@ -18,6 +18,18 @@
 
 #include "libfreebusy_conv.h"
 
+static PyObject *PyTypeFreeBusyBlock;
+
+void InitFreebusy() {
+	PyObject *lpMAPIStruct = PyImport_ImportModule("MAPI.Struct");
+	if(!lpMAPIStruct) {
+		PyErr_SetString(PyExc_RuntimeError, "Unable to import MAPI.Struct");
+		return;
+	}
+
+	PyTypeFreeBusyBlock = PyObject_GetAttrString(lpMAPIStruct, "FreeBusyBlock");
+}
+
 LPFBUser List_to_p_FBUser(PyObject *list, ULONG *cValues) {
 	LPFBUser lpFbUsers = NULL;
 	LPENTRYID entryid = NULL;
@@ -88,4 +100,53 @@ LPFBBlock_1 List_to_p_FBBlock_1(PyObject *list, ULONG *nBlocks) {
 
  exit:
 	return lpFBBlocks;
+}
+
+PyObject* Object_from_FBBlock_1(FBBlock_1 const& sFBBlock) {
+	PyObject *start = NULL, *end = NULL, *status = NULL, *object = NULL;
+
+	start = PyLong_FromLong(sFBBlock.m_tmStart);
+	if (PyErr_Occurred())
+		goto exit;
+
+	end = PyLong_FromLong(sFBBlock.m_tmEnd);
+	if (PyErr_Occurred())
+		goto exit;
+
+	status = PyLong_FromLong(sFBBlock.m_fbstatus);
+	if (PyErr_Occurred())
+		goto exit;
+
+	object = PyObject_CallFunction(PyTypeFreeBusyBlock, "(OOO)", start, end, status);
+
+ exit:
+	if (start != nullptr)
+		Py_DECREF(start);
+	if (end != nullptr)
+		Py_DECREF(end);
+	if (status != nullptr)
+		Py_DECREF(status);
+
+	return object;
+}
+
+PyObject* List_from_FBBlock_1(LPFBBlock_1 lpFBBlocks, LONG* nBlocks) {
+	size_t i;
+	PyObject *list = NULL, *elem = NULL;
+
+	list = PyList_New(0);
+
+	for (i = 0; i < *nBlocks; i++) {
+		elem = Object_from_FBBlock_1(lpFBBlocks[i]);
+		if(PyErr_Occurred())
+			goto exit;
+
+		PyList_Append(list, elem);
+
+		Py_DECREF(elem);
+		elem = NULL;
+	}
+
+ exit:
+	return list;
 }

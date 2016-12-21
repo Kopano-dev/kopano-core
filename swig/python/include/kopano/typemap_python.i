@@ -60,7 +60,7 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
 	if(PyErr_Occurred()) goto fail;
 }
 
-	 %typemap(in) 			(MAPIARRAY, ULONG) ($2_type cArray = 0, $1_type lpArray = NULL)
+%typemap(in) 			(MAPIARRAY, ULONG) ($2_type cArray = 0, $1_type lpArray = NULL)
 {
 	ULONG len;
 	$1 = List_to$1_mangle($input, &len);
@@ -147,6 +147,12 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
 %typemap(argout)	(ULONG *, MAPIARRAY *)
 {
     %append_output(List_from_$2_basetype(*($2),*($1)));
+	if(PyErr_Occurred()) goto fail;
+}
+
+%typemap(argout)	(MAPIARRAY, LONG)
+{
+    %append_output(List_from_$1_basetype($1,$2));
 	if(PyErr_Occurred()) goto fail;
 }
 
