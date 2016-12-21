@@ -64,8 +64,7 @@ HRESULT Copier::Helper::CreateArchivedMessage(LPMESSAGE lpSource, const SObjectE
 	hr = GetArchiveFolder(archiveEntry, &ptrArchiveFolder);
 	if (hr != hrSuccess)
 		return hr;
-
-	hr = ptrArchiveFolder->CreateMessage(&ptrNewMessage.iid, fMapiDeferredErrors, &ptrNewMessage);
+	hr = ptrArchiveFolder->CreateMessage(&ptrNewMessage.iid(), fMapiDeferredErrors, &ptrNewMessage);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to create archive message. (hr=%s)", stringify(hr, true).c_str());
 		return hr;
@@ -316,8 +315,7 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 				m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Attachment method for attachment %u is not ATTACH_BY_VALUE. So nothing to deduplicate.", i);
 				continue;
 			}
-
-			hrTmp = ptrSourceAttach->QueryInterface(ptrInstance.iid, &ptrInstance);
+			hrTmp = ptrSourceAttach->QueryInterface(ptrInstance.iid(), &ptrInstance);
 			if (hrTmp != hrSuccess) {
 				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get single instance interface for source attachment %u. Skipping attachment. hr=0x%08x", i, hrTmp);
 				continue;
@@ -348,8 +346,7 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
 				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open dest attachment %u. Skipping attachment. hr=0x%08x", i, hrTmp);
 				continue;
 			}
-
-			hrTmp = ptrDestAttach->QueryInterface(ptrInstance.iid, &ptrInstance);
+			hrTmp = ptrDestAttach->QueryInterface(ptrInstance.iid(), &ptrInstance);
 			if (hrTmp != hrSuccess) {
 				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get single instance interface for dest attachment %u. Skipping attachment. hr=0x%08x", i, hrTmp);
 				continue;
@@ -809,7 +806,7 @@ HRESULT Copier::DoUpdateArchive(LPMESSAGE lpMessage, const SObjectEntry &archive
 	 * The main reason to not try to get the raw message through IID_IECMessageRaw is that archive stores don't support it.
 	 * @todo Should we verify if the item is really not stubbed?
 	 */
-	hr = ptrArchiveStore->OpenEntry(archiveMsgEntry.sItemEntryId.size(), archiveMsgEntry.sItemEntryId, &ptrArchivedMsg.iid, MAPI_BEST_ACCESS|fMapiDeferredErrors, &ulType, &ptrArchivedMsg);
+	hr = ptrArchiveStore->OpenEntry(archiveMsgEntry.sItemEntryId.size(), archiveMsgEntry.sItemEntryId, &ptrArchivedMsg.iid(), MAPI_BEST_ACCESS | fMapiDeferredErrors, &ulType, &ptrArchivedMsg);
 	if (hr != hrSuccess) {
 		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to open existing archived message. (hr=%s)", stringify(hr, true).c_str());
 		return hr;
@@ -873,13 +870,13 @@ HRESULT Copier::DoMoveArchive(const SObjectEntry &archiveRootEntry, const SObjec
 	hr = m_ptrSession->OpenStore(archiveMsgEntry.sStoreEntryId, &ptrArchiveStore);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrArchiveStore->OpenEntry(archiveMsgEntry.sItemEntryId.size(), archiveMsgEntry.sItemEntryId, &ptrArchive.iid, 0, &ulType, &ptrArchive);
+	hr = ptrArchiveStore->OpenEntry(archiveMsgEntry.sItemEntryId.size(), archiveMsgEntry.sItemEntryId, &ptrArchive.iid(), 0, &ulType, &ptrArchive);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrArchiveFolder->CreateMessage(&ptrArchiveCopy.iid, 0, &ptrArchiveCopy);
+	hr = ptrArchiveFolder->CreateMessage(&ptrArchiveCopy.iid(), 0, &ptrArchiveCopy);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrArchive->CopyTo(0, NULL, NULL, 0, NULL, &ptrArchiveCopy.iid, ptrArchiveCopy, 0, NULL);
+	hr = ptrArchive->CopyTo(0, NULL, NULL, 0, NULL, &ptrArchiveCopy.iid(), ptrArchiveCopy, 0, NULL);
 	if (hr != hrSuccess)
 		return hr;
 	hr = MAPIPropHelper::Create(ptrArchiveCopy.as<MAPIPropPtr>(), &ptrPropHelper);
@@ -979,16 +976,16 @@ HRESULT Copier::MoveToHistory(const SObjectEntry &sourceArchiveRoot, const SObje
 	hr = m_ptrSession->OpenStore(sourceMsgEntry.sStoreEntryId, &ptrArchiveStore);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrArchiveStore->OpenEntry(sourceMsgEntry.sItemEntryId.size(), sourceMsgEntry.sItemEntryId, &ptrArchive.iid, 0, &ulType, &ptrArchive);
+	hr = ptrArchiveStore->OpenEntry(sourceMsgEntry.sItemEntryId.size(), sourceMsgEntry.sItemEntryId, &ptrArchive.iid(), 0, &ulType, &ptrArchive);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrHistoryFolder->CreateMessage(&ptrArchiveCopy.iid, 0, &ptrArchiveCopy);
+	hr = ptrHistoryFolder->CreateMessage(&ptrArchiveCopy.iid(), 0, &ptrArchiveCopy);
 	if (hr != hrSuccess)
 		return hr;
 	hr = HrGetOneProp(ptrArchiveCopy, PR_ENTRYID, &~ptrEntryID);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrArchive->CopyTo(0, NULL, NULL, 0, NULL, &ptrArchiveCopy.iid, ptrArchiveCopy, 0, NULL);
+	hr = ptrArchive->CopyTo(0, NULL, NULL, 0, NULL, &ptrArchiveCopy.iid(), ptrArchiveCopy, 0, NULL);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrTransaction->Save(ptrArchiveCopy, true);

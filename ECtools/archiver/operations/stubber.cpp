@@ -155,7 +155,7 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 		}
 		
 		Logger()->Log(EC_LOGLEVEL_INFO, "Adding placeholder attachment");		
-		hr = lpMessage->CreateAttach(&ptrAttach.iid, 0, &ulAttachNum, &ptrAttach);
+		hr = lpMessage->CreateAttach(&ptrAttach.iid(), 0, &ulAttachNum, &ptrAttach);
 		if (hr != hrSuccess) {
 			Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to create attachment. (hr=%s)", stringify(hr, true).c_str());
 			return hr;

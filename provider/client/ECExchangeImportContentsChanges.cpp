@@ -919,7 +919,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageUpdateAsStream(ULONG cbEnt
 
 		ZLOG_DEBUG(m_lpLogger, "UpdateFast: %s", "The item seems to be in conflict");
 
-		hr = m_lpFolder->OpenEntry(cbEntryId, lpEntryId, &ptrMessage.iid, MAPI_MODIFY, &ulType, &ptrMessage);
+		hr = m_lpFolder->OpenEntry(cbEntryId, lpEntryId, &ptrMessage.iid(), MAPI_MODIFY, &ulType, &ptrMessage);
 		if (hr == MAPI_E_NOT_FOUND) {
 			// This shouldn't happen as we just got a conflict.
 			ZLOG_DEBUG(m_lpLogger, "UpdateFast: %s", "The destination item seems to have disappeared");
@@ -1064,7 +1064,7 @@ HRESULT ECExchangeImportContentsChanges::HrUpdateSearchReminders(LPMAPIFOLDER lp
 	else
 		return MAPI_E_NOT_FOUND;
 
-	hr = lpRootFolder->OpenEntry(lpREMEntryID->Value.bin.cb, (LPENTRYID)lpREMEntryID->Value.bin.lpb, &ptrRemindersFolder.iid, MAPI_BEST_ACCESS, &ulType, &ptrRemindersFolder);
+	hr = lpRootFolder->OpenEntry(lpREMEntryID->Value.bin.cb, (LPENTRYID)lpREMEntryID->Value.bin.lpb, &ptrRemindersFolder.iid(), MAPI_BEST_ACCESS, &ulType, &ptrRemindersFolder);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrRemindersFolder->GetSearchCriteria(0, &~ptrOrigRestriction, &~ptrOrigContainerList, &ulOrigSearchState);

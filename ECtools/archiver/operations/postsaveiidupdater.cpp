@@ -58,7 +58,7 @@ HRESULT TaskBase::Execute(ULONG ulPropTag, const InstanceIdMapperPtr &ptrMapper)
 		return hr;
 	if (ptrRows.empty())
 		return MAPI_E_NOT_FOUND;
-	hr = m_ptrDestMsg->OpenAttach(ptrRows[0].lpProps[0].Value.ul, &ptrAttach.iid, 0, &ptrAttach);
+	hr = m_ptrDestMsg->OpenAttach(ptrRows[0].lpProps[0].Value.ul, &ptrAttach.iid(), 0, &ptrAttach);
 	if (hr != hrSuccess)
 		return hr;
 	hr = GetUniqueIDs(ptrAttach, &~ptrDestServerUID, &cbDestInstanceID, &~ptrDestInstanceID);
@@ -81,7 +81,7 @@ HRESULT TaskBase::GetUniqueIDs(IAttach *lpAttach, LPSPropValue *lppServerUID, UL
 	hr = HrGetOneProp(lpAttach, PR_EC_SERVER_UID, &~ptrServerUID);
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpAttach->QueryInterface(ptrInstance.iid, &ptrInstance);
+	hr = lpAttach->QueryInterface(ptrInstance.iid(), &ptrInstance);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrInstance->GetSingleInstanceId(&cbInstanceID, &~ptrInstanceID);

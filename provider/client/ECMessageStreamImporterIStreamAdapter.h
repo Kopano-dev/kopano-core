@@ -19,9 +19,9 @@
 #define ECMessageStreamImporterIStreamAdapter_INCLUDED
 
 #include <kopano/zcdefs.h>
+#include <kopano/memory.hpp>
 #include <kopano/ECUnknown.h>
 #include "WSMessageStreamImporter.h"
-#include <kopano/mapi_ptr.h>
 
 /**
  * This class wraps a WSMessageStreamImporter object and exposes it as an IStream.
@@ -73,6 +73,6 @@ private:
 	WSMessageStreamSinkPtr		m_ptrSink;
 };
 
-typedef mapi_object_ptr<ECMessageStreamImporterIStreamAdapter> ECMessageStreamImporterIStreamAdapterPtr;
+typedef KCHL::object_ptr<ECMessageStreamImporterIStreamAdapter> ECMessageStreamImporterIStreamAdapterPtr;
 
 #endif // ndef ECMessageStreamImporterIStreamAdapter_INCLUDED

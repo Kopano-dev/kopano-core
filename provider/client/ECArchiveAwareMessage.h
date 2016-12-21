@@ -22,8 +22,6 @@
 #include <kopano/memory.hpp>
 #include "ECMessage.h"
 #include <kopano/CommonUtil.h>
-#include <kopano/mapi_ptr/mapi_object_ptr.h>
-
 #include <string>
 
 class ECArchiveAwareMsgStore;
@@ -98,7 +96,7 @@ private:
 	eMode	m_mode;
 	bool	m_bChanged;
 
-	typedef mapi_object_ptr<ECMessage, IID_ECMessage>	ECMessagePtr;
+	typedef KCHL::object_ptr<ECMessage, IID_ECMessage> ECMessagePtr;
 	ECMessagePtr	m_ptrArchiveMsg;
 };
 

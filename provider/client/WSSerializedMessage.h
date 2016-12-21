@@ -20,8 +20,9 @@
 
 #include <kopano/zcdefs.h>
 #include <kopano/ECUnknown.h>
-#include "soapStub.h"
 #include <kopano/mapi_ptr.h>
+#include <kopano/memory.hpp>
+#include "soapStub.h"
 #include <string>
 
 /**
@@ -57,6 +58,6 @@ private:
 	HRESULT m_hr = hrSuccess;
 };
 
-typedef mapi_object_ptr<WSSerializedMessage> WSSerializedMessagePtr;
+typedef KCHL::object_ptr<WSSerializedMessage> WSSerializedMessagePtr;
 
 #endif // ndef WSSerializedMessage_INCLUDED

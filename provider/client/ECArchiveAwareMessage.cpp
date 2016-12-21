@@ -401,8 +401,7 @@ HRESULT ECArchiveAwareMessage::CreateInfoMessage(LPSPropTagArray lpptaDeleteProp
 	hr = HrSetOneProp(&this->m_xMAPIProp, &sPropVal);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = OpenProperty(PR_HTML, &ptrHtmlStream.iid, 0, MAPI_CREATE|MAPI_MODIFY, &ptrHtmlStream);
+	hr = OpenProperty(PR_HTML, &ptrHtmlStream.iid(), 0, MAPI_CREATE | MAPI_MODIFY, &ptrHtmlStream);
 	if (hr != hrSuccess)
 		goto exit;
 

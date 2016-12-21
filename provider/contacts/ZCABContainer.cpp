@@ -508,7 +508,7 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 	ULONG cValues;
 	SPropArrayPtr ptrProps;
 	SPropValue sKey;
-	mapi_object_ptr<ZCMAPIProp> ptrZCMAPIProp;
+	KCHL::object_ptr<ZCMAPIProp> ptrZCMAPIProp;
 
 	hr = Util::HrCopyUnicodePropTagArray(ulFlags, sptaCols, &~ptrCols);
 	if (hr != hrSuccess)
