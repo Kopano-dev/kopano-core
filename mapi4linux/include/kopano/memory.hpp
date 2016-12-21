@@ -285,13 +285,8 @@ template<typename _T, REFIID _R = GUID_NULL> class object_ptr {
 		std::swap(__o._m_ptr, _m_ptr);
 		return *this;
 	}
-	object_ptr &operator=(std::nullptr_t) noexcept
-	{
-		reset();
-		return *this;
-	}
-
 	private:
+	void operator=(std::nullptr_t) noexcept {}
 	void operator&(void) const noexcept {} /* flag everyone */
 
 	_T *_m_ptr = nullptr;
