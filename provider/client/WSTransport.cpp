@@ -476,33 +476,12 @@ ECRESULT WSTransport::TrySSOLogon(KCmd* lpCmd, LPCSTR szServer, utf8string strUs
 	if (GSS_ERROR(major))
 		goto exit;
 
-	major = gss_init_sec_context(&minor, GSS_C_NO_CREDENTIAL,
-	        &gss_ctx, principal, &mech_spnego, GSS_C_CONF_FLAG,
-	        GSS_C_INDEFINITE, GSS_C_NO_CHANNEL_BINDINGS,
-	        GSS_C_NO_BUFFER, nullptr, &secbufout, nullptr, nullptr);
-	if (GSS_ERROR(major))
-		goto exit;
-
-	/* Send GSS state to kopano-server */
-	sso_data.__ptr = reinterpret_cast<unsigned char *>(secbufout.value);
-	sso_data.__size = secbufout.length;
-
-	if (lpCmd->ns__ssoLogon(0, const_cast<char *>(strUsername.c_str()),
-	    const_cast<char *>(strImpersonateUser.c_str()), &sso_data,
-	    const_cast<char *>(PROJECT_VERSION_CLIENT_STR), ulCapabilities,
-	    licreq, ecSessionGroupId, szAppName,
-	    const_cast<char *>(appVersion.c_str()),
-	    const_cast<char *>(appMisc.c_str()), &resp) != SOAP_OK)
-		goto exit;
-
-	while (resp.er == KCERR_SSO_CONTINUE) {
-		secbufin.value = static_cast<void *>(resp.lpOutput->__ptr);
-		secbufin.length = resp.lpOutput->__size;
-		gss_release_buffer(&minor, &secbufout);
-		/* Return kopano-server response to GSS */
-		major = gss_init_sec_context(&minor, nullptr, &gss_ctx,
-		        principal, &mech_spnego, GSS_C_CONF_FLAG,
-		        GSS_C_INDEFINITE, GSS_C_NO_CHANNEL_BINDINGS, &secbufin,
+	resp.ulSessionId = 0;
+	do {
+		major = gss_init_sec_context(&minor, GSS_C_NO_CREDENTIAL,
+		        &gss_ctx, principal, &mech_spnego, GSS_C_CONF_FLAG,
+		        GSS_C_INDEFINITE, GSS_C_NO_CHANNEL_BINDINGS,
+		        resp.ulSessionId == 0 ? GSS_C_NO_BUFFER : &secbufin,
 		        nullptr, &secbufout, nullptr, nullptr);
 		if (GSS_ERROR(major))
 			goto exit;
@@ -519,7 +498,14 @@ ECRESULT WSTransport::TrySSOLogon(KCmd* lpCmd, LPCSTR szServer, utf8string strUs
 		    const_cast<char *>(appVersion.c_str()),
 		    const_cast<char *>(appMisc.c_str()), &resp) != SOAP_OK)
 			goto exit;
-	}
+		if (resp.er != KCERR_SSO_CONTINUE)
+			break;
+
+		secbufin.value = static_cast<void *>(resp.lpOutput->__ptr);
+		secbufin.length = resp.lpOutput->__size;
+		gss_release_buffer(&minor, &secbufout);
+		/* Return kopano-server response to GSS */
+	} while (true);
 	er = resp.er;
 	if (er != erSuccess)
 		goto exit;
