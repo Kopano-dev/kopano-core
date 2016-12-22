@@ -656,8 +656,8 @@ HRESULT M4LProviderAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable)
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LProviderAdmin::GetProviderTable", "");
 	HRESULT hr = hrSuccess;
 	ULONG cValues = 0;
-	ECMemTable *lpTable = NULL;
-	ECMemTableView *lpTableView = NULL;
+	object_ptr<ECMemTable> lpTable;
+	object_ptr<ECMemTableView> lpTableView;
 	ULONG cValuesDest = 0;
 	SPropValue sPropID;
 	int n = 0;
@@ -668,8 +668,7 @@ HRESULT M4LProviderAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable)
 	hr = Util::HrCopyUnicodePropTagArray(ulFlags, sptaProviderCols, &~lpPropTagArray);
 	if(hr != hrSuccess)
 		goto exit;
-
-	hr = ECMemTable::Create(lpPropTagArray, PR_ROWID, &lpTable);
+	hr = ECMemTable::Create(lpPropTagArray, PR_ROWID, &~lpTable);
 	if(hr != hrSuccess)
 		goto exit;
 	
@@ -695,19 +694,13 @@ HRESULT M4LProviderAdmin::GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable)
 		lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, NULL, lpDest, cValuesDest);
 	}
 	
-	hr = lpTable->HrGetView(createLocaleFromName(""), ulFlags, &lpTableView);
+	hr = lpTable->HrGetView(createLocaleFromName(""), ulFlags, &~lpTableView);
 	if(hr != hrSuccess)
 		goto exit;
 		
 	hr = lpTableView->QueryInterface(IID_IMAPITable, (void **)lppTable);
 	
 exit:
-	l_srv.unlock();
-	if (lpTableView)
-		lpTableView->Release();
-
-	if (lpTable)
-		lpTable->Release();
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LProviderAdmin::GetProviderTable", "0x%08x", hr);
 	return hr;
 }
@@ -1093,8 +1086,8 @@ HRESULT M4LABContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE* lppTable) {
  */
 HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) {
 	HRESULT hr = hrSuccess;
-	ECMemTable *lpTable = NULL;
-	ECMemTableView *lpTableView = NULL;
+	object_ptr<ECMemTable> lpTable;
+	object_ptr<ECMemTableView> lpTableView;
 	ULONG n = 0;
 
 	// make a list of all hierarchy tables, and create the combined column list
@@ -1142,8 +1135,7 @@ HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 	lpColumns->cValues = stProps.size();
 	std::copy(stProps.begin(), stProps.end(), lpColumns->aulPropTag);
 	lpColumns->aulPropTag[lpColumns->cValues] = PR_NULL; // will be used for PR_ROWID
-
-	hr = ECMemTable::Create(lpColumns, PR_ROWID, &lpTable);
+	hr = ECMemTable::Create(lpColumns, PR_ROWID, &~lpTable);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -1179,7 +1171,7 @@ HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 		FreeProws(lpsRows);
 	}
 
-	hr = lpTable->HrGetView(createLocaleFromName(""), ulFlags, &lpTableView);
+	hr = lpTable->HrGetView(createLocaleFromName(""), ulFlags, &~lpTableView);
 	if(hr != hrSuccess)
 		goto exit;
 		
@@ -1188,12 +1180,6 @@ HRESULT M4LABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 exit:
 	for (const auto mt : lHierarchies)
 		mt->Release();
-	if (lpTableView)
-		lpTableView->Release();
-
-	if (lpTable)
-		lpTable->Release();
-
 	return hr;
 }
 

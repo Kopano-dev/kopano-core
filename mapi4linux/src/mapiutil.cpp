@@ -284,7 +284,7 @@ HRESULT __stdcall WrapCompressedRTFStream(LPSTREAM lpCompressedRTFStream, ULONG 
 	char *lpCompressed = NULL;
 	char *lpReadPtr = NULL;
 	ULONG ulRead = 0;
-	ECMemStream *lpUncompressedStream = NULL;
+	object_ptr<ECMemStream> lpUncompressedStream;
 	ULONG ulUncompressedLen = 0;
 	char *lpUncompressed = NULL;
 	
@@ -335,17 +335,14 @@ HRESULT __stdcall WrapCompressedRTFStream(LPSTREAM lpCompressedRTFStream, ULONG 
 	}
 	
 	hr = ECMemStream::Create(lpUncompressed, ulUncompressedLen, STGM_WRITE | STGM_TRANSACTED,
-							 RTFCommitFunc, NULL, // NULL => no cleanup callbak
-							 lpCompressedRTFStream, &lpUncompressedStream);
-
+	     RTFCommitFunc, nullptr /* no cleanup */,
+	     lpCompressedRTFStream, &~lpUncompressedStream);
 	if(hr != hrSuccess)
 		goto exit;
 
 	hr = lpUncompressedStream->QueryInterface(IID_IStream, (void **)lppUncompressedStream);
 
 exit:
-	if(lpUncompressedStream)
-		lpUncompressedStream->Release();
 	free(lpCompressed);
 	free(lpUncompressed);
 	return hr;
@@ -447,24 +444,19 @@ BOOL __stdcall FPropExists(LPMAPIPROP lpMapiProp, ULONG ulPropTag)
 HRESULT __stdcall CreateStreamOnHGlobal(void *hGlobal, BOOL fDeleteOnRelease, IStream **lppStream)
 {
 	HRESULT hr = hrSuccess;
-	ECMemStream *lpStream = NULL;
+	object_ptr<ECMemStream> lpStream;
 	
 	if(hGlobal != NULL || fDeleteOnRelease != TRUE) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-
-	hr = ECMemStream::Create(NULL, 0, STGM_WRITE, NULL, NULL, NULL, &lpStream);	// NULL's: no callbacks and custom data
-	
+	hr = ECMemStream::Create(nullptr, 0, STGM_WRITE, nullptr, nullptr, nullptr, &~lpStream); // NULLs: no callbacks and custom data
 	if(hr != hrSuccess) 
 		goto exit;
 		
 	hr = lpStream->QueryInterface(IID_IStream, (void **)lppStream);
 	
 exit:
-	if (lpStream)
-		lpStream->Release();
-	
 	return hr;
 }
 
