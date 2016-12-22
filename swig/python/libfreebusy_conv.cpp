@@ -52,23 +52,37 @@ LPFBUser List_to_p_FBUser(PyObject *list, ULONG *cValues) {
 		goto exit;
 
 	while ((elem = PyIter_Next(iter))) {
-		if (PyBytes_AsStringAndSize(elem, &buf, (Py_ssize_t *)&size) == -1)
-			PyErr_SetString(PyExc_RuntimeError, "ulFlags missing for newmail notification");
+		if (PyBytes_AsStringAndSize(elem, &buf, (Py_ssize_t *)&size) == -1) {
+			PyErr_SetString(PyExc_RuntimeError, "Entryid is missing");
+			goto exit;
+		}
 
 		entryid = reinterpret_cast< LPENTRYID >(buf);
 
 		lpFbUsers[i].m_cbEid = size;
 		lpFbUsers[i].m_lpEid = entryid;
 		++i;
+
+		Py_DECREF(elem);
+		elem = nullptr;
 	}
 
 	*cValues = i;
  exit:
+	if(elem != nullptr)
+		Py_DECREF(elem);
+	if(iter != nullptr)
+		Py_DECREF(iter);
+	if (PyErr_Occurred() && lpFbUsers) {
+		MAPIFreeBuffer(lpFbUsers);
+		lpFbUsers = nullptr;
+	}
+
 	return lpFbUsers;
 }
 
 LPFBBlock_1 List_to_p_FBBlock_1(PyObject *list, ULONG *nBlocks) {
-	LPFBBlock_1 lpFBBlocks = NULL;
+	LPFBBlock_1 lpFBBlocks = nullptr;
 	PyObject *iter, *elem, *start, *end, *status;
 	size_t i, len;
 
@@ -94,16 +108,29 @@ LPFBBlock_1 List_to_p_FBBlock_1(PyObject *list, ULONG *nBlocks) {
 		lpFBBlocks[i].m_tmEnd = PyLong_AsLong(end);
 		lpFBBlocks[i].m_fbstatus = FBStatus(PyLong_AsLong(status));
 		i++;
+
+		Py_DECREF(elem);
+		elem = nullptr;
 	}
 
 	*nBlocks = i;
 
  exit:
+	if(elem != nullptr)
+		Py_DECREF(elem);
+	if(iter != nullptr)
+		Py_DECREF(iter);
+	if (PyErr_Occurred() && lpFBBlocks) {
+		MAPIFreeBuffer(lpFBBlocks);
+		lpFBBlocks = nullptr;
+	}
+
 	return lpFBBlocks;
 }
 
 PyObject* Object_from_FBBlock_1(FBBlock_1 const& sFBBlock) {
-	PyObject *start = NULL, *end = NULL, *status = NULL, *object = NULL;
+	PyObject *start = nullptr, *end = nullptr,
+		*status = nullptr, *object = nullptr;
 
 	start = PyLong_FromLong(sFBBlock.m_tmStart);
 	if (PyErr_Occurred())
@@ -126,27 +153,40 @@ PyObject* Object_from_FBBlock_1(FBBlock_1 const& sFBBlock) {
 		Py_DECREF(end);
 	if (status != nullptr)
 		Py_DECREF(status);
-
+	if (PyErr_Occurred())
+		if(object != nullptr) {
+			Py_DECREF(object);
+			object = nullptr;
+		}
 	return object;
 }
 
 PyObject* List_from_FBBlock_1(LPFBBlock_1 lpFBBlocks, LONG* nBlocks) {
 	size_t i;
-	PyObject *list = NULL, *elem = NULL;
+	PyObject *list = nullptr, *elem = nullptr;
 
 	list = PyList_New(0);
 
 	for (i = 0; i < *nBlocks; i++) {
 		elem = Object_from_FBBlock_1(lpFBBlocks[i]);
+
 		if(PyErr_Occurred())
 			goto exit;
 
 		PyList_Append(list, elem);
 
 		Py_DECREF(elem);
-		elem = NULL;
+		elem = nullptr;
 	}
-
  exit:
+	if (elem != nullptr)
+		Py_DECREF(elem);
+
+	if (PyErr_Occurred())
+		if(list != nullptr) {
+			Py_DECREF(list);
+			list = nullptr;
+		}
+
 	return list;
 }
