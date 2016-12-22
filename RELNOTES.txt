@@ -17,6 +17,7 @@ Fixes:
 * server: S3 attachment size was not calculated [KC-351]
 * inetmapi: review misdetection of TNEF necessity for reminders [KC-348]
 * icalmapi: unbreak timezone lookup [KC-313]
+* icalmapi: handle RRULE with missing timezone [KC-341]
 * inetmapi: avoid an infinite recursion on SMIME handling [KC-366]
 * inetmapi: avoid buffer overread when generating NDR [KC-398]
 * server: equalize fs permissions for attachments [KC-380]

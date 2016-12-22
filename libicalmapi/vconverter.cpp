@@ -1539,7 +1539,8 @@ HRESULT VConverter::HrAddRecurrence(icalcomponent *lpicEventRoot, icalcomponent 
 {
 	ICalRecurrence icRecClass;
 	SPropValue spSpropVal = {0};
-
+	TIMEZONE_STRUCT zone;
+	HRESULT hr = hrSuccess;
 	icalproperty *lpicProp = icalcomponent_get_first_property(lpicEvent,
 	                         ICAL_RRULE_PROPERTY);
 	if (lpicProp == NULL) {
@@ -1560,11 +1561,18 @@ HRESULT VConverter::HrAddRecurrence(icalcomponent *lpicEventRoot, icalcomponent 
 		return hrSuccess;
 	}
 
-	if (m_iCurrentTimeZone == m_mapTimeZones->end())
+	if (!bIsAllday && m_iCurrentTimeZone == m_mapTimeZones->end()) {
 		// if we have an RRULE, we must have a timezone
 		return MAPI_E_CORRUPT_DATA;
-
-	HRESULT hr = icRecClass.HrParseICalRecurrenceRule(m_iCurrentTimeZone->second, lpicEventRoot, lpicEvent, bIsAllday, m_lpNamedProps, lpIcalItem);
+	} else if (m_iCurrentTimeZone == m_mapTimeZones->end()) {
+		hr = HrGetTzStruct("Etc/UTC", &zone);
+		if (hr != hrSuccess)
+			return hr;
+	} else {
+		zone = m_iCurrentTimeZone->second;
+	}
+	hr = icRecClass.HrParseICalRecurrenceRule(zone, lpicEventRoot,
+	     lpicEvent, bIsAllday, m_lpNamedProps, lpIcalItem);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -2808,7 +2816,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 		bIsAllDay = (lpSpropArray[3].Value.b == TRUE);
 
 	if (m_iCurrentTimeZone == m_mapTimeZones->end()) {
-		hr = HrGetTzStruct("UTC", &zone);
+		hr = HrGetTzStruct("Etc/UTC", &zone);
 		if (hr != hrSuccess)
 			goto exit;
 	} else {
