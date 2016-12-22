@@ -202,7 +202,7 @@ protected:
 	ECRESULT GetBinarySortKey(struct propVal *in, ECSortCol &out);
 	ECRESULT	GetSortFlags(unsigned int ulPropTag, unsigned char *lpFlags);
 
-	virtual ECRESULT GetMVRowCount(unsigned int ulObjId, unsigned int *lpulCount);
+	virtual ECRESULT GetMVRowCount(std::list<unsigned int> ulObjIds, std::map<unsigned int, unsigned int> &lpulCount);
 	virtual ECRESULT ReloadTable(enumReloadType eType);
 	virtual ECRESULT	Load();
 

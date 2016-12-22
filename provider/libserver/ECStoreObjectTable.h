@@ -74,7 +74,8 @@ protected:
 	static ECRESULT QueryRowDataByRow(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, const sObjectTableKey &sKey, unsigned int ulRowNum, std::multimap<unsigned int, unsigned int> &mapColumns, bool bTableLimit, struct rowSet *lpsRowSet);
 
 private:
-	virtual ECRESULT GetMVRowCount(unsigned int ulObjId, unsigned int *lpulCount);
+	static ECRESULT GetMVRowCountHelper(ECDatabase *db, std::string query, std::list<unsigned int> &ids, std::map<unsigned int, unsigned int> &count);
+	virtual ECRESULT GetMVRowCount(std::list<unsigned int> ids, std::map<unsigned int, unsigned int> &count);
 	virtual ECRESULT ReloadTableMVData(ECObjectTableList* lplistRows, ECListInt* lplistMVPropTag);
 	virtual ECRESULT CheckPermissions(unsigned int ulObjId);
 

@@ -490,7 +490,7 @@ skip:
  *
  * @return Kopano error code
  */
-ECRESULT ECGenericObjectTable::GetMVRowCount(unsigned int ulObjId, unsigned int *lpulCount)
+ECRESULT ECGenericObjectTable::GetMVRowCount(std::list<unsigned int> ulObjIds, std::map<unsigned int, unsigned int> &lpulCount)
 {
 	return KCERR_NO_SUPPORT;
 }
@@ -1423,6 +1423,8 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
 							cMVNew = 1;
 	unsigned int			i;
 	std::list<unsigned int> lstFilteredIds;
+	std::list<unsigned int> ids;
+	std::map<unsigned int, unsigned int> count;
 	
 	ECObjectTableList		ecRowsItem;
 	ECObjectTableList		ecRowsDeleted;
@@ -1481,11 +1483,19 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
 			ecRowsItem.emplace_back(obj_id, 0);
 			if (!IsMVSet())
 				continue;
-			// get new mvprop count
-			er = GetMVRowCount(obj_id, &cMVNew);
-			if (er != erSuccess)
-				assert(false); // What now???
+			ids.emplace_back(obj_id);
+		}
 
+		// get new mvprop count
+		if (ids.size() > 0) {
+			er = GetMVRowCount(ids, count);
+			if (er != erSuccess)
+				return er;
+		}
+
+		for (const auto pair : count) {
+			auto obj_id = pair.first;
+			cMVNew = pair.second;
 			// get old mvprops count
 			cMVOld = 0;
 			for (auto iterMapObject = this->mapObjects.find(sObjectTableKey(obj_id, 0));
@@ -1509,7 +1519,7 @@ ECRESULT ECGenericObjectTable::UpdateRows(unsigned int ulType, std::list<unsigne
 				sRow.ulOrderId = i;
 				ecRowsItem.emplace_back(sRow);
 			}
-        }
+		}
         
         // Remember that the specified row is available		
 		for (const auto &row : ecRowsItem)
