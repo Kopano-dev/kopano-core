@@ -3274,8 +3274,10 @@ HRESULT IMAP::HrRefreshFolderMails(bool bInitialLoad, bool bResetRecent, bool bS
 		for (const auto &mail : lstFolderMailEIDs)
 			mapUIDs[mail.ulUid] = n++;
     
-    if(bInitialLoad)
+    if(bInitialLoad) {
         lstFolderMailEIDs.clear();
+		m_ulLastUid = 0;
+    }
 
     iterMail = lstFolderMailEIDs.cbegin();
 
