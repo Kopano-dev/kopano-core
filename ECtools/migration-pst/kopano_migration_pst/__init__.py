@@ -19,7 +19,7 @@ class Service(kopano.Service):
         for k, v in parent.pc.props.items():
             propid, proptype, value = k, v.wPropType, v.value
             if proptype == PT_SYSTIME:
-                value = MAPI.Time.unixtime(time.mktime(value.timetuple()))
+                value = MAPI.Time.FileTime(value)
             nameid = self.propid_nameid.get(propid)
             if nameid:
                 propid = PROP_ID(mapiobj.GetIDsFromNames([MAPINAMEID(*nameid)], 0)[0])

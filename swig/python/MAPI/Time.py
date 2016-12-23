@@ -1,6 +1,10 @@
 import sys
 import time
 
+# PT_SYSTIME properties store the number of 100-nanosecond units since 1601,1,1 ..
+# unixtime is represented by the number of seconds since 1970,1,1
+
+# number of 100-nanosecond units between 1601,1,1 and 1970,1,1
 NANOSECS_BETWEEN_EPOCH = 116444736000000000
 
 def _convert(s):
@@ -8,6 +12,8 @@ def _convert(s):
         return s.decode('ascii')
     else:
         return s
+
+# class representing a PT_SYSTIME value. the 'unixtime' property can be used to convert to/from unixtime.
 
 class FileTime(object):
     def __init__(self, filetime):
@@ -41,6 +47,8 @@ class FileTime(object):
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
+
+# convert unixtime to PT_SYSTIME.. (bad name, as it sounds like the result is a unixtime)
 
 def unixtime(secs):
     t = FileTime(0)

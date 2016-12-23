@@ -802,12 +802,12 @@ class PType:
 
     def get_floating_time(self, bytes):
 
-        return datetime.datetime(year=1899, month=12, day=30) + datetime.timedelta(days=struct.unpack('d', bytes)[0])
+        return struct.unpack('d', bytes)[0]
 
 
     def get_time(self, bytes):
 
-        return datetime.datetime(year=1601, month=1, day=1) + datetime.timedelta(microseconds = struct.unpack('q', bytes)[0]/10.0)
+        return struct.unpack('q', bytes)[0]
 
 
     def get_multi_value_offsets(self, bytes):
