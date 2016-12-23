@@ -220,11 +220,8 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPr
 	ULONG cbEntryId;
 	ULONG cbDestEntryId;
 	ULONG ulObjType;
-	LPMAPIFOLDER lpFolder = NULL;
-	ECMAPIFolder *lpECFolder = NULL;
-	LPMAPIFOLDER lpParentFolder = NULL;
-	ECMAPIFolder *lpECParentFolder = NULL;
-
+	object_ptr<IMAPIFolder> lpFolder, lpParentFolder;
+	object_ptr<ECMAPIFolder> lpECFolder, lpECParentFolder;
 	ULONG ulFolderType = FOLDER_GENERIC;
 
 	utf8string strFolderComment;
@@ -271,11 +268,10 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPr
 				hr = MAPI_E_CALL_FAILED;
 				goto exit;
 			}
-				
-			hr = m_lpFolder->OpenEntry(cbEntryId, lpEntryId, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*)&lpParentFolder);
+			hr = m_lpFolder->OpenEntry(cbEntryId, lpEntryId, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpParentFolder);
 			if(hr != hrSuccess)
 				goto exit;
-			hr = lpParentFolder->QueryInterface(IID_ECMAPIFolder, (void**)&lpECParentFolder);
+			hr = lpParentFolder->QueryInterface(IID_ECMAPIFolder, &~lpECParentFolder);
 			if(hr != hrSuccess)
 				goto exit;
 			
@@ -290,7 +286,7 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPr
 				goto exit;
 		}
 		// Open the folder we just created
-		hr = m_lpFolder->OpenEntry(cbEntryId, lpEntryId, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*)&lpFolder);
+		hr = m_lpFolder->OpenEntry(cbEntryId, lpEntryId, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpFolder);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -301,16 +297,16 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPr
 		goto exit;
 	}else if(cbEntryId == m_lpFolder->m_cbEntryId && memcmp(lpEntryId, m_lpFolder->m_lpEntryId, cbEntryId)==0){
 		// We are the changed folder
-		hr = m_lpFolder->QueryInterface(IID_IMAPIFolder, (LPVOID*)&lpFolder);
+		hr = m_lpFolder->QueryInterface(IID_IMAPIFolder, &~lpFolder);
 		if(hr != hrSuccess)
 			goto exit;
 	}else{
 		bool bRestored = false;
 
 		// Changed folder is an existing subfolder
-		hr = m_lpFolder->OpenEntry(cbEntryId, lpEntryId, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*)&lpFolder);
+		hr = m_lpFolder->OpenEntry(cbEntryId, lpEntryId, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpFolder);
 		if(hr != hrSuccess){
-			hr = m_lpFolder->OpenEntry(cbEntryId, lpEntryId, &IID_IMAPIFolder, MAPI_MODIFY | SHOW_SOFT_DELETES, &ulObjType, (LPUNKNOWN*)&lpFolder);
+			hr = m_lpFolder->OpenEntry(cbEntryId, lpEntryId, &IID_IMAPIFolder, MAPI_MODIFY | SHOW_SOFT_DELETES, &ulObjType, &~lpFolder);
 			if(hr != hrSuccess)
 				goto exit;
 
@@ -388,8 +384,7 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPr
 	if(bConflict){
 		//TODO: handle conflicts
 	}
-
-	hr = lpFolder->QueryInterface(IID_ECMAPIFolder, (LPVOID*)&lpECFolder);
+	hr = lpFolder->QueryInterface(IID_ECMAPIFolder, &~lpECFolder);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -432,18 +427,6 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPr
 	}
 
 exit:
-	if(lpFolder)
-		lpFolder->Release();
-
-	if(lpECFolder)
-		lpECFolder->Release();
-
-	if(lpECParentFolder)
-		lpECParentFolder->Release();
-
-	if(lpParentFolder)
-		lpParentFolder->Release();
-
 	return hr;
 }
 
