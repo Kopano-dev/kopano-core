@@ -40,6 +40,7 @@ typedef KCHL::memory_ptr<ECUSER> ECUserPtr;
 #include <kopano/ECGetText.h>
 
 using namespace std;
+using namespace KCHL;
 
 ECABProvider::ECABProvider(ULONG ulFlags, const char *szClassName) :
     ECUnknown(szClassName)
@@ -79,11 +80,10 @@ HRESULT ECABProvider::Shutdown(ULONG * lpulFlags)
 HRESULT ECABProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG ulFlags, ULONG * lpulcbSecurity, LPBYTE * lppbSecurity, LPMAPIERROR * lppMAPIError, LPABLOGON * lppABLogon)
 {
 	HRESULT			hr = hrSuccess;
-	ECABLogon*		lpABLogon = NULL;
+	object_ptr<ECABLogon> lpABLogon;
 	sGlobalProfileProps	sProfileProps;
 	LPMAPIUID	lpGuid = NULL;
-
-	WSTransport*	lpTransport = NULL;
+	object_ptr<WSTransport> lpTransport;
 
 	if (!lpMAPISup || !lppABLogon) {
 		hr = MAPI_E_INVALID_PARAMETER;
@@ -96,15 +96,14 @@ HRESULT ECABProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 		goto exit;
 
 	// Create a transport for this provider
-	hr = WSTransport::Create(ulFlags, &lpTransport);
+	hr = WSTransport::Create(ulFlags, &~lpTransport);
 	if(hr != hrSuccess)
 		goto exit;
 	// Log on the transport to the server
 	hr = lpTransport->HrLogon(sProfileProps);
 	if(hr != hrSuccess)
 		goto exit;
-
-	hr = ECABLogon::Create(lpMAPISup, lpTransport, sProfileProps.ulProfileFlags, (GUID *)lpGuid, &lpABLogon);
+	hr = ECABLogon::Create(lpMAPISup, lpTransport, sProfileProps.ulProfileFlags, (GUID *)lpGuid, &~lpABLogon);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -124,12 +123,6 @@ HRESULT ECABProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 		*lppMAPIError = NULL;
 
 exit:
-	if(lpABLogon)
-		lpABLogon->Release();
-
-	if(lpTransport)
-		lpTransport->Release();
-
 	return hr;
 }
 

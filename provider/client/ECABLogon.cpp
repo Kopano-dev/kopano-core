@@ -35,6 +35,8 @@
 #include <kopano/stringutil.h>
 #include "pcutil.hpp"
 
+using namespace KCHL;
+
 ECABLogon::ECABLogon(LPMAPISUP lpMAPISup, WSTransport* lpTransport, ULONG ulProfileFlags, GUID *lpGUID) : ECUnknown("IABLogon")
 {
 	// The 'legacy' guid used normally (all AB entryIDs have this GUID)
@@ -127,14 +129,14 @@ HRESULT ECABLogon::Logoff(ULONG ulFlags)
 HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPUNKNOWN *lppUnk)
 {
 	HRESULT			hr = hrSuccess;
-	ECABContainer*	lpABContainer = NULL;
+	object_ptr<ECABContainer> lpABContainer;
 	BOOL			fModifyObject = FALSE;
 	ABEID			eidRoot =  ABEID(MAPI_ABCONT, MUIDECSAB, 0);
 	ABEID *lpABeid = NULL;
-	IECPropStorage*	lpPropStorage = NULL;
-	ECMailUser*		lpMailUser = NULL;
-	ECDistList*		lpDistList = NULL;
-	KCHL::memory_ptr<ENTRYID> lpEntryIDServer;
+	object_ptr<IECPropStorage> lpPropStorage;
+	object_ptr<ECMailUser> lpMailUser;
+	object_ptr<ECDistList> 	lpDistList;
+	memory_ptr<ENTRYID> lpEntryIDServer;
 
 	// Check input/output variables 
 	if(lpulObjType == NULL || lppUnk == NULL) {
@@ -193,7 +195,7 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 
 	switch(lpABeid->ulType) {
 		case MAPI_ABCONT:
-			hr = ECABContainer::Create(this, MAPI_ABCONT, fModifyObject, &lpABContainer);
+			hr = ECABContainer::Create(this, MAPI_ABCONT, fModifyObject, &~lpABContainer);
 			if(hr != hrSuccess)
 				goto exit;
 
@@ -202,8 +204,7 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 				goto exit;
 
 			AddChild(lpABContainer);
-
-			hr = m_lpTransport->HrOpenABPropStorage(cbEntryID, lpEntryID, &lpPropStorage);
+			hr = m_lpTransport->HrOpenABPropStorage(cbEntryID, lpEntryID, &~lpPropStorage);
 			if(hr != hrSuccess)
 				goto exit;
 
@@ -219,7 +220,7 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 				goto exit;
 			break;
 		case MAPI_MAILUSER:
-			hr = ECMailUser::Create(this, fModifyObject, &lpMailUser);
+			hr = ECMailUser::Create(this, fModifyObject, &~lpMailUser);
 			if(hr != hrSuccess)
 				goto exit;
 			
@@ -228,8 +229,7 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 				goto exit;
 
 			AddChild(lpMailUser);
-
-			hr = m_lpTransport->HrOpenABPropStorage(cbEntryID, lpEntryID, &lpPropStorage);
+			hr = m_lpTransport->HrOpenABPropStorage(cbEntryID, lpEntryID, &~lpPropStorage);
 			if(hr != hrSuccess)
 				goto exit;
 
@@ -247,7 +247,7 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 
 			break;
 		case MAPI_DISTLIST:
-			hr = ECDistList::Create(this, fModifyObject, &lpDistList);
+			hr = ECDistList::Create(this, fModifyObject, &~lpDistList);
 			if(hr != hrSuccess)
 				goto exit;
 			
@@ -256,8 +256,7 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 				goto exit;
 
 			AddChild(lpDistList);
-
-			hr = m_lpTransport->HrOpenABPropStorage(cbEntryID, lpEntryID, &lpPropStorage);
+			hr = m_lpTransport->HrOpenABPropStorage(cbEntryID, lpEntryID, &~lpPropStorage);
 			if(hr != hrSuccess)
 				goto exit;
 
@@ -284,18 +283,6 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 		*lpulObjType = lpABeid->ulType;
 
 exit:
-	if(lpABContainer)
-		lpABContainer->Release();
-
-	if(lpPropStorage)
-		lpPropStorage->Release();
-
-	if(lpMailUser)
-		lpMailUser->Release();
-
-	if(lpDistList)
-		lpDistList->Release();
-
 	return hr;
 }
 
@@ -355,7 +342,6 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags, LPSPropTagArray lpPropTagArray, 
 	ABEID *lpABeid = NULL;
 	ULONG			cbABeid;
 	ULONG			cValues;
-	IMailUser*		lpIMailUser = NULL;
 	LPSPropValue	lpPropArray = NULL;
 	LPSPropValue	lpNewPropArray = NULL;
 	unsigned int	j;
@@ -383,7 +369,8 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags, LPSPropTagArray lpPropTagArray, 
 		if ( memcmp( &(lpABeid->guid), &this->m_guid, sizeof(MAPIUID) ) != 0)
 			continue;	// no
 
-		hr = OpenEntry(cbABeid, (LPENTRYID)lpABeid, NULL, 0, &ulObjType, (LPUNKNOWN*)&lpIMailUser);
+		object_ptr<IMailUser> lpIMailUser;
+		hr = OpenEntry(cbABeid, reinterpret_cast<ENTRYID *>(lpABeid), nullptr, 0, &ulObjType, &~lpIMailUser);
 		if(hr != hrSuccess)
 			continue;	// no
 		
@@ -431,8 +418,6 @@ HRESULT ECABLogon::PrepareRecips(ULONG ulFlags, LPSPropTagArray lpPropTagArray, 
 
 	skip:
 		if(lpPropArray){ ECFreeBuffer(lpPropArray); lpPropArray = NULL; }
-		lpIMailUser->Release();
-		lpIMailUser = NULL;
 	}
 
 	// Always succeeded on this point
@@ -444,10 +429,6 @@ exit:
 
 	if(lpNewPropArray)
 		ECFreeBuffer(lpNewPropArray);
-	
-	if(lpIMailUser)
-		lpIMailUser->Release();
-
 	return hr;
 }
 

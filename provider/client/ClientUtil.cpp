@@ -250,7 +250,7 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 	time_t			tt;
 	struct tm*		tm;
 	char			szTime[255];
-	IStream*		lpBodyStream = NULL;
+	object_ptr<IStream> lpBodyStream;
 	tstring			tSubject;
 
 	// The same properties as under windows
@@ -557,8 +557,7 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 		lpDestPropValue[ulCurDestValues].ulPropTag = PR_INTERNET_MESSAGE_ID;
 		lpDestPropValue[ulCurDestValues++].Value.LPSZ = lpSrcPropValue[RR_INTERNET_MESSAGE_ID].Value.LPSZ;
 	}
-
-	hr = (*lppEmptyMessage)->OpenProperty(PR_BODY, &IID_IStream, 0, MAPI_CREATE | MAPI_MODIFY, (IUnknown**)&lpBodyStream);
+	hr = (*lppEmptyMessage)->OpenProperty(PR_BODY, &IID_IStream, 0, MAPI_CREATE | MAPI_MODIFY, &~lpBodyStream);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -619,8 +618,6 @@ HRESULT ClientUtil::ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAG
 		goto exit;
 
 exit:
-	if(lpBodyStream)
-		lpBodyStream->Release();
 	if(lpMods)
 		FreePadrlist(lpMods);	
 
@@ -630,9 +627,9 @@ exit:
 HRESULT ClientUtil::GetGlobalProfileProperties(LPMAPISUP lpMAPISup, struct sGlobalProfileProps* lpsProfileProps)
 {
 	HRESULT			hr = hrSuccess;
-	LPPROFSECT		lpGlobalProfSect = NULL;
+	object_ptr<IProfSect> lpGlobalProfSect;
 
-	hr = lpMAPISup->OpenProfileSection((LPMAPIUID)pbGlobalProfileSectionGuid, MAPI_MODIFY, &lpGlobalProfSect);
+	hr = lpMAPISup->OpenProfileSection((LPMAPIUID)pbGlobalProfileSectionGuid, MAPI_MODIFY, &~lpGlobalProfSect);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -641,9 +638,6 @@ HRESULT ClientUtil::GetGlobalProfileProperties(LPMAPISUP lpMAPISup, struct sGlob
 		goto exit;
 
 exit:
-	if(lpGlobalProfSect)
-		lpGlobalProfSect->Release();
-
 	return hr;
 }
 

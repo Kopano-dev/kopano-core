@@ -720,14 +720,6 @@ HRESULT ECExchangeExportChanges::ExportMessageChanges() {
 
 HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 	HRESULT			hr = hrSuccess;
-
-	LPMESSAGE		lpSourceMessage = NULL;
-	LPATTACH		lpSourceAttach = NULL;
-
-	LPMESSAGE		lpDestMessage = NULL;
-	LPATTACH		lpDestAttach = NULL;
-
-	LPMAPITABLE		lpTable = NULL;
 	LPSRowSet		lpRows = NULL;
 	memory_ptr<SPropValue> lpPropArray;
 	memory_ptr<SPropTagArray> lpPropTagArray;
@@ -763,6 +755,8 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 		if ((m_lstChange.at(m_ulStep).ulChangeType & ICS_ACTION_MASK) == ICS_NEW)
 			ulFlags |= SYNC_NEW_MESSAGE;
 
+		object_ptr<IMessage> lpSourceMessage, lpDestMessage;
+		object_ptr<IMAPITable> lpTable;
 		if(!m_sourcekey.empty()) {
 			// Normal exporter, get the import properties we need by opening the source message
 
@@ -782,8 +776,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 				ZLOG_DEBUG(m_lpLogger, "Error while getting entryid from sourcekey %s", bin2hex(m_lstChange.at(m_ulStep).sSourceKey.cb, m_lstChange.at(m_ulStep).sSourceKey.lpb).c_str());
 				goto exit;
 			}
-
-			hr = m_lpStore->OpenEntry(cbEntryID, lpEntryID, &m_iidMessage, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*) &lpSourceMessage);
+			hr = m_lpStore->OpenEntry(cbEntryID, lpEntryID, &m_iidMessage, MAPI_MODIFY, &ulObjType, &~lpSourceMessage);
 			if(hr == MAPI_E_NOT_FOUND){
 				hr = hrSuccess;
 				goto next;
@@ -797,8 +790,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 				ZLOG_DEBUG(m_lpLogger, "Unable to get properties from source message");
 				goto exit;
 			}
-
-			hr = m_lpImportContents->ImportMessageChange(ulCount, lpPropArray, ulFlags, &lpDestMessage);
+			hr = m_lpImportContents->ImportMessageChange(ulCount, lpPropArray, ulFlags, &~lpDestMessage);
 		} else {
 			// Server-wide ICS exporter, only export source key and parent source key
 			SPropValue sProps[2];
@@ -807,8 +799,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 			sProps[0].Value.bin = m_lstChange.at(m_ulStep).sSourceKey; // cheap copy is ok since pointer is valid during ImportMessageChange call
 			sProps[1].ulPropTag = PR_PARENT_SOURCE_KEY;
 			sProps[1].Value.bin = m_lstChange.at(m_ulStep).sParentSourceKey;
-
-			hr = m_lpImportContents->ImportMessageChange(2, sProps, ulFlags, &lpDestMessage);
+			hr = m_lpImportContents->ImportMessageChange(2, sProps, ulFlags, &~lpDestMessage);
 		}
 
 		if (hr == SYNC_E_IGNORE) {
@@ -850,8 +841,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 			ZLOG_DEBUG(m_lpLogger, "Unable to copy to imported message");
 			goto exit;
 		}
-
-		hr = lpSourceMessage->GetRecipientTable(0, &lpTable);
+		hr = lpSourceMessage->GetRecipientTable(0, &~lpTable);
 		if(hr !=  hrSuccess) {
 			ZLOG_DEBUG(m_lpLogger, "Unable to read source message's recipient table");
 			goto exit;
@@ -885,11 +875,9 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 			FreeProws(lpRows);
 			lpRows = NULL;
 		}
-		lpTable->Release();
-		lpTable = NULL;
 
 		//delete every attachment
-		hr = lpDestMessage->GetAttachmentTable(0, &lpTable);
+		hr = lpDestMessage->GetAttachmentTable(0, &~lpTable);
 		if(hr !=  hrSuccess) {
 			ZLOG_DEBUG(m_lpLogger, "Unable to get destination's attachment table");
 			goto exit;
@@ -915,11 +903,9 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 		}
 		FreeProws(lpRows);
 		lpRows = NULL;
-		lpTable->Release();
-		lpTable = NULL;
 
 		//add every attachment
-		hr = lpSourceMessage->GetAttachmentTable(0, &lpTable);
+		hr = lpSourceMessage->GetAttachmentTable(0, &~lpTable);
 		if(hr !=  hrSuccess)
 			goto exit;
 		hr = lpTable->SetColumns(sptAttach, 0);
@@ -931,13 +917,13 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 			goto exit;
 
 		for (ulCount = 0; ulCount < lpRows->cRows; ++ulCount) {
-			hr = lpSourceMessage->OpenAttach(lpRows->aRow[ulCount].lpProps[0].Value.ul, &IID_IAttachment, 0, &lpSourceAttach);
+			object_ptr<IAttach> lpSourceAttach, lpDestAttach;
+			hr = lpSourceMessage->OpenAttach(lpRows->aRow[ulCount].lpProps[0].Value.ul, &IID_IAttachment, 0, &~lpSourceAttach);
 			if(hr !=  hrSuccess) {
 				ZLOG_DEBUG(m_lpLogger, "Unable to open attachment %d in source message", lpRows->aRow[ulCount].lpProps[0].Value.ul);
 				goto exit;
 			}
-
-			hr = lpDestMessage->CreateAttach(&IID_IAttachment, 0, &ulObjType, &lpDestAttach);
+			hr = lpDestMessage->CreateAttach(&IID_IAttachment, 0, &ulObjType, &~lpDestAttach);
 			if(hr !=  hrSuccess) {
 				ZLOG_DEBUG(m_lpLogger, "Unable to create attachment");
 				goto exit;
@@ -954,15 +940,10 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesSlow() {
 				ZLOG_DEBUG(m_lpLogger, "SaveChanges() failed for destination attachment");
 				goto exit;
 			}
-			lpSourceAttach->Release();
-			lpSourceAttach = NULL;
-			lpDestAttach->Release();
-			lpDestAttach = NULL;
 		}
 		FreeProws(lpRows);
 		lpRows = NULL;
-		lpTable->Release();
-		lpTable = NULL;
+		lpTable.release();
 
 		hr = lpSourceMessage->GetPropList(0, &~lpPropTagArray);
 		if (hr != hrSuccess) {
@@ -990,30 +971,6 @@ next:
 			FreeProws(lpRows);
 			lpRows = NULL;
 		}
-
-		if(lpTable){
-			lpTable->Release();
-			lpTable = NULL;
-		}
-		if(lpSourceAttach){
-			lpSourceAttach->Release();
-			lpSourceAttach = NULL;
-		}
-
-		if(lpDestAttach){
-			lpDestAttach->Release();
-			lpDestAttach = NULL;
-		}
-
-		if(lpSourceMessage){
-			lpSourceMessage->Release();
-			lpSourceMessage = NULL;
-		}
-
-		if(lpDestMessage){
-			lpDestMessage->Release();
-			lpDestMessage = NULL;
-		}
 		++m_ulStep;
 		++ulSteps;
 	}
@@ -1025,21 +982,6 @@ exit:
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "change error: %s", stringify(hr, true).c_str());
 	if(lpRows)
 		FreeProws(lpRows);
-
-	if(lpTable)
-		lpTable->Release();
-
-	if(lpDestAttach)
-		lpDestAttach->Release();
-
-	if(lpDestMessage)
-		lpDestMessage->Release();
-
-	if(lpSourceAttach)
-		lpSourceAttach->Release();
-
-	if(lpSourceMessage)
-		lpSourceMessage->Release();
 	return hr;
 }
 
@@ -1251,8 +1193,6 @@ HRESULT ECExchangeExportChanges::ExportMessageDeletes(){
 
 HRESULT ECExchangeExportChanges::ExportFolderChanges(){
 	HRESULT			hr = hrSuccess;
-
-	LPMAPIFOLDER	lpFolder = NULL;
 	LPSPropValue	lpPropVal = NULL;
 
 	ULONG			ulObjType = 0;
@@ -1262,6 +1202,7 @@ HRESULT ECExchangeExportChanges::ExportFolderChanges(){
 	ULONG			cbEntryID = 0;
 
 	while(m_ulStep < m_lstChange.size() && (m_ulBufferSize == 0 || ulSteps < m_ulBufferSize)){
+		object_ptr<IMAPIFolder> lpFolder;
 		memory_ptr<SPropValue> lpPropArray;
 		memory_ptr<ENTRYID> lpEntryID;
 
@@ -1278,8 +1219,7 @@ HRESULT ECExchangeExportChanges::ExportFolderChanges(){
 				goto next;
 			}
 			m_lpLogger->Log(EC_LOGLEVEL_INFO, "change sourcekey: %s", bin2hex(m_lstChange.at(m_ulStep).sSourceKey.cb, m_lstChange.at(m_ulStep).sSourceKey.lpb).c_str());
-
-			hr = m_lpStore->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*) &lpFolder);
+			hr = m_lpStore->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpFolder);
 			if(hr != hrSuccess){
 				hr = hrSuccess;
 				goto next;
@@ -1333,11 +1273,6 @@ HRESULT ECExchangeExportChanges::ExportFolderChanges(){
 next:
 		// Mark this change as processed
 		m_setProcessedChanges.insert(std::pair<unsigned int, std::string>(m_lstChange.at(m_ulStep).ulChangeId, std::string((char *)m_lstChange.at(m_ulStep).sSourceKey.lpb, m_lstChange.at(m_ulStep).sSourceKey.cb)));
-
-		if(lpFolder){
-			lpFolder->Release();
-			lpFolder = NULL;
-		}
 		++ulSteps;
 		++m_ulStep;
 	}
@@ -1346,8 +1281,6 @@ next:
 		hr = SYNC_W_PROGRESS;
 
 exit:
-	if(lpFolder)
-		lpFolder->Release();
 	return hr;
 }
 
