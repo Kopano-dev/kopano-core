@@ -660,7 +660,7 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	ECMemTableView*	lpTableView = NULL;
 #define TCOLS 9
 	SizedSPropTagArray(TCOLS, sptaCols) = {TCOLS, {PR_ENTRYID, PR_STORE_ENTRYID, PR_DISPLAY_NAME_W, PR_OBJECT_TYPE, PR_CONTAINER_FLAGS, PR_DISPLAY_TYPE, PR_AB_PROVIDER_ID, PR_DEPTH, PR_INSTANCE_KEY}};
-	enum {ENTRYID = 0, STORE_ENTRYID, DISPLAY_NAME, OBJECT_TYPE, CONTAINER_FLAGS, DISPLAY_TYPE, AB_PROVIDER_ID, DEPTH, INSTANCE_KEY, ROWID};
+	enum {XENTRYID = 0, STORE_ENTRYID, DISPLAY_NAME, OBJECT_TYPE, CONTAINER_FLAGS, DISPLAY_TYPE, AB_PROVIDER_ID, DEPTH, INSTANCE_KEY, ROWID};
 	ULONG ulInstance = 0;
 	SPropValue sProps[TCOLS + 1];
 	convert_context converter;
@@ -698,9 +698,9 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 			lpEntryID->ulOffset = 0;
 			memcpy(lpEntryID->origEntryID, folder.lpFolder, folder.cbFolder);
 
-			sProps[ENTRYID].ulPropTag = sptaCols.aulPropTag[ENTRYID];
-			sProps[ENTRYID].Value.bin.cb = cbEntryID;
-			sProps[ENTRYID].Value.bin.lpb = reinterpret_cast<BYTE *>(lpEntryID.get());
+			sProps[XENTRYID].ulPropTag = sptaCols.aulPropTag[XENTRYID];
+			sProps[XENTRYID].Value.bin.cb = cbEntryID;
+			sProps[XENTRYID].Value.bin.lpb = reinterpret_cast<BYTE *>(lpEntryID.get());
 			sProps[STORE_ENTRYID].ulPropTag = CHANGE_PROP_TYPE(sptaCols.aulPropTag[STORE_ENTRYID], PT_ERROR);
 			sProps[STORE_ENTRYID].Value.err = MAPI_E_NOT_FOUND;
 
@@ -749,10 +749,9 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 		memset(sEntryID, 0, sizeof(sEntryID));
 		memcpy(sEntryID + 4, &MUIDZCSAB, sizeof(GUID));
 
-		sProps[ENTRYID].ulPropTag = sptaCols.aulPropTag[ENTRYID];
-		sProps[ENTRYID].Value.bin.cb = sizeof(sEntryID);
-		sProps[ENTRYID].Value.bin.lpb = sEntryID;
-
+		sProps[XENTRYID].ulPropTag = sptaCols.aulPropTag[XENTRYID];
+		sProps[XENTRYID].Value.bin.cb = sizeof(sEntryID);
+		sProps[XENTRYID].Value.bin.lpb = sEntryID;
 		sProps[STORE_ENTRYID].ulPropTag = CHANGE_PROP_TYPE(sptaCols.aulPropTag[STORE_ENTRYID], PT_ERROR);
 		sProps[STORE_ENTRYID].Value.err = MAPI_E_NOT_FOUND;
 
