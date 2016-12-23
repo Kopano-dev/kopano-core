@@ -4736,7 +4736,7 @@ HRESULT IMAP::HrParseSeqUidSet(const string &strSeqSet, list<ULONG> &lstMails) {
 			ulBeginMailnr = LastOrNumber(vSequences[i].c_str(), true);
 			ulMailnr = LastOrNumber(vSequences[i].c_str() + ulPos + 1, true);
 
-			if (ulBeginMailnr > ulMailnr)
+			if (ulBeginMailnr > ulMailnr && ulBeginMailnr <= lstFolderMailEIDs.size())
 				swap(ulBeginMailnr, ulMailnr);
 
 			auto b = std::lower_bound(lstFolderMailEIDs.cbegin(), lstFolderMailEIDs.cend(), ulBeginMailnr);
