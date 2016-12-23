@@ -104,7 +104,7 @@ ECExchangeModifyTable::~ECExchangeModifyTable() {
 HRESULT __stdcall ECExchangeModifyTable::CreateACLTable(ECMAPIProp *lpParent, ULONG ulFlags, LPEXCHANGEMODIFYTABLE *lppObj) {
 	HRESULT hr = hrSuccess;
 	ECExchangeModifyTable *obj = NULL;
-	ECMemTable *lpecTable = NULL;
+	object_ptr<ECMemTable> lpecTable;
 	ULONG ulUniqueId = 1;
 	SizedSPropTagArray(4, sPropACLs) = {4, 
 										 { PR_MEMBER_ID, PR_MEMBER_ENTRYID, 
@@ -112,7 +112,7 @@ HRESULT __stdcall ECExchangeModifyTable::CreateACLTable(ECMAPIProp *lpParent, UL
 
 	// Although PR_RULE_ID is PT_I8, it does not matter, since the low count comes first in memory
 	// This will break on a big-endian system though
-	hr = ECMemTable::Create(sPropACLs, PR_MEMBER_ID, &lpecTable);
+	hr = ECMemTable::Create(sPropACLs, PR_MEMBER_ID, &~lpecTable);
 	if (hr!=hrSuccess)
 		goto exit;
 
@@ -129,19 +129,16 @@ HRESULT __stdcall ECExchangeModifyTable::CreateACLTable(ECMAPIProp *lpParent, UL
 	hr = obj->QueryInterface(IID_IExchangeModifyTable, (void **)lppObj);
 
 exit:
-	if (lpecTable)
-		lpecTable->Release();
-
 	return hr;
 }
 
 HRESULT __stdcall ECExchangeModifyTable::CreateRulesTable(ECMAPIProp *lpParent, ULONG ulFlags, LPEXCHANGEMODIFYTABLE *lppObj) {
 	HRESULT hr = hrSuccess;
 	ECExchangeModifyTable *obj = NULL;
-	IStream *lpRulesData = NULL;
+	object_ptr<IStream> lpRulesData;
 	STATSTG statRulesData;
 	ULONG ulRead;
-	ECMemTable *ecTable = NULL;
+	object_ptr<ECMemTable> ecTable;
 	ULONG ulRuleId = 1;
 	SizedSPropTagArray(7, sPropRules) = {7, 
 										 { PR_RULE_ID, PR_RULE_SEQUENCE, PR_RULE_STATE, PR_RULE_CONDITION,
@@ -149,13 +146,13 @@ HRESULT __stdcall ECExchangeModifyTable::CreateRulesTable(ECMAPIProp *lpParent, 
 
 	// Although PR_RULE_ID is PT_I8, it does not matter, since the low count comes first in memory
 	// This will break on a big-endian system though
-	hr = ECMemTable::Create(sPropRules, PR_RULE_ID, &ecTable);
+	hr = ECMemTable::Create(sPropRules, PR_RULE_ID, &~ecTable);
 	if (hr!=hrSuccess)
 		goto exit;
 
 	// PR_RULES_DATA can grow quite large. GetProps() only supports until size 8192, larger is not returned
 	if (lpParent != nullptr &&
-	    lpParent->OpenProperty(PR_RULES_DATA, &IID_IStream, 0, 0, reinterpret_cast<LPUNKNOWN *>(&lpRulesData)) == hrSuccess) {
+	    lpParent->OpenProperty(PR_RULES_DATA, &IID_IStream, 0, 0, &~lpRulesData) == hrSuccess) {
 		lpRulesData->Stat(&statRulesData, 0);
 		std::unique_ptr<char[]> szXML(new char [statRulesData.cbSize.LowPart+1]);
 		// TODO: Loop to read all data?
@@ -185,11 +182,6 @@ empty:
 	hr = obj->QueryInterface(IID_IExchangeModifyTable, (void **)lppObj);
 
 exit:
-	if (ecTable)
-		ecTable->Release();
-	if (lpRulesData)
-		lpRulesData->Release();
-
 	return hr;
 }
 
@@ -314,7 +306,7 @@ HRESULT __stdcall ECExchangeModifyTable::ModifyTable(ULONG ulFlags, LPROWLIST lp
 HRESULT ECExchangeModifyTable::OpenACLS(ECMAPIProp *lpecMapiProp, ULONG ulFlags, ECMemTable *lpTable, ULONG *lpulUniqueID)
 {
 	HRESULT hr = hrSuccess;
-	IECSecurity *lpSecurity = NULL;
+	object_ptr<IECSecurity> lpSecurity;
 	ULONG cPerms = 0;
 	memory_ptr<ECPERMISSION> lpECPerms;
 	SPropValue	lpsPropMember[4];
@@ -325,8 +317,7 @@ HRESULT ECExchangeModifyTable::OpenACLS(ECMAPIProp *lpecMapiProp, ULONG ulFlags,
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-	
-	hr = lpecMapiProp->QueryInterface(IID_IECSecurity, (void**)&lpSecurity);
+	hr = lpecMapiProp->QueryInterface(IID_IECSecurity, &~lpSecurity);
 	if (hr != hrSuccess)
 		goto exit;
 	hr = lpSecurity->GetPermissionRules(ACCESS_TYPE_GRANT, &cPerms, &~lpECPerms);
@@ -373,8 +364,6 @@ HRESULT ECExchangeModifyTable::OpenACLS(ECMAPIProp *lpecMapiProp, ULONG ulFlags,
 			goto exit;
 	}
 exit:
-	if (lpSecurity)
-		lpSecurity->Release();
 	return hr;
 }
 
@@ -397,10 +386,10 @@ HRESULT ECExchangeModifyTable::SaveACLS(ECMAPIProp *lpecMapiProp, ECMemTable *lp
 	ULONG			cECPerm = 0;
 
 	entryId sEntryId = {0};
-	IECSecurity *lpSecurity = NULL;
+	object_ptr<IECSecurity> lpSecurity;
 
 	// Get the ACLS
-	hr = lpecMapiProp->QueryInterface(IID_IECSecurity, (void**)&lpSecurity);
+	hr = lpecMapiProp->QueryInterface(IID_IECSecurity, &~lpSecurity);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -464,8 +453,6 @@ HRESULT ECExchangeModifyTable::SaveACLS(ECMAPIProp *lpecMapiProp, ECMemTable *lp
 	}
 
 exit:
-	if (lpSecurity)
-		lpSecurity->Release();
 	if(lpRowSet)
 		FreeProws(lpRowSet);
 	return hr;
@@ -475,7 +462,7 @@ exit:
 HRESULT	ECExchangeModifyTable::HrSerializeTable(ECMemTable *lpTable, char **lppSerialized)
 {
 	HRESULT hr = hrSuccess;
-	ECMemTableView *lpView = NULL;
+	object_ptr<ECMemTableView> lpView;
 	memory_ptr<SPropTagArray> lpCols;
 	LPSRowSet		lpRowSet = NULL;
 	std::ostringstream os;
@@ -484,7 +471,7 @@ HRESULT	ECExchangeModifyTable::HrSerializeTable(ECMemTable *lpTable, char **lppS
 	struct soap soap;
 
 	// Get a view
-	hr = lpTable->HrGetView(createLocaleFromName(""), MAPI_UNICODE, &lpView);
+	hr = lpTable->HrGetView(createLocaleFromName(""), MAPI_UNICODE, &~lpView);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -534,9 +521,6 @@ exit:
 		FreeRowSet(lpSOAPRowSet, true);
 	if(lpRowSet)
 		FreeProws(lpRowSet);
-	if(lpView)
-		lpView->Release();
-
 	soap_destroy(&soap);
 	soap_end(&soap); // clean up allocated temporaries 
 

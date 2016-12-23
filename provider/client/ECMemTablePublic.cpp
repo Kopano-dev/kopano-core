@@ -204,8 +204,8 @@ static LONG __stdcall AdviseFolderCallback(void *lpContext, ULONG cNotif,
 HRESULT ECMemTablePublic::Init(ULONG ulFlags)
 {
 	HRESULT hr = hrSuccess;
-	IMAPIFolder *lpShortcutFolder = NULL;
-	LPMAPITABLE lpShortcutTable = NULL;
+	object_ptr<IMAPIFolder> lpShortcutFolder;
+	object_ptr<IMAPITable> lpShortcutTable;
 	LPSRowSet lpRows = NULL;
 	memory_ptr<SPropValue> lpPropTmp;
 	ULONG ulConnection;
@@ -213,9 +213,8 @@ HRESULT ECMemTablePublic::Init(ULONG ulFlags)
 	m_ulFlags = ulFlags;
 
 	// Get the messages to build a folder list
-	if ( ((ECMsgStorePublic*)m_lpECParentFolder->GetMsgStore())->GetDefaultShortcutFolder(&lpShortcutFolder) == hrSuccess)
-	{
-		hr = lpShortcutFolder->GetContentsTable(ulFlags | MAPI_DEFERRED_ERRORS, &lpShortcutTable);
+	if (((ECMsgStorePublic *)m_lpECParentFolder->GetMsgStore())->GetDefaultShortcutFolder(&~lpShortcutFolder) == hrSuccess) {
+		hr = lpShortcutFolder->GetContentsTable(ulFlags | MAPI_DEFERRED_ERRORS, &~lpShortcutTable);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -271,11 +270,6 @@ HRESULT ECMemTablePublic::Init(ULONG ulFlags)
 	}
 
 exit:
-	if (lpShortcutTable)
-		lpShortcutTable->Release();
-
-	if (lpShortcutFolder)
-		lpShortcutFolder->Release();
 	if (lpRows)
 		FreeProws(lpRows);
 
@@ -292,7 +286,7 @@ HRESULT ECMemTablePublic::ModifyRow(SBinary* lpInstanceKey, LPSRow lpsRow)
 	memory_ptr<SPropValue> lpProps, lpPropsFolder;
 	ULONG cProps = 0;
 	SPropValue sKeyProp;
-	IMAPIFolder *lpFolderReal = NULL;
+	object_ptr<IMAPIFolder> lpFolderReal;
 	ULONG ulPropsFolder;
 	ULONG ulObjType;
 	ULONG cbEntryID = 0;
@@ -304,7 +298,7 @@ HRESULT ECMemTablePublic::ModifyRow(SBinary* lpInstanceKey, LPSRow lpsRow)
 	ECKeyTable::UpdateType	ulUpdateType; 
 	ULONG ulRowId;
 	ULONG ulConnection = 0;
-	LPMAPIADVISESINK lpFolderAdviseSink = NULL;
+	object_ptr<IMAPIAdviseSink> lpFolderAdviseSink;
 	memory_ptr<SRestriction> lpRestriction;
 	LPSRowSet lpsRowsInternal = NULL;
 	SPropValue sPropTmp;
@@ -386,7 +380,7 @@ HRESULT ECMemTablePublic::ModifyRow(SBinary* lpInstanceKey, LPSRow lpsRow)
 
 	// Properties from the real folder
 	if (ulUpdateType == ECKeyTable::TABLE_ROW_ADD) {
-		hr = m_lpECParentFolder->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, MAPI_BEST_ACCESS, &ulObjType, (LPUNKNOWN *)&lpFolderReal);
+		hr = m_lpECParentFolder->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, MAPI_BEST_ACCESS, &ulObjType, &~lpFolderReal);
 		if(hr != hrSuccess)
 			goto exit;
 		
@@ -394,7 +388,7 @@ HRESULT ECMemTablePublic::ModifyRow(SBinary* lpInstanceKey, LPSRow lpsRow)
 		// If you remove this check the webaccess favorites doesn't work.
 		if(! (m_lpECParentFolder->GetMsgStore()->m_ulProfileFlags & EC_PROFILE_FLAGS_NO_NOTIFICATIONS) )
 		{
-			hr = HrAllocAdviseSink(AdviseFolderCallback, this, &lpFolderAdviseSink);	
+			hr = HrAllocAdviseSink(AdviseFolderCallback, this, &~lpFolderAdviseSink);	
 			if (hr != hrSuccess)
 				goto exit;
 
@@ -405,7 +399,7 @@ HRESULT ECMemTablePublic::ModifyRow(SBinary* lpInstanceKey, LPSRow lpsRow)
 
 	}else {
 		if (sRelFolder.lpFolder)
-			hr = sRelFolder.lpFolder->QueryInterface(IID_IMAPIFolder, (void **)&lpFolderReal);
+			hr = sRelFolder.lpFolder->QueryInterface(IID_IMAPIFolder, &~lpFolderReal);
 		else
 			hr = MAPI_E_CALL_FAILED;
 
@@ -510,14 +504,8 @@ HRESULT ECMemTablePublic::ModifyRow(SBinary* lpInstanceKey, LPSRow lpsRow)
 	}
 
 exit:
-	if (lpFolderReal)
-		lpFolderReal->Release(); 
 	if (hr != hrSuccess && ulConnection > 0)
 		m_lpECParentFolder->GetMsgStore()->Unadvise(ulConnection);
-
-	if (lpFolderAdviseSink)
-		lpFolderAdviseSink->Release();
-
 	if (lpsRowsInternal)
 		FreeProws(lpsRowsInternal);
 	return hr;
