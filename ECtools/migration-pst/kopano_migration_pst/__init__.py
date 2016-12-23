@@ -59,10 +59,11 @@ class Service(kopano.Service):
         for r in message.subrecipients:
             user = None
             key = None
-            if r.AddressType == 'EX' and r.ObjectType==6 and r.DisplayType==0:
-                key = r.DisplayName
-            elif r.AddressType == 'ZARAFA' and r.ObjectType==6 and r.DisplayType==0:
-                key = r.EmailAddress
+            if r.ObjectType == 6 and r.DisplayType == 0:
+                if r.AddressType == 'EX' or not r.AddressType: # missing addr type observed in the wild
+                    key = r.DisplayName or r.EmailAddress
+                elif r.AddressType == 'ZARAFA':
+                    key = r.EmailAddress or r.DisplayName
             if key:
                 try:
                     user = self.server.user(email=key) # XXX using email arg for name/fullname/email
@@ -161,7 +162,7 @@ def main():
     parser = kopano.parser('cflskpUPu', usage='kopano-migration-pst PATH [-u NAME]')
     parser.add_option('', '--stats', dest='stats', action='store_true', help='list folders for PATH')
     parser.add_option('', '--index', dest='index', action='store_true', help='list items for PATH')
-    parser.add_option('', '--import-root', dest='import_root', action='store', help='list items for PATH', metavar='PATH')
+    parser.add_option('', '--import-root', dest='import_root', action='store', help='import under specific folder', metavar='PATH')
 
     options, args = parser.parse_args()
     options.service = False
