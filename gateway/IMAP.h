@@ -194,6 +194,7 @@ private:
 	HRESULT HrCmdRename(const string &strTag, const string &strExistingFolder, const string &strNewFolder);
 	HRESULT HrCmdSubscribe(const string &strTag, const string &strFolder, bool bSubscribe);
 	HRESULT HrCmdList(const string &strTag, string strReferenceFolder, const string &strFolder, bool bSubscribedOnly);
+	HRESULT get_uid_next(IMAPIFolder *status_folder, const std::string &tag, ULONG &uid_next);
 	HRESULT HrCmdStatus(const string &strTag, const string &strFolder, string strStatusData);
 	HRESULT HrCmdAppend(const string &strTag, const string &strFolder, const string &strData, string strFlags=string(), const string &strTime=string());
 	HRESULT HrCmdCheck(const string &strTag);
