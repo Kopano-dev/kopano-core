@@ -211,7 +211,7 @@ HRESULT ArchiveStateCollector::PopulateUserList()
 	HRESULT hr;
 	ABContainerPtr ptrABContainer;
 
-	hr = m_ptrSession->GetGAL(&ptrABContainer);
+	hr = m_ptrSession->GetGAL(&~ptrABContainer);
 	if (hr != hrSuccess)
 		return hr;
 	hr = PopulateFromContainer(ptrABContainer);
@@ -268,7 +268,7 @@ HRESULT ArchiveStateCollector::PopulateFromContainer(LPABCONT lpContainer)
 	hr = resFilter.CreateMAPIRestriction(&~ptrRestriction, ECRestriction::Cheap);
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpContainer->GetContentsTable(0, &ptrTable);
+	hr = lpContainer->GetContentsTable(0, &~ptrTable);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrTable->SetColumns(sptaUserProps, TBL_BATCH);

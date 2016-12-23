@@ -86,6 +86,18 @@ template<> class object_proxy<IUnknown> _kc_final {
 	IUnknown **_m_ptr;
 };
 
+template<typename _T> class object_proxy2 _kc_final {
+	public:
+	object_proxy2(_T **__p) noexcept : _m_ptr(__p) {}
+	object_proxy<_T> operator&(void)
+	{
+		return object_proxy<_T>(_m_ptr);
+	}
+
+	private:
+	_T **_m_ptr;
+};
+
 /**
  * The KCHL memory_ptr works a lot like std::unique_ptr, with the
  * additional differences:
@@ -270,10 +282,14 @@ template<typename _T, REFIID _R = GUID_NULL> class object_ptr {
 	{
 		std::swap(_m_ptr, __o._m_ptr);
 	}
-	object_proxy<_T> operator&(void)
+	object_proxy2<_T> operator~(void)
 	{
 		reset();
-		return object_proxy<_T>(&_m_ptr);
+		return object_proxy2<_T>(&_m_ptr);
+	}
+	object_proxy2<_T> operator+(void)
+	{
+		return object_proxy2<_T>(&_m_ptr);
 	}
 	object_ptr &operator=(const object_ptr &__o) noexcept
 	{

@@ -49,8 +49,7 @@ void ECHierarchyIteratorBase::increment()
 			m_ptrCurrent.reset();
 			goto exit;
 		}			
-
-		hr = m_ptrContainer->GetHierarchyTable(m_ulDepth == 1 ? 0 : CONVENIENT_DEPTH, &m_ptrTable);
+		hr = m_ptrContainer->GetHierarchyTable(m_ulDepth == 1 ? 0 : CONVENIENT_DEPTH, &~m_ptrTable);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -88,7 +87,7 @@ void ECHierarchyIteratorBase::increment()
 	}
 
 	assert(m_ulRowIndex < m_ptrRows.size());
-	hr = m_ptrContainer->OpenEntry(m_ptrRows[m_ulRowIndex].lpProps[IDX_ENTRYID].Value.bin.cb, (LPENTRYID)m_ptrRows[m_ulRowIndex].lpProps[IDX_ENTRYID].Value.bin.lpb, &m_ptrCurrent.iid(), m_ulFlags, &ulType, &m_ptrCurrent);
+	hr = m_ptrContainer->OpenEntry(m_ptrRows[m_ulRowIndex].lpProps[IDX_ENTRYID].Value.bin.cb, reinterpret_cast<ENTRYID *>(m_ptrRows[m_ulRowIndex].lpProps[IDX_ENTRYID].Value.bin.lpb), &m_ptrCurrent.iid(), m_ulFlags, &ulType, &~m_ptrCurrent);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -127,7 +126,7 @@ void ECContentsIteratorBase::increment()
 	if (!m_ptrTable) {
 		SizedSPropTagArray(1, sptaColumnProps) = {1, {PR_ENTRYID}};
 
-		hr = m_ptrContainer->GetContentsTable(0, &m_ptrTable);
+		hr = m_ptrContainer->GetContentsTable(0, &~m_ptrTable);
 		if (hr != hrSuccess)
 			goto exit;
 		hr = m_ptrTable->SetColumns(sptaColumnProps, TBL_BATCH);
@@ -155,7 +154,7 @@ void ECContentsIteratorBase::increment()
 	}
 
 	assert(m_ulRowIndex < m_ptrRows.size());
-	hr = m_ptrContainer->OpenEntry(m_ptrRows[m_ulRowIndex].lpProps[IDX_ENTRYID].Value.bin.cb, (LPENTRYID)m_ptrRows[m_ulRowIndex].lpProps[IDX_ENTRYID].Value.bin.lpb, &m_ptrCurrent.iid(), m_ulFlags, &ulType, &m_ptrCurrent);
+	hr = m_ptrContainer->OpenEntry(m_ptrRows[m_ulRowIndex].lpProps[IDX_ENTRYID].Value.bin.cb, reinterpret_cast<ENTRYID *>(m_ptrRows[m_ulRowIndex].lpProps[IDX_ENTRYID].Value.bin.lpb), &m_ptrCurrent.iid(), m_ulFlags, &ulType, &~m_ptrCurrent);
 	if (hr != hrSuccess)
 		goto exit;
 

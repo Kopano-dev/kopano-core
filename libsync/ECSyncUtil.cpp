@@ -115,7 +115,7 @@ HRESULT CreateNullStatusStream(LPSTREAM *lppStream)
 {
 	StreamPtr ptrStream;
 
-	HRESULT hr = CreateStreamOnHGlobal(GlobalAlloc(GPTR, 8), true, &ptrStream);
+	HRESULT hr = CreateStreamOnHGlobal(GlobalAlloc(GPTR, 8), true, &~ptrStream);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ResetStream(ptrStream);

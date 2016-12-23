@@ -169,7 +169,7 @@ HRESULT UserListCollector<string_type, prAccount>::CollectData(LPMAPITABLE lpSto
 				MAPIPropPtr ptrUser;
 				SPropValuePtr ptrAccount;
 
-				hrTmp = m_ptrSession->OpenEntry(ptrRows[i].lpProps[0].Value.bin.cb, (LPENTRYID)ptrRows[i].lpProps[0].Value.bin.lpb, &ptrUser.iid(), 0, &ulType, &ptrUser);
+				hrTmp = m_ptrSession->OpenEntry(ptrRows[i].lpProps[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrRows[i].lpProps[0].Value.bin.lpb), &ptrUser.iid(), 0, &ulType, &~ptrUser);
 				if (hrTmp != hrSuccess)
 					continue;
 				hrTmp = HrGetOneProp(ptrUser, prAccount, &~ptrAccount);
@@ -251,7 +251,7 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 
 	if (lpMapiSession == nullptr || lpCollector == nullptr)
 		return MAPI_E_INVALID_PARAMETER;
-	hr = lpMapiSession->OpenAddressBook(0, &IID_IAddrBook, 0, &ptrAdrBook);
+	hr = lpMapiSession->OpenAddressBook(0, &IID_IAddrBook, 0, &~ptrAdrBook);
 	if(hr != hrSuccess) {
 		ec_log_crit("Unable to open addressbook: 0x%08X", hr);
 		return hr;
@@ -261,15 +261,14 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 		ec_log_crit("Unable to open default addressbook: 0x%08X", hr);
 		return hr;
 	}
-
-	hr = ptrAdrBook->OpenEntry(cbDDEntryID, ptrDDEntryID, NULL, 0, &ulObj, (LPUNKNOWN*)&ptrDefaultDir);
+	hr = ptrAdrBook->OpenEntry(cbDDEntryID, ptrDDEntryID, NULL, 0, &ulObj, &~ptrDefaultDir);
 	if(hr != hrSuccess) {
 		ec_log_crit("Unable to open GAB: 0x%08X", hr);
 		return hr;
 	}
 
 	/* Open Hierarchy Table to see if we are running in multi-tenancy mode or not */
-	hr = ptrDefaultDir->GetHierarchyTable(0, &ptrHierarchyTable);
+	hr = ptrDefaultDir->GetHierarchyTable(0, &~ptrHierarchyTable);
 	if (hr != hrSuccess) {
 		ec_log_crit("Unable to open hierarchy table: 0x%08X", hr);
 		return hr;
@@ -298,8 +297,7 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 				ec_log_crit("Unable to get entryid to open tenancy Address Book");
 				return MAPI_E_INVALID_PARAMETER;
 			}
-			
-			hr = ptrAdrBook->OpenEntry(ptrRows[i].lpProps[0].Value.bin.cb, (LPENTRYID)ptrRows[i].lpProps[0].Value.bin.lpb, NULL, 0, &ulObj, (LPUNKNOWN*)&ptrCompanyDir);
+			hr = ptrAdrBook->OpenEntry(ptrRows[i].lpProps[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrRows[i].lpProps[0].Value.bin.lpb), NULL, 0, &ulObj, &~ptrCompanyDir);
 			if (hr != hrSuccess) {
 				ec_log_crit("Unable to open tenancy Address Book: 0x%08X", hr);
 				return hr;
@@ -319,14 +317,14 @@ HRESULT GetMailboxData(IMAPISession *lpMapiSession, const char *lpSSLKey,
 		}
 	}
 
-	hr = HrOpenDefaultStore(lpMapiSession, &ptrStore);
+	hr = HrOpenDefaultStore(lpMapiSession, &~ptrStore);
 	if(hr != hrSuccess) {
 		ec_log_crit("Unable to open default store: 0x%08X", hr);
 		return hr;
 	}
 
 	//@todo use PT_OBJECT to queryinterface
-	hr = ptrStore->QueryInterface(IID_IECServiceAdmin, &ptrServiceAdmin);
+	hr = ptrStore->QueryInterface(IID_IECServiceAdmin, &~ptrServiceAdmin);
 	if (hr != hrSuccess)
 		return hr;
 	hr = MAPIAllocateBuffer(sizeof(ECSVRNAMELIST), &~lpSrvNameList);
@@ -395,7 +393,7 @@ HRESULT GetMailboxDataPerServer(const char *lpszPath, const char *lpSSLKey,
     const char *lpSSLPass, DataCollector *lpCollector)
 {
 	MAPISessionPtr  ptrSessionServer;
-	HRESULT hr = HrOpenECAdminSession(&ptrSessionServer, "userutil.cpp",
+	HRESULT hr = HrOpenECAdminSession(&~ptrSessionServer, "userutil.cpp",
 	             "GetMailboxDataPerServer", lpszPath, 0, lpSSLKey,
 	             lpSSLPass);
 	if(hr != hrSuccess) {
@@ -423,17 +421,17 @@ HRESULT GetMailboxDataPerServer(IMAPISession *lpSession, const char *lpszPath,
 
 	ExchangeManageStorePtr	ptrEMS;
 
-	HRESULT hr = HrOpenDefaultStore(lpSession, &ptrStoreAdmin);
+	HRESULT hr = HrOpenDefaultStore(lpSession, &~ptrStoreAdmin);
 	if(hr != hrSuccess) {
 		ec_log_crit("Unable to open default store on server \"%s\": 0x%08X", lpszPath, hr);
 		return hr;
 	}
 
 	//@todo use PT_OBJECT to queryinterface
-	hr = ptrStoreAdmin->QueryInterface(IID_IExchangeManageStore, (void**)&ptrEMS);
+	hr = ptrStoreAdmin->QueryInterface(IID_IExchangeManageStore, &~ptrEMS);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrEMS->GetMailboxTable(NULL, &ptrStoreTable, MAPI_DEFERRED_ERRORS);
+	hr = ptrEMS->GetMailboxTable(nullptr, &~ptrStoreTable, MAPI_DEFERRED_ERRORS);
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpCollector->GetRequiredPropTags(ptrStoreAdmin, &~ptrPropTagArray);
@@ -492,7 +490,7 @@ HRESULT UpdateServerList(IABContainer *lpContainer,
 	sResAllUsers.res.resAnd.cRes = 2;
 	sResAllUsers.res.resAnd.lpRes = sResSub;
 
-	HRESULT hr = lpContainer->GetContentsTable(MAPI_DEFERRED_ERRORS, &ptrTable);
+	HRESULT hr = lpContainer->GetContentsTable(MAPI_DEFERRED_ERRORS, &~ptrTable);
 	if(hr != hrSuccess) {
 		ec_log_crit("Unable to open contents table: 0x%08X", hr);
 		return hr;

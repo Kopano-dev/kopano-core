@@ -108,8 +108,7 @@ HRESULT ECArchiveAwareMessage::HrLoadProps()
 				hr = MAPI_E_NOT_FOUND;
 				goto exit;
 			}
-
-			hr = lpStore->OpenItemFromArchive(m_ptrStoreEntryIDs, m_ptrItemEntryIDs, &m_ptrArchiveMsg);
+			hr = lpStore->OpenItemFromArchive(m_ptrStoreEntryIDs, m_ptrItemEntryIDs, &~m_ptrArchiveMsg);
 			if (hr != hrSuccess) {
 				hr = CreateInfoMessage(sptaDeleteProps, CreateErrorBodyUtf8(hr));
 				goto exit;
@@ -401,7 +400,7 @@ HRESULT ECArchiveAwareMessage::CreateInfoMessage(LPSPropTagArray lpptaDeleteProp
 	hr = HrSetOneProp(&this->m_xMAPIProp, &sPropVal);
 	if (hr != hrSuccess)
 		goto exit;
-	hr = OpenProperty(PR_HTML, &ptrHtmlStream.iid(), 0, MAPI_CREATE | MAPI_MODIFY, &ptrHtmlStream);
+	hr = OpenProperty(PR_HTML, &ptrHtmlStream.iid(), 0, MAPI_CREATE | MAPI_MODIFY, &~ptrHtmlStream);
 	if (hr != hrSuccess)
 		goto exit;
 

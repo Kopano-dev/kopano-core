@@ -811,9 +811,9 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChangeAsAStream(ULONG cVal
 	}
 
 	if (hr == MAPI_E_NOT_FOUND)
-		hr = ImportMessageCreateAsStream(cValue, lpPropArray, &ptrMessageImporter);
+		hr = ImportMessageCreateAsStream(cValue, lpPropArray, &~ptrMessageImporter);
 	else
-		hr = ImportMessageUpdateAsStream(cbEntryId, ptrEntryId, cValue, lpPropArray, &ptrMessageImporter);
+		hr = ImportMessageUpdateAsStream(cbEntryId, ptrEntryId, cValue, lpPropArray, &~ptrMessageImporter);
 	if (hr != hrSuccess) {
 		if (hr != SYNC_E_IGNORE && hr != SYNC_E_OBJECT_DELETED)
 			ZLOG_DEBUG(m_lpLogger, "ImportFast: Failed to get MessageImporter, hr = 0x%08x", hr);
@@ -821,7 +821,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChangeAsAStream(ULONG cVal
 	}
 
 	ZLOG_DEBUG(m_lpLogger, "ImportFast: %s", "Wrapping MessageImporter in IStreamAdapter");
-	hr = ECMessageStreamImporterIStreamAdapter::Create(ptrMessageImporter, &ptrStream);
+	hr = ECMessageStreamImporterIStreamAdapter::Create(ptrMessageImporter, &~ptrStream);
 	if (hr != hrSuccess) {
 		ZLOG_DEBUG(m_lpLogger, "ImportFast: Failed to wrap message importer, hr = 0x%08x" ,hr);
 		return hr;
@@ -864,7 +864,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageCreateAsStream(ULONG cValu
 		}
 	}
 
-	hr = m_lpFolder->CreateMessageFromStream(ulNewFlags, m_ulSyncId, cbEntryId, lpEntryId, &ptrMessageImporter);
+	hr = m_lpFolder->CreateMessageFromStream(ulNewFlags, m_ulSyncId, cbEntryId, lpEntryId, &~ptrMessageImporter);
 	if(hr != hrSuccess) {
 		ZLOG_DEBUG(m_lpLogger, "CreateFast: Failed to create message from stream, hr = 0x%08x", hr);
 		return hr;
@@ -918,8 +918,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageUpdateAsStream(ULONG cbEnt
 		ULONG ulType = 0;
 
 		ZLOG_DEBUG(m_lpLogger, "UpdateFast: %s", "The item seems to be in conflict");
-
-		hr = m_lpFolder->OpenEntry(cbEntryId, lpEntryId, &ptrMessage.iid(), MAPI_MODIFY, &ulType, &ptrMessage);
+		hr = m_lpFolder->OpenEntry(cbEntryId, lpEntryId, &ptrMessage.iid(), MAPI_MODIFY, &ulType, &~ptrMessage);
 		if (hr == MAPI_E_NOT_FOUND) {
 			// This shouldn't happen as we just got a conflict.
 			ZLOG_DEBUG(m_lpLogger, "UpdateFast: %s", "The destination item seems to have disappeared");
@@ -934,7 +933,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageUpdateAsStream(ULONG cbEnt
 		}
 	}
 
-	hr = m_lpFolder->UpdateMessageFromStream(m_ulSyncId, cbEntryId, lpEntryId, ptrConflictItems, &ptrMessageImporter);
+	hr = m_lpFolder->UpdateMessageFromStream(m_ulSyncId, cbEntryId, lpEntryId, ptrConflictItems, &~ptrMessageImporter);
 	if (hr != hrSuccess) {
 		ZLOG_DEBUG(m_lpLogger, "UpdateFast: Failed to update message from stream, hr = 0x%08x", hr);
 		return hr;
@@ -1064,7 +1063,7 @@ HRESULT ECExchangeImportContentsChanges::HrUpdateSearchReminders(LPMAPIFOLDER lp
 	else
 		return MAPI_E_NOT_FOUND;
 
-	hr = lpRootFolder->OpenEntry(lpREMEntryID->Value.bin.cb, (LPENTRYID)lpREMEntryID->Value.bin.lpb, &ptrRemindersFolder.iid(), MAPI_BEST_ACCESS, &ulType, &ptrRemindersFolder);
+	hr = lpRootFolder->OpenEntry(lpREMEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpREMEntryID->Value.bin.lpb), &ptrRemindersFolder.iid(), MAPI_BEST_ACCESS, &ulType, &~ptrRemindersFolder);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrRemindersFolder->GetSearchCriteria(0, &~ptrOrigRestriction, &~ptrOrigContainerList, &ulOrigSearchState);

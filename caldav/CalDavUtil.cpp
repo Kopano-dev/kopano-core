@@ -795,8 +795,7 @@ HRESULT HrGetFreebusy(MapiToICal *lpMapiToIcal, IFreeBusySupport* lpFBSupport, I
 	HRESULT hr = lpAddrBook->GetDefaultDir(&cbEntryId, &~ptrEntryId);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = lpAddrBook->OpenEntry(cbEntryId, ptrEntryId, NULL, 0, &ulObj, &ptrABDir);
+	hr = lpAddrBook->OpenEntry(cbEntryId, ptrEntryId, nullptr, 0, &ulObj, &~ptrABDir);
 	if (hr != hrSuccess)
 		goto exit;
 

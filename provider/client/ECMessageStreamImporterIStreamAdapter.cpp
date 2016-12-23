@@ -50,7 +50,7 @@ HRESULT ECMessageStreamImporterIStreamAdapter::Write(const void *pv, ULONG cb, U
 	HRESULT hr;
 
 	if (!m_ptrSink) {
-		hr = m_ptrStreamImporter->StartTransfer(&m_ptrSink);
+		hr = m_ptrStreamImporter->StartTransfer(&~m_ptrSink);
 		if (hr != hrSuccess)
 			return hr;
 	}

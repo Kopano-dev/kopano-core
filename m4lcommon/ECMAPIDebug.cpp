@@ -62,11 +62,11 @@ HRESULT Dump(std::ostream &os, LPMAPIPROP lpProp, const std::string &strPrefix)
 		MAPITablePtr ptrTable;
 		ULONG ulCount = 0;
 
-		hr = lpProp->QueryInterface(ptrMessage.iid(), &ptrMessage);
+		hr = lpProp->QueryInterface(ptrMessage.iid(), &~ptrMessage);
 		if (hr != hrSuccess)
 			return hr;
 		// List recipients
-		hr = ptrMessage->GetRecipientTable(0, &ptrTable);
+		hr = ptrMessage->GetRecipientTable(0, &~ptrTable);
 		if (hr != hrSuccess)
 			return hr;
 		hr = ptrTable->GetRowCount(0, &ulCount);
@@ -102,7 +102,7 @@ HRESULT Dump(std::ostream &os, LPMAPIPROP lpProp, const std::string &strPrefix)
 		}
 
 		// List attachments
-		hr = ptrMessage->GetAttachmentTable(0, &ptrTable);
+		hr = ptrMessage->GetAttachmentTable(0, &~ptrTable);
 		if (hr != hrSuccess)
 			return hr;
 
@@ -133,7 +133,7 @@ HRESULT Dump(std::ostream &os, LPMAPIPROP lpProp, const std::string &strPrefix)
 
 					if (ptrRows[i].lpProps[0].ulPropTag != PR_ATTACH_NUM)
 						return hr;
-					hr = ptrMessage->OpenAttach(ptrRows[i].lpProps[0].Value.l, &ptrAttach.iid(), 0, &ptrAttach);
+					hr = ptrMessage->OpenAttach(ptrRows[i].lpProps[0].Value.l, &ptrAttach.iid(), 0, &~ptrAttach);
 					if (hr != hrSuccess)
 						return hr;
 
@@ -150,7 +150,7 @@ HRESULT Dump(std::ostream &os, LPMAPIPROP lpProp, const std::string &strPrefix)
 		AttachPtr ptrAttach;
 		SPropValuePtr ptrAttachMethod;
 
-		hr = lpProp->QueryInterface(ptrAttach.iid(), &ptrAttach);
+		hr = lpProp->QueryInterface(ptrAttach.iid(), &~ptrAttach);
 		if (hr != hrSuccess)
 			return hr;
 		hr = HrGetOneProp(ptrAttach, PR_ATTACH_METHOD, &~ptrAttachMethod);
@@ -161,7 +161,7 @@ HRESULT Dump(std::ostream &os, LPMAPIPROP lpProp, const std::string &strPrefix)
 		if (ptrAttachMethod->Value.l == ATTACH_EMBEDDED_MSG) {
 			MessagePtr ptrMessage;
 
-			hr = ptrAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &ptrMessage.iid(), 0, 0, &ptrMessage);
+			hr = ptrAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &ptrMessage.iid(), 0, 0, &~ptrMessage);
 			if (hr != hrSuccess)
 				return hr;
 

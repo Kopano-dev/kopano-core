@@ -829,7 +829,7 @@ static HRESULT HrAddProfileUID(LPPROVIDERADMIN lpProviderAdmin, LPMAPIUID lpNewP
 
 	//Open global profile, add the store.(for show list, delete etc)
 	HRESULT hr = lpProviderAdmin->OpenProfileSection(reinterpret_cast<MAPIUID *>(const_cast<char *>(pbGlobalProfileSectionGuid)),
-	             NULL, MAPI_MODIFY, &ptrGlobalProfSect);
+	             NULL, MAPI_MODIFY, &~ptrGlobalProfSect);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -2633,8 +2633,7 @@ HRESULT HrGetAllProps(IMAPIProp *lpProp, ULONG ulFlags, ULONG *lpcValues, LPSPro
 		if(PROP_TYPE(lpProps[i].ulPropTag) == PT_ERROR && lpProps[i].Value.err == MAPI_E_NOT_ENOUGH_MEMORY) {
 			if(PROP_TYPE(lpTags->aulPropTag[i]) != PT_STRING8 && PROP_TYPE(lpTags->aulPropTag[i]) != PT_UNICODE && PROP_TYPE(lpTags->aulPropTag[i]) != PT_BINARY)
 				continue;
-				
-			if(lpProp->OpenProperty(lpTags->aulPropTag[i], &IID_IStream, 0, 0, (IUnknown **)&lpStream) != hrSuccess)
+			if(lpProp->OpenProperty(lpTags->aulPropTag[i], &IID_IStream, 0, 0, &~lpStream) != hrSuccess)
 				continue;
 				
 			strData.clear();
@@ -3208,7 +3207,7 @@ HRESULT HrGetRemoteAdminStore(IMAPISession *lpMAPISession, IMsgStore *lpMsgStore
 	    lpszServerName == NULL || (ulFlags & ~(MAPI_UNICODE | MDB_WRITE)) ||
 	    lppMsgStore == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	HRESULT hr = lpMsgStore->QueryInterface(ptrEMS.iid(), &ptrEMS);
+	HRESULT hr = lpMsgStore->QueryInterface(ptrEMS.iid(), &~ptrEMS);
 	if (hr != hrSuccess)
 		return hr;
 	if (ulFlags & MAPI_UNICODE) {
@@ -3220,7 +3219,7 @@ HRESULT HrGetRemoteAdminStore(IMAPISession *lpMAPISession, IMsgStore *lpMsgStore
 	}
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpMAPISession->OpenMsgStore(0, cbStoreId, ptrStoreId, &ptrMsgStore.iid(), ulFlags & MDB_WRITE, &ptrMsgStore);
+	hr = lpMAPISession->OpenMsgStore(0, cbStoreId, ptrStoreId, &ptrMsgStore.iid(), ulFlags & MDB_WRITE, &~ptrMsgStore);
 	if (hr != hrSuccess)
 		return hr;
 	return ptrMsgStore->QueryInterface(IID_IMsgStore,
@@ -3233,7 +3232,7 @@ HRESULT HrGetGAB(LPMAPISESSION lpSession, LPABCONT *lppGAB)
 
 	if (lpSession == NULL || lppGAB == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	HRESULT hr = lpSession->OpenAddressBook(0, 0, 0, &ptrAddrBook);
+	HRESULT hr = lpSession->OpenAddressBook(0, 0, 0, &~ptrAddrBook);
 	if (hr != hrSuccess)
 		return hr;
 	return HrGetGAB(ptrAddrBook, lppGAB);
@@ -3254,10 +3253,10 @@ HRESULT HrGetGAB(LPADRBOOK lpAddrBook, LPABCONT *lppGAB)
 
 	if (lpAddrBook == NULL || lppGAB == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	HRESULT hr = lpAddrBook->OpenEntry(0, NULL, &ptrRoot.iid(), MAPI_DEFERRED_ERRORS, &ulType, &ptrRoot);
+	HRESULT hr = lpAddrBook->OpenEntry(0, NULL, &ptrRoot.iid(), MAPI_DEFERRED_ERRORS, &ulType, &~ptrRoot);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrRoot->GetHierarchyTable(MAPI_DEFERRED_ERRORS, &ptrTable);
+	hr = ptrRoot->GetHierarchyTable(MAPI_DEFERRED_ERRORS, &~ptrTable);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrTable->SetColumns(sptaTableProps, TBL_BATCH);
@@ -3282,7 +3281,7 @@ HRESULT HrGetGAB(LPADRBOOK lpAddrBook, LPABCONT *lppGAB)
 	hr = ptrTable->QueryRows(1, 0, &ptrRows);
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpAddrBook->OpenEntry(ptrRows[0].lpProps[0].Value.bin.cb, (LPENTRYID)ptrRows[0].lpProps[0].Value.bin.lpb, &ptrGAB.iid(), 0, &ulType, &ptrGAB);
+	hr = lpAddrBook->OpenEntry(ptrRows[0].lpProps[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrRows[0].lpProps[0].Value.bin.lpb), &ptrGAB.iid(), 0, &ulType, &~ptrGAB);
 	if (hr != hrSuccess)
 		return hr;
 	return ptrGAB->QueryInterface(IID_IABContainer, reinterpret_cast<LPVOID *>(lppGAB));
@@ -3317,14 +3316,14 @@ HRESULT GetConfigMessage(LPMDB lpStore, const char* szMessageName, IMessage **lp
 
 	// NON_IPM on a public store, IPM on a normal store
 	if (ptrEntryIDs[0].ulPropTag == sptaTreeProps.aulPropTag[0])
-		hr = lpStore->OpenEntry(ptrEntryIDs[0].Value.bin.cb, (LPENTRYID)ptrEntryIDs[0].Value.bin.lpb, NULL, MAPI_MODIFY, &ulType, &ptrFolder);
+		hr = lpStore->OpenEntry(ptrEntryIDs[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrEntryIDs[0].Value.bin.lpb), NULL, MAPI_MODIFY, &ulType, &~ptrFolder);
 	else if (ptrEntryIDs[1].ulPropTag == sptaTreeProps.aulPropTag[1])
-		hr = lpStore->OpenEntry(ptrEntryIDs[1].Value.bin.cb, (LPENTRYID)ptrEntryIDs[1].Value.bin.lpb, NULL, MAPI_MODIFY, &ulType, &ptrFolder);
+		hr = lpStore->OpenEntry(ptrEntryIDs[1].Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrEntryIDs[1].Value.bin.lpb), NULL, MAPI_MODIFY, &ulType, &~ptrFolder);
 	else
 		hr = MAPI_E_INVALID_PARAMETER;
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrFolder->GetContentsTable(MAPI_DEFERRED_ERRORS | MAPI_ASSOCIATED, &ptrTable);
+	hr = ptrFolder->GetContentsTable(MAPI_DEFERRED_ERRORS | MAPI_ASSOCIATED, &~ptrTable);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -3343,12 +3342,12 @@ HRESULT GetConfigMessage(LPMDB lpStore, const char* szMessageName, IMessage **lp
 		lpEntryID = PpropFindProp(ptrRows[0].lpProps, ptrRows[0].cValues, PR_ENTRYID);
 		if (lpEntryID == NULL)
 			return MAPI_E_INVALID_ENTRYID;
-		hr = ptrFolder->OpenEntry(lpEntryID->Value.bin.cb, (LPENTRYID)lpEntryID->Value.bin.lpb, NULL, MAPI_MODIFY, &ulType, &ptrMessage);
+		hr = ptrFolder->OpenEntry(lpEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryID->Value.bin.lpb), NULL, MAPI_MODIFY, &ulType, &~ptrMessage);
 		if (hr != hrSuccess)
 			return hr;
 	} else {
 		// not found in folder, create new message
-		hr = ptrFolder->CreateMessage(&IID_IMessage, MAPI_ASSOCIATED, &ptrMessage);
+		hr = ptrFolder->CreateMessage(&IID_IMessage, MAPI_ASSOCIATED, &~ptrMessage);
 		if (hr != hrSuccess)
 			return hr;
 		hr = ptrMessage->SetProps(1, &propSubject, NULL);

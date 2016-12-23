@@ -487,7 +487,7 @@ HRESULT iCal::HrGetContents(LPMAPITABLE *lppTable)
 
 	if (m_lpUsrFld == nullptr)
 		return MAPI_E_NOT_FOUND;
-	hr = m_lpUsrFld->GetContentsTable(0, &ptrContents);
+	hr = m_lpUsrFld->GetContentsTable(0, &~ptrContents);
 	if (hr != hrSuccess) {
 		ec_log_err("Error retrieving calendar entries, error code: 0x%08X",hr);
 		return hr;

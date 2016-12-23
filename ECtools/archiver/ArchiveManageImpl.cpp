@@ -128,7 +128,7 @@ HRESULT ArchiveManageImpl::Init()
 {
 	HRESULT hr;
 
-	hr = m_ptrSession->OpenStoreByName(m_strUser, &m_ptrUserStore);
+	hr = m_ptrSession->OpenStoreByName(m_strUser, &~m_ptrUserStore);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to open user store '" TSTRING_PRINTF "' (hr=%s).", m_strUser.c_str(), stringify(hr, true).c_str());
 		return hr;
@@ -191,7 +191,7 @@ HRESULT ArchiveManageImpl::AttachTo(const char *lpszArchiveServer, const TCHAR *
 	}
 	
 	// Find the requested archive.
-	hr = ptrArchiveSession->OpenStoreByName(lpszArchive, &ptrArchiveStore);
+	hr = ptrArchiveSession->OpenStoreByName(lpszArchive, &~ptrArchiveStore);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to open archive store '" TSTRING_PRINTF "' (hr=%s).", lpszArchive, stringify(hr, true).c_str());
 		return hr;
@@ -408,7 +408,7 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 		ptrArchiveSession = ptrRemoteSession;
 	}
 
-	hr = ptrArchiveSession->OpenStoreByName(lpszArchive, &ptrArchiveStore);
+	hr = ptrArchiveSession->OpenStoreByName(lpszArchive, &~ptrArchiveStore);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to open archive store '" TSTRING_PRINTF "' (hr=%s).", lpszArchive, stringify(hr, true).c_str());
 		return MAPIErrorToArchiveError(hr);
@@ -440,7 +440,7 @@ eResult ArchiveManageImpl::DetachFrom(const char *lpszArchiveServer, const TCHAR
 	// If a folder name was passed, we need to find the correct folder.
 	if (lpszFolder) {
 		while (iArchive != lstArchives.end()) {
-			hr = ptrArchiveStore->OpenEntry(iArchive->sItemEntryId.size(), iArchive->sItemEntryId, &ptrArchiveFolder.iid(), fMapiDeferredErrors, &ulType, &ptrArchiveFolder);
+			hr = ptrArchiveStore->OpenEntry(iArchive->sItemEntryId.size(), iArchive->sItemEntryId, &ptrArchiveFolder.iid(), fMapiDeferredErrors, &ulType, &~ptrArchiveFolder);
 			if (hr != hrSuccess) {
 				m_lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to open archive folder (hr=%s).", stringify(hr, true).c_str());
 				return MAPIErrorToArchiveError(hr);
@@ -611,7 +611,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 
 		entry.Rights = ARCHIVE_RIGHTS_ERROR;
 
-		hrTmp = m_ptrSession->OpenStore(arc.sStoreEntryId, &ptrArchiveStore);
+		hrTmp = m_ptrSession->OpenStore(arc.sStoreEntryId, &~ptrArchiveStore);
 		if (hrTmp != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open store (hr=%s)", stringify(hrTmp, true).c_str());
 			entry.StoreName = "Failed id=" + arc.sStoreEntryId.tostring() + ", hr=" + stringify(hrTmp, true);
@@ -632,8 +632,8 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 				MAPIPropPtr ptrOwner;
 
 				hrTmp = m_ptrSession->OpenMAPIProp(ptrStoreProps[IDX_MAILBOX_OWNER_ENTRYID].Value.bin.cb,
-												  (LPENTRYID)ptrStoreProps[IDX_MAILBOX_OWNER_ENTRYID].Value.bin.lpb,
-												  &ptrOwner);
+				        reinterpret_cast<ENTRYID *>(ptrStoreProps[IDX_MAILBOX_OWNER_ENTRYID].Value.bin.lpb),
+				        &~ptrOwner);
 				if (hrTmp == hrSuccess)
 					hrTmp = HrGetOneProp(ptrOwner, PR_ACCOUNT_A, &~ptrPropValue);
 
@@ -662,7 +662,7 @@ eResult ArchiveManageImpl::ListArchives(ArchiveList *lplstArchives, const char *
 			}
 		}
 
-		hrTmp = ptrArchiveStore->OpenEntry(arc.sItemEntryId.size(), arc.sItemEntryId, &ptrArchiveFolder.iid(), fMapiDeferredErrors, &ulType, &ptrArchiveFolder);
+		hrTmp = ptrArchiveStore->OpenEntry(arc.sItemEntryId.size(), arc.sItemEntryId, &ptrArchiveFolder.iid(), fMapiDeferredErrors, &ulType, &~ptrArchiveFolder);
 		if (hrTmp != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open folder (hr=%s)", stringify(hrTmp, true).c_str());
 			entry.FolderName = "Failed id=" + arc.sStoreEntryId.tostring() + ", hr=" + stringify(hrTmp, true);
@@ -814,10 +814,10 @@ HRESULT ArchiveManageImpl::GetRights(LPMAPIFOLDER lpFolder, unsigned *lpulRights
 	hr = HrGetOneProp(m_ptrUserStore, PR_MAILBOX_OWNER_NAME, &~ptrName);
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpFolder->OpenProperty(PR_ACL_TABLE, &IID_IExchangeModifyTable, 0, 0, &ptrACLModifyTable);
+	hr = lpFolder->OpenProperty(PR_ACL_TABLE, &IID_IExchangeModifyTable, 0, 0, &~ptrACLModifyTable);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrACLModifyTable->GetTable(0, &ptrACLTable);
+	hr = ptrACLModifyTable->GetTable(0, &~ptrACLTable);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrACLTable->SetColumns(sptaTableProps, TBL_BATCH);

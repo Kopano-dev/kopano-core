@@ -516,7 +516,7 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
 				++m_ulFailed;
 				continue;
 			}
-			hr = OpenUserStore(lpsUserList[u].lpszUsername, ACTIVE_USER, &ptrStore);
+			hr = OpenUserStore(lpsUserList[u].lpszUsername, ACTIVE_USER, &~ptrStore);
 			if (hr != hrSuccess) {
 				hr = hrSuccess;
 				continue;
@@ -1120,7 +1120,7 @@ HRESULT ECQuotaMonitor::OpenUserStore(LPTSTR szStoreName, objectclass_t objclass
 	EntryIdPtr ptrUserStoreEntryID;
 	MsgStorePtr ptrStore;
 
-	hr = m_lpMDBAdmin->QueryInterface(IID_IExchangeManageStore, &ptrEMS);
+	hr = m_lpMDBAdmin->QueryInterface(IID_IExchangeManageStore, &~ptrEMS);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrEMS->CreateStoreEntryID((LPTSTR)"", szStoreName,
@@ -1160,7 +1160,7 @@ HRESULT ECQuotaMonitor::CheckQuotaInterval(LPMDB lpStore, LPMESSAGE *lppMessage,
 	FILETIME ft;
 	FILETIME ftNextRun;
 
-	hr = GetConfigMessage(lpStore, QUOTA_CONFIG_MSG, &ptrMessage);
+	hr = GetConfigMessage(lpStore, QUOTA_CONFIG_MSG, &~ptrMessage);
 	if (hr != hrSuccess)
 		return hr;
 	hr = HrGetOneProp(ptrMessage, PR_EC_QUOTA_MAIL_TIME, &~ptrProp);
@@ -1245,7 +1245,7 @@ HRESULT ECQuotaMonitor::Notify(ECUSER *lpecUser, ECCOMPANY *lpecCompany,
 	struct TemplateVariables sVars;
 
 	// check if we need to send the actual email
-	hr = CheckQuotaInterval(lpStore, &ptrQuotaTSMessage, &bTimeout);
+	hr = CheckQuotaInterval(lpStore, &~ptrQuotaTSMessage, &bTimeout);
 	if (hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to query mail timeout value: 0x%08X", hr);
 		goto exit;
@@ -1316,8 +1316,7 @@ HRESULT ECQuotaMonitor::Notify(ECUSER *lpecUser, ECCOMPANY *lpecCompany,
 				m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_ERROR, "No quota recipients for over quota company %s", (LPSTR)lpecCompany->lpszCompanyname);
 			continue;
 		}
-
-		if (OpenUserStore(lpToUsers[i].lpszUsername, sVars.ulClass, &ptrRecipStore) != hrSuccess)
+		if (OpenUserStore(lpToUsers[i].lpszUsername, sVars.ulClass, &~ptrRecipStore) != hrSuccess)
 			continue;
 
 		CreateQuotaWarningMail(&sVars, ptrRecipStore, &lpToUsers[i], lpecFromUser, lpAddrList);

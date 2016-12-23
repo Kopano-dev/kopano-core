@@ -174,7 +174,7 @@ HRESULT ProtocolBase::HrInitializeClass()
 	}
 
 	// Get active store default calendar to prevent delete action on this folder
-	hr = m_lpActiveStore->OpenEntry(0, NULL, NULL, 0, &ulType, &lpRoot);
+	hr = m_lpActiveStore->OpenEntry(0, nullptr, nullptr, 0, &ulType, &~lpRoot);
 	if(hr != hrSuccess)
 	{
 		ec_log_err("Error opening root container, using user %ls, error code: 0x%08X", m_wstrUser.c_str(), hr);

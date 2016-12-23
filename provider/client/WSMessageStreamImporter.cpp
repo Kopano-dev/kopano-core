@@ -149,7 +149,7 @@ HRESULT WSMessageStreamImporter::StartTransfer(WSMessageStreamSink **lppSink)
 	if (!m_threadPool.dispatch(this))
 		return MAPI_E_CALL_FAILED;
 
-	hr = WSMessageStreamSink::Create(&m_fifoBuffer, m_ulTimeout, this, &ptrSink);
+	hr = WSMessageStreamSink::Create(&m_fifoBuffer, m_ulTimeout, this, &~ptrSink);
 	if (hr != hrSuccess) {
 		m_fifoBuffer.Close(ECFifoBuffer::cfWrite);
 		return hr;

@@ -1745,13 +1745,12 @@ HRESULT VMIMEToMAPI::dissect_ical(vmime::shared_ptr<vmime::header> vmHeader,
 		// create message in message to create calendar message
 		SPropValue sAttProps[3];
 
-		hr = lpMessage->CreateAttach(NULL, 0, &ulAttNr, &ptrAttach);
+		hr = lpMessage->CreateAttach(nullptr, 0, &ulAttNr, &~ptrAttach);
 		if (hr != hrSuccess) {
 			ec_log_err("dissect_ical-1790: Unable to create attachment for ical data: %s (%x)", GetMAPIErrorMessage(hr), hr);
 			return hr;
 		}
-
-		hr = ptrAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY, &ptrNewMessage);
+		hr = ptrAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY, &~ptrNewMessage);
 		if (hr != hrSuccess) {
 			ec_log_err("dissect_ical-1796: Unable to create message attachment for ical data: %s (%x)", GetMAPIErrorMessage(hr), hr);
 			return hr;

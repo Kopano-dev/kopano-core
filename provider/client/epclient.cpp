@@ -250,7 +250,7 @@ initprov_service(struct initprov &d, const sGlobalProfileProps &profprop)
 	/* Set/update the default store home server. */
 	auto guid = reinterpret_cast<MAPIUID *>(const_cast<char *>(pbGlobalProfileSectionGuid));
 	ProfSectPtr globprofsect;
-	ret = d.provadm->OpenProfileSection(guid, NULL, MAPI_MODIFY, &globprofsect);
+	ret = d.provadm->OpenProfileSection(guid, nullptr, MAPI_MODIFY, &~globprofsect);
 	if (ret != hrSuccess)
 		return ret;
 
@@ -539,7 +539,7 @@ static HRESULT UpdateProviders(LPPROVIDERADMIN lpAdminProviders,
 	LPSPropValue	lpsProviderUID;
 
 	// Get the provider table
-	hr = lpAdminProviders->GetProviderTable(0, &ptrTable);
+	hr = lpAdminProviders->GetProviderTable(0, &~ptrTable);
 	if(hr != hrSuccess)
 		return hr;
 
@@ -561,8 +561,7 @@ static HRESULT UpdateProviders(LPPROVIDERADMIN lpAdminProviders,
 			assert(false);
 			continue;
 		}
-
-		hr = lpAdminProviders->OpenProfileSection((MAPIUID *)lpsProviderUID->Value.bin.lpb, NULL, MAPI_MODIFY, &ptrProfSect);
+		hr = lpAdminProviders->OpenProfileSection((MAPIUID *)lpsProviderUID->Value.bin.lpb, nullptr, MAPI_MODIFY, &~ptrProfSect);
 		if(hr != hrSuccess)
 			return hr;
 
@@ -676,15 +675,14 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
 			}
 
 			//Open profile section
-			hr = lpAdminProviders->OpenProfileSection((MAPIUID *)lpsPropValueFind->Value.bin.lpb, NULL, MAPI_MODIFY, &ptrProfSect);
+			hr = lpAdminProviders->OpenProfileSection((MAPIUID *)lpsPropValueFind->Value.bin.lpb, nullptr, MAPI_MODIFY, &~ptrProfSect);
 			if(hr != hrSuccess)
 				goto exit;
 
 			hr = HrSetOneProp(ptrProfSect, lpsPropName);
 			if(hr != hrSuccess)
 				goto exit;
-		
-			hr = lpAdminProviders->OpenProfileSection((LPMAPIUID)pbGlobalProfileSectionGuid, NULL, MAPI_MODIFY , &ptrGlobalProfSect);
+			hr = lpAdminProviders->OpenProfileSection((LPMAPIUID)pbGlobalProfileSectionGuid, nullptr, MAPI_MODIFY , &~ptrGlobalProfSect);
 			if(hr != hrSuccess)
 				goto exit;
 
@@ -717,7 +715,7 @@ extern "C" HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst,
 	case MSG_SERVICE_CREATE:
 		
 		//Open global profile, add the store.(for show list, delete etc)
-		hr = lpAdminProviders->OpenProfileSection((LPMAPIUID)pbGlobalProfileSectionGuid, NULL, MAPI_MODIFY , &ptrGlobalProfSect);
+		hr = lpAdminProviders->OpenProfileSection((LPMAPIUID)pbGlobalProfileSectionGuid, nullptr, MAPI_MODIFY , &~ptrGlobalProfSect);
 		if(hr != hrSuccess)
 			goto exit;
 

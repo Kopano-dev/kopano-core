@@ -1087,7 +1087,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 
 	if (!m_ptrStreamExporter || m_ptrStreamExporter->IsDone()) {
 		ZLOG_DEBUG(m_lpLogger, "ExportFast: Requesting new batch, batch size = %u", m_ulBatchSize);
-		hr = m_lpStore->ExportMessageChangesAsStream(m_ulFlags & (SYNC_BEST_BODY | SYNC_LIMITED_IMESSAGE), m_ulEntryPropTag, m_lstChange, m_ulStep, m_ulBatchSize, lpImportProps, &m_ptrStreamExporter);
+		hr = m_lpStore->ExportMessageChangesAsStream(m_ulFlags & (SYNC_BEST_BODY | SYNC_LIMITED_IMESSAGE), m_ulEntryPropTag, m_lstChange, m_ulStep, m_ulBatchSize, lpImportProps, &~m_ptrStreamExporter);
 		if (hr == MAPI_E_UNABLE_TO_COMPLETE) {
 			// There was nothing to export (see ExportMessageChangesAsStream documentation)
 			assert(m_ulStep >= m_lstChange.size());	// @todo: Is this a correct assumption?
@@ -1101,7 +1101,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 	}
 
 	ZLOG_DEBUG(m_lpLogger, "ExportFast: Requesting serialized message, step = %u", m_ulStep);
-	hr = m_ptrStreamExporter->GetSerializedMessage(m_ulStep, &ptrSerializedMessage);
+	hr = m_ptrStreamExporter->GetSerializedMessage(m_ulStep, &~ptrSerializedMessage);
 	if (hr == SYNC_E_OBJECT_DELETED) {
 		ZLOG_DEBUG(m_lpLogger, "ExportFast: %s", "Source message is deleted");
 		hr = hrSuccess;
@@ -1123,7 +1123,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 		ulFlags |= SYNC_NEW_MESSAGE;
 
 	ZLOG_DEBUG(m_lpLogger, "ExportFast: %s", "Importing message change");
-	hr = m_lpImportStreamedContents->ImportMessageChangeAsAStream(cbProps, ptrProps, ulFlags, &ptrDestStream);
+	hr = m_lpImportStreamedContents->ImportMessageChangeAsAStream(cbProps, ptrProps, ulFlags, &~ptrDestStream);
 	if (hr == hrSuccess) {
 		ZLOG_DEBUG(m_lpLogger, "ExportFast: %s", "Copying data");
 		hr = ptrSerializedMessage->CopyData(ptrDestStream);

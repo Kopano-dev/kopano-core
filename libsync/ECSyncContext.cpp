@@ -247,10 +247,10 @@ HRESULT ECSyncContext::HrResetChangeAdvisor()
 	HRESULT hr = HrReleaseChangeAdvisor();
 	if (hr != hrSuccess)
 		return hr;
-	hr = HrGetChangeAdvisor(&ptrChangeAdvisor);
+	hr = HrGetChangeAdvisor(&~ptrChangeAdvisor);
 	if (hr != hrSuccess)
 		return hr;
-	hr = HrGetChangeAdviseSink(&ptrChangeAdviseSink);
+	hr = HrGetChangeAdviseSink(&~ptrChangeAdviseSink);
 	if (hr != hrSuccess)
 		return hr;
 	return ptrChangeAdvisor->Config(NULL, NULL, ptrChangeAdviseSink, 0);
@@ -477,7 +477,7 @@ HRESULT ECSyncContext::HrUpdateChangeId(LPSTREAM lpStream)
 
 	if(m_lpChangeAdvisor) {
 		// Now inform the change advisor of our accomplishment
-		hr = m_lpChangeAdvisor->QueryInterface(ptrECA.iid(), &ptrECA);
+		hr = m_lpChangeAdvisor->QueryInterface(ptrECA.iid(), &~ptrECA);
 		if (hr == MAPI_E_INTERFACE_NOT_SUPPORTED)
 			return hr;
 		hr = ptrECA->UpdateSyncState(ulSyncId, ulChangeId);
@@ -696,7 +696,7 @@ HRESULT ECSyncContext::GetResyncID(ULONG *lpulResyncID)
 
 	if (lpulResyncID == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	HRESULT hr = HrOpenRootFolder(&ptrRoot, NULL);
+	HRESULT hr = HrOpenRootFolder(&~ptrRoot, nullptr);
 	if (hr != hrSuccess)
 		return hr;
 	hr = HrGetOneProp(ptrRoot, PR_EC_RESYNC_ID, &~ptrResyncID);
@@ -714,7 +714,7 @@ HRESULT ECSyncContext::SetResyncID(ULONG ulResyncID)
 	MAPIFolderPtr ptrRoot;
 	SPropValue sPropResyncID;
 
-	HRESULT hr = HrOpenRootFolder(&ptrRoot, NULL);
+	HRESULT hr = HrOpenRootFolder(&~ptrRoot, nullptr);
 	if (hr != hrSuccess)
 		return hr;
 	sPropResyncID.ulPropTag = PR_EC_RESYNC_ID;
@@ -729,7 +729,7 @@ HRESULT ECSyncContext::GetStoredServerUid(LPGUID lpServerUid)
 
 	if (lpServerUid == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	HRESULT hr = HrOpenRootFolder(&ptrRoot, NULL);
+	HRESULT hr = HrOpenRootFolder(&~ptrRoot, nullptr);
 	if (hr != hrSuccess)
 		return hr;
 	hr = HrGetOneProp(ptrRoot, PR_EC_STORED_SERVER_UID, &~ptrServerUid);
@@ -747,7 +747,7 @@ HRESULT ECSyncContext::SetStoredServerUid(LPGUID lpServerUid)
 	MAPIFolderPtr ptrRoot;
 	SPropValue sPropServerUid;
 
-	HRESULT hr = HrOpenRootFolder(&ptrRoot, NULL);
+	HRESULT hr = HrOpenRootFolder(&~ptrRoot, nullptr);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -764,7 +764,7 @@ HRESULT ECSyncContext::GetServerUid(LPGUID lpServerUid)
 
 	if (lpServerUid == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	HRESULT hr = HrGetMsgStore(&ptrStore);
+	HRESULT hr = HrGetMsgStore(&~ptrStore);
 	if (hr != hrSuccess)
 		return hr;
 	hr = HrGetOneProp(ptrStore, PR_EC_SERVER_UID, &~ptrServerUid);
