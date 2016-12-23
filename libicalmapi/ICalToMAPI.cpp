@@ -388,10 +388,8 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 	icalitem *lpItem = NULL;
 	std::vector<icalitem *>::const_iterator iItem;
 	ULONG ulANr = 0;
-	LPATTACH lpAttach = NULL;
-	LPMESSAGE lpExMsg = NULL;
 	memory_ptr<SPropTagArray> lpsPTA;
-	LPMAPITABLE lpAttachTable = NULL;
+	object_ptr<IMAPITable> lpAttachTable;
 	LPSRowSet lpRows = NULL;
 	LPSPropValue lpPropVal = NULL;
 	SPropValue sStart = {0};
@@ -434,7 +432,7 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 		goto exit;
 
 	// remove all exception attachments from message, if any
-	hr = lpMessage->GetAttachmentTable(0, &lpAttachTable);
+	hr = lpMessage->GetAttachmentTable(0, &~lpAttachTable);
 	if (hr != hrSuccess)
 		goto next;
 
@@ -485,11 +483,13 @@ next:
 				goto exit;
 			}
 		for (const auto &ex : lpItem->lstExceptionAttachments) {
-			hr = lpMessage->CreateAttach(NULL, 0, &ulANr, &lpAttach);
+			object_ptr<IAttach> lpAttach;
+			object_ptr<IMessage> lpExMsg;
+
+			hr = lpMessage->CreateAttach(nullptr, 0, &ulANr, &~lpAttach);
 			if (hr != hrSuccess)
 				goto exit;
-
-			hr = lpAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY, (LPUNKNOWN *)&lpExMsg);
+			hr = lpAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY, &~lpExMsg);
 			if (hr != hrSuccess)
 				goto exit;
 			
@@ -514,27 +514,12 @@ next:
 			hr = lpAttach->SaveChanges(0);
 			if (hr != hrSuccess)
 				goto exit;
-
-			lpExMsg->Release();
-			lpExMsg = NULL;
-
-			lpAttach->Release();
-			lpAttach = NULL;
 		}
 	}
 
 exit:
-	if (lpAttachTable)
-		lpAttachTable->Release();
-
 	if (lpRows)
 		FreeProws(lpRows);
-	if (lpAttach)
-		lpAttach->Release();
-
-	if (lpExMsg)
-		lpExMsg->Release();
-
 	return hr;
 }
 

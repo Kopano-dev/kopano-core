@@ -558,7 +558,7 @@ HRESULT ECMAPIProp::GetSerializedACLData(LPVOID lpBase, LPSPropValue lpsPropValu
 	struct rightsArray	rights;
 	std::string			strAclData;
 
-	hr = QueryInterface(IID_IECSecurity, &ptrSecurity);
+	hr = QueryInterface(IID_IECSecurity, &~ptrSecurity);
 	if (hr != hrSuccess)
 		goto exit;
 	hr = ptrSecurity->GetPermissionRules(ACCESS_TYPE_GRANT, &cPerms, &~ptrPerms);
@@ -647,7 +647,7 @@ HRESULT	ECMAPIProp::UpdateACLs(ULONG cNewPerms, ECPERMISSION *lpNewPerms)
 	ECPermissionPtr			ptrTmpPerms;
 	ECPERMISSION *lpPermissions = NULL;
 
-	hr = QueryInterface(IID_IECSecurity, &ptrSecurity);
+	hr = QueryInterface(IID_IECSecurity, &~ptrSecurity);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrSecurity->GetPermissionRules(ACCESS_TYPE_GRANT, &cPerms, &~ptrPerms);

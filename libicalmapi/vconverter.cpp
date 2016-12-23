@@ -347,7 +347,7 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 	LPADRLIST lpAdrList	= NULL;	
 	memory_ptr<ENTRYID> lpDDEntryID;
 	ULONG cbDDEntryID;
-	IABContainer *lpAddrFolder = NULL;
+	object_ptr<IABContainer> lpAddrFolder;
 	memory_ptr<FlagList> lpFlagList;
 	icalrecip icalRecipient;
 	ULONG ulRecpCnt = 0;
@@ -390,8 +390,7 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 	hr = m_lpAdrBook->GetDefaultDir(&cbDDEntryID, &~lpDDEntryID);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = m_lpAdrBook->OpenEntry(cbDDEntryID, lpDDEntryID, &IID_IABContainer, 0, &ulObjType, (LPUNKNOWN*)&lpAddrFolder);
+	hr = m_lpAdrBook->OpenEntry(cbDDEntryID, lpDDEntryID, &IID_IABContainer, 0, &ulObjType, &~lpAddrFolder);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -446,9 +445,6 @@ HRESULT VConverter::HrResolveUser(void *base , std::list<icalrecip> *lplstIcalRe
 exit:
 	if (lpAdrList)
 		FreeProws((LPSRowSet)lpAdrList);
-
-	if (lpAddrFolder)
-		lpAddrFolder->Release();
 	return hr;
 }
 
@@ -1807,7 +1803,7 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 	wstring strSenderName, strSenderType, strSenderEmailAddr;
 	wstring strReceiverName, strReceiverType, strReceiverEmailAddr;
 	wstring strRepsSenderName, strRepsSenderType, strRepsSenderEmailAddr;
-	LPMAPITABLE lpTable = NULL;
+	object_ptr<IMAPITable> lpTable;
 	LPSRowSet lpRows = NULL;
 	LPSPropValue lpPropVal = NULL;
 	memory_ptr<SPropValue> lpSpropVal;
@@ -1900,7 +1896,7 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 		icalcomponent_add_property(lpicEvent, lpicProp);
 
 		// Organizer should be the only MAPI_TO entry
-		hr = lpMessage->GetRecipientTable(MAPI_UNICODE, &lpTable);
+		hr = lpMessage->GetRecipientTable(MAPI_UNICODE, &~lpTable);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -1997,10 +1993,6 @@ HRESULT VConverter::HrSetOrganizerAndAttendees(LPMESSAGE lpParentMsg, LPMESSAGE 
 exit:
 	if (lpRows)
 		FreeProws(lpRows);
-
-	if (lpTable)
-		lpTable->Release();
-
 	return hr;
 }
 
@@ -2081,7 +2073,7 @@ HRESULT VConverter::HrSetICalAttendees(LPMESSAGE lpMessage, const std::wstring &
 	HRESULT hr = hrSuccess;
 	icalproperty *lpProp = NULL;
 	icalparameter *lpParam = NULL;
-	LPMAPITABLE lpTable = NULL;
+	object_ptr<IMAPITable> lpTable;
 	LPSRowSet lpRows = NULL;
 	LPSPropValue lpPropVal = NULL;
 	ULONG ulCount = 0;
@@ -2090,7 +2082,7 @@ HRESULT VConverter::HrSetICalAttendees(LPMESSAGE lpMessage, const std::wstring &
 												  PR_RECIPIENT_FLAGS, PR_RECIPIENT_TYPE, PR_RECIPIENT_TRACKSTATUS }
 	};
 
-	hr = lpMessage->GetRecipientTable(0, &lpTable);
+	hr = lpMessage->GetRecipientTable(0, &~lpTable);
 	if (hr != hrSuccess)
 		goto exit;
 	hr = lpTable->SetColumns(sptaRecipProps, 0);
@@ -2168,10 +2160,6 @@ HRESULT VConverter::HrSetICalAttendees(LPMESSAGE lpMessage, const std::wstring &
 exit:
 	if (lpRows)
 		FreeProws(lpRows);
-
-	if (lpTable)
-		lpTable->Release();
-
 	return hr;
 }
 
@@ -2505,12 +2493,12 @@ HRESULT VConverter::HrSetVAlarm(ULONG ulProps, LPSPropValue lpProps, icalcompone
 HRESULT VConverter::HrSetBody(LPMESSAGE lpMessage, icalproperty **lppicProp)
 {
 	HRESULT hr = hrSuccess;
-	LPSTREAM lpStream = NULL;
+	object_ptr<IStream> lpStream;
 	STATSTG sStreamStat;
 	std::wstring strBody;
 	std::unique_ptr<wchar_t[]> lpBody;
 
-	hr = lpMessage->OpenProperty(PR_BODY_W, &IID_IStream, 0, MAPI_DEFERRED_ERRORS, (LPUNKNOWN*)&lpStream);
+	hr = lpMessage->OpenProperty(PR_BODY_W, &IID_IStream, 0, MAPI_DEFERRED_ERRORS, &~lpStream);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -2539,8 +2527,6 @@ HRESULT VConverter::HrSetBody(LPMESSAGE lpMessage, icalproperty **lppicProp)
 	*lppicProp = icalproperty_new_description(m_converter.convert_to<string>(m_strCharset.c_str(), strBody, rawsize(strBody), CHARSET_WCHAR).c_str());
 
 exit:
-	if (lpStream)
-		lpStream->Release();
 	return hr;
 }
 
@@ -2677,13 +2663,11 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 	memory_ptr<SPropValue> lpSpropArray;
 	LPSPropValue lpSPropRecVal = NULL;
 	recurrence cRecurrence;
-	LPSTREAM lpStream = NULL;
+	object_ptr<IStream> lpStream;
 	STATSTG sStreamStat;
 	char *lpRecurrenceData = NULL;
 
 	ICalRecurrence cICalRecurrence;
-	LPMESSAGE lpException = NULL;
-	
 	icalcomponent *lpicException = NULL;
 	icalcomponent *lpicComp = NULL;
 	icalproperty *lpicProp = NULL;
@@ -2734,7 +2718,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 		hr = cRecurrence.HrLoadRecurrenceState(reinterpret_cast<const char *>(lpSPropRecVal->Value.bin.lpb), lpSPropRecVal->Value.bin.cb, ulFlag);
 	} else if (lpSPropRecVal->Value.err == MAPI_E_NOT_ENOUGH_MEMORY) {
 		// open property and read full blob
-		hr = lpMessage->OpenProperty(ulRecurrenceStateTag, &IID_IStream, 0, MAPI_DEFERRED_ERRORS, (LPUNKNOWN*)&lpStream);
+		hr = lpMessage->OpenProperty(ulRecurrenceStateTag, &IID_IStream, 0, MAPI_DEFERRED_ERRORS, &~lpStream);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -2796,23 +2780,23 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 
 		hr = cICalRecurrence.HrMakeICalException(lpicEvent, &lpicException);
 		if (hr != hrSuccess)
-			goto next;
+			continue;
 
 		tExceptionStart = tNewTime = cRecurrence.getModifiedStartDateTime(i);
 		
-		hr = HrGetExceptionMessage(lpMessage, tExceptionStart, &lpException);
+		object_ptr<IMessage> lpException;
+		hr = HrGetExceptionMessage(lpMessage, tExceptionStart, &~lpException);
 		if (hr != hrSuccess)
 		{
 			hr = hrSuccess;
-			goto next;
+			continue;
 		}
 		hr = lpException->GetProps(NULL, MAPI_UNICODE, &ulMsgProps, &~lpMsgProps);
 		if (FAILED(hr))
-			goto next;
-		
+			continue;
 		hr = HrSetOrganizerAndAttendees(lpMessage, lpException, ulMsgProps, lpMsgProps, &icMethod, lpicException);
 		if (hr != hrSuccess)
-			goto next;
+			continue;
 
 		if (ulModifications & ARO_SUBTYPE)
 		{
@@ -2844,13 +2828,12 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 		tNewTime = LocalToUTC(tNewTime, m_iCurrentTimeZone->second);
 		hr = HrSetTimeProperty(tNewTime, bIsAllDayException, lpicTZinfo, strTZid, ICAL_DTSTART_PROPERTY, lpicException);
 		if (hr != hrSuccess)
-			goto next;
+			continue;
 
 		tNewTime = LocalToUTC(cRecurrence.getModifiedEndDateTime(i), m_iCurrentTimeZone->second);
 		hr = HrSetTimeProperty(tNewTime, bIsAllDayException, lpicTZinfo, strTZid, ICAL_DTEND_PROPERTY, lpicException);
 		if (hr != hrSuccess)
-			goto next;
-
+			continue;
 		lpProp = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_RECURRINGBASE], PT_SYSTIME));
 		if (!lpProp)
 			lpProp = PpropFindProp(lpMsgProps, ulMsgProps, CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_OLDSTART], PT_SYSTIME));
@@ -2859,7 +2842,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 			tNewTime = FileTimeToUnixTime(lpProp->Value.ft.dwHighDateTime, lpProp->Value.ft.dwLowDateTime);
 			hr = HrSetTimeProperty(tNewTime, bIsAllDay, lpicTZinfo, strTZid, ICAL_RECURRENCEID_PROPERTY, lpicException);
 			if (hr != hrSuccess)
-				goto next;
+				continue;
 		}
 
 		// 2. for each (useful?) bit in ulOverrideFlags, set property
@@ -2968,10 +2951,6 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 
 		lstExceptions.push_back(lpicException);
 		lpicException = NULL;
-next:
-		if (lpException)
-			lpException->Release();
-		lpException = NULL;
 	}	
 
 	*lpEventList = lstExceptions;
@@ -2979,13 +2958,7 @@ next:
 exit:
 	if (lpicException)
 		icalcomponent_free(lpicException);
-
-	if (lpException)
-		lpException->Release();
 	delete[] lpRecurrenceData;
-	if (lpStream)
-		lpStream->Release();
-
 	return hr;
 }
 
@@ -3032,11 +3005,11 @@ HRESULT VConverter::HrUpdateReminderTime(icalcomponent *lpicEvent, LONG lReminde
 HRESULT VConverter::HrGetExceptionMessage(LPMESSAGE lpMessage, time_t tStart, LPMESSAGE *lppMessage)
 {
 	HRESULT hr = hrSuccess;
-	LPMAPITABLE lpAttachTable = NULL;
+	object_ptr<IMAPITable> lpAttachTable;
 	memory_ptr<SRestriction> lpAttachRestrict;
 	LPSRowSet lpRows = NULL;
 	LPSPropValue lpPropVal = NULL;
-	LPATTACH lpAttach = NULL;
+	object_ptr<IAttach> lpAttach;
 	LPMESSAGE lpAttachedMessage = NULL;
 	SPropValue sStart = {0};
 	SPropValue sMethod = {0};
@@ -3046,7 +3019,7 @@ HRESULT VConverter::HrGetExceptionMessage(LPMESSAGE lpMessage, time_t tStart, LP
 	sMethod.ulPropTag = PR_ATTACH_METHOD;
 	sMethod.Value.ul = ATTACH_EMBEDDED_MSG;
 
-	hr = lpMessage->GetAttachmentTable(0, &lpAttachTable);
+	hr = lpMessage->GetAttachmentTable(0, &~lpAttachTable);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -3079,8 +3052,7 @@ HRESULT VConverter::HrGetExceptionMessage(LPMESSAGE lpMessage, time_t tStart, LP
 		hr = MAPI_E_NOT_FOUND;
 		goto exit;
 	}
-
-	hr = lpMessage->OpenAttach(lpPropVal->Value.ul, NULL, 0, &lpAttach);
+	hr = lpMessage->OpenAttach(lpPropVal->Value.ul, nullptr, 0, &~lpAttach);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -3091,14 +3063,8 @@ HRESULT VConverter::HrGetExceptionMessage(LPMESSAGE lpMessage, time_t tStart, LP
 	*lppMessage = lpAttachedMessage;
 
 exit:
-	if (lpAttach)
-		lpAttach->Release();
-
 	if (lpRows)
 		FreeProws(lpRows);
-	if (lpAttachTable)
-		lpAttachTable->Release();
-
 	return hr;
 }
 

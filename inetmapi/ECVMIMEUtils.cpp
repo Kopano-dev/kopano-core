@@ -185,13 +185,13 @@ exit:
 HRESULT ECVMIMESender::HrExpandGroup(LPADRBOOK lpAdrBook, LPSPropValue lpGroupName, LPSPropValue lpGroupEntryID, vmime::mailboxList &recipients, std::set<std::wstring> &setGroups, std::set<std::wstring> &setRecips, bool bAllowEveryone)
 {
 	HRESULT hr = hrSuccess;
-	IDistList *lpGroup = NULL;
+	object_ptr<IDistList> lpGroup;
 	ULONG ulType = 0;
-	IMAPITable *lpTable = NULL;
+	object_ptr<IMAPITable> lpTable;
 	LPSRowSet lpRows = NULL;
 	memory_ptr<SPropValue> lpEmailAddress;
 
-	if(lpGroupEntryID == NULL || lpAdrBook->OpenEntry(lpGroupEntryID->Value.bin.cb, (LPENTRYID)lpGroupEntryID->Value.bin.lpb, NULL, 0, &ulType, (IUnknown **)&lpGroup) != hrSuccess || ulType != MAPI_DISTLIST) {
+	if (lpGroupEntryID == nullptr || lpAdrBook->OpenEntry(lpGroupEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpGroupEntryID->Value.bin.lpb), nullptr, 0, &ulType, &~lpGroup) != hrSuccess || ulType != MAPI_DISTLIST) {
 		// Entry id for group was not given, or the group could not be opened, or the entryid was not a group (eg one-off entryid)
 		// Therefore resolve group name, and open that instead.
 		
@@ -220,12 +220,8 @@ HRESULT ECVMIMESender::HrExpandGroup(LPADRBOOK lpAdrBook, LPSPropValue lpGroupNa
 			goto exit;
 		}
 
-		if (lpGroup)
-			lpGroup->Release();
-		lpGroup = NULL;
-
 		// Open resolved entry
-		hr = lpAdrBook->OpenEntry(lpGroupEntryID->Value.bin.cb, (LPENTRYID)lpGroupEntryID->Value.bin.lpb, NULL, 0, &ulType, (IUnknown **)&lpGroup);
+		hr = lpAdrBook->OpenEntry(lpGroupEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpGroupEntryID->Value.bin.lpb), nullptr, 0, &ulType, &~lpGroup);
 		if(hr != hrSuccess)
 			goto exit;
 			
@@ -247,8 +243,7 @@ HRESULT ECVMIMESender::HrExpandGroup(LPADRBOOK lpAdrBook, LPSPropValue lpGroupNa
 	
 	// Add group name to list of processed groups
 	setGroups.insert(lpEmailAddress->Value.lpszW);
-	
-	hr = lpGroup->GetContentsTable(MAPI_UNICODE, &lpTable);
+	hr = lpGroup->GetContentsTable(MAPI_UNICODE, &~lpTable);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -257,14 +252,8 @@ HRESULT ECVMIMESender::HrExpandGroup(LPADRBOOK lpAdrBook, LPSPropValue lpGroupNa
 		goto exit;
 	
 exit:
-	if(lpTable)
-		lpTable->Release();
-		
 	if(lpRows)
 		FreeProws(lpRows);
-		
-	if(lpGroup)
-		lpGroup->Release();
 	return hr;
 }
 
@@ -276,7 +265,7 @@ HRESULT ECVMIMESender::HrMakeRecipientsList(LPADRBOOK lpAdrBook,
 	HRESULT hr = hrSuccess;
 	SRestriction sRestriction;
 	SPropValue sRestrictProp;
-	LPMAPITABLE lpRTable = NULL;
+	object_ptr<IMAPITable> lpRTable;
 	bool bResend = false;
 	std::set<std::wstring> setGroups; // Set of groups to make sure we don't get into an expansion-loop
 	std::set<std::wstring> setRecips; // Set of recipients to make sure we don't send two identical RCPT TO's
@@ -288,8 +277,7 @@ HRESULT ECVMIMESender::HrMakeRecipientsList(LPADRBOOK lpAdrBook,
 		
 	if(lpMessageFlags->Value.ul & MSGFLAG_RESEND)
 		bResend = true;
-	
-	hr = lpMessage->GetRecipientTable(MAPI_UNICODE, &lpRTable);
+	hr = lpMessage->GetRecipientTable(MAPI_UNICODE, &~lpRTable);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -313,9 +301,6 @@ HRESULT ECVMIMESender::HrMakeRecipientsList(LPADRBOOK lpAdrBook,
 		goto exit;
 	
 exit:
-	if (lpRTable)
-		lpRTable->Release();
-
 	return hr;
 }
 

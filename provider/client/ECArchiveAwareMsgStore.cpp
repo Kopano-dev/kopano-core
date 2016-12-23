@@ -92,12 +92,12 @@ HRESULT ECArchiveAwareMsgStore::OpenItemFromArchive(LPSPropValue lpPropStoreEIDs
 		ECMsgStorePtr	ptrArchiveStore;
 		ULONG			ulType = 0;
 
-		hr = GetArchiveStore(*iterStoreEID, &ptrArchiveStore);
+		hr = GetArchiveStore(*iterStoreEID, &~ptrArchiveStore);
 		if (hr == MAPI_E_NO_SUPPORT)
 			return hr;	// No need to try any other archives.
 		if (hr != hrSuccess)
 			continue;
-		hr = ptrArchiveStore->OpenEntry((*iterIterEID)->cb, (LPENTRYID)(*iterIterEID)->lpb, &IID_ECMessage, 0, &ulType, &ptrArchiveMessage);
+		hr = ptrArchiveStore->OpenEntry((*iterIterEID)->cb, reinterpret_cast<ENTRYID *>((*iterIterEID)->lpb), &IID_ECMessage, 0, &ulType, &~ptrArchiveMessage);
 		if (hr != hrSuccess)
 			continue;
 		break;
@@ -160,10 +160,10 @@ HRESULT ECArchiveAwareMsgStore::GetArchiveStore(LPSBinary lpStoreEID, ECMsgStore
 	ECMsgStorePtr ptrArchiveStore;
 	object_ptr<IECPropStorage, IID_IECPropStorage> ptrPropStorage;
 
-	hr = QueryInterface(IID_ECMsgStoreOnline, &ptrUnknown);
+	hr = QueryInterface(IID_ECMsgStoreOnline, &~ptrUnknown);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrUnknown->QueryInterface(IID_ECMsgStore, &ptrOnlineStore);
+	hr = ptrUnknown->QueryInterface(IID_ECMsgStore, &~ptrOnlineStore);
 	if (hr != hrSuccess)
 		return hr;
 	hr = UnWrapStoreEntryID(lpStoreEID->cb, (LPENTRYID)lpStoreEID->lpb, &cbEntryID, &~ptrEntryID);
@@ -182,7 +182,7 @@ HRESULT ECArchiveAwareMsgStore::GetArchiveStore(LPSBinary lpStoreEID, ECMsgStore
 		else {
 			// We can't just use the transport from ptrOnlineStore as that will be
 			// logged off when ptrOnlineStore gets destroyed (at the end of this finction).
-			hr = ptrOnlineStore->lpTransport->CloneAndRelogon(&ptrTransport);
+			hr = ptrOnlineStore->lpTransport->CloneAndRelogon(&~ptrTransport);
 			if (hr != hrSuccess)
 				return hr;
 		}
@@ -191,16 +191,16 @@ HRESULT ECArchiveAwareMsgStore::GetArchiveStore(LPSBinary lpStoreEID, ECMsgStore
 	if (!ptrTransport) {
 		// We get here if lpszServer wasn't a pseudo URL or if it was and it resolved
 		// to another server than the one we're connected with.
-		hr = ptrOnlineStore->lpTransport->CreateAndLogonAlternate(ServerURL.c_str(), &ptrTransport);
+		hr = ptrOnlineStore->lpTransport->CreateAndLogonAlternate(ServerURL.c_str(), &~ptrTransport);
 		if (hr != hrSuccess)
 			return hr;
 	}
 
-	hr = ECMsgStore::Create((char*)GetProfileName(), this->lpSupport, ptrTransport, FALSE, 0, FALSE, FALSE, FALSE, &ptrArchiveStore);
+	hr = ECMsgStore::Create(const_cast<char *>(GetProfileName()), this->lpSupport, ptrTransport, FALSE, 0, FALSE, FALSE, FALSE, &~ptrArchiveStore);
 	if (hr != hrSuccess)
 		return hr;
 	// Get a propstorage for the message store
-	hr = ptrTransport->HrOpenPropStorage(0, NULL, cbEntryID, ptrEntryID, 0, &ptrPropStorage);
+	hr = ptrTransport->HrOpenPropStorage(0, nullptr, cbEntryID, ptrEntryID, 0, &~ptrPropStorage);
 	if (hr != hrSuccess)
 		return hr;
 	// Set up the message store to use this storage

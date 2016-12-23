@@ -99,7 +99,7 @@ static HRESULT HrGetUserProp(IAddrBook *lpAddrBook, IMsgStore *lpStore,
 	HRESULT hr = HrGetOneProp(lpStore, PR_MAILBOX_OWNER_ENTRYID, &~ptrProps);
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpAddrBook->OpenEntry(ptrProps->Value.bin.cb, (LPENTRYID)ptrProps->Value.bin.lpb, &IID_IMailUser, 0, &ulObjType, &ptrUser);
+	hr = lpAddrBook->OpenEntry(ptrProps->Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrProps->Value.bin.lpb), &IID_IMailUser, 0, &ulObjType, &~ptrUser);
 	if (hr != hrSuccess)
 		return hr;
 	hr = HrGetOneProp(ptrUser, ulPropTag, &~ptrProps);

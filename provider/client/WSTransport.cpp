@@ -1182,8 +1182,7 @@ HRESULT WSTransport::HrExportMessageChangesAsStream(ULONG ulFlags, ULONG ulPropT
 		hr = MAPI_E_NETWORK_ERROR;
 		goto exitm;
 	}
-
-	hr = WSMessageStreamExporter::Create(ulStart, ulChanges, sResponse.sMsgStreams, this, &ptrStreamExporter);
+	hr = WSMessageStreamExporter::Create(ulStart, ulChanges, sResponse.sMsgStreams, this, &~ptrStreamExporter);
 	if (hr != hrSuccess)
 		goto exitm;
 	*lppsStreamExporter = ptrStreamExporter.release();
@@ -1198,8 +1197,7 @@ HRESULT WSTransport::HrGetMessageStreamImporter(ULONG ulFlags, ULONG ulSyncId, U
 
 	if ((m_ulServerCapabilities & KOPANO_CAP_ENHANCED_ICS) == 0)
 		return MAPI_E_NO_SUPPORT;
-
-	hr = WSMessageStreamImporter::Create(ulFlags, ulSyncId, cbEntryID, lpEntryID, cbFolderEntryID, lpFolderEntryID, bNewMessage, lpConflictItems, this, &ptrStreamImporter);
+	hr = WSMessageStreamImporter::Create(ulFlags, ulSyncId, cbEntryID, lpEntryID, cbFolderEntryID, lpFolderEntryID, bNewMessage, lpConflictItems, this, &~ptrStreamImporter);
 	if (hr != hrSuccess)
 		return hr;
 

@@ -55,7 +55,7 @@ HRESULT Stubber::ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps, const LPSProp
 	}
 
 	Logger()->Log(EC_LOGLEVEL_DEBUG, "Opening message (%s)", bin2hex(lpEntryId->Value.bin.cb, lpEntryId->Value.bin.lpb).c_str());
-	hr = lpFolder->OpenEntry(lpEntryId->Value.bin.cb, (LPENTRYID)lpEntryId->Value.bin.lpb, &IID_IECMessageRaw, MAPI_BEST_ACCESS, &ulType, &ptrMessage);
+	hr = lpFolder->OpenEntry(lpEntryId->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryId->Value.bin.lpb), &IID_IECMessageRaw, MAPI_BEST_ACCESS, &ulType, &~ptrMessage);
 	if (hr == MAPI_E_NOT_FOUND) {
 		Logger()->Log(EC_LOGLEVEL_WARNING, "Failed to open message. This can happen if the search folder is lagging.");
 		return hrSuccess;
@@ -132,8 +132,7 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to set properties. (hr=%s)", stringify(hr, true).c_str());
 		return hr;
 	}
-
-	hr = lpMessage->GetAttachmentTable(fMapiDeferredErrors, &ptrAttTable);
+	hr = lpMessage->GetAttachmentTable(fMapiDeferredErrors, &~ptrAttTable);
 	if (hr != hrSuccess) {
 		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to get attachment table. (hr=%s)", stringify(hr, true).c_str());
 		return hr;
@@ -155,7 +154,7 @@ HRESULT Stubber::ProcessEntry(LPMESSAGE lpMessage)
 		}
 		
 		Logger()->Log(EC_LOGLEVEL_INFO, "Adding placeholder attachment");		
-		hr = lpMessage->CreateAttach(&ptrAttach.iid(), 0, &ulAttachNum, &ptrAttach);
+		hr = lpMessage->CreateAttach(&ptrAttach.iid(), 0, &ulAttachNum, &~ptrAttach);
 		if (hr != hrSuccess) {
 			Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to create attachment. (hr=%s)", stringify(hr, true).c_str());
 			return hr;

@@ -54,7 +54,7 @@ static HRESULT GetRecipStrings(LPMESSAGE lpMessage, std::wstring &wstrTo,
 	wstrCc.clear();
 	wstrBcc.clear();
 	
-	HRESULT hr = lpMessage->GetRecipientTable(MAPI_UNICODE, &ptrRecips);
+	HRESULT hr = lpMessage->GetRecipientTable(MAPI_UNICODE, &~ptrRecips);
 	if(hr != hrSuccess)
 		return hr;
 	hr = ptrRecips->SetColumns(sptaDisplay, TBL_BATCH);
@@ -186,7 +186,7 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 		strForwardText += L"\nAuto forwarded by a rule\n\n";
 
 		if (ptrBodies[0].ulPropTag == PT_ERROR) {
-			hr = lpOrigMessage->OpenProperty(PR_BODY_W, &IID_IStream, 0, 0, &ptrStream);
+			hr = lpOrigMessage->OpenProperty(PR_BODY_W, &IID_IStream, 0, 0, &~ptrStream);
 			if (hr == hrSuccess)
 				hr = Util::HrStreamToString(ptrStream, wstrBody);
 			// stream
@@ -202,7 +202,7 @@ static HRESULT MungeForwardBody(LPMESSAGE lpMessage, LPMESSAGE lpOrigMessage)
 		string strFind("<body");
 		const char* pos;
 
-		hr = lpOrigMessage->OpenProperty(PR_HTML, &IID_IStream, 0, 0, &ptrStream);
+		hr = lpOrigMessage->OpenProperty(PR_HTML, &IID_IStream, 0, 0, &~ptrStream);
 		if (hr == hrSuccess)
 			hr = Util::HrStreamToString(ptrStream, strHTML);
 		// icase <body> tag 

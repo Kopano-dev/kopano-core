@@ -1063,7 +1063,7 @@ HRESULT ECMsgStore::SetLockState(LPMESSAGE lpMessage, ULONG ulLockState)
 			goto exit;
 	}
 
-	hr = lpMessage->QueryInterface(ptrECMessage.iid(), &ptrECMessage);
+	hr = lpMessage->QueryInterface(ptrECMessage.iid(), &~ptrECMessage);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -3007,7 +3007,7 @@ HRESULT ECMsgStore::GetPublicStoreEntryID(ULONG ulFlags, ULONG* lpcbStoreID, LPE
 	if (hr == MAPI_E_UNABLE_TO_COMPLETE) {
 		WSTransportPtr ptrTransport;
 
-		hr = lpTransport->CreateAndLogonAlternate(strRedirServer.c_str(), &ptrTransport);
+		hr = lpTransport->CreateAndLogonAlternate(strRedirServer.c_str(), &~ptrTransport);
 		if (hr != hrSuccess)
 			return hr;
 		hr = ptrTransport->HrGetPublicStore(ulFlags, &cbStoreID, &~ptrStoreID);
@@ -3030,7 +3030,7 @@ HRESULT ECMsgStore::GetArchiveStoreEntryID(LPCTSTR lpszUserName, LPCTSTR lpszSer
 	if (lpszServerName != NULL) {
 		WSTransportPtr ptrTransport;
 
-		hr = GetTransportToNamedServer(lpTransport, lpszServerName, ulFlags, &ptrTransport);
+		hr = GetTransportToNamedServer(lpTransport, lpszServerName, ulFlags, &~ptrTransport);
 		if (hr != hrSuccess)
 			return hr;
 		hr = ptrTransport->HrResolveTypedStore(convstring(lpszUserName, ulFlags), ECSTORE_TYPE_ARCHIVE, &cbStoreID, &~ptrStoreID);
@@ -3286,11 +3286,10 @@ HRESULT ECMsgStore::ExportMessageChangesAsStream(ULONG ulFlags, ULONG ulPropTag,
 	// while the streaming is going on; you should be able to intermix Synchronize() calls on the exporter
 	// with other MAPI calls which would normally be impossible since the stream is kept open between
 	// Synchronize() calls.
-	HRESULT hr = GetMsgStore()->lpTransport->CloneAndRelogon(&ptrTransport);
+	HRESULT hr = GetMsgStore()->lpTransport->CloneAndRelogon(&~ptrTransport);
 	if (hr != hrSuccess)
 		return hr;
-
-	hr = ptrTransport->HrExportMessageChangesAsStream(ulFlags, ulPropTag, &sChanges.front(), ulStart, ulCount, lpsProps, &ptrStreamExporter);
+	hr = ptrTransport->HrExportMessageChangesAsStream(ulFlags, ulPropTag, &sChanges.front(), ulStart, ulCount, lpsProps, &~ptrStreamExporter);
 	if (hr != hrSuccess)
 		return hr;
 

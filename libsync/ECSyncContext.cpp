@@ -179,21 +179,18 @@ HRESULT ECSyncContext::HrGetReceiveFolder(LPMAPIFOLDER *lppInboxFolder)
 	ULONG			cbEntryID = 0;
 	memory_ptr<ENTRYID> lpEntryID;
 	ULONG			ulObjType = 0;
-	LPMAPIFOLDER	lpInboxFolder = NULL;
+	object_ptr<IMAPIFolder> lpInboxFolder;
 
 	hr = m_lpStore->GetReceiveFolder((LPTSTR)"IPM", 0, &cbEntryID, &~lpEntryID, NULL);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = m_lpStore->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*)&lpInboxFolder);
+	hr = m_lpStore->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpInboxFolder);
 	if (hr != hrSuccess)
 		goto exit;
 
 	hr = lpInboxFolder->QueryInterface(IID_IMAPIFolder, (void**)lppInboxFolder);
 
 exit:
-	if (lpInboxFolder)
-		lpInboxFolder->Release();
 	return hr;
 }
 
@@ -247,10 +244,10 @@ HRESULT ECSyncContext::HrResetChangeAdvisor()
 	HRESULT hr = HrReleaseChangeAdvisor();
 	if (hr != hrSuccess)
 		return hr;
-	hr = HrGetChangeAdvisor(&ptrChangeAdvisor);
+	hr = HrGetChangeAdvisor(&~ptrChangeAdvisor);
 	if (hr != hrSuccess)
 		return hr;
-	hr = HrGetChangeAdviseSink(&ptrChangeAdviseSink);
+	hr = HrGetChangeAdviseSink(&~ptrChangeAdviseSink);
 	if (hr != hrSuccess)
 		return hr;
 	return ptrChangeAdvisor->Config(NULL, NULL, ptrChangeAdviseSink, 0);
@@ -265,16 +262,15 @@ HRESULT ECSyncContext::HrGetChangeAdviseSink(IECChangeAdviseSink **lppChangeAdvi
 HRESULT ECSyncContext::HrQueryHierarchyTable(LPSPropTagArray lpsPropTags, LPSRowSet *lppRows)
 {
 	HRESULT			hr = hrSuccess;
-	LPMAPIFOLDER	lpRootFolder = NULL;
+	object_ptr<IMAPIFolder> lpRootFolder;
 	ULONG			ulType = 0;
-	LPMAPITABLE		lpTable = NULL;
+	object_ptr<IMAPITable> lpTable;
 
 	assert(lppRows != NULL);
-	hr = m_lpStore->OpenEntry(0, NULL, &IID_IMAPIFolder, MAPI_DEFERRED_ERRORS, &ulType, (LPUNKNOWN*)&lpRootFolder);
+	hr = m_lpStore->OpenEntry(0, nullptr, &IID_IMAPIFolder, MAPI_DEFERRED_ERRORS, &ulType, &~lpRootFolder);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = lpRootFolder->GetHierarchyTable(CONVENIENT_DEPTH, &lpTable);
+	hr = lpRootFolder->GetHierarchyTable(CONVENIENT_DEPTH, &~lpTable);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -283,23 +279,17 @@ HRESULT ECSyncContext::HrQueryHierarchyTable(LPSPropTagArray lpsPropTags, LPSRow
 		goto exit;
 
 exit:
-	if (lpTable)
-		lpTable->Release();
-
-	if (lpRootFolder)
-		lpRootFolder->Release();
-
 	return hr;
 }
 
 HRESULT ECSyncContext::HrOpenRootFolder(LPMAPIFOLDER *lppRootFolder, LPMDB *lppMsgStore)
 {
 	HRESULT			hr = hrSuccess;
-	LPMAPIFOLDER	lpRootFolder = NULL;
+	object_ptr<IMAPIFolder> lpRootFolder;
 	SBinary			sEntryID = {0};
 
 	assert(lppRootFolder != NULL);
-	hr = HrOpenFolder(&sEntryID, &lpRootFolder);
+	hr = HrOpenFolder(&sEntryID, &~lpRootFolder);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -308,36 +298,24 @@ HRESULT ECSyncContext::HrOpenRootFolder(LPMAPIFOLDER *lppRootFolder, LPMDB *lppM
 		if (hr != hrSuccess)
 			goto exit;
 	}
-
-	*lppRootFolder = lpRootFolder;
-	lpRootFolder = NULL;
-
+	*lppRootFolder = lpRootFolder.release();
 exit:
-	if (lpRootFolder)
-		lpRootFolder->Release();
-
 	return hr;
 }
 
 HRESULT ECSyncContext::HrOpenFolder(SBinary *lpsEntryID, LPMAPIFOLDER *lppFolder)
 {
 	HRESULT			hr = hrSuccess;
-	LPMAPIFOLDER	lpFolder = NULL;
+	object_ptr<IMAPIFolder> lpFolder;
 	ULONG			ulType = 0;
 
 	assert(lpsEntryID != NULL);
 	assert(lppFolder != NULL);
-	hr = m_lpStore->OpenEntry(lpsEntryID->cb, (LPENTRYID)lpsEntryID->lpb, &IID_IMAPIFolder, MAPI_DEFERRED_ERRORS|MAPI_MODIFY, &ulType, (LPUNKNOWN*)&lpFolder);
+	hr = m_lpStore->OpenEntry(lpsEntryID->cb, reinterpret_cast<ENTRYID *>(lpsEntryID->lpb), &IID_IMAPIFolder, MAPI_DEFERRED_ERRORS | MAPI_MODIFY, &ulType, &~lpFolder);
 	if (hr != hrSuccess)
 		goto exit;
-
-	*lppFolder = lpFolder;
-	lpFolder = NULL;
-
+	*lppFolder = lpFolder.release();
 exit:
-	if (lpFolder)
-		lpFolder->Release();
-
 	return hr;
 }
 
@@ -349,15 +327,15 @@ HRESULT ECSyncContext::HrNotifyNewMail(LPNOTIFICATION lpNotification)
 HRESULT ECSyncContext::HrGetSteps(SBinary *lpEntryID, SBinary *lpSourceKey, ULONG ulSyncFlags, ULONG *lpulSteps)
 {
 	HRESULT hr = hrSuccess;
-	IMAPIFolder *lpFolder = NULL;
-	LPSTREAM lpStream = NULL;
-	IExchangeExportChanges *lpIEEC = NULL;
-	IECExportChanges *lpECEC = NULL;
+	object_ptr<IMAPIFolder> lpFolder;
+	object_ptr<IStream> lpStream;
+	object_ptr<IExchangeExportChanges> lpIEEC;
+	object_ptr<IECExportChanges> lpECEC;
 	ULONG ulChangeCount = 0;
 	ULONG ulChangeId = 0;
 	ULONG ulType = 0;
 	SSyncState sSyncState = {0};
-	IECChangeAdvisor *lpECA = NULL;
+	object_ptr<IECChangeAdvisor> lpECA;
 	bool bNotified = false;
 
 	assert(lpulSteps != NULL);
@@ -371,8 +349,7 @@ HRESULT ECSyncContext::HrGetSteps(SBinary *lpEntryID, SBinary *lpSourceKey, ULON
 		goto fallback;
 	else if (hr != hrSuccess)
 		goto exit;
-
-	hr = m_lpChangeAdvisor->QueryInterface(IID_IECChangeAdvisor, (void**)&lpECA);
+	hr = m_lpChangeAdvisor->QueryInterface(IID_IECChangeAdvisor, &~lpECA);
 	if (hr == MAPI_E_INTERFACE_NOT_SUPPORTED)
 		goto fallback;
 	else if (hr != hrSuccess)
@@ -404,23 +381,20 @@ HRESULT ECSyncContext::HrGetSteps(SBinary *lpEntryID, SBinary *lpSourceKey, ULON
 
 fallback:
 	// The current folder is not being monitored, so get steps the old fashioned way.
-	hr = m_lpStore->OpenEntry(lpEntryID->cb, (LPENTRYID)lpEntryID->lpb, 0, MAPI_DEFERRED_ERRORS, &ulType, (IUnknown **)&lpFolder);
+	hr = m_lpStore->OpenEntry(lpEntryID->cb, reinterpret_cast<ENTRYID *>(lpEntryID->lpb), 0, MAPI_DEFERRED_ERRORS, &ulType, &~lpFolder);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = HrGetSyncStatusStream(lpSourceKey, &lpStream);
+	hr = HrGetSyncStatusStream(lpSourceKey, &~lpStream);
 	if (FAILED(hr))
 		goto exit;
-
-	hr = lpFolder->OpenProperty(PR_CONTENTS_SYNCHRONIZER, &IID_IExchangeExportChanges, 0, 0, (LPUNKNOWN *)&lpIEEC);
+	hr = lpFolder->OpenProperty(PR_CONTENTS_SYNCHRONIZER, &IID_IExchangeExportChanges, 0, 0, &~lpIEEC);
 	if (hr != hrSuccess)
 		goto exit;
 
 	hr = lpIEEC->Config(lpStream, SYNC_CATCHUP | ulSyncFlags, NULL, NULL, NULL, NULL, 1);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = lpIEEC->QueryInterface(IID_IECExportChanges, (void **)&lpECEC);
+	hr = lpIEEC->QueryInterface(IID_IECExportChanges, &~lpECEC);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -441,20 +415,6 @@ fallback:
 	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "GetSteps: sourcekey=%s, syncid=%u, notified=%s, steps=%u", bin2hex(lpSourceKey->cb, lpSourceKey->lpb).c_str(), sSyncState.ulSyncId, (bNotified ? "yes" : "no"), *lpulSteps);
 
 exit:
-	if (lpECA)
-		lpECA->Release();
-
-	if (lpECEC)
-		lpECEC->Release();
-
-	if (lpIEEC)
-		lpIEEC->Release();
-
-	if (lpStream)
-		lpStream->Release();
-	if (lpFolder)
-		lpFolder->Release();
-
 	return hr;
 }
 
@@ -477,7 +437,7 @@ HRESULT ECSyncContext::HrUpdateChangeId(LPSTREAM lpStream)
 
 	if(m_lpChangeAdvisor) {
 		// Now inform the change advisor of our accomplishment
-		hr = m_lpChangeAdvisor->QueryInterface(ptrECA.iid(), &ptrECA);
+		hr = m_lpChangeAdvisor->QueryInterface(ptrECA.iid(), &~ptrECA);
 		if (hr == MAPI_E_INTERFACE_NOT_SUPPORTED)
 			return hr;
 		hr = ptrECA->UpdateSyncState(ulSyncId, ulChangeId);
@@ -492,7 +452,7 @@ HRESULT ECSyncContext::HrGetSyncStateFromSourceKey(SBinary *lpSourceKey, SSyncSt
 {
 	HRESULT							hr = hrSuccess;
 	std::string						strSourceKey((char*)lpSourceKey->lpb, lpSourceKey->cb);
-	LPSTREAM						lpStream = NULL;
+	object_ptr<IStream> lpStream;
 	SSyncState						sSyncState = {0};
 
 	// First check the sourcekey to syncid map.
@@ -504,7 +464,7 @@ HRESULT ECSyncContext::HrGetSyncStateFromSourceKey(SBinary *lpSourceKey, SSyncSt
 	}
 
 	// Try to get the information from the status stream.
-	hr = HrGetSyncStatusStream(lpSourceKey, &lpStream);
+	hr = HrGetSyncStatusStream(lpSourceKey, &~lpStream);
 	if (FAILED(hr))
 		goto exit;
 
@@ -522,9 +482,6 @@ HRESULT ECSyncContext::HrGetSyncStateFromSourceKey(SBinary *lpSourceKey, SSyncSt
 	*lpsSyncState = sSyncState;
 
 exit:
-	if (lpStream)
-		lpStream->Release();
-
 	return hr;
 }
 
@@ -663,7 +620,7 @@ HRESULT ECSyncContext::HrGetSyncStatusStream(LPMAPIFOLDER lpFolder, LPSTREAM *lp
 HRESULT ECSyncContext::HrGetSyncStatusStream(SBinary *lpsSourceKey, LPSTREAM *lppStream)
 {
 	HRESULT hr = hrSuccess;
-	LPSTREAM lpStream = NULL;
+	object_ptr<IStream> lpStream;
 	std::string strSourceKey;
 
 	strSourceKey.assign((char*)lpsSourceKey->lpb, lpsSourceKey->cb);
@@ -671,7 +628,7 @@ HRESULT ECSyncContext::HrGetSyncStatusStream(SBinary *lpsSourceKey, LPSTREAM *lp
 	if (iStatusStream != m_mapSyncStatus.cend()) {
 		*lppStream = iStatusStream->second;
 	} else {
-		hr = CreateNullStatusStream(&lpStream);
+		hr = CreateNullStatusStream(&~lpStream);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -683,9 +640,6 @@ HRESULT ECSyncContext::HrGetSyncStatusStream(SBinary *lpsSourceKey, LPSTREAM *lp
 	(*lppStream)->AddRef();
 
 exit:
-	if(lpStream)
-		lpStream->Release();
-
 	return hr;
 }
 
@@ -696,7 +650,7 @@ HRESULT ECSyncContext::GetResyncID(ULONG *lpulResyncID)
 
 	if (lpulResyncID == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	HRESULT hr = HrOpenRootFolder(&ptrRoot, NULL);
+	HRESULT hr = HrOpenRootFolder(&~ptrRoot, nullptr);
 	if (hr != hrSuccess)
 		return hr;
 	hr = HrGetOneProp(ptrRoot, PR_EC_RESYNC_ID, &~ptrResyncID);
@@ -714,7 +668,7 @@ HRESULT ECSyncContext::SetResyncID(ULONG ulResyncID)
 	MAPIFolderPtr ptrRoot;
 	SPropValue sPropResyncID;
 
-	HRESULT hr = HrOpenRootFolder(&ptrRoot, NULL);
+	HRESULT hr = HrOpenRootFolder(&~ptrRoot, nullptr);
 	if (hr != hrSuccess)
 		return hr;
 	sPropResyncID.ulPropTag = PR_EC_RESYNC_ID;
@@ -729,7 +683,7 @@ HRESULT ECSyncContext::GetStoredServerUid(LPGUID lpServerUid)
 
 	if (lpServerUid == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	HRESULT hr = HrOpenRootFolder(&ptrRoot, NULL);
+	HRESULT hr = HrOpenRootFolder(&~ptrRoot, nullptr);
 	if (hr != hrSuccess)
 		return hr;
 	hr = HrGetOneProp(ptrRoot, PR_EC_STORED_SERVER_UID, &~ptrServerUid);
@@ -747,7 +701,7 @@ HRESULT ECSyncContext::SetStoredServerUid(LPGUID lpServerUid)
 	MAPIFolderPtr ptrRoot;
 	SPropValue sPropServerUid;
 
-	HRESULT hr = HrOpenRootFolder(&ptrRoot, NULL);
+	HRESULT hr = HrOpenRootFolder(&~ptrRoot, nullptr);
 	if (hr != hrSuccess)
 		return hr;
 
@@ -764,7 +718,7 @@ HRESULT ECSyncContext::GetServerUid(LPGUID lpServerUid)
 
 	if (lpServerUid == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	HRESULT hr = HrGetMsgStore(&ptrStore);
+	HRESULT hr = HrGetMsgStore(&~ptrStore);
 	if (hr != hrSuccess)
 		return hr;
 	hr = HrGetOneProp(ptrStore, PR_EC_SERVER_UID, &~ptrServerUid);

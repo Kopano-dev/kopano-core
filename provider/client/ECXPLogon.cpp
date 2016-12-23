@@ -215,7 +215,7 @@ HRESULT ECXPLogon::ClearOldSubmittedMessages(LPMAPIFOLDER lpFolder)
 	SRowSetPtr		ptrRows;
 	time_t tNow = 0;
 
-	hr = lpFolder->GetContentsTable(0, &ptrContentsTable);
+	hr = lpFolder->GetContentsTable(0, &~ptrContentsTable);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrContentsTable->SetColumns(sptDelete, MAPI_DEFERRED_ERRORS);

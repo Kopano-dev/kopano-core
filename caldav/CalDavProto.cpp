@@ -458,7 +458,7 @@ exit:
 HRESULT CalDAV::HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWebMStatus)
 {
 	HRESULT hr = hrSuccess;
-	IMAPITable *lpTable = NULL;
+	object_ptr<IMAPITable> lpTable;
 	memory_ptr<SPropTagArray> lpPropTagArr;
 	std::unique_ptr<MapiToICal> lpMtIcal;
 	std::string strReqUrl;
@@ -478,8 +478,7 @@ HRESULT CalDAV::HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWeb
 
 	if ((m_ulFolderFlag & SHARED_FOLDER) && !HasDelegatePerm(m_lpDefStore, m_lpActiveStore))
 		blCensorPrivate = true;
-	
-	hr = m_lpUsrFld->GetContentsTable(0, &lpTable);
+	hr = m_lpUsrFld->GetContentsTable(0, &~lpTable);
 	if(hr != hrSuccess) {
 		ec_log_err("Error in GetContentsTable, error code: 0x%08X %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
@@ -574,8 +573,6 @@ next:
 	hr = hrSuccess;
 
 exit:
-	if(lpTable)
-		lpTable->Release();
 	return hr;
 }
 
@@ -657,8 +654,8 @@ HRESULT CalDAV::HrHandlePropertySearchSet(WEBDAVMULTISTATUS *lpsWebMStatus)
 HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWebMStatus)
 {
 	HRESULT hr = hrSuccess;
-	IABContainer *lpAbCont = NULL;
-	IMAPITable *lpTable = NULL;	
+	object_ptr<IABContainer> lpAbCont;
+	object_ptr<IMAPITable> lpTable;
 	SRowSet *lpValRows = NULL;
 	memory_ptr<SPropTagArray> lpPropTagArr;
 	ULONG cbsize = 0;
@@ -681,14 +678,12 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 		ec_log_debug("CalDAV::HrHandlePropertySearch GetDefaultDir failed: 0x%08x %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
 	}
-
-	hr = m_lpSession->OpenEntry(sbEid.cb, reinterpret_cast<LPENTRYID>(sbEid.lpb), NULL, 0, &ulObjType, reinterpret_cast<LPUNKNOWN *>(&lpAbCont));
+	hr = m_lpSession->OpenEntry(sbEid.cb, reinterpret_cast<ENTRYID *>(sbEid.lpb), nullptr, 0, &ulObjType, &~lpAbCont);
 	if (hr != hrSuccess) {
 		ec_log_debug("CalDAV::HrHandlePropertySearch OpenEntry failed: 0x%08x %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
 	}
-	
-	hr = lpAbCont->GetContentsTable(0, &lpTable);
+	hr = lpAbCont->GetContentsTable(0, &~lpTable);
 	if (hr != hrSuccess) {
 		ec_log_debug("CalDAV::HrHandlePropertySearch GetContentsTable failed: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
@@ -790,13 +785,7 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 exit:
 	if (lpValRows)
 		FreeProws(lpValRows);
-	if (lpTable)
-		lpTable->Release();
 	MAPIFreeBuffer(sbEid.lpb);
-
-	if (lpAbCont)
-		lpAbCont->Release();
-
 	return hr;
 }
 
@@ -819,7 +808,7 @@ HRESULT CalDAV::HrHandleDelete()
 	SBinary sbEid = {0,0};
 	ULONG ulObjType = 0;
 	ULONG cValues = 0;
-	IMAPIFolder *lpWastBoxFld = NULL;
+	object_ptr<IMAPIFolder> lpWastBoxFld;
 	memory_ptr<SPropValue> lpProps, lpPropWstBxEID;
 	memory_ptr<ENTRYLIST> lpEntryList;
 	bool bisFolder = false;
@@ -839,8 +828,7 @@ HRESULT CalDAV::HrHandleDelete()
 		ec_log_err("Error finding \"Deleted items\" folder, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
 	}
-	
-	hr = m_lpDefStore->OpenEntry(lpPropWstBxEID->Value.bin.cb, (LPENTRYID)lpPropWstBxEID->Value.bin.lpb, NULL, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*)&lpWastBoxFld);
+	hr = m_lpDefStore->OpenEntry(lpPropWstBxEID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPropWstBxEID->Value.bin.lpb), nullptr, MAPI_MODIFY, &ulObjType, &~lpWastBoxFld);
 	if (hr != hrSuccess)
 	{
 		ec_log_err("Error opening \"Deleted items\" folder, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
@@ -925,8 +913,6 @@ exit:
 	}
 	else
 		m_lpRequest->HrResponseHeader(204, "No Content");
-	if (lpWastBoxFld)
-		lpWastBoxFld->Release();
 	return hr;
 }
 
@@ -951,12 +937,12 @@ HRESULT CalDAV::HrMoveEntry(const std::string &strGuid, LPMAPIFOLDER lpDestFolde
 	HRESULT hr = hrSuccess;
 	SBinary sbEid = {0,0};
 	memory_ptr<SPropValue> lpProps;
-	IMessage *lpMessage = NULL;
+	object_ptr<IMessage> lpMessage;
 	memory_ptr<ENTRYLIST> lpEntryList;
 	bool bMatch = false;
 
 	//Find Entry With Particular Guid
-	hr = HrFindAndGetMessage(strGuid, m_lpUsrFld, m_lpNamedProps, &lpMessage);
+	hr = HrFindAndGetMessage(strGuid, m_lpUsrFld, m_lpNamedProps, &~lpMessage);
 	if (hr != hrSuccess)
 	{
 		ec_log_err("Entry to be deleted not found: 0x%x %s", hr, GetMAPIErrorMessage(hr));
@@ -1026,8 +1012,6 @@ HRESULT CalDAV::HrMoveEntry(const std::string &strGuid, LPMAPIFOLDER lpDestFolde
 	}
 
 exit:
-	if (lpMessage)
-		lpMessage->Release();
 	return hr;
 }
 
@@ -1052,7 +1036,7 @@ HRESULT CalDAV::HrPut()
 	SBinary sbUid;
 	time_t ttLastModTime = 0;
 	
-	IMessage *lpMessage = NULL;
+	object_ptr<IMessage> lpMessage;
 	ICalToMapi *lpICalToMapi = NULL;
 	bool blNewEntry = false;
 	bool bMatch = false;
@@ -1062,7 +1046,7 @@ HRESULT CalDAV::HrPut()
 	strGuid = StripGuid(strUrl);
 
 	//Find the Entry with particular Guid
-	hr = HrFindAndGetMessage(strGuid, m_lpUsrFld, m_lpNamedProps, &lpMessage);
+	hr = HrFindAndGetMessage(strGuid, m_lpUsrFld, m_lpNamedProps, &~lpMessage);
 	if(hr == hrSuccess)
 	{
 		// check if entry can be modified by the user
@@ -1080,8 +1064,7 @@ HRESULT CalDAV::HrPut()
 		SPropValue sProp;
 
 		blNewEntry = true;
-
-		hr = m_lpUsrFld->CreateMessage(NULL, 0, &lpMessage);
+		hr = m_lpUsrFld->CreateMessage(nullptr, 0, &~lpMessage);
 		if (hr != hrSuccess) {
 			ec_log_err("Error creating new message, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 			goto exit;
@@ -1212,9 +1195,6 @@ exit:
 		m_lpRequest->HrResponseHeader(400, "Bad Request");
 	
 	delete lpICalToMapi;
-	if(lpMessage)
-		lpMessage->Release();
-
 	return hr;
 }
 
@@ -1231,11 +1211,11 @@ HRESULT CalDAV::CreateAndGetGuid(SBinary sbEid, ULONG ulPropTag, std::string *lp
 {
 	HRESULT hr = hrSuccess;
 	string strGuid;
-	LPMESSAGE lpMessage = NULL;
+	object_ptr<IMessage> lpMessage;
 	ULONG ulObjType = 0;
 	memory_ptr<SPropValue> lpProp;
 
-	hr = m_lpActiveStore->OpenEntry(sbEid.cb, (LPENTRYID)sbEid.lpb, NULL, MAPI_BEST_ACCESS, &ulObjType, (LPUNKNOWN*)&lpMessage);
+	hr = m_lpActiveStore->OpenEntry(sbEid.cb, reinterpret_cast<ENTRYID *>(sbEid.lpb), nullptr, MAPI_BEST_ACCESS, &ulObjType, &~lpMessage);
 	if (hr != hrSuccess) {
 		ec_log_err("Error opening message to add Guid, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
@@ -1261,8 +1241,6 @@ HRESULT CalDAV::CreateAndGetGuid(SBinary sbEid, ULONG ulPropTag, std::string *lp
 	*lpstrGuid = bin2hex(lpProp->Value.bin.cb, lpProp->Value.bin.lpb);
 
 exit:
-	if (lpMessage)
-		lpMessage->Release();
 	return hr;
 }
 
@@ -1278,7 +1256,7 @@ HRESULT CalDAV::HrHandleMkCal(WEBDAVPROP *lpsDavProp)
 {
 	HRESULT hr = hrSuccess;
 	std::wstring wstrNewFldName;
-	IMAPIFolder *lpUsrFld = NULL;
+	object_ptr<IMAPIFolder> lpUsrFld;
 	SPropValue sPropValSet[2];
 	ULONG ulPropTag = 0;
 	std::string strContainerClass = "IPF.Appointment";
@@ -1305,8 +1283,7 @@ HRESULT CalDAV::HrHandleMkCal(WEBDAVPROP *lpsDavProp)
 	}
 
 	// @todo handle conflicts better. caldav conflicts on the url (guid), not the folder name...
-
-	hr = m_lpIPMSubtree->CreateFolder(FOLDER_GENERIC, (LPTSTR)wstrNewFldName.c_str(), NULL, NULL, MAPI_UNICODE, &lpUsrFld);
+	hr = m_lpIPMSubtree->CreateFolder(FOLDER_GENERIC, (LPTSTR)wstrNewFldName.c_str(), nullptr, nullptr, MAPI_UNICODE, &~lpUsrFld);
 	if (hr != hrSuccess) {
 		ec_log_debug("CalDAV::HrHandleMkCal create folder failed: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
@@ -1334,9 +1311,6 @@ HRESULT CalDAV::HrHandleMkCal(WEBDAVPROP *lpsDavProp)
 	// @todo set all xml properties as named properties on this folder
 
 exit:
-	if(lpUsrFld)
-		lpUsrFld->Release();
-
 	return hr;
 }
 
@@ -1361,9 +1335,8 @@ HRESULT CalDAV::HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lp
 {
 	HRESULT hr = hrSuccess;	
 	WEBDAVPROP *lpsDavProp = &sDavProp->sProp;
-	IMAPITable *lpHichyTable = NULL;
-	IMAPITable *lpDelHichyTable = NULL;
-	IMAPIFolder *lpWasteBox = NULL;
+	object_ptr<IMAPITable> lpHichyTable, lpDelHichyTable;
+	object_ptr<IMAPIFolder> lpWasteBox;
 	memory_ptr<SPropValue> lpSpropWbEID, lpsPropSingleFld;
 	memory_ptr<SPropTagArray> lpPropTagArr;
 	LPSRowSet lpRowsALL = NULL;
@@ -1420,7 +1393,7 @@ HRESULT CalDAV::HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lp
 		goto exit;
 	}
 
-	hr = HrGetSubCalendars(m_lpSession, m_lpIPMSubtree, NULL, &lpHichyTable);
+	hr = HrGetSubCalendars(m_lpSession, m_lpIPMSubtree, nullptr, &~lpHichyTable);
 	if (hr != hrSuccess) {
 		ec_log_err("Error retrieving subcalendars for IPM_Subtree, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
@@ -1438,15 +1411,13 @@ HRESULT CalDAV::HrListCalendar(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lp
 			hr = hrSuccess;
 			goto nowaste;
 		}
-		
-		hr = m_lpActiveStore->OpenEntry(lpSpropWbEID->Value.bin.cb, (LPENTRYID)lpSpropWbEID->Value.bin.lpb, NULL, MAPI_BEST_ACCESS, &ulObjType, reinterpret_cast<LPUNKNOWN *>(&lpWasteBox));
+		hr = m_lpActiveStore->OpenEntry(lpSpropWbEID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpSpropWbEID->Value.bin.lpb), nullptr, MAPI_BEST_ACCESS, &ulObjType, &~lpWasteBox);
 		if(hr != hrSuccess)
 		{
 			hr = hrSuccess;
 			goto nowaste;
 		}
-		
-		hr = HrGetSubCalendars(m_lpSession, lpWasteBox, NULL, &lpDelHichyTable);
+		hr = HrGetSubCalendars(m_lpSession, lpWasteBox, nullptr, &~lpDelHichyTable);
 		if(hr != hrSuccess)
 		{
 			hr = hrSuccess;
@@ -1531,14 +1502,6 @@ nowaste:
 	}
 
 exit:
-	if(lpWasteBox)
-		lpWasteBox->Release();
-
-	if(lpHichyTable)
-		lpHichyTable->Release();
-	
-	if(lpDelHichyTable)
-		lpDelHichyTable->Release();
 	if(lpRowsALL)
 		FreeProws(lpRowsALL);
 	
@@ -1712,8 +1675,8 @@ HRESULT CalDAV::HrHandlePost()
 HRESULT CalDAV::HrHandleFreebusy(ICalToMapi *lpIcalToMapi)
 {
 	HRESULT hr = hrSuccess;	
-	ECFreeBusySupport* lpecFBSupport = NULL;	
-	IFreeBusySupport* lpFBSupport = NULL;
+	object_ptr<ECFreeBusySupport> lpecFBSupport;
+	object_ptr<IFreeBusySupport> lpFBSupport;
 	MapiToICal *lpMapiToIcal = NULL;
 	time_t tStart  = 0;
 	time_t tEnd = 0;
@@ -1733,14 +1696,12 @@ HRESULT CalDAV::HrHandleFreebusy(ICalToMapi *lpIcalToMapi)
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
 	}
-
-	hr = ECFreeBusySupport::Create(&lpecFBSupport);
+	hr = ECFreeBusySupport::Create(&~lpecFBSupport);
 	if (hr != hrSuccess) {
 		ec_log_debug("CalDAV::HrHandleFreebusy ECFreeBusySupport::Create failed: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
 	}
-
-	hr = lpecFBSupport->QueryInterface(IID_IFreeBusySupport, (void**)&lpFBSupport);
+	hr = lpecFBSupport->QueryInterface(IID_IFreeBusySupport, &~lpFBSupport);
 	if (hr != hrSuccess) {
 		ec_log_debug("CalDAV::HrHandleFreebusy QueryInterface(IID_IFreeBusySupport) failed: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
@@ -1776,12 +1737,6 @@ HRESULT CalDAV::HrHandleFreebusy(ICalToMapi *lpIcalToMapi)
 	}
 
 exit:
-	if (lpFBSupport)
-		lpFBSupport->Release();
-	
-	if (lpecFBSupport)
-		lpecFBSupport->Release();
-	
 	if (lpMapiToIcal)
 		delete lpMapiToIcal;
 
@@ -1799,8 +1754,8 @@ HRESULT CalDAV::HrHandleMeeting(ICalToMapi *lpIcalToMapi)
 {
 	HRESULT hr = hrSuccess;	
 	memory_ptr<SPropValue> lpsGetPropVal;
-	LPMAPIFOLDER lpOutbox = NULL;
-	LPMESSAGE lpNewMsg = NULL;
+	object_ptr<IMAPIFolder> lpOutbox;
+	object_ptr<IMessage> lpNewMsg;
 	SPropValue lpsSetPropVals[2] = {{0}};
 	ULONG cValues = 0;
 	ULONG ulObjType = 0;
@@ -1820,14 +1775,12 @@ HRESULT CalDAV::HrHandleMeeting(ICalToMapi *lpIcalToMapi)
 		ec_log_debug("CalDAV::HrHandleMeeting GetProps failed: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
 	}
-
-	hr = m_lpDefStore->OpenEntry(lpsGetPropVal[0].Value.bin.cb, (LPENTRYID) lpsGetPropVal[0].Value.bin.lpb, NULL, MAPI_BEST_ACCESS, &ulObjType, (LPUNKNOWN*)&lpOutbox);
+	hr = m_lpDefStore->OpenEntry(lpsGetPropVal[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(lpsGetPropVal[0].Value.bin.lpb), nullptr, MAPI_BEST_ACCESS, &ulObjType, &~lpOutbox);
 	if (hr != hrSuccess) {
 		ec_log_debug("CalDAV::HrHandleMeeting OpenEntry failed: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
 	}
-
-	hr = lpOutbox->CreateMessage(NULL, MAPI_BEST_ACCESS, &lpNewMsg);
+	hr = lpOutbox->CreateMessage(nullptr, MAPI_BEST_ACCESS, &~lpNewMsg);
 	if (hr != hrSuccess) {
 		ec_log_debug("CalDAV::HrHandleMeeting CreateMessage failed: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
@@ -1868,12 +1821,6 @@ exit:
 		m_lpRequest->HrResponseHeader(200, "Ok");
 	else
 		m_lpRequest->HrResponseHeader(400, "Bad Request");
-
-	if (lpNewMsg)
-		lpNewMsg->Release();
-
-	if (lpOutbox)
-		lpOutbox->Release();
 	return hr;
 }
 
@@ -1889,10 +1836,10 @@ exit:
 HRESULT CalDAV::HrConvertToIcal(LPSPropValue lpEid, MapiToICal *lpMtIcal, ULONG ulFlags, std::string *lpstrIcal)
 {
 	HRESULT hr = hrSuccess;
-	IMessage *lpMessage = NULL;
+	object_ptr<IMessage> lpMessage;
 	ULONG ulObjType = 0;
 
-	hr = m_lpActiveStore->OpenEntry(lpEid->Value.bin.cb, reinterpret_cast<LPENTRYID>(lpEid->Value.bin.lpb), NULL, MAPI_BEST_ACCESS, &ulObjType, reinterpret_cast<LPUNKNOWN *>(&lpMessage));
+	hr = m_lpActiveStore->OpenEntry(lpEid->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEid->Value.bin.lpb), nullptr, MAPI_BEST_ACCESS, &ulObjType, &~lpMessage);
 	if (hr != hrSuccess && ulObjType == MAPI_MESSAGE)
 	{
 		ec_log_err("Error opening calendar entry, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
@@ -1916,9 +1863,6 @@ HRESULT CalDAV::HrConvertToIcal(LPSPropValue lpEid, MapiToICal *lpMtIcal, ULONG 
 	lpMtIcal->ResetObject();
 
 exit:
-	if(lpMessage)
-		lpMessage->Release();
-	
 	return hr;
 }
 
@@ -2224,14 +2168,13 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 HRESULT CalDAV::HrGetCalendarOrder(SBinary sbEid, std::string *lpstrCalendarOrder)
 {
 	HRESULT hr = hrSuccess;
-	LPMAPIFOLDER lpRootCont = NULL;
+	object_ptr<IMAPIFolder> lpRootCont;
 	memory_ptr<SPropValue> lpProp;
 	ULONG ulObjType = 0;
 	ULONG ulResult = 0;
 
 	lpstrCalendarOrder->assign("2");
-	
-	hr = m_lpActiveStore->OpenEntry(0, NULL, NULL, 0, &ulObjType, (LPUNKNOWN*)&lpRootCont);
+	hr = m_lpActiveStore->OpenEntry(0, nullptr, nullptr, 0, &ulObjType, &~lpRootCont);
 	if (hr != hrSuccess || ulObjType != MAPI_FOLDER) {
 		ec_log_err("Error opening root Container of user %ls, error code: (0x%08X)", m_wstrUser.c_str(), hr);
 		goto exit;
@@ -2249,9 +2192,6 @@ HRESULT CalDAV::HrGetCalendarOrder(SBinary sbEid, std::string *lpstrCalendarOrde
 		lpstrCalendarOrder->assign("1");
 
 exit:
-	if (lpRootCont)
-		lpRootCont->Release();
-
 	return hr;
 }
 /**
@@ -2272,7 +2212,7 @@ exit:
 HRESULT CalDAV::HrMove()
 {
 	HRESULT hr = hrSuccess;
-	LPMAPIFOLDER lpDestFolder = NULL;
+	object_ptr<IMAPIFolder> lpDestFolder;
 	std::string strDestination;
 	std::string strDestFolder;
 	std::string strGuid;
@@ -2286,8 +2226,7 @@ HRESULT CalDAV::HrMove()
 	hr = HrParseURL(strDestination, NULL, NULL, &strDestFolder);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = HrFindFolder(m_lpActiveStore, m_lpIPMSubtree, m_lpNamedProps, U2W(strDestFolder), &lpDestFolder);
+	hr = HrFindFolder(m_lpActiveStore, m_lpIPMSubtree, m_lpNamedProps, U2W(strDestFolder), &~lpDestFolder);
 	if (hr != hrSuccess) {
 		ec_log_debug("CalDAV::HrMove HrFindFolder failed: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
@@ -2309,9 +2248,5 @@ exit:
 		m_lpRequest->HrResponseHeader(403, "Forbidden");
 	else
 		m_lpRequest->HrResponseHeader(400, "Bad Request");
-
-	if (lpDestFolder)
-		lpDestFolder->Release();
-
 	return hr;
 }

@@ -164,10 +164,10 @@ HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageSt
 			HRESULT hrTmp;
 			MsgStorePtr ptrArchiveStore;
 
-			hrTmp = ptrSession->OpenReadOnlyStore(arc.sStoreEntryId, &ptrArchiveStore);
+			hrTmp = ptrSession->OpenReadOnlyStore(arc.sStoreEntryId, &~ptrArchiveStore);
 			if (hrTmp != hrSuccess)
 				continue;
-			hrTmp = ptrArchiveStore->OpenEntry(arc.sItemEntryId.size(), arc.sItemEntryId, &ptrArchiveMsg.iid(), 0, &ulType, &ptrArchiveMsg);
+			hrTmp = ptrArchiveStore->OpenEntry(arc.sItemEntryId.size(), arc.sItemEntryId, &ptrArchiveMsg.iid(), 0, &ulType, &~ptrArchiveMsg);
 			if (hrTmp != hrSuccess)
 				continue;
 
@@ -191,11 +191,11 @@ HRESULT MAPIPropHelper::GetMessageState(ArchiverSessionPtr ptrSession, MessageSt
 			hr = ptrArchiveHelper->GetReference(&refEntry);
 			if (hr != hrSuccess)
 				return hr;
-			hr = ptrSession->OpenReadOnlyStore(refEntry.sStoreEntryId, &ptrStore);
+			hr = ptrSession->OpenReadOnlyStore(refEntry.sStoreEntryId, &~ptrStore);
 			if (hr != hrSuccess)
 				return hr;
 
-			hr = ptrStore->OpenEntry(refEntry.sItemEntryId.size(), refEntry.sItemEntryId, &ptrArchiveMsg.iid(), 0, &ulType, &ptrMessage);
+			hr = ptrStore->OpenEntry(refEntry.sItemEntryId.size(), refEntry.sItemEntryId, &ptrArchiveMsg.iid(), 0, &ulType, &~ptrMessage);
 			if (hr == hrSuccess) {
 				/*
 				 * One would expect that if the message was opened properly here, the message that's being
@@ -485,7 +485,7 @@ HRESULT MAPIPropHelper::OpenPrevious(ArchiverSessionPtr ptrSession, LPMESSAGE *l
 	if (hr != hrSuccess)
 		return hr;
 
-	hr = ptrSession->GetMAPISession()->OpenEntry(ptrEntryID->Value.bin.cb, (LPENTRYID)ptrEntryID->Value.bin.lpb, &ptrMessage.iid(), MAPI_MODIFY, &ulType, &ptrMessage);
+	hr = ptrSession->GetMAPISession()->OpenEntry(ptrEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrEntryID->Value.bin.lpb), &ptrMessage.iid(), MAPI_MODIFY, &ulType, &~ptrMessage);
 	if (hr == MAPI_E_NOT_FOUND) {
 		SPropValuePtr ptrStoreEntryID;
 		MsgStorePtr ptrStore;
@@ -493,10 +493,10 @@ HRESULT MAPIPropHelper::OpenPrevious(ArchiverSessionPtr ptrSession, LPMESSAGE *l
 		hr = HrGetOneProp(m_ptrMapiProp, PR_STORE_ENTRYID, &~ptrStoreEntryID);
 		if (hr != hrSuccess)
 			return hr;
-		hr = ptrSession->OpenStore(ptrStoreEntryID->Value.bin, &ptrStore);
+		hr = ptrSession->OpenStore(ptrStoreEntryID->Value.bin, &~ptrStore);
 		if (hr != hrSuccess)
 			return hr;
-		hr = ptrStore->OpenEntry(ptrEntryID->Value.bin.cb, (LPENTRYID)ptrEntryID->Value.bin.lpb, &ptrMessage.iid(), MAPI_MODIFY, &ulType, &ptrMessage);
+		hr = ptrStore->OpenEntry(ptrEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrEntryID->Value.bin.lpb), &ptrMessage.iid(), MAPI_MODIFY, &ulType, &~ptrMessage);
 	}
 	if (hr != hrSuccess)
 		return hr;
@@ -560,10 +560,10 @@ HRESULT MAPIPropHelper::GetParentFolder(ArchiverSessionPtr ptrSession, LPMAPIFOL
 	hr = m_ptrMapiProp->GetProps(sptaProps, 0, &cValues, &~ptrPropArray);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrSession->OpenStore(ptrPropArray[1].Value.bin, &ptrMsgStore);
+	hr = ptrSession->OpenStore(ptrPropArray[1].Value.bin, &~ptrMsgStore);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrMsgStore->OpenEntry(ptrPropArray[0].Value.bin.cb, (LPENTRYID)ptrPropArray[0].Value.bin.lpb, &ptrFolder.iid(), MAPI_BEST_ACCESS|fMapiDeferredErrors, &ulType, &ptrFolder);
+	hr = ptrMsgStore->OpenEntry(ptrPropArray[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrPropArray[0].Value.bin.lpb), &ptrFolder.iid(), MAPI_BEST_ACCESS | fMapiDeferredErrors, &ulType, &~ptrFolder);
 	if (hr != hrSuccess)
 		return hr;
 	

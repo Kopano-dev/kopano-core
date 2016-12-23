@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <kopano/ECInterfaceDefs.h>
+#include <kopano/memory.hpp>
 #include "ECFreeBusyData.h"
 
 #include "ECEnumFBBlock.h"
@@ -82,7 +83,7 @@ HRESULT ECFreeBusyData::EnumBlocks(IEnumFBBlock **ppenumfb, FILETIME ftmStart, F
 	HRESULT			hr = S_OK;
 	LONG			rtmStart = 0;
 	LONG			rtmEnd = 0;
-	ECEnumFBBlock*	lpECEnumFBBlock = NULL;
+	KCHL::object_ptr<ECEnumFBBlock> lpECEnumFBBlock;
 
 	if(ppenumfb == NULL)
 	{
@@ -96,8 +97,7 @@ HRESULT ECFreeBusyData::EnumBlocks(IEnumFBBlock **ppenumfb, FILETIME ftmStart, F
 	hr = m_fbBlockList.Restrict(rtmStart, rtmEnd);
 	if(hr != hrSuccess)
 		goto exit;
-
-	hr = ECEnumFBBlock::Create(&m_fbBlockList, &lpECEnumFBBlock);
+	hr = ECEnumFBBlock::Create(&m_fbBlockList, &~lpECEnumFBBlock);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -106,9 +106,6 @@ HRESULT ECFreeBusyData::EnumBlocks(IEnumFBBlock **ppenumfb, FILETIME ftmStart, F
 		goto exit;
 	
 exit:
-	if(lpECEnumFBBlock)
-		lpECEnumFBBlock->Release();
-
 	return hr;
 }
 

@@ -56,7 +56,7 @@ HRESULT HrPublishDefaultCalendar(IMAPISession *lpSession, IMsgStore *lpDefStore,
 {
 	HRESULT hr = hrSuccess;
 	std::unique_ptr<PublishFreeBusy> lpFreeBusy;
-	IMAPITable *lpTable = NULL;
+	object_ptr<IMAPITable> lpTable;
 	memory_ptr<FBBlock_1> lpFBblocks;
 	ULONG cValues = 0;
 
@@ -65,8 +65,7 @@ HRESULT HrPublishDefaultCalendar(IMAPISession *lpSession, IMsgStore *lpDefStore,
 	hr = lpFreeBusy->HrInit();
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = lpFreeBusy->HrGetResctItems(&lpTable);
+	hr = lpFreeBusy->HrGetResctItems(&~lpTable);
 	if (hr != hrSuccess) {
 		ec_log_info("Error while finding messages for free/busy publish, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
@@ -94,8 +93,6 @@ HRESULT HrPublishDefaultCalendar(IMAPISession *lpSession, IMsgStore *lpDefStore,
 	}
 	
 exit:
-	if(lpTable)
-		lpTable->Release();
 	return hr;
 }
 
@@ -158,18 +155,17 @@ HRESULT PublishFreeBusy::HrInit()
 HRESULT PublishFreeBusy::HrGetResctItems(IMAPITable **lppTable)
 {
 	HRESULT hr = hrSuccess;
-	IMAPIFolder *lpDefCalendar = NULL;
-	IMAPITable *lpTable = NULL;
+	object_ptr<IMAPIFolder> lpDefCalendar;
+	object_ptr<IMAPITable> lpTable;
 	SPropValue lpsPropStart;
 	SPropValue lpsPropEnd;
 	SPropValue lpsPropIsRecc;
 	SPropValue lpsPropReccEnd;
 		
-	hr = HrOpenDefaultCalendar(m_lpDefStore, &lpDefCalendar);
+	hr = HrOpenDefaultCalendar(m_lpDefStore, &~lpDefCalendar);
 	if(hr != hrSuccess)
 		goto exit;
-
-	hr = lpDefCalendar->GetContentsTable(0, &lpTable);
+	hr = lpDefCalendar->GetContentsTable(0, &~lpTable);
 	if(hr != hrSuccess)
 		goto exit;
 	
@@ -214,16 +210,8 @@ HRESULT PublishFreeBusy::HrGetResctItems(IMAPITable **lppTable)
 	).RestrictTable(lpTable);
 	if (hr != hrSuccess)
 		goto exit;
-	*lppTable = lpTable;
-	lpTable = NULL;
-
+	*lppTable = lpTable.release();
 exit:
-	if(lpTable)
-		lpTable->Release();
-
-	if(lpDefCalendar)
-		lpDefCalendar->Release();
-
 	return hr;
 }
 
@@ -450,24 +438,22 @@ HRESULT PublishFreeBusy::HrMergeBlocks(FBBlock_1 **lppfbBlocks, ULONG *lpcValues
 HRESULT PublishFreeBusy::HrPublishFBblocks(FBBlock_1 *lpfbBlocks, ULONG cValues)
 {
 	HRESULT hr = hrSuccess;
-	ECFreeBusyUpdate *lpFBUpdate = NULL;
-	IMessage *lpMessage = NULL;
-	IMsgStore *lpPubStore = NULL;
+	object_ptr<ECFreeBusyUpdate> lpFBUpdate;
+	object_ptr<IMessage> lpMessage;
+	object_ptr<IMsgStore> lpPubStore;
 	memory_ptr<SPropValue> lpsPrpUsrMEid;
 	time_t tsStart = 0;
-	
-	hr = HrOpenECPublicStore(m_lpSession, &lpPubStore);
+
+	hr = HrOpenECPublicStore(m_lpSession, &~lpPubStore);
 	if(hr != hrSuccess)
 		goto exit;
 	hr = HrGetOneProp(m_lpDefStore, PR_MAILBOX_OWNER_ENTRYID, &~lpsPrpUsrMEid);
 	if(hr != hrSuccess)
 		goto exit;
-
-	hr = GetFreeBusyMessage(m_lpSession, lpPubStore, m_lpDefStore, lpsPrpUsrMEid[0].Value.bin.cb, (LPENTRYID)lpsPrpUsrMEid[0].Value.bin.lpb, true, &lpMessage);
+	hr = GetFreeBusyMessage(m_lpSession, lpPubStore, m_lpDefStore, lpsPrpUsrMEid[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(lpsPrpUsrMEid[0].Value.bin.lpb), true, &~lpMessage);
 	if(hr != hrSuccess)
 		goto exit;
-
-	hr = ECFreeBusyUpdate::Create(lpMessage,&lpFBUpdate);
+	hr = ECFreeBusyUpdate::Create(lpMessage, &~lpFBUpdate);
 	if(hr != hrSuccess)
 		goto exit;
 	
@@ -489,15 +475,6 @@ HRESULT PublishFreeBusy::HrPublishFBblocks(FBBlock_1 *lpfbBlocks, ULONG cValues)
 		goto exit;
 
 exit:
-	if(lpFBUpdate)
-		lpFBUpdate->Release();
-
-	if(lpMessage)
-		lpMessage->Release();
-
-	if(lpPubStore)
-		lpPubStore->Release();
-
 	return hr;
 
 }

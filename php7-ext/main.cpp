@@ -1863,7 +1863,7 @@ ZEND_FUNCTION(mapi_msgstore_getarchiveentryid)
 
 	ZEND_FETCH_RESOURCE_C(pMDB, LPMDB, &res, -1, name_mapi_msgstore, le_mapi_msgstore);
 
-	MAPI_G(hr) = pMDB->QueryInterface(ptrSA.iid(), &ptrSA);
+	MAPI_G(hr) = pMDB->QueryInterface(ptrSA.iid(), &~ptrSA);
 	if(MAPI_G(hr) != hrSuccess) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "IECServiceAdmin interface was not supported by given store.");
 		goto exit;

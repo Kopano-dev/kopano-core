@@ -255,7 +255,7 @@ RunFolderValidation(const std::set<std::string> &setFolderIgnore,
 {
 	HRESULT hr = hrSuccess;
 	LPSPropValue lpItemProperty = NULL;
-	LPMAPIFOLDER lpFolder = NULL;
+	object_ptr<IMAPIFolder> lpFolder;
 	Fsck *lpFsck = NULL;
 	ULONG ulObjectType = 0;
 	string strName;
@@ -267,13 +267,9 @@ RunFolderValidation(const std::set<std::string> &setFolderIgnore,
 		cout << "Row does not contain an EntryID." << endl;
 		goto exit;
 	}
-
 	hr = lpRootFolder->OpenEntry(lpItemProperty->Value.bin.cb,
-				   (LPENTRYID)lpItemProperty->Value.bin.lpb,
-				   &IID_IMAPIFolder,
-				   0,
-				   &ulObjectType,
-				   (IUnknown**)&lpFolder);
+	     reinterpret_cast<ENTRYID *>(lpItemProperty->Value.bin.lpb),
+	     &IID_IMAPIFolder, 0, &ulObjectType, &~lpFolder);
 	if (hr != hrSuccess) {
 		cout << "Failed to open EntryID." << endl;
 		goto exit;
@@ -318,9 +314,6 @@ RunFolderValidation(const std::set<std::string> &setFolderIgnore,
 	}
 
 exit:
-	if(lpFolder)
-		lpFolder->Release();
-
 	return hr;
 }
 

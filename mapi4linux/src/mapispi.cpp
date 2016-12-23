@@ -550,11 +550,10 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 	std::set<std::vector<unsigned char> > setFilter;
 	SPropTagArrayPtr ptrColumns;
 
-	hr = session->OpenAddressBook(0, NULL, AB_NO_DIALOG, &ptrAddrBook);
+	hr = session->OpenAddressBook(0, NULL, AB_NO_DIALOG, &~ptrAddrBook);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = lpMessage->GetRecipientTable(fMapiUnicode | MAPI_DEFERRED_ERRORS, &ptrRecipientTable);
+	hr = lpMessage->GetRecipientTable(fMapiUnicode | MAPI_DEFERRED_ERRORS, &~ptrRecipientTable);
 	if (hr != hrSuccess)
 		goto exit;
 	hr = ptrRecipientTable->QueryColumns(TBL_ALL_COLUMNS, &~ptrColumns);
@@ -599,8 +598,7 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 			continue;
 		}
 		setFilter.insert(std::vector<unsigned char>(lpDLEntryID->Value.bin.lpb, lpDLEntryID->Value.bin.lpb + lpDLEntryID->Value.bin.cb));
-
-		hr = ptrAddrBook->OpenEntry(lpDLEntryID->Value.bin.cb, (LPENTRYID)lpDLEntryID->Value.bin.lpb, NULL, 0, &ulObjType, &ptrDistList);
+		hr = ptrAddrBook->OpenEntry(lpDLEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpDLEntryID->Value.bin.lpb), NULL, 0, &ulObjType, &~ptrDistList);
 		if (hr != hrSuccess)
 			continue;
 
@@ -608,8 +606,7 @@ HRESULT M4LMAPISupport::ExpandRecips(LPMESSAGE lpMessage, ULONG * lpulFlags) {
 		hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE, (LPADRLIST)ptrRow.get());
 		if (hr != hrSuccess)
 			goto exit;
-
-		hr = ptrDistList->GetContentsTable(fMapiUnicode, &ptrMemberTable);
+		hr = ptrDistList->GetContentsTable(fMapiUnicode, &~ptrMemberTable);
 		if (hr != hrSuccess)
 			continue;
 

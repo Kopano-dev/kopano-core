@@ -248,14 +248,14 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstr
 
 	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Removing implicitly attached archives.");
 
-	hr = m_ptrSession->OpenStore(storeId, &ptrUserStore);
+	hr = m_ptrSession->OpenStore(storeId, &~ptrUserStore);
 	if (hr == MAPI_E_INVALID_ENTRYID) {
 		m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Got invalid entryid, attempting to resolve...");
 		
 		// The storeId was obtained from the MailboxTable that currently does not return
 		if (!userName.empty()) {
 			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Resolving user '" TSTRING_PRINTF "'", userName.c_str());
-			hr = m_ptrSession->OpenStoreByName(userName, &ptrUserStore);
+			hr = m_ptrSession->OpenStoreByName(userName, &~ptrUserStore);
 			if (hr != hrSuccess) {
 				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to resolve store for user '" TSTRING_PRINTF "'", userName.c_str());
 				return hr;
@@ -270,7 +270,7 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstr
 			}
 				
 			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Resolving user '" TSTRING_PRINTF "'", userName.c_str());
-			hr = m_ptrSession->OpenStoreByName(strUserName, &ptrUserStore);
+			hr = m_ptrSession->OpenStoreByName(strUserName, &~ptrUserStore);
 			if (hr != hrSuccess) {
 				m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to resolve store for user '" TSTRING_PRINTF "'", userName.c_str());
 				return hr;
@@ -294,7 +294,7 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstr
 		ArchiveHelperPtr ptrArchiveHelper;
 		AttachType attachType;
 
-		hr = m_ptrSession->OpenStore(i.sStoreEntryId, &ptrArchStore);
+		hr = m_ptrSession->OpenStore(i.sStoreEntryId, &~ptrArchStore);
 		if (hr == MAPI_E_NOT_FOUND) {
 			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Archive store returned not found, detaching it.");
 			lstCurrentArchives.remove_if(Predicates::SObjectEntry_equals_binary(i));
@@ -304,7 +304,7 @@ HRESULT ArchiveStateUpdater::RemoveImplicit(const entryid_t &storeId, const tstr
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open archive store. hr=0x%08x", hr);
 			return hr;
 		}
-		hr = ptrArchStore->OpenEntry(i.sItemEntryId.size(), i.sItemEntryId, &ptrArchFolder.iid(), 0, &ulType, &ptrArchFolder);
+		hr = ptrArchStore->OpenEntry(i.sItemEntryId.size(), i.sItemEntryId, &ptrArchFolder.iid(), 0, &ulType, &~ptrArchFolder);
 		if (hr != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open archive root. hr=0x%08x", hr);
 			if (hr == MAPI_E_NOT_FOUND) {
@@ -477,7 +477,7 @@ HRESULT ArchiveStateUpdater::AddServerBased(const tstring &userName, const abent
 	for (const auto &i : lstServers) {
 		MsgStorePtr ptrArchive;
 		
-		hr = m_ptrSession->OpenOrCreateArchiveStore(userName, i, &ptrArchive);
+		hr = m_ptrSession->OpenOrCreateArchiveStore(userName, i, &~ptrArchive);
 		if (hr != hrSuccess) {
 			m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open or create the archive for user '" TSTRING_PRINTF "' on server '" TSTRING_PRINTF "', hr=0x%08x", userName.c_str(), i.c_str(), hr);
 			return hr;
@@ -596,7 +596,7 @@ HRESULT ArchiveStateUpdater::FindArchiveEntry(const tstring &strArchive, const t
 	MsgStorePtr ptrArchiveStore;
 	ArchiveHelperPtr ptrArchiveHelper;
 
-	hr = m_ptrSession->OpenStoreByName(strArchive, &ptrArchiveStore);
+	hr = m_ptrSession->OpenStoreByName(strArchive, &~ptrArchiveStore);
 	if (hr != hrSuccess) {
 		m_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to open store for user '" TSTRING_PRINTF "', hr=0x%08x", strArchive.c_str(), hr);
 		return hr;

@@ -3943,7 +3943,7 @@ HRESULT Util::HrDeleteAttachments(LPMESSAGE lpMsg)
 
 	if (lpMsg == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	HRESULT hr = lpMsg->GetAttachmentTable(0, &ptrAttachTable);
+	HRESULT hr = lpMsg->GetAttachmentTable(0, &~ptrAttachTable);
 	if (hr != hrSuccess)
 		return hr;
 	hr = HrQueryAllRows(ptrAttachTable, sptaAttachNum, NULL, NULL, 0, &ptrRows);
@@ -3967,7 +3967,7 @@ HRESULT Util::HrDeleteRecipients(LPMESSAGE lpMsg)
 
 	if (lpMsg == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-	HRESULT hr = lpMsg->GetRecipientTable(0, &ptrRecipTable);
+	HRESULT hr = lpMsg->GetRecipientTable(0, &~ptrRecipTable);
 	if (hr != hrSuccess)
 		return hr;
 	hr = HrQueryAllRows(ptrRecipTable, sptaRowId, NULL, NULL, 0, &ptrRows);
@@ -3991,10 +3991,10 @@ HRESULT Util::HrDeleteMessage(IMAPISession *lpSession, IMessage *lpMessage)
 	HRESULT hr = lpMessage->GetProps(sptaMessageProps, 0, &cMsgProps, &~ptrMsgProps);
 	if (hr != hrSuccess)
 		return hr;
-	hr = lpSession->OpenMsgStore(0, ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.cb, (LPENTRYID)ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.lpb, &ptrStore.iid(), MDB_WRITE, &ptrStore);
+	hr = lpSession->OpenMsgStore(0, ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrMsgProps[IDX_STORE_ENTRYID].Value.bin.lpb), &ptrStore.iid(), MDB_WRITE, &~ptrStore);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrStore->OpenEntry(ptrMsgProps[IDX_PARENT_ENTRYID].Value.bin.cb, (LPENTRYID)ptrMsgProps[IDX_PARENT_ENTRYID].Value.bin.lpb, &ptrFolder.iid(), MAPI_MODIFY, &ulType, &ptrFolder);
+	hr = ptrStore->OpenEntry(ptrMsgProps[IDX_PARENT_ENTRYID].Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrMsgProps[IDX_PARENT_ENTRYID].Value.bin.lpb), &ptrFolder.iid(), MAPI_MODIFY, &ulType, &~ptrFolder);
 	if (hr != hrSuccess)
 		return hr;
 

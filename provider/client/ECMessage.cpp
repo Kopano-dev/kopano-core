@@ -409,11 +409,10 @@ HRESULT ECMessage::SyncPlainToRtf()
 	assert(m_bInhibitSync == false);
 	m_bInhibitSync = TRUE;
 
-	hr = ECMAPIProp::OpenProperty(PR_BODY_W, &IID_IStream, 0, 0, &ptrBodyStream);
+	hr = ECMAPIProp::OpenProperty(PR_BODY_W, &IID_IStream, 0, 0, &~ptrBodyStream);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = ECMAPIProp::OpenProperty(PR_RTF_COMPRESSED, &IID_IStream, STGM_TRANSACTED, MAPI_CREATE|MAPI_MODIFY, &ptrCompressedRtfStream);
+	hr = ECMAPIProp::OpenProperty(PR_RTF_COMPRESSED, &IID_IStream, STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~ptrCompressedRtfStream);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -421,8 +420,7 @@ HRESULT ECMessage::SyncPlainToRtf()
 	hr = ptrCompressedRtfStream->SetSize(emptySize);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = WrapCompressedRTFStream(ptrCompressedRtfStream, MAPI_MODIFY, &ptrUncompressedRtfStream);
+	hr = WrapCompressedRTFStream(ptrCompressedRtfStream, MAPI_MODIFY, &~ptrUncompressedRtfStream);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -466,11 +464,10 @@ HRESULT ECMessage::SyncPlainToHtml()
 	assert(m_bInhibitSync == false);
 	m_bInhibitSync = TRUE;
 
-	hr = ECMAPIProp::OpenProperty(PR_BODY_W, &IID_IStream, 0, 0, &ptrBodyStream);
+	hr = ECMAPIProp::OpenProperty(PR_BODY_W, &IID_IStream, 0, 0, &~ptrBodyStream);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = ECMAPIProp::OpenProperty(PR_HTML, &IID_IStream, STGM_TRANSACTED, MAPI_CREATE|MAPI_MODIFY, &ptrHtmlStream);
+	hr = ECMAPIProp::OpenProperty(PR_HTML, &IID_IStream, STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~ptrHtmlStream);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -528,8 +525,7 @@ HRESULT ECMessage::SyncRtf()
 	hr = GetCodePage(&ulCodePage);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = ECMAPIProp::OpenProperty(PR_HTML, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &ptrHTMLStream);
+	hr = ECMAPIProp::OpenProperty(PR_HTML, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~ptrHTMLStream);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -551,7 +547,7 @@ HRESULT ECMessage::SyncRtf()
 		if (hr == hrSuccess) {
 			StreamPtr ptrBodyStream;
 
-			hr = ECMAPIProp::OpenProperty(PR_BODY_W, &IID_IStream, 0, 0, &ptrBodyStream);
+			hr = ECMAPIProp::OpenProperty(PR_BODY_W, &IID_IStream, 0, 0, &~ptrBodyStream);
 			if (hr != hrSuccess)
 				goto exit;
 
@@ -600,8 +596,7 @@ HRESULT ECMessage::SyncRtf()
 		hr = ptrHTMLStream->Seek(moveBegin, STREAM_SEEK_SET, NULL);
 		if (hr != hrSuccess)
 			goto exit;
-
-		hr = ECMAPIProp::OpenProperty(PR_BODY_W, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &ptrBodyStream);
+		hr = ECMAPIProp::OpenProperty(PR_BODY_W, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~ptrBodyStream);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -657,11 +652,10 @@ HRESULT ECMessage::SyncHtmlToPlain()
 	assert(m_bInhibitSync == FALSE);
 	m_bInhibitSync = TRUE;
 
-	hr = ECMAPIProp::OpenProperty(PR_HTML, &IID_IStream, 0, 0, &ptrHtmlStream);
+	hr = ECMAPIProp::OpenProperty(PR_HTML, &IID_IStream, 0, 0, &~ptrHtmlStream);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = ECMAPIProp::OpenProperty(PR_BODY_W, &IID_IStream, STGM_WRITE|STGM_TRANSACTED, MAPI_CREATE|MAPI_MODIFY, &ptrBodyStream);
+	hr = ECMAPIProp::OpenProperty(PR_BODY_W, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~ptrBodyStream);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -701,19 +695,18 @@ HRESULT ECMessage::SyncHtmlToRtf()
 	assert(!m_bInhibitSync);
 	m_bInhibitSync = TRUE;
 
-	hr = ECMAPIProp::OpenProperty(PR_HTML, &IID_IStream, 0, 0, &ptrHtmlStream);
+	hr = ECMAPIProp::OpenProperty(PR_HTML, &IID_IStream, 0, 0, &~ptrHtmlStream);
 	if (hr != hrSuccess)
 		goto exit;
 
-	hr = ECMAPIProp::OpenProperty(PR_RTF_COMPRESSED, &IID_IStream, STGM_TRANSACTED, MAPI_CREATE|MAPI_MODIFY, &ptrRtfCompressedStream);
+	hr = ECMAPIProp::OpenProperty(PR_RTF_COMPRESSED, &IID_IStream, STGM_TRANSACTED, MAPI_CREATE|MAPI_MODIFY, &~ptrRtfCompressedStream);
 	if (hr != hrSuccess)
 		goto exit;
 
 	hr = ptrRtfCompressedStream->SetSize(emptySize);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = WrapCompressedRTFStream(ptrRtfCompressedStream, MAPI_MODIFY, &ptrRtfUncompressedStream);
+	hr = WrapCompressedRTFStream(ptrRtfCompressedStream, MAPI_MODIFY, &~ptrRtfUncompressedStream);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -2847,22 +2840,21 @@ HRESULT ECMessage::GetRtfData(std::string *lpstrRtfData)
 	char lpBuf[4096];
 	std::string strRtfData;
 
-	hr = OpenProperty(PR_RTF_COMPRESSED, &IID_IStream, 0, 0, &ptrRtfCompressedStream);
+	hr = OpenProperty(PR_RTF_COMPRESSED, &IID_IStream, 0, 0, &~ptrRtfCompressedStream);
 	if (hr != hrSuccess)
 		return hr;
 
 	// Read the RTF stream
-	hr = WrapCompressedRTFStream(ptrRtfCompressedStream, 0, &ptrRtfUncompressedStream);
+	hr = WrapCompressedRTFStream(ptrRtfCompressedStream, 0, &~ptrRtfUncompressedStream);
 	if(hr != hrSuccess)
 	{
 		KCHL::object_ptr<ECMemStream> ptrEmptyMemStream;
 
 		// Broken RTF, fallback on empty stream
-		hr = ECMemStream::Create(NULL, 0, 0, NULL, NULL, NULL, &ptrEmptyMemStream);
+		hr = ECMemStream::Create(nullptr, 0, 0, nullptr, nullptr, nullptr, &~ptrEmptyMemStream);
 		if (hr != hrSuccess)
 			return hr;
-
-		hr = ptrEmptyMemStream->QueryInterface(IID_IStream, (void**)&ptrRtfUncompressedStream);
+		hr = ptrEmptyMemStream->QueryInterface(IID_IStream, &~ptrRtfUncompressedStream);
 		if (hr != hrSuccess)
 			return hr;
 	}
