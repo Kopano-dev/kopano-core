@@ -159,15 +159,12 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID
 {
 	HRESULT				hr = hrSuccess;
 	unsigned int		ulObjType = 0;
-
-	ECMAPIFolder*		lpMAPIFolder = NULL;
-
+	object_ptr<ECMAPIFolder> lpMAPIFolder;
 	BOOL				fModifyObject = FALSE;
 	enumPublicEntryID	ePublicEntryID = ePE_None;
 	ULONG				ulResult = 0;
-
-	IECPropStorage*		lpPropStorage = NULL;
-	WSMAPIFolderOps*	lpFolderOps = NULL;
+	object_ptr<IECPropStorage> lpPropStorage;
+	object_ptr<WSMAPIFolderOps> lpFolderOps;
 	memory_ptr<SPropValue> lpsPropValue, lpParentProp;
 	memory_ptr<ENTRYID> lpEntryIDIntern;
 	ULONG				ulResults;
@@ -254,20 +251,20 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID
 		}
 
 		if (ePublicEntryID != ePE_IPMSubtree && ePublicEntryID != ePE_Favorites) {
-			hr = lpTransport->HrOpenFolderOps(cbEntryID, lpEntryID, &lpFolderOps);
+			hr = lpTransport->HrOpenFolderOps(cbEntryID, lpEntryID, &~lpFolderOps);
 			if(hr != hrSuccess)
 				goto exit;
 		} else {
-			lpFolderOps = NULL;
+			lpFolderOps.reset();
 		}
 
-		hr = ECMAPIFolderPublic::Create(this, fModifyObject, lpFolderOps, ePublicEntryID, &lpMAPIFolder);
+		hr = ECMAPIFolderPublic::Create(this, fModifyObject, lpFolderOps, ePublicEntryID, &~lpMAPIFolder);
 		if(hr != hrSuccess)
 			goto exit;
 
 		if (ePublicEntryID != ePE_IPMSubtree && ePublicEntryID != ePE_Favorites) {
 			//FIXME: Wrong parent entryid
-			hr = lpTransport->HrOpenPropStorage(m_cbEntryId, m_lpEntryId, cbEntryID, lpEntryID, ulFlags&(SHOW_SOFT_DELETES), &lpPropStorage);
+			hr = lpTransport->HrOpenPropStorage(m_cbEntryId, m_lpEntryId, cbEntryID, lpEntryID, ulFlags & SHOW_SOFT_DELETES, &~lpPropStorage);
 			if(hr != hrSuccess)
 				goto exit;
 
@@ -321,14 +318,6 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID
 	}
 
 exit:
-	if (lpFolderOps)
-		lpFolderOps->Release();
-
-	if (lpMAPIFolder)
-		lpMAPIFolder->Release();
-
-	if (lpPropStorage)
-		lpPropStorage->Release();
 	return hr;
 }
 
@@ -662,14 +651,14 @@ HRESULT ECMsgStorePublic::GetDefaultShortcutFolder(IMAPIFolder** lppFolder)
 {
 	HRESULT hr = hrSuccess;
 	ULONG ulObjType;
-	IMAPIFolder *lpFolder = NULL;
-	IMsgStore *lpMsgStore = NULL;
+	object_ptr<IMAPIFolder> lpFolder;
+	object_ptr<IMsgStore> lpMsgStore;
 	memory_ptr<SPropValue> lpPropValue;
 	ULONG cbEntryId;
 	memory_ptr<ENTRYID> lpEntryId, lpStoreEntryID;
 	ULONG cbStoreEntryID;
 	string strRedirServer;
-	WSTransport *lpTmpTransport = NULL;
+	object_ptr<WSTransport> lpTmpTransport;
 
 	if (m_lpDefaultMsgStore == NULL)
 	{
@@ -677,7 +666,7 @@ HRESULT ECMsgStorePublic::GetDefaultShortcutFolder(IMAPIFolder** lppFolder)
 		hr = lpTransport->HrGetStore(0, NULL, &cbStoreEntryID, &~lpStoreEntryID, NULL, NULL, &strRedirServer);
 		if (hr == MAPI_E_UNABLE_TO_COMPLETE) {
 			// reopen store of user which is on another server
-			hr = lpTransport->CreateAndLogonAlternate(strRedirServer.c_str(), &lpTmpTransport);
+			hr = lpTransport->CreateAndLogonAlternate(strRedirServer.c_str(), &~lpTmpTransport);
 			if (hr != hrSuccess)
 				goto exit;
 			hr = lpTmpTransport->HrGetStore(0, NULL, &cbStoreEntryID, &~lpStoreEntryID, NULL, NULL);
@@ -689,7 +678,7 @@ HRESULT ECMsgStorePublic::GetDefaultShortcutFolder(IMAPIFolder** lppFolder)
 			goto exit;
 
 		// Open default store
-		hr = lpSupport->OpenEntry(cbEntryId, lpEntryId, &IID_IMsgStore, MAPI_BEST_ACCESS, &ulObjType, (LPUNKNOWN *)&lpMsgStore);
+		hr = lpSupport->OpenEntry(cbEntryId, lpEntryId, &IID_IMsgStore, MAPI_BEST_ACCESS, &ulObjType, &~lpMsgStore);
  		if(hr != hrSuccess) 
 			goto exit;
 
@@ -704,7 +693,7 @@ HRESULT ECMsgStorePublic::GetDefaultShortcutFolder(IMAPIFolder** lppFolder)
 		goto exit;
 
 	// Open Shortcut folder
-	hr = m_lpDefaultMsgStore->OpenEntry(lpPropValue->Value.bin.cb, (LPENTRYID)lpPropValue->Value.bin.lpb, &IID_IMAPIFolder, MAPI_BEST_ACCESS, &ulObjType, (LPUNKNOWN *)&lpFolder);
+	hr = m_lpDefaultMsgStore->OpenEntry(lpPropValue->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPropValue->Value.bin.lpb), &IID_IMAPIFolder, MAPI_BEST_ACCESS, &ulObjType, &~lpFolder);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -713,16 +702,8 @@ HRESULT ECMsgStorePublic::GetDefaultShortcutFolder(IMAPIFolder** lppFolder)
 		goto exit;
 
 exit:
-	if (lpTmpTransport) {
+	if (lpTmpTransport != nullptr)
 		lpTmpTransport->HrLogOff();
-		lpTmpTransport->Release();
-	}
-	if (lpFolder)
-		lpFolder->Release();
-
-	if (lpMsgStore)
-		lpMsgStore->Release();
-
 	return hr;
 }
 

@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <kopano/lockhelper.hpp>
+#include <kopano/memory.hpp>
 #include <mapidefs.h>
 
 #include "ECNotifyClient.h"
@@ -234,7 +235,7 @@ HRESULT ECNotifyMaster::StopNotifyWatch()
 	TRACE_NOTIFY(TRACE_ENTRY, "ECNotifyMaster::StopNotifyWatch", "");
 
 	HRESULT hr = hrSuccess;
-	WSTransport *lpTransport = NULL;
+	KCHL::object_ptr<WSTransport> lpTransport;
 	ulock_rec biglock(m_hMutex, std::defer_lock_t());
 
 	/* Thread was already halted, or connection is broken */
@@ -250,7 +251,7 @@ HRESULT ECNotifyMaster::StopNotifyWatch()
 		 * can't use our own m_lpTransport since it is probably in a blocking getNextNotify()
 		 * call. Seems like a bit of a shame to open an new connection, but there's no
 		 * other option */
-		hr = m_lpTransport->HrClone(&lpTransport);
+		hr = m_lpTransport->HrClone(&~lpTransport);
 		if (hr != hrSuccess) {
 			biglock.unlock();
 			goto exit;
@@ -268,9 +269,6 @@ HRESULT ECNotifyMaster::StopNotifyWatch()
 	m_bThreadRunning = FALSE;
 
 exit:
-    if(lpTransport)
-        lpTransport->Release();
-        
 	TRACE_NOTIFY(TRACE_RETURN, "ECNotifyMaster::StopNotifyWatch", "hr=0x%08X", hr);
 	return hr;
 }

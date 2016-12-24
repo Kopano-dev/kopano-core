@@ -18,6 +18,7 @@
 #include <kopano/platform.h>
 
 #include <kopano/ECGetText.h>
+#include <kopano/memory.hpp>
 #include <mapi.h>
 #include <mapiutil.h>
 #include <mapispi.h>
@@ -50,6 +51,7 @@ typedef bfs::path path;
 #endif
 
 using namespace std;
+using namespace KCHL;
 
 HRESULT CompareStoreIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2, ULONG ulFlags, ULONG *lpulResult)
 {
@@ -112,8 +114,8 @@ HRESULT GetProviders(ECMapProvider* lpmapProvider, IMAPISupport *lpMAPISup, cons
 	HRESULT hr = hrSuccess;
 	ECMapProvider::const_iterator iterProvider;
 	PROVIDER_INFO sProviderInfo;
-	ECMSProvider *lpECMSProvider = NULL;
-	ECABProvider *lpECABProvider = NULL;
+	object_ptr<ECMSProvider> lpECMSProvider;
+	object_ptr<ECABProvider> lpECABProvider;
 	sGlobalProfileProps	sProfileProps;
 
 	if (lpmapProvider == NULL || lpMAPISup == NULL || lpszProfileName == NULL || lpsProviderInfo == NULL) {
@@ -135,12 +137,12 @@ HRESULT GetProviders(ECMapProvider* lpmapProvider, IMAPISupport *lpMAPISup, cons
 	// Init providers
 
 	// Message store online
-	hr = ECMSProvider::Create(ulFlags, &lpECMSProvider);
+	hr = ECMSProvider::Create(ulFlags, &~lpECMSProvider);
 	if(hr != hrSuccess)
 		goto exit;
 
 	// Addressbook online
-	hr = ECABProvider::Create(&lpECABProvider);
+	hr = ECABProvider::Create(&~lpECABProvider);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -163,11 +165,6 @@ HRESULT GetProviders(ECMapProvider* lpmapProvider, IMAPISupport *lpMAPISup, cons
 	*lpsProviderInfo = sProviderInfo;
 
 exit:
-	if (lpECMSProvider)
-		lpECMSProvider->Release();
-
-	if (lpECABProvider)
-		lpECABProvider->Release();
 	return hr;
 }
 
@@ -185,19 +182,17 @@ HRESULT CreateMsgStoreObject(char * lpszProfname, LPMAPISUP lpMAPISup, ULONG cbE
 	HRESULT	hr = hrSuccess;
 	
 	BOOL fModify = FALSE;
-
-	ECMsgStore *lpMsgStore = NULL;
-	IECPropStorage *lpStorage = NULL;
-		
+	object_ptr<ECMsgStore> lpMsgStore;
+	object_ptr<IECPropStorage> lpStorage;
 
 	fModify = ulMsgFlags & MDB_WRITE || ulMsgFlags & MAPI_BEST_ACCESS; // FIXME check access at server
 
 	if (CompareMDBProvider(lpguidMDBProvider, &KOPANO_STORE_PUBLIC_GUID) == TRUE)
-		hr = ECMsgStorePublic::Create(lpszProfname, lpMAPISup, lpTransport, fModify, ulProfileFlags, bSpooler, bOfflineStore, &lpMsgStore);
+		hr = ECMsgStorePublic::Create(lpszProfname, lpMAPISup, lpTransport, fModify, ulProfileFlags, bSpooler, bOfflineStore, &~lpMsgStore);
 	else if (CompareMDBProvider(lpguidMDBProvider, &KOPANO_STORE_ARCHIVE_GUID) == TRUE)
-		hr = ECMsgStore::Create(lpszProfname, lpMAPISup, lpTransport, fModify, ulProfileFlags, bSpooler, FALSE, bOfflineStore, &lpMsgStore);
+		hr = ECMsgStore::Create(lpszProfname, lpMAPISup, lpTransport, fModify, ulProfileFlags, bSpooler, FALSE, bOfflineStore, &~lpMsgStore);
 	else
-		hr = ECArchiveAwareMsgStore::Create(lpszProfname, lpMAPISup, lpTransport, fModify, ulProfileFlags, bSpooler, fIsDefaultStore, bOfflineStore, &lpMsgStore);
+		hr = ECArchiveAwareMsgStore::Create(lpszProfname, lpMAPISup, lpTransport, fModify, ulProfileFlags, bSpooler, fIsDefaultStore, bOfflineStore, &~lpMsgStore);
 
 	if (hr != hrSuccess)
 		goto exit;
@@ -205,7 +200,7 @@ HRESULT CreateMsgStoreObject(char * lpszProfname, LPMAPISUP lpMAPISup, ULONG cbE
 	memcpy(&lpMsgStore->m_guidMDB_Provider, lpguidMDBProvider,sizeof(MAPIUID));
 
 	// Get a propstorage for the message store
-	hr = lpTransport->HrOpenPropStorage(0, NULL, cbEntryID, lpEntryID, 0, &lpStorage);
+	hr = lpTransport->HrOpenPropStorage(0, nullptr, cbEntryID, lpEntryID, 0, &~lpStorage);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -228,12 +223,6 @@ HRESULT CreateMsgStoreObject(char * lpszProfname, LPMAPISUP lpMAPISup, ULONG cbE
 		goto exit;
 
 exit:
-	if (lpMsgStore)
-		lpMsgStore->Release();
-
-	if(lpStorage)
-		lpStorage->Release();
-
 	return hr;
 }
 

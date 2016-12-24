@@ -62,6 +62,7 @@
 #include "WSMessageStreamImporter.h"
 
 using namespace std;
+using namespace KCHL;
 
 /*
  *
@@ -151,7 +152,7 @@ HRESULT WSTransport::HrClone(WSTransport **lppTransport)
 HRESULT WSTransport::HrOpenTransport(LPMAPISUP lpMAPISup, WSTransport **lppTransport, BOOL bOffline)
 {
 	HRESULT			hr = hrSuccess;
-	WSTransport		*lpTransport = NULL;
+	object_ptr<WSTransport> lpTransport;
 	std::string		strServerPath;
 	sGlobalProfileProps	sProfileProps;
 
@@ -163,7 +164,7 @@ HRESULT WSTransport::HrOpenTransport(LPMAPISUP lpMAPISup, WSTransport **lppTrans
 	// TODO: check usernameand serverpath
 	
 	// Create a transport for this user
-	hr = WSTransport::Create(MDB_NO_DIALOG, &lpTransport);
+	hr = WSTransport::Create(MDB_NO_DIALOG, &~lpTransport);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -171,13 +172,8 @@ HRESULT WSTransport::HrOpenTransport(LPMAPISUP lpMAPISup, WSTransport **lppTrans
 	hr = lpTransport->HrLogon(sProfileProps);
 	if(hr != hrSuccess) 
 		goto exit;
-
-	*lppTransport = lpTransport;
-
+	*lppTransport = lpTransport.release();
 exit:
-	if (hr != hrSuccess && lpTransport)
-		lpTransport->Release();
-
 	return hr;
 
 }
@@ -375,7 +371,7 @@ HRESULT WSTransport::HrSetRecvTimeout(unsigned int ulSeconds)
 HRESULT WSTransport::CreateAndLogonAlternate(LPCSTR szServer, WSTransport **lppTransport) const
 {
 	HRESULT				hr = hrSuccess;
-	WSTransport			*lpTransport = NULL;
+	object_ptr<WSTransport> lpTransport;
 	sGlobalProfileProps	sProfileProps = m_sProfileProps;
 
 	if (!lppTransport)
@@ -383,8 +379,7 @@ HRESULT WSTransport::CreateAndLogonAlternate(LPCSTR szServer, WSTransport **lppT
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-
-	hr = WSTransport::Create(m_ulUIFlags, &lpTransport);
+	hr = WSTransport::Create(m_ulUIFlags, &~lpTransport);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -393,14 +388,8 @@ HRESULT WSTransport::CreateAndLogonAlternate(LPCSTR szServer, WSTransport **lppT
 	hr = lpTransport->HrLogon(sProfileProps);
 	if (hr != hrSuccess)
 		goto exit;
-
-	*lppTransport = lpTransport;
-	lpTransport = NULL;
-
+	*lppTransport = lpTransport.release();
 exit:
-	if (lpTransport)
-		lpTransport->Release();
-
 	return hr;
 }
 
@@ -414,29 +403,22 @@ exit:
 HRESULT WSTransport::CloneAndRelogon(WSTransport **lppTransport) const
 {
 	HRESULT				hr = hrSuccess;
-	WSTransport			*lpTransport = NULL;
+	object_ptr<WSTransport> lpTransport;
 
 	if (!lppTransport)
 	{
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-
-	hr = WSTransport::Create(m_ulUIFlags, &lpTransport);
+	hr = WSTransport::Create(m_ulUIFlags, &~lpTransport);
 	if (hr != hrSuccess)
 		goto exit;
 
 	hr = lpTransport->HrLogon(m_sProfileProps);
 	if (hr != hrSuccess)
 		goto exit;
-
-	*lppTransport = lpTransport;
-	lpTransport = NULL;
-
+	*lppTransport = lpTransport.release();
 exit:
-	if (lpTransport)
-		lpTransport->Release();
-
 	return hr;
 }
 
@@ -732,7 +714,7 @@ HRESULT WSTransport::HrCheckExistObject(ULONG cbEntryID, LPENTRYID lpEntryID, UL
 HRESULT WSTransport::HrOpenPropStorage(ULONG cbParentEntryID, LPENTRYID lpParentEntryID, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags, IECPropStorage **lppPropStorage)
 {
 	HRESULT hr = hrSuccess;
-	WSMAPIPropStorage *lpPropStorage = NULL;
+	object_ptr<WSMAPIPropStorage> lpPropStorage;
 	LPENTRYID	lpUnWrapParentID = NULL;
 	ULONG		cbUnWrapParentID = 0;
 	LPENTRYID	lpUnWrapEntryID = NULL;
@@ -750,16 +732,13 @@ HRESULT WSTransport::HrOpenPropStorage(ULONG cbParentEntryID, LPENTRYID lpParent
 
 	hr = WSMAPIPropStorage::Create(cbUnWrapParentID, lpUnWrapParentID,
 	     cbUnWrapEntryID, lpUnWrapEntryID, ulFlags, m_lpCmd, m_hDataLock,
-	     m_ecSessionId, this->m_ulServerCapabilities, this, &lpPropStorage);
+	     m_ecSessionId, this->m_ulServerCapabilities, this, &~lpPropStorage);
 	if(hr != hrSuccess)
 		goto exit;
 
 	hr = lpPropStorage->QueryInterface(IID_IECPropStorage, (void **)lppPropStorage);
 
 exit:
-	if(lpPropStorage)
-		lpPropStorage->Release();
-
 	if(lpUnWrapEntryID)
 		ECFreeBuffer(lpUnWrapEntryID);
 
@@ -772,26 +751,22 @@ exit:
 HRESULT WSTransport::HrOpenParentStorage(ECGenericProp *lpParentObject, ULONG ulUniqueId, ULONG ulObjId, IECPropStorage *lpServerStorage, IECPropStorage **lppPropStorage)
 {
 	HRESULT hr = hrSuccess;
-	ECParentStorage *lpPropStorage = NULL;
+	object_ptr<ECParentStorage> lpPropStorage;
 
-	hr = ECParentStorage::Create(lpParentObject, ulUniqueId, ulObjId, lpServerStorage, &lpPropStorage);
+	hr = ECParentStorage::Create(lpParentObject, ulUniqueId, ulObjId, lpServerStorage, &~lpPropStorage);
 	if(hr != hrSuccess)
 		goto exit;
 
 	hr = lpPropStorage->QueryInterface(IID_IECPropStorage, (void **)lppPropStorage);
 
 exit:
-	if(lpPropStorage)
-		lpPropStorage->Release();
-
 	return hr;
 }
 
 HRESULT WSTransport::HrOpenABPropStorage(ULONG cbEntryID, LPENTRYID lpEntryID, IECPropStorage **lppPropStorage)
 {
 	HRESULT			hr = hrSuccess;
-	WSABPropStorage *lpPropStorage = NULL;
-
+	object_ptr<WSABPropStorage> lpPropStorage;
 	LPENTRYID	lpUnWrapStoreID = NULL;
 	ULONG		cbUnWrapStoreID = 0;
 
@@ -800,16 +775,13 @@ HRESULT WSTransport::HrOpenABPropStorage(ULONG cbEntryID, LPENTRYID lpEntryID, I
 		goto exit;
 
 	hr = WSABPropStorage::Create(cbUnWrapStoreID, lpUnWrapStoreID, m_lpCmd,
-	     m_hDataLock, m_ecSessionId, this, &lpPropStorage);
+	     m_hDataLock, m_ecSessionId, this, &~lpPropStorage);
 	if(hr != hrSuccess)
 		goto exit;
 
 	hr = lpPropStorage->QueryInterface(IID_IECPropStorage, (void **)lppPropStorage);
 
 exit:
-	if(lpPropStorage)
-		lpPropStorage->Release();
-
 	if(lpUnWrapStoreID)
 		ECFreeBuffer(lpUnWrapStoreID);
 
@@ -867,19 +839,16 @@ HRESULT WSTransport::HrOpenABTableOps(ULONG ulType, ULONG ulFlags, ULONG cbEntry
 HRESULT WSTransport::HrOpenMailBoxTableOps(ULONG ulFlags, ECMsgStore *lpMsgStore, WSTableView **lppTableView)
 {
 	HRESULT hr = hrSuccess;
-	WSTableMailBox *lpWSTable = NULL;
+	object_ptr<WSTableMailBox> lpWSTable;
 	
 	hr = WSTableMailBox::Create(ulFlags, m_lpCmd, m_hDataLock,
-	     m_ecSessionId, lpMsgStore, this, &lpWSTable);
+	     m_ecSessionId, lpMsgStore, this, &~lpWSTable);
 	if(hr != hrSuccess)
 		goto exit;
 
 	hr = lpWSTable->QueryInterface(IID_ECTableView, (void **)lppTableView);
 
 exit:
-	if (lpWSTable)
-		lpWSTable->Release();
-
 	return hr;
 }
 
@@ -4266,7 +4235,7 @@ bool WSTransport::IsConnected()
 HRESULT WSTransport::HrOpenMultiStoreTable(LPENTRYLIST lpMsgList, ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID, ECMsgStore *lpMsgStore, WSTableView **lppTableView)
 {
 	HRESULT hr = hrSuccess;
-	WSTableMultiStore *lpMultiStoreTable = NULL;
+	object_ptr<WSTableMultiStore> lpMultiStoreTable;
 
 	if (!lpMsgList || lpMsgList->cValues == 0) {
 		hr = MAPI_E_INVALID_PARAMETER;
@@ -4275,7 +4244,7 @@ HRESULT WSTransport::HrOpenMultiStoreTable(LPENTRYLIST lpMsgList, ULONG ulFlags,
 
 	hr = WSTableMultiStore::Create(ulFlags, m_lpCmd, m_hDataLock,
 	     m_ecSessionId, cbEntryID, lpEntryID, lpMsgStore, this,
-	     &lpMultiStoreTable);
+	     &~lpMultiStoreTable);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -4286,16 +4255,13 @@ HRESULT WSTransport::HrOpenMultiStoreTable(LPENTRYLIST lpMsgList, ULONG ulFlags,
 	hr = lpMultiStoreTable->QueryInterface(IID_ECTableView, (void **)lppTableView);
 
 exit:
-	if (lpMultiStoreTable)
-		lpMultiStoreTable->Release();
-
 	return hr;
 }
 
 HRESULT WSTransport::HrOpenMiscTable(ULONG ulTableType, ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID, ECMsgStore *lpMsgStore, WSTableView **lppTableView)
 {
 	HRESULT hr = hrSuccess;
-	WSTableMisc *lpMiscTable = NULL;
+	object_ptr<WSTableMisc> lpMiscTable;
 
 	if (ulTableType != TABLETYPE_STATS_SYSTEM && ulTableType != TABLETYPE_STATS_SESSIONS &&
 		ulTableType != TABLETYPE_STATS_USERS && ulTableType != TABLETYPE_STATS_COMPANY  &&
@@ -4307,16 +4273,13 @@ HRESULT WSTransport::HrOpenMiscTable(ULONG ulTableType, ULONG ulFlags, ULONG cbE
 
 	hr = WSTableMisc::Create(ulTableType, ulFlags, m_lpCmd, m_hDataLock,
 	     m_ecSessionId, cbEntryID, lpEntryID, lpMsgStore, this,
-	     &lpMiscTable);
+	     &~lpMiscTable);
 	if (hr != hrSuccess)
 		goto exit;
 
 	hr = lpMiscTable->QueryInterface(IID_ECTableView, (void **)lppTableView);
 
 exit:
-	if (lpMiscTable)
-		lpMiscTable->Release();
-
 	return hr;
 }
 
@@ -4679,7 +4642,7 @@ std::string WSTransport::GetAppName()
 HRESULT WSTransport::HrEnsureSession()
 {
     HRESULT hr = hrSuccess;
-	KCHL::memory_ptr<char> szValue;
+	memory_ptr<char> szValue;
     
 	hr = HrTestGet("ensure_transaction", &~szValue);
     if(hr != MAPI_E_NETWORK_ERROR && hr != MAPI_E_END_OF_SESSION)
