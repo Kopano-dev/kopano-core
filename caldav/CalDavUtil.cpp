@@ -109,16 +109,11 @@ HRESULT HrAddProperty(IMsgStore *lpMsgStore, SBinary sbEid, ULONG ulPropertyId, 
 	HRESULT hr = lpMsgStore->OpenEntry(sbEid.cb, reinterpret_cast<ENTRYID *>(sbEid.lpb),
 	             nullptr, MAPI_BEST_ACCESS, &ulObjType, &~lpUsrFld);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = HrAddProperty(lpUsrFld, ulPropertyId, bIsFldID, lpwstrProperty);
 	if(hr != hrSuccess)
-		goto exit;
-
-	hr = lpUsrFld->SaveChanges(KEEP_OPEN_READWRITE);
-
-exit:
-	return hr;
+		return hr;
+	return lpUsrFld->SaveChanges(KEEP_OPEN_READWRITE);
 }
 
 /**
@@ -466,13 +461,12 @@ HRESULT HrGetOwner(IMAPISession *lpSession, IMsgStore *lpDefStore, IMailUser **l
 
 	HRESULT hr = HrGetOneProp(lpDefStore, PR_MAILBOX_OWNER_ENTRYID, &~ptrSProp);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpSession->OpenEntry(ptrSProp->Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrSProp->Value.bin.lpb), nullptr, MAPI_BEST_ACCESS, &ulObjType, &~lpMailUser);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	*lppImailUser = lpMailUser.release();
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -542,28 +536,27 @@ bool HasDelegatePerm(IMsgStore *lpDefStore, IMsgStore *lpSharedStore)
 	ULONG ulPos = 0;
 	SBinary sbEid = {0,0};
 	bool blFound = false;
-	bool blDelegatePerm = false; // no permission
 
 	HRESULT hr = HrGetOneProp(lpDefStore, PR_MAILBOX_OWNER_ENTRYID, &~lpMailBoxEid);
 	if (hr != hrSuccess)
-		goto exit;
+		return false;
 	hr = lpSharedStore->OpenEntry(0, nullptr, nullptr, 0, &ulType, &~lpRootCont);
 	if (hr != hrSuccess)
-		goto exit;
+		return false;
 	hr = HrGetOneProp(lpRootCont, PR_FREEBUSY_ENTRYIDS, &~lpProp);
 	if (hr != hrSuccess)
-		goto exit;
+		return false;
 
 	if (lpProp->Value.MVbin.cValues > 1 && lpProp->Value.MVbin.lpbin[1].cb != 0)
 		sbEid = lpProp->Value.MVbin.lpbin[1];
 	else
-		goto exit;
+		return false;
 	hr = lpSharedStore->OpenEntry(sbEid.cb, reinterpret_cast<ENTRYID *>(sbEid.lpb), nullptr, MAPI_BEST_ACCESS, &ulType, &~lpFbMessage);
 	if (hr != hrSuccess)
-		goto exit;
+		return false;
 	hr = HrGetOneProp(lpFbMessage, PR_SCHDINFO_DELEGATE_ENTRYIDS, &~lpProp);
 	if (hr != hrSuccess)
-		goto exit;
+		return false;
 
 	for (ULONG i = 0; i < lpProp->Value.MVbin.cValues; ++i) {
 		if (lpProp->Value.MVbin.lpbin[i].cb == lpMailBoxEid->Value.bin.cb &&
@@ -576,18 +569,11 @@ bool HasDelegatePerm(IMsgStore *lpDefStore, IMsgStore *lpSharedStore)
 	}
 	
 	if (!blFound)
-		goto exit;
+		return false;
 	hr = HrGetOneProp(lpFbMessage, PR_DELEGATE_FLAGS, &~lpProp);
 	if (hr != hrSuccess)
-		goto exit;
-
-	if(lpProp->Value.MVl.cValues >= ulPos && lpProp->Value.MVl.lpl[ulPos])
-		blDelegatePerm = true;
-	else
-		blDelegatePerm = false;
-
-exit:
-	return blDelegatePerm;
+		return false;
+	return lpProp->Value.MVl.cValues >= ulPos && lpProp->Value.MVl.lpl[ulPos];
 }
 /**
  * Check if the message is a private item
