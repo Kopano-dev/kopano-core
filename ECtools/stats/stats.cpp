@@ -520,7 +520,7 @@ static void dumptable(eTableType eTable, LPMDB lpStore, bool humanreadable)
 	hr = lpStore->OpenProperty(ulTableProps[eTable], &IID_IMAPITable, 0, MAPI_DEFERRED_ERRORS, &~lpTable);
 	if (hr != hrSuccess) {
 		cout << "Unable to open requested statistics table" << endl;
-		goto exit;
+		return;
 	}
 
 	if (sortorders[eTable] != NULL)
@@ -528,12 +528,9 @@ static void dumptable(eTableType eTable, LPMDB lpStore, bool humanreadable)
 
 	if (hr != hrSuccess) {
 		cout << "Unable to sort statistics table" << endl;
-		goto exit;
+		return;
 	}
-
-	hr = MAPITablePrint(lpTable, humanreadable);
-
-exit: ;
+	MAPITablePrint(lpTable, humanreadable);
 }
 
 static void print_help(const char *name)

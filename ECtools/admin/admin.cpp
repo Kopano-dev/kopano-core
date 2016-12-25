@@ -1093,13 +1093,11 @@ static HRESULT OpenDeletedStoresFolder(LPMDB lpPublicStore,
 	object_ptr<IECSecurity> lpSecurity;
 	ULONG ulPropTagSubtree = 0;
 
-	if (lpPublicStore == NULL || lppFolderStores == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpPublicStore == nullptr || lppFolderStores == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 	hr = HrGetOneProp(lpPublicStore, PR_MDB_PROVIDER, &~lpsPropMDB);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Workaround for companies, because a company is a delegate store!
 	if (lpsPropMDB->Value.bin.cb == sizeof(MAPIUID) && memcmp(lpsPropMDB->Value.bin.lpb, &KOPANO_STORE_PUBLIC_GUID, sizeof(MAPIUID)) == 0)
@@ -1110,10 +1108,10 @@ static HRESULT OpenDeletedStoresFolder(LPMDB lpPublicStore,
 	// Open IPM_subtree
 	hr = HrGetOneProp(lpPublicStore, ulPropTagSubtree, &~lpsPropSubTree);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpPublicStore->OpenEntry(lpsPropSubTree->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpsPropSubTree->Value.bin.lpb), nullptr, MAPI_MODIFY, &ulObjType, &~lpFolderSubTree);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Create/open folder Admin
 	hr = lpFolderSubTree->CreateFolder(FOLDER_GENERIC, (LPTSTR)"Admin", nullptr, nullptr, 0, &~lpFolderAdmin);
@@ -1121,12 +1119,11 @@ static HRESULT OpenDeletedStoresFolder(LPMDB lpPublicStore,
 		// Set permissions
 		hr = HrGetOneProp(lpFolderAdmin, PR_EC_OBJECT, &~lpPropValue);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		lpECFolder = reinterpret_cast<IECUnknown *>(lpPropValue->Value.lpszA);
 		hr = lpECFolder->QueryInterface(IID_IECSecurity, &~lpSecurity);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		sPermission.ulRights = 0;// No rights, only for admin
 		sPermission.sUserId.lpb = g_lpEveryoneEid; // group everyone
@@ -1135,23 +1132,17 @@ static HRESULT OpenDeletedStoresFolder(LPMDB lpPublicStore,
 		sPermission.ulType = ACCESS_TYPE_GRANT;
 
 		hr = lpSecurity->SetPermissionRules(1, &sPermission);
-		if (hr != hrSuccess)
-			goto exit;
 	} else if (hr == MAPI_E_COLLISION) {
 		hr = lpFolderSubTree->CreateFolder(FOLDER_GENERIC, (LPTSTR)"Admin", nullptr, nullptr, OPEN_IF_EXISTS, &~lpFolderAdmin);
 	}
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Create/open folder Deleted Stores
 	hr = lpFolderAdmin->CreateFolder(FOLDER_GENERIC, (LPTSTR)"Deleted stores", nullptr, nullptr, OPEN_IF_EXISTS, &~lpFolderDeletedStores);
 	if (hr != hrSuccess)
-		goto exit;
-
-	hr = lpFolderDeletedStores->QueryInterface(IID_IMAPIFolder, (void**)lppFolderStores);
-
-exit:
-	return hr;
+		return hr;
+	return lpFolderDeletedStores->QueryInterface(IID_IMAPIFolder, (void**)lppFolderStores);
 }
 
 /**
@@ -1177,24 +1168,14 @@ static HRESULT GetPublicStore(LPMAPISESSION lpSession, LPMDB lpMsgStore,
 	{
 		hr = lpMsgStore->QueryInterface(IID_IExchangeManageStore, &~lpIEMS);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = lpIEMS->CreateStoreEntryID((LPTSTR)L"", (LPTSTR)strCompanyname.c_str(), MAPI_UNICODE, &cbEntryID, &~lpEntryID);
 		if (hr != hrSuccess)
-			goto exit;
-
-		hr = lpSession->OpenMsgStore(0, cbEntryID, lpEntryID, &IID_IMsgStore, MDB_WRITE, lppPublicStore);
-		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
+		return lpSession->OpenMsgStore(0, cbEntryID, lpEntryID, &IID_IMsgStore, MDB_WRITE, lppPublicStore);
 	} else {
-		hr = HrOpenECPublicStore(lpSession, lppPublicStore);
-		if (hr != hrSuccess)
-			goto exit;
+		return HrOpenECPublicStore(lpSession, lppPublicStore);
 	}
-
-exit:
-	return hr;
 }
 
 static const char *StoreTypeToString(ULONG ulStoreType)
@@ -1388,7 +1369,7 @@ static HRESULT print_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore,
 	hr = lpECMsgStore->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
 	if (hr != hrSuccess) {
 		cerr << "Unable to get admin interface." << endl;
-		goto exit;
+		return hr;
 	}
 
 	switch (ulClass) {
@@ -1397,32 +1378,32 @@ static HRESULT print_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore,
 		hr = lpServiceAdmin->ResolveCompanyName((LPTSTR)lpszName, 0, &cbObjectId, &lpObjectId);
 		if (hr != hrSuccess) {
 			cerr << "Unable to resolve company, " << getMapiCodeString(hr, lpszName) << endl;
-			goto exit;
+			return hr;
 		}
 		hr = lpServiceAdmin->GetCompany(cbObjectId, lpObjectId, 0, &~lpECCompany);
 		if (hr != hrSuccess) {
 			cerr << "Unable to show company details, " << getMapiCodeString(hr) << endl;
-			goto exit;
+			return hr;
 		}
 		hr = lpECMsgStore->QueryInterface(IID_IExchangeManageStore, &~lpIEMS);
 		if (hr != hrSuccess) {
 			cerr << "Unable to get admin interface." << endl;
-			goto exit;
+			return hr;
 		}
 		hr = lpIEMS->CreateStoreEntryID((LPTSTR)"", lpECCompany->lpszCompanyname, 0, &cbEntryID, &~lpEntryID);
 		if (hr != hrSuccess) {
 			cerr << "Unable to get company store entry id. Company possibly has no store." << endl;
-			goto exit;
+			return hr;
 		}
 		hr = lpSession->OpenMsgStore(0, cbEntryID, lpEntryID, &IID_IMsgStore, MDB_WRITE, &~lpStore);
 		if (hr != hrSuccess) {
 			cerr << "Unable to open company store." << endl;
-			goto exit;
+			return hr;
 		}
 		hr = lpServiceAdmin->GetUser(lpECCompany->sAdministrator.cb, (LPENTRYID)lpECCompany->sAdministrator.lpb, 0, &~lpECUser);
 		if (hr != hrSuccess) {
 			cerr << "Unable to resolve company administrator, " << getMapiCodeString(hr) << endl;
-			goto exit;
+			return hr;
 		}
 		hr = lpServiceAdmin->GetRemoteAdminList(cbObjectId, lpObjectId, 0, &cAdmins, &~lpECAdmins);
 		if (hr != hrSuccess) {
@@ -1443,12 +1424,12 @@ static HRESULT print_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore,
 		hr = lpServiceAdmin->ResolveGroupName((LPTSTR)lpszName, 0, &cbObjectId, &lpObjectId);
 		if (hr != hrSuccess) {
 			cerr << "Unable to resolve group, " << getMapiCodeString(hr, lpszName) << endl;
-			goto exit;
+			return hr;
 		}
 		hr = lpServiceAdmin->GetGroup(cbObjectId, lpObjectId, 0, &~lpECGroup);
 		if (hr != hrSuccess) {
 			cerr << "Unable to show group details, " << getMapiCodeString(hr) << endl;
-			goto exit;
+			return hr;
 		}
 		hr = lpServiceAdmin->GetUserListOfGroup(cbObjectId, lpObjectId, 0, &cUsers, &~lpECUsers);
 		if (hr != hrSuccess) {
@@ -1467,17 +1448,17 @@ static HRESULT print_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore,
 		hr = lpServiceAdmin->ResolveUserName((LPTSTR)lpszName, 0, &cbObjectId, &lpObjectId);
 		if (hr != hrSuccess) {
 			cerr << "Unable to resolve user, " << getMapiCodeString(hr, lpszName) << endl;
-			goto exit;
+			return hr;
 		}
 		hr = lpServiceAdmin->GetUser(cbObjectId, lpObjectId, 0, &~lpECUser);
 		if (hr != hrSuccess) {
 			cerr << "Unable to show user details, " << getMapiCodeString(hr) << endl;
-			goto exit;
+			return hr;
 		}
 		hr = lpECMsgStore->QueryInterface(IID_IExchangeManageStore, &~lpIEMS);
 		if (hr != hrSuccess) {
 			cerr << "Unable to get admin interface." << endl;
-			goto exit;
+			return hr;
 		}
 		hr = lpIEMS->CreateStoreEntryID((LPTSTR)"", lpECUser->lpszUsername, 0, &cbEntryID, &~lpEntryID);
 		if (hr != hrSuccess) {
@@ -1489,7 +1470,7 @@ static HRESULT print_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore,
 			hr = lpSession->OpenMsgStore(0, cbEntryID, lpEntryID, &IID_IMsgStore, MDB_WRITE, &~lpStore);
 			if (hr != hrSuccess) {
 				cerr << "Unable to open user store." << endl;
-				goto exit;
+				return hr;
 			}
 
 			GetAutoAcceptSettings(lpStore, &bAutoAccept, &bDeclineConflict, &bDeclineRecurring);
@@ -1580,7 +1561,7 @@ static HRESULT print_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore,
 
 			hr = lpECMsgStore->QueryInterface(IID_IMsgStore, &~ptrAdminStore);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			for (int i = 0; i < lpArchiveServers->cValues; ++i) {
 				MsgStorePtr ptrRemoteAdminStore;
@@ -1601,7 +1582,7 @@ static HRESULT print_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore,
 				hr = HrGetOneProp(ptrRemoteAdminStore, PR_EC_OBJECT, &~ptrPropValue);
 				if (hr != hrSuccess || !ptrPropValue || !ptrPropValue->Value.lpszA) {
 					cerr << "Admin object not found." << endl;
-					goto exit;
+					return hr;
 				}
 
 				lpECRemoteAdminStore = reinterpret_cast<IECUnknown *>(ptrPropValue->Value.lpszA);
@@ -1610,8 +1591,6 @@ static HRESULT print_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore,
 			}
 		}
 	}
-
-exit:
 	return hr;
 }
 

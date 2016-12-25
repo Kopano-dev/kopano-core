@@ -115,12 +115,10 @@ HRESULT ArchiverSession::Create(const MAPISessionPtr &ptrSession, ECConfig *lpCo
 	hr = lpSession->Init(ptrSession, lpszSslKeyFile, lpszSslKeyPass);
 	if (FAILED(hr)) {
 		delete lpSession;
-		goto exit;
+		return hr;
 	}
 
 	lpptrSession->reset(lpSession);
-
-exit:
 	return hr;
 }
 

@@ -265,14 +265,14 @@ RunFolderValidation(const std::set<std::string> &setFolderIgnore,
 	lpItemProperty = PpropFindProp(lpRow->lpProps, lpRow->cValues, PR_ENTRYID);
 	if (!lpItemProperty) {
 		cout << "Row does not contain an EntryID." << endl;
-		goto exit;
+		return hr;
 	}
 	hr = lpRootFolder->OpenEntry(lpItemProperty->Value.bin.cb,
 	     reinterpret_cast<ENTRYID *>(lpItemProperty->Value.bin.lpb),
 	     &IID_IMAPIFolder, 0, &ulObjectType, &~lpFolder);
 	if (hr != hrSuccess) {
 		cout << "Failed to open EntryID." << endl;
-		goto exit;
+		return hr;
 	}
 
 	/*
@@ -285,19 +285,19 @@ RunFolderValidation(const std::set<std::string> &setFolderIgnore,
 			cout << " \"" << strName << "\"" << endl;
 		} else
 			cout << "Failed to detect folder details." << endl;
-		goto exit;
+		return hr;
 	}
 
 	if (setFolderIgnore.find(string((const char*)lpItemProperty->Value.bin.lpb, lpItemProperty->Value.bin.cb)) != setFolderIgnore.end()) {
 		cout << "Ignoring folder: ";
 		cout << "\"" << strName << "\" (" << strClass << ")" << endl;
-		goto exit;
+		return hrSuccess;
 	}
 
 	if (ulFolderType != FOLDER_GENERIC) {
 		cout << "Ignoring search folder: ";
 		cout << "\"" << strName << "\" (" << strClass << ")" << endl;
-		goto exit;
+		return hrSuccess;
 	}
 
 	for (const auto &i : checkmap)
@@ -312,9 +312,7 @@ RunFolderValidation(const std::set<std::string> &setFolderIgnore,
 		cout << "Ignoring folder: ";
 		cout << "\"" << strName << "\" (" << strClass << ")" << endl;
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
