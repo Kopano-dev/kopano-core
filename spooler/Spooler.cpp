@@ -85,6 +85,7 @@
 #include "spmain.h"
 
 using namespace std;
+using namespace KCHL;
 
 static StatsClient *sc = NULL;
 
@@ -310,7 +311,6 @@ static HRESULT GetErrorObjects(const SendData &sSendData,
 {
 	HRESULT hr = hrSuccess;
 	ULONG ulObjType = 0;
-	IECServiceAdmin	*lpServiceAdmin = NULL;
 
 	if (*lppAddrBook == NULL) {
 		hr = lpAdminSession->OpenAddressBook(0, NULL, AB_NO_DIALOG, lppAddrBook);
@@ -348,9 +348,6 @@ static HRESULT GetErrorObjects(const SendData &sSendData,
 		}
 	}
 exit:
-	if (lpServiceAdmin)
-		lpServiceAdmin->Release();
-
 	return hr;
 }
 
@@ -372,11 +369,8 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 	map<pid_t, int> finished; // exit status of finished processes
 	int status;
 	// error message creation
-	IAddrBook *lpAddrBook = NULL;
+	object_ptr<IAddrBook> lpAddrBook;
 	ECSender *lpMailer = NULL;
-	// user error message, release after using
-	IMsgStore *lpUserStore = NULL;
-	IMessage *lpMessage = NULL;
 
 	hMutexFinished.lock();
 	if (mapFinished.empty()) {
@@ -444,7 +438,10 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 			sc -> countInc("Spooler", "send_failed");
 
 		if (bErrorMail) {
-			hr = GetErrorObjects(sSendData, lpAdminSession, &lpAddrBook, &lpMailer, &lpUserStore, &lpMessage);
+			object_ptr<IMsgStore> lpUserStore;
+			object_ptr<IMessage> lpMessage;
+
+			hr = GetErrorObjects(sSendData, lpAdminSession, &~lpAddrBook, &lpMailer, &~lpUserStore, &~lpMessage);
 			if (hr == hrSuccess) {
 				lpMailer->setError(_("A fatal error occurred while processing your message, and Kopano is unable to send your email."));
 				hr = SendUndeliverable(lpMailer, lpUserStore, lpMessage);
@@ -462,19 +459,9 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 			// move mail to sent items folder
 			if (sSendData.ulFlags & EC_SUBMIT_DOSENTMAIL && lpMessage) {
 				hr = DoSentMail(lpAdminSession, lpUserStore, 0, lpMessage);
-				lpMessage = NULL;
 				if (hr != hrSuccess)
 					g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to move sent mail to sent-items folder: %s (%x)",
 						GetMAPIErrorMessage(hr), hr);
-			}
-
-			if (lpUserStore) {
-				lpUserStore->Release();
-				lpUserStore = NULL;
-			}
-			if (lpMessage) {
-				lpMessage->Release();
-				lpMessage = NULL;
 			}
 		}
 
@@ -482,10 +469,6 @@ static HRESULT CleanFinishedMessages(IMAPISession *lpAdminSession,
 		MAPIFreeBuffer(sSendData.lpMessageEntryId);
 		mapSendData.erase(i.first);
 	}
-
-	if (lpAddrBook)
-		lpAddrBook->Release();
-
 	delete lpMailer;
 	return hr;
 }
@@ -638,11 +621,11 @@ static HRESULT GetAdminSpooler(IMAPISession *lpAdminSession,
     IECSpooler **lppSpooler)
 {
 	HRESULT		hr = hrSuccess;
-	IECSpooler	*lpSpooler = NULL;
-	IMsgStore	*lpMDB = NULL;
-	KCHL::memory_ptr<SPropValue> lpsProp;
+	object_ptr<IECSpooler> lpSpooler;
+	object_ptr<IMsgStore> lpMDB;
+	memory_ptr<SPropValue> lpsProp;
 
-	hr = HrOpenDefaultStore(lpAdminSession, &lpMDB);
+	hr = HrOpenDefaultStore(lpAdminSession, &~lpMDB);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open default store for system account. Error 0x%08X", hr);
 		goto exit;
@@ -654,18 +637,14 @@ static HRESULT GetAdminSpooler(IMAPISession *lpAdminSession,
 		goto exit;
 	}
 
-	hr = ((IECUnknown *)lpsProp->Value.lpszA)->QueryInterface(IID_IECSpooler, (void **)&lpSpooler);
+	hr = ((IECUnknown *)lpsProp->Value.lpszA)->QueryInterface(IID_IECSpooler, &~lpSpooler);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Spooler interface not supported: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
-
-	*lppSpooler = lpSpooler;
-
+	*lppSpooler = lpSpooler.release();
 exit:
-	if (lpMDB)
-		lpMDB->Release();
 	return hr;
 }
 
@@ -683,10 +662,10 @@ exit:
 static HRESULT ProcessQueue(const char *szSMTP, int ulPort, const char *szPath)
 {
 	HRESULT				hr				= hrSuccess;
-	IMAPISession		*lpAdminSession = NULL;
-	IECSpooler			*lpSpooler		= NULL;
-	IMAPITable			*lpTable		= NULL;
-	IMAPIAdviseSink		*lpAdviseSink	= NULL;
+	object_ptr<IMAPISession> lpAdminSession;
+	object_ptr<IECSpooler> lpSpooler;
+	object_ptr<IMAPITable> lpTable;
+	object_ptr<IMAPIAdviseSink> lpAdviseSink;
 	ULONG				ulConnection	= 0;
 
 	SizedSPropTagArray(5, sOutgoingCols) = {
@@ -701,7 +680,7 @@ static HRESULT ProcessQueue(const char *szSMTP, int ulPort, const char *szPath)
 	static constexpr const SizedSSortOrderSet(1, sSort) =
 		{1, 0, 0, {{PR_EC_HIERARCHYID, TABLE_SORT_ASCEND}}};
 
-	hr = HrOpenECAdminSession(&lpAdminSession, "kopano-spooler:system",
+	hr = HrOpenECAdminSession(&~lpAdminSession, "kopano-spooler:system",
 	     PROJECT_SVN_REV_STR, szPath, EC_PROFILE_FLAGS_NO_PUBLIC_STORE,
 	     g_lpConfig->GetSetting("sslkey_file", "", NULL),
 	     g_lpConfig->GetSetting("sslkey_pass", "", NULL));
@@ -717,7 +696,7 @@ static HRESULT ProcessQueue(const char *szSMTP, int ulPort, const char *szPath)
 
 	disconnects = 0;			// first call succeeded, assume all is well.
 
-	hr = GetAdminSpooler(lpAdminSession, &lpSpooler);
+	hr = GetAdminSpooler(lpAdminSession, &~lpSpooler);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ProcessQueue: GetAdminSpooler failed %x", hr);
 		goto exit;
@@ -727,7 +706,7 @@ static HRESULT ProcessQueue(const char *szSMTP, int ulPort, const char *szPath)
 	nReload = false;
 	
 	// Request the master outgoing table
-	hr = lpSpooler->GetMasterOutgoingTable(0, &lpTable);
+	hr = lpSpooler->GetMasterOutgoingTable(0, &~lpTable);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Master outgoing queue not available: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
@@ -747,8 +726,7 @@ static HRESULT ProcessQueue(const char *szSMTP, int ulPort, const char *szPath)
 			GetMAPIErrorMessage(hr), hr);
 		goto exit;
 	}
-
-	hr = HrAllocAdviseSink(AdviseCallback, NULL, &lpAdviseSink);	
+	hr = HrAllocAdviseSink(AdviseCallback, nullptr, &~lpAdviseSink);	
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to allocate memory for advise sink: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
@@ -823,19 +801,6 @@ exit:
 
 	if (lpTable && ulConnection)
 		lpTable->Unadvise(ulConnection);
-
-	if (lpAdviseSink)
-		lpAdviseSink->Release();
-
-	if (lpTable)
-		lpTable->Release();
-
-	if (lpSpooler)
-		lpSpooler->Release();
-
-	if (lpAdminSession)
-		lpAdminSession->Release();
-
 	return hr;
 }
 
