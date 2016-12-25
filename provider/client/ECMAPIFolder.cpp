@@ -18,6 +18,7 @@
 #include <kopano/platform.h>
 #include <kopano/ECInterfaceDefs.h>
 #include <kopano/mapi_ptr.h>
+#include <kopano/memory.hpp>
 #include "kcore.hpp"
 #include "ics.h"
 #include "pcutil.hpp"
@@ -49,6 +50,8 @@
 #include <kopano/stringutil.h>
 
 #include <kopano/charset/convstring.h>
+
+using namespace KCHL;
 
 static LONG __stdcall AdviseECFolderCallback(void *lpContext, ULONG cNotif,
     LPNOTIFICATION lpNotif)
@@ -242,15 +245,14 @@ HRESULT ECMAPIFolder::HrSetPropStorage(IECPropStorage *lpStorage, BOOL fLoadProp
 {
 	HRESULT hr = hrSuccess;
 	ULONG ulEventMask = fnevObjectModified  | fnevObjectDeleted | fnevObjectMoved | fnevObjectCreated;
-	WSMAPIPropStorage *lpMAPIPropStorage = NULL;
+	object_ptr<WSMAPIPropStorage> lpMAPIPropStorage;
 	ULONG cbEntryId;
 	LPENTRYID lpEntryId = NULL;
 
 	hr = HrAllocAdviseSink(AdviseECFolderCallback, this, &m_lpFolderAdviseSink);	
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = lpStorage->QueryInterface(IID_WSMAPIPropStorage, (void**)&lpMAPIPropStorage);
+	hr = lpStorage->QueryInterface(IID_WSMAPIPropStorage, &~lpMAPIPropStorage);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -269,9 +271,6 @@ HRESULT ECMAPIFolder::HrSetPropStorage(IECPropStorage *lpStorage, BOOL fLoadProp
 	hr = ECGenericProp::HrSetPropStorage(lpStorage, fLoadProps);
 
 exit:
-	if(lpMAPIPropStorage)
-		lpMAPIPropStorage->Release();
-
 	return hr;
 }
 
@@ -386,19 +385,18 @@ HRESULT ECMAPIFolder::CreateMessage(LPCIID lpInterface, ULONG ulFlags, LPMESSAGE
 HRESULT ECMAPIFolder::CreateMessageWithEntryID(LPCIID lpInterface, ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID, LPMESSAGE *lppMessage)
 {
 	HRESULT		hr = hrSuccess;
-	ECMessage	*lpMessage = NULL;	
+	object_ptr<ECMessage> lpMessage;
 	LPMAPIUID	lpMapiUID = NULL;
 	ULONG		cbNewEntryId = 0;
 	LPENTRYID	lpNewEntryId = NULL;
 	SPropValue	sPropValue[3];
-	IECPropStorage*	lpStorage = NULL;
+	object_ptr<IECPropStorage> lpStorage;
 
 	if(!fModify) {
 		hr = MAPI_E_NO_ACCESS;
 		goto exit;
 	}
-
-	hr = ECMessage::Create(this->GetMsgStore(), TRUE, TRUE, ulFlags & MAPI_ASSOCIATED, FALSE, NULL, &lpMessage);
+	hr = ECMessage::Create(this->GetMsgStore(), TRUE, TRUE, ulFlags & MAPI_ASSOCIATED, FALSE, nullptr, &~lpMessage);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -411,8 +409,7 @@ HRESULT ECMAPIFolder::CreateMessageWithEntryID(LPCIID lpInterface, ULONG ulFlags
 		hr = lpMessage->SetEntryId(cbNewEntryId, lpNewEntryId);
 		if (hr != hrSuccess)
 			goto exit;
-
-		hr = this->GetMsgStore()->lpTransport->HrOpenPropStorage(m_cbEntryId, m_lpEntryId, cbNewEntryId, lpNewEntryId, ulFlags & MAPI_ASSOCIATED, &lpStorage);
+		hr = this->GetMsgStore()->lpTransport->HrOpenPropStorage(m_cbEntryId, m_lpEntryId, cbNewEntryId, lpNewEntryId, ulFlags & MAPI_ASSOCIATED, &~lpStorage);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -421,8 +418,7 @@ HRESULT ECMAPIFolder::CreateMessageWithEntryID(LPCIID lpInterface, ULONG ulFlags
         hr = lpMessage->SetEntryId(cbEntryID, lpEntryID);
         if(hr != hrSuccess)
             goto exit;
-
-		hr = this->GetMsgStore()->lpTransport->HrOpenPropStorage(m_cbEntryId, m_lpEntryId, cbEntryID, lpEntryID, ulFlags & MAPI_ASSOCIATED, &lpStorage);
+		hr = this->GetMsgStore()->lpTransport->HrOpenPropStorage(m_cbEntryId, m_lpEntryId, cbEntryID, lpEntryID, ulFlags & MAPI_ASSOCIATED, &~lpStorage);
 		if(hr != hrSuccess)
 			goto exit;
     }
@@ -471,18 +467,11 @@ HRESULT ECMAPIFolder::CreateMessageWithEntryID(LPCIID lpInterface, ULONG ulFlags
 	AddChild(lpMessage);
 
 exit:
-	if (lpStorage)
-		lpStorage->Release();
-
 	if (lpNewEntryId)
 		ECFreeBuffer(lpNewEntryId);
 
 	if(lpMapiUID)
 		ECFreeBuffer(lpMapiUID);
-
-	if(lpMessage)
-		lpMessage->Release();
-
 	return hr;
 }
 
@@ -490,7 +479,7 @@ HRESULT ECMAPIFolder::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LP
 {
 	HRESULT hr = hrSuccess;
 	HRESULT hrEC = hrSuccess;
-	IMAPIFolder	*lpMapiFolder = NULL;
+	object_ptr<IMAPIFolder> lpMapiFolder;
 	LPSPropValue lpDestPropArray = NULL;
 
 	LPENTRYLIST lpMsgListEC = NULL;
@@ -511,13 +500,13 @@ HRESULT ECMAPIFolder::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LP
 	
 	//Get the interface of destinationfolder
 	if(lpInterface == NULL || *lpInterface == IID_IMAPIFolder)
-		hr = ((IMAPIFolder*)lpDestFolder)->QueryInterface(IID_IMAPIFolder, (void**)&lpMapiFolder);
+		hr = ((IMAPIFolder *)lpDestFolder)->QueryInterface(IID_IMAPIFolder, &~lpMapiFolder);
 	else if(*lpInterface == IID_IMAPIContainer)
-		hr = ((IMAPIContainer*)lpDestFolder)->QueryInterface(IID_IMAPIFolder, (void**)&lpMapiFolder);
+		hr = ((IMAPIContainer *)lpDestFolder)->QueryInterface(IID_IMAPIFolder, &~lpMapiFolder);
 	else if(*lpInterface == IID_IUnknown)
-		hr = ((IUnknown*)lpDestFolder)->QueryInterface(IID_IMAPIFolder, (void**)&lpMapiFolder);
+		hr = ((IUnknown *)lpDestFolder)->QueryInterface(IID_IMAPIFolder, &~lpMapiFolder);
 	else if(*lpInterface == IID_IMAPIProp)
-		hr = ((IMAPIProp*)lpDestFolder)->QueryInterface(IID_IMAPIFolder, (void**)&lpMapiFolder);
+		hr = ((IMAPIProp *)lpDestFolder)->QueryInterface(IID_IMAPIFolder, &~lpMapiFolder);
 	else
 		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 	
@@ -608,10 +597,6 @@ exit:
 
 	if(lpMsgListSupport)
 		ECFreeBuffer(lpMsgListSupport);
-
-	if(lpMapiFolder)
-		lpMapiFolder->Release();
-
 	return (hr == hrSuccess)?hrEC:hr;
 }
 
@@ -630,7 +615,7 @@ HRESULT ECMAPIFolder::CreateFolder(ULONG ulFolderType, LPTSTR lpszFolderName, LP
 	HRESULT			hr = hrSuccess;
 	ULONG			cbEntryId = 0;
 	LPENTRYID		lpEntryId = NULL;
-	IMAPIFolder*	lpFolder = NULL;
+	object_ptr<IMAPIFolder> lpFolder;
 	ULONG			ulObjType = 0;
 
 	// SC TODO: new code:
@@ -652,17 +637,11 @@ HRESULT ECMAPIFolder::CreateFolder(ULONG ulFolderType, LPTSTR lpszFolderName, LP
 		goto exit;
 
 	// Open the folder we just created
-	hr = this->GetMsgStore()->OpenEntry(cbEntryId, lpEntryId, lpInterface, MAPI_MODIFY | MAPI_DEFERRED_ERRORS, &ulObjType, (IUnknown **)&lpFolder);
-	
+	hr = this->GetMsgStore()->OpenEntry(cbEntryId, lpEntryId, lpInterface, MAPI_MODIFY | MAPI_DEFERRED_ERRORS, &ulObjType, &~lpFolder);
 	if(hr != hrSuccess)
 		goto exit;
-
-	*lppFolder = lpFolder;
-
+	*lppFolder = lpFolder.release();
 exit:
-	if(hr != hrSuccess && lpFolder)
-		lpFolder->Release();
-
 	if(lpEntryId)
 		ECFreeBuffer(lpEntryId);
 
@@ -673,20 +652,20 @@ exit:
 HRESULT ECMAPIFolder::CopyFolder(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, LPVOID lpDestFolder, LPTSTR lpszNewFolderName, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags)
 {
 	HRESULT hr = hrSuccess;
-	IMAPIFolder	*lpMapiFolder = NULL;
+	object_ptr<IMAPIFolder> lpMapiFolder;
 	LPSPropValue lpPropArray = NULL;
 	GUID guidDest;
 	GUID guidFrom;
 
 	//Get the interface of destinationfolder
 	if(lpInterface == NULL || *lpInterface == IID_IMAPIFolder)
-		hr = ((IMAPIFolder*)lpDestFolder)->QueryInterface(IID_IMAPIFolder, (void**)&lpMapiFolder);
+		hr = ((IMAPIFolder*)lpDestFolder)->QueryInterface(IID_IMAPIFolder, &~lpMapiFolder);
 	else if(*lpInterface == IID_IMAPIContainer)
-		hr = ((IMAPIContainer*)lpDestFolder)->QueryInterface(IID_IMAPIFolder, (void**)&lpMapiFolder);
+		hr = ((IMAPIContainer*)lpDestFolder)->QueryInterface(IID_IMAPIFolder, &~lpMapiFolder);
 	else if(*lpInterface == IID_IUnknown)
-		hr = ((IUnknown*)lpDestFolder)->QueryInterface(IID_IMAPIFolder, (void**)&lpMapiFolder);
+		hr = ((IUnknown*)lpDestFolder)->QueryInterface(IID_IMAPIFolder, &~lpMapiFolder);
 	else if(*lpInterface == IID_IMAPIProp)
-		hr = ((IMAPIProp*)lpDestFolder)->QueryInterface(IID_IMAPIFolder, (void**)&lpMapiFolder);
+		hr = ((IMAPIProp*)lpDestFolder)->QueryInterface(IID_IMAPIFolder, &~lpMapiFolder);
 	else
 		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 	
@@ -716,8 +695,6 @@ HRESULT ECMAPIFolder::CopyFolder(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lp
 	}
 
 exit:
-	if(lpMapiFolder)
-		lpMapiFolder->Release();
 	if (lpPropArray != NULL)
 		ECFreeBuffer(lpPropArray);
 	return hr;

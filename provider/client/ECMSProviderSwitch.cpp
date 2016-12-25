@@ -90,21 +90,19 @@ HRESULT ECMSProviderSwitch::Shutdown(ULONG * lpulFlags)
 HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface, ULONG *lpcbSpoolSecurity, LPBYTE *lppbSpoolSecurity, LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
 {
 	HRESULT			hr = hrSuccess;
-	ECMsgStore*		lpecMDB = NULL;
-
+	object_ptr<ECMsgStore> lpecMDB;
 	sGlobalProfileProps	sProfileProps;
-	LPPROFSECT		lpProfSect = NULL;
+	object_ptr<IProfSect> lpProfSect;
 	memory_ptr<SPropValue> lpsPropArray, lpProp, lpIdentityProps;
 	ULONG			cValues = 0;
 
 	char*			lpDisplayName = NULL;
 	bool			bIsDefaultStore = false;
-	LPMDB			lpMDB = NULL;
-	LPMSLOGON		lpMSLogon = NULL;
-
+	object_ptr<IMsgStore> lpMDB;
+	object_ptr<IMSLogon> lpMSLogon;
 	PROVIDER_INFO sProviderInfo;
 	ULONG ulConnectType = CT_UNSPECIFIED;
-	IMSProvider *lpOnline = NULL;
+	object_ptr<IMSProvider> lpOnline;
 	convert_context converter;
 	memory_ptr<ENTRYID> lpStoreID;
 	ULONG			cbStoreID = 0;
@@ -117,7 +115,7 @@ HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR l
 		goto exit;
 
 	// Open profile settings
-	hr = lpMAPISup->OpenProfileSection(NULL, MAPI_MODIFY, &lpProfSect);
+	hr = lpMAPISup->OpenProfileSection(nullptr, MAPI_MODIFY, &~lpProfSect);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -144,8 +142,7 @@ HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR l
 	hr = GetProviders(&g_mapProviders, lpMAPISup, tstrProfileName.c_str(), ulFlags, &sProviderInfo);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = sProviderInfo.lpMSProviderOnline->QueryInterface(IID_IMSProvider, (void **)&lpOnline);
+	hr = sProviderInfo.lpMSProviderOnline->QueryInterface(IID_IMSProvider, &~lpOnline);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -162,7 +159,7 @@ HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR l
 		bool fDone = false;
 
 		while(!fDone) {
-			hr = lpOnline->Logon(lpMAPISup, ulUIParam, lpszProfileName, cbEntryID, lpEntryID, ulFlags, lpInterface, NULL, NULL, NULL, &lpMSLogon, &lpMDB);
+			hr = lpOnline->Logon(lpMAPISup, ulUIParam, lpszProfileName, cbEntryID, lpEntryID, ulFlags, lpInterface, nullptr, nullptr, nullptr, &~lpMSLogon, &~lpMDB);
 			ulConnectType = CT_ONLINE;
 			fDone = true;
 		}
@@ -192,9 +189,8 @@ HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR l
 			goto exit;
 		}
 	}
-	
 
-	hr = lpMDB->QueryInterface(IID_ECMsgStore, (void **)&lpecMDB);
+	hr = lpMDB->QueryInterface(IID_ECMsgStore, &~lpecMDB);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -261,19 +257,6 @@ HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR l
 exit:
 	if (lppMAPIError)
 		*lppMAPIError = NULL;
-	if (lpProfSect)
-		lpProfSect->Release();
-	if (lpMSLogon)
-		lpMSLogon->Release();
-	
-	if (lpMDB)
-		lpMDB->Release();
-
-	if (lpecMDB)
-		lpecMDB->Release();
-    
-	if (lpOnline)
-		lpOnline->Release();
 	return hr;
 }
 

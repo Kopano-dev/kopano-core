@@ -940,8 +940,8 @@ HRESULT ECMessage::OpenAttach(ULONG ulAttachmentNum, LPCIID lpInterface, ULONG u
 {
 	HRESULT				hr = hrSuccess;
 	IMAPITable			*lpTable = NULL;
-	ECAttach			*lpAttach = NULL;
-	IECPropStorage		*lpParentStorage = NULL;
+	object_ptr<ECAttach> lpAttach;
+	object_ptr<IECPropStorage> lpParentStorage;
 	SPropValue			sID;
 	LPSPropValue		lpObjId = NULL;
 	ULONG				ulObjId;
@@ -960,8 +960,7 @@ HRESULT ECMessage::OpenAttach(ULONG ulAttachmentNum, LPCIID lpInterface, ULONG u
 		goto exit;
 	}
 
-	hr = ECAttach::Create(this->GetMsgStore(), MAPI_ATTACH, TRUE, ulAttachmentNum, m_lpRoot, &lpAttach);
-
+	hr = ECAttach::Create(this->GetMsgStore(), MAPI_ATTACH, TRUE, ulAttachmentNum, m_lpRoot, &~lpAttach);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -972,7 +971,7 @@ HRESULT ECMessage::OpenAttach(ULONG ulAttachmentNum, LPCIID lpInterface, ULONG u
 	else
 		ulObjId = 0;
 
-	hr = this->GetMsgStore()->lpTransport->HrOpenParentStorage(this, ulAttachmentNum, ulObjId, this->lpStorage->GetServerStorage(), &lpParentStorage);
+	hr = this->GetMsgStore()->lpTransport->HrOpenParentStorage(this, ulAttachmentNum, ulObjId, this->lpStorage->GetServerStorage(), &~lpParentStorage);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -984,15 +983,7 @@ HRESULT ECMessage::OpenAttach(ULONG ulAttachmentNum, LPCIID lpInterface, ULONG u
 
 	// Register the object as a child of ours
 	AddChild(lpAttach);
-
-	lpAttach->Release();
-
 exit:
-	if (hr != hrSuccess && lpAttach != nullptr)
-		lpAttach->Release();
-	if (lpParentStorage)
-		lpParentStorage->Release();
-
 	if(lpObjId)
 		ECFreeBuffer(lpObjId);
 
@@ -1010,7 +1001,7 @@ HRESULT ECMessage::CreateAttach(LPCIID lpInterface, ULONG ulFlags, const IAttach
 	IMAPITable*			lpTable = NULL;
 	ECAttach*			lpAttach = NULL;
 	SPropValue			sID;
-	IECPropStorage*		lpStorage = NULL;
+	object_ptr<IECPropStorage> lpStorage;
 
 	if(this->lpAttachments == NULL) {
 		hr = this->GetAttachmentTable(fMapiUnicode, &lpTable);
@@ -1038,8 +1029,7 @@ HRESULT ECMessage::CreateAttach(LPCIID lpInterface, ULONG ulFlags, const IAttach
 
 	sID.ulPropTag = PR_ATTACH_NUM;
 	sID.Value.ul = this->ulNextAttUniqueId;
-
-	hr = this->GetMsgStore()->lpTransport->HrOpenParentStorage(this, this->ulNextAttUniqueId, 0, NULL, &lpStorage);
+	hr = this->GetMsgStore()->lpTransport->HrOpenParentStorage(this, this->ulNextAttUniqueId, 0, NULL, &~lpStorage);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -1063,9 +1053,6 @@ HRESULT ECMessage::CreateAttach(LPCIID lpInterface, ULONG ulFlags, const IAttach
 	++this->ulNextAttUniqueId;
 
 exit:
-	if(lpStorage)
-		lpStorage->Release();
-
 	return hr;
 }
 
@@ -1320,7 +1307,7 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 	ULONG ulPreprocessFlags = 0;
 	ULONG ulSubmitFlag = 0;
 	LPSPropValue lpsPropArray = NULL;
-	LPMAPITABLE lpRecipientTable = NULL;
+	object_ptr<IMAPITable> lpRecipientTable;
 	LPSRowSet lpsRow = NULL;
 	LPSPropValue lpRecip = NULL;
 	ULONG cRecip = 0;
@@ -1347,7 +1334,7 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 	}
 
 	// Get the recipientslist
-	hr = this->GetRecipientTable(fMapiUnicode, &lpRecipientTable);
+	hr = this->GetRecipientTable(fMapiUnicode, &~lpRecipientTable);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -1396,9 +1383,6 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 		FreeProws(lpsRow);
 		lpsRow = NULL;
 	}
-
-	lpRecipientTable->Release();
-	lpRecipientTable = NULL;
 
 	// Get the time to add to the message as PR_CLIENT_SUBMIT_TIME
     GetSystemTimeAsFileTime(&ft);
@@ -1485,10 +1469,6 @@ exit:
 
 	if(lpsPropArray)
 		ECFreeBuffer(lpsPropArray);
-
-	if(lpRecipientTable)
-		lpRecipientTable->Release();
-
 	return hr;
 }
 
@@ -1499,14 +1479,13 @@ HRESULT ECMessage::SetReadFlag(ULONG ulFlags)
 	LPSPropValue	lpPropFlags = NULL;
 	memory_ptr<SPropValue> lpsPropUserName;
 	SPropValue		sProp;
-	IMAPIFolder*	lpRootFolder = NULL;
-	IMessage*		lpNewMessage = NULL;
-	IMessage*		lpThisMessage = NULL;
+	object_ptr<IMAPIFolder> lpRootFolder;
+	object_ptr<IMessage> lpNewMessage, lpThisMessage;
 	ULONG			ulObjType = 0;
 	ULONG			cValues = 0;
 	ULONG			cbStoreID = 0;
 	memory_ptr<ENTRYID> lpStoreID;
-	IMsgStore*		lpDefMsgStore = NULL;
+	object_ptr<IMsgStore> lpDefMsgStore;
 
 	if((ulFlags &~ (CLEAR_READ_FLAG | CLEAR_NRN_PENDING | CLEAR_RN_PENDING | GENERATE_RECEIPT_ONLY | MAPI_DEFERRED_ERRORS | SUPPRESS_RECEIPT)) != 0 ||
 		(ulFlags & (SUPPRESS_RECEIPT | CLEAR_READ_FLAG)) == (SUPPRESS_RECEIPT | CLEAR_READ_FLAG)||
@@ -1530,7 +1509,7 @@ HRESULT ECMessage::SetReadFlag(ULONG ulFlags)
 	if(hr == hrSuccess && (!(ulFlags&(SUPPRESS_RECEIPT|CLEAR_READ_FLAG | CLEAR_NRN_PENDING | CLEAR_RN_PENDING)) || (ulFlags&GENERATE_RECEIPT_ONLY )) &&
 		lpReadReceiptRequest[1].Value.b == TRUE && ((lpReadReceiptRequest[0].Value.ul & MSGFLAG_RN_PENDING) || (lpReadReceiptRequest[0].Value.ul & MSGFLAG_NRN_PENDING)))
 	{
-		hr = QueryInterface(IID_IMessage, (void**)&lpThisMessage);
+		hr = QueryInterface(IID_IMessage, &~lpThisMessage);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -1554,21 +1533,18 @@ HRESULT ECMessage::SetReadFlag(ULONG ulFlags)
 			hr = GetMsgStore()->CreateStoreEntryID(nullptr, lpsPropUserName->Value.LPSZ, fMapiUnicode, &cbStoreID, &~lpStoreID);
 			if (hr != hrSuccess)
 				goto exit;
-
-			hr = GetMsgStore()->lpSupport->OpenEntry(cbStoreID, lpStoreID, NULL, MAPI_MODIFY, &ulObjType, (LPUNKNOWN *) &lpDefMsgStore);
+			hr = GetMsgStore()->lpSupport->OpenEntry(cbStoreID, lpStoreID, nullptr, MAPI_MODIFY, &ulObjType, &~lpDefMsgStore);
 			if (hr != hrSuccess)
 				goto exit;
 
 			// Open the root folder of the default store to create a new message
-			hr = lpDefMsgStore->OpenEntry(0, NULL, NULL, MAPI_MODIFY, &ulObjType, (LPUNKNOWN *) &lpRootFolder);
+			hr = lpDefMsgStore->OpenEntry(0, nullptr, nullptr, MAPI_MODIFY, &ulObjType, &~lpRootFolder);
 			if (hr != hrSuccess)
 				goto exit;
-
-			hr = lpRootFolder->CreateMessage(NULL, 0, &lpNewMessage);
+			hr = lpRootFolder->CreateMessage(nullptr, 0, &~lpNewMessage);
 			if (hr != hrSuccess)
 				goto exit;
-
-			hr = ClientUtil::ReadReceipt(0, lpThisMessage, &lpNewMessage);
+			hr = ClientUtil::ReadReceipt(0, lpThisMessage, &+lpNewMessage);
 			if(hr != hrSuccess)
 				goto exit;
 
@@ -1608,18 +1584,6 @@ exit:
 		ECFreeBuffer(lpPropFlags);
 	if(lpReadReceiptRequest)
 		ECFreeBuffer(lpReadReceiptRequest);
-	if(lpRootFolder)
-		lpRootFolder->Release();
-
-	if(lpNewMessage)
-		lpNewMessage->Release();
-
-	if(lpThisMessage)
-		lpThisMessage->Release();
-
-	if(lpDefMsgStore)
-		lpDefMsgStore->Release();
-
 	return hr;
 }
 
@@ -1635,12 +1599,12 @@ HRESULT ECMessage::SyncRecips()
 	std::wstring wstrCc;
 	std::wstring wstrBcc;
 	SPropValue sPropRecip;
-	IMAPITable *lpTable = NULL;
+	object_ptr<IMAPITable> lpTable;
 	LPSRowSet lpRows = NULL;
 	SizedSPropTagArray(2, sPropDisplay) = {2, { PR_RECIPIENT_TYPE, PR_DISPLAY_NAME_W} };
 
 	if (this->lpRecips) {
-		hr = GetRecipientTable(fMapiUnicode, &lpTable);
+		hr = GetRecipientTable(fMapiUnicode, &~lpTable);
 		if (hr != hrSuccess)
 			goto exit;
 		hr = lpTable->SetColumns(sPropDisplay, 0);
@@ -1699,10 +1663,6 @@ HRESULT ECMessage::SyncRecips()
 exit:
 	if(lpRows)
 		FreeProws(lpRows);
-	lpRows = NULL;
-	if(lpTable)
-		lpTable->Release();
-
 	return hr;
 }
 
@@ -2476,9 +2436,9 @@ HRESULT ECMessage::SetPropHandler(ULONG ulPropTag, void* lpProvider, LPSPropValu
 HRESULT ECMessage::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArray lpExcludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems)
 {
 	HRESULT hr = hrSuccess;
-	IECUnknown *lpECUnknown = NULL;
-	LPSPropValue lpECObject = NULL;
-	ECMAPIProp *lpECMAPIProp = NULL;
+	object_ptr<IECUnknown> lpECUnknown;
+	memory_ptr<SPropValue> lpECObject;
+	object_ptr<ECMAPIProp> lpECMAPIProp;
 	ECMAPIProp *lpDestTop = NULL;
 	ECMAPIProp *lpSourceTop = NULL;
 	GUID sDestServerGuid = {0};
@@ -2490,16 +2450,12 @@ HRESULT ECMessage::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArra
     }
 
 	// Wrap mapi object to kopano object
-	if (HrGetOneProp((LPMAPIPROP)lpDestObj, PR_EC_OBJECT, &lpECObject) == hrSuccess) {
-		lpECUnknown = (IECUnknown*)lpECObject->Value.lpszA;
-		lpECUnknown->AddRef();
-
-		MAPIFreeBuffer(lpECObject);
-	}
+	if (HrGetOneProp((LPMAPIPROP)lpDestObj, PR_EC_OBJECT, &~lpECObject) == hrSuccess)
+		lpECUnknown.reset(reinterpret_cast<IECUnknown *>(lpECObject->Value.lpszA));
 
 	// Deny copying within the same object. This is not allowed in exchange either and is required to deny
 	// creating large recursive objects.
-	if(lpECUnknown && lpECUnknown->QueryInterface(IID_ECMAPIProp, (void **)&lpECMAPIProp) == hrSuccess) {
+	if(lpECUnknown && lpECUnknown->QueryInterface(IID_ECMAPIProp, &~lpECMAPIProp) == hrSuccess) {
 		// Find the top-level objects for both source and destination objects
 		lpDestTop = lpECMAPIProp->m_lpRoot;
 		lpSourceTop = this->m_lpRoot;
@@ -2526,20 +2482,11 @@ HRESULT ECMessage::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArra
 				goto exit;
 			}
 		}
-
-		lpECMAPIProp->Release();
-		lpECMAPIProp = NULL;
 	}
 
 	hr = Util::DoCopyTo(&IID_IMessage, &this->m_xMessage, ciidExclude, rgiidExclude, lpExcludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
 
 exit:
-	if(lpECMAPIProp)
-		lpECMAPIProp->Release();
-
-	if (lpECUnknown)
-		lpECUnknown->Release();
-
 	return hr;
 }
 
@@ -2795,17 +2742,15 @@ exit:
 HRESULT ECMessage::GetBodyType(eBodyType *lpulBodyType)
 {
 	HRESULT		hr = hrSuccess;
-	LPSTREAM	lpRTFCompressedStream = NULL;
-	LPSTREAM	lpRTFUncompressedStream = NULL;
+	object_ptr<IStream> lpRTFCompressedStream, lpRTFUncompressedStream;
 	char		szRtfBuf[64] = {0};
 	ULONG		cbRtfBuf = 0;
 
 	if (m_ulBodyType == bodyTypeUnknown) {
-		hr = OpenProperty(PR_RTF_COMPRESSED, &IID_IStream, 0, 0, (LPUNKNOWN *)&lpRTFCompressedStream);
+		hr = OpenProperty(PR_RTF_COMPRESSED, &IID_IStream, 0, 0, &~lpRTFCompressedStream);
 		if (hr != hrSuccess)
 			goto exit;
-
-		hr = WrapCompressedRTFStream(lpRTFCompressedStream, 0, &lpRTFUncompressedStream);
+		hr = WrapCompressedRTFStream(lpRTFCompressedStream, 0, &~lpRTFUncompressedStream);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -2823,12 +2768,6 @@ HRESULT ECMessage::GetBodyType(eBodyType *lpulBodyType)
 	*lpulBodyType = m_ulBodyType;
 
 exit:
-	if (lpRTFUncompressedStream)
-		lpRTFUncompressedStream->Release();
-
-	if (lpRTFCompressedStream)
-		lpRTFCompressedStream->Release();
-
 	return hr;
 }
 

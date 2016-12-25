@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <kopano/platform.h>
+#include <kopano/memory.hpp>
 #include <mapi.h>
 #include <mapispi.h>
 #include <mapiutil.h>
@@ -35,6 +36,8 @@
 
 #include <kopano/charset/convstring.h>
 #include <kopano/ECGetText.h>
+
+using namespace KCHL;
 
 ECXPProvider::ECXPProvider() : ECUnknown("IXPProvider")
 {
@@ -68,8 +71,8 @@ HRESULT ECXPProvider::Shutdown(ULONG * lpulFlags)
 HRESULT ECXPProvider::TransportLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG * lpulFlags, LPMAPIERROR * lppMAPIError, LPXPLOGON * lppXPLogon)
 {
 	HRESULT			hr = hrSuccess;
-	ECXPLogon		*lpXPLogon = NULL;
-	WSTransport		*lpTransport = NULL;
+	object_ptr<ECXPLogon> lpXPLogon;
+	object_ptr<WSTransport> lpTransport;
 	ECMapProvider::const_iterator iterMap;
 	std::string		strServerURL;
 	std::string		strUniqueId;
@@ -85,11 +88,11 @@ HRESULT ECXPProvider::TransportLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTST
 	if (iterMap == g_mapProviders.cend() ||
 	    iterMap->second.ulConnectType == CT_ONLINE) {
 		// Online
-		hr = WSTransport::HrOpenTransport(lpMAPISup, &lpTransport, FALSE);
+		hr = WSTransport::HrOpenTransport(lpMAPISup, &~lpTransport, FALSE);
 		bOffline = FALSE;
 	} else {
 		// Offline
-		hr = WSTransport::HrOpenTransport(lpMAPISup, &lpTransport, TRUE);
+		hr = WSTransport::HrOpenTransport(lpMAPISup, &~lpTransport, TRUE);
 		bOffline = TRUE;
 	}
 
@@ -97,8 +100,7 @@ HRESULT ECXPProvider::TransportLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTST
 		hr = MAPI_E_FAILONEPROVIDER;
 		goto exit;
 	}
-
-	hr = ECXPLogon::Create(tstrProfileName, bOffline, this, lpMAPISup, &lpXPLogon);
+	hr = ECXPLogon::Create(tstrProfileName, bOffline, this, lpMAPISup, &~lpXPLogon);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -124,12 +126,6 @@ HRESULT ECXPProvider::TransportLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTST
 	*lppMAPIError = NULL;
 	
 exit:
-	if(lpTransport)
-		lpTransport->Release();
-
-	if(lpXPLogon)
-		lpXPLogon->Release();
-
 	return hr;
 }
 

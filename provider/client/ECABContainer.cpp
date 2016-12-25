@@ -36,6 +36,8 @@
 #include <kopano/charset/convstring.h>
 #include <kopano/ECGetText.h>
 
+using namespace KCHL;
+
 ECABContainer::ECABContainer(void *lpProvider, ULONG ulObjType, BOOL fModify,
     const char *szClassName) :
 	ECABProp(lpProvider, ulObjType, fModify, szClassName)
@@ -124,8 +126,8 @@ HRESULT	ECABContainer::DefaultABContainerGetProp(ULONG ulPropTag, void* lpProvid
 {
 	HRESULT		hr = hrSuccess;
 	ECABProp*	lpProp = (ECABProp *)lpParam;
-	KCHL::memory_ptr<SPropValue> lpSectionUid;
-	IProfSect *lpProfSect = NULL;
+	memory_ptr<SPropValue> lpSectionUid;
+	object_ptr<IProfSect> lpProfSect;
 
 	switch(PROP_ID(ulPropTag)) {
 	case PROP_ID(PR_EMSMDB_SECTION_UID): {
@@ -134,7 +136,7 @@ HRESULT	ECABContainer::DefaultABContainerGetProp(ULONG ulPropTag, void* lpProvid
 			hr = MAPI_E_NOT_FOUND;
 			goto exit;
 		}
-		hr = lpLogon->m_lpMAPISup->OpenProfileSection(NULL, 0, &lpProfSect);
+		hr = lpLogon->m_lpMAPISup->OpenProfileSection(nullptr, 0, &~lpProfSect);
 		if(hr != hrSuccess)
 			goto exit;
 		hr = HrGetOneProp(lpProfSect, PR_EMSMDB_SECTION_UID, &~lpSectionUid);
@@ -210,8 +212,6 @@ HRESULT	ECABContainer::DefaultABContainerGetProp(ULONG ulPropTag, void* lpProvid
 	}
 
 exit:
-	if(lpProfSect)
-		lpProfSect->Release();
 	return hr;
 }
 
@@ -279,8 +279,8 @@ HRESULT ECABContainer::TableRowGetProp(void* lpProvider, struct propVal *lpsProp
 HRESULT ECABContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
 	HRESULT			hr = hrSuccess;
-	ECMAPITable*	lpTable = NULL;
-	WSTableView*	lpTableOps = NULL;
+	object_ptr<ECMAPITable> lpTable;
+	object_ptr<WSTableView> lpTableOps;
 	SizedSSortOrderSet(1, sSortByDisplayName);
 
 	sSortByDisplayName.cSorts = 1;
@@ -289,11 +289,10 @@ HRESULT ECABContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	sSortByDisplayName.aSort[0].ulPropTag = PR_DISPLAY_NAME;
 	sSortByDisplayName.aSort[0].ulOrder = TABLE_SORT_ASCEND;
 
-	hr = ECMAPITable::Create("AB Contents", NULL, 0, &lpTable);
+	hr = ECMAPITable::Create("AB Contents", nullptr, 0, &~lpTable);
 	if(hr != hrSuccess)
 		goto exit;
-
-	hr = GetABStore()->m_lpTransport->HrOpenABTableOps(MAPI_MAILUSER, ulFlags, m_cbEntryId, m_lpEntryId, (ECABLogon*)this->lpProvider, &lpTableOps); // also MAPI_DISTLIST
+	hr = GetABStore()->m_lpTransport->HrOpenABTableOps(MAPI_MAILUSER, ulFlags, m_cbEntryId, m_lpEntryId, (ECABLogon *)this->lpProvider, &~lpTableOps); // also MAPI_DISTLIST
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -310,28 +309,19 @@ HRESULT ECABContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	AddChild(lpTable);
 
 exit:
-	if(lpTable)
-		lpTable->Release();
-
-	if(lpTableOps)
-		lpTableOps->Release();
-
 	return hr;
 }
 
 HRESULT ECABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
 	HRESULT			hr = hrSuccess;
-	ECMAPITable*	lpTable = NULL;
-	WSTableView*	lpTableOps = NULL;
+	object_ptr<ECMAPITable> lpTable;
+	object_ptr<WSTableView> lpTableOps;
 
-	hr = ECMAPITable::Create("AB hierarchy", GetABStore()->m_lpNotifyClient, ulFlags, &lpTable);
-
+	hr = ECMAPITable::Create("AB hierarchy", GetABStore()->m_lpNotifyClient, ulFlags, &~lpTable);
 	if(hr != hrSuccess)
 		goto exit;
-
-	hr = GetABStore()->m_lpTransport->HrOpenABTableOps(MAPI_ABCONT, ulFlags, m_cbEntryId, m_lpEntryId, (ECABLogon*)this->lpProvider, &lpTableOps);
-
+	hr = GetABStore()->m_lpTransport->HrOpenABTableOps(MAPI_ABCONT, ulFlags, m_cbEntryId, m_lpEntryId, (ECABLogon *)this->lpProvider, &~lpTableOps);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -345,12 +335,6 @@ HRESULT ECABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	AddChild(lpTable);
 
 exit:
-	if(lpTable)
-		lpTable->Release();
-
-	if(lpTableOps)
-		lpTableOps->Release();
-
 	return hr;
 }
 

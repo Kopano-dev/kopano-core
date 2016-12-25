@@ -2519,12 +2519,12 @@ HRESULT Util::CopyStream(LPSTREAM lpSrc, LPSTREAM lpDest) {
  */
 HRESULT Util::CopyRecipients(LPMESSAGE lpSrc, LPMESSAGE lpDest) {
 	HRESULT hr;
-	LPMAPITABLE lpTable = NULL;
+	object_ptr<IMAPITable> lpTable;
 	LPSRowSet lpRows = NULL;
 	memory_ptr<SPropTagArray> lpTableColumns;
 	ULONG ulRows = 0;
 
-	hr = lpSrc->GetRecipientTable(MAPI_UNICODE, &lpTable);
+	hr = lpSrc->GetRecipientTable(MAPI_UNICODE, &~lpTable);
 	if (hr != hrSuccess)
 		goto exit;
 	hr = lpTable->QueryColumns(TBL_ALL_COLUMNS, &~lpTableColumns);
@@ -2554,10 +2554,6 @@ HRESULT Util::CopyRecipients(LPMESSAGE lpSrc, LPMESSAGE lpDest) {
 exit:
 	if (lpRows)
 		FreeProws(lpRows);
-
-	if (lpTable)
-		lpTable->Release();
-
 	return hr;
 }
 
@@ -2572,8 +2568,7 @@ exit:
 HRESULT Util::CopyInstanceIds(LPMAPIPROP lpSrc, LPMAPIPROP lpDst)
 {
 	HRESULT hr = hrSuccess;
-	IECSingleInstance *lpSrcInstance = NULL;
-	IECSingleInstance *lpDstInstance = NULL;
+	object_ptr<IECSingleInstance> lpSrcInstance, lpDstInstance;
 	ULONG cbInstanceID = 0;
 	memory_ptr<ENTRYID> lpInstanceID;
 
@@ -2581,10 +2576,9 @@ HRESULT Util::CopyInstanceIds(LPMAPIPROP lpSrc, LPMAPIPROP lpDst)
 	 * We are always going to return hrSuccess, if for some reason we can't copy the single instance,
 	 * we always have the real data as fallback.
 	 */
-	if (lpSrc->QueryInterface(IID_IECSingleInstance, (LPVOID *)&lpSrcInstance) != hrSuccess)
+	if (lpSrc->QueryInterface(IID_IECSingleInstance, &~lpSrcInstance) != hrSuccess)
 		goto exit;
-
-	if (lpDst->QueryInterface(IID_IECSingleInstance, (LPVOID *)&lpDstInstance) != hrSuccess)
+	if (lpDst->QueryInterface(IID_IECSingleInstance, &~lpDstInstance) != hrSuccess)
 		goto exit;
 
 	/*
@@ -2601,10 +2595,6 @@ HRESULT Util::CopyInstanceIds(LPMAPIPROP lpSrc, LPMAPIPROP lpDst)
 		goto exit;
 
 exit:
-	if (lpSrcInstance)
-		lpSrcInstance->Release();
-	if (lpDstInstance)
-		lpDstInstance->Release();
 	return hr;
 }
 
@@ -2639,7 +2629,7 @@ HRESULT Util::CopyAttachments(LPMESSAGE lpSrc, LPMESSAGE lpDest, LPSRestriction 
 	bool bPartial = false;
 
 	// table
-	LPMAPITABLE lpTable = NULL;
+	object_ptr<IMAPITable> lpTable;
 	LPSRowSet lpRows = NULL;
 	memory_ptr<SPropTagArray> lpTableColumns;
 	ULONG ulRows = 0;
@@ -2658,8 +2648,7 @@ HRESULT Util::CopyAttachments(LPMESSAGE lpSrc, LPMESSAGE lpDest, LPSRestriction 
 	}
 	if (lpHasAttach->Value.b == FALSE)
 		goto exit;
-
-	hr = lpSrc->GetAttachmentTable(MAPI_UNICODE, &lpTable);
+	hr = lpSrc->GetAttachmentTable(MAPI_UNICODE, &~lpTable);
 	if (hr != hrSuccess)
 		goto exit;
 	hr = lpTable->QueryColumns(TBL_ALL_COLUMNS, &~lpTableColumns);
@@ -2737,10 +2726,6 @@ next_attach:
 exit:
 	if (lpRows)
 		FreeProws(lpRows);
-
-	if (lpTable)
-		lpTable->Release();
-
 	return hr;
 }
 
@@ -2762,29 +2747,24 @@ exit:
 HRESULT Util::CopyHierarchy(LPMAPIFOLDER lpSrc, LPMAPIFOLDER lpDest, ULONG ulFlags, ULONG ulUIParam, LPMAPIPROGRESS lpProgress) {
 	HRESULT hr;
 	bool bPartial = false;
-	LPMAPITABLE lpTable = NULL;
+	object_ptr<IMAPITable> lpTable;
 	LPSRowSet lpRowSet = NULL;
 	SizedSPropTagArray(2, sptaName) = { 2, { PR_DISPLAY_NAME_W, PR_ENTRYID } };
-	LPMAPIFOLDER lpSrcFolder = NULL, lpDestFolder = NULL;
+	object_ptr<IMAPIFolder> lpSrcParam, lpDestParam;
 	ULONG ulObj;
-	LPMAPIFOLDER lpSrcParam = NULL;
-	LPMAPIFOLDER lpDestParam = NULL;
 
 	// sanity checks
 	if (!lpSrc || !lpDest) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
-
-	hr = lpSrc->QueryInterface(IID_IMAPIFolder, (void**)&lpSrcParam);
+	hr = lpSrc->QueryInterface(IID_IMAPIFolder, &~lpSrcParam);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = lpDest->QueryInterface(IID_IMAPIFolder, (void**)&lpDestParam);
+	hr = lpDest->QueryInterface(IID_IMAPIFolder, &~lpDestParam);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = lpSrc->GetHierarchyTable(MAPI_UNICODE, &lpTable);
+	hr = lpSrc->GetHierarchyTable(MAPI_UNICODE, &~lpTable);
 	if (hr != hrSuccess)
 		goto exit;
 	hr = lpTable->SetColumns(sptaName, 0);
@@ -2792,21 +2772,21 @@ HRESULT Util::CopyHierarchy(LPMAPIFOLDER lpSrc, LPMAPIFOLDER lpDest, ULONG ulFla
 		goto exit;
 
 	while (true) {
+		object_ptr<IMAPIFolder> lpSrcFolder, lpDestFolder;
+
 		hr = lpTable->QueryRows(1, 0, &lpRowSet);
 		if (hr != hrSuccess)
 			goto exit;
 
 		if (lpRowSet->cRows == 0)
 			break;
-
-		hr = lpSrc->OpenEntry(lpRowSet->aRow[0].lpProps[1].Value.bin.cb, (LPENTRYID)lpRowSet->aRow[0].lpProps[1].Value.bin.lpb, &IID_IMAPIFolder, 0, &ulObj, (LPUNKNOWN*)&lpSrcFolder);
+		hr = lpSrc->OpenEntry(lpRowSet->aRow[0].lpProps[1].Value.bin.cb, reinterpret_cast<ENTRYID *>(lpRowSet->aRow[0].lpProps[1].Value.bin.lpb), &IID_IMAPIFolder, 0, &ulObj, &~lpSrcFolder);
 		if (hr != hrSuccess) {
 			bPartial = true;
 			goto next_folder;
 		}
-
 		hr = lpDest->CreateFolder(FOLDER_GENERIC, (LPTSTR)lpRowSet->aRow[0].lpProps[0].Value.lpszW, NULL, &IID_IMAPIFolder,
-								  MAPI_UNICODE | (ulFlags & MAPI_NOREPLACE ? 0 : OPEN_IF_EXISTS), &lpDestFolder);
+		     MAPI_UNICODE | (ulFlags & MAPI_NOREPLACE ? 0 : OPEN_IF_EXISTS), &~lpDestFolder);
 		if (hr != hrSuccess) {
 			bPartial = true;
 			goto next_folder;
@@ -2826,39 +2806,14 @@ HRESULT Util::CopyHierarchy(LPMAPIFOLDER lpSrc, LPMAPIFOLDER lpDest, ULONG ulFla
 next_folder:
 		FreeProws(lpRowSet);
 		lpRowSet = NULL;
-		if (lpSrcFolder) {
-			lpSrcFolder->Release();
-			lpSrcFolder = NULL;
-		}
-
-		if (lpDestFolder) {
-			lpDestFolder->Release();
-			lpDestFolder = NULL;
-		}
 	}
 
 	if (bPartial)
 		hr = MAPI_W_PARTIAL_COMPLETION;
 
 exit:
-	if (lpDestParam)
-		lpDestParam->Release();
-
-	if (lpSrcParam)
-		lpSrcParam->Release();
-
 	if (lpRowSet)
 		FreeProws(lpRowSet);
-
-	if (lpSrcFolder)
-		lpSrcFolder->Release();
-
-	if (lpDestFolder)
-		lpDestFolder->Release();
-
-	if (lpTable)
-		lpTable->Release();
-
 	return hr;
 }
 
@@ -2878,14 +2833,13 @@ exit:
 HRESULT Util::CopyContents(ULONG ulWhat, LPMAPIFOLDER lpSrc, LPMAPIFOLDER lpDest, ULONG ulFlags, ULONG ulUIParam, LPMAPIPROGRESS lpProgress) {
 	HRESULT hr;
 	bool bPartial = false;
-	LPMAPITABLE lpTable = NULL;
+	object_ptr<IMAPITable> lpTable;
 	LPSRowSet lpRowSet = NULL;
 	SizedSPropTagArray(1, sptaEntryID) = { 1, { PR_ENTRYID } };
 	ULONG ulObj;
-	LPMESSAGE lpSrcMessage = NULL, lpDestMessage = NULL;
 	memory_ptr<ENTRYLIST> lpDeleteEntries;
 
-	hr = lpSrc->GetContentsTable(MAPI_UNICODE | ulWhat, &lpTable);
+	hr = lpSrc->GetContentsTable(MAPI_UNICODE | ulWhat, &~lpTable);
 	if (hr != hrSuccess)
 		goto exit;
 	hr = lpTable->SetColumns(sptaEntryID, 0);
@@ -2910,16 +2864,17 @@ HRESULT Util::CopyContents(ULONG ulWhat, LPMAPIFOLDER lpSrc, LPMAPIFOLDER lpDest
 		lpDeleteEntries->cValues = 0;
 
 		for (ULONG i = 0; i < lpRowSet->cRows; ++i) {
-			hr = lpSrc->OpenEntry(lpRowSet->aRow[i].lpProps[0].Value.bin.cb, (LPENTRYID)lpRowSet->aRow[i].lpProps[0].Value.bin.lpb, &IID_IMessage, 0, &ulObj, (LPUNKNOWN*)&lpSrcMessage);
-			if (hr != hrSuccess) {
-				bPartial = true;
-				goto next_item;
-			}
+			object_ptr<IMessage> lpSrcMessage, lpDestMessage;
 
-			hr = lpDest->CreateMessage(&IID_IMessage, ulWhat | MAPI_MODIFY, &lpDestMessage);
+			hr = lpSrc->OpenEntry(lpRowSet->aRow[i].lpProps[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(lpRowSet->aRow[i].lpProps[0].Value.bin.lpb), &IID_IMessage, 0, &ulObj, &~lpSrcMessage);
 			if (hr != hrSuccess) {
 				bPartial = true;
-				goto next_item;
+				continue;
+			}
+			hr = lpDest->CreateMessage(&IID_IMessage, ulWhat | MAPI_MODIFY, &~lpDestMessage);
+			if (hr != hrSuccess) {
+				bPartial = true;
+				continue;
 			}
 
 			hr = Util::DoCopyTo(&IID_IMessage, lpSrcMessage, 0, NULL, NULL, ulUIParam, lpProgress, &IID_IMessage, lpDestMessage, ulFlags, NULL);
@@ -2927,7 +2882,7 @@ HRESULT Util::CopyContents(ULONG ulWhat, LPMAPIFOLDER lpSrc, LPMAPIFOLDER lpDest
 				goto exit;
 			else if (hr != hrSuccess) {
 				bPartial = true;
-				goto next_item;
+				continue;
 			}
 
 			hr = lpDestMessage->SaveChanges(0);
@@ -2937,16 +2892,6 @@ HRESULT Util::CopyContents(ULONG ulWhat, LPMAPIFOLDER lpSrc, LPMAPIFOLDER lpDest
 				lpDeleteEntries->lpbin[lpDeleteEntries->cValues].cb = lpRowSet->aRow[i].lpProps[0].Value.bin.cb;
 				lpDeleteEntries->lpbin[lpDeleteEntries->cValues].lpb = lpRowSet->aRow[i].lpProps[0].Value.bin.lpb;
 				++lpDeleteEntries->cValues;
-			}
-next_item:
-			if (lpDestMessage) {
-				lpDestMessage->Release();
-				lpDestMessage = NULL;
-			}
-
-			if (lpSrcMessage) {
-				lpSrcMessage->Release();
-				lpSrcMessage = NULL;
 			}
 		}
 		if (ulFlags & MAPI_MOVE && lpDeleteEntries->cValues > 0 &&
@@ -2960,18 +2905,8 @@ next_item:
 		hr = MAPI_W_PARTIAL_COMPLETION;
 
 exit:
-	if (lpDestMessage)
-		lpDestMessage->Release();
-
-	if (lpSrcMessage)
-		lpSrcMessage->Release();
-
 	if (lpRowSet)
 		FreeProws(lpRowSet);
-
-	if (lpTable)
-		lpTable->Release();
-
 	return hr;
 }
 
@@ -2992,31 +2927,22 @@ exit:
  */
 HRESULT Util::TryOpenProperty(ULONG ulPropType, ULONG ulSrcPropTag, LPMAPIPROP lpPropSrc, ULONG ulDestPropTag, LPMAPIPROP lpPropDest, LPSTREAM *lppSrcStream, LPSTREAM *lppDestStream) {
 	HRESULT hr;
-	LPSTREAM lpSrc = NULL, lpDest = NULL;
+	object_ptr<IStream> lpSrc, lpDest;
 
-	hr = lpPropSrc->OpenProperty(PROP_TAG(ulPropType, PROP_ID(ulSrcPropTag)), &IID_IStream, 0, 0, (LPUNKNOWN*)&lpSrc);
+	hr = lpPropSrc->OpenProperty(PROP_TAG(ulPropType, PROP_ID(ulSrcPropTag)), &IID_IStream, 0, 0, &~lpSrc);
 	if (hr != hrSuccess)
 		goto exit;
 
 	// some mapi functions/providers don't implement STGM_TRANSACTED, retry again without this flag
-	hr = lpPropDest->OpenProperty(PROP_TAG(ulPropType, PROP_ID(ulDestPropTag)), &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, (LPUNKNOWN*)&lpDest);
+	hr = lpPropDest->OpenProperty(PROP_TAG(ulPropType, PROP_ID(ulDestPropTag)), &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~lpDest);
 	if (hr != hrSuccess)
-		hr = lpPropDest->OpenProperty(PROP_TAG(ulPropType, PROP_ID(ulDestPropTag)), &IID_IStream, STGM_WRITE, MAPI_CREATE | MAPI_MODIFY, (LPUNKNOWN*)&lpDest);
+		hr = lpPropDest->OpenProperty(PROP_TAG(ulPropType, PROP_ID(ulDestPropTag)), &IID_IStream, STGM_WRITE, MAPI_CREATE | MAPI_MODIFY, &~lpDest);
 	if (hr != hrSuccess)
 		goto exit;
 
-	*lppSrcStream = lpSrc;
-	*lppDestStream = lpDest;
-
+	*lppSrcStream = lpSrc.release();
+	*lppDestStream = lpDest.release();
 exit:
-	if (hr != hrSuccess) {
-		if (lpSrc)
-			lpSrc->Release();
-
-		if (lpDest)
-			lpDest->Release();
-	}
-
 	return hr;
 }
 
@@ -3087,7 +3013,7 @@ HRESULT Util::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj, ULONG ciidExclude
 													 PR_OBJECT_TYPE, PR_ENTRYID, PR_PARENT_ENTRYID, PR_INTERNET_CONTENT,
 													 PR_NULL, PR_NULL, PR_NULL, PR_NULL }};
 
-	LPMAPIPROP lpPropSrc = NULL, lpPropDest = NULL;
+	object_ptr<IMAPIProp> lpPropSrc, lpPropDest;
 	memory_ptr<SPropTagArray> lpSPropTagArray;
 
 	if (!lpSrcInterface || !lpSrcObj || !lpDestInterface || !lpDestObj) {
@@ -3185,11 +3111,10 @@ HRESULT Util::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj, ULONG ciidExclude
 	}
 
 	// we have a IMAPIProp compatible interface here, and we don't want to crash
-	hr = QueryInterfaceMapiPropOrValidFallback(lpUnkSrc, lpSrcInterface, (IUnknown**)&lpPropSrc);
+	hr = QueryInterfaceMapiPropOrValidFallback(lpUnkSrc, lpSrcInterface, &~lpPropSrc);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = QueryInterfaceMapiPropOrValidFallback(lpUnkDest, lpDestInterface, (IUnknown**)&lpPropDest);
+	hr = QueryInterfaceMapiPropOrValidFallback(lpUnkDest, lpDestInterface, &~lpPropDest);
 	if (hr != hrSuccess)
 		goto exit;
 	if (!FHasHTML(lpPropDest))
@@ -3252,12 +3177,6 @@ exit:
 	// Partial warning when data was copied.
 	if (bPartial)
 		hr = MAPI_W_PARTIAL_COMPLETION;
-	if (lpPropSrc)
-		lpPropSrc->Release();
-
-	if (lpPropDest)
-		lpPropDest->Release();
-
 	return hr;
 }
 
@@ -3336,11 +3255,11 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, LPVOID lpSrcObj, LPSPropTagArra
 {
 	HRESULT hr = hrSuccess;
 	LPUNKNOWN lpUnkSrc = (LPUNKNOWN)lpSrcObj, lpUnkDest = (LPUNKNOWN)lpDestObj;
-	IECUnknown* lpKopano = NULL;
+	object_ptr<IECUnknown> lpKopano;
 	memory_ptr<SPropValue> lpZObj, lpProps;
 	bool bPartial = false;
 
-	LPMAPIPROP lpSrcProp = NULL, lpDestProp = NULL;
+	object_ptr<IMAPIProp> lpSrcProp, lpDestProp;
 	ULONG cValues = 0;
 	memory_ptr<SPropTagArray> lpsDestPropArray;
 	memory_ptr<SPropProblemArray> lpProblems;
@@ -3353,9 +3272,6 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, LPVOID lpSrcObj, LPSPropTagArra
 
 	// attachments
 	memory_ptr<SPropValue> lpAttachMethod;
-	LPSTREAM lpSrcStream = NULL, lpDestStream = NULL;
-	LPMESSAGE lpSrcMessage = NULL, lpDestMessage = NULL;
-
 	LONG ulIdCPID;
 	LONG ulIdRTF;
 	LONG ulIdHTML;
@@ -3368,18 +3284,17 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, LPVOID lpSrcObj, LPSPropTagArra
 	}
 
 	// q-i src and dest to check if IID_IMAPIProp is present
-	hr = QueryInterfaceMapiPropOrValidFallback(lpUnkSrc, lpSrcInterface, (IUnknown**)&lpSrcProp);
+	hr = QueryInterfaceMapiPropOrValidFallback(lpUnkSrc, lpSrcInterface, &~lpSrcProp);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = QueryInterfaceMapiPropOrValidFallback(lpUnkDest, lpDestInterface, (IUnknown**)&lpDestProp);
+	hr = QueryInterfaceMapiPropOrValidFallback(lpUnkDest, lpDestInterface, &~lpDestProp);
 	if (hr != hrSuccess)
 		goto exit;
 
 	// take some shortcuts if we're dealing with a Kopano message destination
 	if (HrGetOneProp(lpDestProp, PR_EC_OBJECT, &~lpZObj) == hrSuccess &&
 	    lpZObj->Value.lpszA != NULL)
-		((IECUnknown*)lpZObj->Value.lpszA)->QueryInterface(IID_ECMessage, (void**)&lpKopano);
+		reinterpret_cast<IECUnknown *>(lpZObj->Value.lpszA)->QueryInterface(IID_ECMessage, &~lpKopano);
 
 	if (ulFlags & MAPI_NOREPLACE) {
 		hr = lpDestProp->GetPropList(MAPI_UNICODE, &~lpsDestPropArray);
@@ -3459,6 +3374,8 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, LPVOID lpSrcObj, LPSPropTagArra
 				isProblem = true;
 			}
 		} else if (*lpSrcInterface == IID_IAttachment) {
+			object_ptr<IStream> lpSrcStream, lpDestStream;
+			object_ptr<IMessage> lpSrcMessage, lpDestMessage;
 			ULONG ulAttachMethod;
 
 			// In attachments, IID_IMessage can be present!  for PR_ATTACH_DATA_OBJ
@@ -3472,13 +3389,13 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, LPVOID lpSrcObj, LPSPropTagArra
 			case ATTACH_OLE:
 				// stream
 				// Not being able to open the source message is not an error: it may just not be there
-				if(((LPATTACH)lpSrcObj)->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, 0, 0, (LPUNKNOWN *)&lpSrcStream) == hrSuccess) {
+				if (((LPATTACH)lpSrcObj)->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, 0, 0, &~lpSrcStream) == hrSuccess) {
 					// While dragging and dropping, Outlook 2007 (atleast) returns an internal MAPI object to CopyTo as destination
 					// The internal MAPI object is unable to make a stream STGM_TRANSACTED, so we retry the action without that flag
 					// to get the stream without the transaction feature.
-					hr = ((LPATTACH)lpDestObj)->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, (LPUNKNOWN *)&lpDestStream);
+					hr = ((LPATTACH)lpDestObj)->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~lpDestStream);
 					if (hr != hrSuccess)
-						hr = ((LPATTACH)lpDestObj)->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, STGM_WRITE, MAPI_CREATE | MAPI_MODIFY, (LPUNKNOWN *)&lpDestStream);
+						hr = ((LPATTACH)lpDestObj)->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, STGM_WRITE, MAPI_CREATE | MAPI_MODIFY, &~lpDestStream);
 					if (hr != hrSuccess) {
 						isProblem = true;
 						goto next_include_check;
@@ -3489,11 +3406,11 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, LPVOID lpSrcObj, LPSPropTagArra
 						goto next_include_check;
 					}
 				} else if(lpAttachMethod->Value.ul == ATTACH_OLE &&
-					((LPATTACH)lpSrcObj)->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IStream, 0, 0, (LPUNKNOWN *)&lpSrcStream) == hrSuccess) {
+				    ((LPATTACH)lpSrcObj)->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IStream, 0, 0, &~lpSrcStream) == hrSuccess) {
 					// OLE 2.0 must be open with PR_ATTACH_DATA_OBJ
-					hr = ((LPATTACH)lpDestObj)->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, (LPUNKNOWN *)&lpDestStream);
+					hr = ((LPATTACH)lpDestObj)->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~lpDestStream);
 					if (hr == E_FAIL)
-						hr = ((LPATTACH)lpDestObj)->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IStream, STGM_WRITE, MAPI_CREATE | MAPI_MODIFY, (LPUNKNOWN *)&lpDestStream);
+						hr = ((LPATTACH)lpDestObj)->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IStream, STGM_WRITE, MAPI_CREATE | MAPI_MODIFY, &~lpDestStream);
 					if (hr != hrSuccess) {
 						isProblem = true;
 						goto next_include_check;
@@ -3507,9 +3424,9 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, LPVOID lpSrcObj, LPSPropTagArra
 				break;
 			case ATTACH_EMBEDDED_MSG:
 				// message
-				if (((LPATTACH)lpSrcObj)->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, 0, (LPUNKNOWN *)&lpSrcMessage) == hrSuccess) {
+				if (((LPATTACH)lpSrcObj)->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, 0, &~lpSrcMessage) == hrSuccess) {
 					// Not being able to open the source message is not an error: it may just not be there
-					hr = ((LPATTACH)lpDestObj)->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY, (LPUNKNOWN *)&lpDestMessage);
+					hr = ((LPATTACH)lpDestObj)->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY, &~lpDestMessage);
 					if (hr != hrSuccess) {
 						isProblem = true;
 						goto next_include_check;
@@ -3545,22 +3462,6 @@ next_include_check:
 			hr = AddProblemToArray(&sProblem, &+lpProblems);
 			if (hr != hrSuccess)
 				goto exit;
-		}
-		if (lpDestStream) {
-			lpDestStream->Release();
-			lpDestStream = NULL;
-		}
-		if (lpSrcStream) {
-			lpSrcStream->Release();
-			lpSrcStream = NULL;
-		}
-		if (lpSrcMessage) {
-			lpSrcMessage->Release();
-			lpSrcMessage = NULL;
-		}
-		if (lpDestMessage) {
-			lpDestMessage->Release();
-			lpDestMessage = NULL;
 		}
 		// skip this prop for the final SetProps()
 		lpIncludeProps->aulPropTag[i] = PR_NULL;
@@ -3635,26 +3536,18 @@ next_include_check:
 		if (!err)
 			continue;
 		assert(PROP_ID(lpIncludeProps->aulPropTag[i]) == PROP_ID(lpProps[i].ulPropTag));
-		hr = Util::TryOpenProperty(PROP_TYPE(lpIncludeProps->aulPropTag[i]), lpProps[i].ulPropTag, lpSrcProp, lpsDestTagArray->aulPropTag[i], lpDestProp, &lpSrcStream, &lpDestStream);
+		object_ptr<IStream> lpSrcStream, lpDestStream;
+		hr = Util::TryOpenProperty(PROP_TYPE(lpIncludeProps->aulPropTag[i]), lpProps[i].ulPropTag, lpSrcProp, lpsDestTagArray->aulPropTag[i], lpDestProp, &~lpSrcStream, &~lpDestStream);
 		if (hr != hrSuccess) {
 			// TODO: check, partial or problemarray?
 			// when the prop was not found (body property), it actually wasn't present, so don't mark as partial
 			if (hr != MAPI_E_NOT_FOUND)
 				bPartial = true;
-			goto next_stream_prop;
+			continue;
 		}
 		hr = Util::CopyStream(lpSrcStream, lpDestStream);
 		if (hr != hrSuccess)
 			bPartial = true;
- next_stream_prop:
-		if (lpSrcStream) {
-			lpSrcStream->Release();
-			lpSrcStream = NULL;
-		}
-		if (lpDestStream) {
-			lpDestStream->Release();
-			lpDestStream = NULL;
-		}
 	}
 
 	// set destination proptags in original properties
@@ -3684,24 +3577,6 @@ exit:
 	if (hr == hrSuccess && lppProblems != nullptr)
 		// may not return a problem set when we have an warning/error code in hr
 		*lppProblems = lpProblems.release();
-	if (lpSrcMessage)
-		lpSrcMessage->Release();
-
-	if (lpDestMessage)
-		lpDestMessage->Release();
-
-	if (lpSrcStream)
-		lpSrcStream->Release();
-
-	if (lpDestStream)
-		lpDestStream->Release();
-	if (lpSrcProp)
-		lpSrcProp->Release();
-
-	if (lpDestProp)
-		lpDestProp->Release();
-	if (lpKopano)
-		lpKopano->Release();
 	return hr;
 }
 
@@ -3717,8 +3592,7 @@ exit:
 HRESULT Util::HrCopyIMAPData(LPMESSAGE lpSrcMsg, LPMESSAGE lpDstMsg)
 {
 	HRESULT hr = hrSuccess;
-	LPSTREAM lpSrcStream = NULL;
-	LPSTREAM lpDestStream = NULL;
+	object_ptr<IStream> lpSrcStream, lpDestStream;
 	SizedSPropTagArray(3, sptaIMAP) = {
 		3, { PR_EC_IMAP_EMAIL_SIZE,
 			 PR_EC_IMAP_BODY,
@@ -3730,7 +3604,7 @@ HRESULT Util::HrCopyIMAPData(LPMESSAGE lpSrcMsg, LPMESSAGE lpDstMsg)
 
 	// special case: get PR_EC_IMAP_BODY if present, and copy with single instance
 	// hidden property in kopano, try to copy contents
-	if (Util::TryOpenProperty(PT_BINARY, PR_EC_IMAP_EMAIL, lpSrcMsg, PR_EC_IMAP_EMAIL, lpDstMsg, &lpSrcStream, &lpDestStream) == hrSuccess) {
+	if (Util::TryOpenProperty(PT_BINARY, PR_EC_IMAP_EMAIL, lpSrcMsg, PR_EC_IMAP_EMAIL, lpDstMsg, &~lpSrcStream, &~lpDestStream) == hrSuccess) {
 		if (Util::CopyStream(lpSrcStream, lpDestStream) == hrSuccess) {
 			/*
 			 * Try making a single instance copy for IMAP body data (without sending the data to server).
@@ -3752,11 +3626,6 @@ HRESULT Util::HrCopyIMAPData(LPMESSAGE lpSrcMsg, LPMESSAGE lpDstMsg)
 	}
 
 exit:
-	if (lpDestStream)
-		lpDestStream->Release();
-
-	if (lpSrcStream)
-		lpSrcStream->Release();
 	return hr;
 }
 
@@ -4014,9 +3883,9 @@ HRESULT Util::HrDeleteMessage(IMAPISession *lpSession, IMessage *lpMessage)
 HRESULT Util::ReadProperty(IMAPIProp *lpProp, ULONG ulPropTag, std::string &strData)
 {
 	HRESULT hr = hrSuccess;
-	IStream *lpStream = NULL;
+	object_ptr<IStream> lpStream;
 
-	hr = lpProp->OpenProperty(ulPropTag, &IID_IStream, 0, 0, (IUnknown **)&lpStream);
+	hr = lpProp->OpenProperty(ulPropTag, &IID_IStream, 0, 0, &~lpStream);
 	if(hr != hrSuccess)
 		goto exit;
 		
@@ -4025,9 +3894,6 @@ HRESULT Util::ReadProperty(IMAPIProp *lpProp, ULONG ulPropTag, std::string &strD
 		goto exit;
 	
 exit:
-	if(lpStream)
-		lpStream->Release();
-		
 	return hr;
 }
 
@@ -4046,10 +3912,10 @@ exit:
 HRESULT Util::WriteProperty(IMAPIProp *lpProp, ULONG ulPropTag, const std::string &strData)
 {
 	HRESULT hr = hrSuccess;
-	IStream *lpStream = NULL;
+	object_ptr<IStream> lpStream;
 	ULONG len = 0;
 
-	hr = lpProp->OpenProperty(ulPropTag, &IID_IStream, STGM_DIRECT, MAPI_CREATE | MAPI_MODIFY, (IUnknown **)&lpStream);
+	hr = lpProp->OpenProperty(ulPropTag, &IID_IStream, STGM_DIRECT, MAPI_CREATE | MAPI_MODIFY, &~lpStream);
 	if(hr != hrSuccess)
 		goto exit;
 		
@@ -4062,9 +3928,6 @@ HRESULT Util::WriteProperty(IMAPIProp *lpProp, ULONG ulPropTag, const std::strin
 		goto exit;
 
 exit:
-	if(lpStream)
-		lpStream->Release();
-		
 	return hr;
 }
 

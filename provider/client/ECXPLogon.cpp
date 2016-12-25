@@ -268,23 +268,22 @@ HRESULT ECXPLogon::ClearOldSubmittedMessages(LPMAPIFOLDER lpFolder)
 HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpulMsgRef, ULONG * lpulReturnParm)
 {
 	HRESULT hr = hrSuccess;
-	LPMAPITABLE lpRecipTable = NULL;
+	object_ptr<IMAPITable> lpRecipTable;
 	LPSRowSet lpRecipRows = NULL;
 	
 	ULONG ulRow = 0;
 	ULONG ulRowCount = 0;
 
 	memory_ptr<SPropValue> lpEntryID, lpECObject;
-	IMsgStore *lpOnlineStore = NULL;
-	ECMsgStore *lpOnlineECMsgStore = NULL;
+	object_ptr<IMsgStore> lpOnlineStore;
+	object_ptr<ECMsgStore> lpOnlineECMsgStore, lpECMsgStore;
 	ULONG ulObjType;
-	ECMsgStore *lpECMsgStore = NULL;
-	LPMAPIFOLDER lpSubmitFolder = NULL;
-	LPMESSAGE lpSubmitMessage = NULL;
+	object_ptr<IMAPIFolder> lpSubmitFolder;
+	object_ptr<IMessage> lpSubmitMessage;
 	SPropValue sDeleteAfterSubmitProp;
 	ULONG ulOnlineAdviseConnection = 0;
 	ENTRYLIST sDelete;
-	IMsgStore *lpMsgStore = NULL;
+	object_ptr<IMsgStore> lpMsgStore;
 	ULONG ulType = 0;
 
 	SizedSPropTagArray(6, sptExcludeProps) = {6,{PR_SENTMAIL_ENTRYID, PR_SOURCE_KEY, PR_CHANGE_KEY, PR_PREDECESSOR_CHANGE_LIST, PR_ENTRYID, PR_SUBMIT_FLAGS}};
@@ -304,7 +303,7 @@ HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpu
 		goto exit;
 
 	// Get the recipient table from the message
-	hr = lpMessage->GetRecipientTable(fMapiUnicode, &lpRecipTable);
+	hr = lpMessage->GetRecipientTable(fMapiUnicode, &~lpRecipTable);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -332,36 +331,30 @@ HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpu
 		hr = MAPI_E_NOT_ME;
 		goto exit;
 	}
-
-	if (HrGetECMsgStore(lpMessage, &lpECMsgStore) != hrSuccess) {
-		hr = m_lpMAPISup->OpenEntry(this->m_lpXPProvider->m_lpIdentityProps[XPID_STORE_EID].Value.bin.cb, (LPENTRYID)this->m_lpXPProvider->m_lpIdentityProps[XPID_STORE_EID].Value.bin.lpb, NULL, MAPI_MODIFY, &ulType, (IUnknown **)&lpMsgStore);
+	if (HrGetECMsgStore(lpMessage, &~lpECMsgStore) != hrSuccess) {
+		hr = m_lpMAPISup->OpenEntry(this->m_lpXPProvider->m_lpIdentityProps[XPID_STORE_EID].Value.bin.cb, reinterpret_cast<ENTRYID *>(this->m_lpXPProvider->m_lpIdentityProps[XPID_STORE_EID].Value.bin.lpb), nullptr, MAPI_MODIFY, &ulType, &~lpMsgStore);
 		if (hr != hrSuccess)
 			goto exit;
 		hr = HrGetOneProp(lpMsgStore, PR_EC_OBJECT, &~lpECObject);
 		if (hr != hrSuccess)
 			goto exit;
-
-		lpECMsgStore = (ECMsgStore*)lpECObject->Value.lpszA;
-		lpECMsgStore->AddRef();
+		lpECMsgStore.reset(reinterpret_cast<ECMsgStore *>(lpECObject->Value.lpszA));
 	}
 
-	hr = lpECMsgStore->QueryInterface(IID_ECMsgStoreOnline, (LPVOID*)&lpOnlineStore);
+	hr = lpECMsgStore->QueryInterface(IID_ECMsgStoreOnline, &~lpOnlineStore);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = HrGetECMsgStore(lpOnlineStore, &lpOnlineECMsgStore);
+	hr = HrGetECMsgStore(lpOnlineStore, &~lpOnlineECMsgStore);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = lpOnlineStore->OpenEntry(0, NULL, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*)&lpSubmitFolder);
+	hr = lpOnlineStore->OpenEntry(0, nullptr, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpSubmitFolder);
 	if (hr != hrSuccess)
 		goto exit;
 
 	hr = ClearOldSubmittedMessages(lpSubmitFolder);
 	if (FAILED(hr))
 		goto exit;
-
-	hr = lpSubmitFolder->CreateMessage(&IID_IMessage, 0, &lpSubmitMessage);
+	hr = lpSubmitFolder->CreateMessage(&IID_IMessage, 0, &~lpSubmitMessage);
 	if (hr != hrSuccess)
 		goto exit;
 	hr = lpMessage->CopyTo(0, NULL, sptExcludeProps, 0, NULL,
@@ -454,28 +447,8 @@ HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpu
 	// only important for other transports running on the same lpMessage.
 
 exit:
-	if (lpMsgStore)
-		lpMsgStore->Release();
-	if (lpOnlineStore)
-		lpOnlineStore->Release();
-
-	if (lpECMsgStore)
-		lpECMsgStore->Release();
-
-	if (lpOnlineECMsgStore)
-		lpOnlineECMsgStore->Release();
-
-	if (lpSubmitMessage)
-		lpSubmitMessage->Release();
-
-	if (lpSubmitFolder)
-		lpSubmitFolder->Release();
 	if(lpRecipRows)
 		FreeProws (lpRecipRows);
-
-	if(lpRecipTable)
-		lpRecipTable->Release();
-	lpMessage->Release();
 	return hr;
 }
 

@@ -27,6 +27,8 @@
 #include "ECChangeAdvisor.h"
 #include "ECMsgStore.h"
 
+using namespace KCHL;
+
 ULONG ECChangeAdvisor::GetSyncId(const ConnectionMap::value_type &sConnection)
 {
 	return sConnection.first;
@@ -105,7 +107,7 @@ HRESULT ECChangeAdvisor::QueryInterface(REFIID refiid, void **lppInterface)
 HRESULT ECChangeAdvisor::Create(ECMsgStore *lpMsgStore, ECChangeAdvisor **lppChangeAdvisor)
 {
 	HRESULT			hr = hrSuccess;
-	ECChangeAdvisor	*lpChangeAdvisor = NULL;
+	object_ptr<ECChangeAdvisor> lpChangeAdvisor;
 	BOOL			fEnhancedICS = false;
 
 	if (lpMsgStore == NULL || lppChangeAdvisor == NULL) {
@@ -125,8 +127,7 @@ HRESULT ECChangeAdvisor::Create(ECMsgStore *lpMsgStore, ECChangeAdvisor **lppCha
 		hr = MAPI_E_NO_SUPPORT;
 		goto exit;
 	}
-
-	lpChangeAdvisor = new ECChangeAdvisor(lpMsgStore);
+	lpChangeAdvisor.reset(new ECChangeAdvisor(lpMsgStore), false);
 	hr = lpChangeAdvisor->QueryInterface(IID_ECChangeAdvisor, (void**)lppChangeAdvisor);
 	if (hr != hrSuccess)
 		goto exit;
@@ -134,13 +135,8 @@ HRESULT ECChangeAdvisor::Create(ECMsgStore *lpMsgStore, ECChangeAdvisor **lppCha
 	hr = lpMsgStore->lpTransport->AddSessionReloadCallback(lpChangeAdvisor, &Reload, &lpChangeAdvisor->m_ulReloadId);
 	if (hr != hrSuccess)
 		goto exit;
-
-	lpChangeAdvisor = NULL;
-
+	lpChangeAdvisor.release();
 exit:
-	if (lpChangeAdvisor)
-		lpChangeAdvisor->Release();
-
 	return hr;
 }
 
@@ -154,7 +150,7 @@ HRESULT ECChangeAdvisor::Config(LPSTREAM lpStream, LPGUID /*lpGUID*/,
 {
 	HRESULT					hr = hrSuccess;
 	ULONG					ulVal = 0;
-	KCHL::memory_ptr<ENTRYLIST> lpEntryList;
+	memory_ptr<ENTRYLIST> lpEntryList;
 	ULONG					ulRead = {0};
 	LARGE_INTEGER			liSeekStart = {{0}};
 

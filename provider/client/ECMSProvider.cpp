@@ -40,14 +40,14 @@
 #include "ProviderUtil.h"
 #include <kopano/stringutil.h>
 
-using namespace std;
-
 #include <edkguid.h>
 
 #include <cwchar>
 #include <kopano/charset/convert.h>
 #include <kopano/charset/utf8string.h>
 
+using namespace std;
+using namespace KCHL;
 typedef KCHL::memory_ptr<ECUSER> ECUserPtr;
 
 ECMSProvider::ECMSProvider(ULONG ulFlags, const char *szClassName) :
@@ -85,13 +85,12 @@ HRESULT ECMSProvider::Shutdown(ULONG * lpulFlags)
 HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface, ULONG *lpcbSpoolSecurity, LPBYTE *lppbSpoolSecurity, LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
 {
 	HRESULT			hr = hrSuccess;
-	WSTransport*	lpTransport = NULL;
-	ECMsgStore*		lpECMsgStore = NULL;
-	ECMSLogon*		lpECMSLogon = NULL;
-
-	LPPROFSECT		lpProfSect = NULL;
+	object_ptr<WSTransport> lpTransport;
+	object_ptr<ECMsgStore> lpECMsgStore;
+	object_ptr<ECMSLogon> lpECMSLogon;
+	object_ptr<IProfSect> lpProfSect;
 	ULONG			cValues = 0;
-	KCHL::memory_ptr<SPropValue> lpsPropArray;
+	memory_ptr<SPropValue> lpsPropArray;
 	BOOL			fIsDefaultStore = FALSE;
 	ULONG			ulStoreType = 0;
 	MAPIUID			guidMDBProvider;
@@ -120,7 +119,7 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 		goto exit;
 
 	// Open profile settings
-	hr = lpMAPISup->OpenProfileSection(NULL, MAPI_MODIFY, &lpProfSect);
+	hr = lpMAPISup->OpenProfileSection(nullptr, MAPI_MODIFY, &~lpProfSect);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -135,11 +134,10 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 	if (lpsPropArray[1].ulPropTag == PR_RESOURCE_FLAGS && (lpsPropArray[1].Value.ul & STATUS_DEFAULT_STORE) == STATUS_DEFAULT_STORE)
 		fIsDefaultStore = TRUE;
 	// Create a transport for this message store
-	hr = WSTransport::Create(ulFlags, &lpTransport);
+	hr = WSTransport::Create(ulFlags, &~lpTransport);
 	if(hr != hrSuccess)
 		goto exit;
-
-	hr = LogonByEntryID(&lpTransport, &sProfileProps, cbEntryID, lpEntryID);
+	hr = LogonByEntryID(&+lpTransport, &sProfileProps, cbEntryID, lpEntryID);
 	if (lpsPropArray[0].ulPropTag == PR_MDB_PROVIDER) {
 		memcpy(&guidMDBProvider, lpsPropArray[0].Value.bin.lpb, sizeof(MAPIUID));
 	} else if (fIsDefaultStore == FALSE){
@@ -170,8 +168,7 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 
 	// Get a message store object
 	hr = CreateMsgStoreObject((LPSTR)sProfileProps.strProfileName.c_str(), lpMAPISup, cbEntryID, lpEntryID, ulFlags, sProfileProps.ulProfileFlags, lpTransport,
-							&guidMDBProvider, false, fIsDefaultStore, bOfflineStore,
-							&lpECMsgStore);
+	     &guidMDBProvider, false, fIsDefaultStore, bOfflineStore, &~lpECMsgStore);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -192,8 +189,7 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 
 	// We don't count lpMSLogon as a child, because its lifetime is coupled to lpMsgStore
 	if(lppMSLogon) {
-		hr = ECMSLogon::Create(lpECMsgStore, &lpECMSLogon);
-
+		hr = ECMSLogon::Create(lpECMsgStore, &~lpECMSLogon);
 		if(hr != hrSuccess)
 			goto exit;
 			
@@ -204,17 +200,6 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 	}
 
 exit:
-	if(lpProfSect)
-		lpProfSect->Release();
-
-	if(lpECMsgStore)
-		lpECMsgStore->Release();
-		
-	if(lpECMSLogon)
-		lpECMSLogon->Release();
-
-	if(lpTransport)
-		lpTransport->Release();
 	return hr;
 }
 
@@ -223,12 +208,11 @@ exit:
 HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulFlags, LPCIID lpInterface, ULONG cbSpoolSecurity, LPBYTE lpbSpoolSecurity, LPMAPIERROR *lppMAPIError, LPMSLOGON *lppMSLogon, LPMDB *lppMDB)
 {
 	HRESULT hr = hrSuccess;
-	WSTransport *lpTransport = NULL;
-	ECMsgStore *lpMsgStore = NULL;
-	ECMSLogon *lpLogon = NULL;
+	object_ptr<WSTransport> lpTransport;
+	object_ptr<ECMsgStore> lpMsgStore;
+	object_ptr<ECMSLogon> lpLogon;
 	MAPIUID	guidMDBProvider;
-
-	LPPROFSECT lpProfSect = NULL;
+	object_ptr<IProfSect> lpProfSect;
 	ULONG cValues = 0;
 	LPSPropValue lpsPropArray = NULL;
 	bool bOfflineStore = false;
@@ -251,7 +235,7 @@ HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR 
 		goto exit;
 
 	// Open profile settings
-	hr = lpMAPISup->OpenProfileSection(NULL, MAPI_MODIFY, &lpProfSect);
+	hr = lpMAPISup->OpenProfileSection(nullptr, MAPI_MODIFY, &~lpProfSect);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -286,12 +270,10 @@ HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR 
 	sProfileProps.strPassword = strSep;
 
 	// Create a transport for this message store
-	hr = WSTransport::Create(ulFlags, &lpTransport);
-
+	hr = WSTransport::Create(ulFlags, &~lpTransport);
 	if(hr != hrSuccess)
 		goto exit;
-
-	hr = LogonByEntryID(&lpTransport, &sProfileProps, cbEntryID, lpEntryID);
+	hr = LogonByEntryID(&+lpTransport, &sProfileProps, cbEntryID, lpEntryID);
 	if(hr != hrSuccess) {
 		if(ulFlags & MDB_NO_DIALOG) {
 			hr = MAPI_E_FAILONEPROVIDER;
@@ -304,8 +286,7 @@ HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR 
 
 	// Get a message store object
 	hr = CreateMsgStoreObject((LPSTR)sProfileProps.strProfileName.c_str(), lpMAPISup, cbEntryID, lpEntryID, ulFlags, sProfileProps.ulProfileFlags, lpTransport,
-								&guidMDBProvider, true, true, bOfflineStore, 
-								&lpMsgStore);
+	     &guidMDBProvider, true, true, bOfflineStore, &~lpMsgStore);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -324,7 +305,7 @@ HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR 
 	}
 
 	if(lppMSLogon) {
-		hr = ECMSLogon::Create(lpMsgStore, &lpLogon);
+		hr = ECMSLogon::Create(lpMsgStore, &~lpLogon);
 		if(hr != hrSuccess)
 			goto exit;
 			
@@ -334,18 +315,6 @@ HRESULT ECMSProvider::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR 
 	}
 
 exit:
-	if(lpProfSect)
-		lpProfSect->Release();
-
-	if(lpMsgStore)
-		lpMsgStore->Release();
-		
-	if(lpLogon)
-		lpLogon->Release();
-
-	if(lpTransport)
-		lpTransport->Release();
-
 	return hr;
 }
 	

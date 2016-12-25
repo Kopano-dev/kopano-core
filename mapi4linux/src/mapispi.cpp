@@ -31,6 +31,8 @@
 #include <algorithm>
 #include <kopano/mapi_ptr.h>
 
+using namespace KCHL;
+
 M4LMAPIGetSession::M4LMAPIGetSession(LPMAPISESSION new_session) {
 	assert(new_session != NULL);
 	session = new_session;
@@ -152,7 +154,7 @@ HRESULT M4LMAPISupport::Unsubscribe(ULONG ulConnection) {
 HRESULT M4LMAPISupport::Notify(LPNOTIFKEY lpKey, ULONG cNotification, LPNOTIFICATION lpNotifications, ULONG * lpulFlags) {
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPISupport::Notify", "");
 	HRESULT hr = hrSuccess;
-	LPMAPIADVISESINK lpAdviseSink = NULL;
+	KCHL::object_ptr<IMAPIAdviseSink> lpAdviseSink;
 	ulock_normal l_adv(m_advises_mutex);
 
 	auto iter = find_if(m_advises.cbegin(), m_advises.cend(), findKey(lpKey));
@@ -161,15 +163,11 @@ HRESULT M4LMAPISupport::Notify(LPNOTIFKEY lpKey, ULONG cNotification, LPNOTIFICA
 		/* Should this be reported as error? */
 		goto exit;
 	}
-	lpAdviseSink = iter->second.lpAdviseSink;
-	lpAdviseSink->AddRef();
+	lpAdviseSink.reset(iter->second.lpAdviseSink);
 	l_adv.unlock();
 	hr = lpAdviseSink->OnNotify(cNotification, lpNotifications);
 
 exit:
-	if (lpAdviseSink)
-		lpAdviseSink->Release();
-
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPISupport::Notify", "0x%08x", hr);
     return hr;
 }
@@ -404,10 +402,7 @@ HRESULT M4LMAPISupport::CopyFolder(LPCIID lpSrcInterface, LPVOID lpSrcFolder, UL
 								   LPMAPIPROGRESS lpProgress, ULONG ulFlags) {
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPISupport::CopyFolder", "");
 	HRESULT hr = hrSuccess;
-	LPMAPIFOLDER lpSource = NULL;
-	LPMAPIFOLDER lpDest = NULL;
-	LPMAPIFOLDER lpFolder = NULL;
-	LPMAPIFOLDER lpSubFolder = NULL;
+	object_ptr<IMAPIFolder> lpSource, lpDest, lpFolder, lpSubFolder;
 	KCHL::memory_ptr<SPropValue> lpSourceName;
 	ULONG ulObjType  = 0;
 	ULONG ulFolderFlags = 0;
@@ -427,17 +422,15 @@ HRESULT M4LMAPISupport::CopyFolder(LPCIID lpSrcInterface, LPVOID lpSrcFolder, UL
 		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 		goto exit;
 	}
-
-	hr = ((LPUNKNOWN)lpSrcFolder)->QueryInterface(IID_IMAPIFolder, (void**)&lpSource);
+	hr = ((LPUNKNOWN)lpSrcFolder)->QueryInterface(IID_IMAPIFolder, &~lpSource);
 	if (hr != hrSuccess)
 		goto exit;
 
 	// lpDestInterface == NULL or IID_IMAPIFolder compatible
-	hr = ((LPUNKNOWN)lpDestFolder)->QueryInterface(IID_IMAPIFolder, (void**)&lpDest);
+	hr = ((LPUNKNOWN)lpDestFolder)->QueryInterface(IID_IMAPIFolder, &~lpDest);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = lpSource->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, 0, &ulObjType, (LPUNKNOWN *)&lpFolder);
+	hr = lpSource->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, 0, &ulObjType, &~lpFolder);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -451,7 +444,7 @@ HRESULT M4LMAPISupport::CopyFolder(LPCIID lpSrcInterface, LPVOID lpSrcFolder, UL
 	} else
 		ulFolderFlags |= (ulFlags & MAPI_UNICODE);
 
-	hr = lpDest->CreateFolder(FOLDER_GENERIC, lpszNewFolderName, NULL, &IID_IMAPIFolder, ulFolderFlags, &lpSubFolder);
+	hr = lpDest->CreateFolder(FOLDER_GENERIC, lpszNewFolderName, nullptr, &IID_IMAPIFolder, ulFolderFlags, &~lpSubFolder);
 	if (hr != hrSuccess)
 		goto exit;
 	hr = this->DoCopyTo(&IID_IMAPIFolder, lpFolder, 0, NULL, sExcludeProps,
@@ -463,17 +456,6 @@ HRESULT M4LMAPISupport::CopyFolder(LPCIID lpSrcInterface, LPVOID lpSrcFolder, UL
 		lpSource->DeleteFolder(cbEntryID, (LPENTRYID)lpEntryID, 0, NULL, DEL_FOLDERS | DEL_MESSAGES);
 
 exit:
-	if (lpDest)
-		lpDest->Release();
-
-	if (lpSource)
-		lpSource->Release();
-
-	if (lpFolder)
-		lpFolder->Release();
-	if (lpSubFolder)
-		lpSubFolder->Release();
-
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPISupport::CopyFolder", "0x%08x", hr);
 	return hr;
 }

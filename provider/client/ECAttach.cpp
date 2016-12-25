@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
+#include <kopano/memory.hpp>
 #include <mapiguid.h>
 #include <mapicode.h>
 #include <mapiutil.h>
@@ -26,6 +27,8 @@
 #include <kopano/ECGuid.h>
 #include <kopano/ECDebug.h>
 #include <kopano/ECInterfaceDefs.h>
+
+using namespace KCHL;
 
 HRESULT ECAttachFactory::Create(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, ULONG ulAttachNum, ECMAPIProp *lpRoot, ECAttach **lppAttach) const
 {
@@ -96,9 +99,8 @@ HRESULT ECAttach::SaveChanges(ULONG ulFlags)
 HRESULT ECAttach::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk)
 {
 	HRESULT			hr = hrSuccess;
-	ECMessage*		lpMessage = NULL;
-	IECPropStorage*	lpParentStorage = NULL;
-
+	object_ptr<ECMessage> lpMessage;
+	object_ptr<IECPropStorage> lpParentStorage;
 	SPropValue		sPropValue[3];
 	LPSPropValue	lpPropAttachType = NULL;
 	LPMAPIUID		lpMapiUID = NULL;
@@ -140,12 +142,12 @@ HRESULT ECAttach::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceO
 			ulObjId = 0;
 		}
 
-		hr = ECMessage::Create(this->GetMsgStore(), fNew, ulFlags & MAPI_MODIFY, 0, TRUE, m_lpRoot, &lpMessage);
+		hr = ECMessage::Create(this->GetMsgStore(), fNew, ulFlags & MAPI_MODIFY, 0, TRUE, m_lpRoot, &~lpMessage);
 		if(hr != hrSuccess)
 			goto exit;
 
 		// Client side unique ID is 0. Attachment can only have 1 submessage
-		hr = this->GetMsgStore()->lpTransport->HrOpenParentStorage(this, 0, ulObjId, this->lpStorage->GetServerStorage(), &lpParentStorage);
+		hr = this->GetMsgStore()->lpTransport->HrOpenParentStorage(this, 0, ulObjId, this->lpStorage->GetServerStorage(), &~lpParentStorage);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -198,12 +200,6 @@ HRESULT ECAttach::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceO
 	}
 
 exit:
-	if(lpParentStorage)
-		lpParentStorage->Release();
-
-	if(lpMessage)
-		lpMessage->Release();
-
 	if(lpMapiUID)
 		ECFreeBuffer(lpMapiUID);
 	return hr;

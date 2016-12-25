@@ -45,6 +45,8 @@
 
 #include <sstream>
 
+using namespace KCHL;
+
 struct STREAMDATA {
 	ULONG ulPropTag;
 	ECMAPIProp *lpProp;
@@ -216,7 +218,7 @@ HRESULT	ECMAPIProp::DefaultMAPIGetProp(ULONG ulPropTag, void* lpProvider, ULONG 
 		lpsPropValue->ulPropTag = PR_STORE_ENTRYID;
 
 		ULONG cbWrapped = 0;
-		KCHL::memory_ptr<ENTRYID> lpWrapped;
+		memory_ptr<ENTRYID> lpWrapped;
 
 		hr = lpProp->GetMsgStore()->GetWrappedStoreEntryID(&cbWrapped, &~lpWrapped);
 		if(hr == hrSuccess) {
@@ -316,7 +318,7 @@ HRESULT ECMAPIProp::TableRowGetProp(void* lpProvider, struct propVal *lpsPropVal
 		case PR_STORE_ENTRYID:
 		{				
 			ULONG cbWrapped = 0;
-			KCHL::memory_ptr<ENTRYID> lpWrapped;
+			memory_ptr<ENTRYID> lpWrapped;
 
 			// if we know, we are a spooler or a store than we can switch the function for 'speed-up'
 			// hr = lpMsgStore->GetWrappedStoreEntryID(&cbWrapped, &lpWrapped);
@@ -513,7 +515,7 @@ exit:
 HRESULT ECMAPIProp::SaveChanges(ULONG ulFlags)
 {
 	HRESULT hr = hrSuccess;
-	WSMAPIPropStorage *lpMAPIPropStorage = NULL;
+	object_ptr<WSMAPIPropStorage> lpMAPIPropStorage;
 	
 	if (lpStorage == NULL) {
 		hr = MAPI_E_NOT_FOUND;
@@ -526,7 +528,7 @@ HRESULT ECMAPIProp::SaveChanges(ULONG ulFlags)
 	}
 
 	// only folders and main messages have a syncid, attachments and msg-in-msg don't
-	if (lpStorage->QueryInterface(IID_WSMAPIPropStorage, (void **)&lpMAPIPropStorage) == hrSuccess) {
+	if (lpStorage->QueryInterface(IID_WSMAPIPropStorage, &~lpMAPIPropStorage) == hrSuccess) {
 		hr = lpMAPIPropStorage->HrSetSyncId(m_ulSyncId);
 		if(hr != hrSuccess)
 			goto exit;
@@ -535,9 +537,6 @@ HRESULT ECMAPIProp::SaveChanges(ULONG ulFlags)
 	hr = ECGenericProp::SaveChanges(ulFlags);
 
 exit:
-	if(lpMAPIPropStorage)
-		lpMAPIPropStorage->Release();
-
 	return hr;
 }
 
@@ -743,7 +742,7 @@ HRESULT ECMAPIProp::HrStreamCommit(IStream *lpStream, void *lpData)
 	LPSPropValue lpPropValue = NULL;
 	STATSTG sStat;
 	ULONG ulSize = 0;
-	ECMemStream* lpECStream = NULL;
+	object_ptr<ECMemStream> lpECStream;
 
 	hr = ECAllocateBuffer(sizeof(SPropValue), (void **)&lpPropValue);
 
@@ -772,7 +771,7 @@ HRESULT ECMAPIProp::HrStreamCommit(IStream *lpStream, void *lpData)
 		// read the data into the buffer
 		hr = lpStream->Read(buffer, (ULONG)sStat.cbSize.QuadPart, &ulSize);
 	} else{
-		hr = lpStream->QueryInterface(IID_ECMemStream, (void**)&lpECStream);
+		hr = lpStream->QueryInterface(IID_ECMemStream, &~lpECStream);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -807,10 +806,6 @@ HRESULT ECMAPIProp::HrStreamCommit(IStream *lpStream, void *lpData)
 exit:
 	if(lpPropValue)
 		ECFreeBuffer(lpPropValue);
-
-	if(lpECStream)
-		lpECStream->Release();
-
 	return hr;
 }
 
@@ -824,18 +819,15 @@ HRESULT ECMAPIProp::HrStreamCleanup(void *lpData)
 HRESULT ECMAPIProp::HrSetSyncId(ULONG ulSyncId)
 {
 	HRESULT hr = hrSuccess;
-
-	WSMAPIPropStorage *lpMAPIPropStorage = NULL;
+	object_ptr<WSMAPIPropStorage> lpMAPIPropStorage;
 	
-	if(lpStorage && lpStorage->QueryInterface(IID_WSMAPIPropStorage, (void **)&lpMAPIPropStorage) ==  hrSuccess){
+	if (lpStorage != nullptr && lpStorage->QueryInterface(IID_WSMAPIPropStorage, &~lpMAPIPropStorage) == hrSuccess) {
 		hr = lpMAPIPropStorage->HrSetSyncId(ulSyncId);
 		if(hr != hrSuccess)
 			goto exit;
 	}
 	m_ulSyncId = ulSyncId;
 exit:
-	if(lpMAPIPropStorage)
-		lpMAPIPropStorage->Release();
 	return hr;
 }
 

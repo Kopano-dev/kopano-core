@@ -304,8 +304,8 @@ HRESULT ECMAPIFolderPublic::SetPropHandler(ULONG ulPropTag, void* lpProvider, LP
 HRESULT ECMAPIFolderPublic::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
 	HRESULT hr = hrSuccess;
-	ECMemTable *lpMemTable = NULL;
-	ECMemTableView *lpView = NULL;
+	object_ptr<ECMemTable> lpMemTable;
+	object_ptr<ECMemTableView> lpView;
 	memory_ptr<SPropTagArray> lpPropTagArray;
 	SizedSPropTagArray(11, sPropsContentColumns) = {11, {PR_ENTRYID, PR_DISPLAY_NAME, PR_MESSAGE_FLAGS, PR_SUBJECT, PR_STORE_ENTRYID, PR_STORE_RECORD_KEY, PR_STORE_SUPPORT_MASK, PR_INSTANCE_KEY, PR_RECORD_KEY, PR_ACCESS, PR_ACCESS_LEVEL } };
 
@@ -319,12 +319,10 @@ HRESULT ECMAPIFolderPublic::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTabl
 		     sPropsContentColumns, &~lpPropTagArray);
 		if(hr != hrSuccess)
 			goto exit;
-
-		hr = ECMemTable::Create(lpPropTagArray, PR_ROWID, &lpMemTable);
+		hr = ECMemTable::Create(lpPropTagArray, PR_ROWID, &~lpMemTable);
 		if(hr != hrSuccess)
 			goto exit;
-
-		hr = lpMemTable->HrGetView(createLocaleFromName(""), ulFlags & MAPI_UNICODE, &lpView);
+		hr = lpMemTable->HrGetView(createLocaleFromName(""), ulFlags & MAPI_UNICODE, &~lpView);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -337,20 +335,14 @@ HRESULT ECMAPIFolderPublic::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTabl
 	}
 
 exit:
-	if (lpMemTable)
-		lpMemTable->Release();
-
-	if (lpView)
-		lpView->Release();
-
 	return hr;
 }
 
 HRESULT ECMAPIFolderPublic::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
 	HRESULT hr = hrSuccess;
-	ECMemTableView *lpView = NULL;
-	ECMemTablePublic *lpMemTable = NULL;
+	object_ptr<ECMemTableView> lpView;
+	object_ptr<ECMemTablePublic> lpMemTable;
 
 	if( m_ePublicEntryID == ePE_IPMSubtree)
 	{
@@ -359,8 +351,7 @@ HRESULT ECMAPIFolderPublic::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTab
 			hr= MAPI_E_NO_SUPPORT;
 			goto exit;
 		}
-
-		hr = ((ECMsgStorePublic*)GetMsgStore())->GetIPMSubTree()->HrGetView(createLocaleFromName(""), ulFlags, &lpView);
+		hr = ((ECMsgStorePublic *)GetMsgStore())->GetIPMSubTree()->HrGetView(createLocaleFromName(""), ulFlags, &~lpView);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -374,16 +365,14 @@ HRESULT ECMAPIFolderPublic::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTab
 			hr= MAPI_E_NO_SUPPORT;
 			goto exit;
 		}
-
-		hr = ECMemTablePublic::Create(this, &lpMemTable);
+		hr = ECMemTablePublic::Create(this, &~lpMemTable);
 		if(hr != hrSuccess)
 			goto exit;
 
 		hr = lpMemTable->Init(ulFlags&MAPI_UNICODE);
 		if(hr != hrSuccess)
 			goto exit;
-
-		hr = lpMemTable->HrGetView(createLocaleFromName(""), ulFlags & MAPI_UNICODE, &lpView);
+		hr = lpMemTable->HrGetView(createLocaleFromName(""), ulFlags & MAPI_UNICODE, &~lpView);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -395,12 +384,6 @@ HRESULT ECMAPIFolderPublic::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTab
 	}
 
 exit:
-	if (lpView)
-		lpView->Release();
-
-	if (lpMemTable)
-		lpMemTable->Release();
-
 	return hr;
 }
 
@@ -477,20 +460,20 @@ HRESULT ECMAPIFolderPublic::CopyFolder(ULONG cbEntryID, LPENTRYID lpEntryID, LPC
 {
 	HRESULT hr = hrSuccess;
 	ULONG ulResult = 0;
-	IMAPIFolder	*lpMapiFolder = NULL;
+	object_ptr<IMAPIFolder> lpMapiFolder;
 	LPSPropValue lpPropArray = NULL;
 	GUID guidDest;
 	GUID guidFrom;
 
 	//Get the interface of destinationfolder
 	if(lpInterface == NULL || *lpInterface == IID_IMAPIFolder)
-		hr = ((IMAPIFolder*)lpDestFolder)->QueryInterface(IID_IMAPIFolder, (void**)&lpMapiFolder);
+		hr = ((IMAPIFolder*)lpDestFolder)->QueryInterface(IID_IMAPIFolder, &~lpMapiFolder);
 	else if(*lpInterface == IID_IMAPIContainer)
-		hr = ((IMAPIContainer*)lpDestFolder)->QueryInterface(IID_IMAPIFolder, (void**)&lpMapiFolder);
+		hr = ((IMAPIContainer*)lpDestFolder)->QueryInterface(IID_IMAPIFolder, &~lpMapiFolder);
 	else if(*lpInterface == IID_IUnknown)
-		hr = ((IUnknown*)lpDestFolder)->QueryInterface(IID_IMAPIFolder, (void**)&lpMapiFolder);
+		hr = ((IUnknown*)lpDestFolder)->QueryInterface(IID_IMAPIFolder, &~lpMapiFolder);
 	else if(*lpInterface == IID_IMAPIProp)
-		hr = ((IMAPIProp*)lpDestFolder)->QueryInterface(IID_IMAPIFolder, (void**)&lpMapiFolder);
+		hr = ((IMAPIProp*)lpDestFolder)->QueryInterface(IID_IMAPIFolder, &~lpMapiFolder);
 	else
 		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 	
@@ -529,9 +512,6 @@ HRESULT ECMAPIFolderPublic::CopyFolder(ULONG cbEntryID, LPENTRYID lpEntryID, LPC
 	}
 
 exit:
-	if(lpMapiFolder)
-		lpMapiFolder->Release();
-		
 	if(lpPropArray)
 		ECFreeBuffer(lpPropArray);
 
@@ -542,8 +522,6 @@ HRESULT ECMAPIFolderPublic::DeleteFolder(ULONG cbEntryID, LPENTRYID lpEntryID, U
 {
 	HRESULT hr = hrSuccess;
 	ULONG ulObjType = 0;
-	LPMAPIFOLDER lpFolder = NULL;
-	LPMAPIFOLDER lpShortcutFolder = NULL;
 	memory_ptr<SPropValue> lpProp;
 
 	if(ValidateZEntryId(cbEntryID, (LPBYTE)lpEntryID, MAPI_FOLDER) == false) {
@@ -554,15 +532,14 @@ HRESULT ECMAPIFolderPublic::DeleteFolder(ULONG cbEntryID, LPENTRYID lpEntryID, U
 	if (cbEntryID > 4 && (lpEntryID->abFlags[3] & KOPANO_FAVORITE) )
 	{
 		// remove the shortcut from the shortcut folder
-		hr = OpenEntry(cbEntryID, lpEntryID, NULL, 0, &ulObjType, (LPUNKNOWN *)&lpFolder);
+		object_ptr<IMAPIFolder> lpFolder, lpShortcutFolder;
+		hr = OpenEntry(cbEntryID, lpEntryID, nullptr, 0, &ulObjType, &~lpFolder);
 		if (hr != hrSuccess)
 			goto exit;
 		hr = HrGetOneProp(lpFolder, PR_SOURCE_KEY, &~lpProp);
 		if (hr != hrSuccess)
 			goto exit;
-		lpFolder->Release();
-		lpFolder = NULL;
-		hr = ((ECMsgStorePublic*)GetMsgStore())->GetDefaultShortcutFolder(&lpShortcutFolder);
+		hr = ((ECMsgStorePublic *)GetMsgStore())->GetDefaultShortcutFolder(&~lpShortcutFolder);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -575,11 +552,6 @@ HRESULT ECMAPIFolderPublic::DeleteFolder(ULONG cbEntryID, LPENTRYID lpEntryID, U
 	}
 
 exit:
-	if (lpFolder)
-		lpFolder->Release();
-
-	if (lpShortcutFolder)
-		lpShortcutFolder->Release();
 	return hr;
 }
 
@@ -587,7 +559,7 @@ HRESULT ECMAPIFolderPublic::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterfa
 {
 	HRESULT hr = hrSuccess;
 	ULONG ulResult = 0;
-	IMAPIFolder	*lpMapiFolder = NULL;
+	object_ptr<IMAPIFolder> lpMapiFolder;
 	memory_ptr<SPropValue> lpPropArray;
 
 	if(lpMsgList == NULL || lpMsgList->cValues == 0)
@@ -600,13 +572,13 @@ HRESULT ECMAPIFolderPublic::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterfa
 	
 	//Get the interface of destinationfolder
 	if(lpInterface == NULL || *lpInterface == IID_IMAPIFolder)
-		hr = ((IMAPIFolder*)lpDestFolder)->QueryInterface(IID_IMAPIFolder, (void**)&lpMapiFolder);
+		hr = ((IMAPIFolder*)lpDestFolder)->QueryInterface(IID_IMAPIFolder, &~lpMapiFolder);
 	else if(*lpInterface == IID_IMAPIContainer)
-		hr = ((IMAPIContainer*)lpDestFolder)->QueryInterface(IID_IMAPIFolder, (void**)&lpMapiFolder);
+		hr = ((IMAPIContainer*)lpDestFolder)->QueryInterface(IID_IMAPIFolder, &~lpMapiFolder);
 	else if(*lpInterface == IID_IUnknown)
-		hr = ((IUnknown*)lpDestFolder)->QueryInterface(IID_IMAPIFolder, (void**)&lpMapiFolder);
+		hr = ((IUnknown*)lpDestFolder)->QueryInterface(IID_IMAPIFolder, &~lpMapiFolder);
 	else if(*lpInterface == IID_IMAPIProp)
-		hr = ((IMAPIProp*)lpDestFolder)->QueryInterface(IID_IMAPIFolder, (void**)&lpMapiFolder);
+		hr = ((IMAPIProp*)lpDestFolder)->QueryInterface(IID_IMAPIFolder, &~lpMapiFolder);
 	else
 		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 	
@@ -628,8 +600,6 @@ HRESULT ECMAPIFolderPublic::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterfa
 	hr = ECMAPIFolder::CopyMessages(lpMsgList, lpInterface, lpDestFolder, ulUIParam, lpProgress, ulFlags);
 
 exit:
-	if (lpMapiFolder)
-		lpMapiFolder->Release();
 	return hr;
 }
 

@@ -15,6 +15,7 @@
  */
 #include <kopano/platform.h>
 #include <kopano/ECInterfaceDefs.h>
+#include <kopano/memory.hpp>
 #include "kcore.hpp"
 #include "ECMAPIContainer.h"
 #include "ECMAPITable.h"
@@ -26,6 +27,8 @@
 //#include <edkmdb.h>
 #include <kopano/mapiext.h>
 #include <mapiutil.h>
+
+using namespace KCHL;
 
 ECMAPIContainer::ECMAPIContainer(ECMsgStore *lpMsgStore, ULONG ulObjType,
     BOOL fModify, const char *szClassName) :
@@ -68,8 +71,8 @@ HRESULT ECMAPIContainer::GetSearchCriteria(ULONG ulFlags, LPSRestriction *lppRes
 HRESULT ECMAPIContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
 	HRESULT			hr = hrSuccess;
-	ECMAPITable*	lpTable = NULL;
-	WSTableView*	lpTableOps = NULL;
+	object_ptr<ECMAPITable> lpTable;
+	object_ptr<WSTableView> lpTableOps;
 	std::string		strName = "Contents table";
 
 #ifdef DEBUG
@@ -80,14 +83,10 @@ HRESULT ECMAPIContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 			strName = lpDisplay->Value.lpszA;
 	}
 #endif
-
-	hr = ECMAPITable::Create(strName.c_str(), this->GetMsgStore()->m_lpNotifyClient, 0, &lpTable);
-
+	hr = ECMAPITable::Create(strName.c_str(), this->GetMsgStore()->m_lpNotifyClient, 0, &~lpTable);
 	if(hr != hrSuccess)
 		goto exit;
-
-	hr = this->GetMsgStore()->lpTransport->HrOpenTableOps(MAPI_MESSAGE, (ulFlags&(MAPI_UNICODE|SHOW_SOFT_DELETES|MAPI_ASSOCIATED|EC_TABLE_NOCAP)), m_cbEntryId, m_lpEntryId, this->GetMsgStore(), &lpTableOps);
-
+	hr = this->GetMsgStore()->lpTransport->HrOpenTableOps(MAPI_MESSAGE, ulFlags & (MAPI_UNICODE | SHOW_SOFT_DELETES | MAPI_ASSOCIATED | EC_TABLE_NOCAP), m_cbEntryId, m_lpEntryId, this->GetMsgStore(), &~lpTableOps);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -101,20 +100,14 @@ HRESULT ECMAPIContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	AddChild(lpTable);
 
 exit:
-	if(lpTable)
-		lpTable->Release();
-
-	if(lpTableOps)
-		lpTableOps->Release();
-
 	return hr;
 }
 
 HRESULT ECMAPIContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
 	HRESULT			hr = hrSuccess;
-	ECMAPITable*	lpTable = NULL;
-	WSTableView*	lpTableOps = NULL;
+	object_ptr<ECMAPITable> lpTable;
+	object_ptr<WSTableView> lpTableOps;
 	SizedSPropTagArray(1, sPropTagArray);
 	ULONG			cValues = 0;
 	LPSPropValue	lpPropArray = NULL; 
@@ -142,14 +135,10 @@ HRESULT ECMAPIContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 		hr= MAPI_E_NO_SUPPORT;
 		goto exit;
 	}
-
-	hr = ECMAPITable::Create(strName.c_str(), this->GetMsgStore()->m_lpNotifyClient, 0, &lpTable);
-
+	hr = ECMAPITable::Create(strName.c_str(), this->GetMsgStore()->m_lpNotifyClient, 0, &~lpTable);
 	if(hr != hrSuccess)
 		goto exit;
-
-	hr = this->GetMsgStore()->lpTransport->HrOpenTableOps(MAPI_FOLDER, ulFlags & (MAPI_UNICODE | SHOW_SOFT_DELETES | CONVENIENT_DEPTH), m_cbEntryId, m_lpEntryId, this->GetMsgStore(), &lpTableOps);
-
+	hr = this->GetMsgStore()->lpTransport->HrOpenTableOps(MAPI_FOLDER, ulFlags & (MAPI_UNICODE | SHOW_SOFT_DELETES | CONVENIENT_DEPTH), m_cbEntryId, m_lpEntryId, this->GetMsgStore(), &~lpTableOps);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -165,13 +154,6 @@ HRESULT ECMAPIContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 exit:
 	if(lpPropArray)
 		ECFreeBuffer(lpPropArray);
-
-	if(lpTable)
-		lpTable->Release();
-
-	if(lpTableOps)
-		lpTableOps->Release();
-
 	return hr;
 }
 

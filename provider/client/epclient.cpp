@@ -138,7 +138,7 @@ HRESULT __cdecl MSProviderInit(HINSTANCE hInstance, LPMALLOC pmalloc,
 	TRACE_MAPI(TRACE_ENTRY, "MSProviderInit", "flags=%08X", ulFlags);
 
 	HRESULT hr = hrSuccess;
-	ECMSProviderSwitch *lpMSProvider = NULL;
+	object_ptr<ECMSProviderSwitch> lpMSProvider;
 
 	// Check the interface version is ok
 	if(ulMAPIver != CURRENT_SPI_VERSION) {
@@ -157,17 +157,13 @@ HRESULT __cdecl MSProviderInit(HINSTANCE hInstance, LPMALLOC pmalloc,
 
 	// This object is created for the lifetime of the DLL and destroyed when the
 	// DLL is closed (same on linux, but then for the shared library);
-	hr = ECMSProviderSwitch::Create(ulFlags, &lpMSProvider);
-
+	hr = ECMSProviderSwitch::Create(ulFlags, &~lpMSProvider);
 	if(hr != hrSuccess)
 		goto exit;
 
 	hr = lpMSProvider->QueryInterface(IID_IMSProvider, (void **)ppmsp); 
 
 exit:
-	if (lpMSProvider)
-		lpMSProvider->Release();
-
 	TRACE_MAPI(TRACE_RETURN, "MSProviderInit", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
 }
@@ -920,7 +916,7 @@ HRESULT __cdecl XPProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc,
 	TRACE_MAPI(TRACE_ENTRY, "XPProviderInit", "");
 
 	HRESULT hr = hrSuccess;
-	ECXPProvider	*pXPProvider = NULL;
+	object_ptr<ECXPProvider> pXPProvider;
 
     if (ulMAPIVer < CURRENT_SPI_VERSION)
     {
@@ -937,16 +933,13 @@ HRESULT __cdecl XPProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc,
 	_pfnFreeBuf = lpFreeBuffer;
 	_hInstance = hInstance;
 
-	hr = ECXPProvider::Create(&pXPProvider);
+	hr = ECXPProvider::Create(&~pXPProvider);
 	if(hr != hrSuccess)
 		goto exit;
 
 	hr = pXPProvider->QueryInterface(IID_IXPProvider, (void **)lppXPProvider);
 
 exit:
-	if(pXPProvider)
-		pXPProvider->Release();
-
 	return hr;
 }
 

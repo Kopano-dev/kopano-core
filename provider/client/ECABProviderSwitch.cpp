@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <kopano/ECInterfaceDefs.h>
+#include <kopano/memory.hpp>
 #include <mapi.h>
 #include <mapiutil.h>
 #include <mapispi.h>
@@ -37,6 +38,8 @@
 #include "ProviderUtil.h"
 
 #include <kopano/charset/convstring.h>
+
+using namespace KCHL;
 
 ECABProviderSwitch::ECABProviderSwitch(void) : ECUnknown("ECABProviderSwitch")
 {
@@ -76,21 +79,19 @@ HRESULT ECABProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR l
 	HRESULT hr = hrSuccess;
 	PROVIDER_INFO sProviderInfo;
 	ULONG ulConnectType = CT_UNSPECIFIED;
-
-	IABLogon *lpABLogon = NULL;
-	IABProvider *lpOnline = NULL;
+	object_ptr<IABLogon> lpABLogon;
+	object_ptr<IABProvider> lpOnline;
 
 	convstring tstrProfileName(lpszProfileName, ulFlags);
 	hr = GetProviders(&g_mapProviders, lpMAPISup, convstring(lpszProfileName, ulFlags).c_str(), ulFlags, &sProviderInfo);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = sProviderInfo.lpABProviderOnline->QueryInterface(IID_IABProvider, (void **)&lpOnline);
+	hr = sProviderInfo.lpABProviderOnline->QueryInterface(IID_IABProvider, &~lpOnline);
 	if (hr != hrSuccess)
 		goto exit;
 
 	// Online
-	hr = lpOnline->Logon(lpMAPISup, ulUIParam, lpszProfileName, ulFlags, NULL, NULL, NULL, &lpABLogon);
+	hr = lpOnline->Logon(lpMAPISup, ulUIParam, lpszProfileName, ulFlags, nullptr, nullptr, nullptr, &~lpABLogon);
 	ulConnectType = CT_ONLINE;
 
 	// Set the provider in the right connection type
@@ -134,11 +135,6 @@ HRESULT ECABProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR l
 		*lppMAPIError = NULL;
 
 exit:
-	if (lpABLogon)
-		lpABLogon->Release();
-
-	if (lpOnline)
-		lpOnline->Release();
 	return hr;
 }
 

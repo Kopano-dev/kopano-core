@@ -236,7 +236,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChange(ULONG cValue, LPSPr
 	ULONG ulObjType = 0;
 	bool bAssociatedMessage = false;
 	IMessage *lpMessage = NULL;
-	ECMessage *lpECMessage = NULL;
+	object_ptr<ECMessage> lpECMessage;
 	ULONG ulNewFlags = 0;
 
 	if(lpMessageSourceKey != NULL) {
@@ -306,7 +306,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChange(ULONG cValue, LPSPr
 		}
 	}
 
-	hr = lpMessage->QueryInterface(IID_ECMessage, (void **)&lpECMessage);
+	hr = lpMessage->QueryInterface(IID_ECMessage, &~lpECMessage);
 	if(hr != hrSuccess)
 		goto exit;
 		
@@ -326,8 +326,6 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChange(ULONG cValue, LPSPr
 	*lppMessage = lpMessage;
 
 exit:
-	if(lpECMessage)
-		lpECMessage->Release();
 	return hr;
 }
 
@@ -510,9 +508,8 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictMessage(LPMESSAGE lpMessa
 HRESULT ECExchangeImportContentsChanges::CreateConflictMessageOnly(LPMESSAGE lpMessage, LPSPropValue *lppConflictItems)
 {
 	HRESULT hr = hrSuccess;
-	LPMAPIFOLDER lpRootFolder = NULL;
-	LPMAPIFOLDER lpConflictFolder = NULL;
-	LPMESSAGE lpConflictMessage = NULL;
+	object_ptr<IMAPIFolder> lpRootFolder, lpConflictFolder;
+	object_ptr<IMessage> lpConflictMessage;
 	memory_ptr<SPropValue> lpPropAdditionalREN;
 	memory_ptr<SPropValue> lpConflictItems, lpEntryIdProp;
 	LPSBinary lpEntryIds = NULL;
@@ -521,7 +518,7 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictMessageOnly(LPMESSAGE lpM
 	SizedSPropTagArray(5, excludeProps) = { 5, {PR_ENTRYID, PR_CONFLICT_ITEMS, PR_SOURCE_KEY, PR_CHANGE_KEY, PR_PREDECESSOR_CHANGE_LIST} };
 
 	//open the conflicts folder
-	hr = m_lpFolder->GetMsgStore()->OpenEntry(0, NULL, &IID_IMAPIFolder, 0, &ulObjType, (LPUNKNOWN*)&lpRootFolder);
+	hr = m_lpFolder->GetMsgStore()->OpenEntry(0, nullptr, &IID_IMAPIFolder, 0, &ulObjType, &~lpRootFolder);
 	if(hr != hrSuccess)
 		goto exit;
 	hr = HrGetOneProp(lpRootFolder, PR_ADDITIONAL_REN_ENTRYIDS, &~lpPropAdditionalREN);
@@ -532,13 +529,12 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictMessageOnly(LPMESSAGE lpM
 		hr = MAPI_E_NOT_FOUND;
 		goto exit;
 	}
-
-	hr = m_lpFolder->GetMsgStore()->OpenEntry(lpPropAdditionalREN->Value.MVbin.lpbin[0].cb, (LPENTRYID)lpPropAdditionalREN->Value.MVbin.lpbin[0].lpb, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*)&lpConflictFolder);
+	hr = m_lpFolder->GetMsgStore()->OpenEntry(lpPropAdditionalREN->Value.MVbin.lpbin[0].cb, reinterpret_cast<ENTRYID *>(lpPropAdditionalREN->Value.MVbin.lpbin[0].lpb), &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpConflictFolder);
 	if(hr != hrSuccess)
 		goto exit;
 
 	//create the conflict message
-	hr = lpConflictFolder->CreateMessage(NULL, 0, &lpConflictMessage);
+	hr = lpConflictFolder->CreateMessage(nullptr, 0, &~lpConflictMessage);
 	if(hr != hrSuccess)
 		goto exit;
 	hr = lpMessage->CopyTo(0, NULL, excludeProps, 0, NULL, &IID_IMessage,
@@ -596,23 +592,12 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictMessageOnly(LPMESSAGE lpM
 	if (lppConflictItems)
 		*lppConflictItems = lpConflictItems.release();
 exit:
-	if(lpRootFolder)
-		lpRootFolder->Release();
-
-	if(lpConflictFolder)
-		lpConflictFolder->Release();
-
-	if(lpConflictMessage)
-		lpConflictMessage->Release();
 	return hr;
 }
 
 HRESULT ECExchangeImportContentsChanges::CreateConflictFolders(){
 	HRESULT hr = hrSuccess;
-	LPMAPIFOLDER lpRootFolder = NULL;
-	LPMAPIFOLDER lpParentFolder = NULL;
-	LPMAPIFOLDER lpInbox = NULL;
-	LPMAPIFOLDER lpConflictFolder = NULL;
+	object_ptr<IMAPIFolder> lpRootFolder, lpParentFolder, lpInbox, lpConflictFolder;
 	memory_ptr<SPropValue> lpAdditionalREN, lpNewAdditionalREN;
 	memory_ptr<SPropValue> lpIPMSubTree;
 	memory_ptr<ENTRYID> lpEntryId;
@@ -620,7 +605,7 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictFolders(){
 	ULONG ulObjType = 0;
 	ULONG ulCount = 0;
 
-	hr = m_lpFolder->OpenEntry(0, NULL, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*)&lpRootFolder);
+	hr = m_lpFolder->OpenEntry(0, nullptr, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpRootFolder);
 	if(hr != hrSuccess) {
 		ZLOG_DEBUG(m_lpLogger, "Failed to open root folder, hr = 0x%08x", hr);
 		goto exit;
@@ -630,8 +615,7 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictFolders(){
 		ZLOG_DEBUG(m_lpLogger, "Failed to get 'IPM' receive folder id, hr = 0x%08x", hr);
 		goto exit;
 	}
-
-	hr = m_lpFolder->OpenEntry(cbEntryId, lpEntryId, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*)&lpInbox);
+	hr = m_lpFolder->OpenEntry(cbEntryId, lpEntryId, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpInbox);
 	if(hr != hrSuccess) {
 		ZLOG_DEBUG(m_lpLogger, "Failed to open 'IPM' receive folder, hr = 0x%08x", hr);
 		goto exit;
@@ -641,8 +625,7 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictFolders(){
 		ZLOG_DEBUG(m_lpLogger, "Failed to get ipm subtree id, hr = 0x%08x", hr);
 		goto exit;
 	}
-
-	hr = m_lpFolder->OpenEntry(lpIPMSubTree->Value.bin.cb, (LPENTRYID)lpIPMSubTree->Value.bin.lpb, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*)&lpParentFolder);
+	hr = m_lpFolder->OpenEntry(lpIPMSubTree->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpIPMSubTree->Value.bin.lpb), &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpParentFolder);
 	if(hr != hrSuccess) {
 		ZLOG_DEBUG(m_lpLogger, "Failed to open ipm subtree folder, hr = 0x%08x", hr);
 		goto exit;
@@ -666,7 +649,7 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictFolders(){
 		for (ulCount = 0; ulCount < lpAdditionalREN->Value.MVbin.cValues; ++ulCount)
 			lpNewAdditionalREN->Value.MVbin.lpbin[ulCount] = lpAdditionalREN->Value.MVbin.lpbin[ulCount];
 
-	hr = CreateConflictFolder(_("Sync Issues"), lpNewAdditionalREN, 1, lpParentFolder, &lpConflictFolder);
+	hr = CreateConflictFolder(_("Sync Issues"), lpNewAdditionalREN, 1, lpParentFolder, &~lpConflictFolder);
 	if(hr != hrSuccess) {
 		ZLOG_DEBUG(m_lpLogger, "Failed to create 'Sync Issues' folder, hr = 0x%08x", hr);
 		goto exit;
@@ -708,32 +691,23 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictFolders(){
 	}
 
 exit:
-	if(lpRootFolder)
-		lpRootFolder->Release();
-	if(lpParentFolder)
-		lpParentFolder->Release();
-	if(lpInbox)
-		lpInbox->Release();
-
-	if(lpConflictFolder)
-		lpConflictFolder->Release();
 	return hr;
 }
 
 HRESULT ECExchangeImportContentsChanges::CreateConflictFolder(LPTSTR lpszName, LPSPropValue lpAdditionalREN, ULONG ulMVPos, LPMAPIFOLDER lpParentFolder, LPMAPIFOLDER * lppConflictFolder){
 	HRESULT hr = hrSuccess;
-	LPMAPIFOLDER lpConflictFolder = NULL;
+	object_ptr<IMAPIFolder> lpConflictFolder;
 	memory_ptr<SPropValue> lpEntryId;
 	SPropValue sPropValue;
 	ULONG ulObjType = 0;
 
-	if(lpAdditionalREN->Value.MVbin.lpbin[ulMVPos].cb > 0 && hrSuccess == lpParentFolder->OpenEntry(lpAdditionalREN->Value.MVbin.lpbin[ulMVPos].cb, (LPENTRYID)lpAdditionalREN->Value.MVbin.lpbin[ulMVPos].lpb, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*)&lpConflictFolder)){
+	if (lpAdditionalREN->Value.MVbin.lpbin[ulMVPos].cb > 0 &&
+	    lpParentFolder->OpenEntry(lpAdditionalREN->Value.MVbin.lpbin[ulMVPos].cb, reinterpret_cast<ENTRYID *>(lpAdditionalREN->Value.MVbin.lpbin[ulMVPos].lpb), &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpConflictFolder) == hrSuccess) {
 		if(lppConflictFolder)
-			*lppConflictFolder = lpConflictFolder;
+			*lppConflictFolder = lpConflictFolder.release();
 		goto exit;
 	}
-
-	hr = lpParentFolder->CreateFolder(FOLDER_GENERIC, lpszName, NULL, &IID_IMAPIFolder, OPEN_IF_EXISTS | fMapiUnicode, &lpConflictFolder);
+	hr = lpParentFolder->CreateFolder(FOLDER_GENERIC, lpszName, nullptr, &IID_IMAPIFolder, OPEN_IF_EXISTS | fMapiUnicode, &~lpConflictFolder);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -755,11 +729,8 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictFolder(LPTSTR lpszName, L
 	lpAdditionalREN->Value.MVbin.lpbin[ulMVPos].cb = lpEntryId->Value.bin.cb;
 
 	if(lppConflictFolder)
-		*lppConflictFolder = lpConflictFolder;
-
+		*lppConflictFolder = lpConflictFolder.release();
 exit:
-	if((hr != hrSuccess || lppConflictFolder == NULL) && lpConflictFolder)
-		lpConflictFolder->Release();
 	return hr;
 }
 
