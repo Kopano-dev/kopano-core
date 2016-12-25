@@ -22,8 +22,8 @@
 #define ARCHIVERIMPL_H_INCLUDED
 
 #include <kopano/zcdefs.h>
+#include <kopano/automapi.hpp>
 #include "Archiver.h"               // for declaration of class Archiver
-#include "AutoMAPI.h"               // for declaration of AutoMAPI
 #include "ArchiverSessionPtr.h"     // For ArchiverSessionPtr
 
 namespace KC {
@@ -48,7 +48,7 @@ private:
 	unsigned CountSettings(const configsetting_t *lpSettings);
 
 private:
-	AutoMAPI		m_MAPI;
+	KCHL::AutoMAPI m_MAPI;
 	ECConfig		*m_lpsConfig;
 	ECLogger		*m_lpLogger;
     ECLogger        *m_lpLogLogger; // Logs only to the log specified in the config
