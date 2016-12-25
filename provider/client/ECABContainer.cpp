@@ -132,20 +132,17 @@ HRESULT	ECABContainer::DefaultABContainerGetProp(ULONG ulPropTag, void* lpProvid
 	switch(PROP_ID(ulPropTag)) {
 	case PROP_ID(PR_EMSMDB_SECTION_UID): {
 		ECABLogon *lpLogon = (ECABLogon *)lpProvider;
-		if (lpLogon->m_lpMAPISup == nullptr) {
-			hr = MAPI_E_NOT_FOUND;
-			goto exit;
-		}
+		if (lpLogon->m_lpMAPISup == nullptr)
+			return MAPI_E_NOT_FOUND;
 		hr = lpLogon->m_lpMAPISup->OpenProfileSection(nullptr, 0, &~lpProfSect);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 		hr = HrGetOneProp(lpProfSect, PR_EMSMDB_SECTION_UID, &~lpSectionUid);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		lpsPropValue->ulPropTag = PR_EMSMDB_SECTION_UID;
 		if ((hr = MAPIAllocateMore(sizeof(GUID), lpBase, (void **) &lpsPropValue->Value.bin.lpb)) != hrSuccess)
-			goto exit;
+			return hr;
 		memcpy(lpsPropValue->Value.bin.lpb, lpSectionUid->Value.bin.lpb, sizeof(GUID));
 		lpsPropValue->Value.bin.cb = sizeof(GUID);
 		break;
@@ -168,15 +165,15 @@ HRESULT	ECABContainer::DefaultABContainerGetProp(ULONG ulPropTag, void* lpProvid
 
 		hr = lpProp->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		if (PROP_TYPE(lpsPropValue->ulPropTag) == PT_UNICODE)
 			strValue = convert_to<std::wstring>(lpsPropValue->Value.lpszW);
 		else if (PROP_TYPE(lpsPropValue->ulPropTag) == PT_STRING8)
 			strValue = convert_to<std::wstring>(lpsPropValue->Value.lpszA);
 		else
-			goto exit;
-		
+			return hr;
+
 		if(strValue.compare( L"Global Address Book" ) == 0)
 			lpszName = _("Global Address Book");
 		else if(strValue.compare( L"Global Address Lists" ) == 0)
@@ -190,16 +187,14 @@ HRESULT	ECABContainer::DefaultABContainerGetProp(ULONG ulPropTag, void* lpProvid
 
 				hr = MAPIAllocateMore((strTmp.size() + 1) * sizeof(WCHAR), lpBase, (void**)&lpsPropValue->Value.lpszW);
 				if (hr != hrSuccess) 
-					goto exit;
-
+					return hr;
 				wcscpy(lpsPropValue->Value.lpszW, strTmp.c_str());
 			} else {
 				const std::string strTmp = convert_to<std::string>(lpszName);
 
 				hr = MAPIAllocateMore(strTmp.size() + 1, lpBase, (void**)&lpsPropValue->Value.lpszA);
 				if (hr != hrSuccess) 
-					goto exit;
-
+					return hr;
 				strcpy(lpsPropValue->Value.lpszA, strTmp.c_str());
 			}
 			lpsPropValue->ulPropTag = ulPropTag;
@@ -210,8 +205,6 @@ HRESULT	ECABContainer::DefaultABContainerGetProp(ULONG ulPropTag, void* lpProvid
 		hr = lpProp->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
 		break;
 	}
-
-exit:
 	return hr;
 }
 
@@ -291,24 +284,19 @@ HRESULT ECABContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 
 	hr = ECMAPITable::Create("AB Contents", nullptr, 0, &~lpTable);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = GetABStore()->m_lpTransport->HrOpenABTableOps(MAPI_MAILUSER, ulFlags, m_cbEntryId, m_lpEntryId, (ECABLogon *)this->lpProvider, &~lpTableOps); // also MAPI_DISTLIST
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpTable->HrSetTableOps(lpTableOps, !(ulFlags & MAPI_DEFERRED_ERRORS));
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpTableOps->HrSortTable(sSortByDisplayName);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpTable->QueryInterface(IID_IMAPITable, (void **)lppTable);
 
 	AddChild(lpTable);
-
-exit:
 	return hr;
 }
 
@@ -320,21 +308,17 @@ HRESULT ECABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 
 	hr = ECMAPITable::Create("AB hierarchy", GetABStore()->m_lpNotifyClient, ulFlags, &~lpTable);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = GetABStore()->m_lpTransport->HrOpenABTableOps(MAPI_ABCONT, ulFlags, m_cbEntryId, m_lpEntryId, (ECABLogon *)this->lpProvider, &~lpTableOps);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpTable->HrSetTableOps(lpTableOps, !(ulFlags & MAPI_DEFERRED_ERRORS));
 
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpTable->QueryInterface(IID_IMAPITable, (void **)lppTable);
 
 	AddChild(lpTable);
-
-exit:
 	return hr;
 }
 

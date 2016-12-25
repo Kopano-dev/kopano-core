@@ -242,7 +242,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChange(ULONG cValue, LPSPr
 	if(lpMessageSourceKey != NULL) {
 		hr = m_lpFolder->GetMsgStore()->lpTransport->HrEntryIDFromSourceKey(m_lpFolder->GetMsgStore()->m_cbEntryId, m_lpFolder->GetMsgStore()->m_lpEntryId, m_lpSourceKey->Value.bin.cb, m_lpSourceKey->Value.bin.lpb, lpMessageSourceKey->Value.bin.cb, lpMessageSourceKey->Value.bin.lpb, &cbEntryId, &~lpEntryId);
 		if(hr != MAPI_E_NOT_FOUND && hr != hrSuccess)
-			goto exit;
+			return hr;
 	} else {
 	    // Source key not specified, therefore the message must be new since this is the only thing
 	    // we can do if there is no sourcekey. Z-Push uses this, while offline ICS does not (it always
@@ -251,12 +251,10 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChange(ULONG cValue, LPSPr
 		hr = MAPI_E_NOT_FOUND;
 	}
 
-	if (hr == MAPI_E_NOT_FOUND && (ulFlags & SYNC_NEW_MESSAGE) == 0) {
+	if (hr == MAPI_E_NOT_FOUND && (ulFlags & SYNC_NEW_MESSAGE) == 0)
 		// This is a change, but we don't already have the item. This can only mean
 		// that the item has been deleted on our side. 
-		hr = SYNC_E_OBJECT_DELETED;
-		goto exit;
-	}
+		return SYNC_E_OBJECT_DELETED;
 
 	if ((lpMessageFlags != NULL &&
 	    (lpMessageFlags->Value.ul & MSGFLAG_ASSOCIATED)) ||
@@ -278,23 +276,17 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChange(ULONG cValue, LPSPr
 			hr = m_lpFolder->CreateMessage(&IID_IMessage, ulNewFlags, &lpMessage);
 
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}else{
 		hr = m_lpFolder->OpenEntry(cbEntryId, lpEntryId, &m_iidMessage, MAPI_MODIFY, &ulObjType, (LPUNKNOWN*)&lpMessage);
-		if(hr == MAPI_E_NOT_FOUND) {
+		if (hr == MAPI_E_NOT_FOUND)
 			// The item was soft-deleted; sourcekey is known, but we cannot open the item. It has therefore been deleted.
-			hr = SYNC_E_OBJECT_DELETED;
-			goto exit;
-		}
-
+			return SYNC_E_OBJECT_DELETED;
 		if(hr != hrSuccess)
-			goto exit;
-		
-		if (IsProcessed(lpRemoteCK, lpPropPCL)) {
+			return hr;
+		if (IsProcessed(lpRemoteCK, lpPropPCL))
 			//we already have this change
-			hr = SYNC_E_IGNORE;
-			goto exit;
-		}
+			return SYNC_E_IGNORE;
 		
 		// Check for conflicts except for associated messages, take always the lastone
 		if (bAssociatedMessage == false &&
@@ -308,25 +300,20 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChange(ULONG cValue, LPSPr
 
 	hr = lpMessage->QueryInterface(IID_ECMessage, &~lpECMessage);
 	if(hr != hrSuccess)
-		goto exit;
-		
+		return hr;
 	hr = lpECMessage->HrSetSyncId(m_ulSyncId);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Mark as ICS object
 	hr = lpECMessage->SetICSObject(TRUE);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpMessage->SetProps(cValue, lpPropArray, NULL);
 	if(hr != hrSuccess)
-		goto exit;
-		
+		return hr;
 	*lppMessage = lpMessage;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 //ulFlags = SYNC_SOFT_DELETE, SYNC_EXPIRY
@@ -520,35 +507,33 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictMessageOnly(LPMESSAGE lpM
 	//open the conflicts folder
 	hr = m_lpFolder->GetMsgStore()->OpenEntry(0, nullptr, &IID_IMAPIFolder, 0, &ulObjType, &~lpRootFolder);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = HrGetOneProp(lpRootFolder, PR_ADDITIONAL_REN_ENTRYIDS, &~lpPropAdditionalREN);
 	if(hr != hrSuccess)
-		goto exit;
-
-	if(lpPropAdditionalREN->Value.MVbin.cValues == 0 || lpPropAdditionalREN->Value.MVbin.lpbin[0].cb == 0){
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+		return hr;
+	if (lpPropAdditionalREN->Value.MVbin.cValues == 0 ||
+	    lpPropAdditionalREN->Value.MVbin.lpbin[0].cb == 0)
+		return MAPI_E_NOT_FOUND;
 	hr = m_lpFolder->GetMsgStore()->OpenEntry(lpPropAdditionalREN->Value.MVbin.lpbin[0].cb, reinterpret_cast<ENTRYID *>(lpPropAdditionalREN->Value.MVbin.lpbin[0].lpb), &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpConflictFolder);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	//create the conflict message
 	hr = lpConflictFolder->CreateMessage(nullptr, 0, &~lpConflictMessage);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpMessage->CopyTo(0, NULL, excludeProps, 0, NULL, &IID_IMessage,
 	     lpConflictMessage, 0, NULL);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	//set the entryid from original message in PR_CONFLICT_ITEMS of conflict message
 	hr = HrGetOneProp(lpMessage, PR_ENTRYID, &~lpEntryIdProp);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpConflictItems);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lpConflictItems->ulPropTag = PR_CONFLICT_ITEMS;
 	lpConflictItems->Value.MVbin.cValues = 1;
@@ -556,21 +541,19 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictMessageOnly(LPMESSAGE lpM
 
 	hr = HrSetOneProp(lpConflictMessage, lpConflictItems);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpConflictMessage->SaveChanges(KEEP_OPEN_READWRITE);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	//add the entryid from the conflict message to the PR_CONFLICT_ITEMS of the original message
 	hr = HrGetOneProp(lpConflictMessage, PR_ENTRYID, &~lpEntryIdProp);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	if (HrGetOneProp(lpMessage, PR_CONFLICT_ITEMS, &~lpConflictItems) != hrSuccess) {
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpConflictItems);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		lpConflictItems->ulPropTag = PR_CONFLICT_ITEMS;
 		lpConflictItems->Value.MVbin.cValues = 0;
 		lpConflictItems->Value.MVbin.lpbin = NULL;
@@ -578,8 +561,7 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictMessageOnly(LPMESSAGE lpM
 	
 	hr = MAPIAllocateMore(sizeof(SBinary)*(lpConflictItems->Value.MVbin.cValues+1), lpConflictItems, (LPVOID*)&lpEntryIds);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	for (ulCount = 0; ulCount < lpConflictItems->Value.MVbin.cValues; ++ulCount) {
 		lpEntryIds[ulCount].cb = lpConflictItems->Value.MVbin.lpbin[ulCount].cb;
 		lpEntryIds[ulCount].lpb = lpConflictItems->Value.MVbin.lpbin[ulCount].lpb;
@@ -591,8 +573,7 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictMessageOnly(LPMESSAGE lpM
 	++lpConflictItems->Value.MVbin.cValues;
 	if (lppConflictItems)
 		*lppConflictItems = lpConflictItems.release();
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECExchangeImportContentsChanges::CreateConflictFolders(){
@@ -608,27 +589,27 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictFolders(){
 	hr = m_lpFolder->OpenEntry(0, nullptr, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpRootFolder);
 	if(hr != hrSuccess) {
 		ZLOG_DEBUG(m_lpLogger, "Failed to open root folder, hr = 0x%08x", hr);
-		goto exit;
+		return hr;
 	}
 	hr = m_lpFolder->GetMsgStore()->GetReceiveFolder((TCHAR*)"IPM", 0, &cbEntryId, &~lpEntryId, NULL);
 	if(hr != hrSuccess) {
 		ZLOG_DEBUG(m_lpLogger, "Failed to get 'IPM' receive folder id, hr = 0x%08x", hr);
-		goto exit;
+		return hr;
 	}
 	hr = m_lpFolder->OpenEntry(cbEntryId, lpEntryId, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpInbox);
 	if(hr != hrSuccess) {
 		ZLOG_DEBUG(m_lpLogger, "Failed to open 'IPM' receive folder, hr = 0x%08x", hr);
-		goto exit;
+		return hr;
 	}
 	hr = HrGetOneProp(&m_lpFolder->GetMsgStore()->m_xMsgStore, PR_IPM_SUBTREE_ENTRYID, &~lpIPMSubTree);
 	if(hr != hrSuccess) {
 		ZLOG_DEBUG(m_lpLogger, "Failed to get ipm subtree id, hr = 0x%08x", hr);
-		goto exit;
+		return hr;
 	}
 	hr = m_lpFolder->OpenEntry(lpIPMSubTree->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpIPMSubTree->Value.bin.lpb), &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpParentFolder);
 	if(hr != hrSuccess) {
 		ZLOG_DEBUG(m_lpLogger, "Failed to open ipm subtree folder, hr = 0x%08x", hr);
-		goto exit;
+		return hr;
 	}
 
 	HrGetOneProp(lpRootFolder, PR_ADDITIONAL_REN_ENTRYIDS, &~lpAdditionalREN);
@@ -636,13 +617,13 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictFolders(){
 	//make new PR_ADDITIONAL_REN_ENTRYIDS
 	hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpNewAdditionalREN);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lpNewAdditionalREN->ulPropTag = PR_ADDITIONAL_REN_ENTRYIDS;
 	lpNewAdditionalREN->Value.MVbin.cValues = (lpAdditionalREN == nullptr || lpAdditionalREN->Value.MVbin.cValues < 4) ? 4 : lpAdditionalREN->Value.MVbin.cValues;
 	hr = MAPIAllocateMore(sizeof(SBinary)*lpNewAdditionalREN->Value.MVbin.cValues, lpNewAdditionalREN, (LPVOID*)&lpNewAdditionalREN->Value.MVbin.lpbin);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	//copy from original PR_ADDITIONAL_REN_ENTRYIDS
 	if(lpAdditionalREN)
@@ -652,46 +633,41 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictFolders(){
 	hr = CreateConflictFolder(_("Sync Issues"), lpNewAdditionalREN, 1, lpParentFolder, &~lpConflictFolder);
 	if(hr != hrSuccess) {
 		ZLOG_DEBUG(m_lpLogger, "Failed to create 'Sync Issues' folder, hr = 0x%08x", hr);
-		goto exit;
+		return hr;
 	}
 	
 	hr = CreateConflictFolder(_("Conflicts"), lpNewAdditionalREN, 0, lpConflictFolder, NULL);
 	if(hr != hrSuccess) {
 		ZLOG_DEBUG(m_lpLogger, "Failed to create 'Conflicts' folder, hr = 0x%08x", hr);
-		goto exit;
+		return hr;
 	}
 	
 	hr = CreateConflictFolder(_("Local Failures"), lpNewAdditionalREN, 2, lpConflictFolder, NULL);
 	if(hr != hrSuccess) {
 		ZLOG_DEBUG(m_lpLogger, "Failed to create 'Local Failures' folder, hr = 0x%08x", hr);
-		goto exit;
+		return hr;
 	}
 	
 	hr = CreateConflictFolder(_("Server Failures"), lpNewAdditionalREN, 3, lpConflictFolder, NULL);
 	if(hr != hrSuccess) {
 		ZLOG_DEBUG(m_lpLogger, "Failed to create 'Server Failures' folder, hr = 0x%08x", hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = HrSetOneProp(lpRootFolder, lpNewAdditionalREN);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = HrSetOneProp(lpInbox, lpNewAdditionalREN);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = HrUpdateSearchReminders(lpRootFolder, lpNewAdditionalREN);
 	if (hr == MAPI_E_NOT_FOUND) {
 		m_lpLogger->Log(EC_LOGLEVEL_INFO, "No reminder searchfolder found, nothing to update");
-		hr = hrSuccess;
 	} else if (hr != hrSuccess) {
 		ZLOG_DEBUG(m_lpLogger, "Failed to update search reminders, hr = 0x%08x", hr);
-		goto exit;
+		return hr;
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECExchangeImportContentsChanges::CreateConflictFolder(LPTSTR lpszName, LPSPropValue lpAdditionalREN, ULONG ulMVPos, LPMAPIFOLDER lpParentFolder, LPMAPIFOLDER * lppConflictFolder){
@@ -705,11 +681,11 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictFolder(LPTSTR lpszName, L
 	    lpParentFolder->OpenEntry(lpAdditionalREN->Value.MVbin.lpbin[ulMVPos].cb, reinterpret_cast<ENTRYID *>(lpAdditionalREN->Value.MVbin.lpbin[ulMVPos].lpb), &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpConflictFolder) == hrSuccess) {
 		if(lppConflictFolder)
 			*lppConflictFolder = lpConflictFolder.release();
-		goto exit;
+		return hr;
 	}
 	hr = lpParentFolder->CreateFolder(FOLDER_GENERIC, lpszName, nullptr, &IID_IMAPIFolder, OPEN_IF_EXISTS | fMapiUnicode, &~lpConflictFolder);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	sPropValue.ulPropTag = PR_FOLDER_DISPLAY_FLAGS;
 	sPropValue.Value.bin.cb = 6;
@@ -717,21 +693,19 @@ HRESULT ECExchangeImportContentsChanges::CreateConflictFolder(LPTSTR lpszName, L
 
 	hr = HrSetOneProp(lpConflictFolder, &sPropValue);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = HrGetOneProp(lpConflictFolder, PR_ENTRYID, &~lpEntryId);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = MAPIAllocateMore(lpEntryId->Value.bin.cb, lpAdditionalREN, (LPVOID*)&lpAdditionalREN->Value.MVbin.lpbin[ulMVPos].lpb);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	memcpy(lpAdditionalREN->Value.MVbin.lpbin[ulMVPos].lpb, lpEntryId->Value.bin.lpb, lpEntryId->Value.bin.cb);
 	lpAdditionalREN->Value.MVbin.lpbin[ulMVPos].cb = lpEntryId->Value.bin.cb;
 
 	if(lppConflictFolder)
 		*lppConflictFolder = lpConflictFolder.release();
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECExchangeImportContentsChanges::ConfigForConversionStream(LPSTREAM lpStream, ULONG ulFlags, ULONG /*cValuesConversion*/, LPSPropValue /*lpPropArrayConversion*/)

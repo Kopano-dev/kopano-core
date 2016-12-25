@@ -1227,7 +1227,7 @@ HRESULT ECExchangeExportChanges::ExportFolderChanges(){
 			hr = HrGetAllProps(lpFolder, (m_ulFlags & SYNC_UNICODE ? MAPI_UNICODE : 0), &ulCount, &~lpPropArray);
 			if(FAILED(hr)) {
 				ZLOG_DEBUG(m_lpLogger, "Unable to get source folder properties");
-				goto exit;
+				return hr;
 			}
 
 			//for folders directly under m_lpFolder PR_PARENT_SOURCE_KEY must be NULL
@@ -1266,7 +1266,7 @@ HRESULT ECExchangeExportChanges::ExportFolderChanges(){
 			goto next;
 		}else if(FAILED(hr)) {
 			m_lpLogger->Log(EC_LOGLEVEL_INFO, "change error: %s", stringify(hr, true).c_str());
-			goto exit;
+			return hr;
 		}else if(hr != hrSuccess){
 			m_lpLogger->Log(EC_LOGLEVEL_WARNING, "change warning: %s", stringify(hr, true).c_str());
 		}
@@ -1279,8 +1279,6 @@ next:
 
 	if(m_ulStep < m_lstChange.size())
 		hr = SYNC_W_PROGRESS;
-
-exit:
 	return hr;
 }
 
