@@ -251,27 +251,22 @@ HRESULT ECMAPIFolder::HrSetPropStorage(IECPropStorage *lpStorage, BOOL fLoadProp
 
 	hr = HrAllocAdviseSink(AdviseECFolderCallback, this, &m_lpFolderAdviseSink);	
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpStorage->QueryInterface(IID_WSMAPIPropStorage, &~lpMAPIPropStorage);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpMAPIPropStorage->GetEntryIDByRef(&cbEntryId, &lpEntryId);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = GetMsgStore()->InternalAdvise(cbEntryId, lpEntryId, ulEventMask, m_lpFolderAdviseSink, &m_ulConnection);
 	if (hr == MAPI_E_NO_SUPPORT)
 		hr = hrSuccess;			// there is no spoon
 	else if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	else
 		lpMAPIPropStorage->RegisterAdvise(ulEventMask, m_ulConnection);
 	
-	hr = ECGenericProp::HrSetPropStorage(lpStorage, fLoadProps);
-
-exit:
-	return hr;
+	return ECGenericProp::HrSetPropStorage(lpStorage, fLoadProps);
 }
 
 HRESULT ECMAPIFolder::SetEntryId(ULONG cbEntryId, LPENTRYID lpEntryId)

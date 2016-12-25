@@ -85,21 +85,18 @@ HRESULT ECMAPIContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 #endif
 	hr = ECMAPITable::Create(strName.c_str(), this->GetMsgStore()->m_lpNotifyClient, 0, &~lpTable);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = this->GetMsgStore()->lpTransport->HrOpenTableOps(MAPI_MESSAGE, ulFlags & (MAPI_UNICODE | SHOW_SOFT_DELETES | MAPI_ASSOCIATED | EC_TABLE_NOCAP), m_cbEntryId, m_lpEntryId, this->GetMsgStore(), &~lpTableOps);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpTable->HrSetTableOps(lpTableOps, !(ulFlags & MAPI_DEFERRED_ERRORS));
 
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	hr = lpTable->QueryInterface(IID_IMAPITable, (void **)lppTable);
 
 	AddChild(lpTable);
-
-exit:
 	return hr;
 }
 

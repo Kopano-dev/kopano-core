@@ -234,11 +234,9 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPr
 	ULONG ulSize = 0;
 	bool bConflict = false;
 
-	if(!lpPropParentSourceKey || !lpPropSourceKey || !lpPropDisplayName){
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
-
+	if (lpPropParentSourceKey == nullptr || lpPropSourceKey == nullptr ||
+	    lpPropDisplayName == nullptr)
+		return MAPI_E_CALL_FAILED;
 	if (lpPropComment)
 		strFolderComment = convert_to<utf8string>(lpPropComment->Value.lpszW);
 
@@ -253,7 +251,7 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPr
 		ulFolderType = lpPropFolderType->Value.ul;
 	if (ulFolderType == FOLDER_SEARCH)
 		//ignore search folder
-		goto exit;
+		return hrSuccess;
 
 	hr = m_lpFolder->GetMsgStore()->lpTransport->HrEntryIDFromSourceKey(m_lpFolder->GetMsgStore()->m_cbEntryId, m_lpFolder->GetMsgStore()->m_lpEntryId, lpPropSourceKey->Value.bin.cb, lpPropSourceKey->Value.bin.lpb, 0, NULL, &cbEntryId, &~lpEntryId);
 	if(hr == MAPI_E_NOT_FOUND){
@@ -262,44 +260,38 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPr
 			// Find the parent folder in which the new folder is to be created
 			hr = m_lpFolder->GetMsgStore()->lpTransport->HrEntryIDFromSourceKey(m_lpFolder->GetMsgStore()->m_cbEntryId, m_lpFolder->GetMsgStore()->m_lpEntryId , lpPropParentSourceKey->Value.bin.cb, lpPropParentSourceKey->Value.bin.lpb, 0, NULL, &cbEntryId, &~lpEntryId);
 			if(hr != hrSuccess)
-				goto exit;
-
-			if(cbEntryId == 0){
-				hr = MAPI_E_CALL_FAILED;
-				goto exit;
-			}
+				return hr;
+			if (cbEntryId == 0)
+				return MAPI_E_CALL_FAILED;
 			hr = m_lpFolder->OpenEntry(cbEntryId, lpEntryId, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpParentFolder);
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 			hr = lpParentFolder->QueryInterface(IID_ECMAPIFolder, &~lpECParentFolder);
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 			
 			// Create the folder, loop through some names if it collides
 			hr = lpECParentFolder->lpFolderOps->HrCreateFolder(ulFolderType, convstring(lpPropDisplayName->Value.lpszW), strFolderComment, 0, m_ulSyncId, lpOrigSourceKey, cbOrigEntryId, (LPENTRYID)lpOrigEntryId, &cbEntryId, &~lpEntryId);
 			if(hr != hrSuccess)
-				goto exit;
-			
+				return hr;
 		}else{
 			hr = m_lpFolder->lpFolderOps->HrCreateFolder(ulFolderType, convstring(lpPropDisplayName->Value.lpszW), strFolderComment, 0, m_ulSyncId, lpOrigSourceKey, cbOrigEntryId, (LPENTRYID)lpOrigEntryId, &cbEntryId, &~lpEntryId);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 		// Open the folder we just created
 		hr = m_lpFolder->OpenEntry(cbEntryId, lpEntryId, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpFolder);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 	}else if(hr != hrSuccess){
-		goto exit;
+		return hr;
 	}else if(cbEntryId == 0){
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
+		return MAPI_E_CALL_FAILED;
 	}else if(cbEntryId == m_lpFolder->m_cbEntryId && memcmp(lpEntryId, m_lpFolder->m_lpEntryId, cbEntryId)==0){
 		// We are the changed folder
 		hr = m_lpFolder->QueryInterface(IID_IMAPIFolder, &~lpFolder);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}else{
 		bool bRestored = false;
 
@@ -308,8 +300,7 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPr
 		if(hr != hrSuccess){
 			hr = m_lpFolder->OpenEntry(cbEntryId, lpEntryId, &IID_IMAPIFolder, MAPI_MODIFY | SHOW_SOFT_DELETES, &ulObjType, &~lpFolder);
 			if(hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			/**
 			 * If the folder was deleted locally, it must have been resotored remote in order to get a change for it.
 			 */
@@ -318,32 +309,29 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPr
 
 		hr = HrGetOneProp(lpFolder, PR_PARENT_SOURCE_KEY, &~lpPropVal);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 		
 		//check if we have to move the folder
 		if(bRestored || lpPropVal->Value.bin.cb != lpPropParentSourceKey->Value.bin.cb || memcmp(lpPropVal->Value.bin.lpb, lpPropParentSourceKey->Value.bin.lpb, lpPropVal->Value.bin.cb) != 0){
 			if(lpPropParentSourceKey->Value.bin.cb > 0){
 				hr = m_lpFolder->GetMsgStore()->lpTransport->HrEntryIDFromSourceKey(m_lpFolder->GetMsgStore()->m_cbEntryId, m_lpFolder->GetMsgStore()->m_lpEntryId , lpPropParentSourceKey->Value.bin.cb, lpPropParentSourceKey->Value.bin.lpb, 0, NULL, &cbDestEntryId, &~lpDestEntryId);
-				if(hr == MAPI_E_NOT_FOUND){
+				if (hr == MAPI_E_NOT_FOUND)
 					//move to a folder we don't have
-					hr = m_lpFolder->lpFolderOps->HrDeleteFolder(cbEntryId, lpEntryId, DEL_FOLDERS | DEL_MESSAGES | DELETE_HARD_DELETE, m_ulSyncId);
-					goto exit;
-				}
+					return m_lpFolder->lpFolderOps->HrDeleteFolder(cbEntryId, lpEntryId, DEL_FOLDERS | DEL_MESSAGES | DELETE_HARD_DELETE, m_ulSyncId);
 				if(hr != hrSuccess)
-					goto exit;
+					return hr;
 			}else{
 				cbDestEntryId = m_lpFolder->m_cbEntryId;
 				hr = MAPIAllocateBuffer(cbDestEntryId, &~lpDestEntryId);
 				if(hr != hrSuccess)
-					goto exit;
-
+					return hr;
 				memcpy(lpDestEntryId, m_lpFolder->m_lpEntryId, cbDestEntryId);
 			}
 			
 			// Do the move
 			hr = m_lpFolder->lpFolderOps->HrCopyFolder(cbEntryId, lpEntryId, cbDestEntryId, lpDestEntryId, utf8string(), FOLDER_MOVE, m_ulSyncId);
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 	}
 	
@@ -354,12 +342,11 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPr
 
 		while(ulPos < strChangeList.size()){
 			ulSize = strChangeList.at(ulPos);
-			if(ulSize <= sizeof(GUID)){
+			if (ulSize <= sizeof(GUID))
 				break;
-			}else if(ulSize == lpPropChangeKey->Value.bin.cb && memcmp(strChangeList.substr(ulPos+1, ulSize).c_str(), lpPropChangeKey->Value.bin.lpb, ulSize) == 0){
-				hr = SYNC_E_IGNORE;
-				goto exit;
-			}
+			else if (ulSize == lpPropChangeKey->Value.bin.cb &&
+			    memcmp(strChangeList.substr(ulPos+1, ulSize).c_str(), lpPropChangeKey->Value.bin.lpb, ulSize) == 0)
+				return SYNC_E_IGNORE;
 			ulPos += ulSize + 1;
 		}
 	}
@@ -386,19 +373,16 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPr
 	}
 	hr = lpFolder->QueryInterface(IID_ECMAPIFolder, &~lpECFolder);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpECFolder->HrSetSyncId(m_ulSyncId);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpECFolder->SetProps(cValue, lpPropArray, NULL);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpECFolder->SaveChanges(KEEP_OPEN_READWRITE);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	/**
 	 * If PR_ADDITIONAL_REN_ENTRYIDS exist this is assumed to be either the Inbox or the root-container. The
@@ -413,21 +397,16 @@ HRESULT ECExchangeImportHierarchyChanges::ImportFolderChange(ULONG cValue, LPSPr
 
 		hrTmp = m_lpFolder->OpenEntry(0, nullptr, &ptrRoot.iid(), MAPI_BEST_ACCESS | MAPI_DEFERRED_ERRORS, &ulObjType, &~ptrRoot);
 		if (hrTmp != hrSuccess)
-			goto exit;
-
+			return hr;
 		hrTmp = ptrRoot->SetProps(1, lpPropAdditionalREN, NULL);
 		if (hrTmp != hrSuccess)
-			goto exit;
-
+			return hr;
 		hrTmp = ptrRoot->SaveChanges(KEEP_OPEN_READWRITE);
 		if (hrTmp != hrSuccess)
-			goto exit;
-
+			return hr;
 		hrTmp = ECExchangeImportContentsChanges::HrUpdateSearchReminders(ptrRoot, lpPropAdditionalREN);
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 //ulFlags = SYNC_SOFT_DELETE, SYNC_EXPIRY

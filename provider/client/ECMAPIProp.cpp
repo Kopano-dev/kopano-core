@@ -517,27 +517,18 @@ HRESULT ECMAPIProp::SaveChanges(ULONG ulFlags)
 	HRESULT hr = hrSuccess;
 	object_ptr<WSMAPIPropStorage> lpMAPIPropStorage;
 	
-	if (lpStorage == NULL) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
-	if (!fModify) {
-		hr = MAPI_E_NO_ACCESS;
-		goto exit;
-	}
+	if (lpStorage == nullptr)
+		return MAPI_E_NOT_FOUND;
+	if (!fModify)
+		return MAPI_E_NO_ACCESS;
 
 	// only folders and main messages have a syncid, attachments and msg-in-msg don't
 	if (lpStorage->QueryInterface(IID_WSMAPIPropStorage, &~lpMAPIPropStorage) == hrSuccess) {
 		hr = lpMAPIPropStorage->HrSetSyncId(m_ulSyncId);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
-
-	hr = ECGenericProp::SaveChanges(ulFlags);
-
-exit:
-	return hr;
+	return ECGenericProp::SaveChanges(ulFlags);
 }
 
 HRESULT ECMAPIProp::HrSaveChild(ULONG ulFlags, MAPIOBJECT *lpsMapiObject) {
@@ -824,11 +815,10 @@ HRESULT ECMAPIProp::HrSetSyncId(ULONG ulSyncId)
 	if (lpStorage != nullptr && lpStorage->QueryInterface(IID_WSMAPIPropStorage, &~lpMAPIPropStorage) == hrSuccess) {
 		hr = lpMAPIPropStorage->HrSetSyncId(ulSyncId);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 	m_ulSyncId = ulSyncId;
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 // Security functions

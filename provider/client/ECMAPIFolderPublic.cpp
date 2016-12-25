@@ -311,31 +311,22 @@ HRESULT ECMAPIFolderPublic::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTabl
 
 	if( m_ePublicEntryID == ePE_IPMSubtree || m_ePublicEntryID == ePE_Favorites)
 	{
-		if (ulFlags & SHOW_SOFT_DELETES) {
-			hr = MAPI_E_NO_SUPPORT;
-			goto exit;
-		}
+		if (ulFlags & SHOW_SOFT_DELETES)
+			return MAPI_E_NO_SUPPORT;
 		hr = Util::HrCopyUnicodePropTagArray(ulFlags,
 		     sPropsContentColumns, &~lpPropTagArray);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 		hr = ECMemTable::Create(lpPropTagArray, PR_ROWID, &~lpMemTable);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 		hr = lpMemTable->HrGetView(createLocaleFromName(""), ulFlags & MAPI_UNICODE, &~lpView);
 		if(hr != hrSuccess)
-			goto exit;
-
-		hr = lpView->QueryInterface(IID_IMAPITable, (void **)lppTable);
-		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
+		return lpView->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(lppTable));
 	} else {
-		hr = ECMAPIFolder::GetContentsTable(ulFlags, lppTable);
+		return ECMAPIFolder::GetContentsTable(ulFlags, lppTable);
 	}
-
-exit:
-	return hr;
 }
 
 HRESULT ECMAPIFolderPublic::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
@@ -347,44 +338,30 @@ HRESULT ECMAPIFolderPublic::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTab
 	if( m_ePublicEntryID == ePE_IPMSubtree)
 	{
 		// FIXME: if exchange support CONVENIENT_DEPTH than we must implement this
-		if ((ulFlags & SHOW_SOFT_DELETES) || (ulFlags & CONVENIENT_DEPTH)) {
-			hr= MAPI_E_NO_SUPPORT;
-			goto exit;
-		}
+		if (ulFlags & (SHOW_SOFT_DELETES | CONVENIENT_DEPTH))
+			return MAPI_E_NO_SUPPORT;
 		hr = ((ECMsgStorePublic *)GetMsgStore())->GetIPMSubTree()->HrGetView(createLocaleFromName(""), ulFlags, &~lpView);
 		if(hr != hrSuccess)
-			goto exit;
-
-		hr = lpView->QueryInterface(IID_IMAPITable, (void **)lppTable);
-		if(hr != hrSuccess)
-			goto exit;
+			return hr;
+		return lpView->QueryInterface(IID_IMAPITable, (void **)lppTable);
 	} else if( m_ePublicEntryID == ePE_Favorites || m_ePublicEntryID == ePE_FavoriteSubFolder) {
 
 		// FIXME: if exchange support CONVENIENT_DEPTH than we must implement this
-		if ((ulFlags & SHOW_SOFT_DELETES) || (ulFlags & CONVENIENT_DEPTH)) {
-			hr= MAPI_E_NO_SUPPORT;
-			goto exit;
-		}
+		if (ulFlags & (SHOW_SOFT_DELETES | CONVENIENT_DEPTH))
+			return MAPI_E_NO_SUPPORT;
 		hr = ECMemTablePublic::Create(this, &~lpMemTable);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = lpMemTable->Init(ulFlags&MAPI_UNICODE);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 		hr = lpMemTable->HrGetView(createLocaleFromName(""), ulFlags & MAPI_UNICODE, &~lpView);
 		if(hr != hrSuccess)
-			goto exit;
-
-		hr = lpView->QueryInterface(IID_IMAPITable, (void **)lppTable);
-		if(hr != hrSuccess)
-			goto exit;
+			return hr;
+		return lpView->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(lppTable));
 	} else {
-		hr = ECMAPIFolder::GetHierarchyTable(ulFlags, lppTable);
+		return ECMAPIFolder::GetHierarchyTable(ulFlags, lppTable);
 	}
-
-exit:
-	return hr;
 }
 
 HRESULT ECMAPIFolderPublic::SaveChanges(ULONG ulFlags)
@@ -524,10 +501,8 @@ HRESULT ECMAPIFolderPublic::DeleteFolder(ULONG cbEntryID, LPENTRYID lpEntryID, U
 	ULONG ulObjType = 0;
 	memory_ptr<SPropValue> lpProp;
 
-	if(ValidateZEntryId(cbEntryID, (LPBYTE)lpEntryID, MAPI_FOLDER) == false) {
-		hr = MAPI_E_INVALID_ENTRYID;
-		goto exit;
-	}
+	if (ValidateZEntryId(cbEntryID, reinterpret_cast<BYTE *>(lpEntryID), MAPI_FOLDER) == false)
+		return MAPI_E_INVALID_ENTRYID;
 
 	if (cbEntryID > 4 && (lpEntryID->abFlags[3] & KOPANO_FAVORITE) )
 	{
@@ -535,24 +510,17 @@ HRESULT ECMAPIFolderPublic::DeleteFolder(ULONG cbEntryID, LPENTRYID lpEntryID, U
 		object_ptr<IMAPIFolder> lpFolder, lpShortcutFolder;
 		hr = OpenEntry(cbEntryID, lpEntryID, nullptr, 0, &ulObjType, &~lpFolder);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		hr = HrGetOneProp(lpFolder, PR_SOURCE_KEY, &~lpProp);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		hr = ((ECMsgStorePublic *)GetMsgStore())->GetDefaultShortcutFolder(&~lpShortcutFolder);
 		if (hr != hrSuccess)
-			goto exit;
-
-		hr = DelFavoriteFolder(lpShortcutFolder, lpProp);
-		if (hr != hrSuccess)
-			goto exit;
+			return hr;
+		return DelFavoriteFolder(lpShortcutFolder, lpProp);
 	} else {
-
-		hr = ECMAPIFolder::DeleteFolder(cbEntryID, lpEntryID, ulUIParam, lpProgress, ulFlags);
+		return ECMAPIFolder::DeleteFolder(cbEntryID, lpEntryID, ulUIParam, lpProgress, ulFlags);
 	}
-
-exit:
-	return hr;
 }
 
 HRESULT ECMAPIFolderPublic::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LPVOID lpDestFolder, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags)
@@ -563,12 +531,9 @@ HRESULT ECMAPIFolderPublic::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterfa
 	memory_ptr<SPropValue> lpPropArray;
 
 	if(lpMsgList == NULL || lpMsgList->cValues == 0)
-		goto exit;
-
-	if (lpMsgList->lpbin == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+		return hr;
+	if (lpMsgList->lpbin == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 	
 	//Get the interface of destinationfolder
 	if(lpInterface == NULL || *lpInterface == IID_IMAPIFolder)
@@ -583,24 +548,18 @@ HRESULT ECMAPIFolderPublic::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterfa
 		hr = MAPI_E_INTERFACE_NOT_SUPPORTED;
 	
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Get the destination entry ID
 	hr = HrGetOneProp(lpMapiFolder, PR_ENTRYID, &~lpPropArray);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// if the destination is the publicfolders entryid, just block
 	if(((ECMsgStorePublic*)GetMsgStore())->ComparePublicEntryId(ePE_PublicFolders, lpPropArray[0].Value.bin.cb, (LPENTRYID)lpPropArray[0].Value.bin.lpb, &ulResult) == hrSuccess && ulResult == TRUE)
-	{
-		hr = MAPI_E_NO_ACCESS;
-		goto exit;
-	}
+		return MAPI_E_NO_ACCESS;
 
-	hr = ECMAPIFolder::CopyMessages(lpMsgList, lpInterface, lpDestFolder, ulUIParam, lpProgress, ulFlags);
-
-exit:
-	return hr;
+	return ECMAPIFolder::CopyMessages(lpMsgList, lpInterface, lpDestFolder, ulUIParam, lpProgress, ulFlags);
 }
 
 HRESULT ECMAPIFolderPublic::CreateMessage(LPCIID lpInterface, ULONG ulFlags, LPMESSAGE *lppMessage)
