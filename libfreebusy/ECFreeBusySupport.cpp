@@ -93,11 +93,7 @@ HRESULT ECFreeBusySupport::Open(IMAPISession* lpMAPISession, IMsgStore* lpMsgSto
 	object_ptr<IMsgStore> lpPublicStore;
 
 	if(lpMAPISession == NULL)
-	{
-		hr = MAPI_E_INVALID_OBJECT;
-		goto exit;
-	}
-
+		return MAPI_E_INVALID_OBJECT;
 #ifdef DEBUG
 	if (lpMsgStore) {
 		memory_ptr<SPropValue> lpPropArray;
@@ -110,25 +106,23 @@ HRESULT ECFreeBusySupport::Open(IMAPISession* lpMAPISession, IMsgStore* lpMsgSto
 	// on delete the class
 	hr = lpMAPISession->QueryInterface(IID_IMAPISession, (void**)&m_lpSession);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Open the public store for communicate with the freebusy information.
 	hr = HrOpenECPublicStoreOnline(lpMAPISession, &~lpPublicStore);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpPublicStore->QueryInterface(IID_IMsgStore, (void**)&m_lpPublicStore);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	if(lpMsgStore) {
 		//Hold the use store for update freebusy
 		hr = lpMsgStore->QueryInterface(IID_IMsgStore, (void**)&m_lpUserStore);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECFreeBusySupport::Close()
@@ -213,10 +207,7 @@ HRESULT ECFreeBusySupport::LoadFreeBusyUpdate(ULONG cUsers, FBUser *lpUsers, IFr
 	ULONG				cFBUpdate = 0;
 
 	if((cUsers > 0 && lpUsers == NULL) || lppFBUpdate == NULL)
-	{
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+		return MAPI_E_INVALID_PARAMETER;
 
 	for (unsigned int i = 0; i < cUsers; ++i) {
 		object_ptr<IMessage> lpMessage;
@@ -232,18 +223,15 @@ HRESULT ECFreeBusySupport::LoadFreeBusyUpdate(ULONG cUsers, FBUser *lpUsers, IFr
 		object_ptr<ECFreeBusyUpdate> lpECFBUpdate;
 		hr = ECFreeBusyUpdate::Create(lpMessage, &~lpECFBUpdate);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = lpECFBUpdate->QueryInterface(IID_IFreeBusyUpdate, (void**)&lppFBUpdate[i]);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 		++cFBUpdate;
 	}
 
 	if(lpcFBUpdate)
 		*lpcFBUpdate = cFBUpdate;
-
-exit:
 	return hr;
 }
 
@@ -376,19 +364,12 @@ HRESULT ECFreeBusySupport::GetDelegateInfoEx(FBUser sFBUser, unsigned int *lpulS
 	// We'll get the values anyway just to be sure.
 	hr = LoadFreeBusyData(1, &sFBUser, &~lpFBData, &ulStatus, &ulRead);
 	if(hr != hrSuccess)
-		goto exit;
-
-	if(ulRead != 1) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
-	hr = lpFBData->GetFBPublishRange((LONG *)lpulStart, (LONG *)lpulEnd);
-
-exit:
+		return hr;
+	if (ulRead != 1)
+		return MAPI_E_NOT_FOUND;
+	return lpFBData->GetFBPublishRange((LONG *)lpulStart, (LONG *)lpulEnd);
 	// if an error is returned, outlook will send an email to the resource.
 	// PR_LAST_VERB_EXECUTED (ulong) will be set to 516, so outlook knows modifications need to be mailed too.
-	return hr;
 }
 
 // IUnknown

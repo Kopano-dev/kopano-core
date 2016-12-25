@@ -2490,23 +2490,18 @@ HRESULT VConverter::HrSetBody(LPMESSAGE lpMessage, icalproperty **lppicProp)
 
 	hr = lpMessage->OpenProperty(PR_BODY_W, &IID_IStream, 0, MAPI_DEFERRED_ERRORS, &~lpStream);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpStream->Stat(&sStreamStat, 0);
 	if (hr != hrSuccess)
-		goto exit;
-
-	if (sStreamStat.cbSize.LowPart == 0) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
+		return hr;
+	if (sStreamStat.cbSize.LowPart == 0)
+		return MAPI_E_NOT_FOUND;
 	lpBody.reset(new WCHAR[sStreamStat.cbSize.LowPart + sizeof(WCHAR)]);
 	memset(lpBody.get(), 0, (sStreamStat.cbSize.LowPart+1) * sizeof(WCHAR));
 
 	hr = lpStream->Read(lpBody.get(), sStreamStat.cbSize.LowPart * sizeof(WCHAR), NULL);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// The body is converted as OL2003 does not parse '\r' & '\t' correctly
 	// Newer versions also have some issues parsing these chars
@@ -2515,9 +2510,7 @@ HRESULT VConverter::HrSetBody(LPMESSAGE lpMessage, icalproperty **lppicProp)
 	StringCRLFtoLF(strBody, &strBody);
 	
 	*lppicProp = icalproperty_new_description(m_converter.convert_to<string>(m_strCharset.c_str(), strBody, rawsize(strBody), CHARSET_WCHAR).c_str());
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 

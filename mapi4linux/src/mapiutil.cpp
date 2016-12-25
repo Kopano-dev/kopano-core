@@ -286,14 +286,12 @@ HRESULT __stdcall WrapCompressedRTFStream(LPSTREAM lpCompressedRTFStream, ULONG 
 	hr = lpCompressedRTFStream->Stat(&sStatStg, STATFLAG_NONAME);
 
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	if(sStatStg.cbSize.LowPart > 0) {
 		lpCompressed.reset(new(std::nothrow) char[sStatStg.cbSize.LowPart]);
-        	if(lpCompressed == NULL) {
-        		hr = MAPI_E_NOT_ENOUGH_MEMORY;
-        		goto exit;
-        	}
+		if (lpCompressed == nullptr)
+			return MAPI_E_NOT_ENOUGH_MEMORY;
 
         	// Read in the whole compressed data buffer
         	lpReadPtr = lpCompressed.get();
@@ -301,8 +299,7 @@ HRESULT __stdcall WrapCompressedRTFStream(LPSTREAM lpCompressedRTFStream, ULONG 
         		hr = lpCompressedRTFStream->Read(lpReadPtr, 1024, &ulRead);
 
         		if(hr != hrSuccess)
-        			goto exit;
-
+				return hr;
         		if(ulRead == 0)
         			break;	
         	
@@ -310,15 +307,10 @@ HRESULT __stdcall WrapCompressedRTFStream(LPSTREAM lpCompressedRTFStream, ULONG 
         	}
         	ulUncompressedLen = rtf_get_uncompressed_length(lpCompressed.get(), sStatStg.cbSize.LowPart);
         	lpUncompressed.reset(new(std::nothrow) char[ulUncompressedLen]);
-        	if(lpUncompressed == NULL) {
-        		hr = MAPI_E_NOT_ENOUGH_MEMORY;
-        		goto exit;
-        	}
-        	if (rtf_decompress(lpUncompressed.get(), lpCompressed.get(), sStatStg.cbSize.LowPart) != 0) {
-        		hr = MAPI_E_INVALID_PARAMETER;
-        		goto exit;
-        	}
-        	
+		if (lpUncompressed == nullptr)
+			return MAPI_E_NOT_ENOUGH_MEMORY;
+        	if (rtf_decompress(lpUncompressed.get(), lpCompressed.get(), sStatStg.cbSize.LowPart) != 0)
+			return MAPI_E_INVALID_PARAMETER;
         	// We now have the uncompressed data, create a stream and write the uncompressed data into it
 	}
 	
@@ -327,12 +319,9 @@ HRESULT __stdcall WrapCompressedRTFStream(LPSTREAM lpCompressedRTFStream, ULONG 
 	     nullptr /* no cleanup */,
 	     lpCompressedRTFStream, &~lpUncompressedStream);
 	if(hr != hrSuccess)
-		goto exit;
-
-	hr = lpUncompressedStream->QueryInterface(IID_IStream, (void **)lppUncompressedStream);
-
-exit:
-	return hr;
+		return hr;
+	return lpUncompressedStream->QueryInterface(IID_IStream,
+	       reinterpret_cast<void **>(lppUncompressedStream));
 }
 
 // RTFSync is not much use even in windows, so we don't implement it
@@ -433,18 +422,12 @@ HRESULT __stdcall CreateStreamOnHGlobal(void *hGlobal, BOOL fDeleteOnRelease, IS
 	HRESULT hr = hrSuccess;
 	object_ptr<ECMemStream> lpStream;
 	
-	if(hGlobal != NULL || fDeleteOnRelease != TRUE) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (hGlobal != nullptr || fDeleteOnRelease != TRUE)
+		return MAPI_E_INVALID_PARAMETER;
 	hr = ECMemStream::Create(nullptr, 0, STGM_WRITE, nullptr, nullptr, nullptr, &~lpStream); // NULLs: no callbacks and custom data
 	if(hr != hrSuccess) 
-		goto exit;
-		
-	hr = lpStream->QueryInterface(IID_IStream, (void **)lppStream);
-	
-exit:
-	return hr;
+		return hr;
+	return lpStream->QueryInterface(IID_IStream, reinterpret_cast<void **>(lppStream));
 }
 
 HRESULT __stdcall OpenStreamOnFile(LPALLOCATEBUFFER lpAllocateBuffer, LPFREEBUFFER lpFreeBuffer, ULONG ulFlags,

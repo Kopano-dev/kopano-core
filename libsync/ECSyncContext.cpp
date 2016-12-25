@@ -183,15 +183,11 @@ HRESULT ECSyncContext::HrGetReceiveFolder(LPMAPIFOLDER *lppInboxFolder)
 
 	hr = m_lpStore->GetReceiveFolder((LPTSTR)"IPM", 0, &cbEntryID, &~lpEntryID, NULL);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = m_lpStore->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpInboxFolder);
 	if (hr != hrSuccess)
-		goto exit;
-
-	hr = lpInboxFolder->QueryInterface(IID_IMAPIFolder, (void**)lppInboxFolder);
-
-exit:
-	return hr;
+		return hr;
+	return lpInboxFolder->QueryInterface(IID_IMAPIFolder, (void**)lppInboxFolder);
 }
 
 HRESULT ECSyncContext::HrGetChangeAdvisor(IECChangeAdvisor **lppChangeAdvisor)
@@ -269,17 +265,11 @@ HRESULT ECSyncContext::HrQueryHierarchyTable(LPSPropTagArray lpsPropTags, LPSRow
 	assert(lppRows != NULL);
 	hr = m_lpStore->OpenEntry(0, nullptr, &IID_IMAPIFolder, MAPI_DEFERRED_ERRORS, &ulType, &~lpRootFolder);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpRootFolder->GetHierarchyTable(CONVENIENT_DEPTH, &~lpTable);
 	if (hr != hrSuccess)
-		goto exit;
-
-	hr = HrQueryAllRows(lpTable, lpsPropTags, NULL, NULL, 0, lppRows);
-	if(hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+		return hr;
+	return HrQueryAllRows(lpTable, lpsPropTags, nullptr, nullptr, 0, lppRows);
 }
 
 HRESULT ECSyncContext::HrOpenRootFolder(LPMAPIFOLDER *lppRootFolder, LPMDB *lppMsgStore)
@@ -291,16 +281,15 @@ HRESULT ECSyncContext::HrOpenRootFolder(LPMAPIFOLDER *lppRootFolder, LPMDB *lppM
 	assert(lppRootFolder != NULL);
 	hr = HrOpenFolder(&sEntryID, &~lpRootFolder);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	if (lppMsgStore) {
 		hr = HrGetMsgStore(lppMsgStore);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 	*lppRootFolder = lpRootFolder.release();
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECSyncContext::HrOpenFolder(SBinary *lpsEntryID, LPMAPIFOLDER *lppFolder)
@@ -313,10 +302,9 @@ HRESULT ECSyncContext::HrOpenFolder(SBinary *lpsEntryID, LPMAPIFOLDER *lppFolder
 	assert(lppFolder != NULL);
 	hr = m_lpStore->OpenEntry(lpsEntryID->cb, reinterpret_cast<ENTRYID *>(lpsEntryID->lpb), &IID_IMAPIFolder, MAPI_DEFERRED_ERRORS | MAPI_MODIFY, &ulType, &~lpFolder);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	*lppFolder = lpFolder.release();
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECSyncContext::HrNotifyNewMail(LPNOTIFICATION lpNotification)
@@ -348,12 +336,12 @@ HRESULT ECSyncContext::HrGetSteps(SBinary *lpEntryID, SBinary *lpSourceKey, ULON
 	if (hr == MAPI_E_NOT_FOUND)
 		goto fallback;
 	else if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = m_lpChangeAdvisor->QueryInterface(IID_IECChangeAdvisor, &~lpECA);
 	if (hr == MAPI_E_INTERFACE_NOT_SUPPORTED)
 		goto fallback;
 	else if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	hr = lpECA->IsMonitoringSyncId(sSyncState.ulSyncId);
 	if (hr == hrSuccess) {
@@ -364,7 +352,7 @@ HRESULT ECSyncContext::HrGetSteps(SBinary *lpEntryID, SBinary *lpSourceKey, ULON
 			*lpulSteps = 0;
 			m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "GetSteps: sourcekey=%s, syncid=%u, notified=yes, steps=0 (unsignalled)", bin2hex(lpSourceKey->cb, lpSourceKey->lpb).c_str(), sSyncState.ulSyncId);
 			lk.unlock();
-			goto exit;
+			return hr;
 		}
 
 		ulChangeId = iterNotifiedSyncId->second;	// Remember for later.
@@ -375,32 +363,30 @@ HRESULT ECSyncContext::HrGetSteps(SBinary *lpEntryID, SBinary *lpSourceKey, ULON
 
 		hr = m_lpChangeAdvisor->AddKeys(&sEntryList);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	} else
-		goto exit;
+		return hr;
 
 fallback:
 	// The current folder is not being monitored, so get steps the old fashioned way.
 	hr = m_lpStore->OpenEntry(lpEntryID->cb, reinterpret_cast<ENTRYID *>(lpEntryID->lpb), 0, MAPI_DEFERRED_ERRORS, &ulType, &~lpFolder);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = HrGetSyncStatusStream(lpSourceKey, &~lpStream);
 	if (FAILED(hr))
-		goto exit;
+		return hr;
 	hr = lpFolder->OpenProperty(PR_CONTENTS_SYNCHRONIZER, &IID_IExchangeExportChanges, 0, 0, &~lpIEEC);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpIEEC->Config(lpStream, SYNC_CATCHUP | ulSyncFlags, NULL, NULL, NULL, NULL, 1);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpIEEC->QueryInterface(IID_IECExportChanges, &~lpECEC);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpECEC->GetChangeCount(&ulChangeCount);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// If the change notification system was signalled for this syncid, but the server returns no results, we need
 	// to remove it from the list. However there could have been a change in the mean time, so we need to check if
@@ -413,9 +399,7 @@ fallback:
 
 	*lpulSteps = ulChangeCount;
 	m_lpLogger->Log(EC_LOGLEVEL_DEBUG, "GetSteps: sourcekey=%s, syncid=%u, notified=%s, steps=%u", bin2hex(lpSourceKey->cb, lpSourceKey->lpb).c_str(), sSyncState.ulSyncId, (bNotified ? "yes" : "no"), *lpulSteps);
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECSyncContext::HrUpdateChangeId(LPSTREAM lpStream)
@@ -460,29 +444,23 @@ HRESULT ECSyncContext::HrGetSyncStateFromSourceKey(SBinary *lpSourceKey, SSyncSt
 	if (iterSyncState != m_mapStates.cend()) {
 		assert(iterSyncState->second.ulSyncId != 0);
 		*lpsSyncState = iterSyncState->second;
-		goto exit;
+		return hr;
 	}
 
 	// Try to get the information from the status stream.
 	hr = HrGetSyncStatusStream(lpSourceKey, &~lpStream);
 	if (FAILED(hr))
-		goto exit;
-
+		return hr;
 	hr = HrDecodeSyncStateStream(lpStream, &sSyncState.ulSyncId, &sSyncState.ulChangeId, NULL);
 	if (hr != hrSuccess)
-		goto exit;
-
-	if (sSyncState.ulSyncId == 0) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+		return hr;
+	if (sSyncState.ulSyncId == 0)
+		return MAPI_E_NOT_FOUND;
 
 	// update the sourcekey to syncid map.
 	m_mapStates.insert(SyncStateMap::value_type(strSourceKey, sSyncState));
 	*lpsSyncState = sSyncState;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 bool ECSyncContext::SyncStatusLoaded() const
@@ -630,17 +608,14 @@ HRESULT ECSyncContext::HrGetSyncStatusStream(SBinary *lpsSourceKey, LPSTREAM *lp
 	} else {
 		hr = CreateNullStatusStream(&~lpStream);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = MAPI_W_POSITION_CHANGED;
 		m_mapSyncStatus[strSourceKey] = lpStream;
 		lpStream->AddRef();
 		*lppStream = lpStream;
 	}
 	(*lppStream)->AddRef();
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECSyncContext::GetResyncID(ULONG *lpulResyncID)

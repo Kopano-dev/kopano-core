@@ -135,34 +135,27 @@ HRESULT HrGetOneBinProp(IMAPIProp *lpProp, ULONG ulPropTag, LPSPropValue *lppPro
 	STATSTG sStat;
 	ULONG ulRead = 0;
 
-	if(!lpProp){
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpProp == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 	hr = lpProp->OpenProperty(ulPropTag, &IID_IStream, 0, 0, &~lpStream);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpStream->Stat(&sStat, 0);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropValue);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = MAPIAllocateMore(sStat.cbSize.LowPart, lpPropValue, (void **) &lpPropValue->Value.bin.lpb);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpStream->Read(lpPropValue->Value.bin.lpb, sStat.cbSize.LowPart, &ulRead);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	lpPropValue->Value.bin.cb = ulRead;
 
 	*lppPropValue = lpPropValue.release();
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 } /* namespace */
