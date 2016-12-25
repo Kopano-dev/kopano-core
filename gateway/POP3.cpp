@@ -478,15 +478,14 @@ HRESULT POP3::HrCmdRetr(unsigned int ulMailNr) {
 
 	if (ulMailNr < 1 || ulMailNr > lstMails.size()) {
 		HrResponse(POP3_RESP_ERR, "mail nr not found");
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
+		return MAPI_E_NOT_FOUND;
 	}
 
 	hr = lpStore->OpenEntry(lstMails[ulMailNr-1].sbEntryID.cb, reinterpret_cast<ENTRYID *>(lstMails[ulMailNr-1].sbEntryID.lpb), &IID_IMessage, MAPI_DEFERRED_ERRORS,
 	     &ulObjType, &~lpMessage);
 	if (hr != hrSuccess) {
 		HrResponse(POP3_RESP_ERR, "Failing to open entry");
-		goto exit;
+		return hr;
 	}
 	hr = lpMessage->OpenProperty(PR_EC_IMAP_EMAIL, &IID_IStream, 0, 0, &~lpStream);
 	if (hr == hrSuccess) {
@@ -502,7 +501,7 @@ HRESULT POP3::HrCmdRetr(unsigned int ulMailNr) {
 			delete[] szMessage;
 			lpLogger->Log(EC_LOGLEVEL_ERROR, "Error converting MAPI to MIME: 0x%08x", hr);
 			HrResponse(POP3_RESP_PERMFAIL, "Converting MAPI to MIME error");
-			goto exit;
+			return hr;
 		}
 		strMessage = DotFilter(szMessage);
 		delete[] szMessage;
@@ -513,9 +512,7 @@ HRESULT POP3::HrCmdRetr(unsigned int ulMailNr) {
 
 	lpChannel->HrWriteLine(strMessage);
 	lpChannel->HrWriteLine(".");
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -675,15 +672,15 @@ HRESULT POP3::HrCmdTop(unsigned int ulMailNr, unsigned int ulLines) {
 	if (ulMailNr < 1 || ulMailNr > lstMails.size()) {
 		hr = HrResponse(POP3_RESP_ERR, "mail nr not found");
 		if (hr == hrSuccess)
-			hr = MAPI_E_NOT_FOUND;
-		goto exit;
+			return MAPI_E_NOT_FOUND;
+		return hr;
 	}
 
 	hr = lpStore->OpenEntry(lstMails[ulMailNr-1].sbEntryID.cb, reinterpret_cast<ENTRYID *>(lstMails[ulMailNr-1].sbEntryID.lpb), &IID_IMessage, MAPI_DEFERRED_ERRORS,
 	     &ulObjType, &~lpMessage);
 	if (hr != hrSuccess) {
 		HrResponse(POP3_RESP_ERR, "Failing to open entry");
-		goto exit;
+		return hr;
 	}
 	hr = lpMessage->OpenProperty(PR_EC_IMAP_EMAIL, &IID_IStream, 0, 0, &~lpStream);
 	if (hr == hrSuccess)
@@ -696,7 +693,7 @@ HRESULT POP3::HrCmdTop(unsigned int ulMailNr, unsigned int ulLines) {
 			delete[] szMessage;
 			lpLogger->Log(EC_LOGLEVEL_ERROR, "Error converting MAPI to MIME: 0x%08x", hr);
 			HrResponse(POP3_RESP_PERMFAIL, "Converting MAPI to MIME error");
-			goto exit;
+			return hr;
 		}
 
 		strMessage = szMessage;
@@ -717,13 +714,8 @@ HRESULT POP3::HrCmdTop(unsigned int ulMailNr, unsigned int ulLines) {
 	if (HrResponse(POP3_RESP_OK, string()) != hrSuccess ||
 		lpChannel->HrWriteLine(strMessage) != hrSuccess ||
 		lpChannel->HrWriteLine(".") != hrSuccess)
-	{
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
-
-exit:
-	return hr;
+		return MAPI_E_CALL_FAILED;
+	return hrSuccess;
 }
 
 /** 

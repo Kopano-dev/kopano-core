@@ -325,8 +325,7 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 	pPropAttachNum = PpropFindProp(lpRow->lpProps, lpRow->cValues, PR_ATTACH_NUM);
 	if (pPropAttachNum == NULL) {
 		ec_log_err("Attachment in table not correct, no attachment number present.");
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
+		return MAPI_E_NOT_FOUND;
 	}
 
 	ulAttachmentNum = pPropAttachNum->Value.ul;
@@ -347,12 +346,12 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 		hr = lpMessage->OpenAttach(ulAttachmentNum, nullptr, MAPI_BEST_ACCESS, &~lpAttach);
 		if (hr != hrSuccess) {
 			ec_log_err("Could not open message attachment %d. Error: 0x%08X", ulAttachmentNum, hr);
-			goto exit;
+			return hr;
 		}
 		hr = lpAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_DEFERRED_ERRORS, &~lpAttachedMessage);
 		if (hr != hrSuccess) {
 			ec_log_err("Could not open data of message attachment %d. Error: 0x%08X", ulAttachmentNum, hr);
-			goto exit;
+			return hr;
 		}
 
 		// Check whether we're sending a calendar object
@@ -365,7 +364,7 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 				// SubmitMessage for Mac Ical meeting requests. The way Outlook does this, is
 				// send a message for each exception itself. We just ignore this exception, since
 				// it's already in the main ical data on the top level message.
-				goto exit;
+			return hr;
 		}
 
 		// sub objects do not necessarily need to have valid recipients, so disable the test
@@ -385,7 +384,7 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 		hr = convertMAPIToVMIME(lpAttachedMessage, &vmNewMess);
 		if (hr != hrSuccess) {
 			// Logging has been done by convertMAPIToVMIME()
-			goto exit;
+			return hr;
 		}
 		sopt = sopt_keep;
 
@@ -395,7 +394,7 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 		hr = lpMessage->OpenAttach(ulAttachmentNum, nullptr, MAPI_BEST_ACCESS, &~lpAttach);
 		if (hr != hrSuccess) {
 			ec_log_err("Could not open attachment %d. Error: 0x%08X", ulAttachmentNum, hr);
-			goto exit;
+			return hr;
 		}
 	
 		if (HrGetOneProp(lpAttach, PR_ATTACH_CONTENT_ID_A, &~lpContentId) == hrSuccess)
@@ -412,7 +411,7 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
             hr = lpAttach->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, 0, MAPI_DEFERRED_ERRORS, &~lpStream);
             if (hr != hrSuccess) {
                 ec_log_err("Could not open data of attachment %d. Error: 0x%08X", ulAttachmentNum, hr);
-                goto exit;
+			return hr;
             }
         }
         	
@@ -453,18 +452,15 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 		}
 		catch (vmime::exception& e) {
 			ec_log_err("VMIME exception: %s", e.what());
-			hr = MAPI_E_CALL_FAILED;
-			goto exit;
+			return MAPI_E_CALL_FAILED;
 		}
 		catch (std::exception& e) {
 			ec_log_err("STD exception on attachment: %s", e.what());
-			hr = MAPI_E_CALL_FAILED;
-			goto exit;
+			return MAPI_E_CALL_FAILED;
 		}
 		catch (...) {
 			ec_log_err("Unknown generic exception occurred on attachment");
-			hr = MAPI_E_CALL_FAILED;
-			goto exit;
+			return MAPI_E_CALL_FAILED;
 		}
 	} else if (ulAttachmentMethod == ATTACH_OLE) {
 	    // Ignore ATTACH_OLE attachments, they are handled in handleTNEF()
@@ -472,8 +468,6 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 		ec_log_err("Attachment %d contains invalid method %d.", ulAttachmentNum, ulAttachmentMethod);
 		hr = MAPI_E_INVALID_PARAMETER;
 	}
-
-exit:
 	// ATTN: lpMapiAttach are linked in the VMMessageBuilder. The VMMessageBuilder will delete() it.
 	return hr;
 }
@@ -1732,25 +1726,20 @@ HRESULT MAPIToVMIME::handleContactEntryID(ULONG cValues, LPSPropValue lpProps, w
 		{(LPGUID)&PSETID_Address, MNID_ID, {0x8085}}, // real entryid
 	};
 
-	if (PROP_TYPE(lpProps[0].ulPropTag) != PT_BINARY) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+	if (PROP_TYPE(lpProps[0].ulPropTag) != PT_BINARY)
+		return MAPI_E_NOT_FOUND;
 
 	lpContabEntryID = (LPCONTAB_ENTRYID)lpProps[0].Value.bin.lpb;
-	if (lpContabEntryID == NULL) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
-
+	if (lpContabEntryID == NULL)
+		return MAPI_E_NOT_FOUND;
 	guid = (GUID*)&lpContabEntryID->muid;
-	if (sizeof(CONTAB_ENTRYID) > lpProps[0].Value.bin.cb || *guid != PSETID_CONTACT_FOLDER_RECIPIENT || lpContabEntryID->email_offset > 2) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+	if (sizeof(CONTAB_ENTRYID) > lpProps[0].Value.bin.cb ||
+	    *guid != PSETID_CONTACT_FOLDER_RECIPIENT ||
+	    lpContabEntryID->email_offset > 2)
+		return MAPI_E_NOT_FOUND;
 	hr = m_lpSession->OpenEntry(lpContabEntryID->cbeid, reinterpret_cast<ENTRYID *>(lpContabEntryID->abeid), nullptr, 0, &ulObjType, &~lpContact);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// add offset to get correct named properties
 	for (i = 0; i < ulNames; ++i)
@@ -1759,7 +1748,7 @@ HRESULT MAPIToVMIME::handleContactEntryID(ULONG cValues, LPSPropValue lpProps, w
 	hr = MAPIAllocateBuffer(sizeof(LPMAPINAMEID) * (ulNames), &~lppNames);
 	if (hr != hrSuccess) {
 		ec_log_err("No memory for named ids from contact");
-		goto exit;
+		return hr;
 	}
 
 	for (i = 0; i < ulNames; ++i)
@@ -1767,7 +1756,7 @@ HRESULT MAPIToVMIME::handleContactEntryID(ULONG cValues, LPSPropValue lpProps, w
 
 	hr = lpContact->GetIDsFromNames(ulNames, lppNames, MAPI_CREATE, &~lpNameTags);
 	if (FAILED(hr))
-		goto exit;
+		return hr;
 
 	lpNameTags->aulPropTag[0] = CHANGE_PROP_TYPE(lpNameTags->aulPropTag[0], PT_UNICODE);
 	lpNameTags->aulPropTag[1] = CHANGE_PROP_TYPE(lpNameTags->aulPropTag[1], PT_UNICODE);
@@ -1776,13 +1765,12 @@ HRESULT MAPIToVMIME::handleContactEntryID(ULONG cValues, LPSPropValue lpProps, w
 	lpNameTags->aulPropTag[4] = CHANGE_PROP_TYPE(lpNameTags->aulPropTag[4], PT_BINARY);
 	hr = lpContact->GetProps(lpNameTags, 0, &ulNames, &~lpNamedProps);
 	if (FAILED(hr))
-		goto exit;
+		return hr;
 
-	hr = HrGetAddress(m_lpAdrBook, lpNamedProps, ulNames,
-	     lpNameTags->aulPropTag[4], lpNameTags->aulPropTag[0], lpNameTags->aulPropTag[1], lpNameTags->aulPropTag[2],
-	     strName, strType, strEmail);
-exit:
-	return hr;
+	return HrGetAddress(m_lpAdrBook, lpNamedProps, ulNames,
+	       lpNameTags->aulPropTag[4], lpNameTags->aulPropTag[0],
+	       lpNameTags->aulPropTag[1], lpNameTags->aulPropTag[2],
+	       strName, strType, strEmail);
 }
 
 /**
@@ -1923,42 +1911,37 @@ HRESULT MAPIToVMIME::handleReplyTo(IMessage *lpMessage,
 	memory_ptr<SPropValue> lpAddressProps, lpReplyTo;
 
 	if (HrGetOneProp(lpMessage, PR_REPLY_RECIPIENT_ENTRIES, &~lpReplyTo) != hrSuccess)
-		goto exit;
-
+		return hr;
 	if (lpReplyTo->Value.bin.cb == 0)
-		goto exit;
-
+		return hr;
 	lpEntryList = (FLATENTRYLIST *)lpReplyTo->Value.bin.lpb;
 
 	if (lpEntryList->cEntries == 0)
-		goto exit;
+		return hr;
 
 	lpEntry = (FLATENTRY *)&lpEntryList->abEntries;
 
 	hr = HrGetAddress(m_lpAdrBook, (LPENTRYID)lpEntry->abEntry, lpEntry->cb, strName, strType, strEmail);
 	if (hr != hrSuccess) {
-		if (!m_lpSession) {
-			hr = MAPI_E_INVALID_PARAMETER;
-			goto exit;
-		}
+		if (m_lpSession == nullptr)
+			return MAPI_E_INVALID_PARAMETER;
 
 		// user selected a contact (or distrolist ?) in the reply-to
 		lpContabEntryID = (LPCONTAB_ENTRYID)lpEntry->abEntry;
 		guid = (GUID*)&lpContabEntryID->muid;
 
 		if (sizeof(CONTAB_ENTRYID) > lpEntry->cb || *guid != PSETID_CONTACT_FOLDER_RECIPIENT || lpContabEntryID->email_offset > 2)
-			goto exit;
+			return hr;
 		hr = m_lpSession->OpenEntry(lpContabEntryID->cbeid, reinterpret_cast<ENTRYID *>(lpContabEntryID->abeid), nullptr, 0, &ulObjType, &~lpContact);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		cNames = ARRAY_SIZE(lpulNamesIDs);
 		hr = MAPIAllocateBuffer(sizeof(MAPINAMEID) * cNames, &~lpNames);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		hr = MAPIAllocateBuffer(sizeof(LPMAPINAMEID) * cNames, &~lppNames);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		for (i = 0; i < cNames; ++i) {
 			lpNames[i].lpguid = (GUID*)&PSETID_Address;
@@ -1968,18 +1951,17 @@ HRESULT MAPIToVMIME::handleReplyTo(IMessage *lpMessage,
 		}
 		hr = lpContact->GetIDsFromNames(cNames, lppNames, 0, &~lpNameTagArray);
 		if (FAILED(hr))
-			goto exit;
+			return hr;
 
 		// PT_UNSPECIFIED in tagarray, but we want PT_UNICODE
 		hr = lpContact->GetProps(lpNameTagArray, MAPI_UNICODE, &cNames, &~lpAddressProps);
 		if (FAILED(hr))
-			goto exit;
-
+			return hr;
 		offset = lpContabEntryID->email_offset * 4; // 4 props per email address
 
 		if (PROP_TYPE(lpAddressProps[offset+0].ulPropTag) == PT_ERROR || PROP_TYPE(lpAddressProps[offset+1].ulPropTag) == PT_ERROR ||
 			PROP_TYPE(lpAddressProps[offset+2].ulPropTag) == PT_ERROR || PROP_TYPE(lpAddressProps[offset+3].ulPropTag) == PT_ERROR)
-			goto exit;
+			return hr;
 
 		if (wcscmp(lpAddressProps[offset+1].Value.lpszW, L"SMTP") == 0) {
 			strName = lpAddressProps[offset+0].Value.lpszW;
@@ -1987,7 +1969,7 @@ HRESULT MAPIToVMIME::handleReplyTo(IMessage *lpMessage,
 		} else if (wcscmp(lpAddressProps[offset+1].Value.lpszW, L"ZARAFA") == 0) {
 			hr = HrGetAddress(m_lpAdrBook, (LPENTRYID)lpAddressProps[offset+2].Value.bin.lpb, lpAddressProps[offset+2].Value.bin.cb, strName, strType, strEmail);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 	}
 
@@ -1996,11 +1978,7 @@ HRESULT MAPIToVMIME::handleReplyTo(IMessage *lpMessage,
 		vmHeader->ReplyTo()->setValue(vmime::make_shared<vmime::mailbox>(getVmimeTextFromWide(strName), m_converter.convert_to<string>(strEmail)));
 	else
 		vmHeader->ReplyTo()->setValue(vmime::make_shared<vmime::mailbox>(m_converter.convert_to<string>(strEmail)));
-
-	hr = hrSuccess;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**

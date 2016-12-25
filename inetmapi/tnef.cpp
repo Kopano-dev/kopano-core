@@ -1319,23 +1319,18 @@ HRESULT ECTNEF::FinishComponent(ULONG ulFlags, ULONG ulComponentID, LPSPropTagAr
     SizedSPropTagArray(2, sptaTags) = {2, { PR_ATTACH_METHOD, PR_RENDERING_POSITION }};
     struct tnefattachment sTnefAttach;
     
-    if(ulFlags != TNEF_COMPONENT_ATTACHMENT) {
-        hr = MAPI_E_NO_SUPPORT;
-        goto exit;
-    }
-    
-    if(this->ulFlags != TNEF_ENCODE) {
-        hr = MAPI_E_INVALID_PARAMETER;
-        goto exit;
-    }
+	if (ulFlags != TNEF_COMPONENT_ATTACHMENT)
+		return MAPI_E_NO_SUPPORT;
+	if (this->ulFlags != TNEF_ENCODE)
+		return MAPI_E_INVALID_PARAMETER;
     hr = m_lpMessage->OpenAttach(ulComponentID, &IID_IAttachment, 0, &~lpAttach);
     if(hr != hrSuccess)
-        goto exit;
+		return hr;
     
     // Get some properties we always need
 	hr = lpAttach->GetProps(sptaTags, 0, &cValues, &~lpAttachProps);
     if(FAILED(hr))
-        goto exit;
+		return hr;
         
     // ignore warnings
     hr = hrSuccess;
@@ -1347,7 +1342,7 @@ HRESULT ECTNEF::FinishComponent(ULONG ulFlags, ULONG ulComponentID, LPSPropTagAr
     // Get user-passed properties
 	hr = lpAttach->GetProps(lpPropList, 0, &cValues, &~lpProps);
     if(FAILED(hr))
-        goto exit;
+		return hr;
     
     for (unsigned int i = 0; i < cValues; ++i) {
         // Other properties
@@ -1355,24 +1350,24 @@ HRESULT ECTNEF::FinishComponent(ULONG ulFlags, ULONG ulComponentID, LPSPropTagAr
             continue;
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpsNewProp);
         if(hr != hrSuccess)
-            goto exit;
+			return hr;
                 
         if(PROP_TYPE(lpProps[i].ulPropTag) == PT_OBJECT) {
             // PT_OBJECT requested, open object as stream and read the data
             hr = lpAttach->OpenProperty(lpProps[i].ulPropTag, &IID_IStream, 0, 0, &~lpStream);
             if(hr != hrSuccess)
-                goto exit;
+				return hr;
                 
             // We save the actual data same way as PT_BINARY
             hr = HrReadStream(lpStream, lpsNewProp, &lpsNewProp->Value.bin.lpb, &lpsNewProp->Value.bin.cb);
             if(hr != hrSuccess)
-                goto exit;
+				return hr;
                 
             lpsNewProp->ulPropTag = lpProps[i].ulPropTag;
         } else {
             hr = Util::HrCopyProperty(lpsNewProp, &lpProps[i], lpsNewProp);
             if(hr != hrSuccess)
-                goto exit;
+			return hr;
         }        
         sTnefAttach.lstProps.push_back(lpsNewProp.release());
     }
@@ -1381,9 +1376,7 @@ HRESULT ECTNEF::FinishComponent(ULONG ulFlags, ULONG ulComponentID, LPSPropTagAr
     sTnefAttach.data = NULL;
     sTnefAttach.size = 0;
     lstAttachments.push_back(new tnefattachment(sTnefAttach));
-    
-exit:
-    return hr;
+    return hrSuccess;
 }
 
 /**
@@ -1426,7 +1419,7 @@ HRESULT ECTNEF::Finish()
 
 			hr = m_lpMessage->CreateAttach(nullptr, 0, &ulAttachNum, &~lpAttach);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 				
 			sProp.ulPropTag = PR_ATTACH_METHOD;
 			sProp.Value.ul = att->rdata.usType == AttachTypeOle ? ATTACH_OLE : att->lstProps.empty() ? ATTACH_BY_VALUE : ATTACH_EMBEDDED_MSG;
@@ -1444,54 +1437,45 @@ HRESULT ECTNEF::Finish()
 				if (p->ulPropTag != PR_ATTACH_DATA_OBJ) {
 					hr = lpAttach->SetProps(1, p, NULL);
 					if (hr != hrSuccess)
-						goto exit;
+						return hr;
 				} else {
 					// message in PT_OBJECT, was saved in Value.bin
 					if (att->rdata.usType == AttachTypeOle) {
 						object_ptr<IStream> lpSubStream;
 						hr = lpAttach->OpenProperty(p->ulPropTag, &IID_IStream, 0, MAPI_CREATE | MAPI_MODIFY, &~lpSubStream);
                         if(hr != hrSuccess)
-                            goto exit;
-                        
+							return hr;
 					hr = lpSubStream->Write(p->Value.bin.lpb, p->Value.bin.cb, NULL);
                         if(hr != hrSuccess)
-                            goto exit;
-                        
+							return hr;
                         hr = lpSubStream->Commit(0);
                         if(hr != hrSuccess)
-                            goto exit;
-                            
+							return hr;
                         has_obj = true;
                     } else {
 			object_ptr<IStream> lpSubStream;		
                         hr = CreateStreamOnHGlobal(nullptr, TRUE, &~lpSubStream);
                         if (hr != hrSuccess)
-                            goto exit;
-
+							return hr;
                         hr = lpSubStream->Write(p->Value.bin.lpb, p->Value.bin.cb, NULL);
                         if (hr != hrSuccess)
-                            goto exit;
-
+							return hr;
                         hr = lpSubStream->Seek(zero, STREAM_SEEK_SET, NULL);
                         if(hr != hrSuccess)
-                            goto exit;
+							return hr;
                         hr = lpAttach->OpenProperty(PR_ATTACH_DATA_OBJ, &IID_IMessage, 0, MAPI_CREATE | MAPI_MODIFY, &~lpAttMessage);
                         if(hr != hrSuccess)
-                            goto exit;
-
+							return hr;
                         ECTNEF SubTNEF(TNEF_DECODE, lpAttMessage, lpSubStream);
                         hr = SubTNEF.ExtractProps(TNEF_PROP_EXCLUDE, NULL);
                         if (hr != hrSuccess)
-                            goto exit;
-
+							return hr;
                         hr = SubTNEF.Finish();
                         if (hr != hrSuccess)
-                            goto exit;
-
+							return hr;
                         hr = lpAttMessage->SaveChanges(0);
                         if (hr != hrSuccess)
-                            goto exit;
-
+							return hr;
                         has_obj = true;
                     }
 				}
@@ -1501,109 +1485,91 @@ HRESULT ECTNEF::Finish()
 
 				hr = lpAttach->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~lpAttStream);
 				if (hr != hrSuccess)
-					goto exit;
-
+					return hr;
 				hr = lpAttStream->Write(att->data, att->size,NULL);
 				if (hr != hrSuccess)
-					goto exit;
+					return hr;
 				hr = lpAttStream->Commit(0);
 				if (hr != hrSuccess)
-					goto exit;
+					return hr;
 			}
 
 			hr = lpAttach->SaveChanges(0);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 	} else if(ulFlags == TNEF_ENCODE) {
 		// Write properties to stream
 		hr = HrWriteDWord(m_lpStream, TNEF_SIGNATURE);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = HrWriteWord(m_lpStream, 0); // Write Key
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = HrWriteByte(m_lpStream, 1); // Write component (always 1 ?)
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		object_ptr<IStream> lpPropStream;
 		hr = CreateStreamOnHGlobal(nullptr, TRUE, &~lpPropStream);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = HrWritePropStream(lpPropStream, lstProps);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = lpPropStream->Stat(&sStat, STATFLAG_NONAME);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = HrWriteDWord(m_lpStream, 0x00069003);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = HrWriteDWord(m_lpStream, sStat.cbSize.LowPart); // Write size
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = lpPropStream->Seek(zero, STREAM_SEEK_SET, NULL);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = lpPropStream->CopyTo(m_lpStream, sStat.cbSize, NULL, NULL); // Write data
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = lpPropStream->Seek(zero, STREAM_SEEK_SET, NULL);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = HrGetChecksum(lpPropStream, &ulChecksum);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = HrWriteWord(m_lpStream, (unsigned short)ulChecksum); // Write checksum
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 		
 		// Write attachments	
 		for (const auto att : lstAttachments) {
 			/* Write attachment start block */
 			hr = HrWriteBlock(m_lpStream, reinterpret_cast<char *>(&att->rdata), sizeof(AttachRendData), 0x00069002, 2);
             if(hr != hrSuccess)
-                goto exit;
+				return hr;
                 
             // Write attachment data block if available
 			if (att->data != NULL) {
 				hr = HrWriteBlock(m_lpStream, reinterpret_cast<char *>(att->data), att->size, 0x0006800f, 2);
                 if(hr != hrSuccess)
-                    goto exit;
+					return hr;
             }
                 
             // Write property block
             hr = lpPropStream->SetSize(uzero);
             if(hr != hrSuccess)
-                goto exit;
-
+				return hr;
 			hr = HrWritePropStream(lpPropStream, att->lstProps);
             if(hr != hrSuccess)
-                goto exit;
-                
+				return hr;
             hr = HrWriteBlock(m_lpStream, lpPropStream, 0x00069005, 2);
             if(hr != hrSuccess)
-                goto exit;
-            
+				return hr;
             // Note that we don't write any other blocks like PR_ATTACH_FILENAME since this information is also in the property block
             
         }
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -1804,17 +1770,15 @@ HRESULT ECTNEF::HrGetChecksum(IStream *lpStream, ULONG *lpulChecksum)
 
 	hr = lpStream->Clone(&~lpClone);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpClone->Seek(zero, STREAM_SEEK_SET, NULL);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	while(TRUE) {
 		hr = lpClone->Read(buffer, 4096, &ulRead);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		if(ulRead == 0)
 			break;
 
@@ -1823,9 +1787,7 @@ HRESULT ECTNEF::HrGetChecksum(IStream *lpStream, ULONG *lpulChecksum)
 	}
 
 	*lpulChecksum = ulChecksum;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -1906,18 +1868,11 @@ HRESULT ECTNEF::HrWriteBlock(IStream *lpDestStream, const char *lpData,
     
 	hr = CreateStreamOnHGlobal(nullptr, TRUE, &~lpStream);
     if (hr != hrSuccess)
-        goto exit;
-
+		return hr;
     hr = lpStream->Write(lpData, ulLen, NULL);
     if (hr != hrSuccess)
-        goto exit;
-        
-    hr = HrWriteBlock(lpDestStream, lpStream, ulBlockID, ulLevel);
-    if (hr != hrSuccess)
-        goto exit;
-        
-exit:
-    return hr;                                                                                                                     
+		return hr;
+	return HrWriteBlock(lpDestStream, lpStream, ulBlockID, ulLevel);
 }
 
 /** 
