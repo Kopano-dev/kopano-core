@@ -19,7 +19,7 @@
 #include <memory>
 #include <kopano/ECChannel.h>
 #include <kopano/MAPIErrors.h>
-
+#include <kopano/memory.hpp>
 #include "ECDatabaseUtils.h"
 #include "ECSessionManager.h"
 #include "ECPluginFactory.h"
@@ -101,6 +101,8 @@
 
 #define LOG_SOAP_DEBUG(_msg, ...) \
 	ec_log(EC_LOGLEVEL_DEBUG | EC_LOGLEVEL_SOAP, "soap: " _msg, ##__VA_ARGS__)
+
+using namespace KCHL;
 
 namespace KC {
 
@@ -1316,8 +1318,7 @@ static ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession,
 	quotadetails_t	sDetails;
 	unsigned int	ulCompanyId = 0;
 	unsigned int	ulStoreOwner = 0;
-
-	ECAttachmentStorage *lpAttachmentStorage = NULL;
+	object_ptr<ECAttachmentStorage> lpAttachmentStorage;
 
 	struct propVal sPropVal;
 	ECStringCompat stringCompat(lpecSession->GetCapabilities() & KOPANO_CAP_UNICODE);
@@ -1441,7 +1442,7 @@ static ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession,
 
 	if (ulObjType == MAPI_MESSAGE || ulObjType == MAPI_ATTACH) {
 		ULONG ulPropTag = (ulObjType == MAPI_MESSAGE ? PR_EC_IMAP_EMAIL : PR_ATTACH_DATA_BIN);
-		er = CreateAttachmentStorage(lpDatabase, &lpAttachmentStorage);
+		er = CreateAttachmentStorage(lpDatabase, &~lpAttachmentStorage);
 		if (er != erSuccess)
 			goto exit;
 
@@ -1521,10 +1522,6 @@ static ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession,
 
 exit:
 	FREE_DBRESULT();
-
-	if (lpAttachmentStorage)
-		lpAttachmentStorage->Release();
-
 __soapentry_exit:
 	return er;
 }
@@ -1535,7 +1532,7 @@ __soapentry_exit:
  */
 SOAP_ENTRY_START(loadProp, lpsResponse->er, entryId sEntryId, unsigned int ulObjId, unsigned int ulPropTag, struct loadPropResponse *lpsResponse)
 {
-	ECAttachmentStorage *lpAttachmentStorage = NULL;
+	object_ptr<ECAttachmentStorage> lpAttachmentStorage;
 	USE_DATABASE();
 
 	if(ulObjId == 0) {
@@ -1593,8 +1590,7 @@ SOAP_ENTRY_START(loadProp, lpsResponse->er, entryId sEntryId, unsigned int ulObj
 		lpsResponse->lpPropVal->__union = SOAP_UNION_propValData_bin;
 		lpsResponse->lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
 		memset(lpsResponse->lpPropVal->Value.bin, 0, sizeof(struct xsd__base64Binary));
-
-		er = CreateAttachmentStorage(lpDatabase, &lpAttachmentStorage);
+		er = CreateAttachmentStorage(lpDatabase, &~lpAttachmentStorage);
 		if (er != erSuccess)
 			goto exit;
 
@@ -1616,9 +1612,6 @@ SOAP_ENTRY_START(loadProp, lpsResponse->er, entryId sEntryId, unsigned int ulObj
 	}
 
 exit:
-	if (lpAttachmentStorage)
-		lpAttachmentStorage->Release();
-
 	ROLLBACK_ON_ERROR();
 
     FREE_DBRESULT();
@@ -2734,10 +2727,9 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er, entryId sParentEntryId, 
 	bool			fHaveChangeKey = false;
 	unsigned int	ulObjId = 0;
 	struct propVal	*pvCommitTime = NULL;
+	object_ptr<ECAttachmentStorage> lpAttachmentStorage;
 
-	ECAttachmentStorage *lpAttachmentStorage = NULL;
-
-	er = CreateAttachmentStorage(lpDatabase, &lpAttachmentStorage);
+	er = CreateAttachmentStorage(lpDatabase, &~lpAttachmentStorage);
 	if (er != erSuccess)
 		goto exit;
 
@@ -2975,10 +2967,6 @@ SOAP_ENTRY_START(saveObject, lpsLoadObjectResponse->er, entryId sParentEntryId, 
 exit:
 	if (er != erSuccess && lpAttachmentStorage)
 		lpAttachmentStorage->Rollback();
-
-	if (lpAttachmentStorage)
-		lpAttachmentStorage->Release();
-
 	ROLLBACK_ON_ERROR();
 	FREE_DBRESULT();
 }
@@ -2990,7 +2978,7 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
     std::map<unsigned int, CHILDPROPS> *lpChildProps)
 {
 	ECRESULT 		er = erSuccess;
-	ECAttachmentStorage *lpAttachmentStorage = NULL;
+	object_ptr<ECAttachmentStorage> lpAttachmentStorage;
 	ULONG			ulInstanceId = 0;
 	ULONG			ulInstanceTag = 0;
 	struct saveObject sSavedObject;
@@ -3076,7 +3064,7 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 	}
 
 	if (ulObjType == MAPI_MESSAGE || ulObjType == MAPI_ATTACH) {
-		er = CreateAttachmentStorage(lpDatabase, &lpAttachmentStorage);
+		er = CreateAttachmentStorage(lpDatabase, &~lpAttachmentStorage);
 		if (er != erSuccess)
 			goto exit;
 
@@ -3118,9 +3106,6 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 	*lpsSaveObj = sSavedObject;
 
 exit:
-	if (lpAttachmentStorage)
-		lpAttachmentStorage->Release();
-
 	delete sEmptyProps.lpPropVals;
 	delete sEmptyProps.lpPropTags;
 	FREE_DBRESULT();
@@ -3785,17 +3770,14 @@ SOAP_ENTRY_END()
  */
 SOAP_ENTRY_START(tableSetColumns, *result, unsigned int ulTableId, struct propTagArray *aPropTag, unsigned int *result)
 {
-	ECGenericObjectTable	*lpTable = NULL;
+	object_ptr<ECGenericObjectTable> lpTable;
 
-	er = lpecSession->GetTableManager()->GetTable(ulTableId, &lpTable);
+	er = lpecSession->GetTableManager()->GetTable(ulTableId, &~lpTable);
 	if(er != erSuccess)
 		goto exit;
 
 	er = lpTable->SetColumns(aPropTag, false);
-
-exit:
-	if (lpTable)
-		lpTable->Release();
+ exit: ;
 }
 SOAP_ENTRY_END()
 
@@ -3804,16 +3786,14 @@ SOAP_ENTRY_END()
  */
 SOAP_ENTRY_START(tableQueryColumns, lpsResponse->er, unsigned int ulTableId, unsigned int ulFlags, struct tableQueryColumnsResponse *lpsResponse)
 {
-	ECGenericObjectTable	*lpTable = NULL;
-
+	object_ptr<ECGenericObjectTable> lpTable;
 	struct propTagArray *lpPropTags = NULL;
 
 	// Init
 	lpsResponse->sPropTagArray.__size = 0;
 	lpsResponse->sPropTagArray.__ptr = NULL;
 
-	er = lpecSession->GetTableManager()->GetTable(ulTableId, &lpTable);
-
+	er = lpecSession->GetTableManager()->GetTable(ulTableId, &~lpTable);
 	if(er != erSuccess)
 		goto exit;
 
@@ -3824,10 +3804,7 @@ SOAP_ENTRY_START(tableQueryColumns, lpsResponse->er, unsigned int ulTableId, uns
 
 	lpsResponse->sPropTagArray.__size = lpPropTags->__size;
 	lpsResponse->sPropTagArray.__ptr = lpPropTags->__ptr;
-
-exit:
-	if (lpTable)
-		lpTable->Release();
+ exit: ;
 }
 SOAP_ENTRY_END()
 
@@ -3836,10 +3813,9 @@ SOAP_ENTRY_END()
  */
 SOAP_ENTRY_START(tableRestrict, *result, unsigned int ulTableId, struct restrictTable *lpsRestrict, unsigned int *result)
 {
-	ECGenericObjectTable	*lpTable = NULL;
+	object_ptr<ECGenericObjectTable> lpTable;
 
-	er = lpecSession->GetTableManager()->GetTable(ulTableId, &lpTable);
-
+	er = lpecSession->GetTableManager()->GetTable(ulTableId, &~lpTable);
 	if(er != erSuccess)
 		goto exit;
 
@@ -3850,10 +3826,7 @@ SOAP_ENTRY_START(tableRestrict, *result, unsigned int ulTableId, struct restrict
 	}
 
 	er = lpTable->Restrict(lpsRestrict);
-
-exit:
-	if (lpTable)
-		lpTable->Release();
+ exit: ;
 }
 SOAP_ENTRY_END()
 
@@ -3862,23 +3835,18 @@ SOAP_ENTRY_END()
  */
 SOAP_ENTRY_START(tableSort, *result, unsigned int ulTableId, struct sortOrderArray *lpSortOrder, unsigned int ulCategories, unsigned int ulExpanded, unsigned int *result)
 {
-	ECGenericObjectTable	*lpTable = NULL;
+	object_ptr<ECGenericObjectTable> lpTable;
 
 	if(lpSortOrder == NULL) {
 		er = KCERR_INVALID_PARAMETER;
 		goto exit;
 	}
-
-	er = lpecSession->GetTableManager()->GetTable(ulTableId, &lpTable);
-
+	er = lpecSession->GetTableManager()->GetTable(ulTableId, &~lpTable);
 	if(er != erSuccess)
 		goto exit;
 
 	er = lpTable->SetSortOrder(lpSortOrder, ulCategories, ulExpanded);
-
-exit:
-	if (lpTable)
-		lpTable->Release();
+ exit: ;
 }
 SOAP_ENTRY_END()
 
@@ -3887,14 +3855,14 @@ SOAP_ENTRY_END()
  */
 SOAP_ENTRY_START(tableQueryRows, lpsResponse->er, unsigned int ulTableId, unsigned int ulRowCount, unsigned int ulFlags, struct tableQueryRowsResponse *lpsResponse)
 {
-	ECGenericObjectTable	*lpTable = NULL;
+	object_ptr<ECGenericObjectTable> lpTable;
 	struct rowSet	*lpRowSet = NULL;
 
 	lpsResponse->sRowSet.__ptr = NULL;
 	lpsResponse->sRowSet.__size = 0;
 
 	// Get the table
-	er = lpecSession->GetTableManager()->GetTable(ulTableId, &lpTable);
+	er = lpecSession->GetTableManager()->GetTable(ulTableId, &~lpTable);
 	if(er != erSuccess)
 		goto exit;
 
@@ -3912,9 +3880,7 @@ SOAP_ENTRY_START(tableQueryRows, lpsResponse->er, unsigned int ulTableId, unsign
 
 	lpsResponse->sRowSet.__ptr = lpRowSet->__ptr;
 	lpsResponse->sRowSet.__size = lpRowSet->__size;
-exit:
-	if (lpTable)
-		lpTable->Release();
+ exit: ;
 }
 SOAP_ENTRY_END()
 
@@ -3923,19 +3889,15 @@ SOAP_ENTRY_END()
  */
 SOAP_ENTRY_START(tableGetRowCount, lpsResponse->er, unsigned int ulTableId, struct tableGetRowCountResponse *lpsResponse)
 {
-	ECGenericObjectTable	*lpTable = NULL;
+	object_ptr<ECGenericObjectTable> lpTable;
 
 	//FIXME: security? give rowcount 0 is failed ?
-	er = lpecSession->GetTableManager()->GetTable(ulTableId, &lpTable);
-
+	er = lpecSession->GetTableManager()->GetTable(ulTableId, &~lpTable);
 	if(er != erSuccess)
 		goto exit;
 
 	er = lpTable->GetRowCount(&lpsResponse->ulCount, &lpsResponse->ulRow);
-
-exit:
-	if (lpTable)
-		lpTable->Release();
+ exit: ;
 }
 SOAP_ENTRY_END()
 
@@ -3944,18 +3906,14 @@ SOAP_ENTRY_END()
  */
 SOAP_ENTRY_START(tableSeekRow, lpsResponse->er, unsigned int ulTableId , unsigned int ulBookmark, int lRows, struct tableSeekRowResponse *lpsResponse)
 {
-	ECGenericObjectTable	*lpTable = NULL;
+	object_ptr<ECGenericObjectTable> lpTable;
 
-	er = lpecSession->GetTableManager()->GetTable(ulTableId, &lpTable);
-
+	er = lpecSession->GetTableManager()->GetTable(ulTableId, &~lpTable);
 	if(er != erSuccess)
 		goto exit;
 
 	er = lpTable->SeekRow(ulBookmark, lRows, &lpsResponse->lRowsSought);
-
-exit:
-	if (lpTable)
-		lpTable->Release();
+ exit: ;
 }
 SOAP_ENTRY_END()
 
@@ -3964,10 +3922,9 @@ SOAP_ENTRY_END()
  */
 SOAP_ENTRY_START(tableFindRow, *result, unsigned int ulTableId ,unsigned int ulBookmark, unsigned int ulFlags, struct restrictTable *lpsRestrict, unsigned int *result)
 {
-	ECGenericObjectTable	*lpTable = NULL;
+	object_ptr<ECGenericObjectTable> lpTable;
 
-	er = lpecSession->GetTableManager()->GetTable(ulTableId, &lpTable);
-
+	er = lpecSession->GetTableManager()->GetTable(ulTableId, &~lpTable);
 	if(er != erSuccess)
 		goto exit;
 
@@ -3978,10 +3935,7 @@ SOAP_ENTRY_START(tableFindRow, *result, unsigned int ulTableId ,unsigned int ulB
 	}
 
 	er = lpTable->FindRow(lpsRestrict, ulBookmark, ulFlags);
-
-exit:
-	if (lpTable)
-		lpTable->Release();
+ exit: ;
 }
 SOAP_ENTRY_END()
 
@@ -3990,11 +3944,10 @@ SOAP_ENTRY_END()
  */
 SOAP_ENTRY_START(tableCreateBookmark, lpsResponse->er, unsigned int ulTableId, struct tableBookmarkResponse *lpsResponse)
 {
-	ECGenericObjectTable	*lpTable = NULL;
+	object_ptr<ECGenericObjectTable> lpTable;
 	unsigned int ulbkPosition = 0;
 
-	er = lpecSession->GetTableManager()->GetTable(ulTableId, &lpTable);
-
+	er = lpecSession->GetTableManager()->GetTable(ulTableId, &~lpTable);
 	if(er != erSuccess)
 		goto exit;
 
@@ -4003,10 +3956,7 @@ SOAP_ENTRY_START(tableCreateBookmark, lpsResponse->er, unsigned int ulTableId, s
 		goto exit;
 
 	lpsResponse->ulbkPosition = ulbkPosition;
-
-exit:
-	if (lpTable)
-		lpTable->Release();
+ exit: ;
 }
 SOAP_ENTRY_END()
 
@@ -4015,31 +3965,26 @@ SOAP_ENTRY_END()
  */
 SOAP_ENTRY_START(tableFreeBookmark, *result, unsigned int ulTableId, unsigned int ulbkPosition, unsigned int *result)
 {
-	ECGenericObjectTable	*lpTable = NULL;
+	object_ptr<ECGenericObjectTable> lpTable;
 
-	er = lpecSession->GetTableManager()->GetTable(ulTableId, &lpTable);
-
+	er = lpecSession->GetTableManager()->GetTable(ulTableId, &~lpTable);
 	if(er != erSuccess)
 		goto exit;
 
 	er = lpTable->FreeBookmark(ulbkPosition);
 	if(er != erSuccess)
 		goto exit;
-
-exit:
-	if (lpTable)
-		lpTable->Release();
+ exit: ;
 }
 SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(tableExpandRow, lpsResponse->er, unsigned int ulTableId, xsd__base64Binary sInstanceKey, unsigned int ulRowCount, unsigned int ulFlags, tableExpandRowResponse* lpsResponse)
 {
-	ECGenericObjectTable	*lpTable = NULL;
+	object_ptr<ECGenericObjectTable> lpTable;
 	struct rowSet	*lpRowSet = NULL;
 	unsigned int ulMoreRows = 0;
 
-	er = lpecSession->GetTableManager()->GetTable(ulTableId, &lpTable);
-
+	er = lpecSession->GetTableManager()->GetTable(ulTableId, &~lpTable);
 	if(er != erSuccess)
 		goto exit;
 
@@ -4055,20 +4000,16 @@ SOAP_ENTRY_START(tableExpandRow, lpsResponse->er, unsigned int ulTableId, xsd__b
 
     lpsResponse->ulMoreRows = ulMoreRows;
     lpsResponse->rowSet = *lpRowSet;
-
-exit:
-	if (lpTable)
-		lpTable->Release();
+ exit: ;
 }
 SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(tableCollapseRow, lpsResponse->er, unsigned int ulTableId, xsd__base64Binary sInstanceKey, unsigned int ulFlags, tableCollapseRowResponse* lpsResponse)
 {
-	ECGenericObjectTable	*lpTable = NULL;
+	object_ptr<ECGenericObjectTable> lpTable;
 	unsigned int ulRows = 0;
 
-	er = lpecSession->GetTableManager()->GetTable(ulTableId, &lpTable);
-
+	er = lpecSession->GetTableManager()->GetTable(ulTableId, &~lpTable);
 	if(er != erSuccess)
 		goto exit;
 
@@ -4077,47 +4018,37 @@ SOAP_ENTRY_START(tableCollapseRow, lpsResponse->er, unsigned int ulTableId, xsd_
 		goto exit;
 
     lpsResponse->ulRows = ulRows;
-
-exit:
-    if (lpTable)
-		lpTable->Release();
+ exit: ;
 }
 SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(tableGetCollapseState, lpsResponse->er, unsigned int ulTableId, struct xsd__base64Binary sBookmark, tableGetCollapseStateResponse *lpsResponse)
 {
-    ECGenericObjectTable *lpTable = NULL;
+	object_ptr<ECGenericObjectTable> lpTable;
 
-    er = lpecSession->GetTableManager()->GetTable(ulTableId, &lpTable);
+	er = lpecSession->GetTableManager()->GetTable(ulTableId, &~lpTable);
     if(er != erSuccess)
         goto exit;
 
     er = lpTable->GetCollapseState(soap, sBookmark, &lpsResponse->sCollapseState);
     if(er != erSuccess)
         goto exit;
-
-exit:
-	if (lpTable)
-		lpTable->Release();
+ exit: ;
 }
 SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(tableSetCollapseState, lpsResponse->er, unsigned int ulTableId, struct xsd__base64Binary sCollapseState, struct tableSetCollapseStateResponse *lpsResponse);
 {
-    ECGenericObjectTable *lpTable = NULL;
+	object_ptr<ECGenericObjectTable> lpTable;
 
-    er = lpecSession->GetTableManager()->GetTable(ulTableId, &lpTable);
+	er = lpecSession->GetTableManager()->GetTable(ulTableId, &~lpTable);
     if(er != erSuccess)
         goto exit;
 
     er = lpTable->SetCollapseState(sCollapseState, &lpsResponse->ulBookmark);
     if(er != erSuccess)
         goto exit;
-
-exit:
-	if (lpTable)
-		lpTable->Release();
-
+ exit: ;
 }
 SOAP_ENTRY_END()
 
@@ -4126,7 +4057,7 @@ SOAP_ENTRY_END()
  */
 SOAP_ENTRY_START(tableSetMultiStoreEntryIDs, *result, unsigned int ulTableId, struct entryList *lpEntryList, unsigned int *result)
 {
-	ECGenericObjectTable	*lpTable = NULL;
+	object_ptr<ECGenericObjectTable> lpTable;
 	ECMultiStoreTable		*lpMultiStoreTable = NULL;
 	ECListInt	lObjectList;
 
@@ -4135,14 +4066,14 @@ SOAP_ENTRY_START(tableSetMultiStoreEntryIDs, *result, unsigned int ulTableId, st
 		goto exit;
 	}
 
-	er = lpecSession->GetTableManager()->GetTable(ulTableId, &lpTable);
+	er = lpecSession->GetTableManager()->GetTable(ulTableId, &~lpTable);
 	if (er != erSuccess)
 		goto exit;
 
 	// ignore errors
 	g_lpSessionManager->GetCacheManager()->GetEntryListToObjectList(lpEntryList, &lObjectList);
 
-	lpMultiStoreTable = dynamic_cast<ECMultiStoreTable*>(lpTable);
+	lpMultiStoreTable = dynamic_cast<ECMultiStoreTable *>(lpTable.get());
 	if (!lpMultiStoreTable) {
 		er = KCERR_INVALID_PARAMETER;
 		goto exit;
@@ -4151,18 +4082,14 @@ SOAP_ENTRY_START(tableSetMultiStoreEntryIDs, *result, unsigned int ulTableId, st
 	er = lpMultiStoreTable->SetEntryIDs(&lObjectList);
 	if(er != erSuccess)
 	    goto exit;
-
-exit:
-	if (lpTable)
-		lpTable->Release();
-
+ exit: ;
 }
 SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(tableMulti, lpsResponse->er, struct tableMultiRequest sRequest, struct tableMultiResponse *lpsResponse)
 {
     unsigned int ulTableId = sRequest.ulTableId;
-    ECGenericObjectTable *lpTable = NULL;
+	object_ptr<ECGenericObjectTable> lpTable;
     struct rowSet *lpRowSet = NULL;
     
     if(sRequest.lpOpen) {
@@ -4173,7 +4100,7 @@ SOAP_ENTRY_START(tableMulti, lpsResponse->er, struct tableMultiRequest sRequest,
         ulTableId = lpsResponse->ulTableId;
     }
     
-	er = lpecSession->GetTableManager()->GetTable(ulTableId, &lpTable);
+	er = lpecSession->GetTableManager()->GetTable(ulTableId, &~lpTable);
 	if(er != erSuccess)
 		goto exit;
 
@@ -4215,11 +4142,7 @@ SOAP_ENTRY_START(tableMulti, lpsResponse->er, struct tableMultiRequest sRequest,
         lpsResponse->sRowSet.__ptr = lpRowSet->__ptr;
         lpsResponse->sRowSet.__size = lpRowSet->__size;
     }
-
-exit:
-	if (lpTable)
-		lpTable->Release();
-
+ exit: ;
 }
 SOAP_ENTRY_END()
 
@@ -4347,7 +4270,7 @@ static ECRESULT DoNotifySubscribe(ECSession *lpecSession,
 {
 	ECRESULT er = erSuccess;
 	unsigned int ulKey = 0;
-	ECGenericObjectTable *lpTable = NULL;
+	object_ptr<ECGenericObjectTable> lpTable;
 
 	//NOTE: An sKey with size 4 is a table notification id
 	if(notifySubscribe->sKey.__size == 4) {
@@ -4368,7 +4291,7 @@ static ECRESULT DoNotifySubscribe(ECSession *lpecSession,
 	    // we have to populate the table first since row modifications would otherwise be wrong until the
 	    // table is populated; if the table is unpopulated and a row changes, the row will be added into the table
 	    // whenever it is modified, producing a TABLE_ROW_ADDED for that row instead of the correct TABLE_ROW_MODIFIED.
-	    er = lpecSession->GetTableManager()->GetTable(ulKey, &lpTable);
+		er = lpecSession->GetTableManager()->GetTable(ulKey, &~lpTable);
 	    if(er != erSuccess)
 	        goto exit;
 	        
@@ -4381,9 +4304,6 @@ static ECRESULT DoNotifySubscribe(ECSession *lpecSession,
 	if (er == erSuccess)
 		TRACE_SOAP(TRACE_INFO, "ns__notifySubscribe", "connectionId: %d SessionId: %d Mask: %d",notifySubscribe->ulConnection, ulSessionId, notifySubscribe->ulEventMask);
 exit:
-	if (lpTable)
-		lpTable->Release();
-
 	return er;
 }
 
@@ -7946,7 +7866,7 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 	SOURCEKEY		sParentSourceKey;
 	entryId*		lpsNewEntryId = NULL;
 	unsigned long long ullIMAP = 0;
-	ECAttachmentStorage *lpInternalAttachmentStorage = NULL;
+	object_ptr<ECAttachmentStorage> lpInternalAttachmentStorage;
 
 	er = lpecSession->GetDatabase(&lpDatabase);
 	if (er != erSuccess) {
@@ -7960,8 +7880,7 @@ static ECRESULT CopyObject(ECSession *lpecSession,
 			er = KCERR_INVALID_PARAMETER;
 			goto exit;
 		}
-
-		er = CreateAttachmentStorage(lpDatabase, &lpInternalAttachmentStorage);
+		er = CreateAttachmentStorage(lpDatabase, &~lpInternalAttachmentStorage);
 		if (er != erSuccess) {
 			ec_log_err("CopyObject: CreateAttachmentStorage failed: %s (%x)", GetMAPIErrorMessage(er), er);
 			goto exit;
@@ -8285,10 +8204,6 @@ exit:
 		lpInternalAttachmentStorage->Rollback();
 		lpDatabase->Rollback();
 	}
-
-	if (lpInternalAttachmentStorage)
-		lpInternalAttachmentStorage->Release();
-
 	//Free Results
 	if (lpDBResult != NULL)
 		lpDatabase->FreeResult(lpDBResult);
@@ -8326,7 +8241,7 @@ static ECRESULT CopyFolderObjects(struct soap *soap, ECSession *lpecSession,
 
 	SOURCEKEY		sSourceKey;
 	SOURCEKEY		sParentSourceKey;
-	ECAttachmentStorage *lpAttachmentStorage = NULL;
+	object_ptr<ECAttachmentStorage> lpAttachmentStorage;
 
 	if(lpszNewFolderName == NULL) {
 		ec_log_err("CopyFolderObjects: \"new folder name\" missing");
@@ -8339,8 +8254,7 @@ static ECRESULT CopyFolderObjects(struct soap *soap, ECSession *lpecSession,
 		ec_log_err("CopyFolderObjects: cannot retrieve database: %s (%x)", GetMAPIErrorMessage(er), er);
 		goto exit;
 	}
-
-	er = CreateAttachmentStorage(lpDatabase, &lpAttachmentStorage);
+	er = CreateAttachmentStorage(lpDatabase, &~lpAttachmentStorage);
 	if (er != erSuccess) {
 		ec_log_err("CopyFolderObjects: CreateAttachmentStorage failed: %s (%x)", GetMAPIErrorMessage(er), er);
 		goto exit;
@@ -8558,9 +8472,6 @@ exit:
 		if (lpAttachmentStorage)
 			lpAttachmentStorage->Rollback();
 	}
-
-	if (lpAttachmentStorage)
-		lpAttachmentStorage->Release();
 	if (lpDBResult != NULL)
 		lpDatabase->FreeResult(lpDBResult);
 	return er;
@@ -10717,7 +10628,7 @@ static void MTOMSessionDone(struct soap *soap, void *param)
 SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulFlags, struct propTagArray sPropTags, struct sourceKeyPairArray sSourceKeyPairs, unsigned int ulPropTag, exportMessageChangesAsStreamResponse *lpsResponse)
 {
 	LPMTOMStreamInfo	lpStreamInfo = NULL;
-	ECAttachmentStorage *lpAttachmentStorage = NULL;
+	object_ptr<ECAttachmentStorage> lpAttachmentStorage;
 	unsigned int		ulObjectId = 0;
 	unsigned int		ulParentId = 0;
 	unsigned int		ulParentCheck = 0;
@@ -10784,8 +10695,7 @@ SOAP_ENTRY_START(exportMessageChangesAsStream, lpsResponse->er, unsigned int ulF
 		er = KCERR_NO_SUPPORT;
 		goto exit;
 	}
-
-	er = CreateAttachmentStorage(lpDatabase, &lpAttachmentStorage);
+	er = CreateAttachmentStorage(lpDatabase, &~lpAttachmentStorage);
 	if (er != erSuccess)
 		goto exit;
 
@@ -10914,9 +10824,6 @@ exit:
 	if (er != erSuccess)
 		// Do not output any streams
 		lpsResponse->sMsgStreams.__size = 0;
-	if(lpAttachmentStorage)
-		lpAttachmentStorage->Release();
-
 	FREE_DBRESULT();
     soap->mode &= ~SOAP_XML_TREE;
     soap->omode &= ~SOAP_XML_TREE;
@@ -11027,12 +10934,12 @@ SOAP_ENTRY_START(importMessageFromStream, *result, unsigned int ulFlags, unsigne
 	unsigned int	ulDeleteFlags = EC_DELETE_ATTACHMENTS | EC_DELETE_RECIPIENTS | EC_DELETE_CONTAINER | EC_DELETE_MESSAGES | EC_DELETE_HARD_DELETE;
 	ECListDeleteItems lstDeleteItems;
 	ECListDeleteItems lstDeleted;
-	ECAttachmentStorage *lpAttachmentStorage = NULL;
+	object_ptr<ECAttachmentStorage> lpAttachmentStorage;
 	MTOMSessionInfo		*lpMTOMSessionInfo = NULL;
 
 	USE_DATABASE();
 
-	er = CreateAttachmentStorage(lpDatabase, &lpAttachmentStorage);
+	er = CreateAttachmentStorage(lpDatabase, &~lpAttachmentStorage);
 	if (er != erSuccess)
 		goto exit;
 
@@ -11279,10 +11186,6 @@ exit:
 
 	if(lpAttachmentStorage && er != erSuccess)
 		lpAttachmentStorage->Rollback();
-	
-	if (lpAttachmentStorage)
-		lpAttachmentStorage->Release();
-
 	ROLLBACK_ON_ERROR();
 	FREE_DBRESULT();
 
