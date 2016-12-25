@@ -67,15 +67,15 @@ HRESULT GetShortcutFolder(LPMAPISESSION lpSession, LPTSTR lpszFolderName, LPTSTR
 
 	hr = HrOpenDefaultStore(lpSession, &~lpMsgStore);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Get shortcut entryid
 	hr = HrGetOneProp(lpMsgStore, PR_IPM_FAVORITES_ENTRYID, &~lpPropValue);
 	if(hr != hrSuccess) {
 		if (hr == MAPI_E_NOT_FOUND && ulFlags & MAPI_CREATE)
 			// Propety not found, re-create the shortcut folder
-			hr = CreateShortcutFolder(lpMsgStore, lpszFolderName, lpszFolderComment, ulFlags & MAPI_UNICODE, lppShortcutFolder);
-		goto exit;
+			return CreateShortcutFolder(lpMsgStore, lpszFolderName, lpszFolderComment, ulFlags & MAPI_UNICODE, lppShortcutFolder);
+		return hr;
 	}
 
 	// Open Shortcut folder
@@ -83,16 +83,10 @@ HRESULT GetShortcutFolder(LPMAPISESSION lpSession, LPTSTR lpszFolderName, LPTSTR
 	if (hr != hrSuccess) {
 		if (hr == MAPI_E_NOT_FOUND && ulFlags & MAPI_CREATE)
 			// Folder not found, re-create the shortcut folder
-			hr = CreateShortcutFolder(lpMsgStore, lpszFolderName, lpszFolderComment, ulFlags & MAPI_UNICODE, lppShortcutFolder);
-		goto exit;
+			return CreateShortcutFolder(lpMsgStore, lpszFolderName, lpszFolderComment, ulFlags & MAPI_UNICODE, lppShortcutFolder);
+		return hr;
 	}
-
-	hr = lpFolder->QueryInterface(IID_IMAPIFolder, (void**)lppShortcutFolder);
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+	return lpFolder->QueryInterface(IID_IMAPIFolder, reinterpret_cast<void **>(lppShortcutFolder));
 }
 
 /**
@@ -113,10 +107,8 @@ HRESULT CreateShortcutFolder(IMsgStore *lpMsgStore, LPTSTR lpszFolderName, LPTST
 	ULONG ulObjType = 0;
 	memory_ptr<SPropValue> lpProp;
 
-	if (lpMsgStore == NULL || lppShortcutFolder == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpMsgStore == nullptr || lppShortcutFolder == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 
 	if (lpszFolderName == NULL) {
 		if (ulFlags & MAPI_UNICODE)
@@ -135,26 +127,19 @@ HRESULT CreateShortcutFolder(IMsgStore *lpMsgStore, LPTSTR lpszFolderName, LPTST
 	// Open root folder
 	hr = lpMsgStore->OpenEntry(0, nullptr, &IID_IMAPIFolder, MAPI_BEST_ACCESS, &ulObjType, &~lpFolder);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpFolder->CreateFolder(FOLDER_GENERIC, lpszFolderName, lpszFolderComment, &IID_IMAPIFolder, ulFlags | OPEN_IF_EXISTS, &~lpNewFolder);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = HrGetOneProp(lpNewFolder, PR_ENTRYID, &~lpProp);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	lpProp->ulPropTag = PR_IPM_FAVORITES_ENTRYID;
 
 	hr = HrSetOneProp(lpMsgStore, lpProp);
 	if (hr != hrSuccess)
-		goto exit;
-
-	hr = lpNewFolder->QueryInterface(IID_IMAPIFolder, (void**)lppShortcutFolder);
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+		return hr;
+	return lpNewFolder->QueryInterface(IID_IMAPIFolder, reinterpret_cast<void **>(lppShortcutFolder));
 }
 
 /**
@@ -303,10 +288,8 @@ HRESULT AddToFavorite(IMAPIFolder *lpShortcutFolder, ULONG ulLevel, LPCTSTR lpsz
 	ULONG cPropArray = 0;
 	memory_ptr<SRestriction> lpRestriction;
 
-	if (lpShortcutFolder == NULL || lpPropArray == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpShortcutFolder == nullptr || lpPropArray == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 	
 	lpPropSourceKey = PpropFindProp(lpPropArray, cValues, PR_SOURCE_KEY);
 	lpPropParentSourceKey = PpropFindProp(lpPropArray, cValues, PR_PARENT_SOURCE_KEY);
@@ -314,31 +297,27 @@ HRESULT AddToFavorite(IMAPIFolder *lpShortcutFolder, ULONG ulLevel, LPCTSTR lpsz
 	lpPropMessageClass = PpropFindProp(lpPropArray, cValues, PR_CONTAINER_CLASS);
 	
 	if (lpPropSourceKey == NULL || lpPropParentSourceKey == NULL || lpPropDisplayName == NULL)
-	{
-		hr = MAPI_E_CORRUPT_DATA;
-		goto exit;
-	}
+		return MAPI_E_CORRUPT_DATA;
 
 	// Check for duplicates
 	hr = lpShortcutFolder->GetContentsTable(0, &~lpTable);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// build restriction
 	hr = ECPropertyRestriction(RELOP_EQ, PR_FAV_PUBLIC_SOURCE_KEY, lpPropSourceKey).CreateMAPIRestriction(&~lpRestriction);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	if (lpTable->FindRow(lpRestriction, BOOKMARK_BEGINNING , 0) == hrSuccess)
-		goto exit; // Folder already include
+		return hr; /* Folder already included */
 
 	// No duplicate, Start to add the favorite
 	hr = lpShortcutFolder->CreateMessage(nullptr, 0, &~lpMessage);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 6, &~lpNewPropArray);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lpNewPropArray[cPropArray].ulPropTag = PR_FAV_LEVEL_MASK;
 	lpNewPropArray[cPropArray++].Value.ul = ulLevel;
@@ -371,14 +350,8 @@ HRESULT AddToFavorite(IMAPIFolder *lpShortcutFolder, ULONG ulLevel, LPCTSTR lpsz
 
 	hr = lpMessage->SetProps(cPropArray, lpNewPropArray, NULL);
 	if (hr != hrSuccess)
-		goto exit;
-
-	hr = lpMessage->SaveChanges(0);
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+		return hr;
+	return lpMessage->SaveChanges(0);
 }
 
 /**

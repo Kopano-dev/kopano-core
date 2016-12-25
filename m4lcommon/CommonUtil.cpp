@@ -330,12 +330,8 @@ HRESULT DeleteProfileTemp(char *szProfName)
 	// Get the MAPI Profile administration object
 	hr = MAPIAdminProfiles(0, &~lpProfAdmin);
 	if (hr != hrSuccess)
-		goto exit;
-
-	hr = lpProfAdmin->DeleteProfile((LPTSTR)szProfName, 0);
-
-exit:
-	return hr;
+		return hr;
+	return lpProfAdmin->DeleteProfile((LPTSTR)szProfName, 0);
 }
 
 HRESULT HrOpenECAdminSession(IMAPISession **lppSession,
@@ -469,17 +465,11 @@ HRESULT HrOpenDefaultStoreOffline(IMAPISession *lpMAPISession, IMsgStore **lppMs
 
 	hr = HrOpenDefaultStore(lpMAPISession, MDB_WRITE | MDB_NO_DIALOG | MDB_NO_MAIL | MDB_TEMPORARY, &~lpMsgStore);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = GetProxyStoreObject(lpMsgStore, &~lpProxedMsgStore);
 	if (hr != hrSuccess)
-		goto exit;
-	
-	hr = lpProxedMsgStore->QueryInterface(IID_ECMsgStoreOffline, (void**)lppMsgStore);
-	if(hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+		return hr;
+	return lpProxedMsgStore->QueryInterface(IID_ECMsgStoreOffline, reinterpret_cast<void **>(lppMsgStore));
 }
 
 HRESULT HrOpenDefaultStoreOnline(IMAPISession *lpMAPISession, IMsgStore **lppMsgStore)
@@ -489,17 +479,11 @@ HRESULT HrOpenDefaultStoreOnline(IMAPISession *lpMAPISession, IMsgStore **lppMsg
 
 	hr = HrOpenDefaultStore(lpMAPISession, MDB_WRITE | MDB_NO_DIALOG | MDB_NO_MAIL | MDB_TEMPORARY, &~lpMsgStore);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = GetProxyStoreObject(lpMsgStore, &~lpProxedMsgStore);
 	if (hr != hrSuccess)
-		goto exit;
-	
-	hr = lpProxedMsgStore->QueryInterface(IID_ECMsgStoreOnline, (void**)lppMsgStore);
-	if(hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+		return hr;
+	return lpProxedMsgStore->QueryInterface(IID_ECMsgStoreOnline, reinterpret_cast<void **>(lppMsgStore));
 }
 
 HRESULT HrOpenStoreOnline(IMAPISession *lpMAPISession, ULONG cbEntryID, LPENTRYID lpEntryID, IMsgStore **lppMsgStore)
@@ -507,23 +491,15 @@ HRESULT HrOpenStoreOnline(IMAPISession *lpMAPISession, ULONG cbEntryID, LPENTRYI
 	HRESULT	hr = hrSuccess;
 	object_ptr<IMsgStore> lpMsgStore, lpProxedMsgStore;
 
-	if (lpMAPISession == NULL || lppMsgStore == NULL || lpEntryID == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpMAPISession == nullptr || lppMsgStore == nullptr || lpEntryID == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 	hr = lpMAPISession->OpenMsgStore(0, cbEntryID, lpEntryID, &IID_IMsgStore, MDB_WRITE | MDB_NO_DIALOG | MDB_NO_MAIL | MDB_TEMPORARY, &~lpMsgStore);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = GetProxyStoreObject(lpMsgStore, &~lpProxedMsgStore);
 	if (hr != hrSuccess)
-		goto exit;
-	
-	hr = lpProxedMsgStore->QueryInterface(IID_ECMsgStoreOnline, (void**)lppMsgStore);
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+		return hr;
+	return lpProxedMsgStore->QueryInterface(IID_ECMsgStoreOnline, reinterpret_cast<void **>(lppMsgStore));
 }
 
 HRESULT GetProxyStoreObject(IMsgStore *lpMsgStore, IMsgStore **lppMsgStore)
@@ -533,32 +509,24 @@ HRESULT GetProxyStoreObject(IMsgStore *lpMsgStore, IMsgStore **lppMsgStore)
 	IECUnknown* lpECMsgStore = NULL;
 	memory_ptr<SPropValue> lpPropValue;
 
-	if (lpMsgStore == NULL || lppMsgStore == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpMsgStore == nullptr || lppMsgStore == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 	if (lpMsgStore->QueryInterface(IID_IProxyStoreObject, &~lpProxyStoreObject) == hrSuccess) {
 		hr = lpProxyStoreObject->UnwrapNoRef((LPVOID*)lppMsgStore);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		(*lppMsgStore)->AddRef();
 
 	} else if (HrGetOneProp(lpMsgStore, PR_EC_OBJECT, &~lpPropValue) == hrSuccess) {
 		lpECMsgStore = (IECUnknown *)lpPropValue->Value.lpszA;
-		if (lpECMsgStore == NULL) {
-			hr = MAPI_E_INVALID_PARAMETER;
-			goto exit;
-		}
-
+		if (lpECMsgStore == nullptr)
+			return MAPI_E_INVALID_PARAMETER;
 		hr = lpECMsgStore->QueryInterface(IID_IMsgStore, (void**)lppMsgStore);
 	} else {
 		// Possible object already wrapped, gives the original object back
 		(*lppMsgStore) = lpMsgStore;
 		(*lppMsgStore)->AddRef();
 	}
-
-exit:
 	return hr;
 }
 
@@ -584,17 +552,11 @@ HRESULT HrOpenECPublicStoreOnline(IMAPISession *lpMAPISession, IMsgStore **lppMs
 
 	hr = HrOpenECPublicStore(lpMAPISession, MDB_WRITE | MDB_NO_DIALOG | MDB_NO_MAIL | MDB_TEMPORARY, &~lpMsgStore);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = GetProxyStoreObject(lpMsgStore, &~lpProxedMsgStore);
 	if (hr != hrSuccess)
-		goto exit;
-	
-	hr = lpProxedMsgStore->QueryInterface(IID_ECMsgStoreOnline, (void**)lppMsgStore);
-	if(hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+		return hr;
+	return lpProxedMsgStore->QueryInterface(IID_ECMsgStoreOnline, reinterpret_cast<void **>(lppMsgStore));
 }
 
 HRESULT HrOpenECPublicStore(IMAPISession *lpMAPISession, ULONG ulFlags, IMsgStore **lppMsgStore)
@@ -678,14 +640,8 @@ HRESULT HrRemoveECMailBox(LPMAPISESSION lpSession, LPMAPIUID lpsProviderUID)
 
 	hr = HrGetECProviderAdmin(lpSession, &~lpProviderAdmin);
 	if(hr != hrSuccess)
-		goto exit;
-
-	hr = HrRemoveECMailBox(lpProviderAdmin, lpsProviderUID);
-	if(hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+		return hr;
+	return HrRemoveECMailBox(lpProviderAdmin, lpsProviderUID);
 }
 
 HRESULT HrRemoveECMailBox(LPPROVIDERADMIN lpProviderAdmin, LPMAPIUID lpsProviderUID)
@@ -700,7 +656,7 @@ HRESULT HrRemoveECMailBox(LPPROVIDERADMIN lpProviderAdmin, LPMAPIUID lpsProvider
 	//Open global profile, add the store.(for show list, delete etc)
 	hr = lpProviderAdmin->OpenProfileSection((LPMAPIUID)pbGlobalProfileSectionGuid, nullptr, MAPI_MODIFY , &~lpGlobalProfSect);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// The the prop value PR_STORE_PROVIDERS
 	static constexpr SizedSPropTagArray(1, proptag) = {1, {PR_STORE_PROVIDERS}};
@@ -709,14 +665,12 @@ HRESULT HrRemoveECMailBox(LPPROVIDERADMIN lpProviderAdmin, LPMAPIUID lpsProvider
 	{
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpNewProp);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		cSize = lpGlobalProps->Value.bin.cb - sizeof(MAPIUID);
 
 		hr = MAPIAllocateMore(cSize, lpNewProp, (void**)&lpNewProp->Value.bin.lpb);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		lpNewProp->Value.bin.cb	= 0;
 		lpNewProp->ulPropTag	= PR_STORE_PROVIDERS;
 
@@ -730,18 +684,15 @@ HRESULT HrRemoveECMailBox(LPPROVIDERADMIN lpProviderAdmin, LPMAPIUID lpsProvider
 
 		hr = lpGlobalProfSect->SetProps(1, lpNewProp, NULL);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = lpGlobalProfSect->SaveChanges(0);
 		if(hr != hrSuccess)
-			goto exit;	
+			return hr;
 	}
 	//Remove Store
-	hr = lpProviderAdmin->DeleteProvider(lpsProviderUID);
-	//FIXME: unknown error 0x80070005 by delete (HACK)
-	hr = hrSuccess;
-exit:
-	return hr;
+	lpProviderAdmin->DeleteProvider(lpsProviderUID);
+	//FIXME: handle unknown error 0x80070005 by delete. HACK: always succeed.
+	return hrSuccess;
 }
 
 static HRESULT HrAddProfileUID(LPPROVIDERADMIN lpProviderAdmin, LPMAPIUID lpNewProfileUID)
@@ -797,14 +748,8 @@ HRESULT HrAddECMailBox(LPMAPISESSION lpSession, LPCWSTR lpszUserName)
 
 	hr = HrGetECProviderAdmin(lpSession, &~lpProviderAdmin);
 	if(hr != hrSuccess)
-		goto exit;
-
-	hr = HrAddECMailBox(lpProviderAdmin, lpszUserName);
-	if(hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+		return hr;
+	return HrAddECMailBox(lpProviderAdmin, lpszUserName);
 }
 
 HRESULT HrAddECMailBox(LPPROVIDERADMIN lpProviderAdmin, LPCWSTR lpszUserName)
@@ -1258,13 +1203,10 @@ HRESULT HrCreateEmailSearchKey(const char *lpszEmailType,
 HRESULT HrGetAddress(IMAPISession *lpSession, LPSPropValue lpProps, ULONG cValues, ULONG ulPropTagEntryID, ULONG ulPropTagName, ULONG ulPropTagType, ULONG ulPropTagEmailAddress,
 					 std::wstring &strName, std::wstring &strType, std::wstring &strEmailAddress)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IAddrBook> lpAdrBook;
 
-	if (!lpSession || !lpProps) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpSession == nullptr || lpProps == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 	
 	// If entryid is invalid, there is no need in opening the addressbook,
 	// though we still call HrGetAddress with lpAdrBook
@@ -1273,10 +1215,7 @@ HRESULT HrGetAddress(IMAPISession *lpSession, LPSPropValue lpProps, ULONG cValue
 		lpSession->OpenAddressBook(0, nullptr, AB_NO_DIALOG, &~lpAdrBook);
 		// fallthrough .. don't mind if no Addressbook could not be created (probably never happens)
 	 
-	hr = HrGetAddress(lpAdrBook, lpProps, cValues, ulPropTagEntryID, ulPropTagName, ulPropTagType, ulPropTagEmailAddress, strName, strType, strEmailAddress);
-
-exit:
-	return hr;
+	return HrGetAddress(lpAdrBook, lpProps, cValues, ulPropTagEntryID, ulPropTagName, ulPropTagType, ulPropTagEmailAddress, strName, strType, strEmailAddress);
 }
 
 /**
@@ -1556,17 +1495,14 @@ HRESULT HrGetAddress(LPADRBOOK lpAdrBook, LPENTRYID lpEntryID, ULONG cbEntryID, 
 	memory_ptr<SPropValue> lpMailUserProps;
 	SizedSPropTagArray(4, sptaAddressProps) = { 4, { PR_DISPLAY_NAME_W, PR_ADDRTYPE_W, PR_EMAIL_ADDRESS_W, PR_SMTP_ADDRESS_W } };
 
-	if (!lpAdrBook || !lpEntryID) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpAdrBook == nullptr || lpEntryID == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 	hr = lpAdrBook->OpenEntry(cbEntryID, lpEntryID, &IID_IMailUser, 0, &ulType, &~lpMailUser);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpMailUser->GetProps(sptaAddressProps, 0, &cMailUserValues, &~lpMailUserProps);
 	if (FAILED(hr))
-		goto exit;
-
+		return hr;
 	if(lpMailUserProps[0].ulPropTag == PR_DISPLAY_NAME_W)
 		strName = lpMailUserProps[0].Value.lpszW;
 	if(lpMailUserProps[1].ulPropTag == PR_ADDRTYPE_W)
@@ -1578,11 +1514,7 @@ HRESULT HrGetAddress(LPADRBOOK lpAdrBook, LPENTRYID lpEntryID, ULONG cbEntryID, 
     }
 	else if(lpMailUserProps[2].ulPropTag == PR_EMAIL_ADDRESS_W)
 		strEmailAddress = lpMailUserProps[2].Value.lpszW;
-
-	hr = hrSuccess;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT DoSentMail(IMAPISession *lpSession, IMsgStore *lpMDBParam, ULONG ulFlags, LPMESSAGE lpMessage) {
@@ -1601,10 +1533,8 @@ HRESULT DoSentMail(IMAPISession *lpSession, IMsgStore *lpMDBParam, ULONG ulFlags
 	assert(lpSession != NULL || lpMDBParam != NULL);
     
 	// Check incomming parameter
-	if(lpMessage == NULL) {
-		hr = MAPI_E_INVALID_OBJECT;
-		goto exit;
-	}
+	if (lpMessage == nullptr)
+		return MAPI_E_INVALID_OBJECT;
 
 	// Get Sentmail properties
 	hr = lpMessage->GetProps(sPropDoSentMail, 0, &cValues, &~lpPropValue);
@@ -1613,18 +1543,16 @@ HRESULT DoSentMail(IMAPISession *lpSession, IMsgStore *lpMDBParam, ULONG ulFlags
 		lpPropValue[DSM_DELETE_AFTER_SUBMIT].ulPropTag != PR_DELETE_AFTER_SUBMIT)
 	  )
 	{
-		// Ignore error, leave the mail where it is
-		hr = hrSuccess;
 		lpMessage->Release();
-		goto exit;
+		// Ignore error, leave the mail where it is
+		return hrSuccess;
 	}else if(lpPropValue[DSM_ENTRYID].ulPropTag != PR_ENTRYID || 
 			 lpPropValue[DSM_PARENT_ENTRYID].ulPropTag != PR_PARENT_ENTRYID ||
 			 lpPropValue[DSM_STORE_ENTRYID].ulPropTag != PR_STORE_ENTRYID)
 	{
 		// Those properties always needed
-		hr = MAPI_E_NOT_FOUND;
 		lpMessage->Release();
-		goto exit;
+		return MAPI_E_NOT_FOUND;
 	}
 
 	lpMessage->Release(); // Yes, we release the message for the caller
@@ -1634,7 +1562,7 @@ HRESULT DoSentMail(IMAPISession *lpSession, IMsgStore *lpMDBParam, ULONG ulFlags
 	else
 		hr = lpMDBParam->QueryInterface(IID_IMsgStore, &~lpMDB);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	sEntryID.cb = lpPropValue[DSM_ENTRYID].Value.bin.cb;
 	sEntryID.lpb = lpPropValue[DSM_ENTRYID].Value.bin.lpb;
@@ -1647,7 +1575,7 @@ HRESULT DoSentMail(IMAPISession *lpSession, IMsgStore *lpMDBParam, ULONG ulFlags
 		//Open Sentmail Folder
 		hr = lpMDB->OpenEntry(lpPropValue[DSM_SENTMAIL_ENTRYID].Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPropValue[DSM_SENTMAIL_ENTRYID].Value.bin.lpb), nullptr, MAPI_MODIFY, &ulType, &~lpFolder);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		// Move Message
 		hr = lpFolder->CopyMessages(&sMsgList, &IID_IMAPIFolder, lpFolder, 0, NULL, MESSAGE_MOVE);
@@ -1661,14 +1589,12 @@ HRESULT DoSentMail(IMAPISession *lpSession, IMsgStore *lpMDBParam, ULONG ulFlags
 			// Open parent folder of the sent message
 			hr = lpMDB->OpenEntry(lpPropValue[DSM_PARENT_ENTRYID].Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPropValue[DSM_PARENT_ENTRYID].Value.bin.lpb), nullptr, MAPI_MODIFY, &ulType, &~lpFolder);
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 
 		// Delete Message
 		hr = lpFolder->DeleteMessages(&sMsgList, 0, NULL, 0); 
 	}
-
-exit:
 	return hr;
 }
 
@@ -2210,7 +2136,7 @@ HRESULT OpenSubFolder(LPMDB lpMDB, const wchar_t *folder, wchar_t psep,
 		hr = HrGetOneProp(lpMDB, PR_IPM_PUBLIC_FOLDERS_ENTRYID, &~lpPropIPMSubtree);
 		if (hr != hrSuccess) {
 			ec_log_crit("Unable to find PR_IPM_PUBLIC_FOLDERS_ENTRYID object, error code: 0x%08X", hr);
-			goto exit;
+			return hr;
 		}
 	}
 	else
@@ -2218,7 +2144,7 @@ HRESULT OpenSubFolder(LPMDB lpMDB, const wchar_t *folder, wchar_t psep,
 		hr = HrGetOneProp(lpMDB, PR_IPM_SUBTREE_ENTRYID, &~lpPropIPMSubtree);
 		if (hr != hrSuccess) {
 			ec_log_crit("Unable to find IPM_SUBTREE object, error code: 0x%08X", hr);
-			goto exit;
+			return hr;
 		}
 	}
 
@@ -2226,7 +2152,7 @@ HRESULT OpenSubFolder(LPMDB lpMDB, const wchar_t *folder, wchar_t psep,
 	     &IID_IMAPIFolder, 0, &ulObjType, &~lpFoundFolder);
 	if (hr != hrSuccess || ulObjType != MAPI_FOLDER) {
 		ec_log_crit("Unable to open IPM_SUBTREE object, error code: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 
 	// correctly return IPM subtree as found folder
@@ -2247,7 +2173,7 @@ HRESULT OpenSubFolder(LPMDB lpMDB, const wchar_t *folder, wchar_t psep,
 		hr = lpFoundFolder->GetHierarchyTable(0, &~lpTable);
 		if (hr != hrSuccess) {
 			ec_log_crit("Unable to view folder, error code: 0x%08X", hr);
-			goto exit;
+			return hr;
 		}
 
 		hr = FindFolder(lpTable, subfld.c_str(), &~lpPropFolder);
@@ -2255,10 +2181,10 @@ HRESULT OpenSubFolder(LPMDB lpMDB, const wchar_t *folder, wchar_t psep,
 			hr = lpFoundFolder->CreateFolder(FOLDER_GENERIC, (LPTSTR)subfld.c_str(), (LPTSTR)L"Auto-created by Kopano", &IID_IMAPIFolder, MAPI_UNICODE | OPEN_IF_EXISTS, &lpNewFolder);
 			if (hr != hrSuccess) {
 				ec_log_crit("Unable to create folder \"%ls\", error code: 0x%08X", subfld.c_str(), hr);
-				goto exit;
+				return hr;
 			}
 		} else if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		if (lpNewFolder) {
 			lpFoundFolder.reset(lpNewFolder, false);
@@ -2268,7 +2194,7 @@ HRESULT OpenSubFolder(LPMDB lpMDB, const wchar_t *folder, wchar_t psep,
 			     &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpFoundFolder);
 			if (hr != hrSuccess) {
 				ec_log_crit("Unable to open folder \"%ls\", error code: 0x%08X", subfld.c_str(), hr);
-				goto exit;
+				return hr;
 			}
 		}
 	} while (ptr);
@@ -2278,8 +2204,6 @@ found:
 		lpFoundFolder->AddRef();
 		*lppSubFolder = lpFoundFolder;
 	}
-
-exit:
 	return hr;
 }
 
@@ -2311,28 +2235,21 @@ HRESULT HrOpenUserMsgStore(LPMAPISESSION lpSession, LPMDB lpStore, WCHAR *lpszUs
 	if (lpStore == NULL) {
 		hr = HrOpenDefaultStore(lpSession, &~lpDefaultStore);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		lpStore = lpDefaultStore;
 	}
 
 	// Find and open the store for lpszUser.
 	hr = lpStore->QueryInterface(IID_IExchangeManageStore, &~lpExchManageStore);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpExchManageStore->CreateStoreEntryID(NULL, (LPTSTR)lpszUser, MAPI_UNICODE, &cbStoreEntryID, &~lpStoreEntryID);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpSession->OpenMsgStore(0, cbStoreEntryID, lpStoreEntryID, &IID_IMsgStore, MDB_WRITE, &~lpMsgStore);
 	if (hr != hrSuccess)
-		goto exit;
-
-	hr = lpMsgStore->QueryInterface(IID_IMsgStore, (void**)lppStore);
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+		return hr;
+	return lpMsgStore->QueryInterface(IID_IMsgStore, reinterpret_cast<void **>(lppStore));
 }
 
 /*
@@ -2453,7 +2370,7 @@ HRESULT HrOpenDefaultCalendar(LPMDB lpMsgStore, LPMAPIFOLDER *lppFolder)
 	if (hr != hrSuccess || ulType != MAPI_FOLDER) 
 	{
 		ec_log_crit("Unable to open Root Container, error code: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 
 	//retrive Entryid of Default Calendar Folder.
@@ -2461,18 +2378,17 @@ HRESULT HrOpenDefaultCalendar(LPMDB lpMsgStore, LPMAPIFOLDER *lppFolder)
 	if (hr != hrSuccess) 
 	{
 		ec_log_crit("Unable to find PR_IPM_APPOINTMENT_ENTRYID, error code: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 	hr = lpMsgStore->OpenEntry(lpPropDefFld->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpPropDefFld->Value.bin.lpb), nullptr, MAPI_MODIFY, &ulType, &~lpDefaultFolder);
 	if (hr != hrSuccess || ulType != MAPI_FOLDER) 
 	{
 		ec_log_crit("Unable to open IPM_SUBTREE object, error code: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 
 	*lppFolder = lpDefaultFolder.release();
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -2740,13 +2656,11 @@ static HRESULT CreateLocalFreeBusyMessage(LPMAPIFOLDER lpFolder, ULONG ulFlags,
 	
 	memset(sPropValMessage, 0, sizeof(SPropValue) * 6);
 
-	if (lpFolder == NULL || lppMessage == NULL || (ulFlags&~MAPI_ASSOCIATED) != 0) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpFolder == nullptr || lppMessage == nullptr || (ulFlags & ~MAPI_ASSOCIATED) != 0)
+		return MAPI_E_INVALID_PARAMETER;
 	hr = lpFolder->CreateMessage(&IID_IMessage, (ulFlags&MAPI_ASSOCIATED), &~lpMessage);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	sPropValMessage[0].ulPropTag = PR_MESSAGE_CLASS_W;
 	sPropValMessage[0].Value.lpszW = const_cast<wchar_t *>(L"IPM.Microsoft.ScheduleData.FreeBusy");
@@ -2768,16 +2682,11 @@ static HRESULT CreateLocalFreeBusyMessage(LPMAPIFOLDER lpFolder, ULONG ulFlags,
 
 	hr = lpMessage->SetProps(6, sPropValMessage, NULL);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
 	if(hr != hrSuccess)
-		goto exit;
-
-	hr = lpMessage->QueryInterface(IID_IMessage, (void**)lppMessage);
-
-exit:
-	return hr;
+		return hr;
+	return lpMessage->QueryInterface(IID_IMessage, reinterpret_cast<void **>(lppMessage));
 }
 
 /*
@@ -2820,7 +2729,7 @@ static HRESULT OpenLocalFBMessage(DGMessageType eDGMsgType,
 
 	hr = lpMsgStore->OpenEntry(0, nullptr, &IID_IMAPIFolder, MAPI_MODIFY, &ulType, &~lpRoot);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Check if the freebusydata folder and LocalFreeBusy is exist. Create the folder and message if it is request.
 	if((HrGetOneProp(lpRoot, PR_FREEBUSY_ENTRYIDS, &~lpPropFB) != hrSuccess ||
@@ -2832,50 +2741,47 @@ static HRESULT OpenLocalFBMessage(DGMessageType eDGMsgType,
 		// Open the inbox
 		hr = lpMsgStore->GetReceiveFolder((LPTSTR)"", 0, &cbEntryIDInbox, &~lpEntryIDInbox, &~lpszExplicitClass);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 		hr = lpMsgStore->OpenEntry(cbEntryIDInbox, lpEntryIDInbox, &IID_IMAPIFolder, MAPI_MODIFY, &ulType, &~lpInbox);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		if (eDGMsgType == dgFreebusydata) {
 			// Create freebusydata Folder
 			hr = lpRoot->CreateFolder(FOLDER_GENERIC, (LPTSTR)"Freebusy Data", (LPTSTR)"", &IID_IMAPIFolder, OPEN_IF_EXISTS, &lpFolder);
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			// Get entryid of freebusydata
 			hr = HrGetOneProp(lpFolder, PR_ENTRYID, &lpPVFBFolder);
 			if(hr != hrSuccess)
-				goto exit;
-
+				return hr;
 		} else if (eDGMsgType == dgAssociated) {
 			//Open default calendar
 			hr = HrGetOneProp(lpInbox, PR_IPM_APPOINTMENT_ENTRYID, &~lpAppEntryID);
 			if(hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			hr = lpMsgStore->OpenEntry(lpAppEntryID->Value.bin.cb, (LPENTRYID)lpAppEntryID->Value.bin.lpb, &IID_IMAPIFolder, MAPI_MODIFY, &ulType, (IUnknown **) &lpFolder);
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 
 		hr = CreateLocalFreeBusyMessage(lpFolder, (eDGMsgType == dgAssociated)?MAPI_ASSOCIATED : 0, &lpMessage);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 		hr = HrGetOneProp(lpMessage, PR_ENTRYID, &~lpEntryID);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		// Update Free/Busy entryid
 		if(lpPropFB == NULL || lpPropFB->Value.MVbin.cValues < 2) {
 			hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpPropFBNew);
 			if(hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			lpPropFBNew->ulPropTag = PR_FREEBUSY_ENTRYIDS;
 			hr = MAPIAllocateMore(sizeof(SBinary) * 4, lpPropFB, (void **)&lpPropFBNew->Value.MVbin.lpbin);
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			memset(lpPropFBNew->Value.MVbin.lpbin, 0, sizeof(SBinary) * 4);
 
@@ -2914,24 +2820,20 @@ static HRESULT OpenLocalFBMessage(DGMessageType eDGMsgType,
 		// Put the MV property in the root folder
 		hr = lpRoot->SetProps(1, lpPropFBRef, NULL);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		// Put the MV property in the inbox folder
 		hr = lpInbox->SetProps(1, lpPropFBRef, NULL);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
 
-	if(lpMessage == NULL) {
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+	if (lpMessage == nullptr)
+		return MAPI_E_NOT_FOUND;
 
 	// We now have a message lpMessage which is the LocalFreeBusy message.
 	*lppFBMessage = lpMessage;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -2975,31 +2877,22 @@ HRESULT SetAutoAcceptSettings(IMsgStore *lpMsgStore, bool bAutoAccept, bool bDec
 	// Save localfreebusy settings
 	hr = OpenLocalFBMessage(dgFreebusydata, lpMsgStore, true, &~lpLocalFBMessage);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpLocalFBMessage->SetProps(6, FBProps, NULL);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpLocalFBMessage->SaveChanges(0);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Hack to support outlook 2000/2002 with resources
 	hr = OpenLocalFBMessage(dgAssociated, lpMsgStore, true, &~lpLocalFBMessage);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpLocalFBMessage->SetProps(6, FBProps, NULL);
 	if(hr != hrSuccess)
-		goto exit;
-
-	hr = lpLocalFBMessage->SaveChanges(0);
-	if(hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+		return hr;
+	return lpLocalFBMessage->SaveChanges(0);
 }
 
 /**
@@ -3030,8 +2923,7 @@ HRESULT GetAutoAcceptSettings(IMsgStore *lpMsgStore, bool *lpbAutoAccept, bool *
 	if(hr == hrSuccess) {
 		hr = lpLocalFBMessage->GetProps(sptaFBProps, 0, &cValues, &~lpProps);
 		if(FAILED(hr))
-			goto exit;
-
+			return hr;
 		if(lpProps[0].ulPropTag == PR_PROCESS_MEETING_REQUESTS)
 			bAutoAccept = lpProps[0].Value.b;
 		if(lpProps[1].ulPropTag == PR_DECLINE_CONFLICTING_MEETING_REQUESTS)
@@ -3040,14 +2932,10 @@ HRESULT GetAutoAcceptSettings(IMsgStore *lpMsgStore, bool *lpbAutoAccept, bool *
 			bDeclineRecurring = lpProps[2].Value.b;
 	}
 	// else, hr != hrSuccess: no FB -> all settings are FALSE
-	hr = hrSuccess;
-
 	*lpbAutoAccept = bAutoAccept;
 	*lpbDeclineConflict = bDeclineConflict;
 	*lpbDeclineRecurring = bDeclineRecurring;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT HrGetRemoteAdminStore(IMAPISession *lpMAPISession, IMsgStore *lpMsgStore, LPCTSTR lpszServerName, ULONG ulFlags, IMsgStore **lppMsgStore)
