@@ -28,6 +28,9 @@
 #include <kopano/ECInterfaceDefs.h>
 #include <kopano/ECDebug.h>
 #include <kopano/Trace.h>
+#include <kopano/memory.hpp>
+
+using namespace KCHL;
 
 ZCABProvider::ZCABProvider(ULONG ulFlags, const char *szClassName) :
     ECUnknown(szClassName)
@@ -64,7 +67,7 @@ HRESULT ZCABProvider::Shutdown(ULONG * lpulFlags)
 HRESULT ZCABProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG ulFlags, ULONG * lpulcbSecurity, LPBYTE * lppbSecurity, LPMAPIERROR * lppMAPIError, LPABLOGON * lppABLogon)
 {
 	HRESULT hr = hrSuccess;
-	ZCABLogon* lpABLogon = NULL;
+	object_ptr<ZCABLogon> lpABLogon;
 
 	if (!lpMAPISup || !lppABLogon) {
 		hr = MAPI_E_INVALID_PARAMETER;
@@ -72,7 +75,7 @@ HRESULT ZCABProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 	}
 
 	// todo: remove flags & guid .. probably add other stuff from profile?
-	hr = ZCABLogon::Create(lpMAPISup, 0, NULL, &lpABLogon);
+	hr = ZCABLogon::Create(lpMAPISup, 0, nullptr, &~lpABLogon);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -92,9 +95,6 @@ HRESULT ZCABProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 		*lppMAPIError = NULL;
 
 exit:
-	if (lpABLogon)
-		lpABLogon->Release();
-
 	return hr;
 }
 
