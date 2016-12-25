@@ -21,6 +21,7 @@
 #include <mapidefs.h>
 #include <mapiutil.h>
 #include <mapispi.h>
+#include <memory>
 #include <new>
 #include <string>
 #include <stack>
@@ -1321,7 +1322,7 @@ HRESULT Util::HrTextToHtml(IStream *text, IStream *html, ULONG ulCodepage)
 	size_t	stWritten;
 	size_t  err;
 	const char	*readBuffer = NULL;
-	char	*writeBuffer = NULL;
+	std::unique_ptr<char[]> writeBuffer;
 	char	*wPtr = NULL;
 	iconv_t	cd = (iconv_t)-1;
 	const char *lpszCharset;
@@ -1338,7 +1339,7 @@ HRESULT Util::HrTextToHtml(IStream *text, IStream *html, ULONG ulCodepage)
 		hr = MAPI_E_BAD_CHARWIDTH;
 		goto exit;
 	}
-	writeBuffer = new(std::nothrow) char[BUFSIZE * 2];
+	writeBuffer.reset(new(std::nothrow) char[BUFSIZE * 2]);
 	if (writeBuffer == nullptr) {
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
@@ -1388,14 +1389,14 @@ HRESULT Util::HrTextToHtml(IStream *text, IStream *html, ULONG ulCodepage)
 		stRead = strHtml.size() * sizeof(WCHAR);
 
 		while (stRead > 0) {
-			wPtr = writeBuffer;
+			wPtr = writeBuffer.get();
 			stWrite = BUFSIZE * 2;
 
 			err = iconv(cd, iconv_HACK(&readBuffer), &stRead, &wPtr, &stWrite);
 
 			stWritten = (BUFSIZE * 2) - stWrite;
 			// write to stream
-			hr = html->Write(writeBuffer, stWritten, NULL);
+			hr = html->Write(writeBuffer.get(), stWritten, NULL);
 			if (hr != hrSuccess)
 				goto exit;
 
@@ -1421,7 +1422,6 @@ HRESULT Util::HrTextToHtml(IStream *text, IStream *html, ULONG ulCodepage)
 exit:
 	if (cd != (iconv_t)-1)
 		iconv_close(cd);
-	delete[] writeBuffer;
 	return hr;
 }
 

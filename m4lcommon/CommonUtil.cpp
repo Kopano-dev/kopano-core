@@ -354,15 +354,15 @@ HRESULT HrOpenECSession(IMAPISession **lppSession,
 {
 	HRESULT		hr = hrSuccess;
 	ULONG		ulProfNum = 0;
-	char		*szProfName = new char[strlen(PROFILEPREFIX)+10+1];
+	std::unique_ptr<char[]> szProfName(new char[strlen(PROFILEPREFIX)+10+1]);
 	IMAPISession *lpMAPISession = NULL;
 
 	if (profname == NULL) {
 		ulProfNum = rand_mt();
-		snprintf(szProfName, strlen(PROFILEPREFIX)+10+1, "%s%010u", PROFILEPREFIX, ulProfNum);
+		snprintf(szProfName.get(), strlen(PROFILEPREFIX)+10+1, "%s%010u", PROFILEPREFIX, ulProfNum);
 	}
 	else {
-		strcpy(szProfName, profname);
+		strcpy(szProfName.get(), profname);
 	}
 
 	if (sslkey_file != NULL) {
@@ -381,14 +381,14 @@ HRESULT HrOpenECSession(IMAPISession **lppSession,
 		}
 	}
 
-	hr = CreateProfileTemp(szUsername, szPassword, szPath, (const char*)szProfName, ulProfileFlags, sslkey_file, sslkey_password, app_version, app_misc);
+	hr = CreateProfileTemp(szUsername, szPassword, szPath, szProfName.get(), ulProfileFlags, sslkey_file, sslkey_password, app_version, app_misc);
 	if (hr != hrSuccess) {
 		ec_log_warn("CreateProfileTemp failed: %x: %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
 	}
 
 	// Log on the the profile
-	hr = MAPILogonEx(0, (LPTSTR)szProfName, (LPTSTR)"", MAPI_EXTENDED | MAPI_NEW_SESSION | MAPI_NO_MAIL, &lpMAPISession);
+	hr = MAPILogonEx(0, (LPTSTR)szProfName.get(), (LPTSTR)"", MAPI_EXTENDED | MAPI_NEW_SESSION | MAPI_NO_MAIL, &lpMAPISession);
 	if (hr != hrSuccess) {
 		ec_log_warn("MAPILogonEx failed: %x: %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
@@ -398,8 +398,7 @@ HRESULT HrOpenECSession(IMAPISession **lppSession,
 
 exit:
 	// always try to delete the temporary profile
-	DeleteProfileTemp(szProfName);
-	delete[] szProfName;
+	DeleteProfileTemp(szProfName.get());
 	return hr;
 }
 

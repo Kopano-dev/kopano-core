@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <memory>
 #include <kopano/ECRestriction.h>
 #include "vconverter.h"
 #include "valarm.h"
@@ -117,7 +118,7 @@ VConverter::VConverter(LPADRBOOK lpAdrBook, timezone_map *mapTimeZones, LPSPropT
 HRESULT VConverter::HrICal2MAPI(icalcomponent *lpEventRoot, icalcomponent *lpEvent, icalitem *lpPrevItem, icalitem **lppRet)
 {
 	HRESULT hr = hrSuccess;
-	icalitem *lpIcalItem = NULL;
+	std::unique_ptr<icalitem> lpIcalItem;
 	icalproperty_method icMethod;
 	icalproperty *lpicLastModified = NULL;
 	icaltimetype icLastModifed;
@@ -135,7 +136,7 @@ HRESULT VConverter::HrICal2MAPI(icalcomponent *lpEventRoot, icalcomponent *lpEve
 			goto exit;
 	}
 
-	lpIcalItem = new icalitem;
+	lpIcalItem.reset(new icalitem);
 	if ((hr = MAPIAllocateBuffer(sizeof(void*), &lpIcalItem->base)) != hrSuccess)
 		goto exit;
 	lpIcalItem->lpRecurrence = NULL;
@@ -153,36 +154,31 @@ HRESULT VConverter::HrICal2MAPI(icalcomponent *lpEventRoot, icalcomponent *lpEve
 	lpIcalItem->tLastModified = icaltime_as_timet(icLastModifed);
 
 	// also sets strUid in icalitem struct
-	hr = HrAddUids(lpEvent, lpIcalItem);
+	hr = HrAddUids(lpEvent, lpIcalItem.get());
 	if (hr != hrSuccess)
 		goto exit;
 
 	// Handles RECURRENCE-ID tag for exception update
-	hr = HrAddRecurrenceID(lpEvent, lpIcalItem);
+	hr = HrAddRecurrenceID(lpEvent, lpIcalItem.get());
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = HrAddStaticProps(icMethod, lpIcalItem);
+	hr = HrAddStaticProps(icMethod, lpIcalItem.get());
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = HrAddSimpleHeaders(lpEvent, lpIcalItem); // subject, location, ...
+	hr = HrAddSimpleHeaders(lpEvent, lpIcalItem.get()); // subject, location, ...
 	if (hr != hrSuccess)
 		goto exit;
-
-	
-	hr = HrAddXHeaders(lpEvent, lpIcalItem);
+	hr = HrAddXHeaders(lpEvent, lpIcalItem.get());
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = HrAddCategories(lpEvent, lpIcalItem);
+	hr = HrAddCategories(lpEvent, lpIcalItem.get());
 	if (hr != hrSuccess)
 		goto exit;
 
 	if (icMethod == ICAL_METHOD_REPLY)
-		hr = HrAddReplyRecipients(lpEvent, lpIcalItem);
+		hr = HrAddReplyRecipients(lpEvent, lpIcalItem.get());
 	else						// CANCEL, REQUEST, PUBLISH
-		hr = HrAddRecipients(lpEvent, lpIcalItem, &lpIcalItem->lstMsgProps, &lpIcalItem->lstRecips);
+		hr = HrAddRecipients(lpEvent, lpIcalItem.get(), &lpIcalItem->lstMsgProps, &lpIcalItem->lstRecips);
 	if (hr != hrSuccess)
 		goto exit;
 	
@@ -194,35 +190,29 @@ HRESULT VConverter::HrICal2MAPI(icalcomponent *lpEventRoot, icalcomponent *lpEve
 	hr = HrAddBaseProperties(icMethod, lpEvent, lpIcalItem->base, false, &lpIcalItem->lstMsgProps);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = HrAddBusyStatus(lpEvent, icMethod, lpIcalItem);
+	hr = HrAddBusyStatus(lpEvent, icMethod, lpIcalItem.get());
 	if (hr != hrSuccess)
 		goto exit;
 	
 	// Important: m_iCurrentTimeZone will be set by this function, because of the possible recurrence lateron
-	hr = HrAddTimes(icMethod, lpEventRoot, lpEvent, bIsAllday, lpIcalItem);
+	hr = HrAddTimes(icMethod, lpEventRoot, lpEvent, bIsAllday, lpIcalItem.get());
 	if (hr != hrSuccess)
 		goto exit;
 
 	// Set reminder / alarm
-	hr = HrAddReminder(lpEventRoot, lpEvent, lpIcalItem);
+	hr = HrAddReminder(lpEventRoot, lpEvent, lpIcalItem.get());
 	if (hr != hrSuccess)
 		goto exit;
 
 	// Set recurrence.
-	hr = HrAddRecurrence(lpEventRoot, lpEvent, bIsAllday, lpIcalItem);
+	hr = HrAddRecurrence(lpEventRoot, lpEvent, bIsAllday, lpIcalItem.get());
 	if (hr != hrSuccess)
 		goto exit;
 
-	*lppRet = lpIcalItem;
-	lpIcalItem = NULL;
-	
+	*lppRet = lpIcalItem.release();
 exit:
-	if (lpIcalItem) {
+	if (lpIcalItem != nullptr)
 		MAPIFreeBuffer(lpIcalItem->base);
-		delete lpIcalItem;
-	}
-
 	return hr;
 }
 
@@ -2665,8 +2655,6 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 	recurrence cRecurrence;
 	object_ptr<IStream> lpStream;
 	STATSTG sStreamStat;
-	char *lpRecurrenceData = NULL;
-
 	ICalRecurrence cICalRecurrence;
 	icalcomponent *lpicException = NULL;
 	icalcomponent *lpicComp = NULL;
@@ -2725,15 +2713,11 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 		hr = lpStream->Stat(&sStreamStat, 0);
 		if (hr != hrSuccess)
 			goto exit;
-
-		lpRecurrenceData = new char[sStreamStat.cbSize.LowPart];
-
-		hr = lpStream->Read(lpRecurrenceData, sStreamStat.cbSize.LowPart, NULL);
+		std::unique_ptr<char[]> lpRecurrenceData(new char[sStreamStat.cbSize.LowPart]);
+		hr = lpStream->Read(lpRecurrenceData.get(), sStreamStat.cbSize.LowPart, NULL);
 		if (hr != hrSuccess)
 			goto exit;
-
-		hr = cRecurrence.HrLoadRecurrenceState(lpRecurrenceData, sStreamStat.cbSize.LowPart, ulFlag);
-	
+		hr = cRecurrence.HrLoadRecurrenceState(lpRecurrenceData.get(), sStreamStat.cbSize.LowPart, ulFlag);
 	} else {
 		// When exception is created in MR, the IsRecurring is set - true by OL
 		// but Recurring state is not set in MR.
@@ -2958,7 +2942,6 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 exit:
 	if (lpicException)
 		icalcomponent_free(lpicException);
-	delete[] lpRecurrenceData;
 	return hr;
 }
 

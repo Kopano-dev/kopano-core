@@ -998,18 +998,16 @@ HRESULT ECMessage::CreateAttach(LPCIID lpInterface, ULONG ulFlags, ULONG *lpulAt
 HRESULT ECMessage::CreateAttach(LPCIID lpInterface, ULONG ulFlags, const IAttachFactory &refFactory, ULONG *lpulAttachmentNum, LPATTACH *lppAttach)
 {
 	HRESULT				hr = hrSuccess;
-	IMAPITable*			lpTable = NULL;
 	ECAttach*			lpAttach = NULL;
 	SPropValue			sID;
 	object_ptr<IECPropStorage> lpStorage;
 
 	if(this->lpAttachments == NULL) {
-		hr = this->GetAttachmentTable(fMapiUnicode, &lpTable);
+		object_ptr<IMAPITable> lpTable;
+		hr = this->GetAttachmentTable(fMapiUnicode, &~lpTable);
 
 		if(hr != hrSuccess)
 			goto exit;
-
-		lpTable->Release();
 	}
 
 	if(this->lpAttachments == NULL) {

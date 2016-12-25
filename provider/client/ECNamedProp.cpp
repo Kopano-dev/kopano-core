@@ -203,7 +203,7 @@ HRESULT ECNamedProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropName
 	HRESULT			hr = hrSuccess;
 	unsigned int	i=0;
 	LPSPropTagArray	lpsPropTagArray = NULL;
-	LPMAPINAMEID*	lppPropNamesUnresolved = NULL;
+	std::unique_ptr<MAPINAMEID *[]> lppPropNamesUnresolved;
 	ULONG			cUnresolved = 0;
 	ULONG*			lpServerIDs = NULL;
 
@@ -239,8 +239,7 @@ HRESULT ECNamedProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropName
 			ResolveCache(lppPropNames[i], &lpsPropTagArray->aulPropTag[i]);
 
 	// Pass 3, resolve names from server (SLOW, but decreases in frequency with store lifetime)
-
-	lppPropNamesUnresolved = new MAPINAMEID * [lpsPropTagArray->cValues]; // over-allocated
+	lppPropNamesUnresolved.reset(new MAPINAMEID *[lpsPropTagArray->cValues]); // over-allocated
 
 	// Get a list of unresolved names
 	for (i = 0; i < cPropNames; ++i)
@@ -251,8 +250,7 @@ HRESULT ECNamedProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropName
 
 	if(cUnresolved) {
 		// Let the server resolve these names 
-		hr = lpTransport->HrGetIDsFromNames(lppPropNamesUnresolved, cUnresolved, ulFlags, &lpServerIDs);
-
+		hr = lpTransport->HrGetIDsFromNames(lppPropNamesUnresolved.get(), cUnresolved, ulFlags, &lpServerIDs);
 		if(hr != hrSuccess)
 			goto exit;
 
@@ -283,8 +281,6 @@ HRESULT ECNamedProp::GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID *lppPropName
 exit:
 	if(lpsPropTagArray)
 		ECFreeBuffer(lpsPropTagArray);
-
-	delete[] lppPropNamesUnresolved;
 	if(lpServerIDs)
 		ECFreeBuffer(lpServerIDs);
 

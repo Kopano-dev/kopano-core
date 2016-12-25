@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
+#include <memory>
 #include <cstring>
 #include <cstdlib>
 #include "rtf.h"
@@ -281,11 +281,10 @@ unsigned int rtf_compress(char **lppDest, unsigned int *lpulDestSize, char *lpSr
 	if(lpDest == NULL)
 		return 1;
 
-	char *lpTmp = new char[ulBufSize + cbPrebuf];
-	memcpy(lpTmp, lpPrebuf, cbPrebuf);
-	memcpy(lpTmp + cbPrebuf, lpSrc, ulBufSize);
-	lpSrc = lpTmp + cbPrebuf;
-
+	std::unique_ptr<char[]> lpTmp(new char[ulBufSize+cbPrebuf]);
+	memcpy(lpTmp.get(), lpPrebuf, cbPrebuf);
+	memcpy(lpTmp.get() + cbPrebuf, lpSrc, ulBufSize);
+	lpSrc = &lpTmp[cbPrebuf];
 	ulOutCursor = sizeof(RTFHeader);
 
 	while(ulCursor <= ulBufSize) {
@@ -345,7 +344,7 @@ unsigned int rtf_compress(char **lppDest, unsigned int *lpulDestSize, char *lpSr
 		}
 		
 		// lpSrc == lpTmp + cbPrebuf
-		char *lpSearchStart = ((ulCursor + cbPrebuf >= 4096) ? &lpTmp[ulCursor + cbPrebuf - 4095] : lpTmp);
+		char *lpSearchStart = ulCursor + cbPrebuf >= 4096 ? &lpTmp[ulCursor + cbPrebuf - 4095] : &lpTmp[0];
 		strmatch(
 			lpSearchStart,
 			&lpSrc[ulCursor] - lpSearchStart,
@@ -420,6 +419,5 @@ unsigned int rtf_compress(char **lppDest, unsigned int *lpulDestSize, char *lpSr
 
 exit:
 	free(lpDest);
-	delete[] lpTmp;
 	return ulRetVal;
 }

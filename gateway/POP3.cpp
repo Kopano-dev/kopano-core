@@ -474,7 +474,6 @@ HRESULT POP3::HrCmdRetr(unsigned int ulMailNr) {
 	object_ptr<IStream> lpStream;
 	ULONG ulObjType;
 	string strMessage;
-	char *szMessage = NULL;
 	char szResponse[POP3_MAX_RESPONSE_LENGTH];
 
 	if (ulMailNr < 1 || ulMailNr > lstMails.size()) {
@@ -497,14 +496,16 @@ HRESULT POP3::HrCmdRetr(unsigned int ulMailNr) {
 	}
 	if (hr != hrSuccess) {
 		// unable to load streamed version, so try full conversion.
+		char *szMessage;
 		hr = IMToINet(lpSession, lpAddrBook, lpMessage, &szMessage, sopt);
 		if (hr != hrSuccess) {
+			delete[] szMessage;
 			lpLogger->Log(EC_LOGLEVEL_ERROR, "Error converting MAPI to MIME: 0x%08x", hr);
 			HrResponse(POP3_RESP_PERMFAIL, "Converting MAPI to MIME error");
 			goto exit;
 		}
-
 		strMessage = DotFilter(szMessage);
+		delete[] szMessage;
 	}
 
 	snprintf(szResponse, POP3_MAX_RESPONSE_LENGTH, "%u octets", (ULONG)strMessage.length());
@@ -514,7 +515,6 @@ HRESULT POP3::HrCmdRetr(unsigned int ulMailNr) {
 	lpChannel->HrWriteLine(".");
 
 exit:
-	delete[] szMessage;
 	return hr;
 }
 
@@ -669,7 +669,6 @@ HRESULT POP3::HrCmdTop(unsigned int ulMailNr, unsigned int ulLines) {
 	object_ptr<IMessage> lpMessage;
 	object_ptr<IStream> lpStream;
 	ULONG ulObjType;
-	char *szMessage = NULL;
 	string strMessage;
 	string::size_type ulPos;
 
@@ -691,14 +690,17 @@ HRESULT POP3::HrCmdTop(unsigned int ulMailNr, unsigned int ulLines) {
 		hr = Util::HrStreamToString(lpStream, strMessage);
 	if (hr != hrSuccess) {
 		// unable to load streamed version, so try full conversion.
+		char *szMessage;
 		hr = IMToINet(lpSession, lpAddrBook, lpMessage, &szMessage, sopt);
 		if (hr != hrSuccess) {
+			delete[] szMessage;
 			lpLogger->Log(EC_LOGLEVEL_ERROR, "Error converting MAPI to MIME: 0x%08x", hr);
 			HrResponse(POP3_RESP_PERMFAIL, "Converting MAPI to MIME error");
 			goto exit;
 		}
 
 		strMessage = szMessage;
+		delete[] szMessage;
 	}
 
 	ulPos = strMessage.find("\r\n\r\n", 0);
@@ -721,7 +723,6 @@ HRESULT POP3::HrCmdTop(unsigned int ulMailNr, unsigned int ulLines) {
 	}
 
 exit:
-	delete[] szMessage;
 	return hr;
 }
 
