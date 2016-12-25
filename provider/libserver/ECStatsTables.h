@@ -39,8 +39,7 @@ protected:
 	ECSystemStatsTable(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale);
 
 public:
-	static ECRESULT Create(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale, ECSystemStatsTable **lppTable);
-
+	static ECRESULT Create(ECSession *, unsigned int flags, const ECLocale &, ECGenericObjectTable **);
 	virtual ECRESULT Load();
 	void load_tcmalloc(void);
 	static ECRESULT QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList* lpRowList, struct propTagArray *lpsPropTagArray, void* lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit);
@@ -78,8 +77,7 @@ protected:
 	ECSessionStatsTable(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale);
 
 public:
-	static ECRESULT Create(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale, ECSessionStatsTable **lppTable);
-
+	static ECRESULT Create(ECSession *, unsigned int flags, const ECLocale &, ECGenericObjectTable **);
 	virtual ECRESULT Load();
 
 	static ECRESULT QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList* lpRowList, struct propTagArray *lpsPropTagArray, void* lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit);
@@ -96,8 +94,7 @@ protected:
 	ECUserStatsTable(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale);
 
 public:
-	static ECRESULT Create(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale, ECUserStatsTable **lppTable);
-
+	static ECRESULT Create(ECSession *, unsigned int flags, const ECLocale &, ECGenericObjectTable **);
 	virtual ECRESULT Load();
 
 	static ECRESULT QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList* lpRowList, struct propTagArray *lpsPropTagArray, void* lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit);
@@ -111,8 +108,7 @@ protected:
 	ECCompanyStatsTable(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale);
 
 public:
-	static ECRESULT Create(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale, ECCompanyStatsTable **lppTable);
-
+	static ECRESULT Create(ECSession *, unsigned int flags, const ECLocale &, ECGenericObjectTable **);
 	virtual ECRESULT Load();
 
 	static ECRESULT QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList* lpRowList, struct propTagArray *lpsPropTagArray, void* lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit);
@@ -125,8 +121,7 @@ protected:
 	ECServerStatsTable(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale);
 
 public:
-	static ECRESULT Create(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale, ECServerStatsTable **lppTable);
-
+	static ECRESULT Create(ECSession *, unsigned int flags, const ECLocale &, ECGenericObjectTable **);
 	virtual ECRESULT Load();
 
 	static ECRESULT QueryRowData(ECGenericObjectTable *lpThis, struct soap *soap, ECSession *lpSession, ECObjectTableList* lpRowList, struct propTagArray *lpsPropTagArray, void* lpObjectData, struct rowSet **lppRowSet, bool bCacheTableData, bool bTableLimit);
