@@ -23,6 +23,7 @@
 
 #include <kopano/CommonUtil.h>
 #include <kopano/memory.hpp>
+#include <kopano/tie.hpp>
 #include "icaluid.h"
 
 #include <libxml/tree.h>
@@ -516,12 +517,12 @@ HRESULT iCal::HrGetIcal(IMAPITable *lpTable, bool blCensorPrivate, std::string *
 	ULONG ulTagPrivate = 0;
 	ULONG ulFlag = 0;
 	bool blCensor = false;	
-	MapiToICal *lpMtIcal = NULL;
+	std::unique_ptr<MapiToICal> lpMtIcal;
 	std::string strical;
 	
 	ulTagPrivate = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_PRIVATE], PT_BOOLEAN);
 	
-	CreateMapiToICal(m_lpAddrBook, "utf-8", &lpMtIcal);
+	CreateMapiToICal(m_lpAddrBook, "utf-8", &unique_tie(lpMtIcal));
 	if (lpMtIcal == NULL) {
 		ec_log_err("Error Creating MapiToIcal object, error code: 0x%08X",hr);
 		hr = E_FAIL;
@@ -585,7 +586,6 @@ HRESULT iCal::HrGetIcal(IMAPITable *lpTable, bool blCensorPrivate, std::string *
 exit:
 	if (lpRows)
 		FreeProws(lpRows);
-	delete lpMtIcal;
 	return hr;
 }
 

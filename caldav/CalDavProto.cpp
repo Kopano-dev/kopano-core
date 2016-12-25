@@ -257,11 +257,11 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 	HRESULT hr = hrSuccess;
 	std::string strConvVal;
 	std::string strReqUrl;
-	IMAPITable *lpTable = NULL;
+	object_ptr<IMAPITable> lpTable;
 	LPSRowSet lpRowSet = NULL;
 	memory_ptr<SPropTagArray> lpPropTagArr;
 	memory_ptr<SPropValue> lpsPropVal;
-	MapiToICal *lpMtIcal = NULL;
+	std::unique_ptr<MapiToICal> lpMtIcal;
 	ULONG cbsize = 0;
 	ULONG ulTagGOID = 0;
 	ULONG ulTagTsRef = 0;
@@ -310,7 +310,7 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 			goto exit;
 	}
 
-	hr = m_lpUsrFld->GetContentsTable(0, &lpTable);
+	hr = m_lpUsrFld->GetContentsTable(0, &~lpTable);
 	if (hr != hrSuccess) {
 		ec_log_err("Error in GetContentsTable, error code: 0x%08X %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
@@ -363,7 +363,7 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 		goto exit;
 
 	// @todo do we really need this converter, since we're only listing the items?
-	CreateMapiToICal(m_lpAddrBook, "utf-8", &lpMtIcal);
+	CreateMapiToICal(m_lpAddrBook, "utf-8", &unique_tie(lpMtIcal));
 	if (!lpMtIcal)
 	{
 		hr = MAPI_E_CALL_FAILED;
@@ -422,8 +422,7 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 			else
 				ulCensorFlag = 0;
 
-			hr = HrMapValtoStruct(m_lpUsrFld, lpRowSet->aRow[ulRowCntr].lpProps, lpRowSet->aRow[ulRowCntr].cValues, lpMtIcal, ulCensorFlag, true, &(lpsWebRCalQry->sProp.lstProps), &sWebResponse);
-
+			hr = HrMapValtoStruct(m_lpUsrFld, lpRowSet->aRow[ulRowCntr].lpProps, lpRowSet->aRow[ulRowCntr].cValues, lpMtIcal.get(), ulCensorFlag, true, &(lpsWebRCalQry->sProp.lstProps), &sWebResponse);
 			++ulItemCount;
 			lpsWebMStatus->lstResp.push_back(sWebResponse);
 			sWebResponse.lstsPropStat.clear();
@@ -435,10 +434,6 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 exit:
 	if (hr == hrSuccess)
 		ec_log_info("Number of items in folder returned: %u", ulItemCount);
-	delete lpMtIcal;
-	if(lpTable)
-		lpTable->Release();
-
 	if(lpRowSet)
 		FreeProws(lpRowSet);
 	return hr;
@@ -1677,7 +1672,7 @@ HRESULT CalDAV::HrHandleFreebusy(ICalToMapi *lpIcalToMapi)
 	HRESULT hr = hrSuccess;	
 	object_ptr<ECFreeBusySupport> lpecFBSupport;
 	object_ptr<IFreeBusySupport> lpFBSupport;
-	MapiToICal *lpMapiToIcal = NULL;
+	std::unique_ptr<MapiToICal> lpMapiToIcal;
 	time_t tStart  = 0;
 	time_t tEnd = 0;
 	std::list<std::string> *lstUsers = NULL;
@@ -1690,8 +1685,7 @@ HRESULT CalDAV::HrHandleFreebusy(ICalToMapi *lpIcalToMapi)
 		ec_log_debug("CalDAV::HrHandleFreebusy GetFreeBusyInfo failed 0x%x %s", hr, GetMAPIErrorMessage(hr));
 		goto exit;
 	}
-
-	CreateMapiToICal(m_lpAddrBook, "utf-8", &lpMapiToIcal);
+	CreateMapiToICal(m_lpAddrBook, "utf-8", &unique_tie(lpMapiToIcal));
 	if (!lpMapiToIcal) {
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
@@ -1722,8 +1716,7 @@ HRESULT CalDAV::HrHandleFreebusy(ICalToMapi *lpIcalToMapi)
 	sWebFbInfo.tStart = tStart;
 	sWebFbInfo.tEnd = tEnd;
 	sWebFbInfo.strUID = strUID;
-
-	hr = HrGetFreebusy(lpMapiToIcal, lpFBSupport, m_lpAddrBook, lstUsers, &sWebFbInfo);
+	hr = HrGetFreebusy(lpMapiToIcal.get(), lpFBSupport, m_lpAddrBook, lstUsers, &sWebFbInfo);
 	if (hr != hrSuccess) {
 		// @todo, print which users?
 		ec_log_err("Unable to get freebusy information for %zu users: 0x%08X", lstUsers->size(), hr);
@@ -1737,9 +1730,6 @@ HRESULT CalDAV::HrHandleFreebusy(ICalToMapi *lpIcalToMapi)
 	}
 
 exit:
-	if (lpMapiToIcal)
-		delete lpMapiToIcal;
-
 	return hr;
 }
 
