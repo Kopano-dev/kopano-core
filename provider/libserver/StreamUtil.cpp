@@ -16,7 +16,7 @@
  */
 
 #include <kopano/platform.h>
-
+#include <kopano/memory.hpp>
 #include "StreamUtil.h"
 #include "StorageUtil.h"
 #include "cmdutil.hpp"
@@ -66,6 +66,8 @@
 	  <id>:32bit
 	  <message>
 */
+
+using namespace KCHL;
 
 static inline bool operator<(const GUID &lhs, const GUID &rhs)
 {
@@ -770,20 +772,18 @@ static ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 	DB_LENGTHS		lpDBLen = NULL;
 	DB_RESULT		lpDBResult = NULL;
 	std::string		strQuery;
-	
-	ECMemStream *	lpStream = NULL;
-	IStream *		lpIStream = NULL;
+	object_ptr<ECMemStream> lpStream;
+	object_ptr<IStream> lpIStream;
 	ECStreamSerializer *	lpTempSink = NULL;
 	bool			bUseSQLMulti = parseBool(g_lpSessionManager->GetConfig()->GetSetting("enable_sql_procedures"));
 
 	std::list<struct propVal> sPropValList;
 
 	assert(lpStreamCaps != NULL);
-	er = ECMemStream::Create(NULL, 0, STGM_SHARE_EXCLUSIVE | STGM_WRITE, NULL, NULL, NULL, &lpStream);
+	er = ECMemStream::Create(nullptr, 0, STGM_SHARE_EXCLUSIVE | STGM_WRITE, nullptr, nullptr, nullptr, &~lpStream);
 	if (er != erSuccess)
 		goto exit;
-		
-	er = lpStream->QueryInterface(IID_IStream, (void **)&lpIStream);
+	er = lpStream->QueryInterface(IID_IStream, &~lpIStream);
 	if (er != erSuccess)
 		goto exit;
 	
@@ -860,12 +860,6 @@ static ECRESULT SerializeProps(ECSession *lpecSession, ECDatabase *lpDatabase,
 		goto exit;
 
 exit:
-	if (lpStream)
-		lpStream->Release();
-		
-	if (lpIStream)
-		lpIStream->Release();
-
 	delete lpTempSink;
 	if (lpDatabase != nullptr && lpDBResult != nullptr)
 		lpDatabase->FreeResult(lpDBResult);

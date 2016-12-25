@@ -277,7 +277,6 @@ EXTRA_libkcarchiver_la_DEPENDENCIES = ${default_sym}
 #
 libkcarchivercore_la_SOURCES = \
 	ECtools/archiver/Archiver.cpp ECtools/archiver/Archiver.h \
-	ECtools/archiver/AutoMAPI.h \
 	ECtools/archiver/ArchiverImpl.cpp ECtools/archiver/ArchiverImpl.h \
 	ECtools/archiver/operations/instanceidmapper.cpp \
 	ECtools/archiver/operations/instanceidmapper.h \

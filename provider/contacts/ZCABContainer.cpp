@@ -41,6 +41,7 @@
 #include <iostream>
 #include <kopano/stringutil.h>
 using namespace std;
+using namespace KCHL;
 
 ZCABContainer::ZCABContainer(std::vector<zcabFolderEntry> *lpFolders,
     IMAPIFolder *lpContacts, LPMAPISUP lpMAPISup, void *lpProvider,
@@ -112,14 +113,14 @@ HRESULT	ZCABContainer::Create(std::vector<zcabFolderEntry> *lpFolders, IMAPIFold
 HRESULT	ZCABContainer::Create(IMessage *lpContact, ULONG cbEntryID, LPENTRYID lpEntryID, LPMAPISUP lpMAPISup, ZCABContainer **lppABContainer)
 {
 	HRESULT hr = hrSuccess;
-	ZCMAPIProp* lpDistList = NULL;
+	object_ptr<ZCMAPIProp> lpDistList;
 	auto lpABContainer = new(std::nothrow) ZCABContainer(NULL, NULL, lpMAPISup, NULL, "IABContainer");
 	if (lpABContainer == nullptr) {
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
 	}
 
-	hr = ZCMAPIProp::Create(lpContact, cbEntryID, lpEntryID, &lpDistList);
+	hr = ZCMAPIProp::Create(lpContact, cbEntryID, lpEntryID, &~lpDistList);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -132,10 +133,6 @@ HRESULT	ZCABContainer::Create(IMessage *lpContact, ULONG cbEntryID, LPENTRYID lp
 exit:
 	if (hr != hrSuccess)
 		delete lpABContainer;
-
-	if (lpDistList)
-		lpDistList->Release();
-
 	return hr;
 }
 
@@ -166,8 +163,8 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 	HRESULT hr = hrSuccess;
 	MAPITablePtr ptrContents;
 	SRowSetPtr	ptrRows;
-	ECMemTable*		lpTable = NULL;
-	ECMemTableView*	lpTableView = NULL;
+	object_ptr<ECMemTable> lpTable;
+	object_ptr<ECMemTableView> lpTableView;
 	ULONG i, j = 0;
 	ECOrRestriction resOr;
 	ECAndRestriction resAnd;
@@ -258,8 +255,7 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 	hr = Util::HrCopyUnicodePropTagArray(ulFlags, outputCols, &~ptrOutputCols);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = ECMemTable::Create(ptrOutputCols, PR_ROWID, &lpTable);
+	hr = ECMemTable::Create(ptrOutputCols, PR_ROWID, &~lpTable);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -473,20 +469,13 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 		
 done:
 	AddChild(lpTable);
-
-	hr = lpTable->HrGetView(createLocaleFromName(NULL), ulFlags, &lpTableView);
+	hr = lpTable->HrGetView(createLocaleFromName(nullptr), ulFlags, &~lpTableView);
 	if(hr != hrSuccess)
 		goto exit;
 	
 	hr = lpTableView->QueryInterface(IID_IMAPITable, (void **)lppTable);
 
 exit:
-	if(lpTable)
-		lpTable->Release();
-
-	if(lpTableView)
-		lpTableView->Release();
-
 	return hr;
 #undef TCOLS
 }
@@ -499,8 +488,8 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 											 PR_INSTANCE_KEY, PR_OBJECT_TYPE, PR_RECORD_KEY, PR_SEARCH_KEY, PR_SEND_INTERNET_ENCODING,
 											 PR_SEND_RICH_INFO, PR_TRANSMITABLE_DISPLAY_NAME }};
 	SPropTagArrayPtr ptrCols;
-	ECMemTable* lpTable = NULL;
-	ECMemTableView*	lpTableView = NULL;
+	object_ptr<ECMemTable> lpTable;
+	object_ptr<ECMemTableView> lpTableView;
 	SPropValuePtr ptrEntries;
 	MAPIPropPtr ptrUser;
 	ULONG ulObjType;
@@ -512,8 +501,7 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 	hr = Util::HrCopyUnicodePropTagArray(ulFlags, sptaCols, &~ptrCols);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = ECMemTable::Create(ptrCols, PR_ROWID, &lpTable);
+	hr = ECMemTable::Create(ptrCols, PR_ROWID, &~lpTable);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -602,20 +590,13 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 	hr = hrSuccess;
 
 	AddChild(lpTable);
-
-	hr = lpTable->HrGetView(createLocaleFromName(NULL), ulFlags, &lpTableView);
+	hr = lpTable->HrGetView(createLocaleFromName(nullptr), ulFlags, &~lpTableView);
 	if(hr != hrSuccess)
 		goto exit;
 	
 	hr = lpTableView->QueryInterface(IID_IMAPITable, (void **)lppTable);
 
 exit:
-	if(lpTable)
-		lpTable->Release();
-
-	if(lpTableView)
-		lpTableView->Release();
-
 	return hr;
 }
 
@@ -653,8 +634,8 @@ HRESULT ZCABContainer::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 {
 	HRESULT			hr = hrSuccess;
-	ECMemTable*		lpTable = NULL;
-	ECMemTableView*	lpTableView = NULL;
+	object_ptr<ECMemTable> lpTable;
+	object_ptr<ECMemTableView> lpTableView;
 #define TCOLS 9
 	SizedSPropTagArray(TCOLS, sptaCols) = {TCOLS, {PR_ENTRYID, PR_STORE_ENTRYID, PR_DISPLAY_NAME_W, PR_OBJECT_TYPE, PR_CONTAINER_FLAGS, PR_DISPLAY_TYPE, PR_AB_PROVIDER_ID, PR_DEPTH, PR_INSTANCE_KEY}};
 	enum {XENTRYID = 0, STORE_ENTRYID, DISPLAY_NAME, OBJECT_TYPE, CONTAINER_FLAGS, DISPLAY_TYPE, AB_PROVIDER_ID, DEPTH, INSTANCE_KEY, ROWID};
@@ -664,7 +645,7 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 
 	if ((ulFlags & MAPI_UNICODE) == 0)
 		sptaCols.aulPropTag[DISPLAY_NAME] = PR_DISPLAY_NAME_A;
-	hr = ECMemTable::Create(sptaCols, PR_ROWID, &lpTable);
+	hr = ECMemTable::Create(sptaCols, PR_ROWID, &~lpTable);
 	if(hr != hrSuccess)
 		goto exit;
 
@@ -821,20 +802,13 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	}
 
 	AddChild(lpTable);
-
-	hr = lpTable->HrGetView(createLocaleFromName(NULL), ulFlags, &lpTableView);
+	hr = lpTable->HrGetView(createLocaleFromName(nullptr), ulFlags, &~lpTableView);
 	if(hr != hrSuccess)
 		goto exit;
 		
 	hr = lpTableView->QueryInterface(IID_IMAPITable, (void **)lppTable);
 
 exit:
-	if(lpTable)
-		lpTable->Release();
-
-	if(lpTableView)
-		lpTableView->Release();
-
 	return hr;
 #undef TCOLS
 }
@@ -860,9 +834,9 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lp
 	LPENTRYID lpFolder = NULL;
 	ULONG ulObjType = 0;
 	MAPIFolderPtr ptrContactFolder;
-	ZCABContainer *lpZCABContacts = NULL;
+	object_ptr<ZCABContainer> lpZCABContacts;
 	MessagePtr ptrContact;
-	ZCMAPIProp *lpZCMAPIProp = NULL;
+	object_ptr<ZCMAPIProp> lpZCMAPIProp;
 
 	if (cbEntryID < cbNewCABEntryID || memcmp((LPBYTE)&lpCABEntryID->muid, &MUIDZCSAB, sizeof(MAPIUID)) != 0) {
 		hr = MAPI_E_UNKNOWN_ENTRYID;
@@ -914,8 +888,7 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lp
 		}
 		if (hr != hrSuccess)
 			goto exit;
-
-		hr = ZCABContainer::Create(NULL, ptrContactFolder, m_lpMAPISup, m_lpProvider, &lpZCABContacts);
+		hr = ZCABContainer::Create(nullptr, ptrContactFolder, m_lpMAPISup, m_lpProvider, &~lpZCABContacts);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -930,8 +903,7 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lp
 		hr = m_lpMAPISup->OpenEntry(cbFolder, lpFolder, nullptr, 0, &ulObjType, &~ptrContact);
 		if (hr != hrSuccess)
 			goto exit;
-		
-		hr = ZCABContainer::Create(ptrContact, cbEntryID, lpEntryID, m_lpMAPISup, &lpZCABContacts);
+		hr = ZCABContainer::Create(ptrContact, cbEntryID, lpEntryID, m_lpMAPISup, &~lpZCABContacts);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -946,8 +918,7 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lp
 		hr = m_lpMAPISup->OpenEntry(cbFolder, lpFolder, nullptr, 0, &ulObjType, &~ptrContact);
 		if (hr != hrSuccess)
 			goto exit;
-
-		hr = ZCMAPIProp::Create(ptrContact, cbEntryID, lpEntryID, &lpZCMAPIProp);
+		hr = ZCMAPIProp::Create(ptrContact, cbEntryID, lpEntryID, &~lpZCMAPIProp);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -965,12 +936,6 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lp
 	*lpulObjType = lpCABEntryID->ulObjType;
 
 exit:
-	if (lpZCMAPIProp)
-		lpZCMAPIProp->Release();
-
-	if (lpZCABContacts)
-		lpZCABContacts->Release();
-
 	return hr;
 }
 

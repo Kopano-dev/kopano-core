@@ -36,7 +36,10 @@ ECSearchObjectTable::ECSearchObjectTable(ECSession *lpSession, unsigned int ulSt
 	m_ulStoreId = ulStoreId;
 }
 
-ECRESULT ECSearchObjectTable::Create(ECSession *lpSession, unsigned int ulStoreId, GUID *lpGuid, unsigned int ulFolderId, unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale, ECSearchObjectTable **lppTable)
+ECRESULT ECSearchObjectTable::Create(ECSession *lpSession,
+    unsigned int ulStoreId, GUID *lpGuid, unsigned int ulFolderId,
+    unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale,
+    ECStoreObjectTable **lppTable)
 {
 	ECRESULT er = erSuccess;
 

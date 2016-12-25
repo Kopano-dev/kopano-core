@@ -21,7 +21,7 @@
 #include <map>
 #include <climits>
 #include <getopt.h>
-
+#include <kopano/automapi.hpp>
 #include <kopano/CommonUtil.h>
 #include <kopano/mapiext.h>
 #include <kopano/mapiguidext.h>
@@ -265,14 +265,14 @@ RunFolderValidation(const std::set<std::string> &setFolderIgnore,
 	lpItemProperty = PpropFindProp(lpRow->lpProps, lpRow->cValues, PR_ENTRYID);
 	if (!lpItemProperty) {
 		cout << "Row does not contain an EntryID." << endl;
-		goto exit;
+		return hr;
 	}
 	hr = lpRootFolder->OpenEntry(lpItemProperty->Value.bin.cb,
 	     reinterpret_cast<ENTRYID *>(lpItemProperty->Value.bin.lpb),
 	     &IID_IMAPIFolder, 0, &ulObjectType, &~lpFolder);
 	if (hr != hrSuccess) {
 		cout << "Failed to open EntryID." << endl;
-		goto exit;
+		return hr;
 	}
 
 	/*
@@ -285,19 +285,19 @@ RunFolderValidation(const std::set<std::string> &setFolderIgnore,
 			cout << " \"" << strName << "\"" << endl;
 		} else
 			cout << "Failed to detect folder details." << endl;
-		goto exit;
+		return hr;
 	}
 
 	if (setFolderIgnore.find(string((const char*)lpItemProperty->Value.bin.lpb, lpItemProperty->Value.bin.cb)) != setFolderIgnore.end()) {
 		cout << "Ignoring folder: ";
 		cout << "\"" << strName << "\" (" << strClass << ")" << endl;
-		goto exit;
+		return hrSuccess;
 	}
 
 	if (ulFolderType != FOLDER_GENERIC) {
 		cout << "Ignoring search folder: ";
 		cout << "\"" << strName << "\" (" << strClass << ")" << endl;
-		goto exit;
+		return hrSuccess;
 	}
 
 	for (const auto &i : checkmap)
@@ -312,9 +312,7 @@ RunFolderValidation(const std::set<std::string> &setFolderIgnore,
 		cout << "Ignoring folder: ";
 		cout << "\"" << strName << "\" (" << strClass << ")" << endl;
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
@@ -322,16 +320,16 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
     CHECKMAP checkmap)
 {
 	HRESULT hr = hrSuccess;
-	LPMAPISESSION lpSession = NULL;
-	LPMDB lpStore = NULL;
-	LPMDB lpAltStore = NULL;
+	AutoMAPI mapiinit;
+	object_ptr<IMAPISession> lpSession;
+	object_ptr<IMsgStore> lpStore, lpAltStore;
 	LPMDB lpReadStore = NULL;
-	LPMAPIFOLDER lpRootFolder = NULL;
-	LPMAPITABLE lpHierarchyTable = NULL;
+	object_ptr<IMAPIFolder> lpRootFolder;
+	object_ptr<IMAPITable> lpHierarchyTable;
 	LPSRowSet lpRows = NULL;
 	ULONG ulObjectType;
 	ULONG ulCount;
-    LPEXCHANGEMANAGESTORE lpIEMS = NULL;
+	object_ptr<IExchangeManageStore> lpIEMS;
     // user
     ULONG			cbUserStoreEntryID = 0;
 	memory_ptr<ENTRYID> lpUserStoreEntryID, lpEntryIDSrc;
@@ -342,7 +340,7 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 	memory_ptr<SPropValue> lpAddRenProp;
 	ULONG cbEntryIDSrc = 0;
 
-	hr = MAPIInitialize(NULL);
+	hr = mapiinit.Initialize();
 	if (hr != hrSuccess) {
 		cout << "Unable to initialize session" << endl;
 		goto exit;
@@ -356,7 +354,7 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 	if (strAltUser)
 		strwAltUsername = convert_to<wstring>(strAltUser);
 
-	hr = HrOpenECSession(&lpSession, "kopano-fsck", PROJECT_SVN_REV_STR,
+	hr = HrOpenECSession(&~lpSession, "kopano-fsck", PROJECT_SVN_REV_STR,
 	     strwUsername.c_str(), strwPassword.c_str(), strHost, 0, NULL, NULL);
 	if(hr != hrSuccess) {
 		cout << "Wrong username or password." << endl;
@@ -364,13 +362,13 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 	}
 	
 	if (bPublic) {
-		hr = HrOpenECPublicStore(lpSession, &lpStore);
+		hr = HrOpenECPublicStore(lpSession, &~lpStore);
 		if (hr != hrSuccess) {
 			cout << "Failed to open public store." << endl;
 			goto exit;
 		}
 	} else {
-		hr = HrOpenDefaultStore(lpSession, &lpStore);
+		hr = HrOpenDefaultStore(lpSession, &~lpStore);
 		if (hr != hrSuccess) {
 			cout << "Failed to open default store." << endl;
 			goto exit;
@@ -378,7 +376,7 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 	}
 
 	if (!strwAltUsername.empty()) {
-        hr = lpStore->QueryInterface(IID_IExchangeManageStore, (void **)&lpIEMS);
+		hr = lpStore->QueryInterface(IID_IExchangeManageStore, &~lpIEMS);
         if (hr != hrSuccess) {
             cout << "Cannot open ExchangeManageStore object" << endl;
             goto exit;
@@ -392,8 +390,7 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
             cout << "Cannot get user store id for user" << endl;
             goto exit;
         }
-
-        hr = lpSession->OpenMsgStore(0, cbUserStoreEntryID, lpUserStoreEntryID, NULL, MDB_WRITE | MDB_NO_DIALOG | MDB_NO_MAIL | MDB_TEMPORARY, &lpAltStore);
+        hr = lpSession->OpenMsgStore(0, cbUserStoreEntryID, lpUserStoreEntryID, nullptr, MDB_WRITE | MDB_NO_DIALOG | MDB_NO_MAIL | MDB_TEMPORARY, &~lpAltStore);
         if (hr != hrSuccess) {
             cout << "Cannot open user store of user" << endl;
             goto exit;
@@ -404,7 +401,7 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 	    lpReadStore = lpStore;
     }
 
-	hr = lpReadStore->OpenEntry(0, NULL, &IID_IMAPIFolder, 0, &ulObjectType, (IUnknown **)&lpRootFolder);
+	hr = lpReadStore->OpenEntry(0, nullptr, &IID_IMAPIFolder, 0, &ulObjectType, &~lpRootFolder);
 	if(hr != hrSuccess) {
 		cout << "Failed to open root folder." << endl;
 		goto exit;
@@ -414,7 +411,7 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 	    Util::ExtractSuggestedContactsEntryID(lpAddRenProp, &cbEntryIDSrc, &~lpEntryIDSrc) == hrSuccess)
 		setFolderIgnore.insert(string(reinterpret_cast<const char *>(lpEntryIDSrc.get()), cbEntryIDSrc));
 
-	hr = lpRootFolder->GetHierarchyTable(CONVENIENT_DEPTH, &lpHierarchyTable);
+	hr = lpRootFolder->GetHierarchyTable(CONVENIENT_DEPTH, &~lpHierarchyTable);
 	if (hr != hrSuccess) {
 		cout << "Failed to open hierarchy." << endl;
 		goto exit;
@@ -450,27 +447,10 @@ static HRESULT RunStoreValidation(const char *strHost, const char *strUser,
 	}
 
 exit:
-	if (lpIEMS)
-		lpIEMS->Release();
-        
 	if (lpRows) {
 		FreeProws(lpRows);
 		lpRows = NULL;
 	}
-	if(lpHierarchyTable)
-		lpHierarchyTable->Release();
-
-	if (lpRootFolder)
-		lpRootFolder->Release();
-	if (lpAltStore != NULL)
-		lpAltStore->Release();
-	if (lpStore)
-		lpStore->Release();
-
-	if (lpSession)
-		lpSession->Release();
-	MAPIUninitialize();
-
 	return hr;
 }
 

@@ -73,7 +73,10 @@ struct FOLDERINFO {
     }
 };
 
-ECRESULT ECConvenientDepthObjectTable::Create(ECSession *lpSession, unsigned int ulStoreId, GUID *lpGuid, unsigned int ulFolderId, unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale, ECConvenientDepthObjectTable **lppTable)
+ECRESULT ECConvenientDepthObjectTable::Create(ECSession *lpSession,
+    unsigned int ulStoreId, GUID *lpGuid, unsigned int ulFolderId,
+    unsigned int ulObjType, unsigned int ulFlags, const ECLocale &locale,
+    ECStoreObjectTable **lppTable)
 {
 	ECRESULT er = erSuccess;
 

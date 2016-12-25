@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <memory>
 #include <kopano/memory.hpp>
 
 // Mapi includes
@@ -100,10 +101,9 @@ void* ECQuotaMonitor::Create(void* lpVoid)
 {
 	HRESULT				hr = hrSuccess;
 	ECTHREADMONITOR *lpThreadMonitor = reinterpret_cast<ECTHREADMONITOR *>(lpVoid);
-	ECQuotaMonitor*		lpecQuotaMonitor = NULL;
-
-	LPMAPISESSION		lpMAPIAdminSession = NULL;
-	LPMDB				lpMDBAdmin = NULL;
+	std::unique_ptr<ECQuotaMonitor> lpecQuotaMonitor;
+	object_ptr<IMAPISession> lpMAPIAdminSession;
+	object_ptr<IMsgStore> lpMDBAdmin;
 	time_t				tmStart = 0;
 	time_t				tmEnd = 0;
 
@@ -112,30 +112,25 @@ void* ECQuotaMonitor::Create(void* lpVoid)
 	lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_INFO, "Quota monitor starting");
 
 	//Open admin session
-	hr = HrOpenECAdminSession(&lpMAPIAdminSession, "kopano-monitor:create",
+	hr = HrOpenECAdminSession(&~lpMAPIAdminSession, "kopano-monitor:create",
 	     PROJECT_SVN_REV_STR, lpPath, 0,
 	     lpThreadMonitor->lpConfig->GetSetting("sslkey_file", "", NULL),
 	     lpThreadMonitor->lpConfig->GetSetting("sslkey_pass", "", NULL));
 	if (hr != hrSuccess) {
 		lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open an admin session. Error 0x%X", hr);
-		goto exit;
+		return NULL;
 	}
 
 	lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_INFO, "Connection to storage server succeeded");
 
 	// Open admin store
-	hr = HrOpenDefaultStore(lpMAPIAdminSession, &lpMDBAdmin);
+	hr = HrOpenDefaultStore(lpMAPIAdminSession, &~lpMDBAdmin);
 	if (hr != hrSuccess) {
 		lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open default store for system account");
-		goto exit;
+		return NULL;
 	}
 
-	lpecQuotaMonitor = new ECQuotaMonitor(lpThreadMonitor, lpMAPIAdminSession, lpMDBAdmin);
-
-	// Release session and store (Reference on ECQuotaMonitor)
-	if(lpMDBAdmin){ lpMDBAdmin->Release(); lpMDBAdmin = NULL;}
-	lpMAPIAdminSession->Release();
-	lpMAPIAdminSession = NULL;
+	lpecQuotaMonitor.reset(new ECQuotaMonitor(lpThreadMonitor, lpMAPIAdminSession, lpMDBAdmin));
 
 	// Check the quota of all stores
 	tmStart = GetProcessTime();
@@ -146,15 +141,6 @@ void* ECQuotaMonitor::Create(void* lpVoid)
 		lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Quota monitor failed");
 	else
 		lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_INFO, "Quota monitor done in %lu seconds. Processed: %u, Failed: %u", tmEnd - tmStart, lpecQuotaMonitor->m_ulProcessed, lpecQuotaMonitor->m_ulFailed);
-		
-exit:
-	delete lpecQuotaMonitor;
-	if(lpMDBAdmin)
-		lpMDBAdmin->Release();
-
-	if(lpMAPIAdminSession)
-		lpMAPIAdminSession->Release();
-
 	return NULL;
 }
 
@@ -188,12 +174,12 @@ HRESULT ECQuotaMonitor::CheckQuota()
 	hr = HrGetOneProp(m_lpMDBAdmin, PR_EC_OBJECT, &~lpsObject);
 	if(hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get internal object, error code: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 	hr = reinterpret_cast<IECUnknown *>(lpsObject->Value.lpszA)->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
 	if(hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get service admin, error code: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 
 	/* Get companylist */
@@ -204,14 +190,14 @@ HRESULT ECQuotaMonitor::CheckQuota()
 		hr = hrSuccess;
 	} else if (hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get companylist, error code 0x%08X", hr);
-		goto exit;
+		return hr;
 	} else
 		lpsCompanyList = lpsCompanyListAlloc;
 
 	hr = m_lpMDBAdmin->QueryInterface(IID_IExchangeManageStore, &~lpIEMS);
 	if (hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get admin interface, error code 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 
 	for (ULONG i = 0; i < cCompanies; ++i) {
@@ -224,20 +210,17 @@ HRESULT ECQuotaMonitor::CheckQuota()
 			hr = lpServiceAdmin->GetQuota(lpsCompanyList[i].sCompanyId.cb, (LPENTRYID)lpsCompanyList[i].sCompanyId.lpb, false, &~lpsQuota);
 			if (hr != hrSuccess) {
 				m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get quota information for company %s, error code: 0x%08X", (LPSTR)lpsCompanyList[i].lpszCompanyname, hr);
-				hr = hrSuccess;
 				++m_ulFailed;
 				goto check_stores;
 			}
 			hr = OpenUserStore(lpsCompanyList[i].lpszCompanyname, CONTAINER_COMPANY, &~lpMsgStore);
 			if (hr != hrSuccess) {
-				hr = hrSuccess;
 				++m_ulFailed;
 				goto check_stores;
 			}
 			hr = Util::HrGetQuotaStatus(lpMsgStore, lpsQuota, &~lpsQuotaStatus);
 			if (hr != hrSuccess) {
 				m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get quotastatus for company %s, error code: 0x%08X", (LPSTR)lpsCompanyList[i].lpszCompanyname, hr);
-				hr = hrSuccess;
 				++m_ulFailed;
 				goto check_stores;
 			}
@@ -252,9 +235,7 @@ check_stores:
 		/* Whatever the status of the company quota, we should also check the quota of the users */
 		CheckCompanyQuota(&lpsCompanyList[i]);
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** Uses the ECServiceAdmin to get a list of all users within a
@@ -268,14 +249,11 @@ HRESULT ECQuotaMonitor::CheckCompanyQuota(ECCOMPANY *lpecCompany)
 {
 	HRESULT				hr = hrSuccess;
 	/* Service object */
-	IECServiceAdmin		*lpServiceAdmin = NULL;
+	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	memory_ptr<SPropValue> lpsObject;
 	/* Userlist */
 	memory_ptr<ECUSER> lpsUserList;
 	ULONG				cUsers = 0;
-	/* 2nd Server connection */
-	LPMAPISESSION		lpSession = NULL;
-	LPMDB				lpAdminStore = NULL;
 
 	set<string> setServers;
 	const char *lpszServersConfig;
@@ -289,20 +267,20 @@ HRESULT ECQuotaMonitor::CheckCompanyQuota(ECCOMPANY *lpecCompany)
 	hr = HrGetOneProp(m_lpMDBAdmin, PR_EC_OBJECT, &~lpsObject);
 	if(hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get internal object, error code: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 
-	hr = reinterpret_cast<IECUnknown *>(lpsObject->Value.lpszA)->QueryInterface(IID_IECServiceAdmin, reinterpret_cast<void **>(&lpServiceAdmin));
+	hr = reinterpret_cast<IECUnknown *>(lpsObject->Value.lpszA)->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
 	if(hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get service admin, error code: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 
 	/* Get userlist */
 	hr = lpServiceAdmin->GetUserList(lpecCompany->sCompanyId.cb, (LPENTRYID)lpecCompany->sCompanyId.lpb, 0, &cUsers, &~lpsUserList);
 	if (hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get userlist for company %s, error code 0x%08X", (LPSTR)lpecCompany->lpszCompanyname, hr);
-		goto exit;
+		return hr;
 	}
 
 	for (ULONG i = 0; i < cUsers; ++i)
@@ -315,7 +293,7 @@ HRESULT ECQuotaMonitor::CheckCompanyQuota(ECCOMPANY *lpecCompany)
 		hr = CheckServerQuota(cUsers, lpsUserList, lpecCompany, m_lpMDBAdmin);
 		if (hr != hrSuccess) {
 			m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to check server quota, error code 0x%08X", hr);
-			goto exit;
+			return hr;
 		}
 
 	} else {
@@ -334,33 +312,36 @@ HRESULT ECQuotaMonitor::CheckCompanyQuota(ECCOMPANY *lpecCompany)
 			if (hr != hrSuccess) {
 				m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to resolve servername %s, error code 0x%08X", server.c_str(), hr);
 				++m_ulFailed;
-				goto next;
+				continue;
 			}
 
 			m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_INFO, "Connecting to server %s using url %s", server.c_str(), lpszConnection.get());
 
 			// call server function with new lpMDBAdmin / lpServiceAdmin
+			/* 2nd Server connection */
+			object_ptr<IMAPISession> lpSession;
+			object_ptr<IMsgStore> lpAdminStore;
+
 			if (bIsPeer) {
 				// query interface
-				hr = m_lpMDBAdmin->QueryInterface(IID_IMsgStore, (void**)&lpAdminStore);
+				hr = m_lpMDBAdmin->QueryInterface(IID_IMsgStore, &~lpAdminStore);
 				if (hr != hrSuccess) {
 					m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get service interface again, error code 0x%08X", hr);
 					++m_ulFailed;
-					goto next;
+					continue;
 				}
 			} else {				
-				hr = HrOpenECAdminSession(&lpSession, "kopano-monitor:check-company", PROJECT_SVN_REV_STR, lpszConnection, 0, m_lpThreadMonitor->lpConfig->GetSetting("sslkey_file", "", NULL), m_lpThreadMonitor->lpConfig->GetSetting("sslkey_pass", "", NULL));
+				hr = HrOpenECAdminSession(&~lpSession, "kopano-monitor:check-company", PROJECT_SVN_REV_STR, lpszConnection, 0, m_lpThreadMonitor->lpConfig->GetSetting("sslkey_file", "", nullptr), m_lpThreadMonitor->lpConfig->GetSetting("sslkey_pass", "", nullptr));
 				if (hr != hrSuccess) {
 					m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to connect to server %s, error code 0x%08X", lpszConnection.get(), hr);
 					++m_ulFailed;
-					goto next;
+					continue;
 				}
-
-				hr = HrOpenDefaultStore(lpSession, &lpAdminStore);
+				hr = HrOpenDefaultStore(lpSession, &~lpAdminStore);
 				if (hr != hrSuccess) {
 					m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open admin store on server %s, error code 0x%08X", lpszConnection.get(), hr);
 					++m_ulFailed;
-					goto next;
+					continue;
 				}
 			}
 
@@ -369,22 +350,9 @@ HRESULT ECQuotaMonitor::CheckCompanyQuota(ECCOMPANY *lpecCompany)
 				m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to check quota on server %s, error code 0x%08X", lpszConnection.get(), hr);
 				++m_ulFailed;
 			}
-
-next:
-			if (lpSession)
-				lpSession->Release();
-			lpSession = NULL;
-
-			if (lpAdminStore)
-				lpAdminStore->Release();
-			lpAdminStore = NULL;
 		}
 	}
-
-exit:
-	if(lpServiceAdmin)
-		lpServiceAdmin->Release();
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -403,7 +371,7 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
 	HRESULT hr = hrSuccess;
 	memory_ptr<SRestriction> lpsRestriction;
 	SPropValue sRestrictProp;
-	LPMAPITABLE lpTable = NULL;
+	object_ptr<IMAPITable> lpTable;
 	LPSRowSet lpRowSet = NULL;
 	ECQUOTASTATUS sQuotaStatus;
 	ULONG i, u;
@@ -417,7 +385,7 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
 		}
 	};
 
-	hr = lpAdminStore->OpenProperty(PR_EC_STATSTABLE_USERS, &IID_IMAPITable, 0, 0, (LPUNKNOWN*)&lpTable);
+	hr = lpAdminStore->OpenProperty(PR_EC_STATSTABLE_USERS, &IID_IMAPITable, 0, 0, &~lpTable);
 	if (hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open stats table for quota sizes, error 0x%08X", hr);
 		goto exit;
@@ -519,9 +487,6 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
 exit:
 	if (lpRowSet)
 		FreeProws(lpRowSet);
-	if (lpTable)
-		lpTable->Release();
-
 	return hr;
 }
 
@@ -995,67 +960,55 @@ exit:
 HRESULT ECQuotaMonitor::SendQuotaWarningMail(IMsgStore* lpMDB, ULONG cPropSize, LPSPropValue lpPropArray, LPADRLIST lpAddrList)
 {
 	HRESULT hr = hrSuccess;
-	IMessage *lpMessage = NULL;
+	object_ptr<IMessage> lpMessage;
 	ULONG cbEntryID = 0;
 	memory_ptr<ENTRYID> lpEntryID;
-	IMAPIFolder *lpInbox = NULL;
+	object_ptr<IMAPIFolder> lpInbox;
 	ULONG ulObjType;
 
 	/* Get the entry id of the inbox */
 	hr = lpMDB->GetReceiveFolder((LPTSTR)"IPM", 0, &cbEntryID, &~lpEntryID, NULL);
 	if (hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to resolve incoming folder, error code: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 
 	/* Open the inbox */
-	hr = lpMDB->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, reinterpret_cast<LPUNKNOWN *>(&lpInbox));
+	hr = lpMDB->OpenEntry(cbEntryID, lpEntryID, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpInbox);
 	if (hr != hrSuccess || ulObjType != MAPI_FOLDER) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to open inbox folder, error code: 0x%08X", hr);
 		if(ulObjType != MAPI_FOLDER)
-			hr = MAPI_E_NOT_FOUND;
-		goto exit;
+			return MAPI_E_NOT_FOUND;
+		return hr;
 	}
 
 	/* Create a new message in the correct folder */
-	hr = lpInbox->CreateMessage(NULL, 0, &lpMessage);
+	hr = lpInbox->CreateMessage(nullptr, 0, &~lpMessage);
 	if (hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to create new message, error code: %08X", hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = lpMessage->SetProps(cPropSize, lpPropArray, NULL);
 	if(hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to set properties, error code: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = lpMessage->ModifyRecipients(MODRECIP_ADD, lpAddrList);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	/* Save Message */
 	hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = HrNewMailNotification(lpMDB, lpMessage);
 	if (hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to send 'New Mail' notification, error code: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
-
-	hr = lpMDB->SaveChanges(KEEP_OPEN_READWRITE);
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	if (lpInbox)
-		lpInbox->Release();
-	if(lpMessage)
-		lpMessage->Release();
-
-	return hr;
+	return lpMDB->SaveChanges(KEEP_OPEN_READWRITE);
 }
 
 /**
@@ -1217,7 +1170,7 @@ HRESULT ECQuotaMonitor::Notify(ECUSER *lpecUser, ECCOMPANY *lpecCompany,
     ECQUOTASTATUS *lpecQuotaStatus, LPMDB lpStore)
 {
 	HRESULT hr = hrSuccess;
-	IECServiceAdmin *lpServiceAdmin = NULL;
+	object_ptr<IECServiceAdmin> lpServiceAdmin;
 	MsgStorePtr ptrRecipStore;
 	MAPIFolderPtr ptrRoot;
 	MessagePtr ptrQuotaTSMessage;
@@ -1246,8 +1199,7 @@ HRESULT ECQuotaMonitor::Notify(ECUSER *lpecUser, ECCOMPANY *lpecCompany,
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get internal object, error code: 0x%08X", hr);
 		goto exit;
 	}
-
-	hr = reinterpret_cast<IECUnknown *>(lpsObject->Value.lpszA)->QueryInterface(IID_IECServiceAdmin, reinterpret_cast<void **>(&lpServiceAdmin));
+	hr = reinterpret_cast<IECUnknown *>(lpsObject->Value.lpszA)->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
 	if (hr != hrSuccess) {
 		m_lpThreadMonitor->lpLogger->Log(EC_LOGLEVEL_FATAL, "Unable to get service admin, error code: 0x%08X", hr);
 		goto exit;
@@ -1315,8 +1267,5 @@ HRESULT ECQuotaMonitor::Notify(ECUSER *lpecUser, ECCOMPANY *lpecCompany,
 exit:
 	if (lpAddrList)
 		FreePadrlist(lpAddrList);
-
-	if (lpServiceAdmin)
-		lpServiceAdmin->Release();
 	return hr;
 }

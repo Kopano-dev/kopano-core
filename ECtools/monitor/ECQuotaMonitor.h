@@ -38,9 +38,9 @@ struct TemplateVariables {
 class ECQuotaMonitor _kc_final {
 private:
 	ECQuotaMonitor(ECTHREADMONITOR *lpThreadMonitor, LPMAPISESSION lpMAPIAdminSession, LPMDB lpMDBAdmin);
-	virtual ~ECQuotaMonitor();
 
 public:
+	virtual ~ECQuotaMonitor(void);
 	static void* Create(void* lpVoid);
 
 	HRESULT	CheckQuota();

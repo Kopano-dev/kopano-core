@@ -65,7 +65,8 @@ ECSystemStatsTable::ECSystemStatsTable(ECSession *lpSession, unsigned int ulFlag
 	id = 0;
 }
 
-ECRESULT ECSystemStatsTable::Create(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale, ECSystemStatsTable **lppTable)
+ECRESULT ECSystemStatsTable::Create(ECSession *lpSession, unsigned int ulFlags,
+    const ECLocale &locale, ECGenericObjectTable **lppTable)
 {
 	*lppTable = new ECSystemStatsTable(lpSession, ulFlags, locale);
 
@@ -274,7 +275,8 @@ ECSessionStatsTable::ECSessionStatsTable(ECSession *lpSession, unsigned int ulFl
 	id = 0;
 }
 
-ECRESULT ECSessionStatsTable::Create(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale, ECSessionStatsTable **lppTable)
+ECRESULT ECSessionStatsTable::Create(ECSession *lpSession, unsigned int ulFlags,
+    const ECLocale &locale, ECGenericObjectTable **lppTable)
 {
 	*lppTable = new ECSessionStatsTable(lpSession, ulFlags, locale);
 
@@ -544,7 +546,8 @@ ECUserStatsTable::ECUserStatsTable(ECSession *lpSession, unsigned int ulFlags, c
 	m_lpfnQueryRowData = QueryRowData;
 }
 
-ECRESULT ECUserStatsTable::Create(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale, ECUserStatsTable **lppTable)
+ECRESULT ECUserStatsTable::Create(ECSession *lpSession, unsigned int ulFlags,
+    const ECLocale &locale, ECGenericObjectTable **lppTable)
 {
 	*lppTable = new ECUserStatsTable(lpSession, ulFlags, locale);
 
@@ -828,7 +831,8 @@ ECCompanyStatsTable::ECCompanyStatsTable(ECSession *lpSession, unsigned int ulFl
 	m_lpObjectData = this;
 }
 
-ECRESULT ECCompanyStatsTable::Create(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale, ECCompanyStatsTable **lppTable)
+ECRESULT ECCompanyStatsTable::Create(ECSession *lpSession, unsigned int ulFlags,
+    const ECLocale &locale, ECGenericObjectTable **lppTable)
 {
 	*lppTable = new ECCompanyStatsTable(lpSession, ulFlags, locale);
 
@@ -1000,7 +1004,8 @@ ECServerStatsTable::ECServerStatsTable(ECSession *lpSession, unsigned int ulFlag
 	m_lpObjectData = this;
 }
 
-ECRESULT ECServerStatsTable::Create(ECSession *lpSession, unsigned int ulFlags, const ECLocale &locale, ECServerStatsTable **lppTable)
+ECRESULT ECServerStatsTable::Create(ECSession *lpSession, unsigned int ulFlags,
+    const ECLocale &locale, ECGenericObjectTable **lppTable)
 {
 	*lppTable = new ECServerStatsTable(lpSession, ulFlags, locale);
 

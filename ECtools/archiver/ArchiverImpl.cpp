@@ -19,6 +19,7 @@
  * Definition of class ArchiverImpl
  */
 #include <kopano/platform.h>
+#include <kopano/automapi.hpp>
 #include "ArchiverImpl.h"
 #include "ArchiveControlImpl.h"
 #include "ArchiveManageImpl.h"

@@ -26,6 +26,7 @@
 #include <mapidefs.h>
 #include <mapitags.h>
 #include <kopano/mapiext.h>
+#include <kopano/memory.hpp>
 #include <kopano/EMSAbTag.h>
 #include <edkmdb.h>
 #include "ECMAPI.h"
@@ -47,6 +48,8 @@
 #define FIELD_NR_NAMEID		(FIELD_NR_MAX + 1)
 #define FIELD_NR_NAMESTR	(FIELD_NR_MAX + 2)
 #define FIELD_NR_NAMEGUID	(FIELD_NR_MAX + 3)
+
+using namespace KCHL;
 
 namespace KC {
 
@@ -621,7 +624,7 @@ ECRESULT DeleteObjectSoft(ECSession *lpSession, ECDatabase *lpDatabase, unsigned
 ECRESULT DeleteObjectHard(ECSession *lpSession, ECDatabase *lpDatabase, ECAttachmentStorage *lpAttachmentStorage, unsigned int ulFlags, ECListDeleteItems &lstDeleteItems, bool bNoTransaction, ECListDeleteItems &lstDeleted)
 {
 	ECRESULT er = erSuccess;
-	ECAttachmentStorage *lpInternalAttachmentStorage = NULL;
+	object_ptr<ECAttachmentStorage> lpInternalAttachmentStorage;
 	std::list<ULONG> lstDeleteAttachments;
 	std::string strInclause;
 	std::string strOGQInclause;
@@ -645,7 +648,7 @@ ECRESULT DeleteObjectHard(ECSession *lpSession, ECDatabase *lpDatabase, ECAttach
 	}
 
 	if (!lpAttachmentStorage) {
-		er = CreateAttachmentStorage(lpDatabase, &lpInternalAttachmentStorage);
+		er = CreateAttachmentStorage(lpDatabase, &~lpInternalAttachmentStorage);
 		if (er != erSuccess)
 			goto exit;
 
@@ -814,10 +817,6 @@ exit:
 
 		lpDatabase->Rollback();
 	}
-
-	if (lpInternalAttachmentStorage)
-		lpInternalAttachmentStorage->Release();
-
 	return er;
 }
 

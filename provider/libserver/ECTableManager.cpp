@@ -16,7 +16,7 @@
  */
 
 #include <kopano/platform.h>
-
+#include <kopano/memory.hpp>
 #include <mapidefs.h>
 #include <mapitags.h>
 #include <kopano/lockhelper.hpp>
@@ -45,6 +45,8 @@
 
 #include <kopano/mapiext.h>
 #include <edkmdb.h>
+
+using namespace KCHL;
 
 namespace KC {
 
@@ -222,11 +224,11 @@ exit:
 ECRESULT ECTableManager::OpenUserStoresTable(unsigned int ulFlags, unsigned int *lpulTableId)
 {
 	ECRESULT er = erSuccess;
-	ECUserStoreTable *lpTable = NULL;
+	object_ptr<ECUserStoreTable> lpTable;
 	TABLE_ENTRY	*lpEntry = NULL;
 	const char *lpszLocaleId = lpSession->GetSessionManager()->GetConfig()->GetSetting("default_sort_locale_id");
 
-	er = ECUserStoreTable::Create(lpSession, ulFlags, createLocaleFromName(lpszLocaleId), &lpTable);
+	er = ECUserStoreTable::Create(lpSession, ulFlags, createLocaleFromName(lpszLocaleId), &~lpTable);
 	if (er != erSuccess)
 		goto exit;
 
@@ -244,9 +246,6 @@ ECRESULT ECTableManager::OpenUserStoresTable(unsigned int ulFlags, unsigned int 
 	AddTableEntry(lpEntry, lpulTableId);
 
 exit:
-	if (lpTable)
-		lpTable->Release();
-
 	if (er != erSuccess)
 		delete lpEntry;
 
@@ -256,12 +255,12 @@ exit:
 ECRESULT ECTableManager::OpenMultiStoreTable(unsigned int ulObjType, unsigned int ulFlags, unsigned int *lpulTableId)
 {
 	ECRESULT er = erSuccess;
-	ECMultiStoreTable *lpTable = NULL;
+	object_ptr<ECMultiStoreTable> lpTable;
 	TABLE_ENTRY	*lpEntry = NULL;
 	const char *lpszLocaleId = lpSession->GetSessionManager()->GetConfig()->GetSetting("default_sort_locale_id");
 
 	// Open an empty table. Contents will be provided by client in a later call.
-	er = ECMultiStoreTable::Create(lpSession, ulObjType, ulFlags, createLocaleFromName(lpszLocaleId), &lpTable);
+	er = ECMultiStoreTable::Create(lpSession, ulObjType, ulFlags, createLocaleFromName(lpszLocaleId), &~lpTable);
 	if (er != erSuccess)
 		goto exit;
 
@@ -275,9 +274,6 @@ ECRESULT ECTableManager::OpenMultiStoreTable(unsigned int ulObjType, unsigned in
 	AddTableEntry(lpEntry, lpulTableId);
 
 exit:
-	if (lpTable)
-		lpTable->Release();
-
 	return er;
 }
 
@@ -285,7 +281,7 @@ ECRESULT ECTableManager::OpenGenericTable(unsigned int ulParent, unsigned int ul
 {
 	ECRESULT		er = erSuccess;
 	std::string		strQuery;
-	ECStoreObjectTable	*lpTable = NULL;
+	object_ptr<ECStoreObjectTable> lpTable;
 	TABLE_ENTRY		*lpEntry = NULL;
 
 	unsigned int	ulStoreId = 0;
@@ -311,12 +307,12 @@ ECRESULT ECTableManager::OpenGenericTable(unsigned int ulParent, unsigned int ul
 		if(er != erSuccess)
 			goto exit;
 		else
-			er = ECSearchObjectTable::Create(lpSession, ulStoreId, &sGuid, ulParent, ulObjType, ulFlags, locale, (ECSearchObjectTable**)&lpTable);
+			er = ECSearchObjectTable::Create(lpSession, ulStoreId, &sGuid, ulParent, ulObjType, ulFlags, locale, &~lpTable);
 
 	} else if(ulObjType == MAPI_FOLDER && (ulFlags & CONVENIENT_DEPTH))
-		er = ECConvenientDepthObjectTable::Create(lpSession, ulStoreId, &sGuid, ulParent, ulObjType, ulFlags, locale, (ECConvenientDepthObjectTable**)&lpTable);
+		er = ECConvenientDepthObjectTable::Create(lpSession, ulStoreId, &sGuid, ulParent, ulObjType, ulFlags, locale, &~lpTable);
 	else
-		er = ECStoreObjectTable::Create(lpSession, ulStoreId, &sGuid, ulParent, ulObjType, ulFlags, 0, locale, &lpTable);
+		er = ECStoreObjectTable::Create(lpSession, ulStoreId, &sGuid, ulParent, ulObjType, ulFlags, 0, locale, &~lpTable);
 
 	if (er != erSuccess)
 		goto exit;
@@ -339,9 +335,6 @@ ECRESULT ECTableManager::OpenGenericTable(unsigned int ulParent, unsigned int ul
 	else
 		lpTable->SetColumns(&sPropTagArrayHierarchy, true);
 exit:
-	if (lpTable)
-		lpTable->Release();
-
 	return er;
 }
 
@@ -362,7 +355,7 @@ static void AuditStatsAccess(ECSession *lpSession, const char *access, const cha
 ECRESULT ECTableManager::OpenStatsTable(unsigned int ulTableType, unsigned int ulFlags, unsigned int *lpulTableId)
 {
 	ECRESULT er = erSuccess;
-	ECGenericObjectTable *lpTable = NULL;
+	object_ptr<ECGenericObjectTable> lpTable;
 	TABLE_ENTRY	*lpEntry = NULL;
 	int adminlevel = lpSession->GetSecurity()->GetAdminLevel();
 	bool hosted = lpSession->GetSessionManager()->IsHostedSupported();
@@ -381,7 +374,7 @@ ECRESULT ECTableManager::OpenStatsTable(unsigned int ulTableType, unsigned int u
 			er = KCERR_NO_ACCESS;
 			goto exit;
 		}
-		er = ECSystemStatsTable::Create(lpSession, ulFlags, createLocaleFromName(lpszLocaleId), (ECSystemStatsTable**)&lpTable);
+		er = ECSystemStatsTable::Create(lpSession, ulFlags, createLocaleFromName(lpszLocaleId), &~lpTable);
 		if (er != erSuccess)
 			goto exit;
 
@@ -394,7 +387,7 @@ ECRESULT ECTableManager::OpenStatsTable(unsigned int ulTableType, unsigned int u
 			er = KCERR_NO_ACCESS;
 			goto exit;
 		}
-		er = ECSessionStatsTable::Create(lpSession, ulFlags, createLocaleFromName(lpszLocaleId), (ECSessionStatsTable**)&lpTable);
+		er = ECSessionStatsTable::Create(lpSession, ulFlags, createLocaleFromName(lpszLocaleId), &~lpTable);
 		if (er != erSuccess)
 			goto exit;
 
@@ -407,7 +400,7 @@ ECRESULT ECTableManager::OpenStatsTable(unsigned int ulTableType, unsigned int u
 			er = KCERR_NO_ACCESS;
 			goto exit;
 		}
-		er = ECUserStatsTable::Create(lpSession, ulFlags, createLocaleFromName(lpszLocaleId), (ECUserStatsTable**)&lpTable);
+		er = ECUserStatsTable::Create(lpSession, ulFlags, createLocaleFromName(lpszLocaleId), &~lpTable);
 		if (er != erSuccess)
 			goto exit;
 
@@ -424,7 +417,7 @@ ECRESULT ECTableManager::OpenStatsTable(unsigned int ulTableType, unsigned int u
 			er = KCERR_NO_ACCESS;
 			goto exit;
 		}
-		er = ECCompanyStatsTable::Create(lpSession, ulFlags, createLocaleFromName(lpszLocaleId), (ECCompanyStatsTable**)&lpTable);
+		er = ECCompanyStatsTable::Create(lpSession, ulFlags, createLocaleFromName(lpszLocaleId), &~lpTable);
 		if (er != erSuccess)
 			goto exit;
 
@@ -437,7 +430,7 @@ ECRESULT ECTableManager::OpenStatsTable(unsigned int ulTableType, unsigned int u
 			er = KCERR_NO_ACCESS;
 			goto exit;
 		}
-		er = ECServerStatsTable::Create(lpSession, ulFlags, createLocaleFromName(lpszLocaleId), (ECServerStatsTable**)&lpTable);
+		er = ECServerStatsTable::Create(lpSession, ulFlags, createLocaleFromName(lpszLocaleId), &~lpTable);
 		if (er != erSuccess)
 			goto exit;
 
@@ -460,21 +453,17 @@ ECRESULT ECTableManager::OpenStatsTable(unsigned int ulTableType, unsigned int u
 exit:
 	if (er != erSuccess)
 		delete lpEntry;
-
-	if (lpTable)
-		lpTable->Release();
-
 	return er;
 }
 
 ECRESULT ECTableManager::OpenMailBoxTable(unsigned int ulflags, unsigned int *lpulTableId)
 {
 	ECRESULT er = erSuccess;
-	ECMailBoxTable *lpTable = NULL;
+	object_ptr<ECMailBoxTable> lpTable;
 	TABLE_ENTRY	*lpEntry = NULL;
 	const char *lpszLocaleId = lpSession->GetSessionManager()->GetConfig()->GetSetting("default_sort_locale_id");
 
-	er = ECMailBoxTable::Create(lpSession, ulflags, createLocaleFromName(lpszLocaleId), &lpTable);
+	er = ECMailBoxTable::Create(lpSession, ulflags, createLocaleFromName(lpszLocaleId), &~lpTable);
 	if (er != erSuccess)
 		goto exit;
 
@@ -493,9 +482,6 @@ ECRESULT ECTableManager::OpenMailBoxTable(unsigned int ulflags, unsigned int *lp
 	AddTableEntry(lpEntry, lpulTableId);
 
 exit:
-	if (lpTable)
-		lpTable->Release();
-
 	if (er != erSuccess)
 		delete lpEntry;
 
@@ -508,15 +494,15 @@ exit:
 ECRESULT ECTableManager::OpenABTable(unsigned int ulParent, unsigned int ulParentType, unsigned int ulObjType, unsigned int ulFlags, unsigned int *lpulTableId)
 {
 	ECRESULT er = erSuccess;
-	ECABObjectTable	*lpTable = NULL;
+	object_ptr<ECABObjectTable> lpTable;
 	TABLE_ENTRY *lpEntry = NULL;
 	const char *lpszLocaleId = lpSession->GetSessionManager()->GetConfig()->GetSetting("default_sort_locale_id");
 
 	// Open first container
 	if (ulFlags & CONVENIENT_DEPTH)
-		er = ECConvenientDepthABObjectTable::Create(lpSession, 1, ulObjType, ulParent, ulParentType, ulFlags, createLocaleFromName(lpszLocaleId), (ECConvenientDepthABObjectTable**)&lpTable);
+		er = ECConvenientDepthABObjectTable::Create(lpSession, 1, ulObjType, ulParent, ulParentType, ulFlags, createLocaleFromName(lpszLocaleId), &~lpTable);
 	else
-		er = ECABObjectTable::Create(lpSession, 1, ulObjType, ulParent, ulParentType, ulFlags, createLocaleFromName(lpszLocaleId), &lpTable);
+		er = ECABObjectTable::Create(lpSession, 1, ulObjType, ulParent, ulParentType, ulFlags, createLocaleFromName(lpszLocaleId), &~lpTable);
 
 	if (er != erSuccess)
 		goto exit;
@@ -538,9 +524,6 @@ ECRESULT ECTableManager::OpenABTable(unsigned int ulParent, unsigned int ulParen
 		lpTable->SetColumns(&sPropTagArrayABContents, true);
 
 exit:
-	if (lpTable)
-		lpTable->Release();
-
 	return er;
 }
 

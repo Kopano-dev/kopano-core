@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <kopano/memory.hpp>
 #include "StorageUtil.h"
 #include "ECDatabase.h"
 #include "ECAttachmentStorage.h"
@@ -24,6 +25,8 @@
 #include "ECSecurity.h"
 #include "cmdutil.hpp"
 #include <edkmdb.h>
+
+using namespace KCHL;
 
 namespace KC {
 
@@ -125,7 +128,7 @@ ECRESULT CalculateObjectSize(ECDatabase* lpDatabase, unsigned int objid, unsigne
 	DB_ROW			lpDBRow = NULL;
 	unsigned int	ulSize = 0;
 	std::string		strQuery;
-	ECAttachmentStorage *lpAttachmentStorage = NULL;
+	object_ptr<ECAttachmentStorage> lpAttachmentStorage;
 	ECDatabaseAttachment *lpDatabaseStorage = NULL;
 
 	*lpulSize = 0;
@@ -143,13 +146,13 @@ ECRESULT CalculateObjectSize(ECDatabase* lpDatabase, unsigned int objid, unsigne
 	else
 		ulSize = atoui(lpDBRow[0])+ 28;// + hierarchy size
 
-	er = CreateAttachmentStorage(lpDatabase, &lpAttachmentStorage);
+	er = CreateAttachmentStorage(lpDatabase, &~lpAttachmentStorage);
 	if (er != erSuccess)
 		goto exit;
 
 	// since we already did the length magic in the previous query, we only need the 
 	// extra size for filestorage and S3 storage, i.e. not database storage
-	lpDatabaseStorage = dynamic_cast<ECDatabaseAttachment*>(lpAttachmentStorage);
+	lpDatabaseStorage = dynamic_cast<ECDatabaseAttachment *>(lpAttachmentStorage.get());
 	if (!lpDatabaseStorage) {
 		size_t ulAttachSize = 0;
 		er = lpAttachmentStorage->GetSize(objid, PROP_ID(PR_ATTACH_DATA_BIN), &ulAttachSize);
@@ -191,9 +194,6 @@ ECRESULT CalculateObjectSize(ECDatabase* lpDatabase, unsigned int objid, unsigne
 	*lpulSize = ulSize;
 
 exit:
-	if (lpAttachmentStorage)
-		lpAttachmentStorage->Release();
-
 	// Free results
 	if(lpDBResult)
 		lpDatabase->FreeResult(lpDBResult);

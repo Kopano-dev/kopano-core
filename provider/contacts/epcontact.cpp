@@ -20,9 +20,11 @@
 #include <mapispi.h>
 #include <kopano/ECDebug.h>
 #include <kopano/Trace.h>
-
+#include <kopano/memory.hpp>
 #include "ZCABProvider.h"
 #include "EntryPoint.h"
+
+using namespace KCHL;
 
 HRESULT __stdcall MSGServiceEntry(HINSTANCE hInst, LPMALLOC lpMalloc,
     LPMAPISUP psup, ULONG ulUIParam, ULONG ulFlags, ULONG ulContext,
@@ -72,7 +74,7 @@ HRESULT  __cdecl ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc,
 	TRACE_MAPI(TRACE_ENTRY, "ZContacts::ABProviderInit", "");
 
 	HRESULT hr = hrSuccess;
-	ZCABProvider *lpABProvider = NULL;
+	object_ptr<ZCABProvider> lpABProvider;
 
 	if (ulMAPIVer < CURRENT_SPI_VERSION)
 	{
@@ -81,7 +83,7 @@ HRESULT  __cdecl ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc,
 	}
 
 	// create provider and query interface.
-	hr = ZCABProvider::Create(&lpABProvider);
+	hr = ZCABProvider::Create(&~lpABProvider);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -92,9 +94,6 @@ HRESULT  __cdecl ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc,
 	*lpulProviderVer = CURRENT_SPI_VERSION;
 
 exit:
-	if (lpABProvider)
-		lpABProvider->Release();
-
 	TRACE_MAPI(TRACE_RETURN, "ZContacts::ABProviderInit", "%s", GetMAPIErrorDescription(hr).c_str());
 	return hr;
 }

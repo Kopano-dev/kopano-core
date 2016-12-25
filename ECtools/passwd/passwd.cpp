@@ -109,35 +109,34 @@ static HRESULT UpdatePassword(const char *lpPath, const char *lpUsername,
 	lpLogger->Release();
 	if(hr != hrSuccess) {
 		cerr << "Wrong username or password." << endl;
-		goto exit;
+		return hr;
 	}
 	hr = HrOpenDefaultStore(lpSession, &~lpMsgStore);
 	if(hr != hrSuccess) {
 		cerr << "Unable to open store." << endl;
-		goto exit;
+		return hr;
 	}
 	hr = HrGetOneProp(lpMsgStore, PR_EC_OBJECT, &~lpPropValue);
 	if(hr != hrSuccess || !lpPropValue)
-		goto exit;
+		return hr;
 	lpECMsgStore.reset(reinterpret_cast<IECUnknown *>(lpPropValue->Value.lpszA), false);
 	if(!lpECMsgStore)
-		goto exit;
-
+		return hr;
 	lpECMsgStore->AddRef();
 	hr = lpECMsgStore->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpServiceAdmin->ResolveUserName((LPTSTR)lpUsername, 0, &cbUserId, &~lpUserId);
 	if (hr != hrSuccess) {
 		cerr << "Unable to update password, user not found." << endl;
-		goto exit;
+		return hr;
 	}
 
 	// get old features. we need these, because not setting them would mean: remove them
 	hr = lpServiceAdmin->GetUser(cbUserId, lpUserId, 0, &~lpECUser);
 	if (hr != hrSuccess) {
 		cerr << "Unable to get user details, " << getMapiCodeString(hr, lpUsername) << endl;
-		goto exit;
+		return hr;
 	}
 
 	lpECUser->lpszPassword = (LPTSTR)lpNewPassword;
@@ -145,11 +144,9 @@ static HRESULT UpdatePassword(const char *lpPath, const char *lpUsername,
 	hr = lpServiceAdmin->SetUser(lpECUser, 0);
 	if(hr != hrSuccess) {
 		cerr << "Unable to update user password." << endl;
-		goto exit;
+		return hr;
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 int main(int argc, char* argv[])

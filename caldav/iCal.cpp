@@ -23,6 +23,7 @@
 
 #include <kopano/CommonUtil.h>
 #include <kopano/memory.hpp>
+#include <kopano/tie.hpp>
 #include "icaluid.h"
 
 #include <libxml/tree.h>
@@ -341,22 +342,13 @@ HRESULT iCal::HrModify( ICalToMapi *lpIcal2Mapi, SBinary sbSrvEid, ULONG ulPos, 
 	HRESULT hr = m_lpUsrFld->OpenEntry(sbSrvEid.cb, reinterpret_cast<ENTRYID *>(sbSrvEid.lpb),
 	             nullptr, MAPI_BEST_ACCESS, &ulObjType, &~lpMessage);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	if (blCensor && IsPrivate(lpMessage, ulTagPrivate))
-	{
-		hr = MAPI_E_NO_ACCESS;
-		goto exit;
-	}
-
+		return MAPI_E_NO_ACCESS;
 	hr = lpIcal2Mapi->GetItem(ulPos, 0, lpMessage);
 	if(hr != hrSuccess)
-		goto exit;
-	
-	hr = lpMessage->SaveChanges(0);
-
-exit:
-	return hr;
+		return hr;
+	return lpMessage->SaveChanges(0);
 }
 /**
  * Creates a new message in the folder and sets its properties
@@ -370,19 +362,16 @@ HRESULT iCal::HrAddMessage(ICalToMapi *lpIcal2Mapi, ULONG ulPos)
 	object_ptr<IMessage> lpMessage;
 	HRESULT hr = m_lpUsrFld->CreateMessage(nullptr, 0, &~lpMessage);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpIcal2Mapi->GetItem(ulPos, 0, lpMessage);
 	if (hr != hrSuccess) {
 		ec_log_err("Error creating a new calendar entry, error code: 0x%08X",hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = lpMessage->SaveChanges(0);
 	if (hr != hrSuccess)
 		ec_log_err("Error saving a new calendar entry, error code: 0x%08X",hr);
-
-exit:
 	return hr;
 }
 
@@ -408,7 +397,7 @@ HRESULT iCal::HrDelMessage(SBinary sbEid, bool blCensor)
 	if (hr != hrSuccess)
 	{
 		ec_log_err("Error allocating memory, error code: 0x%08X",hr);
-		goto exit;
+		return hr;
 	}
 
 	lpEntryList->cValues = 1;
@@ -417,32 +406,24 @@ HRESULT iCal::HrDelMessage(SBinary sbEid, bool blCensor)
 	if(hr != hrSuccess)
 	{
 		ec_log_err("Error allocating memory, error code: 0x%08X",hr);
-		goto exit;
+		return hr;
 	}
 	hr = m_lpUsrFld->OpenEntry(sbEid.cb, reinterpret_cast<ENTRYID *>(sbEid.lpb), nullptr, MAPI_BEST_ACCESS, &ulObjType, &~lpMessage);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	
 	if(blCensor && IsPrivate(lpMessage, ulTagPrivate))
-	{
-		hr = hrSuccess; // ignoring private items.
-		goto exit;
-	}
+		return hrSuccess; /* ignoring private items */
 
 	lpEntryList->lpbin[0].cb = sbEid.cb;
 	if ((hr = MAPIAllocateMore(sbEid.cb, lpEntryList, (void**)&lpEntryList->lpbin[0].lpb)) != hrSuccess)
-		goto exit;
+		return hr;
 
 	memcpy(lpEntryList->lpbin[0].lpb, sbEid.lpb, sbEid.cb);
 				
 	hr = m_lpUsrFld->DeleteMessages(lpEntryList, 0, NULL, MESSAGE_DIALOG);
 	if(hr != hrSuccess)
-	{
 		ec_log_err("Error while deleting a calendar entry, error code: 0x%08X",hr);
-		goto exit;
-	}
-
-exit:
 	return hr;
 }
 
@@ -516,12 +497,12 @@ HRESULT iCal::HrGetIcal(IMAPITable *lpTable, bool blCensorPrivate, std::string *
 	ULONG ulTagPrivate = 0;
 	ULONG ulFlag = 0;
 	bool blCensor = false;	
-	MapiToICal *lpMtIcal = NULL;
+	std::unique_ptr<MapiToICal> lpMtIcal;
 	std::string strical;
 	
 	ulTagPrivate = CHANGE_PROP_TYPE(m_lpNamedProps->aulPropTag[PROP_PRIVATE], PT_BOOLEAN);
 	
-	CreateMapiToICal(m_lpAddrBook, "utf-8", &lpMtIcal);
+	CreateMapiToICal(m_lpAddrBook, "utf-8", &unique_tie(lpMtIcal));
 	if (lpMtIcal == NULL) {
 		ec_log_err("Error Creating MapiToIcal object, error code: 0x%08X",hr);
 		hr = E_FAIL;
@@ -585,7 +566,6 @@ HRESULT iCal::HrGetIcal(IMAPITable *lpTable, bool blCensorPrivate, std::string *
 exit:
 	if (lpRows)
 		FreeProws(lpRows);
-	delete lpMtIcal;
 	return hr;
 }
 

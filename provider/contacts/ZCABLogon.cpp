@@ -29,6 +29,8 @@
 #include <mapix.h>
 #include <edkmdb.h>
 
+using namespace KCHL;
+
 ZCABLogon::ZCABLogon(LPMAPISUP lpMAPISup, ULONG ulProfileFlags, GUID *lpGUID) : ECUnknown("IABLogon")
 {
 	// The specific GUID for *this* addressbook provider, if available
@@ -166,10 +168,10 @@ HRESULT ZCABLogon::ClearFolderList()
 HRESULT ZCABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPUNKNOWN *lppUnk)
 {
 	HRESULT			hr = hrSuccess;
-	ZCABContainer *lpRootContainer = NULL;
-	ZCMAPIProp *lpContact = NULL;
-	LPPROFSECT lpProfileSection = NULL;
-	KCHL::memory_ptr<SPropValue> lpFolderProps;
+	object_ptr<ZCABContainer> lpRootContainer;
+	object_ptr<ZCMAPIProp> lpContact;
+	object_ptr<IProfSect> lpProfileSection;
+	memory_ptr<SPropValue> lpFolderProps;
 	ULONG cValues = 0;
 	SizedSPropTagArray(3, sptaFolderProps) = {3, {PR_ZC_CONTACT_STORE_ENTRYIDS, PR_ZC_CONTACT_FOLDER_ENTRYIDS, PR_ZC_CONTACT_FOLDER_NAMES_W}};
 	
@@ -181,7 +183,7 @@ HRESULT ZCABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 
 	if(cbEntryID == 0 && lpEntryID == NULL) {
 		// this is the "Kopano Contacts Folders" container. Get the hierarchy of this folder. SetEntryID(0000 + guid + MAPI_ABCONT + ?) ofzo?
-		hr = ZCABContainer::Create(NULL, NULL, m_lpMAPISup, this, &lpRootContainer);
+		hr = ZCABContainer::Create(nullptr, nullptr, m_lpMAPISup, this, &~lpRootContainer);
 		if (hr != hrSuccess)
 			goto exit;
 
@@ -196,8 +198,7 @@ HRESULT ZCABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 			hr = MAPI_E_UNKNOWN_ENTRYID;
 			goto exit;
 		}
-
-		hr = m_lpMAPISup->OpenProfileSection((LPMAPIUID)pbGlobalProfileSectionGuid, 0, &lpProfileSection);
+		hr = m_lpMAPISup->OpenProfileSection((LPMAPIUID)pbGlobalProfileSectionGuid, 0, &~lpProfileSection);
 		if (hr != hrSuccess)
 			goto exit;
 		hr = lpProfileSection->GetProps(sptaFolderProps, 0, &cValues, &~lpFolderProps);
@@ -219,13 +220,13 @@ HRESULT ZCABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 						  lpFolderProps[0].Value.MVbin.lpbin[c].cb, lpFolderProps[0].Value.MVbin.lpbin[c].lpb,
 						  lpFolderProps[1].Value.MVbin.lpbin[c].cb, lpFolderProps[1].Value.MVbin.lpbin[c].lpb);
 
-		hr = ZCABContainer::Create(&m_lFolders, NULL, m_lpMAPISup, this, &lpRootContainer);
+		hr = ZCABContainer::Create(&m_lFolders, nullptr, m_lpMAPISup, this, &~lpRootContainer);
 		if (hr != hrSuccess)
 			goto exit;
 
 		if (cbEntryID > 4+sizeof(GUID)) {
 			// we're actually opening a contact .. so pass-through to the just opened rootcontainer
-			hr = lpRootContainer->OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, (LPUNKNOWN*)&lpContact);
+			hr = lpRootContainer->OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, &~lpContact);
 			if (hr != hrSuccess)
 				goto exit;
 		}
@@ -253,14 +254,6 @@ HRESULT ZCABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 	}
 
 exit:
-	if (lpProfileSection)
-		lpProfileSection->Release();
-	if (lpRootContainer)
-		lpRootContainer->Release();
-
-	if (lpContact)
-		lpContact->Release();
-
 	return hr;
 }
 

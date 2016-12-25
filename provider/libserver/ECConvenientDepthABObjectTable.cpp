@@ -41,7 +41,10 @@ ECConvenientDepthABObjectTable::ECConvenientDepthABObjectTable(ECSession *lpSess
 	m_ulUserManagementFlags &= ~USERMANAGEMENT_IDS_ONLY;
 }
 
-ECRESULT ECConvenientDepthABObjectTable::Create(ECSession *lpSession, unsigned int ulABId, unsigned int ulABType, unsigned int ulABParentId, unsigned int ulABParentType, unsigned int ulFlags, const ECLocale &locale, ECConvenientDepthABObjectTable **lppTable)
+ECRESULT ECConvenientDepthABObjectTable::Create(ECSession *lpSession,
+    unsigned int ulABId, unsigned int ulABType, unsigned int ulABParentId,
+    unsigned int ulABParentType, unsigned int ulFlags, const ECLocale &locale,
+    ECABObjectTable **lppTable)
 {
 	*lppTable = new ECConvenientDepthABObjectTable(lpSession, ulABId, ulABType, ulABParentId, ulABParentType, ulFlags, locale);
 

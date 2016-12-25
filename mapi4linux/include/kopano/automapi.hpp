@@ -22,8 +22,9 @@
 #define AUTOMAPI_H_INCLUDED
 
 #include <kopano/zcdefs.h>
+#include <mapix.h>
 
-namespace KC {
+namespace KCHL {
 
 class AutoMAPI _kc_final {
 public:
@@ -33,7 +34,8 @@ public:
 			MAPIUninitialize();
 	}
 	
-	HRESULT Initialize(MAPIINIT_0 *lpMapiInit) {
+	HRESULT Initialize(MAPIINIT_0 *lpMapiInit = nullptr)
+	{
 		HRESULT hr = hrSuccess;
 
 		if (!m_bInitialized) {
