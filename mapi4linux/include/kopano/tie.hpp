@@ -16,10 +16,10 @@ template<typename _T> class unique_proxy {
 	public:
 	unique_proxy(std::unique_ptr<_T> &a) : u(a), p(u.get()) {}
 	~unique_proxy(void) { u.reset(p); }
-	_T **operator&(void) { return &p; }
+	typename std::unique_ptr<_T>::pointer *operator&(void) { return &p; }
 	private:
 	std::unique_ptr<_T> &u;
-	_T *p;
+	typename std::unique_ptr<_T>::pointer p;
 };
 
 template<typename _T> unique_proxy<_T> unique_tie(std::unique_ptr<_T> &u)
