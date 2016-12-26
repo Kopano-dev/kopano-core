@@ -919,11 +919,7 @@ HRESULT __cdecl XPProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc,
 	object_ptr<ECXPProvider> pXPProvider;
 
     if (ulMAPIVer < CURRENT_SPI_VERSION)
-    {
-        hr = MAPI_E_VERSION;
-		goto exit;
-    }
-
+		return MAPI_E_VERSION;
 	*lpulProviderVer = CURRENT_SPI_VERSION;
 
 	// Save the pointer to the allocation routines in global variables
@@ -935,12 +931,9 @@ HRESULT __cdecl XPProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc,
 
 	hr = ECXPProvider::Create(&~pXPProvider);
 	if(hr != hrSuccess)
-		goto exit;
-
-	hr = pXPProvider->QueryInterface(IID_IXPProvider, (void **)lppXPProvider);
-
-exit:
-	return hr;
+		return hr;
+	return pXPProvider->QueryInterface(IID_IXPProvider,
+	       reinterpret_cast<void **>(lppXPProvider));
 }
 
 HRESULT  __cdecl ABProviderInit(HINSTANCE hInstance, LPMALLOC lpMalloc,
