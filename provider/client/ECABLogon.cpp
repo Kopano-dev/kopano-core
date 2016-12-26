@@ -139,16 +139,13 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 	memory_ptr<ENTRYID> lpEntryIDServer;
 
 	// Check input/output variables 
-	if(lpulObjType == NULL || lppUnk == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpulObjType == nullptr || lppUnk == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 
 	/*if(ulFlags & MAPI_MODIFY) {
-		if(!fModify) {
-			hr = MAPI_E_NO_ACCESS;
-			goto exit;
-		} else
+		if (!fModify)
+			return MAPI_E_NO_ACCESS;
+		else
 			fModifyObject = TRUE;
 	}
 
@@ -162,13 +159,11 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 		cbEntryID = CbABEID(lpABeid);
 		lpEntryID = (LPENTRYID)lpABeid;
 	} else {
-		if (cbEntryID == 0 || lpEntryID == NULL) {
-			hr = MAPI_E_UNKNOWN_ENTRYID;
-			goto exit;
-		}
+		if (cbEntryID == 0 || lpEntryID == nullptr)
+			return MAPI_E_UNKNOWN_ENTRYID;
 		hr = MAPIAllocateBuffer(cbEntryID, &~lpEntryIDServer);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		memcpy(lpEntryIDServer, lpEntryID, cbEntryID);
 		lpEntryID = lpEntryIDServer;
@@ -177,16 +172,12 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 
 		// Check sane entryid
 		if (lpABeid->ulType != MAPI_ABCONT && lpABeid->ulType != MAPI_MAILUSER && lpABeid->ulType != MAPI_DISTLIST) 
-		{
-			hr = MAPI_E_UNKNOWN_ENTRYID;
-			goto exit;
-		}
+			return MAPI_E_UNKNOWN_ENTRYID;
 
 		// Check entryid GUID, must be either MUIDECSAB or m_ABPGuid
-		if(memcmp(&lpABeid->guid, &MUIDECSAB, sizeof(MAPIUID)) != 0 && memcmp(&lpABeid->guid, &m_ABPGuid, sizeof(MAPIUID)) != 0) {
-			hr = MAPI_E_UNKNOWN_ENTRYID;
-			goto exit;
-		}
+		if (memcmp(&lpABeid->guid, &MUIDECSAB, sizeof(MAPIUID)) != 0 &&
+		    memcmp(&lpABeid->guid, &m_ABPGuid, sizeof(MAPIUID)) != 0)
+			return MAPI_E_UNKNOWN_ENTRYID;
 
 		memcpy(&lpABeid->guid, &MUIDECSAB, sizeof(MAPIUID));
 	}
@@ -197,93 +188,75 @@ HRESULT ECABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 		case MAPI_ABCONT:
 			hr = ECABContainer::Create(this, MAPI_ABCONT, fModifyObject, &~lpABContainer);
 			if(hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			hr = lpABContainer->SetEntryId(cbEntryID, lpEntryID);
 			if(hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			AddChild(lpABContainer);
 			hr = m_lpTransport->HrOpenABPropStorage(cbEntryID, lpEntryID, &~lpPropStorage);
 			if(hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			hr = lpABContainer->HrSetPropStorage(lpPropStorage, TRUE);
 			if(hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			if(lpInterface)
 				hr = lpABContainer->QueryInterface(*lpInterface,(void **)lppUnk);
 			else
 				hr = lpABContainer->QueryInterface(IID_IABContainer, (void **)lppUnk);
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 			break;
 		case MAPI_MAILUSER:
 			hr = ECMailUser::Create(this, fModifyObject, &~lpMailUser);
 			if(hr != hrSuccess)
-				goto exit;
-			
+				return hr;
 			hr = lpMailUser->SetEntryId(cbEntryID, lpEntryID);
 			if(hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			AddChild(lpMailUser);
 			hr = m_lpTransport->HrOpenABPropStorage(cbEntryID, lpEntryID, &~lpPropStorage);
 			if(hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			hr = lpMailUser->HrSetPropStorage(lpPropStorage, TRUE);
 			if(hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			if(lpInterface)
 				hr = lpMailUser->QueryInterface(*lpInterface,(void **)lppUnk);
 			else
 				hr = lpMailUser->QueryInterface(IID_IMailUser, (void **)lppUnk);
 
 			if(hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			break;
 		case MAPI_DISTLIST:
 			hr = ECDistList::Create(this, fModifyObject, &~lpDistList);
 			if(hr != hrSuccess)
-				goto exit;
-			
+				return hr;
 			hr = lpDistList->SetEntryId(cbEntryID, lpEntryID);
 			if(hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			AddChild(lpDistList);
 			hr = m_lpTransport->HrOpenABPropStorage(cbEntryID, lpEntryID, &~lpPropStorage);
 			if(hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			hr = lpDistList->HrSetPropStorage(lpPropStorage, TRUE);
 			if(hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			if(lpInterface)
 				hr = lpDistList->QueryInterface(*lpInterface,(void **)lppUnk);
 			else
 				hr = lpDistList->QueryInterface(IID_IDistList, (void **)lppUnk);
 
 			if(hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			break;
 		default:
-			hr = MAPI_E_NOT_FOUND;
-			goto exit;
-			break;
+			return MAPI_E_NOT_FOUND;
 	}
 
 	if(lpulObjType)
 		*lpulObjType = lpABeid->ulType;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECABLogon::CompareEntryIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2, ULONG ulFlags, ULONG *lpulResult)

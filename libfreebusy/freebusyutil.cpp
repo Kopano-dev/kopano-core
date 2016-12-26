@@ -94,26 +94,17 @@ static HRESULT GetFreeBusyFolder(IMsgStore *lpPublicStore,
 	// Get freebusy properies
 	hr = lpPublicStore->GetProps(sPropsFreeBusy, 0, &cValuesFreeBusy, &~lpPropArrayFreeBusy);
 	if (FAILED(hr))
-		goto exit;
-
+		return hr;
 	if(lpPropArrayFreeBusy[FBPOS_FREE_BUSY_FOR_LOCAL_SITE_ENTRYID].ulPropTag != PR_FREE_BUSY_FOR_LOCAL_SITE_ENTRYID)
-	{
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+		return MAPI_E_NOT_FOUND;
+
 	hr = lpPublicStore->OpenEntry(
 	     lpPropArrayFreeBusy[FBPOS_FREE_BUSY_FOR_LOCAL_SITE_ENTRYID].Value.bin.cb,
 	     reinterpret_cast<ENTRYID *>(lpPropArrayFreeBusy[FBPOS_FREE_BUSY_FOR_LOCAL_SITE_ENTRYID].Value.bin.lpb),
 	     &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpMapiFolder);
 	if(hr != hrSuccess)
-		goto exit;
-
-	hr = lpMapiFolder->QueryInterface(IID_IMAPIFolder, (void**)lppFreeBusyFolder);
-	if(hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+		return hr;
+	return lpMapiFolder->QueryInterface(IID_IMAPIFolder, (void**)lppFreeBusyFolder);
 }
 
 HRESULT GetFreeBusyMessage(IMAPISession* lpSession, IMsgStore* lpPublicStore, IMsgStore* lpUserStore, ULONG cbUserEntryID, LPENTRYID lpUserEntryID, BOOL bCreateIfNotExist, IMessage** lppMessage)

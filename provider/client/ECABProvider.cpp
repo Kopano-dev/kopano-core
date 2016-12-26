@@ -85,34 +85,30 @@ HRESULT ECABProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 	LPMAPIUID	lpGuid = NULL;
 	object_ptr<WSTransport> lpTransport;
 
-	if (!lpMAPISup || !lppABLogon) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpMAPISup == nullptr || lppABLogon == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 
 	// Get the username and password from the profile settings
 	hr = ClientUtil::GetGlobalProfileProperties(lpMAPISup, &sProfileProps);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Create a transport for this provider
 	hr = WSTransport::Create(ulFlags, &~lpTransport);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	// Log on the transport to the server
 	hr = lpTransport->HrLogon(sProfileProps);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = ECABLogon::Create(lpMAPISup, lpTransport, sProfileProps.ulProfileFlags, (GUID *)lpGuid, &~lpABLogon);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	AddChild(lpABLogon);
 
 	hr = lpABLogon->QueryInterface(IID_IABLogon, (void **)lppABLogon);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	if (lpulcbSecurity)
 		*lpulcbSecurity = 0;
 
@@ -121,9 +117,7 @@ HRESULT ECABProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 
 	if (lppMAPIError)
 		*lppMAPIError = NULL;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 DEF_HRMETHOD1(TRACE_MAPI, ECABProvider, ABProvider, QueryInterface, (REFIID, refiid), (void **, lppInterface))

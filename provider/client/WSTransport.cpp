@@ -159,23 +159,21 @@ HRESULT WSTransport::HrOpenTransport(LPMAPISUP lpMAPISup, WSTransport **lppTrans
 		// Get the username and password from the profile settings
 	hr = ClientUtil::GetGlobalProfileProperties(lpMAPISup, &sProfileProps);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// TODO: check usernameand serverpath
 	
 	// Create a transport for this user
 	hr = WSTransport::Create(MDB_NO_DIALOG, &~lpTransport);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Log on the transport to the server
 	hr = lpTransport->HrLogon(sProfileProps);
 	if(hr != hrSuccess) 
-		goto exit;
+		return hr;
 	*lppTransport = lpTransport.release();
-exit:
-	return hr;
-
+	return hrSuccess;
 }
 
 HRESULT WSTransport::LockSoap()
@@ -374,23 +372,18 @@ HRESULT WSTransport::CreateAndLogonAlternate(LPCSTR szServer, WSTransport **lppT
 	object_ptr<WSTransport> lpTransport;
 	sGlobalProfileProps	sProfileProps = m_sProfileProps;
 
-	if (!lppTransport)
-	{
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lppTransport == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 	hr = WSTransport::Create(m_ulUIFlags, &~lpTransport);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	sProfileProps.strServerPath = szServer;
 
 	hr = lpTransport->HrLogon(sProfileProps);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	*lppTransport = lpTransport.release();
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -405,21 +398,16 @@ HRESULT WSTransport::CloneAndRelogon(WSTransport **lppTransport) const
 	HRESULT				hr = hrSuccess;
 	object_ptr<WSTransport> lpTransport;
 
-	if (!lppTransport)
-	{
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lppTransport == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 	hr = WSTransport::Create(m_ulUIFlags, &~lpTransport);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpTransport->HrLogon(m_sProfileProps);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	*lppTransport = lpTransport.release();
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT WSTransport::HrReLogon()
@@ -755,12 +743,9 @@ HRESULT WSTransport::HrOpenParentStorage(ECGenericProp *lpParentObject, ULONG ul
 
 	hr = ECParentStorage::Create(lpParentObject, ulUniqueId, ulObjId, lpServerStorage, &~lpPropStorage);
 	if(hr != hrSuccess)
-		goto exit;
-
-	hr = lpPropStorage->QueryInterface(IID_IECPropStorage, (void **)lppPropStorage);
-
-exit:
-	return hr;
+		return hr;
+	return lpPropStorage->QueryInterface(IID_IECPropStorage,
+	       reinterpret_cast<void **>(lppPropStorage));
 }
 
 HRESULT WSTransport::HrOpenABPropStorage(ULONG cbEntryID, LPENTRYID lpEntryID, IECPropStorage **lppPropStorage)
@@ -844,12 +829,9 @@ HRESULT WSTransport::HrOpenMailBoxTableOps(ULONG ulFlags, ECMsgStore *lpMsgStore
 	hr = WSTableMailBox::Create(ulFlags, m_lpCmd, m_hDataLock,
 	     m_ecSessionId, lpMsgStore, this, &~lpWSTable);
 	if(hr != hrSuccess)
-		goto exit;
-
-	hr = lpWSTable->QueryInterface(IID_ECTableView, (void **)lppTableView);
-
-exit:
-	return hr;
+		return hr;
+	return lpWSTable->QueryInterface(IID_ECTableView,
+	       reinterpret_cast<void **>(lppTableView));
 }
 
 HRESULT WSTransport::HrOpenTableOutGoingQueueOps(ULONG cbStoreEntryID, LPENTRYID lpStoreEntryID, ECMsgStore *lpMsgStore, WSTableOutGoingQueue **lppTableOutGoingQueueOps)
@@ -4237,25 +4219,18 @@ HRESULT WSTransport::HrOpenMultiStoreTable(LPENTRYLIST lpMsgList, ULONG ulFlags,
 	HRESULT hr = hrSuccess;
 	object_ptr<WSTableMultiStore> lpMultiStoreTable;
 
-	if (!lpMsgList || lpMsgList->cValues == 0) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
+	if (lpMsgList == nullptr || lpMsgList->cValues == 0)
+		return MAPI_E_INVALID_PARAMETER;
 	hr = WSTableMultiStore::Create(ulFlags, m_lpCmd, m_hDataLock,
 	     m_ecSessionId, cbEntryID, lpEntryID, lpMsgStore, this,
 	     &~lpMultiStoreTable);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpMultiStoreTable->HrSetEntryIDs(lpMsgList);
 	if (hr != hrSuccess)
-		goto exit;
-
-	hr = lpMultiStoreTable->QueryInterface(IID_ECTableView, (void **)lppTableView);
-
-exit:
-	return hr;
+		return hr;
+	return lpMultiStoreTable->QueryInterface(IID_ECTableView,
+	       reinterpret_cast<void **>(lppTableView));
 }
 
 HRESULT WSTransport::HrOpenMiscTable(ULONG ulTableType, ULONG ulFlags, ULONG cbEntryID, LPENTRYID lpEntryID, ECMsgStore *lpMsgStore, WSTableView **lppTableView)
@@ -4266,21 +4241,14 @@ HRESULT WSTransport::HrOpenMiscTable(ULONG ulTableType, ULONG ulFlags, ULONG cbE
 	if (ulTableType != TABLETYPE_STATS_SYSTEM && ulTableType != TABLETYPE_STATS_SESSIONS &&
 		ulTableType != TABLETYPE_STATS_USERS && ulTableType != TABLETYPE_STATS_COMPANY  &&
 		ulTableType != TABLETYPE_USERSTORES && ulTableType != TABLETYPE_STATS_SERVERS)
-	{
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
+		return MAPI_E_INVALID_PARAMETER;
 	hr = WSTableMisc::Create(ulTableType, ulFlags, m_lpCmd, m_hDataLock,
 	     m_ecSessionId, cbEntryID, lpEntryID, lpMsgStore, this,
 	     &~lpMiscTable);
 	if (hr != hrSuccess)
-		goto exit;
-
-	hr = lpMiscTable->QueryInterface(IID_ECTableView, (void **)lppTableView);
-
-exit:
-	return hr;
+		return hr;
+	return lpMiscTable->QueryInterface(IID_ECTableView,
+	       reinterpret_cast<void **>(lppTableView));
 }
 
 HRESULT WSTransport::HrSetLockState(ULONG cbEntryID, LPENTRYID lpEntryID, bool bLocked)

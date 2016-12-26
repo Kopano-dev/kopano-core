@@ -170,16 +170,13 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID
 	ULONG				ulResults;
 
 	// Check input/output variables
-	if(lpulObjType == NULL || lppUnk == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpulObjType == nullptr || lppUnk == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 
 	if(ulFlags & MAPI_MODIFY) {
-		if(!fModify) {
-			hr = MAPI_E_NO_ACCESS;
-			goto exit;
-		} else
+		if (!fModify)
+			return MAPI_E_NO_ACCESS;
+		else
 			fModifyObject = TRUE;
 	}
 
@@ -187,14 +184,11 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID
 		fModifyObject = fModify;
 
 	// Open always online the root folder
-	if(cbEntryID == 0 || lpEntryID == NULL) {
-		hr = ECMsgStore::OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
-		goto exit;
-	}
-
+	if (cbEntryID == 0 || lpEntryID == nullptr)
+		return ECMsgStore::OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
 	hr = HrCompareEntryIdWithStoreGuid(cbEntryID, lpEntryID, &GetStoreGuid());
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	if(ComparePublicEntryId(ePE_IPMSubtree, cbEntryID, lpEntryID, &ulResult) == hrSuccess && ulResult == TRUE)
 		ePublicEntryID = ePE_IPMSubtree;
@@ -208,7 +202,7 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID
 		// Replace the original entryid because this one is only readable
 		hr = MAPIAllocateBuffer(cbEntryID, &~lpEntryIDIntern);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		memcpy(lpEntryIDIntern, lpEntryID, cbEntryID);
 
 		// Remove Flags intern
@@ -220,18 +214,12 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID
 	
 	hr = HrGetObjTypeFromEntryId(cbEntryID, (LPBYTE)lpEntryID, &ulObjType);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	if (ulObjType != MAPI_FOLDER && ePublicEntryID != ePE_FavoriteSubFolder)
-	{
-		// Open online Messages
-		hr = ECMsgStore::OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
-		if (hr != hrSuccess)
-			goto exit;
-
-		// Message is open, now we can exit
-		goto exit;
-	}
+		// Open online Messages.
+		// On success, message is open, now we can exit
+		return ECMsgStore::OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
 
 	switch( ulObjType ) {
 	case MAPI_FOLDER:
@@ -239,13 +227,11 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID
 		if (ePublicEntryID == ePE_PublicFolders) {
 			hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpsPropValue);
 			if(hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			// Get the online Subtree entryid
 			hr = HrGetRealProp(PR_IPM_SUBTREE_ENTRYID, 0, lpsPropValue, lpsPropValue);
 			if(hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			cbEntryID = lpsPropValue->Value.bin.cb;
 			lpEntryID = (LPENTRYID)lpsPropValue->Value.bin.lpb;
 		}
@@ -253,25 +239,23 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID
 		if (ePublicEntryID != ePE_IPMSubtree && ePublicEntryID != ePE_Favorites) {
 			hr = lpTransport->HrOpenFolderOps(cbEntryID, lpEntryID, &~lpFolderOps);
 			if(hr != hrSuccess)
-				goto exit;
+				return hr;
 		} else {
 			lpFolderOps.reset();
 		}
 
 		hr = ECMAPIFolderPublic::Create(this, fModifyObject, lpFolderOps, ePublicEntryID, &~lpMAPIFolder);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		if (ePublicEntryID != ePE_IPMSubtree && ePublicEntryID != ePE_Favorites) {
 			//FIXME: Wrong parent entryid
 			hr = lpTransport->HrOpenPropStorage(m_cbEntryId, m_lpEntryId, cbEntryID, lpEntryID, ulFlags & SHOW_SOFT_DELETES, &~lpPropStorage);
 			if(hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			hr = lpMAPIFolder->HrSetPropStorage(lpPropStorage, TRUE);
 			if(hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			//if(ePublicEntryID == ePE_FavoriteSubFolder)
 				//lpEntryID->abFlags[3] = KOPANO_FAVORITE;
 		} else {
@@ -280,14 +264,13 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID
 
 		hr = lpMAPIFolder->SetEntryId(cbEntryID, lpEntryID);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		// Get the parent entryid of a folder an check if this is the online subtree entryid. When it is, 
 		// change the parent to the static parent entryid
 		hr = MAPIAllocateBuffer(sizeof(SPropValue), &~lpsPropValue);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		if (HrGetOneProp((LPMAPIPROP)(&lpMAPIFolder->m_xMAPIFolder), PR_PARENT_ENTRYID, &~lpParentProp) == hrSuccess &&
 			HrGetRealProp(PR_IPM_SUBTREE_ENTRYID, 0, lpsPropValue, lpsPropValue) == hrSuccess &&
 			CompareEntryIDs(lpsPropValue->Value.bin.cb, (LPENTRYID)lpsPropValue->Value.bin.lpb, lpParentProp->Value.bin.cb, (LPENTRYID)lpParentProp->Value.bin.lpb, 0, &ulResults) == hrSuccess &&
@@ -309,15 +292,11 @@ HRESULT ECMsgStorePublic::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID
 		//FIXME: change for offline support
 		hr = ECMsgStore::OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, lppUnk);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		break;
 	default:
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-
+		return MAPI_E_NOT_FOUND;
 	}
-
-exit:
 	return hr;
 }
 

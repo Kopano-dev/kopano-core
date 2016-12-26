@@ -114,22 +114,15 @@ HRESULT __stdcall ECExchangeModifyTable::CreateACLTable(ECMAPIProp *lpParent, UL
 	// This will break on a big-endian system though
 	hr = ECMemTable::Create(sPropACLs, PR_MEMBER_ID, &~lpecTable);
 	if (hr!=hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = OpenACLS(lpParent, ulFlags, lpecTable, &ulUniqueId);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpecTable->HrSetClean();
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	obj = new ECExchangeModifyTable(PR_MEMBER_ID, lpecTable, lpParent, ulUniqueId, ulFlags);
-
-	hr = obj->QueryInterface(IID_IExchangeModifyTable, (void **)lppObj);
-
-exit:
-	return hr;
+	return obj->QueryInterface(IID_IExchangeModifyTable, reinterpret_cast<void **>(lppObj));
 }
 
 HRESULT __stdcall ECExchangeModifyTable::CreateRulesTable(ECMAPIProp *lpParent, ULONG ulFlags, LPEXCHANGEMODIFYTABLE *lppObj) {
@@ -148,7 +141,7 @@ HRESULT __stdcall ECExchangeModifyTable::CreateRulesTable(ECMAPIProp *lpParent, 
 	// This will break on a big-endian system though
 	hr = ECMemTable::Create(sPropRules, PR_RULE_ID, &~ecTable);
 	if (hr!=hrSuccess)
-		goto exit;
+		return hr;
 
 	// PR_RULES_DATA can grow quite large. GetProps() only supports until size 8192, larger is not returned
 	if (lpParent != nullptr &&
@@ -175,14 +168,9 @@ HRESULT __stdcall ECExchangeModifyTable::CreateRulesTable(ECMAPIProp *lpParent, 
 empty:
 	hr = ecTable->HrSetClean();
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	obj = new ECExchangeModifyTable(PR_RULE_ID, ecTable, lpParent, ulRuleId, ulFlags);
-
-	hr = obj->QueryInterface(IID_IExchangeModifyTable, (void **)lppObj);
-
-exit:
-	return hr;
+	return obj->QueryInterface(IID_IExchangeModifyTable, reinterpret_cast<void **>(lppObj));
 }
 
 HRESULT ECExchangeModifyTable::QueryInterface(REFIID refiid, void **lppInterface) {
@@ -313,16 +301,14 @@ HRESULT ECExchangeModifyTable::OpenACLS(ECMAPIProp *lpecMapiProp, ULONG ulFlags,
 	WCHAR* lpMemberName = NULL;
 	unsigned int ulUserid = 0;
 
-	if(lpecMapiProp == NULL || lpTable == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpecMapiProp == nullptr || lpTable == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 	hr = lpecMapiProp->QueryInterface(IID_IECSecurity, &~lpSecurity);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpSecurity->GetPermissionRules(ACCESS_TYPE_GRANT, &cPerms, &~lpECPerms);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Default exchange PR_MEMBER_ID ids
 	//  0 = default acl
@@ -361,10 +347,9 @@ HRESULT ECExchangeModifyTable::OpenACLS(ECMAPIProp *lpecMapiProp, ULONG ulFlags,
 
 		hr = lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, &lpsPropMember[0], lpsPropMember, 4);
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECExchangeModifyTable::DisablePushToServer()

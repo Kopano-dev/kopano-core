@@ -379,20 +379,17 @@ HRESULT ECMemStream::Commit(DWORD grfCommitFlags)
 	hr = this->lpMemBlock->Commit();
 
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// If there is no commit func, just ignore the commit
 	if(this->lpCommitFunc) {
 		hr = this->Clone(&~lpClonedStream);
 		if(hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = this->lpCommitFunc(lpClonedStream, lpParam);
 	}
 
 	this->fDirty = FALSE;
-
-exit:
 	return hr;
 }
 

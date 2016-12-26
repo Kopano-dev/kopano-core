@@ -273,13 +273,12 @@ HRESULT ECVMIMESender::HrMakeRecipientsList(LPADRBOOK lpAdrBook,
 	
 	hr = HrGetOneProp(lpMessage, PR_MESSAGE_FLAGS, &~lpMessageFlags);
 	if (hr != hrSuccess)
-		goto exit;
-		
+		return hr;
 	if(lpMessageFlags->Value.ul & MSGFLAG_RESEND)
 		bResend = true;
 	hr = lpMessage->GetRecipientTable(MAPI_UNICODE, &~lpRTable);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// When resending, only send to MAPI_P1 recipients
 	if(bResend) {
@@ -293,15 +292,10 @@ HRESULT ECVMIMESender::HrMakeRecipientsList(LPADRBOOK lpAdrBook,
 
 		hr = lpRTable->Restrict(&sRestriction, TBL_BATCH);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
-
-	hr = HrAddRecipsFromTable(lpAdrBook, lpRTable, recipients, setGroups, setRecips, bAllowEveryone, bAlwaysExpandDistrList);
-	if (hr != hrSuccess)
-		goto exit;
-	
-exit:
-	return hr;
+	return HrAddRecipsFromTable(lpAdrBook, lpRTable, recipients, setGroups,
+	       setRecips, bAllowEveryone, bAlwaysExpandDistrList);
 }
 
 // This function does not catch the vmime exception

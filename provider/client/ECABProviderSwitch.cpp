@@ -85,46 +85,39 @@ HRESULT ECABProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR l
 	convstring tstrProfileName(lpszProfileName, ulFlags);
 	hr = GetProviders(&g_mapProviders, lpMAPISup, convstring(lpszProfileName, ulFlags).c_str(), ulFlags, &sProviderInfo);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = sProviderInfo.lpABProviderOnline->QueryInterface(IID_IABProvider, &~lpOnline);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Online
 	hr = lpOnline->Logon(lpMAPISup, ulUIParam, lpszProfileName, ulFlags, nullptr, nullptr, nullptr, &~lpABLogon);
 	ulConnectType = CT_ONLINE;
 
 	// Set the provider in the right connection type
-	if (SetProviderMode(lpMAPISup, &g_mapProviders, convstring(lpszProfileName, ulFlags).c_str(), ulConnectType) != hrSuccess) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (SetProviderMode(lpMAPISup, &g_mapProviders,
+	    convstring(lpszProfileName, ulFlags).c_str(), ulConnectType) != hrSuccess)
+		return MAPI_E_INVALID_PARAMETER;
 
 	if(hr != hrSuccess) {
-		if(ulFlags & MDB_NO_DIALOG) {
-			hr = MAPI_E_FAILONEPROVIDER;
-			goto exit;
-		} else if(hr == MAPI_E_NETWORK_ERROR) {
-			hr = MAPI_E_FAILONEPROVIDER; //for disable public folders, so you can work offline
-			goto exit;
-		} else if (hr == MAPI_E_LOGON_FAILED) {
-			hr = MAPI_E_UNCONFIGURED; // Linux error ??//
+		if (ulFlags & MDB_NO_DIALOG)
+			return MAPI_E_FAILONEPROVIDER;
+		else if(hr == MAPI_E_NETWORK_ERROR)
+			/* for disable public folders, so you can work offline */
+			return MAPI_E_FAILONEPROVIDER;
+		else if (hr == MAPI_E_LOGON_FAILED)
+			return MAPI_E_UNCONFIGURED; /* Linux error ?? */
 			//hr = MAPI_E_LOGON_FAILED;
-			goto exit;
-		}else{
-			hr = MAPI_E_LOGON_FAILED;
-			goto exit;
-		}
+		else
+			return MAPI_E_LOGON_FAILED;
 	}
 
 	hr = lpMAPISup->SetProviderUID((LPMAPIUID)&MUIDECSAB, 0);
 	if(hr != hrSuccess)
-		goto exit;
-	
+		return hr;
 	hr = lpABLogon->QueryInterface(IID_IABLogon, (void **)lppABLogon);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	if(lpulcbSecurity)
 		*lpulcbSecurity = 0;
 
@@ -133,9 +126,7 @@ HRESULT ECABProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR l
 
 	if (lppMAPIError)
 		*lppMAPIError = NULL;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 DEF_HRMETHOD1(TRACE_MAPI, ECABProviderSwitch, ABProvider, QueryInterface, (REFIID, refiid), (void **, lppInterface))

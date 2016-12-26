@@ -146,13 +146,11 @@ HRESULT mapi_util_deleteprof(const char *szProfName)
 	hr = MAPIAdminProfiles(0, &~lpProfAdmin);
 	if(hr != hrSuccess) {
 		last_error = "Unable to get IProfAdmin object";
-		goto exit;
+		return hr;
 	}
 
 	lpProfAdmin->DeleteProfile((LPTSTR)szProfName, 0);
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 std::string mapi_util_getlasterror()

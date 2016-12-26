@@ -110,34 +110,25 @@ HRESULT ECChangeAdvisor::Create(ECMsgStore *lpMsgStore, ECChangeAdvisor **lppCha
 	object_ptr<ECChangeAdvisor> lpChangeAdvisor;
 	BOOL			fEnhancedICS = false;
 
-	if (lpMsgStore == NULL || lppChangeAdvisor == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
-
-	if (lpMsgStore->m_lpNotifyClient == NULL) {
-		hr = MAPI_E_NO_SUPPORT;
-		goto exit;
-	}
+	if (lpMsgStore == nullptr || lppChangeAdvisor == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
+	if (lpMsgStore->m_lpNotifyClient == nullptr)
+		return MAPI_E_NO_SUPPORT;
 
 	hr = lpMsgStore->lpTransport->HrCheckCapabilityFlags(KOPANO_CAP_ENHANCED_ICS, &fEnhancedICS);
 	if (hr != hrSuccess)
-		goto exit;
-	if (!fEnhancedICS) {
-		hr = MAPI_E_NO_SUPPORT;
-		goto exit;
-	}
+		return hr;
+	if (!fEnhancedICS)
+		return MAPI_E_NO_SUPPORT;
 	lpChangeAdvisor.reset(new ECChangeAdvisor(lpMsgStore), false);
 	hr = lpChangeAdvisor->QueryInterface(IID_ECChangeAdvisor, (void**)lppChangeAdvisor);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpMsgStore->lpTransport->AddSessionReloadCallback(lpChangeAdvisor, &Reload, &lpChangeAdvisor->m_ulReloadId);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	lpChangeAdvisor.release();
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECChangeAdvisor::GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError)

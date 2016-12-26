@@ -118,33 +118,32 @@ HRESULT GetProviders(ECMapProvider* lpmapProvider, IMAPISupport *lpMAPISup, cons
 	object_ptr<ECABProvider> lpECABProvider;
 	sGlobalProfileProps	sProfileProps;
 
-	if (lpmapProvider == NULL || lpMAPISup == NULL || lpszProfileName == NULL || lpsProviderInfo == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpmapProvider == nullptr || lpMAPISup == nullptr ||
+	    lpszProfileName == nullptr || lpsProviderInfo == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 
 	iterProvider = lpmapProvider->find(lpszProfileName);
 	if (iterProvider != lpmapProvider->cend()) {
 		*lpsProviderInfo = iterProvider->second;
-		goto exit;
+		return hrSuccess;
 	}
 		
 	// Get the username and password from the profile settings
 	hr = ClientUtil::GetGlobalProfileProperties(lpMAPISup, &sProfileProps);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Init providers
 
 	// Message store online
 	hr = ECMSProvider::Create(ulFlags, &~lpECMSProvider);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Addressbook online
 	hr = ECABProvider::Create(&~lpECABProvider);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Fill in the Provider info struct
 	
@@ -153,19 +152,16 @@ HRESULT GetProviders(ECMapProvider* lpmapProvider, IMAPISupport *lpMAPISup, cons
 	sProviderInfo.ulConnectType = CT_ONLINE;
 	hr = lpECMSProvider->QueryInterface(IID_IMSProvider, (void **)&sProviderInfo.lpMSProviderOnline);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpECABProvider->QueryInterface(IID_IABProvider, (void **)&sProviderInfo.lpABProviderOnline);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	//Add provider in map
 	lpmapProvider->insert(std::map<string, PROVIDER_INFO>::value_type(lpszProfileName, sProviderInfo));
 
 	*lpsProviderInfo = sProviderInfo;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 // Create an anonymous message store, linked to transport and support object
@@ -195,35 +191,29 @@ HRESULT CreateMsgStoreObject(char * lpszProfname, LPMAPISUP lpMAPISup, ULONG cbE
 		hr = ECArchiveAwareMsgStore::Create(lpszProfname, lpMAPISup, lpTransport, fModify, ulProfileFlags, bSpooler, fIsDefaultStore, bOfflineStore, &~lpMsgStore);
 
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	memcpy(&lpMsgStore->m_guidMDB_Provider, lpguidMDBProvider,sizeof(MAPIUID));
 
 	// Get a propstorage for the message store
 	hr = lpTransport->HrOpenPropStorage(0, nullptr, cbEntryID, lpEntryID, 0, &~lpStorage);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Set up the message store to use this storage
 	hr = lpMsgStore->HrSetPropStorage(lpStorage, FALSE);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Setup callback for session change
 	hr = lpTransport->AddSessionReloadCallback(lpMsgStore, ECMsgStore::Reload, NULL);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpMsgStore->SetEntryId(cbEntryID, lpEntryID);
 	if (hr != hrSuccess)
-		goto exit;
-
-	hr = lpMsgStore->QueryInterface(IID_ECMsgStore, (void **)lppECMsgStore);
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+		return hr;
+	return lpMsgStore->QueryInterface(IID_ECMsgStore,
+	       reinterpret_cast<void **>(lppECMsgStore));
 }
 
 HRESULT GetTransportToNamedServer(WSTransport *lpTransport, LPCTSTR lpszServerName, ULONG ulFlags, WSTransport **lppTransport)

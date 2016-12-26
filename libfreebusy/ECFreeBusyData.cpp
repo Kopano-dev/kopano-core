@@ -86,27 +86,18 @@ HRESULT ECFreeBusyData::EnumBlocks(IEnumFBBlock **ppenumfb, FILETIME ftmStart, F
 	KCHL::object_ptr<ECEnumFBBlock> lpECEnumFBBlock;
 
 	if(ppenumfb == NULL)
-	{
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+		return MAPI_E_INVALID_PARAMETER;
 
 	FileTimeToRTime(&ftmStart, &rtmStart);
 	FileTimeToRTime(&ftmEnd, &rtmEnd);
 
 	hr = m_fbBlockList.Restrict(rtmStart, rtmEnd);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = ECEnumFBBlock::Create(&m_fbBlockList, &~lpECEnumFBBlock);
 	if(hr != hrSuccess)
-		goto exit;
-
-	hr = lpECEnumFBBlock->QueryInterface(IID_IEnumFBBlock, (void**)ppenumfb);
-	if(hr != hrSuccess)
-		goto exit;
-	
-exit:
-	return hr;
+		return hr;
+	return lpECEnumFBBlock->QueryInterface(IID_IEnumFBBlock, (void**)ppenumfb);
 }
 
 /**

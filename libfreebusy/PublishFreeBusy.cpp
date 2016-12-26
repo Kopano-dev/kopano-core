@@ -64,35 +64,31 @@ HRESULT HrPublishDefaultCalendar(IMAPISession *lpSession, IMsgStore *lpDefStore,
 	lpFreeBusy.reset(new PublishFreeBusy(lpSession, lpDefStore, tsStart, ulMonths));
 	hr = lpFreeBusy->HrInit();
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpFreeBusy->HrGetResctItems(&~lpTable);
 	if (hr != hrSuccess) {
 		ec_log_info("Error while finding messages for free/busy publish, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
-		goto exit;
+		return hr;
 	}
 	hr = lpFreeBusy->HrProcessTable(lpTable, &~lpFBblocks, &cValues);
 	if(hr != hrSuccess) {
 		ec_log_info("Error while finding free/busy blocks, error code: 0x%x %s", hr, GetMAPIErrorMessage(hr));
-		goto exit;
+		return hr;
 	}
 
 	if (cValues == 0) {
 		ec_log_info("No messages for free/busy publish");
-		goto exit;
+		return hr;
 	}
 	hr = lpFreeBusy->HrMergeBlocks(&+lpFBblocks, &cValues);
 	if(hr != hrSuccess) {
 		ec_log_info("Error while merging free/busy blocks, entries: %d, error code: 0x%x %s", cValues, hr, GetMAPIErrorMessage(hr));
-		goto exit;
+		return hr;
 	}
 	ec_log_debug("Publishing %d free/busy blocks", cValues);
 	hr = lpFreeBusy->HrPublishFBblocks(lpFBblocks, cValues);
-	if(hr != hrSuccess) {
+	if (hr != hrSuccess)
 		ec_log_info("Error while publishing free/busy blocks, entries: %d, error code: 0x%x %s", cValues, hr, GetMAPIErrorMessage(hr));
-		goto exit;
-	}
-	
-exit:
 	return hr;
 }
 
@@ -164,10 +160,10 @@ HRESULT PublishFreeBusy::HrGetResctItems(IMAPITable **lppTable)
 		
 	hr = HrOpenDefaultCalendar(m_lpDefStore, &~lpDefCalendar);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpDefCalendar->GetContentsTable(0, &~lpTable);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	
 	lpsPropStart.ulPropTag = PROP_APPT_STARTWHOLE;
 	lpsPropStart.Value.ft = m_ftStart;
@@ -209,10 +205,9 @@ HRESULT PublishFreeBusy::HrGetResctItems(IMAPITable **lppTable)
 		)
 	).RestrictTable(lpTable);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	*lppTable = lpTable.release();
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -446,37 +441,28 @@ HRESULT PublishFreeBusy::HrPublishFBblocks(FBBlock_1 *lpfbBlocks, ULONG cValues)
 
 	hr = HrOpenECPublicStore(m_lpSession, &~lpPubStore);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = HrGetOneProp(m_lpDefStore, PR_MAILBOX_OWNER_ENTRYID, &~lpsPrpUsrMEid);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = GetFreeBusyMessage(m_lpSession, lpPubStore, m_lpDefStore, lpsPrpUsrMEid[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(lpsPrpUsrMEid[0].Value.bin.lpb), true, &~lpMessage);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = ECFreeBusyUpdate::Create(lpMessage, &~lpFBUpdate);
 	if(hr != hrSuccess)
-		goto exit;
-	
+		return hr;
 	hr = lpFBUpdate->ResetPublishedFreeBusy();
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpFBUpdate->PublishFreeBusy(lpfbBlocks, cValues);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	FileTimeToUnixTime(m_ftStart, &tsStart);
 	// @todo use a "start of day" function?
 	tsStart = tsStart - 86400; // 24*60*60 = 86400 include current day.
 	UnixTimeToFileTime(tsStart, &m_ftStart);
-
-	hr = lpFBUpdate->SaveChanges(m_ftStart, m_ftEnd);
-	if( hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
-
+	return lpFBUpdate->SaveChanges(m_ftStart, m_ftEnd);
 }
 
 } /* namespace */

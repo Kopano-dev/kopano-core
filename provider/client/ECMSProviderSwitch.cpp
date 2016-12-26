@@ -265,9 +265,9 @@ HRESULT ECMSProviderSwitch::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, L
 	HRESULT hr = hrSuccess;
 	IMSProvider *lpProvider = NULL; // Do not release
 	PROVIDER_INFO sProviderInfo;
-	LPMDB lpMDB = NULL;
-	LPMSLOGON lpMSLogon = NULL;
-	ECMsgStore *lpecMDB = NULL;
+	object_ptr<IMsgStore> lpMDB;
+	object_ptr<IMSLogon> lpMSLogon;
+	object_ptr<ECMsgStore> lpecMDB;
 
 	if (lpEntryID == NULL) {
 		hr = MAPI_E_UNCONFIGURED;
@@ -284,11 +284,12 @@ HRESULT ECMSProviderSwitch::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, L
 		goto exit;
 
 	lpProvider = sProviderInfo.lpMSProviderOnline;
-	hr = lpProvider->SpoolerLogon(lpMAPISup, ulUIParam, lpszProfileName, cbEntryID, lpEntryID, ulFlags, lpInterface, cbSpoolSecurity, lpbSpoolSecurity, NULL, &lpMSLogon, &lpMDB);
+	hr = lpProvider->SpoolerLogon(lpMAPISup, ulUIParam, lpszProfileName,
+	     cbEntryID, lpEntryID, ulFlags, lpInterface, cbSpoolSecurity,
+	     lpbSpoolSecurity, nullptr, &~lpMSLogon, &~lpMDB);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = lpMDB->QueryInterface(IID_ECMsgStore, (void **)&lpecMDB);
+	hr = lpMDB->QueryInterface(IID_ECMsgStore, &~lpecMDB);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -312,16 +313,6 @@ HRESULT ECMSProviderSwitch::SpoolerLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, L
 exit:
 	if (lppMAPIError)
 		*lppMAPIError = NULL;
-
-	if (lpecMDB)
-		lpecMDB->Release();
-
-	if (lpMSLogon)
-		lpMSLogon->Release();
-	
-	if (lpMDB)
-		lpMDB->Release();
-
 	return hr;
 }
 	

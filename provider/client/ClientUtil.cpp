@@ -631,14 +631,8 @@ HRESULT ClientUtil::GetGlobalProfileProperties(LPMAPISUP lpMAPISup, struct sGlob
 
 	hr = lpMAPISup->OpenProfileSection((LPMAPIUID)pbGlobalProfileSectionGuid, MAPI_MODIFY, &~lpGlobalProfSect);
 	if(hr != hrSuccess)
-		goto exit;
-
-	hr = ClientUtil::GetGlobalProfileProperties(lpGlobalProfSect, lpsProfileProps);
-	if(hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+		return hr;
+	return ClientUtil::GetGlobalProfileProperties(lpGlobalProfSect, lpsProfileProps);
 }
 
 HRESULT ClientUtil::GetGlobalProfileProperties(LPPROFSECT lpGlobalProfSect, struct sGlobalProfileProps* lpsProfileProps)

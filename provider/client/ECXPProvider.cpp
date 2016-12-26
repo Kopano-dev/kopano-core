@@ -95,38 +95,30 @@ HRESULT ECXPProvider::TransportLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTST
 		hr = WSTransport::HrOpenTransport(lpMAPISup, &~lpTransport, TRUE);
 		bOffline = TRUE;
 	}
-
-	if(hr != hrSuccess) {
-		hr = MAPI_E_FAILONEPROVIDER;
-		goto exit;
-	}
+	if (hr != hrSuccess)
+		return MAPI_E_FAILONEPROVIDER;
 	hr = ECXPLogon::Create(tstrProfileName, bOffline, this, lpMAPISup, &~lpXPLogon);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpXPLogon->QueryInterface(IID_IXPLogon, (void **)lppXPLogon);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	AddChild(lpXPLogon);
 
 	// Set profile identity
 	hr = ClientUtil::HrSetIdentity(lpTransport, lpMAPISup, &m_lpIdentityProps);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// Initialize statusrow
 	strDisplayName = convert_to<std::string>(g_strManufacturer.c_str()) + _A(" Transport");
 
 	hr = ClientUtil::HrInitializeStatusRow(strDisplayName.c_str(), MAPI_TRANSPORT_PROVIDER, lpMAPISup, m_lpIdentityProps, 0);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	*lpulFlags = 0;
 	*lppMAPIError = NULL;
-	
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 DEF_HRMETHOD1(TRACE_MAPI, ECXPProvider, XPProvider, QueryInterface, (REFIID, refiid), (void **, lppInterface))

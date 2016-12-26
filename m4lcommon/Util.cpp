@@ -21,6 +21,7 @@
 #include <mapidefs.h>
 #include <mapiutil.h>
 #include <mapispi.h>
+#include <memory>
 #include <new>
 #include <string>
 #include <stack>
@@ -1321,7 +1322,7 @@ HRESULT Util::HrTextToHtml(IStream *text, IStream *html, ULONG ulCodepage)
 	size_t	stWritten;
 	size_t  err;
 	const char	*readBuffer = NULL;
-	char	*writeBuffer = NULL;
+	std::unique_ptr<char[]> writeBuffer;
 	char	*wPtr = NULL;
 	iconv_t	cd = (iconv_t)-1;
 	const char *lpszCharset;
@@ -1338,7 +1339,7 @@ HRESULT Util::HrTextToHtml(IStream *text, IStream *html, ULONG ulCodepage)
 		hr = MAPI_E_BAD_CHARWIDTH;
 		goto exit;
 	}
-	writeBuffer = new(std::nothrow) char[BUFSIZE * 2];
+	writeBuffer.reset(new(std::nothrow) char[BUFSIZE * 2]);
 	if (writeBuffer == nullptr) {
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
@@ -1388,14 +1389,14 @@ HRESULT Util::HrTextToHtml(IStream *text, IStream *html, ULONG ulCodepage)
 		stRead = strHtml.size() * sizeof(WCHAR);
 
 		while (stRead > 0) {
-			wPtr = writeBuffer;
+			wPtr = writeBuffer.get();
 			stWrite = BUFSIZE * 2;
 
 			err = iconv(cd, iconv_HACK(&readBuffer), &stRead, &wPtr, &stWrite);
 
 			stWritten = (BUFSIZE * 2) - stWrite;
 			// write to stream
-			hr = html->Write(writeBuffer, stWritten, NULL);
+			hr = html->Write(writeBuffer.get(), stWritten, NULL);
 			if (hr != hrSuccess)
 				goto exit;
 
@@ -1421,7 +1422,6 @@ HRESULT Util::HrTextToHtml(IStream *text, IStream *html, ULONG ulCodepage)
 exit:
 	if (cd != (iconv_t)-1)
 		iconv_close(cd);
-	delete[] writeBuffer;
 	return hr;
 }
 
@@ -2567,7 +2567,6 @@ exit:
  */
 HRESULT Util::CopyInstanceIds(LPMAPIPROP lpSrc, LPMAPIPROP lpDst)
 {
-	HRESULT hr = hrSuccess;
 	object_ptr<IECSingleInstance> lpSrcInstance, lpDstInstance;
 	ULONG cbInstanceID = 0;
 	memory_ptr<ENTRYID> lpInstanceID;
@@ -2577,9 +2576,9 @@ HRESULT Util::CopyInstanceIds(LPMAPIPROP lpSrc, LPMAPIPROP lpDst)
 	 * we always have the real data as fallback.
 	 */
 	if (lpSrc->QueryInterface(IID_IECSingleInstance, &~lpSrcInstance) != hrSuccess)
-		goto exit;
+		return hrSuccess;
 	if (lpDst->QueryInterface(IID_IECSingleInstance, &~lpDstInstance) != hrSuccess)
-		goto exit;
+		return hrSuccess;
 
 	/*
 	 * Transfer instance Id, if this succeeds we're in luck and we might not
@@ -2589,13 +2588,10 @@ HRESULT Util::CopyInstanceIds(LPMAPIPROP lpSrc, LPMAPIPROP lpDst)
 	 * and we will have to resend the attachment data.
 	 */
 	if (lpSrcInstance->GetSingleInstanceId(&cbInstanceID, &~lpInstanceID) != hrSuccess)
-		goto exit;
-
+		return hrSuccess;
 	if (lpDstInstance->SetSingleInstanceId(cbInstanceID, lpInstanceID) != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+		return hrSuccess;
+	return hrSuccess;
 }
 
 /** 
@@ -2931,19 +2927,17 @@ HRESULT Util::TryOpenProperty(ULONG ulPropType, ULONG ulSrcPropTag, LPMAPIPROP l
 
 	hr = lpPropSrc->OpenProperty(PROP_TAG(ulPropType, PROP_ID(ulSrcPropTag)), &IID_IStream, 0, 0, &~lpSrc);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// some mapi functions/providers don't implement STGM_TRANSACTED, retry again without this flag
 	hr = lpPropDest->OpenProperty(PROP_TAG(ulPropType, PROP_ID(ulDestPropTag)), &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~lpDest);
 	if (hr != hrSuccess)
 		hr = lpPropDest->OpenProperty(PROP_TAG(ulPropType, PROP_ID(ulDestPropTag)), &IID_IStream, STGM_WRITE, MAPI_CREATE | MAPI_MODIFY, &~lpDest);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	*lppSrcStream = lpSrc.release();
 	*lppDestStream = lpDest.release();
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -3615,18 +3609,13 @@ HRESULT Util::HrCopyIMAPData(LPMESSAGE lpSrcMsg, LPMESSAGE lpDstMsg)
 			// Since we have a copy of the original email body, copy the other properties for IMAP too
 			hr = lpSrcMsg->GetProps(sptaIMAP, 0, &cValues, &~lpIMAPProps);
 			if (FAILED(hr))
-				goto exit;
-
+				return hr;
 			hr = lpDstMsg->SetProps(cValues, lpIMAPProps, NULL);
 			if (FAILED(hr))
-				goto exit;
-
-			hr = hrSuccess;
+				return hr;
 		}
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT Util::HrDeleteIMAPData(LPMESSAGE lpMsg)
@@ -3887,14 +3876,8 @@ HRESULT Util::ReadProperty(IMAPIProp *lpProp, ULONG ulPropTag, std::string &strD
 
 	hr = lpProp->OpenProperty(ulPropTag, &IID_IStream, 0, 0, &~lpStream);
 	if(hr != hrSuccess)
-		goto exit;
-		
-	hr = HrStreamToString(lpStream, strData);
-	if(hr != hrSuccess)
-		goto exit;
-	
-exit:
-	return hr;
+		return hr;
+	return HrStreamToString(lpStream, strData);
 }
 
 /**
@@ -3917,18 +3900,11 @@ HRESULT Util::WriteProperty(IMAPIProp *lpProp, ULONG ulPropTag, const std::strin
 
 	hr = lpProp->OpenProperty(ulPropTag, &IID_IStream, STGM_DIRECT, MAPI_CREATE | MAPI_MODIFY, &~lpStream);
 	if(hr != hrSuccess)
-		goto exit;
-		
+		return hr;
 	hr = lpStream->Write(strData.data(), strData.size(), &len);
 	if(hr != hrSuccess)
-		goto exit;
-		
-	hr = lpStream->Commit(0);
-	if(hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+		return hr;
+	return lpStream->Commit(0);
 }
 
 HRESULT Util::ExtractRSSEntryID(LPSPropValue lpPropBlob, ULONG *lpcbEntryID, LPENTRYID *lppEntryID)
