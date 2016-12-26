@@ -109,6 +109,7 @@ class Service(kopano.Service):
 
     def main(self):
         self.stats = {'messages': 0, 'errors': 0}
+        pst.set_log(self.log, self.stats)
         self.unresolved = set()
         t0 = time.time()
         for arg in self.args:

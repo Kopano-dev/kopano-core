@@ -22,6 +22,7 @@ Fixes:
 * inetmapi: avoid buffer overread when generating NDR [KC-398]
 * server: equalize fs permissions for attachments [KC-380]
 * migration-pst: resolve tracebacks [KC-372,KC-373,KC-377]
+* migration-pst: do not skip folder when items unprocessible [KC-417]
 Enhancements:
 * client: Kerberos/GSSAPI support [KC-396]
 * PST importer [KC-59]

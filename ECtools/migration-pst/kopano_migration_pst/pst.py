@@ -32,7 +32,7 @@
 # based on MS-PST Microsoft specification for PST file format [MS-PST].pdf v2.1
 #
 
-import struct, binascii, datetime, math, os, sys, unicodedata, re, argparse, itertools, string
+import struct, binascii, datetime, math, os, sys, unicodedata, re, argparse, itertools, string, traceback
 #import colorama
 #import progressbar
 
@@ -2144,11 +2144,15 @@ def get_safe_filename(filename):
     return re.sub(r'[/\\;,><&\*:%=\+@!#\^\(\)|\?]', '', filename)
 
 
-def log_error(e):
-    raise e
+def set_log(log, stats):
+    global LOG, STATS
+    LOG, STATS = log, stats
 
-#    global error_log_list
-#    error_log_list.append(e.message)
+def log_error(e):
+    global error_log_list
+    error_log_list.append(e.message)
+    LOG.error(traceback.format_exc(e))
+    STATS['errors'] += 1
 #    sys.stderr.write(e.message+'\n')
 
 
