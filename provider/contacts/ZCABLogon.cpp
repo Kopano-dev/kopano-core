@@ -176,35 +176,27 @@ HRESULT ZCABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 	SizedSPropTagArray(3, sptaFolderProps) = {3, {PR_ZC_CONTACT_STORE_ENTRYIDS, PR_ZC_CONTACT_FOLDER_ENTRYIDS, PR_ZC_CONTACT_FOLDER_NAMES_W}};
 	
 	// Check input/output variables 
-	if(lpulObjType == NULL || lppUnk == NULL) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpulObjType == nullptr || lppUnk == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 
 	if(cbEntryID == 0 && lpEntryID == NULL) {
 		// this is the "Kopano Contacts Folders" container. Get the hierarchy of this folder. SetEntryID(0000 + guid + MAPI_ABCONT + ?) ofzo?
 		hr = ZCABContainer::Create(nullptr, nullptr, m_lpMAPISup, this, &~lpRootContainer);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 	} else {
-		if (cbEntryID == 0 || lpEntryID == NULL) {
-			hr = MAPI_E_UNKNOWN_ENTRYID;
-			goto exit;
-		}
+		if (cbEntryID == 0 || lpEntryID == nullptr)
+			return MAPI_E_UNKNOWN_ENTRYID;
 
 		// you can only open the top level container
-		if (memcmp((LPBYTE)lpEntryID +4, &MUIDZCSAB, sizeof(GUID)) != 0) {
-			hr = MAPI_E_UNKNOWN_ENTRYID;
-			goto exit;
-		}
+		if (memcmp((LPBYTE)lpEntryID +4, &MUIDZCSAB, sizeof(GUID)) != 0)
+			return MAPI_E_UNKNOWN_ENTRYID;
 		hr = m_lpMAPISup->OpenProfileSection((LPMAPIUID)pbGlobalProfileSectionGuid, 0, &~lpProfileSection);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		hr = lpProfileSection->GetProps(sptaFolderProps, 0, &cValues, &~lpFolderProps);
 		if (FAILED(hr))
-			goto exit;
-		hr = hrSuccess;
+			return hr;
 
 		// remove old list, if present
 		ClearFolderList();
@@ -222,13 +214,13 @@ HRESULT ZCABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 
 		hr = ZCABContainer::Create(&m_lFolders, nullptr, m_lpMAPISup, this, &~lpRootContainer);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		if (cbEntryID > 4+sizeof(GUID)) {
 			// we're actually opening a contact .. so pass-through to the just opened rootcontainer
 			hr = lpRootContainer->OpenEntry(cbEntryID, lpEntryID, lpInterface, ulFlags, lpulObjType, &~lpContact);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 	}
 
@@ -246,15 +238,13 @@ HRESULT ZCABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 			hr = lpRootContainer->QueryInterface(IID_IABContainer, (void **)lppUnk);
 	}
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	if (!lpContact) {
 		// root container has pointer to my m_lFolders
 		AddChild(lpRootContainer);
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ZCABLogon::CompareEntryIDs(ULONG cbEntryID1, LPENTRYID lpEntryID1, ULONG cbEntryID2, LPENTRYID lpEntryID2, ULONG ulFlags, ULONG *lpulResult)

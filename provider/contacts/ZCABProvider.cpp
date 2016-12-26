@@ -69,22 +69,18 @@ HRESULT ZCABProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 	HRESULT hr = hrSuccess;
 	object_ptr<ZCABLogon> lpABLogon;
 
-	if (!lpMAPISup || !lppABLogon) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpMAPISup == nullptr || lppABLogon == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 
 	// todo: remove flags & guid .. probably add other stuff from profile?
 	hr = ZCABLogon::Create(lpMAPISup, 0, nullptr, &~lpABLogon);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	AddChild(lpABLogon);
 
 	hr = lpABLogon->QueryInterface(IID_IABLogon, (void **)lppABLogon);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	if (lpulcbSecurity)
 		*lpulcbSecurity = 0;
 
@@ -93,9 +89,7 @@ HRESULT ZCABProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 
 	if (lppMAPIError)
 		*lppMAPIError = NULL;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 DEF_ULONGMETHOD1(TRACE_MAPI, ZCABProvider, ABProvider, AddRef, (void))
