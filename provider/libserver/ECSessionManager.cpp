@@ -15,11 +15,13 @@
  */
 #include <kopano/platform.h>
 #include <chrono>
+#include <memory>
 #include <new>
 #include <pthread.h>
 #include <mapidefs.h>
 #include <mapitags.h>
 #include <kopano/lockhelper.hpp>
+#include <kopano/tie.hpp>
 #include "ECMAPI.h"
 #include "ECDatabase.h"
 #include "ECSessionGroup.h"
@@ -35,6 +37,8 @@
 #include "ECICS.h"
 #include <edkmdb.h>
 #include "logontime.hpp"
+
+using namespace KCHL;
 
 namespace KC {
 
@@ -512,7 +516,7 @@ ECRESULT ECSessionManager::CreateSession(struct soap *soap, const char *szName,
     bool fAllowUidAuth)
 {
 	ECRESULT		er			= erSuccess;
-	ECAuthSession	*lpAuthSession	= NULL;
+	std::unique_ptr<ECAuthSession> lpAuthSession;
 	ECSession		*lpSession	= NULL;
 	const char		*method = "error";
 	std::string		from;
@@ -527,7 +531,7 @@ ECRESULT ECSessionManager::CreateSession(struct soap *soap, const char *szName,
 		// connected over network
 		from = soap->host;
 
-	er = this->CreateAuthSession(soap, ulCapabilities, lpSessionID, &lpAuthSession, false, false);
+	er = this->CreateAuthSession(soap, ulCapabilities, lpSessionID, &unique_tie(lpAuthSession), false, false);
 	if (er != erSuccess)
 		goto exit;
 
@@ -570,7 +574,9 @@ authenticated:
 		ZLOG_AUDIT(m_lpAudit, "authenticate ok user='%s' from='%s' method='%s' program='%s'",
 				  szName, from.c_str(), method, szClientApp ? szClientApp : "<unknown>");
 
-	er = RegisterSession(lpAuthSession, sessionGroupID, szClientVersion, szClientApp, szClientAppVersion, szClientAppMisc, lpSessionID, &lpSession, fLockSession);
+	er = RegisterSession(lpAuthSession.get(), sessionGroupID,
+	     szClientVersion, szClientApp, szClientAppVersion, szClientAppMisc,
+	     lpSessionID, &lpSession, fLockSession);
 	if (er != erSuccess) {
 		if (er == KCERR_NO_ACCESS && szImpersonateUser != NULL && *szImpersonateUser != '\0') {
 			ec_log_err("Failed attempt to impersonate user \"%s\" by user \"%s\"", szImpersonateUser, szName);
@@ -592,7 +598,6 @@ authenticated:
 	}
 
 exit:
-	delete lpAuthSession;
 	*lppSession = lpSession;
 
 	return er;

@@ -137,8 +137,8 @@ void ECTableManager::AddTableEntry(TABLE_ENTRY *lpEntry, unsigned int *lpulTable
 ECRESULT ECTableManager::OpenOutgoingQueueTable(unsigned int ulStoreId, unsigned int *lpulTableId)
 {
 	ECRESULT er = erSuccess;
-	ECStoreObjectTable *lpTable = NULL;
-	TABLE_ENTRY	*lpEntry;
+	object_ptr<ECStoreObjectTable> lpTable;
+	std::unique_ptr<TABLE_ENTRY> lpEntry;
 	DB_RESULT	lpDBResult = NULL;
 	DB_ROW		lpDBRow = NULL;
 	std::string strQuery;
@@ -157,13 +157,11 @@ ECRESULT ECTableManager::OpenOutgoingQueueTable(unsigned int ulStoreId, unsigned
 
 		if(er != erSuccess)
 			goto exit;
-
-		er = ECStoreObjectTable::Create(lpSession, ulStoreId, &sGuid, 0, MAPI_MESSAGE, 0, 0, locale, &lpTable);
-
+		er = ECStoreObjectTable::Create(lpSession, ulStoreId, &sGuid, 0, MAPI_MESSAGE, 0, 0, locale, &~lpTable);
 	} else {
 		// FIXME check permissions for master outgoing table
 		// Master outgoing table has different STORE_ENTRYID and GUID per row
-		er = ECStoreObjectTable::Create(lpSession, 0, NULL, 0, MAPI_MESSAGE, 0, 0, locale, &lpTable);
+		er = ECStoreObjectTable::Create(lpSession, 0, NULL, 0, MAPI_MESSAGE, 0, 0, locale, &~lpTable);
 	}
 	if(er != erSuccess)
 		goto exit;
@@ -196,22 +194,18 @@ ECRESULT ECTableManager::OpenOutgoingQueueTable(unsigned int ulStoreId, unsigned
 		lpTable->UpdateRow(ECKeyTable::TABLE_ROW_ADD, atoi(lpDBRow[0]), 0);
 	}
 
-	lpEntry = new TABLE_ENTRY;
+	lpEntry.reset(new TABLE_ENTRY);
 	// Add the open table to the list of current tables
 	lpEntry->lpTable = lpTable;
 	lpEntry->ulTableType = TABLE_ENTRY::TABLE_TYPE_OUTGOINGQUEUE;
 	lpEntry->sTable.sOutgoingQueue.ulStoreId = ulStoreId;
 	lpEntry->sTable.sOutgoingQueue.ulFlags = ulStoreId ? EC_SUBMIT_LOCAL : EC_SUBMIT_MASTER;
-
-	AddTableEntry(lpEntry, lpulTableId);
+	AddTableEntry(lpEntry.release(), lpulTableId);
 	if (lpTable->GetColumns(NULL, TBL_ALL_COLUMNS, &lpsPropTags) == erSuccess)
 		lpTable->SetColumns(lpsPropTags, false);
 	lpTable->SeekRow(BOOKMARK_BEGINNING, 0, NULL);
 
 exit:
-	if(lpTable)
-		lpTable->Release();
-
 	if(lpDBResult)
 		lpDatabase->FreeResult(lpDBResult);
 
@@ -225,14 +219,14 @@ ECRESULT ECTableManager::OpenUserStoresTable(unsigned int ulFlags, unsigned int 
 {
 	ECRESULT er = erSuccess;
 	object_ptr<ECUserStoreTable> lpTable;
-	TABLE_ENTRY	*lpEntry = NULL;
+	std::unique_ptr<TABLE_ENTRY> lpEntry;
 	const char *lpszLocaleId = lpSession->GetSessionManager()->GetConfig()->GetSetting("default_sort_locale_id");
 
 	er = ECUserStoreTable::Create(lpSession, ulFlags, createLocaleFromName(lpszLocaleId), &~lpTable);
 	if (er != erSuccess)
 		goto exit;
 
-	lpEntry = new TABLE_ENTRY;
+	lpEntry.reset(new TABLE_ENTRY);
 
 	// Add the open table to the list of current tables
 	lpEntry->lpTable = lpTable;
@@ -243,12 +237,8 @@ ECRESULT ECTableManager::OpenUserStoresTable(unsigned int ulFlags, unsigned int 
 	if (er != erSuccess)
 		goto exit;
 
-	AddTableEntry(lpEntry, lpulTableId);
-
+	AddTableEntry(lpEntry.release(), lpulTableId);
 exit:
-	if (er != erSuccess)
-		delete lpEntry;
-
 	return er;
 }
 
@@ -256,7 +246,7 @@ ECRESULT ECTableManager::OpenMultiStoreTable(unsigned int ulObjType, unsigned in
 {
 	ECRESULT er = erSuccess;
 	object_ptr<ECMultiStoreTable> lpTable;
-	TABLE_ENTRY	*lpEntry = NULL;
+	std::unique_ptr<TABLE_ENTRY> lpEntry;
 	const char *lpszLocaleId = lpSession->GetSessionManager()->GetConfig()->GetSetting("default_sort_locale_id");
 
 	// Open an empty table. Contents will be provided by client in a later call.
@@ -264,15 +254,13 @@ ECRESULT ECTableManager::OpenMultiStoreTable(unsigned int ulObjType, unsigned in
 	if (er != erSuccess)
 		goto exit;
 
-	lpEntry = new TABLE_ENTRY;
+	lpEntry.reset(new TABLE_ENTRY);
 
 	// Add the open table to the list of current tables
 	lpEntry->lpTable = lpTable;
 	lpEntry->ulTableType = TABLE_ENTRY::TABLE_TYPE_MULTISTORE;
 	memset(&lpEntry->sTable, 0, sizeof(TABLE_ENTRY::__sTable));
-
-	AddTableEntry(lpEntry, lpulTableId);
-
+	AddTableEntry(lpEntry.release(), lpulTableId);
 exit:
 	return er;
 }
@@ -282,8 +270,7 @@ ECRESULT ECTableManager::OpenGenericTable(unsigned int ulParent, unsigned int ul
 	ECRESULT		er = erSuccess;
 	std::string		strQuery;
 	object_ptr<ECStoreObjectTable> lpTable;
-	TABLE_ENTRY		*lpEntry = NULL;
-
+	std::unique_ptr<TABLE_ENTRY> lpEntry;
 	unsigned int	ulStoreId = 0;
 	GUID			sGuid;
 	ECLocale			locale;
@@ -317,7 +304,7 @@ ECRESULT ECTableManager::OpenGenericTable(unsigned int ulParent, unsigned int ul
 	if (er != erSuccess)
 		goto exit;
 
-	lpEntry = new TABLE_ENTRY;
+	lpEntry.reset(new TABLE_ENTRY);
 	// Add the open table to the list of current tables
 	lpEntry->lpTable = lpTable;
 	lpEntry->ulTableType = TABLE_ENTRY::TABLE_TYPE_GENERIC;
@@ -327,7 +314,7 @@ ECRESULT ECTableManager::OpenGenericTable(unsigned int ulParent, unsigned int ul
 
 	// First, add table to internal list of tables. This means we can already start
 	// receiving notifications on this table
-	AddTableEntry(lpEntry, lpulTableId);
+	AddTableEntry(lpEntry.release(), lpulTableId);
 
 	// Load a default column set
 	if (ulObjType == MAPI_MESSAGE)
@@ -356,7 +343,7 @@ ECRESULT ECTableManager::OpenStatsTable(unsigned int ulTableType, unsigned int u
 {
 	ECRESULT er = erSuccess;
 	object_ptr<ECGenericObjectTable> lpTable;
-	TABLE_ENTRY	*lpEntry = NULL;
+	std::unique_ptr<TABLE_ENTRY> lpEntry;
 	int adminlevel = lpSession->GetSecurity()->GetAdminLevel();
 	bool hosted = lpSession->GetSessionManager()->IsHostedSupported();
 	const char *lpszLocaleId = lpSession->GetSessionManager()->GetConfig()->GetSetting("default_sort_locale_id");
@@ -365,7 +352,7 @@ ECRESULT ECTableManager::OpenStatsTable(unsigned int ulTableType, unsigned int u
 	// TABLETYPE_STATS_SESSIONS: only for (sys)admins
 	// TABLETYPE_STATS_USERS: full list: only for (sys)admins, company list: only for admins
 
-	lpEntry = new TABLE_ENTRY;
+	lpEntry.reset(new TABLE_ENTRY);
 
 	switch (ulTableType) {
 	case TABLETYPE_STATS_SYSTEM:
@@ -447,12 +434,8 @@ ECRESULT ECTableManager::OpenStatsTable(unsigned int ulTableType, unsigned int u
 	// Add the open table to the list of current tables
 	lpEntry->lpTable = lpTable;
 	memset(&lpEntry->sTable, 0, sizeof(TABLE_ENTRY::__sTable));
-
-	AddTableEntry(lpEntry, lpulTableId);
-
+	AddTableEntry(lpEntry.release(), lpulTableId);
 exit:
-	if (er != erSuccess)
-		delete lpEntry;
 	return er;
 }
 
@@ -460,14 +443,14 @@ ECRESULT ECTableManager::OpenMailBoxTable(unsigned int ulflags, unsigned int *lp
 {
 	ECRESULT er = erSuccess;
 	object_ptr<ECMailBoxTable> lpTable;
-	TABLE_ENTRY	*lpEntry = NULL;
+	std::unique_ptr<TABLE_ENTRY> lpEntry;
 	const char *lpszLocaleId = lpSession->GetSessionManager()->GetConfig()->GetSetting("default_sort_locale_id");
 
 	er = ECMailBoxTable::Create(lpSession, ulflags, createLocaleFromName(lpszLocaleId), &~lpTable);
 	if (er != erSuccess)
 		goto exit;
 
-	lpEntry = new TABLE_ENTRY;
+	lpEntry.reset(new TABLE_ENTRY);
 
 	// Add the open table to the list of current tables
 	lpEntry->lpTable = lpTable;
@@ -478,13 +461,8 @@ ECRESULT ECTableManager::OpenMailBoxTable(unsigned int ulflags, unsigned int *lp
 	er = lpTable->SetColumns(&sPropTagArrayUserStores, true);
 	if (er != erSuccess)
 		goto exit;
-
-	AddTableEntry(lpEntry, lpulTableId);
-
+	AddTableEntry(lpEntry.release(), lpulTableId);
 exit:
-	if (er != erSuccess)
-		delete lpEntry;
-
 	return er;
 }
 
@@ -495,7 +473,7 @@ ECRESULT ECTableManager::OpenABTable(unsigned int ulParent, unsigned int ulParen
 {
 	ECRESULT er = erSuccess;
 	object_ptr<ECABObjectTable> lpTable;
-	TABLE_ENTRY *lpEntry = NULL;
+	std::unique_ptr<TABLE_ENTRY> lpEntry;
 	const char *lpszLocaleId = lpSession->GetSessionManager()->GetConfig()->GetSetting("default_sort_locale_id");
 
 	// Open first container
@@ -507,17 +485,14 @@ ECRESULT ECTableManager::OpenABTable(unsigned int ulParent, unsigned int ulParen
 	if (er != erSuccess)
 		goto exit;
 
-	lpEntry = new TABLE_ENTRY;
-
+	lpEntry.reset(new TABLE_ENTRY);
 	// Add the open table to the list of current tables
 	lpEntry->lpTable = lpTable;
 	lpEntry->ulTableType = TABLE_ENTRY::TABLE_TYPE_GENERIC;
 	lpEntry->sTable.sGeneric.ulObjectFlags = ulFlags & (MAPI_ASSOCIATED | MSGFLAG_DELETED); // MSGFLAG_DELETED because of conversion in ns__tableOpen
 	lpEntry->sTable.sGeneric.ulObjectType = ulObjType;
 	lpEntry->sTable.sGeneric.ulParentId = ulParent;
-
-	AddTableEntry(lpEntry, lpulTableId);
-
+	AddTableEntry(lpEntry.release(), lpulTableId);
 	if (ulObjType == MAPI_ABCONT || ulObjType == MAPI_DISTLIST)
 		lpTable->SetColumns(&sPropTagArrayABHierarchy, true);
 	else

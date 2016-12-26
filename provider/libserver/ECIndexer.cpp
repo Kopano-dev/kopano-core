@@ -29,6 +29,7 @@
 #include "ECIndexer.h"
 
 #include <map>
+#include <memory>
 #include <new>
 #include <string>
 #include <list>
@@ -330,7 +331,7 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig,
     std::string &suggestion)
 {
     ECRESULT er = erSuccess;
-	ECSearchClient *lpSearchClient = NULL;
+	std::unique_ptr<ECSearchClient> lpSearchClient;
 	std::set<unsigned int> setExcludePropTags;
 	struct timeval tstart, tend;
 	LONGLONG	llelapsedtime;
@@ -347,7 +348,7 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig,
 	lstMatches.clear();
 
 	if (parseBool(lpConfig->GetSetting("search_enabled")) == true && szSocket[0]) {
-		lpSearchClient = new(std::nothrow) ECSearchClient(szSocket, atoui(lpConfig->GetSetting("search_timeout")) );
+		lpSearchClient.reset(new(std::nothrow) ECSearchClient(szSocket, atoui(lpConfig->GetSetting("search_timeout"))));
 		if (!lpSearchClient) {
 			er = KCERR_NOT_ENOUGH_MEMORY;
 			goto exit;
@@ -410,8 +411,6 @@ ECRESULT GetIndexerResults(ECDatabase *lpDatabase, ECConfig *lpConfig,
 exit:
 	if (lpOptimizedRestrict != NULL)
 		FreeRestrictTable(lpOptimizedRestrict);
-	delete lpSearchClient;
-
 	if (er != erSuccess)
 		g_lpStatsCollector->Increment(SCN_DATABASE_SEARCHES);
 	else

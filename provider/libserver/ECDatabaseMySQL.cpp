@@ -1192,35 +1192,22 @@ std::string ECDatabaseMySQL::FilterBMP(const std::string &strToFilter)
 std::string ECDatabaseMySQL::Escape(const std::string &strToEscape)
 {
 	ULONG size = strToEscape.length()*2+1;
-	char *szEscaped = new char[size];
-	std::string escaped;
+	std::unique_ptr<char[]> szEscaped(new char[size]);
 
-	memset(szEscaped, 0, size);
-
-	mysql_real_escape_string(&this->m_lpMySQL, szEscaped, strToEscape.c_str(), strToEscape.length());
-
-	escaped = szEscaped;
-
-	delete [] szEscaped;
-
-	return escaped;
+	memset(szEscaped.get(), 0, size);
+	mysql_real_escape_string(&this->m_lpMySQL, szEscaped.get(), strToEscape.c_str(), strToEscape.length());
+	return szEscaped.get();
 }
 
 std::string ECDatabaseMySQL::EscapeBinary(unsigned char *lpData, unsigned int ulLen)
 {
 	ULONG size = ulLen*2+1;
-	char *szEscaped = new char[size];
+	std::unique_ptr<char[]> szEscaped(new char[size]);
 	std::string escaped;
 	
-	memset(szEscaped, 0, size);
-
-	mysql_real_escape_string(&this->m_lpMySQL, szEscaped, (const char *)lpData, ulLen);
-
-	escaped = szEscaped;
-
-	delete [] szEscaped;
-
-	return "'" + escaped + "'";
+	memset(szEscaped.get(), 0, size);
+	mysql_real_escape_string(&this->m_lpMySQL, szEscaped.get(), reinterpret_cast<const char *>(lpData), ulLen);
+	return "'" + std::string(szEscaped.get()) + "'";
 }
 
 std::string ECDatabaseMySQL::EscapeBinary(const std::string& strData)

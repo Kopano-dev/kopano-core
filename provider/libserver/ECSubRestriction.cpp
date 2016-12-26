@@ -141,7 +141,7 @@ ECRESULT RunSubRestriction(ECSession *lpSession, void *lpECODStore, struct restr
     ECObjectTableList::const_iterator iterObject;
     ECObjectTableList lstSubObjects;
     std::map<unsigned int, unsigned int> mapParent;
-    SUBRESTRICTIONRESULT *lpResult = new SUBRESTRICTIONRESULT;
+	std::unique_ptr<SUBRESTRICTIONRESULT> lpResult(new SUBRESTRICTIONRESULT);
     struct rowSet *lpRowSet = NULL;
     bool fMatch = false;
     unsigned int ulSubObject = 0;
@@ -247,10 +247,7 @@ ECRESULT RunSubRestriction(ECSession *lpSession, void *lpECODStore, struct restr
 
 exit:
 	if (er == erSuccess)
-		*lppResult = lpResult;
-	else
-		delete lpResult;
-    
+		*lppResult = lpResult.release();
     if(lpRowSet)
         FreeRowSet(lpRowSet, true);
         

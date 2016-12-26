@@ -16,7 +16,9 @@
  */
 
 #include <kopano/platform.h>
+#include <memory>
 #include <kopano/lockhelper.hpp>
+#include <kopano/tie.hpp>
 
 /* Returns the rows for a contents- or hierarchytable
  *
@@ -68,6 +70,8 @@
 #include "ECSessionManager.h"
        
 #include "ECSession.h"
+
+using namespace KCHL;
 
 namespace KC {
 
@@ -1369,9 +1373,6 @@ ECRESULT ECGenericObjectTable::SetCollapseState(struct xsd__base64Binary sCollap
     struct soap xmlsoap;
     struct collapseState *lpCollapseState = NULL;
     std::istringstream is(std::string((const char *)sCollapseState.__ptr, sCollapseState.__size));
-    unsigned int *lpSortLen = NULL;
-    unsigned char **lpSortData = NULL;
-    unsigned char *lpSortFlags = NULL;
 	sObjectTableKey sKey;
     struct xsd__base64Binary sInstanceKey;
 	ulock_rec giblock(m_hLock);
@@ -1402,11 +1403,11 @@ ECRESULT ECGenericObjectTable::SetCollapseState(struct xsd__base64Binary sCollap
     // lpCollapseState now contains the collapse state for all categories, apply them now
     
     for (gsoap_size_t i = 0; i < lpCollapseState->sCategoryStates.__size; ++i) {
-        lpSortLen = new unsigned int[lpCollapseState->sCategoryStates.__ptr[i].sProps.__size];
-        lpSortData = new unsigned char* [lpCollapseState->sCategoryStates.__ptr[i].sProps.__size];
-        lpSortFlags = new unsigned char [lpCollapseState->sCategoryStates.__ptr[i].sProps.__size];
+		std::unique_ptr<unsigned int[]> lpSortLen(new unsigned int[lpCollapseState->sCategoryStates.__ptr[i].sProps.__size]);
+		std::unique_ptr<unsigned char *[]> lpSortData(new unsigned char *[lpCollapseState->sCategoryStates.__ptr[i].sProps.__size]);
+		std::unique_ptr<unsigned char[]> lpSortFlags(new unsigned char[lpCollapseState->sCategoryStates.__ptr[i].sProps.__size]);
     
-        memset(lpSortData, 0, lpCollapseState->sCategoryStates.__ptr[i].sProps.__size * sizeof(unsigned char *));
+		memset(lpSortData.get(), 0, lpCollapseState->sCategoryStates.__ptr[i].sProps.__size * sizeof(unsigned char *));
         
         // Get the binary sortkeys for all properties
         for (gsoap_size_t n = 0; n < lpCollapseState->sCategoryStates.__ptr[i].sProps.__size; ++n) {
@@ -1418,7 +1419,9 @@ ECRESULT ECGenericObjectTable::SetCollapseState(struct xsd__base64Binary sCollap
         }
 
         // Find the category and expand or collapse it. If it's not there anymore, just ignore it.
-        if(lpKeyTable->Find(lpCollapseState->sCategoryStates.__ptr[i].sProps.__size, (int *)lpSortLen, lpSortData, lpSortFlags, &sKey) == erSuccess) {
+		if (lpKeyTable->Find(lpCollapseState->sCategoryStates.__ptr[i].sProps.__size,
+		    reinterpret_cast<int *>(lpSortLen.get()),
+		    lpSortData.get(), lpSortFlags.get(), &sKey) == erSuccess) {
 
             sInstanceKey.__size = 8;
 			sInstanceKey.__ptr = (unsigned char *)&sKey;
@@ -1429,25 +1432,18 @@ ECRESULT ECGenericObjectTable::SetCollapseState(struct xsd__base64Binary sCollap
                 CollapseRow(sInstanceKey, 0, NULL);
         }
 next:        
-        delete [] lpSortLen;
         for (gsoap_size_t j = 0; j < lpCollapseState->sCategoryStates.__ptr[i].sProps.__size; ++j)
                 delete [] lpSortData[j];
-        delete [] lpSortData;
-        delete [] lpSortFlags;
-        
-        lpSortLen = NULL;
-        lpSortData = NULL;
-        lpSortFlags = NULL;
     }
     
     // There is also a row stored in the collapse state which we have to create a bookmark at and return that. If it is not found,
     // we return a bookmark to the nearest next row.
     if (lpCollapseState->sBookMarkProps.__size > 0) {
-        lpSortLen = new unsigned int[lpCollapseState->sBookMarkProps.__size];
-        lpSortData = new unsigned char* [lpCollapseState->sBookMarkProps.__size];
-        lpSortFlags = new unsigned char [lpCollapseState->sBookMarkProps.__size];
+		std::unique_ptr<unsigned int[]> lpSortLen(new unsigned int[lpCollapseState->sBookMarkProps.__size]);
+		std::unique_ptr<unsigned char *[]> lpSortData(new unsigned char *[lpCollapseState->sBookMarkProps.__size]);
+		std::unique_ptr<unsigned char[]> lpSortFlags(new unsigned char[lpCollapseState->sBookMarkProps.__size]);
         
-        memset(lpSortData, 0, lpCollapseState->sBookMarkProps.__size * sizeof(unsigned char *));
+		memset(lpSortData.get(), 0, lpCollapseState->sBookMarkProps.__size * sizeof(unsigned char *));
 
 	gsoap_size_t n;
         for (n = 0; n < lpCollapseState->sBookMarkProps.__size; ++n) {
@@ -1460,19 +1456,14 @@ next:
     
         // If an error occurred in the previous loop, just ignore the whole bookmark thing, just return bookmark 0 (BOOKMARK_BEGINNING)    
         if(n == lpCollapseState->sBookMarkProps.__size) {
-            lpKeyTable->LowerBound(lpCollapseState->sBookMarkProps.__size, (int *)lpSortLen, lpSortData, lpSortFlags);
-            
+			lpKeyTable->LowerBound(lpCollapseState->sBookMarkProps.__size,
+				reinterpret_cast<int *>(lpSortLen.get()),
+				lpSortData.get(), lpSortFlags.get());
             lpKeyTable->CreateBookmark(lpulBookmark);
         }
 
-        delete [] lpSortLen;
-        lpSortLen = NULL;
         for (gsoap_size_t j = 0; j < lpCollapseState->sBookMarkProps.__size; ++j)
 			delete[] lpSortData[j];
-        delete [] lpSortData;
-        lpSortData = NULL;
-        delete [] lpSortFlags;
-        lpSortFlags = NULL;
     }
     
 	/*
@@ -1488,9 +1479,6 @@ exit:
 	soap_end(&xmlsoap);
 	giblock.unlock();
         delete lpCollapseState;
-        delete [] lpSortLen;
-        delete [] lpSortData;
-        delete [] lpSortFlags;
 	return er;
 }
 
@@ -2376,9 +2364,9 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
     bool fPrevUnread = false;
     bool fNewLeaf = false;
     unsigned int i = 0;
-    unsigned int *lpSortLen = NULL;
-    unsigned char **lppSortKeys = NULL;
-    unsigned char *lpSortFlags = NULL;
+	std::unique_ptr<unsigned int[]> lpSortLen;
+	std::unique_ptr<unsigned char *[]> lppSortKeys;
+	std::unique_ptr<unsigned char[]> lpSortFlags;
     sObjectTableKey sPrevRow(0,0);
     ECCategory *lpCategory = NULL;
     LEAFINFO sLeafInfo;
@@ -2391,11 +2379,11 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
     bool fHidden = false;
     
     if(m_ulCategories == 0)
-        goto exit;
+		goto exit;
     
-    lpSortLen = new unsigned int[cProps];
-    lppSortKeys = new unsigned char *[cProps];
-    lpSortFlags = new unsigned char [cProps];
+	lpSortLen.reset(new unsigned int[cProps]);
+	lppSortKeys.reset(new unsigned char *[cProps]);
+	lpSortFlags.reset(new unsigned char[cProps]);
 
     // Build binary sort keys
     
@@ -2442,7 +2430,7 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
     for (i = 0; i < m_ulCategories && i < cProps; ++i) {
     	unsigned int ulDepth = i;
         bool fCategoryMoved = false; // TRUE if the entire category has moved somewhere (due to CATEG_MIN / CATEG_MAX change)
-        ECTableRow row(sObjectTableKey(0,0), i+1, lpSortLen, lpSortFlags, lppSortKeys, false);
+		ECTableRow row(sObjectTableKey(0, 0), i + 1, lpSortLen.get(), lpSortFlags.get(), lppSortKeys.get(), false);
 
         // Find the actual category in our sorted category map
 	auto iterCategoriesSorted = m_mapSortedCategories.find(row);
@@ -2582,14 +2570,9 @@ ECRESULT ECGenericObjectTable::AddCategoryBeforeAddRow(sObjectTableKey sObjKey, 
 		*lppCategory = lpCategory;
 	assert(m_mapCategories.size() == m_mapSortedCategories.size());
 exit:
-	delete[] lpSortLen;
-    if(lppSortKeys) {
+	if (lppSortKeys != nullptr)
 		for (i = 0; i < m_ulCategories + 1 && i < cProps; ++i)
 			delete[] lppSortKeys[i];
-            
-        delete [] lppSortKeys;
-    }
-	delete[] lpSortFlags;
 	return er;
 }
 
@@ -2647,10 +2630,6 @@ ECRESULT ECGenericObjectTable::UpdateCategoryMinMax(sObjectTableKey &sKey,
 ECRESULT ECGenericObjectTable::UpdateKeyTableRow(ECCategory *lpCategory, sObjectTableKey *lpsRowKey, struct propVal *lpProps, unsigned int cValues, bool fHidden, sObjectTableKey *lpsPrevRow, ECKeyTable::UpdateType *lpulAction)
 {
 	ECRESULT er = erSuccess;
-	struct propVal *lpOrderedProps = NULL;
-    unsigned int *lpSortLen = NULL;
-    unsigned char **lppSortKeys = NULL;
-    unsigned char *lpSortFlags = NULL;
     struct propVal sProp;
     struct sortOrderArray *lpsSortOrderArray = this->lpsSortOrderArray;
     struct sortOrder sSortHierarchy = { PR_EC_HIERARCHYID, EC_TABLE_SORT_DESCEND };
@@ -2674,14 +2653,14 @@ ECRESULT ECGenericObjectTable::UpdateKeyTableRow(ECCategory *lpCategory, sObject
 		lpsSortOrderArray = &sSortSimple;
     }
 	
-	lpOrderedProps = new struct propVal[cValues];
-	memset(lpOrderedProps, 0, sizeof(struct propVal) * cValues);
-    lpSortLen = new unsigned int[cValues];
-    memset(lpSortLen, 0, sizeof(unsigned int) * cValues);
-    lppSortKeys = new unsigned char *[cValues];
-    memset(lppSortKeys, 0, sizeof(unsigned char *) * cValues);
-    lpSortFlags = new unsigned char [cValues];
-    memset(lpSortFlags, 0, sizeof(unsigned char) * cValues);
+	std::unique_ptr<struct propVal[]> lpOrderedProps(new struct propVal[cValues]);
+	std::unique_ptr<unsigned int[]> lpSortLen(new unsigned int[cValues]);
+	std::unique_ptr<unsigned char *[]> lppSortKeys(new unsigned char *[cValues]);
+	std::unique_ptr<unsigned char[]> lpSortFlags(new unsigned char[cValues]);
+	memset(lpOrderedProps.get(), 0, sizeof(struct propVal) * cValues);
+	memset(lpSortLen.get(), 0, sizeof(unsigned int) * cValues);
+	memset(lppSortKeys.get(), 0, sizeof(unsigned char *) * cValues);
+	memset(lpSortFlags.get(), 0, sizeof(unsigned char) * cValues);
 
 	for (unsigned int i = 0; i < cValues; ++i) {
 		if (ISMINMAX(lpsSortOrderArray->__ptr[i].ulOrder)) {
@@ -2716,23 +2695,16 @@ ECRESULT ECGenericObjectTable::UpdateKeyTableRow(ECCategory *lpCategory, sObject
     }
 
     // Update row
-    er = lpKeyTable->UpdateRow(ECKeyTable::TABLE_ROW_ADD, lpsRowKey, cValues, lpSortLen, lpSortFlags, lppSortKeys, lpsPrevRow, fHidden, lpulAction);
-
+	er = lpKeyTable->UpdateRow(ECKeyTable::TABLE_ROW_ADD, lpsRowKey,
+	     cValues, lpSortLen.get(), lpSortFlags.get(), lppSortKeys.get(),
+	     lpsPrevRow, fHidden, lpulAction);
 exit:
-	if(lpOrderedProps) {
+	if (lpOrderedProps != nullptr)
 		for (unsigned int i = 0; i < cValues; ++i)
 			FreePropVal(&lpOrderedProps[i], false);
-		delete [] lpOrderedProps;
-	}
-		
-	delete[] lpSortLen;
-    if(lppSortKeys) {
+	if (lppSortKeys != nullptr)
 		for (unsigned int i = 0; i < cValues; ++i)
 			delete[] lppSortKeys[i];
-            
-        delete [] lppSortKeys;
-    }
-	delete[] lpSortFlags;
 	return er;
 }
 
@@ -2760,7 +2732,6 @@ ECRESULT ECGenericObjectTable::RemoveCategoryAfterRemoveRow(sObjectTableKey sObj
     bool fModified = false;
     bool fHidden = false;
     unsigned int ulDepth = 0;
-	unsigned char *lpSortKey = NULL;
 	unsigned int ulSortLen = 0;
 	unsigned char ulSortFlags = 0;
 	struct propVal sProp;
@@ -2817,21 +2788,18 @@ ECRESULT ECGenericObjectTable::RemoveCategoryAfterRemoveRow(sObjectTableKey sObj
 						sProp.Value.ul = KCERR_NOT_FOUND;
 					}
 
-					if(GetBinarySortKey(&sProp, &ulSortLen, &lpSortKey) != erSuccess)
+					std::unique_ptr<unsigned char[]> lpSortKey;
+					if(GetBinarySortKey(&sProp, &ulSortLen, &unique_tie(lpSortKey)) != erSuccess)
 						lpSortKey = NULL;
 					if(GetSortFlags(sProp.ulPropTag, &ulSortFlags) != erSuccess)
 						ulSortFlags = 0;
 					
 					ulSortFlags |=  lpsSortOrderArray->__ptr[ulDepth].ulOrder == EC_TABLE_SORT_DESCEND ? TABLEROW_FLAG_DESC : 0;
-					
-					er = lpKeyTable->UpdatePartialSortKey(&obj, ulDepth, lpSortKey, ulSortLen, ulSortFlags, &sPrevRow, &fHidden, &ulAction);
+					er = lpKeyTable->UpdatePartialSortKey(&obj, ulDepth, lpSortKey.get(), ulSortLen, ulSortFlags, &sPrevRow, &fHidden, &ulAction);
 					if (er != erSuccess)
 						goto exit;
 					if ((ulFlags & OBJECTTABLE_NOTIFY) && !fHidden)
 						AddTableNotif(ulAction, obj, &sPrevRow);
-					delete[] lpSortKey;
-					lpSortKey = NULL;
-						
 					FreePropVal(&sProp, false);
 					sProp.ulPropTag = PR_NULL;
 				}
@@ -2886,7 +2854,6 @@ ECRESULT ECGenericObjectTable::RemoveCategoryAfterRemoveRow(sObjectTableKey sObj
     // All done
 	assert(m_mapCategories.size() == m_mapSortedCategories.size());
 exit:
-	delete[] lpSortKey;
 	FreePropVal(&sProp, false);
 	sProp.ulPropTag = PR_NULL;
 	return er;

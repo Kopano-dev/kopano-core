@@ -1320,7 +1320,7 @@ ECRESULT ECUserManagement::GetLocalObjectIdList(objectclass_t objclass, unsigned
 	ECDatabase *lpDatabase = NULL;
 	DB_RESULT lpResult = NULL;
 	DB_ROW lpRow = NULL;
-	std::list<unsigned int> *lpObjects = new std::list<unsigned int>();
+	std::unique_ptr<std::list<unsigned int> > lpObjects(new std::list<unsigned int>);
 	string strQuery;
 
 	er = m_lpSession->GetDatabase(&lpDatabase);
@@ -1357,16 +1357,10 @@ ECRESULT ECUserManagement::GetLocalObjectIdList(objectclass_t objclass, unsigned
 
 		lpObjects->push_back(atoi(lpRow[0]));
 	}
-
-	*lppObjects = lpObjects;
-
+	*lppObjects = lpObjects.release();
 exit:
 	if(lpResult)
 		lpDatabase->FreeResult(lpResult);
-
-	if (er != erSuccess)
-		delete lpObjects;
-
 	return er;
 }
 
@@ -4482,8 +4476,9 @@ ECRESULT ECUserManagement::GetABSourceKeyV1(unsigned int ulUserId, SOURCEKEY *lp
 		return er;
 
 	unsigned int ulLen = CbNewABEID(strEncExId.c_str());
-	auto lpAbeid = reinterpret_cast<ABEID *>(new char[ulLen]);
-	memset(lpAbeid, 0, ulLen);
+	std::unique_ptr<char[]> abchar(new char[ulLen]);
+	memset(abchar.get(), 0, ulLen);
+	auto lpAbeid = reinterpret_cast<ABEID *>(abchar.get());
 	lpAbeid->ulId = ulUserId;
 	lpAbeid->ulType = ulType;
 	memcpy(&lpAbeid->guid, &MUIDECSAB, sizeof(GUID));
@@ -4494,8 +4489,7 @@ ECRESULT ECUserManagement::GetABSourceKeyV1(unsigned int ulUserId, SOURCEKEY *lp
 		memcpy(lpAbeid->szExId, strEncExId.c_str(), strEncExId.length()+1);
 	}
 
-	*lpsSourceKey = SOURCEKEY(ulLen, reinterpret_cast<const char *>(lpAbeid));
-	delete[] lpAbeid;
+	*lpsSourceKey = SOURCEKEY(ulLen, abchar.get());
 	return erSuccess;
 }
 

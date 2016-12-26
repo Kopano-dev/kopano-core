@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <chrono>
+#include <memory>
 #include <mutex>
 #include <new>
 #include <pwd.h>
@@ -686,7 +687,7 @@ ECRESULT ECAuthSession::CreateECSession(ECSESSIONGROUPID ecSessionGroupId,
     ECSESSIONID *sessionID, ECSession **lppNewSession)
 {
 	ECRESULT er = erSuccess;
-	ECSession *lpSession = NULL;
+	std::unique_ptr<ECSession> lpSession;
 	ECSESSIONID newSID;
 
 	if (!m_bValidated) {
@@ -697,11 +698,11 @@ ECRESULT ECAuthSession::CreateECSession(ECSESSIONGROUPID ecSessionGroupId,
 	CreateSessionID(m_ulClientCapabilities, &newSID);
 
 	// ECAuthSessionOffline creates offline version .. no bOverrideClass construction
-	lpSession = new(std::nothrow) ECSession(m_strSourceAddr.c_str(),
+	lpSession.reset(new(std::nothrow) ECSession(m_strSourceAddr.c_str(),
 	            newSID, ecSessionGroupId, m_lpDatabaseFactory,
 	            m_lpSessionManager, m_ulClientCapabilities,
 	            m_ulValidationMethod, m_ulConnectingPid,
-	            cl_ver, cl_app, cl_app_ver, cl_app_misc);
+	            cl_ver, cl_app, cl_app_ver, cl_app_misc));
 	if (!lpSession) {
 		er = KCERR_NOT_ENOUGH_MEMORY;
 		goto exit;
@@ -712,12 +713,8 @@ ECRESULT ECAuthSession::CreateECSession(ECSESSIONGROUPID ecSessionGroupId,
 		goto exit;				// user not found anymore, or error in getting groups
 
 	*sessionID = newSID;
-	*lppNewSession = lpSession;
-
+	*lppNewSession = lpSession.release();
 exit:
-	if (er != erSuccess)
-		delete lpSession;
-
 	return er;
 }
 
