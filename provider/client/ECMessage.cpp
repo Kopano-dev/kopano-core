@@ -1007,37 +1007,29 @@ HRESULT ECMessage::CreateAttach(LPCIID lpInterface, ULONG ulFlags, const IAttach
 		hr = this->GetAttachmentTable(fMapiUnicode, &~lpTable);
 
 		if(hr != hrSuccess)
-			goto exit;
+			return hr;
 	}
-
-	if(this->lpAttachments == NULL) {
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
-
+	if (this->lpAttachments == nullptr)
+		return MAPI_E_CALL_FAILED;
 	hr = refFactory.Create(this->GetMsgStore(), MAPI_ATTACH, TRUE, this->ulNextAttUniqueId, m_lpRoot, &lpAttach);
 
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpAttach->HrLoadEmptyProps();
 
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	sID.ulPropTag = PR_ATTACH_NUM;
 	sID.Value.ul = this->ulNextAttUniqueId;
 	hr = this->GetMsgStore()->lpTransport->HrOpenParentStorage(this, this->ulNextAttUniqueId, 0, NULL, &~lpStorage);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpAttach->HrSetPropStorage(lpStorage, FALSE);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = lpAttach->SetProps(1, &sID, NULL);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	hr = lpAttach->QueryInterface(IID_IAttachment, (void **)lppAttach);
 
@@ -1049,8 +1041,6 @@ HRESULT ECMessage::CreateAttach(LPCIID lpInterface, ULONG ulFlags, const IAttach
 
 	// successfully created attachment, so increment counter for the next
 	++this->ulNextAttUniqueId;
-
-exit:
 	return hr;
 }
 
@@ -2442,10 +2432,8 @@ HRESULT ECMessage::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArra
 	GUID sDestServerGuid = {0};
 	GUID sSourceServerGuid = {0};
 
-	if(lpDestObj == NULL) {
-	    hr = MAPI_E_INVALID_PARAMETER;
-	    goto exit;
-    }
+	if (lpDestObj == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 
 	// Wrap mapi object to kopano object
 	if (HrGetOneProp((LPMAPIPROP)lpDestObj, PR_EC_OBJECT, &~lpECObject) == hrSuccess)
@@ -2464,28 +2452,21 @@ HRESULT ECMessage::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArra
 			// the same server as well.
 			hr = lpDestTop->GetMsgStore()->lpTransport->GetServerGUID(&sDestServerGuid);
 			if (hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			hr = lpSourceTop->GetMsgStore()->lpTransport->GetServerGUID(&sSourceServerGuid);
 			if (hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			if(lpDestTop->m_lpEntryId && lpSourceTop->m_lpEntryId &&
 			   lpDestTop->m_cbEntryId == lpSourceTop->m_cbEntryId &&
 			   memcmp(lpDestTop->m_lpEntryId, lpSourceTop->m_lpEntryId, lpDestTop->m_cbEntryId) == 0 &&
-			   sDestServerGuid == sSourceServerGuid) {
+			   sDestServerGuid == sSourceServerGuid)
 				// Source and destination are the same on-disk objects (entryids are equal)
-
-				hr = MAPI_E_NO_ACCESS;
-				goto exit;
-			}
+				return MAPI_E_NO_ACCESS;
 		}
 	}
-
-	hr = Util::DoCopyTo(&IID_IMessage, &this->m_xMessage, ciidExclude, rgiidExclude, lpExcludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
-
-exit:
-	return hr;
+	return Util::DoCopyTo(&IID_IMessage, &this->m_xMessage, ciidExclude,
+	       rgiidExclude, lpExcludeProps, ulUIParam, lpProgress,
+	       lpInterface, lpDestObj, ulFlags, lppProblems);
 }
 
 // We override HrLoadProps to setup PR_BODY and PR_RTF_COMPRESSED in the initial message
@@ -2747,14 +2728,13 @@ HRESULT ECMessage::GetBodyType(eBodyType *lpulBodyType)
 	if (m_ulBodyType == bodyTypeUnknown) {
 		hr = OpenProperty(PR_RTF_COMPRESSED, &IID_IStream, 0, 0, &~lpRTFCompressedStream);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		hr = WrapCompressedRTFStream(lpRTFCompressedStream, 0, &~lpRTFUncompressedStream);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		hr = lpRTFUncompressedStream->Read(szRtfBuf, sizeof(szRtfBuf), &cbRtfBuf);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		if (isrtftext(szRtfBuf, cbRtfBuf))
 			m_ulBodyType = bodyTypePlain;
 		else if (isrtfhtml(szRtfBuf, cbRtfBuf))
@@ -2764,9 +2744,7 @@ HRESULT ECMessage::GetBodyType(eBodyType *lpulBodyType)
 	}
 
 	*lpulBodyType = m_ulBodyType;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 HRESULT ECMessage::GetRtfData(std::string *lpstrRtfData)
