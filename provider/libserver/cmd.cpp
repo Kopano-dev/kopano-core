@@ -10281,10 +10281,9 @@ SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(getLicenseAuth, lpsResponse->er, struct xsd__base64Binary sAuthData, struct getLicenseAuthResponse *lpsResponse)
 {
-	ECLicenseClient *lpLicenseClient = new ECLicenseClient();
 	void *data = NULL;
 
-	er = lpLicenseClient->Auth(sAuthData.__ptr, sAuthData.__size, &data, reinterpret_cast<unsigned int *>(&lpsResponse->sAuthResponse.__size));
+	er = ECLicenseClient().Auth(sAuthData.__ptr, sAuthData.__size, &data, reinterpret_cast<unsigned int *>(&lpsResponse->sAuthResponse.__size));
 	if (er != erSuccess)
 		goto exit;
 
@@ -10293,16 +10292,14 @@ SOAP_ENTRY_START(getLicenseAuth, lpsResponse->er, struct xsd__base64Binary sAuth
 
 exit:
 	free(data);
-	delete lpLicenseClient;
 }
 SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(getLicenseCapa, lpsResponse->er, unsigned int ulServiceType, struct getLicenseCapaResponse *lpsResponse)
 {
-    ECLicenseClient *lpLicenseClient = new ECLicenseClient();
     std::vector<std::string> lstCapabilities;
 
-    er = lpLicenseClient->GetCapabilities(ulServiceType, lstCapabilities);
+	er = ECLicenseClient().GetCapabilities(ulServiceType, lstCapabilities);
     if(er != erSuccess)
         goto exit;
         
@@ -10311,26 +10308,21 @@ SOAP_ENTRY_START(getLicenseCapa, lpsResponse->er, unsigned int ulServiceType, st
     
 	for (unsigned int i = 0; i < lstCapabilities.size(); ++i)
 		lpsResponse->sCapabilities.__ptr[i] = s_strcpy(soap, lstCapabilities[i].c_str());
-exit:
-    delete lpLicenseClient;
+ exit: ;
 }
 SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(getLicenseUsers, lpsResponse->er, unsigned int ulServiceType, struct getLicenseUsersResponse *lpsResponse)
 {
 	unsigned int ulUsers = 0;
-
-	ECLicenseClient *lpLicenseClient = new ECLicenseClient();
 	std::vector<std::string> lstCapabilities;
 
-	er = lpLicenseClient->GetInfo(ulServiceType, &ulUsers);
+	er = ECLicenseClient().GetInfo(ulServiceType, &ulUsers);
 	if(er != erSuccess)
 		goto exit;
 
 	lpsResponse->ulUsers = ulUsers;
-
-exit:
-	delete lpLicenseClient;
+ exit: ;
 }
 SOAP_ENTRY_END()
 

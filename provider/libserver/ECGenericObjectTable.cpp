@@ -1371,13 +1371,11 @@ ECRESULT ECGenericObjectTable::SetCollapseState(struct xsd__base64Binary sCollap
 {
     ECRESULT er = erSuccess;
     struct soap xmlsoap;
-    struct collapseState *lpCollapseState = NULL;
+	struct collapseState cst;
     std::istringstream is(std::string((const char *)sCollapseState.__ptr, sCollapseState.__size));
 	sObjectTableKey sKey;
     struct xsd__base64Binary sInstanceKey;
 	ulock_rec giblock(m_hLock);
-    
-    lpCollapseState = new collapseState;
     
     er = Populate();
     if(er != erSuccess)
@@ -1387,82 +1385,78 @@ ECRESULT ECGenericObjectTable::SetCollapseState(struct xsd__base64Binary sCollap
 	soap_set_mode(&xmlsoap, SOAP_XML_TREE | SOAP_C_UTFSTRING);
     xmlsoap.is = &is;
     
-    soap_default_collapseState(&xmlsoap, lpCollapseState);
+	soap_default_collapseState(&xmlsoap, &cst);
     if (soap_begin_recv(&xmlsoap) != 0) {
 		er = KCERR_NETWORK_ERROR;
 		goto exit;
     }
-    soap_get_collapseState(&xmlsoap, lpCollapseState, "CollapseState", NULL);
-    
+	soap_get_collapseState(&xmlsoap, &cst, "CollapseState", NULL);
     if(xmlsoap.error) {
 		er = KCERR_DATABASE_ERROR;
 		ec_log_crit("ECGenericObjectTable::SetCollapseState(): xmlsoap error %d", xmlsoap.error);
 		goto exit;
     }
     
-    // lpCollapseState now contains the collapse state for all categories, apply them now
+	/* @cst now contains the collapse state for all categories, apply them now. */
+	for (gsoap_size_t i = 0; i < cst.sCategoryStates.__size; ++i) {
+		std::unique_ptr<unsigned int[]> lpSortLen(new unsigned int[cst.sCategoryStates.__ptr[i].sProps.__size]);
+		std::unique_ptr<unsigned char *[]> lpSortData(new unsigned char *[cst.sCategoryStates.__ptr[i].sProps.__size]);
+		std::unique_ptr<unsigned char[]> lpSortFlags(new unsigned char[cst.sCategoryStates.__ptr[i].sProps.__size]);
     
-    for (gsoap_size_t i = 0; i < lpCollapseState->sCategoryStates.__size; ++i) {
-		std::unique_ptr<unsigned int[]> lpSortLen(new unsigned int[lpCollapseState->sCategoryStates.__ptr[i].sProps.__size]);
-		std::unique_ptr<unsigned char *[]> lpSortData(new unsigned char *[lpCollapseState->sCategoryStates.__ptr[i].sProps.__size]);
-		std::unique_ptr<unsigned char[]> lpSortFlags(new unsigned char[lpCollapseState->sCategoryStates.__ptr[i].sProps.__size]);
-    
-		memset(lpSortData.get(), 0, lpCollapseState->sCategoryStates.__ptr[i].sProps.__size * sizeof(unsigned char *));
+		memset(lpSortData.get(), 0, cst.sCategoryStates.__ptr[i].sProps.__size * sizeof(unsigned char *));
         
-        // Get the binary sortkeys for all properties
-        for (gsoap_size_t n = 0; n < lpCollapseState->sCategoryStates.__ptr[i].sProps.__size; ++n) {
-            if(GetBinarySortKey(&lpCollapseState->sCategoryStates.__ptr[i].sProps.__ptr[n], &lpSortLen[n], &lpSortData[n]) != erSuccess)
-                goto next;
-                
-            if(GetSortFlags(lpCollapseState->sCategoryStates.__ptr[i].sProps.__ptr[n].ulPropTag, &lpSortFlags[n]) != erSuccess)
-                goto next;
-        }
+		// Get the binary sortkeys for all properties
+		for (gsoap_size_t n = 0; n < cst.sCategoryStates.__ptr[i].sProps.__size; ++n) {
+			if (GetBinarySortKey(&cst.sCategoryStates.__ptr[i].sProps.__ptr[n], &lpSortLen[n], &lpSortData[n]) != erSuccess)
+				goto next;
+			if (GetSortFlags(cst.sCategoryStates.__ptr[i].sProps.__ptr[n].ulPropTag, &lpSortFlags[n]) != erSuccess)
+				goto next;
+		}
 
-        // Find the category and expand or collapse it. If it's not there anymore, just ignore it.
-		if (lpKeyTable->Find(lpCollapseState->sCategoryStates.__ptr[i].sProps.__size,
+		// Find the category and expand or collapse it. If it's not there anymore, just ignore it.
+		if (lpKeyTable->Find(cst.sCategoryStates.__ptr[i].sProps.__size,
 		    reinterpret_cast<int *>(lpSortLen.get()),
 		    lpSortData.get(), lpSortFlags.get(), &sKey) == erSuccess) {
 
             sInstanceKey.__size = 8;
 			sInstanceKey.__ptr = (unsigned char *)&sKey;
             
-            if (lpCollapseState->sCategoryStates.__ptr[i].fExpanded)
-                ExpandRow(NULL, sInstanceKey, 0, 0, NULL, NULL);
-            else
-                CollapseRow(sInstanceKey, 0, NULL);
-        }
+			if (cst.sCategoryStates.__ptr[i].fExpanded)
+				ExpandRow(NULL, sInstanceKey, 0, 0, NULL, NULL);
+			else
+				CollapseRow(sInstanceKey, 0, NULL);
+		}
 next:        
-        for (gsoap_size_t j = 0; j < lpCollapseState->sCategoryStates.__ptr[i].sProps.__size; ++j)
-                delete [] lpSortData[j];
+		for (gsoap_size_t j = 0; j < cst.sCategoryStates.__ptr[i].sProps.__size; ++j)
+			delete[] lpSortData[j];
     }
     
     // There is also a row stored in the collapse state which we have to create a bookmark at and return that. If it is not found,
     // we return a bookmark to the nearest next row.
-    if (lpCollapseState->sBookMarkProps.__size > 0) {
-		std::unique_ptr<unsigned int[]> lpSortLen(new unsigned int[lpCollapseState->sBookMarkProps.__size]);
-		std::unique_ptr<unsigned char *[]> lpSortData(new unsigned char *[lpCollapseState->sBookMarkProps.__size]);
-		std::unique_ptr<unsigned char[]> lpSortFlags(new unsigned char[lpCollapseState->sBookMarkProps.__size]);
+	if (cst.sBookMarkProps.__size > 0) {
+		std::unique_ptr<unsigned int[]> lpSortLen(new unsigned int[cst.sBookMarkProps.__size]);
+		std::unique_ptr<unsigned char *[]> lpSortData(new unsigned char *[cst.sBookMarkProps.__size]);
+		std::unique_ptr<unsigned char[]> lpSortFlags(new unsigned char[cst.sBookMarkProps.__size]);
         
-		memset(lpSortData.get(), 0, lpCollapseState->sBookMarkProps.__size * sizeof(unsigned char *));
+		memset(lpSortData.get(), 0, cst.sBookMarkProps.__size * sizeof(unsigned char *));
 
-	gsoap_size_t n;
-        for (n = 0; n < lpCollapseState->sBookMarkProps.__size; ++n) {
-            if(GetBinarySortKey(&lpCollapseState->sBookMarkProps.__ptr[n], &lpSortLen[n], &lpSortData[n]) != erSuccess)
-                break;
-            
-            if(GetSortFlags(lpCollapseState->sBookMarkProps.__ptr[n].ulPropTag, &lpSortFlags[n]) != erSuccess)
-                break;
-        }
+		gsoap_size_t n;
+		for (n = 0; n < cst.sBookMarkProps.__size; ++n) {
+			if (GetBinarySortKey(&cst.sBookMarkProps.__ptr[n], &lpSortLen[n], &lpSortData[n]) != erSuccess)
+				break;
+			if (GetSortFlags(cst.sBookMarkProps.__ptr[n].ulPropTag, &lpSortFlags[n]) != erSuccess)
+				break;
+		}
     
         // If an error occurred in the previous loop, just ignore the whole bookmark thing, just return bookmark 0 (BOOKMARK_BEGINNING)    
-        if(n == lpCollapseState->sBookMarkProps.__size) {
-			lpKeyTable->LowerBound(lpCollapseState->sBookMarkProps.__size,
+		if (n == cst.sBookMarkProps.__size) {
+			lpKeyTable->LowerBound(cst.sBookMarkProps.__size,
 				reinterpret_cast<int *>(lpSortLen.get()),
 				lpSortData.get(), lpSortFlags.get());
             lpKeyTable->CreateBookmark(lpulBookmark);
         }
 
-        for (gsoap_size_t j = 0; j < lpCollapseState->sBookMarkProps.__size; ++j)
+		for (gsoap_size_t j = 0; j < cst.sBookMarkProps.__size; ++j)
 			delete[] lpSortData[j];
     }
     
@@ -1478,7 +1472,6 @@ exit:
 	soap_destroy(&xmlsoap);
 	soap_end(&xmlsoap);
 	giblock.unlock();
-        delete lpCollapseState;
 	return er;
 }
 

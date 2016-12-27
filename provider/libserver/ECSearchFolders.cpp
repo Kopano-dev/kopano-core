@@ -1626,7 +1626,6 @@ ECRESULT ECSearchFolders::LoadSearchCriteria(unsigned int ulStoreId, unsigned in
 	DB_RESULT		lpDBResult = NULL;
 	DB_ROW			lpDBRow = NULL;
 	std::string		strQuery;
-	struct searchCriteria *lpSearchCriteria = NULL;
 	struct soap				xmlsoap;
 
     // Get database
@@ -1653,23 +1652,21 @@ ECRESULT ECSearchFolders::LoadSearchCriteria(unsigned int ulStoreId, unsigned in
 	if(lpDBRow && lpDBRow[0] && atoi(lpDBRow[0]) == 2 && lpDBRow[1]) {
 		std::string xmldata(lpDBRow[1]);
 		std::istringstream xml(xmldata);
-
-		lpSearchCriteria = new struct searchCriteria;
+		struct searchCriteria crit;
 
 		xmlsoap.is = &xml;
-		soap_default_searchCriteria(&xmlsoap, lpSearchCriteria);
+		soap_default_searchCriteria(&xmlsoap, &crit);
 		if (soap_begin_recv(&xmlsoap) != 0) {
 			er = KCERR_NETWORK_ERROR;
 			goto exit;
 		}
-		soap_get_searchCriteria(&xmlsoap, lpSearchCriteria, "SearchCriteria", NULL);
+		soap_get_searchCriteria(&xmlsoap, &crit, "SearchCriteria", NULL);
 
 		// We now have the object, allocated by xmlsoap object,
 		if (soap_end_recv(&xmlsoap) != 0)
 			er = KCERR_NETWORK_ERROR;
 		else
-			er = CopySearchCriteria(NULL, lpSearchCriteria, lppSearchCriteria);
-
+			er = CopySearchCriteria(nullptr, &crit, lppSearchCriteria);
 		/*
 		 * We do not need the error here: lppSearchCriteria will not be
 		 * touched, and we need to free the soap structs.
@@ -1682,8 +1679,6 @@ ECRESULT ECSearchFolders::LoadSearchCriteria(unsigned int ulStoreId, unsigned in
 	}
 
 exit:
-	delete lpSearchCriteria;
-
 	if(lpDBResult)
 		lpDatabase->FreeResult(lpDBResult);
 

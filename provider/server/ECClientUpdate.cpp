@@ -64,8 +64,6 @@ int HandleClientUpdate(struct soap *soap)
 	char *szReqEnd = NULL;
 	std::string strLicenseRequest;
 	std::string strLicenseResponse;
-
-	ECLicenseClient *lpLicenseClient = NULL;
 	unsigned int ulLicenseResponse = 0;
 	void *lpLicenseResponse = NULL;
 	ECRESULT er = erSuccess;
@@ -98,9 +96,8 @@ int HandleClientUpdate(struct soap *soap)
 			goto exit;
 		}
 		strLicenseRequest = base64_decode(std::string(szReq, szReqEnd - szReq));
-
-		lpLicenseClient = new ECLicenseClient(g_lpConfig->GetSetting("license_socket"),  atoui(g_lpConfig->GetSetting("license_timeout")));
-		er = lpLicenseClient->Auth((unsigned char*)strLicenseRequest.c_str(), strLicenseRequest.length(), &lpLicenseResponse, &ulLicenseResponse);
+		er = ECLicenseClient(g_lpConfig->GetSetting("license_socket"),  atoui(g_lpConfig->GetSetting("license_timeout")))
+		     .Auth((unsigned char*)strLicenseRequest.c_str(), strLicenseRequest.length(), &lpLicenseResponse, &ulLicenseResponse);
 		if (er != erSuccess) {
 			ec_log_debug("Client update: Invalid license request, error: 0x%08X.", er);
 			goto exit;
@@ -185,8 +182,6 @@ int HandleClientUpdate(struct soap *soap)
 
 exit:
 	free(lpLicenseResponse);
-	delete lpLicenseClient;
-
 	if (fd)
 		fclose(fd);
 
@@ -396,7 +391,6 @@ int ns__getClientUpdate(struct soap *soap, struct clientUpdateInfoRequest sClien
 	ClientVersion sLatestVersion;
 	unsigned int ulLicenseResponse = 0;
 	void *lpLicenseResponse = NULL;
-	ECLicenseClient *lpLicenseClient = NULL;
 	std::string strClientMSIName;
 	std::string strPath;
 	FILE *fd = NULL;
@@ -503,8 +497,8 @@ int ns__getClientUpdate(struct soap *soap, struct clientUpdateInfoRequest sClien
 		}
 	}
 
-	lpLicenseClient = new ECLicenseClient(g_lpConfig->GetSetting("license_socket"),  atoui(g_lpConfig->GetSetting("license_timeout")));
-	er = lpLicenseClient->Auth(sClientUpdateInfo.sLicenseReq.__ptr, sClientUpdateInfo.sLicenseReq.__size, &lpLicenseResponse, &ulLicenseResponse);
+	er = ECLicenseClient(g_lpConfig->GetSetting("license_socket"),  atoui(g_lpConfig->GetSetting("license_timeout")))
+	     .Auth(sClientUpdateInfo.sLicenseReq.__ptr, sClientUpdateInfo.sLicenseReq.__size, &lpLicenseResponse, &ulLicenseResponse);
 	if (er != erSuccess) {
 		ec_log_err("Client update: trackid: 0x%08X, Invalid license request, error: 0x%08X.", sClientUpdateInfo.ulTrackId, er);
 		goto exit;
@@ -591,8 +585,6 @@ exit:
 
 	lpsResponse->er = er;
 	free(lpLicenseResponse);
-	delete lpLicenseClient;
-
 	if (er && fd)
 		fclose(fd);
 
