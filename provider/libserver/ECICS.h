@@ -32,55 +32,43 @@ namespace KC {
 
 class SOURCEKEY _kc_final {
 public:
-    SOURCEKEY(void) : lpData(NULL), ulSize(0) {}
-    SOURCEKEY(const SOURCEKEY &s) { 
-        if(s.ulSize == 0) { 
-            ulSize = 0; 
-            lpData = NULL;
-        } else { 
-            lpData = new char[s.ulSize]; 
-            memcpy(lpData, s.lpData, s.ulSize); 
-            ulSize = s.ulSize;
-        } 
-    }
-	SOURCEKEY(SOURCEKEY &&o) :
-	    lpData(o.lpData), ulSize(o.ulSize)
+	SOURCEKEY(void) : ulSize(0) {}
+	SOURCEKEY(const SOURCEKEY &s) : ulSize(s.ulSize)
 	{
-		o.lpData = nullptr;
-	}
-    SOURCEKEY(unsigned int ulSize, const char *lpData) { 
-		if (lpData) {
-			this->lpData = new char[ulSize];
-			memcpy(this->lpData, lpData, ulSize);
-		} else {
-			this->lpData = NULL;
+		if (ulSize > 0) {
+			lpData.reset(new char[s.ulSize]);
+			memcpy(lpData.get(), s.lpData.get(), s.ulSize);
 		}
-		this->ulSize = ulSize;
-    }
-    SOURCEKEY(const GUID &guid, unsigned long long ullId)
-    {
-        // Use 22-byte sourcekeys (16 bytes GUID + 6 bytes counter)
-        ulSize = sizeof(GUID) + 6;
-        lpData = new char [ulSize]; 
-        memcpy(lpData, &guid, sizeof(guid));
-        memcpy(lpData+sizeof(GUID), &ullId, ulSize - sizeof(GUID)); 
-    }
-    SOURCEKEY(const struct xsd__base64Binary &sourcekey)
-    {
-        this->lpData = new char[sourcekey.__size];
-        memcpy(this->lpData, sourcekey.__ptr, sourcekey.__size);
-        this->ulSize = sourcekey.__size;
-    }
-    ~SOURCEKEY() { 
-	delete[] lpData; 
-    }
-    
-    SOURCEKEY&  operator= (const SOURCEKEY &s) { 
+	}
+	SOURCEKEY(SOURCEKEY &&o) :
+	    ulSize(o.ulSize), lpData(std::move(o.lpData))
+	{}
+	SOURCEKEY(unsigned int z, const char *d) : ulSize(z)
+	{
+		if (d != nullptr && z > 0) {
+			lpData.reset(new char[ulSize]);
+			memcpy(lpData.get(), d, ulSize);
+		}
+	}
+	SOURCEKEY(const GUID &guid, unsigned long long ullId) :
+		ulSize(sizeof(GUID) + 6), lpData(new char[ulSize])
+	{
+		memcpy(&lpData[0], &guid, sizeof(guid));
+		memcpy(&lpData[sizeof(GUID)], &ullId, ulSize - sizeof(GUID));
+	}
+	SOURCEKEY(const struct xsd__base64Binary &sourcekey) :
+		ulSize(sourcekey.__size)
+	{
+		if (ulSize > 0) {
+			lpData.reset(new char[ulSize]);
+			memcpy(this->lpData.get(), sourcekey.__ptr, sourcekey.__size);
+		}
+	}
+    SOURCEKEY&  operator= (const SOURCEKEY &s) {
         if(&s == this) return *this; 
-        delete[] lpData; 
-        lpData = new char[s.ulSize]; 
-        memcpy(lpData, s.lpData, s.ulSize); 
-        ulSize = s.ulSize; 
+		lpData.reset(new char[s.ulSize]);
+		ulSize = s.ulSize;
+		memcpy(lpData.get(), s.lpData.get(), ulSize);
         return *this; 
     }
     
@@ -89,30 +77,30 @@ public:
             return true;
         if(ulSize != s.ulSize)
             return false;
-        return memcmp(lpData, s.lpData, s.ulSize) == 0;
+		return memcmp(lpData.get(), s.lpData.get(), s.ulSize) == 0;
     }
 	
 	bool operator < (const SOURCEKEY &s) const {
 		if(this == &s)
 			return false;
 		if(ulSize == s.ulSize)
-			return memcmp(lpData, s.lpData, ulSize) < 0;
+			return memcmp(lpData.get(), s.lpData.get(), ulSize) < 0;
 		else if(ulSize > s.ulSize) {
-			int d = memcmp(lpData, s.lpData, s.ulSize);
+			int d = memcmp(lpData.get(), s.lpData.get(), s.ulSize);
 			return (d == 0) ? false : (d < 0);			// If the compared part is equal, the shortes is less (s)
 		} else {
-			int d = memcmp(lpData, s.lpData, ulSize);
+			int d = memcmp(lpData.get(), s.lpData.get(), ulSize);
 			return (d == 0) ? true : (d < 0);			// If the compared part is equal, the shortes is less (this)
 		}
 	}
     
-    operator unsigned char *() const { return (unsigned char *)lpData; }
-    operator std::string(void) const { return std::string(lpData, ulSize); }
+	operator unsigned char *(void) const { return reinterpret_cast<unsigned char *>(lpData.get()); }
+	operator std::string(void) const { return std::string(lpData.get(), ulSize); }
     unsigned int 	size() const { return ulSize; }
 	bool			empty() const { return ulSize == 0; } 
 private:
-    char *lpData;
-    unsigned int ulSize;
+	unsigned int ulSize;
+	std::unique_ptr<char[]> lpData;
 };
 
 ECRESULT AddChange(BTSession *lpecSession, unsigned int ulSyncId, const SOURCEKEY &sSourceKey, const SOURCEKEY &sParentSourceKey, unsigned int ulChange, unsigned int ulFlags = 0, bool fForceNewChangeKey = false, std::string *lpstrChangeKey = NULL, std::string *lpstrChangeList = NULL);
