@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <memory>
 #include <new>
 #include <Python.h>
 #include <mapi.h>
@@ -356,7 +357,7 @@ HRESULT PyMapiPluginFactory::Init(ECConfig* lpConfig, ECLogger *lpLogger)
 HRESULT PyMapiPluginFactory::CreatePlugin(const char* lpPluginManagerClassName, PyMapiPlugin **lppPlugin)
 {
 	HRESULT hr = S_OK;
-	auto lpPlugin = new(std::nothrow) PyMapiPlugin();
+	std::unique_ptr<PyMapiPlugin> lpPlugin(new(std::nothrow) PyMapiPlugin);
 	if (lpPlugin == nullptr) {
 		hr = MAPI_E_NOT_ENOUGH_MEMORY;
 		goto exit;
@@ -365,12 +366,7 @@ HRESULT PyMapiPluginFactory::CreatePlugin(const char* lpPluginManagerClassName, 
 	hr = lpPlugin->Init(m_lpLogger, m_ptrModMapiPlugin, lpPluginManagerClassName, m_strPluginPath.c_str());
 	if (hr != S_OK)
 		goto exit;
-		
-	*lppPlugin = lpPlugin;
-	lpPlugin = NULL;
-	
+	*lppPlugin = lpPlugin.release();
 exit:
-	delete lpPlugin;
-
 	return hr;
 }
