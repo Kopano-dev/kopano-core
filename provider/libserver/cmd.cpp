@@ -4279,12 +4279,11 @@ static ECRESULT DoNotifySubscribe(ECSession *lpecSession,
 	}else {
 		er = lpecSession->GetObjectFromEntryId(&notifySubscribe->sKey, &ulKey);
 		if(er != erSuccess)
-			goto exit;
-
+			return er;
 		// Check permissions
 		er = lpecSession->GetSecurity()->CheckPermission(ulKey, ecSecurityFolderVisible);
 		if(er != erSuccess)
-			goto exit;
+			return er;
 	}
 	
 	if(notifySubscribe->ulEventMask & fnevTableModified) {
@@ -4294,17 +4293,15 @@ static ECRESULT DoNotifySubscribe(ECSession *lpecSession,
 	    // whenever it is modified, producing a TABLE_ROW_ADDED for that row instead of the correct TABLE_ROW_MODIFIED.
 		er = lpecSession->GetTableManager()->GetTable(ulKey, &~lpTable);
 	    if(er != erSuccess)
-	        goto exit;
-	        
+			return er;
         er = lpTable->Populate();
         if(er != erSuccess)
-            goto exit;
+			return er;
 	}
 
 	er = lpecSession->AddAdvise(notifySubscribe->ulConnection, ulKey, notifySubscribe->ulEventMask);
 	if (er == erSuccess)
 		TRACE_SOAP(TRACE_INFO, "ns__notifySubscribe", "connectionId: %d SessionId: %d Mask: %d",notifySubscribe->ulConnection, ulSessionId, notifySubscribe->ulEventMask);
-exit:
 	return er;
 }
 

@@ -898,13 +898,11 @@ ECRESULT ECSecurity::GetViewableCompanies(unsigned int ulFlags,
 	else
 		er = m_lpSession->GetUserManagement()->GetParentObjectsOfObjectAndSync(OBJECTRELATION_COMPANY_VIEW,
 		     m_ulCompanyID, &unique_tie(lpObjects), ulFlags);
-	if (er != erSuccess) {
+	if (er != erSuccess)
 		/* Whatever the error might be, it only indicates we
 		 * are not allowed to view _other_ companyspaces.
 		 * It doesn't restrict us from viewing our own... */
 		lpObjects.reset(new std::list<localobjectdetails_t>);
-		er = erSuccess;
-	}
 
 	/* We are going to insert the requested companyID to the list as well,
 	 * this way we guarentee that _all_ viewable companies are in the list.
@@ -915,7 +913,7 @@ ECRESULT ECSecurity::GetViewableCompanies(unsigned int ulFlags,
 		if (!(ulFlags & USERMANAGEMENT_IDS_ONLY)) {
 			er = m_lpSession->GetUserManagement()->GetObjectDetails(m_ulCompanyID, &details);
 			if (er != erSuccess)
-				goto exit;
+				return er;
 		} else {
 			details = objectdetails_t(CONTAINER_COMPANY);
 		}
@@ -925,8 +923,7 @@ ECRESULT ECSecurity::GetViewableCompanies(unsigned int ulFlags,
 	lpObjects->sort();
 	lpObjects->unique();
 	*lppObjects = lpObjects.release();
-exit:
-	return er;
+	return erSuccess;
 }
 
 /** 
@@ -949,7 +946,7 @@ ECRESULT ECSecurity::GetAdminCompanies(unsigned int ulFlags, list<localobjectdet
 		er = m_lpSession->GetUserManagement()->GetParentObjectsOfObjectAndSync(OBJECTRELATION_COMPANY_ADMIN,
 		     m_ulUserID, &unique_tie(lpObjects), ulFlags);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	/* A user is only admin over an company when he has privileges to view the company */
 	for (auto iterObjects = lpObjects->begin(); iterObjects != lpObjects->cend(); ) {
@@ -962,8 +959,7 @@ ECRESULT ECSecurity::GetAdminCompanies(unsigned int ulFlags, list<localobjectdet
 		}
 	}
 	*lppObjects = lpObjects.release();
-exit:
-	return er;
+	return erSuccess;
 }
 
 /** 

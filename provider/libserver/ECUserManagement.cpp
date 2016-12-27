@@ -580,14 +580,11 @@ ECRESULT ECUserManagement::GetSubObjectsOfObjectAndSync(userobject_relation_t re
 
 	er = GetThreadLocalPlugin(m_lpPluginFactory, &lpPlugin);
 	if(er != erSuccess)
-		goto exit;
-
+		return er;
 	if (!m_lpSession->GetSessionManager()->IsHostedSupported() &&
-		(relation == OBJECTRELATION_COMPANY_VIEW ||
-		 relation == OBJECTRELATION_COMPANY_ADMIN)) {
-		er = KCERR_NO_SUPPORT;
-		goto exit;
-	}
+	    (relation == OBJECTRELATION_COMPANY_VIEW ||
+	    relation == OBJECTRELATION_COMPANY_ADMIN))
+		return KCERR_NO_SUPPORT;
 
 	// The 'everyone' group contains all visible users for the currently logged in user.
 	if (relation == OBJECTRELATION_GROUP_MEMBER && ulParentId == KOPANO_UID_EVERYONE) {
@@ -595,10 +592,10 @@ ECRESULT ECUserManagement::GetSubObjectsOfObjectAndSync(userobject_relation_t re
 
 		er = GetSecurity(&lpSecurity);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 		er = lpSecurity->GetViewableCompanyIds(ulFlags, &unique_tie(lpCompanies));
 		if (er != erSuccess)
-			goto exit;
+			return er;
 
 		/* Fallback in case hosted is not supported */
 		if (lpCompanies->empty())
@@ -610,36 +607,32 @@ ECRESULT ECUserManagement::GetSubObjectsOfObjectAndSync(userobject_relation_t re
 			     obj.ulId, &unique_tie(lpObjectsTmp),
 			     ulFlags | USERMANAGEMENT_SHOW_HIDDEN);
 			if (er != erSuccess)
-				goto exit;
+				return er;
 			lpObjects->merge(*lpObjectsTmp);
 		}
 		// TODO: remove excessive objects from lpObjects ? seems that this list is going to contain a lot... maybe too much?
 	} else {
 		er = GetExternalId(ulParentId, &objectid);
 		if(er != erSuccess)
-			goto exit;
-
+			return er;
 		try {
 			lpSignatures = lpPlugin->getSubObjectsForObject(relation, objectid);
 		} catch(objectnotfound &) {
 			MoveOrDeleteLocalObject(ulParentId, objectid.objclass);
-			er = KCERR_NOT_FOUND;
-			goto exit;
+			return KCERR_NOT_FOUND;
 		} catch (notsupported &) {
-			er = KCERR_NO_SUPPORT;
-			goto exit;
+			return KCERR_NO_SUPPORT;
 		} catch(std::exception &e) {
 			ec_log_warn("Unable to retrieve members for relation %s: %s.", RelationTypeToName(relation), e.what());
-			er = KCERR_PLUGIN_ERROR;
-			goto exit;
+			return KCERR_PLUGIN_ERROR;
 		}
 
 		er = GetLocalObjectsIdsOrCreate(*lpSignatures, &mapExternIdToLocal);
 		if (er != erSuccess)
-			goto exit;
+			return er;
 		er = GetLocalObjectListFromSignatures(*lpSignatures, mapExternIdToLocal, ulFlags | USERMANAGEMENT_SHOW_HIDDEN, lpObjects.get());
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
 
 	// Convert details for client usage
@@ -649,7 +642,7 @@ ECRESULT ECUserManagement::GetSubObjectsOfObjectAndSync(userobject_relation_t re
 				continue;
 			er = UpdateUserDetailsToClient(&obj);
 			if (er != erSuccess)
-				goto exit;
+				return er;
 		}
 	}
 
@@ -666,8 +659,6 @@ ECRESULT ECUserManagement::GetSubObjectsOfObjectAndSync(userobject_relation_t re
 		lpObjects->unique();
 		*lppObjects = lpObjects.release();
 	}
-
-exit:
 	return er;
 }
 
@@ -694,48 +685,40 @@ ECRESULT ECUserManagement::GetParentObjectsOfObjectAndSync(userobject_relation_t
 
 	er = GetThreadLocalPlugin(m_lpPluginFactory, &lpPlugin);
 	if (er != erSuccess)
-		goto exit;
-
+		return er;
 	er = GetSecurity(&lpSecurity);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	if (!m_lpSession->GetSessionManager()->IsHostedSupported() &&
-		(relation == OBJECTRELATION_COMPANY_VIEW ||
-		 relation == OBJECTRELATION_COMPANY_ADMIN)) {
-		er = KCERR_NO_SUPPORT;
-		goto exit;
-	}
+	    (relation == OBJECTRELATION_COMPANY_VIEW ||
+	    relation == OBJECTRELATION_COMPANY_ADMIN))
+		return KCERR_NO_SUPPORT;
 
 	if (relation == OBJECTRELATION_GROUP_MEMBER && ulChildId == KOPANO_UID_SYSTEM) {
 		// System has no objects
 	} else {
 		er = GetExternalId(ulChildId, &objectid);
 		if (er != erSuccess)
-			goto exit;
-
+			return er;
 		try {
 			lpSignatures = lpPlugin->getParentObjectsForObject(relation, objectid);
 		} catch(objectnotfound &) {
 			MoveOrDeleteLocalObject(ulChildId, objectid.objclass);
-			er = KCERR_NOT_FOUND;
-			goto exit;
+			return KCERR_NOT_FOUND;
 		} catch (notsupported &) {
-			er = KCERR_NO_SUPPORT;
-			goto exit;
+			return KCERR_NO_SUPPORT;
 		} catch(std::exception &e) {
 			ec_log_warn("Unable to retrieve parents for relation %s: %s.", RelationTypeToName(relation), e.what());
-			er = KCERR_PLUGIN_ERROR;
-			goto exit;
+			return KCERR_PLUGIN_ERROR;
 		}
 
 		er = GetLocalObjectsIdsOrCreate(*lpSignatures, &mapExternIdToLocal);
 		if (er != erSuccess)
-			goto exit;
-
+			return er;
 		er = GetLocalObjectListFromSignatures(*lpSignatures, mapExternIdToLocal, ulFlags, lpObjects.get());
 		if (er != erSuccess)
-			goto exit;
+			return er;
 	}
 
 	// If we are requesting group membership we should always insert the everyone, since everyone is member of EVERYONE except for SYSTEM
@@ -743,8 +726,7 @@ ECRESULT ECUserManagement::GetParentObjectsOfObjectAndSync(userobject_relation_t
 		if ((!(ulFlags & USERMANAGEMENT_IDS_ONLY)) || (ulFlags & USERMANAGEMENT_ADDRESSBOOK)) {
 			er = GetLocalObjectDetails(KOPANO_UID_EVERYONE, &details);
 			if(er != erSuccess)
-				goto exit;
-
+				return er;
 			if (!(ulFlags & USERMANAGEMENT_ADDRESSBOOK) ||
 				(lpSecurity->GetUserId() != KOPANO_UID_SYSTEM &&
 				 !details.GetPropBool(OB_PROP_B_AB_HIDDEN)))
@@ -765,7 +747,7 @@ ECRESULT ECUserManagement::GetParentObjectsOfObjectAndSync(userobject_relation_t
 				continue;
 			er = UpdateUserDetailsToClient(&obj);
 			if (er != erSuccess)
-				goto exit;
+				return er;
 		}
 	}
 
@@ -782,8 +764,6 @@ ECRESULT ECUserManagement::GetParentObjectsOfObjectAndSync(userobject_relation_t
 		lpObjects->unique();
 		*lppObjects = lpObjects.release();
 	}
-
-exit:
 	return er;
 }
 
@@ -4622,7 +4602,7 @@ ECRESULT ECUserManagement::SyncAllObjects()
 
 	er = lpCacheManager->PurgeCache(PURGE_CACHE_USEROBJECT | PURGE_CACHE_EXTERNID | PURGE_CACHE_USERDETAILS | PURGE_CACHE_SERVER);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	// request all companies
 	er = GetCompanyObjectListAndSync(CONTAINER_COMPANY, 0, &unique_tie(lplstCompanyObjects), ulFlags);
@@ -4630,7 +4610,7 @@ ECRESULT ECUserManagement::SyncAllObjects()
 		er = erSuccess;
 	} else if (er != erSuccess) {
 		ec_log_err("Error synchronizing company list: %08X", er);
-		goto exit;
+		return er;
 	} else { 
 		ec_log_info("Synchronized company list");
 	}
@@ -4641,7 +4621,7 @@ ECRESULT ECUserManagement::SyncAllObjects()
 		er = GetCompanyObjectListAndSync(OBJECTCLASS_UNKNOWN, 0, &unique_tie(lplstUserObjects), ulFlags);
 		if (er != erSuccess) {
 			ec_log_err("Error synchronizing user list: %08X", er);
-			goto exit;
+			return er;
 		}
 		ec_log_info("Synchronized user list");
 	} else {
@@ -4650,14 +4630,12 @@ ECRESULT ECUserManagement::SyncAllObjects()
 			er = GetCompanyObjectListAndSync(OBJECTCLASS_UNKNOWN, com.ulId, &unique_tie(lplstUserObjects), ulFlags);
 			if (er != erSuccess) {
 				ec_log_err("Error synchronizing user list for company %d: %08X", com.ulId, er);
-				goto exit;
+				return er;
 			}
 			ec_log_info("Synchronized list for company %d", com.ulId);
 		}
 	}
-
-exit:
-	return er;
+	return erSuccess;
 }
 
 } /* namespace */

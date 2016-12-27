@@ -690,11 +690,8 @@ ECRESULT ECAuthSession::CreateECSession(ECSESSIONGROUPID ecSessionGroupId,
 	std::unique_ptr<ECSession> lpSession;
 	ECSESSIONID newSID;
 
-	if (!m_bValidated) {
-		er = KCERR_LOGON_FAILED;
-		goto exit;
-	}
-
+	if (!m_bValidated)
+		return KCERR_LOGON_FAILED;
 	CreateSessionID(m_ulClientCapabilities, &newSID);
 
 	// ECAuthSessionOffline creates offline version .. no bOverrideClass construction
@@ -703,19 +700,15 @@ ECRESULT ECAuthSession::CreateECSession(ECSESSIONGROUPID ecSessionGroupId,
 	            m_lpSessionManager, m_ulClientCapabilities,
 	            m_ulValidationMethod, m_ulConnectingPid,
 	            cl_ver, cl_app, cl_app_ver, cl_app_misc));
-	if (!lpSession) {
-		er = KCERR_NOT_ENOUGH_MEMORY;
-		goto exit;
-	}
-
+	if (lpSession == nullptr)
+		return KCERR_NOT_ENOUGH_MEMORY;
 	er = lpSession->GetSecurity()->SetUserContext(m_ulUserID, m_ulImpersonatorID);
 	if (er != erSuccess)
-		goto exit;				// user not found anymore, or error in getting groups
-
+		/* User not found anymore, or error in getting groups. */
+		return er;
 	*sessionID = newSID;
 	*lppNewSession = lpSession.release();
-exit:
-	return er;
+	return erSuccess;
 }
 
 // This is a standard user/pass login.
