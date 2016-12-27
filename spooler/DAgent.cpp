@@ -410,29 +410,29 @@ static HRESULT HrAutoAccept(ECRecipient *lpRecip, IMsgStore *lpStore,
 	hr = lpStore->OpenEntry(0, nullptr, nullptr, MAPI_MODIFY, &ulType, &~lpRootFolder);
 	if(hr != hrSuccess) {
 		ec_log_err("HrAutoAccept(): OpenEntry failed %x", hr);
-		goto exit;
+		return hr;
 	}
 	hr = lpRootFolder->CreateMessage(nullptr, 0, &~lpMessageCopy);
 	if(hr != hrSuccess) {
 		ec_log_err("HrAutoAccept(): CreateMessage failed %x", hr);
-		goto exit;
+		return hr;
 	}
 		
 	hr = lpMessage->CopyTo(0, NULL, NULL, 0, NULL, &IID_IMessage, (LPVOID)lpMessageCopy, 0, NULL);
 	if(hr != hrSuccess) {
 		ec_log_err("HrAutoAccept(): CopyTo failed %x", hr);
-		goto exit;
+		return hr;
 	}
 		
 	hr = lpMessageCopy->SaveChanges(0);
 	if(hr != hrSuccess) {
 		ec_log_err("HrAutoAccept(): SaveChanges failed %x", hr);
-		goto exit;
+		return hr;
 	}
 	hr = HrGetOneProp(lpMessageCopy, PR_ENTRYID, &~lpEntryID);
 	if (hr != hrSuccess) {
 		ec_log_err("HrAutoAccept(): HrGetOneProp failed %x", hr);
-		goto exit;
+		return hr;
 	}
 		
 	strEntryID = bin2hex(lpEntryID->Value.bin.cb, lpEntryID->Value.bin.lpb);
@@ -453,8 +453,6 @@ static HRESULT HrAutoAccept(ECRecipient *lpRecip, IMsgStore *lpStore,
 	
 	lpRootFolder->DeleteMessages(&sEntryList, 0, NULL, 0);
 	// ignore error during delete; the autoaccept script may have already (re)moved the message
-	
-exit:	
 	return hr;
 }
 
@@ -485,29 +483,29 @@ static HRESULT HrAutoProcess(ECRecipient *lpRecip, IMsgStore *lpStore,
 	hr = lpStore->OpenEntry(0, nullptr, nullptr, MAPI_MODIFY, &ulType, &~lpRootFolder);
 	if(hr != hrSuccess) {
 		ec_log_err("HrAutoProcess(): OpenEntry failed %x", hr);
-		goto exit;
+		return hr;
 	}
 	hr = lpRootFolder->CreateMessage(nullptr, 0, &~lpMessageCopy);
 	if(hr != hrSuccess) {
 		ec_log_err("HrAutoProcess(): CreateMessage failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = lpMessage->CopyTo(0, NULL, NULL, 0, NULL, &IID_IMessage, (LPVOID)lpMessageCopy, 0, NULL);
 	if(hr != hrSuccess) {
 		ec_log_err("HrAutoProcess(): CopyTo failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = lpMessageCopy->SaveChanges(0);
 	if(hr != hrSuccess) {
 		ec_log_err("HrAutoProcess(): SaveChanges failed %x", hr);
-		goto exit;
+		return hr;
 	}
 	hr = HrGetOneProp(lpMessageCopy, PR_ENTRYID, &~lpEntryID);
 	if (hr != hrSuccess) {
 		ec_log_err("HrAutoProcess(): HrGetOneProp failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	strEntryID = bin2hex(lpEntryID->Value.bin.cb, lpEntryID->Value.bin.lpb);
@@ -526,8 +524,6 @@ static HRESULT HrAutoProcess(ECRecipient *lpRecip, IMsgStore *lpStore,
 
 	lpRootFolder->DeleteMessages(&sEntryList, 0, NULL, 0);
 	// ignore error during delete; the autoaccept script may have already (re)moved the message
-
-exit:
 	return hr;
 }
 
@@ -922,43 +918,42 @@ static HRESULT ResolveServerToPath(IMAPISession *lpSession,
 	memory_ptr<ECSVRNAMELIST> lpSrvNameList;
 	memory_ptr<ECSERVERLIST> lpSrvList;
 
-	if (!lpServerNameRecips || !lpServerPathRecips) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpServerNameRecips == nullptr || lpServerPathRecips == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 
 	/* Single server environment, use default path */
 	if (lpServerNameRecips->size() == 1 && lpServerNameRecips->begin()->first.empty()) {
 		lpServerPathRecips->insert(serverrecipients_t::value_type(convert_to<wstring>(strDefaultPath), lpServerNameRecips->begin()->second));
-		goto exit;
+		return hrSuccess;
 	}
 	hr = HrOpenDefaultStore(lpSession, &~lpAdminStore);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open default store for system account, error code: 0x%08X", hr);
-		goto exit; // HrLogon() failed .. try again later
+		// HrLogon() failed .. try again later
+		return hr;
 	}
 	hr = HrGetOneProp(lpAdminStore, PR_EC_OBJECT, &~lpsObject);
 	if(hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get internal object, error code: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 
 	// NOTE: object is placed in Value.lpszA, not Value.x
 	hr = ((IECUnknown *)lpsObject->Value.lpszA)->QueryInterface(IID_IECServiceAdmin, &~lpServiceAdmin);
 	if(hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get service admin, error code: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 	hr = MAPIAllocateBuffer(sizeof(ECSVRNAMELIST), &~lpSrvNameList);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ResolveServerToPath(): MAPIAllocateBuffer failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = MAPIAllocateMore(sizeof(WCHAR *) * lpServerNameRecips->size(), lpSrvNameList, (LPVOID *)&lpSrvNameList->lpszaServer);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ResolveServerToPath(): MAPIAllocateMore failed(1) %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	lpSrvNameList->cServers = 0;
@@ -973,7 +968,7 @@ static HRESULT ResolveServerToPath(IMAPISession *lpSession,
 		     lpSrvNameList, reinterpret_cast<LPVOID *>(&lpSrvNameList->lpszaServer[lpSrvNameList->cServers]));
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ResolveServerToPath(): MAPIAllocateMore failed(2) %x", hr);
-			goto exit;
+			return hr;
 		}
 
 		wcscpy(reinterpret_cast<LPWSTR>(lpSrvNameList->lpszaServer[lpSrvNameList->cServers]), iter.first.c_str());
@@ -983,24 +978,21 @@ static HRESULT ResolveServerToPath(IMAPISession *lpSession,
 	hr = lpServiceAdmin->GetServerDetails(lpSrvNameList, EC_SERVERDETAIL_PREFEREDPATH | MAPI_UNICODE, &~lpSrvList);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ResolveServerToPath(): GetServerDetails failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	for (ULONG i = 0; i < lpSrvList->cServers; ++i) {
 		auto iter = lpServerNameRecips->find((LPWSTR)lpSrvList->lpsaServer[i].lpszName);
 		if (iter == lpServerNameRecips->cend()) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Server '%s' not found", (char*)lpSrvList->lpsaServer[i].lpszName);
-			hr = MAPI_E_NOT_FOUND;
-			goto exit;
+			return MAPI_E_NOT_FOUND;
 		}
 
 		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "%d recipient(s) on server '%ls' (url %ls)", (int)iter->second.size(),
 						lpSrvList->lpsaServer[i].lpszName, lpSrvList->lpsaServer[i].lpszPreferedPath);
 		lpServerPathRecips->insert(serverrecipients_t::value_type((LPWSTR)lpSrvList->lpsaServer[i].lpszPreferedPath, iter->second));
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -1037,30 +1029,29 @@ static HRESULT HrGetDeliveryStoreAndFolder(IMAPISession *lpSession,
 	hr = lpAdminStore->QueryInterface(IID_IExchangeManageStore, &~lpIEMS);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "HrGetDeliveryStoreAndFolder(): QueryInterface failed %x", hr);
-		goto exit;
+		return hr;
 	}
 	hr = lpIEMS->CreateStoreEntryID((LPTSTR)L"", (LPTSTR)lpRecip->wstrUsername.c_str(), MAPI_UNICODE | OPENSTORE_HOME_LOGON, &cbUserStoreEntryId, &~lpUserStoreEntryId);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "HrGetDeliveryStoreAndFolder(): CreateStoreEntry failed %x", hr);
-		goto exit;
+		return hr;
 	}
 	hr = lpSession->OpenMsgStore(0, cbUserStoreEntryId, lpUserStoreEntryId, nullptr, MDB_WRITE | MDB_NO_DIALOG | MDB_NO_MAIL | MDB_TEMPORARY, &~lpUserStore);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "HrGetDeliveryStoreAndFolder(): OpenMsgStore failed %x", hr);
-		goto exit;
+		return hr;
 	}
 	hr = lpUserStore->GetReceiveFolder((LPTSTR)"IPM", 0, &cbEntryId, &~lpEntryId, NULL);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to resolve incoming folder, error code: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 	
 	// Open the inbox
 	hr = lpUserStore->OpenEntry(cbEntryId, lpEntryId, &IID_IMAPIFolder, MAPI_MODIFY, &ulObjType, &~lpInbox);
 	if (hr != hrSuccess || ulObjType != MAPI_FOLDER) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open inbox folder, error code: 0x%08X", hr);
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
+		return MAPI_E_NOT_FOUND;
 	}
 
 	// set default delivery to inbox, and default entryid for notify
@@ -1129,7 +1120,7 @@ static HRESULT HrGetDeliveryStoreAndFolder(IMAPISession *lpSession,
 	hr = HrGetOneProp(lpDeliveryFolder, PR_ACCESS_LEVEL, &~lpWritePerms);
 	if (FAILED(hr)) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to read folder properties, error code: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 	if ((lpWritePerms->Value.ul & MAPI_MODIFY) == 0) {
 		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "No write access in folder, using regular inbox");
@@ -1145,9 +1136,7 @@ static HRESULT HrGetDeliveryStoreAndFolder(IMAPISession *lpSession,
 
 	lpDeliveryFolder->AddRef();
 	*lppFolder = lpDeliveryFolder;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -1176,7 +1165,7 @@ static HRESULT FallbackDelivery(LPMESSAGE lpMessage, const string &msg)
 	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 8, &~lpPropValue);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "FallbackDelivery(): MAPIAllocateBuffer failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	ulPropPos = 0;
@@ -1213,31 +1202,31 @@ static HRESULT FallbackDelivery(LPMESSAGE lpMessage, const string &msg)
 	hr = lpMessage->CreateAttach(nullptr, 0, &ulAttachNum, &~lpAttach);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to create attachment, error code: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 	hr = lpAttach->OpenProperty(PR_ATTACH_DATA_BIN, &IID_IStream, STGM_WRITE | STGM_TRANSACTED, MAPI_CREATE | MAPI_MODIFY, &~lpStream);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "FallbackDelivery(): lpAttach->OpenProperty failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = lpStream->Write(msg.c_str(), msg.size(), NULL);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "FallbackDelivery(): lpStream->Write failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = lpStream->Commit(0);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "FallbackDelivery(): lpStream->Commit failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	// Add attachment properties
 	hr = MAPIAllocateBuffer(sizeof(SPropValue) * 4, &~lpAttPropValue);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "FallbackDelivery(): MAPIAllocateBuffer failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	ulAttPropPos = 0;
@@ -1259,29 +1248,25 @@ static HRESULT FallbackDelivery(LPMESSAGE lpMessage, const string &msg)
 	hr = lpAttach->SetProps(ulAttPropPos, lpAttPropValue, NULL);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "FallbackDelivery(): SetProps failed(1) %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = lpAttach->SaveChanges(0);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "FallbackDelivery(): SaveChanges failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	// Add message properties
 	hr = lpMessage->SetProps(ulPropPos, lpPropValue, NULL);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "FallbackDelivery(): SetProps failed(2) %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
-	if (hr != hrSuccess) {
+	if (hr != hrSuccess)
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "FallbackDelivery(): lpMessage->SaveChanges failed %x", hr);
-		goto exit;
-	}
-
-exit:
 	return hr;
 }
 
@@ -1678,22 +1663,18 @@ static HRESULT HrCreateMessage(IMAPIFolder *lpFolder,
 	}
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to create new message, error code: %08X", hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = lpMessage->QueryInterface(IID_IMessage, (void**)lppMessage);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "HrCreateMessage() QueryInterface:message failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = lpFolder->QueryInterface(IID_IMAPIFolder, (void**)lppDeliveryFolder);
-	if (hr != hrSuccess) {
+	if (hr != hrSuccess)
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "HrCreateMessage() QueryInterface:folder failed %x", hr);
-		goto exit;
-	}
-
-exit:
 	return hr;
 }
 
@@ -2123,7 +2104,7 @@ static HRESULT HrCopyMessageForDelivery(IMessage *lpOrigMessage,
 	hr = HrCreateMessage(lpDeliverFolder, lpFallbackFolder, &~lpFolder, &~lpMessage);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "HrCopyMessageForDelivery(): HrCreateMessage failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	/* Copy message, exclude all previously set properties (Those are recipient dependent) */
@@ -2131,7 +2112,7 @@ static HRESULT HrCopyMessageForDelivery(IMessage *lpOrigMessage,
 	     &IID_IMessage, lpMessage, 0, NULL);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "HrCopyMessageForDelivery(): CopyTo failed %x", hr);
-		goto exit;
+		return hr;
 	}
 		
 	// For a fallback, remove some more properties
@@ -2142,13 +2123,13 @@ static HRESULT HrCopyMessageForDelivery(IMessage *lpOrigMessage,
 	hr = helpers::MAPIPropHelper::Create(MAPIPropPtr(lpMessage, true), &ptrArchiveHelper);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "HrCopyMessageForDelivery(): helpers::MAPIPropHelper::Create failed %x", hr);
-		goto exit;
+		return hr;
 	}
 	
 	hr = ptrArchiveHelper->DetachFromArchives();
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "HrCopyMessageForDelivery(): DetachFromArchives failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	if (lpRecip->bHasIMAP)
@@ -2158,7 +2139,7 @@ static HRESULT HrCopyMessageForDelivery(IMessage *lpOrigMessage,
 
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "HrCopyMessageForDelivery(): IMAP handling failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	if (lppFolder)
@@ -2166,9 +2147,7 @@ static HRESULT HrCopyMessageForDelivery(IMessage *lpOrigMessage,
 
 	if (lppMessage)
 		lpMessage->QueryInterface(IID_IMessage, (void**)lppMessage);
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -2250,7 +2229,7 @@ static HRESULT HrPostDeliveryProcessing(PyMapiPlugin *lppyMapiPlugin,
 	     g_lpConfig->GetSetting("sslkey_file", "", NULL),
 	     g_lpConfig->GetSetting("sslkey_pass", "", NULL));
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	if (FNeedsAutoProcessing(*lppMessage)) {
 		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Starting MR auto processing");
 		hr = HrAutoProcess(lpRecip, lpStore, *lppMessage);
@@ -2268,8 +2247,7 @@ static HRESULT HrPostDeliveryProcessing(PyMapiPlugin *lppyMapiPlugin,
 			g_lpLogger->Log(EC_LOGLEVEL_INFO, "Autoaccept processing completed successfully. Skipping further processing.");
 			// The MR autoaccepter has processed the message. Skip any further work on this message: dont
 			// run rules and dont send new mail notifications (The message should be deleted now)
-			hr = MAPI_E_CANCEL;
-			goto exit;
+			return MAPI_E_CANCEL;
 		} else {
 			g_lpLogger->Log(EC_LOGLEVEL_INFO, "Autoaccept processing failed, proceeding with rules processing: %s (%x).",
 				GetMAPIErrorMessage(hr), hr);
@@ -2295,7 +2273,6 @@ static HRESULT HrPostDeliveryProcessing(PyMapiPlugin *lppyMapiPlugin,
 	// do not send vacation message on delegated messages
 	    (HrGetOneProp(*lppMessage, PR_DELEGATED_BY_RULE, &~ptrProp) != hrSuccess || ptrProp->Value.b == FALSE))
 		SendOutOfOffice(lpAdrBook, lpStore, *lppMessage, lpRecip, lpArgs->strAutorespond);
-exit:
 	return hr;
 }
 
@@ -2398,19 +2375,19 @@ static HRESULT ProcessDeliveryToRecipient(PyMapiPlugin *lppyMapiPlugin,
 		hr = OpenResolveAddrFolder(lpAdrBook, &~lpAddrDir);
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ProcessDeliveryToRecipient(): OpenResolveAddrFolder failed %x", hr);
-			goto exit;
+			return hr;
 		}
 		hr = ResolveUser(lpAddrDir, lpRecip);
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ProcessDeliveryToRecipient(): ResolveUser failed %x", hr);
-			goto exit;
+			return hr;
 		}
 	}
 
 	hr = HrGetDeliveryStoreAndFolder(lpSession, lpStore, lpRecip, lpArgs, &~lpTargetStore, &~lpInbox, &~lpTargetFolder);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ProcessDeliveryToRecipient(): HrGetDeliveryStoreAndFolder failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	if (!lpOrigMessage) {
@@ -2420,12 +2397,12 @@ static HRESULT ProcessDeliveryToRecipient(PyMapiPlugin *lppyMapiPlugin,
 		hr = HrCreateMessage(lpTargetFolder, lpInbox, &~lpFolder, &~lpMessageTmp);
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ProcessDeliveryToRecipient(): HrCreateMessage failed %x", hr);
-			goto exit;
+			return hr;
 		}
 		hr = HrStringToMAPIMessage(strMail, lpSession, lpTargetStore, lpAdrBook, lpFolder, lpMessageTmp, lpRecip, lpArgs, &~lpDeliveryMessage, &bFallbackDelivery);
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ProcessDeliveryToRecipient(): HrStringToMAPIMessage failed %x", hr);
-			goto exit;
+			return hr;
 		}
 
 		/*
@@ -2434,19 +2411,16 @@ static HRESULT ProcessDeliveryToRecipient(PyMapiPlugin *lppyMapiPlugin,
 		hr = HrMessageExpired(lpDeliveryMessage, &bExpired);
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ProcessDeliveryToRecipient(): HrMessageExpired failed %x", hr);
-			goto exit;
+			return hr;
 		}
-
-		if (bExpired) {
+		if (bExpired)
 			/* Set special error code for callers */
-			hr = MAPI_W_CANCEL_MESSAGE;
-			goto exit;
-		}
+			return MAPI_W_CANCEL_MESSAGE;
 
 		hr = lppyMapiPlugin->MessageProcessing("PostConverting", lpSession, lpAdrBook, NULL, NULL, lpDeliveryMessage, &ulResult);
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ProcessDeliveryToRecipient(): MessageProcessing failed %x", hr);
-			goto exit;
+			return hr;
 		}
 
 		// TODO do something with ulResult
@@ -2456,34 +2430,34 @@ static HRESULT ProcessDeliveryToRecipient(PyMapiPlugin *lppyMapiPlugin,
 		hr = HrCopyMessageForDelivery(lpOrigMessage, lpTargetFolder, lpRecip, lpInbox, bFallbackDelivery, &~lpFolder, &~lpDeliveryMessage);
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ProcessDeliveryToRecipient(): HrCopyMessageForDelivery failed %x", hr);
-			goto exit;
-	}
+			return hr;
+		}
 	}
 
 	hr = HrOverrideRecipProps(lpDeliveryMessage, lpRecip);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ProcessDeliveryToRecipient(): HrOverrideRecipProps failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	if (bFallbackDelivery) {
 		hr = HrOverrideFallbackProps(lpDeliveryMessage, lpRecip);
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ProcessDeliveryToRecipient(): HrOverrideFallbackProps failed %x", hr);
-			goto exit;
+			return hr;
 		}
 	} else {
 		hr = HrOverrideReceivedByProps(lpDeliveryMessage, lpRecip);
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ProcessDeliveryToRecipient(): HrOverrideReceivedByProps failed %x", hr);
-			goto exit;
-	}
+			return hr;
+		}
 	}
 
 	hr = lppyMapiPlugin->MessageProcessing("PreDelivery", lpSession, lpAdrBook, lpTargetStore, lpTargetFolder, lpDeliveryMessage, &ulResult);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ProcessDeliveryToRecipient(): MessageProcessing(2) failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	// TODO do something with ulResult
@@ -2493,8 +2467,7 @@ static HRESULT ProcessDeliveryToRecipient(PyMapiPlugin *lppyMapiPlugin,
 
 		if (lpbFallbackDelivery)
 			*lpbFallbackDelivery = bFallbackDelivery;
-
-		goto exit;
+		return hr;
 	}
 
 	// Do rules & out-of-office
@@ -2510,13 +2483,13 @@ static HRESULT ProcessDeliveryToRecipient(PyMapiPlugin *lppyMapiPlugin,
 				fprintf(stderr, "Store of user %ls is over quota limit.\n", lpRecip->wstrUsername.c_str());
 			else
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to commit message: 0x%08X", hr);
-			goto exit;
+			return hr;
 		}
 
 		hr = lppyMapiPlugin->MessageProcessing("PostDelivery", lpSession, lpAdrBook, lpTargetStore, lpTargetFolder, lpDeliveryMessage, &ulResult);
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ProcessDeliveryToRecipient(): MessageProcessing(3) failed %x", hr);
-			goto exit;
+			return hr;
 		}
 
 		// TODO do something with ulResult
@@ -2534,20 +2507,20 @@ static HRESULT ProcessDeliveryToRecipient(PyMapiPlugin *lppyMapiPlugin,
 			}
 			if (hr != hrSuccess) {
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open admin session for archive access: 0x%08X", hr);
-				goto exit;
+				return hr;
 			}
 
 			hr = Archive::Create(ptrAdminSession, &ptrArchive);
 			if (hr != hrSuccess) {
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to instantiate archive object: 0x%08X", hr);
-				goto exit;
+				return hr;
 			}
 
 			hr = ptrArchive->HrArchiveMessageForDelivery(lpDeliveryMessage);
 			if (hr != hrSuccess) {
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to archive message: 0x%08X", hr);
 				Util::HrDeleteMessage(lpSession, lpDeliveryMessage);
-				goto exit;
+				return hr;
 			}
 		}
 
@@ -2579,8 +2552,6 @@ static HRESULT ProcessDeliveryToRecipient(PyMapiPlugin *lppyMapiPlugin,
 
 	if (lpbFallbackDelivery)
 		*lpbFallbackDelivery = bFallbackDelivery;
-
-exit:
 	return hr;
 }
 
@@ -2654,7 +2625,7 @@ static HRESULT ProcessDeliveryToServer(PyMapiPlugin *lppyMapiPlugin,
 		for (const auto &recip : listRecipients)
 			// error will be shown in postqueue status in postfix, probably too in other serves and mail syslog service
 			recip->wstrDeliveryStatus = L"450 4.5.0 %ls network or permissions error to storage server: " + wstringify(hr, true);
-		goto exit;
+		return hr;
 	}
 
 	for (auto iter = listRecipients.cbegin(); iter != listRecipients.end(); ++iter) {
@@ -2690,7 +2661,7 @@ static HRESULT ProcessDeliveryToServer(PyMapiPlugin *lppyMapiPlugin,
 		} else if (hr == MAPI_W_CANCEL_MESSAGE) {
 			/* Loop through all remaining recipients and start responding the status to LMTP */
 			RespondMessageExpired(iter, listRecipients.cend());
-			goto exit;
+			return MAPI_W_CANCEL_MESSAGE;
 		} else {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to deliver message to '%ls', error code: 0x%08X", recip->wstrUsername.c_str(), hr);
 				
@@ -2713,8 +2684,6 @@ static HRESULT ProcessDeliveryToServer(PyMapiPlugin *lppyMapiPlugin,
 		lpOrigMessage->QueryInterface(IID_IMessage, (void**)lppMessage);
 	if (lpbFallbackDelivery)
 		*lpbFallbackDelivery = bFallbackDelivery;
-
-exit:
 	return hr;
 }
 
@@ -2786,11 +2755,8 @@ static HRESULT ProcessDeliveryToCompany(PyMapiPlugin *lppyMapiPlugin,
 	bool bExpired = false;
 
 	sc -> countInc("DAgent", "to_company");
-
-	if (!lpServerNameRecips) {
-		hr = MAPI_E_INVALID_PARAMETER;
-		goto exit;
-	}
+	if (lpServerNameRecips == nullptr)
+		return MAPI_E_INVALID_PARAMETER;
 
 	/* Always start at the beginning of the file */
 	rewind(fp);
@@ -2800,7 +2766,7 @@ static HRESULT ProcessDeliveryToCompany(PyMapiPlugin *lppyMapiPlugin,
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to map input to memory: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 
 	FindSpamMarker(strMail, lpArgs);
@@ -2808,7 +2774,7 @@ static HRESULT ProcessDeliveryToCompany(PyMapiPlugin *lppyMapiPlugin,
 	hr = ResolveServerToPath(lpSession, lpServerNameRecips, lpArgs->strPath, &listServerPathRecips);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ProcessDeliveryToCompany(): ResolveServerToPath failed %x", hr);
-		goto exit;
+		return hr;
 	}
 
 	for (const auto &iter : listServerPathRecips) {
@@ -2826,8 +2792,7 @@ static HRESULT ProcessDeliveryToCompany(PyMapiPlugin *lppyMapiPlugin,
 		     lpAdrBook, lpArgs, &~lpMessageTmp, &bFallbackDeliveryTmp);
 		if (hr == MAPI_W_CANCEL_MESSAGE) {
 			bExpired =  true;
-			/* Don't report the error further */
-			hr = hrSuccess;
+			/* Don't report the error further (ignore it) */
 		} else if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to deliver all messages for server '%ls'",
 				iter.first.c_str());
@@ -2843,9 +2808,7 @@ static HRESULT ProcessDeliveryToCompany(PyMapiPlugin *lppyMapiPlugin,
 	}
 
 	g_lpLogger->Log(EC_LOGLEVEL_INFO, "Finished processing message");
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /** 
@@ -2933,23 +2896,21 @@ static HRESULT ProcessDeliveryToList(PyMapiPlugin *lppyMapiPlugin,
 		hr = FindLowestAdminLevelSession(&comp.second, lpArgs, &~lpUserSession);
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ProcessDeliveryToList(): FindLowestAdminLevelSession failed %x", hr);
-			goto exit;
+			return hr;
 		}
 		hr = OpenResolveAddrFolder(lpUserSession, &~lpAdrBook, nullptr);
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ProcessDeliveryToList(): OpenResolveAddrFolder failed %x", hr);
-			goto exit;
+			return hr;
 		}
 
 		hr = ProcessDeliveryToCompany(lppyMapiPlugin, lpSession, lpAdrBook, fp, &comp.second, lpArgs);
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "ProcessDeliveryToList(): ProcessDeliveryToCompany failed %x", hr);
-			goto exit;
+			return hr;
 		}
 	}
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 static void add_misc_headers(FILE *tmp, const std::string &helo,

@@ -358,15 +358,11 @@ HRESULT PyMapiPluginFactory::CreatePlugin(const char* lpPluginManagerClassName, 
 {
 	HRESULT hr = S_OK;
 	std::unique_ptr<PyMapiPlugin> lpPlugin(new(std::nothrow) PyMapiPlugin);
-	if (lpPlugin == nullptr) {
-		hr = MAPI_E_NOT_ENOUGH_MEMORY;
-		goto exit;
-	}
-	
+	if (lpPlugin == nullptr)
+		return MAPI_E_NOT_ENOUGH_MEMORY;
 	hr = lpPlugin->Init(m_lpLogger, m_ptrModMapiPlugin, lpPluginManagerClassName, m_strPluginPath.c_str());
 	if (hr != S_OK)
-		goto exit;
+		return hr;
 	*lppPlugin = lpPlugin.release();
-exit:
-	return hr;
+	return S_OK;
 }

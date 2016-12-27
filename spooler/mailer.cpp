@@ -1264,30 +1264,27 @@ static HRESULT ContactToKopano(IMsgStore *lpUserStore,
 	memory_ptr<MAPINAMEID *> lppNames;
 
 	if (sizeof(CONTAB_ENTRYID) > cbEntryId ||
-		*guid != PSETID_CONTACT_FOLDER_RECIPIENT ||
-		lpContabEntryID->email_offset > 2)
-	{
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
-	}
+	    *guid != PSETID_CONTACT_FOLDER_RECIPIENT ||
+	    lpContabEntryID->email_offset > 2)
+		return MAPI_E_NOT_FOUND;
 
 	hr = lpUserStore->OpenEntry(lpContabEntryID->cbeid, reinterpret_cast<ENTRYID *>(const_cast<BYTE *>(lpContabEntryID->abeid)), nullptr, 0, &ulObjType, &~lpContact);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open contact entryid: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 	hr = MAPIAllocateBuffer(sizeof(MAPINAMEID) * 3, &~lpNames);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "No memory for named ids from contact: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 	hr = MAPIAllocateBuffer(sizeof(LPMAPINAMEID) * 3, &~lppNames);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "No memory for named ids from contact: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 
 	// Email1EntryID
@@ -1312,34 +1309,31 @@ static HRESULT ContactToKopano(IMsgStore *lpUserStore,
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Error while retrieving named data from contact: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = lpContact->GetProps(lpPropTags, 0, &cValues, &lpEntryIds);
 	if (FAILED(hr)) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get named properties: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 
 	if (PROP_TYPE(lpEntryIds[lpContabEntryID->email_offset].ulPropTag) != PT_BINARY) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Offset %d not found in contact", lpContabEntryID->email_offset);
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
+		return MAPI_E_NOT_FOUND;
 	}
 
 	hr = MAPIAllocateBuffer(lpEntryIds[lpContabEntryID->email_offset].Value.bin.cb, (void**)eidp);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "No memory for contact eid: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 
 	memcpy(*eidp, lpEntryIds[lpContabEntryID->email_offset].Value.bin.lpb, lpEntryIds[lpContabEntryID->email_offset].Value.bin.cb);
 	*eid_size = lpEntryIds[lpContabEntryID->email_offset].Value.bin.cb;
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -1523,28 +1517,26 @@ static HRESULT HrOpenRepresentStore(IAddrBook *lpAddrBook,
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Unable to open representing user in addressbook: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
+		return MAPI_E_NOT_FOUND;
 	}
 	hr = HrGetOneProp(lpRepresenting, PR_ACCOUNT, &~lpRepAccount);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Unable to find account name for representing user: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-		hr = MAPI_E_NOT_FOUND;
-		goto exit;
+		return MAPI_E_NOT_FOUND;
 	}
 
 	hr = lpUserStore->QueryInterface(IID_IExchangeManageStore, &~lpExchangeManageStore);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_INFO, "IExchangeManageStore interface not found: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 	hr = lpExchangeManageStore->CreateStoreEntryID(NULL, lpRepAccount->Value.LPSZ, fMapiUnicode, &ulRepStoreCB, &~lpRepStoreEID);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to create store entryid for representing user '" TSTRING_PRINTF "': %s (%x)",
 			lpRepAccount->Value.LPSZ, GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 
 	// Use the admin session to open the store, so we have full rights
@@ -1552,13 +1544,10 @@ static HRESULT HrOpenRepresentStore(IAddrBook *lpAddrBook,
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open store of representing user '" TSTRING_PRINTF "': %s (%x)",
 			lpRepAccount->Value.LPSZ, GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
-
-	hr = lpRepStore->QueryInterface(IID_IMsgStore, (void**)lppRepStore);
-
-exit:
-	return hr;
+	return lpRepStore->QueryInterface(IID_IMsgStore,
+	       reinterpret_cast<void **>(lppRepStore));
 }
 
 /** 
@@ -1856,25 +1845,25 @@ static HRESULT CopyDelegateMessageToSentItems(LPMESSAGE lpMessage,
 	hr = HrGetOneProp(lpRepStore, PR_IPM_SENTMAIL_ENTRYID, &~lpSentItemsEntryID);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to find representee's sent items folder: error 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = lpRepStore->OpenEntry(lpSentItemsEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpSentItemsEntryID->Value.bin.lpb),
 	     &IID_IMAPIFolder, MAPI_BEST_ACCESS, &ulObjType, &~lpSentItems);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to open representee's sent items folder: error 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 	hr = lpSentItems->CreateMessage(nullptr, 0, &~lpDestMsg);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to create representee's message: error 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = lpMessage->CopyTo(0, NULL, NULL, 0, NULL, &IID_IMessage, (LPVOID)lpDestMsg, 0, NULL);
 	if (FAILED(hr)) {
 		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to copy representee's message: error 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 
 	sProp[0].ulPropTag = PR_MESSAGE_FLAGS;
@@ -1883,13 +1872,11 @@ static HRESULT CopyDelegateMessageToSentItems(LPMESSAGE lpMessage,
 	hr = lpDestMsg->SetProps(1, sProp, NULL);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Unable to edit representee's message: error 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 	*lppRepMessage = lpDestMsg.release();
 	g_lpLogger->Log(EC_LOGLEVEL_INFO, "Copy placed in representee's sent items folder");
-
-exit:
-	return hr;
+	return hrSuccess;
 }
 
 /**
@@ -1912,19 +1899,17 @@ static HRESULT PostSendProcessing(ULONG cbEntryId, const ENTRYID *lpEntryId,
 	hr = HrGetOneProp(lpMsgStore, PR_EC_OBJECT, &~lpObject);
 	if(hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get PR_EC_OBJECT in post-send processing: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 	hr = ((IECUnknown *)lpObject->Value.lpszA)->QueryInterface(IID_IECSpooler, &~lpSpooler);
 	if(hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get spooler interface for message: 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 	
 	hr = lpSpooler->DeleteFromMasterOutgoingTable(cbEntryId, lpEntryId, EC_SUBMIT_MASTER);
 	if (hr != hrSuccess)
 		g_lpLogger->Log(EC_LOGLEVEL_WARNING, "Could not remove invalid message from queue, error code: 0x%08X", hr);
-
-exit:
 	return hr;
 }
 

@@ -269,17 +269,11 @@ static HRESULT CreateOutboxMessage(LPMDB lpOrigStore, LPMESSAGE *lppMessage)
 
 	hr = HrGetOneProp(lpOrigStore, PR_IPM_OUTBOX_ENTRYID, &~lpOutboxEntryID);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpOrigStore->OpenEntry(lpOutboxEntryID->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpOutboxEntryID->Value.bin.lpb), nullptr, MAPI_MODIFY, &ulObjType, &~lpOutbox);
 	if (hr != hrSuccess)
-		goto exit;
-
-	hr = lpOutbox->CreateMessage(NULL, 0, lppMessage);
-	if (hr != hrSuccess)
-		goto exit;
-
-exit:
-	return hr;
+		return hr;
+	return lpOutbox->CreateMessage(nullptr, 0, lppMessage);
 }
 
 static HRESULT CreateReplyCopy(LPMAPISESSION lpSession, LPMDB lpOrigStore,
