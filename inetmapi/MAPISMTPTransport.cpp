@@ -42,6 +42,8 @@
 //
 
 #include <kopano/platform.h>
+#include <memory>
+#include <kopano/tie.hpp>
 #include <kopano/stringutil.h>
 #include "MAPISMTPTransport.h"
 #include <vmime/net/smtp/SMTPResponse.hpp>
@@ -77,6 +79,8 @@
 // register new service, really hacked from (src/net/builtinServices.inl)
 #include "serviceRegistration.inl"
 REGISTER_SERVICE(smtp::MAPISMTPTransport, mapismtp, TYPE_TRANSPORT);
+
+using namespace KCHL;
 
 namespace vmime {
 namespace net {
@@ -379,42 +383,23 @@ void MAPISMTPTransport::authenticateSASL()
 			}
 			case 334:
 			{
-				byte_t* challenge = 0;
-				size_t challengeLen = 0;
-
-				byte_t* resp = 0;
-				size_t respLen = 0;
+				std::unique_ptr<byte_t[]> challenge, resp;
+				size_t challengeLen = 0, respLen = 0;
 
 				try
 				{
 					// Extract challenge
-					saslContext->decodeB64(response->getText(), &challenge, &challengeLen);
-
+					saslContext->decodeB64(response->getText(), &unique_tie(challenge), &challengeLen);
 					// Prepare response
-					saslSession->evaluateChallenge
-						(challenge, challengeLen, &resp, &respLen);
-
+					saslSession->evaluateChallenge(challenge.get(), challengeLen, &unique_tie(resp), &respLen);
 					// Send response
-					sendRequest(saslContext->encodeB64(resp, respLen));
+					sendRequest(saslContext->encodeB64(resp.get(), respLen));
 				}
 				catch (exceptions::sasl_exception& e)
 				{
-					delete[] challenge;
-					challenge = NULL;
-					delete[] resp;
-					resp = NULL;
 					// Cancel SASL exchange
 					sendRequest("*");
 				}
-				catch (...)
-				{
-					delete[] challenge;
-					delete[] resp;
-					throw;
-				}
-
-				delete[] challenge;
-				delete[] resp;
 				break;
 			}
 			default:

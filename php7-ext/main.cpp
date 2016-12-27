@@ -3850,7 +3850,7 @@ ZEND_FUNCTION(mapi_decompressrtf)
 	char * rtfBuffer = NULL;
 	size_t rtfBufferLen = 0;
 	// return value
-	char * htmlbuf = NULL;		// duplicated, so free
+	std::unique_ptr<char[]> htmlbuf;
 	// local
 	ULONG actualWritten = 0;
 	ULONG cbRead = 0;
@@ -3885,10 +3885,10 @@ ZEND_FUNCTION(mapi_decompressrtf)
 	// we enlarge it and continue. We have to do this, instead of allocating
 	// it up front, because Stream::Stat() doesn't work for the unc.stream
 	bufsize = max(rtfBufferLen * 2, bufsize);
-	htmlbuf = new char[bufsize];
+	htmlbuf.reset(new char[bufsize]);
 
 	while(1) {
-		MAPI_G(hr) = deCompressedStream->Read(htmlbuf, bufsize, &cbRead);
+		MAPI_G(hr) = deCompressedStream->Read(htmlbuf.get(), bufsize, &cbRead);
 		if (MAPI_G(hr) != hrSuccess) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Read from uncompressed stream failed %x", MAPI_G(hr));
 			goto exit;
@@ -3896,14 +3896,12 @@ ZEND_FUNCTION(mapi_decompressrtf)
 
 		if (cbRead == 0)
 		    break;
-
-		strUncompressed.append(htmlbuf, cbRead);
+		strUncompressed.append(htmlbuf.get(), cbRead);
 	}
 
 	RETVAL_STRINGL((char *)strUncompressed.c_str(), strUncompressed.size());
 
 exit:
-	delete[] htmlbuf;
 	LOG_END();
 	THROW_ON_ERROR();
 }
@@ -7322,7 +7320,7 @@ ZEND_FUNCTION(mapi_inetmapi_imtoinet)
     sending_options sopt;
 	object_ptr<ECMemStream> lpMemStream = NULL;
     IStream *lpStream = NULL;
-    char *lpBuffer = NULL;
+	std::unique_ptr<char[]> lpBuffer;
     
     imopt_default_sending_options(&sopt);
     sopt.no_recipients_workaround = true;
@@ -7344,10 +7342,10 @@ ZEND_FUNCTION(mapi_inetmapi_imtoinet)
     if(MAPI_G(hr) != hrSuccess)
         goto exit;
     
-    MAPI_G(hr) = IMToINet(lpMAPISession, lpAddrBook, lpMessage, &lpBuffer, sopt);
+    MAPI_G(hr) = IMToINet(lpMAPISession, lpAddrBook, lpMessage, &unique_tie(lpBuffer), sopt);
     if(MAPI_G(hr) != hrSuccess)
         goto exit;
-    MAPI_G(hr) = ECMemStream::Create(lpBuffer, strlen(lpBuffer), 0, nullptr, nullptr, nullptr, &~lpMemStream);
+    MAPI_G(hr) = ECMemStream::Create(lpBuffer.get(), strlen(lpBuffer.get()), 0, nullptr, nullptr, nullptr, &~lpMemStream);
     if(MAPI_G(hr) != hrSuccess)
         goto exit;
         
@@ -7358,7 +7356,6 @@ ZEND_FUNCTION(mapi_inetmapi_imtoinet)
     ZEND_REGISTER_RESOURCE(return_value, lpStream, le_istream);
     
 exit:
-	delete[] lpBuffer;
 	LOG_END();
 	THROW_ON_ERROR();
 }

@@ -1448,12 +1448,10 @@ HRESULT MAPIToVMIME::handleTextparts(IMessage* lpMessage, vmime::messageBuilder 
 		// else just plaintext
 		else if (!strBodyConverted.empty()) {
 			// make sure we give vmime CRLF data, so SMTP servers (qmail) won't complain on the forced plaintext
-			char *crlfconv = NULL;
+			std::unique_ptr<char[]> crlfconv(new char[strBodyConverted.length()*2+1]);
 			size_t outsize = 0;
-			crlfconv = new char[strBodyConverted.length()*2+1];
-			BufferLFtoCRLF(strBodyConverted.length(), strBodyConverted.c_str(), crlfconv, &outsize);
-			strBodyConverted.assign(crlfconv, outsize);
-			delete[] crlfconv;
+			BufferLFtoCRLF(strBodyConverted.length(), strBodyConverted.c_str(), crlfconv.get(), &outsize);
+			strBodyConverted.assign(crlfconv.get(), outsize);
 
 			// encode to q-p ourselves
 			vmime::utility::inputStreamStringAdapter in(strBodyConverted);

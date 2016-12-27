@@ -129,8 +129,6 @@ unsigned int rtf_decompress(char *lpDest, char *lpSrc, unsigned int ulBufSize)
 {
 	struct RTFHeader *lpHeader = (struct RTFHeader *)lpSrc;
 	char *lpStart = lpSrc;
-	char *lpBuffer = NULL;
-	char *lpWrite = NULL;
 	unsigned int ulFlags = 0;
 	unsigned int ulFlagNr = 0;
 	unsigned char c1 = 0;
@@ -151,13 +149,13 @@ unsigned int rtf_decompress(char *lpDest, char *lpSrc, unsigned int ulBufSize)
 		return 0;
 	} else if(lpHeader->ulMagic == 0x75465a4c) {
 		// Allocate a buffer to decompress into (uncompressed size plus prebuffered data)
-		lpBuffer = new char[lpHeader->ulUncompressedSize + prebufSize];
-		memcpy(lpBuffer, lpPrebuf, prebufSize);
+		std::unique_ptr<char[]> lpBuffer(new char[lpHeader->ulUncompressedSize+prebufSize]);
+		memcpy(lpBuffer.get(), lpPrebuf, prebufSize);
 		
 		// Start writing just after the prebuffered data
-		lpWrite = lpBuffer + prebufSize;
+		char *lpWrite = lpBuffer.get() + prebufSize;
 		
-		while(lpWrite < lpBuffer + lpHeader->ulUncompressedSize + prebufSize) {
+		while (lpWrite < lpBuffer.get() + lpHeader->ulUncompressedSize + prebufSize) {
 			// Get next bit from flags
 			ulFlags = ulFlagNr++ % 8 == 0 ? *lpSrc++ : ulFlags >> 1;
 			
@@ -183,12 +181,12 @@ unsigned int rtf_decompress(char *lpDest, char *lpSrc, unsigned int ulBufSize)
 				// We now have offset and size within our current 4k window. If the offset is after the 
 				// write pointer, then go back one window. (due to wrapping buffer)
 				
-				ulOffset = ((lpWrite - lpBuffer) / 4096) * 4096 + ulOffset;
+				ulOffset = ((lpWrite - lpBuffer.get()) / 4096) * 4096 + ulOffset;
 				
-				if(ulOffset > (unsigned int)(lpWrite - lpBuffer))
+				if(ulOffset > (unsigned int)(lpWrite - lpBuffer.get()))
 					ulOffset -= 4096;
 					 
-				while(ulSize && lpWrite < lpBuffer + lpHeader->ulUncompressedSize + prebufSize && ulOffset < lpHeader->ulUncompressedSize + prebufSize) {
+				while(ulSize && lpWrite < &lpBuffer[lpHeader->ulUncompressedSize+prebufSize] && ulOffset < lpHeader->ulUncompressedSize + prebufSize) {
 					*lpWrite++ = lpBuffer[ulOffset++]; 
 					--ulSize;
 				}
@@ -200,8 +198,7 @@ unsigned int rtf_decompress(char *lpDest, char *lpSrc, unsigned int ulBufSize)
 		}
 
 		// Copy back the data without the prebuffer
-		memcpy(lpDest, lpBuffer + prebufSize, lpHeader->ulUncompressedSize);
-		delete [] lpBuffer;
+		memcpy(lpDest, &lpBuffer[prebufSize], lpHeader->ulUncompressedSize);
 		return 0;
 	} else {
 		return 1;
