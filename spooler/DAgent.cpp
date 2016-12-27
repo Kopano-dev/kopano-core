@@ -3503,7 +3503,6 @@ static HRESULT deliver_recipient(PyMapiPlugin *lppyMapiPlugin,
 	object_ptr<IMAPISession> lpSession;
 	object_ptr<IAddrBook> lpAdrBook;
 	object_ptr<IABContainer> lpAddrDir;
-	ECRecipient *lpSingleRecip = NULL;
 	recipients_t lRCPT;
 	std::string strUsername;
 	std::wstring strwLoginname;
@@ -3524,7 +3523,7 @@ static HRESULT deliver_recipient(PyMapiPlugin *lppyMapiPlugin,
 		// we have to strip off the @domainname.tld to get the username
 		strUsername = strUsername.substr(0, strUsername.find_first_of("@"));
 
-	lpSingleRecip = new ECRecipient(convert_to<wstring>(strUsername));
+	ECRecipient single_recip(convert_to<std::wstring>(strUsername));
 	
 	// Always try to resolve the user unless we just stripped an email address.
 	if (!bStringEmail) {
@@ -3536,7 +3535,7 @@ static HRESULT deliver_recipient(PyMapiPlugin *lppyMapiPlugin,
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "deliver_recipient(): OpenResolveAddrFolder failed %x", hr);
 				goto exit;
 			}
-			hr = ResolveUser(lpAddrDir, lpSingleRecip);
+			hr = ResolveUser(lpAddrDir, &single_recip);
 			if (hr != hrSuccess) {
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "deliver_recipient(): ResolveUser failed %x", hr);
 				if (hr == MAPI_E_NOT_FOUND)
@@ -3552,15 +3551,15 @@ static HRESULT deliver_recipient(PyMapiPlugin *lppyMapiPlugin,
 		}
 		else {
 			// set commandline user in resolved name to deliver without resolve function
-			lpSingleRecip->wstrUsername = lpSingleRecip->wstrRCPT;
+			single_recip.wstrUsername = single_recip.wstrRCPT;
 		}
 	}
 	else {
 		// set commandline user in resolved name to deliver without resolve function
-		lpSingleRecip->wstrUsername = lpSingleRecip->wstrRCPT;
+		single_recip.wstrUsername = single_recip.wstrRCPT;
 	}
 	
-	hr = HrGetSession(lpArgs, lpSingleRecip->wstrUsername.c_str(), &~lpSession);
+	hr = HrGetSession(lpArgs, single_recip.wstrUsername.c_str(), &~lpSession);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "deliver_recipient(): HrGetSession failed %x", hr);
 		if (hr == MAPI_E_LOGON_FAILED)
@@ -3578,7 +3577,7 @@ static HRESULT deliver_recipient(PyMapiPlugin *lppyMapiPlugin,
 		goto exit;
 	}
 	
-	lRCPT.insert(lpSingleRecip);
+	lRCPT.insert(&single_recip);
 	hr = ProcessDeliveryToSingleRecipient(lppyMapiPlugin, lpSession, lpAdrBook, fpMail, lRCPT, lpArgs);
 
 	// Over quota is a hard error
@@ -3589,8 +3588,6 @@ static HRESULT deliver_recipient(PyMapiPlugin *lppyMapiPlugin,
 	SaveRawMessage(fpMail, recipient);
 
 exit:
-	delete lpSingleRecip;
-
 	if (fpMail && fpMail != file)
 		fclose(fpMail);
 	return hr;
