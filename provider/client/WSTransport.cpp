@@ -1090,7 +1090,10 @@ HRESULT WSTransport::HrUnSubscribeMulti(const ECLISTCONNECTION &lstConnections)
  * @retval	MAPI_E_INVALID_PARAMETER	lpChanges or lpsProps == NULL
  * @retval	MAPI_E_NETWORK_ERROR		The actual call to the server failed or no streams are returned
  */
-HRESULT WSTransport::HrExportMessageChangesAsStream(ULONG ulFlags, ULONG ulPropTag, ICSCHANGE *lpChanges, ULONG ulStart, ULONG ulChanges, LPSPropTagArray lpsProps, WSMessageStreamExporter **lppsStreamExporter)
+HRESULT WSTransport::HrExportMessageChangesAsStream(ULONG ulFlags,
+    ULONG ulPropTag, const ICSCHANGE *lpChanges, ULONG ulStart,
+    ULONG ulChanges, LPSPropTagArray lpsProps,
+    WSMessageStreamExporter **lppsStreamExporter)
 {
 	typedef KCHL::memory_ptr<sourceKeyPairArray> sourceKeyPairArrayPtr;
 

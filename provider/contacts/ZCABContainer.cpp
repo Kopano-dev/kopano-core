@@ -1025,7 +1025,7 @@ HRESULT ZCABContainer::ResolveNames(LPSPropTagArray lpPropTagArray, ULONG ulFlag
 			SPropValue sProp = lpDisplayNameW ? *lpDisplayNameW : *lpDisplayNameA;
 
 			ECOrRestriction resFind;
-			ULONG ulSearchTags[] = {PR_DISPLAY_NAME, PR_EMAIL_ADDRESS, PR_ORIGINAL_DISPLAY_NAME};
+			static const ULONG ulSearchTags[] = {PR_DISPLAY_NAME, PR_EMAIL_ADDRESS, PR_ORIGINAL_DISPLAY_NAME};
 
 			for (ULONG j = 0; j < arraySize(ulSearchTags); ++j) {
 				sProp.ulPropTag = CHANGE_PROP_TYPE(ulSearchTags[j], ulStringType);

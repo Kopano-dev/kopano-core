@@ -42,7 +42,7 @@ namespace KC { namespace helpers {
  */
 #define ARCHIVE_SEARCH_VERSION 2
 
-StoreHelper::search_folder_info_t StoreHelper::s_infoSearchFolders[] = {
+constexpr const StoreHelper::search_folder_info_t StoreHelper::s_infoSearchFolders[] = {
 	{_T("Archive"), _T("This folder contains messages that are eligible for archiving"), &StoreHelper::SetupSearchArchiveFolder},
 	{_T("Delete"), _T("This folder contains messages that are eligible for deletion"), &StoreHelper::SetupSearchDeleteFolder},
 	{_T("Stub"), _T("This folder contains messages that are eligible for stubbing"), &StoreHelper::SetupSearchStubFolder}

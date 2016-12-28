@@ -2982,7 +2982,9 @@ HRESULT ECMsgStore::MsgStoreDnToPseudoUrl(const utf8string &strMsgStoreDN, utf8s
  * @retval	MAPI_E_INVALID_PARAMETER	ulStart is larger than the number of changes available.
  * @retval	MAPI_E_UNABLE_TO_COMPLETE	ulCount is 0 after trunctation.
  */
-HRESULT ECMsgStore::ExportMessageChangesAsStream(ULONG ulFlags, ULONG ulPropTag, std::vector<ICSCHANGE> &sChanges, ULONG ulStart, ULONG ulCount, LPSPropTagArray lpsProps, WSMessageStreamExporter **lppsStreamExporter)
+HRESULT ECMsgStore::ExportMessageChangesAsStream(ULONG ulFlags, ULONG ulPropTag,
+    const std::vector<ICSCHANGE> &sChanges, ULONG ulStart, ULONG ulCount,
+    LPSPropTagArray lpsProps, WSMessageStreamExporter **lppsStreamExporter)
 {
 	WSMessageStreamExporterPtr ptrStreamExporter;
 	WSTransportPtr ptrTransport;

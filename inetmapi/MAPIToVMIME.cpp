@@ -1899,7 +1899,7 @@ HRESULT MAPIToVMIME::handleReplyTo(IMessage *lpMessage,
 	wstring			strName, strType, strEmail;
 
 	// "Email1DisplayName","Email1AddressType","Email1Address","Email1EntryID"
-	ULONG lpulNamesIDs[] = {0x8080, 0x8082, 0x8083, 0x8085,
+	static const ULONG lpulNamesIDs[] = {0x8080, 0x8082, 0x8083, 0x8085,
 				0x8090, 0x8092, 0x8093, 0x8095,
 				0x80A0, 0x80A2, 0x80A3, 0x80A5};
 	ULONG cNames, i, offset;

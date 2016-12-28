@@ -1844,7 +1844,7 @@ ULONG recurrence::countDaysOfMonth(time_t tsDate)
 	ULONG ulYear = 0;
 	ULONG ulMonth = 0;
 	ULONG ulDays = 0;
-	ULONG ulDaysArray[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+	static const ULONG ulDaysArray[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 	
 	ulYear = this->YearFromTime(tsDate);
 	ulMonth = this->MonthFromTime(tsDate);

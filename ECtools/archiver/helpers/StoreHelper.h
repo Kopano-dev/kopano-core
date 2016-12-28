@@ -68,8 +68,7 @@ private:
 		fn_setup_t	fnSetup;
 	};
 
-	static search_folder_info_t s_infoSearchFolders[];
-
+	static const search_folder_info_t s_infoSearchFolders[];
 	MsgStorePtr	m_ptrMsgStore;
 	MAPIFolderPtr m_ptrIpmSubtree;
 	

@@ -1089,9 +1089,7 @@ HRESULT ArchiveControlImpl::AppendAllReferences(LPMAPIFOLDER lpFolder, LPGUID lp
 {
 	HRESULT hr = hrSuccess;
 	BYTE prefixData[4 + sizeof(GUID)] = {0};
-	
-	const ULONG ulFlagArray[] = {0, SHOW_SOFT_DELETES};
-	
+	static const ULONG ulFlagArray[] = {0, SHOW_SOFT_DELETES};
 	SizedSPropTagArray(1, sptaContentProps) = {1, {PT_NULL}};
 
 	PROPMAP_START(1)

@@ -2335,7 +2335,7 @@ exit:
 	return hr;
 }
 
-static HRESULT CopyMAPISourceKeyToSoapSourceKey(SBinary *lpsMAPISourceKey,
+static HRESULT CopyMAPISourceKeyToSoapSourceKey(const SBinary *lpsMAPISourceKey,
     struct xsd__base64Binary *lpsSoapSourceKey, void *lpBase)
 {
 	HRESULT hr;
@@ -2357,7 +2357,8 @@ static HRESULT CopyMAPISourceKeyToSoapSourceKey(SBinary *lpsMAPISourceKey,
 	return hrSuccess;
 }
 
-HRESULT CopyICSChangeToSOAPSourceKeys(ULONG cbChanges, ICSCHANGE *lpsChanges, sourceKeyPairArray **lppsSKPA)
+HRESULT CopyICSChangeToSOAPSourceKeys(ULONG cbChanges,
+    const ICSCHANGE *lpsChanges, sourceKeyPairArray **lppsSKPA)
 {
 	HRESULT				hr = hrSuccess;
 	memory_ptr<sourceKeyPairArray> lpsSKPA;

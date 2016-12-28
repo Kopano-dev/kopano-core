@@ -1461,7 +1461,7 @@ HRESULT Util::HrTextToHtml(const WCHAR *text, std::string &strHTML, ULONG ulCode
 	return hr;
 }
 
-struct _rtfcodepages {
+static const struct _rtfcodepages {
 	int id;						// RTF codepage ID
 	ULONG ulCodepage;			// Windows codepage
 } RTFCODEPAGES[] = {
@@ -1514,14 +1514,14 @@ HRESULT Util::HrTextToRtf(IStream *text, IStream *rtf)
 {
 	ULONG cRead;
 	WCHAR c[BUFSIZE];
-	const char header[] = "{\\rtf1\\ansi\\ansicpg1252\\fromtext \\deff0{\\fonttbl\n" \
+	static const char header[] = "{\\rtf1\\ansi\\ansicpg1252\\fromtext \\deff0{\\fonttbl\n" \
 					"{\\f0\\fswiss Arial;}\n" \
 					"{\\f1\\fmodern Courier New;}\n" \
 					"{\\f2\\fnil\\fcharset2 Symbol;}\n" \
 					"{\\f3\\fmodern\\fcharset0 Courier New;}}\n" \
 					"{\\colortbl\\red0\\green0\\blue0;\\red0\\green0\\blue255;}\n" \
 					"\\uc1\\pard\\plain\\deftab360 \\f0\\fs20 ";
-	const char footer[] = "}";
+	static const char footer[] = "}";
 	ULONG i = 0;
 
 	rtf->Write(header, strlen(header), NULL);

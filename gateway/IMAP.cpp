@@ -68,7 +68,7 @@ using namespace KCHL;
  * @ingroup gateway_imap
  * @{
  */
-const string strMonth[] = {
+static const string strMonth[] = {
 	"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 };
 
