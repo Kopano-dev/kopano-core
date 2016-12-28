@@ -224,7 +224,6 @@ HRESULT Util::HrCopyPropertyArrayByRef(const SPropValue *lpSrc, ULONG cValues,
 		hr = HrCopyPropertyByRef(&lpDest[n], &lpSrc[i]);
 		if (hr == hrSuccess)
 			++n;
-		hr = hrSuccess;
 	}
 	*lppDest = lpDest.release();
 	*cDestValues = n;
@@ -257,16 +256,16 @@ HRESULT Util::HrCopyPropertyArray(const SPropValue *lpSrc, ULONG cValues,
 	for (i = 0; i < cValues; ++i) {
 		if (bExcludeErrors && PROP_TYPE(lpSrc[i].ulPropTag) == PT_ERROR)
 			continue;
-    		hr = HrCopyProperty(&lpDest[n], &lpSrc[i], lpDest);
-
-	    	if(hr == hrSuccess)
-			++n;
-
-    		hr = hrSuccess;
+		hr = HrCopyProperty(&lpDest[n], &lpSrc[i], lpDest);
+		if (hr == MAPI_E_INVALID_PARAMETER)
+			/* traditionally ignored */;
+		else if (hr != hrSuccess)
+			return hr; /* give back memory errors */
+		++n;
 	}
 	*lppDest = lpDest.release();
 	*cDestValues = n;
-	return hr;
+	return hrSuccess;
 }
 
 /** 
