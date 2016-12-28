@@ -2154,7 +2154,7 @@ HRESULT IMAP::HrCmdSearch(const string &strTag, vector<string> &lstSearchCriteri
 		}
 		ulCriterianr += 2;
 	}
-	hr = HrSearch(lstSearchCriteria, ulCriterianr, lstMailnr);
+	hr = HrSearch(std::move(lstSearchCriteria), ulCriterianr, lstMailnr);
 	if (hr != hrSuccess) {
 		HRESULT hr2 = HrResponse(RESP_TAGGED_NO, strTag, strMode+"SEARCH error");
 		if (hr2 != hrSuccess)
@@ -5136,28 +5136,20 @@ exit:
  * 
  * @return MAPI Error code
  */
-HRESULT IMAP::HrSearch(std::vector<std::string> &lstSearchCriteria,
-    ULONG &ulStartCriteria, std::list<ULONG> &lstMailnr)
+HRESULT IMAP::HrSearch(std::vector<std::string> &&lstSearchCriteria,
+    ULONG ulStartCriteria, std::list<ULONG> &lstMailnr)
 {
 	HRESULT hr = hrSuccess;
 	string strSearchCriterium;
 	vector<string> vSubSearch;
-	vector<LPSRestriction> lstRestrictions;
 	list<ULONG> lstMails;
-	memory_ptr<SRestriction> lpRootRestrict;
-	LPSRestriction lpRestriction, lpExtraRestriction;
 	object_ptr<IMAPIFolder> lpFolder;
 	object_ptr<IMAPITable> lpTable;
-	LPSPropValue lpPropVal;
-	ULONG ulMailnr, ulRownr, ulCount;
-	FILETIME ft;
-	char *szBuffer;
+	ULONG ulMailnr, ulRownr;
 	enum { EID, NUM_COLS };
 	SizedSPropTagArray(NUM_COLS, spt) = { NUM_COLS, {PR_EC_IMAP_ID} };
 	map<unsigned int, unsigned int> mapUIDs;
 	int n = 0;
-	SRestriction sAndRestriction;
-	SRestriction sPropertyRestriction;
 	
 	if (strCurrentFolder.empty() || lpSession == nullptr)
 		return MAPI_E_CALL_FAILED;
@@ -5208,11 +5200,15 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &lstSearchCriteria,
 	hr = lpFolder->GetContentsTable(MAPI_DEFERRED_ERRORS, &~lpTable);
 	if (hr != hrSuccess)
 		return hr;
-	hr = MAPIAllocateBuffer(sizeof(SRestriction), &~lpRootRestrict);
-	if (hr != hrSuccess)
-		return hr;
 
-	lstRestrictions.push_back(lpRootRestrict);
+	ECAndRestriction root_rst;
+	std::vector<IRestrictionPush *> lstRestrictions;
+	lstRestrictions.push_back(&root_rst);
+	/*
+	 * Add EXIST(PR_INSTANCE_KEY) to make sure that the query will not be
+	 * passed to the indexer.
+	 */
+	root_rst += ECExistRestriction(PR_INSTANCE_KEY);
 
 	// Thunderbird searches:
 	// or:
@@ -5250,918 +5246,292 @@ HRESULT IMAP::HrSearch(std::vector<std::string> &lstSearchCriteria,
 		strSearchCriterium = lstSearchCriteria[ulStartCriteria];
 		ToUpper(strSearchCriterium);
 
-		if (lstRestrictions.size() == 1) {
-			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpRestriction);
-			if (hr != hrSuccess)
-				return hr;
-			lstRestrictions[0]->rt = RES_AND; // RES_AND / RES_OR
-			lstRestrictions[0]->res.resAnd.cRes = 2;
-			lstRestrictions[0]->res.resAnd.lpRes = lpRestriction;
-			lstRestrictions[0] = &lpRestriction[1];
-		} else {
-			lpRestriction = lstRestrictions[lstRestrictions.size() - 1];
+		assert(lstRestrictions.size() >= 1);
+		IRestrictionPush &top_rst = *lstRestrictions[lstRestrictions.size()-1];
+		if (lstRestrictions.size() > 1)
 			lstRestrictions.pop_back();
-		}
 
+		SPropValue pv, pv2;
 		if (strSearchCriterium.find_first_of("123456789*") == 0) {	// sequence set
 			lstMails.clear();
 
 			hr = HrParseSeqSet(strSearchCriterium, lstMails);
 			if (hr != hrSuccess)
 				return hr;
-			hr = MAPIAllocateMore(sizeof(SRestriction) * lstMails.size(), lpRootRestrict, (LPVOID *) &lpExtraRestriction);
-			if (hr != hrSuccess)
-				return hr;
-			lpRestriction->rt = RES_OR;
-			lpRestriction->res.resOr.cRes = lstMails.size();
-			lpRestriction->res.resOr.lpRes = lpExtraRestriction;
-			ulCount = 0;
-
+			ECOrRestriction or_rst;
 			for (auto mail_idx : lstMails) {
-				hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
-				if (hr != hrSuccess)
-					return hr;
-
-				lpPropVal->ulPropTag = PR_EC_IMAP_ID;
-				lpPropVal->Value.ul = lstFolderMailEIDs[mail_idx].ulUid;
-				lpExtraRestriction[ulCount].rt = RES_PROPERTY;
-				lpExtraRestriction[ulCount].res.resProperty.relop = RELOP_EQ;
-				lpExtraRestriction[ulCount].res.resProperty.ulPropTag = PR_EC_IMAP_ID;
-				lpExtraRestriction[ulCount].res.resProperty.lpProp = lpPropVal;
-				++ulCount;
+				pv.ulPropTag = PR_EC_IMAP_ID;
+				pv.Value.ul  = lstFolderMailEIDs[mail_idx].ulUid;
+				or_rst += ECPropertyRestriction(RELOP_EQ, pv.ulPropTag, &pv, ECRestriction::Shallow);
 			}
-
+			top_rst += std::move(or_rst);
 			++ulStartCriteria;
-		} else if (strSearchCriterium.compare("ALL") == 0 || strSearchCriterium.compare("NEW") == 0 || strSearchCriterium.compare("RECENT") == 0) {	// do nothing
-			lpRestriction->rt = RES_EXIST;
-			lpRestriction->res.resExist.ulReserved1 = 0;
-			lpRestriction->res.resExist.ulReserved2 = 0;
-			lpRestriction->res.resExist.ulPropTag = PR_ENTRYID;
+		} else if (strSearchCriterium.compare("ALL") == 0 || strSearchCriterium.compare("NEW") == 0 || strSearchCriterium.compare("RECENT") == 0) {
+			// do nothing
 			++ulStartCriteria;
 		} else if (strSearchCriterium.compare("ANSWERED") == 0) {
-			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpRestriction->rt = RES_AND;
-			lpRestriction->res.resAnd.cRes = 2;
-			lpRestriction->res.resAnd.lpRes = lpExtraRestriction;
-			lpExtraRestriction[0].rt = RES_EXIST;
-			lpExtraRestriction[0].res.resExist.ulReserved1 = 0;
-			lpExtraRestriction[0].res.resExist.ulReserved2 = 0;
-			lpExtraRestriction[0].res.resExist.ulPropTag = PR_MSG_STATUS;
-			lpExtraRestriction[1].rt = RES_BITMASK;
-			lpExtraRestriction[1].res.resBitMask.relBMR = BMR_NEZ;
-			lpExtraRestriction[1].res.resBitMask.ulPropTag = PR_MSG_STATUS;
-			lpExtraRestriction[1].res.resBitMask.ulMask = MSGSTATUS_ANSWERED;
+			top_rst += ECAndRestriction(
+				ECExistRestriction(PR_MSG_STATUS) +
+				ECBitMaskRestriction(BMR_NEZ, PR_MSG_STATUS, MSGSTATUS_ANSWERED));
 			++ulStartCriteria;
 			// TODO: find also in PR_LAST_VERB_EXECUTED
 		} else if (strSearchCriterium.compare("BEFORE") == 0) {
 			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
 				return MAPI_E_CALL_FAILED;
-			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
-			if (hr != hrSuccess)
-				return hr;
-			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpRestriction->rt = RES_AND;
-			lpRestriction->res.resAnd.cRes = 2;
-			lpRestriction->res.resAnd.lpRes = lpExtraRestriction;
-			lpExtraRestriction[0].rt = RES_EXIST;
-			lpExtraRestriction[0].res.resExist.ulReserved1 = 0;
-			lpExtraRestriction[0].res.resExist.ulReserved2 = 0;
-			lpExtraRestriction[0].res.resExist.ulPropTag = PR_EC_MESSAGE_DELIVERY_DATE;
-			lpPropVal->ulPropTag = PR_EC_MESSAGE_DELIVERY_DATE;
-			ft = StringToFileTime(lstSearchCriteria[ulStartCriteria + 1].c_str());
-			lpPropVal->Value.ft = ft;
-			lpExtraRestriction[1].rt = RES_PROPERTY;
-			lpExtraRestriction[1].res.resProperty.relop = RELOP_LT;
-			lpExtraRestriction[1].res.resProperty.ulPropTag = PR_EC_MESSAGE_DELIVERY_DATE;
-			lpExtraRestriction[1].res.resProperty.lpProp = lpPropVal;
+			pv.ulPropTag = PR_EC_MESSAGE_DELIVERY_DATE;
+			pv.Value.ft  = StringToFileTime(lstSearchCriteria[ulStartCriteria+1].c_str());
+			top_rst += ECAndRestriction(
+				ECExistRestriction(pv.ulPropTag) +
+				ECPropertyRestriction(RELOP_LT, pv.ulPropTag, &pv, ECRestriction::Shallow));
 			ulStartCriteria += 2;
 		} else if (strSearchCriterium == "BODY") {
 			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
 				return MAPI_E_CALL_FAILED;
-			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
-			if (hr != hrSuccess)
-				return hr;
 
-			lpRestriction->rt = RES_AND;
-			lpRestriction->res.resAnd.cRes = 2;
-			lpRestriction->res.resAnd.lpRes = lpExtraRestriction;
-			lpExtraRestriction[0].rt = RES_EXIST;
-			lpExtraRestriction[0].res.resExist.ulReserved1 = 0;
-			lpExtraRestriction[0].res.resExist.ulReserved2 = 0;
-			lpExtraRestriction[0].res.resExist.ulPropTag = PR_BODY;
-			lpExtraRestriction[1].rt = RES_CONTENT;
-			lpExtraRestriction[1].res.resContent.ulFuzzyLevel = lstSearchCriteria[ulStartCriteria+1].size() > 0 ? (FL_SUBSTRING | FL_IGNORECASE) : FL_FULLSTRING;
-			lpExtraRestriction[1].res.resContent.ulPropTag = PR_BODY;
-
-			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
-			if (hr != hrSuccess)
-				return hr;
-			hr = MAPIAllocateMore(lstSearchCriteria[ulStartCriteria + 1].size() + 1, lpRootRestrict,
-								  (LPVOID *) &szBuffer);
-			if (hr != hrSuccess)
-				return hr;
-
-			memcpy(szBuffer, lstSearchCriteria[ulStartCriteria + 1].c_str(), lstSearchCriteria[ulStartCriteria + 1].size() + 1);
-			// @todo, unicode
-			lpPropVal->ulPropTag = PR_BODY_A;
-			lpPropVal->Value.lpszA = szBuffer;
-			lpExtraRestriction[1].res.resContent.lpProp = lpPropVal;
+			unsigned int flags = lstSearchCriteria[ulStartCriteria+1].size() > 0 ? (FL_SUBSTRING | FL_IGNORECASE) : FL_FULLSTRING;
+			pv.ulPropTag   = PR_BODY_A;
+			pv.Value.lpszA = const_cast<char *>(lstSearchCriteria[ulStartCriteria+1].c_str());
+			top_rst += ECAndRestriction(
+				ECExistRestriction(PR_BODY) +
+				ECContentRestriction(flags, PR_BODY, &pv, ECRestriction::Shallow));
 			ulStartCriteria += 2;
 		} else if (strSearchCriterium.compare("DELETED") == 0) {
-			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpRestriction->rt = RES_AND;
-			lpRestriction->res.resAnd.cRes = 2;
-			lpRestriction->res.resAnd.lpRes = lpExtraRestriction;
-			lpExtraRestriction[0].rt = RES_EXIST;
-			lpExtraRestriction[0].res.resExist.ulReserved1 = 0;
-			lpExtraRestriction[0].res.resExist.ulReserved2 = 0;
-			lpExtraRestriction[0].res.resExist.ulPropTag = PR_MSG_STATUS;
-			lpExtraRestriction[1].rt = RES_BITMASK;
-			lpExtraRestriction[1].res.resBitMask.relBMR = BMR_NEZ;
-			lpExtraRestriction[1].res.resBitMask.ulPropTag = PR_MSG_STATUS;
-			lpExtraRestriction[1].res.resBitMask.ulMask = MSGSTATUS_DELMARKED;
+			top_rst += ECAndRestriction(
+				ECExistRestriction(PR_MSG_STATUS) +
+				ECBitMaskRestriction(BMR_NEZ, PR_MSG_STATUS, MSGSTATUS_DELMARKED));
 			++ulStartCriteria;
 		} else if (strSearchCriterium.compare("DRAFT") == 0) {
-			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpRestriction->rt = RES_AND;
-			lpRestriction->res.resAnd.cRes = 2;
-			lpRestriction->res.resAnd.lpRes = lpExtraRestriction;
-			lpExtraRestriction[0].rt = RES_EXIST;
-			lpExtraRestriction[0].res.resExist.ulReserved1 = 0;
-			lpExtraRestriction[0].res.resExist.ulReserved2 = 0;
-			lpExtraRestriction[0].res.resExist.ulPropTag = PR_MSG_STATUS;
-			lpExtraRestriction[1].rt = RES_BITMASK;
-			lpExtraRestriction[1].res.resBitMask.relBMR = BMR_NEZ;
-			lpExtraRestriction[1].res.resBitMask.ulPropTag = PR_MSG_STATUS;
-			lpExtraRestriction[1].res.resBitMask.ulMask = MSGSTATUS_DRAFT;
+			top_rst += ECAndRestriction(
+				ECExistRestriction(PR_MSG_STATUS) +
+				ECBitMaskRestriction(BMR_NEZ, PR_MSG_STATUS, MSGSTATUS_DRAFT));
 			++ulStartCriteria;
 			// FIXME: add restriction to find PR_MESSAGE_FLAGS with MSGFLAG_UNSENT on
 		} else if (strSearchCriterium.compare("FLAGGED") == 0) {
-			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpRestriction->rt = RES_AND;
-			lpRestriction->res.resAnd.cRes = 2;
-			lpRestriction->res.resAnd.lpRes = lpExtraRestriction;
-			lpExtraRestriction[0].rt = RES_EXIST;
-			lpExtraRestriction[0].res.resExist.ulReserved1 = 0;
-			lpExtraRestriction[0].res.resExist.ulReserved2 = 0;
-			lpExtraRestriction[0].res.resExist.ulPropTag = PR_FLAG_STATUS;
-			lpExtraRestriction[1].rt = RES_BITMASK;
-			lpExtraRestriction[1].res.resBitMask.relBMR = BMR_NEZ;
-			lpExtraRestriction[1].res.resBitMask.ulPropTag = PR_FLAG_STATUS;
-			lpExtraRestriction[1].res.resBitMask.ulMask = 65535;
+			top_rst += ECAndRestriction(
+				ECExistRestriction(PR_FLAG_STATUS) +
+				ECBitMaskRestriction(BMR_NEZ, PR_FLAG_STATUS, 0xFFFF));
 			++ulStartCriteria;
 		} else if (strSearchCriterium.compare("FROM") == 0) {
 			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
 				return MAPI_E_CALL_FAILED;
-			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
-			if (hr != hrSuccess)
-				return hr;
 
-			lpRestriction->rt = RES_OR;
-			lpRestriction->res.resOr.cRes = 2;
-			lpRestriction->res.resOr.lpRes = lpExtraRestriction;
-			lpExtraRestriction[0].rt = RES_CONTENT;
-			lpExtraRestriction[0].res.resContent.ulFuzzyLevel = lstSearchCriteria[ulStartCriteria+1].size() > 0 ? (FL_SUBSTRING | FL_IGNORECASE) : FL_FULLSTRING;
-			lpExtraRestriction[0].res.resContent.ulPropTag = PR_SENT_REPRESENTING_NAME;
-			lpExtraRestriction[1].rt = RES_CONTENT;
-			lpExtraRestriction[1].res.resContent.ulFuzzyLevel = lstSearchCriteria[ulStartCriteria+1].size() > 0 ? (FL_SUBSTRING | FL_IGNORECASE) : FL_FULLSTRING;
-			lpExtraRestriction[1].res.resContent.ulPropTag = PR_SENT_REPRESENTING_EMAIL_ADDRESS;
-
-			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
-			if (hr != hrSuccess)
-				return hr;
-			hr = MAPIAllocateMore(lstSearchCriteria[ulStartCriteria + 1].size() + 1, lpRootRestrict,
-								  (LPVOID *) &szBuffer);
-			if (hr != hrSuccess)
-				return hr;
-
-			memcpy(szBuffer, lstSearchCriteria[ulStartCriteria + 1].c_str(), lstSearchCriteria[ulStartCriteria + 1].size() + 1);
-			// @todo, unicode
-			lpPropVal->ulPropTag = PR_SENT_REPRESENTING_NAME_A;
-			lpPropVal->Value.lpszA = szBuffer;
-			lpExtraRestriction[0].res.resContent.lpProp = lpPropVal;
-			lpExtraRestriction[1].res.resContent.lpProp = lpPropVal;
+			unsigned int flags = lstSearchCriteria[ulStartCriteria+1].size() > 0 ? (FL_SUBSTRING | FL_IGNORECASE) : FL_FULLSTRING;
+			pv.ulPropTag   = PR_SENT_REPRESENTING_NAME_A;
+			pv.Value.lpszA = const_cast<char *>(lstSearchCriteria[ulStartCriteria+1].c_str());
+			top_rst += ECOrRestriction(
+				ECContentRestriction(flags, PR_SENT_REPRESENTING_NAME, &pv, ECRestriction::Shallow) +
+				ECContentRestriction(flags, PR_SENT_REPRESENTING_EMAIL_ADDRESS, &pv, ECRestriction::Shallow));
 			ulStartCriteria += 2;
 		} else if (strSearchCriterium.compare("KEYWORD") == 0) {
-			lpRestriction->rt = RES_BITMASK;
-			lpRestriction->res.resBitMask.relBMR = BMR_NEZ;
-			lpRestriction->res.resBitMask.ulPropTag = PR_ENTRYID;
-			lpRestriction->res.resBitMask.ulMask = 0;
+			top_rst += ECBitMaskRestriction(BMR_NEZ, PR_ENTRYID, 0);
 			ulStartCriteria += 2;
 		} else if (strSearchCriterium.compare("LARGER") == 0) {
 			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
 				return MAPI_E_CALL_FAILED;
 
-			// OR (AND (EXIST (PR_EC_IMAP_SIZE), (RES_PROP PR_EC_IMAP_SIZE RELOP_GT size)), (AND (NOT (EXIST (PR_EC_IMAP_SIZE), RES_PROP PR_MESSAGE_SIZE RELOP_GT size))))
-
-			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpRestriction->rt = RES_OR;
-			lpRestriction->res.resOr.cRes = 2;
-			lpRestriction->res.resOr.lpRes = lpExtraRestriction;
-
-			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction[0].res.resAnd.lpRes);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpExtraRestriction[0].rt = RES_AND;
-			lpExtraRestriction[0].res.resAnd.cRes = 2;
-
-			lpExtraRestriction[0].res.resAnd.lpRes[0].rt = RES_EXIST;
-			lpExtraRestriction[0].res.resAnd.lpRes[0].res.resExist.ulPropTag = PR_EC_IMAP_EMAIL_SIZE;
-
-			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpPropVal->ulPropTag = PR_EC_IMAP_EMAIL_SIZE;
-			lpPropVal->Value.ul = strtoul(lstSearchCriteria[ulStartCriteria + 1].c_str(), NULL, 0);
-
-			lpExtraRestriction[0].res.resAnd.lpRes[1].rt = RES_PROPERTY;
-			lpExtraRestriction[0].res.resAnd.lpRes[1].res.resProperty.relop = RELOP_GT;
-			lpExtraRestriction[0].res.resAnd.lpRes[1].res.resProperty.ulPropTag = PR_EC_IMAP_EMAIL_SIZE;
-			lpExtraRestriction[0].res.resAnd.lpRes[1].res.resProperty.lpProp = lpPropVal;
-
-			//--
-
-			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction[1].res.resAnd.lpRes);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpExtraRestriction[1].rt = RES_AND;
-			lpExtraRestriction[1].res.resAnd.cRes = 2;
-
-			//-- not()
-
-			lpExtraRestriction[1].res.resAnd.lpRes[0].rt = RES_NOT;
-			hr = MAPIAllocateMore(sizeof(SRestriction), lpRootRestrict, (LPVOID *) &lpExtraRestriction[1].res.resAnd.lpRes[0].res.resNot.lpRes);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpExtraRestriction[1].res.resAnd.lpRes[0].res.resNot.lpRes[0].rt = RES_EXIST;
-			lpExtraRestriction[1].res.resAnd.lpRes[0].res.resNot.lpRes[0].res.resExist.ulPropTag = PR_EC_IMAP_EMAIL_SIZE;
-
-			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpPropVal->ulPropTag = PR_MESSAGE_SIZE;
-			lpPropVal->Value.ul = strtoul(lstSearchCriteria[ulStartCriteria + 1].c_str(), NULL, 0);
-
-			lpExtraRestriction[1].res.resAnd.lpRes[1].rt = RES_PROPERTY;
-			lpExtraRestriction[1].res.resAnd.lpRes[1].res.resProperty.relop = RELOP_GT;
-			lpExtraRestriction[1].res.resAnd.lpRes[1].res.resProperty.ulPropTag = PR_MESSAGE_SIZE;
-			lpExtraRestriction[1].res.resAnd.lpRes[1].res.resProperty.lpProp = lpPropVal;
-
+			pv.ulPropTag  = PR_EC_IMAP_EMAIL_SIZE;
+			pv2.ulPropTag = PR_MESSAGE_SIZE;
+			pv2.Value.ul  = pv.Value.ul = strtoul(lstSearchCriteria[ulStartCriteria+1].c_str(), nullptr, 0);
+			top_rst += ECOrRestriction(
+				ECAndRestriction(
+					ECExistRestriction(pv.ulPropTag) +
+					ECPropertyRestriction(RELOP_GT, pv.ulPropTag, &pv, ECRestriction::Shallow)
+				) +
+				ECAndRestriction(
+					ECNotRestriction(ECExistRestriction(pv.ulPropTag)) +
+					ECPropertyRestriction(RELOP_GT, pv2.ulPropTag, &pv2, ECRestriction::Shallow)
+				));
 			ulStartCriteria += 2;
 			// NEW done with ALL
 		} else if (strSearchCriterium.compare("NOT") == 0) {
-			hr = MAPIAllocateMore(sizeof(SRestriction), lpRootRestrict, (LPVOID *) &lpExtraRestriction);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpRestriction->rt = RES_NOT;
-			lpRestriction->res.resNot.ulReserved = 0;
-			lpRestriction->res.resNot.lpRes = lpExtraRestriction;
-			lstRestrictions.push_back(lpExtraRestriction);
+			ECRestriction *r = top_rst += ECNotRestriction(nullptr);
+			lstRestrictions.push_back(static_cast<ECNotRestriction *>(r));
 			++ulStartCriteria;
 		} else if (strSearchCriterium.compare("OLD") == 0) {	// none?
-			lpRestriction->rt = RES_BITMASK;
-			lpRestriction->res.resBitMask.relBMR = BMR_NEZ;
-			lpRestriction->res.resBitMask.ulPropTag = PR_ENTRYID;
-			lpRestriction->res.resBitMask.ulMask = 0;
+			top_rst += ECBitMaskRestriction(BMR_NEZ, PR_ENTRYID, 0);
 			++ulStartCriteria;
 		} else if (strSearchCriterium.compare("ON") == 0) {
 			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
 				return MAPI_E_CALL_FAILED;
-			hr = MAPIAllocateMore(sizeof(SRestriction) * 3, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
-			if (hr != hrSuccess)
-				return hr;
-			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpRestriction->rt = RES_AND;
-			lpRestriction->res.resAnd.cRes = 3;
-			lpRestriction->res.resAnd.lpRes = lpExtraRestriction;
-			lpExtraRestriction[0].rt = RES_EXIST;
-			lpExtraRestriction[0].res.resExist.ulReserved1 = 0;
-			lpExtraRestriction[0].res.resExist.ulReserved2 = 0;
-			lpExtraRestriction[0].res.resExist.ulPropTag = PR_EC_MESSAGE_DELIVERY_DATE;
-			lpPropVal->ulPropTag = PR_EC_MESSAGE_DELIVERY_DATE;
-			ft = StringToFileTime(lstSearchCriteria[ulStartCriteria + 1].c_str());
-			lpPropVal->Value.ft = ft;
-			lpExtraRestriction[1].rt = RES_PROPERTY;
-			lpExtraRestriction[1].res.resProperty.relop = RELOP_GE;
-			lpExtraRestriction[1].res.resProperty.lpProp = lpPropVal;
-			lpExtraRestriction[1].res.resProperty.ulPropTag = PR_EC_MESSAGE_DELIVERY_DATE;
-
-			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpPropVal->ulPropTag = PR_EC_MESSAGE_DELIVERY_DATE;
-			ft = StringToFileTime(lstSearchCriteria[ulStartCriteria + 1].c_str());
-			lpPropVal->Value.ft = AddDay(ft);
-			lpExtraRestriction[2].rt = RES_PROPERTY;
-			lpExtraRestriction[2].res.resProperty.relop = RELOP_LT;
-			lpExtraRestriction[2].res.resProperty.ulPropTag = PR_EC_MESSAGE_DELIVERY_DATE;
-			lpExtraRestriction[2].res.resProperty.lpProp = lpPropVal;
+			pv.ulPropTag = pv2.ulPropTag = PR_EC_MESSAGE_DELIVERY_DATE;
+			pv.Value.ft  = StringToFileTime(lstSearchCriteria[ulStartCriteria+1].c_str());
+			pv2.Value.ft = AddDay(pv.Value.ft);
+			top_rst += ECAndRestriction(
+				ECExistRestriction(pv.ulPropTag) +
+				ECPropertyRestriction(RELOP_GE, pv.ulPropTag, &pv, ECRestriction::Shallow) +
+				ECPropertyRestriction(RELOP_LT, pv2.ulPropTag, &pv2, ECRestriction::Shallow));
 			ulStartCriteria += 2;
 		} else if (strSearchCriterium.compare("OR") == 0) {
-			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpRestriction->rt = RES_OR;
-			lpRestriction->res.resOr.cRes = 2;
-			lpRestriction->res.resOr.lpRes = lpExtraRestriction;
-			lstRestrictions.push_back(&lpExtraRestriction[1]);
-			lstRestrictions.push_back(&lpExtraRestriction[0]);
+			ECRestriction *new_rst = top_rst += ECOrRestriction();
+			auto or_rst = static_cast<ECOrRestriction *>(new_rst);
+			lstRestrictions.push_back(or_rst);
+			lstRestrictions.push_back(or_rst);
 			++ulStartCriteria;
 			// RECENT done with ALL
 		} else if (strSearchCriterium.compare("SEEN") == 0) {
-			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpRestriction->rt = RES_AND;
-			lpRestriction->res.resAnd.cRes = 2;
-			lpRestriction->res.resAnd.lpRes = lpExtraRestriction;
-			lpExtraRestriction[0].rt = RES_EXIST;
-			lpExtraRestriction[0].res.resExist.ulReserved1 = 0;
-			lpExtraRestriction[0].res.resExist.ulReserved2 = 0;
-			lpExtraRestriction[0].res.resExist.ulPropTag = PR_MESSAGE_FLAGS;
-			lpExtraRestriction[1].rt = RES_BITMASK;
-			lpExtraRestriction[1].res.resBitMask.relBMR = BMR_NEZ;
-			lpExtraRestriction[1].res.resBitMask.ulPropTag = PR_MESSAGE_FLAGS;
-			lpExtraRestriction[1].res.resBitMask.ulMask = MSGFLAG_READ;
+			top_rst += ECAndRestriction(
+				ECExistRestriction(PR_MESSAGE_FLAGS) +
+				ECBitMaskRestriction(BMR_NEZ, PR_MESSAGE_FLAGS, MSGFLAG_READ));
 			++ulStartCriteria;
 		} else if (strSearchCriterium.compare("SENTBEFORE") == 0) {
 			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
 				return MAPI_E_CALL_FAILED;
-			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
-			if (hr != hrSuccess)
-				return hr;
-			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpRestriction->rt = RES_AND;
-			lpRestriction->res.resAnd.cRes = 2;
-			lpRestriction->res.resAnd.lpRes = lpExtraRestriction;
-			lpExtraRestriction[0].rt = RES_EXIST;
-			lpExtraRestriction[0].res.resExist.ulReserved1 = 0;
-			lpExtraRestriction[0].res.resExist.ulReserved2 = 0;
-			lpExtraRestriction[0].res.resExist.ulPropTag = PR_EC_CLIENT_SUBMIT_DATE;
-			lpPropVal->ulPropTag = PR_EC_CLIENT_SUBMIT_DATE;
-			ft = StringToFileTime(lstSearchCriteria[ulStartCriteria + 1].c_str());
-			lpPropVal->Value.ft = ft;
-			lpExtraRestriction[1].rt = RES_PROPERTY;
-			lpExtraRestriction[1].res.resProperty.relop = RELOP_LT;
-			lpExtraRestriction[1].res.resProperty.ulPropTag = PR_EC_CLIENT_SUBMIT_DATE;
-			lpExtraRestriction[1].res.resProperty.lpProp = lpPropVal;
+			pv.ulPropTag = PR_EC_CLIENT_SUBMIT_DATE;
+			pv.Value.ft  = StringToFileTime(lstSearchCriteria[ulStartCriteria+1].c_str());
+			top_rst += ECAndRestriction(
+				ECExistRestriction(pv.ulPropTag) +
+				ECPropertyRestriction(RELOP_LT, pv.ulPropTag, &pv, ECRestriction::Shallow));
 			ulStartCriteria += 2;
 		} else if (strSearchCriterium.compare("SENTON") == 0) {
 			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
 				return MAPI_E_CALL_FAILED;
-			hr = MAPIAllocateMore(sizeof(SRestriction) * 3, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
-			if (hr != hrSuccess)
-				return hr;
-			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpRestriction->rt = RES_AND;
-			lpRestriction->res.resAnd.cRes = 3;
-			lpRestriction->res.resAnd.lpRes = lpExtraRestriction;
-			lpExtraRestriction[0].rt = RES_EXIST;
-			lpExtraRestriction[0].res.resExist.ulReserved1 = 0;
-			lpExtraRestriction[0].res.resExist.ulReserved2 = 0;
-			lpExtraRestriction[0].res.resExist.ulPropTag = PR_EC_CLIENT_SUBMIT_DATE;
-			lpPropVal->ulPropTag = PR_EC_CLIENT_SUBMIT_DATE;
-			ft = StringToFileTime(lstSearchCriteria[ulStartCriteria + 1].c_str());
-			lpPropVal->Value.ft = ft;
-			lpExtraRestriction[1].rt = RES_PROPERTY;
-			lpExtraRestriction[1].res.resProperty.relop = RELOP_GE;
-			lpExtraRestriction[1].res.resProperty.lpProp = lpPropVal;
-			lpExtraRestriction[1].res.resExist.ulPropTag = PR_EC_CLIENT_SUBMIT_DATE;
-
-			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpPropVal->ulPropTag = PR_EC_CLIENT_SUBMIT_DATE;
-			ft = StringToFileTime(lstSearchCriteria[ulStartCriteria + 1].c_str());
-			lpPropVal->Value.ft = AddDay(ft);
-			lpExtraRestriction[2].rt = RES_PROPERTY;
-			lpExtraRestriction[2].res.resProperty.relop = RELOP_LT;
-			lpExtraRestriction[2].res.resProperty.ulPropTag = PR_EC_CLIENT_SUBMIT_DATE;
-			lpExtraRestriction[2].res.resProperty.lpProp = lpPropVal;
+			pv.ulPropTag = pv2.ulPropTag = PR_EC_CLIENT_SUBMIT_DATE;
+			pv.Value.ft  = StringToFileTime(lstSearchCriteria[ulStartCriteria+1].c_str());
+			pv2.Value.ft = AddDay(pv.Value.ft);
+			top_rst += ECAndRestriction(
+				ECExistRestriction(pv.ulPropTag) +
+				ECPropertyRestriction(RELOP_GE, pv.ulPropTag, &pv, ECRestriction::Shallow) +
+				ECPropertyRestriction(RELOP_LT, pv2.ulPropTag, &pv2, ECRestriction::Shallow));
 			ulStartCriteria += 2;
 		} else if (strSearchCriterium.compare("SENTSINCE") == 0) {
 			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
 				return MAPI_E_CALL_FAILED;
-			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
-			if (hr != hrSuccess)
-				return hr;
-			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpRestriction->rt = RES_AND;
-			lpRestriction->res.resAnd.cRes = 2;
-			lpRestriction->res.resAnd.lpRes = lpExtraRestriction;
-			lpExtraRestriction[0].rt = RES_EXIST;
-			lpExtraRestriction[0].res.resExist.ulReserved1 = 0;
-			lpExtraRestriction[0].res.resExist.ulReserved2 = 0;
-			lpExtraRestriction[0].res.resExist.ulPropTag = PR_EC_CLIENT_SUBMIT_DATE;
-			lpPropVal->ulPropTag = PR_EC_CLIENT_SUBMIT_DATE;
-			ft = StringToFileTime(lstSearchCriteria[ulStartCriteria + 1].c_str());
-			lpPropVal->Value.ft = ft;
-			lpExtraRestriction[1].rt = RES_PROPERTY;
-			lpExtraRestriction[1].res.resProperty.relop = RELOP_GE;
-			lpExtraRestriction[1].res.resProperty.ulPropTag = PR_EC_CLIENT_SUBMIT_DATE;
-			lpExtraRestriction[1].res.resProperty.lpProp = lpPropVal;
+			pv.ulPropTag = PR_EC_CLIENT_SUBMIT_DATE;
+			pv.Value.ft  = StringToFileTime(lstSearchCriteria[ulStartCriteria+1].c_str());
+			top_rst += ECAndRestriction(
+				ECExistRestriction(pv.ulPropTag) +
+				ECPropertyRestriction(RELOP_GE, pv.ulPropTag, &pv, ECRestriction::Shallow));
 			ulStartCriteria += 2;
 		} else if (strSearchCriterium.compare("SINCE") == 0) {
 			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
 				return MAPI_E_CALL_FAILED;
-			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
-			if (hr != hrSuccess)
-				return hr;
-			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpRestriction->rt = RES_AND;
-			lpRestriction->res.resAnd.cRes = 2;
-			lpRestriction->res.resAnd.lpRes = lpExtraRestriction;
-			lpExtraRestriction[0].rt = RES_EXIST;
-			lpExtraRestriction[0].res.resExist.ulReserved1 = 0;
-			lpExtraRestriction[0].res.resExist.ulReserved2 = 0;
-			lpExtraRestriction[0].res.resExist.ulPropTag = PR_EC_MESSAGE_DELIVERY_DATE;
-			lpPropVal->ulPropTag = PR_EC_MESSAGE_DELIVERY_DATE;
-			ft = StringToFileTime(lstSearchCriteria[ulStartCriteria + 1].c_str());
-			lpPropVal->Value.ft = ft;
-			lpExtraRestriction[1].rt = RES_PROPERTY;
-			lpExtraRestriction[1].res.resProperty.relop = RELOP_GE;
-			lpExtraRestriction[1].res.resProperty.ulPropTag = PR_EC_MESSAGE_DELIVERY_DATE;
-			lpExtraRestriction[1].res.resProperty.lpProp = lpPropVal;
+			pv.ulPropTag = PR_EC_MESSAGE_DELIVERY_DATE;
+			pv.Value.ft  = StringToFileTime(lstSearchCriteria[ulStartCriteria+1].c_str());
+			top_rst += ECAndRestriction(
+				ECExistRestriction(pv.ulPropTag) +
+				ECPropertyRestriction(RELOP_GE, pv.ulPropTag, &pv, ECRestriction::Shallow));
 			ulStartCriteria += 2;
 		} else if (strSearchCriterium.compare("SMALLER") == 0) {
 			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
 				return MAPI_E_CALL_FAILED;
-
-			// OR (AND (EXIST (PR_EC_IMAP_EMAIL_SIZE), (RES_PROP PR_EC_IMAP_EMAIL_SIZE RELOP_LT size)), (RES_PROP PR_MESSAGE_SIZE RELOP_LT size))
-
-			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpRestriction->rt = RES_OR;
-			lpRestriction->res.resOr.cRes = 2;
-			lpRestriction->res.resOr.lpRes = lpExtraRestriction;
-
-			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction[0].res.resAnd.lpRes);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpExtraRestriction[0].rt = RES_AND;
-			lpExtraRestriction[0].res.resAnd.cRes = 2;
-
-			lpExtraRestriction[0].res.resAnd.lpRes[0].rt = RES_EXIST;
-			lpExtraRestriction[0].res.resAnd.lpRes[0].res.resExist.ulPropTag = PR_EC_IMAP_EMAIL_SIZE;
-
-			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpPropVal->ulPropTag = PR_EC_IMAP_EMAIL_SIZE;
-			lpPropVal->Value.ul = strtoul(lstSearchCriteria[ulStartCriteria + 1].c_str(), NULL, 0);
-
-			lpExtraRestriction[0].res.resAnd.lpRes[1].rt = RES_PROPERTY;
-			lpExtraRestriction[0].res.resAnd.lpRes[1].res.resProperty.relop = RELOP_LT;
-			lpExtraRestriction[0].res.resAnd.lpRes[1].res.resProperty.ulPropTag = PR_EC_IMAP_EMAIL_SIZE;
-			lpExtraRestriction[0].res.resAnd.lpRes[1].res.resProperty.lpProp = lpPropVal;
-
-			//--
-
-			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction[1].res.resAnd.lpRes);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpExtraRestriction[1].rt = RES_AND;
-			lpExtraRestriction[1].res.resAnd.cRes = 2;
-
-			//-- not()
-
-			lpExtraRestriction[1].res.resAnd.lpRes[0].rt = RES_NOT;
-			hr = MAPIAllocateMore(sizeof(SRestriction), lpRootRestrict, (LPVOID *) &lpExtraRestriction[1].res.resAnd.lpRes[0].res.resNot.lpRes);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpExtraRestriction[1].res.resAnd.lpRes[0].res.resNot.lpRes[0].rt = RES_EXIST;
-			lpExtraRestriction[1].res.resAnd.lpRes[0].res.resNot.lpRes[0].res.resExist.ulPropTag = PR_EC_IMAP_EMAIL_SIZE;
-
-			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpPropVal->ulPropTag = PR_MESSAGE_SIZE;
-			lpPropVal->Value.ul = strtoul(lstSearchCriteria[ulStartCriteria + 1].c_str(), NULL, 0);
-
-			lpExtraRestriction[1].res.resAnd.lpRes[1].rt = RES_PROPERTY;
-			lpExtraRestriction[1].res.resAnd.lpRes[1].res.resProperty.relop = RELOP_LT;
-			lpExtraRestriction[1].res.resAnd.lpRes[1].res.resProperty.ulPropTag = PR_MESSAGE_SIZE;
-			lpExtraRestriction[1].res.resAnd.lpRes[1].res.resProperty.lpProp = lpPropVal;
-
+			pv.ulPropTag  = PR_EC_IMAP_EMAIL_SIZE;
+			pv2.ulPropTag = PR_MESSAGE_SIZE;
+			pv.Value.ul   = pv2.Value.ul = strtoul(lstSearchCriteria[ulStartCriteria+1].c_str(), nullptr, 0);
+			top_rst += ECOrRestriction(
+				ECAndRestriction(
+					ECExistRestriction(pv.ulPropTag) +
+					ECPropertyRestriction(RELOP_LT, pv.ulPropTag, &pv, ECRestriction::Shallow)
+				) +
+				ECAndRestriction(
+					ECNotRestriction(ECExistRestriction(pv.ulPropTag)) +
+					ECPropertyRestriction(RELOP_LT, pv2.ulPropTag, &pv2, ECRestriction::Shallow)
+				));
 			ulStartCriteria += 2;
 		} else if (strSearchCriterium.compare("SUBJECT") == 0) {
-		    // Handle SUBJECT <s>
-		    char *szSearch;
-		    
 			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
 				return MAPI_E_CALL_FAILED;
 
-			szSearch  = (char *)lstSearchCriteria[ulStartCriteria+1].c_str();
-
-			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpRestriction->rt = RES_AND;
-			lpRestriction->res.resAnd.cRes = 2;
-			lpRestriction->res.resAnd.lpRes = lpExtraRestriction;
-			lpExtraRestriction[0].rt = RES_EXIST;
-			lpExtraRestriction[0].res.resExist.ulReserved1 = 0;
-			lpExtraRestriction[0].res.resExist.ulReserved2 = 0;
-			lpExtraRestriction[0].res.resExist.ulPropTag = PR_SUBJECT;
-			lpExtraRestriction[1].rt = RES_CONTENT;
-
-            lpExtraRestriction[1].res.resContent.ulFuzzyLevel = szSearch[0] ? (FL_SUBSTRING | FL_IGNORECASE) : FL_FULLSTRING;
-			lpExtraRestriction[1].res.resContent.ulPropTag = PR_SUBJECT;
-
-			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
-			if (hr != hrSuccess)
-				return hr;
-
-			// @todo, unicode
-			lpPropVal->ulPropTag = PR_SUBJECT_A;
-			lpPropVal->Value.lpszA = szSearch;
-			lpExtraRestriction[1].res.resContent.lpProp = lpPropVal;
-
+			// Handle SUBJECT <s>
+			const char *const szSearch = lstSearchCriteria[ulStartCriteria+1].c_str();
+			unsigned int flags = szSearch[0] ? (FL_SUBSTRING | FL_IGNORECASE) : FL_FULLSTRING;
+			pv.ulPropTag   = PR_SUBJECT_A;
+			pv.Value.lpszA = const_cast<char *>(szSearch);
+			top_rst += ECAndRestriction(
+				ECExistRestriction(PR_SUBJECT) +
+				ECContentRestriction(flags, PR_SUBJECT, &pv, ECRestriction::Shallow));
             ulStartCriteria += 2;
                 
 		} else if (strSearchCriterium.compare("TEXT") == 0) {
-			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
-				return MAPI_E_CALL_FAILED;
-
-			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpRestriction->rt = RES_OR;
-			lpRestriction->res.resOr.cRes = 2;
-			lpRestriction->res.resOr.lpRes = lpExtraRestriction;
-			lpRestriction = lpExtraRestriction;
-
-			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpRestriction[0].rt = RES_AND;
-			lpRestriction[0].res.resAnd.cRes = 2;
-			lpRestriction[0].res.resAnd.lpRes = lpExtraRestriction;
-			lpExtraRestriction[0].rt = RES_EXIST;
-			lpExtraRestriction[0].res.resExist.ulReserved1 = 0;
-			lpExtraRestriction[0].res.resExist.ulReserved2 = 0;
-			lpExtraRestriction[0].res.resExist.ulPropTag = PR_BODY;
-
-			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
-			if (hr != hrSuccess)
-				return hr;
-			hr = MAPIAllocateMore(lstSearchCriteria[ulStartCriteria + 1].size() + 1, lpRootRestrict,
-								  (LPVOID *) &szBuffer);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpExtraRestriction[1].rt = RES_CONTENT;
-			lpExtraRestriction[1].res.resContent.ulFuzzyLevel = lstSearchCriteria[ulStartCriteria+1].size() > 0 ? (FL_SUBSTRING | FL_IGNORECASE) : FL_FULLSTRING;
-			lpExtraRestriction[1].res.resContent.ulPropTag = PR_BODY;
-			memcpy(szBuffer, lstSearchCriteria[ulStartCriteria + 1].c_str(), lstSearchCriteria[ulStartCriteria + 1].size() + 1);
-			// @todo, unicode
-			lpPropVal->ulPropTag = PR_BODY_A;
-			lpPropVal->Value.lpszA = szBuffer;
-			lpExtraRestriction[1].res.resContent.lpProp = lpPropVal;
-
-			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpRestriction[1].rt = RES_AND;
-			lpRestriction[1].res.resAnd.cRes = 2;
-			lpRestriction[1].res.resAnd.lpRes = lpExtraRestriction;
-			lpExtraRestriction[0].rt = RES_EXIST;
-			lpExtraRestriction[0].res.resExist.ulReserved1 = 0;
-			lpExtraRestriction[0].res.resExist.ulReserved2 = 0;
-			lpExtraRestriction[0].res.resExist.ulPropTag = PR_TRANSPORT_MESSAGE_HEADERS_A;
-
-			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
-			if (hr != hrSuccess)
-				return hr;
-			hr = MAPIAllocateMore(lstSearchCriteria[ulStartCriteria + 1].size() + 1, lpRootRestrict,
-								  (LPVOID *) &szBuffer);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpExtraRestriction[1].rt = RES_CONTENT;
-			lpExtraRestriction[1].res.resContent.ulFuzzyLevel = lstSearchCriteria[ulStartCriteria+1].size() > 0 ? (FL_SUBSTRING | FL_IGNORECASE) : FL_FULLSTRING;
-			lpExtraRestriction[1].res.resContent.ulPropTag = PR_TRANSPORT_MESSAGE_HEADERS_A;
-			memcpy(szBuffer, lstSearchCriteria[ulStartCriteria + 1].c_str(), lstSearchCriteria[ulStartCriteria + 1].size() + 1);
-			lpPropVal->ulPropTag = PR_TRANSPORT_MESSAGE_HEADERS_A;
-			lpPropVal->Value.lpszA = szBuffer;
-			lpExtraRestriction[1].res.resContent.lpProp = lpPropVal;
+			unsigned int flags = lstSearchCriteria[ulStartCriteria+1].size() > 0 ? (FL_SUBSTRING | FL_IGNORECASE) : FL_FULLSTRING;
+			pv.ulPropTag   = PR_BODY_A;
+			pv2.ulPropTag  = PR_TRANSPORT_MESSAGE_HEADERS_A;
+			pv.Value.lpszA = pv2.Value.lpszA = const_cast<char *>(lstSearchCriteria[ulStartCriteria+1].c_str());
+			top_rst += ECOrRestriction(
+				ECAndRestriction(
+					ECExistRestriction(PR_BODY) +
+					ECContentRestriction(flags, PR_BODY, &pv, ECRestriction::Shallow)
+				) +
+				ECAndRestriction(
+					ECExistRestriction(pv2.ulPropTag) +
+					ECContentRestriction(flags, pv2.ulPropTag, &pv2, ECRestriction::Shallow)
+				));
 			ulStartCriteria += 2;
 			}
 		else if (strSearchCriterium.compare("TO") == 0 || strSearchCriterium.compare("CC") == 0 || strSearchCriterium.compare("BCC") == 0) {
-		    char *szField = NULL;
-		    char *szSearch = NULL;
-
 			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
 				return MAPI_E_CALL_FAILED;
 			
-			szField = (char *)strSearchCriterium.c_str();
-			szSearch = (char *)lstSearchCriteria[ulStartCriteria+1].c_str();
-			
-            // Search for "^HEADER:.*DATA" in PR_TRANSPORT_HEADERS
-            string strSearch = (string)"^" + szField + ":.*" + szSearch;
-            
-            lpRestriction->rt = RES_PROPERTY;
-            lpRestriction->res.resProperty.ulPropTag = PR_TRANSPORT_MESSAGE_HEADERS_A;
-            lpRestriction->res.resProperty.relop = RELOP_RE;
-
-            hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (void **)&lpPropVal);
-            if(hr != hrSuccess)
-				return hr;
-                
-            lpPropVal->ulPropTag = PR_TRANSPORT_MESSAGE_HEADERS_A;
-            
-            hr = MAPIAllocateMore(strSearch.size()+1, lpRootRestrict, (void **)&lpPropVal->Value.lpszA);
-            strcpy(lpPropVal->Value.lpszA, strSearch.c_str());
-            
-            lpRestriction->res.resProperty.lpProp = lpPropVal;
-
+			// Search for "^HEADER:.*DATA" in PR_TRANSPORT_HEADERS
+			std::string strSearch = (string)"^" + strSearchCriterium + ":.*" + lstSearchCriteria[ulStartCriteria+1];
+			pv.ulPropTag   = PR_TRANSPORT_MESSAGE_HEADERS_A;
+			pv.Value.lpszA = const_cast<char *>(strSearch.c_str());
+			top_rst += ECPropertyRestriction(RELOP_RE, pv.ulPropTag, &pv, ECRestriction::Shallow);
 			ulStartCriteria += 2;
 		} else if (strSearchCriterium.compare("UID") == 0) {
-			lstMails.clear();
+			ECOrRestriction or_rst;
 
+			lstMails.clear();
 			hr = HrParseSeqUidSet(lstSearchCriteria[ulStartCriteria + 1], lstMails);
 			if (hr != hrSuccess)
 				return hr;
-			hr = MAPIAllocateMore(sizeof(SRestriction) * lstMails.size(), lpRootRestrict, (LPVOID *) &lpExtraRestriction);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpRestriction->rt = RES_OR;
-			lpRestriction->res.resOr.cRes = lstMails.size();
-			lpRestriction->res.resOr.lpRes = lpExtraRestriction;
-			ulCount = 0;
-
 			for (auto mail_idx : lstMails) {
-				hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
-				if (hr != hrSuccess)
-					return hr;
-
-				lpPropVal->ulPropTag = PR_EC_IMAP_ID;
-				lpPropVal->Value.ul = lstFolderMailEIDs[mail_idx].ulUid;
-				lpExtraRestriction[ulCount].rt = RES_PROPERTY;
-				lpExtraRestriction[ulCount].res.resProperty.relop = RELOP_EQ;
-				lpExtraRestriction[ulCount].res.resProperty.ulPropTag = PR_EC_IMAP_ID;
-				lpExtraRestriction[ulCount].res.resProperty.lpProp = lpPropVal;
-				++ulCount;
+				pv.ulPropTag = PR_EC_IMAP_ID;
+				pv.Value.ul  = lstFolderMailEIDs[mail_idx].ulUid;
+				or_rst += ECPropertyRestriction(RELOP_EQ, pv.ulPropTag, &pv, ECRestriction::Shallow);
 			}
-
+			top_rst += std::move(or_rst);
 			ulStartCriteria += 2;
 		} else if (strSearchCriterium.compare("UNANSWERED") == 0) {
-			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpRestriction->rt = RES_OR;
-			lpRestriction->res.resOr.cRes = 2;
-			lpRestriction->res.resOr.lpRes = lpExtraRestriction;
-
-			hr = MAPIAllocateMore(sizeof(SRestriction), lpRootRestrict, (LPVOID *) &lpRestriction);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpExtraRestriction[0].rt = RES_NOT;
-			lpExtraRestriction[0].res.resNot.ulReserved = 0;
-			lpExtraRestriction[0].res.resNot.lpRes = lpRestriction;
-
-			lpRestriction[0].rt = RES_EXIST;
-			lpRestriction[0].res.resExist.ulReserved1 = 0;
-			lpRestriction[0].res.resExist.ulReserved2 = 0;
-			lpRestriction[0].res.resExist.ulPropTag = PR_MSG_STATUS;
-
-			lpExtraRestriction[1].rt = RES_BITMASK;
-			lpExtraRestriction[1].res.resBitMask.relBMR = BMR_EQZ;
-			lpExtraRestriction[1].res.resBitMask.ulPropTag = PR_MSG_STATUS;
-			lpExtraRestriction[1].res.resBitMask.ulMask = MSGSTATUS_ANSWERED;
+			top_rst += ECOrRestriction(
+				ECNotRestriction(ECExistRestriction(PR_MSG_STATUS)) +
+				ECBitMaskRestriction(BMR_EQZ, PR_MSG_STATUS, MSGSTATUS_ANSWERED));
 			++ulStartCriteria;
 			// TODO: also find in PR_LAST_VERB_EXECUTED
 		} else if (strSearchCriterium.compare("UNDELETED") == 0) {
-			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpRestriction->rt = RES_OR;
-			lpRestriction->res.resOr.cRes = 2;
-			lpRestriction->res.resOr.lpRes = lpExtraRestriction;
-
-			hr = MAPIAllocateMore(sizeof(SRestriction), lpRootRestrict, (LPVOID *) &lpRestriction);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpExtraRestriction[0].rt = RES_NOT;
-			lpExtraRestriction[0].res.resNot.ulReserved = 0;
-			lpExtraRestriction[0].res.resNot.lpRes = lpRestriction;
-
-			lpRestriction[0].rt = RES_EXIST;
-			lpRestriction[0].res.resExist.ulReserved1 = 0;
-			lpRestriction[0].res.resExist.ulReserved2 = 0;
-			lpRestriction[0].res.resExist.ulPropTag = PR_MSG_STATUS;
-
-			lpExtraRestriction[1].rt = RES_BITMASK;
-			lpExtraRestriction[1].res.resBitMask.relBMR = BMR_EQZ;
-			lpExtraRestriction[1].res.resBitMask.ulPropTag = PR_MSG_STATUS;
-			lpExtraRestriction[1].res.resBitMask.ulMask = MSGSTATUS_DELMARKED;
+			top_rst += ECOrRestriction(
+				ECNotRestriction(ECExistRestriction(PR_MSG_STATUS)) +
+				ECBitMaskRestriction(BMR_EQZ, PR_MSG_STATUS, MSGSTATUS_DELMARKED));
 			++ulStartCriteria;
 		} else if (strSearchCriterium.compare("UNDRAFT") == 0) {
-			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpRestriction->rt = RES_OR;
-			lpRestriction->res.resOr.cRes = 2;
-			lpRestriction->res.resOr.lpRes = lpExtraRestriction;
-
-			hr = MAPIAllocateMore(sizeof(SRestriction), lpRootRestrict, (LPVOID *) &lpRestriction);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpExtraRestriction[0].rt = RES_NOT;
-			lpExtraRestriction[0].res.resNot.ulReserved = 0;
-			lpExtraRestriction[0].res.resNot.lpRes = lpRestriction;
-
-			lpRestriction[0].rt = RES_EXIST;
-			lpRestriction[0].res.resExist.ulReserved1 = 0;
-			lpRestriction[0].res.resExist.ulReserved2 = 0;
-			lpRestriction[0].res.resExist.ulPropTag = PR_MSG_STATUS;
-
-			lpExtraRestriction[1].rt = RES_BITMASK;
-			lpExtraRestriction[1].res.resBitMask.relBMR = BMR_EQZ;
-			lpExtraRestriction[1].res.resBitMask.ulPropTag = PR_MSG_STATUS;
-			lpExtraRestriction[1].res.resBitMask.ulMask = MSGSTATUS_DRAFT;
+			top_rst += ECOrRestriction(
+				ECNotRestriction(ECExistRestriction(PR_MSG_STATUS)) +
+				ECBitMaskRestriction(BMR_EQZ, PR_MSG_STATUS, MSGSTATUS_DRAFT));
 			++ulStartCriteria;
 			// FIXME: add restrictin to find PR_MESSAGE_FLAGS with MSGFLAG_UNSENT off
 		} else if (strSearchCriterium.compare("UNFLAGGED") == 0) {
-			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpRestriction->rt = RES_OR;
-			lpRestriction->res.resOr.cRes = 2;
-			lpRestriction->res.resOr.lpRes = lpExtraRestriction;
-
-			hr = MAPIAllocateMore(sizeof(SRestriction), lpRootRestrict, (LPVOID *) &lpRestriction);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpExtraRestriction[0].rt = RES_NOT;
-			lpExtraRestriction[0].res.resNot.ulReserved = 0;
-			lpExtraRestriction[0].res.resNot.lpRes = lpRestriction;
-
-			lpRestriction[0].rt = RES_EXIST;
-			lpRestriction[0].res.resExist.ulReserved1 = 0;
-			lpRestriction[0].res.resExist.ulReserved2 = 0;
-			lpRestriction[0].res.resExist.ulPropTag = PR_FLAG_STATUS;
-
-			lpExtraRestriction[1].rt = RES_BITMASK;
-			lpExtraRestriction[1].res.resBitMask.relBMR = BMR_EQZ;
-			lpExtraRestriction[1].res.resBitMask.ulPropTag = PR_FLAG_STATUS;
-			lpExtraRestriction[1].res.resBitMask.ulMask = 65535;
+			top_rst += ECOrRestriction(
+				ECNotRestriction(ECExistRestriction(PR_FLAG_STATUS)) +
+				ECBitMaskRestriction(BMR_EQZ, PR_FLAG_STATUS, 0xFFFF));
 			++ulStartCriteria;
 		} else if (strSearchCriterium.compare("UNKEYWORD") == 0) {
-			lpRestriction->rt = RES_EXIST;
-			lpRestriction->res.resExist.ulReserved1 = 0;
-			lpRestriction->res.resExist.ulReserved2 = 0;
-			lpRestriction->res.resExist.ulPropTag = PR_ENTRYID;
+			top_rst += ECExistRestriction(PR_ENTRYID);
 			ulStartCriteria += 2;
 		} else if (strSearchCriterium.compare("UNSEEN") == 0) {
-			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpRestriction->rt = RES_OR;
-			lpRestriction->res.resOr.cRes = 2;
-			lpRestriction->res.resOr.lpRes = lpExtraRestriction;
-
-			hr = MAPIAllocateMore(sizeof(SRestriction), lpRootRestrict, (LPVOID *) &lpRestriction);
-			if (hr != hrSuccess)
-				return hr;
-
-			lpExtraRestriction[0].rt = RES_NOT;
-			lpExtraRestriction[0].res.resNot.ulReserved = 0;
-			lpExtraRestriction[0].res.resNot.lpRes = lpRestriction;
-
-			lpRestriction[0].rt = RES_EXIST;
-			lpRestriction[0].res.resExist.ulReserved1 = 0;
-			lpRestriction[0].res.resExist.ulReserved2 = 0;
-			lpRestriction[0].res.resExist.ulPropTag = PR_MESSAGE_FLAGS;
-
-			lpExtraRestriction[1].rt = RES_BITMASK;
-			lpExtraRestriction[1].res.resBitMask.relBMR = BMR_EQZ;
-			lpExtraRestriction[1].res.resBitMask.ulPropTag = PR_MESSAGE_FLAGS;
-			lpExtraRestriction[1].res.resBitMask.ulMask = MSGFLAG_READ;
+			top_rst += ECOrRestriction(
+				ECNotRestriction(ECExistRestriction(PR_MESSAGE_FLAGS)) +
+				ECBitMaskRestriction(BMR_EQZ, PR_MESSAGE_FLAGS, MSGFLAG_READ));
 			++ulStartCriteria;
 		} else if (strSearchCriterium.compare("HEADER") == 0) {
-		    char *szField;
-		    char *szSearch;
-		    
 			if (lstSearchCriteria.size() - ulStartCriteria <= 2)
 				return MAPI_E_CALL_FAILED;
 			
-			szField = (char *)lstSearchCriteria[ulStartCriteria+1].c_str();
-			szSearch = (char *)lstSearchCriteria[ulStartCriteria+2].c_str();
-			
-            // Search for "^HEADER:.*DATA" in PR_TRANSPORT_HEADERS
-            string strSearch = (string)"^" + szField + ":.*" + szSearch;
-            
-            lpRestriction->rt = RES_PROPERTY;
-            lpRestriction->res.resProperty.ulPropTag = PR_TRANSPORT_MESSAGE_HEADERS_A;
-            lpRestriction->res.resProperty.relop = RELOP_RE;
-
-            hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (void **)&lpPropVal);
-            if(hr != hrSuccess)
-				return hr;
-                
-            lpPropVal->ulPropTag = PR_TRANSPORT_MESSAGE_HEADERS_A;
-            
-            hr = MAPIAllocateMore(strSearch.size()+1, lpRootRestrict, (void **)&lpPropVal->Value.lpszA);
-            strcpy(lpPropVal->Value.lpszA, strSearch.c_str());
-            
-            lpRestriction->res.resProperty.lpProp = lpPropVal;
-
+			// Search for "^HEADER:.*DATA" in PR_TRANSPORT_HEADERS
+			std::string strSearch = "^" + lstSearchCriteria[ulStartCriteria+1] + ":.*" + lstSearchCriteria[ulStartCriteria+2];
+			pv.ulPropTag   = PR_TRANSPORT_MESSAGE_HEADERS_A;
+			pv.Value.lpszA = const_cast<char *>(strSearch.c_str());
+			top_rst += ECPropertyRestriction(RELOP_RE, pv.ulPropTag, &pv, ECRestriction::Shallow);
 			ulStartCriteria += 3;
 		} else {
 			return MAPI_E_CALL_FAILED;
 		}
 	}
-
-	while (lstRestrictions.size() > 0) {
-		lpRestriction = lstRestrictions[lstRestrictions.size() - 1];
-		lpRestriction->rt = RES_EXIST;
-		lpRestriction->res.resExist.ulReserved1 = 0;
-		lpRestriction->res.resExist.ulReserved2 = 0;
-		lpRestriction->res.resExist.ulPropTag = PR_ENTRYID;
-		lstRestrictions.pop_back();
-	}
-		
-    // Wrap the resulting restriction (lpRootRestrict) in an AND:
-    // AND (lpRootRestrict, EXIST(PR_INSTANCE_KEY)) to make sure that the query
-    // will not be passed to the indexer
-    
-	sPropertyRestriction.rt = RES_EXIST;
-	sPropertyRestriction.res.resExist.ulPropTag = PR_INSTANCE_KEY;
-	
-	sAndRestriction.rt = RES_AND;
-	sAndRestriction.res.resAnd.cRes = 2;
-	if ((hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (void **)&sAndRestriction.res.resAnd.lpRes)) != hrSuccess)
+	root_rst += ECExistRestriction(PR_ENTRYID);
+	memory_ptr<SRestriction> classic_rst;
+	hr = root_rst.CreateMAPIRestriction(&~classic_rst, ECRestriction::Cheap);
+	if (hr != hrSuccess)
 		return hr;
-	sAndRestriction.res.resAnd.lpRes[0] = sPropertyRestriction;
-	sAndRestriction.res.resAnd.lpRes[1] = *lpRootRestrict;
-
 	LPSRowSet lpRows = nullptr;
-	hr = HrQueryAllRows(lpTable, spt, &sAndRestriction, NULL, 0, &lpRows);
+	hr = HrQueryAllRows(lpTable, spt, classic_rst, NULL, 0, &lpRows);
 	if (hr != hrSuccess)
 		goto exit;
 

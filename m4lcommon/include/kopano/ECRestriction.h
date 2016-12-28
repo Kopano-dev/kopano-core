@@ -164,7 +164,13 @@ inline ECRestrictionList ECRestriction::operator+(ECRestriction &&other) &&
 }
 #endif
 
-class _kc_export ECAndRestriction _kc_final : public ECRestriction {
+class IRestrictionPush : public ECRestriction {
+	public:
+	virtual ECRestriction *operator+=(const ECRestriction &) = 0;
+	virtual ECRestriction *operator+=(ECRestriction &&) = 0;
+};
+
+class _kc_export ECAndRestriction _kc_final : public IRestrictionPush {
 public:
 	_kc_hidden ECAndRestriction(void) {}
 	ECAndRestriction(const ECRestrictionList &list);
@@ -195,7 +201,7 @@ private:
 	ResList	m_lstRestrictions;
 };
 
-class _kc_export ECOrRestriction _kc_final : public ECRestriction {
+class _kc_export ECOrRestriction _kc_final : public IRestrictionPush {
 public:
 	_kc_hidden ECOrRestriction(void) {}
 	ECOrRestriction(const ECRestrictionList &list);
@@ -226,7 +232,7 @@ private:
 	ResList	m_lstRestrictions;
 };
 
-class _kc_export ECNotRestriction _kc_final : public ECRestriction {
+class _kc_export ECNotRestriction _kc_final : public IRestrictionPush {
 public:
 	_kc_hidden ECNotRestriction(const ECRestriction &restriction)
 	: m_ptrRestriction(ResPtr(restriction.Clone())) 
