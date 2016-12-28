@@ -251,29 +251,29 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 	ulFlags = ulFlags & MAPI_UNICODE;
 	hr = Util::HrCopyUnicodePropTagArray(ulFlags, inputCols, &~ptrInputCols);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = Util::HrCopyUnicodePropTagArray(ulFlags, outputCols, &~ptrOutputCols);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = ECMemTable::Create(ptrOutputCols, PR_ROWID, &~lpTable);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// root container has no contents, on hierarchy entries
 	if (m_lpContactFolder == NULL)
 		goto done;
 	hr = m_lpContactFolder->GetContentsTable(ulFlags | MAPI_DEFERRED_ERRORS, &~ptrContents);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = MAPIAllocateBuffer(sizeof(LPMAPINAMEID) * ulNames, &~lppNames);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	for (i = 0; i < ulNames; ++i)
 		lppNames[i] = &mnNamedProps[i];
 	hr = m_lpContactFolder->GetIDsFromNames(ulNames, lppNames, MAPI_CREATE, &~ptrNameTags);
 	if (FAILED(hr))
-		goto exit;
+		return hr;
 
 	// fix types
 	ptrNameTags->aulPropTag[0] = CHANGE_PROP_TYPE(ptrNameTags->aulPropTag[0], PT_MV_LONG | MV_INSTANCE);
@@ -289,7 +289,7 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 	// add func HrCombinePropTagArrays(part1, part2, dest);
 	hr = MAPIAllocateBuffer(CbNewSPropTagArray(ptrInputCols->cValues + ptrNameTags->cValues), &~ptrContactCols);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	j = 0;
 	for (i = 0; i < ptrInputCols->cValues; ++i)
 		ptrContactCols->aulPropTag[j++] = ptrInputCols->aulPropTag[i];
@@ -313,23 +313,20 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 	resOr.append(resAnd);
 	hr = resOr.CreateMAPIRestriction(&~ptrRestriction);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	hr = ptrContents->Restrict(ptrRestriction, TBL_BATCH);
 	if (hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	// set columns
 	hr = ptrContents->SetColumns(ptrContactCols, TBL_BATCH);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	j = 0;
 	while (true) {
 		hr = ptrContents->QueryRows(256, 0, &ptrRows);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		if (ptrRows.empty())
 			break;
 
@@ -386,7 +383,7 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 									lpColData[O_OBJECT_TYPE].Value.ul, ulOffset/5,
 									&lpColData[O_ENTRYID].Value.bin.cb, (LPENTRYID*)&lpColData[O_ENTRYID].Value.bin.lpb);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpColData[O_ENTRYID].ulPropTag = PR_ENTRYID;
 
@@ -463,7 +460,7 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 
 			hr = lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, NULL, lpColData, O_NCOLS);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 		}
 	}
 		
@@ -471,12 +468,9 @@ done:
 	AddChild(lpTable);
 	hr = lpTable->HrGetView(createLocaleFromName(nullptr), ulFlags, &~lpTableView);
 	if(hr != hrSuccess)
-		goto exit;
-	
-	hr = lpTableView->QueryInterface(IID_IMAPITable, (void **)lppTable);
-
-exit:
-	return hr;
+		return hr;
+	return lpTableView->QueryInterface(IID_IMAPITable,
+	       reinterpret_cast<void **>(lppTable));
 #undef TCOLS
 }
 
@@ -500,15 +494,15 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 
 	hr = Util::HrCopyUnicodePropTagArray(ulFlags, sptaCols, &~ptrCols);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = ECMemTable::Create(ptrCols, PR_ROWID, &~lpTable);
 	if(hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	// getprops, open real contacts, make table
 	hr = HrGetOneProp(m_lpDistList, 0x81051102, &~ptrEntries); // Members "entryids" named property, see data layout below
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	sKey.ulPropTag = PR_ROWID;
 	sKey.Value.ul = 0;
@@ -556,7 +550,7 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 
 			hr = HrGetOneProp(ptrUser, PR_ENTRYID, &~ptrPropEntryID);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			if ((cType & 0x0F) == 3) {
 				ulObjType = MAPI_MAILUSER;
@@ -566,10 +560,10 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 
 			hr = MakeWrappedEntryID(ptrPropEntryID->Value.bin.cb, (LPENTRYID)ptrPropEntryID->Value.bin.lpb, ulObjType, ulObjOffset, &cbEntryID, &~ptrEntryID);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			hr = ZCMAPIProp::Create(ptrUser, cbEntryID, ptrEntryID, &~ptrZCMAPIProp);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			hr = ptrZCMAPIProp->GetProps(ptrCols, 0, &cValues, &~ptrProps);
 			if (FAILED(hr))
 				continue;
@@ -584,20 +578,16 @@ HRESULT ZCABContainer::GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppT
 
 		hr = lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, NULL, ptrProps.get(), cValues);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		++sKey.Value.ul;
 	}
-	hr = hrSuccess;
 
 	AddChild(lpTable);
 	hr = lpTable->HrGetView(createLocaleFromName(nullptr), ulFlags, &~lpTableView);
 	if(hr != hrSuccess)
-		goto exit;
-	
-	hr = lpTableView->QueryInterface(IID_IMAPITable, (void **)lppTable);
-
-exit:
-	return hr;
+		return hr;
+	return lpTableView->QueryInterface(IID_IMAPITable,
+	       reinterpret_cast<void **>(lppTable));
 }
 
 /** 
@@ -647,8 +637,7 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 		sptaCols.aulPropTag[DISPLAY_NAME] = PR_DISPLAY_NAME_A;
 	hr = ECMemTable::Create(sptaCols, PR_ROWID, &~lpTable);
 	if(hr != hrSuccess)
-		goto exit;
-
+		return hr;
 	/*
 	  1. root container		: m_lpFolders = NULL, m_lpContactFolder = NULL, m_lpDistList = NULL, m_lpProvider = ZCABLogon (one entry: provider)
 	  2. provider container	: m_lpFolders = data, m_lpContactFolder = NULL, m_lpDistList = NULL, m_lpProvider = ZCABLogon (N entries: folders)
@@ -668,7 +657,7 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 
 			hr = MAPIAllocateBuffer(cbEntryID, &~lpEntryID);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			memset(lpEntryID, 0, cbEntryID);
 			memcpy(&lpEntryID->muid, &MUIDZCSAB, sizeof(MAPIUID));
@@ -716,7 +705,7 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 
 			hr = lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, NULL, sProps, TCOLS + 1);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			++ulInstance;
 		}
 	} else if (!m_lpContactFolder) {
@@ -767,7 +756,7 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 
 		hr = lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, NULL, sProps, TCOLS + 1);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 
 		if (ulFlags & CONVENIENT_DEPTH) {
 			ABContainerPtr ptrContainer;			
@@ -777,14 +766,13 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 
 			hr = ((ZCABLogon*)m_lpProvider)->OpenEntry(sizeof(sEntryID), reinterpret_cast<ENTRYID *>(sEntryID), nullptr, 0, &ulObjType, &~ptrContainer);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			hr = ptrContainer->GetHierarchyTable(ulFlags, &~ptrTable);
 			if (hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			hr = ptrTable->QueryRows(-1, 0, &ptrRows);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
 				// use PR_STORE_ENTRYID field to set instance key, since that is always MAPI_E_NOT_FOUND (see above)
@@ -796,7 +784,7 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 
 				hr = lpTable->HrModifyRow(ECKeyTable::TABLE_ROW_ADD, NULL, ptrRows[i].lpProps, ptrRows[i].cValues);
 				if (hr != hrSuccess)
-					goto exit;
+					return hr;
 			}
 		}
 	}
@@ -804,12 +792,9 @@ HRESULT ZCABContainer::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
 	AddChild(lpTable);
 	hr = lpTable->HrGetView(createLocaleFromName(nullptr), ulFlags, &~lpTableView);
 	if(hr != hrSuccess)
-		goto exit;
-		
-	hr = lpTableView->QueryInterface(IID_IMAPITable, (void **)lppTable);
-
-exit:
-	return hr;
+		return hr;
+	return lpTableView->QueryInterface(IID_IMAPITable,
+	       reinterpret_cast<void **>(lppTable));
 #undef TCOLS
 }
 
@@ -838,17 +823,14 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lp
 	MessagePtr ptrContact;
 	object_ptr<ZCMAPIProp> lpZCMAPIProp;
 
-	if (cbEntryID < cbNewCABEntryID || memcmp((LPBYTE)&lpCABEntryID->muid, &MUIDZCSAB, sizeof(MAPIUID)) != 0) {
-		hr = MAPI_E_UNKNOWN_ENTRYID;
-		goto exit;
-	}
+	if (cbEntryID < cbNewCABEntryID ||
+	    memcmp(&lpCABEntryID->muid, &MUIDZCSAB, sizeof(MAPIUID)) != 0)
+		return MAPI_E_UNKNOWN_ENTRYID;
 
-	if (m_lpDistList) {
+	if (m_lpDistList)
 		// there is nothing to open from the distlist point of view
 		// @todo, passthrough to IMAPISupport object?
-		hr = MAPI_E_NO_SUPPORT;
-		goto exit;
-	}
+		return MAPI_E_NO_SUPPORT;
 
 	cbFolder = cbEntryID - cbNewCABEntryID;
 	lpFolder = (LPENTRYID)((LPBYTE)lpEntryID + cbNewCABEntryID);
@@ -864,10 +846,10 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lp
 
 			hr = m_lpMAPISup->QueryInterface(IID_IMAPIGetSession, &~ptrGetSession);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			hr = ptrGetSession->GetMAPISession(&~ptrSession);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			std::vector<zcabFolderEntry>::const_iterator i;
 			// find the store of this folder
@@ -877,21 +859,18 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lp
 				if ((m_lpMAPISup->CompareEntryIDs(i->cbFolder, (LPENTRYID)i->lpFolder, cbFolder, lpFolder, 0, &res) == hrSuccess) && res == TRUE)
 					break;
 			}
-			if (i == m_lpFolders->cend()) {
-				hr = MAPI_E_NOT_FOUND;
-				goto exit;
-			}
+			if (i == m_lpFolders->cend())
+				return MAPI_E_NOT_FOUND;
 			hr = ptrSession->OpenMsgStore(0, i->cbStore, reinterpret_cast<ENTRYID *>(i->lpStore), nullptr, 0, &~ptrStore);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 			hr = ptrStore->OpenEntry(cbFolder, lpFolder, nullptr, 0, &ulObjType, &~ptrContactFolder);
 		}
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		hr = ZCABContainer::Create(nullptr, ptrContactFolder, m_lpMAPISup, m_lpProvider, &~lpZCABContacts);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		AddChild(lpZCABContacts);
 
 		if (lpInterface)
@@ -902,11 +881,10 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lp
 		// open the Original Message
 		hr = m_lpMAPISup->OpenEntry(cbFolder, lpFolder, nullptr, 0, &ulObjType, &~ptrContact);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		hr = ZCABContainer::Create(ptrContact, cbEntryID, lpEntryID, m_lpMAPISup, &~lpZCABContacts);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		AddChild(lpZCABContacts);
 
 		if (lpInterface)
@@ -917,11 +895,10 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lp
 		// open the Original Message
 		hr = m_lpMAPISup->OpenEntry(cbFolder, lpFolder, nullptr, 0, &ulObjType, &~ptrContact);
 		if (hr != hrSuccess)
-			goto exit;
+			return hr;
 		hr = ZCMAPIProp::Create(ptrContact, cbEntryID, lpEntryID, &~lpZCMAPIProp);
 		if (hr != hrSuccess)
-			goto exit;
-
+			return hr;
 		AddChild(lpZCMAPIProp);
 
 		if (lpInterface)
@@ -929,13 +906,10 @@ HRESULT ZCABContainer::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lp
 		else
 			hr = lpZCMAPIProp->QueryInterface(IID_IMAPIProp, (void**)lppUnk);
 	} else {
-		hr = MAPI_E_UNKNOWN_ENTRYID;
-		goto exit;
+		return MAPI_E_UNKNOWN_ENTRYID;
 	}
 
 	*lpulObjType = lpCABEntryID->ulObjType;
-
-exit:
 	return hr;
 }
 

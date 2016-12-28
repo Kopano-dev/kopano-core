@@ -16,7 +16,8 @@
  */
 
 #include <kopano/platform.h>
-
+#include <memory>
+#include <kopano/tie.hpp>
 #include "kcore.hpp"
 #include <mapidefs.h>
 #include <edkmdb.h>
@@ -35,6 +36,8 @@
 #include "ECMAPI.h"
 #include "soapH.h"
 #include "SOAPUtils.h"
+
+using namespace KCHL;
 
 namespace KC {
 
@@ -583,13 +586,11 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 	unsigned int	ulFolderId = 0;
 	icsChangesArray*lpChanges = NULL;
 	bool			bAcceptABEID = false;
-	unsigned char	*lpSourceKeyData = NULL;
 	unsigned int	cbSourceKeyData = 0;
 	list<unsigned int> lstFolderIds;
 	// Contains a list of change IDs
 	list<unsigned int> lstChanges;
-
-	ECGetContentChangesHelper *lpHelper = NULL;
+	std::unique_ptr<ECGetContentChangesHelper> lpHelper;
 	
 	ec_log(EC_LOGLEVEL_ICS, "GetChanges(): sourcekey=%s, syncid=%d, changetype=%d, flags=%d", bin2hex(sFolderSourceKey).c_str(), ulSyncId, ulChangeType, ulFlags);
 
@@ -706,7 +707,9 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 	}
 
 	if(ulChangeType == ICS_SYNC_CONTENTS){
-		er = ECGetContentChangesHelper::Create(soap, lpSession, lpDatabase, sFolderSourceKey, ulSyncId, ulChangeId, ulFlags, lpsRestrict, &lpHelper);
+		er = ECGetContentChangesHelper::Create(soap, lpSession,
+		     lpDatabase, sFolderSourceKey, ulSyncId, ulChangeId,
+		     ulFlags, lpsRestrict, &unique_tie(lpHelper));
 		if (er != erSuccess)
 			goto exit;
 		
@@ -784,9 +787,9 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 			}
 
 			if(ulChangeId != 0){
-			
-			    if (folder_id != 0 && g_lpSessionManager->GetCacheManager()->GetPropFromObject(PROP_ID(PR_SOURCE_KEY), folder_id, NULL, &cbSourceKeyData, &lpSourceKeyData) != erSuccess)
-	    				goto nextFolder; // Item is hard deleted?
+				std::unique_ptr<unsigned char[]> lpSourceKeyData;
+				if (folder_id != 0 && g_lpSessionManager->GetCacheManager()->GetPropFromObject(PROP_ID(PR_SOURCE_KEY), folder_id, nullptr, &cbSourceKeyData, &unique_tie(lpSourceKeyData)) != erSuccess)
+					continue; // Item is hard deleted?
 
 				// Search folder changed folders
 				strQuery = 	"SELECT changes.id "
@@ -798,7 +801,7 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 							"  AND changes.sourcesync != " + stringify(ulSyncId);
 							
                 if (folder_id != 0)
-                    strQuery += "  AND parentsourcekey=" + lpDatabase->EscapeBinary(lpSourceKeyData, cbSourceKeyData);
+					strQuery += "  AND parentsourcekey=" + lpDatabase->EscapeBinary(lpSourceKeyData.get(), cbSourceKeyData);
 
 				er = lpDatabase->DoSelect(strQuery, &lpDBResult);
 				if(er != erSuccess)
@@ -817,10 +820,6 @@ ECRESULT GetChanges(struct soap *soap, ECSession *lpSession, SOURCEKEY sFolderSo
 					lpDatabase->FreeResult(lpDBResult);
 					lpDBResult = NULL;
 				}
-
-nextFolder:
-				delete[] lpSourceKeyData;
-				lpSourceKeyData = NULL;
 			}
 
 			if (folder_id != 0) {
@@ -1148,15 +1147,11 @@ nextFolder:
 	*lppChanges = lpChanges;
 
 exit:
-	delete lpHelper;
 	if(lpDBResult)
 		lpDatabase->FreeResult(lpDBResult);
 
 	if (lpDatabase && er != erSuccess)
 		lpDatabase->Rollback();
-
-	delete[] lpSourceKeyData;
-	lpSourceKeyData = NULL;
 	return er;
 }
 

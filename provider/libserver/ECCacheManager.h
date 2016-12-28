@@ -20,6 +20,7 @@
 
 #include <kopano/zcdefs.h>
 #include <map>
+#include <memory>
 #include <mutex>
 #include "ECDatabaseFactory.h"
 #include "ECDatabaseUtils.h"
@@ -373,30 +374,27 @@ public:
 
 class ECsACLs _kc_final : public ECsCacheEntry {
 public:
-	ECsACLs() : ECsCacheEntry() { ulACLs = 0; aACL = NULL; }
-    ECsACLs(const ECsACLs &src) {
-        ulACLs = src.ulACLs;
-        aACL = new ACL[src.ulACLs];
-        memcpy(aACL, src.aACL, sizeof(ACL) * src.ulACLs);
-    };
+	ECsACLs(void) : ECsCacheEntry(), ulACLs(0) {}
+	ECsACLs(const ECsACLs &src) : ulACLs(src.ulACLs)
+	{
+		aACL.reset(new ACL[ulACLs]);
+		memcpy(aACL.get(), src.aACL.get(), sizeof(ACL) * ulACLs);
+	}
     ECsACLs& operator=(const ECsACLs &src) {
 		if (this != &src) {
-			delete[] aACL;
 			ulACLs = src.ulACLs;
-			aACL = new ACL[src.ulACLs];
-			memcpy(aACL, src.aACL, sizeof(ACL) * src.ulACLs);
+			aACL.reset(new ACL[ulACLs]);
+			memcpy(aACL.get(), src.aACL.get(), sizeof(ACL) * ulACLs);
 		}
 		return *this;
     };
-    ~ECsACLs() {
-		delete[] aACL;
-    }
     unsigned int 	ulACLs;
     struct ACL {
         unsigned int ulType;
         unsigned int ulMask;
         unsigned int ulUserId;
-    } *aACL;
+    };
+	std::unique_ptr<ACL[]> aACL;
 };
 
 struct ECsSortKeyKey {

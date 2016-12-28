@@ -20,6 +20,7 @@
 #include <kopano/ECChannel.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/memory.hpp>
+#include <kopano/tie.hpp>
 #include "ECDatabaseUtils.h"
 #include "ECSessionManager.h"
 #include "ECPluginFactory.h"
@@ -4278,12 +4279,11 @@ static ECRESULT DoNotifySubscribe(ECSession *lpecSession,
 	}else {
 		er = lpecSession->GetObjectFromEntryId(&notifySubscribe->sKey, &ulKey);
 		if(er != erSuccess)
-			goto exit;
-
+			return er;
 		// Check permissions
 		er = lpecSession->GetSecurity()->CheckPermission(ulKey, ecSecurityFolderVisible);
 		if(er != erSuccess)
-			goto exit;
+			return er;
 	}
 	
 	if(notifySubscribe->ulEventMask & fnevTableModified) {
@@ -4293,17 +4293,15 @@ static ECRESULT DoNotifySubscribe(ECSession *lpecSession,
 	    // whenever it is modified, producing a TABLE_ROW_ADDED for that row instead of the correct TABLE_ROW_MODIFIED.
 		er = lpecSession->GetTableManager()->GetTable(ulKey, &~lpTable);
 	    if(er != erSuccess)
-	        goto exit;
-	        
+			return er;
         er = lpTable->Populate();
         if(er != erSuccess)
-            goto exit;
+			return er;
 	}
 
 	er = lpecSession->AddAdvise(notifySubscribe->ulConnection, ulKey, notifySubscribe->ulEventMask);
 	if (er == erSuccess)
 		TRACE_SOAP(TRACE_INFO, "ns__notifySubscribe", "connectionId: %d SessionId: %d Mask: %d",notifySubscribe->ulConnection, ulSessionId, notifySubscribe->ulEventMask);
-exit:
 	return er;
 }
 
@@ -5368,7 +5366,7 @@ SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(getUserList, lpsUserList->er, unsigned int ulCompanyId, entryId sCompanyId, struct userListResponse *lpsUserList)
 {
-	std::list<localobjectdetails_t> *lpUsers = NULL;
+	std::unique_ptr<std::list<localobjectdetails_t> > lpUsers;
 	entryId		sUserEid = {0};
 
 	er = GetLocalId(sCompanyId, ulCompanyId, &ulCompanyId, NULL);
@@ -5386,8 +5384,7 @@ SOAP_ENTRY_START(getUserList, lpsUserList->er, unsigned int ulCompanyId, entryId
 		if (er != erSuccess)
 			goto exit;
 	}
-
-	er = lpecSession->GetUserManagement()->GetCompanyObjectListAndSync(OBJECTCLASS_USER, ulCompanyId, &lpUsers, 0);
+	er = lpecSession->GetUserManagement()->GetCompanyObjectListAndSync(OBJECTCLASS_USER, ulCompanyId, &unique_tie(lpUsers), 0);
 	if(er != erSuccess)
 		goto exit;
 
@@ -5419,8 +5416,7 @@ SOAP_ENTRY_START(getUserList, lpsUserList->er, unsigned int ulCompanyId, entryId
 
 		++lpsUserList->sUserArray.__size;
 	}
-exit:
-	delete lpUsers;
+ exit: ;
 }
 SOAP_ENTRY_END()
 
@@ -5968,7 +5964,7 @@ SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(getGroupList, lpsGroupList->er, unsigned int ulCompanyId, entryId sCompanyId, struct groupListResponse *lpsGroupList)
 {
-	std::list<localobjectdetails_t> *lpGroups = NULL;
+	std::unique_ptr<std::list<localobjectdetails_t> > lpGroups;
 	entryId	sGroupEid = {0};
 
 	er = GetLocalId(sCompanyId, ulCompanyId, &ulCompanyId, NULL);
@@ -5986,8 +5982,7 @@ SOAP_ENTRY_START(getGroupList, lpsGroupList->er, unsigned int ulCompanyId, entry
 		if (er != erSuccess)
 			goto exit;
 	}
-
-	er = lpecSession->GetUserManagement()->GetCompanyObjectListAndSync(OBJECTCLASS_DISTLIST, ulCompanyId, &lpGroups, 0);
+	er = lpecSession->GetUserManagement()->GetCompanyObjectListAndSync(OBJECTCLASS_DISTLIST, ulCompanyId, &unique_tie(lpGroups), 0);
 	if (er != erSuccess)
 		goto exit;
 
@@ -6012,9 +6007,7 @@ SOAP_ENTRY_START(getGroupList, lpsGroupList->er, unsigned int ulCompanyId, entry
 		}
 		++lpsGroupList->sGroupArray.__size;
 	}
-
-exit:
-	delete lpGroups;
+ exit: ;
 }
 SOAP_ENTRY_END()
 
@@ -6142,7 +6135,7 @@ SOAP_ENTRY_END()
 // TODO resolve group in group here on the fly?
 SOAP_ENTRY_START(getUserListOfGroup, lpsUserList->er, unsigned int ulGroupId, entryId sGroupId, struct userListResponse *lpsUserList)
 {
-	std::list<localobjectdetails_t> *lpUsers = NULL;
+	std::unique_ptr<std::list<localobjectdetails_t> > lpUsers;
 	entryId		sUserEid = {0};
 
 	er = GetLocalId(sGroupId, ulGroupId, &ulGroupId, NULL);
@@ -6152,8 +6145,7 @@ SOAP_ENTRY_START(getUserListOfGroup, lpsUserList->er, unsigned int ulGroupId, en
 	er = lpecSession->GetSecurity()->IsUserObjectVisible(ulGroupId);
 	if (er != erSuccess)
 		goto exit;
-
-    er = lpecSession->GetUserManagement()->GetSubObjectsOfObjectAndSync(OBJECTRELATION_GROUP_MEMBER, ulGroupId, &lpUsers);
+    er = lpecSession->GetUserManagement()->GetSubObjectsOfObjectAndSync(OBJECTRELATION_GROUP_MEMBER, ulGroupId, &unique_tie(lpUsers));
     if(er != erSuccess)
         goto exit;
 
@@ -6186,15 +6178,13 @@ SOAP_ENTRY_START(getUserListOfGroup, lpsUserList->er, unsigned int ulGroupId, en
 		}
 		++lpsUserList->sUserArray.__size;
 	}
-
-exit:
-	delete lpUsers;
+ exit: ;
 }
 SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(getGroupListOfUser, lpsGroupList->er, unsigned int ulUserId, entryId sUserId, struct groupListResponse *lpsGroupList)
 {
-	std::list<localobjectdetails_t> *lpGroups = NULL;
+	std::unique_ptr<std::list<localobjectdetails_t> > lpGroups;
 	entryId sGroupEid = {0};
 
 	er = GetLocalId(sUserId, ulUserId, &ulUserId, NULL);
@@ -6204,8 +6194,7 @@ SOAP_ENTRY_START(getGroupListOfUser, lpsGroupList->er, unsigned int ulUserId, en
 	er = lpecSession->GetSecurity()->IsUserObjectVisible(ulUserId);
 	if (er != erSuccess)
 		goto exit;
-
-	er = lpecSession->GetUserManagement()->GetParentObjectsOfObjectAndSync(OBJECTRELATION_GROUP_MEMBER, ulUserId, &lpGroups);
+	er = lpecSession->GetUserManagement()->GetParentObjectsOfObjectAndSync(OBJECTRELATION_GROUP_MEMBER, ulUserId, &unique_tie(lpGroups));
 	if(er != erSuccess)
 		goto exit;
 
@@ -6230,9 +6219,7 @@ SOAP_ENTRY_START(getGroupListOfUser, lpsGroupList->er, unsigned int ulUserId, en
 		}
 		++lpsGroupList->sGroupArray.__size;
 	}
-
-exit:
-	delete lpGroups;
+ exit: ;
 }
 SOAP_ENTRY_END()
 
@@ -6475,14 +6462,13 @@ SOAP_ENTRY_START(getCompanyList, lpsCompanyList->er, struct companyListResponse 
 	unsigned int	ulAdmin = 0;
 	entryId			sCompanyEid = {0};
 	entryId			sAdminEid = {0};
-	std::list<localobjectdetails_t> *lpCompanies = NULL;
+	std::unique_ptr<std::list<localobjectdetails_t> > lpCompanies;
 
 	if (!g_lpSessionManager->IsHostedSupported()) {
 		er = KCERR_NO_SUPPORT;
 		goto exit;
 	}
-
-	er = lpecSession->GetSecurity()->GetViewableCompanyIds(0, &lpCompanies);
+	er = lpecSession->GetSecurity()->GetViewableCompanyIds(0, &unique_tie(lpCompanies));
 	if(er != erSuccess)
 		goto exit;
 
@@ -6514,9 +6500,7 @@ SOAP_ENTRY_START(getCompanyList, lpsCompanyList->er, struct companyListResponse 
 		}
 		++lpsCompanyList->sCompanyArray.__size;
 	}
-
-exit:
-	delete lpCompanies;
+ exit: ;
 }
 SOAP_ENTRY_END()
 
@@ -6583,8 +6567,7 @@ SOAP_ENTRY_START(getRemoteViewList, lpsCompanyList->er, unsigned int ulCompanyId
 	unsigned int	ulAdmin = 0;
 	entryId			sCompanyEid = {0};
 	entryId			sAdminEid = {0};
-
-	std::list<localobjectdetails_t> *lpCompanies = NULL;
+	std::unique_ptr<std::list<localobjectdetails_t> > lpCompanies;
 
 	if (!g_lpSessionManager->IsHostedSupported()) {
 		er = KCERR_NO_SUPPORT;
@@ -6606,8 +6589,7 @@ SOAP_ENTRY_START(getRemoteViewList, lpsCompanyList->er, unsigned int ulCompanyId
 		if (er != erSuccess)
 			goto exit;
 	}
-
-	er = lpecSession->GetUserManagement()->GetSubObjectsOfObjectAndSync(OBJECTRELATION_COMPANY_VIEW, ulCompanyId, &lpCompanies);
+	er = lpecSession->GetUserManagement()->GetSubObjectsOfObjectAndSync(OBJECTRELATION_COMPANY_VIEW, ulCompanyId, &unique_tie(lpCompanies));
 	if(er != erSuccess)
 		goto exit;
 
@@ -6642,9 +6624,7 @@ SOAP_ENTRY_START(getRemoteViewList, lpsCompanyList->er, unsigned int ulCompanyId
 		}
 		++lpsCompanyList->sCompanyArray.__size;
 	}
-
-exit:
-	delete lpCompanies;
+ exit: ;
 }
 SOAP_ENTRY_END()
 
@@ -6708,7 +6688,7 @@ SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(getRemoteAdminList, lpsUserList->er, unsigned int ulCompanyId, entryId sCompanyId, struct userListResponse *lpsUserList)
 {
-	std::list<localobjectdetails_t> *lpUsers = NULL;
+	std::unique_ptr<std::list<localobjectdetails_t> > lpUsers;
 	entryId		sUserEid = {0};
 
 	if (!g_lpSessionManager->IsHostedSupported()) {
@@ -6733,7 +6713,7 @@ SOAP_ENTRY_START(getRemoteAdminList, lpsUserList->er, unsigned int ulCompanyId, 
 	}
 
 	// only users can be admins, nonactive users make no sense.
-	er = lpecSession->GetUserManagement()->GetSubObjectsOfObjectAndSync(OBJECTRELATION_COMPANY_ADMIN, ulCompanyId, &lpUsers);
+	er = lpecSession->GetUserManagement()->GetSubObjectsOfObjectAndSync(OBJECTRELATION_COMPANY_ADMIN, ulCompanyId, &unique_tie(lpUsers));
 	if(er != erSuccess)
 		goto exit;
 
@@ -6768,9 +6748,7 @@ SOAP_ENTRY_START(getRemoteAdminList, lpsUserList->er, unsigned int ulCompanyId, 
 			sUserEid.__size = 0;
 		}
 	}
-
-exit:
-	delete lpUsers;
+ exit: ;
 }
 SOAP_ENTRY_END()
 
@@ -9787,7 +9765,7 @@ SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(GetQuotaRecipients, lpsUserList->er, unsigned int ulUserid, entryId sUserId, struct userListResponse *lpsUserList)
 {
-	std::list<localobjectdetails_t> *lpUsers = NULL;
+	std::unique_ptr<std::list<localobjectdetails_t> > lpUsers;
 	objectid_t sExternId;
 	objectdetails_t details;
 	userobject_relation_t relation;
@@ -9847,11 +9825,11 @@ SOAP_ENTRY_START(GetQuotaRecipients, lpsUserList->er, unsigned int ulUserid, ent
 	 * in that case we should manually allocate the list so it is safe to add the user
 	 * to the list. */
 	if (ulCompanyId != 0) {
-		er = lpecSession->GetUserManagement()->GetSubObjectsOfObjectAndSync(relation, ulCompanyId, &lpUsers);
+		er = lpecSession->GetUserManagement()->GetSubObjectsOfObjectAndSync(relation, ulCompanyId, &unique_tie(lpUsers));
 		if (er != erSuccess)
 			goto exit;
 	} else
-		lpUsers = new std::list<localobjectdetails_t>();
+		lpUsers.reset(new std::list<localobjectdetails_t>);
 
 	if (OBJECTCLASS_TYPE(details.GetClass())== OBJECTTYPE_MAILUSER) {
 		/* The main recipient (the user over quota) must be the first entry */
@@ -9911,9 +9889,7 @@ SOAP_ENTRY_START(GetQuotaRecipients, lpsUserList->er, unsigned int ulUserid, ent
 			sUserEid.__size = 0;
 		}
 	}
-
-exit:
-	delete lpUsers;
+ exit: ;
 }
 SOAP_ENTRY_END()
 
@@ -10305,10 +10281,9 @@ SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(getLicenseAuth, lpsResponse->er, struct xsd__base64Binary sAuthData, struct getLicenseAuthResponse *lpsResponse)
 {
-	ECLicenseClient *lpLicenseClient = new ECLicenseClient();
 	void *data = NULL;
 
-	er = lpLicenseClient->Auth(sAuthData.__ptr, sAuthData.__size, &data, reinterpret_cast<unsigned int *>(&lpsResponse->sAuthResponse.__size));
+	er = ECLicenseClient().Auth(sAuthData.__ptr, sAuthData.__size, &data, reinterpret_cast<unsigned int *>(&lpsResponse->sAuthResponse.__size));
 	if (er != erSuccess)
 		goto exit;
 
@@ -10317,16 +10292,14 @@ SOAP_ENTRY_START(getLicenseAuth, lpsResponse->er, struct xsd__base64Binary sAuth
 
 exit:
 	free(data);
-	delete lpLicenseClient;
 }
 SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(getLicenseCapa, lpsResponse->er, unsigned int ulServiceType, struct getLicenseCapaResponse *lpsResponse)
 {
-    ECLicenseClient *lpLicenseClient = new ECLicenseClient();
     std::vector<std::string> lstCapabilities;
 
-    er = lpLicenseClient->GetCapabilities(ulServiceType, lstCapabilities);
+	er = ECLicenseClient().GetCapabilities(ulServiceType, lstCapabilities);
     if(er != erSuccess)
         goto exit;
         
@@ -10335,26 +10308,21 @@ SOAP_ENTRY_START(getLicenseCapa, lpsResponse->er, unsigned int ulServiceType, st
     
 	for (unsigned int i = 0; i < lstCapabilities.size(); ++i)
 		lpsResponse->sCapabilities.__ptr[i] = s_strcpy(soap, lstCapabilities[i].c_str());
-exit:
-    delete lpLicenseClient;
+ exit: ;
 }
 SOAP_ENTRY_END()
 
 SOAP_ENTRY_START(getLicenseUsers, lpsResponse->er, unsigned int ulServiceType, struct getLicenseUsersResponse *lpsResponse)
 {
 	unsigned int ulUsers = 0;
-
-	ECLicenseClient *lpLicenseClient = new ECLicenseClient();
 	std::vector<std::string> lstCapabilities;
 
-	er = lpLicenseClient->GetInfo(ulServiceType, &ulUsers);
+	er = ECLicenseClient().GetInfo(ulServiceType, &ulUsers);
 	if(er != erSuccess)
 		goto exit;
 
 	lpsResponse->ulUsers = ulUsers;
-
-exit:
-	delete lpLicenseClient;
+ exit: ;
 }
 SOAP_ENTRY_END()
 

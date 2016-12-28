@@ -316,7 +316,7 @@ static HRESULT GetErrorObjects(const SendData &sSendData,
 		hr = lpAdminSession->OpenAddressBook(0, NULL, AB_NO_DIALOG, lppAddrBook);
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open addressbook for error mail, skipping. Error 0x%08X", hr);
-			goto exit;
+			return hr;
 		}
 	}
 
@@ -328,7 +328,7 @@ static HRESULT GetErrorObjects(const SendData &sSendData,
 		*lppMailer = CreateSender("localhost", 25);
 		if (! (*lppMailer)) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to create error object for error mail, skipping.");
-			goto exit;
+			return hr;
 		}
 	}
 
@@ -336,7 +336,7 @@ static HRESULT GetErrorObjects(const SendData &sSendData,
 		hr = lpAdminSession->OpenMsgStore(0, sSendData.cbStoreEntryId, (LPENTRYID)sSendData.lpStoreEntryId, NULL, MDB_WRITE | MDB_NO_DIALOG | MDB_NO_MAIL | MDB_TEMPORARY, lppUserStore);
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open store of user for error mail, skipping. Error 0x%08X", hr);
-			goto exit;
+			return hr;
 		}
 	}
 
@@ -344,10 +344,9 @@ static HRESULT GetErrorObjects(const SendData &sSendData,
 		hr = (*lppUserStore)->OpenEntry(sSendData.cbMessageEntryId, (LPENTRYID)sSendData.lpMessageEntryId, &IID_IMessage, MAPI_BEST_ACCESS, &ulObjType, (IUnknown**)lppMessage);
 		if (hr != hrSuccess) {
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open message of user for error mail, skipping. Error 0x%08X", hr);
-			goto exit;
+			return hr;
 		}
 	}
-exit:
 	return hr;
 }
 
@@ -628,23 +627,22 @@ static HRESULT GetAdminSpooler(IMAPISession *lpAdminSession,
 	hr = HrOpenDefaultStore(lpAdminSession, &~lpMDB);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to open default store for system account. Error 0x%08X", hr);
-		goto exit;
+		return hr;
 	}
 	hr = HrGetOneProp(lpMDB, PR_EC_OBJECT, &~lpsProp);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to get Kopano internal object: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 
 	hr = ((IECUnknown *)lpsProp->Value.lpszA)->QueryInterface(IID_IECSpooler, &~lpSpooler);
 	if (hr != hrSuccess) {
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Spooler interface not supported: %s (%x)",
 			GetMAPIErrorMessage(hr), hr);
-		goto exit;
+		return hr;
 	}
 	*lppSpooler = lpSpooler.release();
-exit:
 	return hr;
 }
 

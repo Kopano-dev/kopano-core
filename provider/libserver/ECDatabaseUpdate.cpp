@@ -1746,7 +1746,6 @@ ECRESULT UpdateDatabaseConvertRules(ECDatabase *lpDatabase)
 	DB_ROW		lpDBRow = NULL;
 
 	convert_context converter;
-	char *lpszConverted = NULL;
 
 	er = lpDatabase->DoSelect("SELECT p.hierarchyid, p.storeid, p.val_binary FROM properties AS p JOIN receivefolder AS r ON p.hierarchyid=r.objid AND p.storeid=r.storeid JOIN stores AS s ON r.storeid=s.hierarchy_id WHERE p.tag=0x3fe1 AND p.type=0x102 AND r.messageclass='IPM'", &lpResult);
 	if (er != erSuccess)
@@ -1761,17 +1760,12 @@ ECRESULT UpdateDatabaseConvertRules(ECDatabase *lpDatabase)
 
 		// Use WTF-1252 here since the pre-unicode rule serializer didn't pass the SOAP_C_UTFSTRING flag, causing
 		// gsoap to encode the data as UTF8, eventhough it was already encoded as WINDOWS-1252.
-		lpszConverted = ECStringCompat::WTF1252_to_UTF8(NULL, lpDBRow[2], &converter);
-
-		er = lpDatabase->DoUpdate("UPDATE properties SET val_binary='" + lpDatabase->Escape(lpszConverted) + "' WHERE hierarchyid=" + lpDBRow[0] + " AND storeid=" + lpDBRow[1] + " AND tag=0x3fe1 AND type=0x102");
+		std::unique_ptr<char[]> lpszConverted(ECStringCompat::WTF1252_to_UTF8(nullptr, lpDBRow[2], &converter));
+		er = lpDatabase->DoUpdate("UPDATE properties SET val_binary='" + lpDatabase->Escape(lpszConverted.get()) + "' WHERE hierarchyid=" + lpDBRow[0] + " AND storeid=" + lpDBRow[1] + " AND tag=0x3fe1 AND type=0x102");
 		if (er != erSuccess)
 			goto exit;
-		delete[] lpszConverted;
-		lpszConverted = NULL;
 	}
 exit:
-	delete[] lpszConverted;
-
 	if (lpResult)
 		lpDatabase->FreeResult(lpResult);
 
@@ -1788,7 +1782,6 @@ ECRESULT UpdateDatabaseConvertSearchFolders(ECDatabase *lpDatabase)
 	DB_ROW		lpDBRow = NULL;
 
 	convert_context converter;
-	char *lpszConverted = NULL;
 
 	strQuery = "SELECT h.id, p.storeid, p.val_string FROM hierarchy AS h JOIN properties AS p ON p.hierarchyid=h.id AND p.tag=" + stringify(PROP_ID(PR_EC_SEARCHCRIT)) +" AND p.type=" + stringify(PROP_TYPE(PR_EC_SEARCHCRIT)) + " WHERE h.type=3 AND h.flags=2";
 	er = lpDatabase->DoSelect(strQuery, &lpResult);
@@ -1804,17 +1797,12 @@ ECRESULT UpdateDatabaseConvertSearchFolders(ECDatabase *lpDatabase)
 
 		// Use WTF-1252 here since the pre-unicode rule serializer didn't pass the SOAP_C_UTFSTRING flag, causing
 		// gsoap to encode the data as UTF8, eventhough it was already encoded as WINDOWS-1252.
-		lpszConverted = ECStringCompat::WTF1252_to_WINDOWS1252(NULL, lpDBRow[2], &converter);
-
-		er = lpDatabase->DoUpdate("UPDATE properties SET val_string='" + lpDatabase->Escape(lpszConverted) + "' WHERE hierarchyid=" + lpDBRow[0] + " AND storeid=" + lpDBRow[1] + " AND tag=" + stringify(PROP_ID(PR_EC_SEARCHCRIT)) +" AND type=" + stringify(PROP_TYPE(PR_EC_SEARCHCRIT)));
+		std::unique_ptr<char[]> lpszConverted(ECStringCompat::WTF1252_to_WINDOWS1252(nullptr, lpDBRow[2], &converter));
+		er = lpDatabase->DoUpdate("UPDATE properties SET val_string='" + lpDatabase->Escape(lpszConverted.get()) + "' WHERE hierarchyid=" + lpDBRow[0] + " AND storeid=" + lpDBRow[1] + " AND tag=" + stringify(PROP_ID(PR_EC_SEARCHCRIT)) +" AND type=" + stringify(PROP_TYPE(PR_EC_SEARCHCRIT)));
 		if (er != erSuccess)
 			goto exit;
-		delete[] lpszConverted;
-		lpszConverted = NULL;
 	}
 exit:
-	delete[] lpszConverted;
-
 	if (lpResult)
 		lpDatabase->FreeResult(lpResult);
 

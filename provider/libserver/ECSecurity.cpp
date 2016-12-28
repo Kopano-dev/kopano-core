@@ -14,6 +14,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <kopano/platform.h>
+#include <memory>
+#include <kopano/tie.hpp>
 #include "ECDatabaseUtils.h"
 #include "ECDatabase.h"
 #include "ECSessionManager.h"
@@ -46,6 +48,8 @@
 #include <edkmdb.h>
 #include "ECDBDef.h"
 #include "cmdutil.hpp"
+
+using namespace KCHL;
 
 namespace KC {
 
@@ -886,22 +890,19 @@ ECRESULT ECSecurity::GetViewableCompanies(unsigned int ulFlags,
     std::list<localobjectdetails_t> **lppObjects) const
 {
 	ECRESULT er = erSuccess;
-	list<localobjectdetails_t> *lpObjects = NULL;
+	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
 	objectdetails_t details;
 
 	if (m_details.GetPropInt(OB_PROP_I_ADMINLEVEL) == ADMIN_LEVEL_SYSADMIN)
-		er = m_lpSession->GetUserManagement()->GetCompanyObjectListAndSync(CONTAINER_COMPANY, 0, &lpObjects, ulFlags);
+		er = m_lpSession->GetUserManagement()->GetCompanyObjectListAndSync(CONTAINER_COMPANY, 0, &unique_tie(lpObjects), ulFlags);
 	else
 		er = m_lpSession->GetUserManagement()->GetParentObjectsOfObjectAndSync(OBJECTRELATION_COMPANY_VIEW,
-																			   m_ulCompanyID, &lpObjects,
-																			   ulFlags);
-	if (er != erSuccess) {
+		     m_ulCompanyID, &unique_tie(lpObjects), ulFlags);
+	if (er != erSuccess)
 		/* Whatever the error might be, it only indicates we
 		 * are not allowed to view _other_ companyspaces.
 		 * It doesn't restrict us from viewing our own... */
-		lpObjects = new list<localobjectdetails_t>();
-		er = erSuccess;
-	}
+		lpObjects.reset(new std::list<localobjectdetails_t>);
 
 	/* We are going to insert the requested companyID to the list as well,
 	 * this way we guarentee that _all_ viewable companies are in the list.
@@ -912,7 +913,7 @@ ECRESULT ECSecurity::GetViewableCompanies(unsigned int ulFlags,
 		if (!(ulFlags & USERMANAGEMENT_IDS_ONLY)) {
 			er = m_lpSession->GetUserManagement()->GetObjectDetails(m_ulCompanyID, &details);
 			if (er != erSuccess)
-				goto exit;
+				return er;
 		} else {
 			details = objectdetails_t(CONTAINER_COMPANY);
 		}
@@ -921,14 +922,8 @@ ECRESULT ECSecurity::GetViewableCompanies(unsigned int ulFlags,
 
 	lpObjects->sort();
 	lpObjects->unique();
-
-	*lppObjects = lpObjects;
-
-exit:
-	if (er != erSuccess)
-		delete lpObjects;
-
-	return er;
+	*lppObjects = lpObjects.release();
+	return erSuccess;
 }
 
 /** 
@@ -942,16 +937,16 @@ exit:
 ECRESULT ECSecurity::GetAdminCompanies(unsigned int ulFlags, list<localobjectdetails_t> **lppObjects)
 {
 	ECRESULT er = erSuccess;
-	list<localobjectdetails_t> *lpObjects = NULL;
+	std::unique_ptr<std::list<localobjectdetails_t> > lpObjects;
 
 	if (m_details.GetPropInt(OB_PROP_I_ADMINLEVEL) == ADMIN_LEVEL_SYSADMIN)
-		er = m_lpSession->GetUserManagement()->GetCompanyObjectListAndSync(CONTAINER_COMPANY, 0, &lpObjects, ulFlags);
+		er = m_lpSession->GetUserManagement()->GetCompanyObjectListAndSync(CONTAINER_COMPANY,
+		     0, &unique_tie(lpObjects), ulFlags);
 	else
 		er = m_lpSession->GetUserManagement()->GetParentObjectsOfObjectAndSync(OBJECTRELATION_COMPANY_ADMIN,
-																			   m_ulUserID, &lpObjects,
-																			   ulFlags);
+		     m_ulUserID, &unique_tie(lpObjects), ulFlags);
 	if (er != erSuccess)
-		goto exit;
+		return er;
 
 	/* A user is only admin over an company when he has privileges to view the company */
 	for (auto iterObjects = lpObjects->begin(); iterObjects != lpObjects->cend(); ) {
@@ -963,14 +958,8 @@ ECRESULT ECSecurity::GetAdminCompanies(unsigned int ulFlags, list<localobjectdet
 			++iterObjects;
 		}
 	}
-
-	*lppObjects = lpObjects;
-
-exit:
-	if (er != erSuccess)
-		delete lpObjects;
-
-	return er;
+	*lppObjects = lpObjects.release();
+	return erSuccess;
 }
 
 /** 

@@ -1198,7 +1198,7 @@ ECRESULT ECCacheManager::SetACLs(unsigned int ulObjId,
 	LOG_USERCACHE_DEBUG("Set ACLs for objectid %d", ulObjId);
 
     sACLs.ulACLs = lpRights->__size;
-    sACLs.aACL = new ECsACLs::ACL [lpRights->__size];
+	sACLs.aACL.reset(new ECsACLs::ACL[lpRights->__size]);
 
     for (gsoap_size_t i = 0; i < lpRights->__size; ++i) {
         sACLs.aACL[i].ulType = lpRights->__ptr[i].ulType;
