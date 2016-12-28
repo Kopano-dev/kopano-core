@@ -544,7 +544,8 @@ ECRESULT ECGenericObjectTable::GetMVRowCount(unsigned int ulObjId, unsigned int 
  *
  * @return Kopano error code
  */
-ECRESULT ECGenericObjectTable::SetColumns(struct propTagArray *lpsPropTags, bool bDefaultSet)
+ECRESULT ECGenericObjectTable::SetColumns(const struct propTagArray *lpsPropTags,
+    bool bDefaultSet)
 {
 	//FIXME: check the lpsPropTags array, 0x????xxxx -> xxxx must be checked
 

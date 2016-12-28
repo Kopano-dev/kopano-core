@@ -189,7 +189,8 @@ HRESULT ECMAPITable::GetStatus(ULONG *lpulTableStatus, ULONG *lpulTableType)
 	return hr;
 }
 
-HRESULT ECMAPITable::SetColumns(LPSPropTagArray lpPropTagArray, ULONG ulFlags)
+HRESULT ECMAPITable::SetColumns(const SPropTagArray *lpPropTagArray,
+    ULONG ulFlags)
 {
 	if(lpPropTagArray == NULL || lpPropTagArray->cValues == 0)
 		return MAPI_E_INVALID_PARAMETER;
@@ -521,7 +522,7 @@ DEF_HRMETHOD_EX2(TRACE_MAPI, ECMAPITable, MAPITable, "table=%d name=%s",  pThis-
 DEF_HRMETHOD_EX2(TRACE_MAPI, ECMAPITable, MAPITable, "table=%d name=%s",  pThis->lpTableOps->ulTableId, pThis->m_strName.c_str(), Advise, (ULONG, ulEventMask), (LPMAPIADVISESINK, lpAdviseSink), (ULONG *, lpulConnection))
 DEF_HRMETHOD_EX2(TRACE_MAPI, ECMAPITable, MAPITable, "table=%d name=%s",  pThis->lpTableOps->ulTableId, pThis->m_strName.c_str(), Unadvise, (ULONG, ulConnection))
 DEF_HRMETHOD_EX2(TRACE_MAPI, ECMAPITable, MAPITable, "table=%d name=%s",  pThis->lpTableOps->ulTableId, pThis->m_strName.c_str(), GetStatus, (ULONG *, lpulTableStatus), (ULONG *, lpulTableType))
-DEF_HRMETHOD_EX2(TRACE_MAPI, ECMAPITable, MAPITable, "table=%d name=%s",  pThis->lpTableOps->ulTableId, pThis->m_strName.c_str(), SetColumns, (LPSPropTagArray, lpPropTagArray), (ULONG, ulFlags))
+DEF_HRMETHOD_EX2(TRACE_MAPI, ECMAPITable, MAPITable, "table=%d name=%s",  pThis->lpTableOps->ulTableId, pThis->m_strName.c_str(), SetColumns, (const SPropTagArray *, lpPropTagArray), (ULONG, ulFlags))
 DEF_HRMETHOD_EX2(TRACE_MAPI, ECMAPITable, MAPITable, "table=%d name=%s",  pThis->lpTableOps->ulTableId, pThis->m_strName.c_str(), QueryColumns, (ULONG, ulFlags), (LPSPropTagArray *, lppPropTagArray))
 DEF_HRMETHOD_EX2(TRACE_MAPI, ECMAPITable, MAPITable, "table=%d name=%s",  pThis->lpTableOps->ulTableId, pThis->m_strName.c_str(), GetRowCount, (ULONG, ulFlags), (ULONG *, lpulCount))
 DEF_HRMETHOD_EX2(TRACE_MAPI, ECMAPITable, MAPITable, "table=%d name=%s",  pThis->lpTableOps->ulTableId, pThis->m_strName.c_str(), SeekRow, (BOOKMARK, bkOrigin), (LONG, lRowCount), (LONG *, lplRowsSought))

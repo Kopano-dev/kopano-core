@@ -1414,7 +1414,7 @@ public:
     virtual HRESULT Advise(ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG * lpulConnection) = 0;
     virtual HRESULT Unadvise(ULONG ulConnection) = 0;
     virtual HRESULT GetStatus(ULONG *lpulTableStatus, ULONG *lpulTableType) = 0;
-    virtual HRESULT SetColumns(LPSPropTagArray lpPropTagArray, ULONG ulFlags) = 0;
+	virtual HRESULT SetColumns(const SPropTagArray *lpPropTagArray, ULONG ulFlags) = 0;
     virtual HRESULT QueryColumns(ULONG ulFlags, LPSPropTagArray *lpPropTagArray) = 0;
     virtual HRESULT GetRowCount(ULONG ulFlags, ULONG *lpulCount) = 0;
     virtual HRESULT SeekRow(BOOKMARK bkOrigin, LONG lRowCount, LONG *lplRowsSought) = 0;

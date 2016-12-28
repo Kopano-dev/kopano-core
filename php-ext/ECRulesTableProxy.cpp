@@ -82,7 +82,8 @@ HRESULT ECRulesTableProxy::GetStatus(ULONG *lpulTableStatus, ULONG *lpulTableTyp
 	return m_lpTable->GetStatus(lpulTableStatus, lpulTableType);
 }
 
-HRESULT ECRulesTableProxy::SetColumns(LPSPropTagArray lpPropTagArray, ULONG ulFlags)
+HRESULT ECRulesTableProxy::SetColumns(const SPropTagArray *lpPropTagArray,
+    ULONG ulFlags)
 {
 	return m_lpTable->SetColumns(lpPropTagArray, ulFlags);
 }
@@ -209,7 +210,7 @@ DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, GetLastError, (HRESULT, h
 DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, Advise, (ULONG, ulEventMask), (LPMAPIADVISESINK, lpAdviseSink), (ULONG *, lpulConnection))
 DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, Unadvise, (ULONG, ulConnection))
 DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, GetStatus, (ULONG *, lpulTableStatus), (ULONG *, lpulTableType))
-DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, SetColumns, (LPSPropTagArray, lpPropTagArray), (ULONG, ulFlags))
+DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, SetColumns, (const SPropTagArray *, lpPropTagArray), (ULONG, ulFlags))
 DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, QueryColumns, (ULONG, ulFlags), (LPSPropTagArray *, lppPropTagArray))
 DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, GetRowCount, (ULONG, ulFlags), (ULONG *, lpulCount))
 DEF_HRMETHOD(TRACE_MAPI, ECRulesTableProxy, MAPITable, SeekRow, (BOOKMARK, bkOrigin), (LONG, lRowCount), (LONG *, lplRowsSought))

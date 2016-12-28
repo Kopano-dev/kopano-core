@@ -419,7 +419,7 @@ SWIG_FromBytePtrAndSize(const unsigned char* carray, size_t size)
 
 %apply (ULONG, MAPIARRAY) {(ULONG cElements, LPREADSTATE lpReadState), (ULONG cNotif, LPNOTIFICATION lpNotifications)};
 %apply (ULONG *OUTPUTC, MAPIARRAY *OUTPUTP) {(ULONG *OUTPUTC, LPSPropValue *OUTPUTP), (ULONG *OUTPUTC, LPMAPINAMEID **OUTPUTP)};
-%apply (MAPILIST *OUTPUT) {LPSPropTagArray *OUTPUT, LPSPropProblemArray *OUTPUT, LPSRowSet *OUTPUT};
+%apply (MAPILIST *OUTPUT) {SPropTagArray **OUTPUT, LPSPropTagArray *OUTPUT, LPSPropProblemArray *OUTPUT, LPSRowSet *OUTPUT};
 %apply MAPICLASS {IMAPISession *, IProfAdmin *, IMsgServiceAdmin *, IMAPITable *, IMsgStore *, IMAPIFolder *, IMAPITable *, IStream *, IMessage *, IAttach *, IAddrBook *}
 %apply (ULONG cbEntryID, LPENTRYID lpEntryID) {(ULONG cFolderKeySize, BYTE *lpFolderSourceKey), (ULONG cMessageKeySize, BYTE *lpMessageSourceKey), (ULONG cbInstanceKey, BYTE *pbInstanceKey), (ULONG cbCollapseState, BYTE *pbCollapseState)};
 

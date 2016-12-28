@@ -49,7 +49,7 @@ public:
 	virtual HRESULT Advise(ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG * lpulConnection);
 	virtual HRESULT Unadvise(ULONG ulConnection);
 	virtual HRESULT GetStatus(ULONG *lpulTableStatus, ULONG *lpulTableType);
-	virtual HRESULT SetColumns(LPSPropTagArray lpPropTagArray, ULONG ulFlags);
+	virtual HRESULT SetColumns(const SPropTagArray *lpPropTagArray, ULONG ulFlags);
 	virtual HRESULT QueryColumns(ULONG ulFlags, LPSPropTagArray *lpPropTagArray);
 	virtual HRESULT GetRowCount(ULONG ulFlags, ULONG *lpulCount);
 	virtual HRESULT SeekRow(BOOKMARK bkOrigin, LONG lRowCount, LONG *lplRowsSought) ;

@@ -150,7 +150,7 @@ public:
 	ECRESULT	SeekRow(unsigned int ulBookmark, int lSeekTo, int *lplRowsSought);
 	ECRESULT	FindRow(struct restrictTable *lpsRestrict, unsigned int ulBookmark, unsigned int ulFlags);
 	ECRESULT	GetRowCount(unsigned int *lpulRowCount, unsigned int *lpulCurrentRow);
-	ECRESULT	SetColumns(struct propTagArray *lpsPropTags, bool bDefaultSet);
+	ECRESULT	SetColumns(const struct propTagArray *lpsPropTags, bool bDefaultSet);
 	ECRESULT	GetColumns(struct soap *soap, ULONG ulFlags, struct propTagArray **lpsPropTags);
 	ECRESULT SetSortOrder(struct sortOrderArray *, unsigned int categ, unsigned int expanded) __attribute__((nonnull));
 	ECRESULT	Restrict(struct restrictTable *lpsRestrict);

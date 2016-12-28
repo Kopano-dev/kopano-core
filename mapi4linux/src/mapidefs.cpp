@@ -488,7 +488,9 @@ HRESULT M4LMAPITable::GetStatus(ULONG *lpulTableStatus, ULONG *lpulTableType) {
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LMAPITable::SetColumns(LPSPropTagArray lpPropTagArray, ULONG ulFlags) {
+HRESULT M4LMAPITable::SetColumns(const SPropTagArray *lpPropTagArray,
+    ULONG ulFlags)
+{
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPITable::SetColumns", "");
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LMAPITable::SetColumns", "0x%08x", MAPI_E_NO_SUPPORT);
 	return MAPI_E_NO_SUPPORT;

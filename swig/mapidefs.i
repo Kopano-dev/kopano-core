@@ -615,7 +615,7 @@ public:
     virtual HRESULT Advise(ULONG ulEventMask, IMAPIAdviseSink *lpAdviseSink, ULONG* OUTPUT /*lpulConnection*/) = 0;
     virtual HRESULT Unadvise(ULONG ulConnection) = 0;
     virtual HRESULT GetStatus(ULONG *lpulTableStatus, ULONG* OUTPUT /*lpulTableType*/) = 0;
-    virtual HRESULT SetColumns(LPSPropTagArray lpPropTagArray, ULONG ulFlags) = 0;
+    virtual HRESULT SetColumns(const SPropTagArray *lpPropTagArray, ULONG ulFlags) = 0;
     virtual HRESULT QueryColumns(ULONG ulFlags, LPSPropTagArray* OUTPUT /*lpPropTagArray*/) = 0;
     virtual HRESULT GetRowCount(ULONG ulFlags, ULONG* OUTPUT /*lpulCount*/) = 0;
     virtual HRESULT SeekRow(BOOKMARK bkOrigin, LONG lRowCount, LONG* OUTPUT /*lplRowsSought*/) = 0;

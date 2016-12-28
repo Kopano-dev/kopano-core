@@ -117,17 +117,27 @@ static const unsigned int sServerStatsProps[] = {
 	PR_EC_STATS_SERVER_HTTPSURL, PR_EC_STATS_SERVER_FILEURL,
 };
 
-struct propTagArray sPropTagArrayContents = { (unsigned int *)&sContentsProps, ARRAY_SIZE(sContentsProps)};
-struct propTagArray sPropTagArrayHierarchy = { (unsigned int *)&sHierarchyProps, ARRAY_SIZE(sHierarchyProps)};
-struct propTagArray sPropTagArrayABContents = { (unsigned int *)&sABContentsProps, ARRAY_SIZE(sABContentsProps)};
-struct propTagArray sPropTagArrayABHierarchy = { (unsigned int *)&sABHierarchyProps, ARRAY_SIZE(sABHierarchyProps)};
-struct propTagArray sPropTagArrayUserStores = { (unsigned int *)&sUserStoresProps, ARRAY_SIZE(sUserStoresProps)};
+static const struct propTagArray sPropTagArrayContents =
+	{const_cast<unsigned int *>(sContentsProps), ARRAY_SIZE(sContentsProps)};
+static const struct propTagArray sPropTagArrayHierarchy =
+	{const_cast<unsigned int *>(sHierarchyProps), ARRAY_SIZE(sHierarchyProps)};
+static const struct propTagArray sPropTagArrayABContents =
+	{const_cast<unsigned int *>(sABContentsProps), ARRAY_SIZE(sABContentsProps)};
+static const struct propTagArray sPropTagArrayABHierarchy =
+	{const_cast<unsigned int *>(sABHierarchyProps), ARRAY_SIZE(sABHierarchyProps)};
+static const struct propTagArray sPropTagArrayUserStores =
+	{const_cast<unsigned int *>(sUserStoresProps), ARRAY_SIZE(sUserStoresProps)};
 
-struct propTagArray sPropTagArraySystemStats = { (unsigned int *)&sSystemStatsProps, ARRAY_SIZE(sSystemStatsProps)};
-struct propTagArray sPropTagArraySessionStats = { (unsigned int *)&sSessionStatsProps, ARRAY_SIZE(sSessionStatsProps)};
-struct propTagArray sPropTagArrayUserStats = { (unsigned int *)&sUserStatsProps, ARRAY_SIZE(sUserStatsProps)};
-struct propTagArray sPropTagArrayCompanyStats = { (unsigned int *)&sCompanyStatsProps, ARRAY_SIZE(sCompanyStatsProps)};
-struct propTagArray sPropTagArrayServerStats = { (unsigned int *)&sServerStatsProps, ARRAY_SIZE(sServerStatsProps)};
+static const struct propTagArray sPropTagArraySystemStats =
+	{const_cast<unsigned int *>(sSystemStatsProps), ARRAY_SIZE(sSystemStatsProps)};
+static const struct propTagArray sPropTagArraySessionStats =
+	{const_cast<unsigned int *>(sSessionStatsProps), ARRAY_SIZE(sSessionStatsProps)};
+static const struct propTagArray sPropTagArrayUserStats =
+	{const_cast<unsigned int *>(sUserStatsProps), ARRAY_SIZE(sUserStatsProps)};
+static const struct propTagArray sPropTagArrayCompanyStats =
+	{const_cast<unsigned int *>(sCompanyStatsProps), ARRAY_SIZE(sCompanyStatsProps)};
+static const struct propTagArray sPropTagArrayServerStats =
+	{const_cast<unsigned int *>(sServerStatsProps), ARRAY_SIZE(sServerStatsProps)};
 
 ECTableManager::ECTableManager(ECSession *lpSession)
 {
