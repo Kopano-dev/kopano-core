@@ -1,0 +1,167 @@
+libkchl - C++ API for shorter code doing MAPI
+
+
+== What is encompassed by KCHL ==
+
+* <kopano/ECRestriction.h>: ECRestriction, ECAndRestriction,
+  ECPropertyRestriction, etc.: classes for construct restrictions, and to later
+  export to a bare MAPI SRestriction.
+
+* <kopano/memory.hpp>: memory_ptr<T>: smart pointer class like unique_ptr describing ownership of an
+  object whose lifetime is bound by MAPIAllocateBuffer/MAPIFreeBuffer.
+
+* <kopano/memory.hpp>: object_ptr<T>: smart pointer class like unique_ptr(!)
+  holding an object (like shared_ptr(!)) whose lifetime is bound by
+  IUnknown::AddRef/Release.
+
+* <kopano/tie.hpp>: unique_tie: glue function to bind a std::unique_ptr<T> to a
+  function taking T*.
+
+* <kopano/automapi.hpp>: AutoMAPI: Wrapepr class to invoke
+  MAPIUninitialize at destruction time.
+
+* <kopano/hl.hpp>: K* classes: Exception-based wrapper classes for MAPI
+  object pointers.
+
+
+== ECRestriction ==
+
+Classic MAPI approach:
+
+	SRestriction r, tmp[2];
+	r.rt = RES_OR;
+	r.res.resOr.cRes = 2;
+	r.res.resOr.lpRes = tmp;
+	tmp[0].rt = RES_EXIST;
+	tmp[0].res.resExist.ulPropTag = PR_EC_IMAP_ID;
+	tmp[1].rt = RES_PROPERTY;
+	tmp[1].res.resProperty.relop = RELOP_EQ;
+	tmp[1].res.resProperty.ulPropTag = PR_EC_IMAP_ID;
+	tmp[1].res.resProperty.lpProp = &pv;
+
+With ECRestriction classes:
+
+	ECOrRestriction r(
+		ECExistRestriction(PR_EC_IMAP_ID) +
+		ECRestrictionProperty(RELOP_EQ, PR_EC_IMAP_ID, &pv));
+
+
+== memory_ptr ==
+
+KCHL::memory_ptr works much like a std::unique_ptr made to use MAPIFreeBuffer,
+but has a number of extensions for source-code compatibility such as implicit
+conversions. The use of unique_ptr/memory_ptr allows for shorter
+code.
+
+Traditional:
+
+	foo *obj;
+	MAPIAllocateBuffer(sizeof(*obj), &obj);
+	memset(obj, 0, sizeof(obj));
+	...
+	exit:
+	MAPIFreeBuffer(obj);
+
+With unique_ptr:
+
+	//struct mapideleter { void operator()(void *x) { MAPIFreeBuffer(x); }}
+	std::unique_ptr<foo, mapideleter> obj;
+	MAPIAllocateBuffer(sizeof(*obj), &unique_tie(obj));
+	memset(obj.get(), 0, sizeof(foo));
+
+With memory_ptr:
+
+	memory_ptr<foo> obj;
+	MAPIAllocateBuffer(sizeof(*obj), &~obj);
+	memset(obj, 0, sizeof(foo));
+
+
+== object_ptr ==
+
+The class implicitly invokes the object's Release function when the
+object_ptr goes out of scope. This allows for shorter code.
+
+Classic MAPI approach:
+
+	{
+		IMessage *msg;
+		int ret = store->CreateMessage(&msg);
+		if (ret != hrSuccess)
+			goto exit;
+		ret = msg->foo();
+		if (ret != hrSuccess)
+			goto exit;
+		exit:
+		if (msg != nullptr)
+			msg->Release();
+		return ret;
+	}
+
+Modern approach:
+
+	{
+		object_ptr<IMessage> msg;
+		int ret = store->CreateMessage(&~msg);
+		if (ret != hrSuccess)
+			return hr;
+		ret = msg->foo();
+		if (ret != hrSuccess)
+			return ret;
+	}
+
+
+== unique_tie ==
+
+Instead of writing
+
+	std::unique_ptr<Foo> g;
+	Foo *f;
+	somefunction(&f);
+	g.reset(f);
+
+the unique_tie function makes it possible to do without the explicit temporary
+'f':
+
+	std::unique_ptr<Foo> g;
+	somefunction(&unique_tie(g));
+
+
+== Exception-based wrappers ==
+
+A group of experimental classes which always return objects while
+error codes are signalled via exceptions (rather than return codes).
+This makes it possible to write code which is so terse that I am not
+convinced yet using these classes everywhere is a good idea (it makes
+it harder to identify which function exactly failed).
+
+Traditional:
+
+	//IMsgStore *store;
+	IMAPIFolder *rcv;
+	IMessage *msg;
+	IUnknown *entry;
+	int ret = store->GetReceiveFolder(&rcv);
+	if (ret != hrSuccess)
+		goto exit;
+	ret = store->OpenEntry(rcv, nullptr, MAPI_MODIFY, &entry);
+	if (ret != hrSuccess)
+		goto exit;
+	ret = entry->CreateMessage(nullptr, 0, &msg);
+	if (ret != hrSuccess)
+		goto exit;
+	msg->foo(); //...
+	exit:
+	if (ret != hrSuccess)
+		fprintf(stderr, "%s\n", GetMAPIErrorDescription(ret));
+	if (rcv != nullptr)
+		rcv->Release();
+
+	//KStore store;
+	try {
+		auto new_msg = store
+			.open_entry(store.get_receive_folder(), nullptr, MAPI_MODIFY)
+			.create_message(nullptr, 0)
+		new_msg->foo(); //...
+	} catch (KMAPIError &e) {
+		fprintf(stderr, "%s\n", e.what());
+	}
