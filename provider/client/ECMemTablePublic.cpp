@@ -299,7 +299,6 @@ HRESULT ECMemTablePublic::ModifyRow(SBinary* lpInstanceKey, LPSRow lpsRow)
 	ULONG ulRowId;
 	ULONG ulConnection = 0;
 	object_ptr<IMAPIAdviseSink> lpFolderAdviseSink;
-	memory_ptr<SRestriction> lpRestriction;
 	LPSRowSet lpsRowsInternal = NULL;
 	SPropValue sPropTmp;
 
@@ -412,10 +411,8 @@ HRESULT ECMemTablePublic::ModifyRow(SBinary* lpInstanceKey, LPSRow lpsRow)
 			sPropTmp.ulPropTag = PR_INSTANCE_KEY;
 			sPropTmp.Value.bin = *lpInstanceKey;
 
-			hr = ECPropertyRestriction(RELOP_EQ, PR_INSTANCE_KEY, &sPropTmp).CreateMAPIRestriction(&~lpRestriction);
-			if (hr != hrSuccess)
-				goto exit;
-			hr = m_lpShortcutTable->FindRow(lpRestriction, BOOKMARK_BEGINNING, 0);
+			hr = ECPropertyRestriction(RELOP_EQ, PR_INSTANCE_KEY, &sPropTmp)
+			     .FindRowIn(m_lpShortcutTable, BOOKMARK_BEGINNING, 0);
 			if (hr != hrSuccess)
 				goto exit;
 

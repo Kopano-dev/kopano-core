@@ -797,8 +797,6 @@ HRESULT ArchiveManageImpl::GetRights(LPMAPIFOLDER lpFolder, unsigned *lpulRights
 	ExchangeModifyTablePtr ptrACLModifyTable;
 	MAPITablePtr ptrACLTable;
 	SPropValue sPropUser;
-	ECPropertyRestriction res(RELOP_EQ, PR_MEMBER_NAME, &sPropUser, ECRestriction::Cheap);
-	SRestrictionPtr ptrRes;
 	SRowSetPtr ptrRows;
 
 	SizedSPropTagArray(1, sptaTableProps) = {1, {PR_MEMBER_RIGHTS}};
@@ -827,10 +825,8 @@ HRESULT ArchiveManageImpl::GetRights(LPMAPIFOLDER lpFolder, unsigned *lpulRights
 	sPropUser.ulPropTag = PR_MEMBER_NAME;
 	sPropUser.Value.LPSZ = ptrName->Value.LPSZ;
 
-	hr = res.CreateMAPIRestriction(&~ptrRes, ECRestriction::Cheap);
-	if (hr != hrSuccess)
-		return hr;
-	hr = ptrACLTable->FindRow(ptrRes, BOOKMARK_BEGINNING, 0);
+	hr = ECPropertyRestriction(RELOP_EQ, PR_MEMBER_NAME, &sPropUser, ECRestriction::Cheap)
+	     .FindRowIn(ptrACLTable, BOOKMARK_BEGINNING, 0);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrACLTable->QueryRows(1, 0, &ptrRows);

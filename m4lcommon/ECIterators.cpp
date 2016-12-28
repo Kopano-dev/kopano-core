@@ -55,16 +55,11 @@ void ECHierarchyIteratorBase::increment()
 
 		if (m_ulDepth > 1) {
 			SPropValue sPropDepth;
-			ECPropertyRestriction res(RELOP_LE, PR_DEPTH, &sPropDepth, ECRestriction::Cheap);
-			SRestrictionPtr ptrRes;
 
 			sPropDepth.ulPropTag = PR_DEPTH;
 			sPropDepth.Value.ul = m_ulDepth;
-			hr = res.CreateMAPIRestriction(&~ptrRes, ECRestriction::Cheap);
-			if (hr != hrSuccess)
-				goto exit;
-
-			hr = m_ptrTable->Restrict(ptrRes, TBL_BATCH);
+			hr = ECPropertyRestriction(RELOP_LE, PR_DEPTH, &sPropDepth, ECRestriction::Cheap)
+			     .RestrictTable(m_ptrTable, TBL_BATCH);
 			if (hr != hrSuccess)
 				goto exit;
 		}

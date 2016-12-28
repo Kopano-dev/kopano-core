@@ -104,7 +104,6 @@ HRESULT	DataCollector::GetRequiredPropTags(LPMAPIPROP /*lpProp*/, LPSPropTagArra
 HRESULT DataCollector::GetRestriction(LPMAPIPROP lpProp, LPSRestriction *lppRestriction) {
 	HRESULT hr = hrSuccess;
 	SPropValue sPropOrphan;
-	ECAndRestriction resMailBox;
 
 	PROPMAP_START(1)
 		PROPMAP_NAMED_ID(STORE_ENTRYIDS, PT_MV_BINARY, PSETID_Archive, "store-entryids")
@@ -113,17 +112,15 @@ HRESULT DataCollector::GetRestriction(LPMAPIPROP lpProp, LPSRestriction *lppRest
 	sPropOrphan.ulPropTag = PR_EC_DELETED_STORE;
 	sPropOrphan.Value.b = TRUE;
 
-	resMailBox = ECAndRestriction (
-					ECNotRestriction(
-						ECAndRestriction(
-								ECExistRestriction(PR_EC_DELETED_STORE) +
-								ECPropertyRestriction(RELOP_EQ, PR_EC_DELETED_STORE, &sPropOrphan, ECRestriction::Cheap)
-						)
-					) + 
-					ECExistRestriction(CHANGE_PROP_TYPE(PROP_STORE_ENTRYIDS, PT_MV_BINARY))
-				);
-
-	hr = resMailBox.CreateMAPIRestriction(lppRestriction);
+	hr = ECAndRestriction(
+		ECNotRestriction(
+			ECAndRestriction(
+				ECExistRestriction(PR_EC_DELETED_STORE) +
+				ECPropertyRestriction(RELOP_EQ, PR_EC_DELETED_STORE, &sPropOrphan, ECRestriction::Cheap)
+			)
+		) +
+		ECExistRestriction(CHANGE_PROP_TYPE(PROP_STORE_ENTRYIDS, PT_MV_BINARY))
+	).CreateMAPIRestriction(lppRestriction);
  exitpm:
 	return hr;
 }

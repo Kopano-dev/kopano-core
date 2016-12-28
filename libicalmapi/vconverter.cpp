@@ -2982,7 +2982,6 @@ HRESULT VConverter::HrGetExceptionMessage(LPMESSAGE lpMessage, time_t tStart, LP
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPITable> lpAttachTable;
-	memory_ptr<SRestriction> lpAttachRestrict;
 	LPSRowSet lpRows = NULL;
 	LPSPropValue lpPropVal = NULL;
 	object_ptr<IAttach> lpAttach;
@@ -3005,10 +3004,7 @@ HRESULT VConverter::HrGetExceptionMessage(LPMESSAGE lpMessage, time_t tStart, LP
 		ECPropertyRestriction(RELOP_EQ, sStart.ulPropTag, &sStart) +
 		ECExistRestriction(sMethod.ulPropTag) +
 		ECPropertyRestriction(RELOP_EQ, sMethod.ulPropTag, &sMethod)
-	).CreateMAPIRestriction(&~lpAttachRestrict);
-	if (hr != hrSuccess)
-		goto exit;
-	hr = lpAttachTable->Restrict(lpAttachRestrict, 0);
+	).RestrictTable(lpAttachTable, 0);
 	if (hr != hrSuccess)
 		goto exit;
 

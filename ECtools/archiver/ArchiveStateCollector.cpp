@@ -244,37 +244,32 @@ HRESULT ArchiveStateCollector::PopulateFromContainer(LPABCONT lpContainer)
 	HRESULT hr;
 	SPropValue sPropObjType;
 	SPropValue sPropDispType;
-	SRestrictionPtr ptrRestriction;
 	MAPITablePtr ptrTable;
 	SRowSetPtr ptrRows;
 
 	SizedSPropTagArray(4, sptaUserProps) = {4, {PR_ENTRYID, PR_ACCOUNT, PR_EC_ARCHIVE_SERVERS, PR_EC_ARCHIVE_COUPLINGS}};
 	enum {IDX_ENTRYID, IDX_ACCOUNT, IDX_EC_ARCHIVE_SERVERS, IDX_EC_ARCHIVE_COUPLINGS};
 
-	ECAndRestriction resFilter(
-		ECPropertyRestriction(RELOP_EQ, PR_OBJECT_TYPE, &sPropObjType, ECRestriction::Cheap) +
-		ECPropertyRestriction(RELOP_EQ, PR_DISPLAY_TYPE, &sPropDispType, ECRestriction::Cheap) +
-		ECOrRestriction(
-			ECExistRestriction(PR_EC_ARCHIVE_SERVERS) +
-			ECExistRestriction(PR_EC_ARCHIVE_COUPLINGS)
-		)
-	);
 
 	sPropObjType.ulPropTag = PR_OBJECT_TYPE;
 	sPropObjType.Value.ul = MAPI_MAILUSER;
 	sPropDispType.ulPropTag = PR_DISPLAY_TYPE;
 	sPropDispType.Value.ul = DT_MAILUSER;;
 
-	hr = resFilter.CreateMAPIRestriction(&~ptrRestriction, ECRestriction::Cheap);
-	if (hr != hrSuccess)
-		return hr;
 	hr = lpContainer->GetContentsTable(0, &~ptrTable);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrTable->SetColumns(sptaUserProps, TBL_BATCH);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrTable->Restrict(ptrRestriction, TBL_BATCH);
+	hr = ECAndRestriction(
+		ECPropertyRestriction(RELOP_EQ, PR_OBJECT_TYPE, &sPropObjType, ECRestriction::Cheap) +
+		ECPropertyRestriction(RELOP_EQ, PR_DISPLAY_TYPE, &sPropDispType, ECRestriction::Cheap) +
+		ECOrRestriction(
+			ECExistRestriction(PR_EC_ARCHIVE_SERVERS) +
+			ECExistRestriction(PR_EC_ARCHIVE_COUPLINGS)
+		)
+	).RestrictTable(ptrTable, TBL_BATCH);
 	if (hr != hrSuccess)
 		return hr;
 

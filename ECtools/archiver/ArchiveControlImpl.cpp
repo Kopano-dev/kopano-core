@@ -595,17 +595,6 @@ HRESULT ArchiveControlImpl::DoCleanup(const tstring &strUser)
 		ULARGE_INTEGER li;
 		SPropValue sPropRefTime;
 
-		const ECOrRestriction resDefault(
-			ECAndRestriction(
-				ECExistRestriction(PR_MESSAGE_DELIVERY_TIME) +
-				ECPropertyRestriction(RELOP_LT, PR_MESSAGE_DELIVERY_TIME, &sPropRefTime, ECRestriction::Cheap)
-			) +
-			ECAndRestriction(
-				ECExistRestriction(PR_CLIENT_SUBMIT_TIME) +
-				ECPropertyRestriction(RELOP_LT, PR_CLIENT_SUBMIT_TIME, &sPropRefTime, ECRestriction::Cheap)
-			)
-		);
-
 		li.LowPart = m_ftCurrent.dwLowDateTime;
 		li.HighPart = m_ftCurrent.dwHighDateTime;
 		
@@ -614,7 +603,16 @@ HRESULT ArchiveControlImpl::DoCleanup(const tstring &strUser)
 		sPropRefTime.ulPropTag = PROP_TAG(PT_SYSTIME, 0);
 		sPropRefTime.Value.ft.dwLowDateTime = li.LowPart;
 		sPropRefTime.Value.ft.dwHighDateTime = li.HighPart;
-		hr = resDefault.CreateMAPIRestriction(&~ptrRestriction, 0);
+		hr = ECOrRestriction(
+			ECAndRestriction(
+				ECExistRestriction(PR_MESSAGE_DELIVERY_TIME) +
+				ECPropertyRestriction(RELOP_LT, PR_MESSAGE_DELIVERY_TIME, &sPropRefTime, ECRestriction::Cheap)
+			) +
+			ECAndRestriction(
+				ECExistRestriction(PR_CLIENT_SUBMIT_TIME) +
+				ECPropertyRestriction(RELOP_LT, PR_CLIENT_SUBMIT_TIME, &sPropRefTime, ECRestriction::Cheap)
+			)
+		).CreateMAPIRestriction(&~ptrRestriction, 0);
 		if (hr != hrSuccess)
 			return hr;
 	}

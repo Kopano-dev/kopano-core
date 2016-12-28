@@ -166,10 +166,8 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 	object_ptr<ECMemTable> lpTable;
 	object_ptr<ECMemTableView> lpTableView;
 	ULONG i, j = 0;
-	ECOrRestriction resOr;
 	ECAndRestriction resAnd;
 	SPropValue sRestrictProp;
-	SRestrictionPtr ptrRestriction;
 
 #define I_NCOLS 11
 	// data from the contact
@@ -299,21 +297,21 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 
 	// the exists is extra compared to the outlook restriction
 	// restrict: ( distlist || ( contact && exist(abparraytype) && abparraytype != 0 ) )
-	sRestrictProp.ulPropTag = PR_MESSAGE_CLASS_A;
-	sRestrictProp.Value.lpszA = const_cast<char *>("IPM.DistList");
-	resOr += ECContentRestriction(FL_PREFIX|FL_IGNORECASE, PR_MESSAGE_CLASS_A, &sRestrictProp);
 
+	sRestrictProp.ulPropTag = PR_MESSAGE_CLASS_A;
 	sRestrictProp.Value.lpszA = const_cast<char *>("IPM.Contact");
 	resAnd += ECContentRestriction(FL_PREFIX|FL_IGNORECASE, PR_MESSAGE_CLASS_A, &sRestrictProp);
 	sRestrictProp.ulPropTag = ptrNameTags->aulPropTag[ulNames-1];
 	sRestrictProp.Value.ul = 0;
 	resAnd += ECExistRestriction(sRestrictProp.ulPropTag);
 	resAnd += ECPropertyRestriction(RELOP_NE, sRestrictProp.ulPropTag, &sRestrictProp);
-	resOr  += resAnd;
-	hr = resOr.CreateMAPIRestriction(&~ptrRestriction);
-	if (hr != hrSuccess)
-		return hr;
-	hr = ptrContents->Restrict(ptrRestriction, TBL_BATCH);
+
+	sRestrictProp.ulPropTag = PR_MESSAGE_CLASS_A;
+	sRestrictProp.Value.lpszA = const_cast<char *>("IPM.DistList");
+	hr = ECOrRestriction(
+		ECContentRestriction(FL_PREFIX | FL_IGNORECASE, PR_MESSAGE_CLASS_A, &sRestrictProp) +
+		resAnd
+	).RestrictTable(ptrContents, TBL_BATCH);
 	if (hr != hrSuccess)
 		return hr;
 	// set columns
@@ -1034,11 +1032,7 @@ HRESULT ZCABContainer::ResolveNames(LPSPropTagArray lpPropTagArray, ULONG ulFlag
 				resFind += ECContentRestriction(ulResFlag, CHANGE_PROP_TYPE(ulSearchTags[j], ulStringType), &sProp, ECRestriction::Cheap);
 			}
 
-			SRestrictionPtr ptrRestriction;
-			hr = resFind.CreateMAPIRestriction(&~ptrRestriction);
-			if (hr != hrSuccess)
-				return hr;
-			hr = ptrContents->Restrict(ptrRestriction, 0);
+			hr = resFind.RestrictTable(ptrContents, 0);
 			if (hr != hrSuccess)
 				return hr;
 			hr = ptrContents->QueryRows(-1, MAPI_UNICODE, &ptrRows);
