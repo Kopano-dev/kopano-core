@@ -830,7 +830,7 @@ HRESULT ArchiveManageImpl::GetRights(LPMAPIFOLDER lpFolder, unsigned *lpulRights
 	hr = res.CreateMAPIRestriction(&~ptrRes, ECRestriction::Cheap);
 	if (hr != hrSuccess)
 		return hr;
-	hr = ptrACLTable->FindRow(ptrRes, 0, BOOKMARK_BEGINNING);
+	hr = ptrACLTable->FindRow(ptrRes, BOOKMARK_BEGINNING, 0);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrACLTable->QueryRows(1, 0, &ptrRows);
