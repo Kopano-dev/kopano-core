@@ -79,7 +79,9 @@ HRESULT ECRestriction::FindRowIn(LPMAPITABLE lpTable, BOOKMARK BkOrigin, ULONG u
  *							the address of the newly allocated SPropValue.
  * @retval	MAPI_E_INVALID_PARAMETER	lpPropSrc or lppPropDst is NULL.
  */
-HRESULT ECRestriction::CopyProp(LPSPropValue lpPropSrc, LPVOID lpBase, ULONG ulFlags, LPSPropValue *lppPropDst) const {
+HRESULT ECRestriction::CopyProp(SPropValue *lpPropSrc, void *lpBase,
+    ULONG ulFlags, SPropValue **lppPropDst)
+{
 	HRESULT hr = hrSuccess;
 	LPSPropValue lpPropDst = NULL;
 
@@ -121,7 +123,9 @@ exit:
  *							the address of the newly allocated SPropValue array.
  * @retval	MAPI_E_INVALID_PARAMETER	lpPropSrc or lppPropDst is NULL.
  */
-HRESULT ECRestriction::CopyPropArray(ULONG cValues, LPSPropValue lpPropSrc, LPVOID lpBase, ULONG ulFlags, LPSPropValue *lppPropDst) const {
+HRESULT ECRestriction::CopyPropArray(ULONG cValues, SPropValue *lpPropSrc,
+    void *lpBase, ULONG ulFlags, SPropValue **lppPropDst)
+{
 	HRESULT hr = hrSuccess;
 	LPSPropValue lpPropDst = NULL;
 

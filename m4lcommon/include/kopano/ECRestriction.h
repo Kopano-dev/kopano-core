@@ -104,8 +104,8 @@ protected:
 	typedef std::list<ResPtr>					ResList;
 
 	_kc_hidden ECRestriction(void) {}
-	_kc_hidden HRESULT CopyProp(LPSPropValue propsrc, LPVOID base, ULONG flags, LPSPropValue *propdst) const;
-	_kc_hidden HRESULT CopyPropArray(ULONG nvals, LPSPropValue propsrc, LPVOID base, ULONG flags, LPSPropValue *propdst) const;
+	_kc_hidden static HRESULT CopyProp(SPropValue *src, void *base, ULONG flags, SPropValue **dst);
+	_kc_hidden static HRESULT CopyPropArray(ULONG nvals, SPropValue *src, void *base, ULONG flags, SPropValue **dst);
 	_kc_hidden static void DummyFree(LPVOID);
 };
 
