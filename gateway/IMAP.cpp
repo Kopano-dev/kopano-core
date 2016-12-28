@@ -3443,7 +3443,6 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &lstFolders, SBinary &sEntryID, wstring
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPIFolder> lpFolder;
 	object_ptr<IMAPITable> lpTable;
-	LPSRowSet lpRows = NULL;
 	ULONG ulObjType;
 	SFolder sFolder;
 	SBinary sChildEntryID;
@@ -3455,11 +3454,8 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &lstFolders, SBinary &sEntryID, wstring
 	SizedSPropTagArray(NUM_COLS, spt) = { NUM_COLS, {PR_ENTRYID, PR_DISPLAY_NAME_W, PR_EC_IMAP_ID,
 													 PR_SUBFOLDERS, PR_CONTAINER_CLASS_A } };
 
-	if (!lpSession) {
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
-
+	if (lpSession == nullptr)
+		return MAPI_E_CALL_FAILED;
 	while (strFolderName.find(IMAP_HIERARCHY_DELIMITER) != string::npos)
 		strFolderName.erase(strFolderName.find(IMAP_HIERARCHY_DELIMITER), 1);
 
@@ -3477,17 +3473,18 @@ HRESULT IMAP::HrGetSubTree(list<SFolder> &lstFolders, SBinary &sEntryID, wstring
 	lpNewParent = lstFolders.cbegin();
 	
 	if(!bSubfolders)
-		goto exit;
+		return hr;
 	hr = lpSession->OpenEntry(sEntryID.cb, reinterpret_cast<ENTRYID *>(sEntryID.lpb), &IID_IMAPIFolder, 0, &ulObjType, &~lpFolder);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpFolder->GetHierarchyTable(0, &~lpTable);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpTable->SetColumns(spt, 0);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
+	LPSRowSet lpRows = nullptr;
 	hr = lpTable->QueryRows(-1, 0, &lpRows);
 	if (hr != hrSuccess)
 		goto exit;
@@ -5150,7 +5147,6 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 	LPSRestriction lpRestriction, lpExtraRestriction;
 	object_ptr<IMAPIFolder> lpFolder;
 	object_ptr<IMAPITable> lpTable;
-	LPSRowSet lpRows = NULL;
 	LPSPropValue lpPropVal;
 	ULONG ulMailnr, ulRownr, ulCount;
 	FILETIME ft;
@@ -5162,46 +5158,43 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 	SRestriction sAndRestriction;
 	SRestriction sPropertyRestriction;
 	
-	if (strCurrentFolder.empty() || !lpSession) {
-		hr = MAPI_E_CALL_FAILED;
-		goto exit;
-	}
+	if (strCurrentFolder.empty() || lpSession == nullptr)
+		return MAPI_E_CALL_FAILED;
 
 	// no need to search in empty folders, won't find anything
 	if (lstFolderMailEIDs.empty())
-		goto exit;
+		return hr;
 
 	// don't search if only search for uid, sequence set, all, recent, new or old
 	strSearchCriterium = lstSearchCriteria[ulStartCriteria];
 	ToUpper(strSearchCriterium);
-	if (lstSearchCriteria.size() - ulStartCriteria == 2 && strSearchCriterium.compare("UID") == 0) {
-		hr = HrParseSeqUidSet(lstSearchCriteria[ulStartCriteria + 1], lstMailnr);
-		goto exit;
-	}
+	if (lstSearchCriteria.size() - ulStartCriteria == 2 &&
+	    strSearchCriterium.compare("UID") == 0)
+		return HrParseSeqUidSet(lstSearchCriteria[ulStartCriteria + 1], lstMailnr);
 
 	if (lstSearchCriteria.size() - ulStartCriteria == 1) {
 		if (strSearchCriterium.find_first_of("123456789*") == 0) {
 			hr = HrParseSeqSet(lstSearchCriteria[ulStartCriteria], lstMailnr);
-			goto exit;
+			return hr;
 		} else if (strSearchCriterium.compare("ALL") == 0) {
 			for (ulMailnr = 0; ulMailnr < lstFolderMailEIDs.size(); ++ulMailnr)
 				lstMailnr.push_back(ulMailnr);
-			goto exit;
+			return hr;
 		} else if (strSearchCriterium.compare("RECENT") == 0) {
 			for (ulMailnr = 0; ulMailnr < lstFolderMailEIDs.size(); ++ulMailnr)
 			    if(lstFolderMailEIDs[ulMailnr].bRecent)
     				lstMailnr.push_back(ulMailnr);
-			goto exit;
+			return hr;
 		} else if (strSearchCriterium.compare("NEW") == 0) {
 			for (ulMailnr = 0; ulMailnr < lstFolderMailEIDs.size(); ++ulMailnr)
 			    if(lstFolderMailEIDs[ulMailnr].bRecent && lstFolderMailEIDs[ulMailnr].strFlags.find("Seen") == std::string::npos)
     				lstMailnr.push_back(ulMailnr);
-			goto exit;
+			return hr;
 		} else if (strSearchCriterium.compare("OLD") == 0) {
 			for (ulMailnr = 0; ulMailnr < lstFolderMailEIDs.size(); ++ulMailnr)
 			    if(!lstFolderMailEIDs[ulMailnr].bRecent)
     				lstMailnr.push_back(ulMailnr);
-			goto exit;
+			return hr;
 		}
 	}
 	
@@ -5210,13 +5203,13 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 		mapUIDs[e.ulUid] = n++;
 	hr = HrFindFolder(strCurrentFolder, bCurrentFolderReadOnly, &~lpFolder);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpFolder->GetContentsTable(MAPI_DEFERRED_ERRORS, &~lpTable);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = MAPIAllocateBuffer(sizeof(SRestriction), &~lpRootRestrict);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 
 	lstRestrictions.push_back(lpRootRestrict);
 
@@ -5259,8 +5252,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 		if (lstRestrictions.size() == 1) {
 			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpRestriction);
 			if (hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			lstRestrictions[0]->rt = RES_AND; // RES_AND / RES_OR
 			lstRestrictions[0]->res.resAnd.cRes = 2;
 			lstRestrictions[0]->res.resAnd.lpRes = lpRestriction;
@@ -5275,12 +5267,10 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 
 			hr = HrParseSeqSet(strSearchCriterium, lstMails);
 			if (hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			hr = MAPIAllocateMore(sizeof(SRestriction) * lstMails.size(), lpRootRestrict, (LPVOID *) &lpExtraRestriction);
 			if (hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			lpRestriction->rt = RES_OR;
 			lpRestriction->res.resOr.cRes = lstMails.size();
 			lpRestriction->res.resOr.lpRes = lpExtraRestriction;
@@ -5289,7 +5279,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 			for (auto mail_idx : lstMails) {
 				hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
 				if (hr != hrSuccess)
-					goto exit;
+					return hr;
 
 				lpPropVal->ulPropTag = PR_EC_IMAP_ID;
 				lpPropVal->Value.ul = lstFolderMailEIDs[mail_idx].ulUid;
@@ -5310,7 +5300,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 		} else if (strSearchCriterium.compare("ANSWERED") == 0) {
 			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpRestriction->rt = RES_AND;
 			lpRestriction->res.resAnd.cRes = 2;
@@ -5326,18 +5316,14 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 			++ulStartCriteria;
 			// TODO: find also in PR_LAST_VERB_EXECUTED
 		} else if (strSearchCriterium.compare("BEFORE") == 0) {
-			if (lstSearchCriteria.size() - ulStartCriteria <= 1) {
-				hr = MAPI_E_CALL_FAILED;
-				goto exit;
-			}
-
+			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
+				return MAPI_E_CALL_FAILED;
 			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
 			if (hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpRestriction->rt = RES_AND;
 			lpRestriction->res.resAnd.cRes = 2;
@@ -5355,14 +5341,11 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 			lpExtraRestriction[1].res.resProperty.lpProp = lpPropVal;
 			ulStartCriteria += 2;
 		} else if (strSearchCriterium == "BODY") {
-			if (lstSearchCriteria.size() - ulStartCriteria <= 1) {
-				hr = MAPI_E_CALL_FAILED;
-				goto exit;
-			}
-
+			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
+				return MAPI_E_CALL_FAILED;
 			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpRestriction->rt = RES_AND;
 			lpRestriction->res.resAnd.cRes = 2;
@@ -5377,15 +5360,14 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 
 			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
 			if (hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			if (iconv)
 				iconv->convert(lstSearchCriteria[ulStartCriteria+1]);
 
 			hr = MAPIAllocateMore(lstSearchCriteria[ulStartCriteria + 1].size() + 1, lpRootRestrict,
 								  (LPVOID *) &szBuffer);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			memcpy(szBuffer, lstSearchCriteria[ulStartCriteria + 1].c_str(), lstSearchCriteria[ulStartCriteria + 1].size() + 1);
 			// @todo, unicode
@@ -5396,7 +5378,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 		} else if (strSearchCriterium.compare("DELETED") == 0) {
 			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpRestriction->rt = RES_AND;
 			lpRestriction->res.resAnd.cRes = 2;
@@ -5413,7 +5395,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 		} else if (strSearchCriterium.compare("DRAFT") == 0) {
 			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpRestriction->rt = RES_AND;
 			lpRestriction->res.resAnd.cRes = 2;
@@ -5431,7 +5413,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 		} else if (strSearchCriterium.compare("FLAGGED") == 0) {
 			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpRestriction->rt = RES_AND;
 			lpRestriction->res.resAnd.cRes = 2;
@@ -5446,14 +5428,11 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 			lpExtraRestriction[1].res.resBitMask.ulMask = 65535;
 			++ulStartCriteria;
 		} else if (strSearchCriterium.compare("FROM") == 0) {
-			if (lstSearchCriteria.size() - ulStartCriteria <= 1) {
-				hr = MAPI_E_CALL_FAILED;
-				goto exit;
-			}
-
+			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
+				return MAPI_E_CALL_FAILED;
 			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpRestriction->rt = RES_OR;
 			lpRestriction->res.resOr.cRes = 2;
@@ -5467,7 +5446,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 
 			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			if (iconv)
 				iconv->convert(lstSearchCriteria[ulStartCriteria+1]);
@@ -5475,7 +5454,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 			hr = MAPIAllocateMore(lstSearchCriteria[ulStartCriteria + 1].size() + 1, lpRootRestrict,
 								  (LPVOID *) &szBuffer);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			memcpy(szBuffer, lstSearchCriteria[ulStartCriteria + 1].c_str(), lstSearchCriteria[ulStartCriteria + 1].size() + 1);
 			// @todo, unicode
@@ -5491,16 +5470,14 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 			lpRestriction->res.resBitMask.ulMask = 0;
 			ulStartCriteria += 2;
 		} else if (strSearchCriterium.compare("LARGER") == 0) {
-			if (lstSearchCriteria.size() - ulStartCriteria <= 1) {
-				hr = MAPI_E_CALL_FAILED;
-				goto exit;
-			}
+			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
+				return MAPI_E_CALL_FAILED;
 
 			// OR (AND (EXIST (PR_EC_IMAP_SIZE), (RES_PROP PR_EC_IMAP_SIZE RELOP_GT size)), (AND (NOT (EXIST (PR_EC_IMAP_SIZE), RES_PROP PR_MESSAGE_SIZE RELOP_GT size))))
 
 			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpRestriction->rt = RES_OR;
 			lpRestriction->res.resOr.cRes = 2;
@@ -5508,7 +5485,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 
 			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction[0].res.resAnd.lpRes);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpExtraRestriction[0].rt = RES_AND;
 			lpExtraRestriction[0].res.resAnd.cRes = 2;
@@ -5518,7 +5495,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 
 			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpPropVal->ulPropTag = PR_EC_IMAP_EMAIL_SIZE;
 			lpPropVal->Value.ul = strtoul(lstSearchCriteria[ulStartCriteria + 1].c_str(), NULL, 0);
@@ -5532,7 +5509,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 
 			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction[1].res.resAnd.lpRes);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpExtraRestriction[1].rt = RES_AND;
 			lpExtraRestriction[1].res.resAnd.cRes = 2;
@@ -5542,14 +5519,14 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 			lpExtraRestriction[1].res.resAnd.lpRes[0].rt = RES_NOT;
 			hr = MAPIAllocateMore(sizeof(SRestriction), lpRootRestrict, (LPVOID *) &lpExtraRestriction[1].res.resAnd.lpRes[0].res.resNot.lpRes);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpExtraRestriction[1].res.resAnd.lpRes[0].res.resNot.lpRes[0].rt = RES_EXIST;
 			lpExtraRestriction[1].res.resAnd.lpRes[0].res.resNot.lpRes[0].res.resExist.ulPropTag = PR_EC_IMAP_EMAIL_SIZE;
 
 			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpPropVal->ulPropTag = PR_MESSAGE_SIZE;
 			lpPropVal->Value.ul = strtoul(lstSearchCriteria[ulStartCriteria + 1].c_str(), NULL, 0);
@@ -5564,7 +5541,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 		} else if (strSearchCriterium.compare("NOT") == 0) {
 			hr = MAPIAllocateMore(sizeof(SRestriction), lpRootRestrict, (LPVOID *) &lpExtraRestriction);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpRestriction->rt = RES_NOT;
 			lpRestriction->res.resNot.ulReserved = 0;
@@ -5578,18 +5555,14 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 			lpRestriction->res.resBitMask.ulMask = 0;
 			++ulStartCriteria;
 		} else if (strSearchCriterium.compare("ON") == 0) {
-			if (lstSearchCriteria.size() - ulStartCriteria <= 1) {
-				hr = MAPI_E_CALL_FAILED;
-				goto exit;
-			}
-
+			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
+				return MAPI_E_CALL_FAILED;
 			hr = MAPIAllocateMore(sizeof(SRestriction) * 3, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
 			if (hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpRestriction->rt = RES_AND;
 			lpRestriction->res.resAnd.cRes = 3;
@@ -5608,7 +5581,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 
 			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpPropVal->ulPropTag = PR_EC_MESSAGE_DELIVERY_DATE;
 			ft = StringToFileTime(lstSearchCriteria[ulStartCriteria + 1].c_str());
@@ -5621,7 +5594,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 		} else if (strSearchCriterium.compare("OR") == 0) {
 			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpRestriction->rt = RES_OR;
 			lpRestriction->res.resOr.cRes = 2;
@@ -5633,7 +5606,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 		} else if (strSearchCriterium.compare("SEEN") == 0) {
 			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpRestriction->rt = RES_AND;
 			lpRestriction->res.resAnd.cRes = 2;
@@ -5648,18 +5621,14 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 			lpExtraRestriction[1].res.resBitMask.ulMask = MSGFLAG_READ;
 			++ulStartCriteria;
 		} else if (strSearchCriterium.compare("SENTBEFORE") == 0) {
-			if (lstSearchCriteria.size() - ulStartCriteria <= 1) {
-				hr = MAPI_E_CALL_FAILED;
-				goto exit;
-			}
-
+			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
+				return MAPI_E_CALL_FAILED;
 			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
 			if (hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpRestriction->rt = RES_AND;
 			lpRestriction->res.resAnd.cRes = 2;
@@ -5677,18 +5646,14 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 			lpExtraRestriction[1].res.resProperty.lpProp = lpPropVal;
 			ulStartCriteria += 2;
 		} else if (strSearchCriterium.compare("SENTON") == 0) {
-			if (lstSearchCriteria.size() - ulStartCriteria <= 1) {
-				hr = MAPI_E_CALL_FAILED;
-				goto exit;
-			}
-
+			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
+				return MAPI_E_CALL_FAILED;
 			hr = MAPIAllocateMore(sizeof(SRestriction) * 3, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
 			if (hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpRestriction->rt = RES_AND;
 			lpRestriction->res.resAnd.cRes = 3;
@@ -5707,7 +5672,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 
 			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpPropVal->ulPropTag = PR_EC_CLIENT_SUBMIT_DATE;
 			ft = StringToFileTime(lstSearchCriteria[ulStartCriteria + 1].c_str());
@@ -5718,18 +5683,14 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 			lpExtraRestriction[2].res.resProperty.lpProp = lpPropVal;
 			ulStartCriteria += 2;
 		} else if (strSearchCriterium.compare("SENTSINCE") == 0) {
-			if (lstSearchCriteria.size() - ulStartCriteria <= 1) {
-				hr = MAPI_E_CALL_FAILED;
-				goto exit;
-			}
-
+			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
+				return MAPI_E_CALL_FAILED;
 			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
 			if (hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpRestriction->rt = RES_AND;
 			lpRestriction->res.resAnd.cRes = 2;
@@ -5747,18 +5708,14 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 			lpExtraRestriction[1].res.resProperty.lpProp = lpPropVal;
 			ulStartCriteria += 2;
 		} else if (strSearchCriterium.compare("SINCE") == 0) {
-			if (lstSearchCriteria.size() - ulStartCriteria <= 1) {
-				hr = MAPI_E_CALL_FAILED;
-				goto exit;
-			}
-
+			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
+				return MAPI_E_CALL_FAILED;
 			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
 			if (hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpRestriction->rt = RES_AND;
 			lpRestriction->res.resAnd.cRes = 2;
@@ -5776,16 +5733,14 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 			lpExtraRestriction[1].res.resProperty.lpProp = lpPropVal;
 			ulStartCriteria += 2;
 		} else if (strSearchCriterium.compare("SMALLER") == 0) {
-			if (lstSearchCriteria.size() - ulStartCriteria <= 1) {
-				hr = MAPI_E_CALL_FAILED;
-				goto exit;
-			}
+			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
+				return MAPI_E_CALL_FAILED;
 
 			// OR (AND (EXIST (PR_EC_IMAP_EMAIL_SIZE), (RES_PROP PR_EC_IMAP_EMAIL_SIZE RELOP_LT size)), (RES_PROP PR_MESSAGE_SIZE RELOP_LT size))
 
 			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpRestriction->rt = RES_OR;
 			lpRestriction->res.resOr.cRes = 2;
@@ -5793,7 +5748,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 
 			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction[0].res.resAnd.lpRes);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpExtraRestriction[0].rt = RES_AND;
 			lpExtraRestriction[0].res.resAnd.cRes = 2;
@@ -5803,7 +5758,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 
 			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpPropVal->ulPropTag = PR_EC_IMAP_EMAIL_SIZE;
 			lpPropVal->Value.ul = strtoul(lstSearchCriteria[ulStartCriteria + 1].c_str(), NULL, 0);
@@ -5817,7 +5772,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 
 			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction[1].res.resAnd.lpRes);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpExtraRestriction[1].rt = RES_AND;
 			lpExtraRestriction[1].res.resAnd.cRes = 2;
@@ -5827,14 +5782,14 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 			lpExtraRestriction[1].res.resAnd.lpRes[0].rt = RES_NOT;
 			hr = MAPIAllocateMore(sizeof(SRestriction), lpRootRestrict, (LPVOID *) &lpExtraRestriction[1].res.resAnd.lpRes[0].res.resNot.lpRes);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpExtraRestriction[1].res.resAnd.lpRes[0].res.resNot.lpRes[0].rt = RES_EXIST;
 			lpExtraRestriction[1].res.resAnd.lpRes[0].res.resNot.lpRes[0].res.resExist.ulPropTag = PR_EC_IMAP_EMAIL_SIZE;
 
 			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpPropVal->ulPropTag = PR_MESSAGE_SIZE;
 			lpPropVal->Value.ul = strtoul(lstSearchCriteria[ulStartCriteria + 1].c_str(), NULL, 0);
@@ -5849,16 +5804,14 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 		    // Handle SUBJECT <s>
 		    char *szSearch;
 		    
-			if (lstSearchCriteria.size() - ulStartCriteria <= 1) {
-				hr = MAPI_E_CALL_FAILED;
-				goto exit;
-			}
+			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
+				return MAPI_E_CALL_FAILED;
 
 			szSearch  = (char *)lstSearchCriteria[ulStartCriteria+1].c_str();
 
 			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpRestriction->rt = RES_AND;
 			lpRestriction->res.resAnd.cRes = 2;
@@ -5874,7 +5827,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 
 			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			// @todo, unicode
 			lpPropVal->ulPropTag = PR_SUBJECT_A;
@@ -5884,14 +5837,12 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
             ulStartCriteria += 2;
                 
 		} else if (strSearchCriterium.compare("TEXT") == 0) {
-			if (lstSearchCriteria.size() - ulStartCriteria <= 1) {
-				hr = MAPI_E_CALL_FAILED;
-				goto exit;
-			}
+			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
+				return MAPI_E_CALL_FAILED;
 
 			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpRestriction->rt = RES_OR;
 			lpRestriction->res.resOr.cRes = 2;
@@ -5900,7 +5851,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 
 			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpRestriction[0].rt = RES_AND;
 			lpRestriction[0].res.resAnd.cRes = 2;
@@ -5912,7 +5863,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 
 			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			if (iconv)
 				iconv->convert(lstSearchCriteria[ulStartCriteria+1]);
@@ -5920,7 +5871,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 			hr = MAPIAllocateMore(lstSearchCriteria[ulStartCriteria + 1].size() + 1, lpRootRestrict,
 								  (LPVOID *) &szBuffer);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpExtraRestriction[1].rt = RES_CONTENT;
 			lpExtraRestriction[1].res.resContent.ulFuzzyLevel = lstSearchCriteria[ulStartCriteria+1].size() > 0 ? (FL_SUBSTRING | FL_IGNORECASE) : FL_FULLSTRING;
@@ -5933,7 +5884,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 
 			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpRestriction[1].rt = RES_AND;
 			lpRestriction[1].res.resAnd.cRes = 2;
@@ -5945,7 +5896,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 
 			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			if (iconv)
 				iconv->convert(lstSearchCriteria[ulStartCriteria+1]);
@@ -5953,7 +5904,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 			hr = MAPIAllocateMore(lstSearchCriteria[ulStartCriteria + 1].size() + 1, lpRootRestrict,
 								  (LPVOID *) &szBuffer);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpExtraRestriction[1].rt = RES_CONTENT;
 			lpExtraRestriction[1].res.resContent.ulFuzzyLevel = lstSearchCriteria[ulStartCriteria+1].size() > 0 ? (FL_SUBSTRING | FL_IGNORECASE) : FL_FULLSTRING;
@@ -5968,10 +5919,8 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 		    char *szField = NULL;
 		    char *szSearch = NULL;
 
-			if (lstSearchCriteria.size() - ulStartCriteria <= 1) {
-				hr = MAPI_E_CALL_FAILED;
-				goto exit;
-			}
+			if (lstSearchCriteria.size() - ulStartCriteria <= 1)
+				return MAPI_E_CALL_FAILED;
 			
 			szField = (char *)strSearchCriterium.c_str();
 			szSearch = (char *)lstSearchCriteria[ulStartCriteria+1].c_str();
@@ -5985,7 +5934,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 
             hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (void **)&lpPropVal);
             if(hr != hrSuccess)
-                goto exit;
+				return hr;
                 
             lpPropVal->ulPropTag = PR_TRANSPORT_MESSAGE_HEADERS_A;
             
@@ -6000,11 +5949,10 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 
 			hr = HrParseSeqUidSet(lstSearchCriteria[ulStartCriteria + 1], lstMails);
 			if (hr != hrSuccess)
-				goto exit;
-
+				return hr;
 			hr = MAPIAllocateMore(sizeof(SRestriction) * lstMails.size(), lpRootRestrict, (LPVOID *) &lpExtraRestriction);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpRestriction->rt = RES_OR;
 			lpRestriction->res.resOr.cRes = lstMails.size();
@@ -6014,7 +5962,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 			for (auto mail_idx : lstMails) {
 				hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
 				if (hr != hrSuccess)
-					goto exit;
+					return hr;
 
 				lpPropVal->ulPropTag = PR_EC_IMAP_ID;
 				lpPropVal->Value.ul = lstFolderMailEIDs[mail_idx].ulUid;
@@ -6029,7 +5977,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 		} else if (strSearchCriterium.compare("UNANSWERED") == 0) {
 			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpRestriction->rt = RES_OR;
 			lpRestriction->res.resOr.cRes = 2;
@@ -6037,7 +5985,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 
 			hr = MAPIAllocateMore(sizeof(SRestriction), lpRootRestrict, (LPVOID *) &lpRestriction);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpExtraRestriction[0].rt = RES_NOT;
 			lpExtraRestriction[0].res.resNot.ulReserved = 0;
@@ -6057,7 +6005,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 		} else if (strSearchCriterium.compare("UNDELETED") == 0) {
 			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpRestriction->rt = RES_OR;
 			lpRestriction->res.resOr.cRes = 2;
@@ -6065,7 +6013,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 
 			hr = MAPIAllocateMore(sizeof(SRestriction), lpRootRestrict, (LPVOID *) &lpRestriction);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpExtraRestriction[0].rt = RES_NOT;
 			lpExtraRestriction[0].res.resNot.ulReserved = 0;
@@ -6084,7 +6032,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 		} else if (strSearchCriterium.compare("UNDRAFT") == 0) {
 			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpRestriction->rt = RES_OR;
 			lpRestriction->res.resOr.cRes = 2;
@@ -6092,7 +6040,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 
 			hr = MAPIAllocateMore(sizeof(SRestriction), lpRootRestrict, (LPVOID *) &lpRestriction);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpExtraRestriction[0].rt = RES_NOT;
 			lpExtraRestriction[0].res.resNot.ulReserved = 0;
@@ -6112,7 +6060,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 		} else if (strSearchCriterium.compare("UNFLAGGED") == 0) {
 			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpRestriction->rt = RES_OR;
 			lpRestriction->res.resOr.cRes = 2;
@@ -6120,7 +6068,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 
 			hr = MAPIAllocateMore(sizeof(SRestriction), lpRootRestrict, (LPVOID *) &lpRestriction);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpExtraRestriction[0].rt = RES_NOT;
 			lpExtraRestriction[0].res.resNot.ulReserved = 0;
@@ -6145,7 +6093,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 		} else if (strSearchCriterium.compare("UNSEEN") == 0) {
 			hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (LPVOID *) &lpExtraRestriction);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpRestriction->rt = RES_OR;
 			lpRestriction->res.resOr.cRes = 2;
@@ -6153,7 +6101,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 
 			hr = MAPIAllocateMore(sizeof(SRestriction), lpRootRestrict, (LPVOID *) &lpRestriction);
 			if (hr != hrSuccess)
-				goto exit;
+				return hr;
 
 			lpExtraRestriction[0].rt = RES_NOT;
 			lpExtraRestriction[0].res.resNot.ulReserved = 0;
@@ -6173,10 +6121,8 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 		    char *szField;
 		    char *szSearch;
 		    
-			if (lstSearchCriteria.size() - ulStartCriteria <= 2) {
-				hr = MAPI_E_CALL_FAILED;
-				goto exit;
-			}
+			if (lstSearchCriteria.size() - ulStartCriteria <= 2)
+				return MAPI_E_CALL_FAILED;
 			
 			szField = (char *)lstSearchCriteria[ulStartCriteria+1].c_str();
 			szSearch = (char *)lstSearchCriteria[ulStartCriteria+2].c_str();
@@ -6190,7 +6136,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 
             hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (void **)&lpPropVal);
             if(hr != hrSuccess)
-                goto exit;
+				return hr;
                 
             lpPropVal->ulPropTag = PR_TRANSPORT_MESSAGE_HEADERS_A;
             
@@ -6201,8 +6147,7 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 
 			ulStartCriteria += 3;
 		} else {
-			hr = MAPI_E_CALL_FAILED;
-			goto exit;
+			return MAPI_E_CALL_FAILED;
 		}
 	}
 
@@ -6225,9 +6170,11 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 	sAndRestriction.rt = RES_AND;
 	sAndRestriction.res.resAnd.cRes = 2;
 	if ((hr = MAPIAllocateMore(sizeof(SRestriction) * 2, lpRootRestrict, (void **)&sAndRestriction.res.resAnd.lpRes)) != hrSuccess)
-		goto exit;
+		return hr;
 	sAndRestriction.res.resAnd.lpRes[0] = sPropertyRestriction;
 	sAndRestriction.res.resAnd.lpRes[1] = *lpRootRestrict;
+
+	LPSRowSet lpRows = nullptr;
 	hr = HrQueryAllRows(lpTable, spt, &sAndRestriction, NULL, 0, &lpRows);
 	if (hr != hrSuccess)
 		goto exit;
@@ -6829,7 +6776,6 @@ HRESULT IMAP::HrFindSubFolder(IMAPIFolder *lpFolder, const wstring& strFolder, U
     SizedSPropTagArray(2, sptaCols) = {2, { PR_ENTRYID, PR_DISPLAY_NAME_W }};
     LPENTRYID lpEntryID = NULL;
     ULONG cbEntryID = 0;
-    LPSRowSet lpRowSet = NULL;
 	memory_ptr<SPropValue> lpProp;
 	object_ptr<IMAPIFolder> lpSubTree;
     ULONG ulObjType = 0;
@@ -6848,38 +6794,32 @@ HRESULT IMAP::HrFindSubFolder(IMAPIFolder *lpFolder, const wstring& strFolder, U
     if(lpFolder == NULL) {
         if(wcscasecmp(strFolder.c_str(), L"INBOX") == 0) {
             // Inbox request, we know where that is.
-            hr = lpStore->GetReceiveFolder((LPTSTR)"IPM", 0, lpcbEntryID, lppEntryID, NULL);
-            goto exit;            
+			return lpStore->GetReceiveFolder((LPTSTR)"IPM", 0, lpcbEntryID, lppEntryID, nullptr);
         } else if(wcscasecmp(strFolder.c_str(), PUBLIC_FOLDERS_NAME) == 0) {
             // Public folders requested, we know where that is too
-			if(!lpPublicStore) {
-				hr = MAPI_E_NOT_FOUND;
-				goto exit;
-			}
+			if (lpPublicStore == nullptr)
+				return MAPI_E_NOT_FOUND;
             hr = HrGetOneProp(lpPublicStore, PR_IPM_PUBLIC_FOLDERS_ENTRYID, &~lpProp);
             if(hr != hrSuccess)
-                goto exit;
-                
+				return hr;
             cbEntryID = lpProp->Value.bin.cb;
             hr = MAPIAllocateBuffer(cbEntryID, (void **)&lpEntryID);
             if(hr != hrSuccess)
-                goto exit;
-                
+				return hr;
             memcpy(lpEntryID, lpProp->Value.bin.lpb, cbEntryID);
             
             *lppEntryID = lpEntryID;
             *lpcbEntryID = cbEntryID;
-            
-            goto exit;
+			return hr;
         } else {
             // Other folder in the root requested, use normal search algorithm to find it
             // under IPM_SUBTREE
             hr = HrGetOneProp(lpStore, PR_IPM_SUBTREE_ENTRYID, &~lpProp);
             if(hr != hrSuccess)
-                goto exit;
+				return hr;
             hr = lpStore->OpenEntry(lpProp->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpProp->Value.bin.lpb), nullptr, 0, &ulObjType, &~lpSubTree);
             if(hr != hrSuccess)
-                goto exit;
+				return hr;
                 
             lpFolder = lpSubTree;
             // Fall through to normal folder lookup code
@@ -6889,15 +6829,16 @@ HRESULT IMAP::HrFindSubFolder(IMAPIFolder *lpFolder, const wstring& strFolder, U
     // Use a restriction to find the folder in the hierarchy table
 	hr = lpFolder->GetHierarchyTable(MAPI_DEFERRED_ERRORS, &~lpTable);
     if(hr != hrSuccess)
-        goto exit;
+		return hr;
     hr = lpTable->SetColumns(sptaCols, 0);
     if(hr != hrSuccess)
-        goto exit;
+		return hr;
         
     hr = lpTable->Restrict(&sRestrict, TBL_BATCH);
     if(hr != hrSuccess)
-        goto exit;
-        
+		return hr;
+
+	LPSRowSet lpRowSet;        
     hr = lpTable->QueryRows(1, 0, &lpRowSet);
     if(hr != hrSuccess)
         goto exit;
