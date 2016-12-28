@@ -219,16 +219,14 @@ HRESULT Util::HrCopyPropertyArrayByRef(const SPropValue *lpSrc, ULONG cValues,
 	if (hr != hrSuccess)
 		return hr;
     
-    for (i = 0; i < cValues; ++i) {
-        if(!bExcludeErrors || PROP_TYPE(lpSrc[i].ulPropTag) != PT_ERROR) {
-            hr = HrCopyPropertyByRef(&lpDest[n], &lpSrc[i]);
-        
-            if(hr == hrSuccess)
-                ++n;
-            
-            hr = hrSuccess;
-        }
-    }
+	for (i = 0; i < cValues; ++i) {
+		if (bExcludeErrors && PROP_TYPE(lpSrc[i].ulPropTag) == PT_ERROR)
+			continue;
+		hr = HrCopyPropertyByRef(&lpDest[n], &lpSrc[i]);
+		if (hr == hrSuccess)
+			++n;
+		hr = hrSuccess;
+	}
     
     *lppDest = lpDest;
 	*cDestValues = n;
@@ -260,14 +258,14 @@ HRESULT Util::HrCopyPropertyArray(const SPropValue *lpSrc, ULONG cValues,
 		goto exitfixme;
 
 	for (i = 0; i < cValues; ++i) {
-	    if(!bExcludeErrors || PROP_TYPE(lpSrc[i].ulPropTag) != PT_ERROR) {
+		if (bExcludeErrors && PROP_TYPE(lpSrc[i].ulPropTag) == PT_ERROR)
+			continue;
     		hr = HrCopyProperty(&lpDest[n], &lpSrc[i], lpDest);
 
 	    	if(hr == hrSuccess)
 			++n;
 
     		hr = hrSuccess;
-        }
 	}
 
 	*lppDest = lpDest;
