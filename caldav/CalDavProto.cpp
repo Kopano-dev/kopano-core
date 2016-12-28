@@ -319,11 +319,11 @@ HRESULT CalDAV::HrListCalEntries(WEBDAVREQSTPROPS *lpsWebRCalQry, WEBDAVMULTISTA
 	// restrict on meeting requests and appointments
 	sResData.ulPropTag = PR_MESSAGE_CLASS_A;
 	sResData.Value.lpszA = const_cast<char *>("IPM.Appointment");
-	rst.append(ECContentRestriction(FL_IGNORECASE | FL_PREFIX, PR_MESSAGE_CLASS_A, &sResData));
+	rst += ECContentRestriction(FL_IGNORECASE | FL_PREFIX, PR_MESSAGE_CLASS_A, &sResData);
 	sResData.Value.lpszA = const_cast<char *>("IPM.Meeting");
-	rst.append(ECContentRestriction(FL_IGNORECASE | FL_PREFIX, PR_MESSAGE_CLASS_A, &sResData));
+	rst += ECContentRestriction(FL_IGNORECASE | FL_PREFIX, PR_MESSAGE_CLASS_A, &sResData);
 	sResData.Value.lpszA = const_cast<char *>("IPM.Task");
-	rst.append(ECContentRestriction(FL_IGNORECASE | FL_PREFIX, PR_MESSAGE_CLASS_A, &sResData));
+	rst += ECContentRestriction(FL_IGNORECASE | FL_PREFIX, PR_MESSAGE_CLASS_A, &sResData);
 	hr = rst.RestrictTable(lpTable, 0);
 	if (hr != hrSuccess) {
 		ec_log_err("Unable to restrict folder contents, error code: 0x%08X %s", hr, GetMAPIErrorMessage(hr));
@@ -691,7 +691,7 @@ HRESULT CalDAV::HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTAT
 		SPropValue pv;
 		pv.ulPropTag = GetPropIDForXMLProp(lpAbCont, iterWebVal->sPropName, m_converter);
 		pv.Value.lpszW = const_cast<wchar_t *>(content.c_str());
-		rst.append(ECContentRestriction(FL_SUBSTRING | FL_IGNORECASE, pv.ulPropTag, &pv));
+		rst += ECContentRestriction(FL_SUBSTRING | FL_IGNORECASE, pv.ulPropTag, &pv);
 	}
 
 	// create proptagarray.

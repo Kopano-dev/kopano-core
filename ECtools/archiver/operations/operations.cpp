@@ -92,19 +92,16 @@ HRESULT ArchiveOperationBase::GetRestriction(LPMAPIPROP lpMapiProp, LPSRestricti
 	sPropRefTime.ulPropTag = PROP_TAG(PT_SYSTIME, 0);
 	sPropRefTime.Value.ft.dwLowDateTime = li.LowPart;
 	sPropRefTime.Value.ft.dwHighDateTime = li.HighPart;
-
-	resResult.append(resDefault);
+	resResult += resDefault;
 	if (!m_bProcessUnread)
-		resResult.append(ECBitMaskRestriction(BMR_NEZ, PR_MESSAGE_FLAGS, MSGFLAG_READ));
-	resResult.append(
+		resResult += ECBitMaskRestriction(BMR_NEZ, PR_MESSAGE_FLAGS, MSGFLAG_READ);
+	resResult +=
 		ECNotRestriction(
 			ECAndRestriction(
 				ECExistRestriction(PROP_FLAGS) +
 				ECBitMaskRestriction(BMR_NEZ, PROP_FLAGS, m_ulInhibitMask)
 			)
-		)
-	);
-
+		);
 	hr = resResult.CreateMAPIRestriction(lppRestriction);
  exitpm:
 	return hr;

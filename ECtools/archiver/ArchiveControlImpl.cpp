@@ -1222,9 +1222,9 @@ HRESULT ArchiveControlImpl::AppendAllEntries(LPMAPIFOLDER lpArchive, LPSRestrict
 	PROPMAP_NAMED_ID(REF_ITEM_ENTRYID, PT_BINARY, PSETID_Archive, dispidRefItemEntryId)
 	PROPMAP_INIT(lpArchive)
 	
-	resContent.append(ECExistRestriction(PROP_REF_ITEM_ENTRYID));
+	resContent += ECExistRestriction(PROP_REF_ITEM_ENTRYID);
 	if (lpRestriction)
-		resContent.append(ECRawRestriction(lpRestriction, ECRestriction::Cheap));
+		resContent += ECRawRestriction(lpRestriction, ECRestriction::Cheap);
 	hr = lpArchive->GetContentsTable(0, &~ptrTable);
 	if (hr != hrSuccess)
 		goto exitpm;

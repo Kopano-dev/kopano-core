@@ -165,12 +165,13 @@ inline void ECRestriction::DummyFree(LPVOID) {}
  */
 ECAndRestriction::ECAndRestriction(const ECRestrictionList &list): m_lstRestrictions(list.m_list) {}
 
-HRESULT ECAndRestriction::append(const ECRestrictionList &list) {
+HRESULT ECAndRestriction::operator+=(const ECRestrictionList &list)
+{
 	m_lstRestrictions.insert(m_lstRestrictions.end(), list.m_list.begin(), list.m_list.end());
 	return hrSuccess;
 }
 
-HRESULT ECAndRestriction::append(ECRestrictionList &&o)
+HRESULT ECAndRestriction::operator+=(ECRestrictionList &&o)
 {
 	ResList &dst = m_lstRestrictions, &src = o.m_list;
 	if (dst.empty()) {
@@ -220,12 +221,13 @@ ECRestriction *ECAndRestriction::Clone(void) const _kc_lvqual
  */
 ECOrRestriction::ECOrRestriction(const ECRestrictionList &list): m_lstRestrictions(list.m_list) {}
 
-HRESULT ECOrRestriction::append(const ECRestrictionList &list) {
+HRESULT ECOrRestriction::operator+=(const ECRestrictionList &list)
+{
 	m_lstRestrictions.insert(m_lstRestrictions.end(), list.m_list.begin(), list.m_list.end());
 	return hrSuccess;
 }
 
-HRESULT ECOrRestriction::append(ECRestrictionList &&o)
+HRESULT ECOrRestriction::operator+=(ECRestrictionList &&o)
 {
 	ResList &dst = m_lstRestrictions, &src = o.m_list;
 	if (dst.empty()) {

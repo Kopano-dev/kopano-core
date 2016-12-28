@@ -301,16 +301,15 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 	// restrict: ( distlist || ( contact && exist(abparraytype) && abparraytype != 0 ) )
 	sRestrictProp.ulPropTag = PR_MESSAGE_CLASS_A;
 	sRestrictProp.Value.lpszA = const_cast<char *>("IPM.DistList");
-	resOr.append(ECContentRestriction(FL_PREFIX|FL_IGNORECASE, PR_MESSAGE_CLASS_A, &sRestrictProp));
+	resOr += ECContentRestriction(FL_PREFIX|FL_IGNORECASE, PR_MESSAGE_CLASS_A, &sRestrictProp);
 
 	sRestrictProp.Value.lpszA = const_cast<char *>("IPM.Contact");
-	resAnd.append(ECContentRestriction(FL_PREFIX|FL_IGNORECASE, PR_MESSAGE_CLASS_A, &sRestrictProp));
+	resAnd += ECContentRestriction(FL_PREFIX|FL_IGNORECASE, PR_MESSAGE_CLASS_A, &sRestrictProp);
 	sRestrictProp.ulPropTag = ptrNameTags->aulPropTag[ulNames-1];
 	sRestrictProp.Value.ul = 0;
-	resAnd.append(ECExistRestriction(sRestrictProp.ulPropTag));
-	resAnd.append(ECPropertyRestriction(RELOP_NE, sRestrictProp.ulPropTag, &sRestrictProp));
-
-	resOr.append(resAnd);
+	resAnd += ECExistRestriction(sRestrictProp.ulPropTag);
+	resAnd += ECPropertyRestriction(RELOP_NE, sRestrictProp.ulPropTag, &sRestrictProp);
+	resOr  += resAnd;
 	hr = resOr.CreateMAPIRestriction(&~ptrRestriction);
 	if (hr != hrSuccess)
 		return hr;
@@ -1032,7 +1031,7 @@ HRESULT ZCABContainer::ResolveNames(LPSPropTagArray lpPropTagArray, ULONG ulFlag
 
 			for (ULONG j = 0; j < arraySize(ulSearchTags); ++j) {
 				sProp.ulPropTag = CHANGE_PROP_TYPE(ulSearchTags[j], ulStringType);
-				resFind.append( ECContentRestriction(ulResFlag, CHANGE_PROP_TYPE(ulSearchTags[j], ulStringType), &sProp, ECRestriction::Cheap) );
+				resFind += ECContentRestriction(ulResFlag, CHANGE_PROP_TYPE(ulSearchTags[j], ulStringType), &sProp, ECRestriction::Cheap);
 			}
 
 			SRestrictionPtr ptrRestriction;

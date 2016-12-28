@@ -529,7 +529,7 @@ HRESULT StoreHelper::SetupSearchArchiveFolder(LPMAPIFOLDER lpSearchFolder, const
 	sPropStubbed.ulPropTag = PROP_STUBBED; sPropStubbed.Value.b = 1;
 
 	// Create/Update the search folder that tracks unarchived message that are not flagged to be never archived
-	resArchiveFolder.append(
+	resArchiveFolder +=
 		*lpresClassCheck +
 		ECNotRestriction(
 			ECAndRestriction(
@@ -547,8 +547,7 @@ HRESULT StoreHelper::SetupSearchArchiveFolder(LPMAPIFOLDER lpSearchFolder, const
 				ECBitMaskRestriction(BMR_NEZ, PROP_FLAGS, ARCH_NEVER_ARCHIVE)
 			)
 		) +
-		ECNotRestriction(*lpresArchiveCheck)
-	);
+		ECNotRestriction(*lpresArchiveCheck);
 	hr = resArchiveFolder.CreateMAPIRestriction(&~ptrRestriction, ECRestriction::Cheap);
 	if (hr != hrSuccess)
 		return hr;
@@ -608,7 +607,7 @@ HRESULT StoreHelper::SetupSearchDeleteFolder(LPMAPIFOLDER lpSearchFolder, const 
 	ptrEntryList->lpbin[0].lpb = ptrPropEntryId->Value.bin.lpb;
 
 	// Create/Update the search folder that tracks all archived message that are not flagged to be never deleted or never stubbed
-	resDeleteFolder.append(
+	resDeleteFolder +=
 		*lpresClassCheck +
 		ECNotRestriction(
 			ECAndRestriction(
@@ -616,8 +615,7 @@ HRESULT StoreHelper::SetupSearchDeleteFolder(LPMAPIFOLDER lpSearchFolder, const 
 				ECBitMaskRestriction(BMR_NEZ, PROP_FLAGS, ARCH_NEVER_DELETE)
 			)
 		) +
-		*lpresArchiveCheck
-	);
+		*lpresArchiveCheck;
 	hr = resDeleteFolder.CreateMAPIRestriction(&~ptrRestriction, ECRestriction::Cheap);
 	if (hr != hrSuccess)
 		return hr;
@@ -679,7 +677,7 @@ HRESULT StoreHelper::SetupSearchStubFolder(LPMAPIFOLDER lpSearchFolder, const EC
 	sPropMsgClass[1].Value.LPSZ = const_cast<TCHAR *>(_T("IPM.Note.")); // RES_CONTENT w FL_PREFIX
 
 	// Create/Update the search folder that tracks non-stubbed archived message that are not flagged to be never stubbed.
-	resStubFolder.append(
+	resStubFolder +=
 		ECOrRestriction(
 			ECPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS, &sPropMsgClass[0]) +
 			ECContentRestriction(FL_PREFIX, PR_MESSAGE_CLASS, &sPropMsgClass[1])
@@ -696,8 +694,7 @@ HRESULT StoreHelper::SetupSearchStubFolder(LPMAPIFOLDER lpSearchFolder, const EC
 				ECBitMaskRestriction(BMR_NEZ, PROP_FLAGS, ARCH_NEVER_STUB)
 			)
 		) +
-		*lpresArchiveCheck
-	);
+		*lpresArchiveCheck;
 	hr = resStubFolder.CreateMAPIRestriction(&~ptrRestriction, ECRestriction::Cheap);
 	if (hr != hrSuccess)
 		return hr;
@@ -736,7 +733,7 @@ HRESULT StoreHelper::GetClassCheckRestriction(ECOrRestriction *lpresClassCheck)
 	sPropMsgClass[8].Value.LPSZ = const_cast<TCHAR *>(_T("Report.IPM.Note.IPNRN"));
 
 	// Build the message class restriction.
-	resClassCheck.append(
+	resClassCheck +=
 		ECPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS, &sPropMsgClass[0]) +
 		ECContentRestriction(FL_PREFIX, PR_MESSAGE_CLASS, &sPropMsgClass[1]) +
 		ECPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS, &sPropMsgClass[2]) +
@@ -745,9 +742,7 @@ HRESULT StoreHelper::GetClassCheckRestriction(ECOrRestriction *lpresClassCheck)
 		ECPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS, &sPropMsgClass[5]) +
 		ECPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS, &sPropMsgClass[6]) +
 		ECPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS, &sPropMsgClass[7]) +
-		ECPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS, &sPropMsgClass[8])
-	);
-
+		ECPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS, &sPropMsgClass[8]);
 	*lpresClassCheck = resClassCheck;
 
 	return hrSuccess;
@@ -763,7 +758,7 @@ HRESULT StoreHelper::GetArchiveCheckRestriction(ECAndRestriction *lpresArchiveCh
 	sPropDirty.ulPropTag = PROP_DIRTY; 
 	sPropDirty.Value.b = 1;
 
-	resArchiveCheck.append(
+	resArchiveCheck +=
 		ECAndRestriction(
 			ECExistRestriction(PROP_ORIGINAL_SOURCEKEY) +
 			ECComparePropsRestriction(RELOP_EQ, PROP_ORIGINAL_SOURCEKEY, PR_SOURCE_KEY)
@@ -773,23 +768,21 @@ HRESULT StoreHelper::GetArchiveCheckRestriction(ECAndRestriction *lpresArchiveCh
 				ECExistRestriction(PROP_DIRTY) +
 				ECPropertyRestriction(RELOP_EQ, PROP_DIRTY, &sPropDirty)
 			)
-		)
-	);
+		);
 
 	hr = GetArchiveList(&lstArchives);
 	if (hr != hrSuccess)
 		return hr;
 
 	// Build the restriction that checks that the message has been archived to all archives.
-	resArchiveCheck.append(ECExistRestriction(PROP_ARCHIVE_STORE_ENTRYIDS));
+	resArchiveCheck += ECExistRestriction(PROP_ARCHIVE_STORE_ENTRYIDS);
 	for (const auto &arc : lstArchives) {
 		SPropValue sPropFolderEntryId;
 
 		sPropFolderEntryId.ulPropTag = (PROP_ARCHIVE_STORE_ENTRYIDS & ~MV_FLAG);
 		sPropFolderEntryId.Value.bin.cb  = arc.sStoreEntryId.size();
 		sPropFolderEntryId.Value.bin.lpb = arc.sStoreEntryId;
-
-		resArchiveCheck.append(ECPropertyRestriction(RELOP_EQ, PROP_ARCHIVE_STORE_ENTRYIDS, &sPropFolderEntryId));
+		resArchiveCheck += ECPropertyRestriction(RELOP_EQ, PROP_ARCHIVE_STORE_ENTRYIDS, &sPropFolderEntryId);
 	}
 
 	*lpresArchiveCheck = resArchiveCheck;

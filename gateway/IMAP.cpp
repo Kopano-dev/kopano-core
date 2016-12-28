@@ -2931,9 +2931,9 @@ HRESULT IMAP::HrExpungeDeleted(const std::string &strTag,
 		goto exit;
 	}
 	if (uid_rst != nullptr)
-		rst.append(std::move(*uid_rst.get()));
-	rst.append(ECExistRestriction(PR_MSG_STATUS));
-	rst.append(ECBitMaskRestriction(BMR_NEZ, PR_MSG_STATUS, MSGSTATUS_DELMARKED));
+		rst += std::move(*uid_rst.get());
+	rst += ECExistRestriction(PR_MSG_STATUS);
+	rst += ECBitMaskRestriction(BMR_NEZ, PR_MSG_STATUS, MSGSTATUS_DELMARKED);
 	hr = rst.CreateMAPIRestriction(&~lpRootRestrict);
 	if (hr != hrSuccess)
 		goto exit;
@@ -4706,16 +4706,16 @@ HRESULT IMAP::HrSeqUidSetToRestriction(const string &strSeqSet,
 		if (ulPos == string::npos) {
 			// single number
 			sProp.Value.ul = LastOrNumber(vSequences[i].c_str(), true);
-			rst->append(ECPropertyRestriction(RELOP_EQ, PR_EC_IMAP_ID, &sProp));
+			*rst += ECPropertyRestriction(RELOP_EQ, PR_EC_IMAP_ID, &sProp);
 		} else {
 			sProp.Value.ul = LastOrNumber(vSequences[i].c_str(), true);
 			sPropEnd.Value.ul = LastOrNumber(vSequences[i].c_str() + ulPos + 1, true);
 
 			if (sProp.Value.ul > sPropEnd.Value.ul)
 				swap(sProp.Value.ul, sPropEnd.Value.ul);
-			rst->append(ECAndRestriction(
+			*rst += ECAndRestriction(
 				ECPropertyRestriction(RELOP_GE, PR_EC_IMAP_ID, &sProp) +
-				ECPropertyRestriction(RELOP_LE, PR_EC_IMAP_ID, &sPropEnd)));
+				ECPropertyRestriction(RELOP_LE, PR_EC_IMAP_ID, &sPropEnd));
 		}
 	}
 	ret.reset(rst);

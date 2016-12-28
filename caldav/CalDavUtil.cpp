@@ -505,9 +505,9 @@ HRESULT HrGetSubCalendars(IMAPISession *lpSession, IMAPIFolder *lpFolderIn, SBin
 
 	sPropVal.ulPropTag = PR_CONTAINER_CLASS_A;
 	sPropVal.Value.lpszA = const_cast<char *>("IPF.Appointment");
-	rst.append(ECContentRestriction(FL_IGNORECASE, sPropVal.ulPropTag, &sPropVal));
+	rst += ECContentRestriction(FL_IGNORECASE, sPropVal.ulPropTag, &sPropVal);
 	sPropVal.Value.lpszA = const_cast<char *>("IPF.Task");
-	rst.append(ECContentRestriction(FL_IGNORECASE, sPropVal.ulPropTag, &sPropVal));
+	rst += ECContentRestriction(FL_IGNORECASE, sPropVal.ulPropTag, &sPropVal);
 	hr = rst.RestrictTable(lpTable);
 	if (hr != hrSuccess)
 		goto exit;
@@ -622,7 +622,7 @@ HRESULT HrMakeRestriction(const std::string &strGuid, LPSPropTagArray lpNamedPro
 	sSpropVal.Value.bin.cb = (ULONG)strBinGuid.size();
 	sSpropVal.Value.bin.lpb = (LPBYTE)strBinGuid.c_str();
 	sSpropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY);		
-	rst.append(ECPropertyRestriction(RELOP_EQ, sSpropVal.ulPropTag, &sSpropVal));
+	rst += ECPropertyRestriction(RELOP_EQ, sSpropVal.ulPropTag, &sSpropVal);
 	
 	// converting guid to hex
 	strBinOtherUID = hex2bin(strGuid);
@@ -631,16 +631,16 @@ HRESULT HrMakeRestriction(const std::string &strGuid, LPSPropTagArray lpNamedPro
 	sSpropVal.Value.bin.lpb = (LPBYTE)strBinOtherUID.c_str();
 	
 	// When CreateAndGetGuid() fails PR_ENTRYID is used as guid.
-	rst.append(ECPropertyRestriction(RELOP_EQ, PR_ENTRYID, &sSpropVal));
+	rst += ECPropertyRestriction(RELOP_EQ, PR_ENTRYID, &sSpropVal);
 
 	// z-push iphone UIDs are not in Outlook format		
 	sSpropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY);
-	rst.append(ECPropertyRestriction(RELOP_EQ, sSpropVal.ulPropTag, &sSpropVal));
+	rst += ECPropertyRestriction(RELOP_EQ, sSpropVal.ulPropTag, &sSpropVal);
 
 	// PUT url [guid].ics part, (eg. Evolution UIDs)
 	sSpropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_APPTTSREF], PT_STRING8);
 	sSpropVal.Value.lpszA = (char*)strGuid.c_str();
-	rst.append(ECPropertyRestriction(RELOP_EQ, sSpropVal.ulPropTag, &sSpropVal));
+	rst += ECPropertyRestriction(RELOP_EQ, sSpropVal.ulPropTag, &sSpropVal);
 	hr = rst.CreateMAPIRestriction(&lpsRoot);
 exit:
 	if (lpsRoot && lpsRectrict)

@@ -176,19 +176,19 @@ public:
 	_kc_hidden ECRestriction *Clone(void) && _kc_override { return new ECAndRestriction(std::move(*this)); }
 #endif
 
-	_kc_hidden HRESULT append(const ECRestriction &restriction)
+	_kc_hidden HRESULT operator+=(const ECRestriction &restriction)
 	{
 		m_lstRestrictions.push_back(ResPtr(restriction.Clone()));
 		return hrSuccess;
 	}
-	_kc_hidden HRESULT append(ECRestriction &&o)
+	_kc_hidden HRESULT operator+=(ECRestriction &&o)
 	{
 		m_lstRestrictions.push_back(ResPtr(std::move(o).Clone()));
 		return hrSuccess;
 	}
 
-	HRESULT append(const ECRestrictionList &list);
-	HRESULT append(ECRestrictionList &&);
+	HRESULT operator+=(const ECRestrictionList &list);
+	HRESULT operator+=(ECRestrictionList &&);
 
 private:
 	ResList	m_lstRestrictions;
@@ -207,19 +207,19 @@ public:
 	ECRestriction *Clone(void) && _kc_override { return new ECOrRestriction(std::move(*this)); }
 #endif
 
-	_kc_hidden HRESULT append(const ECRestriction &restriction)
+	_kc_hidden HRESULT operator+=(const ECRestriction &restriction)
 	{
 		m_lstRestrictions.push_back(ResPtr(restriction.Clone()));
 		return hrSuccess;
 	}
-	_kc_hidden HRESULT append(ECRestriction &&o)
+	_kc_hidden HRESULT operator+=(ECRestriction &&o)
 	{
 		m_lstRestrictions.push_back(ResPtr(std::move(o).Clone()));
 		return hrSuccess;
 	}
 
-	HRESULT append(const ECRestrictionList &list);
-	HRESULT append(ECRestrictionList &&);
+	HRESULT operator+=(const ECRestrictionList &list);
+	HRESULT operator+=(ECRestrictionList &&);
 
 private:
 	ResList	m_lstRestrictions;

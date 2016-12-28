@@ -1042,7 +1042,7 @@ static HRESULT GetOrphanStoreInfo(IECServiceAdmin *lpServiceAdmin,
 	sStoreGuid.Value.bin.cb = sizeof(GUID);
 	sStoreGuid.Value.bin.lpb = (BYTE*)lpStoreGuid;
 
-	resAnd.append(ECPropertyRestriction(RELOP_EQ, PR_EC_STOREGUID, &sStoreGuid));
+	resAnd += ECPropertyRestriction(RELOP_EQ, PR_EC_STOREGUID, &sStoreGuid);
 	hr = resAnd.CreateMAPIRestriction(&~ptrRes);
 	if (hr != hrSuccess)
 		return hr;

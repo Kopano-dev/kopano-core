@@ -415,14 +415,13 @@ HRESULT Copier::GetRestriction(LPMAPIPROP lpMapiProp, LPSRestriction *lppRestric
 	hr = ArchiveOperationBaseEx::GetRestriction(lpMapiProp, &~ptrRestriction);
 	if (hr != hrSuccess)
 		goto exitpm;
-	resResult.append(ECRawRestriction(ptrRestriction));
+	resResult += ECRawRestriction(ptrRestriction);
 
 	// A reason to process a message before being old enough is when
 	// it's already archived (by archive-on-delivery or because the required
 	// age has changed). We'll check that by checking if PROP_ORIGINAL_SOURCE_KEY
 	// is present.
-	resResult.append(ECExistRestriction(PROP_ORIGINAL_SOURCE_KEY));
-
+	resResult += ECExistRestriction(PROP_ORIGINAL_SOURCE_KEY);
 	hr = resResult.CreateMAPIRestriction(lppRestriction);
  exitpm:
 	return hr;
