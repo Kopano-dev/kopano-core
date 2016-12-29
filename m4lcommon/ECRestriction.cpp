@@ -440,39 +440,6 @@ ECRestriction *ECExistRestriction::Clone(void) const _kc_lvqual
 }
 
 /**
- * ECSubRestriction
- */
-ECSubRestriction::ECSubRestriction(ULONG ulSubObject, ResPtr ptrRestriction)
-: m_ulSubObject(ulSubObject)
-, m_ptrRestriction(ptrRestriction)
-{}
-
-HRESULT ECSubRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const {
-	SRestriction restriction = {0};
-
-	if (lpBase == NULL || lpRestriction == NULL)
-		return MAPI_E_INVALID_PARAMETER;
-
-	restriction.rt = RES_SUBRESTRICTION;
-	restriction.res.resSub.ulSubObject = m_ulSubObject;
-
-	HRESULT hr = MAPIAllocateMore(sizeof(*restriction.res.resSub.lpRes),
-	             lpBase, reinterpret_cast<LPVOID *>(&restriction.res.resSub.lpRes));
-	if (hr != hrSuccess)
-		return hr;
-	hr = m_ptrRestriction->GetMAPIRestriction(lpBase, restriction.res.resSub.lpRes, ulFlags);
-	if (hr != hrSuccess)
-		return hr;
-	*lpRestriction = restriction;
-	return hrSuccess;
-}
-
-ECRestriction *ECSubRestriction::Clone(void) const _kc_lvqual
-{
-	return new ECSubRestriction(m_ulSubObject, m_ptrRestriction);
-}
-
-/**
  * ECRawRestriction
  */
 ECRawRestriction::ECRawRestriction(LPSRestriction lpRestriction, ULONG ulFlags) {

@@ -339,30 +339,6 @@ private:
 	ULONG	m_ulPropTag;
 };
 
-class ECSubRestriction _kc_final : public ECRestriction {
-public:
-	_kc_hidden ECSubRestriction(ULONG ulSubObject, const ECRestriction &restriction)
-	: m_ulSubObject(ulSubObject)
-	, m_ptrRestriction(ResPtr(restriction.Clone()))
-	{ }
-	_kc_hidden ECSubRestriction(ULONG s, ECRestriction &&o) :
-		m_ulSubObject(s), m_ptrRestriction(ResPtr(std::move(o).Clone()))
-	{}
-
-	HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
-	ECRestriction *Clone(void) const _kc_lvqual _kc_override;
-#ifdef HAVE_MF_QUAL
-	_kc_hidden ECRestriction *Clone(void) && _kc_override { return new ECSubRestriction(std::move(*this)); }
-#endif
-
-private:
-	ECSubRestriction(ULONG ulSubObject, ResPtr ptrRestriction);
-
-private:
-	ULONG	m_ulSubObject;
-	ResPtr	m_ptrRestriction;
-};
-
 /**
  * This is a special class, which encapsulates a raw SRestriction structure to allow
  * prebuild or obtained restriction structures to be used in the ECRestriction model.
