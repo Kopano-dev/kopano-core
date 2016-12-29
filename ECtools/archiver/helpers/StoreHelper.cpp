@@ -18,6 +18,7 @@
 #include <kopano/platform.h>
 #include <memory>
 #include <new>
+#include <utility>
 #include <mapix.h>
 #include <mapiutil.h>
 #include "StoreHelper.h"
@@ -743,8 +744,7 @@ HRESULT StoreHelper::GetClassCheckRestriction(ECOrRestriction *lpresClassCheck)
 		ECPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS, &sPropMsgClass[6], ECRestriction::Shallow) +
 		ECPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS, &sPropMsgClass[7], ECRestriction::Shallow) +
 		ECPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS, &sPropMsgClass[8], ECRestriction::Shallow);
-	*lpresClassCheck = resClassCheck;
-
+	*lpresClassCheck = std::move(resClassCheck);
 	return hrSuccess;
 }
 
@@ -784,8 +784,7 @@ HRESULT StoreHelper::GetArchiveCheckRestriction(ECAndRestriction *lpresArchiveCh
 		sPropFolderEntryId.Value.bin.lpb = arc.sStoreEntryId;
 		resArchiveCheck += ECPropertyRestriction(RELOP_EQ, PROP_ARCHIVE_STORE_ENTRYIDS, &sPropFolderEntryId, ECRestriction::Full);
 	}
-
-	*lpresArchiveCheck = resArchiveCheck;
+	*lpresArchiveCheck = std::move(resArchiveCheck);
 	return hrSuccess;
 }
 

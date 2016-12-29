@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <utility>
 #include "Http.h"
 #include <kopano/mapi_ptr.h>
 #include <kopano/stringutil.h>
@@ -477,7 +478,7 @@ HRESULT Http::HrGetDestination(std::string *strDestination)
 		return MAPI_E_CALL_FAILED;
 	}
 	strDest.erase(0, pos + strHost.length());
-	*strDestination = strDest;
+	*strDestination = std::move(strDest);
 	return hrSuccess;
 }
 

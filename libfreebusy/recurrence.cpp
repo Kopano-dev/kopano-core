@@ -16,7 +16,7 @@
  */
 
 #include <kopano/platform.h>
-
+#include <utility>
 #include "recurrence.h"
 #include <cmath>
 #include <kopano/ECLogger.h>
@@ -168,9 +168,7 @@ HRESULT recurrence::HrGetHumanReadableString(std::string *lpstrHRS)
 
 	strHRS = "This item is recurring";
 	// @todo: make strings like outlook does, and probably make it std::wstring
-
-	*lpstrHRS = strHRS;
-
+	*lpstrHRS = std::move(strHRS);
 	return hr;
 }
 

@@ -16,6 +16,7 @@
  */
 
 #include <kopano/zcdefs.h>
+#include <utility>
 #include <kopano/platform.h>
 #include <kopano/kcodes.h>
 #include "soapH.h"
@@ -211,7 +212,7 @@ bool ConvertAndValidatePath(const char *lpszClientUpdatePath, const std::string 
 		strFile += cPathSeparator;
 
 	strFile += strMSIName;
-	*lpstrDownloadFile = strFile;
+	*lpstrDownloadFile = std::move(strFile);
 	return true;
 }
 

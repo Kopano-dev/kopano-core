@@ -22,7 +22,7 @@
 #include <string>
 #include <list>
 #include <map>
-
+#include <utility>
 #include <mapidefs.h>
 #include <mapitags.h>
 #include <kopano/mapiext.h>
@@ -1188,7 +1188,7 @@ ECRESULT WriteLocalCommitTimeMax(struct soap *soap, ECDatabase *lpDatabase, unsi
 	if (er != erSuccess)
 		return er;
 	if (ppvTime)
-		*ppvTime = pvTime;
+		*ppvTime = std::move(pvTime);
 	return erSuccess;
 }
 

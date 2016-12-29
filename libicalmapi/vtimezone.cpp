@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <utility>
 #include "vtimezone.h"
 #include <mapidefs.h>
 #include <mapicode.h>
@@ -287,7 +288,7 @@ HRESULT HrParseVTimeZone(icalcomponent* lpVTZ, std::string* lpstrTZID, TIMEZONE_
 	}
 
 	if (lpstrTZID)
-		*lpstrTZID = strTZID;
+		*lpstrTZID = std::move(strTZID);
 	if (lpTimeZone)
 		*lpTimeZone = tzRet;
 	return hrSuccess;

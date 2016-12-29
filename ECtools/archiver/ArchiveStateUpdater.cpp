@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <new>
+#include <utility>
 #include <kopano/archiver-common.h>
 #include "ArchiveStateUpdater.h"
 #include "ArchiverSession.h"
@@ -111,7 +112,7 @@ HRESULT ArchiveStateUpdater::Create(const ArchiverSessionPtr &ptrSession, ECLogg
 		mapArchiveInfo));
 	if (ptrUpdater == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	*lpptrUpdater = ptrUpdater;
+	*lpptrUpdater = std::move(ptrUpdater);
 	return hrSuccess;
 }
 

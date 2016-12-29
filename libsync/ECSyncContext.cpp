@@ -18,6 +18,7 @@
 #include <kopano/zcdefs.h>
 #include <memory>
 #include <mutex>
+#include <utility>
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
 #include <kopano/memory.hpp>
@@ -459,7 +460,7 @@ HRESULT ECSyncContext::HrGetSyncStateFromSourceKey(SBinary *lpSourceKey, SSyncSt
 
 	// update the sourcekey to syncid map.
 	m_mapStates.insert(SyncStateMap::value_type(strSourceKey, sSyncState));
-	*lpsSyncState = sSyncState;
+	*lpsSyncState = std::move(sSyncState);
 	return hrSuccess;
 }
 

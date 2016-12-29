@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <memory>
+#include <utility>
 #include <kopano/memory.hpp>
 
 // Mapi includes
@@ -617,8 +618,8 @@ HRESULT ECQuotaMonitor::CreateMailFromTemplate(TemplateVariables *lpVars, string
 	while (strBody[0] == '\r' || strBody[0] == '\n')
 		strBody.erase(0, 1);
 
-	*lpstrSubject = strSubject;
-	*lpstrBody = strBody;
+	*lpstrSubject = std::move(strSubject);
+	*lpstrBody = std::move(strBody);
 	return hrSuccess;
 }
 

@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <memory>
+#include <utility>
 #include <kopano/ECRestriction.h>
 #include "vconverter.h"
 #include "valarm.h"
@@ -1683,7 +1684,7 @@ HRESULT VConverter::HrFindTimezone(ULONG ulProps, LPSPropValue lpProps, std::str
 	hr = hrSuccess;
 
 done:
-	*lpstrTZid = strTZid;
+	*lpstrTZid = std::move(strTZid);
 	*lpTZinfo = ttTZinfo;
 	*lppicTZinfo = lpicTZinfo;
 
@@ -2930,8 +2931,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 		lpicException = NULL;
 	}	
 
-	*lpEventList = lstExceptions;
-
+	*lpEventList = std::move(lstExceptions);
 exit:
 	if (lpicException)
 		icalcomponent_free(lpicException);
@@ -3454,7 +3454,7 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 		*lppicTZinfo = lpicTZinfo;
 
 	if (lpstrTZid)
-		*lpstrTZid = strTZid;
+		*lpstrTZid = std::move(strTZid);
 	return hrSuccess;
 }
 

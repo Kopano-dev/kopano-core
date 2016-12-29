@@ -21,6 +21,7 @@
 #include <string>
 #include <memory>
 #include <map>
+#include <utility>
 #include <kopano/memory.hpp>
 #include <kopano/ustringutil.h>
 
@@ -797,7 +798,7 @@ HRESULT HrAddArchiveMailBox(LPPROVIDERADMIN lpProviderAdmin, LPCWSTR lpszUserNam
 	if (hr != hrSuccess)
 		return hr;
 	if (lpProviderUID)
-		*lpProviderUID = sNewProfileUID;
+		*lpProviderUID = std::move(sNewProfileUID);
 	return hrSuccess;
 }
 

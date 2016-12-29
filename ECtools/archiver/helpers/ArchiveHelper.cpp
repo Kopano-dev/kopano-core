@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <new>
+#include <utility>
 #include "ArchiveHelper.h"
 #include "ArchiverSession.h"
 #include <kopano/ECLogger.h>
@@ -52,8 +53,7 @@ HRESULT ArchiveHelper::Create(LPMDB lpArchiveStore, const tstring &strFolder, co
 	hr = ptrArchiveHelper->Init();
 	if (hr != hrSuccess)
 		return hr;
-		
-	*lpptrArchiveHelper = ptrArchiveHelper;	// Transfers ownership
+	*lpptrArchiveHelper = std::move(ptrArchiveHelper);
 	return hrSuccess;
 }
 
@@ -81,8 +81,7 @@ HRESULT ArchiveHelper::Create(LPMDB lpArchiveStore, LPMAPIFOLDER lpArchiveFolder
 	hr = ptrArchiveHelper->Init();
 	if (hr != hrSuccess)
 		return hr;
-		
-	*lpptrArchiveHelper = ptrArchiveHelper;	// Transfers ownership
+	*lpptrArchiveHelper = std::move(ptrArchiveHelper);
 	return hrSuccess;
 }
 
@@ -120,8 +119,7 @@ HRESULT ArchiveHelper::Create(ArchiverSessionPtr ptrSession, const SObjectEntry 
 			lpLogger->Log(EC_LOGLEVEL_FATAL, "Failed to create archive helper. (hr=%s)", stringify(hr, true).c_str());
 		return hr;
 	}
-
-	*lpptrArchiveHelper = ptrArchiveHelper;	// Transfers ownership
+	*lpptrArchiveHelper = std::move(ptrArchiveHelper);
 	return hrSuccess;
 }
 

@@ -19,6 +19,7 @@
 #include <memory>
 #include <mutex>
 #include <stdexcept>
+#include <utility>
 #include <mapidefs.h>
 #include <mapitags.h>
 #include <kopano/mapiext.h>
@@ -1004,7 +1005,7 @@ ECRESULT ECUserManagement::ResolveObject(objectclass_t objclass, const std::stri
 		return KCERR_PLUGIN_ERROR;
 	}
 
-	*lpsExternId = objectsignature.id;
+	*lpsExternId = std::move(objectsignature.id);
 	return erSuccess;
 }
 
@@ -1163,7 +1164,7 @@ ECRESULT ECUserManagement::GetLocalObjectDetails(unsigned int ulId, objectdetail
 			sDetails.SetPropString(OB_PROP_S_SERVERNAME, sPublicStoreDetails.GetPropString(OB_PROP_S_SERVERNAME));
 	}
 
-	*lpDetails = sDetails;
+	*lpDetails = std::move(sDetails);
 	return erSuccess;
 }
 
@@ -1186,7 +1187,7 @@ ECRESULT ECUserManagement::GetExternalObjectDetails(unsigned int ulId, objectdet
 		er = UpdateUserDetailsToClient(&detailscached);
 		if (er != erSuccess)
 			return er;
-		*lpDetails = detailscached;
+		*lpDetails = std::move(detailscached);
 		return erSuccess;
 	}
 
@@ -1495,7 +1496,7 @@ ECRESULT ECUserManagement::GetQuotaDetailsAndSync(unsigned int ulId, quotadetail
 	 * when the quota is requested for a second time. */
 	m_lpSession->GetSessionManager()->GetCacheManager()->SetQuota(ulId, bGetUserDefault, details);
 
-	*lpDetails = details;
+	*lpDetails = std::move(details);
 	return erSuccess;
 }
 

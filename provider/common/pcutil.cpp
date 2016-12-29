@@ -16,7 +16,7 @@
  */
 
 #include <kopano/platform.h>
-
+#include <utility>
 #include "pcutil.hpp"
 #include <mapicode.h>
 #include <kopano/stringutil.h>
@@ -168,8 +168,7 @@ ECRESULT ABEntryIDToID(ULONG cb, LPBYTE lpEntryId, unsigned int* lpulID, objecti
 	*lpulID = ulID;
 
 	if (lpsExternId)
-		*lpsExternId = sExternId;
-
+		*lpsExternId = std::move(sExternId);
 	if (lpulMapiType)
 		*lpulMapiType = lpABEID->ulType;
 	return erSuccess;
@@ -382,7 +381,7 @@ ECRESULT MAPITypeToType(ULONG ulMAPIType, objectclass_t *lpsUserObjClass)
 		return KCERR_INVALID_TYPE;
 	}
 
-	*lpsUserObjClass = sUserObjClass;
+	*lpsUserObjClass = std::move(sUserObjClass);
 	return erSuccess;
 }
 

@@ -16,7 +16,7 @@
  */
 
 #include <kopano/platform.h>
-
+#include <utility>
 #include <kopano/ECGetText.h>
 #include <kopano/memory.hpp>
 #include <mapi.h>
@@ -160,7 +160,7 @@ HRESULT GetProviders(ECMapProvider* lpmapProvider, IMAPISupport *lpMAPISup, cons
 	//Add provider in map
 	lpmapProvider->insert(std::map<string, PROVIDER_INFO>::value_type(lpszProfileName, sProviderInfo));
 
-	*lpsProviderInfo = sProviderInfo;
+	*lpsProviderInfo = std::move(sProviderInfo);
 	return hrSuccess;
 }
 

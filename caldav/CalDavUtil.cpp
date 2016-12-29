@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <memory>
+#include <utility>
 #include <kopano/ECRestriction.h>
 #include "CalDavUtil.h"
 #include <kopano/EMSAbTag.h>
@@ -644,8 +645,7 @@ HRESULT HrMakeRestriction(const std::string &strGuid, LPSPropTagArray lpNamedPro
 	hr = rst.CreateMAPIRestriction(&lpsRoot, ECRestriction::Full);
 exit:
 	if (lpsRoot && lpsRectrict)
-		*lpsRectrict = lpsRoot;
-
+		*lpsRectrict = std::move(lpsRoot);
 	return hr;
 }
 

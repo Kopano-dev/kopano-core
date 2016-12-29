@@ -17,6 +17,7 @@
 
 #include <kopano/zcdefs.h>
 #include <new>
+#include <utility>
 #include <kopano/platform.h>
 #include <kopano/userutil.h>
 #include "ArchiveStateCollector.h"
@@ -153,7 +154,7 @@ HRESULT ArchiveStateCollector::Create(const ArchiverSessionPtr &ptrSession, ECLo
 		new(std::nothrow) ArchiveStateCollector(ptrSession, lpLogger));
 	if (ptrCollector == nullptr)
 		return MAPI_E_NOT_ENOUGH_MEMORY;
-	*lpptrCollector = ptrCollector;
+	*lpptrCollector = std::move(ptrCollector);
 	return hrSuccess;
 }
 

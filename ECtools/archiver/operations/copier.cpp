@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <utility>
 #include <kopano/ECConfig.h>
 #include <kopano/ECRestriction.h>
 #include "ECArchiverLogger.h"
@@ -693,8 +694,7 @@ HRESULT Copier::DoInitialArchive(LPMESSAGE lpMessage, const SObjectEntry &archiv
 		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to add archive message to transaction. (hr=0x%08x", hr);
 		return hr;
 	}
-
-	*lpptrTransaction = ptrTransaction;
+	*lpptrTransaction = std::move(ptrTransaction);
 	return hrSuccess;
 }
 
@@ -771,8 +771,7 @@ HRESULT Copier::DoTrackAndRearchive(LPMESSAGE lpMessage, const SObjectEntry &arc
 		if (hr != hrSuccess)
 			return hr;
 	}
-
-	*lpptrTransaction = ptrTransaction;
+	*lpptrTransaction = std::move(ptrTransaction);
 	return hrSuccess;
 }
 
@@ -839,8 +838,7 @@ HRESULT Copier::DoUpdateArchive(LPMESSAGE lpMessage, const SObjectEntry &archive
 		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to add archive message to transaction. (hr=0x%08x", hr);
 		return hr;
 	}
-
-	*lpptrTransaction = ptrTransaction;
+	*lpptrTransaction = std::move(ptrTransaction);
 	return hrSuccess;
 }
 
@@ -898,7 +896,7 @@ HRESULT Copier::DoMoveArchive(const SObjectEntry &archiveRootEntry, const SObjec
 	hr = UpdateHistoryRefs(ptrArchiveCopy, refMsgEntry, ptrTransaction);
 	if (hr != hrSuccess)
 		return hr;
-	*lpptrTransaction = ptrTransaction;
+	*lpptrTransaction = std::move(ptrTransaction);
 	return hrSuccess;
 }
 

@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <utility>
 #include <kopano/ECRestriction.h>
 #include <kopano/Util.h>
 #include <kopano/mapi_ptr.h>
@@ -205,7 +206,7 @@ HRESULT ECAndRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRes
 		++i;
 	}
 
-	*lpRestriction = restriction;
+	*lpRestriction = std::move(restriction);
 	return hrSuccess;
 }
 
@@ -261,7 +262,7 @@ HRESULT ECOrRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRest
 		++i;
 	}
 
-	*lpRestriction = restriction;
+	*lpRestriction = std::move(restriction);
 	return hrSuccess;
 }
 
@@ -290,7 +291,7 @@ HRESULT ECNotRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRes
 	hr = m_ptrRestriction->GetMAPIRestriction(lpBase, restriction.res.resNot.lpRes, ulFlags);
 	if (hr != hrSuccess)
 		return hr;
-	*lpRestriction = restriction;
+	*lpRestriction = std::move(restriction);
 	return hrSuccess;
 }
 
@@ -338,7 +339,7 @@ HRESULT ECContentRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction l
 			return hr;
 	}
 
-	*lpRestriction = restriction;
+	*lpRestriction = std::move(restriction);
 	return hrSuccess;
 }
 
@@ -404,7 +405,7 @@ HRESULT ECPropertyRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction 
 			return hr;
 	}
 
-	*lpRestriction = restriction;
+	*lpRestriction = std::move(restriction);
 	return hrSuccess;
 }
 

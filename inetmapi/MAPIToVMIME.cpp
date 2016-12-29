@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <memory>
+#include <utility>
 #include <kopano/MAPIErrors.h>
 
 // vmime
@@ -796,7 +797,7 @@ HRESULT MAPIToVMIME::BuildNoteMessage(IMessage *lpMessage,
 		return MAPI_E_CALL_FAILED;
 	}
 
-	*lpvmMessage = vmMessage;
+	*lpvmMessage = std::move(vmMessage);
 	return hrSuccess;
 }
 
@@ -975,7 +976,7 @@ HRESULT MAPIToVMIME::BuildMDNMessage(IMessage *lpMessage,
 		goto exit;
 	}
 
-	*lpvmMessage = vmMessage;
+	*lpvmMessage = std::move(vmMessage);
 
 exit:
 	if(pRows)
@@ -1187,8 +1188,7 @@ normal:
 			goto exit;
 	}
 
-	*lpvmMessage = vmMessage;
-
+	*lpvmMessage = std::move(vmMessage);
 exit:
 	if (lpRows)
 		FreeProws(lpRows);
@@ -1340,7 +1340,7 @@ HRESULT MAPIToVMIME::getMailBox(LPSRow lpRow,
 		return MAPI_E_INVALID_PARAMETER;
 	}
 
-	*lpvmMailbox = vmMailboxNew;
+	*lpvmMailbox = std::move(vmMailboxNew);
 	return hr;
 }
 
