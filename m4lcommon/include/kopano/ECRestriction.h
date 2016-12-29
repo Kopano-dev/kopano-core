@@ -363,26 +363,6 @@ private:
 	ResPtr	m_ptrRestriction;
 };
 
-class ECCommentRestriction _kc_final : public ECRestriction {
-public:
-	ECCommentRestriction(const ECRestriction &restriction, ULONG cValues, LPSPropValue lpProp, ULONG ulFlags = 0);
-	ECCommentRestriction(ECRestriction &&, ULONG nprops, SPropValue *, ULONG flags = 0);
-	ECCommentRestriction(ECCommentRestriction &&);
-	HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
-	ECRestriction *Clone(void) const _kc_lvqual _kc_override;
-#ifdef HAVE_MF_QUAL
-	_kc_hidden ECRestriction *Clone(void) && _kc_override { return new ECCommentRestriction(std::move(*this)); }
-#endif
-
-private:
-	ECCommentRestriction(ResPtr ptrRestriction, ULONG cValues, PropPtr ptrProp);
-
-private:
-	ResPtr	m_ptrRestriction;
-	ULONG	m_cValues;
-	PropPtr	m_ptrProp;
-};
-
 /**
  * This is a special class, which encapsulates a raw SRestriction structure to allow
  * prebuild or obtained restriction structures to be used in the ECRestriction model.
