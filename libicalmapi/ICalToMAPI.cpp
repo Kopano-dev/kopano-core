@@ -449,10 +449,10 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 	hr = ECAndRestriction(
 		ECOrRestriction(
 			ECNotRestriction(ECExistRestriction(sStart.ulPropTag)) +
-			ECPropertyRestriction(RELOP_NE, sStart.ulPropTag, &sStart)
+			ECPropertyRestriction(RELOP_NE, sStart.ulPropTag, &sStart, ECRestriction::Cheap)
 		) +
 		ECExistRestriction(sMethod.ulPropTag) +
-		ECPropertyRestriction(RELOP_EQ, sMethod.ulPropTag, &sMethod)
+		ECPropertyRestriction(RELOP_EQ, sMethod.ulPropTag, &sMethod, ECRestriction::Cheap)
 	).RestrictTable(lpAttachTable, 0);
 	if (hr != hrSuccess)
 		goto exit;

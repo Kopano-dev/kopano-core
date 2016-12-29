@@ -415,7 +415,7 @@ HRESULT Copier::GetRestriction(LPMAPIPROP lpMapiProp, LPSRestriction *lppRestric
 	hr = ArchiveOperationBaseEx::GetRestriction(lpMapiProp, &~ptrRestriction);
 	if (hr != hrSuccess)
 		goto exitpm;
-	resResult += ECRawRestriction(ptrRestriction);
+	resResult += ECRawRestriction(ptrRestriction, ECRestriction::Cheap);
 
 	// A reason to process a message before being old enough is when
 	// it's already archived (by archive-on-delivery or because the required

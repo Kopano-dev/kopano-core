@@ -230,7 +230,7 @@ HRESULT ECMemTablePublic::Init(ULONG ulFlags)
 			hr = HrGetOneProp(&m_lpECParentFolder->m_xMAPIFolder, PR_SOURCE_KEY, &~lpPropTmp);
 			if (hr != hrSuccess)
 				goto exit;
-			hr = ECPropertyRestriction(RELOP_EQ, PR_FAV_PARENT_SOURCE_KEY, lpPropTmp).RestrictTable(lpShortcutTable, MAPI_DEFERRED_ERRORS);
+			hr = ECPropertyRestriction(RELOP_EQ, PR_FAV_PARENT_SOURCE_KEY, lpPropTmp, ECRestriction::Cheap).RestrictTable(lpShortcutTable, MAPI_DEFERRED_ERRORS);
 		}
 		if (hr != hrSuccess)
 			goto exit;
@@ -411,7 +411,7 @@ HRESULT ECMemTablePublic::ModifyRow(SBinary* lpInstanceKey, LPSRow lpsRow)
 			sPropTmp.ulPropTag = PR_INSTANCE_KEY;
 			sPropTmp.Value.bin = *lpInstanceKey;
 
-			hr = ECPropertyRestriction(RELOP_EQ, PR_INSTANCE_KEY, &sPropTmp)
+			hr = ECPropertyRestriction(RELOP_EQ, PR_INSTANCE_KEY, &sPropTmp, ECRestriction::Cheap)
 			     .FindRowIn(m_lpShortcutTable, BOOKMARK_BEGINNING, 0);
 			if (hr != hrSuccess)
 				goto exit;

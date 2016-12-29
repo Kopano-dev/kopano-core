@@ -48,6 +48,7 @@ class ECRestrictionList;
 class _kc_export ECRestriction {
 public:
 	enum {
+		Full    = 0,
 		Cheap	= 1, // Stores the passed LPSPropValue pointer.
 		Shallow = 2		// Creates a new SPropValue, but point to the embedded data from the original structure.
 	};
@@ -249,7 +250,7 @@ private:
 
 class _kc_export ECContentRestriction _kc_final : public ECRestriction {
 public:
-	ECContentRestriction(ULONG ulFuzzyLevel, ULONG ulPropTag, LPSPropValue lpProp, ULONG ulFlags = 0);
+	ECContentRestriction(ULONG fuzzy_lvl, ULONG tag, SPropValue *, ULONG flags);
 	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
 	ECRestriction *Clone(void) const _kc_lvqual _kc_override;
 #ifdef HAVE_MF_QUAL
@@ -287,7 +288,7 @@ private:
 
 class _kc_export ECPropertyRestriction _kc_final : public ECRestriction {
 public:
-	ECPropertyRestriction(ULONG relop, ULONG ulPropTag, LPSPropValue lpProp, ULONG ulFlags = 0);
+	ECPropertyRestriction(ULONG relop, ULONG tag, SPropValue *, ULONG flags);
 	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
 	ECRestriction *Clone(void) const _kc_lvqual _kc_override;
 #ifdef HAVE_MF_QUAL
@@ -345,7 +346,7 @@ private:
  */
 class _kc_export ECRawRestriction _kc_final : public ECRestriction {
 public:
-	ECRawRestriction(LPSRestriction lpRestriction, ULONG ulFlags = 0);
+	ECRawRestriction(SRestriction *, ULONG flags);
 	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
 	ECRestriction *Clone(void) const _kc_lvqual _kc_override;
 #ifdef HAVE_MF_QUAL

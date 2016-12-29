@@ -1040,7 +1040,7 @@ static HRESULT GetOrphanStoreInfo(IECServiceAdmin *lpServiceAdmin,
 	sStoreGuid.Value.bin.cb = sizeof(GUID);
 	sStoreGuid.Value.bin.lpb = (BYTE*)lpStoreGuid;
 
-	hr = ECPropertyRestriction(RELOP_EQ, PR_EC_STOREGUID, &sStoreGuid)
+	hr = ECPropertyRestriction(RELOP_EQ, PR_EC_STOREGUID, &sStoreGuid, ECRestriction::Cheap)
 	     .FindRowIn(ptrTable, BOOKMARK_BEGINNING, 0);
 	if (hr != hrSuccess)
 		return hr;

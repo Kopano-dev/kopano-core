@@ -3012,10 +3012,10 @@ HRESULT HrGetGAB(LPADRBOOK lpAddrBook, LPABCONT *lppGAB)
 	propEmsAbContainerid.Value.l = 0;
 
 	hr = ECOrRestriction(
-			ECPropertyRestriction(RELOP_EQ, PR_DISPLAY_TYPE, &propDisplayType, ECRestriction::Shallow) +
+			ECPropertyRestriction(RELOP_EQ, PR_DISPLAY_TYPE, &propDisplayType, ECRestriction::Cheap) +
 			ECAndRestriction(
 				ECExistRestriction(PR_EMS_AB_CONTAINERID) +
-				ECPropertyRestriction(RELOP_EQ, PR_EMS_AB_CONTAINERID, &propEmsAbContainerid, ECRestriction::Shallow)
+				ECPropertyRestriction(RELOP_EQ, PR_EMS_AB_CONTAINERID, &propEmsAbContainerid, ECRestriction::Cheap)
 			)
 		).FindRowIn(ptrTable, BOOKMARK_BEGINNING, 0);
 	if (hr != hrSuccess)
@@ -3072,7 +3072,8 @@ HRESULT GetConfigMessage(LPMDB lpStore, const char* szMessageName, IMessage **lp
 	propSubject.ulPropTag = PR_SUBJECT_A;
 	propSubject.Value.lpszA = (char*)szMessageName;
 
-	hr = ECPropertyRestriction(RELOP_EQ, PR_SUBJECT_A, &propSubject, ECRestriction::Shallow).FindRowIn(ptrTable, BOOKMARK_BEGINNING, 0);
+	hr = ECPropertyRestriction(RELOP_EQ, PR_SUBJECT_A, &propSubject, ECRestriction::Cheap)
+	     .FindRowIn(ptrTable, BOOKMARK_BEGINNING, 0);
 	if (hr == hrSuccess) {
 		hr = ptrTable->QueryRows(1, 0, &ptrRows);
 		if (hr != hrSuccess)

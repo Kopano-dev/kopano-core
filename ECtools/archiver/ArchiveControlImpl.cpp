@@ -779,7 +779,8 @@ HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
 	sPropCreationTime.ulPropTag = PR_MESSAGE_DELIVERY_TIME;
 	sPropCreationTime.Value.ft.dwLowDateTime = li.LowPart;
 	sPropCreationTime.Value.ft.dwHighDateTime = li.HighPart;
-	hr = ECPropertyRestriction(RELOP_LT, PR_MESSAGE_DELIVERY_TIME, &sPropCreationTime).CreateMAPIRestriction(&~lpRestriction);
+	hr = ECPropertyRestriction(RELOP_LT, PR_MESSAGE_DELIVERY_TIME, &sPropCreationTime, ECRestriction::Cheap)
+	     .CreateMAPIRestriction(&~lpRestriction);
 	if (hr != hrSuccess)
 		goto exit;
 

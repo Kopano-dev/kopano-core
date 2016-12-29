@@ -300,16 +300,16 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 
 	sRestrictProp.ulPropTag = PR_MESSAGE_CLASS_A;
 	sRestrictProp.Value.lpszA = const_cast<char *>("IPM.Contact");
-	resAnd += ECContentRestriction(FL_PREFIX|FL_IGNORECASE, PR_MESSAGE_CLASS_A, &sRestrictProp);
+	resAnd += ECContentRestriction(FL_PREFIX|FL_IGNORECASE, PR_MESSAGE_CLASS_A, &sRestrictProp, ECRestriction::Shallow);
 	sRestrictProp.ulPropTag = ptrNameTags->aulPropTag[ulNames-1];
 	sRestrictProp.Value.ul = 0;
 	resAnd += ECExistRestriction(sRestrictProp.ulPropTag);
-	resAnd += ECPropertyRestriction(RELOP_NE, sRestrictProp.ulPropTag, &sRestrictProp);
+	resAnd += ECPropertyRestriction(RELOP_NE, sRestrictProp.ulPropTag, &sRestrictProp, ECRestriction::Shallow);
 
 	sRestrictProp.ulPropTag = PR_MESSAGE_CLASS_A;
 	sRestrictProp.Value.lpszA = const_cast<char *>("IPM.DistList");
 	hr = ECOrRestriction(
-		ECContentRestriction(FL_PREFIX | FL_IGNORECASE, PR_MESSAGE_CLASS_A, &sRestrictProp) +
+		ECContentRestriction(FL_PREFIX | FL_IGNORECASE, PR_MESSAGE_CLASS_A, &sRestrictProp, ECRestriction::Cheap) +
 		resAnd
 	).RestrictTable(ptrContents, TBL_BATCH);
 	if (hr != hrSuccess)

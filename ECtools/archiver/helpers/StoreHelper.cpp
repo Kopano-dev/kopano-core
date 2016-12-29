@@ -679,8 +679,8 @@ HRESULT StoreHelper::SetupSearchStubFolder(LPMAPIFOLDER lpSearchFolder, const EC
 	// Create/Update the search folder that tracks non-stubbed archived message that are not flagged to be never stubbed.
 	resStubFolder +=
 		ECOrRestriction(
-			ECPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS, &sPropMsgClass[0]) +
-			ECContentRestriction(FL_PREFIX, PR_MESSAGE_CLASS, &sPropMsgClass[1])
+			ECPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS, &sPropMsgClass[0], ECRestriction::Cheap) +
+			ECContentRestriction(FL_PREFIX, PR_MESSAGE_CLASS, &sPropMsgClass[1], ECRestriction::Cheap)
 		) +
 		ECNotRestriction(
 			ECAndRestriction(
@@ -734,15 +734,15 @@ HRESULT StoreHelper::GetClassCheckRestriction(ECOrRestriction *lpresClassCheck)
 
 	// Build the message class restriction.
 	resClassCheck +=
-		ECPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS, &sPropMsgClass[0]) +
-		ECContentRestriction(FL_PREFIX, PR_MESSAGE_CLASS, &sPropMsgClass[1]) +
-		ECPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS, &sPropMsgClass[2]) +
-		ECPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS, &sPropMsgClass[3]) +
-		ECPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS, &sPropMsgClass[4]) +
-		ECPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS, &sPropMsgClass[5]) +
-		ECPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS, &sPropMsgClass[6]) +
-		ECPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS, &sPropMsgClass[7]) +
-		ECPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS, &sPropMsgClass[8]);
+		ECPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS, &sPropMsgClass[0], ECRestriction::Shallow) +
+		ECContentRestriction(FL_PREFIX, PR_MESSAGE_CLASS, &sPropMsgClass[1], ECRestriction::Shallow) +
+		ECPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS, &sPropMsgClass[2], ECRestriction::Shallow) +
+		ECPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS, &sPropMsgClass[3], ECRestriction::Shallow) +
+		ECPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS, &sPropMsgClass[4], ECRestriction::Shallow) +
+		ECPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS, &sPropMsgClass[5], ECRestriction::Shallow) +
+		ECPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS, &sPropMsgClass[6], ECRestriction::Shallow) +
+		ECPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS, &sPropMsgClass[7], ECRestriction::Shallow) +
+		ECPropertyRestriction(RELOP_EQ, PR_MESSAGE_CLASS, &sPropMsgClass[8], ECRestriction::Shallow);
 	*lpresClassCheck = resClassCheck;
 
 	return hrSuccess;
@@ -766,7 +766,7 @@ HRESULT StoreHelper::GetArchiveCheckRestriction(ECAndRestriction *lpresArchiveCh
 		ECNotRestriction(
 			ECAndRestriction(
 				ECExistRestriction(PROP_DIRTY) +
-				ECPropertyRestriction(RELOP_EQ, PROP_DIRTY, &sPropDirty)
+				ECPropertyRestriction(RELOP_EQ, PROP_DIRTY, &sPropDirty, ECRestriction::Shallow)
 			)
 		);
 
@@ -782,7 +782,7 @@ HRESULT StoreHelper::GetArchiveCheckRestriction(ECAndRestriction *lpresArchiveCh
 		sPropFolderEntryId.ulPropTag = (PROP_ARCHIVE_STORE_ENTRYIDS & ~MV_FLAG);
 		sPropFolderEntryId.Value.bin.cb  = arc.sStoreEntryId.size();
 		sPropFolderEntryId.Value.bin.lpb = arc.sStoreEntryId;
-		resArchiveCheck += ECPropertyRestriction(RELOP_EQ, PROP_ARCHIVE_STORE_ENTRYIDS, &sPropFolderEntryId);
+		resArchiveCheck += ECPropertyRestriction(RELOP_EQ, PROP_ARCHIVE_STORE_ENTRYIDS, &sPropFolderEntryId, ECRestriction::Full);
 	}
 
 	*lpresArchiveCheck = resArchiveCheck;

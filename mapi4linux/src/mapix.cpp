@@ -1817,12 +1817,12 @@ HRESULT M4LAddrBook::getDefaultSearchPath(ULONG ulFlags, LPSRowSet* lppSearchPat
 	sProp.ulPropTag = 0xFFFD0003; //PR_EMS_AB_CONTAINERID;
 	sProp.Value.ul = 7000;
 	cRes += ECOrRestriction(
-			ECPropertyRestriction(RELOP_NE, sProp.ulPropTag, &sProp) +
+			ECPropertyRestriction(RELOP_NE, sProp.ulPropTag, &sProp, ECRestriction::Shallow) +
 			ECNotRestriction(ECExistRestriction(sProp.ulPropTag)));
 	// only folders, not groups
 	sProp.ulPropTag = PR_DISPLAY_TYPE;
 	sProp.Value.ul = DT_NOT_SPECIFIC;
-	cRes += ECPropertyRestriction(RELOP_EQ, sProp.ulPropTag, &sProp);
+	cRes += ECPropertyRestriction(RELOP_EQ, sProp.ulPropTag, &sProp, ECRestriction::Cheap);
 	// only end folders, not root container folders
 	cRes += ECBitMaskRestriction(BMR_EQZ, PR_CONTAINER_FLAGS, AB_SUBCONTAINERS);
 	hr = cRes.RestrictTable(lpTable, 0);

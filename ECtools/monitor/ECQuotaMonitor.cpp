@@ -402,7 +402,7 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
 
 		hr = ECOrRestriction(
 			ECNotRestriction(ECExistRestriction(PR_EC_COMPANY_NAME_A)) +
-			ECPropertyRestriction(RELOP_EQ, PR_EC_COMPANY_NAME_A, &sRestrictProp)
+			ECPropertyRestriction(RELOP_EQ, PR_EC_COMPANY_NAME_A, &sRestrictProp, ECRestriction::Cheap)
 		).CreateMAPIRestriction(&~lpsRestriction);
 		if (hr != hrSuccess)
 			goto exit;

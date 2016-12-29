@@ -4706,7 +4706,7 @@ HRESULT IMAP::HrSeqUidSetToRestriction(const string &strSeqSet,
 		if (ulPos == string::npos) {
 			// single number
 			sProp.Value.ul = LastOrNumber(vSequences[i].c_str(), true);
-			*rst += ECPropertyRestriction(RELOP_EQ, PR_EC_IMAP_ID, &sProp);
+			*rst += ECPropertyRestriction(RELOP_EQ, PR_EC_IMAP_ID, &sProp, ECRestriction::Full);
 		} else {
 			sProp.Value.ul = LastOrNumber(vSequences[i].c_str(), true);
 			sPropEnd.Value.ul = LastOrNumber(vSequences[i].c_str() + ulPos + 1, true);
@@ -4714,8 +4714,8 @@ HRESULT IMAP::HrSeqUidSetToRestriction(const string &strSeqSet,
 			if (sProp.Value.ul > sPropEnd.Value.ul)
 				swap(sProp.Value.ul, sPropEnd.Value.ul);
 			*rst += ECAndRestriction(
-				ECPropertyRestriction(RELOP_GE, PR_EC_IMAP_ID, &sProp) +
-				ECPropertyRestriction(RELOP_LE, PR_EC_IMAP_ID, &sPropEnd));
+				ECPropertyRestriction(RELOP_GE, PR_EC_IMAP_ID, &sProp, ECRestriction::Full) +
+				ECPropertyRestriction(RELOP_LE, PR_EC_IMAP_ID, &sPropEnd, ECRestriction::Full));
 		}
 	}
 	ret.reset(rst);

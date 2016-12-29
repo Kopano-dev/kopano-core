@@ -3001,9 +3001,9 @@ HRESULT VConverter::HrGetExceptionMessage(LPMESSAGE lpMessage, time_t tStart, LP
 	// restrict to only exception attachments
 	hr = ECAndRestriction(
 		ECExistRestriction(sStart.ulPropTag) +
-		ECPropertyRestriction(RELOP_EQ, sStart.ulPropTag, &sStart) +
+		ECPropertyRestriction(RELOP_EQ, sStart.ulPropTag, &sStart, ECRestriction::Cheap) +
 		ECExistRestriction(sMethod.ulPropTag) +
-		ECPropertyRestriction(RELOP_EQ, sMethod.ulPropTag, &sMethod)
+		ECPropertyRestriction(RELOP_EQ, sMethod.ulPropTag, &sMethod, ECRestriction::Cheap)
 	).RestrictTable(lpAttachTable, 0);
 	if (hr != hrSuccess)
 		goto exit;

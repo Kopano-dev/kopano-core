@@ -176,7 +176,7 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 		goto exit;
 
 	// build restriction
-	hr = ECPropertyRestriction(RELOP_EQ, PR_FAV_PUBLIC_SOURCE_KEY, lpPropSourceKey)
+	hr = ECPropertyRestriction(RELOP_EQ, PR_FAV_PUBLIC_SOURCE_KEY, lpPropSourceKey, ECRestriction::Cheap)
 	     .FindRowIn(lpTable, BOOKMARK_BEGINNING, 0);
 	if (hr != hrSuccess)
 		goto exit; // Folder already removed (or memory problems)
@@ -218,7 +218,7 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 		sPropSourceKey.Value.bin.cb = sk.size();
 		sPropSourceKey.Value.bin.lpb = const_cast<BYTE *>(reinterpret_cast<const BYTE *>(sk.c_str()));
 
-		hr = ECPropertyRestriction(RELOP_EQ, PR_FAV_PARENT_SOURCE_KEY, &sPropSourceKey)
+		hr = ECPropertyRestriction(RELOP_EQ, PR_FAV_PARENT_SOURCE_KEY, &sPropSourceKey, ECRestriction::Cheap)
 		     .RestrictTable(lpTable);
 		if (hr != hrSuccess)
 			goto exit;
@@ -303,7 +303,8 @@ HRESULT AddToFavorite(IMAPIFolder *lpShortcutFolder, ULONG ulLevel, LPCTSTR lpsz
 		return hr;
 
 	// build restriction
-	hr = ECPropertyRestriction(RELOP_EQ, PR_FAV_PUBLIC_SOURCE_KEY, lpPropSourceKey).CreateMAPIRestriction(&~lpRestriction);
+	hr = ECPropertyRestriction(RELOP_EQ, PR_FAV_PUBLIC_SOURCE_KEY, lpPropSourceKey, ECRestriction::Cheap)
+	     .CreateMAPIRestriction(&~lpRestriction, ECRestriction::Cheap);
 	if (hr != hrSuccess)
 		return hr;
 	if (lpTable->FindRow(lpRestriction, BOOKMARK_BEGINNING , 0) == hrSuccess)
