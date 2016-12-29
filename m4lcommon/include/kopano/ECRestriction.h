@@ -250,7 +250,7 @@ private:
 
 class _kc_export ECContentRestriction _kc_final : public ECRestriction {
 public:
-	ECContentRestriction(ULONG fuzzy_lvl, ULONG tag, SPropValue *, ULONG flags);
+	ECContentRestriction(ULONG fuzzy_lvl, ULONG tag, const SPropValue *, ULONG flags);
 	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
 	ECRestriction *Clone(void) const _kc_lvqual _kc_override;
 #ifdef HAVE_MF_QUAL
@@ -288,7 +288,7 @@ private:
 
 class _kc_export ECPropertyRestriction _kc_final : public ECRestriction {
 public:
-	ECPropertyRestriction(ULONG relop, ULONG tag, SPropValue *, ULONG flags);
+	ECPropertyRestriction(ULONG relop, ULONG tag, const SPropValue *, ULONG flags);
 	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
 	ECRestriction *Clone(void) const _kc_lvqual _kc_override;
 #ifdef HAVE_MF_QUAL
@@ -346,7 +346,7 @@ private:
  */
 class _kc_export ECRawRestriction _kc_final : public ECRestriction {
 public:
-	ECRawRestriction(SRestriction *, ULONG flags);
+	ECRawRestriction(const SRestriction *, ULONG flags);
 	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
 	ECRestriction *Clone(void) const _kc_lvqual _kc_override;
 #ifdef HAVE_MF_QUAL
