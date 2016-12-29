@@ -34,7 +34,7 @@ public:
 	virtual ~ECMAPIContainer(void) {}
 
 	// IUnknown
-	virtual HRESULT	QueryInterface(REFIID refiid, void **lppInterface);
+	virtual HRESULT	QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 
 	// IMAPIContainer
 	virtual HRESULT GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable);

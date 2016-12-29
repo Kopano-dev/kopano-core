@@ -29,8 +29,7 @@ protected:
 
 public:
 	static HRESULT Create(ULONG ulType, ULONG ulFlags, KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, ECABLogon *, WSTransport *, WSTableView **);
-	virtual	HRESULT	QueryInterface(REFIID refiid, void **lppInterface);
-
+	virtual	HRESULT	QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 };
 
 #endif

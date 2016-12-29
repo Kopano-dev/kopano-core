@@ -50,9 +50,7 @@ private:
 	~ECFreeBusyUpdate(void);
 public:
 	static HRESULT Create(IMessage* lpMessage, ECFreeBusyUpdate **lppECFreeBusyUpdate);
-	
-	virtual HRESULT QueryInterface(REFIID refiid, void** lppInterface);
-
+	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	virtual HRESULT Reload(void) { return S_OK; }
 	virtual HRESULT PublishFreeBusy(FBBlock_1 *lpBlocks, ULONG nBlocks);
 	virtual HRESULT RemoveAppt(void) { return S_OK; }

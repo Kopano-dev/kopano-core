@@ -30,9 +30,7 @@ protected:
     
 public:
 	static  HRESULT Create(LPMAPITABLE lpTable, ECRulesTableProxy **lppRulesTableProxy);
-
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface);
-
+	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
 	virtual HRESULT Advise(ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection);
 	virtual HRESULT Unadvise(ULONG ulConnection);

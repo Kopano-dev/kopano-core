@@ -36,7 +36,7 @@ public:
 	static HRESULT TableRowGetProp(void* lpProvider, struct propVal *lpsPropValSrc, LPSPropValue lpsPropValDst, void **lpBase, ULONG ulType);
 
 	// IUnknown
-	virtual HRESULT	QueryInterface(REFIID refiid, void **lppInterface);
+	virtual HRESULT	QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 
 	// IABContainer
 	virtual HRESULT CreateEntry(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulCreateFlags, LPMAPIPROP* lppMAPIPropEntry);

@@ -28,9 +28,7 @@ protected:
 
 public:
 	static  HRESULT Create(ECXPProvider **lppECXPProvider);
-
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface);
-
+	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
     virtual HRESULT Shutdown(ULONG * lpulFlags);
 	virtual HRESULT TransportLogon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszProfileName, ULONG *lpulFlags, LPMAPIERROR *lppMAPIError, LPXPLOGON *lppXPLogon);
 

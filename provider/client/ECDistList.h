@@ -34,7 +34,7 @@ public:
 	virtual HRESULT CopyProps(LPSPropTagArray lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems);
 
 	// override IUnknown
-	virtual HRESULT	QueryInterface(REFIID refiid, void **lppInterface);
+	virtual HRESULT	QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	virtual HRESULT OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk);
 
 	class xDistList _kc_final : public IDistList {

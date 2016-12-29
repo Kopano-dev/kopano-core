@@ -34,7 +34,7 @@ protected:
 	virtual ~ECAttach(void) {}
 
 public:
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface);
+	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	static	HRESULT Create(ECMsgStore *lpMsgStore, ULONG ulObjType, BOOL fModify, ULONG ulAttachNum, ECMAPIProp *lpRoot, ECAttach **lppAttach);
 
 	// Override for SaveChanges

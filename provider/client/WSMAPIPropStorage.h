@@ -41,8 +41,7 @@ protected:
 
 public:
 	static HRESULT Create(ULONG cbParentEntryId, LPENTRYID lpParentEntryId, ULONG cbEntryId, LPENTRYID, ULONG ulFlags, KCmd * , std::recursive_mutex &, ECSESSIONID, unsigned int ulServerCapabilities, WSTransport *, WSMAPIPropStorage **);
-
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface);
+	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 
 	// For ICS
 	virtual HRESULT HrSetSyncId(ULONG ulSyncId);

@@ -33,16 +33,15 @@ public:
     ECImportHierarchyChangesProxy(zval *objTarget TSRMLS_DC);
     ~ECImportHierarchyChangesProxy();
 
-    virtual ULONG 	__stdcall AddRef();
-    virtual ULONG	__stdcall Release();
-    virtual HRESULT __stdcall QueryInterface(REFIID iid, void **lpvoid);
+	virtual ULONG __stdcall AddRef(void) _kc_override;
+	virtual ULONG __stdcall Release(void) _kc_override;
+	virtual HRESULT __stdcall QueryInterface(REFIID iid, void **lpvoid) _kc_override;
     
-	virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
-	virtual HRESULT __stdcall Config(LPSTREAM lpStream, ULONG ulFlags) ;
-	virtual HRESULT __stdcall UpdateState(LPSTREAM lpStream);
-	virtual HRESULT __stdcall ImportFolderChange(ULONG cValue, LPSPropValue lpPropArray);
-	virtual HRESULT __stdcall ImportFolderDeletion(ULONG ulFlags, LPENTRYLIST lpSourceEntryList);
-    
+	virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) _kc_override;
+	virtual HRESULT __stdcall Config(LPSTREAM lpStream, ULONG ulFlags) _kc_override;
+	virtual HRESULT __stdcall UpdateState(LPSTREAM lpStream) _kc_override;
+	virtual HRESULT __stdcall ImportFolderChange(ULONG cValue, LPSPropValue lpPropArray) _kc_override;
+	virtual HRESULT __stdcall ImportFolderDeletion(ULONG ulFlags, LPENTRYLIST lpSourceEntryList) _kc_override;
 };
 
 #endif

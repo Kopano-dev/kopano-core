@@ -34,9 +34,7 @@ class ECExportAddressbookChanges _kc_final : public ECUnknown {
 public:
 	ECExportAddressbookChanges(ECMsgStore *lpContainer);
 	virtual ~ECExportAddressbookChanges();
-
-    virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface);
-
+	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	// IECExportAddressbookChanges
 	virtual HRESULT	Config(LPSTREAM lpState, ULONG ulFlags, IECImportAddressbookChanges *lpCollector);
 	virtual HRESULT Synchronize(ULONG *lpulSteps, ULONG *lpulProgress);

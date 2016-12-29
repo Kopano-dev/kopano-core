@@ -50,11 +50,11 @@ public:
 	ICalToMapiImpl(IMAPIProp *lpPropObj, LPADRBOOK lpAdrBook, bool bNoRecipients);
 	virtual ~ICalToMapiImpl();
 
-	HRESULT ParseICal(const std::string& strIcal, const std::string& strCharset, const std::string& strServerTZ, IMailUser *lpMailUser, ULONG ulFlags);
-	ULONG GetItemCount();
-	HRESULT GetItemInfo(ULONG ulPosition, eIcalType *lpType, time_t *lptLastModified, SBinary *lpUid);
-	HRESULT GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMessage);
-	HRESULT GetFreeBusyInfo(time_t *lptstart, time_t *lptend, std::string *lpstrUId, std::list<std::string> **lplstUsers);
+	HRESULT ParseICal(const std::string& strIcal, const std::string& strCharset, const std::string& strServerTZ, IMailUser *lpMailUser, ULONG ulFlags) _kc_override;
+	ULONG GetItemCount(void) _kc_override;
+	HRESULT GetItemInfo(ULONG ulPosition, eIcalType *lpType, time_t *lptLastModified, SBinary *lpUid) _kc_override;
+	HRESULT GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMessage) _kc_override;
+	HRESULT GetFreeBusyInfo(time_t *lptstart, time_t *lptend, std::string *lpstrUId, std::list<std::string> **lplstUsers) _kc_override;
 
 private:
 	void Clean();

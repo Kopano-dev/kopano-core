@@ -116,9 +116,9 @@ public:
 	};
 
 private:
-	_kc_hidden HRESULT EnterFolder(LPMAPIFOLDER);
-	_kc_hidden HRESULT LeaveFolder(void);
-	_kc_hidden HRESULT DoProcessEntry(ULONG n, const LPSPropValue &prop);
+	_kc_hidden HRESULT EnterFolder(LPMAPIFOLDER) _kc_override;
+	_kc_hidden HRESULT LeaveFolder(void) _kc_override;
+	_kc_hidden HRESULT DoProcessEntry(ULONG n, const LPSPropValue &prop) _kc_override;
 
 private:
 	/**

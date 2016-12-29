@@ -99,9 +99,7 @@ public:
 	 * \return hrSuccess on success.
 	 */
 	static HRESULT	SetPropHandler(ULONG ulPropTag, void* lpProvider, LPSPropValue lpsPropValue, void *lpParam);
-
-	virtual HRESULT	QueryInterface(REFIID refiid, void **lppInterface);
-
+	virtual HRESULT	QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	virtual HRESULT OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk);
 	virtual HRESULT GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable);
 	virtual HRESULT OpenAttach(ULONG ulAttachmentNum, LPCIID lpInterface, ULONG ulFlags, LPATTACH *lppAttach);

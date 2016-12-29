@@ -24,7 +24,7 @@
 class LDAPConfigCheck _kc_final : public ECConfigCheck {
 public:
 	LDAPConfigCheck(const char *lpszConfigFile);
-	void loadChecks();
+	void loadChecks(void) _kc_override;
 
 private:
 	static int testLdapScope(const config_check_t *);

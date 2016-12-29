@@ -39,8 +39,7 @@ protected:
 
 public:
 	static HRESULT Create(IMAPIProp *lpContact, ULONG cbEntryID, LPENTRYID lpEntryID, ZCMAPIProp **lppZCMAPIProp);
-
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface);
+	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 
 	// From IMAPIProp
 	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR * lppMAPIError);

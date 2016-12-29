@@ -65,7 +65,7 @@ protected:
 	static HRESULT SetPropHandler(ULONG ulPropTag, void* lpProvider, LPSPropValue lpsPropValue, void *lpParam);
 
 public:
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface);
+	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	virtual HRESULT QueryInterfaceProxy(REFIID refiid, void **lppInterface);
 
 	static HRESULT Create(const char *lpszProfname, LPMAPISUP lpSupport, WSTransport *lpTransport, BOOL fModify, ULONG ulProfileFlags, BOOL bIsSpooler, BOOL fIsDefaultStore, BOOL bOfflineStore, ECMsgStore **lppECMsgStore);
@@ -98,8 +98,7 @@ public:
 	virtual HRESULT GetPublicFolderTable(LPTSTR lpszServerName, LPMAPITABLE *lppTable, ULONG ulFlags);
 
 	virtual HRESULT SetEntryId(ULONG cbEntryId, LPENTRYID lpEntryId);
-
-	virtual ULONG	Release();
+	virtual ULONG Release(void) _kc_override;
 	virtual HRESULT HrSetReleaseCallback(ECUnknown *lpObject, RELEASECALLBACK lpfnCallback);
 
 	// IECSpooler
@@ -392,8 +391,7 @@ private:
 	
 public:
 	static HRESULT Create(ECMsgStore *lpStore, ECMSLogon **lppECMSLogon);
-	
-	HRESULT QueryInterface(REFIID refiid, void **lppInterface);
+	HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
 	HRESULT Logoff(ULONG *lpulFlags);
 	HRESULT OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPUNKNOWN *lppUnk);

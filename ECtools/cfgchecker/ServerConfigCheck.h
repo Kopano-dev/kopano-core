@@ -24,7 +24,7 @@
 class ServerConfigCheck _kc_final : public ECConfigCheck {
 public:
 	ServerConfigCheck(const char *lpszConfigFile);
-	void loadChecks();
+	void loadChecks(void) _kc_override;
 
 private:
 	static int testAttachment(const config_check_t *);

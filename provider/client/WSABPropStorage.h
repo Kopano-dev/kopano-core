@@ -37,8 +37,7 @@ protected:
 
 public:
 	static HRESULT Create(ULONG cbEntryId, LPENTRYID, KCmd *, std::recursive_mutex &, ECSESSIONID, WSTransport *, WSABPropStorage **);
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface);
-	
+	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	static HRESULT Reload(void *lpParam, ECSESSIONID sessionId);
 	
 private:

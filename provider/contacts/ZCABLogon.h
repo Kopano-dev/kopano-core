@@ -38,9 +38,7 @@ protected:
 
 public:
 	static  HRESULT Create(LPMAPISUP lpMAPISup, ULONG ulProfileFlags, GUID *lpGUID, ZCABLogon **lppZCABLogon);
-
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface);
-
+	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);
 	virtual HRESULT Logoff(ULONG ulFlags);
 	virtual HRESULT OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPUNKNOWN *lppUnk);

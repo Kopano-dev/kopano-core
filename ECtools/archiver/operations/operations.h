@@ -18,6 +18,7 @@
 #ifndef operations_INCLUDED
 #define operations_INCLUDED
 
+#include <kopano/zcdefs.h>
 #include "operations_fwd.h"
 
 #include <mapix.h>
@@ -82,8 +83,8 @@ public:
 class ArchiveOperationBase : public IArchiveOperation {
 public:
 	ArchiveOperationBase(ECArchiverLogger *lpLogger, int ulAge, bool bProcessUnread, ULONG ulInhibitMask);
-	HRESULT GetRestriction(LPMAPIPROP LPMAPIPROP, LPSRestriction *lppRestriction);
-	HRESULT VerifyRestriction(LPMESSAGE lpMessage);
+	HRESULT GetRestriction(LPMAPIPROP LPMAPIPROP, LPSRestriction *lppRestriction) _kc_override;
+	HRESULT VerifyRestriction(LPMESSAGE lpMessage) _kc_override;
 
 protected:
 	/**
@@ -108,7 +109,7 @@ private:
 class ArchiveOperationBaseEx : public ArchiveOperationBase {
 public:
 	ArchiveOperationBaseEx(ECArchiverLogger *lpLogger, int ulAge, bool bProcessUnread, ULONG ulInhibitMask);
-	HRESULT ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps, const LPSPropValue lpProps);
+	HRESULT ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps, const LPSPropValue lpProps) _kc_override;
 	
 protected:
 	/**

@@ -43,7 +43,7 @@ protected:
 
 public:
 	static HRESULT Create(KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, WSTransport *, WSMAPIFolderOps **);
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface);
+	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	
 	// Creates a folder object with only a PR_DISPLAY_NAME and type
 	virtual HRESULT HrCreateFolder(ULONG ulFolderType, const utf8string &strFolderName, const utf8string &strComment, BOOL fOpenIfExists, ULONG ulSyncId, LPSBinary lpsSourceKey, ULONG cbNewEntryId, LPENTRYID lpNewEntryId, ULONG* lpcbEntryId, LPENTRYID* lppEntryId);

@@ -40,8 +40,7 @@ public:
 	 *
 	 * See ECUnkown::QueryInterface.
 	 */
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface);
-
+	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	static HRESULT TableRowGetProp(void* lpProvider, struct propVal *lpsPropValSrc, LPSPropValue lpsPropValDst, void **lpBase, ULONG ulType);
 
 	// Callback for Commit() on streams

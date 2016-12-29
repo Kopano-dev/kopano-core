@@ -46,8 +46,7 @@ private:
 	ECEnumFBBlock(ECFBBlockList* lpFBBlock);
 public:
 	static HRESULT Create(ECFBBlockList* lpFBBlock, ECEnumFBBlock **lppECEnumFBBlock);
-	
-	virtual HRESULT QueryInterface(REFIID refiid, void** lppInterface);
+	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	virtual HRESULT Next(LONG celt, FBBlock_1 *pblk, LONG *pcfetch);
 	virtual HRESULT Skip(LONG celt);
 	virtual HRESULT Reset();

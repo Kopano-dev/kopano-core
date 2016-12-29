@@ -33,7 +33,7 @@
 class CalDAV _kc_final : public WebDav {
 public:
 	CalDAV(Http *, IMAPISession *, const std::string &srv_tz, const std::string &charset);
-	HRESULT HrHandleCommand(const std::string &strMethod);
+	HRESULT HrHandleCommand(const std::string &strMethod) _kc_override;
 
 protected:
 	/* entry points in webdav class */
@@ -46,14 +46,14 @@ protected:
 	HRESULT HrHandleMeeting(ICalToMapi *lpIcalToMapi);
 	HRESULT HrHandleFreebusy(ICalToMapi *lpIcalToMapi);
 
-	virtual HRESULT HrHandlePropfind(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lpsDavMulStatus);
-	virtual HRESULT HrListCalEntries(WEBDAVREQSTPROPS *sWebRCalQry,WEBDAVMULTISTATUS *sWebMStatus);	// Used By both PROPFIND & Report Calendar-query
-	virtual	HRESULT HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWebMStatus);
-	virtual HRESULT HrHandlePropPatch(WEBDAVPROP *lpsDavProp, WEBDAVMULTISTATUS *sWebMStatus);
-	virtual HRESULT HrHandleMkCal(WEBDAVPROP *lpsDavProp);
-	virtual HRESULT HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWebMStatus);
-	virtual HRESULT HrHandlePropertySearchSet(WEBDAVMULTISTATUS *sWebMStatus);
-	virtual HRESULT HrHandleDelete();
+	virtual HRESULT HrHandlePropfind(WEBDAVREQSTPROPS *sDavProp, WEBDAVMULTISTATUS *lpsDavMulStatus) _kc_override;
+	virtual HRESULT HrListCalEntries(WEBDAVREQSTPROPS *sWebRCalQry,WEBDAVMULTISTATUS *sWebMStatus) _kc_override; // Used By both PROPFIND & Report Calendar-query
+	virtual	HRESULT HrHandleReport(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWebMStatus) _kc_override;
+	virtual HRESULT HrHandlePropPatch(WEBDAVPROP *lpsDavProp, WEBDAVMULTISTATUS *sWebMStatus) _kc_override;
+	virtual HRESULT HrHandleMkCal(WEBDAVPROP *lpsDavProp) _kc_override;
+	virtual HRESULT HrHandlePropertySearch(WEBDAVRPTMGET *sWebRMGet, WEBDAVMULTISTATUS *sWebMStatus) _kc_override;
+	virtual HRESULT HrHandlePropertySearchSet(WEBDAVMULTISTATUS *sWebMStatus) _kc_override;
+	virtual HRESULT HrHandleDelete(void) _kc_override;
 	HRESULT HrHandlePost();
 
 private:

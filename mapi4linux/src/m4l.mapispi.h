@@ -18,6 +18,7 @@
 #ifndef __M4L_MAPISPI_IMPL_H
 #define __M4L_MAPISPI_IMPL_H
 
+#include <kopano/zcdefs.h>
 #include <map>
 #include <mutex>
 #include "m4l.common.h"
@@ -67,12 +68,12 @@ public:
 	virtual ~M4LMAPIGetSession();
 
 	// IMAPIGetSession
-	virtual HRESULT __stdcall GetMAPISession(LPUNKNOWN *lppSession);
+	virtual HRESULT __stdcall GetMAPISession(LPUNKNOWN *lppSession) _kc_override;
 
     // iunknown passthru
-    virtual ULONG __stdcall AddRef();
-    virtual ULONG __stdcall Release();
-    virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lpvoid);
+	virtual ULONG __stdcall AddRef(void) _kc_override;
+	virtual ULONG __stdcall Release(void) _kc_override;
+	virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
 };
 
 class M4LMAPISupport : public M4LUnknown, public IMAPISupport {
@@ -153,9 +154,9 @@ public:
 	virtual HRESULT __stdcall GetSvcConfigSupportObj(ULONG ulFlags, LPMAPISUP * lppSvcSupport);
 
     // iunknown passthru
-    virtual ULONG __stdcall AddRef();
-    virtual ULONG __stdcall Release();
-    virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lpvoid);
+	virtual ULONG __stdcall AddRef(void) _kc_override;
+	virtual ULONG __stdcall Release(void) _kc_override;
+	virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
 };
 
 

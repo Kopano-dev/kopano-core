@@ -42,7 +42,7 @@ public:
 	HRESULT GetDistListContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable);
 
 	// IUnknown
-	virtual HRESULT	QueryInterface(REFIID refiid, void **lppInterface);
+	virtual HRESULT	QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 
 	// IABContainer
 	virtual HRESULT CreateEntry(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulCreateFlags, LPMAPIPROP* lppMAPIPropEntry);

@@ -58,7 +58,7 @@ protected:
 	virtual ~ECGenericProp();
 
 public:
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface);
+	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 
 	HRESULT SetProvider(void* lpProvider);
 	HRESULT SetEntryId(ULONG cbEntryId, LPENTRYID lpEntryId);

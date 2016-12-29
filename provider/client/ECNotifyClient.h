@@ -42,9 +42,7 @@ protected:
 	virtual ~ECNotifyClient();
 public:
 	static HRESULT Create(ULONG ulProviderType, void *lpProvider, ULONG ulFlags, LPMAPISUP lpSupport, ECNotifyClient**lppNotifyClient);
-
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface);
-
+	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	virtual HRESULT Advise(ULONG cbKey, LPBYTE lpKey, ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection);
 	virtual HRESULT Advise(const ECLISTSYNCSTATE &lstSyncStates, IECChangeAdviseSink *lpChangeAdviseSink, ECLISTCONNECTION *lplstConnections);
 	virtual HRESULT Unadvise(ULONG ulConnection);

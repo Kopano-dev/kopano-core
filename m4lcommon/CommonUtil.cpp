@@ -1604,15 +1604,14 @@ HRESULT DoSentMail(IMAPISession *lpSession, IMsgStore *lpMDBParam, ULONG ulFlags
 class ECRowWrapper _kc_final : public IMAPIProp {
 public:
 	ECRowWrapper(LPSPropValue lpProps, ULONG cValues) : m_cValues(cValues), m_lpProps(lpProps) {};
-	~ECRowWrapper() {};
+	ULONG __stdcall AddRef(void) _kc_override { return 1; } // no ref. counting
+	ULONG __stdcall Release(void) _kc_override { return 1; }
+	HRESULT __stdcall QueryInterface(const IID &iid, LPVOID *lpvoid) _kc_override { return MAPI_E_INTERFACE_NOT_SUPPORTED; }
 
-	ULONG __stdcall AddRef() { return 1; }; // no ref. counting
-	ULONG __stdcall Release() { return 1; };
-	HRESULT __stdcall QueryInterface(const IID &iid, LPVOID *lpvoid) { return MAPI_E_INTERFACE_NOT_SUPPORTED; };
-
-	HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) { return MAPI_E_NOT_FOUND; }
-	HRESULT __stdcall SaveChanges(ULONG ulFlags) { return MAPI_E_NO_SUPPORT; }
-	HRESULT __stdcall GetProps(LPSPropTagArray lpTags, ULONG ulFlags, ULONG *lpcValues, LPSPropValue *lppProps) { 
+	HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) _kc_override { return MAPI_E_NOT_FOUND; }
+	HRESULT __stdcall SaveChanges(ULONG ulFlags) _kc_override { return MAPI_E_NO_SUPPORT; }
+	HRESULT __stdcall GetProps(LPSPropTagArray lpTags, ULONG ulFlags, ULONG *lpcValues, LPSPropValue *lppProps) _kc_override
+	{
 		HRESULT hr = hrSuccess;
 		BOOL bError;
 		ULONG i = 0;
@@ -1661,14 +1660,14 @@ public:
 
 		return hr;
 	};
-	HRESULT __stdcall GetPropList(ULONG ulFlags, LPSPropTagArray *lppTags) { return MAPI_E_NO_SUPPORT; }
-	HRESULT __stdcall OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk){ return MAPI_E_NO_SUPPORT; }
-	HRESULT __stdcall SetProps(ULONG cValues, LPSPropValue lpProps, LPSPropProblemArray *lppProblems) { return MAPI_E_NO_SUPPORT; }
-	HRESULT __stdcall DeleteProps(LPSPropTagArray lpToDelete, LPSPropProblemArray *lppProblems) { return MAPI_E_NO_SUPPORT; }
-	HRESULT __stdcall CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArray lpExcludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems) { return MAPI_E_NO_SUPPORT; }
-	HRESULT __stdcall CopyProps(LPSPropTagArray lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems) { return MAPI_E_NO_SUPPORT; }
-	HRESULT __stdcall GetNamesFromIDs( LPSPropTagArray *lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG *lpcPropNames, LPMAPINAMEID **lpppPropNames) { return MAPI_E_NO_SUPPORT; }
-	HRESULT __stdcall GetIDsFromNames( ULONG cPropNames, LPMAPINAMEID *lppPropNames, ULONG ulFlags, LPSPropTagArray *lppPropTags) { return MAPI_E_NO_SUPPORT; }
+	HRESULT __stdcall GetPropList(ULONG ulFlags, LPSPropTagArray *lppTags) _kc_override { return MAPI_E_NO_SUPPORT; }
+	HRESULT __stdcall OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk) _kc_override { return MAPI_E_NO_SUPPORT; }
+	HRESULT __stdcall SetProps(ULONG cValues, LPSPropValue lpProps, LPSPropProblemArray *lppProblems) _kc_override { return MAPI_E_NO_SUPPORT; }
+	HRESULT __stdcall DeleteProps(LPSPropTagArray lpToDelete, LPSPropProblemArray *lppProblems) _kc_override { return MAPI_E_NO_SUPPORT; }
+	HRESULT __stdcall CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArray lpExcludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems) _kc_override { return MAPI_E_NO_SUPPORT; }
+	HRESULT __stdcall CopyProps(LPSPropTagArray lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems) _kc_override { return MAPI_E_NO_SUPPORT; }
+	HRESULT __stdcall GetNamesFromIDs( LPSPropTagArray *lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG *lpcPropNames, LPMAPINAMEID **lpppPropNames) _kc_override { return MAPI_E_NO_SUPPORT; }
+	HRESULT __stdcall GetIDsFromNames( ULONG cPropNames, LPMAPINAMEID *lppPropNames, ULONG ulFlags, LPSPropTagArray *lppPropTags) _kc_override { return MAPI_E_NO_SUPPORT; }
 private:
 	ULONG			m_cValues;
 	LPSPropValue	m_lpProps;

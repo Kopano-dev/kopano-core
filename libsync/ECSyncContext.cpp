@@ -63,7 +63,8 @@ public:
 	{ }
 
 	// IUnknown
-	HRESULT QueryInterface(REFIID refiid, void **lpvoid) {
+	HRESULT QueryInterface(REFIID refiid, void **lpvoid) _kc_override
+	{
 		if (refiid == IID_ECUnknown || refiid == IID_ECChangeAdviseSink) {
 			AddRef();
 			*lpvoid = (void *)this;

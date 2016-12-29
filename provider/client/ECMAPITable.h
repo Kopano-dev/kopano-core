@@ -40,8 +40,7 @@ public:
 	static	HRESULT Create(std::string strName, ECNotifyClient *lpNotifyClient, ULONG ulFlags, ECMAPITable **lppECMAPITable);
 
 	virtual HRESULT HrSetTableOps(WSTableView *lpTableOps, bool fLoad);
-
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface);
+	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	virtual BOOL IsDeferred();
 	virtual HRESULT FlushDeferred(LPSRowSet *lppRowSet = NULL);
 
