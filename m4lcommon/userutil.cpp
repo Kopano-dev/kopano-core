@@ -120,7 +120,7 @@ HRESULT DataCollector::GetRestriction(LPMAPIPROP lpProp, LPSRestriction *lppRest
 			)
 		) +
 		ECExistRestriction(CHANGE_PROP_TYPE(PROP_STORE_ENTRYIDS, PT_MV_BINARY))
-	).CreateMAPIRestriction(lppRestriction);
+	).CreateMAPIRestriction(lppRestriction, ECRestriction::Full);
  exitpm:
 	return hr;
 }

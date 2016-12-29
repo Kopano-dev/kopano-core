@@ -99,7 +99,7 @@ HRESULT ArchiveOperationBase::GetRestriction(LPMAPIPROP lpMapiProp, LPSRestricti
 				ECBitMaskRestriction(BMR_NEZ, PROP_FLAGS, m_ulInhibitMask)
 			)
 		);
-	hr = resResult.CreateMAPIRestriction(lppRestriction);
+	hr = resResult.CreateMAPIRestriction(lppRestriction, ECRestriction::Full);
  exitpm:
 	return hr;
 }

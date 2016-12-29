@@ -422,7 +422,7 @@ HRESULT Copier::GetRestriction(LPMAPIPROP lpMapiProp, LPSRestriction *lppRestric
 	// age has changed). We'll check that by checking if PROP_ORIGINAL_SOURCE_KEY
 	// is present.
 	resResult += ECExistRestriction(PROP_ORIGINAL_SOURCE_KEY);
-	hr = resResult.CreateMAPIRestriction(lppRestriction);
+	hr = resResult.CreateMAPIRestriction(lppRestriction, ECRestriction::Full);
  exitpm:
 	return hr;
 }

@@ -641,7 +641,7 @@ HRESULT HrMakeRestriction(const std::string &strGuid, LPSPropTagArray lpNamedPro
 	sSpropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_APPTTSREF], PT_STRING8);
 	sSpropVal.Value.lpszA = (char*)strGuid.c_str();
 	rst += ECPropertyRestriction(RELOP_EQ, sSpropVal.ulPropTag, &sSpropVal, ECRestriction::Shallow);
-	hr = rst.CreateMAPIRestriction(&lpsRoot);
+	hr = rst.CreateMAPIRestriction(&lpsRoot, ECRestriction::Full);
 exit:
 	if (lpsRoot && lpsRectrict)
 		*lpsRectrict = lpsRoot;

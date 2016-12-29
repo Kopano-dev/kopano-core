@@ -2934,7 +2934,7 @@ HRESULT IMAP::HrExpungeDeleted(const std::string &strTag,
 		rst += std::move(*uid_rst.get());
 	rst += ECExistRestriction(PR_MSG_STATUS);
 	rst += ECBitMaskRestriction(BMR_NEZ, PR_MSG_STATUS, MSGSTATUS_DELMARKED);
-	hr = rst.CreateMAPIRestriction(&~lpRootRestrict);
+	hr = rst.CreateMAPIRestriction(&~lpRootRestrict, ECRestriction::Cheap);
 	if (hr != hrSuccess)
 		goto exit;
 	hr = HrQueryAllRows(lpTable, spt, lpRootRestrict, NULL, 0, &lpRows);

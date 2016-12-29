@@ -369,7 +369,6 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
     ECCOMPANY *lpecCompany, LPMDB lpAdminStore)
 {
 	HRESULT hr = hrSuccess;
-	memory_ptr<SRestriction> lpsRestriction;
 	SPropValue sRestrictProp;
 	object_ptr<IMAPITable> lpTable;
 	LPSRowSet lpRowSet = NULL;
@@ -400,10 +399,11 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
 		sRestrictProp.ulPropTag = PR_EC_COMPANY_NAME_A;
 		sRestrictProp.Value.lpszA = (char*)lpecCompany->lpszCompanyname;
 
+		memory_ptr<SRestriction> lpsRestriction;
 		hr = ECOrRestriction(
 			ECNotRestriction(ECExistRestriction(PR_EC_COMPANY_NAME_A)) +
 			ECPropertyRestriction(RELOP_EQ, PR_EC_COMPANY_NAME_A, &sRestrictProp, ECRestriction::Cheap)
-		).CreateMAPIRestriction(&~lpsRestriction);
+		).CreateMAPIRestriction(&~lpsRestriction, ECRestriction::Cheap);
 		if (hr != hrSuccess)
 			goto exit;
 		hr = lpTable->Restrict(lpsRestriction, MAPI_DEFERRED_ERRORS);

@@ -1851,7 +1851,7 @@ static HRESULT HrOverrideRecipProps(IMessage *lpMessage, ECRecipient *lpRecip)
 		ECExistRestriction(PR_RECIPIENT_TYPE) +
 		ECPropertyRestriction(RELOP_EQ, PR_ADDRTYPE_A, &sCmp[0], ECRestriction::Cheap) +
 		ECPropertyRestriction(RELOP_EQ, PR_SMTP_ADDRESS_A, &sCmp[1], ECRestriction::Cheap)
-	).CreateMAPIRestriction(&~lpRestrictRecipient);
+	).CreateMAPIRestriction(&~lpRestrictRecipient, ECRestriction::Cheap);
 	if (hr != hrSuccess)
 		goto exit;
 

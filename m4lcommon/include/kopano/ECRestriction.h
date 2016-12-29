@@ -64,7 +64,7 @@ public:
 	 * 								new MAPI restriction. This is useful if the ECRestriction will outlive
 	 * 								the MAPI restriction.
 	 */
-	HRESULT CreateMAPIRestriction(LPSRestriction *lppRestriction, ULONG ulFlags = 0) const;
+	HRESULT CreateMAPIRestriction(LPSRestriction *lppRestriction, ULONG ulFlags) const;
 	
 	/**
 	 * Apply the restriction on a table.

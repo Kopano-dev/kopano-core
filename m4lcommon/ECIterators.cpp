@@ -174,10 +174,9 @@ static inline LPSRestriction CreateMailUserRestriction(LPSRestriction lpRestrict
 			ECRawRestriction(lpRestriction, ECRestriction::Cheap) +
 			resMailUser
 		);
-
-		hr = resAnd.CreateMAPIRestriction(&lpResultRestriction);
+		hr = resAnd.CreateMAPIRestriction(&lpResultRestriction, ECRestriction::Full);
 	} else
-		hr = resMailUser.CreateMAPIRestriction(&lpResultRestriction);
+		hr = resMailUser.CreateMAPIRestriction(&lpResultRestriction, ECRestriction::Full);
 
 	if (hr != hrSuccess)
 		throw HrException(hr);
