@@ -389,7 +389,7 @@ HRESULT ECPropertyRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction 
 	restriction.res.resProperty.ulPropTag = m_ulPropTag;
 
 	if (ulFlags & ECRestriction::Cheap)
-		restriction.res.resContent.lpProp = m_ptrProp.get();
+		restriction.res.resProperty.lpProp = m_ptrProp.get();
 	else {
 		HRESULT hr = CopyProp(m_ptrProp.get(), lpBase, ulFlags, &restriction.res.resContent.lpProp);
 		if (hr != hrSuccess)
