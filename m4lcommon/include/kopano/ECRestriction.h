@@ -323,26 +323,6 @@ private:
 	ULONG	m_ulPropTag2;
 };
 
-class ECSizeRestriction _kc_final : public ECRestriction {
-public:
-	_kc_hidden ECSizeRestriction(ULONG relop, ULONG ulPropTag, ULONG cb)
-	: m_relop(relop)
-	, m_ulPropTag(ulPropTag)
-	, m_cb(cb)
-	{ }
-
-	HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
-	ECRestriction *Clone(void) const _kc_lvqual _kc_override;
-#ifdef HAVE_MF_QUAL
-	_kc_hidden ECRestriction *Clone(void) && _kc_override { return new ECSizeRestriction(std::move(*this)); }
-#endif
-
-private:
-	ULONG	m_relop;
-	ULONG	m_ulPropTag;
-	ULONG	m_cb;
-};
-
 class _kc_export ECExistRestriction _kc_final : public ECRestriction {
 public:
 	_kc_hidden ECExistRestriction(ULONG ulPropTag)

@@ -424,24 +424,6 @@ ECRestriction *ECComparePropsRestriction::Clone(void) const _kc_lvqual
 }
 
 /**
- * ECSizeRestriction
- */
-HRESULT ECSizeRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG /*ulFlags*/) const {
-	if (lpBase == NULL || lpRestriction == NULL)
-		return MAPI_E_INVALID_PARAMETER;
-	lpRestriction->rt = RES_SIZE;
-	lpRestriction->res.resSize.cb = m_cb;
-	lpRestriction->res.resSize.relop = m_relop;
-	lpRestriction->res.resSize.ulPropTag = m_ulPropTag;
-	return hrSuccess;
-}
-
-ECRestriction *ECSizeRestriction::Clone(void) const _kc_lvqual
-{
-	return new ECSizeRestriction(m_relop, m_ulPropTag, m_cb);
-}
-
-/**
  * ECExistRestriction
  */
 HRESULT ECExistRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG /*ulFlags*/) const {
