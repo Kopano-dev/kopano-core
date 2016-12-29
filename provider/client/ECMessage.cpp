@@ -1299,7 +1299,7 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 	LPSRowSet lpsRow = NULL;
 	LPSPropValue lpRecip = NULL;
 	ULONG cRecip = 0;
-	SizedSRowSet(1, sRowSetRecip);
+	SizedADRLIST(1, sRowSetRecip);
 	SPropValue sPropResponsibility;
 	FILETIME ft;
 
@@ -1355,12 +1355,12 @@ HRESULT ECMessage::SubmitMessage(ULONG ulFlags)
 		if(hr != hrSuccess)
 			goto exit;
 
-		sRowSetRecip.cRows = 1;
-		sRowSetRecip.aRow[0].lpProps = lpRecip;
-		sRowSetRecip.aRow[0].cValues = cRecip;
+		sRowSetRecip.cEntries = 1;
+		sRowSetRecip.aEntries[0].rgPropVals = lpRecip;
+		sRowSetRecip.aEntries[0].cValues = cRecip;
 
 		if(lpsRow->aRow[0].cValues > 1){
-			hr = this->ModifyRecipients(MODRECIP_MODIFY, (LPADRLIST) &sRowSetRecip);
+			hr = this->ModifyRecipients(MODRECIP_MODIFY, sRowSetRecip);
 			if (hr != hrSuccess)
 				goto exit;
 		}

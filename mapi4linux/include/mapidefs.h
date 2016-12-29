@@ -501,6 +501,7 @@ struct SRowSet {
 	template<typename _T> SRowSet(std::initializer_list<_T>) = delete;
     ULONG           cRows;
     SRow            aRow[MAPI_DIM];
+	operator SRowSet *(void) { return reinterpret_cast<SRowSet *>(this); }
 };
 typedef struct SRowSet *LPSRowSet;
 

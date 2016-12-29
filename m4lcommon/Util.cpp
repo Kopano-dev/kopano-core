@@ -773,7 +773,7 @@ HRESULT	Util::HrCopyAction(ACTION *lpDest, const ACTION *lpSrc, void *lpBase)
 			break;
 		case OP_FORWARD:
 		case OP_DELEGATE:
-			hr = MAPIAllocateMore(CbNewADRLIST(lpSrc->lpadrlist->cEntries), lpBase, (void **)&lpDest->lpadrlist);
+			hr = MAPIAllocateMore(CbNewSRowSet(lpSrc->lpadrlist->cEntries), lpBase, reinterpret_cast<void **>(&lpDest->lpadrlist));
 			if(hr != hrSuccess)
 				return hr;
 			hr = HrCopySRowSet((LPSRowSet)lpDest->lpadrlist, (LPSRowSet)lpSrc->lpadrlist, lpBase);

@@ -173,26 +173,21 @@ static HRESULT ExpandRecipientsRecursive(LPADRBOOK lpAddrBook,
 			if (!lpEmailAddress)
 				continue;
 
-			SizedSRowSet(1, sRowSMTProwSet);
-			SPropValue sPropSMTPProperty[4];
+			SizedADRLIST(1, sRowSMTProwSet);
+			SPropValue p[4];
 
-			sRowSMTProwSet.cRows = 1;
-			sRowSMTProwSet.aRow[0].cValues = 4;
-			sRowSMTProwSet.aRow[0].lpProps = sPropSMTPProperty;
-
-			sRowSMTProwSet.aRow[0].lpProps[0].ulPropTag = PR_EMAIL_ADDRESS_W;
-			sRowSMTProwSet.aRow[0].lpProps[0].Value.lpszW = lpEmailAddress->Value.lpszW;
-
-			sRowSMTProwSet.aRow[0].lpProps[1].ulPropTag = PR_SMTP_ADDRESS_W;
-			sRowSMTProwSet.aRow[0].lpProps[1].Value.lpszW = lpEmailAddress->Value.lpszW;
-
-			sRowSMTProwSet.aRow[0].lpProps[2].ulPropTag = PR_RECIPIENT_TYPE;
-			sRowSMTProwSet.aRow[0].lpProps[2].Value.ul = ulRecipType; /* Inherit from parent group */
-
-			sRowSMTProwSet.aRow[0].lpProps[3].ulPropTag = PR_DISPLAY_NAME_W;
-			sRowSMTProwSet.aRow[0].lpProps[3].Value.lpszW = lpDisplayName->Value.lpszW;
-
-			hr = lpMessage->ModifyRecipients(MODRECIP_ADD, (LPADRLIST)&sRowSMTProwSet);
+			sRowSMTProwSet.cEntries = 1;
+			sRowSMTProwSet.aEntries[0].cValues = 4;
+			sRowSMTProwSet.aEntries[0].rgPropVals = p;
+			p[0].ulPropTag = PR_EMAIL_ADDRESS_W;
+			p[0].Value.lpszW = lpEmailAddress->Value.lpszW;
+			p[1].ulPropTag = PR_SMTP_ADDRESS_W;
+			p[1].Value.lpszW = lpEmailAddress->Value.lpszW;
+			p[2].ulPropTag = PR_RECIPIENT_TYPE;
+			p[2].Value.ul = ulRecipType; /* Inherit from parent group */
+			p[3].ulPropTag = PR_DISPLAY_NAME_W;
+			p[3].Value.lpszW = lpDisplayName->Value.lpszW;
+			hr = lpMessage->ModifyRecipients(MODRECIP_ADD, sRowSMTProwSet);
 			if (hr != hrSuccess) {
 				g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to add e-mail address of %ls from group: %s (%x)",
 					lpEmailAddress->Value.lpszW, GetMAPIErrorMessage(hr), hr);

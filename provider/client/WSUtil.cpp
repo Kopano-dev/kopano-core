@@ -660,8 +660,7 @@ HRESULT CopySOAPPropValToMAPIPropVal(LPSPropValue lpPropValDst,
 						if (lpSrcAction->act.adrlist == NULL)
 							return MAPI_E_CORRUPT_DATA;
 
-						ECAllocateMore(CbNewSRowSet(lpSrcAction->act.adrlist->__size), lpBase, (void**)&lpDstAction->lpadrlist);
-
+						ECAllocateMore(CbNewADRLIST(lpSrcAction->act.adrlist->__size), lpBase, reinterpret_cast<void **>(&lpDstAction->lpadrlist));
 						lpDstAction->lpadrlist->cEntries = lpSrcAction->act.adrlist->__size;
 
 						for (gsoap_size_t j = 0; j < lpSrcAction->act.adrlist->__size; ++j) {

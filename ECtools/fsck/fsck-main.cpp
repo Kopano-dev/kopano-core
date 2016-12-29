@@ -317,21 +317,22 @@ HRESULT Fsck::DeleteRecipientList(LPMESSAGE lpMessage, std::list<unsigned int> &
 	if (!ReadYesNoMessage("Remove duplicate or invalid recipients?", auto_fix))
 		return hrSuccess;
 
-	memory_ptr<SRowSet> lpMods;
+	memory_ptr<ADRLIST> lpMods;
 	HRESULT hr = MAPIAllocateBuffer(CbNewADRLIST(mapiReciptDel.size()), &~lpMods);
 	if (hr != hrSuccess)
 		return hr;
 
-	lpMods->cRows = 0;
+	lpMods->cEntries = 0;
 	for (const auto &recip : mapiReciptDel) {
-		lpMods->aRow[lpMods->cRows].cValues = 1;
-		if ((hr = MAPIAllocateMore(sizeof(SPropValue), lpMods, (void**)&lpMods->aRow[lpMods->cRows].lpProps)) != hrSuccess)
+		lpMods->aEntries[lpMods->cEntries].cValues = 1;
+		hr = MAPIAllocateMore(sizeof(SPropValue), lpMods, reinterpret_cast<void **>(&lpMods->aEntries[lpMods->cEntries].rgPropVals));
+		if (hr != hrSuccess)
 			return hr;
-		lpMods->aRow[lpMods->cRows].lpProps->ulPropTag = PR_ROWID;
-		lpMods->aRow[lpMods->cRows++].lpProps->Value.ul = recip;
+		lpMods->aEntries[lpMods->cEntries].rgPropVals->ulPropTag = PR_ROWID;
+		lpMods->aEntries[lpMods->cEntries++].rgPropVals->Value.ul = recip;
 	}
 
-	hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE, reinterpret_cast<ADRLIST *>(lpMods.get()));
+	hr = lpMessage->ModifyRecipients(MODRECIP_REMOVE, lpMods.get());
 	if (hr != hrSuccess)
 		return hr;
 	hr = lpMessage->SaveChanges(KEEP_OPEN_READWRITE);
