@@ -1085,7 +1085,9 @@ HRESULT M4LABContainer::DeleteEntries(LPENTRYLIST lpEntries, ULONG ulFlags) {
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LABContainer::ResolveNames(LPSPropTagArray lpPropTagArray, ULONG ulFlags, LPADRLIST lpAdrList, LPFlagList lpFlagList) {
+HRESULT M4LABContainer::ResolveNames(const SPropTagArray *, ULONG flags,
+    LPADRLIST, LPFlagList)
+{
 	return MAPI_E_NO_SUPPORT;
 }
 

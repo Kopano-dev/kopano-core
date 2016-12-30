@@ -42,7 +42,7 @@ public:
 	virtual HRESULT CreateEntry(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulCreateFlags, LPMAPIPROP* lppMAPIPropEntry);
 	virtual HRESULT CopyEntries(LPENTRYLIST lpEntries, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags);
 	virtual HRESULT DeleteEntries(LPENTRYLIST lpEntries, ULONG ulFlags);
-	virtual HRESULT ResolveNames(LPSPropTagArray lpPropTagArray, ULONG ulFlags, LPADRLIST lpAdrList, LPFlagList lpFlagList);
+	virtual HRESULT ResolveNames(const SPropTagArray *lpPropTagArray, ULONG ulFlags, LPADRLIST lpAdrList, LPFlagList lpFlagList);
 
 	// From IMAPIContainer
 	virtual HRESULT GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTable);

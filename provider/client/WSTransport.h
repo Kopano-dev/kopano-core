@@ -235,8 +235,7 @@ public:
 	virtual HRESULT HrGetOwner(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG *lpcbOwnerId, LPENTRYID *lppOwnerId);
 
 	//Addressbook function
-	virtual HRESULT HrResolveNames(LPSPropTagArray lpPropTagArray, ULONG ulFlags, LPADRLIST lpAdrList, LPFlagList lpFlagList);
-
+	virtual HRESULT HrResolveNames(const SPropTagArray *lpPropTagArray, ULONG ulFlags, LPADRLIST lpAdrList, LPFlagList lpFlagList);
 	virtual HRESULT HrSyncUsers(ULONG cbCompanyId, LPENTRYID lpCompanyId);
 
 

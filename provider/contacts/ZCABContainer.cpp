@@ -946,7 +946,8 @@ HRESULT ZCABContainer::DeleteEntries(LPENTRYLIST lpEntries, ULONG ulFlags)
  * 
  * @return 
  */
-HRESULT ZCABContainer::ResolveNames(LPSPropTagArray lpPropTagArray, ULONG ulFlags, LPADRLIST lpAdrList, LPFlagList lpFlagList)
+HRESULT ZCABContainer::ResolveNames(const SPropTagArray *lpPropTagArray,
+    ULONG ulFlags, LPADRLIST lpAdrList, LPFlagList lpFlagList)
 {
 	HRESULT hr;
 	// only columns we can set from our contents table
@@ -1085,7 +1086,7 @@ DEF_ULONGMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, Release, (void))
 DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, CreateEntry, (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (ULONG, ulCreateFlags), (LPMAPIPROP*, lppMAPIPropEntry))
 DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, CopyEntries, (LPENTRYLIST, lpEntries), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (ULONG, ulFlags))
 DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, DeleteEntries, (LPENTRYLIST, lpEntries), (ULONG, ulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, ResolveNames, (LPSPropTagArray, lpPropTagArray), (ULONG, ulFlags), (LPADRLIST, lpAdrList), (LPFlagList, lpFlagList))
+DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, ResolveNames, (const SPropTagArray *, lpPropTagArray), (ULONG, ulFlags), (LPADRLIST, lpAdrList), (LPFlagList, lpFlagList))
 
 // Interface IMAPIContainer
 DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, GetContentsTable, (ULONG, ulFlags), (LPMAPITABLE *, lppTable))

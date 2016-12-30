@@ -106,7 +106,7 @@ DEF_ULONGMETHOD1(TRACE_MAPI, ECDistList, DistList, Release, (void))
 DEF_HRMETHOD1(TRACE_MAPI, ECDistList, DistList, CreateEntry, (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (ULONG, ulCreateFlags), (LPMAPIPROP*, lppMAPIPropEntry))
 DEF_HRMETHOD1(TRACE_MAPI, ECDistList, DistList, CopyEntries, (LPENTRYLIST, lpEntries), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (ULONG, ulFlags))
 DEF_HRMETHOD1(TRACE_MAPI, ECDistList, DistList, DeleteEntries, (LPENTRYLIST, lpEntries), (ULONG, ulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ECDistList, DistList, ResolveNames, (LPSPropTagArray, lpPropTagArray), (ULONG, ulFlags), (LPADRLIST, lpAdrList), (LPFlagList, lpFlagList))
+DEF_HRMETHOD1(TRACE_MAPI, ECDistList, DistList, ResolveNames, (const SPropTagArray *, lpPropTagArray), (ULONG, ulFlags), (LPADRLIST, lpAdrList), (LPFlagList, lpFlagList))
 
 // Interface IMAPIContainer
 DEF_HRMETHOD1(TRACE_MAPI, ECDistList, DistList, GetContentsTable, (ULONG, ulFlags), (LPMAPITABLE *, lppTable))

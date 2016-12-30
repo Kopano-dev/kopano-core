@@ -198,7 +198,7 @@ public:
 	virtual HRESULT __stdcall CreateEntry(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulCreateFlags, LPMAPIPROP *lppMAPIPropEntry) _kc_override;
 	virtual HRESULT __stdcall CopyEntries(LPENTRYLIST lpEntries, ULONG ui_param, LPMAPIPROGRESS, ULONG flags) _kc_override;
 	virtual HRESULT __stdcall DeleteEntries(LPENTRYLIST lpEntries, ULONG flags) _kc_override;
-	virtual HRESULT __stdcall ResolveNames(LPSPropTagArray, ULONG flags, LPADRLIST lpAdrList, LPFlagList lpFlagList) _kc_override;
+	virtual HRESULT __stdcall ResolveNames(const SPropTagArray *, ULONG flags, LPADRLIST lpAdrList, LPFlagList lpFlagList) _kc_override;
 
 	// imapicontainer passthu
 	virtual HRESULT __stdcall GetContentsTable(ULONG flags, LPMAPITABLE *lppTable) _kc_override;

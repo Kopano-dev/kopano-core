@@ -3521,7 +3521,8 @@ HRESULT WSTransport::HrGetOwner(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG *lpc
  * @param[in/out]	lpFlagList		Contains current status of matching row in lpAdrList, eg MAPI_(UN)RESOLVED.
  * @return			HRESULT			MAPI error code.
  */
-HRESULT WSTransport::HrResolveNames(LPSPropTagArray lpPropTagArray, ULONG ulFlags, LPADRLIST lpAdrList, LPFlagList lpFlagList)
+HRESULT WSTransport::HrResolveNames(const SPropTagArray *lpPropTagArray,
+    ULONG ulFlags, LPADRLIST lpAdrList, LPFlagList lpFlagList)
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;

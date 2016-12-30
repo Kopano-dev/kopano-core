@@ -355,7 +355,8 @@ HRESULT ECABContainer::DeleteEntries(LPENTRYLIST lpEntries, ULONG ulFlags)
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT ECABContainer::ResolveNames(LPSPropTagArray lpPropTagArray, ULONG ulFlags, LPADRLIST lpAdrList, LPFlagList lpFlagList)
+HRESULT ECABContainer::ResolveNames(const SPropTagArray *lpPropTagArray,
+    ULONG ulFlags, LPADRLIST lpAdrList, LPFlagList lpFlagList)
 {
 	SizedSPropTagArray(11, sptaDefault) = {11, {PR_ADDRTYPE_A, PR_DISPLAY_NAME_A, PR_DISPLAY_TYPE, PR_EMAIL_ADDRESS_A, PR_SMTP_ADDRESS_A, PR_ENTRYID,
 												PR_INSTANCE_KEY, PR_OBJECT_TYPE, PR_RECORD_KEY, PR_SEARCH_KEY, PR_EC_SENDAS_USER_ENTRYIDS}};
@@ -377,7 +378,7 @@ DEF_ULONGMETHOD1(TRACE_MAPI, ECABContainer, ABContainer, Release, (void))
 DEF_HRMETHOD1(TRACE_MAPI, ECABContainer, ABContainer, CreateEntry, (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (ULONG, ulCreateFlags), (LPMAPIPROP *, lppMAPIPropEntry))
 DEF_HRMETHOD1(TRACE_MAPI, ECABContainer, ABContainer, CopyEntries, (LPENTRYLIST, lpEntries), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (ULONG, ulFlags))
 DEF_HRMETHOD1(TRACE_MAPI, ECABContainer, ABContainer, DeleteEntries, (LPENTRYLIST, lpEntries), (ULONG, ulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ECABContainer, ABContainer, ResolveNames, (LPSPropTagArray, lpPropTagArray), (ULONG, ulFlags), (LPADRLIST, lpAdrList), (LPFlagList, lpFlagList))
+DEF_HRMETHOD1(TRACE_MAPI, ECABContainer, ABContainer, ResolveNames, (const SPropTagArray *, lpPropTagArray), (ULONG, ulFlags), (LPADRLIST, lpAdrList), (LPFlagList, lpFlagList))
 // Interface IMAPIContainer
 DEF_HRMETHOD1(TRACE_MAPI, ECABContainer, ABContainer, GetContentsTable, (ULONG, ulFlags), (LPMAPITABLE *, lppTable))
 DEF_HRMETHOD1(TRACE_MAPI, ECABContainer, ABContainer, GetHierarchyTable, (ULONG, ulFlags), (LPMAPITABLE *, lppTable))

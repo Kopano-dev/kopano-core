@@ -437,7 +437,7 @@ public:
     virtual HRESULT CreateEntry(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulCreateFlags, LPMAPIPROP* OUTPUT /*lppMAPIPropEntry*/) = 0;
     virtual HRESULT CopyEntries(LPENTRYLIST lpEntries, ULONG ulUIParam, IMAPIProgress * lpProgress, ULONG ulFlags) = 0;
     virtual HRESULT DeleteEntries(LPENTRYLIST lpEntries, ULONG ulFlags) = 0;
-    virtual HRESULT ResolveNames(LPSPropTagArray lpPropTagArray, ULONG ulFlags, LPADRLIST INOUT /*lpAdrList*/, LPFlagList INOUT /*lpFlagList*/) = 0;
+	virtual HRESULT ResolveNames(const SPropTagArray *lpPropTagArray, ULONG ulFlags, LPADRLIST INOUT /*lpAdrList*/, LPFlagList INOUT /*lpFlagList*/) = 0;
 	%extend {
 		~IABContainer() { self->Release(); }
 	}
@@ -516,7 +516,7 @@ public:
     virtual HRESULT CreateEntry(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulCreateFlags, LPMAPIPROP* OUTPUT /*lppMAPIPropEntry*/) = 0;
     virtual HRESULT CopyEntries(LPENTRYLIST lpEntries, ULONG ulUIParam, IMAPIProgress * lpProgress, ULONG ulFlags) = 0;
     virtual HRESULT DeleteEntries(LPENTRYLIST lpEntries, ULONG ulFlags) = 0;
-    virtual HRESULT ResolveNames(LPSPropTagArray lpPropTagArray, ULONG ulFlags, LPADRLIST INOUT /*lpAdrList*/, LPFlagList INOUT /*lpFlagList*/) = 0;
+	virtual HRESULT ResolveNames(const SPropTagArray *lpPropTagArray, ULONG ulFlags, LPADRLIST INOUT /*lpAdrList*/, LPFlagList INOUT /*lpFlagList*/) = 0;
 	%extend {
 		~IDistList() { self->Release(); }
 	}
