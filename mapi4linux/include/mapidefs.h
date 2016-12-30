@@ -670,7 +670,7 @@ public:
     virtual HRESULT GetPropList(ULONG ulFlags, LPSPropTagArray* lppPropTagArray) = 0;
     virtual HRESULT OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN* lppUnk) = 0;
     virtual HRESULT SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray* lppProblems) = 0;
-    virtual HRESULT DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray* lppProblems) = 0;
+	virtual HRESULT DeleteProps(const SPropTagArray *lpPropTagArray, LPSPropProblemArray *lppProblems) = 0;
     virtual HRESULT CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArray lpExcludeProps, ULONG ulUIParam,
 			   LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags,
 			   LPSPropProblemArray* lppProblems) = 0;

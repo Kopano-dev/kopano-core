@@ -119,7 +119,7 @@ public:
 
 	// RTF/Subject overrides
 	virtual HRESULT SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray *lppProblems);
-	virtual HRESULT DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray *lppProblems);
+	virtual HRESULT DeleteProps(const SPropTagArray *lpPropTagArray, LPSPropProblemArray *lppProblems);
 	virtual HRESULT HrLoadProps();
 
 	// Our table-row getprop handler (handles client-side generation of table columns)

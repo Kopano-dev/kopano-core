@@ -52,7 +52,7 @@ private:
 	virtual	HRESULT	HrWriteProps(ULONG cValues, LPSPropValue pValues, ULONG ulFlags = 0);
 
 	// Delete properties from file
-	virtual HRESULT HrDeleteProps(LPSPropTagArray lpsPropTagArray);
+	virtual HRESULT HrDeleteProps(const SPropTagArray *lpsPropTagArray);
 
 	// Save complete object to disk
 	virtual HRESULT HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject);

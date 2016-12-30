@@ -223,7 +223,7 @@ exit:
 	return hr;
 }
 
-HRESULT WSABPropStorage::HrDeleteProps(LPSPropTagArray lpsPropTagArray)
+HRESULT WSABPropStorage::HrDeleteProps(const SPropTagArray *lpsPropTagArray)
 {
 	ECRESULT	er = erSuccess;
 	HRESULT		hr = hrSuccess;
@@ -343,7 +343,7 @@ DEF_HRMETHOD0(WSABPropStorage, ECPropStorage, QueryInterface, (REFIID, refiid), 
 DEF_HRMETHOD0(WSABPropStorage, ECPropStorage, HrReadProps, (LPSPropTagArray *, lppPropTags), (ULONG *, cValues), (LPSPropValue *, lppValues))
 DEF_HRMETHOD0(WSABPropStorage, ECPropStorage, HrLoadProp, (ULONG, ulObjId), (ULONG, ulPropTag), (LPSPropValue *, lppsPropValue))
 DEF_HRMETHOD0(WSABPropStorage, ECPropStorage, HrWriteProps, (ULONG, cValues), (LPSPropValue, lpValues), (ULONG, ulFlags))
-DEF_HRMETHOD0(WSABPropStorage, ECPropStorage, HrDeleteProps, (LPSPropTagArray, lpsPropTagArray))
+DEF_HRMETHOD0(WSABPropStorage, ECPropStorage, HrDeleteProps, (const SPropTagArray *, lpsPropTagArray))
 DEF_HRMETHOD0(WSABPropStorage, ECPropStorage, HrSaveObject, (ULONG, ulFlags), (MAPIOBJECT *, lpsMapiObject))
 DEF_HRMETHOD0(WSABPropStorage, ECPropStorage, HrLoadObject, (MAPIOBJECT **, lppsMapiObject))
 

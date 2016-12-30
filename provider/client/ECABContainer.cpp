@@ -389,7 +389,7 @@ DEF_HRMETHOD1(TRACE_MAPI, ECABContainer, ABContainer, GetProps, (const SPropTagA
 DEF_HRMETHOD1(TRACE_MAPI, ECABContainer, ABContainer, GetPropList, (ULONG, ulFlags), (LPSPropTagArray *, lppPropTagArray))
 DEF_HRMETHOD1(TRACE_MAPI, ECABContainer, ABContainer, OpenProperty, (ULONG, ulPropTag), (LPCIID, lpiid), (ULONG, ulInterfaceOptions), (ULONG, ulFlags), (LPUNKNOWN *, lppUnk))
 DEF_HRMETHOD1(TRACE_MAPI, ECABContainer, ABContainer, SetProps, (ULONG, cValues), (LPSPropValue, lpPropArray), (LPSPropProblemArray *, lppProblems))
-DEF_HRMETHOD1(TRACE_MAPI, ECABContainer, ABContainer, DeleteProps, (LPSPropTagArray, lpPropTagArray), (LPSPropProblemArray *, lppProblems))
+DEF_HRMETHOD1(TRACE_MAPI, ECABContainer, ABContainer, DeleteProps, (const SPropTagArray *, lpPropTagArray), (SPropProblemArray **, lppProblems))
 DEF_HRMETHOD1(TRACE_MAPI, ECABContainer, ABContainer, CopyTo, (ULONG, ciidExclude), (LPCIID, rgiidExclude), (LPSPropTagArray, lpExcludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (LPVOID, lpDestObj), (ULONG, ulFlags), (LPSPropProblemArray *, lppProblems))
 DEF_HRMETHOD1(TRACE_MAPI, ECABContainer, ABContainer, CopyProps, (LPSPropTagArray, lpIncludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (LPVOID, lpDestObj), (ULONG, ulFlags), (LPSPropProblemArray *, lppProblems))
 DEF_HRMETHOD1(TRACE_MAPI, ECABContainer, ABContainer, GetNamesFromIDs, (LPSPropTagArray *, pptaga), (LPGUID, lpguid), (ULONG, ulFlags), (ULONG *, pcNames), (LPMAPINAMEID **, pppNames))

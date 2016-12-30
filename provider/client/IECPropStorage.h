@@ -121,7 +121,7 @@ public:
 	virtual	HRESULT	HrWriteProps(ULONG cValues, LPSPropValue pValues, ULONG ulFlags = 0) = 0;
 
 	// Delete properties from file
-	virtual HRESULT HrDeleteProps(LPSPropTagArray lpsPropTagArray) = 0;
+	virtual HRESULT HrDeleteProps(const SPropTagArray *lpsPropTagArray) = 0;
 
 	// Save a complete object to the server
 	virtual HRESULT HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpSavedObjects) = 0;

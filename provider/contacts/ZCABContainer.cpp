@@ -1101,7 +1101,7 @@ DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, GetProps, (const SPropTagA
 DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, GetPropList, (ULONG, ulFlags), (LPSPropTagArray *, lppPropTagArray))
 DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, ABContainer, OpenProperty, (ULONG, ulPropTag), (LPCIID, lpiid), (ULONG, ulInterfaceOptions), (ULONG, ulFlags), (LPUNKNOWN *, lppUnk))
 DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, ABContainer, SetProps, (ULONG, cValues), (LPSPropValue, lpPropArray), (LPSPropProblemArray *, lppProblems))
-DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, ABContainer, DeleteProps, (LPSPropTagArray, lpPropTagArray), (LPSPropProblemArray *, lppProblems))
+DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, ABContainer, DeleteProps, (const SPropTagArray *, lpPropTagArray), (SPropProblemArray **, lppProblems))
 DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, ABContainer, CopyTo, (ULONG, ciidExclude), (LPCIID, rgiidExclude), (LPSPropTagArray, lpExcludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (LPVOID, lpDestObj), (ULONG, ulFlags), (LPSPropProblemArray *, lppProblems))
 DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, ABContainer, CopyProps, (LPSPropTagArray, lpIncludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (LPVOID, lpDestObj), (ULONG, ulFlags), (LPSPropProblemArray *, lppProblems))
 DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, ABContainer, GetNamesFromIDs, (LPSPropTagArray *, pptaga), (LPGUID, lpguid), (ULONG, ulFlags), (ULONG *, pcNames), (LPMAPINAMEID **, pppNames))

@@ -102,7 +102,7 @@ DEF_HRMETHOD1(TRACE_MAPI, ECMailUser, MailUser, GetProps, (const SPropTagArray *
 DEF_HRMETHOD1(TRACE_MAPI, ECMailUser, MailUser, GetPropList, (ULONG, ulFlags), (LPSPropTagArray *, lppPropTagArray))
 DEF_HRMETHOD1(TRACE_MAPI, ECMailUser, MailUser, OpenProperty, (ULONG, ulPropTag), (LPCIID, lpiid), (ULONG, ulInterfaceOptions), (ULONG, ulFlags), (LPUNKNOWN *, lppUnk))
 DEF_HRMETHOD1(TRACE_MAPI, ECMailUser, MailUser, SetProps, (ULONG, cValues), (LPSPropValue, lpPropArray), (LPSPropProblemArray *, lppProblems))
-DEF_HRMETHOD1(TRACE_MAPI, ECMailUser, MailUser, DeleteProps, (LPSPropTagArray, lpPropTagArray), (LPSPropProblemArray *, lppProblems))
+DEF_HRMETHOD1(TRACE_MAPI, ECMailUser, MailUser, DeleteProps, (const SPropTagArray *, lpPropTagArray), (SPropProblemArray **, lppProblems))
 DEF_HRMETHOD1(TRACE_MAPI, ECMailUser, MailUser, CopyTo, (ULONG, ciidExclude), (LPCIID, rgiidExclude), (LPSPropTagArray, lpExcludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (LPVOID, lpDestObj), (ULONG, ulFlags), (LPSPropProblemArray *, lppProblems))
 DEF_HRMETHOD1(TRACE_MAPI, ECMailUser, MailUser, CopyProps, (LPSPropTagArray, lpIncludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (LPVOID, lpDestObj), (ULONG, ulFlags), (LPSPropProblemArray *, lppProblems))
 DEF_HRMETHOD1(TRACE_MAPI, ECMailUser, MailUser, GetNamesFromIDs, (LPSPropTagArray *, pptaga), (LPGUID, lpguid), (ULONG, ulFlags), (ULONG *, pcNames), (LPMAPINAMEID **, pppNames))

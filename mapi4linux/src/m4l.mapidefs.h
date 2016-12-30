@@ -42,7 +42,7 @@ public:
 	virtual HRESULT __stdcall GetPropList(ULONG flags, LPSPropTagArray *proptag) _kc_override;
 	virtual HRESULT __stdcall OpenProperty(ULONG proptag, LPCIID lpiid, ULONG ifaceopts, ULONG flags, LPUNKNOWN *) _kc_override;
 	virtual HRESULT __stdcall SetProps(ULONG nvals, LPSPropValue prop, LPSPropProblemArray *) _kc_override;
-	virtual HRESULT __stdcall DeleteProps(LPSPropTagArray proptag, LPSPropProblemArray *) _kc_override;
+	virtual HRESULT __stdcall DeleteProps(const SPropTagArray *proptag, LPSPropProblemArray *) _kc_override;
 	virtual HRESULT __stdcall CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArray exclprop, ULONG ui_param, LPMAPIPROGRESS, LPCIID iface, LPVOID dest_obj, ULONG flags, LPSPropProblemArray *) _kc_override;
 	virtual HRESULT __stdcall CopyProps(LPSPropTagArray inclprop, ULONG ui_param, LPMAPIPROGRESS, LPCIID iface, LPVOID dest_obj, ULONG flags, LPSPropProblemArray *) _kc_override;
 	virtual HRESULT __stdcall GetNamesFromIDs(LPSPropTagArray *proptag, LPGUID lpPropSetGuid, ULONG flags, ULONG *lpcPropNames, LPMAPINAMEID **lpppPropNames) _kc_override;
@@ -72,7 +72,7 @@ public:
 	virtual HRESULT __stdcall GetPropList(ULONG flags, LPSPropTagArray *) _kc_override;
 	virtual HRESULT __stdcall OpenProperty(ULONG proptag, LPCIID lpiid, ULONG ifaceopts, ULONG flags, LPUNKNOWN *) _kc_override;
 	virtual HRESULT __stdcall SetProps(ULONG nvals, LPSPropValue prop, LPSPropProblemArray *) _kc_override;
-	virtual HRESULT __stdcall DeleteProps(LPSPropTagArray proptag, LPSPropProblemArray *) _kc_override;
+	virtual HRESULT __stdcall DeleteProps(const SPropTagArray *proptag, LPSPropProblemArray *) _kc_override;
 	virtual HRESULT __stdcall CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArray exclprop, ULONG ui_param, LPMAPIPROGRESS, LPCIID lpInterface, LPVOID lpDestObj, ULONG flags, LPSPropProblemArray *) _kc_override;
 	virtual HRESULT __stdcall CopyProps(LPSPropTagArray inclprop, ULONG ui_param, LPMAPIPROGRESS, LPCIID lpInterface, LPVOID lpDestObj, ULONG flags, LPSPropProblemArray *) _kc_override;
 	virtual HRESULT __stdcall GetNamesFromIDs(LPSPropTagArray *proptag, LPGUID lpPropSetGuid, ULONG flags, ULONG *lpcPropNames, LPMAPINAMEID **lpppPropNames) _kc_override;
@@ -168,7 +168,7 @@ public:
 	virtual HRESULT __stdcall GetPropList(ULONG flags, LPSPropTagArray *) _kc_override;
 	virtual HRESULT __stdcall OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG flags, LPUNKNOWN *lppUnk) _kc_override;
 	virtual HRESULT __stdcall SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray *) _kc_override;
-	virtual HRESULT __stdcall DeleteProps(LPSPropTagArray, LPSPropProblemArray *) _kc_override;
+	virtual HRESULT __stdcall DeleteProps(const SPropTagArray *, LPSPropProblemArray *) _kc_override;
 	virtual HRESULT __stdcall CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArray exclprop, ULONG ui_param, LPMAPIPROGRESS, LPCIID lpInterface, LPVOID lpDestObj, ULONG flags, LPSPropProblemArray *) _kc_override;
 	virtual HRESULT __stdcall CopyProps(LPSPropTagArray inclprop, ULONG ui_param, LPMAPIPROGRESS, LPCIID lpInterface, LPVOID lpDestObj, ULONG flags, LPSPropProblemArray *) _kc_override;
 	virtual HRESULT __stdcall GetNamesFromIDs(LPSPropTagArray *, LPGUID lpPropSetGuid, ULONG flags, ULONG *lpcPropNames, LPMAPINAMEID **lpppPropNames) _kc_override;
@@ -214,7 +214,7 @@ public:
 	virtual HRESULT __stdcall GetPropList(ULONG flags, LPSPropTagArray *) _kc_override;
 	virtual HRESULT __stdcall OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG flags, LPUNKNOWN *lppUnk) _kc_override;
 	virtual HRESULT __stdcall SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray *) _kc_override;
-	virtual HRESULT __stdcall DeleteProps(LPSPropTagArray, LPSPropProblemArray *) _kc_override;
+	virtual HRESULT __stdcall DeleteProps(const SPropTagArray *, LPSPropProblemArray *) _kc_override;
 	virtual HRESULT __stdcall CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArray exclprop, ULONG ui_param, LPMAPIPROGRESS, LPCIID lpInterface, LPVOID lpDestObj, ULONG flags, LPSPropProblemArray *) _kc_override;
 	virtual HRESULT __stdcall CopyProps(LPSPropTagArray inclprop, ULONG ui_param, LPMAPIPROGRESS, LPCIID lpInterface, LPVOID lpDestObj, ULONG flags, LPSPropProblemArray *) _kc_override;
 	virtual HRESULT __stdcall GetNamesFromIDs(LPSPropTagArray *, LPGUID lpPropSetGuid, ULONG flags, ULONG *lpcPropNames, LPMAPINAMEID **lpppPropNames) _kc_override;

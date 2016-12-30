@@ -2559,7 +2559,9 @@ HRESULT M4LAddrBook::SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropPr
 	return hr;
 }
 
-HRESULT M4LAddrBook::DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray* lppProblems) {
+HRESULT M4LAddrBook::DeleteProps(const SPropTagArray *lpPropTagArray,
+    SPropProblemArray **lppProblems)
+{
     TRACE_MAPILIB(TRACE_ENTRY, "M4LAddrBook::DeleteProps", "");
 	HRESULT hr = M4LMAPIProp::DeleteProps(lpPropTagArray, lppProblems);
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LAddrBook::DeleteProps", "0x%08x", hr);

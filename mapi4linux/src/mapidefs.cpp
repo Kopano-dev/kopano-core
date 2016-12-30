@@ -282,7 +282,9 @@ exit:
 	return hr;
 }
 
-HRESULT M4LMAPIProp::DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray* lppProblems) {
+HRESULT M4LMAPIProp::DeleteProps(const SPropTagArray *lpPropTagArray,
+    SPropProblemArray **lppProblems)
+{
 	TRACE_MAPILIB(TRACE_ENTRY, "IMAPIProp::DeleteProps", "");
 
 	HRESULT hr = hrSuccess;
@@ -415,7 +417,9 @@ HRESULT M4LProfSect::SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropPr
 	return M4LMAPIProp::SetProps(cValues, lpPropArray, lppProblems);
 }
 
-HRESULT M4LProfSect::DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray* lppProblems) {
+HRESULT M4LProfSect::DeleteProps(const SPropTagArray *lpPropTagArray,
+    SPropProblemArray **lppProblems)
+{
 	return M4LMAPIProp::DeleteProps(lpPropTagArray, lppProblems);
 }
 
@@ -1004,7 +1008,9 @@ HRESULT M4LMAPIContainer::SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSP
 	return M4LMAPIProp::SetProps(cValues, lpPropArray, lppProblems);
 }
 
-HRESULT M4LMAPIContainer::DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray* lppProblems) {
+HRESULT M4LMAPIContainer::DeleteProps(const SPropTagArray *lpPropTagArray,
+    SPropProblemArray **lppProblems)
+{
 	return M4LMAPIProp::DeleteProps(lpPropTagArray, lppProblems);
 }
 
@@ -1248,7 +1254,9 @@ HRESULT M4LABContainer::SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPro
 	return M4LMAPIProp::SetProps(cValues, lpPropArray, lppProblems);
 }
 
-HRESULT M4LABContainer::DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray* lppProblems) {
+HRESULT M4LABContainer::DeleteProps(const SPropTagArray *lpPropTagArray,
+    SPropProblemArray **lppProblems)
+{
 	return M4LMAPIProp::DeleteProps(lpPropTagArray, lppProblems);
 }
 

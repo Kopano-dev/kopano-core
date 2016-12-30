@@ -478,7 +478,8 @@ HRESULT ZCMAPIProp::SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropPro
 	return  MAPI_E_NO_SUPPORT;
 }
 
-HRESULT ZCMAPIProp::DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray * lppProblems)
+HRESULT ZCMAPIProp::DeleteProps(const SPropTagArray *lpPropTagArray,
+    SPropProblemArray **lppProblems)
 {
 	return  MAPI_E_NO_SUPPORT;
 }
@@ -513,7 +514,7 @@ DEF_HRMETHOD0(ZCMAPIProp, MAPIProp, GetProps, (const SPropTagArray *, lpPropTagA
 DEF_HRMETHOD0(ZCMAPIProp, MAPIProp, GetPropList, (ULONG, ulFlags), (LPSPropTagArray *, lppPropTagArray))
 DEF_HRMETHOD0(ZCMAPIProp, MAPIProp, OpenProperty, (ULONG, ulPropTag), (LPCIID, lpiid), (ULONG, ulInterfaceOptions), (ULONG, ulFlags), (LPUNKNOWN *, lppUnk))
 DEF_HRMETHOD0(ZCMAPIProp, MAPIProp, SetProps, (ULONG, cValues), (LPSPropValue, lpPropArray), (LPSPropProblemArray *, lppProblems))
-DEF_HRMETHOD0(ZCMAPIProp, MAPIProp, DeleteProps, (LPSPropTagArray, lpPropTagArray), (LPSPropProblemArray *, lppProblems))
+DEF_HRMETHOD0(ZCMAPIProp, MAPIProp, DeleteProps, (const SPropTagArray *, lpPropTagArray), (SPropProblemArray **, lppProblems))
 DEF_HRMETHOD0(ZCMAPIProp, MAPIProp, CopyTo, (ULONG, ciidExclude), (LPCIID, rgiidExclude), (LPSPropTagArray, lpExcludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (LPVOID, lpDestObj), (ULONG, ulFlags), (LPSPropProblemArray *, lppProblems))
 DEF_HRMETHOD0(ZCMAPIProp, MAPIProp, CopyProps, (LPSPropTagArray, lpIncludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (LPVOID, lpDestObj), (ULONG, ulFlags), (LPSPropProblemArray *, lppProblems))
 DEF_HRMETHOD0(ZCMAPIProp, MAPIProp, GetNamesFromIDs, (LPSPropTagArray *, pptaga), (LPGUID, lpguid), (ULONG, ulFlags), (ULONG *, pcNames), (LPMAPINAMEID **, pppNames))

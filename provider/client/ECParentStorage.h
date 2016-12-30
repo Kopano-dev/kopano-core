@@ -62,7 +62,7 @@ private:
 	virtual	HRESULT	HrWriteProps(ULONG cValues, LPSPropValue pValues, ULONG ulFlags = 0);
 
 	// Not implemented
-	virtual HRESULT HrDeleteProps(LPSPropTagArray lpsPropTagArray);
+	virtual HRESULT HrDeleteProps(const SPropTagArray *lpsPropTagArray);
 
 	// Save complete object, deletes/adds/modifies/creates
 	virtual HRESULT HrSaveObject(ULONG ulFlags, MAPIOBJECT *lpsMapiObject);

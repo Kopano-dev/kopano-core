@@ -2128,7 +2128,8 @@ exit:
 	return hr;
 }
 
-HRESULT ECMessage::DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray *lppProblems)
+HRESULT ECMessage::DeleteProps(const SPropTagArray *lpPropTagArray,
+    SPropProblemArray **lppProblems)
 {
 	HRESULT hr;
 	SizedSPropTagArray(1, sSubjectPrefix) =
@@ -2826,7 +2827,7 @@ DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, GetProps, (const SPropTagArray *, 
 DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, GetPropList, (ULONG, ulFlags), (LPSPropTagArray *, lppPropTagArray))
 DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, OpenProperty, (ULONG, ulPropTag), (LPCIID, lpiid), (ULONG, ulInterfaceOptions), (ULONG, ulFlags), (LPUNKNOWN *, lppUnk))
 DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, SetProps, (ULONG, cValues), (LPSPropValue, lpPropArray), (LPSPropProblemArray *, lppProblems))
-DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, DeleteProps, (LPSPropTagArray, lpPropTagArray), (LPSPropProblemArray *, lppProblems))
+DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, DeleteProps, (const SPropTagArray *, lpPropTagArray), (SPropProblemArray **, lppProblems))
 DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, CopyTo, (ULONG, ciidExclude), (LPCIID, rgiidExclude), (LPSPropTagArray, lpExcludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (LPVOID, lpDestObj), (ULONG, ulFlags), (LPSPropProblemArray *, lppProblems))
 DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, CopyProps, (LPSPropTagArray, lpIncludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (LPVOID, lpDestObj), (ULONG, ulFlags), (LPSPropProblemArray *, lppProblems))
 DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, GetNamesFromIDs, (LPSPropTagArray *, pptaga), (LPGUID, lpguid), (ULONG, ulFlags), (ULONG *, pcNames), (LPMAPINAMEID **, pppNames))

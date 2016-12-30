@@ -84,7 +84,7 @@ HRESULT	ECParentStorage::HrWriteProps(ULONG cValues, LPSPropValue pValues, ULONG
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT ECParentStorage::HrDeleteProps(LPSPropTagArray lpsPropTagArray)
+HRESULT ECParentStorage::HrDeleteProps(const SPropTagArray *lpsPropTagArray)
 {
 	// this call should disappear
 	return MAPI_E_NO_SUPPORT;
@@ -139,7 +139,7 @@ DEF_HRMETHOD0(ECParentStorage, ECPropStorage, QueryInterface, (REFIID, refiid), 
 DEF_HRMETHOD0(ECParentStorage, ECPropStorage, HrReadProps, (LPSPropTagArray *, lppPropTags), (ULONG *, cValues), (LPSPropValue *, lppValues))
 DEF_HRMETHOD0(ECParentStorage, ECPropStorage, HrLoadProp, (ULONG, ulObjId), (ULONG, ulPropTag), (LPSPropValue *, lppsPropValue))
 DEF_HRMETHOD0(ECParentStorage, ECPropStorage, HrWriteProps, (ULONG, cValues), (LPSPropValue, lpValues), (ULONG, ulFlags))
-DEF_HRMETHOD0(ECParentStorage, ECPropStorage, HrDeleteProps, (LPSPropTagArray, lpsPropTagArray))
+DEF_HRMETHOD0(ECParentStorage, ECPropStorage, HrDeleteProps, (const SPropTagArray *, lpsPropTagArray))
 DEF_HRMETHOD0(ECParentStorage, ECPropStorage, HrSaveObject, (ULONG, ulFlags), (MAPIOBJECT *, lpsMapiObject))
 DEF_HRMETHOD0(ECParentStorage, ECPropStorage, HrLoadObject, (MAPIOBJECT **, lppsMapiObject))
 
