@@ -2448,7 +2448,9 @@ exit:
  * @retval	MAPI_E_INVALID_PARAMETER	Invalid input
  * @retval	MAPI_E_NOT_FOUND			Addressbook	is not available.
  */
-HRESULT M4LAddrBook::PrepareRecips(ULONG ulFlags, LPSPropTagArray lpPropTagArray, LPADRLIST lpRecipList) {
+HRESULT M4LAddrBook::PrepareRecips(ULONG ulFlags,
+    const SPropTagArray *lpPropTagArray, LPADRLIST lpRecipList)
+{
 	HRESULT hr = hrSuccess;
 	ULONG cValues = 0;
 	ULONG ulType = 0;

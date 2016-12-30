@@ -7,4 +7,4 @@ virtual HRESULT __stdcall Unadvise(ULONG ulConnection) _kc_override;
 virtual HRESULT __stdcall OpenStatusEntry(LPCIID lpInterface, ULONG flags, ULONG *lpulObjType, LPMAPISTATUS *lppMAPIStatus) _kc_override;
 virtual HRESULT __stdcall OpenTemplateID(ULONG cbTemplateID, LPENTRYID lpTemplateID, ULONG ulTemplateFlags, LPMAPIPROP lpMAPIPropData, LPCIID lpInterface, LPMAPIPROP *lppMAPIPropNew, LPMAPIPROP lpMAPIPropSibling) _kc_override;
 virtual HRESULT __stdcall GetOneOffTable(ULONG flags, LPMAPITABLE *lppTable) _kc_override;
-virtual HRESULT __stdcall PrepareRecips(ULONG flags, LPSPropTagArray lpPropTagArray, LPADRLIST lpRecipList) _kc_override;
+virtual HRESULT __stdcall PrepareRecips(ULONG flags, const SPropTagArray *lpPropTagArray, LPADRLIST lpRecipList) _kc_override;
