@@ -53,15 +53,17 @@ SCODE __stdcall OpenIMsgOnIStg(	LPMSGSESS lpMsgSess, LPALLOCATEBUFFER lpAllocate
 	return sc;
 }
 
-HRESULT __stdcall GetAttribIMsgOnIStg(LPVOID lpObject, LPSPropTagArray lpPropTagArray, LPSPropAttrArray *lppPropAttrArray)
+HRESULT __stdcall GetAttribIMsgOnIStg(LPVOID lpObject,
+    const SPropTagArray *lpPropTagArray, SPropAttrArray **lppPropAttrArray)
 {
 	TRACE_MAPILIB(TRACE_ENTRY, "GetAttribIMsgOnIStg", "");
 	TRACE_MAPILIB(TRACE_RETURN, "GetAttribIMsgOnIStg", "");
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT __stdcall SetAttribIMsgOnIStg(LPVOID lpObject, LPSPropTagArray lpPropTags, LPSPropAttrArray lpPropAttrs,
-									  LPSPropProblemArray *lppPropProblems)
+HRESULT __stdcall SetAttribIMsgOnIStg(LPVOID lpObject,
+    const SPropTagArray *lpPropTags, LPSPropAttrArray lpPropAttrs,
+    SPropProblemArray **lppPropProblems)
 {
 	TRACE_MAPILIB(TRACE_ENTRY, "SetAttribIMsgOnIStg", "");
 	TRACE_MAPILIB(TRACE_RETURN, "SetAttribIMsgOnIStg", "");

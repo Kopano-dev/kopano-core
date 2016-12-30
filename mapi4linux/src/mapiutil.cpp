@@ -1031,7 +1031,7 @@ ULONG __stdcall FBadProp(LPSPropValue lpprop)
 	return FALSE;
 }
 
-ULONG __stdcall FBadColumnSet(LPSPropTagArray lpptaCols)
+ULONG __stdcall FBadColumnSet(const SPropTagArray *lpptaCols)
 {
 	TRACE_MAPILIB(TRACE_ENTRY, "FBadColumnSet", "");
 	TRACE_MAPILIB(TRACE_RETURN, "FBadColumnSet", "");

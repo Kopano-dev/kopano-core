@@ -79,9 +79,9 @@ SCODE CreateTable(LPCIID            lpInterface,
 class IPropData : public IMAPIProp {
 public:
     virtual HRESULT HrSetObjAccess(ULONG ulAccess) = 0;
-    virtual HRESULT HrSetPropAccess(LPSPropTagArray lpPropTagArray, ULONG* rgulAccess) = 0;
+	virtual HRESULT HrSetPropAccess(const SPropTagArray *lpPropTagArray, ULONG *rgulAccess) = 0;
     virtual HRESULT HrGetPropAccess(LPSPropTagArray* lppPropTagArray, ULONG** lprgulAccess) = 0;
-    virtual HRESULT HrAddObjProps(LPSPropTagArray lppPropTagArray, LPSPropProblemArray* lprgulAccess) = 0;
+	virtual HRESULT HrAddObjProps(const SPropTagArray *lppPropTagArray, SPropProblemArray **lprgulAccess) = 0;
 };
 typedef IPropData* LPPROPDATA;
 
@@ -347,19 +347,8 @@ LONG
 LPropCompareProp( LPSPropValue  lpSPropValueA,
                   LPSPropValue  lpSPropValueB );
 
-HRESULT
-HrAddColumns(   LPMAPITABLE         lptbl,
-                LPSPropTagArray     lpproptagColumnsNew,
-                LPALLOCATEBUFFER    lpAllocateBuffer,
-                LPFREEBUFFER        lpFreeBuffer);
-
-HRESULT
-HrAddColumnsEx( LPMAPITABLE         lptbl,
-                LPSPropTagArray     lpproptagColumnsNew,
-                LPALLOCATEBUFFER    lpAllocateBuffer,
-                LPFREEBUFFER        lpFreeBuffer,
-                void                (*lpfnFilterColumns)(LPSPropTagArray ptaga));
-
+extern HRESULT HrAddColumns(LPMAPITABLE lptbl, const SPropTagArray *lpproptagColumnsNew, LPALLOCATEBUFFER lpAllocateBuffer, LPFREEBUFFER lpFreeBuffer);
+extern HRESULT HrAddColumnsEx(LPMAPITABLE lptbl, const SPropTagArray *lpproptagColumnsNew, LPALLOCATEBUFFER lpAllocateBuffer, LPFREEBUFFER lpFreeBuffer, void (*)(const SPropTagArray *ptaga));
 
 /* Notification utilities */
 
