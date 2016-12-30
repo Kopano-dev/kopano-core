@@ -188,8 +188,8 @@ public:
 		return m_lstRestrictions.rbegin()->get();
 	}
 
-	HRESULT operator+=(const ECRestrictionList &list);
-	HRESULT operator+=(ECRestrictionList &&);
+	void operator+=(const ECRestrictionList &list);
+	void operator+=(ECRestrictionList &&);
 
 private:
 	ResList	m_lstRestrictions;
@@ -219,8 +219,8 @@ public:
 		return m_lstRestrictions.rbegin()->get();
 	}
 
-	HRESULT operator+=(const ECRestrictionList &list);
-	HRESULT operator+=(ECRestrictionList &&);
+	void operator+=(const ECRestrictionList &list);
+	void operator+=(ECRestrictionList &&);
 
 private:
 	ResList	m_lstRestrictions;
