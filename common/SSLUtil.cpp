@@ -54,10 +54,10 @@ void ssl_threading_setup() {
 void ssl_threading_cleanup() {
 	if (!ssl_locks)
 		return;
-	delete [] ssl_locks;
-	ssl_locks = NULL;
 	CRYPTO_set_id_callback(NULL);
 	CRYPTO_set_locking_callback(NULL);
+	delete[] ssl_locks;
+	ssl_locks = nullptr;
 }
 
 /**

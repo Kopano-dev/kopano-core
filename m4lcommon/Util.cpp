@@ -210,27 +210,22 @@ HRESULT	Util::HrMergePropertyArrays(const SPropValue *lpSrc, ULONG cValues,
 HRESULT Util::HrCopyPropertyArrayByRef(const SPropValue *lpSrc, ULONG cValues,
     LPSPropValue *lppDest, ULONG *cDestValues, bool bExcludeErrors)
 {
-    LPSPropValue lpDest = NULL;
+	memory_ptr<SPropValue> lpDest;
     unsigned int i = 0;
     unsigned int n = 0;
     
-	HRESULT hr = MAPIAllocateBuffer(sizeof(SPropValue) * cValues,
-	             reinterpret_cast<void **>(&lpDest));
+	HRESULT hr = MAPIAllocateBuffer(sizeof(SPropValue) * cValues, &~lpDest);
 	if (hr != hrSuccess)
 		return hr;
     
-    for (i = 0; i < cValues; ++i) {
-        if(!bExcludeErrors || PROP_TYPE(lpSrc[i].ulPropTag) != PT_ERROR) {
-            hr = HrCopyPropertyByRef(&lpDest[n], &lpSrc[i]);
-        
-            if(hr == hrSuccess)
-                ++n;
-            
-            hr = hrSuccess;
-        }
-    }
-    
-    *lppDest = lpDest;
+	for (i = 0; i < cValues; ++i) {
+		if (bExcludeErrors && PROP_TYPE(lpSrc[i].ulPropTag) == PT_ERROR)
+			continue;
+		hr = HrCopyPropertyByRef(&lpDest[n], &lpSrc[i]);
+		if (hr == hrSuccess)
+			++n;
+	}
+	*lppDest = lpDest.release();
 	*cDestValues = n;
 	return hrSuccess;
 }
@@ -250,32 +245,27 @@ HRESULT Util::HrCopyPropertyArrayByRef(const SPropValue *lpSrc, ULONG cValues,
 HRESULT Util::HrCopyPropertyArray(const SPropValue *lpSrc, ULONG cValues,
     LPSPropValue *lppDest, ULONG *cDestValues, bool bExcludeErrors)
 {
-	HRESULT hr = hrSuccess;
-	LPSPropValue lpDest = NULL;
+	memory_ptr<SPropValue> lpDest;
 	unsigned int i = 0;
 	unsigned int n = 0;
 
-	hr = MAPIAllocateBuffer(sizeof(SPropValue) * cValues, (void **)&lpDest);
+	HRESULT hr = MAPIAllocateBuffer(sizeof(SPropValue) * cValues, &~lpDest);
 	if (hr != hrSuccess)
-		goto exitfixme;
+		return hr;
 
 	for (i = 0; i < cValues; ++i) {
-	    if(!bExcludeErrors || PROP_TYPE(lpSrc[i].ulPropTag) != PT_ERROR) {
-    		hr = HrCopyProperty(&lpDest[n], &lpSrc[i], lpDest);
-
-	    	if(hr == hrSuccess)
-			++n;
-
-    		hr = hrSuccess;
-        }
+		if (bExcludeErrors && PROP_TYPE(lpSrc[i].ulPropTag) == PT_ERROR)
+			continue;
+		hr = HrCopyProperty(&lpDest[n], &lpSrc[i], lpDest);
+		if (hr == MAPI_E_INVALID_PARAMETER)
+			/* traditionally ignored */;
+		else if (hr != hrSuccess)
+			return hr; /* give back memory errors */
+		++n;
 	}
-
-	*lppDest = lpDest;
+	*lppDest = lpDest.release();
 	*cDestValues = n;
-
- exitfixme:
-	return hr;
-	// FIXME potential incomplete copy possible, should free data (?)
+	return hrSuccess;
 }
 
 /** 

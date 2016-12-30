@@ -16,11 +16,13 @@
  */
 
 #include <kopano/platform.h>
+#include <memory>
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
 #include <algorithm>
 #include <kopano/memory.hpp>
+#include <kopano/tie.hpp>
 #include <mapi.h>
 #include <mapix.h>
 #include <mapicode.h>
@@ -495,16 +497,14 @@ HRESULT POP3::HrCmdRetr(unsigned int ulMailNr) {
 	}
 	if (hr != hrSuccess) {
 		// unable to load streamed version, so try full conversion.
-		char *szMessage;
-		hr = IMToINet(lpSession, lpAddrBook, lpMessage, &szMessage, sopt);
+		std::unique_ptr<char[]> szMessage;
+		hr = IMToINet(lpSession, lpAddrBook, lpMessage, &unique_tie(szMessage), sopt);
 		if (hr != hrSuccess) {
-			delete[] szMessage;
 			lpLogger->Log(EC_LOGLEVEL_ERROR, "Error converting MAPI to MIME: 0x%08x", hr);
 			HrResponse(POP3_RESP_PERMFAIL, "Converting MAPI to MIME error");
 			return hr;
 		}
-		strMessage = DotFilter(szMessage);
-		delete[] szMessage;
+		strMessage = DotFilter(szMessage.get());
 	}
 
 	snprintf(szResponse, POP3_MAX_RESPONSE_LENGTH, "%u octets", (ULONG)strMessage.length());
@@ -687,17 +687,14 @@ HRESULT POP3::HrCmdTop(unsigned int ulMailNr, unsigned int ulLines) {
 		hr = Util::HrStreamToString(lpStream, strMessage);
 	if (hr != hrSuccess) {
 		// unable to load streamed version, so try full conversion.
-		char *szMessage;
-		hr = IMToINet(lpSession, lpAddrBook, lpMessage, &szMessage, sopt);
+		std::unique_ptr<char[]> szMessage;
+		hr = IMToINet(lpSession, lpAddrBook, lpMessage, &unique_tie(szMessage), sopt);
 		if (hr != hrSuccess) {
-			delete[] szMessage;
 			lpLogger->Log(EC_LOGLEVEL_ERROR, "Error converting MAPI to MIME: 0x%08x", hr);
 			HrResponse(POP3_RESP_PERMFAIL, "Converting MAPI to MIME error");
 			return hr;
 		}
-
-		strMessage = szMessage;
-		delete[] szMessage;
+		strMessage = szMessage.get();
 	}
 
 	ulPos = strMessage.find("\r\n\r\n", 0);

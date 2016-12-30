@@ -19,6 +19,7 @@
 #include <kopano/platform.h>
 
 #include <iostream>
+#include <memory>
 #include <string>
 #include <stdexcept>
 #include <algorithm>
@@ -192,20 +193,14 @@ typedef auto_free<struct berval*, auto_free_dealloc<struct berval**, void, ldap_
 
 class attrArray _kc_final {
 public:
-	attrArray(unsigned int ulSize)
+	attrArray(unsigned int ulSize) :
+		ulAttrs(0), ulMaxAttrs(ulSize),
+		lpAttrs(new const char *[ulMaxAttrs+1])
 	{
-		lpAttrs = new const char *[ulSize + 1]; /* +1 for NULL entry */
+		/* +1 for NULL entry */
 		assert(lpAttrs != NULL);
 		/* Make sure all entries are NULL */
-		memset(lpAttrs, 0, sizeof(const char *) * ulSize);
-
-		ulAttrs = 0;
-		ulMaxAttrs = ulSize;
-	}
-
-	~attrArray()
-	{
-		delete [] lpAttrs;
+		memset(lpAttrs.get(), 0, sizeof(const char *) * ulSize);
 	}
 
 	void add(const char *lpAttr)
@@ -230,13 +225,13 @@ public:
 
 	const char **get()
 	{
-		return lpAttrs;
+		return lpAttrs.get();
 	}
 
 private:
-	const char **lpAttrs;
 	unsigned int ulAttrs;
 	unsigned int ulMaxAttrs;
+	std::unique_ptr<const char *[]> lpAttrs;
 };
 
 /* Make life a bit less boring */

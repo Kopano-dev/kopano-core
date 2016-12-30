@@ -79,7 +79,9 @@ HRESULT ECRestriction::FindRowIn(LPMAPITABLE lpTable, BOOKMARK BkOrigin, ULONG u
  *							the address of the newly allocated SPropValue.
  * @retval	MAPI_E_INVALID_PARAMETER	lpPropSrc or lppPropDst is NULL.
  */
-HRESULT ECRestriction::CopyProp(LPSPropValue lpPropSrc, LPVOID lpBase, ULONG ulFlags, LPSPropValue *lppPropDst) const {
+HRESULT ECRestriction::CopyProp(SPropValue *lpPropSrc, void *lpBase,
+    ULONG ulFlags, SPropValue **lppPropDst)
+{
 	HRESULT hr = hrSuccess;
 	LPSPropValue lpPropDst = NULL;
 
@@ -121,7 +123,9 @@ exit:
  *							the address of the newly allocated SPropValue array.
  * @retval	MAPI_E_INVALID_PARAMETER	lpPropSrc or lppPropDst is NULL.
  */
-HRESULT ECRestriction::CopyPropArray(ULONG cValues, LPSPropValue lpPropSrc, LPVOID lpBase, ULONG ulFlags, LPSPropValue *lppPropDst) const {
+HRESULT ECRestriction::CopyPropArray(ULONG cValues, SPropValue *lpPropSrc,
+    void *lpBase, ULONG ulFlags, SPropValue **lppPropDst)
+{
 	HRESULT hr = hrSuccess;
 	LPSPropValue lpPropDst = NULL;
 
@@ -389,7 +393,7 @@ HRESULT ECPropertyRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction 
 	restriction.res.resProperty.ulPropTag = m_ulPropTag;
 
 	if (ulFlags & ECRestriction::Cheap)
-		restriction.res.resContent.lpProp = m_ptrProp.get();
+		restriction.res.resProperty.lpProp = m_ptrProp.get();
 	else {
 		HRESULT hr = CopyProp(m_ptrProp.get(), lpBase, ulFlags, &restriction.res.resContent.lpProp);
 		if (hr != hrSuccess)
@@ -424,24 +428,6 @@ ECRestriction *ECComparePropsRestriction::Clone(void) const _kc_lvqual
 }
 
 /**
- * ECSizeRestriction
- */
-HRESULT ECSizeRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG /*ulFlags*/) const {
-	if (lpBase == NULL || lpRestriction == NULL)
-		return MAPI_E_INVALID_PARAMETER;
-	lpRestriction->rt = RES_SIZE;
-	lpRestriction->res.resSize.cb = m_cb;
-	lpRestriction->res.resSize.relop = m_relop;
-	lpRestriction->res.resSize.ulPropTag = m_ulPropTag;
-	return hrSuccess;
-}
-
-ECRestriction *ECSizeRestriction::Clone(void) const _kc_lvqual
-{
-	return new ECSizeRestriction(m_relop, m_ulPropTag, m_cb);
-}
-
-/**
  * ECExistRestriction
  */
 HRESULT ECExistRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG /*ulFlags*/) const {
@@ -455,110 +441,6 @@ HRESULT ECExistRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpR
 ECRestriction *ECExistRestriction::Clone(void) const _kc_lvqual
 {
 	return new ECExistRestriction(m_ulPropTag);
-}
-
-/**
- * ECSubRestriction
- */
-ECSubRestriction::ECSubRestriction(ULONG ulSubObject, ResPtr ptrRestriction)
-: m_ulSubObject(ulSubObject)
-, m_ptrRestriction(ptrRestriction)
-{}
-
-HRESULT ECSubRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const {
-	SRestriction restriction = {0};
-
-	if (lpBase == NULL || lpRestriction == NULL)
-		return MAPI_E_INVALID_PARAMETER;
-
-	restriction.rt = RES_SUBRESTRICTION;
-	restriction.res.resSub.ulSubObject = m_ulSubObject;
-
-	HRESULT hr = MAPIAllocateMore(sizeof(*restriction.res.resSub.lpRes),
-	             lpBase, reinterpret_cast<LPVOID *>(&restriction.res.resSub.lpRes));
-	if (hr != hrSuccess)
-		return hr;
-	hr = m_ptrRestriction->GetMAPIRestriction(lpBase, restriction.res.resSub.lpRes, ulFlags);
-	if (hr != hrSuccess)
-		return hr;
-	*lpRestriction = restriction;
-	return hrSuccess;
-}
-
-ECRestriction *ECSubRestriction::Clone(void) const _kc_lvqual
-{
-	return new ECSubRestriction(m_ulSubObject, m_ptrRestriction);
-}
-
-/**
- * ECCommentRestriction
- */
-ECCommentRestriction::ECCommentRestriction(const ECRestriction &restriction, ULONG cValues, LPSPropValue lpProp, ULONG ulFlags)
-: m_ptrRestriction(ResPtr(restriction.Clone()))
-, m_cValues(cValues)
-{
-	if (ulFlags & ECRestriction::Cheap)
-		m_ptrProp.reset(lpProp, &ECRestriction::DummyFree);
-	else if (CopyProp(lpProp, NULL, ulFlags, &lpProp) == hrSuccess)
-		m_ptrProp.reset(lpProp, &MAPIFreeBuffer);
-}
-
-ECCommentRestriction::ECCommentRestriction(ECRestriction &&o, ULONG nvals,
-    SPropValue *prop, ULONG flags) :
-	m_ptrRestriction(ResPtr(std::move(o).Clone())), m_cValues(nvals)
-{
-	if (flags & ECRestriction::Cheap)
-		m_ptrProp.reset(prop, &ECRestriction::DummyFree);
-	else if (CopyProp(prop, NULL, flags, &prop) == hrSuccess)
-		m_ptrProp.reset(prop, &MAPIFreeBuffer);
-}
-
-ECCommentRestriction::ECCommentRestriction(ResPtr ptrRestriction, ULONG cValues, PropPtr ptrProp)
-: m_ptrRestriction(ptrRestriction)
-, m_cValues(cValues)
-, m_ptrProp(ptrProp)
-{ }
-
-ECCommentRestriction::ECCommentRestriction(ECCommentRestriction &&o) :
-    m_ptrRestriction(std::move(o.m_ptrRestriction)),
-    m_cValues(o.m_cValues), m_ptrProp(std::move(o.m_ptrProp))
-{
-	o.m_cValues = 0;
-}
-
-HRESULT ECCommentRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRestriction, ULONG ulFlags) const {
-	HRESULT hr;
-	SRestriction restriction = {0};
-
-	if (lpBase == NULL || lpRestriction == NULL)
-		return MAPI_E_INVALID_PARAMETER;
-	if (!m_ptrProp)
-		return MAPI_E_NOT_ENOUGH_MEMORY;
-
-	restriction.rt = RES_COMMENT;
-	restriction.res.resComment.cValues = m_cValues;
-
-	if (ulFlags & ECRestriction::Cheap)
-		restriction.res.resContent.lpProp = m_ptrProp.get();
-	else {
-		hr = CopyProp(m_ptrProp.get(), lpBase, ulFlags, &restriction.res.resContent.lpProp);
-		if (hr != hrSuccess)
-			return hr;
-	}
-
-	hr = MAPIAllocateMore(sizeof *restriction.res.resSub.lpRes, lpBase, (LPVOID*)&restriction.res.resComment.lpRes);
-	if (hr != hrSuccess)
-		return hr;
-	hr = m_ptrRestriction->GetMAPIRestriction(lpBase, restriction.res.resComment.lpRes, ulFlags);
-	if (hr != hrSuccess)
-		return hr;
-	*lpRestriction = restriction;
-	return hrSuccess;
-}
-
-ECRestriction *ECCommentRestriction::Clone(void) const _kc_lvqual
-{
-	return new ECCommentRestriction(m_ptrRestriction, m_cValues, m_ptrProp);
 }
 
 /**

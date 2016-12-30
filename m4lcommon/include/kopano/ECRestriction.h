@@ -104,8 +104,8 @@ protected:
 	typedef std::list<ResPtr>					ResList;
 
 	_kc_hidden ECRestriction(void) {}
-	_kc_hidden HRESULT CopyProp(LPSPropValue propsrc, LPVOID base, ULONG flags, LPSPropValue *propdst) const;
-	_kc_hidden HRESULT CopyPropArray(ULONG nvals, LPSPropValue propsrc, LPVOID base, ULONG flags, LPSPropValue *propdst) const;
+	_kc_hidden static HRESULT CopyProp(SPropValue *src, void *base, ULONG flags, SPropValue **dst);
+	_kc_hidden static HRESULT CopyPropArray(ULONG nvals, SPropValue *src, void *base, ULONG flags, SPropValue **dst);
 	_kc_hidden static void DummyFree(LPVOID);
 };
 
@@ -323,26 +323,6 @@ private:
 	ULONG	m_ulPropTag2;
 };
 
-class ECSizeRestriction _kc_final : public ECRestriction {
-public:
-	_kc_hidden ECSizeRestriction(ULONG relop, ULONG ulPropTag, ULONG cb)
-	: m_relop(relop)
-	, m_ulPropTag(ulPropTag)
-	, m_cb(cb)
-	{ }
-
-	HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
-	ECRestriction *Clone(void) const _kc_lvqual _kc_override;
-#ifdef HAVE_MF_QUAL
-	_kc_hidden ECRestriction *Clone(void) && _kc_override { return new ECSizeRestriction(std::move(*this)); }
-#endif
-
-private:
-	ULONG	m_relop;
-	ULONG	m_ulPropTag;
-	ULONG	m_cb;
-};
-
 class _kc_export ECExistRestriction _kc_final : public ECRestriction {
 public:
 	_kc_hidden ECExistRestriction(ULONG ulPropTag)
@@ -357,50 +337,6 @@ public:
 
 private:
 	ULONG	m_ulPropTag;
-};
-
-class ECSubRestriction _kc_final : public ECRestriction {
-public:
-	_kc_hidden ECSubRestriction(ULONG ulSubObject, const ECRestriction &restriction)
-	: m_ulSubObject(ulSubObject)
-	, m_ptrRestriction(ResPtr(restriction.Clone()))
-	{ }
-	_kc_hidden ECSubRestriction(ULONG s, ECRestriction &&o) :
-		m_ulSubObject(s), m_ptrRestriction(ResPtr(std::move(o).Clone()))
-	{}
-
-	HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
-	ECRestriction *Clone(void) const _kc_lvqual _kc_override;
-#ifdef HAVE_MF_QUAL
-	_kc_hidden ECRestriction *Clone(void) && _kc_override { return new ECSubRestriction(std::move(*this)); }
-#endif
-
-private:
-	ECSubRestriction(ULONG ulSubObject, ResPtr ptrRestriction);
-
-private:
-	ULONG	m_ulSubObject;
-	ResPtr	m_ptrRestriction;
-};
-
-class ECCommentRestriction _kc_final : public ECRestriction {
-public:
-	ECCommentRestriction(const ECRestriction &restriction, ULONG cValues, LPSPropValue lpProp, ULONG ulFlags = 0);
-	ECCommentRestriction(ECRestriction &&, ULONG nprops, SPropValue *, ULONG flags = 0);
-	ECCommentRestriction(ECCommentRestriction &&);
-	HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
-	ECRestriction *Clone(void) const _kc_lvqual _kc_override;
-#ifdef HAVE_MF_QUAL
-	_kc_hidden ECRestriction *Clone(void) && _kc_override { return new ECCommentRestriction(std::move(*this)); }
-#endif
-
-private:
-	ECCommentRestriction(ResPtr ptrRestriction, ULONG cValues, PropPtr ptrProp);
-
-private:
-	ResPtr	m_ptrRestriction;
-	ULONG	m_cValues;
-	PropPtr	m_ptrProp;
 };
 
 /**
