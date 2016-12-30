@@ -2154,7 +2154,7 @@ HRESULT IMAP::HrCmdSearch(const string &strTag, vector<string> &lstSearchCriteri
 		}
 		ulCriterianr += 2;
 	}
-	hr = HrSearch(lstSearchCriteria, ulCriterianr, lstMailnr, iconv.get());
+	hr = HrSearch(lstSearchCriteria, ulCriterianr, lstMailnr);
 	if (hr != hrSuccess) {
 		HRESULT hr2 = HrResponse(RESP_TAGGED_NO, strTag, strMode+"SEARCH error");
 		if (hr2 != hrSuccess)
@@ -5133,11 +5133,12 @@ exit:
  * @param[in] lstSearchCriteria search options from the (this value is modified, cannot be used again)
  * @param[in] ulStartCriteria offset in the lstSearchCriteria to start parsing
  * @param[out] lstMailnr number of email messages that match the search criteria
- * @param[in] iconv make sure we search using the correct charset @todo, in the unicode tree this has a whole other meaning.
  * 
  * @return MAPI Error code
  */
-HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria, list<ULONG> &lstMailnr, ECIConv *iconv) {
+HRESULT IMAP::HrSearch(std::vector<std::string> &lstSearchCriteria,
+    ULONG &ulStartCriteria, std::list<ULONG> &lstMailnr)
+{
 	HRESULT hr = hrSuccess;
 	string strSearchCriterium;
 	vector<string> vSubSearch;
@@ -5361,9 +5362,6 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
 			if (hr != hrSuccess)
 				return hr;
-			if (iconv)
-				iconv->convert(lstSearchCriteria[ulStartCriteria+1]);
-
 			hr = MAPIAllocateMore(lstSearchCriteria[ulStartCriteria + 1].size() + 1, lpRootRestrict,
 								  (LPVOID *) &szBuffer);
 			if (hr != hrSuccess)
@@ -5447,10 +5445,6 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
 			if (hr != hrSuccess)
 				return hr;
-
-			if (iconv)
-				iconv->convert(lstSearchCriteria[ulStartCriteria+1]);
-
 			hr = MAPIAllocateMore(lstSearchCriteria[ulStartCriteria + 1].size() + 1, lpRootRestrict,
 								  (LPVOID *) &szBuffer);
 			if (hr != hrSuccess)
@@ -5864,10 +5858,6 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
 			if (hr != hrSuccess)
 				return hr;
-
-			if (iconv)
-				iconv->convert(lstSearchCriteria[ulStartCriteria+1]);
-
 			hr = MAPIAllocateMore(lstSearchCriteria[ulStartCriteria + 1].size() + 1, lpRootRestrict,
 								  (LPVOID *) &szBuffer);
 			if (hr != hrSuccess)
@@ -5897,10 +5887,6 @@ HRESULT IMAP::HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria
 			hr = MAPIAllocateMore(sizeof(SPropValue), lpRootRestrict, (LPVOID *) &lpPropVal);
 			if (hr != hrSuccess)
 				return hr;
-
-			if (iconv)
-				iconv->convert(lstSearchCriteria[ulStartCriteria+1]);
-
 			hr = MAPIAllocateMore(lstSearchCriteria[ulStartCriteria + 1].size() + 1, lpRootRestrict,
 								  (LPVOID *) &szBuffer);
 			if (hr != hrSuccess)

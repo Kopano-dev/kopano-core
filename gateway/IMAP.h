@@ -345,8 +345,7 @@ private:
 
 	HRESULT HrStore(const list<ULONG> &lstMails, string strMsgDataItemName, string strMsgDataItemValue, bool *lpbDoDelete);
 	HRESULT HrCopy(const list<ULONG> &lstMails, const string &strFolder, bool bMove);
-	HRESULT HrSearch(vector<string> &lstSearchCriteria, ULONG &ulStartCriteria, list<ULONG> &lstMailnr, ECIConv *iconv);
-
+	HRESULT HrSearch(std::vector<std::string> &cond, ULONG &startcond, std::list<ULONG> &mailnr);
 	string GetHeaderValue(const string &strMessage, const string &strHeader, const string &strDefault);
 	HRESULT HrGetBodyStructure(bool bExtended, string &strBodyStructure, const string& strMessage);
 
