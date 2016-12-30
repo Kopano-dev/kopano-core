@@ -27,6 +27,7 @@
 #include <stack>
 #include <set>
 #include <map>
+#include <cstring>
 
 #include <edkmdb.h>
 
@@ -3233,9 +3234,10 @@ HRESULT Util::QueryInterfaceMapiPropOrValidFallback(LPUNKNOWN lpInObj, LPCIID lp
  * 
  * @return MAPI error code
  */
-HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, LPVOID lpSrcObj, LPSPropTagArray lpIncludeProps, ULONG ulUIParam,
-						  LPMAPIPROGRESS lpProgress, LPCIID lpDestInterface, LPVOID lpDestObj, ULONG ulFlags,
-						  LPSPropProblemArray * lppProblems)
+HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, void *lpSrcObj,
+    SPropTagArray *inclprop, ULONG ulUIParam, LPMAPIPROGRESS lpProgress,
+    LPCIID lpDestInterface, void *lpDestObj, ULONG ulFlags,
+    SPropProblemArray **lppProblems)
 {
 	HRESULT hr = hrSuccess;
 	LPUNKNOWN lpUnkSrc = (LPUNKNOWN)lpSrcObj, lpUnkDest = (LPUNKNOWN)lpDestObj;
@@ -3250,6 +3252,7 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, LPVOID lpSrcObj, LPSPropTagArra
 
 	// named props
 	ULONG cNames = 0;
+	memory_ptr<SPropTagArray> lpIncludeProps;
 	memory_ptr<SPropTagArray> lpsSrcNameTagArray, lpsDestNameTagArray;
 	memory_ptr<SPropTagArray> lpsDestTagArray;
 	memory_ptr<MAPINAMEID *> lppNames;
@@ -3262,7 +3265,9 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, LPVOID lpSrcObj, LPSPropTagArra
 	LONG ulIdBODY;
 	ULONG ulBodyProp = PR_BODY;
 
-	if (!lpSrcInterface || !lpDestInterface || !lpSrcObj || !lpDestObj || !lpIncludeProps) {
+	if (lpSrcInterface == nullptr || lpDestInterface == nullptr ||
+	    lpSrcObj == nullptr || lpDestObj == nullptr ||
+	    inclprop == nullptr) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
@@ -3279,6 +3284,12 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, LPVOID lpSrcObj, LPSPropTagArra
 	if (HrGetOneProp(lpDestProp, PR_EC_OBJECT, &~lpZObj) == hrSuccess &&
 	    lpZObj->Value.lpszA != NULL)
 		reinterpret_cast<IECUnknown *>(lpZObj->Value.lpszA)->QueryInterface(IID_ECMessage, &~lpKopano);
+
+	/* remember which props not to copy */
+	hr = MAPIAllocateBuffer(CbNewSPropTagArray(inclprop->cValues), &~lpIncludeProps);
+	if (hr != hrSuccess)
+		return hr;
+	memcpy(lpIncludeProps, inclprop, CbNewSPropTagArray(inclprop->cValues));
 
 	if (ulFlags & MAPI_NOREPLACE) {
 		hr = lpDestProp->GetPropList(MAPI_UNICODE, &~lpsDestPropArray);
