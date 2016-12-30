@@ -132,9 +132,7 @@ public:
 	virtual HRESULT __stdcall DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj, ULONG ciidExclude, LPCIID rgiidExclude,
 							 LPSPropTagArray lpExcludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpDestInterface,
 							 LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray * lppProblems); 
-	virtual HRESULT __stdcall DoCopyProps(LPCIID lpSrcInterface, LPVOID lpSrcObj, LPSPropTagArray lpIncludeProps, ULONG ulUIParam,
-								LPMAPIPROGRESS lpProgress, LPCIID lpDestInterface, LPVOID lpDestObj, ULONG ulFlags,
-								LPSPropProblemArray * lppProblems); 
+	virtual HRESULT __stdcall DoCopyProps(LPCIID lpSrcInterface, LPVOID lpSrcObj, const SPropTagArray *lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpDestInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems);
 	virtual HRESULT __stdcall DoProgressDialog(ULONG ulUIParam, ULONG ulFlags, LPMAPIPROGRESS * lppProgress); 
 	virtual HRESULT __stdcall ReadReceipt(ULONG ulFlags, LPMESSAGE lpReadMessage, LPMESSAGE * lppEmptyMessage); 
 	virtual HRESULT __stdcall PrepareSubmit(LPMESSAGE lpMessage, ULONG * lpulFlags); 

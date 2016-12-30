@@ -2578,8 +2578,10 @@ HRESULT M4LAddrBook::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagAr
 	return hr;
 }
 
-HRESULT M4LAddrBook::CopyProps(LPSPropTagArray lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface,
-							   LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray* lppProblems) {
+HRESULT M4LAddrBook::CopyProps(const SPropTagArray *lpIncludeProps,
+    ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface,
+    void *lpDestObj, ULONG ulFlags, SPropProblemArray **lppProblems)
+{
     TRACE_MAPILIB(TRACE_ENTRY, "M4LAddrBook::CopyProps", "");
 	HRESULT hr = M4LMAPIProp::CopyProps(lpIncludeProps, ulUIParam, lpProgress, lpInterface,
 										lpDestObj, ulFlags, lppProblems);

@@ -315,8 +315,10 @@ HRESULT M4LMAPIProp::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagAr
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LMAPIProp::CopyProps(LPSPropTagArray lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface,
-			       LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray* lppProblems) {
+HRESULT M4LMAPIProp::CopyProps(const SPropTagArray *lpIncludeProps,
+    ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface,
+    void *lpDestObj, ULONG ulFlags, SPropProblemArray **lppProblems)
+{
 	TRACE_MAPILIB(TRACE_ENTRY, "IMAPIProp::CopyProps", "");
 	TRACE_MAPILIB1(TRACE_RETURN, "IMAPIProp::CopyProps", "0x%08x", MAPI_E_NO_SUPPORT);
 	return MAPI_E_NO_SUPPORT;
@@ -429,8 +431,10 @@ HRESULT M4LProfSect::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagAr
 							   lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
 }
 
-HRESULT M4LProfSect::CopyProps(LPSPropTagArray lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface,
-							   LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray* lppProblems) {
+HRESULT M4LProfSect::CopyProps(const SPropTagArray *lpIncludeProps,
+    ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface,
+    void *lpDestObj, ULONG ulFlags, SPropProblemArray **lppProblems)
+{
 	return M4LMAPIProp::CopyProps(lpIncludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
 }
 
@@ -1020,8 +1024,10 @@ HRESULT M4LMAPIContainer::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSProp
 	return M4LMAPIProp::CopyTo(ciidExclude, rgiidExclude, lpExcludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
 }
 
-HRESULT M4LMAPIContainer::CopyProps(LPSPropTagArray lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface,
-									LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray* lppProblems) {
+HRESULT M4LMAPIContainer::CopyProps(const SPropTagArray *lpIncludeProps,
+    ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface,
+    void *lpDestObj, ULONG ulFlags, SPropProblemArray **lppProblems)
+{
 	return M4LMAPIProp::CopyProps(lpIncludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
 }
 
@@ -1266,8 +1272,10 @@ HRESULT M4LABContainer::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTa
 	return M4LMAPIProp::CopyTo(ciidExclude, rgiidExclude, lpExcludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
 }
 
-HRESULT M4LABContainer::CopyProps(LPSPropTagArray lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface,
-									LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray* lppProblems) {
+HRESULT M4LABContainer::CopyProps(const SPropTagArray *lpIncludeProps,
+    ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface,
+    void *lpDestObj, ULONG ulFlags, SPropProblemArray **lppProblems)
+{
 	return M4LMAPIProp::CopyProps(lpIncludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
 }
 

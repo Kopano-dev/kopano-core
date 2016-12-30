@@ -126,8 +126,7 @@ public:
     virtual HRESULT CopyTo(ULONG cInterfaces, LPCIID lpInterfaces, LPSPropTagArray lpExcludeProps, ULONG ulUIParam,
 			   IMAPIProgress * lpProgress, LPCIID lpInterface, void *lpDestObj, ULONG ulFlags,
 			   LPSPropProblemArray* OUTPUT /*lppProblems*/) = 0;
-    virtual HRESULT CopyProps(LPSPropTagArray lpIncludeProps, ULONG ulUIParam, IMAPIProgress * lpProgress, LPCIID lpInterface,
-			      void* lpDestObj, ULONG ulFlags, LPSPropProblemArray* OUTPUT /*lppProblems*/) = 0;
+	virtual HRESULT CopyProps(const SPropTagArray *lpIncludeProps, ULONG ulUIParam, IMAPIProgress *lpProgress, LPCIID lpInterface, void *lpDestObj, ULONG ulFlags, LPSPropProblemArray *OUTPUT /*lppProblems*/) = 0;
     virtual HRESULT GetNamesFromIDs(LPSPropTagArray* lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG* OUTPUTC,
 				    LPMAPINAMEID** OUTPUTP /*lpppPropNames*/) = 0;
     virtual HRESULT GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID* lppPropNames, ULONG ulFlags, LPSPropTagArray* OUTPUT /*lppPropTags*/) = 0;

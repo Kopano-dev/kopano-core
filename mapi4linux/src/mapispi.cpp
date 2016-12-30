@@ -473,9 +473,11 @@ HRESULT M4LMAPISupport::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj, ULONG c
 	return hr;
 }
 
-HRESULT M4LMAPISupport::DoCopyProps(LPCIID lpSrcInterface, LPVOID lpSrcObj, LPSPropTagArray lpIncludeProps, ULONG ulUIParam,
-									LPMAPIPROGRESS lpProgress, LPCIID lpDestInterface, LPVOID lpDestObj, ULONG ulFlags,
-									LPSPropProblemArray * lppProblems) {
+HRESULT M4LMAPISupport::DoCopyProps(LPCIID lpSrcInterface, void *lpSrcObj,
+    const SPropTagArray *lpIncludeProps, ULONG ulUIParam,
+    LPMAPIPROGRESS lpProgress, LPCIID lpDestInterface, void *lpDestObj,
+    ULONG ulFlags, SPropProblemArray **lppProblems)
+{
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPISupport::DoCopyProps", "");
 	HRESULT hr = hrSuccess;
 

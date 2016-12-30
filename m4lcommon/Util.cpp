@@ -3235,7 +3235,7 @@ HRESULT Util::QueryInterfaceMapiPropOrValidFallback(LPUNKNOWN lpInObj, LPCIID lp
  * @return MAPI error code
  */
 HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, void *lpSrcObj,
-    SPropTagArray *inclprop, ULONG ulUIParam, LPMAPIPROGRESS lpProgress,
+    const SPropTagArray *inclprop, ULONG ulUIParam, LPMAPIPROGRESS lpProgress,
     LPCIID lpDestInterface, void *lpDestObj, ULONG ulFlags,
     SPropProblemArray **lppProblems)
 {
