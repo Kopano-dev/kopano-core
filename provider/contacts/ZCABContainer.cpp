@@ -1061,7 +1061,8 @@ HRESULT ZCABContainer::ResolveNames(LPSPropTagArray lpPropTagArray, ULONG ulFlag
 }
 
 // IMAPIProp for m_lpDistList
-HRESULT ZCABContainer::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG *lpcValues, LPSPropValue *lppPropArray)
+HRESULT ZCABContainer::GetProps(const SPropTagArray *lpPropTagArray,
+    ULONG ulFlags, ULONG *lpcValues, SPropValue **lppPropArray)
 {
 	if (m_lpDistList != NULL)
 		return m_lpDistList->GetProps(lpPropTagArray, ulFlags, lpcValues, lppPropArray);
@@ -1096,7 +1097,7 @@ DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, GetSearchCriteria, (ULONG,
 // Interface IMAPIProp
 DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, ABContainer, GetLastError, (HRESULT, hError), (ULONG, ulFlags), (LPMAPIERROR *, lppMapiError))
 DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, ABContainer, SaveChanges, (ULONG, ulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, GetProps, (LPSPropTagArray, lpPropTagArray), (ULONG, ulFlags), (ULONG *, lpcValues), (LPSPropValue *, lppPropArray))
+DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, GetProps, (const SPropTagArray *, lpPropTagArray), (ULONG, ulFlags), (ULONG *, lpcValues), (SPropValue **, lppPropArray))
 DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, GetPropList, (ULONG, ulFlags), (LPSPropTagArray *, lppPropTagArray))
 DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, ABContainer, OpenProperty, (ULONG, ulPropTag), (LPCIID, lpiid), (ULONG, ulInterfaceOptions), (ULONG, ulFlags), (LPUNKNOWN *, lppUnk))
 DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, ABContainer, SetProps, (ULONG, cValues), (LPSPropValue, lpPropArray), (LPSPropProblemArray *, lppProblems))

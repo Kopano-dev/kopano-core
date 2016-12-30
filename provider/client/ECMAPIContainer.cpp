@@ -174,7 +174,7 @@ DEF_ULONGMETHOD1(TRACE_MAPI, ECMAPIContainer, MAPIContainer, Release, (void))
 // From IMAPIProp
 DEF_HRMETHOD1(TRACE_MAPI, ECMAPIContainer, MAPIContainer, GetLastError, (HRESULT, hError), (ULONG, ulFlags), (LPMAPIERROR *, lppMapiError))
 DEF_HRMETHOD1(TRACE_MAPI, ECMAPIContainer, MAPIContainer, SaveChanges, (ULONG, ulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIContainer, MAPIContainer, GetProps, (LPSPropTagArray, lpPropTagArray), (ULONG, ulFlags), (ULONG *, lpcValues), (LPSPropValue *, lppPropArray))
+DEF_HRMETHOD1(TRACE_MAPI, ECMAPIContainer, MAPIContainer, GetProps, (const SPropTagArray *, lpPropTagArray), (ULONG, ulFlags), (ULONG *, lpcValues), (SPropValue **, lppPropArray))
 DEF_HRMETHOD1(TRACE_MAPI, ECMAPIContainer, MAPIContainer, GetPropList, (ULONG, ulFlags), (LPSPropTagArray *, lppPropTagArray))
 DEF_HRMETHOD1(TRACE_MAPI, ECMAPIContainer, MAPIContainer, OpenProperty, (ULONG, ulPropTag), (LPCIID, lpiid), (ULONG, ulInterfaceOptions), (ULONG, ulFlags), (LPUNKNOWN *, lppUnk))
 DEF_HRMETHOD1(TRACE_MAPI, ECMAPIContainer, MAPIContainer, SetProps, (ULONG, cValues), (LPSPropValue, lpPropArray), (LPSPropProblemArray *, lppProblems))

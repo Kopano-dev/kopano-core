@@ -833,7 +833,8 @@ exit:
 	return hr;
 }
 
-HRESULT ECGenericProp::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG *lpcValues, LPSPropValue *lppPropArray)
+HRESULT ECGenericProp::GetProps(const SPropTagArray *lpPropTagArray,
+    ULONG ulFlags, ULONG *lpcValues, SPropValue **lppPropArray)
 {
 	HRESULT			hr = hrSuccess;
 	HRESULT			hrT = hrSuccess;
@@ -1154,7 +1155,7 @@ DEF_ULONGMETHOD0(ECGenericProp, MAPIProp, AddRef, (void))
 DEF_ULONGMETHOD0(ECGenericProp, MAPIProp, Release, (void))
 DEF_HRMETHOD0(ECGenericProp, MAPIProp, GetLastError, (HRESULT, hError), (ULONG, ulFlags), (LPMAPIERROR *, lppMapiError))
 DEF_HRMETHOD0(ECGenericProp, MAPIProp, SaveChanges, (ULONG, ulFlags))
-DEF_HRMETHOD0(ECGenericProp, MAPIProp, GetProps, (LPSPropTagArray, lpPropTagArray), (ULONG, ulFlags), (ULONG *, lpcValues), (LPSPropValue *, lppPropArray))
+DEF_HRMETHOD0(ECGenericProp, MAPIProp, GetProps, (const SPropTagArray *, lpPropTagArray), (ULONG, ulFlags), (ULONG *, lpcValues), (SPropValue **, lppPropArray))
 DEF_HRMETHOD0(ECGenericProp, MAPIProp, GetPropList, (ULONG, ulFlags), (LPSPropTagArray *, lppPropTagArray))
 DEF_HRMETHOD0(ECGenericProp, MAPIProp, OpenProperty, (ULONG, ulPropTag), (LPCIID, lpiid), (ULONG, ulInterfaceOptions), (ULONG, ulFlags), (LPUNKNOWN *, lppUnk))
 DEF_HRMETHOD0(ECGenericProp, MAPIProp, SetProps, (ULONG, cValues), (LPSPropValue, lpPropArray), (LPSPropProblemArray *, lppProblems))

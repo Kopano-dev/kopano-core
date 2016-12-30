@@ -1610,7 +1610,7 @@ public:
 
 	HRESULT __stdcall GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError) _kc_override { return MAPI_E_NOT_FOUND; }
 	HRESULT __stdcall SaveChanges(ULONG ulFlags) _kc_override { return MAPI_E_NO_SUPPORT; }
-	HRESULT __stdcall GetProps(LPSPropTagArray lpTags, ULONG ulFlags, ULONG *lpcValues, LPSPropValue *lppProps) _kc_override
+	HRESULT __stdcall GetProps(const SPropTagArray *lpTags, ULONG ulFlags, ULONG *lpcValues, SPropValue **lppProps) _kc_override
 	{
 		HRESULT hr = hrSuccess;
 		BOOL bError;

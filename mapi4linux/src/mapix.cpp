@@ -2529,7 +2529,9 @@ HRESULT M4LAddrBook::SaveChanges(ULONG ulFlags) {
 	return hr;
 }
 
-HRESULT M4LAddrBook::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG* lpcValues, LPSPropValue* lppPropArray) {
+HRESULT M4LAddrBook::GetProps(const SPropTagArray *lpPropTagArray,
+    ULONG ulFlags, ULONG *lpcValues, SPropValue **lppPropArray)
+{
     TRACE_MAPILIB(TRACE_ENTRY, "M4LAddrBook::GetProps", "");
 	HRESULT hr = M4LMAPIProp::GetProps(lpPropTagArray, ulFlags, lpcValues, lppPropArray);
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LAddrBook::GetProps", "0x%08x", hr);

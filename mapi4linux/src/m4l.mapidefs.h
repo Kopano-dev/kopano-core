@@ -38,7 +38,7 @@ public:
 	virtual ~M4LMAPIProp(void);
 	virtual HRESULT __stdcall GetLastError(HRESULT, ULONG flags, LPMAPIERROR *) _kc_override;
 	virtual HRESULT __stdcall SaveChanges(ULONG flags) _kc_override;
-	virtual HRESULT __stdcall GetProps(LPSPropTagArray proptag, ULONG flags, ULONG *nvals, LPSPropValue *prop) _kc_override;
+	virtual HRESULT __stdcall GetProps(const SPropTagArray *proptag, ULONG flags, ULONG *nvals, LPSPropValue *prop) _kc_override;
 	virtual HRESULT __stdcall GetPropList(ULONG flags, LPSPropTagArray *proptag) _kc_override;
 	virtual HRESULT __stdcall OpenProperty(ULONG proptag, LPCIID lpiid, ULONG ifaceopts, ULONG flags, LPUNKNOWN *) _kc_override;
 	virtual HRESULT __stdcall SetProps(ULONG nvals, LPSPropValue prop, LPSPropProblemArray *) _kc_override;
@@ -68,7 +68,7 @@ public:
 	// imapiprop passthru
 	virtual HRESULT __stdcall GetLastError(HRESULT, ULONG flags, LPMAPIERROR *) _kc_override;
 	virtual HRESULT __stdcall SaveChanges(ULONG flags) _kc_override;
-	virtual HRESULT __stdcall GetProps(LPSPropTagArray proptag, ULONG flags, ULONG *lpcValues, LPSPropValue *prop) _kc_override;
+	virtual HRESULT __stdcall GetProps(const SPropTagArray *proptag, ULONG flags, ULONG *lpcValues, LPSPropValue *prop) _kc_override;
 	virtual HRESULT __stdcall GetPropList(ULONG flags, LPSPropTagArray *) _kc_override;
 	virtual HRESULT __stdcall OpenProperty(ULONG proptag, LPCIID lpiid, ULONG ifaceopts, ULONG flags, LPUNKNOWN *) _kc_override;
 	virtual HRESULT __stdcall SetProps(ULONG nvals, LPSPropValue prop, LPSPropProblemArray *) _kc_override;
@@ -164,7 +164,7 @@ public:
 	// imapiprop passthru
 	virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG flags, LPMAPIERROR *lppMAPIError) _kc_override;
 	virtual HRESULT __stdcall SaveChanges(ULONG flags) _kc_override;
-	virtual HRESULT __stdcall GetProps(LPSPropTagArray, ULONG flags, ULONG *lpcValues, LPSPropValue *lppPropArray) _kc_override;
+	virtual HRESULT __stdcall GetProps(const SPropTagArray *, ULONG flags, ULONG *lpcValues, LPSPropValue *lppPropArray) _kc_override;
 	virtual HRESULT __stdcall GetPropList(ULONG flags, LPSPropTagArray *) _kc_override;
 	virtual HRESULT __stdcall OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG flags, LPUNKNOWN *lppUnk) _kc_override;
 	virtual HRESULT __stdcall SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray *) _kc_override;
@@ -210,7 +210,7 @@ public:
 	// imapiprop passthru
 	virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG flags, LPMAPIERROR *lppMAPIError) _kc_override;
 	virtual HRESULT __stdcall SaveChanges(ULONG flags) _kc_override;
-	virtual HRESULT __stdcall GetProps(LPSPropTagArray, ULONG flags, ULONG *lpcValues, LPSPropValue *lppPropArray) _kc_override;
+	virtual HRESULT __stdcall GetProps(const SPropTagArray *, ULONG flags, ULONG *lpcValues, LPSPropValue *lppPropArray) _kc_override;
 	virtual HRESULT __stdcall GetPropList(ULONG flags, LPSPropTagArray *) _kc_override;
 	virtual HRESULT __stdcall OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG flags, LPUNKNOWN *lppUnk) _kc_override;
 	virtual HRESULT __stdcall SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray *) _kc_override;

@@ -812,7 +812,8 @@ HRESULT ECMAPIFolder::EmptyFolder(ULONG ulUIParam, LPMAPIPROGRESS lpProgress, UL
 	return lpFolderOps->HrEmptyFolder(ulFlags, 0);
 }
 
-HRESULT ECMAPIFolder::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG *lpcValues, LPSPropValue *lppPropArray)
+HRESULT ECMAPIFolder::GetProps(const SPropTagArray *lpPropTagArray,
+    ULONG ulFlags, ULONG *lpcValues, SPropValue **lppPropArray)
 {
 	HRESULT hr;
 	
@@ -871,7 +872,7 @@ DEF_ULONGMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, AddRef, (void))
 DEF_ULONGMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, Release, (void))
 DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, GetLastError, (HRESULT, hError), (ULONG, ulFlags), (LPMAPIERROR *, lppMapiError))
 DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, SaveChanges, (ULONG, ulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, GetProps, (LPSPropTagArray, lpPropTagArray), (ULONG, ulFlags), (ULONG *, lpcValues), (LPSPropValue *, lppPropArray))
+DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, GetProps, (const SPropTagArray *, lpPropTagArray), (ULONG, ulFlags), (ULONG *, lpcValues), (SPropValue **, lppPropArray))
 DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, GetPropList, (ULONG, ulFlags), (LPSPropTagArray *, lppPropTagArray))
 DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, OpenProperty, (ULONG, ulPropTag), (LPCIID, lpiid), (ULONG, ulInterfaceOptions), (ULONG, ulFlags), (LPUNKNOWN *, lppUnk))
 DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, SetProps, (ULONG, cValues), (LPSPropValue, lpPropArray), (LPSPropProblemArray *, lppProblems))

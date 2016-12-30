@@ -65,7 +65,9 @@ HRESULT M4LMAPIProp::SaveChanges(ULONG ulFlags) {
 	return hrSuccess;
 }
 
-HRESULT M4LMAPIProp::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG* lpcValues, LPSPropValue* lppPropArray) {
+HRESULT M4LMAPIProp::GetProps(const SPropTagArray *lpPropTagArray,
+    ULONG ulFlags, ULONG *lpcValues, SPropValue **lppPropArray)
+{
 	TRACE_MAPILIB2(TRACE_ENTRY, "IMAPIProp::GetProps", "PropTagArray=%s\nfFlags=0x%08X", PropNameFromPropTagArray(lpPropTagArray).c_str(), ulFlags);
 	list<LPSPropValue>::const_iterator i;
 	ULONG c;
@@ -395,7 +397,9 @@ HRESULT M4LProfSect::SaveChanges(ULONG ulFlags) {
 	return M4LMAPIProp::SaveChanges(ulFlags);
 }
 
-HRESULT M4LProfSect::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG* lpcValues, LPSPropValue* lppPropArray) {
+HRESULT M4LProfSect::GetProps(const SPropTagArray *lpPropTagArray,
+    ULONG ulFlags, ULONG *lpcValues, SPropValue **lppPropArray)
+{
 	return M4LMAPIProp::GetProps(lpPropTagArray, ulFlags, lpcValues, lppPropArray);
 }
 
@@ -982,7 +986,9 @@ HRESULT M4LMAPIContainer::SaveChanges(ULONG ulFlags) {
 	return M4LMAPIProp::SaveChanges(ulFlags);
 }
 
-HRESULT M4LMAPIContainer::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG* lpcValues, LPSPropValue* lppPropArray) {
+HRESULT M4LMAPIContainer::GetProps(const SPropTagArray *lpPropTagArray,
+    ULONG ulFlags, ULONG *lpcValues, SPropValue **lppPropArray)
+{
 	return M4LMAPIProp::GetProps(lpPropTagArray, ulFlags, lpcValues, lppPropArray);
 }
 
@@ -1224,7 +1230,9 @@ HRESULT M4LABContainer::SaveChanges(ULONG ulFlags) {
 	return M4LMAPIProp::SaveChanges(ulFlags);
 }
 
-HRESULT M4LABContainer::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG* lpcValues, LPSPropValue* lppPropArray) {
+HRESULT M4LABContainer::GetProps(const SPropTagArray *lpPropTagArray,
+    ULONG ulFlags, ULONG *lpcValues, SPropValue **lppPropArray)
+{
 	return M4LMAPIProp::GetProps(lpPropTagArray, ulFlags, lpcValues, lppPropArray);
 }
 

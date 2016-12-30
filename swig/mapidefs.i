@@ -118,7 +118,7 @@ public:
 
     virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* OUTPUT /*lppMAPIError*/) = 0;
     virtual HRESULT SaveChanges(ULONG ulFlags) = 0;
-    virtual HRESULT GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG* OUTPUTC /*lpcValues*/, LPSPropValue* OUTPUTP /*lppPropArray*/) = 0;
+	virtual HRESULT GetProps(const SPropTagArray *lpPropTagArray, ULONG ulFlags, ULONG *OUTPUTC /*lpcValues*/, LPSPropValue *OUTPUTP /*lppPropArray*/) = 0;
     virtual HRESULT GetPropList(ULONG ulFlags, LPSPropTagArray* OUTPUT /*lppPropTagArray*/) = 0;
     virtual HRESULT OpenProperty(ULONG ulPropTag, LPCIID USE_IID_FOR_OUTPUT, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN* OUTPUT_USE_IID /*lppUnk*/) = 0;
     virtual HRESULT SetProps(ULONG cValues, LPSPropValue lpProps, LPSPropProblemArray* OUTPUT /*lppProblems*/) = 0;
