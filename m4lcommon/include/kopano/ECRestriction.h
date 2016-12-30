@@ -177,15 +177,15 @@ public:
 	_kc_hidden ECRestriction *Clone(void) && _kc_override { return new ECAndRestriction(std::move(*this)); }
 #endif
 
-	_kc_hidden HRESULT operator+=(const ECRestriction &restriction)
+	ECRestriction *operator+=(const ECRestriction &restriction)
 	{
 		m_lstRestrictions.push_back(ResPtr(restriction.Clone()));
-		return hrSuccess;
+		return m_lstRestrictions.rbegin()->get();
 	}
-	_kc_hidden HRESULT operator+=(ECRestriction &&o)
+	ECRestriction *operator+=(ECRestriction &&o)
 	{
 		m_lstRestrictions.push_back(ResPtr(std::move(o).Clone()));
-		return hrSuccess;
+		return m_lstRestrictions.rbegin()->get();
 	}
 
 	HRESULT operator+=(const ECRestrictionList &list);
@@ -208,15 +208,15 @@ public:
 	ECRestriction *Clone(void) && _kc_override { return new ECOrRestriction(std::move(*this)); }
 #endif
 
-	_kc_hidden HRESULT operator+=(const ECRestriction &restriction)
+	ECRestriction *operator+=(const ECRestriction &restriction)
 	{
 		m_lstRestrictions.push_back(ResPtr(restriction.Clone()));
-		return hrSuccess;
+		return m_lstRestrictions.rbegin()->get();
 	}
-	_kc_hidden HRESULT operator+=(ECRestriction &&o)
+	ECRestriction *operator+=(ECRestriction &&o)
 	{
 		m_lstRestrictions.push_back(ResPtr(std::move(o).Clone()));
-		return hrSuccess;
+		return m_lstRestrictions.rbegin()->get();
 	}
 
 	HRESULT operator+=(const ECRestrictionList &list);
@@ -234,12 +234,23 @@ public:
 	_kc_hidden ECNotRestriction(ECRestriction &&o) :
 		m_ptrRestriction(std::move(o).Clone())
 	{}
+	ECNotRestriction(std::nullptr_t) {}
 
 	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
 	ECRestriction *Clone(void) const _kc_lvqual _kc_override;
 #ifdef HAVE_MF_QUAL
 	ECRestriction *Clone(void) && _kc_override { return new ECNotRestriction(std::move(*this)); }
 #endif
+	ECRestriction *operator+=(const ECRestriction &r)
+	{
+		m_ptrRestriction.reset(r.Clone());
+		return m_ptrRestriction.get();
+	}
+	ECRestriction *operator+=(ECRestriction &&r)
+	{
+		m_ptrRestriction.reset(std::move(r).Clone());
+		return m_ptrRestriction.get();
+	}
 
 private:
 	_kc_hidden ECNotRestriction(ResPtr restriction);
