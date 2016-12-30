@@ -70,9 +70,6 @@ ECImportHierarchyChangesProxy::ECImportHierarchyChangesProxy(const zval *v TSRML
 	ZVAL_OBJ(&m_lpObj, Z_OBJ_P(v));
 	Z_ADDREF(m_lpObj);
     this->m_cRef = 1; // Object is in use when created!
-#ifdef ZTS
-	this->TSRMLS_C = TSRMLS_C;
-#endif
 }
 
 ECImportHierarchyChangesProxy::~ECImportHierarchyChangesProxy() {

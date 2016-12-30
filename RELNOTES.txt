@@ -28,6 +28,7 @@ Enhancements:
 * server: allow search folder creation outside of own store [KC-271]
 * dagent: forwarding by rule can be restricted with a whitelist [KC-109]
 * search: add script for findroot upgrade [KC-300]
+* php: can build with ZTS again [KC-442]
 * php: ICS import/export functions [KC-302]
 * server: AWS4-HMAC-SHA256 support for S3 [KC-170]
 * pyko: permit "public@company" syntax to specify stores [KC-317]

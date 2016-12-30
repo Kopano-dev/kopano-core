@@ -26,9 +26,6 @@ class ECImportContentsChangesProxy _kc_final :
 private:
     ULONG m_cRef;
 	zval m_lpObj;
-#ifdef ZTS
-	TSRMLS_D;
-#endif
 public:
 	ECImportContentsChangesProxy(const zval *v TSRMLS_DC);
     ~ECImportContentsChangesProxy();
