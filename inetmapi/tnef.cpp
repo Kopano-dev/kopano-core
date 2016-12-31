@@ -535,7 +535,6 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 {
 	HRESULT hr = hrSuccess;
 	SizedSPropTagArray(1, sPropTagArray);
-	LPSPropTagArray lpsPropTagArray = sPropTagArray;
 	ULONG cNames = 0;
 	memory_ptr<MAPINAMEID *> lppNames;
 	ULONG ulLen = 0;
@@ -545,11 +544,15 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 	std::u16string ucs2;
 
 	if(PROP_ID(lpProp->ulPropTag) >= 0x8000) {
+		memory_ptr<SPropTagArray> lpsPropTagArray;
 		// Get named property GUID and ID or name
 		sPropTagArray.cValues = 1;
 		sPropTagArray.aulPropTag[0] = lpProp->ulPropTag;
 
-		hr = m_lpMessage->GetNamesFromIDs(&lpsPropTagArray, NULL, 0, &cNames, &~lppNames);
+		hr = Util::HrCopyPropTagArray(sPropTagArray, &~lpsPropTagArray);
+		if (hr != hrSuccess)
+			return hr;
+		hr = m_lpMessage->GetNamesFromIDs(&+lpsPropTagArray, NULL, 0, &cNames, &~lppNames);
 		if(hr != hrSuccess)
 			return hrSuccess;
 		if (cNames == 0 || lppNames == nullptr || lppNames[0] == nullptr)
