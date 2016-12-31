@@ -131,7 +131,7 @@ public:
 	_kc_hidden virtual HRESULT GetCollapseState(ULONG flags, ULONG ikey_size, LPBYTE ikey, ULONG *collapse_size, LPBYTE *collapse_state);
 	_kc_hidden virtual HRESULT SetCollapseState(ULONG flags, ULONG collapse_size, LPBYTE collapse_state, BOOKMARK *location);
 
-	class xMAPITable _kc_final : public IMAPITable {
+	class _kc_hidden xMAPITable _kc_final : public IMAPITable {
 		#include <kopano/xclsfrag/IUnknown.hpp>
 		#include <kopano/xclsfrag/IMAPITable.hpp>
 	} m_xMAPITable;
