@@ -66,10 +66,10 @@ class ECMemTableView;
 
 class _kc_export ECMemTable : public ECUnknown {
 protected:
-	ECMemTable(LPSPropTagArray lpsPropTagArray, ULONG ulRowPropTag);
+	ECMemTable(const SPropTagArray *lpsPropTagArray, ULONG ulRowPropTag);
 	virtual ~ECMemTable();
 public:
-	static  HRESULT Create(LPSPropTagArray lpsPropTagArray, ULONG ulRowPropTag, ECMemTable **lppRecipTable);
+	static HRESULT Create(const SPropTagArray *lpsPropTagArray, ULONG ulRowPropTag, ECMemTable **lppRecipTable);
 	_kc_hidden virtual HRESULT QueryInterface(REFIID refiid, void **iface) _kc_override;
 	virtual HRESULT HrGetView(const ECLocale &locale, ULONG ulFlags, ECMemTableView **lpView);
 

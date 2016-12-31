@@ -41,7 +41,8 @@ static SizedSPropTagArray(SHORTCUT_NUM, sPropsShortcuts) = {SHORTCUT_NUM, {
 	PR_FAV_DISPLAY_NAME, PR_FAV_DISPLAY_ALIAS, PR_FAV_LEVEL_MASK,
 	PR_FAV_CONTAINER_CLASS}};
 
-LPSPropTagArray GetShortCutTagArray() {
+const SPropTagArray *GetShortCutTagArray(void)
+{
 	return sPropsShortcuts;
 }
 

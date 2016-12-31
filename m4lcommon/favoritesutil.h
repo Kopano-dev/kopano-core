@@ -41,8 +41,7 @@ enum {
 	SHORTCUT_NUM
 };
 
-extern _kc_export LPSPropTagArray GetShortCutTagArray(void);
-
+extern _kc_export const SPropTagArray *GetShortCutTagArray(void);
 HRESULT AddToFavorite(IMAPIFolder *lpShortcutFolder, ULONG ulLevel, LPCTSTR lpszAliasName, ULONG ulFlags, ULONG cValues, LPSPropValue lpPropArray);
 extern _kc_export HRESULT GetShortcutFolder(LPMAPISESSION, LPTSTR folder_name, LPTSTR folder_comment, ULONG flags, LPMAPIFOLDER *scfolder);
 HRESULT CreateShortcutFolder(IMsgStore *lpMsgStore, LPTSTR lpszFolderName, LPTSTR lpszFolderComment, ULONG ulFlags, LPMAPIFOLDER* lppShortcutFolder);

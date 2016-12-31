@@ -68,7 +68,8 @@ private:
  * interface.
  */
 
-ECMemTable::ECMemTable(SPropTagArray *lpsPropTags, ULONG ulRowPropTag) : ECUnknown("ECMemTable")
+ECMemTable::ECMemTable(const SPropTagArray *lpsPropTags, ULONG ulRowPropTag) :
+    ECUnknown("ECMemTable")
 {
 	this->lpsColumns = (LPSPropTagArray) new BYTE[CbSPropTagArray(lpsPropTags)];
 	this->lpsColumns->cValues = lpsPropTags->cValues;
@@ -82,7 +83,8 @@ ECMemTable::~ECMemTable()
 	delete[] this->lpsColumns;
 }
 
-HRESULT ECMemTable::Create(LPSPropTagArray lpsColumns, ULONG ulRowPropTag, ECMemTable **lppECMemTable)
+HRESULT ECMemTable::Create(const SPropTagArray *lpsColumns, ULONG ulRowPropTag,
+    ECMemTable **lppECMemTable)
 {
 	ECMemTable *lpMemTable = NULL;
 	

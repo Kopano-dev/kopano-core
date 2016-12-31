@@ -68,7 +68,7 @@ protected:
 
 private:
 	_kc_hidden HRESULT MapNamedProps(void);
-	_kc_hidden HRESULT CreateInfoMessage(LPSPropTagArray deleteprop, const std::string &bodyhtml);
+	_kc_hidden HRESULT CreateInfoMessage(const SPropTagArray *deleteprop, const std::string &bodyhtml);
 	_kc_hidden std::string CreateErrorBodyUtf8(HRESULT);
 	_kc_hidden std::string CreateOfflineWarnBodyUtf8(void);
 

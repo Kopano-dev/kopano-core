@@ -2985,7 +2985,7 @@ HRESULT ECMsgStore::MsgStoreDnToPseudoUrl(const utf8string &strMsgStoreDN, utf8s
  */
 HRESULT ECMsgStore::ExportMessageChangesAsStream(ULONG ulFlags, ULONG ulPropTag,
     const std::vector<ICSCHANGE> &sChanges, ULONG ulStart, ULONG ulCount,
-    LPSPropTagArray lpsProps, WSMessageStreamExporter **lppsStreamExporter)
+    const SPropTagArray *lpsProps, WSMessageStreamExporter **lppsStreamExporter)
 {
 	WSMessageStreamExporterPtr ptrStreamExporter;
 	WSTransportPtr ptrTransport;

@@ -385,7 +385,8 @@ HRESULT ECArchiveAwareMessage::MapNamedProps()
 	return hr;
 }
 
-HRESULT ECArchiveAwareMessage::CreateInfoMessage(LPSPropTagArray lpptaDeleteProps, const std::string &strBodyHtml)
+HRESULT ECArchiveAwareMessage::CreateInfoMessage(const SPropTagArray *lpptaDeleteProps,
+    const std::string &strBodyHtml)
 {
 	HRESULT hr = hrSuccess;
 	SPropValue sPropVal;

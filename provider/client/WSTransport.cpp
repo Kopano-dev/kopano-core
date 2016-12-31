@@ -1092,7 +1092,7 @@ HRESULT WSTransport::HrUnSubscribeMulti(const ECLISTCONNECTION &lstConnections)
  */
 HRESULT WSTransport::HrExportMessageChangesAsStream(ULONG ulFlags,
     ULONG ulPropTag, const ICSCHANGE *lpChanges, ULONG ulStart,
-    ULONG ulChanges, LPSPropTagArray lpsProps,
+    ULONG ulChanges, const SPropTagArray *lpsProps,
     WSMessageStreamExporter **lppsStreamExporter)
 {
 	typedef KCHL::memory_ptr<sourceKeyPairArray> sourceKeyPairArrayPtr;

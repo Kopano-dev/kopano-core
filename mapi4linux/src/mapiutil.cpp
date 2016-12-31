@@ -334,7 +334,7 @@ HRESULT __stdcall RTFSync(LPMESSAGE lpMessage, ULONG ulFlags, BOOL * lpfMessageU
 
 //--- php-ext used functions
 HRESULT __stdcall HrQueryAllRows(LPMAPITABLE lpTable,
-    LPSPropTagArray lpPropTags, LPSRestriction lpRestriction,
+    const SPropTagArray *lpPropTags, LPSRestriction lpRestriction,
     const SSortOrderSet *lpSortOrderSet, LONG crowsMax, LPSRowSet *lppRows)
 {
 	TRACE_MAPILIB1(TRACE_ENTRY, "HrQueryAllRows", "%s", PropNameFromPropTagArray(lpPropTags).c_str());

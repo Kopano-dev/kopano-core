@@ -233,7 +233,7 @@ static HRESULT StreamToPropValue(IStream *lpStream, ULONG ulPropTag,
  * 							List of properties to exclude from the message
  * @return	MAPI error code
  */
-HRESULT ECTNEF::AddProps(ULONG ulFlags, LPSPropTagArray lpPropList)
+HRESULT ECTNEF::AddProps(ULONG ulFlags, const SPropTagArray *lpPropList)
 {
 	HRESULT			hr = hrSuccess;
 	memory_ptr<SPropTagArray> lpPropListMessage;
@@ -1311,7 +1311,8 @@ HRESULT ECTNEF::SetProps(ULONG cValues, LPSPropValue lpProps)
  * @param[in]	lpPropList		List of proptags to put in the TNEF stream of this attachment
  * @return MAPI error code
  */
-HRESULT ECTNEF::FinishComponent(ULONG ulFlags, ULONG ulComponentID, LPSPropTagArray lpPropList)
+HRESULT ECTNEF::FinishComponent(ULONG ulFlags, ULONG ulComponentID,
+    const SPropTagArray *lpPropList)
 {
     HRESULT hr = hrSuccess;
 	object_ptr<IAttach> lpAttach;

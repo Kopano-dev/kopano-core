@@ -38,7 +38,7 @@ public:
 	typedef std::map<std::string, t_sRelation> ECMAPFolderRelation; // <instancekey, relation>
 
 protected:
-	ECMemTablePublic(ECMAPIFolderPublic *lpECParentFolder, SPropTagArray *lpsPropTags, ULONG ulRowPropTag);
+	ECMemTablePublic(ECMAPIFolderPublic *lpECParentFolder, const SPropTagArray *lpsPropTags, ULONG ulRowPropTag);
 	virtual ~ECMemTablePublic(void);
 
 public:
