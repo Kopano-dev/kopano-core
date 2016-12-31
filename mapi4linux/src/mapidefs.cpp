@@ -740,8 +740,9 @@ exit:
  * 
  * @return MAPI Error code
  */
-HRESULT M4LProviderAdmin::CreateProvider(LPTSTR lpszProvider, ULONG cValues, LPSPropValue lpProps, ULONG ulUIParam,
-										 ULONG ulFlags, MAPIUID* lpUID) {
+HRESULT M4LProviderAdmin::CreateProvider(LPTSTR lpszProvider, ULONG cValues,
+    const SPropValue *lpProps, ULONG ulUIParam, ULONG ulFlags, MAPIUID *lpUID)
+{
     TRACE_MAPILIB(TRACE_ENTRY, "M4LProviderAdmin::CreateProvider", "");
 	SPropValue sProps[10];
 	ULONG nProps = 0;

@@ -126,7 +126,7 @@ public:
 	virtual ~M4LProviderAdmin(void);
 	virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG flags, LPMAPIERROR *lppMAPIError) _kc_override;
 	virtual HRESULT __stdcall GetProviderTable(ULONG flags, LPMAPITABLE *lppTable) _kc_override;
-	virtual HRESULT __stdcall CreateProvider(LPTSTR lpszProvider, ULONG cValues, LPSPropValue lpProps, ULONG ui_param, ULONG flags, MAPIUID *lpUID) _kc_override;
+	virtual HRESULT __stdcall CreateProvider(LPTSTR lpszProvider, ULONG cValues, const SPropValue *lpProps, ULONG ui_param, ULONG flags, MAPIUID *lpUID) _kc_override;
 	virtual HRESULT __stdcall DeleteProvider(LPMAPIUID lpUID) _kc_override;
 	virtual HRESULT __stdcall OpenProfileSection(LPMAPIUID lpUID, LPCIID lpInterface, ULONG flags, LPPROFSECT *lppProfSect) _kc_override;
 

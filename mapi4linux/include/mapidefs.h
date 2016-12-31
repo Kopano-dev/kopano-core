@@ -1544,8 +1544,7 @@ public:
 
     virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError) = 0;
     virtual HRESULT GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable) = 0;
-    virtual HRESULT CreateProvider(LPTSTR lpszProvider, ULONG cValues, LPSPropValue lpProps, ULONG ulUIParam,
-				   ULONG ulFlags, MAPIUID* lpUID) = 0;
+	virtual HRESULT CreateProvider(LPTSTR lpszProvider, ULONG cValues, const SPropValue *lpProps, ULONG ulUIParam, ULONG ulFlags, MAPIUID *lpUID) = 0;
     virtual HRESULT DeleteProvider(LPMAPIUID lpUID) = 0;
     virtual HRESULT OpenProfileSection(LPMAPIUID lpUID, LPCIID lpInterface, ULONG ulFlags, LPPROFSECT* lppProfSect) = 0;
 };
