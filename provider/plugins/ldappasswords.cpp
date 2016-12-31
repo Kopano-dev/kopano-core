@@ -88,8 +88,7 @@ static char *password_encrypt_crypt(const char *data, unsigned int len) {
 	DES_fcrypt(data, salt, cryptbuf);
 
 	char *res = new char[32];
-	snprintf(res, sizeof *res, "{CRYPT}%s", cryptbuf);
-
+	snprintf(res, 32, "{CRYPT}%s", cryptbuf);
 	return res;
 }
 
