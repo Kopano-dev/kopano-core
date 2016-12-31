@@ -263,7 +263,8 @@ HRESULT ECMAPIFolderPublic::GetPropHandler(ULONG ulPropTag, void* lpProvider, UL
 	return hr;
 }
 
-HRESULT ECMAPIFolderPublic::SetPropHandler(ULONG ulPropTag, void* lpProvider, LPSPropValue lpsPropValue, void *lpParam)
+HRESULT ECMAPIFolderPublic::SetPropHandler(ULONG ulPropTag, void *lpProvider,
+    const SPropValue *lpsPropValue, void *lpParam)
 {
 	HRESULT hr = hrSuccess;
 	ECMAPIFolderPublic *lpFolder = (ECMAPIFolderPublic *)lpParam;
@@ -373,7 +374,8 @@ HRESULT ECMAPIFolderPublic::SaveChanges(ULONG ulFlags)
 	return hr;
 }
 
-HRESULT ECMAPIFolderPublic::SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray *lppProblems)
+HRESULT ECMAPIFolderPublic::SetProps(ULONG cValues,
+    const SPropValue *lpPropArray, SPropProblemArray **lppProblems)
 {
 	HRESULT hr;
 

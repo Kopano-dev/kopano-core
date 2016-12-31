@@ -157,7 +157,7 @@ exit:
 	return hr;
 }
 
-HRESULT	ECArchiveAwareMessage::HrSetRealProp(SPropValue *lpsPropValue)
+HRESULT	ECArchiveAwareMessage::HrSetRealProp(const SPropValue *lpsPropValue)
 {
 	HRESULT hr;
 	SPropValue copy;
@@ -350,7 +350,8 @@ HRESULT ECArchiveAwareMessage::SaveChanges(ULONG ulFlags)
 	return ECMessage::SaveChanges(ulFlags);
 }
 
-HRESULT ECArchiveAwareMessage::SetPropHandler(ULONG ulPropTag, void* /*lpProvider*/, LPSPropValue lpsPropValue, void *lpParam)
+HRESULT ECArchiveAwareMessage::SetPropHandler(ULONG ulPropTag,
+    void */*lpProvider*/, const SPropValue *lpsPropValue, void *lpParam)
 {
 	ECArchiveAwareMessage *lpMessage = (ECArchiveAwareMessage *)lpParam;
 	HRESULT hr = hrSuccess;

@@ -1658,7 +1658,7 @@ public:
 	};
 	HRESULT __stdcall GetPropList(ULONG ulFlags, LPSPropTagArray *lppTags) _kc_override { return MAPI_E_NO_SUPPORT; }
 	HRESULT __stdcall OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk) _kc_override { return MAPI_E_NO_SUPPORT; }
-	HRESULT __stdcall SetProps(ULONG cValues, LPSPropValue lpProps, LPSPropProblemArray *lppProblems) _kc_override { return MAPI_E_NO_SUPPORT; }
+	HRESULT __stdcall SetProps(ULONG cValues, const SPropValue *lpProps, SPropProblemArray **lppProblems) _kc_override { return MAPI_E_NO_SUPPORT; }
 	HRESULT __stdcall DeleteProps(const SPropTagArray *, SPropProblemArray **) _kc_override { return MAPI_E_NO_SUPPORT; }
 	HRESULT __stdcall CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, const SPropTagArray *lpExcludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, void *lpDestObj, ULONG ulFlags, SPropProblemArray **lppProblems) _kc_override { return MAPI_E_NO_SUPPORT; }
 	HRESULT __stdcall CopyProps(const SPropTagArray *lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems) _kc_override { return MAPI_E_NO_SUPPORT; }

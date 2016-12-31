@@ -53,14 +53,14 @@ public:
 	 */
 	_kc_hidden static HRESULT Create(ECArchiveAwareMsgStore *store, BOOL fNew, BOOL modify, ULONG flags, ECMessage **);
 	_kc_hidden virtual HRESULT HrLoadProps(void);
-	_kc_hidden virtual HRESULT HrSetRealProp(SPropValue *);
+	_kc_hidden virtual HRESULT HrSetRealProp(const SPropValue *);
 	_kc_hidden virtual HRESULT OpenProperty(ULONG proptag, LPCIID lpiid, ULONG iface_opts, ULONG flags, LPUNKNOWN *);
 	_kc_hidden virtual HRESULT OpenAttach(ULONG atnum, LPCIID iface, ULONG flags, LPATTACH *ret);
 	_kc_hidden virtual HRESULT CreateAttach(LPCIID iface, ULONG flags, ULONG *atnum, LPATTACH *ret);
 	_kc_hidden virtual HRESULT DeleteAttach(ULONG atnum, ULONG ui_param, LPMAPIPROGRESS, ULONG flags);
 	_kc_hidden virtual HRESULT ModifyRecipients(ULONG flags, LPADRLIST mods);
 	_kc_hidden virtual HRESULT SaveChanges(ULONG flags);
-	_kc_hidden static HRESULT SetPropHandler(ULONG proptag, void *prov, LPSPropValue, void *param);
+	_kc_hidden static HRESULT SetPropHandler(ULONG proptag, void *prov, const SPropValue *, void *param);
 	_kc_hidden bool IsLoading(void) const { return m_bLoading; }
 
 protected:

@@ -2551,7 +2551,9 @@ HRESULT M4LAddrBook::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfa
 	return hr;
 }
 
-HRESULT M4LAddrBook::SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray* lppProblems) {
+HRESULT M4LAddrBook::SetProps(ULONG cValues, const SPropValue *lpPropArray,
+    SPropProblemArray **lppProblems)
+{
     TRACE_MAPILIB(TRACE_ENTRY, "M4LAddrBook::SetProps", "");
 	HRESULT hr = M4LMAPIProp::SetProps(cValues, lpPropArray, lppProblems);
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LAddrBook::SetProps", "0x%08x", hr);
