@@ -627,7 +627,7 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 	HRESULT hr = hrSuccess;
 	LPMESSAGE lpFwdMsg = NULL;
 	memory_ptr<SPropValue> lpSentMailEntryID, lpOrigSubject;
-	LPSPropTagArray lpExclude = NULL; // non-free
+	memory_ptr<SPropTagArray> lpExclude;
 	LPADRLIST lpRecipients = NULL;
 	ULONG ulANr = 0;
 
@@ -683,7 +683,9 @@ static HRESULT CreateForwardCopy(IAddrBook *lpAdrBook, IMsgStore *lpOrigStore,
 		goto exitpm;
 
 	// If we're doing a redirect, copy over the original PR_SENT_REPRESENTING_*, otherwise don't
-	lpExclude = bDoPreserveSender ? sExcludeFromCopyRedirect : sExcludeFromCopyForward;
+	hr = Util::HrCopyPropTagArray(bDoPreserveSender ? sExcludeFromCopyRedirect : sExcludeFromCopyForward, &~lpExclude);
+	if (hr != hrSuccess)
+		return hr;
 
     if(bDoNotMunge) {
         // The idea here is to enable 'resend' mode and to include the original recipient list. What will
