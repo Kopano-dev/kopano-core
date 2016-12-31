@@ -257,7 +257,7 @@ typedef struct SPropTagArray *LPSPropTagArray;
 struct _SPropTagArray_ ## _name { \
     ULONG   cValues; \
     ULONG   aulPropTag[_ctag]; \
-    operator SPropTagArray *(void) const { return const_cast<SPropTagArray *>(reinterpret_cast<const SPropTagArray *>(this)); } \
+	operator const SPropTagArray *(void) const { return reinterpret_cast<const SPropTagArray *>(this); } \
 } _name
 
 
@@ -500,7 +500,7 @@ struct SRowSet {
 	template<typename _T> SRowSet(std::initializer_list<_T>) = delete;
     ULONG           cRows;
     SRow            aRow[MAPI_DIM];
-	operator SRowSet *(void) { return reinterpret_cast<SRowSet *>(this); }
+	operator const SRowSet *(void) const { return reinterpret_cast<const SRowSet *>(this); }
 };
 typedef struct SRowSet *LPSRowSet;
 
