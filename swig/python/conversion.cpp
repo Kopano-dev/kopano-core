@@ -260,7 +260,7 @@ int Object_is_FILETIME(PyObject *object)
 	return PyObject_IsInstance(object, PyTypeFiletime);
 }
 
-PyObject *Object_from_LPSPropValue(LPSPropValue lpProp)
+PyObject *Object_from_SPropValue(const SPropValue *lpProp)
 {
 	PyObject *Value = NULL;
 	PyObject *ulPropTag = NULL;
@@ -402,12 +402,17 @@ exit:
 	return object;
 }
 
+PyObject *Object_from_LPSPropValue(const SPropValue *prop)
+{
+	return Object_from_SPropValue(prop);
+}
+
 int Object_is_LPSPropValue(PyObject *object)
 {
 	return PyObject_IsInstance(object, PyTypeSPropValue);
 }
 
-PyObject *		List_from_LPSPropValue(LPSPropValue lpProps, ULONG cValues)
+PyObject *List_from_SPropValue(const SPropValue *lpProps, ULONG cValues)
 {
 	PyObject *list = PyList_New(0);
 	PyObject *item = NULL;
@@ -432,6 +437,11 @@ exit:
 	if (item != nullptr)
 		Py_DECREF(item);
 	return list;
+}
+
+PyObject *List_from_LPSPropValue(const SPropValue *props, ULONG vals)
+{
+	return List_from_SPropValue(props, vals);
 }
 
 PyObject *	  List_from_wchar_t(wchar_t **lpStrings, ULONG cElements)
@@ -461,7 +471,8 @@ exit:
 	return list;
 }
 
-void Object_to_LPSPropValue(PyObject *object, LPSPropValue lpProp, ULONG ulFlags, void *lpBase)
+void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
+    ULONG ulFlags, void *lpBase)
 {
 	PyObject *ulPropTag = NULL;
 	PyObject *Value = NULL;
@@ -742,7 +753,14 @@ exit:
 		Py_DECREF(Value);
 }
 
-LPSPropValue Object_to_LPSPropValue(PyObject *object, ULONG ulFlags, void *lpBase)
+void Object_to_LPSPropValue(PyObject *object, SPropValue *prop,
+    ULONG flags, void *base)
+{
+	Object_to_p_SPropValue(object, prop, flags, base);
+}
+
+SPropValue *Object_to_p_SPropValue(PyObject *object, ULONG ulFlags,
+    void *lpBase)
 {
 	LPSPropValue lpProp = NULL;
 
@@ -766,7 +784,13 @@ LPSPropValue Object_to_LPSPropValue(PyObject *object, ULONG ulFlags, void *lpBas
 	return NULL;
 }
 
-LPSPropValue	List_to_LPSPropValue(PyObject *object, ULONG *cValues, ULONG ulFlags, void *lpBase)
+SPropValue *Object_to_LPSPropValue(PyObject *object, ULONG flags, void *base)
+{
+	return Object_to_p_SPropValue(object, flags, base);
+}
+
+SPropValue *List_to_p_SPropValue(PyObject *object, ULONG *cValues,
+    ULONG ulFlags, void *lpBase)
 {
 	Py_ssize_t size = 0;
 	LPSPropValue lpProps = NULL;
@@ -812,6 +836,12 @@ exit:
 	if (iter != nullptr)
 		Py_DECREF(iter);
 	return lpResult;
+}
+
+SPropValue *List_to_LPSPropValue(PyObject *object, ULONG *pvals,
+    ULONG flags, void *base)
+{
+	return List_to_p_SPropValue(object, pvals, flags, base);
 }
 
 PyObject *		List_from_LPTSTRPtr(LPTSTR *lpStrings, ULONG cValues)

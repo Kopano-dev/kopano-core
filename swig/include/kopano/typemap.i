@@ -446,13 +446,13 @@
 // Mapping of types to correct MAPI* handler type
 
 // Input
-%apply (ULONG, MAPIARRAY) {(ULONG cValues, LPSPropValue lpProps), (ULONG cPropNames, LPMAPINAMEID* lppPropNames), (ULONG cInterfaces, LPCIID lpInterfaces), ( ULONG cValuesConversion, LPSPropValue lpPropArrayConversion) };
+%apply (ULONG, MAPIARRAY) {(ULONG cValues, SPropValue *lpProps), (ULONG cValues, LPSPropValue lpProps), (ULONG cPropNames, LPMAPINAMEID* lppPropNames), (ULONG cInterfaces, LPCIID lpInterfaces), (ULONG cValuesConversion, SPropValue *lpPropArrayConversion), (ULONG cValuesConversion, LPSPropValue lpPropArrayConversion)};
 %apply MAPILIST {SPropTagArray *, LPSPropTagArray, LPENTRYLIST, LPADRLIST, LPFlagList};
 %apply MAPILIST *INPUT {SPropTagArray **, LPSPropTagArray *};
-%apply MAPISTRUCT {LPSRestriction, SSortOrderSet *, LPSPropValue, LPNOTIFICATION};
+%apply MAPISTRUCT {LPSRestriction, SSortOrderSet *, SPropValue *, LPSPropValue, LPNOTIFICATION};
 
 // Output
-%apply (ULONG *, MAPIARRAY *) {(ULONG *OUTPUTC, LPSPropValue *OUTPUTP), (ULONG *OUTPUTC, LPNOTIFICATION *OUTPUTP), (ULONG *OUTPUTC, LPMAPINAMEID **OUTPUTP)};
+%apply (ULONG *, MAPIARRAY *) {(ULONG *OUTPUTC, SPropValue **OUTPUTP), (ULONG *OUTPUTC, LPSPropValue *OUTPUTP), (ULONG *OUTPUTC, LPNOTIFICATION *OUTPUTP), (ULONG *OUTPUTC, LPMAPINAMEID **OUTPUTP)};
 %apply MAPILIST * {LPADRLIST *OUTPUT, LPSRowSet *OUTPUT, LPSPropProblemArray *OUTPUT, SPropTagArray **OUTPUT, LPSPropTagArray *OUTPUT, LPENTRYLIST *OUTPUT};
 %apply MAPISTRUCT * {LPMAPIERROR *OUTPUT, SSortOrderSet **OUTPUT, LPSRestriction *OUTPUT};
 

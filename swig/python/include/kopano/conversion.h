@@ -40,10 +40,14 @@ FILETIME		Object_to_FILETIME(PyObject *object);
 PyObject *		Object_from_FILETIME(FILETIME ft);
 int				Object_is_FILETIME(PyObject *object);
 
-LPSPropValue	Object_to_LPSPropValue(PyObject *object, ULONG ulFlags = CONV_COPY_SHALLOW, void *lpBase = NULL);
-int				Object_is_LPSPropValue(PyObject *object);
-PyObject *		List_from_LPSPropValue(LPSPropValue lpProps, ULONG cValues);
-LPSPropValue	List_to_LPSPropValue(PyObject *sv, ULONG *cValues, ULONG ulFlags = CONV_COPY_SHALLOW, void *lpBase = NULL);
+extern SPropValue *Object_to_p_SPropValue(PyObject *, ULONG flags = CONV_COPY_SHALLOW, void *base = nullptr);
+extern SPropValue *Object_to_LPSPropValue(PyObject *, ULONG flags = CONV_COPY_SHALLOW, void *base = nullptr);
+extern int Object_is_SPropValue(PyObject *);
+extern int Object_is_LPSPropValue(PyObject *);
+extern PyObject *List_from_SPropValue(const SPropValue *, ULONG n);
+extern PyObject *List_from_LPSPropValue(const SPropValue *, ULONG n);
+extern SPropValue *List_to_p_SPropValue(PyObject *, ULONG *nvals, ULONG flags = CONV_COPY_SHALLOW, void *base = nullptr);
+extern SPropValue *List_to_LPSPropValue(PyObject *, ULONG *nvals, ULONG flags = CONV_COPY_SHALLOW, void *base = nullptr);
 
 PyObject *		List_from_LPTSTRPtr(LPTSTR *lpStrings, ULONG cValues);
 
