@@ -41,11 +41,11 @@ public:
 	virtual HRESULT HrCloseTable();
 
 	// You must call HrOpenTable before calling the following methods
-	virtual HRESULT HrSetColumns(LPSPropTagArray lpsPropTagArray);
-	virtual HRESULT HrFindRow(LPSRestriction lpsRestriction, BOOKMARK bkOrigin, ULONG ulFlags);
+	virtual HRESULT HrSetColumns(const SPropTagArray *lpsPropTagArray);
+	virtual HRESULT HrFindRow(const SRestriction *lpsRestriction, BOOKMARK bkOrigin, ULONG ulFlags);
 	virtual HRESULT HrQueryColumns(ULONG ulFlags, LPSPropTagArray *lppsPropTags);
-	virtual HRESULT HrSortTable(LPSSortOrderSet lpsSortOrderSet);
-	virtual HRESULT HrRestrict(LPSRestriction lpsRestriction);
+	virtual HRESULT HrSortTable(const SSortOrderSet *lpsSortOrderSet);
+	virtual HRESULT HrRestrict(const SRestriction *lpsRestriction);
 	virtual HRESULT HrQueryRows(ULONG ulRowCount, ULONG ulFlags, LPSRowSet *lppRowSet);
 	virtual HRESULT HrGetRowCount(ULONG *lpulRowCount, ULONG *lpulCurrentRow);
 	virtual HRESULT HrSeekRow(BOOKMARK bkOrigin, LONG ulRows, LONG *lplRowsSought);

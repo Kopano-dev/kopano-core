@@ -258,7 +258,8 @@ public:
 		return helpers::convert_from(restrictionstring);
 	}
 
-	static string_type toString(LPSSortOrderSet lpSortOrderSet) {
+	static string_type toString(const SSortOrderSet *lpSortOrderSet)
+	{
 		std::string sortorderstring = SortOrderSetToString(lpSortOrderSet);
 		return helpers::convert_from(sortorderstring);
 	}
