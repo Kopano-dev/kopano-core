@@ -447,31 +447,31 @@
 
 // Input
 %apply (ULONG, MAPIARRAY) {(ULONG cValues, SPropValue *lpProps), (ULONG cValues, LPSPropValue lpProps), (ULONG cPropNames, LPMAPINAMEID* lppPropNames), (ULONG cInterfaces, LPCIID lpInterfaces), (ULONG cValuesConversion, SPropValue *lpPropArrayConversion), (ULONG cValuesConversion, LPSPropValue lpPropArrayConversion)};
-%apply MAPILIST {SPropTagArray *, LPSPropTagArray, LPENTRYLIST, LPADRLIST, LPFlagList};
+%apply MAPILIST {SPropTagArray *, LPSPropTagArray, LPENTRYLIST, ADRLIST *, LPADRLIST, LPFlagList};
 %apply MAPILIST *INPUT {SPropTagArray **, LPSPropTagArray *};
 %apply MAPISTRUCT {LPSRestriction, SSortOrderSet *, SPropValue *, LPSPropValue, LPNOTIFICATION};
 
 // Output
 %apply (ULONG *, MAPIARRAY *) {(ULONG *OUTPUTC, SPropValue **OUTPUTP), (ULONG *OUTPUTC, LPSPropValue *OUTPUTP), (ULONG *OUTPUTC, LPNOTIFICATION *OUTPUTP), (ULONG *OUTPUTC, LPMAPINAMEID **OUTPUTP)};
-%apply MAPILIST * {LPADRLIST *OUTPUT, LPSRowSet *OUTPUT, LPSPropProblemArray *OUTPUT, SPropTagArray **OUTPUT, LPSPropTagArray *OUTPUT, LPENTRYLIST *OUTPUT};
+%apply MAPILIST * {ADRLIST **OUTPUT, LPADRLIST *OUTPUT, LPSRowSet *OUTPUT, LPSPropProblemArray *OUTPUT, SPropTagArray **OUTPUT, LPSPropTagArray *OUTPUT, LPENTRYLIST *OUTPUT};
 %apply MAPISTRUCT * {LPMAPIERROR *OUTPUT, SSortOrderSet **OUTPUT, LPSRestriction *OUTPUT};
 
 // Input/Output
-%apply MAPILIST INOUT {LPADRLIST INOUT, LPFlagList INOUT };
+%apply MAPILIST INOUT {ADRLIST *INOUT, LPADRLIST INOUT, LPFlagList INOUT };
 
 // Classes
 %apply MAPICLASS *{IMAPISession **, IProfAdmin **, IMsgServiceAdmin **, IMAPITable **, IMsgStore **, IMAPIFolder **, IMAPITable **, IStream **, IMessage **, IAttach **, IAddrBook **, IProviderAdmin **, IProfSect **, IUnknown **}
 
 // Specialization for LPSRowSet and LPADRLIST
-%typemap(arginit) LPSRowSet INPUT, LPADRLIST INPUT
+%typemap(arginit) LPSRowSet INPUT, ADRLIST *INPUT, LPADRLIST INPUT
 	"$1 = NULL;"
 
-%typemap(freearg) LPSRowSet *OUTPUT, LPADRLIST *OUTPUT
+%typemap(freearg) LPSRowSet *OUTPUT, ADRLIST **OUTPUT, LPADRLIST *OUTPUT
 {
 	FreeProws((LPSRowSet)*$1);
 }
 
-%typemap(freearg) LPADRLIST INOUT, LPSRowSet INOUT, LPSRowSet INPUT, LPADRLIST INPUT
+%typemap(freearg) ADRLIST *INOUT, LPADRLIST INOUT, LPSRowSet INOUT, LPSRowSet INPUT, ADRLIST *INPUT, LPADRLIST INPUT
 {
     FreeProws((LPSRowSet)$1);
 }

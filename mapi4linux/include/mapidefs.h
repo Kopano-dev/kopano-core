@@ -484,7 +484,6 @@ typedef struct ADRLIST *LPADRLIST;
 struct _ADRLIST_ ## _name { \
     ULONG           cEntries; \
     ADRENTRY        aEntries[_centries]; \
-    operator ADRLIST *(void) { return reinterpret_cast<ADRLIST *>(this); } \
     operator const ADRLIST *(void) const { return reinterpret_cast<const ADRLIST *>(this); } \
 } _name
 
@@ -1035,7 +1034,7 @@ public:
     virtual HRESULT CreateAttach(LPCIID lpInterface, ULONG ulFlags, ULONG *lpulAttachmentNum, LPATTACH *lppAttach) = 0;
     virtual HRESULT DeleteAttach(ULONG ulAttachmentNum, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags) = 0;
     virtual HRESULT GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable) = 0;
-    virtual HRESULT ModifyRecipients(ULONG ulFlags, LPADRLIST lpMods) = 0;
+    virtual HRESULT ModifyRecipients(ULONG ulFlags, const ADRLIST *lpMods) = 0;
     virtual HRESULT SubmitMessage(ULONG ulFlags) = 0;
     virtual HRESULT SetReadFlag(ULONG ulFlags) = 0;
 };

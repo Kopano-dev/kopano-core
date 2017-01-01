@@ -1198,7 +1198,7 @@ HRESULT ECMessage::GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable)
  * so we can't generate the IDs whenever ADD or 0 is specified.
  */
 
-HRESULT ECMessage::ModifyRecipients(ULONG ulFlags, LPADRLIST lpMods)
+HRESULT ECMessage::ModifyRecipients(ULONG ulFlags, const ADRLIST *lpMods)
 {
 	HRESULT hr = hrSuccess;
 	IMAPITable *lpTable = NULL;
@@ -2838,6 +2838,6 @@ DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, OpenAttach, (ULONG, ulAttachmentNu
 DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, CreateAttach, (LPCIID, lpInterface), (ULONG, ulFlags), (ULONG *, lpulAttachmentNum), (LPATTACH *, lppAttach))
 DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, DeleteAttach, (ULONG, ulAttachmentNum), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (ULONG, ulFlags))
 DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, GetRecipientTable, (ULONG, ulFlags), (LPMAPITABLE *, lppTable))
-DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, ModifyRecipients, (ULONG, ulFlags), (LPADRLIST, lpMods))
+DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, ModifyRecipients, (ULONG, ulFlags), (const ADRLIST *, lpMods))
 DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, SubmitMessage, (ULONG, ulFlags))
 DEF_HRMETHOD1(TRACE_MAPI, ECMessage, Message, SetReadFlag, (ULONG, ulFlags))

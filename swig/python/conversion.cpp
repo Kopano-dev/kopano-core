@@ -1677,7 +1677,7 @@ exit:
 	return result;
 }
 
-PyObject *		List_from_LPSRowSet(LPSRowSet lpRowSet)
+PyObject *List_from_SRowSet(const SRowSet *lpRowSet)
 {
 	PyObject *list = PyList_New(0);
 	PyObject *item = NULL;
@@ -1706,7 +1706,12 @@ exit:
 	return list;
 }
 
-LPSRowSet		List_to_LPSRowSet(PyObject *list, ULONG ulFlags)
+PyObject *List_from_LPSRowSet(const SRowSet *s)
+{
+	return List_from_SRowSet(s);
+}
+
+SRowSet *List_to_p_SRowSet(PyObject *list, ULONG ulFlags)
 {
 	PyObject *iter = NULL;
 	PyObject *elem = NULL;
@@ -1757,13 +1762,30 @@ exit:
 	return lpsRowSet;
 }
 
-LPADRLIST		List_to_LPADRLIST(PyObject *av, ULONG ulFlags)
+SRowSet *List_to_LPSRowSet(PyObject *obj, ULONG flags)
+{
+	return List_to_p_SRowSet(obj, flags);
+}
+
+ADRLIST *List_to_p_ADRLIST(PyObject *av, ULONG ulFlags)
 {
 	// Binary compatible
 	return (LPADRLIST) List_to_LPSRowSet(av, ulFlags);
 }
 
-PyObject *		List_from_LPADRLIST(LPADRLIST lpAdrList)
+ADRLIST *List_to_LPADRLIST(PyObject *av, ULONG ulFlags)
+{
+	// Binary compatible
+	return (LPADRLIST) List_to_LPSRowSet(av, ulFlags);
+}
+
+PyObject *List_from_ADRLIST(const ADRLIST *lpAdrList)
+{
+	// Binary compatible
+	return List_from_LPSRowSet((LPSRowSet)lpAdrList);
+}
+
+PyObject *List_from_LPADRLIST(const ADRLIST *lpAdrList)
 {
 	// Binary compatible
 	return List_from_LPSRowSet((LPSRowSet)lpAdrList);

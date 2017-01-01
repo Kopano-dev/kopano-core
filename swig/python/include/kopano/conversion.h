@@ -68,11 +68,14 @@ void			Object_to_LPACTIONS(PyObject *object, ACTIONS *lpActions, void *lpBase = 
 SSortOrderSet *Object_to_p_SSortOrderSet(PyObject *sv);
 PyObject *Object_from_SSortOrderSet(const SSortOrderSet *lpSortOrderSet);
 
-PyObject *		List_from_LPSRowSet(LPSRowSet lpRowSet);
-LPSRowSet		List_to_LPSRowSet(PyObject *av, ULONG ulFlags = CONV_COPY_SHALLOW);
-
-LPADRLIST		List_to_LPADRLIST(PyObject *av, ULONG ulFlags = CONV_COPY_SHALLOW);
-PyObject *		List_from_LPADRLIST(LPADRLIST lpAdrList);
+extern PyObject *List_from_SRowSet(const SRowSet *);
+extern PyObject *List_from_LPSRowSet(const SRowSet *);
+extern SRowSet *List_to_p_SRowSet(PyObject *, ULONG flags = CONV_COPY_SHALLOW);
+extern SRowSet *List_to_LPSRowSet(PyObject *, ULONG flags = CONV_COPY_SHALLOW);
+extern ADRLIST *List_to_p_ADRLIST(PyObject *, ULONG flags = CONV_COPY_SHALLOW);
+extern ADRLIST *List_to_LPADRLIST(PyObject *, ULONG flags = CONV_COPY_SHALLOW);
+extern PyObject *List_from_ADRLIST(const ADRLIST *);
+extern PyObject *List_from_LPADRLIST(const ADRLIST *);
 
 LPADRPARM		Object_to_LPADRPARM(PyObject *av);
 

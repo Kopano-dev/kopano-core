@@ -304,7 +304,8 @@ HRESULT ECArchiveAwareMessage::DeleteAttach(ULONG ulAttachmentNum, ULONG ulUIPar
 	return hr;
 }
 
-HRESULT ECArchiveAwareMessage::ModifyRecipients(ULONG ulFlags, LPADRLIST lpMods)
+HRESULT ECArchiveAwareMessage::ModifyRecipients(ULONG ulFlags,
+    const ADRLIST *lpMods)
 {
 	HRESULT hr = hrSuccess;
 

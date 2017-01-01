@@ -106,7 +106,7 @@ public:
 	virtual HRESULT CreateAttach(LPCIID lpInterface, ULONG ulFlags, ULONG *lpulAttachmentNum, LPATTACH *lppAttach);
 	virtual HRESULT DeleteAttach(ULONG ulAttachmentNum, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags);
 	virtual HRESULT GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable);
-	virtual HRESULT ModifyRecipients(ULONG ulFlags, LPADRLIST lpMods);
+	virtual HRESULT ModifyRecipients(ULONG ulFlags, const ADRLIST *lpMods);
 	virtual HRESULT SubmitMessage(ULONG ulFlags);
 	virtual HRESULT SetReadFlag(ULONG ulFlags);
 
@@ -138,7 +138,7 @@ public:
 		virtual HRESULT __stdcall CreateAttach(LPCIID lpInterface, ULONG flags, ULONG *lpulAttachmentNum, LPATTACH *lppAttach) _kc_override;
 		virtual HRESULT __stdcall DeleteAttach(ULONG ulAttachmentNum, ULONG ui_param, LPMAPIPROGRESS lpProgress, ULONG flags) _kc_override;
 		virtual HRESULT __stdcall GetRecipientTable(ULONG flags, LPMAPITABLE *lppTable) _kc_override;
-		virtual HRESULT __stdcall ModifyRecipients(ULONG flags, LPADRLIST lpMods) _kc_override;
+		virtual HRESULT __stdcall ModifyRecipients(ULONG flags, const ADRLIST *lpMods) _kc_override;
 		virtual HRESULT __stdcall SubmitMessage(ULONG flags) _kc_override;
 		virtual HRESULT __stdcall SetReadFlag(ULONG flags) _kc_override;
 	} m_xMessage;
