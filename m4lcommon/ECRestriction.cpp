@@ -450,25 +450,22 @@ ECRestriction *ECExistRestriction::Clone(void) const _kc_lvqual
 ECRawRestriction::ECRawRestriction(const SRestriction *lpRestriction,
     ULONG ulFlags)
 {
-	if (ulFlags & ECRestriction::Cheap)
+	if (ulFlags & ECRestriction::Cheap) {
 		m_ptrRestriction.reset(const_cast<SRestriction *>(lpRestriction), &ECRestriction::DummyFree);
-
+		return;
+	}
+	SRestrictionPtr ptrResTmp;
+	HRESULT hr = MAPIAllocateBuffer(sizeof(SRestrictionPtr::value_type), &~ptrResTmp);
+	if (hr != hrSuccess)
+		return;
+	if (ulFlags & ECRestriction::Shallow)
+		*ptrResTmp = *lpRestriction;
 	else {
-		SRestrictionPtr ptrResTmp;
-		HRESULT hr = MAPIAllocateBuffer(sizeof(SRestrictionPtr::value_type), &~ptrResTmp);
+		hr = Util::HrCopySRestriction(ptrResTmp, lpRestriction, ptrResTmp);
 		if (hr != hrSuccess)
 			return;
-		if (ulFlags & ECRestriction::Shallow)
-			*ptrResTmp = *lpRestriction;
-
-		else {
-			hr = Util::HrCopySRestriction(ptrResTmp, lpRestriction, ptrResTmp);
-			if (hr != hrSuccess)
-				return;
-		}
-
-		m_ptrRestriction.reset(ptrResTmp.release(), &MAPIFreeBuffer);
 	}
+	m_ptrRestriction.reset(ptrResTmp.release(), &MAPIFreeBuffer);
 }
 
 ECRawRestriction::ECRawRestriction(RawResPtr ptrRestriction)

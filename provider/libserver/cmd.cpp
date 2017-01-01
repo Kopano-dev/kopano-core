@@ -1452,19 +1452,17 @@ static ECRESULT ReadProps(struct soap *soap, ECSession *lpecSession,
 		    sChildProps.lpPropTags->AddPropTag(ulPropTag);
 	}
 
-	if (ulObjType == MAPI_MAILUSER || ulObjType == MAPI_DISTLIST) {
-		if(ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_INSTANCE_KEY, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess) {
-		    sChildProps.lpPropTags->AddPropTag(sPropVal.ulPropTag);
-		    sChildProps.lpPropVals->AddPropVal(sPropVal);
-		}
+	if ((ulObjType == MAPI_MAILUSER || ulObjType == MAPI_DISTLIST) &&
+	    ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_INSTANCE_KEY, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess) {
+		sChildProps.lpPropTags->AddPropTag(sPropVal.ulPropTag);
+		sChildProps.lpPropVals->AddPropVal(sPropVal);
 	}
 
 	// Set the PR_RECORD_KEY
-	if (ulObjType != MAPI_ATTACH || !sChildProps.lpPropTags->HasPropTag(PR_RECORD_KEY)) {
-		if (ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_RECORD_KEY, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess) {
-			sChildProps.lpPropTags->AddPropTag(sPropVal.ulPropTag);
-			sChildProps.lpPropVals->AddPropVal(sPropVal);
-		}
+	if ((ulObjType != MAPI_ATTACH || !sChildProps.lpPropTags->HasPropTag(PR_RECORD_KEY)) &&
+	    ECGenProps::GetPropComputedUncached(soap, NULL, lpecSession, PR_RECORD_KEY, ulObjId, 0, 0, 0, ulObjType, &sPropVal) == erSuccess) {
+		sChildProps.lpPropTags->AddPropTag(sPropVal.ulPropTag);
+		sChildProps.lpPropVals->AddPropVal(sPropVal);
 	}
 
 	if (ulObjType == MAPI_FOLDER || ulObjType == MAPI_STORE || ulObjType == MAPI_MESSAGE) {
@@ -5377,13 +5375,11 @@ SOAP_ENTRY_START(getUserList, lpsUserList->er, unsigned int ulCompanyId, entryId
 	 * otherwise we must check if the requested company is visible for the user. */
 	if (ulCompanyId == 0) {
 		er = lpecSession->GetSecurity()->GetUserCompany(&ulCompanyId);
-		if (er != erSuccess)
-			goto exit;
 	} else {
 		er = lpecSession->GetSecurity()->IsUserObjectVisible(ulCompanyId);
-		if (er != erSuccess)
-			goto exit;
 	}
+	if (er != erSuccess)
+		goto exit;
 	er = lpecSession->GetUserManagement()->GetCompanyObjectListAndSync(OBJECTCLASS_USER, ulCompanyId, &unique_tie(lpUsers), 0);
 	if(er != erSuccess)
 		goto exit;
@@ -5975,13 +5971,11 @@ SOAP_ENTRY_START(getGroupList, lpsGroupList->er, unsigned int ulCompanyId, entry
 	 * otherwise we must check if the requested company is visible for the user. */
 	if (ulCompanyId == 0) {
 		er = lpecSession->GetSecurity()->GetUserCompany(&ulCompanyId);
-		if (er != erSuccess)
-			goto exit;
 	} else {
 		er = lpecSession->GetSecurity()->IsUserObjectVisible(ulCompanyId);
-		if (er != erSuccess)
-			goto exit;
 	}
+	if (er != erSuccess)
+		goto exit;
 	er = lpecSession->GetUserManagement()->GetCompanyObjectListAndSync(OBJECTCLASS_DISTLIST, ulCompanyId, &unique_tie(lpGroups), 0);
 	if (er != erSuccess)
 		goto exit;
@@ -6375,14 +6369,11 @@ SOAP_ENTRY_START(getCompany, lpsResponse->er, unsigned int ulCompanyId, entryId 
 	 * otherwise we must check if the requested company is visible for the user. */
 	if (ulCompanyId == 0) {
 		er = lpecSession->GetSecurity()->GetUserCompany(&ulCompanyId);
-		if (er != erSuccess)
-			goto exit;
 	} else {
 		er = lpecSession->GetSecurity()->IsUserObjectVisible(ulCompanyId);
-		if (er != erSuccess)
-			goto exit;
 	}
-
+	if (er != erSuccess)
+		goto exit;
 	er = lpecSession->GetUserManagement()->GetObjectDetails(ulCompanyId, &details);
 	if(er != erSuccess)
 		goto exit;
@@ -6582,13 +6573,11 @@ SOAP_ENTRY_START(getRemoteViewList, lpsCompanyList->er, unsigned int ulCompanyId
 	 * otherwise we must check if the requested company is visible for the user. */
 	if (ulCompanyId == 0) {
 		er = lpecSession->GetSecurity()->GetUserCompany(&ulCompanyId);
-		if (er != erSuccess)
-			goto exit;
 	} else {
 		er = lpecSession->GetSecurity()->IsUserObjectVisible(ulCompanyId);
-		if (er != erSuccess)
-			goto exit;
 	}
+	if (er != erSuccess)
+		goto exit;
 	er = lpecSession->GetUserManagement()->GetSubObjectsOfObjectAndSync(OBJECTRELATION_COMPANY_VIEW, ulCompanyId, &unique_tie(lpCompanies));
 	if(er != erSuccess)
 		goto exit;
@@ -6704,13 +6693,11 @@ SOAP_ENTRY_START(getRemoteAdminList, lpsUserList->er, unsigned int ulCompanyId, 
 	 * otherwise we must check if the requested company is visible for the user. */
 	if (ulCompanyId == 0) {
 		er = lpecSession->GetSecurity()->GetUserCompany(&ulCompanyId);
-		if (er != erSuccess)
-			goto exit;
 	} else {
 		er = lpecSession->GetSecurity()->IsUserObjectVisible(ulCompanyId);
-		if (er != erSuccess)
-			goto exit;
 	}
+	if (er != erSuccess)
+		goto exit;
 
 	// only users can be admins, nonactive users make no sense.
 	er = lpecSession->GetUserManagement()->GetSubObjectsOfObjectAndSync(OBJECTRELATION_COMPANY_ADMIN, ulCompanyId, &unique_tie(lpUsers));

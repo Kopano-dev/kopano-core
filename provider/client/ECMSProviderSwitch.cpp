@@ -166,11 +166,10 @@ HRESULT ECMSProviderSwitch::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR l
 	}
 
 	// Set the provider in the right connection type
-	if (bIsDefaultStore) {
-		if (SetProviderMode(lpMAPISup, &g_mapProviders, tstrProfileName.c_str(), ulConnectType) != hrSuccess) {
-			hr = MAPI_E_INVALID_PARAMETER;
-			goto exit;
-		}
+	if (bIsDefaultStore &&
+	    SetProviderMode(lpMAPISup, &g_mapProviders, tstrProfileName.c_str(), ulConnectType) != hrSuccess) {
+		hr = MAPI_E_INVALID_PARAMETER;
+		goto exit;
 	}
 
 	if(hr != hrSuccess) {

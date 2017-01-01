@@ -1157,18 +1157,15 @@ static HRESULT GetPublicStore(LPMAPISESSION lpSession, LPMDB lpMsgStore,
 	memory_ptr<ENTRYID> lpEntryID;
 	object_ptr<IExchangeManageStore> lpIEMS;
 
-	if (!strCompanyname.empty())
-	{
-		hr = lpMsgStore->QueryInterface(IID_IExchangeManageStore, &~lpIEMS);
-		if (hr != hrSuccess)
-			return hr;
-		hr = lpIEMS->CreateStoreEntryID((LPTSTR)L"", (LPTSTR)strCompanyname.c_str(), MAPI_UNICODE, &cbEntryID, &~lpEntryID);
-		if (hr != hrSuccess)
-			return hr;
-		return lpSession->OpenMsgStore(0, cbEntryID, lpEntryID, &IID_IMsgStore, MDB_WRITE, lppPublicStore);
-	} else {
+	if (strCompanyname.empty())
 		return HrOpenECPublicStore(lpSession, lppPublicStore);
-	}
+	hr = lpMsgStore->QueryInterface(IID_IExchangeManageStore, &~lpIEMS);
+	if (hr != hrSuccess)
+		return hr;
+	hr = lpIEMS->CreateStoreEntryID((LPTSTR)L"", (LPTSTR)strCompanyname.c_str(), MAPI_UNICODE, &cbEntryID, &~lpEntryID);
+	if (hr != hrSuccess)
+		return hr;
+	return lpSession->OpenMsgStore(0, cbEntryID, lpEntryID, &IID_IMsgStore, MDB_WRITE, lppPublicStore);
 }
 
 static const char *StoreTypeToString(ULONG ulStoreType)
@@ -1542,42 +1539,43 @@ static HRESULT print_details(LPMAPISESSION lpSession, IECUnknown *lpECMsgStore,
 		cout << endl;
 	}
 
-	if (lpECUser) {
-		LPMVPROPMAPENTRY lpArchiveServers = FindMVPropmapEntry(lpECUser, PR_EC_ARCHIVE_SERVERS_A);
-		if (lpArchiveServers && lpArchiveServers->cValues) {
-			MsgStorePtr ptrAdminStore;
+	if (lpECUser == nullptr)
+		return hr;
 
-			hr = lpECMsgStore->QueryInterface(IID_IMsgStore, &~ptrAdminStore);
-			if (hr != hrSuccess)
-				return hr;
+	LPMVPROPMAPENTRY lpArchiveServers = FindMVPropmapEntry(lpECUser, PR_EC_ARCHIVE_SERVERS_A);
+	if (lpArchiveServers == nullptr || lpArchiveServers->cValues == 0)
+		return hr;
 
-			for (int i = 0; i < lpArchiveServers->cValues; ++i) {
-				MsgStorePtr ptrRemoteAdminStore;
-				SPropValuePtr ptrPropValue;
-				IECUnknown *lpECRemoteAdminStore = NULL;
-				HRESULT hrTmp;
+	MsgStorePtr ptrAdminStore;
+	hr = lpECMsgStore->QueryInterface(IID_IMsgStore, &~ptrAdminStore);
+	if (hr != hrSuccess)
+		return hr;
 
-				cout << "Archive details on node '" << (LPSTR)lpArchiveServers->lpszValues[i] << "':" << endl;
-				hrTmp = HrGetRemoteAdminStore(lpSession, ptrAdminStore, lpArchiveServers->lpszValues[i], 0, &~ptrRemoteAdminStore);
-				if (FAILED(hrTmp)) {
-					cerr << "Unable to access node '" <<
-						(LPSTR)lpArchiveServers->lpszValues[i] <<
-						"': " << GetMAPIErrorMessage(hr) <<
-						"(" << stringify(hrTmp, true) <<
-						")" << endl;
-					continue;
-				}
-				hr = HrGetOneProp(ptrRemoteAdminStore, PR_EC_OBJECT, &~ptrPropValue);
-				if (hr != hrSuccess || !ptrPropValue || !ptrPropValue->Value.lpszA) {
-					cerr << "Admin object not found." << endl;
-					return hr;
-				}
+	for (int i = 0; i < lpArchiveServers->cValues; ++i) {
+		MsgStorePtr ptrRemoteAdminStore;
+		SPropValuePtr ptrPropValue;
+		IECUnknown *lpECRemoteAdminStore = NULL;
+		HRESULT hrTmp;
 
-				lpECRemoteAdminStore = reinterpret_cast<IECUnknown *>(ptrPropValue->Value.lpszA);
-				print_archive_details(lpSession, lpECRemoteAdminStore, lpszName);
-				cout << endl;
-			}
+		cout << "Archive details on node '" << (LPSTR)lpArchiveServers->lpszValues[i] << "':" << endl;
+		hrTmp = HrGetRemoteAdminStore(lpSession, ptrAdminStore, lpArchiveServers->lpszValues[i], 0, &~ptrRemoteAdminStore);
+		if (FAILED(hrTmp)) {
+			cerr << "Unable to access node '" <<
+				(LPSTR)lpArchiveServers->lpszValues[i] <<
+				"': " << GetMAPIErrorMessage(hr) <<
+				"(" << stringify(hrTmp, true) <<
+				")" << endl;
+			continue;
 		}
+		hr = HrGetOneProp(ptrRemoteAdminStore, PR_EC_OBJECT, &~ptrPropValue);
+		if (hr != hrSuccess || !ptrPropValue || !ptrPropValue->Value.lpszA) {
+			cerr << "Admin object not found." << endl;
+			return hr;
+		}
+
+		lpECRemoteAdminStore = reinterpret_cast<IECUnknown *>(ptrPropValue->Value.lpszA);
+		print_archive_details(lpSession, lpECRemoteAdminStore, lpszName);
+		cout << endl;
 	}
 	return hr;
 }

@@ -310,24 +310,21 @@ HRESULT ECMAPIFolderPublic::GetContentsTable(ULONG ulFlags, LPMAPITABLE *lppTabl
 	memory_ptr<SPropTagArray> lpPropTagArray;
 	SizedSPropTagArray(11, sPropsContentColumns) = {11, {PR_ENTRYID, PR_DISPLAY_NAME, PR_MESSAGE_FLAGS, PR_SUBJECT, PR_STORE_ENTRYID, PR_STORE_RECORD_KEY, PR_STORE_SUPPORT_MASK, PR_INSTANCE_KEY, PR_RECORD_KEY, PR_ACCESS, PR_ACCESS_LEVEL } };
 
-	if( m_ePublicEntryID == ePE_IPMSubtree || m_ePublicEntryID == ePE_Favorites)
-	{
-		if (ulFlags & SHOW_SOFT_DELETES)
-			return MAPI_E_NO_SUPPORT;
-		hr = Util::HrCopyUnicodePropTagArray(ulFlags,
-		     sPropsContentColumns, &~lpPropTagArray);
-		if(hr != hrSuccess)
-			return hr;
-		hr = ECMemTable::Create(lpPropTagArray, PR_ROWID, &~lpMemTable);
-		if(hr != hrSuccess)
-			return hr;
-		hr = lpMemTable->HrGetView(createLocaleFromName(""), ulFlags & MAPI_UNICODE, &~lpView);
-		if(hr != hrSuccess)
-			return hr;
-		return lpView->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(lppTable));
-	} else {
+	if (m_ePublicEntryID != ePE_IPMSubtree && m_ePublicEntryID != ePE_Favorites)
 		return ECMAPIFolder::GetContentsTable(ulFlags, lppTable);
-	}
+	if (ulFlags & SHOW_SOFT_DELETES)
+		return MAPI_E_NO_SUPPORT;
+	hr = Util::HrCopyUnicodePropTagArray(ulFlags,
+	     sPropsContentColumns, &~lpPropTagArray);
+	if (hr != hrSuccess)
+		return hr;
+	hr = ECMemTable::Create(lpPropTagArray, PR_ROWID, &~lpMemTable);
+	if (hr != hrSuccess)
+		return hr;
+	hr = lpMemTable->HrGetView(createLocaleFromName(""), ulFlags & MAPI_UNICODE, &~lpView);
+	if (hr != hrSuccess)
+		return hr;
+	return lpView->QueryInterface(IID_IMAPITable, reinterpret_cast<void **>(lppTable));
 }
 
 HRESULT ECMAPIFolderPublic::GetHierarchyTable(ULONG ulFlags, LPMAPITABLE *lppTable)
@@ -400,14 +397,9 @@ HRESULT ECMAPIFolderPublic::DeleteProps(const SPropTagArray *lpPropTagArray,
 	hr = ECMAPIContainer::DeleteProps(lpPropTagArray, lppProblems);
 	if (hr != hrSuccess)
 		return hr;
-
-	if (lpStorage)
-	{
-		hr = ECMAPIContainer::SaveChanges(KEEP_OPEN_READWRITE);
-		if (hr != hrSuccess)
-			return hr;
-	}
-	return hrSuccess;
+	if (lpStorage == nullptr)
+		return hrSuccess;
+	return ECMAPIContainer::SaveChanges(KEEP_OPEN_READWRITE);
 }
 
 HRESULT ECMAPIFolderPublic::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInterface, ULONG ulFlags, ULONG *lpulObjType, LPUNKNOWN *lppUnk)
@@ -506,24 +498,22 @@ HRESULT ECMAPIFolderPublic::DeleteFolder(ULONG cbEntryID, LPENTRYID lpEntryID, U
 
 	if (ValidateZEntryId(cbEntryID, reinterpret_cast<BYTE *>(lpEntryID), MAPI_FOLDER) == false)
 		return MAPI_E_INVALID_ENTRYID;
+	if (cbEntryID <= 4 || !(lpEntryID->abFlags[3] & KOPANO_FAVORITE))
+		return ECMAPIFolder::DeleteFolder(cbEntryID, lpEntryID,
+		       ulUIParam, lpProgress, ulFlags);
 
-	if (cbEntryID > 4 && (lpEntryID->abFlags[3] & KOPANO_FAVORITE) )
-	{
-		// remove the shortcut from the shortcut folder
-		object_ptr<IMAPIFolder> lpFolder, lpShortcutFolder;
-		hr = OpenEntry(cbEntryID, lpEntryID, nullptr, 0, &ulObjType, &~lpFolder);
-		if (hr != hrSuccess)
-			return hr;
-		hr = HrGetOneProp(lpFolder, PR_SOURCE_KEY, &~lpProp);
-		if (hr != hrSuccess)
-			return hr;
-		hr = ((ECMsgStorePublic *)GetMsgStore())->GetDefaultShortcutFolder(&~lpShortcutFolder);
-		if (hr != hrSuccess)
-			return hr;
-		return DelFavoriteFolder(lpShortcutFolder, lpProp);
-	} else {
-		return ECMAPIFolder::DeleteFolder(cbEntryID, lpEntryID, ulUIParam, lpProgress, ulFlags);
-	}
+	// remove the shortcut from the shortcut folder
+	object_ptr<IMAPIFolder> lpFolder, lpShortcutFolder;
+	hr = OpenEntry(cbEntryID, lpEntryID, nullptr, 0, &ulObjType, &~lpFolder);
+	if (hr != hrSuccess)
+		return hr;
+	hr = HrGetOneProp(lpFolder, PR_SOURCE_KEY, &~lpProp);
+	if (hr != hrSuccess)
+		return hr;
+	hr = ((ECMsgStorePublic *)GetMsgStore())->GetDefaultShortcutFolder(&~lpShortcutFolder);
+	if (hr != hrSuccess)
+		return hr;
+	return DelFavoriteFolder(lpShortcutFolder, lpProp);
 }
 
 HRESULT ECMAPIFolderPublic::CopyMessages(LPENTRYLIST lpMsgList, LPCIID lpInterface, LPVOID lpDestFolder, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags)

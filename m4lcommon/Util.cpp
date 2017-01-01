@@ -3589,23 +3589,23 @@ HRESULT Util::HrCopyIMAPData(LPMESSAGE lpSrcMsg, LPMESSAGE lpDstMsg)
 
 	// special case: get PR_EC_IMAP_BODY if present, and copy with single instance
 	// hidden property in kopano, try to copy contents
-	if (Util::TryOpenProperty(PT_BINARY, PR_EC_IMAP_EMAIL, lpSrcMsg, PR_EC_IMAP_EMAIL, lpDstMsg, &~lpSrcStream, &~lpDestStream) == hrSuccess) {
-		if (Util::CopyStream(lpSrcStream, lpDestStream) == hrSuccess) {
-			/*
-			 * Try making a single instance copy for IMAP body data (without sending the data to server).
-			 * No error checking, we do not care if this fails, we still have all the data.
-			 */
-			Util::CopyInstanceIds(lpSrcMsg, lpDstMsg);
+	if (Util::TryOpenProperty(PT_BINARY, PR_EC_IMAP_EMAIL, lpSrcMsg,
+	    PR_EC_IMAP_EMAIL, lpDstMsg, &~lpSrcStream, &~lpDestStream) != hrSuccess ||
+	    Util::CopyStream(lpSrcStream, lpDestStream) != hrSuccess)
+		return hrSuccess;
+	/*
+	 * Try making a single instance copy for IMAP body data (without sending the data to server).
+	 * No error checking, we do not care if this fails, we still have all the data.
+	 */
+	Util::CopyInstanceIds(lpSrcMsg, lpDstMsg);
 
-			// Since we have a copy of the original email body, copy the other properties for IMAP too
-			hr = lpSrcMsg->GetProps(sptaIMAP, 0, &cValues, &~lpIMAPProps);
-			if (FAILED(hr))
-				return hr;
-			hr = lpDstMsg->SetProps(cValues, lpIMAPProps, NULL);
-			if (FAILED(hr))
-				return hr;
-		}
-	}
+	// Since we have a copy of the original email body, copy the other properties for IMAP too
+	hr = lpSrcMsg->GetProps(sptaIMAP, 0, &cValues, &~lpIMAPProps);
+	if (FAILED(hr))
+		return hr;
+	hr = lpDstMsg->SetProps(cValues, lpIMAPProps, NULL);
+	if (FAILED(hr))
+		return hr;
 	return hrSuccess;
 }
 

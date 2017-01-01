@@ -595,10 +595,10 @@ bool CHtmlEntity::CharToHtmlEntity(WCHAR c, std::wstring &strHTML)
 			break;
 		default:
 			const WCHAR* lpChar = CHtmlEntity::toName(c);
-			if (lpChar) {
-				strHTML = std::wstring(L"&") + lpChar + L";";
-				bHTML = true;
-			}
+			if (lpChar == nullptr)
+				break;
+			strHTML = std::wstring(L"&") + lpChar + L";";
+			bHTML = true;
 			break;
 	}
 	if (!bHTML) {

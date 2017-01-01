@@ -147,64 +147,56 @@ unsigned int rtf_decompress(char *lpDest, char *lpSrc, unsigned int ulBufSize)
 		// Uncompressed RTF
 		memcpy(lpDest, lpSrc, ulBufSize - sizeof(RTFHeader));
 		return 0;
-	} else if(lpHeader->ulMagic == 0x75465a4c) {
-		// Allocate a buffer to decompress into (uncompressed size plus prebuffered data)
-		std::unique_ptr<char[]> lpBuffer(new char[lpHeader->ulUncompressedSize+prebufSize]);
-		memcpy(lpBuffer.get(), lpPrebuf, prebufSize);
-		
-		// Start writing just after the prebuffered data
-		char *lpWrite = lpBuffer.get() + prebufSize;
-		
-		while (lpWrite < lpBuffer.get() + lpHeader->ulUncompressedSize + prebufSize) {
-			// Get next bit from flags
-			ulFlags = ulFlagNr++ % 8 == 0 ? *lpSrc++ : ulFlags >> 1;
-			
-			if(lpSrc >= lpStart + ulBufSize) {
-				// Reached the end of the input buffer somehow. We currently return OK
-				// and the decoded data up to now.
-				break;
-			}
-			
-			if(ulFlags & 1) {
-				if(lpSrc+2 >= lpStart + ulBufSize) {
-					break;
-				}
-				// Reference to existing data
-				c1 = *lpSrc++;
-				c2 = *lpSrc++;
-				
-				// Offset is first 12 bits
-				ulOffset = (((unsigned int)c1) << 4) | (c2 >> 4);
-				// Size is last 4 bits, plus 2 (0 and 1 are impossible, because 1 would be a literal (ie ulFlags & 1 == 0)
-				ulSize = (c2 & 0xf) + 2;
-				
-				// We now have offset and size within our current 4k window. If the offset is after the 
-				// write pointer, then go back one window. (due to wrapping buffer)
-				
-				ulOffset = ((lpWrite - lpBuffer.get()) / 4096) * 4096 + ulOffset;
-				
-				if(ulOffset > (unsigned int)(lpWrite - lpBuffer.get()))
-					ulOffset -= 4096;
-					 
-				while(ulSize && lpWrite < &lpBuffer[lpHeader->ulUncompressedSize+prebufSize] && ulOffset < lpHeader->ulUncompressedSize + prebufSize) {
-					*lpWrite++ = lpBuffer[ulOffset++]; 
-					--ulSize;
-				}
-			} else {
-				*lpWrite++ = *lpSrc++;
-				if(lpSrc >= lpStart + ulBufSize) 
-					break;
-			}
-		}
-
-		// Copy back the data without the prebuffer
-		memcpy(lpDest, &lpBuffer[prebufSize], lpHeader->ulUncompressedSize);
-		return 0;
-	} else {
+	} else if (lpHeader->ulMagic != 0x75465a4c) {
 		return 1;
 	}
-			
-	return 1;
+	// Allocate a buffer to decompress into (uncompressed size plus prebuffered data)
+	std::unique_ptr<char[]> lpBuffer(new char[lpHeader->ulUncompressedSize+prebufSize]);
+	memcpy(lpBuffer.get(), lpPrebuf, prebufSize);
+
+	// Start writing just after the prebuffered data
+	char *lpWrite = lpBuffer.get() + prebufSize;
+
+	while (lpWrite < lpBuffer.get() + lpHeader->ulUncompressedSize + prebufSize) {
+		// Get next bit from flags
+		ulFlags = ulFlagNr++ % 8 == 0 ? *lpSrc++ : ulFlags >> 1;
+
+		if (lpSrc >= lpStart + ulBufSize) {
+			// Reached the end of the input buffer somehow. We currently return OK
+			// and the decoded data up to now.
+			break;
+		}
+		if (!(ulFlags & 1)) {
+			*lpWrite++ = *lpSrc++;
+			if (lpSrc >= lpStart + ulBufSize)
+				break;
+			continue;
+		}
+		if (lpSrc+2 >= lpStart + ulBufSize) {
+			break;
+		}
+		// Reference to existing data
+		c1 = *lpSrc++;
+		c2 = *lpSrc++;
+
+		// Offset is first 12 bits
+		ulOffset = (((unsigned int)c1) << 4) | (c2 >> 4);
+		// Size is last 4 bits, plus 2 (0 and 1 are impossible, because 1 would be a literal (ie ulFlags & 1 == 0)
+		ulSize = (c2 & 0xf) + 2;
+
+		// We now have offset and size within our current 4k window. If the offset is after the
+		// write pointer, then go back one window. (due to wrapping buffer)
+		ulOffset = ((lpWrite - lpBuffer.get()) / 4096) * 4096 + ulOffset;
+		if (ulOffset > (unsigned int)(lpWrite - lpBuffer.get()))
+			ulOffset -= 4096;
+		while (ulSize && lpWrite < &lpBuffer[lpHeader->ulUncompressedSize+prebufSize] && ulOffset < lpHeader->ulUncompressedSize + prebufSize) {
+			*lpWrite++ = lpBuffer[ulOffset++];
+			--ulSize;
+		}
+	}
+	// Copy back the data without the prebuffer
+	memcpy(lpDest, &lpBuffer[prebufSize], lpHeader->ulUncompressedSize);
+	return 0;
 }
 
 // Find pattern in buffer, and return the longest match found.

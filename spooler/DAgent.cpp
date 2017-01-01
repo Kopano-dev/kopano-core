@@ -2250,14 +2250,13 @@ static HRESULT HrPostDeliveryProcessing(PyMapiPlugin *lppyMapiPlugin,
 			// The MR autoaccepter has processed the message. Skip any further work on this message: dont
 			// run rules and dont send new mail notifications (The message should be deleted now)
 			return MAPI_E_CANCEL;
-		} else {
-			g_lpLogger->Log(EC_LOGLEVEL_INFO, "Autoaccept processing failed, proceeding with rules processing: %s (%x).",
-				GetMAPIErrorMessage(hr), hr);
-			// The MR autoaccepter did not run properly. This could be correct behaviour; for example the
-			// autoaccepter may want to defer accepting to a human controller. This means we have to continue
-			// processing as if the autoaccepter was not used
-			hr = hrSuccess;
 		}
+		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Autoaccept processing failed, proceeding with rules processing: %s (%x).",
+			GetMAPIErrorMessage(hr), hr);
+		// The MR autoaccepter did not run properly. This could be correct behaviour; for example the
+		// autoaccepter may want to defer accepting to a human controller. This means we have to continue
+		// processing as if the autoaccepter was not used
+		hr = hrSuccess;
 	}
 	
 	if (lpFolder == lpInbox) {
@@ -2801,12 +2800,12 @@ static HRESULT ProcessDeliveryToCompany(PyMapiPlugin *lppyMapiPlugin,
 		}
 
 		/* lpMessage is our base message which we will copy to each server/recipient */
-		if (lpMessageTmp) {
-			if (lpMasterMessage == NULL)
-				// keep message to make copies of on the same server
-				lpMessageTmp->QueryInterface(IID_IMessage, &~lpMasterMessage);
-			bFallbackDelivery = bFallbackDeliveryTmp;
-		}
+		if (lpMessageTmp == nullptr)
+			continue;
+		if (lpMasterMessage == NULL)
+			// keep message to make copies of on the same server
+			lpMessageTmp->QueryInterface(IID_IMessage, &~lpMasterMessage);
+		bFallbackDelivery = bFallbackDeliveryTmp;
 	}
 
 	g_lpLogger->Log(EC_LOGLEVEL_INFO, "Finished processing message");
