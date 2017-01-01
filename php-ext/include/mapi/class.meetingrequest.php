@@ -1478,17 +1478,15 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		$status = olRecipientTrackStatusNone;
 		switch($class)
 		{
-			case "IPM.Schedule.Meeting.Resp.Pos":
-				$status = olRecipientTrackStatusAccepted;
-				break;
-				
-			case "IPM.Schedule.Meeting.Resp.Tent":
-				$status = olRecipientTrackStatusTentative;
-				break;	
-				
-			case "IPM.Schedule.Meeting.Resp.Neg":
-				$status = olRecipientTrackStatusDeclined;
-				break;
+		case "IPM.Schedule.Meeting.Resp.Pos":
+			$status = olRecipientTrackStatusAccepted;
+			break;
+		case "IPM.Schedule.Meeting.Resp.Tent":
+			$status = olRecipientTrackStatusTentative;
+			break;
+		case "IPM.Schedule.Meeting.Resp.Neg":
+			$status = olRecipientTrackStatusDeclined;
+			break;
 		}
 		return $status;
 	}
@@ -1671,18 +1669,18 @@ If it is the first time this attendee has proposed a new date/time, increment th
 		$recip[PR_SEARCH_KEY] = $messageprops[PR_SENT_REPRESENTING_SEARCH_KEY];
 
 		switch($status) {
-			case olResponseAccepted:
-				$classpostfix = "Pos";
-				$subjectprefix = dgettext("kopano","Accepted");
-				break;
-			case olResponseDeclined:
-				$classpostfix = "Neg";
-				$subjectprefix = dgettext("kopano","Declined");
-				break;
-			case olResponseTentative:
-				$classpostfix = "Tent";
-				$subjectprefix = dgettext("kopano","Tentatively accepted");
-				break;
+		case olResponseAccepted:
+			$classpostfix = "Pos";
+			$subjectprefix = dgettext("kopano","Accepted");
+			break;
+		case olResponseDeclined:
+			$classpostfix = "Neg";
+			$subjectprefix = dgettext("kopano","Declined");
+			break;
+		case olResponseTentative:
+			$classpostfix = "Tent";
+			$subjectprefix = dgettext("kopano","Tentatively accepted");
+			break;
 		}
 
 		if($proposalStartTime && $proposalEndTime){

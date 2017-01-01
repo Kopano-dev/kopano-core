@@ -314,42 +314,36 @@ class FreeBusyPublish {
 		{
     		switch ($ts["type"])
 			{
-				case 0: // Start
-    				if ($level != 0 && $laststart != $ts["time"])
-    				{
-    					$newitem["start"] = $laststart;
-    					$newitem["end"] = $ts["time"];
-    					$newitem["subject"] = join(",", $csubj);
-    					$newitem["status"] = !empty($cbusy) ? max($cbusy) : 0;
-						if($newitem["status"] > 0)
-	    					$merged[] = $newitem;
-    				} 
-
-    				$level++;
-    				
-    				$csubj[] = $ts["subject"];
-    				$cbusy[] = $ts["status"];
-    				
-    				$laststart = $ts["time"];
-    				break;
-    			case 1: // End
-    				if ($laststart != $ts["time"])
-    				{
-    					$newitem["start"] = $laststart;
-    					$newitem["end"] = $ts["time"];
-    					$newitem["subject"] = join(",", $csubj);
-    					$newitem["status"] = !empty($cbusy) ? max($cbusy) : 0;
-						if($newitem["status"] > 0)
-	    					$merged[] = $newitem;
-    				} 
-    				
-    				$level--;
-
-    				array_splice($csubj, array_search($ts["subject"], $csubj, 1), 1);
-    				array_splice($cbusy, array_search($ts["status"], $cbusy, 1), 1);
-
-    				$laststart = $ts["time"];
-    				break;
+		case 0: // Start
+    			if ($level != 0 && $laststart != $ts["time"])
+    			{
+    				$newitem["start"] = $laststart;
+    				$newitem["end"] = $ts["time"];
+    				$newitem["subject"] = join(",", $csubj);
+    				$newitem["status"] = !empty($cbusy) ? max($cbusy) : 0;
+				if ($newitem["status"] > 0)
+	    				$merged[] = $newitem;
+    			}
+			$level++;
+			$csubj[] = $ts["subject"];
+			$cbusy[] = $ts["status"];
+			$laststart = $ts["time"];
+			break;
+		case 1: // End
+			if ($laststart != $ts["time"])
+			{
+				$newitem["start"] = $laststart;
+				$newitem["end"] = $ts["time"];
+				$newitem["subject"] = join(",", $csubj);
+				$newitem["status"] = !empty($cbusy) ? max($cbusy) : 0;
+				if ($newitem["status"] > 0)
+					$merged[] = $newitem;
+			}
+			$level--;
+			array_splice($csubj, array_search($ts["subject"], $csubj, 1), 1);
+			array_splice($cbusy, array_search($ts["status"], $cbusy, 1), 1);
+			$laststart = $ts["time"];
+			break;
     		} 
     	} 
 

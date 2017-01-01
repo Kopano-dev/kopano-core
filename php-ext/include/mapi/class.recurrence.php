@@ -539,52 +539,52 @@
 			$occTimeRange = ($startocc != 0 && $endocc != 0);
 
 			switch ($type) {
-				// Daily
-				case 0x0A:
-					if ($everyn == 1) {
-						$type = dgettext("kopano","workday");
-						$occSingleDayRank = true;
-					} else if ($everyn == (24 * 60)) {
-						$type = dgettext("kopano","day");
-						$occSingleDayRank = true;
-					} else {
-						$everyn /= (24 * 60);
-						$type = dgettext("kopano","days");
-						$occSingleDayRank = false;
-					}
-					break;
-				// Weekly
-				case 0x0B:
-					if ($everyn == 1) {
-						$type = dgettext("kopano","week");
-						$occSingleDayRank = true;
-					} else {
-						$type = dgettext("kopano","weeks");
-						$occSingleDayRank = false;
-					}
-					break;
-				// Monthly
-				case 0x0C:
-					if ($everyn == 1) {
-						$type = dgettext("kopano","month");
-						$occSingleDayRank = true;
-					} else {
-						$type = dgettext("kopano","months");
-						$occSingleDayRank = false;
-					}
-					break;
-				// Yearly
-				case 0x0D:
-					if ($everyn <= 12) {
-						$everyn = 1;
-						$type = dgettext("kopano","year");
-						$occSingleDayRank = true;
-					} else {
-						$everyn = $everyn / 12;
-						$type = dgettext("kopano","years");
-						$occSingleDayRank = false;
-					}
-					break;
+			// Daily
+			case 0x0A:
+				if ($everyn == 1) {
+					$type = dgettext("kopano", "workday");
+					$occSingleDayRank = true;
+				} else if ($everyn == (24 * 60)) {
+					$type = dgettext("kopano", "day");
+					$occSingleDayRank = true;
+				} else {
+					$everyn /= (24 * 60);
+					$type = dgettext("kopano", "days");
+					$occSingleDayRank = false;
+				}
+				break;
+			// Weekly
+			case 0x0B:
+				if ($everyn == 1) {
+					$type = dgettext("kopano", "week");
+					$occSingleDayRank = true;
+				} else {
+					$type = dgettext("kopano", "weeks");
+					$occSingleDayRank = false;
+				}
+				break;
+			// Monthly
+			case 0x0C:
+				if ($everyn == 1) {
+					$type = dgettext("kopano", "month");
+					$occSingleDayRank = true;
+				} else {
+					$type = dgettext("kopano", "months");
+					$occSingleDayRank = false;
+				}
+				break;
+			// Yearly
+			case 0x0D:
+				if ($everyn <= 12) {
+					$everyn = 1;
+					$type = dgettext("kopano", "year");
+					$occSingleDayRank = true;
+				} else {
+					$everyn = $everyn / 12;
+					$type = dgettext("kopano", "years");
+					$occSingleDayRank = false;
+				}
+				break;
 			}
 
 			// get timings of the first occurence
