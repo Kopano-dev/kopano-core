@@ -3292,28 +3292,25 @@ ZEND_FUNCTION(mapi_getidsfromnames)
 
 		switch(Z_TYPE_P(entry))
 		{
-			case IS_LONG:
-				lppNamePropId[i]->ulKind = MNID_ID;
-				lppNamePropId[i]->Kind.lID = entry->value.lval;
+		case IS_LONG:
+			lppNamePropId[i]->ulKind = MNID_ID;
+			lppNamePropId[i]->Kind.lID = entry->value.lval;
 			break;
-
-			case IS_STRING:
-				multibytebufferlen = mbstowcs(NULL, entry->value.str->val, 0);
-				MAPI_G(hr) = MAPIAllocateMore((multibytebufferlen+1)*sizeof(WCHAR), lppNamePropId,
-											  (void **)&lppNamePropId[i]->Kind.lpwstrName);
-				if (MAPI_G(hr) != hrSuccess)
-					goto exit;
-				mbstowcs(lppNamePropId[i]->Kind.lpwstrName, entry->value.str->val, multibytebufferlen+1);
-				lppNamePropId[i]->ulKind = MNID_STRING;
+		case IS_STRING:
+			multibytebufferlen = mbstowcs(NULL, entry->value.str->val, 0);
+			MAPI_G(hr) = MAPIAllocateMore((multibytebufferlen + 1) * sizeof(WCHAR), lppNamePropId,
+				  (void **)&lppNamePropId[i]->Kind.lpwstrName);
+			if (MAPI_G(hr) != hrSuccess)
+				goto exit;
+			mbstowcs(lppNamePropId[i]->Kind.lpwstrName, entry->value.str->val, multibytebufferlen+1);
+			lppNamePropId[i]->ulKind = MNID_STRING;
 			break;
-
-			case IS_DOUBLE:
-				lppNamePropId[i]->ulKind = MNID_ID;
-				lppNamePropId[i]->Kind.lID = (LONG) entry->value.dval;
+		case IS_DOUBLE:
+			lppNamePropId[i]->ulKind = MNID_ID;
+			lppNamePropId[i]->Kind.lID = (LONG) entry->value.dval;
 			break;
-
-			default:
-				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Entry is of an unknown type: %08X", Z_TYPE_P(entry));
+		default:
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Entry is of an unknown type: %08X", Z_TYPE_P(entry));
 			break;
 		}
 
