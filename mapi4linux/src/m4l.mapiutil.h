@@ -39,17 +39,16 @@ STDAPI_(void) FDecodeID(LPCSTR lpwEncoded, LPENTRYID *lpDecoded, ULONG *cbEncode
 
 STDAPI_(FILETIME) FtDivFtBogus(FILETIME f, FILETIME f2, DWORD n);
 
-
-STDAPI_(BOOL) FBadRglpszA(LPTSTR *lppszT, ULONG cStrings);
-STDAPI_(BOOL) FBadRglpszW(LPWSTR *lppszW, ULONG cStrings);
-STDAPI_(BOOL) FBadRowSet(LPSRowSet lpRowSet);
+extern STDAPI_(BOOL) FBadRglpszA(const TCHAR *, ULONG cStrings);
+extern STDAPI_(BOOL) FBadRglpszW(const wchar_t *, ULONG cStrings);
+extern STDAPI_(BOOL) FBadRowSet(const SRowSet *);
 STDAPI_(BOOL) FBadRglpNameID(LPMAPINAMEID *lppNameId, ULONG cNames);
-STDAPI_(BOOL) FBadEntryList(LPENTRYLIST lpEntryList);
-STDAPI_(ULONG) FBadRestriction(LPSRestriction lpres);
+extern STDAPI_(BOOL) FBadEntryList(const SBinaryArray *);
+extern STDAPI_(ULONG) FBadRestriction(const SRestriction *);
 STDAPI_(ULONG) FBadPropTag(ULONG ulPropTag);
-STDAPI_(ULONG) FBadRow(LPSRow lprow);
-STDAPI_(ULONG) FBadProp(LPSPropValue lpprop);
-STDAPI_(ULONG) FBadSortOrderSet(LPSSortOrderSet lpsos);
+extern STDAPI_(ULONG) FBadRow(const SRow *);
+extern STDAPI_(ULONG) FBadProp(const SPropValue *);
+extern STDAPI_(ULONG) FBadSortOrderSet(const SSortOrderSet *);
 extern STDAPI_(ULONG) FBadColumnSet(const SPropTagArray *lpptaCols);
 
 /*

@@ -990,21 +990,21 @@ void __stdcall FDecodeID(LPCSTR lpwEncoded, LPENTRYID *lpDecoded, ULONG *cbEncod
 	// ?
 }
 
-BOOL __stdcall FBadRglpszA(LPTSTR *lppszA, ULONG cStrings)
+BOOL __stdcall FBadRglpszA(const TCHAR *, ULONG cStrings)
 {
 	TRACE_MAPILIB(TRACE_ENTRY, "FBadRglpszA", "");
 	TRACE_MAPILIB(TRACE_RETURN, "FBadRglpszA", "");
 	return FALSE;
 }
 
-BOOL __stdcall FBadRglpszW(LPWSTR *lppszW, ULONG cStrings)
+BOOL __stdcall FBadRglpszW(const wchar_t *, ULONG cStrings)
 {
 	TRACE_MAPILIB(TRACE_ENTRY, "FBadRglpszW", "");
 	TRACE_MAPILIB(TRACE_RETURN, "FBadRglpszW", "");
 	return FALSE;
 }
 
-BOOL __stdcall FBadRowSet(LPSRowSet lpRowSet)
+BOOL __stdcall FBadRowSet(const SRowSet *)
 {
 	TRACE_MAPILIB(TRACE_ENTRY, "FBadRowSet", "");
 	TRACE_MAPILIB(TRACE_RETURN, "FBadRowSet", "");
@@ -1025,14 +1025,14 @@ ULONG __stdcall FBadPropTag(ULONG ulPropTag)
 	return FALSE;
 }
 
-ULONG __stdcall FBadRow(LPSRow lprow)
+ULONG __stdcall FBadRow(const SRow *)
 {
 	TRACE_MAPILIB(TRACE_ENTRY, "FBadRow", "");
 	TRACE_MAPILIB(TRACE_RETURN, "FBadRow", "");
 	return FALSE;
 }
 
-ULONG __stdcall FBadProp(LPSPropValue lpprop)
+ULONG __stdcall FBadProp(const SPropValue *)
 {
 	TRACE_MAPILIB(TRACE_ENTRY, "FBadProp", "");
 	TRACE_MAPILIB(TRACE_RETURN, "FBadProp", "");
@@ -1046,21 +1046,21 @@ ULONG __stdcall FBadColumnSet(const SPropTagArray *lpptaCols)
 	return FALSE;
 }
 
-ULONG __stdcall FBadSortOrderSet( LPSSortOrderSet lpsos )
+ULONG __stdcall FBadSortOrderSet(const SSortOrderSet *)
 {
 	TRACE_MAPILIB(TRACE_ENTRY, "FBadSortOrderSet", "");
 	TRACE_MAPILIB(TRACE_RETURN, "FBadSortOrderSet", "");
 	return FALSE;
 }
 
-BOOL __stdcall FBadEntryList( LPENTRYLIST	lpEntryList)
+BOOL __stdcall FBadEntryList(const SBinaryArray *lpEntryList)
 {
 	TRACE_MAPILIB(TRACE_ENTRY, "FBadEntryList", "");
 	TRACE_MAPILIB(TRACE_RETURN, "FBadEntryList", "");
 	return FALSE;
 }
 
-ULONG __stdcall FBadRestriction( LPSRestriction lpres )
+ULONG __stdcall FBadRestriction(const SRestriction *)
 {
 	TRACE_MAPILIB(TRACE_ENTRY, "FBadRestriction", "");
 	TRACE_MAPILIB(TRACE_RETURN, "FBadRestriction", "");
