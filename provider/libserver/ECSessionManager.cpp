@@ -17,6 +17,7 @@
 #include <chrono>
 #include <memory>
 #include <new>
+#include <utility>
 #include <pthread.h>
 #include <mapidefs.h>
 #include <mapitags.h>
@@ -624,7 +625,7 @@ ECRESULT ECSessionManager::RegisterSession(ECAuthSession *lpAuthSession,
 	m_mapSessions.insert( SESSIONMAP::value_type(newSID, lpSession) );
 	pthread_rwlock_unlock(&m_hCacheRWLock);
 
-	*lpSessionID = newSID;
+	*lpSessionID = std::move(newSID);
 	*lppSession = lpSession;
 
 	g_lpStatsCollector->Increment(SCN_SESSIONS_CREATED);

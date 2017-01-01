@@ -40,7 +40,7 @@ namespace operations {
  */
 class _kc_export Copier _kc_final : public ArchiveOperationBaseEx {
 public:
-	_kc_hidden Copier(ArchiverSessionPtr, ECConfig *, ECArchiverLogger *, const ObjectEntryList &archives, LPSPropTagArray exclprop, int age, bool process_unread);
+	_kc_hidden Copier(ArchiverSessionPtr, ECConfig *, ECArchiverLogger *, const ObjectEntryList &archives, const SPropTagArray *exclprop, int age, bool process_unread);
 	_kc_hidden ~Copier(void);
 
 	/**
@@ -64,7 +64,7 @@ public:
 public:
 	class _kc_export Helper { // For lack of a better name
 	public:
-		Helper(ArchiverSessionPtr ptrSession, ECLogger *lpLogger, const InstanceIdMapperPtr &ptrMapper, LPSPropTagArray lpExcludeProps, LPMAPIFOLDER lpFolder);
+		Helper(ArchiverSessionPtr, ECLogger *, const InstanceIdMapperPtr &, const SPropTagArray *exclprop, LPMAPIFOLDER folder);
 		~Helper(void);
 
 		/**
@@ -110,15 +110,15 @@ public:
 
 		ArchiverSessionPtr m_ptrSession;
 		ECLogger *m_lpLogger;
-		LPSPropTagArray m_lpExcludeProps;
+		const SPropTagArray *m_lpExcludeProps;
 		MAPIFolderPtr m_ptrFolder;
 		InstanceIdMapperPtr m_ptrMapper;
 	};
 
 private:
-	_kc_hidden HRESULT EnterFolder(LPMAPIFOLDER);
-	_kc_hidden HRESULT LeaveFolder(void);
-	_kc_hidden HRESULT DoProcessEntry(ULONG n, const LPSPropValue &prop);
+	_kc_hidden HRESULT EnterFolder(LPMAPIFOLDER) _kc_override;
+	_kc_hidden HRESULT LeaveFolder(void) _kc_override;
+	_kc_hidden HRESULT DoProcessEntry(ULONG n, const LPSPropValue &prop) _kc_override;
 
 private:
 	/**

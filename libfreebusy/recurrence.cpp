@@ -16,7 +16,7 @@
  */
 
 #include <kopano/platform.h>
-
+#include <utility>
 #include "recurrence.h"
 #include <cmath>
 #include <kopano/ECLogger.h>
@@ -168,9 +168,7 @@ HRESULT recurrence::HrGetHumanReadableString(std::string *lpstrHRS)
 
 	strHRS = "This item is recurring";
 	// @todo: make strings like outlook does, and probably make it std::wstring
-
-	*lpstrHRS = strHRS;
-
+	*lpstrHRS = std::move(strHRS);
 	return hr;
 }
 
@@ -1846,7 +1844,7 @@ ULONG recurrence::countDaysOfMonth(time_t tsDate)
 	ULONG ulYear = 0;
 	ULONG ulMonth = 0;
 	ULONG ulDays = 0;
-	ULONG ulDaysArray[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+	static const ULONG ulDaysArray[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 	
 	ulYear = this->YearFromTime(tsDate);
 	ulMonth = this->MonthFromTime(tsDate);

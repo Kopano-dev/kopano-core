@@ -1343,7 +1343,10 @@ HRESULT VMIMEToMAPI::modifyRecipientList(LPADRLIST lpRecipients,
  * @param[in]	lpPropList	Properties to return in lppPropVals. Must be in specific order.
  * @return		MAPI error code.
  */
-HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals, ULONG *lpulValues, const char *email, const WCHAR *fullname, ULONG ulRecipType, LPSPropTagArray lpPropsList) {
+HRESULT VMIMEToMAPI::modifyFromAddressBook(LPSPropValue *lppPropVals,
+    ULONG *lpulValues, const char *email, const wchar_t *fullname,
+    ULONG ulRecipType, const SPropTagArray *lpPropsList)
+{
 	HRESULT hr = hrSuccess;
 	memory_ptr<ENTRYID> lpDDEntryID;
 	ULONG cbDDEntryID;

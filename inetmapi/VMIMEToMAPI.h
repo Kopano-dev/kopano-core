@@ -84,7 +84,7 @@ private:
 	HRESULT handleHeaders(vmime::shared_ptr<vmime::header>, IMessage* lpMessage);
 	HRESULT handleRecipients(vmime::shared_ptr<vmime::header>, IMessage* lpMessage);
 	HRESULT modifyRecipientList(LPADRLIST lpRecipients, vmime::shared_ptr<vmime::addressList>, ULONG ulRecipType);
-	HRESULT modifyFromAddressBook(LPSPropValue *lppPropVals, ULONG *lpulValues, const char *email, const WCHAR *fullname, ULONG ulRecipType, LPSPropTagArray lpPropsList);
+	HRESULT modifyFromAddressBook(LPSPropValue *lppPropVals, ULONG *lpulValues, const char *email, const wchar_t *fullname, ULONG ulRecipType, const SPropTagArray *lpPropsList);
 
 	std::string content_transfer_decode(vmime::shared_ptr<vmime::body>) const;
 	vmime::charset get_mime_encoding(vmime::shared_ptr<vmime::header>, vmime::shared_ptr<vmime::body>) const;

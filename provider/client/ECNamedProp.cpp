@@ -67,7 +67,7 @@
  * - The ulMappedIds must be in ascending order
  */
 
-struct _sLocalNames {
+static const struct _sLocalNames {
 	GUID guid;
 	LONG ulMin;
 	LONG ulMax;

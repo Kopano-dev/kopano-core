@@ -821,7 +821,7 @@ PyObject *		List_from_LPTSTRPtr(LPTSTR *lpStrings, ULONG cValues)
 	return NULL;
 }
 
-LPSPropTagArray	List_to_LPSPropTagArray(PyObject *object, ULONG /*ulFlags*/)
+SPropTagArray *List_to_p_SPropTagArray(PyObject *object, ULONG /*ulFlags*/)
 {
 	PyObject *elem = NULL;
 	PyObject *iter = NULL;
@@ -863,7 +863,7 @@ exit:
 	return lpPropTagArray;
 }
 
-PyObject *		List_from_LPSPropTagArray(LPSPropTagArray lpPropTagArray)
+PyObject *List_from_SPropTagArray(const SPropTagArray *lpPropTagArray)
 {
 	PyObject *list = NULL;
 	PyObject *elem = NULL;
@@ -893,6 +893,16 @@ exit:
 		list = NULL;
 	}
 	return list;
+}
+
+SPropTagArray *List_to_LPSPropTagArray(PyObject *obj, ULONG flags)
+{
+	return List_to_p_SPropTagArray(obj, flags);
+}
+
+PyObject *List_from_LPSPropTagArray(const SPropTagArray *a)
+{
+	return List_from_SPropTagArray(a);
 }
 
 void Object_to_LPSRestriction(PyObject *object, LPSRestriction lpsRestriction, void *lpBase)

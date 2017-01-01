@@ -27,6 +27,7 @@
 #include <stack>
 #include <set>
 #include <map>
+#include <cstring>
 
 #include <edkmdb.h>
 
@@ -773,7 +774,7 @@ HRESULT	Util::HrCopyAction(ACTION *lpDest, const ACTION *lpSrc, void *lpBase)
 			break;
 		case OP_FORWARD:
 		case OP_DELEGATE:
-			hr = MAPIAllocateMore(CbNewADRLIST(lpSrc->lpadrlist->cEntries), lpBase, (void **)&lpDest->lpadrlist);
+			hr = MAPIAllocateMore(CbNewSRowSet(lpSrc->lpadrlist->cEntries), lpBase, reinterpret_cast<void **>(&lpDest->lpadrlist));
 			if(hr != hrSuccess)
 				return hr;
 			hr = HrCopySRowSet((LPSRowSet)lpDest->lpadrlist, (LPSRowSet)lpSrc->lpadrlist, lpBase);
@@ -1461,7 +1462,7 @@ HRESULT Util::HrTextToHtml(const WCHAR *text, std::string &strHTML, ULONG ulCode
 	return hr;
 }
 
-struct _rtfcodepages {
+static const struct _rtfcodepages {
 	int id;						// RTF codepage ID
 	ULONG ulCodepage;			// Windows codepage
 } RTFCODEPAGES[] = {
@@ -1514,14 +1515,14 @@ HRESULT Util::HrTextToRtf(IStream *text, IStream *rtf)
 {
 	ULONG cRead;
 	WCHAR c[BUFSIZE];
-	const char header[] = "{\\rtf1\\ansi\\ansicpg1252\\fromtext \\deff0{\\fonttbl\n" \
+	static const char header[] = "{\\rtf1\\ansi\\ansicpg1252\\fromtext \\deff0{\\fonttbl\n" \
 					"{\\f0\\fswiss Arial;}\n" \
 					"{\\f1\\fmodern Courier New;}\n" \
 					"{\\f2\\fnil\\fcharset2 Symbol;}\n" \
 					"{\\f3\\fmodern\\fcharset0 Courier New;}}\n" \
 					"{\\colortbl\\red0\\green0\\blue0;\\red0\\green0\\blue255;}\n" \
 					"\\uc1\\pard\\plain\\deftab360 \\f0\\fs20 ";
-	const char footer[] = "}";
+	static const char footer[] = "}";
 	ULONG i = 0;
 
 	rtf->Write(header, strlen(header), NULL);
@@ -2983,9 +2984,10 @@ HRESULT Util::AddProblemToArray(LPSPropProblem lpProblem, LPSPropProblemArray *l
  * 
  * @return MAPI error code
  */
-HRESULT Util::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj, ULONG ciidExclude, LPCIID rgiidExclude,
-					   LPSPropTagArray lpExcludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpDestInterface,
-					   LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray * lppProblems)
+HRESULT Util::DoCopyTo(LPCIID lpSrcInterface, LPVOID lpSrcObj,
+    ULONG ciidExclude, LPCIID rgiidExclude, const SPropTagArray *lpExcludeProps,
+    ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpDestInterface,
+    void *lpDestObj, ULONG ulFlags, SPropProblemArray **lppProblems)
 {
 	HRESULT hr = hrSuccess;
 	LPUNKNOWN lpUnkSrc = (LPUNKNOWN)lpSrcObj, lpUnkDest = (LPUNKNOWN)lpDestObj;
@@ -3233,9 +3235,10 @@ HRESULT Util::QueryInterfaceMapiPropOrValidFallback(LPUNKNOWN lpInObj, LPCIID lp
  * 
  * @return MAPI error code
  */
-HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, LPVOID lpSrcObj, LPSPropTagArray lpIncludeProps, ULONG ulUIParam,
-						  LPMAPIPROGRESS lpProgress, LPCIID lpDestInterface, LPVOID lpDestObj, ULONG ulFlags,
-						  LPSPropProblemArray * lppProblems)
+HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, void *lpSrcObj,
+    const SPropTagArray *inclprop, ULONG ulUIParam, LPMAPIPROGRESS lpProgress,
+    LPCIID lpDestInterface, void *lpDestObj, ULONG ulFlags,
+    SPropProblemArray **lppProblems)
 {
 	HRESULT hr = hrSuccess;
 	LPUNKNOWN lpUnkSrc = (LPUNKNOWN)lpSrcObj, lpUnkDest = (LPUNKNOWN)lpDestObj;
@@ -3250,6 +3253,7 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, LPVOID lpSrcObj, LPSPropTagArra
 
 	// named props
 	ULONG cNames = 0;
+	memory_ptr<SPropTagArray> lpIncludeProps;
 	memory_ptr<SPropTagArray> lpsSrcNameTagArray, lpsDestNameTagArray;
 	memory_ptr<SPropTagArray> lpsDestTagArray;
 	memory_ptr<MAPINAMEID *> lppNames;
@@ -3262,7 +3266,9 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, LPVOID lpSrcObj, LPSPropTagArra
 	LONG ulIdBODY;
 	ULONG ulBodyProp = PR_BODY;
 
-	if (!lpSrcInterface || !lpDestInterface || !lpSrcObj || !lpDestObj || !lpIncludeProps) {
+	if (lpSrcInterface == nullptr || lpDestInterface == nullptr ||
+	    lpSrcObj == nullptr || lpDestObj == nullptr ||
+	    inclprop == nullptr) {
 		hr = MAPI_E_INVALID_PARAMETER;
 		goto exit;
 	}
@@ -3279,6 +3285,12 @@ HRESULT Util::DoCopyProps(LPCIID lpSrcInterface, LPVOID lpSrcObj, LPSPropTagArra
 	if (HrGetOneProp(lpDestProp, PR_EC_OBJECT, &~lpZObj) == hrSuccess &&
 	    lpZObj->Value.lpszA != NULL)
 		reinterpret_cast<IECUnknown *>(lpZObj->Value.lpszA)->QueryInterface(IID_ECMessage, &~lpKopano);
+
+	/* remember which props not to copy */
+	hr = MAPIAllocateBuffer(CbNewSPropTagArray(inclprop->cValues), &~lpIncludeProps);
+	if (hr != hrSuccess)
+		return hr;
+	memcpy(lpIncludeProps, inclprop, CbNewSPropTagArray(inclprop->cValues));
 
 	if (ulFlags & MAPI_NOREPLACE) {
 		hr = lpDestProp->GetPropList(MAPI_UNICODE, &~lpsDestPropArray);

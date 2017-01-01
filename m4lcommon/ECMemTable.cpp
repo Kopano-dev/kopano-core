@@ -68,7 +68,8 @@ private:
  * interface.
  */
 
-ECMemTable::ECMemTable(SPropTagArray *lpsPropTags, ULONG ulRowPropTag) : ECUnknown("ECMemTable")
+ECMemTable::ECMemTable(const SPropTagArray *lpsPropTags, ULONG ulRowPropTag) :
+    ECUnknown("ECMemTable")
 {
 	this->lpsColumns = (LPSPropTagArray) new BYTE[CbSPropTagArray(lpsPropTags)];
 	this->lpsColumns->cValues = lpsPropTags->cValues;
@@ -82,7 +83,8 @@ ECMemTable::~ECMemTable()
 	delete[] this->lpsColumns;
 }
 
-HRESULT ECMemTable::Create(LPSPropTagArray lpsColumns, ULONG ulRowPropTag, ECMemTable **lppECMemTable)
+HRESULT ECMemTable::Create(const SPropTagArray *lpsColumns, ULONG ulRowPropTag,
+    ECMemTable **lppECMemTable)
 {
 	ECMemTable *lpMemTable = NULL;
 	
@@ -602,7 +604,8 @@ HRESULT ECMemTableView::GetStatus(ULONG *lpulTableStatus, ULONG *lpulTableType)
 	return hr;
 }
 
-HRESULT ECMemTableView::SetColumns(LPSPropTagArray lpPropTagArray, ULONG ulFlags)
+HRESULT ECMemTableView::SetColumns(const SPropTagArray *lpPropTagArray,
+    ULONG ulFlags)
 {
 	HRESULT hr = hrSuccess;
 
@@ -1223,7 +1226,7 @@ DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, GetLastError, (HRESULT, hRe
 DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, Advise, (ULONG, ulEventMask), (LPMAPIADVISESINK, lpAdviseSink), (ULONG *, lpulConnection))
 DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, Unadvise, (ULONG, ulConnection))
 DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, GetStatus, (ULONG *, lpulTableStatus), (ULONG *, lpulTableType))
-DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, SetColumns, (LPSPropTagArray, lpPropTagArray), (ULONG, ulFlags))
+DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, SetColumns, (const SPropTagArray *, lpPropTagArray), (ULONG, ulFlags))
 DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, QueryColumns, (ULONG, ulFlags), (LPSPropTagArray *, lpPropTagArray))
 DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, GetRowCount, (ULONG, ulFlags), (ULONG *, lpulCount))
 DEF_HRMETHOD1(TRACE_MAPI, ECMemTableView, MAPITable, SeekRow, (BOOKMARK, bkOrigin), (LONG, lRowCount), (LONG *, lplRowsSought))

@@ -50,7 +50,7 @@ public:
 	virtual ~ECTNEF();
     
 	// Add properties to the TNEF stream from the message
-	virtual HRESULT AddProps(ULONG ulFlags, LPSPropTagArray lpPropList);
+	virtual HRESULT AddProps(ULONG ulFlags, const SPropTagArray *lpPropList);
     
 	// Extract properties from the TNEF stream to the message
 	virtual HRESULT ExtractProps(ULONG ulFlags, LPSPropTagArray lpPropList);
@@ -59,7 +59,7 @@ public:
 	virtual HRESULT SetProps(ULONG cValues, LPSPropValue lpProps);
 
 	// Add other components (currently only attachments supported)
-	virtual HRESULT FinishComponent(ULONG ulFlags, ULONG ulComponentID, LPSPropTagArray lpPropList);
+	virtual HRESULT FinishComponent(ULONG ulFlags, ULONG ulComponentID, const SPropTagArray *lpPropList);
     
 	// Finish up and write the data (write stream with TNEF_ENCODE, write to message with TNEF_DECODE)
 	virtual HRESULT Finish();

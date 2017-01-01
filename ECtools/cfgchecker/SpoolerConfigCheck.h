@@ -24,9 +24,7 @@
 class SpoolerConfigCheck _kc_final : public ECConfigCheck {
 public:
 	SpoolerConfigCheck(const char *lpszConfigFile);
-	void loadChecks();
-
-private:
+	void loadChecks(void) _kc_override;
 };
 
 #endif

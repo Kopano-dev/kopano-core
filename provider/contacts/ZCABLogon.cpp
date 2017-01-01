@@ -282,7 +282,8 @@ HRESULT ZCABLogon::GetOneOffTable(ULONG ulFlags, LPMAPITABLE * lppTable)
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT ZCABLogon::PrepareRecips(ULONG ulFlags, LPSPropTagArray lpPropTagArray, LPADRLIST lpRecipList)
+HRESULT ZCABLogon::PrepareRecips(ULONG ulFlags,
+    const SPropTagArray *lpPropTagArray, LPADRLIST lpRecipList)
 {
 	if(lpPropTagArray == NULL || lpPropTagArray->cValues == 0)
 		/* There is no work to do. */
@@ -302,4 +303,4 @@ DEF_HRMETHOD1(TRACE_MAPI, ZCABLogon, ABLogon, Unadvise, (ULONG, ulConnection))
 DEF_HRMETHOD1(TRACE_MAPI, ZCABLogon, ABLogon, OpenStatusEntry, (LPCIID, lpInterface), (ULONG, ulFlags), (ULONG *, lpulObjType), (LPMAPISTATUS *, lppMAPIStatus))
 DEF_HRMETHOD1(TRACE_MAPI, ZCABLogon, ABLogon, OpenTemplateID, (ULONG, cbTemplateID), (LPENTRYID, lpTemplateID), (ULONG, ulTemplateFlags), (LPMAPIPROP, lpMAPIPropData), (LPCIID, lpInterface), (LPMAPIPROP *, lppMAPIPropNew), (LPMAPIPROP, lpMAPIPropSibling))
 DEF_HRMETHOD1(TRACE_MAPI, ZCABLogon, ABLogon, GetOneOffTable, (ULONG, ulFlags), (LPMAPITABLE *, lppTable))
-DEF_HRMETHOD1(TRACE_MAPI, ZCABLogon, ABLogon, PrepareRecips, (ULONG, ulFlags), (LPSPropTagArray, lpPropTagArray), (LPADRLIST, lpRecipList))
+DEF_HRMETHOD1(TRACE_MAPI, ZCABLogon, ABLogon, PrepareRecips, (ULONG, ulFlags), (const SPropTagArray *, lpPropTagArray), (LPADRLIST, lpRecipList))

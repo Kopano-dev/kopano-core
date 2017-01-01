@@ -24,9 +24,7 @@
 class IcalConfigCheck _kc_final : public ECConfigCheck {
 public:
 	IcalConfigCheck(const char *lpszConfigFile);
-	void loadChecks();
-
-private:
+	void loadChecks(void) _kc_override;
 };
 
 #endif

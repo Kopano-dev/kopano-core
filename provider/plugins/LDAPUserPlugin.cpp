@@ -218,12 +218,12 @@ public:
 			add(lppAttr[i++]);
 	}
 
-	bool empty()
+	bool empty(void) const
 	{
 		return lpAttrs[0] == NULL;
 	}
 
-	const char **get()
+	const char **get(void) const
 	{
 		return lpAttrs.get();
 	}
@@ -376,8 +376,7 @@ LDAPUserPlugin::LDAPUserPlugin(std::mutex &pluginlock,
 
 		{ NULL, NULL },
 	};
-
-	const char *lpszAllowedDirectives[] = {
+	static const char *const lpszAllowedDirectives[] = {
 		"include",
 		"propmap",
 		NULL,

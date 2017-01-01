@@ -52,35 +52,92 @@ namespace KC {
 
 void FreeRowSet(struct rowSet *lpRowSet, bool bBasePointerDel);
 
-unsigned int sContentsProps[] = { PR_ENTRYID, PR_DISPLAY_NAME, PR_MESSAGE_FLAGS, PR_SUBJECT, PR_STORE_ENTRYID, PR_STORE_RECORD_KEY, PR_STORE_SUPPORT_MASK, PR_INSTANCE_KEY, PR_RECORD_KEY, PR_ACCESS, PR_ACCESS_LEVEL };
-unsigned int sHierarchyProps[] = { PR_ENTRYID, PR_DISPLAY_NAME, PR_CONTENT_COUNT, PR_CONTENT_UNREAD, PR_STORE_ENTRYID, PR_STORE_RECORD_KEY, PR_STORE_SUPPORT_MASK, PR_INSTANCE_KEY, PR_RECORD_KEY, PR_ACCESS, PR_ACCESS_LEVEL };
-unsigned int sABContentsProps[] = { PR_ENTRYID, PR_DISPLAY_NAME, PR_INSTANCE_KEY, PR_ADDRTYPE, PR_DISPLAY_TYPE, PR_DISPLAY_TYPE_EX, PR_EMAIL_ADDRESS, PR_SMTP_ADDRESS, PR_OBJECT_TYPE, PR_RECORD_KEY, PR_SEARCH_KEY, PR_DEPARTMENT_NAME, PR_OFFICE_TELEPHONE_NUMBER, PR_OFFICE_LOCATION, PR_PRIMARY_FAX_NUMBER };
-unsigned int sABHierarchyProps[] = { PR_ENTRYID, PR_DISPLAY_NAME, PR_INSTANCE_KEY, PR_DISPLAY_TYPE, PR_OBJECT_TYPE, PR_RECORD_KEY, PR_SEARCH_KEY };
+static const unsigned int sContentsProps[] = {
+	PR_ENTRYID, PR_DISPLAY_NAME, PR_MESSAGE_FLAGS, PR_SUBJECT,
+	PR_STORE_ENTRYID, PR_STORE_RECORD_KEY, PR_STORE_SUPPORT_MASK,
+	PR_INSTANCE_KEY, PR_RECORD_KEY, PR_ACCESS, PR_ACCESS_LEVEL,
+};
+static const unsigned int sHierarchyProps[] = {
+	PR_ENTRYID, PR_DISPLAY_NAME, PR_CONTENT_COUNT, PR_CONTENT_UNREAD,
+	PR_STORE_ENTRYID, PR_STORE_RECORD_KEY, PR_STORE_SUPPORT_MASK,
+	PR_INSTANCE_KEY, PR_RECORD_KEY, PR_ACCESS, PR_ACCESS_LEVEL,
+};
+static const unsigned int sABContentsProps[] = {
+	PR_ENTRYID, PR_DISPLAY_NAME, PR_INSTANCE_KEY, PR_ADDRTYPE,
+	PR_DISPLAY_TYPE, PR_DISPLAY_TYPE_EX, PR_EMAIL_ADDRESS, PR_SMTP_ADDRESS,
+	PR_OBJECT_TYPE, PR_RECORD_KEY, PR_SEARCH_KEY, PR_DEPARTMENT_NAME,
+	PR_OFFICE_TELEPHONE_NUMBER, PR_OFFICE_LOCATION, PR_PRIMARY_FAX_NUMBER,
+};
+static const unsigned int sABHierarchyProps[] = {
+	PR_ENTRYID, PR_DISPLAY_NAME, PR_INSTANCE_KEY, PR_DISPLAY_TYPE,
+	PR_OBJECT_TYPE, PR_RECORD_KEY, PR_SEARCH_KEY,
+};
 
-unsigned int sUserStoresProps[] = { PR_EC_USERNAME, PR_EC_STOREGUID, PR_EC_STORETYPE, PR_DISPLAY_NAME, PR_EC_COMPANYID, PR_EC_COMPANY_NAME, PR_STORE_ENTRYID, PR_LAST_MODIFICATION_TIME, PR_MESSAGE_SIZE_EXTENDED};
+static const unsigned int sUserStoresProps[] = {
+	PR_EC_USERNAME, PR_EC_STOREGUID, PR_EC_STORETYPE, PR_DISPLAY_NAME,
+	PR_EC_COMPANYID, PR_EC_COMPANY_NAME, PR_STORE_ENTRYID,
+	PR_LAST_MODIFICATION_TIME, PR_MESSAGE_SIZE_EXTENDED,
+};
 
 // stats tables
-unsigned int sSystemStatsProps[] = { PR_DISPLAY_NAME, PR_EC_STATS_SYSTEM_DESCRIPTION, PR_EC_STATS_SYSTEM_VALUE };
-unsigned int sSessionStatsProps[] = { PR_EC_STATS_SESSION_ID, PR_EC_STATS_SESSION_GROUP_ID, PR_EC_STATS_SESSION_IPADDRESS, PR_EC_STATS_SESSION_IDLETIME, PR_EC_STATS_SESSION_CAPABILITY, PR_EC_STATS_SESSION_LOCKED, PR_EC_USERNAME, PR_EC_STATS_SESSION_BUSYSTATES, PR_EC_STATS_SESSION_PROCSTATES, PR_EC_STATS_SESSION_CPU_USER, PR_EC_STATS_SESSION_CPU_SYSTEM, PR_EC_STATS_SESSION_CPU_REAL, PR_EC_STATS_SESSION_PEER_PID, PR_EC_STATS_SESSION_CLIENT_VERSION, PR_EC_STATS_SESSION_CLIENT_APPLICATION, PR_EC_STATS_SESSION_REQUESTS, PR_EC_STATS_SESSION_PORT, PR_EC_STATS_SESSION_PROXY, PR_EC_STATS_SESSION_URL, PR_EC_STATS_SESSION_CLIENT_APPLICATION_VERSION, PR_EC_STATS_SESSION_CLIENT_APPLICATION_MISC };
-unsigned int sUserStatsProps[] = { PR_EC_COMPANY_NAME, PR_EC_USERNAME, PR_DISPLAY_NAME, PR_SMTP_ADDRESS, PR_EC_NONACTIVE, PR_EC_ADMINISTRATOR, PR_EC_HOMESERVER_NAME,
-								   PR_MESSAGE_SIZE_EXTENDED, PR_QUOTA_WARNING_THRESHOLD, PR_QUOTA_SEND_THRESHOLD, PR_QUOTA_RECEIVE_THRESHOLD, PR_EC_QUOTA_MAIL_TIME,
-								   PR_EC_OUTOFOFFICE, PR_LAST_LOGON_TIME, PR_LAST_LOGOFF_TIME };
-unsigned int sCompanyStatsProps[] = { PR_EC_COMPANY_NAME, PR_EC_COMPANY_ADMIN, PR_MESSAGE_SIZE_EXTENDED,
-									  PR_QUOTA_WARNING_THRESHOLD, PR_QUOTA_SEND_THRESHOLD, PR_QUOTA_RECEIVE_THRESHOLD, PR_EC_QUOTA_MAIL_TIME };
-unsigned int sServerStatsProps[] = { PR_EC_STATS_SERVER_NAME, PR_EC_STATS_SERVER_HOST, PR_EC_STATS_SERVER_HTTPPORT, PR_EC_STATS_SERVER_SSLPORT, PR_EC_STATS_SERVER_PROXYURL, PR_EC_STATS_SERVER_HTTPURL,
-									 PR_EC_STATS_SERVER_HTTPSURL, PR_EC_STATS_SERVER_FILEURL };
+static const unsigned int sSystemStatsProps[] = {
+	PR_DISPLAY_NAME, PR_EC_STATS_SYSTEM_DESCRIPTION,
+	PR_EC_STATS_SYSTEM_VALUE,
+};
+static const unsigned int sSessionStatsProps[] = {
+	PR_EC_STATS_SESSION_ID, PR_EC_STATS_SESSION_GROUP_ID,
+	PR_EC_STATS_SESSION_IPADDRESS, PR_EC_STATS_SESSION_IDLETIME,
+	PR_EC_STATS_SESSION_CAPABILITY, PR_EC_STATS_SESSION_LOCKED,
+	PR_EC_USERNAME, PR_EC_STATS_SESSION_BUSYSTATES,
+	PR_EC_STATS_SESSION_PROCSTATES, PR_EC_STATS_SESSION_CPU_USER,
+	PR_EC_STATS_SESSION_CPU_SYSTEM, PR_EC_STATS_SESSION_CPU_REAL,
+	PR_EC_STATS_SESSION_PEER_PID, PR_EC_STATS_SESSION_CLIENT_VERSION,
+	PR_EC_STATS_SESSION_CLIENT_APPLICATION, PR_EC_STATS_SESSION_REQUESTS,
+	PR_EC_STATS_SESSION_PORT, PR_EC_STATS_SESSION_PROXY,
+	PR_EC_STATS_SESSION_URL, PR_EC_STATS_SESSION_CLIENT_APPLICATION_VERSION,
+	PR_EC_STATS_SESSION_CLIENT_APPLICATION_MISC,
+};
+static const unsigned int sUserStatsProps[] = {
+	PR_EC_COMPANY_NAME, PR_EC_USERNAME, PR_DISPLAY_NAME, PR_SMTP_ADDRESS,
+	PR_EC_NONACTIVE, PR_EC_ADMINISTRATOR, PR_EC_HOMESERVER_NAME,
+	PR_MESSAGE_SIZE_EXTENDED, PR_QUOTA_WARNING_THRESHOLD,
+	PR_QUOTA_SEND_THRESHOLD, PR_QUOTA_RECEIVE_THRESHOLD,
+	PR_EC_QUOTA_MAIL_TIME, PR_EC_OUTOFOFFICE, PR_LAST_LOGON_TIME,
+	PR_LAST_LOGOFF_TIME,
+};
+static const unsigned int sCompanyStatsProps[] = {
+	PR_EC_COMPANY_NAME, PR_EC_COMPANY_ADMIN, PR_MESSAGE_SIZE_EXTENDED,
+	PR_QUOTA_WARNING_THRESHOLD, PR_QUOTA_SEND_THRESHOLD,
+	PR_QUOTA_RECEIVE_THRESHOLD, PR_EC_QUOTA_MAIL_TIME,
+};
+static const unsigned int sServerStatsProps[] = {
+	PR_EC_STATS_SERVER_NAME, PR_EC_STATS_SERVER_HOST,
+	PR_EC_STATS_SERVER_HTTPPORT, PR_EC_STATS_SERVER_SSLPORT,
+	PR_EC_STATS_SERVER_PROXYURL, PR_EC_STATS_SERVER_HTTPURL,
+	PR_EC_STATS_SERVER_HTTPSURL, PR_EC_STATS_SERVER_FILEURL,
+};
 
-struct propTagArray sPropTagArrayContents = { (unsigned int *)&sContentsProps, ARRAY_SIZE(sContentsProps)};
-struct propTagArray sPropTagArrayHierarchy = { (unsigned int *)&sHierarchyProps, ARRAY_SIZE(sHierarchyProps)};
-struct propTagArray sPropTagArrayABContents = { (unsigned int *)&sABContentsProps, ARRAY_SIZE(sABContentsProps)};
-struct propTagArray sPropTagArrayABHierarchy = { (unsigned int *)&sABHierarchyProps, ARRAY_SIZE(sABHierarchyProps)};
-struct propTagArray sPropTagArrayUserStores = { (unsigned int *)&sUserStoresProps, ARRAY_SIZE(sUserStoresProps)};
+static const struct propTagArray sPropTagArrayContents =
+	{const_cast<unsigned int *>(sContentsProps), ARRAY_SIZE(sContentsProps)};
+static const struct propTagArray sPropTagArrayHierarchy =
+	{const_cast<unsigned int *>(sHierarchyProps), ARRAY_SIZE(sHierarchyProps)};
+static const struct propTagArray sPropTagArrayABContents =
+	{const_cast<unsigned int *>(sABContentsProps), ARRAY_SIZE(sABContentsProps)};
+static const struct propTagArray sPropTagArrayABHierarchy =
+	{const_cast<unsigned int *>(sABHierarchyProps), ARRAY_SIZE(sABHierarchyProps)};
+static const struct propTagArray sPropTagArrayUserStores =
+	{const_cast<unsigned int *>(sUserStoresProps), ARRAY_SIZE(sUserStoresProps)};
 
-struct propTagArray sPropTagArraySystemStats = { (unsigned int *)&sSystemStatsProps, ARRAY_SIZE(sSystemStatsProps)};
-struct propTagArray sPropTagArraySessionStats = { (unsigned int *)&sSessionStatsProps, ARRAY_SIZE(sSessionStatsProps)};
-struct propTagArray sPropTagArrayUserStats = { (unsigned int *)&sUserStatsProps, ARRAY_SIZE(sUserStatsProps)};
-struct propTagArray sPropTagArrayCompanyStats = { (unsigned int *)&sCompanyStatsProps, ARRAY_SIZE(sCompanyStatsProps)};
-struct propTagArray sPropTagArrayServerStats = { (unsigned int *)&sServerStatsProps, ARRAY_SIZE(sServerStatsProps)};
+static const struct propTagArray sPropTagArraySystemStats =
+	{const_cast<unsigned int *>(sSystemStatsProps), ARRAY_SIZE(sSystemStatsProps)};
+static const struct propTagArray sPropTagArraySessionStats =
+	{const_cast<unsigned int *>(sSessionStatsProps), ARRAY_SIZE(sSessionStatsProps)};
+static const struct propTagArray sPropTagArrayUserStats =
+	{const_cast<unsigned int *>(sUserStatsProps), ARRAY_SIZE(sUserStatsProps)};
+static const struct propTagArray sPropTagArrayCompanyStats =
+	{const_cast<unsigned int *>(sCompanyStatsProps), ARRAY_SIZE(sCompanyStatsProps)};
+static const struct propTagArray sPropTagArrayServerStats =
+	{const_cast<unsigned int *>(sServerStatsProps), ARRAY_SIZE(sServerStatsProps)};
 
 ECTableManager::ECTableManager(ECSession *lpSession)
 {

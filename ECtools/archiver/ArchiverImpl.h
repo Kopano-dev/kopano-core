@@ -32,16 +32,12 @@ class ArchiverImpl _kc_final : public Archiver {
 public:
 	ArchiverImpl();
 	~ArchiverImpl();
-
-	eResult Init(const char *lpszAppName, const char *lpszConfig, const configsetting_t *lpExtraSettings, unsigned int ulFlags);
-
-	eResult GetControl(ArchiveControlPtr *lpptrControl, bool bForceCleanup);
-	eResult GetManage(const TCHAR *lpszUser, ArchiveManagePtr *lpptrManage);
-	eResult AutoAttach(unsigned int ulFlags);
-
-	ECConfig *GetConfig(void) const { return m_lpsConfig; }
-
-	ECLogger* GetLogger(eLogType which) const; // Inherits default (which = DefaultLog) from Archiver::GetLogger
+	eResult Init(const char *lpszAppName, const char *lpszConfig, const configsetting_t *lpExtraSettings, unsigned int ulFlags) _kc_override;
+	eResult GetControl(ArchiveControlPtr *lpptrControl, bool bForceCleanup) _kc_override;
+	eResult GetManage(const TCHAR *lpszUser, ArchiveManagePtr *lpptrManage) _kc_override;
+	eResult AutoAttach(unsigned int ulFlags) _kc_override;
+	ECConfig *GetConfig(void) const _kc_override { return m_lpsConfig; }
+	ECLogger *GetLogger(eLogType which) const _kc_override; // Inherits default (which = DefaultLog) from Archiver::GetLogger
 
 private:
 	configsetting_t* ConcatSettings(const configsetting_t *lpSettings1, const configsetting_t *lpSettings2);

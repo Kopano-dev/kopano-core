@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <memory>
+#include <utility>
 #include <kopano/memory.hpp>
 #include "WSUtil.h"
 #include "WSTransport.h"
@@ -499,8 +500,7 @@ HRESULT	ECExchangeModifyTable::HrSerializeTable(ECMemTable *lpTable, char **lppS
 	strcpy(szXML, os.str().c_str());
 	szXML[os.str().size()] = 0;
 
-	*lppSerialized = szXML;
-
+	*lppSerialized = std::move(szXML);
 exit:
 	if(lpSOAPRowSet)
 		FreeRowSet(lpSOAPRowSet, true);

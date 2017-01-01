@@ -306,7 +306,8 @@ HRESULT ECABLogon::GetOneOffTable(ULONG ulFlags, LPMAPITABLE * lppTable)
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT ECABLogon::PrepareRecips(ULONG ulFlags, LPSPropTagArray lpPropTagArray, LPADRLIST lpRecipList)
+HRESULT ECABLogon::PrepareRecips(ULONG ulFlags,
+    const SPropTagArray *lpPropTagArray, LPADRLIST lpRecipList)
 {
 	HRESULT			hr = hrSuccess;
 	ULONG			cPropsRecip;
@@ -417,4 +418,4 @@ DEF_HRMETHOD1(TRACE_MAPI, ECABLogon, ABLogon, Unadvise, (ULONG, ulConnection))
 DEF_HRMETHOD1(TRACE_MAPI, ECABLogon, ABLogon, OpenStatusEntry, (LPCIID, lpInterface), (ULONG, ulFlags), (ULONG *, lpulObjType), (LPMAPISTATUS *, lppMAPIStatus))
 DEF_HRMETHOD1(TRACE_MAPI, ECABLogon, ABLogon, OpenTemplateID, (ULONG, cbTemplateID), (LPENTRYID, lpTemplateID), (ULONG, ulTemplateFlags), (LPMAPIPROP, lpMAPIPropData), (LPCIID, lpInterface), (LPMAPIPROP *, lppMAPIPropNew), (LPMAPIPROP, lpMAPIPropSibling))
 DEF_HRMETHOD1(TRACE_MAPI, ECABLogon, ABLogon, GetOneOffTable, (ULONG, ulFlags), (LPMAPITABLE *, lppTable))
-DEF_HRMETHOD1(TRACE_MAPI, ECABLogon, ABLogon, PrepareRecips, (ULONG, ulFlags), (LPSPropTagArray, lpPropTagArray), (LPADRLIST, lpRecipList))
+DEF_HRMETHOD1(TRACE_MAPI, ECABLogon, ABLogon, PrepareRecips, (ULONG, ulFlags), (const SPropTagArray *, lpPropTagArray), (LPADRLIST, lpRecipList))

@@ -29,8 +29,7 @@ protected:
 
 public:
 	static HRESULT Create(ULONG ulType, ULONG ulFlags, KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, ECMsgStore *, WSTransport *, WSTableView **);
-	virtual	HRESULT	QueryInterface(REFIID refiid, void **lppInterface);
-
+	virtual	HRESULT	QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 };
 
 class WSTableOutGoingQueue _kc_final : public WSStoreTableView {
@@ -39,7 +38,7 @@ protected:
 
 public:
 	static HRESULT Create(KCmd *, std::recursive_mutex &, ECSESSIONID, ULONG cbEntryId, LPENTRYID, ECMsgStore *, WSTransport *, WSTableOutGoingQueue **);
-	virtual	HRESULT	QueryInterface(REFIID refiid, void **lppInterface);
+	virtual	HRESULT	QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 
 public:
 	virtual HRESULT HrOpenTable();

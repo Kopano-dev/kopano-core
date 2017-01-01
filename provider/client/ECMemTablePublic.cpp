@@ -36,7 +36,9 @@
 using namespace KCHL;
 
 //FIXME: add the classname "ECMemTablePublic"
-ECMemTablePublic::ECMemTablePublic(ECMAPIFolderPublic *lpECParentFolder, SPropTagArray *lpsPropTags, ULONG ulRowPropTag) : ECMemTable(lpsPropTags, ulRowPropTag)
+ECMemTablePublic::ECMemTablePublic(ECMAPIFolderPublic *lpECParentFolder,
+    const SPropTagArray *lpsPropTags, ULONG ulRowPropTag) :
+	ECMemTable(lpsPropTags, ulRowPropTag)
 {
 	m_lpECParentFolder = lpECParentFolder;
 	if (m_lpECParentFolder)
@@ -230,7 +232,7 @@ HRESULT ECMemTablePublic::Init(ULONG ulFlags)
 			hr = HrGetOneProp(&m_lpECParentFolder->m_xMAPIFolder, PR_SOURCE_KEY, &~lpPropTmp);
 			if (hr != hrSuccess)
 				goto exit;
-			hr = ECPropertyRestriction(RELOP_EQ, PR_FAV_PARENT_SOURCE_KEY, lpPropTmp).RestrictTable(lpShortcutTable, MAPI_DEFERRED_ERRORS);
+			hr = ECPropertyRestriction(RELOP_EQ, PR_FAV_PARENT_SOURCE_KEY, lpPropTmp, ECRestriction::Cheap).RestrictTable(lpShortcutTable, MAPI_DEFERRED_ERRORS);
 		}
 		if (hr != hrSuccess)
 			goto exit;
@@ -299,7 +301,6 @@ HRESULT ECMemTablePublic::ModifyRow(SBinary* lpInstanceKey, LPSRow lpsRow)
 	ULONG ulRowId;
 	ULONG ulConnection = 0;
 	object_ptr<IMAPIAdviseSink> lpFolderAdviseSink;
-	memory_ptr<SRestriction> lpRestriction;
 	LPSRowSet lpsRowsInternal = NULL;
 	SPropValue sPropTmp;
 
@@ -412,10 +413,8 @@ HRESULT ECMemTablePublic::ModifyRow(SBinary* lpInstanceKey, LPSRow lpsRow)
 			sPropTmp.ulPropTag = PR_INSTANCE_KEY;
 			sPropTmp.Value.bin = *lpInstanceKey;
 
-			hr = ECPropertyRestriction(RELOP_EQ, PR_INSTANCE_KEY, &sPropTmp).CreateMAPIRestriction(&~lpRestriction);
-			if (hr != hrSuccess)
-				goto exit;
-			hr = m_lpShortcutTable->FindRow(lpRestriction, BOOKMARK_BEGINNING, 0);
+			hr = ECPropertyRestriction(RELOP_EQ, PR_INSTANCE_KEY, &sPropTmp, ECRestriction::Cheap)
+			     .FindRowIn(m_lpShortcutTable, BOOKMARK_BEGINNING, 0);
 			if (hr != hrSuccess)
 				goto exit;
 

@@ -230,7 +230,7 @@ static void showtop(LPMDB lpStore)
 	static const unsigned int cols[] = {0, 4, 21, 8, 25, 16, 20, 8, 8, 7, 7, 5};
 	unsigned int ofs = 0;
 	bool bColumns[] = {false,false,true,true,true,true,true,true,true,true,true,true}; // key 1 through err?
-	SortFuncPtr fSort[] = {NULL,sort_sessionid,sort_version,sort_user,sort_ippeer,sort_app,NULL}; // key a through g
+	static constexpr const SortFuncPtr fSort[] = {nullptr, sort_sessionid, sort_version, sort_user, sort_ippeer, sort_app, nullptr}; // key a through g
 	bool bReverse = false;
 	SizedSPropTagArray (2, sptaSystem) = { 2, { PR_DISPLAY_NAME_A, PR_EC_STATS_SYSTEM_VALUE } };
 

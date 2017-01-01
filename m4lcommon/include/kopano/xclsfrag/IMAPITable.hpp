@@ -2,7 +2,7 @@ virtual HRESULT __stdcall GetLastError(HRESULT hResult, ULONG flags, LPMAPIERROR
 virtual HRESULT __stdcall Advise(ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG *lpulConnection) _kc_override;
 virtual HRESULT __stdcall Unadvise(ULONG ulConnection) _kc_override;
 virtual HRESULT __stdcall GetStatus(ULONG *lpulTableStatus, ULONG *lpulTableType) _kc_override;
-virtual HRESULT __stdcall SetColumns(LPSPropTagArray lpPropTagArray, ULONG flags) _kc_override;
+virtual HRESULT __stdcall SetColumns(const SPropTagArray *lpPropTagArray, ULONG flags) _kc_override;
 virtual HRESULT __stdcall QueryColumns(ULONG flags, LPSPropTagArray *lpPropTagArray) _kc_override;
 virtual HRESULT __stdcall GetRowCount(ULONG flags, ULONG *lpulCount) _kc_override;
 virtual HRESULT __stdcall SeekRow(BOOKMARK bkOrigin, LONG lRowCount, LONG *lplRowsSought) _kc_override;

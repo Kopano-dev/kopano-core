@@ -16,7 +16,7 @@
  */
 
 #include <kopano/platform.h>
-
+#include <utility>
 #include <mapitags.h>
 #include <mapidefs.h>
 #include <mapiutil.h>
@@ -805,7 +805,7 @@ ECRESULT ECGenProps::GetPropComputedUncached(struct soap *soap, ECODStore *lpODS
 			goto exit;
 	}
 
-	*lpPropVal = sPropVal;
+	*lpPropVal = std::move(sPropVal);
 exit:
 	delete[] sPropTagArray.__ptr;
 

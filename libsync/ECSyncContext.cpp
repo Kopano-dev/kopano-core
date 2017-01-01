@@ -18,6 +18,7 @@
 #include <kopano/zcdefs.h>
 #include <memory>
 #include <mutex>
+#include <utility>
 #include <kopano/platform.h>
 #include <kopano/lockhelper.hpp>
 #include <kopano/memory.hpp>
@@ -62,7 +63,8 @@ public:
 	{ }
 
 	// IUnknown
-	HRESULT QueryInterface(REFIID refiid, void **lpvoid) {
+	HRESULT QueryInterface(REFIID refiid, void **lpvoid) _kc_override
+	{
 		if (refiid == IID_ECUnknown || refiid == IID_ECChangeAdviseSink) {
 			AddRef();
 			*lpvoid = (void *)this;
@@ -459,7 +461,7 @@ HRESULT ECSyncContext::HrGetSyncStateFromSourceKey(SBinary *lpSourceKey, SSyncSt
 
 	// update the sourcekey to syncid map.
 	m_mapStates.insert(SyncStateMap::value_type(strSourceKey, sSyncState));
-	*lpsSyncState = sSyncState;
+	*lpsSyncState = std::move(sSyncState);
 	return hrSuccess;
 }
 

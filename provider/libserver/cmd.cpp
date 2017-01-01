@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <memory>
+#include <utility>
 #include <kopano/ECChannel.h>
 #include <kopano/MAPIErrors.h>
 #include <kopano/memory.hpp>
@@ -202,7 +203,7 @@ static ECRESULT GetLocalId(entryId sUserId, unsigned int ulLegacyUserId,
 
 	*lpulUserId = ulUserId;
 	if (lpsExternId)
-		*lpsExternId = sExternId;
+		*lpsExternId = std::move(sExternId);
 	return erSuccess;
 }
 
@@ -279,7 +280,7 @@ static ECRESULT GetABEntryID(unsigned int ulUserId, soap *lpSoap,
 	if (er != erSuccess)
 		return er;
 
-	*lpUserId = sUserId;	// pointer (__ptr) is copied, not data
+	*lpUserId = std::move(sUserId); // pointer (__ptr) is copied, not data
 	return erSuccess;
 }
 
@@ -415,7 +416,7 @@ ECRESULT GetBestServerPath(struct soap *soap, ECSession *lpecSession, const std:
 	// Always redirect if proxy_header is "*"
     if (!strcmp(szProxyHeader, "*") || lpInfo->bProxy) {
         if(!strProxyPath.empty()) {
-            *lpstrServerPath = strProxyPath;
+			*lpstrServerPath = std::move(strProxyPath);
 			return erSuccess;
         } else {
             ec_log_warn("Proxy path not set for server \"%s\"! falling back to direct address.", strServerName.c_str());
@@ -461,7 +462,7 @@ ECRESULT GetBestServerPath(struct soap *soap, ECSession *lpecSession, const std:
 
 	if (strServerPath.empty())
 		return KCERR_NOT_FOUND;
-	*lpstrServerPath = strServerPath;
+	*lpstrServerPath = std::move(strServerPath);
 	return erSuccess;
 }
 
@@ -3104,8 +3105,7 @@ static ECRESULT LoadObject(struct soap *soap, ECSession *lpecSession,
 		}
 	}
 
-	*lpsSaveObj = sSavedObject;
-
+	*lpsSaveObj = std::move(sSavedObject);
 exit:
 	delete sEmptyProps.lpPropVals;
 	delete sEmptyProps.lpPropTags;

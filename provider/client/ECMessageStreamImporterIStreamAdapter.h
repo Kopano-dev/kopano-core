@@ -35,7 +35,7 @@ public:
 	static HRESULT Create(WSMessageStreamImporter *lpStreamImporter, IStream **lppStream);
 
 	// IUnknown
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface);
+	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 
 	// ISequentialStream
 	virtual HRESULT Read(void *pv, ULONG cb, ULONG *pcbRead);

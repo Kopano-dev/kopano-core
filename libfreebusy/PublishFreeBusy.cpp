@@ -180,28 +180,28 @@ HRESULT PublishFreeBusy::HrGetResctItems(IMAPITable **lppTable)
 	hr = ECOrRestriction(
 		//ITEM[START] >= START && ITEM[START] <= END;
 		ECAndRestriction(
-			ECPropertyRestriction(RELOP_GE, PROP_APPT_STARTWHOLE, &lpsPropStart) + // item[start]
-			ECPropertyRestriction(RELOP_LE, PROP_APPT_STARTWHOLE, &lpsPropEnd) // item[start]
+			ECPropertyRestriction(RELOP_GE, PROP_APPT_STARTWHOLE, &lpsPropStart, ECRestriction::Cheap) + // item[start]
+			ECPropertyRestriction(RELOP_LE, PROP_APPT_STARTWHOLE, &lpsPropEnd, ECRestriction::Cheap) // item[start]
 		) +
 		//ITEM[END] >= START && ITEM[END] <= END;
 		ECAndRestriction(
-			ECPropertyRestriction(RELOP_GE, PROP_APPT_ENDWHOLE, &lpsPropStart) + // item[end]
-			ECPropertyRestriction(RELOP_LE, PROP_APPT_ENDWHOLE, &lpsPropEnd) // item[end]
+			ECPropertyRestriction(RELOP_GE, PROP_APPT_ENDWHOLE, &lpsPropStart, ECRestriction::Cheap) + // item[end]
+			ECPropertyRestriction(RELOP_LE, PROP_APPT_ENDWHOLE, &lpsPropEnd, ECRestriction::Cheap) // item[end]
 		) +
 		//ITEM[START] < START && ITEM[END] > END;
 		ECAndRestriction(
-			ECPropertyRestriction(RELOP_LT, PROP_APPT_STARTWHOLE, &lpsPropStart) + // item[start]
-			ECPropertyRestriction(RELOP_GT, PROP_APPT_ENDWHOLE, &lpsPropEnd) // item[end]
+			ECPropertyRestriction(RELOP_LT, PROP_APPT_STARTWHOLE, &lpsPropStart, ECRestriction::Cheap) + // item[start]
+			ECPropertyRestriction(RELOP_GT, PROP_APPT_ENDWHOLE, &lpsPropEnd, ECRestriction::Cheap) // item[end]
 		) +
 		ECAndRestriction(
 			ECExistRestriction(PROP_APPT_CLIPEND) +
-			ECPropertyRestriction(RELOP_EQ, PROP_APPT_ISRECURRING, &lpsPropIsRecc) +
-			ECPropertyRestriction(RELOP_GE, PROP_APPT_CLIPEND, &lpsPropReccEnd)
+			ECPropertyRestriction(RELOP_EQ, PROP_APPT_ISRECURRING, &lpsPropIsRecc, ECRestriction::Cheap) +
+			ECPropertyRestriction(RELOP_GE, PROP_APPT_CLIPEND, &lpsPropReccEnd, ECRestriction::Cheap)
 		) +
 		ECAndRestriction(
 			ECNotRestriction(ECExistRestriction(PROP_APPT_CLIPEND)) +
-			ECPropertyRestriction(RELOP_LE, PROP_APPT_STARTWHOLE, &lpsPropEnd) +
-			ECPropertyRestriction(RELOP_EQ, PROP_APPT_ISRECURRING, &lpsPropIsRecc)
+			ECPropertyRestriction(RELOP_LE, PROP_APPT_STARTWHOLE, &lpsPropEnd, ECRestriction::Cheap) +
+			ECPropertyRestriction(RELOP_EQ, PROP_APPT_ISRECURRING, &lpsPropIsRecc, ECRestriction::Cheap)
 		)
 	).RestrictTable(lpTable);
 	if (hr != hrSuccess)

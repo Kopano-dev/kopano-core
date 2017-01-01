@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <utility>
 #include <kopano/ECRestriction.h>
 #include <kopano/Util.h>
 #include <kopano/mapi_ptr.h>
@@ -165,12 +166,13 @@ inline void ECRestriction::DummyFree(LPVOID) {}
  */
 ECAndRestriction::ECAndRestriction(const ECRestrictionList &list): m_lstRestrictions(list.m_list) {}
 
-HRESULT ECAndRestriction::append(const ECRestrictionList &list) {
+HRESULT ECAndRestriction::operator+=(const ECRestrictionList &list)
+{
 	m_lstRestrictions.insert(m_lstRestrictions.end(), list.m_list.begin(), list.m_list.end());
 	return hrSuccess;
 }
 
-HRESULT ECAndRestriction::append(ECRestrictionList &&o)
+HRESULT ECAndRestriction::operator+=(ECRestrictionList &&o)
 {
 	ResList &dst = m_lstRestrictions, &src = o.m_list;
 	if (dst.empty()) {
@@ -204,7 +206,7 @@ HRESULT ECAndRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRes
 		++i;
 	}
 
-	*lpRestriction = restriction;
+	*lpRestriction = std::move(restriction);
 	return hrSuccess;
 }
 
@@ -220,12 +222,13 @@ ECRestriction *ECAndRestriction::Clone(void) const _kc_lvqual
  */
 ECOrRestriction::ECOrRestriction(const ECRestrictionList &list): m_lstRestrictions(list.m_list) {}
 
-HRESULT ECOrRestriction::append(const ECRestrictionList &list) {
+HRESULT ECOrRestriction::operator+=(const ECRestrictionList &list)
+{
 	m_lstRestrictions.insert(m_lstRestrictions.end(), list.m_list.begin(), list.m_list.end());
 	return hrSuccess;
 }
 
-HRESULT ECOrRestriction::append(ECRestrictionList &&o)
+HRESULT ECOrRestriction::operator+=(ECRestrictionList &&o)
 {
 	ResList &dst = m_lstRestrictions, &src = o.m_list;
 	if (dst.empty()) {
@@ -259,7 +262,7 @@ HRESULT ECOrRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRest
 		++i;
 	}
 
-	*lpRestriction = restriction;
+	*lpRestriction = std::move(restriction);
 	return hrSuccess;
 }
 
@@ -288,7 +291,7 @@ HRESULT ECNotRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction lpRes
 	hr = m_ptrRestriction->GetMAPIRestriction(lpBase, restriction.res.resNot.lpRes, ulFlags);
 	if (hr != hrSuccess)
 		return hr;
-	*lpRestriction = restriction;
+	*lpRestriction = std::move(restriction);
 	return hrSuccess;
 }
 
@@ -300,14 +303,15 @@ ECRestriction *ECNotRestriction::Clone(void) const _kc_lvqual
 /**
  * ECContentRestriction
  */
-ECContentRestriction::ECContentRestriction(ULONG ulFuzzyLevel, ULONG ulPropTag, LPSPropValue lpProp, ULONG ulFlags)
-: m_ulFuzzyLevel(ulFuzzyLevel)
-, m_ulPropTag(ulPropTag)
+ECContentRestriction::ECContentRestriction(ULONG ulFuzzyLevel, ULONG ulPropTag,
+    const SPropValue *lpProp, ULONG ulFlags) :
+	m_ulFuzzyLevel(ulFuzzyLevel), m_ulPropTag(ulPropTag)
 {
+	auto np = const_cast<SPropValue *>(lpProp);
 	if (ulFlags & ECRestriction::Cheap)
-		m_ptrProp.reset(lpProp, &ECRestriction::DummyFree);
-	else if (CopyProp(lpProp, NULL, ulFlags, &lpProp) == hrSuccess)
-		m_ptrProp.reset(lpProp, &MAPIFreeBuffer);
+		m_ptrProp.reset(np, &ECRestriction::DummyFree);
+	else if (CopyProp(np, nullptr, ulFlags, &np) == hrSuccess)
+		m_ptrProp.reset(np, &MAPIFreeBuffer);
 }
 
 ECContentRestriction::ECContentRestriction(ULONG ulFuzzyLevel, ULONG ulPropTag, PropPtr ptrProp)
@@ -335,7 +339,7 @@ HRESULT ECContentRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction l
 			return hr;
 	}
 
-	*lpRestriction = restriction;
+	*lpRestriction = std::move(restriction);
 	return hrSuccess;
 }
 
@@ -365,14 +369,15 @@ ECRestriction *ECBitMaskRestriction::Clone(void) const _kc_lvqual
 /**
  * ECPropertyRestriction
  */
-ECPropertyRestriction::ECPropertyRestriction(ULONG relop, ULONG ulPropTag, LPSPropValue lpProp, ULONG ulFlags)
-: m_relop(relop)
-, m_ulPropTag(ulPropTag)
+ECPropertyRestriction::ECPropertyRestriction(ULONG relop, ULONG ulPropTag,
+    const SPropValue *lpProp, ULONG ulFlags) :
+	m_relop(relop), m_ulPropTag(ulPropTag)
 {
+	auto np = const_cast<SPropValue *>(lpProp);
 	if (ulFlags & ECRestriction::Cheap)
-		m_ptrProp.reset(lpProp, &ECRestriction::DummyFree);
-	else if (CopyProp(lpProp, NULL, ulFlags, &lpProp) == hrSuccess)
-		m_ptrProp.reset(lpProp, &MAPIFreeBuffer);
+		m_ptrProp.reset(np, &ECRestriction::DummyFree);
+	else if (CopyProp(np, nullptr, ulFlags, &np) == hrSuccess)
+		m_ptrProp.reset(np, &MAPIFreeBuffer);
 }
 
 ECPropertyRestriction::ECPropertyRestriction(ULONG relop, ULONG ulPropTag, PropPtr ptrProp)
@@ -400,7 +405,7 @@ HRESULT ECPropertyRestriction::GetMAPIRestriction(LPVOID lpBase, LPSRestriction 
 			return hr;
 	}
 
-	*lpRestriction = restriction;
+	*lpRestriction = std::move(restriction);
 	return hrSuccess;
 }
 
@@ -446,9 +451,11 @@ ECRestriction *ECExistRestriction::Clone(void) const _kc_lvqual
 /**
  * ECRawRestriction
  */
-ECRawRestriction::ECRawRestriction(LPSRestriction lpRestriction, ULONG ulFlags) {
+ECRawRestriction::ECRawRestriction(const SRestriction *lpRestriction,
+    ULONG ulFlags)
+{
 	if (ulFlags & ECRestriction::Cheap)
-		m_ptrRestriction.reset(lpRestriction, &ECRestriction::DummyFree);
+		m_ptrRestriction.reset(const_cast<SRestriction *>(lpRestriction), &ECRestriction::DummyFree);
 
 	else {
 		SRestrictionPtr ptrResTmp;

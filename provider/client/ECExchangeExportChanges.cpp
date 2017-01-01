@@ -1019,7 +1019,7 @@ HRESULT ECExchangeExportChanges::ExportMessageChangesFast()
 		PR_ENTRYID
 	} };
 
-	SPropTagArray *lpImportProps = m_sourcekey.empty() ? sptImportPropsServerWide : sptImportProps;
+	const auto lpImportProps = m_sourcekey.empty() ? sptImportPropsServerWide : sptImportProps;
 
 	// No more changes (add/modify).
 	ZLOG_DEBUG(m_lpLogger, "ExportFast: At step %u, changeset contains %lu items)",

@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <memory>
+#include <utility>
 #include <kopano/memory.hpp>
 
 // Mapi includes
@@ -369,7 +370,6 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
     ECCOMPANY *lpecCompany, LPMDB lpAdminStore)
 {
 	HRESULT hr = hrSuccess;
-	memory_ptr<SRestriction> lpsRestriction;
 	SPropValue sRestrictProp;
 	object_ptr<IMAPITable> lpTable;
 	LPSRowSet lpRowSet = NULL;
@@ -400,10 +400,11 @@ HRESULT ECQuotaMonitor::CheckServerQuota(ULONG cUsers, ECUSER *lpsUserList,
 		sRestrictProp.ulPropTag = PR_EC_COMPANY_NAME_A;
 		sRestrictProp.Value.lpszA = (char*)lpecCompany->lpszCompanyname;
 
+		memory_ptr<SRestriction> lpsRestriction;
 		hr = ECOrRestriction(
 			ECNotRestriction(ECExistRestriction(PR_EC_COMPANY_NAME_A)) +
-			ECPropertyRestriction(RELOP_EQ, PR_EC_COMPANY_NAME_A, &sRestrictProp)
-		).CreateMAPIRestriction(&~lpsRestriction);
+			ECPropertyRestriction(RELOP_EQ, PR_EC_COMPANY_NAME_A, &sRestrictProp, ECRestriction::Cheap)
+		).CreateMAPIRestriction(&~lpsRestriction, ECRestriction::Cheap);
 		if (hr != hrSuccess)
 			goto exit;
 		hr = lpTable->Restrict(lpsRestriction, MAPI_DEFERRED_ERRORS);
@@ -617,8 +618,8 @@ HRESULT ECQuotaMonitor::CreateMailFromTemplate(TemplateVariables *lpVars, string
 	while (strBody[0] == '\r' || strBody[0] == '\n')
 		strBody.erase(0, 1);
 
-	*lpstrSubject = strSubject;
-	*lpstrBody = strBody;
+	*lpstrSubject = std::move(strSubject);
+	*lpstrBody = std::move(strBody);
 	return hrSuccess;
 }
 

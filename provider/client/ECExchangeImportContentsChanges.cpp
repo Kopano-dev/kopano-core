@@ -1026,12 +1026,11 @@ HRESULT ECExchangeImportContentsChanges::HrUpdateSearchReminders(LPMAPIFOLDER lp
 	sPropValLocalFailures.Value.bin = lpAdditionalREN->Value.MVbin.lpbin[2];
 	sPropValServerFailures.Value.bin = lpAdditionalREN->Value.MVbin.lpbin[3];
 
-	resPre.append(
+	resPre +=
 		ECPropertyRestriction(RELOP_NE, PR_PARENT_ENTRYID, &sPropValConflicts, ECRestriction::Cheap) +
 		ECPropertyRestriction(RELOP_NE, PR_PARENT_ENTRYID, &sPropValLocalFailures, ECRestriction::Cheap) +
 		ECPropertyRestriction(RELOP_NE, PR_PARENT_ENTRYID, &sPropValServerFailures, ECRestriction::Cheap) +
-		ECRawRestriction(ptrOrigRestriction.get(), ECRestriction::Cheap)
-	);
+		ECRawRestriction(ptrOrigRestriction.get(), ECRestriction::Cheap);
 	hr = resPre.CreateMAPIRestriction(&~ptrPreRestriction, ECRestriction::Cheap);
 	if (hr != hrSuccess)
 		return hr;

@@ -1877,7 +1877,7 @@ exit:
 // 51
 ECRESULT UpdateDatabaseCreateCounters(ECDatabase *lpDatabase)
 {
-	const struct {
+	static const struct {
 		ULONG ulPropTag;
 		ULONG ulChildType;
 		ULONG ulChildFlagMask;

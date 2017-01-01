@@ -66,10 +66,10 @@ class ECMemTableView;
 
 class _kc_export ECMemTable : public ECUnknown {
 protected:
-	ECMemTable(LPSPropTagArray lpsPropTagArray, ULONG ulRowPropTag);
+	ECMemTable(const SPropTagArray *lpsPropTagArray, ULONG ulRowPropTag);
 	virtual ~ECMemTable();
 public:
-	static  HRESULT Create(LPSPropTagArray lpsPropTagArray, ULONG ulRowPropTag, ECMemTable **lppRecipTable);
+	static HRESULT Create(const SPropTagArray *lpsPropTagArray, ULONG ulRowPropTag, ECMemTable **lppRecipTable);
 	_kc_hidden virtual HRESULT QueryInterface(REFIID refiid, void **iface) _kc_override;
 	virtual HRESULT HrGetView(const ECLocale &locale, ULONG ulFlags, ECMemTableView **lpView);
 
@@ -113,7 +113,7 @@ public:
 	_kc_hidden virtual HRESULT Advise(ULONG event_mask, LPMAPIADVISESINK, ULONG *conn);
 	_kc_hidden virtual HRESULT Unadvise(ULONG conn);
 	_kc_hidden virtual HRESULT GetStatus(ULONG *table_status, ULONG *table_type);
-	virtual HRESULT SetColumns(LPSPropTagArray lpPropTagArray, ULONG ulFlags);
+	virtual HRESULT SetColumns(const SPropTagArray *lpPropTagArray, ULONG ulFlags);
 	virtual HRESULT QueryColumns(ULONG ulFlags, LPSPropTagArray *lpPropTagArray);
 	_kc_hidden virtual HRESULT GetRowCount(ULONG flags, ULONG *count);
 	_kc_hidden virtual HRESULT SeekRow(BOOKMARK origin, LONG row_coutn, LONG *rows_sought);

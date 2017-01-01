@@ -50,7 +50,7 @@ STDAPI_(ULONG) FBadPropTag(ULONG ulPropTag);
 STDAPI_(ULONG) FBadRow(LPSRow lprow);
 STDAPI_(ULONG) FBadProp(LPSPropValue lpprop);
 STDAPI_(ULONG) FBadSortOrderSet(LPSSortOrderSet lpsos);
-STDAPI_(ULONG) FBadColumnSet(LPSPropTagArray lpptaCols);
+extern STDAPI_(ULONG) FBadColumnSet(const SPropTagArray *lpptaCols);
 
 /*
  * Non mapi32 utility function (only used internally withint M4L)

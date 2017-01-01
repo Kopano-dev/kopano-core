@@ -68,7 +68,7 @@ using namespace KCHL;
  * @ingroup gateway_imap
  * @{
  */
-const string strMonth[] = {
+static const string strMonth[] = {
 	"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 };
 
@@ -2931,10 +2931,10 @@ HRESULT IMAP::HrExpungeDeleted(const std::string &strTag,
 		goto exit;
 	}
 	if (uid_rst != nullptr)
-		rst.append(std::move(*uid_rst.get()));
-	rst.append(ECExistRestriction(PR_MSG_STATUS));
-	rst.append(ECBitMaskRestriction(BMR_NEZ, PR_MSG_STATUS, MSGSTATUS_DELMARKED));
-	hr = rst.CreateMAPIRestriction(&~lpRootRestrict);
+		rst += std::move(*uid_rst.get());
+	rst += ECExistRestriction(PR_MSG_STATUS);
+	rst += ECBitMaskRestriction(BMR_NEZ, PR_MSG_STATUS, MSGSTATUS_DELMARKED);
+	hr = rst.CreateMAPIRestriction(&~lpRootRestrict, ECRestriction::Cheap);
 	if (hr != hrSuccess)
 		goto exit;
 	hr = HrQueryAllRows(lpTable, spt, lpRootRestrict, NULL, 0, &lpRows);
@@ -4706,16 +4706,16 @@ HRESULT IMAP::HrSeqUidSetToRestriction(const string &strSeqSet,
 		if (ulPos == string::npos) {
 			// single number
 			sProp.Value.ul = LastOrNumber(vSequences[i].c_str(), true);
-			rst->append(ECPropertyRestriction(RELOP_EQ, PR_EC_IMAP_ID, &sProp));
+			*rst += ECPropertyRestriction(RELOP_EQ, PR_EC_IMAP_ID, &sProp, ECRestriction::Full);
 		} else {
 			sProp.Value.ul = LastOrNumber(vSequences[i].c_str(), true);
 			sPropEnd.Value.ul = LastOrNumber(vSequences[i].c_str() + ulPos + 1, true);
 
 			if (sProp.Value.ul > sPropEnd.Value.ul)
 				swap(sProp.Value.ul, sPropEnd.Value.ul);
-			rst->append(ECAndRestriction(
-				ECPropertyRestriction(RELOP_GE, PR_EC_IMAP_ID, &sProp) +
-				ECPropertyRestriction(RELOP_LE, PR_EC_IMAP_ID, &sPropEnd)));
+			*rst += ECAndRestriction(
+				ECPropertyRestriction(RELOP_GE, PR_EC_IMAP_ID, &sProp, ECRestriction::Full) +
+				ECPropertyRestriction(RELOP_LE, PR_EC_IMAP_ID, &sPropEnd, ECRestriction::Full));
 		}
 	}
 	ret.reset(rst);

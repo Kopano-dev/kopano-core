@@ -660,8 +660,7 @@ HRESULT CopySOAPPropValToMAPIPropVal(LPSPropValue lpPropValDst,
 						if (lpSrcAction->act.adrlist == NULL)
 							return MAPI_E_CORRUPT_DATA;
 
-						ECAllocateMore(CbNewSRowSet(lpSrcAction->act.adrlist->__size), lpBase, (void**)&lpDstAction->lpadrlist);
-
+						ECAllocateMore(CbNewADRLIST(lpSrcAction->act.adrlist->__size), lpBase, reinterpret_cast<void **>(&lpDstAction->lpadrlist));
 						lpDstAction->lpadrlist->cEntries = lpSrcAction->act.adrlist->__size;
 
 						for (gsoap_size_t j = 0; j < lpSrcAction->act.adrlist->__size; ++j) {
@@ -2336,7 +2335,7 @@ exit:
 	return hr;
 }
 
-static HRESULT CopyMAPISourceKeyToSoapSourceKey(SBinary *lpsMAPISourceKey,
+static HRESULT CopyMAPISourceKeyToSoapSourceKey(const SBinary *lpsMAPISourceKey,
     struct xsd__base64Binary *lpsSoapSourceKey, void *lpBase)
 {
 	HRESULT hr;
@@ -2358,7 +2357,8 @@ static HRESULT CopyMAPISourceKeyToSoapSourceKey(SBinary *lpsMAPISourceKey,
 	return hrSuccess;
 }
 
-HRESULT CopyICSChangeToSOAPSourceKeys(ULONG cbChanges, ICSCHANGE *lpsChanges, sourceKeyPairArray **lppsSKPA)
+HRESULT CopyICSChangeToSOAPSourceKeys(ULONG cbChanges,
+    const ICSCHANGE *lpsChanges, sourceKeyPairArray **lppsSKPA)
 {
 	HRESULT				hr = hrSuccess;
 	memory_ptr<sourceKeyPairArray> lpsSKPA;

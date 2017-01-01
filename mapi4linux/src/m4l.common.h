@@ -18,6 +18,7 @@
 #ifndef __M4L_COMMON_IMPL_H
 #define __M4L_COMMON_IMPL_H
 
+#include <kopano/zcdefs.h>
 #include <mutex>
 
 class M4LUnknown : public virtual IUnknown {
@@ -29,9 +30,9 @@ public:
     M4LUnknown();
 	virtual ~M4LUnknown(void) {}
 
-    virtual ULONG __stdcall AddRef();
-    virtual ULONG __stdcall Release();
-    virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lpvoid);
+	virtual ULONG __stdcall AddRef(void) _kc_override;
+	virtual ULONG __stdcall Release(void) _kc_override;
+	virtual HRESULT __stdcall QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
 };
 
 #endif

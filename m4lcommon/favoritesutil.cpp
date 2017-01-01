@@ -41,7 +41,8 @@ static SizedSPropTagArray(SHORTCUT_NUM, sPropsShortcuts) = {SHORTCUT_NUM, {
 	PR_FAV_DISPLAY_NAME, PR_FAV_DISPLAY_ALIAS, PR_FAV_LEVEL_MASK,
 	PR_FAV_CONTAINER_CLASS}};
 
-LPSPropTagArray GetShortCutTagArray() {
+const SPropTagArray *GetShortCutTagArray(void)
+{
 	return sPropsShortcuts;
 }
 
@@ -152,7 +153,6 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPITable> lpTable;
-	memory_ptr<SRestriction> lpRestriction;
 	SRowSet *lpRows = NULL;
 	memory_ptr<ENTRYLIST> lpsMsgList;
 	SizedSPropTagArray(2, sPropDelFavo) = {2, { PR_ENTRYID, PR_FAV_PUBLIC_SOURCE_KEY }};
@@ -177,11 +177,10 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 		goto exit;
 
 	// build restriction
-	hr = ECPropertyRestriction(RELOP_EQ, PR_FAV_PUBLIC_SOURCE_KEY, lpPropSourceKey).CreateMAPIRestriction(&~lpRestriction);
+	hr = ECPropertyRestriction(RELOP_EQ, PR_FAV_PUBLIC_SOURCE_KEY, lpPropSourceKey, ECRestriction::Cheap)
+	     .FindRowIn(lpTable, BOOKMARK_BEGINNING, 0);
 	if (hr != hrSuccess)
-		goto exit;
-	if (lpTable->FindRow(lpRestriction, BOOKMARK_BEGINNING , 0) != hrSuccess)
-		goto exit; // Folder already removed
+		goto exit; // Folder already removed (or memory problems)
 
 	hr = lpTable->QueryRows (1, 0, &lpRows);
 	if (hr != hrSuccess)
@@ -220,7 +219,7 @@ HRESULT DelFavoriteFolder(IMAPIFolder *lpShortcutFolder, LPSPropValue lpPropSour
 		sPropSourceKey.Value.bin.cb = sk.size();
 		sPropSourceKey.Value.bin.lpb = const_cast<BYTE *>(reinterpret_cast<const BYTE *>(sk.c_str()));
 
-		hr = ECPropertyRestriction(RELOP_EQ, PR_FAV_PARENT_SOURCE_KEY, &sPropSourceKey)
+		hr = ECPropertyRestriction(RELOP_EQ, PR_FAV_PARENT_SOURCE_KEY, &sPropSourceKey, ECRestriction::Cheap)
 		     .RestrictTable(lpTable);
 		if (hr != hrSuccess)
 			goto exit;
@@ -305,11 +304,12 @@ HRESULT AddToFavorite(IMAPIFolder *lpShortcutFolder, ULONG ulLevel, LPCTSTR lpsz
 		return hr;
 
 	// build restriction
-	hr = ECPropertyRestriction(RELOP_EQ, PR_FAV_PUBLIC_SOURCE_KEY, lpPropSourceKey).CreateMAPIRestriction(&~lpRestriction);
+	hr = ECPropertyRestriction(RELOP_EQ, PR_FAV_PUBLIC_SOURCE_KEY, lpPropSourceKey, ECRestriction::Cheap)
+	     .CreateMAPIRestriction(&~lpRestriction, ECRestriction::Cheap);
 	if (hr != hrSuccess)
 		return hr;
 	if (lpTable->FindRow(lpRestriction, BOOKMARK_BEGINNING , 0) == hrSuccess)
-		return hr; /* Folder already included */
+		return hrSuccess; /* Folder already included */
 
 	// No duplicate, Start to add the favorite
 	hr = lpShortcutFolder->CreateMessage(nullptr, 0, &~lpMessage);

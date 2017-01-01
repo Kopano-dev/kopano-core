@@ -78,7 +78,7 @@ public:
 	 * @param[out]	lpvoid
 	 *					Pointer to a pointer of the requested type, casted to a void pointer.
 	 */
-	virtual HRESULT QueryInterface(REFIID refiid, void **lpvoid);
+	virtual HRESULT QueryInterface(REFIID refiid, void **lpvoid) _kc_override;
 
 	// IECChangeAdvisor
 	virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR *lppMAPIError);

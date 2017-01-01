@@ -207,8 +207,6 @@ HRESULT ECXPLogon::ClearOldSubmittedMessages(LPMAPIFOLDER lpFolder)
 	HRESULT hr = hrSuccess;
 	SizedSPropTagArray(1, sptDelete) = {1,{PR_ENTRYID} };
 	MAPITablePtr	ptrContentsTable;
-	ECAndRestriction resDelete;
-	SRestrictionPtr ptrRestriction;
 	memory_ptr<ENTRYLIST> lpDeleteItemEntryList;
 	SPropValue		sPropDelAfterSubmit = {0};
 	SPropValue		sPropxDaysBefore = {0};
@@ -230,17 +228,13 @@ HRESULT ECXPLogon::ClearOldSubmittedMessages(LPMAPIFOLDER lpFolder)
 	time(&tNow);
 	UnixTimeToFileTime(tNow - (10 * 24 * 60 * 60), &sPropxDaysBefore.Value.ft);
 
-	resDelete =	ECAndRestriction(
-					ECAndRestriction(
-							ECExistRestriction(PR_DELETE_AFTER_SUBMIT) +
-							ECPropertyRestriction(RELOP_EQ, PR_DELETE_AFTER_SUBMIT, &sPropDelAfterSubmit, ECRestriction::Cheap)
-					) + 
-					ECPropertyRestriction(RELOP_LE, PR_CREATION_TIME, &sPropxDaysBefore, ECRestriction::Cheap)
-				);
-	hr = resDelete.CreateMAPIRestriction(&~ptrRestriction, ECRestriction::Cheap);
-	if (hr != hrSuccess)
-		return hr;
-	hr = ptrContentsTable->Restrict(ptrRestriction, MAPI_DEFERRED_ERRORS);
+	hr = ECAndRestriction(
+		ECAndRestriction(
+			ECExistRestriction(PR_DELETE_AFTER_SUBMIT) +
+			ECPropertyRestriction(RELOP_EQ, PR_DELETE_AFTER_SUBMIT, &sPropDelAfterSubmit, ECRestriction::Cheap)
+		) +
+		ECPropertyRestriction(RELOP_LE, PR_CREATION_TIME, &sPropxDaysBefore, ECRestriction::Cheap)
+	).RestrictTable(ptrContentsTable, MAPI_DEFERRED_ERRORS);
 	if (hr != hrSuccess)
 		return hr;
 	hr = MAPIAllocateBuffer(sizeof(ENTRYLIST), &~lpDeleteItemEntryList);

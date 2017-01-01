@@ -66,7 +66,7 @@ public:
 
 class FsckCalendar _kc_final : public Fsck {
 private:
-	HRESULT ValidateItem(LPMESSAGE lpMessage, const std::string &strClass);
+	HRESULT ValidateItem(LPMESSAGE lpMessage, const std::string &strClass) _kc_override;
 	HRESULT ValidateMinimalNamedFields(LPMESSAGE lpMessage);
 	HRESULT ValidateTimestamps(LPMESSAGE lpMessage);
 	HRESULT ValidateRecurrence(LPMESSAGE lpMessage);
@@ -74,13 +74,13 @@ private:
 
 class FsckContact _kc_final : public Fsck {
 private:
-	HRESULT ValidateItem(LPMESSAGE lpMessage, const std::string &strClass);
+	HRESULT ValidateItem(LPMESSAGE lpMessage, const std::string &strClass) _kc_override;
 	HRESULT ValidateContactNames(LPMESSAGE lpMessage);
 };
 
 class FsckTask _kc_final : public Fsck {
 private:
-	HRESULT ValidateItem(LPMESSAGE lpMessage, const std::string &strClass);
+	HRESULT ValidateItem(LPMESSAGE lpMessage, const std::string &strClass) _kc_override;
 	HRESULT ValidateMinimalNamedFields(LPMESSAGE lpMessage);
 	HRESULT ValidateTimestamps(LPMESSAGE lpMessage);
 	HRESULT ValidateCompletion(LPMESSAGE lpMessage);

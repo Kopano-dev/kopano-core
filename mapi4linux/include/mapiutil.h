@@ -79,9 +79,9 @@ SCODE CreateTable(LPCIID            lpInterface,
 class IPropData : public IMAPIProp {
 public:
     virtual HRESULT HrSetObjAccess(ULONG ulAccess) = 0;
-    virtual HRESULT HrSetPropAccess(LPSPropTagArray lpPropTagArray, ULONG* rgulAccess) = 0;
+	virtual HRESULT HrSetPropAccess(const SPropTagArray *lpPropTagArray, ULONG *rgulAccess) = 0;
     virtual HRESULT HrGetPropAccess(LPSPropTagArray* lppPropTagArray, ULONG** lprgulAccess) = 0;
-    virtual HRESULT HrAddObjProps(LPSPropTagArray lppPropTagArray, LPSPropProblemArray* lprgulAccess) = 0;
+	virtual HRESULT HrAddObjProps(const SPropTagArray *lppPropTagArray, SPropProblemArray **lprgulAccess) = 0;
 };
 typedef IPropData* LPPROPDATA;
 
@@ -347,19 +347,8 @@ LONG
 LPropCompareProp( LPSPropValue  lpSPropValueA,
                   LPSPropValue  lpSPropValueB );
 
-HRESULT
-HrAddColumns(   LPMAPITABLE         lptbl,
-                LPSPropTagArray     lpproptagColumnsNew,
-                LPALLOCATEBUFFER    lpAllocateBuffer,
-                LPFREEBUFFER        lpFreeBuffer);
-
-HRESULT
-HrAddColumnsEx( LPMAPITABLE         lptbl,
-                LPSPropTagArray     lpproptagColumnsNew,
-                LPALLOCATEBUFFER    lpAllocateBuffer,
-                LPFREEBUFFER        lpFreeBuffer,
-                void                (*lpfnFilterColumns)(LPSPropTagArray ptaga));
-
+extern HRESULT HrAddColumns(LPMAPITABLE lptbl, const SPropTagArray *lpproptagColumnsNew, LPALLOCATEBUFFER lpAllocateBuffer, LPFREEBUFFER lpFreeBuffer);
+extern HRESULT HrAddColumnsEx(LPMAPITABLE lptbl, const SPropTagArray *lpproptagColumnsNew, LPALLOCATEBUFFER lpAllocateBuffer, LPFREEBUFFER lpFreeBuffer, void (*)(const SPropTagArray *ptaga));
 
 /* Notification utilities */
 
@@ -501,7 +490,7 @@ extern _kc_export BOOL FPropExists(LPMAPIPROP mprop, ULONG tag);
 extern _kc_export LPSPropValue PpropFindProp(LPSPropValue props, ULONG vals, ULONG tag);
 extern _kc_export void FreePadrlist(LPADRLIST);
 extern _kc_export void FreeProws(LPSRowSet rows);
-extern _kc_export HRESULT HrQueryAllRows(LPMAPITABLE table, LPSPropTagArray tags, LPSRestriction, const SSortOrderSet *, LONG rows_max, LPSRowSet *rows);
+extern _kc_export HRESULT HrQueryAllRows(LPMAPITABLE table, const SPropTagArray *tags, LPSRestriction, const SSortOrderSet *, LONG rows_max, LPSRowSet *rows);
 
 /* Create or validate the IPM folder tree in a message store */
 

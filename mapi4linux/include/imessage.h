@@ -68,12 +68,8 @@ struct _SPropAttrArray_ ## _name { \
 
 extern "C" {
 
-STDAPI_(HRESULT) GetAttribIMsgOnIStg(LPVOID lpObject, LPSPropTagArray lpPropTagArray, 
-						   LPSPropAttrArray *lppPropAttrArray );
-
-STDAPI_(HRESULT) SetAttribIMsgOnIStg(LPVOID lpObject, LPSPropTagArray lpPropTags, 
-						   LPSPropAttrArray lpPropAttrs, LPSPropProblemArray *lppPropProblems);
-
+extern STDAPI_(HRESULT) GetAttribIMsgOnIStg(LPVOID lpObject, const SPropTagArray *lpPropTagArray, LPSPropAttrArray *lppPropAttrArray);
+extern STDAPI_(HRESULT) SetAttribIMsgOnIStg(LPVOID lpObject, const SPropTagArray *lpPropTags, LPSPropAttrArray lpPropAttrs, LPSPropProblemArray *lppPropProblems);
 STDAPI_(SCODE) MapStorageSCode( SCODE StgSCode );
 
 } //extern "C"

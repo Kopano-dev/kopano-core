@@ -118,16 +118,13 @@ public:
 
     virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* OUTPUT /*lppMAPIError*/) = 0;
     virtual HRESULT SaveChanges(ULONG ulFlags) = 0;
-    virtual HRESULT GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG* OUTPUTC /*lpcValues*/, LPSPropValue* OUTPUTP /*lppPropArray*/) = 0;
+	virtual HRESULT GetProps(const SPropTagArray *lpPropTagArray, ULONG ulFlags, ULONG *OUTPUTC /*lpcValues*/, LPSPropValue *OUTPUTP /*lppPropArray*/) = 0;
     virtual HRESULT GetPropList(ULONG ulFlags, LPSPropTagArray* OUTPUT /*lppPropTagArray*/) = 0;
     virtual HRESULT OpenProperty(ULONG ulPropTag, LPCIID USE_IID_FOR_OUTPUT, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN* OUTPUT_USE_IID /*lppUnk*/) = 0;
     virtual HRESULT SetProps(ULONG cValues, LPSPropValue lpProps, LPSPropProblemArray* OUTPUT /*lppProblems*/) = 0;
-    virtual HRESULT DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray* OUTPUT /*lppProblems*/) = 0;
-    virtual HRESULT CopyTo(ULONG cInterfaces, LPCIID lpInterfaces, LPSPropTagArray lpExcludeProps, ULONG ulUIParam,
-			   IMAPIProgress * lpProgress, LPCIID lpInterface, void *lpDestObj, ULONG ulFlags,
-			   LPSPropProblemArray* OUTPUT /*lppProblems*/) = 0;
-    virtual HRESULT CopyProps(LPSPropTagArray lpIncludeProps, ULONG ulUIParam, IMAPIProgress * lpProgress, LPCIID lpInterface,
-			      void* lpDestObj, ULONG ulFlags, LPSPropProblemArray* OUTPUT /*lppProblems*/) = 0;
+	virtual HRESULT DeleteProps(const SPropTagArray *lpPropTagArray, LPSPropProblemArray *OUTPUT /*lppProblems*/) = 0;
+	virtual HRESULT CopyTo(ULONG cInterfaces, LPCIID lpInterfaces, const SPropTagArray *lpExcludeProps, ULONG ulUIParam, IMAPIProgress *lpProgress, LPCIID lpInterface, void *lpDestObj, ULONG ulFlags, LPSPropProblemArray *OUTPUT /*lppProblems*/) = 0;
+	virtual HRESULT CopyProps(const SPropTagArray *lpIncludeProps, ULONG ulUIParam, IMAPIProgress *lpProgress, LPCIID lpInterface, void *lpDestObj, ULONG ulFlags, LPSPropProblemArray *OUTPUT /*lppProblems*/) = 0;
     virtual HRESULT GetNamesFromIDs(LPSPropTagArray* lppPropTags, LPGUID lpPropSetGuid, ULONG ulFlags, ULONG* OUTPUTC,
 				    LPMAPINAMEID** OUTPUTP /*lpppPropNames*/) = 0;
     virtual HRESULT GetIDsFromNames(ULONG cPropNames, LPMAPINAMEID* lppPropNames, ULONG ulFlags, LPSPropTagArray* OUTPUT /*lppPropTags*/) = 0;
@@ -438,7 +435,7 @@ public:
     virtual HRESULT CreateEntry(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulCreateFlags, LPMAPIPROP* OUTPUT /*lppMAPIPropEntry*/) = 0;
     virtual HRESULT CopyEntries(LPENTRYLIST lpEntries, ULONG ulUIParam, IMAPIProgress * lpProgress, ULONG ulFlags) = 0;
     virtual HRESULT DeleteEntries(LPENTRYLIST lpEntries, ULONG ulFlags) = 0;
-    virtual HRESULT ResolveNames(LPSPropTagArray lpPropTagArray, ULONG ulFlags, LPADRLIST INOUT /*lpAdrList*/, LPFlagList INOUT /*lpFlagList*/) = 0;
+	virtual HRESULT ResolveNames(const SPropTagArray *lpPropTagArray, ULONG ulFlags, LPADRLIST INOUT /*lpAdrList*/, LPFlagList INOUT /*lpFlagList*/) = 0;
 	%extend {
 		~IABContainer() { self->Release(); }
 	}
@@ -517,7 +514,7 @@ public:
     virtual HRESULT CreateEntry(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG ulCreateFlags, LPMAPIPROP* OUTPUT /*lppMAPIPropEntry*/) = 0;
     virtual HRESULT CopyEntries(LPENTRYLIST lpEntries, ULONG ulUIParam, IMAPIProgress * lpProgress, ULONG ulFlags) = 0;
     virtual HRESULT DeleteEntries(LPENTRYLIST lpEntries, ULONG ulFlags) = 0;
-    virtual HRESULT ResolveNames(LPSPropTagArray lpPropTagArray, ULONG ulFlags, LPADRLIST INOUT /*lpAdrList*/, LPFlagList INOUT /*lpFlagList*/) = 0;
+	virtual HRESULT ResolveNames(const SPropTagArray *lpPropTagArray, ULONG ulFlags, LPADRLIST INOUT /*lpAdrList*/, LPFlagList INOUT /*lpFlagList*/) = 0;
 	%extend {
 		~IDistList() { self->Release(); }
 	}
@@ -615,7 +612,7 @@ public:
     virtual HRESULT Advise(ULONG ulEventMask, IMAPIAdviseSink *lpAdviseSink, ULONG* OUTPUT /*lpulConnection*/) = 0;
     virtual HRESULT Unadvise(ULONG ulConnection) = 0;
     virtual HRESULT GetStatus(ULONG *lpulTableStatus, ULONG* OUTPUT /*lpulTableType*/) = 0;
-    virtual HRESULT SetColumns(LPSPropTagArray lpPropTagArray, ULONG ulFlags) = 0;
+    virtual HRESULT SetColumns(const SPropTagArray *lpPropTagArray, ULONG ulFlags) = 0;
     virtual HRESULT QueryColumns(ULONG ulFlags, LPSPropTagArray* OUTPUT /*lpPropTagArray*/) = 0;
     virtual HRESULT GetRowCount(ULONG ulFlags, ULONG* OUTPUT /*lpulCount*/) = 0;
     virtual HRESULT SeekRow(BOOKMARK bkOrigin, LONG lRowCount, LONG* OUTPUT /*lplRowsSought*/) = 0;

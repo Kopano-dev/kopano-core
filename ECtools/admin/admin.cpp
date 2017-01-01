@@ -1021,8 +1021,6 @@ static HRESULT GetOrphanStoreInfo(IECServiceAdmin *lpServiceAdmin,
 	SPropValue sStoreGuid;
 	LPSPropValue lpsName = NULL;
 	LPSPropValue lpsPropEntryId = NULL;
-	ECAndRestriction resAnd;
-	SRestrictionPtr ptrRes;
 
 	static constexpr const SizedSSortOrderSet(1, tableSort) =
 	{ 1, 0, 0,
@@ -1042,11 +1040,8 @@ static HRESULT GetOrphanStoreInfo(IECServiceAdmin *lpServiceAdmin,
 	sStoreGuid.Value.bin.cb = sizeof(GUID);
 	sStoreGuid.Value.bin.lpb = (BYTE*)lpStoreGuid;
 
-	resAnd.append(ECPropertyRestriction(RELOP_EQ, PR_EC_STOREGUID, &sStoreGuid));
-	hr = resAnd.CreateMAPIRestriction(&~ptrRes);
-	if (hr != hrSuccess)
-		return hr;
-	hr = ptrTable->FindRow(ptrRes, BOOKMARK_BEGINNING, 0);
+	hr = ECPropertyRestriction(RELOP_EQ, PR_EC_STOREGUID, &sStoreGuid, ECRestriction::Cheap)
+	     .FindRowIn(ptrTable, BOOKMARK_BEGINNING, 0);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrTable->QueryRows(1, 0, &ptrRowSet);
@@ -1774,7 +1769,6 @@ static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 	SizedSPropTagArray(2, sContentsProps) = {2, {PR_ACCOUNT, PR_EMS_AB_HOME_MDB}};
 	SPropValue			  sObjTypePropVal;
 	SPropValue			  sDispTypePropVal;
-	SRestrictionPtr		  ptrRestrict;
 
 	hr = lpSession->OpenAddressBook(0, &ptrAdrBook.iid(), AB_NO_DIALOG, &~ptrAdrBook);
 	if (hr != hrSuccess)
@@ -1790,14 +1784,11 @@ static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 	sGALPropVal.Value.bin.cb = sizeof(GUID);
 	sGALPropVal.Value.bin.lpb = (LPBYTE)&MUIDECSAB;
 
-	hr = ECPropertyRestriction(RELOP_EQ, PR_AB_PROVIDER_ID, &sGALPropVal, ECRestriction::Cheap).CreateMAPIRestriction(&~ptrRestrict, ECRestriction::Cheap);
-	if (hr != hrSuccess)
-		goto exit;
 	hr = ptrTable->SetColumns(sGALProps, TBL_BATCH);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = ptrTable->Restrict(ptrRestrict, TBL_BATCH);
+	hr = ECPropertyRestriction(RELOP_EQ, PR_AB_PROVIDER_ID, &sGALPropVal, ECRestriction::Cheap)
+	     .RestrictTable(ptrTable, TBL_BATCH);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -1824,17 +1815,13 @@ static HRESULT ForceResyncAll(LPMAPISESSION lpSession, LPMDB lpAdminStore)
 	sDispTypePropVal.ulPropTag = PR_DISPLAY_TYPE;
 	sDispTypePropVal.Value.l = DT_MAILUSER;
 
-	hr = ECAndRestriction(
-			ECPropertyRestriction(RELOP_EQ, PR_OBJECT_TYPE, &sObjTypePropVal, ECRestriction::Cheap) +
-			ECPropertyRestriction(RELOP_EQ, PR_DISPLAY_TYPE, &sDispTypePropVal, ECRestriction::Cheap)
-			).CreateMAPIRestriction(&~ptrRestrict, ECRestriction::Cheap);
-	if (hr != hrSuccess)
-		goto exit;
 	hr = ptrTable->SetColumns(sContentsProps, TBL_BATCH);
 	if (hr != hrSuccess)
 		goto exit;
-
-	hr = ptrTable->Restrict(ptrRestrict, TBL_BATCH);
+	hr = ECAndRestriction(
+			ECPropertyRestriction(RELOP_EQ, PR_OBJECT_TYPE, &sObjTypePropVal, ECRestriction::Cheap) +
+			ECPropertyRestriction(RELOP_EQ, PR_DISPLAY_TYPE, &sDispTypePropVal, ECRestriction::Cheap)
+		).RestrictTable(ptrTable, TBL_BATCH);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -1900,7 +1887,6 @@ static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 	HRESULT hr;
 	MAPITablePtr ptrSystemTable;
 	SPropValue sPropDisplayName;
-	SRestrictionPtr ptrRestriction;
 	SRowSetPtr ptrRows;
 	ULONG ulLicensedUsers = (ULONG)-1;	//!< active users allowed by license
 	ULONG ulActiveUsers = (ULONG)-1;	//!< used active users
@@ -1926,10 +1912,8 @@ static HRESULT DisplayUserCount(LPMDB lpAdminStore)
 	sPropDisplayName.ulPropTag = PR_DISPLAY_NAME_A;
 	sPropDisplayName.Value.lpszA = const_cast<char *>("usercnt_");
 
-	hr = ECContentRestriction(FL_PREFIX, PR_DISPLAY_NAME_A, &sPropDisplayName, ECRestriction::Cheap).CreateMAPIRestriction(&~ptrRestriction);
-	if (hr != hrSuccess)
-		return hr;
-	hr = ptrSystemTable->Restrict(ptrRestriction, TBL_BATCH);
+	hr = ECContentRestriction(FL_PREFIX, PR_DISPLAY_NAME_A, &sPropDisplayName, ECRestriction::Cheap)
+	     .RestrictTable(ptrSystemTable, TBL_BATCH);
 	if (hr != hrSuccess)
 		return hr;
 	hr = ptrSystemTable->SetColumns(sptaStatsProps, TBL_BATCH);

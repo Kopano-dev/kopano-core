@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <utility>
 #include <kopano/ECConfig.h>
 #include <kopano/ECRestriction.h>
 #include "ECArchiverLogger.h"
@@ -39,12 +40,13 @@ using namespace KC::helpers;
 
 namespace KC { namespace operations {
 
-Copier::Helper::Helper(ArchiverSessionPtr ptrSession, ECLogger *lpLogger, const InstanceIdMapperPtr &ptrMapper, LPSPropTagArray lpExcludeProps, LPMAPIFOLDER lpFolder)
-: m_ptrSession(ptrSession)
-, m_lpLogger(lpLogger)
-, m_lpExcludeProps(lpExcludeProps)
-, m_ptrFolder(lpFolder, true)	// do an AddRef so we don't take ownership of the folder
-, m_ptrMapper(ptrMapper)
+Copier::Helper::Helper(ArchiverSessionPtr ptrSession, ECLogger *lpLogger,
+    const InstanceIdMapperPtr &ptrMapper, const SPropTagArray *lpExcludeProps,
+    LPMAPIFOLDER lpFolder) :
+	m_ptrSession(ptrSession), m_lpLogger(lpLogger),
+	m_lpExcludeProps(lpExcludeProps), m_ptrFolder(lpFolder, true),
+	// do an AddRef so we don't take ownership of the folder
+	m_ptrMapper(ptrMapper)
 {
 	m_lpLogger->AddRef();
 }
@@ -381,12 +383,13 @@ HRESULT Copier::Helper::UpdateIIDs(LPMESSAGE lpSource, LPMESSAGE lpDest, PostSav
  * @param[in]	lpExcludeProps
  *					The list of properties that will not be copied during the archive operation.
  */
-Copier::Copier(ArchiverSessionPtr ptrSession, ECConfig *lpConfig, ECArchiverLogger *lpLogger, const ObjectEntryList &lstArchives, LPSPropTagArray lpExcludeProps, int ulAge, bool bProcessUnread)
-: ArchiveOperationBaseEx(lpLogger, ulAge, bProcessUnread, ARCH_NEVER_ARCHIVE)
-, m_ptrSession(ptrSession)
-, m_lpConfig(lpConfig)
-, m_lstArchives(lstArchives)
-, m_ptrTransaction(new Transaction(SObjectEntry()))
+Copier::Copier(ArchiverSessionPtr ptrSession, ECConfig *lpConfig,
+    ECArchiverLogger *lpLogger, const ObjectEntryList &lstArchives,
+    const SPropTagArray *lpExcludeProps, int ulAge, bool bProcessUnread) :
+	ArchiveOperationBaseEx(lpLogger, ulAge, bProcessUnread, ARCH_NEVER_ARCHIVE),
+	m_ptrSession(ptrSession), m_lpConfig(lpConfig),
+	m_lstArchives(lstArchives),
+	m_ptrTransaction(new Transaction(SObjectEntry()))
 {
 	MAPIAllocateBuffer(CbNewSPropTagArray(lpExcludeProps->cValues), &~m_ptrExcludeProps);
 	memcpy(m_ptrExcludeProps, lpExcludeProps, CbNewSPropTagArray(lpExcludeProps->cValues));
@@ -415,15 +418,14 @@ HRESULT Copier::GetRestriction(LPMAPIPROP lpMapiProp, LPSRestriction *lppRestric
 	hr = ArchiveOperationBaseEx::GetRestriction(lpMapiProp, &~ptrRestriction);
 	if (hr != hrSuccess)
 		goto exitpm;
-	resResult.append(ECRawRestriction(ptrRestriction));
+	resResult += ECRawRestriction(ptrRestriction, ECRestriction::Cheap);
 
 	// A reason to process a message before being old enough is when
 	// it's already archived (by archive-on-delivery or because the required
 	// age has changed). We'll check that by checking if PROP_ORIGINAL_SOURCE_KEY
 	// is present.
-	resResult.append(ECExistRestriction(PROP_ORIGINAL_SOURCE_KEY));
-
-	hr = resResult.CreateMAPIRestriction(lppRestriction);
+	resResult += ECExistRestriction(PROP_ORIGINAL_SOURCE_KEY);
+	hr = resResult.CreateMAPIRestriction(lppRestriction, ECRestriction::Full);
  exitpm:
 	return hr;
 }
@@ -694,8 +696,7 @@ HRESULT Copier::DoInitialArchive(LPMESSAGE lpMessage, const SObjectEntry &archiv
 		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to add archive message to transaction. (hr=0x%08x", hr);
 		return hr;
 	}
-
-	*lpptrTransaction = ptrTransaction;
+	*lpptrTransaction = std::move(ptrTransaction);
 	return hrSuccess;
 }
 
@@ -772,8 +773,7 @@ HRESULT Copier::DoTrackAndRearchive(LPMESSAGE lpMessage, const SObjectEntry &arc
 		if (hr != hrSuccess)
 			return hr;
 	}
-
-	*lpptrTransaction = ptrTransaction;
+	*lpptrTransaction = std::move(ptrTransaction);
 	return hrSuccess;
 }
 
@@ -840,8 +840,7 @@ HRESULT Copier::DoUpdateArchive(LPMESSAGE lpMessage, const SObjectEntry &archive
 		Logger()->Log(EC_LOGLEVEL_FATAL, "Failed to add archive message to transaction. (hr=0x%08x", hr);
 		return hr;
 	}
-
-	*lpptrTransaction = ptrTransaction;
+	*lpptrTransaction = std::move(ptrTransaction);
 	return hrSuccess;
 }
 
@@ -899,7 +898,7 @@ HRESULT Copier::DoMoveArchive(const SObjectEntry &archiveRootEntry, const SObjec
 	hr = UpdateHistoryRefs(ptrArchiveCopy, refMsgEntry, ptrTransaction);
 	if (hr != hrSuccess)
 		return hr;
-	*lpptrTransaction = ptrTransaction;
+	*lpptrTransaction = std::move(ptrTransaction);
 	return hrSuccess;
 }
 

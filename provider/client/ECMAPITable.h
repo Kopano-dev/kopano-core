@@ -40,8 +40,7 @@ public:
 	static	HRESULT Create(std::string strName, ECNotifyClient *lpNotifyClient, ULONG ulFlags, ECMAPITable **lppECMAPITable);
 
 	virtual HRESULT HrSetTableOps(WSTableView *lpTableOps, bool fLoad);
-
-	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface);
+	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	virtual BOOL IsDeferred();
 	virtual HRESULT FlushDeferred(LPSRowSet *lppRowSet = NULL);
 
@@ -49,7 +48,7 @@ public:
 	virtual HRESULT Advise(ULONG ulEventMask, LPMAPIADVISESINK lpAdviseSink, ULONG * lpulConnection);
 	virtual HRESULT Unadvise(ULONG ulConnection);
 	virtual HRESULT GetStatus(ULONG *lpulTableStatus, ULONG *lpulTableType);
-	virtual HRESULT SetColumns(LPSPropTagArray lpPropTagArray, ULONG ulFlags);
+	virtual HRESULT SetColumns(const SPropTagArray *lpPropTagArray, ULONG ulFlags);
 	virtual HRESULT QueryColumns(ULONG ulFlags, LPSPropTagArray *lpPropTagArray);
 	virtual HRESULT GetRowCount(ULONG ulFlags, ULONG *lpulCount);
 	virtual HRESULT SeekRow(BOOKMARK bkOrigin, LONG lRowCount, LONG *lplRowsSought) ;

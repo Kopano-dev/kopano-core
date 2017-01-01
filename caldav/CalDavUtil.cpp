@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <memory>
+#include <utility>
 #include <kopano/ECRestriction.h>
 #include "CalDavUtil.h"
 #include <kopano/EMSAbTag.h>
@@ -214,8 +215,8 @@ HRESULT HrFindFolder(IMsgStore *lpMsgStore, IMAPIFolder *lpRootFolder,
 	// @note, this will find the first folder using this name (1 level, eg 'Calendar', no subfolders in caldav)
 	// so if you have Calendar and subfolder/Calender, the latter will not be able to open using names, but must use IDs.
 	hr = ECOrRestriction(
-		ECPropertyRestriction(RELOP_EQ, ulPropTagFldId, &sPropFolderID) +
-		ECContentRestriction(FL_IGNORECASE, PR_DISPLAY_NAME_W, &sPropFolderName)
+		ECPropertyRestriction(RELOP_EQ, ulPropTagFldId, &sPropFolderID, ECRestriction::Cheap) +
+		ECContentRestriction(FL_IGNORECASE, PR_DISPLAY_NAME_W, &sPropFolderName, ECRestriction::Cheap)
 	).RestrictTable(lpHichyTable);
 	if (hr != hrSuccess)
 		goto exit;
@@ -505,9 +506,9 @@ HRESULT HrGetSubCalendars(IMAPISession *lpSession, IMAPIFolder *lpFolderIn, SBin
 
 	sPropVal.ulPropTag = PR_CONTAINER_CLASS_A;
 	sPropVal.Value.lpszA = const_cast<char *>("IPF.Appointment");
-	rst.append(ECContentRestriction(FL_IGNORECASE, sPropVal.ulPropTag, &sPropVal));
+	rst += ECContentRestriction(FL_IGNORECASE, sPropVal.ulPropTag, &sPropVal, ECRestriction::Shallow);
 	sPropVal.Value.lpszA = const_cast<char *>("IPF.Task");
-	rst.append(ECContentRestriction(FL_IGNORECASE, sPropVal.ulPropTag, &sPropVal));
+	rst += ECContentRestriction(FL_IGNORECASE, sPropVal.ulPropTag, &sPropVal, ECRestriction::Shallow);
 	hr = rst.RestrictTable(lpTable);
 	if (hr != hrSuccess)
 		goto exit;
@@ -622,7 +623,7 @@ HRESULT HrMakeRestriction(const std::string &strGuid, LPSPropTagArray lpNamedPro
 	sSpropVal.Value.bin.cb = (ULONG)strBinGuid.size();
 	sSpropVal.Value.bin.lpb = (LPBYTE)strBinGuid.c_str();
 	sSpropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY);		
-	rst.append(ECPropertyRestriction(RELOP_EQ, sSpropVal.ulPropTag, &sSpropVal));
+	rst += ECPropertyRestriction(RELOP_EQ, sSpropVal.ulPropTag, &sSpropVal, ECRestriction::Shallow);
 	
 	// converting guid to hex
 	strBinOtherUID = hex2bin(strGuid);
@@ -631,21 +632,20 @@ HRESULT HrMakeRestriction(const std::string &strGuid, LPSPropTagArray lpNamedPro
 	sSpropVal.Value.bin.lpb = (LPBYTE)strBinOtherUID.c_str();
 	
 	// When CreateAndGetGuid() fails PR_ENTRYID is used as guid.
-	rst.append(ECPropertyRestriction(RELOP_EQ, PR_ENTRYID, &sSpropVal));
+	rst += ECPropertyRestriction(RELOP_EQ, PR_ENTRYID, &sSpropVal, ECRestriction::Shallow);
 
 	// z-push iphone UIDs are not in Outlook format		
 	sSpropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_GOID], PT_BINARY);
-	rst.append(ECPropertyRestriction(RELOP_EQ, sSpropVal.ulPropTag, &sSpropVal));
+	rst += ECPropertyRestriction(RELOP_EQ, sSpropVal.ulPropTag, &sSpropVal, ECRestriction::Shallow);
 
 	// PUT url [guid].ics part, (eg. Evolution UIDs)
 	sSpropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_APPTTSREF], PT_STRING8);
 	sSpropVal.Value.lpszA = (char*)strGuid.c_str();
-	rst.append(ECPropertyRestriction(RELOP_EQ, sSpropVal.ulPropTag, &sSpropVal));
-	hr = rst.CreateMAPIRestriction(&lpsRoot);
+	rst += ECPropertyRestriction(RELOP_EQ, sSpropVal.ulPropTag, &sSpropVal, ECRestriction::Shallow);
+	hr = rst.CreateMAPIRestriction(&lpsRoot, ECRestriction::Full);
 exit:
 	if (lpsRoot && lpsRectrict)
-		*lpsRectrict = lpsRoot;
-
+		*lpsRectrict = std::move(lpsRoot);
 	return hr;
 }
 

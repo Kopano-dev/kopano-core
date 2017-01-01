@@ -20,6 +20,7 @@
 #include <memory>
 #include <mutex>
 #include <new>
+#include <utility>
 #include <pwd.h>
 #include <mapidefs.h>
 #include <mapitags.h>
@@ -706,7 +707,7 @@ ECRESULT ECAuthSession::CreateECSession(ECSESSIONGROUPID ecSessionGroupId,
 	if (er != erSuccess)
 		/* User not found anymore, or error in getting groups. */
 		return er;
-	*sessionID = newSID;
+	*sessionID = std::move(newSID);
 	*lppNewSession = lpSession.release();
 	return erSuccess;
 }

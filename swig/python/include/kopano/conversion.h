@@ -47,8 +47,10 @@ LPSPropValue	List_to_LPSPropValue(PyObject *sv, ULONG *cValues, ULONG ulFlags = 
 
 PyObject *		List_from_LPTSTRPtr(LPTSTR *lpStrings, ULONG cValues);
 
-LPSPropTagArray	List_to_LPSPropTagArray(PyObject *sv, ULONG ulFlags = CONV_COPY_SHALLOW);
-PyObject *		List_from_LPSPropTagArray(LPSPropTagArray lpPropTagArray);
+SPropTagArray *List_to_p_SPropTagArray(PyObject *sv, ULONG ulFlags = CONV_COPY_SHALLOW);
+PyObject *List_from_SPropTagArray(const SPropTagArray *lpPropTagArray);
+SPropTagArray *List_to_LPSPropTagArray(PyObject *sv, ULONG ulFlags = CONV_COPY_SHALLOW);
+PyObject *List_from_LPSPropTagArray(const SPropTagArray *lpPropTagArray);
 
 LPSRestriction	Object_to_LPSRestriction(PyObject *sv, void *lpBase = NULL);
 void			Object_to_LPSRestriction(PyObject *sv, LPSRestriction lpsRestriction, void *lpBase = NULL);

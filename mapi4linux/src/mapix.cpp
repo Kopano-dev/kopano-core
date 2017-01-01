@@ -1816,16 +1816,15 @@ HRESULT M4LAddrBook::getDefaultSearchPath(ULONG ulFlags, LPSRowSet* lppSearchPat
 	// We add this restriction to filter out All Address Lists
 	sProp.ulPropTag = 0xFFFD0003; //PR_EMS_AB_CONTAINERID;
 	sProp.Value.ul = 7000;
-	cRes.append(ECOrRestriction(
-					ECPropertyRestriction(RELOP_NE, sProp.ulPropTag, &sProp) +
-					ECNotRestriction(ECExistRestriction(sProp.ulPropTag)))
-				);
+	cRes += ECOrRestriction(
+			ECPropertyRestriction(RELOP_NE, sProp.ulPropTag, &sProp, ECRestriction::Shallow) +
+			ECNotRestriction(ECExistRestriction(sProp.ulPropTag)));
 	// only folders, not groups
 	sProp.ulPropTag = PR_DISPLAY_TYPE;
 	sProp.Value.ul = DT_NOT_SPECIFIC;
-	cRes.append(ECPropertyRestriction(RELOP_EQ, sProp.ulPropTag, &sProp));
+	cRes += ECPropertyRestriction(RELOP_EQ, sProp.ulPropTag, &sProp, ECRestriction::Cheap);
 	// only end folders, not root container folders
-	cRes.append(ECBitMaskRestriction(BMR_EQZ, PR_CONTAINER_FLAGS, AB_SUBCONTAINERS));
+	cRes += ECBitMaskRestriction(BMR_EQZ, PR_CONTAINER_FLAGS, AB_SUBCONTAINERS);
 	hr = cRes.RestrictTable(lpTable, 0);
 	if (hr != hrSuccess) {
 		ec_log_err("M4LAddrBook::getDefaultSearchPath(): Restrict fail %x: %s", hr, GetMAPIErrorMessage(hr));
@@ -2449,7 +2448,9 @@ exit:
  * @retval	MAPI_E_INVALID_PARAMETER	Invalid input
  * @retval	MAPI_E_NOT_FOUND			Addressbook	is not available.
  */
-HRESULT M4LAddrBook::PrepareRecips(ULONG ulFlags, LPSPropTagArray lpPropTagArray, LPADRLIST lpRecipList) {
+HRESULT M4LAddrBook::PrepareRecips(ULONG ulFlags,
+    const SPropTagArray *lpPropTagArray, LPADRLIST lpRecipList)
+{
 	HRESULT hr = hrSuccess;
 	ULONG cValues = 0;
 	ULONG ulType = 0;
@@ -2530,7 +2531,9 @@ HRESULT M4LAddrBook::SaveChanges(ULONG ulFlags) {
 	return hr;
 }
 
-HRESULT M4LAddrBook::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG* lpcValues, LPSPropValue* lppPropArray) {
+HRESULT M4LAddrBook::GetProps(const SPropTagArray *lpPropTagArray,
+    ULONG ulFlags, ULONG *lpcValues, SPropValue **lppPropArray)
+{
     TRACE_MAPILIB(TRACE_ENTRY, "M4LAddrBook::GetProps", "");
 	HRESULT hr = M4LMAPIProp::GetProps(lpPropTagArray, ulFlags, lpcValues, lppPropArray);
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LAddrBook::GetProps", "0x%08x", hr);
@@ -2558,16 +2561,20 @@ HRESULT M4LAddrBook::SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropPr
 	return hr;
 }
 
-HRESULT M4LAddrBook::DeleteProps(LPSPropTagArray lpPropTagArray, LPSPropProblemArray* lppProblems) {
+HRESULT M4LAddrBook::DeleteProps(const SPropTagArray *lpPropTagArray,
+    SPropProblemArray **lppProblems)
+{
     TRACE_MAPILIB(TRACE_ENTRY, "M4LAddrBook::DeleteProps", "");
 	HRESULT hr = M4LMAPIProp::DeleteProps(lpPropTagArray, lppProblems);
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LAddrBook::DeleteProps", "0x%08x", hr);
 	return hr;
 }
 
-HRESULT M4LAddrBook::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagArray lpExcludeProps, ULONG ulUIParam,
-							LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags,
-							LPSPropProblemArray* lppProblems) {
+HRESULT M4LAddrBook::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
+    const SPropTagArray *lpExcludeProps, ULONG ulUIParam,
+    LPMAPIPROGRESS lpProgress, LPCIID lpInterface, void *lpDestObj,
+    ULONG ulFlags, SPropProblemArray **lppProblems)
+{
     TRACE_MAPILIB(TRACE_ENTRY, "M4LAddrBook::CopyTo", "");
 	HRESULT hr = M4LMAPIProp::CopyTo(ciidExclude, rgiidExclude, lpExcludeProps, ulUIParam,
 									 lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
@@ -2575,8 +2582,10 @@ HRESULT M4LAddrBook::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, LPSPropTagAr
 	return hr;
 }
 
-HRESULT M4LAddrBook::CopyProps(LPSPropTagArray lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface,
-							   LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray* lppProblems) {
+HRESULT M4LAddrBook::CopyProps(const SPropTagArray *lpIncludeProps,
+    ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface,
+    void *lpDestObj, ULONG ulFlags, SPropProblemArray **lppProblems)
+{
     TRACE_MAPILIB(TRACE_ENTRY, "M4LAddrBook::CopyProps", "");
 	HRESULT hr = M4LMAPIProp::CopyProps(lpIncludeProps, ulUIParam, lpProgress, lpInterface,
 										lpDestObj, ulFlags, lppProblems);

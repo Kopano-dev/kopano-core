@@ -59,17 +59,6 @@ HRESULT ArchiveOperationBase::GetRestriction(LPMAPIPROP lpMapiProp, LPSRestricti
 	SPropValue sPropRefTime;
 	ECAndRestriction resResult;
 
-	const ECOrRestriction resDefault(
-		ECAndRestriction(
-			ECExistRestriction(PR_MESSAGE_DELIVERY_TIME) +
-			ECPropertyRestriction(RELOP_LT, PR_MESSAGE_DELIVERY_TIME, &sPropRefTime, ECRestriction::Cheap)
-		) +
-		ECAndRestriction(
-			ECExistRestriction(PR_CLIENT_SUBMIT_TIME) +
-			ECPropertyRestriction(RELOP_LT, PR_CLIENT_SUBMIT_TIME, &sPropRefTime, ECRestriction::Cheap)
-		)
-	);
-
 	PROPMAP_START(1)
 	PROPMAP_NAMED_ID(FLAGS, PT_LONG, PSETID_Archive, dispidFlags)
 	PROPMAP_INIT(lpMapiProp)
@@ -92,20 +81,25 @@ HRESULT ArchiveOperationBase::GetRestriction(LPMAPIPROP lpMapiProp, LPSRestricti
 	sPropRefTime.ulPropTag = PROP_TAG(PT_SYSTIME, 0);
 	sPropRefTime.Value.ft.dwLowDateTime = li.LowPart;
 	sPropRefTime.Value.ft.dwHighDateTime = li.HighPart;
-
-	resResult.append(resDefault);
+	resResult += ECOrRestriction(
+		ECAndRestriction(
+			ECExistRestriction(PR_MESSAGE_DELIVERY_TIME) +
+			ECPropertyRestriction(RELOP_LT, PR_MESSAGE_DELIVERY_TIME, &sPropRefTime, ECRestriction::Cheap)
+		) +
+		ECAndRestriction(
+			ECExistRestriction(PR_CLIENT_SUBMIT_TIME) +
+			ECPropertyRestriction(RELOP_LT, PR_CLIENT_SUBMIT_TIME, &sPropRefTime, ECRestriction::Cheap)
+		));
 	if (!m_bProcessUnread)
-		resResult.append(ECBitMaskRestriction(BMR_NEZ, PR_MESSAGE_FLAGS, MSGFLAG_READ));
-	resResult.append(
+		resResult += ECBitMaskRestriction(BMR_NEZ, PR_MESSAGE_FLAGS, MSGFLAG_READ);
+	resResult +=
 		ECNotRestriction(
 			ECAndRestriction(
 				ECExistRestriction(PROP_FLAGS) +
 				ECBitMaskRestriction(BMR_NEZ, PROP_FLAGS, m_ulInhibitMask)
 			)
-		)
-	);
-
-	hr = resResult.CreateMAPIRestriction(lppRestriction);
+		);
+	hr = resResult.CreateMAPIRestriction(lppRestriction, ECRestriction::Full);
  exitpm:
 	return hr;
 }

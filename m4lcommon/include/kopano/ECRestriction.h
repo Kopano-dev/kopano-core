@@ -48,6 +48,7 @@ class ECRestrictionList;
 class _kc_export ECRestriction {
 public:
 	enum {
+		Full    = 0,
 		Cheap	= 1, // Stores the passed LPSPropValue pointer.
 		Shallow = 2		// Creates a new SPropValue, but point to the embedded data from the original structure.
 	};
@@ -63,7 +64,7 @@ public:
 	 * 								new MAPI restriction. This is useful if the ECRestriction will outlive
 	 * 								the MAPI restriction.
 	 */
-	HRESULT CreateMAPIRestriction(LPSRestriction *lppRestriction, ULONG ulFlags = 0) const;
+	HRESULT CreateMAPIRestriction(LPSRestriction *lppRestriction, ULONG ulFlags) const;
 	
 	/**
 	 * Apply the restriction on a table.
@@ -77,7 +78,7 @@ public:
 	 * @param[in]	BkOrigin	The location to start searching from. Directly passed to FindRow.
 	 * @param[in]	ulFlags		Flags controlling search behaviour. Directly passed to FindRow.
 	 */
-	_kc_hidden HRESULT FindRowIn(LPMAPITABLE, BOOKMARK origin, ULONG flags) const;
+	_kc_export HRESULT FindRowIn(LPMAPITABLE, BOOKMARK origin, ULONG flags) const;
 
 	/**
 	 * Populate an SRestriction structure based on the objects state.
@@ -176,19 +177,19 @@ public:
 	_kc_hidden ECRestriction *Clone(void) && _kc_override { return new ECAndRestriction(std::move(*this)); }
 #endif
 
-	_kc_hidden HRESULT append(const ECRestriction &restriction)
+	_kc_hidden HRESULT operator+=(const ECRestriction &restriction)
 	{
 		m_lstRestrictions.push_back(ResPtr(restriction.Clone()));
 		return hrSuccess;
 	}
-	_kc_hidden HRESULT append(ECRestriction &&o)
+	_kc_hidden HRESULT operator+=(ECRestriction &&o)
 	{
 		m_lstRestrictions.push_back(ResPtr(std::move(o).Clone()));
 		return hrSuccess;
 	}
 
-	HRESULT append(const ECRestrictionList &list);
-	HRESULT append(ECRestrictionList &&);
+	HRESULT operator+=(const ECRestrictionList &list);
+	HRESULT operator+=(ECRestrictionList &&);
 
 private:
 	ResList	m_lstRestrictions;
@@ -207,19 +208,19 @@ public:
 	ECRestriction *Clone(void) && _kc_override { return new ECOrRestriction(std::move(*this)); }
 #endif
 
-	_kc_hidden HRESULT append(const ECRestriction &restriction)
+	_kc_hidden HRESULT operator+=(const ECRestriction &restriction)
 	{
 		m_lstRestrictions.push_back(ResPtr(restriction.Clone()));
 		return hrSuccess;
 	}
-	_kc_hidden HRESULT append(ECRestriction &&o)
+	_kc_hidden HRESULT operator+=(ECRestriction &&o)
 	{
 		m_lstRestrictions.push_back(ResPtr(std::move(o).Clone()));
 		return hrSuccess;
 	}
 
-	HRESULT append(const ECRestrictionList &list);
-	HRESULT append(ECRestrictionList &&);
+	HRESULT operator+=(const ECRestrictionList &list);
+	HRESULT operator+=(ECRestrictionList &&);
 
 private:
 	ResList	m_lstRestrictions;
@@ -249,7 +250,7 @@ private:
 
 class _kc_export ECContentRestriction _kc_final : public ECRestriction {
 public:
-	ECContentRestriction(ULONG ulFuzzyLevel, ULONG ulPropTag, LPSPropValue lpProp, ULONG ulFlags = 0);
+	ECContentRestriction(ULONG fuzzy_lvl, ULONG tag, const SPropValue *, ULONG flags);
 	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
 	ECRestriction *Clone(void) const _kc_lvqual _kc_override;
 #ifdef HAVE_MF_QUAL
@@ -287,7 +288,7 @@ private:
 
 class _kc_export ECPropertyRestriction _kc_final : public ECRestriction {
 public:
-	ECPropertyRestriction(ULONG relop, ULONG ulPropTag, LPSPropValue lpProp, ULONG ulFlags = 0);
+	ECPropertyRestriction(ULONG relop, ULONG tag, const SPropValue *, ULONG flags);
 	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
 	ECRestriction *Clone(void) const _kc_lvqual _kc_override;
 #ifdef HAVE_MF_QUAL
@@ -345,7 +346,7 @@ private:
  */
 class _kc_export ECRawRestriction _kc_final : public ECRestriction {
 public:
-	ECRawRestriction(LPSRestriction lpRestriction, ULONG ulFlags = 0);
+	ECRawRestriction(const SRestriction *, ULONG flags);
 	_kc_hidden HRESULT GetMAPIRestriction(LPVOID base, LPSRestriction r, ULONG flags) const _kc_override;
 	ECRestriction *Clone(void) const _kc_lvqual _kc_override;
 #ifdef HAVE_MF_QUAL

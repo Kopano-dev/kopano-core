@@ -233,7 +233,7 @@ static HRESULT StreamToPropValue(IStream *lpStream, ULONG ulPropTag,
  * 							List of properties to exclude from the message
  * @return	MAPI error code
  */
-HRESULT ECTNEF::AddProps(ULONG ulFlags, LPSPropTagArray lpPropList)
+HRESULT ECTNEF::AddProps(ULONG ulFlags, const SPropTagArray *lpPropList)
 {
 	HRESULT			hr = hrSuccess;
 	memory_ptr<SPropTagArray> lpPropListMessage;
@@ -535,7 +535,6 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 {
 	HRESULT hr = hrSuccess;
 	SizedSPropTagArray(1, sPropTagArray);
-	LPSPropTagArray lpsPropTagArray = sPropTagArray;
 	ULONG cNames = 0;
 	memory_ptr<MAPINAMEID *> lppNames;
 	ULONG ulLen = 0;
@@ -545,11 +544,15 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 	std::u16string ucs2;
 
 	if(PROP_ID(lpProp->ulPropTag) >= 0x8000) {
+		memory_ptr<SPropTagArray> lpsPropTagArray;
 		// Get named property GUID and ID or name
 		sPropTagArray.cValues = 1;
 		sPropTagArray.aulPropTag[0] = lpProp->ulPropTag;
 
-		hr = m_lpMessage->GetNamesFromIDs(&lpsPropTagArray, NULL, 0, &cNames, &~lppNames);
+		hr = Util::HrCopyPropTagArray(sPropTagArray, &~lpsPropTagArray);
+		if (hr != hrSuccess)
+			return hr;
+		hr = m_lpMessage->GetNamesFromIDs(&+lpsPropTagArray, NULL, 0, &cNames, &~lppNames);
 		if(hr != hrSuccess)
 			return hrSuccess;
 		if (cNames == 0 || lppNames == nullptr || lppNames[0] == nullptr)
@@ -1308,7 +1311,8 @@ HRESULT ECTNEF::SetProps(ULONG cValues, LPSPropValue lpProps)
  * @param[in]	lpPropList		List of proptags to put in the TNEF stream of this attachment
  * @return MAPI error code
  */
-HRESULT ECTNEF::FinishComponent(ULONG ulFlags, ULONG ulComponentID, LPSPropTagArray lpPropList)
+HRESULT ECTNEF::FinishComponent(ULONG ulFlags, ULONG ulComponentID,
+    const SPropTagArray *lpPropList)
 {
     HRESULT hr = hrSuccess;
 	object_ptr<IAttach> lpAttach;

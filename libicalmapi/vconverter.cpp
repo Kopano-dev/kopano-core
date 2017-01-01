@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <memory>
+#include <utility>
 #include <kopano/ECRestriction.h>
 #include "vconverter.h"
 #include "valarm.h"
@@ -1683,7 +1684,7 @@ HRESULT VConverter::HrFindTimezone(ULONG ulProps, LPSPropValue lpProps, std::str
 	hr = hrSuccess;
 
 done:
-	*lpstrTZid = strTZid;
+	*lpstrTZid = std::move(strTZid);
 	*lpTZinfo = ttTZinfo;
 	*lppicTZinfo = lpicTZinfo;
 
@@ -2930,8 +2931,7 @@ HRESULT VConverter::HrSetRecurrence(LPMESSAGE lpMessage, icalcomponent *lpicEven
 		lpicException = NULL;
 	}	
 
-	*lpEventList = lstExceptions;
-
+	*lpEventList = std::move(lstExceptions);
 exit:
 	if (lpicException)
 		icalcomponent_free(lpicException);
@@ -2982,7 +2982,6 @@ HRESULT VConverter::HrGetExceptionMessage(LPMESSAGE lpMessage, time_t tStart, LP
 {
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPITable> lpAttachTable;
-	memory_ptr<SRestriction> lpAttachRestrict;
 	LPSRowSet lpRows = NULL;
 	LPSPropValue lpPropVal = NULL;
 	object_ptr<IAttach> lpAttach;
@@ -3002,13 +3001,10 @@ HRESULT VConverter::HrGetExceptionMessage(LPMESSAGE lpMessage, time_t tStart, LP
 	// restrict to only exception attachments
 	hr = ECAndRestriction(
 		ECExistRestriction(sStart.ulPropTag) +
-		ECPropertyRestriction(RELOP_EQ, sStart.ulPropTag, &sStart) +
+		ECPropertyRestriction(RELOP_EQ, sStart.ulPropTag, &sStart, ECRestriction::Cheap) +
 		ECExistRestriction(sMethod.ulPropTag) +
-		ECPropertyRestriction(RELOP_EQ, sMethod.ulPropTag, &sMethod)
-	).CreateMAPIRestriction(&~lpAttachRestrict);
-	if (hr != hrSuccess)
-		goto exit;
-	hr = lpAttachTable->Restrict(lpAttachRestrict, 0);
+		ECPropertyRestriction(RELOP_EQ, sMethod.ulPropTag, &sMethod, ECRestriction::Cheap)
+	).RestrictTable(lpAttachTable, 0);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -3458,7 +3454,7 @@ HRESULT VConverter::HrMAPI2ICal(LPMESSAGE lpMessage, icalproperty_method *lpicMe
 		*lppicTZinfo = lpicTZinfo;
 
 	if (lpstrTZid)
-		*lpstrTZid = strTZid;
+		*lpstrTZid = std::move(strTZid);
 	return hrSuccess;
 }
 

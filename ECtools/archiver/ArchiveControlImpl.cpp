@@ -595,17 +595,6 @@ HRESULT ArchiveControlImpl::DoCleanup(const tstring &strUser)
 		ULARGE_INTEGER li;
 		SPropValue sPropRefTime;
 
-		const ECOrRestriction resDefault(
-			ECAndRestriction(
-				ECExistRestriction(PR_MESSAGE_DELIVERY_TIME) +
-				ECPropertyRestriction(RELOP_LT, PR_MESSAGE_DELIVERY_TIME, &sPropRefTime, ECRestriction::Cheap)
-			) +
-			ECAndRestriction(
-				ECExistRestriction(PR_CLIENT_SUBMIT_TIME) +
-				ECPropertyRestriction(RELOP_LT, PR_CLIENT_SUBMIT_TIME, &sPropRefTime, ECRestriction::Cheap)
-			)
-		);
-
 		li.LowPart = m_ftCurrent.dwLowDateTime;
 		li.HighPart = m_ftCurrent.dwHighDateTime;
 		
@@ -614,7 +603,16 @@ HRESULT ArchiveControlImpl::DoCleanup(const tstring &strUser)
 		sPropRefTime.ulPropTag = PROP_TAG(PT_SYSTIME, 0);
 		sPropRefTime.Value.ft.dwLowDateTime = li.LowPart;
 		sPropRefTime.Value.ft.dwHighDateTime = li.HighPart;
-		hr = resDefault.CreateMAPIRestriction(&~ptrRestriction, 0);
+		hr = ECOrRestriction(
+			ECAndRestriction(
+				ECExistRestriction(PR_MESSAGE_DELIVERY_TIME) +
+				ECPropertyRestriction(RELOP_LT, PR_MESSAGE_DELIVERY_TIME, &sPropRefTime, ECRestriction::Cheap)
+			) +
+			ECAndRestriction(
+				ECExistRestriction(PR_CLIENT_SUBMIT_TIME) +
+				ECPropertyRestriction(RELOP_LT, PR_CLIENT_SUBMIT_TIME, &sPropRefTime, ECRestriction::Cheap)
+			)
+		).CreateMAPIRestriction(&~ptrRestriction, 0);
 		if (hr != hrSuccess)
 			return hr;
 	}
@@ -781,7 +779,8 @@ HRESULT ArchiveControlImpl::PurgeArchives(const ObjectEntryList &lstArchives)
 	sPropCreationTime.ulPropTag = PR_MESSAGE_DELIVERY_TIME;
 	sPropCreationTime.Value.ft.dwLowDateTime = li.LowPart;
 	sPropCreationTime.Value.ft.dwHighDateTime = li.HighPart;
-	hr = ECPropertyRestriction(RELOP_LT, PR_MESSAGE_DELIVERY_TIME, &sPropCreationTime).CreateMAPIRestriction(&~lpRestriction);
+	hr = ECPropertyRestriction(RELOP_LT, PR_MESSAGE_DELIVERY_TIME, &sPropCreationTime, ECRestriction::Cheap)
+	     .CreateMAPIRestriction(&~lpRestriction, ECRestriction::Cheap);
 	if (hr != hrSuccess)
 		goto exit;
 
@@ -1090,9 +1089,7 @@ HRESULT ArchiveControlImpl::AppendAllReferences(LPMAPIFOLDER lpFolder, LPGUID lp
 {
 	HRESULT hr = hrSuccess;
 	BYTE prefixData[4 + sizeof(GUID)] = {0};
-	
-	const ULONG ulFlagArray[] = {0, SHOW_SOFT_DELETES};
-	
+	static const ULONG ulFlagArray[] = {0, SHOW_SOFT_DELETES};
 	SizedSPropTagArray(1, sptaContentProps) = {1, {PT_NULL}};
 
 	PROPMAP_START(1)
@@ -1222,9 +1219,9 @@ HRESULT ArchiveControlImpl::AppendAllEntries(LPMAPIFOLDER lpArchive, LPSRestrict
 	PROPMAP_NAMED_ID(REF_ITEM_ENTRYID, PT_BINARY, PSETID_Archive, dispidRefItemEntryId)
 	PROPMAP_INIT(lpArchive)
 	
-	resContent.append(ECExistRestriction(PROP_REF_ITEM_ENTRYID));
+	resContent += ECExistRestriction(PROP_REF_ITEM_ENTRYID);
 	if (lpRestriction)
-		resContent.append(ECRawRestriction(lpRestriction, ECRestriction::Cheap));
+		resContent += ECRawRestriction(lpRestriction, ECRestriction::Cheap);
 	hr = lpArchive->GetContentsTable(0, &~ptrTable);
 	if (hr != hrSuccess)
 		goto exitpm;

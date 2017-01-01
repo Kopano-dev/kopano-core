@@ -15,6 +15,7 @@
  */
 #include <kopano/platform.h>
 #include <memory>
+#include <utility>
 #include <kopano/tie.hpp>
 #include "ECDatabaseUtils.h"
 #include "ECDatabase.h"
@@ -1416,8 +1417,7 @@ ECRESULT ECSecurity::GetUserQuota(unsigned int ulUserId, bool bGetUserDefault,
 
 exit:
 	if (er == erSuccess)
-		*lpDetails = quotadetails;
-
+		*lpDetails = std::move(quotadetails);
 	return er;
 }
 

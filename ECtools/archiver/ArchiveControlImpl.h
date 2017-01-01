@@ -110,12 +110,10 @@ class ECArchiverLogger;
 class ArchiveControlImpl _kc_final : public ArchiveControl {
 public:
 	static HRESULT Create(ArchiverSessionPtr ptrSession, ECConfig *lpConfig, ECLogger *lpLogger, bool bForceCleanup, ArchiveControlPtr *lpptrArchiveControl);
-
-	eResult ArchiveAll(bool bLocalOnly, bool bAutoAttach, unsigned int ulFlags);
-	eResult Archive(const tstring& strUser, bool bAutoAttach, unsigned int ulFlags);
-
-	eResult CleanupAll(bool bLocalOnly);
-	eResult Cleanup(const tstring& strUser);
+	eResult ArchiveAll(bool bLocalOnly, bool bAutoAttach, unsigned int ulFlags) _kc_override;
+	eResult Archive(const tstring &strUser, bool bAutoAttach, unsigned int ulFlags) _kc_override;
+	eResult CleanupAll(bool bLocalOnly) _kc_override;
+	eResult Cleanup(const tstring &strUser) _kc_override;
 
 	~ArchiveControlImpl();
 

@@ -166,10 +166,8 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 	object_ptr<ECMemTable> lpTable;
 	object_ptr<ECMemTableView> lpTableView;
 	ULONG i, j = 0;
-	ECOrRestriction resOr;
 	ECAndRestriction resAnd;
 	SPropValue sRestrictProp;
-	SRestrictionPtr ptrRestriction;
 
 #define I_NCOLS 11
 	// data from the contact
@@ -299,22 +297,21 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 
 	// the exists is extra compared to the outlook restriction
 	// restrict: ( distlist || ( contact && exist(abparraytype) && abparraytype != 0 ) )
-	sRestrictProp.ulPropTag = PR_MESSAGE_CLASS_A;
-	sRestrictProp.Value.lpszA = const_cast<char *>("IPM.DistList");
-	resOr.append(ECContentRestriction(FL_PREFIX|FL_IGNORECASE, PR_MESSAGE_CLASS_A, &sRestrictProp));
 
+	sRestrictProp.ulPropTag = PR_MESSAGE_CLASS_A;
 	sRestrictProp.Value.lpszA = const_cast<char *>("IPM.Contact");
-	resAnd.append(ECContentRestriction(FL_PREFIX|FL_IGNORECASE, PR_MESSAGE_CLASS_A, &sRestrictProp));
+	resAnd += ECContentRestriction(FL_PREFIX|FL_IGNORECASE, PR_MESSAGE_CLASS_A, &sRestrictProp, ECRestriction::Shallow);
 	sRestrictProp.ulPropTag = ptrNameTags->aulPropTag[ulNames-1];
 	sRestrictProp.Value.ul = 0;
-	resAnd.append(ECExistRestriction(sRestrictProp.ulPropTag));
-	resAnd.append(ECPropertyRestriction(RELOP_NE, sRestrictProp.ulPropTag, &sRestrictProp));
+	resAnd += ECExistRestriction(sRestrictProp.ulPropTag);
+	resAnd += ECPropertyRestriction(RELOP_NE, sRestrictProp.ulPropTag, &sRestrictProp, ECRestriction::Shallow);
 
-	resOr.append(resAnd);
-	hr = resOr.CreateMAPIRestriction(&~ptrRestriction);
-	if (hr != hrSuccess)
-		return hr;
-	hr = ptrContents->Restrict(ptrRestriction, TBL_BATCH);
+	sRestrictProp.ulPropTag = PR_MESSAGE_CLASS_A;
+	sRestrictProp.Value.lpszA = const_cast<char *>("IPM.DistList");
+	hr = ECOrRestriction(
+		ECContentRestriction(FL_PREFIX | FL_IGNORECASE, PR_MESSAGE_CLASS_A, &sRestrictProp, ECRestriction::Cheap) +
+		resAnd
+	).RestrictTable(ptrContents, TBL_BATCH);
 	if (hr != hrSuccess)
 		return hr;
 	// set columns
@@ -949,7 +946,8 @@ HRESULT ZCABContainer::DeleteEntries(LPENTRYLIST lpEntries, ULONG ulFlags)
  * 
  * @return 
  */
-HRESULT ZCABContainer::ResolveNames(LPSPropTagArray lpPropTagArray, ULONG ulFlags, LPADRLIST lpAdrList, LPFlagList lpFlagList)
+HRESULT ZCABContainer::ResolveNames(const SPropTagArray *lpPropTagArray,
+    ULONG ulFlags, LPADRLIST lpAdrList, LPFlagList lpFlagList)
 {
 	HRESULT hr;
 	// only columns we can set from our contents table
@@ -1028,18 +1026,14 @@ HRESULT ZCABContainer::ResolveNames(LPSPropTagArray lpPropTagArray, ULONG ulFlag
 			SPropValue sProp = lpDisplayNameW ? *lpDisplayNameW : *lpDisplayNameA;
 
 			ECOrRestriction resFind;
-			ULONG ulSearchTags[] = {PR_DISPLAY_NAME, PR_EMAIL_ADDRESS, PR_ORIGINAL_DISPLAY_NAME};
+			static const ULONG ulSearchTags[] = {PR_DISPLAY_NAME, PR_EMAIL_ADDRESS, PR_ORIGINAL_DISPLAY_NAME};
 
 			for (ULONG j = 0; j < arraySize(ulSearchTags); ++j) {
 				sProp.ulPropTag = CHANGE_PROP_TYPE(ulSearchTags[j], ulStringType);
-				resFind.append( ECContentRestriction(ulResFlag, CHANGE_PROP_TYPE(ulSearchTags[j], ulStringType), &sProp, ECRestriction::Cheap) );
+				resFind += ECContentRestriction(ulResFlag, CHANGE_PROP_TYPE(ulSearchTags[j], ulStringType), &sProp, ECRestriction::Cheap);
 			}
 
-			SRestrictionPtr ptrRestriction;
-			hr = resFind.CreateMAPIRestriction(&~ptrRestriction);
-			if (hr != hrSuccess)
-				return hr;
-			hr = ptrContents->Restrict(ptrRestriction, 0);
+			hr = resFind.RestrictTable(ptrContents, 0);
 			if (hr != hrSuccess)
 				return hr;
 			hr = ptrContents->QueryRows(-1, MAPI_UNICODE, &ptrRows);
@@ -1068,7 +1062,8 @@ HRESULT ZCABContainer::ResolveNames(LPSPropTagArray lpPropTagArray, ULONG ulFlag
 }
 
 // IMAPIProp for m_lpDistList
-HRESULT ZCABContainer::GetProps(LPSPropTagArray lpPropTagArray, ULONG ulFlags, ULONG *lpcValues, LPSPropValue *lppPropArray)
+HRESULT ZCABContainer::GetProps(const SPropTagArray *lpPropTagArray,
+    ULONG ulFlags, ULONG *lpcValues, SPropValue **lppPropArray)
 {
 	if (m_lpDistList != NULL)
 		return m_lpDistList->GetProps(lpPropTagArray, ulFlags, lpcValues, lppPropArray);
@@ -1091,7 +1086,7 @@ DEF_ULONGMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, Release, (void))
 DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, CreateEntry, (ULONG, cbEntryID), (LPENTRYID, lpEntryID), (ULONG, ulCreateFlags), (LPMAPIPROP*, lppMAPIPropEntry))
 DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, CopyEntries, (LPENTRYLIST, lpEntries), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (ULONG, ulFlags))
 DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, DeleteEntries, (LPENTRYLIST, lpEntries), (ULONG, ulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, ResolveNames, (LPSPropTagArray, lpPropTagArray), (ULONG, ulFlags), (LPADRLIST, lpAdrList), (LPFlagList, lpFlagList))
+DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, ResolveNames, (const SPropTagArray *, lpPropTagArray), (ULONG, ulFlags), (LPADRLIST, lpAdrList), (LPFlagList, lpFlagList))
 
 // Interface IMAPIContainer
 DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, GetContentsTable, (ULONG, ulFlags), (LPMAPITABLE *, lppTable))
@@ -1103,12 +1098,12 @@ DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, GetSearchCriteria, (ULONG,
 // Interface IMAPIProp
 DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, ABContainer, GetLastError, (HRESULT, hError), (ULONG, ulFlags), (LPMAPIERROR *, lppMapiError))
 DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, ABContainer, SaveChanges, (ULONG, ulFlags))
-DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, GetProps, (LPSPropTagArray, lpPropTagArray), (ULONG, ulFlags), (ULONG *, lpcValues), (LPSPropValue *, lppPropArray))
+DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, GetProps, (const SPropTagArray *, lpPropTagArray), (ULONG, ulFlags), (ULONG *, lpcValues), (SPropValue **, lppPropArray))
 DEF_HRMETHOD1(TRACE_MAPI, ZCABContainer, ABContainer, GetPropList, (ULONG, ulFlags), (LPSPropTagArray *, lppPropTagArray))
 DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, ABContainer, OpenProperty, (ULONG, ulPropTag), (LPCIID, lpiid), (ULONG, ulInterfaceOptions), (ULONG, ulFlags), (LPUNKNOWN *, lppUnk))
 DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, ABContainer, SetProps, (ULONG, cValues), (LPSPropValue, lpPropArray), (LPSPropProblemArray *, lppProblems))
-DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, ABContainer, DeleteProps, (LPSPropTagArray, lpPropTagArray), (LPSPropProblemArray *, lppProblems))
-DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, ABContainer, CopyTo, (ULONG, ciidExclude), (LPCIID, rgiidExclude), (LPSPropTagArray, lpExcludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (LPVOID, lpDestObj), (ULONG, ulFlags), (LPSPropProblemArray *, lppProblems))
-DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, ABContainer, CopyProps, (LPSPropTagArray, lpIncludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (LPVOID, lpDestObj), (ULONG, ulFlags), (LPSPropProblemArray *, lppProblems))
+DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, ABContainer, DeleteProps, (const SPropTagArray *, lpPropTagArray), (SPropProblemArray **, lppProblems))
+DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, ABContainer, CopyTo, (ULONG, ciidExclude), (LPCIID, rgiidExclude), (const SPropTagArray *, lpExcludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (void *, lpDestObj), (ULONG, ulFlags), (SPropProblemArray **, lppProblems))
+DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, ABContainer, CopyProps, (const SPropTagArray *, lpIncludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (void *, lpDestObj), (ULONG, ulFlags), (SPropProblemArray **, lppProblems))
 DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, ABContainer, GetNamesFromIDs, (LPSPropTagArray *, pptaga), (LPGUID, lpguid), (ULONG, ulFlags), (ULONG *, pcNames), (LPMAPINAMEID **, pppNames))
 DEF_HRMETHOD_NOSUPPORT(TRACE_MAPI, ZCABContainer, ABContainer, GetIDsFromNames, (ULONG, cNames), (LPMAPINAMEID *, ppNames), (ULONG, ulFlags), (LPSPropTagArray *, pptaga))

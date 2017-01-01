@@ -1090,7 +1090,10 @@ HRESULT WSTransport::HrUnSubscribeMulti(const ECLISTCONNECTION &lstConnections)
  * @retval	MAPI_E_INVALID_PARAMETER	lpChanges or lpsProps == NULL
  * @retval	MAPI_E_NETWORK_ERROR		The actual call to the server failed or no streams are returned
  */
-HRESULT WSTransport::HrExportMessageChangesAsStream(ULONG ulFlags, ULONG ulPropTag, ICSCHANGE *lpChanges, ULONG ulStart, ULONG ulChanges, LPSPropTagArray lpsProps, WSMessageStreamExporter **lppsStreamExporter)
+HRESULT WSTransport::HrExportMessageChangesAsStream(ULONG ulFlags,
+    ULONG ulPropTag, const ICSCHANGE *lpChanges, ULONG ulStart,
+    ULONG ulChanges, const SPropTagArray *lpsProps,
+    WSMessageStreamExporter **lppsStreamExporter)
 {
 	typedef KCHL::memory_ptr<sourceKeyPairArray> sourceKeyPairArrayPtr;
 
@@ -3518,7 +3521,8 @@ HRESULT WSTransport::HrGetOwner(ULONG cbEntryID, LPENTRYID lpEntryID, ULONG *lpc
  * @param[in/out]	lpFlagList		Contains current status of matching row in lpAdrList, eg MAPI_(UN)RESOLVED.
  * @return			HRESULT			MAPI error code.
  */
-HRESULT WSTransport::HrResolveNames(LPSPropTagArray lpPropTagArray, ULONG ulFlags, LPADRLIST lpAdrList, LPFlagList lpFlagList)
+HRESULT WSTransport::HrResolveNames(const SPropTagArray *lpPropTagArray,
+    ULONG ulFlags, LPADRLIST lpAdrList, LPFlagList lpFlagList)
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;

@@ -49,8 +49,7 @@ public:
 	static HRESULT Create(ECFreeBusyData **lppECFreeBusyData);
 
 	HRESULT Init(LONG rtmStart, LONG rtmEnd, ECFBBlockList* lpfbBlockList);
-	
-	virtual HRESULT QueryInterface(REFIID refiid, void** lppInterface);
+	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	virtual HRESULT Reload(void *) { return E_NOTIMPL; }
 	virtual HRESULT EnumBlocks(IEnumFBBlock **ppenumfb, FILETIME ftmStart, FILETIME ftmEnd);
 	virtual HRESULT Merge(void *) { return E_NOTIMPL; }

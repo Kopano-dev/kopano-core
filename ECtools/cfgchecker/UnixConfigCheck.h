@@ -24,7 +24,7 @@
 class UnixConfigCheck _kc_final : public ECConfigCheck {
 public:
 	UnixConfigCheck(const char *lpszConfigFile);
-	void loadChecks();
+	void loadChecks(void) _kc_override;
 
 private:
 	static int testId(const config_check_t *);
