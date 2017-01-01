@@ -30,7 +30,7 @@ The provided functions are:
   - str_iequals, wcs_iequals, u8_iequals: Check if two strings are equal ignoring case.
   - str_startswith, wcs_startswith, u8_startswith: Check if one string starts with another.
   - str_istartswith, wcs_istartswith, u8_istartswith: Check if one string starts with another ignoring case.
-  - str_compare, wcs_compare, u8_compare: Compare two strings.
+  - str_compare, wcs_compare: Compare two strings.
   - str_icompare, wcs_icompare, u8_icompare: Compare two strings ignoring case.
   - str_contains, wcs_contains, u8_contains: Check if one string contains the other.
   - str_icontains, wcs_icontains, u8_icontains: Check if one string contains the other ignoring case.
@@ -760,41 +760,6 @@ bool u8_istartswith(const char *s1, const char *s2, const ECLocale &locale)
 	const wchar_t *ws1 = converter.convert_to<WCHAR*>(s1, rawsize(s1), "UTF-8");
 	const wchar_t *ws2 = converter.convert_to<WCHAR*>(s2, rawsize(s2), "UTF-8");
 	return wcs_istartswith(ws1, ws2, locale);
-#endif
-}
-
-/**
- * Compare two strings using the collator to determine the sort order.
- * 
- * Both strings are expectes to be encoded in UTF-8.
- * 
- * @param[in]	s1		The string to compare s2 with.
- * @param[in]	s2		The string to compare s1 with.
- * @param[in]	collator	The collator used to determine which string precedes the other.
- * 
- * @return		An integer.
- * @retval		-1	s1 is smaller than s2
- * @retval		0	s1 equals s2.
- * @retval		1	s1 is greater than s2
- */
-int u8_compare(const char *s1, const char *s2, const ECLocale &locale)
-{
-	assert(s1);
-	assert(s2);
-
-#ifdef ZCP_USES_ICU
-	UErrorCode status = U_ZERO_ERROR;
-	unique_ptr_Collator ptrCollator(Collator::createInstance(locale, status));
-
-	UnicodeString a = UTF8ToUnicode(s1);
-	UnicodeString b = UTF8ToUnicode(s2);
-
-	return ptrCollator->compare(a,b,status);
-#else
-	convert_context converter;
-	const wchar_t *ws1 = converter.convert_to<WCHAR*>(s1, rawsize(s1), "UTF-8");
-	const wchar_t *ws2 = converter.convert_to<WCHAR*>(s2, rawsize(s2), "UTF-8");
-	return wcs_compare(ws1, ws2, locale);
 #endif
 }
 
