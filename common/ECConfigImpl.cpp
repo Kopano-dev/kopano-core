@@ -196,7 +196,7 @@ size_t ECConfigImpl::GetSize(const char *szValue)
 	if (szValue == nullptr)
 		return 0;
 	char *end = NULL;
-	size_t rv = strtoul(szValue, &end, 10);
+	unsigned long long rv = strtoull(szValue, &end, 10);
 	if (rv == 0 || end <= szValue || *end == '\0')
 		return rv;
 	while (*end != '\0' && (*end == ' ' || *end == '\t'))
