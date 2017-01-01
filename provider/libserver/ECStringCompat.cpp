@@ -304,18 +304,16 @@ ECRESULT FixNotificationsEncoding(struct soap *soap, const ECStringCompat &strin
 
 	for (gsoap_size_t i = 0; i < notifications->__size; ++i) {
 		switch (notifications->__ptr[i].ulEventType) {
-			case fnevNewMail:
-				notifications->__ptr[i].newmail->lpszMessageClass = stringCompat.from_UTF8(soap, notifications->__ptr[i].newmail->lpszMessageClass);
-				break;
-
-			case fnevTableModified:
-				if (notifications->__ptr[i].tab->pRow)
-					for (gsoap_size_t j = 0; er == erSuccess && j < notifications->__ptr[i].tab->pRow->__size; ++j)
-						er = FixPropEncoding(soap, stringCompat, Out, notifications->__ptr[i].tab->pRow->__ptr + j, true);
-				break;
-
-			default:
-				break;			
+		case fnevNewMail:
+			notifications->__ptr[i].newmail->lpszMessageClass = stringCompat.from_UTF8(soap, notifications->__ptr[i].newmail->lpszMessageClass);
+			break;
+		case fnevTableModified:
+			if (notifications->__ptr[i].tab->pRow)
+				for (gsoap_size_t j = 0; er == erSuccess && j < notifications->__ptr[i].tab->pRow->__size; ++j)
+					er = FixPropEncoding(soap, stringCompat, Out, notifications->__ptr[i].tab->pRow->__ptr + j, true);
+			break;
+		default:
+			break;
 		}
 	}
 

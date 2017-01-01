@@ -333,23 +333,22 @@ static ECRESULT PeerIsServer(struct soap *soap,
 			while (lpsAddrIter && bResult == false) {
 				if (soap->peerlen >= sizeof(sockaddr) && lpsAddrIter->ai_family == ((sockaddr*)&soap->peer)->sa_family) {
 					switch (lpsAddrIter->ai_family) {
-						case AF_INET:
-							{
-								sockaddr_in *lpsLeft = (sockaddr_in*)lpsAddrIter->ai_addr;
-								sockaddr_in *lpsRight = (sockaddr_in*)&soap->peer;
-								bResult = (memcmp(&lpsLeft->sin_addr, &lpsRight->sin_addr, sizeof(lpsLeft->sin_addr)) == 0);
-							}
-							break;
-
-						case AF_INET6:
-							{
-								sockaddr_in6 *lpsLeft = (sockaddr_in6*)lpsAddrIter->ai_addr;
-								sockaddr_in6 *lpsRight = (sockaddr_in6*)&soap->peer;
-								bResult = (memcmp(&lpsLeft->sin6_addr, &lpsRight->sin6_addr, sizeof(lpsLeft->sin6_addr)) == 0);
-							}
-							break;
-
-						default: break;
+					case AF_INET:
+					{
+						sockaddr_in *lpsLeft = (sockaddr_in *)lpsAddrIter->ai_addr;
+						sockaddr_in *lpsRight = (sockaddr_in *)&soap->peer;
+						bResult = (memcmp(&lpsLeft->sin_addr, &lpsRight->sin_addr, sizeof(lpsLeft->sin_addr)) == 0);
+						break;
+					}
+					case AF_INET6:
+					{
+						sockaddr_in6 *lpsLeft = (sockaddr_in6 *)lpsAddrIter->ai_addr;
+						sockaddr_in6 *lpsRight = (sockaddr_in6 *)&soap->peer;
+						bResult = (memcmp(&lpsLeft->sin6_addr, &lpsRight->sin6_addr, sizeof(lpsLeft->sin6_addr)) == 0);
+						break;
+					}
+					default:
+						break;
 					}
 				}
 
@@ -1913,20 +1912,20 @@ static ECRESULT WriteProps(struct soap *soap, ECSession *lpecSession,
 		// Some properties may only be saved on the first save (fNewItem == TRUE) for folders, stores and messages
 		if(!fNewItem && (ulObjType == MAPI_MESSAGE || ulObjType == MAPI_FOLDER || ulObjType == MAPI_STORE)) {
 			switch(lpPropValArray->__ptr[i].ulPropTag) {
-				case PR_LAST_MODIFICATION_TIME:
-				case PR_MESSAGE_FLAGS:
-				case PR_SEARCH_KEY:
-				case PR_LAST_MODIFIER_NAME:
-				case PR_LAST_MODIFIER_ENTRYID:
-					if(ulSyncId == 0)
-						// Only on first write, unless sent by ICS
-						continue;
-                    break;
-				case PR_SOURCE_KEY:
-					if(ulParentType == MAPI_FOLDER)
-						// Only on first write, unless message-in-message
-						continue;
-                    break;
+			case PR_LAST_MODIFICATION_TIME:
+			case PR_MESSAGE_FLAGS:
+			case PR_SEARCH_KEY:
+			case PR_LAST_MODIFIER_NAME:
+			case PR_LAST_MODIFIER_ENTRYID:
+				if (ulSyncId == 0)
+					// Only on first write, unless sent by ICS
+					continue;
+				break;
+			case PR_SOURCE_KEY:
+				if (ulParentType == MAPI_FOLDER)
+					// Only on first write, unless message-in-message
+					continue;
+				break;
 			}
 		}
 		if (lpPropValArray->__ptr[i].ulPropTag == PR_LAST_MODIFIER_NAME_W ||
@@ -3567,75 +3566,74 @@ static ECRESULT OpenTable(ECSession *lpecSession, entryId sEntryId,
 	unsigned int	ulTypeId = 0;
 
 	switch (ulTableType) {
-		case TABLETYPE_MS:
-			if(ulFlags & SHOW_SOFT_DELETES)
-			{
-				ulFlags &=~SHOW_SOFT_DELETES;
-				ulFlags |= MSGFLAG_DELETED;
-			}
+	case TABLETYPE_MS:
+		if (ulFlags & SHOW_SOFT_DELETES)
+		{
+			ulFlags &=~SHOW_SOFT_DELETES;
+			ulFlags |= MSGFLAG_DELETED;
+		}
+		er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulId);
+		if (er != erSuccess)
+			return er;
+		er = lpecSession->GetTableManager()->OpenGenericTable(ulId, ulType, ulFlags, &ulTableId);
+		if (er != erSuccess)
+			return er;
+		break;
+	case TABLETYPE_AB:
+		er = ABEntryIDToID(&sEntryId, &ulId, &sExternId, &ulTypeId);
+		if (er != erSuccess)
+			return er;
 
+		// If an extern id is present, we should get an object based on that.
+		if (!sExternId.id.empty()) {
+			er = g_lpSessionManager->GetCacheManager()->GetUserObject(sExternId, &ulId, NULL, NULL);
+			if (er != erSuccess)
+				return er;
+		}
+		er = lpecSession->GetTableManager()->OpenABTable(ulId, ulTypeId, ulType, ulFlags, &ulTableId);
+		if (er != erSuccess)
+			return er;
+		break;
+	case TABLETYPE_SPOOLER:
+		// sEntryId must be a store entryid or zero for all stores
+		if (sEntryId.__size > 0) {
 			er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulId);
-			if(er != erSuccess)
-				return er;
-			er = lpecSession->GetTableManager()->OpenGenericTable(ulId, ulType, ulFlags, &ulTableId);
-			if( er != erSuccess)
-				return er;
-			break;
-		case TABLETYPE_AB:
-			er = ABEntryIDToID(&sEntryId, &ulId, &sExternId, &ulTypeId);
-			if(er != erSuccess)
-				return er;
-
-			// If an extern id is present, we should get an object based on that.
-			if (!sExternId.id.empty()) {
-				er = g_lpSessionManager->GetCacheManager()->GetUserObject(sExternId, &ulId, NULL, NULL);
-				if (er != erSuccess)
-					return er;
-			}
-			er = lpecSession->GetTableManager()->OpenABTable(ulId, ulTypeId, ulType, ulFlags, &ulTableId);
-			if( er != erSuccess)
-				return er;
-			break;
-		case TABLETYPE_SPOOLER:
-			// sEntryId must be a store entryid or zero for all stores
-			if(sEntryId.__size > 0 ) {
-				er = lpecSession->GetObjectFromEntryId(&sEntryId, &ulId);
-				if(er != erSuccess)
-					return er;
-			}else
-				ulId = 0; //All stores
-
-			er = lpecSession->GetTableManager()->OpenOutgoingQueueTable(ulId, &ulTableId);
-			if( er != erSuccess)
-				return er;
-			break;
-		case TABLETYPE_MULTISTORE:
-			er = lpecSession->GetTableManager()->OpenMultiStoreTable(ulType, ulFlags, &ulTableId);
-			if( er != erSuccess)
-				return er;
-			break;
-		case TABLETYPE_USERSTORES:
-			er = lpecSession->GetTableManager()->OpenUserStoresTable(ulFlags, &ulTableId);
-			if( er != erSuccess)
-				return er;
-			break;
-		case TABLETYPE_STATS_SYSTEM:
-		case TABLETYPE_STATS_SESSIONS:
-		case TABLETYPE_STATS_USERS:
-		case TABLETYPE_STATS_COMPANY:
-		case TABLETYPE_STATS_SERVERS:
-			er = lpecSession->GetTableManager()->OpenStatsTable(ulTableType, ulFlags, &ulTableId);
 			if (er != erSuccess)
 				return er;
-			break;
-		case TABLETYPE_MAILBOX:
-			er = lpecSession->GetTableManager()->OpenMailBoxTable(ulFlags, &ulTableId);
-			if (er != erSuccess)
-				return er;
-			break;
-		default:
-			return KCERR_BAD_VALUE;
-			break; //Happy compiler
+		} else
+			ulId = 0; //All stores
+
+		er = lpecSession->GetTableManager()->OpenOutgoingQueueTable(ulId, &ulTableId);
+		if (er != erSuccess)
+			return er;
+		break;
+	case TABLETYPE_MULTISTORE:
+		er = lpecSession->GetTableManager()->OpenMultiStoreTable(ulType, ulFlags, &ulTableId);
+		if (er != erSuccess)
+			return er;
+		break;
+	case TABLETYPE_USERSTORES:
+		er = lpecSession->GetTableManager()->OpenUserStoresTable(ulFlags, &ulTableId);
+		if (er != erSuccess)
+			return er;
+		break;
+	case TABLETYPE_STATS_SYSTEM:
+	case TABLETYPE_STATS_SESSIONS:
+	case TABLETYPE_STATS_USERS:
+	case TABLETYPE_STATS_COMPANY:
+	case TABLETYPE_STATS_SERVERS:
+		er = lpecSession->GetTableManager()->OpenStatsTable(ulTableType, ulFlags, &ulTableId);
+		if (er != erSuccess)
+			return er;
+		break;
+	case TABLETYPE_MAILBOX:
+		er = lpecSession->GetTableManager()->OpenMailBoxTable(ulFlags, &ulTableId);
+		if (er != erSuccess)
+			return er;
+		break;
+	default:
+		return KCERR_BAD_VALUE;
+		break; //Happy compiler
 	} // switch (ulTableType)
 
 	*lpulTableId = ulTableId;
