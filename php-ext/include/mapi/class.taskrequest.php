@@ -145,20 +145,16 @@
 		function isTaskRequest()
 		{
 			$props = mapi_getprops($this->message, Array(PR_MESSAGE_CLASS));
-				
-			if(isset($props[PR_MESSAGE_CLASS]) && $props[PR_MESSAGE_CLASS] == "IPM.TaskRequest") {
+			if (isset($props[PR_MESSAGE_CLASS]) && $props[PR_MESSAGE_CLASS] == "IPM.TaskRequest")
 				return true;
-			}
 		}
 
 		/* Return TRUE if the item is a task response message
 		 */
 		function isTaskRequestResponse() {
 			$props = mapi_getprops($this->message, Array(PR_MESSAGE_CLASS));
-
-			if(isset($props[PR_MESSAGE_CLASS]) && strpos($props[PR_MESSAGE_CLASS], "IPM.TaskRequest.") === 0) {
+			if (isset($props[PR_MESSAGE_CLASS]) && strpos($props[PR_MESSAGE_CLASS], "IPM.TaskRequest.") === 0)
 				return true;
-			}
 		}
 
 		/*
@@ -341,12 +337,10 @@
 		 */
 		function updateTaskRequest() {
 			$messageprops = mapi_getprops($this->message, array($this->props['updatecount']));
-			
-			if(isset($messageprops)) {
+			if (isset($messageprops))
 				$messageprops[$this->props['updatecount']]++;
-			} else {
+			else
 				$messageprops[$this->props['updatecount']] = 1;
-			}
 			
 			mapi_setprops($this->message, $messageprops);
 		}
@@ -509,9 +503,8 @@
 			$ownerentryid = false;
 			
 			$rcvdprops = mapi_getprops($this->message, array(PR_RCVD_REPRESENTING_ENTRYID));
-			if(isset($rcvdprops[PR_RCVD_REPRESENTING_ENTRYID])) {
+			if (isset($rcvdprops[PR_RCVD_REPRESENTING_ENTRYID]))
 				$ownerentryid = $rcvdprops;
-			}
 			
 			if(!$ownerentryid) {
 				$store = $this->store;
@@ -655,11 +648,9 @@
 		{
 			$table = mapi_getmsgstorestable($this->session);
 			$rows = mapi_table_queryallrows($table, array(PR_DEFAULT_STORE, PR_ENTRYID));
-			
-			foreach($rows as $row) {
+			foreach ($rows as $row)
 				if($row[PR_DEFAULT_STORE])
 					return mapi_openmsgstore($this->session, $row[PR_ENTRYID]);
-			}
 			
 			return false;
 		}
@@ -671,9 +662,8 @@
 		function createTGOID()
 		{
 			$goid = "";
-			for($i=0;$i<16;$i++) {
+			for ($i = 0; $i < 16; $i++)
 				$goid .= chr(rand(0, 255));
-			}
 			return $goid;  
 		}
 
@@ -716,9 +706,8 @@
 
 			if (!empty($recips)) {
 				$owner = array();
-				foreach ($recips as $value) {
+				foreach ($recips as $value)
 					$owner[] = $value[PR_DISPLAY_NAME];
-				}
 
 				$props = array($this->props['owner'] => implode("; ", $owner));
 				mapi_setprops($this->message, $props);
