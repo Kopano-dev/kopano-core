@@ -66,7 +66,7 @@ extern ECSessionManager*	g_lpSessionManager;
 static bool execute_script(const char *scriptname, ...)
 {
 	va_list v;
-	char *envname, *envval;
+	char *envname;
 	const char *env[32];
 	std::list<std::string> lstEnv;
 	std::string strEnv;
@@ -78,7 +78,7 @@ static bool execute_script(const char *scriptname, ...)
 		envname = va_arg(v, char *);
 		if (!envname)
 			break;
-		envval = va_arg(v, char *);
+		char *envval = va_arg(v, char *);
 		if (!envval)
 			break;
 		
