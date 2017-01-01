@@ -1038,38 +1038,38 @@ ECRESULT UpdateDatabaseAddExternIdToObject(ECDatabase *lpDatabase)
 	for (const auto &rel : sRelationList) {
 		// Find the new parentId, if not found: ignore so they disappear .. would have been invalid relations anyway.
 		switch (rel.ulRelationType) {
-			case OBJECTRELATION_QUOTA_USERRECIPIENT:
-			case OBJECTRELATION_USER_SENDAS:
-				sObjectMapIter = sObjectMap.find(SObject(rel.ulParentObjectId, 1 /* USEROBJECT_TYPE_USER */));
-				if (sObjectMapIter == sObjectMap.cend())
-					sObjectMapIter = sObjectMap.find(SObject(rel.ulParentObjectId, 5 /* USEROBJECT_TYPE_NONACTIVE */));
-				if (sObjectMapIter == sObjectMap.cend())
-					continue;
-				ulNewParentId = sObjectMapIter->second;
-				break;
+		case OBJECTRELATION_QUOTA_USERRECIPIENT:
+		case OBJECTRELATION_USER_SENDAS:
+			sObjectMapIter = sObjectMap.find(SObject(rel.ulParentObjectId, 1 /* USEROBJECT_TYPE_USER */));
+			if (sObjectMapIter == sObjectMap.cend())
+				sObjectMapIter = sObjectMap.find(SObject(rel.ulParentObjectId, 5 /* USEROBJECT_TYPE_NONACTIVE */));
+			if (sObjectMapIter == sObjectMap.cend())
+				continue;
+			ulNewParentId = sObjectMapIter->second;
+			break;
 
-			case OBJECTRELATION_GROUP_MEMBER:
-				sObjectMapIter = sObjectMap.find(SObject(rel.ulParentObjectId, 2 /* USEROBJECT_TYPE_GROUP */));
-				if (sObjectMapIter == sObjectMap.cend())
-					continue;
-				ulNewParentId = sObjectMapIter->second;
-				break;
+		case OBJECTRELATION_GROUP_MEMBER:
+			sObjectMapIter = sObjectMap.find(SObject(rel.ulParentObjectId, 2 /* USEROBJECT_TYPE_GROUP */));
+			if (sObjectMapIter == sObjectMap.cend())
+				continue;
+			ulNewParentId = sObjectMapIter->second;
+			break;
 
-			case OBJECTRELATION_COMPANY_VIEW:
-			case OBJECTRELATION_COMPANY_ADMIN:
-			case OBJECTRELATION_QUOTA_COMPANYRECIPIENT:
-				sObjectMapIter = sObjectMap.find(SObject(rel.ulParentObjectId, 4 /* USEROBJECT_TYPE_COMPANY */));
-				if (sObjectMapIter == sObjectMap.cend())
-					continue;
-				ulNewParentId = sObjectMapIter->second;
-				break;
+		case OBJECTRELATION_COMPANY_VIEW:
+		case OBJECTRELATION_COMPANY_ADMIN:
+		case OBJECTRELATION_QUOTA_COMPANYRECIPIENT:
+			sObjectMapIter = sObjectMap.find(SObject(rel.ulParentObjectId, 4 /* USEROBJECT_TYPE_COMPANY */));
+			if (sObjectMapIter == sObjectMap.cend())
+				continue;
+			ulNewParentId = sObjectMapIter->second;
+			break;
 
-			case OBJECTRELATION_ADDRESSLIST_MEMBER:
-				sObjectMapIter = sObjectMap.find(SObject(rel.ulParentObjectId, 6 /* USEROBJECT_TYPE_ADDRESSLIST */));
-				if (sObjectMapIter == sObjectMap.cend())
-					continue;
-				ulNewParentId = sObjectMapIter->second;
-				break;
+		case OBJECTRELATION_ADDRESSLIST_MEMBER:
+			sObjectMapIter = sObjectMap.find(SObject(rel.ulParentObjectId, 6 /* USEROBJECT_TYPE_ADDRESSLIST */));
+			if (sObjectMapIter == sObjectMap.cend())
+				continue;
+			ulNewParentId = sObjectMapIter->second;
+			break;
 		}
 
 		// Find the new object id

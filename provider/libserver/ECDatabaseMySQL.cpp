@@ -1233,17 +1233,15 @@ DB_ERROR ECDatabaseMySQL::GetLastError()
 	DB_ERROR dberr;
 	
 	switch (mysql_errno(&m_lpMySQL)) {
-		case ER_LOCK_WAIT_TIMEOUT:
-			dberr = DB_E_LOCK_WAIT_TIMEOUT;
-			break;
-		
-		case ER_LOCK_DEADLOCK:
-			dberr = DB_E_LOCK_DEADLOCK;
-			break;
-			
-		default:
-			dberr = DB_E_UNKNOWN;
-			break;
+	case ER_LOCK_WAIT_TIMEOUT:
+		dberr = DB_E_LOCK_WAIT_TIMEOUT;
+		break;
+	case ER_LOCK_DEADLOCK:
+		dberr = DB_E_LOCK_DEADLOCK;
+		break;
+	default:
+		dberr = DB_E_UNKNOWN;
+		break;
 	}
 	
 	return dberr;

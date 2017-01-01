@@ -155,29 +155,29 @@ ECRESULT ECCacheManager::Update(unsigned int ulType, unsigned int ulObjId)
 
 	switch(ulType)
 	{
-		case fnevObjectModified:
-			LOG_CACHE_DEBUG("Remove cache ACLs, cell, objects for object %d", ulObjId);
-			_DelACLs(ulObjId);
-			_DelCell(ulObjId);
-			_DelObject(ulObjId);
-			break;
-		case fnevObjectDeleted:
-			LOG_CACHE_DEBUG("Remove cache ACLs, cell, objects and store for object %d", ulObjId);
-			_DelObject(ulObjId);
-			_DelStore(ulObjId);
-			_DelACLs(ulObjId);
-			_DelCell(ulObjId);
-			break;
-		case fnevObjectMoved:
-			LOG_CACHE_DEBUG("Remove cache cell, objects and store for object %d", ulObjId);
-			_DelStore(ulObjId);
-			_DelObject(ulObjId);
-			_DelCell(ulObjId);
-			break;
-		default:
-			//Do nothing
-			LOG_CACHE_DEBUG("Update cache, action type %d, objectid %d", ulType, ulObjId);
-			break;
+	case fnevObjectModified:
+		LOG_CACHE_DEBUG("Remove cache ACLs, cell, objects for object %d", ulObjId);
+		_DelACLs(ulObjId);
+		_DelCell(ulObjId);
+		_DelObject(ulObjId);
+		break;
+	case fnevObjectDeleted:
+		LOG_CACHE_DEBUG("Remove cache ACLs, cell, objects and store for object %d", ulObjId);
+		_DelObject(ulObjId);
+		_DelStore(ulObjId);
+		_DelACLs(ulObjId);
+		_DelCell(ulObjId);
+		break;
+	case fnevObjectMoved:
+		LOG_CACHE_DEBUG("Remove cache cell, objects and store for object %d", ulObjId);
+		_DelStore(ulObjId);
+		_DelObject(ulObjId);
+		_DelCell(ulObjId);
+		break;
+	default:
+		//Do nothing
+		LOG_CACHE_DEBUG("Update cache, action type %d, objectid %d", ulType, ulObjId);
+		break;
 	}
 
 	return er;

@@ -49,19 +49,19 @@ public:
 			return 0;
 
 		switch (PROP_TYPE(m_lpMVProp->ulPropTag)) {
-			case PT_MV_I2:		return m_lpMVProp->Value.mvi.__size;
-			case PT_MV_LONG:	return m_lpMVProp->Value.mvl.__size;
-			case PT_MV_R4:		return m_lpMVProp->Value.mvflt.__size;
-			case PT_MV_DOUBLE:
-			case PT_MV_APPTIME:	return m_lpMVProp->Value.mvdbl.__size;
-			case PT_MV_I8:		return m_lpMVProp->Value.mvl.__size;
-			case PT_MV_SYSTIME:
-			case PT_MV_CURRENCY:return m_lpMVProp->Value.mvhilo.__size;
-			case PT_MV_CLSID:
-			case PT_MV_BINARY:	return m_lpMVProp->Value.mvbin.__size;
-			case PT_MV_STRING8:
-			case PT_MV_UNICODE:	return m_lpMVProp->Value.mvszA.__size;
-			default: return 0;
+		case PT_MV_I2:		return m_lpMVProp->Value.mvi.__size;
+		case PT_MV_LONG:	return m_lpMVProp->Value.mvl.__size;
+		case PT_MV_R4:		return m_lpMVProp->Value.mvflt.__size;
+		case PT_MV_DOUBLE:
+		case PT_MV_APPTIME:	return m_lpMVProp->Value.mvdbl.__size;
+		case PT_MV_I8:		return m_lpMVProp->Value.mvl.__size;
+		case PT_MV_SYSTIME:
+		case PT_MV_CURRENCY:	return m_lpMVProp->Value.mvhilo.__size;
+		case PT_MV_CLSID:
+		case PT_MV_BINARY:	return m_lpMVProp->Value.mvbin.__size;
+		case PT_MV_STRING8:
+		case PT_MV_UNICODE:	return m_lpMVProp->Value.mvszA.__size;
+		default: return 0;
 		}
 	}
 
@@ -76,55 +76,47 @@ public:
 			return KCERR_INVALID_PARAMETER;
 
 		switch (PROP_TYPE(m_lpMVProp->ulPropTag)) {
-			case PT_MV_I2:		
-				nCompareResult = twcmp(m_lpMVProp->Value.mvi.__ptr[ulIndex], lpProp->Value.i);
-				break;
-
-			case PT_MV_LONG:	
-				nCompareResult = twcmp(m_lpMVProp->Value.mvl.__ptr[ulIndex], lpProp->Value.ul);
-				break;
-
-			case PT_MV_R4:		
-				nCompareResult = twcmp(m_lpMVProp->Value.mvflt.__ptr[ulIndex], lpProp->Value.flt);
-				break;
-
-			case PT_MV_DOUBLE:
-			case PT_MV_APPTIME:	
-				nCompareResult = twcmp(m_lpMVProp->Value.mvdbl.__ptr[ulIndex], lpProp->Value.dbl);
-				break;
-
-			case PT_MV_I8:		
-				/* promote LHS from unsigned int to int64_t */
-				nCompareResult = twcmp(static_cast<int64_t>(m_lpMVProp->Value.mvl.__ptr[ulIndex]), lpProp->Value.li);
-				break;
-
-			case PT_MV_SYSTIME:
-			case PT_MV_CURRENCY:
-				if (m_lpMVProp->Value.mvhilo.__ptr[ulIndex].hi == lpProp->Value.hilo->hi)
-					nCompareResult = twcmp(m_lpMVProp->Value.mvhilo.__ptr[ulIndex].lo, lpProp->Value.hilo->lo);
-				else
-					nCompareResult = twcmp(m_lpMVProp->Value.mvhilo.__ptr[ulIndex].hi, lpProp->Value.hilo->hi);
-				break;
-
-			case PT_MV_CLSID:
-			case PT_MV_BINARY:
-				nCompareResult = twcmp(m_lpMVProp->Value.mvbin.__ptr[ulIndex].__size, lpProp->Value.bin->__size);
-				if (nCompareResult == 0)
-					nCompareResult = memcmp(m_lpMVProp->Value.mvbin.__ptr[ulIndex].__ptr, lpProp->Value.bin->__ptr, lpProp->Value.bin->__size);
-				break;
-
-			case PT_MV_STRING8:
-			case PT_MV_UNICODE:
-				if (m_lpMVProp->Value.mvszA.__ptr[ulIndex] == NULL && lpProp->Value.lpszA != NULL)
-					nCompareResult = 1;
-				else if (m_lpMVProp->Value.mvszA.__ptr[ulIndex] != NULL && lpProp->Value.lpszA == NULL)
-					nCompareResult = -1;
-				else 
-					nCompareResult = u8_icompare(m_lpMVProp->Value.mvszA.__ptr[ulIndex], lpProp->Value.lpszA, locale);
-				break;
-
-			default:
-				return KCERR_INVALID_PARAMETER;
+		case PT_MV_I2:
+			nCompareResult = twcmp(m_lpMVProp->Value.mvi.__ptr[ulIndex], lpProp->Value.i);
+			break;
+		case PT_MV_LONG:
+			nCompareResult = twcmp(m_lpMVProp->Value.mvl.__ptr[ulIndex], lpProp->Value.ul);
+			break;
+		case PT_MV_R4:
+			nCompareResult = twcmp(m_lpMVProp->Value.mvflt.__ptr[ulIndex], lpProp->Value.flt);
+			break;
+		case PT_MV_DOUBLE:
+		case PT_MV_APPTIME:
+			nCompareResult = twcmp(m_lpMVProp->Value.mvdbl.__ptr[ulIndex], lpProp->Value.dbl);
+			break;
+		case PT_MV_I8:
+			/* promote LHS from unsigned int to int64_t */
+			nCompareResult = twcmp(static_cast<int64_t>(m_lpMVProp->Value.mvl.__ptr[ulIndex]), lpProp->Value.li);
+			break;
+		case PT_MV_SYSTIME:
+		case PT_MV_CURRENCY:
+			if (m_lpMVProp->Value.mvhilo.__ptr[ulIndex].hi == lpProp->Value.hilo->hi)
+				nCompareResult = twcmp(m_lpMVProp->Value.mvhilo.__ptr[ulIndex].lo, lpProp->Value.hilo->lo);
+			else
+				nCompareResult = twcmp(m_lpMVProp->Value.mvhilo.__ptr[ulIndex].hi, lpProp->Value.hilo->hi);
+			break;
+		case PT_MV_CLSID:
+		case PT_MV_BINARY:
+			nCompareResult = twcmp(m_lpMVProp->Value.mvbin.__ptr[ulIndex].__size, lpProp->Value.bin->__size);
+			if (nCompareResult == 0)
+				nCompareResult = memcmp(m_lpMVProp->Value.mvbin.__ptr[ulIndex].__ptr, lpProp->Value.bin->__ptr, lpProp->Value.bin->__size);
+			break;
+		case PT_MV_STRING8:
+		case PT_MV_UNICODE:
+			if (m_lpMVProp->Value.mvszA.__ptr[ulIndex] == NULL && lpProp->Value.lpszA != NULL)
+				nCompareResult = 1;
+			else if (m_lpMVProp->Value.mvszA.__ptr[ulIndex] != NULL && lpProp->Value.lpszA == NULL)
+				nCompareResult = -1;
+			else
+				nCompareResult = u8_icompare(m_lpMVProp->Value.mvszA.__ptr[ulIndex], lpProp->Value.lpszA, locale);
+			break;
+		default:
+			return KCERR_INVALID_PARAMETER;
 		}
 
 		*lpnCompareResult = nCompareResult;
@@ -855,28 +847,28 @@ ECRESULT FreePropVal(struct propVal *lpProp, bool bBasePointerDel)
 				struct action *lpAction = &lpActions->__ptr[i];
 
 				switch(lpAction->acttype) {
-					case OP_COPY:
-					case OP_MOVE:
-						delete [] lpAction->act.moveCopy.store.__ptr;
-						delete [] lpAction->act.moveCopy.folder.__ptr;
-						break;
-					case OP_REPLY:
-					case OP_OOF_REPLY:
-						delete [] lpAction->act.reply.message.__ptr;
-						delete [] lpAction->act.reply.guid.__ptr;
-						break;
-					case OP_DEFER_ACTION:
-						delete [] lpAction->act.defer.bin.__ptr;
-						break;
-					case OP_BOUNCE:
-						break;
-					case OP_FORWARD:
-					case OP_DELEGATE:
-						FreeRowSet(lpAction->act.adrlist, true);
-						break;
-					case OP_TAG:
-						FreePropVal(lpAction->act.prop, true);
-						break;
+				case OP_COPY:
+				case OP_MOVE:
+					delete[] lpAction->act.moveCopy.store.__ptr;
+					delete[] lpAction->act.moveCopy.folder.__ptr;
+					break;
+				case OP_REPLY:
+				case OP_OOF_REPLY:
+					delete[] lpAction->act.reply.message.__ptr;
+					delete[] lpAction->act.reply.guid.__ptr;
+					break;
+				case OP_DEFER_ACTION:
+					delete[] lpAction->act.defer.bin.__ptr;
+					break;
+				case OP_BOUNCE:
+					break;
+				case OP_FORWARD:
+				case OP_DELEGATE:
+					FreeRowSet(lpAction->act.adrlist, true);
+					break;
+				case OP_TAG:
+					FreePropVal(lpAction->act.prop, true);
+					break;
 				}
 			}
 

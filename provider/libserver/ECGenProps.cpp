@@ -52,34 +52,34 @@ ECRESULT ECGenProps::GetMVPropSubquery(unsigned int ulPropTagRequested, std::str
 
 	//skip MV_INSTANCE
 	switch(ulType) {
-		case PT_MV_I2:
-		case PT_MV_LONG:
-			subquery = "SELECT concat(count(*), ':', group_concat(length(val_ulong),':',val_ulong ORDER BY subquery.orderid SEPARATOR '')) FROM mvproperties AS subquery WHERE subquery.hierarchyid=hierarchy.id AND subquery.type="+stringify(PROP_TYPE(ulPropTagRequested))+" AND subquery.tag="+stringify(PROP_ID(ulPropTagRequested))+" GROUP BY subquery.hierarchyid";
-			break;
-		case PT_MV_R4:
-		case PT_MV_DOUBLE:
-		case PT_MV_APPTIME:
-			subquery = "SELECT concat(count(*), ':', group_concat(length(val_double),':',val_double ORDER BY subquery.orderid SEPARATOR '')) FROM mvproperties AS subquery WHERE subquery.hierarchyid=hierarchy.id AND subquery.type="+stringify(PROP_TYPE(ulPropTagRequested))+" AND subquery.tag="+stringify(PROP_ID(ulPropTagRequested))+" GROUP BY subquery.hierarchyid";
-			break;
-		case PT_MV_CURRENCY:
-		case PT_MV_SYSTIME:
-			subquery = "SELECT group_concat(count(*),':',length(val_hi),':',val_hi ORDER BY subquery.orderid SEPARATOR '')) FROM mvproperties AS subquery WHERE subquery.hierarchyid=hierarchy.id AND subquery.type="+stringify(PROP_TYPE(ulPropTagRequested))+" AND subquery.tag="+stringify(PROP_ID(ulPropTagRequested))+" GROUP BY subquery.hierarchyid";
-			subquery += "),(SELECT group_concat(count(*),':',length(val_lo),':',val_lo ORDER BY subquery.orderid SEPARATOR '')) FROM mvproperties AS subquery WHERE subquery.hierarchyid=hierarchy.id AND subquery.type="+stringify(PROP_TYPE(ulPropTagRequested))+" AND subquery.tag="+stringify(PROP_ID(ulPropTagRequested))+" GROUP BY subquery.hierarchyid";
-			break;
-		case PT_MV_BINARY:
-		case PT_MV_CLSID:
-			subquery = "SELECT concat(count(*), ':', group_concat(length(val_binary),':',val_binary ORDER BY subquery.orderid SEPARATOR '')) FROM mvproperties AS subquery WHERE subquery.hierarchyid=hierarchy.id AND subquery.type="+stringify(PROP_TYPE(ulPropTagRequested))+" AND subquery.tag="+stringify(PROP_ID(ulPropTagRequested))+" GROUP BY subquery.hierarchyid";
-			break;
-		case PT_MV_STRING8:
-		case PT_MV_UNICODE:
-			subquery = "SELECT concat(count(*), ':', group_concat(char_length(val_string),':',val_string ORDER BY subquery.orderid SEPARATOR '')) FROM mvproperties AS subquery WHERE subquery.hierarchyid=hierarchy.id AND subquery.type="+stringify(PROP_TYPE(ulPropTagRequested))+" AND subquery.tag="+stringify(PROP_ID(ulPropTagRequested))+" GROUP BY subquery.hierarchyid";
-			break;
-		case PT_MV_I8:
-			subquery = "SELECT concat(count(*), ':', group_concat(length(val_longint),':',val_longint ORDER BY subquery.orderid SEPARATOR '')) FROM mvproperties AS subquery WHERE subquery.hierarchyid=hierarchy.id AND subquery.type="+stringify(PROP_TYPE(ulPropTagRequested))+" AND subquery.tag="+stringify(PROP_ID(ulPropTagRequested))+" GROUP BY subquery.hierarchyid";
-			break;
-		default:
-			er = KCERR_NOT_FOUND;
-			break;
+	case PT_MV_I2:
+	case PT_MV_LONG:
+		subquery = "SELECT concat(count(*), ':', group_concat(length(val_ulong),':',val_ulong ORDER BY subquery.orderid SEPARATOR '')) FROM mvproperties AS subquery WHERE subquery.hierarchyid=hierarchy.id AND subquery.type="+stringify(PROP_TYPE(ulPropTagRequested))+" AND subquery.tag="+stringify(PROP_ID(ulPropTagRequested))+" GROUP BY subquery.hierarchyid";
+		break;
+	case PT_MV_R4:
+	case PT_MV_DOUBLE:
+	case PT_MV_APPTIME:
+		subquery = "SELECT concat(count(*), ':', group_concat(length(val_double),':',val_double ORDER BY subquery.orderid SEPARATOR '')) FROM mvproperties AS subquery WHERE subquery.hierarchyid=hierarchy.id AND subquery.type="+stringify(PROP_TYPE(ulPropTagRequested))+" AND subquery.tag="+stringify(PROP_ID(ulPropTagRequested))+" GROUP BY subquery.hierarchyid";
+		break;
+	case PT_MV_CURRENCY:
+	case PT_MV_SYSTIME:
+		subquery = "SELECT group_concat(count(*),':',length(val_hi),':',val_hi ORDER BY subquery.orderid SEPARATOR '')) FROM mvproperties AS subquery WHERE subquery.hierarchyid=hierarchy.id AND subquery.type="+stringify(PROP_TYPE(ulPropTagRequested))+" AND subquery.tag="+stringify(PROP_ID(ulPropTagRequested))+" GROUP BY subquery.hierarchyid";
+		subquery += "),(SELECT group_concat(count(*),':',length(val_lo),':',val_lo ORDER BY subquery.orderid SEPARATOR '')) FROM mvproperties AS subquery WHERE subquery.hierarchyid=hierarchy.id AND subquery.type="+stringify(PROP_TYPE(ulPropTagRequested))+" AND subquery.tag="+stringify(PROP_ID(ulPropTagRequested))+" GROUP BY subquery.hierarchyid";
+		break;
+	case PT_MV_BINARY:
+	case PT_MV_CLSID:
+		subquery = "SELECT concat(count(*), ':', group_concat(length(val_binary),':',val_binary ORDER BY subquery.orderid SEPARATOR '')) FROM mvproperties AS subquery WHERE subquery.hierarchyid=hierarchy.id AND subquery.type="+stringify(PROP_TYPE(ulPropTagRequested))+" AND subquery.tag="+stringify(PROP_ID(ulPropTagRequested))+" GROUP BY subquery.hierarchyid";
+		break;
+	case PT_MV_STRING8:
+	case PT_MV_UNICODE:
+		subquery = "SELECT concat(count(*), ':', group_concat(char_length(val_string),':',val_string ORDER BY subquery.orderid SEPARATOR '')) FROM mvproperties AS subquery WHERE subquery.hierarchyid=hierarchy.id AND subquery.type="+stringify(PROP_TYPE(ulPropTagRequested))+" AND subquery.tag="+stringify(PROP_ID(ulPropTagRequested))+" GROUP BY subquery.hierarchyid";
+		break;
+	case PT_MV_I8:
+		subquery = "SELECT concat(count(*), ':', group_concat(length(val_longint),':',val_longint ORDER BY subquery.orderid SEPARATOR '')) FROM mvproperties AS subquery WHERE subquery.hierarchyid=hierarchy.id AND subquery.type="+stringify(PROP_TYPE(ulPropTagRequested))+" AND subquery.tag="+stringify(PROP_ID(ulPropTagRequested))+" GROUP BY subquery.hierarchyid";
+		break;
+	default:
+		er = KCERR_NOT_FOUND;
+		break;
 	}
 	
 
@@ -137,17 +137,17 @@ ECRESULT ECGenProps::GetPropSubstitute(unsigned int ulObjType, unsigned int ulPr
 	unsigned int ulPropTagRequired = 0;
 
 	switch(PROP_ID(ulPropTagRequested)) {
-		case PROP_ID(PR_NORMALIZED_SUBJECT):
-			ulPropTagRequired = PR_SUBJECT;
-			break;
-		case PROP_ID(PR_CONTENT_UNREAD):
-			if(ulObjType == MAPI_MESSAGE)
-				ulPropTagRequired = PR_MESSAGE_FLAGS;
-			else
-				return KCERR_NOT_FOUND;
-			break;
-		default:
+	case PROP_ID(PR_NORMALIZED_SUBJECT):
+		ulPropTagRequired = PR_SUBJECT;
+		break;
+	case PROP_ID(PR_CONTENT_UNREAD):
+		if (ulObjType == MAPI_MESSAGE)
+			ulPropTagRequired = PR_MESSAGE_FLAGS;
+		else
 			return KCERR_NOT_FOUND;
+		break;
+	default:
+		return KCERR_NOT_FOUND;
 	}
 
 	*lpulPropTagRequired = ulPropTagRequired;
