@@ -224,14 +224,11 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChange(ULONG cValue, LPSPr
 	memory_ptr<SPropValue> lpPropPCL, lpPropCK;
 	ULONG cbEntryId = 0;
 	memory_ptr<ENTRYID> lpEntryId;
-	LPSPropValue lpPassedEntryId = NULL;
-
-	LPSPropValue lpMessageSourceKey = PpropFindProp(lpPropArray, cValue, PR_SOURCE_KEY);
-	LPSPropValue lpMessageFlags = PpropFindProp(lpPropArray, cValue, PR_MESSAGE_FLAGS);
-	LPSPropValue lpMessageAssociated = PpropFindProp(lpPropArray, cValue, PR_ASSOCIATED);
-	
-	LPSPropValue lpRemotePCL = PpropFindProp(lpPropArray, cValue, PR_PREDECESSOR_CHANGE_LIST);
-	LPSPropValue lpRemoteCK = PpropFindProp(lpPropArray, cValue, PR_CHANGE_KEY);
+	auto lpMessageSourceKey = PCpropFindProp(lpPropArray, cValue, PR_SOURCE_KEY);
+	auto lpMessageFlags = PCpropFindProp(lpPropArray, cValue, PR_MESSAGE_FLAGS);
+	auto lpMessageAssociated = PCpropFindProp(lpPropArray, cValue, PR_ASSOCIATED);
+	auto lpRemotePCL = PCpropFindProp(lpPropArray, cValue, PR_PREDECESSOR_CHANGE_LIST);
+	auto lpRemoteCK = PCpropFindProp(lpPropArray, cValue, PR_CHANGE_KEY);
 
 	ULONG ulObjType = 0;
 	bool bAssociatedMessage = false;
@@ -267,8 +264,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChange(ULONG cValue, LPSPr
 		else
 		    ulNewFlags = 0;
 
-		lpPassedEntryId = PpropFindProp(lpPropArray, cValue, PR_ENTRYID);
-
+		auto lpPassedEntryId = PCpropFindProp(lpPropArray, cValue, PR_ENTRYID);
 		// Create the message with the passed entry ID
 		if(lpPassedEntryId)
 			hr = m_lpFolder->CreateMessageWithEntryID(&IID_IMessage, ulNewFlags, lpPassedEntryId->Value.bin.cb, (LPENTRYID)lpPassedEntryId->Value.bin.lpb, &lpMessage);
@@ -391,7 +387,8 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageMove(ULONG cbSourceKeySrcF
  * @return	true	The change has been processed before.
  * @return	false	The change hasn't been processed yet.
  */
-bool ECExchangeImportContentsChanges::IsProcessed(LPSPropValue lpRemoteCK, LPSPropValue lpLocalPCL)
+bool ECExchangeImportContentsChanges::IsProcessed(const SPropValue *lpRemoteCK,
+    const SPropValue *lpLocalPCL)
 {
 	if (!lpRemoteCK || !lpLocalPCL)
 		return false;
@@ -441,7 +438,8 @@ bool ECExchangeImportContentsChanges::IsProcessed(LPSPropValue lpRemoteCK, LPSPr
  * @retval	true	The change conflicts with a local change
  * @retval	false	The change doesn't conflict with a local change.
  */
-bool ECExchangeImportContentsChanges::IsConflict(LPSPropValue lpLocalCK, LPSPropValue lpRemotePCL)
+bool ECExchangeImportContentsChanges::IsConflict(const SPropValue *lpLocalCK,
+    const SPropValue *lpRemotePCL)
 {
 	if (!lpLocalCK || !lpRemotePCL)
 		return false;
@@ -732,8 +730,7 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChangeAsAStream(ULONG cVal
 	WSMessageStreamImporterPtr ptrMessageImporter;
 	StreamPtr ptrStream;
 
-	LPSPropValue lpMessageSourceKey = PpropFindProp(lpPropArray, cValue, PR_SOURCE_KEY);
-
+	auto lpMessageSourceKey = PCpropFindProp(lpPropArray, cValue, PR_SOURCE_KEY);
 	if (lpMessageSourceKey != NULL) {
 		hr = m_lpFolder->GetMsgStore()->lpTransport->HrEntryIDFromSourceKey(m_lpFolder->GetMsgStore()->m_cbEntryId, m_lpFolder->GetMsgStore()->m_lpEntryId, m_lpSourceKey->Value.bin.cb, m_lpSourceKey->Value.bin.lpb, lpMessageSourceKey->Value.bin.cb, lpMessageSourceKey->Value.bin.lpb, &cbEntryId, &~ptrEntryId);
 		if (hr != MAPI_E_NOT_FOUND && hr != hrSuccess) {
@@ -779,9 +776,6 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageChangeAsAStream(ULONG cVal
 HRESULT ECExchangeImportContentsChanges::ImportMessageCreateAsStream(ULONG cValue, LPSPropValue lpPropArray, WSMessageStreamImporter **lppMessageImporter)
 {
 	HRESULT hr;
-	LPSPropValue lpMessageFlags = NULL;
-	LPSPropValue lpMessageAssociated = NULL;
-	LPSPropValue lpPropEntryId = NULL;
 	ULONG ulNewFlags = 0;
 	ULONG cbEntryId = 0;
 	LPENTRYID lpEntryId = NULL;
@@ -790,9 +784,9 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageCreateAsStream(ULONG cValu
 	if (lpPropArray == NULL || lppMessageImporter == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
-	lpMessageFlags = PpropFindProp(lpPropArray, cValue, PR_MESSAGE_FLAGS);
-	lpMessageAssociated = PpropFindProp(lpPropArray, cValue, PR_ASSOCIATED);
-	lpPropEntryId = PpropFindProp(lpPropArray, cValue, PR_ENTRYID);
+	auto lpMessageFlags = PCpropFindProp(lpPropArray, cValue, PR_MESSAGE_FLAGS);
+	auto lpMessageAssociated = PCpropFindProp(lpPropArray, cValue, PR_ASSOCIATED);
+	auto lpPropEntryId = PCpropFindProp(lpPropArray, cValue, PR_ENTRYID);
 
 	if ((lpMessageFlags != NULL && (lpMessageFlags->Value.ul & MSGFLAG_ASSOCIATED)) || (lpMessageAssociated != NULL && lpMessageAssociated->Value.b))
 		ulNewFlags = MAPI_ASSOCIATED;
@@ -824,10 +818,6 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageUpdateAsStream(ULONG cbEnt
 	HRESULT hr;
 	SPropValuePtr ptrPropPCL;
 	SPropValuePtr ptrPropCK;
-	LPSPropValue lpRemoteCK = NULL;
-	LPSPropValue lpRemotePCL = NULL;
-	LPSPropValue lpMessageFlags = NULL;
-	LPSPropValue lpMessageAssociated = NULL;
 	bool bAssociated = false;
 	SPropValuePtr ptrConflictItems;
 	WSMessageStreamImporterPtr ptrMessageImporter;
@@ -845,19 +835,19 @@ HRESULT ECExchangeImportContentsChanges::ImportMessageUpdateAsStream(ULONG cbEnt
 		return hr;
 	}
 
-	lpRemoteCK = PpropFindProp(lpPropArray, cValue, PR_CHANGE_KEY);
+	auto lpRemoteCK = PCpropFindProp(lpPropArray, cValue, PR_CHANGE_KEY);
 	if (IsProcessed(lpRemoteCK, ptrPropPCL)) {
 		//we already have this change
 		ZLOG_DEBUG(m_lpLogger, "UpdateFast: %s", "The item was previously synchronized");
 		return SYNC_E_IGNORE;
 	}
 
-	lpMessageFlags = PpropFindProp(lpPropArray, cValue, PR_MESSAGE_FLAGS);
-	lpMessageAssociated = PpropFindProp(lpPropArray, cValue, PR_ASSOCIATED);
+	auto lpMessageFlags = PCpropFindProp(lpPropArray, cValue, PR_MESSAGE_FLAGS);
+	auto lpMessageAssociated = PCpropFindProp(lpPropArray, cValue, PR_ASSOCIATED);
 	if ((lpMessageFlags != NULL && (lpMessageFlags->Value.ul & MSGFLAG_ASSOCIATED)) || (lpMessageAssociated != NULL && lpMessageAssociated->Value.b))
 		bAssociated = true;
 
-	lpRemotePCL = PpropFindProp(lpPropArray, cValue, PR_PREDECESSOR_CHANGE_LIST);
+	auto lpRemotePCL = PCpropFindProp(lpPropArray, cValue, PR_PREDECESSOR_CHANGE_LIST);
 	if (!bAssociated && IsConflict(ptrPropCK, lpRemotePCL)) {
 		MessagePtr ptrMessage;
 		ULONG ulType = 0;
@@ -977,7 +967,8 @@ HrVerifyRemindersRestriction(const SRestriction *lpRestriction,
 	return HrRestrictionContains(lpRestriction, lstEntryIds);
 }
 
-HRESULT ECExchangeImportContentsChanges::HrUpdateSearchReminders(LPMAPIFOLDER lpRootFolder, LPSPropValue lpAdditionalREN)
+HRESULT ECExchangeImportContentsChanges::HrUpdateSearchReminders(LPMAPIFOLDER lpRootFolder,
+    const SPropValue *lpAdditionalREN)
 {
 	HRESULT hr;
 	ULONG cREMProps;

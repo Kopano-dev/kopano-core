@@ -391,7 +391,6 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 	memory_ptr<SPropTagArray> lpsPTA;
 	object_ptr<IMAPITable> lpAttachTable;
 	LPSRowSet lpRows = NULL;
-	LPSPropValue lpPropVal = NULL;
 	SPropValue sStart = {0};
 	SPropValue sMethod = {0};
 
@@ -461,7 +460,7 @@ HRESULT ICalToMapiImpl::GetItem(ULONG ulPosition, ULONG ulFlags, LPMESSAGE lpMes
 		goto exit;
 
 	for (ULONG i = 0; i < lpRows->cRows; ++i) {
-		lpPropVal = PpropFindProp(lpRows->aRow[i].lpProps, lpRows->aRow[i].cValues, PR_ATTACH_NUM);
+		auto lpPropVal = PCpropFindProp(lpRows->aRow[i].lpProps, lpRows->aRow[i].cValues, PR_ATTACH_NUM);
 		if (lpPropVal == NULL)
 			continue;
 

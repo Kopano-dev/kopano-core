@@ -362,7 +362,6 @@ HRESULT SVCService::Init(const INFLoader& cINF, const inf_section* infService)
 	HRESULT hr;
 	const inf_section* infProvider = NULL;
 	vector<string> prop;
-	LPSPropValue lpSO;
 	void **cf;
 	char filename[PATH_MAX + 1];
 
@@ -395,9 +394,9 @@ HRESULT SVCService::Init(const INFLoader& cINF, const inf_section* infService)
 	}
 
 	// find PR_SERVICE_SO_NAME / PR_SERVICE_DLL_NAME, load library
-	lpSO = PpropFindProp(m_lpProps, m_cValues, PR_SERVICE_SO_NAME_A);
+	auto lpSO = PCpropFindProp(m_lpProps, m_cValues, PR_SERVICE_SO_NAME_A);
 	if (!lpSO)
-		lpSO = PpropFindProp(m_lpProps, m_cValues, PR_SERVICE_DLL_NAME_A);
+		lpSO = PCpropFindProp(m_lpProps, m_cValues, PR_SERVICE_DLL_NAME_A);
 	if (lpSO == NULL)
 		return MAPI_E_NOT_FOUND;
 
@@ -447,9 +446,9 @@ HRESULT SVCService::CreateProviders(IProviderAdmin *lpProviderAdmin)
 	return hrSuccess;
 }
 
-LPSPropValue SVCService::GetProp(ULONG ulPropTag)
+const SPropValue *SVCService::GetProp(ULONG ulPropTag)
 {
-	return PpropFindProp(m_lpProps, m_cValues, ulPropTag);
+	return PCpropFindProp(m_lpProps, m_cValues, ulPropTag);
 }
 
 SVCProvider* SVCService::GetProvider(LPTSTR lpszProvider, ULONG ulFlags)
@@ -558,10 +557,8 @@ HRESULT MAPISVC::GetService(LPTSTR lpszService, ULONG ulFlags, SVCService **lppS
  */
 HRESULT MAPISVC::GetService(char* lpszDLLName, SVCService **lppService)
 {
-	LPSPropValue lpDLLName;
-
 	for (const auto &i : m_sServices) {
-		lpDLLName = i.second->GetProp(PR_SERVICE_DLL_NAME_A);
+		const SPropValue *lpDLLName = i.second->GetProp(PR_SERVICE_DLL_NAME_A);
 		if (!lpDLLName || !lpDLLName->Value.lpszA)
 			continue;
 		if (strcmp(lpDLLName->Value.lpszA, lpszDLLName) == 0) {

@@ -27,7 +27,7 @@ namespace KC {
 extern _kc_export bool IsOutlookUid(const std::string &);
 HRESULT HrGenerateUid(std::string *lpStrUid);
 extern _kc_export HRESULT HrCreateGlobalID(ULONG named_tag, void *base, LPSPropValue *pv);
-extern _kc_export HRESULT HrGetICalUidFromBinUid(SBinary &, std::string *uid);
+extern _kc_export HRESULT HrGetICalUidFromBinUid(const SBinary &, std::string *uid);
 extern _kc_export HRESULT HrMakeBinUidFromICalUid(const std::string &uid, std::string *binuid);
 
 } /* namespace */

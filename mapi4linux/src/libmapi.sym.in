@@ -73,6 +73,7 @@ global:
 		/* workaround gcc issue 78747 */
 		*::_Rep::_S_empty_rep_storage;
 	};
+	PCpropFindProp;
 	/* workaround RHBZ issue 1403609 */
 	_ZNKR2KC*;
 local:

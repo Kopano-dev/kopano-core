@@ -102,7 +102,6 @@ HRESULT Util::HrAddToPropertyArray(const SPropValue *lpSrc, ULONG cValues,
     const SPropValue *lpToAdd, SPropValue **lppDest, ULONG *cDestValues)
 {
 	LPSPropValue lpDest = NULL;
-	LPSPropValue lpFind = NULL;
 	unsigned int i = 0;
 	unsigned int n = 0;
 
@@ -119,7 +118,7 @@ HRESULT Util::HrAddToPropertyArray(const SPropValue *lpSrc, ULONG cValues,
 		hr = hrSuccess;
 	}
 
-	lpFind = PpropFindProp(lpDest, n, lpToAdd->ulPropTag);
+	auto lpFind = PpropFindProp(lpDest, n, lpToAdd->ulPropTag);
 	if (lpFind != nullptr)
 		hr = HrCopyProperty(lpFind, lpToAdd, lpDest);
 	else
@@ -2413,18 +2412,16 @@ ULONG Util::GetBestBody(IMAPIProp* lpPropObj, ULONG ulFlags)
  */
 ULONG Util::GetBestBody(LPSPropValue lpPropArray, ULONG cValues, ULONG ulFlags)
 {
-	LPSPropValue lpBody, lpHtml, lpRtfCompressed, lpRtfInSync;
-
-	lpBody = PpropFindProp(lpPropArray, cValues, CHANGE_PROP_TYPE(PR_BODY, PT_UNSPECIFIED));
+	auto lpBody = PCpropFindProp(lpPropArray, cValues, CHANGE_PROP_TYPE(PR_BODY, PT_UNSPECIFIED));
 	if (!lpBody)
 		return PR_NULL;
-	lpHtml = PpropFindProp(lpPropArray, cValues, CHANGE_PROP_TYPE(PR_HTML, PT_UNSPECIFIED));
+	auto lpHtml = PCpropFindProp(lpPropArray, cValues, CHANGE_PROP_TYPE(PR_HTML, PT_UNSPECIFIED));
 	if (!lpHtml)
 		return PR_NULL;
-	lpRtfCompressed = PpropFindProp(lpPropArray, cValues, CHANGE_PROP_TYPE(PR_RTF_COMPRESSED, PT_UNSPECIFIED));
+	auto lpRtfCompressed = PCpropFindProp(lpPropArray, cValues, CHANGE_PROP_TYPE(PR_RTF_COMPRESSED, PT_UNSPECIFIED));
 	if (!lpRtfCompressed)
 		return PR_NULL;
-	lpRtfInSync = PpropFindProp(lpPropArray, cValues, CHANGE_PROP_TYPE(PR_RTF_IN_SYNC, PT_UNSPECIFIED));
+	auto lpRtfInSync = PCpropFindProp(lpPropArray, cValues, CHANGE_PROP_TYPE(PR_RTF_IN_SYNC, PT_UNSPECIFIED));
 	if (!lpRtfInSync)
 		return PR_NULL;
 	return GetBestBody(lpBody, lpHtml, lpRtfCompressed, lpRtfInSync, ulFlags);
@@ -2622,7 +2619,6 @@ HRESULT Util::CopyAttachments(LPMESSAGE lpSrc, LPMESSAGE lpDest, LPSRestriction 
 	ULONG ulRows = 0;
 
 	// attachments
-	LPSPropValue lpAttachNum = NULL;
 	memory_ptr<SPropValue> lpHasAttach;
 	ULONG ulAttachNr = 0;
 	LPATTACH lpSrcAttach = NULL;
@@ -2661,7 +2657,7 @@ HRESULT Util::CopyAttachments(LPMESSAGE lpSrc, LPMESSAGE lpDest, LPSRestriction 
 		goto exit;
 
 	for (ULONG i = 0; i < lpRows->cRows; ++i) {
-		lpAttachNum = PpropFindProp(lpRows->aRow[i].lpProps, lpRows->aRow[i].cValues, PR_ATTACH_NUM);
+		auto lpAttachNum = PCpropFindProp(lpRows->aRow[i].lpProps, lpRows->aRow[i].cValues, PR_ATTACH_NUM);
 		if (!lpAttachNum) {
 			bPartial = true;
 			goto next_attach;

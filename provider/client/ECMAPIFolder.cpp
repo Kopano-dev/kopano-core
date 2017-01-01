@@ -189,7 +189,8 @@ HRESULT ECMAPIFolder::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULONG ul
 	return hr;
 }
 
-HRESULT	ECMAPIFolder::SetPropHandler(ULONG ulPropTag, void* lpProvider, LPSPropValue lpsPropValue, void *lpParam)
+HRESULT	ECMAPIFolder::SetPropHandler(ULONG ulPropTag, void *lpProvider,
+    const SPropValue *lpsPropValue, void *lpParam)
 {
 	HRESULT hr = hrSuccess;
 	ECMAPIFolder *lpFolder = (ECMAPIFolder *)lpParam;
@@ -335,7 +336,8 @@ HRESULT ECMAPIFolder::CopyProps(const SPropTagArray *lpIncludeProps,
 	return Util::DoCopyProps(&IID_IMAPIFolder, &this->m_xMAPIFolder, lpIncludeProps, ulUIParam, lpProgress, lpInterface, lpDestObj, ulFlags, lppProblems);
 }
 
-HRESULT ECMAPIFolder::SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray *lppProblems)
+HRESULT ECMAPIFolder::SetProps(ULONG cValues, const SPropValue *lpPropArray,
+    SPropProblemArray **lppProblems)
 {
 	HRESULT hr;
 
@@ -881,7 +883,7 @@ DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, SaveChanges, (ULONG, ulFlags
 DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, GetProps, (const SPropTagArray *, lpPropTagArray), (ULONG, ulFlags), (ULONG *, lpcValues), (SPropValue **, lppPropArray))
 DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, GetPropList, (ULONG, ulFlags), (LPSPropTagArray *, lppPropTagArray))
 DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, OpenProperty, (ULONG, ulPropTag), (LPCIID, lpiid), (ULONG, ulInterfaceOptions), (ULONG, ulFlags), (LPUNKNOWN *, lppUnk))
-DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, SetProps, (ULONG, cValues), (LPSPropValue, lpPropArray), (LPSPropProblemArray *, lppProblems))
+DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, SetProps, (ULONG, cValues), (const SPropValue *, lpPropArray), (SPropProblemArray **, lppProblems))
 DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, DeleteProps, (const SPropTagArray *, lpPropTagArray), (SPropProblemArray **, lppProblems))
 DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, CopyTo, (ULONG, ciidExclude), (LPCIID, rgiidExclude), (const SPropTagArray *, lpExcludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (void *, lpDestObj), (ULONG, ulFlags), (SPropProblemArray **, lppProblems))
 DEF_HRMETHOD1(TRACE_MAPI, ECMAPIFolder, MAPIFolder, CopyProps, (const SPropTagArray *, lpIncludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (void *, lpDestObj), (ULONG, ulFlags), (SPropProblemArray **, lppProblems))

@@ -641,7 +641,7 @@ HRESULT ClientUtil::GetGlobalProfileProperties(LPPROFSECT lpGlobalProfSect, stru
 	memory_ptr<SPropValue> lpsPropArray, lpsEMSPropArray, lpPropEMS;
 	ULONG			cValues = 0;
 	ULONG			cEMSValues = 0;
-	LPSPropValue	lpProp = NULL;
+	const SPropValue *lpProp = NULL;
 	bool			bIsEMS = false;
 
 	if (lpGlobalProfSect == nullptr || lpsProfileProps == nullptr)
@@ -666,70 +666,55 @@ HRESULT ClientUtil::GetGlobalProfileProperties(LPPROFSECT lpGlobalProfSect, stru
 			return hr;
 	}
 
-	if((lpProp = PpropFindProp(lpsPropArray, cValues, PR_EC_PATH)) != NULL)
+	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_PATH)) != NULL)
 		lpsProfileProps->strServerPath = lpProp->Value.lpszA;
-
-	if((lpProp = PpropFindProp(lpsPropArray, cValues, PR_PROFILE_NAME_A)) != NULL)
+	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_PROFILE_NAME_A)) != NULL)
 		lpsProfileProps->strProfileName = lpProp->Value.lpszA;
-
-	if((lpProp = PpropFindProp(lpsPropArray, cValues, PR_EC_USERNAME_W)) != NULL)
+	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_USERNAME_W)) != NULL)
 		lpsProfileProps->strUserName = convstring::from_SPropValue(lpProp);
-	else if((lpProp = PpropFindProp(lpsPropArray, cValues, PR_EC_USERNAME_A)) != NULL)
+	else if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_USERNAME_A)) != NULL)
 		lpsProfileProps->strUserName = convstring::from_SPropValue(lpProp);
-
-	if((lpProp = PpropFindProp(lpsPropArray, cValues, PR_EC_USERPASSWORD_W)) != NULL)
+	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_USERPASSWORD_W)) != NULL)
 		lpsProfileProps->strPassword = convstring::from_SPropValue(lpProp);
-	else if((lpProp = PpropFindProp(lpsPropArray, cValues, PR_EC_USERPASSWORD_A)) != NULL)
+	else if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_USERPASSWORD_A)) != NULL)
 		lpsProfileProps->strPassword = convstring::from_SPropValue(lpProp);
-
-	if((lpProp = PpropFindProp(lpsPropArray, cValues, PR_EC_IMPERSONATEUSER_W)) != NULL)
+	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_IMPERSONATEUSER_W)) != NULL)
 		lpsProfileProps->strImpersonateUser = convstring::from_SPropValue(lpProp);
-	else if((lpProp = PpropFindProp(lpsPropArray, cValues, PR_EC_IMPERSONATEUSER_A)) != NULL)
+	else if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_IMPERSONATEUSER_A)) != NULL)
 		lpsProfileProps->strImpersonateUser = convstring::from_SPropValue(lpProp);
-
-	if((lpProp = PpropFindProp(lpsPropArray, cValues, PR_EC_FLAGS)) != NULL)
+	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_FLAGS)) != NULL)
 		lpsProfileProps->ulProfileFlags = lpProp->Value.ul;
 	else
 		lpsProfileProps->ulProfileFlags = 0;
-
-	if((lpProp = PpropFindProp(lpsPropArray, cValues, PR_EC_SSLKEY_FILE)) != NULL)
+	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_SSLKEY_FILE)) != NULL)
 		lpsProfileProps->strSSLKeyFile = lpProp->Value.lpszA;
-
-	if((lpProp = PpropFindProp(lpsPropArray, cValues, PR_EC_SSLKEY_PASS)) != NULL)
+	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_SSLKEY_PASS)) != NULL)
 		lpsProfileProps->strSSLKeyPass = lpProp->Value.lpszA;
-
-	if((lpProp = PpropFindProp(lpsPropArray, cValues, PR_EC_PROXY_HOST)) != NULL)
+	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_PROXY_HOST)) != NULL)
 		lpsProfileProps->strProxyHost = lpProp->Value.lpszA;
-	
-	if((lpProp = PpropFindProp(lpsPropArray, cValues, PR_EC_PROXY_PORT)) != NULL)
+	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_PROXY_PORT)) != NULL)
 		lpsProfileProps->ulProxyPort = lpProp->Value.ul;
 	else
 		lpsProfileProps->ulProxyPort = 0;
-
-	if((lpProp = PpropFindProp(lpsPropArray, cValues, PR_EC_PROXY_FLAGS)) != NULL)
+	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_PROXY_FLAGS)) != NULL)
 		lpsProfileProps->ulProxyFlags = lpProp->Value.ul;
 	else
 		lpsProfileProps->ulProxyFlags = 0;
-
-	if((lpProp = PpropFindProp(lpsPropArray, cValues, PR_EC_PROXY_USERNAME)) != NULL)
+	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_PROXY_USERNAME)) != NULL)
 		lpsProfileProps->strProxyUserName = lpProp->Value.lpszA;
-	
-	if((lpProp = PpropFindProp(lpsPropArray, cValues, PR_EC_PROXY_PASSWORD)) != NULL)
+	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_PROXY_PASSWORD)) != NULL)
 		lpsProfileProps->strProxyPassword = lpProp->Value.lpszA;
-
-	if((lpProp = PpropFindProp(lpsPropArray, cValues, PR_EC_CONNECTION_TIMEOUT)) != NULL)
+	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_CONNECTION_TIMEOUT)) != NULL)
 		lpsProfileProps->ulConnectionTimeOut = lpProp->Value.ul;
 	else
 		lpsProfileProps->ulConnectionTimeOut = 10;
-
-	if((lpProp = PpropFindProp(lpsPropArray, cValues, PR_EC_OFFLINE_PATH_W)) != NULL)
+	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_OFFLINE_PATH_W)) != NULL)
 		lpsProfileProps->strOfflinePath = convstring::from_SPropValue(lpProp);
-	else if((lpProp = PpropFindProp(lpsPropArray, cValues, PR_EC_OFFLINE_PATH_A)) != NULL)
+	else if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_OFFLINE_PATH_A)) != NULL)
 		lpsProfileProps->strOfflinePath = convstring::from_SPropValue(lpProp);
-
-	if((lpProp = PpropFindProp(lpsPropArray, cValues, PR_EC_STATS_SESSION_CLIENT_APPLICATION_VERSION)) != NULL)
+	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_STATS_SESSION_CLIENT_APPLICATION_VERSION)) != NULL)
 		lpsProfileProps->strClientAppVersion = lpProp->Value.lpszA;
-	if((lpProp = PpropFindProp(lpsPropArray, cValues, PR_EC_STATS_SESSION_CLIENT_APPLICATION_MISC)) != NULL)
+	if ((lpProp = PCpropFindProp(lpsPropArray, cValues, PR_EC_STATS_SESSION_CLIENT_APPLICATION_MISC)) != NULL)
 		lpsProfileProps->strClientAppMisc = lpProp->Value.lpszA;
 
 	lpsProfileProps->bIsEMS = bIsEMS;
@@ -795,9 +780,9 @@ HRESULT ClientUtil::ConvertMSEMSProps(ULONG cValues, LPSPropValue pValues, ULONG
 	std::string strServerPath;
 	std::wstring strUsername;
 	ULONG cProps = 0;
-	LPSPropValue lpServer = NULL;
-	LPSPropValue lpUsername = NULL;
-	LPSPropValue lpProfileName = NULL;
+	const SPropValue *lpServer = NULL;
+	const SPropValue *lpUsername = NULL;
+	const SPropValue *lpProfileName = NULL;
 	static const configsetting_t settings[] = {
 		{ "ssl_port", "237" },
 		{ "ssl_key_file", "c:\\program files\\kopano\\exchange-redirector.pem" },
@@ -833,14 +818,14 @@ HRESULT ClientUtil::ConvertMSEMSProps(ULONG cValues, LPSPropValue pValues, ULONG
 	}
 
 	if(g_ulLoadsim) {
-		lpUsername = PpropFindProp(pValues, cValues, PR_PROFILE_USER);
+		lpUsername = PCpropFindProp(pValues, cValues, PR_PROFILE_USER);
 		if(!lpUsername) {
 			TRACE_RELEASE("PR_PROFILE_USER not set");
 			return MAPI_E_UNCONFIGURED;
 		}
 	} else {
-		lpUsername = PpropFindProp(pValues, cValues, PR_PROFILE_UNRESOLVED_NAME);
-		lpServer = PpropFindProp(pValues, cValues, PR_PROFILE_UNRESOLVED_SERVER);
+		lpUsername = PCpropFindProp(pValues, cValues, PR_PROFILE_UNRESOLVED_NAME);
+		lpServer = PCpropFindProp(pValues, cValues, PR_PROFILE_UNRESOLVED_SERVER);
 
 		if(!lpServer || !lpUsername) {
 			TRACE_RELEASE("PR_PROFILE_UNRESOLVED_NAME or PR_PROFILE_UNRESOLVED_SERVER not set");
@@ -893,7 +878,7 @@ HRESULT ClientUtil::ConvertMSEMSProps(ULONG cValues, LPSPropValue pValues, ULONG
 	lpProps[cProps].ulPropTag = PR_EC_FLAGS; // Since we're emulating exchange, use 22-byte exchange-style sourcekeys
 	lpProps[cProps++].Value.ul = EC_PROFILE_FLAGS_TRUNCATE_SOURCEKEY;
 
-	lpProfileName = PpropFindProp(pValues, cValues, PR_PROFILE_NAME_A);
+	lpProfileName = PCpropFindProp(pValues, cValues, PR_PROFILE_NAME_A);
 	if(lpProfileName) {
 		lpProps[cProps].ulPropTag = PR_PROFILE_NAME_A;
 		if ((hr = MAPIAllocateMore(strlen(lpProfileName->Value.lpszA) + 1, lpProps, (void**)&lpProps[cProps].Value.lpszA)) != hrSuccess)

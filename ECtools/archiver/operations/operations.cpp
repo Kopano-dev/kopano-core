@@ -140,7 +140,6 @@ ArchiveOperationBaseEx::ArchiveOperationBaseEx(ECArchiverLogger *lpLogger, int u
 HRESULT ArchiveOperationBaseEx::ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps, const LPSPropValue lpProps)
 {
 	HRESULT hr;
-	LPSPropValue lpFolderEntryId;
 	bool bReloadFolder = false;
 	ULONG ulType = 0;
 
@@ -148,7 +147,7 @@ HRESULT ArchiveOperationBaseEx::ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps
 	if (lpFolder == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	
-	lpFolderEntryId = PpropFindProp(lpProps, cProps, PR_PARENT_ENTRYID);
+	auto lpFolderEntryId = PCpropFindProp(lpProps, cProps, PR_PARENT_ENTRYID);
 	if (lpFolderEntryId == NULL) {
 		Logger()->Log(EC_LOGLEVEL_FATAL, "PR_PARENT_ENTRYID missing");
 		return MAPI_E_NOT_FOUND;

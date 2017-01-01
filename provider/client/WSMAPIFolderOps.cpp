@@ -84,7 +84,11 @@ HRESULT WSMAPIFolderOps::QueryInterface(REFIID refiid, void **lppInterface)
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
 }
 	
-HRESULT WSMAPIFolderOps::HrCreateFolder(ULONG ulFolderType, const utf8string &strFolderName, const utf8string &strComment, BOOL fOpenIfExists, ULONG ulSyncId, LPSBinary lpsSourceKey, ULONG cbNewEntryId, LPENTRYID lpNewEntryId, ULONG* lpcbEntryId, LPENTRYID* lppEntryId)
+HRESULT WSMAPIFolderOps::HrCreateFolder(ULONG ulFolderType,
+    const utf8string &strFolderName, const utf8string &strComment,
+    BOOL fOpenIfExists, ULONG ulSyncId, const SBinary *lpsSourceKey,
+    ULONG cbNewEntryId, LPENTRYID lpNewEntryId, ULONG* lpcbEntryId,
+    LPENTRYID *lppEntryId)
 {
 	HRESULT		hr = hrSuccess;
 	ECRESULT	er = erSuccess;

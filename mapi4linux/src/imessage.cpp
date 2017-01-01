@@ -61,9 +61,8 @@ HRESULT __stdcall GetAttribIMsgOnIStg(LPVOID lpObject,
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT __stdcall SetAttribIMsgOnIStg(LPVOID lpObject,
-    const SPropTagArray *lpPropTags, LPSPropAttrArray lpPropAttrs,
-    SPropProblemArray **lppPropProblems)
+HRESULT __stdcall SetAttribIMsgOnIStg(void *object, const SPropTagArray *,
+    const SPropAttrArray *, SPropProblemArray **)
 {
 	TRACE_MAPILIB(TRACE_ENTRY, "SetAttribIMsgOnIStg", "");
 	TRACE_MAPILIB(TRACE_RETURN, "SetAttribIMsgOnIStg", "");

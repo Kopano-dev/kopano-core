@@ -592,7 +592,7 @@ HRESULT M4LMsgServiceAdmin::CreateMsgService(LPTSTR lpszService, LPTSTR lpszDisp
 	HRESULT hr = hrSuccess;
 	serviceEntry* entry = NULL;
 	SVCService* service = NULL;
-	LPSPropValue lpProp = NULL;
+	const SPropValue *lpProp = NULL;
 	scoped_rlock l_srv(m_mutexserviceadmin);
 	
 	if(lpszService == NULL || lpszDisplayName == NULL) {
@@ -1047,7 +1047,6 @@ HRESULT M4LMAPISession::GetMsgStoresTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 	object_ptr<ECMemTableView> lpTableView;
 	ULONG cValuesDest = 0;
 	SPropValue sPropID;
-	LPSPropValue lpType = NULL;
 	int n = 0;
 	memory_ptr<SPropTagArray> lpPropTagArray;
 
@@ -1076,7 +1075,7 @@ HRESULT M4LMAPISession::GetMsgStoresTable(ULONG ulFlags, LPMAPITABLE* lppTable) 
 			goto exit;
 		}
 
-		lpType = PpropFindProp(lpsProps, cValues, PR_RESOURCE_TYPE);
+		auto lpType = PCpropFindProp(lpsProps, cValues, PR_RESOURCE_TYPE);
 		if(lpType == NULL || lpType->Value.ul != MAPI_STORE_PROVIDER)
 			continue;
 
@@ -1311,7 +1310,8 @@ HRESULT M4LMAPISession::OpenAddressBook(ULONG ulUIParam, LPCIID lpInterface, ULO
 			if (myAddrBook->addProvider(profileName, strDisplayName, (LPMAPIUID)lpUID->Value.bin.lpb, lpABProvider) != hrSuccess)
 				hr = MAPI_W_ERRORS_RETURNED;
 		}
-		// lpAddrBook got a ref in addProvider, drop this function's
+
+		// lpAddrBook has the ref, not us
 		lpABProvider->Release();
 		lpABProvider = NULL;
 	}
@@ -1644,13 +1644,12 @@ HRESULT M4LMAPISession::EnumAdrTypes(ULONG ulFlags, ULONG* lpcAdrTypes, LPTSTR**
 HRESULT M4LMAPISession::QueryIdentity(ULONG* lpcbEntryID, LPENTRYID* lppEntryID) {
 	TRACE_MAPILIB(TRACE_ENTRY, "M4LMAPISession::QueryIdentity", "");
 	HRESULT hr = hrSuccess;
-	LPSPropValue lpProp = NULL;
 	LPENTRYID lpEntryID = NULL;
 	scoped_lock l_srv(m_mutexStatusRow);
 
-	lpProp = PpropFindProp(this->m_lpPropsStatus, this->m_cValuesStatus, PR_IDENTITY_ENTRYID);
+	auto lpProp = PCpropFindProp(this->m_lpPropsStatus, this->m_cValuesStatus, PR_IDENTITY_ENTRYID);
 	if(lpProp == NULL) {
-		ec_log_err("M4LMAPISession::QueryIdentity(): PpropFindProp failed");
+		ec_log_err("M4LMAPISession::QueryIdentity(): PCpropFindProp failed");
 		hr = MAPI_E_NOT_FOUND;
 		goto exit;
 	}
@@ -2061,9 +2060,9 @@ HRESULT M4LAddrBook::ResolveName(ULONG ulUIParam, ULONG ulFlags, LPTSTR lpszNewE
 
 	// Resolve local items
 	for (unsigned int i = 0; i < lpAdrList->cEntries; ++i) {
-		LPSPropValue lpDisplay = PpropFindProp(lpAdrList->aEntries[i].rgPropVals, lpAdrList->aEntries[i].cValues, PR_DISPLAY_NAME_A);
-		LPSPropValue lpDisplayW = PpropFindProp(lpAdrList->aEntries[i].rgPropVals, lpAdrList->aEntries[i].cValues, PR_DISPLAY_NAME_W);
-		LPSPropValue lpEntryID = PpropFindProp(lpAdrList->aEntries[i].rgPropVals, lpAdrList->aEntries[i].cValues, PR_ENTRYID);
+		auto lpDisplay = PCpropFindProp(lpAdrList->aEntries[i].rgPropVals, lpAdrList->aEntries[i].cValues, PR_DISPLAY_NAME_A);
+		auto lpDisplayW = PCpropFindProp(lpAdrList->aEntries[i].rgPropVals, lpAdrList->aEntries[i].cValues, PR_DISPLAY_NAME_W);
+		auto lpEntryID = PCpropFindProp(lpAdrList->aEntries[i].rgPropVals, lpAdrList->aEntries[i].cValues, PR_ENTRYID);
 		wstring strwDisplay;
 		wstring strwType;
 		wstring strwAddress;
@@ -2165,8 +2164,8 @@ HRESULT M4LAddrBook::ResolveName(ULONG ulUIParam, ULONG ulFlags, LPTSTR lpszNewE
 	}
 
 	for (ULONG c = 0; bContinue && c < lpSearchRows->cRows; ++c) {
-		LPSPropValue lpEntryID = PpropFindProp(lpSearchRows->aRow[c].lpProps, lpSearchRows->aRow[c].cValues, PR_ENTRYID);
-
+		auto lpEntryID = PCpropFindProp(lpSearchRows->aRow[c].lpProps,
+			lpSearchRows->aRow[c].cValues, PR_ENTRYID);
 		if (!lpEntryID)
 			continue;
 
@@ -2278,7 +2277,7 @@ HRESULT M4LAddrBook::GetDefaultDir(ULONG* lpcbEntryID, LPENTRYID* lppEntryID) {
 	LPSRowSet lpRowSet = NULL;
 	ULONG cbEntryID;
 	LPENTRYID lpEntryID = NULL;
-	LPSPropValue lpProp = NULL;
+	const SPropValue *lpProp = NULL;
 
 	if (lpcbEntryID == NULL || lppEntryID == NULL) {
 		ec_log_err("M4LAddrBook::GetDefaultDir(): invalid parameters");
@@ -2316,7 +2315,7 @@ HRESULT M4LAddrBook::GetDefaultDir(ULONG* lpcbEntryID, LPENTRYID* lppEntryID) {
 	}
 
 	// get entry id from table, use it.
-	lpProp = PpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_ENTRYID);
+	lpProp = PCpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_ENTRYID);
 
 no_hierarchy:
 
@@ -2471,9 +2470,7 @@ HRESULT M4LAddrBook::PrepareRecips(ULONG ulFlags,
 	for (unsigned int i = 0; i < lpRecipList->cEntries; ++i) {
 		object_ptr<IMailUser> lpMailUser;
 		memory_ptr<SPropValue> lpProps;
-
-		LPSPropValue lpEntryId = PpropFindProp(lpRecipList->aEntries[i].rgPropVals, lpRecipList->aEntries[i].cValues, PR_ENTRYID);
-
+		auto lpEntryId = PCpropFindProp(lpRecipList->aEntries[i].rgPropVals, lpRecipList->aEntries[i].cValues, PR_ENTRYID);
 		if(lpEntryId == NULL)
 			continue;
 		hr = OpenEntry(lpEntryId->Value.bin.cb, reinterpret_cast<ENTRYID *>(lpEntryId->Value.bin.lpb), &IID_IMailUser, 0, &ulType, &~lpMailUser);
@@ -2496,8 +2493,8 @@ HRESULT M4LAddrBook::PrepareRecips(ULONG ulFlags,
 		lpRecipList->aEntries[i].cValues = lpPropTagArray->cValues;
 
 		for (unsigned int j = 0; j < lpPropTagArray->cValues; ++j) {
-			LPSPropValue lpProp = PpropFindProp(lpProps, cValues, lpPropTagArray->aulPropTag[j]);
-
+			auto lpProp = PCpropFindProp(lpProps, cValues,
+				lpPropTagArray->aulPropTag[j]);
 			if(lpProp == NULL) {
 				lpRecipList->aEntries[i].rgPropVals[j].ulPropTag = PROP_TAG(PT_ERROR, PROP_ID(lpPropTagArray->aulPropTag[j]));
 				lpRecipList->aEntries[i].rgPropVals[j].Value.err = MAPI_E_NOT_FOUND;
@@ -2554,7 +2551,9 @@ HRESULT M4LAddrBook::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfa
 	return hr;
 }
 
-HRESULT M4LAddrBook::SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray* lppProblems) {
+HRESULT M4LAddrBook::SetProps(ULONG cValues, const SPropValue *lpPropArray,
+    SPropProblemArray **lppProblems)
+{
     TRACE_MAPILIB(TRACE_ENTRY, "M4LAddrBook::SetProps", "");
 	HRESULT hr = M4LMAPIProp::SetProps(cValues, lpPropArray, lppProblems);
 	TRACE_MAPILIB1(TRACE_RETURN, "M4LAddrBook::SetProps", "0x%08x", hr);

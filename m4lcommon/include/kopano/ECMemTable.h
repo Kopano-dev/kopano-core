@@ -72,9 +72,7 @@ public:
 	static HRESULT Create(const SPropTagArray *lpsPropTagArray, ULONG ulRowPropTag, ECMemTable **lppRecipTable);
 	_kc_hidden virtual HRESULT QueryInterface(REFIID refiid, void **iface) _kc_override;
 	virtual HRESULT HrGetView(const ECLocale &locale, ULONG ulFlags, ECMemTableView **lpView);
-
-	virtual HRESULT HrModifyRow(ULONG ulFlags, LPSPropValue lpId, LPSPropValue lpProps, ULONG cValues);
-	
+	virtual HRESULT HrModifyRow(ULONG flags, const SPropValue *id, const SPropValue *prop, ULONG n);
 	virtual HRESULT HrUpdateRowID(LPSPropValue lpId, LPSPropValue lpProps, ULONG cValues);
 
 	virtual HRESULT HrClear();
@@ -139,7 +137,7 @@ public:
 	} m_xMAPITable;
 
 private:
-	_kc_hidden HRESULT __stdcall GetBinarySortKey(LPSPropValue pv, unsigned int *sortlen, unsigned char *flags, unsigned char **sortdata);
+	_kc_hidden HRESULT __stdcall GetBinarySortKey(const SPropValue *pv, unsigned int *sortlen, unsigned char *flags, unsigned char **sortdata);
 	_kc_hidden HRESULT ModifyRowKey(sObjectTableKey *row_item, sObjectTableKey *prev_row, ULONG *action);
 	_kc_hidden HRESULT QueryRowData(ECObjectTableList *row_list, LPSRowSet *rows);
 	_kc_hidden HRESULT Notify(ULONG table_event, sObjectTableKey *row_item, sObjectTableKey *prev_row);

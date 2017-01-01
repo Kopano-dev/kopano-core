@@ -83,9 +83,7 @@ public:
 	HRESULT Init(const INFLoader& cINF, const inf_section* infService);
 
 	HRESULT CreateProviders(IProviderAdmin *lpProviderAdmin);
-
-	LPSPropValue GetProp(ULONG ulPropTag);
-
+	const SPropValue *GetProp(ULONG tag);
 	SVCProvider* GetProvider(LPTSTR lpszProvider, ULONG ulFlags);
 	std::vector<SVCProvider*> GetProviders();
 

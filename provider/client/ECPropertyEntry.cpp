@@ -58,7 +58,7 @@ ECPropertyEntry::~ECPropertyEntry()
 }
 
 // NOTE: lpsPropValue must be checked already
-HRESULT ECPropertyEntry::HrSetProp(LPSPropValue lpsPropValue)
+HRESULT ECPropertyEntry::HrSetProp(const SPropValue *lpsPropValue)
 {
 	DEBUG_GUARD;
 
@@ -138,7 +138,8 @@ ECProperty::ECProperty(const ECProperty &Property) {
 	DEBUG_CHECK_INVARIANT;
 }
 	
-ECProperty::ECProperty(LPSPropValue lpsProp) {
+ECProperty::ECProperty(const SPropValue *lpsProp)
+{
 	memset(&this->Value, 0, sizeof(union __UPV));
 	this->ulSize = 0;
 	assert(lpsProp->ulPropTag != 0);
@@ -147,12 +148,14 @@ ECProperty::ECProperty(LPSPropValue lpsProp) {
 	DEBUG_CHECK_INVARIANT;
 }
 
-HRESULT ECProperty::CopyFrom(LPSPropValue lpsProp) {
+HRESULT ECProperty::CopyFrom(const SPropValue *lpsProp)
+{
 	DEBUG_GUARD;
 	return CopyFromInternal(lpsProp);
 }
 
-HRESULT ECProperty::CopyFromInternal(LPSPropValue lpsProp) {
+HRESULT ECProperty::CopyFromInternal(const SPropValue *lpsProp)
+{
 	ULONG ulNewSize = 0;
 	unsigned int i;
 

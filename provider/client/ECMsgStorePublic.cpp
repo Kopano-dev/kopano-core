@@ -123,7 +123,8 @@ HRESULT ECMsgStorePublic::GetPropHandler(ULONG ulPropTag, void* lpProvider, ULON
 	return hr;
 }
 
-HRESULT ECMsgStorePublic::SetPropHandler(ULONG ulPropTag, void* lpProvider, LPSPropValue lpsPropValue, void *lpParam)
+HRESULT ECMsgStorePublic::SetPropHandler(ULONG ulPropTag, void *lpProvider,
+    const SPropValue *lpsPropValue, void *lpParam)
 {
 	HRESULT hr = hrSuccess;
 	SPropValue sPropValue;

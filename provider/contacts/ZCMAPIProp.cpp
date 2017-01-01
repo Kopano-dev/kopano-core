@@ -68,12 +68,12 @@ ZCMAPIProp::~ZCMAPIProp()
 HRESULT ZCMAPIProp::ConvertMailUser(LPSPropTagArray lpNames, ULONG cValues, LPSPropValue lpProps, ULONG ulIndex)
 {
 	HRESULT hr = hrSuccess;
-	LPSPropValue lpProp = NULL;
+//	LPSPropValue lpProp = NULL;
 	SPropValue sValue, sSource;
 	std::string strSearchKey;
 	convert_context converter;
 
-	lpProp = PpropFindProp(lpProps, cValues, PR_BODY);
+	auto lpProp = PCpropFindProp(lpProps, cValues, PR_BODY);
 	if (lpProp) {
 		ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_BODY);
 	} else {
@@ -82,22 +82,19 @@ HRESULT ZCMAPIProp::ConvertMailUser(LPSPropTagArray lpNames, ULONG cValues, LPSP
 		m_mapProperties.insert(std::make_pair(PROP_ID(PR_BODY), sValue));
 	}
 
-	lpProp = PpropFindProp(lpProps, cValues, PR_BUSINESS_ADDRESS_CITY);
+	lpProp = PCpropFindProp(lpProps, cValues, PR_BUSINESS_ADDRESS_CITY);
 	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_BUSINESS_ADDRESS_CITY);
-
-	lpProp = PpropFindProp(lpProps, cValues, PR_BUSINESS_ADDRESS_STATE_OR_PROVINCE);
+	lpProp = PCpropFindProp(lpProps, cValues, PR_BUSINESS_ADDRESS_STATE_OR_PROVINCE);
 	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_BUSINESS_ADDRESS_STATE_OR_PROVINCE);
-
-	lpProp = PpropFindProp(lpProps, cValues, PR_BUSINESS_FAX_NUMBER);
+	lpProp = PCpropFindProp(lpProps, cValues, PR_BUSINESS_FAX_NUMBER);
 	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_BUSINESS_FAX_NUMBER);
-
-	lpProp = PpropFindProp(lpProps, cValues, PR_COMPANY_NAME);
+	lpProp = PCpropFindProp(lpProps, cValues, PR_COMPANY_NAME);
 	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_COMPANY_NAME);
 
 	if (lpNames)
-		lpProp = PpropFindProp(lpProps, cValues, CHANGE_PROP_TYPE(lpNames->aulPropTag[0], PT_UNICODE));
+		lpProp = PCpropFindProp(lpProps, cValues, CHANGE_PROP_TYPE(lpNames->aulPropTag[0], PT_UNICODE));
 	if (!lpProp)
-		lpProp = PpropFindProp(lpProps, cValues, PR_DISPLAY_NAME);
+		lpProp = PCpropFindProp(lpProps, cValues, PR_DISPLAY_NAME);
 	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_DISPLAY_NAME);
 
 	sValue.ulPropTag = PR_DISPLAY_TYPE;
@@ -105,24 +102,22 @@ HRESULT ZCMAPIProp::ConvertMailUser(LPSPropTagArray lpNames, ULONG cValues, LPSP
 	m_mapProperties.insert(std::make_pair(PROP_ID(PR_DISPLAY_TYPE), sValue));
 
 	if (lpNames)
-		lpProp = PpropFindProp(lpProps, cValues, CHANGE_PROP_TYPE(lpNames->aulPropTag[1], PT_UNICODE));
+		lpProp = PCpropFindProp(lpProps, cValues, CHANGE_PROP_TYPE(lpNames->aulPropTag[1], PT_UNICODE));
 	if (!lpProp)
-		lpProp = PpropFindProp(lpProps, cValues, PR_ADDRTYPE);
+		lpProp = PCpropFindProp(lpProps, cValues, PR_ADDRTYPE);
 	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_ADDRTYPE);
 
 	if (lpNames)
-		lpProp = PpropFindProp(lpProps, cValues, CHANGE_PROP_TYPE(lpNames->aulPropTag[2], PT_UNICODE));
+		lpProp = PCpropFindProp(lpProps, cValues, CHANGE_PROP_TYPE(lpNames->aulPropTag[2], PT_UNICODE));
 	if (!lpProp)
-		lpProp = PpropFindProp(lpProps, cValues, PR_EMAIL_ADDRESS);
+		lpProp = PCpropFindProp(lpProps, cValues, PR_EMAIL_ADDRESS);
 	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_EMAIL_ADDRESS);
 
-	lpProp = PpropFindProp(lpProps, cValues, PR_GIVEN_NAME);
+	lpProp = PCpropFindProp(lpProps, cValues, PR_GIVEN_NAME);
 	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_GIVEN_NAME);
-
-	lpProp = PpropFindProp(lpProps, cValues, PR_MIDDLE_NAME);
+	lpProp = PCpropFindProp(lpProps, cValues, PR_MIDDLE_NAME);
 	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_MIDDLE_NAME);
-
-	lpProp = PpropFindProp(lpProps, cValues, PR_NORMALIZED_SUBJECT);
+	lpProp = PCpropFindProp(lpProps, cValues, PR_NORMALIZED_SUBJECT);
 	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_NORMALIZED_SUBJECT);
 
 	sValue.ulPropTag = PR_OBJECT_TYPE;
@@ -130,28 +125,28 @@ HRESULT ZCMAPIProp::ConvertMailUser(LPSPropTagArray lpNames, ULONG cValues, LPSP
 	m_mapProperties.insert(std::make_pair(PROP_ID(PR_OBJECT_TYPE), sValue));
 
 	if (lpNames)
-		lpProp = PpropFindProp(lpProps, cValues, CHANGE_PROP_TYPE(lpNames->aulPropTag[3], PT_UNICODE));
+		lpProp = PCpropFindProp(lpProps, cValues, CHANGE_PROP_TYPE(lpNames->aulPropTag[3], PT_UNICODE));
 	if (!lpProp)
-		lpProp = PpropFindProp(lpProps, cValues, PR_DISPLAY_NAME);
+		lpProp = PCpropFindProp(lpProps, cValues, PR_DISPLAY_NAME);
 	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_ORIGINAL_DISPLAY_NAME);
 
 	if (lpNames)
-		lpProp = PpropFindProp(lpProps, cValues, CHANGE_PROP_TYPE(lpNames->aulPropTag[4], PT_BINARY));
+		lpProp = PCpropFindProp(lpProps, cValues, CHANGE_PROP_TYPE(lpNames->aulPropTag[4], PT_BINARY));
 	if (!lpProp)
-		lpProp = PpropFindProp(lpProps, cValues, PR_ENTRYID);
+		lpProp = PCpropFindProp(lpProps, cValues, PR_ENTRYID);
 	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_ORIGINAL_ENTRYID);
 
-	lpProp = PpropFindProp(lpProps, cValues, PR_RECORD_KEY);
+	lpProp = PCpropFindProp(lpProps, cValues, PR_RECORD_KEY);
 	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_RECORD_KEY);
 
 	if (lpNames) {
-		lpProp = PpropFindProp(lpProps, cValues, CHANGE_PROP_TYPE(lpNames->aulPropTag[1], PT_UNICODE));
+		lpProp = PCpropFindProp(lpProps, cValues, CHANGE_PROP_TYPE(lpNames->aulPropTag[1], PT_UNICODE));
 		if (lpProp) {
 			strSearchKey += converter.convert_to<std::string>(lpProp->Value.lpszW) + ":";
 		} else {
 			strSearchKey += "SMTP:";
 		}
-		lpProp = PpropFindProp(lpProps, cValues, CHANGE_PROP_TYPE(lpNames->aulPropTag[2], PT_UNICODE));
+		lpProp = PCpropFindProp(lpProps, cValues, CHANGE_PROP_TYPE(lpNames->aulPropTag[2], PT_UNICODE));
 		if (lpProp)
 			strSearchKey += converter.convert_to<std::string>(lpProp->Value.lpszW);
 
@@ -162,25 +157,19 @@ HRESULT ZCMAPIProp::ConvertMailUser(LPSPropTagArray lpNames, ULONG cValues, LPSP
 		ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_SEARCH_KEY);
 	}
 
-	lpProp = PpropFindProp(lpProps, cValues, PR_TITLE);
+	lpProp = PCpropFindProp(lpProps, cValues, PR_TITLE);
 	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_TITLE);
-
-	lpProp = PpropFindProp(lpProps, cValues, PR_TRANSMITABLE_DISPLAY_NAME);
+	lpProp = PCpropFindProp(lpProps, cValues, PR_TRANSMITABLE_DISPLAY_NAME);
 	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_TRANSMITABLE_DISPLAY_NAME);
-
-	lpProp = PpropFindProp(lpProps, cValues, PR_ENTRYID);
+	lpProp = PCpropFindProp(lpProps, cValues, PR_ENTRYID);
 	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_ZC_ORIGINAL_ENTRYID);
-
-	lpProp = PpropFindProp(lpProps, cValues, PR_PARENT_ENTRYID);
+	lpProp = PCpropFindProp(lpProps, cValues, PR_PARENT_ENTRYID);
 	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_ZC_ORIGINAL_PARENT_ENTRYID);
-
-	lpProp = PpropFindProp(lpProps, cValues, PR_SOURCE_KEY);
+	lpProp = PCpropFindProp(lpProps, cValues, PR_SOURCE_KEY);
 	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_ZC_ORIGINAL_SOURCE_KEY);
-
-	lpProp = PpropFindProp(lpProps, cValues, PR_PARENT_SOURCE_KEY);
+	lpProp = PCpropFindProp(lpProps, cValues, PR_PARENT_SOURCE_KEY);
 	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_ZC_ORIGINAL_PARENT_SOURCE_KEY);
-
-	lpProp = PpropFindProp(lpProps, cValues, PR_CHANGE_KEY);
+	lpProp = PCpropFindProp(lpProps, cValues, PR_CHANGE_KEY);
 	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_ZC_ORIGINAL_CHANGE_KEY);
  exitm:
 	return hr;
@@ -189,15 +178,15 @@ HRESULT ZCMAPIProp::ConvertMailUser(LPSPropTagArray lpNames, ULONG cValues, LPSP
 HRESULT ZCMAPIProp::ConvertDistList(LPSPropTagArray lpNames, ULONG cValues, LPSPropValue lpProps)
 {
 	HRESULT hr = hrSuccess;
-	LPSPropValue lpProp = NULL;
+//	LPSPropValue lpProp = NULL;
 	SPropValue sValue, sSource;
 
 	sSource.ulPropTag = PR_ADDRTYPE;
 	sSource.Value.lpszW = const_cast<wchar_t *>(L"MAPIPDL");
-	lpProp = &sSource;
+	const SPropValue *lpProp = &sSource;
 	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_ADDRTYPE);
 
-	lpProp = PpropFindProp(lpProps, cValues, PR_DISPLAY_NAME);
+	lpProp = PCpropFindProp(lpProps, cValues, PR_DISPLAY_NAME);
 	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_DISPLAY_NAME);
 
 	sValue.ulPropTag = PR_DISPLAY_TYPE;
@@ -208,33 +197,28 @@ HRESULT ZCMAPIProp::ConvertDistList(LPSPropTagArray lpNames, ULONG cValues, LPSP
 	sValue.Value.ul = MAPI_DISTLIST;
 	m_mapProperties.insert(std::make_pair(PROP_ID(PR_OBJECT_TYPE), sValue));
 
-	lpProp = PpropFindProp(lpProps, cValues, PR_RECORD_KEY);
+	lpProp = PCpropFindProp(lpProps, cValues, PR_RECORD_KEY);
 	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_RECORD_KEY);
 
 	// above are all the props present in the Outlook Contact Provider ..
 	// but I need the props below too
 
 	// one off members in 0x81041102
-	lpProp = PpropFindProp(lpProps, cValues, 0x81041102);
+	lpProp = PCpropFindProp(lpProps, cValues, 0x81041102);
 	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, 0x81041102);
 
 	// real eid members in 0x81051102 (gab, maybe I only need this one)
-	lpProp = PpropFindProp(lpProps, cValues, 0x81051102);
+	lpProp = PCpropFindProp(lpProps, cValues, 0x81051102);
 	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, 0x81051102);
-
-	lpProp = PpropFindProp(lpProps, cValues, PR_ENTRYID);
+	lpProp = PCpropFindProp(lpProps, cValues, PR_ENTRYID);
 	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_ZC_ORIGINAL_ENTRYID);
-
-	lpProp = PpropFindProp(lpProps, cValues, PR_PARENT_ENTRYID);
+	lpProp = PCpropFindProp(lpProps, cValues, PR_PARENT_ENTRYID);
 	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_ZC_ORIGINAL_PARENT_ENTRYID);
-
-	lpProp = PpropFindProp(lpProps, cValues, PR_SOURCE_KEY);
+	lpProp = PCpropFindProp(lpProps, cValues, PR_SOURCE_KEY);
 	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_ZC_ORIGINAL_SOURCE_KEY);
-
-	lpProp = PpropFindProp(lpProps, cValues, PR_PARENT_SOURCE_KEY);
+	lpProp = PCpropFindProp(lpProps, cValues, PR_PARENT_SOURCE_KEY);
 	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_ZC_ORIGINAL_PARENT_SOURCE_KEY);
-
-	lpProp = PpropFindProp(lpProps, cValues, PR_CHANGE_KEY);
+	lpProp = PCpropFindProp(lpProps, cValues, PR_CHANGE_KEY);
 	ADD_PROP_OR_EXIT(sValue, lpProp, m_base, PR_ZC_ORIGINAL_CHANGE_KEY);
  exitm:
 	return hr;
@@ -473,7 +457,8 @@ HRESULT ZCMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfac
 	return  MAPI_E_NO_SUPPORT;
 }
 
-HRESULT ZCMAPIProp::SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray * lppProblems)
+HRESULT ZCMAPIProp::SetProps(ULONG vals, const SPropValue *,
+    SPropProblemArray **)
 {
 	return  MAPI_E_NO_SUPPORT;
 }
@@ -517,7 +502,7 @@ DEF_HRMETHOD0(ZCMAPIProp, MAPIProp, SaveChanges, (ULONG, ulFlags))
 DEF_HRMETHOD0(ZCMAPIProp, MAPIProp, GetProps, (const SPropTagArray *, lpPropTagArray), (ULONG, ulFlags), (ULONG *, lpcValues), (SPropValue **, lppPropArray))
 DEF_HRMETHOD0(ZCMAPIProp, MAPIProp, GetPropList, (ULONG, ulFlags), (LPSPropTagArray *, lppPropTagArray))
 DEF_HRMETHOD0(ZCMAPIProp, MAPIProp, OpenProperty, (ULONG, ulPropTag), (LPCIID, lpiid), (ULONG, ulInterfaceOptions), (ULONG, ulFlags), (LPUNKNOWN *, lppUnk))
-DEF_HRMETHOD0(ZCMAPIProp, MAPIProp, SetProps, (ULONG, cValues), (LPSPropValue, lpPropArray), (LPSPropProblemArray *, lppProblems))
+DEF_HRMETHOD0(ZCMAPIProp, MAPIProp, SetProps, (ULONG, cValues), (const SPropValue *, lpPropArray), (SPropProblemArray **, lppProblems))
 DEF_HRMETHOD0(ZCMAPIProp, MAPIProp, DeleteProps, (const SPropTagArray *, lpPropTagArray), (SPropProblemArray **, lppProblems))
 DEF_HRMETHOD0(ZCMAPIProp, MAPIProp, CopyTo, (ULONG, ciidExclude), (LPCIID, rgiidExclude), (const SPropTagArray *, lpExcludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (void *, lpDestObj), (ULONG, ulFlags), (SPropProblemArray **, lppProblems))
 DEF_HRMETHOD0(ZCMAPIProp, MAPIProp, CopyProps, (const SPropTagArray *, lpIncludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (void *, lpDestObj), (ULONG, ulFlags), (SPropProblemArray **, lppProblems))

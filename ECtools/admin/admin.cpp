@@ -1019,8 +1019,6 @@ static HRESULT GetOrphanStoreInfo(IECServiceAdmin *lpServiceAdmin,
 	MAPITablePtr ptrTable;
 	SRowSetPtr ptrRowSet;
 	SPropValue sStoreGuid;
-	LPSPropValue lpsName = NULL;
-	LPSPropValue lpsPropEntryId = NULL;
 
 	static constexpr const SizedSSortOrderSet(1, tableSort) =
 	{ 1, 0, 0,
@@ -1050,13 +1048,13 @@ static HRESULT GetOrphanStoreInfo(IECServiceAdmin *lpServiceAdmin,
 	if (ptrRowSet.empty())
 		return MAPI_E_NOT_FOUND;
 
-	lpsName = PpropFindProp(ptrRowSet[0].lpProps, ptrRowSet[0].cValues, PR_DISPLAY_NAME_W);
+	auto lpsName = PCpropFindProp(ptrRowSet[0].lpProps, ptrRowSet[0].cValues, PR_DISPLAY_NAME_W);
 	if (lpsName != nullptr)
 		strUsername = lpsName->Value.lpszW;
-	lpsName = PpropFindProp(ptrRowSet[0].lpProps, ptrRowSet[0].cValues, PR_EC_COMPANY_NAME_W);
+	lpsName = PCpropFindProp(ptrRowSet[0].lpProps, ptrRowSet[0].cValues, PR_EC_COMPANY_NAME_W);
 	if (lpsName != nullptr)
 		strCompanyName = lpsName->Value.lpszW;
-	lpsPropEntryId = PpropFindProp(ptrRowSet[0].lpProps, ptrRowSet[0].cValues, PR_STORE_ENTRYID);
+	auto lpsPropEntryId = PCpropFindProp(ptrRowSet[0].lpProps, ptrRowSet[0].cValues, PR_STORE_ENTRYID);
 	if (lpsPropEntryId == NULL)
 		return MAPI_E_NOT_FOUND;
 
@@ -1204,11 +1202,6 @@ static HRESULT list_orphans(IECServiceAdmin *lpServiceAdmin)
 	ULONG i = 0;
 	object_ptr<IMAPITable> lpTable;
 	LPSRowSet lpRowSet = NULL;
-	LPSPropValue lpStoreGuid = NULL;
-	LPSPropValue lpUserName = NULL;
-	LPSPropValue lpModTime;
-	LPSPropValue lpStoreSize;
-	LPSPropValue lpStoreType;
 	std::string strUsername;
 	bool bHeader = true;
 	ConsoleTable ct(50, 5);
@@ -1251,18 +1244,18 @@ static HRESULT list_orphans(IECServiceAdmin *lpServiceAdmin)
 			break;
 
 		for (i = 0; i < lpRowSet->cRows; ++i) {
-			lpStoreGuid = PpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_EC_STOREGUID);
-			lpUserName = PpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_EC_USERNAME_A);
-			lpModTime = PpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_LAST_MODIFICATION_TIME);
-			lpStoreSize = PpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_MESSAGE_SIZE_EXTENDED);
-			lpStoreType = PpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_EC_STORETYPE);
+			auto lpStoreGuid = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_EC_STOREGUID);
+			auto lpUserName = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_EC_USERNAME_A);
+			auto lpModTime = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_LAST_MODIFICATION_TIME);
+			auto lpStoreSize = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_MESSAGE_SIZE_EXTENDED);
+			auto lpStoreType = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_EC_STORETYPE);
 
 			if (lpStoreGuid && lpUserName)
 				continue;
 
 			if (!lpUserName) {
 				// find "guessed" named
-				lpUserName = PpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_DISPLAY_NAME_A);
+				lpUserName = PCpropFindProp(lpRowSet->aRow[i].lpProps, lpRowSet->aRow[i].cValues, PR_DISPLAY_NAME_A);
 				if (lpUserName)
 					strUsername = lpUserName->Value.lpszA;
 				else

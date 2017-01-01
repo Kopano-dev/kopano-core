@@ -218,7 +218,9 @@ HRESULT M4LMAPIProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfa
 	return MAPI_E_NO_SUPPORT;
 }
 
-HRESULT M4LMAPIProp::SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray* lppProblems) {
+HRESULT M4LMAPIProp::SetProps(ULONG cValues, const SPropValue *lpPropArray,
+    SPropProblemArray **lppProblems)
+{
 	TRACE_MAPILIB1(TRACE_ENTRY, "IMAPIProp::SetProps", "%s", PropNameFromPropArray(cValues, lpPropArray).c_str());
 	list<LPSPropValue>::iterator i, del;
 	ULONG c;
@@ -417,7 +419,9 @@ HRESULT M4LProfSect::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfa
 	return M4LMAPIProp::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
 }
 
-HRESULT M4LProfSect::SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray* lppProblems) {
+HRESULT M4LProfSect::SetProps(ULONG cValues, const SPropValue *lpPropArray,
+    SPropProblemArray **lppProblems)
+{
 	return M4LMAPIProp::SetProps(cValues, lpPropArray, lppProblems);
 }
 
@@ -736,12 +740,13 @@ exit:
  * 
  * @return MAPI Error code
  */
-HRESULT M4LProviderAdmin::CreateProvider(LPTSTR lpszProvider, ULONG cValues, LPSPropValue lpProps, ULONG ulUIParam,
-										 ULONG ulFlags, MAPIUID* lpUID) {
+HRESULT M4LProviderAdmin::CreateProvider(LPTSTR lpszProvider, ULONG cValues,
+    const SPropValue *lpProps, ULONG ulUIParam, ULONG ulFlags, MAPIUID *lpUID)
+{
     TRACE_MAPILIB(TRACE_ENTRY, "M4LProviderAdmin::CreateProvider", "");
 	SPropValue sProps[10];
 	ULONG nProps = 0;
-	LPSPropValue lpResource = NULL;
+	const SPropValue *lpResource = nullptr;
 	memory_ptr<SPropValue> lpsPropValProfileName;
 	providerEntry *entry = NULL;
 	serviceEntry* lpService = NULL;
@@ -812,14 +817,12 @@ HRESULT M4LProviderAdmin::CreateProvider(LPTSTR lpszProvider, ULONG cValues, LPS
 	sProps[nProps].Value.bin.cb = sizeof(GUID);
 	++nProps;
 
-	lpResource = PpropFindProp(lpProviderProps, cProviderProps, PR_RESOURCE_TYPE);
+	lpResource = PCpropFindProp(lpProviderProps, cProviderProps, PR_RESOURCE_TYPE);
 	if (!lpResource || lpResource->Value.ul == MAPI_STORE_PROVIDER) {
 		sProps[nProps].ulPropTag = PR_OBJECT_TYPE;
 		sProps[nProps].Value.ul = MAPI_STORE;
 		++nProps;
-
-		lpResource = PpropFindProp(lpProviderProps, cProviderProps, PR_RESOURCE_FLAGS);
-
+		lpResource = PCpropFindProp(lpProviderProps, cProviderProps, PR_RESOURCE_FLAGS);
 		sProps[nProps].ulPropTag = PR_DEFAULT_STORE;
 		sProps[nProps].Value.b = (lpResource && (lpResource->Value.ul & STATUS_DEFAULT_STORE) == STATUS_DEFAULT_STORE);
 		++nProps;
@@ -1013,7 +1016,9 @@ HRESULT M4LMAPIContainer::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulIn
 	return M4LMAPIProp::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
 }
 
-HRESULT M4LMAPIContainer::SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray* lppProblems) {
+HRESULT M4LMAPIContainer::SetProps(ULONG cValues, const SPropValue *lpPropArray,
+    SPropProblemArray **lppProblems)
+{
 	return M4LMAPIProp::SetProps(cValues, lpPropArray, lppProblems);
 }
 
@@ -1265,7 +1270,9 @@ HRESULT M4LABContainer::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInte
 	return M4LMAPIProp::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
 }
 
-HRESULT M4LABContainer::SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray* lppProblems) {
+HRESULT M4LABContainer::SetProps(ULONG cValues, const SPropValue *lpPropArray,
+    SPropProblemArray **lppProblems)
+{
 	return M4LMAPIProp::SetProps(cValues, lpPropArray, lppProblems);
 }
 

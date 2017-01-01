@@ -251,7 +251,8 @@ HRESULT	ECAttach::GetPropHandler(ULONG ulPropTag, void *lpProvider, ULONG ulFlag
 	return hr;
 }
 
-HRESULT	ECAttach::SetPropHandler(ULONG ulPropTag, void* lpProvider, LPSPropValue lpsPropValue, void *lpParam)
+HRESULT	ECAttach::SetPropHandler(ULONG ulPropTag, void *lpProvider,
+    const SPropValue *lpsPropValue, void *lpParam)
 {
 	ECAttach *lpAttach = (ECAttach *)lpParam;
 	switch (ulPropTag) {
@@ -280,7 +281,7 @@ HRESULT ECAttach::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,
  * Overrides to detect changes to the single-instance property. If a change is detected,
  * the single-instance ID is reset since the data has now changed.
  */
-HRESULT ECAttach::HrSetRealProp(LPSPropValue lpProp)
+HRESULT ECAttach::HrSetRealProp(const SPropValue *lpProp)
 {
 	scoped_rlock lock(m_hMutexMAPIObject);
 
@@ -325,7 +326,7 @@ DEF_HRMETHOD(TRACE_MAPI, ECAttach, Attach, SaveChanges, (ULONG, ulFlags))
 DEF_HRMETHOD(TRACE_MAPI, ECAttach, Attach, GetProps, (const SPropTagArray *, lpPropTagArray), (ULONG, ulFlags), (ULONG *, lpcValues), (SPropValue **, lppPropArray))
 DEF_HRMETHOD(TRACE_MAPI, ECAttach, Attach, GetPropList, (ULONG, ulFlags), (LPSPropTagArray *, lppPropTagArray))
 DEF_HRMETHOD(TRACE_MAPI, ECAttach, Attach, OpenProperty, (ULONG, ulPropTag), (LPCIID, lpiid), (ULONG, ulInterfaceOptions), (ULONG, ulFlags), (LPUNKNOWN *, lppUnk))
-DEF_HRMETHOD(TRACE_MAPI, ECAttach, Attach, SetProps, (ULONG, cValues), (LPSPropValue, lpPropArray), (LPSPropProblemArray *, lppProblems))
+DEF_HRMETHOD(TRACE_MAPI, ECAttach, Attach, SetProps, (ULONG, cValues), (const SPropValue *, lpPropArray), (SPropProblemArray **, lppProblems))
 DEF_HRMETHOD(TRACE_MAPI, ECAttach, Attach, DeleteProps, (const SPropTagArray *, lpPropTagArray), (SPropProblemArray **, lppProblems))
 DEF_HRMETHOD(TRACE_MAPI, ECAttach, Attach, CopyTo, (ULONG, ciidExclude), (LPCIID, rgiidExclude), (const SPropTagArray *, lpExcludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (void *, lpDestObj), (ULONG, ulFlags), (SPropProblemArray **, lppProblems))
 DEF_HRMETHOD(TRACE_MAPI, ECAttach, Attach, CopyProps, (const SPropTagArray *, lpIncludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (void *, lpDestObj), (ULONG, ulFlags), (SPropProblemArray **, lppProblems))

@@ -46,7 +46,7 @@ public:
 	virtual HRESULT QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	
 	// Creates a folder object with only a PR_DISPLAY_NAME and type
-	virtual HRESULT HrCreateFolder(ULONG ulFolderType, const utf8string &strFolderName, const utf8string &strComment, BOOL fOpenIfExists, ULONG ulSyncId, LPSBinary lpsSourceKey, ULONG cbNewEntryId, LPENTRYID lpNewEntryId, ULONG* lpcbEntryId, LPENTRYID* lppEntryId);
+	virtual HRESULT HrCreateFolder(ULONG fl_type, const utf8string &name, const utf8string &comment, BOOL fOpenIfExists, ULONG sync_id, const SBinary *srckey, ULONG neweid_size, ENTRYID *neweid, ULONG *eid_size, ENTRYID **eid);
 
 	// Completely remove a folder, the messages in it, the folders in it or any combination
 	virtual HRESULT HrDeleteFolder(ULONG cbEntryId, LPENTRYID lpEntryId, ULONG ulFlags, ULONG ulSyncId);

@@ -40,7 +40,6 @@ Stubber::Stubber(ECArchiverLogger *lpLogger, ULONG ulptStubbed, int ulAge, bool 
 HRESULT Stubber::ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps, const LPSPropValue lpProps)
 {
 	HRESULT hr;
-	LPSPropValue lpEntryId = NULL;
 	MessagePtr ptrMessage;
 	ULONG ulType = 0;
 
@@ -48,7 +47,7 @@ HRESULT Stubber::ProcessEntry(LPMAPIFOLDER lpFolder, ULONG cProps, const LPSProp
 	if (lpFolder == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 	
-	lpEntryId = PpropFindProp(lpProps, cProps, PR_ENTRYID);
+	auto lpEntryId = PCpropFindProp(lpProps, cProps, PR_ENTRYID);
 	if (lpEntryId == NULL) {
 		Logger()->Log(EC_LOGLEVEL_FATAL, "PR_ENTRYID missing");
 		return MAPI_E_NOT_FOUND;

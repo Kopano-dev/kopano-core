@@ -121,7 +121,7 @@ public:
 	virtual HRESULT GetProps(const SPropTagArray *lpPropTagArray, ULONG ulFlags, ULONG *OUTPUTC /*lpcValues*/, LPSPropValue *OUTPUTP /*lppPropArray*/) = 0;
     virtual HRESULT GetPropList(ULONG ulFlags, LPSPropTagArray* OUTPUT /*lppPropTagArray*/) = 0;
     virtual HRESULT OpenProperty(ULONG ulPropTag, LPCIID USE_IID_FOR_OUTPUT, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN* OUTPUT_USE_IID /*lppUnk*/) = 0;
-    virtual HRESULT SetProps(ULONG cValues, LPSPropValue lpProps, LPSPropProblemArray* OUTPUT /*lppProblems*/) = 0;
+	virtual HRESULT SetProps(ULONG cValues, const SPropValue *lpProps, LPSPropProblemArray *OUTPUT /*lppProblems*/) = 0;
 	virtual HRESULT DeleteProps(const SPropTagArray *lpPropTagArray, LPSPropProblemArray *OUTPUT /*lppProblems*/) = 0;
 	virtual HRESULT CopyTo(ULONG cInterfaces, LPCIID lpInterfaces, const SPropTagArray *lpExcludeProps, ULONG ulUIParam, IMAPIProgress *lpProgress, LPCIID lpInterface, void *lpDestObj, ULONG ulFlags, LPSPropProblemArray *OUTPUT /*lppProblems*/) = 0;
 	virtual HRESULT CopyProps(const SPropTagArray *lpIncludeProps, ULONG ulUIParam, IMAPIProgress *lpProgress, LPCIID lpInterface, void *lpDestObj, ULONG ulFlags, LPSPropProblemArray *OUTPUT /*lppProblems*/) = 0;
@@ -394,7 +394,7 @@ public:
     virtual HRESULT CreateAttach(LPCIID lpInterface, ULONG ulFlags, ULONG *lpulAttachmentNum, IAttach** OUTPUT /*lppAttach*/) = 0;
     virtual HRESULT DeleteAttach(ULONG ulAttachmentNum, ULONG ulUIParam, IMAPIProgress * lpProgress, ULONG ulFlags) = 0;
     virtual HRESULT GetRecipientTable(ULONG ulFlags, IMAPITable ** OUTPUT /*lppTable*/) = 0;
-    virtual HRESULT ModifyRecipients(ULONG ulFlags, LPADRLIST INPUT /*lpMods*/) = 0;
+	virtual HRESULT ModifyRecipients(ULONG ulFlags, const ADRLIST *INPUT /*lpMods*/) = 0;
     virtual HRESULT SubmitMessage(ULONG ulFlags) = 0;
     virtual HRESULT SetReadFlag(ULONG ulFlags) = 0;
 	%extend {

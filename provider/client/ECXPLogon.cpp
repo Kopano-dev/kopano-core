@@ -419,8 +419,8 @@ HRESULT ECXPLogon::SubmitMessage(ULONG ulFlags, LPMESSAGE lpMessage, ULONG * lpu
 		goto exit;
 
 	for (ulRow = 0; ulRow < lpRecipRows->cRows; ++ulRow) {
-		LPSPropValue lpsPropValue = PpropFindProp(lpRecipRows->aRow[ulRow].lpProps, lpRecipRows->aRow[ulRow].cValues, PR_ADDRTYPE);
-		LPSPropValue lpsResponsibility = PpropFindProp(lpRecipRows->aRow[ulRow].lpProps, lpRecipRows->aRow[ulRow].cValues, PR_RESPONSIBILITY);
+		auto lpsPropValue = PCpropFindProp(lpRecipRows->aRow[ulRow].lpProps, lpRecipRows->aRow[ulRow].cValues, PR_ADDRTYPE);
+		auto lpsResponsibility = PpropFindProp(lpRecipRows->aRow[ulRow].lpProps, lpRecipRows->aRow[ulRow].cValues, PR_RESPONSIBILITY);
 
 		if(lpsPropValue == NULL || lpsResponsibility == NULL)
 			continue;

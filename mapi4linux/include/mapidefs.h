@@ -257,7 +257,7 @@ typedef struct SPropTagArray *LPSPropTagArray;
 struct _SPropTagArray_ ## _name { \
     ULONG   cValues; \
     ULONG   aulPropTag[_ctag]; \
-    operator SPropTagArray *(void) const { return const_cast<SPropTagArray *>(reinterpret_cast<const SPropTagArray *>(this)); } \
+	operator const SPropTagArray *(void) const { return reinterpret_cast<const SPropTagArray *>(this); } \
 } _name
 
 
@@ -484,7 +484,6 @@ typedef struct ADRLIST *LPADRLIST;
 struct _ADRLIST_ ## _name { \
     ULONG           cEntries; \
     ADRENTRY        aEntries[_centries]; \
-    operator ADRLIST *(void) { return reinterpret_cast<ADRLIST *>(this); } \
     operator const ADRLIST *(void) const { return reinterpret_cast<const ADRLIST *>(this); } \
 } _name
 
@@ -501,7 +500,7 @@ struct SRowSet {
 	template<typename _T> SRowSet(std::initializer_list<_T>) = delete;
     ULONG           cRows;
     SRow            aRow[MAPI_DIM];
-	operator SRowSet *(void) { return reinterpret_cast<SRowSet *>(this); }
+	operator const SRowSet *(void) const { return reinterpret_cast<const SRowSet *>(this); }
 };
 typedef struct SRowSet *LPSRowSet;
 
@@ -669,7 +668,7 @@ public:
 	virtual HRESULT GetProps(const SPropTagArray *lpPropTagArray, ULONG ulFlags, ULONG *lpcValues, LPSPropValue *lppPropArray) = 0;
     virtual HRESULT GetPropList(ULONG ulFlags, LPSPropTagArray* lppPropTagArray) = 0;
     virtual HRESULT OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN* lppUnk) = 0;
-    virtual HRESULT SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray* lppProblems) = 0;
+	virtual HRESULT SetProps(ULONG cValues, const SPropValue *lpPropArray, LPSPropProblemArray *lppProblems) = 0;
 	virtual HRESULT DeleteProps(const SPropTagArray *lpPropTagArray, LPSPropProblemArray *lppProblems) = 0;
 	virtual HRESULT CopyTo(ULONG ciidExclude, LPCIID rgiidExclude, const SPropTagArray *lpExcludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems) = 0;
 	virtual HRESULT CopyProps(const SPropTagArray *lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems) = 0;
@@ -938,7 +937,6 @@ struct _SSortOrderSet_ ## _name { \
     ULONG           cCategories;    \
     ULONG           cExpanded;      \
     SSortOrder      aSort[_csort];  \
-	operator SSortOrderSet *(void) { return reinterpret_cast<SSortOrderSet *>(this); } \
 	operator const SSortOrderSet *(void) const { return reinterpret_cast<const SSortOrderSet *>(this); } \
 } _name
 
@@ -1036,7 +1034,7 @@ public:
     virtual HRESULT CreateAttach(LPCIID lpInterface, ULONG ulFlags, ULONG *lpulAttachmentNum, LPATTACH *lppAttach) = 0;
     virtual HRESULT DeleteAttach(ULONG ulAttachmentNum, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags) = 0;
     virtual HRESULT GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable) = 0;
-    virtual HRESULT ModifyRecipients(ULONG ulFlags, LPADRLIST lpMods) = 0;
+    virtual HRESULT ModifyRecipients(ULONG ulFlags, const ADRLIST *lpMods) = 0;
     virtual HRESULT SubmitMessage(ULONG ulFlags) = 0;
     virtual HRESULT SetReadFlag(ULONG ulFlags) = 0;
 };
@@ -1544,8 +1542,7 @@ public:
 
     virtual HRESULT GetLastError(HRESULT hResult, ULONG ulFlags, LPMAPIERROR* lppMAPIError) = 0;
     virtual HRESULT GetProviderTable(ULONG ulFlags, LPMAPITABLE* lppTable) = 0;
-    virtual HRESULT CreateProvider(LPTSTR lpszProvider, ULONG cValues, LPSPropValue lpProps, ULONG ulUIParam,
-				   ULONG ulFlags, MAPIUID* lpUID) = 0;
+	virtual HRESULT CreateProvider(LPTSTR lpszProvider, ULONG cValues, const SPropValue *lpProps, ULONG ulUIParam, ULONG ulFlags, MAPIUID *lpUID) = 0;
     virtual HRESULT DeleteProvider(LPMAPIUID lpUID) = 0;
     virtual HRESULT OpenProfileSection(LPMAPIUID lpUID, LPCIID lpInterface, ULONG ulFlags, LPPROFSECT* lppProfSect) = 0;
 };

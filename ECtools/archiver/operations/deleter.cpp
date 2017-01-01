@@ -44,9 +44,7 @@ HRESULT Deleter::LeaveFolder()
 
 HRESULT Deleter::DoProcessEntry(ULONG cProps, const LPSPropValue &lpProps)
 {
-	LPSPropValue lpEntryId = NULL;
-
-	lpEntryId = PpropFindProp(lpProps, cProps, PR_ENTRYID);
+	auto lpEntryId = PCpropFindProp(lpProps, cProps, PR_ENTRYID);
 	if (lpEntryId == NULL) {
 		Logger()->Log(EC_LOGLEVEL_FATAL, "PR_ENTRYID missing");
 		return MAPI_E_NOT_FOUND;

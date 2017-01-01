@@ -40,7 +40,8 @@ HRESULT	ECArchiveAwareAttach::Create(ECMsgStore *lpMsgStore, ULONG ulObjType, BO
 	return lpAttach->QueryInterface(IID_ECAttach, reinterpret_cast<void **>(lppAttach));
 }
 
-HRESULT	ECArchiveAwareAttach::SetPropHandler(ULONG ulPropTag, void* /*lpProvider*/, LPSPropValue lpsPropValue, void *lpParam)
+HRESULT	ECArchiveAwareAttach::SetPropHandler(ULONG ulPropTag,
+    void */*lpProvider*/, const SPropValue *lpsPropValue, void *lpParam)
 {
 	ECArchiveAwareAttach *lpAttach = (ECArchiveAwareAttach *)lpParam;
 	HRESULT hr = hrSuccess;

@@ -127,7 +127,7 @@ exit:
 	return hr;
 }
 
-HRESULT WSTableView::HrSetColumns(LPSPropTagArray lpsPropTagArray)
+HRESULT WSTableView::HrSetColumns(const SPropTagArray *lpsPropTagArray)
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
@@ -201,7 +201,7 @@ exit:
 	return hr;
 }
 
-HRESULT WSTableView::HrRestrict(LPSRestriction lpsRestriction)
+HRESULT WSTableView::HrRestrict(const SRestriction *lpsRestriction)
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
@@ -236,7 +236,7 @@ exit:
 	return hr;
 }
 
-HRESULT WSTableView::HrSortTable(LPSSortOrderSet lpsSortOrderSet)
+HRESULT WSTableView::HrSortTable(const SSortOrderSet *lpsSortOrderSet)
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;
@@ -334,7 +334,8 @@ exit:
 	return hr;
 }
 
-HRESULT WSTableView::HrFindRow(LPSRestriction lpsRestriction, BOOKMARK bkOrigin, ULONG ulFlags)
+HRESULT WSTableView::HrFindRow(const SRestriction *lpsRestriction,
+    BOOKMARK bkOrigin, ULONG ulFlags)
 {
 	ECRESULT er = erSuccess;
 	HRESULT hr = hrSuccess;

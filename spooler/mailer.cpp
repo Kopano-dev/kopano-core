@@ -122,15 +122,7 @@ static HRESULT ExpandRecipientsRecursive(LPADRBOOK lpAddrBook,
 	}
 
 	while (true) {
-		LPSPropValue lpRowId;
-		LPSPropValue lpEntryId;
-		LPSPropValue lpDisplayType;
-		LPSPropValue lpObjectType;
-		LPSPropValue lpRecipType;
-		LPSPropValue lpDisplayName;
-		LPSPropValue lpEmailAddress;
 		memory_ptr<SPropValue> lpSMTPAddress;
-
 		/* Perform cleanup first. */
 		if (lpsRowSet) {
 			FreeProws(lpsRowSet);
@@ -151,14 +143,13 @@ static HRESULT ExpandRecipientsRecursive(LPADRBOOK lpAddrBook,
 		 * since all errors are related to the current entry and we should
 		 * make sure we resolve as many recipients as possible. */
 
-		lpRowId = PpropFindProp(lpsRowSet->aRow[0].lpProps, lpsRowSet->aRow[0].cValues, PR_ROWID);
-		lpEntryId = PpropFindProp(lpsRowSet->aRow[0].lpProps, lpsRowSet->aRow[0].cValues, PR_ENTRYID);
-		lpDisplayType = PpropFindProp(lpsRowSet->aRow[0].lpProps, lpsRowSet->aRow[0].cValues, PR_DISPLAY_TYPE);
-		lpObjectType = PpropFindProp(lpsRowSet->aRow[0].lpProps, lpsRowSet->aRow[0].cValues, PR_OBJECT_TYPE);
-		lpRecipType = PpropFindProp(lpsRowSet->aRow[0].lpProps, lpsRowSet->aRow[0].cValues, PR_RECIPIENT_TYPE);
-
-		lpDisplayName = PpropFindProp(lpsRowSet->aRow[0].lpProps, lpsRowSet->aRow[0].cValues, PR_DISPLAY_NAME_W);
-		lpEmailAddress = PpropFindProp(lpsRowSet->aRow[0].lpProps, lpsRowSet->aRow[0].cValues, PR_SMTP_ADDRESS_W);
+		auto lpRowId = PCpropFindProp(lpsRowSet->aRow[0].lpProps, lpsRowSet->aRow[0].cValues, PR_ROWID);
+		auto lpEntryId = PCpropFindProp(lpsRowSet->aRow[0].lpProps, lpsRowSet->aRow[0].cValues, PR_ENTRYID);
+		auto lpDisplayType = PCpropFindProp(lpsRowSet->aRow[0].lpProps, lpsRowSet->aRow[0].cValues, PR_DISPLAY_TYPE);
+		auto lpObjectType = PCpropFindProp(lpsRowSet->aRow[0].lpProps, lpsRowSet->aRow[0].cValues, PR_OBJECT_TYPE);
+		auto lpRecipType = PCpropFindProp(lpsRowSet->aRow[0].lpProps, lpsRowSet->aRow[0].cValues, PR_RECIPIENT_TYPE);
+		auto lpDisplayName = PCpropFindProp(lpsRowSet->aRow[0].lpProps, lpsRowSet->aRow[0].cValues, PR_DISPLAY_NAME_W);
+		auto lpEmailAddress = PCpropFindProp(lpsRowSet->aRow[0].lpProps, lpsRowSet->aRow[0].cValues, PR_SMTP_ADDRESS_W);
 
 		/* lpRowId, lpRecipType, and lpDisplayType are optional.
 		 * lpEmailAddress is only mandatory for MAPI_MAILUSER */
@@ -391,10 +382,6 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 	object_ptr<IMAPITable> lpTable;
 	LPSRowSet	lpRowSet = NULL;
 	memory_ptr<SPropTagArray> lpRecipColumns;
-	LPSPropValue	lpEmailAddress = NULL;
-	LPSPropValue	lpEmailName = NULL;
-	LPSPropValue	lpAddrType = NULL;
-	LPSPropValue	lpEntryID = NULL;
 
 	const char	*const lpszFaxDomain = g_lpConfig->GetSetting("fax_domain");
 	const char	*const lpszFaxInternational = g_lpConfig->GetSetting("fax_international");
@@ -442,10 +429,10 @@ static HRESULT RewriteRecipients(LPMAPISESSION lpMAPISession,
 		if (lpRowSet->cRows == 0)
 			break;
 
-		lpEmailAddress = PpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_EMAIL_ADDRESS_W);
-		lpEmailName = PpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_DISPLAY_NAME_W);
-		lpAddrType = PpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_ADDRTYPE_W);
-		lpEntryID = PpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_ENTRYID);
+		auto lpEmailAddress = PpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_EMAIL_ADDRESS_W);
+		auto lpEmailName = PCpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_DISPLAY_NAME_W);
+		auto lpAddrType = PpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_ADDRTYPE_W);
+		auto lpEntryID = PpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_ENTRYID);
 
 		if (!(lpEmailAddress && lpAddrType && lpEntryID && lpEmailName))
 			continue;
@@ -544,8 +531,6 @@ static HRESULT UniqueRecipients(IMessage *lpMessage)
 	HRESULT			hr = hrSuccess;
 	object_ptr<IMAPITable> lpTable;
 	LPSRowSet		lpRowSet = NULL;
-	LPSPropValue	lpEmailAddress = NULL;
-	LPSPropValue	lpRecipType = NULL;
 	string			strEmail;
 	ULONG			ulRecipType = 0;
 
@@ -586,8 +571,8 @@ static HRESULT UniqueRecipients(IMessage *lpMessage)
 		if (lpRowSet->cRows == 0)
 			break;
 
-		lpEmailAddress = PpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_SMTP_ADDRESS_A);
-		lpRecipType = PpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_RECIPIENT_TYPE);
+		auto lpEmailAddress = PCpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_SMTP_ADDRESS_A);
+		auto lpRecipType = PCpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_RECIPIENT_TYPE);
 
 		if (!lpEmailAddress || !lpRecipType)
 			continue;
@@ -615,8 +600,6 @@ static HRESULT RewriteQuotedRecipients(IMessage *lpMessage)
 	HRESULT			hr = hrSuccess;
 	object_ptr<IMAPITable> lpTable;
 	LPSRowSet		lpRowSet = NULL;
-	LPSPropValue	lpEmailAddress = NULL;
-	LPSPropValue	lpRecipType = NULL;
 	wstring			strEmail;
 
 	SizedSPropTagArray(3, sptaColumns) = {
@@ -653,8 +636,8 @@ static HRESULT RewriteQuotedRecipients(IMessage *lpMessage)
 		if (lpRowSet->cRows == 0)
 			break;
 
-		lpEmailAddress = PpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_EMAIL_ADDRESS_W);
-		lpRecipType = PpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_RECIPIENT_TYPE);
+		auto lpEmailAddress = PpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_EMAIL_ADDRESS_W);
+		auto lpRecipType = PCpropFindProp(lpRowSet->aRow[0].lpProps, lpRowSet->aRow[0].cValues, PR_RECIPIENT_TYPE);
 
 		if (!lpEmailAddress || !lpRecipType)
 			continue;
@@ -1348,7 +1331,7 @@ static HRESULT SMTPToZarafa(LPADRBOOK lpAddrBook, ULONG ulSMTPEID,
 	HRESULT hr = hrSuccess;
 	wstring wstrName, wstrType, wstrEmailAddress;
 	LPADRLIST lpAList = NULL;
-	LPSPropValue lpSpoofEID = NULL;
+	const SPropValue *lpSpoofEID;
 	LPENTRYID lpSpoofBin = NULL;
 
 	// representing entryid can also be a one off id, so search the user, and then get the entryid again ..
@@ -1368,7 +1351,7 @@ static HRESULT SMTPToZarafa(LPADRBOOK lpAddrBook, ULONG ulSMTPEID,
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SMTPToZarafa(): ResolveName failed %x", hr);
 		goto exit;
 	}
-	lpSpoofEID = PpropFindProp(lpAList->aEntries[0].rgPropVals, lpAList->aEntries[0].cValues, PR_ENTRYID);
+	lpSpoofEID = PCpropFindProp(lpAList->aEntries[0].rgPropVals, lpAList->aEntries[0].cValues, PR_ENTRYID);
 	if (!lpSpoofEID) {
 		hr = MAPI_E_NOT_FOUND;
 		g_lpLogger->Log(EC_LOGLEVEL_ERROR, "SMTPToZarafa(): PpropFindProp failed %x", hr);

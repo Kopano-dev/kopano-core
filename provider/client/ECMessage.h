@@ -98,7 +98,7 @@ public:
 	 *
 	 * \return hrSuccess on success.
 	 */
-	static HRESULT	SetPropHandler(ULONG ulPropTag, void* lpProvider, LPSPropValue lpsPropValue, void *lpParam);
+	static HRESULT SetPropHandler(ULONG ulPropTag, void *lpProvider, const SPropValue *lpsPropValue, void *lpParam);
 	virtual HRESULT	QueryInterface(REFIID refiid, void **lppInterface) _kc_override;
 	virtual HRESULT OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk);
 	virtual HRESULT GetAttachmentTable(ULONG ulFlags, LPMAPITABLE *lppTable);
@@ -106,7 +106,7 @@ public:
 	virtual HRESULT CreateAttach(LPCIID lpInterface, ULONG ulFlags, ULONG *lpulAttachmentNum, LPATTACH *lppAttach);
 	virtual HRESULT DeleteAttach(ULONG ulAttachmentNum, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, ULONG ulFlags);
 	virtual HRESULT GetRecipientTable(ULONG ulFlags, LPMAPITABLE *lppTable);
-	virtual HRESULT ModifyRecipients(ULONG ulFlags, LPADRLIST lpMods);
+	virtual HRESULT ModifyRecipients(ULONG ulFlags, const ADRLIST *lpMods);
 	virtual HRESULT SubmitMessage(ULONG ulFlags);
 	virtual HRESULT SetReadFlag(ULONG ulFlags);
 
@@ -118,7 +118,7 @@ public:
 	virtual HRESULT CopyProps(const SPropTagArray *lpIncludeProps, ULONG ulUIParam, LPMAPIPROGRESS lpProgress, LPCIID lpInterface, LPVOID lpDestObj, ULONG ulFlags, LPSPropProblemArray *lppProblems);
 
 	// RTF/Subject overrides
-	virtual HRESULT SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray *lppProblems);
+	virtual HRESULT SetProps(ULONG cValues, const SPropValue *lpPropArray, LPSPropProblemArray *lppProblems);
 	virtual HRESULT DeleteProps(const SPropTagArray *lpPropTagArray, LPSPropProblemArray *lppProblems);
 	virtual HRESULT HrLoadProps();
 
@@ -126,7 +126,7 @@ public:
 	static HRESULT TableRowGetProp(void* lpProvider, struct propVal *lpsPropValSrc, LPSPropValue lpsPropValDst, void **lpBase, ULONG ulType);
 
 	// RTF overrides
-	virtual HRESULT		HrSetRealProp(SPropValue *lpsPropValue);
+	virtual HRESULT HrSetRealProp(const SPropValue *lpsPropValue);
 
 	class xMessage _kc_final : public IMessage {
 		#include <kopano/xclsfrag/IUnknown.hpp>
@@ -138,7 +138,7 @@ public:
 		virtual HRESULT __stdcall CreateAttach(LPCIID lpInterface, ULONG flags, ULONG *lpulAttachmentNum, LPATTACH *lppAttach) _kc_override;
 		virtual HRESULT __stdcall DeleteAttach(ULONG ulAttachmentNum, ULONG ui_param, LPMAPIPROGRESS lpProgress, ULONG flags) _kc_override;
 		virtual HRESULT __stdcall GetRecipientTable(ULONG flags, LPMAPITABLE *lppTable) _kc_override;
-		virtual HRESULT __stdcall ModifyRecipients(ULONG flags, LPADRLIST lpMods) _kc_override;
+		virtual HRESULT __stdcall ModifyRecipients(ULONG flags, const ADRLIST *lpMods) _kc_override;
 		virtual HRESULT __stdcall SubmitMessage(ULONG flags) _kc_override;
 		virtual HRESULT __stdcall SetReadFlag(ULONG flags) _kc_override;
 	} m_xMessage;

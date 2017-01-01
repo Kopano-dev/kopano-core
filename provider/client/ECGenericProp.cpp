@@ -132,7 +132,7 @@ HRESULT ECGenericProp::HrAddPropHandlers(ULONG ulPropTag, GetPropCallBack lpfnGe
 }
 
 // sets an actual value in memory
-HRESULT ECGenericProp::HrSetRealProp(SPropValue *lpsPropValue)
+HRESULT ECGenericProp::HrSetRealProp(const SPropValue *lpsPropValue)
 {
 	HRESULT					hr = hrSuccess;
 	ECProperty*				lpProperty = NULL;
@@ -374,19 +374,22 @@ HRESULT	ECGenericProp::DefaultGetPropNotFound(ULONG ulPropTag, void* lpProvider,
 	return MAPI_E_NOT_FOUND;
 }
 
-HRESULT ECGenericProp::DefaultSetPropSetReal(ULONG ulPropTag, void* lpProvider, LPSPropValue lpsPropValue, void *lpParam)
+HRESULT ECGenericProp::DefaultSetPropSetReal(ULONG ulPropTag, void *lpProvider,
+    const SPropValue *lpsPropValue, void *lpParam)
 {
 	ECGenericProp *lpProp = (ECGenericProp *)lpParam;
 
 	return lpProp->HrSetRealProp(lpsPropValue);
 }
 
-HRESULT	ECGenericProp::DefaultSetPropComputed(ULONG ulPropTag, void* lpProvider, LPSPropValue lpsPropValue, void *lpParam)
+HRESULT	ECGenericProp::DefaultSetPropComputed(ULONG tag, void *provider,
+    const SPropValue *, void *)
 {
 	return MAPI_E_COMPUTED;
 }
 
-HRESULT	ECGenericProp::DefaultSetPropIgnore(ULONG ulPropTag, void* lpProvider, LPSPropValue lpsPropValue, void *lpParam)
+HRESULT	ECGenericProp::DefaultSetPropIgnore(ULONG tag, void *provider,
+    const SPropValue *, void *)
 {
 	return hrSuccess;
 }
@@ -970,7 +973,8 @@ HRESULT ECGenericProp::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInter
 	return  MAPI_E_NO_SUPPORT;
 }
 
-HRESULT ECGenericProp::SetProps(ULONG cValues, LPSPropValue lpPropArray, LPSPropProblemArray *lppProblems)
+HRESULT ECGenericProp::SetProps(ULONG cValues, const SPropValue *lpPropArray,
+    SPropProblemArray **lppProblems)
 {
 	HRESULT				hr = hrSuccess;
 	HRESULT				hrT = hrSuccess;
@@ -1164,7 +1168,7 @@ DEF_HRMETHOD0(ECGenericProp, MAPIProp, SaveChanges, (ULONG, ulFlags))
 DEF_HRMETHOD0(ECGenericProp, MAPIProp, GetProps, (const SPropTagArray *, lpPropTagArray), (ULONG, ulFlags), (ULONG *, lpcValues), (SPropValue **, lppPropArray))
 DEF_HRMETHOD0(ECGenericProp, MAPIProp, GetPropList, (ULONG, ulFlags), (LPSPropTagArray *, lppPropTagArray))
 DEF_HRMETHOD0(ECGenericProp, MAPIProp, OpenProperty, (ULONG, ulPropTag), (LPCIID, lpiid), (ULONG, ulInterfaceOptions), (ULONG, ulFlags), (LPUNKNOWN *, lppUnk))
-DEF_HRMETHOD0(ECGenericProp, MAPIProp, SetProps, (ULONG, cValues), (LPSPropValue, lpPropArray), (LPSPropProblemArray *, lppProblems))
+DEF_HRMETHOD0(ECGenericProp, MAPIProp, SetProps, (ULONG, cValues), (const SPropValue *, lpPropArray), (SPropProblemArray **, lppProblems))
 DEF_HRMETHOD0(ECGenericProp, MAPIProp, DeleteProps, (const SPropTagArray *, lpPropTagArray), (SPropProblemArray **, lppProblems))
 DEF_HRMETHOD0(ECGenericProp, MAPIProp, CopyTo, (ULONG, ciidExclude), (LPCIID, rgiidExclude), (const SPropTagArray *, lpExcludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (void *, lpDestObj), (ULONG, ulFlags), (SPropProblemArray **, lppProblems))
 DEF_HRMETHOD0(ECGenericProp, MAPIProp, CopyProps, (const SPropTagArray *, lpIncludeProps), (ULONG, ulUIParam), (LPMAPIPROGRESS, lpProgress), (LPCIID, lpInterface), (void *, lpDestObj), (ULONG, ulFlags), (SPropProblemArray **, lppProblems))
