@@ -703,12 +703,12 @@ namespace PrivatePipe {
 		// We want the prefix of each individual thread/fork, so don't add that of the Pipe version.
 		m_lpFileLogger->SetLogprefix(LP_NONE);
 
-		struct pollfd fds[1] = { { readfd, POLLIN, 0 } };
+		struct pollfd fds = {readfd, POLLIN, 0};
 
 		while(true) {
 			// blocking wait, returns on error or data waiting to log
-			fds[0].revents = 0;
-			ret = poll(fds, 1, -1);
+			fds.revents = 0;
+			ret = poll(&fds, 1, -1);
 			if (ret == -1) {
 				if (errno == EINTR)
 					continue;	// logger received SIGHUP, which wakes the select
