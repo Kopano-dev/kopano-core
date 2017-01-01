@@ -73,18 +73,18 @@ static HRESULT GetRecipStrings(LPMESSAGE lpMessage, std::wstring &wstrTo,
 			continue;
 			
 		switch(ptrRows[0].lpProps[1].Value.ul) {
-			case MAPI_TO:
-				if (!wstrTo.empty()) wstrTo += L"; ";
-				wstrTo += ptrRows[0].lpProps[0].Value.lpszW;
-				break;
-			case MAPI_CC:
-				if (!wstrCc.empty()) wstrCc += L"; ";
-				wstrCc += ptrRows[0].lpProps[0].Value.lpszW;
-				break;
-			case MAPI_BCC:
-				if (!wstrBcc.empty()) wstrBcc += L"; ";
-				wstrBcc += ptrRows[0].lpProps[0].Value.lpszW;
-				break;
+		case MAPI_TO:
+			if (!wstrTo.empty()) wstrTo += L"; ";
+			wstrTo += ptrRows[0].lpProps[0].Value.lpszW;
+			break;
+		case MAPI_CC:
+			if (!wstrCc.empty()) wstrCc += L"; ";
+			wstrCc += ptrRows[0].lpProps[0].Value.lpszW;
+			break;
+		case MAPI_BCC:
+			if (!wstrBcc.empty()) wstrBcc += L"; ";
+			wstrBcc += ptrRows[0].lpProps[0].Value.lpszW;
+			break;
 		}
 	}
 	return hrSuccess;
