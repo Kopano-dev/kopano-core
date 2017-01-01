@@ -574,28 +574,28 @@ int main(int argc, char *argv[])
 		if(c == -1)
 			break;
 		switch(c) {
-			case '?':
-				print_help(argv[0]);
-				return 1;
-			case OPTION_HOST:
-			case 'h': 
-				host = optarg;
-				break;
-			case 'u':
-				user = optarg;
-				break;
-			case OPTION_DUMP:
-			case 'd':
-				humanreadable = false;
-				break;
-			case SYSTEM_STATS:
-			case SESSION_STATS:
-			case USER_STATS: 
-			case COMPANY_STATS:
-			case SERVER_STATS:
-			case SESSION_TOP:
-				eTable = (eTableType)c;
-				break;
+		case '?':
+			print_help(argv[0]);
+			return 1;
+		case OPTION_HOST:
+		case 'h':
+			host = optarg;
+			break;
+		case 'u':
+			user = optarg;
+			break;
+		case OPTION_DUMP:
+		case 'd':
+			humanreadable = false;
+			break;
+		case SYSTEM_STATS:
+		case SESSION_STATS:
+		case USER_STATS:
+		case COMPANY_STATS:
+		case SERVER_STATS:
+		case SESSION_TOP:
+			eTable = (eTableType)c;
+			break;
 		}
 	}
 	if (eTable == INVALID_STATS) {

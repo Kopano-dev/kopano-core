@@ -193,22 +193,22 @@ int main(int argc, char **argv) {
 			break;
 
 		switch (opt) {
-			case 'c': 
-				lpszCfg = optarg;
-				break;
-			case 'F': 
-				g_bDaemonize = false;
-				break;
-			case OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS:
-				bIgnoreUnknownConfigOptions = true;
-				break;
-			case 'V': 
-				PrintVersion(); 
-				goto exit;
-			case 'h':
-			default:
-				PrintHelp(argv[0]);
-				goto exit;
+		case 'c':
+			lpszCfg = optarg;
+			break;
+		case 'F':
+			g_bDaemonize = false;
+			break;
+		case OPT_IGNORE_UNKNOWN_CONFIG_OPTIONS:
+			bIgnoreUnknownConfigOptions = true;
+			break;
+		case 'V':
+			PrintVersion();
+			goto exit;
+		case 'h':
+		default:
+			PrintHelp(argv[0]);
+			goto exit;
 		}
 	}
 	

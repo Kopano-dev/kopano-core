@@ -578,28 +578,28 @@ bool CHtmlEntity::CharToHtmlEntity(WCHAR c, std::wstring &strHTML)
 	bool bHTML = false;
 
 	switch(c) {
-		case '\r':
-			bHTML = true;		// but no output
+	case '\r':
+		bHTML = true;		// but no output
+		break;
+	case '\n':
+		strHTML = L"<br>\n";
+		bHTML = true;
+		break;
+	case '\t':
+		strHTML = L"&nbsp;&nbsp;&nbsp; ";
+		bHTML = true;
+		break;
+	case ' ':
+		strHTML = L"&nbsp;";
+		bHTML = true;
+		break;
+	default:
+		const WCHAR *lpChar = CHtmlEntity::toName(c);
+		if (lpChar == nullptr)
 			break;
-		case '\n':
-			strHTML = L"<br>\n";
-			bHTML = true;
-			break;
-		case '\t':
-			strHTML = L"&nbsp;&nbsp;&nbsp; ";
-			bHTML = true;
-			break;
-		case ' ':
-			strHTML = L"&nbsp;";
-			bHTML = true;
-			break;
-		default:
-			const WCHAR* lpChar = CHtmlEntity::toName(c);
-			if (lpChar == nullptr)
-				break;
-			strHTML = std::wstring(L"&") + lpChar + L";";
-			bHTML = true;
-			break;
+		strHTML = std::wstring(L"&") + lpChar + L";";
+		bHTML = true;
+		break;
 	}
 	if (!bHTML) {
 		strHTML = c;

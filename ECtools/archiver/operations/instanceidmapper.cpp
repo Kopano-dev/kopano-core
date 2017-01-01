@@ -106,17 +106,15 @@ HRESULT InstanceIdMapper::GetMappedInstanceId(const SBinary &sourceServerUID, UL
 	}
 
 	switch (m_ptrDatabase->GetNumRows(lpResult)) {
-		case 0:
-			hr = MAPI_E_NOT_FOUND;
-			goto exit;
-
-		case 1:
-			break;
-
-		default:	// This should be impossible.
-			hr = MAPI_E_DISK_ERROR;	// MAPI version of KCERR_DATABASE_ERROR
-			ec_log_crit("InstanceIdMapper::GetMappedInstanceId(): GetNumRows failed");
-			goto exit;
+	case 0:
+		hr = MAPI_E_NOT_FOUND;
+		goto exit;
+	case 1:
+		break;
+	default:	// This should be impossible.
+		hr = MAPI_E_DISK_ERROR;	// MAPI version of KCERR_DATABASE_ERROR
+		ec_log_crit("InstanceIdMapper::GetMappedInstanceId(): GetNumRows failed");
+		goto exit;
 	}
 
 	lpDBRow = m_ptrDatabase->FetchRow(lpResult);

@@ -588,93 +588,91 @@ HRESULT	Util::HrCopySRestriction(LPSRestriction lpDest,
 	lpDest->rt = lpSrc->rt;
 
 	switch(lpSrc->rt) {
-		case RES_AND:
-			lpDest->res.resAnd.cRes = lpSrc->res.resAnd.cRes;
-			hr = MAPIAllocateMore(sizeof(SRestriction) * lpSrc->res.resAnd.cRes, lpBase, (void **)&lpDest->res.resAnd.lpRes);
-			if (hr != hrSuccess)
+	case RES_AND:
+		lpDest->res.resAnd.cRes = lpSrc->res.resAnd.cRes;
+		hr = MAPIAllocateMore(sizeof(SRestriction) * lpSrc->res.resAnd.cRes, lpBase, (void **)&lpDest->res.resAnd.lpRes);
+		if (hr != hrSuccess)
+			return hr;
+		for (i = 0; i < lpSrc->res.resAnd.cRes; ++i) {
+			hr = HrCopySRestriction(&lpDest->res.resAnd.lpRes[i], &lpSrc->res.resAnd.lpRes[i], lpBase);
+			if(hr != hrSuccess)
 				return hr;
-			for (i = 0; i < lpSrc->res.resAnd.cRes; ++i) {
-				hr = HrCopySRestriction(&lpDest->res.resAnd.lpRes[i], &lpSrc->res.resAnd.lpRes[i], lpBase);
-				if(hr != hrSuccess)
-					return hr;
-			}
-			break;
-		case RES_OR:
-			lpDest->res.resOr.cRes = lpSrc->res.resOr.cRes;
-			hr = MAPIAllocateMore(sizeof(SRestriction) * lpSrc->res.resOr.cRes, lpBase, (void **)&lpDest->res.resOr.lpRes);
-			if (hr != hrSuccess)
+		}
+		break;
+	case RES_OR:
+		lpDest->res.resOr.cRes = lpSrc->res.resOr.cRes;
+		hr = MAPIAllocateMore(sizeof(SRestriction) * lpSrc->res.resOr.cRes, lpBase, (void **)&lpDest->res.resOr.lpRes);
+		if (hr != hrSuccess)
+			return hr;
+		for (i = 0; i < lpSrc->res.resOr.cRes; ++i) {
+			hr = HrCopySRestriction(&lpDest->res.resOr.lpRes[i], &lpSrc->res.resOr.lpRes[i], lpBase);
+			if(hr != hrSuccess)
 				return hr;
-			for (i = 0; i < lpSrc->res.resOr.cRes; ++i) {
-				hr = HrCopySRestriction(&lpDest->res.resOr.lpRes[i], &lpSrc->res.resOr.lpRes[i], lpBase);
-				if(hr != hrSuccess)
-					return hr;
-			}
-			break;
-		case RES_NOT:
-			hr = MAPIAllocateMore(sizeof(SRestriction), lpBase, (void **) &lpDest->res.resNot.lpRes);
-			if (hr != hrSuccess)
-				return hr;
-			return HrCopySRestriction(lpDest->res.resNot.lpRes, lpSrc->res.resNot.lpRes, lpBase);
-		case RES_CONTENT:
-			lpDest->res.resContent.ulFuzzyLevel = lpSrc->res.resContent.ulFuzzyLevel;
-			lpDest->res.resContent.ulPropTag = lpSrc->res.resContent.ulPropTag;
-			hr = MAPIAllocateMore(sizeof(SPropValue), lpBase, (void **) &lpDest->res.resContent.lpProp);
-			if (hr != hrSuccess)
-				return hr;
-			return HrCopyProperty(lpDest->res.resContent.lpProp, lpSrc->res.resContent.lpProp, lpBase);
-		case RES_PROPERTY:
-			lpDest->res.resProperty.relop = lpSrc->res.resProperty.relop;
-			lpDest->res.resProperty.ulPropTag = lpSrc->res.resProperty.ulPropTag;
-			hr = MAPIAllocateMore(sizeof(SPropValue), lpBase, (void **) &lpDest->res.resProperty.lpProp);
-			if (hr != hrSuccess)
-				return hr;
-			return HrCopyProperty(lpDest->res.resProperty.lpProp, lpSrc->res.resProperty.lpProp, lpBase);
-		case RES_COMPAREPROPS:	 
-			lpDest->res.resCompareProps.relop = lpSrc->res.resCompareProps.relop;
-			lpDest->res.resCompareProps.ulPropTag1 = lpSrc->res.resCompareProps.ulPropTag1;
-			lpDest->res.resCompareProps.ulPropTag2 = lpSrc->res.resCompareProps.ulPropTag2;
-			break;
-		case RES_BITMASK:			 
-			lpDest->res.resBitMask.relBMR = lpSrc->res.resBitMask.relBMR;
-			lpDest->res.resBitMask.ulMask = lpSrc->res.resBitMask.ulMask;
-			lpDest->res.resBitMask.ulPropTag = lpSrc->res.resBitMask.ulPropTag;
-			break;
-		case RES_SIZE:			
-			lpDest->res.resSize.cb = lpSrc->res.resSize.cb;
-			lpDest->res.resSize.relop = lpSrc->res.resSize.relop;
-			lpDest->res.resSize.ulPropTag = lpSrc->res.resSize.ulPropTag;
-			break;
-		case RES_EXIST:			
-			lpDest->res.resExist.ulPropTag = lpSrc->res.resExist.ulPropTag;
-			break;
-		case RES_SUBRESTRICTION:	
-			lpDest->res.resSub.ulSubObject = lpSrc->res.resSub.ulSubObject;
-			hr = MAPIAllocateMore(sizeof(SRestriction), lpBase, (void **)&lpDest->res.resSub.lpRes);
-			if (hr != hrSuccess)
-				return hr;
-			return HrCopySRestriction(lpDest->res.resSub.lpRes, lpSrc->res.resSub.lpRes, lpBase);
-		case RES_COMMENT: // What a weird restriction type
-			lpDest->res.resComment.cValues	= lpSrc->res.resComment.cValues;
-			lpDest->res.resComment.lpRes	= NULL;
+		}
+		break;
+	case RES_NOT:
+		hr = MAPIAllocateMore(sizeof(SRestriction), lpBase, (void **) &lpDest->res.resNot.lpRes);
+		if (hr != hrSuccess)
+			return hr;
+		return HrCopySRestriction(lpDest->res.resNot.lpRes, lpSrc->res.resNot.lpRes, lpBase);
+	case RES_CONTENT:
+		lpDest->res.resContent.ulFuzzyLevel = lpSrc->res.resContent.ulFuzzyLevel;
+		lpDest->res.resContent.ulPropTag = lpSrc->res.resContent.ulPropTag;
+		hr = MAPIAllocateMore(sizeof(SPropValue), lpBase, (void **) &lpDest->res.resContent.lpProp);
+		if (hr != hrSuccess)
+			return hr;
+		return HrCopyProperty(lpDest->res.resContent.lpProp, lpSrc->res.resContent.lpProp, lpBase);
+	case RES_PROPERTY:
+		lpDest->res.resProperty.relop = lpSrc->res.resProperty.relop;
+		lpDest->res.resProperty.ulPropTag = lpSrc->res.resProperty.ulPropTag;
+		hr = MAPIAllocateMore(sizeof(SPropValue), lpBase, (void **) &lpDest->res.resProperty.lpProp);
+		if (hr != hrSuccess)
+			return hr;
+		return HrCopyProperty(lpDest->res.resProperty.lpProp, lpSrc->res.resProperty.lpProp, lpBase);
+	case RES_COMPAREPROPS:
+		lpDest->res.resCompareProps.relop = lpSrc->res.resCompareProps.relop;
+		lpDest->res.resCompareProps.ulPropTag1 = lpSrc->res.resCompareProps.ulPropTag1;
+		lpDest->res.resCompareProps.ulPropTag2 = lpSrc->res.resCompareProps.ulPropTag2;
+		break;
+	case RES_BITMASK:
+		lpDest->res.resBitMask.relBMR = lpSrc->res.resBitMask.relBMR;
+		lpDest->res.resBitMask.ulMask = lpSrc->res.resBitMask.ulMask;
+		lpDest->res.resBitMask.ulPropTag = lpSrc->res.resBitMask.ulPropTag;
+		break;
+	case RES_SIZE:
+		lpDest->res.resSize.cb = lpSrc->res.resSize.cb;
+		lpDest->res.resSize.relop = lpSrc->res.resSize.relop;
+		lpDest->res.resSize.ulPropTag = lpSrc->res.resSize.ulPropTag;
+		break;
+	case RES_EXIST:
+		lpDest->res.resExist.ulPropTag = lpSrc->res.resExist.ulPropTag;
+		break;
+	case RES_SUBRESTRICTION:
+		lpDest->res.resSub.ulSubObject = lpSrc->res.resSub.ulSubObject;
+		hr = MAPIAllocateMore(sizeof(SRestriction), lpBase, (void **)&lpDest->res.resSub.lpRes);
+		if (hr != hrSuccess)
+			return hr;
+		return HrCopySRestriction(lpDest->res.resSub.lpRes, lpSrc->res.resSub.lpRes, lpBase);
+	case RES_COMMENT: // What a weird restriction type
+		lpDest->res.resComment.cValues	= lpSrc->res.resComment.cValues;
+		lpDest->res.resComment.lpRes	= NULL;
 
-			if(lpSrc->res.resComment.cValues > 0)
-			{
-				hr = MAPIAllocateMore(sizeof(SPropValue) * lpSrc->res.resComment.cValues, lpBase, (void **) &lpDest->res.resComment.lpProp);
-				if (hr != hrSuccess)
-					return hr;
-				hr = HrCopyPropertyArray(lpSrc->res.resComment.lpProp, lpSrc->res.resComment.cValues, lpDest->res.resComment.lpProp, lpBase);
-				if(hr != hrSuccess)
-					return hr;
-			}
-
-			if(lpSrc->res.resComment.lpRes) {
-				hr = MAPIAllocateMore(sizeof(SRestriction), lpBase, (void **) &lpDest->res.resComment.lpRes);
-				if (hr != hrSuccess)
-					return hr;
-				hr = HrCopySRestriction(lpDest->res.resComment.lpRes, lpSrc->res.resComment.lpRes, lpBase);
-			}
-
-			break;
+		if (lpSrc->res.resComment.cValues > 0)
+		{
+			hr = MAPIAllocateMore(sizeof(SPropValue) * lpSrc->res.resComment.cValues, lpBase, (void **) &lpDest->res.resComment.lpProp);
+			if (hr != hrSuccess)
+				return hr;
+			hr = HrCopyPropertyArray(lpSrc->res.resComment.lpProp, lpSrc->res.resComment.cValues, lpDest->res.resComment.lpProp, lpBase);
+			if (hr != hrSuccess)
+				return hr;
+		}
+		if (lpSrc->res.resComment.lpRes) {
+			hr = MAPIAllocateMore(sizeof(SRestriction), lpBase, (void **) &lpDest->res.resComment.lpRes);
+			if (hr != hrSuccess)
+				return hr;
+			hr = HrCopySRestriction(lpDest->res.resComment.lpRes, lpSrc->res.resComment.lpRes, lpBase);
+		}
+		break;
 	}
 	return hr;
 }
@@ -730,55 +728,51 @@ HRESULT	Util::HrCopyAction(ACTION *lpDest, const ACTION *lpSrc, void *lpBase)
 	lpDest->ulFlags = lpSrc->ulFlags;
 
 	switch(lpSrc->acttype) {
-		case OP_MOVE:
-		case OP_COPY:
-			lpDest->actMoveCopy.cbStoreEntryId = lpSrc->actMoveCopy.cbStoreEntryId;
-			hr = MAPIAllocateMore(lpSrc->actMoveCopy.cbStoreEntryId, lpBase, (void **) &lpDest->actMoveCopy.lpStoreEntryId);
-			if(hr != hrSuccess)
-				return hr;
-			memcpy(lpDest->actMoveCopy.lpStoreEntryId, lpSrc->actMoveCopy.lpStoreEntryId, lpSrc->actMoveCopy.cbStoreEntryId);
-
-			lpDest->actMoveCopy.cbFldEntryId = lpSrc->actMoveCopy.cbFldEntryId;
-			hr = MAPIAllocateMore(lpSrc->actMoveCopy.cbFldEntryId, lpBase, (void **) &lpDest->actMoveCopy.lpFldEntryId);
-			if(hr != hrSuccess)
-				return hr;
-			memcpy(lpDest->actMoveCopy.lpFldEntryId, lpSrc->actMoveCopy.lpFldEntryId, lpSrc->actMoveCopy.cbFldEntryId);
-
-			break;
-		case OP_REPLY:
-		case OP_OOF_REPLY:
-			lpDest->actReply.cbEntryId = lpSrc->actReply.cbEntryId;
-			hr = MAPIAllocateMore(lpSrc->actReply.cbEntryId, lpBase, (void **) &lpDest->actReply.lpEntryId);
-			if(hr != hrSuccess)
-				return hr;
-			memcpy(lpDest->actReply.lpEntryId, lpSrc->actReply.lpEntryId, lpSrc->actReply.cbEntryId);
-
-			lpDest->actReply.guidReplyTemplate = lpSrc->actReply.guidReplyTemplate;
-			break;
-		case OP_DEFER_ACTION:
-			lpDest->actDeferAction.cbData = lpSrc->actDeferAction.cbData;
-			hr = MAPIAllocateMore(lpSrc->actDeferAction.cbData, lpBase, (void **)&lpDest->actDeferAction.pbData);
-			if(hr != hrSuccess)
-				return hr;
-			memcpy(lpDest->actDeferAction.pbData, lpSrc->actDeferAction.pbData, lpSrc->actDeferAction.cbData);
-
-			break;
-		case OP_BOUNCE:
-			lpDest->scBounceCode = lpSrc->scBounceCode;
-			break;
-		case OP_FORWARD:
-		case OP_DELEGATE:
-			hr = MAPIAllocateMore(CbNewSRowSet(lpSrc->lpadrlist->cEntries), lpBase, reinterpret_cast<void **>(&lpDest->lpadrlist));
-			if(hr != hrSuccess)
-				return hr;
-			return HrCopySRowSet((LPSRowSet)lpDest->lpadrlist, (LPSRowSet)lpSrc->lpadrlist, lpBase);
-		case OP_TAG:
-			return HrCopyProperty(&lpDest->propTag, &lpSrc->propTag, lpBase);
-		case OP_DELETE:
-		case OP_MARK_AS_READ:
-			 break;
-		default:
-			break;
+	case OP_MOVE:
+	case OP_COPY:
+		lpDest->actMoveCopy.cbStoreEntryId = lpSrc->actMoveCopy.cbStoreEntryId;
+		hr = MAPIAllocateMore(lpSrc->actMoveCopy.cbStoreEntryId, lpBase, (void **) &lpDest->actMoveCopy.lpStoreEntryId);
+		if (hr != hrSuccess)
+			return hr;
+		memcpy(lpDest->actMoveCopy.lpStoreEntryId, lpSrc->actMoveCopy.lpStoreEntryId, lpSrc->actMoveCopy.cbStoreEntryId);
+		lpDest->actMoveCopy.cbFldEntryId = lpSrc->actMoveCopy.cbFldEntryId;
+		hr = MAPIAllocateMore(lpSrc->actMoveCopy.cbFldEntryId, lpBase, (void **) &lpDest->actMoveCopy.lpFldEntryId);
+		if (hr != hrSuccess)
+			return hr;
+		memcpy(lpDest->actMoveCopy.lpFldEntryId, lpSrc->actMoveCopy.lpFldEntryId, lpSrc->actMoveCopy.cbFldEntryId);
+		break;
+	case OP_REPLY:
+	case OP_OOF_REPLY:
+		lpDest->actReply.cbEntryId = lpSrc->actReply.cbEntryId;
+		hr = MAPIAllocateMore(lpSrc->actReply.cbEntryId, lpBase, (void **) &lpDest->actReply.lpEntryId);
+		if (hr != hrSuccess)
+			return hr;
+		memcpy(lpDest->actReply.lpEntryId, lpSrc->actReply.lpEntryId, lpSrc->actReply.cbEntryId);
+		lpDest->actReply.guidReplyTemplate = lpSrc->actReply.guidReplyTemplate;
+		break;
+	case OP_DEFER_ACTION:
+		lpDest->actDeferAction.cbData = lpSrc->actDeferAction.cbData;
+		hr = MAPIAllocateMore(lpSrc->actDeferAction.cbData, lpBase, (void **)&lpDest->actDeferAction.pbData);
+		if (hr != hrSuccess)
+			return hr;
+		memcpy(lpDest->actDeferAction.pbData, lpSrc->actDeferAction.pbData, lpSrc->actDeferAction.cbData);
+		break;
+	case OP_BOUNCE:
+		lpDest->scBounceCode = lpSrc->scBounceCode;
+		break;
+	case OP_FORWARD:
+	case OP_DELEGATE:
+		hr = MAPIAllocateMore(CbNewSRowSet(lpSrc->lpadrlist->cEntries), lpBase, reinterpret_cast<void **>(&lpDest->lpadrlist));
+		if (hr != hrSuccess)
+			return hr;
+		return HrCopySRowSet((LPSRowSet)lpDest->lpadrlist, (LPSRowSet)lpSrc->lpadrlist, lpBase);
+	case OP_TAG:
+		return HrCopyProperty(&lpDest->propTag, &lpSrc->propTag, lpBase);
+	case OP_DELETE:
+	case OP_MARK_AS_READ:
+		break;
+	default:
+		break;
 	}
 	return hr;
 }
@@ -1715,39 +1709,39 @@ bool Util::ValidatePropTagArray(const SPropTagArray *lpPropTagArray)
 	for (i = 0; i < lpPropTagArray->cValues; ++i) {
 		switch (PROP_TYPE(lpPropTagArray->aulPropTag[i]))
 		{
-			case PT_UNSPECIFIED:
-			case PT_NULL:
-			case PT_I2:
-			case PT_I4:
-			case PT_R4:
-			case PT_R8:
-			case PT_BOOLEAN:
-			case PT_CURRENCY:
-			case PT_APPTIME:
-			case PT_SYSTIME:
-			case PT_I8:
-			case PT_STRING8:
-			case PT_BINARY:
-			case PT_UNICODE:
-			case PT_CLSID:
-			case PT_OBJECT:
-			case PT_MV_I2:
-			case PT_MV_LONG:
-			case PT_MV_R4:
-			case PT_MV_DOUBLE:
-			case PT_MV_CURRENCY:
-			case PT_MV_APPTIME:
-			case PT_MV_SYSTIME:
-			case PT_MV_BINARY:
-			case PT_MV_STRING8:
-			case PT_MV_UNICODE:
-			case PT_MV_CLSID:
-			case PT_MV_I8:
-			case PT_ERROR:
-				bResult = true;
-				break;
-			default:
-				return false;
+		case PT_UNSPECIFIED:
+		case PT_NULL:
+		case PT_I2:
+		case PT_I4:
+		case PT_R4:
+		case PT_R8:
+		case PT_BOOLEAN:
+		case PT_CURRENCY:
+		case PT_APPTIME:
+		case PT_SYSTIME:
+		case PT_I8:
+		case PT_STRING8:
+		case PT_BINARY:
+		case PT_UNICODE:
+		case PT_CLSID:
+		case PT_OBJECT:
+		case PT_MV_I2:
+		case PT_MV_LONG:
+		case PT_MV_R4:
+		case PT_MV_DOUBLE:
+		case PT_MV_CURRENCY:
+		case PT_MV_APPTIME:
+		case PT_MV_SYSTIME:
+		case PT_MV_BINARY:
+		case PT_MV_STRING8:
+		case PT_MV_UNICODE:
+		case PT_MV_CLSID:
+		case PT_MV_I8:
+		case PT_ERROR:
+			bResult = true;
+			break;
+		default:
+			return false;
 		}
 	}
 	return bResult;
@@ -2432,13 +2426,12 @@ ULONG Util::GetBestBody(LPSPropValue lpPropArray, ULONG cValues, ULONG ulFlags)
 bool Util::IsBodyProp(ULONG ulPropTag)
 {
 	switch (PROP_ID(ulPropTag)) {
-		case PROP_ID(PR_BODY):
-		case PROP_ID(PR_HTML):
-		case PROP_ID(PR_RTF_COMPRESSED):
-			return true;
-
-		default:
-			return false;
+	case PROP_ID(PR_BODY):
+	case PROP_ID(PR_HTML):
+	case PROP_ID(PR_RTF_COMPRESSED):
+		return true;
+	default:
+		return false;
 	}
 }
 

@@ -257,14 +257,13 @@ HRESULT ArchiveHelper::GetArchiveType(ArchiveType *lparchType, AttachType *lpatt
 		hr = hrSuccess;
 	} else if (hr == hrSuccess) {
 		switch (ptrPropVal->Value.l) {
-			case SingleArchive:
-			case MultiArchive:
-				archType = (ArchiveType)ptrPropVal->Value.l;
-				break;
-
-			default:
-				hr = MAPI_E_CORRUPT_DATA;
-				break;
+		case SingleArchive:
+		case MultiArchive:
+			archType = (ArchiveType)ptrPropVal->Value.l;
+			break;
+		default:
+			hr = MAPI_E_CORRUPT_DATA;
+			break;
 		}
 	}
 	if (hr != hrSuccess)
@@ -280,14 +279,13 @@ HRESULT ArchiveHelper::GetArchiveType(ArchiveType *lparchType, AttachType *lpatt
 			hr = hrSuccess;
 		} else if (hr == hrSuccess) {
 			switch (ptrPropVal->Value.l) {
-				case ExplicitAttach:
-				case ImplicitAttach:
-					attachType = (AttachType)ptrPropVal->Value.l;
-					break;
-
-				default:
-					hr = MAPI_E_CORRUPT_DATA;
-					break;
+			case ExplicitAttach:
+			case ImplicitAttach:
+				attachType = (AttachType)ptrPropVal->Value.l;
+				break;
+			default:
+				hr = MAPI_E_CORRUPT_DATA;
+				break;
 			}
 		}
 		if (hr != hrSuccess)
@@ -804,30 +802,26 @@ HRESULT ArchiveHelper::CreateSpecialFolder(eSpecFolder sfWhich, LPMAPIFOLDER *lp
 		return hr;
 
 	switch (sfWhich) {
-		case sfBase:
-			lpszName = _("Kopano Archive");
-			lpszDesc = _("This folder contains the special archive folders.");
-			ulCreateFlags = 0;
-			break;
-
-		case sfHistory:
-			lpszName = _("History");
-			lpszDesc = _("This folder contains archives that have been replaced by a newer version.");
-			break;
-
-		case sfOutgoing:
-			lpszName = _("Outgoing");
-			lpszDesc = _("This folder contains archives of all outgoing messages.");
-			break;
-
-		case sfDeleted:
-			lpszName = _("Deleted");
-			lpszDesc = _("This folder contains archives of messages that have been deleted.");
-			break;
-
-		default:
-			assert(false);
-			return MAPI_E_INVALID_PARAMETER;
+	case sfBase:
+		lpszName = _("Kopano Archive");
+		lpszDesc = _("This folder contains the special archive folders.");
+		ulCreateFlags = 0;
+		break;
+	case sfHistory:
+		lpszName = _("History");
+		lpszDesc = _("This folder contains archives that have been replaced by a newer version.");
+		break;
+	case sfOutgoing:
+		lpszName = _("Outgoing");
+		lpszDesc = _("This folder contains archives of all outgoing messages.");
+		break;
+	case sfDeleted:
+		lpszName = _("Deleted");
+		lpszDesc = _("This folder contains archives of messages that have been deleted.");
+		break;
+	default:
+		assert(false);
+		return MAPI_E_INVALID_PARAMETER;
 	}
 
 	do {

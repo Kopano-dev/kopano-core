@@ -39,14 +39,14 @@ HRESULT Dump(std::ostream &os, LPMAPIPROP lpProp, const std::string &strPrefix)
 	auto lpObjType = PCpropFindProp(ptrProps.get(), cValues, PR_OBJECT_TYPE);
 	if (lpObjType) {
 		switch (lpObjType->Value.l) {
-			case MAPI_MESSAGE:
-				strObjType = "Message";
-				break;
-			case MAPI_ATTACH:
-				strObjType = "Attach";
-				break;
-			default:
-				break;
+		case MAPI_MESSAGE:
+			strObjType = "Message";
+			break;
+		case MAPI_ATTACH:
+			strObjType = "Attach";
+			break;
+		default:
+			break;
 		}
 	}
 

@@ -1435,9 +1435,9 @@ int compareSortKeys(unsigned int cbKey1, const unsigned char *lpKey1, unsigned i
 	int cmp = 1;
 	UErrorCode status = U_ZERO_ERROR;
 	switch (ckA.compareTo(ckB, status)) {
-		case UCOL_LESS:		cmp = -1; break;
-		case UCOL_EQUAL:	cmp =  0; break;
-		case UCOL_GREATER:	cmp =  1; break;
+	case UCOL_LESS:		cmp = -1; break;
+	case UCOL_EQUAL:	cmp =  0; break;
+	case UCOL_GREATER:	cmp =  1; break;
 	}
 	return cmp;
 #else

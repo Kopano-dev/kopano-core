@@ -1711,50 +1711,50 @@ static HRESULT GetRestrictTagsRecursive(const SRestriction *lpRestriction,
 		return MAPI_E_TOO_COMPLEX;
 
 	switch(lpRestriction->rt) {
-		case RES_AND:
-			for (i = 0; i < lpRestriction->res.resAnd.cRes; ++i) {
-				hr = GetRestrictTagsRecursive(&lpRestriction->res.resAnd.lpRes[i], lpList, ulLevel+1);
-				if(hr != hrSuccess)
-					return hr;
-			}
-			break;
-		case RES_OR:
-			for (i = 0; i < lpRestriction->res.resOr.cRes; ++i) {
-				hr = GetRestrictTagsRecursive(&lpRestriction->res.resOr.lpRes[i], lpList, ulLevel+1);
-				if(hr != hrSuccess)
-					return hr;
-			}
-			break;
-		case RES_NOT:
-			hr = GetRestrictTagsRecursive(lpRestriction->res.resNot.lpRes, lpList, ulLevel+1);
-			break;
-		case RES_CONTENT:
-			lpList->push_back(lpRestriction->res.resContent.ulPropTag);
-			lpList->push_back(lpRestriction->res.resContent.lpProp->ulPropTag);
-			break;
-		case RES_PROPERTY:
-			lpList->push_back(lpRestriction->res.resProperty.ulPropTag);
-			lpList->push_back(lpRestriction->res.resProperty.lpProp->ulPropTag);
-			break;
-		case RES_COMPAREPROPS:
-			lpList->push_back(lpRestriction->res.resCompareProps.ulPropTag1);
-			lpList->push_back(lpRestriction->res.resCompareProps.ulPropTag2);
-			break;
-		case RES_BITMASK:
-			lpList->push_back(lpRestriction->res.resBitMask.ulPropTag);
-			break;
-		case RES_SIZE:
-			lpList->push_back(lpRestriction->res.resSize.ulPropTag);
-			break;
-		case RES_EXIST:
-			lpList->push_back(lpRestriction->res.resExist.ulPropTag);
-			break;
-		case RES_SUBRESTRICTION:
-			lpList->push_back(lpRestriction->res.resSub.ulSubObject);
-			break;
-		case RES_COMMENT:
-			hr = GetRestrictTagsRecursive(lpRestriction->res.resComment.lpRes, lpList, ulLevel+1);
-			break;
+	case RES_AND:
+		for (i = 0; i < lpRestriction->res.resAnd.cRes; ++i) {
+			hr = GetRestrictTagsRecursive(&lpRestriction->res.resAnd.lpRes[i], lpList, ulLevel+1);
+			if (hr != hrSuccess)
+				return hr;
+		}
+		break;
+	case RES_OR:
+		for (i = 0; i < lpRestriction->res.resOr.cRes; ++i) {
+			hr = GetRestrictTagsRecursive(&lpRestriction->res.resOr.lpRes[i], lpList, ulLevel+1);
+			if (hr != hrSuccess)
+				return hr;
+		}
+		break;
+	case RES_NOT:
+		hr = GetRestrictTagsRecursive(lpRestriction->res.resNot.lpRes, lpList, ulLevel+1);
+		break;
+	case RES_CONTENT:
+		lpList->push_back(lpRestriction->res.resContent.ulPropTag);
+		lpList->push_back(lpRestriction->res.resContent.lpProp->ulPropTag);
+		break;
+	case RES_PROPERTY:
+		lpList->push_back(lpRestriction->res.resProperty.ulPropTag);
+		lpList->push_back(lpRestriction->res.resProperty.lpProp->ulPropTag);
+		break;
+	case RES_COMPAREPROPS:
+		lpList->push_back(lpRestriction->res.resCompareProps.ulPropTag1);
+		lpList->push_back(lpRestriction->res.resCompareProps.ulPropTag2);
+		break;
+	case RES_BITMASK:
+		lpList->push_back(lpRestriction->res.resBitMask.ulPropTag);
+		break;
+	case RES_SIZE:
+		lpList->push_back(lpRestriction->res.resSize.ulPropTag);
+		break;
+	case RES_EXIST:
+		lpList->push_back(lpRestriction->res.resExist.ulPropTag);
+		break;
+	case RES_SUBRESTRICTION:
+		lpList->push_back(lpRestriction->res.resSub.ulSubObject);
+		break;
+	case RES_COMMENT:
+		hr = GetRestrictTagsRecursive(lpRestriction->res.resComment.lpRes, lpList, ulLevel+1);
+		break;
 	}
 	return hr;
 }
@@ -2434,20 +2434,20 @@ HRESULT HrGetAllProps(IMAPIProp *lpProp, ULONG ulFlags, ULONG *lpcValues, LPSPro
 			lpProps[i].ulPropTag = lpTags->aulPropTag[i];
 				
 			switch PROP_TYPE(lpTags->aulPropTag[i]) {
-				case PT_STRING8:
-					lpProps[i].Value.lpszA = (char *)lpData;
-					lpProps[i].Value.lpszA[strData.size()] = 0;
-					break;
-				case PT_UNICODE:
-					lpProps[i].Value.lpszW = (wchar_t *)lpData;
-					lpProps[i].Value.lpszW[strData.size() / sizeof(WCHAR)] = 0;
-					break;
-				case PT_BINARY:
-					lpProps[i].Value.bin.lpb = (LPBYTE)lpData;
-					lpProps[i].Value.bin.cb = strData.size();
-					break;
-				default:
-					assert(false);
+			case PT_STRING8:
+				lpProps[i].Value.lpszA = (char *)lpData;
+				lpProps[i].Value.lpszA[strData.size()] = 0;
+				break;
+			case PT_UNICODE:
+				lpProps[i].Value.lpszW = (wchar_t *)lpData;
+				lpProps[i].Value.lpszW[strData.size() / sizeof(WCHAR)] = 0;
+				break;
+			case PT_BINARY:
+				lpProps[i].Value.bin.lpb = (LPBYTE)lpData;
+				lpProps[i].Value.bin.cb = strData.size();
+				break;
+			default:
+				assert(false);
 			}
 		}
 	}

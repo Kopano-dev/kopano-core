@@ -47,9 +47,9 @@ namespace details {
 	HRESULT HrFromException(const convert_exception &ce)
 	{
 		switch (ce.type()) {
-			case convert_exception::eUnknownCharset:	return MAPI_E_NOT_FOUND;
-			case convert_exception::eIllegalSequence:	return MAPI_E_INVALID_PARAMETER;
-			default:									return MAPI_E_CALL_FAILED;
+		case convert_exception::eUnknownCharset:	return MAPI_E_NOT_FOUND;
+		case convert_exception::eIllegalSequence:	return MAPI_E_INVALID_PARAMETER;
+		default:					return MAPI_E_CALL_FAILED;
 		}
 	}
 

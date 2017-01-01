@@ -983,15 +983,15 @@ void generic_sigsegv_handler(ECLogger *lpLogger, const char *app_name,
 		lpLogger->Log(EC_LOGLEVEL_FATAL, "Peak RSS: %ld", rusage.ru_maxrss);
         
 	switch (signr) {
-		case SIGSEGV:
-			lpLogger->Log(EC_LOGLEVEL_FATAL, "Pid %d caught SIGSEGV (%d), traceback:", getpid(), signr);
-			break;
-		case SIGBUS:
-			lpLogger->Log(EC_LOGLEVEL_FATAL, "Pid %d caught SIGBUS (%d), possible invalid mapped memory access, traceback:", getpid(), signr);
-			break;
-		case SIGABRT:
-			lpLogger->Log(EC_LOGLEVEL_FATAL, "Pid %d caught SIGABRT (%d), out of memory or unhandled exception, traceback:", getpid(), signr);
-			break;
+	case SIGSEGV:
+		lpLogger->Log(EC_LOGLEVEL_FATAL, "Pid %d caught SIGSEGV (%d), traceback:", getpid(), signr);
+		break;
+	case SIGBUS:
+		lpLogger->Log(EC_LOGLEVEL_FATAL, "Pid %d caught SIGBUS (%d), possible invalid mapped memory access, traceback:", getpid(), signr);
+		break;
+	case SIGABRT:
+		lpLogger->Log(EC_LOGLEVEL_FATAL, "Pid %d caught SIGABRT (%d), out of memory or unhandled exception, traceback:", getpid(), signr);
+		break;
 	}
 
 	ec_log_bt(EC_LOGLEVEL_CRIT, "Backtrace:");
