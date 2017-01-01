@@ -1988,8 +1988,7 @@ std::string RestrictionToString(const SRestriction *lpRestriction,
 			}
 			for (j = 0; j < indent; ++j)
 				strResult += "  ";
-			strResult += "---or---\n";
-			break;
+			return strResult + "---or---\n";
 		case RES_AND:
 			strResult = "RES_AND: ("+stringify(lpRestriction->res.resAnd.cRes)+")\n";
 			for (i = 0; i < lpRestriction->res.resAnd.cRes; ++i) {
@@ -1999,9 +1998,7 @@ std::string RestrictionToString(const SRestriction *lpRestriction,
 			}
 			for (j = 0; j < indent; ++j)
 				strResult += "  ";
-			strResult += "---and---\n";
-			break;
-
+			return strResult + "---and---\n";
 		case RES_BITMASK:
 			strResult = "RES_BITMASK:\n";
 			for (j = 0; j < indent; ++j)
@@ -2022,8 +2019,7 @@ std::string RestrictionToString(const SRestriction *lpRestriction,
 			strResult += "proptag: "+PropNameFromPropTag(lpRestriction->res.resBitMask.ulPropTag)+"\n";
 			for (j = 0; j < indent; ++j)
 				strResult += "  ";
-			strResult += "mask: "+stringify(lpRestriction->res.resBitMask.ulMask)+"\n";
-			break;
+			return strResult + "mask: " + stringify(lpRestriction->res.resBitMask.ulMask)+"\n";
 		case RES_COMMENT:
 			strResult = "RES_COMMENT:\n";
 			for (j = 0; j < indent; ++j)
@@ -2031,8 +2027,7 @@ std::string RestrictionToString(const SRestriction *lpRestriction,
 			strResult += "props: " + PropNameFromPropArray(lpRestriction->res.resComment.cValues, lpRestriction->res.resComment.lpProp)+"\n";
 			for (j = 0; j < indent; ++j)
 				strResult += "  ";
-			strResult += "restriction: "+ RestrictionToString(lpRestriction->res.resComment.lpRes, indent+1)+"\n";
-			break;
+			return strResult + "restriction: " + RestrictionToString(lpRestriction->res.resComment.lpRes, indent + 1) + "\n";
 		case RES_COMPAREPROPS:
 			strResult = "RES_COMPAREPROPS:\n";
 			for (j = 0; j < indent; ++j)
@@ -2045,8 +2040,7 @@ std::string RestrictionToString(const SRestriction *lpRestriction,
 			strResult += "proptag1: "+PropNameFromPropTag(lpRestriction->res.resCompareProps.ulPropTag1)+"\n";
 			for (j = 0; j < indent; ++j)
 				strResult += "  ";
-			strResult += "proptag2: "+PropNameFromPropTag(lpRestriction->res.resCompareProps.ulPropTag2)+"\n";
-			break;
+			return strResult + "proptag2: " + PropNameFromPropTag(lpRestriction->res.resCompareProps.ulPropTag2) + "\n";
 		case RES_CONTENT:
 			strResult = "RES_CONTENT:\n";
 			for (j = 0; j < indent; ++j)
@@ -2057,20 +2051,17 @@ std::string RestrictionToString(const SRestriction *lpRestriction,
 			strResult += "proptag: "+PropNameFromPropTag(lpRestriction->res.resContent.ulPropTag)+"\n";
 			for (j = 0; j < indent; ++j)
 				strResult += "  ";
-			strResult += "props: " + PropNameFromPropArray(1, lpRestriction->res.resContent.lpProp)+"\n";
-			break;
+			return strResult + "props: " + PropNameFromPropArray(1, lpRestriction->res.resContent.lpProp) + "\n";
 		case RES_EXIST:
 			strResult = "RES_EXIST:\n";
 			for (j = 0; j < indent; ++j)
 				strResult += "  ";
-			strResult += "proptag: "+PropNameFromPropTag(lpRestriction->res.resExist.ulPropTag)+"\n";
-			break;
+			return strResult + "proptag: " + PropNameFromPropTag(lpRestriction->res.resExist.ulPropTag) + "\n";
 		case RES_NOT:
 			strResult = "RES_NOT:\n";
 			for (j = 0; j < indent; ++j)
 				strResult += "  ";
-			strResult += "restriction: "+ RestrictionToString(lpRestriction->res.resNot.lpRes, indent+1)+"\n";
-			break;
+			return strResult + "restriction: " + RestrictionToString(lpRestriction->res.resNot.lpRes, indent + 1) + "\n";
 		case RES_PROPERTY:
 			strResult = "RES_PROPERTY:\n";
 			for (j = 0; j < indent; ++j)
@@ -2083,8 +2074,7 @@ std::string RestrictionToString(const SRestriction *lpRestriction,
 			strResult += "proptag: "+PropNameFromPropTag(lpRestriction->res.resProperty.ulPropTag)+((lpRestriction->res.resProperty.ulPropTag&MV_FLAG)?" (MV_PROP)":"")+"\n";
 			for (j = 0; j < indent; ++j)
 				strResult += "  ";
-			strResult += "props: " + PropNameFromPropArray(1, lpRestriction->res.resProperty.lpProp)+((lpRestriction->res.resProperty.lpProp->ulPropTag&MV_FLAG)?" (MV_PROP)":"")+"\n";
-			break;
+			return strResult + "props: " + PropNameFromPropArray(1, lpRestriction->res.resProperty.lpProp) + ((lpRestriction->res.resProperty.lpProp->ulPropTag & MV_FLAG) ? " (MV_PROP)" : "") + "\n";
 		case RES_SIZE:
 			strResult = "RES_SIZE:\n";
 			for (j = 0; j < indent; ++j)
@@ -2097,8 +2087,7 @@ std::string RestrictionToString(const SRestriction *lpRestriction,
 			strResult += "proptag: "+PropNameFromPropTag(lpRestriction->res.resSize.ulPropTag)+"\n";
 			for (j = 0; j < indent; ++j)
 				strResult += "  ";
-			strResult += "sizeofprop: "+ stringify(lpRestriction->res.resSize.cb) + "\n";
-			break;
+			return strResult + "sizeofprop: " + stringify(lpRestriction->res.resSize.cb) + "\n";
 		case RES_SUBRESTRICTION:
 			strResult = "RES_SUBRESTRICTION:\n";
 			for (j = 0; j < indent; ++j)
@@ -2116,14 +2105,10 @@ std::string RestrictionToString(const SRestriction *lpRestriction,
 			}
 			for (j = 0; j < indent; ++j)
 				strResult += "  ";
-			strResult += "Restriction: "+ RestrictionToString(lpRestriction->res.resSub.lpRes, indent+1)+"\n";
-			break;
+			return strResult + "Restriction: " + RestrictionToString(lpRestriction->res.resSub.lpRes, indent + 1) + "\n";
 		default:
-			strResult = "UNKNOWN TYPE:\n";
-			break;
+			return "UNKNOWN TYPE:\n";
 	}
-
-	return strResult;
 }
 
 std::string PropValueToString(const SPropValue *lpPropValue)
@@ -2136,109 +2121,77 @@ std::string PropValueToString(const SPropValue *lpPropValue)
 
 	switch(PROP_TYPE(lpPropValue->ulPropTag)) {	
 		case PT_I2:
-			strResult = "PT_I2: "+stringify(lpPropValue->Value.i)+", "+stringify(lpPropValue->Value.i,true);
-			break;
+			return "PT_I2: " + stringify(lpPropValue->Value.i) + ", " + stringify(lpPropValue->Value.i, true);
 		case PT_LONG:
-			strResult = "PT_LONG: "+stringify(lpPropValue->Value.ul)+", "+stringify(lpPropValue->Value.ul,true);
-			break;
+			return "PT_LONG: " + stringify(lpPropValue->Value.ul) + ", " + stringify(lpPropValue->Value.ul, true);
 		case PT_BOOLEAN:
-			strResult = "PT_BOOLEAN: "+stringify(lpPropValue->Value.b);
-			break;
+			return "PT_BOOLEAN: " + stringify(lpPropValue->Value.b);
 		case PT_R4:
-			strResult = "PT_R4: "+stringify_float(lpPropValue->Value.flt);
-			break;
+			return "PT_R4: " + stringify_float(lpPropValue->Value.flt);
 		case PT_DOUBLE:
-			strResult = "PT_DOUBLE: "+stringify_double(lpPropValue->Value.dbl);
-			break;
+			return "PT_DOUBLE: " + stringify_double(lpPropValue->Value.dbl);
 		case PT_APPTIME:
-			strResult = "PT_APPTIME: "+stringify_double(lpPropValue->Value.at);
-			break;
+			return "PT_APPTIME: " + stringify_double(lpPropValue->Value.at);
 		case PT_CURRENCY:
-			strResult = "PT_CURRENCY: lo="+stringify(lpPropValue->Value.cur.Lo)+" hi="+stringify(lpPropValue->Value.cur.Hi);
-			break;
+			return "PT_CURRENCY: lo=" + stringify(lpPropValue->Value.cur.Lo) + " hi=" + stringify(lpPropValue->Value.cur.Hi);
 		case PT_SYSTIME:
-			strResult = "PT_SYSTIME: fth="+stringify(lpPropValue->Value.ft.dwHighDateTime)+" ftl="+stringify(lpPropValue->Value.ft.dwLowDateTime);
-			break;
+			return "PT_SYSTIME: fth=" + stringify(lpPropValue->Value.ft.dwHighDateTime) + " ftl=" + stringify(lpPropValue->Value.ft.dwLowDateTime);
 		case PT_I8:
-			strResult = "PT_I8: "+stringify(lpPropValue->Value.li.HighPart) + "," + stringify(lpPropValue->Value.li.LowPart);
-			break;
+			return "PT_I8: " + stringify(lpPropValue->Value.li.HighPart) + "," + stringify(lpPropValue->Value.li.LowPart);
 		case PT_UNICODE:
-			strResult = "PT_UNICODE: " + convert_to<std::string>("UTF-8", lpPropValue->Value.lpszW, rawsize(lpPropValue->Value.lpszW), CHARSET_WCHAR);
-			break;
+			return "PT_UNICODE: " + convert_to<std::string>("UTF-8", lpPropValue->Value.lpszW, rawsize(lpPropValue->Value.lpszW), CHARSET_WCHAR);
 		case PT_STRING8:
-			strResult = "PT_STRING8: "+ ((lpPropValue->Value.lpszA)?(std::string)lpPropValue->Value.lpszA:std::string("NULL"));
-			break;
+			return "PT_STRING8: " + (lpPropValue->Value.lpszA ? (std::string)lpPropValue->Value.lpszA : std::string("NULL"));
 		case PT_BINARY:
-			strResult = "PT_BINARY: cb="+stringify(lpPropValue->Value.bin.cb);
-			strResult+= " Data="+((lpPropValue->Value.bin.lpb)?bin2hex(lpPropValue->Value.bin.cb, lpPropValue->Value.bin.lpb) : std::string("NULL"));
-			break;
+			return "PT_BINARY: cb=" + stringify(lpPropValue->Value.bin.cb) +
+				" Data=" + (lpPropValue->Value.bin.lpb ? bin2hex(lpPropValue->Value.bin.cb, lpPropValue->Value.bin.lpb) : std::string("NULL"));
 		case PT_CLSID:
-			strResult = "PT_CLSID: (Skip)";
-			break;
+			return "PT_CLSID: (Skip)";
 		case PT_NULL:
-			strResult = "PT_NULL: ";
-			break;
+			return "PT_NULL: ";
 		case PT_UNSPECIFIED:
-			strResult = "PT_UNSPECIFIED: ";
-			break;
+			return "PT_UNSPECIFIED: ";
 		case PT_ERROR:
-			strResult = "PT_ERROR: "+GetMAPIErrorDescription(lpPropValue->Value.err);
-			break;
+			return "PT_ERROR: " + GetMAPIErrorDescription(lpPropValue->Value.err);
 		case PT_SRESTRICTION:
-			strResult = "PT_SRESTRICTION: structure...";
-			break;
+			return "PT_SRESTRICTION: structure...";
 		case PT_ACTIONS:
-			strResult = "PT_ACTIONS: structure...";
-			break;
+			return "PT_ACTIONS: structure...";
 		case PT_OBJECT:
-			strResult = "<OBJECT>";
-			break;
+			return "<OBJECT>";
 		case PT_MV_I2:
-			strResult = "PT_MV_I2[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
-			break;
+			return "PT_MV_I2[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
 		case PT_MV_LONG:
-			strResult = "PT_MV_LONG[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
-			break;
+			return "PT_MV_LONG[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
 		case PT_MV_R4:
-			strResult = "PT_MV_R4[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
-			break;
+			return "PT_MV_R4[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
 		case PT_MV_DOUBLE:
-			strResult = "PT_MV_DOUBLE[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
-			break;
+			return "PT_MV_DOUBLE[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
 		case PT_MV_APPTIME:
-			strResult = "PT_MV_APPTIME[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
-			break;
+			return "PT_MV_APPTIME[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
 		case PT_MV_CURRENCY:
-			strResult = "PT_MV_CURRENCY[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
-			break;
+			return "PT_MV_CURRENCY[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
 		case PT_MV_SYSTIME:
-			strResult = "PT_MV_SYSTIME[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
-			break;
+			return "PT_MV_SYSTIME[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
 		case PT_MV_I8:
-			strResult = "PT_MV_I8[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
-			break;
+			return "PT_MV_I8[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
 		case PT_MV_UNICODE:
 			strResult = "PT_MV_UNICODE[" + stringify(lpPropValue->Value.MVi.cValues) + "]" + "\n";
 			for (unsigned int i = 0; i < lpPropValue->Value.MVi.cValues; ++i)
 				strResult += std::string("\t") + convert_to<std::string>(lpPropValue->Value.MVszW.lppszW[i]) + "\n";
-			break;
+			return strResult;
 		case PT_MV_STRING8:
 			strResult = "PT_MV_STRING8[" + stringify(lpPropValue->Value.MVi.cValues) + "]" + "\n";
 			for (unsigned int i = 0; i < lpPropValue->Value.MVi.cValues; ++i)
 				strResult += std::string("\t") + lpPropValue->Value.MVszA.lppszA[i] + "\n";
-			break;
+			return strResult;
 		case PT_MV_BINARY:
-			strResult = "PT_MV_BINARY[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
-			break;
+			return "PT_MV_BINARY[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
 		case PT_MV_CLSID:
-			strResult = "PT_MV_CLSID[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
-			break;
+			return "PT_MV_CLSID[" + stringify(lpPropValue->Value.MVi.cValues) + "]";
 		default:
-			strResult = "<UNKNOWN>";
-			break;
+			return "<UNKNOWN>";
 	}
-
-return strResult;
 }
 
 std::string RowToString(const SRow *lpRow)
@@ -2348,20 +2301,14 @@ std::string SortOrderToString(const SSortOrder *lpSort)
 	switch(lpSort->ulOrder)
 	{
 		case TABLE_SORT_ASCEND:
-			strResult += "TABLE_SORT_ASCEND";
-			break;
+			return strResult + "TABLE_SORT_ASCEND";
 		case TABLE_SORT_COMBINE:
-			strResult += "TABLE_SORT_COMBINE";
-			break;
+			return strResult + "TABLE_SORT_COMBINE";
 		case TABLE_SORT_DESCEND:
-			strResult += "TABLE_SORT_DESCEND";
-			break;
+			return strResult + "TABLE_SORT_DESCEND";
 		default:
-			strResult += "<UNKNOWN> "+stringify(lpSort->ulOrder);
-			break;
+			return strResult + "<UNKNOWN> " + stringify(lpSort->ulOrder);
 	}
-
-	return strResult;
 }
 
 std::string SortOrderSetToString(const SSortOrderSet *lpSortCriteria)

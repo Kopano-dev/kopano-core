@@ -813,7 +813,6 @@ exit:
 HRESULT POP3::HrMakeMailList() {
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPITable> lpTable;
-	LPSRowSet lpRows = NULL;
 	MailListItem sMailListItem;
 	enum { EID, SIZE, NUM_COLS };
 	SizedSPropTagArray(NUM_COLS, spt) = { NUM_COLS, {PR_ENTRYID, PR_MESSAGE_SIZE} };
@@ -822,13 +821,15 @@ HRESULT POP3::HrMakeMailList() {
 
 	hr = lpInbox->GetContentsTable(0, &~lpTable);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpTable->SetColumns(spt, 0);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
 	hr = lpTable->SortTable(tableSort, 0);
 	if (hr != hrSuccess)
-		goto exit;
+		return hr;
+
+	LPSRowSet lpRows = nullptr;
 	hr = lpTable->QueryRows(-1, 0, &lpRows);
 	if (hr != hrSuccess)
 		goto exit;

@@ -77,7 +77,7 @@ namespace KC {
 	( OBJECTCLASS_FIELD_COMPARE(OBJECTCLASS_TYPE(__left), OBJECTCLASS_TYPE(__right)) && \
 	  OBJECTCLASS_FIELD_COMPARE((__left) & 0xffff, (__right) & 0xffff) )
 #define OBJECTCLASS_COMPARE_SQL(__column, __objclass) \
-	string((!(__objclass)) ? \
+	string(((__objclass) == 0) ? \
 			"TRUE" : \
 			((__objclass) & 0xffff) ? \
 				__column " = " + stringify(__objclass) : \

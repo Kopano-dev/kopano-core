@@ -28,130 +28,50 @@ namespace KC {
  */
 HRESULT kcerr_to_mapierr(ECRESULT ecResult, HRESULT hrDefault)
 {
-	HRESULT hr = S_OK;
-
 	switch(ecResult) {
-		case KCERR_NONE:
-			hr = S_OK;
-			break;
-		/*case KCERR_UNKNOWN://FIXME: No MAPI error?
-			hr = MAPI_E_UNKNOWN;
-			break;*/
-		case KCERR_NOT_FOUND:
-			hr = MAPI_E_NOT_FOUND;
-			break;
-		case KCERR_NO_ACCESS:
-			hr = MAPI_E_NO_ACCESS;
-			break;
-		case KCERR_NETWORK_ERROR:
-			hr = MAPI_E_NETWORK_ERROR;
-			break;
-		case KCERR_SERVER_NOT_RESPONDING:
-			hr = MAPI_E_NETWORK_ERROR;
-			break;
-		case KCERR_INVALID_TYPE:
-			hr = MAPI_E_INVALID_TYPE;
-			break;
-		case KCERR_DATABASE_ERROR:
-			hr = MAPI_E_DISK_ERROR;
-			break;
-		case KCERR_COLLISION:
-			hr = MAPI_E_COLLISION;
-			break;
-		case KCERR_LOGON_FAILED:
-			hr = MAPI_E_LOGON_FAILED;
-			break;
-		case KCERR_HAS_MESSAGES:
-			hr = MAPI_E_HAS_MESSAGES;
-			break;
-		case KCERR_HAS_FOLDERS:
-			hr = MAPI_E_HAS_FOLDERS;
-			break;
-/*		case KCERR_HAS_RECIPIENTS://FIXME: No MAPI error?
-			hr = KCERR_HAS_RECIPIENTS; 
-			break;*/
-/*		case KCERR_HAS_ATTACHMENTS://FIXME: No MAPI error?
-			hr = KCERR_HAS_ATTACHMENTS;
-			break;*/
-		case KCERR_NOT_ENOUGH_MEMORY:
-			hr = MAPI_E_NOT_ENOUGH_MEMORY;
-			break;
-		case KCERR_TOO_COMPLEX:
-			hr = MAPI_E_TOO_COMPLEX;
-			break;
-		case KCERR_END_OF_SESSION:
-			hr = MAPI_E_END_OF_SESSION;
-			break;
-		case KCERR_UNABLE_TO_ABORT:
-			hr = MAPI_E_UNABLE_TO_ABORT;
-			break;
-		case KCWARN_CALL_KEEPALIVE: //Internal information
-			hr = KCWARN_CALL_KEEPALIVE;
-			break;
-		case KCERR_NOT_IN_QUEUE:
-			hr = MAPI_E_NOT_IN_QUEUE;
-			break;
-		case KCERR_INVALID_PARAMETER:
-			hr = MAPI_E_INVALID_PARAMETER;
-			break;
-		case KCWARN_PARTIAL_COMPLETION:
-			hr = MAPI_W_PARTIAL_COMPLETION;
-			break;
-		case KCERR_INVALID_ENTRYID:
-			hr = MAPI_E_INVALID_ENTRYID;
-			break;
-		case KCERR_NO_SUPPORT:
-		case KCERR_NOT_IMPLEMENTED:
-			hr = MAPI_E_NO_SUPPORT;
-			break;
-		case KCERR_TOO_BIG:
-			hr = MAPI_E_TOO_BIG;
-			break;
-		case KCWARN_POSITION_CHANGED:
-			hr = MAPI_W_POSITION_CHANGED;
-			break;
-		case KCERR_FOLDER_CYCLE:
-			hr = MAPI_E_FOLDER_CYCLE;
-			break;
-		case KCERR_STORE_FULL:
-			hr = MAPI_E_STORE_FULL;
-			break;
-		case KCERR_NOT_INITIALIZED:
-			hr = MAPI_E_NOT_INITIALIZED;
-			break;
-		case KCERR_CALL_FAILED:
-			hr = MAPI_E_CALL_FAILED;
-			break;
-		case KCERR_TIMEOUT:
-			hr = MAPI_E_TIMEOUT;
-			break;
-		case KCERR_INVALID_BOOKMARK:
-			hr = MAPI_E_INVALID_BOOKMARK;
-			break;
-		case KCERR_UNABLE_TO_COMPLETE:
-			hr = MAPI_E_UNABLE_TO_COMPLETE;
-			break;
-		case KCERR_INVALID_VERSION:
-			hr = MAPI_E_VERSION;
-			break;
-		case KCERR_OBJECT_DELETED:
-			hr = MAPI_E_OBJECT_DELETED;
-			break;
-		case KCERR_USER_CANCEL:
-			hr = MAPI_E_USER_CANCEL;
-			break;
-		case KCERR_UNKNOWN_FLAGS:
-			hr = MAPI_E_UNKNOWN_FLAGS;
-			break;
-		case KCERR_SUBMITTED:
-			hr = MAPI_E_SUBMITTED;
-			break;
-		default:
-			hr = hrDefault;
-			break;
+	case KCERR_NONE:		return S_OK;
+//	case KCERR_UNKNOWN:		return MAPI_E_UNKNOWN; // No MAPI error?
+	case KCERR_NOT_FOUND:		return MAPI_E_NOT_FOUND;
+	case KCERR_NO_ACCESS:		return MAPI_E_NO_ACCESS;
+	case KCERR_NETWORK_ERROR:	return MAPI_E_NETWORK_ERROR;
+	case KCERR_SERVER_NOT_RESPONDING:	return MAPI_E_NETWORK_ERROR;
+	case KCERR_INVALID_TYPE:	return MAPI_E_INVALID_TYPE;
+	case KCERR_DATABASE_ERROR:	return MAPI_E_DISK_ERROR;
+	case KCERR_COLLISION:		return MAPI_E_COLLISION;
+	case KCERR_LOGON_FAILED:	return MAPI_E_LOGON_FAILED;
+	case KCERR_HAS_MESSAGES:	return MAPI_E_HAS_MESSAGES;
+	case KCERR_HAS_FOLDERS:		return MAPI_E_HAS_FOLDERS;
+//	case KCERR_HAS_RECIPIENTS:	return KCERR_HAS_RECIPIENTS; // No MAPI error?
+//	case KCERR_HAS_ATTACHMENTS:	return KCERR_HAS_ATTACHMENTS; // No MAPI error?
+	case KCERR_NOT_ENOUGH_MEMORY:	return MAPI_E_NOT_ENOUGH_MEMORY;
+	case KCERR_TOO_COMPLEX:		return MAPI_E_TOO_COMPLEX;
+	case KCERR_END_OF_SESSION:	return MAPI_E_END_OF_SESSION;
+	case KCERR_UNABLE_TO_ABORT:	return MAPI_E_UNABLE_TO_ABORT;
+	case KCWARN_CALL_KEEPALIVE: 	return KCWARN_CALL_KEEPALIVE; // Internal information
+	case KCERR_NOT_IN_QUEUE:	return MAPI_E_NOT_IN_QUEUE;
+	case KCERR_INVALID_PARAMETER:	return MAPI_E_INVALID_PARAMETER;
+	case KCWARN_PARTIAL_COMPLETION:	return MAPI_W_PARTIAL_COMPLETION;
+	case KCERR_INVALID_ENTRYID:	return MAPI_E_INVALID_ENTRYID;
+	case KCERR_TOO_BIG:		return MAPI_E_TOO_BIG;
+	case KCWARN_POSITION_CHANGED:	return MAPI_W_POSITION_CHANGED;
+	case KCERR_FOLDER_CYCLE:	return MAPI_E_FOLDER_CYCLE;
+	case KCERR_STORE_FULL:		return MAPI_E_STORE_FULL;
+	case KCERR_NOT_INITIALIZED:	return MAPI_E_NOT_INITIALIZED;
+	case KCERR_CALL_FAILED:		return MAPI_E_CALL_FAILED;
+	case KCERR_TIMEOUT:		return MAPI_E_TIMEOUT;
+	case KCERR_INVALID_BOOKMARK:	return MAPI_E_INVALID_BOOKMARK;
+	case KCERR_UNABLE_TO_COMPLETE:	return MAPI_E_UNABLE_TO_COMPLETE;
+	case KCERR_INVALID_VERSION:	return MAPI_E_VERSION;
+	case KCERR_OBJECT_DELETED:	return MAPI_E_OBJECT_DELETED;
+	case KCERR_USER_CANCEL:		return MAPI_E_USER_CANCEL;
+	case KCERR_UNKNOWN_FLAGS:	return MAPI_E_UNKNOWN_FLAGS;
+	case KCERR_SUBMITTED:		return MAPI_E_SUBMITTED;
+
+	case KCERR_NO_SUPPORT:
+	case KCERR_NOT_IMPLEMENTED:
+		return MAPI_E_NO_SUPPORT;
+	default:			return hrDefault;
 	}
-	
-	return hr;
 }
 
 } /* namespace */

@@ -614,25 +614,21 @@ HRESULT	Util::HrCopySRestriction(LPSRestriction lpDest,
 			hr = MAPIAllocateMore(sizeof(SRestriction), lpBase, (void **) &lpDest->res.resNot.lpRes);
 			if (hr != hrSuccess)
 				return hr;
-			hr = HrCopySRestriction(lpDest->res.resNot.lpRes, lpSrc->res.resNot.lpRes, lpBase);
-			
-			break;
+			return HrCopySRestriction(lpDest->res.resNot.lpRes, lpSrc->res.resNot.lpRes, lpBase);
 		case RES_CONTENT:
 			lpDest->res.resContent.ulFuzzyLevel = lpSrc->res.resContent.ulFuzzyLevel;
 			lpDest->res.resContent.ulPropTag = lpSrc->res.resContent.ulPropTag;
 			hr = MAPIAllocateMore(sizeof(SPropValue), lpBase, (void **) &lpDest->res.resContent.lpProp);
 			if (hr != hrSuccess)
 				return hr;
-			hr = HrCopyProperty(lpDest->res.resContent.lpProp, lpSrc->res.resContent.lpProp, lpBase);
-			break;
+			return HrCopyProperty(lpDest->res.resContent.lpProp, lpSrc->res.resContent.lpProp, lpBase);
 		case RES_PROPERTY:
 			lpDest->res.resProperty.relop = lpSrc->res.resProperty.relop;
 			lpDest->res.resProperty.ulPropTag = lpSrc->res.resProperty.ulPropTag;
 			hr = MAPIAllocateMore(sizeof(SPropValue), lpBase, (void **) &lpDest->res.resProperty.lpProp);
 			if (hr != hrSuccess)
 				return hr;
-			hr = HrCopyProperty(lpDest->res.resProperty.lpProp, lpSrc->res.resProperty.lpProp, lpBase);
-			break;
+			return HrCopyProperty(lpDest->res.resProperty.lpProp, lpSrc->res.resProperty.lpProp, lpBase);
 		case RES_COMPAREPROPS:	 
 			lpDest->res.resCompareProps.relop = lpSrc->res.resCompareProps.relop;
 			lpDest->res.resCompareProps.ulPropTag1 = lpSrc->res.resCompareProps.ulPropTag1;
@@ -656,8 +652,7 @@ HRESULT	Util::HrCopySRestriction(LPSRestriction lpDest,
 			hr = MAPIAllocateMore(sizeof(SRestriction), lpBase, (void **)&lpDest->res.resSub.lpRes);
 			if (hr != hrSuccess)
 				return hr;
-			hr = HrCopySRestriction(lpDest->res.resSub.lpRes, lpSrc->res.resSub.lpRes, lpBase);
-			break;
+			return HrCopySRestriction(lpDest->res.resSub.lpRes, lpSrc->res.resSub.lpRes, lpBase);
 		case RES_COMMENT: // What a weird restriction type
 			lpDest->res.resComment.cValues	= lpSrc->res.resComment.cValues;
 			lpDest->res.resComment.lpRes	= NULL;
@@ -776,11 +771,9 @@ HRESULT	Util::HrCopyAction(ACTION *lpDest, const ACTION *lpSrc, void *lpBase)
 			hr = MAPIAllocateMore(CbNewSRowSet(lpSrc->lpadrlist->cEntries), lpBase, reinterpret_cast<void **>(&lpDest->lpadrlist));
 			if(hr != hrSuccess)
 				return hr;
-			hr = HrCopySRowSet((LPSRowSet)lpDest->lpadrlist, (LPSRowSet)lpSrc->lpadrlist, lpBase);
-			break;
+			return HrCopySRowSet((LPSRowSet)lpDest->lpadrlist, (LPSRowSet)lpSrc->lpadrlist, lpBase);
 		case OP_TAG:
-			hr = HrCopyProperty(&lpDest->propTag, &lpSrc->propTag, lpBase);
-			break;
+			return HrCopyProperty(&lpDest->propTag, &lpSrc->propTag, lpBase);
 		case OP_DELETE:
 		case OP_MARK_AS_READ:
 			 break;

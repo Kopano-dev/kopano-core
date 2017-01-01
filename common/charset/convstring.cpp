@@ -37,17 +37,11 @@ convstring convstring::from_SPropValue(const SPropValue *lpsPropVal)
 	switch (PROP_TYPE(lpsPropVal->ulPropTag)) {
 	case PT_STRING8:
 		return convstring(lpsPropVal->Value.lpszA);
-		break;
-	
 	case PT_UNICODE:
 		return convstring(lpsPropVal->Value.lpszW);
-		break;
-	
 	default:
-		break;
+		return convstring();
 	}
-		
-	return convstring();
 }
 
 /** Create a convstring instance from a SPropValue.
