@@ -1218,9 +1218,8 @@ HRESULT VConverter::HrAddRecipients(icalcomponent *lpicEvent, icalitem *lpIcalIt
 			continue;
 
 		icrAttendee.strEmail = m_converter.convert_to<wstring>(tmp, rawsize(tmp), m_strCharset.c_str());
-		if (wcsncasecmp(icrAttendee.strEmail.c_str(), L"mailto:", 7) == 0) {
+		if (wcsncasecmp(icrAttendee.strEmail.c_str(), L"mailto:", 7) == 0)
 			icrAttendee.strEmail.erase(0, 7);
-		}
 
 		// @todo: Add organiser details if required.
 		if(icrAttendee.strEmail == strEmail) // remove organiser from attendee list.
@@ -1320,9 +1319,8 @@ HRESULT VConverter::HrAddReplyRecipients(icalcomponent *lpicEvent, icalitem *lpI
 		if (lpicProp) {
 			const char *lpszProp = icalproperty_get_attendee(lpicProp);
 			strEmail = m_converter.convert_to<std::wstring>(lpszProp, rawsize(lpszProp), m_strCharset.c_str());
-			if (wcsncasecmp(strEmail.c_str(), L"mailto:", 7) == 0) {
+			if (wcsncasecmp(strEmail.c_str(), L"mailto:", 7) == 0)
 				strEmail.erase(0, 7);
-			}
 
 			lpicParam = icalproperty_get_first_parameter(lpicProp, ICAL_CN_PARAMETER);
 			if (lpicParam) {

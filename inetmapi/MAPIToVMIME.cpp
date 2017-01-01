@@ -355,13 +355,11 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 		hr = HrGetOneProp(lpAttachedMessage, PR_MESSAGE_CLASS_A, &~lpAMClass);
 		if (hr == hrSuccess &&
 			strcmp(lpAMClass->Value.lpszA, "IPM.OLE.CLASS.{00061055-0000-0000-C000-000000000046}") == 0)
-		{
 				// This is an exception message. We might get here because kopano-ical is able to
 				// SubmitMessage for Mac Ical meeting requests. The way Outlook does this, is
 				// send a message for each exception itself. We just ignore this exception, since
 				// it's already in the main ical data on the top level message.
 			return hr;
-		}
 
 		// sub objects do not necessarily need to have valid recipients, so disable the test
 		sopt_keep = sopt;
@@ -378,10 +376,9 @@ HRESULT MAPIToVMIME::handleSingleAttachment(IMessage* lpMessage, LPSRow lpRow, v
 
 		// recursive processing of embedded message as a new e-mail
 		hr = convertMAPIToVMIME(lpAttachedMessage, &vmNewMess);
-		if (hr != hrSuccess) {
+		if (hr != hrSuccess)
 			// Logging has been done by convertMAPIToVMIME()
 			return hr;
-		}
 		sopt = sopt_keep;
 
 		vmMsgAtt = vmime::make_shared<vmime::parsedMessageAttachment>(vmNewMess);
@@ -2056,14 +2053,11 @@ HRESULT MAPIToVMIME::handleTNEF(IMessage* lpMessage, vmime::messageBuilder* lpVM
         if(hr != hrSuccess)
             goto exit;
             
-        for ( unsigned int i = 0; i < lpAttachRows->cRows; ++i) {
+        for (unsigned int i = 0; i < lpAttachRows->cRows; ++i)
             if(lpAttachRows->aRow[i].lpProps[0].ulPropTag == PR_ATTACH_METHOD && 
                 lpAttachRows->aRow[i].lpProps[1].ulPropTag == PR_ATTACH_NUM &&
                 lpAttachRows->aRow[i].lpProps[0].Value.ul == ATTACH_OLE)
-            {
                 lstOLEAttach.push_back(lpAttachRows->aRow[i].lpProps[1].Value.ul);
-            }
-        }
 	
         // Start processing TNEF properties
 		if (HrGetOneProp(lpMessage, PR_EC_SEND_AS_ICAL, &~lpSendAsICal) != hrSuccess)

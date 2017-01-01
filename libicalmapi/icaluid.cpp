@@ -131,12 +131,10 @@ HRESULT HrGetICalUidFromBinUid(const SBinary &sBin, std::string *lpStrUid)
 	HRESULT hr = hrSuccess;
 	std::string strUid;
 
-	if (sBin.cb > 0x34 && memcmp(sBin.lpb + 0x28, "vCal-Uid", 8) == 0) {
+	if (sBin.cb > 0x34 && memcmp(sBin.lpb + 0x28, "vCal-Uid", 8) == 0)
 		strUid = (char*)sBin.lpb + 0x34;
-	} else {
+	else
 		strUid = bin2hex(sBin.cb, sBin.lpb);
-	}
-
 	lpStrUid->swap(strUid);
 
 	return hr;

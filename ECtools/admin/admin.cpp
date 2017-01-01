@@ -3344,11 +3344,9 @@ int main(int argc, char* argv[])
 						cerr << "Unable to load server details, " << getMapiCodeString(hr, (char*)lpECUser->lpszServername) << endl;
 						goto exit;
 					}
-
-					if ((lpServerDetails->lpsaServer[0].ulFlags & EC_SDFLAG_IS_PEER) == 0) {
+					if ((lpServerDetails->lpsaServer[0].ulFlags & EC_SDFLAG_IS_PEER) == 0)
 						// since we don't know which server we're connected to, don't print a server name.
 						cerr << "WARNING: Hooking store on non-homeserver of " << username << endl;
-					}
 				}
 			}
 
@@ -3478,13 +3476,12 @@ int main(int argc, char* argv[])
 
 		// lpECUser memory will be kept alive to let the SetUser() call work
 		for (ULONG i = 0; i < lpECUser->sMVPropmap.cEntries; ++i) {
-			if (lpECUser->sMVPropmap.lpEntries[i].ulPropId == PR_EC_ENABLED_FEATURES_A) {
+			if (lpECUser->sMVPropmap.lpEntries[i].ulPropId == PR_EC_ENABLED_FEATURES_A)
 				sEnabled.insert((char**)lpECUser->sMVPropmap.lpEntries[i].lpszValues,
 						(char**)lpECUser->sMVPropmap.lpEntries[i].lpszValues + lpECUser->sMVPropmap.lpEntries[i].cValues);
-			} else if (lpECUser->sMVPropmap.lpEntries[i].ulPropId == PR_EC_DISABLED_FEATURES_A) {
+			else if (lpECUser->sMVPropmap.lpEntries[i].ulPropId == PR_EC_DISABLED_FEATURES_A)
 				sDisabled.insert((char**)lpECUser->sMVPropmap.lpEntries[i].lpszValues,
 						(char**)lpECUser->sMVPropmap.lpEntries[i].lpszValues + lpECUser->sMVPropmap.lpEntries[i].cValues);
-			}
 		}
 
 		if (feature) {
@@ -3994,11 +3991,10 @@ int main(int argc, char* argv[])
 			cerr << "Cache clear failed" << endl;
 			goto exit;
 		}
-		if (ulCachePurgeMode != PURGE_CACHE_ALL) {
+		if (ulCachePurgeMode != PURGE_CACHE_ALL)
 			cout << "Cache cleared with flags " << ulCachePurgeMode << endl;
-		} else {
+		else
 			cout << "Cache cleared." << endl;
-		}
 		break;
 	case MODE_PURGE_DEFERRED:
 		while(1) {

@@ -149,10 +149,8 @@ HRESULT allocNamedIdList(ULONG ulSize, LPMAPINAMEID **lpppNameArray)
 		return hr;
 
 	hr = MAPIAllocateMore(ulSize * sizeof(MAPINAMEID), lppArray, (void**)&lpBuffer);
-	if (hr != hrSuccess) {
+	if (hr != hrSuccess)
 		return hr;
-	}
-
 	for (ULONG i = 0; i < ulSize; ++i)
 		lppArray[i] = &lpBuffer[i];
 

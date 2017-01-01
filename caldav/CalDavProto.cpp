@@ -1946,14 +1946,12 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 
 		} else if (strProperty == "getctag" || strProperty == "getetag") {
 			// ctag and etag should always be present
-			if (lpFoundProp) {
+			if (lpFoundProp)
 				sWebProperty.strValue = SPropValToString(lpFoundProp);
-			} else {
+			else
 				// this happens when a client (evolution) queries the getctag (local commit time max) on the IPM Subtree
 				// (incorrectly configured client)
 				sWebProperty.strValue = "0";
-			}
-
 		} else if (strProperty == "email-address-set" && (!!ptrEmail || lpFoundProp)) {
 			// email from properties (propsearch command) or fullname of user ("root" props)
 			HrSetDavPropName(&(sWebVal.sPropName), "email-address", WEBDAVNS);

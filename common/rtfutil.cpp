@@ -1306,9 +1306,9 @@ HRESULT HrExtractBODYFromTextRTF(const std::string &lpStrRTFIn,
 		} else if(*szInput == '\r' || *szInput == '\n') {
 			++szInput;
 		} else {
-			if(!sState[ulState].bInFontTbl && !sState[ulState].bRTFOnly && !sState[ulState].bInColorTbl && !sState[ulState].bInSkipTbl && !sState[ulState].ulSkipChars) {
+			if (!sState[ulState].bInFontTbl && !sState[ulState].bRTFOnly && !sState[ulState].bInColorTbl && !sState[ulState].bInSkipTbl && !sState[ulState].ulSkipChars)
 				sState[ulState].output.append(1,*szInput);
-			} else if (sState[ulState].ulSkipChars)
+			else if (sState[ulState].ulSkipChars)
 				--sState[ulState].ulSkipChars;
 			++szInput;
 		}

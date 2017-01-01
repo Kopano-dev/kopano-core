@@ -4866,12 +4866,10 @@ HRESULT IMAP::HrStore(const list<ULONG> &lstMails, string strMsgDataItemName, st
 
 		// FLAGS, FLAGS.SILENT, +FLAGS, +FLAGS.SILENT, -FLAGS, -FLAGS.SILENT
 		if (strMsgDataItemName.compare(0, 5, "FLAGS") == 0) {
-
-			if (strMsgDataItemValue.find("\\SEEN") == string::npos) {
+			if (strMsgDataItemValue.find("\\SEEN") == string::npos)
 				hr = lpMessage->SetReadFlag(CLEAR_READ_FLAG);
-			} else {
+			else
 				hr = lpMessage->SetReadFlag(SUPPRESS_RECEIPT);
-			}
 			if (hr != hrSuccess)
 				return hr;
 			hr = lpMessage->GetProps(proptags5, 0, &cValues, &~lpPropVal);

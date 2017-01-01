@@ -158,13 +158,12 @@ HRESULT MapiToICalImpl::AddMessage(LPMESSAGE lpMessage, const std::string &strSr
 			m_tzMap[strSrvTZ] = ttTZinfo;	// keep timezone pointer for tasks
 	}
 
-	if (strcasecmp(lpMessageClass->Value.lpszA, "IPM.Task") == 0) {
+	if (strcasecmp(lpMessageClass->Value.lpszA, "IPM.Task") == 0)
 		lpVEC.reset(new VTodoConverter(m_lpAdrBook, &m_tzMap, m_lpNamedProps, m_strCharset, blCensor, false, NULL));
-	} else if (strcasecmp(lpMessageClass->Value.lpszA, "IPM.Appointment") == 0 || strncasecmp(lpMessageClass->Value.lpszA, "IPM.Schedule", strlen("IPM.Schedule")) == 0) {
+	else if (strcasecmp(lpMessageClass->Value.lpszA, "IPM.Appointment") == 0 || strncasecmp(lpMessageClass->Value.lpszA, "IPM.Schedule", strlen("IPM.Schedule")) == 0)
 		lpVEC.reset(new VEventConverter(m_lpAdrBook, &m_tzMap, m_lpNamedProps, m_strCharset, blCensor, false, NULL));
-	} else {
+	else
 		return MAPI_E_TYPE_NO_SUPPORT;
-	}
 
 	// converts item to ical item (eg. IPM.Appointment to VEVENT)
 	hr = lpVEC->HrMAPI2ICal(lpMessage, &icMethod, &lstEvents);

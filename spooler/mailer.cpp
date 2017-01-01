@@ -2026,14 +2026,13 @@ static HRESULT ProcessMessage(IMAPISession *lpAdminSession,
 	}
 
 	// fatal, all other log messages are otherwise somewhat meaningless
-	if (g_lpLogger->Log(EC_LOGLEVEL_DEBUG)) {
+	if (g_lpLogger->Log(EC_LOGLEVEL_DEBUG))
 		g_lpLogger->Log(EC_LOGLEVEL_DEBUG, "Sending e-mail for user %ls, subject: '%ls', size: %d",
 			lpUser->lpszUsername, lpSubject ? lpSubject->Value.lpszW : L"<none>",
 			lpMsgSize ? lpMsgSize->Value.ul : 0);
-	} else {
+	else
 		g_lpLogger->Log(EC_LOGLEVEL_INFO, "Sending e-mail for user %ls, size: %d",
 			lpUser->lpszUsername, lpMsgSize ? lpMsgSize->Value.ul : 0);
-	}
 
 	/* 
 

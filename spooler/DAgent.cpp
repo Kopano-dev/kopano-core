@@ -2791,13 +2791,12 @@ static HRESULT ProcessDeliveryToCompany(PyMapiPlugin *lppyMapiPlugin,
 		     lpMasterMessage, bFallbackDelivery, strMail,
 		     convert_to<std::string>(iter.first), iter.second,
 		     lpAdrBook, lpArgs, &~lpMessageTmp, &bFallbackDeliveryTmp);
-		if (hr == MAPI_W_CANCEL_MESSAGE) {
+		if (hr == MAPI_W_CANCEL_MESSAGE)
 			bExpired =  true;
 			/* Don't report the error further (ignore it) */
-		} else if (hr != hrSuccess) {
+		else if (hr != hrSuccess)
 			g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Unable to deliver all messages for server '%ls'",
 				iter.first.c_str());
-		}
 
 		/* lpMessage is our base message which we will copy to each server/recipient */
 		if (lpMessageTmp == nullptr)

@@ -503,9 +503,8 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 		// @todo add PyUnicode_Check call?
 		if (ulFlags == CONV_COPY_SHALLOW && NATIVE_UNICODE)
 			lpProp->Value.lpszW = (WCHAR *)PyUnicode_AsUnicode(Value);
-		else {
+		else
 			CopyPyUnicode(&lpProp->Value.lpszW, Value, lpBase);
-		}
 		break;
 	case PT_ERROR:
 		lpProp->Value.ul = (ULONG)PyLong_AsUnsignedLong(Value);
@@ -688,9 +687,8 @@ void Object_to_p_SPropValue(PyObject *object, SPropValue *lpProp,
 		while((elem = PyIter_Next(iter))) {
 			if (ulFlags == CONV_COPY_SHALLOW && NATIVE_UNICODE)
 				lpProp->Value.MVszW.lppszW[n] = (WCHAR*)PyUnicode_AsUnicode(elem);
-			else {
+			else
 				CopyPyUnicode(&lpProp->Value.MVszW.lppszW[n], Value, lpBase);
-			}
 			Py_DECREF(elem);
 			++n;
 		}
@@ -2317,9 +2315,8 @@ NOTIFICATION *	Object_to_LPNOTIFICATION(PyObject *obj)
 			}
 
 			if (oTmp != Py_None) {
-				if(lpNotif->info.newmail.ulFlags & MAPI_UNICODE) {
+				if (lpNotif->info.newmail.ulFlags & MAPI_UNICODE)
 				    CopyPyUnicode(&lpNotif->info.newmail.lpszMessageClass, oTmp, lpNotif);
-                }
 				else
 					PyString_AsStringAndSize(oTmp, (char**)&lpNotif->info.newmail.lpszMessageClass, NULL);
 			}

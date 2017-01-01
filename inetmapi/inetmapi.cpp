@@ -259,13 +259,12 @@ HRESULT IMToINet(IMAPISession *lpSession, IAddrBook *lpAddrBook,
 	try {
 		vmime::messageId msgId;
 		hr = lpMessage->GetProps(sptaForwardProps, 0, &cValues, &~ptrProps);
-		if (!FAILED(hr) && ptrProps[0].ulPropTag == PR_AUTO_FORWARDED && ptrProps[0].Value.b == TRUE && ptrProps[1].ulPropTag == PR_INTERNET_MESSAGE_ID_A) {
+		if (!FAILED(hr) && ptrProps[0].ulPropTag == PR_AUTO_FORWARDED && ptrProps[0].Value.b == TRUE && ptrProps[1].ulPropTag == PR_INTERNET_MESSAGE_ID_A)
 			// only allow mapi programs to set a messageId for an outgoing message when it comes from rules processing
 			msgId = ptrProps[1].Value.lpszA;
-		} else {
+		else
 			// vmime::messageId::generateId() is not random enough since we use forking in the spooler
 			msgId = vmime::messageId(generateRandomMessageId(), vmime::platform::getHandler()->getHostName());
-		}
 		vmMessage->getHeader()->MessageId()->setValue(msgId);
 		ec_log_debug("Sending message with Message-ID: " + msgId.getId());
 	}

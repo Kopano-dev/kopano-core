@@ -101,9 +101,8 @@ bool CHtmlToTextParser::Parse(const WCHAR *lpwHTML)
 			addSpace(false);
 			++lpwHTML;
 		} else {
-			if (fTextMode && fAddSpace) {
+			if (fTextMode && fAddSpace)
 				addSpace(false);
-			}
 
 			fAddSpace = false;
 			fTextMode = true;

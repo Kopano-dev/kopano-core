@@ -95,11 +95,10 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, ica
 	{
 		// check for duration property
 		lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_DURATION_PROPERTY);
-		if (lpicProp) {
+		if (lpicProp != nullptr)
 			dtUTCEnd = dtUTCStart + icaldurationtype_as_int(icalproperty_get_duration(lpicProp));
-		} else {
+		else
 			return MAPI_E_NOT_FOUND;
-		}
 	} else {
 		dtUTCEnd = ICalTimeTypeToUTC(lpicRootEvent, lpicProp);
 	}

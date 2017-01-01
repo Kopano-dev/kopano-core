@@ -1186,10 +1186,10 @@ HRESULT M4LMAPISession::OpenMsgStore(ULONG ulUIParam, ULONG cbEntryID, LPENTRYID
 		lpsRows = NULL;
 	}
 	
-	if(lpsRows->cRows != 1) {
+	if (lpsRows->cRows != 1)
 		// No provider for the store, use a temporary profile section
 		lpISupport.reset(new M4LMAPISupport(this, NULL, service));
-	} else
+	else
 		lpISupport.reset(new M4LMAPISupport(this, &sProviderUID, service));
 
 	// call kopano client for the Message Store Provider (provider/client/EntryPoint.cpp)
@@ -2844,12 +2844,12 @@ HRESULT __stdcall MAPILogonEx(ULONG ulUIParam, LPTSTR lpszProfileName, LPTSTR lp
 		goto exit;
 	}
 
-	if(ulFlags & MAPI_UNICODE) {
+	if (ulFlags & MAPI_UNICODE)
 		// since a profilename can only be us-ascii, convert
 		strProfname = convert_to<string>((WCHAR *)lpszProfileName);
-	} else {
+	else
 		strProfname = (char*)lpszProfileName;
-	}
+
 	hr = localProfileAdmin->AdminServices((LPTSTR)strProfname.c_str(), lpszPassword, ulUIParam, ulFlags & ~MAPI_UNICODE, &~sa);
 	if (hr != hrSuccess) {
 		ec_log_err("MAPILogonEx(): AdminServices fail %x: %s", hr, GetMAPIErrorMessage(hr));

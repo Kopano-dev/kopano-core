@@ -73,18 +73,16 @@ ZCABContainer::~ZCABContainer()
 
 HRESULT	ZCABContainer::QueryInterface(REFIID refiid, void **lppInterface)
 {
-	if (m_lpDistList == NULL) {
+	if (m_lpDistList == NULL)
 		REGISTER_INTERFACE2(ZCABContainer, this);
-	} else {
+	else
 		REGISTER_INTERFACE(IID_ZCDistList, this);
-	}
 	REGISTER_INTERFACE2(ECUnknown, this);
 
-	if (m_lpDistList == NULL) {
+	if (m_lpDistList == NULL)
 		REGISTER_INTERFACE2(IABContainer, &this->m_xABContainer);
-	} else {
+	else
 		REGISTER_INTERFACE(IID_IDistList, &this->m_xABContainer);
-	}
 	REGISTER_INTERFACE2(IMAPIProp, &this->m_xABContainer);
 	REGISTER_INTERFACE2(IUnknown, &this->m_xABContainer);
 	return MAPI_E_INTERFACE_NOT_SUPPORTED;
@@ -387,28 +385,25 @@ HRESULT ZCABContainer::GetFolderContentsTable(ULONG ulFlags, LPMAPITABLE *lppTab
 			ulOffset += I_NAMEDSTART;
 
 			lpColData[O_DISPLAY_NAME].ulPropTag = CHANGE_PROP_TYPE(ptrOutputCols->aulPropTag[O_DISPLAY_NAME], PROP_TYPE(ptrRows[i].lpProps[ulOffset + 0].ulPropTag));
-			if (PROP_TYPE(lpColData[O_DISPLAY_NAME].ulPropTag) == PT_ERROR) {
+			if (PROP_TYPE(lpColData[O_DISPLAY_NAME].ulPropTag) == PT_ERROR)
 				// Email#Display not available, fallback to normal PR_DISPLAY_NAME
 				lpColData[O_DISPLAY_NAME] = ptrRows[i].lpProps[I_DISPLAY_NAME];
-			} else {
+			else
 				lpColData[O_DISPLAY_NAME].Value = ptrRows[i].lpProps[ulOffset + 0].Value;
-			}
 
 			lpColData[O_EMAIL_ADDRESS].ulPropTag = CHANGE_PROP_TYPE(ptrOutputCols->aulPropTag[O_EMAIL_ADDRESS], PROP_TYPE(ptrRows[i].lpProps[ulOffset + 2].ulPropTag));
-			if (PROP_TYPE(lpColData[O_EMAIL_ADDRESS].ulPropTag) == PT_ERROR) {
+			if (PROP_TYPE(lpColData[O_EMAIL_ADDRESS].ulPropTag) == PT_ERROR)
 				// Email#Address not available, fallback to normal PR_EMAIL_ADDRESS
 				lpColData[O_EMAIL_ADDRESS] = ptrRows[i].lpProps[I_EMAIL_ADDRESS];
-			} else {
+			else
 				lpColData[O_EMAIL_ADDRESS].Value = ptrRows[i].lpProps[ulOffset + 2].Value;
-			}
 
 			lpColData[O_NORMALIZED_SUBJECT].ulPropTag = CHANGE_PROP_TYPE(ptrOutputCols->aulPropTag[O_NORMALIZED_SUBJECT], PROP_TYPE(ptrRows[i].lpProps[ulOffset + 3].ulPropTag));
-			if (PROP_TYPE(lpColData[O_NORMALIZED_SUBJECT].ulPropTag) == PT_ERROR) {
+			if (PROP_TYPE(lpColData[O_NORMALIZED_SUBJECT].ulPropTag) == PT_ERROR)
 				// Email#OriginalDisplayName not available, fallback to normal PR_NORMALIZED_SUBJECT
 				lpColData[O_NORMALIZED_SUBJECT] = ptrRows[i].lpProps[I_NORMALIZED_SUBJECT];
-			} else {
+			else
 				lpColData[O_NORMALIZED_SUBJECT].Value = ptrRows[i].lpProps[ulOffset + 3].Value;
-			}
 
 			lpColData[O_ORIGINAL_DISPLAY_NAME].ulPropTag = CHANGE_PROP_TYPE(ptrOutputCols->aulPropTag[O_ORIGINAL_DISPLAY_NAME], PROP_TYPE(ptrRows[i].lpProps[I_DISPLAY_NAME].ulPropTag));
 			lpColData[O_ORIGINAL_DISPLAY_NAME].Value = ptrRows[i].lpProps[I_DISPLAY_NAME].Value;

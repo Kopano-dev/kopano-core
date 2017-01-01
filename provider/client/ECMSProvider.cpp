@@ -139,11 +139,10 @@ HRESULT ECMSProvider::Logon(LPMAPISUP lpMAPISup, ULONG ulUIParam, LPTSTR lpszPro
 		memcpy(&guidMDBProvider, lpsPropArray[0].Value.bin.lpb, sizeof(MAPIUID));
 	} else if (fIsDefaultStore == FALSE){
 		// also fallback to private store when logon failed (hr, do not change)
-		if(hr != hrSuccess || lpTransport->HrGetStoreType(cbEntryID, lpEntryID, &ulStoreType) != hrSuccess) {
+		if (hr != hrSuccess || lpTransport->HrGetStoreType(cbEntryID, lpEntryID, &ulStoreType) != hrSuccess)
 			// Maintain backward-compat: if connecting to a server that does not support the storetype
 			// call, assume private store, which is what happened before this call was introduced
 			ulStoreType = ECSTORE_TYPE_PRIVATE;
-		}
 
 		if (ulStoreType == ECSTORE_TYPE_PRIVATE)
 			memcpy(&guidMDBProvider, &KOPANO_STORE_DELEGATE_GUID, sizeof(MAPIUID));

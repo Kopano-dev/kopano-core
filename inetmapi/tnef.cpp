@@ -213,9 +213,8 @@ static HRESULT StreamToPropValue(IStream *lpStream, ULONG ulPropTag,
 		hr = lpStream->Read(wptr + ulTotal, 4096, &ulRead);
 		if (hr != hrSuccess)
 			return hr;
-		if(ulRead == 0) {
+		if (ulRead == 0)
 			break;
-		}
 		ulTotal += ulRead;
 	}
 	*lppPropValue = lpPropValue.release();
@@ -835,11 +834,10 @@ HRESULT ECTNEF::HrWriteSingleProp(IStream *lpStream, LPSPropValue lpProp)
 			break;
 		
 		case PT_CLSID:
-			if(lpProp->ulPropTag & MV_FLAG) {
+			if (lpProp->ulPropTag & MV_FLAG)
 				hr = HrWriteData(lpStream, (char *)&lpProp->Value.MVguid.lpguid[ulMVProp], sizeof(GUID));
-			} else {
+			else
 				hr = HrWriteData(lpStream, (char *)lpProp->Value.lpguid, sizeof(GUID));
-			}
 			if (hr != hrSuccess)
 				return hr;
 			break;

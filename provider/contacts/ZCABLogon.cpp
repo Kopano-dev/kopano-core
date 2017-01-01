@@ -239,11 +239,9 @@ HRESULT ZCABLogon::OpenEntry(ULONG cbEntryID, LPENTRYID lpEntryID, LPCIID lpInte
 	}
 	if(hr != hrSuccess)
 		return hr;
-
-	if (!lpContact) {
+	if (lpContact == nullptr)
 		// root container has pointer to my m_lFolders
 		AddChild(lpRootContainer);
-	}
 	return hrSuccess;
 }
 
