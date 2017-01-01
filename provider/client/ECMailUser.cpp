@@ -65,21 +65,13 @@ HRESULT ECMailUser::TableRowGetProp(void* lpProvider, struct propVal *lpsPropVal
 
 HRESULT ECMailUser::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk)
 {
-	HRESULT			hr = MAPI_E_NOT_FOUND;
-
 	if (lpiid == NULL)
 		return MAPI_E_INVALID_PARAMETER;
 
 	if (ulFlags & MAPI_CREATE)
 		// Don't support creating any sub-objects
 		return MAPI_E_NO_ACCESS;
-
-	switch(ulPropTag) {
-	default:
-		hr = ECABProp::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
-		break;
-	}
-	return hr;
+	return ECABProp::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
 }
 
 HRESULT ECMailUser::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,

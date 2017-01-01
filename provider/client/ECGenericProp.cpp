@@ -318,17 +318,14 @@ HRESULT	ECGenericProp::DefaultGetProp(ULONG ulPropTag,  void* lpProvider, ULONG 
 	switch(PROP_ID(ulPropTag))
 	{
 		case PROP_ID(PR_ENTRYID):
-			if(lpProp->m_cbEntryId) {
-				lpsPropValue->ulPropTag = PR_ENTRYID;
-				lpsPropValue->Value.bin.cb = lpProp->m_cbEntryId;
-				if(lpBase == NULL)
-					assert(false);
-
-				ECAllocateMore(lpProp->m_cbEntryId, lpBase, (void **)&lpsPropValue->Value.bin.lpb);
-				memcpy(lpsPropValue->Value.bin.lpb, lpProp->m_lpEntryId, lpProp->m_cbEntryId);
-			} else {
-				hr = MAPI_E_NOT_FOUND;
-			}
+			if (lpProp->m_cbEntryId == 0)
+				return MAPI_E_NOT_FOUND;
+			lpsPropValue->ulPropTag = PR_ENTRYID;
+			lpsPropValue->Value.bin.cb = lpProp->m_cbEntryId;
+			if (lpBase == NULL)
+				assert(false);
+			ECAllocateMore(lpProp->m_cbEntryId, lpBase, (void **)&lpsPropValue->Value.bin.lpb);
+			memcpy(lpsPropValue->Value.bin.lpb, lpProp->m_lpEntryId, lpProp->m_cbEntryId);
 			break;
 
 		// Gives access to the actual ECUnknown underlying object
@@ -341,12 +338,10 @@ HRESULT	ECGenericProp::DefaultGetProp(ULONG ulPropTag,  void* lpProvider, ULONG 
 		case PROP_ID(PR_NULL):
 			// outlook with export contacts to csv (IMessage)(0x00000000) <- skip this one
 			// Palm used PR_NULL (IMAPIFolder)(0x00000001)
-			if(ulPropTag == PR_NULL) {
-				lpsPropValue->ulPropTag = PR_NULL;
-				memset(&lpsPropValue->Value, 0, sizeof(lpsPropValue->Value)); // make sure all bits, 32 or 64, are 0
-			} else {
-				hr = MAPI_E_NOT_FOUND;
-			}
+			if (ulPropTag != PR_NULL)
+				return MAPI_E_NOT_FOUND;
+			lpsPropValue->ulPropTag = PR_NULL;
+			memset(&lpsPropValue->Value, 0, sizeof(lpsPropValue->Value)); // make sure all bits, 32 or 64, are 0
 			break;
 
 		case PROP_ID(PR_OBJECT_TYPE): 
@@ -355,8 +350,7 @@ HRESULT	ECGenericProp::DefaultGetProp(ULONG ulPropTag,  void* lpProvider, ULONG 
 			break;
 
 		default:
-			hr = lpProp->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
-			break;
+			return lpProp->HrGetRealProp(ulPropTag, ulFlags, lpBase, lpsPropValue);
 	}
 
 	return hr;
@@ -404,8 +398,7 @@ HRESULT ECGenericProp::TableRowGetProp(void* lpProvider, struct propVal *lpsProp
 			lpsPropValDst->ulPropTag = PR_NULL;
 			break;
 		default:
-			hr = MAPI_E_NOT_FOUND;
-			break;
+			return MAPI_E_NOT_FOUND;
 	}
 
 	return hr;

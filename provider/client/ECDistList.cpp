@@ -70,19 +70,9 @@ HRESULT ECDistList::TableRowGetProp(void* lpProvider, struct propVal *lpsPropVal
 
 HRESULT ECDistList::OpenProperty(ULONG ulPropTag, LPCIID lpiid, ULONG ulInterfaceOptions, ULONG ulFlags, LPUNKNOWN *lppUnk)
 {
-	HRESULT hr = MAPI_E_NOT_FOUND;
-
 	if (lpiid == NULL)
 		return MAPI_E_INVALID_PARAMETER;
-
-	// FIXME: check variables
-
-	switch(ulPropTag) {
-		default:
-			hr = ECABProp::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
-			break;
-	}//switch(ulPropTag)
-	return hr;
+	return ECABProp::OpenProperty(ulPropTag, lpiid, ulInterfaceOptions, ulFlags, lppUnk);
 }
 
 HRESULT ECDistList::CopyTo(ULONG ciidExclude, LPCIID rgiidExclude,

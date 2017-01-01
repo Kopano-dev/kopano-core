@@ -549,19 +549,17 @@ HRESULT ECMsgStore::TableRowGetProp(void* lpProvider, struct propVal *lpsPropVal
 			memory_ptr<ENTRYID> lpWrapped;
 
 			hr = lpMsgStore->GetWrappedServerStoreEntryID(lpsPropValSrc->Value.bin->__size, lpsPropValSrc->Value.bin->__ptr, &cbWrapped, &~lpWrapped);
-			if (hr == hrSuccess) {
-				ECAllocateMore(cbWrapped, lpBase, (void **)&lpsPropValDst->Value.bin.lpb);
-				memcpy(lpsPropValDst->Value.bin.lpb, lpWrapped, cbWrapped);
-				lpsPropValDst->Value.bin.cb = cbWrapped;
-				lpsPropValDst->ulPropTag = PROP_TAG(PT_BINARY,PROP_ID(lpsPropValSrc->ulPropTag));
-			}
+			if (hr != hrSuccess)
+				return hr;
+			ECAllocateMore(cbWrapped, lpBase, (void **)&lpsPropValDst->Value.bin.lpb);
+			memcpy(lpsPropValDst->Value.bin.lpb, lpWrapped, cbWrapped);
+			lpsPropValDst->Value.bin.cb = cbWrapped;
+			lpsPropValDst->ulPropTag = PROP_TAG(PT_BINARY,PROP_ID(lpsPropValSrc->ulPropTag));
 			break;
 		}	
 		default:
-			hr = MAPI_E_NOT_FOUND;
-			break;
+			return MAPI_E_NOT_FOUND;
 	}
-
 	return hr;
 }
 

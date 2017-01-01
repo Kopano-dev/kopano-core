@@ -912,9 +912,7 @@ static HRESULT HrRestrictionContains(const SRestriction *lpRestriction,
 			break;
 
 		case RES_NOT:
-			hr = HrRestrictionContains(lpRestriction->res.resNot.lpRes, lstEntryIds);
-			break;
-
+			return HrRestrictionContains(lpRestriction->res.resNot.lpRes, lstEntryIds);
 		case RES_PROPERTY:
 			if (lpRestriction->res.resProperty.ulPropTag == PR_PARENT_ENTRYID) {
 				for (auto i = lstEntryIds.begin(); i != lstEntryIds.cend(); ++i) {
