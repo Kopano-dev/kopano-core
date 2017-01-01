@@ -610,29 +610,6 @@ private:
 	string getObjectSearchFilter(const objectid_t &id, const char *attr = NULL, const char *attr_type = NULL);
 
 	/**
-	 * Resolve object from attribute data
-	 *
-	 * This will call LDAPUserPlugin::resolveObjectsFromAttribute()
-	 *
-	 * @param[in]	objclass
-	 *					The objectclass to which this search should be restricted.
-	 *					The objectclass can be partially unknown (OBJECTCLASS_UNKNOWN, MAILUSER_UNKNOWN, ...)
-	 * @param[in]	AttrData
-	 *					The contents of the attribute
-	 * @param[in]	lpAttr
-	 *					The attribute which should contain the AttrData. lpAttr must be in charset which defined 
-	 *					in config value ldap_server_charset
-	 * @param[in]	company
-	 *					Optional argument, The company where the possible object should belong.
-	 * @return The object signature which was found
-	 * @throw objectnotfound When no object was found with the attribute data
-	 * @throw toomanyobjects When more then one object was found with the attribute data
-	 */
-	objectsignature_t resolveObjectFromAttribute(objectclass_t objclass,
-												 const string &AttrData, const char* lpAttr,
-												 const objectid_t &company = objectid_t(CONTAINER_COMPANY));
-
-	/**
 	 * Resolve objects from attribute data
 	 *
 	 * This will call LDAPUserPlugin::resolveObjectsFromAttributes()
@@ -749,20 +726,6 @@ private:
 	 * @throw data_error When the requested attribute does not exist on the object of uniqueid
 	 */
 	string objectUniqueIDtoAttributeData(const objectid_t &uniqueid, const char* lpAttr);
-
-	/**
-	 * Determine attribute data for a specific DN
-	 *
-	 * @param[in]	dn
-	 *					The DN which should be converted
-	 * @param[in]	lpAttr
-	 *					The LDAP attribute which should be read from the DN
-	 * @return The attribute data from lpAtrr in the DN
-	 * @throw runtime_error When the LDAP query failed
-	 * @throw objectnotfound When DN does not point to an existing object
-	 * @throw toomanyobjects When multiple objects were found
-	 */
-	string objectDNtoAttributeData(const string &dn, const char *lpAttr);
 
 	/**
 	 * Apply filter to LDAP and request all object signatures

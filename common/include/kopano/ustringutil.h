@@ -102,7 +102,6 @@ extern _kc_export bool u8_equals(const char *, const char *, const ECLocale &);
 extern _kc_export bool u8_iequals(const char *, const char *, const ECLocale &);
 extern _kc_export bool u8_startswith(const char *, const char *, const ECLocale &);
 extern _kc_export bool u8_istartswith(const char *, const char *, const ECLocale &);
-int u8_compare(const char *s1, const char *s2, const ECLocale &locale);
 extern _kc_export int u8_icompare(const char *, const char *, const ECLocale &);
 extern _kc_export bool u8_contains(const char *haystack, const char *needle, const ECLocale &);
 extern _kc_export bool u8_icontains(const char *haystack, const char *needle, const ECLocale &);

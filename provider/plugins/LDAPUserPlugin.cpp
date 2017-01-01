@@ -1239,52 +1239,6 @@ string LDAPUserPlugin::objectUniqueIDtoAttributeData(const objectid_t &uniqueid,
 	return strData;
 }
 
-string LDAPUserPlugin::objectDNtoAttributeData(const string &dn, const char *lpAttr)
-{
-	auto_free_ldap_message res;
-	LDAPMessage*	entry = NULL;
-	bool			bAttrFound = false;
-
-	string strData;
-
-	string ldap_filter = getSearchFilter();
-
-	char *request_attrs[] = { (char *)lpAttr,
-							  NULL };
-
-	my_ldap_search_s(
-			(char*)dn.c_str(), LDAP_SCOPE_BASE,
-			(char*)ldap_filter.c_str(),
-			request_attrs, FETCH_ATTR_VALS, &res);
-
-	switch(ldap_count_entries(m_ldap, res)) {
-	case 0:
-		throw objectnotfound(dn);
-	case 1:
-		break;
-	default:
-		throw toomanyobjects(string("More than one object returned in search ") + dn);
-	}
-
-	entry = ldap_first_entry(m_ldap, res);
-	if(entry == NULL) {
-		throw runtime_error("ldap_dn: broken.");
-	}
-
-	FOREACH_ATTR(entry) {
-		if (strcasecmp(att, lpAttr) == 0) {
-			strData = getLDAPAttributeValue(att, entry);
-			bAttrFound = true;
-		}
-	}
-	END_FOREACH_ATTR
-
-	if(bAttrFound == false)
-		throw objectnotfound("attribute not found: " + dn);
-
-	return strData;
-}
-
 string LDAPUserPlugin::objectUniqueIDtoObjectDN(const objectid_t &uniqueid, bool cache)
 {
 	std::unique_ptr<dn_cache_t> lpCache = m_lpCache->getObjectDNCache(this, uniqueid.objclass);
@@ -1378,23 +1332,6 @@ LDAPUserPlugin::objectDNtoObjectSignatures(objectclass_t objclass,
 	}
 
 	return signatures;
-}
-
-objectsignature_t LDAPUserPlugin::resolveObjectFromAttribute(objectclass_t objclass, const string &AttrData, const char* lpAttr, const objectid_t &company)
-{
-	std::unique_ptr<signatures_t> signatures;
-	list<string> objects;
-
-	objects.push_back(AttrData);
-
-	signatures = resolveObjectsFromAttribute(objclass, objects, lpAttr, company);
-
-	if (!signatures.get() || signatures->empty())
-		throw objectnotfound("No object has been found with attribute " + AttrData);
-	else if (signatures->size() > 1)
-		throw toomanyobjects("More than one object returned in search for attribute " + AttrData);
-
-	return signatures->front();
 }
 
 std::unique_ptr<signatures_t>
