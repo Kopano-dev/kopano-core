@@ -315,68 +315,63 @@ HRESULT ECMAPIProp::TableRowGetProp(void* lpProvider, struct propVal *lpsPropVal
 	ECMsgStore* lpMsgStore = (ECMsgStore*)lpProvider;
 
 	switch(lpsPropValSrc->ulPropTag) {
+	case PR_STORE_ENTRYID:
+	{
+		ULONG cbWrapped = 0;
+		memory_ptr<ENTRYID> lpWrapped;
 
-		case PR_STORE_ENTRYID:
-		{				
-			ULONG cbWrapped = 0;
-			memory_ptr<ENTRYID> lpWrapped;
+		// if we know, we are a spooler or a store than we can switch the function for 'speed-up'
+		// hr = lpMsgStore->GetWrappedStoreEntryID(&cbWrapped, &lpWrapped);
+		hr = lpMsgStore->GetWrappedServerStoreEntryID(lpsPropValSrc->Value.bin->__size, lpsPropValSrc->Value.bin->__ptr, &cbWrapped, &~lpWrapped);
+		if (hr != hrSuccess)
+			return hr;
+		ECAllocateMore(cbWrapped, lpBase, (void **)&lpsPropValDst->Value.bin.lpb);
+		memcpy(lpsPropValDst->Value.bin.lpb, lpWrapped, cbWrapped);
+		lpsPropValDst->Value.bin.cb = cbWrapped;
+		lpsPropValDst->ulPropTag = PROP_TAG(PT_BINARY,PROP_ID(lpsPropValSrc->ulPropTag));
+		break;
+	}
+	case PROP_TAG(PT_ERROR,PROP_ID(PR_DISPLAY_TYPE)):
+		lpsPropValDst->Value.l = DT_FOLDER;				// FIXME, may be a search folder
+		lpsPropValDst->ulPropTag = PR_DISPLAY_TYPE;
+		break;
+	case PROP_TAG(PT_ERROR,PROP_ID(PR_STORE_SUPPORT_MASK)):
+	case PROP_TAG(PT_ERROR,PROP_ID(PR_STORE_UNICODE_MASK)):
+		if (CompareMDBProvider(&lpMsgStore->m_guidMDB_Provider, &KOPANO_STORE_PUBLIC_GUID))
+			lpsPropValDst->Value.l = EC_SUPPORTMASK_PUBLIC;
+		else if (CompareMDBProvider(&lpMsgStore->m_guidMDB_Provider, &KOPANO_STORE_DELEGATE_GUID))
+			lpsPropValDst->Value.l = EC_SUPPORTMASK_DELEGATE;
+		else if (CompareMDBProvider(&lpMsgStore->m_guidMDB_Provider, &KOPANO_STORE_ARCHIVE_GUID))
+			lpsPropValDst->Value.l = EC_SUPPORTMASK_ARCHIVE;
+		else
+			lpsPropValDst->Value.l = EC_SUPPORTMASK_PRIVATE;
 
-			// if we know, we are a spooler or a store than we can switch the function for 'speed-up'
-			// hr = lpMsgStore->GetWrappedStoreEntryID(&cbWrapped, &lpWrapped);
-			hr = lpMsgStore->GetWrappedServerStoreEntryID(lpsPropValSrc->Value.bin->__size, lpsPropValSrc->Value.bin->__ptr, &cbWrapped, &~lpWrapped);
-			if (hr != hrSuccess)
-				return hr;
-			ECAllocateMore(cbWrapped, lpBase, (void **)&lpsPropValDst->Value.bin.lpb);
-			memcpy(lpsPropValDst->Value.bin.lpb, lpWrapped, cbWrapped);
-			lpsPropValDst->Value.bin.cb = cbWrapped;
-			lpsPropValDst->ulPropTag = PROP_TAG(PT_BINARY,PROP_ID(lpsPropValSrc->ulPropTag));
-			break;
-		}	
+		if (lpMsgStore->m_ulClientVersion == CLIENT_VERSION_OLK2000)
+			lpsPropValDst->Value.l &=~STORE_HTML_OK; // Remove the flag, other way outlook 2000 crashed
 
-		case PROP_TAG(PT_ERROR,PROP_ID(PR_DISPLAY_TYPE)): 
-			lpsPropValDst->Value.l = DT_FOLDER;				// FIXME, may be a search folder
-			lpsPropValDst->ulPropTag = PR_DISPLAY_TYPE;
-			break;
-		
-		case PROP_TAG(PT_ERROR,PROP_ID(PR_STORE_SUPPORT_MASK)):
-		case PROP_TAG(PT_ERROR,PROP_ID(PR_STORE_UNICODE_MASK)):
-			if(CompareMDBProvider(&lpMsgStore->m_guidMDB_Provider, &KOPANO_STORE_PUBLIC_GUID))
-				lpsPropValDst->Value.l = EC_SUPPORTMASK_PUBLIC;
-			else if(CompareMDBProvider(&lpMsgStore->m_guidMDB_Provider, &KOPANO_STORE_DELEGATE_GUID))
-				lpsPropValDst->Value.l = EC_SUPPORTMASK_DELEGATE;
-			else if(CompareMDBProvider(&lpMsgStore->m_guidMDB_Provider, &KOPANO_STORE_ARCHIVE_GUID))
-				lpsPropValDst->Value.l = EC_SUPPORTMASK_ARCHIVE;
-			else 
-				lpsPropValDst->Value.l = EC_SUPPORTMASK_PRIVATE;
+		// No real unicode support in outlook 2000 and xp
+		if (lpMsgStore->m_ulClientVersion <= CLIENT_VERSION_OLK2002)
+			lpsPropValDst->Value.l &=~ STORE_UNICODE_OK;
 
-			if(lpMsgStore->m_ulClientVersion == CLIENT_VERSION_OLK2000)
-				lpsPropValDst->Value.l &=~STORE_HTML_OK; // Remove the flag, other way outlook 2000 crashed
-		
-			// No real unicode support in outlook 2000 and xp
-			if (lpMsgStore->m_ulClientVersion <= CLIENT_VERSION_OLK2002)
-				lpsPropValDst->Value.l &=~ STORE_UNICODE_OK;
+		lpsPropValDst->ulPropTag = CHANGE_PROP_TYPE(lpsPropValSrc->ulPropTag, PT_LONG);
+		break;
 
-			lpsPropValDst->ulPropTag = CHANGE_PROP_TYPE(lpsPropValSrc->ulPropTag, PT_LONG);
-			break;
-		
-		case PROP_TAG(PT_ERROR,PROP_ID(PR_STORE_RECORD_KEY)): 
-			// Reset type to binary
-			lpsPropValDst->ulPropTag = PROP_TAG(PT_BINARY,PROP_ID(lpsPropValSrc->ulPropTag));
+	case PROP_TAG(PT_ERROR,PROP_ID(PR_STORE_RECORD_KEY)):
+		// Reset type to binary
+		lpsPropValDst->ulPropTag = PROP_TAG(PT_BINARY,PROP_ID(lpsPropValSrc->ulPropTag));
+		ECAllocateMore(sizeof(MAPIUID), lpBase, (void **)&lpsPropValDst->Value.bin.lpb);
+		memcpy(lpsPropValDst->Value.bin.lpb, &lpMsgStore->GetStoreGuid(), sizeof(MAPIUID));
+		lpsPropValDst->Value.bin.cb = sizeof(MAPIUID);
+		break;
 
-			ECAllocateMore(sizeof(MAPIUID), lpBase, (void **)&lpsPropValDst->Value.bin.lpb);
-			memcpy(lpsPropValDst->Value.bin.lpb, &lpMsgStore->GetStoreGuid(), sizeof(MAPIUID));
-			lpsPropValDst->Value.bin.cb = sizeof(MAPIUID);
-			break;
-
-		case PROP_TAG(PT_ERROR,PROP_ID(PR_MDB_PROVIDER)):
-			lpsPropValDst->ulPropTag = PROP_TAG(PT_BINARY,PROP_ID(lpsPropValSrc->ulPropTag));
-
-			ECAllocateMore(sizeof(MAPIUID), lpBase, (void **)&lpsPropValDst->Value.bin.lpb);
-			memcpy(lpsPropValDst->Value.bin.lpb, &lpMsgStore->m_guidMDB_Provider, sizeof(MAPIUID));
-			lpsPropValDst->Value.bin.cb = sizeof(MAPIUID);
-			break;
-		default:
-			return MAPI_E_NOT_FOUND;
+	case PROP_TAG(PT_ERROR,PROP_ID(PR_MDB_PROVIDER)):
+		lpsPropValDst->ulPropTag = PROP_TAG(PT_BINARY,PROP_ID(lpsPropValSrc->ulPropTag));
+		ECAllocateMore(sizeof(MAPIUID), lpBase, (void **)&lpsPropValDst->Value.bin.lpb);
+		memcpy(lpsPropValDst->Value.bin.lpb, &lpMsgStore->m_guidMDB_Provider, sizeof(MAPIUID));
+		lpsPropValDst->Value.bin.cb = sizeof(MAPIUID);
+		break;
+	default:
+		return MAPI_E_NOT_FOUND;
 	}
 
 	return hr;

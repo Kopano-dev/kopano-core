@@ -112,38 +112,32 @@ static LONG __stdcall AdviseShortCutCallback(void *lpContext, ULONG cNotif,
 		// NOTE: ignore errors at all.
 		switch (lpNotif[i].info.tab.ulTableEvent)
 		{
-			case TABLE_ROW_ADDED:
-			case TABLE_ROW_MODIFIED:
-				lpMemTablePublic->ModifyRow(&lpNotif[i].info.tab.propIndex.Value.bin, &lpNotif[i].info.tab.row);
-				break;
-			case TABLE_ROW_DELETED:
-				lpMemTablePublic->DelRow(&lpNotif[i].info.tab.propIndex.Value.bin);
-				break;
-			case TABLE_CHANGED:
-
-				lpMemTablePublic->HrClear();
-
-				hr = lpMemTablePublic->m_lpShortcutTable->SeekRow(BOOKMARK_BEGINNING, 0, NULL);
+		case TABLE_ROW_ADDED:
+		case TABLE_ROW_MODIFIED:
+			lpMemTablePublic->ModifyRow(&lpNotif[i].info.tab.propIndex.Value.bin, &lpNotif[i].info.tab.row);
+			break;
+		case TABLE_ROW_DELETED:
+			lpMemTablePublic->DelRow(&lpNotif[i].info.tab.propIndex.Value.bin);
+			break;
+		case TABLE_CHANGED:
+			lpMemTablePublic->HrClear();
+			hr = lpMemTablePublic->m_lpShortcutTable->SeekRow(BOOKMARK_BEGINNING, 0, NULL);
+			if (hr != hrSuccess)
+				continue; // Next notification
+			while(true)
+			{
+				hr = lpMemTablePublic->m_lpShortcutTable->QueryRows (1, 0, &lpRows);
 				if (hr != hrSuccess)
-					continue; // Next notification
-
-				while(true)
-				{
-					hr = lpMemTablePublic->m_lpShortcutTable->QueryRows (1, 0, &lpRows);
-					if (hr != hrSuccess)
-						break; // Next notification
-
-					if (lpRows->cRows == 0)
-						break;
-
-					lpMemTablePublic->ModifyRow(&lpRows->aRow[0].lpProps[SC_INSTANCE_KEY].Value.bin, &lpRows->aRow[0]);
-					FreeProws(lpRows);
-					lpRows = NULL;
-				}
-				break;
-
-			default:
-				break;
+					break; // Next notification
+				if (lpRows->cRows == 0)
+					break;
+				lpMemTablePublic->ModifyRow(&lpRows->aRow[0].lpProps[SC_INSTANCE_KEY].Value.bin, &lpRows->aRow[0]);
+				FreeProws(lpRows);
+				lpRows = NULL;
+			}
+			break;
+		default:
+			break;
 		}
 
 	}
@@ -171,30 +165,29 @@ static LONG __stdcall AdviseFolderCallback(void *lpContext, ULONG cNotif,
 	for (ULONG i = 0; i < cNotif; ++i) {
 		switch (lpNotif[i].ulEventType)
 		{
-			case fnevObjectModified:
-			case fnevObjectDeleted:
-				for (const auto &p : lpMemTablePublic->m_mapRelation)
-					if (lpMemTablePublic->m_lpECParentFolder->GetMsgStore()->CompareEntryIDs(p.second.cbEntryID, p.second.lpEntryID, lpNotif[i].info.obj.cbEntryID, lpNotif[i].info.obj.lpEntryID, 0, &ulResult) == hrSuccess && ulResult == TRUE)
-					{
-						sInstanceKey.cb = p.first.size();
-						sInstanceKey.lpb = reinterpret_cast<BYTE *>(const_cast<char *>(p.first.c_str()));
+		case fnevObjectModified:
+		case fnevObjectDeleted:
+			for (const auto &p : lpMemTablePublic->m_mapRelation)
+				if (lpMemTablePublic->m_lpECParentFolder->GetMsgStore()->CompareEntryIDs(p.second.cbEntryID, p.second.lpEntryID, lpNotif[i].info.obj.cbEntryID, lpNotif[i].info.obj.lpEntryID, 0, &ulResult) == hrSuccess && ulResult == TRUE)
+				{
+					sInstanceKey.cb = p.first.size();
+					sInstanceKey.lpb = reinterpret_cast<BYTE *>(const_cast<char *>(p.first.c_str()));
 
-						switch (lpNotif[i].ulEventType)
-						{
-							case fnevObjectModified:
-								lpMemTablePublic->ModifyRow(&sInstanceKey, NULL);
-								TRACE_MAPI(TRACE_ENTRY, "AdviseFolderCallback", "fnevObjectModified    fnevObjectModified");
-								break;
-							case fnevObjectDeleted:
-								TRACE_MAPI(TRACE_ENTRY, "AdviseFolderCallback", "fnevObjectDeleted    fnevObjectDeleted");
-								lpMemTablePublic->DelRow(&sInstanceKey);
-								break;
-						}
-						
+					switch (lpNotif[i].ulEventType)
+					{
+					case fnevObjectModified:
+						lpMemTablePublic->ModifyRow(&sInstanceKey, NULL);
+						TRACE_MAPI(TRACE_ENTRY, "AdviseFolderCallback", "fnevObjectModified    fnevObjectModified");
+						break;
+					case fnevObjectDeleted:
+						TRACE_MAPI(TRACE_ENTRY, "AdviseFolderCallback", "fnevObjectDeleted    fnevObjectDeleted");
+						lpMemTablePublic->DelRow(&sInstanceKey);
 						break;
 					}
-				break;
-			//TODO: Move (Unknown what to update)
+					break;
+				}
+			break;
+		//TODO: Move (Unknown what to update)
 		}
 	}
 	

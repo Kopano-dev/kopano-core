@@ -221,40 +221,38 @@ HRESULT __stdcall ECExchangeModifyTable::ModifyTable(ULONG ulFlags, LPROWLIST lp
 
 	for (i = 0; i < lpMods->cEntries; ++i) {
 		switch(lpMods->aEntries[i].ulRowFlags) {
-			case ROW_ADD:
-			case ROW_MODIFY:
-				// Note: the ECKeyTable only uses an ULONG as the key.
-				//       Information placed in the HighPart of this PT_I8 is lost!
-
-				lpFind = PCpropFindProp(lpMods->aEntries[i].rgPropVals, lpMods->aEntries[i].cValues, m_ulUniqueTag);
-				if (lpFind == NULL) {
-					sRowId.ulPropTag = m_ulUniqueTag;
-					sRowId.Value.li.QuadPart = this->m_ulUniqueId++;
-					hr = Util::HrAddToPropertyArray(lpMods->aEntries[i].rgPropVals, lpMods->aEntries[i].cValues, &sRowId, &~lpPropRemove, &cValues);
-					if(hr != hrSuccess)
-						return hr;
-					lpProps = lpPropRemove;
-				} else {
-					lpProps = lpMods->aEntries[i].rgPropVals;
-					cValues = lpMods->aEntries[i].cValues;
-				}
-
-				if (lpMods->aEntries[i].ulRowFlags == ROW_ADD)
-					ulFlagsRow = ECKeyTable::TABLE_ROW_ADD;
-				else
-					ulFlagsRow = ECKeyTable::TABLE_ROW_MODIFY;
-
-				hr = m_ecTable->HrModifyRow(ulFlagsRow, lpFind, lpProps, cValues);
+		case ROW_ADD:
+		case ROW_MODIFY:
+			// Note: the ECKeyTable only uses an ULONG as the key.
+			//       Information placed in the HighPart of this PT_I8 is lost!
+			lpFind = PCpropFindProp(lpMods->aEntries[i].rgPropVals, lpMods->aEntries[i].cValues, m_ulUniqueTag);
+			if (lpFind == NULL) {
+				sRowId.ulPropTag = m_ulUniqueTag;
+				sRowId.Value.li.QuadPart = this->m_ulUniqueId++;
+				hr = Util::HrAddToPropertyArray(lpMods->aEntries[i].rgPropVals, lpMods->aEntries[i].cValues, &sRowId, &~lpPropRemove, &cValues);
 				if(hr != hrSuccess)
 					return hr;
-				break;
-			case ROW_REMOVE:
-				hr = m_ecTable->HrModifyRow(ECKeyTable::TABLE_ROW_DELETE, NULL, lpMods->aEntries[i].rgPropVals, lpMods->aEntries[i].cValues);
-				if(hr != hrSuccess)
-					return hr;
-				break;
-			case ROW_EMPTY:
-				break;
+				lpProps = lpPropRemove;
+			} else {
+				lpProps = lpMods->aEntries[i].rgPropVals;
+				cValues = lpMods->aEntries[i].cValues;
+			}
+			if (lpMods->aEntries[i].ulRowFlags == ROW_ADD)
+				ulFlagsRow = ECKeyTable::TABLE_ROW_ADD;
+			else
+				ulFlagsRow = ECKeyTable::TABLE_ROW_MODIFY;
+
+			hr = m_ecTable->HrModifyRow(ulFlagsRow, lpFind, lpProps, cValues);
+			if(hr != hrSuccess)
+				return hr;
+			break;
+		case ROW_REMOVE:
+			hr = m_ecTable->HrModifyRow(ECKeyTable::TABLE_ROW_DELETE, NULL, lpMods->aEntries[i].rgPropVals, lpMods->aEntries[i].cValues);
+			if(hr != hrSuccess)
+				return hr;
+			break;
+		case ROW_EMPTY:
+			break;
 		}
 	}
 
