@@ -157,41 +157,25 @@ ECRESULT ECGenProps::GetPropSubstitute(unsigned int ulObjType, unsigned int ulPr
 // This should be synchronized with GetPropComputed
 ECRESULT ECGenProps::IsPropComputed(unsigned int ulPropTag, unsigned int ulObjType)
 {
-	ECRESULT		er = erSuccess;
-
 	switch(ulPropTag) {
 		case PR_MSG_STATUS:
 		case PR_EC_IMAP_ID:
 		case PR_NORMALIZED_SUBJECT_A:
 		case PR_NORMALIZED_SUBJECT_W:
 		case PR_SUBMIT_FLAGS:
-		    er = erSuccess;
-		    break;
+			return erSuccess;
 		case PR_CONTENT_UNREAD:
-			if(ulObjType == MAPI_MESSAGE)
-				er = erSuccess;
-			else
-				er = KCERR_NOT_FOUND;
-			break;
+			return ulObjType == MAPI_MESSAGE ? erSuccess : KCERR_NOT_FOUND;
 		case PR_RECORD_KEY:
-			if (ulObjType == MAPI_ATTACH)
-				er = KCERR_NOT_FOUND;
-			else
-				er = erSuccess;
-			break;
+			return ulObjType == MAPI_ATTACH ? KCERR_NOT_FOUND : erSuccess;
 		default:
-			er = KCERR_NOT_FOUND;
-			break;
+			return KCERR_NOT_FOUND;
 	}
-
-	return er;
 }
 
 // This should be synchronized with GetPropComputedUncached
 ECRESULT ECGenProps::IsPropComputedUncached(unsigned int ulPropTag, unsigned int ulObjType)
 {
-    ECRESULT er = erSuccess;
-    
     switch(PROP_ID(ulPropTag)) {
         case PROP_ID(PR_LONGTERM_ENTRYID_FROM_TABLE):
 		case PROP_ID(PR_ENTRYID):
@@ -214,33 +198,17 @@ ECRESULT ECGenProps::IsPropComputedUncached(unsigned int ulPropTag, unsigned int
 		case PROP_ID(PR_ACCESS):
 		case PROP_ID(PR_ROW_TYPE):
 		case PROP_ID(PR_MAPPING_SIGNATURE):
-		    er = erSuccess;
-		    break;
+		return erSuccess;
 		case PROP_ID(PR_RECORD_KEY):
-			if (ulObjType == MAPI_ATTACH)
-				er = KCERR_NOT_FOUND;
-			else
-				er = erSuccess;
-			break;
+		return ulObjType == MAPI_ATTACH ? KCERR_NOT_FOUND : erSuccess;
 		case PROP_ID(PR_DISPLAY_NAME): // only the store property is generated
 		case PROP_ID(PR_EC_DELETED_STORE):
-		    if(ulObjType == MAPI_STORE)
-    			er = erSuccess;
-            else
-                er = KCERR_NOT_FOUND;
-			break;
+		return ulObjType == MAPI_STORE ? erSuccess : KCERR_NOT_FOUND;
 		case PROP_ID(PR_CONTENT_COUNT):
-			if (ulObjType == MAPI_MESSAGE)
-				er = erSuccess;
-			else
-				er = KCERR_NOT_FOUND;
-			break;
+		return ulObjType == MAPI_MESSAGE ? erSuccess : KCERR_NOT_FOUND;
         default:
-            er = KCERR_NOT_FOUND;
-            break;
+		return KCERR_NOT_FOUND;
     }
-    
-    return er;
 }
 
 // These are properties that are never written to the 'properties' table; ie they are never directly queried. This
@@ -248,8 +216,6 @@ ECRESULT ECGenProps::IsPropComputedUncached(unsigned int ulPropTag, unsigned int
 // property. 
 ECRESULT ECGenProps::IsPropRedundant(unsigned int ulPropTag, unsigned int ulObjType)
 {
-    ECRESULT er = erSuccess;
-    
     switch(PROP_ID(ulPropTag)) {
 		case PROP_ID(PR_ACCESS):					// generated from ACLs
 		case PROP_ID(PR_USER_NAME):				// generated from owner (hierarchy)
@@ -274,20 +240,12 @@ ECRESULT ECGenProps::IsPropRedundant(unsigned int ulPropTag, unsigned int ulObjT
 		case PROP_ID(PR_PARENT_SOURCE_KEY):		// generated from ics system
 		case PROP_ID(PR_FOLDER_TYPE):			// generated from hierarchy (CreateFolder)
 		case PROP_ID(PR_EC_IMAP_ID):				// generated for each new mail and updated on move by the server
-		    er = erSuccess;
-		    break;
+			return erSuccess;
 		case PROP_ID(PR_RECORD_KEY):				// generated from hierarchy except for attachments
-			if (ulObjType == MAPI_ATTACH)
-				er = KCERR_NOT_FOUND;
-			else
-				er = erSuccess;
-			break;
+			return ulObjType == MAPI_ATTACH ? KCERR_NOT_FOUND : erSuccess;
 		default:
-			er = KCERR_NOT_FOUND;
-			break;
+			return KCERR_NOT_FOUND;
     }
-    
-    return er;
 }
 
 ECRESULT ECGenProps::GetPropComputed(struct soap *soap, unsigned int ulObjType, unsigned int ulPropTagRequested, unsigned int ulObjId, struct propVal *lpPropVal)
@@ -296,33 +254,26 @@ ECRESULT ECGenProps::GetPropComputed(struct soap *soap, unsigned int ulObjType, 
 
 	switch(PROP_ID(ulPropTagRequested)) {
 	case PROP_ID(PR_MSG_STATUS):
-		if(lpPropVal->ulPropTag != ulPropTagRequested) {
-			lpPropVal->ulPropTag = PR_MSG_STATUS;
-			lpPropVal->__union = SOAP_UNION_propValData_ul;
-
-			lpPropVal->Value.ul = 0;
-		} else {
-			er = KCERR_NOT_FOUND;
-		}
+		if (lpPropVal->ulPropTag == ulPropTagRequested)
+			return KCERR_NOT_FOUND;
+		lpPropVal->ulPropTag = PR_MSG_STATUS;
+		lpPropVal->__union = SOAP_UNION_propValData_ul;
+		lpPropVal->Value.ul = 0;
 		break;
     case PROP_ID(PR_EC_IMAP_ID):
-    	if(lpPropVal->ulPropTag != ulPropTagRequested) {
-			lpPropVal->ulPropTag = PR_EC_IMAP_ID;
-			lpPropVal->__union = SOAP_UNION_propValData_ul;
-			lpPropVal->Value.ul = ulObjId;
-		} else {
-			er = KCERR_NOT_FOUND;
-		}
+		if (lpPropVal->ulPropTag == ulPropTagRequested)
+			return KCERR_NOT_FOUND;
+		lpPropVal->ulPropTag = PR_EC_IMAP_ID;
+		lpPropVal->__union = SOAP_UNION_propValData_ul;
+		lpPropVal->Value.ul = ulObjId;
 		break;
 	case PROP_ID(PR_CONTENT_UNREAD):
 		// Convert from PR_MESSAGE_FLAGS to PR_CONTENT_UNREAD
-		if(ulObjType == MAPI_MESSAGE && lpPropVal->ulPropTag != PR_CONTENT_UNREAD) {
-			lpPropVal->ulPropTag = PR_CONTENT_UNREAD;
-			lpPropVal->__union = SOAP_UNION_propValData_ul;
-			lpPropVal->Value.ul = lpPropVal->Value.ul & MSGFLAG_READ ? 0 : 1;
-		} else {
-			er = KCERR_NOT_FOUND;
-		}
+		if (ulObjType != MAPI_MESSAGE || lpPropVal->ulPropTag == PR_CONTENT_UNREAD)
+			return KCERR_NOT_FOUND;
+		lpPropVal->ulPropTag = PR_CONTENT_UNREAD;
+		lpPropVal->__union = SOAP_UNION_propValData_ul;
+		lpPropVal->Value.ul = lpPropVal->Value.ul & MSGFLAG_READ ? 0 : 1;
 		break;
     case PROP_ID(PR_NORMALIZED_SUBJECT):
     	if(lpPropVal->ulPropTag != PR_SUBJECT) {
@@ -363,17 +314,14 @@ ECRESULT ECGenProps::GetPropComputed(struct soap *soap, unsigned int ulObjType, 
 		}
 		break;
 	case PROP_ID(PR_RECORD_KEY):
-		if (ulObjType == MAPI_ATTACH && lpPropVal->ulPropTag != ulPropTagRequested) {
-			lpPropVal->ulPropTag = PR_RECORD_KEY;
-			lpPropVal->__union = SOAP_UNION_propValData_bin;
-			
-			lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
-			lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ULONG));
-			
-			lpPropVal->Value.bin->__size = sizeof(ULONG);
-			memcpy(lpPropVal->Value.bin->__ptr, &ulObjId, sizeof(ULONG));
-		} else
-			er = KCERR_NOT_FOUND;
+		if (ulObjType != MAPI_ATTACH || lpPropVal->ulPropTag == ulPropTagRequested)
+			return KCERR_NOT_FOUND;
+		lpPropVal->ulPropTag = PR_RECORD_KEY;
+		lpPropVal->__union = SOAP_UNION_propValData_bin;
+		lpPropVal->Value.bin = s_alloc<struct xsd__base64Binary>(soap);
+		lpPropVal->Value.bin->__ptr = s_alloc<unsigned char>(soap, sizeof(ULONG));
+		lpPropVal->Value.bin->__size = sizeof(ULONG);
+		memcpy(lpPropVal->Value.bin->__ptr, &ulObjId, sizeof(ULONG));
 		break;
 	default:
 		return KCERR_NOT_FOUND;
