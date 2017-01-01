@@ -151,25 +151,18 @@ std::string getMapiCodeString(HRESULT hr, const char* object /* = "object" */)
 	std::string objectstring(object != nullptr ? object : "");
 	switch (hr) {
 	case MAPI_E_NOT_FOUND:
-		retval = objectstring + space + retval;
-		break;
+		return objectstring + space + retval;
 	case MAPI_E_COLLISION:
-		retval = objectstring + " already exists";
-		break;
+		return objectstring + " already exists";
 	case MAPI_E_NO_ACCESS:
-		retval = retval + space + objectstring;
-		break;
+		return retval + space + objectstring;
 	case MAPI_E_UNABLE_TO_COMPLETE:
-		retval = "please check your license";
-		break;
+		return "please check your license";
 	case MAPI_E_INVALID_TYPE:
-		retval = "invalid type combination";
-		break;
+		return "invalid type combination";
 	default:
-		retval = retval + std::string(" (") + stringify(hr, true) + std::string(")");
+		return retval + std::string(" (") + stringify(hr, true) + std::string(")");
 	};
-
-	return retval;
 }
 
 } /* namespace */

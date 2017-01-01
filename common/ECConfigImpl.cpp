@@ -202,9 +202,9 @@ size_t ECConfigImpl::GetSize(const char *szValue)
 	while (*end != '\0' && (*end == ' ' || *end == '\t'))
 		++end;
 	switch (tolower(*end)) {
-		case 'k': rv *= 1024; break;
-		case 'm': rv *= 1024*1024; break;
-		case 'g': rv *= 1024*1024*1024; break;
+	case 'k': return rv << 10; break;
+	case 'm': return rv << 20; break;
+	case 'g': return rv << 30; break;
 	}
 	return rv;
 }
