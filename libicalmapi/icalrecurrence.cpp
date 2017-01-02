@@ -95,10 +95,9 @@ HRESULT ICalRecurrence::HrParseICalRecurrenceRule(TIMEZONE_STRUCT sTimeZone, ica
 	{
 		// check for duration property
 		lpicProp = icalcomponent_get_first_property(lpicEvent, ICAL_DURATION_PROPERTY);
-		if (lpicProp != nullptr)
-			dtUTCEnd = dtUTCStart + icaldurationtype_as_int(icalproperty_get_duration(lpicProp));
-		else
+		if (lpicProp == nullptr)
 			return MAPI_E_NOT_FOUND;
+		dtUTCEnd = dtUTCStart + icaldurationtype_as_int(icalproperty_get_duration(lpicProp));
 	} else {
 		dtUTCEnd = ICalTimeTypeToUTC(lpicRootEvent, lpicProp);
 	}
@@ -647,16 +646,14 @@ HRESULT ICalRecurrence::HrMakeMAPIException(icalcomponent *lpEventRoot, icalcomp
 			sPropVal.Value.ul = ulRemindBefore;
 			lpEx->lstMsgProps.push_back(sPropVal);
 		}
-	} else {
-		if (abOldPresent[4]) {
-			// disable reminder in attachment
-			hr = lpIcalItem->lpRecurrence->setModifiedReminder(ulId, 0);
-			if (hr != hrSuccess)
-				return hr;
-			sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_REMINDERSET], PT_BOOLEAN);
-			sPropVal.Value.b = FALSE;
-			lpEx->lstMsgProps.push_back(sPropVal);
-		}
+	} else if (abOldPresent[4]) {
+		// disable reminder in attachment
+		hr = lpIcalItem->lpRecurrence->setModifiedReminder(ulId, 0);
+		if (hr != hrSuccess)
+			return hr;
+		sPropVal.ulPropTag = CHANGE_PROP_TYPE(lpNamedProps->aulPropTag[PROP_REMINDERSET], PT_BOOLEAN);
+		sPropVal.Value.b = FALSE;
+		lpEx->lstMsgProps.push_back(sPropVal);
 	}
 	return hr;
 }

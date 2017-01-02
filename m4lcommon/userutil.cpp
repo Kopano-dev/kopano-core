@@ -158,21 +158,20 @@ HRESULT UserListCollector<string_type, prAccount>::CollectData(LPMAPITABLE lpSto
 			return hr;
 
 		for (SRowSetPtr::size_type i = 0; i < ptrRows.size(); ++i) {
-			if (ptrRows[i].lpProps[0].ulPropTag == PR_MAILBOX_OWNER_ENTRYID) {
-				HRESULT hrTmp;
-				ULONG ulType;
-				MAPIPropPtr ptrUser;
-				SPropValuePtr ptrAccount;
+			if (ptrRows[i].lpProps[0].ulPropTag != PR_MAILBOX_OWNER_ENTRYID)
+				continue;
+			HRESULT hrTmp;
+			ULONG ulType;
+			MAPIPropPtr ptrUser;
+			SPropValuePtr ptrAccount;
 
-				hrTmp = m_ptrSession->OpenEntry(ptrRows[i].lpProps[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrRows[i].lpProps[0].Value.bin.lpb), &ptrUser.iid(), 0, &ulType, &~ptrUser);
-				if (hrTmp != hrSuccess)
-					continue;
-				hrTmp = HrGetOneProp(ptrUser, prAccount, &~ptrAccount);
-				if (hrTmp != hrSuccess)
-					continue;
-
-				push_back(ptrAccount);
-			}
+			hrTmp = m_ptrSession->OpenEntry(ptrRows[i].lpProps[0].Value.bin.cb, reinterpret_cast<ENTRYID *>(ptrRows[i].lpProps[0].Value.bin.lpb), &ptrUser.iid(), 0, &ulType, &~ptrUser);
+			if (hrTmp != hrSuccess)
+				continue;
+			hrTmp = HrGetOneProp(ptrUser, prAccount, &~ptrAccount);
+			if (hrTmp != hrSuccess)
+				continue;
+			push_back(ptrAccount);
 		}
 
 		if (ptrRows.size() < 50)

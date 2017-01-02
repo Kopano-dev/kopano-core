@@ -1854,11 +1854,10 @@ HRESULT MAPIToVMIME::handleSenderInfo(IMessage *lpMessage,
 				mbl.appendMailbox(vmime::make_shared<vmime::mailbox>(m_converter.convert_to<string>(strResEmail)));
 			else
 				mbl.appendMailbox(vmime::make_shared<vmime::mailbox>(getVmimeTextFromWide(strResName), m_converter.convert_to<string>(strResEmail)));
+		} else if (strName.empty() || strName == strEmail) {
+			mbl.appendMailbox(vmime::make_shared<vmime::mailbox>(m_converter.convert_to<string>(strEmail)));
 		} else {
-			if (strName.empty() || strName == strEmail)
-				mbl.appendMailbox(vmime::make_shared<vmime::mailbox>(m_converter.convert_to<string>(strEmail)));
-			else
-				mbl.appendMailbox(vmime::make_shared<vmime::mailbox>(getVmimeTextFromWide(strName), m_converter.convert_to<string>(strEmail)));
+			mbl.appendMailbox(vmime::make_shared<vmime::mailbox>(getVmimeTextFromWide(strName), m_converter.convert_to<string>(strEmail)));
 		}
 		vmHeader->DispositionNotificationTo()->setValue(mbl);
 	}

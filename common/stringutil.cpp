@@ -29,13 +29,10 @@ std::string stringify(unsigned int x, bool usehex, bool _signed) {
 
 	if(usehex)
 		sprintf(szBuff, "0x%08X", x);
-	else {
-		if(_signed)
-			sprintf(szBuff, "%d", x);
-		else
-			sprintf(szBuff, "%u", x);
-	}
-	
+	else if (_signed)
+		sprintf(szBuff, "%d", x);
+	else
+		sprintf(szBuff, "%u", x);
 	return szBuff;
 }
 

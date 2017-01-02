@@ -238,20 +238,18 @@ void CHtmlToTextParser::parseTag(const WCHAR* &lpwHTML)
 			}
 		} else if (*lpwHTML == '<') {
 			return; // Possible broken HTML, ignore data before
-		} else {
-			if (bTagName) {
-				if (*lpwHTML == ' ') {
-					bTagName = false;
-					iterTag = tagMap.find(tagName);
-					if (iterTag != tagMap.cend())
-						bParseAttrs = iterTag->second.bParseAttrs;
-				}else {
-					tagName.push_back(towlower(*lpwHTML));
-				}
-			} else if(bParseAttrs) {
-				parseAttributes(lpwHTML);
-				break;
+		} else if (bTagName) {
+			if (*lpwHTML == ' ') {
+				bTagName = false;
+				iterTag = tagMap.find(tagName);
+				if (iterTag != tagMap.cend())
+					bParseAttrs = iterTag->second.bParseAttrs;
+			} else {
+				tagName.push_back(towlower(*lpwHTML));
 			}
+		} else if (bParseAttrs) {
+			parseAttributes(lpwHTML);
+			break;
 		}
 
 		++lpwHTML;
@@ -295,19 +293,15 @@ void CHtmlToTextParser::parseAttributes(const WCHAR* &lpwHTML)
 				if (firstQuote == 0) {
 					firstQuote = *lpwHTML++;
 					continue; // Don't add the quote!
-				} else {
-					if(firstQuote == *lpwHTML) {
-						bAttrValue = false;
-					}
+				} else if (firstQuote == *lpwHTML) {
+					bAttrValue = false;
 				}
 			}
 
 			if(bAttrValue)
 				attrValue.push_back(*lpwHTML);
-		} else {
-			if (bAttrName) {
-				attrName.push_back(towlower(*lpwHTML));
-			}
+		} else if (bAttrName) {
+			attrName.push_back(towlower(*lpwHTML));
 		}
 
 		if(!bAttrName && !bAttrValue) {

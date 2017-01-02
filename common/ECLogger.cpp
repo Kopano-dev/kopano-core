@@ -541,10 +541,10 @@ void ECLogger_Tee::LogVA(unsigned int loglevel, const char *format, va_list &va)
  * @param[in]	lpLogger	The logger to attach.
  */
 void ECLogger_Tee::AddLogger(ECLogger *lpLogger) {
-	if (lpLogger) {
-		lpLogger->AddRef();
-		m_loggers.push_back(lpLogger);
-	}
+	if (lpLogger == nullptr)
+		return;
+	lpLogger->AddRef();
+	m_loggers.push_back(lpLogger);
 }
 
 ECLogger_Pipe::ECLogger_Pipe(int fd, pid_t childpid, int loglevel) : ECLogger(loglevel) {

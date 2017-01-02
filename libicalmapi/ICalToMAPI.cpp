@@ -279,12 +279,10 @@ HRESULT ICalToMapiImpl::ParseICal(const std::string& strIcal, const std::string&
 			break;
 		};
 
-		if (hr == hrSuccess && item) {
+		if (hr == hrSuccess && item != nullptr && previtem != item) {
 			// previtem is equal to item when item was only updated (eg. vevent exception)
-			if (previtem != item) {
-				m_vMessages.push_back(item);
-				previtem = item;
-			}
+			m_vMessages.push_back(item);
+			previtem = item;
 		}
 next:
 		lpicComponent = icalcomponent_get_next_component(lpicCalendar, ICAL_ANY_COMPONENT);

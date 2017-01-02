@@ -147,13 +147,11 @@ HRESULT ECVMIMESender::HrAddRecipsFromTable(LPADRBOOK lpAdrBook, IMAPITable *lpT
 					error = std::wstring(L"Error in group '") + lpGroupName->Value.lpszW + L"', unable to send e-mail";
 					goto exit;
 				}
-			} else {
-				if (setRecips.find(strEmail) == setRecips.end()) {
-					recipients.appendMailbox(vmime::make_shared<vmime::mailbox>(convert_to<string>(strEmail)));
-					setRecips.insert(strEmail);
-					ec_log_debug("Sending to group-address %s instead of expanded list",
-						convert_to<std::string>(strEmail).c_str());
-				}
+			} else if (setRecips.find(strEmail) == setRecips.end()) {
+				recipients.appendMailbox(vmime::make_shared<vmime::mailbox>(convert_to<string>(strEmail)));
+				setRecips.insert(strEmail);
+				ec_log_debug("Sending to group-address %s instead of expanded list",
+					convert_to<std::string>(strEmail).c_str());
 			}
 		}
 	}

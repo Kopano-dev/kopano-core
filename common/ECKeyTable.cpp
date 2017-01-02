@@ -965,8 +965,7 @@ void ECKeyTable::Prev()
     if(lpCurrent == NULL) {
         // Past end, seek back one row
         SeekRow(EC_SEEK_END, -1, NULL);
-    } else {
-        if(lpCurrent->lpLeft) {
+    } else if(lpCurrent->lpLeft) {
             lpCurrent = lpCurrent->lpLeft;
             // Go to rightmost node in left tree
             while(lpCurrent->lpRight)
@@ -979,7 +978,6 @@ void ECKeyTable::Prev()
             if(lpCurrent)
                 lpCurrent = lpCurrent->lpParent;
         }
-    }
 }
 
 ECRESULT ECKeyTable::GetPreviousRow(const sObjectTableKey *lpsRowItem, sObjectTableKey *lpsPrev)

@@ -3098,13 +3098,11 @@ ZEND_FUNCTION(mapi_openpropertytostream)
 	if (guidStr == NULL) {
 		// when no guidstring is provided default to IStream
 		lpGuid = (LPGUID)&IID_IStream;
+	} else if (guidLen == sizeof(GUID)) { // assume we have a guid if the length is right
+		lpGuid = (LPGUID)guidStr;
 	} else {
-		if (guidLen == sizeof(GUID)) { // assume we have a guid if the length is right
-			lpGuid = (LPGUID)guidStr;
-		} else {
-			php_error_docref(NULL TSRMLS_CC, E_NOTICE, "Using the default GUID because the given GUIDs length is not right");
-			lpGuid = (LPGUID)&IID_IStream;
-		}
+		php_error_docref(NULL TSRMLS_CC, E_NOTICE, "Using the default GUID because the given GUIDs length is not right");
+		lpGuid = (LPGUID)&IID_IStream;
 	}
 
 	MAPI_G(hr) = lpMapiProp->OpenProperty(proptag, lpGuid, 0, flags, (LPUNKNOWN *) &pStream);
@@ -3600,8 +3598,8 @@ ZEND_FUNCTION(mapi_openproperty)
 		interfaceflags = 0;
 		flags = 0;
 
-	} else {
-		if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rlsll", &res, &proptag, &guidStr, &guidLen, &interfaceflags, &flags) == FAILURE) return;
+	} else if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rlsll", &res, &proptag, &guidStr, &guidLen, &interfaceflags, &flags) == FAILURE) {
+		return;
 	}
 
 	type = Z_RES_P(res)->type;

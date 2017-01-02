@@ -452,24 +452,22 @@ ECRESULT ECGenericObjectTable::ReloadTable(enumReloadType eType)
 
 	//Scan for MVI columns
 	for (gsoap_size_t i = 0; lpsPropTagArray != NULL && i < lpsPropTagArray->__size; ++i) {
-		if((PROP_TYPE(lpsPropTagArray->__ptr[i]) &MVI_FLAG) == MVI_FLAG) {
-			if(bMVColsNew == true)
-				assert(false); //FIXME: error 1 mv prop set!!!
-
-			bMVColsNew = true;
-			listMVPropTag.push_back(lpsPropTagArray->__ptr[i]);
-		}
+		if ((PROP_TYPE(lpsPropTagArray->__ptr[i]) &MVI_FLAG) != MVI_FLAG)
+			continue;
+		if (bMVColsNew == true)
+			assert(false); //FIXME: error 1 mv prop set!!!
+		bMVColsNew = true;
+		listMVPropTag.push_back(lpsPropTagArray->__ptr[i]);
 	}
 	
 	//Check for mvi props
 	for (gsoap_size_t i = 0; lpsSortOrderArray != NULL && i < lpsSortOrderArray->__size; ++i) {
-		if((PROP_TYPE(lpsSortOrderArray->__ptr[i].ulPropTag)&MVI_FLAG) == MVI_FLAG) {
-			if(bMVSortNew == true)
-				assert(false);
-
-			bMVSortNew = true;
-			listMVPropTag.push_back(lpsSortOrderArray->__ptr[i].ulPropTag);
-		}
+		if ((PROP_TYPE(lpsSortOrderArray->__ptr[i].ulPropTag) & MVI_FLAG) != MVI_FLAG)
+			continue;
+		if (bMVSortNew == true)
+			assert(false);
+		bMVSortNew = true;
+		listMVPropTag.push_back(lpsSortOrderArray->__ptr[i].ulPropTag);
 	}
 
 	listMVPropTag.sort();

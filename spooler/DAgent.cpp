@@ -3112,19 +3112,17 @@ static void *HandlerLMTP(void *lpArg)
 						lOrderedRecipients.push_back(strMailAddress);
 						lmtp.HrResponse("250 2.1.5 Ok");
 					}
-				} else {
-					if (hr == MAPI_E_NOT_FOUND) {
-						if (lpRecipient->ulResolveFlags == MAPI_AMBIGUOUS) {
-							g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Requested e-mail address '%s' resolves to multiple users.", strMailAddress.c_str());
-							lmtp.HrResponse("503 5.1.4 Destination mailbox address ambiguous");
-						} else {
-							g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Requested e-mail address '%s' does not resolve to a user.", strMailAddress.c_str());
-							lmtp.HrResponse("503 5.1.1 User does not exist");
-						}
+				} else if (hr == MAPI_E_NOT_FOUND) {
+					if (lpRecipient->ulResolveFlags == MAPI_AMBIGUOUS) {
+						g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Requested e-mail address '%s' resolves to multiple users.", strMailAddress.c_str());
+						lmtp.HrResponse("503 5.1.4 Destination mailbox address ambiguous");
 					} else {
-						g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to lookup email address, error: 0x%08X", hr);
-						lmtp.HrResponse("503 5.1.1 Connection error: "+stringify(hr,1));
+						g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Requested e-mail address '%s' does not resolve to a user.", strMailAddress.c_str());
+						lmtp.HrResponse("503 5.1.1 User does not exist");
 					}
+				} else {
+					g_lpLogger->Log(EC_LOGLEVEL_ERROR, "Failed to lookup email address, error: 0x%08X", hr);
+					lmtp.HrResponse("503 5.1.1 Connection error: "+stringify(hr,1));
 				}
 
 				/*

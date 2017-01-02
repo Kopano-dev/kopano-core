@@ -3143,11 +3143,9 @@ HRESULT IMAP::ChangeSubscribeList(bool bSubscribe, ULONG cbEntryID, LPENTRYID lp
 			m_vSubscriptions.push_back(BinaryArray((BYTE*)lpEntryID, cbEntryID));
 			bChanged = true;
 		}
-	} else {
-		if (!bSubscribe) {
-			m_vSubscriptions.erase(iFolder);
-			bChanged = true;
-		}
+	} else if (!bSubscribe) {
+		m_vSubscriptions.erase(iFolder);
+		bChanged = true;
 	}
 
 	if (bChanged) {

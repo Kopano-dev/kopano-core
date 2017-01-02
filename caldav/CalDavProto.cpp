@@ -2072,16 +2072,12 @@ HRESULT CalDAV::HrMapValtoStruct(LPMAPIPROP lpObj, LPSPropValue lpProps, ULONG u
 		} else if (strProperty == "record-type"){
 
 			sWebProperty.strValue = "users";
-
+		} else if (lpFoundProp && lpFoundProp->ulPropTag != PR_NULL) {
+			sWebProperty.strValue.assign((char*)lpFoundProp->Value.bin.lpb, lpFoundProp->Value.bin.cb);
 		} else {
-			if (lpFoundProp && lpFoundProp->ulPropTag != PR_NULL) {
-				sWebProperty.strValue.assign((char*)lpFoundProp->Value.bin.lpb, lpFoundProp->Value.bin.cb);
-			} else {
-				sWebPropNotFound.lstProps.push_back(sWebProperty);
-				continue;
-			}
+			sWebPropNotFound.lstProps.push_back(sWebProperty);
+			continue;
 		}
-
 		sWebProp.lstProps.push_back(sWebProperty);
 	}
 	

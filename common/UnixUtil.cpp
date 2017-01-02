@@ -159,9 +159,8 @@ int unix_create_pidfile(const char *argv0, ECConfig *lpConfig, bool bForce)
 			if (strlen(tmp) < strlen(argv0)) {
 				if (strstr(argv0, tmp))
 					running = true;
-			} else {
-				if (strstr(tmp, argv0))
-					running = true;
+			} else if (strstr(tmp, argv0)) {
+				running = true;
 			}
 
 			if (running) {

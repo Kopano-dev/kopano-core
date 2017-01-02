@@ -243,33 +243,29 @@ static ECRESULT NormalizeRestrictionMultiFieldSearch(
     
     if (lpRestrict->ulType == RES_AND) {
         for (gsoap_size_t i = 0; i < lpRestrict->lpAnd->__size;) {
-            if(NormalizeGetMultiSearch(lpRestrict->lpAnd->__ptr[i], setExcludeProps, sMultiSearch) == erSuccess) {
-                lpMultiSearches->push_back(sMultiSearch);
-
-                // Remove it from the restriction since it is now handled as a multisearch
-                FreeRestrictTable(lpRestrict->lpAnd->__ptr[i]);
-                memmove(&lpRestrict->lpAnd->__ptr[i], &lpRestrict->lpAnd->__ptr[i+1], sizeof(struct restrictTable *) * (lpRestrict->lpAnd->__size - i - 1));
-                --lpRestrict->lpAnd->__size;
-            } else {
-                ++i;
-            }
-        }
-    } else {
-        // Direct RES_CONTENT
-        if(NormalizeGetMultiSearch(lpRestrict, setExcludeProps, sMultiSearch) == erSuccess) {
+            if (NormalizeGetMultiSearch(lpRestrict->lpAnd->__ptr[i], setExcludeProps, sMultiSearch) != erSuccess) {
+	        ++i;
+	        continue;
+	    }
             lpMultiSearches->push_back(sMultiSearch);
-            
-            // We now have to remove the entire restriction since the top-level restriction here is
-            // now obsolete. Since the above loop will generate an empty AND clause, we will do that here as well.
-			// Do not delete the lpRestrict itself, since we place new content in it.
-			FreeRestrictTable(lpRestrict, false);
-			memset(lpRestrict, 0, sizeof(struct restrictTable));
-            
-            lpRestrict->ulType = RES_AND;
-            lpRestrict->lpAnd = new struct restrictAnd;
-            lpRestrict->lpAnd->__size = 0;
-            lpRestrict->lpAnd->__ptr = NULL;
+            // Remove it from the restriction since it is now handled as a multisearch
+            FreeRestrictTable(lpRestrict->lpAnd->__ptr[i]);
+            memmove(&lpRestrict->lpAnd->__ptr[i], &lpRestrict->lpAnd->__ptr[i+1], sizeof(struct restrictTable *) * (lpRestrict->lpAnd->__size - i - 1));
+            --lpRestrict->lpAnd->__size;
         }
+    } else if (NormalizeGetMultiSearch(lpRestrict, setExcludeProps, sMultiSearch) == erSuccess) {
+        // Direct RES_CONTENT
+        lpMultiSearches->push_back(sMultiSearch);
+
+        // We now have to remove the entire restriction since the top-level restriction here is
+        // now obsolete. Since the above loop will generate an empty AND clause, we will do that here as well.
+	// Do not delete the lpRestrict itself, since we place new content in it.
+	FreeRestrictTable(lpRestrict, false);
+	memset(lpRestrict, 0, sizeof(struct restrictTable));
+        lpRestrict->ulType = RES_AND;
+        lpRestrict->lpAnd = new struct restrictAnd;
+        lpRestrict->lpAnd->__size = 0;
+        lpRestrict->lpAnd->__ptr = NULL;
     }
     
     return er;
