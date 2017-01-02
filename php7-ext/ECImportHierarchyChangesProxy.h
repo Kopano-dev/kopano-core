@@ -26,9 +26,6 @@ class ECImportHierarchyChangesProxy _kc_final :
 private:
     ULONG m_cRef;
 	zval m_lpObj;
-#ifdef ZTS
-	TSRMLS_D;
-#endif
 public:
 	ECImportHierarchyChangesProxy(const zval *v TSRMLS_DC);
     ~ECImportHierarchyChangesProxy();
