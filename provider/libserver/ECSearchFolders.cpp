@@ -1816,9 +1816,9 @@ void * ECSearchFolders::ProcessThread(void *lpSearchFolders)
     return NULL;
 }
 
-typedef struct {
+struct FOLDERSORT {
     bool operator () (const EVENT &a, const EVENT &b) { return a.ulFolderId < b.ulFolderId; } 
-} FOLDERSORT;
+};
 
 // Process all waiting events in an efficient order
 ECRESULT ECSearchFolders::FlushEvents()
