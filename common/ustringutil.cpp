@@ -30,7 +30,6 @@ The provided functions are:
   - str_iequals, wcs_iequals, u8_iequals: Check if two strings are equal ignoring case.
   - str_startswith, wcs_startswith, u8_startswith: Check if one string starts with another.
   - str_istartswith, wcs_istartswith, u8_istartswith: Check if one string starts with another ignoring case.
-  - str_compare, wcs_compare: Compare two strings.
   - str_icompare, wcs_icompare, u8_icompare: Compare two strings ignoring case.
   - str_contains, wcs_contains, u8_contains: Check if one string contains the other.
   - str_icontains, wcs_icontains, u8_icontains: Check if one string contains the other ignoring case.
@@ -264,39 +263,6 @@ bool str_istartswith(const char *s1, const char *s2, const ECLocale &locale)
 /**
  * Compare two strings using the collator to determine the sort order.
  * 
- * Both strings are expectes to be in the current locale.
- * 
- * @param[in]	s1		The string to compare s2 with.
- * @param[in]	s2		The string to compare s1 with.
- * @param[in]	collator	The collator used to determine which string precedes the other.
- * 
- * @return		An integer.
- * @retval		-1	s1 is smaller than s2
- * @retval		0	s1 equals s2.
- * @retval		1	s1 is greater than s2
- */
-int str_compare(const char *s1, const char *s2, const ECLocale &locale)
-{
-	assert(s1);
-	assert(s2);
-	
-#ifdef ZCP_USES_ICU
-	UErrorCode status = U_ZERO_ERROR;
-	unique_ptr_Collator ptrCollator(Collator::createInstance(locale, status));
-
-	UnicodeString a = StringToUnicode(s1);
-	UnicodeString b = StringToUnicode(s2);
-
-	return ptrCollator->compare(a,b,status);
-#else
-	int r = strcmp(s1, s2);
-	return (r < 0 ? -1 : (r > 0 ? 1 : 0));
-#endif
-}
-
-/**
- * Compare two strings using the collator to determine the sort order.
- * 
  * Both strings are expectes to be in the current locale. The comparison is
  * case insensitive. Effectively this only changes behavior compared to strcmp_unicode
  * if the two strings are the same if the case is discarded. It doesn't effect the
@@ -497,39 +463,6 @@ bool wcs_istartswith(const wchar_t *s1, const wchar_t *s2, const ECLocale &local
 #else
 	size_t cb2 = wcslen(s2);
 	return wcslen(s1) >= cb2 ? (wcsncasecmp_l(s1, s2, cb2, locale) == 0) : false;
-#endif
-}
-
-/**
- * Compare two strings using the collator to determine the sort order.
- * 
- * Both strings are expectes to be wide character strings.
- * 
- * @param[in]	s1			The string to compare s2 with.
- * @param[in]	s2			The string to compare s1 with.
- * @param[in]	collator	The collator used to determine which string precedes the other.
- * 
- * @return		An integer.
- * @retval		-1	s1 is smaller than s2
- * @retval		0	s1 equals s2.
- * @retval		1	s1 is greater than s2
- */
-int wcs_compare(const wchar_t *s1, const wchar_t *s2, const ECLocale &locale)
-{
-	assert(s1);
-	assert(s2);
-	
-#ifdef ZCP_USES_ICU
-	UErrorCode status = U_ZERO_ERROR;
-	unique_ptr_Collator ptrCollator(Collator::createInstance(locale, status));
-
-	UnicodeString a = UTF32ToUnicode((UChar32*)s1);
-	UnicodeString b = UTF32ToUnicode((UChar32*)s2);
-
-	return ptrCollator->compare(a,b,status);
-#else
-	int r = wcscmp(s1, s2);
-	return (r < 0 ? -1 : (r > 0 ? 1 : 0));
 #endif
 }
 

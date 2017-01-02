@@ -61,23 +61,11 @@ extern _kc_export std::string stringify_float(float);
 extern _kc_export std::string stringify_double(double, int prec = 18, bool locale = false);
 
 extern _kc_export std::wstring wstringify(unsigned int x, bool usehex = false, bool _signed = false);
-std::wstring wstringify_int64(int64_t x, bool usehex = false);
-std::wstring wstringify_uint64(uint64_t x, bool usehex = false);
-std::wstring wstringify_float(float x);
-std::wstring wstringify_double(double x, int prec = 18);
 
 #ifdef UNICODE
 	#define tstringify			wstringify
-	#define tstringify_int64	wstringify_int64
-	#define tstringify_uint64	wstringify_uint64
-	#define tstringify_float	wstringify_float
-	#define tstringify_double	wstringify_double
 #else
 	#define tstringify			stringify
-	#define tstringify_int64	stringify_int64
-	#define tstringify_uint64	stringify_uint64
-	#define tstringify_float	stringify_float
-	#define tstringify_double	stringify_double
 #endif
 
 inline unsigned int	atoui(const char *szString) { return strtoul(szString, NULL, 10); }
