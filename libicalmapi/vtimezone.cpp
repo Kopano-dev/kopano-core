@@ -67,6 +67,26 @@ time_t icaltime_as_timet_with_server_zone(const struct icaltimetype tt)
 	return t;
 }
 
+// time only, not date!
+time_t SystemTimeToUnixTime(const SYSTEMTIME &stime)
+{
+	return stime.wSecond + (stime.wMinute*60) + ((stime.wHour)*60*60);
+}
+
+SYSTEMTIME TMToSystemTime(const struct tm &t)
+{
+	SYSTEMTIME stime = {0};
+	stime.wYear = t.tm_year;
+	stime.wMonth = t.tm_mon;
+	stime.wDayOfWeek = t.tm_wday;
+	stime.wDay = t.tm_mday;
+	stime.wHour = t.tm_hour;
+	stime.wMinute = t.tm_min;
+	stime.wSecond = t.tm_sec;
+	stime.wMilliseconds = 0;
+	return stime;
+}
+
 /**
  * Converts icaltimetype to UTC Unix timestamp
  *

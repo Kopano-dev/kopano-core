@@ -87,8 +87,6 @@ void	RTimeToFileTime(LONG rtime, FILETIME *pft);
 extern _kc_export void FileTimeToRTime(const FILETIME *, LONG *rtime);
 extern _kc_export HRESULT UnixTimeToRTime(time_t unixtime, LONG *rtime);
 extern _kc_export HRESULT RTimeToUnixTime(LONG rtime, time_t *unixtime);
-extern _kc_export time_t SystemTimeToUnixTime(const SYSTEMTIME &);
-extern _kc_export SYSTEMTIME TMToSystemTime(const struct tm &);
 extern _kc_export double GetTimeOfDay(void);
 
 inline double difftimeval(struct timeval *ptstart, struct timeval *ptend) {
