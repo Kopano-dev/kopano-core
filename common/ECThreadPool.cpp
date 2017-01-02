@@ -17,6 +17,7 @@
 
 #include <chrono>
 #include <condition_variable>
+#include <utility>
 #include <kopano/platform.h>
 #include <kopano/ECThreadPool.h>
 #include <kopano/lockhelper.hpp>
@@ -59,7 +60,7 @@ bool ECThreadPool::dispatch(ECTask *lpTask, bool bTakeOwnership)
 	gettimeofday(&sTaskInfo.tvQueueTime, NULL);
 	
 	ulock_normal locker(m_hMutex);
-	m_listTasks.push_back(sTaskInfo);
+	m_listTasks.push_back(std::move(sTaskInfo));
 	m_hCondition.notify_one();
 	joinTerminated(locker);
 	return true;

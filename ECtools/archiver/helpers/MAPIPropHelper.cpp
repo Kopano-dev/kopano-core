@@ -18,6 +18,7 @@
 #include <kopano/platform.h>
 #include <memory>
 #include <new>
+#include <utility>
 #include "MAPIPropHelper.h"
 
 #include "ArchiverSession.h"
@@ -311,8 +312,7 @@ HRESULT MAPIPropHelper::GetArchiveList(ObjectEntryList *lplstArchives, bool bIgn
 		
 		objectEntry.sStoreEntryId.assign(ptrPropArray[IDX_ARCHIVE_STORE_ENTRYIDS].Value.MVbin.lpbin[i]);
 		objectEntry.sItemEntryId.assign(ptrPropArray[IDX_ARCHIVE_ITEM_ENTRYIDS].Value.MVbin.lpbin[i]);
-		
-		lstArchives.push_back(objectEntry);
+		lstArchives.push_back(std::move(objectEntry));
 	}
 	
 	swap(*lplstArchives, lstArchives);
@@ -655,8 +655,7 @@ HRESULT MAPIPropHelper::GetArchiveList(MAPIPropPtr ptrMapiProp, LPSPropValue lpP
 		
 		objectEntry.sStoreEntryId.assign(lpPropStoreEIDs->Value.MVbin.lpbin[i]);
 		objectEntry.sItemEntryId.assign(lpPropItemEIDs->Value.MVbin.lpbin[i]);
-		
-		lstArchives.push_back(objectEntry);
+		lstArchives.push_back(std::move(objectEntry));
 	}
 	
 	swap(*lplstArchives, lstArchives);

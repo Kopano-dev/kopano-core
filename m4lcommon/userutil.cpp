@@ -17,7 +17,7 @@
 
 #include <kopano/zcdefs.h>
 #include <kopano/platform.h>
-
+#include <utility>
 #include <mapi.h>
 #include <mapiutil.h>
 #include <kopano/ECLogger.h>
@@ -171,7 +171,7 @@ HRESULT UserListCollector<string_type, prAccount>::CollectData(LPMAPITABLE lpSto
 			hrTmp = HrGetOneProp(ptrUser, prAccount, &~ptrAccount);
 			if (hrTmp != hrSuccess)
 				continue;
-			push_back(ptrAccount);
+			push_back(std::move(ptrAccount));
 		}
 
 		if (ptrRows.size() < 50)

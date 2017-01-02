@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <memory>
+#include <utility>
 #include <kopano/ECRestriction.h>
 #include <kopano/memory.hpp>
 #include <kopano/tie.hpp>
@@ -238,7 +239,7 @@ HRESULT CalDAV::HrHandlePropfindRoot(WEBDAVREQSTPROPS *sDavReqstProps, WEBDAVMUL
 	}
 
 	HrSetDavPropName(&(lpsDavMulStatus->sPropName), "multistatus", WEBDAVNS);
-	lpsDavMulStatus->lstResp.push_back(sDavResp);
+	lpsDavMulStatus->lstResp.push_back(std::move(sDavResp));
 	return hrSuccess;
 }
 
@@ -1534,22 +1535,22 @@ HRESULT CalDAV::HrHandlePropPatch(WEBDAVPROP *lpsDavProp, WEBDAVMULTISTATUS *lps
 		if (iter.sPropName.strPropname == "displayname") {
 			// deny rename of default Calendar
 			if (!m_blFolderAccess) {
-				sPropStatusForbidden.sProp.lstProps.push_back(sDavProp);
+				sPropStatusForbidden.sProp.lstProps.push_back(std::move(sDavProp));
 				continue;
 			}
 		} else if (iter.sPropName.strPropname == "calendar-free-busy-set") {
 			// not allowed to select which calendars give freebusy information
-			sPropStatusForbidden.sProp.lstProps.push_back(sDavProp);
+			sPropStatusForbidden.sProp.lstProps.push_back(std::move(sDavProp));
 			continue;
 		} else if (iter.sPropName.strNS.compare(WEBDAVNS) == 0) {
 			// only DAV:displayname may be modified, the rest is read-only
-			sPropStatusForbidden.sProp.lstProps.push_back(sDavProp);
+			sPropStatusForbidden.sProp.lstProps.push_back(std::move(sDavProp));
 			continue;
 		}
 
 		sProp.ulPropTag = GetPropIDForXMLProp(m_lpUsrFld, iter.sPropName, m_converter, MAPI_CREATE);
 		if (sProp.ulPropTag == PR_NULL) {
-			sPropStatusForbidden.sProp.lstProps.push_back(sDavProp);
+			sPropStatusForbidden.sProp.lstProps.push_back(std::move(sDavProp));
 			continue;
 		}
 
@@ -1563,17 +1564,17 @@ HRESULT CalDAV::HrHandlePropPatch(WEBDAVPROP *lpsDavProp, WEBDAVMULTISTATUS *lps
 
 		hr = m_lpUsrFld->SetProps(1, &sProp, NULL);
 		if (hr == hrSuccess) {
-			sPropStatusOK.sProp.lstProps.push_back(sDavProp);
+			sPropStatusOK.sProp.lstProps.push_back(std::move(sDavProp));
 			continue;
 		}
 		if (hr == MAPI_E_COLLISION) {
 			// set error 409 collision
-			sPropStatusCollision.sProp.lstProps.push_back(sDavProp);
+			sPropStatusCollision.sProp.lstProps.push_back(std::move(sDavProp));
 			// returned on folder rename, directly return an error and skip all other properties, see note above
 			return hr;
 		}
 		// set error 403 forbidden
-		sPropStatusForbidden.sProp.lstProps.push_back(sDavProp);
+		sPropStatusForbidden.sProp.lstProps.push_back(std::move(sDavProp));
 	}
 
 	// @todo, maybe only do this for certain Mac iCal app versions?
@@ -1585,15 +1586,12 @@ HRESULT CalDAV::HrHandlePropPatch(WEBDAVPROP *lpsDavProp, WEBDAVMULTISTATUS *lps
 	// this is the normal code path to return the correct 207 Multistatus
 
 	if (!sPropStatusOK.sProp.lstProps.empty())
-		sDavResponse.lstsPropStat.push_back(sPropStatusOK);
-
+		sDavResponse.lstsPropStat.push_back(std::move(sPropStatusOK));
 	if (!sPropStatusForbidden.sProp.lstProps.empty())
-		sDavResponse.lstsPropStat.push_back(sPropStatusForbidden);
-
+		sDavResponse.lstsPropStat.push_back(std::move(sPropStatusForbidden));
 	if (!sPropStatusCollision.sProp.lstProps.empty())
-		sDavResponse.lstsPropStat.push_back(sPropStatusCollision);
-
-	lpsMultiStatus->lstResp.push_back(sDavResponse);
+		sDavResponse.lstsPropStat.push_back(std::move(sPropStatusCollision));
+	lpsMultiStatus->lstResp.push_back(std::move(sDavResponse));
 	return hrSuccess;
 }
 

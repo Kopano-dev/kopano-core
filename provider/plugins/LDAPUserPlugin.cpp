@@ -26,6 +26,7 @@
 #include <map>
 #include <mutex>
 #include <set>
+#include <utility>
 #include <list>
 
 #include <cerrno>
@@ -403,7 +404,7 @@ LDAPUserPlugin::LDAPUserPlugin(std::mutex &pluginlock,
 		else
 			url = format("ldap://%s:%s", ldap_host, ldap_port);
 
-		ldap_servers.push_back(url);
+		ldap_servers.push_back(std::move(url));
 	}
 
 	if (ldap_servers.empty())
@@ -1708,7 +1709,7 @@ list<string> LDAPUserPlugin::getLDAPAttributeValues(char *attribute, LDAPMessage
 	if (berval != NULL)
 		for (int i = 0; berval[i] != NULL; ++i) {
 			s.assign(berval[i]->bv_val, berval[i]->bv_len);
-			r.push_back(s);
+			r.push_back(std::move(s));
 		}
 	return r;
 }
@@ -1969,8 +1970,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 					p.relAttrType = "dn";
 
 					p.propname = (property_key_t)ulPropTag;
-					lPostActions.push_back(p);
-
+					lPostActions.push_back(std::move(p));
 					break;
                 }
 				case 0x3A4E:	/* PR_MANAGER_NAME */
@@ -1996,7 +1996,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 					p.relAttrType = "dn";
 
 					p.propname = (property_key_t)ulPropTag;
-					lPostActions.push_back(p);
+					lPostActions.push_back(std::move(p));
 					break;
                 }
 				case 0x3A30:	/* PR_ASSISTANT */
@@ -2017,7 +2017,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 					p.result_attr = m_config->GetSetting("ldap_fullname_attribute");
 					
 					p.propname = (property_key_t)ulPropTag;
-					lPostActions.push_back(p);
+					lPostActions.push_back(std::move(p));
 					break;
                 }
 				default:
@@ -2102,7 +2102,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 						p.relAttr = m_config->GetSetting("ldap_user_unique_attribute");
 
 					p.propname = OB_PROP_LO_SENDAS;
-					lPostActions.push_back(p);
+					lPostActions.push_back(std::move(p));
 				}
 				if (user_server_attr && !strcasecmp(att, user_server_attr)) {
 					ldap_attr = getLDAPAttributeValue(att, entry);
@@ -2142,7 +2142,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 						p.relAttr = m_config->GetSetting("ldap_user_unique_attribute");
 
 					p.propname = OB_PROP_LO_SENDAS;
-					lPostActions.push_back(p);
+					lPostActions.push_back(std::move(p));
 				}
 				break;
 			case DISTLIST_DYNAMIC:
@@ -2182,8 +2182,7 @@ LDAPUserPlugin::getObjectDetails(const std::list<objectid_t> &objectids)
 					p.relAttr = sysadmin_attr_rel ? sysadmin_attr_rel : user_unique_attr;
 					p.relAttrType = sysadmin_attr_type;
 					p.propname = OB_PROP_O_SYSADMIN;
-
-					lPostActions.push_back(p);
+					lPostActions.push_back(std::move(p));
 				}
 
 				break;
@@ -2318,7 +2317,7 @@ static LDAPMod *newLDAPModification(char *attribute, const char *value) {
 	// with a list with only one element.
 	list<string> values;
 	values.push_back(value);
-	return newLDAPModification(attribute, values);
+	return newLDAPModification(attribute, std::move(values));
 }
 
 int LDAPUserPlugin::changeAttribute(const char *dn, char *attribute, const char *value) {
@@ -2845,7 +2844,7 @@ std::unique_ptr<serverlist_t> LDAPUserPlugin::getServers(void)
     	FOREACH_ATTR(entry) {
             if (name_attr && !strcasecmp(att, name_attr)) {
                 strName = m_iconv->convert(getLDAPAttributeValue(att, entry));
-                serverlist->push_back(strName);
+                serverlist->push_back(std::move(strName));
             }
         }
         END_FOREACH_ATTR

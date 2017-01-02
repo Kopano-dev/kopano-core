@@ -43,6 +43,7 @@
 
 #include <kopano/platform.h>
 #include <memory>
+#include <utility>
 #include <kopano/tie.hpp>
 #include <kopano/stringutil.h>
 #include "MAPISMTPTransport.h"
@@ -577,19 +578,19 @@ void MAPISMTPTransport::send(const mailbox &expeditor,
 			 * 550 5.1.1 <fox>: Recipient address rejected: User unknown in virtual mailbox table
 			 * 550 5.7.1 REJECT action without code by means of e.g. /etc/postfix/header_checks
 			 */
-			mPermanentFailedRecipients.push_back(entry);
+			mPermanentFailedRecipients.push_back(std::move(entry));
 			ec_log_err("RCPT line gave SMTP error %d %s. (no retry)",
 				resp->getCode(), resp->getText().c_str());
 			continue;
 		} else if (code / 100 != 4) {
-			mPermanentFailedRecipients.push_back(entry);
+			mPermanentFailedRecipients.push_back(std::move(entry));
 			ec_log_err("RCPT line gave unexpected SMTP reply %d %s. (no retry)",
 				resp->getCode(), resp->getText().c_str());
 			continue;
 		}
 
 		/* Other 4xx codes (disk full, ... ?) */
-		mTemporaryFailedRecipients.push_back(entry);
+		mTemporaryFailedRecipients.push_back(std::move(entry));
 		ec_log_err("RCPT line gave SMTP error: %d %s. (will be retried)",
 			resp->getCode(), resp->getText().c_str());
 	}

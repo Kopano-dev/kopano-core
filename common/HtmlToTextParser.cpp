@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <utility>
 #include "HtmlToTextParser.h"
 #include "HtmlEntity.h"
 #include <cwctype>
@@ -317,7 +318,7 @@ void CHtmlToTextParser::parseAttributes(const WCHAR* &lpwHTML)
 		++lpwHTML;
 	}
 
-	stackAttrs.push(mapAttrs);
+	stackAttrs.push(std::move(mapAttrs));
 }
 
 void CHtmlToTextParser::parseTagP()

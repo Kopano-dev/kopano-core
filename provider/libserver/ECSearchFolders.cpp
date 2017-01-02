@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <utility>
 #include <kopano/lockhelper.hpp>
 #include <pthread.h>
 #include <mapidefs.h>
@@ -466,7 +467,7 @@ ECRESULT ECSearchFolders::UpdateSearchFolders(unsigned int ulStoreId, unsigned i
     
 	scoped_rlock l_ev(m_mutexEvents);
     // Add the event to the queue
-	m_lstEvents.push_back(ev);
+	m_lstEvents.push_back(std::move(ev));
 	/*
 	 * Signal a change in the queue (actually only needed for the first
 	 * event, but this wastes almost no time and is safer.

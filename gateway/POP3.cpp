@@ -17,6 +17,7 @@
 
 #include <kopano/platform.h>
 #include <memory>
+#include <utility>
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
@@ -813,7 +814,6 @@ exit:
 HRESULT POP3::HrMakeMailList() {
 	HRESULT hr = hrSuccess;
 	object_ptr<IMAPITable> lpTable;
-	MailListItem sMailListItem;
 	enum { EID, SIZE, NUM_COLS };
 	static constexpr const SizedSPropTagArray(NUM_COLS, spt) =
 		{NUM_COLS, {PR_ENTRYID, PR_MESSAGE_SIZE}};
@@ -847,12 +847,13 @@ HRESULT POP3::HrMakeMailList() {
 			continue;
 		}
 
+		MailListItem sMailListItem;
 		sMailListItem.sbEntryID.cb = lpRows->aRow[i].lpProps[EID].Value.bin.cb;
 		sMailListItem.sbEntryID.lpb = new BYTE[lpRows->aRow[i].lpProps[EID].Value.bin.cb];
 		memcpy(sMailListItem.sbEntryID.lpb, lpRows->aRow[i].lpProps[EID].Value.bin.lpb, lpRows->aRow[i].lpProps[EID].Value.bin.cb);
 		sMailListItem.bDeleted = false;
 		sMailListItem.ulSize = lpRows->aRow[i].lpProps[SIZE].Value.l;
-		lstMails.push_back(sMailListItem);
+		lstMails.push_back(std::move(sMailListItem));
 	}
 
 exit:

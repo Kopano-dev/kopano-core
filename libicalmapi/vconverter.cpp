@@ -1582,8 +1582,7 @@ HRESULT VConverter::HrAddException(icalcomponent *lpEventRoot, icalcomponent *lp
 	hr = HrAddBaseProperties(icMethod, lpEvent, lpPrevItem->base, true, &ex.lstMsgProps);
 	if (hr != hrSuccess)
 		return hr;
-
-	lpPrevItem->lstExceptionAttachments.push_back(ex);
+	lpPrevItem->lstExceptionAttachments.push_back(std::move(ex));
 	return hrSuccess;
 }
 

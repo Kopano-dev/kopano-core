@@ -133,7 +133,7 @@ namespace details {
 					SObjectEntry objEntry;
 					objEntry.sStoreEntryId.assign(entryid_t(ptrRows[i].lpProps[IDX_STORE_ENTRYIDS].Value.MVbin.lpbin[j]));
 					objEntry.sItemEntryId.assign(entryid_t(ptrRows[i].lpProps[IDX_ITEM_ENTRYIDS].Value.MVbin.lpbin[j]));
-					res.first->second.lstArchives.push_back(objEntry);
+					res.first->second.lstArchives.push_back(std::move(objEntry));
 				}
 			}
 		}

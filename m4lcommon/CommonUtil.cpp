@@ -2581,9 +2581,7 @@ HRESULT DoAddress(IAddrBook *lpAdrBook, ULONG* hWnd, LPADRPARM lpAdrParam, LPADR
 		// Same for lpAdrParam
 		for (unsigned int i = 0; i < sAdrParam.cDestFields; ++i) {
 			std::string strField = convert_to<string>((LPWSTR)sAdrParam.lppszDestTitles[i]);
-
-			vDestFields.push_back(strField);
-
+			vDestFields.push_back(std::move(strField));
 			sAdrParam.lppszDestTitles[i] = (LPTSTR)vDestFields.back().c_str();
 
 		}

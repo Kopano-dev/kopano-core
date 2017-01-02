@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <utility>
 #include "ECDatabase.h"
 
 #include <mapidefs.h>
@@ -163,7 +164,7 @@ ECRESULT ECConvenientDepthObjectTable::Load() {
 				continue;
 			
 			// Push folders onto end of list
-            lstFolders.push_back(sFolderInfo);
+            lstFolders.push_back(std::move(sFolderInfo));
             
             // If we were pointing at the last item, point at the freshly inserted item
             if(iterFolders == lstFolders.end())

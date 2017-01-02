@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <utility>
 #include <kopano/ECRestriction.h>
 #include "PublishFreeBusy.h"
 #include <kopano/namedprops.h>
@@ -374,7 +375,7 @@ HRESULT PublishFreeBusy::HrMergeBlocks(FBBlock_1 **lppfbBlocks, ULONG *lpcValues
 				fbBlockTemp.m_tmEnd = sTsitem.tsTime;
 				fbBlockTemp.m_fbstatus = (enum FBStatus)(vctStatus.size()> 0 ? vctStatus.back(): 0);// sort it to get max of status
 				if(fbBlockTemp.m_fbstatus != 0)
-					vcFBblocks.push_back(fbBlockTemp);
+					vcFBblocks.push_back(std::move(fbBlockTemp));
 			}
 			++ulLevel;
 			vctStatus.push_back(sTsitem.ulStatus);
@@ -388,7 +389,7 @@ HRESULT PublishFreeBusy::HrMergeBlocks(FBBlock_1 **lppfbBlocks, ULONG *lpcValues
 				fbBlockTemp.m_tmEnd = sTsitem.tsTime;
 				fbBlockTemp.m_fbstatus = (enum FBStatus)(vctStatus.size()> 0 ? vctStatus.back(): 0);
 				if(fbBlockTemp.m_fbstatus != 0)
-					vcFBblocks.push_back(fbBlockTemp);
+					vcFBblocks.push_back(std::move(fbBlockTemp));
 			}
 			--ulLevel;
 			if(!vctStatus.empty()){

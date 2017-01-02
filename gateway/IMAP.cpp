@@ -4157,7 +4157,7 @@ HRESULT IMAP::HrPropertyFetchRow(LPSPropValue lpProps, ULONG cValues, string &st
 
 	// Output flags if modified
 	if (!strFlags.empty())
-		vProps.push_back(strFlags);
+		vProps.push_back(std::move(strFlags));
 
 	strResponse += boost::algorithm::join(vProps, " ");
 	strResponse += ")";

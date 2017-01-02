@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <utility>
 #include <kopano/Trace.h>
 #include "ZCABLogon.h"
 #include "ZCABContainer.h"
@@ -131,8 +132,7 @@ HRESULT ZCABLogon::AddFolder(const WCHAR* lpwDisplayName, ULONG cbStore, LPBYTE 
 	if (hr != hrSuccess)
 		return hr;
 	memcpy(entry.lpFolder, lpFolder, cbFolder);
-
-	m_lFolders.push_back(entry);
+	m_lFolders.push_back(std::move(entry));
 	return hrSuccess;
 }
 

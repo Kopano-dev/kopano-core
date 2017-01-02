@@ -16,7 +16,7 @@
  */
 
 #include <kopano/platform.h>
-
+#include <utility>
 #include "VMIMEToMAPI.h"
 #include <kopano/ECGuid.h>
 #include <kopano/ECLogger.h>
@@ -3248,12 +3248,10 @@ std::string VMIMEToMAPI::mailboxToEnvelope(vmime::shared_ptr<vmime::mailbox> mbo
 	pos = buffer.find("@");
 	if (pos != string::npos)
 		boost::algorithm::replace_first(buffer, "@", "\" \"");
-	lMBox.push_back(buffer);
+	lMBox.push_back(std::move(buffer));
 	if (pos == string::npos)
 		lMBox.push_back("NIL");	// domain was missing
-
-	buffer = "(" + boost::algorithm::join(lMBox, " ") + ")";
-	return buffer;
+	return "(" + boost::algorithm::join(lMBox, " ") + ")";
 }
 
 /** 
@@ -3524,8 +3522,8 @@ HRESULT VMIMEToMAPI::messagePartToStructure(const string &input,
 			string strBodyStructure;
 			for (size_t i = 0; i < vmBodyPart->getBody()->getPartCount(); ++i) {
 				messagePartToStructure(input, vmBodyPart->getBody()->getPartAt(i), &strBody, &strBodyStructure);
-				lBody.push_back(strBody);
-				lBodyStructure.push_back(strBodyStructure);
+				lBody.push_back(std::move(strBody));
+				lBodyStructure.push_back(std::move(strBodyStructure));
 				strBody.clear();
 				strBodyStructure.clear();
 			}
@@ -3534,10 +3532,9 @@ HRESULT VMIMEToMAPI::messagePartToStructure(const string &input,
 			strBodyStructure = boost::algorithm::join(lBodyStructure, "");
 
 			lBody.clear();
-			lBody.push_back(strBody);
-
+			lBody.push_back(std::move(strBody));
 			lBodyStructure.clear();
-			lBodyStructure.push_back(strBodyStructure);
+			lBodyStructure.push_back(std::move(strBodyStructure));
 
 			// body:
 			//   (<SUB> "subtype")
@@ -3669,9 +3666,8 @@ HRESULT VMIMEToMAPI::bodyPartToStructure(const string &input,
 
 		// recurse message-in-message
 		messagePartToStructure(buffer, subMessage, &strSubSingle, &strSubExtended);
-
-		lBody.push_back(strSubSingle);
-		lBodyStructure.push_back(strSubExtended);
+		lBody.push_back(std::move(strSubSingle));
+		lBodyStructure.push_back(std::move(strSubExtended));
 
 		// dus hier nog de line count van vmBodyPart->getBody buffer?
 		lBody.push_back(stringify(countBodyLines(buffer, 0, buffer.length())));

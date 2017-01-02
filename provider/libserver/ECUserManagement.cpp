@@ -85,8 +85,7 @@ static bool execute_script(const char *scriptname, ...)
 		strEnv = envname;
 		strEnv += '=';
 		strEnv += envval;
-		
-		lstEnv.push_back(strEnv);
+		lstEnv.push_back(std::move(strEnv));
 	}
 	va_end(v);
 

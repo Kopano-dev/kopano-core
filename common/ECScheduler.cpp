@@ -16,6 +16,7 @@
  */
 
 #include <kopano/platform.h>
+#include <utility>
 #include <kopano/ECScheduler.h>
 #include <kopano/lockhelper.hpp>
 #include <cerrno>
@@ -60,8 +61,7 @@ HRESULT ECScheduler::AddSchedule(eSchedulerType eType, unsigned int ulBeginCycle
 	sECSchedule.lpFunction = lpFunction;
 	sECSchedule.lpData = lpData;
 	sECSchedule.tLastRunTime = 0;
-
-	m_listScheduler.push_back(sECSchedule);
+	m_listScheduler.push_back(std::move(sECSchedule));
 	return S_OK;
 }
 
