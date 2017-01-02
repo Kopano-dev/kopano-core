@@ -71,7 +71,7 @@ public:
 	/**
 	 * Default constructor, creates empty objectid with empty signature
 	 */
-    objectsignature_t() : id(), signature("") {};
+	objectsignature_t(void) = default;
 
 	/**
 	 * Object signature equality comparison

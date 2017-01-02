@@ -67,7 +67,7 @@ public:
 	/**
 	 * Constructs an empty entryid.
 	 */
-	_kc_hidden entryid_t(void) {}
+	_kc_hidden entryid_t(void) = default;
 	
 	/**
 	 * Construct an entryid based on a length and pointer argument.
@@ -303,7 +303,7 @@ public:
 	/**
 	 * Constructs an empty entryid.
 	 */
-	abentryid_t() {}
+	abentryid_t(void) = default;
 	
 	/**
 	 * Construct an entryid based on a length and pointer argument.

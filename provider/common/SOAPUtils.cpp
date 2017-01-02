@@ -2145,8 +2145,6 @@ DynamicPropTagArray::DynamicPropTagArray(struct soap *soap)
     m_soap = soap;
 }
 
-DynamicPropTagArray::~DynamicPropTagArray() { }
-
 ECRESULT DynamicPropTagArray::AddPropTag(unsigned int ulPropTag) {
     m_lstPropTags.push_back(ulPropTag);
     

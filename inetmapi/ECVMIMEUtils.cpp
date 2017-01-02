@@ -47,8 +47,7 @@ namespace KC {
 
 class mapiTimeoutHandler : public vmime::net::timeoutHandler {
 public:
-	mapiTimeoutHandler() : m_last(0) {};
-	virtual ~mapiTimeoutHandler() {};
+	virtual ~mapiTimeoutHandler(void) = default;
 
 	// @todo add logging
 	virtual bool isTimeOut() { return getTime() >= (m_last + 5*60); };
@@ -60,7 +59,7 @@ public:
 	}
 
 private:
-	unsigned int m_last;
+	unsigned int m_last = 0;
 };
 
 class mapiTimeoutHandlerFactory : public vmime::net::timeoutHandlerFactory {

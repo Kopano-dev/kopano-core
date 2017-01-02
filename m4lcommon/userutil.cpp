@@ -72,12 +72,11 @@ static HRESULT UpdateServerList(IABContainer *lpContainer, std::set<servername> 
 
 class UserCountCollector _kc_final : public DataCollector {
 public:
-	UserCountCollector();
 	virtual HRESULT CollectData(LPMAPITABLE store_table) _kc_override;
 	unsigned int result() const;
 
 private:
-	unsigned int m_ulUserCount;
+	unsigned int m_ulUserCount = 0;
 };
 
 template <typename string_type, ULONG prAccount>
@@ -124,8 +123,6 @@ HRESULT DataCollector::GetRestriction(LPMAPIPROP lpProp, LPSRestriction *lppRest
  exitpm:
 	return hr;
 }
-
-UserCountCollector::UserCountCollector(): m_ulUserCount(0) {}
 
 HRESULT UserCountCollector::CollectData(LPMAPITABLE lpStoreTable) {
 	ULONG ulCount = 0;

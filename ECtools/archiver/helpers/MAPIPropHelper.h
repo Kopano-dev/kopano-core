@@ -78,8 +78,6 @@ private:
 
 class MessageState _kc_final {
 public:
-	MessageState(): m_ulState(0) {}
-
 	bool isStubbed() const { return (m_ulState & msStubbed) != 0; }
 	bool isDirty() const { return (m_ulState & msDirty) != 0; }
 	bool isCopy() const { return (m_ulState & msCopy) != 0; }
@@ -93,8 +91,7 @@ private:
 		msMove		= 0x08	//< The message is moved, mutual exclusive with msCopy
 	};
 
-	ULONG m_ulState;
-
+	ULONG m_ulState = 0;
 friend class MAPIPropHelper;
 };
 

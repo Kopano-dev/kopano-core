@@ -28,7 +28,6 @@ namespace KCHL {
 
 class AutoMAPI _kc_final {
 public:
-	AutoMAPI() : m_bInitialized(false) {}
 	~AutoMAPI() {
 		if (m_bInitialized)
 			MAPIUninitialize();
@@ -52,7 +51,7 @@ public:
 	}
 
 private:
-	bool m_bInitialized;
+	bool m_bInitialized = false;
 };
 
 } /* namespace */

@@ -43,8 +43,7 @@ protected:
 	bool m_bForceUpdate;
 
 public:
-	virtual 				~ECDatabase() {};
-	
+	virtual ~ECDatabase(void) = default;
 	virtual ECRESULT		Connect() = 0;
 	virtual ECRESULT		Close() = 0;
 

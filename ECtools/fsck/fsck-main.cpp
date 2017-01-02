@@ -234,15 +234,6 @@ exit:
 /*
  * Fsck implementation.
  */
-Fsck::Fsck()
-{
-	ulFolders = 0;
-	ulEntries = 0;
-	ulProblems = 0;
-	ulFixed = 0;
-	ulDeleted = 0;
-}
-
 HRESULT Fsck::ValidateMessage(LPMESSAGE lpMessage,
     const std::string &strName, const std::string &strClass)
 {

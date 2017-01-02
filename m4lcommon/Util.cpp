@@ -77,7 +77,6 @@ private:
 
 class PropTagCompare _kc_final {
 public:
-	PropTagCompare() {}
 	bool operator()(ULONG lhs, ULONG rhs) const { 
 		if (PROP_TYPE(lhs) == PT_UNSPECIFIED || PROP_TYPE(rhs) == PT_UNSPECIFIED)
 			return PROP_ID(lhs) < PROP_ID(rhs); 

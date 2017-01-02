@@ -37,12 +37,6 @@ private:
 	const std::string &m_str;
 };
 
-objectid_t::objectid_t(const std::string &id, objectclass_t objclass)
-{
-	this->id = id;
-	this->objclass = objclass;
-}
-
 objectid_t::objectid_t(const std::string &str)
 {
 	std::string objclass;
@@ -62,16 +56,6 @@ objectid_t::objectid_t(const std::string &str)
 	}
 }
 
-objectid_t::objectid_t(objectclass_t objclass)
-{
-	this->objclass = objclass;
-}
-
-objectid_t::objectid_t()
-{
-	objclass = OBJECTCLASS_UNKNOWN;
-}
-
 bool objectid_t::operator==(const objectid_t &x) const
 {
 	return this->objclass == x.objclass && this->id == x.id;
@@ -85,15 +69,6 @@ bool objectid_t::operator!=(const objectid_t &x) const
 std::string objectid_t::tostring() const
 {
 	return stringify(this->objclass) + ";" + bin2hex(this->id);
-}
-
-objectdetails_t::objectdetails_t(objectclass_t objclass) : m_objclass(objclass) {}
-objectdetails_t::objectdetails_t() : m_objclass(OBJECTCLASS_UNKNOWN) {}
-
-objectdetails_t::objectdetails_t(const objectdetails_t &objdetails) {
-	m_objclass = objdetails.m_objclass;
-	m_mapProps = objdetails.m_mapProps;
-	m_mapMVProps = objdetails.m_mapMVProps;
 }
 
 unsigned int objectdetails_t::GetPropInt(property_key_t propname) const

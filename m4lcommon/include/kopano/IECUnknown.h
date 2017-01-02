@@ -32,8 +32,7 @@ namespace KC {
 
 class IECUnknown {
 public:
-	virtual ~IECUnknown() {};
-
+	virtual ~IECUnknown(void) = default;
 	virtual ULONG AddRef() = 0;
 	virtual ULONG Release() = 0;
 	virtual HRESULT QueryInterface(REFIID refiid, void **lpvoid) = 0;

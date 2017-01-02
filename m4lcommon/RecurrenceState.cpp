@@ -115,9 +115,6 @@ private:
 
 class BinWriter _kc_final {
 public:
-    BinWriter() {};
-    ~BinWriter() {};
-    
     void GetData(char **lppData, unsigned int *lpulLen, void *base) {
         char *lpData;
 

@@ -82,7 +82,7 @@ protected:
 	typedef void ( CHtmlToTextParser::*ParseMethodType )( void );
 
 	struct _kc_hidden tagParser {
-		tagParser(){};
+		tagParser(void) = default;
 		tagParser(bool bParseAttrs, ParseMethodType parserMethod){
 			this->bParseAttrs = bParseAttrs;
 			this->parserMethod = parserMethod;

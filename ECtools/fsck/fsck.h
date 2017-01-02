@@ -35,18 +35,12 @@ extern string auto_del;
 
 class Fsck {
 private:
-	ULONG ulFolders;
-	ULONG ulEntries;
-	ULONG ulProblems;
-	ULONG ulFixed;
-	ULONG ulDeleted;
-
+	ULONG ulFolders = 0, ulEntries = 0, ulProblems = 0;
+	ULONG ulFixed = 0, ulDeleted = 0;
 	virtual HRESULT ValidateItem(LPMESSAGE lpMessage, const std::string &strClass) = 0;
 
 public:
-	Fsck();
-	virtual ~Fsck() { }
-
+	virtual ~Fsck(void) = default;
 	HRESULT ValidateMessage(LPMESSAGE lpMessage, const std::string &strName, const std::string &strClass);
 	HRESULT ValidateFolder(LPMAPIFOLDER lpFolder, const std::string &strName);
 

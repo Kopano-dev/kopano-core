@@ -2109,8 +2109,6 @@ exit:
 
 class InputValidator {
 	public:
-		InputValidator(): m_bFailure(false) { }
-
 		bool Failed() const { return m_bFailure; }
 
 		/**
@@ -2139,7 +2137,7 @@ class InputValidator {
 		}
 
 	private:
-		bool	m_bFailure;
+		bool m_bFailure = false;
 };
 
 // compare function for set<tstring, ltstr>, fixes default wchar_t compare, and makes it case-insensitive

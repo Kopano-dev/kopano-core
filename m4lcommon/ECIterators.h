@@ -66,7 +66,7 @@ template<typename ContainerPtrType> class ECHierarchyIterator _kc_final
 	, public ECHierarchyIteratorBase
 {
 public:
-	ECHierarchyIterator() {}
+	ECHierarchyIterator(void) = default;
 	ECHierarchyIterator(LPMAPICONTAINER lpContainer, ULONG ulFlags = 0, ULONG ulDepth = 0)
 		: ECHierarchyIteratorBase(lpContainer, ulFlags, ulDepth) {}
 
@@ -85,7 +85,7 @@ typedef ECHierarchyIterator<ABContainerPtr> ECABContainerIterator;
 
 class ECContentsIteratorBase {
 protected:
-	ECContentsIteratorBase(): m_ulFlags(0), m_ulRowIndex(0) {}  // creates the "end" iterator
+	ECContentsIteratorBase(void) = default; // creates the "end" iterator
 	ECContentsIteratorBase(LPMAPICONTAINER lpContainer, LPSRestriction lpRestriction, ULONG ulFlags, bool bOwnRestriction);
 
 	UnknownPtr& dereference() const
@@ -105,11 +105,10 @@ private:
 	friend class boost::iterator_core_access;
 
 	MAPIContainerPtr	m_ptrContainer;
-	ULONG				m_ulFlags;
+	ULONG m_ulFlags = 0, m_ulRowIndex = 0;
 	SRestrictionPtr		m_ptrRestriction;
 	MAPITablePtr		m_ptrTable;
 	SRowSetPtr			m_ptrRows;
-	ULONG				m_ulRowIndex;
 	UnknownPtr			m_ptrCurrent;
 };
 
@@ -122,7 +121,7 @@ class ECContentsIterator _kc_final
 	, public ECContentsIteratorBase
 {
 public:
-	ECContentsIterator() {}
+	ECContentsIterator(void) = default;
 	ECContentsIterator(LPMAPICONTAINER lpContainer, ULONG ulFlags = 0)
 		: ECContentsIteratorBase(lpContainer, NULL, ulFlags, false) {}
 	ECContentsIterator(LPMAPICONTAINER lpContainer, LPSRestriction lpRestriction, ULONG ulFlags = 0)
